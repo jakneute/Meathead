@@ -4317,17 +4317,17 @@
  {
   "voice": "dale.dale",
   "text": "...GARY?",
-  "from": "game/stages/dale/convoy.ts:807"
+  "from": "game/stages/dale/convoy.ts:809"
  },
  {
   "voice": "dale.dale",
   "text": "A BINDING NAPKIN! PRESS THE RED BUTTON! THAT'S AN ORDER!",
-  "from": "game/stages/dale/convoy.ts:803"
+  "from": "game/stages/dale/convoy.ts:805"
  },
  {
   "voice": "dale.dale",
   "text": "CRICKETS, TWICE A DAY. YOU HAVE MY WORD.",
-  "from": "game/stages/dale/convoy.ts:815"
+  "from": "game/stages/dale/convoy.ts:817"
  },
  {
   "voice": "dale.dale",
@@ -4347,12 +4347,12 @@
  {
   "voice": "dale.dale",
   "text": "I'LL FEED YOUR LIZARD! I'LL FEED HIM PERSONALLY!",
-  "from": "game/stages/dale/convoy.ts:805"
+  "from": "game/stages/dale/convoy.ts:807"
  },
  {
   "voice": "dale.dale",
   "text": "IT WAS IN THE FINE PRINT, RIGGS! PAGE FORTY!",
-  "from": "game/stages/dale/convoy.ts:801"
+  "from": "game/stages/dale/convoy.ts:803"
  },
  {
   "voice": "dale.dale",
@@ -4372,32 +4372,32 @@
  {
   "voice": "dale.dale",
   "text": "RIGGS! HE'S ON YOUR TRUCK! BLOW IT! BLOW IT NOW!",
-  "from": "game/stages/dale/convoy.ts:796"
+  "from": "game/stages/dale/convoy.ts:798"
  },
  {
   "voice": "dale.dale",
   "text": "RIGGS? RIGGS?! ...THAT'S COMING OUT OF YOUR PAYCHECK!",
-  "from": "game/stages/dale/convoy.ts:879"
+  "from": "game/stages/dale/convoy.ts:881"
  },
  {
   "voice": "dale.dale",
   "text": "RIGGS. BUDDY. PAL. THINK OF THE BONUS. THINK OF THE DENTAL.",
-  "from": "game/stages/dale/convoy.ts:809"
- },
- {
-  "voice": "dale.dale",
-  "text": "THE WIDOW'S DENTAL, RIGGS! IT'S VERY GOOD!",
   "from": "game/stages/dale/convoy.ts:811"
  },
  {
   "voice": "dale.dale",
-  "text": "THEN SIR REGINALD GETS THE DENTAL! PRESS IT! PRESS IT! PRESS IT!",
+  "text": "THE WIDOW'S DENTAL, RIGGS! IT'S VERY GOOD!",
   "from": "game/stages/dale/convoy.ts:813"
  },
  {
   "voice": "dale.dale",
+  "text": "THEN SIR REGINALD GETS THE DENTAL! PRESS IT! PRESS IT! PRESS IT!",
+  "from": "game/stages/dale/convoy.ts:815"
+ },
+ {
+  "voice": "dale.dale",
   "text": "YOU KNEW THE RISKS WHEN YOU SIGNED UP!",
-  "from": "game/stages/dale/convoy.ts:799"
+  "from": "game/stages/dale/convoy.ts:801"
  },
  {
   "voice": "dale.goon",
@@ -4827,42 +4827,42 @@
  {
   "voice": "dale.riggs",
   "text": "...SORRY, SIR REGINALD.",
-  "from": "game/stages/dale/convoy.ts:835"
+  "from": "game/stages/dale/convoy.ts:837"
  },
  {
   "voice": "dale.riggs",
   "text": "...YOU PROMISE YOU'LL FEED HIM?",
-  "from": "game/stages/dale/convoy.ts:814"
+  "from": "game/stages/dale/convoy.ts:816"
  },
  {
   "voice": "dale.riggs",
   "text": "BLOW IT? I'M DRIVING IT, DALE!",
-  "from": "game/stages/dale/convoy.ts:797"
+  "from": "game/stages/dale/convoy.ts:799"
  },
  {
   "voice": "dale.riggs",
   "text": "BLOW IT? I'M DRIVING IT, DALE! AND HE SMELLS LIKE HE ALREADY BLEW!",
-  "from": "game/stages/dale/convoy.ts:797"
+  "from": "game/stages/dale/convoy.ts:799"
  },
  {
   "voice": "dale.riggs",
   "text": "I SIGNED UP TO DRIVE! THE AD SAID DRIVING! NOTHING ABOUT EXPLODING!",
-  "from": "game/stages/dale/convoy.ts:800"
+  "from": "game/stages/dale/convoy.ts:802"
  },
  {
   "voice": "dale.riggs",
   "text": "I'M NOT MARRIED! SIR REGINALD'S ALL I'VE GOT!",
-  "from": "game/stages/dale/convoy.ts:812"
+  "from": "game/stages/dale/convoy.ts:814"
  },
  {
   "voice": "dale.riggs",
   "text": "I'VE GOT A LIZARD AT HOME, DALE! WHO'S GONNA FEED MY LIZARD?!",
-  "from": "game/stages/dale/convoy.ts:804"
+  "from": "game/stages/dale/convoy.ts:806"
  },
  {
   "voice": "dale.riggs",
   "text": "IT'S SIR REGINALD, DALE! TWELVE YEARS AND YOU NEVER ASKED!",
-  "from": "game/stages/dale/convoy.ts:808"
+  "from": "game/stages/dale/convoy.ts:810"
  },
  {
   "voice": "dale.riggs",
@@ -4872,17 +4872,17 @@
  {
   "voice": "dale.riggs",
   "text": "THE CONTRACT WAS ONE PAGE, DALE! IT WAS A NAPKIN!",
-  "from": "game/stages/dale/convoy.ts:802"
+  "from": "game/stages/dale/convoy.ts:804"
  },
  {
   "voice": "dale.riggs",
   "text": "WE DON'T GET DENTAL!",
-  "from": "game/stages/dale/convoy.ts:810"
+  "from": "game/stages/dale/convoy.ts:812"
  },
  {
   "voice": "dale.riggs",
   "text": "YOU DON'T EVEN KNOW HIS NAME!",
-  "from": "game/stages/dale/convoy.ts:806"
+  "from": "game/stages/dale/convoy.ts:808"
  },
  {
   "voice": "dale.sheriff",
@@ -4946,6 +4946,11 @@
  },
  {
   "voice": "death",
+  "text": "A TRAILER FELL ON YOU. AT SEA.",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "A VERY FIT SPEED BUMP",
   "from": "game/stages/dale/convoy.ts:444"
  },
@@ -4957,7 +4962,7 @@
  {
   "voice": "death",
   "text": "ACT OF GOD",
-  "from": "game/stages/hector/chase.ts:361"
+  "from": "game/stages/hector/chase.ts:477"
  },
  {
   "voice": "death",
@@ -5342,7 +5347,7 @@
  {
   "voice": "death",
   "text": "COAST GUARDED",
-  "from": "game/stages/hector/chase.ts:323"
+  "from": "game/stages/hector/chase.ts:439"
  },
  {
   "voice": "death",
@@ -6696,6 +6701,11 @@
  },
  {
   "voice": "death",
+  "text": "OUTCLASSED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "OVERDOSED",
   "from": "content/deaths"
  },
@@ -7152,6 +7162,11 @@
  {
   "voice": "death",
   "text": "SHINY THINGS. LIKE EYES.",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHIPPED",
   "from": "content/deaths"
  },
  {
@@ -8026,6 +8041,11 @@
  },
  {
   "voice": "death",
+  "text": "TRAILER PARKED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "TRAMPLED",
   "from": "content/deaths"
  },
@@ -8182,6 +8202,11 @@
  {
   "voice": "death",
   "text": "WRAPPED AROUND A PINE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "YACHT ROCKED",
   "from": "content/deaths"
  },
  {
@@ -8722,12 +8747,12 @@
  {
   "voice": "hector.coastguard",
   "text": "GET OUT OF THE WATER, IDIOT!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "GET OUT OF THE WATER, IDIOT! ...WAIT. WE SAW THAT. STAY IN THE WATER!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
@@ -8737,72 +8762,72 @@
  {
   "voice": "hector.coastguard",
   "text": "PREPARE TO BE BOARDED!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "PULL OVER! ...THE BOAT! AND THEN YOUR PANTS! PULL THOSE UP TOO!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "PULL OVER! ...THE BOAT! PULL THE BOAT OVER!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "SIR. THAT IS A WATERSPOUT.",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "THAT IS A STOLEN VESSEL!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "THAT IS A STOLEN VESSEL! AND YOU HAVE SOILED IT!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "THERE IS A HURRICANE, GENIUS!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "THERE IS A HURRICANE, GENIUS! AND YOUR PANTS!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "TURN AROUND! NOBODY GOES OUT IN THIS!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "TURN AROUND! NOBODY GOES OUT IN THIS! NOBODY GOES OUT LIKE THAT!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "WE CAN SEE YOU! WE ARE RIGHT BEHIND YOU!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "WE CAN SEE YOU! WE CAN SEE ALL OF IT! WE ARE RIGHT BEHIND YOU!",
-  "from": "game/stages/hector/chase.ts:121"
+  "from": "game/stages/hector/chase.ts:179"
  },
  {
   "voice": "hector.coastguard",
   "text": "YOU ARE BEING BOARDED!",
-  "from": "game/stages/hector/chase.ts:335"
+  "from": "game/stages/hector/chase.ts:451"
  },
  {
   "voice": "hector.coastie",
   "text": "WE SAID. GET OUT. OF THE WATER.",
-  "from": "game/stages/hector/chase.ts:345"
+  "from": "game/stages/hector/chase.ts:461"
  },
  {
   "voice": "hector.kid0",
@@ -9577,7 +9602,7 @@
  {
   "voice": "meathead",
   "text": "...UH OH.",
-  "from": "game/stages/dale/convoy.ts:772"
+  "from": "game/stages/dale/convoy.ts:774"
  },
  {
   "voice": "meathead",
@@ -9971,6 +9996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A SHIPPING CONTAINER! WHAT'S IN IT?! WHAT'S IN IT?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A SHOPPING CART! THE WHEEL'S STILL WOBBLING!",
   "from": "HAZARD_HURT"
  },
@@ -10046,6 +10076,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A TRAILER! A WHOLE TRAILER! IT'S MOBILE, ALL RIGHT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A TRASH PANDA! IT BIT MY ANKLE!",
   "from": "HAZARD_HURT"
  },
@@ -10056,7 +10091,17 @@
  },
  {
   "voice": "meathead",
+  "text": "A WHOLE CONTAINER! THAT'S A BOAT'S WORTH OF BOAT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A WOLVERINE! IT'S GOING FOR MY ANKLES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A YACHT! ON MY BOAT! BOAT ON BOAT!",
   "from": "HAZARD_HURT"
  },
  {
@@ -10117,7 +10162,7 @@
  {
   "voice": "meathead",
   "text": "ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.",
-  "from": "game/stages/oscar/bunker.ts:368"
+  "from": "game/stages/oscar/bunker.ts:369"
  },
  {
   "voice": "meathead",
@@ -10182,7 +10227,7 @@
  {
   "voice": "meathead",
   "text": "ARE YOU SERIOUSLY GOING TO WAIT OUT THEIR BREAK?",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -10417,7 +10462,17 @@
  {
   "voice": "meathead",
   "text": "BREAK'S OVER, BOYS.",
-  "from": "game/stages/oscar/bunker.ts:442"
+  "from": "game/stages/oscar/bunker.ts:443"
+ },
+ {
+  "voice": "meathead",
+  "text": "Breaking news.",
+  "from": "components/WeaponGetScene.tsx:226"
+ },
+ {
+  "voice": "meathead",
+  "text": "Breaking news. And wind.",
+  "from": "components/WeaponGetScene.tsx:226"
  },
  {
   "voice": "meathead",
@@ -10572,7 +10627,7 @@
  {
   "voice": "meathead",
   "text": "CAN'T SHOOT. BOTH HANDS ON THE MOTOR.",
-  "from": "game/stages/hector/chase.ts:124"
+  "from": "game/stages/hector/chase.ts:182"
  },
  {
   "voice": "meathead",
@@ -10713,6 +10768,16 @@
   "voice": "meathead",
   "text": "CHILL OUT FOREVER",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "Chill out.",
+  "from": "components/WeaponGetScene.tsx:226"
+ },
+ {
+  "voice": "meathead",
+  "text": "Chill out. And don't sniff.",
+  "from": "components/WeaponGetScene.tsx:226"
  },
  {
   "voice": "meathead",
@@ -11537,7 +11602,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:549"
+  "from": "App.tsx:551"
  },
  {
   "voice": "meathead",
@@ -11712,7 +11777,7 @@
  {
   "voice": "meathead",
   "text": "Get that camera outta my face.",
-  "from": "components/WeaponGetScene.tsx:136"
+  "from": "components/WeaponGetScene.tsx:235"
  },
  {
   "voice": "meathead",
@@ -11837,7 +11902,7 @@
  {
   "voice": "meathead",
   "text": "GIVE IT A SECOND. LET THE GAS BUILD UP.",
-  "from": "game/stages/oscar/bunker.ts:338"
+  "from": "game/stages/oscar/bunker.ts:339"
  },
  {
   "voice": "meathead",
@@ -12482,12 +12547,12 @@
  {
   "voice": "meathead",
   "text": "HE'S READING THE BACK OF A YOGURT. WE'RE WATCHING A MAN READ THE BACK OF A YOGURT.",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
   "text": "HE'S RIGHT BEHIND THAT WINDSHIELD. ONE CLEAN SHOT FROM THE HOOD.",
-  "from": "game/stages/dale/convoy.ts:798"
+  "from": "game/stages/dale/convoy.ts:800"
  },
  {
   "voice": "meathead",
@@ -12586,6 +12651,11 @@
  },
  {
   "voice": "meathead",
+  "text": "Here's your close-up.",
+  "from": "components/WeaponGetScene.tsx:226"
+ },
+ {
+  "voice": "meathead",
   "text": "HEY! PUT ME DOWN! I'M NOT DONE!",
   "from": "game/stages/oscar/swirly.ts:103"
  },
@@ -12657,7 +12727,7 @@
  {
   "voice": "meathead",
   "text": "HOLD ON. WHO'S DRIVING NOW?",
-  "from": "game/stages/dale/convoy.ts:880"
+  "from": "game/stages/dale/convoy.ts:882"
  },
  {
   "voice": "meathead",
@@ -12673,6 +12743,16 @@
   "voice": "meathead",
   "text": "HOME RUN! INTO THE GROUND!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "Hope you're waterproof.",
+  "from": "components/WeaponGetScene.tsx:226"
+ },
+ {
+  "voice": "meathead",
+  "text": "Hope you're waterproof. I'm not.",
+  "from": "components/WeaponGetScene.tsx:226"
  },
  {
   "voice": "meathead",
@@ -12847,7 +12927,7 @@
  {
   "voice": "meathead",
   "text": "I CAN FEEL MY GAINS LEAVING MY BODY.",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -13032,7 +13112,7 @@
  {
   "voice": "meathead",
   "text": "I HAVE A PRESIDENT WAITING ON ME. THEY'RE PLAYING GO FISH.",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -13282,12 +13362,12 @@
  {
   "voice": "meathead",
   "text": "I'LL TAKE THE BIKE. AND THE GUN.",
-  "from": "game/stages/oscar/bunker.ts:475"
+  "from": "game/stages/oscar/bunker.ts:476"
  },
  {
   "voice": "meathead",
   "text": "I'LL TAKE THE BIKE. AND THE GUN. YOU WON'T WANT THE SEAT BACK.",
-  "from": "game/stages/oscar/bunker.ts:475"
+  "from": "game/stages/oscar/bunker.ts:476"
  },
  {
   "voice": "meathead",
@@ -13692,7 +13772,7 @@
  {
   "voice": "meathead",
   "text": "IT'S EATING THROUGH THE METAL! ONE MORE AND I'M GOING IN THERE!",
-  "from": "game/stages/dale/convoy.ts:770"
+  "from": "game/stages/dale/convoy.ts:772"
  },
  {
   "voice": "meathead",
@@ -13712,7 +13792,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:549"
+  "from": "App.tsx:551"
  },
  {
   "voice": "meathead",
@@ -13767,7 +13847,7 @@
  {
   "voice": "meathead",
   "text": "JUST SAYING. THAT GAS LINE ISN'T GOING TO SHOOT ITSELF.",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -13882,7 +13962,7 @@
  {
   "voice": "meathead",
   "text": "LET ME HAVE A LOOK AROUND. A REAL LOOK.",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -13897,7 +13977,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:549"
+  "from": "App.tsx:551"
  },
  {
   "voice": "meathead",
@@ -13977,7 +14057,7 @@
  {
   "voice": "meathead",
   "text": "MAKE ME!",
-  "from": "game/stages/hector/chase.ts:124"
+  "from": "game/stages/hector/chase.ts:182"
  },
  {
   "voice": "meathead",
@@ -14506,6 +14586,11 @@
  },
  {
   "voice": "meathead",
+  "text": "No close-ups of the pants.",
+  "from": "components/WeaponGetScene.tsx:226"
+ },
+ {
+  "voice": "meathead",
   "text": "NO DEPTH ON THAT SQUAT",
   "from": "VULGARITIES"
  },
@@ -14597,7 +14682,7 @@
  {
   "voice": "meathead",
   "text": "NO, REALLY. I'M ASKING. ARE WE WAITING THIS OUT?",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -14622,7 +14707,7 @@
  {
   "voice": "meathead",
   "text": "NOBODY. NOBODY IS DRIVING NOW.",
-  "from": "game/stages/dale/convoy.ts:898"
+  "from": "game/stages/dale/convoy.ts:900"
  },
  {
   "voice": "meathead",
@@ -14672,7 +14757,7 @@
  {
   "voice": "meathead",
   "text": "NOT WITH THAT! THIS NEEDS A SURGEON'S TOUCH. THE HANDGUN. FROM THE HOOD.",
-  "from": "game/stages/dale/convoy.ts:848"
+  "from": "game/stages/dale/convoy.ts:850"
  },
  {
   "voice": "meathead",
@@ -14692,12 +14777,12 @@
  {
   "voice": "meathead",
   "text": "NOTHING IN HERE BUT SANDWICHES AND A LOCKED DOOR. ...SO FAR.",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
   "text": "NOTHING TO LIGHT IN HERE. YET.",
-  "from": "game/stages/oscar/bunker.ts:338"
+  "from": "game/stages/oscar/bunker.ts:339"
  },
  {
   "voice": "meathead",
@@ -14707,7 +14792,7 @@
  {
   "voice": "meathead",
   "text": "NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...",
-  "from": "game/stages/oscar/bunker.ts:338"
+  "from": "game/stages/oscar/bunker.ts:339"
  },
  {
   "voice": "meathead",
@@ -14747,7 +14832,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:549"
+  "from": "App.tsx:551"
  },
  {
   "voice": "meathead",
@@ -14822,7 +14907,7 @@
  {
   "voice": "meathead",
   "text": "OKAY. FINE. WE WAIT. I'LL JUST STAND HERE. SHRINKING.",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -15412,7 +15497,7 @@
  {
   "voice": "meathead",
   "text": "RIGHT?!",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -16026,6 +16111,11 @@
  },
  {
   "voice": "meathead",
+  "text": "Smell that? That's the barbecue.",
+  "from": "components/WeaponGetScene.tsx:226"
+ },
+ {
+  "voice": "meathead",
   "text": "SMELL THE DEFEAT",
   "from": "VULGARITIES"
  },
@@ -16043,6 +16133,11 @@
   "voice": "meathead",
   "text": "SMELLS LIKE BEARD OIL. NOT FOR LONG.",
   "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "meathead",
+  "text": "Smile for the barbecue.",
+  "from": "components/WeaponGetScene.tsx:226"
  },
  {
   "voice": "meathead",
@@ -16142,6 +16237,16 @@
  {
   "voice": "meathead",
   "text": "SOMEBODY'S HOT TUB! THERE WAS A GUY IN IT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMEBODY'S HOUSE! THE TV WAS STILL ON!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMEBODY'S YACHT! THERE'S STILL MIMOSAS ON IT!",
   "from": "HAZARD_HURT"
  },
  {
@@ -16273,6 +16378,16 @@
   "voice": "meathead",
   "text": "STAY SMALL",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "Stay tuned, dipshit.",
+  "from": "components/WeaponGetScene.tsx:226"
+ },
+ {
+  "voice": "meathead",
+  "text": "Stay tuned. Don't zoom out.",
+  "from": "components/WeaponGetScene.tsx:226"
  },
  {
   "voice": "meathead",
@@ -16667,7 +16782,7 @@
  {
   "voice": "meathead",
   "text": "THAT GAS LINE. ONE SHOT. THAT'S ALL IT WOULD TAKE.",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -16722,7 +16837,7 @@
  {
   "voice": "meathead",
   "text": "THAT OLD GAS LINE ON THE WALL LOOKS REAL THIN...",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -17007,7 +17122,7 @@
  {
   "voice": "meathead",
   "text": "THE GAS LINE IS STILL RIGHT THERE, BY THE WAY.",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -17232,7 +17347,7 @@
  {
   "voice": "meathead",
   "text": "THERE'S GOT TO BE ANOTHER WAY THROUGH THIS ROOM.",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -17378,6 +17493,16 @@
   "voice": "meathead",
   "text": "TIMBER! WRONG WAY ROUND!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "Time for your shot.",
+  "from": "components/WeaponGetScene.tsx:226"
+ },
+ {
+  "voice": "meathead",
+  "text": "Time for your shot. Don't look down.",
+  "from": "components/WeaponGetScene.tsx:226"
  },
  {
   "voice": "meathead",
@@ -17592,12 +17717,12 @@
  {
   "voice": "meathead",
   "text": "UNION RULES.",
-  "from": "game/stages/oscar/bunker.ts:394"
+  "from": "game/stages/oscar/bunker.ts:395"
  },
  {
   "voice": "meathead",
   "text": "UNION RULES. SORRY ABOUT THE ROOM.",
-  "from": "game/stages/oscar/bunker.ts:394"
+  "from": "game/stages/oscar/bunker.ts:395"
  },
  {
   "voice": "meathead",
@@ -17762,7 +17887,7 @@
  {
   "voice": "meathead",
   "text": "WE ARE NOT WAITING OUT A UNION BREAK. RIGHT?",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -17872,7 +17997,7 @@
  {
   "voice": "meathead",
   "text": "WHO ARE YOU? WHO RAISED YOU?",
-  "from": "game/stages/oscar/bunker.ts:366"
+  "from": "game/stages/oscar/bunker.ts:367"
  },
  {
   "voice": "meathead",
@@ -18042,7 +18167,7 @@
  {
   "voice": "meathead",
   "text": "WHOA. THE ROOF'S SIZZLING. MAYBE DON'T BARF ON THE THING I'M STANDING ON.",
-  "from": "game/stages/dale/convoy.ts:770"
+  "from": "game/stages/dale/convoy.ts:772"
  },
  {
   "voice": "meathead",
@@ -18258,6 +18383,16 @@
   "voice": "meathead",
   "text": "YOU LOOK LIKE A MAN WHO NEEDS A SEMINAR. THREE DAYS. CATERED.",
   "from": "game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "You make me sick.",
+  "from": "components/WeaponGetScene.tsx:226"
+ },
+ {
+  "voice": "meathead",
+  "text": "You make me sick. I make me sick.",
+  "from": "components/WeaponGetScene.tsx:226"
  },
  {
   "voice": "meathead",
@@ -18597,12 +18732,12 @@
  {
   "voice": "oscar.biker",
   "text": "HE'S GOT DAN'S HOG! AND THE GUN!",
-  "from": "game/stages/oscar/bunker.ts:490"
+  "from": "game/stages/oscar/bunker.ts:491"
  },
  {
   "voice": "oscar.biker",
   "text": "HE'S GOT DAN'S HOG! AND THE GUN! AND HE'S SITTING ON IT LIKE THAT!",
-  "from": "game/stages/oscar/bunker.ts:490"
+  "from": "game/stages/oscar/bunker.ts:491"
  },
  {
   "voice": "oscar.biker",
@@ -18692,12 +18827,12 @@
  {
   "voice": "oscar.dan",
   "text": "NOBODY TOUCHES HER BUT DIRTY DAN.",
-  "from": "game/stages/oscar/bunker.ts:474"
+  "from": "game/stages/oscar/bunker.ts:475"
  },
  {
   "voice": "oscar.dan",
   "text": "NOBODY TOUCHES HER BUT DIRTY DAN. ...AND NOBODY THAT DIRTY.",
-  "from": "game/stages/oscar/bunker.ts:474"
+  "from": "game/stages/oscar/bunker.ts:475"
  },
  {
   "voice": "oscar.dan",
@@ -18732,12 +18867,12 @@
  {
   "voice": "oscar.foreman",
   "text": "...EVERYBODY. BACK. TO WORK.",
-  "from": "game/stages/oscar/bunker.ts:441"
+  "from": "game/stages/oscar/bunker.ts:442"
  },
  {
   "voice": "oscar.foreman",
   "text": "AND THAT'S BREAK. BACK TO IT, FELLAS.",
-  "from": "game/stages/oscar/bunker.ts:390"
+  "from": "game/stages/oscar/bunker.ts:391"
  },
  {
   "voice": "oscar.foreman",
@@ -18767,17 +18902,17 @@
  {
   "voice": "oscar.foreman",
   "text": "DOOR'S OPEN, PAL. YOU WAITED OUT THE WHOLE BREAK? LIKE THAT? RESPECT. FROM OVER HERE.",
-  "from": "game/stages/oscar/bunker.ts:393"
+  "from": "game/stages/oscar/bunker.ts:394"
  },
  {
   "voice": "oscar.foreman",
   "text": "DOOR'S OPEN, PAL. YOU WAITED OUT THE WHOLE BREAK? RESPECT.",
-  "from": "game/stages/oscar/bunker.ts:393"
+  "from": "game/stages/oscar/bunker.ts:394"
  },
  {
   "voice": "oscar.foreman",
   "text": "EGGS IS AN IMPROVEMENT.",
-  "from": "game/stages/oscar/bunker.ts:361"
+  "from": "game/stages/oscar/bunker.ts:362"
  },
  {
   "voice": "oscar.foreman",
@@ -18792,12 +18927,12 @@
  {
   "voice": "oscar.foreman",
   "text": "ONE MINUTE, FELLAS. FINISH YOUR SANDWICHES.",
-  "from": "game/stages/oscar/bunker.ts:370"
+  "from": "game/stages/oscar/bunker.ts:371"
  },
  {
   "voice": "oscar.foreman",
   "text": "ONE MINUTE, FELLAS. HOLD YOUR NOSES. ALMOST THERE.",
-  "from": "game/stages/oscar/bunker.ts:370"
+  "from": "game/stages/oscar/bunker.ts:371"
  },
  {
   "voice": "oscar.foreman",
@@ -18807,7 +18942,7 @@
  {
   "voice": "oscar.foreman",
   "text": "SMELLS LIKE OVERTIME TO ME.",
-  "from": "game/stages/oscar/bunker.ts:361"
+  "from": "game/stages/oscar/bunker.ts:362"
  },
  {
   "voice": "oscar.foreman",
@@ -18817,7 +18952,7 @@
  {
   "voice": "oscar.foreman",
   "text": "THAT'S A GRIEVANCE. I'M FILING A GRIEVANCE.",
-  "from": "game/stages/oscar/bunker.ts:354"
+  "from": "game/stages/oscar/bunker.ts:355"
  },
  {
   "voice": "oscar.foreman",
@@ -18837,7 +18972,7 @@
  {
   "voice": "oscar.foreman",
   "text": "UP.",
-  "from": "game/stages/oscar/bunker.ts:392"
+  "from": "game/stages/oscar/bunker.ts:393"
  },
  {
   "voice": "oscar.foreman",
@@ -18887,7 +19022,7 @@
  {
   "voice": "oscar.worker",
   "text": "FIVE MORE MINUTES...",
-  "from": "game/stages/oscar/bunker.ts:391"
+  "from": "game/stages/oscar/bunker.ts:392"
  },
  {
   "voice": "oscar.worker",
@@ -18917,27 +19052,27 @@
  {
   "voice": "oscar.worker",
   "text": "MY BREAK!",
-  "from": "game/stages/oscar/bunker.ts:440"
+  "from": "game/stages/oscar/bunker.ts:441"
  },
  {
   "voice": "oscar.worker",
   "text": "MY BREAK! AND IT STILL SMELLS LIKE HIM!",
-  "from": "game/stages/oscar/bunker.ts:440"
+  "from": "game/stages/oscar/bunker.ts:441"
  },
  {
   "voice": "oscar.worker",
   "text": "NOW IT SMELLS LIKE EGGS TOO.",
-  "from": "game/stages/oscar/bunker.ts:361"
+  "from": "game/stages/oscar/bunker.ts:362"
  },
  {
   "voice": "oscar.worker",
   "text": "OH, COME ON. NOT IN THE BREAK ROOM.",
-  "from": "game/stages/oscar/bunker.ts:353"
+  "from": "game/stages/oscar/bunker.ts:354"
  },
  {
   "voice": "oscar.worker",
   "text": "SOMEBODY MICROWAVED EGGS AGAIN.",
-  "from": "game/stages/oscar/bunker.ts:361"
+  "from": "game/stages/oscar/bunker.ts:362"
  },
  {
   "voice": "oscar.worker",
@@ -18957,7 +19092,7 @@
  {
   "voice": "oscar.worker",
   "text": "WE'RE NOT LEAVING, PAL. IT'S OUR BREAK. WE'LL BREATHE THROUGH OUR MOUTHS.",
-  "from": "game/stages/oscar/bunker.ts:355"
+  "from": "game/stages/oscar/bunker.ts:356"
  },
  {
   "voice": "oscar.worker",

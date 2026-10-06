@@ -4,7 +4,7 @@
 
 import type { GameState } from '../../core/state';
 import type { Chase, Junk } from './chase';
-import { junkSize, CHASE_BOAT_W, BOARD_LEAP, BOARD_BEAT, BOARD_LINE, BLOW, WRECK_BLAST, WRECK_RETURN, WRECK_SPLASH, WRECK_LEGS_LIT, dropAhead, DROP_WARN } from './chase';
+import { junkSize, CHASE_BOAT_W, BOARD_LEAP, BOARD_BEAT, BOARD_LINE, BLOW, WRECK_BLAST, WRECK_RETURN, WRECK_SPLASH, WRECK_LEGS_LIT, dropZones, dropReach, DROP_WARN, BIG_WARN } from './chase';
 import { drawSeatedAtMotor, drawFlung } from '../../render/player/moves';
 import { inputDevice, padFamily } from '../../platform/device';
 import { drawPadFace } from '../../render/padGlyph';
@@ -40,6 +40,38 @@ const drawJunk = (ctx: Ctx, j: Junk) => {
       case 2: shape(ctx, () => ctx.ellipse(0, 0, 16, 10, 0, 0, Math.PI * 2), '#F472B6', 1); shape(ctx, () => ctx.ellipse(16, -12, 5, 5, 0, 0, Math.PI * 2), '#F472B6', 0.8); ctx.strokeStyle = '#F472B6'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(10, -4); ctx.lineTo(16, -10); ctx.stroke(); ctx.fillStyle = INK; ctx.fillRect(20, -13, 6, 2); break;
       case 3: ctx.strokeStyle = '#A1A1AA'; ctx.lineWidth = 2; ctx.strokeRect(x + 2, y, w - 6, h - 10); for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.moveTo(x + 2 + k * 8, y); ctx.lineTo(x + 2 + k * 8, y + h - 10); ctx.stroke(); } ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(x + 8, y + h - 4, 3, 0, Math.PI * 2); ctx.arc(x + w - 10, y + h - 4, 3, 0, Math.PI * 2); ctx.fill(); break;
       default: for (let k = 0; k < 6; k++) { ctx.fillStyle = k % 2 ? '#F8FAFC' : '#EF4444'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 22, Math.PI + k * Math.PI / 6, Math.PI + (k + 1) * Math.PI / 6); ctx.fill(); } ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, 22, Math.PI, 0); ctx.stroke(); ctx.fillStyle = INK; ctx.fillRect(-1, 0, 2, 18);
+    }
+  } else if (j.big) {
+    switch (j.look) {
+      case 0: {
+        // (a single-wide trailer: cream siding, the brown band, its windows and door, the skirting torn off it)
+        shape(ctx, () => ctx.rect(x, y + 4, w, h - 12), lin(ctx, y + 4, y + h - 8, [[0, '#FEF3C7'], [0.5, '#FDE68A'], [1, '#D6B86A']]), 1.4);
+        ctx.fillStyle = '#92400E'; ctx.fillRect(x + 1, y + h * 0.5, w - 2, 6);
+        ctx.fillStyle = '#B45309'; ctx.fillRect(x + 1, y + h * 0.5, w - 2, 2);
+        for (const wx of [x + 14, x + 52, x + 120, x + 152]) { shape(ctx, () => ctx.rect(wx, y + 12, 20, 12), '#1E3A8A', 0.8); ctx.fillStyle = '#93C5FD'; ctx.fillRect(wx + 2, y + 14, 6, 3); }
+        shape(ctx, () => ctx.rect(x + 86, y + 12, 18, h - 24), '#E5E7EB', 0.8); ctx.fillStyle = INK; ctx.fillRect(x + 100, y + h * 0.5 - 4, 2, 2);
+        ctx.fillStyle = '#78716C'; for (let k = 0; k < 9; k++) ctx.fillRect(x + 4 + k * 20, y + h - 8, 12, 4 + (k % 3));
+        ctx.fillStyle = '#A8A29E'; ctx.fillRect(x - 6, y + h * 0.62, 8, 3); ctx.fillRect(x - 10, y + h * 0.62 + 2, 4, 6);
+        break;
+      }
+      case 1: {
+        // (a shipping container: rust-red, ribbed, the doors' locking bars at one end, its number stenciled on)
+        shape(ctx, () => ctx.rect(x, y + 2, w, h - 4), lin(ctx, y, y + h, [[0, '#DC2626'], [0.6, '#B91C1C'], [1, '#7F1D1D']]), 1.4);
+        ctx.fillStyle = '#7F1D1D'; for (let k = 1; k < 23; k++) ctx.fillRect(x + k * 8, y + 5, 2, h - 10);
+        ctx.fillStyle = '#FCA5A5'; for (let k = 1; k < 23; k++) ctx.fillRect(x + k * 8 - 1, y + 5, 1, h - 10);
+        ctx.fillStyle = '#450A0A'; for (const bx of [x + w - 22, x + w - 12]) ctx.fillRect(bx, y + 4, 3, h - 8);
+        ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('HRCU 404', x + 14, y + 16);
+        break;
+      }
+      default: {
+        // (a yacht: the white hull to a raked bow, its stripe, the cabin, its tinted windows, the rail)
+        shape(ctx, () => { ctx.moveTo(x, y + h * 0.42); ctx.lineTo(x + w, y + h * 0.3); ctx.lineTo(x + w - 36, y + h); ctx.lineTo(x + 8, y + h); ctx.closePath(); }, lin(ctx, y + h * 0.3, y + h, [[0, '#F8FAFC'], [1, '#CBD5E1']]), 1.4);
+        ctx.fillStyle = '#1D4ED8'; ctx.beginPath(); ctx.moveTo(x + 4, y + h * 0.62); ctx.lineTo(x + w - 22, y + h * 0.56); ctx.lineTo(x + w - 26, y + h * 0.64); ctx.lineTo(x + 6, y + h * 0.7); ctx.fill();
+        shape(ctx, () => { ctx.moveTo(x + 30, y + h * 0.4); ctx.lineTo(x + 46, y); ctx.lineTo(x + 120, y); ctx.lineTo(x + 140, y + h * 0.34); ctx.closePath(); }, '#F1F5F9', 1.2);
+        ctx.fillStyle = '#0F172A'; ctx.beginPath(); ctx.moveTo(x + 48, y + 6); ctx.lineTo(x + 116, y + 6); ctx.lineTo(x + 128, y + h * 0.28); ctx.lineTo(x + 40, y + h * 0.3); ctx.fill();
+        ctx.fillStyle = '#38BDF8'; ctx.fillRect(x + 56, y + 8, 18, 2);
+        ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(x + 140, y + h * 0.26); ctx.lineTo(x + w - 6, y + h * 0.2); ctx.stroke();
+      }
     }
   } else {
     switch (j.look) {
@@ -206,21 +238,68 @@ export const drawWreck = (ctx: Ctx, state: GameState, c: Chase, bx: number, by: 
 };
 
 /**
- * Where what's coming down will land, if he keeps going as he is: over the boat (it's drawn over it), a ring on the
- * water and a column of red light up from it, the way the lightning gives itself away on the beach, filling in as it
- * comes; it slides back along the boat as he speeds up and forward as he eases off, and it's exact when it lands.
+ * Where what's coming down will land, and the three zones, all as they'll be from where the boat is now, held up
+ * against it as he's going (so the zone he's in, at the speed he's holding, sits right under the boat; lean on it and
+ * the lot slides back a zone, ease off and it slides forward): along the water a strip of three, back to front zone 1
+ * (easing off, its arrow pointing back), 2 (as he is) and 3 (leaning on it, pointing on), the one or two it's aimed at
+ * red; over that a column of red light up off the water across them, the way the lightning gives itself away on the
+ * beach, filling in as it comes; a ring and its shadow where it'll land. As it gets close there's less he can do about
+ * it, so the zones close up (the strip fades) and the column narrows to what's coming down; it's exact when it lands.
  */
 export const drawDropMarks = (ctx: Ctx, state: GameState, c: Chase) => {
   for (const j of c.junk) {
-    if (j.kind !== 'drop' || j.warn <= 0) continue;
-    const k = 1 - j.warn / DROP_WARN;
-    const mx = c.boatX + CHASE_BOAT_W / 2 + dropAhead(c, j), my = COURSE.sea.y + 2;
+    if (j.kind !== 'drop' || j.warn <= 0 || j.hit) continue;
+    const k = 1 - j.warn / (j.big ? BIG_WARN : DROP_WARN);
+    const { zones, cur, mid } = dropZones(c, j);
+    const [lo, hi] = j.zones ?? [2, 2];
+    // (each zone's middle, as against the boat as it's going now; how wide a zone is: the step between them)
+    const lane = zones.map(q => mid + q - cur);
+    const step = (zones[2] - zones[0]) / 2;
+    const mx = (j.tx ?? j.x) - cur, my = COURSE.sea.y + 2;
+    const sw = junkSize(j).w;
     const blink = 0.55 + 0.45 * Math.abs(Math.floor(j.warn / 4) % 2);
+    // (a zone's red if it'd get him there: it's aimed at it, or near enough it still would; shy of it by a bit, it's red)
+    const hot = lane.map(l => Math.abs(l - mx) < dropReach(j) + 12);
     ctx.save();
-    ctx.fillStyle = `rgba(239, 68, 68, ${(0.1 + k * 0.25) * blink})`; ctx.fillRect(mx - 22, my - 260 * k, 44, 260 * k);
+    // The strip of zones (till they've closed up too far to tell apart)
+    const show = Math.max(0, Math.min(1, (step - 40) / 60));
+    if (show > 0) {
+      const sy = COURSE.sea.y + 7, sh = 12;
+      const arrow = (z: number, light: boolean) => {
+        const ax = lane[z - 1], ay = sy + sh / 2;
+        ctx.fillStyle = light ? '#FEF2F2' : '#0F172A';
+        ctx.beginPath();
+        if (z === 1) { ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 4, ay - 4.5); ctx.lineTo(ax + 4, ay + 4.5); }
+        else if (z === 3) { ctx.moveTo(ax + 7, ay); ctx.lineTo(ax - 4, ay - 4.5); ctx.lineTo(ax - 4, ay + 4.5); }
+        else ctx.rect(ax - 5, ay - 2, 10, 4);
+        ctx.fill();
+      };
+      for (let z = 1; z <= 3; z++) {
+        const x0 = lane[z - 1] - step / 2 + 3, w = step - 6, h = hot[z - 1];
+        ctx.globalAlpha = show * (h ? 0.75 + 0.25 * blink : 0.6);
+        ctx.fillStyle = h ? '#DC2626' : 'rgba(224, 242, 254, 0.35)'; ctx.fillRect(x0, sy, w, sh);
+        ctx.strokeStyle = h ? '#FECACA' : '#F8FAFC'; ctx.lineWidth = 1.5; ctx.strokeRect(x0 + 0.5, sy + 0.5, w - 1, sh - 1);
+        // (its arrow: back for easing off, a bar for as he is, on for leaning on it)
+        arrow(z, h);
+      }
+      // (two side by side, a big one: one bar of red right across both, so it's plain it's the two)
+      for (let z = 1; z < 3; z++) if (hot[z - 1] && hot[z]) {
+        ctx.globalAlpha = show * (0.75 + 0.25 * blink);
+        ctx.fillStyle = '#DC2626'; ctx.fillRect(lane[z - 1], sy, lane[z] - lane[z - 1], sh);
+        ctx.strokeStyle = '#FECACA'; ctx.lineWidth = 2; ctx.strokeRect(lane[z - 1] - step / 2 + 3.5, sy - 0.5, lane[z] - lane[z - 1] + step - 7, sh + 1);
+        arrow(z, true); arrow(z + 1, true);
+      }
+      ctx.globalAlpha = 1;
+    }
+    // The column of light: across the zone(s) while they're apart, down to what's coming down as they close up
+    const cw = Math.max(sw * 0.6, step * (hi - lo + 1) * 0.8);
+    ctx.fillStyle = `rgba(239, 68, 68, ${(0.1 + k * 0.25) * blink})`; ctx.fillRect(mx - cw / 2, my - 260 * k, cw, 260 * k);
+    if (j.big) { ctx.fillStyle = `rgba(254, 202, 202, ${0.25 * blink})`; ctx.fillRect(mx - cw / 2, my - 260 * k, 3, 260 * k); ctx.fillRect(mx + cw / 2 - 3, my - 260 * k, 3, 260 * k); }
+    // The ring, and the shadow where it'll come down (as big as what's coming)
+    const r = sw / 70;
     ctx.strokeStyle = `rgba(248, 113, 113, ${0.6 + 0.4 * blink})`; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.ellipse(mx, my, 32 - k * 8, 8 - k * 2, 0, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = `rgba(2, 6, 23, ${0.2 + k * 0.45})`; ctx.beginPath(); ctx.ellipse(mx, my, 18 + k * 10, 4 + k * 2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(mx, my, (32 - k * 8) * r, 8 - k * 2, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = `rgba(2, 6, 23, ${0.2 + k * 0.45})`; ctx.beginPath(); ctx.ellipse(mx, my, (18 + k * 10) * r, 4 + k * 2, 0, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
 };

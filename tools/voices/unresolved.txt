@@ -12,7 +12,7 @@ game/stages/artie/ski.ts:540 call: deathByCause(state)
 game/stages/hector/hazards.ts:445 name: undefined
 game/stages/hector/hazards.ts:451 name: undefined
 game/stages/hector/daycare.ts:39 voice: voiceOf(who)
-game/stages/hector/chase.ts:361 call: deathByCause(state)
+game/stages/hector/chase.ts:477 call: deathByCause(state)
 game/stages/victor/hazards.ts:266 name: undefined
 game/stages/victor/hazards.ts:274 name: undefined
 game/stages/ernie/quake.ts:347 name: undefined
@@ -51,7 +51,7 @@ game/stages/tommy/thing.ts:330 expr: th.asks + state.frame
 game/stages/tommy/bike.ts:575 name: undefined
 game/stages/tommy/escape.ts:278 name: undefined
 game/stages/tommy/script.ts:81 voice: VOICES[line.who]
-game/stages/oscar/bunker.ts:375 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
+game/stages/oscar/bunker.ts:376 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
 game/stages/oscar/runtime.ts:176 name: undefined
 game/stages/oscar/runtime.ts:179 call: deathByCause(ctx.state)
 game/stages/oscar/runtime.ts:182 call: chaseDeathMessage(rt.chase)
@@ -87,6 +87,6 @@ game/core/update.ts:612 call: layout?.deathMessage?.(ctx)
 game/core/update.ts:612 call: deathByCause(state)
 game/core/update.ts:612 call: deathFallback(state, ctx.stageId, fell)
 game/player/player.ts:82 call: message()
-App.tsx:239 voice: getBossVoice(selectedStage)
-App.tsx:466 name: undefined
-App.tsx:467 expr: null
+App.tsx:241 voice: getBossVoice(selectedStage)
+App.tsx:468 name: undefined
+App.tsx:469 expr: null
