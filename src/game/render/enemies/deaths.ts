@@ -70,7 +70,7 @@ const drawBody = (ctx: Ctx, d: EnemyDeath, state: GameState, o: BodyOpts = {}) =
   const body = (c: Ctx) => {
     if (d.dummy) drawDummy(c, { id: `dummy-${d.dummy}`, pos: { x, y }, width: w, height: h, vel: { x: d.sprite?.facing ?? 1, y: 0 } } as Enemy, 0);
     else if (d.crew) drawCrewman(c, x + w / 2, y + h, d.crew.facing, d.crew.shirt);
-    else if (d.sprite) drawKindCorpse(c, d.sprite.kind, x, y, w, h, d.sprite.facing, o.phase ?? d.sprite.phase, state, d.sprite.variant, o.run ?? 0);
+    else if (d.sprite) drawKindCorpse(c, d.sprite.kind, x, y, w, h, d.sprite.facing, o.phase ?? d.sprite.phase, state, d.sprite.variant, o.run ?? 0, d.sprite.seed);
     else { c.fillStyle = d.color; c.fillRect(x, y, w, h); }
   };
   // (under a filter: drawn plain and put down filtered once, not filtered shape by shape)
