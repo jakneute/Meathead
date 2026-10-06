@@ -7,7 +7,7 @@
 import { FLATTENED_FRAMES } from '../../bosses/hector';
 import { vortexSpin, vortexShape, vortexGripLevel } from '../../bosses/hector';
 import { Enemy } from '../../../types';
-import { FaceStyle, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, shoe, foil, bodyBlood, breath } from './kit';
+import { FaceStyle, Air, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, shoe, foil, bodyBlood, breath, airOf, airBlend, joint, mix, bentLimb } from './kit';
 
 const SKIN = '#E8955B', SKIN_DARK = '#B8693A';
 const FACE: FaceStyle = {
@@ -21,30 +21,49 @@ export const drawHector = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   const gore = goreOf(e);
   const storm = e.bossState === 'hurricane';
   const flat = e.painKind === 'flattened' && (e.painT ?? 0) > 0 && e.health > 0;
-  const mood = flat ? 'dazed' : moodOf(e, frame, { hurricane: 'manic', jumping: 'fierce' });
+  // His leap to the far side of the room: a split leap, presenting the weather with the clicker on the way, then down with
+  // the wind in his jacket and his hair, and into a crouch with his arms flung out as the storm starts up round him
+  const A = airOf(e, frame, { vMax: 18, airborne: e.isGroundedBoss === false && !flat });
+  const land = flat ? 0 : A.land;
+  const jump = A.air || land > 0;
+  const lower = 5 * land;
+  const windy = A.air && A.v > 0.3;
+  const mood = flat ? 'dazed' : moodOf(e, frame, { hurricane: 'manic', jumping: A.air && A.v < 0.3 ? 'beam' : 'fierce' });
   const b = breath(frame);
-  const gust = storm ? Math.sin(frame * 0.6) : Math.sin(frame * 0.08) * 0.3;
+  const gust = storm || windy ? Math.sin(frame * 0.6) : Math.sin(frame * 0.08) * 0.3;
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
+  const lean = !jump ? 0 : A.air ? f * 0.1 * Math.max(0, -A.v) * A.off : f * 0.08 * land;
+  if (lean) { ctx.translate(40, 70); ctx.rotate(lean); ctx.translate(-40, -70); }
   // (flattened: squashed down flat at first, then springing back up, wobbling, to his full height)
   const since = flat ? FLATTENED_FRAMES - (e.painT ?? 0) : 0;
   const squash = !flat ? 0 : since < 8 ? 1 : Math.max(0, 1 - (since - 8) / 14);
   const wob = flat && since >= 8 ? Math.sin(since * 0.8) * 0.08 * (1 - squash) : 0;
   if (flat) { ctx.translate(40, 80); ctx.scale(1 + 0.45 * squash - wob, 1 - 0.55 * squash + wob); ctx.translate(-40, -80); }
 
+  if (jump) drawLeapLegs(ctx, A, land, f);
   // Loafers and pressed navy slacks
+  else {
   shoe(ctx, 30, 80, 14, 5, f, '#18181B', '#000000');
   shoe(ctx, 50, 80, 14, 5, f, '#18181B', '#000000');
   ctx.fillStyle = '#1E293B';
   ctx.beginPath(); ctx.moveTo(23, 54); ctx.lineTo(57, 54); ctx.lineTo(56, 76); ctx.lineTo(43, 76); ctx.lineTo(40, 62); ctx.lineTo(37, 76); ctx.lineTo(24, 76); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#334155'; ctx.fillRect(30, 57, 0.6, 18); ctx.fillRect(50, 57, 0.6, 18);
+  }
 
-  ctx.save(); ctx.translate(0, -b);
+  ctx.save(); ctx.translate(0, -b + lower);
   // Shirt and tie at the open neck
   ctx.fillStyle = '#F1F5F9'; ctx.fillRect(34, 32, 12, 12);
-  ctx.fillStyle = '#B91C1C';
-  ctx.beginPath(); ctx.moveTo(38.6, 33); ctx.lineTo(41.4, 33); ctx.lineTo(42.2, 43 + gust); ctx.lineTo(40, 45 + gust); ctx.lineTo(37.8, 43 + gust); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#7F1D1D'; ctx.fillRect(38.8, 33, 2.4, 2);
+  // (coming down, the wind of it flips his tie up out of his jacket and over his shoulder)
+  const flip = windy ? Math.min(1, (A.v - 0.3) * 2) : 0;
+  const tie = () => {
+    const tx = mix(40, 40 - f * 15, flip), ty = mix(45 + gust, 31 + gust, flip);
+    ctx.fillStyle = '#B91C1C';
+    ctx.beginPath(); ctx.moveTo(38.6, 33); ctx.lineTo(41.4, 33); ctx.lineTo(mix(42.2, tx + 1, flip), mix(43 + gust, ty + 2.4, flip)); ctx.lineTo(tx, ty); ctx.lineTo(mix(37.8, tx - 1, flip), mix(43 + gust, ty - 2.4, flip)); ctx.closePath(); ctx.fill();
+    if (flip > 0) { ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.moveTo(38.6, 33); ctx.lineTo(tx, ty); ctx.lineTo(mix(37.8, tx - 1, flip), mix(43 + gust, ty - 2.4, flip)); ctx.closePath(); ctx.fill(); }
+    ctx.fillStyle = '#7F1D1D'; ctx.fillRect(38.8, 33, 2.4, 2);
+  };
+  if (flip <= 0.25) tie();
   // The windbreaker: panels, white piping, zip half down, a 7 on the chest
   ctx.fillStyle = JACKET;
   ctx.beginPath(); ctx.moveTo(18, 34); ctx.lineTo(35, 32); ctx.lineTo(38, 45); ctx.lineTo(42, 45); ctx.lineTo(45, 32); ctx.lineTo(62, 34); ctx.lineTo(61, 57); ctx.lineTo(19, 57); ctx.closePath(); ctx.fill();
@@ -54,8 +73,9 @@ export const drawHector = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   ctx.fillStyle = '#CBD5E1'; ctx.fillRect(39.4, 45, 1.2, 12);
   ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(51, 40, 3.2, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#0E6B58'; ctx.font = 'bold 5px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('7', 51, 40.3);
+  if (flip > 0.25) tie();
   // Loose flapping in the wind
-  if (storm) {
+  if (storm || windy) {
     ctx.fillStyle = JACKET;
     ctx.beginPath(); ctx.moveTo(19, 50); ctx.lineTo(12 - gust * 3, 55); ctx.lineTo(19, 57); ctx.fill();
     ctx.beginPath(); ctx.moveTo(61, 50); ctx.lineTo(68 + gust * 3, 55); ctx.lineTo(61, 57); ctx.fill();
@@ -70,6 +90,16 @@ export const drawHector = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
     if (storm) { ex = sx + side * 9; ey = sy - 4 + gust; hx = sx + side * 18; hy = sy - 10 + gust * 2; }
     else if (clickerArm) { ex = sx + side * 7; ey = sy + 6; hx = sx + side * 12; hy = sy - 2 + Math.sin(frame * 0.05); }
     else { ex = sx + side * 3; ey = sy + 10; hx = sx + side * 3; hy = sy + 19; }
+    if (jump) {
+      // (the clicker out in front presenting the weather, the other arm swept back; both up and out coming down, then flung
+      // wide over the landing)
+      const p = A.air ? airBlend(A, clickerArm
+        ? { ext: [7, 4, 12, -1], rise: [9, -3, 17, -9], top: [9, -4, 18, -8], fall: [8, -6, 13, -16] }
+        : { ext: [4, 9, 6, 17], rise: [8, 2, 15, -1], top: [9, 0, 16, -4], fall: [8, -6, 13, -16] })
+        : [ex - sx, ey - sy, hx - sx, hy - sy].map((v, i) => mix(v * (i % 2 ? 1 : side), [9, 0, 17, -4][i], land));
+      const wob = windy ? gust * 1.5 : 0;
+      ex = sx + side * p[0]; ey = sy + p[1]; hx = sx + side * p[2]; hy = sy + p[3] + wob;
+    }
     limb(ctx, sx, sy, ex, ey, 7.5, JACKET, JACKET_DARK);
     limb(ctx, ex, ey, hx, hy, 6.5, JACKET, JACKET_DARK);
     hand(ctx, hx, hy, 3.6, SKIN, SKIN_DARK);
@@ -96,7 +126,7 @@ export const drawHector = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
       ctx.beginPath(); ctx.moveTo(0, -16); ctx.quadraticCurveTo(12, -18, 13, -11); ctx.quadraticCurveTo(8, -14, 2, -13); ctx.closePath(); ctx.fill();
       ctx.fillStyle = '#7A5A42'; ctx.fillRect(-4, -15.4, 8, 0.8); ctx.fillRect(3, -16.2, 5, 0.6);
       ctx.fillStyle = '#A8A29E'; ctx.fillRect(-11.6, -8, 1.6, 4); // grey at the temples
-      if (storm) {
+      if (storm || windy) {
         // Strands torn loose
         ctx.strokeStyle = '#4A3222'; ctx.lineWidth = 0.8;
         for (let i = 0; i < 4; i++) {
@@ -122,6 +152,35 @@ export const drawHector = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   ctx.restore();
 };
 
+const SLACKS = '#1E293B', SLACKS_BACK = '#172033', SLACKS_SHADE = '#0F172A';
+
+/**
+ * His legs in the leap: a split, front leg out ahead and back leg out behind, like a man clearing a puddle on camera;
+ * together and reaching for the floor coming down; knees bent under the landing.
+ */
+const drawLeapLegs = (ctx: CanvasRenderingContext2D, A: Air, land: number, f: 1 | -1) => {
+  const hipY = 60 + 5 * land;
+  const p = A.air
+    ? airBlend(A, { ext: [1, 17.5, -1, 17.5], rise: [14, 9, -13, 11], top: [16, 6, -15, 8], fall: [4, 17, -3, 16] })
+    : [0, 17, 0, 17].map((v, i) => mix(v, [6, 12, -5, 12][i], land));
+  const leg = (hipX: number, dx: number, dy: number, back: boolean) => {
+    const ax = hipX + f * dx, ay = hipY + dy;
+    const [kx, ky] = joint(hipX, hipY, ax, ay, 9, 9, f);
+    // The loafer: along the leg in the air (toes pointed), flat on the floor
+    const shin = Math.atan2(ax - kx, ay - ky);
+    ctx.save(); ctx.translate(ax, ay); ctx.rotate(A.air ? -shin * 0.8 + f * 0.25 : 0);
+    shoe(ctx, 0, 3, 14, 5, f, back ? '#111114' : '#18181B', '#000000'); ctx.restore();
+    bentLimb(ctx, [hipX, hipY - 4, kx, ky, mix(kx, ax, 0.9), mix(ky, ay, 0.9)], 12, back ? SLACKS_BACK : SLACKS, SLACKS_SHADE);
+    // (the crease pressed down the front of each)
+    ctx.strokeStyle = '#334155'; ctx.lineWidth = 0.6; ctx.lineCap = 'butt';
+    ctx.beginPath(); ctx.moveTo(mix(hipX, kx, 0.3), mix(hipY, ky, 0.3)); ctx.lineTo(kx, ky); ctx.lineTo(mix(kx, ax, 0.85), mix(ky, ay, 0.85)); ctx.stroke();
+  };
+  leg(f > 0 ? 30.5 : 49.5, p[2], p[3], true);
+  ctx.fillStyle = SLACKS;
+  ctx.beginPath(); ctx.moveTo(23, hipY - 6); ctx.lineTo(57, hipY - 6); ctx.lineTo(56, hipY + 3); ctx.lineTo(24, hipY + 3); ctx.closePath(); ctx.fill();
+  leg(f > 0 ? 49.5 : 30.5, p[0], p[1], false);
+};
+
 /** The hurricane's weather round him (world space: rain blown in toward him, the odd bolt). */
 export const drawHectorStorm = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
   if (e.bossState !== 'hurricane') return;
@@ -135,12 +194,16 @@ export const drawHectorStorm = (ctx: CanvasRenderingContext2D, e: Enemy, frame: 
     ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx + inward * len, ry + len / 2); ctx.stroke();
   }
   if (Math.random() > 0.7) {
-    ctx.strokeStyle = '#FFFF00'; ctx.lineWidth = 2; ctx.shadowColor = '#FFFF00'; ctx.shadowBlur = 10;
-    ctx.beginPath();
+    // (the bolt, its glow stepped out round it: a wide dim band, a narrower one, then the bolt, white-hot down the middle)
+    const pts: number[] = [];
     let lx = (Math.random() - 0.5) * 150, ly = (Math.random() - 0.5) * 150;
-    ctx.moveTo(lx, ly);
-    for (let j = 0; j < 4; j++) { lx += (Math.random() - 0.5) * 40; ly += (Math.random() - 0.5) * 40; ctx.lineTo(lx, ly); }
-    ctx.stroke();
+    pts.push(lx, ly);
+    for (let j = 0; j < 4; j++) { lx += (Math.random() - 0.5) * 40; ly += (Math.random() - 0.5) * 40; pts.push(lx, ly); }
+    ctx.lineJoin = 'miter';
+    for (const [w, c] of [[8, 'rgba(255, 255, 0, 0.18)'], [5, 'rgba(255, 255, 0, 0.35)'], [2, '#FFFF00'], [0.8, '#FFFFFF']] as const) {
+      ctx.strokeStyle = c; ctx.lineWidth = w;
+      ctx.beginPath(); ctx.moveTo(pts[0], pts[1]); for (let j = 2; j < pts.length; j += 2) ctx.lineTo(pts[j], pts[j + 1]); ctx.stroke();
+    }
   }
   ctx.restore();
   void frame;

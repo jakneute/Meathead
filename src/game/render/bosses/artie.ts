@@ -6,7 +6,7 @@
 import { THROW_WINDUP } from '../../bosses/artie';
 import { Enemy } from '../../../types';
 import { drawFlameLicks } from '../fx/fireball';
-import { FaceStyle, Mood, drawHead, headAt, facingOf, goreOf, moodOf, inHead, limb, hand, foil, bodyBlood, breath } from './kit';
+import { FaceStyle, Mood, Air, drawHead, headAt, facingOf, goreOf, moodOf, inHead, limb, hand, foil, bodyBlood, breath, airOf, airBlend, joint, mix } from './kit';
 
 const FACE: FaceStyle = {
   skin: '#EBCFC4', shadow: '#B99AA0', highlight: '#FFF1EC', brow: '#4A3F37', iris: '#0EA5E9',
@@ -21,11 +21,18 @@ export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   const panicking = e.bossState === 'panicking' && e.health > 0;
   const mood: Mood = panicking ? 'manic' : windup ? 'fierce' : moodOf(e, frame, { attacking: 'fierce', jumping: e.isGroundedBoss ? 'fierce' : 'shock' });
   const b = breath(frame);
+  // His moon-boot bounds: floaty, both boots tucked up on the way, spread wide hanging at the top, arms drifting up as he
+  // sinks back down; on fire, legs going like he's pedaling a bike and arms everywhere
+  const A = airOf(e, frame, { vMax: 11, landFrames: 12 });
+  const land = panicking ? 0 : A.land;
+  const jump = A.air || land > 0 || panicking;
+  const lower = 4 * land;
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
 
+  if (jump) drawBootLegs(ctx, A, land, f, panicking, frame);
   // Moon boots: huge, white, quilted
-  for (const x of [29, 51]) {
+  else for (const x of [29, 51]) {
     ctx.fillStyle = '#F1F5F9';
     ctx.beginPath(); ctx.roundRect(x - 10, 64, 20, 16, [7, 7, 3, 3]); ctx.fill();
     ctx.fillStyle = '#CBD5E1';
@@ -34,12 +41,14 @@ export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x - 6, 65.5, 6, 1.5);
   }
   // Snow pants
-  ctx.fillStyle = '#1E3A5F';
-  ctx.fillRect(22, 56, 15, 10); ctx.fillRect(43, 56, 15, 10);
-  ctx.fillStyle = '#152C47'; ctx.fillRect(22, 56, 3, 10); ctx.fillRect(43, 56, 3, 10);
+  if (!jump) {
+    ctx.fillStyle = '#1E3A5F';
+    ctx.fillRect(22, 56, 15, 10); ctx.fillRect(43, 56, 15, 10);
+    ctx.fillStyle = '#152C47'; ctx.fillRect(22, 56, 3, 10); ctx.fillRect(43, 56, 3, 10);
+  }
 
   // The parka: quilted, puffed, crusted with frost at the hem
-  ctx.save(); ctx.translate(0, -b);
+  ctx.save(); ctx.translate(0, -b + lower);
   ctx.fillStyle = PARKA;
   ctx.beginPath(); ctx.roundRect(15, 32, 50, 29, [10, 10, 6, 6]); ctx.fill();
   ctx.fillStyle = PARKA_DARK;
@@ -72,6 +81,18 @@ export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     limb(ctx, 60, 38, 58, 6, 10, PARKA, PARKA_DARK);
     hand(ctx, 22, 2, 5, MITT, '#172554');
     hand(ctx, 58, 2, 5, MITT, '#172554');
+  } else if (jump) {
+    // (out to the sides as he goes, floating up over his head at the top, drifting up higher as he sinks; out low for
+    // the landing)
+    const p = A.air ? airBlend(A, { ext: [6, 16], rise: [10, 8], top: [12, -6], fall: [9, -13] }) : [5, 17].map((v, i) => mix(v, [10, 13][i], land));
+    for (const side of [-1, 1]) {
+      const sx = side < 0 ? 19 : 61, sy = 38;
+      const drift = A.air ? Math.sin(frame * 0.1 + side) * 1.5 : 0;
+      const hx = sx + side * p[0], hy = sy + p[1] + drift;
+      const d = Math.hypot(hx - sx, hy - sy) || 1;
+      limb(ctx, sx, sy, hx - ((hx - sx) / d) * 3, hy - ((hy - sy) / d) * 3, 10, PARKA, PARKA_DARK);
+      hand(ctx, hx, hy, 5, MITT, '#172554');
+    }
   } else {
     const sway = Math.sin(frame * 0.07) * 1.5;
     limb(ctx, 19, 38, 14, 55 + sway, 10, PARKA, PARKA_DARK);
@@ -172,6 +193,52 @@ export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
 };
 
 const disc = (ctx: CanvasRenderingContext2D, x: number, y: number, r: number) => { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); };
+
+/** A moon boot from the knee down to its sole (its own space: the knee at the top middle, the sole 15 below). */
+const boot = (ctx: CanvasRenderingContext2D) => {
+  ctx.fillStyle = '#F1F5F9';
+  ctx.beginPath(); ctx.roundRect(-10, -1, 20, 16, [7, 7, 3, 3]); ctx.fill();
+  ctx.fillStyle = '#CBD5E1';
+  ctx.fillRect(-10, 4, 20, 1.2); ctx.fillRect(-10, 9, 20, 1.2);
+  ctx.fillStyle = '#38BDF8'; ctx.fillRect(-10, 13, 20, 2);
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-6, 0.5, 6, 1.5);
+};
+
+/**
+ * His legs in a bound: the snow pants from the hip, the boot from the knee. Tucked up together on the way, spread wide
+ * at the top, together and reaching for the floor coming down, knees giving under the landing with the snow puffing up;
+ * pedaling the air, panicking.
+ */
+const drawBootLegs = (ctx: CanvasRenderingContext2D, A: Air, land: number, f: 1 | -1, panicking: boolean, frame: number) => {
+  const hipY = 57 + 4 * land;
+  let p: number[];
+  if (panicking) {
+    const ph = frame * 0.75;
+    p = [Math.cos(ph) * 7, 18 + Math.sin(ph) * 4, Math.cos(ph + Math.PI) * 7, 18 + Math.sin(ph + Math.PI) * 4];
+  } else if (A.air) p = airBlend(A, { ext: [1, 23, -1, 23], rise: [7, 13, 2, 14.5], top: [9, 20, -9, 20], fall: [2, 22.5, -2, 22.5] });
+  else p = [0, 23, 0, 23].map((v, i) => mix(v, [4, 19, -3, 19][i], land));
+  const leg = (hipX: number, dx: number, dy: number) => {
+    const ax = hipX + f * dx, ay = hipY + dy;
+    const [kx, ky] = joint(hipX, hipY, ax, ay, 8, 15, f);
+    limb(ctx, hipX, hipY, kx, ky, 15, '#1E3A5F', '#152C47');
+    // (flat-ish on the floor, wherever the knee's gone)
+    ctx.save(); ctx.translate(kx, ky); ctx.rotate(-Math.atan2(ax - kx, ay - ky) * (A.air || panicking ? 1 : 0.35)); boot(ctx); ctx.restore();
+  };
+  leg(f > 0 ? 29.5 : 50.5, p[2], p[3]);
+  leg(f > 0 ? 50.5 : 29.5, p[0], p[1]);
+  // (the seat of the snow pants, under the parka)
+  ctx.fillStyle = '#1E3A5F'; ctx.fillRect(22, hipY - 3, 36, 6);
+  ctx.fillStyle = '#152C47'; ctx.fillRect(22, hipY - 3, 3, 6);
+  // Snow kicked up off the floor round his boots as he comes down on it
+  if (land > 0) {
+    const t = 1 - land;
+    for (const x of [29, 51]) for (const side of [-1, 1]) {
+      const px = x + side * (8 + t * 9), py = 79 - t * 3, r = 3.5 + t * 3;
+      ctx.fillStyle = `rgba(203, 213, 225, ${0.8 * land})`; disc(ctx, px, py, r);
+      ctx.fillStyle = `rgba(248, 250, 252, ${0.9 * land})`; disc(ctx, px - side * 0.6, py - 0.8, r * 0.6);
+    }
+  }
+};
 
 /** A cluster of ice crystals grown out through the parka's shoulder. */
 const shoulderIce = (ctx: CanvasRenderingContext2D, x: number, y: number, side: number, frame: number) => {

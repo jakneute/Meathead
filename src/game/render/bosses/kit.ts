@@ -671,3 +671,77 @@ export const bodyBlood = (ctx: CanvasRenderingContext2D, gore: number, spots: [n
 
 /** A slow breath: how far his upper body rises this frame. */
 export const breath = (frame: number, speed = 0.07) => Math.sin(frame * speed) * 0.9;
+
+// ---------------------------------------------------------------------------
+// Jumps
+// ---------------------------------------------------------------------------
+
+/** Where a jumping boss is in his jump, for the sprite: off the ground or not, how he's moving, and the beats either end of it. */
+export interface Air {
+  air: boolean;
+  /** -1 going up as fast as he goes, 0 at the top, 1 coming down hard. */
+  v: number;
+  /** 0 the moment he leaves the ground (legs still straight from the push), 1 once he's tucked. */
+  off: number;
+  /** 1 the moment he touches down (knees bent, all his weight on them), easing back to 0. */
+  land: number;
+}
+
+/** When each of them last left the ground and came back down (looks only: the fight doesn't know). */
+const airMemo = new WeakMap<Enemy, { air: boolean; leftAt: number; landedAt: number; last: number }>();
+
+/**
+ * His jump this frame. `vMax` is the speed that counts as flat out (up or down); `airborne` overrides the usual test
+ * (off the ground, as the fight last left him: never for a boss drawn outside it, who has no say on that).
+ */
+export const airOf = (e: Enemy, frame: number, o: { vMax: number; airborne?: boolean; offFrames?: number; landFrames?: number }): Air => {
+  const air = o.airborne ?? e.isGroundedBoss === false;
+  let m = airMemo.get(e);
+  if (!m || frame < m.last) { m = { air, leftAt: -999, landedAt: -999, last: frame }; airMemo.set(e, m); }
+  if (air && !m.air) m.leftAt = frame;
+  if (!air && m.air) m.landedAt = frame;
+  m.air = air; m.last = frame;
+  const v = Math.max(-1, Math.min(1, e.vel.y / o.vMax));
+  const off = Math.min(1, (frame - m.leftAt) / (o.offFrames ?? 4));
+  const t = (frame - m.landedAt) / (o.landFrames ?? 10);
+  // (held a beat at the bottom, then up out of it)
+  const land = air || t >= 1 ? 0 : t < 0.3 ? 1 : 1 - (t - 0.3) / 0.7;
+  return { air, v, off, land };
+};
+
+export const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+
+/**
+ * A pose for the jump, from the ones for its stages: `ext` legs straight from the push off, `rise` tucked on the way
+ * up, `top` hanging there, `fall` reaching down for the floor (each a list of numbers, all the same length).
+ */
+export const airBlend = (a: Air, p: { ext: number[]; rise: number[]; top: number[]; fall: number[] }) => {
+  const up = Math.max(0, -a.v), down = Math.max(0, a.v);
+  const k = (i: number) => {
+    const mid = a.v < 0 ? mix(p.top[i], p.rise[i], up) : mix(p.top[i], p.fall[i], down);
+    return mix(p.ext[i], mid, a.off);
+  };
+  return p.top.map((_, i) => k(i));
+};
+
+/**
+ * The joint of a two-part limb by its ends (a knee from hip and ankle, an elbow from shoulder and hand), bent toward
+ * `bend` (+1 to the right, -1 left, for a limb pointing down). Out of reach, it lies on the line between them.
+ */
+export const joint = (x1: number, y1: number, x2: number, y2: number, l1: number, l2: number, bend: number): [number, number] => {
+  const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy) || 0.001;
+  const dd = Math.min(d, l1 + l2 - 0.01);
+  const a = (l1 * l1 - l2 * l2 + dd * dd) / (2 * dd), h = Math.sqrt(Math.max(0, l1 * l1 - a * a));
+  const ux = dx / d, uy = dy / d;
+  return [x1 + ux * a + uy * h * bend, y1 + uy * a - ux * h * bend];
+};
+
+/** A bent leg (hip, knee, ankle) in one stroke: a round knee, square ends (the hip tucked under the seat, the ankle into the shoe). */
+export const bentLimb = (ctx: CanvasRenderingContext2D, pts: number[], w: number, fill: string, shade?: string) => {
+  ctx.save();
+  ctx.lineCap = 'butt'; ctx.lineJoin = 'round';
+  const path = (dx: number, dy: number) => { ctx.beginPath(); ctx.moveTo(pts[0] + dx, pts[1] + dy); for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i] + dx, pts[i + 1] + dy); ctx.stroke(); };
+  ctx.strokeStyle = fill; ctx.lineWidth = w; path(0, 0);
+  if (shade) { ctx.strokeStyle = shade; ctx.lineWidth = w * 0.3; path(-w * 0.33, 0); }
+  ctx.restore();
+};

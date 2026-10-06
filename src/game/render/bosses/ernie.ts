@@ -6,7 +6,7 @@
 
 import { Enemy } from '../../../types';
 import { KICK_FRAMES, PUNISH_WINDUP } from '../../bosses/ernie';
-import { FaceStyle, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, shoe, foil, bodyBlood, breath } from './kit';
+import { FaceStyle, Mood, Air, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, shoe, foil, bodyBlood, breath, airOf, airBlend, joint, mix } from './kit';
 
 const SKIN = '#E8C4A8', SKIN_DARK = '#B98E72';
 const FACE: FaceStyle = {
@@ -21,17 +21,33 @@ export const drawErnie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   const lifting = e.bossState === 'attacking';
   // (not while he's stood watching the boulder go, before he sets off)
   const running = e.bossState === 'running' && !(!e.scrambling && (e.runDelay ?? 0) > 0);
-  const mood = moodOf(e, frame, { attacking: 'fierce', perched: 'fierce', running: 'fierce', stunned_drop: 'dazed', frozen: 'shock' });
+  // His hop at Meathead (off the floor or off the top of the boulder): not stood up on the boulder, nor toppling once
+  // the ice is off him
+  const frozen = e.bossState === 'frozen';
+  const A = airOf(e, frame, { vMax: 9, airborne: e.isGroundedBoss === false && e.bossState !== 'perched' && (e.bossState !== 'stunned_drop' || (e.frozenTimer ?? 0) > 0) });
+  const land = e.bossState === 'stunned_drop' || frozen ? 0 : A.land;
+  // (in the ice, everything about him held where it was)
+  const fr = frozen ? 0 : frame;
+  const airMood: Mood | undefined = A.air && !frozen ? (A.v < 0.25 ? 'grump' : 'fierce') : undefined;
+  const mood = moodOf(e, frame, { attacking: 'fierce', perched: 'fierce', running: 'fierce', stunned_drop: 'dazed', frozen: 'shock', ...(airMood ? { idle: airMood } : {}) });
   const b = breath(frame, 0.05);
   const step = running ? Math.sin(frame * 0.5) * 3 : 0;
   // Kicking a rock at him (Meathead stunned): the front leg drawn back in the windup, then swung through and up
   const kicking = (e.punishT ?? 0) > 0 || (e.kickT ?? 0) > 0;
   const kickAngle = (e.punishT ?? 0) > 0 ? -0.7 * Math.min(1, Math.max(0, PUNISH_WINDUP - 6 - e.punishT!) / 4) : (e.kickT ?? 0) > 0 ? 1.15 * Math.sin(Math.PI * Math.min(1, (KICK_FRAMES - e.kickT! + 3) / KICK_FRAMES)) : 0;
   const frontX = f > 0 ? 50 : 30;
+  const jump = (A.air || land > 0) && !kicking;
+  // (down onto his knees with the landing)
+  const lower = 5 * land;
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
+  // (leant into the hop on the way up, rocked back coming down, hunched over the landing)
+  const lean = !jump ? 0 : A.air ? f * (A.v < 0 ? 0.08 * A.off : -0.05 * A.v) : f * 0.08 * land;
+  if (lean) { ctx.translate(40, 70); ctx.rotate(lean); ctx.translate(-40, -70); }
 
+  if (jump) drawHopLegs(ctx, A, land, f, frontX, fr);
   // Orthopedic shoes and slacks hitched up high (the kicking one's up off the floor)
+  else {
   if (!kicking || frontX !== 30) shoe(ctx, 30 + step, 80, 15, 6, f, '#3F2A1A', '#1C1917');
   if (!kicking || frontX !== 50) shoe(ctx, 50 - step, 80, 15, 6, f, '#3F2A1A', '#1C1917');
   ctx.fillStyle = '#6B6258';
@@ -49,14 +65,17 @@ export const drawErnie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     // (the whoosh of it, on the way through)
     if ((e.kickT ?? 0) > KICK_FRAMES - 5) { ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(hipX, hipY, len + 4, Math.PI / 2 - f * 0.2, Math.PI / 2 - f * 1.2, f > 0); ctx.stroke(); }
   }
+  }
   // Belt, and the rock hammer on it
+  ctx.save(); ctx.translate(0, lower);
   ctx.fillStyle = '#292524'; ctx.fillRect(21, 50, 38, 2.6);
   ctx.fillStyle = '#A8A29E'; ctx.fillRect(38.5, 50.2, 3, 2.2);
   const hx = 40 - f * 13;
   ctx.fillStyle = '#92400E'; ctx.fillRect(hx - 0.8, 51, 1.6, 10);
   ctx.fillStyle = '#6B7280'; ctx.fillRect(hx - 3.5, 59.5, 7, 2.4); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(hx + 1, 59.5, 2.5, 1);
+  ctx.restore();
 
-  ctx.save(); ctx.translate(f * 2, -b + 2);
+  ctx.save(); ctx.translate(f * 2, -b + 2 + lower);
   // Shirt, then the cardigan over it, knitted in bands like rock strata
   ctx.fillStyle = '#D6D3C4';
   ctx.fillRect(28, 32, 24, 20);
@@ -74,8 +93,13 @@ export const drawErnie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   }
   ctx.fillStyle = KNIT_DARK; ctx.fillRect(17, 33, 3, 21);
   // A fault line running through the knit, glowing like the fissure it is
-  ctx.save(); ctx.strokeStyle = '#F59E0B'; ctx.shadowColor = '#FFB300'; ctx.shadowBlur = 3; ctx.lineWidth = 0.9;
-  ctx.beginPath(); ctx.moveTo(20, 36); ctx.lineTo(23, 41); ctx.lineTo(21, 45); ctx.lineTo(25, 51); ctx.stroke(); ctx.restore();
+  // (its glow stepped out round it: a wide dim band, a narrower brighter one, the hot line, a white-hot core)
+  ctx.save(); ctx.lineJoin = 'miter'; ctx.lineCap = 'butt';
+  for (const [w, c] of [[2.8, 'rgba(180, 83, 9, 0.4)'], [1.8, 'rgba(255, 179, 0, 0.6)'], [0.9, '#F59E0B'], [0.35, '#FDE68A']] as const) {
+    ctx.strokeStyle = c; ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(20, 36); ctx.lineTo(23, 41); ctx.lineTo(21, 45); ctx.lineTo(25, 51); ctx.stroke();
+  }
+  ctx.restore();
   // Buttons, and a pocket with the seismograph strip hanging out of it and pencils
   ctx.fillStyle = '#E7E5E4'; for (const y of [37, 42, 47]) { ctx.beginPath(); ctx.arc(52.5, y, 0.9, 0, Math.PI * 2); ctx.fill(); }
   ctx.fillStyle = '#BFB59A'; ctx.fillRect(31, 36, 8, 7);
@@ -87,11 +111,18 @@ export const drawErnie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   bodyBlood(ctx, gore, [[43, 40, 3.5], [24, 44, 3], [46, 49, 3], [33, 47, 2.5], [55, 38, 2.5], [28, 38, 2.5]], frame);
 
   // Arms: cardigan sleeves, old hands (up under the boulder when he's lifting one)
+  // (in a hop: flung out for balance, flapping on the way down, braced out over the landing)
+  const arm = jump ? (A.air ? airBlend(A, { ext: [5, 7, 9, 13], rise: [9, 1, 16, -3], top: [9, -2, 15, -8], fall: [8, -5, 14, -12] })
+    : [3, 10, 2, 19].map((v, i) => mix(v, [7, 5, 13, 11][i], land))) : null;
   for (const side of [-1, 1]) {
     const sx = 40 + side * 19, sy = 36;
     const swing = running ? Math.sin(frame * 0.5 + (side > 0 ? Math.PI : 0)) * 6 : Math.sin(frame * 0.05) * 1;
-    const ex = lifting ? sx + side * 4 : sx + side * 3 + swing * 0.3, ey = lifting ? sy - 10 : sy + 10;
-    const hx2 = lifting ? sx - side * 4 : sx + side * 2 + swing, hy = lifting ? sy - 22 : sy + 19;
+    let ex = lifting ? sx + side * 4 : sx + side * 3 + swing * 0.3, ey = lifting ? sy - 10 : sy + 10;
+    let hx2 = lifting ? sx - side * 4 : sx + side * 2 + swing, hy = lifting ? sy - 22 : sy + 19;
+    if (arm) {
+      const flap = A.air ? Math.sin(fr * 0.55 + side * 1.3) * (1 + Math.max(0, A.v) * 3) : 0;
+      ex = sx + side * arm[0]; ey = sy + arm[1] + flap * 0.6; hx2 = sx + side * arm[2]; hy = sy + arm[3] + flap * 1.6;
+    }
     limb(ctx, sx, sy, ex, ey, 7.5, KNIT, KNIT_DARK);
     limb(ctx, ex, ey, hx2, hy, 6.5, KNIT, KNIT_DARK);
     ctx.fillStyle = '#A0764C'; ctx.fillRect(hx2 - 3, hy - (lifting ? -2 : 3.5), 6, 1.5); // cuff
@@ -133,4 +164,47 @@ export const drawErnie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     }
   }
   ctx.restore();
+};
+
+const SLACKS = '#6B6258', SLACKS_BACK = '#5E564D', SLACKS_DARK = '#524A42';
+
+/**
+ * His legs in a hop: the front knee hauled up stiff as he goes, the back one trailing, both stuck straight down for the
+ * floor coming back; then knees bent under the landing. The slacks flap at the cuffs, and ride up off his socks as he drops.
+ */
+const drawHopLegs = (ctx: CanvasRenderingContext2D, A: Air, land: number, f: 1 | -1, frontX: number, fr: number) => {
+  const hipY = 57 + 5 * land;
+  // (each foot from its hip, front then back: forward is the way he faces)
+  const p = A.air
+    ? airBlend(A, { ext: [1, 21, -1, 21], rise: [7, 14, -9, 15], top: [5, 17, -7, 17], fall: [2, 20.5, -3, 20] })
+    : [0, 19, 0, 19].map((v, i) => mix(v, [5, 14, -4, 14][i], land));
+  const leg = (hipX: number, dx: number, dy: number, back: boolean) => {
+    const ax = hipX + f * dx, ay = hipY + dy;
+    const [kx, ky] = joint(hipX, hipY, ax, ay, 10.5, 10.5, f);
+    const col = back ? SLACKS_BACK : SLACKS;
+    // (coming down, the cuffs ride up: brown socks and a bit of white shin)
+    const ride = A.air ? Math.max(0, A.v) * 0.4 : 0;
+    const hemX = mix(ax, kx, ride), hemY = mix(ay, ky, ride);
+    if (ride > 0.05) { limb(ctx, kx, ky, ax, ay, 5.5, '#F1E3D3'); limb(ctx, mix(ax, kx, 0.25), mix(ay, ky, 0.25), ax, ay, 6, '#57534E', '#3F3A35'); }
+    limb(ctx, kx, ky, hemX, hemY, 11, col, SLACKS_DARK);
+    limb(ctx, hipX, hipY, kx, ky, 12, col, SLACKS_DARK);
+    // The cuff flapping in the wind of it
+    if (A.air) {
+      const fl = Math.sin(fr * 1.3 + hipX) * 1.6, d = A.v > 0 ? -1 : 1;
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.moveTo(hemX - 5.5, hemY - 1); ctx.lineTo(hemX + 5.5, hemY - 1); ctx.lineTo(hemX + 6.5 + fl, hemY + d * 2.5); ctx.lineTo(hemX - 6.5 + fl, hemY + d * 2.5); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = SLACKS_DARK; ctx.fillRect(hemX - 6.5 + fl, hemY + d * 2.5 - (d > 0 ? 0.8 : 0), 13, 0.8);
+    }
+    // The orthopedic shoe: toes down off the floor, flat for the landing
+    const shin = Math.atan2(ax - kx, ay - ky);
+    ctx.save(); ctx.translate(ax, ay); ctx.rotate(A.air ? -shin * 0.6 + f * (A.v < 0 ? 0.35 : 0.1) : 0);
+    shoe(ctx, 0, 4, 15, 6, f, back ? '#35231A' : '#3F2A1A', '#1C1917'); ctx.restore();
+  };
+  const backX = frontX === 50 ? 30 : 50;
+  leg(backX, p[2], p[3], true);
+  // The seat of them, hitched up to his ribs
+  ctx.fillStyle = SLACKS;
+  ctx.beginPath(); ctx.moveTo(21, 50 + 5 * land); ctx.lineTo(59, 50 + 5 * land); ctx.lineTo(58, hipY + 4); ctx.lineTo(22, hipY + 4); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = SLACKS_DARK; ctx.fillRect(21, 50 + 5 * land, 3, hipY - 46 - 5 * land);
+  leg(frontX, p[0], p[1], false);
 };

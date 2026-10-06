@@ -5,7 +5,7 @@
 // Drawn in the boss's local space (0,0 = his top-left corner), in an 80x80 box.
 
 import { Enemy } from '../../../types';
-import { FaceStyle, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, foil, bodyBlood, breath } from './kit';
+import { FaceStyle, Air, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, foil, bodyBlood, breath, airOf, airBlend, joint, mix, bentLimb } from './kit';
 import { victorHeadTurn } from '../../bosses/victor';
 
 const SKIN = '#C8743F', SKIN_DARK = '#9A5228', SKIN_LIGHT = '#E6A06B';
@@ -27,13 +27,23 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   const heave = choke ? Math.max(0, ((e.stateTimer ?? 0) % 24) - 17) / 6 : 0;
   const mood = choke ? (heave > 0 ? 'roar' : 'shock') : pain === 'scalded' ? 'hurt' : moodOf(e, frame, { barfing: 'roar', attacking: 'fierce', telegraphing: 'fierce', jumping: 'fierce' });
   const b = breath(frame) + lOff * 0.5;
+  // His jump for the platforms: a tuck jump up off the floor, a double-bicep flex at the top of it, and down into a
+  // superhero landing, one knee and one fist on the floor (not while he's in pain: that has him its own way)
+  const A = airOf(e, frame, { vMax: 16, landFrames: 14, airborne: e.isGroundedBoss === false && !pain });
+  const land = pain ? 0 : A.land;
+  const jump = A.air || land > 0;
+  const lower = 7 * land;
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
+  const lean = !jump ? 0 : A.air ? f * (A.v > 0 ? 0.06 * A.v : 0) : f * 0.12 * land;
+  if (lean) { ctx.translate(40, 72); ctx.rotate(lean); ctx.translate(-40, -72); }
   // (scalded: hopping from foot to foot, shaking; doused: doubled over, sagging, coughing)
   if (pain === 'scalded') ctx.translate(Math.sin(frame * 1.3) * 1.5, -Math.abs(Math.sin(frame * 0.45)) * 7);
   if (pain === 'doused') { ctx.translate(40, 80); ctx.rotate(0.12 * f + heave * 0.12 * f + Math.sin(frame * 0.5) * 0.03); ctx.scale(1, 0.94); ctx.translate(-40, -80 + 2 + heave * 2); }
 
+  if (jump) drawJumpLegs(ctx, A, land, f);
   // Sandals and bare feet
+  else {
   for (const x of [29, 51]) {
     ctx.fillStyle = SKIN;
     ctx.beginPath(); ctx.roundRect(x - 8 + f * 2, 74, 16, 5, [3, 3, 1, 1]); ctx.fill();
@@ -49,8 +59,9 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   ctx.fillRect(19, 55, 3, 20); ctx.fillRect(27, 60, 0.7, 12); ctx.fillRect(52, 61, 0.7, 11); ctx.fillRect(39.6, 56, 0.8, 7);
   ctx.fillStyle = '#E7DFD0'; ctx.fillRect(19, 55, 42, 2.5); // drawstring waist
   ctx.fillStyle = '#B45309'; ctx.fillRect(41, 57, 0.8, 5); ctx.fillRect(43, 57, 0.8, 4);
+  }
 
-  ctx.save(); ctx.translate(0, -b);
+  ctx.save(); ctx.translate(0, -b + lower);
   // The torso: bare, carved, bronzed
   ctx.fillStyle = SKIN;
   ctx.beginPath(); ctx.moveTo(18, 34); ctx.lineTo(62, 34); ctx.lineTo(58, 56); ctx.lineTo(22, 56); ctx.closePath(); ctx.fill();
@@ -66,11 +77,17 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   // Lava-crack tattoos across the chest, glowing, brighter as he winds up
   // (put out, or steamed: gone cold and grey)
   const glow = pain ? 0.9 : tele ? 1 : 0.55 + Math.sin(frame * 0.2) * 0.25;
-  ctx.save();
-  ctx.shadowColor = pain ? 'transparent' : '#FF5722'; ctx.shadowBlur = pain ? 0 : tele ? 8 : 4;
-  ctx.strokeStyle = pain ? 'rgba(87, 83, 78, 0.9)' : `rgba(255, 138, 0, ${glow})`; ctx.lineWidth = 1.1; ctx.lineJoin = 'round';
-  ctx.beginPath(); ctx.moveTo(24, 38); ctx.lineTo(28, 41); ctx.lineTo(27, 44); ctx.moveTo(28, 41); ctx.lineTo(33, 40);
-  ctx.moveTo(56, 38); ctx.lineTo(52, 41); ctx.lineTo(53, 44); ctx.moveTo(52, 41); ctx.lineTo(47, 40); ctx.stroke();
+  // (the glow stepped out round the cracks: a wide dim band and a narrower one under the bright line, wider winding up)
+  ctx.save(); ctx.lineJoin = 'round';
+  const cracks = () => {
+    ctx.beginPath(); ctx.moveTo(24, 38); ctx.lineTo(28, 41); ctx.lineTo(27, 44); ctx.moveTo(28, 41); ctx.lineTo(33, 40);
+    ctx.moveTo(56, 38); ctx.lineTo(52, 41); ctx.lineTo(53, 44); ctx.moveTo(52, 41); ctx.lineTo(47, 40); ctx.stroke();
+  };
+  if (!pain) {
+    ctx.strokeStyle = `rgba(255, 87, 34, ${0.22 * glow})`; ctx.lineWidth = tele ? 4.2 : 3.2; cracks();
+    ctx.strokeStyle = `rgba(255, 87, 34, ${0.45 * glow})`; ctx.lineWidth = tele ? 2.6 : 2.1; cracks();
+  }
+  ctx.strokeStyle = pain ? 'rgba(87, 83, 78, 0.9)' : `rgba(255, 138, 0, ${glow})`; ctx.lineWidth = 1.1; cracks();
   ctx.restore();
 
   // Black silk shirt hanging open, flames up from the hem
@@ -97,7 +114,10 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   ctx.strokeStyle = '#EAB308'; ctx.lineWidth = 1.3;
   ctx.beginPath(); ctx.moveTo(31, 33); ctx.quadraticCurveTo(40, 44, 49, 33); ctx.stroke();
   ctx.save();
-  ctx.shadowColor = '#FF5722'; ctx.shadowBlur = tele ? 12 : 6;
+  // (its glow, in steps: two dim rings of it round the lamp, bigger winding up)
+  if (!pain) for (const [r, a] of [[tele ? 9 : 7, 0.14], [tele ? 6.5 : 5, 0.26]] as const) {
+    ctx.fillStyle = `rgba(255, 87, 34, ${a})`; ctx.beginPath(); ctx.ellipse(40, 44.5, r * 0.8, r, 0, 0, Math.PI * 2); ctx.fill();
+  }
   ctx.fillStyle = '#A16207'; ctx.fillRect(38, 40, 4, 1.4); ctx.fillRect(38, 47.5, 4, 1.4);
   ctx.fillStyle = pain ? '#57534E' : tele ? '#FFEB3B' : '#FF5722';
   ctx.beginPath(); ctx.moveTo(38.4, 41.4); ctx.lineTo(41.6, 41.4); ctx.lineTo(42.4, 47.5); ctx.lineTo(37.6, 47.5); ctx.closePath(); ctx.fill();
@@ -116,8 +136,15 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
     ctx.fillStyle = '#111114';
     ctx.beginPath(); ctx.arc(sx, sy - 0.5, 7.8, Math.PI * 1.05, Math.PI * 1.95); ctx.fill(); // shirt over the top of it
     // (choking: both hands at his throat)
-    const ex = choke ? sx + side * 4 : sx + side * 5, ey = choke ? sy + 9 : armUp ? sy - 2 : sy + 10;
-    const hx = choke ? 40 + side * 5 : sx + side * (armUp ? 10 : 6), hy = choke ? 32 + Math.sin(frame * 0.9 + side) * 0.8 : armUp ? sy - 12 : sy + 20 + side * sway;
+    let ex = choke ? sx + side * 4 : sx + side * 5, ey = choke ? sy + 9 : armUp ? sy - 2 : sy + 10;
+    let hx = choke ? 40 + side * 5 : sx + side * (armUp ? 10 : 6), hy = choke ? 32 + Math.sin(frame * 0.9 + side) * 0.8 : armUp ? sy - 12 : sy + 20 + side * sway;
+    if (jump) {
+      // (in the air: thrown straight up off the floor, flexing at the top, out wide coming down; landing, the front fist
+      // punched into the floor and the other flung up behind him)
+      const p = A.air ? airBlend(A, { ext: [5, 4, 8, 15], rise: [5, -10, 4, -22], top: [12, -2, 9, -13], fall: [9, 4, 16, 9] })
+        : (side === f ? [8, 12, 4, 27] : [10, -3, 16, -11]).map((v, i) => mix([ex - sx, ey - sy, hx - sx, hy - sy][i] * (i % 2 ? 1 : side), v, land));
+      ex = sx + side * p[0]; ey = sy + p[1]; hx = sx + side * p[2]; hy = sy + p[3];
+    }
     limb(ctx, sx + side * 2, sy + 2, ex, ey, 8.5, SKIN, SKIN_DARK);
     limb(ctx, ex, ey, hx, hy, 7, SKIN, SKIN_DARK);
     // Bicep, and a vein up it
@@ -205,4 +232,42 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
     ctx.beginPath(); ctx.arc(40 + side * 22 + Math.sin(t * 6) * 2, 28 - t * 20, 2.5 + t * 3.5, 0, Math.PI * 2); ctx.fill();
   }
   ctx.restore();
+};
+
+const PANTS = '#F5F0E6', PANTS_BACK = '#E7DFD0', PANTS_SHADE = '#D6CFC0';
+
+/**
+ * His legs in the jump: knees to his chest going up, one leg reaching down for the floor and the other tucked coming
+ * down, then the landing: the front foot planted in a lunge and the back knee down on the floor.
+ */
+const drawJumpLegs = (ctx: CanvasRenderingContext2D, A: Air, land: number, f: 1 | -1) => {
+  const hipY = 61 + 7 * land;
+  const p = A.air
+    ? airBlend(A, { ext: [1, 16.5, -1, 16.5], rise: [8, 6, 2, 8], top: [7, 9, -4, 12], fall: [3, 16.5, -7, 12] })
+    : [0, 15.5, 0, 15.5].map((v, i) => mix(v, [9, 8.5, -9, 8.5][i], land));
+  const frontX = f > 0 ? 51 : 29, backX = f > 0 ? 29 : 51;
+  const leg = (hipX: number, dx: number, dy: number, back: boolean) => {
+    const ax = hipX + f * dx, ay = hipY + dy;
+    const [kx, ky] = joint(hipX, hipY, ax, ay, 8.5, 8.5, f);
+    const col = back ? PANTS_BACK : PANTS;
+    // The bare foot and its sandal: toes pointed in the air, the back one curled under on the floor at the landing
+    const toe = A.air ? f * (A.v < 0 ? 0.55 : 0.2) : back ? -f * 0.5 * land : 0;
+    ctx.save(); ctx.translate(ax, ay); ctx.rotate(toe);
+    ctx.fillStyle = SKIN; ctx.beginPath(); ctx.roundRect(-8 + f * 2, -2.5, 16, 5, [3, 3, 1, 1]); ctx.fill();
+    ctx.fillStyle = SKIN_DARK; for (let i = 0; i < 4; i++) ctx.fillRect(f * 6 - f * i * 2.2, -2, 0.6, 2);
+    ctx.fillStyle = '#5B3A1A'; ctx.fillRect(-8 + f * 2, 2, 16, 1.5);
+    ctx.fillStyle = '#7C4A21'; ctx.fillRect(-5 + f * 2, -1.5, 10, 1.4);
+    ctx.restore();
+    // Loose linen, flared at the ankle
+    bentLimb(ctx, [hipX, hipY - 4, kx, ky, mix(kx, ax, 0.82), mix(ky, ay, 0.82)], 14, col, PANTS_SHADE);
+    ctx.fillStyle = PANTS_SHADE; ctx.fillRect(kx - 0.35, ky - 2.5, 0.7, 5); // a crease at the knee
+  };
+  leg(backX, p[2], p[3], true);
+  // The seat of them, and the drawstring waist
+  ctx.fillStyle = PANTS;
+  ctx.beginPath(); ctx.moveTo(19, hipY - 6); ctx.lineTo(61, hipY - 6); ctx.lineTo(60, hipY + 4); ctx.lineTo(20, hipY + 4); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = PANTS_SHADE; ctx.fillRect(19, hipY - 6, 3, 10); ctx.fillRect(39.6, hipY - 5, 0.8, 7);
+  leg(frontX, p[0], p[1], false);
+  ctx.fillStyle = '#E7DFD0'; ctx.fillRect(19, hipY - 6, 42, 2.5);
+  ctx.fillStyle = '#B45309'; ctx.fillRect(41, hipY - 4, 0.8, 5); ctx.fillRect(43, hipY - 4, 0.8, 4);
 };
