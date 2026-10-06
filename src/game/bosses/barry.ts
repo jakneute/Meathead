@@ -42,6 +42,8 @@ const update = (ctx: FrameContext, boss: Enemy) => {
   const missingHpRatio = Math.max(0, Math.min(1, 1 - boss.health / boss.maxHealth));
   const pace = 1 - Math.sqrt(missingHpRatio) * BARRY_SPEEDUP_AT_ZERO_HP;
   const frames = (n: number) => Math.max(1, Math.round(n * pace));
+  // (the lights going down with him: see drawBarryLighting)
+  ctx.state.barryWreck.dim = Math.max(ctx.state.barryWreck.dim, missingHpRatio);
   if (boss.toleranceTimer && boss.toleranceTimer > 0) boss.toleranceTimer--;
 
   switch (boss.bossState) {
@@ -134,6 +136,8 @@ const groundPound = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
 
   if (!boss.electrifiedTimer) {
     boss.electrifiedTimer = ELECTRIFIED_FRAMES;
+    const wreck = ctx.state.barryWreck;
+    if (wreck.hits.length < 80) { wreck.hits.push(ctx.state.frame); wreck.pounds.push(boss.pos.x + boss.width / 2); }
     helpers.setScreenShake(25);
     helpers.playGunSound('slam');
     helpers.spawnExplosion({ x: boss.pos.x + boss.width / 2, y: 540 }, '#ffff00', 15, 0, 10);
@@ -177,10 +181,13 @@ const lightningStorm = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
       }
       x = Math.max(minX, Math.min(maxX, x));
       strikes.push({ x, duration: STRIKE.frames, maxDuration: STRIKE.frames, width: STRIKE.width });
+      // (each one leaves its mark on the room: see lairs/barry.ts)
+      if (ctx.state.barryWreck.bolts.length < 60) ctx.state.barryWreck.bolts.push(x);
       helpers.spawnExplosion({ x, y: 530 }, '#ffffff', 5, 0, 5);
     }
     helpers.playGunSound('thunder');
     helpers.setScreenShake(8);
+    if (ctx.state.barryWreck.hits.length < 80) ctx.state.barryWreck.hits.push(ctx.state.frame);
   }
 
   // Each bolt hurts for as long as it lasts

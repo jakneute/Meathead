@@ -1579,6 +1579,15 @@ const drawBarryLighting = (ctx: CanvasRenderingContext2D, state: GameState, stag
 
   // Only show darkness during the teleporting phase, never during attacks or preparation
   const shouldShowBlackout = isBarryStage && activeBarry && activeBarry.bossState === 'blackout_teleport';
+  // The lights going down as he does (a bit dimmer each step of it, never back up; the blackout's on top of it)
+  const dim = isBarryStage ? Math.floor(state.barryWreck.dim * 6) / 6 * 0.3 : 0;
+  if (dim > 0) {
+    ctx.save();
+    ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
+    ctx.fillStyle = `rgba(4, 3, 12, ${dim.toFixed(3)})`;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.restore();
+  }
 
   if (shouldShowBlackout) {
     ctx.save();

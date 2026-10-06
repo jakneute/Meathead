@@ -199,6 +199,12 @@ export interface GameState {
   artieVault: { heat: number; broke: number[] };
   /** Ernie's vault coming apart (looks only: the fight's the same): the frame of every quake he's put through it, in order. */
   ernieWreck: { quakes: number[] };
+  /**
+   * Barry's observatory taking it (looks only: the fight's the same): the frame of every attack he's made in it, where
+   * his bolts came down, and where he's landed his ground pounds; and how far the lights have gone down (0..1, as he
+   * loses health: it never comes back up).
+   */
+  barryWreck: { hits: number[]; bolts: number[]; pounds: number[]; dim: number };
   /** Horizontal pull applied to the player this frame (Hector's hurricane). */
   totalPullForceX: number;
   /** Wind shoving the player this frame (a stage hazard); used up by the next move. */
@@ -364,6 +370,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   hectorFilthShown: 0,
   artieVault: { heat: 0, broke: [-1, -1, -1, -1] },
   ernieWreck: { quakes: [] },
+  barryWreck: { hits: [], bolts: [], pounds: [], dim: 0 },
   totalPullForceX: 0,
   tommyBoards: [],
   tommySludgeY: TOMMY_SLUDGE_Y,

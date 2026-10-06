@@ -6,8 +6,17 @@
 import { bandedGradient, checker } from '../../pixelArt';
 import { Ctx, hash, box, bevel, label } from './kit';
 
-export const drawBarryLair = (ctx: Ctx, L: number, R: number, T: number, B: number, f: number) => {
+/**
+ * The observatory, taking it as the fight goes. `wreck` (see GameState.barryWreck): the frame of every attack he's made
+ * in here, where his bolts came down (scorched into the floor and up the wall), where he's pounded the floor (boards
+ * splintered); and the rest goes as the attacks add up: the meters' glass, breakers popped, a cable down and sparking,
+ * the telescope knocked off its aim, the monitor cracked, the windows starred, the star chart crooked, the note down.
+ */
+export const drawBarryLair = (ctx: Ctx, L: number, R: number, T: number, B: number, f: number, wreck?: { hits: number[]; bolts: number[]; pounds: number[] }) => {
   const W = R - L, cx = L + W / 2;
+  const n = wreck?.hits.length ?? 0, wear = Math.min(1, n / 14);
+  /** Has the room taken more than `k` attacks yet? */
+  const after = (k: number) => n > k;
   // The back wall, below the dome: dark planking
   bandedGradient(ctx, L, T, W, B - T, ['#07060D', '#0D0B18', '#141024', '#1A1430', '#161026'], 14);
 
@@ -54,7 +63,8 @@ export const drawBarryLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   bevel(ctx, px - 16, py - 110, 32, 110, '#3F3F46', '#71717A', '#18181B');
   bevel(ctx, px - 26, py - 12, 52, 12, '#27272A', '#52525B', '#09090B');
   box(ctx, px - 6, py - 126, 12, 18, '#52525B');
-  ctx.save(); ctx.translate(px, py - 124); ctx.rotate(-1.1);
+  // (knocked further off its aim each time the room jumps)
+  ctx.save(); ctx.translate(px, py - 124); ctx.rotate(-1.1 + Math.min(0.55, n * 0.04));
   bevel(ctx, -20, -13, 200, 26, '#E4E4E7', '#FFFFFF', '#A1A1AA');
   bevel(ctx, 170, -16, 30, 32, '#D4D4D8', '#FFFFFF', '#71717A');
   box(ctx, 60, -13, 6, 26, '#A1A1AA'); box(ctx, 120, -13, 6, 26, '#A1A1AA');
@@ -72,10 +82,14 @@ export const drawBarryLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
     box(ctx, mx - 16, my, 32, 4, '#F5F5F4');
     ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(mx, my + 2); ctx.lineTo(mx - 14 + Math.sin(f * 0.3 + k) * 0.6, my - 2); ctx.stroke();
     label(ctx, '0', mx, my - 6, '#1C1917', 4);
+    if (after(2 + k * 3)) { ctx.strokeStyle = '#57534E'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(mx - 10, my - 10); ctx.lineTo(mx - 2, my - 4); ctx.lineTo(mx + 6, my - 12); ctx.moveTo(mx - 2, my - 4); ctx.lineTo(mx + 2, my + 2); ctx.stroke(); }
   }
   for (let r = 0; r < 3; r++) for (let k = 0; k < 6; k++) {
     const x = bx + 12 + k * 22, y = B - 140 + r * 18;
-    box(ctx, x, y, 16, 12, '#111827'); box(ctx, x + 6, y + 6, 4, 5, '#9CA3AF');
+    box(ctx, x, y, 16, 12, '#111827');
+    // (popped, one after another: the handle thrown up, a scorch by it)
+    if (after(1 + Math.floor(hash(r * 6 + k + 40) * 16))) { box(ctx, x + 6, y + 1, 4, 5, '#9CA3AF'); box(ctx, x + 1, y + 1, 3, 3, 'rgba(0, 0, 0, 0.6)'); }
+    else box(ctx, x + 6, y + 6, 4, 5, '#9CA3AF');
   }
   // the knife switch, thrown down (off)
   const kx = bx + 75, ky = B - 70;
@@ -87,7 +101,18 @@ export const drawBarryLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   label(ctx, 'OFF', kx + 22, ky + 20, '#EF4444', 5);
   // cables from it, up the wall
   ctx.strokeStyle = '#0B0F19'; ctx.lineWidth = 4;
-  for (const o of [20, 40, 60]) { ctx.beginPath(); ctx.moveTo(bx + 150, B - 180 + o); ctx.quadraticCurveTo(bx + 190, B - 260 + o, bx + 170 + o, T + 20); ctx.stroke(); }
+  for (const o of [20, 40, 60]) {
+    // (the last one torn down in the end, hanging, its end spitting sparks)
+    if (o === 60 && after(9)) {
+      const sway = Math.sin(f * 0.05) * 6, ex = bx + 236 + sway, ey = B - 120;
+      ctx.beginPath(); ctx.moveTo(bx + 230, T + 20); ctx.quadraticCurveTo(bx + 250, (T + ey) / 2, ex, ey); ctx.stroke();
+      ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 1; ctx.stroke(); ctx.strokeStyle = '#0B0F19'; ctx.lineWidth = 4;
+      box(ctx, ex - 3, ey - 2, 6, 5, '#B87333'); // (the copper showing at its torn end)
+      if (f % 23 < 4) for (let k = 0; k < 4; k++) box(ctx, ex - 4 + hash(f + k) * 8, ey + hash(f * 3 + k) * 8, 2, 2, k % 2 ? '#FDE047' : '#FFFFFF');
+      continue;
+    }
+    ctx.beginPath(); ctx.moveTo(bx + 150, B - 180 + o); ctx.quadraticCurveTo(bx + 190, B - 260 + o, bx + 170 + o, T + 20); ctx.stroke();
+  }
 
   // Gary's desk, right
   const dx = R - 210;
@@ -99,6 +124,11 @@ export const drawBarryLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   ctx.fillStyle = '#1E293B';
   ctx.fillRect(dx + 46, B - 112, 8, 26); ctx.fillRect(dx + 54, B - 108, 22, 14); ctx.fillRect(dx + 56, B - 94, 24, 16); ctx.fillRect(dx + 30, B - 84, 14, 10); ctx.fillRect(dx + 50, B - 82, 10, 6);
   label(ctx, 'GRID: 0%', dx + 60, B - 75, f % 30 < 20 ? '#EF4444' : '#7F1D1D', 4);
+  if (after(6)) {
+    // (cracked across, and snowing in bands now and then)
+    if (f % 40 < 14) for (let y = B - 116; y < B - 72; y += 3) box(ctx, dx + 26, y, 68, 1, `rgba(203, 213, 225, ${(0.1 + hash(y + f) * 0.25).toFixed(2)})`);
+    ctx.strokeStyle = '#E7E5E4'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(dx + 30, B - 112); ctx.lineTo(dx + 56, B - 96); ctx.lineTo(dx + 88, B - 104); ctx.moveTo(dx + 56, B - 96); ctx.lineTo(dx + 62, B - 74); ctx.stroke();
+  }
   box(ctx, dx + 56, B - 64, 8, 4, '#A8A29E');
   // the headset, the mug, the note, the pills
   ctx.strokeStyle = '#18181B'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(dx + 122, B - 70, 10, Math.PI, 0); ctx.stroke();
@@ -106,12 +136,15 @@ export const drawBarryLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   bevel(ctx, dx + 142, B - 80, 14, 16, '#F5F5F4', '#FFFFFF', '#A8A29E', 1); box(ctx, dx + 156, B - 76, 4, 8, '#F5F5F4');
   box(ctx, dx + 144, B - 76, 10, 3, '#DC2626');
   for (let k = 0; k < 3; k++) { box(ctx, dx + 104 + k * 9, B - 64 - 12, 7, 12, '#F97316'); box(ctx, dx + 104 + k * 9, B - 64 - 14, 7, 3, '#F5F5F4'); }
-  ctx.save(); ctx.translate(dx + 60, B - 140); ctx.rotate(0.06);
+  // (the note shaken off the wall, down onto the desk)
+  const noteDown = wreck && after(4) ? Math.min(1, (f - wreck.hits[4]) / 30) : 0;
+  ctx.save(); ctx.translate(dx + 60 + noteDown * 40, B - 140 + noteDown * 66); ctx.rotate(0.06 + noteDown * 1.4);
   box(ctx, -26, -14, 52, 30, '#FEF08A'); label(ctx, "DON'T TOUCH", 0, -3, '#1C1917', 4); label(ctx, 'THE SWITCH', 0, 5, '#1C1917', 4); label(ctx, '- G', 14, 12, '#1C1917', 4);
   ctx.restore();
 
   // A star chart, high on the wall left of the slit
   const cxs = cx - 190, cys = T + 60;
+  ctx.save(); ctx.translate(cxs + 84, cys - 4); ctx.rotate(Math.min(0.3, n * 0.03)); ctx.translate(-(cxs + 84), -(cys - 4));
   bevel(ctx, cxs - 4, cys - 4, 88, 68, '#1E1B4B', '#4338CA', '#0B0A24');
   box(ctx, cxs, cys, 80, 60, '#0B1033');
   ctx.strokeStyle = 'rgba(165, 180, 252, 0.6)'; ctx.lineWidth = 1;
@@ -119,6 +152,7 @@ export const drawBarryLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(cxs + x, cys + y) : ctx.moveTo(cxs + x, cys + y))); ctx.stroke();
   pts.forEach(([x, y]) => box(ctx, cxs + x - 1, cys + y - 1, 3, 3, '#FFFFFF'));
   label(ctx, 'URSA MAJOR', cxs + 40, cys + 54, '#C7D2FE', 4);
+  ctx.restore();
 
   // The city out the little windows: dark, the odd flashlight
   for (const wx of [cx - 120, cx + 120]) {
@@ -128,6 +162,11 @@ export const drawBarryLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
     for (let k = 0; k < 6; k++) box(ctx, wx - 22 + k * 8, B - 132 + hash(k + wx) * 10, 7, 30, '#05060F');
     if (f % 90 < 60) box(ctx, wx - 10 + hash(Math.floor(f / 90) + wx) * 20, B - 124, 1, 1, '#FDE68A');
     box(ctx, wx - 1, B - 146, 2, 32, '#2A2340');
+    if (after(wx < cx ? 3 : 7)) {
+      ctx.strokeStyle = 'rgba(226, 232, 240, 0.7)'; ctx.lineWidth = 1;
+      const sx = wx + (wx < cx ? -8 : 10), sy = B - 136;
+      ctx.beginPath(); for (let k = 0; k < 6; k++) { const a = k * 1.05 + 0.3; ctx.moveTo(sx, sy); ctx.lineTo(sx + Math.cos(a) * 12, sy + Math.sin(a) * 10); } ctx.stroke();
+    }
   }
 
   // The side columns: brick, with conduit and an insulator or two
@@ -141,6 +180,34 @@ export const drawBarryLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   // The floor: dark boards
   box(ctx, L, B - 14, W, 14, '#2A1F1A'); box(ctx, L, B - 14, W, 2, '#4A3A30');
   for (let x = L; x < R; x += 36) { box(ctx, x, B - 12, 1, 12, '#160F0C'); box(ctx, x + 12, B - 7, 2, 2, '#160F0C'); }
+  // Where his bolts came down: burned into the boards, and a scorch up the wall behind
+  const bolts = wreck?.bolts ?? [];
+  bolts.forEach((x, i) => {
+    const w = 18 + hash(i + 7) * 14;
+    // (a black plume up the wall, banded, fading as it goes up)
+    const tall = 2 + Math.floor(hash(i + 51) * 4);
+    for (let k = 0; k < tall; k++) {
+      const bw = Math.round((10 + hash(i * 9 + k) * 16) * (1 - k / (tall + 1))), off = Math.round((hash(i * 13 + k) - 0.5) * 10);
+      box(ctx, Math.round(x - bw / 2) + off, B - 14 - (k + 1) * 9, bw, 9, `rgba(8, 5, 4, ${(0.5 - k * 0.09).toFixed(2)})`);
+    }
+    box(ctx, Math.round(x - w / 2), B - 14, Math.round(w), 8, 'rgba(8, 5, 4, 0.85)');
+    box(ctx, Math.round(x - w / 2) - 2, B - 14, 2, 4, '#7C2D12'); box(ctx, Math.round(x + w / 2), B - 14, 2, 4, '#7C2D12');
+    for (let k = 0; k < 3; k++) box(ctx, Math.round(x - w / 2 + 3 + hash(i * 5 + k) * (w - 6)), B - 13, 2, 1, '#78716C');
+    if (i >= bolts.length - 4 && (f + i * 11) % 30 < 3) box(ctx, Math.round(x), B - 16, 2, 2, '#FDE047'); // (the newest still glowing)
+  });
+  // Where he's pounded the floor: boards splintered up round a dark split
+  (wreck?.pounds ?? []).forEach((x, i) => {
+    box(ctx, Math.round(x - 26), B - 14, 52, 2, '#120B08');
+    for (let k = 0; k < 5; k++) {
+      const sx = Math.round(x - 22 + k * 11 + hash(i * 3 + k) * 4), h = 3 + Math.round(hash(i * 7 + k) * 5);
+      box(ctx, sx, B - 14 - h, 3, h, k % 2 ? '#4A3A30' : '#6B5444'); box(ctx, sx, B - 14 - h, 3, 1, '#8A6E5A');
+    }
+  });
+  // (smoke from it all, hanging under the dome)
+  for (let k = 0; k < Math.round(wear * 8); k++) {
+    const sx = Math.round(L + ((k * 97 + f * 0.2) % W)), sy = Math.round(T + 60 + (k % 3) * 40 + Math.sin(f * 0.02 + k) * 6);
+    box(ctx, sx, sy, 60, 8, 'rgba(60, 54, 72, 0.12)'); box(ctx, sx + 10, sy - 4, 36, 4, 'rgba(60, 54, 72, 0.1)');
+  }
   // a faint spill of starlight down from the slit
   ctx.fillStyle = 'rgba(165, 180, 252, 0.04)';
   ctx.beginPath(); ctx.moveTo(cx - sw / 2, T); ctx.lineTo(cx + sw / 2, T); ctx.lineTo(cx + sw, B - 14); ctx.lineTo(cx - sw, B - 14); ctx.closePath(); ctx.fill();

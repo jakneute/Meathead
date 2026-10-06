@@ -62,7 +62,7 @@ export const drawCustomBossArena = (
       if (state) drawDaleWalls(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state.enemies.find(e => e.type === 'boss') ?? state.deadBoss ?? undefined, state.doorState === 'done');
       break;
     case 'Blackout Barry':
-      drawBarryLair(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame);
+      drawBarryLair(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state?.barryWreck);
       break;
     case 'Oily Oscar':
       drawOscarLair(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame);
