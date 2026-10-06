@@ -668,7 +668,9 @@ const updateTumbles = (ctx: FrameContext, cv: Convoy) => {
 
 const roadkill = (ctx: FrameContext, cv: Convoy, e: Enemy) => {
   const { state, fx } = ctx;
-  e.health = 0;
+  // (dead for good: gone off the list, not left at nothing to be topped back up if he was never on screen (see
+  // spared), and so run over again next frame, and again, the callout every time)
+  e.health = 0; e.seen = true; e.isBlownAway = true; e.vel = { x: -6, y: 4 };
   fx.spawnDeathShower({ x: e.pos.x + e.width / 2, y: Y - 10 }, -1, 1.2);
   fx.spawnDamageNumber({ x: Math.max(state.camera.x + 60, e.pos.x), y: Y - 120 }, 'ROADKILL!', true, '#F87171');
   fx.speakVulgarity('charge_kill');
