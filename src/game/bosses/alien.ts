@@ -64,8 +64,9 @@ const FLAME_PER_FRAME = 1.6, FLAME_TICK = 12;
 /** The oil rocket launcher's igniter on him (it costs nothing in here once the tank's dry, so it's only a lick of it);
  * once he's begging, nothing (the pistol finishes him). */
 const IGNITER_SCALE = 0.15;
-/** On fire (oiled and lit): a burn on top of the usual, each tick, for this long. */
-const BURN_TICK_DAMAGE = 10, BURN_FRAMES = 240;
+/** On fire (oiled and lit): a burn on top of the usual, each tick, for this long (a lick: the fire's for the show, and
+ * for what it does to him, not a damage source in itself). */
+const BURN_TICK_DAMAGE = 3, BURN_FRAMES = 240;
 /** Slammed into the wall by a wave. */
 const WALL_SLAM_DAMAGE = 120;
 /** A body thrown into him: what it does by how hard it hits (an overdosed one: the contact high). */
