@@ -860,17 +860,41 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop, rt: HectorRuntime) => {
       return;
     }
     case 'net': {
-      // A volleyball post: inked, lit down its side, the net hung off it slack, tape along the top
-      ink(ctx, () => ctx.rect(p.x - 2, p.y - 100, 4, 100), '#E5E7EB');
-      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(p.x - 1, p.y - 100, 1, 100); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(p.x + 1, p.y - 100, 1, 100);
-      ctx.strokeStyle = 'rgba(31, 41, 55, 0.6)'; ctx.lineWidth = 1;
-      const sag = Math.sin(f * 0.1 + p.x) * (1 + storm * 4);
-      ctx.beginPath();
-      for (let k = 0; k <= 6; k++) { const yy = p.y - 98 + k * 6.5; ctx.moveTo(p.x + 2, yy); ctx.quadraticCurveTo(p.x + 22, yy + 4 + sag, p.x + 40, yy + sag * 1.5 + k); }
-      for (let k = 1; k <= 6; k++) { const xx = p.x + 2 + k * 6.3; ctx.moveTo(xx, p.y - 97 + k * 0.6 + sag * k / 6); ctx.lineTo(xx, p.y - 58 + k + sag * k / 6); }
+      // A volleyball net, seen across the court the way the players are: the near post, the far one smaller and further
+      // back up the beach, the net strung between them (tape along the top, a cord along the bottom, the mesh bellying in
+      // the wind), guy ropes out to stakes
+      const s2 = 0.82, x1 = p.x, x2 = p.x + 56, b1 = p.y, b2 = p.y - 5;
+      const T1 = b1 - 92, B1 = b1 - 56, T2 = b2 - 92 * s2, B2 = b2 - 56 * s2;
+      const blow = Math.sin(f * 0.1 + p.x) * (1 + storm * 5) + storm * 4;
+      // (the guy ropes and their stakes, behind)
+      ctx.strokeStyle = '#D6C7A1'; ctx.lineWidth = 1; ctx.beginPath();
+      ctx.moveTo(x1, b1 - 98); ctx.lineTo(x1 - 26, b1 + 6); ctx.moveTo(x2, b2 - 98 * s2); ctx.lineTo(x2 + 20, b2 - 16); ctx.stroke();
+      ink(ctx, () => ctx.rect(x1 - 28, b1 + 1, 3, 5), '#8A6E4B'); ink(ctx, () => ctx.rect(x2 + 19, b2 - 18, 2, 4), '#8A6E4B');
+      /** Where the net is at u (0 near post .. 1 far post) and v (0 top .. 1 bottom): sagging in the middle, bellying with the wind. */
+      const at = (u: number, v: number) => {
+        const belly = Math.sin(Math.PI * u), top = T1 + (T2 - T1) * u, bot = B1 + (B2 - B1) * u;
+        return { x: x1 + 2 + u * (x2 - x1 - 3) + belly * v * blow, y: top + 1 + belly * (2 + Math.abs(blow) * 0.3) + v * (bot - top - 1) };
+      };
+      // The mesh
+      ctx.strokeStyle = 'rgba(31, 41, 55, 0.65)'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let r = 1; r <= 5; r++) { const v = r / 6; for (let k = 0; k <= 20; k++) { const q = at(k / 20, v); if (k) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); } }
+      for (let c = 1; c < 12; c++) { const u = c / 12, a = at(u, 0), m = at(u, 0.5), z = at(u, 1); ctx.moveTo(a.x, a.y); ctx.quadraticCurveTo(m.x, m.y, z.x, z.y); }
       ctx.stroke();
-      ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x + 2, p.y - 98); ctx.quadraticCurveTo(p.x + 22, p.y - 94 + sag, p.x + 40, p.y - 98 + sag * 1.5); ctx.stroke();
-      ink(ctx, () => ctx.rect(p.x - 4, p.y - 102, 8, 5), '#F8FAFC');
+      // The cord along the bottom, and the tape along the top (inked, lit along its upper edge)
+      const edge = (v: number) => { ctx.beginPath(); for (let k = 0; k <= 20; k++) { const q = at(k / 20, v); if (k) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); } };
+      ctx.strokeStyle = '#374151'; ctx.lineWidth = 2; edge(1); ctx.stroke();
+      ctx.strokeStyle = INK; ctx.lineWidth = 6; edge(0); ctx.stroke();
+      ctx.strokeStyle = '#E5E7EB'; ctx.lineWidth = 4; edge(0); ctx.stroke();
+      ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1; ctx.beginPath(); for (let k = 0; k <= 20; k++) { const q = at(k / 20, 0); if (k) ctx.lineTo(q.x, q.y - 1.5); else ctx.moveTo(q.x, q.y - 1.5); } ctx.stroke();
+      // The posts (the far one first, smaller): inked, lit down one side, a cap on top, the net tied off on each
+      for (const [x, base, s, top, bot] of [[x2, b2, s2, T2, B2], [x1, b1, 1, T1, B1]] as const) {
+        const h = Math.round(100 * s), w = s < 1 ? 3 : 4;
+        ink(ctx, () => ctx.rect(x - w / 2, base - h, w, h), '#E5E7EB');
+        ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x - w / 2 + 1, base - h, 1, h); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x + w / 2 - 1, base - h, 1, h);
+        ink(ctx, () => ctx.rect(x - w, base - h - 2, w * 2, 4), '#F8FAFC');
+        ink(ctx, () => ctx.rect(x - w + 1, top - 1, w * 2 - 2, 3), '#CBD5E1'); ink(ctx, () => ctx.rect(x - w + 1, bot - 1, w * 2 - 2, 3), '#CBD5E1');
+        ctx.fillStyle = '#C2A878'; ctx.fillRect(x - w - 2, base - 2, w * 2 + 4, 2); // (the sand heaped round its foot)
+      }
       return;
     }
     case 'palm': {
