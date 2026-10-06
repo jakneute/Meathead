@@ -197,6 +197,8 @@ export interface GameState {
    * when each of his specimen tubes gave (the frame, -1 not yet).
    */
   artieVault: { heat: number; broke: number[] };
+  /** Ernie's vault coming apart (looks only: the fight's the same): the frame of every quake he's put through it, in order. */
+  ernieWreck: { quakes: number[] };
   /** Horizontal pull applied to the player this frame (Hector's hurricane). */
   totalPullForceX: number;
   /** Wind shoving the player this frame (a stage hazard); used up by the next move. */
@@ -361,6 +363,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   hectorFilth: 0,
   hectorFilthShown: 0,
   artieVault: { heat: 0, broke: [-1, -1, -1, -1] },
+  ernieWreck: { quakes: [] },
   totalPullForceX: 0,
   tommyBoards: [],
   tommySludgeY: TOMMY_SLUDGE_Y,

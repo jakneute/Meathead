@@ -39,7 +39,7 @@ export const drawCustomBossArena = (
       drawVictorLair(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame);
       break;
     case 'Ernie Earthquake':
-      drawErnieLair(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame);
+      drawErnieLair(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state?.ernieWreck.quakes);
       break;
     case 'Hector Hurricane':
       drawHectorLair(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, windTargetX);

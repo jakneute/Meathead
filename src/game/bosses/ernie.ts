@@ -243,6 +243,9 @@ export const ernieQuake = (ctx: FrameContext, x: number) => {
 /** Every landing shakes the room (and stuns you if you're on the ground). */
 const onLand = (ctx: FrameContext, boss: Enemy, dirToPlayer: number, surface: 'block' | 'floor') => {
   ctx.bossHelpers.setScreenShake(LANDING_SHAKE);
+  // (the vault takes it too: see lairs/ernie.ts, it comes apart a bit more every time)
+  const wreck = ctx.state.ernieWreck.quakes;
+  if (wreck.length < 60) wreck.push(ctx.state.frame);
   ctx.bossHelpers.setErnieVibration(ERNIE_STOMP_VIBRATION_DURATION);
   if (surface === 'floor') ernieQuake(ctx, midX(boss));
   // (Meathead on his feet for it: the quake's got him, and the boulder that follows is the one sent to punish him)
