@@ -73,6 +73,10 @@ export class KeyboardMouseState {
   }
 }
 
+/** Keys that fire, besides the left mouse button (Meathead 2 has none: the mouse fires). */
+let fireKeys = ['x', 'keyx', 'k', 'keyk'];
+export const setFireKeys = (keys: string[]) => { fireKeys = keys; };
+
 export const readControls = (kb: KeyboardMouseState): Controls => {
   const gp = getActiveGamepad();
   let padX = 0, padY = 0, padJump = false, padSpecial = false, padShoot = false, padFlame = false;
@@ -109,7 +113,7 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
     jump: k(' ', 'space', 'z', 'keyz', 'j', 'keyj') || padJump,
     special: kb.rightMouseDown || uppercutKey || diveKey || padSpecial,
     charge: k('shift', 'shiftleft', 'shiftright'),
-    shoot: kb.mouseDown || padShoot || k('x', 'keyx', 'k', 'keyk'),
+    shoot: kb.mouseDown || padShoot || k(...fireKeys),
     secondary: padFlame || k('f', 'keyf'),
   };
 };

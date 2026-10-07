@@ -14,6 +14,7 @@ import { penLayout, PEN_STAGE } from './pen/index';
 import { LANDS, STAFF_SLOT } from './hub/lands';
 import { getUi, subscribeUi, onTravel, setUi } from './store';
 import { attachM2Keys } from './input';
+import { setFireKeys } from '../m1/game/platform/input';
 import MapCard from './hub/MapCard';
 import ChordPrompt from './ChordPrompt';
 import { cleanLines } from './lines/clean';
@@ -27,6 +28,8 @@ registerStageLayout(PEN_STAGE, penLayout);
 loadVoicePack(voicePackUrl);
 attachM2Keys();
 cleanLines();
+// (on the keyboard and mouse, the left button fires: no fire keys)
+setFireKeys([]);
 registerGrabCallouts();
 
 const WEAPONS: WeaponType[] = ['GUN', 'SHOTGUN'];
@@ -133,7 +136,7 @@ const App2: React.FC = () => {
         {status === GameStatus.PLAYING && stage === PEN_STAGE && (
           <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 px-3 py-2 text-[8px] text-zinc-100 bg-black/70 border-2 border-zinc-600">
             <ChordPrompt pad={['Y', 'B']} join="+" kb={['R']} label="BEATDOWN (LUNGE)" />
-            <span className="text-zinc-400 pl-1">ON HIM: <ChordPrompt pad={['X', 'B', 'Y']} join="/" kb={['K']} mouse="left" label="PUNCH" /> · <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" /></span>
+            <span className="text-zinc-400 pl-1">ON HIM: <ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" /> · <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" /></span>
             <ChordPrompt pad={['Y', 'X']} join="+" kb={['T']} label="SHAKEDOWN (GRAB)" />
             <span className="text-zinc-400 pl-1">AT THE END, HOLD A DIRECTION TO THROW (DOWN: SLAM)</span>
           </div>
