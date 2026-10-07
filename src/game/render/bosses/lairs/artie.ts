@@ -191,8 +191,8 @@ const tube = (ctx: Ctx, cx: number, top: number, bottom: number, what: number, n
   box(ctx, cx - 28, bottom - 18, 56, 10, '#D8E6F0'); label(ctx, name, cx, bottom - 10.5, '#1C2E40', 5);
 };
 
-/** How hot it's got, as the readout shows it (degrees C). */
-const tempOf = (heat: number) => Math.round(-89 + heat * 131);
+/** How hot it's got, as the readout shows it (degrees F: it's an American vault; from -128 up past +100). */
+const tempOf = (heat: number) => Math.round((-89 + heat * 131) * 9 / 5 + 32);
 /** The mercury: blue cold, up through yellow, red hot. */
 const mercury = (heat: number) => heat < 0.45 ? '#5DADE2' : heat < 0.75 ? '#FACC15' : '#EF4444';
 
@@ -287,9 +287,9 @@ export const drawArtieLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   const tx = R - 150, ty = T + 62;
   bevel(ctx, tx, ty, 96, 40, '#0B1B2B', '#3E6688', '#06101A');
   // (above freezing, it's flashing: it was never meant to get there)
-  const temp = tempOf(heat), alarm = temp > 0 && f % 30 < 15;
+  const temp = tempOf(heat), alarm = temp > 32 && f % 30 < 15;
   label(ctx, alarm ? 'WARNING' : 'VAULT TEMP', tx + 48, ty + 13, alarm ? '#EF4444' : '#5DADE2', 5);
-  label(ctx, `${temp > 0 ? '+' : ''}${temp}${f % 60 < 50 ? '°' : ' '}C`, tx + 48, ty + 31, temp < -30 ? '#7DF9FF' : temp <= 0 ? '#FDE047' : '#F87171', 10);
+  label(ctx, `${temp > 0 ? '+' : ''}${temp}${f % 60 < 50 ? '°' : ' '}F`, tx + 48, ty + 31, temp < -22 ? '#7DF9FF' : temp <= 32 ? '#FDE047' : '#F87171', 10);
   // The gauge beside it: a big thermometer, the mercury climbing, freezing marked on it
   const gx = tx - 26, gTop = ty - 8, gBot = ty + 96, run = gBot - gTop - 18;
   const level = (h: number) => gBot - 10 - Math.round(run * (0.08 + h * 0.92));
