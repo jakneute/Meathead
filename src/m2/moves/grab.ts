@@ -23,6 +23,7 @@ import { shakeScreen } from '../../m1/game/core/state';
 import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
 import type { Enemy, EnemyKind, WeaponType } from '../../m1/types';
 import { isHumanoidKind, drawKindEnemy, kindHead } from '../../m1/game/render/enemies';
+import { getEnemyMass } from '../../m1/game/combat/knockback';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { INITIAL_PLAYER_HEALTH } from '../../m1/constants';
@@ -47,8 +48,8 @@ const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 4, PUNC
 /** Each throw's animation: how long, and the frame he lets go on. */
 const TOSS: Record<Toss, { len: number; release: number }> = { forward: { len: 16, release: 7 }, back: { len: 24, release: 12 }, up: { len: 16, release: 6 }, down: { len: 18, release: 8 } };
 /** A slam's bounce (up, a frame) for Meathead; a suplex's share of who he suplexes. */
-const SLAM_BOUNCE = -9, SUPLEX_SHARE = 0.3;
-const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 24, THROW_SHARE = 0.15, SLAM_SHARE = 0.4, GRAB_MISS = 12;
+const SLAM_BOUNCE = -10.5, SUPLEX_SHARE = 0.3;
+const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 14, THROW_SHARE = 0.15, SLAM_SHARE = 0.4, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
 /** How long after a grab bumping into people still doesn't hurt (or knock him about). */
@@ -87,8 +88,9 @@ export interface Grab {
   was: Controls;
   /** Shaken down already: no more ammo in them (they can still be grabbed and thrown again). */
   shaken: WeakSet<Enemy>;
-  /** The throw he's doing at the end of a shakedown. */
+  /** The throw he's doing at the end of a shakedown, and who's just gone flying from it (not held back by keepClear). */
   toss: Toss;
+  thrown: Enemy | null;
   /** Frames body contact still can't hurt him (a grab's on, or just finished). */
   clearT: number;
   /** Buttons still held from the grab (the last punch): they don't start a charge or a shot till they're let go. */
@@ -96,7 +98,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward',
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -151,9 +153,31 @@ const inReach = (state: GameState, dir: number, reach: number) => {
 
 const take = (state: GameState, e: Enemy) => { state.enemies = state.enemies.filter(o => o !== e); };
 
+/**
+ * While he's busy with one, nobody else crowds in on him: anyone who's walked up into him (or onto him) is moved back
+ * out to the side they came from, a little clear, and held there a moment, waiting their turn (no piling on, no
+ * standing on top of him while he's at it).
+ */
+const CLEAR_GAP = 18;
+const keepClear = (state: GameState, g: Grab) => {
+  const p = state.player, cx = centerX(state), half = p.width / 2 + CLEAR_GAP;
+  for (const e of state.enemies) {
+    if (e === g.held || e === g.thrown || e.health <= 0 || e.isBlownAway || e.type === 'boss') continue;
+    const ex = e.pos.x + e.width / 2;
+    if (Math.abs(ex - cx) >= half + e.width / 2) continue;
+    if (e.pos.y > p.pos.y + p.height || e.pos.y + e.height < p.pos.y - 40) continue;
+    const side = ex < cx ? -1 : ex > cx ? 1 : -g.dir;
+    e.pos.x = cx + side * (half + e.width / 2) - e.width / 2;
+    e.vel.x = 0;
+    if (e.vel.y < 0 && e.pos.y + e.height < p.pos.y + p.height) e.vel.y = 0;
+    e.pauseTimer = Math.max(e.pauseTimer || 0, 3);
+  }
+};
+
 /** Runs the grabs. Returns the controls the rest of him gets (none while he's busy). */
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const out = stepGrab(ctx, g, controls);
+  if (g.phase !== 'idle') keepClear(ctx.state, g);
   // (the grab wins over a bump: nobody he touches hurts him while one's on, from the frame it starts, and for a moment
   // after, with whoever he's just put down still at his feet; shots still do)
   if (g.phase !== 'idle') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
@@ -225,7 +249,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       const e = inReach(state, g.dir, GRAB_REACH);
       if (!e) { if (g.t >= REACH) { g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6); } return hold(); }
       // Got him: up by the neck
-      g.phase = 'shake'; g.t = 0; g.held = e; take(state, e);
+      g.phase = 'shake'; g.t = 0; g.held = e; g.thrown = null; take(state, e);
       e.facing = (-g.dir) as 1 | -1;
       playSound('punch', 0.8, 4);
       return hold();
@@ -319,12 +343,15 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
 
     case 'toss': {
       const e = g.held;
-      if (e && g.t === TOSS[g.toss].release) { letFly(ctx, g, e); g.held = null; }
+      if (e && g.t === TOSS[g.toss].release) { letFly(ctx, g, e); g.held = null; g.thrown = e; }
       if (g.t >= TOSS[g.toss].len) end(state, g);
       return hold();
     }
   }
 };
+
+/** How far a throw takes him, by his weight: about 1 for a man of 220, more for lighter, less for heavier (within reason). */
+const heft = (e: Enemy) => Math.max(0.7, Math.min(1.3, Math.sqrt(220 / getEnemyMass(e))));
 
 /** Lets go of him, the way the throw's going: slammed down in front, suplexed down behind, launched up, or flung forward. */
 const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
@@ -351,7 +378,9 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     // Suplexed: arched back over him and driven down behind, head and shoulders first, skidding off a little
     const dir = -g.dir;
     e.pos = { x: centerX(state) + dir * (p.width / 2 + e.width / 2 + 4) - e.width / 2, y: feetY(state) - e.height };
-    e.vel = { x: dir * 5, y: -3 };
+    // (thrown about as far as a forward throw, the other way; lighter ones further)
+    const w = heft(e);
+    e.vel = { x: dir * THROW_SPEED * 0.9 * w, y: -7 };
     const dmg = Math.max(14, Math.round(e.maxHealth * SUPLEX_SHARE));
     e.health -= dmg;
     state.enemies.push(e);
@@ -362,7 +391,9 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     return;
   }
   const dir = g.dir;
-  const v = g.toss === 'up' ? { x: g.dir * 3, y: -23 } : { x: dir * THROW_SPEED, y: -6 };
+  // (how far by how heavy he is: a pit bull goes a lot further than a bouncer)
+  const w = heft(e);
+  const v = g.toss === 'up' ? { x: g.dir * 2.5, y: -11 * w } : { x: dir * THROW_SPEED * w, y: -6 };
   e.pos = { x: centerX(state) + dir * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: p.pos.y - (g.toss === 'up' ? 40 : 16) };
   e.vel = { ...v };
   const dmg = Math.max(8, Math.round(e.maxHealth * THROW_SHARE));

@@ -14,7 +14,7 @@ import { padIs360 } from '../game/platform/device';
  * confirms; its B, on the bottom, goes back). What's printed on them depends on whose controller it is: an Xbox's
  * letters, a PlayStation's shapes, a Switch's letters (the other way round to an Xbox's).
  */
-export type PadKey = 'A' | 'B' | 'X' | 'Y' | 'START' | 'LB' | 'RB' | 'DPAD' | 'RSTICK' | 'OK' | 'BACK';
+export type PadKey = 'A' | 'B' | 'X' | 'Y' | 'START' | 'LB' | 'RB' | 'DPAD' | 'DPAD_UP' | 'DPAD_DOWN' | 'DPAD_LEFT' | 'DPAD_RIGHT' | 'RSTICK' | 'OK' | 'BACK';
 type Face = 'A' | 'B' | 'X' | 'Y';
 const XBOX_COLORS: Record<Face, string> = { A: '#22C55E', B: '#EF4444', X: '#3B82F6', Y: '#FACC15' };
 const PS_SHAPES: Record<Face, { shape: 'cross' | 'circle' | 'square' | 'triangle'; color: string }> = {
@@ -80,7 +80,8 @@ export const PadButton: React.FC<{ label: Face; size?: number; family?: PadFamil
 };
 
 /** The controller's other buttons: Start (a little pill), the bumpers (a wide rounded bar), the D-pad (a cross). */
-const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'DPAD' | 'RSTICK'; size: number; family?: PadFamily }> = ({ label, size, family = 'xbox' }) => {
+type DpadDir = 'DPAD_UP' | 'DPAD_DOWN' | 'DPAD_LEFT' | 'DPAD_RIGHT';
+const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'DPAD' | DpadDir | 'RSTICK'; size: number; family?: PadFamily }> = ({ label, size, family = 'xbox' }) => {
   // (the right stick: a thumbstick seen from above, R on it, arrows up and down)
   if (label === 'RSTICK') return (
     <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
@@ -96,6 +97,18 @@ const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'DPAD' | 'RSTICK'; siz
       <path d="M20 8 l3 4 h-6 Z M20 32 l3 -4 h-6 Z M8 20 l4 3 v-6 Z M32 20 l-4 3 v-6 Z" fill="#A1A1AA" />
     </svg>
   );
+  // (one way on the D-pad: that arm lit, its arrow bright, the rest dim)
+  if (label === 'DPAD_UP' || label === 'DPAD_DOWN' || label === 'DPAD_LEFT' || label === 'DPAD_RIGHT') {
+    const arm = { DPAD_UP: 'M15 4 H25 V15 H15 Z', DPAD_DOWN: 'M15 25 H25 V36 H15 Z', DPAD_LEFT: 'M4 15 H15 V25 H4 Z', DPAD_RIGHT: 'M25 15 H36 V25 H25 Z' }[label];
+    const arrows = { DPAD_UP: 'M20 7 l4 5 h-8 Z', DPAD_DOWN: 'M20 33 l4 -5 h-8 Z', DPAD_LEFT: 'M7 20 l5 4 v-8 Z', DPAD_RIGHT: 'M33 20 l-5 4 v-8 Z' };
+    return (
+      <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
+        <path d="M15 4 H25 V15 H36 V25 H25 V36 H15 V25 H4 V15 H15 Z" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
+        <path d={arm} fill="#FACC15" />
+        {(Object.keys(arrows) as DpadDir[]).map(d => <path key={d} d={arrows[d]} fill={d === label ? '#18181B' : '#52525B'} />)}
+      </svg>
+    );
+  }
   const name = OTHER_NAMES[family][label];
   // (a Switch's + is a little round button of its own)
   if (label === 'START' && (family === 'switch' || isJoyCon(family as PadFamily))) return (

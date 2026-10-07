@@ -13,18 +13,18 @@ const SIZE = 16;
 const Combo: React.FC<{ dir: 'UP' | 'DOWN'; kb: string[]; air?: boolean }> = ({ dir, kb, air }) => {
   const pad = useInputDevice() === 'pad', family = usePadFamily();
   return pad
-    ? <span className="inline-flex items-center gap-[3px]"><PadIcon k="DPAD" size={SIZE} family={family} /><span>{dir} +</span><PadIcon k="B" size={SIZE} family={family} />{air && <span className="ml-1">IN THE AIR</span>}</span>
+    ? <span className="inline-flex items-center gap-[3px]"><PadIcon k={dir === 'UP' ? 'DPAD_UP' : 'DPAD_DOWN'} size={SIZE} family={family} /><span>+</span><PadIcon k="B" size={SIZE} family={family} />{air && <span className="ml-1">IN THE AIR</span>}</span>
     : <span className="inline-flex items-center gap-[3px]">{kb.map(k => <KeyCap key={k} label={k} size={SIZE} />)}<span>OR</span><KeyCap label={dir === 'UP' ? 'W' : 'S'} size={SIZE} /><span>+</span><MouseIcon button="right" size={SIZE} />{air && <span className="ml-1">IN THE AIR</span>}</span>;
 };
 
 const LESSONS: Record<Lesson, { how: React.ReactNode; what: string; note?: string }> = {
   // (Artie's ski run)
   ski: {
-    how: <><Prompt pad={['DPAD']} kb={['D']} size={SIZE} label="RIGHT: FASTER" /><span className="mx-2" /><Prompt pad={['DPAD']} kb={['A']} size={SIZE} label="LEFT: SLOWER" /></>,
+    how: <><Prompt pad={['DPAD_RIGHT']} kb={['D']} size={SIZE} label="FASTER" /><span className="mx-2" /><Prompt pad={['DPAD_LEFT']} kb={['A']} size={SIZE} label="SLOWER" /></>,
     what: 'IN THE AIR TOO: HOLD RIGHT TO JUMP FURTHER, LEFT TO COME DOWN SHORTER.',
   },
   move: {
-    how: <><Prompt pad={['DPAD']} kb={['A', 'D']} size={SIZE} label="MOVE" /><span className="mx-2" /><Prompt pad={['A']} kb={['SPACE']} size={SIZE} label="JUMP" /><span className="mx-2" /><Prompt pad={['DPAD']} kb={['S']} size={SIZE} label="DOWN: CROUCH" /></>,
+    how: <><Prompt pad={['DPAD']} kb={['A', 'D']} size={SIZE} label="MOVE" /><span className="mx-2" /><Prompt pad={['A']} kb={['SPACE']} size={SIZE} label="JUMP" /><span className="mx-2" /><Prompt pad={['DPAD_DOWN']} kb={['S']} size={SIZE} label="CROUCH" /></>,
     what: 'GET UP OFF THE BENCH. THERE ARE PENCIL NECKS IN YOUR GYM.',
     note: 'CROUCH AND MOST SHOTS GO OVER YOUR HEAD. HOLD JUMP TO JUMP HIGHER.',
   },
