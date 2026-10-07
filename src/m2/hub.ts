@@ -13,6 +13,7 @@ import { setUi, goTo } from './store';
 import { pollM2, pressed } from './input';
 import { drawHubBackdrop, drawHubBack, drawHubFront } from './hubDraw';
 import { HUB, HUB_CIRC, slotX } from './hubGeom';
+import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from './grab';
 
 export const HUB_STAGE = 'M2 Happy Hub';
 
@@ -22,7 +23,7 @@ export const setHubStart = (slot: number) => { startSlot = slot; };
 
 const GATED: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
 
-interface Hub { map: number | null; upWas: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls> }
+interface Hub { map: number | null; upWas: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab }
 const getHub = (state: GameState) => state.stage as Hub | null;
 
 /** Round the lap: everything shifts by a whole lap, so he never runs out of roundabout. */
@@ -44,7 +45,7 @@ export const hubLayout: StageLayout = {
     const runs = [{ x1: HUB.x0 - HUB_CIRC, y1: GROUND_Y, x2: HUB.x0 + HUB_CIRC * 2, y2: GROUND_Y, surface: 'plaza' }];
     state.groundRuns = runs;
     state.blocks.push(...groundBlocks(runs));
-    state.stage = { map: null, upWas: false, gate: new Set() } satisfies Hub;
+    state.stage = { map: null, upWas: false, gate: new Set(), grab: createGrab(state) } satisfies Hub;
     state.cameraMinX = HUB.x0 - HUB_CIRC;
   },
   update: (ctx, controls) => {
@@ -80,6 +81,9 @@ export const hubLayout: StageLayout = {
       for (const k of [...hub.gate]) { if (controls[k]) out[k] = false as never; else hub.gate.delete(k); }
       controls = out;
     }
+    // (the grabs: no use for them here, with nobody about, but he can still throw them)
+    controls = updateGrab(ctx, hub.grab, controls);
+    if (grabbing(hub.grab)) near = null;
     if (near !== null && controls.up && !hub.upWas) {
       if (near === STAFF_SLOT) goTo('pen');
       else { hub.map = near; playMenuOk(); }
@@ -92,5 +96,5 @@ export const hubLayout: StageLayout = {
   cylinder: () => ({ radius: HUB.radius, inside: { horizon: 330 } }),
   drawBackdrop: (ctx, state) => { drawHubBackdrop(ctx, state); return true; },
   drawBack: (ctx, state) => drawHubBack(ctx, state),
-  drawFront: (ctx, state) => drawHubFront(ctx, state),
+  drawFront: (ctx, state) => { drawHubFront(ctx, state); const hub = getHub(state); if (hub) drawGrab(ctx, state, hub.grab); },
 };
