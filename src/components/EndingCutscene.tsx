@@ -11,7 +11,7 @@ import {
 import { ALIEN_VOICE } from '../game/scenes/alienLook';
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { playSound } from '../game/platform/audio';
-import { drawGrossPresident } from '../game/scenes/grossUp';
+import { drawGrossPresident, drawGrossAlien } from '../game/scenes/grossUp';
 import { setShatPants, shatClocked } from '../game/scenes/shatLook';
 
 // NES-style ending: a run of still images with text typed out underneath (see Cutscene).
@@ -109,6 +109,8 @@ const panels = (shat: boolean): Panel[] => [
   },
   // Meathead sizes him up, and likes what he sees
   { draw: (c, t) => drawMeatheadEyes(c, t, 'alien'), text: 'Meathead looks the alien up and down...', hold: 50 },
+  // (a gross-up of him too, the camera down him and back up the same way)
+  { draw: drawGrossAlien, text: '', hold: 185, hires: true },
   {
     draw: (c, t, talk) => drawMeatheadCloseUp(c, t, talk, 'stoked'), speaker: 'MEATHEAD', voice: MEATHEAD_VOICE,
     text: '...NICE TRAPS, BRO.',

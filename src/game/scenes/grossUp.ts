@@ -8,6 +8,13 @@
 //
 // Both are in the cutscene's art coordinates (256 x 144), drawn three times
 // finer. They push in, very slowly, and hardly move otherwise.
+//
+// And in the ending, the two Meathead looks up and down: the President (the
+// chins, the gut, the tie) and then the alien that was wearing him (the traps,
+// the veins, the slime), the camera tilting down each and back up.
+
+import { ALIEN } from './alienLook';
+import { INK, lin, shape, speckle, hatch as hatchInk } from './art/ink';
 
 type Ctx = CanvasRenderingContext2D;
 const W = 256, H = 144;
@@ -563,6 +570,593 @@ export const drawGrossPresident = (ctx: Ctx, t: number) => {
   const drip = (t * 0.4) % 80;
   bead(ctx, 100, 62 + drip * 0.6, 1.6);
 
+  ctx.restore();
+  finish(ctx, t);
+};
+
+// ---------------------------------------------------------------------------
+// The alien, as Meathead looks him up and down
+// ---------------------------------------------------------------------------
+
+/** How tall his painting is (art units, the under-bite down to his fists): tilted down and back up like the President. */
+const ALIEN_H = 342, ALIEN_TOP = 50;
+
+/** A raised vein in his colors: purple, a shadow under it, a lit line along its top. It throbs. */
+const purpleVein = (ctx: Ctx, pts: number[][], w: number, throb: number) => {
+  const path = () => {
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length - 1; i++) { const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2; ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my); }
+    const l = pts[pts.length - 1]; ctx.lineTo(l[0], l[1]);
+  };
+  const ww = w * throb;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.save(); ctx.translate(0.5, 1.1); path(); ctx.strokeStyle = 'rgba(8, 16, 6, 0.6)'; ctx.lineWidth = ww + 1.6; ctx.stroke(); ctx.restore();
+  path(); ctx.strokeStyle = ALIEN.veinShadow; ctx.lineWidth = ww + 0.5; ctx.stroke();
+  path(); ctx.strokeStyle = ALIEN.vein; ctx.lineWidth = ww; ctx.stroke();
+  path(); ctx.strokeStyle = 'rgba(154, 114, 184, 0.6)'; ctx.lineWidth = ww * 0.5; ctx.stroke();
+  ctx.save(); ctx.translate(-0.3, -ww * 0.3); path(); ctx.strokeStyle = 'rgba(220, 196, 240, 0.65)'; ctx.lineWidth = Math.max(0.3, ww * 0.22); ctx.stroke(); ctx.restore();
+};
+
+/** A wet glint: a short hard white stroke and a dot off the end of it. */
+const wetGlint = (ctx: Ctx, x: number, y: number, len: number, a = -0.5) => {
+  ctx.strokeStyle = 'rgba(255, 255, 240, 0.85)'; ctx.lineWidth = 0.6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); ctx.stroke();
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x + Math.cos(a) * len + 0.6, y + Math.sin(a) * len - 0.4, 0.6, 0.6);
+};
+
+/** Toad bumps over an area (clip it first): each a little dome, shadowed under, lit up and to the left. */
+const bumps = (ctx: Ctx, x: number, y: number, w: number, h: number, n: number, seed: number, lit = 'rgba(214, 238, 170, 0.38)', dark = 'rgba(8, 16, 6, 0.5)') => {
+  if ((globalThis as any).NOBUMP) return;
+  const at = (i: number) => [x + hash(i * 1.71 + seed) * w, y + hash(i * 3.13 + seed * 1.3) * h, 0.5 + hash(i * 5.7 + seed) * 1.2];
+  ctx.lineWidth = 0.4;
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) { const [bx, by, r] = at(i); ctx.moveTo(bx + Math.cos(0.1) * r, by + Math.sin(0.1) * r); ctx.arc(bx, by, r, 0.1, Math.PI * 0.95); }
+  ctx.strokeStyle = dark; ctx.stroke();
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) { const [bx, by, r] = at(i); ctx.moveTo(bx + Math.cos(Math.PI * 1.1) * r, by + Math.sin(Math.PI * 1.1) * r); ctx.arc(bx, by, r, Math.PI * 1.1, Math.PI * 1.75); }
+  ctx.strokeStyle = lit; ctx.stroke();
+};
+
+/** A wart: lumpy, lit, a long black hair out of it (or not). */
+const wart = (ctx: Ctx, x: number, y: number, r: number, hair = 0) => {
+  shape(ctx, () => { for (let a = 0; a <= 10; a++) { const ang = (a / 10) * Math.PI * 2, rr = r * (0.8 + hash(a + x) * 0.35); ctx.lineTo(x + Math.cos(ang) * rr, y + Math.sin(ang) * rr); } ctx.closePath(); }, '#6A8A48', 0.5);
+  ctx.fillStyle = 'rgba(10, 20, 8, 0.35)'; ctx.beginPath(); ctx.arc(x + r * 0.25, y + r * 0.3, r * 0.55, 0, Math.PI); ctx.fill();
+  ctx.fillStyle = 'rgba(255, 255, 230, 0.7)'; ctx.fillRect(x - r * 0.5, y - r * 0.6, 0.7, 0.7);
+  if (hair) {
+    ctx.strokeStyle = 'rgba(12, 8, 4, 0.95)'; ctx.lineWidth = 0.3;
+    ctx.beginPath(); ctx.moveTo(x, y - r * 0.3); ctx.bezierCurveTo(x + hair * 0.4, y - hair * 0.9, x + hair, y - hair * 0.3, x + hair * 0.8, y + hair * 0.2); ctx.stroke();
+  }
+};
+
+/** Slime running down from (x, y): a wet trail behind it, the drop on the end swelling; it runs `len`, then starts again. */
+const slimeRun = (ctx: Ctx, t: number, x: number, y: number, len: number, speed: number, phase: number) => {
+  const k = ((t * speed + phase) % (len + 20)) - 20, run = Math.max(0, k), swell = Math.min(1, (k + 20) / 20);
+  ctx.strokeStyle = 'rgba(168, 224, 58, 0.5)'; ctx.lineWidth = 1.1; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 1, y + run * 0.5, x + Math.sin(run * 0.08) * 1.2, y + run); ctx.stroke();
+  const dx = x + Math.sin(run * 0.08) * 1.2, dy = y + run + 1;
+  ctx.fillStyle = 'rgba(168, 224, 58, 0.85)'; ctx.beginPath(); ctx.ellipse(dx, dy, 1.1 + swell * 0.6, 1.4 + swell * 0.9, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(70, 110, 20, 0.7)'; ctx.lineWidth = 0.3; ctx.beginPath(); ctx.arc(dx, dy + 0.2, 1.2 + swell * 0.6, 0.3, Math.PI - 0.3); ctx.stroke();
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(dx - 0.6, dy - 0.8, 0.6, 0.6);
+};
+
+/** A wet sheen along a form: a soft broad streak of slime-light and a hard thin one in it. */
+const sheen = (ctx: Ctx, x0: number, y0: number, cx: number, cy: number, x1: number, y1: number) => {
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(cx, cy, x1, y1);
+  ctx.strokeStyle = 'rgba(234, 255, 176, 0.18)'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.strokeStyle = 'rgba(244, 255, 210, 0.6)'; ctx.lineWidth = 0.5; ctx.stroke();
+};
+
+/**
+ * The alien, Ren & Stimpy close, as Meathead's eyes go down him and back up: the under-bite (the yellow pegs, the
+ * sesame seed, the lettuce), the drool off his lip; the frog-belly throat sac pumping under a jaw like a cinder block;
+ * a neck wider than his head, the President's collar cutting into it (a button popped and hanging by its thread), the
+ * tie stuck to him in the slime, far too short; and the traps: two hills of meat humped up nearly to his ears, every
+ * fiber in them, purple veins like garden hoses over them, stretch marks where they've outgrown the hide. Rags of the
+ * jacket on his shoulders. The pecs, a nipple like a wart with a hair in it; the gut, pale and mottled, the navel with
+ * lint in it; Popeye forearms, the ray gun stapled into the right one, its tubes in his veins; two fat fingers and a
+ * thumb, black claws, slime strung between them. Toad bumps over the lot of him, warts, hairs out of the warts, and
+ * all of it wet: running, dripping, glinting.
+ */
+const paintAlien = (ctx: Ctx) => {
+  const ink = INK, th = 1;
+  /** The hide, lit from the left: lit, mid, dark. */
+  const hideAcross = (x0: number, x1: number, dim = 0) => {
+    const g = ctx.createLinearGradient(x0, 0, x1, 0);
+    g.addColorStop(0, dim ? '#74994E' : '#97B46A'); g.addColorStop(0.45, dim ? '#416536' : '#587F40'); g.addColorStop(1, dim ? '#15241A' : '#203826');
+    return g;
+  };
+  /** The far side going into shadow (inside a clip). */
+  const farSide = (x0: number, x1: number, y0: number, y1: number, a = 0.5) => {
+    const g = ctx.createLinearGradient(x0, 0, x1, 0);
+    g.addColorStop(0, 'rgba(8, 16, 6, 0)'); g.addColorStop(1, `rgba(8, 16, 6, ${a})`);
+    ctx.fillStyle = g; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+  };
+  const glow = (x: number, y: number, r: number, color: string, a: number) => {
+    const g = ctx.createRadialGradient(x, y, 1, x, y, r);
+    g.addColorStop(0, `rgba(${color}, ${a})`); g.addColorStop(1, `rgba(${color}, 0)`);
+    ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  };
+
+  // --- The thighs, down under the gut: short, thick, bowed ---
+  for (const s of [-1, 1]) {
+    const X = (x: number) => (s < 0 ? x : 256 - x);
+    const thigh = () => { ctx.moveTo(X(56), 266); ctx.bezierCurveTo(X(42), 300, X(46), 340, X(56), 372); ctx.lineTo(X(124), 372); ctx.bezierCurveTo(X(127), 332, X(125), 300, X(122), 266); ctx.closePath(); };
+    shape(ctx, thigh, hideAcross(s < 0 ? 42 : 129, s < 0 ? 127 : 214, s > 0 ? 1 : 0), 1.6);
+    ctx.save(); ctx.beginPath(); thigh(); ctx.clip();
+    bumps(ctx, s < 0 ? 40 : 128, 266, 90, 106, 160, 71 + s);
+    speckle(ctx, s < 0 ? 40 : 128, 266, 90, 106, 260, 'rgba(10, 20, 8, 0.4)', 73 + s, 0.5);
+    ctx.restore();
+    purpleVein(ctx, [[X(66), 310], [X(74), 330], [X(70), 350], [X(78), 372]], 1.8, th);
+  }
+  // (the dark between them, and the shadow the gut throws down over them)
+  ctx.fillStyle = '#050904'; ctx.beginPath(); ctx.moveTo(120, 280); ctx.lineTo(136, 280); ctx.lineTo(132, 372); ctx.lineTo(124, 372); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.beginPath(); ctx.ellipse(128, 300, 80, 16, 0, 0, Math.PI * 2); ctx.fill();
+
+  // --- The body behind it all: the traps humped up off the neck, out over the shoulders, down his flanks ---
+  const torso = () => {
+    ctx.moveTo(80, -28); ctx.bezierCurveTo(66, -66, 28, -66, 14, -32); ctx.bezierCurveTo(2, -4, -10, 50, -10, 100);
+    ctx.lineTo(-10, 292); ctx.lineTo(266, 292); ctx.lineTo(266, 100);
+    ctx.bezierCurveTo(266, 50, 254, -4, 242, -32); ctx.bezierCurveTo(228, -66, 190, -66, 176, -28); ctx.closePath();
+  };
+  ctx.save(); ctx.translate(3, 4); ctx.beginPath(); torso(); ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'; ctx.fill(); ctx.restore();
+  shape(ctx, torso, lin(ctx, -60, 292, [[0, '#87AA5C'], [0.25, '#416536'], [1, '#15241A']]), 2.2);
+  ctx.save(); ctx.beginPath(); torso(); ctx.clip();
+  // (the traps' peaks and the delts, lit; the right side of him in shadow)
+  glow(40, -40, 40, '226, 244, 176', 0.75); glow(216, -40, 40, '214, 236, 160', 0.35);
+  glow(58, 34, 44, '8, 16, 6', 0.45); glow(198, 34, 44, '8, 16, 6', 0.55);
+  glow(12, 70, 30, '200, 226, 150', 0.45); glow(244, 70, 30, '200, 226, 150', 0.2);
+  farSide(128, 266, -60, 300, 0.5);
+  // The traps' fibers, fanning off the neck out to the shoulder, every one of them
+  ctx.lineWidth = 0.45;
+  for (const s of [-1, 1]) {
+    const X = (x: number) => (s < 0 ? x : 256 - x);
+    ctx.lineWidth = 0.45;
+    for (let k = 0; k < 16; k++) {
+      ctx.strokeStyle = `rgba(16, 30, 12, ${0.22 + (k % 3) * 0.08})`;
+      ctx.beginPath(); ctx.moveTo(X(76 - k * 0.6), -34 + k * 6); ctx.quadraticCurveTo(X(46 - k * 1.2), -64 + k * 7, X(10 + k * 1.8), -20 + k * 7); ctx.stroke();
+    }
+    // (the groove where the trap meets the delt, and the collarbone ridge under it)
+    ctx.strokeStyle = 'rgba(16, 30, 12, 0.6)'; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.moveTo(X(0), 36); ctx.quadraticCurveTo(X(26), 46, X(30), 82); ctx.stroke();
+    ctx.strokeStyle = 'rgba(16, 30, 12, 0.4)'; ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(X(62), 70); ctx.quadraticCurveTo(X(36), 60, X(14), 66); ctx.stroke();
+    ctx.strokeStyle = 'rgba(214, 236, 160, 0.4)'; ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.moveTo(X(60), 67); ctx.quadraticCurveTo(X(36), 57, X(16), 63); ctx.stroke();
+    // Stretch marks where the traps meet the neck: they've grown faster than his hide has
+    for (let k = 0; k < 7; k++) {
+      const y = -34 + k * 6, x = 64 - k * 1.5;
+      ctx.beginPath(); ctx.moveTo(X(x), y); ctx.bezierCurveTo(X(x - 5), y + 1, X(x - 9), y + 4, X(x - 15 + k), y + 3);
+      ctx.strokeStyle = 'rgba(170, 92, 168, 0.5)'; ctx.lineWidth = 1.3; ctx.stroke();
+      ctx.strokeStyle = 'rgba(240, 206, 240, 0.35)'; ctx.lineWidth = 0.35; ctx.stroke();
+    }
+    // (the flank, down past the armpit: the lat)
+    ctx.strokeStyle = 'rgba(16, 30, 12, 0.5)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(X(50), 112); ctx.quadraticCurveTo(X(42), 160, X(46), 230); ctx.stroke();
+  }
+  bumps(ctx, -10, -60, 276, 150, 420, 11);
+  speckle(ctx, -10, -60, 276, 150, 800, 'rgba(10, 20, 8, 0.42)', 13, 0.5);
+  speckle(ctx, -10, -60, 130, 100, 260, 'rgba(230, 250, 190, 0.32)', 17, 0.4);
+  bumps(ctx, -10, 90, 276, 202, 160, 15); speckle(ctx, -10, 90, 276, 202, 300, 'rgba(10, 20, 8, 0.42)', 19, 0.5);
+  hatchInk(ctx, 206, -20, 60, 300, 2.4, 0.28);
+  ctx.restore();
+  // Veins over the traps and down the shoulders, like garden hoses
+  purpleVein(ctx, [[74, -24], [62, -44], [44, -50], [28, -38], [16, -10], [8, 30]], 3, th);
+  purpleVein(ctx, [[28, -38], [40, -20], [36, 4]], 1.8, th);
+  purpleVein(ctx, [[62, -44], [66, -54]], 1.3, th);
+  purpleVein(ctx, [[182, -24], [196, -46], [214, -48], [230, -32], [240, -4], [248, 34]], 2.8, th);
+  purpleVein(ctx, [[230, -32], [216, -14], [222, 10]], 1.6, th);
+  // Warts on the traps, hairs out of two of them; a zit, ripe, on the left one
+  wart(ctx, 30, -30, 2.6, 6); wart(ctx, 54, -8, 1.6); wart(ctx, 226, -28, 2.2, 5); wart(ctx, 18, 30, 1.5); wart(ctx, 240, 34, 1.8);
+  glow(48, -36, 4, '230, 70, 60', 0.85);
+  ctx.fillStyle = '#F5E6A8'; ctx.beginPath(); ctx.arc(48, -36.4, 1.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(47.5, -37, 0.5, 0.5);
+  // The wet on the traps: a sheen along each, slime pooled in the crease against the neck
+  sheen(ctx, 16, -10, 30, -62, 70, -40); sheen(ctx, 240, -10, 226, -62, 186, -40);
+  for (const s of [-1, 1]) {
+    const X = (x: number) => (s < 0 ? x : 256 - x);
+    ctx.fillStyle = 'rgba(168, 224, 58, 0.55)'; ctx.beginPath(); ctx.ellipse(X(62), 54, 6, 3, s * 0.4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(234, 255, 176, 0.8)'; ctx.fillRect(X(60) - 1, 52.5, 2, 0.6);
+  }
+
+  // --- The gut: pale and yellowish as a frog's, mottled, hanging ---
+  const gut = () => { ctx.moveTo(46, 158); ctx.bezierCurveTo(28, 206, 32, 266, 72, 292); ctx.bezierCurveTo(100, 310, 156, 310, 184, 292); ctx.bezierCurveTo(224, 266, 228, 206, 210, 158); ctx.bezierCurveTo(170, 176, 86, 176, 46, 158); ctx.closePath(); };
+  const gg = ctx.createRadialGradient(106, 212, 6, 124, 230, 98);
+  gg.addColorStop(0, '#E6E0AE'); gg.addColorStop(0.3, '#CEC888'); gg.addColorStop(0.7, '#8E8A48'); gg.addColorStop(1, '#4A4A24');
+  shape(ctx, gut, gg, 2);
+  ctx.save(); ctx.beginPath(); gut(); ctx.clip();
+  // (mottled, like a toad's belly)
+  for (let i = 0; i < 46; i++) {
+    const mx = 34 + hash(i * 4.7 + 2) * 190, my = 166 + hash(i * 8.3 + 5) * 140, mr = 1.5 + hash(i * 2.9) * 4.5;
+    ctx.fillStyle = i % 3 ? 'rgba(74, 74, 36, 0.24)' : 'rgba(94, 138, 24, 0.2)';
+    ctx.beginPath(); ctx.ellipse(mx, my, mr, mr * 0.7, hash(i) * 3, 0, Math.PI * 2); ctx.fill();
+  }
+  farSide(128, 230, 150, 312, 0.5);
+  // (the underside of it, hatched; a crease across where it hangs)
+  ctx.strokeStyle = 'rgba(46, 46, 22, 0.35)'; ctx.lineWidth = 0.4;
+  for (let x = 40; x < 220; x += 1.8) { const k = (x - 128) / 92, y = 296 - k * k * 40 + hash(x) * 2; ctx.beginPath(); ctx.moveTo(x, y - 10); ctx.lineTo(x + 3, y); ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(46, 46, 22, 0.55)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(62, 268); ctx.quadraticCurveTo(128, 284, 196, 266); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255, 250, 220, 0.3)'; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(64, 266); ctx.quadraticCurveTo(128, 281, 194, 264); ctx.stroke();
+  // Stretch marks up its sides
+  for (const s of [-1, 1]) for (let k = 0; k < 6; k++) {
+    const x = s < 0 ? 46 + k * 3 : 210 - k * 3, y = 190 + k * 11;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.bezierCurveTo(x - s * 4, y + 6, x + s * 2, y + 12, x - s * 1, y + 20);
+    ctx.strokeStyle = 'rgba(170, 92, 168, 0.45)'; ctx.lineWidth = 1.3; ctx.stroke();
+    ctx.strokeStyle = 'rgba(250, 220, 250, 0.35)'; ctx.lineWidth = 0.35; ctx.stroke();
+  }
+  speckle(ctx, 30, 158, 200, 154, 700, 'rgba(74, 74, 36, 0.38)', 23, 0.45);
+  bumps(ctx, 30, 158, 200, 154, 260, 29, 'rgba(255, 250, 220, 0.35)', 'rgba(46, 46, 22, 0.4)');
+  // The navel: deep, the fat folded over it, a ball of lint down in it, slime glistening at its rim
+  ctx.strokeStyle = 'rgba(46, 46, 22, 0.6)'; ctx.lineWidth = 0.6;
+  for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.arc(130, 238, 6 + k * 1.6, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke(); }
+  const ng = ctx.createRadialGradient(130, 236, 0.5, 130, 238, 7);
+  ng.addColorStop(0, '#120C04'); ng.addColorStop(0.7, '#2E2E16'); ng.addColorStop(1, '#6A6834');
+  shape(ctx, () => ctx.ellipse(130, 239, 5, 7, 0, 0, Math.PI * 2), ng, 0.9);
+  ctx.fillStyle = '#7C8AA0'; ctx.beginPath(); ctx.arc(131, 242, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(190, 200, 220, 0.8)'; ctx.lineWidth = 0.25;
+  for (let k = 0; k < 9; k++) { const a = k * 0.7; ctx.beginPath(); ctx.moveTo(131 + Math.cos(a) * 1.2, 242 + Math.sin(a) * 1.2); ctx.lineTo(131 + Math.cos(a) * 2.8, 242 + Math.sin(a + 0.3) * 2.6); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(168, 224, 58, 0.7)'; ctx.beginPath(); ctx.ellipse(130, 246, 3, 1, 0, 0, Math.PI * 2); ctx.fill();
+  wetGlint(ctx, 127, 234, 2.5);
+  wart(ctx, 92, 214, 1.8, 5); wart(ctx, 170, 252, 1.5); wart(ctx, 76, 258, 1.3);
+  sheen(ctx, 66, 236, 70, 196, 102, 180); sheen(ctx, 88, 290, 110, 300, 150, 300);
+  ctx.restore();
+
+  // --- The pecs: two slabs, every fiber in them, the creases under them deep enough to lose a coin in ---
+  for (const s of [-1, 1]) {
+    const X = (x: number) => (s < 0 ? x : 256 - x);
+    const pec = () => { ctx.moveTo(X(34), 86); ctx.bezierCurveTo(X(66), 70, X(108), 74, X(127), 86); ctx.lineTo(X(127), 156); ctx.bezierCurveTo(X(102), 172, X(62), 176, X(40), 162); ctx.bezierCurveTo(X(26), 138, X(26), 106, X(34), 86); ctx.closePath(); };
+    ctx.save(); ctx.translate(1.5, 5); ctx.beginPath(); pec(); ctx.fillStyle = 'rgba(8, 16, 6, 0.55)'; ctx.fill(); ctx.restore();
+    const pg = ctx.createRadialGradient(X(68) - 8, 100, 3, X(76), 120, 62);
+    pg.addColorStop(0, s < 0 ? '#C0D494' : '#87AA5C'); pg.addColorStop(0.4, s < 0 ? '#74994E' : '#587F40'); pg.addColorStop(1, s < 0 ? '#2F4D30' : '#15241A');
+    shape(ctx, pec, pg, 1.6);
+    ctx.save(); ctx.beginPath(); pec(); ctx.clip();
+    ctx.lineWidth = 0.45;
+    for (let k = 0; k < 14; k++) { ctx.strokeStyle = `rgba(16, 30, 12, ${0.2 + (k % 3) * 0.07})`; ctx.beginPath(); ctx.moveTo(X(126), 88 + k * 5); ctx.quadraticCurveTo(X(84), 92 + k * 4, X(30), 94 + k * 2.4); ctx.stroke(); }
+    bumps(ctx, s < 0 ? 26 : 128, 70, 102, 106, 200, 41 + s * 3);
+    speckle(ctx, s < 0 ? 26 : 128, 70, 102, 106, 360, 'rgba(10, 20, 8, 0.4)', 43 + s, 0.5);
+    hatchInk(ctx, s < 0 ? 40 : 130, 146, 90, 26, 2, 0.35);
+    ctx.restore();
+    // The crease under it, inked heavy
+    ctx.strokeStyle = ink; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(X(127), 156); ctx.bezierCurveTo(X(102), 172, X(62), 176, X(40), 162); ctx.stroke();
+    // The nipple: a dark warty areola, a ring of bumps round it, a nub in the middle with a long hair out of it
+    const nx = X(82), ny = 134;
+    shape(ctx, () => ctx.ellipse(nx, ny, 6, 4.6, 0, 0, Math.PI * 2), '#2F3A1C', 0.6);
+    ctx.fillStyle = 'rgba(120, 140, 70, 0.8)';
+    for (let k = 0; k < 9; k++) { const a = (k / 9) * Math.PI * 2; ctx.beginPath(); ctx.arc(nx + Math.cos(a) * 4.4, ny + Math.sin(a) * 3.3, 0.6, 0, Math.PI * 2); ctx.fill(); }
+    wart(ctx, nx, ny, 1.8, s < 0 ? 9 : 0);
+    if (s > 0) { ctx.strokeStyle = 'rgba(12, 8, 4, 0.95)'; ctx.lineWidth = 0.3; ctx.beginPath(); ctx.moveTo(nx + 1, ny); ctx.bezierCurveTo(nx + 5, ny + 2, nx + 3, ny + 7, nx + 7, ny + 9); ctx.stroke(); }
+    sheen(ctx, X(40), 120, X(52), 84, X(100), 82);
+  }
+  // (the groove down his breastbone)
+  ctx.strokeStyle = 'rgba(16, 30, 12, 0.8)'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(128, 80); ctx.lineTo(128, 160); ctx.stroke();
+  purpleVein(ctx, [[60, 92], [76, 104], [90, 120], [96, 146]], 1.6, th);
+  purpleVein(ctx, [[198, 94], [184, 110], [176, 132]], 1.4, th);
+
+  // --- The neck: wider than his head; the cords standing out of it, the throat sac pumping under the jaw ---
+  const neck = () => { ctx.moveTo(66, -66); ctx.bezierCurveTo(58, -24, 54, 24, 58, 62); ctx.lineTo(198, 62); ctx.bezierCurveTo(202, 24, 198, -24, 190, -66); ctx.closePath(); };
+  const neckCrease = () => {
+    for (const [w, col] of [[2.6, 'rgba(8, 16, 6, 0.35)'], [1.1, 'rgba(8, 16, 6, 0.75)']] as const) {
+      ctx.strokeStyle = col; ctx.lineWidth = w;
+      ctx.beginPath(); ctx.moveTo(66, -66); ctx.bezierCurveTo(58, -24, 54, 24, 58, 62); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(190, -66); ctx.bezierCurveTo(198, -24, 202, 24, 198, 62); ctx.stroke();
+    }
+  };
+  shape(ctx, neck, lin(ctx, -60, 62, [[0, '#203826'], [0.35, '#416536'], [0.8, '#587F40'], [1, '#416536']]), 0);
+  ctx.save(); ctx.beginPath(); neck(); ctx.clip();
+  glow(78, 10, 34, '200, 226, 150', 0.4);
+  farSide(128, 200, -70, 64, 0.45);
+  const shadeJaw = ctx.createRadialGradient(128, -14, 10, 128, -14, 74);
+  shadeJaw.addColorStop(0, 'rgba(4, 8, 3, 0.6)'); shadeJaw.addColorStop(1, 'rgba(4, 8, 3, 0)');
+  ctx.fillStyle = shadeJaw; ctx.fillRect(40, -90, 176, 150);
+  // The cords: a ridge each side, down from behind the jaw to the middle of the collar
+  for (const s of [-1, 1]) {
+    const X = (x: number) => (s < 0 ? x : 256 - x);
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(X(70), -50); ctx.quadraticCurveTo(X(84), 10, X(116), 60);
+    ctx.strokeStyle = 'rgba(8, 16, 6, 0.32)'; ctx.lineWidth = 9; ctx.stroke();
+    ctx.strokeStyle = s < 0 ? 'rgba(151, 180, 106, 0.6)' : 'rgba(88, 127, 64, 0.6)'; ctx.lineWidth = 6; ctx.stroke();
+    ctx.strokeStyle = 'rgba(214, 236, 170, 0.45)'; ctx.lineWidth = 1; ctx.save(); ctx.translate(-1.6, -0.4); ctx.stroke(); ctx.restore();
+  }
+  bumps(ctx, 56, -66, 144, 128, 320, 51);
+  speckle(ctx, 56, -66, 144, 128, 600, 'rgba(10, 20, 8, 0.42)', 53, 0.5);
+  // The neck spilling over the collar: a roll of it, lit along its top
+  for (const y of [44, 52]) {
+    ctx.strokeStyle = 'rgba(8, 16, 6, 0.7)'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(58, y); ctx.quadraticCurveTo(128, y + 18, 198, y); ctx.stroke();
+    ctx.strokeStyle = 'rgba(200, 226, 150, 0.4)'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(60, y - 2.5); ctx.quadraticCurveTo(128, y + 15, 196, y - 2.5); ctx.stroke();
+  }
+  ctx.restore();
+  // (where it meets the traps: a crease, not a line)
+  neckCrease();
+  purpleVein(ctx, [[80, -40], [84, -14], [94, 14], [102, 40], [108, 56]], 2.6, th);
+  purpleVein(ctx, [[94, 14], [84, 28], [80, 48]], 1.4, th);
+  purpleVein(ctx, [[178, -42], [172, -14], [164, 16], [158, 46]], 2.3, th);
+  purpleVein(ctx, [[172, -14], [182, 4]], 1.2, th);
+
+  // --- The President's collar, still round it, cutting in; the points splayed out on his traps; a button popped,
+  // hanging off its thread; the knot of the tie jammed up in it, the tie stuck to his chest, far too short ---
+  for (const s of [-1, 1]) {
+    const X = (x: number) => (s < 0 ? x : 256 - x);
+    shape(ctx, () => { ctx.moveTo(X(56), 58); ctx.lineTo(X(80), 70); ctx.lineTo(X(48), 84); ctx.closePath(); }, '#E8E4D8', 1);
+    ctx.fillStyle = 'rgba(168, 224, 58, 0.25)'; ctx.beginPath(); ctx.ellipse(X(58), 74, 5, 3, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  const collar = () => { ctx.moveTo(54, 50); ctx.quadraticCurveTo(128, 70, 202, 50); ctx.lineTo(204, 64); ctx.quadraticCurveTo(128, 86, 52, 64); ctx.closePath(); };
+  shape(ctx, collar, lin(ctx, 50, 80, [[0, '#FFFFFF'], [0.5, '#F4F1E6'], [1, '#B8B4A6']]), 1.3);
+  ctx.save(); ctx.beginPath(); collar(); ctx.clip();
+  // (stained through, yellow-green, where it's soaked up the slime; the stitching along it)
+  for (const [cx2, cy2, r2] of [[72, 62, 9], [104, 68, 6], [170, 66, 10], [196, 58, 6]] as const) { ctx.fillStyle = 'rgba(168, 190, 60, 0.3)'; ctx.beginPath(); ctx.ellipse(cx2, cy2, r2, r2 * 0.5, 0, 0, Math.PI * 2); ctx.fill(); }
+  ctx.setLineDash([1.2, 1]); ctx.strokeStyle = 'rgba(120, 120, 130, 0.6)'; ctx.lineWidth = 0.3;
+  ctx.beginPath(); ctx.moveTo(56, 53); ctx.quadraticCurveTo(128, 73, 200, 53); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(56, 62); ctx.quadraticCurveTo(128, 82, 200, 62); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+  // The knot, and the tie: too short now, stuck down in the slime, the tip curling up off him
+  const tieG = ctx.createLinearGradient(118, 0, 138, 0);
+  tieG.addColorStop(0, '#8A1410'); tieG.addColorStop(0.45, '#E0302A'); tieG.addColorStop(1, '#8A1410');
+  shape(ctx, () => { ctx.moveTo(119, 70); ctx.lineTo(137, 70); ctx.lineTo(135, 82); ctx.lineTo(121, 82); ctx.closePath(); }, tieG, 1);
+  const blade = () => { ctx.moveTo(121, 82); ctx.lineTo(135, 82); ctx.lineTo(138, 110); ctx.quadraticCurveTo(136, 116, 131, 115); ctx.lineTo(124, 112); ctx.lineTo(119, 106); ctx.closePath(); };
+  shape(ctx, blade, tieG, 1.1);
+  ctx.save(); ctx.beginPath(); blade(); ctx.clip();
+  ctx.strokeStyle = 'rgba(255, 170, 160, 0.22)'; ctx.lineWidth = 0.35;
+  for (let y = 76; y < 116; y += 3) { ctx.beginPath(); ctx.moveTo(118, y); ctx.lineTo(140, y + 6); ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(234, 255, 176, 0.45)'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(124, 86); ctx.quadraticCurveTo(130, 98, 127, 110); ctx.stroke();
+  ctx.restore();
+  // (the curled-up tip, its underside paler)
+  shape(ctx, () => { ctx.moveTo(124, 112); ctx.quadraticCurveTo(124, 118, 129, 119); ctx.quadraticCurveTo(133, 118, 131, 115); ctx.closePath(); }, '#F0A8A0', 0.6);
+  // (the ketchup off the President's lunch, still on it)
+  ctx.fillStyle = '#B4200C'; ctx.beginPath(); ctx.ellipse(131, 90, 2.6, 2, 0.4, 0, Math.PI * 2); ctx.fill();
+  wetGlint(ctx, 124, 96, 3, -1.2); wetGlint(ctx, 133, 104, 2);
+
+  // --- The jaw like a cinder block, the under-bite up over his top lip ---
+  const MOUTH = -34;
+  const head = () => { ctx.moveTo(86, -110); ctx.bezierCurveTo(74, -84, 68, -52, 72, -28); ctx.bezierCurveTo(76, -8, 98, 4, 128, 4); ctx.bezierCurveTo(158, 4, 180, -8, 184, -28); ctx.bezierCurveTo(188, -52, 182, -84, 170, -110); ctx.closePath(); };
+  ctx.save(); ctx.translate(2, 6); ctx.beginPath(); head(); ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'; ctx.fill(); ctx.restore();
+  const hg = ctx.createRadialGradient(100, -70, 3, 124, -40, 80);
+  hg.addColorStop(0, '#C0D494'); hg.addColorStop(0.35, '#74994E'); hg.addColorStop(0.75, '#416536'); hg.addColorStop(1, '#15241A');
+  shape(ctx, head, hg, 1.9);
+  ctx.save(); ctx.beginPath(); head(); ctx.clip();
+  farSide(110, 190, -110, 10, 0.55);
+  // (the underside of the chin, frog-belly pale; a cleft in it)
+  const cg = ctx.createRadialGradient(124, 2, 4, 126, -4, 46);
+  cg.addColorStop(0, 'rgba(230, 224, 174, 0.75)'); cg.addColorStop(1, 'rgba(230, 224, 174, 0)');
+  ctx.fillStyle = cg; ctx.fillRect(60, -30, 140, 40);
+  ctx.strokeStyle = 'rgba(16, 30, 12, 0.6)'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(126, -14); ctx.quadraticCurveTo(125, -6, 126, 2); ctx.stroke();
+  ctx.fillStyle = 'rgba(10, 16, 6, 0.4)'; ctx.fillRect(60, MOUTH, 140, 4);
+  // (the folds down from his nose to the corners of his mouth)
+  ctx.strokeStyle = 'rgba(16, 30, 12, 0.7)'; ctx.lineWidth = 0.9;
+  ctx.beginPath(); ctx.moveTo(110, -66); ctx.quadraticCurveTo(98, -54, 94, MOUTH - 1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(146, -66); ctx.quadraticCurveTo(158, -54, 162, MOUTH - 1); ctx.stroke();
+  bumps(ctx, 66, -110, 124, 116, 300, 61);
+  speckle(ctx, 66, -110, 124, 116, 800, 'rgba(10, 20, 8, 0.4)', 63, 0.5);
+  speckle(ctx, 70, -110, 60, 50, 160, 'rgba(230, 250, 190, 0.32)', 67, 0.4);
+  hatchInk(ctx, 160, -90, 30, 92, 2.2, 0.3);
+  ctx.restore();
+  wart(ctx, 82, -16, 2.4, 7); wart(ctx, 176, -12, 2); wart(ctx, 92, -56, 1.4);
+  purpleVein(ctx, [[84, -60], [80, -42], [86, -22]], 1.5, th);
+  purpleVein(ctx, [[176, -58], [181, -42], [172, -24]], 1.5, th);
+  // The mouth: a slot, the gums showing in it, the line of it wide, the corners pulled down
+  ctx.fillStyle = ALIEN.mouth; ctx.fillRect(76, MOUTH - 2, 104, 4.6);
+  ctx.fillStyle = ALIEN.gumDark; ctx.fillRect(76, MOUTH - 2, 104, 2);
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(74, MOUTH + 3); ctx.quadraticCurveTo(80, MOUTH - 1, 126, MOUTH); ctx.quadraticCurveTo(172, MOUTH - 1, 182, MOUTH + 3); ctx.stroke();
+  // The pegs: up out of his lower jaw over his top lip; yellow, brown at the roots, tartar caked on them, one chipped;
+  // the sesame seed and the lettuce still in them
+  const teeth = [[86, 11, 7], [97, 16, 8], [109, 13, 8], [121, 19, 9], [134, 14, 8], [146, 18, 8], [158, 12, 7], [168, 9, 6]];
+  teeth.forEach(([x, h, w], i) => {
+    const by = MOUTH + 4;
+    const tg = ctx.createLinearGradient(0, by - h, 0, by);
+    tg.addColorStop(0, '#F8F0C8'); tg.addColorStop(0.6, '#D8CC8C'); tg.addColorStop(1, '#6A5A28');
+    const chip = i === 4 ? 3 : 0;
+    shape(ctx, () => { ctx.moveTo(x, by); ctx.lineTo(x + 0.6, by - h + 3); ctx.quadraticCurveTo(x + w * 0.3, by - h, x + w * 0.55, by - h + chip); ctx.lineTo(x + w - 0.6, by - h + 2 + chip); ctx.lineTo(x + w, by); ctx.closePath(); }, tg, 0.8);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)'; ctx.fillRect(x + 1.4, by - h + 3, 0.8, h * 0.4);
+    // (tartar at the roots, brown flecks up them; a crack down the chipped one)
+    ctx.fillStyle = 'rgba(120, 96, 30, 0.7)'; ctx.beginPath(); ctx.ellipse(x + w * 0.5, by - 1.5, w * 0.5, 2, 0, Math.PI, Math.PI * 2); ctx.fill();
+    speckle(ctx, x + 1, by - h * 0.5, w - 2, h * 0.4, 6, 'rgba(90, 70, 20, 0.6)', i * 7 + 3, 0.5);
+    if (chip) { ctx.strokeStyle = 'rgba(60, 50, 20, 0.8)'; ctx.lineWidth = 0.3; ctx.beginPath(); ctx.moveTo(x + w * 0.55, by - h + chip); ctx.lineTo(x + w * 0.45, by - h + 7); ctx.lineTo(x + w * 0.6, by - h + 10); ctx.stroke(); }
+  });
+  ctx.fillStyle = '#F4E8C0'; ctx.beginPath(); ctx.ellipse(119.5, MOUTH - 3, 1.2, 0.7, 0.4, 0, Math.PI * 2); ctx.fill();
+  shape(ctx, () => { ctx.moveTo(141, MOUTH - 1); ctx.quadraticCurveTo(144, MOUTH - 6, 146, MOUTH); ctx.quadraticCurveTo(144, MOUTH + 2, 141, MOUTH - 1); }, '#5CB43C', 0.3);
+  for (let i = 0; i < 8; i++) wetGlint(ctx, 78 + hash(i * 9.1) * 100, -60 + hash(i * 4.3) * 58, 1.5 + hash(i * 2.2) * 2.5);
+
+  // --- The arms, hanging to his knees: the upper arms, Popeye forearms twice the size, the fists. The ray gun's
+  // grafted into the arm on the right of the picture (the side it's on in his close-up), its tubes in his veins ---
+  for (const s of [-1, 1]) {
+    const X = (x: number) => (s < 0 ? x : 256 - x);
+    const RX = (x: number, w: number) => (s < 0 ? x : 256 - x - w);
+    const dim = s > 0 ? 1 : 0;
+    const upper = () => { ctx.moveTo(X(-6), 78); ctx.bezierCurveTo(X(-12), 120, X(-6), 160, X(2), 194); ctx.lineTo(X(50), 194); ctx.bezierCurveTo(X(56), 160, X(56), 120, X(48), 84); ctx.closePath(); };
+    ctx.save(); ctx.translate(s * -3, 3); ctx.beginPath(); upper(); ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; ctx.fill(); ctx.restore();
+    shape(ctx, upper, hideAcross(RX(-12, 68), RX(-12, 68) + 68, dim), 1.8);
+    ctx.save(); ctx.beginPath(); upper(); ctx.clip();
+    glow(X(16), 128, 24, '214, 236, 160', dim ? 0.2 : 0.45);
+    // (the line between the bicep and the tricep)
+    ctx.strokeStyle = 'rgba(16, 30, 12, 0.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(10), 96); ctx.quadraticCurveTo(X(4), 140, X(14), 186); ctx.stroke();
+    bumps(ctx, RX(-12, 68), 78, 68, 116, 200, 81 + s);
+    speckle(ctx, RX(-12, 68), 78, 68, 116, 340, 'rgba(10, 20, 8, 0.42)', 83 + s, 0.5);
+    hatchInk(ctx, s < 0 ? 30 : 202, 80, 26, 114, 2.2, 0.3);
+    ctx.restore();
+    purpleVein(ctx, [[X(24), 100], [X(30), 126], [X(26), 152], [X(32), 180]], 2.4, th);
+    purpleVein(ctx, [[X(30), 126], [X(40), 140]], 1.3, th);
+    // The forearm: twice as thick; the elbow puckered where it bends
+    const fore = () => { ctx.moveTo(X(2), 184); ctx.bezierCurveTo(X(-14), 214, X(-12), 262, X(4), 294); ctx.lineTo(X(48), 294); ctx.bezierCurveTo(X(64), 262, X(66), 214, X(52), 184); ctx.closePath(); };
+    shape(ctx, fore, hideAcross(RX(-14, 80), RX(-14, 80) + 80, dim), 0);
+    ctx.strokeStyle = ink; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(X(2), 184); ctx.bezierCurveTo(X(-14), 214, X(-12), 262, X(4), 294); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X(48), 294); ctx.bezierCurveTo(X(64), 262, X(66), 214, X(52), 184); ctx.stroke();
+    ctx.save(); ctx.beginPath(); fore(); ctx.clip();
+    glow(X(14), 226, 30, '214, 236, 160', dim ? 0.2 : 0.5);
+    ctx.strokeStyle = 'rgba(16, 30, 12, 0.6)'; ctx.lineWidth = 0.5;
+    for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.arc(X(26), 186, 6 + k * 2.4, 0.25, Math.PI - 0.25); ctx.stroke(); }
+    ctx.lineWidth = 0.45;
+    for (let k = 0; k < 9; k++) { ctx.strokeStyle = `rgba(16, 30, 12, ${0.2 + (k % 3) * 0.08})`; ctx.beginPath(); ctx.moveTo(X(-6 + k * 7), 196); ctx.quadraticCurveTo(X(-10 + k * 8), 240, X(6 + k * 4.5), 292); ctx.stroke(); }
+    bumps(ctx, RX(-14, 80), 184, 80, 110, 240, 91 + s);
+    speckle(ctx, RX(-14, 80), 184, 80, 110, 420, 'rgba(10, 20, 8, 0.42)', 93 + s, 0.5);
+    hatchInk(ctx, s < 0 ? 38 : 190, 190, 28, 104, 2.2, 0.3);
+    ctx.restore();
+    purpleVein(ctx, [[X(10), 196], [X(4), 222], [X(10), 248], [X(6), 272], [X(14), 292]], 3.4, th);
+    purpleVein(ctx, [[X(10), 222], [X(24), 236], [X(34), 260], [X(30), 290]], 2.6, th);
+    purpleVein(ctx, [[X(24), 236], [X(42), 222], [X(48), 204]], 1.6, th);
+    wart(ctx, X(36), 206, 2, 6); wart(ctx, X(-2), 260, 1.6);
+    // The fist: two fat fingers curled under, black claws hooked out of them, the thumb over the top
+    const fist = () => ctx.ellipse(X(26), 306, 24, 18, 0, 0, Math.PI * 2);
+    const fg = ctx.createRadialGradient(X(26) - 8, 298, 2, X(26), 306, 26);
+    fg.addColorStop(0, dim ? '#87AA5C' : '#B0CC80'); fg.addColorStop(1, dim ? '#15241A' : '#2F4D30');
+    shape(ctx, fist, fg, 1.8);
+    ctx.save(); ctx.beginPath(); fist(); ctx.clip(); bumps(ctx, RX(0, 52), 288, 52, 36, 80, 101 + s); ctx.restore();
+    // (the two fingers, curled under, each the size of a sausage; the claws hooked out from under them)
+    for (const fx of [14, 31]) {
+      const fgr = ctx.createLinearGradient(0, 302, 0, 322);
+      fgr.addColorStop(0, dim ? '#74994E' : '#97B46A'); fgr.addColorStop(1, dim ? '#15241A' : '#2F4D30');
+      shape(ctx, () => ctx.roundRect(RX(fx - 8, 16), 303, 16, 19, 7), fgr, 1.2);
+      ctx.strokeStyle = 'rgba(16, 30, 12, 0.6)'; ctx.lineWidth = 0.45;
+      for (let c = 0; c < 3; c++) { ctx.beginPath(); ctx.arc(X(fx), 304 + c * 1.6, 4.5 - c * 0.8, 0.4, Math.PI - 0.4); ctx.stroke(); }
+      ctx.fillStyle = 'rgba(230, 250, 190, 0.45)'; ctx.beginPath(); ctx.ellipse(X(fx) - 2.5, 309, 2, 4, 0, 0, Math.PI * 2); ctx.fill();
+      shape(ctx, () => { ctx.moveTo(X(fx - 5), 319); ctx.quadraticCurveTo(X(fx + 1), 334, X(fx + 9), 330); ctx.lineTo(X(fx + 4), 319); ctx.closePath(); }, '#1A140C', 0.6);
+      ctx.fillStyle = '#4A3E26'; ctx.fillRect(RX(fx - 4, 7), 318.5, 7, 1.2);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)'; ctx.lineWidth = 0.35; ctx.beginPath(); ctx.moveTo(X(fx - 3), 321); ctx.quadraticCurveTo(X(fx + 1), 329, X(fx + 6), 329); ctx.stroke();
+    }
+    // (the thumb down the inside of it, its claw)
+    shape(ctx, () => ctx.ellipse(X(45), 300, 6, 12, s * -0.2, 0, Math.PI * 2), dim ? '#416536' : '#587F40', 1.2);
+    ctx.strokeStyle = 'rgba(16, 30, 12, 0.6)'; ctx.lineWidth = 0.45; ctx.beginPath(); ctx.arc(X(45), 298, 3.5, 0.5, Math.PI - 0.5); ctx.stroke();
+    shape(ctx, () => { ctx.moveTo(X(42), 310); ctx.quadraticCurveTo(X(46), 320, X(52), 318); ctx.lineTo(X(48), 309); ctx.closePath(); }, '#1A140C', 0.5);
+    wetGlint(ctx, X(18), 298, 3);
+  }
+  // The ray gun, grafted into his forearm: chrome, ribbed, the coil glowing pink through slots; the hide puckered and
+  // weeping round where it goes in, staples across it; two tubes out of it plugged into his veins; a pink light on him
+  const bx0 = 236, bw = 14, by0 = 202, bh = 92;
+  shape(ctx, () => ctx.ellipse(bx0 + bw / 2, by0, bw / 2 + 5, 5, 0, 0, Math.PI * 2), '#8E5A5A', 0.9);
+  ctx.strokeStyle = 'rgba(120, 30, 40, 0.7)'; ctx.lineWidth = 0.4;
+  for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; ctx.beginPath(); ctx.moveTo(bx0 + bw / 2 + Math.cos(a) * 8, by0 + Math.sin(a) * 2.6); ctx.lineTo(bx0 + bw / 2 + Math.cos(a) * 11, by0 + Math.sin(a) * 4); ctx.stroke(); }
+  const bgr = ctx.createLinearGradient(bx0, 0, bx0 + bw, 0);
+  bgr.addColorStop(0, '#5C636E'); bgr.addColorStop(0.25, '#F0F6FA'); bgr.addColorStop(0.45, '#868E9A'); bgr.addColorStop(1, '#1C1F24');
+  shape(ctx, () => ctx.roundRect(bx0, by0, bw, bh, 3), bgr, 1.4);
+  ctx.fillStyle = 'rgba(10, 12, 16, 0.6)';
+  for (let r = 0; r < 8; r++) ctx.fillRect(bx0, by0 + 6 + r * 11, bw, 1.2);
+  ctx.fillStyle = '#7A0C5E';
+  for (let r = 0; r < 4; r++) ctx.fillRect(bx0 + 4, by0 + 20 + r * 11, bw - 8, 6);
+  shape(ctx, () => ctx.ellipse(bx0 + bw / 2, by0 + bh, bw / 2 + 2, 3, 0, 0, Math.PI * 2), '#B6BEC8', 1.2);
+  ctx.fillStyle = '#C01C98'; ctx.beginPath(); ctx.ellipse(bx0 + bw / 2, by0 + bh, bw / 2 - 1, 1.6, 0, 0, Math.PI * 2); ctx.fill();
+  // (the staples across the seam where it goes into him, ooze weeping out between them)
+  for (let k = 0; k < 4; k++) {
+    const sx2 = bx0 - 2 + k * 5;
+    ctx.strokeStyle = '#2A3139'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(sx2, by0 - 3); ctx.lineTo(sx2, by0 + 3); ctx.stroke();
+    ctx.strokeStyle = '#D8E0E8'; ctx.lineWidth = 0.4; ctx.stroke();
+  }
+  // (the tubes, out of the barrel and down into the veins on his forearm, clamped, a bead of blood at each)
+  ctx.lineCap = 'round';
+  for (const [y0, y1] of [[224, 240], [252, 272]] as const) {
+    ctx.beginPath(); ctx.moveTo(bx0, y0); ctx.quadraticCurveTo(bx0 - 14, (y0 + y1) / 2, bx0 - 22, y1);
+    ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.stroke(); ctx.strokeStyle = '#7A0C5E'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = 'rgba(255, 140, 228, 0.6)'; ctx.lineWidth = 0.5; ctx.save(); ctx.translate(-0.4, -0.6); ctx.stroke(); ctx.restore();
+    ctx.strokeStyle = INK; ctx.lineWidth = 0.4; for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(bx0 - 24 + k * 1.5, y1 - 2); ctx.lineTo(bx0 - 23 + k * 1.5, y1 + 2); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(190, 40, 60, 0.7)'; ctx.beginPath(); ctx.ellipse(bx0 - 22, y1 + 2.5, 2.4, 1.2, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.fillRect(bx0 + 3.2, by0 + 2, 0.8, bh - 6);
+
+  // --- Rags of the jacket on his shoulders, pinstriped, threads hanging off the rips ---
+  for (const s of [-1, 1]) {
+    const X = (x: number) => (s < 0 ? x : 256 - x);
+    const rag = () => { ctx.moveTo(X(-12), 112); ctx.lineTo(X(6), 70); ctx.lineTo(X(30), 48); ctx.lineTo(X(50), 54); ctx.lineTo(X(44), 64); ctx.lineTo(X(54), 78); ctx.lineTo(X(40), 80); ctx.lineTo(X(38), 96); ctx.lineTo(X(26), 90); ctx.lineTo(X(20), 108); ctx.lineTo(X(8), 100); ctx.lineTo(X(2), 124); ctx.closePath(); };
+    const rg = ctx.createLinearGradient(X(-12), 50, X(50), 120);
+    rg.addColorStop(0, '#0E1230'); rg.addColorStop(1, '#303A7A');
+    shape(ctx, rag, rg, 1.2);
+    ctx.save(); ctx.beginPath(); rag(); ctx.clip();
+    ctx.strokeStyle = 'rgba(160, 170, 220, 0.2)'; ctx.lineWidth = 0.35;
+    for (let k = -30; k < 70; k += 3.5) { ctx.beginPath(); ctx.moveTo(X(k), 44); ctx.lineTo(X(k - 14), 128); ctx.stroke(); }
+    ctx.strokeStyle = 'rgba(200, 240, 140, 0.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(14), 80); ctx.quadraticCurveTo(X(22), 64, X(34), 58); ctx.stroke();
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(200, 200, 230, 0.7)'; ctx.lineWidth = 0.3;
+    for (const [x, y] of [[44, 64], [40, 80], [38, 96], [20, 108], [2, 124]] as const) { ctx.beginPath(); ctx.moveTo(X(x), y); ctx.quadraticCurveTo(X(x + 2), y + 3, X(x), y + 7 + Math.sin(x) * 0.6); ctx.stroke(); }
+  }
+
+  // (glints all over him)
+  for (let i = 0; i < 40; i++) {
+    const gx = 10 + hash(i * 6.3 + 1) * 236, gy = -40 + hash(i * 3.9 + 2) * 330;
+    wetGlint(ctx, gx, gy, 1.2 + hash(i * 2.7) * 2.6, -0.5 + (hash(i) - 0.5) * 0.6);
+  }
+
+};
+
+/** His painting: the still parts of it, painted once at the size it's shown and kept (from y = -ALIEN_TOP down). */
+let alienPainted: { c: HTMLCanvasElement; sc: number } | null = null;
+
+export const drawGrossAlien = (ctx: Ctx, t: number) => {
+  ctx.save();
+  backdrop(ctx, t, 128, 60, '#3E6A2A', '#030805', 'rgba(210, 255, 150, 0.045)');
+  // (starting on the under-bite, down to his fists)
+  ctx.translate(0, ALIEN_TOP - presTilt(t) * (ALIEN_H + ALIEN_TOP - H));
+  const sc = ctx.getTransform().a;
+  if (!alienPainted || alienPainted.sc !== sc) {
+    const c = document.createElement('canvas'); c.width = Math.ceil(W * sc); c.height = Math.ceil((ALIEN_H + ALIEN_TOP) * sc);
+    const g = c.getContext('2d')!; g.setTransform(sc, 0, 0, sc, 0, ALIEN_TOP * sc);
+    paintAlien(g);
+    alienPainted = { c, sc };
+  }
+  ctx.drawImage(alienPainted.c, 0, -ALIEN_TOP, alienPainted.c.width / sc, alienPainted.c.height / sc);
+
+  // --- What moves on him ---
+  const th = 1 + Math.max(0, Math.sin(t * 0.3)) * 0.2;  // (the veins throbbing, up over the traps, up his neck)
+  const pump = Math.max(0, Math.sin(t * 0.16));         // (the throat sac, pumping: he breathes through his mouth)
+  ctx.save(); ctx.beginPath(); ctx.rect(-20, -80, 78, 160); ctx.rect(198, -80, 80, 160); ctx.clip();
+  purpleVein(ctx, [[74, -24], [62, -44], [44, -50], [28, -38], [16, -10], [8, 30]], 3, th);
+  purpleVein(ctx, [[182, -24], [196, -46], [214, -48], [230, -32], [240, -4], [248, 34]], 2.8, th);
+  ctx.restore();
+  // The throat sac: frog-belly pale, swelling and going down as he breathes; little red veins in it, wrinkles across
+  const sx = 30 + pump * 4, sy = 15 + pump * 3;
+  const sg2 = ctx.createRadialGradient(122, 18 - pump, 2, 128, 22, sx);
+  sg2.addColorStop(0, '#E6E0AE'); sg2.addColorStop(0.55, '#B0AA64'); sg2.addColorStop(1, '#6A6834');
+  shape(ctx, () => ctx.ellipse(128, 22, sx, sy, 0, 0, Math.PI * 2), sg2, 1.1);
+  ctx.save(); ctx.beginPath(); ctx.ellipse(128, 22, sx, sy, 0, 0, Math.PI * 2); ctx.clip();
+  ctx.strokeStyle = 'rgba(46, 46, 22, 0.5)'; ctx.lineWidth = 0.5;
+  for (let k = 0; k < 6; k++) { const y = 12 + k * 4 - pump * 2 + k * pump; ctx.beginPath(); ctx.moveTo(100, y); ctx.quadraticCurveTo(128, y + 4, 156, y); ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(190, 40, 50, 0.55)'; ctx.lineWidth = 0.3;
+  for (let k = 0; k < 7; k++) { const vx = 104 + k * 8; ctx.beginPath(); ctx.moveTo(vx, 10 + hash(k) * 6); ctx.quadraticCurveTo(vx + 3, 18, vx + (hash(k * 3) - 0.5) * 6, 30); ctx.lineTo(vx + 3, 34); ctx.stroke(); }
+  speckle(ctx, 96, 4, 64, 36, 160, 'rgba(46, 46, 22, 0.4)', 33, 0.4);
+  ctx.restore();
+  wetGlint(ctx, 112, 12 - pump, 4, -0.3);
+  ctx.save(); ctx.beginPath(); ctx.rect(56, 2, 144, 46); ctx.clip();
+  purpleVein(ctx, [[80, -40], [84, -14], [94, 14], [102, 40], [108, 56]], 2.6, th);
+  purpleVein(ctx, [[178, -42], [172, -14], [164, 16], [158, 46]], 2.3, th);
+  ctx.restore();
+  // (the thread, and the button on the end of it, swinging)
+  const bs = Math.sin(t * 0.2) * 1.4;
+  ctx.strokeStyle = '#D0D0D0'; ctx.lineWidth = 0.3; ctx.beginPath(); ctx.moveTo(156, 72); ctx.quadraticCurveTo(158, 78, 157 + bs, 84); ctx.stroke();
+  shape(ctx, () => ctx.arc(157 + bs, 85.5, 1.8, 0, Math.PI * 2), '#F8F8F0', 0.4);
+  ctx.fillStyle = 'rgba(60, 60, 60, 0.8)'; ctx.fillRect(156.3 + bs, 85, 0.5, 0.5); ctx.fillRect(157.5 + bs, 85, 0.5, 0.5);
+  const MOUTH = -34;
+  // (a string of spit between two of them)
+  ctx.strokeStyle = 'rgba(220, 240, 190, 0.6)'; ctx.lineWidth = 0.35; ctx.beginPath(); ctx.moveTo(104, MOUTH - 6); ctx.quadraticCurveTo(106, MOUTH - 3 + Math.sin(t * 0.1), 109, MOUTH - 7); ctx.stroke();
+  // Drool off his lip, swinging, a long rope of it down onto his neck
+  const sw = Math.sin(t * 0.07) * 3, dl = 26 + (t * 0.25) % 30;
+  ctx.strokeStyle = 'rgba(200, 240, 140, 0.75)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(176, MOUTH + 4); ctx.quadraticCurveTo(179 + sw * 0.5, MOUTH + dl * 0.5, 177 + sw, MOUTH + dl); ctx.stroke();
+  shape(ctx, () => ctx.ellipse(177 + sw, MOUTH + 1 + dl, 1.8, 2.6, 0, 0, Math.PI * 2), 'rgba(200, 240, 140, 0.85)', 0);
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(176.4 + sw, MOUTH + dl, 0.7, 0.7);
+  // (the slime strung between his fingers)
+  for (const s of [-1, 1]) {
+    const X = (x: number) => (s < 0 ? x : 256 - x);
+    // (slime strung between the fingers, sagging)
+    ctx.strokeStyle = 'rgba(168, 224, 58, 0.7)'; ctx.lineWidth = 0.6;
+    ctx.beginPath(); ctx.moveTo(X(21), 316); ctx.quadraticCurveTo(X(22.5), 324 + Math.sin(t * 0.09 + s) * 1.5, X(24), 316); ctx.stroke();
+  }
+  // (the ray gun's coil, pulsing, and the pink light off it on him)
+  const pulse = 0.6 + Math.sin(t * 0.4) * 0.4, bx0 = 236, bw = 14, by0 = 202, bh = 92;
+  const pg = ctx.createRadialGradient(230, 244, 1, 230, 244, 34);
+  pg.addColorStop(0, `rgba(255, 140, 228, ${0.08 + pulse * 0.07})`); pg.addColorStop(1, 'rgba(255, 140, 228, 0)');
+  ctx.fillStyle = pg; ctx.fillRect(196, 210, 68, 68);
+  ctx.fillStyle = `rgba(255, ${Math.round(120 + pulse * 100)}, 228, ${0.7 + pulse * 0.3})`;
+  for (let r = 0; r < 4; r++) ctx.fillRect(bx0 + 4, by0 + 20 + r * 11, bw - 8, 6);
+  ctx.fillStyle = `rgba(255, 140, 228, ${0.6 + pulse * 0.4})`; ctx.beginPath(); ctx.ellipse(bx0 + bw / 2, by0 + bh, bw / 2 - 1, 1.6, 0, 0, Math.PI * 2); ctx.fill();
+  slimeRun(ctx, t, 234, by0 + 3, 40, 0.3, 0);
+  // --- All of it wet: slime running down him, a string of it off the bottom of his gut, glints everywhere ---
+  slimeRun(ctx, t, 46, 24, 60, 0.35, 0);
+  slimeRun(ctx, t, 214, 30, 50, 0.3, 30);
+  slimeRun(ctx, t, 96, 166, 50, 0.4, 12);
+  slimeRun(ctx, t, 166, 168, 44, 0.33, 40);
+  slimeRun(ctx, t, 130, 248, 30, 0.25, 8);
+  slimeRun(ctx, t, 20, 190, 40, 0.3, 22);
+  const st = (t * 0.5) % 50, sg3 = Math.sin(t * 0.06) * 2;
+  ctx.strokeStyle = 'rgba(168, 224, 58, 0.7)'; ctx.lineWidth = Math.max(0.3, 1.4 - st / 40);
+  ctx.beginPath(); ctx.moveTo(104, 303); ctx.quadraticCurveTo(105 + sg3, 303 + st * 0.5, 104 + sg3, 306 + st); ctx.stroke();
+  shape(ctx, () => ctx.ellipse(104 + sg3, 307 + st, 1.6, 2.2, 0, 0, Math.PI * 2), 'rgba(168, 224, 58, 0.85)', 0);
   ctx.restore();
   finish(ctx, t);
 };
