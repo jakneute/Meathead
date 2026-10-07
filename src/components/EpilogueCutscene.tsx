@@ -54,7 +54,7 @@ const panels = (shat: boolean): Panel[] => [
   trump(shat
     ? "And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this. Or smelled like this."
     : "And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this."),
-  meathead('confused', 'WHY ARE THERE TWO OF YOU?'),
+  meathead('confused', "I DON'T KNOW WHAT ANY OF THOSE WORDS MEAN."),
   trump("Forget that medal. Fake medal, very cheap. I'll give you something much better. Something beautiful."),
   // A quick run of it, each up close for a few seconds, while he sells it
   offer('burger', 'Fast food, folks. The best fast food.'),
