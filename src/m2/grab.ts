@@ -2,12 +2,12 @@
 //
 // Like a fighting game's grabs: once one's started, he's committed to it.
 //
-//   BEATDOWN (Y + B, or R): a long windup (coiled down low; a hit in it knocks him out of it), then a short lunge.
+//   BEATDOWN (Y + B, or R): a quick windup (coiled down low; a hit in it knocks him out of it), then a short lunge.
 //   Catch somebody and he's down, Meathead on top of him, and every press of X or B (shoot or special) is a punch, each
 //   one giving him a little health back (and a lot when it's over). Jump to get off. Anything that hurts him knocks him
 //   off. Whiff, and he's stood there wide open.
 //
-//   SHAKEDOWN (Y + X, or T): a short windup (hands out for the throat) that nothing stops, and if there's somebody
+//   SHAKEDOWN (Y + X, or T): a quicker windup (hands out for the throat) that nothing stops, and if there's somebody
 //   there at the end of it, up by the neck and shaken (nothing stops that either: he takes the hits and carries on);
 //   the ammo falls out of him; and at the end he's
 //   thrown whichever way's held (left, right, up), into whoever's in the way, or slammed down into the floor (more
@@ -33,9 +33,9 @@ import { grabCallout } from './callouts';
 type Ctx = CanvasRenderingContext2D;
 
 // The beatdown
-/** Like a fighting game's grab: once it's started, he's committed. The beatdown's windup is long (and a hit in it
- * knocks him out of it); the shakedown's is short, and nothing stops it. */
-const WINDUP = 40, LUNGE = 9, LUNGE_SPEED = 7.5, WHIFF = 22, REACH = 14;
+/** Like a fighting game's grab: once it's started, he's committed. Both windups are nearly instant (what limits them is
+ * their reach); a hit in the beatdown's knocks him out of it, nothing stops the shakedown's. */
+const WINDUP = 8, LUNGE = 9, LUNGE_SPEED = 7.5, WHIFF = 22, REACH = 6;
 /** How far ahead of him, as he lunges, he can still get hold of somebody. */
 const LUNGE_REACH = 20;
 /** A punch takes this much of him (whoever he is, about eight to finish him); each heals a little, the last a lot. */
