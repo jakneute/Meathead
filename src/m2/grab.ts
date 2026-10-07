@@ -42,6 +42,8 @@ const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 7, PUNC
 const GRAB_REACH = 34, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 15, THROW_SHARE = 0.15, SLAM_SHARE = 0.4, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
+/** How near together B (or X) and Y count as pressed together: frames B's held back, waiting for Y. */
+const CHORD_WINDOW = 4;
 
 /** The animals that are a handful but not too much. */
 const MID_ANIMALS = new Set<EnemyKind>(['wolverine', 'goat', 'gator', 'coyote', 'pitbull']);
@@ -66,6 +68,8 @@ export interface Grab {
   /** Y: how long it's been held, and whether it went into a grab while it was. */
   yHeld: number;
   yChord: boolean;
+  /** B or X pressed without Y: held back a moment in case Y comes with it (pressed together, near enough). */
+  pend: { k: 'b' | 'x'; t: number } | null;
   /** The controls last frame (to catch presses). */
   was: Controls;
   /** Shaken down already: nothing left in them. */
@@ -75,7 +79,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(),
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -152,13 +156,23 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
       // Y on its own is a button of its own (secondary fire) on a tap; held, it's half of a grab
       const y = btn('y');
       let want: 'beat' | 'shake' | null = pressed('beatKey') ? 'beat' : pressed('shakeKey') ? 'shake' : null;
-      if (!want && y && (pressed('b') || (pressed('y') && btn('b')))) want = 'beat';
-      if (!want && y && (pressed('x') || (pressed('y') && btn('x')))) want = 'shake';
+      // B or X first, on its own: held back a few frames for Y (a grab's two buttons are never quite together);
+      // no Y, and it goes through as itself (its charge, its shot), a moment late
+      if (!y && !g.pend) { if (pressed('b')) g.pend = { k: 'b', t: 0 }; else if (pressed('x')) g.pend = { k: 'x', t: 0 }; }
+      if (g.pend) {
+        const ctl = g.pend.k === 'b' ? 'special' : 'shoot';
+        if (y) { if (!want) want = g.pend.k === 'b' ? 'beat' : 'shake'; g.pend = null; }
+        else if (++g.pend.t > CHORD_WINDOW) { out = { ...out, [ctl]: true }; g.pend = null; }
+        else out = { ...out, [ctl]: false };
+      }
+      // Y first (or both on the one frame), then B or X
+      if (!want && y && pressed('b')) want = 'beat';
+      if (!want && y && pressed('x')) want = 'shake';
       if (y) {
         g.yHeld++;
-        out = { ...controls, special: false, shoot: false, secondary: false };
+        out = { ...out, special: false, shoot: false, secondary: false };
       } else if (g.yHeld > 0) {
-        if (!g.yChord && g.yHeld < Y_TAP) out = { ...controls, secondary: true };
+        if (!g.yChord && g.yHeld < Y_TAP) out = { ...out, secondary: true };
         g.yHeld = 0; g.yChord = false;
       }
       const free = p.isGrounded && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.swimming && !(p.pushbackTimer && p.pushbackTimer > 0);
