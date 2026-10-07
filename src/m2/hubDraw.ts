@@ -1,10 +1,10 @@
 // The hub, painted (a first pass: blocked in with SNES-style banding and inked edges, to be brought up later).
 //
-//   Behind it all (screen space, turning slower than the roundabout): a bright morning sky, and on the skyline each
-//   land's big landmark, sat right behind its own portal, so walking round, the skyline wheels past behind them.
-//   On the roundabout (wrapped round the cylinder): the plaza floor, the low wall round the back of it, lamp posts
-//   with their banners, and the portals, one a land, each dressed as its land, swirling inside.
-//   In front (flat, quicker than the roundabout): flower beds going by along the bottom edge.
+//   The camera's stood in the middle of the ring, turning to follow him round, so everything goes round together, near
+//   and far (seen from inside the cylinder). Behind it all, flat: the morning sky. On the roundabout: the sun, the
+//   clouds, each land's big landmark right behind its own portal, the treeline and the monorail; the plaza floor, the
+//   low wall round the back of it, lamp posts with their banners, and the portals, each dressed as its land, swirling
+//   inside; flower beds along the front.
 
 import type { GameState } from '../game/core/state';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants';
@@ -18,63 +18,58 @@ const box = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string) =>
 /** Bands top to bottom through the colors. */
 const bands = (ctx: Ctx, x: number, y: number, w: number, h: number, cs: string[]) => { const bh = h / cs.length; cs.forEach((c, i) => box(ctx, x, y + i * bh, w, bh + 1, c)); };
 const SKY = ['#4C7BE0', '#5A88E6', '#6995EB', '#7AA3EF', '#8DB1F2', '#A1BFF4', '#B7CDF4', '#CEDBF2', '#E6E3E6', '#F6E7D2'];
-/** How much slower than the roundabout the skyline and the trees turn. */
-const FAR = 0.3, MID = 0.6;
 
 // ---------------------------------------------------------------------------
 // Behind: the sky, the lands' landmarks, the treeline
 // ---------------------------------------------------------------------------
 
-/** Where something `k` as far round as the roundabout turns shows on screen, for a world x on the roundabout. */
-const turned = (state: GameState, worldX: number, k: number, period: number) => {
-  const camMid = state.camera.x + CANVAS_WIDTH / 2;
-  let d = (worldX - camMid) * k;
-  d = ((d % period) + period * 1.5) % period - period / 2;
-  return CANVAS_WIDTH / 2 + d;
-};
-
-export const drawHubBackdrop = (ctx: Ctx, state: GameState) => {
-  const f = state.frame;
+/** Behind it all, flat: the sky (bands run straight across, so turning doesn't show on it), and the lawn at the bottom. */
+export const drawHubBackdrop = (ctx: Ctx, _state: GameState) => {
   bands(ctx, 0, 0, CANVAS_WIDTH, 470, SKY);
-  // The sun, in rings
-  const sunX = turned(state, HUB.x0, 0.12, HUB_CIRC * 0.12 + CANVAS_WIDTH), sunY = 92;
-  for (const [r, c] of [[46, '#F8E4B0'], [38, '#FBEFC6'], [30, '#FFF7DC'], [24, '#FFFDF2']] as const) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(sunX, sunY, r, 0, Math.PI * 2); ctx.fill(); }
-  // Clouds drifting (flat-bottomed puffs, lit on top)
-  for (let i = 0; i < 6; i++) {
-    const x = turned(state, HUB.x0 + i * 970, 0.2, HUB_CIRC * 0.2 + 400) + Math.sin(f * 0.002 + i) * 6, y = 60 + (i % 3) * 46;
-    for (const [dx, r] of [[-30, 16], [0, 24], [28, 18], [52, 12]] as const) { ctx.fillStyle = '#E8EEF8'; ctx.beginPath(); ctx.arc(x + dx, y, r, Math.PI, 0); ctx.fill(); ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(x + dx - 2, y - 3, r * 0.7, Math.PI, 0); ctx.fill(); }
-    box(ctx, x - 46, y, 110, 4, '#D3DCEB');
-  }
-  // Each land's landmark on the skyline, right behind its portal
-  const pf = HUB_CIRC * FAR;
-  LANDS.forEach((land, i) => {
-    const x = turned(state, slotX(i), FAR, pf);
-    if (x < -260 || x > CANVAS_WIDTH + 260) return;
-    landmark(ctx, land, x, 440, f);
-  });
-  // The haze down at the horizon
-  for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(246, 231, 210, ${(0.12 + i * 0.1).toFixed(2)})`; ctx.fillRect(0, 380 + i * 18, CANVAS_WIDTH, 18); }
-  // The treeline and the monorail on its beam, turning a bit quicker
-  const pm = HUB_CIRC * MID;
-  for (let i = 0; i < 40; i++) {
-    const x = turned(state, HUB.x0 + i * (HUB_CIRC / 40), MID, pm), r = 22 + (i * 7) % 14;
-    ctx.fillStyle = '#2F6B3A'; ctx.beginPath(); ctx.arc(x, 462, r, Math.PI, 0); ctx.fill();
-    ctx.fillStyle = '#3F8A4A'; ctx.beginPath(); ctx.arc(x - r * 0.25, 458, r * 0.6, Math.PI, 0); ctx.fill();
-  }
-  box(ctx, 0, 400, CANVAS_WIDTH, 8, '#D6D3D1'); box(ctx, 0, 400, CANVAS_WIDTH, 2, '#F5F5F4'); box(ctx, 0, 406, CANVAS_WIDTH, 2, '#A8A29E');
-  for (let i = 0; i < 18; i++) { const x = turned(state, HUB.x0 + i * (HUB_CIRC / 18), MID, pm); box(ctx, x - 4, 408, 8, 60, '#A8A29E'); box(ctx, x - 4, 408, 3, 60, '#D6D3D1'); }
-  // (the train, going round the other way)
-  const tx = ((f * 1.6) % (CANVAS_WIDTH + 700)) - 350;
-  const train = turned(state, HUB.x0, MID, pm) * 0 + CANVAS_WIDTH - tx;
-  for (let c = 0; c < 4; c++) {
-    const x = train + c * 64;
-    ink(ctx, () => ctx.roundRect(x, 376, 60, 24, [c === 0 ? 12 : 3, c === 3 ? 12 : 3, 2, 2]), c % 2 ? '#38BDF8' : '#F8FAFC');
-    for (let w = 0; w < 3; w++) box(ctx, x + 8 + w * 16, 382, 10, 7, '#1E3A8A');
-  }
-  box(ctx, 0, 468, CANVAS_WIDTH, 4, '#24542F');
   // (the lawn under it all, down to the bottom: from inside the ring the plaza's wall dips at the sides, and this is
   // what's behind it there)
   bands(ctx, 0, 472, CANVAS_WIDTH, CANVAS_HEIGHT - 472, ['#2F6B3A', '#2A6034', '#25562F', '#204C2A']);
+};
+
+/**
+ * The far distance, drawn on the roundabout itself (so it turns exactly with it): the camera's stood still in the middle
+ * of the ring, turning to follow him round, and a turning camera sweeps everything past at the same rate, the plaza in
+ * front of it and the skyline far beyond (only from inside, standing in the one spot, does it all go round together).
+ * The sun, clouds, each land's landmark right behind its own portal, the haze, the treeline, the monorail. `top`: the
+ * screen's top in the world.
+ */
+const drawHubFar = (ctx: Ctx, state: GameState) => {
+  const f = state.frame, top = state.camera.y;
+  const x0 = state.camera.x - 1200, x1 = state.camera.x + CANVAS_WIDTH + 1200;
+  const each = (x: number, draw: (x: number) => void) => laps(state, x, draw);
+  // The sun, in rings, over Fantasy Land
+  each(slotX(5) + 120, x => { for (const [r, c] of [[46, '#F8E4B0'], [38, '#FBEFC6'], [30, '#FFF7DC'], [24, '#FFFDF2']] as const) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, top + 92, r, 0, Math.PI * 2); ctx.fill(); } });
+  // Clouds drifting (flat-bottomed puffs, lit on top)
+  for (let i = 0; i < 9; i++) each(HUB.x0 + i * (HUB_CIRC / 9) + ((f * 0.15 + i * 97) % (HUB_CIRC / 9)), x => {
+    const y = top + 60 + (i % 3) * 46;
+    for (const [dx, r] of [[-30, 16], [0, 24], [28, 18], [52, 12]] as const) { ctx.fillStyle = '#E8EEF8'; ctx.beginPath(); ctx.arc(x + dx, y, r, Math.PI, 0); ctx.fill(); ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(x + dx - 2, y - 3, r * 0.7, Math.PI, 0); ctx.fill(); }
+    box(ctx, x - 46, y, 110, 4, '#D3DCEB');
+  });
+  // Each land's landmark on the skyline, right behind its portal
+  LANDS.forEach((land, i) => each(slotX(i), x => landmark(ctx, land, x, top + 440, f)));
+  // The haze down at the horizon
+  for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(246, 231, 210, ${(0.12 + i * 0.1).toFixed(2)})`; ctx.fillRect(x0, top + 380 + i * 18, x1 - x0, 18); }
+  // The treeline, and the monorail on its beam with the train going round
+  for (let x = Math.floor(x0 / 60) * 60; x < x1; x += 60) {
+    const r = 22 + (Math.abs(x / 60) * 7) % 14;
+    ctx.fillStyle = '#2F6B3A'; ctx.beginPath(); ctx.arc(x, top + 462, r, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#3F8A4A'; ctx.beginPath(); ctx.arc(x - r * 0.25, top + 458, r * 0.6, Math.PI, 0); ctx.fill();
+  }
+  box(ctx, x0, top + 400, x1 - x0, 8, '#D6D3D1'); box(ctx, x0, top + 400, x1 - x0, 2, '#F5F5F4'); box(ctx, x0, top + 406, x1 - x0, 2, '#A8A29E');
+  for (let x = Math.floor(x0 / 320) * 320; x < x1; x += 320) { box(ctx, x - 4, top + 408, 8, 60, '#A8A29E'); box(ctx, x - 4, top + 408, 3, 60, '#D6D3D1'); }
+  each(HUB.x0 + HUB_CIRC - ((f * 2.2) % HUB_CIRC), x => {
+    for (let c = 0; c < 4; c++) {
+      const cx = x + c * 64;
+      ink(ctx, () => ctx.roundRect(cx, top + 376, 60, 24, [c === 0 ? 12 : 3, c === 3 ? 12 : 3, 2, 2]), c % 2 ? '#38BDF8' : '#F8FAFC');
+      for (let w = 0; w < 3; w++) box(ctx, cx + 8 + w * 16, top + 382, 10, 7, '#1E3A8A');
+    }
+  });
+  box(ctx, x0, top + 468, x1 - x0, 4, '#24542F');
 };
 
 /** A land's big landmark, its base on (x, y): hazed into the sky by distance (flat, with a lit edge). */
@@ -176,6 +171,7 @@ const laps = (state: GameState, x: number, draw: (x: number) => void) => {
 };
 
 export const drawHubBack = (ctx: Ctx, state: GameState) => {
+  drawHubFar(ctx, state);
   const f = state.frame, x0 = state.camera.x - 1200, x1 = state.camera.x + CANVAS_WIDTH + 1200;
   // The low wall round the back of the plaza: stone, a planter along its top
   box(ctx, x0, GROUND_Y - 78, x1 - x0, 78, '#D6C7A8');
@@ -194,17 +190,15 @@ export const drawHubBack = (ctx: Ctx, state: GameState) => {
   }
 };
 
-export const drawHubFront = (_ctx: Ctx, _state: GameState) => {};
-
-/** In front, flat, going by quicker than the roundabout: flower beds along the bottom edge. */
-export const drawHubOver = (ctx: Ctx, state: GameState) => {
-  const period = 380, off = ((state.camera.x * 1.35) % period + period) % period;
-  for (let x = -off - period; x < CANVAS_WIDTH + period; x += period) {
+/** In front, along the bottom edge of the plaza: flower beds (on the roundabout, turning with the rest). */
+export const drawHubFront = (ctx: Ctx, state: GameState) => {
+  const bottom = state.camera.y + CANVAS_HEIGHT;
+  for (let x = Math.floor((state.camera.x - 1200) / 380) * 380; x < state.camera.x + CANVAS_WIDTH + 1200; x += 380) {
     for (const [dx, r, c] of [[0, 34, '#2F6B3A'], [44, 26, '#3F8A4A'], [80, 30, '#2F6B3A']] as const) {
-      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x + dx, CANVAS_HEIGHT + 8, r, Math.PI, 0); ctx.fill();
-      ctx.fillStyle = lite(c, 0.15); ctx.beginPath(); ctx.arc(x + dx - r * 0.3, CANVAS_HEIGHT + 4, r * 0.5, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x + dx, bottom + 8, r, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = lite(c, 0.15); ctx.beginPath(); ctx.arc(x + dx - r * 0.3, bottom + 4, r * 0.5, Math.PI, 0); ctx.fill();
     }
-    for (let k = 0; k < 6; k++) box(ctx, x - 20 + k * 20, CANVAS_HEIGHT - 22 - (k % 3) * 5, 5, 5, ['#F472B6', '#FDE047', '#F87171'][k % 3]);
+    for (let k = 0; k < 6; k++) box(ctx, x - 20 + k * 20, bottom - 22 - (k % 3) * 5, 5, 5, ['#F472B6', '#FDE047', '#F87171'][k % 3]);
   }
 };
 

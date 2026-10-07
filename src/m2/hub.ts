@@ -11,7 +11,7 @@ import { GROUND_Y } from '../constants';
 import { LANDS, STAFF_SLOT, HUB_SLOTS } from './lands';
 import { setUi, goTo } from './store';
 import { pollM2, pressed } from './input';
-import { drawHubBackdrop, drawHubBack, drawHubFront, drawHubOver } from './hubDraw';
+import { drawHubBackdrop, drawHubBack, drawHubFront } from './hubDraw';
 import { HUB, HUB_CIRC, slotX } from './hubGeom';
 
 export const HUB_STAGE = 'M2 Happy Hub';
@@ -93,5 +93,4 @@ export const hubLayout: StageLayout = {
   drawBackdrop: (ctx, state) => { drawHubBackdrop(ctx, state); return true; },
   drawBack: (ctx, state) => drawHubBack(ctx, state),
   drawFront: (ctx, state) => drawHubFront(ctx, state),
-  drawOverCylinder: (ctx, state) => drawHubOver(ctx, state),
 };

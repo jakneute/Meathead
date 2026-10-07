@@ -10,12 +10,13 @@ import { makeKindEnemy } from '../game/enemies/kinds';
 import { GROUND_Y, CANVAS_WIDTH } from '../constants';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from './grab';
 import { setUi, goTo } from './store';
+import { M2_ENEMY_KINDS } from './roster';
 
 export const PEN_STAGE = 'M2 Staff Pen';
 const X0 = -40000, LEN = 2400;
 const EXIT_X = X0 + 130;
 /** Who walks in, in turn (the rat's there to show who can't be grabbed). */
-const ROSTER: EnemyKind[] = ['charger', 'shooter', 'pitbull', 'cop', 'goat', 'bouncer', 'techbro', 'wolverine', 'courier', 'rat', 'smokejumper', 'sicario'];
+const ROSTER: EnemyKind[] = M2_ENEMY_KINDS;
 const AT_ONCE = 4, RESPAWN = 70;
 
 interface Pen { grab: Grab; next: number; cooldown: number; upWas: boolean }

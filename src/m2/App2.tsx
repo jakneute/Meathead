@@ -6,7 +6,8 @@ import { GameStatus, WeaponType } from '../types';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH } from '../constants';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
 import { loadVoicePack } from '../game/platform/voiceclips';
-import voicePackUrl from '../generated/voices.bin?url';
+// (its own little pack: just the lines it can say, out of Meathead 1's: tools/voices/m2pack.ts)
+import voicePackUrl from './generated/voices.bin?url';
 import { registerStageLayout } from '../game/stages/index';
 import { hubLayout, HUB_STAGE, setHubStart } from './hub';
 import { penLayout, PEN_STAGE } from './pen';
