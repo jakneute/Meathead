@@ -31,7 +31,12 @@ export const hectorLayout: StageLayout = {
     // choir of the storm tower coming in as he goes up)
     if (rt && rt.boat.phase === 'riding') return 'boat';
     if (rt && rt.boat.phase === 'spout') return 'tower';
-    return rt && rt.beach.storm > 0.6 ? 'storm' : 'beach';
+    // (the storm coming in turns the screw a step at a time: the gust as it hits and out over the beach and the pier,
+    // the storm proper once it's right in and he's up on the strip; it only takes a few seconds to roll in, so the
+    // second step's where he is, not just how far in it is)
+    const storm = rt?.beach.storm ?? 0;
+    if (storm < 0.25) return 'beach';
+    return storm > 0.6 && state.player.pos.x >= COURSE.checkpoints[CP.MOTEL].x - 200 ? 'storm' : 'gust';
   },
   left: COURSE.left,
   startX: COURSE.startX,

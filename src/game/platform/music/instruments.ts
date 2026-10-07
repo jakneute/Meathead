@@ -151,6 +151,31 @@ const daleBari = (() => {
   };
   return { make, base: gtr.base };
 })();
+/**
+ * Dale's surf guitar (Dick Dale's: Drug Trade Dale's): a heavy-gauge single-coil picked hard near the bridge, a loud
+ * clean amp only just breaking up, and the spring tank wide open (bounces close together, splashy, bright). Short, so
+ * a tremolo-picked note (32nds) chatters and the springs smear it into one wet, sizzling line.
+ */
+const surfGtr = (() => {
+  const gtr = electric([[262, 1]], 1.3, 2.8, 0.9993, 4800, 160);
+  const make = () => {
+    const x = gtr.make().data;
+    const n = x.length, y = new Float32Array(n);
+    const taps = [[0.019, 0.34], [0.031, 0.28], [0.047, 0.22], [0.061, 0.16]].map(([d, g]) => [Math.round(d * SR), g]);
+    const D = Math.round(0.037 * SR);
+    let lp = 0, peak = 0;
+    for (let i = 0; i < n; i++) {
+      let v = x[i];
+      for (const [d, g] of taps) if (i >= d) v += g * x[i - d];
+      if (i >= D) { lp += 0.55 * (y[i - D] - lp); v += 0.5 * lp; }
+      y[i] = v; peak = Math.max(peak, Math.abs(v));
+    }
+    const fade = Math.round(0.03 * SR);
+    for (let i = 0; i < n; i++) y[i] = (y[i] / (peak || 1)) * (i > n - fade ? (n - i) / fade : 1);
+    return { data: y };
+  };
+  return { make, base: gtr.base };
+})();
 // (Oscar's: a baritone guitar through a clean amp just starting to break up, all twang; and the down-tuned rig, low C-sharp
 // power chords, once ringing and once palm-muted, the cabinet darker and the bottom left in so it chugs)
 const baritone = electric([[110, 1], [220, 0.2]], 1.8, 2.4, 0.9985, 4200);
@@ -160,6 +185,9 @@ const chugChord = electric([[69, 1], [104, 0.8], [139, 0.4]], 0.7, 20, 0.985, 20
 const peakOf = (w: (t: number) => number, hz: number) => { let p = 0; for (let i = 0; i < 600; i++) p = Math.max(p, Math.abs(w(i / 600 / hz))); return p || 1; };
 const slideTone = partials(sawPartials(262, (k, hz) => Math.exp(-k / 10) * (0.5 + 1.3 * formant(hz, 1050, 420) + 0.7 * formant(hz, 2600, 600)), 7000));
 const slidePeak = peakOf(slideTone, 262);
+// (Hector's storm bass: a fat low saw with a sub under it, driven hard)
+const gritTone = partials([...sawPartials(65, (k) => Math.exp(-k / 9), 4000), [65, 0.6]]);
+const gritPeak = peakOf(gritTone, 65);
 
 /** Every instrument there is. */
 export const INSTRUMENTS: Record<string, InstrumentDef> = {
@@ -288,6 +316,36 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     make: held(0.06, partials([...sawPartials(262, (k) => (k % 2 ? 1 : 0.12) * Math.exp(-k / 6), 4000), ...sawPartials(263, (k) => 0.6 * (k % 2 ? 1 : 0.12) * Math.exp(-k / 6), 4000)]), (u) => 0.5 + 0.5 * u),
     base: midiOf(262), env: { a: 0.06, d: 0.25, s: 0.8, r: 0.3 }, gain: 0.5, vib: [4.8, 14],
   },
+  // Hector's Miami: an 80s poly-synth brass (three saws a hair apart, wide and lush), the filter snapping open on the
+  // attack and settling back warm (the TV cop show's brass)
+  neon: {
+    make: (() => {
+      const PRE = 0.12;
+      const voices: [number, number][] = [[262, 1], [263, 0.8], [261, 0.7]];
+      return held(PRE, (t) => {
+        const u = Math.min(1, t / PRE);
+        const cut = 2300 + 4200 * (1 - u) * (1 - u);
+        let v = 0;
+        for (const [f, a] of voices) for (let k = 1; k * f < 7000; k++) { const hz = k * f; v += (a / k) * (1 + 0.6 * formant(hz, 1250, 450)) / (1 + (hz / cut) ** 2) * Math.sin(TAU * hz * t); }
+        return v;
+      }, (u) => 0.55 + 0.45 * u);
+    })(),
+    base: midiOf(262), env: { a: 0.012, d: 0.25, s: 0.75, r: 0.16 }, gain: 0.56, vib: [5.5, 8],
+  },
+  // The hurricane siren: a tone wailing up and down once a second (its pitch swept round a whole number of cycles a
+  // second, so it loops), a bit of buzz in it
+  tornado: {
+    make: held(0.3, (t) => {
+      const ph = 650 * t - (100 / TAU) * Math.cos(TAU * t);
+      return Math.sin(TAU * ph) + 0.35 * Math.sin(TAU * 2 * ph) + 0.18 * Math.sin(TAU * 3 * ph) + 0.08 * Math.sin(TAU * 5 * ph);
+    }, (u) => u),
+    base: midiOf(650), env: { a: 0.5, d: 0.3, s: 0.9, r: 0.9 }, gain: 0.26,
+  },
+  // Hector's storm bass: a fat low saw and a sub, through a fuzz (tanh, so it still loops)
+  grit: {
+    make: held(0.01, (t) => Math.tanh(2.6 * gritTone(t) / gritPeak)),
+    base: midiOf(65), env: { a: 0.003, d: 0.16, s: 0.7, r: 0.05 }, gain: 0.48,
+  },
   // The office at night: a fluorescent tube and a radiator humming (a buzzy low tone and its twin a hertz off, the
   // throb), the tube stuttering twice a second-loop; played as a pedal, way down in the mix
   hum: {
@@ -315,6 +373,12 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
   combo: {
     make: held(0.01, partials(sawPartials(262, (k, hz) => (k % 2 ? 1 : 0.4) * (1 + 0.7 * formant(hz, 2100, 900)), 6500))),
     base: midiOf(262), env: { a: 0.005, d: 0.08, s: 0.85, r: 0.07 }, gain: 0.48, vib: [6.5, 20],
+  },
+  // A norteño button accordion (the narcocorrido's): three reeds a couple of hertz apart (the wet musette beat), a
+  // reedy square with a nasal bump, the bellows pushing in
+  accordion: {
+    make: held(0.04, partials([262, 264, 260].flatMap((f, j) => sawPartials(f, (k, hz) => [1, 0.8, 0.6][j] * (k % 2 ? 1 : 0.5) * (0.4 + formant(hz, 1350, 650) + 0.5 * formant(hz, 3000, 700)) * Math.exp(-k / 16), 7000))), (u) => 0.5 + 0.5 * u),
+    base: midiOf(262), env: { a: 0.015, d: 0.1, s: 0.9, r: 0.07 }, gain: 0.6,
   },
   // ---- Plucked, struck, one-shot ----
   piano: {
@@ -382,6 +446,8 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
   },
   // Dale's baritone guitar, through the spring tank (see daleBari); rings on as long as the note's held
   twang: { make: daleBari.make, base: daleBari.base, env: { a: 0.002, d: 0, s: 1, r: 0.35 }, gain: 0.7, vib: [5, 12] },
+  // Dale's surf guitar, for tremolo picking (see surfGtr): each 32nd let go quick, the springs carrying it over
+  surf: { make: surfGtr.make, base: surfGtr.base, env: { a: 0.002, d: 0, s: 1, r: 0.09 }, gain: 0.4 },
   // A rattlesnake: a dry buzz of scales clicking forty-odd times a second, shaking on, wavering; play it on o4 c
   rattle: {
     make: (() => {
