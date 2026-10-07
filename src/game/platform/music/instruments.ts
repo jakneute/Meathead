@@ -128,54 +128,41 @@ const electric = (hzs: [number, number][], len: number, drive: number, damp: num
 const leadGuitar = electric([[262, 1]], 2.6, 9, 0.9996);
 const powerChord = electric([[131, 1], [196, 0.8], [262, 0.55]], 2.2, 14, 0.9993);
 /**
- * Dale's baritone guitar: a low string picked near the bridge on an amp only just breaking up, then drenched in the
- * amp's spring tank (a few early bounces, then the tank feeding back on itself, darker each time round). Sun-bleached.
+ * A guitar amp's spring tank on a guitar: a few early bounces (`taps`: [seconds, gain]), then the tank feeding back on
+ * itself every `loop` seconds (by `fb`), losing its top each time round (`damp`, 0..1: lower is darker); the whole
+ * thing through a last two-pole lowpass at `tone` Hz so the springs never splash.
  */
-const daleBari = (() => {
-  const gtr = electric([[196, 1]], 3.4, 1.6, 0.9997);
+const springTank = (gtr: { make: () => { data: Float32Array }; base: number }, taps: [number, number][], loop: number, fb: number, damp: number, tone: number) => {
   const make = () => {
     const x = gtr.make().data;
-    const n = x.length, y = new Float32Array(n);
-    const taps = [[0.029, 0.3], [0.043, 0.24], [0.071, 0.2], [0.097, 0.14]].map(([d, g]) => [Math.round(d * SR), g]);
-    const D = Math.round(0.053 * SR);
-    let lp = 0, peak = 0;
+    const n = x.length, y = new Float32Array(n), out = new Float32Array(n);
+    const t = taps.map(([d, g]) => [Math.round(d * SR), g]);
+    const D = Math.round(loop * SR), ao = 1 - Math.exp(-TAU * tone / SR);
+    let lp = 0, lo1 = 0, lo2 = 0, peak = 0;
     for (let i = 0; i < n; i++) {
       let v = x[i];
-      for (const [d, g] of taps) if (i >= d) v += g * x[i - d];
-      if (i >= D) { lp += 0.3 * (y[i - D] - lp); v += 0.45 * lp; }
-      y[i] = v; peak = Math.max(peak, Math.abs(v));
+      for (const [d, g] of t) if (i >= d) v += g * x[i - d];
+      if (i >= D) { lp += damp * (y[i - D] - lp); v += fb * lp; }
+      y[i] = v; lo1 += ao * (v - lo1); lo2 += ao * (lo1 - lo2); out[i] = lo2; peak = Math.max(peak, Math.abs(lo2));
     }
     const fade = Math.round(0.03 * SR);
-    for (let i = 0; i < n; i++) y[i] = (y[i] / (peak || 1)) * (i > n - fade ? (n - i) / fade : 1);
-    return { data: y };
+    for (let i = 0; i < n; i++) out[i] = (out[i] / (peak || 1)) * (i > n - fade ? (n - i) / fade : 1);
+    return { data: out };
   };
   return { make, base: gtr.base };
-})();
+};
 /**
- * Dale's surf guitar (Dick Dale's: Drug Trade Dale's): a heavy-gauge single-coil picked hard near the bridge, a loud
- * clean amp only just breaking up, and the spring tank wide open (bounces close together, splashy, bright). Short, so
- * a tremolo-picked note (32nds) chatters and the springs smear it into one wet, sizzling line.
+ * Dale's baritone guitar: a low string picked over the neck on a warm amp, barely breaking up, through the spring tank
+ * (soft bounces, the tank dark and short so the low notes bloom and die rather than ring on). Sun-warmed.
  */
-const surfGtr = (() => {
-  const gtr = electric([[262, 1]], 1.3, 2.8, 0.9993, 4800, 160);
-  const make = () => {
-    const x = gtr.make().data;
-    const n = x.length, y = new Float32Array(n);
-    const taps = [[0.019, 0.34], [0.031, 0.28], [0.047, 0.22], [0.061, 0.16]].map(([d, g]) => [Math.round(d * SR), g]);
-    const D = Math.round(0.037 * SR);
-    let lp = 0, peak = 0;
-    for (let i = 0; i < n; i++) {
-      let v = x[i];
-      for (const [d, g] of taps) if (i >= d) v += g * x[i - d];
-      if (i >= D) { lp += 0.55 * (y[i - D] - lp); v += 0.5 * lp; }
-      y[i] = v; peak = Math.max(peak, Math.abs(v));
-    }
-    const fade = Math.round(0.03 * SR);
-    for (let i = 0; i < n; i++) y[i] = (y[i] / (peak || 1)) * (i > n - fade ? (n - i) / fade : 1);
-    return { data: y };
-  };
-  return { make, base: gtr.base };
-})();
+const daleBari = springTank(electric([[196, 1]], 2.4, 1.2, 0.9993, 2000, 80), [[0.029, 0.2], [0.043, 0.15], [0.071, 0.11], [0.097, 0.07]], 0.053, 0.3, 0.2, 2200);
+/**
+ * Dale's surf guitar (Dick Dale's: Drug Trade Dale's): a heavy-gauge single-coil on a clean amp, the tone knob rolled
+ * back, and the spring tank wet but dark (the bounces spaced out and soft, no splash). Long enough to ring through a
+ * held note, so the hook can be picked in eighths and left to sing. (Made up at the hook's own A, so it isn't
+ * sped up three times over, and its fizz with it, to play it.)
+ */
+const surfGtr = springTank(electric([[440, 1]], 1.8, 1.8, 0.9996, 2400, 160), [[0.023, 0.22], [0.037, 0.17], [0.053, 0.12], [0.071, 0.08]], 0.043, 0.3, 0.22, 2600);
 // (Oscar's: a baritone guitar through a clean amp just starting to break up, all twang; and the down-tuned rig, low C-sharp
 // power chords, once ringing and once palm-muted, the cabinet darker and the bottom left in so it chugs)
 const baritone = electric([[110, 1], [220, 0.2]], 1.8, 2.4, 0.9985, 4200);
@@ -188,6 +175,10 @@ const slidePeak = peakOf(slideTone, 262);
 // (Hector's storm bass: a fat low saw with a sub under it, driven hard)
 const gritTone = partials([...sawPartials(65, (k) => Math.exp(-k / 9), 4000), [65, 0.6]]);
 const gritPeak = peakOf(gritTone, 65);
+// (Hector's lead: the TV cop show's synth, the one that wanted to be a guitar: two saws a hertz apart with a honk up
+// around 1.6k, a square an octave under for the body, driven into a fuzz so it screams)
+const hammerTone = partials([...sawPartials(262, (k, hz) => Math.exp(-k / 12) * (0.6 + 1.1 * formant(hz, 1600, 500)), 6000), ...sawPartials(263, (k, hz) => 0.7 * Math.exp(-k / 12) * (0.6 + 1.1 * formant(hz, 1600, 500)), 6000), ...sawPartials(131, (k) => (k % 2 ? 0.45 : 0) * Math.exp(-k / 8), 3000)]);
+const hammerPeak = peakOf(hammerTone, 131);
 
 /** Every instrument there is. */
 export const INSTRUMENTS: Record<string, InstrumentDef> = {
@@ -346,6 +337,11 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     make: held(0.01, (t) => Math.tanh(2.6 * gritTone(t) / gritPeak)),
     base: midiOf(65), env: { a: 0.003, d: 0.16, s: 0.7, r: 0.05 }, gain: 0.48,
   },
+  // Hector's lead synth (see hammerTone): screaming, a wide vibrato that comes in late on the long notes
+  hammer: {
+    make: held(0.03, (t) => Math.tanh(2.2 * hammerTone(t) / hammerPeak), (u) => 0.6 + 0.4 * u),
+    base: midiOf(262), env: { a: 0.01, d: 0.3, s: 0.8, r: 0.12 }, gain: 0.38, vib: [5.5, 16],
+  },
   // The office at night: a fluorescent tube and a radiator humming (a buzzy low tone and its twin a hertz off, the
   // throb), the tube stuttering twice a second-loop; played as a pedal, way down in the mix
   hum: {
@@ -412,6 +408,12 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     }),
     base: midiOf(262), env: { a: 0.003, d: 0, s: 1, r: 0.25 }, gain: 0.5,
   },
+  // Hector's weather-desk keys: an 80s FM bell-piano (a modulator three times up, its index snapping shut, a glassy
+  // tine on top), bright and hard, for the radar ticking
+  dx: {
+    make: shot(1.6, (t) => Math.sin(TAU * 262 * t + (3.2 * Math.exp(-t * 9) + 0.5) * Math.sin(TAU * 786 * t)) * Math.exp(-t * 2.4) + 0.3 * Math.sin(TAU * 524 * t + 1.5 * Math.exp(-t * 20) * Math.sin(TAU * 3668 * t)) * Math.exp(-t * 5)),
+    base: midiOf(262), env: { a: 0.002, d: 0, s: 1, r: 0.12 }, gain: 0.3,
+  },
   bass: { make: bass.make, base: bass.base, env: { a: 0.003, d: 0, s: 1, r: 0.06 }, gain: 0.8 },
   slap: { make: slap.make, base: slap.base, env: { a: 0.002, d: 0, s: 1, r: 0.05 }, gain: 0.75 },
   nylon: { make: nylon.make, base: nylon.base, env: { a: 0.002, d: 0, s: 1, r: 0.12 }, gain: 0.55 },
@@ -444,10 +446,10 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     make: shot(1.6, (t) => Math.sin(TAU * 523 * t) * Math.exp(-t * 2.2) + 0.55 * Math.sin(TAU * 1046 * t) * Math.exp(-t * 3) + 0.35 * Math.sin(TAU * 523 * 3.03 * t) * Math.exp(-t * 5) + 0.2 * Math.sin(TAU * 523 * 4.1 * t) * Math.exp(-t * 7)),
     base: midiOf(523), env: { a: 0.004, d: 0, s: 1, r: 0.15 }, gain: 0.45,
   },
-  // Dale's baritone guitar, through the spring tank (see daleBari); rings on as long as the note's held
-  twang: { make: daleBari.make, base: daleBari.base, env: { a: 0.002, d: 0, s: 1, r: 0.35 }, gain: 0.7, vib: [5, 12] },
-  // Dale's surf guitar, for tremolo picking (see surfGtr): each 32nd let go quick, the springs carrying it over
-  surf: { make: surfGtr.make, base: surfGtr.base, env: { a: 0.002, d: 0, s: 1, r: 0.09 }, gain: 0.4 },
+  // Dale's baritone guitar, through the spring tank (see daleBari); let go soon after the note, so the low end stays clear
+  twang: { make: daleBari.make, base: daleBari.base, env: { a: 0.005, d: 0, s: 1, r: 0.14 }, gain: 0.7, vib: [5, 8] },
+  // Dale's surf guitar (see surfGtr): a soft pick, a gentle let-go, a singer's vibrato on the held notes
+  surf: { make: surfGtr.make, base: surfGtr.base, env: { a: 0.006, d: 0, s: 1, r: 0.2 }, gain: 0.4, vib: [5.2, 12] },
   // A rattlesnake: a dry buzz of scales clicking forty-odd times a second, shaking on, wavering; play it on o4 c
   rattle: {
     make: (() => {

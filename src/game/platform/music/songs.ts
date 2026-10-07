@@ -55,42 +55,55 @@ const chase8 = (groove: string, fill: string) => b(groove.replace(/^\{k/, '{kx')
 
 // Tunes (and roots) used by more than one part of their song
 const ERNIE_ROOTS = ['e', 'a', 'e', 'a', 'c', 'a', 'd', 'e'];
-// Hector's: Miami freestyle in E, sixteen bars. The hook's a 3-3-2 (B, B, up to the E; D-sharp, B, G-sharp), the
-// whole song built on that rhythm; the second eight up high, out through C and D to come home. Sunny it's E major (E,
-// C-sharp minor, A, B; the B eight A, B, G-sharp minor, C-sharp minor, then the C and D borrowed). When the storm hits
-// it's the same tune gone harmonic minor (the G-sharps and C-sharps natural, the D-sharp kept: E minor, C, A minor, B7;
-// the G-sharp minor gone to G), so it's still the song, only menacing.
-const HECTOR_TUNE = ['o5 l8 b8. b8. > e8 d+8. < b8. g+8', 'o5 g+8. g+8. b8 a8. g+8. e8', 'o5 a8. a8. > c+8 < b8. a8. e8', 'o5 f+2 r8 d+8 e8 f+8',
-  'o5 b8. b8. > e8 d+8. < b8. g+8', 'o5 g+8. g+8. b8 a8. g+8. e8', 'o5 a8. a8. > c+8 e8. d+8. c+8', 'o5 d+4. c+8 < b4 r4',
-  'o5 e4. c+8 e4 f+4', 'o5 d+4. f+8^2', 'o5 g+4. f+8 d+4 < b4', 'o5 c+4. < b8 > e4 g+4', 'o5 a4. g+8 a4 > c+4', 'o6 d+2 c+8 < b8 a8 f+8', 'o5 g4. e8 g8 > c8 < b8 g8', 'o5 a4. f+8 a8 > d8 < b8 a8'];
-const HECTOR_DARK = HECTOR_TUNE.map((bar, i) => bar.replace(i === 10 ? /([cgd])\+/g : /([cg])\+/g, '$1'));
-const HECTOR_SUN_ROOTS = ['e/b', 'c+/g+', 'a/e', 'b/f+', 'e/b', 'c+/g+', 'a/e', 'b/f+', 'a/e', 'b/f+', 'g+/d+', 'c+/g+', 'a/e', 'b/f+', 'c/g', 'd/a'];
-const HECTOR_ROOTS = ['e/b', 'c/g', 'a/e', 'b/f+', 'e/b', 'c/g', 'a/e', 'b/f+', 'a/e', 'b/f+', 'g/d', 'c/g', 'a/e', 'b/f+', 'c/g', 'd/a'];
-const HECTOR_SUN_CHORDS = HECTOR_SUN_ROOTS.map(r => ({ e: 'eg+b', 'c+': 'c+eg+', a: 'c+ea', b: 'd+f+b', 'g+': 'd+g+b', c: 'ceg', d: 'df+a' } as Record<string, string>)[r.split('/')[0]]);
-/** (E minor, C, A minor, B7, G, D) */
-const HECTOR_CHORDS = HECTOR_ROOTS.map(r => ({ e: 'egb', c: 'ceg', a: 'cea', b: 'd+f+ab', g: 'dgb', d: 'df+a' } as Record<string, string>)[r.split('/')[0]]);
-/** The 3-3-2 in sixteenths, twice a bar, up the chord. */
-const hecArp = (o: number, chords: string[]) => chords.map(c => { const [x, y, z] = notes(c); return `o${o} q5 l16 ${x} ${y} ${z} ${x} ${y} ${z} ${y} ${z} ${x} ${y} ${z} ${x} ${y} ${z} ${y} ${z}`; }).join(' | ');
-/** Chords stabbed on the 3-3-2. */
-const hecStabs = (o: number, chords: string[]) => chords.map(c => `o${o} q4 {${c}}8. {${c}}8. {${c}}8 {${c}}8. {${c}}8. {${c}}8`).join(' | ');
+// Hector's: a TV cop show's chase theme (the eighties, Miami, a synth that wanted to be a guitar), G minor at 150,
+// sixteen bars. The hook's the six o'clock news sting: G, G, up to the D and hanging there, then C, B-flat, C (and
+// answered: D, C, A, F); bar eight and sixteen the band all on the sting together, D, D, D, (C, A, F-sharp) back into
+// it. The second eight up high on the borrowed E-flat, the hook in the middle of it. On the sand it's Dorian (the E
+// natural, the C major: sunny); as the wind gets up the E goes flat (plain minor, the C's minor); and in the storm the
+// A goes flat too (the Phrygian: the F's minor, an A-flat under bar seven) and the hook's answer slides down to the
+// D-flat, the blue note, so it's still the song, only rotten.
+const HECTOR_TUNE = ['o5 l8 g g > d4. c < b- > c', 'o6 d4. c8 < a4 f4', 'o5 l8 g g > d4. c d f', 'o6 g2 r8 f8 e8 d8',
+  'o5 l8 g g > d4. c < b- > c', 'o6 d4. c8 < b-4 f4', 'o5 g4. a8 > c4 e4', 'o6 l8 d d r d r c < a f+',
+  'o6 g2 f8 e-8 d8 e-8', 'o6 f2 e-8 d8 c8 d8', 'o5 l8 g g > d4. c d f', 'o6 g2 r8 f8 e8 d8',
+  'o6 b-4. g8 e-4 g4', 'o6 a4. f8 c4 f4', 'o6 e-4 d4 c4 < b-4', 'o6 l8 d d r d r c < a f+'];
+/** The wind up: the E gone flat. */
+const HECTOR_GUST = HECTOR_TUNE.map(bar => bar.replace(/e(?![-+])/g, 'e-'));
+/** The storm: the A gone flat too (not on the sting, the D major's), and the answer down to the D-flat. */
+const HECTOR_DARK = HECTOR_GUST.map((bar, i) => i === 7 || i === 15 ? bar : bar.replace(/a(?![-+])/g, 'a-')).map((bar, i) => i === 3 || i === 11 ? bar.replace(/d8$/, 'd-8') : bar);
+/** (G minor, F, C, B-flat, D, E-flat; the C gone minor in the wind; the F minor and the A-flat in the storm) */
+const HECTOR_SUN_CHORDS = ['dgb-', 'cfa', 'dgb-', 'ceg', 'dgb-', 'dfb-', 'ceg', 'df+a', 'e-gb-', 'cfa', 'dgb-', 'ceg', 'e-gb-', 'cfa', 'e-gb-', 'df+a'];
+const HECTOR_GUST_CHORDS = HECTOR_SUN_CHORDS.map(c => c === 'ceg' ? 'ce-g' : c);
+const HECTOR_CHORDS = HECTOR_GUST_CHORDS.map((c, i) => i === 6 ? 'ce-a-' : c === 'cfa' ? 'cfa-' : c);
+const HECTOR_SUN_ROOTS = ['g/d', 'f/c', 'g/d', 'c/g', 'g/d', 'b-/f', 'c/g', 'd/a', 'e-/b-', 'f/c', 'g/d', 'c/g', 'e-/b-', 'f/c', 'e-/b-', 'd/a'];
+const HECTOR_ROOTS = HECTOR_SUN_ROOTS.map((r, i) => i === 6 ? 'a-/e-' : r);
+/** The radar ticking: sixteenths up and over the chord and back. */
+const hecTick = (o: number, chords: string[]) => chords.map(c => { const [x, y, z] = notes(c); return `o${o} l16 ${x} ${y} ${z} > ${x} < ${z} ${y} ${x} ${y} ${z} > ${x} < ${z} ${y} ${x} ${y} ${z} ${y}`; }).join(' | ');
+/** A line a bar at a time over the roots, the sting bars (eight and sixteen) all on D with the band: D, D, D. */
+const hecBars = (o: number, pattern: string, roots: string[], sting = 'd') => roots.map((r, i) => i === 7 || i === 15
+  ? `o${o} l8 ${sting} ${sting} r ${sting} r4 ${sting}4` : bass(o, pattern, [r])).join(' | ');
 /** One root a bar, as notes (the wind, the timpani). */
 const hecRoot = (i: number) => HECTOR_ROOTS[i].split('/')[0];
-/** The orchestra hit (a major chord) only where the chord is major: the B7s, the C and the D. */
-const HECTOR_HITS = HECTOR_ROOTS.map((r, i) => i === 15 ? 'o4 d4 r4 d8 d8 r4' : r.startsWith('b/') ? 'o3 b4 r2.' : i === 14 ? 'o4 c4 r2.' : 'r1').join(' | ');
-// (the kit: on the sand a drum machine, light, the shaker running and a cowbell; the wind getting up, sixteenth hats
-// and the snare and the clap together on two and four; the storm pounding, the kick doubling, toms; the boat twice as
-// busy, the double kick running, the snare on every offbeat, the cowbell on the beat; up the tower half time on the
-// taiko; the flooded daycare a heartbeat)
-const HECTOR_SUN = 'v11 {kz}16 z16 z16 {kz}16 {pz}16 z16 b16 z16 {kz}16 z16 {kz}16 z16 {pz}16 z16 {wz}16 c16';
-const HECTOR_SUN_FILL = 'v11 {kz}16 z16 z16 {kz}16 {pz}16 z16 b16 z16 t16 t16 t16 u16 u16 u16 {pz}8';
-const HECTOR_GUST = 'v12 {kh}16 h16 o16 h16 {sph}16 h16 {kh}16 h16 {kh}16 h16 o16 h16 {sph}16 h16 o16 {kh}16';
-const HECTOR_GUST_FILL = 'v12 {kh}16 h16 o16 h16 {sph}16 h16 {kh}16 h16 s16 s16 t16 t16 u16 u16 {sp}16 s16';
-const HECTOR_STORM = 'v13 {kh}16 k16 h16 k16 {sph}16 h16 {kh}16 k16 {kh}16 k16 h16 {kh}16 {sph}16 h16 {ku}16 u16';
-const HECTOR_STORM_FILL = 'v13 {kh}16 k16 h16 k16 {sph}16 h16 {kh}16 k16 {su}16 s16 {su}16 s16 {tu}16 t16 {fx}8';
-const HECTOR_SQUALL = '{kwh}16 k16 {sh}16 k16 {kwh}16 k16 {sh}16 t16 {kwh}16 k16 {sh}16 k16 {kwh}16 t16 {sh}16 {kt}16';
-const HECTOR_SQUALL_FILL = '{kh}16 k16 {sh}16 k16 {kh}16 k16 {sh}16 k16 t16 t16 t16 t16 u16 u16 {kx}8';
-const HECTOR_EYE = 'v13 {kf}4 r8 u16 u16 {sf}4 u8 {kf}8';
-const HECTOR_EYE_FILL = 'v13 {kf}4 r8 u16 u16 s16 s16 t16 t16 u16 u16 f8';
+/** The orchestra hits on the sting (a D major chord, the hit's own), and on the G at the top of each eight. */
+const HECTOR_STING = HECTOR_ROOTS.map((_, i) => i === 7 || i === 15 ? 'o4 l8 d d r d r2' : i === 0 || i === 8 ? 'o4 g4 r2.' : 'r1').join(' | ');
+// (the kit: on the sand an eighties rock beat, the snare and the clap together for the gated crack, the toms rolling
+// the fills; the wind up, the hats in sixteenths, the kick pushing; the storm the kick doubling, toms in the gaps; the
+// boat twice as busy, the double kick running and the snare on every offbeat; up the tower half time on the taiko; the
+// daycare a clock ticking and a heartbeat)
+const HEC_BEACH = '{kh}8 h8 {sph}8 h8 h8 {kh}8 {sph}8 h8';
+const HEC_BEACH_FILL = '{kh}8 h8 {sph}8 h8 t16 t16 t16 u16 u16 u16 {sp}8';
+const HEC_WIND = '{kh}16 h16 h16 {kh}16 {sph}16 h16 o8 {kh}16 h16 {kh}16 h16 {sph}16 h16 o16 h16';
+const HEC_WIND_FILL = '{kh}16 h16 h16 {kh}16 {sph}16 h16 o8 {st}16 t16 {st}16 t16 {su}16 u16 {sp}8';
+const HEC_STORM = '{kh}16 k16 h16 k16 {sph}16 h16 {kh}16 k16 {kh}16 h16 {kh}16 k16 {sph}16 h16 {kt}16 u16';
+const HEC_STORM_FILL = '{kh}16 k16 h16 k16 {sph}16 h16 {kh}16 k16 {st}16 t16 {su}16 u16 {sf}16 f16 {kx}8';
+const HEC_BOAT = '{kh}16 k16 {sp}16 k16 {kt}16 k16 {sp}16 k16 {kh}16 k16 {sp}16 k16 {ku}16 k16 {sp}16 {kh}16';
+const HEC_BOAT_FILL = '{kh}16 k16 {sp}16 k16 {kt}16 k16 {sp}16 k16 s16 s16 t16 t16 u16 u16 {kx}8';
+const HEC_TOWER = '{kf}8 f8 r8 u16 u16 {sfp}4 r8 t16 u16';
+const HEC_TOWER_FILL = '{kf}8 f8 r8 u16 u16 {sf}16 s16 t16 t16 u16 u16 f16 f16';
+/** The sting on the kit: the crash and the kick with the band, D, D, D, a roll back in. */
+const HEC_STING = '{kxp}8 {kxp}8 r8 {kxp}8 r8 s16 s16 t16 t16 u16 u16';
+/** Sixteen bars of a groove: in on a crash, a fill before the sting, the sting, and the same again. */
+const hecKit = (groove: string, fill: string) => b(groove.replace(/^\{k/, '{kx'), groove, groove, groove, groove, groove, fill, HEC_STING,
+  groove.replace(/^\{k/, '{kx'), groove, groove, groove, groove, groove, fill, HEC_STING);
 const TOMMY_ROOTS = ['c', 'c', 'e-', 'f', 'c', 'f', 'a-', 'c'];
 // Oscar's: C-sharp minor, down-tuned, sixteen bars. The hook (off the low C-sharp, up through the blue note, the G, into
 // the fifth, and falling back home; each eight ending on the Phrygian-dominant run down to the B-sharp, the border in it),
@@ -163,8 +176,11 @@ const DALE_ROOTS = ['a/e', 'a/e', 'b-/f', 'a/e', 'a/e', 'a/e', 'g/d', 'a/e', 'd/
 const DALE_CHORD: Record<string, string> = { a: 'c+ea', 'b-': 'dfb-', g: 'dgb-', d: 'dfa', c: 'ceg' };
 /** The hits: bars four and sixteen (SAY. MY. NAME.), and eight (YOU'RE GOD-DAMN RIGHT). */
 const DALE_HIT = [3, 7, 15];
-/** The tune tremolo-picked, every note in thirty-seconds (the hits left as hits). */
-const DALE_TREM = DALE_TUNE.map((bar, i) => DALE_HIT.includes(i) ? bar : bar.replace(/([a-g][+-]?)(\d+)(\.?)/g, (_, n, l, dot) => `[${n}32]${(32 / Number(l)) * (dot ? 1.5 : 1)}`));
+/** The tune tremolo-picked: every note `min` beats long or more re-picked in `div`ths, the rest picked once and left to ring (the hits left as hits). */
+const daleTrem = (div: number, min = 0) => DALE_TUNE.map((bar, i) => DALE_HIT.includes(i) ? bar : bar.replace(/([a-g][+-]?)(\d+)(\.?)/g, (m, n, l, dot) => {
+  const beats = (4 / Number(l)) * (dot ? 1.5 : 1);
+  return beats < min ? m : `[${n}${div}]${(div / 4) * beats}`;
+}));
 /** A line a bar at a time: `pattern` with R the root, F its fifth, O the root an octave up (or a function of the root), and the hits on `a` and `bb` (notes or chords). */
 const daleBars = (o: number, pattern: string | ((root: string) => string), a = 'a', bb = 'b-') => DALE_ROOTS.map((r, i) => {
   if (i === 7) return `o${o} r4 ${a}8 ${a}8 ${bb}8 ${a}4.`;
@@ -177,23 +193,27 @@ const DALE_RIFF = ['o2 l16 a8 a a a8 a a b-8 a a g8 f e', 'o2 l16 a8 a a a8 a a 
   'o2 l16 a8 a a a8 a a b-8 a a g8 f e', 'o2 l16 a8 a a a8 a a > c+8 < a a > d8 c+ < b-', 'o2 l16 g8 g g g8 g g b-8 g g > d8 c+ < b-', 'o2 r4 a8 a8 b-8 a4.',
   'o2 l16 d8 d d d8 d d f8 d d a8 g f', 'o2 l16 c8 c c c8 c c e8 c c g8 f e', 'o2 l16 b-8 b- b- b-8 b- b- > d8 < b- b- > f8 e d', 'o2 l16 a8 a a a8 a a > c+8 < a a > e8 d c+',
   'o2 l16 d8 d d d8 d d f8 d d a8 g f', 'o2 l16 c8 c c c8 c c e8 c c g8 f e', 'o2 l16 b-8 b- b- b-8 b- b- > d8 < b- b- > f8 e d', 'o2 a4 a4 b-4 r4'];
-// (the cook's crystals: each chord picked out in sixteenths up high, cold; quiet for the hits)
+// (the strut: the gallop eased off, a dotted eighth and a sixteenth, then two eighths, the run down kept at the bar's end)
+const DALE_STRUT = ['o2 l16 a8. a a8 a8 b-8. a g8 f e', 'o2 l16 a8. a a8 a8 > c+8. < a > d8 c+ < b-', 'o2 l16 b-8. b- b-8 b-8 > d8. < b- > f8 e d', 'o2 a4 a4 b-4 r4',
+  'o2 l16 a8. a a8 a8 b-8. a g8 f e', 'o2 l16 a8. a a8 a8 > c+8. < a > d8 c+ < b-', 'o2 l16 g8. g g8 g8 b-8. g > d8 c+ < b-', 'o2 r4 a8 a8 b-8 a4.',
+  'o2 l16 d8. d d8 d8 f8. d a8 g f', 'o2 l16 c8. c c8 c8 e8. c g8 f e', 'o2 l16 b-8. b- b-8 b-8 > d8. < b- > f8 e d', 'o2 l16 a8. a a8 a8 > c+8. < a > e8 d c+',
+  'o2 l16 d8. d d8 d8 f8. d a8 g f', 'o2 l16 c8. c c8 c8 e8. c g8 f e', 'o2 l16 b-8. b- b-8 b-8 > d8. < b- > f8 e d', 'o2 a4 a4 b-4 r4'];
+// (the cook's crystals: each chord picked out in eighths up high, cold; quiet for the hits)
 const DALE_ICE: Record<string, string[]> = { a: ['o4 a', 'o5 c+', 'o5 e', 'o5 a'], 'b-': ['o4 b-', 'o5 d', 'o5 f', 'o5 b-'], g: ['o4 g', 'o4 b-', 'o5 d', 'o5 g'], d: ['o5 d', 'o5 f', 'o5 a', 'o6 d'], c: ['o5 c', 'o5 e', 'o5 g', 'o6 c'] };
-const DALE_CRYSTAL = DALE_ROOTS.map((r, i) => DALE_HIT.includes(i) ? 'r1' : [0, 2, 1, 3, 2, 1, 0, 2, 3, 1, 2, 0, 3, 2, 1, 2].map(k => `${DALE_ICE[r.split('/')[0]][k]}16`).join(' ')).join(' | ');
-// (the kit: surf drums out in the desert, the toms rolling in the gaps; the cook a machine, the hats ticking and the
-// lighter's crack; the convoy double kick, toms on the offbeats; the last truck galloping on the taiko and the toms;
-// Deadwood Gulch a narcocorrido's polka, flat out; Riggs's cab the polka twice as busy. Every one stopping dead for
-// the hits)
-const DALE_SURF = '{kh}8 h8 {sh}8 u16 u16 {kh}8 {kh}8 {sh}8 t16 t16';
-const DALE_SURF_FILL = '{kh}8 h8 {sh}8 h8 t16 t16 u16 u16 s16 s16 {kx}8';
+const DALE_CRYSTAL = DALE_ROOTS.map((r, i) => DALE_HIT.includes(i) ? 'r1' : [0, 2, 1, 3, 2, 1, 0, 2].map(k => `${DALE_ICE[r.split('/')[0]][k]}8`).join(' ')).join(' | ');
+// (the kit: surf drums out in the desert, a tom at the end of the bar; the cook a machine, the hats ticking and the
+// lighter's crack; the convoy double kick, a tom on the offbeat; the last truck galloping on the taiko and the toms;
+// Deadwood Gulch a narcocorrido's polka; Riggs's cab the polka twice as busy. Every one stopping dead for the hits)
+const DALE_SURF = '{kh}8 h8 {sh}8 h8 {kh}8 {kh}8 {sh}8 u8';
+const DALE_SURF_FILL = '{kh}8 h8 {sh}8 h8 s8 t8 u8 {kx}8';
 const DALE_SAY = '{kx}4 {kx}4 {kx}4 s16 s16 s16 s16';
 const DALE_RIGHT = 's16 s16 t16 u16 {kx}8 {kx}8 {kx}8 {kx}4.';
-const DALE_COOK = '{kh}16 h16 h16 {kh}16 {sh}16 h16 h16 a16 {kh}16 h16 {kh}16 h16 {sh}16 h16 a16 h16';
-const DALE_COOK_FILL = '{kh}16 h16 h16 {kh}16 {sh}16 h16 h16 a16 s16 s16 a16 s16 t16 u16 {kx}8';
-const DALE_RUN = '{kh}16 k16 {sh}16 t16 {kh}16 k16 {sh}16 u16 {kh}16 k16 {sh}16 t16 {kh}16 k16 {sh}16 u16';
+const DALE_COOK = '{kh}8 h16 h16 {sh}8 h8 {kh}8 {kh}16 h16 {sh}8 a8';
+const DALE_COOK_FILL = '{kh}8 h16 h16 {sh}8 h8 s16 s16 a16 s16 t16 u16 {kx}8';
+const DALE_RUN = '{kh}16 k16 {sh}8 {kh}16 k16 {sh}16 t16 {kh}16 k16 {sh}8 {kh}16 k16 {sh}8';
 const DALE_RUN_FILL = '{kh}16 k16 {sh}16 t16 {kh}16 k16 {sh}16 u16 s16 s16 t16 t16 u16 u16 {kx}8';
-const DALE_DUEL = '{kf}8 u16 u16 {sf}8 u8 {kf}8 u16 u16 {sf}8 t16 t16';
-const DALE_DUEL_FILL = '{kf}8 u16 u16 {sf}8 u8 t16 t16 u16 u16 f8 {kxf}8';
+const DALE_DUEL = '{kf}8 u16 u16 {sf}8 r8 {kf}8 k8 {sf}8 t8';
+const DALE_DUEL_FILL = '{kf}8 u16 u16 {sf}8 u8 t8 t8 f8 {kxf}8';
 const DALE_POLKA = '{kh}8 {sh}8 {kh}8 {sh}8 {kh}8 {sh}8 {kh}8 {sjh}8';
 const DALE_POLKA_FILL = '{kh}8 {sh}8 {kh}8 {sh}8 s16 s16 t16 t16 u16 u16 {kx}8';
 const DALE_STAMPEDE = '{kh}16 j16 {sh}16 j16 {kh}16 j16 {sh}16 j16 {kh}16 j16 {sh}16 j16 {kh}16 {kh}16 {sh}16 j16';
@@ -493,68 +513,74 @@ export const SONGS: Record<string, Song> = {
     },
   },
 
-  // Hector: Miami, and a TV weatherman calling up a hurricane. Latin freestyle at 122 in E: a drum machine, a synth bass
-  // syncopated under it, an 80s synth brass on the hook, a steel drum running the 3-3-2 up the chords. As the storm
-  // comes in it gets nastier a step at a time. The gust: the hook gone minor, the hats running sixteenths and the snare
-  // in with the clap, the bass filled in, the strings trembling, the wind getting up, an orchestra hit on the B7s. Then
-  // the storm proper: a driven guitar on the hook with a cold saw an octave over it, palm-muted power chords, a fuzz bass
-  // hammering sixteenths, the synth brass stabbing the 3-3-2, the kick doubling, the siren wailing, the timpani. The
-  // stolen boat with the Coast Guard after it the most of all, twice as busy (the double kick running, the cowbell on
-  // the beat, the power chords galloping, the fuzz bass pumping octaves). Up the storm tower huge and slow: half time on
-  // the taiko, the horns on the hook, the choir and the low brass, the power chords ringing, the gale howling. The
-  // flooded daycare eerie: a glass harmonica on the hook, a vibraphone rocking like a crib mobile, water dripping, a
-  // heartbeat.
+  // Hector: Miami, and a TV weatherman calling up a hurricane. A TV cop show's chase theme turned up to eleven: G minor
+  // at 150, a synth bass pulsing, gated drums, a screaming lead on the six o'clock news sting, and the whole band
+  // hitting the sting together at the end of each eight. On the sand it's sunny (Dorian): the lead synth, the bass
+  // pulsing eighths, the weather desk's FM keys ticking the chords like the radar, a pad, an eighties rock beat. As the
+  // wind gets up it goes plain minor and the lead goes to a cranked guitar, the bass in sixteenths, power chords
+  // stabbing, the hats running, the brass on the sting, the wind. Then the storm proper, Phrygian: the guitar with the
+  // synth an octave under it, palm-muted down-tuned chugs and a fuzz bass on the same riff, the drop chords ringing,
+  // the orchestra on the sting, the kick doubling, the timpani, the siren. The stolen boat with the Coast Guard after
+  // it the most of all, twice as busy (the chugs and the fuzz in straight sixteenths, the double kick running, the
+  // snare on every offbeat). Up the storm tower huge and slow: half time on the taiko, the horns on the hook, the choir
+  // and the low brass, the drop chords ringing, the gale howling. The flooded daycare eerie: the hook on a music box, a
+  // glass pad, a clock ticking and a heartbeat.
   hector: {
-    bpm: 122,
+    bpm: 150,
     parts: {
-      // (the sun: E major)
-      lead: { inst: 'neon', vol: 1.15, pan: 0.1, only: ['beach'], mml: b(...HECTOR_TUNE) },
-      arp: { inst: 'steel', vol: 0.55, pan: -0.35, only: ['beach'], mml: hecArp(5, HECTOR_SUN_CHORDS) },
-      bass: { inst: 'synthbass', vol: 0.9, only: ['beach'], mml: bass(2, 'q5 R8. R16 r8 O8 R16 R16 r8 F8 O8', HECTOR_SUN_ROOTS) },
-      pad: { inst: 'pad', vol: 0.45, pan: 0.3, only: ['beach'], mml: pad(4, HECTOR_SUN_CHORDS) },
-      sun: { inst: 'kick', drums: true, only: ['beach'], mml: rep(b(rep(HECTOR_SUN, 7), HECTOR_SUN_FILL), 2) },
-      // (the storm: E minor)
-      dark: { inst: 'neon', pan: 0.1, not: ['beach'], mml: b(...HECTOR_DARK) },
-      hi: { inst: 'saw', vol: 0.45, pan: 0.25, only: ['storm', 'boat'], mml: up(b(...HECTOR_DARK)) },
-      marp: { inst: 'steel', vol: 0.45, pan: -0.35, only: ['gust'], mml: hecArp(5, HECTOR_CHORDS) },
-      mpad: { inst: 'pad', vol: 0.55, pan: 0.3, only: ['gust', 'daycare'], mml: pad(4, HECTOR_CHORDS) },
-      pulse: { inst: 'synthbass', vol: 0.9, only: ['gust'], mml: bass(2, 'q5 R8. R16 R8 O8 R16 R16 R8 F8 O8', HECTOR_ROOTS) },
-      drive: { inst: 'grit', vol: 0.6, only: ['storm'], mml: bass(2, 'q6 l16 R R R R R R O R R R R R F R O R', HECTOR_ROOTS) },
-      pump: { inst: 'grit', vol: 0.72, only: ['boat'], mml: bass(2, 'q5 l16 R O R O R O R O R O R O F O R O', HECTOR_ROOTS) },
+      // (the tune: the synth on the sand, the guitar from the wind on; in the storm and on the boat the synth an octave under it)
+      sun: { inst: 'hammer', vol: 1.2, pan: 0.1, only: ['beach'], mml: b(...HECTOR_TUNE) },
+      wind: { inst: 'guitar', vol: 1.15, pan: 0.1, only: ['gust'], mml: b(...HECTOR_GUST) },
+      dark: { inst: 'guitar', vol: 1.1, pan: 0.1, not: ['beach', 'gust'], mml: b(...HECTOR_DARK) },
+      under: { inst: 'hammer', vol: 0.55, pan: -0.1, only: ['storm', 'boat'], mml: down(b(...HECTOR_DARK)) },
+      // (the bass: pulsing eighths, then sixteenths, then the fuzz on the riff; the boat straight sixteenths)
+      pulse: { inst: 'synthbass', vol: 0.72, only: ['beach'], mml: hecBars(2, 'R8 R8 O8 R8 R8 R8 O8 R8', HECTOR_SUN_ROOTS) },
+      run: { inst: 'synthbass', vol: 0.72, only: ['gust'], mml: hecBars(2, 'q5 l16 R R R R O R R R R R R R O R F R', HECTOR_SUN_ROOTS) },
+      grind: { inst: 'grit', vol: 0.6, only: ['storm'], mml: hecBars(2, 'q5 l16 R R R R R8 R R R R R8 l8 F O', HECTOR_ROOTS) },
+      rush: { inst: 'grit', vol: 0.7, only: ['boat'], mml: hecBars(2, 'q5 l16 R R O R R R O R R R O R R F O F', HECTOR_ROOTS) },
       low: { inst: 'synthbass', vol: 0.8, only: ['tower', 'daycare'], mml: bass(2, 'R1', HECTOR_ROOTS) },
-      str: { inst: 'strings', vol: 0.35, pan: 0.3, only: ['gust', 'storm', 'tower'], mml: HECTOR_CHORDS.map(c => `o4 l16 [{${c}}]16`).join(' | ') },
-      chug: { inst: 'power', vol: 0.75, pan: -0.3, only: ['storm'], mml: bass(2, 'q3 R16 R16 R16 R16 q7 R8 q3 R16 R16 R16 R16 q7 R8 R4', HECTOR_ROOTS) },
-      gallop: { inst: 'power', vol: 0.65, pan: -0.3, only: ['boat'], mml: bass(2, 'R8 R16 R16 R8 R16 R16 R8 R16 R16 R8 R16 R16', HECTOR_ROOTS) },
-      ring: { inst: 'power', vol: 0.6, pan: -0.3, only: ['tower'], mml: bass(2, 'R1', HECTOR_ROOTS) },
-      stab: { inst: 'neon', vol: 0.45, pan: 0.3, only: ['storm', 'boat'], mml: hecStabs(4, HECTOR_CHORDS) },
-      hits: { inst: 'hit', vol: 0.7, only: ['gust', 'storm', 'boat', 'tower'], mml: HECTOR_HITS },
-      // (the wind howling up and down with the chords; the siren wailing every other two bars)
-      wind: { inst: 'gale', vol: 0.7, pan: 0.15, not: ['beach'], mml: HECTOR_ROOTS.map((_, i) => `o4 ${hecRoot(i)}1`).join(' | ') },
-      siren: { inst: 'tornado', vol: 0.6, pan: -0.2, only: ['storm', 'boat', 'tower'], mml: rep('o5 e1^1 r1^1', 4) },
-      timp: { inst: 'timpani', vol: 0.75, only: ['storm'], mml: HECTOR_ROOTS.map((_, i) => i === 15 ? 'v12 o2 d4 r4 v9 [d32]8 v12 [d32]8' : i % 4 === 0 ? `v12 o2 ${hecRoot(i)}4 r2.` : 'r1').join(' | ') },
-      boom: { inst: 'timpani', vol: 0.8, only: ['tower'], mml: HECTOR_ROOTS.map((_, i) => i === 15 ? 'v12 o2 d4 r4 v9 [d32]8 v12 [d32]8' : `v12 o2 ${hecRoot(i)}4 r4 ${hecRoot(i)}4 r4`).join(' | ') },
+      // (the guitars: power chords stabbing in the wind; down-tuned in the storm, chugged and ringing)
+      stab: { inst: 'power', vol: 0.65, pan: -0.3, only: ['gust'], mml: hecBars(2, 'R4. R8 r8 R8 R4', HECTOR_SUN_ROOTS) },
+      chug: { inst: 'chug', vol: 1.1, pan: -0.3, only: ['storm'], mml: hecBars(2, 'q4 l16 R R R R R8 R R R R R8 R8 R8', HECTOR_ROOTS) },
+      saw: { inst: 'chug', vol: 1.0, pan: -0.3, only: ['boat'], mml: hecBars(2, 'q4 l16 R R R R R R R R R R R R R R R R', HECTOR_ROOTS) },
+      ring: { inst: 'drop', vol: 0.75, pan: 0.3, only: ['storm', 'boat', 'tower'], mml: hecBars(2, 'R2. r8 R8', HECTOR_ROOTS) },
+      // (the weather desk: the FM keys ticking the chords, a pad under them)
+      tick: { inst: 'dx', vol: 0.8, pan: -0.35, only: ['beach'], mml: hecTick(4, HECTOR_SUN_CHORDS) },
+      tock: { inst: 'dx', vol: 0.65, pan: -0.35, only: ['gust'], mml: hecTick(4, HECTOR_GUST_CHORDS) },
+      pad: { inst: 'pad', vol: 0.45, pan: 0.3, only: ['beach'], mml: pad(4, HECTOR_SUN_CHORDS) },
+      mpad: { inst: 'pad', vol: 0.45, pan: 0.3, only: ['gust'], mml: pad(4, HECTOR_GUST_CHORDS) },
+      // (the sting: the brass and the orchestra hit, with the band)
+      brass: { inst: 'brass', vol: 0.6, pan: 0.3, only: ['gust', 'storm', 'boat', 'tower'], mml: HECTOR_ROOTS.map((_, i) => i === 7 || i === 15 ? 'o4 l8 {df+a} {df+a} r {df+a} r2' : 'r1').join(' | ') },
+      hits: { inst: 'hit', vol: 0.75, only: ['storm', 'boat', 'tower'], mml: HECTOR_STING },
+      // (the wind howling up and down with the chords; the siren wailing through the middle of each eight)
+      gale: { inst: 'gale', vol: 0.7, pan: 0.15, not: ['beach'], mml: HECTOR_ROOTS.map((_, i) => `o4 ${hecRoot(i)}1`).join(' | ') },
+      siren: { inst: 'tornado', vol: 0.55, pan: -0.2, only: ['storm', 'boat', 'tower'], mml: rep('r1^1^1^1 o5 e1^1^1 r1', 2) },
+      timp: { inst: 'timpani', vol: 0.75, only: ['storm'], mml: HECTOR_ROOTS.map((_, i) => i === 7 || i === 15 ? 'v12 o2 l8 d d r d r2' : i % 4 === 0 ? `v12 o2 ${hecRoot(i)}4 r2.` : 'r1').join(' | ') },
+      boom: { inst: 'timpani', vol: 0.8, only: ['tower'], mml: HECTOR_ROOTS.map((_, i) => i === 7 || i === 15 ? 'v12 o2 l8 d d r d r4 v9 [d32]8' : `v12 o2 ${hecRoot(i)}4 r4 ${hecRoot(i)}4 r4`).join(' | ') },
       choir: { inst: 'choir', vol: 0.55, pan: -0.25, only: ['tower'], mml: pad(4, HECTOR_CHORDS) },
       swell: { inst: 'swell', vol: 0.45, only: ['tower'], mml: pad(3, HECTOR_CHORDS) },
-      // (the daycare: a crib mobile, water dripping)
-      cradle: { inst: 'vibes', vol: 0.75, pan: -0.3, only: ['daycare'], mml: HECTOR_CHORDS.map(c => { const [x, y, z] = notes(c); return `o4 ${x}4 ${y}4 ${z}4 ${y}4`; }).join(' | ') },
-      drip: { inst: 'tink', vol: 0.5, pan: 0.4, only: ['daycare'], mml: rep(b('o6 r2 b16 r8. r4', 'r1', 'o6 r4. e16 r16 r2', 'o6 r2. g16 r8.'), 4) },
-      gust: { inst: 'kick', drums: true, only: ['gust'], mml: b(HECTOR_GUST.replace('{kh}', '{kxh}'), rep(HECTOR_GUST, 6), HECTOR_GUST_FILL, rep(HECTOR_GUST, 7), HECTOR_GUST_FILL) },
-      pound: { inst: 'kick', drums: true, vol: 0.72, only: ['storm'], mml: rep(b(HECTOR_STORM.replace('{kh}', '{kxh}'), HECTOR_STORM, HECTOR_STORM, HECTOR_STORM_FILL), 4) },
-      squall: { inst: 'kick', drums: true, vol: 0.95, only: ['boat'], mml: b(chase8(HECTOR_SQUALL, HECTOR_SQUALL_FILL), chase8(HECTOR_SQUALL, HECTOR_SQUALL_FILL)) },
-      eye: { inst: 'kick', drums: true, vol: 0.8, only: ['tower'], mml: rep(b(HECTOR_EYE.replace('{kf}', '{kxf}'), HECTOR_EYE, HECTOR_EYE, HECTOR_EYE_FILL), 4) },
-      heart: { inst: 'kick', drums: true, only: ['daycare'], mml: rep('v10 f8 v8 f8 r2.', 16) },
+      // (the daycare: a glass pad, water dripping)
+      glass: { inst: 'glass', vol: 0.5, pan: 0.3, only: ['daycare'], mml: pad(4, HECTOR_CHORDS) },
+      drip: { inst: 'tink', vol: 0.45, pan: 0.4, only: ['daycare'], mml: rep(b('o6 r2 g16 r8. r4', 'r1', 'o6 r4. d16 r16 r2', 'o6 r2. b-16 r8.'), 4) },
+      sand: { inst: 'kick', drums: true, vol: 0.9, only: ['beach'], mml: hecKit(HEC_BEACH, HEC_BEACH_FILL) },
+      gusts: { inst: 'kick', drums: true, vol: 0.9, only: ['gust'], mml: hecKit(HEC_WIND, HEC_WIND_FILL) },
+      pound: { inst: 'kick', drums: true, vol: 0.62, only: ['storm'], mml: hecKit(HEC_STORM, HEC_STORM_FILL) },
+      squall: { inst: 'kick', drums: true, vol: 0.82, only: ['boat'], mml: hecKit(HEC_BOAT, HEC_BOAT_FILL) },
+      eye: { inst: 'kick', drums: true, vol: 0.85, only: ['tower'], mml: hecKit(HEC_TOWER, HEC_TOWER_FILL) },
+      clock: { inst: 'kick', drums: true, only: ['daycare'], mml: rep(b('v9 {fm}8 v7 f8 v5 m4 m4 m4', 'v5 m4 m4 m4 m4'), 8) },
     },
     arrangements: {
       // (the beach, sunny)
       beach: {},
-      // (the storm coming in: the gust; and the storm proper)
-      gust: { vol: { hits: 0.6 } },
-      storm: { inst: { dark: 'guitar' }, vol: { wind: 1.3, siren: 1.3 } },
+      // (the storm coming in: the wind; and the storm proper)
+      gust: {},
+      storm: { vol: { gale: 1.2, siren: 1.2 } },
       // (the stolen boat, the Coast Guard after it)
-      boat: { inst: { dark: 'guitar' }, vol: { wind: 1.1, siren: 0.8, stab: 1.2 } },
+      boat: { vol: { gale: 1.0, siren: 0.8 } },
       // (up the storm tower, the eye, the waterspout)
-      tower: { inst: { dark: 'horn' }, vol: { wind: 1.6, siren: 0.6, hits: 1.2, low: 0.8 } },
-      daycare: { inst: { dark: 'glass' }, vol: { dark: 1.3, wind: 0.6, mpad: 0.7, low: 0.7 } },
+      tower: { inst: { dark: 'horn' }, vol: { gale: 1.3, siren: 0.6, low: 0.8 } },
+      // (the hook on a music box)
+      daycare: { inst: { dark: 'bell' }, vol: { dark: 1.6, gale: 0.7, low: 0.9 } },
     },
   },
 
@@ -686,30 +712,35 @@ export const SONGS: Record<string, Song> = {
   // Dale: Albuquerque, a meth dealer in the desert, and the cartel he cooks for. Surf guitar gone bad: Dick Dale's
   // (Drug Trade Dale's) tremolo picking in the Phrygian dominant, which is the narcocorrido's scale too; Walt's SAY MY
   // NAME as three dead stops for the whole band, and YOU'RE GOD-DAMN RIGHT answering it; Saul's strip-mall grin in town,
-  // where the cartel's band plays. A Phrygian dominant at 154, galloping. Out in the desert the surf guitar
-  // tremolo-picking the hook through its spring tank, Dale's baritone galloping under it with the bass, power chords
-  // ringing, surf drums rolling on the toms, a rattlesnake answering the stops; the warehouse is the cook, cold (the
-  // tune on a synth, the gallop palm-muted, a synth bass in sixteenths, the crystals glittering up high, a machine of
-  // a kit); the convoy flat out (the overdriven lead tremolo-picking, the palm-muted gallop, the bass and the kit in
-  // sixteenths); the last truck a duel (the trumpet's call, no quarter, over the baritone ringing, power chords, the
-  // timpani and the taiko galloping, the snake); Deadwood Gulch the cartel's band, a narcocorrido flat out (the
+  // where the cartel's band plays. A Phrygian dominant at 126, strutting. Out in the desert the surf guitar singing
+  // the hook through a dark spring tank (the long notes re-picked in eighths), Dale's baritone strutting under it with
+  // the bass, power chords ringing back in the haze, surf drums with a tom to end the bar, a rattlesnake answering the
+  // stops; the warehouse is the cook, cold (the tune on a synth, the strut palm-muted, a synth bass in eighths, the
+  // crystals glittering up high, a machine of a kit); the convoy flat out (the overdriven lead tremolo-picking in
+  // sixteenths, the palm-muted gallop, the bass and the kit in sixteenths); the last truck a duel (the trumpet's call,
+  // no quarter, over the baritone ringing, power chords, the timpani and the taiko, the snake); Deadwood Gulch the
+  // cartel's band, a narcocorrido (the
   // accordion on the tune, a trumpet a third under, the oom-pah bass, the baritone strumming the offbeats, a polka);
   // and Riggs's cab coming up the street the same with the rig in (power chords, the palm-muted gallop, the bass in
   // sixteenths, the polka twice as busy).
   dale: {
-    bpm: 154,
+    bpm: 126,
     parts: {
-      // (the surf guitar, tremolo-picked; on the convoy the overdriven lead)
-      lead: { inst: 'surf', vol: 1.6, pan: 0.15, only: ['desert', 'highway'], mml: b(...DALE_TREM) },
+      // (the surf guitar: the long notes re-picked in eighths, the rest left to sing; on the convoy the overdriven lead
+      // tremolo-picking all of it in sixteenths)
+      lead: { inst: 'surf', vol: 2, pan: 0.15, only: ['desert'], mml: b(...daleTrem(8, 1.5)) },
+      shred: { inst: 'guitar', vol: 0.88, pan: 0.15, only: ['highway'], mml: b(...daleTrem(16)) },
       // (the tune played straight: the cold synth in the cook, the trumpet's call on the last truck, the accordion in town)
       tune: { inst: 'saw', pan: 0.1, only: ['warehouse', 'standoff', 'town', 'cab'], mml: b(...DALE_TUNE) },
       harm: { inst: 'trumpet', vol: 0.55, pan: -0.2, only: ['town', 'cab'], mml: b(...DALE_THIRDS) },
-      // (the gallop: Dale's baritone through its spring tank, the bass in unison; palm-muted in the cook and on the chases)
-      riff: { inst: 'twang', vol: 0.6, pan: -0.25, only: ['desert'], mml: b(...DALE_RIFF) },
-      bass: { inst: 'bass', vol: 0.9, only: ['desert'], mml: b(...DALE_RIFF) },
-      chug: { inst: 'chug', vol: 0.95, pan: -0.3, only: ['warehouse', 'highway', 'cab'], mml: b(...DALE_RIFF) },
+      // (the strut: Dale's baritone through its spring tank, the bass in unison; palm-muted in the cook; on the chases
+      // the full gallop, palm-muted)
+      riff: { inst: 'twang', vol: 0.6, pan: -0.25, only: ['desert'], mml: b(...DALE_STRUT) },
+      bass: { inst: 'bass', vol: 0.9, only: ['desert'], mml: b(...DALE_STRUT) },
+      palm: { inst: 'chug', vol: 0.95, pan: -0.3, only: ['warehouse'], mml: b(...DALE_STRUT) },
+      chug: { inst: 'chug', vol: 0.95, pan: -0.3, only: ['highway', 'cab'], mml: b(...DALE_RIFF) },
       power: { inst: 'drop', vol: 0.7, pan: 0.3, only: ['desert', 'highway', 'cab'], mml: daleBars(2, 'R2. r8 R8') },
-      pulse: { inst: 'synthbass', vol: 0.8, only: ['warehouse'], mml: daleBars(2, 'q5 l16 R R O R R R O R R R O R R R O R') },
+      pulse: { inst: 'synthbass', vol: 0.8, only: ['warehouse'], mml: daleBars(2, 'q5 l8 R R O R R R O R') },
       pump: { inst: 'bass', vol: 0.85, only: ['highway', 'cab'], mml: daleBars(2, 'q6 l16 R R O R R R O R R R O R R F O R') },
       crystal: { inst: 'ice', vol: 1.1, pan: 0.35, only: ['warehouse'], mml: DALE_CRYSTAL },
       // (the duel: the baritone and the bass ringing, the drop chord under them)
@@ -719,7 +750,7 @@ export const SONGS: Record<string, Song> = {
       timp: { inst: 'timpani', vol: 0.8, only: ['standoff'], mml: daleBars(2, 'R4 r2.') },
       // (the cartel's band: oom-pah, the baritone guitar strumming the offbeats like a bajo sexto)
       oompah: { inst: 'bass', vol: 1.1, only: ['town'], mml: daleBars(2, 'R4 F4 R4 F4') },
-      bajo: { inst: 'bari', vol: 0.65, pan: -0.3, only: ['town'], mml: daleBars(3, r => rep(`r8 {${DALE_CHORD[r]}}8`, 4), `{${DALE_CHORD.a}}`, `{${DALE_CHORD['b-']}}`) },
+      bajo: { inst: 'bari', vol: 0.5, pan: -0.3, only: ['town'], mml: daleBars(3, r => rep(`r8 {${DALE_CHORD[r]}}8`, 4), `{${DALE_CHORD.a}}`, `{${DALE_CHORD['b-']}}`) },
       // (a rattlesnake answering SAY MY NAME)
       rattle: { inst: 'rattle', pan: 0.45, only: ['desert', 'standoff'], mml: DALE_ROOTS.map((_, i) => i === 3 || i === 15 ? 'o4 r2. c4' : 'r1').join(' | ') },
       surfkit: { inst: 'kick', drums: true, vol: 0.9, only: ['desert'], mml: daleKit(DALE_SURF, DALE_SURF_FILL) },
@@ -730,9 +761,10 @@ export const SONGS: Record<string, Song> = {
       stampede: { inst: 'kick', drums: true, only: ['cab'], mml: daleKit(DALE_STAMPEDE, DALE_STAMPEDE_FILL) },
     },
     arrangements: {
-      desert: {},
+      // (out in the open the power chords sit back behind the surf guitar)
+      desert: { vol: { power: 0.75 } },
       warehouse: {},
-      highway: { inst: { lead: 'guitar' }, vol: { lead: 0.55, chug: 0.8 } },
+      highway: { vol: { chug: 0.8 } },
       // (the last truck: Riggs and Dale arguing over the radio, him out on the hood, a duel at eighty miles an hour)
       standoff: { inst: { tune: 'trumpet' } },
       town: { inst: { tune: 'accordion' } },
@@ -756,7 +788,7 @@ export const SONGS: Record<string, Song> = {
       'Artie Avalanche': { inst: { lead: 'saw', color: 'ice' } },
       'Victor Volcano': { inst: { lead: 'brass', color: 'marimba' } },
       'Ernie Earthquake': { inst: { lead: 'trumpet', color: 'clav' } },
-      'Hector Hurricane': { inst: { lead: 'neon', color: 'steel' } },
+      'Hector Hurricane': { inst: { lead: 'hammer', color: 'dx' } },
       'Toxic Tommy': { inst: { lead: 'organ', color: 'epiano' } },
       'Blackout Barry': { inst: { lead: 'sax', color: 'strings' } },
       'Oily Oscar': { inst: { lead: 'slide', color: 'fiddle' } },
