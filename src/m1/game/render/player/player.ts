@@ -12,6 +12,7 @@ import { GroundRun, runAt, treadYAt, stanceDrop, STANCE } from '../../core/terra
 import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
 import { drawPlayerShadow } from './shadow';
 import { drawDeathBrows, drawDeathEyes, drawDeathMouth } from './deathFace';
+import { rayGun } from '../../combat/rayGun';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
 import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth, setLegSinge } from './body';
 
@@ -1038,6 +1039,25 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
  * glint, sloshing liquid, a pilot light, sparks. game/combat/muzzle.ts mirrors where
  * each tip ends up, so the tips stay where they are.
  */
+/**
+ * The ray gun, in his fist (the pistol's place): a chrome body like a fat bulb, the alien's pink coils glowing round
+ * the barrel, a dish at the muzzle, fins; the grip wrapped in duct tape, a loose wire looping back into it.
+ */
+const drawRayGun = (ctx: CanvasRenderingContext2D, frame: number) => {
+  const pulse = 0.6 + 0.4 * Math.sin(frame * 0.2);
+  ctx.fillStyle = '#18181B'; ctx.beginPath(); ctx.ellipse(10, 2.5, 8.5, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#A1A1AA'; ctx.beginPath(); ctx.ellipse(10, 2.5, 7.5, 3.6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#E4E4E7'; ctx.beginPath(); ctx.ellipse(9, 1.2, 5, 1.4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#52525B'; ctx.fillRect(16, 1, 6, 3);
+  for (const cx of [17, 19.5]) { ctx.fillStyle = `rgba(244, 114, 182, ${pulse.toFixed(2)})`; ctx.fillRect(cx, 0, 1.5, 5); }
+  ctx.fillStyle = '#71717A'; ctx.fillRect(22, -1, 2, 7);
+  ctx.fillStyle = '#F9A8D4'; ctx.fillRect(23.5, 1, 1, 3);
+  ctx.fillStyle = '#3F3F46'; ctx.beginPath(); ctx.moveTo(4, -1); ctx.lineTo(8, -3); ctx.lineTo(9, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(4, 5, 4, 4);
+  ctx.fillStyle = '#D4D4D8'; ctx.fillRect(4, 6, 4, 1); ctx.fillRect(4, 8, 4, 1);
+  ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(14, 5); ctx.quadraticCurveTo(12, 10, 7, 8); ctx.stroke();
+};
+
 const drawHeldWeapon = (ctx: CanvasRenderingContext2D, weapon: WeaponType, wpnX: number, wpnY: number, flameAngle: number, frame: number) => {
   ctx.save();
   ctx.translate(wpnX, wpnY);
@@ -1050,6 +1070,8 @@ const drawHeldWeapon = (ctx: CanvasRenderingContext2D, weapon: WeaponType, wpnX:
   };
   switch (weapon) {
     case 'GUN': {
+      // (Meathead 2: the ray gun he made out of the alien's leftovers)
+      if (rayGun()) { drawRayGun(ctx, frame); glint(4, 14, 0, 2); break; }
       // Handgun: slide over the frame, grip in his fist, muzzle out front
       ctx.fillStyle = '#27272A'; ctx.fillRect(4, 0, 18, 5);            // slide
       ctx.fillStyle = '#6B7280'; ctx.fillRect(4, 0, 18, 1);            // top edge catching the light

@@ -11,11 +11,13 @@ interface HUDProps {
   power: number;
   currentWeapon: WeaponType;
   ammo: number;
+  /** What the weapon's called here, if not its usual name (Meathead 2's pistol is a ray gun). */
+  weaponName?: string;
   maxAmmo: number;
 }
 
 /** The in-game HUD: health, power cells and the equipped weapon on a steel plate in the corner. */
-const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo }) => {
+const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName }) => {
   const hp = Math.max(0, Math.min(1, health / maxHealth));
   const low = hp < 0.35;
   const limited = maxAmmo !== Infinity;
@@ -62,7 +64,7 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo
             <WeaponArt type={currentWeapon} size={28} />
           </div>
           <div className="flex flex-col gap-[4px]">
-            <span className="text-[8px] font-black text-yellow-300 uppercase whitespace-nowrap">{getWeaponInfo(currentWeapon).name}</span>
+            <span className="text-[8px] font-black text-yellow-300 uppercase whitespace-nowrap">{weaponName ?? getWeaponInfo(currentWeapon).name}</span>
             <div className="flex items-center gap-2">
               <div className="w-[100px] h-[6px] bg-black border border-zinc-900">
                 <div className="h-full" style={{

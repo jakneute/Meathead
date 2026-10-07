@@ -49,7 +49,7 @@ const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 4, PUNC
 const TOSS: Record<Toss, { len: number; release: number }> = { forward: { len: 16, release: 7 }, back: { len: 24, release: 12 }, up: { len: 16, release: 6 }, down: { len: 18, release: 8 } };
 /** A slam's bounce (up, a frame) for Meathead; a suplex's share of who he suplexes. */
 /** The up throw's launch (about as far up as the others go along). */
-const THROW_UP = 14;
+const THROW_UP = 16;
 /** The boot's share of him (the forward throw), on top of whatever he hits after. */
 const BOOT_SHARE = 0.14;
 /** How much what he hits after a boot hurts him, against an up throw's or a suplex's (the boot's done most of it). */
@@ -227,7 +227,8 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
       if (o === e || fl.hit.has(o.id) || o.health <= 0 || o.isBlownAway || o.type === 'boss' || o.innocent) continue;
       if (o.pos.x > e.pos.x + e.width || o.pos.x + o.width < e.pos.x || o.pos.y > e.pos.y + e.height || o.pos.y + o.height < e.pos.y) continue;
       fl.hit.add(o.id);
-      const dmg = Math.round(Math.max(10, Math.min(80, speed * getEnemyMass(e) / 40)));
+      // (by how heavy the body is and how fast it's going: a bouncer through a wolverine doesn't leave a wolverine)
+      const dmg = Math.round(Math.max(10, Math.min(160, speed * getEnemyMass(e) / 28)));
       o.health -= dmg;
       const dir = Math.sign(e.vel.x) || g.dir;
       fx.spawnDamageNumber(o.pos, dmg, dmg > 30);
@@ -264,8 +265,9 @@ const hurtThrown = (ctx: FrameContext, fl: { e: Enemy; how: GrabCallout }, dmg: 
 /** Runs the grabs. Returns the controls the rest of him gets (none while he's busy). */
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const out = stepGrab(ctx, g, controls);
-  if (g.phase !== 'idle') { keepClear(ctx.state, g); easeOff(ctx.state, g); }
+  // (a thrown body's hits first: whoever's where it's landing gets it before they're moved out of his way)
   if (g.flying.length) flyInto(ctx, g);
+  if (g.phase !== 'idle') { keepClear(ctx.state, g); easeOff(ctx.state, g); }
   // (the grab wins over a bump: nobody he touches hurts him while one's on, from the frame it starts, and for a moment
   // after, with whoever he's just put down still at his feet; shots still do)
   if (g.phase !== 'idle') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
@@ -441,6 +443,27 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
 /** How far a throw takes him, by his weight: about 1 for a man of 220, more for lighter, less for heavier (within reason). */
 const heft = (e: Enemy) => Math.max(0.7, Math.min(1.3, Math.sqrt(220 / getEnemyMass(e))));
 
+/** Driven down onto whoever's there (the suplex's impact): each takes the weight of him, by how heavy he is, and is knocked on. */
+const crushUnder = (ctx: FrameContext, e: Enemy, dir: number) => {
+  const { state, fx } = ctx;
+  const hit: string[] = [];
+  const m = getEnemyMass(e);
+  for (const o of state.enemies) {
+    if (o === e || o.health <= 0 || o.isBlownAway || o.type === 'boss' || o.innocent) continue;
+    if (o.pos.x > e.pos.x + e.width + 10 || o.pos.x + o.width < e.pos.x - 10 || o.pos.y > e.pos.y + e.height || o.pos.y + o.height < e.pos.y) continue;
+    hit.push(o.id);
+    const dmg = Math.round(Math.max(20, Math.min(180, m * 0.45)));
+    o.health -= dmg;
+    fx.spawnDamageNumber(o.pos, dmg, true);
+    fx.spawnExplosion({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 }, '#8B0000', 12, 0, 10);
+    const push = Math.max(0.4, Math.min(2, m / getEnemyMass(o)));
+    if (o.health <= 0) { fx.blowAwayEnemy(o, { x: dir * 12 * push, y: -8 }, 'charge_kill', dir); o.meleeFlung = true; fx.spawnKillCallout(o, 'crush'); }
+    else { o.vel = { x: dir * 9 * push, y: -5 }; o.pauseTimer = Math.max(o.pauseTimer || 0, 40); }
+  }
+  if (hit.length) { playSound('crunch', 1, -4); shakeScreen(state, 12, 7); }
+  return hit;
+};
+
 /** Lets go of him, the way the throw's going: slammed down in front, suplexed down behind, launched up, or flung forward. */
 const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
   const { state, fx } = ctx;
@@ -474,8 +497,10 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     state.enemies.push(e);
     playSound('slam'); playSound('crunch', 0.9, -2); shakeScreen(state, 10, 6);
     for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 22, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
-    if (e.health <= 0) { fx.blowAwayEnemy(e, { x: dir * 4, y: -2 }, 'charge_kill', dir); fx.spawnKillCallout(e, grabCallout('suplex')); }
-    else { e.pauseTimer = 50; e.chargedAt = state.frame; fx.spawnDamageNumber(e.pos, dmg, true); fly(g, e, 'suplex', true); }
+    // (whoever's where he comes down gets the weight of him)
+    const crushed = crushUnder(ctx, e, dir);
+    if (e.health <= 0) { fx.blowAwayEnemy(e, { x: dir * THROW_SPEED * w * 0.7, y: -4 }, 'charge_kill', dir); e.meleeFlung = true; fx.spawnKillCallout(e, grabCallout('suplex')); }
+    else { e.pauseTimer = 50; e.chargedAt = state.frame; fx.spawnDamageNumber(e.pos, dmg, true); fly(g, e, 'suplex', true); crushed.forEach(id => g.flying[g.flying.length - 1].hit.add(id)); }
     return;
   }
   const dir = g.dir;

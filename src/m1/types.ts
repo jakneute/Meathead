@@ -578,6 +578,8 @@ export interface Projectile extends Entity {
   isOilRocket?: boolean;
   /** A round out of the machine gun. */
   isLmg?: boolean;
+  /** A ray gun's bolt (Meathead 2's pistol): drawn pink, and what it kills it vaporizes. */
+  isRay?: boolean;
   /** It's already fouled the water it went into (once is enough). */
   stainedWater?: boolean;
   /** Fired from a crouch: this rocket ignores steering and flies straight. */

@@ -15,6 +15,7 @@ import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
 import { getUi, subscribeUi, onTravel, setUi } from './store';
 import { attachM2Keys } from './input';
 import { setFireKeys } from '../m1/game/platform/input';
+import { setRayGun } from '../m1/game/combat/rayGun';
 import MapCard from './hub/MapCard';
 import ChordPrompt from './ChordPrompt';
 import { cleanLines } from './lines/clean';
@@ -30,10 +31,12 @@ attachM2Keys();
 cleanLines();
 // (on the keyboard and mouse, the left button fires: no fire keys)
 setFireKeys([]);
+setRayGun(true);
 registerGrabCallouts();
 
-const WEAPONS: WeaponType[] = ['GUN', 'SHOTGUN'];
-const STARTING_AMMO = { ...createFullAmmo(), SHOTGUN: 6 };
+/** His one gun, for now: the ray gun (the engine's pistol, turned into one: see rayGun.ts). */
+const WEAPONS: WeaponType[] = ['GUN'];
+const STARTING_AMMO = createFullAmmo();
 /** In the staff room (the practice pen) he can't be hurt (no flicker for it: it's how the room is); everywhere else he can. */
 const PRACTICE = { invincible: true, infiniteAmmo: false, infinitePower: false, skipToBoss: false };
 const PLAY = { ...PRACTICE, invincible: false };
@@ -125,7 +128,7 @@ const App2: React.FC = () => {
           onIntroComplete={() => setStatus(GameStatus.PLAYING)}
         />
         {status === GameStatus.PLAYING && ui.map === null && (
-          <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} />
+          <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weapon === 'GUN' ? 'RAY GUN' : undefined} />
         )}
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit) && (

@@ -29,6 +29,7 @@ import { killPlayer } from '../player/player';
 import { getFinale } from '../stages/finale/state';
 import { FINALE_LINES } from '../../content/dialogue';
 import { shakeScreen } from '../core/state';
+import { rayGun } from './rayGun';
 import {
   inFinale, FINALE_SHOTGUN_PELLETS, FINALE_FLAME_RANGE, FINALE_FLAME_SEGMENTS, FINALE_FLAME_WIDTH, FINALE_FLAME_GROWTH, FINALE_FLAME_SIZE_CAP_DIST,
   FINALE_OIL_SPLASH_RADIUS, FINALE_OIL_SPLASH_DAMAGE, FINALE_OIL_COAT_RADIUS, FINALE_OIL_FORK_DY, PITCH_FRAMES, PITCH_RELEASE_AT, PITCH_SPEED, PITCH_SIZE, PITCH_LIFE, FINALE_BARF_FRAMES,
@@ -84,10 +85,11 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
         pos: fromMuzzle(16, 6),
         vel: { x: facing * GUN_VELOCITY, y: 0 },
         width: 16, height: 6, health: 1, maxHealth: 1,
-        type: 'projectile', damage: BULLET_DAMAGE, owner: 'player', fromX: pos.x + width / 2
+        type: 'projectile', damage: BULLET_DAMAGE, owner: 'player', fromX: pos.x + width / 2, isRay: rayGun() || undefined
       });
       player.shootCooldown = GUN_COOLDOWN;
-      fx.playGunSound('gun');
+      // (Meathead 2's ray gun: the same shot, a zap)
+      if (rayGun()) fx.playGunSound('sadBolt', 0.9, 7); else fx.playGunSound('gun');
       break;
 
     case 'LMG': {

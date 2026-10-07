@@ -47,6 +47,7 @@ const streak = (ctx: Ctx, x0: number, len: number, h: number, colors: string[], 
 
 /** Meathead's gun: a hot tracer round with a streak behind it, stepping down yellow to orange as it fades. */
 export const drawBullet = (ctx: Ctx, p: Projectile) => {
+  if (p.isRay) { drawRayBolt(ctx, p); return; }
   const { x, y } = centerOf(p);
   ctx.save();
   ctx.translate(x, y);
@@ -58,6 +59,22 @@ export const drawBullet = (ctx: Ctx, p: Projectile) => {
   ctx.fillStyle = '#F59E0B'; ctx.beginPath(); ctx.ellipse(2, 0, 7, 3.5, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.ellipse(2.5, -0.3, 6, 2.6, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(3.5, -0.4, 3.5, 1.4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+};
+
+/** Meathead 2's ray gun: a bolt of the alien's pink, a white-hot core, a long fading tail, rings off it. */
+const drawRayBolt = (ctx: Ctx, p: Projectile) => {
+  const { x, y } = centerOf(p);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angleOf(p));
+  streak(ctx, -2, Math.min(40, 14 + speedOf(p) * 1.4), 5, ['#FBCFE8', '#F472B6', '#DB2777', '#9D174D']);
+  steppedGlow(ctx, 2, 0, 12, '#F472B6', 0.38, 0.1, 3);
+  ctx.fillStyle = '#DB2777'; ctx.beginPath(); ctx.ellipse(2, 0, 8, 3.6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#F9A8D4'; ctx.beginPath(); ctx.ellipse(2.5, -0.2, 6.5, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(3.5, -0.3, 4, 1.3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(249, 168, 212, 0.7)'; ctx.lineWidth = 1;
+  for (const k of [-6, -12]) { ctx.beginPath(); ctx.ellipse(k, 0, 1.5, 4 - k * -0.1, 0, 0, Math.PI * 2); ctx.stroke(); }
   ctx.restore();
 };
 

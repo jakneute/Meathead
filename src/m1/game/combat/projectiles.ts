@@ -31,7 +31,7 @@ import { inFinale, FINALE_FREEZE_TIME, PITCH_SPEED, PITCH_HOMING, FINALE_SLUDGE_
 import { ROOM_L, ROOM_R, FLOOR } from '../stages/finale/geometry';
 import { ernieQuake } from '../bosses/ernie';
 import { hurtTaken, gritty } from '../core/resist';
-import { startGunKill } from '../enemies/deaths';
+import { startGunKill, startEnemyDeath } from '../enemies/deaths';
 import { gunDeathMode } from '../enemies/gunDeaths';
 import { spared } from '../enemies/enemies';
 import { isEnemyBullet } from '../player/deathAnim';
@@ -802,6 +802,8 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       const gunMode = !wasFrozen && p.id.startsWith('p-') && !p.isLmg && !spared(enemy) ? gunDeathMode(enemy) : null;
       // Killing an enemy that was already frozen shatters it
       if (wasFrozen) { fx.spawnGlassShatter(enemy.pos); fx.spawnKillCallout(enemy, 'shatter'); }
+      // (a ray gun's bolt: vaporized, the way the alien's beam did his men)
+      else if (p.isRay && !spared(enemy)) { startEnemyDeath(state, enemy, 'vaporized', { x: Math.sign(p.vel.x) || 1, y: 0 }); fx.spawnKillCallout(enemy, 'vaporized'); }
       else if (gunMode) startGunKill(state, enemy, gunMode, p.vel);
       else fx.spawnDeathShower(enemy.pos, 0, 1.2);
       fx.spawnPickup(enemy.pos);
