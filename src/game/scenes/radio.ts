@@ -3,8 +3,8 @@
 // man on the other end of it, a silhouette in a dark office behind a big desk
 // (flags either side, a long red tie, a lot of hair), the line scrambled.
 
-import { ART_W, ART_H, C, R, ell, hash } from './ending';
-import { shaded, ball, box, RAMP } from './art/snes';
+import { ART_W, ART_H, C, R, ell, hash, figure, FIG_INK, DENIM, BELT, BOOT } from './ending';
+import { RAMP } from './art/snes';
 import { drawSlide, Slide } from './intro';
 import { drawGarage as drawGarageRoom, GARAGE_W } from '../garage/draw';
 import { ownedSouvenirs } from '../garage/store';
@@ -70,39 +70,98 @@ const fieldRadio = (ctx: Ctx, t: number, x: number, y: number, s: number, talkin
   R(ctx, x + 54 * s, y - 30 * s, Math.max(1, s), 30 * s, C.gray);
 };
 
+/**
+ * The bench, the crate, and Meathead sitting on the bench with the handset to his ear, front on, painted once: the
+ * boots planted, the jeans (the knees toward us), the belt; the torso a V, the pecs, the abs, the delts; his right arm
+ * down, the forearm on his knee; his left (he's a lefty) up, the elbow out, the handset to his ear in his fist; the neck
+ * like a stump, the square head, the flat-top, the brows, the eyes, the nose, the stubble.
+ */
+const garageFig = figure('garage-mh', ART_W, ART_H, 0, 0, q => {
+  const S = RAMP.mSkin, I = FIG_INK, St = RAMP.steel, W = RAMP.wood;
+  const PLASTIC = ['#040406', '#0e0e12', '#1c1c22', '#2e2e36', '#4a4a56'];
+  // The crate (the radio goes on it)
+  q.form(g => { g.rect(164, 96, 56, 30); }, { ramp: W, bevel: 3, amb: 0.2, ink: I });
+  for (const y of [103, 110, 117]) q.line(166, y, 217, y, W[1]);
+  q.line(166, 98, 217, 98, W[5]); q.line(167, 99, 167, 124, W[4]); q.line(216, 99, 216, 124, W[1]);
+  for (const [x, y] of [[168, 100], [214, 100], [168, 122], [214, 122]]) q.px(x, y, '#c8c8c8');
+  // The bench: the pad, the legs, the feet
+  for (const x of [66, 130]) { q.form(g => { g.rect(x, 115, 4, 21); }, { ramp: St, bevel: 1.5, amb: 0.2, ink: I }); q.form(g => { g.roundRect(x - 4, 134, 12, 3, 1); }, { ramp: St, bevel: 1, amb: 0.2, ink: I }); }
+  q.form(g => { g.roundRect(59, 106, 82, 10, 3); }, { ramp: RAMP.red, bevel: 3, amb: 0.18, ink: I, spec: '#fcb8a0', wet: 0.3 });
+  for (let x = 62; x < 138; x += 3) q.px(x, 113, RAMP.red[1]);
+  // The shins down to the boots
+  for (const [x0, amb] of [[85, 0.2], [113, 0.1]] as const) {
+    q.form(g => { g.moveTo(x0, 118); g.lineTo(x0 + 10, 118); g.lineTo(x0 + 10.5, 134); g.lineTo(x0 - 0.5, 134); g.closePath(); }, { ramp: DENIM, bevel: 3.5, amb, ink: I, inkIn: DENIM[0] });
+    q.line(x0 + 2, 121, x0 + 2, 132, DENIM[amb > 0.15 ? 5 : 3]); q.line(x0, 132, x0 + 10, 132, DENIM[1]);
+    q.form(g => { g.moveTo(x0 - 2, 133); g.lineTo(x0 + 12, 133); g.lineTo(x0 + 13.5, 136); g.lineTo(x0 + 13.5, 138.5); g.lineTo(x0 - 3.5, 138.5); g.lineTo(x0 - 3.5, 136); g.closePath(); }, { ramp: BOOT, bevel: 2, amb: 0.2, ink: I });
+    q.line(x0 - 1, 134, x0 + 11, 134, BOOT[4]);
+  }
+  // The thighs, toward us, the knees
+  q.form(g => { g.moveTo(83, 108); g.lineTo(125, 108); g.bezierCurveTo(127, 112, 127, 118, 124, 121); g.lineTo(84, 121); g.bezierCurveTo(81, 118, 81, 112, 83, 108); g.closePath(); }, { ramp: DENIM, bevel: 5, amb: 0.15, ink: I, inkIn: DENIM[0] });
+  q.line(104, 109, 104, 121, DENIM[0]); q.line(86, 112, 100, 112, DENIM[5]); q.line(108, 112, 121, 112, DENIM[4]);
+  q.disc(90, 117, 3, 1.5, DENIM[5]); q.disc(118, 117, 3, 1.5, DENIM[4]);
+  // The belt, the buckle
+  q.form(g => { g.rect(85, 103, 38, 6); }, { ramp: BELT, bevel: 1.5, amb: 0.3, ink: I });
+  q.form(g => { g.rect(99.5, 102, 9, 8); }, { ramp: RAMP.gold, bevel: 2, ink: '#5c3c00', spec: '#fffff0', wet: 0.6 });
+  // His right arm (the picture's left): down off the delt, the forearm out over his knee, the fist on it, the wristband
+  q.stroke(g => { g.moveTo(80, 74); g.lineTo(75, 91); }, 11, { ramp: S, bevel: 4, amb: 0.2, ink: I, inkIn: S[1] });
+  q.stroke(g => { g.moveTo(75, 91); g.lineTo(85, 104); }, 8.5, { ramp: S, bevel: 3.5, amb: 0.2, ink: I, inkIn: S[1] });
+  q.line(72, 80, 71, 89, S[7]); q.line(78, 92, 84, 100, S[3]); q.line(76, 94, 82, 101, '#c96b4b');
+  q.form(g => { g.moveTo(81, 100); g.lineTo(86, 97.5); g.lineTo(88.5, 102); g.lineTo(83.5, 104.5); g.closePath(); }, { ramp: BOOT, bevel: 1, amb: 0.3, ink: I });
+  q.form(g => { g.ellipse(89, 106, 5, 4.5, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 2.5, amb: 0.2, ink: I });
+  q.line(86, 108, 92, 108, S[2]); q.px(87, 103, S[7]);
+  // The torso: a V, the lats out wide, down to the belt
+  q.form(g => { g.moveTo(96, 66); g.lineTo(112, 66); g.lineTo(128, 71); g.bezierCurveTo(131, 76, 129, 84, 126, 88); g.lineTo(121, 104); g.lineTo(87, 104); g.lineTo(82, 88); g.bezierCurveTo(79, 84, 77, 76, 80, 71); g.closePath(); },
+    { ramp: S, bevel: 9, amb: 0.14, ink: I, inkIn: S[1] });
+  // (the pecs: lit across the top, the shadow under each, the split; the abs in their rows; the serratus)
+  for (const s of [-1, 1]) {
+    const x0 = 104 + s * 2, x1 = 104 + s * 20;
+    q.line(x0, 74, x1, 74, S[s < 0 ? 7 : 6]); q.line(x0, 86, x1 - s * 2, 86, S[2]); q.line(x0, 87, x1 - s * 4, 87, S[3]);
+    for (const y of [91, 95, 99]) { q.line(104 + s * 2, y, 104 + s * 6, y, S[s < 0 ? 6 : 5]); q.line(104 + s * 2, y + 2, 104 + s * 6, y + 2, S[3]); }
+    q.line(104 + s * 15, 90, 104 + s * 13, 92, S[3]); q.line(104 + s * 15, 94, 104 + s * 13, 96, S[3]);
+  }
+  q.line(104, 74, 104, 103, S[2]);
+  // (the delts, capped round; the traps up into the neck)
+  for (const s of [-1, 1]) q.form(g => { g.ellipse(104 + s * 23, 74, 6.5, 5.5, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 3, amb: s < 0 ? 0.25 : 0.1, ink: null });
+  q.form(g => { g.moveTo(94, 70); g.lineTo(98, 62); g.lineTo(110, 62); g.lineTo(114, 70); g.closePath(); }, { ramp: S, bevel: 3, amb: 0.15, ink: null });
+  q.line(97, 66, 111, 66, S[2]);
+  // The ears; the head: square, the jaw, the chin
+  for (const s of [-1, 1]) q.form(g => { g.ellipse(104 + s * 14, 54, 2.5, 4.5, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 1.5, amb: 0.2, ink: I });
+  q.form(g => { g.moveTo(92, 42); g.lineTo(116, 42); g.lineTo(116, 58); g.lineTo(113, 66); g.lineTo(109, 70); g.lineTo(99, 70); g.lineTo(95, 66); g.lineTo(92, 58); g.closePath(); }, { ramp: S, bevel: 6, amb: 0.2, ink: I, inkIn: S[1] });
+  // (the flat-top: dead flat on top and lit, the bristles)
+  q.form(g => { g.rect(90.5, 35, 27, 9); }, { ramp: RAMP.mHair, bevel: 2.5, amb: 0.3, ink: I, gain: 1.2 });
+  for (let x = 92; x < 117; x++) { q.px(x, 36, x < 104 ? '#5a5a68' : '#44444e'); if ((x & 1) === 0) q.line(x, 38, x, 42, '#2a2a32'); }
+  // (the brows, the eyes, the nose lit down its left, the mouth, the cleft, stubble on the jaw)
+  q.line(95, 50, 101, 49, I); q.line(95, 51, 101, 50, '#2a1a10'); q.line(107, 49, 113, 50, I); q.line(107, 50, 113, 51, '#2a1a10');
+  for (const ex of [97, 109]) { q.rect(ex, 53, 4, 2, '#f4ece0'); q.px(ex + 2, 53, '#2a5aa8'); q.px(ex + 2, 54, I); q.line(ex, 52, ex + 3, 52, S[2]); }
+  q.line(103, 54, 103, 60, S[6]); q.line(105, 55, 105, 60, S[3]); q.line(102, 61, 106, 61, S[2]); q.px(103, 61, S[1]); q.px(105, 61, S[1]);
+  q.line(100, 65, 108, 65, '#7a1e10'); q.line(101, 66, 107, 66, S[3]);
+  q.px(104, 68, S[2]);
+  for (let i = 0; i < 26; i++) { const x = 94 + Math.floor(hash(i * 2.3) * 21), y = 60 + Math.floor(hash(i * 4.1) * 10); if (y < 64 || x < 100 || x > 108) q.px(x, y, '#8c5c30'); }
+  // The handset to his ear: black plastic, the earpiece and the mouthpiece
+  q.form(g => { g.moveTo(117, 45); g.lineTo(124, 45); g.lineTo(125, 52); g.lineTo(123, 62); g.lineTo(124, 68); g.lineTo(117, 68); g.lineTo(116, 62); g.lineTo(118, 52); g.closePath(); }, { ramp: PLASTIC, bevel: 2.5, amb: 0.2, ink: I, spec: '#8a8a9a', wet: 0.6 });
+  // His left arm (the picture's right): the bicep out to the elbow, the forearm up to his ear, the wristband, the fist round the handset
+  q.stroke(g => { g.moveTo(126, 72); g.lineTo(135, 81); }, 11, { ramp: S, bevel: 4, amb: 0.1, ink: I, inkIn: S[1], gain: 1.05 });
+  q.stroke(g => { g.moveTo(135, 80); g.lineTo(128, 60); }, 9, { ramp: S, bevel: 3.5, amb: 0.1, ink: I, inkIn: S[1] });
+  q.line(129, 70, 133, 78, S[6]); q.line(132, 62, 136, 74, S[2]); q.line(131, 64, 134, 74, '#c96b4b');
+  q.form(g => { g.moveTo(124.5, 61); g.lineTo(131, 58.5); g.lineTo(132.5, 62); g.lineTo(126, 64.5); g.closePath(); }, { ramp: BOOT, bevel: 1, amb: 0.3, ink: I });
+  q.form(g => { g.roundRect(119.5, 51, 10, 10, 3); }, { ramp: S, bevel: 3, amb: 0.15, ink: I });
+  for (const y of [53, 56, 59]) q.line(120, y, 122, y, S[2]);
+  q.px(126, 52, S[6]);
+});
+
 /** Meathead on his bench in the garage, the radio on a crate next to him, the handset to his ear. */
 export const drawGarage = (ctx: Ctx, t: number, talking: boolean, meatheadTalking = false) => {
   garageBg(ctx);
   bulb(ctx, t, 118);
-  // The crate and the radio on it
-  R(ctx, 164, 96, 56, 30, C.woodDark); R(ctx, 166, 98, 52, 26, C.wood); R(ctx, 166, 110, 52, 2, C.woodDark);
-  fieldRadio(ctx, t, 170, 70, 0.8, talking);
-  // The coiled cord over to the handset
-  ctx.strokeStyle = C.ink; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(172, 84); for (let i = 0; i < 12; i++) ctx.lineTo(166 - i * 3, 84 - i * 2 + (i % 2) * 3); ctx.stroke();
-  // The bench, a bar racked over it
-  R(ctx, 60, 108, 80, 8, G.bench); R(ctx, 60, 116, 80, 2, G.benchDark);
-  R(ctx, 66, 118, 4, 18, C.gray); R(ctx, 130, 118, 4, 18, C.gray);
   // (plates stacked by the bench)
-  for (let k = 0; k < 3; k++) { ell(ctx, 40, 132 - k * 5, 14 - k * 2, 3, C.ink); ell(ctx, 40, 131 - k * 5, 12 - k * 2, 2, C.darkGray); }
-  // Him, sitting on it: legs, the belt, the torso, the arm up with the handset
-  R(ctx, 84, 110, 40, 10, C.pants); R(ctx, 84, 120, 10, 16, C.pants); R(ctx, 114, 120, 10, 16, C.pants);
-  R(ctx, 82, 134, 14, 4, C.ink); R(ctx, 112, 134, 14, 4, C.ink);
-  R(ctx, 86, 104, 36, 6, C.belt); R(ctx, 100, 104, 8, 6, C.buckle);
-  shaded(ctx, 'gr-torso', 84, 72, 40, 34, RAMP.mSkin, box(-0.4, -0.5, 0.15, 1, 0.4));
-  // (pecs: flat slabs, the crease down between them, the shadow under them)
-  R(ctx, 88, 76, 16, 2, RAMP.mSkin[6]); R(ctx, 105, 76, 13, 2, RAMP.mSkin[5]);
-  R(ctx, 104, 76, 1, 12, RAMP.mSkin[3]); R(ctx, 89, 87, 15, 2, RAMP.mSkin[3]); R(ctx, 105, 87, 13, 2, RAMP.mSkin[2]);
-  shaded(ctx, 'gr-farm', 72, 74, 14, 26, RAMP.mSkin, box(-0.6, -0.3, 0.15, 1, 0.3)); // the far arm, on his knee
-  shaded(ctx, 'gr-narm', 122, 64, 12, 14, RAMP.mSkin, ball(-0.5, -0.5, 0.15)); shaded(ctx, 'gr-narm2', 124, 50, 10, 16, RAMP.mSkin, box(-0.5, -0.3, 0.15, 1, 0.3)); // the near arm, up
-  // Head
-  shaded(ctx, 'gr-head', 92, 44, 26, 28, RAMP.mSkin, box(-0.5, -0.45, 0.16, 1, 0.5));
-  shaded(ctx, 'gr-hair', 90, 38, 30, 8, RAMP.mHair, box(-0.4, -0.8, 0.1, 0.8, 1));
-  R(ctx, 96, 52, 8, 3, C.mHair); R(ctx, 108, 52, 8, 3, C.mHair);
-  R(ctx, 98, 56, 4, 3, C.ink); R(ctx, 110, 56, 4, 3, C.ink);
-  if (meatheadTalking && t % 10 < 5) R(ctx, 100, 64, 10, 4, '#500000'); else R(ctx, 100, 65, 10, 2, C.darkRed);
-  // The handset at his ear
-  R(ctx, 118, 46, 8, 20, C.ink); R(ctx, 116, 44, 6, 6, C.darkGray); R(ctx, 116, 62, 6, 6, C.darkGray);
+  for (let k = 0; k < 3; k++) { ell(ctx, 40, 132 - k * 5, 14 - k * 2, 3, C.ink); ell(ctx, 40, 131 - k * 5, 12 - k * 2, 2, C.darkGray); R(ctx, 30 + k * 2, 130 - k * 5, 6, 1, '#5c5c5c'); }
+  garageFig(ctx, 0, 0);
+  fieldRadio(ctx, t, 170, 70, 0.8, talking);
+  // The coiled cord over from the radio to the handset
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(172, 84); for (let i = 0; i < 16; i++) ctx.lineTo(166 - i * 3, 84 - i * 0.6 + (i % 2) * 3); ctx.lineTo(122, 68); ctx.stroke();
+  // (his mouth, when he's talking)
+  if (meatheadTalking && t % 10 < 5) { R(ctx, 100, 64, 9, 4, '#3a0606'); R(ctx, 101, 64, 7, 1, '#f4ecdc'); R(ctx, 102, 67, 5, 1, '#c84858'); }
   // (a little static off the handset while the voice is on)
   if (talking) for (let i = 0; i < 4; i++) if (hash(t * 3 + i) > 0.5) R(ctx, 128 + i * 4, 40 + hash(t + i) * 12, 2, 1, C.white);
 };

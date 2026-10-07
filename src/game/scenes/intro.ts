@@ -4,7 +4,8 @@
 // corridor, and the briefing room: a projector, a screen, a man with a pointer, and the
 // back of Meathead's head.
 
-import { ART_W, ART_H, C, R, ell, hash } from './ending';
+import { ART_W, ART_H, C, R, ell, hash, figure, over, rimLight, mhStandingFig, FIG_INK, DENIM, BELT, BOOT } from './ending';
+import { agentFig, agentTalk, agentBlur, pencilFig, pencilBlur, DOOR_RIM } from './suits';
 import { shatPants, shatFront, shatCloseUp } from './shatLook';
 import { shaded, layer, ball, box, bands, RAMP } from './art/snes';
 
@@ -75,50 +76,145 @@ const tubeLight = (ctx: Ctx, t: number, x: number) => {
   if (on) for (let k = 0; k < 4; k++) { const sp = 1 - k * 0.22; ctx.fillStyle = 'rgba(252, 252, 220, 0.035)'; ctx.beginPath(); ctx.moveTo(x + 20 - 20 * sp, 5); ctx.lineTo(x + 20 + 20 * sp, 5); ctx.lineTo(x + 20 + 60 * sp, 144); ctx.lineTo(x + 20 - 60 * sp, 144); ctx.fill(); }
 };
 
-/** Meathead flat on the bench, pushing: side on, the bar's plate going up and down (or racked). */
+/** The bench, painted once: the pad (red vinyl, stitched, his sweat on it), its frame and feet, the rack's upright and its hook, a towel over the end. */
+const benchFig = figure('gym-bench', ART_W, ART_H, 0, 0, q => {
+  const St = RAMP.steel, Rd = RAMP.red, I = FIG_INK;
+  // The rack's upright and its hook
+  q.form(g => { g.rect(76, 72, 3, 34); }, { ramp: St, bevel: 1.2, amb: 0.2, ink: I });
+  q.form(g => { g.moveTo(71, 69); g.lineTo(80, 69); g.lineTo(80, 73); g.lineTo(74, 73); g.lineTo(74, 71); g.lineTo(71, 71); g.closePath(); }, { ramp: St, bevel: 1, amb: 0.2, ink: I });
+  // The legs and their feet
+  for (const x of [66, 140]) {
+    q.form(g => { g.rect(x, 114, 4, 20); }, { ramp: St, bevel: 1.5, amb: 0.2, ink: I });
+    q.form(g => { g.roundRect(x - 5, 133, 14, 3, 1); }, { ramp: St, bevel: 1, amb: 0.2, ink: I });
+  }
+  q.form(g => { g.rect(60, 112, 90, 3); }, { ramp: St, bevel: 1, amb: 0.15, ink: I });
+  // The pad: red vinyl, rounded over, the stitching along its side, a crack in it
+  q.form(g => { g.roundRect(59, 104, 92, 9, 3); }, { ramp: Rd, bevel: 3, amb: 0.18, ink: I, spec: '#fcb8a0', wet: 0.35 });
+  for (let x = 63; x < 148; x += 3) q.px(x, 110, Rd[1]);
+  q.line(112, 106, 116, 107, Rd[1]);
+  // (his sweat on the pad)
+  q.line(96, 112, 105, 112, '#9cdcfc'); q.px(98, 112, '#e8f8ff');
+  // The towel, over the end
+  q.form(g => { g.moveTo(133, 103); g.lineTo(148, 103); g.lineTo(149, 117); g.lineTo(145, 116); g.lineTo(141, 118); g.lineTo(136, 116); g.lineTo(133, 117); g.closePath(); }, { ramp: ['#7c7c74', '#a4a49a', '#c8c8bc', '#e4e4d8', '#f8f8ee'], bevel: 2.5, amb: 0.25, ink: I });
+  q.line(138, 105, 139, 115, '#a4a49a'); q.line(144, 104, 145, 114, '#a4a49a');
+});
+
+/**
+ * Meathead on his back on the bench, side on, his head at the rack end (painted once, each way): the boots planted, the
+ * jeans, the belt; the torso, the pec puffed up over it, the abs along the top; the delt; the neck, the head: flat on
+ * the bench, the flat-top toward the rack, his face up, the eye screwed shut, the teeth gritted, a vein in his temple;
+ * or (`look`) the bar racked, his head up off the bench looking at the door, his arm down along his side.
+ */
+const bencherFig = (look: boolean) => figure(`gym-bencher-${look ? 1 : 0}`, ART_W, ART_H, 0, 0, q => {
+  const S = RAMP.mSkin, I = FIG_INK;
+  // The far leg (a step behind), then the near: the thigh up off the end, the knee, the shin down to the boot
+  for (const far of [1, 0]) {
+    const dx = far ? -3 : 0, amb = far ? 0.06 : 0.16, gain = far ? 0.8 : 1;
+    q.form(g => { g.moveTo(122, 95); g.lineTo(148 + dx, 94); g.bezierCurveTo(154 + dx, 93.5, 157 + dx, 96, 157 + dx, 100); g.lineTo(156 + dx, 104); g.lineTo(122, 106); g.closePath(); },
+      { ramp: DENIM, bevel: 3.5, amb, gain, ink: I, inkIn: DENIM[0] });
+    q.form(g => { g.moveTo(149 + dx, 99); g.lineTo(157 + dx, 99); g.lineTo(157.5 + dx, 129); g.lineTo(150.5 + dx, 129); g.closePath(); }, { ramp: DENIM, bevel: 3, amb, gain, ink: I, inkIn: DENIM[0] });
+    if (!far) { q.line(130, 96, 148, 95, DENIM[5]); q.line(151, 102, 151, 127, DENIM[2]); q.line(150, 126, 157, 126, DENIM[1]); q.line(152, 100, 156, 101, DENIM[1]); }
+    q.form(g => { g.moveTo(148 + dx, 128); g.lineTo(158 + dx, 128); g.lineTo(165 + dx, 132); g.lineTo(165 + dx, 135); g.lineTo(147 + dx, 135); g.closePath(); }, { ramp: BOOT, bevel: 2, amb, gain, ink: I });
+    if (!far) { q.line(149, 129, 158, 129, BOOT[4]); q.px(163, 133, '#94a3b8'); }
+  }
+  // The belt round his waist (the buckle on top)
+  q.form(g => { g.rect(119, 94, 6, 12); }, { ramp: BELT, bevel: 1.5, amb: 0.3, ink: I });
+  q.form(g => { g.rect(118.5, 91.5, 7, 4); }, { ramp: RAMP.gold, bevel: 1.5, ink: '#5c3c00', spec: '#fffff0', wet: 0.6 });
+  // The torso: the lats down on the pad, the pec puffed up over the chest, the abs along to the belt
+  q.form(g => { g.moveTo(80, 106); g.lineTo(80, 95); g.bezierCurveTo(83, 89, 90, 86, 98, 86.5); g.bezierCurveTo(106, 87, 110, 89.5, 111, 92.5); g.lineTo(119, 94); g.lineTo(119, 106); g.closePath(); },
+    { ramp: S, bevel: 6, amb: 0.14, ink: I, inkIn: S[1] });
+  // (the pec's edge, shadowed under; the abs, each lit on top; the serratus; the vein)
+  q.line(99, 92, 110, 93, S[2]); q.line(99, 91, 108, 91, S[3]); q.line(88, 88, 100, 87.5, S[7]);
+  for (const x of [112, 115, 118]) { q.px(x, 95, S[6]); q.px(x + 1, 95, S[6]); q.px(x + 2, 96, S[3]); }
+  q.line(96, 99, 110, 100, S[3]); q.line(97, 98, 108, 98, S[5]);
+  q.line(84, 104, 116, 104, S[2]);
+  q.px(92, 92, '#c96b4b'); q.px(93, 93, '#c96b4b'); q.px(95, 93, '#c96b4b'); q.px(96, 94, '#c96b4b');
+  if (look) {
+    // The arm down along his side, the fist by his hip
+    q.stroke(g => { g.moveTo(88, 97); g.lineTo(101, 100); }, 7, { ramp: S, bevel: 3, amb: 0.2, ink: I, inkIn: S[1] });
+    q.stroke(g => { g.moveTo(101, 100); g.lineTo(111, 101); }, 5.5, { ramp: S, bevel: 2.5, amb: 0.2, ink: I, inkIn: S[1] });
+    q.form(g => { g.rect(110, 98, 3, 6); }, { ramp: BOOT, bevel: 1, amb: 0.3, ink: I });
+    q.form(g => { g.ellipse(116, 101, 3.5, 3.2, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 2, amb: 0.2, ink: I });
+    q.line(91, 95, 99, 97, S[6]);
+  }
+  // The delt, capped round over the shoulder
+  q.form(g => { g.ellipse(88, 96, 6, 5, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 3, amb: 0.2, ink: I, inkIn: S[2] });
+  q.px(86, 93, S[7]); q.px(87, 93, S[7]);
+  if (!look) {
+    // The neck, thick, down to the pad; the head on its back, the flat-top toward the rack, his face up: the brow, the
+    // nose up, the lips skinned back off his teeth, the chin, the jaw
+    q.form(g => { g.rect(78, 95, 7, 11); }, { ramp: S, bevel: 2, amb: 0.15, ink: null });
+    q.form(g => {
+      g.moveTo(63, 106); g.lineTo(63, 93); g.bezierCurveTo(64, 91, 66, 90, 69, 90); g.lineTo(71, 89.5); g.lineTo(72.5, 91); g.lineTo(74, 88.5); g.lineTo(75.5, 85);
+      g.lineTo(77, 85); g.lineTo(77.5, 89.5); g.lineTo(79, 90); g.lineTo(82, 90); g.lineTo(84, 91.5); g.lineTo(85, 96); g.lineTo(84, 106); g.closePath();
+    }, { ramp: S, bevel: 4, amb: 0.2, ink: I, inkIn: S[1] });
+    // (the flat-top: its flat toward the rack, the bristles standing out of it, the light along its top)
+    q.form(g => { g.moveTo(58, 89); g.lineTo(66, 89); g.lineTo(67, 91); g.lineTo(64.5, 92); g.lineTo(64.5, 104); g.lineTo(58, 104); g.closePath(); }, { ramp: RAMP.mHair, bevel: 2, amb: 0.25, ink: I });
+    for (let y = 91; y < 104; y += 2) { q.line(59, y, 62, y, '#2a2a32'); q.px(58, y, '#3a3a44'); }
+    q.line(59, 90, 66, 90, '#5a5a68');
+    // (the eye screwed shut, the creases off it; the brow down over it)
+    q.line(69, 93, 72, 92.5, I); q.px(68, 94, S[2]); q.px(68, 92, S[2]); q.px(73, 94, S[3]);
+    q.line(68, 90.5, 71, 90.5, '#2a1a10');
+    // (the nose lit along its top; the nostril)
+    q.px(75, 86, S[7]); q.px(76, 86, S[7]); q.px(74, 88, S[6]); q.px(77, 88, S[2]);
+    // (the teeth gritted, bared between the lips; the chin; the jaw's line; the stubble)
+    q.line(79, 90, 81, 90, '#f4ecdc'); q.px(80, 90, '#c8bca8'); q.px(78, 90, '#7a1e10'); q.px(82, 90, '#7a1e10');
+    q.line(80, 95, 83, 98, S[2]); q.px(83, 92, S[6]);
+    for (const [x, y] of [[80, 93], [82, 94], [81, 96], [78, 93], [83, 95]]) q.px(x, y, '#8c5c30');
+    // (the ear; the vein standing up in his temple)
+    q.form(g => { g.ellipse(70, 99, 2.2, 3, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 1.5, amb: 0.25, ink: null });
+    q.px(70, 99, S[2]); q.px(70, 100, S[2]); q.px(69, 97, S[7]); q.px(71, 102, S[2]);
+    for (const [x, y] of [[66, 92], [66, 93], [67, 94], [67, 95], [66, 96]]) q.px(x, y, '#c0402c');
+  } else {
+    // The head up off the bench, looking at the door: the neck craned up, the flat-top flat on top, his face to the right
+    q.form(g => { g.moveTo(69, 96); g.lineTo(79, 95); g.lineTo(87, 100); g.lineTo(86, 106); g.lineTo(72, 106); g.closePath(); }, { ramp: S, bevel: 3, amb: 0.15, ink: I, inkIn: S[1] });
+    q.form(g => {
+      g.moveTo(61, 85); g.lineTo(77, 85); g.lineTo(78, 88); g.lineTo(80.5, 91); g.lineTo(78.5, 92); g.lineTo(78.5, 95);
+      g.lineTo(77.5, 97.5); g.lineTo(70, 99); g.lineTo(62, 96); g.closePath();
+    }, { ramp: S, bevel: 4, amb: 0.2, ink: I, inkIn: S[1] });
+    q.form(g => { g.rect(60, 80, 18, 6); }, { ramp: RAMP.mHair, bevel: 2, amb: 0.25, ink: I });
+    for (let x = 61; x < 77; x++) { q.px(x, 81, x < 69 ? '#5a5a68' : '#44444e'); if ((x & 1) === 0) q.line(x, 82, x, 84, '#2a2a32'); }
+    q.form(g => { g.ellipse(66, 91, 2.2, 3, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 1.5, amb: 0.2, ink: I });
+    q.px(66, 91, S[2]);
+    // (the brow, the eye wide, looking at the door; the nose; the mouth hanging open; the stubble)
+    q.line(72, 87, 77, 87, I); q.px(74, 89, '#f4ece0'); q.px(75, 89, '#f4ece0'); q.px(76, 89, I); q.px(76, 90, I);
+    q.px(79, 90, S[6]); q.px(78, 91, S[3]);
+    q.line(76, 94, 78, 94, '#3a0606'); q.px(77, 93, '#f4ecdc');
+    for (const [x, y] of [[70, 96], [72, 97], [74, 96], [76, 96], [69, 94]]) q.px(x, y, '#8c5c30');
+  }
+});
+
+/** His near arm up to the bar (`len` from the shoulder to his grip): the bicep and the tricep, the forearm, its vein, the wristband. Anchored at the shoulder. */
+const pressArm = (len: number) => figure(`gym-press-${len}`, 24, 48, 12, 44, q => {
+  const S = RAMP.mSkin, I = FIG_INK, mid = -Math.round(len * 0.5);
+  q.stroke(g => { g.moveTo(1, mid); g.lineTo(1, -len); }, 7, { ramp: S, bevel: 2.5, amb: 0.2, ink: I, inkIn: S[1] });
+  q.stroke(g => { g.moveTo(0, 0); g.lineTo(1, mid); }, 9.5, { ramp: S, bevel: 3.5, amb: 0.2, ink: I, inkIn: S[1], gain: 1.05 });
+  q.line(-1, -2, 0, mid + 2, S[7]); q.line(3, -2, 3, mid + 1, S[2]);
+  for (let y = mid - 2; y > -len + 3; y -= 2) q.px(-1 + ((y & 2) ? 1 : 0), y, '#c96b4b');
+  q.form(g => { g.rect(-2, -len + 1, 6, 3); }, { ramp: BOOT, bevel: 1, amb: 0.3, ink: I });
+});
+
+/** A plate (side on, its face to us), painted once: the rim, the recess, the hub, the bar's collar clamped on it. */
+const plateFig = figure('gym-plate', 38, 38, 19, 19, q => {
+  const P = ['#050507', '#0e0e12', '#18181e', '#26262e', '#363642', '#4c4c5c'], I = FIG_INK;
+  q.form(g => { g.arc(0, 0, 16.5, 0, Math.PI * 2); }, { ramp: P, bevel: 4, amb: 0.15, ink: I });
+  q.form(g => { g.arc(0, 0, 11.5, 0, Math.PI * 2); }, { ramp: P, bevel: 3, amb: 0.2, ink: P[0], light: [0.45, 0.6, 0.66] });
+  q.line(-7, -13, 4, -14, P[5]); q.px(-9, -12, P[4]);
+  for (const [x, y] of [[-6, -6], [5, 6], [6, -5], [-5, 6]]) q.px(x, y, P[3]);
+  q.form(g => { g.arc(0, 0, 4.5, 0, Math.PI * 2); }, { ramp: RAMP.steel, bevel: 2, amb: 0.2, ink: I, spec: '#ffffff', wet: 0.8 });
+  q.px(0, 0, '#0c0c0e');
+});
+
+/** Meathead flat on the bench, pushing: side on, the bar's plate going up and down (or racked, and him looking up). */
 const bencher = (ctx: Ctx, t: number, racked: boolean) => {
-  // The bench and its uprights; a towel over the end of it; the sweat he's left on it
-  R(ctx, 60, 106, 90, 7, G.bench); R(ctx, 60, 106, 90, 1, '#a82810'); R(ctx, 60, 113, 90, 2, G.benchDark);
-  for (let k = 0; k < 8; k++) R(ctx, 64 + k * 11, 109, 1, 3, G.benchDark); // (the stitching)
-  R(ctx, 66, 115, 4, 20, C.gray); R(ctx, 140, 115, 4, 20, C.gray); R(ctx, 66, 115, 1, 20, C.lightGray); R(ctx, 140, 115, 1, 20, C.lightGray);
-  R(ctx, 76, 70, 3, 36, C.gray); R(ctx, 76, 70, 1, 36, C.lightGray); R(ctx, 72, 70, 8, 3, C.gray);
-  R(ctx, 134, 104, 14, 12, '#dcdcd0'); R(ctx, 134, 110, 14, 1, '#b4b4a8'); R(ctx, 146, 104, 2, 14, '#b4b4a8');
-  R(ctx, 96, 113, 10, 1, '#9cdcfc');
-  // Him: legs off the end, feet planted; torso along the bench; head at the rack end
-  R(ctx, 130, 96, 26, 10, C.pants); R(ctx, 132, 99, 22, 1, '#162c6a'); R(ctx, 150, 104, 8, 26, C.pants); R(ctx, 148, 130, 14, 5, C.ink); R(ctx, 148, 130, 14, 1, '#3c3c3c');
-  R(ctx, 124, 96, 10, 10, C.belt); R(ctx, 126, 99, 4, 4, C.buckle);
-  // Chest, puffed: the pec's edge, the abs down to the belt, a vein
-  R(ctx, 82, 92, 44, 14, C.mSkin); R(ctx, 82, 92, 44, 3, C.mSkinLight); R(ctx, 96, 90, 14, 4, C.mSkin);
-  R(ctx, 96, 90, 14, 1, C.mSkinLight); R(ctx, 108, 94, 1, 8, C.mSkinShade);
-  for (let k = 0; k < 3; k++) R(ctx, 112 + k * 4, 96, 1, 6, C.mSkinShade);
-  R(ctx, 82, 103, 44, 3, C.mSkinShade);
-  // The head, straining: the flat-top, the eye screwed shut, the teeth gritted, the vein up
-  R(ctx, 64, 92, 18, 14, C.mSkin); R(ctx, 62, 88, 20, 5, C.mHair); for (let k = 0; k < 6; k++) R(ctx, 63 + k * 3, 87, 1, 2, '#2a2a2a');
-  R(ctx, 70, 96, 5, 1, C.ink); R(ctx, 71, 97, 3, 1, C.ink);
-  R(ctx, 69, 101, 8, 3, C.white); R(ctx, 69, 102, 8, 1, C.mSkinShade); R(ctx, 72, 101, 1, 3, C.mSkinShade);
-  R(ctx, 64, 90, 3, 5, C.vein); R(ctx, 78, 94, 3, 8, C.mSkinShade);
-  // The press: arms from the shoulders up to the bar
+  benchFig(ctx, 0, 0);
+  bencherFig(racked)(ctx, 0, 0);
   const lift = racked ? 1 : (Math.sin(t * 0.09) + 1) / 2;
   const barY = Math.round(58 + (1 - lift) * 20);
-  if (racked) {
-    // (bar up on its hooks, his arms down by his sides)
-    R(ctx, 70, 64, 20, 6, C.gray);
-    R(ctx, 90, 100, 22, 6, C.mSkinShade);
-  } else {
-    const armTop = barY + 4, armH = 92 - barY - 4;
-    R(ctx, 85, armTop, 11, armH, C.mSkin); R(ctx, 92, armTop, 4, armH, C.mSkinShade); R(ctx, 85, armTop, 2, armH, C.mSkinLight);
-    // (the elbow's bend, the forearm's vein, the wristband at the bar)
-    R(ctx, 85, armTop + Math.round(armH / 2), 11, 1, C.mSkinShade);
-    R(ctx, 88, armTop + 3, 1, Math.max(0, Math.round(armH / 2) - 4), C.vein);
-    R(ctx, 84, armTop, 13, 3, C.ink);
-  }
-  // The plates (side on: their faces), stacked thick, the collar clamped on the bar's end
-  const bx = racked ? 76 : 90;
-  const by = racked ? 64 : barY;
-  ell(ctx, bx + 2, by, 16, 16, '#0c0c0c');
-  ell(ctx, bx, by, 16, 16, G.plate); ell(ctx, bx, by, 14, 14, G.plateRim); ell(ctx, bx, by, 12, 12, G.plate); ell(ctx, bx, by, 9, 9, '#262626');
-  R(ctx, bx - 5, by - 11, 10, 1, '#4c4c4c');
-  ell(ctx, bx, by, 4, 4, C.gray); ell(ctx, bx, by, 3, 3, C.lightGray); R(ctx, bx - 1, by - 1, 2, 2, C.white);
+  if (!racked) pressArm(Math.max(4, 95 - (barY + 3)))(ctx, 89, 95);
+  // The plate (side on: its face), on the bar's end; racked on its hook, or up over his chest
+  const bx = racked ? 76 : 90, by = racked ? 64 : barY;
+  plateFig(ctx, bx, by);
   // (sweat flying off him at the top of every rep, and a puff of chalk off his hands)
   if (!racked && lift > 0.9) {
     for (let i = 0; i < 3; i++) R(ctx, 70 + i * 14 + hash(t + i) * 6, 80 - hash(t * 3 + i) * 8, 2, 2, '#9cdcfc');
@@ -126,29 +222,11 @@ const bencher = (ctx: Ctx, t: number, racked: boolean) => {
   }
 };
 
-/** An agent, standing (feet at baseY): black suit, black shades, an earpiece, hair like a helmet. */
-const agentStanding = (ctx: Ctx, cx: number, baseY: number, t: number, step = 0) => {
+/** An agent, standing (feet at baseY), walking (`step`) or planted; `back`: a light behind him. */
+const agentStanding = (ctx: Ctx, cx: number, baseY: number, t: number, step = 0, back: string | null = null) => {
   const bob = step ? Math.round(Math.abs(Math.sin(t * 0.2 + step)) * 2) : 0;
-  const y = baseY - bob;
-  // Legs (walking or planted)
   const swing = step ? Math.round(Math.sin(t * 0.2 + step) * 4) : 0;
-  R(ctx, cx - 7 + swing, y - 26, 6, 24, G.suit); R(ctx, cx + 1 - swing, y - 26, 6, 24, G.suit);
-  R(ctx, cx - 8 + swing, y - 3, 8, 3, C.black); R(ctx, cx - swing, y - 3, 8, 3, C.black);
-  // Jacket, shirt, tie
-  R(ctx, cx - 11, y - 54, 22, 30, G.suit); R(ctx, cx - 11, y - 54, 2, 30, G.suitLit);
-  R(ctx, cx - 3, y - 54, 6, 10, G.shirt); R(ctx, cx - 1, y - 52, 2, 14, C.black);
-  R(ctx, cx - 14, y - 52, 4, 24, G.suit); R(ctx, cx + 10, y - 52, 4, 24, G.suit);
-  R(ctx, cx - 14, y - 28, 4, 4, G.skin); R(ctx, cx + 10, y - 28, 4, 4, G.skin);
-  // The neck: wider than his head, the traps sloping up into it, the collar straining round it
-  R(ctx, cx - 8, y - 61, 16, 8, G.skinShade); R(ctx, cx - 6, y - 61, 10, 7, G.skin);
-  R(ctx, cx - 13, y - 56, 5, 2, G.suit); R(ctx, cx + 8, y - 56, 5, 2, G.suit); R(ctx, cx - 10, y - 57, 3, 3, G.suit); R(ctx, cx + 7, y - 57, 3, 3, G.suit);
-  R(ctx, cx - 5, y - 55, 10, 1, G.shirt);
-  // Head
-  R(ctx, cx - 6, y - 70, 12, 12, G.skin); R(ctx, cx + 3, y - 70, 3, 12, G.skinShade);
-  R(ctx, cx - 7, y - 73, 14, 5, C.ink);
-  R(ctx, cx - 6, y - 66, 12, 3, G.shades); R(ctx, cx - 5, y - 66, 2, 1, G.glint);
-  R(ctx, cx + 6, y - 64, 1, 6, C.lightGray); // the earpiece's coil
-  R(ctx, cx - 2, y - 60, 5, 1, G.skinShade);
+  agentFig(swing, back)(ctx, cx, baseY - bob);
 };
 
 /** Chest day, 5 a.m.: Meathead benching alone under a flickering tube light. */
@@ -169,10 +247,8 @@ export const drawDoorway = (ctx: Ctx, t: number) => {
   ctx.beginPath(); ctx.moveTo(214, 112); ctx.lineTo(252, 112); ctx.lineTo(252 - 90 * open, 144); ctx.lineTo(214 - 140 * open, 144); ctx.fill();
   R(ctx, 214, 30, Math.round(38 * (1 - open)) + 3, 82, G.door);
   // The two of them, dark against the light
-  if (t > 16) { agentStanding(ctx, 226, 114, t); agentStanding(ctx, 242, 116, t); }
+  if (t > 16) { agentStanding(ctx, 226, 114, t, 0, DOOR_RIM); agentStanding(ctx, 242, 116, t, 0, DOOR_RIM); }
   bencher(ctx, t, true);
-  // (his head up off the bench, looking)
-  R(ctx, 64, 84, 18, 12, C.mSkin); R(ctx, 62, 80, 20, 5, C.mHair); R(ctx, 74, 88, 3, 2, C.ink);
 };
 
 /** Where the agent's neck starts (under his ears, at the line of his jaw) and how far it's spread by his collar. */
@@ -240,10 +316,7 @@ const drawAgentShoulders = (ctx: Ctx) => {
 export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 'briefing' = 'gym') => {
   if (where === 'gym') { gymBg(ctx); ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0, 0, ART_W, ART_H); } else briefingBg(ctx, t, -1);
   // The other one, behind him, out of focus
-  R(ctx, 190, 50, 50, 94, G.suitLit);
-  // (his neck too, out from under his jaw and spreading down into his collar)
-  for (let y = 44; y < 54; y++) { const w = 15 + Math.round(((y - 44) / 10) ** 2 * 9); R(ctx, 215 - w, y, w * 2, 1, '#7c6450'); R(ctx, 215 - w, y, 2, 1, '#6c5440'); R(ctx, 213 + w, y, 2, 1, '#5c4834'); }
-  R(ctx, 200, 22, 30, 30, '#8c7460'); R(ctx, 198, 18, 34, 8, C.ink); R(ctx, 202, 32, 26, 6, G.shades);
+  agentBlur(ctx, 215, 18);
   // The neck: out from under his jaw just below the ears and spreading as it goes down, wider than his head by the
   // time it's at his collar; the light from up on the left, the jaw's shadow across the top of it
   drawAgentNeck(ctx);
@@ -302,6 +375,30 @@ export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 
   if (shatPants()) shatCloseUp(ctx, 120, 56);
 };
 
+/**
+ * Meathead bounding along after them like a dog (his standing figure, painted over): the arms bent up in front of his
+ * chest, the fists flopped over at the wrists like paws; the mouth hanging open (the tongue goes in over it, flapping).
+ */
+const escortFig = over('mh-escort', 60, 76, 30, 72, (g, x, y) => mhStandingFig(false, false, false)(g, x, y), q => {
+  const S = RAMP.mSkin, I = FIG_INK;
+  for (const s of [-1, 1]) {
+    const amb = s < 0 ? 0.2 : 0.08;
+    // The upper arm off the delt, down to the elbow, out a bit (too big to hang in)
+    q.form(g => { g.moveTo(s * 12, -51); g.bezierCurveTo(s * 19, -51, s * 21, -46, s * 20, -40); g.lineTo(s * 15, -38); g.lineTo(s * 13, -44); g.closePath(); }, { ramp: S, bevel: 3.5, amb, ink: I, inkIn: S[1] });
+    q.line(s * 14, -43, s * 19, -42, S[2]); q.px(s * 17, -48, S[s < 0 ? 6 : 4]);
+    // The forearm, up from the elbow in front of him to the wrist by his pec; the wristband; the fist flopped over, a paw
+    q.stroke(g => { g.moveTo(s * 18, -40); g.lineTo(s * 12, -48); }, 5.5, { ramp: S, bevel: 2.5, amb: amb + 0.08, ink: I, inkIn: S[2] });
+    q.line(s * 17, -42, s * 13, -47, S[s < 0 ? 6 : 5]);
+    q.line(s * 10, -48, s * 13, -50, BOOT[3]); q.line(s * 11, -48, s * 14, -50, BOOT[2]);
+    q.form(g => { g.ellipse(s * 10.5, -45, 3, 3.2, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 2, amb: amb + 0.08, ink: I, inkIn: S[1] });
+    q.line(s * 9, -43, s * 12, -43, S[2]); q.px(s * 10, -47, S[7]); q.px(s * 9, -44, S[3]);
+  }
+  // The mouth, hanging open: the dark of it, the top teeth
+  q.rect(-2, -54, 5, 2, '#3a0606'); q.line(-2, -54, 2, -54, '#f4ecdc');
+  // (the eyes up, wide: happy)
+  q.px(-4, -59, '#f4ece0'); q.px(3, -59, '#f4ece0');
+});
+
 /** Out of the gym and down a government corridor: two suits walking, Meathead bounding round them like a dog. */
 export const drawEscort = (ctx: Ctx, t: number) => {
   bands(ctx, 0, 0, ART_W, 114, ['#4c5450', '#5c6460', '#687070', '#707874', '#6c7470', '#646c68', '#5c645f']);
@@ -336,27 +433,18 @@ export const drawEscort = (ctx: Ctx, t: number) => {
   const hop = Math.abs(Math.sin(t * 0.25)) * 12;
   const cx = 96 + Math.round(Math.sin(t * 0.05) * 16);
   const y = 118 - Math.round(hop);
-  R(ctx, cx - 8, y - 24, 7, 20, C.pants); R(ctx, cx + 1, y - 22, 7, 18, C.pants);
-  R(ctx, cx - 3, y - 24, 2, 20, '#2a3a6a'); R(ctx, cx + 6, y - 22, 2, 18, '#2a3a6a');
-  R(ctx, cx - 10, y - 4, 9, 4, C.ink); R(ctx, cx + 1, y - 4, 9, 4, C.ink);
-  R(ctx, cx - 10, y - 28, 20, 4, C.belt); R(ctx, cx - 2, y - 28, 4, 4, C.buckle);
-  // (lit from the ceiling lights, up and to the left: the right side of him in shade, the pecs and the shoulders catching it)
-  R(ctx, cx - 10, y - 42, 20, 14, C.mSkin); R(ctx, cx - 14, y - 50, 28, 9, C.mSkin);
-  R(ctx, cx + 5, y - 42, 5, 14, C.mSkinShade); R(ctx, cx + 8, y - 50, 6, 9, C.mSkinShade);
-  R(ctx, cx - 12, y - 50, 8, 2, C.mSkinLight); R(ctx, cx - 8, y - 40, 6, 1, C.mSkinLight);
-  R(ctx, cx - 1, y - 40, 2, 8, C.mSkinShade);
-  // (arms up by his chest, like paws)
-  R(ctx, cx - 18, y - 48, 6, 10, C.mSkin); R(ctx, cx + 12, y - 48, 6, 10, C.mSkin);
-  R(ctx, cx + 16, y - 48, 2, 10, C.mSkinShade);
-  R(ctx, cx - 16, y - 40, 5, 4, C.mSkinShade); R(ctx, cx + 11, y - 40, 5, 4, C.mSkinShade);
-  R(ctx, cx - 6, y - 62, 12, 12, C.mSkin); R(ctx, cx + 3, y - 62, 3, 12, C.mSkinShade); R(ctx, cx - 5, y - 61, 3, 1, C.mSkinLight);
-  R(ctx, cx - 7, y - 66, 14, 5, C.mHair); R(ctx, cx - 6, y - 65, 6, 1, '#4a4a4a');
-  R(ctx, cx - 4, y - 59, 3, 3, C.ink); R(ctx, cx + 2, y - 59, 3, 3, C.ink);
-  R(ctx, cx - 3, y - 54, 6, 2, '#500000'); R(ctx, cx - 1, y - 52, 3, 4 + (t % 12 < 6 ? 1 : 0), '#e05060');
+  escortFig(ctx, cx, y);
+  // (the tongue, out over his chin, flapping)
+  const tl = 4 + (t % 12 < 6 ? 1 : 0);
+  R(ctx, cx - 1, y - 52, 3, tl, '#d84860'); R(ctx, cx - 1, y - 52, 1, tl - 1, '#f08ca0'); R(ctx, cx + 1, y - 52, 1, tl, '#a02838'); R(ctx, cx, y - 52 + tl, 1, 1, '#a02838');
   // (little hearts going up off him)
   for (let i = 0; i < 2; i++) {
     const a = (t + i * 30) % 60;
-    if (a < 40) { const hx = cx + 10 + i * 6, hy = y - 70 - a / 2; R(ctx, hx, hy, 2, 2, C.red); R(ctx, hx + 3, hy, 2, 2, C.red); R(ctx, hx, hy + 2, 5, 2, C.red); R(ctx, hx + 1, hy + 4, 3, 1, C.red); }
+    if (a < 40) {
+      const hx = cx + 10 + i * 6, hy = y - 70 - a / 2;
+      R(ctx, hx, hy, 2, 2, C.red); R(ctx, hx + 3, hy, 2, 2, C.red); R(ctx, hx, hy + 2, 5, 2, C.red); R(ctx, hx + 1, hy + 4, 3, 1, C.red); R(ctx, hx + 2, hy + 5, 1, 1, C.red);
+      R(ctx, hx, hy, 1, 1, '#fc7c5c'); R(ctx, hx + 4, hy + 2, 1, 2, C.darkRed); R(ctx, hx + 3, hy + 4, 1, 1, C.darkRed);
+    }
   }
   if (shatPants()) shatFront(ctx, cx, y);
 };
@@ -520,6 +608,36 @@ export const drawSlide = (ctx: Ctx, t: number, slide: Slide, stamp = 'ASSHOLE') 
   }
 };
 
+/**
+ * The back of Meathead's head in the dark of the briefing room, painted once: the traps like hills, the neck, the
+ * flat-top, the ears; the screen's light along the top of every edge of him (the bristles, the ears' rims, the tops of
+ * his traps). The table at the side: a file stamped TOP SECRET, a mug of coffee going cold.
+ */
+const briefingBackFig = figure('brief-back', ART_W, ART_H, 0, 0, q => {
+  const D = ['#000000', '#020202', '#050504', '#090907', '#0e0e0b'], I = '#000000';
+  q.form(g => { g.moveTo(-4, 146); g.lineTo(6, 138); g.bezierCurveTo(40, 124, 80, 119, 99, 113); g.lineTo(101, 100); g.lineTo(155, 100); g.lineTo(157, 113); g.bezierCurveTo(176, 119, 216, 124, 250, 138); g.lineTo(260, 146); g.closePath(); }, { ramp: D, bevel: 14, amb: 0.1, ink: I });
+  for (const s of [-1, 1]) q.form(g => { g.ellipse(128 + s * 33, 102, 3.5, 7, 0, 0, Math.PI * 2); }, { ramp: D, bevel: 2, amb: 0.1, ink: I, inkIn: null });
+  q.form(g => { g.roundRect(97, 84, 62, 26, 6); }, { ramp: D, bevel: 8, amb: 0.1, ink: I, inkIn: null });
+  q.form(g => { g.rect(95, 81, 66, 9); }, { ramp: D, bevel: 2, amb: 0.2, ink: I, inkIn: null });
+  // (the screen's light along the top of him: the bristles of the flat-top, the ears, the traps)
+  for (let x = 0; x < ART_W; x++) for (let y = 60; y < ART_H; y++) if (q.painted(x, y)) {
+    const top = y < 84;
+    q.px(x, y, top ? (x % 3 ? '#4c4c3c' : '#6c6c58') : '#34342a');
+    if (top && x % 3 === 0) q.px(x, y - 1, '#3c3c30');
+    break;
+  }
+  rimLight(q, 0, ART_W - 1, 82, 143, '#2c2c24', '#4c4c3c', 120);
+  // The table, its edge catching the light; the file; the mug, the coffee in it
+  q.form(g => { g.rect(-4, 128, 66, 20); }, { ramp: ['#0c0804', '#140c06', '#1c140c', '#2c2014', '#3c2c1c'], bevel: 3, amb: 0.2, ink: I });
+  q.line(-4, 128, 61, 128, '#4c3a24');
+  q.form(g => { g.rect(8, 123, 28, 7); }, { ramp: ['#6c5430', '#8c7040', '#b89a5c', '#d8ba7c'], bevel: 2, amb: 0.3, ink: I });
+  q.rect(12, 125, 20, 2, C.darkRed); q.line(14, 125, 29, 125, '#b02010');
+  q.form(g => { g.roundRect(53, 120, 4, 6, 2); }, { ramp: ['#8c8c84', '#b4b4a8', '#dcdcd0'], bevel: 1, amb: 0.3, ink: I });
+  q.rect(54, 122, 2, 2, '#1c140c');
+  q.form(g => { g.rect(44, 118, 10, 10); }, { ramp: ['#8c8c84', '#b4b4a8', '#dcdcd0', '#f4f4ec'], bevel: 2.5, amb: 0.3, ink: I });
+  q.line(45, 119, 52, 119, '#3c2010'); q.px(46, 119, '#5c3418');
+});
+
 /** The briefing, from the back: an agent at the screen with a pointer, and the back of Meathead's head in the foreground. */
 export const drawBriefing = (ctx: Ctx, t: number, talking: boolean, slide: Slide) => {
   briefingBg(ctx, t, slide);
@@ -529,21 +647,9 @@ export const drawBriefing = (ctx: Ctx, t: number, talking: boolean, slide: Slide
   ctx.strokeStyle = C.lightGray; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(206, 90); ctx.lineTo(slide === 'four' || slide === 'four2' || slide === 'drop' ? 180 : 110 + tap, 52 + tap); ctx.stroke();
   // (his mouth, when he's talking)
-  if (talking && t % 10 < 5) R(ctx, 215, 72, 3, 1, '#400000');
-  // The back of Meathead's head and his shoulders, lit round the edge by the screen
-  ell(ctx, 128, 160, 90, 36, C.black);
-  R(ctx, 100, 90, 56, 48, C.black);
-  R(ctx, 96, 84, 64, 10, C.black);
-  R(ctx, 96, 84, 64, 1, '#3c3c30'); R(ctx, 96, 84, 1, 20, '#3c3c30'); R(ctx, 159, 84, 1, 20, '#3c3c30');
-  R(ctx, 92, 104, 6, 14, C.black); R(ctx, 158, 104, 6, 14, C.black);
-  // (the flat-top's bristles against the light, the rims of his ears, the tops of his traps)
-  for (let x = 97; x < 159; x += 3) R(ctx, x, 82 + (x % 2), 1, 2, '#5c5c48');
-  R(ctx, 92, 104, 1, 14, '#4c4c3c'); R(ctx, 163, 104, 1, 14, '#4c4c3c'); R(ctx, 92, 104, 6, 1, '#4c4c3c'); R(ctx, 158, 104, 6, 1, '#4c4c3c');
-  for (let k = 0; k < 20; k++) { R(ctx, 58 - k * 2, 126 + Math.floor(k * 0.6), 2, 1, '#3c3c30'); R(ctx, 196 + k * 2, 126 + Math.floor(k * 0.6), 2, 1, '#3c3c30'); }
-  // The table in front of him: a file stamped TOP SECRET, a mug of coffee going cold, steam off it
-  R(ctx, 0, 128, 62, 16, '#1c140c'); R(ctx, 0, 128, 62, 1, '#3c2c1c');
-  R(ctx, 8, 124, 28, 7, '#b89a5c'); R(ctx, 8, 124, 28, 1, '#d8ba7c'); R(ctx, 12, 126, 20, 2, C.darkRed);
-  R(ctx, 44, 118, 9, 10, '#dcdcd0'); R(ctx, 53, 120, 3, 5, '#dcdcd0'); R(ctx, 45, 119, 7, 2, '#3c2010');
+  if (talking && t % 10 < 5) agentTalk(ctx, 216, 128);
+  // The back of Meathead's head and his shoulders, lit round the edge by the screen; the table in front of him
+  briefingBackFig(ctx, 0, 0);
   for (let k = 0; k < 3; k++) { const st = (t * 0.4 + k * 6) % 18; R(ctx, 46 + k * 2 + Math.round(Math.sin(st * 0.5 + k) * 1), 116 - st, 1, 2, `rgba(220, 220, 210, ${0.35 * (1 - st / 18)})`); }
 };
 
@@ -553,24 +659,11 @@ export const drawBriefing = (ctx: Ctx, t: number, talking: boolean, slide: Slide
 
 const PN = { suit: '#1c1c22', suitLit: '#34343e', suitDark: '#0c0c10', skin: '#ecc8a4', skinShade: '#c4987c', skinDeep: '#9c7458', hair: '#4c3418', hairLit: '#7c5c34', lanyard: '#c81c1c' };
 
-/** A pencil neck standing (feet at baseY): a suit two sizes too big, a neck like a broom handle, shades too big for him. */
+/** A pencil neck standing (feet at baseY), the light from the doorway behind him round his edges; the shakes, the sweat. */
 const pencilStanding = (ctx: Ctx, cx: number, baseY: number, t: number, k: number) => {
   const sh = Math.round(Math.sin(t * 1.3 + k * 2) * 0.6);
   const x = cx + sh, y = baseY;
-  // Legs (sticks), the shoes too big too
-  R(ctx, x - 4, y - 24, 3, 22, PN.suit); R(ctx, x + 1, y - 24, 3, 22, PN.suit);
-  R(ctx, x - 6, y - 3, 6, 3, C.black); R(ctx, x + 1, y - 3, 6, 3, C.black);
-  // The jacket: the shoulders out past his (the pads), the cuffs down over his hands
-  R(ctx, x - 9, y - 46, 18, 24, PN.suit); R(ctx, x - 9, y - 46, 1, 24, PN.suitLit);
-  R(ctx, x - 11, y - 46, 22, 3, PN.suit); R(ctx, x - 11, y - 46, 22, 1, PN.suitLit);
-  R(ctx, x - 12, y - 44, 3, 20, PN.suit); R(ctx, x + 9, y - 44, 3, 20, PN.suit);
-  R(ctx, x - 2, y - 45, 4, 6, '#e8e8e8'); R(ctx, x, y - 44, 1, 8, '#1c2c6c');
-  R(ctx, x - 4, y - 40, 1, 7, PN.lanyard); R(ctx, x - 5, y - 33, 3, 4, C.white);
-  // The neck, long; the head on top of it, small; the hair flat; the shades
-  R(ctx, x - 1, y - 56, 3, 11, PN.skin); R(ctx, x + 1, y - 51, 1, 2, PN.skinShade);
-  R(ctx, x - 4, y - 66, 8, 10, PN.skin); R(ctx, x + 2, y - 66, 2, 10, PN.skinShade);
-  R(ctx, x - 5, y - 68, 10, 3, PN.hair); R(ctx, x - 3, y - 70, 1, 2, PN.hair);
-  R(ctx, x - 4, y - 62, 9, 3, C.black); R(ctx, x - 3, y - 62, 2, 1, '#5c5c6c');
+  pencilFig(k, DOOR_RIM)(ctx, x, y);
   // (sweat)
   if ((t + k * 13) % 40 < 20) R(ctx, x - 5, y - 64 + ((t + k * 13) % 40) / 4, 1, 2, '#9cdcfc');
 };
@@ -591,7 +684,6 @@ export const drawDoorwayPencils = (ctx: Ctx, t: number) => {
     pencilStanding(ctx, 216 - shove, 117, t, 0);
   }
   bencher(ctx, t, true);
-  R(ctx, 64, 84, 18, 12, C.mSkin); R(ctx, 62, 80, 20, 5, C.mHair); R(ctx, 74, 88, 3, 2, C.ink);
 };
 
 /**
@@ -603,9 +695,7 @@ export const drawDoorwayPencils = (ctx: Ctx, t: number) => {
 export const drawPencilNeck = (ctx: Ctx, t: number, talking: boolean, scared = false) => {
   gymBg(ctx); ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, ART_W, ART_H);
   // The others behind him, out of focus: thin, the shoulders of their jackets out past them
-  for (const [ox, oy] of [[28, 40], [206, 34], [232, 48]] as const) {
-    R(ctx, ox - 16, oy + 40, 32, 104, '#26262e'); R(ctx, ox - 3, oy + 20, 6, 22, '#8c7460'); R(ctx, ox - 9, oy, 18, 22, '#8c7460'); R(ctx, ox - 10, oy - 2, 20, 6, '#2c2418'); R(ctx, ox - 8, oy + 8, 16, 5, '#0c0c10');
-  }
+  for (const [ox, oy] of [[28, 40], [206, 34], [232, 48]] as const) pencilBlur(ctx, ox, oy);
   ctx.save();
   // (the shakes)
   ctx.translate(Math.round(Math.sin(t * 1.9) * (scared ? 1.4 : 0.7)), 0);

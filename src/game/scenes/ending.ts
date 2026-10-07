@@ -4,7 +4,7 @@
 // cutscenes do.
 
 import { shaded, ball, box, bands, RAMP } from './art/snes';
-import { painting, bayer, Painter, FormOpts } from './art/raster';
+import { painting, bayer, noise, hash2, Painter, FormOpts } from './art/raster';
 import { shatPants, shatFront, shatSide, shatCloseUp, shatClock, flies, stink } from './shatLook';
 
 export const ART_W = 256;
@@ -75,6 +75,25 @@ export const local = (p: Painter, ox: number, oy: number): Local => ({
 export const figure = (key: string, w: number, h: number, ox: number, oy: number, paint: (q: Local) => void) => {
   // (painted the first time it's put down, not before: there's no canvas to paint on until then)
   return (ctx: Ctx, x: number, y: number) => ctx.drawImage(painting(key, w, h, p => paint(local(p, ox, oy))), Math.round(x) - ox, Math.round(y) - oy);
+};
+
+/**
+ * Like `figure`, but painted over another figure (`base`, put down with its anchor on this one's): for a pose made of
+ * a figure plus more of him, or a figure with a light caught round its edges.
+ */
+export const over = (key: string, w: number, h: number, ox: number, oy: number, base: (g: Ctx, x: number, y: number) => void, paint: (q: Local) => void) =>
+  (ctx: Ctx, x: number, y: number) => ctx.drawImage(painting(key, w, h, p => paint(local(p, ox, oy)), g => base(g, ox, oy)), Math.round(x) - ox, Math.round(y) - oy);
+
+/**
+ * A light from behind: the pixel just inside the ink, down each side of whatever's painted, rows y0..y1 (`hot` down to
+ * row `hotTo`, `dim` from row `dimFrom`).
+ */
+export const rimLight = (q: Local, x0: number, x1: number, y0: number, y1: number, col: string, hot: string, hotTo: number, dimFrom = Infinity, dim = col) => {
+  for (let y = y0; y <= y1; y++) {
+    const c = y <= hotTo ? hot : y >= dimFrom ? dim : col;
+    for (let x = x0; x <= x1; x++) if (q.painted(x, y)) { if (q.painted(x + 1, y) && q.painted(x + 2, y)) q.px(x + 1, y, c); break; }
+    for (let x = x1; x >= x0; x--) if (q.painted(x, y)) { if (q.painted(x - 1, y) && q.painted(x - 2, y)) q.px(x - 1, y, c); break; }
+  }
 };
 
 /** The ink round the figures (a warm black). */
@@ -602,81 +621,99 @@ export const drawTrumpCloseUp = (ctx: Ctx, t: number, talking: boolean, mood: 'p
 
 /** The real President, after however long tied up in a closet (see drawTrumpCloseUp). */
 const trumpRough = (ctx: Ctx, t: number, open: boolean, mood: 'proud' | 'huh') => {
-  const T = RAMP.tSkin, Hh = RAMP.tHair;
-  // The tie yanked loose and hanging askew, the top button gone, the shirt grubby
-  for (let i = 0; i < 12; i++) R(ctx, 112 + i, 116 + i, 32 - i * 2, 1, C.white);
-  R(ctx, 122, 116, 12, 7, '#e8e0cc');
-  R(ctx, 132, 118, 12, 6, C.red); R(ctx, 132, 118, 12, 1, RAMP.red[4]);
-  for (let k = 0; k < 20; k++) R(ctx, 136 + Math.floor(k / 3), 124 + k, 9, 1, k % 7 === 0 ? RAMP.red[2] : C.red);
-  R(ctx, 140, 130, 3, 2, '#b4200c'); R(ctx, 118, 132, 2, 2, '#c8a050');
-  // The tape's ghost round his mouth: a pale rectangle where the tan came off with it, raw pink along its edges
-  const tx = 108, ty = 92, tw = 40, th = 17;
-  R(ctx, tx, ty, tw, th, 'rgba(253, 208, 160, 0.55)');
-  for (let x = tx; x < tx + tw; x++) { if (x % 3) R(ctx, x, ty, 1, 1, '#e86a6a'); if ((x + 1) % 3) R(ctx, x, ty + th - 1, 1, 1, '#e86a6a'); }
-  for (let y = ty; y < ty + th; y++) { if (y % 2) R(ctx, tx, y, 1, 1, '#e86a6a'); if ((y + 1) % 2) R(ctx, tx + tw - 1, y, 1, 1, '#e86a6a'); }
-  // (a strip of the tape still stuck on at one corner, curling up)
-  R(ctx, tx + tw - 7, ty - 1, 8, 4, '#a8a8a0'); R(ctx, tx + tw - 7, ty - 1, 8, 1, '#d4d4cc'); R(ctx, tx + tw, ty - 3, 2, 3, '#8c8c84');
+  const sw = Math.round(Math.sin(t * 0.15) * 1.5);
+  ctx.drawImage(roughStill(sw), 0, 0);
   // The mouth again over it (the tape took some of it with it) and ketchup in the corner
   if (mood === 'huh') ell(ctx, 128, 101, 4, 4, '#500000');
   else if (open) { ell(ctx, 128, 100, 9, 5, '#500000'); R(ctx, 121, 96, 14, 2, C.white); }
   else { ell(ctx, 128, 100, 7, 3, '#b02c20'); R(ctx, 122, 100, 12, 1, '#500000'); }
-  R(ctx, 136, 101, 3, 2, '#c81e0c'); R(ctx, 137, 103, 1, 2, '#c81e0c');
-  // Stubble, grey and orange, over the jowls and chin and up the cheeks (not on the tape's ghost)
-  for (let i = 0; i < 260; i++) {
-    const x = 94 + Math.floor(hash(i * 1.31) * 68), y = 84 + Math.floor(hash(i * 2.17) * 32);
-    if (x >= tx && x < tx + tw && y >= ty && y < ty + th) continue;
-    if (Math.abs(x - 128) > 34 - (y - 84) * 0.25) continue;
-    R(ctx, x, y, 1, 1, i % 3 ? '#9c5a30' : '#c8b8a8');
-  }
-  // The bags under his eyes gone dark; red in the whites
-  R(ctx, 104, 77, 14, 2, T[1]); R(ctx, 138, 77, 14, 2, T[1]);
-  R(ctx, 105, 70, 2, 1, '#e05050'); R(ctx, 149, 70, 2, 1, '#e05050');
-  // The swoop come down: strands of it hanging over his brow, one long one off the side down past his ear to his jaw,
-  // swinging a little
-  const sw = Math.round(Math.sin(t * 0.15) * 1.5);
-  for (let i = 0; i < 7; i++) {
-    const sx = 100 + i * 9, len = 8 + Math.floor(hash(i * 3.7) * 10);
-    for (let k = 0; k < len; k++) R(ctx, sx + Math.floor(k / 4) + (k > len - 4 ? sw : 0), 54 + k, 2, 1, k % 5 === 0 ? Hh[5] : i % 2 ? Hh[2] : Hh[3]);
-  }
-  for (let k = 0; k < 52; k++) {
-    const x = 168 + Math.round(Math.sin(k * 0.12) * 3) + (k > 30 ? sw : 0);
-    R(ctx, x, 42 + k, 4, 1, k % 6 === 0 ? Hh[5] : Hh[3]); R(ctx, x + 3, 42 + k, 1, 1, Hh[1]);
-  }
-  R(ctx, 168 + sw, 94, 5, 2, Hh[2]);
+  R(ctx, 136, 101, 3, 2, '#c81e0c'); R(ctx, 137, 103, 1, 2, '#c81e0c'); R(ctx, 136, 101, 1, 1, '#f05a3c');
   // (a bead of sweat at his temple, running)
   const d = (t * 0.6) % 30;
   R(ctx, 98, 58 + d, 2, 3, 'rgba(255,255,255,0.6)'); R(ctx, 98, 58 + d, 1, 1, C.white);
 };
 
 /**
+ * What the closet did to him, painted once (each way the loose hair's swinging), over the close-up: the collar open,
+ * the top button gone, the shirt grubby, the tie yanked loose and hanging askew (a stain on it); the tape's ghost round
+ * his mouth, a pale patch where the tan came off with it, raw pink round its edges, a strip of the tape still stuck on at
+ * one corner, curling up; stubble, grey and orange, over the jowls and up the cheeks (not on the tape's ghost); the bags
+ * under his eyes gone dark, red in the whites; the swoop come down, strands of it over his brow, one long one off the
+ * side down past his ear to his jaw.
+ */
+const roughStill = (sw: number) => painting(`tr-rough-${sw}`, ART_W, ART_H, p => {
+  const T = RAMP.tSkin, Hh = RAMP.tHair, SH = RAMP.shirt, I = MD_INK;
+  // The collar open: the shirt in the V, grubby; the collar points splayed
+  p.form(g => { g.moveTo(110, 113); g.lineTo(146, 113); g.lineTo(138, 146); g.lineTo(118, 146); g.closePath(); }, { ramp: SH, bevel: 5, amb: 0.25, ink: I });
+  p.form(g => { g.moveTo(118, 113); g.lineTo(138, 113); g.lineTo(128, 124); g.closePath(); }, { ramp: T, bevel: 4, amb: 0.15, ink: null });
+  for (const s of [-1, 1]) p.form(g => { g.moveTo(128 + s * 10, 112); g.lineTo(128 + s * 19, 114); g.lineTo(128 + s * 15, 124); g.closePath(); }, { ramp: SH, bevel: 2, amb: 0.3, ink: I });
+  p.disc(121, 127, 2, 1.5, '#c8a050', 0.8); p.px(125, 129, '#b08840');
+  // The tie, yanked loose: the knot down off to the side, the rest hanging askew
+  p.form(g => { g.moveTo(131, 117); g.lineTo(143, 118); g.lineTo(142, 124); g.lineTo(133, 124); g.closePath(); }, { ramp: RAMP.red, bevel: 2.5, amb: 0.2, ink: I });
+  p.form(g => { g.moveTo(134, 123); g.lineTo(142, 123); g.bezierCurveTo(146, 130, 148, 138, 150, 146); g.lineTo(140, 146); g.bezierCurveTo(139, 138, 137, 130, 134, 123); g.closePath(); }, { ramp: RAMP.red, bevel: 3, amb: 0.2, ink: I });
+  p.line(137, 125, 143, 144, RAMP.red[4]); p.disc(142, 131, 1.5, 1, '#5a1004');
+  // The tape's ghost: the tan come off with it (a pale patch, dithered off at its edges), raw pink round it
+  const tx = 108, ty = 92, tw = 40, th = 17;
+  p.form(g => { g.roundRect(tx, ty, tw, th, 4); }, { ramp: ['#e89a6c', '#f4b488', '#fcc8a0', '#fde0c4'], bevel: 5, amb: 0.3, ink: null, alpha: 0.75 });
+  for (let x = tx - 1; x <= tx + tw; x++) for (let y = ty - 1; y <= ty + th; y++) {
+    const ex = Math.min(x - tx + 1, tx + tw - x), ey = Math.min(y - ty + 1, ty + th - y), e = Math.min(ex, ey);
+    if (e <= 1 && bayer(x, y) > -0.3) p.px(x, y, '#e2686a', 0.75);
+    else if (e === 2 && bayer(x, y) > 0.25) p.px(x, y, '#f08c80', 0.5);
+  }
+  // (a strip of the tape still stuck on at one corner, curling up)
+  p.form(g => { g.moveTo(tx + tw - 8, ty - 1); g.lineTo(tx + tw + 1, ty - 1); g.lineTo(tx + tw + 3, ty - 5); g.lineTo(tx + tw + 1, ty + 3); g.lineTo(tx + tw - 8, ty + 3); g.closePath(); },
+    { ramp: ['#5a5a62', '#7a7a84', '#a8a8b0', '#c8c8d0', '#e8e8f0'], bevel: 1.5, amb: 0.3, ink: I, spec: '#ffffff', wet: 0.5 });
+  // Stubble, grey and orange, over the jowls and chin and up the cheeks (not on the tape's ghost): thicker low down
+  for (let y = 82; y < 117; y++) for (let x = 92; x < 165; x++) {
+    if (x >= tx - 1 && x <= tx + tw && y >= ty - 1 && y <= ty + th) continue;
+    if (Math.abs(x - 128) > 35 - (y - 84) * 0.28) continue;
+    const dense = 0.04 + (y - 82) / 35 * 0.14 + noise(x, y, 5, 3) * 0.08;
+    if (hash2(x * 1.3, y * 2.1) < dense) p.px(x, y, hash2(x, y * 3) < 0.3 ? '#c8b8a8' : '#a4582c', 0.7);
+  }
+  // The bags under his eyes gone dark; red in the whites
+  for (const cx of [111, 145]) { p.disc(cx, 78, 7, 1.6, T[1], 0.7); p.line(cx - 5, 80, cx + 4, 80, T[2], 0.6); }
+  p.line(105, 70, 106, 70, '#e05050'); p.line(149, 70, 150, 70, '#e05050');
+  // The swoop come down: strands of it over his brow, lacquered, each catching the light
+  for (let i = 0; i < 7; i++) {
+    const sx = 100 + i * 9, len = 8 + Math.floor(hash(i * 3.7) * 10), dx = Math.floor(len / 4) + sw;
+    p.form(p.strokeMask(g => { g.moveTo(sx, 53); g.quadraticCurveTo(sx + 1, 53 + len * 0.6, sx + dx, 53 + len); }, 2), { ramp: Hh, bevel: 1, amb: 0.35, ink: Hh[1], spec: '#fffef0', wet: 0.4 });
+  }
+  // (and the long one off the side, down past his ear to his jaw)
+  p.form(p.strokeMask(g => { g.moveTo(166, 42); g.bezierCurveTo(172, 56, 166 + sw, 76, 170 + sw, 94); }, 4), { ramp: Hh, bevel: 2, amb: 0.25, ink: Hh[0], spec: '#fffef0', wet: 0.4 });
+  p.line(168, 46, 170 + sw, 88, Hh[5]);
+});
+
+/**
  * His little hands up from the bottom of the frame, chopping the air in time with it: the pinch, thumb and forefinger
- * touching in a little ring, the other three fingers fanned up behind. Small. Very small.
+ * touching in a little ring, the other three fingers fanned up behind. Small. Very small. Painted once a side.
  */
 const trumpHands = (ctx: Ctx, t: number, talking: boolean) => {
-  const T = RAMP.tSkin;
-  for (const side of [-1, 1]) {
+  for (const side of [-1, 1] as const) {
     const bob = talking ? Math.round(Math.sin(t * 0.35 + (side > 0 ? 1.2 : 0)) * 4) : 0;
-    const hx = 128 + side * 70, hy = 98 + bob;
-    // The sleeve up out of the bottom of the frame, the shirt cuff, the cufflink
-    shaded(ctx, `tr-sleeve${side}`, hx - 9, hy + 14, 18, 40, RAMP.navy, box(-0.5, -0.4, 0.15, 1, 0.3));
-    R(ctx, hx - 7, hy + 11, 14, 4, C.white); R(ctx, hx - 7, hy + 14, 14, 1, C.lightGray); R(ctx, hx + side * 4 - 1, hy + 12, 2, 2, C.gold);
-    // The palm, the back of it to us
-    shaded(ctx, `tr-palm${side}`, hx - 6, hy + 1, 12, 11, T, ball(-0.4, -0.6, 0.18));
-    // Three fingers fanned up behind (the far side), each a little sausage with a lit edge and a nail
-    for (let f = 0; f < 3; f++) {
-      const fx = hx - side * 5 + side * f * 3 - 1, fy = hy - 5 + Math.abs(f - 1);
-      R(ctx, fx, fy, 3, 7, T[3]); R(ctx, fx, fy, 1, 7, T[5]); R(ctx, fx, fy + 3, 3, 1, T[2]); R(ctx, fx + 1, fy, 1, 1, '#fcd8c0');
-    }
-    // The forefinger and the thumb, curled into each other: the ring of the pinch, the air through the middle of it
-    const rx = hx + side * 5, ry = hy - 2;
-    R(ctx, rx - 2, ry - 3, 5, 2, T[4]); R(ctx, rx - 3, ry - 1, 2, 4, T[3]); R(ctx, rx + 2, ry - 1, 2, 4, T[2]); R(ctx, rx - 2, ry + 3, 5, 2, T[3]);
-    R(ctx, rx - 2, ry - 3, 5, 1, T[5]);
-    R(ctx, rx + side * 2, ry + 1, 1, 1, T[1]);
-    // (the knuckles)
-    for (let k = 0; k < 3; k++) R(ctx, hx - 4 + k * 3, hy + 3, 2, 1, T[2]);
+    trumpHandFig(side)(ctx, 128 + side * 70, 98 + bob);
   }
 };
-
+const trumpHandFig = (side: -1 | 1) => figure(`tr-hand-${side}`, 30, 64, 15, 12, q => {
+  const T = RAMP.tSkin, I = MD_INK, amb = side < 0 ? 0.2 : 0.1;
+  // The sleeve up out of the bottom of the frame, the shirt cuff, the cufflink
+  q.form(g => { g.moveTo(-9, 52); g.lineTo(-8, 15); g.lineTo(8, 15); g.lineTo(9, 52); g.closePath(); }, { ramp: RAMP.navy, bevel: 4, amb: 0.15, ink: I });
+  q.line(-6, 18, -6, 50, RAMP.navy[5]);
+  q.form(g => { g.roundRect(-7.5, 10.5, 15, 5, 1); }, { ramp: RAMP.shirt, bevel: 1.5, amb: 0.3, ink: I });
+  q.form(g => { g.rect(side * 4 - 1, 12, 2.5, 2.5); }, { ramp: RAMP.gold, bevel: 1, ink: null, spec: '#fffff0', wet: 0.8 });
+  // Three fingers fanned up behind (the far side), each a little sausage with a nail
+  for (let f = 0; f < 3; f++) {
+    const fx = -side * 5 + side * f * 3, fy = -5 + Math.abs(f - 1);
+    q.form(g => { g.roundRect(fx - 1.5, fy, 3.2, 8, 1.5); }, { ramp: T, bevel: 1.5, amb, ink: I, inkIn: T[1] });
+    q.px(fx, fy + 1, '#fcd8c0');
+  }
+  // The palm, the back of it to us, the knuckles
+  q.form(g => { g.roundRect(-6, 1, 12, 11, 4); }, { ramp: T, bevel: 3.5, amb, ink: I, inkIn: T[1] });
+  for (let k = 0; k < 3; k++) q.line(-4 + k * 3, 3, -3 + k * 3, 3, T[2]);
+  // The forefinger and the thumb, curled into each other: the ring of the pinch, the air through the middle of it
+  const rx = side * 5, ry = -2;
+  q.form(g => { g.arc(rx, ry, 3.6, 0, Math.PI * 2); g.moveTo(rx + 1.2, ry); g.arc(rx, ry, 1.2, 0, Math.PI * 2, true); }, { ramp: T, bevel: 1.5, amb, ink: I });
+  q.px(rx + side * 2, ry + 1, T[1]);
+});
 
 /**
  * Medium two-shot: the President (the imposter, though nobody knows it yet) hanging the medal round Meathead's neck.

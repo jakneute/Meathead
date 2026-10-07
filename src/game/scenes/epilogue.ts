@@ -5,30 +5,15 @@
 //
 // Pixel art on the ending's 256 x 144 canvas (ending.ts), stepped ramps, banded skies; the static parts painted once.
 
-import { ART_W, ART_H, C, R, ell, hash, podium, reporters, meatheadPunched, trumpFlying, figure, local, type Local, mhStandingFig, FIG_INK, BOOT } from './ending';
-import { shaded, ball, box, bands, layer, RAMP } from './art/snes';
-import { painting } from './art/raster';
+import { ART_W, ART_H, C, R, ell, hash, podium, reporters, meatheadPunched, trumpFlying, figure, over, rimLight, mhStandingFig, FIG_INK, BOOT } from './ending';
+import { shaded, bands, layer, RAMP } from './art/snes';
+import { SUIT } from './suits';
 import { shatPants, shatFront } from './shatLook';
 
 type Ctx = CanvasRenderingContext2D;
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
-/**
- * Like the ending's `figure`, but painted over another figure (`base`, put down with its anchor on this one's): for
- * a pose made of a figure plus more of him, or a figure with the firelight caught round its edges.
- */
-const over = (key: string, w: number, h: number, ox: number, oy: number, base: (g: Ctx, x: number, y: number) => void, paint: (q: Local) => void) =>
-  (ctx: Ctx, x: number, y: number) => ctx.drawImage(painting(key, w, h, p => paint(local(p, ox, oy)), g => base(g, ox, oy)), Math.round(x) - ox, Math.round(y) - oy);
-
-/** The fire's light from behind: the pixel just inside the ink, down each side of whatever's painted, rows y0..y1. */
-const rimLight = (q: Local, x0: number, x1: number, y0: number, y1: number, col: string, hot: string, hotTo: number, dimFrom = Infinity) => {
-  for (let y = y0; y <= y1; y++) {
-    const c = y <= hotTo ? hot : y >= dimFrom ? FIRE_DIM : col;
-    for (let x = x0; x <= x1; x++) if (q.painted(x, y)) { if (q.painted(x + 1, y) && q.painted(x + 2, y)) q.px(x + 1, y, c); break; }
-    for (let x = x1; x >= x0; x--) if (q.painted(x, y)) { if (q.painted(x - 1, y) && q.painted(x - 2, y)) q.px(x - 1, y, c); break; }
-  }
-};
 const FIRE_RIM = '#f87c00', FIRE_HOT = '#fcb820', FIRE_DIM = '#a8400c';
 
 /**
@@ -98,80 +83,171 @@ const closetSet = (ctx: Ctx) => layer(ctx, 'ep-closet', ART_W, ART_H, g => {
   g.beginPath(); g.moveTo(40, 112); g.lineTo(40, 126); g.lineTo(220, ART_H); g.lineTo(130, 112); g.closePath(); g.fill();
 });
 
-/** The agents in the doorway: black suits against the hall light, flashlights up. */
-const agentsInDoor = (ctx: Ctx, t: number) => {
-  for (const [x, h] of [[12, 0], [30, 2]] as const) {
-    const S = RAMP.aSuit;
-    R(ctx, x - 9, 54 + h, 18, 70, S[1]); R(ctx, x - 9, 54 + h, 2, 70, S[3]);
-    R(ctx, x - 5, 40 + h, 10, 14, '#0c0806'); R(ctx, x - 5, 44 + h, 10, 2, '#000'); // (sunglasses)
-    R(ctx, x - 6, 38 + h, 12, 4, '#0c0806');
-    R(ctx, x - 1, 56 + h, 2, 10, C.white);
-    // (the flashlight, out ahead)
-    R(ctx, x + 8, 66 + h, 10, 4, S[2]); R(ctx, x + 18, 65 + h, 3, 6, '#c8c8c8');
+/**
+ * An agent in the closet's doorway, the hall light behind him (painted once): the black suit near black from the
+ * front, the light round every edge of him (the hair, the shoulders, down the legs); the shades; the arm out with the
+ * flashlight, its lens lit.
+ */
+const doorAgent = figure('closet-agent', 50, 96, 24, 92, q => {
+  const S = SUIT, A = ['#24160e', '#301e14', '#3e281a', '#4c3222'], I = FIG_INK, HALL = '#f8f0c8', HALL_D = '#c8bc94';
+  // The legs, the shoes
+  for (const s of [-1, 1]) {
+    const x0 = s < 0 ? -8.5 : 0.5;
+    q.form(g => { g.moveTo(x0, -31); g.lineTo(x0 + 8, -31); g.lineTo(x0 + 7.5, -3); g.lineTo(x0 + 0.5, -3); g.closePath(); }, { ramp: S, bevel: 3, amb: 0.05, gain: 0.55, ink: I, inkIn: S[0] });
+    q.form(g => { g.moveTo(x0 - 0.5, -3.5); g.lineTo(x0 + 8, -3.5); g.lineTo(x0 + 9, -1); g.lineTo(x0 + 9, 0); g.lineTo(x0 - 1, 0); g.closePath(); }, { ramp: BOOT, bevel: 1.5, amb: 0.1, ink: I });
   }
+  // The far arm, hanging; the near one, out ahead of him with the flashlight
+  q.form(g => { g.moveTo(-11, -64); g.bezierCurveTo(-16, -64, -17, -58, -16.5, -50); g.lineTo(-16, -33); g.lineTo(-11.5, -33); g.lineTo(-11, -52); g.closePath(); }, { ramp: S, bevel: 3, amb: 0.05, gain: 0.55, ink: I, inkIn: S[0] });
+  q.form(g => { g.ellipse(-13.8, -30.5, 2.6, 2.8, 0, 0, Math.PI * 2); }, { ramp: A, bevel: 2, amb: 0.35, ink: I });
+  // The jacket: the shoulders like a door
+  q.form(g => { g.moveTo(-6, -70); g.lineTo(6, -70); g.lineTo(13, -67); g.bezierCurveTo(15, -64, 13.5, -58, 12, -54); g.lineTo(11, -28); g.lineTo(-11, -28); g.lineTo(-12, -54); g.bezierCurveTo(-13.5, -58, -15, -64, -13, -67); g.closePath(); },
+    { ramp: S, bevel: 6, amb: 0.05, gain: 0.55, ink: I, inkIn: S[0] });
+  q.form(g => { g.moveTo(-4.5, -69); g.lineTo(4.5, -69); g.lineTo(0.5, -53); g.lineTo(-0.5, -53); g.closePath(); }, { ramp: RAMP.shirt, bevel: 2, amb: 0.2, gain: 0.45, ink: null });
+  q.form(g => { g.moveTo(-1.2, -67); g.lineTo(1.2, -67); g.lineTo(1.5, -54); g.lineTo(0, -52); g.lineTo(-1.5, -54); g.closePath(); }, { ramp: S, bevel: 1, amb: 0.2, ink: null });
+  q.form(g => { g.moveTo(8, -67); g.bezierCurveTo(13, -67, 15, -63, 15, -59); g.lineTo(13, -53.5); g.lineTo(8.5, -55); g.lineTo(8, -62); g.closePath(); }, { ramp: S, bevel: 2.5, amb: 0.05, gain: 0.6, ink: I, inkIn: S[0] });
+  q.form(g => { g.ellipse(14, -56, 2.8, 3, 0, 0, Math.PI * 2); }, { ramp: A, bevel: 2, amb: 0.35, ink: I });
+  // The flashlight: its barrel, the lens lit
+  q.form(g => { g.roundRect(9, -58, 12, 4, 1); }, { ramp: ['#202026', '#3a3a44', '#5c5c68', '#8a8a96'], bevel: 1.5, amb: 0.3, ink: I });
+  q.form(g => { g.rect(20, -59.5, 3, 7); }, { ramp: ['#5c5c68', '#8a8a96', '#c8c8d0'], bevel: 1, amb: 0.3, ink: I });
+  q.line(22, -58, 22, -54, '#fffbe0'); q.px(22, -56, '#ffffff');
+  // The neck, the head, the hair, the shades
+  q.form(g => { g.moveTo(-7.5, -76); g.lineTo(7.5, -76); g.lineTo(9, -69); g.lineTo(-9, -69); g.closePath(); }, { ramp: A, bevel: 3, amb: 0.35, ink: I, inkIn: null });
+  q.form(g => { g.moveTo(-7, -88); g.lineTo(7, -88); g.lineTo(7, -77); g.lineTo(5, -74); g.lineTo(-5, -74); g.lineTo(-7, -77); g.closePath(); }, { ramp: A, bevel: 3.5, amb: 0.35, ink: I, inkIn: null });
+  q.line(-2, -76, 1, -76, '#1a0e0a'); q.px(0, -79, A[0]);
+  q.form(g => { g.moveTo(-7.5, -82); g.lineTo(-7.5, -88); g.bezierCurveTo(-7.5, -91, -3, -92, 0, -92); g.bezierCurveTo(4, -92, 8, -91, 8, -88); g.lineTo(8, -83); g.lineTo(6, -86); g.lineTo(-5.5, -86); g.closePath(); }, { ramp: RAMP.mHair, bevel: 2, amb: 0.2, ink: I });
+  q.form(g => { g.rect(-6.5, -83, 13.5, 3.5); }, { ramp: ['#000000', '#06060a', '#10101a', '#20202e'], bevel: 1, amb: 0.3, ink: I });
+  q.line(-5, -82, -2, -82, '#3a3a50');
+  // The hall light round him: hot at the top, down every edge
+  rimLight(q, -24, 25, -92, -1, HALL_D, HALL, -66);
+  for (let x = -8; x <= 8; x++) for (let y = -93; y < -84; y++) if (q.painted(x, y)) { q.px(x, y + 1, HALL); break; }
+});
+
+/** The agents in the doorway, the hall light behind them, flashlights up; the beams. */
+const agentsInDoor = (ctx: Ctx, t: number) => {
+  doorAgent(ctx, 12, 124);
+  doorAgent(ctx, 30, 126);
   // The beams, swinging a little
   const sw = Math.sin(t * 0.05) * 6;
   ctx.fillStyle = 'rgba(255, 250, 220, 0.12)';
-  ctx.beginPath(); ctx.moveTo(48, 68); ctx.lineTo(176 + sw, 50); ctx.lineTo(186 + sw, 112); ctx.closePath(); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(30, 70); ctx.lineTo(150 - sw, 66); ctx.lineTo(160 - sw, 126); ctx.closePath(); ctx.fill();
-};
-
-/** The fast food they've been keeping him on: wrappers, fries boxes, cups, a bucket of chicken. */
-const junkPile = (ctx: Ctx) => {
-  const items: [number, number, number][] = [[96, 132, 0], [112, 138, 1], [180, 134, 2], [196, 128, 3], [86, 124, 2], [204, 138, 0], [120, 126, 4], [170, 140, 1]];
-  for (const [x, y, k] of items) {
-    if (k === 0) { R(ctx, x - 5, y - 2, 10, 4, '#f0d040'); R(ctx, x - 5, y - 2, 10, 1, '#fcf0a0'); R(ctx, x - 2, y - 1, 4, 1, C.red); } // (a burger wrapper, balled)
-    else if (k === 1) { R(ctx, x - 3, y - 7, 6, 7, C.red); R(ctx, x - 3, y - 7, 6, 1, '#f86040'); for (let f = 0; f < 4; f++) R(ctx, x - 2 + f, y - 10 + (f % 2), 1, 3, '#f8d850'); } // (fries)
-    else if (k === 2) { R(ctx, x - 3, y - 9, 6, 9, C.white); R(ctx, x - 3, y - 6, 6, 2, C.red); R(ctx, x, y - 13, 1, 4, '#e8e8e8'); R(ctx, x - 3, y - 9, 6, 1, '#c8c8c8'); } // (a cup, its straw)
-    else if (k === 3) { R(ctx, x - 7, y - 12, 14, 12, C.red); for (let s = 0; s < 3; s++) R(ctx, x - 7 + s * 5, y - 12, 2, 12, C.white); R(ctx, x - 6, y - 15, 12, 3, '#c87830'); R(ctx, x - 3, y - 17, 5, 3, '#a85818'); } // (the bucket)
-    else { R(ctx, x - 6, y - 3, 12, 3, '#e8e0c8'); R(ctx, x - 6, y - 3, 12, 1, '#ffffff'); } // (a napkin)
-  }
+  ctx.beginPath(); ctx.moveTo(51, 68); ctx.lineTo(176 + sw, 50); ctx.lineTo(186 + sw, 112); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(33, 70); ctx.lineTo(150 - sw, 66); ctx.lineTo(160 - sw, 126); ctx.closePath(); ctx.fill();
 };
 
 /**
- * The real President, tied to a folding chair: down to his undershirt (stained, riding up over the belly), boxers
- * with the flag on them, black socks; the rope round him and the chair; duct tape over his mouth; the swoop come
- * undone (a long sheet of it hanging off one side of his head, the scalp pale on top). Struggling.
+ * The fast food they've been keeping him on, painted once: a burger wrapper balled up, fries boxes (the fries spilling),
+ * cups (the lids, the straws), a bucket of chicken (a drumstick on top), napkins; greasy.
  */
+const junkPile = figure('closet-junk', ART_W, ART_H, 0, 0, q => {
+  const I = FIG_INK, Y = ['#7a5a08', '#b48c14', '#e0b830', '#f0d040', '#fcf0a0'], Rd = RAMP.red, W = ['#8c8c84', '#b4b4a8', '#dcdcd0', '#f4f4ec', '#ffffff'];
+  const F = ['#a07018', '#c89028', '#e8b840', '#f8d850', '#fcf0a0'], CH = ['#5a2a08', '#8a4410', '#b8661c', '#d88a30', '#f0b050'];
+  const items: [number, number, number][] = [[96, 132, 0], [112, 138, 1], [180, 134, 2], [196, 128, 3], [86, 124, 2], [204, 138, 0], [120, 126, 4], [170, 140, 1]];
+  for (const [x, y, k] of items) {
+    q.disc(x, y + 1, 7, 1.5, '#1a1a14');
+    if (k === 0) {
+      // (a burger wrapper, balled; the sauce on it)
+      q.form(g => { g.moveTo(x - 5, y + 1); g.lineTo(x - 4, y - 3); g.lineTo(x, y - 4); g.lineTo(x + 5, y - 2); g.lineTo(x + 5, y + 1); g.closePath(); }, { ramp: Y, bevel: 2, amb: 0.25, ink: I });
+      q.line(x - 3, y - 2, x + 1, y - 1, Y[1]); q.px(x - 1, y - 2, Rd[3]); q.px(x, y - 1, Rd[2]);
+    } else if (k === 1) {
+      // (a fries box, on its side, the fries out of it)
+      for (let f = 0; f < 5; f++) q.stroke(g => { g.moveTo(x - 3 + f * 1.5, y - 6); g.lineTo(x - 4 + f * 2, y - 11 + (f % 2)); }, 1.6, { ramp: F, bevel: 1, amb: 0.3, ink: '#6a4a10' });
+      q.form(g => { g.moveTo(x - 4, y - 7); g.lineTo(x + 4, y - 7); g.lineTo(x + 3, y); g.lineTo(x - 3, y); g.closePath(); }, { ramp: Rd, bevel: 2, amb: 0.2, ink: I });
+      q.line(x - 2, y - 4, x + 2, y - 4, Y[3]);
+    } else if (k === 2) {
+      // (a cup, the lid, the straw)
+      q.form(g => { g.moveTo(x - 3.5, y - 9); g.lineTo(x + 3.5, y - 9); g.lineTo(x + 2.5, y); g.lineTo(x - 2.5, y); g.closePath(); }, { ramp: W, bevel: 2, amb: 0.25, ink: I });
+      q.rect(x - 3, y - 6, 6, 2, Rd[3]); q.line(x - 3, y - 6, x - 2, y - 6, Rd[5]);
+      q.form(g => { g.rect(x - 4, y - 10.5, 8, 2); }, { ramp: W, bevel: 1, amb: 0.3, ink: I });
+      q.line(x, y - 14, x + 1, y - 10, '#e8e8e8'); q.px(x, y - 14, Rd[3]);
+    } else if (k === 3) {
+      // (the bucket of chicken: the stripes, a drumstick and a wing on top)
+      q.form(g => { g.moveTo(x - 7.5, y - 12); g.lineTo(x + 7.5, y - 12); g.lineTo(x + 6, y); g.lineTo(x - 6, y); g.closePath(); }, { ramp: Rd, bevel: 3, amb: 0.2, ink: I });
+      for (let k2 = 0; k2 < 3; k2++) q.line(x - 5 + k2 * 5, y - 11, x - 4 + k2 * 4, y - 1, W[3]);
+      q.form(g => { g.ellipse(x - 2, y - 14, 5, 3, -0.3, 0, Math.PI * 2); }, { ramp: CH, bevel: 2.5, amb: 0.25, ink: I, spec: '#fce8a8', wet: 0.4 });
+      q.form(g => { g.ellipse(x + 3, y - 15, 3.5, 2.5, 0.4, 0, Math.PI * 2); }, { ramp: CH, bevel: 2, amb: 0.25, ink: I });
+      q.line(x - 7, y - 17, x - 6, y - 15, W[3]); q.px(x - 7, y - 18, W[4]);
+    } else {
+      // (a napkin, crumpled, a smear on it)
+      q.form(g => { g.moveTo(x - 6, y); g.lineTo(x - 5, y - 3); g.lineTo(x + 1, y - 4); g.lineTo(x + 6, y - 2); g.lineTo(x + 5, y); g.closePath(); }, { ramp: W, bevel: 1.5, amb: 0.3, ink: I });
+      q.line(x - 2, y - 2, x + 2, y - 2, '#c8a060');
+    }
+  }
+});
+
+/**
+ * The real President, tied to a folding chair (painted once, each way his hair's swinging): down to his undershirt
+ * (stained, riding up over the belly, the gut out under it), boxers with the flag on them, black socks pulled up; the
+ * rope round him and the chair, three times; his arms behind; the tape over his mouth; bags, stubble; the swoop come
+ * undone, a long sheet of it hanging off one side of his head, the scalp pale on top.
+ */
+const tiedFig = (sw: number) => figure(`closet-tied-${sw}`, 50, 92, 25, 86, q => {
+  const T = RAMP.tSkin, Hh = RAMP.tHair, I = FIG_INK, St = RAMP.steel, SH = RAMP.shirt;
+  const PALE = ['#a86848', '#d08c64', '#ecac84', '#fcc8a0', '#fde0c4'];
+  // The chair: folding, metal, its back up behind him
+  for (const x of [-12, 12]) q.form(g => { g.rect(x - 1, -31, 2.5, 31); }, { ramp: St, bevel: 1, amb: 0.2, ink: I });
+  q.form(g => { g.rect(-13, -60, 2.5, 30); }, { ramp: St, bevel: 1, amb: 0.2, ink: I });
+  q.form(g => { g.rect(10.5, -60, 2.5, 30); }, { ramp: St, bevel: 1, amb: 0.1, ink: I });
+  q.form(g => { g.roundRect(-12.5, -60, 25, 5, 1); }, { ramp: St, bevel: 1.5, amb: 0.2, ink: I });
+  q.form(g => { g.rect(-14.5, -32, 29, 3); }, { ramp: St, bevel: 1, amb: 0.2, ink: I });
+  // The legs: pale shins, black socks pulled up, black shoes
+  for (const lx of [-10, 3]) {
+    q.form(g => { g.rect(lx, -29, 7, 14); }, { ramp: PALE, bevel: 2.5, amb: 0.2, ink: I });
+    q.form(g => { g.rect(lx, -17, 7, 14); }, { ramp: BOOT, bevel: 2, amb: 0.2, ink: I });
+    q.line(lx + 1, -16, lx + 5, -16, BOOT[4]);
+    q.form(g => { g.roundRect(lx - 1, -4, 9, 4, 1); }, { ramp: BOOT, bevel: 1.5, amb: 0.2, ink: I, spec: '#a8a8b8', wet: 0.6 });
+    for (const y of [-27, -24, -21]) q.px(lx + 2 + (y & 1), y, PALE[1]);
+  }
+  // The boxers: the flag (stripes and the canton), bunched
+  q.form(g => { g.roundRect(-13, -37, 26, 9, 2); }, { ramp: ['#f0f0f0', '#f0f0f0'], bevel: 1, ink: I });
+  for (let y = -36; y < -28; y++) for (let x = -12; x < 12; x++) if ((y & 1) === 0) q.px(x, y, RAMP.red[3]);
+  q.rect(-12, -36, 9, 4, RAMP.navy[3]); q.px(-10, -35, '#fcfcfc'); q.px(-7, -34, '#fcfcfc'); q.px(-5, -35, '#fcfcfc');
+  q.line(-12, -29, 11, -29, RAMP.red[1]); q.line(0, -33, 0, -29, RAMP.red[1]);
+  // His arms behind the chair's back
+  q.form(g => { g.roundRect(-18.5, -61, 4, 19, 2); }, { ramp: T, bevel: 1.5, amb: 0.2, ink: I });
+  q.form(g => { g.roundRect(14.5, -61, 4, 19, 2); }, { ramp: T, bevel: 1.5, amb: 0.06, ink: I });
+  // The undershirt over the belly, riding up; the gut out under it, the navel; the stains
+  q.form(g => { g.moveTo(-14, -57); g.lineTo(14, -57); g.bezierCurveTo(17, -50, 17, -43, 15, -39); g.lineTo(-15, -39); g.bezierCurveTo(-17, -43, -17, -50, -14, -57); g.closePath(); }, { ramp: SH, bevel: 8, amb: 0.12, ink: I });
+  q.form(g => { g.moveTo(-14, -40); g.lineTo(14, -40); g.bezierCurveTo(14, -35, 8, -33, 0, -33); g.bezierCurveTo(-8, -33, -14, -35, -14, -40); g.closePath(); }, { ramp: T, bevel: 4, amb: 0.2, ink: I });
+  q.px(0, -36, T[1]); q.px(0, -37, T[2]);
+  q.line(-6, -49, -3, -48, '#c8a050'); q.px(-5, -50, '#c8a050'); q.px(-4, -47, '#b08840'); q.line(4, -44, 6, -45, '#a83018'); q.px(6, -44, '#c83c20'); q.line(-12, -52, -12, -47, '#c8b070');
+  q.line(-13, -40, 13, -40, SH[0]);
+  // The shoulders, bare, the straps of the undershirt over them
+  q.form(g => { g.moveTo(-17, -55); g.bezierCurveTo(-17, -60, -12, -62, -6, -62); g.lineTo(6, -62); g.bezierCurveTo(12, -62, 17, -60, 17, -55); g.lineTo(14, -54); g.lineTo(-14, -54); g.closePath(); }, { ramp: T, bevel: 3.5, amb: 0.2, ink: I });
+  for (const x of [-8, 5]) q.form(g => { g.rect(x, -62, 3, 7); }, { ramp: SH, bevel: 1, amb: 0.3, ink: null });
+  // The rope: round him and the chair, three times, the twist in it
+  for (const ry of [-54, -47, -40]) {
+    q.stroke(g => { g.moveTo(-17, ry - 1); g.quadraticCurveTo(0, ry + 4, 17, ry - 1); }, 2.4, { ramp: ['#6a4a1c', '#8a6a30', '#b08a48', '#d0aa68', '#e8c888'], bevel: 1, amb: 0.3, ink: I });
+    for (let k = -15; k < 16; k += 3) q.px(k, Math.round(ry - 1 + 2.5 * (1 - (k / 17) ** 2)), '#8a6a30');
+  }
+  // The head: the jowls, stubble, the bags, the tape over the mouth
+  const hy = -76;
+  q.form(g => { g.moveTo(-8, hy + 2); g.bezierCurveTo(-8, hy - 1, 8, hy - 1, 8, hy + 2); g.lineTo(9, hy + 11); g.bezierCurveTo(10, hy + 17, 5, hy + 19, 0, hy + 19); g.bezierCurveTo(-5, hy + 19, -10, hy + 17, -9, hy + 11); g.closePath(); },
+    { ramp: T, bevel: 6, amb: 0.2, ink: I, inkIn: T[1] });
+  for (let i = 0; i < 22; i++) q.px(-7 + Math.floor(hash(i * 1.7) * 14), hy + 11 + Math.floor(hash(i * 2.9) * 7), '#9c5a30');
+  for (const s of [-1, 1]) { q.form(g => { g.ellipse(s * 4, hy + 7, 3.2, 2.2, 0, 0, Math.PI * 2); }, { ramp: PALE.slice(2), bevel: 1.5, amb: 0.4, ink: null }); q.line(s * 4 - 2, hy + 9, s * 4 + 2, hy + 9, T[1]); }
+  q.px(0, hy + 8, T[6]); q.px(0, hy + 9, T[5]); q.px(0, hy + 10, T[2]); q.px(1, hy + 10, T[2]);
+  for (const s of [-1, 1]) q.form(g => { g.ellipse(s * 9, hy + 8, 1.8, 3, 0, 0, Math.PI * 2); }, { ramp: T, bevel: 1.2, amb: 0.2, ink: I });
+  // The tape: grey, shiny, slapped across, a corner curling
+  q.form(g => { g.moveTo(-7, hy + 12); g.lineTo(7, hy + 11.5); g.lineTo(7.5, hy + 16); g.lineTo(-7, hy + 16.5); g.closePath(); }, { ramp: ['#5a5a62', '#7a7a84', '#a8a8b0', '#c8c8d0', '#e8e8f0'], bevel: 1.5, amb: 0.3, ink: I, spec: '#ffffff', wet: 0.5 });
+  q.line(-6, hy + 14, 6, hy + 14, '#8a8a92'); q.px(7, hy + 11, '#d8d8e0'); q.px(8, hy + 10, '#a8a8b0');
+  // The hair: the scalp pale on top, the swoop come undone, a long sheet of it hanging off the side, swinging
+  q.form(g => { g.ellipse(0, hy + 1, 7.5, 2.8, 0, 0, Math.PI * 2); }, { ramp: PALE.slice(1), bevel: 2, amb: 0.3, ink: null });
+  q.px(-2, hy, '#fff4e8'); q.px(-1, hy, '#fff4e8');
+  q.form(g => { g.moveTo(-9, hy + 7); g.bezierCurveTo(-10, hy + 1, -8, hy - 1, -4, hy - 1); g.lineTo(-3, hy + 1); g.bezierCurveTo(-6, hy + 2, -7, hy + 4, -7, hy + 7); g.closePath(); }, { ramp: Hh, bevel: 1.5, amb: 0.25, ink: '#5a3a04' });
+  q.stroke(g => { g.moveTo(6, hy - 1); g.bezierCurveTo(11 + sw * 0.5, hy + 3, 10 + sw, hy + 14, 11 + sw, hy + 24); }, 2.6, { ramp: Hh, bevel: 1.5, amb: 0.25, ink: '#5a3a04', spec: '#fffef0', wet: 0.4 });
+  q.line(8, hy + 1, 10 + sw, hy + 12, Hh[5]);
+  q.line(1, hy - 2, 3, hy - 4, Hh[3]); q.px(4, hy - 4, Hh[2]);
+});
+
+/** He's struggling: rocking the chair, his eyes going from one of them to the other, sweat flying, MMPH. */
 const tiedUp = (ctx: Ctx, cx: number, floor: number, t: number) => {
   const rock = t % 50 < 12 ? (t % 6 < 3 ? -1 : 1) : 0;
-  const x = cx + rock, T = RAMP.tSkin, Hh = RAMP.tHair;
-  // The chair: metal, folding
-  R(ctx, x - 13, floor - 30, 2, 30, '#8a8a92'); R(ctx, x + 11, floor - 30, 2, 30, '#5a5a62');
-  R(ctx, x - 14, floor - 32, 28, 3, '#9a9aa4'); R(ctx, x - 12, floor - 58, 24, 4, '#7a7a84');
-  R(ctx, x - 12, floor - 58, 2, 26, '#8a8a92'); R(ctx, x + 10, floor - 58, 2, 26, '#6a6a72');
-  // Legs: the boxers (flag), pale shins, black socks pulled up
-  R(ctx, x - 12, floor - 36, 24, 8, C.navy); for (let k = 0; k < 4; k++) R(ctx, x - 12, floor - 35 + k * 2, 24, 1, k % 2 ? C.white : C.red);
-  R(ctx, x - 12, floor - 36, 8, 4, C.navyDark); R(ctx, x - 10, floor - 35, 1, 1, C.white); R(ctx, x - 7, floor - 34, 1, 1, C.white);
-  for (const lx of [x - 10, x + 3]) { R(ctx, lx, floor - 28, 7, 14, C.tSkinPale); R(ctx, lx, floor - 28, 2, 14, '#fcdcb8'); R(ctx, lx, floor - 16, 7, 14, C.ink); R(ctx, lx - 1, floor - 3, 9, 3, C.ink); R(ctx, lx + 1, floor - 16, 5, 1, '#3c3c3c'); }
-  // The belly in the undershirt, riding up, the gut out under it; the stains
-  shaded(ctx, 'ep-tgut', x - 15, floor - 56, 30, 24, RAMP.shirt, ball(-0.4, -0.5, 0.2));
-  ell(ctx, x, floor - 35, 12, 3, T[4]); R(ctx, x - 1, floor - 35, 2, 1, T[1]);
-  R(ctx, x - 6, floor - 48, 4, 3, '#c8a050'); R(ctx, x + 4, floor - 42, 3, 3, '#b4200c'); R(ctx, x - 13, floor - 52, 3, 6, '#c8b070');
-  // (the straps of it over his shoulders, the shoulders bare)
-  shaded(ctx, 'ep-tshould', x - 17, floor - 62, 34, 10, RAMP.tSkin, box(-0.4, -0.6, 0.18, 1, 0.6));
-  R(ctx, x - 8, floor - 62, 3, 8, C.white); R(ctx, x + 5, floor - 62, 3, 8, C.white);
-  // The rope round him and the chair, three times; the arms behind
-  for (const ry of [floor - 54, floor - 47, floor - 40]) { R(ctx, x - 16, ry, 32, 2, '#c8a060'); for (let k = 0; k < 32; k += 3) R(ctx, x - 16 + k, ry, 1, 2, '#8a6a30'); }
-  R(ctx, x - 18, floor - 60, 3, 18, T[3]); R(ctx, x + 15, floor - 60, 3, 18, T[2]);
-  // The head: stubble, bags, the tape over his mouth, sweating
-  const hy = floor - 76;
-  shaded(ctx, 'ep-thead', x - 9, hy, 18, 18, RAMP.tSkin, ball(-0.4, -0.5, 0.15));
-  shaded(ctx, 'ep-tjowl', x - 9, hy + 10, 18, 9, RAMP.tSkin, ball(-0.35, -0.7, 0.12));
-  for (let i = 0; i < 18; i++) R(ctx, x - 7 + Math.floor(hash(i * 1.7) * 14), hy + 11 + Math.floor(hash(i * 2.9) * 7), 1, 1, '#9c5a30');
-  ell(ctx, x - 4, hy + 7, 3, 2, C.tSkinPale); ell(ctx, x + 4, hy + 7, 3, 2, C.tSkinPale);
-  // (eyes wide, darting; struggling)
-  const look = t % 40 < 20 ? -1 : 1;
-  R(ctx, x - 5, hy + 6, 3, 2, C.white); R(ctx, x + 3, hy + 6, 3, 2, C.white);
-  R(ctx, x - 4 + look, hy + 6, 1, 2, C.ink); R(ctx, x + 4 + look, hy + 6, 1, 2, C.ink);
-  R(ctx, x - 6, hy + 9, 4, 1, T[1]); R(ctx, x + 2, hy + 9, 4, 1, T[1]);
-  R(ctx, x - 1, hy + 8, 2, 4, T[1]);
-  // The tape: grey, shiny, slapped across
-  R(ctx, x - 7, hy + 12, 14, 4, '#a8a8b0'); R(ctx, x - 7, hy + 12, 14, 1, '#d8d8e0'); R(ctx, x + 6, hy + 11, 2, 2, '#8a8a92');
-  // The hair: the swoop come undone, a long sheet of it hanging off the side, the scalp pale on top
-  ell(ctx, x, hy + 1, 8, 3, '#fcd8b8'); R(ctx, x - 3, hy - 1, 4, 1, C.white);
-  for (let k = 0; k < 26; k++) R(ctx, x + 6 + Math.round(Math.sin(k * 0.15 + t * 0.08) * 1.5), hy - 1 + k, 4 - Math.floor(k / 10), 1, k % 5 === 0 ? Hh[5] : Hh[3]);
-  R(ctx, x - 9, hy + 1, 3, 6, Hh[2]); R(ctx, x - 8, hy, 6, 2, Hh[3]);
+  const x = cx + rock, sw = Math.round(Math.sin(t * 0.08) * 1.4);
+  tiedFig(sw)(ctx, x, floor);
+  // (eyes wide, darting)
+  const hy = floor - 76, look = t % 40 < 20 ? -1 : 1;
+  R(ctx, x - 5, hy + 6, 3, 2, '#f4ecdc'); R(ctx, x + 3, hy + 6, 3, 2, '#f4ecdc');
+  R(ctx, x - 4 + look, hy + 6, 1, 2, FIG_INK); R(ctx, x + 4 + look, hy + 6, 1, 2, FIG_INK);
+  R(ctx, x - 5, hy + 6, 1, 1, '#e07060'); R(ctx, x + 5, hy + 6, 1, 1, '#e07060');
   // (sweat flying off him as he struggles)
   if (rock) { R(ctx, x - 14, hy + 2 - (t % 6), 1, 2, '#c8e8ff'); R(ctx, x + 14, hy - (t % 5), 1, 2, '#c8e8ff'); }
   // ("MMPH": muffled bursts off the tape)
@@ -186,7 +262,7 @@ export const drawCloset = (ctx: Ctx, t: number) => {
   for (let y = 0; y < 22; y++) R(ctx, 136 + Math.round(((bx - 136) * y) / 22), y, 1, 1, C.ink);
   ell(ctx, bx, 24, 2, 3, '#fcf8d8'); R(ctx, bx - 1, 20, 3, 2, '#8a8a8a');
   for (const [r, a] of [[90, 0.05], [64, 0.06], [40, 0.07]] as const) { ctx.fillStyle = `rgba(252, 240, 180, ${a})`; ctx.beginPath(); ctx.ellipse(bx, 110, r, r * 0.35, 0, 0, Math.PI * 2); ctx.fill(); }
-  junkPile(ctx);
+  junkPile(ctx, 0, 0);
   tiedUp(ctx, 140, 126, t);
   agentsInDoor(ctx, t);
 };
@@ -195,48 +271,77 @@ export const drawCloset = (ctx: Ctx, t: number) => {
 // The rack of spare skins
 // ---------------------------------------------------------------------------
 
-interface Skin { skin: string; shade: string; hair: string; hairShade: string; cloth: string; clothLight: string; tie?: string; bald?: boolean; long?: boolean; medals?: boolean; glasses?: boolean; bag?: boolean }
+interface Skin { skin: string[]; hair: string[]; cloth: string[]; tie?: string[]; bald?: boolean; long?: boolean; medals?: boolean; glasses?: boolean; bag?: boolean }
 
-/** A skin hanging on its hanger: the head flopped over the hook, empty eye holes, the body sagging flat into the clothes. */
-const hangingSkin = (ctx: Ctx, x: number, top: number, s: Skin, t: number) => {
-  const sway = Math.round(Math.sin(t * 0.04 + x) * 1);
-  // The hanger
-  R(ctx, x, top - 6, 1, 6, '#b6bec8'); R(ctx, x - 1, top - 7, 3, 1, '#b6bec8');
-  R(ctx, x - 12, top + 2, 24, 1, '#868e9a'); for (let k = 0; k < 12; k++) { R(ctx, x - k, top + Math.floor(k / 6), 1, 1, '#868e9a'); R(ctx, x + k, top + Math.floor(k / 6), 1, 1, '#868e9a'); }
-  // The clothes: shoulders on the hanger, sagging down long and narrow (nothing in them)
-  const cx = x + sway;
-  R(ctx, cx - 13, top + 3, 26, 6, s.cloth); R(ctx, cx - 13, top + 3, 26, 1, s.clothLight);
-  for (let y = 0; y < 52; y++) { const hw = 12 - Math.floor(y / 9) + (y > 40 ? 1 : 0); R(ctx, cx - hw, top + 9 + y, hw * 2, 1, y % 13 === 0 ? s.clothLight : s.cloth); }
-  R(ctx, cx - 1, top + 9, 2, 48, 'rgba(0,0,0,0.25)');
-  // (the empty sleeves hanging, the hands on the ends of them like gloves)
-  for (const d of [-1, 1]) { R(ctx, cx + d * 13 - (d > 0 ? 3 : 0), top + 5, 3, 30, s.cloth); R(ctx, cx + d * 13 - (d > 0 ? 3 : 0), top + 35, 3, 5, s.skin); }
-  if (s.tie) { R(ctx, cx - 1, top + 6, 3, 24, s.tie); R(ctx, cx - 2, top + 5, 5, 3, s.tie); }
-  if (s.medals) for (let k = 0; k < 3; k++) { R(ctx, cx - 9 + k * 3, top + 12, 2, 3, ['#c82828', '#2a7ac8', '#e8d040'][k]); R(ctx, cx - 9 + k * 3, top + 15, 2, 2, C.gold); }
-  // The legs of it, empty, dangling under, the shoes
-  R(ctx, cx - 7, top + 61, 6, 22, s.skin); R(ctx, cx + 1, top + 61, 6, 20, s.skin); R(ctx, cx - 7, top + 61, 6, 1, s.shade);
-  R(ctx, cx - 8, top + 83, 7, 3, C.ink); R(ctx, cx, top + 81, 7, 3, C.ink);
-  // The head: flopped down over the front of the hanger, flat, the face stretched, the eyes empty holes
-  const hx = cx, hy = top - 2;
-  ell(ctx, hx, hy + 4, 7, 6, s.skin); ell(ctx, hx - 1, hy + 3, 5, 4, s.shade === '' ? s.skin : s.skin);
-  R(ctx, hx - 6, hy + 8, 12, 2, s.shade);
-  R(ctx, hx - 4, hy + 2, 2, 3, C.ink); R(ctx, hx + 2, hy + 2, 2, 3, C.ink); R(ctx, hx - 1, hy + 7, 3, 2, '#3a0a0a');
-  if (s.glasses) { R(ctx, hx - 5, hy + 2, 4, 1, C.ink); R(ctx, hx + 1, hy + 2, 4, 1, C.ink); R(ctx, hx - 1, hy + 2, 2, 1, C.ink); }
+/**
+ * A skin on its hanger (painted once, each way it's swaying): the clothes on the hanger's shoulders, sagging down long
+ * and narrow (nothing in them), creased; the empty sleeves, the hands on the ends of them limp like gloves; the legs
+ * dangling under, flat, wrinkled, the shoes on the ends; the head flopped over the front of the hanger, the face
+ * stretched long, empty holes for the eyes and the mouth; the dry cleaner's bag over it, the paper tag.
+ */
+const skinFig = (i: number, sway: number) => figure(`rack-skin-${i}-${sway}`, 40, 104, 20, 10, q => {
+  const s = SKINS[i], I = FIG_INK, K = s.skin, Cl = s.cloth, Hr = s.hair, x = sway;
+  // The hanger: the hook up to the rail, the wire shoulders
+  q.line(0, -9, 0, -3, '#b6bec8'); q.px(-1, -9, '#b6bec8'); q.px(1, -10, '#868e9a');
+  q.line(-12, 3, 0, -2, '#868e9a'); q.line(12, 3, 0, -2, '#5c636e');
+  // The legs of it, empty, dangling under, flat and wrinkled; the shoes
+  for (const [lx, len] of [[-6.5, 22], [1, 20]] as const) {
+    q.form(g => { g.moveTo(x + lx, 60); g.lineTo(x + lx + 6, 60); g.bezierCurveTo(x + lx + 5, 60 + len * 0.5, x + lx + 6, 60 + len * 0.8, x + lx + 5, 61 + len); g.lineTo(x + lx + 0.5, 61 + len); g.bezierCurveTo(x + lx, 60 + len * 0.6, x + lx + 1, 60 + len * 0.3, x + lx, 60); g.closePath(); },
+      { ramp: K, bevel: 1.5, amb: 0.2, ink: I, inkIn: K[0] });
+    for (let k = 4; k < len; k += 5) q.line(x + lx + 1, 60 + k, x + lx + 4, 61 + k, K[1]);
+    q.form(g => { g.roundRect(x + lx - 1, 60 + len, 7.5, 3.5, 1); }, { ramp: BOOT, bevel: 1.5, amb: 0.2, ink: I, spec: '#a8a8b8', wet: 0.5 });
+  }
+  // The empty sleeves hanging off the shoulders; the hands on the ends of them, limp, the fingers dangling
+  for (const d of [-1, 1]) {
+    const sx = x + d * 12;
+    q.form(g => { g.moveTo(sx - 2, 4); g.lineTo(sx + 2, 4); g.bezierCurveTo(sx + 2.5, 14, sx + 1.5, 24, sx + 2, 34); g.lineTo(sx - 1.5, 34); g.bezierCurveTo(sx - 2, 24, sx - 1.5, 14, sx - 2, 4); g.closePath(); },
+      { ramp: Cl, bevel: 1.5, amb: d < 0 ? 0.2 : 0.08, ink: I, inkIn: Cl[0] });
+    q.form(g => { g.moveTo(sx - 1.5, 34); g.lineTo(sx + 2, 34); g.lineTo(sx + 2.5, 38); g.lineTo(sx + 1.5, 41); g.lineTo(sx, 39); g.lineTo(sx - 1, 41); g.lineTo(sx - 2, 38); g.closePath(); }, { ramp: K, bevel: 1, amb: 0.25, ink: I });
+  }
+  // The clothes: shoulders on the hanger, sagging down long and narrow, creased down the middle where there's nothing in them
+  q.form(g => { g.moveTo(x - 13, 4); g.bezierCurveTo(x - 8, 1, x + 8, 1, x + 13, 4); g.lineTo(x + 11, 22); g.lineTo(x + 8, 46); g.lineTo(x + 9, 62); g.lineTo(x - 9, 62); g.lineTo(x - 8, 46); g.lineTo(x - 11, 22); g.closePath(); },
+    { ramp: Cl, bevel: 4, amb: 0.15, ink: I, inkIn: Cl[0] });
+  q.line(x, 8, x, 60, Cl[0]); q.line(x - 1, 10, x - 1, 58, Cl[1]);
+  for (const [y0, y1] of [[18, 26], [30, 40], [44, 54]]) { q.line(x - 7, y0, x - 3, y1, Cl[1]); q.line(x + 7, y0, x + 3, y1, Cl[1]); q.line(x - 6, y0, x - 2, y1, Cl[Cl.length - 2]); }
+  q.line(x - 11, 5, x - 4, 3, Cl[Cl.length - 1]);
+  if (s.tie) { q.form(g => { g.moveTo(x - 1.5, 7); g.lineTo(x + 1.5, 7); g.lineTo(x + 2, 28); g.lineTo(x, 31); g.lineTo(x - 2, 28); g.closePath(); }, { ramp: s.tie, bevel: 1, amb: 0.2, ink: I }); q.form(g => { g.rect(x - 2, 5, 4, 3); }, { ramp: s.tie, bevel: 1, amb: 0.3, ink: I }); }
+  if (s.medals) for (let k = 0; k < 3; k++) { q.rect(x - 9 + k * 3, 12, 2, 3, ['#c82828', '#2a7ac8', '#e8d040'][k]); q.form(g => { g.arc(x - 8 + k * 3, 17, 1.2, 0, Math.PI * 2); }, { ramp: RAMP.gold, bevel: 1, ink: null, spec: '#fffff0', wet: 0.8 }); }
+  // The head: flopped over the front of the hanger, flat, the face stretched long, the holes where the eyes and mouth were
+  const hx = x, hy = -2;
+  if (s.long) for (const d of [-1, 1]) q.form(g => { g.moveTo(hx + d * 5, hy - 2); g.bezierCurveTo(hx + d * 10, hy, hx + d * 10, hy + 10, hx + d * 9, hy + 16); g.lineTo(hx + d * 6, hy + 15); g.bezierCurveTo(hx + d * 7, hy + 8, hx + d * 6, hy + 3, hx + d * 4, hy); g.closePath(); }, { ramp: Hr, bevel: 1.5, amb: 0.25, ink: I });
+  q.form(g => { g.moveTo(hx - 6.5, hy); g.bezierCurveTo(hx - 6.5, hy - 4, hx + 6.5, hy - 4, hx + 6.5, hy); g.bezierCurveTo(hx + 6.5, hy + 6, hx + 5, hy + 12, hx + 3, hy + 14); g.lineTo(hx - 3, hy + 14); g.bezierCurveTo(hx - 5, hy + 12, hx - 6.5, hy + 6, hx - 6.5, hy); g.closePath(); },
+    { ramp: K, bevel: 3, amb: 0.2, ink: I, inkIn: K[1] });
+  // (the eye holes, dragged down at the corners; the mouth a slack hole; the nose flattened; the folds of it)
+  for (const d of [-1, 1]) { q.form(g => { g.ellipse(hx + d * 2.6, hy + 4, 1.4, 2.2, d * 0.3, 0, Math.PI * 2); }, { ramp: ['#060204', '#140608'], bevel: 1, ink: null }); q.px(hx + d * 3, hy + 7, K[1]); }
+  q.form(g => { g.ellipse(hx, hy + 10.5, 1.6, 2, 0, 0, Math.PI * 2); }, { ramp: ['#1c0606', '#3a0a0a'], bevel: 1, ink: null });
+  q.px(hx, hy + 7, K[1]); q.line(hx - 4, hy + 12, hx - 2, hy + 13, K[1]); q.line(hx + 4, hy + 12, hx + 2, hy + 13, K[1]);
+  if (s.glasses) { q.line(hx - 5, hy + 3, hx - 1, hy + 3, I); q.line(hx + 1, hy + 3, hx + 5, hy + 3, I); q.px(hx - 5, hy + 4, I); q.px(hx + 5, hy + 4, I); q.px(hx - 3, hy + 3, '#a8b8c8'); }
   if (!s.bald) {
-    ell(ctx, hx, hy - 2, 8, 4, s.hair); R(ctx, hx - 4, hy - 4, 6, 1, s.hairShade);
-    if (s.long) { R(ctx, hx - 9, hy - 2, 4, 16, s.hair); R(ctx, hx + 6, hy - 2, 4, 16, s.hair); R(ctx, hx - 9, hy + 12, 4, 2, s.hairShade); }
-  } else { R(ctx, hx - 7, hy + 2, 2, 4, s.hair); R(ctx, hx + 5, hy + 2, 2, 4, s.hair); R(ctx, hx - 2, hy, 3, 1, '#ffffff'); }
-  // (the dry cleaner's bag over it, a sheen down it, the paper tag)
-  if (s.bag) { R(ctx, cx - 15, top - 4, 30, 92, 'rgba(220, 230, 255, 0.1)'); R(ctx, cx - 11, top, 2, 84, 'rgba(255, 255, 255, 0.28)'); R(ctx, cx + 8, top + 10, 1, 60, 'rgba(255, 255, 255, 0.18)'); }
-  R(ctx, cx + 6, top + 4, 6, 4, '#f4eccc'); R(ctx, cx + 7, top + 5, 4, 1, '#8a8a80');
-};
+    q.form(g => { g.moveTo(hx - 7.5, hy + 3); g.bezierCurveTo(hx - 9, hy - 6, hx + 9, hy - 7, hx + 8, hy + 2); g.bezierCurveTo(hx + 4, hy, hx - 3, hy, hx - 7.5, hy + 3); g.closePath(); }, { ramp: Hr, bevel: 2, amb: 0.3, ink: I, spec: Hr[Hr.length - 1], wet: 0.3 });
+    q.line(hx - 5, hy - 3, hx + 3, hy - 4, Hr[Hr.length - 1]); q.line(hx - 6, hy, hx + 5, hy - 1, Hr[1]);
+  } else {
+    for (const d of [-1, 1]) q.form(g => { g.rect(hx + d * 6 - 1, hy + 1, 2, 5); }, { ramp: Hr, bevel: 1, amb: 0.3, ink: null });
+    q.line(hx - 2, hy - 2, hx + 1, hy - 2, K[K.length - 1]);
+  }
+  // (the dry cleaner's bag over it: a sheen down it, its edges)
+  if (s.bag) {
+    for (let y = -4; y < 88; y++) for (let k = -15; k <= 15; k++) if ((k === -15 || k === 15) && (y + k) % 3 === 0) q.px(x + k, y, '#c8d4e8', 0.5);
+    q.line(x - 11, 0, x - 10, 84, '#ffffff', 0.35); q.line(x - 10, 2, x - 9, 30, '#ffffff', 0.25); q.line(x + 8, 10, x + 8, 70, '#ffffff', 0.22);
+    q.line(x - 15, -4, x + 15, -4, '#c8d4e8', 0.4);
+  }
+  // (the paper tag on its string)
+  q.form(g => { g.rect(x + 6, 4, 6, 4); }, { ramp: ['#b4ac8c', '#d8d0b0', '#f4eccc'], bevel: 1, amb: 0.4, ink: I });
+  q.line(x + 7, 5, x + 10, 5, '#8a8a80');
+});
 
 /** The rack: a spare President, a general, an anchorwoman, a senator, a spare spare President. And the corkboard. */
+const NAVY = RAMP.navy, TIE = RAMP.red.slice(1);
 const SKINS: Skin[] = [
-  { skin: C.tSkin, shade: C.tSkinShade, hair: C.tHair, hairShade: C.tHairShade, cloth: C.navy, clothLight: '#3c3c8c', tie: C.red, bag: true },
-  { skin: '#e8b090', shade: '#b47858', hair: '#a8a8a8', hairShade: '#e0e0e0', cloth: '#4a5a2c', clothLight: '#6a7c40', medals: true },
-  { skin: '#f0c0a0', shade: '#c08868', hair: '#f0d070', hairShade: '#fcf0b0', cloth: '#b41c24', clothLight: '#e04040', long: true, bag: true },
-  { skin: '#dca888', shade: '#a87458', hair: '#c8c8c8', hairShade: '#f0f0f0', cloth: '#5a5a62', clothLight: '#7a7a84', tie: '#2a4ac8', bald: true, glasses: true },
-  { skin: C.tSkin, shade: C.tSkinShade, hair: C.tHair, hairShade: C.tHairShade, cloth: C.navy, clothLight: '#3c3c8c', tie: C.red },
+  { skin: RAMP.tSkin, hair: RAMP.tHair, cloth: NAVY, tie: TIE, bag: true },
+  { skin: ['#5a3020', '#8a5038', '#b47858', '#d8a07c', '#e8b890', '#f4d0b0'], hair: ['#5a5a5a', '#7c7c7c', '#a8a8a8', '#d0d0d0', '#ececec'], cloth: ['#141a0a', '#1c2410', '#2a3418', '#3a4622', '#4a5a2c', '#5e6e38', '#7a8c4c'], medals: true },
+  { skin: ['#6a3a28', '#9a6048', '#c08868', '#dca484', '#f0c0a0', '#fcdcc0'], hair: ['#7a5a18', '#a88430', '#d0a848', '#f0d070', '#fcf0b0'], cloth: ['#2c0206', '#3c0408', '#640a10', '#8c141c', '#b41c24', '#d03038', '#e85058'], long: true, bag: true },
+  { skin: ['#5a3424', '#845440', '#a87458', '#c8947a', '#dca888', '#ecc4a8'], hair: ['#7c7c84', '#a8a8b0', '#c8c8d0', '#f0f0f0'], cloth: ['#141418', '#1c1c20', '#2c2c34', '#3c3c46', '#5a5a62', '#7a7a84', '#9a9aa4'], tie: ['#0a1440', '#14246c', '#2a4ac8', '#4c6ce0'], bald: true, glasses: true },
+  { skin: RAMP.tSkin, hair: RAMP.tHair, cloth: NAVY, tie: TIE },
 ];
 
 const rackSet = (ctx: Ctx) => layer(ctx, 'ep-rack', ART_W, ART_H, g => {
@@ -267,7 +372,7 @@ const rackSet = (ctx: Ctx) => layer(ctx, 'ep-rack', ART_W, ART_H, g => {
 /** The flashlight going along the rack of spare skins; the corkboard, the red string. */
 export const drawSkinRack = (ctx: Ctx, t: number) => {
   rackSet(ctx);
-  SKINS.forEach((s, i) => hangingSkin(ctx, 104 + i * 32, 34, s, t));
+  SKINS.forEach((_, i) => { const x = 104 + i * 32; skinFig(i, Math.round(Math.sin(t * 0.04 + x) * 1))(ctx, x, 34); });
   // Dark, but for the flashlight's spot, going along it left to right
   const sx = 40 + Math.min(1, t / 150) * 190, sy = 60 + Math.sin(t * 0.05) * 6;
   ctx.save();
@@ -401,7 +506,7 @@ const realTrumpFig = figure('trump-real-small', 40, 46, 20, 9, q => {
 });
 
 /** Meathead standing, the fire behind him catching his edges (the hair, the shoulders, the arms, down his legs). */
-const mhLitFig = over('mh-stand-firelit', 48, 74, 24, 72, (g, x, y) => mhStandingFig(true, true, true)(g, x, y), q => rimLight(q, -24, 23, -67, -2, FIRE_RIM, FIRE_HOT, -50, -28));
+const mhLitFig = over('mh-stand-firelit', 48, 74, 24, 72, (g, x, y) => mhStandingFig(true, true, true)(g, x, y), q => rimLight(q, -24, 23, -67, -2, FIRE_RIM, FIRE_HOT, -50, -28, FIRE_DIM));
 
 /** The emergency press conference: the podium on the lawn, the White House going up behind it, the press. */
 export const drawLawnPress = (ctx: Ctx, t: number, talking: boolean) => {
