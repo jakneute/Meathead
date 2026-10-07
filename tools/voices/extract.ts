@@ -100,7 +100,7 @@ const scriptVoices = (stage: string): Record<string, string> => {
   const known = stageVoices.get(stage);
   if (known) return known;
   const table: Record<string, string> = {};
-  const f = path.join(ROOT, 'game', 'stages', stage, 'script.ts');
+  const f = path.join(ROOT, 'm1', 'game', 'stages', stage, 'script.ts');
   if (fs.existsSync(f)) {
     const body = fs.readFileSync(f, 'utf8').match(/export const VOICES[^=]*=\s*\{([\s\S]*?)\n\};/)?.[1] ?? '';
     for (const m of body.matchAll(/^\s*(\w+):\s*\{\s*id:\s*'([^']+)'/gm)) table[m[1]] = m[2];
