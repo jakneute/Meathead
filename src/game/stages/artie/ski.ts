@@ -143,8 +143,11 @@ const skierSays = (ski: Ski, text: string, cut = false) => {
   say(text, SKIER_VOICE, cut ? 'urgent' : 'queue', { onShow: () => { ski.skier.line = text; ski.skier.lineT = 110 + text.length * 3; }, onHide: () => { if (ski.skier.line === text) ski.skier.lineT = 0; } });
   if (cut) { ski.skier.line = text; ski.skier.lineT = 110; }
 };
-/** Where the scene waits for the line before to be finished: before Meathead answers, before the skier answers him, before the rumble, before "...OH SHIT." */
-const SKI_HOLDS = new Set([75, 120, 229, 280]);
+/** Where the scene waits for the line before to be finished: before Meathead answers, before the skier answers him, before the quiet, before "...OH SHIT." */
+const SKI_HOLDS = new Set([75, 120, 229, 350]);
+/** After the scream's died away: a beat of nothing, then him landing, way down there (a far-off thump, the ground
+ * giving the smallest shiver), another beat, and then the mountain answers. */
+const SKI_LANDS = 268, SKI_RUMBLE = 300;
 
 /** The ranger's radio, under the snow at the bottom: every so often, dispatch asks after him (quietly, through the radio). */
 const DISPATCH_VOICE: Voice = { id: 'dispatch', pitch: 1.1, rate: 1.0 };
@@ -236,14 +239,16 @@ const cutscene = (ctx: FrameContext, ski: Ski): Controls => {
     const feet = player.pos.y + player.height;
     if (s.vy > 0 && s.y >= feet - 4) { ski.skis = null; player.skiing = true; player.skiSpeed = 0; meatheadSays(state, 'MINE NOW.'); }
   }
-  if (t === 230) {
+  if (t === SKI_LANDS) { playSound('thud', 0.4, -7); shakeScreen(state, 7, 2); }
+  if (t === SKI_LANDS + 9) shakeScreen(state, 4, 1);
+  if (t === SKI_RUMBLE) {
     shakeScreen(state, 90, 6); playSound('rumble');
     // Anything still alive on screen is about to have a very bad day
     if (enemiesOnScreen(state).length) { ski.surge = true; ski.avX = state.camera.x - 220; }
   }
-  if (ski.surge && t > 240) surge(ctx, ski);
-  if (t === 280) meatheadSays(state, '...OH SHIT.');
-  if (t >= 330) {
+  if (ski.surge && t > SKI_RUMBLE + 10) surge(ctx, ski);
+  if (t === 350) meatheadSays(state, '...OH SHIT.');
+  if (t >= 400) {
     ski.phase = 'skiing'; ski.t = 0;
     state.cameraOverride = null;
     player.inCutscene = false;
