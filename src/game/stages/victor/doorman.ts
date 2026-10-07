@@ -182,10 +182,11 @@ export const updateDoormanFight = (ctx: FrameContext, fight: DoormanFight, contr
   else if (fight.phase === 'dead' && state.cameraOverride?.x === a.x1 - 10) state.cameraOverride = null;
   if (fight.phase === 'intro' && fight.t > 80) { fight.phase = 'fight'; if (fight.man) { fight.man.aiState = 'stalk'; fight.man.aiTimer = 0; } }
   // A clash: it takes the special button
-  // A clash takes either mouse button, or any of A B X Y on a pad (each counts on its own, so mashing two in turn works)
-  const keys: (keyof Controls)[] = ['jump', 'special', 'shoot'];
+  // A clash takes either mouse button, or any of A B X Y on a pad (each counts on its own, so mashing two in turn works;
+  // Y's the secondary fire, F on the keyboard)
+  const keys: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary'];
   const pressed = keys.some(k => controls[k] && !fight.buttonsWas[k]);
-  for (const k of ['up', 'left', 'down', 'right', 'special', 'jump', 'shoot'] as (keyof Controls)[]) fight.buttonsWas[k] = controls[k];
+  for (const k of ['up', 'left', 'down', 'right', 'special', 'jump', 'shoot', 'secondary'] as (keyof Controls)[]) fight.buttonsWas[k] = !!controls[k];
   // Thrown clean across the club
   if (fight.thrown) {
     player.vel.x = fight.thrown.vx;
@@ -658,7 +659,7 @@ const damage = (ctx: FrameContext, m: Enemy, fight: DoormanFight, dmg: number) =
 const SHOULDER_FRAMES = 170, SLIDE_FRAMES_CLASH = 300;
 /** How long your controls stay locked after a clash. */
 const CLASH_LOCK = 36;
-const ACTION_KEYS: (keyof Controls)[] = ['jump', 'special', 'shoot', 'charge'];
+const ACTION_KEYS: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
 /** Thrown after losing a clash: how long he's in the air, and how hard he goes up. */
 const THROW_FRAMES = 44, THROW_LIFT = 14.3;
 /** His last flight, after a clash that finishes him: floatier than a throw, so it plays out where you can see it. */
