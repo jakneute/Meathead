@@ -24,6 +24,7 @@ import { saying } from './script';
 import { INK, ink, shaded } from '../../render/npc/kit';
 import { mix } from '../../render/backdrops/core';
 import { bandedGradient, checker } from '../../render/pixelArt';
+import { sewerBrick } from './sewerDraw';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -649,18 +650,50 @@ export const drawThingDrops = (ctx: Ctx, th: Thing, frame: number) => {
   // been up there: before he walks in, and after)
   {
     const C = COURSE.sewer.cistern, x1 = C.x1, x2 = C.pool + 20, y = DROP_FROM;
-    // The ceiling over the walkway (a low slab of old brick on iron beams), the muck clinging to the underside of it
-    ctx.fillStyle = '#2A2521'; ctx.fillRect(x1 - 20, y - 150, x2 - x1 + 40, 110);
-    ctx.fillStyle = '#342D28'; for (let yy = y - 146; yy < y - 44; yy += 14) for (let xx = x1 - 20 + ((yy / 14) % 2) * 17; xx < x2 + 20; xx += 34) ctx.fillRect(xx, yy, 31, 11);
-    ctx.fillStyle = '#44403C'; ctx.fillRect(x1 - 20, y - 48, x2 - x1 + 40, 10);
-    ctx.fillStyle = '#1C1917'; for (let xx = x1 + 20; xx < x2; xx += 110) ctx.fillRect(xx, y - 48, 12, 10);
-    ctx.fillStyle = '#3F6212';
-    ctx.beginPath(); ctx.moveTo(x1, y - 40);
-    for (let x = x1; x <= x2; x += 16) ctx.lineTo(x, y - 6 + Math.sin(x * 0.07 + frame * 0.03) * 4 + (((x * 7) % 11) - 5));
-    ctx.lineTo(x2, y - 40); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#4D7C0F';
-    for (let x = x1 + 10; x < x2; x += 37) { const len = 8 + ((x * 13) % 17); ctx.beginPath(); ctx.moveTo(x - 5, y - 8); ctx.lineTo(x, y - 6 + len); ctx.lineTo(x + 5, y - 8); ctx.fill(); }
-    ctx.fillStyle = 'rgba(217, 249, 157, 0.35)'; for (let x = x1 + 20; x < x2; x += 60) ctx.fillRect(x, y - 30, 14, 3);
+    // The ceiling over the walkway: a low slab of old brick (banded darker up into it) on an iron beam, riveted, lit
+    // along its lower edge by the muck's glow
+    const L = x1 - 20, W = x2 - x1 + 40, top = y - 150;
+    ctx.fillStyle = sewerBrick(ctx, 'thingRoof', 34, 14, ['#342D28', '#2E2823', '#3A322C'], '#1F1A17'); ctx.fillRect(L, top, W, 104);
+    bandedGradient(ctx, L, top, W, 60, ['rgba(12, 10, 9, 0.7)', 'rgba(12, 10, 9, 0.45)', 'rgba(12, 10, 9, 0.2)', 'rgba(12, 10, 9, 0)'], 4);
+    ctx.fillStyle = INK; ctx.fillRect(L, y - 49, W, 12);
+    ctx.fillStyle = '#44403C'; ctx.fillRect(L, y - 48, W, 10);
+    ctx.fillStyle = '#5C5650'; ctx.fillRect(L, y - 48, W, 2);
+    ctx.fillStyle = '#2E2A27'; ctx.fillRect(L, y - 40, W, 2);
+    for (let xx = x1 + 20; xx < x2; xx += 110) { ctx.fillStyle = '#1C1917'; ctx.fillRect(xx, y - 48, 12, 10); ctx.fillStyle = '#78716C'; ctx.fillRect(xx - 5, y - 45, 2, 2); ctx.fillRect(xx + 15, y - 45, 2, 2); }
+    // (the muck's glow on the underside of the beam, in steps)
+    ctx.fillStyle = 'rgba(132, 204, 22, 0.22)'; ctx.fillRect(L, y - 40, W, 2);
+    // The muck clinging under it: a sagging sheet, banded dark to light down toward its edge (lit from the pool below),
+    // its edge ragged and slowly heaving, a lip of fresh slime along it
+    const edgeAt = (x: number) => Math.round(y - 8 + Math.sin(x * 0.045 + frame * 0.025) * 3 + Math.sin(x * 0.13 + 1.7) * 2 + (hash(Math.floor(x / 8)) - 0.5) * 3);
+    const bands: [number, string][] = [[0, '#22350B'], [0.3, SLIME[4]], [0.55, '#41660F'], [0.75, SLIME[3]], [0.9, SLIME[2]]];
+    for (const [k, col] of bands) {
+      ctx.fillStyle = col;
+      for (let x = x1; x < x2; x += 4) { const e = edgeAt(x), t = Math.round(y - 38 + (e - (y - 38)) * k); ctx.fillRect(x, t, 4, e - t); }
+    }
+    // (a dithered seam where it meets the brick, and the lit lip along its edge)
+    checker(ctx, x1, y - 40, x2 - x1, 4, SLIME[4], 0);
+    for (let x = x1; x < x2; x += 4) { const e = edgeAt(x); ctx.fillStyle = SLIME[1]; ctx.fillRect(x, e - 3, 4, 2); ctx.fillStyle = INK; ctx.fillRect(x, e, 4, 1); if (hash(x * 0.37) > 0.8) { ctx.fillStyle = SLIME[0]; ctx.fillRect(x + 1, e - 3, 2, 1); } }
+    // Lumps in it (whatever it's taken up there with it): rounded, lit on top, a glint; one with a skull showing through
+    for (let i = 0; i < 7; i++) {
+      const bx = Math.round(x1 + 30 + hash(i * 4.1) * (x2 - x1 - 60)), by = Math.round(y - 28 + hash(i * 2.3) * 10), r = 3 + Math.round(hash(i * 8.7) * 3);
+      ink(ctx, () => ctx.ellipse(bx, by, r + 2, r, 0, 0, TAU), SLIME[4], 1);
+      ctx.fillStyle = SLIME[3]; ctx.fillRect(bx - r, by - r + 1, r * 2, 2);
+      ctx.fillStyle = SLIME[1]; ctx.fillRect(bx - r + 1, by - r + 1, 2, 1);
+      if (i === 3) { ctx.fillStyle = BONE[1]; ctx.fillRect(bx - 3, by - 2, 6, 5); ctx.fillStyle = BONE[0]; ctx.fillRect(bx - 3, by - 2, 6, 1); ctx.fillStyle = INK; ctx.fillRect(bx - 2, by, 1, 1); ctx.fillRect(bx + 1, by, 1, 1); }
+    }
+    // Bubbles swelling in it and popping
+    for (let i = 0; i < 5; i++) {
+      const cyc = 70 + i * 13, q = ((frame + i * 29) % cyc) / cyc, bx = Math.round(x1 + 50 + hash(i * 6.7 + Math.floor((frame + i * 29) / cyc)) * (x2 - x1 - 100)), by = y - 26;
+      if (q < 0.8) { const r = Math.round(1 + q * 4); ink(ctx, () => ctx.arc(bx, by, r, 0, TAU), SLIME[2], 1); ctx.fillStyle = SLIME[0]; ctx.fillRect(bx - Math.max(1, r - 2), by - r + 1, 1, 1); }
+      else { ctx.fillStyle = SLIME[0]; for (const [dx, dy] of [[-4, -2], [4, -3], [0, -5]]) ctx.fillRect(bx + dx, by + dy, 1, 1); }
+    }
+    // Tendrils hanging off the edge, stretching and slowly drawing back up: inked, banded, a lit stripe, a bead on the end
+    for (let x = x1 + 14; x < x2 - 10; x += 29) {
+      const sway = Math.sin(frame * 0.02 + x * 0.3);
+      const len = Math.round(10 + ((x * 13) % 19) + sway * 5), w = 3 + ((x * 7) % 3), e = edgeAt(x);
+      for (let j = 0; j < len; j += 2) { const ww = Math.max(1, Math.round(w * (1 - j / (len + 6)))); ctx.fillStyle = INK; ctx.fillRect(x - ww - 1, e + j, ww * 2 + 2, 2); ctx.fillStyle = j < len * 0.5 ? SLIME[3] : SLIME[2]; ctx.fillRect(x - ww, e + j, ww * 2, 2); ctx.fillStyle = SLIME[1]; ctx.fillRect(x - ww, e + j, 1, 2); }
+      glob(ctx, x, e + len + 2, 3 + (x % 2), 4 + (x % 3));
+    }
   }
   for (const d of th.drops) {
     if (d.state === 'warn') {
