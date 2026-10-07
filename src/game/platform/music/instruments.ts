@@ -414,6 +414,17 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     make: shot(1.6, (t) => Math.sin(TAU * 262 * t + (3.2 * Math.exp(-t * 9) + 0.5) * Math.sin(TAU * 786 * t)) * Math.exp(-t * 2.4) + 0.3 * Math.sin(TAU * 524 * t + 1.5 * Math.exp(-t * 20) * Math.sin(TAU * 3668 * t)) * Math.exp(-t * 5)),
     base: midiOf(262), env: { a: 0.002, d: 0, s: 1, r: 0.12 }, gain: 0.3,
   },
+  // Hector's sequencer: the arpeggio running under the stage, a late-nineties action game's (a pulse wave, its filter
+  // snapping shut on every note), plucky and bright
+  seq: {
+    make: shot(0.45, (t) => {
+      const cut = 700 + 4200 * Math.exp(-t * 26);
+      let v = 0;
+      for (let k = 1; k * 262 < 7500; k++) { const hz = 262 * k; v += (k % 2 ? 1 : 0.4) / k / (1 + (hz / cut) ** 2) * Math.sin(TAU * hz * t); }
+      return v * Math.exp(-t * 5);
+    }),
+    base: midiOf(262), env: { a: 0.002, d: 0, s: 1, r: 0.05 }, gain: 0.34,
+  },
   bass: { make: bass.make, base: bass.base, env: { a: 0.003, d: 0, s: 1, r: 0.06 }, gain: 0.8 },
   slap: { make: slap.make, base: slap.base, env: { a: 0.002, d: 0, s: 1, r: 0.05 }, gain: 0.75 },
   nylon: { make: nylon.make, base: nylon.base, env: { a: 0.002, d: 0, s: 1, r: 0.12 }, gain: 0.55 },
