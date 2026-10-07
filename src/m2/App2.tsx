@@ -16,6 +16,7 @@ import { getUi, subscribeUi, onTravel, setUi } from './store';
 import { attachM2Keys } from './input';
 import MapCard from './MapCard';
 import { cleanLines } from './cleanLines';
+import { registerGrabCallouts } from './callouts';
 
 // Meathead 2: Meathead Goes to Happy Land. For now: the hub (walk round it, look at the map for each land) and the
 // test pen behind the staff door (try out the beatdown and the shakedown on whoever walks in).
@@ -25,6 +26,7 @@ registerStageLayout(PEN_STAGE, penLayout);
 loadVoicePack(voicePackUrl);
 attachM2Keys();
 cleanLines();
+registerGrabCallouts();
 
 const WEAPONS: WeaponType[] = ['GUN', 'SHOTGUN'];
 const STARTING_AMMO = { ...createFullAmmo(), SHOTGUN: 6 };

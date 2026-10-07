@@ -28,6 +28,7 @@ import { beginSprite, endSprite } from '../game/render/player/spriteOutline';
 import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, type Mood } from '../game/render/player/body';
 import { drawPlayer } from '../game/render/player/player';
 import { btn, pressed, pollM2 } from './input';
+import { grabCallout } from './callouts';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -35,11 +36,13 @@ type Ctx = CanvasRenderingContext2D;
 /** Like a fighting game's grab: once it's started, he's committed. The beatdown's windup is long (and a hit in it
  * knocks him out of it); the shakedown's is short, and nothing stops it. */
 const WINDUP = 40, LUNGE = 9, LUNGE_SPEED = 7.5, WHIFF = 22, REACH = 14;
+/** How far ahead of him, as he lunges, he can still get hold of somebody. */
+const LUNGE_REACH = 20;
 /** A punch takes this much of him (whoever he is, about eight to finish him); each heals a little, the last a lot. */
 const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 7, PUNCH_GAP = 5;
 // The shakedown
 /** Thrown, it takes a modest share of him; slammed, a big one. */
-const GRAB_REACH = 34, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 15, THROW_SHARE = 0.15, SLAM_SHARE = 0.4, GRAB_MISS = 12;
+const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 24, THROW_SHARE = 0.15, SLAM_SHARE = 0.4, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
 /** How near together B (or X) and Y count as pressed together: frames B's held back, waiting for Y. */
@@ -211,7 +214,7 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
       if (hurt) { end(state, g); return controls; }
       const nx = p.pos.x + g.dir * LUNGE_SPEED;
       if (!walled(state, nx)) p.pos.x = nx;
-      const e = inReach(state, g.dir, 4);
+      const e = inReach(state, g.dir, LUNGE_REACH);
       if (e) {
         // Down he goes, Meathead on top of him
         g.phase = 'mount'; g.t = 0; g.held = e; take(state, e);
@@ -254,7 +257,7 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
           e.pos = { x: e.pos.x, y: feetY(state) - e.height };
           state.enemies.push(e);
           fx.blowAwayEnemy(e, { x: g.dir * 1.5, y: -2 }, 'charge_kill', g.dir);
-          fx.spawnKillCallout(e, 'pulverized');
+          fx.spawnKillCallout(e, grabCallout('beatdown'));
           fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
           playSound('crunch'); shakeScreen(state, 10, 6);
           g.held = null; g.phase = 'kill'; g.t = 0;
@@ -291,10 +294,10 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
         state.enemies.push(e);
         playSound('slam'); playSound('crunch', 0.8); shakeScreen(state, 12, 7);
         for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
-        if (e.health <= 0) { fx.blowAwayEnemy(e, { x: 0, y: -1 }, 'charge_kill', g.dir); fx.spawnKillCallout(e, 'groundsplat'); }
+        if (e.health <= 0) { fx.blowAwayEnemy(e, { x: 0, y: -1 }, 'charge_kill', g.dir); fx.spawnKillCallout(e, grabCallout('slam')); }
         else { e.pauseTimer = 60; fx.spawnDamageNumber(e.pos, dmg, true); }
       } else {
-        const v = throwDir === 'up' ? { x: g.dir * 2.5, y: -17 } : { x: dir * THROW_SPEED, y: -5 };
+        const v = throwDir === 'up' ? { x: g.dir * 3, y: -23 } : { x: dir * THROW_SPEED, y: -6 };
         e.pos = { x: centerX(state) + (throwDir === 'up' ? g.dir * 20 : dir * 24) - e.width / 2, y: p.pos.y - 16 };
         e.vel = { ...v };
         const dmg = Math.max(8, Math.round(e.maxHealth * THROW_SHARE));
@@ -304,7 +307,7 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
         if (e.health <= 0) {
           fx.blowAwayEnemy(e, v, 'charge_kill', dir);
           e.meleeFlung = true;
-          fx.spawnKillCallout(e, 'yeet');
+          fx.spawnKillCallout(e, grabCallout(throwDir === 'up' ? 'launched' : 'thrown'));
         } else {
           e.pauseTimer = 45;
           e.chargedAt = state.frame;

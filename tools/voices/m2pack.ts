@@ -12,6 +12,7 @@ import * as dialogue from '../../src/content/dialogue';
 import * as deaths from '../../src/content/deaths';
 import { M2_ENEMY_KINDS } from '../../src/m2/roster';
 import { fitsHappyLand } from '../../src/m2/consistency';
+import { GRAB_CALLOUTS } from '../../src/m2/callouts';
 
 const ROOT = path.resolve(__dirname, '../..');
 const IN = path.join(ROOT, 'src/generated/voices.bin');
@@ -34,6 +35,7 @@ add('meathead', pick(dialogue.ENEMY_KILL_LINES as Record<string, unknown>, kinds
 add('meathead', pick(dialogue.BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT as Record<string, unknown>, withShots));
 // The announcer's kill callouts
 for (const c of Object.values(dialogue.KILL_CALLOUTS)) add('announcer', (c as { lines: string[] }).lines);
+for (const c of Object.values(GRAB_CALLOUTS)) add('announcer', c.lines);
 // The death screens
 want.add('death|YOU DIED');
 add('death', deaths.FALL_DEATH_LINES);

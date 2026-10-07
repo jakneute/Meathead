@@ -15,6 +15,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as dialogue from '../../src/content/dialogue';
 import * as deaths from '../../src/content/deaths';
+import { GRAB_CALLOUTS } from '../../src/m2/callouts';
 
 const ROOT = path.resolve(__dirname, '../../src');
 const out = new Map<string, { voice: string; text: string; from: string }>();
@@ -79,6 +80,8 @@ for (const l of dialogue.DAYCARE_LINES.cheerShat) add(`hector.${l.who}`, l.text,
 for (let k = 0; k < 5; k++) for (const t of dialogue.DAYCARE_LINES.chatterShat) add(`hector.kid${k}`, t, 'DAYCARE_LINES');
 // The announcer calls out the kill callouts
 for (const c of Object.values(dialogue.KILL_CALLOUTS)) for (const t of c.lines) add('announcer', t, 'KILL_CALLOUTS');
+// (and Meathead 2's grabs' own)
+for (const c of Object.values(GRAB_CALLOUTS)) for (const t of c.lines) add('announcer', t, 'GRAB_CALLOUTS');
 for (const byGround of Object.values(dialogue.SURFACE_CALLOUTS)) for (const lines of Object.values(byGround ?? {})) for (const t of lines ?? []) add('announcer', t, 'SURFACE_CALLOUTS');
 
 // ---------------------------------------------------------------------------------------------------------------

@@ -81,6 +81,16 @@
  },
  {
   "voice": "announcer",
+  "text": "AIR TIME!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "AIRMAILED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "ALIEN ON THE ROCKS!",
   "from": "ALIEN_DEATH_CALLOUTS"
  },
@@ -136,6 +146,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BEATEN SENSELESS!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "BELLY FLOP!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -178,6 +193,11 @@
   "voice": "announcer",
   "text": "BODIED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BODY SLAMMED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -506,6 +526,11 @@
  },
  {
   "voice": "announcer",
+  "text": "GROUND AND POUNDED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "GROUNDED FOREVER!",
   "from": "KILL_CALLOUTS"
  },
@@ -751,6 +776,16 @@
  },
  {
   "voice": "announcer",
+  "text": "NO MERCY RULE!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "NO REFUNDS!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "NOT YET!",
   "from": "game/stages/gym/runtime.ts:298"
  },
@@ -851,6 +886,11 @@
  },
  {
   "voice": "announcer",
+  "text": "PILE DRIVEN!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "PINNED FOREVER!",
   "from": "KILL_CALLOUTS"
  },
@@ -876,6 +916,11 @@
  },
  {
   "voice": "announcer",
+  "text": "POWERBOMBED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "PRESSED FLAT!",
   "from": "KILL_CALLOUTS"
  },
@@ -898,6 +943,11 @@
   "voice": "announcer",
   "text": "REDECORATED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "REFEREE STOPPAGE!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1001,6 +1051,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SHAKEN AND THROWN!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SHATTERED!",
   "from": "KILL_CALLOUTS"
  },
@@ -1063,6 +1118,11 @@
   "voice": "announcer",
   "text": "SKY HIGH!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SLAMMED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1196,6 +1256,11 @@
  },
  {
   "voice": "announcer",
+  "text": "TAPPED OUT!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "TECHNICAL KNOCKOUT!",
   "from": "KILL_CALLOUTS"
  },
@@ -1248,6 +1313,11 @@
   "voice": "announcer",
   "text": "TORPEDOED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TOSSED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1316,6 +1386,11 @@
  },
  {
   "voice": "announcer",
+  "text": "WHAT GOES UP!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "WHEELIED!",
   "from": "KILL_CALLOUTS"
  },
@@ -1347,7 +1422,7 @@
  {
   "voice": "announcer",
   "text": "YOU'RE ON THE LIST NOW!",
-  "from": "game/stages/victor/doorman.ts:812"
+  "from": "game/stages/victor/doorman.ts:813"
  },
  {
   "voice": "announcer",
@@ -5557,7 +5632,7 @@
  {
   "voice": "death",
   "text": "DISSOLVED IN TOXIC SLUDGE",
-  "from": "game/bosses/hazards.ts:211"
+  "from": "game/bosses/hazards.ts:215"
  },
  {
   "voice": "death",
@@ -5842,7 +5917,7 @@
  {
   "voice": "death",
   "text": "FLASH-FROZEN MEAT POPSICLE",
-  "from": "game/stages/artie/ski.ts:543"
+  "from": "game/stages/artie/ski.ts:548"
  },
  {
   "voice": "death",
@@ -6812,7 +6887,7 @@
  {
   "voice": "death",
   "text": "PLANTED HEAD FIRST",
-  "from": "game/stages/artie/ski.ts:536"
+  "from": "game/stages/artie/ski.ts:541"
  },
  {
   "voice": "death",
@@ -7437,7 +7512,7 @@
  {
   "voice": "death",
   "text": "SNOWBALLED INTO NEXT WEEK",
-  "from": "game/stages/artie/ski.ts:536"
+  "from": "game/stages/artie/ski.ts:541"
  },
  {
   "voice": "death",
@@ -7857,12 +7932,12 @@
  {
   "voice": "death",
   "text": "THE MOUNTAIN WON",
-  "from": "game/stages/artie/ski.ts:543"
+  "from": "game/stages/artie/ski.ts:548"
  },
  {
   "voice": "death",
   "text": "THE OTHER SIDE OF THE MOUNTAIN",
-  "from": "game/stages/artie/ski.ts:536"
+  "from": "game/stages/artie/ski.ts:541"
  },
  {
   "voice": "death",
@@ -7967,7 +8042,7 @@
  {
   "voice": "death",
   "text": "THIN ICE",
-  "from": "game/stages/artie/ski.ts:536"
+  "from": "game/stages/artie/ski.ts:541"
  },
  {
   "voice": "death",
@@ -8222,7 +8297,7 @@
  {
   "voice": "death",
   "text": "YOU GOT AVALANCHED",
-  "from": "game/stages/artie/ski.ts:543"
+  "from": "game/stages/artie/ski.ts:548"
  },
  {
   "voice": "death",
@@ -8257,17 +8332,17 @@
  {
   "voice": "dispatch",
   "text": "DAVE?",
-  "from": "game/stages/artie/ski.ts:162"
+  "from": "game/stages/artie/ski.ts:165"
  },
  {
   "voice": "dispatch",
   "text": "DAVE? YOU GOOD, DAVE?",
-  "from": "game/stages/artie/ski.ts:162"
+  "from": "game/stages/artie/ski.ts:165"
  },
  {
   "voice": "dispatch",
   "text": "RANGER ONE, COME IN.",
-  "from": "game/stages/artie/ski.ts:162"
+  "from": "game/stages/artie/ski.ts:165"
  },
  {
   "voice": "doorman",
@@ -9607,7 +9682,7 @@
  {
   "voice": "meathead",
   "text": "...WAIT. YOU'RE DOING THIS ON PURPOSE. JUST TO WATCH ME SUFFER.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -9707,7 +9782,7 @@
  {
   "voice": "meathead",
   "text": "A DIVE KICK?! ON A CHARGING BULL?! SHOULDER HIM!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -10177,7 +10252,7 @@
  {
   "voice": "meathead",
   "text": "AMAZING. TRULY. I'LL TELL MY GRANDKIDS.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -10227,7 +10302,7 @@
  {
   "voice": "meathead",
   "text": "ARE YOU KIDDING ME?! SAME! MOVE! AS! HIM! HOW MANY TIMES?!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -10552,7 +10627,7 @@
  {
   "voice": "meathead",
   "text": "BULLETS DO NOTHING TO THIS WALK-IN FRIDGE! MEET HIM HEAD ON!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -10707,12 +10782,12 @@
  {
   "voice": "meathead",
   "text": "CHARGE MEETS CHARGE! SLIDE MEETS SLIDE! IT'S NOT ROCKET SCIENCE!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
   "text": "CHARGED STRAIGHT OVER HIS LEGS INTO THE FLOOR! SLIDE, IDIOT!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -10862,7 +10937,7 @@
  {
   "voice": "meathead",
   "text": "CONGRATULATIONS, PLAYER. YOU DID THE ONE THING. I'M WEEPING.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -11087,7 +11162,7 @@
  {
   "voice": "meathead",
   "text": "DIVE KICKED A GUY SLIDING ON THE FLOOR! BRILLIANT! SLIDE!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -11102,7 +11177,7 @@
  {
   "voice": "meathead",
   "text": "DODGING WON'T GET ME IN THE CLUB! MEET HIS SLIDE WITH A SLIDE!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -11977,7 +12052,7 @@
  {
   "voice": "meathead",
   "text": "GOLD STAR. REALLY. SO PROUD. TOOK LONG ENOUGH.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -12207,12 +12282,12 @@
  {
   "voice": "meathead",
   "text": "HE CHARGES, I CHARGE! SHOULDER TO SHOULDER, YOU IDIOT!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
   "text": "HE CHARGES? I CHARGE. HE SLIDES? I SLIDE. SAME MOVE!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -12322,7 +12397,7 @@
  {
   "voice": "meathead",
   "text": "HE OUT-MUSCLED ME?! MASH HARDER! HARDER THAN LEG DAY!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -12402,7 +12477,7 @@
  {
   "voice": "meathead",
   "text": "HE SLIDES, I SLIDE! SAME MOVE, SAME TIME! THROUGH THE SLAB!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -12497,7 +12572,7 @@
  {
   "voice": "meathead",
   "text": "HE WENT LOW AND I WENT HIGH! SLIDE FOR SLIDE, DUMMY!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -12672,7 +12747,7 @@
  {
   "voice": "meathead",
   "text": "HEY. YOU. YEAH, YOU, WITH THE PLASTIC DOOHICKEY.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -12947,7 +13022,7 @@
  {
   "voice": "meathead",
   "text": "I CAN SEE YOU THROUGH THE SCREEN, CHAMP.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -12982,7 +13057,7 @@
  {
   "voice": "meathead",
   "text": "I DIDN'T COME HERE TO PLAY TAG! SAME MOVE AS HIM, IN HIS FACE!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -13222,7 +13297,7 @@
  {
   "voice": "meathead",
   "text": "I SAID MATCH HIM! CHARGE FOR CHARGE! SLIDE FOR SLIDE! UGH!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -13242,7 +13317,7 @@
  {
   "voice": "meathead",
   "text": "I SLID INTO A SHOULDER CHARGE?! SHOULDER MEETS SHOULDER, GENIUS!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -13972,7 +14047,7 @@
  {
   "voice": "meathead",
   "text": "LEG SWEEP ON A CHARGING FRIDGE! GREAT PLAN!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -14042,7 +14117,7 @@
  {
   "voice": "meathead",
   "text": "LOOK WHO READ THE MANUAL. ALL FOUR WORDS OF IT.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -14067,7 +14142,7 @@
  {
   "voice": "meathead",
   "text": "MAKE ME DO WHAT HE DOES, WHEN HE DOES IT! NOT A JUMP!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -14092,7 +14167,7 @@
  {
   "voice": "meathead",
   "text": "MASH! MASH! MASH! ARE THESE ARMS MADE OF NOODLES?!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -14742,7 +14817,7 @@
  {
   "voice": "meathead",
   "text": "NOT LIKE THIS! I HAVEN'T EVEN HAD MY PROTEIN SHAKE!",
-  "from": "game/stages/artie/ski.ts:452"
+  "from": "game/stages/artie/ski.ts:457"
  },
  {
   "voice": "meathead",
@@ -14852,7 +14927,7 @@
  {
   "voice": "meathead",
   "text": "OH LOOK. IT LISTENS.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -14877,7 +14952,7 @@
  {
   "voice": "meathead",
   "text": "OH, NOW WE FIGURE OUT THE DOOHICKEY. SLOW CLAP.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -14912,7 +14987,7 @@
  {
   "voice": "meathead",
   "text": "OKAY, PLAYER. I'M DONE BEING SUBTLE.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -15367,7 +15442,7 @@
  {
   "voice": "meathead",
   "text": "QUIT DANCING AROUND THE BIG IDIOT! HE CHARGES? CHARGE RIGHT BACK!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -15727,12 +15802,12 @@
  {
   "voice": "meathead",
   "text": "SEE? NOBODY HAD TO GET HURT. WELL. I DID.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
   "text": "SEE? WAS THAT SO HARD? WAS IT? WAS IT REALLY?",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -15957,7 +16032,7 @@
  {
   "voice": "meathead",
   "text": "SHOULDER FOR SHOULDER! LEGS FOR LEGS! THEN MASH EVERYTHING!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -16492,7 +16567,7 @@
  {
   "voice": "meathead",
   "text": "STOP HOPPING OVER HIM LIKE A SCARED GAZELLE! HIT HIM BACK!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -17357,7 +17432,7 @@
  {
   "voice": "meathead",
   "text": "THEN WE LOCK UP AND YOU MASH WHATEVER THAT THING HAS ON IT!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -17767,7 +17842,7 @@
  {
   "voice": "meathead",
   "text": "UPPERCUT A FREIGHT TRAIN? NO! SHOULDER! TO! SHOULDER!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -17777,7 +17852,7 @@
  {
   "voice": "meathead",
   "text": "UPPERCUT THE GUY ON THE FLOOR?! GET DOWN THERE AND SLIDE!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -17977,12 +18052,12 @@
  {
   "voice": "meathead",
   "text": "WHATEVER YOU'RE CLICKING, TAPPING OR SMACKING OVER THERE...",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
   "text": "WHEN WE LOCK UP, MASH! MASH LIKE MY PROTEIN DEPENDS ON IT!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -18257,7 +18332,7 @@
  {
   "voice": "meathead",
   "text": "WOW. THE SAME MOVE. WHAT A CONCEPT.",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
@@ -18272,7 +18347,7 @@
  {
   "voice": "meathead",
   "text": "WRONG MOVE AND HE FOLDS ME LIKE A LAWN CHAIR! MATCH HIM, DUMMY!",
-  "from": "game/stages/victor/doorman.ts:539"
+  "from": "game/stages/victor/doorman.ts:540"
  },
  {
   "voice": "meathead",
