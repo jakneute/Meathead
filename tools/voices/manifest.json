@@ -211,6 +211,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BRIDGED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "BURIED ALIVE!",
   "from": "KILL_CALLOUTS"
  },
@@ -473,6 +478,11 @@
   "voice": "announcer",
   "text": "FROM THE TOP ROPE!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GERMAN SUPLEX!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1233,6 +1243,11 @@
   "voice": "announcer",
   "text": "SUNK!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SUPLEXED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",

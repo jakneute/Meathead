@@ -8,6 +8,7 @@ export const GRAB_CALLOUTS = {
   slam: { lines: ['SLAMMED!', 'POWERBOMBED!', 'PILE DRIVEN!', 'BODY SLAMMED!'], color: '#F97316' },
   thrown: { lines: ['TOSSED!', 'AIRMAILED!', 'SHAKEN AND THROWN!', 'NO REFUNDS!'], color: '#FDE68A' },
   launched: { lines: ['LAUNCHED!', 'SKY HIGH!', 'AIR TIME!', 'WHAT GOES UP!'], color: '#7DD3FC' },
+  suplex: { lines: ['SUPLEXED!', 'GERMAN SUPLEX!', 'BRIDGED!', 'SPIKED!'], color: '#C084FC' },
 } as const;
 
 export type GrabCallout = keyof typeof GRAB_CALLOUTS;

@@ -45,7 +45,9 @@ const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 4, PUNC
 // The shakedown
 /** Thrown, it takes a modest share of him; slammed, a big one. */
 /** Each throw's animation: how long, and the frame he lets go on. */
-const TOSS: Record<Toss, { len: number; release: number }> = { forward: { len: 16, release: 7 }, back: { len: 18, release: 9 }, up: { len: 16, release: 6 }, down: { len: 18, release: 8 } };
+const TOSS: Record<Toss, { len: number; release: number }> = { forward: { len: 16, release: 7 }, back: { len: 24, release: 12 }, up: { len: 16, release: 6 }, down: { len: 18, release: 8 } };
+/** A slam's bounce (up, a frame) for Meathead; a suplex's share of who he suplexes. */
+const SLAM_BOUNCE = -9, SUPLEX_SHARE = 0.3;
 const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 24, THROW_SHARE = 0.15, SLAM_SHARE = 0.4, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
@@ -63,7 +65,7 @@ export const grabbable = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.h
   && ((isHumanoidKind(e.kind) && !NOT_PEOPLE.has(e.kind)) || MID_ANIMALS.has(e.kind));
 
 type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss';
-/** Which throw: on the way he's facing, back over his shoulder, straight up, or slammed down. */
+/** Which throw: on the way he's facing, back (a suplex), straight up, or slammed down. */
 type Toss = 'forward' | 'back' | 'up' | 'down';
 
 export interface Grab {
@@ -324,7 +326,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   }
 };
 
-/** Lets go of him, the way the throw's going: slammed down in front, launched up, or flung forward or back. */
+/** Lets go of him, the way the throw's going: slammed down in front, suplexed down behind, launched up, or flung forward. */
 const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
   const { state, fx } = ctx;
   const p = state.player;
@@ -341,10 +343,26 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
     if (e.health <= 0) { fx.blowAwayEnemy(e, { x: 0, y: -1 }, 'charge_kill', g.dir); fx.spawnKillCallout(e, grabCallout('slam')); }
     else { e.pauseTimer = 60; fx.spawnDamageNumber(e.pos, dmg, true); }
+    // (and the force of it bounces Meathead up off the floor)
+    p.vel = { x: 0, y: SLAM_BOUNCE }; p.isGrounded = false;
     return;
   }
-  const dir = g.toss === 'back' ? -g.dir : g.dir;
-  const v = g.toss === 'up' ? { x: g.dir * 3, y: -23 } : { x: dir * THROW_SPEED, y: g.toss === 'back' ? -9 : -6 };
+  if (g.toss === 'back') {
+    // Suplexed: arched back over him and driven down behind, head and shoulders first, skidding off a little
+    const dir = -g.dir;
+    e.pos = { x: centerX(state) + dir * (p.width / 2 + e.width / 2 + 4) - e.width / 2, y: feetY(state) - e.height };
+    e.vel = { x: dir * 5, y: -3 };
+    const dmg = Math.max(14, Math.round(e.maxHealth * SUPLEX_SHARE));
+    e.health -= dmg;
+    state.enemies.push(e);
+    playSound('slam'); playSound('crunch', 0.9, -2); shakeScreen(state, 10, 6);
+    for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 22, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
+    if (e.health <= 0) { fx.blowAwayEnemy(e, { x: dir * 4, y: -2 }, 'charge_kill', dir); fx.spawnKillCallout(e, grabCallout('suplex')); }
+    else { e.pauseTimer = 50; e.chargedAt = state.frame; fx.spawnDamageNumber(e.pos, dmg, true); }
+    return;
+  }
+  const dir = g.dir;
+  const v = g.toss === 'up' ? { x: g.dir * 3, y: -23 } : { x: dir * THROW_SPEED, y: -6 };
   e.pos = { x: centerX(state) + dir * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: p.pos.y - (g.toss === 'up' ? 40 : 16) };
   e.vel = { ...v };
   const dmg = Math.max(8, Math.round(e.maxHealth * THROW_SHARE));
@@ -515,8 +533,8 @@ interface TossKey { lean: number; hand: [number, number]; sink: number; turn?: n
 const TOSS_KEYS: Record<Toss, TossKey[]> = {
   // Forward: wound back with him over the shoulder, then heaved out in front, the body following through
   forward: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: -0.35, hand: [-6, -54], sink: 2 }, { lean: 0.4, hand: [36, -32], sink: 4 }, { lean: 0.5, hand: [34, -18], sink: 6 }],
-  // Back: swung up across in front, over his head, and slung off behind him over the shoulder
-  back: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: -0.1, hand: [12, -62], sink: 0 }, { lean: -0.5, hand: [-24, -48], sink: 3 }, { lean: -0.55, hand: [-30, -34], sink: 4 }],
+  // Back: a suplex. Hoisted up off his feet, then Meathead arches right back over into a bridge, driving him down behind
+  back: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: -0.9, hand: [8, -62], sink: 2 }, { lean: -2.0, hand: [-2, -58], sink: 10 }, { lean: -2.05, hand: [-2, -56], sink: 11 }],
   // Up: dipped down with him, then driven straight up, arms locked out overhead
   up: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: 0.25, hand: [22, -18], sink: 9 }, { lean: -0.12, hand: [10, -66], sink: -3 }, { lean: -0.08, hand: [8, -64], sink: -1 }],
   // Down: hoisted right up overhead, then brought down into the floor in front, sinking into it
@@ -545,7 +563,7 @@ const tossPose = (c: Ctx, f: number, key: TossKey, toss: Toss) => {
   const [hx, hy] = key.hand;
   drawArmTo(c, [-8, -22], [(hx - 8) / 2 - 2, (hy - 22) / 2 - 6], [hx - 4, hy - 1], true, 5);
   drawTorsoFromHips(c);
-  head(c, 3, -37, toss === 'up' ? -0.25 : toss === 'down' ? 0.25 : 0, 'roar', f);
+  head(c, 3, -37, toss === 'up' ? -0.25 : toss === 'down' ? 0.25 : toss === 'back' ? -0.3 : 0, 'roar', f);
   drawArmTo(c, [11, -22], [(hx + 11) / 2 + 4, (hy - 22) / 2 - 2], [hx + 2, hy], false, 6);
   c.restore();
 };
@@ -599,9 +617,9 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       sprite(ctx, x, y, g.dir, c => tossPose(c, f, key, g.toss));
       if (g.held) {
         // Still by the neck in his hands, swung round with them (flipped head down going over, for the back throw)
-        const over = g.toss === 'back' ? Math.min(1, g.t / TOSS.back.release) * Math.PI * 0.9 : 0;
-        const swing = (g.toss === 'forward' ? -key.lean : g.toss === 'down' ? key.lean * 0.6 : 0) * 0.8;
-        drawHeldByNeck(ctx, g.held, state, x + g.dir * hand.x, y + hand.y, g.dir, g.dir * (over + swing));
+        // (the suplex carries him over with Meathead's arch, till he's going in head first)
+        const turn = g.toss === 'back' ? key.lean * 1.4 : (g.toss === 'forward' ? -key.lean : g.toss === 'down' ? key.lean * 0.6 : 0) * 0.8;
+        drawHeldByNeck(ctx, g.held, state, x + g.dir * hand.x, y + hand.y, g.dir, g.dir * turn);
       }
       return;
     }
