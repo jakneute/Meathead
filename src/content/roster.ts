@@ -1,4 +1,5 @@
 import { WeaponType } from '../types';
+import { FINALE_STAGE } from '../constants';
 import { mapPoint } from './mapGeo';
 
 /** Boss roster, locations, arena colors and the weapons each boss drops. */
@@ -182,7 +183,24 @@ export const getWeaponInfo = (weapon: WeaponType) => {
   return { name: from ? WEAPON_NAMES[from] : 'Handgun', from: from ?? 'STANDARD ISSUE' };
 };
 
-export const getWeaponDescription = (weapon: WeaponType): string => {
+/**
+ * In the White House press room every gun's souped up (see combat/finaleBuffs.ts): what each does in there, to the
+ * agents and to the thing that was wearing the President.
+ */
+const FINALE_DESCRIPTIONS: Partial<Record<WeaponType, string>> = {
+  GUN: "Barely tickles him. Save it for when he's out of fight and begging. Then it's the only thing you need.",
+  SHOTGUN: "Two and a half times the ice, same spread. Agents stay frozen for ages. Him, it slows right down: his float, his windup, all of it.",
+  FLAMETHROWER: "Wall to wall now, and fatter. Cooks him, and hosing his beam weakens it. Doesn't stop it, so keep moving. Light him up oiled and he goes up.",
+  BOULDER: "Pitched like a fastball, straight at him. Anyone in the way just dies. The only thing that knocks him silly, and it splinters into whoever's standing near.",
+  TSUNAMI: "Floor to ceiling, wall to wall. Carries him off and slams him into the wall. Doesn't stun him. Only five of them in here.",
+  SLUDGE: "Barf him out of the air: down on the floor in it, stuck, his aim all over the place, and he takes more while he's down there. The slick spreads wall to wall and stays.",
+  TASER: "Reaches the whole room. Just tingles him, unless the juice jumps onto him off one of his own men frying: then he's stunned too.",
+  OIL_ROCKET: "Three at once in a fork: straight, up a bit, down a bit. Every one that lands oils him. A miss still greases whoever's near. Then the flamethrower, even on an empty tank.",
+  NEEDLES: "An agent you overdose floats straight into him, every time, and the needles go right through a riot shield. They stick in him too. He never ODs.",
+};
+
+export const getWeaponDescription = (weapon: WeaponType, stageId?: string | null): string => {
+  if (stageId === FINALE_STAGE && FINALE_DESCRIPTIONS[weapon]) return FINALE_DESCRIPTIONS[weapon]!;
   if (weapon === 'LMG') return "Dirty Dan's pride and joy. Zero accuracy, every round goes through three of them, and getting shot doesn't even make you let go. Let God sort out the rest.";
   if (weapon === 'GUN') return "Your trusty sidearm. Straight line, never runs dry, never jams. The only thing small enough to pop a gas line. Point it at a face and pull the trigger.";
   const bossId = Object.keys(BOSS_WEAPON_MAP).find(id => BOSS_WEAPON_MAP[id] === weapon);
