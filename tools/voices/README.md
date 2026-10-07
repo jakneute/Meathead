@@ -2,7 +2,7 @@
 
 Every line in the game is recorded ahead of time in its character's own voice, with
 [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) (Apache 2.0), an open speech model run locally. The recordings
-are packed into `src/generated/voices.bin`, which the release build puts inside the page: the game itself never needs
+are packed into `src/m1/generated/voices.bin`, which the release build puts inside the page: the game itself never needs
 a network. A line that hasn't been recorded is only shown as text, never spoken (and is listed in
 `window.__voiceMisses` in the browser console, to find gaps).
 

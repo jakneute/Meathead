@@ -1,7 +1,7 @@
 // The grabs' own kill callouts (called by the announcer, like the rest): beaten to death on the ground, slammed into
 // the floor, thrown into the distance, thrown up and coming down. Added to the engine's callout table at startup.
 
-import { KILL_CALLOUTS, type KillCallout } from '../content/dialogue';
+import { KILL_CALLOUTS, type KillCallout } from '../../m1/content/dialogue';
 
 export const GRAB_CALLOUTS = {
   beatdown: { lines: ['GROUND AND POUNDED!', 'TAPPED OUT!', 'REFEREE STOPPAGE!', 'BEATEN SENSELESS!', 'NO MERCY RULE!'], color: '#DC2626' },

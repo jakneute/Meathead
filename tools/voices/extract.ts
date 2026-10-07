@@ -13,9 +13,9 @@
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as dialogue from '../../src/content/dialogue';
-import * as deaths from '../../src/content/deaths';
-import { GRAB_CALLOUTS } from '../../src/m2/callouts';
+import * as dialogue from '../../src/m1/content/dialogue';
+import * as deaths from '../../src/m1/content/deaths';
+import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
 
 const ROOT = path.resolve(__dirname, '../../src');
 const out = new Map<string, { voice: string; text: string; from: string }>();

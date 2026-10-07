@@ -2,9 +2,9 @@
 // that doesn't fit Happy Land (consistency.ts), so they're never picked; and anything the engine's code says itself
 // that doesn't fit is dropped before it's said. A list left empty is taken out, so the next most general one is used.
 
-import * as dialogue from '../content/dialogue';
-import * as deaths from '../content/deaths';
-import { setLineFilter } from '../game/platform/speech';
+import * as dialogue from '../../m1/content/dialogue';
+import * as deaths from '../../m1/content/deaths';
+import { setLineFilter } from '../../m1/game/platform/speech';
 import { fitsHappyLand } from './consistency';
 
 /** Filters every list of lines in it, in place; returns whether anything's left. */

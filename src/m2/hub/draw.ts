@@ -6,12 +6,12 @@
 //   low wall round the back of it, lamp posts with their banners, and the portals, each dressed as its land, swirling
 //   inside; flower beds along the front.
 
-import type { GameState } from '../game/core/state';
-import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants';
-import { INK, dark, lite, ink } from '../game/render/npc/kit';
-import { mix } from '../game/render/backdrops/core';
+import type { GameState } from '../../m1/game/core/state';
+import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
+import { INK, dark, lite, ink } from '../../m1/game/render/npc/kit';
+import { mix } from '../../m1/game/render/backdrops/core';
 import { LANDS, STAFF_SLOT, HUB_SLOTS, type Land } from './lands';
-import { HUB, HUB_CIRC, slotX } from './hubGeom';
+import { HUB, HUB_CIRC, slotX } from './geometry';
 
 type Ctx = CanvasRenderingContext2D;
 const box = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };

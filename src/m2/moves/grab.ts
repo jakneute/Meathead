@@ -17,19 +17,19 @@
 //
 // Both work on people and the mid-sized animals; not the little ones, the big ones, the machines or the bosses.
 
-import type { FrameContext } from '../game/core/context';
-import type { GameState } from '../game/core/state';
-import { shakeScreen } from '../game/core/state';
-import { NO_CONTROLS, type Controls } from '../game/platform/input';
-import type { Enemy, EnemyKind, WeaponType } from '../types';
-import { isHumanoidKind, drawKindEnemy, kindHead } from '../game/render/enemies';
-import { isMidBoss } from '../game/combat/midBoss';
-import { playSound } from '../game/platform/audio';
-import { INITIAL_PLAYER_HEALTH } from '../constants';
-import { beginSprite, endSprite } from '../game/render/player/spriteOutline';
-import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, type Mood } from '../game/render/player/body';
-import { drawPlayer } from '../game/render/player/player';
-import { btn, pressed, pollM2 } from './input';
+import type { FrameContext } from '../../m1/game/core/context';
+import type { GameState } from '../../m1/game/core/state';
+import { shakeScreen } from '../../m1/game/core/state';
+import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
+import type { Enemy, EnemyKind, WeaponType } from '../../m1/types';
+import { isHumanoidKind, drawKindEnemy, kindHead } from '../../m1/game/render/enemies';
+import { isMidBoss } from '../../m1/game/combat/midBoss';
+import { playSound } from '../../m1/game/platform/audio';
+import { INITIAL_PLAYER_HEALTH } from '../../m1/constants';
+import { beginSprite, endSprite } from '../../m1/game/render/player/spriteOutline';
+import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, type Mood } from '../../m1/game/render/player/body';
+import { drawPlayer } from '../../m1/game/render/player/player';
+import { btn, pressed, pollM2 } from '../input';
 import { grabCallout } from './callouts';
 
 type Ctx = CanvasRenderingContext2D;

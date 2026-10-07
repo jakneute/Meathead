@@ -8,10 +8,10 @@ import * as fs from 'fs';
 import ts from 'typescript';
 
 const M1_ONLY = [
-  /[\/]src[\/]game[\/]stages[\/](artie|barry|dale|ernie|finale|gym|hector|oscar|tommy|victor|whiteHouse)[\/]/,
-  /[\/]src[\/]game[\/]bosses[\/](alien|alienDeath|artie|barry|dale|ernie|hector|oscar|tommy|victor)\.ts$/,
-  /[\/]src[\/]game[\/]render[\/]bosses[\/](?!kit\.ts$|boulders\.ts$)/,
-  /[\/]src[\/]game[\/]scenes[\/](ending|endingAlien|epilogue|faceOff|faceOffEgg|fastFood|grossUp|intro|radio|sewerNuke|sewerNukeDraw|volcanoFinale|volcanoFinaleDraw|victoryPee|victoryPeeDraw|weaponShot|weaponShotFx|bossFour|alienLook|titleArt)\.ts$/,
+  /[\/]src[\/]m1[\/]game[\/]stages[\/](artie|barry|dale|ernie|finale|gym|hector|oscar|tommy|victor|whiteHouse)[\/]/,
+  /[\/]src[\/]m1[\/]game[\/]bosses[\/](alien|alienDeath|artie|barry|dale|ernie|hector|oscar|tommy|victor)\.ts$/,
+  /[\/]src[\/]m1[\/]game[\/]render[\/]bosses[\/](?!kit\.ts$|boulders\.ts$)/,
+  /[\/]src[\/]m1[\/]game[\/]scenes[\/](ending|endingAlien|epilogue|faceOff|faceOffEgg|fastFood|grossUp|intro|radio|sewerNuke|sewerNukeDraw|volcanoFinale|volcanoFinaleDraw|victoryPee|victoryPeeDraw|weaponShot|weaponShotFx|bossFour|alienLook|titleArt)\.ts$/,
 ];
 
 /** Every value a module exports (types are gone by then anyway), and its `export * from`s, read off its syntax tree. */

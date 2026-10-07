@@ -1,6 +1,6 @@
 """
 Records every line in manifest.json (see extract.ts) in its speaker's voice (cast.json), with Kokoro (an open speech
-model, run here, offline), and packs them into src/generated/voices.bin for the game. Recordings are cached by what
+model, run here, offline), and packs them into src/m1/generated/voices.bin for the game. Recordings are cached by what
 went into them (tools/voices/cache), so a run only records lines that are new or changed.
 
   tools/voices/.venv/Scripts/python.exe tools/voices/generate.py [--limit N] [--only VOICE]

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { LANDS, type Land } from './lands';
-import { Prompt } from '../components/ButtonIcons';
+import { Prompt } from '../../m1/components/ButtonIcons';
 
 // The map: Happy Land's official guest map, the whole ridiculous thing, the land you're about to go into picked out
 // on it. Painted on a canvas, redrawn every frame (the highlight blinks).

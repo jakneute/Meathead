@@ -8,14 +8,14 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as dialogue from '../../src/content/dialogue';
-import * as deaths from '../../src/content/deaths';
+import * as dialogue from '../../src/m1/content/dialogue';
+import * as deaths from '../../src/m1/content/deaths';
 import { M2_ENEMY_KINDS } from '../../src/m2/roster';
-import { fitsHappyLand } from '../../src/m2/consistency';
-import { GRAB_CALLOUTS } from '../../src/m2/callouts';
+import { fitsHappyLand } from '../../src/m2/lines/consistency';
+import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
 
 const ROOT = path.resolve(__dirname, '../..');
-const IN = path.join(ROOT, 'src/generated/voices.bin');
+const IN = path.join(ROOT, 'src/m1/generated/voices.bin');
 const OUT = path.join(ROOT, 'src/m2/generated/voices.bin');
 const manifest: { voice: string; text: string; from: string }[] = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/voices/manifest.json'), 'utf8'));
 
@@ -42,7 +42,7 @@ add('death', deaths.FALL_DEATH_LINES);
 add('death', deaths.ANIMAL_DEATH_LINES);
 add('death', pick(deaths.DEATH_LINES as Record<string, unknown>, withShots));
 // Whatever the shared engine says itself (not a stage's, a boss's or a cutscene's)
-const shared = (from: string) => /^game\/(core|player|combat|enemies|platform)\//.test(from);
+const shared = (from: string) => /^(m1\/)?game\/(core|player|combat|enemies|platform)\//.test(from);
 // (the bosses' parting words, said from the engine's code, are Meathead 1's bosses': written in mixed case, not his shouting)
 for (const m of manifest) if (shared(m.from) && !/[a-z]{3}/.test(m.text)) want.add(`${m.voice}|${m.text}`);
 // (and nothing that names Meathead 1's places, people or weather: consistency.ts)

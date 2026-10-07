@@ -1,7 +1,7 @@
 // Meathead 2's own buttons, on top of the engine's controls: the grabs (Y + B, Y + X on a pad; R and T on the
 // keyboard) and the menu buttons for the map (confirm/back, swapped on a Switch pad like every menu).
 
-import { getActiveGamepad, isButtonPressed, GP_BUTTONS, menuButtons } from '../game/platform/gamepad';
+import { getActiveGamepad, isButtonPressed, GP_BUTTONS, menuButtons } from '../m1/game/platform/gamepad';
 
 const held = new Set<string>();
 let attached = false;

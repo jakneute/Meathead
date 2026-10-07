@@ -4,7 +4,7 @@ import hashlib, json, os, re
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 CACHE = os.path.join(HERE, 'cache')
-OUT = os.path.join(ROOT, 'src', 'generated', 'voices.bin')
+OUT = os.path.join(ROOT, 'src', 'm1', 'generated', 'voices.bin')
 
 cast = {k: v for k, v in json.load(open(os.path.join(HERE, 'cast.json'), encoding='utf-8')).items() if not k.startswith('_')}
 manifest = json.load(open(os.path.join(HERE, 'manifest.json'), encoding='utf-8'))

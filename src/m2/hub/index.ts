@@ -2,18 +2,18 @@
 // (the world's wrapped round a turning cylinder, Meathead 1's storm-climb trick, with the lands' skylines turning past
 // slower behind it); stood on a land's path, up brings up the map of where he'd be going: confirm to go, back out of it.
 
-import type { StageLayout } from '../game/stages/index';
-import type { GameState } from '../game/core/state';
-import { groundBlocks } from '../game/core/terrain';
-import { NO_CONTROLS, type Controls } from '../game/platform/input';
-import { playMenuOk, playMenuBack } from '../game/platform/audio';
-import { GROUND_Y } from '../constants';
+import type { StageLayout } from '../../m1/game/stages/index';
+import type { GameState } from '../../m1/game/core/state';
+import { groundBlocks } from '../../m1/game/core/terrain';
+import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
+import { playMenuOk, playMenuBack } from '../../m1/game/platform/audio';
+import { GROUND_Y } from '../../m1/constants';
 import { LANDS, STAFF_SLOT, HUB_SLOTS } from './lands';
-import { setUi, goTo } from './store';
-import { pollM2, pressed } from './input';
-import { drawHubBackdrop, drawHubBack, drawHubFront } from './hubDraw';
-import { HUB, HUB_CIRC, slotX } from './hubGeom';
-import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from './grab';
+import { setUi, goTo } from '../store';
+import { pollM2, pressed } from '../input';
+import { drawHubBackdrop, drawHubBack, drawHubFront } from './draw';
+import { HUB, HUB_CIRC, slotX } from './geometry';
+import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
 
 export const HUB_STAGE = 'M2 Happy Hub';
 

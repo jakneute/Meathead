@@ -2,15 +2,15 @@
 // animals) walking in from the far end to try the grabs on, a few at a time, forever. The door back to the hub is at
 // the near end.
 
-import type { StageLayout } from '../game/stages/index';
-import type { GameState } from '../game/core/state';
-import type { EnemyKind } from '../types';
-import { groundBlocks } from '../game/core/terrain';
-import { makeKindEnemy } from '../game/enemies/kinds';
-import { GROUND_Y, CANVAS_WIDTH } from '../constants';
-import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from './grab';
-import { setUi, goTo } from './store';
-import { M2_ENEMY_KINDS } from './roster';
+import type { StageLayout } from '../../m1/game/stages/index';
+import type { GameState } from '../../m1/game/core/state';
+import type { EnemyKind } from '../../m1/types';
+import { groundBlocks } from '../../m1/game/core/terrain';
+import { makeKindEnemy } from '../../m1/game/enemies/kinds';
+import { GROUND_Y, CANVAS_WIDTH } from '../../m1/constants';
+import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
+import { setUi, goTo } from '../store';
+import { M2_ENEMY_KINDS } from '../roster';
 
 export const PEN_STAGE = 'M2 Staff Pen';
 const X0 = -40000, LEN = 2400;

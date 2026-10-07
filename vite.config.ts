@@ -5,7 +5,7 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 import { m2Stub } from './tools/m2Stub';
 
 // `vite build --mode release` packs the whole game into one self-contained HTML file; `--mode public` the same, for
-// players (no cheats, the intro always: see src/build.ts), into a folder of its own.
+// players (no cheats, the intro always: see src/m1/build.ts), into a folder of its own.
 export default defineConfig(({ mode }) => ({
   server: {
     port: 3000,

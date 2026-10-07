@@ -1,22 +1,22 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import GameCanvas from '../components/GameCanvas';
-import HUD from '../components/HUD';
-import { Prompt } from '../components/ButtonIcons';
-import { GameStatus, WeaponType } from '../types';
-import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH } from '../constants';
-import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
-import { loadVoicePack } from '../game/platform/voiceclips';
+import GameCanvas from '../m1/components/GameCanvas';
+import HUD from '../m1/components/HUD';
+import { Prompt } from '../m1/components/ButtonIcons';
+import { GameStatus, WeaponType } from '../m1/types';
+import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH } from '../m1/constants';
+import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../m1/game/platform/gamepad';
+import { loadVoicePack } from '../m1/game/platform/voiceclips';
 // (its own little pack: just the lines it can say, out of Meathead 1's: tools/voices/m2pack.ts)
 import voicePackUrl from './generated/voices.bin?url';
-import { registerStageLayout } from '../game/stages/index';
-import { hubLayout, HUB_STAGE, setHubStart } from './hub';
-import { penLayout, PEN_STAGE } from './pen';
-import { LANDS, STAFF_SLOT } from './lands';
+import { registerStageLayout } from '../m1/game/stages/index';
+import { hubLayout, HUB_STAGE, setHubStart } from './hub/index';
+import { penLayout, PEN_STAGE } from './pen/index';
+import { LANDS, STAFF_SLOT } from './hub/lands';
 import { getUi, subscribeUi, onTravel, setUi } from './store';
 import { attachM2Keys } from './input';
-import MapCard from './MapCard';
-import { cleanLines } from './cleanLines';
-import { registerGrabCallouts } from './callouts';
+import MapCard from './hub/MapCard';
+import { cleanLines } from './lines/clean';
+import { registerGrabCallouts } from './moves/callouts';
 
 // Meathead 2: Meathead Goes to Happy Land. For now: the hub (walk round it, look at the map for each land) and the
 // test pen behind the staff door (try out the beatdown and the shakedown on whoever walks in).
