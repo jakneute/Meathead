@@ -1502,17 +1502,17 @@
  {
   "voice": "barry.resident",
   "text": "...I'M OKAY!",
-  "from": "game/stages/barry/dumpster.ts:85"
+  "from": "game/stages/barry/dumpster.ts:87"
  },
  {
   "voice": "barry.resident",
   "text": "OW! GLASS! A FORK! A NEEDLE! ...A WHOLE FISH?!",
-  "from": "game/stages/barry/dumpster.ts:85"
+  "from": "game/stages/barry/dumpster.ts:87"
  },
  {
   "voice": "barry.resident",
   "text": "SHUT UP!",
-  "from": "game/stages/barry/dumpster.ts:85"
+  "from": "game/stages/barry/dumpster.ts:87"
  },
  {
   "voice": "boss.alien",
@@ -6617,7 +6617,7 @@
  {
   "voice": "death",
   "text": "NOISE COMPLAINT",
-  "from": "game/stages/barry/dumpster.ts:62"
+  "from": "game/stages/barry/dumpster.ts:64"
  },
  {
   "voice": "death",
@@ -9542,7 +9542,7 @@
  {
   "voice": "meathead",
   "text": "...I'M OKAY!",
-  "from": "game/stages/barry/dumpster.ts:85"
+  "from": "game/stages/barry/dumpster.ts:87"
  },
  {
   "voice": "meathead",
@@ -13031,6 +13031,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I DON'T KNOW WHAT ANY OF THOSE WORDS MEAN.",
+  "from": "components/EpilogueCutscene.tsx:28"
+ },
+ {
+  "voice": "meathead",
   "text": "I DON'T LIKE CANDLES. THEY'RE HOT AND SMALL.",
   "from": "OSCAR_LINES"
  },
@@ -15047,7 +15052,7 @@
  {
   "voice": "meathead",
   "text": "OW! GLASS! A FORK! A NEEDLE! ...A WHOLE FISH?!",
-  "from": "game/stages/barry/dumpster.ts:85"
+  "from": "game/stages/barry/dumpster.ts:87"
  },
  {
   "voice": "meathead",
@@ -16002,7 +16007,7 @@
  {
   "voice": "meathead",
   "text": "SHUT UP!",
-  "from": "game/stages/barry/dumpster.ts:85"
+  "from": "game/stages/barry/dumpster.ts:87"
  },
  {
   "voice": "meathead",
@@ -18177,7 +18182,7 @@
  {
   "voice": "meathead",
   "text": "WHOA-OA-OA-OAAAAAAH!",
-  "from": "game/stages/barry/dumpster.ts:63"
+  "from": "game/stages/barry/dumpster.ts:65"
  },
  {
   "voice": "meathead",
@@ -18203,11 +18208,6 @@
   "voice": "meathead",
   "text": "WHY AM I PLINKING HIM? I GOT A WHOLE ARSENAL OF STOLEN SHIT.",
   "from": "FINALE_LINES"
- },
- {
-  "voice": "meathead",
-  "text": "WHY ARE THERE TWO OF YOU?",
-  "from": "components/EpilogueCutscene.tsx:28"
  },
  {
   "voice": "meathead",
