@@ -10,7 +10,7 @@ import type { GameState } from '../../m1/game/core/state';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { INK, dark, lite, ink } from '../../m1/game/render/npc/kit';
 import { mix } from '../../m1/game/render/backdrops/core';
-import { LANDS, STAFF_SLOT, HUB_SLOTS, type Land } from './lands';
+import { LANDS, SPOTS, HUB_SLOTS, type Land } from './lands';
 import { HUB, HUB_CIRC, slotX } from './geometry';
 
 type Ctx = CanvasRenderingContext2D;
@@ -51,7 +51,7 @@ const drawHubFar = (ctx: Ctx, state: GameState) => {
     box(ctx, x - 46, y, 110, 4, '#D3DCEB');
   });
   // Each land's landmark on the skyline, right behind its portal
-  LANDS.forEach((land, i) => each(slotX(i), x => landmark(ctx, land, x, top + 440, f)));
+  SPOTS.forEach((s, i) => { if (s.kind === 'land') each(slotX(i), x => landmark(ctx, LANDS[s.land], x, top + 440, f)); else if (s.kind === 'america') each(slotX(i), x => americaLandmark(ctx, x, top + 440, f)); });
   // The haze down at the horizon
   for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(246, 231, 210, ${(0.12 + i * 0.1).toFixed(2)})`; ctx.fillRect(x0, top + 380 + i * 18, x1 - x0, 18); }
   // The treeline, and the monorail on its beam with the train going round
@@ -185,7 +185,8 @@ export const drawHubBack = (ctx: Ctx, state: GameState) => {
   box(ctx, x0, GROUND_Y + 20, x1 - x0, 1, '#B8A584'); box(ctx, x0, GROUND_Y, x1 - x0, 2, '#F5EBD6');
   // The portals, the staff door, and the lamp posts between
   for (let i = 0; i < HUB_SLOTS; i++) {
-    laps(state, slotX(i), x => (i === STAFF_SLOT ? staffDoor(ctx, x, f) : portal(ctx, LANDS[i], x, f)));
+    const spot = SPOTS[i];
+    laps(state, slotX(i), x => (spot.kind === 'staff' ? staffDoor(ctx, x, f) : spot.kind === 'america' ? americaGate(ctx, x, f) : portal(ctx, LANDS[spot.land], x, f)));
     laps(state, HUB.x0 + i * HUB.slot, x => lamp(ctx, x, i, f));
   }
 };
@@ -314,6 +315,58 @@ const portal = (ctx: Ctx, land: Land, cx: number, f: number) => {
   ink(ctx, () => ctx.roundRect(cx - tw / 2, top + 6, tw, 24, 4), land.sign, 2);
   box(ctx, cx - tw / 2 + 3, top + 8, tw - 6, 2, lite(land.sign, 0.25));
   ctx.fillStyle = land.signText; ctx.textAlign = 'center'; ctx.fillText(land.name, cx, top + 23); ctx.textAlign = 'left';
+};
+
+/** Behind America USA's way in: the biggest flag in the world on the biggest pole, and a bald eagle on top of it. */
+const americaLandmark = (ctx: Ctx, x: number, y: number, f: number) => {
+  const haze = (c: string) => mix(c, '#B7CDF4', 0.42);
+  box(ctx, x - 4, y - 300, 8, 300, haze('#A8A29E')); box(ctx, x - 4, y - 300, 3, 300, haze('#E7E5E4'));
+  for (let s = 0; s < 13; s++) {
+    const wave = (k: number) => Math.sin(f * 0.05 + k * 0.08) * 6;
+    for (let k = 0; k < 150; k += 6) box(ctx, x + 4 + k, y - 296 + s * 7 + wave(k), 6, 7, haze(s % 2 ? '#F8FAFC' : '#DC2626'));
+  }
+  for (let k = 0; k < 60; k += 6) for (let s = 0; s < 7; s++) box(ctx, x + 4 + k, y - 296 + s * 7 + Math.sin(f * 0.05 + k * 0.08) * 6, 6, 7, haze('#1E3A8A'));
+  // (the eagle on top, wings out)
+  ctx.fillStyle = haze('#78350F'); ctx.beginPath(); ctx.moveTo(x - 30, y - 312); ctx.lineTo(x, y - 304); ctx.lineTo(x + 30, y - 312); ctx.lineTo(x + 6, y - 298); ctx.lineTo(x - 6, y - 298); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = haze('#F8FAFC'); ctx.beginPath(); ctx.arc(x, y - 310, 5, 0, Math.PI * 2); ctx.fill();
+  box(ctx, x + 4, y - 310, 5, 2, haze('#F59E0B'));
+};
+
+/**
+ * Where he came in: the end of America USA's narrow street, through an arch hung with bunting. Turnstiles across it
+ * that only turn one way (EXIT ONLY: NO RE-ENTRY), and down the street behind them the shopfronts, flags out.
+ */
+const americaGate = (ctx: Ctx, cx: number, f: number) => {
+  const top = GROUND_Y - 230, W = 170;
+  // The street beyond, narrowing away: shopfronts either side, flags, the far end in haze
+  ctx.save(); ctx.beginPath(); ctx.rect(cx - W / 2, top + 30, W, GROUND_Y - top - 30); ctx.clip();
+  bands(ctx, cx - W / 2, top + 30, W, GROUND_Y - top - 30, ['#BFDBFE', '#DBEAFE', '#F1E8D8']);
+  for (const side of [-1, 1]) for (let k = 0; k < 4; k++) {
+    const d = 1 - k * 0.2, fx = cx + side * (W / 2 - 12 - k * 14) - (side < 0 ? 0 : 26 * d), fh = 120 * d;
+    ink(ctx, () => ctx.rect(fx, GROUND_Y - fh, 26 * d, fh), ['#FCA5A5', '#FDE68A', '#BFDBFE', '#F5F5F4'][(k + (side > 0 ? 2 : 0)) % 4]);
+    box(ctx, fx + 4 * d, GROUND_Y - fh * 0.55, 18 * d, 14 * d, '#7DD3FC');
+    box(ctx, fx, GROUND_Y - fh, 26 * d, 6 * d, (k % 2 ? '#DC2626' : '#1E3A8A'));
+  }
+  box(ctx, cx - 24, GROUND_Y - 10, 48, 10, '#E7D9BC');
+  ctx.restore();
+  // The arch, posts and bunting
+  for (const x of [cx - W / 2 - 22, cx + W / 2]) { ink(ctx, () => ctx.rect(x, top + 20, 22, GROUND_Y - top - 20), '#F8FAFC'); for (let k = 0; k < 8; k++) box(ctx, x + 2, top + 40 + k * 22, 18, 3, '#DC2626'); }
+  ink(ctx, () => ctx.rect(cx - W / 2 - 30, top, W + 60, 30), '#1E3A8A', 2);
+  for (let k = 0; k < 12; k++) box(ctx, cx - W / 2 - 24 + k * 19, top + 4, 4, 4, '#F8FAFC');
+  ctx.fillStyle = '#F8FAFC'; ctx.font = '12px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('AMERICA USA', cx, top + 24); ctx.textAlign = 'left';
+  for (let k = 0; k < 8; k++) {
+    const bx = cx - W / 2 + k * (W / 8), sag = Math.sin(f * 0.04 + k) * 1.5;
+    ctx.fillStyle = ['#DC2626', '#F8FAFC', '#1E3A8A'][k % 3]; ctx.beginPath(); ctx.moveTo(bx, top + 32); ctx.quadraticCurveTo(bx + W / 16, top + 46 + sag, bx + W / 8, top + 32); ctx.lineTo(bx, top + 32); ctx.fill();
+  }
+  // The turnstiles across it, and the sign
+  for (let k = 0; k < 3; k++) {
+    const tx = cx - 50 + k * 50;
+    ink(ctx, () => ctx.rect(tx - 6, GROUND_Y - 44, 12, 44), '#9CA3AF');
+    const a = Math.sin(f * 0.02 + k) * 0.1;
+    for (const r of [0, 2.1, 4.2]) { ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(tx, GROUND_Y - 32); ctx.lineTo(tx + Math.cos(r + a) * 18, GROUND_Y - 32 + Math.sin(r + a) * 6); ctx.stroke(); }
+  }
+  ink(ctx, () => ctx.rect(cx - 52, GROUND_Y - 84, 104, 26), '#DC2626', 2);
+  ctx.fillStyle = '#FFFFFF'; ctx.font = '6px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('EXIT ONLY', cx, GROUND_Y - 73); ctx.fillText('NO RE-ENTRY', cx, GROUND_Y - 63); ctx.textAlign = 'left';
 };
 
 /** Between Foreign Lands and Space Land: a plain gray door in the wall, STAFF ONLY. */

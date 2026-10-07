@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { LANDS, type Land } from './lands';
+import { LANDS, MAP_SECTORS, AMERICA_SECTOR, landSector, type Land } from './lands';
 import { Prompt } from '../../m1/components/ButtonIcons';
 
 // The map: Happy Land's official guest map, the whole ridiculous thing, the land you're about to go into picked out
@@ -13,9 +13,9 @@ const text = (g: Ctx, s: string, x: number, y: number, size: number, color: stri
   g.font = `${size}px "Press Start 2P"`; g.textAlign = align; g.fillStyle = color; g.fillText(s, x, y);
 };
 
-/** A land's slice of the ring round the hub (its edge wobbly, like it was drawn by a guy). */
+/** A land's slice of the ring round the hub, sector `i` of the nine (its edge wobbly, like it was drawn by a guy). */
 const slice = (g: Ctx, i: number) => {
-  const a0 = -Math.PI / 2 + (i / 8) * Math.PI * 2 + 0.02, a1 = a0 + Math.PI * 2 / 8 - 0.04;
+  const a0 = -Math.PI / 2 + (i / MAP_SECTORS) * Math.PI * 2 + 0.02, a1 = a0 + Math.PI * 2 / MAP_SECTORS - 0.04;
   g.beginPath();
   g.arc(HUB_C.x, HUB_C.y, HUB_R + 10, a0, a1);
   for (let k = 10; k >= 0; k--) {
@@ -25,7 +25,7 @@ const slice = (g: Ctx, i: number) => {
   g.closePath();
 };
 const sliceMid = (i: number, r: number) => {
-  const a = -Math.PI / 2 + ((i + 0.5) / 8) * Math.PI * 2;
+  const a = -Math.PI / 2 + ((i + 0.5) / MAP_SECTORS) * Math.PI * 2;
   return { x: HUB_C.x + Math.cos(a) * r, y: HUB_C.y + Math.sin(a) * r * 0.82 };
 };
 
@@ -42,7 +42,8 @@ const paint = (g: Ctx, chosen: number, t: number) => {
   g.strokeStyle = '#94A3B8'; g.lineWidth = 3; g.setLineDash([8, 4]); g.beginPath(); g.ellipse(HUB_C.x, HUB_C.y, LAND_R + 34, (LAND_R + 34) * 0.82, 0, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
   text(g, 'MONORAIL TO THE OTHER MONORAIL', HUB_C.x + 120, 24, 5, '#475569');
   // The lands
-  LANDS.forEach((land, i) => {
+  LANDS.forEach((land, li) => {
+    const i = landSector(li);
     g.fillStyle = land.swirl[1]; slice(g, i); g.fill();
     g.strokeStyle = '#3B2A14'; g.lineWidth = 1.5; g.stroke();
     landIcon(g, land, sliceMid(i, 92));
@@ -55,11 +56,16 @@ const paint = (g: Ctx, chosen: number, t: number) => {
   // The hub in the middle, and you in it
   g.fillStyle = '#E7D9BC'; g.beginPath(); g.ellipse(HUB_C.x, HUB_C.y, HUB_R + 6, (HUB_R + 6) * 0.82, 0, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#3B2A14'; g.stroke();
   text(g, 'HAPPY', HUB_C.x, HUB_C.y - 2, 6, '#7C2D12'); text(g, 'HUB', HUB_C.x, HUB_C.y + 8, 6, '#7C2D12');
-  // America USA down the boulevard, the ticket booths, the parking (all of it)
-  g.fillStyle = '#E7D9BC'; g.fillRect(HUB_C.x - 12, HUB_C.y + 120, 24, 210);
-  for (let k = 0; k < 6; k++) { g.fillStyle = k % 2 ? '#DC2626' : '#1E3A8A'; g.fillRect(HUB_C.x - 22, HUB_C.y + 150 + k * 9, 6, 5); g.fillRect(HUB_C.x + 16, HUB_C.y + 150 + k * 9, 6, 5); }
-  text(g, 'AMERICA USA', HUB_C.x + 74, HUB_C.y + 172, 6, '#1E3A8A');
-  text(g, 'TICKETS', HUB_C.x + 54, HUB_C.y + 196, 5, '#57534E');
+  // America USA: the one way in, a narrow street through the gap in the lands at the bottom, from the ticket booths up
+  // to the hub, shops all down it, flags out; the booths at the bottom of it, the parking past them (all of it)
+  const gap = sliceMid(AMERICA_SECTOR, HUB_R + 8);
+  g.fillStyle = '#E7D9BC'; g.beginPath(); g.moveTo(gap.x - 7, gap.y - 4); g.lineTo(gap.x + 7, gap.y - 4); g.lineTo(gap.x + 9, H - 52); g.lineTo(gap.x - 9, H - 52); g.closePath(); g.fill();
+  g.strokeStyle = '#3B2A14'; g.lineWidth = 1; g.stroke();
+  for (let y = gap.y + 6; y < H - 56; y += 9) { const k = Math.round(y / 9); g.fillStyle = k % 2 ? '#DC2626' : '#1E3A8A'; g.fillRect(gap.x - 18, y, 8, 6); g.fillRect(gap.x + 10, y, 8, 6); g.fillStyle = '#F8FAFC'; g.fillRect(gap.x - 17, y + 1, 2, 2); g.fillRect(gap.x + 11, y + 1, 2, 2); }
+  text(g, 'AMERICA USA', gap.x + 26, (gap.y + H - 52) / 2, 6, '#1E3A8A', 'left');
+  text(g, '(ONE WAY. NO RE-ENTRY.)', gap.x + 26, (gap.y + H - 52) / 2 + 10, 4, '#57534E', 'left');
+  g.fillStyle = '#7F1D1D'; for (let k = -2; k <= 2; k++) g.fillRect(gap.x + k * 9 - 3, H - 52, 6, 8);
+  text(g, 'TICKETS', gap.x - 24, H - 44, 5, '#57534E', 'right');
   g.fillStyle = '#A8A29E'; g.fillRect(HUB_C.x - 80, H - 34, 160, 22); g.strokeStyle = '#57534E'; g.strokeRect(HUB_C.x - 80, H - 34, 160, 22);
   text(g, 'PARKING P1-P47', HUB_C.x, H - 20, 6, '#1C1917');
   text(g, 'OVERFLOW PARKING: NEXT STATE >', W - 8, H - 20, 5, '#57534E', 'right');
@@ -71,8 +77,9 @@ const paint = (g: Ctx, chosen: number, t: number) => {
   const blink = Math.floor(t / 300) % 2 === 0;
   g.fillStyle = '#DC2626'; g.beginPath(); g.arc(HUB_C.x, HUB_C.y + 18, 3, 0, Math.PI * 2); g.fill();
   if (chosen >= 0) {
-    g.strokeStyle = blink ? '#FDE047' : '#DC2626'; g.lineWidth = 4; slice(g, chosen); g.stroke();
-    const m = sliceMid(chosen, LAND_R + 18), a = sliceMid(chosen, 70);
+    const sec = landSector(chosen);
+    g.strokeStyle = blink ? '#FDE047' : '#DC2626'; g.lineWidth = 4; slice(g, sec); g.stroke();
+    const m = sliceMid(sec, LAND_R + 18), a = sliceMid(sec, 70);
     g.strokeStyle = '#DC2626'; g.lineWidth = 3; g.beginPath(); g.moveTo(HUB_C.x, HUB_C.y + 14); g.quadraticCurveTo((HUB_C.x + a.x) / 2 + 10, (HUB_C.y + a.y) / 2 - 10, a.x, a.y); g.stroke();
     g.fillStyle = '#DC2626'; g.beginPath(); g.arc(a.x, a.y, 4, 0, Math.PI * 2); g.fill();
     const lx = Math.max(70, Math.min(W - 70, m.x)), ly = Math.max(40, Math.min(H - 40, m.y));

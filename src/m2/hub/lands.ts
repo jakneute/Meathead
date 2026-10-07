@@ -24,7 +24,28 @@ export const LANDS: Land[] = [
   { id: 'foreign', name: 'FOREIGN LANDS', blurb: 'THE WHOLE WORLD, FIXED. NO PASSPORT NEEDED. NO PASSPORT ALLOWED.', swirl: ['#7F1D1D', '#1E40AF', '#F8FAFC'], sign: '#1E3A8A', signText: '#FEE2E2', open: false },
 ];
 
-/** The staff door between Foreign Lands and Space Land: the test pen, for trying the grabs out. */
-export const STAFF_SLOT = LANDS.length;
-/** Spots round the hub: the eight lands, and the staff door. */
-export const HUB_SLOTS = LANDS.length + 1;
+/** A spot round the hub: a land's portal, America USA's way in (where he came from: no going back), or the staff door. */
+export type Spot = { kind: 'land'; land: number } | { kind: 'america' } | { kind: 'staff' };
+/**
+ * Round the hub, in order. America USA's narrow street comes in at the bottom of the map, between Cartoon Land and
+ * Hollywood Land; the staff door (not on the map) is between Foreign Lands and Space Land.
+ */
+export const SPOTS: Spot[] = [
+  { kind: 'land', land: 0 }, { kind: 'land', land: 1 }, { kind: 'land', land: 2 }, { kind: 'land', land: 3 },
+  { kind: 'america' },
+  { kind: 'land', land: 4 }, { kind: 'land', land: 5 }, { kind: 'land', land: 6 }, { kind: 'land', land: 7 },
+  { kind: 'staff' },
+];
+export const HUB_SLOTS = SPOTS.length;
+export const STAFF_SLOT = SPOTS.findIndex(s => s.kind === 'staff');
+export const AMERICA_SLOT = SPOTS.findIndex(s => s.kind === 'america');
+/** The land at a spot round the hub, if it's a land's. */
+export const landAt = (slot: number | null): Land | null => {
+  const s = slot === null ? undefined : SPOTS[slot];
+  return s?.kind === 'land' ? LANDS[s.land] : null;
+};
+/** The map goes round the same way, without the staff door: nine sectors, America USA's at the bottom. */
+const MAP_SPOTS = SPOTS.filter(s => s.kind !== 'staff');
+export const MAP_SECTORS = MAP_SPOTS.length;
+export const AMERICA_SECTOR = MAP_SPOTS.findIndex(s => s.kind === 'america');
+export const landSector = (land: number) => MAP_SPOTS.findIndex(s => s.kind === 'land' && s.land === land);

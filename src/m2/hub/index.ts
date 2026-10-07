@@ -8,7 +8,7 @@ import { groundBlocks } from '../../m1/game/core/terrain';
 import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
 import { playMenuOk, playMenuBack } from '../../m1/game/platform/audio';
 import { GROUND_Y } from '../../m1/constants';
-import { LANDS, STAFF_SLOT, HUB_SLOTS } from './lands';
+import { LANDS, SPOTS, STAFF_SLOT, AMERICA_SLOT, HUB_SLOTS, landAt } from './lands';
 import { setUi, goTo } from '../store';
 import { pollM2, pressed } from '../input';
 import { drawHubBackdrop, drawHubBack, drawHubFront } from './draw';
@@ -17,8 +17,8 @@ import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/
 
 export const HUB_STAGE = 'M2 Happy Hub';
 
-/** Where he comes in (the staff door when he's back from the pen). */
-let startSlot = 0;
+/** Where he comes in: out of America USA's street (the staff door when he's back from the staff room). */
+let startSlot = AMERICA_SLOT;
 export const setHubStart = (slot: number) => { startSlot = slot; };
 
 const GATED: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
@@ -60,7 +60,8 @@ export const hubLayout: StageLayout = {
     else if (cx > HUB.x0 + HUB_CIRC) shiftLap(state, -HUB_CIRC);
     const at = p.pos.x + p.width / 2;
     let near: number | null = null;
-    for (let i = 0; i < HUB_SLOTS; i++) if (Math.abs(at - slotX(i)) < (i === STAFF_SLOT ? 46 : 90) && p.isGrounded) near = i;
+    // (America USA's way back out is closed: nothing to do there)
+    for (let i = 0; i < HUB_SLOTS; i++) if (SPOTS[i].kind !== 'america' && Math.abs(at - slotX(i)) < (i === STAFF_SLOT ? 46 : 90) && p.isGrounded) near = i;
     // The map's up: nothing else till it's dealt with
     if (hub.map !== null) {
       p.vel.x = 0;
@@ -86,7 +87,7 @@ export const hubLayout: StageLayout = {
     if (grabbing(hub.grab)) near = null;
     if (near !== null && controls.up && !hub.upWas) {
       if (near === STAFF_SLOT) goTo('pen');
-      else { hub.map = near; playMenuOk(); }
+      else { const land = landAt(near); if (land) { hub.map = LANDS.indexOf(land); playMenuOk(); } }
     }
     hub.upWas = !!controls.up;
     setUi({ near, map: hub.map, nearExit: false });

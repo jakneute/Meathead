@@ -11,7 +11,7 @@ import voicePackUrl from './generated/voices.bin?url';
 import { registerStageLayout } from '../m1/game/stages/index';
 import { hubLayout, HUB_STAGE, setHubStart } from './hub/index';
 import { penLayout, PEN_STAGE } from './pen/index';
-import { LANDS, STAFF_SLOT } from './hub/lands';
+import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
 import { getUi, subscribeUi, onTravel, setUi } from './store';
 import { attachM2Keys } from './input';
 import { setFireKeys } from '../m1/game/platform/input';
@@ -71,7 +71,7 @@ const App2: React.FC = () => {
     onTravel(dest => {
       const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : null;
       if (!to) return;
-      if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : 0);
+      if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : AMERICA_SLOT);
       setUi({ near: null, map: null, nearExit: false });
       setFade(true);
       setTimeout(() => { pending.current = to; setInitialAmmo({ ...ammoRef.current }); setStatus(GameStatus.START); }, 260);
@@ -103,7 +103,7 @@ const App2: React.FC = () => {
 
   const noticeUp = ui.notice && performance.now() - ui.notice.at < 1800;
   useEffect(() => { if (!ui.notice) return; const id = setTimeout(() => setUi({ notice: null }), 1900); return () => clearTimeout(id); }, [ui.notice]);
-  const nearLand = ui.near !== null && ui.near !== STAFF_SLOT ? LANDS[ui.near] : null;
+  const nearLand = landAt(ui.near);
 
   return (
     <div className="relative w-screen h-screen flex items-center justify-center bg-black overflow-hidden">
