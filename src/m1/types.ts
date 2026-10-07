@@ -61,6 +61,8 @@ export type SoundType =
   | 'poopflight' | 'poopsplat'
   // (the finale's alien: his ray gun charging and firing, and the sad little bolts he lobs once he's beaten)
   | 'alienCharge' | 'alienBeam' | 'sadBolt'
+  // (Meathead 2's ray gun)
+  | 'raygun'
   // his footsteps, by what he's walking on
   | 'step_hard' | 'step_snow' | 'step_metal' | 'step_wood' | 'step_dirt' | 'step_sand' | 'step_wet';
 

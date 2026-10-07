@@ -89,7 +89,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       });
       player.shootCooldown = GUN_COOLDOWN;
       // (Meathead 2's ray gun: the same shot, a zap)
-      if (rayGun()) fx.playGunSound('sadBolt', 0.9, 7); else fx.playGunSound('gun');
+      if (rayGun()) fx.playGunSound('raygun'); else fx.playGunSound('gun');
       break;
 
     case 'LMG': {

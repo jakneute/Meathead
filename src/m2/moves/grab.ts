@@ -2,9 +2,9 @@
 //
 // Like a fighting game's grabs: once one's started, he's committed to it.
 //
-//   BEATDOWN (Y + B, or R): a quick windup (coiled down low; a hit in it knocks him out of it), then a short lunge.
+//   BEATDOWN (Y + B, or R): a quick windup (coiled down low), then a short lunge.
 //   Catch somebody and he's down, Meathead on top of him, and every press of X, B or Y is a punch, each
-//   one giving him a little health back (and a lot when it's over). Jump to get off. Anything that hurts him knocks him
+//   one giving him a little health back (and a lot when it's over). Jump to get off. Nothing that hurts him knocks him
 //   off. Whiff, and he's stood there wide open.
 //
 //   SHAKEDOWN (Y + X, or T): a quicker windup (hands out for the throat) that nothing stops, and if there's somebody
@@ -13,7 +13,8 @@
 //   thrown whichever way's held (left, right, up), into whoever's in the way, or slammed down into the floor (more
 //   damage, but nobody else gets hit). He can be grabbed again, as often as you like; only the first time has ammo in him.
 //
-// While he's at either, bumping into people doesn't hurt him or knock him off it (the grab wins); getting shot still does.
+// While he's at either he's armored, fighting-game style: what hits him (a club, a bullet, a body) still hurts, but
+// nothing knocks him back or out of it.
 //
 // Both work on people and the mid-sized animals; not the little ones, the big ones, the machines or the bosses.
 
@@ -24,6 +25,7 @@ import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
 import type { Enemy, EnemyKind, WeaponType } from '../../m1/types';
 import { isHumanoidKind, drawKindEnemy, kindHead } from '../../m1/game/render/enemies';
 import { getEnemyMass } from '../../m1/game/combat/knockback';
+import { setArmor } from '../../m1/game/core/resist';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { INITIAL_PLAYER_HEALTH } from '../../m1/constants';
@@ -58,7 +60,7 @@ const SLAM_BOUNCE = -12, SUPLEX_SHARE = 0.4;
 const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 17, THROW_SHARE = 0.15, SLAM_SHARE = 0.5, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
-/** How long after a grab bumping into people still doesn't hurt (or knock him about). */
+/** How long after a grab he's still armored (nothing knocks him about). */
 const CONTACT_GRACE = 30;
 /** How near together B (or X) and Y count as pressed together: frames B's held back, waiting for Y. */
 const CHORD_WINDOW = 4;
@@ -268,10 +270,10 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   // (a thrown body's hits first: whoever's where it's landing gets it before they're moved out of his way)
   if (g.flying.length) flyInto(ctx, g);
   if (g.phase !== 'idle') { keepClear(ctx.state, g); easeOff(ctx.state, g); }
-  // (the grab wins over a bump: nobody he touches hurts him while one's on, from the frame it starts, and for a moment
-  // after, with whoever he's just put down still at his feet; shots still do)
+  // (armor, fighting-game style: through a grab, and for a moment after, with whoever he's just put down still at his
+  // feet, anything that hits him hurts him, but nothing knocks him about or out of what he's doing)
   if (g.phase !== 'idle') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
-  ctx.state.player.noContactHurt = g.clearT > 0;
+  setArmor(g.clearT > 0);
   return out;
 };
 
@@ -281,7 +283,6 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   pollM2(state.frame);
   const was = g.was;
   g.was = controls;
-  const hurt = p.health < g.hp;
   g.hp = p.health;
   const press = (k: keyof Controls) => !!controls[k] && !was[k];
   if (state.deathTimer > 0 || p.health <= 0) { if (g.phase !== 'idle') letGo(state, g); return controls; }
@@ -346,13 +347,11 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     }
 
     case 'windup':
-      // Coiled up, committed and wide open: anything that hurts him now knocks him out of it
-      if (hurt) { end(state, g); return controls; }
+      // Coiled up, committed: armored, nothing knocks him out of it
       if (g.t >= WINDUP) { g.phase = 'lunge'; g.t = 0; playSound('whoosh', 1, -2); }
       return hold();
 
     case 'lunge': {
-      if (hurt) { end(state, g); return controls; }
       const nx = p.pos.x + g.dir * LUNGE_SPEED;
       if (!walled(state, nx)) p.pos.x = nx;
       const e = inReach(state, g.dir, LUNGE_REACH);
@@ -372,14 +371,12 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
 
     case 'whiff':
     case 'miss':
-      if (hurt && g.phase === 'whiff') { end(state, g); return controls; }
       if (g.t >= (g.phase === 'whiff' ? WHIFF : GRAB_MISS)) end(state, g);
       return hold();
 
     case 'mount': {
       const e = g.held!;
-      // Knocked off him (he gets up), or jumped off
-      if (hurt) { letGo(state, g); return controls; }
+      // Jumped off (nothing knocks him off: armor)
       if (press('jump')) { letGo(state, g); return { ...controls, jump: true }; }
       if (g.punchT > 0) g.punchT--;
       // (any of X, B or Y throws one)
@@ -608,11 +605,12 @@ const mountPose = (c: Ctx, f: number, k: number) => {
   drawLeg(c, [-5, -16], [-14, -4], [-26, -5], 1.4, true);
   drawLeg(c, [5, -16], [16, -4], [4, -3], 1.4, false);
   c.save(); c.translate(0, -16); c.rotate(0.42 + k * 0.16);
-  drawArmTo(c, [-8, -22], [2, -10], [12, 0], true);
+  drawArmTo(c, [-8, -22], [-1, -11], [12, 1], true);
   drawTorsoFromHips(c);
   head(c, 6, -36, 0.3, k > 0.4 ? 'roar' : 'grit', f);
   const lerp = (a: number, b: number) => a + (b - a) * k;
-  drawArmTo(c, [11, -22], [lerp(22, 24), lerp(-30, -8)], [lerp(8, 30), lerp(-42, 8)], false, 6);
+  // (cocked: the elbow up and back, the fist up by his ear; landed: the arm all but straight down into him)
+  drawArmTo(c, [11, -22], [lerp(6, 21), lerp(-38, -8)], [lerp(14, 31), lerp(-48, 8)], false, 6);
   c.restore();
 };
 
