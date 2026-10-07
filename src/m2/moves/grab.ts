@@ -44,6 +44,8 @@ const LUNGE_REACH = 20;
 const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 4, PUNCH_GAP = 3;
 // The shakedown
 /** Thrown, it takes a modest share of him; slammed, a big one. */
+/** Each throw's animation: how long, and the frame he lets go on. */
+const TOSS: Record<Toss, { len: number; release: number }> = { forward: { len: 16, release: 7 }, back: { len: 18, release: 9 }, up: { len: 16, release: 6 }, down: { len: 18, release: 8 } };
 const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 24, THROW_SHARE = 0.15, SLAM_SHARE = 0.4, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
@@ -60,7 +62,9 @@ const NOT_PEOPLE = new Set<EnemyKind>(['doorman', 'manhole', 'tenant', 'cardoor'
 export const grabbable = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind
   && ((isHumanoidKind(e.kind) && !NOT_PEOPLE.has(e.kind)) || MID_ANIMALS.has(e.kind));
 
-type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'miss';
+type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss';
+/** Which throw: on the way he's facing, back over his shoulder, straight up, or slammed down. */
+type Toss = 'forward' | 'back' | 'up' | 'down';
 
 export interface Grab {
   phase: Phase;
@@ -81,6 +85,8 @@ export interface Grab {
   was: Controls;
   /** Shaken down already: no more ammo in them (they can still be grabbed and thrown again). */
   shaken: WeakSet<Enemy>;
+  /** The throw he's doing at the end of a shakedown. */
+  toss: Toss;
   /** Frames body contact still can't hurt him (a grab's on, or just finished). */
   clearT: number;
   /** Buttons still held from the grab (the last punch): they don't start a charge or a shot till they're let go. */
@@ -88,7 +94,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0,
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward',
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -302,44 +308,57 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         state.pickups.push({ id: `shake-${state.frame}-${k}`, pos: { x: centerX(state) + g.dir * 26 - 10, y: p.pos.y + 10 }, vel: { x: g.dir * (0.5 + k * 1.2), y: -3 - k }, width: 20, height: 20, type: 'small_ammo', life: 600 });
       }
       if (first) { playSound('clink', 1, 2); playSound('clink', 0.8, 7); }
-      // ...and thrown whichever way's held (or slammed down), or straight on if nothing is
-      const throwDir = controls.down ? 'down' : controls.up ? 'up' : controls.left ? 'left' : controls.right ? 'right' : g.dir > 0 ? 'right' : 'left';
-      const dir = throwDir === 'left' ? -1 : throwDir === 'right' ? 1 : g.dir;
-      p.facing = dir as 1 | -1;
-      e.rotation = 0;
-      if (throwDir === 'down') {
-        // Slammed: into the floor right there, hard; nobody else gets a piece of it
-        // (laid down clear of him, in front: overlapping him, the engine would have him bounce off the body)
-        e.pos = { x: centerX(state) + g.dir * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: feetY(state) - e.height };
-        e.vel = { x: 0, y: 0 };
-        const dmg = Math.max(20, Math.round(e.maxHealth * SLAM_SHARE));
-        e.health -= dmg;
-        state.enemies.push(e);
-        playSound('slam'); playSound('crunch', 0.8); shakeScreen(state, 12, 7);
-        for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
-        if (e.health <= 0) { fx.blowAwayEnemy(e, { x: 0, y: -1 }, 'charge_kill', g.dir); fx.spawnKillCallout(e, grabCallout('slam')); }
-        else { e.pauseTimer = 60; fx.spawnDamageNumber(e.pos, dmg, true); }
-      } else {
-        const v = throwDir === 'up' ? { x: g.dir * 3, y: -23 } : { x: dir * THROW_SPEED, y: -6 };
-        e.pos = { x: centerX(state) + (throwDir === 'up' ? g.dir : dir) * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: p.pos.y - 16 };
-        e.vel = { ...v };
-        const dmg = Math.max(8, Math.round(e.maxHealth * THROW_SHARE));
-        e.health -= dmg;
-        state.enemies.push(e);
-        playSound('whoosh', 1.2, -3);
-        if (e.health <= 0) {
-          fx.blowAwayEnemy(e, v, 'charge_kill', dir);
-          e.meleeFlung = true;
-          fx.spawnKillCallout(e, grabCallout(throwDir === 'up' ? 'launched' : 'thrown'));
-        } else {
-          e.pauseTimer = 45;
-          e.chargedAt = state.frame;
-          fx.spawnDamageNumber(e.pos, dmg);
-        }
-      }
-      g.held = null; g.phase = 'kill'; g.t = 0;
+      // ...and thrown: down slams him, up launches him, the way he's facing (or nothing held) forward, the other way
+      // back over his shoulder
+      g.toss = controls.down ? 'down' : controls.up ? 'up' : (controls.left && g.dir > 0) || (controls.right && g.dir < 0) ? 'back' : 'forward';
+      g.phase = 'toss'; g.t = 0;
       return hold();
     }
+
+    case 'toss': {
+      const e = g.held;
+      if (e && g.t === TOSS[g.toss].release) { letFly(ctx, g, e); g.held = null; }
+      if (g.t >= TOSS[g.toss].len) end(state, g);
+      return hold();
+    }
+  }
+};
+
+/** Lets go of him, the way the throw's going: slammed down in front, launched up, or flung forward or back. */
+const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  e.rotation = 0;
+  if (g.toss === 'down') {
+    // Slammed: into the floor right there, hard; nobody else gets a piece of it
+    // (laid down clear of him, in front: overlapping him, the engine would have him bounce off the body)
+    e.pos = { x: centerX(state) + g.dir * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: feetY(state) - e.height };
+    e.vel = { x: 0, y: 0 };
+    const dmg = Math.max(20, Math.round(e.maxHealth * SLAM_SHARE));
+    e.health -= dmg;
+    state.enemies.push(e);
+    playSound('slam'); playSound('crunch', 0.8); shakeScreen(state, 12, 7);
+    for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
+    if (e.health <= 0) { fx.blowAwayEnemy(e, { x: 0, y: -1 }, 'charge_kill', g.dir); fx.spawnKillCallout(e, grabCallout('slam')); }
+    else { e.pauseTimer = 60; fx.spawnDamageNumber(e.pos, dmg, true); }
+    return;
+  }
+  const dir = g.toss === 'back' ? -g.dir : g.dir;
+  const v = g.toss === 'up' ? { x: g.dir * 3, y: -23 } : { x: dir * THROW_SPEED, y: g.toss === 'back' ? -9 : -6 };
+  e.pos = { x: centerX(state) + dir * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: p.pos.y - (g.toss === 'up' ? 40 : 16) };
+  e.vel = { ...v };
+  const dmg = Math.max(8, Math.round(e.maxHealth * THROW_SHARE));
+  e.health -= dmg;
+  state.enemies.push(e);
+  playSound('whoosh', 1.2, -3);
+  if (e.health <= 0) {
+    fx.blowAwayEnemy(e, v, 'charge_kill', dir);
+    e.meleeFlung = true;
+    fx.spawnKillCallout(e, grabCallout(g.toss === 'up' ? 'launched' : 'thrown'));
+  } else {
+    e.pauseTimer = 45;
+    e.chargedAt = state.frame;
+    fx.spawnDamageNumber(e.pos, dmg);
   }
 };
 
@@ -455,6 +474,47 @@ const reachPose = (c: Ctx, f: number, k: number) => {
   c.restore();
 };
 
+/** A throw's pose at one moment: how far he leans, where both hands are (in his torso's frame), how low he's sunk. */
+interface TossKey { lean: number; hand: [number, number]; sink: number; turn?: number }
+/** Each throw's keys (from the start through letting go to the follow-through), eased between. */
+const TOSS_KEYS: Record<Toss, TossKey[]> = {
+  // Forward: wound back with him over the shoulder, then heaved out in front, the body following through
+  forward: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: -0.35, hand: [-6, -54], sink: 2 }, { lean: 0.4, hand: [36, -32], sink: 4 }, { lean: 0.5, hand: [34, -18], sink: 6 }],
+  // Back: swung up across in front, over his head, and slung off behind him over the shoulder
+  back: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: -0.1, hand: [12, -62], sink: 0 }, { lean: -0.5, hand: [-24, -48], sink: 3 }, { lean: -0.55, hand: [-30, -34], sink: 4 }],
+  // Up: dipped down with him, then driven straight up, arms locked out overhead
+  up: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: 0.25, hand: [22, -18], sink: 9 }, { lean: -0.12, hand: [10, -66], sink: -3 }, { lean: -0.08, hand: [8, -64], sink: -1 }],
+  // Down: hoisted right up overhead, then brought down into the floor in front, sinking into it
+  down: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: -0.2, hand: [6, -66], sink: -2 }, { lean: 0.7, hand: [36, -4], sink: 12 }, { lean: 0.65, hand: [36, -4], sink: 11 }],
+};
+/** The throw's pose `t` frames in (the release at the third key). */
+const tossKey = (toss: Toss, t: number): TossKey => {
+  const keys = TOSS_KEYS[toss], { len, release } = TOSS[toss];
+  // (the windup up to the release, quick, then the follow-through)
+  const at = t <= release ? (t / release) * 2 : 2 + Math.min(1, (t - release) / (len - release));
+  const i = Math.min(keys.length - 2, Math.floor(at)), k = at - i, e = k * k * (3 - 2 * k);
+  const a = keys[i], b = keys[i + 1];
+  return { lean: a.lean + (b.lean - a.lean) * e, hand: [a.hand[0] + (b.hand[0] - a.hand[0]) * e, a.hand[1] + (b.hand[1] - a.hand[1]) * e], sink: a.sink + (b.sink - a.sink) * e };
+};
+/** Where a pose's hands are, from his feet (facing right). */
+const handAt = (key: TossKey) => {
+  const [x, y] = key.hand, a = key.lean;
+  return { x: x * Math.cos(a) - y * Math.sin(a), y: -24 + key.sink + x * Math.sin(a) + y * Math.cos(a) };
+};
+/** Him in a throw: braced (or sunk) on his legs, leaning into it, both hands on the one he's throwing. */
+const tossPose = (c: Ctx, f: number, key: TossKey, toss: Toss) => {
+  const s = key.sink;
+  drawLeg(c, [-5, -24 + s], [-12, -12 + s * 0.5], [-16, 0], 0, true);
+  drawLeg(c, [5, -24 + s], [14, -13 + s * 0.6], [17, 0], 0, false);
+  c.save(); c.translate(0, -24 + s); c.rotate(key.lean);
+  const [hx, hy] = key.hand;
+  drawArmTo(c, [-8, -22], [(hx - 8) / 2 - 2, (hy - 22) / 2 - 6], [hx - 4, hy - 1], true, 5);
+  drawTorsoFromHips(c);
+  head(c, 3, -37, toss === 'up' ? -0.25 : toss === 'down' ? 0.25 : 0, 'roar', f);
+  drawArmTo(c, [11, -22], [(hx + 11) / 2 + 4, (hy - 22) / 2 - 2], [hx + 2, hy], false, 6);
+  c.restore();
+};
+
 /** Draws whatever grab's on, in place of him (world space, over everything). */
 export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
   if (g.phase === 'idle') return;
@@ -497,6 +557,19 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
         drawEnemyAt(ctx, e, state, x - g.dir * e.height * 0.45, y - 5 + hit * 2, g.dir * (Math.PI / 2 + hit * 0.12) + squirm);
       }
       sprite(ctx, x, y, g.dir, c => mountPose(c, f, g.phase === 'kill' ? 0.2 : k));
+      return;
+    }
+    case 'toss': {
+      const key = tossKey(g.toss, g.t), hand = handAt(key);
+      sprite(ctx, x, y, g.dir, c => tossPose(c, f, key, g.toss));
+      if (g.held) {
+        // Still by the neck in his hands, swung round with them (flipped head down going over, for the back throw)
+        const e = g.held, person = isHumanoidKind(e.kind), hd = person && e.kind ? kindHead(e.kind, e.variant) : null;
+        const neck = hd ? -(hd.y + hd.r) : e.height * 0.7;
+        const over = g.toss === 'back' ? Math.min(1, g.t / TOSS.back.release) * Math.PI * 0.9 : 0;
+        const swing = (g.toss === 'forward' ? -key.lean : g.toss === 'down' ? key.lean * 0.6 : 0) * 0.8;
+        drawEnemyAt(ctx, e, state, x + g.dir * hand.x, y + hand.y + neck * Math.cos(over), g.dir * (over + swing));
+      }
       return;
     }
     case 'shake': {
