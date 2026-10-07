@@ -23,7 +23,7 @@ import { getTommy } from './runtime';
 import { saying } from './script';
 import { INK, ink, shaded } from '../../render/npc/kit';
 import { mix } from '../../render/backdrops/core';
-import { bandedGradient, checker } from '../../render/pixelArt';
+import { bandedGradient, checker, hazeBands } from '../../render/pixelArt';
 import { sewerBrick } from './sewerDraw';
 
 type Ctx = CanvasRenderingContext2D;
@@ -654,7 +654,7 @@ export const drawThingDrops = (ctx: Ctx, th: Thing, frame: number) => {
     // along its lower edge by the muck's glow
     const L = x1 - 20, W = x2 - x1 + 40, top = y - 150;
     ctx.fillStyle = sewerBrick(ctx, 'thingRoof', 34, 14, ['#342D28', '#2E2823', '#3A322C'], '#1F1A17'); ctx.fillRect(L, top, W, 104);
-    bandedGradient(ctx, L, top, W, 60, ['rgba(12, 10, 9, 0.7)', 'rgba(12, 10, 9, 0.45)', 'rgba(12, 10, 9, 0.2)', 'rgba(12, 10, 9, 0)'], 4);
+    hazeBands(ctx, L, top, W, 60, '#0C0A09', 0.7, 0, 4);
     ctx.fillStyle = INK; ctx.fillRect(L, y - 49, W, 12);
     ctx.fillStyle = '#44403C'; ctx.fillRect(L, y - 48, W, 10);
     ctx.fillStyle = '#5C5650'; ctx.fillRect(L, y - 48, W, 2);

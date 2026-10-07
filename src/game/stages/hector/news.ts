@@ -11,7 +11,7 @@ import type { Controls } from '../../platform/input';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { say, cancelSpeech, canSpeak, Voice } from '../../platform/speech';
 import { drawPlayer } from '../../render/player/player';
-import { bandedGradient, checker, steppedGlow, pixelBlob } from '../../render/pixelArt';
+import { bandedGradient, checker, steppedGlow, pixelBlob, hazeBands } from '../../render/pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -150,7 +150,7 @@ export const drawNews = (ctx: Ctx, state: GameState, n: News) => {
     ctx.fillStyle = 'rgba(240, 249, 255, 0.85)'; ctx.fillRect(snap(x - P), y, P * 2, 6);
   }
   // The far shore: the town (deco, palms), the daycare right under it
-  bandedGradient(ctx, 0, groundY - 70, W, 70, ['rgba(186, 230, 253, 0)', 'rgba(186, 230, 253, 0.5)'], 4);
+  hazeBands(ctx, 0, groundY - 70, W, 70, '#BAE6FD', 0, 0.5, 4);
   for (let i = 0; i < 12; i++) {
     const h = 24 + hash(i + 7) * 46, x = i * 70 + 4;
     if (Math.abs(x + 25 - colX) < 60) continue;

@@ -3,8 +3,10 @@
 // the ceiling grown over with icicles, his laminated trail map on the wall, the temperature readout, cold mist
 // rolling along an iced-over floor.
 
-import { bandedGradient, checker, steppedGlow, pixelBlob } from '../../pixelArt';
+import { bandedGradient, checker, steppedGlow, pixelBlob, hazeBands } from '../../pixelArt';
 import { Ctx, hash, box, bevel, label, frame as picture } from './kit';
+import { lite, dark } from '../../npc/kit';
+import { mix } from '../../backdrops/core';
 import { TUBE_BREAK_AT } from '../../../bosses/artie';
 
 /** A pixel icicle: three tones, stepping in to a point. */
@@ -17,23 +19,97 @@ const icicle = (ctx: Ctx, x: number, y: number, len: number, wid: number) => {
   }
 };
 
-/** What's in a tube, as a shape (in the fill it's given; `hi` for a pale edge down it), standing at (mx, my). */
-const specimen = (ctx: Ctx, mx: number, my: number, what: number, fill: string, hi?: string) => {
-  ctx.fillStyle = fill;
-  if (what === 0) { // a mammoth calf, tusk and all
-    ctx.fillRect(mx - 18, my - 10, 30, 20); ctx.fillRect(mx - 22, my - 14, 14, 14); ctx.fillRect(mx - 24, my - 2, 4, 14);
-    ctx.fillRect(mx - 14, my + 10, 5, 10); ctx.fillRect(mx + 4, my + 10, 5, 10);
-    ctx.fillStyle = 'rgba(230, 240, 250, 0.7)'; ctx.fillRect(mx - 26, my + 2, 6, 2);
-  } else if (what === 1) { // a penguin
-    ctx.fillRect(mx - 8, my - 22, 16, 40); ctx.fillRect(mx - 5, my - 28, 10, 8);
-    ctx.fillStyle = 'rgba(220, 235, 245, 0.55)'; ctx.fillRect(mx - 4, my - 16, 8, 30);
-    ctx.fillStyle = 'rgba(250, 190, 60, 0.8)'; ctx.fillRect(mx + 5, my - 25, 4, 2);
-  } else { // a man (a suit and a briefcase; or glasses and a paper)
-    ctx.fillRect(mx - 6, my - 34, 12, 12); ctx.fillRect(mx - 10, my - 22, 20, 26); ctx.fillRect(mx - 9, my + 4, 7, 22); ctx.fillRect(mx + 2, my + 4, 7, 22);
-    if (what === 2) { ctx.fillRect(mx + 10, my - 4, 12, 10); ctx.fillStyle = 'rgba(200, 40, 40, 0.6)'; ctx.fillRect(mx - 1, my - 21, 2, 12); }
-    else { ctx.fillStyle = 'rgba(230, 240, 250, 0.75)'; ctx.fillRect(mx - 5, my - 30, 4, 2); ctx.fillRect(mx + 1, my - 30, 4, 2); ctx.fillRect(mx + 8, my - 16, 9, 12); }
+/** A part of a specimen: x, y, w, h (from its middle), its color; `flat` for no lit edge and shade. */
+type Part = [number, number, number, number, string, boolean?];
+const SPEC_INK = '#0B1220';
+/** The parts, inked as one shape first (each a pixel out), then each filled, lit down its left and top, shaded down its right. */
+const parts = (ctx: Ctx, mx: number, my: number, list: Part[], tint: (c: string) => string) => {
+  for (const [x, y, w, h] of list) box(ctx, mx + x - 1, my + y - 1, w + 2, h + 2, SPEC_INK);
+  for (const [x, y, w, h, c, flat] of list) {
+    box(ctx, mx + x, my + y, w, h, tint(c));
+    if (flat || w < 3 || h < 3) continue;
+    box(ctx, mx + x, my + y, 1, h, tint(lite(c, 0.22))); box(ctx, mx + x, my + y, w, 1, tint(lite(c, 0.3)));
+    box(ctx, mx + x + w - Math.max(1, Math.round(w / 4)), my + y + 1, Math.max(1, Math.round(w / 4)), h - 1, tint(dark(c, 0.25)));
   }
-  if (hi) { ctx.fillStyle = hi; ctx.fillRect(mx - 10, my - 20, 2, 18); }
+};
+
+/**
+ * What's in a tube: a mammoth calf (shaggy, tusks, the trunk curled), an emperor penguin, the lobbyist (navy suit, red
+ * tie, slicked hair, briefcase), reviewer #2 (tweed, glasses, beard, the paper marked REJECT, the red pen). All of them
+ * frozen mid-whatever, eyes open. `mode` 'tube': in the coolant (the tint goes over it after); 'out': tipped out onto the
+ * floor, frosted over. Standing at (mx, my), its middle.
+ */
+const specimen = (ctx: Ctx, mx: number, my: number, what: number, mode: 'tube' | 'out') => {
+  const tint = mode === 'out' ? (c: string) => mix(c, '#CFE8F7', 0.4) : (c: string) => c;
+  const SKIN = '#E2C6A8', SKIN_D = '#B99878';
+  if (what === 0) {
+    // The mammoth calf, side on, facing left: legs, the shaggy body, the hump, the head, ear, the trunk curled, tusks
+    const FUR = '#7A5A3C', FUR_D = '#5C4229';
+    parts(ctx, mx, my, [
+      [-14, 6, 6, 16, FUR_D], [-4, 6, 6, 16, FUR], [4, 6, 6, 16, FUR_D], [12, 6, 6, 16, FUR],
+      [-18, -14, 38, 22, FUR], [-24, -24, 16, 14, FUR], [-28, -18, 14, 16, FUR],
+      [-31, -6, 5, 10, FUR], [-33, 3, 5, 6, FUR_D], [-31, 8, 4, 3, FUR_D], [18, -10, 3, 8, FUR_D],
+    ], tint);
+    // (the shag hanging off its belly and legs, the ear, the eye, the tusks)
+    for (let k = 0; k < 9; k++) box(ctx, mx - 16 + k * 4, my + 6, 2, 3 + (k % 3), tint(FUR_D));
+    for (let k = 0; k < 5; k++) box(ctx, mx - 12 + k * 7, my - 12, 1, 6, tint(lite(FUR, 0.2)));
+    box(ctx, mx - 18, my - 16, 5, 8, tint(dark(FUR, 0.35)));
+    box(ctx, mx - 25, my - 13, 2, 2, SPEC_INK); box(ctx, mx - 25, my - 13, 1, 1, '#FFFFFF');
+    for (const [tx, ty] of [[-27, -2], [-28, 1], [-29, 3], [-28, 5]] as const) box(ctx, mx + tx, my + ty, 3, 2, tint('#F2EAD3'));
+    box(ctx, mx - 28, my + 5, 2, 1, tint('#FFFFFF'));
+  } else if (what === 1) {
+    // The emperor penguin: the black back, the white front, the yellow at the neck, the beak, flippers out, the feet
+    const BL = '#1F2430';
+    parts(ctx, mx, my, [
+      [-8, 14, 6, 3, '#F59E0B', true], [2, 14, 6, 3, '#F59E0B', true],
+      [-13, -14, 4, 20, BL], [9, -14, 4, 20, BL],
+      [-9, -24, 18, 38, BL], [-7, -34, 14, 12, BL], [6, -29, 7, 3, '#E58A0B'],
+    ], tint);
+    box(ctx, mx - 6, my - 18, 12, 30, tint('#EEF2F5')); box(ctx, mx - 6, my - 18, 3, 30, tint('#FFFFFF')); box(ctx, mx + 3, my - 16, 3, 28, tint('#C9D3DC'));
+    box(ctx, mx - 6, my - 24, 12, 6, tint('#FCD34D')); box(ctx, mx - 6, my - 24, 12, 2, tint('#FDE68A'));
+    box(ctx, mx + 2, my - 31, 3, 3, tint('#FFFFFF')); box(ctx, mx + 3, my - 30, 1, 1, SPEC_INK);
+    box(ctx, mx + 6, my - 27, 7, 1, tint('#B45309'));
+  } else {
+    // A man stood stiff: shoes, trousers, the jacket, shirt and tie (or the vest), arms, hands, the head
+    const lobby = what === 2;
+    const SUIT = lobby ? '#2B3A5C' : '#7C5E3C', PANTS = lobby ? '#27324A' : '#8C7B5E';
+    parts(ctx, mx, my, [
+      [-10, 24, 9, 3, '#14141A', true], [1, 24, 9, 3, '#14141A', true],
+      [-9, 4, 8, 20, PANTS], [1, 4, 8, 20, PANTS],
+      [-15, -18, 5, 21, SUIT], [10, -18, 5, 21, SUIT],
+      [-11, -20, 22, 27, SUIT],
+      [-15, 3, 5, 4, SKIN, true], [10, 3, 5, 4, SKIN, true],
+      [-6, -34, 12, 14, SKIN],
+    ], tint);
+    // (the shirt in the V of the jacket, the lapels)
+    box(ctx, mx - 3, my - 20, 6, 10, tint('#E8EEF5'));
+    box(ctx, mx - 6, my - 20, 3, 8, tint(lite(SUIT, 0.15))); box(ctx, mx + 3, my - 20, 3, 8, tint(dark(SUIT, 0.15)));
+    if (lobby) {
+      box(ctx, mx - 2, my - 20, 4, 2, tint('#DC2626')); box(ctx, mx - 1, my - 18, 2, 12, tint('#B91C1C')); box(ctx, mx - 1, my - 18, 1, 12, tint('#EF4444'));
+      // the briefcase in his hand, a gold clasp, a dollar sticker
+      parts(ctx, mx, my, [[12, 6, 14, 10, '#5B3A1E']], tint);
+      box(ctx, mx + 16, my + 4, 6, 2, tint('#3A2412')); box(ctx, mx + 18, my + 8, 2, 2, tint('#FACC15')); box(ctx, mx + 21, my + 11, 3, 3, tint('#22C55E'));
+      // slicked hair, a part; a lapel pin
+      box(ctx, mx - 6, my - 36, 12, 4, tint('#2A1A10')); box(ctx, mx - 6, my - 33, 2, 3, tint('#2A1A10')); box(ctx, mx - 2, my - 36, 1, 3, tint('#5A3A20'));
+      box(ctx, mx - 7, my - 15, 2, 2, tint('#FACC15'));
+    } else {
+      // the sweater vest, elbow patches, a bald dome with the ring of grey round it, a beard; the paper and the pen
+      box(ctx, mx - 3, my - 12, 6, 12, tint('#4D6B3C')); for (let k = 0; k < 4; k++) box(ctx, mx - 3 + (k % 2) * 3, my - 12 + k * 3, 2, 1, tint('#5E7D4B'));
+      for (let yy = -18; yy < 6; yy += 3) for (let xx = -10; xx < 10; xx += 4) box(ctx, mx + xx + ((yy / 3) % 2 ? 2 : 0), my + yy, 1, 1, tint(dark(SUIT, 0.3)));
+      box(ctx, mx - 15, my - 6, 4, 4, tint('#5C3F22')); box(ctx, mx + 11, my - 6, 4, 4, tint('#5C3F22'));
+      box(ctx, mx - 7, my - 30, 2, 6, tint('#B8B8B8')); box(ctx, mx + 5, my - 30, 2, 6, tint('#B8B8B8'));
+      box(ctx, mx - 5, my - 24, 10, 5, tint('#C8C8C8')); box(ctx, mx - 4, my - 20, 8, 2, tint('#A8A8A8'));
+      parts(ctx, mx, my, [[-26, -2, 12, 15, '#F8FAFC']], tint);
+      for (let k = 0; k < 4; k++) box(ctx, mx - 24, my + 1 + k * 3, 8, 1, tint('#94A3B8'));
+      box(ctx, mx - 24, my + 2, 8, 1, tint('#DC2626')); box(ctx, mx - 22, my + 6, 5, 5, tint('#E11D48'));
+      box(ctx, mx + 13, my - 2, 2, 8, tint('#DC2626')); box(ctx, mx + 13, my - 3, 2, 1, tint('#FCA5A5'));
+    }
+    // The face, frozen: eyes wide (the glasses for #2), brows up, the mouth open in an O
+    if (!lobby) { box(ctx, mx - 5, my - 30, 4, 3, SPEC_INK); box(ctx, mx + 1, my - 30, 4, 3, SPEC_INK); box(ctx, mx - 4, my - 29, 2, 1, tint('#BFE3F5')); box(ctx, mx + 2, my - 29, 2, 1, tint('#BFE3F5')); box(ctx, mx - 1, my - 29, 2, 1, SPEC_INK); }
+    else { box(ctx, mx - 4, my - 29, 2, 2, '#FFFFFF'); box(ctx, mx + 2, my - 29, 2, 2, '#FFFFFF'); box(ctx, mx - 3, my - 28, 1, 1, SPEC_INK); box(ctx, mx + 3, my - 28, 1, 1, SPEC_INK); box(ctx, mx - 4, my - 32, 3, 1, tint('#2A1A10')); box(ctx, mx + 2, my - 32, 3, 1, tint('#2A1A10')); }
+    box(ctx, mx, my - 27, 1, 2, tint(SKIN_D));
+    box(ctx, mx - 1, my - 24, 3, 3, '#4A1A1A');
+  }
 };
 
 /** Cracks spreading over a tube's glass (k 0..1: how far they've got), out from a point on it. */
@@ -94,7 +170,12 @@ const tube = (ctx: Ctx, cx: number, top: number, bottom: number, what: number, n
   // The liquid, banded darker to the bottom
   bandedGradient(ctx, x, gy, w, gh, ['#1E6E9E', '#175A86', '#12476C'], 6);
   // What's in it (a dark shape through the blue)
-  specimen(ctx, cx, gy + gh * 0.55, what, 'rgba(8, 24, 40, 0.75)');
+  // (bobbing very slightly in it)
+  ctx.save(); ctx.beginPath(); ctx.rect(x, gy, w, gh); ctx.clip();
+  specimen(ctx, cx + (what === 0 ? 6 : 0), Math.round(gy + gh * 0.55 + Math.sin(f * 0.03 + what) * 2), what, 'tube');
+  ctx.restore();
+  // The coolant over it: blue, banded deeper down, so it's in there, not in front
+  hazeBands(ctx, x, gy, w, gh, '#1E6E9E', 0.18, 0.4, 6);
   // Bubbles coming up (boiling up, the hotter it's got)
   for (let k = 0; k < 5 + Math.round(crack * 10); k++) {
     const life = (f * (0.6 + (k % 3) * 0.25) + k * 37 + what * 13) % gh;
@@ -127,7 +208,7 @@ export const drawArtieLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   // The wall: cold steel, banded darker up into the gloom
   bandedGradient(ctx, L, T, W, B - T, ['#0A1626', '#0F2236', '#16304A', '#1A3956', '#16314B'], 14);
   // (warming: a glow coming up the steel off the floor, in bands)
-  if (heat > 0.05) bandedGradient(ctx, L, T + (B - T) * 0.35, W, (B - T) * 0.65, ['rgba(255, 120, 40, 0)', `rgba(255, 110, 40, ${(heat * 0.12).toFixed(3)})`, `rgba(255, 100, 30, ${(heat * 0.24).toFixed(3)})`, `rgba(255, 90, 20, ${(heat * 0.36).toFixed(3)})`], 6);
+  if (heat > 0.05) hazeBands(ctx, L, T + (B - T) * 0.35, W, (B - T) * 0.65, '#FF6A1E', 0, heat * 0.36, 6);
   // Riveted panels
   for (let y = T + 24, row = 0; y < B - 20; y += 86, row++) {
     for (let x = L + 24 - (row % 2) * 60; x < R - 24; x += 120) {
@@ -270,7 +351,7 @@ export const drawArtieLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
     const tip = Math.min(1, t / 14);
     const dir = i < 2 ? 1 : -1;
     ctx.save(); ctx.translate(tx0 + dir * 30, B - 15); ctx.rotate(dir * tip * Math.PI / 2);
-    specimen(ctx, 0, i === 0 ? -14 : i === 1 ? -18 : -26, i, '#6E8FAE', 'rgba(230, 245, 255, 0.8)');
+    specimen(ctx, 0, i === 0 ? -22 : i === 1 ? -17 : -27, i, 'out');
     ctx.restore();
     if (t < 400 && (f + i * 7) % 24 < 12) pixelBlob(ctx, tx0 + Math.sin(f * 0.05 + i) * 20, B - 30 - (t % 60) * 0.3, 40, 10, 'rgba(220, 240, 255, 0.12)');
   });

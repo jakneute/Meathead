@@ -142,7 +142,7 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
     player.facing = 1;
     player.kickPose = KICK_POSE_FRAMES;
     // (out over the boat and into the water ahead of it: right where it's about to go)
-    b.oldMan.state = 'flying'; b.oldMan.vx = 11; b.oldMan.vy = -12;
+    b.oldMan.state = 'flying'; b.oldMan.vx = 8; b.oldMan.vy = -12;
     oldManSays(b, 'WHOOAAA!');
     ctx.fx.playGunSound('splash');
     shakeScreen(state, 8, 4);
