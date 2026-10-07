@@ -206,7 +206,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const idleBreath = Math.sin(animFrame * 0.08) * 1.5;
   const walkPhase = (animFrame * 0.28) % (Math.PI * 2);
   const walkStride = Math.sin(walkPhase);
-  const walkBob = Math.abs(Math.sin(walkPhase)) * 3;
+  // (on the flat: lowest with his feet apart, a moment after the front one lands and takes the weight; up over the
+  // leg he's standing on as the other passes it)
+  const walkBob = 2.2 * (1 - Math.abs(Math.cos(walkPhase - 0.3)));
   const chargePhase = (animFrame * 0.55) % (Math.PI * 2);
   const chargeStride = Math.sin(chargePhase);
   // 0 rising fast .. 1 falling fast
@@ -265,7 +267,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isWalking) {
     // (on a slope or stairs: at his highest passing one foot by the other, his lowest with them apart; and carried a
     // little higher than he stands there, the steeper it is, the foot down the slope pushing off its toe)
-    bodyY = slopeLegs ? -(1 - Math.abs(walkStride)) * 1.5 - Math.min(4, Math.abs(p.stance!.l - p.stance!.r) * 0.35) : -walkBob;
+    bodyY = slopeLegs ? -(1 - Math.abs(walkStride)) * 1.5 - Math.min(4, Math.abs(p.stance!.l - p.stance!.r) * 0.35) : walkBob;
   } else if (isIdle) {
     bodyY = -idleBreath * 0.5;
   } else if (isSwimming) {
@@ -556,24 +558,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     leg(-4, -4 + reach * walkStride, Math.max(0, swing) * lift, true);
     leg(4, 4 - reach * walkStride, Math.max(0, -swing) * lift, false);
   } else if (isWalking) {
-    // Smooth 2-legged walking cycle with knee bend & heel strike
-    // Back leg
-    ctx.fillStyle = pantsShadow;
-    ctx.save();
-    ctx.translate(-4, -20);
-    ctx.rotate(-walkStride * 0.5);
-    drawPantLeg(ctx, -5, 0, 9, 14, pantsShadow);
-    drawBoot(ctx, -6, 12, 12, 7, false);
-    ctx.restore();
-
-    // Front leg
-    ctx.fillStyle = pantsColor;
-    ctx.save();
-    ctx.translate(4, -20);
-    ctx.rotate(walkStride * 0.5);
-    drawPantLeg(ctx, -4, 0, 10, 14, pantsColor, false, 0.66);
-    drawBoot(ctx, -5, 12, 14, 7, true);
-    ctx.restore();
+    // A real stride, a heavy man's: each boot planted flat on the ground and the body carried over it (the foot stays
+    // put while he goes by it), the heel lifting and the toe pushing off behind him, then the knee driven up and
+    // through, the toe up as it reaches out, the heel coming down first; the hips sinking onto it as it takes the weight
+    walkLeg(ctx, -4, walkPhase + Math.PI * 1.5, bodyY, bodyRot, true);
+    walkLeg(ctx, 4, walkPhase + Math.PI * 0.5, bodyY, bodyRot, false);
   } else if (isRelieving && pee.drop < 1) {
     // Undoing the belt (pants still up), then the pants dropping: the top of them sliding down his thighs
     const top = -22 + pee.drop * 12;
@@ -1275,6 +1264,34 @@ const drawHeldWeapon = (ctx: CanvasRenderingContext2D, weapon: WeaponType, wpnX:
  * leg straight. The boot sits at `angle` (along a slope; level on a stair's tread). The same trouser legs and boots
  * as he stands in on the flat (the near one with its pocket and, `grip`, the tread grips under it).
  */
+/**
+ * One leg of the walk on the flat, `phase` round its stride (0: the heel just down, out in front): planted while the
+ * body goes over it, the heel peeling up and the toe pushing off at the back, then lifted, knee high, swung through
+ * and reached out toe-up for the next heel strike.
+ */
+const WALK_REACH = 8, WALK_LIFT = 6.5;
+const walkLeg = (ctx: CanvasRenderingContext2D, hipX: number, phase: number, bodyY: number, bodyRot: number, back: boolean) => {
+  const u = ((phase / (Math.PI * 2)) % 1 + 1) % 1;
+  let x: number, y: number, a: number;
+  if (u < 0.55) {
+    // Down: from out in front to behind him, flat; landing on the heel (toe up), rolling up onto the toe at the end
+    const k = u / 0.55;
+    x = WALK_REACH - k * WALK_REACH * 2;
+    const peel = Math.max(0, (k - 0.7) / 0.3);
+    // (lifted as far as the boot's tipped, so the toe or heel it's rocking on stays on the ground, not through it)
+    const heel = Math.max(0, 1 - k / 0.12);
+    a = heel * -0.28 + peel * 0.45;
+    y = -peel * 4.5 - heel * 1.8;
+  } else {
+    // Up: snapped forward (quick off the ground, easing into the reach), the knee coming up high in the middle
+    const k = (u - 0.55) / 0.45, e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+    x = -WALK_REACH + e * WALK_REACH * 2;
+    y = -Math.sin(Math.PI * Math.pow(k, 0.75)) * WALK_LIFT - 4.5 * Math.max(0, 1 - k / 0.25) - 1.8 * Math.max(0, (k - 0.8) / 0.2);
+    a = Math.max(0, 1 - k * 2.2) * 0.35 - k * 0.3;
+  }
+  drawSlopeLeg(ctx, hipX, hipX + x, y, a, bodyY, bodyRot, back, false);
+};
+
 const drawSlopeLeg = (ctx: CanvasRenderingContext2D, hipX: number, footX: number, soleY: number, angle: number, bodyY: number, bodyRot: number, back: boolean, grip: boolean) => {
   const THIGH = 9, SHIN = 8, ANKLE = 5;
   // (the sole, in his body's frame)
@@ -1289,15 +1306,16 @@ const drawSlopeLeg = (ctx: CanvasRenderingContext2D, hipX: number, footX: number
   // (the knee: forward of the line from the hip to the ankle)
   const along = (THIGH * THIGH - SHIN * SHIN + reach * reach) / (2 * reach), out = Math.sqrt(Math.max(0, THIGH * THIGH - along * along));
   const kx = hx + dx * along + dy * out, ky = hy + dy * along - dx * out;
-  const color = back ? pantsShadow : pantsColor, w = 10;
-  const seg = (x0: number, y0: number, x1: number, y1: number, len: number, pocket: boolean, singeAt?: number) => {
+  // (he doesn't skip leg day: thick thighs, tapering to the knee, calves filling the shins)
+  const color = back ? pantsShadow : pantsColor, w = 10, tw = back ? 11.5 : 12.5;
+  const seg = (x0: number, y0: number, x1: number, y1: number, len: number, width: number, pocket: boolean, singeAt?: number) => {
     ctx.save(); ctx.translate(x0, y0); ctx.rotate(Math.atan2(y1 - y0, x1 - x0) - Math.PI / 2);
-    drawPantLeg(ctx, -w / 2, 0, w, len, color, pocket, singeAt);
+    drawPantLeg(ctx, -width / 2, 0, width, len, color, pocket, singeAt);
     ctx.restore();
   };
-  seg(kx, ky, ax, ay, SHIN + 2, false, back ? undefined : 0.45);
+  seg(kx, ky, ax, ay, SHIN + 2, w, false, back ? undefined : 0.45);
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(kx, ky, w / 2, 0, Math.PI * 2); ctx.fill();
-  seg(hx, hy, kx, ky, THIGH + 1, !back);
+  seg(hx, hy, kx, ky, THIGH + 1, tw, !back);
   // (the boot: on the ground at the sole; one he's reaching down for the ground with, up on its toe)
   const toe = Math.min(0.7, Math.max(0, d - THIGH - SHIN) * 0.14);
   ctx.save(); ctx.translate(ax, ay); ctx.rotate(angle - bodyRot + toe); ctx.translate(0, ANKLE);
