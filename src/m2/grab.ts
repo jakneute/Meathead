@@ -37,16 +37,18 @@ type Ctx = CanvasRenderingContext2D;
 // The beatdown
 /** Like a fighting game's grab: once it's started, he's committed. Both windups are nearly instant (what limits them is
  * their reach); a hit in the beatdown's knocks him out of it, nothing stops the shakedown's. */
-const WINDUP = 8, LUNGE = 7, LUNGE_SPEED = 12, WHIFF = 22, REACH = 6;
+const WINDUP = 4, LUNGE = 4, LUNGE_SPEED = 21, WHIFF = 22, REACH = 6;
 /** How far ahead of him, as he lunges, he can still get hold of somebody. */
 const LUNGE_REACH = 20;
 /** A punch takes this much of him (whoever he is, about eight to finish him); each heals a little, the last a lot. */
-const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 7, PUNCH_GAP = 5;
+const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 4, PUNCH_GAP = 3;
 // The shakedown
 /** Thrown, it takes a modest share of him; slammed, a big one. */
 const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 24, THROW_SHARE = 0.15, SLAM_SHARE = 0.4, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
+/** How long after a grab bumping into people still doesn't hurt (or knock him about). */
+const CONTACT_GRACE = 30;
 /** How near together B (or X) and Y count as pressed together: frames B's held back, waiting for Y. */
 const CHORD_WINDOW = 4;
 
@@ -79,12 +81,14 @@ export interface Grab {
   was: Controls;
   /** Shaken down already: no more ammo in them (they can still be grabbed and thrown again). */
   shaken: WeakSet<Enemy>;
+  /** Frames body contact still can't hurt him (a grab's on, or just finished). */
+  clearT: number;
   /** Buttons still held from the grab (the last punch): they don't start a charge or a shot till they're let go. */
   gate: Set<keyof Controls>;
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null,
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -123,11 +127,15 @@ const inReach = (state: GameState, dir: number, reach: number) => {
   const p = state.player;
   const front = dir > 0 ? p.pos.x + p.width : p.pos.x;
   let best: Enemy | null = null, bestD = Infinity;
+  const mid = p.pos.x + p.width / 2;
   for (const e of state.enemies) {
     if (!grabbable(e)) continue;
-    if (e.pos.y > p.pos.y + p.height || e.pos.y + e.height < p.pos.y) continue;
+    // (forgiving up and down: somebody just landing from a throw, still bouncing, is in reach)
+    if (e.pos.y > p.pos.y + p.height + 24 || e.pos.y + e.height < p.pos.y - 24) continue;
     const near = dir > 0 ? e.pos.x - front : front - (e.pos.x + e.width);
-    if (near > reach || near < -(e.width + p.width)) continue;
+    // (anybody from right up against him, even a little behind his middle, out to the reach)
+    const behind = dir > 0 ? mid - 16 - (e.pos.x + e.width) : e.pos.x - (mid + 16);
+    if (near > reach || behind > 0) continue;
     if (Math.abs(near) < bestD) { bestD = Math.abs(near); best = e; }
   }
   return best;
@@ -138,8 +146,10 @@ const take = (state: GameState, e: Enemy) => { state.enemies = state.enemies.fil
 /** Runs the grabs. Returns the controls the rest of him gets (none while he's busy). */
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const out = stepGrab(ctx, g, controls);
-  // (the grab wins over a bump: nobody he touches hurts him while one's on, from the frame it starts; shots still do)
-  ctx.state.player.noContactHurt = g.phase !== 'idle';
+  // (the grab wins over a bump: nobody he touches hurts him while one's on, from the frame it starts, and for a moment
+  // after, with whoever he's just put down still at his feet; shots still do)
+  if (g.phase !== 'idle') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
+  ctx.state.player.noContactHurt = g.clearT > 0;
   return out;
 };
 
@@ -202,10 +212,10 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     }
 
     case 'reach': {
-      // Hands out for his throat: committed (whatever hits him, he takes it, and keeps coming)
-      if (g.t < REACH) return hold();
+      // Hands out for his throat: committed (whatever hits him, he takes it, and keeps coming); anybody who comes into
+      // reach while they're going out is got hold of then and there
       const e = inReach(state, g.dir, GRAB_REACH);
-      if (!e) { g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6); return hold(); }
+      if (!e) { if (g.t >= REACH) { g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6); } return hold(); }
       // Got him: up by the neck
       g.phase = 'shake'; g.t = 0; g.held = e; take(state, e);
       e.facing = (-g.dir) as 1 | -1;
@@ -227,7 +237,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (e) {
         // Down he goes, Meathead on top of him
         g.phase = 'mount'; g.t = 0; g.held = e; take(state, e);
-        g.nextPunchAt = 8; g.punchT = 0;
+        g.nextPunchAt = 4; g.punchT = 0;
         p.pos.x = e.pos.x + e.width / 2 - p.width / 2;
         e.facing = (-g.dir) as 1 | -1;
         playSound('slam'); playSound('punch', 1.2, -3);
@@ -299,7 +309,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       e.rotation = 0;
       if (throwDir === 'down') {
         // Slammed: into the floor right there, hard; nobody else gets a piece of it
-        e.pos = { x: centerX(state) + g.dir * 26 - e.width / 2, y: feetY(state) - e.height };
+        // (laid down clear of him, in front: overlapping him, the engine would have him bounce off the body)
+        e.pos = { x: centerX(state) + g.dir * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: feetY(state) - e.height };
         e.vel = { x: 0, y: 0 };
         const dmg = Math.max(20, Math.round(e.maxHealth * SLAM_SHARE));
         e.health -= dmg;
@@ -310,7 +321,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         else { e.pauseTimer = 60; fx.spawnDamageNumber(e.pos, dmg, true); }
       } else {
         const v = throwDir === 'up' ? { x: g.dir * 3, y: -23 } : { x: dir * THROW_SPEED, y: -6 };
-        e.pos = { x: centerX(state) + (throwDir === 'up' ? g.dir * 20 : dir * 24) - e.width / 2, y: p.pos.y - 16 };
+        e.pos = { x: centerX(state) + (throwDir === 'up' ? g.dir : dir) * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: p.pos.y - 16 };
         e.vel = { ...v };
         const dmg = Math.max(8, Math.round(e.maxHealth * THROW_SHARE));
         e.health -= dmg;
@@ -478,7 +489,7 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       return;
     case 'mount':
     case 'kill': {
-      const k = g.punchT > 0 ? Math.min(1, (PUNCH_FRAMES - g.punchT + 1) / 3) : 0;
+      const k = g.punchT > 0 ? Math.min(1, (PUNCH_FRAMES - g.punchT + 1) / 2) : 0;
       if (g.held) {
         // Flat on his back under him, head toward his punching hand; jolted by each one landing, squirming between
         const e = g.held, hit = g.punchT > 0 && k >= 1 ? 1 : 0;
