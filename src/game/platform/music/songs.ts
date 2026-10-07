@@ -38,16 +38,12 @@ const FOUR = '{kh}8 o8 {kph}8 o8 {kh}8 o8 {kph}8 o8';
 const FUNK = '{kh}16 h16 h16 k16 {sh}16 h16 h16 k16 h16 k16 h16 h16 {sh}16 h16 {kh}16 h16';
 const BOOM = 'k8 h8 {sh}8 h8 r16 k16 k8 {sh}8 h8';
 const LIGHT = 'k8 z8 m8 z8 k8 k8 m8 z8';
-const TRAIN = '{kh}16 h16 s16 h16 {kh}16 h16 s16 {sh}16 {kh}16 h16 s16 h16 {kh}16 h16 {sh}16 s16';
 
 // The chases' grooves (each stage's own: same tempo as the stage's theme, so the song keeps its place, but twice as
 // busy, so it feels twice as fast). A bar each, and a fill to end a phrase on.
 /** Double kick running sixteenths, the snare on every offbeat eighth: the avalanche coming down behind him. */
 const AVALANCHE = '{kh}16 k16 {sh}16 k16 {kh}16 k16 {sh}16 k16 {kh}16 k16 {sh}16 k16 {kh}16 k16 {sh}16 {kh}16';
 const AVALANCHE_FILL = '{kh}16 k16 {sh}16 k16 {kh}16 k16 {sh}16 k16 s16 s16 t16 t16 u16 u16 {kf}8';
-/** Double kick under a rock backbeat: the bikers' southern rock flat out. */
-const HAMMER = '{kh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 {kh}16 {kh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 {sh}16';
-const HAMMER_FILL = '{kh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 {kh}16 s16 s16 s16 s16 t16 t16 u16 u16';
 /** Surf drums: toms running in sixteenths under the backbeat (Wipe Out). */
 const WIPE = '{kt}16 t16 t16 t16 {st}16 t16 u16 u16 {kt}16 t16 t16 t16 {st}16 t16 u16 u16';
 const WIPE_FILL = '{kt}16 t16 t16 t16 {st}16 t16 u16 u16 s16 s16 s16 s16 {su}16 {su}16 {kx}8';
@@ -57,9 +53,6 @@ const SALSA_FILL = '{kw}16 b16 b16 c16 {sw}16 b16 c16 c16 t16 t16 t16 t16 u16 u1
 /** Drum and bass's two-step over a slow tempo: the snare twice a beat, so 92 feels like 184. */
 const DNB = '{kh}16 h16 {sh}16 h16 h16 {kh}16 {sh}16 h16 {kh}16 h16 {sh}16 h16 h16 {kh}16 {sh}16 h16';
 const DNB_FILL = '{kh}16 h16 {sh}16 h16 h16 {kh}16 {sh}16 h16 s16 s16 s16 s16 t16 t16 u16 u16';
-/** A gallop on the toms (the posse riding), kick and snare under it. */
-const GALLOP = '{kh}8 t16 t16 {sh}8 t16 t16 {kh}8 t16 t16 {sh}8 u16 u16';
-const GALLOP_FILL = '{kh}8 t16 t16 {sh}8 t16 t16 s16 s16 t16 t16 u16 u16 {kx}8';
 /** Eight bars of a groove: in on a crash, a fill at the end of each four. */
 const chase8 = (groove: string, fill: string) => b(groove.replace(/^\{k/, '{kx'), groove, groove, fill, groove, groove, groove, fill);
 
@@ -67,10 +60,95 @@ const chase8 = (groove: string, fill: string) => b(groove.replace(/^\{k/, '{kx')
 const ERNIE_ROOTS = ['e', 'a', 'e', 'a', 'c', 'a', 'd', 'e'];
 const HECTOR_ROOTS = ['c/g', 'd/a', 'c/g', 'c/g', 'f/c', 'c/g', 'g/d', 'c/g'];
 const TOMMY_ROOTS = ['c', 'c', 'e-', 'f', 'c', 'f', 'a-', 'c'];
-const OSCAR_TUNE = ['o5 l8 e4 g+ a b4 a g+', 'o5 f+4 e d e2', 'o5 e4 g+ a b4 > d c+', 'o5 b2. r4', 'o5 a4 b > c+ d4 c+ < b', 'o5 a4 g+ f+ e4 d4', 'o5 c+4 d e f+4 g+4', 'o5 a1'];
-const OSCAR_ROOTS = ['e', 'd', 'e', 'e', 'a', 'd', 'a', 'a'];
-const DALE_TUNE = ['o5 l8 d4. a a4 g f', 'o5 e4. f d2', 'o5 d4. a > c4 < b- a', 'o5 a2. r4', 'o5 b-4. a g4 f e', 'o5 f4. g a2', 'o5 g4 f e d4 c+4', 'o5 d1'];
-const DALE_ROOTS = ['d', 'a', 'd', 'a', 'g', 'd', 'a', 'd'];
+// Oscar's: C-sharp minor, down-tuned, sixteen bars. The hook (off the low C-sharp, up through the blue note, the G, into
+// the fifth, and falling back home; each eight ending on the Phrygian-dominant run down to the B-sharp, the border in it),
+// the second eight up high over F-sharp minor, and the D, the flat two, the menace, before the G-sharp turns it round.
+const OSCAR_TUNE = ['o4 l8 c+4. e f+ g g+4', 'o4 l8 b g+ f+ e c+2', 'o4 l8 b4. > c+ < b a f+4', 'o4 l8 e f+ g+2 r4',
+  'o4 l8 c+4. e a4 g+ e', 'o4 l8 f+ f+ d+ f+ b4 a4', 'o4 l8 g+4 e c+ e4 f+4', 'o4 l8 g+4. a g+ f+ d+ c',
+  'o5 l8 c+4. < b a4 f+4', 'o4 l8 a b a f+ e2', 'o4 l8 e4. f+ g g+ b4', 'o5 c+2. r4',
+  'o5 l8 e4. c+ < a4 e4', 'o4 l8 a4 g+ a b4 > c+4', 'o5 l8 d4. c+ < a4 f+4', 'o4 l8 g+2 a g+ c4'];
+const OSCAR_ROOTS = ['c+', 'c+', 'b', 'c+', 'a', 'b', 'c+', 'g+', 'f+', 'f+', 'c+', 'c+', 'a', 'a', 'd', 'g+'];
+const OSCAR_FIFTH: Record<string, string> = { 'c+': 'g+', b: 'f+', a: 'e', 'g+': 'd+', 'f+': 'c+', d: 'a' };
+const OSCAR_BASS = OSCAR_ROOTS.map(r => `${r}/${OSCAR_FIFTH[r]}`);
+/** (C#m, B, A, G# with the B-sharp in the bass, F#m, D) */
+const OSCAR_CHORDS = OSCAR_ROOTS.map(r => ({ 'c+': 'c+eg+', b: '<b>d+f+', a: 'c+ea', 'g+': 'cd+g+', 'f+': 'c+f+a', d: 'df+a' } as Record<string, string>)[r]);
+/** The note `k` half steps over `root` (in octave `o`), as 'oN x'. */
+const PC = ['c', 'c+', 'd', 'd+', 'e', 'f', 'f+', 'g', 'g+', 'a', 'a+', 'b'];
+const above = (o: number, root: string, k: number) => { const n = PC.indexOf(root) + k; return `o${o + Math.floor(n / 12)} ${PC[n % 12]}`; };
+// (the baritone's riff, the bass in unison with it: a dotted stab off the low string and the push through the blue note
+// into the next; the second eight half time, stomping)
+const OSCAR_RIFF = ['o2 l8 c+. c+16 r c+ e c+ g g+', 'o2 l8 c+. c+16 r c+ b g+ g e', 'o2 l8 b. b16 r b > d+ < b a f+', 'o2 l8 c+. c+16 r c+ e c+ g g+',
+  'o2 l8 a. a16 r a > c+ < a g+ e', 'o2 l8 b. b16 r b a f+ d+ f+', 'o2 l8 c+. c+16 r c+ e c+ g g+', 'o2 l8 g+. g+16 r g+ a g+ f+ d+',
+  'o2 f+4. f+8 r8 f+8 a8 g+8', 'o2 f+4. f+8 r8 f+8 e8 c+8', 'o2 c+4. c+8 r8 c+8 e8 g8', 'o2 c+4. c+8 r8 c+8 g+8 g8',
+  'o2 a4. a8 r8 a8 a4', 'o2 a4. a8 r8 a8 g+8 e8', 'o2 d4. d8 r8 d8 f+8 a8', 'o2 l16 g+8 g+8 g+8 g+8 a g+ a g+ > c8 < g+8'];
+// (the chopper: the down-tuned rig. Palm-muted sixteenths on the low string, ringing power chords stabbing in the gaps
+// (the blues' flat five in the first eight, Pantera; the second eight a big chord on the one and the push), the run
+// down to the B-sharp and the hammering into the top as they are)
+const OSCAR_CHUG = OSCAR_ROOTS.map((r, i) => i === 7 || i === 15 ? 'r1' : i < 8 ? `o2 q4 l16 ${r} ${r} ${r} ${r} r8 ${r} ${r} r8 ${r} ${r} r4` : `o2 q4 l16 r4 ${r} ${r} r8 ${r} ${r} ${r} ${r} r4`).join(' | ');
+const OSCAR_CRUNCH = OSCAR_ROOTS.map((r, i) => {
+  if (i === 7) return 'o2 l8 g+. g+16 r a g+ f+ d+ o3 c';
+  if (i === 15) return 'o2 l16 g+8 g+8 g+8 g+8 a g+ a g+ o3 c8 c8';
+  const minor = r === 'c+' || r === 'f+';
+  if (i >= 8) return `o2 ${r}4 r8 ${r}8 r4 ${above(2, r, minor ? 3 : 7)}8 ${above(2, r, minor ? 5 : 9)}8`;
+  // (the flat five on the minor chords; the major ones (A, B) just the fifth and the octave, so they don't fight the tune)
+  const [x, y, z, w] = (!minor ? [7, 12, 7, 5] : i % 2 ? [10, 7, 5, 3] : [3, 6, 7, 6]).map(k => above(2, r, k));
+  return `r4 ${x}8 r8 ${y}8 r8 ${z}8 ${w}8`;
+}).join(' | ');
+// (the kit: a stomp in the field, toms in the second eight; laid back on the rim at lunch; double kick on the chopper,
+// the second eight thrashing, the snare on every offbeat; half time and the taiko in the fire; a two-step in the bar)
+const OSCAR_STOMP = '{kh}8 h8 {sph}8 h8 {kh}8 {kh}16 k16 {sph}8 h8';
+const OSCAR_STOMP_FILL = '{kh}8 h8 {sph}8 h8 u16 u16 t16 t16 s16 s16 {kx}8';
+const OSCAR_TOMS = '{ku}8 j8 {spj}8 u8 {ku}8 {ku}16 u16 {spj}8 j8';
+const OSCAR_TOMS_FILL = '{ku}8 j8 {spj}8 u8 t16 t16 u16 u16 s16 s16 {kx}8';
+const OSCAR_LAZY = 'v12 k4 {mz}8 z8 r8 k8 {mz}8 z8';
+const OSCAR_LAZY_FILL = 'v12 k4 {mz}8 z8 r8 k8 n16 n16 n8';
+const OSCAR_METAL = '{kh}16 k16 {kh}16 k16 {skh}16 k16 {kh}16 k16 {kh}16 k16 {kh}16 k16 {skh}16 k16 {kh}16 k16';
+const OSCAR_METAL_FILL = '{kh}16 k16 {kh}16 k16 {skh}16 k16 {kh}16 k16 s16 s16 t16 t16 u16 u16 {kx}8';
+const OSCAR_THRASH = '{ko}16 k16 {sk}16 k16 {ko}16 k16 {sk}16 k16 {ko}16 k16 {sk}16 k16 {ko}16 k16 {sk}16 k16';
+const OSCAR_THRASH_FILL = '{ko}16 k16 {sk}16 k16 {ko}16 k16 {sk}16 k16 s16 s16 s16 s16 t16 u16 {kx}8';
+const OSCAR_DOOM = '{kf}4 r8 k8 {sf}4 r4';
+const OSCAR_DOOM_FILL = '{kf}4 r8 k8 {sf}8 u8 t16 t16 u8';
+const OSCAR_TWOSTEP = '{kh}8 h8 {sjh}8 h8 {kh}8 h8 {sjh}8 h8';
+const OSCAR_TWOSTEP_FILL = '{kh}8 h8 {sjh}8 h8 n16 n16 n16 n16 {sj}8 {kx}8';
+// Dale's: D minor, sixteen bars. The hook spells it out in note names: B(-flat), A, D (slow, the B-flat leaning on the
+// A, the menace), answered quick and cocky with D, E, A, D (the grin); F, A, C, E climbing (an F major seventh, the
+// lounge chord); F, A, C, A, D, E. The second eight up high on a D drone, the E-flat grinding on it (the heat), then
+// the hook again and down through the E-flat to the A7. Its roots (F|A: split halfway) and the chords, rootless.
+const DALE_TUNE = ['o4 l8 b-4. a d2', 'o4 l8 r d e a > d4 r4', 'o4 l8 b-4. a d2', 'o4 l8 f a > c e^2', 'o4 l8 f4 a > c^4 < a > d', 'o5 e2. r4', 'o4 l8 b-4. a g4 f4', 'o4 e4 c+4 e4 a4',
+  'o5 a2 b-4 a4', 'o5 l8 g4. f e-2', 'o5 l8 d4. e f4 a4', 'o5 g2 e4 c+4', 'o4 l8 b-4. a d2', 'o4 l8 r d e a > d4 r4', 'o4 l8 g4. f e-2', 'o4 d4 c+4 < a4 r4'];
+const DALE_ROOTS = ['d/a', 'd/a', 'g/d', 'f/c|a/e', 'b-/f', 'a/e', 'g/d', 'a/e', 'd/a', 'e-/b-', 'd/a', 'c/g|a/e', 'b-/f', 'g/d', 'e-/b-', 'a/e'];
+/** (Dm9, Gm6/9, Fmaj9, A7b9, Bbmaj9, Ebmaj9, C7: rootless, in octave 3, topping out round E4-A4) */
+const DALE_CHORD: Record<string, string> = { d: 'fa>ce', g: 'b->dea', f: 'a>ceg', a: 'gb->c+e', 'b-': 'a>cdf', 'e-': 'gb->df', c: 'gb->ce' };
+/** A bass-ish line a bar at a time: `full` with R the root, F the fifth (below), O the root an octave up; `half` twice where the bar's split. */
+const daleBars = (o: number, full: string, half: string) => DALE_ROOTS.map(r => {
+  const one = (p: string, rf: string) => { const [root, fifth] = rf.split('/'); return p.replace(/O([\d.]*)/g, `>${root}$1<`).replace(/F/g, fifth).replace(/R/g, root); };
+  const [x, y] = r.split('|');
+  return `o${o} ` + (y ? `${one(half, x)} ${one(half, y)}` : one(full, x));
+}).join(' | ');
+/** The chords a bar at a time: `full(chord)`, or `half` on each where the bar's split. */
+const daleKeys = (o: number, full: (c: string) => string, half: (c: string) => string) => DALE_ROOTS.map(r => {
+  const [x, y] = r.split('|').map(s => DALE_CHORD[s.split('/')[0]]);
+  return `o${o} ` + (y ? `${half(x)} ${half(y)}` : full(x));
+}).join(' | ');
+/** The beakers: the chord's tones up high in eighths, picked out in a ticking order (each note with its own octave). */
+const daleGlass = (o: number) => DALE_ROOTS.map(r => {
+  const tones = (c: string) => { let up = 0; const out: string[] = []; for (const m of c.match(/>|[a-g][+-]?/g)!) { if (m === '>') up++; else out.push(`o${o + up} ${m}8`); } return out; };
+  const [x, y] = r.split('|').map(s => tones(DALE_CHORD[s.split('/')[0]]));
+  return [0, 2, 1, 3, 2, 0, 3, 1].map((k, i) => (y && i >= 4 ? y : x)[k]).join(' ');
+}).join(' | ');
+// (the kit: dry out in the desert, shaker and rim and a low conga; ticking sixteenths in the lab; a heartbeat on the
+// frame drum for the duel; the convoy on the congas twice as busy; the strip-mall lounge with the clap on the backbeat
+// and the tambourine, and Riggs's cab the same flat out)
+const DALE_DRY = 'v12 {kz}8 z8 {mz}8 z16 d16 {kz}16 k16 z8 {mz}8 z8';
+const DALE_DRY_TURN = 'v12 {kz}8 z8 {mz}8 z16 d16 {kz}16 k16 c16 c16 d16 d16 c8';
+const DALE_LAB = 'v12 k16 v8 h16 h16 h16 v12 m16 v8 h16 h16 h16 v12 k16 v8 h16 v12 k16 v8 h16 v12 m16 v8 h16 h16 h16';
+const DALE_HEART = 'v12 {kd}8. d16 r2.';
+const DALE_CONVOY = '{kh}16 c16 {sh}16 d16 {kh}16 c16 {sh}16 c16 {kh}16 d16 {sh}16 c16 {kh}16 {kh}16 {sh}16 d16';
+const DALE_CONVOY_FILL = '{kh}16 c16 {sh}16 d16 {kh}16 c16 {sh}16 c16 s16 s16 t16 t16 u16 u16 {kx}8';
+const DALE_LOUNGE = 'v12 {kh}8 j8 {sph}8 j8 h16 k16 {kh}8 {sph}8 {oj}8';
+const DALE_LOUNGE_FILL = 'v12 {kh}8 j8 {sph}8 j8 t16 t16 u16 u16 {sp}8 {kx}8';
+const DALE_CAB = '{kj}16 j16 {spj}16 j16 {kj}16 j16 {spj}16 {kj}16 {kj}16 j16 {spj}16 j16 {kj}16 j16 {spj}16 j16';
+const DALE_CAB_FILL = '{kj}16 j16 {spj}16 j16 {kj}16 j16 {spj}16 {kj}16 s16 s16 s16 s16 {sp}16 {sp}16 {kx}8';
 
 // Barry's: the tune (on the sax, in the alto's smoky middle), the high wail over the dread, the Rhodes' chords and the
 // strings' guide tones (one a bar, or two where the chord changes halfway), and the brushes and the ride
@@ -434,62 +512,109 @@ export const SONGS: Record<string, Song> = {
     },
   },
 
-  // Oscar: Texas. Banjo and harmonica in the field; elevator music in the break room; the chase on Dirty Dan's chopper
-  // is southern rock flat out (the guitar and the harmonica on the tune together, double kick, the bass pumping, the
-  // power chords chugging, the banjo rolling over the top); the power chords stay in for the field on fire out back
-  // of the office; honky-tonk at the bar.
+  // Oscar: Houston, oil money and outlaw bikers. Dark outlaw country-rock in C-sharp minor at 126, down-tuned: a slide
+  // guitar on the tune over a baritone guitar's riff (the bass in unison with it), a boot-stomp kit and a harmonica
+  // wailing in the gaps; the second eight half time, on the toms. Lunch in the break room is the radio: a pedal steel on
+  // the tune, a nylon-string strumming a lazy two-feel, the rim. On Dirty Dan's chopper it's heavy metal (southern, the
+  // Pantera end of it): palm-muted sixteenths on the low string, down-tuned power chords stabbing in the gaps, double kick
+  // and then thrashing, two lead guitars screaming the tune in octaves. The field on fire: half time and doom, the
+  // power chords ringing, the taiko, a choir down low, the harmonica on the tune alone. The bar: the band in the corner,
+  // a fiddle on the tune, a honky-tonk upright on it an octave up and on the offbeats, a two-step.
   oscar: {
-    bpm: 140,
+    bpm: 126,
     parts: {
-      lead: { inst: 'harmonica', mml: b(...OSCAR_TUNE) },
-      hook: { inst: 'harmonica', vol: 0.6, pan: 0.25, only: ['chase'], mml: b(...OSCAR_TUNE) },
-      banjo: { inst: 'banjo', vol: 0.8, pan: -0.35, not: ['break'], mml: [['eg+b', 'e'], ['df+a', 'd'], ['eg+b', 'e'], ['eg+b', 'e'], ['ac+e', 'a'], ['df+a', 'd'], ['ac+e', 'a'], ['ac+e', 'a']].map(([c, t]) => { const n = notes(c); return `o4 l16 ${n[0]} ${n[1]} ${n[2]} o5 ${t} o4 ${n[1]} ${n[2]} o5 ${t} o4 ${n[1]} ${n[0]} ${n[1]} ${n[2]} o5 ${t} o4 ${n[2]} ${n[1]} ${n[0]} ${n[2]}`; }).join(' | ') },
-      bass: { inst: 'bass', not: ['chase'], mml: bass(2, 'R4 F4 R4 F4', ['e/b', 'd/a', 'e/b', 'e/b', 'a/e', 'd/a', 'a/e', 'a/e']) },
-      pump: { inst: 'bass', only: ['chase'], mml: bass(2, 'R8 R8 O8 R8 R8 R8 O8 R8', OSCAR_ROOTS) },
-      drums: { inst: 'kick', drums: true, not: ['break', 'chase'], mml: rep(TRAIN, 8) },
-      chase: { inst: 'kick', drums: true, only: ['chase'], mml: chase8(HAMMER, HAMMER_FILL) },
-      power: { inst: 'power', vol: 0.8, only: ['chase', 'burn'], mml: bass(2, 'R8 R8 r8 R8 R4 R8 R8', OSCAR_ROOTS) },
-      muzak: { inst: 'kick', drums: true, only: ['break'], mml: rep('{km}8 z8 z8 {kz}8 m8 z8 z8 z8', 8) },
-      keys: { inst: 'piano', vol: 0.7, only: ['end'], mml: skank(4, ['eg+b', 'df+a', 'eg+b', 'eg+b', 'ac+e', 'df+a', 'ac+e', 'ac+e']) },
+      lead: { inst: 'slide', pan: 0.1, mml: b(...OSCAR_TUNE) },
+      // (on the chopper and in the bar: the tune an octave up)
+      hi: { inst: 'guitar', pan: 0.2, only: ['chase', 'end'], mml: up(b(...OSCAR_TUNE)) },
+      riff: { inst: 'bari', vol: 0.8, pan: -0.3, only: ['field'], mml: b(...OSCAR_RIFF) },
+      bass: { inst: 'bass', vol: 0.85, only: ['field'], mml: b(...OSCAR_RIFF) },
+      // (the harmonica answering: a lick into the second phrase and into the last one, and holding chords under the high eight)
+      wail: { inst: 'harmonica', vol: 0.85, pan: 0.3, only: ['field'], mml: b('r1', 'r1', 'r1', 'o5 r2. l16 c+ < b g+ e', 'r1', 'r1', 'r1', 'r1',
+        'v9 o4 {f+a}1', 'o4 {f+a}1', 'o4 {eg+}1', 'o4 {eg+}2. v12 o5 l16 e d+ c+ < b', 'v9 o4 {c+e}1', 'o4 {c+e}1', 'o4 {df+}1', 'o4 {cd+}2. r4') },
+      strum: { inst: 'nylon', vol: 1.1, pan: -0.3, only: ['break'], mml: OSCAR_CHORDS.map(c => `o3 r4 {${c}}8 {${c}}8 r4 {${c}}4`).join(' | ') },
+      two: { inst: 'bass', vol: 1.1, only: ['break'], mml: bass(2, 'R4 r4 F4 r4', OSCAR_BASS) },
+      band: { inst: 'bass', vol: 1.15, only: ['end'], mml: bass(2, 'R4 F4 R4 F4', OSCAR_BASS) },
+      keys: { inst: 'honky', vol: 0.8, pan: -0.3, only: ['end'], mml: stabs(4, OSCAR_CHORDS) },
+      chug: { inst: 'chug', vol: 1.35, pan: -0.3, only: ['chase'], mml: OSCAR_CHUG },
+      crunch: { inst: 'drop', vol: 1.15, pan: 0.3, only: ['chase'], mml: OSCAR_CRUNCH },
+      pump: { inst: 'bass', vol: 0.8, only: ['chase'], mml: bass(2, 'R8 R8 R8 R8 R8 R8 R8 R8', OSCAR_ROOTS) },
+      doom: { inst: 'drop', vol: 0.9, only: ['burn'], mml: b(...OSCAR_ROOTS.slice(0, 8).map(r => `o2 ${r}2. r8 ${r}8`), ...OSCAR_ROOTS.slice(8).map(r => `o2 ${r}4. ${r}8 r4 ${r}4`)) },
+      low: { inst: 'bass', only: ['burn'], mml: bass(2, 'R1', OSCAR_ROOTS) },
+      choir: { inst: 'choir', vol: 0.5, pan: -0.2, only: ['burn'], mml: pad(3, OSCAR_CHORDS) },
+      stomp: { inst: 'kick', drums: true, only: ['field'], mml: b(OSCAR_STOMP.replace('{kh}', '{kxh}'), OSCAR_STOMP, OSCAR_STOMP, OSCAR_STOMP_FILL, OSCAR_STOMP, OSCAR_STOMP, OSCAR_STOMP, OSCAR_STOMP_FILL,
+        OSCAR_TOMS.replace('{ku}', '{kxu}'), OSCAR_TOMS, OSCAR_TOMS, OSCAR_TOMS_FILL, OSCAR_TOMS, OSCAR_TOMS, OSCAR_TOMS, OSCAR_STOMP_FILL) },
+      lazy: { inst: 'kick', drums: true, only: ['break'], mml: rep(b(OSCAR_LAZY, OSCAR_LAZY, OSCAR_LAZY, OSCAR_LAZY_FILL), 4) },
+      metal: { inst: 'kick', drums: true, vol: 0.8, only: ['chase'], mml: b(OSCAR_METAL.replace('{kh}', '{kxh}'), OSCAR_METAL, OSCAR_METAL, OSCAR_METAL_FILL, OSCAR_METAL, OSCAR_METAL, OSCAR_METAL, OSCAR_METAL_FILL,
+        OSCAR_THRASH.replace('{ko}', '{kx}'), OSCAR_THRASH, OSCAR_THRASH, OSCAR_THRASH_FILL, OSCAR_THRASH.replace('{ko}', '{kx}'), OSCAR_THRASH, OSCAR_THRASH, OSCAR_THRASH_FILL) },
+      doomkit: { inst: 'kick', drums: true, only: ['burn'], mml: b(OSCAR_DOOM.replace('{kf}', '{kxf}'), rep(OSCAR_DOOM, 6), OSCAR_DOOM_FILL, OSCAR_DOOM.replace('{kf}', '{kxf}'), rep(OSCAR_DOOM, 6), OSCAR_DOOM_FILL) },
+      twostep: { inst: 'kick', drums: true, only: ['end'], mml: rep(b(OSCAR_TWOSTEP.replace('{kh}', '{kxh}'), OSCAR_TWOSTEP, OSCAR_TWOSTEP, OSCAR_TWOSTEP_FILL), 4) },
     },
     arrangements: {
       field: {},
-      break: { inst: { lead: 'epiano', bass: 'bass' }, vol: { lead: 0.8 } },
-      chase: { inst: { lead: 'guitar' }, vol: { banjo: 0.75 } },
-      // (the field burning out back of the office: the field's own, the chase's power chords still in it, lower)
-      burn: { vol: { power: 0.55 } },
-      end: { inst: { lead: 'piano' } },
+      // (lunch: the radio on, a pedal steel on the tune)
+      break: { inst: { lead: 'pedal' }, vol: { lead: 1.2 } },
+      // (the chopper: two guitars on the tune in octaves)
+      chase: { inst: { lead: 'guitar' }, vol: { lead: 0.5 } },
+      // (the field on fire: the harmonica on its own over the doom)
+      burn: { inst: { lead: 'harmonica' } },
+      // (the bar band: the fiddle, the honky-tonk upright an octave up)
+      end: { inst: { lead: 'fiddle', hi: 'honky' }, vol: { lead: 1.1, hi: 1.4 } },
     },
   },
 
-  // Dale: a spaghetti western. Whistling out in the desert; the cartel's machinery ticking over in the warehouse; the
-  // convoy as a chase (a trumpet, the power chords, the bass and the toms galloping); the standoff with Riggs on the last
-  // truck stripped back to a duel (whistle, bells, the choir); the full showdown in town; and Riggs's cab coming up the
-  // street as the posse at full gallop (trumpet and whistle on the tune, the choir, the bells, the strummed guitar).
+  // Dale: Albuquerque, a meth dealer in the desert. Half Breaking Bad (a twangy baritone guitar drowning in its amp's
+  // spring tank, a lonely drone shimmering in the heat, dry hand percussion, a rattlesnake), half Better Call Saul (a
+  // cheesy combo organ, a walking bass, muted trumpets grinning, the strip-mall lawyer's TV spot). D minor at 100: menace
+  // with a smirk, the hook spelling out B-A-D and D-E-A-D. Out in the desert the baritone on the tune over the drone,
+  // a dry groove on the shaker and the rim, the Rhodes sliding in a chord behind the beat, the snake rattling in the
+  // gaps; the warehouse is the cook (the drone gone to the factory's hum, a synth bass ticking, glassware tinking, hats
+  // running like a lab timer); the convoy a chase (an overdriven lead with the baritone under it, power chords and the
+  // bass in sixteenths, the congas twice as busy); the last truck a duel (the baritone, the drone, a heartbeat on the
+  // frame drum, the timpani, the snake); Deadwood Gulch is Saul's, at full grin (the organ on the tune, walking bass,
+  // the organ skanking, muted trumpets, the clap and the tambourine); and Riggs's cab coming up the street is the
+  // lounge flat out (the organ and the baritone, the horns, the bass pumping, the kit twice as busy).
   dale: {
     bpm: 100,
     parts: {
-      lead: { inst: 'whistle', mml: b(...DALE_TUNE) },
-      // (the cab coming up the street: the whistle an octave up over the trumpet)
-      hook: { inst: 'whistle', vol: 0.6, pan: 0.2, only: ['cab'], mml: up(b(...DALE_TUNE)) },
-      gtr: { inst: 'nylon', vol: 0.8, pan: -0.35, mml: [['dfa', 'd'], ['c+eg', 'c+'], ['dfa', 'd'], ['c+ea', 'a'], ['gb-d', 'g'], ['dfa', 'd'], ['c+eg', 'c+'], ['dfa', 'd']].map(([c]) => `o3 {${c}}4 {${c}}8 {${c}}8 {${c}}4 {${c}}8 {${c}}8`).join(' | ') },
-      bass: { inst: 'bass', not: ['highway', 'cab'], mml: bass(2, 'R4 r8 F8 R4 F4', ['d/a', 'a/e', 'd/a', 'a/e', 'g/d', 'd/a', 'a/e', 'd/a']) },
-      gallop: { inst: 'bass', only: ['highway', 'cab'], mml: bass(2, 'R8 R16 R16 R8 R16 R16 R8 R16 R16 O8 R16 R16', DALE_ROOTS) },
-      timp: { inst: 'timpani', vol: 0.8, mml: rep('o2 d4 r2. | o2 a4 r2. ', 4) },
-      drums: { inst: 'kick', drums: true, only: ['desert'], mml: rep('k8 r8 m8 r8 k8 k8 m8 r8', 8) },
-      works: { inst: 'kick', drums: true, only: ['warehouse'], mml: rep('k8 z16 z16 m8 z16 z16 k8 z16 z16 m8 z16 z16', 8) },
-      road: { inst: 'kick', drums: true, only: ['highway', 'cab'], mml: chase8(GALLOP, GALLOP_FILL) },
-      choir: { inst: 'choir', vol: 0.6, only: ['town', 'standoff', 'cab'], mml: pad(4, ['dfa', 'c+eg', 'dfa', 'c+ea', 'gb->d', 'dfa', 'c+eg', 'dfa']) },
-      bells: { inst: 'bell', vol: 0.5, only: ['town', 'standoff', 'cab'], mml: rep('o5 d2 r2 | o4 a2 r2', 4) },
+      // (Walt's: the baritone, down an octave)
+      bari: { inst: 'twang', pan: -0.1, not: ['town'], mml: b(...DALE_TUNE.map(down)) },
+      // (Saul's: the organ on the tune, up where it's written; on the convoy the overdriven lead)
+      lead: { inst: 'combo', pan: 0.15, only: ['highway', 'town', 'cab'], mml: b(...DALE_TUNE) },
+      drone: { inst: 'heat', vol: 0.9, only: ['desert', 'standoff'], mml: rep('o2 {d>d}1^1^1^1', 4) },
+      hum: { inst: 'hum', vol: 1.3, only: ['warehouse'], mml: rep('o3 d1^1^1^1', 4) },
+      bass: { inst: 'bass', vol: 0.9, only: ['desert'], mml: daleBars(2, 'R4. R8 r4 F8 R8', 'R4. R8') },
+      pulse: { inst: 'synthbass', vol: 0.75, only: ['warehouse'], mml: daleBars(2, 'q4 R8 R8 O8 R8 R8 R8 O8 R8', 'q4 R8 R8 O8 R8') },
+      walk: { inst: 'bass', only: ['town'], mml: b('o2 d4 f4 a4 c+4', 'o2 d4 a4 > c4 < f+4', 'o2 g4 b-4 > d4 < e4', 'o2 f4 > c4 < a4 b4', 'o2 b-4 > d4 c4 < b4', 'o2 a4 > c+4 < a4 a-4', 'o2 g4 b-4 > d4 < g+4', 'o2 a4 > c+4 e4 < c+4',
+        'o2 d4 a4 f4 e4', 'o2 e-4 g4 b-4 c+4', 'o2 d4 f4 a4 b4', 'o3 c4 < g4 a4 b4', 'o2 b-4 > d4 f4 < a4', 'o2 g4 b-4 > d4 < e4', 'o2 e-4 g4 b-4 a-4', 'o2 a4 > c+4 e4 < c+4') },
+      pump: { inst: 'bass', only: ['highway', 'cab'], mml: daleBars(2, 'q6 R16 R16 O16 R16 R16 R16 O16 R16 R16 R16 O16 R16 R16 F16 O16 R16', 'q6 R16 R16 O16 R16 R16 F16 O16 R16') },
+      power: { inst: 'power', vol: 0.85, pan: -0.3, only: ['highway'], mml: daleBars(2, 'q5 R16 R16 R8 R16 R16 R8 R16 R16 R8 R8 R8', 'q5 R16 R16 R8 R16 R16 R8') },
+      // (the Rhodes in the desert: a chord slid in late, a smirk; the organ skanking in town; stabbing eighths on the cab)
+      keys: { inst: 'epiano', vol: 0.45, pan: 0.3, only: ['desert'], mml: daleKeys(3, c => `r2 r8 {${c}}4.`, c => `r8 {${c}}4.`) },
+      comp: { inst: 'organ', vol: 0.5, pan: -0.3, only: ['town'], mml: daleKeys(3, c => `r8 {${c}}8 r4 r8 {${c}}8 r4`, c => `r8 {${c}}8 r4`) },
+      push: { inst: 'organ', vol: 0.45, pan: -0.3, only: ['cab'], mml: daleKeys(3, c => `r8 {${c}}8 r8 {${c}}8 r8 {${c}}8 r8 {${c}}8`, c => `r8 {${c}}8 r8 {${c}}8`) },
+      // (the horns grinning in the gaps the tune leaves)
+      horns: { inst: 'mute', vol: 0.9, pan: 0.35, only: ['town', 'cab'], mml: b('r1', 'o4 r2 {fa>d}8 r8 {fa>d}8 r8', 'r1', 'o4 r2. {gb->c+}8 r8', 'r1', 'o4 r2. {gb->c+e}8 r8', 'r1', 'o4 {gb->c+}8 r8 r2.',
+        'r1', 'o4 r2 {gb->d}8 r8 {gb->d}8 r8', 'r1', 'r1', 'r1', 'o4 r2 {b->de}8 r8 {b->de}8 r8', 'r1', 'o4 r2. {gb->c+e}8 r8') },
+      // (the cook: beakers tinking up high)
+      glass: { inst: 'tink', vol: 0.75, pan: 0.3, only: ['warehouse'], mml: daleGlass(5) },
+      // (a rattlesnake in the gaps)
+      rattle: { inst: 'rattle', vol: 1, pan: 0.45, only: ['desert', 'standoff'], mml: b('r1', 'o4 r2 c2', 'r1', 'r1', 'r1', 'o4 r2. c4', 'r1', 'r1', 'r1', 'r1', 'r1', 'r1', 'r1', 'o4 r2 c2', 'r1', 'o4 r2. c4') },
+      timp: { inst: 'timpani', vol: 0.75, only: ['standoff'], mml: b('v12 o2 d4 r2.', 'r1', 'r1', 'r1', 'r1', 'r1', 'r1', 'o2 a4 r2.', 'o2 d4 r2.', 'r1', 'r1', 'r1', 'r1', 'r1', 'o2 e-4 r2.', 'o2 a4 r4 v8 [a32]8 v11 [a32]8') },
+      drums: { inst: 'kick', drums: true, only: ['desert'], mml: rep(b(DALE_DRY, DALE_DRY, DALE_DRY, DALE_DRY_TURN), 4) },
+      lab: { inst: 'kick', drums: true, only: ['warehouse'], mml: rep(DALE_LAB, 16) },
+      heart: { inst: 'kick', drums: true, only: ['standoff'], mml: rep(DALE_HEART, 16) },
+      convoy: { inst: 'kick', drums: true, only: ['highway'], mml: b(chase8(DALE_CONVOY, DALE_CONVOY_FILL), chase8(DALE_CONVOY, DALE_CONVOY_FILL)) },
+      lounge: { inst: 'kick', drums: true, only: ['town'], mml: b(DALE_LOUNGE.replace('{kh}', '{kxh}'), rep(DALE_LOUNGE, 6), DALE_LOUNGE_FILL, rep(DALE_LOUNGE, 7), DALE_LOUNGE_FILL) },
+      cab: { inst: 'kick', drums: true, only: ['cab'], mml: b(chase8(DALE_CAB, DALE_CAB_FILL), chase8(DALE_CAB, DALE_CAB_FILL)) },
     },
     arrangements: {
       desert: {},
-      warehouse: { vol: { lead: 0.85, gtr: 0.7 } },
-      highway: { inst: { lead: 'trumpet', gtr: 'power' }, vol: { gtr: 0.5 } },
+      warehouse: { vol: { pulse: 1.25, glass: 1.15 } },
+      highway: { inst: { lead: 'guitar' }, vol: { bari: 0.5 } },
       // (the last truck: Riggs and Dale arguing over the radio, him out on the hood, a duel at eighty miles an hour)
-      standoff: { vol: { gtr: 0.5, choir: 0.45 } },
-      town: { inst: { lead: 'trumpet' } },
-      cab: { inst: { lead: 'trumpet' }, vol: { choir: 0.75, gtr: 0.9 } },
+      standoff: { vol: { bari: 1.15, drone: 1.3, timp: 1.2 } },
+      town: { vol: { lead: 1.15, walk: 1.15, comp: 1.3 } },
+      cab: { inst: { horns: 'brass' }, vol: { bari: 0.55, horns: 0.7 } },
     },
   },
 
@@ -512,8 +637,8 @@ export const SONGS: Record<string, Song> = {
       'Hector Hurricane': { inst: { lead: 'steel', color: 'strings' } },
       'Toxic Tommy': { inst: { lead: 'organ', color: 'epiano' } },
       'Blackout Barry': { inst: { lead: 'sax', color: 'strings' } },
-      'Oily Oscar': { inst: { lead: 'harmonica', color: 'banjo' } },
-      'Drug Trade Dale': { inst: { lead: 'trumpet', color: 'nylon' } },
+      'Oily Oscar': { inst: { lead: 'slide', color: 'fiddle' } },
+      'Drug Trade Dale': { inst: { lead: 'combo', color: 'twang' } },
     },
   },
 

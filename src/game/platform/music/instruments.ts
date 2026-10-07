@@ -103,9 +103,9 @@ const clav = pluck(262, 0.7, 1, 0.992, 0.1);
  * picked hard, through a high-gain fuzz (asymmetric, so it growls), then a speaker cabinet (the fizz rolled off up top,
  * the mud cut from the bottom, a honk in the mids). A one-shot that rings on as long as a guitar would.
  */
-const electric = (hzs: [number, number][], len: number, drive: number, damp: number) => {
+const electric = (hzs: [number, number][], len: number, drive: number, damp: number, cab = 3400, low = 90) => {
   const root = pluck(hzs[0][0], 0.1, 0.85, damp);
-  const a1 = 1 - Math.exp(-TAU * 3400 / SR), a2 = 1 - Math.exp(-TAU * 4800 / SR), ah = Math.exp(-TAU * 90 / SR);
+  const a1 = 1 - Math.exp(-TAU * cab / SR), a2 = 1 - Math.exp(-TAU * 4800 / SR), ah = Math.exp(-TAU * low / SR);
   const am = 1 - Math.exp(-TAU * 1300 / SR);
   // (made when it's first wanted, like the rest)
   const make = () => {
@@ -127,6 +127,39 @@ const electric = (hzs: [number, number][], len: number, drive: number, damp: num
 };
 const leadGuitar = electric([[262, 1]], 2.6, 9, 0.9996);
 const powerChord = electric([[131, 1], [196, 0.8], [262, 0.55]], 2.2, 14, 0.9993);
+/**
+ * Dale's baritone guitar: a low string picked near the bridge on an amp only just breaking up, then drenched in the
+ * amp's spring tank (a few early bounces, then the tank feeding back on itself, darker each time round). Sun-bleached.
+ */
+const daleBari = (() => {
+  const gtr = electric([[196, 1]], 3.4, 1.6, 0.9997);
+  const make = () => {
+    const x = gtr.make().data;
+    const n = x.length, y = new Float32Array(n);
+    const taps = [[0.029, 0.3], [0.043, 0.24], [0.071, 0.2], [0.097, 0.14]].map(([d, g]) => [Math.round(d * SR), g]);
+    const D = Math.round(0.053 * SR);
+    let lp = 0, peak = 0;
+    for (let i = 0; i < n; i++) {
+      let v = x[i];
+      for (const [d, g] of taps) if (i >= d) v += g * x[i - d];
+      if (i >= D) { lp += 0.3 * (y[i - D] - lp); v += 0.45 * lp; }
+      y[i] = v; peak = Math.max(peak, Math.abs(v));
+    }
+    const fade = Math.round(0.03 * SR);
+    for (let i = 0; i < n; i++) y[i] = (y[i] / (peak || 1)) * (i > n - fade ? (n - i) / fade : 1);
+    return { data: y };
+  };
+  return { make, base: gtr.base };
+})();
+// (Oscar's: a baritone guitar through a clean amp just starting to break up, all twang; and the down-tuned rig, low C-sharp
+// power chords, once ringing and once palm-muted, the cabinet darker and the bottom left in so it chugs)
+const baritone = electric([[110, 1], [220, 0.2]], 1.8, 2.4, 0.9985, 4200);
+const dropChord = electric([[69, 1], [104, 0.85], [139, 0.55]], 2.4, 16, 0.9993, 3000, 55);
+const chugChord = electric([[69, 1], [104, 0.8], [139, 0.4]], 0.7, 20, 0.985, 2000, 55);
+/** A one-period peak of a periodic wave (to scale it before it's driven). */
+const peakOf = (w: (t: number) => number, hz: number) => { let p = 0; for (let i = 0; i < 600; i++) p = Math.max(p, Math.abs(w(i / 600 / hz))); return p || 1; };
+const slideTone = partials(sawPartials(262, (k, hz) => Math.exp(-k / 10) * (0.5 + 1.3 * formant(hz, 1050, 420) + 0.7 * formant(hz, 2600, 600)), 7000));
+const slidePeak = peakOf(slideTone, 262);
 
 /** Every instrument there is. */
 export const INSTRUMENTS: Record<string, InstrumentDef> = {
@@ -184,6 +217,35 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     // A power chord (root, fifth, octave) on a distorted electric, chugged
     make: powerChord.make, base: powerChord.base, env: { a: 0.002, d: 0, s: 1, r: 0.06 }, gain: 0.38,
   },
+  // A bottleneck slide guitar on a cranked little amp: a nasal honk and a bite up top, driven (tanh, so still periodic),
+  // the wide wobble of the slide
+  slide: {
+    make: held(0.03, (t) => Math.tanh(2.4 * slideTone(t) / slidePeak), (u) => 0.55 + 0.45 * u),
+    base: midiOf(262), env: { a: 0.012, d: 0.35, s: 0.72, r: 0.14 }, gain: 0.42, vib: [5.2, 24],
+  },
+  // A pedal steel on the radio: clean and sweet, swelling in, a slow wide shimmer
+  pedal: {
+    make: held(0.08, partials([[262, 1], [263, 0.35], [524, 0.4], [786, 0.16], [1048, 0.09], [1310, 0.04]]), (u) => u),
+    base: midiOf(262), env: { a: 0.08, d: 0.4, s: 0.78, r: 0.35 }, gain: 0.45, vib: [4.5, 14],
+  },
+  // A fiddle: a bowed saw with the body's resonances in it (a low wood bump, the bright bite up around 3k), a little
+  // twin a hair off, a fast vibrato
+  fiddle: {
+    make: held(0.05, partials([...sawPartials(262, (k, hz) => Math.exp(-k / 18) * (0.35 + 0.8 * formant(hz, 600, 250) + formant(hz, 2900, 900)), 9000), ...sawPartials(263, (k, hz) => 0.22 * Math.exp(-k / 18) * (0.35 + 0.8 * formant(hz, 600, 250) + formant(hz, 2900, 900)), 9000)]), (u) => 0.4 + 0.6 * u),
+    base: midiOf(262), env: { a: 0.035, d: 0.2, s: 0.85, r: 0.12 }, gain: 0.4, vib: [6.2, 18],
+  },
+  bari: {
+    // Baritone guitar: clean-ish and twangy, the low strings (outlaw country)
+    make: baritone.make, base: baritone.base, env: { a: 0.002, d: 0, s: 1, r: 0.08 }, gain: 0.5,
+  },
+  drop: {
+    // Down-tuned power chords (low C-sharp), ringing out
+    make: dropChord.make, base: dropChord.base, env: { a: 0.002, d: 0, s: 1, r: 0.08 }, gain: 0.36,
+  },
+  chug: {
+    // The same, palm-muted: chugged short and dark
+    make: chugChord.make, base: chugChord.base, env: { a: 0.002, d: 0, s: 1, r: 0.03 }, gain: 0.36,
+  },
   synthbass: {
     make: held(0.01, partials(sawPartials(65, (k) => Math.exp(-k / 5), 3000))),
     base: midiOf(65), env: { a: 0.004, d: 0.18, s: 0.6, r: 0.06 }, gain: 0.6,
@@ -237,6 +299,23 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     }, (u) => u),
     base: midiOf(131), env: { a: 0.4, d: 0.3, s: 0.9, r: 0.8 }, gain: 0.3,
   },
+  // The desert's drone: a reedy low tone and its twin a hertz off (the throb), the heat shimmering up top of it (a few
+  // high partials fluttering), the whole thing breathing in and out; the lane's slow vibrato warps it like the air does
+  heat: {
+    make: held(0.3, (t) => {
+      let v = 0;
+      for (let k = 1; k * 147 < 2400; k++) v += (Math.sin(TAU * 147 * k * t) + 0.7 * Math.sin(TAU * 148 * k * t)) * (k % 2 ? 1 : 0.6) * (formant(147 * k, 880, 520) + 0.3) / Math.pow(k, 1.2);
+      let sh = 0;
+      for (const k of [15, 16, 19, 21]) sh += Math.sin(TAU * 147 * k * t);
+      return (v + 0.09 * sh * (0.5 + 0.5 * Math.sin(TAU * 7 * t))) * (0.8 + 0.2 * Math.sin(TAU * t));
+    }, (u) => u),
+    base: midiOf(147), env: { a: 0.9, d: 0.4, s: 0.9, r: 1.2 }, gain: 0.38, vib: [0.4, 9],
+  },
+  // A combo organ (the strip-mall lawyer's TV spot): a thin, reedy square, bright on top, its vibrato fast and cheesy
+  combo: {
+    make: held(0.01, partials(sawPartials(262, (k, hz) => (k % 2 ? 1 : 0.4) * (1 + 0.7 * formant(hz, 2100, 900)), 6500))),
+    base: midiOf(262), env: { a: 0.005, d: 0.08, s: 0.85, r: 0.07 }, gain: 0.48, vib: [6.5, 20],
+  },
   // ---- Plucked, struck, one-shot ----
   piano: {
     make: shot(2.6, (t) => {
@@ -245,6 +324,15 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
       return v + (t < 0.012 ? noise() * 0.3 * (1 - t / 0.012) : 0);
     }),
     base: midiOf(262), env: { a: 0.002, d: 0, s: 1, r: 0.18 }, gain: 0.55,
+  },
+  // The saloon's upright: two strings a note, out of tune with each other (honky-tonk), brighter than the grand
+  honky: {
+    make: shot(2.2, (t) => {
+      let v = 0;
+      for (let k = 1; k <= 12; k++) for (const f of [262, 265.5]) { const hz = f * k * Math.sqrt(1 + 0.0004 * k * k); v += Math.sin(TAU * hz * t) * Math.exp(-t * (1.2 + k * 0.5)) / Math.pow(k, 0.9); }
+      return v + (t < 0.01 ? noise() * 0.35 * (1 - t / 0.01) : 0);
+    }),
+    base: midiOf(263.7), env: { a: 0.002, d: 0, s: 1, r: 0.15 }, gain: 0.5,
   },
   epiano: {
     make: shot(2.4, (t) => Math.sin(TAU * 262 * t + (2.2 * Math.exp(-t * 4) + 0.25) * Math.sin(TAU * 262 * t) + 0.4 * Math.exp(-t * 20) * Math.sin(TAU * 262 * 14 * t)) * Math.exp(-t * 1.1)),
@@ -291,6 +379,25 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
   steel: {
     make: shot(1.6, (t) => Math.sin(TAU * 523 * t) * Math.exp(-t * 2.2) + 0.55 * Math.sin(TAU * 1046 * t) * Math.exp(-t * 3) + 0.35 * Math.sin(TAU * 523 * 3.03 * t) * Math.exp(-t * 5) + 0.2 * Math.sin(TAU * 523 * 4.1 * t) * Math.exp(-t * 7)),
     base: midiOf(523), env: { a: 0.004, d: 0, s: 1, r: 0.15 }, gain: 0.45,
+  },
+  // Dale's baritone guitar, through the spring tank (see daleBari); rings on as long as the note's held
+  twang: { make: daleBari.make, base: daleBari.base, env: { a: 0.002, d: 0, s: 1, r: 0.35 }, gain: 0.7, vib: [5, 12] },
+  // A rattlesnake: a dry buzz of scales clicking forty-odd times a second, shaking on, wavering; play it on o4 c
+  rattle: {
+    make: (() => {
+      let p = 0;
+      return shot(1.6, (t) => {
+        const w = noise(); const hp = w - p; p = w;
+        const click = Math.exp(-((t * 47) % 1) * 7);
+        return hp * click * Math.min(1, t / 0.06) * (t > 1.35 ? Math.exp(-(t - 1.35) * 18) : 1) * (0.7 + 0.3 * Math.sin(TAU * 3 * t));
+      });
+    })(),
+    base: midiOf(262), env: { a: 0.01, d: 0, s: 1, r: 0.12 }, gain: 0.6,
+  },
+  // Lab glassware: a beaker flicked with a fingernail (a cup's inharmonic modes, gone quick, a tick of a click on it)
+  tink: {
+    make: shot(0.9, (t) => Math.sin(TAU * 1568 * t) * Math.exp(-t * 7) + 0.45 * Math.sin(TAU * 1568 * 2.32 * t) * Math.exp(-t * 13) + 0.22 * Math.sin(TAU * 1568 * 4.25 * t) * Math.exp(-t * 24) + (t < 0.002 ? noise() * 0.4 : 0)),
+    base: midiOf(1568), env: { a: 0.001, d: 0, s: 1, r: 0.12 }, gain: 0.45,
   },
   timpani: {
     make: shot(1.8, (t) => Math.sin(TAU * 98 * t) * Math.exp(-t * 1.8) + 0.4 * Math.sin(TAU * 98 * 1.5 * t) * Math.exp(-t * 3) + (t < 0.03 ? noise() * 0.5 * (1 - t / 0.03) : 0)),
