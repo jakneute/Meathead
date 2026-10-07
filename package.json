@@ -10,6 +10,7 @@
     "lint": "tsc --noEmit",
     "release": "vite build --mode release && node -e \"require('fs').renameSync('release/index.html','release/Meathead.html')\"",
     "release:public": "vite build --mode public && node -e \"require('fs').renameSync('release-public/index.html','release-public/Meathead.html')\"",
+    "release:m2": "vite build --mode m2",
     "voices": "node tools/voices/run.cjs"
   },
   "dependencies": {

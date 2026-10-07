@@ -10,6 +10,8 @@ export default defineConfig(({ mode }) => ({
     port: 3000,
     host: '0.0.0.0',
   },
-  plugins: [react(), tailwindcss(), ...(mode === 'release' || mode === 'public' ? [viteSingleFile()] : [])],
-  build: mode === 'release' ? { outDir: 'release', emptyOutDir: true } : mode === 'public' ? { outDir: 'release-public', emptyOutDir: true } : {},
+  plugins: [react(), tailwindcss(), ...(mode === 'release' || mode === 'public' || mode === 'm2' ? [viteSingleFile()] : [])],
+  // (`--mode m2`: Meathead 2, from meathead2.html, into a folder of its own)
+  build: mode === 'release' ? { outDir: 'release', emptyOutDir: true } : mode === 'public' ? { outDir: 'release-public', emptyOutDir: true }
+    : mode === 'm2' ? { outDir: 'release-m2', emptyOutDir: true, rollupOptions: { input: 'meathead2.html' } } : {},
 }));

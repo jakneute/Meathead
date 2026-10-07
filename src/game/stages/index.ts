@@ -134,5 +134,8 @@ const LAYOUTS: Record<string, StageLayout> = {
 
 export const getStageLayout = (stageId: string | null): StageLayout | undefined => (stageId ? LAYOUTS[stageId] : undefined);
 
+/** Another game's stages (Meathead 2's: src/m2), added at its startup, run by the same engine. */
+export const registerStageLayout = (id: string, layout: StageLayout) => { LAYOUTS[id] = layout; };
+
 /** Left edge of a stage's world (0 unless a layout extends it). */
 export const getStageLeft = (stageId: string | null) => getStageLayout(stageId)?.left ?? 0;
