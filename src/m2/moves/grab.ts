@@ -419,11 +419,13 @@ const drawPinned = (ctx: Ctx, e: Enemy, state: GameState, x: number, groundY: nu
  * Held up by the neck at (hx, hy), facing Meathead: a person hanging upright from it; an animal turned up on end, head
  * up, hind legs hanging down. `swing` turns him about the neck.
  */
-const drawHeldByNeck = (ctx: Ctx, e: Enemy, state: GameState, hx: number, hy: number, dir: 1 | -1, swing: number) => {
+const drawHeldByNeck = (ctx: Ctx, e: Enemy, state: GameState, hx: number, hy: number, dir: 1 | -1, swing: number, byFace = false) => {
   const face = (-dir) as 1 | -1, person = isHumanoidKind(e.kind);
   const hd = e.kind ? kindHead(e.kind, e.variant) : null;
-  // (where his neck is, from his feet, the way he's facing; a person's under his head, an animal's just behind its head)
-  const neck = person ? { x: 0, y: hd ? hd.y + hd.r : -e.height * 0.8 } : { x: face * (hd ? hd.x - hd.r * 0.6 : e.width * 0.35), y: hd ? hd.y + hd.r * 0.5 : -e.height * 0.6 };
+  // (where his neck is, from his feet, the way he's facing; a person's under his head, an animal's just behind its head;
+  // held by the face, it's the middle of the head)
+  const neck = byFace && hd ? { x: face * hd.x, y: hd.y }
+    : person ? { x: 0, y: hd ? hd.y + hd.r : -e.height * 0.8 } : { x: face * (hd ? hd.x - hd.r * 0.6 : e.width * 0.35), y: hd ? hd.y + hd.r * 0.5 : -e.height * 0.6 };
   ctx.save();
   ctx.translate(hx, hy);
   ctx.rotate((person ? 0 : -face * Math.PI / 2) + swing);
@@ -535,8 +537,8 @@ const TOSS_KEYS: Record<Toss, TossKey[]> = {
   forward: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: -0.35, hand: [-6, -54], sink: 2 }, { lean: 0.4, hand: [36, -32], sink: 4 }, { lean: 0.5, hand: [34, -18], sink: 6 }],
   // Back: a suplex. Hoisted up off his feet, then Meathead arches right back over into a bridge, driving him down behind
   back: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: -0.9, hand: [8, -62], sink: 2 }, { lean: -2.0, hand: [-2, -58], sink: 10 }, { lean: -2.05, hand: [-2, -56], sink: 11 }],
-  // Up: dipped down with him, then driven straight up, arms locked out overhead
-  up: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: 0.25, hand: [22, -18], sink: 9 }, { lean: -0.12, hand: [10, -66], sink: -3 }, { lean: -0.08, hand: [8, -64], sink: -1 }],
+  // Up: an alley-oop. Dipped down low with him, then up off the floor, both arms thrust straight up, locked out
+  up: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: 0.2, hand: [20, -20], sink: 10 }, { lean: -0.1, hand: [6, -78], sink: -6 }, { lean: -0.06, hand: [4, -80], sink: -4 }],
   // Down: hoisted right up overhead, then brought down into the floor in front, sinking into it
   down: [{ lean: 0, hand: [26, -42], sink: 0 }, { lean: -0.2, hand: [6, -66], sink: -2 }, { lean: 0.7, hand: [36, -4], sink: 12 }, { lean: 0.65, hand: [36, -4], sink: 11 }],
 };
@@ -554,6 +556,46 @@ const handAt = (key: TossKey) => {
   const [x, y] = key.hand, a = key.lean;
   return { x: x * Math.cos(a) - y * Math.sin(a), y: -24 + key.sink + x * Math.sin(a) + y * Math.cos(a) };
 };
+/**
+ * The forward throw: he boots him away. Held out in front by the neck, the knee comes up and the leg shoots out, sole
+ * first, leaning back on the planted leg (`k` 0 chambered .. 1 out); once he's let go, the arms fly out for balance.
+ */
+const bootPose = (c: Ctx, f: number, k: number, let_: boolean) => {
+  drawLeg(c, [-4, -26], [-8, -13], [-10, 0], 0, true);
+  const out = Math.max(0, (k - 0.35) / 0.65);
+  drawLeg(c, [5, -26], [16 + out * 8, -38 + out * 8], [12 + out * 30, -24 - out * 8], -0.4 - out * 1.1, false);
+  c.save(); c.translate(-2, -26); c.rotate(-0.08 - out * 0.3);
+  if (let_) drawArmTo(c, [-8, -22], [-20, -28], [-30, -22], true);
+  else drawArmTo(c, [-8, -22], [8, -26], [24, -30], true, 5);
+  drawTorsoFromHips(c);
+  head(c, 3, -37, -0.1, out > 0.4 ? 'roar' : 'grit', f);
+  if (let_) drawArmTo(c, [11, -22], [20, -12], [12, -8], false);
+  else drawArmTo(c, [11, -22], [22, -24], [28, -31], false, 6);
+  c.restore();
+};
+/** Where the boot pose holds him (his neck), from his feet (facing right). */
+const BOOT_HOLD = { x: 34, y: -60 };
+
+/**
+ * The slam: an aggressive one-handed face slam. A palm over his face, hoisted, and driven down into the floor in front
+ * (`k` 0 up .. 1 in the floor), bent right over after it, the other arm flung back.
+ */
+const slamHandAt = (k: number) => ({ x: 20 + k * 24, y: -78 + k * 74 });
+const facePose = (c: Ctx, f: number, k: number) => {
+  const lean = -0.15 + k * 0.95, sink = -2 + k * 13, hipY = -24 + sink;
+  drawLeg(c, [-5, hipY], [-13, -12 + sink * 0.5], [-17, 0], 0, true);
+  drawLeg(c, [5, hipY], [16, -13 + sink * 0.6], [19, 0], 0, false);
+  // (the hand's where it is in the world; into the torso's frame for the arm)
+  const h = slamHandAt(k), dx = h.x, dy = h.y - hipY, cs = Math.cos(-lean), sn = Math.sin(-lean);
+  const hx = dx * cs - dy * sn, hy = dx * sn + dy * cs;
+  c.save(); c.translate(0, hipY); c.rotate(lean);
+  drawArmTo(c, [-8, -22], [-20, -16 - k * 6], [-30, -8 - k * 14], true);
+  drawTorsoFromHips(c);
+  head(c, 3, -37, 0.2 + k * 0.2, 'roar', f);
+  drawArmTo(c, [11, -22], [(hx + 11) / 2 + 6, (hy - 22) / 2 - 4], [hx, hy], false, 6.5);
+  c.restore();
+};
+
 /** Him in a throw: braced (or sunk) on his legs, leaning into it, both hands on the one he's throwing. */
 const tossPose = (c: Ctx, f: number, key: TossKey, toss: Toss) => {
   const s = key.sink;
@@ -613,12 +655,28 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       return;
     }
     case 'toss': {
+      const { release } = TOSS[g.toss];
+      const k = Math.min(1, g.t / release), e2 = k * k * (3 - 2 * k);
+      if (g.toss === 'forward') {
+        // The boot: him held out by the neck while the knee comes up, then the sole into him
+        // (him behind Meathead's leg, so the boot shows going into him)
+        if (g.held) drawHeldByNeck(ctx, g.held, state, x + g.dir * BOOT_HOLD.x, y + BOOT_HOLD.y, g.dir, -g.dir * k * 0.15);
+        sprite(ctx, x, y, g.dir, c => bootPose(c, f, e2, !g.held));
+        return;
+      }
+      if (g.toss === 'down') {
+        // The face slam: a palm over his face, up, and down into the floor face first, his body going over after
+        const h = slamHandAt(e2);
+        sprite(ctx, x, y, g.dir, c => facePose(c, f, g.held ? e2 : 1));
+        if (g.held) drawHeldByNeck(ctx, g.held, state, x + g.dir * (h.x + 6), y + h.y, g.dir, -g.dir * e2 * Math.PI * 0.48, true);
+        return;
+      }
       const key = tossKey(g.toss, g.t), hand = handAt(key);
       sprite(ctx, x, y, g.dir, c => tossPose(c, f, key, g.toss));
       if (g.held) {
-        // Still by the neck in his hands, swung round with them (flipped head down going over, for the back throw)
+        // Still by the neck in his hands, swung round with them
         // (the suplex carries him over with Meathead's arch, till he's going in head first)
-        const turn = g.toss === 'back' ? key.lean * 1.4 : (g.toss === 'forward' ? -key.lean : g.toss === 'down' ? key.lean * 0.6 : 0) * 0.8;
+        const turn = g.toss === 'back' ? key.lean * 1.4 : 0;
         drawHeldByNeck(ctx, g.held, state, x + g.dir * hand.x, y + hand.y, g.dir, g.dir * turn);
       }
       return;
