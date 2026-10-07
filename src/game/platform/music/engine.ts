@@ -99,9 +99,53 @@ const ensureChain = (): AudioContext | null => {
   const delay = c.createDelay(1); delay.delayTime.value = 0.24;
   const fb = c.createGain(); fb.gain.value = 0.38;
   const dark = c.createBiquadFilter(); dark.type = 'lowpass'; dark.frequency.value = 2600;
-  filter.connect(c.destination);
-  filter.connect(send); send.connect(delay); delay.connect(dark); dark.connect(fb); fb.connect(delay); dark.connect(c.destination);
+  // Everything out through a gentle compressor (a 2:1 on the peaks, slow enough not to pump: it glues the mix and
+  // keeps the loudest hits from clipping)
+  const comp = c.createDynamicsCompressor();
+  comp.threshold.value = -14; comp.knee.value = 10; comp.ratio.value = 2; comp.attack.value = 0.012; comp.release.value = 0.25;
+  // (and trimmed back to where it sat before the room went in: the reverb's tail adds to it, and the music has to
+  // sit where it always did under the voices and the guns)
+  const trim = c.createGain(); trim.gain.value = 0.76;
+  comp.connect(trim); trim.connect(c.destination);
+  filter.connect(comp);
+  filter.connect(send); send.connect(delay); delay.connect(dark); dark.connect(fb); fb.connect(delay); dark.connect(comp);
+  // The room: a reverb under it all (a short pre-delay, then a hall's worth of tail, its lows thinned so the bass
+  // doesn't swim, its highs rolled off so it's warm), sent from the same mix as the echo
+  const rsend = c.createGain(); rsend.gain.value = REVERB_SEND;
+  const pre = c.createDelay(0.1); pre.delayTime.value = 0.018;
+  const room = c.createConvolver(); room.buffer = roomFor(c);
+  const thin = c.createBiquadFilter(); thin.type = 'highpass'; thin.frequency.value = 220;
+  const warm = c.createBiquadFilter(); warm.type = 'lowpass'; warm.frequency.value = 5200;
+  filter.connect(rsend); rsend.connect(pre); pre.connect(room); room.connect(thin); thin.connect(warm); warm.connect(comp);
   return c;
+};
+
+/** How much of the mix goes into the room. */
+const REVERB_SEND = 0.24;
+/**
+ * The room's impulse: a few early reflections off the walls, then a smooth tail (noise, each side its own, fading over
+ * about 1.7 seconds and darkening as it goes).
+ */
+let roomBuf: { c: BaseAudioContext; buf: AudioBuffer } | null = null;
+const roomFor = (c: BaseAudioContext) => {
+  if (roomBuf && roomBuf.c === c) return roomBuf.buf;
+  const sr = c.sampleRate, len = Math.floor(sr * 1.9);
+  const buf = c.createBuffer(2, len, sr);
+  const taps = [[0.011, 0.5], [0.019, 0.38], [0.027, 0.3], [0.037, 0.26], [0.049, 0.2], [0.061, 0.16]];
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    let lp = 0;
+    for (let i = 0; i < len; i++) {
+      const t = i / sr;
+      const a = 0.85 - 0.6 * Math.min(1, t / 1.6);
+      lp += a * ((Math.random() * 2 - 1) - lp);
+      const fadeIn = Math.min(1, t / 0.03);
+      d[i] = lp * Math.exp(-t * 3.6) * fadeIn * 0.5;
+    }
+    for (const [at, g] of taps) { const i = Math.floor((at + (ch ? 0.003 : 0)) * sr); if (i < len) d[i] += (ch ? -g : g); }
+  }
+  roomBuf = { c, buf };
+  return buf;
 };
 
 /** Where a part's notes go: one lane per part per instrument (a change of instrument crossfades lane to lane). */

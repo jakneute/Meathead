@@ -414,7 +414,7 @@ export const SONGS: Record<string, Song> = {
       harm: { inst: 'horn', vol: 0.8, mml: 'o3 l8 g g g g4. f e- d e-2 r8' },
       low: { inst: 'power', vol: 0.8, mml: 'o2 l8 c c c c4. d- c < g > c2 r8' },
       timp: { inst: 'timpani', vol: 0.9, mml: 'o2 l16 v7 [g]6 v9 [g]6 v12 [g]6 v15 c4 r4.' },
-      drums: { inst: 'kick', drums: true, mml: 'v13 {kxf}8 {kf}8 {kf}8 k16 k16 {kf}8 k16 k16 v9 [s32]4 v12 [s32]4 v15 [s32]4 {kxf}4 k16 k16 {kf}8 {kxf}8' },
+      drums: { inst: 'kick', drums: true, mml: 'v13 {kxf}8 {kf}8 {kf}8 r8 r4 v8 [s32]4 v11 [s32]4 v14 [s32]4 v15 {kxf}4 r4.' },
       // Off to Washington (the White House): the same three hits, but on G, up to the C and on up the C major chord to
       // land on its G, the horns and the power chords under it in C major, the bell on the landing: the victory lap
       wlead: { inst: 'brass', only: ['whitehouse'], mml: 'o4 l8 g g g > c4. < g > c e g2 r8' },
