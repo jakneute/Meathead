@@ -208,6 +208,15 @@ const MAP_ROOTS = ['c/g', 'c/g', 'a-/e-', 'g/d', 'c/g', 'c/g', 'd-/a-', 'g/d', '
 const MAP_CHORD: Record<string, string> = { 'c/g': 'ce-g>d', 'a-/e-': 'ce-g', 'g/d': '<b>dfa-', 'd-/a-': 'd-fa->c', 'f/c': 'ca-e-f' };
 const MAP_LOW: Record<string, string> = { 'c/g': 'cg', 'a-/e-': 'a->e-', 'g/d': 'g>d', 'd-/a-': 'd-a-', 'f/c': 'f>c' };
 /** A tune an octave down. */
+/**
+ * The White House open: the same tune, gone major (every flat in it natural: C major, and the chords under it I, vi, ii,
+ * IV, V), for the brass. The roots and the triads for it.
+ */
+const MAP_TUNE_UP = MAP_TUNE.map(bar => bar.replace(/([a-g])-/g, '$1'));
+const MAP_ROOTS_UP = MAP_ROOTS.map(r => r.replace(/-/g, ''));
+const MAP_TRIAD: Record<string, string> = { 'c/g': 'ceg', 'a/e': 'ace', 'g/d': '<b>dg', 'd/a': 'dfa', 'f/c': 'cfa' };
+const MAP_MARCH = 'v12 {kh}8 s16 s16 {sh}8 s16 s16 {kh}8 s16 s16 {sh}8 h8';
+const MAP_MARCH_FILL = 'v12 {kh}8 s16 s16 {sh}8 s16 s16 s16 s16 t16 t16 u16 u16 {sx}8';
 const down = (s: string) => s.replace(/o(\d)/g, (_, n) => `o${Number(n) - 1}`);
 // (the kit: a cross-stick on two and four, the hats ticking like the clock, the kick laid back; the second four pushing
 // sixteenths, the snare in for the cross-stick, toms into the turnaround)
@@ -276,10 +285,22 @@ export const SONGS: Record<string, Song> = {
       // (somebody two desks over typing up a report; the bell at the end of the line)
       type: { inst: 'kick', drums: true, mml: b(rep(MAP_TYPE, 7), 'v11 r4 e16 e16 e16 e16 e16 e16 e16 e16 r4', 'v11 e16 e16 e16 r16 r2.') },
       ding: { inst: 'bell', vol: 0.6, pan: 0.4, mml: b(rep('r1', 15), 'o6 r4 g4 r2') },
+      // The White House open (all eight dead): the same tune gone major and triumphant: the brass on it, the horns an
+      // octave under, the strings and the choir holding the chords, a marching bass, the timpani on the roots, a snare
+      // march with a crash at the top of each eight, the bell ringing in the downbeats
+      wlead: { inst: 'brass', pan: 0.15, only: ['whitehouse'], mml: b(...MAP_TUNE_UP) },
+      whorn: { inst: 'horn', vol: 0.75, pan: -0.15, only: ['whitehouse'], mml: b(...MAP_TUNE_UP.map(down)) },
+      wstr: { inst: 'strings', vol: 0.55, pan: 0.3, only: ['whitehouse'], mml: MAP_ROOTS_UP.map(r => `o4 {${MAP_TRIAD[r]}}1`).join(' | ') },
+      wchoir: { inst: 'choir', vol: 0.45, pan: -0.3, only: ['whitehouse'], mml: MAP_ROOTS_UP.map(r => `o4 {${MAP_TRIAD[r]}}1`).join(' | ') },
+      wbass: { inst: 'bass', vol: 0.85, only: ['whitehouse'], mml: bass(2, 'R4 F4 R4 F8 R8', MAP_ROOTS_UP) },
+      wtimp: { inst: 'timpani', vol: 0.75, only: ['whitehouse'], mml: MAP_ROOTS_UP.map((r, i) => { const n = r.split('/')[0]; return i === 15 ? `v12 o2 ${n}4 r4 v8 [${n}32]8 v12 [${n}32]8` : `v12 o2 ${n}4 r4 ${n}4 r4`; }).join(' | ') },
+      wdrums: { inst: 'kick', drums: true, only: ['whitehouse'], mml: b(MAP_MARCH.replace('{kh}', '{kxh}'), MAP_MARCH, MAP_MARCH, MAP_MARCH, MAP_MARCH, MAP_MARCH, MAP_MARCH, MAP_MARCH_FILL, MAP_MARCH.replace('{kh}', '{kxh}'), MAP_MARCH, MAP_MARCH, MAP_MARCH, MAP_MARCH, MAP_MARCH, MAP_MARCH, MAP_MARCH_FILL) },
+      wbell: { inst: 'bell', vol: 0.4, pan: 0.4, only: ['whitehouse'], mml: MAP_ROOTS_UP.map((r, i) => i % 4 === 0 ? `o6 ${r.split('/')[0]}4 r2.` : 'r1').join(' | ') },
     },
     arrangements: {
       main: {},
       set2: { vol: { lead: 0.6, keys: 0.6, hum: 0.8 } },
+      whitehouse: { mute: ['lead', 'bass', 'keys', 'hum', 'drums', 'type', 'ding'] },
     },
   },
 

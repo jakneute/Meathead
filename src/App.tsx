@@ -219,12 +219,12 @@ const App: React.FC = () => {
     pauseSpeech(status === GameStatus.PAUSED);
     if (intro !== 'off') setScreenMusic({ song: 'briefing', arr: 'main' });
     else if (status === GameStatus.START) setScreenMusic({ song: 'title', arr: 'main' });
-    else if (status === GameStatus.STAGE_SELECT) setScreenMusic(deployingTo ? { song: 'fanfare' } : callOutro ? { song: 'briefing', arr: 'radio' } : { song: 'map', arr: progressionRank >= 1 ? 'set2' : 'main' });
+    else if (status === GameStatus.STAGE_SELECT) setScreenMusic(deployingTo ? { song: 'fanfare' } : callOutro ? { song: 'briefing', arr: 'radio' } : { song: 'map', arr: progressionRank >= 1 && STAGES_SET_1.every(s => defeatedStages.includes(s.id)) ? 'whitehouse' : progressionRank >= 1 ? 'set2' : 'main' });
     else if (status === GameStatus.VICTORY) setScreenMusic(progressionRank === 0 || callPreview ? { song: 'briefing', arr: 'radio' } : { song: 'title', arr: 'ending' });
     else if (status === GameStatus.ENDING) setScreenMusic({ song: 'title', arr: 'ending' });
     else if (status === GameStatus.BOSS_VICTORY_SPEECH) setScreenMusic({ song: 'weapon' });
     else setScreenMusic(undefined);
-  }, [status, intro, deployingTo, callOutro, progressionRank, callPreview]);
+  }, [status, intro, deployingTo, callOutro, progressionRank, callPreview, defeatedStages]);
 
   // Every visit to stage select starts unlocked, on the current targets
   useEffect(() => {
