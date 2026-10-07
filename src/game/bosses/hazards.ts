@@ -4,7 +4,7 @@ import { TommyBoard } from '../../types';
 import {
   CANVAS_WIDTH, BOSS_DOOR_X, PLAYER_INVINCIBILITY_FRAMES, PLAYER_PUSHBACK_DURATION,
   PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y,
-  TSUNAMI_WAVE_SPEED, TSUNAMI_DAMAGE_BOSS, TSUNAMI_DAMAGE_WEAKNESS, TSUNAMI_DAMAGE_MIDBOSS, TSUNAMI_DAMAGE_DOORMAN,
+  TSUNAMI_WAVE_SPEED, TSUNAMI_STAGE_RANGE, TSUNAMI_DAMAGE_BOSS, TSUNAMI_DAMAGE_WEAKNESS, TSUNAMI_DAMAGE_MIDBOSS, TSUNAMI_DAMAGE_DOORMAN,
 } from '../../constants';
 import { FrameContext } from '../core/context';
 import { hitBoss, isWeakTo, getBossDef } from './registry';
@@ -18,7 +18,11 @@ import { ROOM_TOP } from '../stages/finale/geometry';
  * where he fired it from); the finale's is floor to ceiling, the full height of the room, and stays it all the way
  * across (its crest curling just under the ceiling, clear of the boss's bar up top). */
 export const tsunamiTop = (state: FrameContext['state'], dist: number) =>
-  inFinale(state.stageId) ? ROOM_TOP + 24 : Math.pow(Math.min(1.0, dist / (CANVAS_WIDTH * 1.25)), 0.6) * 560 + (state.tsunamiOffsetY || 0);
+  inFinale(state.stageId) ? ROOM_TOP + 24 : Math.pow(Math.min(1.0, dist / (CANVAS_WIDTH * 1.25 * tsunamiSpan(state))), 0.6) * 560 + (state.tsunamiOffsetY || 0);
+
+/** How far it runs, of its full run: all the way in a boss's arena and the finale, a good deal shorter out on a stage
+ * (it shrinks into the floor over the shorter run, the same way). */
+const tsunamiSpan = (state: FrameContext['state']) => inFinale(state.stageId) || state.arenaLocked ? 1 : TSUNAMI_STAGE_RANGE;
 
 /** The player's tsunami sweeps across the screen, killing regular enemies outright. */
 export const updateTsunami = (ctx: FrameContext) => {
@@ -27,7 +31,7 @@ export const updateTsunami = (ctx: FrameContext) => {
   const dir = state.tsunamiDir;
   state.tsunamiX += TSUNAMI_WAVE_SPEED * dir;
   const dist = Math.abs(state.tsunamiX - state.tsunamiStartX);
-  const progress = dist / (CANVAS_WIDTH * 1.5);
+  const progress = dist / (CANVAS_WIDTH * 1.5 * tsunamiSpan(state));
   // (built for a flat floor, then lifted to the height he fired it from)
   const offsetY = state.tsunamiOffsetY || 0;
   // (the finale: the full height of the screen, top to bottom, the whole way across: see tsunamiTop)

@@ -311,6 +311,9 @@ export const FIRE_DOT_DAMAGE_ENEMY = 90; // (an enemy on fire: a touch less than
 // TSUNAMI (HURRICANE)
 export const TSUNAMI_COOLDOWN = 120;
 export const TSUNAMI_WAVE_SPEED = 15;
+/** How far it goes out on a stage, of the full run it makes in a boss's arena (where it's the whole room, wall to
+ * wall): it still wipes out whatever it reaches, it just doesn't reach the far side of the screen and beyond. */
+export const TSUNAMI_STAGE_RANGE = 0.6;
 export const TSUNAMI_DAMAGE_BOSS = 50;
 export const TSUNAMI_DAMAGE_WEAKNESS = 150;
 /** A mid-boss isn't washed away by it, but it's a heavy hit (the moose, the Eye)... */
