@@ -298,7 +298,12 @@ const busy = () => {
  * Says a line if the rules allow it. Returns false if it was dropped (someone's
  * talking, or it was said too recently), in which case nothing is shown either.
  */
+/** Lines that mustn't be said at all here (Meathead 2: anything that names Meathead 1's places): dropped, nothing shown. */
+let lineFilter: ((text: string) => boolean) | null = null;
+export const setLineFilter = (f: ((text: string) => boolean) | null) => { lineFilter = f; };
+
 export const say = (text: string, voice: Voice, priority: SpeechPriority, hooks: LineHooks): boolean => {
+  if (lineFilter && !lineFilter(text)) return false;
   if (saidInScope.has(text)) return false;
   if (!hooks.always && !isFresh(text, Date.now())) return false;
   const line: Line = { text, voice, queuedAt: Date.now(), casual: priority === 'casual', ...hooks };

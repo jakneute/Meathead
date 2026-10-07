@@ -22,6 +22,8 @@ interface GameCanvasProps extends GameEvents {
   bossTauntText: string;
   /** The checkpoint to start the stage at (the skip-level cheat's picker; 0 otherwise). */
   startCheckpoint?: number;
+  /** Invincible without the flicker that shows it (Meathead 2's test build: he just can't be hurt). */
+  quietInvincible?: boolean;
   /** Power is 0..POWER_CELLS (special-move cells, refilling over time). */
   onPlayerUpdate: (health: number, power: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType, lockedTo?: WeaponType, cutscene?: boolean) => void;
 }
@@ -88,7 +90,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
           status: p.status,
           stageId: p.stageId,
           currentWeapon: p.currentWeapon,
-          invincibilityEnabled: p.cheats.invincible,
+          invincibilityEnabled: p.cheats.invincible && !p.quietInvincible,
           bossTauntText: p.bossTauntText,
         });
       } catch (err) {

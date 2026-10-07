@@ -15,6 +15,7 @@ import { LANDS, STAFF_SLOT } from './lands';
 import { getUi, subscribeUi, onTravel, setUi } from './store';
 import { attachM2Keys } from './input';
 import MapCard from './MapCard';
+import { cleanLines } from './cleanLines';
 
 // Meathead 2: Meathead Goes to Happy Land. For now: the hub (walk round it, look at the map for each land) and the
 // test pen behind the staff door (try out the beatdown and the shakedown on whoever walks in).
@@ -23,10 +24,12 @@ registerStageLayout(HUB_STAGE, hubLayout);
 registerStageLayout(PEN_STAGE, penLayout);
 loadVoicePack(voicePackUrl);
 attachM2Keys();
+cleanLines();
 
 const WEAPONS: WeaponType[] = ['GUN', 'SHOTGUN'];
 const STARTING_AMMO = { ...createFullAmmo(), SHOTGUN: 6 };
-const NO_CHEATS = { invincible: false, infiniteAmmo: false, infinitePower: false, skipToBoss: false };
+/** For now he can't be hurt (and no flicker for it: it's how things are, not a cheat). */
+const CHEATS = { invincible: true, infiniteAmmo: false, infinitePower: false, skipToBoss: false };
 const noop = () => {};
 
 const useFitToWindow = () => {
@@ -104,7 +107,8 @@ const App2: React.FC = () => {
           currentWeapon={weapon}
           availableWeapons={WEAPONS}
           initialAmmo={initialAmmo}
-          cheats={NO_CHEATS}
+          cheats={CHEATS}
+          quietInvincible
           bossTauntText=""
           onPlayerUpdate={onPlayerUpdate}
           onBossEncounter={noop}

@@ -11,6 +11,7 @@ import * as path from 'path';
 import * as dialogue from '../../src/content/dialogue';
 import * as deaths from '../../src/content/deaths';
 import { M2_ENEMY_KINDS } from '../../src/m2/roster';
+import { fitsHappyLand } from '../../src/m2/consistency';
 
 const ROOT = path.resolve(__dirname, '../..');
 const IN = path.join(ROOT, 'src/generated/voices.bin');
@@ -40,7 +41,10 @@ add('death', deaths.ANIMAL_DEATH_LINES);
 add('death', pick(deaths.DEATH_LINES as Record<string, unknown>, withShots));
 // Whatever the shared engine says itself (not a stage's, a boss's or a cutscene's)
 const shared = (from: string) => /^game\/(core|player|combat|enemies|platform)\//.test(from);
-for (const m of manifest) if (shared(m.from)) want.add(`${m.voice}|${m.text}`);
+// (the bosses' parting words, said from the engine's code, are Meathead 1's bosses': written in mixed case, not his shouting)
+for (const m of manifest) if (shared(m.from) && !/[a-z]{3}/.test(m.text)) want.add(`${m.voice}|${m.text}`);
+// (and nothing that names Meathead 1's places, people or weather: consistency.ts)
+for (const k of [...want]) if (!fitsHappyLand(k.slice(k.indexOf('|') + 1))) want.delete(k);
 
 // Copy those clips out of the big pack into a small one, the same format
 const buf = fs.readFileSync(IN);
