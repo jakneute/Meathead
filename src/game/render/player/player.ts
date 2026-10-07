@@ -5,7 +5,7 @@ import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD } from '../../combat/muzzle';
 import { pitchLean, drawPitchLegs, drawPitchArm, drawPitchGloveArm, kegLean, drawKegLegs, drawKegArm, drawKegGloveArm } from './pitch';
 import { PITCH_FRAMES } from '../../combat/finaleBuffs';
-import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
+import { sprintLeg, drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES, FINALE_STAGE } from '../../../constants';
 import { GameState } from '../../core/state';
 import { GroundRun, runAt, treadYAt, stanceDrop, STANCE } from '../../core/terrain';
@@ -13,7 +13,7 @@ import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
 import { drawPlayerShadow } from './shadow';
 import { drawDeathBrows, drawDeathEyes, drawDeathMouth } from './deathFace';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
-import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, bootColor, bootToe, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth, setLegSinge } from './body';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth, setLegSinge } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -209,8 +209,6 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // (on the flat: lowest with his feet apart, a moment after the front one lands and takes the weight; up over the
   // leg he's standing on as the other passes it)
   const walkBob = 2.2 * (1 - Math.abs(Math.cos(walkPhase - 0.3)));
-  const chargePhase = (animFrame * 0.55) % (Math.PI * 2);
-  const chargeStride = Math.sin(chargePhase);
   // 0 rising fast .. 1 falling fast
   const airFall = Math.max(0, Math.min(1, (p.vel.y + 6) / 12));
 
@@ -420,63 +418,19 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Pitching: the leg kick, the stride, the back leg up behind him
     (p.throwKeg ? drawKegLegs : drawPitchLegs)(ctx, pitchK);
   } else if (isDivekicking) {
-    // Rear leg bent at knee (tucked aerodynamic)
-    ctx.fillStyle = pantsShadow;
-    ctx.fillRect(-12, -24, 10, 14);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(-14, -12, 10, 8);
-
-    // Lead leg thrust straight out forward-downward with steel toe leading
-    ctx.fillStyle = pantsColor;
-    ctx.save();
-    ctx.translate(2, -22);
-    ctx.rotate(0.3);
-    ctx.fillRect(0, 0, 11, 24); // Extended kicking leg
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(-2, 22, 15, 9); // Combat boot
-    ctx.fillStyle = bootToe;
-    ctx.fillRect(6, 23, 7, 7); // Steel toe leading the strike
-    ctx.restore();
+    // (knocked out of a move, or headless: the moves' own legs, without the rest of the pose)
+    // Rear leg tucked, lead leg thrust out forward-down, steel toe leading
+    drawLeg(ctx, [-4, -22], [-10, -12], [-14, -6], 0.3, true);
+    drawLeg(ctx, [4, -22], [12, -14], [20, -6], 0.6, false);
   } else if (isUppercutting) {
-    // Front knee driven high into chest, back leg trailing downward
-    // Back leg (straight down)
-    ctx.fillStyle = pantsShadow;
-    ctx.fillRect(-8, -20, 9, 16);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(-9, -4, 11, 8);
-    ctx.fillStyle = bootToe;
-    ctx.fillRect(-3, -2, 6, 6);
-
-    // Front leg (bent high driving upward)
-    ctx.fillStyle = pantsColor;
-    ctx.save();
-    ctx.translate(6, -22);
-    ctx.rotate(-0.8);
-    ctx.fillRect(0, 0, 10, 16); // Thigh angled up
-    ctx.translate(0, 16);
-    ctx.rotate(1.4);
-    ctx.fillRect(0, 0, 9, 14); // Shin bent down
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(-1, 12, 12, 7); // Boot flexed
-    ctx.fillStyle = bootToe;
-    ctx.fillRect(6, 13, 6, 5);
-    ctx.restore();
+    // Back leg trailing straight down, lead knee driven up
+    drawLeg(ctx, [-4, -22], [-5, -10], [-6, 0], 1.2, true);
+    drawLeg(ctx, [5, -22], [15, -28], [16, -14], 1.3, false);
   } else if (isCharging) {
-    // Violent forward sprint stride
-    const cLeg = chargeStride * 14;
-    // Back leg pushing
-    ctx.fillStyle = pantsShadow;
-    ctx.fillRect(-14 - cLeg * 0.5, -20, 10, 14);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(-16 - cLeg * 0.5, -6, 12, 6);
-
-    // Front leg driving
-    ctx.fillStyle = pantsColor;
-    ctx.fillRect(2 + cLeg * 0.5, -20, 10, 14);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(4 + cLeg * 0.5, -6, 14, 6);
-    ctx.fillStyle = bootToe;
-    ctx.fillRect(12 + cLeg * 0.5, -5, 6, 5);
+    // The sprint
+    const u = ((animFrame * 0.55) / (Math.PI * 2)) % 1;
+    sprintLeg(ctx, [-4, -22], (u + 0.5) % 1, true);
+    sprintLeg(ctx, [4, -22], u, false);
   } else if (isSeated && p.bike) {
     // On the bike: feet on the pedals, going round (how far round's how far he's gone)
     drawPedalLegs(ctx, p.pos.x / 14);

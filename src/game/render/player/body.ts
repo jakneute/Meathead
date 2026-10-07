@@ -280,7 +280,7 @@ export const drawJointedLeg = (ctx: Ctx, hipX: number, hipY: number, thighAngle:
   ctx.save();
   ctx.translate(hipX, hipY);
   ctx.rotate(thighAngle);
-  drawPantLeg(ctx, -w / 2, 0, w, 12, color, near);
+  drawPantLeg(ctx, -w / 2 - 1, 0, w + 2, 12, color, near);
   ctx.translate(0, 11);
   ctx.rotate(kneeBend);
   ctx.fillStyle = color;
@@ -313,7 +313,8 @@ export const drawLeg = (ctx: Ctx, hip: [number, number], knee: [number, number],
   };
   seg(knee, foot, w - 1, false, back ? undefined : 0.45);
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(knee[0], knee[1], w / 2, 0, Math.PI * 2); ctx.fill();
-  seg(hip, knee, w, !back);
+  // (the thigh thicker than the shin: he doesn't skip leg day)
+  seg(hip, knee, w + 1.5, !back);
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(knee[0], knee[1], w / 2 - 0.5, 0, Math.PI * 2); ctx.fill();
   // (the knee's lit edge)
   ctx.fillStyle = 'rgba(255, 255, 255, 0.12)'; ctx.beginPath(); ctx.arc(knee[0], knee[1], w / 2 - 1, -Math.PI * 0.9, -Math.PI * 0.4); ctx.lineTo(knee[0], knee[1]); ctx.fill();

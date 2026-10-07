@@ -33,6 +33,41 @@ const limb = (ctx: Ctx, x1: number, y1: number, x2: number, y2: number, width: n
 /** A leg from hip through knee to foot, with a combat boot pointing along `toeAngle` (the same leg as standing). */
 const leg = (ctx: Ctx, hip: [number, number], knee: [number, number], foot: [number, number], toeAngle: number, back: boolean) => drawLeg(ctx, hip, knee, foot, toeAngle, back);
 
+/** The knee for a hip and a foot, `thigh` and `shin` long, bent forward (+x): the leg folds the way a leg does. */
+const kneeFor = (hip: [number, number], foot: [number, number], thigh = 12, shin = 12): [number, number] => {
+  let dx = foot[0] - hip[0], dy = foot[1] - hip[1];
+  const d = Math.hypot(dx, dy) || 1;
+  dx /= d; dy /= d;
+  const reach = Math.min(thigh + shin - 0.05, d);
+  const along = (thigh * thigh - shin * shin + reach * reach) / (2 * reach), out = Math.sqrt(Math.max(0, thigh * thigh - along * along));
+  return [hip[0] + dx * along + dy * out, hip[1] + dy * along - dx * out];
+};
+
+/** A point along a cubic curve, `t` 0..1. */
+const bez = (t: number, a: [number, number], b: [number, number], c: [number, number], d: [number, number]): [number, number] => {
+  const u = 1 - t;
+  return [u * u * u * a[0] + 3 * u * u * t * b[0] + 3 * u * t * t * c[0] + t * t * t * d[0], u * u * u * a[1] + 3 * u * u * t * b[1] + 3 * u * t * t * c[1] + t * t * t * d[1]];
+};
+
+/**
+ * One leg of a flat-out sprint, `u` 0..1 round its stride: the boot strikes the ground under him and drives back hard,
+ * the heel peeling up as the toe shoves off way behind; then the heel whips up under his backside, the knee punches
+ * forward and up, and the boot claws down for the ground again. Feet on the ground at `ground` (his feet's level).
+ */
+export const sprintLeg = (ctx: Ctx, hip: [number, number], u: number, back: boolean, ground = -3.5) => {
+  let foot: [number, number], toe: number;
+  if (u < 0.4) {
+    const k = u / 0.4, peel = Math.max(0, (k - 0.6) / 0.4);
+    foot = [hip[0] + 7 - k * 25, ground - peel * peel * 5];
+    toe = -0.15 * Math.max(0, 1 - k / 0.15) + peel * 0.9;
+  } else {
+    const k = (u - 0.4) / 0.6;
+    foot = bez(k, [hip[0] - 18, ground - 5], [hip[0] - 24, ground - 24], [hip[0] + 26, ground - 22], [hip[0] + 7, ground]);
+    toe = 0.9 * (1 - k) + (k > 0.6 ? -0.2 * (k - 0.6) / 0.4 : 0) + Math.sin(Math.PI * k) * 0.3;
+  }
+  leg(ctx, hip, kneeFor(hip, foot), foot, toe, back);
+};
+
 /** An arm from shoulder through elbow to a fist, with the spiked wristband (the same arm as standing). */
 const arm = (ctx: Ctx, shoulder: [number, number], elbow: [number, number], fist: [number, number], back: boolean, fistSize = 5.5) => drawArmTo(ctx, shoulder, elbow, fist, back, fistSize);
 
@@ -235,14 +270,16 @@ export const drawShoulderCharge = (ctx: Ctx, frame: number) => {
 };
 
 const chargeBody = (ctx: Ctx, frame: number, main: boolean) => {
-  const s = Math.sin(frame * 0.55);
-  // Legs pumping in a sprint
-  leg(ctx, [-4, -24], [-10 - 5 * s, -12], [-20 - 7 * s, -3], 0.2, true);
-  leg(ctx, [4, -24], [13 + 5 * s, -18 + 3 * Math.max(0, s)], [16 + 7 * s, -3 - 5 * Math.max(0, s)], -0.1, false);
+  // Legs pumping in a sprint: one driving off the ground while the other comes through knee-high (a stride every
+  // half-turn); low as each boot hits and takes him, up off the toe as it shoves him on
+  const u = ((frame * 0.55) / (Math.PI * 2)) % 1;
+  const hipY = -24 + Math.abs(Math.cos((u * 2 - 0.12) * Math.PI)) * -1.8 + 1.2;
+  sprintLeg(ctx, [-4, hipY], (u + 0.5) % 1, true);
+  sprintLeg(ctx, [4, hipY], u, false);
 
   ctx.save();
   // Torso bent forward like a ram
-  ctx.translate(0, -24);
+  ctx.translate(0, hipY);
   ctx.rotate(0.55);
   // Back arm swinging behind
   arm(ctx, [-8, -22], [-20, -10], [-27, -1], true);
