@@ -2,77 +2,77 @@
  {
   "voice": "agent",
   "text": "...Noted.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:39"
  },
  {
   "voice": "agent",
   "text": "...Unlimited resources.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:39"
  },
  {
   "voice": "agent",
   "text": "...Unlimited resources. Starting with pants.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:39"
  },
  {
   "voice": "agent",
   "text": "...We lift.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:39"
  },
  {
   "voice": "agent",
   "text": "And the armory. Rocket launchers, flamethrowers, anything you want. Take your pick.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:39"
  },
  {
   "voice": "agent",
   "text": "Artie Avalanche. Alaska. He looked at your protein shake funny.",
-  "from": "components/IntroCutscene.tsx:42"
+  "from": "components/IntroCutscene.tsx:43"
  },
  {
   "voice": "agent",
   "text": "Ernie Earthquake. San Francisco. An old man with some very heavy rocks. He needs help moving them. Permanently.",
-  "from": "components/IntroCutscene.tsx:42"
+  "from": "components/IntroCutscene.tsx:43"
  },
  {
   "voice": "agent",
   "text": "Hector Hurricane. Miami. He went on the news and predicted a bad forecast for your gains.",
-  "from": "components/IntroCutscene.tsx:42"
+  "from": "components/IntroCutscene.tsx:43"
  },
  {
   "voice": "agent",
   "text": "Looks like you enjoy hurting weaklings. How would you like to hurt more?",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:39"
  },
  {
   "voice": "agent",
   "text": "Meathead. We represent a department of the government that does not exist.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:39"
  },
  {
   "voice": "agent",
   "text": "These are the four assholes. Very dangerous. Very weak. Extremely hurtable.",
-  "from": "components/IntroCutscene.tsx:42"
+  "from": "components/IntroCutscene.tsx:43"
  },
  {
   "voice": "agent",
   "text": "Those were interns. We sent them in first to see what you would do.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:39"
  },
  {
   "voice": "agent",
   "text": "Those were interns. We sent them in first to see what you would do. We did not expect that.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:39"
  },
  {
   "voice": "agent",
   "text": "Victor Volcano. Hawaii. He's telling everybody you skip leg day.",
-  "from": "components/IntroCutscene.tsx:42"
+  "from": "components/IntroCutscene.tsx:43"
  },
  {
   "voice": "agent",
   "text": "We don't do that kind of thing. You do. Planes, choppers, cargo drops: unlimited resources to put you wherever you need to be.",
-  "from": "components/IntroCutscene.tsx:42"
+  "from": "components/IntroCutscene.tsx:43"
  },
  {
   "voice": "announcer",
@@ -5712,7 +5712,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:861"
+  "from": "game/combat/weapons.ts:870"
  },
  {
   "voice": "death",
@@ -7182,7 +7182,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:861"
+  "from": "game/combat/weapons.ts:870"
  },
  {
   "voice": "death",
@@ -7672,7 +7672,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:861"
+  "from": "game/combat/weapons.ts:870"
  },
  {
   "voice": "death",
@@ -8162,7 +8162,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:861"
+  "from": "game/combat/weapons.ts:870"
  },
  {
   "voice": "death",
@@ -8622,12 +8622,12 @@
  {
   "voice": "gym.intern",
   "text": "...Is that a no?",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:41"
  },
  {
   "voice": "gym.intern",
   "text": "...Oh no.",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:41"
  },
  {
   "voice": "gym.intern",
@@ -8737,12 +8737,12 @@
  {
   "voice": "gym.intern",
   "text": "Um. Excuse me. Mister... Meathead?",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:41"
  },
  {
   "voice": "gym.intern",
   "text": "We're from a department of the government that, uh... doesn't exist? We just need a moment of your...",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:41"
  },
  {
   "voice": "hector.coastguard",
@@ -9517,7 +9517,7 @@
  {
   "voice": "meathead",
   "text": "...AND THIS.",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -9547,7 +9547,7 @@
  {
   "voice": "meathead",
   "text": "...NICE TRAPS, BRO.",
-  "from": "components/EndingCutscene.tsx:112"
+  "from": "components/EndingCutscene.tsx:114"
  },
  {
   "voice": "meathead",
@@ -9627,7 +9627,7 @@
  {
   "voice": "meathead",
   "text": "...YOU GUYS LIFT?",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -10512,7 +10512,7 @@
  {
   "voice": "meathead",
   "text": "BROS.",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -10882,7 +10882,7 @@
  {
   "voice": "meathead",
   "text": "Cool. I'm gonna go hit the gym. It's chest day.",
-  "from": "components/RadioCutscene.tsx:31"
+  "from": "components/RadioCutscene.tsx:32"
  },
  {
   "voice": "meathead",
@@ -12882,7 +12882,7 @@
  {
   "voice": "meathead",
   "text": "HURT MORE WEAKLINGS?! THAT'S MY FAVORITE THING! AFTER CHEST DAY! WHERE ARE THEY?!",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -13012,7 +13012,7 @@
  {
   "voice": "meathead",
   "text": "I DON'T HAVE A CAR.",
-  "from": "components/RadioCutscene.tsx:25"
+  "from": "components/RadioCutscene.tsx:26"
  },
  {
   "voice": "meathead",
@@ -13127,7 +13127,7 @@
  {
   "voice": "meathead",
   "text": "I HAVE NEVER SKIPPED LEG DAY IN MY LIFE.",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -13167,7 +13167,7 @@
  {
   "voice": "meathead",
   "text": "I KNEW IT.",
-  "from": "components/RadioCutscene.tsx:25"
+  "from": "components/RadioCutscene.tsx:26"
  },
  {
   "voice": "meathead",
@@ -13177,7 +13177,7 @@
  {
   "voice": "meathead",
   "text": "I MUST DESTROY THEM.",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -13197,7 +13197,7 @@
  {
   "voice": "meathead",
   "text": "I ONLY NEED MY GUNS.",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -13462,7 +13462,7 @@
  {
   "voice": "meathead",
   "text": "I'M MID-SET, BRO.",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -13812,7 +13812,7 @@
  {
   "voice": "meathead",
   "text": "IT'S ON, FUCKFACE.",
-  "from": "components/EndingCutscene.tsx:127"
+  "from": "components/EndingCutscene.tsx:129"
  },
  {
   "voice": "meathead",
@@ -13992,7 +13992,7 @@
  {
   "voice": "meathead",
   "text": "LET'S GO HURT SOME WEAKLINGS!",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -14147,12 +14147,12 @@
  {
   "voice": "meathead",
   "text": "More people to kill? SICK! Chest day can wait!",
-  "from": "components/RadioCutscene.tsx:25"
+  "from": "components/RadioCutscene.tsx:26"
  },
  {
   "voice": "meathead",
   "text": "More... assholes?",
-  "from": "components/RadioCutscene.tsx:25"
+  "from": "components/RadioCutscene.tsx:26"
  },
  {
   "voice": "meathead",
@@ -14327,7 +14327,7 @@
  {
   "voice": "meathead",
   "text": "MY SHAKE?!",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -14712,7 +14712,7 @@
  {
   "voice": "meathead",
   "text": "NOBODY TALKS ABOUT MY MOM.",
-  "from": "components/RadioCutscene.tsx:25"
+  "from": "components/RadioCutscene.tsx:26"
  },
  {
   "voice": "meathead",
@@ -14941,16 +14941,6 @@
  },
  {
   "voice": "meathead",
-  "text": "ONE SWORD. THREE GUYS. ONE JAIL. AND I'M STILL THE ONE WHO SHIT HIMSELF TODAY.",
-  "from": "game/stages/dale/town.ts:936"
- },
- {
-  "voice": "meathead",
-  "text": "ONE SWORD. THREE GUYS. ONE JAIL. NOW THAT'S A COMPOUND MOVEMENT.",
-  "from": "game/stages/dale/town.ts:935"
- },
- {
-  "voice": "meathead",
   "text": "ONE TEQUILA, TWO TEQUILA, NO MORE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -15162,12 +15152,12 @@
  {
   "voice": "meathead",
   "text": "PENCIL NECKS.",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
   "text": "PENCIL NECKS... INVADING MY SPACE. ON CHEST DAY.",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -15287,7 +15277,7 @@
  {
   "voice": "meathead",
   "text": "PROTEIN POWDER IS NOT A SCAM!",
-  "from": "components/RadioCutscene.tsx:25"
+  "from": "components/RadioCutscene.tsx:26"
  },
  {
   "voice": "meathead",
@@ -15498,6 +15488,16 @@
   "voice": "meathead",
   "text": "RIDE THIS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIGGS FINALLY DID SOME HARD TIME. IN EVERY CELL AT ONCE.",
+  "from": "game/stages/dale/town.ts:935"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIGGS FINALLY DID SOME HARD TIME. SO DID MY PANTS.",
+  "from": "game/stages/dale/town.ts:936"
  },
  {
   "voice": "meathead",
@@ -16972,7 +16972,7 @@
  {
   "voice": "meathead",
   "text": "THAT'S CALLED GOING TO FAILURE, BRO.",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -17747,7 +17747,7 @@
  {
   "voice": "meathead",
   "text": "UNLIMITED... PROTEIN?",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -17917,7 +17917,7 @@
  {
   "voice": "meathead",
   "text": "WEAPONS? NAH. I DON'T NEED WEAPONS.",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -18217,7 +18217,7 @@
  {
   "voice": "meathead",
   "text": "WHY DON'T YOU GUYS DO IT? YOU'VE GOT SUITS.",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -18462,7 +18462,7 @@
  {
   "voice": "meathead",
   "text": "YOU SENT ME PENCIL NECKS? ...FOR ME?",
-  "from": "components/IntroCutscene.tsx:44"
+  "from": "components/IntroCutscene.tsx:45"
  },
  {
   "voice": "meathead",
@@ -19137,17 +19137,17 @@
  {
   "voice": "president",
   "text": "Blackout Barry. New York, my city. Turns off all the lights. And he stole your headphones. Right off your head.",
-  "from": "components/RadioCutscene.tsx:23"
+  "from": "components/RadioCutscene.tsx:24"
  },
  {
   "voice": "president",
   "text": "Chest day. Beautiful. I have a tremendous chest, doctors can't believe it. Can't even find a heartbeat. But listen. There are more of them.",
-  "from": "components/RadioCutscene.tsx:22"
+  "from": "components/RadioCutscene.tsx:23"
  },
  {
   "voice": "president",
   "text": "Drug Trade Dale. New Mexico. The worst drugs. And he parks in your spot. Every day.",
-  "from": "components/RadioCutscene.tsx:23"
+  "from": "components/RadioCutscene.tsx:24"
  },
  {
   "voice": "president",
@@ -19182,17 +19182,17 @@
  {
   "voice": "president",
   "text": "Four more. Worse than the first four. Worst on this whole planet, and I've seen a lot of planets. And they're laughing at your gains. I made slides. Beautiful slides.",
-  "from": "components/RadioCutscene.tsx:23"
+  "from": "components/RadioCutscene.tsx:24"
  },
  {
   "voice": "president",
   "text": "Go get 'em, big guy. And Meathead? This call never happened. Believe me.",
-  "from": "components/RadioCutscene.tsx:22"
+  "from": "components/RadioCutscene.tsx:23"
  },
  {
   "voice": "president",
   "text": "He parks in it anyway. That's how bad he is. Planes, choppers, whatever you need. Unlimited.",
-  "from": "components/RadioCutscene.tsx:22"
+  "from": "components/RadioCutscene.tsx:23"
  },
  {
   "voice": "president",
@@ -19207,7 +19207,7 @@
  {
   "voice": "president",
   "text": "Meathead. Big guy. Tremendous guy. Four assholes, all dead. Nobody's ever killed assholes like you. People are saying it.",
-  "from": "components/RadioCutscene.tsx:22"
+  "from": "components/RadioCutscene.tsx:23"
  },
  {
   "voice": "president",
@@ -19222,7 +19222,7 @@
  {
   "voice": "president",
   "text": "Oily Oscar. Texas. Great for oil, honestly. But he sells fake creatine. And his bikers said something about your mother.",
-  "from": "components/RadioCutscene.tsx:23"
+  "from": "components/RadioCutscene.tsx:24"
  },
  {
   "voice": "president",
@@ -19242,7 +19242,7 @@
  {
   "voice": "president",
   "text": "Toxic Tommy. Flint. Lives in a sewer, drinks the sewer. And he says protein powder is a scam. I heard him say it.",
-  "from": "components/RadioCutscene.tsx:23"
+  "from": "components/RadioCutscene.tsx:24"
  },
  {
   "voice": "reporter",

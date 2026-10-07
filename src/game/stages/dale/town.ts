@@ -932,8 +932,8 @@ const JAIL_SKEWERED = [
 const JAIL_CAB_BY = 720, JAIL_AFTER = 120;
 /** Meathead, once it's all come down (the sword, Dan, the guy, the jail, the ninja up the street): plain, and in shitty pants. */
 const CARNAGE_LINE = [
-  { who: 'meathead', text: "ONE SWORD. THREE GUYS. ONE JAIL. NOW THAT'S A COMPOUND MOVEMENT." },
-  { who: 'meathead', text: "ONE SWORD. THREE GUYS. ONE JAIL. AND I'M STILL THE ONE WHO SHIT HIMSELF TODAY." },
+  { who: 'meathead', text: "RIGGS FINALLY DID SOME HARD TIME. IN EVERY CELL AT ONCE." },
+  { who: 'meathead', text: 'RIGGS FINALLY DID SOME HARD TIME. SO DID MY PANTS.' },
 ] as const;
 /** The skip works (and says so) after this long. */
 export const JAIL_SKIP_AFTER = SKIP_AFTER;
