@@ -370,12 +370,47 @@ export const grabbing = (g: Grab) => g.phase !== 'idle';
 // ---------------------------------------------------------------------------
 
 /** An enemy drawn somewhere else than where it stands: its feet at (x, y), turned by `angle` about them. */
-const drawEnemyAt = (ctx: Ctx, e: Enemy, state: GameState, x: number, y: number, angle: number) => {
-  const pos = e.pos;
+/** `face`: which way he faces before he's turned (a person's drawn facing whoever's watching, so he's mirrored to it). */
+const drawEnemyAt = (ctx: Ctx, e: Enemy, state: GameState, x: number, y: number, angle: number, face: 1 | -1) => {
+  const pos = e.pos, facing = e.facing;
   ctx.save();
   ctx.translate(x, y); ctx.rotate(angle);
   e.pos = { x: -e.width / 2, y: -e.height };
-  try { drawKindEnemy(ctx, e, state); } finally { e.pos = pos; ctx.restore(); }
+  e.facing = face;
+  // (a person, not behind a shield, turns to face Meathead whatever: drawn here, at the origin, that's one way, so he's
+  // mirrored if it's not the way wanted)
+  if (isHumanoidKind(e.kind) && e.enemyType !== 'shield') {
+    const natural = state.player.pos.x + state.player.width / 2 < 0 ? -1 : 1;
+    if (natural !== face) ctx.scale(-1, 1);
+  }
+  try { drawKindEnemy(ctx, e, state); } finally { e.pos = pos; e.facing = facing; ctx.restore(); }
+};
+
+/**
+ * Pinned on his back under him, head toward Meathead's front (where the punches land): a person laid flat, face up;
+ * an animal rolled right over, legs in the air. `jolt` when one's just landed, `squirm` between.
+ */
+const drawPinned = (ctx: Ctx, e: Enemy, state: GameState, x: number, groundY: number, dir: 1 | -1, jolt: number, squirm: number) => {
+  const face = (-dir) as 1 | -1;
+  if (isHumanoidKind(e.kind)) drawEnemyAt(ctx, e, state, x - dir * e.height * 0.45, groundY - 5 + jolt * 2, dir * (Math.PI / 2 + jolt * 0.12) + squirm, face);
+  // (upside down: feet up at the top of where he lies, his back on the floor)
+  else drawEnemyAt(ctx, e, state, x + dir * 6, groundY - e.height - 2 + jolt * 2, Math.PI + squirm, face);
+};
+
+/**
+ * Held up by the neck at (hx, hy), facing Meathead: a person hanging upright from it; an animal turned up on end, head
+ * up, hind legs hanging down. `swing` turns him about the neck.
+ */
+const drawHeldByNeck = (ctx: Ctx, e: Enemy, state: GameState, hx: number, hy: number, dir: 1 | -1, swing: number) => {
+  const face = (-dir) as 1 | -1, person = isHumanoidKind(e.kind);
+  const hd = e.kind ? kindHead(e.kind, e.variant) : null;
+  // (where his neck is, from his feet, the way he's facing; a person's under his head, an animal's just behind its head)
+  const neck = person ? { x: 0, y: hd ? hd.y + hd.r : -e.height * 0.8 } : { x: face * (hd ? hd.x - hd.r * 0.6 : e.width * 0.35), y: hd ? hd.y + hd.r * 0.5 : -e.height * 0.6 };
+  ctx.save();
+  ctx.translate(hx, hy);
+  ctx.rotate((person ? 0 : -face * Math.PI / 2) + swing);
+  drawEnemyAt(ctx, e, state, -neck.x, -neck.y, 0, face);
+  ctx.restore();
 };
 
 /** Meathead in one of the engine's own poses (crouched, charging, standing), drawn where he is. */
@@ -554,7 +589,7 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
         // Flat on his back under him, head toward his punching hand; jolted by each one landing, squirming between
         const e = g.held, hit = g.punchT > 0 && k >= 1 ? 1 : 0;
         const squirm = Math.sin(f * 0.4) * 0.05 * (1 - hit);
-        drawEnemyAt(ctx, e, state, x - g.dir * e.height * 0.45, y - 5 + hit * 2, g.dir * (Math.PI / 2 + hit * 0.12) + squirm);
+        drawPinned(ctx, e, state, x, y, g.dir, hit, squirm);
       }
       sprite(ctx, x, y, g.dir, c => mountPose(c, f, g.phase === 'kill' ? 0.2 : k));
       return;
@@ -564,11 +599,9 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       sprite(ctx, x, y, g.dir, c => tossPose(c, f, key, g.toss));
       if (g.held) {
         // Still by the neck in his hands, swung round with them (flipped head down going over, for the back throw)
-        const e = g.held, person = isHumanoidKind(e.kind), hd = person && e.kind ? kindHead(e.kind, e.variant) : null;
-        const neck = hd ? -(hd.y + hd.r) : e.height * 0.7;
         const over = g.toss === 'back' ? Math.min(1, g.t / TOSS.back.release) * Math.PI * 0.9 : 0;
         const swing = (g.toss === 'forward' ? -key.lean : g.toss === 'down' ? key.lean * 0.6 : 0) * 0.8;
-        drawEnemyAt(ctx, e, state, x + g.dir * hand.x, y + hand.y + neck * Math.cos(over), g.dir * (over + swing));
+        drawHeldByNeck(ctx, g.held, state, x + g.dir * hand.x, y + hand.y, g.dir, g.dir * (over + swing));
       }
       return;
     }
@@ -576,13 +609,10 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       const jig = Math.sin(g.t * 1.9) * 5;
       const fist = fistAt(jig);
       if (g.held) {
-        // Held up by the neck, feet off the floor, swinging and kicking with the shaking
-        // (a person by the throat; an animal by the scruff, its body out in front)
-        const e = g.held, person = isHumanoidKind(e.kind), hd = person && e.kind ? kindHead(e.kind, e.variant) : null;
-        const neck = hd ? -(hd.y + hd.r) : e.height * 0.7;
-        // (him first, then the one he's holding: out in front of him, over his hands)
+        // Held up by the neck, feet off the floor, swinging and kicking with the shaking (him first, then the one he's
+        // holding, out in front of him, over his hands)
         sprite(ctx, x, y, g.dir, c => shakePose(c, f, jig));
-        drawEnemyAt(ctx, e, state, x + g.dir * (fist.x + (person ? 4 : e.width * 0.3)), y + fist.y + neck, Math.sin(g.t * 1.9 + 0.8) * 0.18);
+        drawHeldByNeck(ctx, g.held, state, x + g.dir * (fist.x + 4), y + fist.y, g.dir, Math.sin(g.t * 1.9 + 0.8) * 0.18);
         return;
       }
       sprite(ctx, x, y, g.dir, c => shakePose(c, f, jig));
