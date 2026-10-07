@@ -191,12 +191,14 @@ const drawSmokejumper = (ctx: Ctx, e: Enemy, f: number) => {
     ctx.fillStyle = dark(COAT, 0.3); ctx.fillRect(-14, -16, 8, 0.8); ctx.fillRect(-14, -16, 0.8, 9);
   });
   part(ctx, () => ctx.roundRect(-6, -40, 14, 6, [3, 3, 1, 1]), dark(COAT, 0.1), -6, -40, 14, 6);
-  // The axe, over his far shoulder (the head up behind his helmet, out of his face): the haft, the red head
-  // blade-back, the steel edge, the pick forward
+  // The axe, up in front of him, cocked to chop (the head out past his mask): the haft, the red head with the
+  // blade facing you, the steel edge, the pick out the back
   const swing = running ? Math.sin(f * 0.45) * 0.3 : 0;
-  ctx.save(); ctx.translate(12, -16); ctx.rotate(-0.52 + swing);
+  ctx.save(); ctx.translate(12, -16); ctx.rotate(0.6 + swing);
   shaded(ctx, () => ctx.roundRect(-2, -27, 4, 35, 1.4), '#92400E', -2, -27, 4, 35, 0.9);
   ctx.fillStyle = '#B45309'; ctx.fillRect(-1.2, -14, 0.8, 6); ctx.fillRect(0.2, 0, 0.8, 5);
+  // (the head drawn blade-to-the-left, then flipped round so the edge leads)
+  ctx.scale(-1, 1);
   shaded(ctx, () => { ctx.moveTo(-1.6, -27); ctx.lineTo(-13, -31); ctx.lineTo(-13, -15); ctx.lineTo(-1.6, -18); ctx.closePath(); }, '#DC2626', -13, -31, 12, 16, 0.9);
   ink(ctx, () => { ctx.moveTo(1.6, -26); ctx.lineTo(10, -22.6); ctx.lineTo(1.6, -20); ctx.closePath(); }, '#DC2626', 0.9);
   ink(ctx, () => { ctx.moveTo(-12.4, -31.4); ctx.lineTo(-15.4, -32); ctx.lineTo(-15.4, -14); ctx.lineTo(-12.4, -14.6); ctx.closePath(); }, '#D1D5DB', 0.8);
