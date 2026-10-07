@@ -34,8 +34,9 @@ registerGrabCallouts();
 
 const WEAPONS: WeaponType[] = ['GUN', 'SHOTGUN'];
 const STARTING_AMMO = { ...createFullAmmo(), SHOTGUN: 6 };
-/** For now he can't be hurt (and no flicker for it: it's how things are, not a cheat). */
-const CHEATS = { invincible: true, infiniteAmmo: false, infinitePower: false, skipToBoss: false };
+/** In the staff room (the practice pen) he can't be hurt (no flicker for it: it's how the room is); everywhere else he can. */
+const PRACTICE = { invincible: true, infiniteAmmo: false, infinitePower: false, skipToBoss: false };
+const PLAY = { ...PRACTICE, invincible: false };
 const noop = () => {};
 
 const useFitToWindow = () => {
@@ -113,7 +114,7 @@ const App2: React.FC = () => {
           currentWeapon={weapon}
           availableWeapons={WEAPONS}
           initialAmmo={initialAmmo}
-          cheats={CHEATS}
+          cheats={stage === PEN_STAGE ? PRACTICE : PLAY}
           quietInvincible
           bossTauntText=""
           onPlayerUpdate={onPlayerUpdate}

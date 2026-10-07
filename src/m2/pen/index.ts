@@ -1,6 +1,7 @@
-// The test pen: behind the STAFF ONLY door off the hub. A strip of back-of-house concrete with people (and a few
-// animals) walking in from the far end to try the grabs on, a few at a time, forever. The door back to the hub is at
-// the near end.
+// The staff room behind the STAFF ONLY door: a practice room, like Meathead's gym. A strip of back-of-house concrete
+// with people (and a few animals) walking in from the far end to practice on, a few at a time, forever; he can't be
+// hurt in here (App.tsx). For now they're Meathead 1's; it'll fill up with the regular enemies met in the game. The door
+// back to the hub is at the near end.
 
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
