@@ -7,8 +7,9 @@
 // like the gross-up of the President's gut (grossUp.ts). What doesn't move is painted once.
 
 import { shatPants, shatLegRun } from './shatLook';
-import { ART_W, ART_H, C, R, ell, hash, drawMeatheadCloseUp, curtain, whSign, hangingFlag, podium, reporters, meatheadStanding, meatheadPunched, trumpFlying } from './ending';
-import { shaded, ball, bands, layer, RAMP } from './art/snes';
+import { ART_W, ART_H, C, R, ell, hash, drawMeatheadCloseUp, curtain, whSign, hangingFlag, podium, reporters, meatheadStanding, meatheadPunched, trumpFlying, FIG_INK, RIBBON, BOOT, figure } from './ending';
+import { painting, bayer } from './art/raster';
+import { bands, layer, RAMP } from './art/snes';
 import { INK, shape, speckle, hatch } from './art/ink';
 import { bead } from './grossUp';
 import { ALIEN, drawAlienFigure, alienMuzzle, laserBeam, AlienPose } from './alienLook';
@@ -51,32 +52,13 @@ const HEAP_X = 206, HEAP_Y = 111;
  * green light tearing open along the top of it, light raying out of it, slime dribbling down.
  */
 const trumpHeap = (ctx: Ctx, x: number, y: number, t: number, bulge = 0, split = 0) => {
-  const N = RAMP.navy, T = RAMP.tSkin, Hh = RAMP.tHair;
+  const N = RAMP.navy;
   const jit = bulge > 0 && t % 4 < 2 ? Math.round(bulge) : 0;
-  // The leg in the air, the shoe at the top of it; the other one flat out behind
-  R(ctx, x - 42, y - 6, 26, 6, N[2]); R(ctx, x - 42, y - 6, 26, 1, N[4]);
-  R(ctx, x - 48, y - 7, 7, 7, C.ink); R(ctx, x - 48, y - 7, 7, 1, '#3c3c3c');
-  for (let k = 0; k < 12; k++) R(ctx, x - 30 - Math.floor(k / 2), y - 8 - k, 6, 1, k % 4 === 0 ? N[4] : N[3]);
-  R(ctx, x - 40, y - 24, 8, 5, C.ink); R(ctx, x - 40, y - 24, 8, 1, '#3c3c3c'); R(ctx, x - 37, y - 19, 4, 1, C.white);
-  // The body: the jacket over his back, the belly squashed out under it, the shirt tail out
-  blob3(ctx, x - 4 + jit, y - 6, 18, 8, N);
-  R(ctx, x - 16, y - 1, 24, 2, C.white); R(ctx, x - 16, y, 24, 1, '#c8c8d0');
-  // Arms: one flung out ahead, the hand palm up; one up behind his back
-  R(ctx, x + 8, y - 4, 15, 4, N[2]); R(ctx, x + 8, y - 4, 15, 1, N[4]);
-  blob3(ctx, x + 25, y - 2, 3, 2, T); R(ctx, x + 27, y - 4, 1, 2, T[3]);
-  for (let k = 0; k < 10; k++) R(ctx, x - 20 + k, y - 10 - Math.floor(k / 3), 4, 3, k % 3 === 0 ? N[4] : N[2]);
-  blob3(ctx, x - 10, y - 15, 2, 2, T);
-  // The tie spilled out from under him
-  R(ctx, x + 4, y - 1, 12, 2, C.red); R(ctx, x + 15, y, 3, 2, C.darkRed);
-  // His head on its side on the carpet: cheek squashed, X for an eye, the hair spread out round it
-  blob3(ctx, x + 15, y - 6, 8, 6, T);
-  R(ctx, x + 17, y - 8, 1, 1, C.ink); R(ctx, x + 19, y - 8, 1, 1, C.ink); R(ctx, x + 18, y - 7, 1, 1, C.ink); R(ctx, x + 17, y - 6, 1, 1, C.ink); R(ctx, x + 19, y - 6, 1, 1, C.ink);
-  R(ctx, x + 18, y - 2, 4, 2, '#500000'); R(ctx, x + 22, y - 1, 2, 1, '#c02010');
-  blob3(ctx, x + 11, y - 12, 9, 4, Hh, 3);
-  R(ctx, x + 4, y - 11, 6, 2, Hh[3]); R(ctx, x + 18, y - 13, 5, 1, Hh[5]);
+  heapFig(ctx, x, y);
   // The bulge: something under his jacket, pushing up
   if (bulge > 0) {
     const bx = x - 6 + jit, by = y - 12 - bulge * 6, rx = 8 + bulge * 6, ry = 4 + bulge * 6;
+    ell(ctx, bx, by, rx + 1, ry + 1, FIG_INK);
     blob3(ctx, bx, by, rx, ry, N, 2);
     // (the cloth stretched shiny over it, the seams pulling)
     R(ctx, bx - rx * 0.5, by - ry * 0.6, rx * 0.5, 1, N[5]);
@@ -97,38 +79,111 @@ const trumpHeap = (ctx: Ctx, x: number, y: number, t: number, bulge = 0, split =
 };
 
 /**
+ * The heap, painted once: the leg flat out behind and the other cocked up in the air (the shoe, the sock), the
+ * jacket over his back and the gut squashed out under it, the shirt tail out; an arm flung out ahead, palm up, the other
+ * up behind his back; the tie spilled out; his head on its side on the carpet, the cheek squashed, an X for an eye, the
+ * mouth open, the hair fanned out round it.
+ */
+const heapFig = figure('trump-heap', 84, 34, 54, 30, q => {
+  const N = RAMP.navy, T = RAMP.tSkin, Hh = RAMP.tHair, I = FIG_INK;
+  // The leg flat out behind, its shoe
+  q.form(g => { g.moveTo(-16, -7); g.lineTo(-42, -6); g.lineTo(-42, 0); g.lineTo(-16, 0); g.closePath(); }, { ramp: N, bevel: 2.5, amb: 0.1, ink: I });
+  q.form(g => { g.roundRect(-49, -7, 8, 7, 2); }, { ramp: BOOT, bevel: 2, amb: 0.2, ink: I });
+  // The leg cocked up in the air, the shoe on the top of it, a flash of sock
+  q.form(g => { g.moveTo(-24, -6); g.lineTo(-30, -6); g.lineTo(-40, -19); g.lineTo(-34, -21); g.closePath(); }, { ramp: N, bevel: 2.5, amb: 0.2, ink: I });
+  q.rect(-39, -21, 4, 2, '#e8e8f0');
+  q.form(g => { g.roundRect(-42, -26, 9, 6, 2); }, { ramp: BOOT, bevel: 2, amb: 0.2, ink: I });
+  q.line(-41, -25, -35, -25, BOOT[4]);
+  // The arm up behind his back, the hand
+  q.form(g => { g.moveTo(-20, -9); g.lineTo(-10, -15); g.lineTo(-8, -12); g.lineTo(-17, -6); g.closePath(); }, { ramp: N, bevel: 2, amb: 0.2, ink: I });
+  q.form(g => { g.ellipse(-9, -16, 2.5, 2.5, 0, 0, Math.PI * 2); }, { ramp: T, bevel: 2, amb: 0.2, ink: I });
+  // The body: the jacket over his back, lit along the top; the gut squashed out under it; the shirt tail out
+  q.form(g => { g.ellipse(-4, -6, 19, 8.5, 0, 0, Math.PI * 2); }, { ramp: N, bevel: 6, amb: 0.14, ink: I });
+  q.line(-16, -12, 6, -13, N[5]); q.line(-4, -14, -4, -2, N[1]);
+  q.form(g => { g.moveTo(-17, -2); g.lineTo(8, -2); g.lineTo(6, 1); g.lineTo(-15, 1); g.closePath(); }, { ramp: RAMP.shirt, bevel: 1.5, amb: 0.3, ink: I });
+  // The arm flung out ahead, the hand palm up
+  q.form(g => { g.moveTo(8, -5); g.lineTo(23, -4); g.lineTo(23, 0); g.lineTo(8, 0); g.closePath(); }, { ramp: N, bevel: 2, amb: 0.2, ink: I });
+  q.rect(21, -4, 2, 4, '#e8e8f0');
+  q.form(g => { g.ellipse(26, -2, 3.5, 2.5, 0, 0, Math.PI * 2); }, { ramp: T, bevel: 2, amb: 0.2, ink: I });
+  q.px(28, -5, T[3]); q.px(28, -4, T[3]); q.px(26, -5, T[4]);
+  // The tie, spilled out from under him
+  q.form(g => { g.moveTo(4, -1); g.lineTo(16, -1); g.lineTo(19, 1); g.lineTo(16, 2); g.lineTo(4, 1); g.closePath(); }, { ramp: RAMP.red, bevel: 1.5, amb: 0.2, ink: I });
+  // The head on its side: the hair fanned out on the carpet, the cheek squashed flat under it
+  q.form(g => { g.ellipse(11, -12, 10, 5, -0.15, 0, Math.PI * 2); }, { ramp: Hh, bevel: 3, amb: 0.25, ink: '#5a3a04', spec: '#fffef0', wet: 0.6 });
+  q.form(g => { g.moveTo(8, -9); g.bezierCurveTo(10, -14, 22, -14, 24, -7); g.bezierCurveTo(24, -2, 20, 0, 14, 0); g.bezierCurveTo(9, 0, 7, -4, 8, -9); g.closePath(); }, { ramp: T, bevel: 4, amb: 0.2, ink: I, inkIn: T[1] });
+  q.form(g => { g.moveTo(4, -15); g.bezierCurveTo(10, -18, 18, -16, 22, -13); g.lineTo(18, -12); g.bezierCurveTo(14, -14, 9, -14, 6, -12); g.closePath(); }, { ramp: Hh, bevel: 2, amb: 0.3, ink: '#5a3a04' });
+  q.line(5, -16, 18, -16, Hh[5]);
+  // (the X for an eye in its pale goggle; the mouth hanging open on the carpet, a dribble)
+  q.rect(15, -10, 5, 4, '#fdd8b0');
+  q.px(16, -9, I); q.px(18, -9, I); q.px(17, -8, I); q.px(16, -7, I); q.px(18, -7, I);
+  q.rect(18, -3, 4, 2, '#3a0606'); q.px(18, -3, '#f4ecdc'); q.rect(22, -1, 2, 1, '#c02010');
+  q.px(23, -7, T[6]); q.px(23, -6, T[5]);
+});
+
+/**
  * The skin he came out of, flat on the floor: the orange of it empty and folded, the face slid half off the skull
  * that isn't there any more (holes for eyes, the mouth a long sag), the hair still on, still perfect; the trousers
  * and shoes on the end of it; a slick of slime round it.
  */
 const deflatedSkin = (ctx: Ctx, x: number, y: number, t: number, fresh = 0) => {
-  const T = RAMP.tSkin, N = RAMP.navy, Hh = RAMP.tHair;
-  // (the slime puddle)
-  ell(ctx, x + 2, y + 1, 34, 3, ALIEN.slimeDark); ell(ctx, x, y, 30, 2, ALIEN.slime);
-  for (let k = 0; k < 5; k++) R(ctx, x - 24 + k * 11, y - 1, 3, 1, ALIEN.slimeLight);
-  // The trousers, empty, flat; the shoes stood up on the end of them
-  R(ctx, x + 6, y - 4, 22, 4, N[2]); R(ctx, x + 6, y - 4, 22, 1, N[4]); R(ctx, x + 16, y - 3, 1, 3, N[0]);
-  R(ctx, x + 28, y - 7, 5, 7, C.ink); R(ctx, x + 28, y - 7, 5, 1, '#3c3c3c');
-  R(ctx, x + 24, y - 6, 5, 6, C.ink); R(ctx, x + 24, y - 6, 5, 1, '#3c3c3c');
-  // The body of the skin, empty, folded in on itself: a sag, folds, the shirt's rags on it
-  R(ctx, x - 14, y - 4, 22, 4, T[3]); R(ctx, x - 14, y - 4, 22, 1, T[5]);
-  for (let k = 0; k < 4; k++) R(ctx, x - 12 + k * 5, y - 3 + (k % 2), 3, 1, T[1]);
-  R(ctx, x - 6, y - 5, 8, 2, C.white); R(ctx, x - 2, y - 4, 2, 4, C.red);
-  // An arm of it out to the side, the hand on the end flopped open like a glove
-  R(ctx, x - 6, y - 1, 3, 1, T[2]);
-  for (let k = 0; k < 9; k++) R(ctx, x - 4 + k, y + 1, 1, 2, T[k % 3 ? 3 : 2]);
-  R(ctx, x + 5, y + 1, 4, 2, T[4]); for (let f = 0; f < 3; f++) R(ctx, x + 9, y + 1 + f, 2, 1, T[3]);
-  // The face: stretched long and flat, the eyes two empty holes, the mouth a sag; the hair on top, perfect
   const sag = fresh > 0 ? Math.round((1 - fresh) * 3) : 0;
-  ell(ctx, x - 22, y - 3 - sag, 9, 4 + sag, T[2]); ell(ctx, x - 23, y - 4 - sag, 7, 3 + sag, T[4]);
-  R(ctx, x - 27, y - 5 - sag, 3, 2, C.ink); R(ctx, x - 21, y - 5 - sag, 3, 2, C.ink);
-  R(ctx, x - 27, y - 6 - sag, 3, 1, C.tSkinPale); R(ctx, x - 21, y - 6 - sag, 3, 1, C.tSkinPale);
-  R(ctx, x - 25, y - 1, 5, 1, '#500000'); R(ctx, x - 24, y, 3, 1, '#500000');
-  ell(ctx, x - 30, y - 7 - sag, 6, 3, Hh[2]); ell(ctx, x - 31, y - 8 - sag, 5, 2, Hh[4]);
-  R(ctx, x - 36, y - 7 - sag, 5, 3, Hh[3]); R(ctx, x - 34, y - 9 - sag, 6, 1, Hh[5]);
+  skinFig(sag)(ctx, x, y);
   // (a last bubble of air going out of it)
-  if (fresh > 0 && t % 20 < 10) R(ctx, x - 16, y - 7, 2, 2, 'rgba(234, 255, 176, 0.7)');
+  if (fresh > 0 && t % 20 < 10) { R(ctx, x - 17, y - 8, 4, 4, ALIEN.slimeDark); R(ctx, x - 16, y - 7, 2, 2, 'rgba(234, 255, 176, 0.9)'); }
 };
+const skinFigs = new Map<number, (ctx: Ctx, x: number, y: number) => void>();
+const skinFig = (sag: number) => {
+  let f = skinFigs.get(sag);
+  if (!f) {
+    f = figure(`trump-skin-${sag}`, 80, 22, 40, 16, q => {
+      const T = RAMP.tSkin, N = RAMP.navy, Hh = RAMP.tHair, I = FIG_INK;
+      const SL = [ALIEN.slimeDark, '#7aa82a', ALIEN.slime, '#c8f070', ALIEN.slimeLight];
+      // The slime puddle
+      q.form(g => { g.ellipse(2, 1, 35, 3.5, 0, 0, Math.PI * 2); }, { ramp: SL, bevel: 2, amb: 0.3, ink: '#2e4a0c', spec: '#ffffff', wet: 0.6 });
+      // The trousers, empty, flat; the shoes stood up on the end of them
+      q.form(g => { g.moveTo(6, -4); g.lineTo(27, -4); g.lineTo(28, 0); g.lineTo(6, 0); g.closePath(); }, { ramp: N, bevel: 2, amb: 0.2, ink: I });
+      q.line(16, -3, 16, 0, N[0]);
+      q.form(g => { g.roundRect(24, -7, 5, 7, 1.5); }, { ramp: BOOT, bevel: 1.5, amb: 0.2, ink: I });
+      q.form(g => { g.roundRect(28, -8, 5, 8, 1.5); }, { ramp: BOOT, bevel: 1.5, amb: 0.2, ink: I });
+      // The body of it, empty, folded in on itself, the shirt's rags on it, the tie
+      q.form(g => { g.moveTo(-15, -3); g.bezierCurveTo(-10, -6, 0, -6, 8, -4); g.lineTo(8, 0); g.lineTo(-15, 0); g.closePath(); }, { ramp: T, bevel: 2.5, amb: 0.2, ink: I, inkIn: T[1] });
+      for (let k = 0; k < 4; k++) q.line(-12 + k * 5, -3 + (k % 2), -10 + k * 5, -2 + (k % 2), T[1]);
+      q.form(g => { g.moveTo(-6, -5); g.lineTo(2, -5); g.lineTo(1, -2); g.lineTo(-5, -3); g.closePath(); }, { ramp: RAMP.shirt, bevel: 1, amb: 0.3, ink: I });
+      q.form(g => { g.rect(-2, -4, 2, 5); }, { ramp: RAMP.red, bevel: 1, amb: 0.2, ink: I });
+      // An arm of it out to the side, the hand flopped open on the end like a glove
+      q.form(g => { g.moveTo(-6, 0); g.lineTo(5, 0); g.lineTo(5, 3); g.lineTo(-4, 3); g.closePath(); }, { ramp: T, bevel: 1.5, amb: 0.2, ink: I });
+      q.form(g => { g.moveTo(5, 0); g.lineTo(11, 0); g.lineTo(12, 3); g.lineTo(5, 3); g.closePath(); }, { ramp: T, bevel: 1.5, amb: 0.25, ink: I });
+      for (let f2 = 0; f2 < 2; f2++) q.px(11, 1 + f2, T[1]);
+      // The face: stretched long and flat, the eyes two empty holes, the mouth a sag; the hair on top, perfect
+      q.form(g => { g.ellipse(-22, -3 - sag, 9, 4 + sag, 0, 0, Math.PI * 2); }, { ramp: T, bevel: 3, amb: 0.2, ink: I });
+      for (const ex of [-26, -20]) { q.rect(ex, -6 - sag, 3, 1, '#fdd8b0'); q.rect(ex, -5 - sag, 3, 2, '#1a0404'); }
+      q.line(-24, -1, -20, -1, '#3a0606'); q.line(-23, 0, -21, 0, '#3a0606');
+      q.form(g => { g.moveTo(-37, -6 - sag); g.bezierCurveTo(-36, -11 - sag, -26, -12 - sag, -22, -8 - sag); g.lineTo(-25, -7 - sag); g.bezierCurveTo(-29, -9 - sag, -33, -8 - sag, -35, -4 - sag); g.closePath(); },
+        { ramp: Hh, bevel: 2, amb: 0.25, ink: '#5a3a04', spec: '#fffef0', wet: 0.6 });
+      q.line(-34, -10 - sag, -27, -10 - sag, Hh[5]);
+    });
+    skinFigs.set(sag, f);
+  }
+  return f;
+};
+
+/**
+ * What's left of him round where the thing is coming up out of him: the jacket and the skin torn open and peeled back
+ * in flaps either side, the orange of the skin showing its pale underside, the slime pooled in it.
+ */
+const tornHeapFig = figure('torn-heap', 64, 20, 32, 14, q => {
+  const N = RAMP.navy, T = RAMP.tSkin, I = FIG_INK;
+  const SL = [ALIEN.slimeDark, '#7aa82a', ALIEN.slime, '#c8f070', ALIEN.slimeLight];
+  q.form(g => { g.moveTo(-27, 0); g.lineTo(-24, -5); g.lineTo(24, -5); g.lineTo(27, 0); g.closePath(); }, { ramp: N, bevel: 2.5, amb: 0.2, ink: I });
+  for (const s of [-1, 1]) {
+    // (a flap of the jacket, curled back; a flap of the skin under it, its raw side up)
+    q.form(g => { g.moveTo(s * 10, -5); g.quadraticCurveTo(s * 15, -13, s * 22, -9); g.lineTo(s * 24, -5); g.closePath(); }, { ramp: N, bevel: 2, amb: s < 0 ? 0.3 : 0.15, ink: I });
+    q.form(g => { g.moveTo(s * 9, -5); g.quadraticCurveTo(s * 11, -11, s * 16, -10); g.lineTo(s * 18, -5); g.closePath(); }, { ramp: T, bevel: 2, amb: 0.2, ink: I, inkIn: T[1] });
+    q.line(s * 11, -8, s * 15, -9, '#fdd8b0');
+  }
+  q.form(g => { g.ellipse(0, -5, 19, 2.5, 0, 0, Math.PI * 2); }, { ramp: SL, bevel: 1.5, amb: 0.3, ink: '#2e4a0c', spec: '#ffffff', wet: 0.6 });
+  q.line(-12, -1, 10, -1, N[4]);
+});
 
 /** The President, still sailing on from where the punch froze him, and down on his face. */
 export const LAND_AT = 10;
@@ -175,9 +230,7 @@ export const drawAlienEmerges = (ctx: Ctx, t: number) => {
     drawAlienFigure(ctx, ax, base + Math.round((1 - k) * 70), { facing: -1, t, peel: 1 });
     ctx.restore();
     // (the torn-open skin round where he's coming up, flaps of it, slime)
-    for (const s of [-1, 1]) for (let k2 = 0; k2 < 8; k2++) R(ctx, ax + s * (10 + k2 * 2), HEAP_Y - 8 - Math.round(Math.sin((k2 / 7) * Math.PI) * 5), 3, 4, k2 % 2 ? RAMP.navy[3] : RAMP.tSkin[3]);
-    R(ctx, ax - 26, HEAP_Y - 5, 52, 5, RAMP.navy[2]); R(ctx, ax - 26, HEAP_Y - 5, 52, 1, RAMP.navy[4]);
-    R(ctx, ax - 20, HEAP_Y - 7, 40, 2, ALIEN.slime);
+    tornHeapFig(ctx, ax, HEAP_Y);
     for (let i = 0; i < 6; i++) R(ctx, ax - 18 + i * 7, HEAP_Y - 12 - ((t * 0.7 + i * 5) % 12), 2, 2, ALIEN.slimeLight);
   } else if (t < DROP_AT) {
     // Standing, shimmying the rest of it down
@@ -221,42 +274,129 @@ const pressBack = (ctx: Ctx) => layer(ctx, 'ae-pressback', ART_W, ART_H, g => {
 
 /** One of the press, big, aghast: a head lit green from the front, a mouth wide open. */
 const aghast = (ctx: Ctx, key: string, x: number, y: number, t: number, o: { skin: readonly string[]; hair: string; hairHi: string; coat: string; bald?: boolean; glasses?: boolean; talking?: boolean; woman?: boolean }) => {
-  // Shoulders and coat
-  shaded(ctx, `${key}-coat`, x - 30, y + 26, 60, 40, [o.coat === 'red' ? '#3c0400' : '#060610', o.coat === 'red' ? '#6c0c04' : '#141428', o.coat === 'red' ? '#9c1a0a' : '#24243c', o.coat === 'red' ? '#c82814' : '#363654', o.coat === 'red' ? '#e84a2c' : '#4c4c70'], ball(-0.3, -0.85, 0.15));
-  R(ctx, x - 6, y + 24, 12, 8, '#e8e8f0'); R(ctx, x - 1, y + 26, 2, 10, o.coat === 'red' ? '#f8f8f8' : C.red);
-  // The head
-  shaded(ctx, `${key}-head`, x - 15, y - 16, 30, 40, [...o.skin], ball(-0.35, -0.5, 0.16));
-  // Hair
-  if (o.woman) {
-    // (a blonde helmet, sprayed solid)
-    shaded(ctx, `${key}-hair`, x - 19, y - 22, 38, 34, ['#5a3c08', '#8a6414', '#b88c20', '#d8b040', '#f0d070', '#fcf0b0'], ball(-0.35, -0.7, 0.2));
-    R(ctx, x - 13, y - 12, 26, 8, o.skin[3]); ell(ctx, x, y - 6, 12, 5, o.skin[3]);
-    // (pearl earrings)
-    R(ctx, x - 16, y + 12, 2, 2, C.white); R(ctx, x + 15, y + 12, 2, 2, C.white);
-  } else if (!o.bald) {
-    ell(ctx, x, y - 13, 15, 6, o.hair); R(ctx, x - 15, y - 13, 4, 12, o.hair); R(ctx, x + 11, y - 13, 4, 10, o.hair);
-    R(ctx, x - 8, y - 18, 12, 1, o.hairHi);
-  } else {
-    R(ctx, x - 8, y - 14, 6, 2, '#fff0e0'); R(ctx, x - 15, y - 2, 3, 8, o.hair); R(ctx, x + 12, y - 2, 3, 8, o.hair);
-  }
-  // Eyes popped wide, pupils pinpricks; brows up
-  for (const ex of [x - 7, x + 4]) {
-    R(ctx, ex - 1, y - 6 - (t % 30 < 15 ? 1 : 0), 6, 2, o.woman ? '#5a3c08' : C.ink);
-    R(ctx, ex, y - 2, 5, 5, C.white); R(ctx, ex + 2, y, 1, 1, C.ink);
+  const sk = o.skin;
+  // Everything of them that doesn't move, painted once
+  ctx.drawImage(aghastStill(key, x, y, o), 0, 0);
+  // Brows up (jumping), eyes popped wide, the pupils pinpricks
+  const jump = t % 30 < 15 ? 1 : 0;
+  for (const [ex, s] of [[x - 6, -1], [x + 6, 1]] as const) {
+    const by = y - 7 - jump;
+    for (let k = -3; k <= 3; k++) R(ctx, ex + k, by - (Math.abs(k) < 2 ? 1 : 0) + (k * s > 2 ? 1 : 0), 1, 2, o.woman ? '#8a6414' : o.bald ? '#7a5a40' : FIG_INK);
+    R(ctx, ex - 3, y - 3, 6, 6, FIG_INK);
+    R(ctx, ex - 2, y - 3, 4, 6, '#f4f0ea'); R(ctx, ex - 3, y - 2, 6, 4, '#f4f0ea');
+    R(ctx, ex - 2, y - 3, 4, 1, '#c8c0b8');
+    R(ctx, ex, y, 1, 1, FIG_INK);
+    R(ctx, ex - 3, y + 4, 6, 1, sk[2]);
+    if (o.woman) { R(ctx, ex - 3 - (s < 0 ? 1 : 0) + (s > 0 ? 5 : 0), y - 4, 2, 1, FIG_INK); R(ctx, ex - 2, y - 4, 4, 1, sk[2]); }
   }
   if (o.glasses) {
     // (and the alien in his glasses, green)
-    for (const ex of [x - 8, x + 3]) { R(ctx, ex, y - 3, 7, 1, C.ink); R(ctx, ex, y + 3, 7, 1, C.ink); R(ctx, ex, y - 3, 1, 7, C.ink); R(ctx, ex + 6, y - 3, 1, 7, C.ink); R(ctx, ex + 2, y - 1, 3, 3, '#74994e'); }
-    R(ctx, x - 1, y - 1, 4, 1, C.ink);
+    for (const ex of [x - 6, x + 6]) {
+      R(ctx, ex - 4, y - 4, 9, 1, FIG_INK); R(ctx, ex - 4, y + 4, 9, 1, FIG_INK); R(ctx, ex - 4, y - 4, 1, 9, FIG_INK); R(ctx, ex + 4, y - 4, 1, 9, FIG_INK);
+      R(ctx, ex - 1, y - 1, 3, 2, '#74994e'); R(ctx, ex - 3, y - 3, 2, 1, 'rgba(255,255,255,0.7)');
+    }
+    R(ctx, x - 1, y - 2, 3, 1, FIG_INK); R(ctx, x - 14, y - 2, 4, 1, FIG_INK); R(ctx, x + 11, y - 2, 4, 1, FIG_INK);
   }
-  // Mouth: hanging wide (talking: flapping)
-  const open = o.talking ? (t % 10 < 5 ? 9 : 5) : 8;
-  R(ctx, x - 4, y + 9, 8, open, '#3a0606'); R(ctx, x - 3, y + 9, 6, 1, C.white);
-  if (o.woman) { R(ctx, x - 5, y + 8, 10, 1, '#c02040'); R(ctx, x - 5, y + 9 + open, 10, 1, '#c02040'); }
-  // The green off the alien on the side of the face toward him, and a rim of it
-  for (let k = 0; k < 30; k += 2) R(ctx, x + 8 + (k % 4 === 0 ? 1 : 0), y - 12 + k, 6, 1, 'rgba(168, 224, 58, 0.28)');
-  R(ctx, x + 14, y - 10, 1, 26, 'rgba(234, 255, 176, 0.5)');
+  // Mouth: hanging wide (talking: flapping); the top teeth, the tongue down in it, the lips round it
+  const h = o.talking ? (t % 10 < 5 ? 9 : 5) : 8, w = 9, mx = x - 4, my = y + 9;
+  R(ctx, mx + 1, my - 1, w - 2, 1, o.woman ? '#a01838' : sk[1]);
+  R(ctx, mx, my, w, h, '#2a0404'); R(ctx, mx, my, 1, 1, o.woman ? '#a01838' : sk[2]); R(ctx, mx + w - 1, my, 1, 1, o.woman ? '#a01838' : sk[2]);
+  R(ctx, mx + 1, my, w - 2, 2, '#f4ecdc'); R(ctx, mx + 4, my, 1, 2, '#c8bca8');
+  if (h > 5) { R(ctx, mx + 2, my + h - 3, w - 4, 2, '#b84858'); R(ctx, mx + 3, my + h - 3, w - 6, 1, '#d87080'); }
+  R(ctx, mx, my + h, w, 1, o.woman ? '#c02040' : sk[1]); R(ctx, mx + 1, my + h + 1, w - 2, 1, o.woman ? '#e04a64' : sk[4]);
+  if (o.woman) { R(ctx, mx - 1, my, 1, h, '#c02040'); R(ctx, mx + w, my, 1, h, '#c02040'); }
 };
+
+/**
+ * The still part of one of the press, painted once: the coat and the shirt, the neck, the head (an egg, lit from up
+ * and to the left, the green of the alien coming in off the right), the ears, the hair; the nose and the cheeks. Her:
+ * a blonde bob, sprayed solid, falling behind her face to her jaw, a sweep of it over her forehead, pearls.
+ */
+const aghastStill = (key: string, x: number, y: number, o: { skin: readonly string[]; hair: string; hairHi: string; coat: string; bald?: boolean; woman?: boolean }) => painting(`ag-${key}`, ART_W, ART_H, p => {
+  const sk = [...o.skin], I = FIG_INK;
+  const coat = o.coat === 'red' ? RAMP.red : ['#060610', '#141428', '#24243c', '#363654', '#4c4c70', '#666690'];
+  const blonde = ['#5a3c08', '#8a6414', '#b88c20', '#d8b040', '#f0d070', '#fcf0b0'];
+  // The coat: the shoulders off the bottom of the frame, the lapels
+  p.form(g => { g.moveTo(x - 34, 150); g.bezierCurveTo(x - 34, y + 42, x - 26, y + 28, x - 10, y + 24); g.lineTo(x + 10, y + 24); g.bezierCurveTo(x + 26, y + 28, x + 34, y + 42, x + 34, 150); g.closePath(); },
+    { ramp: coat, bevel: 12, amb: 0.14, ink: I });
+  if (o.woman) {
+    // (her blouse at the neck, the pearls)
+    p.form(g => { g.moveTo(x - 9, y + 24); g.lineTo(x + 9, y + 24); g.lineTo(x, y + 38); g.closePath(); }, { ramp: RAMP.shirt, bevel: 3, amb: 0.3, ink: I });
+    for (let k = -4; k <= 4; k++) { const px = x + k * 2, py = y + 27 + Math.round((1 - (k / 4) ** 2) * 4); p.px(px, py, '#fcfcfc'); p.px(px + 1, py, '#c8c8d0'); }
+    p.line(x - 10, y + 26, x - 2, y + 42, coat[1]); p.line(x + 10, y + 26, x + 2, y + 42, coat[1]);
+  } else {
+    p.form(g => { g.moveTo(x - 8, y + 24); g.lineTo(x + 8, y + 24); g.lineTo(x + 3, y + 36); g.lineTo(x - 3, y + 36); g.closePath(); }, { ramp: RAMP.shirt, bevel: 2, amb: 0.3, ink: I });
+    p.form(g => { g.moveTo(x - 2, y + 26); g.lineTo(x + 2, y + 26); g.lineTo(x + 3, y + 44); g.lineTo(x, y + 47); g.lineTo(x - 3, y + 44); g.closePath(); }, { ramp: RAMP.red, bevel: 2, amb: 0.2, ink: I });
+    for (const s of [-1, 1]) p.form(g => { g.moveTo(x + s * 8, y + 24); g.lineTo(x + s * 14, y + 28); g.lineTo(x + s * 4, y + 48); g.closePath(); }, { ramp: coat, bevel: 2, amb: s < 0 ? 0.3 : 0.1, ink: I });
+  }
+  // Her hair, behind: the bob, down past her ears to her jaw, curling under at the ends
+  if (o.woman) p.form(g => {
+    g.moveTo(x, y - 24); g.bezierCurveTo(x + 18, y - 24, x + 22, y - 8, x + 21, y + 8); g.bezierCurveTo(x + 21, y + 18, x + 22, y + 24, x + 16, y + 27);
+    g.lineTo(x - 16, y + 27); g.bezierCurveTo(x - 22, y + 24, x - 21, y + 18, x - 21, y + 8); g.bezierCurveTo(x - 22, y - 8, x - 18, y - 24, x, y - 24); g.closePath();
+  }, { ramp: blonde, bevel: 7, amb: 0.14, ink: '#3a2404' });
+  // The neck, the head, the ears
+  p.form(g => { g.rect(x - 6, y + 14, 12, 14); }, { ramp: sk, bevel: 4, amb: 0.1, ink: I });
+  for (const s of [-1, 1]) if (!o.woman) p.form(g => { g.ellipse(x + s * 14, y + 2, 3, 5, 0, 0, Math.PI * 2); }, { ramp: sk, bevel: 2, amb: s < 0 ? 0.2 : 0.1, ink: I });
+  p.form(g => { g.moveTo(x, y - 17); g.bezierCurveTo(x + 11, y - 17, x + 14, y - 8, x + 14, y + 2); g.bezierCurveTo(x + 14, y + 14, x + 8, y + 23, x, y + 23); g.bezierCurveTo(x - 8, y + 23, x - 14, y + 14, x - 14, y + 2); g.bezierCurveTo(x - 14, y - 8, x - 11, y - 17, x, y - 17); g.closePath(); },
+    { ramp: sk, bevel: 9, amb: 0.18, ink: I, inkIn: sk[1] });
+  // (the nose: lit down its left, the nostrils; the cheeks; the shadow under the lip, the chin)
+  p.line(x - 1, y - 1, x - 1, y + 4, sk[5]); p.line(x + 1, y + 1, x + 1, y + 5, sk[2]);
+  p.px(x - 2, y + 6, sk[1]); p.px(x + 2, y + 6, sk[1]); p.line(x - 1, y + 7, x + 1, y + 7, sk[2]);
+  p.line(x - 3, y + 20, x + 3, y + 20, sk[2]);
+  if (o.woman) { p.disc(x - 9, y + 7, 3, 2, '#e88070', 0.5); p.disc(x + 9, y + 7, 3, 2, '#e88070', 0.5); }
+  // Hair, on top
+  if (o.woman) {
+    // (the crown, sprayed solid; the sweep across her forehead from the parting; the sides framing her face to her cheekbones)
+    p.form(g => {
+      g.moveTo(x - 15, y + 6); g.bezierCurveTo(x - 17, y - 10, x - 12, y - 22, x + 2, y - 22); g.bezierCurveTo(x + 14, y - 22, x + 18, y - 10, x + 16, y + 6);
+      g.lineTo(x + 13, y + 2); g.bezierCurveTo(x + 13, y - 6, x + 10, y - 10, x + 4, y - 11); g.bezierCurveTo(x - 2, y - 9, x - 8, y - 7, x - 12, y - 6); g.lineTo(x - 13, y + 2); g.closePath();
+    }, { ramp: blonde, bevel: 6, amb: 0.2, ink: '#3a2404', spec: '#fffef0', wet: 0.5 });
+    for (let k = 0; k < 5; k++) p.line(x - 10 + k * 4, y - 18 + Math.abs(k - 2), x - 4 + k * 4, y - 12 + Math.abs(k - 2), blonde[2]);
+    p.line(x + 3, y - 21, x + 2, y - 13, blonde[1]);
+    // (pearl earrings, under the hair at her jaw)
+    for (const s of [-1, 1]) { p.disc(x + s * 14, y + 10, 1.5, 1.5, '#fcfcfc'); p.px(x + s * 14 - 1, y + 9, '#ffffff'); }
+  } else if (!o.bald) {
+    p.form(g => { g.moveTo(x - 15, y + 2); g.bezierCurveTo(x - 17, y - 14, x - 8, y - 21, x + 2, y - 20); g.bezierCurveTo(x + 12, y - 20, x + 17, y - 12, x + 15, y + 2); g.lineTo(x + 12, y - 4); g.bezierCurveTo(x + 6, y - 11, x - 6, y - 12, x - 12, y - 6); g.closePath(); },
+      { ramp: [o.hair, o.hair, o.hairHi, o.hairHi], bevel: 4, amb: 0.2, ink: I });
+    for (let k = 0; k < 6; k++) p.line(x - 9 + k * 4, y - 17, x - 11 + k * 4, y - 10, o.hair);
+  } else {
+    // (the dome lit, a fringe round the back over the ears)
+    p.disc(x - 5, y - 12, 4, 2, sk[5]); p.rect(x - 6, y - 13, 3, 1, '#fff0e0');
+    for (const s of [-1, 1]) p.form(g => { g.ellipse(x + s * 13, y - 1, 3, 7, 0, 0, Math.PI * 2); }, { ramp: [o.hair, o.hair, o.hairHi], bevel: 2, amb: 0.3, ink: I });
+  }
+  // The green off the alien on the side of the face toward him, a rim of it
+  for (let yy = y - 20; yy < y + 26; yy++) for (let xx = x + 4; xx < x + 22; xx++) {
+    if (!p.painted(xx, yy)) continue;
+    if (bayer(xx, yy) + 0.5 < (xx - x - 4) / 22) p.px(xx, yy, '#a8e03a', 0.35);
+  }
+  for (let yy = y - 18; yy < y + 22; yy++) { let edge = -1; for (let xx = x + 24; xx > x; xx--) if (p.painted(xx, yy)) { edge = xx; break; } if (edge > 0) p.px(edge - 1, yy, '#eaffb0', 0.6); }
+});
+
+/** The back row: small heads, faces to us, cameras up and flashing. Painted once, the flashes over them. */
+const backRow = () => painting('pg-backrow', ART_W, ART_H, p => {
+  const I = FIG_INK;
+  for (let i = 0; i < 9; i++) {
+    const x = 14 + i * 28 + Math.round(hash(i + 3) * 6), y = 70 + Math.round(hash(i + 9) * 4);
+    const coat = [RAMP.navy, ['#141418', '#24242a', '#36363e', '#4a4a54', '#5e5e6a'], ['#2a1404', '#3e2008', '#54300e', '#6c4218', '#845628']][i % 3];
+    const sk = [['#6a3a20', '#9a5a34', '#c47a4c', '#e09a68', '#f4bc8c'], ['#3c2414', '#5e3a20', '#80522e', '#a06c40', '#bc8a5a'], ['#7a4a30', '#a86a44', '#d08c5c', '#ecae7c', '#fcd0a4']][i % 3];
+    const hair = [['#2a1404', '#503000', '#704818'], ['#060606', '#1c1c1c', '#34343a'], ['#606064', '#a0a0a4', '#c8c8cc']][i % 3];
+    p.form(g => { g.moveTo(x - 12, y + 28); g.lineTo(x - 12, y + 14); g.bezierCurveTo(x - 12, y + 9, x - 6, y + 7, x, y + 7); g.bezierCurveTo(x + 6, y + 7, x + 12, y + 9, x + 12, y + 14); g.lineTo(x + 12, y + 28); g.closePath(); }, { ramp: coat, bevel: 5, amb: 0.15, ink: I });
+    p.line(x - 3, y + 9, x - 1, y + 18, coat[1]); p.line(x + 3, y + 9, x + 1, y + 18, coat[1]);
+    p.rect(x - 2, y + 8, 4, 3, '#e8e8f0'); p.px(x, y + 10, '#c82814');
+    p.form(g => { g.ellipse(x, y, 6, 7.5, 0, 0, Math.PI * 2); }, { ramp: sk, bevel: 4, amb: 0.2, ink: I });
+    p.form(g => { g.moveTo(x - 6, y); g.bezierCurveTo(x - 7, y - 8, x + 7, y - 8, x + 6, y); g.lineTo(x + 5, y - 3); g.lineTo(x - 5, y - 3); g.closePath(); }, { ramp: hair, bevel: 2, amb: 0.2, ink: I });
+    // (eyes popped, the mouth an O)
+    p.rect(x - 3, y - 1, 2, 2, '#f4f0ea'); p.rect(x + 1, y - 1, 2, 2, '#f4f0ea'); p.px(x - 2, y, I); p.px(x + 1, y, I);
+    p.rect(x - 1, y + 3, 2, 3, '#2a0404'); p.px(x, y + 1, sk[1]);
+    if (i % 2) {
+      // (the camera up in front of his face, held in both hands, the lens to the stage)
+      p.form(g => { g.roundRect(x - 5, y - 7, 11, 7, 1); }, { ramp: ['#0a0a0c', '#1c1c20', '#303036', '#4a4a52'], bevel: 2, ink: I });
+      p.disc(x + 1, y - 3, 2.5, 2.5, '#202026'); p.px(x, y - 4, '#8a8a96');
+      p.rect(x - 2, y - 10, 5, 3, '#1c1c20'); p.rect(x - 2, y - 10, 5, 1, '#5a5a66');
+      p.rect(x - 7, y - 4, 2, 3, sk[3]); p.rect(x + 6, y - 4, 2, 3, sk[2]);
+    }
+  }
+});
 
 /** The press pack, aghast. The woman down front with the mic is the one who says it. */
 export const drawPressGasp = (ctx: Ctx, t: number, talking: boolean) => {
@@ -264,28 +404,36 @@ export const drawPressGasp = (ctx: Ctx, t: number, talking: boolean) => {
   // (the alien's green glow over all of it from the stage, off the left)
   ctx.fillStyle = 'rgba(168, 224, 58, 0.12)'; ctx.fillRect(0, 0, ART_W, ART_H);
   // The back row: small heads, cameras up and flashing
+  ctx.drawImage(backRow(), 0, 0);
   for (let i = 0; i < 9; i++) {
     const x = 14 + i * 28 + Math.round(hash(i + 3) * 6), y = 70 + Math.round(hash(i + 9) * 4);
-    R(ctx, x - 9, y + 7, 18, 20, [C.navy, C.darkGray, '#503000'][i % 3]);
-    ell(ctx, x, y, 6, 7, '#e4a070'); ell(ctx, x, y - 3, 6, 4, ['#503000', C.ink, '#a0a0a0'][i % 3]);
-    R(ctx, x - 2, y - 1, 1, 1, C.ink); R(ctx, x + 2, y - 1, 1, 1, C.ink); R(ctx, x - 1, y + 3, 2, 2, '#3a0606');
-    if (i % 2) { R(ctx, x - 4, y - 6, 9, 6, C.ink); if (Math.floor(t / 3 + hash(i) * 20) % 4 === 0) { R(ctx, x - 6, y - 10, 12, 2, C.white); R(ctx, x - 1, y - 14, 2, 10, C.white); } }
+    if (i % 2 && Math.floor(t / 3 + hash(i) * 20) % 4 === 0) { R(ctx, x - 6, y - 10, 12, 2, C.white); R(ctx, x - 1, y - 14, 2, 10, C.white); R(ctx, x - 2, y - 11, 4, 4, C.white); }
   }
   // Down front: the bald one with the glasses (his camera hanging), the one dropping his coffee, and her
   aghast(ctx, 'pg-bald', 210, 92, t, { skin: ['#5a2c14', '#8a4a24', '#b46a3a', '#d48c58', '#ecb07c', '#fcd0a4'], hair: '#5a4030', hairHi: '#8a6a50', coat: 'navy', bald: true, glasses: true });
   aghast(ctx, 'pg-cof', 44, 96, t, { skin: ['#3c2414', '#5e3a20', '#80522e', '#a06c40', '#bc8a5a', '#d8aa7c'], hair: '#1c1410', hairHi: '#4a3a30', coat: 'navy' });
   // (his coffee going, the lid off, the coffee in the air)
-  const ct = t % 60;
-  R(ctx, 62, 106 + ct * 0.4, 6, 8, C.white); R(ctx, 62, 106 + ct * 0.4, 6, 1, '#a0a0a0');
-  for (let i = 0; i < 5; i++) R(ctx, 64 + i * 2 - ct * 0.1, 104 + ct * 0.3 - i * 2, 2, 2, '#6a3a14');
+  const ct = t % 60, cy = 106 + ct * 0.4;
+  R(ctx, 61, cy - 1, 8, 10, FIG_INK); R(ctx, 62, cy, 6, 8, '#f4f0ea'); R(ctx, 62, cy, 6, 1, '#a0a0a0'); R(ctx, 66, cy + 1, 2, 7, '#c8c4bc'); R(ctx, 62, cy + 3, 6, 2, '#a86a2c');
+  for (let i = 0; i < 5; i++) { const dx = 64 + i * 2 - ct * 0.1, dy = 104 + ct * 0.3 - i * 2; R(ctx, dx, dy, 2, 2, '#6a3a14'); R(ctx, dx, dy, 1, 1, '#a86a2c'); }
   aghast(ctx, 'pg-her', 128, 88, t, { skin: ['#6a3a20', '#9a5a34', '#c47a4c', '#e09a68', '#f4bc8c', '#fcdcb4'], hair: '', hairHi: '', coat: 'red', woman: true, talking });
-  // Her mic, held up, the station's cube on it
-  R(ctx, 146, 106, 4, 18, C.ink); ell(ctx, 148, 104, 4, 4, '#3a3a40'); R(ctx, 146, 101, 3, 2, '#7a7a84');
-  R(ctx, 143, 110, 10, 7, C.blue); R(ctx, 143, 110, 10, 1, '#4a8af8'); R(ctx, 145, 112, 6, 3, C.white);
-  shaded(ctx, 'pg-herhand', 142, 116, 12, 10, RAMP.tSkin, ball(-0.4, -0.6, 0.2));
+  // Her mic, held up, the station's cube on it, her hand round it
+  ctx.drawImage(herMic(), 0, 0);
   // Flashes going off
   if (Math.floor(t / 4) % 5 === 0) { R(ctx, 0, 0, ART_W, ART_H, 'rgba(255,255,255,0.18)'); }
 };
+
+const herMic = () => painting('pg-mic', ART_W, ART_H, p => {
+  const I = FIG_INK, sk = ['#6a3a20', '#9a5a34', '#c47a4c', '#e09a68', '#f4bc8c', '#fcdcb4'];
+  p.form(g => { g.rect(146, 106, 4, 22); }, { ramp: ['#0a0a0c', '#1c1c20', '#303036'], bevel: 1, ink: I });
+  p.form(g => { g.arc(148, 103, 4.5, 0, Math.PI * 2); }, { ramp: ['#1c1c22', '#3a3a40', '#5a5a64', '#8a8a96'], bevel: 3, ink: I });
+  for (let k = -3; k <= 3; k += 2) p.line(148 + k, 100, 148 + k, 106, '#26262c');
+  p.form(g => { g.rect(142, 109, 12, 8); }, { ramp: RIBBON, bevel: 2, amb: 0.3, ink: I });
+  p.rect(144, 111, 8, 3, '#f4f4fc'); p.rect(145, 112, 2, 1, '#2058e0'); p.rect(148, 112, 3, 1, '#d82800');
+  p.form(g => { g.ellipse(148, 121, 6, 5, 0, 0, Math.PI * 2); }, { ramp: sk, bevel: 4, amb: 0.2, ink: I });
+  for (let k = 0; k < 3; k++) p.line(143, 119 + k * 2, 146, 119 + k * 2, sk[2]);
+  p.rect(142, 118, 2, 2, '#c02040');
+});
 
 // ---------------------------------------------------------------------------
 // The square-off, and the zap (pixel art)
@@ -339,19 +487,28 @@ export const drawZap = (ctx: Ctx, t: number) => {
 /** Meathead with his fists up, facing right: square to the alien. */
 const meatheadFistsUp = (ctx: Ctx, cx: number, baseY: number, t: number) => {
   meatheadStanding(ctx, cx, baseY, true, { l: false, r: false });
-  const bob = t % 20 < 10 ? 0 : 1;
-  // (the arms bent up: fists by his chin, the lead one out a bit)
-  for (const [sx, fx] of [[-1, cx - 4], [1, cx + 16]] as const) {
-    const sx0 = cx + sx * 15;
-    R(ctx, sx0 - 3, baseY - 50, 7, 12, sx < 0 ? C.mSkinShade : C.mSkin);
-    R(ctx, Math.min(sx0, fx), baseY - 40 + bob, Math.abs(fx - sx0) + 4, 6, sx < 0 ? C.mSkinShade : C.mSkin);
-    R(ctx, fx - 1, baseY - 50 + bob, 7, 10, C.mSkin); R(ctx, fx - 1, baseY - 50 + bob, 7, 2, C.mSkinLight);
-    for (let k = 0; k < 3; k++) R(ctx, fx + (sx > 0 ? 5 : -1), baseY - 49 + bob + k * 3, 1, 2, C.mSkinShade);
-    R(ctx, fx - 1, baseY - 41 + bob, 7, 2, C.ink);
-  }
-  // (scowl)
-  R(ctx, cx - 5, baseY - 60, 4, 1, C.ink); R(ctx, cx + 1, baseY - 60, 4, 1, C.ink);
+  (t % 20 < 10 ? fistsUpA : fistsUpB)(ctx, cx, baseY);
 };
+/**
+ * His guard, painted over him (two frames, bobbing): the arms bent up off the delts, the forearms thick, the
+ * wristbands, the fists by his chin, the lead one out toward the alien a bit; and the scowl.
+ */
+const fistsUp = (bob: number) => figure(`mh-fists-${bob}`, 48, 40, 24, 64, q => {
+  const S = RAMP.mSkin, I = FIG_INK;
+  for (const [s, ex, ey, fx, fy] of [[-1, -16, -37, -3, -46], [1, 19, -38, 17, -48]] as const) {
+    const lit = s < 0 ? 0.2 : 0.1;
+    q.stroke(g => { g.moveTo(s * 14, -48); g.lineTo(ex, ey); }, 7, { ramp: S, bevel: 3, amb: lit, ink: I });
+    q.stroke(g => { g.moveTo(ex, ey); g.lineTo(fx, fy + bob + 3); }, 6, { ramp: S, bevel: 3, amb: lit, ink: I });
+    q.line(ex - s, ey - 3, s * 15, -46, S[6]);
+    q.form(g => { g.rect(fx - 3.5, fy + bob + 2, 7, 2); }, { ramp: BOOT, bevel: 1, amb: 0.3, ink: I });
+    q.form(g => { g.roundRect(fx - 3.5, fy + bob - 6, 7, 8, 2); }, { ramp: S, bevel: 2.5, amb: lit + 0.05, ink: I });
+    for (let k = 0; k < 3; k++) q.px(fx - 2 + k * 2, fy + bob - 3, S[2]);
+    q.line(fx - 2, fy + bob - 5, fx + 2, fy + bob - 5, S[6]);
+  }
+  // (the scowl: the brows down over the eyes)
+  q.line(-5, -60, -2, -59, I); q.line(1, -59, 4, -60, I);
+});
+const fistsUpA = fistsUp(0), fistsUpB = fistsUp(1);
 
 /** Squared up across the wrecked press room: Meathead, the alien, the skin on the floor between them. */
 export const drawSquareOff = (ctx: Ctx, t: number) => {
@@ -1012,7 +1169,7 @@ const sniffSmoke = (ctx: Ctx, t: number) => {
     for (let yy = -Math.floor(r); yy <= r; yy++) { const w = Math.round(Math.sqrt(Math.max(0, r * r - yy * yy))); ctx.fillRect(Math.round(x - w), Math.round(y + yy), w * 2, 1); }
   }
   // (his nostrils flaring as he sniffs)
-  if (t % 16 < 8) { R(ctx, 119, 73, 6, 3, '#4a2410'); R(ctx, 131, 73, 6, 3, '#4a2410'); }
+  if (t % 16 < 8) { R(ctx, 120, 74, 5, 2, '#4a2410'); R(ctx, 131, 74, 5, 2, '#4a2410'); R(ctx, 119, 73, 1, 2, RAMP.mSkin[2]); R(ctx, 136, 73, 1, 2, RAMP.mSkin[2]); }
 };
 
 /** The sniff panel: him dumb, the smoke coming up into his nose; then (at SNIFF_TURN) the fury. */
