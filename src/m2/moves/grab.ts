@@ -142,12 +142,24 @@ const placeAt = (state: GameState, x: number, from: number) => {
 };
 
 /** Back on its feet in the world (let go of, still alive): a moment to get its wits back. */
+/** Back into the world, but never inside anything solid: set down against it, on his side of it. */
+const release = (state: GameState, e: Enemy) => {
+  const mid = centerX(state);
+  for (let k = 0; k < 2; k++) {
+    const b = state.blocks.find(b => !b.oneWay && b.type !== 'pit' && e.pos.x < b.x + b.w && e.pos.x + e.width > b.x && e.pos.y + 4 < b.y + b.h && e.pos.y + e.height - 4 > b.y);
+    if (!b) break;
+    e.pos.x = mid < b.x + b.w / 2 ? b.x - e.width : b.x + b.w;
+    if (Math.sign(e.vel.x) === Math.sign(b.x + b.w / 2 - mid)) e.vel.x = 0;
+  }
+  state.enemies.push(e);
+};
+
 const putBack = (state: GameState, e: Enemy, x: number) => {
   e.pos = { x: x - e.width / 2, y: feetY(state) - e.height };
   e.vel = { x: 0, y: 0 };
   e.rotation = 0;
   e.pauseTimer = Math.max(e.pauseTimer || 0, 26);
-  state.enemies.push(e);
+  release(state, e);
 };
 
 const GATED: (keyof Controls)[] = ['special', 'shoot', 'secondary', 'charge'];
@@ -183,6 +195,31 @@ const inReach = (state: GameState, dir: number, reach: number) => {
     const behind = dir > 0 ? mid - 16 - (e.pos.x + e.width) : e.pos.x - (mid + 16);
     if (near > reach || behind > 0) continue;
     if (Math.abs(near) < bestD) { bestD = Math.abs(near); best = e; }
+  }
+  return best;
+};
+
+/**
+ * The first body in the way of this frame's lunge: anything whose box crosses the stretch from his front now to his
+ * front a frame on (plus the lunge's reach), at his height (a bird a bit above or below too). Nearest first.
+ */
+const lungeHits = (state: GameState, dir: number) => {
+  const p = state.player;
+  const front = dir > 0 ? p.pos.x + p.width : p.pos.x;
+  const a = Math.min(front, front + dir * (LUNGE_SPEED + LUNGE_REACH)), b = Math.max(front, front + dir * (LUNGE_SPEED + LUNGE_REACH));
+  const mid = p.pos.x + p.width / 2;
+  let best: Enemy | null = null, bestD = Infinity;
+  for (const e of state.enemies) {
+    if (e.health <= 0 || e.isBlownAway || e.innocent || e.harmless) continue;
+    const slack = isCritter(e) ? 60 : 12;
+    if (e.pos.y > p.pos.y + p.height + slack || e.pos.y + e.height < p.pos.y - slack) continue;
+    // (anything whose near side is in the stretch, or that he's already partly into, ahead of his middle)
+    const near = dir > 0 ? e.pos.x : e.pos.x + e.width;
+    const ahead = dir > 0 ? e.pos.x + e.width > mid : e.pos.x < mid;
+    const inSpan = (near >= a && near <= b) || (ahead && e.pos.x < b && e.pos.x + e.width > a);
+    if (!inSpan) continue;
+    const d = Math.abs(near - front);
+    if (d < bestD) { bestD = d; best = e; }
   }
   return best;
 };
@@ -381,11 +418,19 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       return hold();
 
     case 'lunge': {
-      const nx = p.pos.x + g.dir * LUNGE_SPEED;
-      if (!walled(state, nx)) p.pos.x = nx;
       // (in the air, he holds his height through it)
       if (!p.isGrounded) p.vel.y = Math.min(p.vel.y, 0);
-      const e = inReach(state, g.dir, LUNGE_REACH);
+      // Swept, not stepped: the first body anywhere along this frame's stretch of it stops him there, right up against
+      // it (at this speed he'd otherwise go clean through one between frames); one he can't grab, and he's stopped dead
+      const hit = lungeHits(state, g.dir);
+      if (hit && !grabbable(hit) && !isCritter(hit)) {
+        placeAt(state, g.dir > 0 ? hit.pos.x - p.width : hit.pos.x + hit.width, p.pos.x);
+        g.phase = 'whiff'; g.t = 0; playSound('thud', 0.8, -4); shakeScreen(state, 4, 3);
+        return hold();
+      }
+      if (!hit) { const nx = p.pos.x + g.dir * LUNGE_SPEED; if (!walled(state, nx)) p.pos.x = nx; }
+      else placeAt(state, g.dir > 0 ? hit.pos.x - p.width + 6 : hit.pos.x + hit.width - 6, p.pos.x);
+      const e = hit ?? inReach(state, g.dir, LUNGE_REACH);
       if (e && isCritter(e)) return grabCritter(state, g, e, hold);
       if (e) {
         // Down he goes, Meathead on top of him (in the air, the two of them plummet first)
@@ -446,7 +491,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: centerX(state), y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
       if (e.health <= 0) {
         e.pos = { x: e.pos.x, y: feetY(state) - e.height };
-        state.enemies.push(e);
+        release(state, e);
         fx.blowAwayEnemy(e, { x: g.dir * 2, y: -3 }, 'charge_kill', g.dir);
         fx.spawnKillCallout(e, grabCallout('beatdown'));
         g.held = null; g.phase = 'kill'; g.t = 0;
@@ -483,7 +528,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
           // Done: the rest of the health back, and him left lying there
           p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health;
           e.pos = { x: e.pos.x, y: feetY(state) - e.height };
-          state.enemies.push(e);
+          release(state, e);
           fx.blowAwayEnemy(e, { x: g.dir * 1.5, y: -2 }, 'charge_kill', g.dir);
           fx.spawnKillCallout(e, grabCallout('beatdown'));
           fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
@@ -617,7 +662,7 @@ const pitchCritter = (ctx: FrameContext, g: Grab, e: Enemy) => {
   const hand = { x: centerX(state) + g.dir * 18, y: p.pos.y + 6 };
   e.pos = { x: hand.x - e.width / 2, y: hand.y - e.height / 2 };
   const v = g.pitch === 'down' ? { x: g.dir * 4, y: 24 } : g.pitch === 'up' ? { x: g.dir * 2, y: -24 } : { x: g.dir * 26, y: -2 };
-  state.enemies.push(e);
+  release(state, e);
   e.health = 0;
   fx.blowAwayEnemy(e, v, 'charge_kill', g.dir);
   e.meleeFlung = true;
@@ -638,7 +683,7 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     e.vel = { x: 0, y: 0 };
     const dmg = Math.max(20, Math.round(e.maxHealth * SLAM_SHARE));
     e.health -= dmg;
-    state.enemies.push(e);
+    release(state, e);
     playSound('slam'); playSound('crunch', 0.8); shakeScreen(state, 12, 7);
     for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
     if (e.health <= 0) { fx.blowAwayEnemy(e, { x: 0, y: -1 }, 'charge_kill', g.dir); fx.spawnKillCallout(e, grabCallout('slam')); }
@@ -658,7 +703,7 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     e.vel = { x: dir * THROW_SPEED * w, y: -6 };
     const dmg = Math.max(14, Math.round(e.maxHealth * SUPLEX_SHARE));
     e.health -= dmg;
-    state.enemies.push(e);
+    release(state, e);
     playSound('slam'); playSound('crunch', 0.9, -2); shakeScreen(state, 10, 6);
     for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 22, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
     // (whoever's where he comes down gets the weight of him)
@@ -674,7 +719,7 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
   e.pos = { x: centerX(state) + dir * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: p.pos.y - (g.toss === 'up' ? 40 : 16) };
   e.vel = { ...v };
   // (the throw itself doesn't hurt him: what he hits does, another body, a wall, the floor coming up at him)
-  state.enemies.push(e);
+  release(state, e);
   playSound('whoosh', 1.2, -3);
   e.pauseTimer = 45;
   e.chargedAt = state.frame;
