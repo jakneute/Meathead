@@ -66,6 +66,7 @@ game/stages/finale/runtime.ts:69 call: getFinale(state)
 game/stages/finale/killCam.ts:186 voice: ANNOUNCER_VOICE
 game/stages/finale/killCam.ts:66 who: alien
 game/stages/finale/killCam.ts:136 who: announcer
+game/stages/whiteHouse/index.ts:59 expr: null
 game/core/deathCause.ts:52 name: undefined
 game/core/deathCause.ts:54 name: undefined
 game/core/deathCause.ts:55 name: undefined

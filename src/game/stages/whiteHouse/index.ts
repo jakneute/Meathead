@@ -25,6 +25,8 @@ const START_X = ROOM_L + 8;
 const ON_MARK_BEAT = 40, FADE = 36;
 /** What he says if he goes for a gun (the once). */
 const NO_GUNS = 'HANDLER SAID NO SHOOTING TILL AFTER THE MEDAL.';
+/** And if he goes to charge somebody (the once). */
+const NO_TACKLING = 'HANDLER SAID NO TACKLING THE PRESS. NOT EVEN THE UGLY ONES.';
 
 interface WalkOn {
   kind: 'walkOn';
@@ -33,8 +35,9 @@ interface WalkOn {
   onMark?: number;
   /** Frames into the fade, and whether the stage has been told it's over. */
   fade: number; done: boolean;
-  /** He's been told about the guns. */
+  /** He's been told about the guns; about the tackling. */
   gunSaid: boolean;
+  tackleSaid?: boolean;
 }
 
 const getWalkOn = (state: GameState) => { const s = state.stage as WalkOn | null; return s && s.kind === 'walkOn' ? s : null; };
@@ -51,11 +54,14 @@ const update = (ctx: FrameContext, controls: Controls): Controls => {
   const px = p.pos.x + p.width / 2;
   if (rt.onMark === undefined) {
     // His to walk (and jump, and crouch): nothing to fire, no specials, no charging
-    if ((controls.shoot || controls.special || controls.secondary || controls.charge) && !rt.gunSaid && !isTalking()) {
-      rt.gunSaid = true;
-      say(NO_GUNS, MEATHEAD_VOICE, 'casual', {
-        onShow: () => { state.playerLastVulgarity = NO_GUNS; state.playerVulgarityTimer = 9999; },
-        onHide: () => { if (state.playerLastVulgarity === NO_GUNS) state.playerVulgarityTimer = 0; },
+    // (a gun: the guns line; a charge, an uppercut, a dive kick: the tackling one. Each the once)
+    const gun = controls.shoot || controls.secondary, tackle = controls.special || controls.charge;
+    const line = gun && !rt.gunSaid ? NO_GUNS : tackle && !rt.tackleSaid ? NO_TACKLING : null;
+    if (line && !isTalking()) {
+      if (line === NO_GUNS) rt.gunSaid = true; else rt.tackleSaid = true;
+      say(line, MEATHEAD_VOICE, 'casual', {
+        onShow: () => { state.playerLastVulgarity = line; state.playerVulgarityTimer = 9999; },
+        onHide: () => { if (state.playerLastVulgarity === line) state.playerVulgarityTimer = 0; },
       });
     }
     // On his mark, on his feet: it's out of his hands from here

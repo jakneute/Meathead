@@ -12122,7 +12122,12 @@
  {
   "voice": "meathead",
   "text": "HANDLER SAID NO SHOOTING TILL AFTER THE MEDAL.",
-  "from": "game/stages/whiteHouse/index.ts:56"
+  "from": "game/stages/whiteHouse/index.ts:62"
+ },
+ {
+  "voice": "meathead",
+  "text": "HANDLER SAID NO TACKLING THE PRESS. NOT EVEN THE UGLY ONES.",
+  "from": "game/stages/whiteHouse/index.ts:62"
  },
  {
   "voice": "meathead",
