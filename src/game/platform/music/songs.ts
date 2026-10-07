@@ -292,8 +292,8 @@ const MAP_MARCH_FILL = 'v12 {kh}8 s16 s16 {sh}8 s16 s16 s16 s16 t16 t16 u16 u16 
 const down = (s: string) => s.replace(/o(\d)/g, (_, n) => `o${Number(n) - 1}`);
 // (the kit: a cross-stick on two and four, the hats ticking like the clock, the kick laid back; the second four pushing
 // sixteenths, the snare in for the cross-stick, toms into the turnaround)
-const MAP_TICK = 'v11 {kh}8 h8 {mh}8 h8 h8 {kh}8 {mh}8 h8';
-const MAP_TICK_FILL = 'v11 {kh}8 h8 {mh}8 h8 h8 {kh}8 m16 m16 {mo}8';
+const MAP_TICK = 'v12 {kh}8 h16 h16 {smh}8 h8 {kh}16 h16 {kh}8 {smh}8 h16 k16';
+const MAP_TICK_FILL = 'v12 {kh}8 h16 h16 {smh}8 h8 {kh}8 s16 t16 u16 u16 {sx}8';
 const MAP_PUSH = 'v12 {kh}16 h16 h16 h16 {sh}16 h16 h16 k16 h16 k16 h16 h16 {sh}16 h16 {mh}16 h16';
 const MAP_PUSH_FILL = 'v12 {kh}16 h16 h16 h16 {sh}16 h16 h16 k16 t16 t16 u16 u16 {su}16 s16 s16 s16';
 const MAP_TYPE = 'v11 r4 e16 e16 e16 r16 r4 e16 r16 e16 e16 | v11 r2 e16 e16 r8 e16 e16 e16 e16';
@@ -339,7 +339,7 @@ export const SONGS: Record<string, Song> = {
   // the hook. The second four: the horns down under the hook, the bass running sixteenths, the strings trembling, the low
   // brass swelling, the timpani, a clock ticking on the piano, the kit pushing harder: the manhunt's on.
   map: {
-    bpm: 92,
+    bpm: 108,
     parts: {
       lead: { inst: 'hollow', pan: 0.15, mml: b(...MAP_TUNE) },
       horn: { inst: 'horn', vol: 0.8, pan: -0.1, only: ['set2'], mml: b(...MAP_TUNE.map(down)) },
@@ -380,13 +380,13 @@ export const SONGS: Record<string, Song> = {
   // chords and the brass hammering C three times, climbing to the E-flat and falling through the D-flat, the timpani
   // rolling up under it on the G, and everything coming down on C minor with the taiko and the crash.
   fanfare: {
-    bpm: 132, once: true,
+    bpm: 146, once: true,
     parts: {
       lead: { inst: 'brass', mml: 'o4 l8 c c c e-4. d- c < g > c2 r8' },
       harm: { inst: 'horn', vol: 0.8, mml: 'o3 l8 g g g g4. f e- d e-2 r8' },
       low: { inst: 'power', vol: 0.8, mml: 'o2 l8 c c c c4. d- c < g > c2 r8' },
       timp: { inst: 'timpani', vol: 0.9, mml: 'o2 l16 v7 [g]6 v9 [g]6 v12 [g]6 v15 c4 r4.' },
-      drums: { inst: 'kick', drums: true, mml: 'v13 {kf}8 {kf}8 {kf}8 r8 r4 v8 [s32]4 v11 [s32]4 v14 [s32]4 v15 {kxf}4 r4.' },
+      drums: { inst: 'kick', drums: true, mml: 'v13 {kxf}8 {kf}8 {kf}8 k16 k16 {kf}8 k16 k16 v9 [s32]4 v12 [s32]4 v15 [s32]4 {kxf}4 k16 k16 {kf}8 {kxf}8' },
       // Off to Washington (the White House): the same three hits, but on G, up to the C and on up the C major chord to
       // land on its G, the horns and the power chords under it in C major, the bell on the landing: the victory lap
       wlead: { inst: 'brass', only: ['whitehouse'], mml: 'o4 l8 g g g > c4. < g > c e g2 r8' },
