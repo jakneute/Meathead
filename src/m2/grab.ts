@@ -11,7 +11,9 @@
 //   there at the end of it, up by the neck and shaken (nothing stops that either: he takes the hits and carries on);
 //   the ammo falls out of him; and at the end he's
 //   thrown whichever way's held (left, right, up), into whoever's in the way, or slammed down into the floor (more
-//   damage, but nobody else gets hit). Once each: there's nothing left in him after.
+//   damage, but nobody else gets hit). He can be grabbed again, as often as you like; only the first time has ammo in him.
+//
+// While he's at either, bumping into people doesn't hurt him or knock him off it (the grab wins); getting shot still does.
 //
 // Both work on people and the mid-sized animals; not the little ones, the big ones, the machines or the bosses.
 
@@ -75,7 +77,7 @@ export interface Grab {
   pend: { k: 'b' | 'x'; t: number } | null;
   /** The controls last frame (to catch presses). */
   was: Controls;
-  /** Shaken down already: nothing left in them. */
+  /** Shaken down already: no more ammo in them (they can still be grabbed and thrown again). */
   shaken: WeakSet<Enemy>;
   /** Buttons still held from the grab (the last punch): they don't start a charge or a shot till they're let go. */
   gate: Set<keyof Controls>;
@@ -135,6 +137,13 @@ const take = (state: GameState, e: Enemy) => { state.enemies = state.enemies.fil
 
 /** Runs the grabs. Returns the controls the rest of him gets (none while he's busy). */
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
+  const out = stepGrab(ctx, g, controls);
+  // (the grab wins over a bump: nobody he touches hurts him while one's on, from the frame it starts; shots still do)
+  ctx.state.player.noContactHurt = g.phase !== 'idle';
+  return out;
+};
+
+const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const { state, fx } = ctx;
   const p = state.player;
   pollM2(state.frame);
@@ -196,9 +205,9 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
       // Hands out for his throat: committed (whatever hits him, he takes it, and keeps coming)
       if (g.t < REACH) return hold();
       const e = inReach(state, g.dir, GRAB_REACH);
-      if (!e || g.shaken.has(e)) { g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6); return hold(); }
+      if (!e) { g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6); return hold(); }
       // Got him: up by the neck
-      g.phase = 'shake'; g.t = 0; g.held = e; take(state, e); g.shaken.add(e);
+      g.phase = 'shake'; g.t = 0; g.held = e; take(state, e);
       e.facing = (-g.dir) as 1 | -1;
       playSound('punch', 0.8, 4);
       return hold();
@@ -276,11 +285,13 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
       const e = g.held!;
       if (g.t % 6 === 0) playSound('thud', 0.35, 6);
       if (g.t < SHAKE_FRAMES) return hold();
-      // Shaken out: the ammo falls out of him
-      for (let k = 0; k < SHAKE_AMMO; k++) {
+      // Shaken out: the ammo falls out of him (the first time: after that, he's empty)
+      const first = !g.shaken.has(e);
+      g.shaken.add(e);
+      for (let k = 0; k < (first ? SHAKE_AMMO : 0); k++) {
         state.pickups.push({ id: `shake-${state.frame}-${k}`, pos: { x: centerX(state) + g.dir * 26 - 10, y: p.pos.y + 10 }, vel: { x: g.dir * (0.5 + k * 1.2), y: -3 - k }, width: 20, height: 20, type: 'small_ammo', life: 600 });
       }
-      playSound('clink', 1, 2); playSound('clink', 0.8, 7);
+      if (first) { playSound('clink', 1, 2); playSound('clink', 0.8, 7); }
       // ...and thrown whichever way's held (or slammed down), or straight on if nothing is
       const throwDir = controls.down ? 'down' : controls.up ? 'up' : controls.left ? 'left' : controls.right ? 'right' : g.dir > 0 ? 'right' : 'left';
       const dir = throwDir === 'left' ? -1 : throwDir === 'right' ? 1 : g.dir;

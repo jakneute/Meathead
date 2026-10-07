@@ -1019,7 +1019,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   // (just bounced off this one: it doesn't get to hurt him for the bump itself; anything else still can)
   const bouncedOff = state.reboundFrom?.id === e.id && state.frame < state.reboundFrom.until;
   // (frozen solid, it's a block of ice: it doesn't hurt to bump into)
-  if (!e.harmless && !isAttacking && !bouncedOff && !isFrozen(e) && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
+  if (!e.harmless && !isAttacking && !bouncedOff && !isFrozen(e) && !player.noContactHurt && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
     // (a boss's own weight behind it; anything else just a bump)
     if (!cheats.invincible) player.health -= hurtTaken(stageId, kindContactDamage(e) ?? (e.type === 'boss' ? stageDef?.contact?.damage : undefined) ?? 5.5);
     state.lastHurt = { source: getContactHurtSource(ctx, e), at: state.frame };

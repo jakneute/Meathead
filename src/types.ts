@@ -136,6 +136,8 @@ export interface Player extends Entity {
   /** Knockback from taking damage; input is ignored while it runs. */
   pushbackTimer: number;
   hurtTimer?: number;
+  /** Body contact doesn't hurt him right now (Meathead 2: he's busy grabbing somebody; shots still do). */
+  noContactHurt?: boolean;
   /** Frames he's still bleeding for (drops off him), and his health as it was last frame (to see a hit land). */
   bleedT?: number;
   bloodHp?: number;
