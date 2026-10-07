@@ -13,7 +13,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE } from './course';
 import { Lounge, crashPose, PARTY_FRAMES, FLIGHT_FRAMES, WIDE_FRAMES, BLAST_AT, SCREAM_AT, ZOOM_OUT, ZOOM_IN_AT, FADE_IN, blastAmount } from './lounge';
-import { drawWideScene, widePx, WIDE } from './loungeWide';
+import { drawWideScene, widePx, wideProfile } from './loungeWide';
 import { sentenceShown } from '../../platform/speech';
 import { drawSpatter } from '../../render/spatter';
 import { furnitureIn, placed } from './furniture';
@@ -372,6 +372,117 @@ export const drawLoungeHud = (ctx: Ctx, state: GameState, lg: Lounge) => {
   ctx.restore();
 };
 
+// ---------------------------------------------------------------------------
+// The blast, painted like the rest of the shot
+// ---------------------------------------------------------------------------
+
+/** Fire cooling to smoke, hottest first: white-hot, yellow, orange, deep orange, red, maroon, then the smoke. */
+const BLAST_RAMP = ['#FFFBEB', '#FEF08A', '#FDE047', '#FB923C', '#EA580C', '#B91C1C', '#6B1D2A', '#3A2233', '#2A2030'];
+const heatColor = (h: number, step = 0) => BLAST_RAMP[Math.max(0, Math.min(BLAST_RAMP.length - 1, Math.round((1 - h) * (BLAST_RAMP.length - 1)) + step))];
+const BLAST_PUFFS = 22, BLAST_R = 44;
+
+/**
+ * The VIP lounge going up, `d` frames in, in the wide shot's own chunky pixels (`px`): a ring of shock racing out over
+ * the mountain; a fireball of billows, each lit hot up its top-left and cooler round its edge, the hottest in the
+ * middle, swelling out fast and cooling down the ramp through orange and red to smoke; the whole of it rising into a
+ * mushroom and leaning off on the wind, its underside still lit by the fire; burning wreckage thrown out in arcs,
+ * trailing smoke, coming down on the slope and smoldering where it lands; fire licking out of the hole it's left.
+ */
+const drawLoungeBlast = (ctx: Ctx, wx: number, wy: number, d: number, f: number, px: number) => {
+  px = Math.max(0.5, px);
+  const snap = (v: number) => Math.round(v / px) * px;
+  // The shock ring, racing out over the rock (squashed: it's along the slope)
+  if (d < 26) {
+    const rr = 10 + d * 7, a = 1 - d / 26;
+    ctx.strokeStyle = `rgba(255, 236, 190, ${(0.85 * a).toFixed(2)})`; ctx.lineWidth = px * 2;
+    ctx.beginPath(); ctx.ellipse(snap(wx), snap(wy), rr, rr * 0.45, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = `rgba(251, 146, 60, ${(0.5 * a).toFixed(2)})`; ctx.lineWidth = px;
+    ctx.beginPath(); ctx.ellipse(snap(wx), snap(wy), rr * 0.82, rr * 0.37, 0, 0, Math.PI * 2); ctx.stroke();
+  }
+  // The glow off it on everything round it, in rings (dying down as it cools to smoke)
+  const glowK = Math.max(0, 1 - d / 140);
+  if (glowK > 0) steppedGlow(ctx, wx, wy - d * 0.25, 70 + d * 0.4, '#FB923C', 0.05 * glowK, 0.32 * glowK, 5);
+
+  // The billows: where each one is, how big, how hot
+  const grow = 1 - Math.pow(1 - Math.min(1, d / 16), 3);
+  const lift = d * 0.42 + d * d * 0.0022, drift = d * d * 0.0026;
+  const puffs: { x: number; y: number; r: number; h: number; o: number }[] = [];
+  for (let i = 0; i < BLAST_PUFFS; i++) {
+    const a = hash(i * 3 + 1) * Math.PI * 2, o = Math.sqrt(hash(i * 3 + 2));
+    const up = 0.5 - Math.sin(a) * 0.5;
+    // (the top of it rising faster than the bottom: it draws up into a column with a cap on it)
+    const rise = lift * (0.55 + up * 0.75) + Math.max(0, d - 20) * up * 0.35;
+    const spread = BLAST_R * o * grow * (1 + Math.max(0, d - 30) * 0.004) * (1 + up * Math.min(1, d / 90) * 0.5);
+    const x = wx + Math.cos(a) * spread + drift * (0.5 + up * 0.8) + Math.sin(f * 0.05 + i) * 1.5;
+    const y = wy + Math.sin(a) * spread * 0.85 - rise;
+    const r = (8 + hash(i * 3 + 3) * 10) * (0.45 + grow * 0.55) * (1 + d * 0.006);
+    const h = Math.max(0, 1.15 - d / (34 + hash(i + 50) * 34) - o * 0.35);
+    puffs.push({ x, y, r, h, o });
+  }
+  // (the cool, outer ones first; the white-hot heart last, on top)
+  puffs.sort((p, q) => p.h - q.h || q.o - p.o);
+  for (const b of puffs) {
+    if (b.h > 0.08) {
+      // Fire: its cooler edge, the body, the hot top-left, a white-hot fleck while it's at its hottest
+      pixelBlob(ctx, b.x, b.y, b.r, b.r * 0.9, heatColor(b.h, 2), px);
+      pixelBlob(ctx, b.x - b.r * 0.12, b.y - b.r * 0.12, b.r * 0.78, b.r * 0.7, heatColor(b.h), px);
+      pixelBlob(ctx, b.x - b.r * 0.35, b.y - b.r * 0.35, b.r * 0.38, b.r * 0.3, heatColor(b.h, -2), px);
+      if (b.h > 0.85) pixelBlob(ctx, b.x - b.r * 0.4, b.y - b.r * 0.42, b.r * 0.18, b.r * 0.14, '#FFFFFF', px);
+    } else {
+      // Smoke, the same as the volcano's own plume: lit warm from under by what's still burning below it, a cold
+      // touch of moonlight on its top, thinning out as it climbs (and swelling: the billows run into one cloud)
+      const warm = Math.max(0, 1 - d / 150), t = Math.min(1, d / 220), a = 0.82 * (1 - t * 0.55), r = b.r * (1.15 + d * 0.004);
+      pixelBlob(ctx, b.x, b.y + r * 0.15, r, r * 0.8, `rgba(${Math.round(120 + warm * 110)}, ${Math.round(50 + warm * 40)}, ${Math.round(40 + warm * 10)}, ${(a * 0.6).toFixed(2)})`, px);
+      pixelBlob(ctx, b.x - r * 0.08, b.y - r * 0.05, r * 0.88, r * 0.7, `rgba(${Math.round(46 + t * 30)}, ${Math.round(36 + t * 30)}, ${Math.round(48 + t * 34)}, ${a.toFixed(2)})`, px);
+      pixelBlob(ctx, b.x - r * 0.3, b.y - r * 0.35, r * 0.4, r * 0.25, `rgba(130, 136, 176, ${(a * 0.3).toFixed(2)})`, px);
+    }
+  }
+
+  // Wreckage: thrown out in arcs (some of it on fire, trailing smoke), down onto the slope, smoldering where it lands
+  for (let i = 0; i < 18; i++) {
+    const vx = (hash(i + 70) - 0.5) * 5.5, vy = -1.5 - hash(i + 90) * 4.5, g = 0.06;
+    let tt = d * 0.85, x = wx + vx * tt, y = wy + vy * tt + g * tt * tt;
+    let landed = false;
+    const ground = wideProfile(x);
+    if (y > ground) {
+      // (where it came down: solve for the landing, crudely, and sit it there)
+      for (let k = tt; k > 0; k -= 1) { const xx = wx + vx * k, yy = wy + vy * k + g * k * k; if (yy <= wideProfile(xx)) { tt = k; break; } }
+      x = wx + vx * tt; y = wideProfile(x); landed = true;
+    }
+    const burning = i % 3 !== 0, sz = (i % 4 === 0 ? 3 : 2) * px;
+    if (landed) {
+      if (burning && (f + i * 7) % 20 < 14) { ctx.fillStyle = (f + i) % 8 < 4 ? '#FB923C' : '#EA580C'; ctx.fillRect(snap(x), snap(y - px), px, px); }
+      continue;
+    }
+    // (its smoke trail: dithered dots back along the arc)
+    for (let s2 = 1; s2 <= 4; s2++) {
+      const k = Math.max(0, tt - s2 * 2.5), sx = wx + vx * k, sy = wy + vy * k + g * k * k;
+      ctx.fillStyle = s2 < 2 && burning ? '#B91C1C' : `rgba(58, 34, 51, ${(0.8 - s2 * 0.17).toFixed(2)})`;
+      ctx.fillRect(snap(sx), snap(sy), px, px);
+    }
+    ctx.fillStyle = INK; ctx.fillRect(snap(x) - px * 0.5, snap(y) - px * 0.5, sz + px, sz + px);
+    ctx.fillStyle = burning ? ((f + i) % 6 < 3 ? '#FDE047' : '#FB923C') : '#57534E'; ctx.fillRect(snap(x), snap(y), sz, sz);
+  }
+
+  // Where the window was (once the fireball's lifted off it): a black hole in the rock, its edge glowing, fire licking
+  // out of it and smoke trickling up
+  if (d > 36) {
+    ctx.fillStyle = INK; ctx.beginPath(); ctx.ellipse(wx, wy, 9, 7, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#0C0A09'; ctx.beginPath(); ctx.ellipse(wx, wy + 0.5, 8, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = (f >> 3) % 2 ? '#EA580C' : '#F97316'; ctx.lineWidth = px;
+    ctx.beginPath(); ctx.ellipse(wx, wy, 8.5, 6.5, 0, Math.PI * 0.95, Math.PI * 2.05); ctx.stroke();
+    for (let k = 0; k < 4; k++) {
+      const lick = 3 + ((f * 0.4 + k * 5) % 6), fx = wx - 5 + k * 3.3;
+      pixelBlob(ctx, fx, wy - 4 - lick * 0.5, 1.6, lick * 0.6, k % 2 ? '#EA580C' : '#FB923C', px);
+      pixelBlob(ctx, fx, wy - 3 - lick * 0.25, 0.9, lick * 0.3, '#FDE047', px);
+    }
+    for (let i = 0; i < 5; i++) {
+      const sk = ((f * 0.4 + i * 14) % 70) / 70, sr = 3 + sk * 8;
+      pixelBlob(ctx, wx + Math.sin(i * 1.7 + f * 0.02) * 4 * sk + sk * sk * 10, wy - 8 - sk * 34, sr, sr * 0.85, `rgba(${Math.round(140 - sk * 80)}, ${Math.round(60 - sk * 20)}, ${Math.round(50 - sk * 4)}, ${(0.6 * (1 - sk)).toFixed(2)})`, px);
+    }
+  }
+};
+
 /** The wide shot: the volcano, a long way off, quiet; then a blast near the top, right where the lounge is. */
 export const drawWideShot = (ctx: Ctx, state: GameState, lg: Lounge) => {
   if (lg.phase !== 'wide') return;
@@ -393,7 +504,7 @@ export const drawWideShot = (ctx: Ctx, state: GameState, lg: Lounge) => {
   const kz = Math.min(1, (zoom - 1) / 11), vcx = W / 2 + (wx0 - W / 2) * kz, vcy = H / 2 + (wy0 - H / 2) * kz;
   const view = { x0: vcx - W / 2 / zoom - 20, x1: vcx + W / 2 / zoom + 20, y0: vcy - H / 2 / zoom - 20, y1: vcy + H / 2 / zoom + 20, zoom, px: widePx(zoom) };
   // (the lounge's window, near the top: what the shot pulls out from)
-  const wx = wx0, wy = wy0, base = WIDE.base;
+  const wx = wx0, wy = wy0;
   const blast = blastAmount(lg);
   const flash = t >= BLAST_AT ? Math.max(0, 1 - (t - BLAST_AT) / 70) : 0;
   drawWideScene(ctx, view, f, wx, wy, flash, t > BLAST_AT + 8);
@@ -408,36 +519,9 @@ export const drawWideShot = (ctx: Ctx, state: GameState, lg: Lounge) => {
     ctx.fillStyle = '#FDE047'; ctx.fillRect(wx - 0.3, wy - 4, 0.6, 8);
   }
   if (t >= BLAST_AT) {
-    const k = (t - BLAST_AT) / (WIDE_FRAMES - BLAST_AT);
-    // The flash
+    drawLoungeBlast(ctx, wx, wy, t - BLAST_AT, f, view.px);
+    // The flash, over all of it
     if (t < BLAST_AT + 10) { ctx.fillStyle = `rgba(255, 255, 240, ${1 - (t - BLAST_AT) / 10})`; ctx.fillRect(-20, -20, W + 40, H + 40); }
-    // The fireball, right where the window was: a little one, all on its own
-    // (in hard rings: red at the rim, orange, a white-hot heart)
-    const r = 18 + Math.min(1, k * 5) * 60;
-    steppedGlow(ctx, wx, wy, r, '#B91C1C', Math.max(0, 0.6 - k * 0.6), 0.05, 4);
-    steppedGlow(ctx, wx, wy, r * 0.7, '#FB923C', Math.max(0, 0.95 - k), Math.max(0, 0.5 - k), 4);
-    steppedGlow(ctx, wx, wy, r * 0.35, '#FFFBEB', Math.max(0, 1 - k * 2), Math.max(0, 0.6 - k * 2), 3);
-    // Smoke rolling up out of it
-    for (let i = 0; i < 8; i++) {
-      const sk = Math.min(1, k * 1.4 + i * 0.05), sr = 10 + sk * 26;
-      pixelBlob(ctx, wx + Math.sin(i * 2) * 20 * sk, wy - sk * 120 - i * 10, sr, sr, `rgba(60, 50, 50, ${(0.6 * (1 - sk * 0.5)).toFixed(2)})`, 1);
-    }
-    // Where the window was: a blackened, smoking hole with a glowing edge (the push back in ends on it)
-    if (t > BLAST_AT + 8) {
-      ctx.fillStyle = '#0C0A09'; ctx.beginPath(); ctx.ellipse(wx, wy, 8, 6, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = `rgba(249, 115, 22, ${0.6 + 0.3 * Math.sin(f * 0.3)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(wx, wy, 8, 6, 0, 0, Math.PI * 2); ctx.stroke();
-      for (let i = 0; i < 5; i++) {
-        const sk = ((f * 0.4 + i * 14) % 70) / 70, sr = 3 + sk * 8;
-        pixelBlob(ctx, wx + Math.sin(i * 1.7 + f * 0.02) * 4 * sk, wy - 4 - sk * 30, sr, sr, `rgba(70, 60, 60, ${(0.55 * (1 - sk)).toFixed(2)})`, 1);
-      }
-    }
-    // Bits of the lounge flying out
-    for (let i = 0; i < 16; i++) {
-      const vx = (hash(i) - 0.5) * 6, vy = -2 - hash(i + 4) * 4, tt = (t - BLAST_AT) * 0.8;
-      const x = wx + vx * tt, y = wy + vy * tt + 0.05 * tt * tt;
-      if (y > base) continue;
-      ctx.fillStyle = i % 3 ? '#1C1917' : '#FB923C'; ctx.fillRect(x, y, 3, 3);
-    }
   }
   ctx.restore();
   // Letterbox bars: it's a cutscene
