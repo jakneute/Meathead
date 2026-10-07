@@ -369,8 +369,103 @@ const americaGate = (ctx: Ctx, cx: number, f: number) => {
   ctx.fillStyle = '#FFFFFF'; ctx.font = '6px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('EXIT ONLY', cx, GROUND_Y - 73); ctx.fillText('NO RE-ENTRY', cx, GROUND_Y - 63); ctx.textAlign = 'left';
 };
 
+/**
+ * The building the staff door's in: the ugly back of something the guests aren't meant to see. Cinderblock gone gray-
+ * brown with dirt, the paint peeling off it in sheets, water stains and rust bleeding down from a gutter that's lost a
+ * length, a wall air conditioner dripping into a bucket, conduit and a pipe running up it, a caged bulb flickering
+ * over the door, one window, wired glass, cracked, a vent furred with grease, a NO SMOKING sign with butts round it.
+ */
+const backBuilding = (ctx: Ctx, cx: number, f: number) => {
+  const x0 = cx - 90, x1 = cx + 210, top = GROUND_Y - 250;
+  ink(ctx, () => ctx.rect(x0, top, x1 - x0, GROUND_Y - top), '#6B6256', 2);
+  bands(ctx, x0 + 2, top + 2, x1 - x0 - 4, GROUND_Y - top - 2, ['#7A7062', '#73695B', '#6B6153', '#62594B', '#5A5144']);
+  // (the blocks)
+  for (let y = top + 14; y < GROUND_Y; y += 14) { box(ctx, x0 + 2, y, x1 - x0 - 4, 1, '#4E463A'); for (let x = x0 + ((y - top) / 14 % 2 ? 14 : 0); x < x1; x += 28) box(ctx, x, y - 13, 1, 13, '#4E463A'); }
+  // (peeling paint: what's left of the theme-park cream, in patches with curled edges)
+  for (const [px, py, pw, ph] of [[x0 + 10, top + 40, 60, 40], [x0 + 150, top + 18, 80, 30], [x0 + 200, top + 120, 70, 50], [x0 + 20, top + 150, 40, 60]] as const) {
+    box(ctx, px, py, pw, ph, '#CFC3A6'); box(ctx, px, py, pw, 2, '#E8DEC4');
+    for (let k = 0; k < pw; k += 9) box(ctx, px + k, py + ph - ((k * 7) % 9), 6, 3 + ((k * 3) % 5), '#7A7062');
+  }
+  // (the gutter, a length gone; rust and water bleeding down from it)
+  box(ctx, x0, top, x1 - x0, 6, '#57534E'); box(ctx, x0 + 120, top, 40, 6, '#7A7062');
+  for (let k = 0; k < 9; k++) { const rx = x0 + 118 + k * 5, len = 60 + ((k * 31) % 90); box(ctx, rx, top + 6, 3, len, k % 3 ? 'rgba(120, 60, 20, 0.55)' : 'rgba(40, 34, 24, 0.5)'); }
+  // (conduit and a pipe up the wall)
+  box(ctx, x0 + 72, top + 6, 5, GROUND_Y - top - 6, '#6B7280'); for (let y = top + 30; y < GROUND_Y; y += 50) box(ctx, x0 + 70, y, 9, 4, '#4B5563');
+  box(ctx, x1 - 26, top + 6, 8, GROUND_Y - top - 6, '#7C2D12'); box(ctx, x1 - 26, top + 6, 2, GROUND_Y - top - 6, '#9A3412');
+  // (the window: wired glass, cracked, filthy)
+  ink(ctx, () => ctx.rect(cx + 70, top + 60, 56, 40), '#3F3F46', 2);
+  box(ctx, cx + 73, top + 63, 50, 34, '#8FA3A8'); for (let k = 0; k < 6; k++) { box(ctx, cx + 73 + k * 9, top + 63, 1, 34, '#52525B'); box(ctx, cx + 73, top + 63 + k * 7, 50, 1, '#52525B'); }
+  ctx.strokeStyle = '#E5E7EB'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx + 80, top + 66); ctx.lineTo(cx + 96, top + 82); ctx.lineTo(cx + 92, top + 95); ctx.moveTo(cx + 96, top + 82); ctx.lineTo(cx + 116, top + 78); ctx.stroke();
+  box(ctx, cx + 73, top + 88, 50, 9, 'rgba(60, 50, 30, 0.6)');
+  // (the air conditioner, dripping into a bucket)
+  ink(ctx, () => ctx.rect(cx + 140, top + 120, 48, 30), '#A8A29E', 2);
+  for (let k = 0; k < 5; k++) box(ctx, cx + 144, top + 124 + k * 5, 40, 2, '#78716C');
+  box(ctx, cx + 140, top + 150, 48, 4, 'rgba(120, 60, 20, 0.6)');
+  const d = (f * 0.7) % 60; box(ctx, cx + 170, top + 154 + d * 1.6, 2, 3, '#7DD3FC');
+  ink(ctx, () => ctx.rect(cx + 162, GROUND_Y - 22, 18, 22), '#F97316'); box(ctx, cx + 164, GROUND_Y - 20, 14, 3, '#5B4A2A');
+  // (the vent, furred with grease)
+  ink(ctx, () => ctx.rect(x0 + 16, top + 96, 40, 28), '#52525B', 2); for (let k = 0; k < 5; k++) box(ctx, x0 + 19, top + 100 + k * 5, 34, 2, '#27272A');
+  box(ctx, x0 + 16, top + 124, 40, 22, 'rgba(30, 24, 12, 0.5)');
+  // (the caged bulb over the door, flickering)
+  const on = (f % 97) > 6 && (f % 31) > 2;
+  if (on) { ctx.fillStyle = 'rgba(253, 230, 138, 0.18)'; ctx.beginPath(); ctx.moveTo(cx - 6, GROUND_Y - 138); ctx.lineTo(cx - 60, GROUND_Y); ctx.lineTo(cx + 60, GROUND_Y); ctx.lineTo(cx + 6, GROUND_Y - 138); ctx.fill(); }
+  ink(ctx, () => ctx.rect(cx - 7, GROUND_Y - 146, 14, 10), '#3F3F46'); box(ctx, cx - 4, GROUND_Y - 142, 8, 6, on ? '#FDE68A' : '#57534E');
+  box(ctx, cx - 7, GROUND_Y - 142, 14, 1, '#18181B'); box(ctx, cx, GROUND_Y - 146, 1, 10, '#18181B');
+  // (NO SMOKING, and the butts all round under it)
+  ink(ctx, () => ctx.rect(x0 + 6, GROUND_Y - 88, 42, 20), '#F8FAFC'); ctx.fillStyle = '#DC2626'; ctx.font = '5px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('NO', x0 + 27, GROUND_Y - 80); ctx.fillText('SMOKING', x0 + 27, GROUND_Y - 72); ctx.textAlign = 'left';
+  for (let k = 0; k < 9; k++) box(ctx, x0 + 8 + ((k * 23) % 50), GROUND_Y - 2 - (k % 2), 4, 1, k % 3 ? '#F5F5F4' : '#D97706');
+};
+
+/**
+ * The dumpster the staff door's round the back of: a filthy green one, dented, rust bleeding down it, grime streaked
+ * down from under the lid; the lid propped up on the trash bags it can't shut on, more bags heaped on top and split,
+ * more dumped on the ground round it, a leak from under it gone into a puddle; flies. `x0` its left end.
+ */
+const dumpster = (ctx: Ctx, x0: number, f: number) => {
+  const W = 128, H = 66, top = GROUND_Y - H;
+  // The puddle it's leaking into
+  ctx.fillStyle = '#5B4A2A'; ctx.beginPath(); ctx.ellipse(x0 + W * 0.55, GROUND_Y + 6, 72, 7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#7A6436'; ctx.beginPath(); ctx.ellipse(x0 + W * 0.5, GROUND_Y + 5, 40, 3, 0, 0, Math.PI * 2); ctx.fill();
+  // The bin: banded green steel, a darker skirt, wheels, a dent
+  ink(ctx, () => { ctx.moveTo(x0, top + 6); ctx.lineTo(x0 + W, top); ctx.lineTo(x0 + W - 6, GROUND_Y - 6); ctx.lineTo(x0 + 6, GROUND_Y - 6); ctx.closePath(); }, '#2F5D3A', 2);
+  bands(ctx, x0 + 6, top + 10, W - 14, H - 18, ['#3B6E46', '#336240', '#2B5638', '#244B30']);
+  box(ctx, x0 + 4, top + 8, W - 8, 4, '#4C8159');
+  for (let k = 1; k < 4; k++) box(ctx, x0 + k * (W / 4), top + 10, 2, H - 18, '#1E3F27');
+  ctx.fillStyle = '#1E3F27'; ctx.beginPath(); ctx.ellipse(x0 + 38, top + 34, 10, 6, 0.3, 0, Math.PI * 2); ctx.fill();
+  // (rust bleeding down from the seams, grime streaks down from the lid, a sticker, half of it gone)
+  for (let k = 0; k < 7; k++) { const rx = x0 + 12 + k * 17, len = 10 + ((k * 13) % 22); box(ctx, rx, top + 12, 3, len, k % 2 ? '#8B4A1C' : '#6B3A18'); box(ctx, rx + 1, top + 12 + len, 1, 4, '#8B4A1C'); }
+  for (let k = 0; k < 9; k++) box(ctx, x0 + 8 + k * 13, top + 12, 2, 6 + (k * 7) % 14, 'rgba(30, 24, 12, 0.55)');
+  box(ctx, x0 + 82, top + 26, 26, 14, '#F5F5F4'); box(ctx, x0 + 82, top + 26, 26, 3, '#DC2626'); box(ctx, x0 + 96, top + 30, 12, 10, '#336240');
+  for (const wx of [x0 + 14, x0 + W - 22]) { ink(ctx, () => ctx.arc(wx, GROUND_Y - 4, 5, 0, Math.PI * 2), '#18181B'); box(ctx, wx - 1, GROUND_Y - 5, 2, 2, '#52525B'); }
+  // The leak, dripping
+  const drip = (f * 0.6) % 10;
+  box(ctx, x0 + 60, GROUND_Y - 6, 3, 4, '#5B4A2A'); box(ctx, x0 + 61, GROUND_Y - 2 + drip * 0.4, 2, 2, '#7A6436');
+  // The bags: heaped over the rim and propping the lid up, split, a few dumped on the ground
+  const bag = (bx: number, by: number, r: number, c: string, split = false) => {
+    ink(ctx, () => { ctx.ellipse(bx, by, r, r * 0.82, 0, 0, Math.PI * 2); }, c);
+    box(ctx, bx - r * 0.5, by - r * 0.55, r * 0.5, 2, lite(c, 0.25));
+    ctx.fillStyle = dark(c, 0.4); ctx.beginPath(); ctx.moveTo(bx - 3, by - r * 0.8); ctx.lineTo(bx, by - r * 1.05); ctx.lineTo(bx + 3, by - r * 0.8); ctx.fill();
+    if (split) { box(ctx, bx - 4, by + 1, 8, 4, '#E7E5E4'); box(ctx, bx + 2, by + 3, 5, 3, '#F59E0B'); box(ctx, bx - 6, by + 4, 4, 2, '#65A30D'); }
+  };
+  for (const [bx, by, r, c, sp] of [[x0 + 18, top - 6, 16, '#18181B', false], [x0 + 46, top - 12, 19, '#27272A', true], [x0 + 78, top - 9, 17, '#1F2937', false], [x0 + 106, top - 7, 15, '#14532D', true], [x0 + 60, top - 26, 14, '#18181B', false]] as const) bag(bx, by, r, c, sp);
+  // (the lid, propped up on them)
+  ctx.save(); ctx.translate(x0 + 2, top + 2); ctx.rotate(-0.42);
+  ink(ctx, () => ctx.rect(0, -6, W - 4, 7), '#1F3B27', 2); box(ctx, 2, -5, W - 10, 2, '#3B6E46');
+  ctx.restore();
+  for (const [bx, by, r, c, sp] of [[x0 - 10, GROUND_Y - 10, 13, '#27272A', true], [x0 + W + 8, GROUND_Y - 11, 14, '#18181B', false], [x0 + W + 30, GROUND_Y - 8, 10, '#1F2937', true]] as const) bag(bx, by, r, c, sp);
+  // (a pizza box, a banana peel, a cup)
+  ink(ctx, () => ctx.rect(x0 + W - 4, GROUND_Y - 4, 26, 4), '#D6A35C'); box(ctx, x0 + W + 2, GROUND_Y - 3, 8, 1, '#B91C1C');
+  box(ctx, x0 + 24, GROUND_Y - 2, 8, 2, '#FACC15'); box(ctx, x0 + 22, GROUND_Y - 4, 3, 2, '#FACC15'); box(ctx, x0 + 31, GROUND_Y - 4, 3, 2, '#A16207');
+  ink(ctx, () => ctx.rect(x0 + W + 44, GROUND_Y - 9, 6, 9), '#F8FAFC'); box(ctx, x0 + W + 44, GROUND_Y - 9, 6, 2, '#DC2626');
+  // The stink, coming up off it, and the flies round it
+  for (let k = 0; k < 3; k++) { const t = ((f * 0.5 + k * 40) % 120) / 120; ctx.strokeStyle = `rgba(132, 204, 22, ${(0.45 * (1 - t)).toFixed(2)})`; ctx.lineWidth = 2; ctx.beginPath(); const sx = x0 + 30 + k * 34; for (let j = 0; j <= 6; j++) ctx.lineTo(sx + Math.sin(j * 1.3 + f * 0.05 + k) * 5, top - 20 - t * 40 - j * 6); ctx.stroke(); }
+  for (let k = 0; k < 7; k++) { const a = f * (0.09 + k * 0.012) + k * 2.1; box(ctx, x0 + W / 2 + Math.cos(a) * (40 + k * 5), top - 18 + Math.sin(a * 1.7) * 18, 2, 2, '#0A0A0A'); }
+};
+
 /** Between Foreign Lands and Space Land: a plain gray door in the wall, STAFF ONLY. */
 const staffDoor = (ctx: Ctx, cx: number, f: number) => {
+  backBuilding(ctx, cx, f);
+  dumpster(ctx, cx + 36, f);
   ink(ctx, () => ctx.rect(cx - 30, GROUND_Y - 110, 60, 110), '#9CA3AF');
   box(ctx, cx - 26, GROUND_Y - 106, 52, 106, '#6B7280'); box(ctx, cx - 26, GROUND_Y - 106, 6, 106, '#7C8592');
   box(ctx, cx + 14, GROUND_Y - 58, 6, 4, '#E5E7EB');
@@ -378,6 +473,6 @@ const staffDoor = (ctx: Ctx, cx: number, f: number) => {
   ctx.fillStyle = '#FFFFFF'; ctx.font = '6px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('STAFF', cx, GROUND_Y - 89); ctx.fillText('ONLY', cx, GROUND_Y - 82); ctx.textAlign = 'left';
   // (a sticky note on it, flapping)
   ctx.save(); ctx.translate(cx - 10, GROUND_Y - 70); ctx.rotate(Math.sin(f * 0.05) * 0.06);
-  box(ctx, 0, 0, 18, 16, '#FDE047'); ctx.fillStyle = '#1E3A8A'; ctx.font = '4px "Press Start 2P"'; ctx.fillText('TEST', 2, 7); ctx.fillText('PEN', 2, 13);
+  box(ctx, 0, 0, 18, 16, '#FDE047'); ctx.fillStyle = '#1E3A8A'; ctx.font = '4px "Press Start 2P"'; ctx.fillText('NO', 2, 7); ctx.fillText('GUESTS', 2, 13);
   ctx.restore();
 };
