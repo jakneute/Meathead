@@ -57,6 +57,8 @@ const BOOT_SHARE = 0.14;
 /** How much what he hits after a boot hurts him, against an up throw's or a suplex's (the boot's done most of it). */
 const BOOTED_IMPACT = 0.5;
 const SLAM_BOUNCE = -13.5, SUPLEX_SHARE = 0.4;
+/** Plummeting together after a grab in the air: how fast it builds and tops out; the beatdown's landing's share of him at full speed. */
+const PLUMMET_ACCEL = 0.9, PLUMMET_MAX = 20, PLUMMET_SHARE = 0.55;
 const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 17, THROW_SHARE = 0.15, SLAM_SHARE = 0.5, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
@@ -73,7 +75,7 @@ const NOT_PEOPLE = new Set<EnemyKind>(['doorman', 'manhole', 'tenant', 'cardoor'
 export const grabbable = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind
   && ((isHumanoidKind(e.kind) && !NOT_PEOPLE.has(e.kind)) || MID_ANIMALS.has(e.kind));
 
-type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss';
+type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop';
 /** Which throw: on the way he's facing, back (a suplex), straight up, or slammed down. */
 type Toss = 'forward' | 'back' | 'up' | 'down';
 
@@ -101,6 +103,8 @@ export interface Grab {
   thrown: Enemy | null;
   /** Bodies he's thrown, still flying: who each has hit already (once each), and how long it's been going. */
   flying: { e: Enemy; hit: Set<string>; t: number; fall: number; still: number; how: GrabCallout; oneChunk: boolean; impact: number }[];
+  /** The fastest they've come down, plummeting together (for how hard they land). */
+  fall: number;
   /** Frames body contact still can't hurt him (a grab's on, or just finished). */
   clearT: number;
   /** Buttons still held from the grab (the last punch): they don't start a charge or a shot till they're let go. */
@@ -108,16 +112,26 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [],
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
 const centerX = (state: GameState) => state.player.pos.x + state.player.width / 2;
 
 /** Into the wall? (the lunge stops at one) */
-const walled = (state: GameState, x: number) => {
+/** Something solid he'd be in at x (a wall, the side of a ledge; not what he's standing on, nor a one-way platform). */
+const solidAt = (state: GameState, x: number) => {
   const p = state.player;
-  return state.blocks.some(b => b.type === 'wall' && x < b.x + b.w && x + p.width > b.x && p.pos.y < b.y + b.h && p.pos.y + p.height > b.y);
+  return state.blocks.find(b => !b.oneWay && b.type !== 'pit' && x < b.x + b.w && x + p.width > b.x && p.pos.y + 4 < b.y + b.h && p.pos.y + p.height - 4 > b.y);
+};
+const walled = (state: GameState, x: number) => !!solidAt(state, x);
+/** Puts him at x, or as near it as he'll go without being inside anything solid (backed out the way he came). */
+const placeAt = (state: GameState, x: number, from: number) => {
+  const p = state.player;
+  const b = solidAt(state, x);
+  if (!b) { p.pos.x = x; return; }
+  p.pos.x = from <= x ? b.x - p.width : b.x + b.w;
+  if (solidAt(state, p.pos.x)) p.pos.x = from;
 };
 
 /** Back on its feet in the world (let go of, still alive): a moment to get its wits back. */
@@ -137,8 +151,11 @@ const end = (state: GameState, g: Grab) => {
 };
 
 /** Lets go of whoever he's got (he got hurt, or jumped off), alive. */
-const letGo = (state: GameState, g: Grab) => {
-  if (g.held) putBack(state, g.held, g.phase === 'mount' ? centerX(state) + g.dir * 18 : centerX(state) + g.dir * 30);
+const letGo = (state: GameState, g: Grab, toss = false) => {
+  const e = g.held;
+  if (e) putBack(state, e, g.phase === 'mount' ? centerX(state) + g.dir * 18 : centerX(state) + g.dir * 30);
+  // (jumped off a beatdown: he's sent up in the air again)
+  if (e && toss) { e.vel = { x: g.dir * 2, y: -10 }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40); }
   end(state, g);
 };
 
@@ -321,7 +338,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         if (!g.yChord && g.yHeld < Y_TAP) out = { ...out, secondary: true };
         g.yHeld = 0; g.yChord = false;
       }
-      const free = p.isGrounded && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.swimming && !(p.pushbackTimer && p.pushbackTimer > 0);
+      // (on the ground or in the air: up there, he and whoever he gets hold of come down together)
+      const free = !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.swimming && !(p.pushbackTimer && p.pushbackTimer > 0);
       if (!want || !free) return out;
       if (y) g.yChord = true;
       g.dir = p.facing; g.t = 0;
@@ -340,8 +358,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // reach while they're going out is got hold of then and there
       const e = inReach(state, g.dir, GRAB_REACH);
       if (!e) { if (g.t >= REACH) { g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6); } return hold(); }
-      // Got him: up by the neck
-      g.phase = 'shake'; g.t = 0; g.held = e; g.thrown = null; take(state, e);
+      // Got him: up by the neck (in the air: down they both come first, no harm in the landing for him)
+      g.phase = p.isGrounded ? 'shake' : 'drop'; g.t = 0; g.held = e; g.thrown = null; take(state, e); g.fall = 0;
       e.facing = (-g.dir) as 1 | -1;
       playSound('punch', 0.8, 4);
       return hold();
@@ -355,18 +373,48 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     case 'lunge': {
       const nx = p.pos.x + g.dir * LUNGE_SPEED;
       if (!walled(state, nx)) p.pos.x = nx;
+      // (in the air, he holds his height through it)
+      if (!p.isGrounded) p.vel.y = Math.min(p.vel.y, 0);
       const e = inReach(state, g.dir, LUNGE_REACH);
       if (e) {
-        // Down he goes, Meathead on top of him
-        g.phase = 'mount'; g.t = 0; g.held = e; take(state, e);
+        // Down he goes, Meathead on top of him (in the air, the two of them plummet first)
+        g.phase = p.isGrounded ? 'mount' : 'plummet'; g.t = 0; g.held = e; take(state, e); g.fall = 0;
         g.nextPunchAt = 4; g.punchT = 0;
-        p.pos.x = e.pos.x + e.width / 2 - p.width / 2;
+        placeAt(state, e.pos.x + e.width / 2 - p.width / 2, p.pos.x);
         e.facing = (-g.dir) as 1 | -1;
         playSound('slam'); playSound('punch', 1.2, -3);
         shakeScreen(state, 8, 5);
         return hold();
       }
       if (g.t >= LUNGE) { g.phase = 'whiff'; g.t = 0; playSound('land', 0.8, -4); }
+      return hold();
+    }
+
+    case 'plummet':
+    case 'drop': {
+      // Coming down together, fast: him on top (a beatdown), or him held by the neck (a shakedown)
+      p.vel.x = 0;
+      p.vel.y = Math.min(PLUMMET_MAX, Math.max(p.vel.y, 3) + PLUMMET_ACCEL);
+      g.fall = Math.max(g.fall, p.vel.y);
+      if (!p.isGrounded) return { ...NO_CONTROLS };
+      const e = g.held!;
+      shakeScreen(state, 10, 7); playSound('slam');
+      if (g.phase === 'drop') { g.phase = 'shake'; g.t = 0; return hold(); }
+      // A beatdown's: he's driven into the floor under Meathead, by how fast they came down; it might be all it takes
+      const dmg = Math.round(e.maxHealth * PLUMMET_SHARE * Math.min(1, g.fall / PLUMMET_MAX)) + 6;
+      e.health -= dmg;
+      playSound('crunch', 1, -3);
+      for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: centerX(state), y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
+      if (e.health <= 0) {
+        e.pos = { x: e.pos.x, y: feetY(state) - e.height };
+        state.enemies.push(e);
+        fx.blowAwayEnemy(e, { x: g.dir * 2, y: -3 }, 'charge_kill', g.dir);
+        fx.spawnKillCallout(e, grabCallout('beatdown'));
+        g.held = null; g.phase = 'kill'; g.t = 0;
+        return hold();
+      }
+      fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 10 }, dmg, true);
+      g.phase = 'mount'; g.t = 0; g.nextPunchAt = 4;
       return hold();
     }
 
@@ -378,7 +426,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     case 'mount': {
       const e = g.held!;
       // Jumped off (nothing knocks him off: armor)
-      if (press('jump')) { letGo(state, g); return { ...controls, jump: true }; }
+      if (press('jump')) { letGo(state, g, true); return { ...controls, jump: true }; }
       if (g.punchT > 0) g.punchT--;
       // (any of X, B or Y throws one)
       if ((press('shoot') || press('special') || press('secondary') || pressed('y')) && g.t >= g.nextPunchAt) {
@@ -838,6 +886,20 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       // Face down where they were
       asPose(ctx, state, { isDucking: true, facing: g.dir });
       return;
+    case 'plummet':
+    case 'drop': {
+      // Coming down together: air streaming up past them
+      for (let i = 0; i < 5; i++) { const sx = x - 30 + i * 15, sy = y - 90 - ((f * 9 + i * 23) % 60); ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; ctx.fillRect(sx, sy, 2, 18 + (i % 2) * 8); }
+      if (g.phase === 'drop') {
+        const fist = fistAt(0);
+        sprite(ctx, x, y, g.dir, c => shakePose(c, f, 0));
+        if (g.held) drawHeldByNeck(ctx, g.held, state, x + g.dir * (fist.x + 4), y + fist.y, g.dir, -g.dir * 0.2);
+        return;
+      }
+      if (g.held) drawPinned(ctx, g.held, state, x, y + 4, g.dir, 0, 0);
+      sprite(ctx, x, y, g.dir, c => mountPose(c, f, 0.1));
+      return;
+    }
     case 'mount':
     case 'kill': {
       const k = g.punchT > 0 ? Math.min(1, (PUNCH_FRAMES - g.punchT + 1) / 2) : 0;
