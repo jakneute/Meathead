@@ -926,6 +926,7 @@ const App: React.FC = () => {
           shatKills={shatKills}
           cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => { setEndingShat(false); setEndingPart('epilogue'); setStatus(GameStatus.ENDING); }, onPlayCall: () => { setCallPreview(true); setStatus(GameStatus.VICTORY); } } : undefined}
           showCall={progressionRank === 0 || callPreview}
+          introOn={intro !== 'off'}
         />
         </div>
         {status === GameStatus.ENDING && (endingPart === 'epilogue' ? <EpilogueCutscene shat={endingShat} onDone={handleEndingDone} /> : <EndingCutscene shat={endingShat} onDone={startFinale} />)}

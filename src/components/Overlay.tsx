@@ -19,7 +19,7 @@ import { WHITE_HOUSE_ID } from '../content/whiteHouse';
 import { drawWhiteHouse, ART_W, ART_H } from '../game/scenes/ending';
 import { GARAGE_ID, SOUVENIRS } from '../content/garage';
 import { ownedSouvenirs } from '../game/garage/store';
-import MeatheadCaricature from './MeatheadCaricature';
+import TitleArt from './TitleArt';
 import ControlsGuide from './ControlsGuide';
 import { setSoundTest, ALL_CUES } from '../game/music';
 import { SFX_NAMES } from '../game/platform/sfx';
@@ -101,6 +101,8 @@ interface OverlayProps {
   };
   /** The set's victory is the mid-game call (its own cutscene), not the victory screen. */
   showCall?: boolean;
+  /** The intro's playing over the title screen (its picture stops while it's covered). */
+  introOn?: boolean;
 }
 
 /** Full-screen menus and story screens drawn over the game canvas. */
@@ -214,28 +216,35 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
 // (the public build: just the one, and it's always got the intro)
 const TITLE_OPTIONS = PUBLIC_BUILD ? [{ label: 'START GAME', intro: true }] : [{ label: 'START GAME', intro: false }, { label: 'START GAME + INTRO', intro: true }];
 
-const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSelectIndex, selectedIndex, cheats, progressionRank, whiteHouseOpen, musicOn, onToggleMusic }) => (
+const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSelectIndex, selectedIndex, cheats, progressionRank, whiteHouseOpen, musicOn, onToggleMusic, introOn }) => (
   <>
+    {/* (the picture, the whole screen: the logo's in it, over his chest) */}
+    <TitleArt shitty={!!cheats?.flags.shittyPants} paused={!!introOn} />
+    <h1 className="sr-only">MEATHEAD</h1>
     {cheats && <CheatPanel rank={progressionRank + (whiteHouseOpen ? 1 : 0)} cheats={cheats} musicOn={musicOn !== false} />}
-    <div className="animate-in fade-in zoom-in duration-700 max-w-lg relative w-full h-full flex flex-col items-center justify-center pt-1 pb-1">
-      <MeatheadCaricature shitty={!!cheats?.flags.shittyPants} />
-      <h1 className="text-3xl md:text-4xl text-red-600 mb-3 font-black tracking-tighter drop-shadow-[3px_3px_0px_white] shrink-0">MEATHEAD</h1>
+    <div className="animate-in fade-in duration-700 relative w-full h-full flex flex-col items-center pt-[284px]">
       <div className="flex flex-col items-center gap-2 shrink-0">
         {TITLE_OPTIONS.map((o, i) => {
           const on = selectedIndex === i;
           return (
             <button key={o.label} disabled={isInputLocked} onClick={() => onStartGame(o.intro)} onMouseEnter={() => onSelectIndex(i)}
-              className={`relative w-[340px] px-8 py-2 text-white text-sm md:text-base whitespace-nowrap border-b-[5px] transition-all font-black uppercase shrink-0 ${isInputLocked ? 'bg-gray-700 border-gray-900 opacity-50 cursor-not-allowed' : on ? 'bg-red-600 border-red-900 ring-2 ring-yellow-300 active:translate-y-1 active:border-b-0' : 'bg-red-900/70 border-red-950 text-white/70 hover:bg-red-700'}`}>
-              {on && !isInputLocked && <span className="absolute left-3 text-yellow-300 animate-pulse">&#9654;</span>}
+              className={`relative w-[380px] px-10 ${TITLE_OPTIONS.length > 1 ? 'py-1.5' : 'py-2.5'} text-sm md:text-base whitespace-nowrap border-2 border-black font-black uppercase shrink-0 [text-shadow:2px_2px_0_#000] ${isInputLocked
+                ? 'bg-zinc-700 text-zinc-400 shadow-[inset_0_2px_0_#71717a,inset_0_-4px_0_#27272a,4px_4px_0_#000] opacity-60 cursor-not-allowed'
+                : on ? 'bg-[#c81c10] text-[#fff6d8] shadow-[inset_0_2px_0_#fc7c5c,inset_0_-4px_0_#6c0c04,0_0_0_2px_#fcd850,0_0_0_4px_#000,6px_6px_0_4px_#000] active:translate-y-1 active:shadow-[inset_0_2px_0_#fc7c5c,inset_0_-2px_0_#6c0c04,0_0_0_2px_#fcd850,0_0_0_4px_#000]'
+                : 'bg-[#5c0a08] text-white/70 shadow-[inset_0_2px_0_#9c1a0a,inset_0_-4px_0_#2c0402,4px_4px_0_#000] hover:bg-[#8c1408]'}`}>
+              {on && !isInputLocked && <span className="absolute left-3 text-[#fcd850] animate-pulse">&#9654;</span>}
+              {on && !isInputLocked && <span className="absolute right-3 text-[#fcd850] animate-pulse">&#9664;</span>}
               {isInputLocked && i === 0 ? 'READYING PUMP...' : o.label}
             </button>
           );
         })}
       </div>
-      <button onClick={onToggleMusic} className={`mt-2 px-3 py-1 text-[8px] font-black tracking-wider border-2 shrink-0 ${musicOn ? 'text-yellow-300 border-yellow-500/60 bg-black/40 hover:bg-yellow-500/10' : 'text-zinc-500 border-zinc-700 bg-black/40 hover:text-zinc-300'}`}>
-        <span className="inline-flex items-center gap-2"><Prompt pad={['X']} kb={['M']} size={14} />{musicOn ? '♪ MUSIC: ON' : '♪ MUSIC: OFF'}</span>
-      </button>
-      {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="START" size={15} className="mt-1 text-[7px] font-black text-white/70 tracking-wider" />}
+      <div className="mt-3 flex items-center gap-3 shrink-0">
+        <button onClick={onToggleMusic} className={`px-3 py-1 text-[8px] font-black tracking-wider border-2 shadow-[3px_3px_0_#000] ${musicOn ? 'text-[#fcd850] border-[#b06c0c] bg-black/80 hover:bg-[#2c1c04]' : 'text-zinc-500 border-zinc-700 bg-black/80 hover:text-zinc-300'}`}>
+          <span className="inline-flex items-center gap-2"><Prompt pad={['X']} kb={['M']} size={14} />{musicOn ? '♪ MUSIC: ON' : '♪ MUSIC: OFF'}</span>
+        </button>
+        {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="START" size={15} className="text-[7px] font-black text-white/85 tracking-wider [text-shadow:1px_1px_0_#000] animate-pulse" />}
+      </div>
       <ControlsGuide />
     </div>
   </>

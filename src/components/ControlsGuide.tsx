@@ -31,21 +31,23 @@ const ControlsGuide: React.FC = () => {
     ? s.replace('L-STICK / D-PAD', 'STICK').replace(' / R-STICK', '').replace(/ \/ (RT|LT)\b/g, '').replace('START', family === 'joycon-l' ? 'MINUS (−)' : 'PLUS (+)')
     : s).replace(/\b(A|B|X|Y|RT|LT|LB|RB|START)\b/g, k => padName(k, family));
   return (
-    <div className="w-full max-w-md mt-2 pt-1.5 border-t border-red-950/80 shrink-0 font-mono uppercase text-[7px]">
-      <div className="grid grid-cols-[1fr_1.2fr] gap-x-2 text-left">
-        <span className="text-cyan-400 font-bold tracking-widest pb-0.5">CONTROLS</span>
-        <span className="text-cyan-400 font-bold tracking-wider pb-0.5">{pad ? ({ xbox: 'CONTROLLER', playstation: 'PLAYSTATION CONTROLLER', switch: 'SWITCH CONTROLLER', 'joycon-l': 'JOY-CON (SIDEWAYS)', 'joycon-r': 'JOY-CON (SIDEWAYS)' } as const)[family] : 'KEYBOARD + MOUSE'}</span>
+    <div className="w-full max-w-[520px] mt-auto mb-1 shrink-0 font-mono uppercase text-[7px] bg-black/85 border-2 border-[#7c1006] shadow-[0_0_0_2px_#000,inset_0_0_0_1px_#2c0402,5px_5px_0_2px_#000]">
+      <div className="grid grid-cols-[1fr_1.2fr] gap-x-2 text-left px-2.5 py-[3px] bg-[#5c0a08] border-b-2 border-black shadow-[inset_0_1px_0_#a81c08]">
+        <span className="text-[#fcd850] font-bold tracking-widest [text-shadow:1px_1px_0_#000]">CONTROLS</span>
+        <span className="text-[#fcd850] font-bold tracking-wider [text-shadow:1px_1px_0_#000]">{pad ? ({ xbox: 'CONTROLLER', playstation: 'PLAYSTATION CONTROLLER', switch: 'SWITCH CONTROLLER', 'joycon-l': 'JOY-CON (SIDEWAYS)', 'joycon-r': 'JOY-CON (SIDEWAYS)' } as const)[family] : 'KEYBOARD + MOUSE'}</span>
+      </div>
+      <div className="grid grid-cols-[1fr_1.2fr] gap-x-2 text-left px-2.5 pt-1">
         {BASICS.map(([action, keys, padKeys]) => (
           <React.Fragment key={action}>
-            <span className="text-red-500 font-bold tracking-wider border-b border-gray-900/90 py-[1px]">{action}</span>
-            <span className="text-gray-200 font-semibold border-b border-gray-900/90 py-[1px]">{pad ? named(padKeys) : keys}</span>
+            <span className="text-[#f4701c] font-bold tracking-wider border-b border-[#2c0c0c] py-[1px]">{action}</span>
+            <span className="text-gray-100 font-semibold border-b border-[#2c0c0c] py-[1px]">{pad ? named(padKeys) : keys}</span>
           </React.Fragment>
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-x-4 mt-1 text-left">
+      <div className="grid grid-cols-2 gap-x-4 mt-1 pb-1.5 px-2.5 pt-1 text-left border-t border-[#7c1006]/70">
         {SPECIALS.map(([move, keys, padKeys]) => (
-          <div key={move} className="flex justify-between gap-2 border-b border-gray-900/90 py-[1px]">
-            <span className="text-yellow-500 font-bold tracking-wider">{move}</span>
+          <div key={move} className="flex justify-between gap-2 border-b border-[#2c0c0c] py-[1px]">
+            <span className="text-[#fcd850] font-bold tracking-wider">{move}</span>
             <span className="text-gray-300 font-semibold">{pad ? named(padKeys) : keys}</span>
           </div>
         ))}
