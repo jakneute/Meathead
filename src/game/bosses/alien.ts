@@ -38,7 +38,7 @@ export const ART_SCALE = 1.5;
 export const ALIEN_W = 110, ALIEN_H = 165;
 /** A mountain of it: about what every gun Meathead's got, emptied into him in a decent fight, comes to (the finale's
  * smaller loads: FINALE_AMMO_SCALE). */
-export const ALIEN_HP = 10500;
+export const ALIEN_HP = 11550;
 
 /**
  * Where he floats: the bottom of him always between these. Meathead's head is at 486 standing: he walks and runs
