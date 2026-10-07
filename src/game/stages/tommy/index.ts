@@ -41,8 +41,10 @@ export const tommyLayout: StageLayout = {
   startX: COURSE.startX,
   verticalCamera: true,
   lighting: state => tommyScene(state),
-  // (dying to Tommy: back down outside his door, where you land coming down the hole)
-  bossStartX: COURSE.ruins.pit + COURSE.ruins.pitW / 2,
+  // (dying to Tommy, or the skip to him: he drops in down the hole, onto the floor outside his door (the drop's 150 on
+  // from this); not onto the roof of the cavern down there)
+  bossStartX: COURSE.ruins.pit + 20 - 150,
+  bossStartY: GROUND_Y,
   build: (state, skipToBoss) => {
     const C = COURSE;
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];
