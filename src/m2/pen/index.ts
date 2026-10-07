@@ -18,14 +18,17 @@ const X0 = -40000, LEN = 2400;
 const EXIT_X = X0 + 130;
 /** Who walks in, in turn (the rat's there to show who can't be grabbed). */
 const ROSTER: EnemyKind[] = M2_ENEMY_KINDS;
-const AT_ONCE = 4, RESPAWN = 70;
+const AT_ONCE = 5, RESPAWN = 70;
+const FLYERS = new Set<EnemyKind>(['pigeon', 'seagull', 'hawk', 'eagle', 'vulture', 'pelican', 'grackle']);
 
 interface Pen { grab: Grab; next: number; cooldown: number; upWas: boolean }
 const getPen = (state: GameState) => state.stage as Pen | null;
 
 const send = (state: GameState, pen: Pen) => {
   const kind = ROSTER[pen.next++ % ROSTER.length];
-  const e = makeKindEnemy(kind, X0 + LEN - 120 - Math.random() * 200, GROUND_Y);
+  // (a bird comes in flying, a way up: low enough to jump and grab)
+  const flyer = FLYERS.has(kind);
+  const e = makeKindEnemy(kind, X0 + LEN - 120 - Math.random() * 200, flyer ? GROUND_Y - 70 - Math.random() * 60 : GROUND_Y);
   e.seen = true;
   state.enemies.push(e);
 };

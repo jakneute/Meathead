@@ -3,4 +3,4 @@
 
 import type { EnemyKind } from '../m1/types';
 
-export const M2_ENEMY_KINDS: EnemyKind[] = ['charger', 'shooter', 'pitbull', 'cop', 'goat', 'bouncer', 'techbro', 'wolverine', 'courier', 'rat', 'smokejumper', 'pigeon', 'sicario', 'crab'];
+export const M2_ENEMY_KINDS: EnemyKind[] = ['charger', 'pigeon', 'shooter', 'pitbull', 'seagull', 'cop', 'goat', 'hawk', 'bouncer', 'rat', 'techbro', 'wolverine', 'pigeon', 'courier', 'crab', 'smokejumper', 'seagull', 'sicario'];
