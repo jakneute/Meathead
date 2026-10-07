@@ -37,7 +37,7 @@ type Ctx = CanvasRenderingContext2D;
 // The beatdown
 /** Like a fighting game's grab: once it's started, he's committed. Both windups are nearly instant (what limits them is
  * their reach); a hit in the beatdown's knocks him out of it, nothing stops the shakedown's. */
-const WINDUP = 8, LUNGE = 9, LUNGE_SPEED = 7.5, WHIFF = 22, REACH = 6;
+const WINDUP = 8, LUNGE = 7, LUNGE_SPEED = 12, WHIFF = 22, REACH = 6;
 /** How far ahead of him, as he lunges, he can still get hold of somebody. */
 const LUNGE_REACH = 20;
 /** A punch takes this much of him (whoever he is, about eight to finish him); each heals a little, the last a lot. */
@@ -416,6 +416,22 @@ const coilPose = (c: Ctx, f: number, k: number) => {
   c.restore();
 };
 
+/**
+ * The beatdown's lunge: a wrestler's double-leg shot. Dropped low, the front knee nearly on the floor, the back leg
+ * driving out straight behind, his back flat, his head up and in, both arms out low for the legs (`k` how far in).
+ */
+const shootPose = (c: Ctx, f: number, k: number) => {
+  const hipY = -18 + k * 4;
+  drawLeg(c, [-5, hipY], [-18, hipY + 6], [-34, -1], 0.5, true);
+  drawLeg(c, [5, hipY], [16, -5], [6, -2], 1.2, false);
+  c.save(); c.translate(0, hipY); c.rotate(1.05 + k * 0.15);
+  drawArmTo(c, [-8, -22], [4, -34], [10, -48 - k * 6], true);
+  drawTorsoFromHips(c);
+  head(c, 10, -32, -0.9, 'roar', f);
+  drawArmTo(c, [11, -22], [22, -34], [22, -50 - k * 6], false, 6);
+  c.restore();
+};
+
 /** The shakedown's windup: a step in, both hands open and out for the throat (`k` how far out). */
 const reachPose = (c: Ctx, f: number, k: number) => {
   drawLeg(c, [-5, -24], [-10, -12], [-17, 0], 0, true);
@@ -443,9 +459,14 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       if (k > 0.7 && f % 6 < 3) { ctx.fillStyle = '#FDE047'; ctx.font = '12px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('!', x, p.pos.y - 34); ctx.textAlign = 'left'; }
       return;
     }
-    case 'lunge':
-      asPose(ctx, state, { isCharging: true, facing: g.dir });
+    case 'lunge': {
+      // Shooting in low for the legs: streaks of air off him, dust kicked up off the back foot
+      const k = Math.min(1, g.t / 3);
+      for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(255, 255, 255, ${(0.55 - i * 0.1).toFixed(2)})`; ctx.fillRect(x - g.dir * (40 + i * 14 + (f % 3) * 4) - (g.dir < 0 ? 22 : 0), y - 34 + i * 7, 22, 2); }
+      if (f % 2 === 0) state.particles.push({ pos: { x: x - g.dir * 30, y: y - 2 }, vel: { x: -g.dir * (1 + Math.random() * 2), y: -1 - Math.random() }, life: 16, color: 'rgba(190, 175, 150, 0.6)', size: 3 + Math.random() * 3 });
+      sprite(ctx, x, y, g.dir, c => shootPose(c, f, k));
       return;
+    }
     case 'reach':
     case 'miss':
       // Hands going out for his throat (or closing on air, held there a moment)
