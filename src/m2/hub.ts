@@ -5,7 +5,7 @@
 import type { StageLayout } from '../game/stages/index';
 import type { GameState } from '../game/core/state';
 import { groundBlocks } from '../game/core/terrain';
-import { NO_CONTROLS } from '../game/platform/input';
+import { NO_CONTROLS, type Controls } from '../game/platform/input';
 import { playMenuOk, playMenuBack } from '../game/platform/audio';
 import { GROUND_Y } from '../constants';
 import { LANDS, STAFF_SLOT, HUB_SLOTS } from './lands';
@@ -20,7 +20,9 @@ export const HUB_STAGE = 'M2 Happy Hub';
 let startSlot = 0;
 export const setHubStart = (slot: number) => { startSlot = slot; };
 
-interface Hub { map: number | null; upWas: boolean }
+const GATED: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
+
+interface Hub { map: number | null; upWas: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls> }
 const getHub = (state: GameState) => state.stage as Hub | null;
 
 /** Round the lap: everything shifts by a whole lap, so he never runs out of roundabout. */
@@ -42,7 +44,7 @@ export const hubLayout: StageLayout = {
     const runs = [{ x1: HUB.x0 - HUB_CIRC, y1: GROUND_Y, x2: HUB.x0 + HUB_CIRC * 2, y2: GROUND_Y, surface: 'plaza' }];
     state.groundRuns = runs;
     state.blocks.push(...groundBlocks(runs));
-    state.stage = { map: null, upWas: false } satisfies Hub;
+    state.stage = { map: null, upWas: false, gate: new Set() } satisfies Hub;
     state.cameraMinX = HUB.x0 - HUB_CIRC;
   },
   update: (ctx, controls) => {
@@ -67,9 +69,16 @@ export const hubLayout: StageLayout = {
         else { setUi({ notice: { text: `${land.name}: COMING SOON`, at: performance.now() } }); playMenuBack(); }
         hub.map = null;
       } else if (pressed('back')) { hub.map = null; playMenuBack(); }
+      if (hub.map === null) for (const k of GATED) hub.gate.add(k);
       setUi({ near, map: hub.map, nearExit: false });
       hub.upWas = !!controls.up;
       return { ...NO_CONTROLS };
+    }
+    // (whatever closed the map, still held: it doesn't start a charge, a jump or a shot till it's let go)
+    if (hub.gate.size) {
+      const out = { ...controls };
+      for (const k of [...hub.gate]) { if (controls[k]) out[k] = false as never; else hub.gate.delete(k); }
+      controls = out;
     }
     if (near !== null && controls.up && !hub.upWas) {
       if (near === STAFF_SLOT) goTo('pen');
@@ -79,7 +88,8 @@ export const hubLayout: StageLayout = {
     setUi({ near, map: hub.map, nearExit: false });
     return hub.map !== null ? { ...NO_CONTROLS } : controls;
   },
-  cylinder: () => ({ radius: HUB.radius }),
+  // (from the inside: he's walking round the inside of the ring, the far side of it facing him)
+  cylinder: () => ({ radius: HUB.radius, inside: { horizon: 330 } }),
   drawBackdrop: (ctx, state) => { drawHubBackdrop(ctx, state); return true; },
   drawBack: (ctx, state) => drawHubBack(ctx, state),
   drawFront: (ctx, state) => drawHubFront(ctx, state),

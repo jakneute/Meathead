@@ -75,8 +75,11 @@ export interface StageLayout {
   drawBackdrop?: (ctx: CanvasRenderingContext2D, state: GameState) => boolean;
   /** Screen space: the stage's own weather over the world. Return false for the usual. */
   drawBackdropFront?: (ctx: CanvasRenderingContext2D, state: GameState) => boolean;
-  /** The world's wrapped round a rotating cylinder of this radius right now (the storm climb), or null. */
-  cylinder?: (state: GameState) => { radius: number } | null;
+  /**
+   * The world's wrapped round a rotating cylinder of this radius right now (the storm climb), or null. `inside`: seen
+   * from inside it instead (Meathead 2's hub): the sides come at you, bigger, about the horizon's height on screen.
+   */
+  cylinder?: (state: GameState) => { radius: number; inside?: { horizon: number } } | null;
   /**
    * Drawn over the wrapped cylinder, flat (things out in the air round it, not on its surface).
    * `around(x)` gives a world x's angle round the cylinder from the middle of the view (0 dead ahead, ±PI/2 the edges, beyond that round the back).

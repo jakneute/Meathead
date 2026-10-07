@@ -192,7 +192,8 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
   const layout = getStageLayout(stageId);
   const cylinder = layout?.cylinder?.(state);
   if (cylinder) {
-    drawCylinderWorld(ctx, cylinder.radius, worldPass);
+    if (cylinder.inside) drawInsideCylinderWorld(ctx, cylinder.radius, cylinder.inside.horizon, worldPass);
+    else drawCylinderWorld(ctx, cylinder.radius, worldPass);
     layout?.drawOverCylinder?.(ctx, state, cylinder.radius, x => {
       const a = (x - state.camera.x - CANVAS_WIDTH / 2) / cylinder.radius;
       return a - Math.round(a / (Math.PI * 2)) * Math.PI * 2;
@@ -438,6 +439,34 @@ const drawCylinderWorld = (ctx: CanvasRenderingContext2D, radius: number, worldP
     g.addColorStop(0, 'rgba(4, 8, 20, 0)'); g.addColorStop(1, 'rgba(4, 8, 20, 0.72)');
     ctx.fillStyle = g;
     ctx.fillRect(Math.min(x0, x1), 0, Math.abs(x1 - x0), CANVAS_HEIGHT);
+  }
+  ctx.restore();
+};
+
+/**
+ * The same trick seen from inside the cylinder (a roundabout you're walking round, the wall of it facing in): the
+ * middle of the view is the far wall, the sides swing round toward you, getting wider and taller (about the horizon,
+ * so the floor drops away and the tops rise at the edges). Column by column, each one stretched for how near it is.
+ */
+const drawInsideCylinderWorld = (ctx: CanvasRenderingContext2D, radius: number, horizon: number, worldPass: (w: CanvasRenderingContext2D, shiftX: number) => void) => {
+  if (typeof document === 'undefined') return;
+  const half = CANVAS_WIDTH / 2, STEP = 2;
+  // (the screen's edge, seen from the middle, is only this far round the wall: the strip needs just a little extra)
+  const pad = 40, w = CANVAS_WIDTH + pad * 2;
+  if (!cylinderStrip) cylinderStrip = document.createElement('canvas');
+  if (cylinderStrip.width !== w * RENDER_SCALE || cylinderStrip.height !== CANVAS_HEIGHT * RENDER_SCALE) {
+    cylinderStrip.width = w * RENDER_SCALE; cylinderStrip.height = CANVAS_HEIGHT * RENDER_SCALE;
+  }
+  const s = cylinderStrip.getContext('2d')!;
+  s.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
+  s.clearRect(0, 0, w, CANVAS_HEIGHT);
+  worldPass(s, pad);
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  for (let sx = 0; sx < CANVAS_WIDTH; sx += STEP) {
+    const a = Math.atan((sx + STEP / 2 - half) / radius), c = Math.cos(a);
+    const src = pad + half + radius * a, srcW = STEP * c * c, k = 1 / c;
+    ctx.drawImage(cylinderStrip, (src - srcW / 2) * RENDER_SCALE, 0, srcW * RENDER_SCALE, CANVAS_HEIGHT * RENDER_SCALE, sx, horizon - horizon * k, STEP, CANVAS_HEIGHT * k);
   }
   ctx.restore();
 };

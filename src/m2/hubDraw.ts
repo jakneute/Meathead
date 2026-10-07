@@ -72,6 +72,9 @@ export const drawHubBackdrop = (ctx: Ctx, state: GameState) => {
     for (let w = 0; w < 3; w++) box(ctx, x + 8 + w * 16, 382, 10, 7, '#1E3A8A');
   }
   box(ctx, 0, 468, CANVAS_WIDTH, 4, '#24542F');
+  // (the lawn under it all, down to the bottom: from inside the ring the plaza's wall dips at the sides, and this is
+  // what's behind it there)
+  bands(ctx, 0, 472, CANVAS_WIDTH, CANVAS_HEIGHT - 472, ['#2F6B3A', '#2A6034', '#25562F', '#204C2A']);
 };
 
 /** A land's big landmark, its base on (x, y): hazed into the sky by distance (flat, with a lit edge). */

@@ -1,10 +1,15 @@
 // Meathead 2's grabs, on top of Meathead 1's moves:
 //
-//   BEATDOWN (Y + B, or R): a long windup, then a short lunge. Catch somebody and he's down, Meathead on top of him,
-//   and every press of X or B (shoot or special) is a punch, each one giving him a little health back (and a lot when
-//   it's over). Jump to get off. Anything that hurts him knocks him off. Whiff, and he's stood there wide open.
+// Like a fighting game's grabs: once one's started, he's committed to it.
 //
-//   SHAKEDOWN (Y + X, or T): a quick grab. Up by the neck and shaken; the ammo falls out of him; and at the end he's
+//   BEATDOWN (Y + B, or R): a long windup (coiled down low; a hit in it knocks him out of it), then a short lunge.
+//   Catch somebody and he's down, Meathead on top of him, and every press of X or B (shoot or special) is a punch, each
+//   one giving him a little health back (and a lot when it's over). Jump to get off. Anything that hurts him knocks him
+//   off. Whiff, and he's stood there wide open.
+//
+//   SHAKEDOWN (Y + X, or T): a short windup (hands out for the throat) that nothing stops, and if there's somebody
+//   there at the end of it, up by the neck and shaken (nothing stops that either: he takes the hits and carries on);
+//   the ammo falls out of him; and at the end he's
 //   thrown whichever way's held (left, right, up), into whoever's in the way, or slammed down into the floor (more
 //   damage, but nobody else gets hit). Once each: there's nothing left in him after.
 //
@@ -27,7 +32,9 @@ import { btn, pressed, pollM2 } from './input';
 type Ctx = CanvasRenderingContext2D;
 
 // The beatdown
-const WINDUP = 26, LUNGE = 9, LUNGE_SPEED = 7.5, WHIFF = 22;
+/** Like a fighting game's grab: once it's started, he's committed. The beatdown's windup is long (and a hit in it
+ * knocks him out of it); the shakedown's is short, and nothing stops it. */
+const WINDUP = 40, LUNGE = 9, LUNGE_SPEED = 7.5, WHIFF = 22, REACH = 14;
 /** A punch takes this much of him (whoever he is, about eight to finish him); each heals a little, the last a lot. */
 const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 7, PUNCH_GAP = 5;
 // The shakedown
@@ -44,7 +51,7 @@ const NOT_PEOPLE = new Set<EnemyKind>(['doorman', 'manhole', 'tenant', 'cardoor'
 export const grabbable = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind
   && ((isHumanoidKind(e.kind) && !NOT_PEOPLE.has(e.kind)) || MID_ANIMALS.has(e.kind));
 
-type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'shake' | 'miss';
+type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'miss';
 
 export interface Grab {
   phase: Phase;
@@ -63,10 +70,12 @@ export interface Grab {
   was: Controls;
   /** Shaken down already: nothing left in them. */
   shaken: WeakSet<Enemy>;
+  /** Buttons still held from the grab (the last punch): they don't start a charge or a shot till they're let go. */
+  gate: Set<keyof Controls>;
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(),
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(),
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -87,8 +96,10 @@ const putBack = (state: GameState, e: Enemy, x: number) => {
   state.enemies.push(e);
 };
 
+const GATED: (keyof Controls)[] = ['special', 'shoot', 'secondary', 'charge'];
 const end = (state: GameState, g: Grab) => {
   g.phase = 'idle'; g.t = 0; g.held = null; g.punchT = 0;
+  for (const k of GATED) g.gate.add(k);
   state.player.hidden = false;
 };
 
@@ -131,6 +142,12 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
 
   switch (g.phase) {
     case 'idle': {
+      // (whatever was being pressed as the grab ended, still held: nothing till it's let go)
+      if (g.gate.size) {
+        const c = { ...controls };
+        for (const k of [...g.gate]) { if (controls[k]) c[k] = false as never; else g.gate.delete(k); }
+        controls = c;
+      }
       let out = controls;
       // Y on its own is a button of its own (secondary fire) on a tap; held, it's half of a grab
       const y = btn('y');
@@ -153,19 +170,26 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
         playSound('snort', 0.8, -4);
         return hold();
       }
+      g.phase = 'reach';
+      playSound('whoosh', 0.6, 3);
+      return hold();
+    }
+
+    case 'reach': {
+      // Hands out for his throat: committed (whatever hits him, he takes it, and keeps coming)
+      if (g.t < REACH) return hold();
       const e = inReach(state, g.dir, GRAB_REACH);
-      if (!e || g.shaken.has(e)) { g.phase = 'miss'; playSound('whoosh', 0.5, 4); return hold(); }
-      // Up by the ankles
-      g.phase = 'shake'; g.held = e; take(state, e); g.shaken.add(e);
+      if (!e || g.shaken.has(e)) { g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6); return hold(); }
+      // Got him: up by the neck
+      g.phase = 'shake'; g.t = 0; g.held = e; take(state, e); g.shaken.add(e);
       e.facing = (-g.dir) as 1 | -1;
       playSound('punch', 0.8, 4);
       return hold();
     }
 
     case 'windup':
-      // Coiled up, wide open: anything that hurts him now, he's lost it; jump to bail out of it
+      // Coiled up, committed and wide open: anything that hurts him now knocks him out of it
       if (hurt) { end(state, g); return controls; }
-      if (press('jump')) { end(state, g); return controls; }
       if (g.t >= WINDUP) { g.phase = 'lunge'; g.t = 0; playSound('whoosh', 1, -2); }
       return hold();
 
@@ -190,7 +214,7 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
 
     case 'whiff':
     case 'miss':
-      if (hurt) { end(state, g); return controls; }
+      if (hurt && g.phase === 'whiff') { end(state, g); return controls; }
       if (g.t >= (g.phase === 'whiff' ? WHIFF : GRAB_MISS)) end(state, g);
       return hold();
 
@@ -230,8 +254,8 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
       return hold();
 
     case 'shake': {
+      // (nothing makes him let go: he takes whatever hits him and carries on shaking)
       const e = g.held!;
-      if (hurt) { letGo(state, g); return controls; }
       if (g.t % 6 === 0) playSound('thud', 0.35, 6);
       if (g.t < SHAKE_FRAMES) return hold();
       // Shaken out: the ammo falls out of him
@@ -350,6 +374,31 @@ const fistAt = (jig: number) => {
   return { x: x * Math.cos(a) - y * Math.sin(a), y: -24 + x * Math.sin(a) + y * Math.cos(a) };
 };
 
+/** The beatdown's windup: sunk low in a wrestler's shooting stance, back leg loaded, hands low, head down (`k` how far in). */
+const coilPose = (c: Ctx, f: number, k: number) => {
+  const drop = 4 + k * 6;
+  drawLeg(c, [-5, -22 + drop], [-15, -10 + drop * 0.4], [-28, 0], 0.15, true);
+  drawLeg(c, [5, -22 + drop], [16, -14 + drop * 0.5], [15, 0], 0, false);
+  c.save(); c.translate(0, -22 + drop); c.rotate(0.55 + k * 0.2);
+  drawArmTo(c, [-8, -22], [4, -8], [14, -12], true);
+  drawTorsoFromHips(c);
+  head(c, 7, -34, 0.4, 'scowl', f);
+  drawArmTo(c, [11, -22], [20, -8], [27, -15], false, 6);
+  c.restore();
+};
+
+/** The shakedown's windup: a step in, both hands open and out for the throat (`k` how far out). */
+const reachPose = (c: Ctx, f: number, k: number) => {
+  drawLeg(c, [-5, -24], [-10, -12], [-17, 0], 0, true);
+  drawLeg(c, [5, -24], [15 + k * 3, -13], [19 + k * 4, 0], 0, false);
+  c.save(); c.translate(0, -24); c.rotate(0.1 + k * 0.12);
+  drawArmTo(c, [-8, -22], [9, -30], [24 + k * 8, -36], true, 4.5);
+  drawTorsoFromHips(c);
+  head(c, 4, -37, 0.05, 'yell', f);
+  drawArmTo(c, [11, -22], [24, -28], [33 + k * 8, -34], false, 4.5);
+  c.restore();
+};
+
 /** Draws whatever grab's on, in place of him (world space, over everything). */
 export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
   if (g.phase === 'idle') return;
@@ -360,7 +409,7 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
     case 'windup': {
       // Coiled down, shaking with it, steam coming off him
       const k = g.t / WINDUP;
-      asPose(ctx, state, { isDucking: true, facing: g.dir }, (f % 2 ? 1 : -1) * k * 1.5);
+      sprite(ctx, x + (f % 2 ? 1 : -1) * k * 1.5, y, g.dir, c => coilPose(c, f, k));
       if (f % 4 === 0) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 30, y: p.pos.y - 10 }, vel: { x: 0, y: -1.5 }, life: 20, color: 'rgba(240, 240, 240, 0.5)', size: 3 });
       if (k > 0.7 && f % 6 < 3) { ctx.fillStyle = '#FDE047'; ctx.font = '12px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('!', x, p.pos.y - 34); ctx.textAlign = 'left'; }
       return;
@@ -368,10 +417,14 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
     case 'lunge':
       asPose(ctx, state, { isCharging: true, facing: g.dir });
       return;
-    case 'whiff':
+    case 'reach':
     case 'miss':
-      // Face down where they were, or grabbing at air
-      asPose(ctx, state, { isDucking: g.phase === 'whiff', facing: g.dir });
+      // Hands going out for his throat (or closing on air, held there a moment)
+      sprite(ctx, x, y, g.dir, c => reachPose(c, f, g.phase === 'miss' ? 1 : Math.min(1, g.t / REACH)));
+      return;
+    case 'whiff':
+      // Face down where they were
+      asPose(ctx, state, { isDucking: true, facing: g.dir });
       return;
     case 'mount':
     case 'kill': {
