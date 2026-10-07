@@ -48,8 +48,10 @@ const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 4, PUNC
 /** Each throw's animation: how long, and the frame he lets go on. */
 const TOSS: Record<Toss, { len: number; release: number }> = { forward: { len: 16, release: 7 }, back: { len: 24, release: 12 }, up: { len: 16, release: 6 }, down: { len: 18, release: 8 } };
 /** A slam's bounce (up, a frame) for Meathead; a suplex's share of who he suplexes. */
-const SLAM_BOUNCE = -10.5, SUPLEX_SHARE = 0.3;
-const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 14, THROW_SHARE = 0.15, SLAM_SHARE = 0.4, GRAB_MISS = 12;
+/** The up throw's launch (about as far up as the others go along). */
+const THROW_UP = 14;
+const SLAM_BOUNCE = -12, SUPLEX_SHARE = 0.3;
+const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 17, THROW_SHARE = 0.15, SLAM_SHARE = 0.4, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
 /** How long after a grab bumping into people still doesn't hurt (or knock him about). */
@@ -91,6 +93,8 @@ export interface Grab {
   /** The throw he's doing at the end of a shakedown, and who's just gone flying from it (not held back by keepClear). */
   toss: Toss;
   thrown: Enemy | null;
+  /** Bodies he's thrown, still flying: who each has hit already (once each), and how long it's been going. */
+  flying: { e: Enemy; hit: Set<string>; t: number }[];
   /** Frames body contact still can't hurt him (a grab's on, or just finished). */
   clearT: number;
   /** Buttons still held from the grab (the last punch): they don't start a charge or a shot till they're let go. */
@@ -98,7 +102,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null,
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [],
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -154,11 +158,11 @@ const inReach = (state: GameState, dir: number, reach: number) => {
 const take = (state: GameState, e: Enemy) => { state.enemies = state.enemies.filter(o => o !== e); };
 
 /**
- * While he's busy with one, nobody else crowds in on him: anyone who's walked up into him (or onto him) is moved back
- * out to the side they came from, a little clear, and held there a moment, waiting their turn (no piling on, no
- * standing on top of him while he's at it).
+ * While he's busy with one, nobody else crowds in on him or stands on him. Anyone who runs at him (to hit him, to
+ * charge him) goes on through: they come out the other side of him, a little clear, turned round, and wait a bit
+ * before they come at him again. Whatever's just standing about up against him is moved back out to its own side.
  */
-const CLEAR_GAP = 18;
+const CLEAR_GAP = 18, REGROUP = 50;
 const keepClear = (state: GameState, g: Grab) => {
   const p = state.player, cx = centerX(state), half = p.width / 2 + CLEAR_GAP;
   for (const e of state.enemies) {
@@ -167,17 +171,68 @@ const keepClear = (state: GameState, g: Grab) => {
     if (Math.abs(ex - cx) >= half + e.width / 2) continue;
     if (e.pos.y > p.pos.y + p.height || e.pos.y + e.height < p.pos.y - 40) continue;
     const side = ex < cx ? -1 : ex > cx ? 1 : -g.dir;
-    e.pos.x = cx + side * (half + e.width / 2) - e.width / 2;
+    // (coming at him: through and out the far side, turned round, waiting a moment; otherwise just back out)
+    const charging = Math.sign(e.vel.x) === -side && Math.abs(e.vel.x) > 1;
+    const out = charging ? -side : side;
+    e.pos.x = cx + out * (half + e.width / 2) - e.width / 2;
     e.vel.x = 0;
     if (e.vel.y < 0 && e.pos.y + e.height < p.pos.y + p.height) e.vel.y = 0;
-    e.pauseTimer = Math.max(e.pauseTimer || 0, 3);
+    if (charging) { e.facing = (-out) as 1 | -1; e.pauseTimer = Math.max(e.pauseTimer || 0, REGROUP); }
+    else e.pauseTimer = Math.max(e.pauseTimer || 0, 3);
   }
+};
+
+/** While a grab's on, everyone shooting at him does it at a bit over half the rate (it's less of a firing squad; still not safe). */
+const GRAB_FIRE_SLOW = 0.45;
+const easeOff = (state: GameState, g: Grab) => {
+  for (const e of state.enemies) if (e !== g.held && e.health > 0 && !e.isBlownAway && e.shootTimer > 0) e.shootTimer -= GRAB_FIRE_SLOW;
+};
+
+/** Sets a thrown body (alive) flying into whoever's in the way (the engine's own body-into-body shove is held off it). */
+const fly = (g: Grab, e: Enemy) => {
+  g.flying.push({ e, hit: new Set([e.id]), t: 0 });
+  e.enemyCollisionCooldown = FLY_FRAMES;
+};
+const FLY_FRAMES = 70;
+/** A body he's thrown takes out whoever it flies into, by its weight and speed, and knocks them on the way it's going. */
+const flyInto = (ctx: FrameContext, g: Grab) => {
+  const { state, fx } = ctx;
+  g.flying = g.flying.filter(fl => {
+    const e = fl.e;
+    fl.t++;
+    const speed = Math.hypot(e.vel.x, e.vel.y);
+    if (fl.t > FLY_FRAMES || e.isBlownAway || e.health <= 0 || (fl.t > 6 && speed < 2)) { e.enemyCollisionCooldown = 0; return false; }
+    for (const o of state.enemies) {
+      if (o === e || fl.hit.has(o.id) || o.health <= 0 || o.isBlownAway || o.type === 'boss' || o.innocent) continue;
+      if (o.pos.x > e.pos.x + e.width || o.pos.x + o.width < e.pos.x || o.pos.y > e.pos.y + e.height || o.pos.y + o.height < e.pos.y) continue;
+      fl.hit.add(o.id);
+      const dmg = Math.round(Math.max(10, Math.min(80, speed * getEnemyMass(e) / 40)));
+      o.health -= dmg;
+      const dir = Math.sign(e.vel.x) || g.dir;
+      fx.spawnDamageNumber(o.pos, dmg, dmg > 30);
+      fx.spawnExplosion({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 }, '#8B0000', 6 + Math.min(12, Math.round(dmg / 5)), 0, 8);
+      playSound('thud'); shakeScreen(state, 6, 4);
+      const push = Math.max(0.3, Math.min(1.6, getEnemyMass(e) / getEnemyMass(o)));
+      if (o.health <= 0) {
+        fx.blowAwayEnemy(o, { x: dir * (8 + speed * 0.5) * push, y: Math.min(-6, e.vel.y) }, 'charge_kill', dir);
+        o.meleeFlung = true;
+        fx.spawnKillCallout(o, 'crush');
+      } else {
+        o.vel = { x: dir * speed * 0.6 * push, y: Math.min(o.vel.y, -3) };
+        o.pauseTimer = Math.max(o.pauseTimer || 0, 30);
+      }
+      // (it loses some of its way, hitting him)
+      e.vel.x *= 0.75;
+    }
+    return true;
+  });
 };
 
 /** Runs the grabs. Returns the controls the rest of him gets (none while he's busy). */
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const out = stepGrab(ctx, g, controls);
-  if (g.phase !== 'idle') keepClear(ctx.state, g);
+  if (g.phase !== 'idle') { keepClear(ctx.state, g); easeOff(ctx.state, g); }
+  if (g.flying.length) flyInto(ctx, g);
   // (the grab wins over a bump: nobody he touches hurts him while one's on, from the frame it starts, and for a moment
   // after, with whoever he's just put down still at his feet; shots still do)
   if (g.phase !== 'idle') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
@@ -380,20 +435,20 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     e.pos = { x: centerX(state) + dir * (p.width / 2 + e.width / 2 + 4) - e.width / 2, y: feetY(state) - e.height };
     // (thrown about as far as a forward throw, the other way; lighter ones further)
     const w = heft(e);
-    e.vel = { x: dir * THROW_SPEED * 0.9 * w, y: -7 };
+    e.vel = { x: dir * THROW_SPEED * w, y: -6 };
     const dmg = Math.max(14, Math.round(e.maxHealth * SUPLEX_SHARE));
     e.health -= dmg;
     state.enemies.push(e);
     playSound('slam'); playSound('crunch', 0.9, -2); shakeScreen(state, 10, 6);
     for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 22, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
     if (e.health <= 0) { fx.blowAwayEnemy(e, { x: dir * 4, y: -2 }, 'charge_kill', dir); fx.spawnKillCallout(e, grabCallout('suplex')); }
-    else { e.pauseTimer = 50; e.chargedAt = state.frame; fx.spawnDamageNumber(e.pos, dmg, true); }
+    else { e.pauseTimer = 50; e.chargedAt = state.frame; fx.spawnDamageNumber(e.pos, dmg, true); fly(g, e); }
     return;
   }
   const dir = g.dir;
   // (how far by how heavy he is: a pit bull goes a lot further than a bouncer)
   const w = heft(e);
-  const v = g.toss === 'up' ? { x: g.dir * 2.5, y: -11 * w } : { x: dir * THROW_SPEED * w, y: -6 };
+  const v = g.toss === 'up' ? { x: g.dir * 2.5, y: -THROW_UP * w } : { x: dir * THROW_SPEED * w, y: -6 };
   e.pos = { x: centerX(state) + dir * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: p.pos.y - (g.toss === 'up' ? 40 : 16) };
   e.vel = { ...v };
   const dmg = Math.max(8, Math.round(e.maxHealth * THROW_SHARE));
@@ -406,6 +461,7 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     fx.spawnKillCallout(e, grabCallout(g.toss === 'up' ? 'launched' : 'thrown'));
   } else {
     e.pauseTimer = 45;
+    fly(g, e);
     e.chargedAt = state.frame;
     fx.spawnDamageNumber(e.pos, dmg);
   }
