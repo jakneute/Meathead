@@ -26,7 +26,7 @@ export interface Boat {
   /** The old man: sitting, flying, bobbing in the water; or what's left once the boat's been over him (his head,
    * flying, then bobbing, and when it went: the red in the water fades from then). */
   oldMan: { x: number; y: number; vx: number; vy: number; rot: number; state: 'fishing' | 'flying' | 'swimming' | 'headless'; line: string; lineT: number;
-    head?: { x: number; y: number; vx: number; vy: number; rot: number; afloat: boolean; t: number; rel0: number }; goneAt?: number };
+    head?: { x: number; y: number; vx: number; vy: number; rot: number; afloat: boolean; t: number; rel0: number }; goneAt?: number; goneSince?: number };
   x: number;
   y: number;
   block: Block;
@@ -78,7 +78,7 @@ export const updateBoat = (ctx: FrameContext, b: Boat, controls: Controls, onSuc
   // (the cutscene's clock waits at each beat till the line before's been said)
   if (b.phase !== 'cutscene' || holdForSpeech(b.t, BOAT_HOLDS, b.quiet)) b.t++;
   if (b.oldMan.lineT > 0) b.oldMan.lineT--;
-  updateOldMan(b);
+  updateOldMan(b, state);
   switch (b.phase) {
     case 'waiting':
       if (player.isGrounded && Math.abs(player.pos.x + player.width / 2 - b.oldMan.x) < 240) { b.phase = 'cutscene'; b.t = 0; }
@@ -91,8 +91,18 @@ export const updateBoat = (ctx: FrameContext, b: Boat, controls: Controls, onSuc
   }
 };
 
-const updateOldMan = (b: Boat) => {
+const updateOldMan = (b: Boat, state: GameState) => {
   const m = b.oldMan;
+  // What's left of him, face down in the water: the stump pumping, in spurts, weaker as it goes
+  if (m.state === 'headless' && m.goneAt !== undefined && m.goneAt > -9999) {
+    const since = m.goneSince = (m.goneSince ?? 0) + 1;
+    if (since < STUMP_FRAMES && since % 14 < 6) {
+      const k = 1 - since / STUMP_FRAMES;
+      for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: m.x - 12, y: COURSE.sea.y - 2 }, vel: { x: -1.5 - Math.random() * 2 * k, y: -2 - Math.random() * 6 * k }, life: 30, color: i % 2 ? '#B91C1C' : '#DC2626', size: 2 + Math.random() * 3, grav: 0.3 });
+    }
+  }
+  // (the head, a trail of it as it turns over in the air)
+  if (m.head && !m.head.afloat && state.frame % 2 === 0) state.particles.push({ pos: { x: m.head.x, y: m.head.y + 6 }, vel: { x: (Math.random() - 0.5) * 2, y: Math.random() * 1.5 }, life: 26, color: '#B91C1C', size: 2 + Math.random() * 3, grav: 0.3 });
   if (m.state === 'flying') {
     m.vy += 0.6; m.x += m.vx; m.y += m.vy; m.rot += 0.25;
     if (m.y > COURSE.sea.y + 6) { m.state = 'swimming'; m.y = COURSE.sea.y + 6; m.vx = 0; m.vy = 0; m.rot = 0; }
@@ -155,6 +165,10 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
 /** His head, up off the bow: how hard it goes up, how floaty it comes down (about two seconds up there), and where it
  * lands (ahead of the bow). */
 const HEAD_UP = -8, HEAD_GRAVITY = 0.13, HEAD_FLIGHT = 122, HEAD_AHEAD = 230;
+/** How far out ahead of the deck the bow's tip is drawn (see drawBoatFront). */
+const BOW_TIP = 18;
+/** How long what's left of him floats behind, the stump still pumping. */
+export const STUMP_FRAMES = 300;
 /** How long after the old man's gone under the bow before it's his to drive. */
 const LAUNCH_AFTER = 70;
 /**
@@ -170,14 +184,24 @@ const launch = (ctx: FrameContext, b: Boat): Controls => {
   moveBoatTo(state, b, b.speed, COURSE.boat.y);
   const m = b.oldMan;
   // (still in the air from the kick, or bobbing: either way the bow has him)
-  if ((m.state === 'swimming' || m.state === 'flying') && b.x + BOAT_W - 20 >= m.x) {
+  // (the bow's tip, out ahead of the deck, reaching him: that's where it takes him)
+  if ((m.state === 'swimming' || m.state === 'flying') && b.x + BOAT_W + BOW_TIP >= m.x - 6) {
     m.state = 'headless'; m.goneAt = b.t;
     m.y = COURSE.sea.y + 6;
     m.head = { x: m.x, y: COURSE.sea.y - 14, vx: 0, vy: HEAD_UP, rot: 0, afloat: false, t: 0, rel0: m.x - (b.x + BOAT_W) };
-    for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: m.x + (Math.random() - 0.5) * 20, y: COURSE.sea.y - 4 }, vel: { x: 1 + Math.random() * 5, y: -2 - Math.random() * 7 }, life: 26 + Math.random() * 20, color: i % 3 ? '#B91C1C' : '#7F1D1D', size: 3 + Math.random() * 4, grav: 0.35 });
-    fx.spawnExplosion({ x: m.x, y: COURSE.sea.y - 10 }, '#8B0000', 14, 0, 10);
-    playSound('crunch', 0.9); playSound('splat'); playSound('splash', 0.7);
-    shakeScreen(state, 10, 5);
+    // A lot of him, everywhere: a fountain up off the bow, a spray forward over the water and back over the boat
+    // (and him), the gore burst, a red mist hanging
+    for (let i = 0; i < 110; i++) {
+      const up = i < 50;
+      state.particles.push({ pos: { x: m.x + (Math.random() - 0.5) * 24, y: COURSE.sea.y - 8 - Math.random() * 10 },
+        vel: up ? { x: (Math.random() - 0.3) * 6, y: -6 - Math.random() * 10 } : { x: (Math.random() < 0.6 ? 1 : -1) * (2 + Math.random() * 9), y: -1 - Math.random() * 6 },
+        life: 40 + Math.random() * 40, color: ['#B91C1C', '#7F1D1D', '#DC2626', '#991B1B'][i % 4], size: 2 + Math.random() * 6, grav: 0.32 });
+    }
+    for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: m.x + (Math.random() - 0.5) * 50, y: COURSE.sea.y - 20 - Math.random() * 40 }, vel: { x: (Math.random() - 0.5) * 1.2, y: -0.3 }, life: 60, color: 'rgba(153, 27, 27, 0.35)', size: 14 + Math.random() * 14 });
+    fx.spawnDeathShower({ x: m.x, y: COURSE.sea.y - 20 }, 1, 3);
+    fx.spawnExplosion({ x: m.x, y: COURSE.sea.y - 10 }, '#8B0000', 30, 0, 14);
+    playSound('crunch', 1); playSound('splat'); playSound('splat', 0.8, -4); playSound('splash', 0.8);
+    shakeScreen(state, 14, 6);
   }
   if (m.goneAt !== undefined && b.t === m.goneAt + 24) meatheadSays(state, "GUESS THEY'RE STILL BITIN'.");
   if (m.goneAt !== undefined && b.t >= m.goneAt + LAUNCH_AFTER) { b.phase = 'riding'; b.t = 0; }

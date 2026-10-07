@@ -54,9 +54,24 @@ const bubble = (ctx: Ctx, x: number, y: number, said: string) => {
  * and beard, eyes gone to X's, turning over in the air, then bobbing. */
 const drawOldManRemains = (ctx: Ctx, state: GameState, b: Boat) => {
   const m = b.oldMan, h = m.head;
-  if (visible(state, m.x - 120, m.x + 120)) {
-    const a = Math.max(0, 0.7 - (b.phase === 'launch' ? b.t - (m.goneAt ?? 0) : 200) / 600);
-    if (a > 0) { pixelBlob(ctx, m.x + 10, COURSE.sea.y + 2, 46, 6, `rgba(127, 29, 29, ${a.toFixed(3)})`); pixelBlob(ctx, m.x - 14, COURSE.sea.y + 4, 24, 4, `rgba(185, 28, 28, ${(a * 0.8).toFixed(3)})`); }
+  const since = m.goneSince ?? 9999;
+  if (visible(state, m.x - 200, m.x + 200)) {
+    // The slick: spreading out from him, a long time going
+    const grow = Math.min(1, since / 90), a = Math.max(0, 0.85 - since / 1400);
+    if (a > 0) {
+      pixelBlob(ctx, m.x, COURSE.sea.y + 2, 30 + grow * 90, 6 + grow * 3, `rgba(127, 29, 29, ${a.toFixed(3)})`);
+      pixelBlob(ctx, m.x - 20, COURSE.sea.y + 3, 18 + grow * 50, 4 + grow * 2, `rgba(185, 28, 28, ${(a * 0.85).toFixed(3)})`);
+      pixelBlob(ctx, m.x + 30, COURSE.sea.y + 1, 10 + grow * 30, 3, `rgba(220, 38, 38, ${(a * 0.6).toFixed(3)})`);
+    }
+    // What's left of him, face down, bobbing (his vest, his shorts, an arm out), the stump red at the neck
+    if (since < 2000) {
+      const bob = Math.round(Math.sin(state.frame * 0.1) * 1.5), bx = Math.round(m.x), by = COURSE.sea.y - 1 + bob;
+      ink(ctx, () => ctx.rect(bx - 8, by - 4, 22, 7), '#FDE68A', 1);
+      ctx.fillStyle = '#65A30D'; ctx.fillRect(bx - 4, by - 3, 3, 5);
+      ink(ctx, () => ctx.rect(bx + 14, by - 3, 12, 6), '#1E3A8A', 1);
+      ink(ctx, () => ctx.rect(bx + 2, by + 2, 4, 6), '#F2C9A0', 0.8);
+      ctx.fillStyle = '#7F1D1D'; ctx.fillRect(bx - 12, by - 3, 4, 5); ctx.fillStyle = '#DC2626'; ctx.fillRect(bx - 12, by - 2, 2, 3);
+    }
   }
   if (!h || !visible(state, h.x - 30, h.x + 30)) return;
   ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.rot);
@@ -152,6 +167,15 @@ export const drawBoatFront = (ctx: Ctx, state: GameState, b: Boat) => {
   ctx.fillStyle = '#CBD5E1'; ctx.fillRect(-2, 0, BOAT_WIDTH + 22, 10); checker(ctx, -2, -2, BOAT_WIDTH + 22, 2, '#CBD5E1');
   ctx.fillStyle = 'rgba(26, 11, 6, 0.1)'; ctx.fillRect(-2, -28, 16, 38);
   ctx.fillStyle = '#DC2626'; ctx.fillRect(4, -8, BOAT_WIDTH, 4); ctx.fillStyle = '#F87171'; ctx.fillRect(4, -8, BOAT_WIDTH, 1);
+  // (and him all over the bow: splashed up it, running back along the hull, slowly washing off)
+  if (b.oldMan.state === 'headless' && (b.oldMan.goneSince ?? 9999) < 2400) {
+    const t = b.oldMan.goneSince ?? 0, wash = Math.max(0.25, 1 - t / 2400);
+    ctx.fillStyle = `rgba(153, 27, 27, ${(0.9 * wash).toFixed(3)})`;
+    for (let i = 0; i < 9; i++) { const sx = BOAT_WIDTH - 34 + i * 6, sy = -24 + (i % 3) * 5; ctx.fillRect(sx, sy, 5 + (i % 2) * 3, 4 + (i % 4) * 2); }
+    ctx.fillStyle = `rgba(185, 28, 28, ${(0.8 * wash).toFixed(3)})`;
+    for (let i = 0; i < 7; i++) { const len = Math.min(70, 10 + t * (0.3 + (i % 3) * 0.15)); ctx.fillRect(BOAT_WIDTH - 20 + i * 5 - len, -22 + i * 3, len, 2); }
+    ctx.fillStyle = `rgba(220, 38, 38, ${(0.7 * wash).toFixed(3)})`; for (let i = 0; i < 5; i++) ctx.fillRect(BOAT_WIDTH - 28 + i * 9, -20 + (i * 7) % 18, 2, 2);
+  }
   ctx.restore();
   ctx.beginPath(); hull(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
   ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(1, -21); ctx.lineTo(BOAT_WIDTH + 16, -25); ctx.stroke();
