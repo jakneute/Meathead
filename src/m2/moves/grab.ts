@@ -72,10 +72,15 @@ const MID_ANIMALS = new Set<EnemyKind>(['wolverine', 'goat', 'gator', 'coyote', 
 /** People who are behind something, up in something, or not there to be grabbed. */
 const NOT_PEOPLE = new Set<EnemyKind>(['doorman', 'manhole', 'tenant', 'cardoor', 'jetskier', 'cower']);
 
+/** The little ones (and the birds): grabbed one-handed and pitched, not beaten or shaken (see the 'critter' phase). */
+const CRITTERS = new Set<EnemyKind>(['rat', 'crab', 'iguana', 'raccoon', 'armadillo', 'scorpion', 'rattlesnake', 'salamander', 'sludgeling',
+  'pigeon', 'seagull', 'pelican', 'eagle', 'vulture', 'hawk', 'grackle']);
+export const isCritter = (e: Enemy) => !!e.kind && CRITTERS.has(e.kind) && e.health > 0 && !e.isBlownAway && e.type !== 'boss';
+
 export const grabbable = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind
   && ((isHumanoidKind(e.kind) && !NOT_PEOPLE.has(e.kind)) || MID_ANIMALS.has(e.kind));
 
-type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop';
+type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop' | 'critter' | 'pitch';
 /** Which throw: on the way he's facing, back (a suplex), straight up, or slammed down. */
 type Toss = 'forward' | 'back' | 'up' | 'down';
 
@@ -103,6 +108,8 @@ export interface Grab {
   thrown: Enemy | null;
   /** Bodies he's thrown, still flying: who each has hit already (once each), and how long it's been going. */
   flying: { e: Enemy; hit: Set<string>; t: number; fall: number; still: number; how: GrabCallout; oneChunk: boolean; impact: number }[];
+  /** Which way a critter was pitched. */
+  pitch: 'left' | 'right' | 'up' | 'down';
   /** The fastest they've come down, plummeting together (for how hard they land). */
   fall: number;
   /** Frames body contact still can't hurt him (a grab's on, or just finished). */
@@ -112,7 +119,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0,
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right',
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -166,9 +173,11 @@ const inReach = (state: GameState, dir: number, reach: number) => {
   let best: Enemy | null = null, bestD = Infinity;
   const mid = p.pos.x + p.width / 2;
   for (const e of state.enemies) {
-    if (!grabbable(e)) continue;
-    // (forgiving up and down: somebody just landing from a throw, still bouncing, is in reach)
-    if (e.pos.y > p.pos.y + p.height + 24 || e.pos.y + e.height < p.pos.y - 24) continue;
+    const critter = isCritter(e);
+    if (!grabbable(e) && !critter) continue;
+    // (forgiving up and down: somebody just landing from a throw, still bouncing, is in reach; a bird a good way up too)
+    const slack = critter ? 60 : 24;
+    if (e.pos.y > p.pos.y + p.height + slack || e.pos.y + e.height < p.pos.y - slack) continue;
     const near = dir > 0 ? e.pos.x - front : front - (e.pos.x + e.width);
     // (anybody from right up against him, even a little behind his middle, out to the reach)
     const behind = dir > 0 ? mid - 16 - (e.pos.x + e.width) : e.pos.x - (mid + 16);
@@ -358,6 +367,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // reach while they're going out is got hold of then and there
       const e = inReach(state, g.dir, GRAB_REACH);
       if (!e) { if (g.t >= REACH) { g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6); } return hold(); }
+      if (isCritter(e)) return grabCritter(state, g, e, hold);
       // Got him: up by the neck (in the air: down they both come first, no harm in the landing for him)
       g.phase = p.isGrounded ? 'shake' : 'drop'; g.t = 0; g.held = e; g.thrown = null; take(state, e); g.fall = 0;
       e.facing = (-g.dir) as 1 | -1;
@@ -376,6 +386,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // (in the air, he holds his height through it)
       if (!p.isGrounded) p.vel.y = Math.min(p.vel.y, 0);
       const e = inReach(state, g.dir, LUNGE_REACH);
+      if (e && isCritter(e)) return grabCritter(state, g, e, hold);
       if (e) {
         // Down he goes, Meathead on top of him (in the air, the two of them plummet first)
         g.phase = p.isGrounded ? 'mount' : 'plummet'; g.t = 0; g.held = e; take(state, e); g.fall = 0;
@@ -389,6 +400,34 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (g.t >= LUNGE) { g.phase = 'whiff'; g.t = 0; playSound('land', 0.8, -4); }
       return hold();
     }
+
+    case 'critter': {
+      // Up in his fist, squirming: a direction, and it's pitched that way; too long, and it squeaks free
+      const e = g.held!;
+      const d = controls.down ? 'down' : controls.up ? 'up' : controls.left ? 'left' : controls.right ? 'right' : null;
+      if (d) {
+        g.pitch = d; g.phase = 'pitch'; g.t = 0;
+        if (d === 'left' || d === 'right') p.facing = (d === 'left' ? -1 : 1);
+        g.dir = p.facing;
+        pitchCritter(ctx, g, e);
+        g.held = null;
+        return hold();
+      }
+      if (g.t >= CRITTER_HOLD) {
+        // (squeaked free: out of his hand and off, running)
+        putBack(state, e, centerX(state) + g.dir * 26);
+        e.vel = { x: g.dir * 4, y: -6 }; e.pauseTimer = 20;
+        playSound('boing', 0.6, 14);
+        end(state, g);
+        return controls;
+      }
+      if (g.t % 14 === 0) playSound('boing', 0.25, 18);
+      return hold();
+    }
+
+    case 'pitch':
+      if (g.t >= PITCH_FOLLOW) end(state, g);
+      return hold();
 
     case 'plummet':
     case 'drop': {
@@ -557,6 +596,34 @@ const crushUnder = (ctx: FrameContext, e: Enemy, dir: number) => {
   }
   if (hit.length) { playSound('crunch', 1, -4); shakeScreen(state, 12, 7); }
   return hit;
+};
+
+/** Up in his fist, one-handed, a critter: held there till a direction's pressed (see the 'critter' phase). */
+const CRITTER_HOLD = 120, PITCH_FOLLOW = 12;
+const grabCritter = (state: GameState, g: Grab, e: Enemy, hold: () => Controls) => {
+  g.phase = 'critter'; g.t = 0; g.held = e; take(state, e);
+  e.facing = g.dir;
+  playSound('boing', 0.4, 16);
+  return hold();
+};
+
+/**
+ * Let fly: pitched like a fastball (left or right), spiked into the floor (down), or heaved up into the air (up). It's
+ * done for either way (a body now, flying on and taking out whoever it hits, splatting on whatever it meets).
+ */
+const pitchCritter = (ctx: FrameContext, g: Grab, e: Enemy) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  const hand = { x: centerX(state) + g.dir * 18, y: p.pos.y + 6 };
+  e.pos = { x: hand.x - e.width / 2, y: hand.y - e.height / 2 };
+  const v = g.pitch === 'down' ? { x: g.dir * 4, y: 24 } : g.pitch === 'up' ? { x: g.dir * 2, y: -24 } : { x: g.dir * 26, y: -2 };
+  state.enemies.push(e);
+  e.health = 0;
+  fx.blowAwayEnemy(e, v, 'charge_kill', g.dir);
+  e.meleeFlung = true;
+  fx.spawnKillCallout(e, grabCallout(g.pitch === 'down' ? 'slam' : g.pitch === 'up' ? 'launched' : 'thrown'));
+  playSound('whoosh', 1.3, 6);
+  if (g.pitch === 'down') { playSound('splat'); shakeScreen(state, 6, 4); }
 };
 
 /** Lets go of him, the way the throw's going: slammed down in front, suplexed down behind, launched up, or flung forward. */
@@ -761,6 +828,18 @@ const shootPose = (c: Ctx, f: number, k: number) => {
   c.restore();
 };
 
+/** One-handed: the throwing hand at `arm` (from his hips, facing right), the other out in front for balance. */
+const pitchPose = (c: Ctx, f: number, arm: { x: number; y: number }, k: number) => {
+  drawLeg(c, [-5, -24], [-10, -12], [-14, 0], 0, true);
+  drawLeg(c, [5, -24], [13, -13 + k * 2], [17, 0], 0, false);
+  c.save(); c.translate(0, -24); c.rotate(-0.1 + k * 0.25);
+  drawArmTo(c, [-8, -22], [-2, -14], [10, -18], true);
+  drawTorsoFromHips(c);
+  head(c, 3, -37, 0, k > 0.5 ? 'roar' : 'grit', f);
+  drawArmTo(c, [11, -22], [(arm.x + 11) / 2 + 2, (arm.y - 22) / 2 - 4], [arm.x, arm.y], false, 6);
+  c.restore();
+};
+
 /** The shakedown's windup: a step in, both hands open and out for the throat (`k` how far out). */
 const reachPose = (c: Ctx, f: number, k: number) => {
   drawLeg(c, [-5, -24], [-10, -12], [-17, 0], 0, true);
@@ -886,6 +965,19 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       // Face down where they were
       asPose(ctx, state, { isDucking: true, facing: g.dir });
       return;
+    case 'critter':
+    case 'pitch': {
+      // One-handed: wound up with it by his ear, squirming (a bird flapping); then the arm's follow-through, the way it went
+      const k = g.phase === 'pitch' ? Math.min(1, g.t / 4) : 0;
+      const arm = g.phase === 'critter' ? { x: -6, y: -50 } : g.pitch === 'down' ? { x: 28, y: -2 } : g.pitch === 'up' ? { x: 8, y: -66 } : { x: 34, y: -30 };
+      sprite(ctx, x, y, g.dir, c => pitchPose(c, f, arm, k));
+      if (g.held) {
+        const wiggle = Math.sin(f * 0.9) * 0.25;
+        const hx = x + g.dir * (arm.x * Math.cos(-0.1) + 2), hy = y - 24 + arm.y + 6;
+        drawEnemyAt(ctx, g.held, state, hx, hy + g.held.height / 2, wiggle, (-g.dir) as 1 | -1);
+      }
+      return;
+    }
     case 'plummet':
     case 'drop': {
       // Coming down together: air streaming up past them
