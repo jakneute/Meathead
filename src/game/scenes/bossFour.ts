@@ -1,10 +1,12 @@
 // The four assholes (and the four more), in silhouette: each his actual sprite, as he stands in his fight, filled
 // black with the backlight catching his edges, rising up one after another over the red. (Its own file: the bosses'
-// sprites pull in the stages, and one of those pulls in the intro's scenes.)
+// sprites pull in the stages, and one of those pulls in the intro's scenes.) The briefing slides' busts are drawn here
+// too, and handed to the intro (setSlideBust) for the same reason.
 
 import { ART_W, ART_H, C, R } from './ending';
 import { bands } from './art/snes';
 import { drawBoss, makeSitter } from '../render/bosses';
+import { setSlideBust } from './intro';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -55,11 +57,36 @@ const bossSil = (ctx: Ctx, key: string, cx: number, base: number, scale: number,
   const c = silhouette(key, scale, rim);
   const x = Math.round(cx - (PAD + 40) * scale), y = Math.round(base - (PAD + 80) * scale);
   ctx.drawImage(c, x, y);
-  if (eyes) {
-    const [ex, ey] = EYES[key] ?? [40, 14.5];
-    for (const s of [-1, 1]) { R(ctx, Math.round(x + (PAD + ex + s * 6) * scale) - 1, Math.round(y + (PAD + ey) * scale), 3, 2, eyes); R(ctx, Math.round(x + (PAD + ex + s * 6) * scale), Math.round(y + (PAD + ey) * scale), 1, 1, '#ffd0a0'); }
+  if (eyes) litEyes(ctx, key, x, y, scale, eyes);
+};
+
+/** His eyes lit in the dark of his silhouette (put down at x, y, at `scale`): a slit each side, a hot point in it. */
+const litEyes = (ctx: Ctx, key: string, x: number, y: number, scale: number, eyes: string, hot = '#ffd0a0') => {
+  const [ex, ey] = EYES[key] ?? [40, 14.5];
+  const w = scale < 0.8 ? 2 : 3, h = scale < 0.8 ? 1 : 2;
+  for (const s of [-1, 1]) {
+    const px = Math.round(x + (PAD + ex + s * 6) * scale), py = Math.round(y + (PAD + ey) * scale);
+    R(ctx, px - 1, py, w, h, eyes); R(ctx, px, py, 1, 1, hot);
   }
 };
+
+/**
+ * A boss's bust on a briefing slide (see intro.ts's drawSlide): his actual sprite in silhouette, the backlight round his
+ * edges, cut off at the tops of his arms and cropped to `clip` (the photo's frame), his eyes lit. (cx, base): the middle
+ * of his head, and where the bottom of the photo cuts him off; `s`, how big.
+ */
+const BUST_CUT = 50;
+const slideBust = (ctx: Ctx, key: string, cx: number, base: number, s: number, clip: [number, number, number, number], rim: string, eyes: string) => {
+  const scale = Math.round(s * 20) / 20;
+  const c = silhouette(key, scale, rim);
+  const x = Math.round(cx - (PAD + 40) * scale), y = Math.round(base - (PAD + BUST_CUT) * scale);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(clip[0], clip[1], clip[2], clip[3]); ctx.clip();
+  ctx.drawImage(c, x, y);
+  litEyes(ctx, key, x, y, scale, eyes);
+  ctx.restore();
+};
+setSlideBust(slideBust);
 
 /** A set's four in silhouette, rising up one after another in the dark over red, eyes lit: evenly spaced, on the one floor. */
 const drawFour = (ctx: Ctx, t: number, keys: string[]) => {

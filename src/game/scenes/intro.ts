@@ -5,9 +5,10 @@
 // back of Meathead's head.
 
 import { ART_W, ART_H, C, R, ell, hash, figure, over, rimLight, mhStandingFig, FIG_INK, DENIM, BELT, BOOT } from './ending';
-import { agentFig, agentTalk, agentBlur, pencilFig, pencilBlur, DOOR_RIM } from './suits';
+import { agentFig, agentTalk, agentBlur, pencilFig, pencilBlur, DOOR_RIM, SUIT, CHEAP, PSKIN, PHAIR } from './suits';
+import { painting, bayer } from './art/raster';
 import { shatPants, shatFront, shatCloseUp } from './shatLook';
-import { shaded, layer, ball, box, bands, RAMP } from './art/snes';
+import { shaded, layer, ball, bands, RAMP } from './art/snes';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -251,126 +252,148 @@ export const drawDoorway = (ctx: Ctx, t: number) => {
   bencher(ctx, t, true);
 };
 
-/** Where the agent's neck starts (under his ears, at the line of his jaw) and how far it's spread by his collar. */
-const NECK_TOP = 68, NECK_BOTTOM = 108;
-/** Half the neck's width at row y: the jaw's width up top, flaring out (faster the lower it gets) to the collar. */
-const neckHalf = (y: number) => { const k = Math.max(0, Math.min(1, (y - NECK_TOP) / (NECK_BOTTOM - NECK_TOP))); return 32 + Math.round(k * k * 24); };
-
-/** Where the jacket's shoulders, sloping up, meet the collar (each side, in from the neck's edge at the collar). */
-const COLLAR_L = 120 - neckHalf(104) + 6, COLLAR_R = 120 + neckHalf(104) - 6;
-
-/** The close-up agent's neck, row by row: stepped shading across it, lit on the left, the jaw's shadow over the top. */
-const drawAgentNeck = (ctx: Ctx) => {
-  const S = RAMP.aSkin;
-  for (let y = NECK_TOP; y < NECK_BOTTOM; y++) {
-    const h = neckHalf(y), l = 120 - h, r = 120 + h;
-    // (under the jaw, the top few rows in its shadow, dithered off into the light below)
-    const shadow = y < NECK_TOP + 6 || (y < NECK_TOP + 9 && y % 2 === 0);
-    for (let x = l; x < r; x++) {
-      const fromL = x - l, fromR = r - 1 - x;
-      let c: string;
-      if (fromL < 2) c = S[2];
-      else if (fromR < 2) c = S[1];
-      else if (fromL < 5) c = (fromL === 4 && (x + y) % 2) ? S[4] : S[3];
-      else if (fromR < 6) c = (fromR === 5 && (x + y) % 2) ? S[3] : S[2];
-      else if (x < 104) c = (x === 103 && (x + y) % 2) ? S[3] : S[4];
-      else c = S[3];
-      if (shadow && c !== S[1]) c = S[Math.max(1, S.indexOf(c) - 1)];
-      R(ctx, x, y, 1, 1, c);
-    }
-    // (the cord down each side, from behind the ear toward the middle of the collar: a highlight on the lit side,
-    // a crease on the other)
-    const cord = Math.round((y - NECK_TOP) * 0.18);
-    if (y > NECK_TOP + 4) { R(ctx, l + 6 + cord, y, 1, 1, S[5]); R(ctx, r - 8 - cord, y, 1, 1, S[1]); }
-  }
-};
+/** The agents' skin up close: a touch more range than RAMP.aSkin, so the jaw's planes read. */
+const AS = ['#3a2416', '#5a3c26', '#80583c', '#a47a58', '#c49a74', '#e0bc96', '#f4d8b8', '#fcecd8'];
+/** Lenses: black glass, the room's light caught in the top of them. */
+const LENS = ['#000000', '#05050a', '#0c0c16', '#161624', '#222236', '#34344e'];
+/** A black tie, a little sheen on it. */
+const TIE = ['#020203', '#08080c', '#121218', '#1e1e28', '#30303c'];
+/** The earpiece's clear plastic and its coil. */
+const CLEAR = ['#4c5860', '#6c7880', '#9ca8b0', '#c8d0d8', '#eef4f8'];
 
 /**
- * The top of the jacket at column x: the round of the shoulders out at the sides, and in toward the neck, the traps
- * under it climbing steeply up to the collar (whichever's higher), so the shoulders and the neck are one shape.
+ * The agent who talks, up close, painted once (everything of him that doesn't move): the jacket over shoulders like a
+ * door, the lapels, the flag pin; the white shirt, the black tie, its clip; the neck wider than his head, the cords
+ * standing in it, rolling over a collar that's losing; the head a cinder block, the jaw's corners, the cleft, a five
+ * o'clock shadow; the hair a helmet, a side parting you could cut yourself on, the comb's lines, the lacquer shining;
+ * the shades (Meathead a tiny one in each lens); the ears, the earpiece, its coil down into the collar.
  */
-const shoulderTop = (x: number) => {
-  const dx = Math.abs(x + 0.5 - 120);
-  const round = 150 - 42 * Math.sqrt(Math.max(0, 1 - (dx / 96) ** 2));
-  const inset = dx - (120 - COLLAR_L);
-  const traps = inset <= 0 ? 103 : 103 + (inset / 35) ** 2 * 30;
-  return Math.min(round, traps);
-};
-
-/** The jacket over his shoulders and traps, as one form: lit from up on the left, brightest along the top of it. */
-const drawAgentShoulders = (ctx: Ctx) => {
-  const X = 24, Y = 100, W = 192, H = 92;
-  shaded(ctx, 'ag-upper', X, Y, W, H, RAMP.aSuit, (u, v) => {
-    const x = X + u * W, y = Y + v * H, top = shoulderTop(x - 0.5);
-    if (y < top) return -1;
-    // (a mound: turned toward the light up on the left, up along the top of it, away down the far side)
-    const nx = Math.max(-0.95, Math.min(0.95, (x - 120) / 100));
-    const ny = -Math.max(0, 1 - (y - top) / 16) * 0.85;
-    const nz = Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny));
-    const lx = -0.4, ly = -0.75, lz = Math.sqrt(1 - lx * lx - ly * ly);
-    return 0.06 + 0.94 * Math.max(0, nx * lx + ny * ly + nz * lz) * (1 - v * 0.35);
-  });
-};
+const agentStill = () => painting('ag-closeup', ART_W, ART_H, p => {
+  const I = FIG_INK, S = SUIT, SH = RAMP.shirt, Hm = RAMP.mHair;
+  const onIt = (x: number, y: number, c: string) => { if (p.painted(x, y)) p.px(x, y, c); };
+  // The jacket: the shoulders out past the frame, the traps under it climbing up into the collar
+  p.form(g => { g.moveTo(14, 150); g.bezierCurveTo(22, 126, 44, 112, 70, 105); g.lineTo(80, 99); g.lineTo(160, 99); g.lineTo(170, 105); g.bezierCurveTo(196, 112, 218, 126, 226, 150); g.closePath(); },
+    { ramp: S, bevel: 24, amb: 0.1, ink: I });
+  // (the shoulder seams; a crease where the jacket's pulled tight across him)
+  for (const s of [-1, 1]) { p.line(120 + s * 82, 128, 120 + s * 70, 112, S[s < 0 ? 5 : 3]); p.line(120 + s * 83, 129, 120 + s * 71, 113, S[1]); }
+  p.line(48, 136, 70, 126, S[1]); p.line(48, 135, 70, 125, S[4]);
+  // The shirt in the V
+  p.form(g => { g.moveTo(100, 100); g.lineTo(140, 100); g.lineTo(121, 146); g.lineTo(119, 146); g.closePath(); }, { ramp: SH, bevel: 6, amb: 0.3, ink: null });
+  // The tie down it, the clip across it
+  p.form(g => { g.moveTo(115.5, 109); g.lineTo(124.5, 109); g.lineTo(126, 146); g.lineTo(114, 146); g.closePath(); }, { ramp: TIE, bevel: 3, amb: 0.25, ink: I, spec: '#7a7a90', wet: 0.35 });
+  p.line(119, 112, 118, 144, TIE[4]);
+  p.form(g => { g.rect(112, 124, 16, 2.5); }, { ramp: RAMP.gold, bevel: 1, amb: 0.4, ink: '#3c2800', spec: '#fffff0', wet: 0.7 });
+  // The lapels: notched, lit along their edges
+  for (const s of [-1, 1]) {
+    const X = (x: number) => 120 + s * (x - 120);
+    p.form(g => { g.moveTo(X(77), 101); g.lineTo(X(102), 101); g.lineTo(X(119), 146); g.lineTo(X(103), 146); g.lineTo(X(90), 124); g.lineTo(X(84), 125); g.lineTo(X(81), 118); g.closePath(); },
+      { ramp: S, bevel: 4, amb: s < 0 ? 0.24 : 0.12, ink: I, inkIn: S[0] });
+    p.line(X(102), 102, X(118), 144, S[s < 0 ? 6 : 4]); p.line(X(84), 124, X(90), 123, S[s < 0 ? 5 : 3]);
+  }
+  // (the flag pin on his lapel: the stripes, the blue, the gold round it, a glint)
+  p.form(g => { g.rect(89, 112, 9, 7); }, { ramp: RAMP.gold, bevel: 1, amb: 0.4, ink: '#3c2800' });
+  for (let y = 0; y < 5; y++) p.line(90, 113 + y, 96, 113 + y, y % 2 ? '#f4f4f4' : '#c81c1c');
+  p.rect(90, 113, 3, 3, '#1c2c8c'); p.px(91, 114, '#e8e8f0'); p.px(97, 112, '#fffff0');
+  // The neck: out from under the jaw, wider than his head by the time it gets to the collar
+  p.form(g => { g.moveTo(90, 60); g.lineTo(150, 60); g.bezierCurveTo(151, 80, 158, 94, 173, 103); g.lineTo(67, 103); g.bezierCurveTo(82, 94, 89, 80, 90, 60); g.closePath(); },
+    { ramp: AS, bevel: 18, amb: 0.14, ink: I, inkIn: AS[1] });
+  // (in the jaw's shadow, the far side darker; the cords down from behind the ears, each a ridge lit on its left)
+  for (let x = 66; x < 175; x++) for (let y = 60; y < 103; y++) if (p.painted(x, y) && bayer(x, y) + 0.5 < (x < 120 ? 0.75 : 1.1) - (y - 60) / 60) p.px(x, y, x < 120 ? AS[3] : AS[2]);
+  for (const [x0, x1, s] of [[87, 74, -1], [153, 166, 1]] as const) for (let k = 0; k <= 30; k++) {
+    const x = Math.round(x0 + ((x1 - x0) * k * k) / 900), y = 70 + k;
+    p.px(x, y, AS[s < 0 ? 2 : 1]); p.px(x - 1, y, s < 0 ? AS[6] : AS[3]);
+  }
+  // (the neck rolling over the collar)
+  for (let x = 70; x < 171; x++) { onIt(x, 99, AS[5]); onIt(x, 100, AS[3]); onIt(x, 101, AS[1]); }
+  // The collar, buttoned and losing: dug in round that neck, the stitching strained; its points down either side of the knot
+  p.form(g => { g.moveTo(66, 101); g.lineTo(174, 101); g.lineTo(171, 107); g.lineTo(69, 107); g.closePath(); }, { ramp: SH, bevel: 2.5, amb: 0.3, ink: I, inkIn: SH[0] });
+  for (let x = 72; x < 168; x += 3) p.px(x, 104, SH[1]);
+  for (const s of [-1, 1]) p.form(g => { g.moveTo(120 + s * 2, 103); g.lineTo(120 + s * 12, 102); g.lineTo(120 + s * 10, 113); g.closePath(); }, { ramp: SH, bevel: 2, amb: s < 0 ? 0.4 : 0.25, ink: I });
+  // (the knot)
+  p.form(g => { g.moveTo(113, 101); g.lineTo(127, 101); g.lineTo(125, 110); g.lineTo(115, 110); g.closePath(); }, { ramp: TIE, bevel: 3, amb: 0.25, ink: I, spec: '#7a7a90', wet: 0.4 });
+  // The ears
+  for (const [ex, s] of [[84, -1], [156, 1]] as const) {
+    p.form(g => { g.ellipse(ex, 58, 5.5, 10, s * 0.1, 0, Math.PI * 2); }, { ramp: AS, bevel: 3.5, amb: s < 0 ? 0.22 : 0.1, ink: I });
+    p.line(ex + s, 52, ex + s, 64, AS[2]); p.line(ex + s * 2, 53, ex + s * 2, 63, AS[1]); p.line(ex, 50, ex, 52, AS[6]);
+  }
+  // The head: a cinder block; the jaw dead square, the corners of it barely rounded
+  p.form(g => {
+    g.moveTo(90, 24); g.lineTo(150, 24); g.bezierCurveTo(153, 40, 154, 60, 154, 80); g.lineTo(153, 94); g.bezierCurveTo(152, 101, 147, 105, 138, 105);
+    g.lineTo(102, 105); g.bezierCurveTo(93, 105, 88, 101, 87, 94); g.lineTo(86, 80); g.bezierCurveTo(86, 60, 87, 40, 90, 24); g.closePath();
+  }, { ramp: AS, bevel: 13, amb: 0.2, ink: I, inkIn: AS[1] });
+  // (the jaw's corners: the muscle at the hinge, lit on its top; the shadow along under the jawline)
+  for (const s of [-1, 1]) {
+    const x0 = 120 + s * 30;
+    for (let k = 0; k < 18; k++) { p.px(x0 + s * Math.round(k * 0.1), 82 + k, AS[s < 0 ? 3 : 2]); if (s < 0) p.px(x0 + 1, 82 + k, AS[5]); }
+    p.line(x0 - s * 4, 101, x0 - s * 14, 103, AS[2]);
+  }
+  // (the hollows under the cheekbones, a step darker; the temples)
+  for (const s of [-1, 1]) for (let y = 66; y < 82; y++) for (let x = 96; x < 146; x++) {
+    const d = (Math.abs(x - 120) - 22) / 7, e = (y - 73) / 7;
+    if (Math.sign(x - 120) === s && d * d + e * e < 1 && bayer(x, y) + 0.5 < 0.4 - (d * d + e * e) * 0.4) p.px(x, y, s < 0 ? AS[4] : AS[3]);
+  }
+  // (the brows, flat and heavy, the furrow between them)
+  for (const s of [-1, 1]) for (let k = 0; k < 22; k++) { const x = 120 + s * (5 + k); p.px(x, 39, Hm[1]); p.px(x, 40, Hm[2]); p.px(x, 41, Hm[1]); if (k % 3 === 0) p.px(x, 38, Hm[1]); p.px(x, 42, AS[s < 0 ? 5 : 4]); }
+  p.line(118, 36, 118, 42, AS[2]); p.line(122, 36, 122, 42, AS[2]); p.line(119, 37, 119, 42, AS[5]);
+  // The nose: the bridge lit down its left, the ball of it, the nostrils, the shadow under
+  p.line(117, 56, 116, 72, AS[6]); p.line(118, 56, 118, 72, AS[5]); p.line(122, 58, 123, 72, AS[3]); p.line(123, 60, 124, 72, AS[2]);
+  p.form(g => { g.ellipse(120, 74, 6, 3.5, 0, 0, Math.PI * 2); }, { ramp: AS, bevel: 3, amb: 0.2, ink: null });
+  p.rect(114, 76, 3, 1, '#4a2a18'); p.rect(124, 76, 3, 1, '#4a2a18'); p.line(112, 78, 128, 78, AS[2]); p.line(114, 79, 126, 79, AS[3]);
+  p.px(117, 72, AS[7]);
+  // (the groove down to the lip; the mouth a flat line, the corners turned down; the lower lip lit)
+  p.line(118, 80, 118, 83, AS[3]); p.line(122, 80, 122, 83, AS[3]); p.line(120, 81, 120, 83, AS[5]);
+  p.line(107, 85, 133, 85, '#5a2a1c'); p.line(108, 84, 132, 84, AS[2]); p.line(109, 86, 131, 86, '#b07058'); p.line(110, 87, 130, 87, AS[5]);
+  p.px(106, 86, '#5a2a1c'); p.px(134, 86, '#5a2a1c'); p.px(105, 87, AS[2]); p.px(135, 87, AS[2]);
+  // (the chin: square, the cleft, the light either side of it)
+  p.line(120, 95, 120, 102, AS[2]); p.line(119, 96, 119, 101, AS[6]); p.line(121, 96, 121, 101, AS[3]);
+  // (a five o'clock shadow over the jaw and the lip: a scatter, bluish, thick low down)
+  for (let y = 82; y < 105; y++) for (let x = 88; x < 153; x++) {
+    if (!p.painted(x, y) || (y < 89 && Math.abs(x - 120) < 16) || Math.abs(x - 120) > 30 - Math.max(0, 90 - y)) continue;
+    if (hash(x * 0.71 + y * 1.37) < 0.1 + (y - 82) / 60 && (x + y) % 2 === 0) p.px(x, y, (x * 3 + y) % 5 ? '#a48c84' : '#8a7470');
+  }
+  // (the underside of the block: the jaw's bottom edge turned away from the light)
+  for (let y = 98; y < 105; y++) for (let x = 90; x < 152; x++) if (p.painted(x, y) && bayer(x, y) + 0.5 < (y - 97) / 7) p.px(x, y, x < 120 ? AS[3] : AS[2]);
+  // The hair: a helmet; the side parting, a line you could cut yourself on; the comb's lines; the lacquer's shine
+  p.form(g => { g.moveTo(85, 46); g.lineTo(85, 22); g.bezierCurveTo(85, 11, 100, 7, 120, 7); g.bezierCurveTo(141, 7, 156, 11, 156, 22); g.lineTo(156, 46); g.lineTo(152, 46); g.lineTo(151, 31); g.bezierCurveTo(140, 27, 100, 27, 89, 31); g.lineTo(88, 46); g.closePath(); },
+    { ramp: Hm, bevel: 6, amb: 0.3, ink: I, gain: 1.2, spec: '#9a9aac', wet: 0.55 });
+  for (let i = 0; i < 9; i++) { const x0 = 106 + i * 6; for (let k = 0; k < 20; k++) onIt(x0 + Math.round(k * 0.35), 9 + k, k % 6 < 4 ? '#2a2a34' : '#0c0c10'); }
+  for (let i = 0; i < 3; i++) { const x0 = 101 - i * 5; for (let k = 0; k < 20; k++) onIt(x0 - Math.round(k * 0.3), 10 + k, '#22222a'); }
+  for (let y = 8; y < 28; y++) { p.px(103, y, AS[4]); p.px(102, y, Hm[0]); p.px(104, y, '#3a3a46'); }
+  for (let x = 108; x < 146; x++) onIt(x, 12 + Math.round(((x - 127) / 19) ** 2 * 2), x % 4 ? '#6a6a7c' : '#9a9aac');
+  // The shades: wraparound, black; the frame across the top, the bridge, the arms back to the ears
+  for (const s of [-1, 1]) {
+    const X = (x: number) => 120 + s * (x - 120);
+    p.form(g => { g.moveTo(X(92), 44); g.lineTo(X(119), 44); g.lineTo(X(118.5), 53); g.bezierCurveTo(X(118), 57, X(113), 58, X(106), 58); g.bezierCurveTo(X(98), 58, X(93), 56, X(92), 52); g.closePath(); },
+      { ramp: LENS, bevel: 4, amb: 0.15, ink: I, gain: 1.1 });
+    for (let x = 93; x < 119; x++) { onIt(X(x), 45, LENS[5]); onIt(X(x), 46, LENS[4]); onIt(X(x), 47, LENS[3]); }
+    p.line(X(91), 46, X(86), 48, I); p.line(X(91), 45, X(86), 47, '#2a2a36');
+  }
+  p.line(90, 43, 150, 43, I); p.line(92, 44, 148, 44, '#3a3a4c');
+  p.rect(119, 45, 3, 3, I); p.px(119, 45, '#3a3a4c');
+  // (Meathead, a tiny one in each lens: the flat-top, the head, the traps)
+  for (const lx of [104, 133]) { p.rect(lx, 49, 5, 1, '#1c1c22'); p.rect(lx, 50, 5, 4, '#6a4a2c'); p.px(lx, 50, '#8a6440'); p.rect(lx - 2, 54, 9, 2, '#4c3420'); }
+  // The earpiece, clear plastic, and its coil down into the collar
+  p.form(g => { g.roundRect(153.5, 52, 5, 7, 2); }, { ramp: CLEAR, bevel: 2, amb: 0.3, ink: I, spec: '#ffffff', wet: 0.6 });
+  for (let k = 0; k < 14; k++) {
+    const x = 157 + Math.round(k * 0.45), y = 60 + k * 3;
+    p.px(x, y, CLEAR[4]); p.px(x + 1, y + 1, CLEAR[2]); p.px(x, y + 2, CLEAR[0]); p.px(x - 1, y + 1, CLEAR[1]);
+  }
+});
 
 /** The agent who talks, up close: shades, earpiece, the other one behind him, the gym out of focus. */
 export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 'briefing' = 'gym') => {
   if (where === 'gym') { gymBg(ctx); ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0, 0, ART_W, ART_H); } else briefingBg(ctx, t, -1);
   // The other one, behind him, out of focus
   agentBlur(ctx, 215, 18);
-  // The neck: out from under his jaw just below the ears and spreading as it goes down, wider than his head by the
-  // time it's at his collar; the light from up on the left, the jaw's shadow across the top of it
-  drawAgentNeck(ctx);
-  // Shoulders, lapels, shirt, tie (the traps under the jacket sloping up into the collar)
-  drawAgentShoulders(ctx);
-  shaded(ctx, 'ag-shirt', 104, 104, 32, 40, RAMP.shirt, box(-0.5, -0.5, 0.3, 1, 0.3));
-  ctx.fillStyle = G.suit;
-  ctx.beginPath(); ctx.moveTo(104, 104); ctx.lineTo(120, 144); ctx.lineTo(96, 144); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(136, 104); ctx.lineTo(120, 144); ctx.lineTo(144, 144); ctx.fill();
-  R(ctx, 116, 106, 8, 38, C.black);
-  // Head: square, pale, a side parting you could cut yourself on
-  shaded(ctx, 'ag-head', 88, 24, 64, 80, RAMP.aSkin, box(-0.5, -0.4, 0.18, 1, 0.45));
-  shaded(ctx, 'ag-hair', 84, 12, 72, 16, RAMP.mHair, box(-0.4, -0.9, 0.1, 0.7, 1));
-  R(ctx, 84, 28, 6, 14, RAMP.mHair[1]); R(ctx, 108, 12, 2, 10, '#3c3c3c');
-  shaded(ctx, 'ag-ear', 80, 50, 8, 18, RAMP.aSkin, ball(-0.5, -0.4, 0.2)); shaded(ctx, 'ag-ear2', 152, 50, 8, 18, RAMP.aSkin, ball(-0.9, -0.2, 0.08));
-  // The earpiece, and its coil down into the collar
-  R(ctx, 154, 54, 4, 5, C.lightGray);
-  for (let k = 0; k < 8; k++) R(ctx, 156 + (k % 2), 60 + k * 5, 2, 3, C.lightGray);
-  // The shades, and a glint going across them
-  R(ctx, 94, 44, 26, 12, G.shades); R(ctx, 124, 44, 26, 12, G.shades); R(ctx, 118, 46, 8, 2, G.shades);
-  // (the lenses: the room's light across their tops, going dark down them)
-  for (const lx of [94, 124]) { R(ctx, lx + 1, 45, 24, 2, '#1c1c28'); R(ctx, lx + 1, 47, 24, 1, '#10101a'); }
+  ctx.drawImage(agentStill(), 0, 0);
+  // A glint going across the shades
   const g = (t * 2) % 120;
-  if (g < 26) { R(ctx, 94 + g, 45, 2, 4, G.glint); R(ctx, 124 + g, 45, 2, 4, G.glint); }
-  // Nose, mouth: a flat line, or barely open when he talks
-  R(ctx, 118, 58, 4, 16, G.skinShade);
-  if (talking && t % 10 < 5) R(ctx, 108, 84, 24, 4, '#400000'); else { R(ctx, 108, 85, 24, 2, '#8c5040'); R(ctx, 112, 88, 16, 1, '#b08870'); }
-  R(ctx, 88, 98, 64, 6, G.skinShade);
-  // The comb's lines through the hair, and the shine on it
-  for (let k = 0; k < 11; k++) R(ctx, 88 + k * 6, 16 + (k % 2), 4, 1, '#2a2a2a');
-  R(ctx, 112, 14, 26, 2, '#34343c');
-  // The inside of his ears; the cheekbones under the shades; the nostrils; the cleft in his chin; a five o'clock shadow
-  R(ctx, 82, 54, 3, 10, '#a07858'); R(ctx, 155, 54, 3, 10, '#a07858');
-  R(ctx, 96, 58, 20, 2, G.skinShade); R(ctx, 126, 58, 18, 2, G.skinShade);
-  R(ctx, 114, 73, 3, 2, '#8c5c40'); R(ctx, 123, 73, 3, 2, '#8c5c40');
-  R(ctx, 119, 92, 2, 5, G.skinShade);
-  for (let i = 0; i < 60; i++) { const sx = 90 + hash(i * 2.3) * 60, sy = 80 + hash(i * 4.9) * 18; if (Math.abs(sx - 120) > 14 || sy > 90) R(ctx, sx, sy, 1, 1, '#b8987c'); }
-  // Meathead, in his shades (a tiny one in each lens)
-  for (const lx of [104, 134]) { R(ctx, lx, 49, 5, 5, C.mSkin); R(ctx, lx, 48, 5, 2, C.mHair); R(ctx, lx - 2, 54, 9, 2, C.mSkin); }
-  // (the collar, buttoned, and losing: dug in round that neck, the neck rolling over the top of it)
-  for (let x = COLLAR_L - 2; x <= COLLAR_R + 2; x++) {
-    // (going off round the neck at the sides, into the shade, and tucked down under the jacket at the ends)
-    const out = Math.abs(x - 120) - 38, end = Math.max(0, Math.abs(x - 120) - (120 - COLLAR_L) + 1);
-    const c = out > 8 ? (x < 120 ? '#9c9ca4' : '#7c7c84') : out > 0 ? ((x + 104) % 2 ? '#c8c8c8' : (x < 120 ? '#e0e0e0' : '#a8a8a8')) : x < 120 ? G.shirt : '#d8d8d8';
-    R(ctx, x, 104 + end, 1, 4 - Math.min(3, end), c); R(ctx, x, 108, 1, 1, '#3c3c44');
-    // (the neck just above it, in the collar's shadow)
-    if (x < 88 || x >= 152) { R(ctx, x, 103 + end, 1, 1, RAMP.aSkin[1]); if ((x + 102) % 2) R(ctx, x, 102 + end, 1, 1, RAMP.aSkin[2]); }
+  if (g < 30) for (const [l, r] of [[93, 118], [122, 147]]) for (let y = 45; y < 57; y++) {
+    const x = l + g - 4 + Math.round((56 - y) * 0.5);
+    for (let k = 0; k < 2; k++) if (x + k > l && x + k < r && (y < 54 || (x + k > l + 3 && x + k < r - 3))) R(ctx, x + k, y, 1, 1, k ? '#c8c8dc' : G.glint);
   }
-  // (and its points, down onto the shirt either side of the knot)
-  for (let i = 0; i < 6; i++) { R(ctx, 106 + i, 108, 1, 5 - Math.floor(i * 0.8), G.shirt); R(ctx, 128 + i, 108, 1, 1 + Math.floor(i * 0.8), '#d0d0d0'); }
-  // The tie's knot, the clip, the flag on his lapel, the edges of the lapels catching the light
-  R(ctx, 115, 104, 10, 6, '#1c1c1c'); R(ctx, 114, 124, 12, 1, C.gold);
-  R(ctx, 96, 118, 6, 4, C.white); R(ctx, 96, 118, 6, 1, C.red); R(ctx, 96, 120, 6, 1, C.red); R(ctx, 96, 118, 2, 2, C.blue);
-  for (let i = 0; i < 40; i++) { R(ctx, 104 - Math.floor(i * 0.2), 104 + i, 1, 1, G.suitLit); R(ctx, 136 + Math.floor(i * 0.2), 104 + i, 1, 1, G.suitLit); }
+  // The mouth: barely open when he talks
+  if (talking && t % 10 < 5) { R(ctx, 108, 84, 24, 3, '#3a0606'); R(ctx, 110, 84, 20, 1, '#e8e0d0'); R(ctx, 109, 87, 22, 1, '#b07058'); }
   // (Meathead's shit himself: it's coming up off him at the agent, and a fly's found the agent)
   if (shatPants()) shatCloseUp(ctx, 120, 56);
 };
@@ -452,106 +475,55 @@ export const drawEscort = (ctx: Ctx, t: number) => {
 /** What's on the projector screen. */
 export type Slide = 'four' | 'four2' | 'artie' | 'victor' | 'ernie' | 'hector' | 'tommy' | 'barry' | 'oscar' | 'dale' | 'drop';
 
-// Each one's head in silhouette, as he looks now: (cx, top) is the top of the head, which is a round about 11 across
-// sitting 12 below it. Anything lit (a lens, an ember, a bulb) is drawn in its own colour; the rest in the ink.
-const lit = (ctx: Ctx, color: string, draw: () => void) => { const f = ctx.fillStyle; ctx.fillStyle = color; draw(); ctx.fillStyle = f; };
-
-const BOSS_SLIDES: Record<string, { name: string; where: string; color: string; head: (ctx: Ctx, cx: number, top: number) => void }> = {
-  artie: {
-    name: 'ARTIE AVALANCHE', where: 'ANCHORAGE, AK', color: '#60a5fa',
-    // (wild hair sticking up, snow goggles up on his forehead, a big frosted beard, ice grown out of his shoulders)
-    head: (ctx, cx, top) => {
-      for (const [dx, h] of [[-11, 7], [-5, 10], [1, 8], [7, 10], [12, 6]]) { ctx.beginPath(); ctx.moveTo(cx + dx - 3, top + 6); ctx.lineTo(cx + dx, top + 6 - h); ctx.lineTo(cx + dx + 3, top + 6); ctx.fill(); }
-      ctx.beginPath(); ctx.moveTo(cx - 11, top + 14); ctx.quadraticCurveTo(cx - 10, top + 30, cx, top + 33); ctx.quadraticCurveTo(cx + 10, top + 30, cx + 11, top + 14); ctx.fill();
-      for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(cx + s * 16, top + 26); ctx.lineTo(cx + s * 22, top + 14); ctx.lineTo(cx + s * 20, top + 26); ctx.fill(); }
-      lit(ctx, '#38bdf8', () => { ctx.fillRect(cx - 8, top + 3, 6, 3); ctx.fillRect(cx + 2, top + 3, 6, 3); });
-    },
-  },
-  victor: {
-    name: 'VICTOR VOLCANO', where: 'HILO, HI', color: '#f97316',
-    // (a man bun, a sweatband, the collar of the open shirt standing up either side of his neck, a glowing pendant)
-    head: (ctx, cx, top) => {
-      ctx.beginPath(); ctx.arc(cx - 6, top - 1, 5, 0, Math.PI * 2); ctx.fill();
-      for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(cx + s * 6, top + 22); ctx.lineTo(cx + s * 15, top + 20); ctx.lineTo(cx + s * 10, top + 30); ctx.fill(); }
-      lit(ctx, '#ea580c', () => ctx.fillRect(cx - 12, top + 3, 24, 3));
-      lit(ctx, '#f97316', () => ctx.fillRect(cx - 1, top + 32, 3, 4));
-    },
-  },
-  ernie: {
-    name: 'ERNIE EARTHQUAKE', where: 'SAN FRANCISCO, CA', color: '#b45309',
-    // (bald on top with tufts out the sides, thick glasses catching the light, a pencil behind his ear, jowls)
-    head: (ctx, cx, top) => {
-      for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(cx + s * 12, top + 9, 4, 0, Math.PI * 2); ctx.arc(cx + s * 11, top + 5, 3, 0, Math.PI * 2); ctx.fill(); }
-      ctx.beginPath(); ctx.arc(cx - 7, top + 21, 5, 0, Math.PI * 2); ctx.arc(cx + 7, top + 21, 5, 0, Math.PI * 2); ctx.fill();
-      ctx.save(); ctx.translate(cx + 12, top + 4); ctx.rotate(0.5); ctx.fillRect(-1, -9, 2, 10); ctx.restore();
-      lit(ctx, '#e7e5e4', () => { ctx.fillRect(cx - 9, top + 8, 7, 1); ctx.fillRect(cx + 2, top + 8, 7, 1); });
-    },
-  },
-  hector: {
-    name: 'HECTOR HURRICANE', where: 'MIAMI, FL', color: '#14b8a6',
-    // (lacquered TV hair swept up at the front, the windbreaker's collar popped up round his neck, the clicker)
-    head: (ctx, cx, top) => {
-      ctx.beginPath(); ctx.moveTo(cx - 11, top + 7); ctx.quadraticCurveTo(cx - 10, top - 4, cx + 2, top - 5); ctx.quadraticCurveTo(cx + 14, top - 7, cx + 15, top + 2); ctx.quadraticCurveTo(cx + 8, top + 1, cx + 3, top + 3); ctx.closePath(); ctx.fill();
-      for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(cx + s * 7, top + 24); ctx.lineTo(cx + s * 16, top + 16); ctx.lineTo(cx + s * 15, top + 28); ctx.fill(); }
-      lit(ctx, '#dc2626', () => ctx.fillRect(cx - 24, top + 20, 2, 2));
-      ctx.fillRect(cx - 25, top + 22, 4, 6);
-    },
-  },
-  tommy: {
-    name: 'TOXIC TOMMY', where: 'FLINT, MI', color: '#65a30d',
-    // (bloated, the hazmat hood hanging off his back, the tank of sludge over one shoulder, dripping)
-    head: (ctx, cx, top) => {
-      ctx.beginPath(); ctx.arc(cx - 9, top + 20, 7, 0, Math.PI * 2); ctx.arc(cx + 9, top + 20, 7, 0, Math.PI * 2); ctx.fill();
-      ctx.fillRect(cx - 24, top + 4, 9, 24);
-      lit(ctx, '#84cc16', () => ctx.fillRect(cx - 22, top + 12, 5, 14));
-      ctx.fillRect(cx - 16, top + 24, 3, 12); ctx.fillRect(cx + 14, top + 26, 3, 10);
-    },
-  },
-  barry: {
-    name: 'BLACKOUT BARRY', where: 'NEW YORK, NY', color: '#3b82f6',
-    // (the hard hat, foil round it, an antenna up off the top with its bulb blinking, insulators on his shoulders)
-    head: (ctx, cx, top) => {
-      ctx.beginPath(); ctx.arc(cx, top + 7, 13, Math.PI, 0); ctx.fill(); ctx.fillRect(cx - 17, top + 5, 34, 3);
-      ctx.fillRect(cx + 4, top - 14, 1, 10);
-      lit(ctx, '#f87171', () => { ctx.beginPath(); ctx.arc(cx + 4.5, top - 15, 2, 0, Math.PI * 2); ctx.fill(); });
-      lit(ctx, '#9ca3af', () => ctx.fillRect(cx - 13, top + 1, 26, 2));
-      for (const s of [-1, 1]) for (let k = 0; k < 3; k++) ctx.fillRect(cx + s * 21 - 4 + k * 0.5, top + 22 - k * 4, 8 - k, 3);
-    },
-  },
-  oscar: {
-    name: 'OILY OSCAR', where: 'HOUSTON, TX', color: '#ca8a04',
-    // (the Stetson, the cigarette's ember, the fire suit's hood down round his neck, the launcher up on his shoulder)
-    head: (ctx, cx, top) => {
-      ctx.beginPath(); ctx.ellipse(cx, top + 4, 22, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(cx - 11, top + 3); ctx.lineTo(cx - 10, top - 9); ctx.quadraticCurveTo(cx, top - 6, cx, top - 11); ctx.quadraticCurveTo(cx, top - 6, cx + 10, top - 9); ctx.lineTo(cx + 11, top + 3); ctx.fill();
-      ctx.fillRect(cx + 16, top + 16, 26, 9);
-      lit(ctx, '#fcfcfc', () => ctx.fillRect(cx + 8, top + 20, 8, 2)); lit(ctx, '#d82800', () => ctx.fillRect(cx + 16, top + 20, 2, 2));
-    },
-  },
-  dale: {
-    name: 'DRUG TRADE DALE', where: 'ALBUQUERQUE, NM', color: '#ec4899',
-    // (a towering pompadour with the aviators pushed up into it, the shoulder pads, the dollar medallion)
-    head: (ctx, cx, top) => {
-      ctx.beginPath(); ctx.moveTo(cx - 12, top + 8); ctx.quadraticCurveTo(cx - 14, top - 6, cx - 2, top - 8); ctx.quadraticCurveTo(cx + 10, top - 14, cx + 17, top - 5); ctx.quadraticCurveTo(cx + 8, top - 1, cx + 4, top + 2); ctx.closePath(); ctx.fill();
-      for (const s of [-1, 1]) ctx.fillRect(cx + s * 20 - 6, top + 22, 12, 7);
-      lit(ctx, '#ff007f', () => { ctx.fillRect(cx - 7, top - 4, 5, 2); ctx.fillRect(cx + 2, top - 5, 5, 2); });
-      lit(ctx, '#ffd700', () => { ctx.beginPath(); ctx.arc(cx, top + 34, 2.5, 0, Math.PI * 2); ctx.fill(); });
-    },
-  },
+// Each one on his slide: his name, where he's from, and his colour (the photo's backdrop, and the light in his eyes).
+const BOSS_SLIDES: Record<string, { name: string; where: string; color: string }> = {
+  artie: { name: 'ARTIE AVALANCHE', where: 'ANCHORAGE, AK', color: '#60a5fa' },
+  victor: { name: 'VICTOR VOLCANO', where: 'HILO, HI', color: '#f97316' },
+  ernie: { name: 'ERNIE EARTHQUAKE', where: 'SAN FRANCISCO, CA', color: '#b45309' },
+  hector: { name: 'HECTOR HURRICANE', where: 'MIAMI, FL', color: '#14b8a6' },
+  tommy: { name: 'TOXIC TOMMY', where: 'FLINT, MI', color: '#65a30d' },
+  barry: { name: 'BLACKOUT BARRY', where: 'NEW YORK, NY', color: '#3b82f6' },
+  oscar: { name: 'OILY OSCAR', where: 'HOUSTON, TX', color: '#ca8a04' },
+  dale: { name: 'DRUG TRADE DALE', where: 'ALBUQUERQUE, NM', color: '#ec4899' },
 };
 
 /** Each set's four, in order, and their title on the slide. */
 const SETS = { four: { title: 'THE FOUR ASSHOLES', keys: ['artie', 'victor', 'ernie', 'hector'] }, four2: { title: 'FOUR MORE ASSHOLES', keys: ['tommy', 'barry', 'oscar', 'dale'] } };
 
-/** A boss in silhouette on the slide: a head, shoulders, and the red stamp over him. */
-const slideBoss = (ctx: Ctx, cx: number, base: number, key: string, s = 1) => {
+/**
+ * How a boss's bust goes on a slide: his actual sprite in silhouette, cropped to his head and shoulders, lit round
+ * the edges, the eyes lit ((cx, base): the middle of his head, and where the photo's bottom cuts him off; `clip`, the
+ * photo's frame). Set by bossFour.ts: this file can't pull in the bosses' sprites (one of the stages pulls in this one).
+ */
+export type SlideBust = (ctx: Ctx, key: string, cx: number, base: number, s: number, clip: [number, number, number, number], rim: string, eyes: string) => void;
+let bust: SlideBust | null = null;
+export const setSlideBust = (b: SlideBust) => { bust = b; };
+
+/** Mixes a colour toward another (both hex), `k` of the way. */
+const mix = (a: string, b: string, k: number) => {
+  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+  const ch = (sh: number) => Math.round(((pa >> sh) & 255) + ((((pb >> sh) & 255) - ((pa >> sh) & 255)) * k));
+  return '#' + ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0');
+};
+
+/** A boss on the slide: his bust in silhouette (or, if nothing's set the bust drawer, a plain head and shoulders). */
+const slideBoss = (ctx: Ctx, cx: number, base: number, key: string, s: number, clip: [number, number, number, number], rim: string) => {
   const b = BOSS_SLIDES[key];
-  ctx.fillStyle = C.ink;
+  if (bust) { bust(ctx, key, cx, base, s, clip, rim, b.color); return; }
   ell(ctx, cx, base - 34 * s, 11 * s, 12 * s, C.ink);
   R(ctx, cx - 18 * s, base - 22 * s, 36 * s, 22 * s, C.ink);
-  // (his head's details at the same scale as the rest of him)
-  ctx.save(); ctx.translate(cx, base - 46 * s); ctx.scale(s, s); ctx.fillStyle = C.ink; b.head(ctx, 0, 0); ctx.restore();
-  R(ctx, cx - 5 * s, base - 36 * s, 3 * s, 2 * s, b.color); R(ctx, cx + 2 * s, base - 36 * s, 3 * s, 2 * s, b.color);
+};
+
+/**
+ * A boss's photo on his slide (76..126 x 16..80): a studio backdrop in his colour, lit behind his head and falling
+ * off to the corners in steps; the height marks up the side, like a mugshot.
+ */
+const slidePhoto = (ctx: Ctx, key: string, color: string) => {
+  const ramp = [mix(color, '#000000', 0.42), mix(color, '#000000', 0.26), mix(color, '#000000', 0.12), color, mix(color, '#ffffff', 0.16), mix(color, '#ffffff', 0.32)];
+  shaded(ctx, `slide-${key}`, 76, 16, 50, 64, ramp, (u, v) => Math.max(0, 1 - Math.hypot((u - 0.5) * 1.3, (v - 0.32) * 1.05) * 1.05));
+  const mark = mix(color, '#ffffff', 0.55);
+  for (let y = 20; y < 80; y += 6) R(ctx, 77, y, (y - 20) % 12 ? 2 : 4, 1, mark);
+  R(ctx, 76, 16, 50, 1, mix(color, '#000000', 0.5)); R(ctx, 76, 16, 1, 64, mix(color, '#000000', 0.5));
 };
 
 /** The briefing room: dark, the projector's beam, the screen, and whatever slide's up (-1: nothing, the room only). */
@@ -579,7 +551,7 @@ export const briefingBg = (ctx: Ctx, t: number, slide: Slide | -1) => {
 export const drawSlide = (ctx: Ctx, t: number, slide: Slide, stamp = 'ASSHOLE') => {
   if (slide === 'four' || slide === 'four2') {
     text(ctx, SETS[slide].title, 136, 22, C.darkRed, 8);
-    SETS[slide].keys.forEach((k, i) => slideBoss(ctx, 91 + i * 30, 80, k, 0.62));
+    SETS[slide].keys.forEach((k, i) => { const cx = 91 + i * 30; slideBoss(ctx, cx, 80, k, 0.55, [cx - 14, 28, 28, 52], BOSS_SLIDES[k].color); });
     R(ctx, 76, 26, 120, 1, C.darkRed);
     return;
   }
@@ -595,8 +567,8 @@ export const drawSlide = (ctx: Ctx, t: number, slide: Slide, stamp = 'ASSHOLE') 
     return;
   }
   const b = BOSS_SLIDES[slide];
-  R(ctx, 76, 16, 50, 64, b.color);
-  slideBoss(ctx, 101, 80, slide, 1);
+  slidePhoto(ctx, slide, b.color);
+  slideBoss(ctx, 101, 80, slide, 0.8, [76, 16, 50, 64], mix(b.color, '#ffffff', 0.7));
   text(ctx, b.name, 164, 30, C.ink, 7);
   text(ctx, b.where, 164, 42, '#4c4c44', 6);
   // The stamp, slammed on a moment in
@@ -657,8 +629,6 @@ export const drawBriefing = (ctx: Ctx, t: number, talking: boolean, slide: Slide
 // The pencil necks (START GAME + INTRO, before the gym's played): the department's interns, sent in first
 // ---------------------------------------------------------------------------
 
-const PN = { suit: '#1c1c22', suitLit: '#34343e', suitDark: '#0c0c10', skin: '#ecc8a4', skinShade: '#c4987c', skinDeep: '#9c7458', hair: '#4c3418', hairLit: '#7c5c34', lanyard: '#c81c1c' };
-
 /** A pencil neck standing (feet at baseY), the light from the doorway behind him round his edges; the shakes, the sweat. */
 const pencilStanding = (ctx: Ctx, cx: number, baseY: number, t: number, k: number) => {
   const sh = Math.round(Math.sin(t * 1.3 + k * 2) * 0.6);
@@ -686,11 +656,136 @@ export const drawDoorwayPencils = (ctx: Ctx, t: number) => {
   bencher(ctx, t, true);
 };
 
+/** The interns up close: the skin (a touch more range than PSKIN), the clip-on tie, the lanyard, the badge's card. */
+const PS = ['#4a2c22', '#6a4434', '#946450', '#b8846a', '#d4a486', '#ecc4a4', '#f8dcc4', '#fdecdc'];
+const PTIE = ['#0c1440', '#16205c', '#1c2c6c', '#2c3c8c', '#4050a8', '#5c70c8'];
+const STRAP = ['#4c0606', '#7c0c0c', '#b01616', '#d82828', '#f05050'];
+const CARD = ['#9c9ca4', '#c4c4cc', '#e4e4ea', '#fafafc'];
+
 /**
- * The pencil neck who's been made to do the talking, up close: the suit hanging off him, the collar loose round a neck
- * like a broom handle (the Adam's apple going up and down it as he swallows), the clip-on tie crooked, the lanyard,
- * the badge (INTERN); the shades slipped down his nose and his eyes over the top of them, wide; the sweat; the shakes.
- * The other three behind him, out of focus, the gym dim.
+ * The pencil neck who's been made to do the talking, up close, painted once (everything of him that doesn't move):
+ * the jacket two sizes too big, the shoulder pads out past his own shoulders with nothing in them, the cloth caving in
+ * off the ends of them; the shirt, the clip-on tie crooked (the clip showing); the collar a size too big, standing off
+ * a neck like a broom handle; the lanyard, the badge (INTERN, and a photo of him looking exactly this scared); the
+ * head small on top of all that, the ears out, the chin not much of one; the hair gelled flat and parted, shining, a
+ * cowlick up at the crown anyway; the shades too big for him, out past his head, slipped down his nose; the fuzz he
+ * calls a mustache, the zits.
+ */
+const pencilStill = () => painting('pn-closeup', ART_W, ART_H, p => {
+  const I = FIG_INK, Cs = CHEAP, SH = RAMP.shirt, Hh = PHAIR, St = RAMP.steel;
+  const onIt = (x: number, y: number, c: string) => { if (p.painted(x, y)) p.px(x, y, c); };
+  // The jacket: the pads square, out past where his shoulders stop; the sleeves hanging off the ends of them
+  p.form(g => { g.moveTo(30, 150); g.lineTo(33, 128); g.bezierCurveTo(34, 118, 40, 113, 54, 112); g.lineTo(102, 106); g.lineTo(154, 106); g.lineTo(202, 112); g.bezierCurveTo(216, 113, 222, 118, 223, 128); g.lineTo(226, 150); g.closePath(); },
+    { ramp: Cs, bevel: 14, amb: 0.12, ink: I, spec: '#8a8aa0', wet: 0.1 });
+  // (the cloth caving in under the pads, nothing in there to hold it up; the sleeve seams; the pads' corners)
+  for (const s of [-1, 1]) {
+    const X = (x: number) => 128 + s * (x - 128);
+    for (const [x0, y0, x1, y1] of [[58, 115, 74, 136], [64, 114, 86, 128], [72, 113, 96, 122]]) { p.line(X(x0), y0, X(x1), y1, Cs[1]); p.line(X(x0) + 1, y0, X(x1) + 1, y1, Cs[s < 0 ? 5 : 4]); }
+    p.line(X(50), 116, X(48), 150, Cs[s < 0 ? 4 : 3]); p.line(X(51), 116, X(49), 150, Cs[1]);
+    p.px(X(54), 112, Cs[6]); p.px(X(55), 112, Cs[5]); p.px(X(53), 113, Cs[5]);
+  }
+  // The shirt in the V
+  p.form(g => { g.moveTo(104, 105); g.lineTo(152, 105); g.lineTo(130, 146); g.lineTo(126, 146); g.closePath(); }, { ramp: SH, bevel: 6, amb: 0.3, ink: null });
+  // The clip-on tie, crooked
+  const cs = Math.cos(0.12), sn = Math.sin(0.12);
+  const rot = (g: Ctx, pts: number[][]) => { pts.forEach(([x, y], i) => { const rx = 128 + (x - 128) * cs - (y - 110) * sn, ry = 110 + (x - 128) * sn + (y - 110) * cs; if (i) g.lineTo(rx, ry); else g.moveTo(rx, ry); }); g.closePath(); };
+  p.form(g => rot(g, [[124.5, 116], [131.5, 116], [133.5, 143], [128, 148], [122.5, 143]]), { ramp: PTIE, bevel: 3, amb: 0.2, ink: I });
+  for (let y = 120; y < 144; y += 5) p.line(124 + (y - 110) * 0.12, y, 132 + (y - 110) * 0.12, y + 1, PTIE[1]);
+  // The lapels: wide, floppy, lit along their edges
+  for (const s of [-1, 1]) {
+    const X = (x: number) => 128 + s * (x - 128);
+    p.form(g => { g.moveTo(X(88), 108); g.lineTo(X(106), 106); g.lineTo(X(126), 146); g.lineTo(X(110), 146); g.lineTo(X(100), 128); g.lineTo(X(93), 129); g.lineTo(X(91), 121); g.closePath(); },
+      { ramp: Cs, bevel: 4, amb: s < 0 ? 0.24 : 0.12, ink: I, inkIn: Cs[0] });
+    p.line(X(106), 107, X(125), 144, Cs[s < 0 ? 6 : 4]);
+  }
+  // The inside of the collar, behind his neck (it stands that far off it)
+  p.form(g => { g.ellipse(128, 104, 13, 4, 0, 0, Math.PI * 2); }, { ramp: ['#3c3c46', '#5c5c68', '#8c8c98', '#b4b8c4'], bevel: 2, amb: 0.2, ink: I });
+  // The neck: a broom handle; the tendons, the jaw's shadow over the top of it
+  p.form(g => { g.moveTo(122, 58); g.lineTo(134, 58); g.lineTo(134.5, 107); g.lineTo(121.5, 107); g.closePath(); }, { ramp: PS, bevel: 4, amb: 0.16, ink: I, inkIn: PS[1] });
+  p.line(124, 74, 124, 104, PS[6]); p.line(132, 74, 132, 104, PS[2]);
+  for (let y = 58; y < 76; y++) for (let x = 122; x < 135; x++) if (bayer(x, y) + 0.5 < 1.1 - (y - 58) / 14) onIt(x, y, y < 64 ? PS[1] : PS[2]);
+  // The collar's points, standing off his neck either side
+  for (const s of [-1, 1]) {
+    const X = (x: number) => 128 + s * (x - 128);
+    p.form(g => { g.moveTo(X(110), 100); g.lineTo(X(124), 107); g.lineTo(X(119), 117); g.lineTo(X(106), 108); g.closePath(); }, { ramp: SH, bevel: 2, amb: s < 0 ? 0.4 : 0.25, ink: I });
+  }
+  p.line(113, 100, 143, 100, SH[3]);
+  // (the tie's knot, and the clip over the top of it)
+  p.form(g => rot(g, [[123, 107], [133, 107], [132, 116], [124, 116]]), { ramp: PTIE, bevel: 3, amb: 0.25, ink: I });
+  p.form(g => rot(g, [[121, 105], [135, 105], [135, 107.5], [121, 107.5]]), { ramp: St, bevel: 1, amb: 0.3, ink: I, spec: '#ffffff', wet: 0.6 });
+  // The lanyard round his neck, its print, and the badge on the end of it
+  for (const [x0, x1] of [[114, 99], [142, 107]]) {
+    p.form(p.strokeMask(g => { g.moveTo(x0, 104); g.quadraticCurveTo((x0 + x1) / 2 + 2, 118, x1, 130); }, 2.6), { ramp: STRAP, bevel: 1, amb: 0.3, ink: null });
+  }
+  for (let k = 0; k < 6; k++) { p.px(113 - k * 2.2, 108 + k * 4, '#f4d0d0'); p.px(139 - k * 5, 108 + k * 3.6, '#f4d0d0'); }
+  p.form(g => { g.rect(100, 127, 6, 5); }, { ramp: St, bevel: 1, amb: 0.3, ink: I, spec: '#ffffff', wet: 0.5 });
+  p.form(g => { g.roundRect(88, 131, 26, 17, 1.5); }, { ramp: CARD, bevel: 2, amb: 0.45, ink: I });
+  p.rect(89, 132, 24, 2, '#c81c1c');
+  p.rect(90, 135, 8, 9, '#9cc4dc'); p.rect(92, 136, 4, 1, PHAIR[2]); p.disc(94, 139, 2, 2.5, PSKIN[4]); p.rect(92, 139, 5, 1, I); p.rect(91, 142, 6, 2, CHEAP[3]);
+  p.rect(100, 136, 11, 1, '#1c1c24'); p.rect(100, 138, 9, 1, '#7c7c84'); p.rect(100, 140, 10, 1, '#7c7c84');
+  for (let x = 100; x < 111; x++) if (hash(x * 1.3) > 0.4) p.px(x, 142, '#3c3c44');
+  // The ears, out
+  for (const [ex, s] of [[102, -1], [154, 1]] as const) {
+    p.form(g => { g.ellipse(ex, 46, 5.5, 9.5, s * 0.35, 0, Math.PI * 2); }, { ramp: PS, bevel: 3, amb: s < 0 ? 0.22 : 0.1, ink: I });
+    p.line(ex + s, 41, ex + s * 2, 51, PS[2]); p.line(ex + s * 2, 41, ex + s * 3, 50, '#d08878'); p.line(ex - s, 38, ex, 40, PS[7]);
+  }
+  // The head: small on top of all that; the chin not much of one
+  p.form(g => { g.moveTo(106, 22); g.lineTo(150, 22); g.bezierCurveTo(153, 34, 153, 48, 151, 56); g.bezierCurveTo(148, 66, 138, 72, 128, 72); g.bezierCurveTo(118, 72, 108, 66, 105, 56); g.bezierCurveTo(103, 48, 103, 34, 106, 22); g.closePath(); },
+    { ramp: PS, bevel: 13, amb: 0.2, ink: I, inkIn: PS[1] });
+  // (the sheen of the sweat on his forehead; the far cheek in shade; under the chin)
+  for (const [x, y] of [[112, 32], [120, 30], [135, 31], [141, 33], [126, 34]]) { p.px(x, y, PS[7]); p.px(x + 1, y, PS[6]); }
+  for (let y = 40; y < 70; y++) for (let x = 140; x < 152; x++) if (bayer(x, y) + 0.5 < (x - 140) / 18) onIt(x, y, PS[3]);
+  for (let x = 116; x < 140; x++) onIt(x, 70, PS[3]);
+  // The nose: long and thin, the bridge (the shades down on it), the end of it, the nostrils, the shadow under
+  p.line(127, 44, 126, 59, PS[6]); p.line(130, 46, 131, 59, PS[3]);
+  p.form(g => { g.ellipse(128, 60, 3.5, 2.5, 0, 0, Math.PI * 2); }, { ramp: PS, bevel: 2, amb: 0.25, ink: null });
+  p.px(126, 62, '#5a3428'); p.px(130, 62, '#5a3428'); p.line(125, 63, 131, 63, PS[3]); p.px(127, 59, PS[7]);
+  // (the fuzz he calls a mustache; the zits on his chin)
+  for (let k = 0; k < 9; k++) p.px(120 + k * 2, 64 + (k % 2), '#a88c70');
+  for (const [x, y] of [[120, 68], [136, 67], [131, 70]]) { p.rect(x, y, 2, 2, '#d0705c'); p.px(x, y, '#f0a08c'); }
+  // The hair: gelled flat to his head and parted, shining; the comb's lines in it
+  p.form(g => { g.moveTo(103, 38); g.lineTo(103, 24); g.bezierCurveTo(103, 14, 114, 11, 128, 11); g.bezierCurveTo(143, 11, 154, 14, 154, 24); g.lineTo(154, 36); g.lineTo(151, 36); g.lineTo(150, 27); g.bezierCurveTo(140, 24.5, 120, 24.5, 107, 27.5); g.lineTo(106, 38); g.closePath(); },
+    { ramp: Hh, bevel: 4, amb: 0.3, ink: I, gain: 1.1, spec: '#f0e0c0', wet: 0.75 });
+  for (let y = 13; y < 26; y++) { p.px(117, y, PS[4]); p.px(116, y, Hh[0]); }
+  for (let i = 0; i < 7; i++) for (let k = 0; k < 14; k++) onIt(120 + i * 5 + Math.round(k * 0.6), 12 + k, k % 5 < 3 ? Hh[1] : Hh[2]);
+  for (let i = 0; i < 3; i++) for (let k = 0; k < 14; k++) onIt(113 - i * 4 - Math.round(k * 0.4), 12 + k, Hh[1]);
+  for (let x = 120; x < 148; x += 2) onIt(x, 15 + Math.round(((x - 134) / 14) ** 2 * 2), '#d8c8a8');
+  // (the cowlick, up at the crown anyway)
+  for (const [x0, x1, y1] of [[138, 145, 4], [142, 150, 8]]) p.form(p.strokeMask(g => { g.moveTo(x0, 14); g.quadraticCurveTo(x0 + 1, 6, x1, y1); }, 2.4), { ramp: Hh, bevel: 1.5, amb: 0.45, ink: Hh[0], spec: '#f0e0c0', wet: 0.5 });
+  // The shades: too big for him, out past the sides of his head, slipped down his nose; the arms up to his ears
+  for (const s of [-1, 1]) {
+    const X = (x: number) => 128 + s * (x - 128);
+    p.form(g => { g.moveTo(X(99), 51); g.lineTo(X(127), 51); g.lineTo(X(126.5), 56); g.bezierCurveTo(X(126), 60, X(121), 61, X(114), 61); g.bezierCurveTo(X(105), 61, X(100), 59, X(99), 56); g.closePath(); },
+      { ramp: LENS, bevel: 3, amb: 0.15, ink: I, gain: 1.1 });
+    for (let x = 100; x < 126; x++) { onIt(X(x), 52, LENS[5]); onIt(X(x), 53, LENS[4]); }
+    p.line(X(98), 52, X(100), 47, I);
+  }
+  p.line(97, 50, 159, 50, I); p.line(99, 51, 157, 51, '#3a3a4c');
+  p.rect(126, 52, 4, 2, I);
+});
+
+/** His Adam's apple (it goes up and down his neck as he swallows). */
+const pnApple = figure('pn-apple', 10, 12, 5, 6, q => {
+  q.form(g => { g.ellipse(0, 0, 3.5, 4.5, 0, 0, Math.PI * 2); }, { ramp: PS, bevel: 3, amb: 0.2, ink: null });
+  q.px(-1, -3, PS[7]); q.line(2, -2, 2, 3, PS[2]); q.line(-2, 5, 2, 5, PS[2]);
+});
+
+/** An eye over the top of his shades: (cx, cy) its middle; wide, the pupil shrunk to a dot (`pin`: to a point). */
+const pnEye = (ctx: Ctx, cx: number, cy: number, hw: number, hh: number, pin: boolean) => {
+  const half = (dy: number) => Math.round(hw * Math.sqrt(Math.max(0, 1 - (dy / (hh + 0.6)) ** 2)));
+  // (the socket round it, a step darker; the white, shaded under the lid; the lid's line, the lower lid)
+  for (let dy = -hh - 2; dy <= hh + 1; dy++) { const w = half(Math.max(-hh, Math.min(hh, dy))) + 2; R(ctx, cx - w, cy + dy, w * 2, 1, PS[4]); }
+  for (let dy = -hh; dy <= hh; dy++) { const w = half(dy); if (w > 0) R(ctx, cx - w, cy + dy, w * 2, 1, dy === -hh ? '#dcd0c4' : '#fcf8f0'); }
+  R(ctx, cx - 1, cy - 1, 3, 3, pin ? '#fcf8f0' : '#6c4c24'); R(ctx, cx, cy, 1, 1, FIG_INK);
+  if (!pin) { R(ctx, cx - 1, cy - 1, 1, 1, '#fcfcfc'); R(ctx, cx + 1, cy + 1, 1, 1, '#4c3418'); }
+  for (let dx = -hw; dx < hw; dx++) R(ctx, cx + dx, cy - hh - 1 + (Math.abs(dx + 0.5) > hw - 1.5 ? 1 : 0), 1, 1, FIG_INK);
+  for (let dx = -hw + 2; dx < hw - 2; dx++) R(ctx, cx + dx, cy + hh + 1, 1, 1, PS[2]);
+};
+
+/**
+ * The pencil neck who's been made to do the talking, up close (see pencilStill): the Adam's apple going up and down
+ * his neck as he swallows; his eyes over the top of his shades, wide, the brows right up; the sweat; the shakes. The
+ * other three behind him, out of focus, the gym dim.
  */
 export const drawPencilNeck = (ctx: Ctx, t: number, talking: boolean, scared = false) => {
   gymBg(ctx); ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, ART_W, ART_H);
@@ -699,49 +794,23 @@ export const drawPencilNeck = (ctx: Ctx, t: number, talking: boolean, scared = f
   ctx.save();
   // (the shakes)
   ctx.translate(Math.round(Math.sin(t * 1.9) * (scared ? 1.4 : 0.7)), 0);
-  // The jacket: shoulders out past his own (the pads), sagging; the lapels; the gap round his neck
-  shaded(ctx, 'pn-shoulders', 40, 112, 176, 70, RAMP.aSuit, ball(-0.4, -0.85, 0.1));
-  ctx.fillStyle = PN.suitDark; ctx.beginPath(); ctx.moveTo(108, 108); ctx.lineTo(126, 144); ctx.lineTo(98, 144); ctx.fill(); ctx.beginPath(); ctx.moveTo(148, 108); ctx.lineTo(130, 144); ctx.lineTo(158, 144); ctx.fill();
-  // (the shirt collar, a size too big, standing off his neck)
-  ctx.fillStyle = '#e8e8ec'; ctx.beginPath(); ctx.moveTo(110, 104); ctx.lineTo(146, 104); ctx.lineTo(140, 116); ctx.lineTo(128, 112); ctx.lineTo(116, 116); ctx.closePath(); ctx.fill();
-  R(ctx, 112, 112, 32, 32, '#d8d8e0');
-  // (the clip-on tie, crooked, the clip showing)
-  ctx.save(); ctx.translate(128, 112); ctx.rotate(0.12);
-  R(ctx, -4, 0, 8, 6, '#1c2c6c'); R(ctx, -3, 6, 6, 26, '#24348c'); R(ctx, -3, 6, 1, 26, '#3c4ca4'); R(ctx, -4, -1, 8, 2, '#9c9ca4');
-  ctx.restore();
-  // (the lanyard and the badge: INTERN, and a photo of him looking exactly this scared)
-  ctx.strokeStyle = PN.lanyard; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(114, 108); ctx.lineTo(96, 132); ctx.moveTo(142, 108); ctx.lineTo(104, 132); ctx.stroke();
-  R(ctx, 88, 130, 26, 14, C.white); R(ctx, 90, 132, 8, 9, '#9cc4dc'); R(ctx, 92, 133, 4, 4, PN.skin); R(ctx, 100, 133, 12, 2, C.ink); R(ctx, 100, 137, 10, 1, C.gray);
-  // The neck: long and thin, the cords in it, the Adam's apple (going up and down)
-  shaded(ctx, 'pn-neck', 118, 64, 20, 48, RAMP.aSkin, box(-0.5, -0.3, 0.2, 1, 0.2));
+  ctx.drawImage(pencilStill(), 0, 0);
+  // The Adam's apple, going up and down
   const gulp = (t % 70) < 10 ? -5 : 0;
-  ell(ctx, 129, 90 + gulp, 4, 4, PN.skin); R(ctx, 131, 88 + gulp, 2, 5, PN.skinShade);
-  R(ctx, 121, 70, 1, 34, PN.skinShade); R(ctx, 135, 70, 1, 34, PN.skinShade);
-  // The head: smaller than you'd think, on top of all that
-  shaded(ctx, 'pn-head', 100, 16, 56, 56, RAMP.aSkin, box(-0.5, -0.4, 0.2, 1, 0.5));
-  shaded(ctx, 'pn-ear', 94, 38, 8, 16, RAMP.aSkin, ball(-0.5, -0.4, 0.2)); shaded(ctx, 'pn-ear2', 154, 38, 8, 16, RAMP.aSkin, ball(-0.9, -0.2, 0.08));
-  // (the hair: gelled flat and parted, shining, a cowlick sticking up anyway)
-  R(ctx, 98, 12, 60, 10, PN.hair); R(ctx, 98, 20, 6, 10, PN.hair); for (let k = 0; k < 9; k++) R(ctx, 104 + k * 6, 13 + (k % 2), 4, 1, PN.hairLit);
-  R(ctx, 116, 12, 2, 8, '#2c1c08'); R(ctx, 140, 6, 2, 7, PN.hair); R(ctx, 142, 4, 2, 3, PN.hair);
-  R(ctx, 118, 14, 30, 2, 'rgba(255,255,255,0.3)');
-  // (the eyes, over the top of the shades: wide, the brows right up)
-  const wide = scared ? 6 : 5;
-  for (const ex of [112, 136]) {
-    R(ctx, ex, 38 - (scared ? 2 : 0), 10, 2, PN.hair);
-    R(ctx, ex, 42, 10, wide, C.white); R(ctx, ex + 4, 43, 3, 3, C.ink); R(ctx, ex + 4, 43, 1, 1, C.white);
+  pnApple(ctx, 128, 90 + gulp);
+  // The eyes over the top of the shades, wide; the brows right up, worried
+  const up = scared ? 2 : 0, hh = scared ? 4 : 3;
+  for (const [ex, s] of [[116, -1], [140, 1]] as const) {
+    pnEye(ctx, ex, 45, 5, hh, scared);
+    for (let k = 0; k < 11; k++) { const inner = s < 0 ? k / 10 : 1 - k / 10; R(ctx, ex - 5 + k, 37 - up - Math.round(inner * 2.5), 1, 2, PHAIR[1]); R(ctx, ex - 5 + k, 39 - up - Math.round(inner * 2.5), 1, 1, PS[6]); }
   }
-  // (the shades, too big for him, slipped down his nose)
-  R(ctx, 104, 50, 22, 10, G.shades); R(ctx, 130, 50, 22, 10, G.shades); R(ctx, 124, 52, 8, 2, G.shades);
-  R(ctx, 105, 51, 20, 1, '#2c2c3c'); R(ctx, 131, 51, 20, 1, '#2c2c3c');
-  // Nose, the mouth: a wobbly little line, or an O when he talks
-  R(ctx, 126, 58, 4, 8, PN.skinShade);
-  if (talking && t % 10 < 5) ell(ctx, 128, 66, 4, 3, '#400000'); else { R(ctx, 120, 66, 4, 1, '#8c5040'); R(ctx, 124, 65, 4, 1, '#8c5040'); R(ctx, 128, 66, 4, 1, '#8c5040'); R(ctx, 132, 65, 4, 1, '#8c5040'); }
-  // (the zits on his chin, the fuzz he calls a mustache)
-  R(ctx, 120, 69, 2, 2, '#d47c6c'); R(ctx, 136, 68, 2, 2, '#d47c6c');
-  for (let k = 0; k < 8; k++) R(ctx, 120 + k * 2, 63, 1, 1, '#b89c7c');
+  // The mouth: a wobbly little line, or an O when he talks
+  if (talking && t % 10 < 5) { ell(ctx, 128, 67, 4, 3, '#3a0606'); R(ctx, 126, 64, 4, 1, '#e8e0d0'); R(ctx, 126, 70, 4, 1, '#b06a5a'); }
+  else for (let k = 0; k < 16; k++) { const y = 66 + (Math.floor(k / 4) % 2 ? -1 : 0); R(ctx, 120 + k, y, 1, 1, '#8c5040'); R(ctx, 120 + k, y + 1, 1, 1, PS[6]); }
   // Sweat: beads on his forehead, a drop running down his temple and off his jaw
-  for (const [sx, sy] of [[110, 28], [128, 26], [146, 30]] as const) R(ctx, sx, sy, 2, 3, '#9cdcfc');
-  const run = (t * 0.6) % 40;
-  R(ctx, 104, 32 + run, 2, 3, '#9cdcfc');
+  for (const [sx, sy] of [[112, 29], [127, 27], [143, 30]] as const) { R(ctx, sx, sy, 2, 3, '#9cdcfc'); R(ctx, sx, sy, 1, 1, '#fcfcfc'); R(ctx, sx + 1, sy + 2, 1, 1, '#5c9cc8'); }
+  const run = (t * 0.6) % 40, dy = 32 + run;
+  const dx = 107 + Math.round(Math.max(0, dy - 54) * 0.35);
+  R(ctx, dx, dy, 2, 3, '#9cdcfc'); R(ctx, dx, dy, 1, 1, '#fcfcfc');
   ctx.restore();
 };
