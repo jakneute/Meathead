@@ -132,7 +132,7 @@ const App2: React.FC = () => {
         {status === GameStatus.PLAYING && stage === PEN_STAGE && (
           <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 px-3 py-2 text-[8px] text-zinc-100 bg-black/70 border-2 border-zinc-600">
             <Prompt pad={['Y', 'B']} kb={['R']} label="BEATDOWN (LUNGE)" />
-            <span className="text-zinc-400 pl-1">ON HIM: <Prompt pad={['X', 'B']} kb={['K']} mouse="left" label="PUNCH" /> · <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" /></span>
+            <span className="text-zinc-400 pl-1">ON HIM: <Prompt pad={['X', 'B', 'Y']} kb={['K']} mouse="left" label="PUNCH" /> · <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" /></span>
             <Prompt pad={['Y', 'X']} kb={['T']} label="SHAKEDOWN (GRAB)" />
             <span className="text-zinc-400 pl-1">AT THE END, HOLD A DIRECTION TO THROW (DOWN: SLAM)</span>
           </div>

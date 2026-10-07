@@ -3,7 +3,7 @@
 // Like a fighting game's grabs: once one's started, he's committed to it.
 //
 //   BEATDOWN (Y + B, or R): a quick windup (coiled down low; a hit in it knocks him out of it), then a short lunge.
-//   Catch somebody and he's down, Meathead on top of him, and every press of X or B (shoot or special) is a punch, each
+//   Catch somebody and he's down, Meathead on top of him, and every press of X, B or Y is a punch, each
 //   one giving him a little health back (and a lot when it's over). Jump to get off. Anything that hurts him knocks him
 //   off. Whiff, and he's stood there wide open.
 //
@@ -241,7 +241,8 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
       if (hurt) { letGo(state, g); return controls; }
       if (press('jump')) { letGo(state, g); return { ...controls, jump: true }; }
       if (g.punchT > 0) g.punchT--;
-      if ((press('shoot') || press('special')) && g.t >= g.nextPunchAt) {
+      // (any of X, B or Y throws one)
+      if ((press('shoot') || press('special') || press('secondary') || pressed('y')) && g.t >= g.nextPunchAt) {
         g.punchT = PUNCH_FRAMES; g.nextPunchAt = g.t + PUNCH_GAP;
         const dmg = Math.max(7, Math.round(e.maxHealth * PUNCH_SHARE));
         e.health -= dmg;
