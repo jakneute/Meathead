@@ -24,8 +24,9 @@ FLOOR_ORDER.forEach((id, i) => { const x = FLOOR_X[i], y = FLOOR_Y; SLOTS[id] = 
 /** The order they're gone through with the arrow keys / the stick: along the pegboard, the shelves, the floor. */
 export const SOUVENIR_ORDER = [...WALL_ORDER, ...SHELF_ORDER, ...FLOOR_ORDER];
 
-export const drawGarage = (ctx: Ctx, t: number, owned: string[], selected: string | null, showEmpty = true) => {
-  drawRoom(ctx, t);
+/** `room`: what's drawn behind the souvenirs (the radio cutscene paints its own room, in its own pixels). */
+export const drawGarage = (ctx: Ctx, t: number, owned: string[], selected: string | null, showEmpty = true, room: (ctx: Ctx, t: number) => void = drawRoom) => {
+  room(ctx, t);
   for (const s of SOUVENIRS) {
     const slot = SLOTS[s.id];
     if (!slot) continue;

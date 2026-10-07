@@ -4,11 +4,12 @@
 // corridor, and the briefing room: a projector, a screen, a man with a pointer, and the
 // back of Meathead's head.
 
-import { ART_W, ART_H, C, R, ell, hash, figure, over, rimLight, mhStandingFig, FIG_INK, DENIM, BELT, BOOT } from './ending';
+import { ART_W, ART_H, C, R, ell, hash, figure, over, mhStandingFig, FIG_INK, DENIM, BELT, BOOT } from './ending';
 import { agentFig, agentTalk, agentBlur, pencilFig, pencilBlur, DOOR_RIM, SUIT, CHEAP, PSKIN, PHAIR } from './suits';
 import { painting, bayer } from './art/raster';
 import { shatPants, shatFront, shatCloseUp } from './shatLook';
-import { shaded, layer, ball, bands, RAMP } from './art/snes';
+import { shaded, layer, bands, RAMP } from './art/snes';
+import { slab, plaque, paper, door, stipple, tubeFixture, DOOR_GREEN, SET_INK, PAPER, BRASS } from './art/props';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -25,7 +26,7 @@ const text = (ctx: Ctx, s: string, x: number, y: number, color: string, size = 8
 };
 
 /** The gym: brick, a strip of mirror, a rack of dumbbells, a sign, rubber floor, a door on the right. */
-export const gymBg = (ctx: Ctx) => layer(ctx, 'gym', ART_W, ART_H, g => gymBgOnce(g));
+export const gymBg = (ctx: Ctx) => layer(ctx, 'gym-2', ART_W, ART_H, g => gymBgOnce(g));
 
 const gymBgOnce = (ctx: Ctx) => {
   // Brick: every one its own shade, a lit top edge and a shadowed bottom one; darker away from the tube light
@@ -41,20 +42,39 @@ const gymBgOnce = (ctx: Ctx) => {
     }
   }
   for (let i = 0; i < 30; i++) R(ctx, hash(i) * ART_W, hash(i + 50) * 110, 6, 3, G.brick2);
-  // The mirror, and the sign over it (the room in it, dim; streaks of light down it)
+  // The mirror in its steel frame, and the sign over it (the room in it, dim; streaks of light down it)
+  slab(ctx, 6, 28, 154, 54, RAMP.steel, { b: 1, hi: 0.6, lo: 0.4 });
   bands(ctx, 8, 30, 150, 50, ['#6c8c9c', '#5c7c8c', '#4c6c7c', '#3c5c6c', '#34505c']);
   for (let k = 0; k < 6; k++) { R(ctx, 20 + k * 26, 30, 2, 50, G.mirrorLit); R(ctx, 22 + k * 26, 30, 1, 50, 'rgba(255,255,255,0.12)'); }
-  R(ctx, 8, 29, 150, 1, '#8c8c8c'); R(ctx, 8, 80, 150, 1, '#1c1c1c');
-  R(ctx, 30, 8, 110, 16, C.ink); R(ctx, 31, 9, 108, 14, C.darkRed);
+  for (let k = 0; k < 6; k++) stipple(ctx, 23 + k * 26, 30, 3, 50, '#7c9cac', 0.3);
+  R(ctx, 8, 30, 150, 1, '#2c3c44');
+  for (const [sx, sy] of [[7, 29], [158, 29], [7, 80], [158, 80]]) R(ctx, sx, sy, 1, 1, '#e8eef4');
+  // (the sign: a painted board, bevelled, bolted to the brick; the letters gold with a drop shadow, lit along their tops)
+  plaque(ctx, 30, 8, 110, 16, ['#2c0402', '#4c0a04', '#6c1206', '#8c1c0a', '#a82a10', '#c43c1c'], 2);
+  for (const [bx, by] of [[33, 11], [136, 11], [33, 20], [136, 20]]) { R(ctx, bx, by, 2, 2, '#5c636e'); R(ctx, bx, by, 1, 1, '#e8eef4'); }
+  text(ctx, 'THE IRON PIT', 86, 20, '#1c0402');
   text(ctx, 'THE IRON PIT', 85, 19, C.gold);
-  // A poster: NO PAIN NO GAIN
-  R(ctx, 170, 14, 34, 42, C.white); R(ctx, 172, 16, 30, 20, C.red);
+  ctx.save(); ctx.beginPath(); ctx.rect(30, 8, 110, 6); ctx.clip(); text(ctx, 'THE IRON PIT', 85, 19, '#fcf0a0'); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(30, 17, 110, 3); ctx.clip(); text(ctx, 'THE IRON PIT', 85, 19, '#c08c00'); ctx.restore();
+  // A poster: NO PAIN NO GAIN (a fist, clenched, black on the red; the paper curling off the brick at a corner, taped up)
+  paper(ctx, 170, 14, 34, 42);
+  bands(ctx, 172, 16, 30, 20, ['#e84a2c', '#c82814', '#b02010', '#9c1a0a']);
+  ctx.fillStyle = SET_INK;
+  for (const [x, y, w, h] of [[181, 20, 12, 7], [180, 22, 1, 4], [193, 21, 1, 5], [183, 27, 9, 6], [184, 33, 7, 1]]) ctx.fillRect(x, y, w, h);
+  for (let k = 0; k < 3; k++) R(ctx, 184 + k * 3, 21, 1, 5, '#6c0c04');
+  R(ctx, 181, 24, 3, 1, '#6c0c04');
   text(ctx, 'NO PAIN', 187, 45, C.ink, 6); text(ctx, 'NO GAIN', 187, 53, C.ink, 6);
-  // The door (shut)
-  R(ctx, 214, 30, 38, 82, G.door); R(ctx, 216, 32, 34, 78, '#3c4840'); R(ctx, 244, 70, 3, 4, C.gold);
-  // Dumbbell rack along the bottom of the mirror
-  R(ctx, 10, 86, 146, 4, G.rack);
-  for (let k = 0; k < 9; k++) { const x = 16 + k * 16; ell(ctx, x, 84, 4, 4, G.plate); ell(ctx, x + 8, 84, 4, 4, G.plate); R(ctx, x, 83, 8, 2, G.rack); }
+  // The door (shut): steel, painted, in its frame; wired glass in it, the lever, the kick plate
+  door(ctx, 214, 30, 38, 82, { window: 'wire', kick: true, handle: -1 });
+  // Dumbbell rack along the bottom of the mirror: the steel shelf on its brackets, the pairs on it (iron, the handles knurled)
+  for (const bx of [12, 80, 148]) { R(ctx, bx - 1, 89, 6, 12, SET_INK); slab(ctx, bx, 90, 4, 10, RAMP.steel, { b: 1, ink: null }); }
+  slab(ctx, 10, 86, 146, 4, RAMP.steel, { b: 1, hi: 0.66, lo: 0.4 });
+  const PL = ['#08080a', '#141418', '#202026', '#2e2e36', '#404048', '#56565e'];
+  for (let k = 0; k < 9; k++) {
+    const x = 16 + k * 16;
+    R(ctx, x + 1, 82, 4, 3, SET_INK); R(ctx, x + 1, 83, 4, 1, RAMP.steel[4]);
+    for (const hx of [x - 4, x + 5]) { R(ctx, hx - 1, 79, 7, 8, SET_INK); shaded(ctx, 'gym-bell', hx, 80, 5, 6, PL, (u, v) => 0.75 - v * 0.5 - Math.abs(u - 0.5) * 0.4); R(ctx, hx, 80, 5, 1, PL[5]); }
+  }
   // Floor: rubber tiles, flecked, a chalk handprint or two; lighter under the light
   bands(ctx, 0, 112, ART_W, 32, ['#262626', '#202020', '#1a1a1a', '#141414']);
   ctx.fillStyle = 'rgba(252, 252, 220, 0.05)'; ctx.beginPath(); ctx.ellipse(110, 126, 70, 12, 0, 0, Math.PI * 2); ctx.fill();
@@ -62,10 +82,27 @@ const gymBgOnce = (ctx: Ctx) => {
   R(ctx, 0, 127, ART_W, 1, G.floor2);
   for (let i = 0; i < 60; i++) R(ctx, hash(i * 4.1) * ART_W, 113 + hash(i * 6.3) * 30, 1, 1, i % 4 ? '#303030' : '#4a4a4a');
   R(ctx, 30, 136, 4, 2, '#d4d4cc'); R(ctx, 29, 134, 1, 2, '#d4d4cc'); R(ctx, 31, 133, 1, 2, '#d4d4cc'); R(ctx, 33, 134, 1, 2, '#d4d4cc');
-  // A kettlebell, the chalk bucket, his jug of water (a gallon of it, half gone)
-  ell(ctx, 180, 136, 7, 6, '#1c1c1c'); R(ctx, 176, 127, 8, 2, '#1c1c1c'); R(ctx, 175, 127, 2, 5, '#1c1c1c'); R(ctx, 183, 127, 2, 5, '#1c1c1c'); R(ctx, 177, 133, 3, 2, '#3c3c3c');
-  R(ctx, 12, 124, 14, 14, '#dcdcd0'); R(ctx, 12, 124, 14, 2, '#f8f8f0'); R(ctx, 14, 128, 10, 3, C.red);
-  R(ctx, 196, 116, 12, 20, 'rgba(200, 230, 250, 0.35)'); R(ctx, 196, 124, 12, 12, 'rgba(120, 180, 230, 0.5)'); R(ctx, 199, 112, 6, 4, '#e8e8e8'); R(ctx, 196, 116, 1, 20, 'rgba(255,255,255,0.6)');
+  // A kettlebell, the chalk bucket, his jug of water (a gallon of it, half gone): each on its shadow
+  for (const [cx, w] of [[180, 9], [19, 9], [202, 8]]) { ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'; ctx.beginPath(); ctx.ellipse(cx + 1, 139, w, 2, 0, 0, Math.PI * 2); ctx.fill(); }
+  const KB = ['#060608', '#101014', '#1c1c22', '#2a2a32', '#3c3c46', '#54545e'];
+  ctx.strokeStyle = SET_INK; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(180, 130, 4.5, Math.PI, 0); ctx.stroke();
+  ctx.strokeStyle = KB[3]; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(180, 130, 4.5, Math.PI, 0); ctx.stroke();
+  R(ctx, 177, 125, 3, 1, KB[5]);
+  ell(ctx, 180, 135, 8, 7, SET_INK);
+  shaded(ctx, 'gym-kb', 173, 129, 14, 12, KB, (u, v) => { const x = u * 2 - 1, y = v * 2 - 1; if (x * x + y * y > 1) return -1; return 0.2 + 0.8 * Math.max(0, -x * 0.5 - y * 0.6 + Math.sqrt(Math.max(0, 1 - x * x - y * y)) * 0.6); });
+  R(ctx, 178, 134, 4, 3, KB[2]); R(ctx, 178, 134, 4, 1, KB[1]); R(ctx, 179, 135, 2, 1, '#8a8a94');
+  // (the chalk bucket: white plastic, round, the label; chalk dust heaped in it and spilled over the lip)
+  R(ctx, 11, 123, 16, 16, SET_INK);
+  shaded(ctx, 'gym-chalk', 12, 124, 14, 14, ['#7c7c74', '#a4a49a', '#c4c4b8', '#dcdcd0', '#f0f0e6', '#fcfcf4'], (u, v) => 0.25 + 0.75 * Math.sin(Math.PI * Math.min(1, u * 1.15)) * (1 - v * 0.25));
+  R(ctx, 12, 124, 14, 2, '#fcfcf4'); R(ctx, 12, 126, 14, 1, '#8c8c84');
+  R(ctx, 14, 129, 10, 4, SET_INK); bands(ctx, 15, 129, 8, 3, ['#e84a2c', '#c82814', '#9c1a0a']);
+  for (const [dx, dy] of [[13, 123], [17, 122], [21, 123], [26, 125], [27, 128]]) R(ctx, dx, dy, 1, 1, '#fcfcf4');
+  // (the jug: the water in the bottom half, the light through it; the cap, the handle, the shine down its side)
+  R(ctx, 195, 115, 14, 22, SET_INK);
+  shaded(ctx, 'gym-jug', 196, 116, 12, 20, ['#2c4c6c', '#3c6c94', '#5c8cb8', '#8cb4d4', '#b4d4ec', '#dcecf8'], (u, v) => (v > 0.4 ? 0.2 : 0.62) + 0.35 * Math.sin(Math.PI * u) * (v > 0.4 ? 1 : 0.5) + (v > 0.4 && v < 0.47 ? 0.4 : 0));
+  R(ctx, 197, 117, 1, 18, '#fcfcfc'); R(ctx, 198, 118, 1, 5, '#dcecf8');
+  R(ctx, 198, 111, 8, 5, SET_INK); R(ctx, 199, 112, 6, 3, '#e8e8e8'); R(ctx, 199, 112, 6, 1, '#fcfcfc'); R(ctx, 199, 114, 6, 1, '#a8a8a8');
+  R(ctx, 208, 117, 2, 8, SET_INK); R(ctx, 208, 118, 1, 6, '#8cb4d4');
   // (the mirror catching the room: a smear, a crack across one corner)
   R(ctx, 120, 34, 30, 1, '#8cacbc'); for (let k = 0; k < 10; k++) R(ctx, 146 - k * 2, 30 + k * 2, 1, 2, '#2c3c44');
 };
@@ -73,7 +110,8 @@ const gymBgOnce = (ctx: Ctx) => {
 /** A flickering tube light up top. */
 const tubeLight = (ctx: Ctx, t: number, x: number) => {
   const on = !(hash(Math.floor(t / 6)) > 0.93);
-  R(ctx, x, 2, 40, 3, on ? G.tube : '#7c7c70');
+  R(ctx, x + 6, 0, 1, 2, '#3a3f48'); R(ctx, x + 33, 0, 1, 2, '#3a3f48');
+  tubeFixture(ctx, x, 1, 40, on);
   if (on) for (let k = 0; k < 4; k++) { const sp = 1 - k * 0.22; ctx.fillStyle = 'rgba(252, 252, 220, 0.035)'; ctx.beginPath(); ctx.moveTo(x + 20 - 20 * sp, 5); ctx.lineTo(x + 20 + 20 * sp, 5); ctx.lineTo(x + 20 + 60 * sp, 144); ctx.lineTo(x + 20 - 60 * sp, 144); ctx.fill(); }
 };
 
@@ -238,15 +276,27 @@ export const drawGym = (ctx: Ctx, t: number) => {
 };
 
 /** The door opens: light spilling in, two black suits in it. He's racked the bar to look. */
+/**
+ * The gym's door opening (`open` 0..1): daylight in the frame (brightest at the bottom, off the floor out there),
+ * spilling in across the rubber; the door swung in on its hinges toward the wall, its edge to us.
+ */
+const doorOpening = (ctx: Ctx, open: number) => {
+  bands(ctx, 217, 33, 32, 79, ['#e8e0b8', '#f4ecc8', '#fcf4d4', '#fcf8d8', '#fffbe4']);
+  ctx.fillStyle = 'rgba(252, 248, 216, 0.25)';
+  ctx.beginPath(); ctx.moveTo(217, 112); ctx.lineTo(249, 112); ctx.lineTo(252 - 90 * open, 144); ctx.lineTo(214 - 140 * open, 144); ctx.fill();
+  const w = Math.round(32 * (1 - open)) + 2;
+  slab(ctx, 217, 33, w, 79, DOOR_GREEN, { b: 1, hi: 0.55, lo: 0.3 });
+  if (w > 10) { slab(ctx, 217 + w - 7, 72, 3, 8, RAMP.steel, { b: 1 }); slab(ctx, 218, 103, w - 2, 7, RAMP.steel, { b: 1, hi: 0.55, lo: 0.38 }); }
+  // (the door's edge toward us, lit by the daylight)
+  R(ctx, 217 + w - 1, 33, 1, 79, '#a49c80');
+};
+
 export const drawDoorway = (ctx: Ctx, t: number) => {
   gymBg(ctx);
   tubeLight(ctx, t, 90);
   const open = Math.min(1, t / 30);
   // The doorway: daylight, then the door swung in against the wall
-  R(ctx, 214, 30, 38, 82, '#fcf8d8');
-  ctx.fillStyle = 'rgba(252, 248, 216, 0.25)';
-  ctx.beginPath(); ctx.moveTo(214, 112); ctx.lineTo(252, 112); ctx.lineTo(252 - 90 * open, 144); ctx.lineTo(214 - 140 * open, 144); ctx.fill();
-  R(ctx, 214, 30, Math.round(38 * (1 - open)) + 3, 82, G.door);
+  doorOpening(ctx, open);
   // The two of them, dark against the light
   if (t > 16) { agentStanding(ctx, 226, 114, t, 0, DOOR_RIM); agentStanding(ctx, 242, 116, t, 0, DOOR_RIM); }
   bencher(ctx, t, true);
@@ -422,6 +472,49 @@ const escortFig = over('mh-escort', 60, 76, 30, 72, (g, x, y) => mhStandingFig(f
   q.px(-4, -59, '#f4ece0'); q.px(3, -59, '#f4ece0');
 });
 
+/** Painted once and kept: the corridor's things (they go by every frame). */
+const sprites = new Map<string, HTMLCanvasElement>();
+const sprite = (key: string, w: number, h: number, draw: (g: Ctx) => void) => () => {
+  let c = sprites.get(key);
+  if (!c) { c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d')!); sprites.set(key, c); }
+  return c;
+};
+/** The corridor's paint (a government green-grey), and its doors' oak. */
+const HALL_WALL = ['#2c322f', '#3a423e', '#48504b', '#545c58', '#646c68', '#747c78', '#868e8a'];
+const OAK = ['#1c1008', '#2c1a0c', '#3e2612', '#52341a', '#684424', '#7e5630', '#94683c'];
+/** A door along the corridor: oak in a steel frame, a frosted window (its number goes on that), the lever, a kick plate. */
+const hallDoor = sprite('hall-door', 36, 76, g => door(g, 1, 1, 34, 74, { leaf: OAK, frame: HALL_WALL, window: 'frost', kick: true, handle: 1 }));
+/** Somebody important, in oils, in a gilt frame: the backdrop, the suit, the face, the hair gone grey; the little lamp over it. */
+const hallPortrait = sprite('hall-portrait', 22, 28, g => {
+  slab(g, 1, 3, 20, 24, BRASS, { b: 2, hi: 0.7, lo: 0.45 });
+  slab(g, 4, 6, 14, 18, ['#141c24', '#1c2834', '#263646', '#324658', '#40586c'], { b: 1, inset: true, hi: 0.7, lo: 0.25, ink: null });
+  shaded(g, 'portrait-suit', 6, 17, 10, 7, ['#08080c', '#121218', '#1e1e28', '#2c2c38'], (u, v) => { if (v < 0.4 && Math.abs(u - 0.5) > 0.2 + v) return -1; return 0.7 - Math.abs(u - 0.35) * 0.9; });
+  g.fillStyle = '#e8e8e8'; g.fillRect(10, 17, 2, 3); g.fillStyle = '#8c1c1c'; g.fillRect(10, 19, 2, 3);
+  shaded(g, 'portrait-face', 8, 9, 6, 8, RAMP.aSkin, (u, v) => { const x = u * 2 - 1, y = v * 2 - 1; if (x * x + y * y > 1.05) return -1; return 0.85 - x * 0.35 - y * 0.25; });
+  g.fillStyle = '#c8c8cc'; g.fillRect(8, 8, 6, 2); g.fillStyle = '#9a9aa0'; g.fillRect(8, 10, 1, 2);
+  g.fillStyle = '#3a2a1c'; g.fillRect(9, 12, 1, 1); g.fillRect(12, 12, 1, 1); g.fillRect(10, 15, 2, 1);
+  // (the lamp over it, on its arm)
+  g.fillStyle = SET_INK; g.fillRect(6, 0, 10, 3); g.fillStyle = BRASS[3]; g.fillRect(7, 0, 8, 2); g.fillStyle = BRASS[5]; g.fillRect(7, 0, 8, 1);
+  g.fillStyle = '#fcf4d0'; g.fillRect(7, 2, 8, 1);
+});
+/** A notice nobody reads: typed, a heading, a stamp, tacked up. */
+const hallNotice = sprite('hall-notice', 20, 24, g => {
+  paper(g, 2, 2, 16, 20, PAPER, 3);
+  g.fillStyle = '#1c2420'; g.fillRect(4, 5, 12, 1);
+  for (let l = 0; l < 5; l++) { g.fillStyle = l % 2 ? '#8c8c80' : '#6c6c64'; g.fillRect(4, 8 + l * 2, 12 - (l % 2) * 4, 1); }
+  g.fillStyle = '#b02020'; g.fillRect(11, 17, 5, 3); g.fillStyle = '#f4f1de'; g.fillRect(12, 18, 3, 1);
+});
+/** A fire extinguisher on its bracket: the red bottle shaded round, the label, the valve and its lever, the hose down its side. */
+const hallExtinguisher = sprite('hall-ext', 14, 28, g => {
+  g.fillStyle = SET_INK; g.fillRect(2, 5, 10, 21);
+  shaded(g, 'ext-bottle', 3, 6, 8, 19, RAMP.red, (u, v) => { const x = u * 2 - 1; return 0.25 + 0.75 * Math.max(0, Math.sqrt(1 - x * x) * 0.8 - x * 0.3) - (v > 0.9 ? 0.3 : 0); });
+  g.fillStyle = '#f4f1de'; g.fillRect(3, 11, 8, 4); g.fillStyle = '#b0ae9e'; g.fillRect(3, 14, 8, 1); g.fillStyle = '#1c2420'; g.fillRect(4, 12, 5, 1);
+  g.fillStyle = SET_INK; g.fillRect(4, 1, 6, 5); g.fillStyle = RAMP.steel[3]; g.fillRect(5, 2, 4, 3); g.fillStyle = RAMP.steel[5]; g.fillRect(5, 2, 4, 1);
+  g.fillStyle = SET_INK; g.fillRect(8, 0, 5, 2); g.fillStyle = RAMP.steel[4]; g.fillRect(9, 0, 3, 1);
+  g.fillStyle = '#0c0c0e'; g.fillRect(2, 3, 1, 14); g.fillRect(1, 16, 2, 3);
+  g.fillStyle = RAMP.steel[2]; g.fillRect(2, 18, 10, 2); g.fillStyle = RAMP.steel[4]; g.fillRect(2, 18, 10, 1);
+});
+
 /** Out of the gym and down a government corridor: two suits walking, Meathead bounding round them like a dog. */
 export const drawEscort = (ctx: Ctx, t: number) => {
   bands(ctx, 0, 0, ART_W, 114, ['#4c5450', '#5c6460', '#687070', '#707874', '#6c7470', '#646c68', '#5c645f']);
@@ -429,21 +522,26 @@ export const drawEscort = (ctx: Ctx, t: number) => {
   // Doors going by, each with a little frosted window and a number. (Each slot's things go by its place along the
   // corridor, not its place on the screen: so as the scroll comes back round, nothing swaps for something else.)
   const scroll = (t * 1.2) % 80, along = Math.floor(t * 1.2 / 80);
+  // The wainscot along the bottom of the wall: the chair rail, the panels let in under it (going by with the rest)
+  bands(ctx, 0, 84, ART_W, 26, ['#4c544f', '#48504b', '#444c47', '#3e4641']);
+  for (let k = -1; k < 14; k++) slab(ctx, Math.round(k * 20 - (t * 1.2) % 20) + 3, 88, 14, 18, HALL_WALL, { b: 1, inset: true, hi: 0.5, lo: 0.4, ink: null });
+  slab(ctx, 0, 82, ART_W, 3, HALL_WALL, { b: 1, hi: 0.72, lo: 0.45 });
   for (let k = -1; k < 5; k++) {
     const x = Math.round(k * 80 - scroll + 20);
-    R(ctx, x, 40, 34, 74, G.door); R(ctx, x + 6, 48, 22, 16, '#9cacac'); R(ctx, x + 26, 80, 3, 3, C.gold);
-    text(ctx, `B-${(14 + k + Math.floor(t * 1.2 / 80)) % 90}`, x + 17, 60, C.ink, 6);
+    ctx.drawImage(hallDoor(), x - 1, 39);
+    text(ctx, `B-${(14 + k + Math.floor(t * 1.2 / 80)) % 90}`, x + 17, 62, '#1c2420', 6);
   }
   // Between the doors: a portrait of somebody important, a fire extinguisher, a notice nobody reads
   for (let k = -1; k < 5; k++) {
     const x = Math.round(k * 80 - scroll + 20) + 46;
-    if ((k + along) % 2 === 0) { R(ctx, x, 44, 20, 24, '#8c6c2c'); R(ctx, x + 2, 46, 16, 20, '#3c4c5c'); ell(ctx, x + 10, 54, 4, 5, '#c8a888'); R(ctx, x + 5, 60, 10, 6, '#1c1c24'); }
-    else { R(ctx, x + 6, 84, 7, 18, C.red); R(ctx, x + 7, 81, 4, 3, C.ink); R(ctx, x + 6, 88, 7, 2, C.white); R(ctx, x + 2, 50, 16, 20, '#e8e8d8'); for (let l = 0; l < 5; l++) R(ctx, x + 4, 54 + l * 3, 12 - (l % 2) * 4, 1, '#8c8c80'); }
+    if ((k + along) % 2 === 0) ctx.drawImage(hallPortrait(), x - 1, 43);
+    else { ctx.drawImage(hallNotice(), x + 1, 48); ctx.drawImage(hallExtinguisher(), x + 3, 78); }
   }
   // The baseboard
-  R(ctx, 0, 110, ART_W, 4, '#3c4440');
+  slab(ctx, 0, 110, ART_W, 4, ['#1c201e', '#262c29', '#303834', '#3c4440', '#4c5450'], { b: 1, hi: 0.6, lo: 0.4, ink: null });
+  R(ctx, 0, 109, ART_W, 1, SET_INK);
   // Lights along the ceiling
-  for (let k = -1; k < 5; k++) R(ctx, Math.round(k * 80 - scroll + 44), 16, 30, 3, G.tube);
+  for (let k = -1; k < 5; k++) tubeFixture(ctx, Math.round(k * 80 - scroll + 44), 15, 30);
   // Floor, polished: the ceiling lights shining back up off it
   bands(ctx, 0, 114, ART_W, 30, ['#4c504c', '#444844', '#3c403c', '#343834', '#2c302c']);
   for (let k = -1; k < 5; k++) { const lx = Math.round(k * 80 - scroll + 44); R(ctx, lx, 120, 30, 2, 'rgba(252, 252, 240, 0.18)'); R(ctx, lx + 6, 128, 18, 1, 'rgba(252, 252, 240, 0.1)'); }
@@ -526,21 +624,49 @@ const slidePhoto = (ctx: Ctx, key: string, color: string) => {
   R(ctx, 76, 16, 50, 1, mix(color, '#000000', 0.5)); R(ctx, 76, 16, 1, 64, mix(color, '#000000', 0.5));
 };
 
+/**
+ * A pull-down projector screen (it's at 70..202 x 8..86): the steel case it rolls out of, the shadow the case throws
+ * down the top of it, its edges; the weighted bar at its hem, the pull on its cord.
+ */
+export const projScreen = (ctx: Ctx) => {
+  R(ctx, 70, 8, 132, 78, G.screen);
+  stipple(ctx, 70, 9, 132, 4, '#a0a094', (_u, v) => 1 - v * 0.8);
+  R(ctx, 70, 8, 1, 78, '#c4c4b8'); R(ctx, 201, 8, 1, 78, '#b0b0a4');
+  slab(ctx, 66, 3, 140, 6, RAMP.steel, { b: 1, hi: 0.6, lo: 0.35 });
+  for (const x of [67, 204]) R(ctx, x, 4, 1, 1, RAMP.steel[0]);
+  slab(ctx, 69, 85, 134, 2, RAMP.steel, { b: 0, hi: 0.6, lo: 0.4 });
+  R(ctx, 136, 88, 1, 3, '#3a3f48'); R(ctx, 135, 91, 3, 2, SET_INK); R(ctx, 135, 91, 3, 1, RAMP.steel[4]);
+};
+
 /** The briefing room: dark, the projector's beam, the screen, and whatever slide's up (-1: nothing, the room only). */
 export const briefingBg = (ctx: Ctx, t: number, slide: Slide | -1) => {
-  layer(ctx, 'briefing', ART_W, ART_H, g => {
+  layer(ctx, 'briefing-2', ART_W, ART_H, g => {
     // Wood paneling, just about visible, lit by the screen: brighter near it, falling off in rings
     shaded(g, 'brief-wall', 0, 0, ART_W, ART_H, ['#050406', '#0a0808', '#100c0a', '#18120c', '#221810', '#2c2014'], (u, v) => {
       const d = Math.hypot((u - 0.53) * 1.8, (v - 0.33) * 1.1);
       return Math.max(0, 1 - d * 1.15);
     });
     for (let x = 0; x < ART_W; x += 16) R(g, x, 0, 1, ART_H, 'rgba(0,0,0,0.35)');
-    // The seal on the wall, in the dark (a gold rim catching the screen)
-    shaded(g, 'brief-seal', 14, 16, 28, 28, ['#140e06', '#1c1408', '#2a1e0c', '#3a2a10', '#4c3814'], ball(0.6, -0.3, 0.1));
-    ell(g, 28, 30, 10, 10, '#141008'); R(g, 22, 28, 12, 4, '#241c10');
+    // The seal on the wall, in the dark: the gold rim catching the screen (its ridge, the stars round it), the field
+    // let in, the eagle on it, wings out, the shield on its chest
+    ell(g, 28, 30, 15, 15, '#050304');
+    shaded(g, 'brief-seal-2', 14, 16, 28, 28, ['#0c0804', '#140e06', '#1c1408', '#2a1e0c', '#3a2a10', '#4c3814', '#5e4818'], (u, v) => {
+      const x = u * 2 - 1, y = v * 2 - 1, d = Math.hypot(x, y);
+      if (d > 1) return -1;
+      if (d > 0.74) return 0.2 + 0.75 * Math.max(0, x * 0.6 - y * 0.25) * (1 - Math.abs(d - 0.87) * 4) + (d > 0.95 ? -0.15 : 0);
+      if (d > 0.68) return 0.05;
+      return 0.18 + Math.max(0, x * 0.25 - y * 0.15);
+    });
+    for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; R(g, Math.round(28 + Math.cos(a) * 12), Math.round(30 + Math.sin(a) * 12), 1, 1, k % 3 ? '#4c3814' : '#6c5420'); }
+    // (the eagle: the wings out and up, the head to one side, the shield)
+    g.fillStyle = '#2a1e0c';
+    for (const s of [-1, 1]) for (let k = 0; k < 7; k++) g.fillRect(28 + s * (2 + k) - (s < 0 ? 1 : 0), 27 - Math.round(k * 0.4) + (k > 4 ? 1 : 0), 1, 4 - Math.floor(k / 3));
+    g.fillRect(26, 26, 4, 9); g.fillRect(27, 24, 3, 2); g.fillRect(25, 35, 2, 2); g.fillRect(29, 35, 2, 2);
+    R(g, 27, 28, 2, 4, '#3a2a10'); R(g, 27, 28, 2, 1, '#4c3814'); R(g, 29, 24, 1, 1, '#5e4818');
+    for (const s of [-1, 1]) R(g, 28 + s * 7 - (s < 0 ? 1 : 0), 25, 1, 1, '#4c3814');
   });
   // The screen
-  R(ctx, 70, 8, 132, 78, G.screen); R(ctx, 70, 8, 132, 3, '#a0a094'); R(ctx, 134, 4, 4, 6, C.gray);
+  projScreen(ctx);
   if (slide !== -1) drawSlide(ctx, t, slide);
   // The beam, from the projector behind (off the bottom)
   ctx.fillStyle = G.beam; ctx.beginPath(); ctx.moveTo(70, 86); ctx.lineTo(202, 86); ctx.lineTo(146, 144); ctx.lineTo(126, 144); ctx.fill();
@@ -581,33 +707,65 @@ export const drawSlide = (ctx: Ctx, t: number, slide: Slide, stamp = 'ASSHOLE') 
 };
 
 /**
- * The back of Meathead's head in the dark of the briefing room, painted once: the traps like hills, the neck, the
- * flat-top, the ears; the screen's light along the top of every edge of him (the bristles, the ears' rims, the tops of
- * his traps). The table at the side: a file stamped TOP SECRET, a mug of coffee going cold.
+ * The back of Meathead in the dark of the briefing room, painted once, nearest the camera: the flat-top, the back of
+ * his square head, the ears; the neck like a stump, the traps climbing up into it, the delts capped round either side,
+ * the arms down off them, the back between (the spine's groove, the shoulder blades); in the dark, but the screen's
+ * light along the top of every edge of him (the bristles, the ears' rims, the tops of his traps and his delts). The
+ * table off to his side, behind him: a file stamped TOP SECRET, a mug of coffee going cold.
  */
-const briefingBackFig = figure('brief-back', ART_W, ART_H, 0, 0, q => {
-  const D = ['#000000', '#020202', '#050504', '#090907', '#0e0e0b'], I = '#000000';
-  q.form(g => { g.moveTo(-4, 146); g.lineTo(6, 138); g.bezierCurveTo(40, 124, 80, 119, 99, 113); g.lineTo(101, 100); g.lineTo(155, 100); g.lineTo(157, 113); g.bezierCurveTo(176, 119, 216, 124, 250, 138); g.lineTo(260, 146); g.closePath(); }, { ramp: D, bevel: 14, amb: 0.1, ink: I });
-  for (const s of [-1, 1]) q.form(g => { g.ellipse(128 + s * 33, 102, 3.5, 7, 0, 0, Math.PI * 2); }, { ramp: D, bevel: 2, amb: 0.1, ink: I, inkIn: null });
-  q.form(g => { g.roundRect(97, 84, 62, 26, 6); }, { ramp: D, bevel: 8, amb: 0.1, ink: I, inkIn: null });
-  q.form(g => { g.rect(95, 81, 66, 9); }, { ramp: D, bevel: 2, amb: 0.2, ink: I, inkIn: null });
-  // (the screen's light along the top of him: the bristles of the flat-top, the ears, the traps)
-  for (let x = 0; x < ART_W; x++) for (let y = 60; y < ART_H; y++) if (q.painted(x, y)) {
+const briefingBackFig = figure('brief-back-3', ART_W, ART_H, 0, 0, q => {
+  const D = ['#000000', '#040302', '#090605', '#100b08', '#18100b', '#22170f'], I = '#000000', UP: [number, number, number] = [0.05, -0.9, 0.42];
+  const WD = ['#0a0604', '#120a06', '#1c120a', '#2a1c10', '#3a2a18', '#4c3822'];
+  // The table, off to his side and behind him: its top lit by the screen, its front edge, the file, the mug
+  q.form(g => { g.moveTo(-4, 114); g.lineTo(58, 114); g.lineTo(62, 119); g.lineTo(-4, 119); g.closePath(); }, { ramp: WD, bevel: 2, amb: 0.3, ink: I, light: UP });
+  q.line(-3, 114, 57, 114, '#5c4630'); q.line(-3, 115, 56, 115, WD[4]);
+  q.form(g => { g.rect(-4, 119, 67, 6); }, { ramp: WD, bevel: 1.5, amb: 0.15, ink: I });
+  q.line(-3, 119, 61, 119, WD[3]);
+  q.form(g => { g.moveTo(6, 110); g.lineTo(28, 110); g.lineTo(30, 115); g.lineTo(4, 115); g.closePath(); }, { ramp: ['#5c4828', '#7c6438', '#a08454', '#c4a670', '#dcc08a'], bevel: 1.5, amb: 0.35, ink: I, light: UP });
+  q.line(8, 112, 26, 112, C.darkRed); q.line(9, 113, 25, 113, '#b02010'); q.line(7, 110, 27, 110, '#e8d4a0');
+  q.form(g => { g.roundRect(41, 106, 4, 5, 2); }, { ramp: ['#6c6c64', '#9c9c90', '#c8c8bc'], bevel: 1, amb: 0.3, ink: I });
+  q.px(42, 108, '#1c140c');
+  q.form(g => { g.rect(33, 104, 9, 11); }, { ramp: ['#5c5c54', '#8c8c84', '#b4b4a8', '#d4d4c8', '#ecece2'], bevel: 2.5, amb: 0.3, ink: I, light: [0.3, -0.7, 0.6] });
+  q.line(34, 105, 40, 105, '#3c2010'); q.px(35, 105, '#5c3418'); q.line(34, 104, 40, 104, '#fcfcf4');
+  // (everything of him, kept, so the light along his edges goes on him and not the table)
+  const me = new Uint8Array(ART_W * ART_H), his = (m: Uint8Array) => { for (let i = 0; i < m.length; i++) if (m[i]) me[i] = 1; };
+  const mine = (x: number, y: number) => x >= 0 && y >= 0 && x < ART_W && y < ART_H && me[y * ART_W + x] === 1;
+  // His arms, down off the delts (behind them)
+  his(q.form(g => { g.moveTo(24, 126); g.lineTo(56, 126); g.lineTo(54, 148); g.lineTo(18, 148); g.closePath(); }, { ramp: D, bevel: 6, amb: 0.1, ink: I, light: UP }));
+  his(q.form(g => { g.moveTo(200, 126); g.lineTo(232, 126); g.lineTo(238, 148); g.lineTo(202, 148); g.closePath(); }, { ramp: D, bevel: 6, amb: 0.1, ink: I, light: UP }));
+  // His back: the traps climbing up into his neck, the lats out wide
+  his(q.form(g => { g.moveTo(44, 148); g.lineTo(50, 128); g.bezierCurveTo(60, 119, 92, 116, 108, 108); g.lineTo(148, 108); g.bezierCurveTo(164, 116, 196, 119, 206, 128); g.lineTo(212, 148); g.closePath(); },
+    { ramp: D, bevel: 16, amb: 0.1, ink: I, inkIn: D[0], light: UP }));
+  // (the spine's groove down the middle, the shoulder blades either side of it, the ridge of each trap)
+  q.line(128, 118, 128, 143, D[0]); q.line(129, 118, 129, 143, D[3]);
+  for (const s of [-1, 1]) {
+    q.line(128 + s * 10, 128, 128 + s * 22, 124, D[4]); q.line(128 + s * 22, 125, 128 + s * 28, 136, D[1]); q.line(128 + s * 11, 129, 128 + s * 16, 140, D[1]);
+    q.line(128 + s * 22, 112, 128 + s * 50, 119, D[5]);
+  }
+  // The delts, capped round over the shoulders
+  for (const s of [-1, 1]) his(q.form(g => { g.ellipse(128 + s * 72, 131, 17, 13, 0, 0, Math.PI * 2); }, { ramp: D, bevel: 8, amb: 0.1, ink: I, inkIn: D[0], light: UP }));
+  // The ears, the neck, the back of his head (square), the flat-top on it
+  for (const s of [-1, 1]) his(q.form(g => { g.ellipse(128 + s * 24, 101, 3.5, 6.5, 0, 0, Math.PI * 2); }, { ramp: D, bevel: 2, amb: 0.1, ink: I, light: UP }));
+  his(q.form(g => { g.rect(110, 104, 36, 12); }, { ramp: D, bevel: 4, amb: 0.08, ink: I, inkIn: null, light: UP }));
+  his(q.form(g => { g.moveTo(106, 90); g.lineTo(150, 90); g.lineTo(151, 104); g.bezierCurveTo(150, 111, 144, 114, 136, 114); g.lineTo(120, 114); g.bezierCurveTo(112, 114, 106, 111, 105, 104); g.closePath(); },
+    { ramp: D, bevel: 9, amb: 0.1, ink: I, inkIn: D[0], light: UP }));
+  // (the fold of skin at the back of his neck, where the head sits on it)
+  q.line(114, 113, 142, 113, D[0]); q.line(116, 114, 140, 114, D[3]);
+  his(q.form(g => { g.rect(104, 80, 48, 12); }, { ramp: RAMP.mHair, bevel: 2, amb: 0.1, ink: I, inkIn: null, light: UP, gain: 0.6 }));
+  for (let x = 105; x < 151; x++) if ((x & 1) === 0) q.line(x, 83, x, 90, '#0e0e12');
+  // (the screen's light along the top of him: the bristles of the flat-top, the ears, the traps, the delts; not the table)
+  for (let x = 0; x < ART_W; x++) for (let y = 60; y < ART_H; y++) if (mine(x, y)) {
     const top = y < 84;
-    q.px(x, y, top ? (x % 3 ? '#4c4c3c' : '#6c6c58') : '#34342a');
+    q.px(x, y + 1, top ? '#24241c' : '#2c2c24');
+    q.px(x, y, top ? (x % 3 ? '#4c4c3c' : '#6c6c58') : '#4c4c3c');
     if (top && x % 3 === 0) q.px(x, y - 1, '#3c3c30');
     break;
   }
-  rimLight(q, 0, ART_W - 1, 82, 143, '#2c2c24', '#4c4c3c', 120);
-  // The table, its edge catching the light; the file; the mug, the coffee in it
-  q.form(g => { g.rect(-4, 128, 66, 20); }, { ramp: ['#0c0804', '#140c06', '#1c140c', '#2c2014', '#3c2c1c'], bevel: 3, amb: 0.2, ink: I });
-  q.line(-4, 128, 61, 128, '#4c3a24');
-  q.form(g => { g.rect(8, 123, 28, 7); }, { ramp: ['#6c5430', '#8c7040', '#b89a5c', '#d8ba7c'], bevel: 2, amb: 0.3, ink: I });
-  q.rect(12, 125, 20, 2, C.darkRed); q.line(14, 125, 29, 125, '#b02010');
-  q.form(g => { g.roundRect(53, 120, 4, 6, 2); }, { ramp: ['#8c8c84', '#b4b4a8', '#dcdcd0'], bevel: 1, amb: 0.3, ink: I });
-  q.rect(54, 122, 2, 2, '#1c140c');
-  q.form(g => { g.rect(44, 118, 10, 10); }, { ramp: ['#8c8c84', '#b4b4a8', '#dcdcd0', '#f4f4ec'], bevel: 2.5, amb: 0.3, ink: I });
-  q.line(45, 119, 52, 119, '#3c2010'); q.px(46, 119, '#5c3418');
+  // (and down his sides, just inside the ink)
+  for (let y = 82; y < ART_H; y++) {
+    for (let x = 0; x < ART_W; x++) if (mine(x, y)) { if (mine(x + 2, y)) q.px(x + 1, y, y < 120 ? '#4c4c3c' : '#2c2c24'); break; }
+    for (let x = ART_W - 1; x >= 0; x--) if (mine(x, y)) { if (mine(x - 2, y)) q.px(x - 1, y, y < 120 ? '#4c4c3c' : '#2c2c24'); break; }
+  }
 });
 
 /** The briefing, from the back: an agent at the screen with a pointer, and the back of Meathead's head in the foreground. */
@@ -620,9 +778,9 @@ export const drawBriefing = (ctx: Ctx, t: number, talking: boolean, slide: Slide
   ctx.beginPath(); ctx.moveTo(206, 90); ctx.lineTo(slide === 'four' || slide === 'four2' || slide === 'drop' ? 180 : 110 + tap, 52 + tap); ctx.stroke();
   // (his mouth, when he's talking)
   if (talking && t % 10 < 5) agentTalk(ctx, 216, 128);
-  // The back of Meathead's head and his shoulders, lit round the edge by the screen; the table in front of him
+  // The back of Meathead's head and his shoulders, nearest us, lit round the edge by the screen; the table off to his side, behind him
   briefingBackFig(ctx, 0, 0);
-  for (let k = 0; k < 3; k++) { const st = (t * 0.4 + k * 6) % 18; R(ctx, 46 + k * 2 + Math.round(Math.sin(st * 0.5 + k) * 1), 116 - st, 1, 2, `rgba(220, 220, 210, ${0.35 * (1 - st / 18)})`); }
+  for (let k = 0; k < 3; k++) { const st = (t * 0.4 + k * 6) % 18; R(ctx, 35 + k * 2 + Math.round(Math.sin(st * 0.5 + k) * 1), 102 - st, 1, 2, `rgba(220, 220, 210, ${0.35 * (1 - st / 18)})`); }
 };
 
 // ---------------------------------------------------------------------------
@@ -643,10 +801,7 @@ export const drawDoorwayPencils = (ctx: Ctx, t: number) => {
   gymBg(ctx);
   tubeLight(ctx, t, 90);
   const open = Math.min(1, t / 30);
-  R(ctx, 214, 30, 38, 82, '#fcf8d8');
-  ctx.fillStyle = 'rgba(252, 248, 216, 0.25)';
-  ctx.beginPath(); ctx.moveTo(214, 112); ctx.lineTo(252, 112); ctx.lineTo(252 - 90 * open, 144); ctx.lineTo(214 - 140 * open, 144); ctx.fill();
-  R(ctx, 214, 30, Math.round(38 * (1 - open)) + 3, 82, G.door);
+  doorOpening(ctx, open);
   if (t > 16) {
     // (the one at the front shoved in by the ones behind him, and trying to get back behind them)
     const shove = Math.max(0, Math.min(14, (t - 40) * 0.5)) - Math.max(0, Math.sin(t * 0.15)) * 3;

@@ -3,7 +3,8 @@
 // its frame counter so it can blink, flash and animate a little, the way NES
 // cutscenes do.
 
-import { shaded, ball, box, bands, RAMP } from './art/snes';
+import { shaded, ball, box, bands, layer, RAMP } from './art/snes';
+import { paintWhiteHouse, paintFence, whFlag, WH_NIGHT } from './art/whiteHouse';
 import { painting, bayer, noise, hash2, Painter, FormOpts } from './art/raster';
 import { shatPants, shatFront, shatSide, shatCloseUp, shatClock, flies, stink } from './shatLook';
 
@@ -103,6 +104,17 @@ export const DENIM = ['#0a1230', '#121c4c', '#1a2c70', '#22408e', '#3456aa', '#5
 export const BELT = ['#2a1004', '#4a1e08', '#6c300c', '#8c4618', '#aa6028'];
 export const BOOT = ['#060608', '#121216', '#202026', '#34343c', '#50505a'];
 export const RIBBON = ['#00104c', '#002080', '#0838b8', '#2058e0', '#4880f8', '#88b0fc'];
+
+/**
+ * The press room's stage (112 down): red carpet, its nap dithered, lit in the middle under the stage lights and
+ * falling off toward us; the curtain's shadow along the back of it.
+ */
+export const stageFloor = (ctx: Ctx) => {
+  shaded(ctx, 'press-carpet', 0, 112, ART_W, 32, ['#280200', '#340400', '#460600', '#580800', '#6a0c00', '#7c1000', '#8e1a06'], (u, v) => {
+    const x = Math.floor(u * ART_W), y = Math.floor(v * 32);
+    return 0.86 - v * 0.6 - Math.abs(u - 0.5) * 0.35 + (hash2(x, y) - 0.5) * 0.22 - (y < 2 ? 0.35 : 0);
+  });
+};
 
 /** Vertical folds of the blue press-room curtain. */
 export const curtain = (ctx: Ctx, h: number) => {
@@ -481,51 +493,53 @@ const trumpFlyFigA = trumpFly(1), trumpFlyFigB = trumpFly(-1);
 // Panels
 // ---------------------------------------------------------------------------
 
+/** The stars over the White House (none where the building is). */
+const WH_STARS = Array.from({ length: 40 }, (_, i) => [Math.floor(hash(i) * ART_W), Math.floor(hash(i + 40) * 50)] as [number, number])
+  .filter(([x, y]) => !(x > 86 && x < 170 && y > 36) && !(x > 122 && x < 146 && y > 18) && !(x > 30 && x < 226 && y > 49) && !(x > 208 && x < 236 && y > 6 && y < 34));
+const WH_SKY = ['#02021a', '#04042a', '#08083c', '#0c0c4c', '#12125c', '#1c1c6c', '#2a2a7c', '#3c3c88'];
+const MOON = ['#8c8a70', '#b4b090', '#d4d0ac', '#ece8c8', '#fcf8d8', '#fffff0'];
+
+/** The night shot, the static part (painted once): the sky, the moon, the lawn, the fountain's basin, the building, the hedges, the fence. */
+const whNightSet = (ctx: Ctx) => layer(ctx, 'wh-night-2', ART_W, ART_H, g => {
+  bands(g, 0, 0, ART_W, 110, WH_SKY);
+  for (const [x, y] of WH_STARS) R(g, x, y, 1, 1, C.white);
+  // The moon: a crescent, shaded, a crater or two; a faint ring of light round it
+  for (let y = 6; y < 36; y++) for (let x = 206; x < 240; x++) { const d = Math.hypot(x - 222, y - 20); if (d > 9 && d < 12 && (x + y) % 2 === 0) R(g, x, y, 1, 1, '#0c0c4c'); }
+  shaded(g, 'wh-moon', 213, 11, 18, 18, MOON, (u, v) => {
+    const x = u * 18 - 9, y = v * 18 - 9;
+    if (x * x + y * y > 81 || (x - 4) ** 2 + (y + 2) ** 2 < 64) return -1;
+    return 0.95 - Math.hypot(x + 6, y + 4) * 0.06;
+  });
+  R(g, 215, 21, 2, 1, MOON[2]); R(g, 217, 25, 1, 1, MOON[2]);
+  // The lawn: mown in stripes, the building's floodlights pooled on it
+  bands(g, 0, 108, ART_W, 36, ['#0c2a0c', '#123a12', '#184a16', '#1e5a1c', '#246a22', '#2c7a28']);
+  for (let y = 108; y < ART_H; y++) for (let x = 0; x < ART_W; x++) {
+    if (Math.floor((x - 128) / (12 + (y - 108) * 0.5) + 100) % 2 === 0 && bayer(x, y) > 0.1) R(g, x, y, 1, 1, y < 120 ? '#164214' : y < 132 ? '#225c1e' : '#2c7028');
+    else if (y > 108 && y < 116 && Math.abs(x - 128) < 100 && bayer(x, y) + 0.5 < 0.3 - Math.abs(x - 128) / 400) R(g, x, y, 1, 1, '#3c7c2c');
+  }
+  for (let y = 114; y < ART_H; y += 7) for (let x = (y * 3) % 5; x < ART_W; x += 5) R(g, x, y, 1, 2, '#3c8c34');
+  paintWhiteHouse(g, WH_NIGHT);
+  // The fountain out front: the stone basin (its rim lit), the water in it catching the light
+  ell(g, 128, 131, 25, 6, FIG_INK);
+  ell(g, 128, 131, 24, 5, WH_NIGHT.stone[3]); ell(g, 128, 130, 24, 4, WH_NIGHT.stone[6]); ell(g, 128, 131, 21, 3, '#0c1c3c');
+  for (let x = 110; x < 147; x++) if (bayer(x, 130) > 0.1) R(g, x, 130, 1, 1, '#24406c');
+  R(g, 118, 131, 6, 1, '#7c9cc8'); R(g, 133, 132, 4, 1, '#5c7cac');
+  R(g, 126, 125, 5, 6, FIG_INK); R(g, 127, 125, 3, 5, WH_NIGHT.stone[5]); R(g, 127, 125, 1, 5, WH_NIGHT.stone[7]); R(g, 124, 124, 9, 1, WH_NIGHT.stone[6]);
+  paintFence(g, 115, '#7c7ca4');
+});
+
 export const drawWhiteHouse = (ctx: Ctx, t: number) => {
-  bands(ctx, 0, 0, ART_W, 110, ['#02021a', '#04042a', '#08083c', '#0c0c4c', '#12125c', '#1c1c6c', '#2a2a7c', '#3c3c88']);
-  for (let i = 0; i < 40; i++) {
-    if (Math.floor(t / 20 + i) % 7 === 0) continue;
-    R(ctx, hash(i) * ART_W, hash(i + 40) * 50, 1, 1, C.white);
+  whNightSet(ctx);
+  // (the stars twinkling: one in seven out at a time)
+  WH_STARS.forEach(([x, y], i) => { if (Math.floor(t / 20 + i) % 7 === 0) R(ctx, x, y, 1, 1, WH_SKY[Math.min(WH_SKY.length - 1, Math.floor((y / 110) * WH_SKY.length))]); });
+  // The flag on the roof, flying
+  whFlag(ctx, t % 30 < 15 ? 0 : 1, false);
+  // The fountain's jet, going up and falling back
+  for (let k = 0; k < 8; k++) {
+    const p = ((t * 0.5 + k * 2.5) % 20) / 20;
+    for (const s of [-1, 1]) R(ctx, 128 + s * Math.round(p * 9), 124 - Math.round(Math.sin(p * Math.PI) * 9), 1, 1, k % 2 ? '#a8d0f8' : '#e8f8ff');
   }
-  ell(ctx, 222, 20, 9, 9, C.moon);
-  ell(ctx, 226, 18, 8, 8, C.night);
-  // Lawn and fence
-  bands(ctx, 0, 108, ART_W, 36, ['#0c2a0c', '#123a12', '#184a16', '#1e5a1c', '#246a22', '#2c7a28']);
-  for (let y = 114; y < ART_H; y += 7) for (let x = (y * 3) % 5; x < ART_W; x += 5) R(ctx, x, y, 1, 2, '#3c8c34');
-  // (the building's glow on the lawn)
-  ctx.fillStyle = 'rgba(252, 224, 168, 0.08)'; ctx.beginPath(); ctx.ellipse(128, 112, 110, 10, 0, 0, Math.PI * 2); ctx.fill();
-  // Wings
-  shaded(ctx, 'wh-wings', 36, 62, 184, 46, ['#8c8ca4', '#a8a8bc', '#c4c4d4', '#dcdce8', '#f0f0f8', '#ffffff'], (u, v) => 0.95 - v * 0.55 - Math.abs(u - 0.5) * 0.35);
-  R(ctx, 36, 100, 184, 8, '#9c9cb0');
-  R(ctx, 34, 58, 188, 4, C.lightGray);
-  for (let x = 36; x < 220; x += 4) R(ctx, x, 55, 2, 3, C.lightGray);
-  for (const row of [68, 86]) {
-    for (let x = 42; x < 216; x += 14) {
-      if (x > 96 && x < 158) continue;
-      R(ctx, x, row, 7, 10, C.lit);
-      R(ctx, x + 3, row, 1, 10, C.lightGray);
-      R(ctx, x - 1, row - 2, 9, 2, C.lightGray);
-    }
-  }
-  // Portico: pediment and columns
-  ctx.fillStyle = C.white;
-  for (let i = 0; i < 18; i++) R(ctx, 128 - i * 1.8 - 2, 40 + i, i * 3.6 + 4, 1, i === 17 ? C.lightGray : C.white);
-  R(ctx, 94, 58, 68, 3, C.lightGray);
-  R(ctx, 98, 61, 60, 41, C.lightGray);
-  for (let i = 0; i < 6; i++) {
-    R(ctx, 100 + i * 11, 61, 5, 41, C.white);
-    R(ctx, 104 + i * 11, 61, 1, 41, C.lightGray);
-  }
-  R(ctx, 122, 86, 12, 16, C.lit);
-  R(ctx, 92, 102, 72, 4, C.white);
-  // Flag on the roof
-  R(ctx, 127, 22, 1, 18, C.lightGray);
-  const wave = t % 30 < 15 ? 0 : 1;
-  for (let i = 0; i < 5; i++) R(ctx, 128, 22 + i * 2 + (i > 2 ? wave : 0), 14, 2, i % 2 === 0 ? C.red : C.white);
-  R(ctx, 128, 22, 6, 5, C.navyDark);
-  // Fence
-  R(ctx, 0, 116, ART_W, 1, C.ink);
-  for (let x = 2; x < ART_W; x += 6) R(ctx, x, 112, 1, 10, C.ink);
+  R(ctx, 128, 116, 1, 8, '#c8e4fc'); R(ctx, 128, 115 + (t % 4 < 2 ? 0 : 1), 1, 1, '#ffffff');
 };
 
 /** Wide shot of the press room: Trump at the podium, Meathead beside it. */
@@ -534,7 +548,7 @@ export const drawPressRoom = (ctx: Ctx, t: number, talking: boolean) => {
   whSign(ctx, 128, 20);
   hangingFlag(ctx, 50, 38);
   hangingFlag(ctx, 190, 38);
-  bands(ctx, 0, 112, ART_W, 32, ['#7c1000', '#6a0c00', '#580800', '#460600', '#340400']);
+  stageFloor(ctx);
   trumpSmall(ctx, 128, 46, t, talking);
   podium(ctx, 128, 72);
   meatheadStanding(ctx, 172, 118, false);
@@ -1665,7 +1679,7 @@ export const drawFinale = (ctx: Ctx, t: number, freezeAt: number) => {
   whSign(ctx, 128, 20);
   hangingFlag(ctx, 50, 38);
   hangingFlag(ctx, 190, 38);
-  bands(ctx, 0, 112, ART_W, 32, ['#7c1000', '#6a0c00', '#580800', '#460600', '#340400']);
+  stageFloor(ctx);
   R(ctx, 0, 112, ART_W, 1, '#a42410');
   podium(ctx, 118, 72, 1);
   meatheadPunched(ctx, 82, 118);

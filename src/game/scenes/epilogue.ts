@@ -7,6 +7,9 @@
 
 import { ART_W, ART_H, C, R, ell, hash, podium, reporters, meatheadPunched, trumpFlying, figure, over, rimLight, mhStandingFig, FIG_INK, BOOT } from './ending';
 import { shaded, bands, layer, RAMP } from './art/snes';
+import { slab, stipple, rampOf, upright, SET_INK } from './art/props';
+import { bayer } from './art/raster';
+import { paintWhiteHouse, paintFence, whFlag, WH_BURNT, WH_WINDOWS } from './art/whiteHouse';
 import { SUIT } from './suits';
 import { shatPants, shatFront } from './shatLook';
 
@@ -51,33 +54,60 @@ const smokeColumn = (ctx: Ctx, x: number, y: number, rise: number, r0: number, t
 // ---------------------------------------------------------------------------
 
 /** The closet, empty: dingy walls, the shelves of cleaning stuff, the mop and bucket, the open door. Painted once. */
-const closetSet = (ctx: Ctx) => layer(ctx, 'ep-closet', ART_W, ART_H, g => {
+const closetSet = (ctx: Ctx) => layer(ctx, 'ep-closet-2', ART_W, ART_H, g => {
   bands(g, 0, 0, ART_W, 112, ['#141810', '#1a2016', '#20281c', '#283020', '#2e3824', '#343e28']);
-  // (a pipe along the top, sweating; water stains)
-  R(g, 0, 8, ART_W, 4, '#3a3a40'); R(g, 0, 8, ART_W, 1, '#6a6a74'); for (let x = 30; x < ART_W; x += 60) R(g, x, 7, 3, 6, '#4a4a54');
+  // (a pipe along the top, sweating, on its hangers; its couplings; water stains)
+  R(g, 0, 7, ART_W, 6, SET_INK);
+  shaded(g, 'cl-pipe', 0, 8, ART_W, 4, ['#1c1c22', '#2a2a32', '#3a3a44', '#4e4e5a', '#6a6a76', '#8a8a96'], (_u, v) => 0.85 - Math.abs(v - 0.3) * 1.4);
+  for (let x = 30; x < ART_W; x += 60) { slab(g, x, 6, 4, 8, RAMP.steel, { b: 1, hi: 0.55, lo: 0.35 }); R(g, x + 1, 0, 2, 6, '#2a2a32'); }
+  for (let x = 12; x < ART_W; x += 37) { R(g, x, 12, 1, 2, '#6c9cc8'); R(g, x, 14, 1, 1, '#a8d0f0'); }
   for (let i = 0; i < 6; i++) { const x = 70 + i * 34; for (let y = 12; y < 30 + (i % 3) * 8; y++) R(g, x + Math.round(Math.sin(y * 0.3) * 1), y, 2, 1, 'rgba(60, 50, 20, 0.35)'); }
   // The floor: grimy checked tiles going back
-  for (let y = 112; y < ART_H; y += 4) for (let x = 0; x < ART_W; x += 8) R(g, x + ((y / 4) % 2) * 4, y, 4, 4, (y / 4) % 2 ? '#2c2c24' : '#3a3a30');
-  R(g, 0, 112, ART_W, 1, '#4a4a3c');
+  for (let y = 112; y < ART_H; y += 4) for (let x = 0; x < ART_W; x += 4) {
+    const light = ((x + y) / 4) % 2 === 0;
+    R(g, x, y, 4, 4, light ? '#3a3a30' : '#2c2c24'); R(g, x, y, 4, 1, light ? '#46463a' : '#34342a'); R(g, x + 3, y + 1, 1, 3, light ? '#30302a' : '#24241e');
+  }
+  stipple(g, 0, 112, ART_W, 32, '#1e1e18', (u, v) => 0.25 + v * 0.2 - Math.abs(u - 0.45) * 0.3);
+  R(g, 0, 111, ART_W, 1, SET_INK); R(g, 0, 112, ART_W, 1, '#4a4a3c');
   // Shelves on the back wall: bottles, sprays, rolls of toilet paper, a box of rubber gloves
   for (const sy of [36, 62]) {
-    R(g, 150, sy, 104, 3, '#5a4028'); R(g, 150, sy, 104, 1, '#8a6a44'); R(g, 150, sy + 3, 104, 1, '#1a1008');
+    // (the plank on its brackets; the things on it, each shaded round, its cap, its label; every third a spray)
+    for (const bx of [154, 246]) { R(g, bx - 1, sy + 3, 4, 7, SET_INK); R(g, bx, sy + 3, 2, 6, '#3a2814'); R(g, bx, sy + 3, 1, 6, '#6a4c2c'); }
+    slab(g, 150, sy, 104, 3, ['#24160a', '#3a2814', '#5a4028', '#7a5a38', '#8a6a44', '#a88458'], { b: 1, hi: 0.8, lo: 0.45 });
+    R(g, 150, sy + 4, 104, 1, 'rgba(0, 0, 0, 0.35)');
     for (let i = 0; i < 9; i++) {
       const bx = 154 + i * 11, h = 8 + (i * 5) % 6, col = ['#2a7ac8', '#e8d040', '#c82828', '#48a848', '#e8e8e8'][(i + sy) % 5];
-      R(g, bx, sy - h, 7, h, col); R(g, bx, sy - h, 2, h, 'rgba(255,255,255,0.3)'); R(g, bx + 2, sy - h - 3, 3, 3, '#1c1c1c');
+      R(g, bx - 1, sy - h - 1, 9, h + 1, SET_INK);
+      shaded(g, `cl-bottle-${col}`, bx, sy - h, 7, h, rampOf(col), upright(0.2));
+      R(g, bx + 1, sy - h + 3, 5, 3, '#f4f1de'); R(g, bx + 1, sy - h + 5, 5, 1, '#b0ae9e'); R(g, bx + 2, sy - h + 4, 3, 1, '#5c5c64');
+      if (i % 3 === 1) { R(g, bx + 1, sy - h - 5, 5, 5, SET_INK); R(g, bx + 2, sy - h - 4, 3, 3, '#2c2c34'); R(g, bx + 2, sy - h - 4, 3, 1, '#5c5c68'); R(g, bx + 5, sy - h - 4, 2, 1, '#2c2c34'); R(g, bx + 3, sy - h - 1, 1, 2, '#2c2c34'); }
+      else { R(g, bx + 1, sy - h - 4, 5, 4, SET_INK); R(g, bx + 2, sy - h - 3, 3, 3, '#1c1c22'); R(g, bx + 2, sy - h - 3, 1, 3, '#4a4a54'); }
     }
   }
-  for (let k = 0; k < 4; k++) { ell(g, 160 + k * 9, 84, 4, 4, '#e8e8e0'); ell(g, 160 + k * 9, 84, 1, 1, '#8a8a80'); }
-  for (let k = 0; k < 3; k++) { ell(g, 164 + k * 9, 77, 4, 4, '#f4f4ec'); ell(g, 164 + k * 9, 77, 1, 1, '#8a8a80'); }
-  R(g, 200, 74, 22, 14, '#4a7ac8'); R(g, 200, 74, 22, 1, '#7aa0e8'); R(g, 205, 77, 12, 3, C.white);
-  // The mop in its bucket (yellow, wringer on top), leaning
-  R(g, 222, 96, 26, 22, '#d8b020'); R(g, 222, 96, 26, 2, '#f8d850'); R(g, 244, 96, 4, 22, '#a07c10');
-  R(g, 220, 92, 30, 4, '#5a5a5a'); R(g, 220, 92, 30, 1, '#8a8a8a');
-  for (let k = 0; k < 60; k++) R(g, 236 - Math.floor(k / 6), 92 - k, 2, 1, '#9a7040');
-  for (let k = 0; k < 7; k++) R(g, 228 + k * 2, 92, 1, 6 + (k % 3), '#c8c0a8');
-  // The door, open, at the left: the hall light flooding in; its frame
-  R(g, 0, 14, 40, 112, '#f8f0c8'); R(g, 0, 14, 40, 112, 'rgba(255,255,255,0.4)');
-  R(g, 40, 12, 4, 112, '#5a4028'); R(g, 40, 12, 1, 112, '#8a6a44'); R(g, 0, 12, 44, 3, '#5a4028');
+  // (the toilet paper, stacked, the ends to us, the cardboard showing in the middles; the box of rubber gloves, one poking out)
+  for (const [k, row, n] of [[0, 84, 4], [1, 77, 3]] as const) for (let i = 0; i < n; i++) {
+    const cx = 160 + k * 4 + i * 9, cy = row;
+    ell(g, cx, cy, 5, 5, SET_INK);
+    shaded(g, 'cl-tp', cx - 4, cy - 4, 8, 8, ['#8a8a80', '#b0b0a6', '#d0d0c6', '#e8e8e0', '#f8f8f2', '#ffffff'], (u, v) => { const x = u * 2 - 1, y = v * 2 - 1; if (x * x + y * y > 1) return -1; return 0.9 - x * 0.25 - y * 0.35 - (x * x + y * y < 0.12 ? 0.6 : 0); });
+    R(g, cx - 1, cy - 1, 2, 2, '#9a7a4c'); R(g, cx, cy, 1, 1, '#5c4428');
+  }
+  slab(g, 200, 74, 22, 14, rampOf('#4a7ac8'), { b: 1, hi: 0.7, lo: 0.4 });
+  R(g, 205, 77, 12, 3, C.white); R(g, 205, 79, 12, 1, '#b0b0c0'); R(g, 207, 82, 8, 1, '#2a4a88');
+  R(g, 209, 71, 5, 4, SET_INK); R(g, 210, 71, 3, 3, '#e8e0a8'); R(g, 210, 71, 1, 3, '#fcf8d0');
+  // The mop in its bucket (yellow, the wringer on top), leaning: the bucket shaded round, its rim, the wringer, the handle, the strands
+  R(g, 221, 95, 28, 24, SET_INK);
+  shaded(g, 'cl-bucket', 222, 96, 26, 22, ['#5c4408', '#8c6c10', '#b88c18', '#d8b020', '#f0cc38', '#f8e070'], (u, v) => upright(0.25)(u, v) - (v > 0.85 ? 0.15 : 0));
+  R(g, 222, 96, 26, 1, '#fcf0a0'); R(g, 222, 99, 26, 1, '#8c6c10');
+  for (const wx of [226, 242]) { R(g, wx, 106, 2, 6, '#8c6c10'); R(g, wx, 106, 1, 6, '#f0cc38'); }
+  slab(g, 220, 91, 30, 4, RAMP.steel, { b: 1, hi: 0.6, lo: 0.4 });
+  for (let x = 223; x < 248; x += 3) R(g, x, 92, 1, 2, RAMP.steel[1]);
+  for (let k = 0; k < 60; k++) { const x = 236 - Math.floor(k / 6), y = 92 - k; R(g, x - 1, y, 4, 1, SET_INK); R(g, x, y, 1, 1, '#c89a60'); R(g, x + 1, y, 1, 1, '#8a6034'); }
+  for (let k = 0; k < 7; k++) { R(g, 228 + k * 2, 92, 1, 6 + (k % 3), k % 2 ? '#a8a090' : '#d8d0b8'); R(g, 228 + k * 2, 97 + (k % 3), 1, 1, '#8a8270'); }
+  // The door, open, at the left: the hall light flooding in (brightest down low); its frame, bevelled, the hinges
+  bands(g, 0, 14, 40, 112, ['#f8f0c8', '#fbf4d4', '#fcf8e0', '#fffbea', '#fffdf4']);
+  slab(g, 40, 12, 4, 112, ['#24160a', '#3a2814', '#5a4028', '#7a5a38', '#8a6a44', '#a88458'], { b: 1, hi: 0.62, lo: 0.4 });
+  slab(g, -1, 11, 45, 3, ['#24160a', '#3a2814', '#5a4028', '#7a5a38', '#8a6a44', '#a88458'], { b: 1, hi: 0.7, lo: 0.45 });
+  for (const hy of [30, 96]) { R(g, 39, hy, 2, 6, SET_INK); R(g, 39, hy + 1, 1, 4, RAMP.steel[4]); }
   // (the light across the floor from the door)
   g.fillStyle = 'rgba(248, 240, 200, 0.14)';
   g.beginPath(); g.moveTo(40, 112); g.lineTo(40, 126); g.lineTo(220, ART_H); g.lineTo(130, 112); g.closePath(); g.fill();
@@ -344,29 +374,33 @@ const SKINS: Skin[] = [
   { skin: RAMP.tSkin, hair: RAMP.tHair, cloth: NAVY, tie: TIE },
 ];
 
-const rackSet = (ctx: Ctx) => layer(ctx, 'ep-rack', ART_W, ART_H, g => {
+const rackSet = (ctx: Ctx) => layer(ctx, 'ep-rack-2', ART_W, ART_H, g => {
   // Pegboard wall, the floor
   bands(g, 0, 0, ART_W, 120, ['#1c1610', '#221a12', '#281e14', '#2e2216', '#342618']);
-  for (let y = 4; y < 120; y += 6) for (let x = 3 + ((y / 6) % 2) * 3; x < ART_W; x += 6) R(g, x, y, 1, 1, '#120c08');
+  for (let y = 4; y < 120; y += 6) for (let x = 3 + ((y / 6) % 2) * 3; x < ART_W; x += 6) { R(g, x, y, 1, 1, '#120c08'); R(g, x, y + 1, 1, 1, '#3a2c1c'); }
   bands(g, 0, 120, ART_W, 24, ['#2a2620', '#24201a', '#1c1814']);
   // The corkboard: photos pinned up, red string from one to the next (somebody's been pulling them)
-  R(g, 6, 14, 70, 52, '#5a3a1c'); R(g, 8, 16, 66, 48, '#b48a54');
-  for (let i = 0; i < 70; i++) R(g, 8 + Math.floor(hash(i * 1.3) * 66), 16 + Math.floor(hash(i * 2.1) * 48), 1, 1, '#8a6a3a');
+  slab(g, 6, 14, 70, 52, ['#24140a', '#3a2412', '#5a3a1c', '#74502a', '#8c6436', '#a47a44'], { b: 2, hi: 0.66, lo: 0.42 });
+  shaded(g, 'rk-cork', 8, 16, 66, 48, ['#6a4a24', '#8a6a3a', '#a07c48', '#b48a54', '#c49c64', '#d4b07a'], (u, v) => 0.62 - v * 0.2 + (hash(Math.floor(u * 66) * 1.7 + Math.floor(v * 48) * 3.3) - 0.5) * 0.45);
+  R(g, 8, 16, 66, 1, '#3a2412'); R(g, 8, 16, 1, 48, '#3a2412');
   const pins: [number, number, string][] = [[18, 24, 'wh'], [50, 22, 'dome'], [62, 46, 'burger'], [24, 50, 'globe'], [40, 38, 'face']];
   for (const [px, py, k] of pins) {
-    R(g, px - 6, py - 5, 12, 10, '#f4f0e0'); R(g, px - 5, py - 4, 10, 7, '#2a3a5a');
+    R(g, px - 5, py - 4, 12, 10, 'rgba(0, 0, 0, 0.35)');
+    slab(g, px - 6, py - 5, 12, 10, ['#9c9888', '#c4c0b0', '#e0dccc', '#f4f0e0', '#fcfaf0'], { b: 1, hi: 0.9, lo: 0.65, ink: null });
+    bands(g, px - 5, py - 4, 10, 7, ['#1c2a44', '#22324e', '#2a3a5a', '#344668']);
     if (k === 'wh') { R(g, px - 4, py, 8, 3, C.white); R(g, px - 1, py - 2, 2, 2, C.white); }
     if (k === 'dome') { ell(g, px, py, 3, 2, C.white); R(g, px - 4, py + 1, 8, 2, C.white); }
     if (k === 'burger') { R(g, px - 3, py - 2, 6, 2, '#c8782c'); R(g, px - 3, py, 6, 1, '#5a2a10'); R(g, px - 3, py + 1, 6, 1, '#4ab43c'); R(g, px - 3, py + 2, 6, 1, '#c8782c'); }
     if (k === 'globe') { ell(g, px, py, 3, 3, '#3a7ac8'); R(g, px - 1, py - 1, 2, 2, '#48a848'); }
     if (k === 'face') { ell(g, px, py, 3, 3, C.tSkin); R(g, px - 3, py - 3, 6, 1, C.tHair); }
-    R(g, px, py - 5, 1, 1, C.red);
+    R(g, px - 1, py - 6, 3, 2, '#6c0c04'); R(g, px, py - 6, 1, 1, '#fc7c5c'); R(g, px + 1, py - 5, 1, 1, '#9c1a0a');
   }
   g.strokeStyle = '#d82020'; g.lineWidth = 1;
   for (const [a, b] of [[0, 1], [1, 2], [2, 3], [3, 0], [0, 4], [4, 2], [1, 4]]) { g.beginPath(); g.moveTo(pins[a][0] + 0.5, pins[a][1] - 4.5); g.lineTo(pins[b][0] + 0.5, pins[b][1] - 4.5); g.stroke(); }
   // The rail
-  R(g, 84, 26, 170, 3, '#b6bec8'); R(g, 84, 26, 170, 1, '#e8eef4'); R(g, 84, 29, 170, 1, '#3a3f48');
-  R(g, 86, 26, 2, 100, '#868e9a'); R(g, 250, 26, 2, 100, '#5c636e');
+  for (const x of [86, 250]) { slab(g, x, 26, 3, 100, RAMP.steel, { b: 1, hi: 0.62, lo: 0.4 }); slab(g, x - 3, 124, 9, 3, RAMP.steel, { b: 1, hi: 0.7, lo: 0.4 }); }
+  slab(g, 84, 26, 170, 3, RAMP.steel, { b: 1, hi: 0.85, lo: 0.6 });
+  for (const x of [85, 251]) { R(g, x, 25, 4, 5, SET_INK); R(g, x + 1, 26, 2, 3, RAMP.steel[4]); R(g, x + 1, 26, 1, 1, RAMP.steel[5]); }
 });
 
 /** The flashlight going along the rack of spare skins; the corkboard, the red string. */
@@ -399,35 +433,19 @@ const burningSet = (ctx: Ctx) => layer(ctx, 'ep-burning', ART_W, ART_H, g => {
   for (let y = 112; y < ART_H; y += 6) for (let x = (y * 3) % 5; x < ART_W; x += 5) R(g, x, y, 1, 2, '#4a3a14');
   // (scorch marks, a crater)
   for (const [x, y, r] of [[40, 120, 10], [214, 116, 8]] as const) { ell(g, x, y, r, r * 0.3, '#0c0806'); ell(g, x, y - 1, r - 3, r * 0.2, '#1a120c'); }
-  // Wings, soot-black above every window
-  shaded(g, 'ep-wings', 36, 62, 184, 46, ['#4a3c40', '#5e4c4c', '#7a6058', '#967460', '#b08a6c', '#c8a080'], (u, v) => 0.85 - v * 0.5 - Math.abs(u - 0.5) * 0.4);
-  R(g, 36, 100, 184, 8, '#5a4440');
-  R(g, 34, 58, 188, 4, '#7a6a64');
-  for (let x = 36; x < 220; x += 4) R(g, x, 55, 2, 3, '#7a6a64');
-  // (the right wing's roof gone in: a ragged gap, blackened beams)
-  for (let x = 176; x < 214; x++) { const d = Math.round(4 + Math.sin(x * 0.7) * 2 + (hash(x) - 0.5) * 4); R(g, x, 54, 1, d + 4, '#14080a'); }
-  for (let k = 0; k < 4; k++) for (let y = 0; y < 10; y++) R(g, 182 + k * 8 + Math.floor(y / 3), 52 + y, 2, 1, '#2a1410');
-  // Portico: pediment and columns, scorched
-  for (let i = 0; i < 18; i++) R(g, 128 - i * 1.8 - 2, 40 + i, i * 3.6 + 4, 1, i === 17 ? '#8a7a74' : '#b8a8a0');
-  R(g, 94, 58, 68, 3, '#8a7a74');
-  R(g, 98, 61, 60, 41, '#4a3a38');
-  for (let i = 0; i < 6; i++) { R(g, 100 + i * 11, 61, 5, 41, '#c8b8b0'); R(g, 104 + i * 11, 61, 1, 41, '#8a7a74'); R(g, 100 + i * 11, 61, 5, 8 + (i % 3) * 5, '#3a2c2c'); }
-  R(g, 92, 102, 72, 4, '#a89890');
-  // The windows: every one of them glowing; soot streaked up the wall over each
-  for (const row of [68, 86]) for (let x = 42; x < 216; x += 14) {
-    if (x > 96 && x < 158) continue;
-    for (let k = 0; k < 8; k++) R(g, x - 1 + (k % 2), row - 2 - k, 9 - (k % 2) * 2, 1, `rgba(10, 6, 6, ${0.7 - k * 0.07})`);
-    R(g, x, row, 7, 10, '#f87c00'); R(g, x + 1, row + 2, 5, 8, '#fcb820'); R(g, x + 2, row + 5, 3, 5, '#fce890');
-    R(g, x + 3, row, 1, 10, '#5a1c08'); R(g, x - 1, row - 2, 9, 2, '#6a5a54');
-  }
-  R(g, 122, 86, 12, 16, '#f87c00'); R(g, 124, 90, 8, 12, '#fce890');
-  // The flagpole on the roof, the flag half burned off it
-  R(g, 127, 22, 1, 18, '#7a6a64');
-  for (let i = 0; i < 5; i++) R(g, 128, 22 + i * 2, 8 - i, 2, i % 2 === 0 ? C.red : C.white);
-  R(g, 128, 22, 4, 4, C.navyDark); R(g, 136, 22, 1, 3, '#2a1410');
-  // The fence; the glow of it all on the lawn
-  R(g, 0, 116, ART_W, 1, C.ink);
-  for (let x = 2; x < ART_W; x += 6) R(g, x, 112, 1, 10, C.ink);
+  // The building, scorched (its windows lit by the fires in them)
+  paintWhiteHouse(g, WH_BURNT);
+  // Soot streaked up the wall over every window, thinning as it goes
+  for (const [x, row] of WH_WINDOWS) for (let k = 0; k < 9; k++) for (let i = -1; i < 8; i++) if (bayer(x + i, row - 3 - k) + 0.5 < 0.85 - k * 0.09 - Math.abs(i - 3) * 0.08) R(g, x + i, row - 3 - k, 1, 1, '#140a0a');
+  // (soot up the columns from the fires at their feet, and along under the pediment)
+  for (let i = 0; i < 6; i++) { const cx = 98 + i * 11; for (let y = 62; y < 70 + (i % 3) * 5; y++) for (let k = 0; k < 5; k++) if (bayer(cx + k, y) + 0.5 < 0.8 - (y - 62) * 0.04) R(g, cx + k, y, 1, 1, '#2a1c1c'); }
+  // (the right wing's roof gone in: a ragged gap through the balustrade and the cornice, the blackened beams)
+  for (let x = 176; x < 214; x++) { const d = Math.round(4 + Math.sin(x * 0.7) * 2 + (hash(x) - 0.5) * 4); R(g, x, 50, 1, d + 8, '#14080a'); R(g, x, 58 + d, 1, 1, '#5a1c08'); }
+  for (let k = 0; k < 4; k++) for (let y = 0; y < 10; y++) { R(g, 182 + k * 8 + Math.floor(y / 3), 50 + y, 2, 1, '#2a1410'); if (y % 3 === 0) R(g, 182 + k * 8 + Math.floor(y / 3), 50 + y, 1, 1, '#5a2a14'); }
+  // The flag on the roof, half burned off
+  whFlag(g, 0, true);
+  // The fence (the fire catching on the iron); the glow of it all on the lawn
+  paintFence(g, 115, '#a8501c');
   g.fillStyle = 'rgba(248, 124, 0, 0.1)'; g.beginPath(); g.ellipse(128, 112, 120, 12, 0, 0, Math.PI * 2); g.fill();
 });
 
@@ -528,8 +546,16 @@ export const drawLawnPress = (ctx: Ctx, t: number, talking: boolean) => {
  */
 const fireBgSet = (ctx: Ctx) => layer(ctx, 'ep-firebg', ART_W, ART_H, g => {
   bands(g, 0, 0, ART_W, ART_H, ['#14060c', '#240810', '#3a0c10', '#541410', '#6e1e0c', '#8a2c0c', '#a83c0c', '#c45010', '#d86818']);
-  for (let i = 0; i < 6; i++) { const x = 6 + i * 48; R(g, x, 34, 22, 110, '#8a5a48'); R(g, x + 2, 34, 6, 110, '#a8705a'); R(g, x + 18, 34, 4, 110, '#5a3428'); }
-  R(g, 0, 26, ART_W, 9, '#6a4438'); R(g, 0, 26, ART_W, 2, '#8a5a48');
+  // (the columns, way out of focus but still round: shaded across, lit by the fire from the right and below; their capitals)
+  const COL = ['#2c1814', '#44261e', '#5a3428', '#744434', '#8a5a48', '#a8705a', '#c08a6c', '#d8a47c'];
+  for (let i = 0; i < 6; i++) {
+    const x = 6 + i * 48;
+    R(g, x - 1, 40, 24, 104, '#1a0c0c');
+    shaded(g, 'ep-firecol', x, 40, 22, 104, COL, (u, v) => { const n = u * 2 - 1; return 0.18 + 0.55 * Math.sqrt(Math.max(0, 1 - n * n)) * (0.7 + 0.3 * Math.max(0, 0.6 - n)) + v * 0.22 + (Math.floor(u * 22) % 5 === 0 ? -0.08 : 0); });
+    R(g, x - 4, 35, 30, 5, '#1a0c0c'); shaded(g, 'ep-firecap', x - 3, 35, 28, 4, COL, (u, v) => 0.75 - v * 0.45 - Math.abs(u - 0.5) * 0.3);
+  }
+  R(g, 0, 25, ART_W, 11, '#1a0c0c');
+  shaded(g, 'ep-fireent', 0, 26, ART_W, 9, COL, (u, v) => (v < 0.22 ? 0.85 : v > 0.78 ? 0.18 : 0.55 - v * 0.2) + (Math.floor(u * ART_W) % 4 === 0 && v > 0.6 ? -0.2 : 0));
   for (let i = 0; i < 8; i++) ell(g, 20 + i * 34, 12 + (i % 2) * 6, 26, 12, '#1a0c10');
 });
 export const fireBg = (ctx: Ctx, t: number) => {

@@ -7,9 +7,10 @@
 // like the gross-up of the President's gut (grossUp.ts). What doesn't move is painted once.
 
 import { shatPants, shatLegRun } from './shatLook';
-import { ART_W, ART_H, C, R, ell, hash, drawMeatheadCloseUp, curtain, whSign, hangingFlag, podium, reporters, meatheadStanding, meatheadPunched, trumpFlying, FIG_INK, RIBBON, BOOT, figure } from './ending';
+import { ART_W, ART_H, C, R, ell, hash, drawMeatheadCloseUp, curtain, whSign, hangingFlag, podium, reporters, meatheadStanding, meatheadPunched, trumpFlying, FIG_INK, RIBBON, BOOT, figure, stageFloor } from './ending';
 import { painting, bayer } from './art/raster';
-import { bands, layer, RAMP } from './art/snes';
+import { bands, layer, shaded, RAMP } from './art/snes';
+import { slab } from './art/props';
 import { INK, shape, speckle, hatch } from './art/ink';
 import { bead } from './grossUp';
 import { ALIEN, drawAlienFigure, alienMuzzle, laserBeam, AlienPose } from './alienLook';
@@ -30,7 +31,7 @@ const pressSet = (ctx: Ctx) => layer(ctx, 'ae-press', ART_W, ART_H, g => {
   whSign(g, 128, 20);
   hangingFlag(g, 50, 38);
   hangingFlag(g, 190, 38);
-  bands(g, 0, 112, ART_W, 32, ['#7c1000', '#6a0c00', '#580800', '#460600', '#340400']);
+  stageFloor(g);
   // (the stage's lip, catching the lights)
   R(g, 0, 112, ART_W, 1, '#a42410');
 });
@@ -253,22 +254,36 @@ export const drawAlienEmerges = (ctx: Ctx, t: number) => {
 // ---------------------------------------------------------------------------
 
 /** The back of the press room: wood paneling, rows of chairs, the TV cameras on their tripods. Painted once. */
-const pressBack = (ctx: Ctx) => layer(ctx, 'ae-pressback', ART_W, ART_H, g => {
+const pressBack = (ctx: Ctx) => layer(ctx, 'ae-pressback-2', ART_W, ART_H, g => {
   bands(g, 0, 0, ART_W, 70, ['#2a2018', '#342818', '#3e3020', '#4a3a26', '#56442c', '#604c32']);
-  // (the paneling, its seams lit on one side)
-  for (let x = 0; x < ART_W; x += 32) { R(g, x, 10, 1, 60, '#1c140c'); R(g, x + 1, 10, 1, 60, '#6c5638'); }
-  R(g, 0, 8, ART_W, 3, '#6c5638'); R(g, 0, 70, ART_W, 4, '#2a1a0c');
-  bands(g, 0, 74, ART_W, 70, ['#3c0800', '#360600', '#2e0500', '#260400']);
-  // Rows of chairs, empty (everybody's up)
+  // (the paneling: raised panels between the stiles, each bevelled, lit on its top and left; the moulding along the top, the chair rail)
+  const PANEL = ['#1c140c', '#2a2018', '#3e3020', '#4a3a26', '#56442c', '#6c5638', '#806a48'];
+  for (let x = 0; x < ART_W; x += 32) for (const [y, h] of [[13, 26], [42, 25]] as const) slab(g, x + 4, y, 24, h, PANEL, { b: 2, hi: 0.62, lo: 0.42, ink: '#1c140c' });
+  slab(g, 0, 8, ART_W, 3, PANEL, { b: 1, hi: 0.85, lo: 0.6 });
+  slab(g, 0, 70, ART_W, 4, ['#140c06', '#1e1208', '#2a1a0c', '#3a2614', '#4c341c'], { b: 1, hi: 0.7, lo: 0.4 });
+  shaded(g, 'ae-back-carpet', 0, 74, ART_W, 70, ['#200300', '#260400', '#2e0500', '#360600', '#3c0800', '#481004'], (u, v) => {
+    const x = Math.floor(u * ART_W), y = Math.floor(v * 70);
+    return 0.75 - v * 0.55 + (hash(x * 1.37 + y * 7.1) - 0.5) * 0.2;
+  });
+  // Rows of chairs, empty (everybody's up): the padded backs, the seats, the legs
+  const SEAT = ['#0a0a14', '#12121e', '#1a1a2c', '#26263c', '#34344e', '#46466a'];
   for (let row = 0; row < 2; row++) for (let i = 0; i < 12; i++) {
     const cx = 8 + i * 22 + row * 11, cy = 78 + row * 12;
-    R(g, cx, cy, 14, 9, '#1a1a2c'); R(g, cx, cy, 14, 1, '#3c3c5c'); R(g, cx + 1, cy + 9, 2, 6, '#0c0c14'); R(g, cx + 11, cy + 9, 2, 6, '#0c0c14');
+    R(g, cx + 1, cy + 9, 2, 6, '#06060a'); R(g, cx + 11, cy + 9, 2, 6, '#06060a'); R(g, cx + 1, cy + 9, 1, 6, '#3a3a50');
+    slab(g, cx, cy, 14, 9, SEAT, { b: 1, hi: 0.72, lo: 0.4, ink: '#06060a' });
+    R(g, cx + 3, cy + 3, 8, 1, SEAT[1]);
   }
-  // A TV camera on a tripod, the red light on
+  // A TV camera on a tripod, the red light on: the body, the lens hood, the viewfinder; the head, the legs splayed
+  const CAM = ['#08080a', '#121216', '#1c1c22', '#2a2a30', '#3c3c46', '#5a5a66'];
   for (const [x, y] of [[20, 34], [222, 30]] as const) {
-    R(g, x - 10, y, 22, 12, '#2a2a30'); R(g, x - 10, y, 22, 1, '#5a5a66'); R(g, x + 12, y + 2, 6, 8, '#141418');
-    R(g, x - 12, y + 3, 3, 3, '#1c1c22'); R(g, x - 5, y + 12, 2, 24, '#1c1c22');
-    for (let k = 0; k < 14; k++) { R(g, x - 5 - k, y + 24 + k, 1, 1, '#1c1c22'); R(g, x - 4 + k, y + 24 + k, 1, 1, '#1c1c22'); }
+    for (let k = 0; k < 14; k++) { R(g, x - 6 - k, y + 24 + k, 2, 1, CAM[k < 3 ? 3 : 1]); R(g, x - 4 + k, y + 24 + k, 2, 1, CAM[2]); }
+    slab(g, x - 5, y + 12, 2, 26, CAM, { b: 0, hi: 0.6, lo: 0.3 });
+    slab(g, x - 8, y + 11, 8, 2, CAM, { b: 0, hi: 0.7, lo: 0.4 });
+    slab(g, x - 10, y, 22, 12, CAM, { b: 1, hi: 0.7, lo: 0.35 });
+    slab(g, x + 12, y + 2, 6, 8, CAM, { b: 1, hi: 0.5, lo: 0.3 });
+    R(g, x + 17, y + 3, 1, 6, '#3c4c6c'); R(g, x + 17, y + 3, 1, 1, '#a8c0e8');
+    slab(g, x - 13, y + 3, 3, 3, CAM, { b: 0, hi: 0.5, lo: 0.3 });
+    R(g, x - 6, y + 4, 10, 2, CAM[1]); R(g, x - 6, y + 4, 10, 1, CAM[5]);
   }
 });
 

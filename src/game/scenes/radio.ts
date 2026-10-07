@@ -4,9 +4,10 @@
 // (flags either side, a long red tie, a lot of hair), the line scrambled.
 
 import { ART_W, ART_H, C, R, ell, hash, figure, FIG_INK, DENIM, BELT, BOOT } from './ending';
-import { RAMP } from './art/snes';
+import { RAMP, shaded, layer } from './art/snes';
+import { slab, SET_INK } from './art/props';
 import { painting, noise, bayer } from './art/raster';
-import { drawSlide, Slide } from './intro';
+import { drawSlide, projScreen, Slide } from './intro';
 import { drawGarage as drawGarageRoom, GARAGE_W } from '../garage/draw';
 import { ownedSouvenirs } from '../garage/store';
 
@@ -24,26 +25,108 @@ const G = {
  * whatever he's brought home so far on the pegboard and the shelves: shrunk down to the cutscene's picture.
  */
 export const garageBg = (ctx: Ctx) => {
+  garageRoom(ctx);
   const s = ART_W / GARAGE_W;
   ctx.save(); ctx.scale(s, s); ctx.translate(0, -44);
-  drawGarageRoom(ctx, 0, ownedSouvenirs(), null, false);
+  drawGarageRoom(ctx, 0, ownedSouvenirs(), null, false, () => {});
   ctx.restore();
   // "CHEST DAY" scrawled on a whiteboard, circled, taped to the roll-up door (the one bit of wall with nothing on it:
   // clear of the pegboard, the shelves and whatever he's hung on them, the rack and the poster)
   const wx = 214, wy = 30, ww = 36, wh = 26;
   R(ctx, wx + 1, wy + 1, ww, wh, 'rgba(0,0,0,0.3)');
-  R(ctx, wx, wy, ww, wh, C.white); R(ctx, wx, wy + wh - 2, ww, 2, '#c8c8c8');
-  R(ctx, wx + 3, wy - 2, 8, 4, 'rgba(250, 240, 190, 0.8)'); R(ctx, wx + ww - 11, wy - 2, 8, 4, 'rgba(250, 240, 190, 0.8)');
+  slab(ctx, wx, wy, ww, wh, RAMP.steel, { b: 1, hi: 0.8, lo: 0.55 });
+  slab(ctx, wx + 1, wy + 1, ww - 2, wh - 3, ['#b4b8c0', '#d0d4da', '#e4e6ea', '#f2f4f6', '#fcfcfe'], { b: 0, hi: 0.95, lo: 0.6, ink: null, tex: (u, v) => ((u * 36 + v * 16) % 12 < 2 ? 0.12 : 0) });
+  R(ctx, wx + 3, wy + wh - 2, 6, 1, '#2a4ac8'); R(ctx, wx + 3, wy + wh - 2, 1, 1, '#14246c'); R(ctx, wx + 12, wy + wh - 2, 5, 1, C.red);
+  for (const tx of [wx + 3, wx + ww - 11]) { R(ctx, tx, wy - 2, 8, 4, '#e8dcb0'); R(ctx, tx, wy - 2, 8, 1, '#f8f0d0'); R(ctx, tx, wy + 1, 8, 1, '#c4b888'); }
   ctx.fillStyle = C.red; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
   ctx.fillText('CHEST', wx + ww / 2, wy + 11); ctx.fillText('DAY!!', wx + ww / 2, wy + 20); ctx.textAlign = 'left';
   ctx.strokeStyle = C.red; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(wx + ww / 2, wy + wh / 2 - 1, 16, 11, -0.1, 0, Math.PI * 2); ctx.stroke();
 };
 
+/** Cinder block, the pegboard's masonite, a concrete floor: darkest to lightest. */
+const BLOCK = ['#221e1b', '#2c2824', '#36322d', '#403b36', '#4a4540', '#55504a', '#625c55'];
+const MASONITE = ['#3c2408', '#52320c', '#6a4210', '#825416', '#9a661c', '#b07a26'];
+const CONCRETE = ['#2e2b28', '#3a3633', '#46423e', '#524d48', '#5e5953', '#6c665f'];
+const TRACK = ['#16181c', '#22262c', '#30353c', '#40464e', '#545b64'];
+const DOOR_SLAT = ['#4c525a', '#5e646c', '#70767e', '#868c94', '#9ca3ab', '#b4bac2'];
+
+/**
+ * His garage, in the cutscene's own pixels (the room the garage screen draws, at this size: where everything is
+ * lines up with the souvenirs hung on it): cinder block, each block lit on top and shadowed under, lighter under the
+ * bulb; the poster; the squat rack, the bar racked, the plates; the pegboard, its holes, its frame; the shelves on
+ * their brackets; the roll-up door in its tracks, its slats, the handle, the light in under it; the fridge; the floor,
+ * its seams, the oil stain, the drain. Painted once.
+ */
+const garageRoom = (ctx: Ctx) => layer(ctx, 'radio-garage', ART_W, ART_H, g => {
+  const lit = (x: number, y: number) => Math.max(0, 1 - Math.hypot((x - 118) / 150, (y - 20) / 130));
+  // The block wall: the mortar, then the blocks, each its own shade
+  R(g, 0, 0, ART_W, 121, BLOCK[0]);
+  for (let r = 0; r < 16; r++) {
+    const y = r * 8 - 1;
+    for (let x = (r % 2) * 10 - 10; x < ART_W; x += 20) {
+      const l = lit(x + 9, y + 4) * 4 + 1 + (hash(x * 3.1 + r * 7.7) - 0.5) * 1.2;
+      const i = Math.max(1, Math.min(6, Math.round(l)));
+      R(g, x + 1, y + 1, 18, 7, BLOCK[i]); R(g, x + 1, y + 1, 18, 1, BLOCK[Math.min(6, i + 1)]); R(g, x + 1, y + 7, 18, 1, BLOCK[i - 1]); R(g, x + 18, y + 1, 1, 7, BLOCK[i - 1]);
+      if (hash(x + r * 13) > 0.7) R(g, x + 4 + Math.floor(hash(x * r) * 10), y + 3 + Math.floor(hash(r + x) * 3), 1, 1, BLOCK[i - 1]);
+    }
+  }
+  // The poster (its frame yellow, black, NO PAIN in red, NO GAIN in white), taped up
+  slab(g, 7, 0, 35, 21, ['#5c4400', '#8c6800', '#c09400', '#e8b400', '#f8d440', '#fcf0a0'], { b: 1, hi: 0.8, lo: 0.55 });
+  slab(g, 9, 1, 31, 18, ['#06060a', '#0e0e14', '#16161e', '#20202a'], { b: 1, inset: true, hi: 0.6, lo: 0.2, ink: null });
+  g.font = 'bold 6px monospace'; g.textAlign = 'center';
+  g.fillStyle = '#5c0c04'; g.fillText('NO PAIN', 25, 9); g.fillStyle = '#e84a2c'; g.fillText('NO PAIN', 24, 8);
+  g.fillStyle = '#3a3a44'; g.fillText('NO GAIN', 25, 17); g.fillStyle = '#f4f4f8'; g.fillText('NO GAIN', 24, 16);
+  g.textAlign = 'left';
+  // The squat rack: the uprights (their holes), the crossmember; the bar on its hooks, the plates on its ends
+  const RK = ['#08090c', '#121419', '#1c1f26', '#282c35', '#363b46', '#4a505c'];
+  for (const x of [9, 39]) { slab(g, x, 34, 4, 87, RK, { b: 1, hi: 0.62, lo: 0.4 }); for (let y = 42; y < 118; y += 5) { R(g, x + 1, y, 2, 1, RK[0]); R(g, x + 1, y + 1, 2, 1, RK[4]); } }
+  slab(g, 7, 33, 38, 3, RK, { b: 1, hi: 0.7, lo: 0.45 });
+  for (const x of [8, 42]) { R(g, x, 62, 3, 3, SET_INK); R(g, x, 62, 3, 1, RK[5]); }
+  slab(g, 1, 63, 50, 2, RAMP.steel, { b: 0, hi: 0.75, lo: 0.5 });
+  for (const [x, hh] of [[3, 20], [46, 20], [6, 16], [43, 16]] as const) { const y = 64 - hh / 2; R(g, x - 2, y - 1, 5, hh + 2, SET_INK); shaded(g, `rk-plate-${hh}`, x - 1, y, 3, hh, RK, (u, v) => 0.75 - Math.abs(v - 0.4) * 0.9 - u * 0.25); }
+  // The pegboard: masonite under the bulb, its holes in rows, its frame; the shelves on their brackets
+  R(g, 52, 3, 155, 59, SET_INK);
+  shaded(g, 'gar-peg', 53, 4, 153, 57, MASONITE, (u, v) => lit(53 + u * 153, 4 + v * 57) * 1.1 + 0.05);
+  for (let y = 8; y < 59; y += 4) for (let x = 56; x < 204; x += 4) { R(g, x, y, 1, 1, MASONITE[0]); R(g, x, y + 1, 1, 1, MASONITE[Math.min(5, 2 + Math.round(lit(x, y) * 3))]); }
+  slab(g, 52, 2, 155, 2, RAMP.wood, { b: 0, hi: 0.8, lo: 0.6, ink: null });
+  for (const sy of [85, 113]) {
+    for (const bx of [56, 128, 199]) { R(g, bx - 1, sy + 2, 4, 8, SET_INK); R(g, bx, sy + 3, 2, 6, TRACK[3]); R(g, bx, sy + 3, 1, 6, TRACK[4]); }
+    slab(g, 53, sy, 153, 3, RAMP.steel, { b: 1, hi: 0.75, lo: 0.45 });
+  }
+  // The roll-up door: the tracks either side, the slats (each lit on top, a groove under), the handle; the light in under it
+  slab(g, 209, 19, 46, 3, TRACK, { b: 1, hi: 0.7, lo: 0.45 });
+  for (const x of [209, 253]) slab(g, x, 22, 2, 99, TRACK, { b: 0, hi: 0.6, lo: 0.4 });
+  R(g, 211, 22, 42, 98, SET_INK);
+  for (let y = 22; y < 120; y += 7) shaded(g, 'gar-slat', 211, y, 42, Math.min(7, 120 - y), DOOR_SLAT, (u, v) => 0.82 - v * 0.55 - Math.abs(u - 0.4) * 0.25);
+  slab(g, 228, 112, 8, 2, TRACK, { b: 0, hi: 0.7, lo: 0.4 });
+  R(g, 211, 120, 42, 1, '#fde68a');
+  // The floor: concrete in slabs (the seams), lit under the bulb; the oil stain, the drain
+  shaded(g, 'gar-floor', 0, 121, ART_W, 23, CONCRETE, (u, v) => 0.35 + lit(u * ART_W, 60) * 0.5 - v * 0.15);
+  R(g, 0, 120, ART_W, 1, BLOCK[0]);
+  for (let x = 0; x < ART_W; x += 51) R(g, x, 121, 1, 23, CONCRETE[1]);
+  g.fillStyle = 'rgba(253, 230, 138, 0.14)'; g.beginPath(); g.moveTo(211, 121); g.lineTo(253, 121); g.lineTo(256, 136); g.lineTo(202, 136); g.closePath(); g.fill();
+  for (let y = 136; y < ART_H; y++) for (let x = 120; x < 182; x++) { const d = ((x - 151) / 32) ** 2 + ((y - 141) / 6) ** 2; if (d < 1 && bayer(x, y) + 0.5 < 1.1 - d) R(g, x, y, 1, 1, '#24201c'); }
+  R(g, 124, 137, 10, 3, SET_INK); for (let i = 0; i < 4; i++) R(g, 125 + i * 2 + 1, 138, 1, 1, CONCRETE[2]);
+  // The fridge (just its top, down in the corner)
+  slab(g, 9, 136, 22, 10, ['#9c9ca4', '#b8b8c0', '#d0d0d8', '#e4e4ea', '#f4f4f8'], { b: 1, hi: 0.85, lo: 0.6 });
+  R(g, 28, 138, 1, 5, '#7c7c84');
+});
+
+/** The plates stacked by the bench: each a disc, side on, shaded, lit along its top. */
+const PLATE = ['#060608', '#0e0e12', '#18181e', '#26262e', '#36363f', '#4c4c56'];
+const platesFig = figure('garage-plates', 32, 20, 16, 18, q => {
+  for (let k = 0; k < 3; k++) {
+    const w = 14 - k * 2, y = -k * 5;
+    q.form(g => { g.ellipse(0, y - 2, w, 3.2, 0, 0, Math.PI * 2); }, { ramp: PLATE, bevel: 2, amb: 0.2, ink: FIG_INK });
+    q.line(-w + 3, y - 4, w - 5, y - 4, PLATE[5]); q.disc(0, y - 2, 2.5, 1, PLATE[0]); q.px(-1, y - 3, RAMP.steel[4]);
+  }
+});
+
 /** The bulb over it all, swinging a little, and its pool of light. */
 const bulb = (ctx: Ctx, t: number, x: number) => {
   const sway = Math.round(Math.sin(t * 0.04) * 2);
-  R(ctx, x, 0, 1, 16, C.ink);
-  ell(ctx, x + sway, 19, 3, 4, G.bulb);
+  R(ctx, x, 0, 1, 14, C.ink); R(ctx, x + sway - 2, 13, 5, 3, SET_INK); R(ctx, x + sway - 1, 13, 3, 2, RAMP.steel[3]); R(ctx, x + sway - 1, 13, 1, 1, RAMP.steel[5]);
+  ell(ctx, x + sway, 19, 4, 5, '#c8b878'); ell(ctx, x + sway, 19, 3, 4, G.bulb); R(ctx, x + sway - 1, 17, 1, 2, '#ffffff');
   ctx.fillStyle = G.glow;
   ctx.beginPath(); ctx.moveTo(x + sway - 4, 22); ctx.lineTo(x + sway + 4, 22); ctx.lineTo(x + sway + 60, 144); ctx.lineTo(x + sway - 60, 144); ctx.fill();
 };
@@ -242,7 +325,7 @@ export const drawGarage = (ctx: Ctx, t: number, talking: boolean, meatheadTalkin
   garageBg(ctx);
   bulb(ctx, t, 118);
   // (plates stacked by the bench)
-  for (let k = 0; k < 3; k++) { ell(ctx, 40, 132 - k * 5, 14 - k * 2, 3, C.ink); ell(ctx, 40, 131 - k * 5, 12 - k * 2, 2, C.darkGray); R(ctx, 30 + k * 2, 130 - k * 5, 6, 1, '#5c5c5c'); }
+  platesFig(ctx, 40, 134);
   garageFig(ctx, 0, 0);
   fieldRadio(ctx, t, 170, 70, 0.8, talking);
   // The coiled cord over from the radio's jack to the handset, hanging slack
@@ -308,22 +391,96 @@ const scramble = (ctx: Ctx, t: number, amount: number) => {
   for (let y = 0; y < ART_H; y += 2) { ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(0, y, ART_W, 1); }
 };
 
+/** Painted once and kept. */
+const kept = new Map<string, HTMLCanvasElement>();
+const once = (key: string, w: number, h: number, draw: (g: Ctx) => void) => () => {
+  let c = kept.get(key);
+  if (!c) { c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d')!); kept.set(key, c); }
+  return c;
+};
+/** His desk's wood (dark, polished), and the night through the blinds. */
+const DARK_WOOD = ['#060302', '#0c0604', '#140c06', '#1e1208', '#2a1a0c', '#3a2412', '#4c321a'];
+const SLAT = ['#0e1222', '#161c34', '#1e2644', '#2a3458', '#34406c', '#46548a'];
+
+/** The office in the dark: the walls, a step lighter round the window. */
+const officeWall = once('sh-office', ART_W, ART_H, g => shaded(g, 'sh-office-wall', 0, 0, ART_W, ART_H, ['#040406', '#08080c', '#0c0c12', '#121218'], (u, v) => 0.9 - Math.hypot((u - 0.5) * 1.4, (v - 0.35) * 1.2)));
+const office = (ctx: Ctx) => ctx.drawImage(officeWall(), 0, 0);
+
+/** Venetian blinds, the night behind them: each slat curved (lit along its top, shadowed under), the gaps, the cords down them. */
+const blinds = (ctx: Ctx, x: number, y: number, w: number, h: number) => {
+  R(ctx, x, y, w, h, G.blind);
+  for (let yy = y + 2; yy < y + h - 1; yy += 5) {
+    R(ctx, x, yy, w, 1, SLAT[5]); R(ctx, x, yy + 1, w, 1, SLAT[4]); R(ctx, x, yy + 2, w, 1, SLAT[2]); R(ctx, x, yy + 3, w, 1, SLAT[0]);
+  }
+  for (const cx of [x + Math.round(w * 0.25), x + Math.round(w * 0.75)]) for (let yy = y; yy < y + h; yy += 2) R(ctx, cx, yy, 1, 1, SLAT[1]);
+};
+/** A window's frame round the blinds, the sill under it. */
+const windowFrame = (ctx: Ctx, x: number, y: number, w: number, h: number) => {
+  R(ctx, x - 4, y - 4, w + 8, 4, SET_INK); R(ctx, x - 4, y + h, w + 8, 1, SET_INK);
+  slab(ctx, x - 3, y - 3, w + 6, 3, DARK_WOOD, { b: 1, hi: 0.45, lo: 0.3, ink: null });
+  slab(ctx, x - 3, y, 3, h, DARK_WOOD, { b: 1, hi: 0.4, lo: 0.25, ink: null }); slab(ctx, x + w, y, 3, h, DARK_WOOD, { b: 1, hi: 0.4, lo: 0.25, ink: null });
+  slab(ctx, x - 5, y + h, w + 10, 3, DARK_WOOD, { b: 1, hi: 0.7, lo: 0.3 });
+};
+/** A flag on its pole in the dark: the cloth hanging in folds (the stripes just about there), the gold eagle on top catching the window. */
+const darkFlag = once('sh-flag', 24, 110, g => {
+  const F = ['#06060a', '#0c0c14', '#14141e', '#1c1c2a', '#262636'];
+  g.fillStyle = SET_INK; g.fillRect(2, 4, 4, 104);
+  for (let y = 5; y < 107; y++) { g.fillStyle = '#2a2a30'; g.fillRect(3, y, 1, 1); g.fillStyle = '#16161a'; g.fillRect(4, y, 1, 1); }
+  // (the finial, the gold catching the light)
+  g.fillStyle = SET_INK; g.fillRect(1, 0, 6, 5);
+  g.fillStyle = '#5c3c00'; g.fillRect(2, 1, 4, 3); g.fillStyle = '#c08c00'; g.fillRect(2, 1, 2, 2); g.fillStyle = '#f8d878'; g.fillRect(2, 1, 1, 1);
+  for (let x = 5; x < 22; x++) {
+    const fold = 0.5 + 0.5 * Math.cos(((x - 5) / 16) * Math.PI * 3 - 0.4), bot = 59 + Math.round((x - 5) * 0.25 - fold * 2);
+    for (let y = 9 + Math.round((x - 5) * 0.25); y < bot; y++) {
+      const stripe = x > 11 || y > 30 ? (Math.floor(y / 4) % 2 ? 0 : 0.18) : 0.1;
+      const l = fold * 0.7 + stripe - (y - 9) * 0.004 + bayer(x, y) * 0.35;
+      g.fillStyle = F[Math.max(0, Math.min(4, Math.round(l * 4)))]; g.fillRect(x, y, 1, 1);
+    }
+    g.fillStyle = SET_INK; g.fillRect(x, bot, 1, 1);
+  }
+  g.fillStyle = '#c8a050'; for (let x = 6; x < 22; x += 2) g.fillRect(x, 59 + Math.round((x - 5) * 0.25), 1, 1);
+});
+/** The big desk (behind which he sits): the top, its lit edge, carved panels in the front, the phone, the mic, the glass of something green. */
+const bigDesk = once('sh-desk', ART_W, ART_H, g => {
+  slab(g, 20, 112, 216, 4, DARK_WOOD, { b: 1, hi: 0.85, lo: 0.6 });
+  slab(g, 22, 116, 212, 28, DARK_WOOD, { b: 1, hi: 0.32, lo: 0.18 });
+  for (const x of [40, 180]) { slab(g, x, 120, 36, 18, DARK_WOOD, { b: 2, inset: true, hi: 0.3, lo: 0.18, ink: null }); slab(g, x + 5, 124, 26, 10, DARK_WOOD, { b: 1, hi: 0.36, lo: 0.2, ink: null }); }
+  slab(g, 96, 120, 64, 6, DARK_WOOD, { b: 1, inset: true, hi: 0.3, lo: 0.2, ink: null });
+  R(g, 125, 122, 6, 2, '#5c3c00'); R(g, 125, 122, 6, 1, '#c08c00');
+  // (the phone: its base, the handset on the cradle, the dial)
+  R(g, 89, 101, 20, 12, SET_INK);
+  shaded(g, 'sh-phone', 90, 105, 18, 7, ['#08080a', '#121216', '#1e1e24', '#2c2c34', '#3c3c46'], (u, v) => 0.7 - v * 0.6 - Math.abs(u - 0.5) * 0.3);
+  shaded(g, 'sh-handset', 91, 102, 16, 3, ['#08080a', '#121216', '#1e1e24', '#2c2c34', '#4c4c58'], (u, v) => 0.9 - v * 0.7);
+  R(g, 97, 107, 4, 3, '#2c2c34'); R(g, 98, 108, 2, 1, '#08080a');
+  // (the mic on its stand)
+  R(g, 149, 103, 5, 10, SET_INK); R(g, 150, 104, 3, 8, '#1e1e24'); R(g, 150, 104, 1, 8, '#3c3c46');
+  R(g, 148, 99, 7, 6, SET_INK); R(g, 149, 100, 5, 4, '#16161a'); R(g, 149, 100, 2, 1, '#4c4c58');
+  R(g, 145, 111, 13, 2, SET_INK); R(g, 146, 111, 11, 1, '#2c2c34');
+  // (the glass: the green in it, lit through, the rim)
+  R(g, 195, 100, 8, 13, SET_INK);
+  shaded(g, 'sh-glass', 196, 104, 6, 8, ['#0c2008', '#1d3a12', '#2c5a18', '#3f7a1f', '#6cb03c', '#9be36a'], (u, v) => 0.85 - u * 0.6 - v * 0.2);
+  R(g, 196, 101, 6, 3, '#121a14'); R(g, 196, 101, 6, 1, '#4c5a50'); R(g, 196, 104, 6, 1, '#9be36a');
+});
+/** The big desk across the front of the briefing (off to his side). */
+const bigDeskSide = once('sh-desk-side', ART_W, ART_H, g => {
+  slab(g, -2, 118, 192, 4, DARK_WOOD, { b: 1, hi: 0.85, lo: 0.6 });
+  slab(g, 0, 122, 188, 22, DARK_WOOD, { b: 1, hi: 0.32, lo: 0.18 });
+  for (const x of [14, 120]) slab(g, x, 126, 50, 14, DARK_WOOD, { b: 2, inset: true, hi: 0.3, lo: 0.18, ink: null });
+});
+
 /**
  * The man on the other end: a dark office, the blinds lit from behind, flags either side, a big desk, and him in
  * silhouette behind it (a big man, a lot of hair with a little gold at the edge, the long red tie the only colour on
  * him). His hands go while he talks: the pinch, the accordion.
  */
 export const drawShadowFigure = (ctx: Ctx, t: number, talking: boolean) => {
-  R(ctx, 0, 0, ART_W, ART_H, G.office);
-  // The window behind him, through the blinds
-  R(ctx, 64, 8, 128, 84, G.blind);
-  for (let y = 10; y < 92; y += 5) R(ctx, 64, y, 128, 2, G.blindLit);
-  R(ctx, 126, 8, 4, 84, G.office);
+  // The office in the dark; the window behind him, through the blinds, in two halves
+  office(ctx);
+  blinds(ctx, 64, 8, 62, 84); blinds(ctx, 130, 8, 62, 84);
+  windowFrame(ctx, 64, 8, 128, 84);
+  slab(ctx, 126, 8, 4, 84, DARK_WOOD, { b: 1, hi: 0.4, lo: 0.2, ink: null });
   // Flags either side, in the dark: just their shapes, a glint of gold on the poles
-  for (const x of [34, 212]) {
-    R(ctx, x, 12, 2, 100, C.darkGray); ell(ctx, x + 1, 11, 2, 2, C.gold);
-    ctx.fillStyle = '#10101a'; ctx.beginPath(); ctx.moveTo(x + 2, 16); ctx.lineTo(x + 18, 20); ctx.lineTo(x + 16, 70); ctx.lineTo(x + 2, 66); ctx.fill();
-  }
+  for (const x of [34, 212]) ctx.drawImage(darkFlag(), x - 3, 7);
   // Him: shoulders out past the window, the hair up and swept over, rim-lit
   const bob = talking ? Math.round(Math.sin(t * 0.3) * 1) : 0;
   ctx.fillStyle = G.suit;
@@ -370,11 +527,7 @@ export const drawShadowFigure = (ctx: Ctx, t: number, talking: boolean) => {
     }
   }
   // The desk across the front: big, carved, a phone and a microphone on it, and a glass of something green
-  R(ctx, 20, 112, 216, 32, '#140c06'); R(ctx, 20, 112, 216, 3, '#2c1c0c');
-  R(ctx, 196, 102, 6, 10, '#1d3a12'); R(ctx, 197, 104, 4, 7, '#3f7a1f'); R(ctx, 197, 104, 1, 1, '#9be36a'); R(ctx, 196, 101, 6, 1, '#3a3a3a');
-  for (const x of [40, 180]) { R(ctx, x, 120, 36, 18, '#1c1208'); R(ctx, x + 2, 122, 32, 14, '#140c06'); }
-  R(ctx, 150, 104, 3, 8, C.darkGray); ell(ctx, 151, 102, 3, 3, C.darkGray);
-  R(ctx, 90, 106, 18, 6, C.darkGray); R(ctx, 92, 102, 14, 4, C.darkGray);
+  ctx.drawImage(bigDesk(), 0, 0);
   scramble(ctx, t, talking ? 0.28 : 0.15);
 };
 
@@ -383,15 +536,14 @@ export const drawShadowFigure = (ctx: Ctx, t: number, talking: boolean) => {
  * slides on it, and him beside it in silhouette (the hair, the long red tie), a pointer going at it while he talks.
  */
 export const drawShadowBriefing = (ctx: Ctx, t: number, talking: boolean, slide: Slide) => {
-  R(ctx, 0, 0, ART_W, ART_H, G.office);
+  office(ctx);
   // The blinds, lit from behind, round the edges of the screen
-  R(ctx, 58, 4, 156, 96, G.blind);
-  for (let y = 6; y < 100; y += 5) R(ctx, 58, y, 156, 2, G.blindLit);
+  blinds(ctx, 58, 4, 156, 96);
+  windowFrame(ctx, 58, 4, 156, 96);
   // A flag in the dark, off to the left
-  R(ctx, 30, 12, 2, 100, C.darkGray); ell(ctx, 31, 11, 2, 2, C.gold);
-  ctx.fillStyle = '#10101a'; ctx.beginPath(); ctx.moveTo(32, 16); ctx.lineTo(48, 20); ctx.lineTo(46, 70); ctx.lineTo(32, 66); ctx.fill();
+  ctx.drawImage(darkFlag(), 27, 7);
   // The screen, and what's on it (SAD! across each of them)
-  R(ctx, 70, 8, 132, 78, '#dcdcd0'); R(ctx, 70, 8, 132, 3, '#a0a094'); R(ctx, 134, 4, 4, 6, C.gray);
+  projScreen(ctx);
   drawSlide(ctx, t, slide, 'SAD!');
   // Him, beside it: a big dark shape, the hair swept up and rim-lit, the tie
   const bob = talking ? Math.round(Math.sin(t * 0.3)) : 0;
@@ -413,6 +565,6 @@ export const drawShadowBriefing = (ctx: Ctx, t: number, talking: boolean, slide:
   ctx.beginPath(); ctx.moveTo(cx - 18, 100); ctx.lineTo((onBoss ? 110 : 180) - jab, 52 + jab); ctx.stroke();
   ell(ctx, cx - 18, 100, 4, 4, G.suit);
   // The big desk across the front
-  R(ctx, 0, 118, 190, 26, '#140c06'); R(ctx, 0, 118, 190, 3, '#2c1c0c');
+  ctx.drawImage(bigDeskSide(), 0, 0);
   scramble(ctx, t, talking ? 0.22 : 0.12);
 };

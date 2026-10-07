@@ -12,7 +12,9 @@ import { say, isTalking, holdForSpeech, silenceAll, sentenceShown, MEATHEAD_VOIC
 import { playSound } from '../../platform/audio';
 import { killPlayer } from '../../player/player';
 import { drawMeatheadCloseUp } from '../../scenes/ending';
-import { INK, hash, lin, shape, speckle, blood } from '../../scenes/art/ink';
+import { INK, hash, shape, blood } from '../../scenes/art/ink';
+import { shaded, layer } from '../../scenes/art/snes';
+import { bayer } from '../../scenes/art/raster';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE } from './course';
 
@@ -96,16 +98,6 @@ export const tickDumpster = (ctx: FrameContext, d: Dumpster) => {
 // ---------------------------------------------------------------------------
 
 const W = 256, H = 144;
-
-/** Brick, dark, an alley's worth of it (the plain one, behind him up close). */
-const bricks = (ctx: Ctx, x: number, y: number, w: number, h: number, base: string, seed: number) => {
-  ctx.fillStyle = base; ctx.fillRect(x, y, w, h);
-  for (let r = 0; r * 5 < h; r++) for (let c = -1; c * 12 < w; c++) {
-    const bx = x + c * 12 + (r % 2) * 6, by = y + r * 5;
-    ctx.fillStyle = hash(r * 31 + c * 7 + seed) > 0.5 ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.04)';
-    ctx.fillRect(bx + 0.5, by + 0.5, 11, 4);
-  }
-};
 
 /** Stepped bands down an area (the SNES way: no smooth gradients), top color to bottom. */
 const bands = (ctx: Ctx, x: number, y: number, w: number, h: number, ramp: string[]) => {
@@ -414,15 +406,43 @@ const drawTumble = (ctx: Ctx, t: number) => {
 };
 
 /** In the dumpster, up close: everything that was in it, now in him. */
+/** The dumpster's steel (its green), the alley's brick behind it: darkest to lightest. */
+const BIN = ['#03140a', '#062414', '#0a321c', '#0e4024', '#14532d', '#1e6a3a', '#2c844a', '#40a060'];
+const ALLEY_BRICK = ['#1c0e0a', '#28140e', '#341a12', '#422218', '#502a1e', '#5e3424'];
+
+/**
+ * Behind him up close (painted once): the alley's brick up over the dumpster, each brick lit on top and shadowed under,
+ * the mortar dark; the dumpster's back wall inside, corrugated (each rib round, lit down its left), its lip along the
+ * top, the welds; rust run down off the rivets, the grime thick down low.
+ */
+const insideBg = (c: Ctx) => layer(c, 'barry-inside', W, H, g => {
+  g.fillStyle = '#0c0a09'; g.fillRect(0, 0, W, H);
+  for (let r = 0; r < 9; r++) for (let k = -1; k * 12 < W; k++) {
+    const bx = k * 12 + (r % 2) * 6, by = r * 5, i = 1 + Math.floor(hash(r * 31 + k * 7 + 9) * 3.5) + (r > 4 ? 0 : 1);
+    g.fillStyle = ALLEY_BRICK[Math.min(5, i)]; g.fillRect(bx + 1, by + 1, 11, 4);
+    g.fillStyle = ALLEY_BRICK[Math.min(5, i + 1)]; g.fillRect(bx + 1, by + 1, 11, 1);
+    g.fillStyle = ALLEY_BRICK[i - 1]; g.fillRect(bx + 1, by + 4, 11, 1);
+  }
+  // The back wall, its ribs
+  shaded(g, 'barry-ribs', 0, 44, W, 100, BIN, (u, v) => {
+    const x = u * W, rib = Math.sin(((x % 28) / 28) * Math.PI * 2 + 0.6);
+    return 0.42 + rib * 0.22 - v * 0.28 + (Math.floor(x) % 28 === 0 ? -0.25 : 0);
+  });
+  // (rust run down off the rivets along the top; the grime thick down low)
+  for (let k = 0; k < W; k += 28) for (const dx of [6, 20]) {
+    const x = k + dx, len = 8 + Math.floor(hash(x * 1.7) * 22);
+    g.fillStyle = '#0a1a0e'; g.fillRect(x, 47, 2, 2); g.fillStyle = BIN[6]; g.fillRect(x, 47, 1, 1);
+    for (let y = 49; y < 49 + len; y++) if (bayer(x, y) + 0.5 < 0.9 - (y - 49) / len) { g.fillStyle = y < 49 + len / 2 ? '#6a3410' : '#4a2410'; g.fillRect(x + (y % 5 === 0 ? 1 : 0), y, 1, 1); }
+  }
+  for (let y = 100; y < H; y++) for (let x = 0; x < W; x++) if (bayer(x, y) + 0.5 < (y - 100) / 60 + (hash(Math.floor(x / 6) * 3.1) - 0.5) * 0.3) { g.fillStyle = (x + y) % 3 ? '#1c140c' : '#2a1c10'; g.fillRect(x, y, 1, 1); }
+  // The lip along the top: rolled steel, lit along its top, the shadow it throws down the wall
+  g.fillStyle = INK; g.fillRect(0, 39, W, 6);
+  shaded(g, 'barry-lip', 0, 40, W, 4, BIN, (_u, v) => 0.95 - v * 0.75);
+  for (let x = 0; x < W; x++) if (bayer(x, 45) > -0.2) { g.fillStyle = BIN[1]; g.fillRect(x, 45, 1, 1); }
+});
+
 const drawInside = (ctx: Ctx, t: number, talking: boolean, okay: boolean) => {
-  const bg = (c: Ctx) => {
-    c.fillStyle = lin(c, 0, H, [[0, '#1C1917'], [1, '#0C0A09']]); c.fillRect(0, 0, W, H);
-    bricks(c, 0, 0, W, 60, '#3A2218', 9);
-    // (the inside back wall of the dumpster, its lid up over him)
-    shape(c, () => c.rect(-4, 40, W + 8, 104), '#14532D', 1);
-    c.strokeStyle = 'rgba(0,0,0,0.4)'; c.lineWidth = 1; for (let k = 0; k < 10; k++) { c.beginPath(); c.moveTo(k * 28, 42); c.lineTo(k * 28, 144); c.stroke(); }
-    speckle(c, 0, 40, W, 104, 300, 'rgba(120, 53, 15, 0.4)', 13, 0.8);
-  };
+  const bg = insideBg;
   drawMeatheadCloseUp(ctx, t, talking, okay ? 'stoked' : 'dumb', { bg, medal: false });
   // Everything sticking out of him: shards of glass (bloody), a fork in his trap, a syringe in his neck, a nail in
   // his pec, a fish hanging off his shoulder by its teeth; a banana peel on his head
