@@ -31,7 +31,7 @@ import { FINALE_LINES } from '../../content/dialogue';
 import { shakeScreen } from '../core/state';
 import {
   inFinale, FINALE_SHOTGUN_PELLETS, FINALE_FLAME_RANGE, FINALE_FLAME_SEGMENTS, FINALE_FLAME_WIDTH, FINALE_FLAME_GROWTH, FINALE_FLAME_SIZE_CAP_DIST,
-  FINALE_OIL_SPLASH_RADIUS, FINALE_OIL_SPLASH_DAMAGE, FINALE_OIL_COAT_RADIUS, PITCH_FRAMES, PITCH_RELEASE_AT, PITCH_SPEED, PITCH_SIZE, PITCH_LIFE, FINALE_BARF_FRAMES,
+  FINALE_OIL_SPLASH_RADIUS, FINALE_OIL_SPLASH_DAMAGE, FINALE_OIL_COAT_RADIUS, FINALE_OIL_FORK_DY, PITCH_FRAMES, PITCH_RELEASE_AT, PITCH_SPEED, PITCH_SIZE, PITCH_LIFE, FINALE_BARF_FRAMES,
 } from './finaleBuffs';
 
 /** The bits of this frame's input that weapons care about. */
@@ -240,6 +240,14 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
         type: 'projectile', damage: OIL_ROCKET_DAMAGE, owner: 'player', isOilRocket: true,
         // Fired from a crouch it always flies straight (down is held, and it'd steer into the floor)
         noSteer: player.isDucking
+      });
+      // (the finale: a fork of them, one either side of that one, angled up and down)
+      if (inFinale(state.stageId)) for (const dy of [-FINALE_OIL_FORK_DY, FINALE_OIL_FORK_DY]) addProjectile({
+        id: `oil-${Date.now()}-${dy}`,
+        pos: fromMuzzle(40, 20),
+        vel: { x: facing * 24, y: dy },
+        width: 40, height: 20, health: 1, maxHealth: 1,
+        type: 'projectile', damage: OIL_ROCKET_DAMAGE, owner: 'player', isOilRocket: true, noSteer: true, forkDy: dy,
       });
       player.shootCooldown = OIL_ROCKET_COOLDOWN;
       fx.playGunSound('oil');
@@ -683,7 +691,8 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
     }
 
     if (e.type === 'boss') {
-      if (e.hitCooldown && e.hitCooldown > 0) return;
+      // (the finale's fork: each of the three can land, however close together they go off)
+      if (e.hitCooldown && e.hitCooldown > 0 && !big) return;
       // Bosses don't get oiled up, except Toxic Tommy (it clogs him up, and there's the matter of setting him alight)
       // and any other who can be (the finale's alien: slick, dripping, and one spark from going up)
       if (ctx.stageId === TOXIC_TOMMY || getBossDef(ctx.stageId)?.oilable) {

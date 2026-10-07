@@ -580,6 +580,8 @@ export interface Projectile extends Entity {
   stainedWater?: boolean;
   /** Fired from a crouch: this rocket ignores steering and flies straight. */
   noSteer?: boolean;
+  /** The finale's fork: an outside rocket of the three, holding this climb or dive the whole way. */
+  forkDy?: number;
   isOscarRocket?: boolean;
   isCigarette?: boolean;
   /** Frames the taser has been on this cigarette. */

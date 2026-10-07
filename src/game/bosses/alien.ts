@@ -55,7 +55,7 @@ export const FLOAT_BOTTOM_HI = 452, FLOAT_BOTTOM_LO = 476;
  * (from 10) at 2.3 each, and the barfer's longer stream (and the slick it leaves) at 5 a glob (from 8), keep what a
  * whole clip of each does to him about what it was (a touch more). */
 const DAMAGE: Partial<Record<WeaponType, number>> = {
-  GUN: 6, LMG: 6, SHOTGUN: 2.3, BOULDER: 70, TSUNAMI: 220, NEEDLES: 12, TASER: 4, SLUDGE: 5, OIL_ROCKET: 160, FLAMETHROWER: 12,
+  GUN: 6, LMG: 6, SHOTGUN: 2.3, BOULDER: 70, TSUNAMI: 220, NEEDLES: 12, TASER: 4, SLUDGE: 5, OIL_ROCKET: 80, FLAMETHROWER: 12,
 };
 /** Stuck down in the sludge he takes this much more from everything. */
 const GROUNDED_MULT = 1.5;

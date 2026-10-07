@@ -169,7 +169,8 @@ const updateOilRocket = (ctx: FrameContext, p: Projectile): boolean => {
   const { state } = ctx;
   // Up / down nudge it in flight; let go and it levels back out
   const steer = p.noSteer ? 0 : state.player.steer || 0;
-  if (steer) p.vel.y = Math.max(-OIL_ROCKET_STEER_MAX, Math.min(OIL_ROCKET_STEER_MAX, p.vel.y + steer * OIL_ROCKET_STEER_ACCEL));
+  if (p.forkDy !== undefined) p.vel.y = p.forkDy;
+  else if (steer) p.vel.y = Math.max(-OIL_ROCKET_STEER_MAX, Math.min(OIL_ROCKET_STEER_MAX, p.vel.y + steer * OIL_ROCKET_STEER_ACCEL));
   else p.vel.y *= 0.9;
   p.pos.x += p.vel.x;
   p.pos.y += p.vel.y;

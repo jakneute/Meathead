@@ -8,7 +8,7 @@
 //   the oil rocket's igniter: lights with the flamethrower's tank empty (and costs it nothing then).
 // Everything here is gated on the finale's stage id: nowhere else changes.
 
-import { FINALE_STAGE } from '../../constants';
+import { FINALE_STAGE, OIL_ROCKET_SPLASH_RADIUS } from '../../constants';
 
 /** In the finale? (Every buff below checks this.) */
 export const inFinale = (stageId: string | null | undefined) => stageId === FINALE_STAGE;
@@ -24,11 +24,14 @@ export const FINALE_FLAME_RANGE = 1180, FINALE_FLAME_SEGMENTS = 24, FINALE_FLAME
 /** ...its segments stop getting fatter this far out (or at full reach they'd be taller than the room). */
 export const FINALE_FLAME_SIZE_CAP_DIST = 520;
 
-/** Oil rocket: the splash (usually OIL_ROCKET_SPLASH_RADIUS). */
-export const FINALE_OIL_SPLASH_RADIUS = 260;
-/** ...and what it does to an agent caught in it (usually OIL_ROCKET_SPLASH_DAMAGE): a hurt, not likely the end of him
- * (every one of them has more than this), but he's oiled, one spark from going up. */
-export const FINALE_OIL_SPLASH_DAMAGE = 55;
+/** Oil rocket: three of them a shot, in a fork (the straight one and one either side of it, angled up and down this
+ * much), each with the usual splash (OIL_ROCKET_SPLASH_RADIUS) and about half the damage, so all three landing is
+ * half as much again as one did. */
+export const FINALE_OIL_FORK_DY = 3.2;
+export const FINALE_OIL_SPLASH_RADIUS = OIL_ROCKET_SPLASH_RADIUS;
+/** ...and what each does to an agent caught in it (usually OIL_ROCKET_SPLASH_DAMAGE): a hurt, and he's oiled, one
+ * spark from going up. */
+export const FINALE_OIL_SPLASH_DAMAGE = 28;
 /** ...and past that, out to here, the oil off it still coats whoever it doesn't kill (the alien too). */
 export const FINALE_OIL_COAT_RADIUS = 420;
 
