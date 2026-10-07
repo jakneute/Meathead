@@ -310,7 +310,7 @@ const smallLegs = (q: Local) => {
  * the top and shadowed under, the abs; the arms hanging off the delts, huge, the wristbands; a neck like a stump; the
  * square head, flat-top, brows, the eyes, the nose, the mouth, stubble; the medal on its ribbon.
  */
-const mhStandingFig = (medal: boolean, armL: boolean, armR: boolean) => figure(`mh-stand-${medal ? 1 : 0}${armL ? 1 : 0}${armR ? 1 : 0}`, 48, 74, 24, 72, q => {
+export const mhStandingFig = (medal: boolean, armL: boolean, armR: boolean) => figure(`mh-stand-${medal ? 1 : 0}${armL ? 1 : 0}${armR ? 1 : 0}`, 48, 74, 24, 72, q => {
   const S = RAMP.mSkin, I = FIG_INK;
   smallLegs(q);
   // The arms: off the delts, hanging, the forearms out a bit (too big to hang straight), the fists, the wristbands

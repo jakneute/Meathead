@@ -5,12 +5,31 @@
 //
 // Pixel art on the ending's 256 x 144 canvas (ending.ts), stepped ramps, banded skies; the static parts painted once.
 
-import { ART_W, ART_H, C, R, ell, hash, podium, reporters, meatheadStanding, meatheadPunched, trumpFlying } from './ending';
+import { ART_W, ART_H, C, R, ell, hash, podium, reporters, meatheadPunched, trumpFlying, figure, local, type Local, mhStandingFig, FIG_INK, BOOT } from './ending';
 import { shaded, ball, box, bands, layer, RAMP } from './art/snes';
+import { painting } from './art/raster';
+import { shatPants, shatFront } from './shatLook';
 
 type Ctx = CanvasRenderingContext2D;
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
+/**
+ * Like the ending's `figure`, but painted over another figure (`base`, put down with its anchor on this one's): for
+ * a pose made of a figure plus more of him, or a figure with the firelight caught round its edges.
+ */
+const over = (key: string, w: number, h: number, ox: number, oy: number, base: (g: Ctx, x: number, y: number) => void, paint: (q: Local) => void) =>
+  (ctx: Ctx, x: number, y: number) => ctx.drawImage(painting(key, w, h, p => paint(local(p, ox, oy)), g => base(g, ox, oy)), Math.round(x) - ox, Math.round(y) - oy);
+
+/** The fire's light from behind: the pixel just inside the ink, down each side of whatever's painted, rows y0..y1. */
+const rimLight = (q: Local, x0: number, x1: number, y0: number, y1: number, col: string, hot: string, hotTo: number, dimFrom = Infinity) => {
+  for (let y = y0; y <= y1; y++) {
+    const c = y <= hotTo ? hot : y >= dimFrom ? FIRE_DIM : col;
+    for (let x = x0; x <= x1; x++) if (q.painted(x, y)) { if (q.painted(x + 1, y) && q.painted(x + 2, y)) q.px(x + 1, y, c); break; }
+    for (let x = x1; x >= x0; x--) if (q.painted(x, y)) { if (q.painted(x - 1, y) && q.painted(x - 2, y)) q.px(x - 1, y, c); break; }
+  }
+};
+const FIRE_RIM = '#f87c00', FIRE_HOT = '#fcb820', FIRE_DIM = '#a8400c';
 
 /**
  * Pixel fire: tongues of it up from a base line, each column flickering on its own: dark red at the tips, red,
@@ -331,27 +350,58 @@ const burning = (ctx: Ctx, t: number) => {
 
 /** The real President, small, at the podium: the hair still all over the place, the tape's outline round his mouth. */
 const realTrumpSmall = (ctx: Ctx, cx: number, top: number, t: number, talking: boolean) => {
-  // Suit and belly (no tie now, the collar open)
-  R(ctx, cx - 13, top + 14, 26, 22, C.navy);
-  R(ctx, cx - 15, top + 18, 30, 18, C.navy);
-  R(ctx, cx - 3, top + 14, 6, 8, C.white); R(ctx, cx - 1, top + 15, 2, 3, C.tSkin);
-  R(ctx, cx - 17, top + 22, 5, 12, C.navyDark);
-  R(ctx, cx + 12, top + 22, 5, 12, C.navyDark);
-  // Head
-  ell(ctx, cx, top + 7, 7, 8, C.tSkin);
-  R(ctx, cx - 5, top + 5, 4, 2, C.tSkinPale); R(ctx, cx + 1, top + 5, 4, 2, C.tSkinPale);
-  R(ctx, cx - 4, top + 5, 2, 1, C.ink); R(ctx, cx + 2, top + 5, 2, 1, C.ink);
-  R(ctx, cx - 4, top + 9, 8, 5, 'rgba(253, 208, 160, 0.6)');
-  R(ctx, cx - 2, top + 11, 4, talking && t % 12 < 6 ? 3 : 1, '#801010');
-  for (let k = 0; k < 6; k++) R(ctx, cx - 5 + k * 2, top + 13, 1, 1, '#9c5a30');
-  // The hair, a mess: the swoop fallen, strands off it, one long one down the side
-  ell(ctx, cx, top + 1, 8, 3, C.tHair);
-  R(ctx, cx - 3, top - 1, 6, 1, C.tHairLight);
-  for (let k = 0; k < 4; k++) R(ctx, cx - 6 + k * 3, top + 2, 1, 3 + (k % 2) * 2, C.tHairShade);
-  for (let k = 0; k < 12; k++) R(ctx, cx + 7 + (k > 6 ? 1 : 0), top + k, 2, 1, k % 4 === 0 ? C.tHairLight : C.tHair);
-  // (lit from behind: orange off the fire round his edges)
-  R(ctx, cx - 15, top + 18, 1, 18, '#f87c00'); R(ctx, cx + 14, top + 18, 1, 18, '#f87c00'); R(ctx, cx + 7, top + 2, 1, 8, '#fcb820');
+  realTrumpFig(ctx, cx, top);
+  // The mouth: flapping open while he talks
+  if (talking && t % 12 < 6) { R(ctx, cx - 2, top + 10, 4, 3, '#3a0606'); R(ctx, cx - 2, top + 10, 4, 1, '#f4ecdc'); R(ctx, cx - 2, top + 13, 4, 1, '#b02c20'); }
+  else { R(ctx, cx - 2, top + 11, 4, 2, '#b02c20'); R(ctx, cx - 1, top + 11, 2, 1, '#500000'); }
 };
+
+/**
+ * The real one, small, behind the podium (the impostor's figure, but after the closet): the jacket, no tie, the collar
+ * open, the undershirt showing; the tan with the pale goggles, bags, stubble, the pale outline the tape left round his
+ * mouth; the swoop fallen in, strands sticking up off it and one long sheet of it down the side; and the fire behind
+ * him catching his edges.
+ */
+const realTrumpFig = figure('trump-real-small', 40, 46, 20, 9, q => {
+  const T = RAMP.tSkin, Hh = RAMP.tHair, N = RAMP.navy, I = FIG_INK;
+  q.form(g => { g.moveTo(-17, 34); g.bezierCurveTo(-17, 20, -12, 15, -5, 14); g.lineTo(5, 14); g.bezierCurveTo(12, 15, 17, 20, 17, 34); g.closePath(); }, { ramp: N, bevel: 6, amb: 0.16, ink: I });
+  // (the shirt open at the neck: the collar points splayed, the throat and the undershirt in the V)
+  q.form(g => { g.moveTo(-5, 14); g.lineTo(5, 14); g.lineTo(2, 25); g.lineTo(-2, 25); g.closePath(); }, { ramp: RAMP.shirt, bevel: 2, amb: 0.3, ink: I });
+  q.form(g => { g.moveTo(-2.5, 14); g.lineTo(2.5, 14); g.lineTo(0, 20); g.closePath(); }, { ramp: T, bevel: 1.5, amb: 0.2, ink: null });
+  q.line(-1, 20, 1, 20, RAMP.shirt[4]); q.px(0, 21, RAMP.shirt[2]);
+  for (const s of [-1, 1]) { q.line(s * 3, 14, s * 6, 17, RAMP.shirt[4]); q.px(s * 6, 17, RAMP.shirt[1]); q.line(s * 5, 15, s * 3, 25, N[0]); }
+  // (a stain down the shirt from the closet; the arms down to the podium)
+  q.px(1, 22, '#c8a050'); q.px(1, 23, '#b08840');
+  for (const s of [-1, 1]) q.line(s * 13, 20, s * 14, 34, N[s < 0 ? 1 : 0]);
+  // The head: the jowls wider than the brow, the ears
+  for (const s of [-1, 1]) q.form(g => { g.ellipse(s * 7.5, 7, 1.8, 3, 0, 0, Math.PI * 2); }, { ramp: T, bevel: 1.5, amb: 0.2, ink: I });
+  q.form(g => { g.moveTo(-6, 0); g.bezierCurveTo(-6, -2, 6, -2, 6, 0); g.lineTo(7, 9); g.bezierCurveTo(8, 14, 4, 16, 0, 16); g.bezierCurveTo(-4, 16, -8, 14, -7, 9); g.closePath(); },
+    { ramp: T, bevel: 5, amb: 0.2, ink: I, inkIn: T[1] });
+  // (the goggles, the eyes wide and bloodshot, bags under them; the nose; the tape's pale outline round the mouth; stubble)
+  for (const s of [-1, 1]) {
+    const x = s < 0 ? -5 : 1;
+    q.rect(x, 4, 4, 3, '#fdd8b0'); q.rect(x + 1, 4, 2, 2, '#f4ecdc'); q.px(s < 0 ? -3 : 2, 5, I); q.px(s < 0 ? -4 : 3, 4, '#e07060');
+    q.line(x, 7, x + 3, 7, T[2]); q.line(x, 3, x + 3, 2 + (s < 0 ? 1 : 0), Hh[2]);
+  }
+  q.px(0, 6, T[6]); q.px(0, 7, T[5]); q.px(0, 8, T[2]); q.px(1, 8, T[2]);
+  q.rect(-4, 9, 8, 5, T[6], 0.55); q.line(-4, 9, 3, 9, T[6]); q.line(-4, 13, 3, 13, T[6]);
+  for (let k = 0; k < 6; k++) q.px(-5 + k * 2, 14 + (k % 2), T[1]);
+  q.px(-6, 11, T[1]); q.px(5, 12, T[1]);
+  // The hair: the swoop fallen flat and mussed, tufts sticking up off it, a long sheet of it hanging down the side
+  q.form(g => { g.moveTo(-8, 5); g.bezierCurveTo(-10, -2, -5, -5, 1, -5); g.bezierCurveTo(7, -5, 10, -2, 9, 3); g.lineTo(7, 2); g.bezierCurveTo(3, 0, -3, 0, -6, 3); g.closePath(); },
+    { ramp: Hh, bevel: 2.5, amb: 0.25, ink: '#5a3a04', spec: '#fffef0', wet: 0.25 });
+  q.line(-7, -2, -10, -4, Hh[3]); q.px(-11, -4, Hh[2]); q.px(-10, -5, '#5a3a04');
+  q.line(0, -6, 1, -8, Hh[4]); q.px(2, -9, Hh[4]); q.px(3, -9, Hh[3]);
+  q.line(5, -5, 8, -7, Hh[4]); q.px(9, -7, Hh[3]);
+  q.form(g => { g.moveTo(7, 1); g.lineTo(10, 1); g.bezierCurveTo(11, 6, 10, 11, 11, 15); g.lineTo(9, 15); g.bezierCurveTo(8, 10, 9, 6, 7, 3); g.closePath(); },
+    { ramp: Hh, bevel: 1.5, amb: 0.2, ink: '#5a3a04' });
+  q.line(-5, -3, 3, -4, Hh[5]); q.line(-6, 1, 5, 0, Hh[1]);
+  // (the fire behind him, round his edges)
+  rimLight(q, -20, 20, -9, 33, FIRE_RIM, FIRE_HOT, 3);
+});
+
+/** Meathead standing, the fire behind him catching his edges (the hair, the shoulders, the arms, down his legs). */
+const mhLitFig = over('mh-stand-firelit', 48, 74, 24, 72, (g, x, y) => mhStandingFig(true, true, true)(g, x, y), q => rimLight(q, -24, 23, -67, -2, FIRE_RIM, FIRE_HOT, -50, -28));
 
 /** The emergency press conference: the podium on the lawn, the White House going up behind it, the press. */
 export const drawLawnPress = (ctx: Ctx, t: number, talking: boolean) => {
@@ -359,11 +409,11 @@ export const drawLawnPress = (ctx: Ctx, t: number, talking: boolean) => {
   burning(ctx, t);
   realTrumpSmall(ctx, 100, 54, t, talking);
   podium(ctx, 100, 80);
-  meatheadStanding(ctx, 156, 124, true);
-  // (Meathead looking from the President to the camera and back)
-  if (t % 90 > 45) { R(ctx, 152, 124 - 58, 3, 1, C.ink); R(ctx, 157, 124 - 58, 3, 1, C.ink); R(ctx, 154, 124 - 58, 1, 1, C.mSkin); R(ctx, 159, 124 - 58, 1, 1, C.mSkin); }
-  // (the fire's light on both of them, from behind)
-  R(ctx, 156 + 18, 124 - 50, 1, 22, '#f87c00'); R(ctx, 156 - 14, 124 - 50, 1, 9, '#fcb820');
+  const mx = 156, my = 124;
+  mhLitFig(ctx, mx, my);
+  if (shatPants()) shatFront(ctx, mx, my);
+  // (Meathead looking from the camera to the President and back: his eyes gone over to the left)
+  if (t % 90 > 45) { R(ctx, mx - 4, my - 58, 1, 1, FIG_INK); R(ctx, mx - 3, my - 58, 1, 1, '#f4ece0'); }
   reporters(ctx, t, 1);
 };
 
@@ -393,14 +443,30 @@ export const fireBg = (ctx: Ctx, t: number) => {
 /** The President small, a long way off, tumbling: `s` 1 (a figure) down to a speck. */
 const trumpTumbling = (ctx: Ctx, x: number, y: number, t: number, s: 1 | 2) => {
   const f = t % 8 < 4;
-  if (s === 1) {
-    R(ctx, x - 5, y - 3, 10, 6, C.navy); R(ctx, x + 4, y - 3, 5, 5, C.tSkin); R(ctx, x + 4, y - 4, 5, 2, C.tHair);
-    R(ctx, x - 9, y - (f ? 4 : 0), 4, 2, C.navyDark); R(ctx, x - 9, y + (f ? 2 : -2), 4, 2, C.navyDark);
-    R(ctx, x - 2, y - 6 - (f ? 1 : 0), 2, 3, C.tSkin); R(ctx, x + 1, y + 3 + (f ? 1 : 0), 2, 3, C.tSkin);
-  } else {
+  if (s === 1) (f ? tumbleFigA : tumbleFigB)(ctx, x, y);
+  else {
     R(ctx, x - 1, y - 1, 3, 2, C.navy); R(ctx, x + 1, y - 1, 1, 1, C.tSkin); R(ctx, x + 1, y - 2, 1, 1, C.tHair);
   }
 };
+/** Him, small, end over end (two frames of it, his limbs flailing): the suit, the shoes, the hands, the head and the swoop. */
+const tumbleFig = (f: number) => figure(`trump-tumble-${f}`, 28, 22, 14, 11, q => {
+  const T = RAMP.tSkin, N = RAMP.navy, I = FIG_INK;
+  // (the legs kicking, the shoes; the arms flung, the hands)
+  q.stroke(g => { g.moveTo(-3, -1); g.lineTo(-9, f ? -4 : -1); }, 3, { ramp: N, bevel: 1.5, amb: 0.2, ink: I });
+  q.stroke(g => { g.moveTo(-3, 1); g.lineTo(-9, f ? 2 : 3); }, 3, { ramp: N, bevel: 1.5, amb: 0.1, ink: I });
+  q.rect(-11, f ? -5 : -2, 2, 2, BOOT[2]); q.rect(-11, f ? 2 : 3, 2, 2, BOOT[2]);
+  q.stroke(g => { g.moveTo(-1, -2); g.lineTo(-2, f ? -7 : -6); }, 2.5, { ramp: N, bevel: 1.2, amb: 0.2, ink: I });
+  q.stroke(g => { g.moveTo(1, 2); g.lineTo(2, f ? 7 : 6); }, 2.5, { ramp: N, bevel: 1.2, amb: 0.1, ink: I });
+  q.rect(-3, f ? -9 : -8, 2, 2, T[4]); q.rect(2, f ? 7 : 6, 2, 2, T[3]);
+  // (the suit round the gut, a flash of shirt)
+  q.form(g => { g.ellipse(0, 0, 5.5, 3.8, 0, 0, Math.PI * 2); }, { ramp: N, bevel: 2.5, amb: 0.2, ink: I });
+  q.line(-1, 2, 3, 2, RAMP.shirt[3]);
+  // (the head, the swoop blown off it)
+  q.form(g => { g.ellipse(6.5, -1, 3, 3, 0, 0, Math.PI * 2); }, { ramp: T, bevel: 2, amb: 0.2, ink: I });
+  q.line(5, -4, 9, -4, RAMP.tHair[4]); q.line(4, -5, 7, -5, RAMP.tHair[3]); q.px(f ? 3 : 10, f ? -6 : -5, RAMP.tHair[5]);
+  q.px(7, -1, I);
+});
+const tumbleFigA = tumbleFig(1), tumbleFigB = tumbleFig(0);
 
 /** The twinkle as he goes over the horizon: a four-point star, flashing. */
 const twinkle = (ctx: Ctx, x: number, y: number, k: number) => {
@@ -415,31 +481,73 @@ const twinkle = (ctx: Ctx, x: number, y: number, k: number) => {
  * up, the fists by his ears, the peaks pumping on the beat; grinning, medal on.
  */
 const meatheadFlex = (ctx: Ctx, cx: number, baseY: number, t: number) => {
-  meatheadStanding(ctx, cx, baseY, true, { l: false, r: false });
-  const pump = Math.floor(t / 14) % 2, sy = baseY - 48;
-  for (const side of [-1, 1]) {
-    const lit = side < 0;
-    const sh = cx + side * 13, el = cx + side * 27;
-    // (the upper arm out to the elbow, the bicep peaking up off it, bigger on the beat)
-    const x0 = Math.min(sh, el), w = Math.abs(el - sh);
-    R(ctx, x0, sy - 1, w, 7, lit ? C.mSkin : RAMP.mSkin[3]);
-    const peak = 4 + pump;
-    R(ctx, x0 + 3, sy - 1 - peak, w - 6, peak, lit ? C.mSkin : RAMP.mSkin[3]);
-    R(ctx, x0 + 4, sy - 1 - peak, w - 8, 1, C.mSkinLight);
-    R(ctx, x0, sy + 5, w, 1, C.mSkinShade);
-    // (the forearm up from the elbow, the fist by his ear)
-    const fx = side < 0 ? el - 1 : el - 6;
-    R(ctx, fx, sy - 18, 7, 19, lit ? C.mSkin : RAMP.mSkin[3]);
-    R(ctx, fx + (side < 0 ? 0 : 5), sy - 18, 2, 19, lit ? C.mSkinLight : RAMP.mSkin[2]);
-    R(ctx, fx - 1, sy - 24, 9, 7, C.mSkin); R(ctx, fx - 1, sy - 18, 9, 1, C.mSkinShade);
-    R(ctx, fx + 1, sy - 22, 1, 3, C.mSkinShade); R(ctx, fx + 4, sy - 22, 1, 3, C.mSkinShade);
-    // (a vein standing up on the beat)
-    if (pump) R(ctx, x0 + Math.round(w / 2) - 1, sy - 2 - peak + 2, 3, 1, '#c96b4b');
-  }
-  // (the grin, teeth and all)
-  R(ctx, cx - 4, baseY - 54, 8, 2, C.white); R(ctx, cx - 4, baseY - 52, 8, 1, C.darkRed);
+  const pump = Math.floor(t / 14) % 2;
+  (pump ? flexFigB : flexFigA)(ctx, cx, baseY);
+  if (shatPants()) shatFront(ctx, cx, baseY);
+  // (the twinkle off his fist)
   if (t % 30 < 10) { R(ctx, cx + 30, baseY - 76, 1, 3, C.white); R(ctx, cx + 29, baseY - 75, 3, 1, C.white); }
 };
+
+/**
+ * The flex, painted over his standing figure (no hanging arms): off the delts, the upper arms out level, the biceps
+ * peaked up off them (higher, a vein standing up on it, on the beat), the triceps hanging under; the forearms up from
+ * the elbows, thick, the wristbands, the fists curled in by his ears; and the grin, teeth and all.
+ */
+const flexFig = (pump: number) => over(`mh-flex-${pump}`, 80, 84, 40, 80, (g, x, y) => mhStandingFig(true, false, false)(g, x, y), q => {
+  const S = RAMP.mSkin, I = FIG_INK;
+  for (const s of [-1, 1]) {
+    const amb = s < 0 ? 0.2 : 0.08, lite = S[s < 0 ? 7 : 5];
+    // The forearm up from the elbow (flaring at the elbow, narrowing to the wrist); the wristband; the fist
+    q.form(g => { g.moveTo(s * 22.5, -49); g.lineTo(s * 31, -47); g.bezierCurveTo(s * 32.5, -53, s * 31.5, -59, s * 29.5, -64); g.lineTo(s * 22.5, -64); g.bezierCurveTo(s * 22, -59, s * 21, -54, s * 22.5, -49); g.closePath(); },
+      { ramp: S, bevel: 3.5, amb, ink: I, inkIn: S[1] });
+    q.line(s * 23, -62, s * 23, -54, S[2]); q.line(s * 30, -60, s * 31, -52, s < 0 ? S[5] : S[3]);
+    const fx = s < 0 ? -31 : 22;
+    q.form(g => { g.rect(fx, -66, 9, 3); }, { ramp: BOOT, bevel: 1, amb: 0.3, ink: I });
+    q.form(g => { g.roundRect(fx - 0.5, -75, 10, 10, 3); }, { ramp: S, bevel: 3, amb, ink: I });
+    // (the fingers curled over toward him, the thumb across them)
+    for (let k = 1; k <= 3; k++) q.line(fx + k * 2 + (s < 0 ? 1 : 0), -73, fx + k * 2 + (s < 0 ? 1 : 0), -70, S[2]);
+    q.line(fx + 2, -68, fx + 7, -68, S[2]); q.line(fx + 2, -74, fx + 7, -74, lite);
+    // The upper arm, out level to the elbow; the tricep hanging under it
+    q.form(g => { g.moveTo(s * 12, -52); g.lineTo(s * 24, -51); g.bezierCurveTo(s * 30, -50, s * 31.5, -45, s * 28, -42); g.bezierCurveTo(s * 22, -40, s * 17, -40, s * 13, -42); g.closePath(); },
+      { ramp: S, bevel: 3.5, amb, ink: I, inkIn: S[1] });
+    q.line(s * 16, -43, s * 26, -43, S[2]);
+    // The bicep: peaked up off it, the crease of the elbow in front of it
+    q.form(g => { g.moveTo(s * 13, -48); g.bezierCurveTo(s * 12.5, -60 - pump * 2, s * 25, -61 - pump * 2, s * 26, -48); g.closePath(); }, { ramp: S, bevel: 4, amb, ink: I, inkIn: null, gain: 1.05 });
+    q.line(s * 16, -55 - pump, s * 20, -56 - pump, lite); q.px(s * 17, -54 - pump, lite);
+    q.px(s * 26, -48, S[1]); q.px(s * 26, -47, S[2]);
+    if (pump) for (const [x, y] of [[17, -50], [18, -51], [19, -51], [20, -50], [21, -51], [22, -52]]) q.px(s * x, y, '#c96b4b');
+    // (the delt capped round over the shoulder)
+    q.form(g => { g.ellipse(s * 13.5, -49, 4, 3.5, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 2.5, amb: s < 0 ? 0.25 : 0.1, ink: null });
+  }
+  // The grin, teeth and all
+  q.line(-3, -53, 3, -53, '#f4ecdc'); q.px(-3, -53, '#c8bca8'); q.px(3, -53, '#c8bca8'); q.line(-2, -52, 2, -52, '#7a1e10');
+  q.px(-4, -54, '#7a1e10'); q.px(4, -54, '#7a1e10');
+});
+const flexFigA = flexFig(0), flexFigB = flexFig(1);
+
+/**
+ * The podium knocked over on its back in the grass: its front face up at the sky, foreshortened, the seal on it
+ * squashed to an oval; the lid's edge toward us; the mics come off their goosenecks lying beside it.
+ */
+const podiumDown = figure('podium-down', 60, 24, 30, 12, q => {
+  const W = RAMP.wood, I = FIG_INK;
+  q.disc(1, 8, 25, 3, '#0e1008');
+  q.form(g => { g.rect(-21, -7, 42, 13); }, { ramp: W, bevel: 4, amb: 0.2, ink: I });
+  q.rect(-17, -5, 34, 1, W[1]); q.rect(-17, -5, 1, 9, W[1]); q.rect(-17, 3, 34, 1, W[5]); q.rect(16, -5, 1, 9, W[5]);
+  for (let k = 0; k < 3; k++) for (let x = -15; x < 15; x++) if ((x * 3 + k * 5) % 11 < 6) q.px(x, -3 + k * 3, W[2], 0.6);
+  // (the lid, toward us, its edge lit by the fire)
+  q.form(g => { g.rect(-23, 5, 46, 4); }, { ramp: W, bevel: 1.5, amb: 0.3, ink: I, gain: 1.15 });
+  q.line(-22, 6, 21, 6, W[5]); q.px(-20, 6, '#f87c00'); q.px(20, 6, '#f87c00');
+  // The seal, squashed: the gold rim, the navy, the eagle
+  q.form(g => { g.ellipse(0, -1, 8, 4.5, 0, 0, Math.PI * 2); }, { ramp: RAMP.gold, bevel: 2, ink: I, spec: '#fffff0', wet: 0.6 });
+  q.form(g => { g.ellipse(0, -1, 5.5, 2.8, 0, 0, Math.PI * 2); }, { ramp: RAMP.navy, bevel: 2, amb: 0.4, ink: '#5c3c00' });
+  q.line(-4, -2, -1, -1, RAMP.gold[4]); q.line(4, -2, 1, -1, RAMP.gold[4]); q.rect(-1, -2, 2, 3, RAMP.gold[4]); q.px(0, -1, '#d82800');
+  // (the mics, in the grass)
+  for (const [x, y, d] of [[24, 4, 1], [-25, 3, -1]] as const) {
+    q.line(x, y, x + d * 4, y + 2, '#3c3c44');
+    q.form(g => { g.roundRect(x + d * 4 - 1.5, y + 0.5, 3, 3, 1); }, { ramp: ['#0a0a0c', '#1c1c20', '#3a3a40', '#6a6a74'], bevel: 1.5, ink: I });
+  }
+});
 
 /** How much slower than it was he goes up and away (so you get to watch him go). */
 const FLIGHT_SLOW = 2.2;
@@ -456,8 +564,8 @@ const IRIS = { x: 92, y: 62 };
 export const drawLaunch = (ctx: Ctx, t: number) => {
   burningSet(ctx);
   burning(ctx, t);
-  // The podium on its side
-  R(ctx, 104, 108, 42, 16, RAMP.wood[3]); R(ctx, 104, 108, 42, 2, RAMP.wood[5]); ell(ctx, 124, 116, 6, 5, C.gold);
+  // The podium, knocked over on its back
+  podiumDown(ctx, 125, 116);
   // Him going: big across the lawn and up, smaller over the roof, a speck, gone
   const f = t / FLIGHT_SLOW;
   if (f < 22) trumpFlying(ctx, 130 + f * 3.4, 62 - f * 1.6, t);
