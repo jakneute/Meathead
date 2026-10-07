@@ -547,35 +547,6 @@ export const drawBriefing = (ctx: Ctx, t: number, talking: boolean, slide: Slide
   for (let k = 0; k < 3; k++) { const st = (t * 0.4 + k * 6) % 18; R(ctx, 46 + k * 2 + Math.round(Math.sin(st * 0.5 + k) * 1), 116 - st, 1, 2, `rgba(220, 220, 210, ${0.35 * (1 - st / 18)})`); }
 };
 
-interface Build { k: string; cx: number; w: number; h: number; head: number }
-
-/** A set's four in silhouette, rising up one after another in the dark over red, eyes lit. */
-const drawFour = (ctx: Ctx, t: number, builds: Build[]) => {
-  bands(ctx, 0, 0, ART_W, ART_H, ['#1a0000', '#2a0200', '#3c0402', '#520804', '#6a0e06', '#841808', '#a0240c', '#bc3410', '#d84c18']);
-  ctx.fillStyle = 'rgba(255, 140, 60, 0.1)'; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.ellipse(128, ART_H, 160 - k * 40, 50 - k * 12, 0, 0, Math.PI * 2); ctx.fill(); }
-  builds.forEach((b, i) => {
-    const rise = Math.max(0, 40 - (t - i * 14) * 2);
-    const base = ART_H + rise;
-    const headY = base - b.h - b.head + 4;
-    ell(ctx, b.cx, headY, b.head, b.head + 1, C.black);
-    R(ctx, b.cx - b.w / 2, base - b.h, b.w, b.h, C.black);
-    ctx.save(); ctx.translate(b.cx, headY - b.head - 2); ctx.scale(b.head / 11, b.head / 11); ctx.fillStyle = C.black; BOSS_SLIDES[b.k].head(ctx, 0, 0); ctx.restore();
-    if (t > 40 + i * 14 && (t + i * 9) % 90 > 4) { R(ctx, b.cx - 7, headY - 2, 4, 3, C.red); R(ctx, b.cx + 3, headY - 2, 4, 3, C.red); }
-  });
-};
-
-/** The first four (each his own build: Artie tall in his parka, Victor a wall of muscle, Ernie short and stooped, Hector a TV man in a windbreaker). */
-export const drawFirstFour = (ctx: Ctx, t: number) => drawFour(ctx, t, [
-  { k: 'artie', cx: 46, w: 42, h: 74, head: 13 }, { k: 'victor', cx: 104, w: 58, h: 64, head: 15 },
-  { k: 'ernie', cx: 162, w: 40, h: 46, head: 13 }, { k: 'hector', cx: 214, w: 46, h: 58, head: 17 },
-]);
-
-/** The second four (Tommy bloated with his tank, Barry a beanpole in a hard hat, Oscar in his Stetson with his launcher, Dale all pompadour and shoulder pads). */
-export const drawSecondFour = (ctx: Ctx, t: number) => drawFour(ctx, t, [
-  { k: 'tommy', cx: 46, w: 52, h: 52, head: 15 }, { k: 'barry', cx: 104, w: 30, h: 72, head: 12 },
-  { k: 'oscar', cx: 160, w: 54, h: 60, head: 14 }, { k: 'dale', cx: 216, w: 44, h: 58, head: 13 },
-]);
-
 // ---------------------------------------------------------------------------
 // The pencil necks (START GAME + INTRO, before the gym's played): the department's interns, sent in first
 // ---------------------------------------------------------------------------
