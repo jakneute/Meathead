@@ -388,6 +388,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + PUNCH_HEAL); g.hp = p.health;
         const hx = e.pos.x + e.width / 2 + g.dir * 14, hy = feetY(state) - 8;
         fx.spawnDamageNumber({ x: hx, y: hy - 30 }, dmg);
+        aftershock(ctx, g, centerX(state), feetY(state), dmg);
         for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: hx, y: hy }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 4 }, life: 22, color: i % 2 ? '#8B0000' : '#B91C1C', size: 2 + Math.random() * 2 });
         playSound('punch', 0.9 + Math.random() * 0.3, Math.random() * 4 - 2);
         shakeScreen(state, 4, 3);
@@ -466,6 +467,27 @@ const slamShock = (ctx: FrameContext, e: Enemy, x: number, floorY: number) => {
   // (the shock wave along the floor, dust thrown up either way)
   for (let i = 0; i < 16; i++) state.particles.push({ pos: { x, y: floorY - 3 }, vel: { x: (i % 2 ? 1 : -1) * (3 + Math.random() * 6), y: -1 - Math.random() * 2 }, life: 22, color: i % 3 ? '#A8A29E' : '#D6D3D1', size: 3 + Math.random() * 3 });
   if (any) playSound('crunch', 1, -6);
+};
+
+/**
+ * Each punch of a ground and pound goes through the floor: anyone close by takes an aftershock of it (a fraction of the
+ * punch, less the further off they are) and a little jolt away. Only the one under him takes the full thing.
+ */
+const AFTERSHOCK_REACH = 150, AFTERSHOCK_SHARE = 0.4;
+const aftershock = (ctx: FrameContext, g: Grab, x: number, floorY: number, punch: number) => {
+  const { state, fx } = ctx;
+  for (const o of state.enemies) {
+    if (o === g.held || o.health <= 0 || o.isBlownAway || o.type === 'boss' || o.innocent) continue;
+    if (o.pos.y + o.height < floorY - 40 || o.pos.y > floorY) continue;
+    const k = 1 - Math.abs(o.pos.x + o.width / 2 - x) / AFTERSHOCK_REACH;
+    if (k <= 0) continue;
+    const dmg = Math.max(1, Math.round(punch * AFTERSHOCK_SHARE * k));
+    o.health -= dmg;
+    fx.spawnDamageNumber(o.pos, dmg);
+    const away = Math.sign(o.pos.x + o.width / 2 - x) || 1;
+    if (o.health <= 0) { fx.blowAwayEnemy(o, { x: away * 6, y: -6 }, 'charge_kill', away); fx.spawnKillCallout(o, grabCallout('beatdown')); }
+    else { o.vel = { x: away * 2.5 * k, y: -2.5 * k }; o.pauseTimer = Math.max(o.pauseTimer || 0, 12); }
+  }
 };
 
 /** Driven down onto whoever's there (the suplex's impact): each takes the weight of him, by how heavy he is, and is knocked on. */
