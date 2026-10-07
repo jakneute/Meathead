@@ -8,7 +8,7 @@ import { groundBlocks } from '../../m1/game/core/terrain';
 import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
 import { playMenuOk, playMenuBack } from '../../m1/game/platform/audio';
 import { GROUND_Y } from '../../m1/constants';
-import { LANDS, SPOTS, STAFF_SLOT, AMERICA_SLOT, HUB_SLOTS, landAt } from './lands';
+import { LANDS, SPOTS, STAFF_SLOT, HUB_SLOTS, landAt } from './lands';
 import { setUi, goTo } from '../store';
 import { pollM2, pressed } from '../input';
 import { drawHubBackdrop, drawHubBack, drawHubFront } from './draw';
@@ -17,8 +17,8 @@ import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/
 
 export const HUB_STAGE = 'M2 Happy Hub';
 
-/** Where he comes in: out of America USA's street (the staff door when he's back from the staff room). */
-let startSlot = AMERICA_SLOT;
+/** Where he's stood when it starts: at the staff door, for now (handy for practicing); later, out of America USA's street. */
+let startSlot = STAFF_SLOT;
 export const setHubStart = (slot: number) => { startSlot = slot; };
 
 const GATED: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
