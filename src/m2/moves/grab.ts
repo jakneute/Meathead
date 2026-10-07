@@ -56,7 +56,7 @@ const THROW_UP = 16;
 const BOOT_SHARE = 0.14;
 /** How much what he hits after a boot hurts him, against an up throw's or a suplex's (the boot's done most of it). */
 const BOOTED_IMPACT = 0.5;
-const SLAM_BOUNCE = -12, SUPLEX_SHARE = 0.4;
+const SLAM_BOUNCE = -13.5, SUPLEX_SHARE = 0.4;
 const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 17, THROW_SHARE = 0.15, SLAM_SHARE = 0.5, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
@@ -238,11 +238,12 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
       playSound('thud'); shakeScreen(state, 6, 4);
       const push = Math.max(0.3, Math.min(1.6, getEnemyMass(e) / getEnemyMass(o)));
       if (o.health <= 0) {
-        fx.blowAwayEnemy(o, { x: dir * (8 + speed * 0.5) * push, y: Math.min(-6, e.vel.y) }, 'charge_kill', dir);
+        // (sent the way the body was going: on along the floor, or, from an alley-oop going up, up with it)
+        fx.blowAwayEnemy(o, { x: e.vel.x * 0.7 * push + dir * 4, y: Math.min(-6, e.vel.y * 0.8 * push) }, 'charge_kill', dir);
         o.meleeFlung = true;
         fx.spawnKillCallout(o, 'crush');
       } else {
-        o.vel = { x: dir * speed * 0.6 * push, y: Math.min(o.vel.y, -3) };
+        o.vel = { x: e.vel.x * 0.6 * push, y: Math.min(o.vel.y, -3, e.vel.y * 0.65 * push) };
         o.pauseTimer = Math.max(o.pauseTimer || 0, 30);
       }
       // (and the one thrown takes it too, and loses some of his way)
@@ -440,6 +441,33 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
 /** How far a throw takes him, by his weight: about 1 for a man of 220, more for lighter, less for heavier (within reason). */
 const heft = (e: Enemy) => Math.max(0.7, Math.min(1.3, Math.sqrt(220 / getEnemyMass(e))));
 
+/**
+ * The slam's shock through the floor: everybody within reach of where he went in takes some of it, the most right at
+ * the middle, tailing off to nothing at the edge (by how heavy the one slammed is), and is knocked away from it.
+ */
+const SLAM_REACH = 160;
+const slamShock = (ctx: FrameContext, e: Enemy, x: number, floorY: number) => {
+  const { state, fx } = ctx;
+  const m = getEnemyMass(e);
+  let any = false;
+  for (const o of state.enemies) {
+    if (o === e || o.health <= 0 || o.isBlownAway || o.type === 'boss' || o.innocent) continue;
+    if (o.pos.y + o.height < floorY - 60 || o.pos.y > floorY) continue;
+    const d = Math.abs(o.pos.x + o.width / 2 - x), k = 1 - d / SLAM_REACH;
+    if (k <= 0) continue;
+    any = true;
+    const dmg = Math.round(Math.max(6, Math.min(150, m * 0.4 * k + 6)));
+    o.health -= dmg;
+    const away = Math.sign(o.pos.x + o.width / 2 - x) || 1, push = Math.max(0.4, Math.min(2, m / getEnemyMass(o)));
+    fx.spawnDamageNumber(o.pos, dmg, dmg > 30);
+    if (o.health <= 0) { fx.blowAwayEnemy(o, { x: away * 10 * push * k, y: -9 * k - 3 }, 'charge_kill', away); o.meleeFlung = true; fx.spawnKillCallout(o, 'crush'); }
+    else { o.vel = { x: away * 7 * push * k, y: -6 * k - 2 }; o.pauseTimer = Math.max(o.pauseTimer || 0, Math.round(30 + 40 * k)); }
+  }
+  // (the shock wave along the floor, dust thrown up either way)
+  for (let i = 0; i < 16; i++) state.particles.push({ pos: { x, y: floorY - 3 }, vel: { x: (i % 2 ? 1 : -1) * (3 + Math.random() * 6), y: -1 - Math.random() * 2 }, life: 22, color: i % 3 ? '#A8A29E' : '#D6D3D1', size: 3 + Math.random() * 3 });
+  if (any) playSound('crunch', 1, -6);
+};
+
 /** Driven down onto whoever's there (the suplex's impact): each takes the weight of him, by how heavy he is, and is knocked on. */
 const crushUnder = (ctx: FrameContext, e: Enemy, dir: number) => {
   const { state, fx } = ctx;
@@ -478,6 +506,8 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
     if (e.health <= 0) { fx.blowAwayEnemy(e, { x: 0, y: -1 }, 'charge_kill', g.dir); fx.spawnKillCallout(e, grabCallout('slam')); }
     else { e.pauseTimer = 60; fx.spawnDamageNumber(e.pos, dmg, true); }
+    // (anyone near where he hit takes the shock of it, the nearer the worse)
+    slamShock(ctx, e, e.pos.x + e.width / 2, feetY(state));
     // (and the force of it bounces Meathead up off the floor)
     p.vel = { x: 0, y: SLAM_BOUNCE }; p.isGrounded = false;
     return;
