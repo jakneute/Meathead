@@ -44,8 +44,11 @@ type Ctx = CanvasRenderingContext2D;
 const WINDUP = 4, LUNGE = 4, LUNGE_SPEED = 21, WHIFF = 22, REACH = 6;
 /** How far ahead of him, as he lunges, he can still get hold of somebody. */
 const LUNGE_REACH = 20;
-/** A punch takes this much of him (whoever he is, about eight to finish him); each heals a little, the last a lot. */
-const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 6, PUNCH_GAP = 3;
+/**
+ * A punch's damage: the same for everybody, so the tougher he is the more it takes (a shooter about four, a bouncer
+ * nine, a wolverine three). Each heals a little, the last a lot.
+ */
+const PUNCH_DAMAGE = 28, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 6, PUNCH_GAP = 3;
 // The shakedown
 /** Thrown, it takes a modest share of him; slammed, a big one. */
 /** Each throw's animation: how long, and the frame he lets go on. */
@@ -629,7 +632,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // (any of X, B or Y throws one)
       if ((press('shoot') || press('special') || press('secondary') || pressed('y')) && g.t >= g.nextPunchAt) {
         g.punchT = PUNCH_FRAMES; g.nextPunchAt = g.t + PUNCH_GAP; g.punchN++;
-        const dmg = Math.max(7, Math.round(e.maxHealth * PUNCH_SHARE));
+        const dmg = PUNCH_DAMAGE;
         e.health -= dmg;
         p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + PUNCH_HEAL); g.hp = p.health;
         const hx = e.pos.x + e.width / 2 + g.dir * 14, hy = feetY(state) - 8;
