@@ -32,7 +32,10 @@ const COMET = { dmg: 45, freeze: 320 };
 /** The lightning: a strike this often, this hard, for this long (three seconds: about 180 in all, a shooter's dead, a
  * bouncer's still standing). */
 const BOLT = { every: 14, dmg: 15, maxFrames: 186 };
-const BULK = { mana: 3, frames: 720, cooldown: 480, speed: 1.6, size: 1.3, knock: 2.2 };
+/** What each costs in mana: the storm's meteor and comet a point each, its lightning two more (when there's anybody for
+ *  it); bulking up a lot more. */
+const MANA = { meteor: 1, comet: 1, lightning: 2 };
+const BULK = { mana: 10, frames: 720, cooldown: 480, speed: 1.6, size: 1.3, knock: 2.2 };
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
 const mid = (e: Enemy) => ({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 });
@@ -108,7 +111,7 @@ const fire = (ctx: FrameContext) => {
     bolts.push(bolt);
   }
   pl.shootCooldown = CAST_COOLDOWN;
-  if (!cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK--;
+  if (!cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK = Math.max(0, pl.weaponAmmo.SPELLBOOK - (MANA.meteor + MANA.comet + (z ? MANA.lightning : 0)));
   casting = CAST_POSE;
   playSound('spell');
 };

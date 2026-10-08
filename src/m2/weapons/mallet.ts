@@ -44,7 +44,10 @@ const SMASH = { windup: 42, len: 18, reach: 120 };
 /** How fast he can walk while he's winding it up. */
 const WINDUP_WALK = 2.2;
 /** wear: one durability for every so many rounds that hit somebody. */
-const TORNADO = { after: 50, max: 300, every: 9, radius: 76, dmg: 30, knock: 17, speed: 3.6, wear: 3 };
+const TORNADO = { after: 50, max: 300, every: 9, radius: 76, dmg: 30, knock: 17, speed: 3.6, wear: 1 };
+/** What each wears off it, when it connects: the swings a little, the launch a bit more, coming down on a head or the
+ *  ground more again, the pancake smash most; the tornado a point every round it bonks somebody. */
+const WEAR = { swing: 2, launch: 3, head: 2, pound: 4, pancake: 6 };
 let spinHits = 0;
 /** Y held this long (on the ground) is the windup, not a tap. */
 const Y_HOLD = 14;
@@ -185,7 +188,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       if (t === S.hitAt) {
         const hits = mode === 'swing' ? inBox(state, px, fy - 95, px + dir * 100, fy) : inBox(state, px, pl.pos.y - 30, px + dir * 95, fy + 40);
         for (const e of hits) bonk(ctx, e, S.dmg, { x: dir * S.knock, y: S.lift }, 'fling');
-        if (hits.length) wearOut(ctx);
+        if (hits.length) wearOut(ctx, WEAR.swing);
       }
       // (still holding it on the ground: held at the end of the swing, winding up into the tornado)
       if (t >= S.len) {
@@ -208,7 +211,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       if (t === LAUNCH.hitAt) {
         const hits = inBox(state, px - dir * 10, fy - 115, px + dir * 85, fy);
         for (const e of hits) bonk(ctx, e, LAUNCH.dmg, { x: dir * 1.5, y: LAUNCH.up }, 'launch');
-        if (hits.length) wearOut(ctx);
+        if (hits.length) wearOut(ctx, WEAR.launch);
       }
       if (t >= LAUNCH.len) mode = 'idle';
       break;
@@ -221,7 +224,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         const under = inBox(state, pl.pos.x - 4, fy - 6, pl.pos.x + pl.width + 4, fy + POUND.fall + 4).find(e => e.pos.y > pl.pos.y + pl.height * 0.5);
         if (under && !ground) {
           bonk(ctx, under, POUND.dmg + POUND.under, { x: dir * 2, y: 3 }, 'flatten');
-          wearOut(ctx);
+          wearOut(ctx, WEAR.head);
           if (alive(under)) {
             pl.vel.y = POUND.bounce; pl.isGrounded = false;
             playSound('boing', 1, 2); word(px, fy - 30, 'BOING!', '#4ADE80');
@@ -242,7 +245,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         }
         for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: px + dir * 30, y: fy - 2 }, vel: { x: (i < 8 ? -1 : 1) * (2 + Math.random() * 6), y: -1 - Math.random() * 3 }, life: 26, color: '#A8A29E', size: 4 + Math.random() * 3 });
         // (worn only if it got anybody, under him on the way down or round where he landed)
-        if (struck.size) wearOut(ctx, 2);
+        if (struck.size) wearOut(ctx, WEAR.pound);
       }
       break;
     case 'windup':
@@ -264,7 +267,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
           toonKill(ctx, e, 'flatten', dir);
         }
         for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: px + dir * 70, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 4 }, life: 24, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 3 });
-        if (struck.size) wearOut(ctx, 3);
+        if (struck.size) wearOut(ctx, WEAR.pancake);
       }
       if (t >= SMASH.len) mode = 'idle';
       break;

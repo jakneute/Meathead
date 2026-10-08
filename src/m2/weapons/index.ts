@@ -32,7 +32,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   },
   SPELLBOOK: {
     name: 'SPELLBOOK OF THE DAMNED', from: 'FANTASY LAND',
-    controls: [{ pad: ['X'], mouse: 'left', label: 'ELEMENTAL STORM' }, { pad: ['Y'], kb: ['F'], label: 'BULK UP' }],
+    controls: [{ pad: ['X'], mouse: 'left', label: 'ELEMENTAL STORM (2-4 MANA)' }, { pad: ['Y'], kb: ['F'], label: 'BULK UP (10 MANA)' }],
     description: "Some wizard's diary, now with more murder. Fire rips holes in the sky and drops a meteor, a comet and a lightning storm on up to three assholes: the meteor sets survivors on fire, the comet freezes them solid, the lightning cooks one in place for a few seconds. Secondary fire is BULK UP: twelve seconds of bigger, faster, and sending everybody you touch into orbit. Try putting your hands on somebody while you're like that. Runs on mana, because of course it does.",
   },
   STUNT_CAR: {
@@ -44,12 +44,12 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     name: 'MALLET OF PAIN', from: 'CARTOON LAND',
     description: "A cartoon mallet that hits like a real one. Swing it sideways and they leave the zip code, uppercut them into orbit, smash them flat as a pancake, or spin like a cartoon devil and bonk everybody in the room. No ammo, it just wears out, and ammo pickups patch it up anyway. Physics optional.",
     controls: [
-      { pad: ['X'], mouse: 'left', label: 'SWING' },
-      { pad: ['X'], mouse: 'left', label: 'HOLD, STANDING: TORNADO' },
-      { pad: ['Y'], kb: ['F'], label: 'LAUNCH · IN THE AIR: SMASH DOWN' },
-      { pad: ['Y'], kb: ['F'], label: 'HOLD, STANDING: PANCAKE SMASH' },
+      { pad: ['X'], mouse: 'left', label: 'SWING (2)' },
+      { pad: ['X'], mouse: 'left', label: 'HOLD, STANDING: TORNADO (1 A HIT)' },
+      { pad: ['Y'], kb: ['F'], label: 'LAUNCH (3) · IN THE AIR: SMASH DOWN (4)' },
+      { pad: ['Y'], kb: ['F'], label: 'HOLD, STANDING: PANCAKE SMASH (6)' },
     ],
-    note: 'STANDING OR IN THE AIR. NOT WHILE DUCKING.',
+    note: 'STANDING OR IN THE AIR. NOT WHILE DUCKING. WEARS ONLY WHEN IT HITS.',
   },
   SPAWNER: {
     name: 'OTHERWORLDLY SPAWNER', from: 'SPACE LAND',

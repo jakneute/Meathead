@@ -202,11 +202,11 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   // (Meathead 2's laser-guided flintlock: balls and powder)
   'FLINTLOCK': 24,
   // (Meathead 2's spellbook of the damned: its mana, in casts)
-  'SPELLBOOK': 30,
+  'SPELLBOOK': 60,
   // (Meathead 2's clapperboard: takes)
   'STUNT_CAR': 6,
   // (Meathead 2's mallet of pain: its durability)
-  'MALLET': 60,
+  'MALLET': 100,
   // (Meathead 2's otherworldly spawner: litters)
   'SPAWNER': 50,
   // (Meathead 2's crossbow of plagues: darts)
