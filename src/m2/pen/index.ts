@@ -38,6 +38,21 @@ const send = (state: GameState, pen: Pen, x = X0 + LEN - 120 - Math.random() * 2
   state.enemies.push(e);
 };
 
+/**
+ * Where the next one comes in: on the screen he's looking at, at the far side of it from him (so they come to him, and
+ * don't all pile up down the far end of the room); against a wall, the other side of the screen.
+ */
+const arrivalX = (state: GameState) => {
+  const p = state.player, px = p.pos.x + p.width / 2;
+  // (the screen round him, where the camera's settling: not where it's caught up to yet)
+  const cam = Math.max(X0 - WALL, Math.min(X0 + LEN + WALL - CANVAS_WIDTH, px - CANVAS_WIDTH / 2));
+  const left = cam + 70, right = cam + CANVAS_WIDTH - 110;
+  const lo = X0 + 40, hi = X0 + LEN - 100;
+  const far = px < cam + CANVAS_WIDTH / 2 ? right : left;
+  const x = Math.max(lo, Math.min(hi, far + (Math.random() - 0.5) * 60));
+  return Math.abs(x - px) > 220 ? x : Math.max(lo, Math.min(hi, far === right ? left : right));
+};
+
 export const penLayout: StageLayout = {
   left: X0 - 600,
   startX: X0 + 140,
@@ -70,7 +85,7 @@ export const penLayout: StageLayout = {
     state.pickups = state.pickups.filter(p => !(p.id.startsWith('pickup-') && (p.type === 'small_health' || p.type === 'large_health')));
     // A few at a time, always
     const alive = state.enemies.filter(e => e.health > 0 && !e.isBlownAway).length + (pen.grab.held ? 1 : 0);
-    if (alive < AT_ONCE && --pen.cooldown <= 0) { send(state, pen); pen.cooldown = RESPAWN; }
+    if (alive < AT_ONCE && --pen.cooldown <= 0) { send(state, pen, arrivalX(state)); pen.cooldown = RESPAWN; }
     // The way back
     const p = state.player, cx = p.pos.x + p.width / 2;
     const near = p.isGrounded && Math.abs(cx - EXIT_X) < 60 && !grabbing(pen.grab);
