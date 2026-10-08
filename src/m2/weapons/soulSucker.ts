@@ -61,8 +61,11 @@ const suckable = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && 
 
 /** The cone: out to REACH in front of the intake, opening wide (it's a big short cone). */
 const REACH = 190, SPREAD = 1.05;
-/** Poise worn off a frame: at the edge of the cone, right up at the intake. */
-const DRAIN_FAR = 0.5, DRAIN_NEAR = 1.9;
+/**
+ * Poise worn off a frame: at the edge of the cone, right up at the intake; it climbs steeply as he gets closer (by the
+ * square of how near), so up close it's a different thing altogether.
+ */
+const DRAIN_FAR = 0.4, DRAIN_NEAR = 3.4;
 /** After this long not being pulled, poise comes back, this much a frame. */
 const REGEN_AFTER = 50, REGEN = 0.5;
 
@@ -114,12 +117,13 @@ const fire = (ctx: FrameContext) => {
     if (near === null) continue;
     const ps = poiseOf(e);
     ps.lastPulled = state.frame;
-    ps.left -= DRAIN_FAR + (DRAIN_NEAR - DRAIN_FAR) * near;
+    const pull = near * near;
+    ps.left -= DRAIN_FAR + (DRAIN_NEAR - DRAIN_FAR) * pull;
     // Dragged at: slowed, pulled in toward the intake a little (the nearer the harder), and plenty of them turn round to
     // get away from it (it doesn't stop what they're doing)
     const toward = mouth.x < e.pos.x + e.width / 2 ? -1 : 1;
-    e.vel.x *= 0.55;
-    e.pos.x += toward * (0.5 + near * 1.6);
+    e.vel.x *= 0.8 - pull * 0.55;
+    e.pos.x += toward * (0.3 + pull * 2.6);
     if (ps.flees) e.facing = (-toward) as 1 | -1;
     // (bits of the floor and the air going in with them)
     if (Math.random() < 0.35) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height }, vel: { x: toward * (2 + near * 4), y: (mouth.y - e.pos.y - e.height / 2) * 0.03 }, life: 14, color: Math.random() < 0.5 ? 'rgba(220, 220, 220, 0.6)' : '#78716C', size: 1.5 + Math.random() * 1.5 });
