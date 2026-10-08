@@ -35,6 +35,7 @@ import { startGunKill, startEnemyDeath } from '../enemies/deaths';
 import { gunDeathMode } from '../enemies/gunDeaths';
 import { spared } from '../enemies/enemies';
 import { isEnemyBullet } from '../player/deathAnim';
+import { rayKillLine } from './rayGun';
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -807,7 +808,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       else if (gunMode) startGunKill(state, enemy, gunMode, p.vel);
       else fx.spawnDeathShower(enemy.pos, 0, 1.2);
       fx.spawnPickup(enemy.pos);
-      fx.speakVulgarity(p.isBoulder ? 'boulder_kill' : (p.isIce ? 'shotgun_kill' : (p.isSludge ? 'sludge_kill' : 'gun_kill')));
+      fx.speakVulgarity(p.isBoulder ? 'boulder_kill' : (p.isIce ? 'shotgun_kill' : (p.isSludge ? 'sludge_kill' : p.isRay ? rayKillLine() : 'gun_kill')));
       player.killSatisfactionTimer = 60;
     }
     if (p.isBoulder) shatterBoulder(ctx, p);

@@ -5802,7 +5802,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "m1/game/combat/weapons.ts:870"
+  "from": "m1/game/combat/weapons.ts:872"
  },
  {
   "voice": "death",
@@ -7272,7 +7272,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "m1/game/combat/weapons.ts:870"
+  "from": "m1/game/combat/weapons.ts:872"
  },
  {
   "voice": "death",
@@ -7762,7 +7762,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "m1/game/combat/weapons.ts:870"
+  "from": "m1/game/combat/weapons.ts:872"
  },
  {
   "voice": "death",
@@ -8252,7 +8252,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "m1/game/combat/weapons.ts:870"
+  "from": "m1/game/combat/weapons.ts:872"
  },
  {
   "voice": "death",
@@ -10356,6 +10356,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ATOMIZED!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BAA THIS, GOAT!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -10466,6 +10471,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BATTER UP! BATTER DOWN!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BATTERY'S DEAD! SO ARE THE LIGHTS!",
   "from": "FINALE_LINES"
  },
@@ -10473,6 +10483,21 @@
   "voice": "meathead",
   "text": "BEAK THIS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEAM ME UP, ASSHOLE!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEANBALL!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEATEN LIKE A RENTED MULE!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10766,6 +10791,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CATCH! OH. YOU DIDN'T.",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "CATEGORY 5 FUCK YOU COMING UP!",
   "from": "HURT"
  },
@@ -10881,8 +10911,18 @@
  },
  {
   "voice": "meathead",
+  "text": "CHIN MUSIC!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "CIRCLE THIS, BIRDBRAIN!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CLEAN AND JERKED TO DEATH!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11096,6 +11136,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DEADLIFT, THEN DEAD!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "DEEP SEA DANGER",
   "from": "VULGARITIES"
  },
@@ -11153,6 +11198,11 @@
   "voice": "meathead",
   "text": "DIRTY NEEDLE! KEEP YOUR TAINTED JUNK OFF ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DISINTEGRATED!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11471,8 +11521,18 @@
  },
  {
   "voice": "meathead",
+  "text": "FACE, MEET FIST. FIST, MEET FLOOR.",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "FAILED THE DRUG TEST.",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FASTBALL, MOTHERFUCKER!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11616,6 +11676,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FLY, YOU PIECE OF SHIT!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "FLYING RAT! GET OFF MY HEAD!",
   "from": "HAZARD_HURT"
  },
@@ -11633,6 +11698,11 @@
   "voice": "meathead",
   "text": "FOUR HUNDRED A MONTH. SIXTY MONTHS. YOU DO THE MATH.",
   "from": "m1/game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "FREE FLIGHT, NO LANDING!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -12171,6 +12241,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GROUND AND POUND, BITCH!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GROUNDED, FLYBOY!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -12636,6 +12711,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S OUT!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S PROBING ME! STOP PROBING ME!",
   "from": "HAZARD_HURT"
  },
@@ -12773,6 +12853,11 @@
   "voice": "meathead",
   "text": "HIDING BEHIND AN ICE CUBE, COWARD?",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIGH HEAT!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -12968,6 +13053,11 @@
   "voice": "meathead",
   "text": "HUMAN RESOURCES? HUMAN REMAINS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HUMAN SHOT PUT, BABY!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -13263,6 +13353,11 @@
   "voice": "meathead",
   "text": "I KNEW IT.",
   "from": "m1/components/RadioCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "I LIFT THINGS UP AND PUT THEM DOWN. HARD.",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -13588,6 +13683,11 @@
   "voice": "meathead",
   "text": "I'M NOT CRYING! IT'S THE GAS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT DONE TILL YOU'RE DONE!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -14826,6 +14926,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT EVEN A STAIN!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT FROM DOWN HERE. I'VE GOT TO GET UP THERE.",
   "from": "m1/game/stages/dale/town.ts:574"
  },
@@ -14883,6 +14988,11 @@
   "voice": "meathead",
   "text": "NOTHING IN HERE BUT SANDWICHES AND A LOCKED DOOR. ...SO FAR.",
   "from": "m1/game/stages/oscar/bunker.ts:367"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING LEFT BUT SHOES!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15086,6 +15196,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OUT OF MY HANDS AND OUT OF YOUR LIFE!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "OUT OF MY WAY, NOODLE-ARM!",
   "from": "HAZARD_HURT"
  },
@@ -15093,6 +15208,11 @@
   "voice": "meathead",
   "text": "OUT OF NEEDLES! THIS PLACE LOOKS LIKE A REHAB NOW!",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF THE PARK!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15261,6 +15381,16 @@
  },
  {
   "voice": "meathead",
+  "text": "PEST CONTROL, BITCH!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PEW PEW, BITCH!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PFFT. IT'S A PUDDLE.",
   "from": "m1/game/stages/tommy/bike.ts:521"
  },
@@ -15321,6 +15451,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PLAY BALL, VERMIN!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PLUMB THIS!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -15361,6 +15496,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PROBE THIS!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PROTECT HIM?! HE'S A FUCKING ALIEN!",
   "from": "HAZARD_HURT"
  },
@@ -15393,6 +15533,11 @@
   "voice": "meathead",
   "text": "PUMP COVER DESTOWNED",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PUNCHED INTO THE PAVEMENT!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15816,6 +15961,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SEE YOU NEVER!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SEE? NOBODY HAD TO GET HURT. WELL. I DID.",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -15836,8 +15986,18 @@
  },
  {
   "voice": "meathead",
+  "text": "SEVENTH INNING SPLAT!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SEWER DRIP! RIGHT IN MY HAIR!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHAKEN, THEN TAKEN OUT!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -16391,6 +16551,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SPACE AGE SLAUGHTER!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SPARE THIS!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -16398,6 +16563,11 @@
   "voice": "meathead",
   "text": "SPICY DEATH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPIKED LIKE A FOOTBALL!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -16456,6 +16626,11 @@
  },
  {
   "voice": "meathead",
+  "text": "STAY DOWN FOREVER!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "STAY DOWN HERE MUCH LONGER AND I'M SHITTING MY PANTS.",
   "from": "GUT"
  },
@@ -16508,6 +16683,11 @@
   "voice": "meathead",
   "text": "STEAMING HOT MAGMA BURNS, SON OF A BITCH!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STEE-RIKE!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -16786,8 +16966,18 @@
  },
  {
   "voice": "meathead",
+  "text": "TAKE A HIKE! AN AIRBORNE ONE!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "TAKE ME TO YOUR LEADER? I AM THE LEADER NOW!",
   "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TAKE ME TO YOUR UNDERTAKER!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -16803,6 +16993,11 @@
   "voice": "meathead",
   "text": "TALONS! IN MY TRAPS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TAP OUT! OH WAIT, YOU CAN'T.",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -16836,8 +17031,18 @@
  },
  {
   "voice": "meathead",
+  "text": "TENDERIZED!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "TEXAS SHOOTS BACK, I GET IT!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THANKS FOR THE GUN, ZORBLAX!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -17121,6 +17326,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S WHAT THE FLOOR IS FOR!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THE AD SAID LIGHT SPARRING. THE AD LIED.",
   "from": "KILL_LINES"
  },
@@ -17138,6 +17348,11 @@
   "voice": "meathead",
   "text": "THE BRIDGE IS FALLING ON ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BULLPEN'S OPEN!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -17286,6 +17501,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE MEAT TENDERIZER STRIKES AGAIN!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THE MOUNTAIN IS EATING ME!",
   "from": "HAZARD_HURT"
  },
@@ -17358,6 +17578,11 @@
   "voice": "meathead",
   "text": "THE RAVER HUGGED ME! HE'S SO SWEATY!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE REFEREE'S ON BREAK, ASSHOLE!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -17598,6 +17823,11 @@
   "voice": "meathead",
   "text": "THROWN ACROSS THE ROOM BY A GUY WHO WEIGHS NINETY POUNDS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THROWN OUT WITH THE TRASH!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -18691,6 +18921,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOUR FACE IS MY HEAVY BAG!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "YOUR FREEZE RAY'S MINE NOW! JUST KIDDING. IT'S GARBAGE.",
   "from": "ENEMY_KILL_LINES"
  },
@@ -18753,6 +18988,11 @@
   "voice": "meathead",
   "text": "ZAPPED",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ZAPPED OUT OF EXISTENCE!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",

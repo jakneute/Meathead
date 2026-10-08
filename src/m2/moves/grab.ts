@@ -35,6 +35,7 @@ import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, type Mood } from '../.
 import { drawPlayer } from '../../m1/game/render/player/player';
 import { btn, pressed, pollM2 } from '../input';
 import { grabCallout, type GrabCallout } from './callouts';
+import { m2Kill } from './killLines';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -325,7 +326,7 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
       const push = Math.max(0.3, Math.min(1.6, getEnemyMass(e) / getEnemyMass(o)));
       if (o.health <= 0) {
         // (sent the way the body was going: on along the floor, or, from an alley-oop going up, up with it)
-        fx.blowAwayEnemy(o, { x: e.vel.x * 0.7 * push + dir * 4, y: Math.min(-6, e.vel.y * 0.8 * push) }, 'charge_kill', dir);
+        fx.blowAwayEnemy(o, { x: e.vel.x * 0.7 * push + dir * 4, y: Math.min(-6, e.vel.y * 0.8 * push) }, m2Kill('throw_kill'), dir);
         o.meleeFlung = true;
         fx.spawnKillCallout(o, 'crush');
       } else {
@@ -365,7 +366,7 @@ const wallSplat = (ctx: FrameContext, e: Enemy) => {
   playSound('splat'); playSound('thud', 1.2, -5); shakeScreen(state, 10, 6);
   fx.spawnExplosion(at, '#8B0000', 14, -dir * 4, 10);
   e.health -= dmg;
-  if (e.health <= 0) { e.vel.x = 0; impactKill(ctx, e, 'wallsplat', -dir); return true; }
+  if (e.health <= 0) { e.vel.x = 0; impactKill(ctx, e, 'wallsplat', -dir); fx.speakVulgarity(m2Kill('throw_kill')); return true; }
   fx.spawnDamageNumber(e.pos, dmg, true);
   // (off it again, a little way, and down)
   e.vel = { x: -dir * 2, y: Math.min(e.vel.y, -2) };
@@ -392,7 +393,7 @@ const ceilingBonk = (ctx: FrameContext, e: Enemy) => {
   const dmg = Math.round(Math.max(30, e.maxHealth * Math.min(1, WALL_SHARE + WALL_SHARE_PER_SPEED * -vy)));
   playSound('splat'); playSound('thud', 1.2, -5); shakeScreen(state, 10, 6);
   e.health -= dmg;
-  if (e.health <= 0) { e.health = 0; e.vel = { x: 0, y: 0 }; ceilingSplat(ctx, e, e.pos.y); return true; }
+  if (e.health <= 0) { e.health = 0; e.vel = { x: 0, y: 0 }; ceilingSplat(ctx, e, e.pos.y); fx.speakVulgarity(m2Kill('throw_kill')); return true; }
   fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y }, '#8B0000', 14, 0, 10);
   fx.spawnDamageNumber(e.pos, dmg, true);
   // (back down off it)
@@ -421,7 +422,7 @@ const hurtThrown = (ctx: FrameContext, fl: { e: Enemy; how: GrabCallout }, dmg: 
   const { fx } = ctx, e = fl.e;
   e.health -= dmg;
   if (e.health > 0) { fx.spawnDamageNumber(e.pos, dmg, dmg > 30); return; }
-  fx.blowAwayEnemy(e, { x: e.vel.x * 0.6, y: Math.min(-4, e.vel.y) }, 'charge_kill', Math.sign(e.vel.x) || 1);
+  fx.blowAwayEnemy(e, { x: e.vel.x * 0.6, y: Math.min(-4, e.vel.y) }, m2Kill('throw_kill'), Math.sign(e.vel.x) || 1);
   e.meleeFlung = true;
   fx.spawnKillCallout(e, grabCallout(fl.how));
 };
@@ -606,7 +607,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (e.health <= 0) {
         e.pos = { x: e.pos.x, y: feetY(state) - e.height };
         release(state, e);
-        fx.blowAwayEnemy(e, { x: g.dir * 2, y: -3 }, 'charge_kill', g.dir);
+        fx.blowAwayEnemy(e, { x: g.dir * 2, y: -3 }, m2Kill('beatdown_kill'), g.dir);
         fx.spawnKillCallout(e, grabCallout('beatdown'));
         g.held = null; g.phase = 'kill'; g.t = 0;
         return hold();
@@ -646,7 +647,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
           p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health;
           e.pos = { x: e.pos.x, y: feetY(state) - e.height };
           release(state, e);
-          fx.blowAwayEnemy(e, { x: g.dir * 1.5, y: -2 }, 'charge_kill', g.dir);
+          fx.blowAwayEnemy(e, { x: g.dir * 1.5, y: -2 }, m2Kill('beatdown_kill'), g.dir);
           fx.spawnKillCallout(e, grabCallout('beatdown'));
           fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
           playSound('crunch'); shakeScreen(state, 10, 6);
@@ -712,7 +713,7 @@ const slamShock = (ctx: FrameContext, e: Enemy, x: number, floorY: number) => {
     o.health -= dmg;
     const away = Math.sign(o.pos.x + o.width / 2 - x) || 1, push = Math.max(0.4, Math.min(2, m / getEnemyMass(o)));
     fx.spawnDamageNumber(o.pos, dmg, dmg > 30);
-    if (o.health <= 0) { fx.blowAwayEnemy(o, { x: away * 10 * push * k, y: -9 * k - 3 }, 'charge_kill', away); o.meleeFlung = true; fx.spawnKillCallout(o, 'crush'); }
+    if (o.health <= 0) { fx.blowAwayEnemy(o, { x: away * 10 * push * k, y: -9 * k - 3 }, m2Kill('throw_kill'), away); o.meleeFlung = true; fx.spawnKillCallout(o, 'crush'); }
     else { o.vel = { x: away * 7 * push * k, y: -6 * k - 2 }; o.pauseTimer = Math.max(o.pauseTimer || 0, Math.round(30 + 40 * k)); }
   }
   // (the shock wave along the floor, dust thrown up either way)
@@ -736,7 +737,7 @@ const aftershock = (ctx: FrameContext, g: Grab, x: number, floorY: number, punch
     o.health -= dmg;
     fx.spawnDamageNumber(o.pos, dmg);
     const away = Math.sign(o.pos.x + o.width / 2 - x) || 1;
-    if (o.health <= 0) { fx.blowAwayEnemy(o, { x: away * 6, y: -6 }, 'charge_kill', away); fx.spawnKillCallout(o, grabCallout('beatdown')); }
+    if (o.health <= 0) { fx.blowAwayEnemy(o, { x: away * 6, y: -6 }, m2Kill('beatdown_kill'), away); fx.spawnKillCallout(o, grabCallout('beatdown')); }
     else { o.vel = { x: away * 2.5 * k, y: -2.5 * k }; o.pauseTimer = Math.max(o.pauseTimer || 0, 12); }
   }
 };
@@ -755,7 +756,7 @@ const crushUnder = (ctx: FrameContext, e: Enemy, dir: number) => {
     fx.spawnDamageNumber(o.pos, dmg, true);
     fx.spawnExplosion({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 }, '#8B0000', 12, 0, 10);
     const push = Math.max(0.4, Math.min(2, m / getEnemyMass(o)));
-    if (o.health <= 0) { fx.blowAwayEnemy(o, { x: dir * 12 * push, y: -8 }, 'charge_kill', dir); o.meleeFlung = true; fx.spawnKillCallout(o, 'crush'); }
+    if (o.health <= 0) { fx.blowAwayEnemy(o, { x: dir * 12 * push, y: -8 }, m2Kill('throw_kill'), dir); o.meleeFlung = true; fx.spawnKillCallout(o, 'crush'); }
     else { o.vel = { x: dir * 9 * push, y: -5 }; o.pauseTimer = Math.max(o.pauseTimer || 0, 40); }
   }
   if (hit.length) { playSound('crunch', 1, -4); shakeScreen(state, 12, 7); }
@@ -785,7 +786,7 @@ const pitchCritter = (ctx: FrameContext, g: Grab, e: Enemy) => {
   const v = g.pitch === 'down' ? { x: g.dir * 4, y: 24 } : g.pitch === 'up' ? { x: g.dir * 2, y: -24 } : { x: g.dir * 26, y: -2 };
   release(state, e);
   e.health = 0;
-  fx.blowAwayEnemy(e, v, 'charge_kill', g.dir);
+  fx.blowAwayEnemy(e, v, m2Kill('pitch_kill'), g.dir);
   e.meleeFlung = true;
   fx.spawnKillCallout(e, grabCallout(g.pitch === 'down' ? 'slam' : g.pitch === 'up' ? 'launched' : 'thrown'));
   playSound('whoosh', 1.3, 6);
@@ -807,7 +808,7 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     release(state, e);
     playSound('slam'); playSound('crunch', 0.8); shakeScreen(state, 12, 7);
     for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
-    if (e.health <= 0) { fx.blowAwayEnemy(e, { x: 0, y: -1 }, 'charge_kill', g.dir); fx.spawnKillCallout(e, grabCallout('slam')); }
+    if (e.health <= 0) { fx.blowAwayEnemy(e, { x: 0, y: -1 }, m2Kill('throw_kill'), g.dir); fx.spawnKillCallout(e, grabCallout('slam')); }
     else { e.pauseTimer = 60; fx.spawnDamageNumber(e.pos, dmg, true); }
     // (anyone near where he hit takes the shock of it, the nearer the worse)
     slamShock(ctx, e, e.pos.x + e.width / 2, feetY(state));
@@ -829,7 +830,7 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: feetY(state) - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 22, color: i % 2 ? '#8B0000' : '#A8A29E', size: 2 + Math.random() * 3 });
     // (whoever's where he comes down gets the weight of him)
     const crushed = crushUnder(ctx, e, dir);
-    if (e.health <= 0) { fx.blowAwayEnemy(e, { x: dir * THROW_SPEED * w * 0.7, y: -4 }, 'charge_kill', dir); e.meleeFlung = true; fx.spawnKillCallout(e, grabCallout('suplex')); }
+    if (e.health <= 0) { fx.blowAwayEnemy(e, { x: dir * THROW_SPEED * w * 0.7, y: -4 }, m2Kill('throw_kill'), dir); e.meleeFlung = true; fx.spawnKillCallout(e, grabCallout('suplex')); }
     else { e.pauseTimer = 50; e.chargedAt = state.frame; fx.spawnDamageNumber(e.pos, dmg, true); fly(g, e, 'suplex', true); crushed.forEach(id => g.flying[g.flying.length - 1].hit.add(id)); }
     return;
   }
@@ -850,7 +851,7 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
     const boot = Math.max(5, Math.round(e.maxHealth * BOOT_SHARE));
     e.health -= boot;
     playSound('punch', 1.1, -4);
-    if (e.health <= 0) { fx.blowAwayEnemy(e, v, 'charge_kill', dir); e.meleeFlung = true; fx.spawnKillCallout(e, grabCallout(how)); return; }
+    if (e.health <= 0) { fx.blowAwayEnemy(e, v, m2Kill('throw_kill'), dir); e.meleeFlung = true; fx.spawnKillCallout(e, grabCallout(how)); return; }
     fx.spawnDamageNumber(e.pos, boot);
   }
   fly(g, e, how, false, g.toss === 'forward' ? BOOTED_IMPACT : 1);

@@ -19,6 +19,7 @@ import { setFireKeys } from '../m1/game/platform/input';
 import { setRayGun } from '../m1/game/combat/rayGun';
 import MapCard from './hub/MapCard';
 import ChordPrompt from './ChordPrompt';
+import { registerKillLines, m2Kill } from './moves/killLines';
 import { cleanLines } from './lines/clean';
 import { registerGrabCallouts } from './moves/callouts';
 
@@ -32,8 +33,9 @@ attachM2Keys();
 cleanLines();
 // (on the keyboard and mouse, the left button fires: no fire keys)
 setFireKeys([]);
-setRayGun(true);
+setRayGun(true, m2Kill('raygun_kill'));
 registerGrabCallouts();
+registerKillLines();
 
 /** His one gun, for now: the ray gun (the engine's pistol, turned into one: see rayGun.ts). */
 const WEAPONS: WeaponType[] = ['GUN'];
