@@ -15,7 +15,7 @@ import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { setBuffs } from '../../m1/game/core/buffs';
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
-import { CANVAS_WIDTH, HUD_CLEAR_Y } from '../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { BULK_LINES, BULK_FAIL_LINES } from '../lines/weaponLines';
@@ -67,6 +67,32 @@ interface Rift { x: number; y: number; t: number; life: number; size: number; se
 let rifts: Rift[] = [];
 const RIFT_OPEN = 16;
 const openRift = (x: number, y: number, size: number, life: number, follow?: Rift['follow']) => { const r: Rift = { x, y, t: 0, life, size, seed: Math.random() * 1000, follow }; rifts.push(r); playSound('alienCharge', 0.5, -10); return r; };
+/**
+ * Where a rift can go: on the screen (clear of the HUD, not down at the bottom), and never in a wall, a ceiling or a
+ * floor (the whole tear clear of anything solid). As near to where it's wanted as it can be, the way down from it to
+ * `to` clear too if there's a spot like that; failing a clear way down, just somewhere clear; failing that, where it
+ * was wanted.
+ */
+const riftHalf = (size: number) => ({ w: 46 * size, h: 30 * size });
+const inSolid = (state: GameState, x: number, y: number, size: number) => {
+  const { w, h } = riftHalf(size);
+  return state.blocks.some(b => b.type !== 'pit' && b.type !== 'door' && !b.oneWay && x - w < b.x + b.w && x + w > b.x && y - h < b.y + b.h && y + h > b.y);
+};
+const clearLine = (state: GameState, a: { x: number; y: number }, b: { x: number; y: number }) => {
+  for (let i = 1; i < 12; i++) { const k = i / 12, x = a.x + (b.x - a.x) * k, y = a.y + (b.y - a.y) * k; if (state.blocks.some(q => q.type !== 'pit' && q.type !== 'door' && !q.oneWay && x > q.x && x < q.x + q.w && y > q.y && y < q.y + q.h)) return false; }
+  return true;
+};
+const riftSpot = (state: GameState, want: { x: number; y: number }, size: number, to: { x: number; y: number } | null) => {
+  const { w, h } = riftHalf(size);
+  const x0 = state.camera.x + w + 8, x1 = state.camera.x + CANVAS_WIDTH - w - 8;
+  const y0 = state.camera.y + HUD_CLEAR_Y + h + 4, y1 = Math.max(y0, Math.min(state.camera.y + CANVAS_HEIGHT * 0.6, (to ? to.y : Infinity) - 40));
+  const clampX = (x: number) => Math.max(x0, Math.min(x1, x)), clampY = (y: number) => Math.max(y0, Math.min(y1, y));
+  const spots: { x: number; y: number }[] = [];
+  for (const dy of [0, 25, 50, 80, 115, 150, 190]) for (const dx of [0, 40, -40, 80, -80, 130, -130, 190, -190, 260, -260, 340, -340]) spots.push({ x: clampX(want.x + dx), y: clampY(want.y + dy) });
+  return spots.find(q => !inSolid(state, q.x, q.y, size) && (!to || clearLine(state, q, to)))
+    ?? spots.find(q => !inSolid(state, q.x, q.y, size))
+    ?? { x: clampX(want.x), y: clampY(want.y) };
+};
 /** Things still to come out of a rift that's opening. */
 let pending: { at: number; el: Element; target: Enemy | null; to: { x: number; y: number }; from: { x: number; y: number } }[] = [];
 
@@ -107,7 +133,8 @@ const fire = (ctx: FrameContext) => {
   const z = at(2);
   if (z) {
     const bolt = { e: z, next: state.frame + RIFT_OPEN + 2, until: state.frame + BOLT.maxFrames, flash: 0, path: [] as { x: number; y: number }[], rift: null as Rift | null };
-    bolt.rift = openRift(mid(z).x, state.camera.y + HUD_CLEAR_Y + 20, 0.8, BOLT.maxFrames + 12, () => (bolts.includes(bolt) ? mid(bolt.e) : null));
+    const at = riftSpot(state, { x: mid(z).x, y: state.camera.y + HUD_CLEAR_Y + 20 }, 0.8, mid(z));
+    bolt.rift = openRift(at.x, at.y, 0.8, BOLT.maxFrames + 12, () => (bolts.includes(bolt) ? mid(bolt.e) : null));
     bolts.push(bolt);
   }
   pl.shootCooldown = CAST_COOLDOWN;
@@ -121,8 +148,9 @@ const fall = (state: GameState, el: Element, target: Enemy | null, fallback: { x
   const to = target ? mid(target) : fallback;
   const side = Math.random() < 0.5 ? -1 : 1;
   // (the rift it comes out of: up in the sky, off to one side of him, on the screen, below the HUD)
-  const from = { x: Math.max(state.camera.x + 40, Math.min(state.camera.x + CANVAS_WIDTH - 40, to.x + side * (130 + Math.random() * 90))), y: state.camera.y + HUD_CLEAR_Y + 30 + Math.random() * 40 };
-  openRift(from.x, from.y, el === 'meteor' ? 1.15 : 0.9, RIFT_OPEN + 34);
+  const size = el === 'meteor' ? 1.15 : 0.9;
+  const from = riftSpot(state, { x: to.x + side * (130 + Math.random() * 90), y: state.camera.y + HUD_CLEAR_Y + 30 + Math.random() * 40 }, size, to);
+  openRift(from.x, from.y, size, RIFT_OPEN + 34);
   pending.push({ at: state.frame + RIFT_OPEN, el, target, to, from });
 };
 /** Out of the rift, at last. */
@@ -249,7 +277,11 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
   }
   if (flash > 0) flash--;
   // Rifts opening, hanging there, closing; what's due out of them
-  for (const r of rifts) { r.t++; const at = r.follow?.(); if (r.follow && !at && r.life - r.t > 12) r.life = r.t + 12; if (at) r.x += (at.x - r.x) * 0.15; }
+  for (const r of rifts) {
+    r.t++; const at = r.follow?.(); if (r.follow && !at && r.life - r.t > 12) r.life = r.t + 12;
+    // (going along over him: on the screen, and never into a wall)
+    if (at) { const { w } = riftHalf(r.size); const nx = Math.max(state.camera.x + w + 8, Math.min(state.camera.x + CANVAS_WIDTH - w - 8, r.x + (at.x - r.x) * 0.15)); if (!inSolid(state, nx, r.y, r.size)) r.x = nx; }
+  }
   rifts = rifts.filter(r => r.t < r.life);
   if (pending.length) { for (const q of pending.filter(q => q.at <= state.frame)) emerge(state, q); pending = pending.filter(q => q.at > state.frame); }
   if (rings.length) { rings.forEach(r => r.t++); rings = rings.filter(r => r.t < r.life); }
@@ -329,6 +361,9 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
 /** Everything it was in the middle of, stopped (through a door): no storm, no burning, no bulk. */
 /** (for tests: hold him in the cast pose, or the bulk-up's) */
 export const holdPoseForTests = (cast: number, bulk = 0) => { casting = cast; posing = bulk; };
+/** For tests: where the rifts are, and whether any's in something solid or off the screen. */
+export const riftsForTests = (state: GameState) => rifts.map(r => `${Math.round(r.x - state.camera.x)},${Math.round(r.y - state.camera.y)}${inSolid(state, r.x, r.y, r.size) ? ':IN-WALL' : ''}`);
+
 export const stopSpellbook = () => { if (posing > 0) setArmor(false); posing = 0; bolts = []; burning.clear(); casting = 0; rings = []; flash = 0; rifts = []; pending = []; bulkLeft = 0; setBuffs({ speed: 1, size: 1, knock: 1 }); publish(); };
 
 // ---------------------------------------------------------------------------------------------------------------
