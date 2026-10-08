@@ -432,9 +432,13 @@ const hurtThrown = (ctx: FrameContext, fl: { e: Enemy; how: GrabCallout }, dmg: 
 /** Is a grab on (or Y's being held toward one)? For the weapons that use Y themselves, so they keep out of its way. */
 let busy = false;
 export const grabBusy = () => busy;
+/** Who he's got hold of right now (nobody else gets to eat him). */
+let holding: Enemy | null = null;
+export const grabHolding = () => holding;
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const out = stepGrab(ctx, g, controls);
   busy = g.phase !== 'idle' || g.yChord;
+  holding = g.held;
   // (a thrown body's hits first: whoever's where it's landing gets it before they're moved out of his way)
   if (g.flying.length) flyInto(ctx, g);
   // (only once he's got hold of somebody: before that, whoever he's going for has to stay where he can get them)

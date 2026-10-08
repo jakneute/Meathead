@@ -510,6 +510,25 @@ const ART: Record<WeaponType, React.ReactNode> = {
     glint(p, 6, 26);
   }),
 
+  // Meathead 2's otherworldly spawner: a fat lump of purple shell, a see-through green sac on top with little things
+  // curled up in it, a puckered pink hole at the business end, something peeking out of it
+  SPAWNER: draw(p => {
+    const grip = polyC([[7, 19], [11, 19], [10, 27], [6, 27]]);
+    paint(p, grip, diag(grip, ['#7E22CE', '#581C87', '#3B0764']));
+    const body = ellC(15, 17, 12, 5.5);
+    paint(p, body, rows(body, ['#C4B5FD', '#A78BFA', '#8B5CF6', '#7C3AED', '#6D28D9', '#5B21B6', '#4C1D95', '#3B0764']));
+    polyline(p, [[6, 18], [10, 19], [14, 17], [19, 18], [24, 16]], '#BE123C', null);
+    const sac = ellC(12, 9, 7, 5.5);
+    paint(p, sac, radial(sac, ['#ECFCCB', '#D9F99D', '#A3E635', '#65A30D', '#3F6212'], 10, 7));
+    for (const [x, y] of [[10, 9], [11, 9], [14, 11], [15, 10], [12, 12]] as const) p.set(x, y, '#1A2E05', null);
+    const hole = ellC(27, 17, 3, 4);
+    paint(p, hole, radial(hole, ['#FBCFE8', '#F472B6', '#DB2777', '#9D174D'], 26, 15));
+    for (const [x, y] of [[28, 16], [28, 17], [28, 18]] as const) p.set(x, y, '#450A0A', null);
+    p.set(29, 13, '#84CC16'); p.set(30, 13, '#84CC16'); p.set(30, 12, '#0B0B0F', null);
+    glint(p, 9, 6);
+    glint(p, 9, 14);
+  }),
+
   // Dirty Dan's light machine gun: long and black, a vented shroud, a box of rounds hanging off it, the belt
   LMG: draw(p => {
     const stock = polyC([[1, 10.5], [8, 11.5], [8, 16], [1, 18]]);

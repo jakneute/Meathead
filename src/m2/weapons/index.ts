@@ -11,6 +11,7 @@ import { registerFlintlock, stopFlintlock } from './flintlock';
 import { registerSpellbook, stopSpellbook } from './spellbook';
 import { registerStuntCar, stopStuntCar } from './stuntCar';
 import { registerMallet, stopMallet } from './mallet';
+import { registerSpawner, stopSpawner } from './spawner';
 import type { PadKey } from '../../m1/components/ButtonIcons';
 
 /** One line of how it's worked, for the pause menu: the buttons (pad, keyboard, mouse; `join`: '+' together), and what they do. */
@@ -49,6 +50,11 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     ],
     note: 'STANDING OR IN THE AIR. NOT WHILE DUCKING.',
   },
+  SPAWNER: {
+    name: 'OTHERWORLDLY SPAWNER', from: 'SPACE LAND',
+    controls: [{ pad: ['X'], mouse: 'left', label: 'FIRE' }],
+    description: "Nobody knows how it makes them. Nobody wants to know. Pull the trigger and it squirts out a litter of slimy little space goblins that run down anybody in sight, leap like fleas to pull birds out of the sky, latch on and chew. One of them's a nuisance. Thirty of them's a skeleton. They don't live long, but neither does whoever they're eating.",
+  },
   SOUL_SUCKER: {
     name: 'SOUL SUCKER', from: 'SPOOKY LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: SUCK' }, { pad: ['Y'], kb: ['F'], label: 'GORE SPRAY' }],
@@ -62,7 +68,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
 };
 
 /** What he's got, for now: the ray gun and the lands' weapons built so far. */
-export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER', 'FLINTLOCK', 'SPELLBOOK', 'STUNT_CAR', 'MALLET'];
+export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER', 'FLINTLOCK', 'SPELLBOOK', 'STUNT_CAR', 'MALLET', 'SPAWNER'];
 
 export const weaponName = (w: WeaponType) => M2_WEAPON_INFO[w]?.name ?? w;
 
@@ -73,8 +79,8 @@ export const M2WeaponArt: React.FC<{ type: WeaponType; size: number }> = ({ type
     : React.createElement(WeaponArt, { type, size });
 
 /** Plugs the lands' weapons into the engine (startup). */
-export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); registerFlintlock(); registerSpellbook(); registerStuntCar(); registerMallet(); };
+export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); registerFlintlock(); registerSpellbook(); registerStuntCar(); registerMallet(); registerSpawner(); };
 /** Whatever any of them was in the middle of, stopped (going through a door). */
-export const stopWeapons = () => { stopSoulSucker(); stopFlintlock(); stopSpellbook(); stopStuntCar(); stopMallet(); };
+export const stopWeapons = () => { stopSoulSucker(); stopFlintlock(); stopSpellbook(); stopStuntCar(); stopMallet(); stopSpawner(); };
 /** What its ammo's called (the spellbook's is mana). */
 export const ammoName = (w: WeaponType) => (w === 'SPELLBOOK' ? 'MANA' : w === 'MALLET' ? 'DURABILITY' : 'AMMO');

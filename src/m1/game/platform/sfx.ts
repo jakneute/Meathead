@@ -180,6 +180,26 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.35, vary: 0.3, gap: 160, voices: 2,
     make: () => { const bp = bandpass(); return render(0.32, t => bp(rnd(), 500 + 400 * Math.sin(TAU * 9 * t), 1.2) * 1.2); },
   },
+  spawn: {
+    // Meathead 2's otherworldly spawner giving birth: a wet squelch opening up, and a tiny squeal out of it
+    gain: 0.5, vary: 0.5, gap: 60,
+    make: () => { const lp = lowpass(); let a = 0; return render(0.35, t => { a += (1900 + 900 * Math.sin(TAU * 14 * t)) / SFX_SR; return lp(rnd(), 500 + 2600 * t) * ex(t, 9) * 1.6 + (t > 0.12 ? Math.sin(TAU * a) * 0.22 * ex(t - 0.12, 10) : 0); }); },
+  },
+  chitter: {
+    // ...its litter: a quick high chatter, little alien squeaks
+    gain: 0.22, vary: 0.8, gap: 90, voices: 2,
+    make: () => { let a = 0; return render(0.22, t => { a += (2600 + 1100 * Math.sign(Math.sin(TAU * 32 * t)) + 600 * Math.sin(TAU * 7 * t)) / SFX_SR; return Math.sin(TAU * a) * 0.6 * ex(t, 8) * (Math.floor(t * 40) % 3 ? 1 : 0.2); }); },
+  },
+  gnaw: {
+    // ...chewing on somebody: a wet crunching, teeth going fast
+    gain: 0.32, vary: 0.6, gap: 70, voices: 2,
+    make: () => { const bp = bandpass(), lp = lowpass(); return render(0.2, t => (bp(rnd(), 1500, 1.4) * 1.3 + lp(rnd(), 400) * 0.6 + (t < 0.008 ? rnd() * 0.8 : 0)) * (Math.sin(TAU * 26 * t) > 0 ? 1 : 0.25) * ex(t, 12)); },
+  },
+  crumble: {
+    // ...a skeleton falling to bits: bones clattering down in a heap, dry knocks one after another
+    gain: 0.55, vary: 0.4, gap: 120,
+    make: () => { const bp = bandpass(); const hits = Array.from({ length: 10 }, (_, i) => i * 0.045 + Math.random() * 0.04); return render(0.7, t => { let x = 0; for (const h of hits) if (t >= h && t < h + 0.004) x += rnd() * 6; return bp(x, 2300, 3) + bp(rnd(), 900, 0.7) * 0.06 * ex(t, 5); }); },
+  },
   squish: {
     // ...somebody squashed flat: a flat splut and an accordion's wheeze
     gain: 0.5, vary: 0.5, gap: 100,

@@ -207,6 +207,8 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'STUNT_CAR': 6,
   // (Meathead 2's mallet of pain: its durability)
   'MALLET': 60,
+  // (Meathead 2's otherworldly spawner: litters)
+  'SPAWNER': 50,
 };
 
 /** A fresh ammo loadout with every weapon topped up. */
