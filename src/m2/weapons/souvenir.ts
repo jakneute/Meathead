@@ -196,11 +196,11 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
   for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: muzzle.x + pl.facing * 6, y: muzzle.y }, vel: { x: pl.facing * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 2 }, life: 12, color: 'rgba(230, 230, 230, 0.7)', size: 3 + Math.random() * 3 });
 };
 
-/** Falls apart: the cheap plastic it's made of, in bits, and a puff. */
+/** Falls apart: the cheap plastic it's made of, in bits, and a puff (mid-air too: the bits carry on the way it was going). */
 const disintegrate = (state: GameState, p: Projectile) => {
   const { t } = flightOf(p);
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
-  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * p.width, y: cy + (Math.random() - 0.5) * p.height }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2.5 }, life: 28 + Math.random() * 24, color: i % 4 === 3 ? '#D4D4D8' : t.colors[i % t.colors.length], size: 2 + Math.random() * 2 });
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * p.width, y: cy + (Math.random() - 0.5) * p.height }, vel: { x: p.vel.x * 0.5 + (Math.random() - 0.5) * 3, y: p.vel.y * 0.5 - 1 - Math.random() * 2.5 }, life: 28 + Math.random() * 24, color: i % 4 === 3 ? '#D4D4D8' : t.colors[i % t.colors.length], size: 2 + Math.random() * 2 });
   for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 1.5, y: -0.6 }, life: 18, color: 'rgba(220, 220, 220, 0.5)', size: 5 + Math.random() * 4 });
   playSound('clink', 0.45, 9);
 };
