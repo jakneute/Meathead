@@ -156,12 +156,15 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
     if (state.frame - duckSaidAt > 180) { duckSaidAt = state.frame; meatheadSays(state, DUCK_LINES[Math.floor(Math.random() * DUCK_LINES.length)]); }
     return;
   }
+  // (a grab on: the mallet's put away for it, whatever it was doing)
+  if (grabBusy()) { if (mode !== 'idle') { if (mode === 'tornado') setArmor(false); mode = 'idle'; pl.hidden = false; } return; }
   if (mode === 'idle' && durable(ctx) && !pl.isCharging && !pl.isUppercutting && !pl.isDivekicking && !pl.isDucking) {
     if (xPress) start(ground ? 'swing' : 'airSwing', pl);
     else if (tap && yFree) start(ground ? 'launch' : 'pound', pl);
     else if (yDown && yHeld === Y_HOLD && ground && yFree) start('windup', pl);
   }
-  if (mode === 'idle') { pl.hidden = false; return; }
+  // (not swinging it: he's drawn as he is, or by whatever's got him; nothing of the mallet's to do)
+  if (mode === 'idle') return;
   t++;
   pl.hidden = true;
   const px = pl.pos.x + pl.width / 2, fy = pl.pos.y + pl.height;
