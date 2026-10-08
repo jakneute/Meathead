@@ -26,7 +26,7 @@ import { setArmor } from '../../m1/game/core/resist';
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
-const CAST_COOLDOWN = 80, REACH = 680;
+const CAST_COOLDOWN = 80, REACH = 680, CAST_POSE = 32;
 const METEOR = { dmg: 80, edge: 25, radius: 95, burn: 240, burnDmg: 0.4 };
 const COMET = { dmg: 45, freeze: 320 };
 const BOLT = { every: 14, dmg: 15, maxFrames: 900 };
@@ -107,7 +107,7 @@ const fire = (ctx: FrameContext) => {
   }
   pl.shootCooldown = CAST_COOLDOWN;
   if (!cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK--;
-  casting = 26;
+  casting = CAST_POSE;
   playSound('spell');
 };
 
@@ -238,7 +238,11 @@ const meatheadSays = (state: GameState, text: string) => {
 const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boolean) => {
   const { state } = ctx;
   const pl = state.player;
-  if (casting > 0) casting--;
+  if (casting > 0) {
+    // (reading it out: struck in the pose a moment, standing his ground; a hit knocks him out of it)
+    if (pl.pushbackTimer > 0 || state.deathTimer > 0) { casting = 0; pl.hidden = false; }
+    else { casting--; pl.vel.x = 0; pl.lockTimer = Math.max(pl.lockTimer, 2); pl.hidden = casting > 0; }
+  }
   if (flash > 0) flash--;
   // Rifts opening, hanging there, closing; what's due out of them
   for (const r of rifts) { r.t++; const at = r.follow?.(); if (r.follow && !at && r.life - r.t > 12) r.life = r.t + 12; if (at) r.x += (at.x - r.x) * 0.15; }
@@ -310,6 +314,8 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
 };
 
 /** Everything it was in the middle of, stopped (through a door): no storm, no burning, no bulk. */
+/** (for tests: hold him in the cast pose, or the bulk-up's) */
+export const holdPoseForTests = (cast: number, bulk = 0) => { casting = cast; posing = bulk; };
 export const stopSpellbook = () => { if (posing > 0) setArmor(false); posing = 0; bolts = []; burning.clear(); casting = 0; rings = []; flash = 0; rifts = []; pending = []; bulkLeft = 0; setBuffs({ speed: 1, size: 1, knock: 1 }); publish(); };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -402,9 +408,27 @@ const drawOverlay = (c: Ctx, state: GameState) => {
       c.stroke();
     }
   }
-  // The cast: runes going round him, glowing
+  // The cast: the buff spellcaster's pose (the book thrust out in front, open and blazing, the other arm flung up at the
+  // sky, chest out, roaring up at it), runes going round him
   if (casting > 0) {
-    const pl = state.player, cx = pl.pos.x + pl.width / 2, cy = pl.pos.y + pl.height / 2, k = casting / 26;
+    const pl = state.player, f = state.frame, x = pl.pos.x + pl.width / 2, y = pl.pos.y + pl.height;
+    drawPoseSprite(c, x, y, pl.facing, g => {
+      drawLeg(g, [-5, -24], [-12, -12], [-16, 0], 0, true);
+      drawLeg(g, [5, -24], [14, -13], [18, 0], 0, false);
+      g.save(); g.translate(0, -24); g.rotate(-0.08);
+      drawArmTo(g, [-8, -22], [-12, -38], [-8, -56], true, 6);
+      drawTorsoFromHips(g);
+      drawPoseHead(g, 3, -37, -0.2, 'yell', f);
+      drawArmTo(g, [11, -22], [22, -24], [33, -28], false, 6);
+      // (the book, held out open, light pouring off its pages)
+      g.fillStyle = INK; g.fillRect(29, -38, 20, 14); g.fillStyle = '#27272A'; g.fillRect(30, -37, 18, 12);
+      g.fillStyle = f % 6 < 3 ? '#E9D5FF' : '#C084FC'; g.fillRect(32, -36, 6, 10); g.fillRect(40, -36, 6, 10);
+      g.fillStyle = 'rgba(233, 213, 255, 0.5)'; g.beginPath(); g.moveTo(31, -38); g.lineTo(47, -38); g.lineTo(58, -70); g.lineTo(26, -70); g.closePath(); g.fill();
+      g.restore();
+    });
+    // (sparks off the raised hand)
+    if (f % 2 === 0) state.particles.push({ pos: { x: x - pl.facing * 10, y: y - 82 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 14, color: Math.random() < 0.5 ? '#C084FC' : '#FFFFFF', size: 2 });
+    const cx = pl.pos.x + pl.width / 2, cy = pl.pos.y + pl.height / 2, k = casting / CAST_POSE;
     c.strokeStyle = `rgba(192, 132, 252, ${(0.8 * k).toFixed(2)})`; c.lineWidth = 2;
     c.beginPath(); c.arc(cx, cy, 44 - k * 10, 0, Math.PI * 2); c.stroke();
     c.fillStyle = `rgba(233, 213, 255, ${k.toFixed(2)})`;
