@@ -264,7 +264,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     splat();
     const dir = Math.sign(p.vel.x) || 1;
     if (e.health <= 0) { fx.blowAwayEnemy(e, { x: dir * 6, y: -6 }, m2Kill('gore_kill'), dir); fx.spawnKillCallout(e, grabCallout('gorespray')); }
-    else { fx.spawnDamageNumber(e.pos, p.damage); e.vel.x += dir * 0.6; }
+    // (no knockback: it holds them in it, slowed, rather than washing them out of it)
+    else { fx.spawnDamageNumber(e.pos, p.damage); e.vel.x *= 0.8; }
     // (one in two goes on through: it's a gush, not bullets)
     if (g.hit.length > 1 || Math.random() < 0.5) return false;
   }
