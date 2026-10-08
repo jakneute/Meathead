@@ -34,7 +34,7 @@ const tolMax = (e: Enemy) => 2 + e.maxHealth / 35;
 const REGEN_AFTER = 120, REGEN = 0.03;
 /** Being sick: so many heaves, each this long (rearing back, spewing, getting his breath). After, a short spell he's
  *  over it, then he can be got again. */
-const HEAVE = 70, HEAVES = 4, REAR = 14, SPEW_END = 50, IMMUNE = 90;
+const HEAVE = 90, HEAVES = 4, REAR = 14, SPEW_END = 72, IMMUNE = 90;
 /** The puke: a glob every so often while he's spewing; what one does to whoever it lands on (his own, coming down on
  *  him, hurts a bit more); how far he'll look for somebody to throw up on. */
 const PUKE = { every: 2, gravity: 0.35, dmg: 1.5, selfDmg: 1.3, sick: 0.6, reach: 460 };
@@ -180,7 +180,7 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
   e.pose = { lean, sx, sy, filter: SICK_LOOK[Math.floor(state.frame / 10) % 2], face: dir };
   // Spewing: a glob at a time, a long arc onto him (or straight up)
   if (cyc >= REAR && cyc < SPEW_END) {
-    if (cyc === REAR) playSound('gush');
+    if (cyc === REAR || cyc === REAR + 30) playSound('gush');
     if (cyc % PUKE.every === 0) {
       const m = mouthOf(e, dir, lean);
       let vel: { x: number; y: number };
