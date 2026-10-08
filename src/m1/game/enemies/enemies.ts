@@ -5,13 +5,13 @@ import { Enemy, Rect, Player, Block } from '../../types';
 import { KillCallout } from '../../content/dialogue';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, BOSS_DOOR_X, GRAVITY, PLAYER_INVINCIBILITY_FRAMES, PLAYER_STUN_INVINCIBILITY,
-  PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE, ENEMY_CHARGE_DAMAGE, ENEMY_SLIDE_DAMAGE,
+  PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE, enemyMeleeDamage,
   PLAYER_MASS, ENEMY_DAZE_FRAMES, UPPERCUT_LAUNCH_SPEED, UPPERCUT_LAUNCH_X, BOUNCE_FRAMES,
   GML_SCALE, POWER_CELLS, FROZEN_PUSH_MULTIPLIER, FROZEN_DAMAGE_MULTIPLIER, FROZEN_CHARGE_MULTIPLIER,
   FROZEN_WALL_IMPACT_MULTIPLIER, FROZEN_GROUND_IMPACT_MULTIPLIER, FROZEN_ENEMY_IMPACT_DAMAGE, OILED_IMPACT_MULTIPLIER, OILED_LEDGE_DROP,
   DAMAGE_WALL_IMPACT_SCALER, DAMAGE_FALL_SCALER, IMPACT_DAMAGE_THRESHOLD,
   ENEMY_DOMINO_TRANSFER, ENEMY_DOMINO_LOSS, DOMINO_DAMAGE_SCALER,
-  BOSS_UPPERCUT_DAMAGE, ENEMY_UPPERCUT_DAMAGE, BOSS_DIVEKICK_DAMAGE, ENEMY_DIVEKICK_DAMAGE,
+  BOSS_UPPERCUT_DAMAGE, BOSS_DIVEKICK_DAMAGE,
   ENEMY_HIT_COOLDOWN, ENEMY_BULLET_DAMAGE, FILTH_SHIELD_CONTACT_DAMAGE, FILTH_SHIELD_BOSS_DAMAGE, FILTH_SHIELD_BOSS_WEAKNESS_DAMAGE, OIL_ROCKET_OILED_DURATION,
   OILED_COLLISION_DAMAGE, OILED_CHARGE_PUSH_MULTIPLIER, OILED_CHARGE_MIN_PUSH, OVERDOSE_GRAVITY, OVERDOSE_RISE_RANGE, OVERDOSE_RISE_STEER, OVERDOSE_MAX_SIDE_SPEED,
   OVERDOSE_MAX_RISE_SPEED, OVERDOSE_DIVE_RANGE, OVERDOSE_DIVE_SPEED, OVERDOSE_DROP_GRAVITY, OVERDOSE_HIT_DAMAGE, OVERDOSE_MAX_FRAMES,
@@ -905,13 +905,13 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     else if (player.isCharging) {
       // (a boss takes the full hit; so does anything the jet ski's wheelie rams)
       if (e.type === 'boss' || player.jetski) damage = BOSS_CHARGE_DAMAGE;
-      else if (player.isSliding) damage = isSmallCritter(e.kind) ? e.health : ENEMY_SLIDE_DAMAGE;
+      else if (player.isSliding) damage = isSmallCritter(e.kind) ? e.health : enemyMeleeDamage.slide;
       // (a lunge through the water into a fish: that's the fish done)
       else if (player.swimming && e.kind === 'mutantfish') damage = e.health;
-      else damage = ENEMY_CHARGE_DAMAGE;
+      else damage = enemyMeleeDamage.charge;
     }
-    else if (player.isUppercutting) damage = (e.type === 'boss' ? BOSS_UPPERCUT_DAMAGE : ENEMY_UPPERCUT_DAMAGE);
-    else if (player.isDivekicking) damage = (e.type === 'boss' ? BOSS_DIVEKICK_DAMAGE : ENEMY_DIVEKICK_DAMAGE);
+    else if (player.isUppercutting) damage = (e.type === 'boss' ? BOSS_UPPERCUT_DAMAGE : enemyMeleeDamage.uppercut);
+    else if (player.isDivekicking) damage = (e.type === 'boss' ? BOSS_DIVEKICK_DAMAGE : enemyMeleeDamage.divekick);
     // (the bike's bunny hop or slam into a lowrider: that's the car wrecked)
     if (e.kind === 'lowrider' && (player.isUppercutting || player.isDivekicking)) damage = e.health;
     // (a boss his moves barely dent)

@@ -400,6 +400,9 @@ export const BOSS_UPPERCUT_DAMAGE = 50;
 export const ENEMY_UPPERCUT_DAMAGE = 150;
 export const BOSS_DIVEKICK_DAMAGE = 50;
 export const ENEMY_DIVEKICK_DAMAGE = 150;
+/** Those four against regular enemies, as the game playing has them (Meathead 2 sets its own, lighter: in line with its
+ *  throws). */
+export const enemyMeleeDamage = { charge: ENEMY_CHARGE_DAMAGE, slide: ENEMY_SLIDE_DAMAGE, uppercut: ENEMY_UPPERCUT_DAMAGE, divekick: ENEMY_DIVEKICK_DAMAGE };
 export const WEAKNESS_DAMAGE = 100;
 export const ENEMY_HIT_COOLDOWN = 60;
 

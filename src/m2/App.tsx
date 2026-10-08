@@ -4,7 +4,7 @@ import HUD from '../m1/components/HUD';
 import { RAYGUN_ART } from '../m1/components/WeaponIcon';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { GameStatus, WeaponType } from '../m1/types';
-import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH } from '../m1/constants';
+import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage } from '../m1/constants';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../m1/game/platform/gamepad';
 import { hasRightStick } from '../m1/game/platform/device';
 import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
@@ -42,6 +42,8 @@ setFireKeys([]);
 setRayGun(true, m2Kill('raygun_kill'));
 registerGrabCallouts();
 registerKillLines();
+// (his shoulder charge, slide, uppercut and dive kick hit about as hard as his throws: far lighter than Meathead 1's)
+Object.assign(enemyMeleeDamage, { charge: 14, slide: 14, uppercut: 45, divekick: 45 });
 registerWeapons();
 
 /** What he's carrying (weapons/index.ts). */
