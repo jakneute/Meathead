@@ -664,6 +664,7 @@ const drawHeadshot = (ctx: Ctx, d: EnemyDeath, state: GameState) => {
   const facing = d.sprite?.facing ?? 1;
   const fx = x + w / 2, fy = y + h;
   if (lying(d)) { drawHeadshotLying(ctx, d, state); return; }
+  if (hd.side) { drawHeadshotSide(ctx, d, state); return; }
   ctx.save();
   if (!d.sprite || isHumanoidKind(d.sprite.kind)) { ctx.translate(fx, fy - 2); ctx.rotate(-facing * (Math.PI / 2) * k); ctx.translate(-fx, -(fy - 2)); }
   else { ctx.translate(fx, fy); ctx.scale(1, 1 - 0.45 * k); ctx.translate(-fx, -fy); }
@@ -681,6 +682,44 @@ const drawHeadshot = (ctx: Ctx, d: EnemyDeath, state: GameState) => {
   else { ctx.fillStyle = d.color; ctx.fillRect(cx - hd.r, cy - hd.r, hd.r * 2, hd.r * 1.7); }
   // (and what's showing where it came off)
   ctx.fillStyle = '#991B1B'; ctx.fillRect(cx - hd.r * 0.6, cy + hd.r * 0.45, hd.r * 1.2, hd.r * 0.25);
+  ctx.restore();
+};
+
+/**
+ * The headshot on an animal (its head out the front of it, at the end of its neck): the head comes off at the neck, cut
+ * across it up and down, the beak or snout and the ears going with it; the rest of it (its back, its legs, its tail)
+ * stays, stood there spurting, then slumps down on its legs.
+ */
+const drawHeadshotSide = (ctx: Ctx, d: EnemyDeath, state: GameState) => {
+  const hd = d.head!;
+  const { x, y, w, h, t } = d;
+  const facing = d.sprite?.facing ?? 1;
+  const cx = x + hd.ox, cy = y + hd.oy, r = hd.r;
+  // What's the head's: out past the neck, from up over the ears down to under the chin (a goat's beard and all)
+  const cutX = cx - facing * r * 0.9, top = cy - r * 3.2, chin = cy + r * 1.4, reach = r * 4;
+  const headBox = (c: Ctx) => { if (facing === 1) c.rect(cutX, top, reach + r, chin - top); else c.rect(cutX - reach - r, top, reach + r, chin - top); };
+  const k = clamp01((t - 46) / 10);
+  const fx = x + w / 2, fy = y + h;
+  // The body, all but that: stood there, then down on its haunches
+  ctx.save();
+  ctx.translate(fx, fy); ctx.scale(1, 1 - 0.35 * k); ctx.translate(-fx, -fy);
+  ctx.beginPath(); ctx.rect(x - w * 2, y - h * 2, w * 5, h * 3 + 8); headBox(ctx); ctx.clip('evenodd');
+  drawBody(ctx, d, state);
+  ctx.restore();
+  ctx.save();
+  ctx.translate(fx, fy); ctx.scale(1, 1 - 0.35 * k); ctx.translate(-fx, -fy);
+  // The stump, end on: the cut down the neck, red, a white knob of bone in it
+  const sh = Math.max(3, r * 0.8);
+  ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(cutX, cy + r * 0.1, 2.5, sh, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#DC2626'; ctx.beginPath(); ctx.ellipse(cutX + facing * 0.5, cy + r * 0.1, 1.5, sh * 0.7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#F5F0E1'; ctx.fillRect(cutX - 1, cy - 1, 2, 2);
+  ctx.restore();
+  // The head, wherever it's got to: the drawing of it, cut off at the neck and carried off, red where it came off
+  ctx.save();
+  ctx.translate(hd.x, hd.y); ctx.rotate(hd.rot); ctx.translate(-cx, -cy);
+  ctx.beginPath(); headBox(ctx); ctx.clip();
+  drawBody(ctx, d, state);
+  ctx.fillStyle = '#991B1B'; ctx.fillRect(facing === 1 ? cutX : cutX - 2, cy - r * 0.7, 2, r * 1.5);
   ctx.restore();
 };
 

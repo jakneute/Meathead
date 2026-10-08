@@ -17,7 +17,7 @@ import { COLORS, GRAVITY } from '../../constants';
 import type { GameState } from '../core/state';
 import { floorTopAt } from '../core/terrain';
 import { isMidBoss } from '../combat/midBoss';
-import { kindHead } from '../render/enemies/index';
+import { kindHead, isHumanoidKind } from '../render/enemies/index';
 import { GunDeath, GunMode, startGunDeath, updateGunDeath, updateEjected } from './gunDeaths';
 
 export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot' | 'ceilinged' | 'vaporized' | 'plugged' | 'gunned' | 'ejected';
@@ -41,7 +41,8 @@ export interface EnemyDeath {
   dummy?: 'ground' | 'air';
   /** (headshot) The head, off: where it sat on the body (its middle, from the body's top left) and how big; where it's
    * got to (world), how it's going, its spin. */
-  head?: { ox: number; oy: number; r: number; x: number; y: number; vx: number; vy: number; rot: number; landed: boolean };
+  /** `side`: its head's out the front of it (an animal's), so it comes off at the neck sideways, not across the top of it. */
+  head?: { ox: number; oy: number; r: number; x: number; y: number; vx: number; vy: number; rot: number; landed: boolean; side: boolean };
   /** (plugged, gunned) How the pistol's kill is going. */
   gd?: GunDeath;
   /** (ejected, and the pancake he becomes) One of a lowrider's crew: his shirt, which way he faces, his tumble. */
@@ -86,7 +87,7 @@ export const enemyBodyColor = (e: { id: string, enemyType?: string, width: numbe
 };
 
 /** Which way a themed enemy was facing as it died (wildlife the way it was going, goons toward him). */
-const deathFacing = (state: GameState, e: Enemy): 1 | -1 => {
+export const deathFacing = (state: GameState, e: Enemy): 1 | -1 => {
   // (wildlife, beachgoers and shield-holders face their own way; the rest face him)
   const ownWay = ['wolverine', 'goat', 'eagle', 'shielder', 'surfer', 'riotcop', 'gator', 'pelican', 'iguana', 'crab', 'civilian', 'shark',
     'cardoor', 'rattlesnake', 'scorpion', 'coyote', 'visitor', 'bum', 'reader', 'hr', 'custodian', 'scientist', 'rat', 'tenant', 'minion',
@@ -130,7 +131,8 @@ export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind
     const hd = d.sprite ? kindHead(d.sprite.kind, d.sprite.variant) : null;
     const ox = hd ? d.w / 2 + hd.x * d.sprite!.facing : d.w / 2;
     const oy = hd ? d.h + hd.y : Math.min(d.h * 0.2, 12);
-    d.head = { ox, oy, r: hd ? hd.r : Math.min(d.w, d.h) * 0.22, x: d.x + ox, y: d.y + oy, vx: vel?.x ?? 0, vy: vel?.y ?? -6, rot: 0, landed: false };
+    const side = !!hd && !isHumanoidKind(d.sprite!.kind) && Math.abs(hd.x) > d.w * 0.2;
+    d.head = { ox, oy, r: hd ? hd.r : Math.min(d.w, d.h) * 0.22, x: d.x + ox, y: d.y + oy, vx: vel?.x ?? 0, vy: vel?.y ?? -6, rot: 0, landed: false, side };
     d.vx = 0; d.vy = 0;
   }
 };
@@ -206,9 +208,11 @@ export const updateEnemyDeaths = (state: GameState) => {
         // The body: shot on the wing, it drops; on its feet, it stays stood there
         if (d.y + d.h < d.floorY - 1) { d.vy = Math.min(14, d.vy + GRAVITY * 0.8); d.y = Math.min(d.floorY - d.h, d.y + d.vy); }
         const hd = d.head!;
-        const neck = { x: d.x + hd.ox, y: d.y + hd.oy + hd.r * 0.7 };
+        // (an animal's neck's out the front of it, cut sideways: it spurts forward and up out of that)
+        const fc = d.sprite?.facing ?? 1;
+        const neck = hd.side ? { x: d.x + hd.ox - fc * hd.r * 0.9, y: d.y + hd.oy + hd.r * 0.1 } : { x: d.x + hd.ox, y: d.y + hd.oy + hd.r * 0.7 };
         // A fountain out of the neck while it's stood there
-        if (d.t < 44) for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: neck.x, y: neck.y }, vel: { x: (Math.random() - 0.5) * 2.5, y: -3 - Math.random() * 5 * (1 - d.t / 60) }, life: 26 + Math.random() * 14, color: i ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 3 });
+        if (d.t < 44) for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: neck.x, y: neck.y }, vel: { x: hd.side ? fc * (1 + Math.random() * 3) : (Math.random() - 0.5) * 2.5, y: (hd.side ? -2 : -3) - Math.random() * 5 * (1 - d.t / 60) }, life: 26 + Math.random() * 14, color: i ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 3 });
         // The head: off and away, bouncing, rolling to a stop
         if (!hd.landed) {
           hd.vy += GRAVITY * 0.7; hd.x += hd.vx; hd.y += hd.vy; hd.rot += hd.vx * 0.09;

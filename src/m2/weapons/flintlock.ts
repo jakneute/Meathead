@@ -15,7 +15,8 @@ import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { muzzlePoint } from '../../m1/game/combat/muzzle';
 import { playSound } from '../../m1/game/platform/audio';
-import { KIND_TOP_REACH } from '../../m1/game/render/enemies';
+import { KIND_TOP_REACH, KIND_HEAD } from '../../m1/game/render/enemies';
+import { deathFacing } from '../../m1/game/enemies/deaths';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 
@@ -31,7 +32,13 @@ interface Trail { x0: number; y0: number; x1: number; y1: number; t: number; spa
 let trails: Trail[] = [];
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
-const headOf = (e: Enemy) => ({ x: e.pos.x + e.width / 2, y: e.pos.y + Math.min(14, e.height * 0.25) - (KIND_TOP_REACH[e.kind ?? ''] ?? 0) * 0.5 });
+/** Where his head is: a themed one's own (an animal's out the front of it, the way it's facing), or up top. */
+let facingState: GameState | null = null;
+const headOf = (e: Enemy) => {
+  const kh = e.kind ? KIND_HEAD[e.kind] : undefined;
+  if (kh && facingState) return { x: e.pos.x + e.width / 2 + kh.x * deathFacing(facingState, e), y: e.pos.y + e.height + kh.y };
+  return { x: e.pos.x + e.width / 2, y: e.pos.y + Math.min(14, e.height * 0.25) - (KIND_TOP_REACH[e.kind ?? ''] ?? 0) * 0.5 };
+};
 
 /** Whoever it'd draw a bead on: the nearest in reach out in front of him (it's the way he's facing that it looks). */
 const pick = (state: GameState, from: { x: number; y: number }) => {
@@ -108,7 +115,7 @@ const shoot = (ctx: FrameContext) => {
 };
 
 /** Fire held: drawing a bead (on whoever's near, kept on him while he lives), and at the end of it, bang. */
-const fire = (ctx: FrameContext) => {
+const fire = (ctx: FrameContext) => { facingState = ctx.state;
   const { state } = ctx;
   const pl = state.player;
   const m = muzzlePoint(pl, 'FLINTLOCK');
@@ -122,7 +129,7 @@ const fire = (ctx: FrameContext) => {
   if (charge < CHARGE && ++charge === CHARGE) playSound('primed');
 };
 
-const tick = (ctx: FrameContext) => {
+const tick = (ctx: FrameContext) => { facingState = ctx.state;
   const { state } = ctx;
   // Fire let go: primed, it goes; not yet, nothing
   if (chargedAt < state.frame - 1 && charge > 0) {
