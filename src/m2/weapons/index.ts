@@ -6,7 +6,7 @@ import React from 'react';
 import type { WeaponType } from '../../m1/types';
 import { RAYGUN_ART, WeaponArt } from '../../m1/components/WeaponIcon';
 import { registerSouvenirLauncher } from './souvenir';
-import { registerSoulSucker } from './soulSucker';
+import { registerSoulSucker, stopSoulSucker } from './soulSucker';
 
 export interface M2Weapon { name: string; from: string; description: string }
 
@@ -38,3 +38,5 @@ export const M2WeaponArt: React.FC<{ type: WeaponType; size: number }> = ({ type
 
 /** Plugs the lands' weapons into the engine (startup). */
 export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); };
+/** Whatever any of them was in the middle of, stopped (going through a door). */
+export const stopWeapons = () => { stopSoulSucker(); };

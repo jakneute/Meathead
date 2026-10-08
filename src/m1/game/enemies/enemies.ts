@@ -97,6 +97,12 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
 
   const shoveSpeed = e.vel.x;
   moveEnemy(ctx, e);
+  // (running from him: turned away, and whatever it was doing to come at him undone)
+  if (e.runFrom !== undefined && e.runFrom >= ctx.state.frame && e.type !== 'boss' && !e.isBlownAway) {
+    const p = ctx.state.player, away = e.pos.x + e.width / 2 < p.pos.x + p.width / 2 ? -1 : 1;
+    e.facing = away;
+    if (Math.sign(e.vel.x) === -away && !((e.pauseTimer || 0) > 0)) e.pos.x -= e.vel.x;
+  }
   if (e.type !== 'boss' && knockedOutOfBounds(ctx, e)) return false;
   if (e.sludgeTimer && e.sludgeTimer > 0) e.sludgeTimer--;
   if (e.type !== 'boss') {

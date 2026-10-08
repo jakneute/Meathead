@@ -44,13 +44,15 @@ export const setGoreBag = (v: number) => setGore(v);
 
 /** Everybody's poise: how much pulling they'll take before they go in (the beefier, the more). */
 const poiseMax = (e: Enemy) => Math.round(e.maxHealth * 0.6 + 10);
-interface Poise { left: number; lastPulled: number; flees: boolean }
+interface Poise { left: number; lastPulled: number; fleeUntil: number }
 const poise = new WeakMap<Enemy, Poise>();
 const poiseOf = (e: Enemy) => {
   let p = poise.get(e);
-  if (!p) { p = { left: poiseMax(e), lastPulled: -999, flees: Math.random() < 0.6 }; poise.set(e, p); }
+  if (!p) { p = { left: poiseMax(e), lastPulled: -999, fleeUntil: -1 }; poise.set(e, p); }
   return p;
 };
+/** Is it pulling on him right now (or was, a moment ago)? */
+export const beingSucked = (e: Enemy, frame: number) => { const ps = poise.get(e); return !!ps && (ps.lastPulled >= frame - 2 || ps.fleeUntil >= frame); };
 /** (for tests) */
 export const poiseLeft = (e: Enemy) => poise.get(e)?.left;
 /** What can be pulled in: anybody but a boss, a mid-boss or a bystander. */
@@ -68,6 +70,14 @@ const REACH = 190, SPREAD = 1.05;
 const DRAIN_FAR = 0.4, DRAIN_NEAR = 3.4;
 /** After this long not being pulled, poise comes back, this much a frame. */
 const REGEN_AFTER = 50, REGEN = 0.5;
+/** How fast they run from it, and how long they keep running once it's let them go. */
+const FLEE_RUN = 1.7, PANIC = 70;
+/** A step away from him (not into a wall), facing away. */
+const runAway = (state: GameState, e: Enemy, away: number) => {
+  e.facing = away as 1 | -1;
+  const nx = e.pos.x + away * FLEE_RUN;
+  if (!state.blocks.some(b => b.type !== 'pit' && b.type !== 'door' && !b.oneWay && nx < b.x + b.w && nx + e.width > b.x && e.pos.y + 4 < b.y + b.h && e.pos.y + e.height - 4 > b.y)) e.pos.x = nx;
+};
 
 let suckingAt = -10, fullSaidAt = -9999;
 const FULL_LINE_GAP = 240;
@@ -119,12 +129,14 @@ const fire = (ctx: FrameContext) => {
     ps.lastPulled = state.frame;
     const pull = near * near;
     ps.left -= DRAIN_FAR + (DRAIN_NEAR - DRAIN_FAR) * pull;
-    // Dragged at: slowed, pulled in toward the intake a little (the nearer the harder), and plenty of them turn round to
-    // get away from it (it doesn't stop what they're doing)
+    // Dragged at: slowed, and pulled in toward the intake (the nearer the harder); and every one of them turns and runs
+    // for it (it doesn't stop what they're doing): out at the edge of the cone they can get away, close in they can't
     const toward = mouth.x < e.pos.x + e.width / 2 ? -1 : 1;
     e.vel.x *= 0.8 - pull * 0.55;
     e.pos.x += toward * (0.3 + pull * 2.6);
-    if (ps.flees) e.facing = (-toward) as 1 | -1;
+    runAway(state, e, -toward);
+    ps.fleeUntil = state.frame + PANIC;
+    e.runFrom = ps.fleeUntil;
     // (bits of the floor and the air going in with them)
     if (Math.random() < 0.35) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height }, vel: { x: toward * (2 + near * 4), y: (mouth.y - e.pos.y - e.height / 2) * 0.03 }, life: 14, color: Math.random() < 0.5 ? 'rgba(220, 220, 220, 0.6)' : '#78716C', size: 1.5 + Math.random() * 1.5 });
     if (ps.left <= 0) swallow(ctx, e);
@@ -186,17 +198,26 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
     if (sprayLeft % GLOB_EVERY === 0) {
       const aim = input.moveUp ? -0.45 : input.moveDown && !pl.isGrounded ? 0.45 : 0;
       const a = aim + (Math.random() < FAN_SHARE ? -FAN_UP + Math.random() * (FAN_UP + FAN_DOWN) : (Math.random() * 2 - 1) * GLOB_SPREAD);
-      const size = 7 + Math.random() * 5;
+      // (globs, big and wet, and every few a chunk of somebody)
+      const chunk = Math.random() < 0.25;
+      const size = chunk ? 7 + Math.random() * 5 : 9 + Math.random() * 8;
       state.projectiles.push({
         id: `gore-${state.frame}-${Math.random()}`, pos: { x: mouth.x - size / 2, y: mouth.y - size / 2 },
         vel: { x: pl.facing * Math.cos(a) * GLOB_SPEED + pl.vel.x, y: Math.sin(a) * GLOB_SPEED },
         width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: GLOB_DMG, owner: 'player',
-        custom: 'SOUL_SUCKER', customData: { life: GLOB_LIFE, hit: [] as string[] },
+        custom: 'SOUL_SUCKER', customData: { life: GLOB_LIFE, hit: [] as string[], chunk, spin: Math.random() * 6, shade: Math.floor(Math.random() * 3) },
       });
     }
     if (sprayLeft % 12 === 0) playSound('gorespray');
-    // (a mist of it hanging at the intake)
-    if (sprayLeft % 3 === 0) state.particles.push({ pos: { x: mouth.x, y: mouth.y }, vel: { x: pl.facing * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 2 }, life: 10, color: 'rgba(153, 27, 27, 0.5)', size: 5 + Math.random() * 4 });
+    // (a mist of it hanging at the intake, thick, and drool running off it)
+    state.particles.push({ pos: { x: mouth.x + pl.facing * 4, y: mouth.y }, vel: { x: pl.facing * (1 + Math.random() * 2.5), y: (Math.random() - 0.5) * 2.5 }, life: 12, color: 'rgba(153, 27, 27, 0.55)', size: 7 + Math.random() * 6 });
+    if (sprayLeft % 4 === 0) state.particles.push({ pos: { x: mouth.x, y: mouth.y + 4 }, vel: { x: pl.facing * 0.5, y: 0.5 }, life: 40, color: '#991B1B', size: 2 + Math.random() * 2 });
+  }
+  // Whoever it's had hold of keeps running a while after it lets go
+  for (const e of state.enemies) {
+    const ps = poise.get(e);
+    if (!ps || ps.fleeUntil < state.frame || ps.lastPulled >= state.frame - 1 || !suckable(e) || (e.pauseTimer || 0) > 2) continue;
+    runAway(state, e, e.pos.x + e.width / 2 < pl.pos.x + pl.width / 2 ? -1 : 1);
   }
   // Poise comes back to whoever's been let go a while
   if (state.frame % 2 === 0) for (const e of state.enemies) {
@@ -213,8 +234,11 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
 /** A glob of gore: straight out, dropping a little, through whoever it hits (once each), splatting on whatever's solid. */
 const update = (ctx: FrameContext, p: Projectile): boolean => {
   const { state, fx } = ctx;
-  const g = p.customData as { life: number; hit: string[] };
-  p.vel.y += 0.25;
+  const g = p.customData as { life: number; hit: string[]; chunk: boolean; spin: number; shade: number };
+  p.vel.y += g.chunk ? 0.4 : 0.25;
+  g.spin += 0.3;
+  // (dripping as it goes)
+  if (Math.random() < 0.3) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: p.vel.x * 0.3, y: p.vel.y * 0.3 + 0.5 }, life: 20, color: '#B91C1C', size: 1.5 + Math.random() * 2 });
   p.pos.x += p.vel.x; p.pos.y += p.vel.y;
   const splat = () => { for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: -p.vel.x * 0.1 + (Math.random() - 0.5) * 2, y: -Math.random() * 2 }, life: 18, color: '#7F1D1D', size: 2 + Math.random() * 2 }); };
   if (--g.life <= 0) return false;
@@ -264,6 +288,17 @@ const stain = (state: GameState, p: Projectile, b: { x: number; y: number; w: nu
 
 const draw = (c: Ctx, p: Projectile) => {
   const x = p.pos.x + p.width / 2, y = p.pos.y + p.height / 2, r = p.width / 2;
+  const g = p.customData as { chunk?: boolean; spin?: number; shade?: number };
+  if (g.chunk) {
+    // A chunk of somebody: lumpy meat, a bit of fat, a bit of bone, tumbling
+    c.save(); c.translate(x, y); c.rotate(g.spin ?? 0);
+    c.fillStyle = INK; c.beginPath(); c.moveTo(-r - 1, -r * 0.4); c.lineTo(-r * 0.3, -r - 1); c.lineTo(r + 1, -r * 0.5); c.lineTo(r * 0.7, r + 1); c.lineTo(-r * 0.6, r * 0.8); c.closePath(); c.fill();
+    c.fillStyle = ['#B91C1C', '#9F1239', '#DC2626'][g.shade ?? 0]; c.beginPath(); c.moveTo(-r, -r * 0.4); c.lineTo(-r * 0.3, -r); c.lineTo(r, -r * 0.5); c.lineTo(r * 0.7, r); c.lineTo(-r * 0.6, r * 0.8); c.closePath(); c.fill();
+    c.fillStyle = '#FCA5A5'; c.fillRect(-r * 0.5, -r * 0.5, r * 0.7, r * 0.4);
+    c.fillStyle = '#F5F5F4'; c.fillRect(r * 0.2, 0, r * 0.5, r * 0.35);
+    c.restore();
+    return;
+  }
   const a = Math.atan2(p.vel.y, p.vel.x);
   c.save(); c.translate(x, y); c.rotate(a);
   c.fillStyle = 'rgba(127, 29, 29, 0.55)'; c.beginPath(); c.ellipse(-r * 1.4, 0, r * 1.6, r * 0.6, 0, 0, Math.PI * 2); c.fill();
@@ -334,5 +369,8 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     c.restore();
   }
 };
+
+/** Everything it was in the middle of, stopped (through a door): no spray going, nobody half way in, nothing pulled. */
+export const stopSoulSucker = () => { sprayLeft = 0; swallowing = []; suckingAt = -10; stains.length = 0; };
 
 export const registerSoulSucker = () => registerWeapon('SOUL_SUCKER', { fire: ctx => fire(ctx), update, draw: (c, p) => draw(c, p), drawHeld, tick, drawOverlay });

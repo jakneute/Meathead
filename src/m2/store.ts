@@ -28,4 +28,10 @@ export const subscribeUi = (l: () => void) => { listeners.add(l); return () => {
 
 /** Where the app goes when a stage asks to leave ('hub', 'pen', or a land's id). */
 export const onTravel = (fn: (dest: string) => void) => { travel = fn; };
-export const goTo = (dest: string) => travel?.(dest);
+let leaving = false;
+/** Off somewhere (a door, a portal): from then till the next stage is built, he's not in control, nothing he's doing
+ * carries on (a weapon held down has to be pressed again over there). */
+export const goTo = (dest: string) => { leaving = true; travel?.(dest); };
+export const isLeaving = () => leaving;
+/** (the next stage built: he's arrived) */
+export const arrived = () => { leaving = false; };

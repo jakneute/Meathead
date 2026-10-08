@@ -11,8 +11,11 @@ import { groundBlocks } from '../../m1/game/core/terrain';
 import { makeKindEnemy } from '../../m1/game/enemies/kinds';
 import { GROUND_Y, CANVAS_WIDTH } from '../../m1/constants';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
-import { setUi, goTo } from '../store';
+import { setUi, goTo, isLeaving, arrived } from '../store';
+import { stopWeapons } from '../weapons';
+import { NO_CONTROLS } from '../../m1/game/platform/input';
 import { M2_ENEMY_KINDS } from '../roster';
+import { beingSucked } from '../weapons/soulSucker';
 
 export const PEN_STAGE = 'M2 Staff Pen';
 const X0 = -40000, LEN = 2400;
@@ -59,6 +62,7 @@ export const penLayout: StageLayout = {
   verticalCamera: false,
   startsStanding: true,
   build: (state) => {
+    arrived(); stopWeapons();
     const runs = [{ x1: X0 - 400, y1: GROUND_Y, x2: X0 + LEN + 400, y2: GROUND_Y, surface: 'concrete' }];
     state.groundRuns = runs;
     state.blocks.push(...groundBlocks(runs));
@@ -75,6 +79,8 @@ export const penLayout: StageLayout = {
     const pen = getPen(state);
     // (dev builds: the state on the window, for poking at it)
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
+    // (on the way out: out of his hands, and whatever he had going stopped)
+    if (isLeaving()) { stopWeapons(); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!pen) return controls;
     const out = updateGrab(ctx, pen.grab, controls);
     practice(state);
@@ -116,6 +122,8 @@ const practice = (state: GameState) => {
     // (nobody ends up out past the walls, however they got sent)
     e.pos.x = Math.max(X0, Math.min(X0 + LEN - e.width, e.pos.x));
     // (knocked about by him: left to it)
+    // (the soul sucker's got hold of him: he's running from it his own way, see weapons/soulSucker)
+    if (beingSucked(e, state.frame)) continue;
     // (their own way of moving, a charger's charge, doesn't count: only what's been done to them)
     if ((e.pauseTimer || 0) > 2 || Math.abs(e.vel.y) > 0.5) continue;
     e.pauseTimer = 2;

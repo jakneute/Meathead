@@ -385,6 +385,9 @@ export interface Enemy extends Entity {
   harmless?: boolean;
   /** Moved by hand (Meathead 2's staff room): its AI's held off with a short pauseTimer, which isn't a daze (no stars). */
   puppet?: boolean;
+  /** Running from him till this frame (Meathead 2's soul sucker): it faces away, and makes no headway toward him, but
+   * still does what it does (shoots, swings). */
+  runFrom?: number;
   /** A bystander: only Meathead can hurt it (his shots and moves, or something he knocked into it); nothing else does. */
   innocent?: boolean;
   /** A mid-boss already took a hit from this tsunami wave (it's washed over once, not every frame). */
