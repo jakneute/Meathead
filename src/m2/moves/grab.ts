@@ -106,6 +106,8 @@ export interface Grab {
   queued: { want: 'beat' | 'shake'; t: number } | null;
   /** His knockback last frame, and how long what's left of it is from bumping into somebody (a grab beats that). */
   pb: number;
+  /** Missed a grab in the air: none again till he's landed. */
+  airSpent: boolean;
   bumpT: number;
   /** The controls last frame (to catch presses). */
   was: Controls;
@@ -129,7 +131,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, pb: 0, bumpT: 0,
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, pb: 0, bumpT: 0, airSpent: false,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -482,7 +484,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       else if (g.bumpT > 0) g.bumpT--;
       g.pb = pb;
       const touching = pb > 0 && g.bumpT > 0;
-      const free = !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.swimming && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
+      if (p.isGrounded) g.airSpent = false;
+      const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.swimming && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
       if (want) g.queued = { want, t: 0 };
       else if (g.queued && ++g.queued.t > GRAB_BUFFER) g.queued = null;
       if (!g.queued || !free) return out;
@@ -608,6 +611,9 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
 
     case 'whiff':
     case 'miss':
+      // (missed up in the air: no face-down on nothing, he's straight back to falling, in his own hands, with no
+      // second go at a grab till he's landed)
+      if (!p.isGrounded) { g.airSpent = true; end(state, g); return controls; }
       if (g.t >= (g.phase === 'whiff' ? WHIFF : GRAB_MISS)) end(state, g);
       return hold();
 
@@ -1139,7 +1145,7 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       return;
     case 'whiff':
       // Face down where they were
-      asPose(ctx, state, { isDucking: true, facing: g.dir });
+      asPose(ctx, state, { isDucking: p.isGrounded, facing: g.dir });
       return;
     case 'critter':
     case 'pitch': {
