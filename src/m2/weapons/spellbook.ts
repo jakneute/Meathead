@@ -295,6 +295,8 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
   for (const b of [...bolts]) {
     if (b.flash > 0) b.flash--;
     if (!alive(b.e) || state.frame > b.until) { bolts = bolts.filter(o => o !== b); continue; }
+    // (the whole time it's on him he's in it: lit up, jerking, going nowhere)
+    if (state.frame >= b.next - BOLT.every) b.e.shockedUntil = state.frame + 1;
     if (state.frame >= b.next) {
       b.next = state.frame + BOLT.every; b.flash = 6;
       b.path = boltPath(state, { x: mid(b.e).x, y: b.e.pos.y + b.e.height * 0.3 }, b.rift);

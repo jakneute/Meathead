@@ -392,7 +392,8 @@ export interface Enemy extends Entity {
   /** Running from him till this frame (Meathead 2's soul sucker): it faces away, and makes no headway toward him, but
    * still does what it does (shoots, swings). */
   runFrom?: number;
-  /** Being electrocuted till this frame by something other than his taser (Meathead 2's lightning): shown the same. */
+  /** Being electrocuted till this frame by something other than his taser (Meathead 2's lightning): shown the same,
+   * and it goes nowhere meanwhile. */
   shockedUntil?: number;
   /** A bystander: only Meathead can hurt it (his shots and moves, or something he knocked into it); nothing else does. */
   innocent?: boolean;

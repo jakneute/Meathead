@@ -96,7 +96,10 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
   }
 
   const shoveSpeed = e.vel.x;
+  const shockedAt = e.shockedUntil !== undefined && e.shockedUntil >= ctx.state.frame && e.type !== 'boss' ? e.pos.x : null;
   moveEnemy(ctx, e);
+  // (being electrocuted: going nowhere, whatever it was doing)
+  if (shockedAt !== null && !e.isBlownAway) { e.pos.x = shockedAt; e.vel.x = 0; }
   // (running from him: turned away, and whatever it was doing to come at him undone)
   if (e.runFrom !== undefined && e.runFrom >= ctx.state.frame && e.type !== 'boss' && !e.isBlownAway) {
     const p = ctx.state.player, away = e.pos.x + e.width / 2 < p.pos.x + p.width / 2 ? -1 : 1;
