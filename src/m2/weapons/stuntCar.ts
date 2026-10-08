@@ -28,17 +28,41 @@ const CAR_SCALE = 1.55;
 const CAR = { speed: 18, rise: 170, vy: -4, gravity: 0.42, land: 240, w: Math.round(112 * CAR_SCALE), h: Math.round(34 * CAR_SCALE) };
 /** The fireball at the end: this wide, this hard in the middle (falling off to the edge). */
 const BLAST = { radius: 170, dmg: 140, edge: 40 };
-const STUNTMAN = { dmg: 90, w: 18, h: 30 };
+const MAN_SCALE = 1.4;
+const STUNTMAN = { dmg: 90, w: Math.round(18 * MAN_SCALE), h: Math.round(30 * MAN_SCALE), reach: 520 };
+/** Up there in the air (a bird, a drone). */
+const flies = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';
 const COOLDOWN = 100, MIDBOSS_HIT = 150;
+/** The paint jobs (body, its lit top, its shadow, the stripe): never more than two of one on the screen at once. */
+const PAINT = [
+  { body: '#DC2626', top: '#F87171', low: '#991B1B', stripe: '#FFFFFF' },
+  { body: '#2563EB', top: '#60A5FA', low: '#1E3A8A', stripe: '#FFFFFF' },
+  { body: '#FACC15', top: '#FEF08A', low: '#A16207', stripe: '#18181B' },
+  { body: '#16A34A', top: '#4ADE80', low: '#14532D', stripe: '#FDE047' },
+  { body: '#27272A', top: '#52525B', low: '#09090B', stripe: '#F97316' },
+  { body: '#F8FAFC', top: '#FFFFFF', low: '#94A3B8', stripe: '#DC2626' },
+  { body: '#9333EA', top: '#C084FC', low: '#581C87', stripe: '#F8FAFC' },
+  { body: '#F97316', top: '#FDBA74', low: '#9A3412', stripe: '#18181B' },
+];
+type Paint = (typeof PAINT)[number];
 
-type Part = { kind: 'car'; dir: 1 | -1; endX: number; hit: string[]; wheel: number; wreck: number; through: number; inWall: boolean; seen?: boolean }
-  | { kind: 'stuntman'; dir: 1 | -1; hit: string[]; spin: number; down: number };
+type Part = { kind: 'car'; dir: 1 | -1; endX: number; hit: string[]; wheel: number; wreck: number; through: number; inWall: boolean; seen?: boolean; paint: number }
+  | { kind: 'stuntman'; dir: 1 | -1; hit: string[]; spin: number; down: number; target: Enemy | null };
 const partOf = (p: Projectile) => p.customData as Part;
 
 /** The clapperboard over his head (snapping shut, ACTION!), frames left. */
 let clap = 0, clapDir: 1 | -1 = 1;
 /** Burning wrecks left lying where the stunt went off. */
-let wrecks: { x: number; y: number; dir: 1 | -1; t: number }[] = [];
+let wrecks: { x: number; y: number; dir: 1 | -1; t: number; paint: number }[] = [];
+
+/** A paint job for the next one: any of them, but not one that's already on the screen twice (cars and wrecks both). */
+const pickPaint = (state: GameState) => {
+  const count = PAINT.map(() => 0);
+  for (const q of state.projectiles) if (q.custom === 'STUNT_CAR' && partOf(q).kind === 'car') count[(partOf(q) as { paint: number }).paint]++;
+  for (const w of wrecks) if (w.x > state.camera.x - 100 && w.x < state.camera.x + CANVAS_WIDTH + 100) count[w.paint]++;
+  const ok = PAINT.map((_, i) => i).filter(i => count[i] < 2);
+  return ok[Math.floor(Math.random() * ok.length)] ?? 0;
+};
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
 const floorAt = (state: GameState, x: number) => groundLineAt(state.groundRuns, x);
@@ -58,7 +82,7 @@ const fire = (ctx: FrameContext) => {
   state.projectiles.push({
     id: `stuntcar-${state.frame}`, pos: { x: startX, y }, vel: { x: dir * CAR.speed, y: CAR.vy }, width: CAR.w, height: CAR.h,
     health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'STUNT_CAR',
-    customData: { kind: 'car', dir, endX: px + dir * CAR.land, hit: [], wheel: 0, wreck: 0, through: 0, inWall: false } satisfies Part,
+    customData: { kind: 'car', dir, endX: px + dir * CAR.land, hit: [], wheel: 0, wreck: 0, through: 0, inWall: false, paint: pickPaint(state) } satisfies Part,
   });
   clap = 30; clapDir = dir;
   pl.shootCooldown = COOLDOWN;
@@ -108,14 +132,23 @@ const stunt = (ctx: FrameContext, p: Projectile, car: Extract<Part, { kind: 'car
     else { fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: away * 7 * k, y: -6 * k }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40); }
   }
   for (let i = 0; i < 3; i++) fx.spawnExplosion({ x: cx + (i - 1) * 60, y: cy - 10 }, i === 1 ? '#FDE047' : '#F97316', 18, 0, 20);
-  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + Math.random() * p.height }, vel: { x: car.dir * (2 + Math.random() * 5), y: -3 - Math.random() * 6 }, life: 60, color: ['#DC2626', '#18181B', '#A1A1AA', '#7DD3FC'][i % 4], size: 2 + Math.random() * 3, grav: 0.35, chunk: true });
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + Math.random() * p.height }, vel: { x: car.dir * (2 + Math.random() * 5), y: -3 - Math.random() * 6 }, life: 60, color: [PAINT[car.paint].body, '#18181B', '#A1A1AA', '#7DD3FC'][i % 4], size: 2 + Math.random() * 3, grav: 0.35, chunk: true });
   // (the wreck, lying there burning a while)
-  wrecks.push({ x: p.pos.x + p.width / 2, y: floorAt(state, p.pos.x + p.width / 2), dir: car.dir, t: 0 });
-  // The stuntman, launched out over the hood
+  wrecks.push({ x: p.pos.x + p.width / 2, y: floorAt(state, p.pos.x + p.width / 2), dir: car.dir, t: 0, paint: car.paint });
+  // The stuntman, launched out over the hood, every time (out on the screen, wherever it went up): if there's
+  // something flying near, he goes for it, a dive, arms out, straight at it; otherwise up and on, tumbling
+  const from = { x: Math.max(state.camera.x + 30, Math.min(state.camera.x + CANVAS_WIDTH - 30, front.x)), y: front.y - STUNTMAN.h };
+  const bird = state.enemies.filter(e => alive(e) && flies(e) && Math.hypot(e.pos.x + e.width / 2 - from.x, e.pos.y + e.height / 2 - from.y) < STUNTMAN.reach)
+    .sort((a, b) => Math.hypot(a.pos.x - from.x, a.pos.y - from.y) - Math.hypot(b.pos.x - from.x, b.pos.y - from.y))[0] ?? null;
+  // (off the edge of the screen it went up at: thrown back in, the way he came)
+  const offEdge = from.x !== front.x;
+  const dir = (bird ? Math.sign(bird.pos.x + bird.width / 2 - from.x) || car.dir : offEdge ? -car.dir : car.dir) as 1 | -1;
+  let vel = { x: dir * 13, y: -9 };
+  if (bird) { const tx = bird.pos.x + bird.width / 2 - from.x, ty = bird.pos.y + bird.height / 2 - from.y, d = Math.hypot(tx, ty) || 1; vel = { x: (tx / d) * 16, y: (ty / d) * 16 - 3 }; }
   state.projectiles.push({
-    id: `stuntman-${state.frame}`, pos: { x: front.x - STUNTMAN.w / 2, y: front.y - STUNTMAN.h }, vel: { x: car.dir * 13, y: -9 },
+    id: `stuntman-${state.frame}`, pos: { x: from.x - STUNTMAN.w / 2, y: from.y }, vel,
     width: STUNTMAN.w, height: STUNTMAN.h, health: 1, maxHealth: 1, type: 'projectile', damage: STUNTMAN.dmg, owner: 'player', custom: 'STUNT_CAR',
-    customData: { kind: 'stuntman', dir: car.dir, hit: [], spin: 0, down: 0 } satisfies Part,
+    customData: { kind: 'stuntman', dir, hit: [], spin: 0, down: 0, target: bird } satisfies Part,
   });
   playSound('whoosh', 1, -3);
 };
@@ -164,10 +197,16 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     if (leaving) { stunt(ctx, p, part); return false; }
     return true;
   }
-  // The stuntman: flying, tumbling, till the first thing he hits; whatever it is, he splats on it
-  p.vel.y += 0.45;
+  // The stuntman: flying, tumbling, till the first thing he hits; whatever it is, he splats on it. Going for a bird,
+  // he dives at it, steering in on it as it moves (he can still miss)
+  if (part.target && alive(part.target)) {
+    const t = part.target, tx = t.pos.x + t.width / 2 - (p.pos.x + p.width / 2), ty = t.pos.y + t.height / 2 - (p.pos.y + p.height / 2), d = Math.hypot(tx, ty) || 1;
+    const sp = Math.hypot(p.vel.x, p.vel.y);
+    p.vel.x += ((tx / d) * sp - p.vel.x) * 0.08; p.vel.y += ((ty / d) * sp - p.vel.y) * 0.08;
+    p.vel.y += 0.12;
+  } else { part.target = null; p.vel.y += 0.45; }
   p.pos.x += p.vel.x; p.pos.y += p.vel.y;
-  part.spin += part.dir * 0.35;
+  part.spin = part.target ? Math.atan2(p.vel.y, Math.abs(p.vel.x)) * part.dir + part.dir * Math.PI / 2 : part.spin + part.dir * 0.35;
   const into = state.enemies.find(e => alive(e) && !(e.pos.x > p.pos.x + p.width || e.pos.x + e.width < p.pos.x || e.pos.y > p.pos.y + p.height || e.pos.y + e.height < p.pos.y));
   if (into) { runDown(ctx, into, part.dir, Math.abs(p.vel.x), 'stuntman'); splat(ctx, p, 'man'); return false; }
   const floor = floorAt(state, p.pos.x + p.width / 2);
@@ -207,15 +246,15 @@ const tick = (ctx: FrameContext) => {
 // Drawing
 
 /** The car: a low red sports car, a white racing stripe, the stunt driver's helmet in it, wheels spinning; speed lines. */
-const drawCar = (c: Ctx, x: number, y: number, dir: number, wheel: number, rot = 0) => {
+const drawCar = (c: Ctx, x: number, y: number, dir: number, wheel: number, rot: number, paint: Paint) => {
   c.save(); c.translate(x, y); c.scale(dir * CAR_SCALE, CAR_SCALE); c.rotate(rot);
   const W = 112, H = 34;
   // (speed lines behind)
   if (Math.abs(rot) < Math.PI / 2) { c.fillStyle = 'rgba(255, 255, 255, 0.6)'; for (let i = 0; i < 4; i++) c.fillRect(-W / 2 - 30 - i * 14, -H / 2 + 4 + i * 6, 24, 2); }
   const body = () => { c.beginPath(); c.moveTo(-W / 2, -2); c.lineTo(-W / 2 + 4, -14); c.lineTo(-18, -16); c.lineTo(-6, -28); c.lineTo(22, -28); c.lineTo(36, -16); c.lineTo(W / 2 - 2, -12); c.lineTo(W / 2, -2); c.lineTo(W / 2 - 4, 6); c.lineTo(-W / 2 + 2, 6); c.closePath(); };
   body(); c.fillStyle = INK; c.lineWidth = 3; c.strokeStyle = INK; c.stroke();
-  body(); c.fillStyle = '#DC2626'; c.fill();
-  c.save(); body(); c.clip(); c.fillStyle = '#F87171'; c.fillRect(-W / 2, -30, W, 6); c.fillStyle = '#991B1B'; c.fillRect(-W / 2, 0, W, 8); c.fillStyle = '#FFFFFF'; c.fillRect(-W / 2, -9, W, 3); c.restore();
+  body(); c.fillStyle = paint.body; c.fill();
+  c.save(); body(); c.clip(); c.fillStyle = paint.top; c.fillRect(-W / 2, -30, W, 6); c.fillStyle = paint.low; c.fillRect(-W / 2, 0, W, 8); c.fillStyle = paint.stripe; c.fillRect(-W / 2, -9, W, 3); c.restore();
   // windows, the driver in his helmet
   c.fillStyle = '#7DD3FC'; c.beginPath(); c.moveTo(-3, -26); c.lineTo(20, -26); c.lineTo(31, -16); c.lineTo(-14, -16); c.closePath(); c.fill();
   c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(8, -19, 5.5, 0, Math.PI * 2); c.fill(); c.fillStyle = '#18181B'; c.fillRect(9, -21, 5, 3);
@@ -232,10 +271,17 @@ const drawCar = (c: Ctx, x: number, y: number, dir: number, wheel: number, rot =
 };
 
 /** The stuntman: red jumpsuit, white helmet, arms and legs everywhere. `pose`: tumbling, down, or up (thumbs up). */
-const drawStuntman = (c: Ctx, x: number, y: number, dir: number, rot: number, pose: 'tumble' | 'down' | 'up') => {
-  c.save(); c.translate(x, y); c.scale(dir, 1); c.rotate(rot);
+const drawStuntman = (c: Ctx, x: number, y: number, dir: number, rot: number, pose: 'tumble' | 'down' | 'up' | 'dive') => {
+  c.save(); c.translate(x, y); c.scale(dir * MAN_SCALE, MAN_SCALE); c.rotate(rot);
   const limb = (x0: number, y0: number, x1: number, y1: number, col: string) => { c.strokeStyle = INK; c.lineWidth = 6; c.lineCap = 'round'; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); c.strokeStyle = col; c.lineWidth = 4; c.stroke(); };
-  if (pose === 'down') {
+  if (pose === 'dive') {
+    // (Superman: arms out straight ahead of him, fists together, body behind, legs together trailing; head first along -y)
+    limb(-3, 8, -4, 20, '#B91C1C'); limb(3, 8, 4, 20, '#DC2626');
+    c.fillStyle = INK; c.fillRect(-6, -8, 12, 17); c.fillStyle = '#DC2626'; c.fillRect(-5, -7, 10, 15); c.fillStyle = '#FFFFFF'; c.fillRect(-1, -7, 2, 15);
+    limb(-4, -6, -2, -24, '#DC2626'); limb(4, -6, 2, -24, '#DC2626');
+    c.fillStyle = INK; c.beginPath(); c.arc(0, -12, 7, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(0, -12, 6, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#18181B'; c.fillRect(-3, -16, 6, 3);
+  } else if (pose === 'down') {
     limb(-12, -2, 12, -2, '#DC2626'); limb(10, -2, 18, 0, '#DC2626'); limb(-6, -3, -2, -10, '#DC2626');
     c.fillStyle = INK; c.beginPath(); c.arc(-15, -4, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(-15, -4, 5, 0, Math.PI * 2); c.fill();
   } else {
@@ -251,17 +297,24 @@ const drawStuntman = (c: Ctx, x: number, y: number, dir: number, rot: number, po
   c.restore();
 };
 
-const draw = (c: Ctx, p: Projectile) => {
+const draw = (c: Ctx, p: Projectile, frame: number) => {
   const part = partOf(p);
-  if (part.kind === 'car') { drawCar(c, p.pos.x + p.width / 2, p.pos.y + p.height - 6 * CAR_SCALE, part.dir, part.wheel, Math.atan2(p.vel.y, Math.abs(p.vel.x)) * 0.8); return; }
-  drawStuntman(c, p.pos.x + p.width / 2, p.pos.y + p.height - 14, part.dir, part.spin, 'tumble');
+  if (part.kind === 'car') { drawCar(c, p.pos.x + p.width / 2, p.pos.y + p.height - 6 * CAR_SCALE, part.dir, part.wheel, Math.atan2(p.vel.y, Math.abs(p.vel.x)) * 0.8, PAINT[part.paint]); return; }
+  if (part.target && alive(part.target)) {
+    // (the one he's going for, marked: a red reticle closing on it)
+    const t = part.target, tx = t.pos.x + t.width / 2, ty = t.pos.y + t.height / 2, r = 14 + Math.sin(frame * 0.5) * 3;
+    c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.arc(tx, ty, r, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = '#EF4444'; c.lineWidth = 2; c.beginPath(); c.arc(tx, ty, r, 0, Math.PI * 2); c.stroke();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { c.beginPath(); c.moveTo(tx + dx * (r - 5), ty + dy * (r - 5)); c.lineTo(tx + dx * (r + 6), ty + dy * (r + 6)); c.stroke(); }
+    drawStuntman(c, p.pos.x + p.width / 2, p.pos.y + p.height / 2, part.dir, part.spin, 'dive');
+  } else drawStuntman(c, p.pos.x + p.width / 2, p.pos.y + p.height - 14 * MAN_SCALE, part.dir, part.spin, 'tumble');
 };
 
 const drawOverlay = (c: Ctx, state: GameState) => {
   // The wrecks: on their roofs, burning
   for (const w of wrecks) {
     if (w.t > 170 && w.t % 4 < 2) continue;
-    drawCar(c, w.x, w.y - 16 * CAR_SCALE, w.dir, 0, Math.PI);
+    drawCar(c, w.x, w.y - 16 * CAR_SCALE, w.dir, 0, Math.PI, PAINT[w.paint]);
   }
   // The clapperboard over his head: the clapper snapping down, ACTION!
   if (clap > 0) {
@@ -291,4 +344,4 @@ const drawHeld = (c: Ctx) => {
 /** Everything it was in the middle of, stopped (through a door). */
 export const stopStuntCar = () => { clap = 0; wrecks = []; };
 
-export const registerStuntCar = () => registerWeapon('STUNT_CAR', { fire: ctx => fire(ctx), update, draw: (c, p) => draw(c, p), drawHeld: c => drawHeld(c), tick: ctx => tick(ctx), drawOverlay });
+export const registerStuntCar = () => registerWeapon('STUNT_CAR', { fire: ctx => fire(ctx), update, draw, drawHeld: c => drawHeld(c), tick: ctx => tick(ctx), drawOverlay });
