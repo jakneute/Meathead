@@ -14,6 +14,7 @@ import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { muzzlePoint } from '../../m1/game/combat/muzzle';
+import { getEnemyMass } from '../../m1/game/combat/knockback';
 import { drawEnemyAt } from '../moves/grab';
 import { KIND_TOP_REACH } from '../../m1/game/render/enemies';
 import { m2Kill } from '../moves/killLines';
@@ -72,10 +73,20 @@ const DRAIN_FAR = 0.15, DRAIN_NEAR = 6.8;
 const REGEN_AFTER = 50, REGEN = 0.5;
 /** How fast they run from it, and how long they keep running once it's let them go. */
 const FLEE_RUN = 1.7, PANIC = 70;
+/**
+ * The drag on them (how far a frame they're hauled toward the intake): some even out at the edge, a lot more nearer in
+ * (by the square of how near: it reaches further than the wearing down does), and by how light they are: a man of about
+ * Meathead's mass as it says, a dog or a bird several times over (they're hauled in, kicking), a big lump less.
+ */
+const DRAG = { edge: 1.5, near: 7, mass: 200, light: 3.2, heavy: 0.55 };
+const dragOf = (e: Enemy, near: number) => (DRAG.edge + DRAG.near * near * near) * Math.max(DRAG.heavy, Math.min(DRAG.light, DRAG.mass / Math.max(1, getEnemyMass(e))));
+const flies = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';
+const solidAt = (state: GameState, x: number, e: Enemy) => state.blocks.some(b => b.type !== 'pit' && b.type !== 'door' && !b.oneWay && x < b.x + b.w && x + e.width > b.x && e.pos.y + 4 < b.y + b.h && e.pos.y + e.height - 4 > b.y);
 /** A step away from him (not into a wall), facing away. */
 const runAway = (state: GameState, e: Enemy, away: number) => {
   e.facing = away as 1 | -1;
-  const nx = e.pos.x + away * FLEE_RUN;
+  // (the lighter he is, the less his legs do against it)
+  const nx = e.pos.x + away * FLEE_RUN * Math.min(1, getEnemyMass(e) / DRAG.mass);
   if (!state.blocks.some(b => b.type !== 'pit' && b.type !== 'door' && !b.oneWay && nx < b.x + b.w && nx + e.width > b.x && e.pos.y + 4 < b.y + b.h && e.pos.y + e.height - 4 > b.y)) e.pos.x = nx;
 };
 
@@ -149,8 +160,12 @@ const fire = (ctx: FrameContext) => {
     // for it (it doesn't stop what they're doing): out at the edge of the cone they can get away, close in they can't
     const toward = mouth.x < e.pos.x + e.width / 2 ? -1 : 1;
     e.vel.x *= 0.8 - pull * 0.55;
-    e.pos.x += toward * (0.1 + pull * 5.7);
     runAway(state, e, -toward);
+    // (hauled in: never through a wall, never past the intake; a bird, up or down to it too)
+    const cx = e.pos.x + e.width / 2, d = dragOf(e, near);
+    const step = Math.min(d, Math.max(0, Math.abs(mouth.x - cx) - e.width * 0.3));
+    if (step > 0 && !solidAt(state, e.pos.x + toward * step, e)) e.pos.x += toward * step;
+    if (flies(e)) { const dy = mouth.y - (e.pos.y + e.height / 2); e.pos.y += Math.sign(dy) * Math.min(Math.abs(dy), d * 0.6); }
     ps.fleeUntil = state.frame + PANIC;
     e.runFrom = ps.fleeUntil;
     // (bits of the floor and the air going in with them)
