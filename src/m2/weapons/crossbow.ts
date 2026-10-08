@@ -5,7 +5,9 @@
 // whatever he was doing, only he's spewing on his buddy while he does it. A face full of it wears down that one's
 // tolerance in turn, and in a while he's at it too, on the next, and so on: chain puking. Stick another one and you've
 // a new chain going. Nobody about to throw up on, he throws up straight up, and it comes down on him. The puke stings;
-// enough of it kills (it's his weapon's kill, a kill line and all). It never touches Meathead.
+// enough of it kills (it's his weapon's kill, a kill line and all). It never touches Meathead. Its puddles sting too, a
+// little at a time, anybody stood in one. Puked to death is a death of its own: buckling, one last torrent of it (onto
+// whoever's near: it can still pass it on), keeling over face first into it, and lying there with the flies.
 // Every enemy gets the animation: rearing back, heaving forward over it, a green look about him, his mouth going.
 
 import type { Enemy, Projectile } from '../../m1/types';
@@ -15,10 +17,11 @@ import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
-import { KIND_HEAD, KIND_TOP_REACH, kindFacing } from '../../m1/game/render/enemies';
+import { KIND_HEAD, KIND_TOP_REACH, kindFacing, isHumanoidKind } from '../../m1/game/render/enemies';
 import { CANVAS_WIDTH } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
+import { drawEnemyAt } from '../moves/grab';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -37,7 +40,7 @@ const REGEN_AFTER = 120, REGEN = 0.03;
 const HEAVE = 90, HEAVES = 4, REAR = 14, SPEW_END = 72, IMMUNE = 90;
 /** The puke: a glob every so often while he's spewing; what one does to whoever it lands on (his own, coming down on
  *  him, hurts a bit more); how far he'll look for somebody to throw up on. */
-const PUKE = { every: 2, gravity: 0.35, dmg: 1.5, selfDmg: 1.3, sick: 0.6, reach: 460 };
+const PUKE = { every: 2, gravity: 0.35, dmg: 1.1, selfDmg: 1, sick: 0.6, reach: 460 };
 /** How green he looks, sick. */
 const SICK_LOOK = ['sepia(0.6) hue-rotate(42deg) saturate(2.3)', 'sepia(0.7) hue-rotate(48deg) saturate(2.8) brightness(0.92)'];
 
@@ -66,11 +69,15 @@ const partOf = (p: Projectile) => p.customData as Part;
 let stuck: { e: Enemy | null; x: number; y: number; a: number; t: number }[] = [];
 let puddles: { x: number; y: number; w: number; t: number }[] = [];
 const STUCK_LIFE = 360, PUDDLE_LIFE = 480;
+/** A puddle's sting: this much, every so often, to anybody stood in one. */
+const PUDDLE_STING = { every: 20, dmg: 1 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Walls and floors
 
 const solid = (b: GameState['blocks'][number]) => b.type !== 'pit' && b.type !== 'door';
+const blockAt = (state: GameState, x: number, y: number, w: number, h: number) =>
+  state.blocks.find(b => solid(b) && !b.oneWay && x < b.x + b.w && x + w > b.x && y < b.y + b.h && y + h > b.y);
 const wallAt = (state: GameState, x: number, y: number, w: number, h: number) =>
   state.blocks.some(b => solid(b) && !b.oneWay && x < b.x + b.w && x + w > b.x && y < b.y + b.h && y + h > b.y);
 const floorBelow = (state: GameState, x: number, y: number) => {
@@ -110,21 +117,98 @@ const darted = (ctx: FrameContext, e: Enemy, p: Projectile) => {
   if (stuck.filter(s => s.e === e).length > 12) stuck.splice(stuck.findIndex(s => s.e === e), 1);
   for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: -Math.sign(p.vel.x) * Math.random() * 2, y: -Math.random() * 2 }, life: 12, color: i ? '#B91C1C' : '#84CC16', size: 1.5 });
   playSound('click', 0.4, 10);
-  hurt(ctx, e, DART.dmg, Math.sign(p.vel.x) || 1);
+  hurt(ctx, e, DART.dmg);
   if (!alive(e) || isMidBoss(e)) return;
   const s = sickOf(e); tracked.add(e);
   s.lastHit = state.frame;
   if (s.t < 0 && state.frame >= s.immuneUntil) { s.tol -= DART.sick; if (s.tol <= 0) getSick(state, e, s); }
 };
 
-/** Hurt by it (a dart, the puke): dead of it, his weapon's death. */
-const hurt = (ctx: FrameContext, e: Enemy, dmg: number, dir: number) => {
-  const { fx } = ctx;
+/** Hurt by it (a dart, the puke, a puddle of it): dead of any of it, it's the plague that got him: puked to death. */
+const hurt = (ctx: FrameContext, e: Enemy, dmg: number) => {
   e.health -= dmg;
   if (e.health > 0 || isMidBoss(e)) return;
-  e.pose = undefined;
-  fx.blowAwayEnemy(e, { x: dir * 3, y: -5 }, m2Kill('plague_kill'), dir, 0.7);
+  pukedToDeath(ctx, e);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Puked to death
+
+/** How it goes: his knees going; the last of it, all of it, coming up; over, face first; lying in it (with the flies). */
+const BUCKLE = 18, TORRENT_END = 66, FALL_END = 80, LIE_END = 420, GONE = 60;
+/** `animal`: it doesn't go over on its face, it rolls over onto its back, legs up (turned about its middle, not its feet). */
+interface Corpse { e: Enemy; x: number; y: number; vy: number; t: number; face: 1 | -1; animal: boolean }
+let corpses: Corpse[] = [];
+
+const pukedToDeath = (ctx: FrameContext, e: Enemy) => {
+  const { state, fx } = ctx;
+  // (facing whoever he was being sick on; otherwise whichever way he's drawn facing)
+  const face = (e.pose?.face ?? (e.kind ? kindFacing(e, state) : e.facing ?? 1)) as 1 | -1;
+  e.health = 0; e.pose = undefined;
+  state.enemies = state.enemies.filter(o => o !== e);
+  e.isBlownAway = true;
+  corpses.push({ e, x: e.pos.x + e.width / 2, y: e.pos.y + e.height, vy: 0, t: 0, face, animal: !!e.kind && !isHumanoidKind(e.kind) });
+  fx.spawnPickup(e.pos);
+  fx.speakVulgarity(m2Kill('plague_kill'));
   fx.spawnKillCallout(e, grabCallout('plague'));
+  state.player.killSatisfactionTimer = 60;
+  playSound('retch', 1, -3);
+};
+
+/** Where he's leaning to and how he's squashed, by how far it's gone. */
+const corpsePose = (c: Corpse) => {
+  const t = c.t, shake = Math.sin(t * 2.1) * 0.04;
+  if (c.animal) {
+    // (an animal: its head going down, then over onto its back, legs in the air, the odd kick)
+    if (t < BUCKLE) { const k = t / BUCKLE; return { a: 0.12 * k + shake, sx: 1, sy: 1 - 0.08 * k, lift: 0 }; }
+    if (t < TORRENT_END) { const k = (t - BUCKLE) / (TORRENT_END - BUCKLE); return { a: 0.2 + Math.sin(t * 1.4) * 0.05, sx: 1 - 0.1 * k, sy: 0.92 + Math.sin(t * 0.9) * 0.03, lift: 0 }; }
+    if (t < FALL_END) { const k = (t - TORRENT_END) / (FALL_END - TORRENT_END); return { a: 0.2 + (Math.PI - 0.2) * k * k, sx: 0.9, sy: 0.92, lift: k * k }; }
+    return { a: Math.PI + ((t % 47) < 5 ? Math.sin(t * 3) * 0.08 : 0), sx: 0.9, sy: 0.92, lift: 1 };
+  }
+  if (t < BUCKLE) { const k = t / BUCKLE; return { a: 0.18 * k + shake, sx: 1, sy: 1 - 0.08 * k, lift: 0 }; }
+  if (t < TORRENT_END) { const k = (t - BUCKLE) / (TORRENT_END - BUCKLE); return { a: 0.38 + Math.sin(t * 1.4) * 0.06, sx: 1 - 0.16 * k, sy: 0.92 + Math.sin(t * 0.9) * 0.03, lift: 0 }; }
+  if (t < FALL_END) { const k = (t - TORRENT_END) / (FALL_END - TORRENT_END); return { a: 0.38 + (Math.PI / 2 - 0.38) * k * k, sx: 0.84, sy: 0.92, lift: k * k }; }
+  // (lying in it: a twitch now and then)
+  const tw = (t % 53) < 4 ? Math.sin(t * 3) * 0.06 : 0;
+  return { a: Math.PI / 2 + tw, sx: 0.84, sy: 0.92, lift: 1 };
+};
+
+const rotCorpse = (ctx: FrameContext, c: Corpse) => {
+  const { state } = ctx;
+  c.t++;
+  const e = c.e;
+  // (dropping, if he died up in the air)
+  const floor = floorBelow(state, c.x, c.y - 2);
+  if (c.y < floor - 0.5) { c.vy += 0.5; c.y = Math.min(floor, c.y + c.vy); if (c.y >= floor) c.vy = 0; }
+  const ps = corpsePose(c);
+  if (c.t === BUCKLE) playSound('gush'); if (c.t === BUCKLE + 28) playSound('gush', 0.8, -2);
+  // The last of it: a torrent, onto whoever's near (it's still catching), otherwise down in front of him
+  if (c.t >= BUCKLE && c.t < TORRENT_END) {
+    const kh = e.kind ? KIND_HEAD[e.kind] : undefined;
+    const hx = kh ? kh.x + kh.r * 0.8 : e.width * 0.3, hy = kh ? kh.y + kh.r * 0.3 : -e.height * 0.85;
+    const th = c.face * ps.a, rx = c.face * hx * ps.sx, ry = (hy + (c.animal ? e.height / 2 : 0)) * ps.sy;
+    const px = c.x, py = c.y - (c.animal ? e.height / 2 * ps.sy : 0);
+    const m = { x: px + rx * Math.cos(th) - ry * Math.sin(th), y: py + rx * Math.sin(th) + ry * Math.cos(th) };
+    let near: Enemy | null = null, nd = PUKE.reach * 0.6;
+    for (const o of state.enemies) { if (!alive(o)) continue; const d = Math.hypot(o.pos.x + o.width / 2 - c.x, o.pos.y + o.height / 2 - (c.y - e.height / 2)); if (d < nd && Math.sign(o.pos.x + o.width / 2 - c.x) === c.face) { nd = d; near = o; } }
+    let vel: { x: number; y: number };
+    if (near) {
+      const tx = near.pos.x + near.width / 2 + (Math.random() - 0.5) * near.width * 0.6, ty = near.pos.y + near.height * (0.25 + Math.random() * 0.4);
+      const dx = tx - m.x, dy = ty - m.y, T = Math.max(8, Math.min(26, Math.abs(dx) / 11));
+      vel = { x: dx / T + (Math.random() - 0.5) * 0.6, y: dy / T - 0.5 * PUKE.gravity * T + (Math.random() - 0.5) * 0.8 };
+    } else vel = { x: c.face * (3 + Math.random() * 4), y: -1 + Math.random() * 2.5 };
+    state.projectiles.push({
+      id: `puke-${state.frame}-${Math.random()}`, pos: { x: m.x - G / 2, y: m.y - G / 2 }, vel, width: G, height: G, health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'CROSSBOW',
+      customData: { kind: 'puke', from: e, self: false, t: 0, seed: Math.random() } satisfies Part,
+    });
+  }
+  // Down: face first, into a puddle of it
+  if (c.t === FALL_END) {
+    playSound('thud', 0.8); playSound('splat', 0.6, -4);
+    const at = c.animal ? c.x : c.x + c.face * e.height * 0.55, y = floorBelow(state, at, c.y - 4);
+    if (y < c.y + 60) puddles.push({ x: at, y, w: Math.max(14, e.height * 0.4), t: 0 });
+    for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: at, y: c.y - 3 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 2.5 }, life: 18, color: PUKE_COLORS[i % 3], size: 3 + Math.random() * 2, grav: 0.3 });
+  }
 };
 
 /** His tolerance gone: he's going to be sick. */
@@ -208,7 +292,7 @@ const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part,
   const own = e === part.from;
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: p.pos.x + G / 2, y: p.pos.y + G / 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2.5 }, life: 18, color: i === 5 ? BITS[i % 4] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 3, grav: 0.3 });
   if (Math.random() < 0.3) playSound('splat', 0.3, 6);
-  hurt(ctx, e, own ? PUKE.selfDmg : PUKE.dmg, Math.sign(p.vel.x) || 1);
+  hurt(ctx, e, own ? PUKE.selfDmg : PUKE.dmg);
   if (!alive(e) || isMidBoss(e)) return;
   const s = sickOf(e); tracked.add(e);
   s.doused = 120; s.lastHit = state.frame;
@@ -261,8 +345,43 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
   }
   const floor = floorBelow(state, p.pos.x + G / 2, p.pos.y);
   if (p.vel.y > 0 && p.pos.y + p.height >= floor) { splat(state, p.pos.x + G / 2, floor); return false; }
-  if (wallAt(state, p.pos.x, p.pos.y, p.width, p.height)) { splat(state, p.pos.x + G / 2, floorBelow(state, p.pos.x + G / 2 - Math.sign(p.vel.x) * 10, p.pos.y)); return false; }
+  const b = blockAt(state, p.pos.x, p.pos.y, p.width, p.height);
+  if (b) {
+    // Into a wall (it was clear of it a step ago, across) or up into a ceiling: it sticks there, and drips down
+    const across = !wallAt(state, p.pos.x - p.vel.x, p.pos.y, p.width, p.height);
+    const x = across ? (p.vel.x > 0 ? b.x : b.x + b.w) : Math.max(b.x, Math.min(b.x + b.w, p.pos.x + G / 2));
+    const y = across ? Math.max(b.y, Math.min(b.y + b.h, p.pos.y + G / 2)) : (p.vel.y < 0 ? b.y + b.h : b.y);
+    if (!across && p.vel.y >= 0) { splat(state, x, y); return false; }
+    stuckGoo(state, x, y, across ? (p.vel.x > 0 ? -1 : 1) : 0);
+    return false;
+  }
   return true;
+};
+
+/** Puke stuck on a wall or a ceiling: a splat of it there, a streak running down from it, and every so often a drop
+ *  falling off it to the floor (into a puddle); then it's dried up. `side`: which way the wall's face looks (0: a ceiling). */
+let goo: { x: number; y: number; side: number; t: number; next: number; drips: number }[] = [];
+const GOO_LIFE = 420;
+let drops: { x: number; y: number; vy: number }[] = [];
+const stuckGoo = (state: GameState, x: number, y: number, side: number) => {
+  for (let i = 0; i < 4; i++) state.particles.push({ pos: { x, y }, vel: { x: side * (0.5 + Math.random() * 2), y: (Math.random() - 0.3) * 2 }, life: 12, color: PUKE_COLORS[i % 3], size: 2 + Math.random() * 2, grav: 0.3 });
+  playSound('splat', 0.25, 8);
+  const near = goo.find(g => Math.abs(g.x - x) < 8 && Math.abs(g.y - y) < 8);
+  if (near) { near.t = Math.min(near.t, 60); near.drips = Math.max(0, near.drips - 1); return; }
+  goo.push({ x, y, side, t: 0, next: 40 + Math.floor(Math.random() * 50), drips: 0 });
+};
+const drip = (state: GameState) => {
+  for (const g of goo) {
+    g.t++;
+    if (g.drips < 4 && g.t >= g.next) { g.drips++; g.next = g.t + 50 + Math.floor(Math.random() * 70); drops.push({ x: g.x + g.side * 1.5, y: g.y + (g.side ? Math.min(16, g.t * 0.08) : 3), vy: 0.5 }); }
+  }
+  goo = goo.filter(g => g.t < GOO_LIFE);
+  drops = drops.filter(d => {
+    d.vy = Math.min(9, d.vy + 0.3); d.y += d.vy;
+    const floor = floorBelow(state, d.x, d.y - d.vy - 1);
+    if (d.y >= floor) { splat(state, d.x, floor); return false; }
+    return d.y < state.camera.y + 2000;
+  });
 };
 
 /** On the floor: a splash, and a puddle (one spreading where there's one already). */
@@ -297,6 +416,19 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean }, equipped: boolean) 
   stuck = stuck.filter(d => d.t < STUCK_LIFE && (!d.e || (alive(d.e) && state.enemies.includes(d.e))));
   for (const q of puddles) q.t++;
   puddles = puddles.filter(q => q.t < PUDDLE_LIFE);
+  // Stood in a puddle of it: it stings, a little at a time
+  if (state.frame % PUDDLE_STING.every === 0 && puddles.length) {
+    for (const e of [...state.enemies]) {
+      if (!alive(e) || Math.abs(e.vel.y) > 1) continue;
+      const cx = e.pos.x + e.width / 2, fy = e.pos.y + e.height;
+      if (!puddles.some(q => Math.abs(cx - q.x) < q.w + e.width * 0.3 && Math.abs(fy - q.y) < 6)) continue;
+      state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * e.width * 0.6, y: fy - 2 }, vel: { x: 0, y: -0.8 }, life: 14, color: 'rgba(163, 179, 32, 0.8)', size: 2 });
+      hurt(ctx, e, PUDDLE_STING.dmg);
+    }
+  }
+  drip(state);
+  for (const c of corpses) rotCorpse(ctx, c);
+  corpses = corpses.filter(c => c.t < LIE_END + GONE);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -343,6 +475,46 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     c.fillStyle = '#E2EC7A'; c.fillRect(q.x - q.w * 0.5, q.y - 2, 3, 1);
   }
   c.globalAlpha = 1;
+  // Stuck on walls and ceilings: the splat, the streak running down from it, the drop gathering on the end; drops falling
+  for (const g of goo) {
+    c.globalAlpha = g.t > GOO_LIFE - 60 ? (GOO_LIFE - g.t) / 60 : 1;
+    const run = g.side ? Math.min(16, g.t * 0.08) : 3, ox = g.side * 1.5;
+    c.fillStyle = '#5B6410'; c.beginPath(); c.ellipse(g.x + ox, g.y, g.side ? 3 : 6, g.side ? 6 : 3, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#A3B320'; c.beginPath(); c.ellipse(g.x + ox, g.y, g.side ? 2 : 5, g.side ? 5 : 2, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#7C8A12'; c.fillRect(g.x + ox - 1, g.y, 2, run);
+    const swell = ((g.t - (g.next - 50)) / 50);
+    c.fillStyle = '#A3B320'; c.beginPath(); c.arc(g.x + ox, g.y + run, 1.2 + Math.max(0, Math.min(1, swell)) * 1.5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#EA7A12'; c.fillRect(g.x + ox - 2, g.y - 1, 2, 2);
+  }
+  c.globalAlpha = 1;
+  for (const d of drops) { c.fillStyle = '#7C8A12'; c.fillRect(Math.round(d.x) - 1, Math.round(d.y) - 3, 2, 4); c.fillStyle = '#C5D33B'; c.fillRect(Math.round(d.x) - 1, Math.round(d.y) - 3, 1, 1); }
+  // The puked to death: green, buckling, spewing, over face first, lying in it with the flies at him
+  for (const k of corpses) {
+    const ps = corpsePose(k), e = k.e;
+    c.save();
+    c.globalAlpha = k.t > LIE_END ? Math.max(0, 1 - (k.t - LIE_END) / GONE) : 1;
+    c.filter = k.t < FALL_END ? SICK_LOOK[Math.floor(f / 10) % 2] : 'sepia(0.55) hue-rotate(45deg) saturate(1.6) brightness(0.8)';
+    if (k.animal) {
+      // (turned about its middle: on its back, its middle stays where it was)
+      c.translate(k.x, k.y - e.height / 2 * ps.sy); c.scale(ps.sx, ps.sy); c.rotate(k.face * ps.a);
+      drawEnemyAt(c, e, state, 0, e.height / 2, 0, k.face);
+    } else {
+      // (a man, about his feet; lying down, he's lifted by half his thickness: on the floor, not through it)
+      c.translate(k.x, k.y - ps.lift * e.width * 0.5 * ps.sx); c.scale(ps.sx, ps.sy);
+      drawEnemyAt(c, e, state, 0, 0, k.face * ps.a, k.face);
+    }
+    c.filter = 'none';
+    c.restore();
+    if (k.t > FALL_END && k.t < LIE_END) {
+      // (the flies)
+      const hx = k.animal ? k.x : k.x + k.face * e.height * 0.45, hy = k.animal ? k.y - e.height - 4 : k.y - e.width * 0.6 - 6;
+      for (let i = 0; i < 3; i++) {
+        const a = f * (0.17 + i * 0.03) + i * 2.1, fx = hx + Math.cos(a) * (8 + i * 3), fy = hy + Math.sin(a * 1.3) * 5 - i * 3;
+        c.fillStyle = '#0B0B0F'; c.fillRect(Math.round(fx), Math.round(fy), 2, 2);
+        if (f % 4 < 2) { c.fillStyle = 'rgba(226, 232, 240, 0.7)'; c.fillRect(Math.round(fx) - 1, Math.round(fy) - 1, 1, 1); c.fillRect(Math.round(fx) + 2, Math.round(fy) - 1, 1, 1); }
+      }
+    }
+  }
   // Darts stuck in people (they go with him, leaning the way he leans) and in walls
   for (const d of stuck) {
     if (d.t > STUCK_LIFE - 40 && d.t % 4 < 2) continue;
@@ -431,7 +603,7 @@ const drawHeld = (c: Ctx) => {
 export const stopCrossbow = () => {
   aim = 0;
   for (const e of tracked) e.pose = undefined;
-  tracked = new Set(); stuck = []; puddles = [];
+  tracked = new Set(); stuck = []; puddles = []; corpses = []; goo = []; drops = [];
 };
 
 /** For tests: everybody's tolerance and sickness. */
