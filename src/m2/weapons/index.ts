@@ -38,7 +38,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   STUNT_CAR: {
     name: 'CLAPPERBOARD', from: 'HOLLYWOOD LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'ACTION!' }],
-    description: "Snap it and yell ACTION. A stunt driver in a sports car (whatever color they had on the lot) comes flying in off a ramp nobody can see, sails right over your head and nose-dives into whoever's in front of you. Big fireball, no retakes, and the stuntman gets launched through the windshield into whatever's next. He doesn't get up. Somebody call his agent.",
+    description: "Snap it and yell ACTION. A stunt driver in a sports car comes flying in off a ramp nobody can see, sails right over your head and nose-dives into whoever's in front of you. Big fireball, no retakes, and the stuntman gets launched through the windshield into whatever's next. He doesn't get up. Somebody call his agent.",
   },
   MALLET: {
     name: 'MALLET OF PAIN', from: 'CARTOON LAND',
