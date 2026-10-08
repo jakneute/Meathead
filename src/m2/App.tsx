@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import GameCanvas from '../m1/components/GameCanvas';
 import HUD from '../m1/components/HUD';
+import { RAYGUN_ART } from '../m1/components/WeaponIcon';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { GameStatus, WeaponType } from '../m1/types';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH } from '../m1/constants';
@@ -128,7 +129,7 @@ const App2: React.FC = () => {
           onIntroComplete={() => setStatus(GameStatus.PLAYING)}
         />
         {status === GameStatus.PLAYING && ui.map === null && (
-          <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weapon === 'GUN' ? 'RAY GUN' : undefined} />
+          <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weapon === 'GUN' ? 'RAY GUN' : undefined} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} />
         )}
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit) && (

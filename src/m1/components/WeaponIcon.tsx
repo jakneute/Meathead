@@ -132,6 +132,38 @@ export const WeaponArt: React.FC<{ type: WeaponType; size?: number }> = ({ type,
   </svg>
 );
 
+/**
+ * Meathead 2's ray gun (the pistol's slot there): the one in his fist, big. A chrome bulb of a body, a fin on its back,
+ * the alien's pink coils glowing round the barrel, a dish at the muzzle with a spark in it; the grip wrapped in duct
+ * tape, a red wire looping out of the body back into it.
+ */
+const PINK = ['#FDF2F8', '#FBCFE8', '#F472B6', '#DB2777', '#9D174D'];
+const CHROME = ['#FFFFFF', '#E4E4E7', '#D4D4D8', '#A1A1AA', '#71717A', '#52525B'];
+export const RAYGUN_ART: React.ReactNode = draw(p => {
+  // The fin on its back, swept
+  paint(p, polyC([[6, 9], [12, 5], [14, 5], [13, 11]]), (x, y) => step(['#71717A', '#52525B', '#3F3F46'], (y - 5) / 6, x, y));
+  // The grip, under the back of it: duct tape, in bands
+  const grip = polyC([[7, 16], [14, 16], [12.5, 28], [5.5, 28]]);
+  paint(p, grip, (x, y) => (y % 3 === 0 ? '#A1A1AA' : x < 8 ? '#D4D4D8' : '#9CA3AF'));
+  // The barrel, the coils round it, glowing
+  const barrel = rectC(19, 11, 7, 5);
+  paint(p, barrel, rows(barrel, ['#71717A', '#52525B', '#3F3F46', '#27272A']));
+  for (const cx of [20, 23]) { const coil = rectC(cx - 0.5, 9, 2, 9); paint(p, coil, rows(coil, PINK)); }
+  // The dish at the muzzle, the spark in it
+  const dish = polyC([[25, 13.5], [29.5, 8], [31, 8], [31, 20], [29.5, 20], [25, 14.5]]);
+  paint(p, dish, cols(dish, ['#52525B', '#A1A1AA', '#D4D4D8', '#71717A']));
+  p.set(30, 13, '#FFFFFF', null); p.set(30, 14, '#F9A8D4', null); p.set(29, 13, '#F9A8D4', null);
+  // The body: a fat chrome bulb, lit up top left
+  const body = ellC(12.5, 13, 8, 5);
+  paint(p, body, radial(body, CHROME, 9, 10));
+  glint(p, 8, 10, '#F4F4F5'); p.set(10, 9, '#FFFFFF');
+  // The little window on its side, the alien goo glowing in it
+  const win = ellC(14, 13.5, 2.2, 1.6); paint(p, win, radial(win, PINK, 13, 13));
+  // The trigger, and the wire looping out of the body back down into the grip
+  p.set(15, 18, '#3F3F46'); p.set(15, 19, '#3F3F46');
+  polyline(p, [[18, 17], [18, 21], [16, 23], [13, 23]], '#DC2626', null);
+});
+
 const ART: Record<WeaponType, React.ReactNode> = {
   // Handgun: a chunky semi-auto, serrated slide over the frame, the wood grip he holds it by
   GUN: draw(p => {

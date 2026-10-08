@@ -13,11 +13,13 @@ interface HUDProps {
   ammo: number;
   /** What the weapon's called here, if not its usual name (Meathead 2's pistol is a ray gun). */
   weaponName?: string;
+  /** A picture in place of the weapon's own (Meathead 2's ray gun). */
+  weaponArt?: React.ReactNode;
   maxAmmo: number;
 }
 
 /** The in-game HUD: health, power cells and the equipped weapon on a steel plate in the corner. */
-const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName }) => {
+const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt }) => {
   const hp = Math.max(0, Math.min(1, health / maxHealth));
   const low = hp < 0.35;
   const limited = maxAmmo !== Infinity;
@@ -61,7 +63,7 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo
         <div className="flex items-center gap-2 pt-[2px]">
           <div className="w-[34px] h-[34px] flex items-center justify-center border-2 border-zinc-700"
             style={{ background: 'radial-gradient(circle, rgba(250,204,21,0.15) 0%, rgba(0,0,0,0.6) 75%)' }}>
-            <WeaponArt type={currentWeapon} size={28} />
+            {weaponArt ? <svg viewBox="0 0 32 32" width={28} height={28} shapeRendering="crispEdges" style={{ imageRendering: 'pixelated' }}>{weaponArt}</svg> : <WeaponArt type={currentWeapon} size={28} />}
           </div>
           <div className="flex flex-col gap-[4px]">
             <span className="text-[8px] font-black text-yellow-300 uppercase whitespace-nowrap">{weaponName ?? getWeaponInfo(currentWeapon).name}</span>
