@@ -33,7 +33,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   SPELLBOOK: {
     name: 'SPELLBOOK OF THE DAMNED', from: 'FANTASY LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'ELEMENTAL STORM (2-4 MANA)' }, { pad: ['Y'], kb: ['F'], label: 'BULK UP (10 MANA)' }],
-    description: "Some wizard's diary, now with more murder. Fire rips holes in the sky and drops a meteor, a comet and a lightning storm on up to three assholes: the meteor sets survivors on fire, the comet freezes them solid, the lightning cooks one in place for a few seconds. Secondary fire is BULK UP: twelve seconds of bigger, faster, and sending everybody you touch into orbit. Try putting your hands on somebody while you're like that. Runs on mana, because of course it does.",
+    description: "Some wizard's diary, now with more murder. Fire rips holes in the sky and drops a meteor, a comet and a lightning storm on up to three assholes: the meteor sets survivors on fire, the comet freezes them solid, the lightning cooks one in place for a few seconds. Secondary fire is BULK UP: twelve seconds of bigger, faster, and sending everybody you touch into orbit. Try putting your hands on somebody while you're like that. Runs on mana, because of course it does. Ammo pickups somehow refill it. Don't ask, it's magic.",
   },
   STUNT_CAR: {
     name: 'CLAPPERBOARD', from: 'HOLLYWOOD LAND',
