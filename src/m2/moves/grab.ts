@@ -45,7 +45,7 @@ const WINDUP = 4, LUNGE = 4, LUNGE_SPEED = 21, WHIFF = 22, REACH = 6;
 /** How far ahead of him, as he lunges, he can still get hold of somebody. */
 const LUNGE_REACH = 20;
 /** A punch takes this much of him (whoever he is, about eight to finish him); each heals a little, the last a lot. */
-const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 4, PUNCH_GAP = 3;
+const PUNCH_SHARE = 0.13, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 6, PUNCH_GAP = 3;
 // The shakedown
 /** Thrown, it takes a modest share of him; slammed, a big one. */
 /** Each throw's animation: how long, and the frame he lets go on. */
@@ -94,6 +94,8 @@ export interface Grab {
   held: Enemy | null;
   /** Frames into the punch being thrown (counts down), and when the next can start. */
   punchT: number;
+  /** Punches thrown this beatdown (they come left, right, left...). */
+  punchN: number;
   nextPunchAt: number;
   /** His health last frame (anything taking it off him breaks a grab). */
   hp: number;
@@ -131,7 +133,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, pb: 0, bumpT: 0, airSpent: false,
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, punchN: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, pb: 0, bumpT: 0, airSpent: false,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -624,7 +626,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (g.punchT > 0) g.punchT--;
       // (any of X, B or Y throws one)
       if ((press('shoot') || press('special') || press('secondary') || pressed('y')) && g.t >= g.nextPunchAt) {
-        g.punchT = PUNCH_FRAMES; g.nextPunchAt = g.t + PUNCH_GAP;
+        g.punchT = PUNCH_FRAMES; g.nextPunchAt = g.t + PUNCH_GAP; g.punchN++;
         const dmg = Math.max(7, Math.round(e.maxHealth * PUNCH_SHARE));
         e.health -= dmg;
         p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + PUNCH_HEAL); g.hp = p.health;
@@ -926,16 +928,38 @@ const head = (c: Ctx, x: number, y: number, rot: number, mood: Mood, f: number) 
  * Ground and pound, MMA style: knees down either side of him (full mount), hips low on him, the off hand pinning his
  * chest, the other hand hammering down (`k` 0 cocked up by his ear .. 1 landed), his whole back behind it.
  */
-const mountPose = (c: Ctx, f: number, k: number) => {
-  drawLeg(c, [-5, -16], [-14, -4], [-26, -5], 1.4, true);
-  drawLeg(c, [5, -16], [16, -4], [4, -3], 1.4, false);
-  c.save(); c.translate(0, -16); c.rotate(0.42 + k * 0.16);
-  drawArmTo(c, [-8, -22], [-1, -11], [12, 1], true);
+/**
+ * How far into a punch, each of its frames: below 0 pulled back further than cocked (the wind-up), 1 landed in his
+ * face. Fast, and a long way: the whole arm and the shoulder behind it, not a tap.
+ */
+const PUNCH_ARC = [-0.35, 0.45, 1, 1, 0.55, 0.15];
+/**
+ * Astride him, ground and pound. `k`: 0 cocked (sat up, twisted back, the fist pulled back high past his ear, the elbow
+ * out behind him), 1 landed (thrown down into the face with his weight behind it: leaning right over, the shoulder
+ * dropped into it, the arm all but straight), below 0 drawn back further still. `right`: which fist (they alternate;
+ * the other has him by the collar). `streak`: the swing's blur.
+ */
+const mountPose = (c: Ctx, f: number, k: number, right = true, streak = false) => {
+  const lerp = (a: number, b: number, t = k) => a + (b - a) * t;
+  const sink = Math.max(0, k) * 2.5;
+  drawLeg(c, [-5, -16 + sink], [-14, -4], [-26, -5], 1.4, true);
+  drawLeg(c, [5, -16 + sink], [16, -4], [4, -3], 1.4, false);
+  c.save(); c.translate(0, -16 + sink); c.rotate(lerp(0.12, 0.78));
+  // (the punching arm: cocked high behind, landed down in front, low in the face)
+  const cock = { e: [-14, -24] as [number, number], h: [-5, -41] as [number, number] }, land = { e: [24, -19] as [number, number], h: [38, -26] as [number, number] };
+  const punch = (sx: number): [[number, number], [number, number]] => {
+    const t = Math.max(0, k), back = Math.min(0, k);
+    return [[lerp(cock.e[0], land.e[0], t) + back * 12 + sx * 0.3, lerp(cock.e[1], land.e[1], t) + back * 6], [lerp(cock.h[0], land.h[0], t) + back * 14, lerp(cock.h[1], land.h[1], t) + back * 4]];
+  };
+  // (the other one's got him by the shirt, down at his chest)
+  const hold: [[number, number], [number, number]] = [[6, -6], [18, 4]];
+  const [be, bh] = right ? hold : punch(-8);
+  if (streak) { c.fillStyle = 'rgba(255, 255, 255, 0.55)'; const [, h] = right ? punch(11) : punch(-8); for (let i = 1; i <= 3; i++) { c.beginPath(); c.arc(lerp(cock.h[0], h[0], 1 - i * 0.22), lerp(cock.h[1], h[1], 1 - i * 0.22), 5 - i, 0, Math.PI * 2); c.fill(); } }
+  drawArmTo(c, [-8, -22], be, bh, true);
   drawTorsoFromHips(c);
-  head(c, 6, -36, 0.3, k > 0.4 ? 'roar' : 'grit', f);
-  const lerp = (a: number, b: number) => a + (b - a) * k;
-  // (cocked: the elbow up and back, the fist up by his ear; landed: the arm all but straight down into him)
-  drawArmTo(c, [11, -22], [lerp(6, 21), lerp(-38, -8)], [lerp(14, 31), lerp(-48, 8)], false, 6);
+  head(c, lerp(4, 8), -36, 0.3, k > 0.3 ? 'roar' : 'grit', f);
+  const [fe, fh] = right ? punch(11) : hold;
+  drawArmTo(c, [11, -22], fe, fh, false, 6);
   c.restore();
 };
 
@@ -1179,14 +1203,24 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
     }
     case 'mount':
     case 'kill': {
-      const k = g.punchT > 0 ? Math.min(1, (PUNCH_FRAMES - g.punchT + 1) / 2) : 0;
+      // (a punch, frame by frame: pulled way back, coming down, landing, held there a beat, back up again)
+      const k = g.punchT > 0 ? PUNCH_ARC[PUNCH_FRAMES - g.punchT] : 0;
+      const landed = g.punchT > 0 && k >= 1;
       if (g.held) {
         // Flat on his back under him, head toward his punching hand; jolted by each one landing, squirming between
-        const e = g.held, hit = g.punchT > 0 && k >= 1 ? 1 : 0;
-        const squirm = Math.sin(f * 0.4) * 0.05 * (1 - hit);
-        drawPinned(ctx, e, state, x, y, g.dir, hit, squirm);
+        const e = g.held;
+        const squirm = Math.sin(f * 0.4) * 0.05 * (landed ? 0 : 1);
+        drawPinned(ctx, e, state, x, y, g.dir, landed ? 1 : 0, squirm);
       }
-      sprite(ctx, x, y, g.dir, c => mountPose(c, f, g.phase === 'kill' ? 0.2 : k));
+      const right = g.punchN % 2 === 0;
+      sprite(ctx, x, y, g.dir, c => mountPose(c, f, g.phase === 'kill' ? 0.2 : k, right, g.punchT > 0 && g.punchT >= PUNCH_FRAMES - 2));
+      // (the landing: a burst where it went in)
+      if (landed && g.punchT === PUNCH_FRAMES - 2) {
+        const bx = x + g.dir * 46, by = y - 9;
+        ctx.fillStyle = '#FFFFFF';
+        for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + 0.3; ctx.fillRect(Math.round(bx + Math.cos(a) * 9) - 1, Math.round(by + Math.sin(a) * 6) - 1, i % 2 ? 2 : 3, i % 2 ? 2 : 3); }
+        ctx.fillStyle = '#FDE047'; ctx.fillRect(bx - 3, by - 3, 6, 6);
+      }
       return;
     }
     case 'toss': {
