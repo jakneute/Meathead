@@ -1,8 +1,8 @@
 // THE CROSSBOW OF PLAGUES (Adventure Land): a jungle crossbow, rattling off darts dipped in something that should have
 // stayed in the jungle. Held, it fires fast. A dart's barely a scratch; what's on it is the thing. Everybody's only got
 // so much TOLERANCE for it (a bar over his head, going down; the bigger he is, the more he's got), and when it's gone he
-// starts throwing up: projectile vomiting, in heaves, at whoever's nearest. He's not stunned by it: he carries on with
-// whatever he was doing, only he's spewing on his buddy while he does it. A face full of it wears down that one's
+// starts throwing up: projectile vomiting, in heaves, at whoever's nearest. He's in no state to fight while he's at it:
+// no shooting, no swinging, no coming at Meathead, harmless to bump into; all he does is stand there spewing on his buddy. A face full of it wears down that one's
 // tolerance in turn, and in a while he's at it too, on the next, and so on: chain puking. Stick another one and you've
 // a new chain going. Nobody about to throw up on, he throws up straight up, and it comes down on him. The puke stings;
 // enough of it kills (it's his weapon's kill, a kill line and all). It never touches Meathead. Its puddles sting too, a
@@ -57,9 +57,11 @@ interface Sick {
   doused: number;
   /** The HURK! when it starts. */
   hurk: number;
+  /** While he's sick, his own goings-on held off (and harmless): what he was before, to put back after. */
+  held: { puppet?: boolean; harmless?: boolean } | null;
 }
 const sickness = new WeakMap<Enemy, Sick>();
-const sickOf = (e: Enemy) => { let s = sickness.get(e); if (!s) { s = { tol: tolMax(e), max: tolMax(e), lastHit: -999, t: -1, immuneUntil: 0, target: null, dir: 1, doused: 0, hurk: 0 }; sickness.set(e, s); } return s; };
+const sickOf = (e: Enemy) => { let s = sickness.get(e); if (!s) { s = { tol: tolMax(e), max: tolMax(e), lastHit: -999, t: -1, immuneUntil: 0, target: null, dir: 1, doused: 0, hurk: 0, held: null }; sickness.set(e, s); } return s; };
 /** Everybody being (or that's been) got at, for the tick and the drawing (the WeakMap can't be walked). */
 let tracked = new Set<Enemy>();
 
@@ -213,9 +215,13 @@ const rotCorpse = (ctx: FrameContext, c: Corpse) => {
   }
 };
 
+/** Over it (or gone): himself again, as he was. */
+const recover = (e: Enemy, s: Sick) => { if (!s.held) return; e.puppet = s.held.puppet; e.harmless = s.held.harmless; s.held = null; };
+
 /** His tolerance gone: he's going to be sick. */
 const getSick = (state: GameState, e: Enemy, s: Sick) => {
   s.t = 0; s.tol = 0; s.hurk = 36; s.target = null;
+  if (!s.held) { s.held = { puppet: e.puppet, harmless: e.harmless }; e.puppet = true; e.harmless = true; }
   playSound('retch');
   void state;
 };
@@ -250,7 +256,9 @@ const mouthOf = (e: Enemy, dir: number, lean: number) => {
 const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
   const { state } = ctx;
   const n = Math.floor(s.t / HEAVE), cyc = s.t % HEAVE;
-  if (n >= HEAVES) { s.t = -1; s.tol = s.max; s.immuneUntil = state.frame + IMMUNE; s.target = null; e.pose = undefined; return; }
+  if (n >= HEAVES) { s.t = -1; s.tol = s.max; s.immuneUntil = state.frame + IMMUNE; s.target = null; e.pose = undefined; recover(e, s); return; }
+  // (in no state to fight: his AI held off, no shooting, stood there; it's not a daze, no stars)
+  e.pauseTimer = Math.max(e.pauseTimer || 0, 2); e.shootTimer = 0; e.vel.x *= 0.6;
   if (cyc === 0 || (s.target && !alive(s.target)) || (s.target && !state.enemies.includes(s.target))) s.target = pickTarget(state, e);
   if (cyc === 0 && n > 0) playSound('retch', 0.8);
   const t = s.target;
@@ -412,7 +420,11 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean }, equipped: boolean) 
   for (const q of state.projectiles) if (q.custom === 'CROSSBOW' && partOf(q).kind === 'puke') globs++;
   for (const e of tracked) {
     const s = sickness.get(e);
-    if (!s || !alive(e) || !state.enemies.includes(e)) { e.pose = undefined; if (!alive(e) || !state.enemies.includes(e)) tracked.delete(e); continue; }
+    if (!s || !alive(e) || !state.enemies.includes(e)) {
+      // (dead, or picked up: he's not being sick any more; picked up and put down, he's himself again)
+      e.pose = undefined; if (s) { s.t = -1; s.tol = s.max; recover(e, s); }
+      tracked.delete(e); continue;
+    }
     if (s.hurk > 0) s.hurk--;
     if (s.t >= 0) heave(ctx, e, s);
     else if (state.frame - s.lastHit > REGEN_AFTER) s.tol = Math.min(s.max, s.tol + REGEN);
@@ -615,7 +627,7 @@ const drawHeld = (c: Ctx) => {
 /** Everything going, stopped (through a door). */
 export const stopCrossbow = () => {
   aim = 0;
-  for (const e of tracked) e.pose = undefined;
+  for (const e of tracked) { e.pose = undefined; const s = sickness.get(e); if (s) { s.t = -1; recover(e, s); } }
   tracked = new Set(); stuck = []; puddles = []; corpses = []; goo = []; drops = [];
 };
 
