@@ -62,7 +62,7 @@ const SLAM_BOUNCE = -13.5, SUPLEX_SHARE = 0.4;
 const PLUMMET_ACCEL = 0.9, PLUMMET_MAX = 20, PLUMMET_SHARE = 0.55;
 /** Frames a grab asked for while he couldn't is kept for. */
 const GRAB_BUFFER = 10;
-const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 17, THROW_SHARE = 0.15, SLAM_SHARE = 0.5, GRAB_MISS = 12;
+const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, SHAKE_DROP_EVERY = 12, THROW_SPEED = 17, THROW_SHARE = 0.15, SLAM_SHARE = 0.5, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
 /** How long after a grab he's still armored (nothing knocks him about). */
@@ -96,6 +96,8 @@ export interface Grab {
   punchT: number;
   /** Punches thrown this beatdown (they come left, right, left...). */
   punchN: number;
+  /** Ammo still to come out of whoever he's shaking. */
+  ammoLeft: number;
   nextPunchAt: number;
   /** His health last frame (anything taking it off him breaks a grab). */
   hp: number;
@@ -133,7 +135,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, punchN: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, pb: 0, bumpT: 0, airSpent: false,
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, pb: 0, bumpT: 0, airSpent: false,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -178,7 +180,7 @@ const putBack = (state: GameState, e: Enemy, x: number) => {
 
 const GATED: (keyof Controls)[] = ['special', 'shoot', 'secondary', 'charge'];
 const end = (state: GameState, g: Grab) => {
-  g.phase = 'idle'; g.t = 0; g.held = null; g.punchT = 0;
+  g.phase = 'idle'; g.t = 0; g.held = null; g.punchT = 0; g.ammoLeft = 0;
   for (const k of GATED) g.gate.add(k);
   state.player.hidden = false;
 };
@@ -660,14 +662,15 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       const e = g.held!;
       g.aim = controls.down ? 'down' : controls.up ? 'up' : controls.left ? 'left' : controls.right ? 'right' : null;
       if (g.t % 6 === 0) playSound('thud', 0.35, 6);
-      if (g.t < SHAKE_FRAMES) return hold();
-      // Shaken out: the ammo falls out of him (the first time: after that, he's empty)
-      const first = !g.shaken.has(e);
-      g.shaken.add(e);
-      for (let k = 0; k < (first ? SHAKE_AMMO : 0); k++) {
-        state.pickups.push({ id: `shake-${state.frame}-${k}`, pos: { x: centerX(state) + g.dir * 26 - 10, y: p.pos.y + 10 }, vel: { x: g.dir * (0.5 + k * 1.2), y: -3 - k }, width: 20, height: 20, type: 'small_ammo', life: 600 });
+      // The ammo shaken out of him as he's shaken, a bit at a time, falling out the front of him (clear of Meathead, so
+      // it's seen to drop before it's picked up) (the first time he's shaken: after that, he's empty)
+      if (g.t === 1 && !g.shaken.has(e)) { g.shaken.add(e); g.ammoLeft = SHAKE_AMMO; }
+      if (g.ammoLeft > 0 && g.t % SHAKE_DROP_EVERY === SHAKE_DROP_EVERY - 1) {
+        const k = SHAKE_AMMO - g.ammoLeft--;
+        state.pickups.push({ id: `shake-${state.frame}-${k}`, pos: { x: centerX(state) + g.dir * 46 - 10, y: p.pos.y + 20 }, vel: { x: g.dir * (1.5 + k * 1.2), y: -4 - k }, width: 20, height: 20, type: 'small_ammo', life: 600 });
+        playSound('clink', 1 - k * 0.1, 2 + k * 3);
       }
-      if (first) { playSound('clink', 1, 2); playSound('clink', 0.8, 7); }
+      if (g.t < SHAKE_FRAMES) return hold();
       // ...and thrown: down slams him, up launches him, the way he's facing (or nothing held) forward, the other way
       // back over his shoulder
       g.toss = controls.down ? 'down' : controls.up ? 'up' : (controls.left && g.dir > 0) || (controls.right && g.dir < 0) ? 'back' : 'forward';
