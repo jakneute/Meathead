@@ -4,6 +4,7 @@ import HUD from '../m1/components/HUD';
 import { RAYGUN_ART } from '../m1/components/WeaponIcon';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { GameStatus, WeaponType } from '../m1/types';
+import { setGutBlowout } from '../m1/game/player/gut';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage } from '../m1/constants';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../m1/game/platform/gamepad';
 import { hasRightStick } from '../m1/game/platform/device';
@@ -42,6 +43,8 @@ setFireKeys([]);
 setRayGun(true, m2Kill('raygun_kill'));
 registerGrabCallouts();
 registerKillLines();
+// (already shitty, he can do it again: so hard his pants go, and he's naked: game/player/gut.ts)
+setGutBlowout(true);
 // (his shoulder charge, slide, uppercut and dive kick hit about as hard as his throws: far lighter than Meathead 1's)
 Object.assign(enemyMeleeDamage, { charge: 14, slide: 14, uppercut: 45, divekick: 45 });
 registerWeapons();

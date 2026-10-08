@@ -11,7 +11,7 @@ import { groundBlocks } from '../../m1/game/core/terrain';
 import { makeKindEnemy } from '../../m1/game/enemies/kinds';
 import { GROUND_Y, CANVAS_WIDTH } from '../../m1/constants';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
-import { setUi, goTo, isLeaving, arrived } from '../store';
+import { setUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
 import { stopWeapons } from '../weapons';
 import { NO_CONTROLS } from '../../m1/game/platform/input';
 import { M2_ENEMY_KINDS } from '../roster';
@@ -66,6 +66,8 @@ export const penLayout: StageLayout = {
   startsStanding: true,
   build: (state) => {
     arrived(); stopWeapons();
+    // (his pants as they were in the last room)
+    { const g = takeGut(); if (g) state.player.gut = g; }
     const runs = [{ x1: X0 - 400, y1: GROUND_Y, x2: X0 + LEN + 400, y2: GROUND_Y, surface: 'concrete' }];
     state.groundRuns = runs;
     state.blocks.push(...groundBlocks(runs));
@@ -84,7 +86,7 @@ export const penLayout: StageLayout = {
     // (dev builds: the state on the window, for poking at it)
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
     // (on the way out: out of his hands, and whatever he had going stopped)
-    if (isLeaving()) { stopWeapons(); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
+    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!pen) return controls;
     const out = updateGrab(ctx, pen.grab, controls);
     practice(state);

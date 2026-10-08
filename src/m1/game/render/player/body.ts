@@ -11,8 +11,31 @@ export const skinTone = '#E0AC69';
 export const skinShadow = '#C68B45';
 export const skinHighlight = '#F5D0A9';
 export const skinVein = '#EF4444';
-export const pantsColor = '#1E3A8A';
-export const pantsShadow = '#172554';
+const JEANS = '#1E3A8A', JEANS_SHADOW = '#172554';
+// (the colors his legs are drawn in: his jeans', or, with them blown off him, his own: see setNude)
+export let pantsColor = JEANS;
+export let pantsShadow = JEANS_SHADOW;
+
+/**
+ * Naked from the waist down (Meathead 2: his pants blown clean off him, game/player/gut.ts): his legs his own skin, no
+ * belt, no pockets, hairy, and swinging free. Set by the renderer every time he's drawn; `vx`, `vy` and `frame` keep
+ * it all swinging the way he's going.
+ */
+let nude = false;
+const dangle = { a: 0, va: 0, frame: -1 };
+export const setNude = (on: boolean, vx = 0, vy = 0, frame = 0) => {
+  nude = on;
+  pantsColor = on ? skinTone : JEANS;
+  pantsShadow = on ? skinShadow : JEANS_SHADOW;
+  if (!on || dangle.frame === frame) return;
+  // (a pendulum: it hangs back the way he's going, swings past and settles; walking, it bounces with his step)
+  dangle.frame = frame;
+  const want = Math.max(-0.7, Math.min(0.7, -vx * 0.09 + vy * 0.03));
+  dangle.va += (want - dangle.a) * 0.18 - dangle.va * 0.12;
+  if (Math.abs(vx) > 0.5 && frame % 8 === 0) dangle.va += (Math.random() - 0.5) * 0.12 + Math.sign(vx) * 0.04;
+  dangle.a += dangle.va;
+};
+export const isNude = () => nude;
 export const bootColor = '#18181B';
 export const bootToe = '#94A3B8';
 export const beltColor = '#78350F';
@@ -125,6 +148,7 @@ const drawMedalOn = (ctx: Ctx, torsoTop: number, pecY: number) => {
 
 /** The lifting belt across his waist at `beltY`: the strap, the gold buckle, studs, stitching. */
 export const drawBelt = (ctx: Ctx, beltY: number, beltH: number) => {
+  if (nude) { drawBareHips(ctx, beltY, beltH); return; }
   // Heavy brown leather strap
   ctx.fillStyle = beltColor;
   ctx.fillRect(-13, beltY, 26, beltH);
@@ -226,11 +250,44 @@ const drawSinge = (ctx: Ctx, x: number, y: number) => {
   ctx.fillStyle = '#F97316'; ctx.fillRect(x + 2, y - 1, 0.7, 0.7);
 };
 
+/**
+ * Where the belt goes, with nothing on: his bare hips (the back of them his backside, a crack down it), a thatch of
+ * hair at the front, and hanging from under it, swinging, his dick and balls.
+ */
+const drawBareHips = (ctx: Ctx, y: number, h: number) => {
+  ctx.fillStyle = skinTone; ctx.fillRect(-13, y, 26, h + 1);
+  ctx.fillStyle = skinShadow; ctx.fillRect(-13, y, 8, h + 1);
+  ctx.fillStyle = skinHighlight; ctx.fillRect(4, y + 1, 7, 1);
+  // (his backside: rounded off at the back, the crack)
+  ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.ellipse(-11, y + h * 0.7, 4, h * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(110, 60, 25, 0.7)'; ctx.fillRect(-12.5, y + 1, 1, h);
+  // (hair)
+  ctx.fillStyle = '#3B2414'; ctx.beginPath(); ctx.ellipse(6, y + h - 0.5, 4.5, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#2A190D'; for (const [hx, hy] of [[3, -1.5], [5.5, -2.2], [8, -1.6], [9.5, -0.3], [2.4, 0.4]]) ctx.fillRect(6 + hx - 6, y + h - 0.5 + hy, 1, 1);
+  // (and swinging free)
+  ctx.save(); ctx.translate(6.5, y + h + 0.5); ctx.rotate(dangle.a);
+  ctx.fillStyle = backArmShade; ctx.beginPath(); ctx.ellipse(-1.6, 3.6, 3.6, 3.2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.ellipse(-1.3, 3.3, 2.8, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = skinTone; ctx.beginPath(); ctx.roundRect(-0.4, -0.5, 3.6, 9, 1.8); ctx.fill();
+  ctx.fillStyle = skinShadow; ctx.fillRect(-0.4, 0.5, 1, 7.5);
+  ctx.fillStyle = '#D9907A'; ctx.beginPath(); ctx.ellipse(1.4, 8.6, 2, 1.7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = skinHighlight; ctx.fillRect(2.2, 1, 0.8, 5);
+  ctx.restore();
+};
+
 /** A trouser leg: shaded down the back, a crease at the knee and (on the near leg) a cargo pocket. `singeAt`: on the
  * near shin, how far down it the laser's hole is (in the finale only). */
 export const drawPantLeg = (ctx: Ctx, x: number, y: number, w: number, h: number, color: string, pocket = false, singeAt?: number) => {
   ctx.fillStyle = color;
   ctx.fillRect(x, y, w, h);
+  if (nude) {
+    // (a bare leg: shaded down the back, lit down the front, hairy)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.12)'; ctx.fillRect(x, y, w * 0.3, h);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.14)'; ctx.fillRect(x + w - 2, y + 1, 1.2, h - 2);
+    ctx.fillStyle = 'rgba(60, 35, 15, 0.55)';
+    for (let i = 0; i < Math.floor(h / 4); i++) ctx.fillRect(x + 1.5 + ((i * 3.7) % (w - 3)), y + 2 + i * 4, 1, 1.4);
+    return;
+  }
   // Blood soaking into the fabric as he takes a beating
   const gore = getGore();
   if (gore > 0.5) {

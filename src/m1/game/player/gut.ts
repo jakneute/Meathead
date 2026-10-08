@@ -11,6 +11,7 @@ import { say, MEATHEAD_VOICE } from '../platform/speech';
 import { GUT_LINES } from '../../content/dialogue';
 import { getStageLayout } from '../stages';
 import { STAIN_FRAMES } from '../core/state';
+import { groundLineAt } from '../core/terrain';
 
 /** A skid mark this far from the last one's end, laid in the last few frames: the same one, carried on. */
 const SMEAR_JOIN = 14;
@@ -24,8 +25,17 @@ const GUT_WARN = GUT_GRUMBLE + 3 * 60;
 let everShat = false;
 export const hasEverShat = () => everShat;
 
-/** Has he shit himself (this attempt)? */
-export const isShat = (state: GameState) => state.player.gut?.stage === 2;
+/** Has he shit himself (this attempt)? (Naked after doing it again, he still has: it's still all over him.) */
+export const isShat = (state: GameState) => (state.player.gut?.stage ?? 0) >= 2;
+/** His pants blown clean off him (Meathead 2): naked from the waist down. */
+export const isNude = (state: GameState) => state.player.gut?.stage === 3;
+
+/**
+ * Whether doing it again can happen (Meathead 2 has it; Meathead 1 doesn't): already shitty, squat down still again
+ * as long, and it comes again, so hard it blows his jeans and his underpants clean off him.
+ */
+let blowout = false;
+export const setGutBlowout = (on: boolean) => { blowout = on; };
 
 const meatheadSays = (state: GameState, text: string, after = false) => {
   // (`after`: it waits its turn behind whoever's talking: the announcer's callout)
@@ -42,13 +52,17 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
   const gut = (p.gut ??= { t: 0, stage: 0 });
   // (the cheat: shitty from the off, every attempt, no fanfare: it's just how it is)
   if (ctx.cheats.shittyPants && gut.stage !== 2) { gut.stage = 2; gut.t = 0; gut.lineAt = undefined; }
-  if (gut.stage === 2) {
+  if (gut.debris) flyPants(ctx, gut.debris);
+  if (gut.globs?.length) flyGlobs(state, gut);
+  if (gut.stage >= 2) {
     // (his line about it, once the announcer's had his say: queued up behind the callout)
     if (gut.lineAt !== undefined && state.frame >= gut.lineAt) {
       gut.lineAt = undefined;
-      meatheadSays(state, GUT_LINES.ACCIDENT[Math.floor(Math.random() * GUT_LINES.ACCIDENT.length)], true);
+      const pool = gut.stage === 3 ? GUT_LINES.BLOWOUT : GUT_LINES.ACCIDENT;
+      meatheadSays(state, pool[Math.floor(Math.random() * pool.length)], true);
     }
     leaveTrail(ctx);
+    if (gut.stage === 2 && blowout && !ctx.cheats.shittyPants) again(ctx, input, gut);
     return;
   }
   // Down in a crouch on the ground, doing nothing else at all
@@ -83,6 +97,87 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
     const x = p.pos.x + p.width / 2 - p.facing * 8, y = p.pos.y + p.height - 20;
     for (let i = 0; i < 10; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 1.5, y: -0.5 - Math.random() * 1.2 }, life: 50 + Math.random() * 30, color: i % 2 ? 'rgba(132, 155, 60, 0.55)' : 'rgba(110, 120, 50, 0.45)', size: 4 + Math.random() * 4 });
   }
+};
+
+/** Already shitty, squatting still again: the same again (the grumble, the warning), and then it all goes, the pants
+ *  with it. */
+const again = (ctx: FrameContext, input: FrameInput, gut: NonNullable<GameState['player']['gut']>) => {
+  const { state } = ctx;
+  const p = state.player;
+  const still = p.isDucking && p.isGrounded && !p.swimming && !input.moveLeft && !input.moveRight && !input.moveUp && !input.jump
+    && !input.shoot && !input.special && !p.isSliding && !p.isCharging && Math.abs(p.vel.x) < 0.2;
+  if (!still) { gut.t = 0; gut.again = false; return; }
+  gut.t++;
+  if (!gut.again && gut.t >= GUT_GRUMBLE) {
+    gut.again = true;
+    playSound('rumble', 0.7, -11);
+    meatheadSays(state, GUT_LINES.GRUMBLE_AGAIN[Math.floor(Math.random() * GUT_LINES.GRUMBLE_AGAIN.length)]);
+  } else if (gut.again && gut.t === GUT_WARN) {
+    meatheadSays(state, GUT_LINES.WARN_AGAIN[Math.floor(Math.random() * GUT_LINES.WARN_AGAIN.length)], true);
+  } else if (gut.again && (gut.t - GUT_GRUMBLE) % 120 === 60) {
+    playSound('rumble', 0.45, -13);
+  }
+  if (!gut.again || gut.t < GUT_ACCIDENT) return;
+  // It goes: all of it, so hard the jeans and the underpants go off him, up and away, and he's stood there in his boots
+  gut.stage = 3; gut.t = 0; gut.again = false;
+  playSound('fart', 1, -5); playSound('boom', 0.6, 4); playSound('splat', 0.8, -9);
+  ctx.fx.announceKill('BLOWOUT!');
+  gut.lineAt = state.frame + 14;
+  state.damageNumbers.push({
+    id: `callout-${state.frame}-blowout`, text: 'BLOWOUT!', pos: { x: p.pos.x + p.width / 2, y: p.pos.y - 30 },
+    vel: { x: 0, y: -2.2 }, life: 120, maxLife: 120, isCritical: true, isCallout: true, color: '#8B5A2B',
+  });
+  const x = p.pos.x + p.width / 2 - p.facing * 6, y = p.pos.y + p.height - 22;
+  // (his jeans and his underpants, torn to shreds, flying every which way; the rest of them in the heap)
+  gut.debris = [
+    { kind: 'briefs', x, y: y - 4, vx: -p.facing * (5 + Math.random() * 2) + (Math.random() - 0.5) * 2, vy: -18 - Math.random() * 3, a: 0, va: p.facing * 0.4, t: 0, down: false, w: 14 },
+    ...Array.from({ length: 5 }, (_, i) => ({ kind: 'shred' as const, x, y, vx: -p.facing * (2 + Math.random() * 6) + (Math.random() - 0.5) * 6, vy: -9 - Math.random() * 9, a: Math.random() * 6, va: (Math.random() - 0.5) * 0.6, t: 0, down: false, w: 6 + (i % 3) * 3 })),
+  ];
+  // (and it goes everywhere: globs of it off in every direction, staining whatever they hit)
+  gut.globs = Array.from({ length: 18 }, () => ({ x, y, vx: -p.facing * (1 + Math.random() * 9) + (Math.random() - 0.5) * 7, vy: -3 - Math.random() * 10 }));
+  gut.stains = gut.stains ?? [];
+  // (the heap of it, where he was squatting)
+  gut.pile = { x: p.pos.x + p.width / 2 - p.facing * 4, y: groundLineAt(state.groundRuns, p.pos.x + p.width / 2), dir: p.facing };
+  for (let i = 0; i < 26; i++) state.particles.push({ pos: { x, y }, vel: { x: -p.facing * (1 + Math.random() * 6) + (Math.random() - 0.5) * 4, y: -2 - Math.random() * 7 }, life: 40 + Math.random() * 30, color: i % 3 === 0 ? 'rgba(132, 155, 60, 0.6)' : i % 3 === 1 ? '#5C3A16' : '#7A4E22', size: 3 + Math.random() * 5, grav: 0.25 });
+  ctx.fx.spawnExplosion({ x, y }, '#6B4423', 18, -p.facing * 4, 16);
+};
+
+/** His jeans and underpants: up, tumbling, down where they land, lying there a good while. */
+const flyPants = (ctx: FrameContext, debris: NonNullable<NonNullable<GameState['player']['gut']>['debris']>) => {
+  const { state } = ctx;
+  for (const d of debris) {
+    d.t++;
+    if (d.down) continue;
+    d.vy = Math.min(12, d.vy + 0.45); d.x += d.vx; d.y += d.vy; d.a += d.va; d.vx *= 0.995;
+    const floor = groundLineAt(state.groundRuns, d.x);
+    if (d.vy > 0 && d.y + 6 >= floor) { d.y = floor - 6; d.down = true; d.a = Math.round(d.a / Math.PI) * Math.PI; playSound('thud', 0.35, 6); }
+    if (d.y > state.camera.y + 2000) d.down = true;
+  }
+  const left = debris.filter(d => d.t < 1800);
+  debris.length = 0; debris.push(...left);
+};
+
+/** The globs of it flying: off in an arc till they hit something: the floor, a wall, a ceiling; a stain there. */
+const SOLID = (b: GameState['blocks'][number]) => b.type !== 'pit' && b.type !== 'door';
+const flyGlobs = (state: GameState, gut: NonNullable<GameState['player']['gut']>) => {
+  const globs = gut.globs ?? [], stains = (gut.stains ??= []);
+  gut.globs = globs.filter(g => {
+    g.vy = Math.min(13, g.vy + 0.45);
+    const nx = g.x + g.vx, ny = g.y + g.vy;
+    const hit = state.blocks.find(b => SOLID(b) && !b.oneWay && nx > b.x && nx < b.x + b.w && ny > b.y && ny < b.y + b.h);
+    const floor = groundLineAt(state.groundRuns, nx);
+    if (hit) {
+      // (side on: a wall; from below: a ceiling; from above: a floor)
+      const wasIn = (x: number, y: number) => x > hit.x && x < hit.x + hit.w && y > hit.y && y < hit.y + hit.h;
+      if (!wasIn(g.x, ny)) stains.push({ x: g.vx > 0 ? hit.x : hit.x + hit.w, y: ny, side: g.vx > 0 ? -1 : 1, r: 3 + Math.random() * 3, seed: Math.random() });
+      else stains.push({ x: nx, y: g.vy < 0 ? hit.y + hit.h : hit.y, side: g.vy < 0 ? 2 : 0, r: 3 + Math.random() * 4, seed: Math.random() });
+      return false;
+    }
+    if (g.vy > 0 && ny >= floor) { stains.push({ x: nx, y: floor, side: 0, r: 3 + Math.random() * 4, seed: Math.random() }); return false; }
+    g.x = nx; g.y = ny;
+    return g.y < state.camera.y + 2000;
+  });
+  if (stains.length > 60) stains.splice(0, stains.length - 60);
 };
 
 /** The stink coming off him as he goes, and in clean water, a brown cloud spreading out round his seat. */

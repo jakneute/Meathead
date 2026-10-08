@@ -32,6 +32,17 @@ let leaving = false;
 /** Off somewhere (a door, a portal): from then till the next stage is built, he's not in control, nothing he's doing
  * carries on (a weapon held down has to be pressed again over there). */
 export const goTo = (dest: string) => { leaving = true; travel?.(dest); };
+
+/**
+ * The state of his pants (shitty, blown off: game/player/gut.ts) goes with him through a door: it's only dying that
+ * gets him a clean pair (unlike Meathead 1, he never goes home between stages). Taken as he leaves, put back as the
+ * next room's built.
+ */
+let carriedGut: import('../m1/types').Player['gut'] | undefined;
+export const carryGut = (gut: import('../m1/types').Player['gut'] | undefined) => {
+  carriedGut = gut ? { t: 0, stage: gut.stage, at: gut.at, debris: undefined } : undefined;
+};
+export const takeGut = () => { const g = carriedGut; carriedGut = undefined; return g; };
 export const isLeaving = () => leaving;
 /** (the next stage built: he's arrived) */
 export const arrived = () => { leaving = false; };

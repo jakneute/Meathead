@@ -1669,6 +1669,29 @@ export const GUT_LINES = {
     "WELL. THERE GO THE GAINS.",
     "NOBODY SAW THAT. KEEP MOVING.",
   ],
+  /** (Meathead 2) Already shitty, and squatting down again: the second grumble. */
+  GRUMBLE_AGAIN: [
+    "IT'S NOT DONE. HOW IS IT NOT DONE?!",
+    "ROUND TWO. OH GOD, ROUND TWO.",
+    "THERE'S MORE?! WHERE IS IT ALL COMING FROM?!",
+    "THE CHILI'S COMING BACK FOR SECONDS.",
+  ],
+  /** ...and still squatting: these pants can't take another one. */
+  WARN_AGAIN: [
+    "GET UP. THESE PANTS CAN'T TAKE ANOTHER ONE.",
+    "IF THIS ONE GOES, THE PANTS GO WITH IT.",
+    "STAND UP, MEATHEAD. FOR THE LOVE OF GOD, STAND UP.",
+    "THAT'S PRESSURE. THAT'S A LOT OF PRESSURE.",
+  ],
+  /** ...and it went: so hard his pants and his underpants blew clean off him. Naked but for his boots. */
+  BLOWOUT: [
+    "...WELL. I'M NAKED NOW.",
+    "WHERE'D MY PANTS GO?! THEY WERE JUST ON ME!",
+    "THAT'S THE MOST FREE I'VE EVER FELT.",
+    "AT LEAST I STILL GOT MY BOOTS.",
+    "NOBODY LOOK DOWN.",
+    "THE PANTS ARE IN ORBIT. THE PANTS ARE GONE.",
+  ],
 };
 
 /**

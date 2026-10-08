@@ -129,9 +129,16 @@ export interface Player extends Entity {
   stepDist?: number;
   /** Dying: the face for it (see render/player/deathFace). */
   deathFace?: import('./game/render/player/deathFace').DeathFace;
-  /** The crouching easter egg (game/player/gut.ts): frames crouched still, and how far it's got (1 the grumble, 2 he's shit himself). */
-  /** `at`: where (world x, y) it happened (unset if he came into the stage like that: the cheat). */
-  gut?: { t: number; stage: 0 | 1 | 2; lineAt?: number; at?: { x: number; y: number } };
+  /** The crouching easter egg (game/player/gut.ts): frames crouched still, and how far it's got (1 the grumble, 2 he's shit himself;
+   *  3, a game that has it (Meathead 2), he's done it again so hard his pants are gone: `again` the second grumble). */
+  /** `at`: where (world x, y) it happened (unset if he came into the stage like that: the cheat). `debris`: his jeans
+   *  and his underpants, blown off him in shreds, flying (and then lying where they landed); `globs` of it flying, `stains`
+   *  where they hit (the floor, a wall), and the `pile` of it where he was, torn bits of his pants in it. */
+  gut?: { t: number; stage: 0 | 1 | 2 | 3; lineAt?: number; at?: { x: number; y: number }; again?: boolean;
+    debris?: { kind: 'shred' | 'briefs'; x: number; y: number; vx: number; vy: number; a: number; va: number; t: number; down: boolean; w: number }[];
+    globs?: { x: number; y: number; vx: number; vy: number }[];
+    stains?: { x: number; y: number; side: number; r: number; seed: number }[];
+    pile?: { x: number; y: number; dir: number } };
 
   // Recoil from bouncing off an enemy (controls locked while lockTimer runs)
   lockTimer: number;

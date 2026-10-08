@@ -9,7 +9,7 @@ import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
 import { playMenuOk, playMenuBack } from '../../m1/game/platform/audio';
 import { GROUND_Y } from '../../m1/constants';
 import { LANDS, SPOTS, STAFF_SLOT, HUB_SLOTS, landAt } from './lands';
-import { setUi, goTo, isLeaving, arrived } from '../store';
+import { setUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
 import { stopWeapons } from '../weapons';
 import { pollM2, pressed } from '../input';
 import { drawHubBackdrop, drawHubBack, drawHubFront } from './draw';
@@ -44,6 +44,8 @@ export const hubLayout: StageLayout = {
   startsStanding: true,
   build: (state) => {
     arrived(); stopWeapons();
+    // (his pants as they were in the last room)
+    { const g = takeGut(); if (g) state.player.gut = g; }
     const runs = [{ x1: HUB.x0 - HUB_CIRC, y1: GROUND_Y, x2: HUB.x0 + HUB_CIRC * 2, y2: GROUND_Y, surface: 'plaza' }];
     state.groundRuns = runs;
     state.blocks.push(...groundBlocks(runs));
@@ -56,7 +58,7 @@ export const hubLayout: StageLayout = {
     // (dev builds: the state on the window, for poking at it)
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
     // (on the way out: out of his hands, and whatever he had going stopped)
-    if (isLeaving()) { stopWeapons(); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
+    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     state.player.noContactHurt = false;
     if (!hub) return controls;
     pollM2(state.frame);

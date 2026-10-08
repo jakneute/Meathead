@@ -16,7 +16,7 @@ import { rayGun } from '../../combat/rayGun';
 import { customWeapon } from '../../combat/customWeapons';
 import { buffs } from '../../core/buffs';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
-import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth, setLegSinge } from './body';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth, setLegSinge, setNude } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -51,6 +51,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   setGore(1 - p.health / INITIAL_PLAYER_HEALTH);
   // (the finale: the hole the alien's laser burned in his jeans, from the cutscene)
   setLegSinge(state.stageId === FINALE_STAGE);
+  // (his pants blown off him: naked from the waist down, swinging free; and his jeans and underpants, wherever they went)
+  setNude(p.gut?.stage === 3, p.vel.x, p.vel.y, state.frame);
+  if (p.gut?.stage === 3) drawBlowout(ctx, p.gut, state.frame);
   const gore = getGore();
   ctx.save();
   // (pumped up: drawn bigger, from his feet)
@@ -568,7 +571,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   }
   ctx.restore();
   // Shit himself (game/player/gut.ts): the seat of his pants soaked through brown, and it's run down his legs
-  if (p.gut?.stage === 2 && !isSwimming) drawShitPants(ctx, isDucking ? -16 : -26, isDucking ? 10 : 20);
+  if ((p.gut?.stage ?? 0) >= 2 && !isSwimming) drawShitPants(ctx, isDucking ? -16 : -26, isDucking ? 10 : 20);
 
   // ==========================================
   // LAYER 3: WEIGHTLIFTING BELT
@@ -1001,7 +1004,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   finishBody();
 
   // The stink coming up off him, and the flies he's picked up
-  if (p.gut?.stage === 2 && !p.swimming) drawStink(ctx, p.pos.x + p.width / 2 - p.facing * 14, anchorY - 22, animFrame);
+  if ((p.gut?.stage ?? 0) >= 2 && !p.swimming) drawStink(ctx, p.pos.x + p.width / 2 - p.facing * 14, anchorY - 22, animFrame);
 
   // Pain sparks when knocked out of a special move
   if (hurtT >= 0 && hurtT < 0.5) {
@@ -1375,6 +1378,59 @@ const drawShitPants = (ctx: CanvasRenderingContext2D, top: number, h: number) =>
   ctx.fillStyle = 'rgba(200, 160, 100, 0.35)'; ctx.fillRect(-6, top + 2, 4, 1);
   ctx.restore();
 };
+
+/** His jeans (the belt still through them) and his underpants (a brown stain in them), blown off him: tumbling through
+ *  the air, then lying where they came down, fading after a while (world space). */
+const drawBlowout = (ctx: CanvasRenderingContext2D, gut: NonNullable<Player['gut']>, frame: number) => {
+  const SH = ['#5C3A16', '#7A4E22', '#4A2E10'];
+  // Stains where it hit: splats on the floor, smears down walls, drips off ceilings
+  for (const s of gut.stains ?? []) {
+    ctx.fillStyle = SH[Math.floor(s.seed * 3)];
+    if (s.side === 0) { ctx.beginPath(); ctx.ellipse(s.x, s.y - 0.5, s.r * 1.6, s.r * 0.45, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(s.x + s.r * 0.8, s.y - 1.5, 1.5, 1.5); }
+    else if (s.side === 2) { ctx.beginPath(); ctx.ellipse(s.x, s.y + 0.5, s.r * 1.3, s.r * 0.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(s.x - 0.75, s.y, 1.5, s.r + 2 + s.seed * 4); }
+    else { ctx.beginPath(); ctx.ellipse(s.x + s.side * 0.5, s.y, s.r * 0.5, s.r * 1.2, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(s.x + s.side * 0.5 - 0.75, s.y, 1.5, s.r * 2 + s.seed * 8); }
+  }
+  // The heap, where he was: brown, steaming, torn bits of his jeans and a strip of his underpants in it
+  if (gut.pile) {
+    const { x, y, dir } = gut.pile;
+    ctx.fillStyle = '#3A220B'; ctx.beginPath(); ctx.ellipse(x, y - 3, 13, 5, 0, Math.PI, 0); ctx.fill(); ctx.fillRect(x - 13, y - 3, 26, 3);
+    ctx.fillStyle = '#5C3A16'; ctx.beginPath(); ctx.ellipse(x - 1, y - 4, 10, 4, 0, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#7A4E22'; ctx.beginPath(); ctx.ellipse(x - 2, y - 7, 6, 3, 0, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#1E3A8A'; ctx.save(); ctx.translate(x + dir * 6, y - 5); ctx.rotate(0.5); ctx.fillRect(-4, -1.5, 8, 3); ctx.restore();
+    ctx.fillStyle = '#172554'; ctx.save(); ctx.translate(x - dir * 8, y - 3); ctx.rotate(-0.3); ctx.fillRect(-3, -1, 6, 2.5); ctx.restore();
+    ctx.fillStyle = beltColor; ctx.save(); ctx.translate(x - dir * 2, y - 7); ctx.rotate(0.15); ctx.fillRect(-6, -1, 12, 2); ctx.fillStyle = beltBuckle; ctx.fillRect(-1.5, -1.5, 3, 3); ctx.restore();
+    ctx.fillStyle = '#F4F4F5'; ctx.save(); ctx.translate(x + dir * 1, y - 8.5); ctx.rotate(-0.4); ctx.fillRect(-3, -1, 6, 2); ctx.restore();
+    ctx.fillStyle = '#A16207'; ctx.fillRect(x - 3, y - 9, 2, 1);
+    // (steam)
+    for (let i = 0; i < 2; i++) { const k = ((frame * 0.02 + i * 0.5) % 1); ctx.strokeStyle = `rgba(140, 160, 70, ${(0.4 * (1 - k)).toFixed(2)})`; ctx.lineWidth = 1.2; ctx.beginPath(); const sx = x - 4 + i * 8, sy = y - 9 - k * 16; ctx.moveTo(sx, sy); ctx.quadraticCurveTo(sx + 2, sy - 3, sx, sy - 6); ctx.stroke(); }
+  }
+  // Globs still flying
+  for (const g of gut.globs ?? []) { ctx.fillStyle = '#5C3A16'; ctx.beginPath(); ctx.arc(g.x, g.y, 2.4, 0, Math.PI * 2); ctx.fill(); }
+  // Shreds of his jeans, his torn underpants: tumbling, then lying where they came down
+  for (const d of gut.debris ?? []) {
+    ctx.save();
+    ctx.globalAlpha = d.t > 1740 ? Math.max(0, (1800 - d.t) / 60) : 1;
+    ctx.translate(d.x, d.y); ctx.rotate(d.a);
+    if (d.kind === 'shred') {
+      // (a torn strip of denim, ragged at the ends, a seam down it)
+      ctx.fillStyle = '#0B1235'; ctx.fillRect(-d.w / 2 - 0.5, -2.5, d.w + 1, 5);
+      ctx.fillStyle = pantsColorJeans; ctx.fillRect(-d.w / 2, -2, d.w, 4);
+      ctx.fillStyle = '#172554'; ctx.fillRect(-d.w / 2, 0.5, d.w, 1.5);
+      ctx.fillStyle = '#D97706'; ctx.fillRect(-d.w / 2 + 1, -1, d.w - 2, 0.5);
+      ctx.fillStyle = '#93C5FD'; ctx.fillRect(d.w / 2 - 1, -2.5, 1, 1); ctx.fillRect(-d.w / 2, 1.5, 1, 1);
+    } else {
+      ctx.fillStyle = '#3F3F46'; ctx.beginPath(); ctx.moveTo(-8, -5); ctx.lineTo(8, -5); ctx.lineTo(4, 5); ctx.lineTo(-4, 5); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#F4F4F5'; ctx.beginPath(); ctx.moveTo(-7, -4); ctx.lineTo(7, -4); ctx.lineTo(3.5, 4); ctx.lineTo(-3.5, 4); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#A1A1AA'; ctx.fillRect(-7, -4, 14, 1.4);
+      ctx.fillStyle = 'rgba(110, 66, 24, 0.85)'; ctx.beginPath(); ctx.ellipse(0, 1.5, 3, 2.4, 0, 0, Math.PI * 2); ctx.fill();
+      // (torn: one leg hole ripped open, a loose flap of it)
+      ctx.fillStyle = '#A1A1AA'; ctx.beginPath(); ctx.moveTo(3.5, 4); ctx.lineTo(7, 6); ctx.lineTo(5, 3); ctx.lineTo(8, 2.5); ctx.lineTo(4.5, 1); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#F4F4F5'; ctx.beginPath(); ctx.moveTo(4, 3.5); ctx.lineTo(6.2, 5); ctx.lineTo(4.8, 2.6); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+};
+const pantsColorJeans = '#1E3A8A';
 
 /** Wavy green stink lines rising off him, and two flies looping round his backside (world space). */
 const drawStink = (ctx: CanvasRenderingContext2D, x: number, y: number, f: number) => {
