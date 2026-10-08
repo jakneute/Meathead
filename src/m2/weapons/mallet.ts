@@ -8,7 +8,8 @@
 //      him squashed flat, everybody round where he lands bounced up off the floor. Held on the ground, a slow windup, the mallet right back over his head, then
 //      down: whatever it lands on is squashed flat as a pancake, accordion style, dead.
 // Standing or in the air, never ducking: down there he can't get any leverage on it (and says so).
-// It doesn't use ammo, it wears out: DURABILITY, a little gone every time it connects (and spinning). Ammo pickups fill
+// It doesn't use ammo, it wears out: DURABILITY, a little gone every time it connects (only then: a swing at nothing
+// costs nothing). Ammo pickups fill
 // it the same. Its kills are cartoon ones: sent flying off into the distance with a twinkle, or flattened.
 
 import type { Enemy } from '../../m1/types';
@@ -37,7 +38,9 @@ const AIR_SWING = { dmg: 75, knock: 22, lift: -4, len: 16, hitAt: 6 };
 const LAUNCH = { dmg: 70, up: -22, len: 18, hitAt: 7 };
 const POUND = { fall: 17, radius: 130, dmg: 75, up: -12 };
 const SMASH = { windup: 42, len: 18, reach: 120 };
-const TORNADO = { after: 50, max: 300, every: 9, radius: 76, dmg: 30, knock: 17, speed: 3.6, wear: 30 };
+/** wear: one durability for every so many rounds that hit somebody. */
+const TORNADO = { after: 50, max: 300, every: 9, radius: 76, dmg: 30, knock: 17, speed: 3.6, wear: 3 };
+let spinHits = 0;
 /** Y held this long (on the ground) is the windup, not a tap. */
 const Y_HOLD = 14;
 
@@ -207,7 +210,8 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         // (everybody round where he came down: bounced up off the floor)
         for (const e of state.enemies.filter(o => alive(o) && !struck.has(o) && Math.abs(o.pos.x + o.width / 2 - px) < POUND.radius && Math.abs(o.pos.y + o.height - fy) < 60)) bonk(ctx, e, POUND.dmg, { x: Math.sign(e.pos.x + e.width / 2 - px) * 6, y: POUND.up }, 'launch');
         for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: px + dir * 30, y: fy - 2 }, vel: { x: (i < 8 ? -1 : 1) * (2 + Math.random() * 6), y: -1 - Math.random() * 3 }, life: 26, color: '#A8A29E', size: 4 + Math.random() * 3 });
-        wearOut(ctx, 2);
+        // (worn only if it got anybody, under him on the way down or round where he landed)
+        if (struck.size) wearOut(ctx, 2);
       }
       break;
     case 'windup':
@@ -223,11 +227,12 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         playSound('slam'); playSound('bonk', 1, -6); shakeScreen(state, 18, 9);
         word(px + dir * 70, fy - 50, 'KA-BLAM!', '#FDE047');
         for (const e of inBox(state, px + dir * 15, fy - 80, px + dir * SMASH.reach, fy + 6)) {
+          struck.add(e);
           if (isMidBoss(e)) { e.health -= 120; ctx.fx.spawnDamageNumber(e.pos, 120, true); continue; }
-          struck.add(e); toonKill(ctx, e, 'flatten', dir);
+          toonKill(ctx, e, 'flatten', dir);
         }
         for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: px + dir * 70, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 4 }, life: 24, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 3 });
-        wearOut(ctx, 3);
+        if (struck.size) wearOut(ctx, 3);
       }
       if (t >= SMASH.len) mode = 'idle';
       break;
@@ -245,12 +250,14 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       if (t % 4 === 0) state.particles.push({ pos: { x: px + (Math.random() - 0.5) * 60, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 18, color: 'rgba(214, 211, 209, 0.6)', size: 5 + Math.random() * 5 });
       if (t % TORNADO.every === 0) {
         struck = new Set();
-        for (const e of state.enemies.filter(o => alive(o) && Math.abs(o.pos.x + o.width / 2 - px) < TORNADO.radius + o.width / 2 && o.pos.y < fy + 10 && o.pos.y + o.height > fy - 110)) {
+        const hits = state.enemies.filter(o => alive(o) && Math.abs(o.pos.x + o.width / 2 - px) < TORNADO.radius + o.width / 2 && o.pos.y < fy + 10 && o.pos.y + o.height > fy - 110);
+        for (const e of hits) {
           const side = Math.sign(e.pos.x + e.width / 2 - px) || dir;
           bonk(ctx, e, TORNADO.dmg, { x: side * TORNADO.knock, y: -9 }, 'fling');
         }
+        // (worn by what it hits, a bit a go round, never by spinning at nothing)
+        if (hits.length && ++spinHits % TORNADO.wear === 0) wearOut(ctx);
       }
-      if (t % TORNADO.wear === 0) wearOut(ctx);
       if (!input.shoot || t >= TORNADO.max || !durable(ctx) || !ground) { mode = 'land'; t = 0; setArmor(false); playSound('boing', 0.8, -6); }
       break;
     }
