@@ -28,7 +28,7 @@ const INK = '#1A0B06';
 /** A shot: this many born at once; the wait between shots. */
 const LITTER = 3, COOLDOWN = 20;
 /** How long one lives (frames, give or take); the last stretch of it, it's sputtering out. */
-const LIFE = 480, LIFE_VARY = 120, DYING = 60;
+const LIFE = 600, LIFE_VARY = 120, DYING = 60;
 /** On foot: how fast, how hard it falls, its biggest leap (that's about 360 up), how near it'll leap from. */
 const RUN = 3.3, GRAVITY = 0.5, LEAP = 19, LEAP_RANGE = 190;
 /** After somebody, they run faster than they do scurrying about looking. */
