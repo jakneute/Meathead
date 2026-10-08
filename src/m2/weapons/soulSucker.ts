@@ -45,7 +45,9 @@ export const setGoreBag = (v: number) => setGore(v);
 
 /** Everybody's poise: how much pulling they'll take before they go in (the beefier, the more). */
 const poiseMax = (e: Enemy) => Math.round(e.maxHealth * 0.6 + 10);
-interface Poise { left: number; lastPulled: number; fleeUntil: number }
+interface Poise { left: number; lastPulled: number; fleeUntil: number; /** Panicking, he's no fight in him: what he was before, to put back. */ held?: { puppet?: boolean; harmless?: boolean } }
+/** Everybody panicking right now (their fight held off till they've got over it). */
+const panicking = new Set<Enemy>();
 const poise = new WeakMap<Enemy, Poise>();
 const poiseOf = (e: Enemy) => {
   let p = poise.get(e);
@@ -64,6 +66,8 @@ const suckable = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && 
 
 /** The cone: out to REACH in front of the intake, opening wide (it's a big short cone). */
 const REACH = 190, SPREAD = 1.05;
+/** In front of him, as near as this (melee range): the full pull, whatever height he's at. */
+const CLOSE = 60;
 /**
  * Poise worn off a frame: at the edge of the cone, right up at the intake; it climbs steeply as he gets closer (by the
  * cube of how near), so further off it's barely a tug and up close it's a different thing altogether.
@@ -107,6 +111,10 @@ let swallowing: Swallow[] = [];
 const inCone = (state: GameState, e: Enemy, mouth: { x: number; y: number }) => {
   const f = state.player.facing;
   const ex = e.pos.x + e.width / 2, ey = e.pos.y + e.height / 2;
+  // Right up against him in front (at his feet, at his chest, over his head a little): that's as close as it gets,
+  // the full pull, wherever the nozzle's pointing (a crab at his ankles isn't out of it for being under the cone)
+  const pl = state.player, front = (ex - (pl.pos.x + pl.width / 2)) * f;
+  if (front > -6 && front - e.width / 2 < CLOSE && e.pos.y + e.height > pl.pos.y - 24 && e.pos.y < pl.pos.y + pl.height + 6) return 1;
   const dx = (ex - mouth.x) * f, dy = ey - mouth.y;
   if (dx < -e.width / 2 || dx > REACH) return null;
   const d = Math.hypot(Math.max(0, dx), dy);
@@ -167,6 +175,9 @@ const fire = (ctx: FrameContext) => {
     if (step > 0 && !solidAt(state, e.pos.x + toward * step, e)) e.pos.x += toward * step;
     if (flies(e)) { const dy = mouth.y - (e.pos.y + e.height / 2); e.pos.y += Math.sign(dy) * Math.min(Math.abs(dy), d * 0.6); }
     ps.fleeUntil = state.frame + PANIC;
+    // (panicking: no fight in him, no swinging, no shooting, harmless to bump; just trying to get away)
+    if (!ps.held) { ps.held = { puppet: e.puppet, harmless: e.harmless }; e.puppet = true; e.harmless = true; panicking.add(e); }
+    e.pauseTimer = Math.max(e.pauseTimer || 0, 2); e.shootTimer = 0;
     e.runFrom = ps.fleeUntil;
     // (bits of the floor and the air going in with them)
     if (Math.random() < 0.35) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height }, vel: { x: toward * (2 + near * 4), y: (mouth.y - e.pos.y - e.height / 2) * 0.03 }, life: 14, color: Math.random() < 0.5 ? 'rgba(220, 220, 220, 0.6)' : '#78716C', size: 1.5 + Math.random() * 1.5 });
@@ -221,6 +232,8 @@ let sprayLeft = 0, secondaryWas = false, emptySaidAt = -9999;
 const EMPTY_LINE_GAP = 300, EMPTY_LINE_CHANCE = 0.35;
 
 const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; moveDown: boolean }, equipped: boolean) => {
+  // (got over his panic, or gone: himself again; till then, running off his own way, but not shooting)
+  for (const e of panicking) { const ps = poise.get(e); if (!ps || ctx.state.frame > ps.fleeUntil || e.health <= 0 || e.isBlownAway) calmDown(e); else e.shootTimer = 0; }
   const { state } = ctx;
   const pl = state.player;
   // Secondary: a spray's worth out of the bag (once it's going it goes; another waits till it's done)
@@ -414,6 +427,8 @@ const drawOverlay = (c: Ctx, state: GameState) => {
 };
 
 /** Everything it was in the middle of, stopped (through a door): no spray going, nobody half way in, nothing pulled. */
-export const stopSoulSucker = () => { sprayLeft = 0; swallowing = []; suckingAt = -10; stains.length = 0; };
+const calmDown = (e: Enemy) => { const ps = poise.get(e); if (ps?.held) { e.puppet = ps.held.puppet; e.harmless = ps.held.harmless; ps.held = undefined; } panicking.delete(e); };
+export const stopSoulSucker = () => {
+  for (const e of [...panicking]) calmDown(e); sprayLeft = 0; swallowing = []; suckingAt = -10; stains.length = 0; };
 
 export const registerSoulSucker = () => registerWeapon('SOUL_SUCKER', { fire: ctx => fire(ctx), update, draw: (c, p) => draw(c, p), drawHeld, tick, drawOverlay });
