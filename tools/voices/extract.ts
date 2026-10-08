@@ -17,6 +17,7 @@ import * as dialogue from '../../src/m1/content/dialogue';
 import * as deaths from '../../src/m1/content/deaths';
 import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
 import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
+import { FULL_BAG_LINES } from '../../src/m2/lines/weaponLines';
 
 const ROOT = path.resolve(__dirname, '../../src');
 const out = new Map<string, { voice: string; text: string; from: string }>();
@@ -84,6 +85,7 @@ for (const c of Object.values(dialogue.KILL_CALLOUTS)) for (const t of c.lines) 
 // (and Meathead 2's grabs' own)
 for (const c of Object.values(GRAB_CALLOUTS)) for (const t of c.lines) add('announcer', t, 'GRAB_CALLOUTS');
 for (const v of Object.values(M2_KILL_LINES)) for (const t of v) add('meathead', t, 'M2_KILL_LINES');
+for (const t of FULL_BAG_LINES) add('meathead', t, 'FULL_BAG_LINES');
 for (const byGround of Object.values(dialogue.SURFACE_CALLOUTS)) for (const lines of Object.values(byGround ?? {})) for (const t of lines ?? []) add('announcer', t, 'SURFACE_CALLOUTS');
 
 // ---------------------------------------------------------------------------------------------------------------

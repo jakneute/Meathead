@@ -10486,6 +10486,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BAG'S FULL!",
+  "from": "FULL_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BAGGED AND TAGGED!",
   "from": "M2_KILL_LINES"
  },
@@ -12273,6 +12278,11 @@
   "voice": "meathead",
   "text": "GOT HIT BY A ROAD SIGN! THE SIGN SAID OUCH!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOTTA EMPTY THE BAG FIRST!",
+  "from": "FULL_BAG_LINES"
  },
  {
   "voice": "meathead",
@@ -14101,6 +14111,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S BACKED UP!",
+  "from": "FULL_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S CHEWING ON MY CALVES! THOSE ARE EXPENSIVE!",
   "from": "HAZARD_HURT"
  },
@@ -14108,6 +14123,11 @@
   "voice": "meathead",
   "text": "IT'S EATING THROUGH THE METAL! ONE MORE AND I'M GOING IN THERE!",
   "from": "m1/game/stages/dale/convoy.ts:772"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S FULL OF GUYS!",
+  "from": "FULL_BAG_LINES"
  },
  {
   "voice": "meathead",
@@ -14998,6 +15018,11 @@
   "voice": "meathead",
   "text": "NO RINGS, NO RULES!",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO ROOM AT THE INN!",
+  "from": "FULL_BAG_LINES"
  },
  {
   "voice": "meathead",
@@ -16786,6 +16811,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SPRAY FIRST, SUCK LATER!",
+  "from": "FULL_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SPRING BREAK'S OVER!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -17551,6 +17581,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE BAG CAN'T TAKE ANY MORE, AND NEITHER CAN YOU!",
+  "from": "FULL_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BAG GIVES BACK!",
   "from": "M2_KILL_LINES"
  },
@@ -17678,6 +17713,11 @@
   "voice": "meathead",
   "text": "THE GIFT SHOP'S THAT WAY, ASSHOLE!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GRINDER'S CHOKING!",
+  "from": "FULL_BAG_LINES"
  },
  {
   "voice": "meathead",
@@ -18076,6 +18116,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TIME TO HOSE SOMEBODY DOWN!",
+  "from": "FULL_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "TIMESHARE IN GALVESTON! OCEAN VIEW! THE OCEAN'S ONLY A LITTLE ON FIRE!",
   "from": "m1/game/bosses/oscar.ts:217"
  },
@@ -18133,6 +18178,11 @@
   "voice": "meathead",
   "text": "TOO MUCH GUN. A PISTOL ROUND'LL PUNCTURE IT.",
   "from": "m1/game/stages/oscar/bar.ts:171"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOO MUCH MEAT, NOT ENOUGH BAG!",
+  "from": "FULL_BAG_LINES"
  },
  {
   "voice": "meathead",

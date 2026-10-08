@@ -7,7 +7,7 @@
 // gush of gore out the front, all over whoever's there, like Dirty Dan's machine gun. A full bag won't suck any more
 // till some's been sprayed out. Ammo pickups fill its ammo, never the bag: only sucking does.
 
-import type { Enemy, Projectile } from '../../m1/types';
+import type { Enemy, Particle, Projectile } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
@@ -18,6 +18,8 @@ import { drawEnemyAt } from '../moves/grab';
 import { KIND_TOP_REACH } from '../../m1/game/render/enemies';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
+import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
+import { FULL_BAG_LINES } from '../lines/weaponLines';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -34,6 +36,8 @@ export const goreBag = () => gore;
 export const goreSprays = () => gore / SPRAY;
 export const onGore = (f: () => void) => { listeners.add(f); return () => { listeners.delete(f); }; };
 const setGore = (v: number) => { const n = Math.max(0, Math.min(SPRAY * MAX_SPRAYS, v)); if (n !== gore) { gore = n; listeners.forEach(f => f()); } };
+/** (for tests) */
+export const setGoreBag = (v: number) => setGore(v);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Poise
@@ -62,7 +66,15 @@ const DRAIN_FAR = 0.5, DRAIN_NEAR = 1.9;
 /** After this long not being pulled, poise comes back, this much a frame. */
 const REGEN_AFTER = 50, REGEN = 0.5;
 
-let suckingAt = -10;
+let suckingAt = -10, fullSaidAt = -9999;
+const FULL_LINE_GAP = 240;
+/** His line, up while it's said (and not at all if it can't be said now). */
+const meatheadSays = (state: GameState, text: string) => {
+  say(text, MEATHEAD_VOICE, 'casual', {
+    onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
+  });
+};
 /** Somebody going in: flying into the intake, shrinking, turning, over SWALLOW frames. */
 interface Swallow { e: Enemy; t: number; from: { x: number; y: number } }
 const SWALLOW = 14;
@@ -84,6 +96,9 @@ const fire = (ctx: FrameContext) => {
   const mouth = muzzlePoint(pl, 'SOUL_SUCKER');
   // A full bag: it won't pull (the motor chokes, a puff of red out the intake); empty some of it first (secondary fire)
   if (gore >= SPRAY * MAX_SPRAYS) {
+    // (and he says so: once a go, a while apart)
+    if (state.frame - suckingAt > 30 && state.frame - fullSaidAt > FULL_LINE_GAP) { fullSaidAt = state.frame; meatheadSays(state, FULL_BAG_LINES[Math.floor(Math.random() * FULL_BAG_LINES.length)]); }
+    suckingAt = state.frame - 2;
     pl.shootCooldown = 18;
     playSound('click', 0.8, -6);
     for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: mouth.x, y: mouth.y }, vel: { x: pl.facing * (0.5 + Math.random()), y: -0.5 - Math.random() }, life: 16, color: i % 2 ? 'rgba(185, 28, 28, 0.7)' : 'rgba(200, 200, 200, 0.5)', size: 3 + Math.random() * 3 });
@@ -126,8 +141,16 @@ const grind = (ctx: FrameContext, s: Swallow) => {
   const pl = state.player, mouth = muzzlePoint(pl, 'SOUL_SUCKER');
   setGore(gore + poiseMax(s.e));
   s.e.health = 0;
-  playSound('grind'); playSound('splat', 0.7, -3);
-  for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: mouth.x, y: mouth.y }, vel: { x: pl.facing * (Math.random() * 3) + (Math.random() - 0.5) * 3, y: -1 - Math.random() * 3 }, life: 20 + Math.random() * 20, color: i % 3 ? '#8B0000' : '#B91C1C', size: 2 + Math.random() * 3 });
+  playSound('grind'); playSound('splat', 0.9, -3); playSound('crunch', 0.8, -4);
+  // (it all comes back out the intake as it goes through: a gusher of blood and bits, up and out and all over the floor)
+  fx.spawnDeathShower({ x: mouth.x, y: mouth.y }, pl.facing, 2.6, false, 70);
+  for (let i = 0; i < 80; i++) {
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.4 + pl.facing * 0.45, sp = 4 + Math.random() * 9;
+    state.particles.push({ pos: { x: mouth.x + (Math.random() - 0.5) * 10, y: mouth.y + (Math.random() - 0.5) * 10 }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp }, life: 50 + Math.random() * 50, color: ['#DC2626', '#B91C1C', '#EF4444', '#991B1B', '#F87171'][i % 5], size: 3 + Math.random() * 5 });
+  }
+  // (a red mist hanging there a moment, and bits: gristle, bone)
+  for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: mouth.x + (Math.random() - 0.5) * 16, y: mouth.y - Math.random() * 16 }, vel: { x: (Math.random() - 0.5) * 1.5, y: -0.4 - Math.random() * 0.6 }, life: 24, color: 'rgba(220, 38, 38, 0.45)', size: 8 + Math.random() * 8 });
+  for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: mouth.x, y: mouth.y }, vel: { x: pl.facing * (1 + Math.random() * 4) + (Math.random() - 0.5) * 3, y: -3 - Math.random() * 5 }, life: 80, color: ['#F4C2B0', '#E8A598', '#F5F5F4', '#B91C1C'][i % 4], size: 3 + Math.random() * 2, grav: 0.35, chunk: true });
   // (who he was, and that he's done: the callout and the line, the way any kill goes)
   s.e.pos = { x: mouth.x - s.e.width / 2, y: mouth.y - s.e.height / 2 };
   s.e.isBlownAway = true;
@@ -140,7 +163,12 @@ const grind = (ctx: FrameContext, s: Swallow) => {
 // The spray
 
 /** One spray: this long, a glob every so often, each this hard, fanned this wide. */
-const SPRAY_FRAMES = 100, GLOB_EVERY = 2, GLOB_DMG = 13, GLOB_SPEED = 15, GLOB_SPREAD = 0.2, GLOB_LIFE = 40;
+const SPRAY_FRAMES = 100, GLOB_EVERY = 1, GLOB_DMG = 13, GLOB_SPEED = 15, GLOB_SPREAD = 0.14, GLOB_LIFE = 40;
+/**
+ * Fanned: about half go out in a tight line straight ahead (as many at the ground as ever), the rest anywhere from well
+ * up (birds, somebody on a ledge) to well down (off a ledge, at whoever's below).
+ */
+const FAN_UP = 1.0, FAN_DOWN = 0.9, FAN_SHARE = 0.48;
 let sprayLeft = 0;
 
 const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; moveDown: boolean }, equipped: boolean) => {
@@ -153,7 +181,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
     const mouth = muzzlePoint(pl, 'SOUL_SUCKER');
     if (sprayLeft % GLOB_EVERY === 0) {
       const aim = input.moveUp ? -0.45 : input.moveDown && !pl.isGrounded ? 0.45 : 0;
-      const a = aim + (Math.random() * 2 - 1) * GLOB_SPREAD;
+      const a = aim + (Math.random() < FAN_SHARE ? -FAN_UP + Math.random() * (FAN_UP + FAN_DOWN) : (Math.random() * 2 - 1) * GLOB_SPREAD);
       const size = 7 + Math.random() * 5;
       state.projectiles.push({
         id: `gore-${state.frame}-${Math.random()}`, pos: { x: mouth.x - size / 2, y: mouth.y - size / 2 },
@@ -163,6 +191,8 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
       });
     }
     if (sprayLeft % 12 === 0) playSound('gorespray');
+    // (a mist of it hanging at the intake)
+    if (sprayLeft % 3 === 0) state.particles.push({ pos: { x: mouth.x, y: mouth.y }, vel: { x: pl.facing * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 2 }, life: 10, color: 'rgba(153, 27, 27, 0.5)', size: 5 + Math.random() * 4 });
   }
   // Poise comes back to whoever's been let go a while
   if (state.frame % 2 === 0) for (const e of state.enemies) {
@@ -184,7 +214,9 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
   p.pos.x += p.vel.x; p.pos.y += p.vel.y;
   const splat = () => { for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: -p.vel.x * 0.1 + (Math.random() - 0.5) * 2, y: -Math.random() * 2 }, life: 18, color: '#7F1D1D', size: 2 + Math.random() * 2 }); };
   if (--g.life <= 0) return false;
-  if (state.blocks.some(b => b.type !== 'pit' && b.type !== 'door' && !b.oneWay && p.pos.x < b.x + b.w && p.pos.x + p.width > b.x && p.pos.y < b.y + b.h && p.pos.y + p.height > b.y)) { splat(); return false; }
+  const hit = state.blocks.find(b => b.type !== 'pit' && b.type !== 'door' && p.pos.x < b.x + b.w && p.pos.x + p.width > b.x && p.pos.y < b.y + b.h && p.pos.y + p.height > b.y
+    && (!b.oneWay || (p.vel.y > 0 && p.pos.y + p.height - p.vel.y <= b.y + 2)));
+  if (hit) { splat(); stain(state, p, hit); return false; }
   for (const e of state.enemies) {
     if (e.health <= 0 || e.isBlownAway || e.innocent || e.type === 'boss' || g.hit.includes(e.id)) continue;
     if (p.pos.x > e.pos.x + e.width || p.pos.x + p.width < e.pos.x || p.pos.y > e.pos.y + e.height || p.pos.y + p.height < e.pos.y) continue;
@@ -198,6 +230,32 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     if (g.hit.length > 1 || Math.random() < 0.5) return false;
   }
   return true;
+};
+
+/**
+ * A stain where a glob of gore hit a wall, a floor or a ceiling: stuck there, a splatter of its own shape (each one's
+ * painted from its own random lobes), a smaller spatter or two round it; on a wall or a ceiling, a run down from it.
+ * They stay (the oldest go once there are a lot).
+ */
+const STAINS = 260;
+const stains: Particle[] = [];
+const stain = (state: GameState, p: Projectile, b: { x: number; y: number; w: number; h: number }) => {
+  const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
+  // (which face it hit: the one it came in through)
+  const prevX = cx - p.vel.x, prevY = cy - p.vel.y;
+  const floor = prevY <= b.y, ceil = prevY >= b.y + b.h, wallL = prevX <= b.x, wallR = prevX >= b.x + b.w;
+  const at = floor ? { x: cx, y: b.y } : ceil ? { x: cx, y: b.y + b.h } : wallL ? { x: b.x, y: cy } : wallR ? { x: b.x + b.w, y: cy } : { x: cx, y: cy };
+  const colors = ['#7F1D1D', '#991B1B', '#8B0000', '#6B1414'];
+  const add = (x: number, y: number, size: number, onFloor: boolean, run = 0) => {
+    const q: Particle = { pos: { x, y }, vel: { x: 0, y: 0 }, life: 999999, color: colors[Math.floor(Math.random() * colors.length)], size, ...(onFloor ? { isSplat: true } : { isStuck: true }) };
+    state.particles.push(q); stains.push(q);
+    // (a run of it down a wall)
+    for (let k = 1; k <= run; k++) { const d: Particle = { pos: { x: x + (Math.random() - 0.5), y: y + k * size * 0.9 }, vel: { x: 0, y: 0 }, life: 999999, color: q.color, size: Math.max(1, size * (0.6 - k * 0.1)), isStuck: true }; state.particles.push(d); stains.push(d); }
+  };
+  add(at.x, at.y, 3 + Math.random() * 3.5, floor, !floor && Math.random() < 0.5 ? 1 + Math.floor(Math.random() * 3) : 0);
+  for (let i = 0; i < 2; i++) if (Math.random() < 0.7) add(at.x + (floor || ceil ? (Math.random() - 0.5) * 22 : 0), at.y + (floor || ceil ? 0 : (Math.random() - 0.5) * 22), 1 + Math.random() * 2, floor);
+  // (too many: the oldest are washed off)
+  if (stains.length > STAINS) { const gone = new Set(stains.splice(0, stains.length - STAINS)); state.particles = state.particles.filter(q => !gone.has(q)); }
 };
 
 const draw = (c: Ctx, p: Projectile) => {
