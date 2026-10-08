@@ -30,6 +30,7 @@ import { getFinale } from '../stages/finale/state';
 import { FINALE_LINES } from '../../content/dialogue';
 import { shakeScreen } from '../core/state';
 import { rayGun } from './rayGun';
+import { customWeapon } from './customWeapons';
 import {
   inFinale, FINALE_SHOTGUN_PELLETS, FINALE_FLAME_RANGE, FINALE_FLAME_SEGMENTS, FINALE_FLAME_WIDTH, FINALE_FLAME_GROWTH, FINALE_FLAME_SIZE_CAP_DIST,
   FINALE_OIL_SPLASH_RADIUS, FINALE_OIL_SPLASH_DAMAGE, FINALE_OIL_COAT_RADIUS, FINALE_OIL_FORK_DY, PITCH_FRAMES, PITCH_RELEASE_AT, PITCH_SPEED, PITCH_SIZE, PITCH_LIFE, FINALE_BARF_FRAMES,
@@ -255,6 +256,10 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       fx.playGunSound('oil');
       useAmmo();
       break;
+
+    // (a game's own: combat/customWeapons.ts)
+    default:
+      customWeapon(currentWeapon)?.fire(ctx, input, muzzle);
   }
 };
 

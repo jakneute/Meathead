@@ -13,7 +13,8 @@ export const wheelIndexAt = (x: number, y: number, count: number) => {
   return Math.round(a / ((Math.PI * 2) / count)) % count;
 };
 
-const WeaponWheel: React.FC<{ weapons: WeaponType[]; index: number; current: WeaponType }> = ({ weapons, index, current }) => {
+/** `nameOf`, `Art`: a game's own names and pictures for its weapons (Meathead 2's); the engine's otherwise. */
+const WeaponWheel: React.FC<{ weapons: WeaponType[]; index: number; current: WeaponType; nameOf?: (w: WeaponType) => string; Art?: React.FC<{ type: WeaponType; size: number }> }> = ({ weapons, index, current, nameOf, Art = WeaponArt }) => {
   const R = 160, n = weapons.length;
   const picked = weapons[index];
   return (
@@ -26,12 +27,12 @@ const WeaponWheel: React.FC<{ weapons: WeaponType[]; index: number; current: Wea
           return (
             <div key={w} className={`absolute flex items-center justify-center rounded-full border-2 transition-transform duration-75 ${on ? 'bg-yellow-400/90 border-white scale-125' : w === current ? 'bg-gray-800/90 border-yellow-500' : 'bg-gray-900/90 border-gray-600'}`}
               style={{ width: 72, height: 72, left: R + 45 + Math.cos(a) * R - 36, top: R + 45 + Math.sin(a) * R - 36 }}>
-              <WeaponArt type={w} size={52} />
+              <Art type={w} size={52} />
             </div>
           );
         })}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="max-w-[230px] text-center font-mono font-bold uppercase text-[26px] leading-tight text-yellow-300 [text-shadow:0_3px_0_#000]">{picked ? getWeaponInfo(picked).name : ''}</span>
+          <span className="max-w-[230px] text-center font-mono font-bold uppercase text-[26px] leading-tight text-yellow-300 [text-shadow:0_3px_0_#000]">{picked ? (nameOf ? nameOf(picked) : getWeaponInfo(picked).name) : ''}</span>
         </div>
       </div>
     </div>

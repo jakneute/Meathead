@@ -201,6 +201,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BON VOYAGE!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "BOWLED OVER!",
   "from": "KILL_CALLOUTS"
  },
@@ -482,6 +487,11 @@
  {
   "voice": "announcer",
   "text": "GERMAN SUPLEX!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GIFT SHOPPED!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -1181,6 +1191,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SOUVENIRED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SPIKED LIKE A VOLLEYBALL!",
   "from": "KILL_CALLOUTS"
  },
@@ -1338,6 +1353,11 @@
   "voice": "announcer",
   "text": "TOTALED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TOURIST TRAPPED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -5802,7 +5822,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "m1/game/combat/weapons.ts:872"
+  "from": "m1/game/combat/weapons.ts:877"
  },
  {
   "voice": "death",
@@ -7272,7 +7292,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "m1/game/combat/weapons.ts:872"
+  "from": "m1/game/combat/weapons.ts:877"
  },
  {
   "voice": "death",
@@ -7762,7 +7782,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "m1/game/combat/weapons.ts:872"
+  "from": "m1/game/combat/weapons.ts:877"
  },
  {
   "voice": "death",
@@ -8252,7 +8272,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "m1/game/combat/weapons.ts:872"
+  "from": "m1/game/combat/weapons.ts:877"
  },
  {
   "voice": "death",
@@ -10631,6 +10651,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BROUGHT YOU SOMETHING BACK!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BRRRR-EAK IN HALF",
   "from": "VULGARITIES"
  },
@@ -10843,6 +10868,11 @@
   "voice": "meathead",
   "text": "CHEAP PLASTIC DRONE SCRATCHED MY PUMP!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHEAP PLASTIC, EXPENSIVE FUNERAL!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11108,6 +11138,11 @@
   "voice": "meathead",
   "text": "CRYO-CRUSHED",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CULTURE, BITCH!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -12221,6 +12256,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GREETINGS FROM YOUR FUNERAL!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GROSS LITTLE BOOGER!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -12283,6 +12323,11 @@
   "voice": "meathead",
   "text": "HALF THE FIELD! THE HALF YOU HAVEN'T BEEN STANDING IN!",
   "from": "m1/game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "HAND LUGGAGE, MOTHERFUCKER!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15146,6 +15191,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ONE PER CUSTOMER!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "ONE TEQUILA, TWO TEQUILA, NO MORE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -15956,6 +16006,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SEE THE WORLD! FEEL THE WORLD!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SEE YOU NEVER, CROCODILE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -16551,6 +16606,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOUVENIR FROM HELL!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SPACE AGE SLAUGHTER!",
   "from": "M2_KILL_LINES"
  },
@@ -16967,6 +17027,11 @@
  {
   "voice": "meathead",
   "text": "TAKE A HIKE! AN AIRBORNE ONE!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TAKE A PICTURE, IT LASTS LONGER!",
   "from": "M2_KILL_LINES"
  },
  {
@@ -17431,6 +17496,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE EIFFEL TOWER SAYS HI!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
   "from": "m1/game/core/update.ts:227"
  },
@@ -17453,6 +17523,11 @@
   "voice": "meathead",
   "text": "THE GAS LIT THE GROUND! WHO PUTS GAS NEXT TO OIL?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GIFT SHOP'S THAT WAY, ASSHOLE!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -18558,6 +18633,11 @@
   "voice": "meathead",
   "text": "WIPEOUT, BRO!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WISH YOU WERE HERE!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",

@@ -108,6 +108,12 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.16, vary: 1, gap: 40,
     make: () => { let ph = 0; return render(0.11, t => { ph += (1500 * ex(t, 30) + 520) / SFX_SR; return Math.sin(TAU * ph) * Math.min(1, t / 0.004) * ex(t, 26); }); },
   },
+  souvenir: {
+    // Meathead 2's souvenir launcher: a hollow pop out of a plastic pipe (a low thump, a puff of air), and the junk in
+    // the bag rattling after it (cheap plastic clicks)
+    gain: 0.42, vary: 0.8, gap: 80,
+    make: () => { const bp = bandpass(); let ph = 0; const clicks = [0.07, 0.11, 0.16, 0.19, 0.24]; return render(0.32, t => { ph += (150 * ex(t, 18) + 70) / SFX_SR; return Math.sin(TAU * ph) * ex(t, 16) * 1.1 + bp(rnd(), 900, 0.8) * ex(t, 40) * 0.7 + clicks.reduce((v, at, k) => v + (t > at && t < at + 0.008 ? rnd() * (0.4 - k * 0.05) : 0), 0); }); },
+  },
   sadBolt: {
     // A sad little laser: pew... wew (drooping), half-hearted
     gain: 0.3, vary: 1, gap: 120,

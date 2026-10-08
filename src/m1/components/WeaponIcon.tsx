@@ -404,6 +404,31 @@ const ART: Record<WeaponType, React.ReactNode> = {
     glint(p, 9, 11);
   }),
 
+  // Meathead 2's souvenir launcher: a length of white plastic pipe, duct-taped, a grip off a squirt gun, and a mesh
+  // gift-shop bag of junk strapped on top: a little gold Eiffel Tower poking out, a pyramid, the face of Big Ben
+  SOUVENIR: draw(p => {
+    const grip = polyC([[9, 19], [13, 19], [12, 26], [8.5, 26]]);
+    paint(p, grip, diag(grip, ['#F472B6', '#DB2777', '#9D174D']));
+    paint(p, rectC(14, 19, 2, 3), '#27272A');
+    const tube = rectC(2, 13, 25, 6);
+    paint(p, tube, rows(tube, ['#FFFFFF', '#F4F4F5', '#E4E4E7', '#D4D4D8', '#A1A1AA', '#71717A']));
+    // (the tape round it, twice)
+    for (const tx of [6, 18]) { const tape = rectC(tx, 12.5, 3, 7); paint(p, tape, rows(tape, ['#D4D4D8', '#A1A1AA', '#A1A1AA', '#71717A', '#52525B', '#52525B', '#3F3F46'])); }
+    // (the open end, dark inside)
+    const mouthC = rectC(27, 12.5, 2, 7); paint(p, mouthC, rows(mouthC, ['#E4E4E7', '#A1A1AA', '#71717A', '#71717A', '#71717A', '#52525B', '#3F3F46']));
+    for (let y = 14; y <= 17; y++) p.set(29, y, '#18181B');
+    // The bag on top: red mesh, bulging
+    const bag = ellC(12, 9, 8, 4.5);
+    paint(p, bag, (x, y) => ((x + y) % 2 ? '#DC2626' : '#991B1B'));
+    // what's poking out of it: the Eiffel Tower (gold), a pyramid, Big Ben's clock
+    for (const [x, y, c] of [[9, 1, '#FDE047'], [9, 2, '#FACC15'], [9, 3, '#FACC15'], [8, 4, '#EAB308'], [10, 4, '#CA8A04'], [8, 5, '#EAB308'], [10, 5, '#A16207'], [7, 6, '#CA8A04'], [11, 6, '#A16207']] as const) p.set(x, y, c);
+    const pyr = polyC([[13, 7], [16.5, 2.5], [20, 7]]);
+    paint(p, pyr, (x, y) => (x < 16.5 ? step(['#FDE68A', '#FCD34D', '#F59E0B'], (y - 2) / 5, x, y) : step(['#F59E0B', '#D97706', '#B45309'], (y - 2) / 5, x, y)));
+    const clock = ellC(5, 8, 2.2, 2.2); paint(p, clock, '#FEF3C7'); p.set(5, 8, '#292524'); p.set(5, 7, '#292524'); p.set(6, 8, '#292524');
+    glint(p, 4, 14);
+    glint(p, 10, 7);
+  }),
+
   // Dirty Dan's light machine gun: long and black, a vented shroud, a box of rounds hanging off it, the belt
   LMG: draw(p => {
     const stock = polyC([[1, 10.5], [8, 11.5], [8, 16], [1, 18]]);

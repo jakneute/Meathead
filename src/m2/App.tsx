@@ -5,7 +5,11 @@ import { RAYGUN_ART } from '../m1/components/WeaponIcon';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { GameStatus, WeaponType } from '../m1/types';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH } from '../m1/constants';
-import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../m1/game/platform/gamepad';
+import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../m1/game/platform/gamepad';
+import { hasRightStick } from '../m1/game/platform/device';
+import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
+import PauseMenu from './PauseMenu';
+import { M2_WEAPONS, M2WeaponArt, weaponName, registerWeapons } from './weapons';
 import { loadVoicePack } from '../m1/game/platform/voiceclips';
 // (its own little pack: just the lines it can say, out of Meathead 1's: tools/voices/m2pack.ts)
 import voicePackUrl from './generated/voices.bin?url';
@@ -36,9 +40,10 @@ setFireKeys([]);
 setRayGun(true, m2Kill('raygun_kill'));
 registerGrabCallouts();
 registerKillLines();
+registerWeapons();
 
-/** His one gun, for now: the ray gun (the engine's pistol, turned into one: see rayGun.ts). */
-const WEAPONS: WeaponType[] = ['GUN'];
+/** What he's carrying (weapons/index.ts). */
+const WEAPONS: WeaponType[] = M2_WEAPONS;
 const STARTING_AMMO = createFullAmmo();
 /** In the staff room (the practice pen) he can't be hurt (no flicker for it: it's how the room is); everywhere else he can. */
 const PRACTICE = { invincible: true, infiniteAmmo: false, infinitePower: false, skipToBoss: false };
@@ -84,22 +89,86 @@ const App2: React.FC = () => {
     });
   }, [stage]);
 
-  // Weapons: the shoulder buttons, or the mouse wheel
+  // Pausing (START, or ESC), and the pause menu: which of it's picked out (a weapon, or RESUME after them)
+  const [pauseSel, setPauseSel] = useState(0);
+  /** The weapon wheel (the right stick): which one it's pointing at, while it's up. */
+  const [wheelAt, setWheelAt] = useState<number | null>(null);
+  const live = useRef({ status, weapon });
+  live.current = { status, weapon };
+  const togglePause = () => {
+    const st = live.current.status;
+    if (st === GameStatus.PLAYING) { setPauseSel(Math.max(0, WEAPONS.indexOf(live.current.weapon))); setStatus(GameStatus.PAUSED); }
+    else if (st === GameStatus.PAUSED) setStatus(GameStatus.PLAYING);
+  };
+  const resume = () => { if (live.current.status === GameStatus.PAUSED) setStatus(GameStatus.PLAYING); };
+  const equip = (i: number) => { if (WEAPONS[i]) setWeapon(WEAPONS[i]); };
+  /** In the pause menu: the arsenal's a grid three across, RESUME under it. */
+  const movePause = (dx: number, dy: number) => setPauseSel(i => {
+    const n = WEAPONS.length;
+    if (i === n) return dy < 0 ? Math.min(n - 1, Math.floor((n - 1) / 3) * 3) : i;
+    if (dy > 0) return i + 3 < n ? i + 3 : n;
+    if (dy < 0) return i - 3 >= 0 ? i - 3 : i;
+    return Math.max(0, Math.min(n - 1, i + dx));
+  });
+  const pauseSelRef = useRef(pauseSel);
+  pauseSelRef.current = pauseSel;
+  const confirmPause = () => { const i = pauseSelRef.current; if (i >= WEAPONS.length) resume(); else equip(i); };
+
+  // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
   useEffect(() => {
     const cycle = (d: number) => setWeapon(w => WEAPONS[(WEAPONS.indexOf(w) + d + WEAPONS.length) % WEAPONS.length]);
-    const onWheel = (e: WheelEvent) => cycle(e.deltaY > 0 ? 1 : -1);
+    const playing = () => live.current.status === GameStatus.PLAYING, paused = () => live.current.status === GameStatus.PAUSED;
+    const onWheel = (e: WheelEvent) => { if (playing() || paused()) cycle(e.deltaY > 0 ? 1 : -1); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      if (e.code === 'Escape' || e.code === 'KeyP') { togglePause(); return; }
+      const digit = /^Digit([1-9])$/.exec(e.code);
+      if (digit && (playing() || paused())) { const i = +digit[1] - 1; equip(i); if (paused() && i < WEAPONS.length) setPauseSel(i); return; }
+      if (!paused()) return;
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') movePause(-1, 0);
+      else if (e.code === 'ArrowRight' || e.code === 'KeyD') movePause(1, 0);
+      else if (e.code === 'ArrowUp' || e.code === 'KeyW') movePause(0, -1);
+      else if (e.code === 'ArrowDown' || e.code === 'KeyS') movePause(0, 1);
+      else if (e.code === 'Enter' || e.code === 'Space') confirmPause();
+    };
+    // (right-click in the pause menu: back out of it)
+    const onContext = (e: MouseEvent) => { if (paused()) { e.preventDefault(); resume(); } };
     window.addEventListener('wheel', onWheel);
-    let id = 0, lb = false, rb = false;
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('contextmenu', onContext);
+    let id = 0, lastMove = 0;
+    const prev = { lb: false, rb: false, start: false, ok: false, back: false };
+    const wheel: { at: number | null } = { at: null };
     const poll = () => {
       const gp = getActiveGamepad();
-      const l = !!gp && isButtonPressed(gp, GP_BUTTONS.LB), r = !!gp && isButtonPressed(gp, GP_BUTTONS.RB);
-      if (l && !lb) cycle(-1);
-      if (r && !rb) cycle(1);
-      lb = l; rb = r;
+      if (gp) {
+        const now = performance.now();
+        const btn = { lb: isButtonPressed(gp, GP_BUTTONS.LB), rb: isButtonPressed(gp, GP_BUTTONS.RB), start: isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT), ok: isButtonPressed(gp, menuButtons(gp).ok), back: isButtonPressed(gp, menuButtons(gp).back) };
+        const just = (k: keyof typeof btn) => btn[k] && !prev[k];
+        if ((playing() || paused()) && just('lb')) cycle(-1);
+        if ((playing() || paused()) && just('rb')) cycle(1);
+        if (just('start')) togglePause();
+        if (paused()) {
+          const m = getGamepadMovement(gp, 0.25);
+          const dx = m.left ? -1 : m.right ? 1 : 0, dy = m.up ? -1 : m.down ? 1 : 0;
+          if ((dx || dy) && now - lastMove > 180) { movePause(dx, dy); lastMove = now; }
+          if (!dx && !dy) lastMove = 0;
+          if (just('ok')) confirmPause();
+          if (just('back')) resume();
+        }
+        // The weapon wheel, on the right stick: push it any way and it comes up, pointing at a weapon; let it go and
+        // that's the one (not on a Joy-Con on its own: it hasn't got one)
+        if (playing() && hasRightStick(gp.id) && gp.mapping === 'standard' && WEAPONS.length > 1) {
+          const rx = gp.axes[2] ?? 0, ry = gp.axes[3] ?? 0, mag = Math.hypot(rx, ry);
+          if (mag > 0.55) { const i = wheelIndexAt(rx, ry, WEAPONS.length); if (wheel.at !== i) { wheel.at = i; setWheelAt(i); } }
+          else if (mag < 0.3 && wheel.at !== null) { equip(wheel.at); wheel.at = null; setWheelAt(null); }
+        } else if (wheel.at !== null) { wheel.at = null; setWheelAt(null); }
+        Object.assign(prev, btn);
+      }
       id = requestAnimationFrame(poll);
     };
     id = requestAnimationFrame(poll);
-    return () => { window.removeEventListener('wheel', onWheel); cancelAnimationFrame(id); };
+    return () => { window.removeEventListener('wheel', onWheel); window.removeEventListener('keydown', onKey); window.removeEventListener('contextmenu', onContext); cancelAnimationFrame(id); };
   }, []);
 
   const onPlayerUpdate = (health: number, power: number, ammo?: Record<WeaponType, number>) => {
@@ -131,7 +200,7 @@ const App2: React.FC = () => {
           onIntroComplete={() => setStatus(GameStatus.PLAYING)}
         />
         {status === GameStatus.PLAYING && ui.map === null && (
-          <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weapon === 'GUN' ? 'RAY GUN' : undefined} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} />
+          <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weaponName(weapon)} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} />
         )}
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit) && (
@@ -152,6 +221,11 @@ const App2: React.FC = () => {
           </div>
         )}
         {ui.map !== null && <MapCard land={ui.map} />}
+        {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={WEAPONS} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
+        {status === GameStatus.PAUSED && (
+          <PauseMenu weapons={WEAPONS} current={weapon} ammo={hud.ammo} selected={pauseSel}
+            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} />
+        )}
         {noticeUp && ui.notice && (
           <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>
         )}

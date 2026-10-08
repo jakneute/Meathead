@@ -36,6 +36,7 @@ import { gunDeathMode } from '../enemies/gunDeaths';
 import { spared } from '../enemies/enemies';
 import { isEnemyBullet } from '../player/deathAnim';
 import { rayKillLine } from './rayGun';
+import { customWeapon } from './customWeapons';
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -47,6 +48,8 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
     return false;
   }
   if (p.health <= 0) return false;
+  // (a game's own weapon's shot: its own rules entirely)
+  if (p.custom) return customWeapon(p.custom)?.update(ctx, p) ?? false;
   if (p.isOilRocket) return updateOilRocket(ctx, p);
   if (p.isOscarRocket) return updateOscarRocket(ctx, p);
   if (p.isCigarette) return updateCigarette(ctx, p);

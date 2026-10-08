@@ -15,6 +15,7 @@ import { drawBoss, drawBossOverlay } from './bosses';
 import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './bosses/victorVents';
 import { drawIcicles, drawIceBlock, drawIceShard } from './bosses/artieIce';
 import { drawBoulder, drawRockChip } from './bosses/boulders';
+import { customWeapon } from '../combat/customWeapons';
 import { drawBullet, drawThrown, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob, drawDarkOrb, drawOilRocket } from './projectiles';
 import { drawSadBolt } from './bosses/alien';
 import { drawParticle } from './particles';
@@ -1444,7 +1445,8 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
   state.projectiles.forEach(p => {
     if ((layer === 'puddles') !== !!(p.isSludge && p.isLingering)) return;
     ctx.save();
-    if (p.isBoulder) drawBoulder(ctx, p, state.frame);
+    if (p.custom) customWeapon(p.custom)?.draw(ctx, p, state.frame);
+    else if (p.isBoulder) drawBoulder(ctx, p, state.frame);
     else if (p.isShrapnel) drawRockChip(ctx, p, state.frame);
     else if (p.isSludge) {
       if (p.isLingering) { drawGooPuddle(ctx, state, p); if (p.overhang) drawGooOverhang(ctx, p, state.frame); }

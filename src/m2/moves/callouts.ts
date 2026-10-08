@@ -9,6 +9,8 @@ export const GRAB_CALLOUTS = {
   thrown: { lines: ['TOSSED!', 'AIRMAILED!', 'SHAKEN AND THROWN!', 'NO REFUNDS!'], color: '#FDE68A' },
   launched: { lines: ['LAUNCHED!', 'SKY HIGH!', 'AIR TIME!', 'WHAT GOES UP!'], color: '#7DD3FC' },
   suplex: { lines: ['SUPLEXED!', 'GERMAN SUPLEX!', 'BRIDGED!', 'SPIKED!'], color: '#C084FC' },
+  // (and not a grab's: the souvenir launcher's junk)
+  souvenir: { lines: ['SOUVENIRED!', 'GIFT SHOPPED!', 'TOURIST TRAPPED!', 'BON VOYAGE!'], color: '#F472B6' },
 } as const;
 
 export type GrabCallout = keyof typeof GRAB_CALLOUTS;

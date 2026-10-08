@@ -1,7 +1,7 @@
 // What Meathead says over a kill done Meathead 2's ways: beaten to death on the ground, thrown (slammed, suplexed,
-// booted, tossed into a wall), a critter pitched like a fastball, and the ray gun. Each a pool of its own, in the mix
-// with the lines about who he's killed and the general ones (effects.ts killLine), the way his weapons' are. Put in the
-// engine's table at startup; recorded with the rest (tools/voices: extract.ts, m2pack.ts).
+// booted, tossed into a wall), a critter pitched like a fastball, the ray gun, and the souvenir launcher's junk. Each a
+// pool of its own, in the mix with the lines about who he's killed and the general ones (effects.ts killLine), the way
+// his weapons' are. Put in the engine's table at startup; recorded with the rest (tools/voices: extract.ts, m2pack.ts).
 
 import { KILL_LINES } from '../../m1/content/dialogue';
 import type { VulgarityType } from '../../m1/types';
@@ -24,6 +24,11 @@ export const M2_KILL_LINES = {
   raygun_kill: [
     'DISINTEGRATED!', 'BEAM ME UP, ASSHOLE!', 'PEW PEW, BITCH!', 'ATOMIZED!', 'NOTHING LEFT BUT SHOES!', 'SEE YOU NEVER!',
     'PROBE THIS!', 'SPACE AGE SLAUGHTER!', 'ZAPPED OUT OF EXISTENCE!', 'NOT EVEN A STAIN!', 'THANKS FOR THE GUN, ZORBLAX!', 'TAKE ME TO YOUR UNDERTAKER!',
+  ],
+  souvenir_kill: [
+    'WISH YOU WERE HERE!', 'GREETINGS FROM YOUR FUNERAL!', "THE GIFT SHOP'S THAT WAY, ASSHOLE!", 'TAKE A PICTURE, IT LASTS LONGER!',
+    'BROUGHT YOU SOMETHING BACK!', 'CULTURE, BITCH!', 'SEE THE WORLD! FEEL THE WORLD!', 'CHEAP PLASTIC, EXPENSIVE FUNERAL!',
+    'SOUVENIR FROM HELL!', 'THE EIFFEL TOWER SAYS HI!', 'ONE PER CUSTOMER!', 'HAND LUGGAGE, MOTHERFUCKER!',
   ],
 } as const;
 

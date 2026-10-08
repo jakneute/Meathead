@@ -195,6 +195,8 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'OIL_ROCKET': 22,
   // (Dirty Dan's machine gun: it's only his for the chase, and it never runs dry till it's over)
   'LMG': Infinity,
+  // (Meathead 2's souvenir launcher: a big bag of junk)
+  'SOUVENIR': 60,
 };
 
 /** A fresh ammo loadout with every weapon topped up. */

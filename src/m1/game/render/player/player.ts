@@ -13,6 +13,7 @@ import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
 import { drawPlayerShadow } from './shadow';
 import { drawDeathBrows, drawDeathEyes, drawDeathMouth } from './deathFace';
 import { rayGun } from '../../combat/rayGun';
+import { customWeapon } from '../../combat/customWeapons';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
 import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth, setLegSinge } from './body';
 
@@ -1224,6 +1225,9 @@ const drawHeldWeapon = (ctx: CanvasRenderingContext2D, weapon: WeaponType, wpnX:
       glint(-4, 26, -1, 2, 190);
       break;
     }
+    // (a game's own: combat/customWeapons.ts)
+    default:
+      customWeapon(weapon)?.drawHeld(ctx, frame);
   }
   ctx.restore();
 };
