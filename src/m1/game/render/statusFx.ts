@@ -27,7 +27,8 @@ export const statusTint = (e: Enemy, state: GameState): { color: string; alpha: 
 };
 
 export const isTasedNow = (e: Enemy, state: GameState) =>
-  !!e.isTased && state.player.isTasing && (state.player.taserTargetId === e.id || !!state.player.taserChain?.includes(e.id));
+  (e.shockedUntil !== undefined && e.shockedUntil >= state.frame && e.health > 0 && !e.isBlownAway)
+  || (!!e.isTased && state.player.isTasing && (state.player.taserTargetId === e.id || !!state.player.taserChain?.includes(e.id)));
 
 /** How he shakes on the end of the taser: a pixel or two either way, not all over the place. */
 export const tasedJitter = (state: GameState) => {

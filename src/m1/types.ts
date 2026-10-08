@@ -72,7 +72,7 @@ export type SoundType =
   // (Meathead 2's laser-guided flintlock going off, and primed)
   | 'flintlock' | 'primed'
   // (Meathead 2's spellbook, read out)
-  | 'spell'
+  | 'spell' | 'bolt'
   // his footsteps, by what he's walking on
   | 'step_hard' | 'step_snow' | 'step_metal' | 'step_wood' | 'step_dirt' | 'step_sand' | 'step_wet';
 
@@ -392,6 +392,8 @@ export interface Enemy extends Entity {
   /** Running from him till this frame (Meathead 2's soul sucker): it faces away, and makes no headway toward him, but
    * still does what it does (shoots, swings). */
   runFrom?: number;
+  /** Being electrocuted till this frame by something other than his taser (Meathead 2's lightning): shown the same. */
+  shockedUntil?: number;
   /** A bystander: only Meathead can hurt it (his shots and moves, or something he knocked into it); nothing else does. */
   innocent?: boolean;
   /** A mid-boss already took a hit from this tsunami wave (it's washed over once, not every frame). */

@@ -150,6 +150,11 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.4, vary: 0.4, gap: 200,
     make: () => { const lp = lowpass(); let a = 0, b = 0, c = 0; return render(0.9, t => { a += (520 + 900 * t) / SFX_SR; b += (780 + 1300 * t) / SFX_SR; c += 110 / SFX_SR; return (Math.sin(TAU * a) * 0.35 + Math.sin(TAU * b) * 0.25 * (Math.floor(t * 24) % 2) + Math.sin(TAU * c) * 0.3 + lp(rnd(), 900 + 2400 * t) * 0.3) * Math.min(1, t / 0.05) * ex(Math.max(0, t - 0.4), 5); }); },
   },
+  bolt: {
+    // ...its lightning: a split-second crack right on top of you, then the thunder rolling off low
+    gain: 0.6, vary: 0.5, gap: 90, voices: 2,
+    make: () => { const lp = lowpass(), lp2 = lowpass(); return render(1.0, t => (t < 0.03 ? rnd() * (1 - t / 0.03) : 0) + lp(rnd(), 2200 * ex(t, 9) + 90) * 1.3 * ex(t, 2.6) + lp2(rnd(), 70) * Math.min(1, t / 0.1) * ex(t, 2) * 1.2); },
+  },
   sadBolt: {
     // A sad little laser: pew... wew (drooping), half-hearted
     gain: 0.3, vary: 1, gap: 120,

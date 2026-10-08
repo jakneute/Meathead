@@ -124,6 +124,8 @@ const practice = (state: GameState) => {
     // (knocked about by him: left to it)
     // (the soul sucker's got hold of him: he's running from it his own way, see weapons/soulSucker)
     if (beingSucked(e, state.frame)) continue;
+    // (frozen solid: going nowhere)
+    if ((e.frozenTimer || 0) > 0) continue;
     // (their own way of moving, a charger's charge, doesn't count: only what's been done to them)
     if ((e.pauseTimer || 0) > 2 || Math.abs(e.vel.y) > 0.5) continue;
     e.pauseTimer = 2;

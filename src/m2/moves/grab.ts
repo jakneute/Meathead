@@ -936,6 +936,8 @@ const spriteAt = (world: Ctx, x: number, y: number, dir: number, paint: (c: Ctx)
 };
 
 const head = (c: Ctx, x: number, y: number, rot: number, mood: Mood, f: number) => { c.save(); c.translate(x, y); c.rotate(rot); drawHead(c, 0, 0, mood, f); c.restore(); };
+/** (for the other moves and weapons that put him in a pose of their own) */
+export { sprite as drawPoseSprite, head as drawPoseHead };
 
 /**
  * Ground and pound, MMA style: knees down either side of him (full mount), hips low on him, the off hand pinning his
