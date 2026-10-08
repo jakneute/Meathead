@@ -4,8 +4,8 @@
 //      a shoulder charge. Held on the ground a second or so, it winds up into a TORNADO: spinning round and round with
 //      it like a cartoon devil, bonking everybody all round him, edging slowly left or right as he's steered, no jumping.
 //   Y: on the ground, a vertical hit, low to high: tapped, it launches whoever it hits straight up, far harder than an
-//      uppercut. In the air, the mallet over his head and down he comes with it, smashing into the ground: anybody under
-//      him squashed flat, everybody round where he lands bounced up off the floor. Held on the ground, a slow windup, the mallet right back over his head, then
+//      uppercut. In the air, the mallet over his head and down he comes with it, smashing into the ground: a heavy hit to
+//      everybody round where he lands (heaviest right under him), bounced up off the floor. Held on the ground, a slow windup, the mallet right back over his head, then
 //      down: whatever it lands on is squashed flat as a pancake, accordion style, dead.
 // Standing or in the air, never ducking: down there he can't get any leverage on it (and says so).
 // It doesn't use ammo, it wears out: DURABILITY, a little gone every time it connects (only then: a swing at nothing
@@ -36,7 +36,8 @@ const INK = '#1A0B06';
 const SWING = { dmg: 85, knock: 26, lift: -7, len: 18, hitAt: 7 };
 const AIR_SWING = { dmg: 75, knock: 22, lift: -4, len: 16, hitAt: 6 };
 const LAUNCH = { dmg: 70, up: -22, len: 18, hitAt: 7 };
-const POUND = { fall: 17, radius: 130, dmg: 75, up: -12 };
+/** The smash down: how fast he comes down; how far round the landing it hits, and how hard (more, right under him). */
+const POUND = { fall: 17, radius: 130, dmg: 60, under: 50, up: -12 };
 const SMASH = { windup: 42, len: 18, reach: 120 };
 /** wear: one durability for every so many rounds that hit somebody. */
 const TORNADO = { after: 50, max: 300, every: 9, radius: 76, dmg: 30, knock: 17, speed: 3.6, wear: 3 };
@@ -100,7 +101,7 @@ const toonKill = (ctx: FrameContext, e: Enemy, how: 'fling' | 'launch' | 'flatte
 };
 
 /** One hit landing on him: the damage, the word, the sound; dead, a cartoon death; alive, sent the way it goes. */
-const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: number }, how: 'fling' | 'launch') => {
+const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: number }, how: 'fling' | 'launch' | 'flatten') => {
   const { fx, state } = ctx;
   struck.add(e);
   const cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height * 0.4;
@@ -200,15 +201,18 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       break;
     }
     case 'pound':
-      // Coming down hard with it over his head: anybody under him on the way's squashed flat; then the ground
+      // Coming down hard with it over his head, into the ground
       pl.vel.y = POUND.fall; pl.vel.x *= 0.85;
-      for (const e of inBox(state, pl.pos.x - 6, fy - 10, pl.pos.x + pl.width + 6, fy + POUND.fall + 6)) { struck.add(e); if (isMidBoss(e)) { e.health -= 100; ctx.fx.spawnDamageNumber(e.pos, 100, true); continue; } toonKill(ctx, e, 'flatten', dir); }
       if (ground && t > 1) {
         mode = 'land'; t = 0;
         playSound('slam'); playSound('bonk', 1, -8); shakeScreen(state, 20, 10);
         word(px + dir * 30, fy - 70, 'WHOMP!', '#FB923C');
-        // (everybody round where he came down: bounced up off the floor)
-        for (const e of state.enemies.filter(o => alive(o) && !struck.has(o) && Math.abs(o.pos.x + o.width / 2 - px) < POUND.radius && Math.abs(o.pos.y + o.height - fy) < 60)) bonk(ctx, e, POUND.dmg, { x: Math.sign(e.pos.x + e.width / 2 - px) * 6, y: POUND.up }, 'launch');
+        // (everybody round where he came down: a heavy hit, heaviest right under him, bounced up off the floor; one it
+        // finishes is squashed flat)
+        for (const e of state.enemies.filter(o => alive(o) && !struck.has(o) && Math.abs(o.pos.x + o.width / 2 - px) < POUND.radius && Math.abs(o.pos.y + o.height - fy) < 60)) {
+          const k = 1 - Math.abs(e.pos.x + e.width / 2 - px) / POUND.radius;
+          bonk(ctx, e, Math.round(POUND.dmg + POUND.under * k), { x: Math.sign(e.pos.x + e.width / 2 - px) * 6, y: POUND.up }, 'flatten');
+        }
         for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: px + dir * 30, y: fy - 2 }, vel: { x: (i < 8 ? -1 : 1) * (2 + Math.random() * 6), y: -1 - Math.random() * 3 }, life: 26, color: '#A8A29E', size: 4 + Math.random() * 3 });
         // (worn only if it got anybody, under him on the way down or round where he landed)
         if (struck.size) wearOut(ctx, 2);
