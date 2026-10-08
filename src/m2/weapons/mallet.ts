@@ -2,7 +2,8 @@
 // a truck. No combos: every hit's its own, and every one of them's heavy.
 //   X: a horizontal swing (on the ground; a different one in the air) that knocks whoever it hits a mile, far more than
 //      a shoulder charge. Held on the ground a second or so, it winds up into a TORNADO: spinning round and round with
-//      it like a cartoon devil, bonking everybody all round him, edging slowly left or right as he's steered, no jumping.
+//      it like a cartoon devil, bonking everybody all round him, edging left or right as he's steered, no jumping, and
+//      batting back every bullet that comes at him (a stage's hazards still get him).
 //   Y: on the ground, a vertical hit, low to high: tapped, it launches whoever it hits straight up, far harder than an
 //      uppercut. In the air, the mallet over his head and down he comes with it, smashing into the ground: a heavy hit to
 //      everybody round where he lands (heaviest right under him), bounced up off the floor. Coming down on somebody's
@@ -48,7 +49,7 @@ let spinHits = 0;
 /** Y held this long (on the ground) is the windup, not a tap. */
 const Y_HOLD = 14;
 
-type Mode = 'idle' | 'swing' | 'airSwing' | 'launch' | 'pound' | 'windup' | 'smash' | 'land' | 'tornado';
+type Mode = 'idle' | 'swing' | 'airSwing' | 'launch' | 'pound' | 'windup' | 'smash' | 'land' | 'tornado' | 'spinup';
 let mode: Mode = 'idle', t = 0, dir: 1 | -1 = 1;
 /** X: held how long; Y: held how long, and whether it was let go this frame. */
 let xHeld = 0, yHeld = 0, yWas = false, xWas = false;
@@ -188,11 +189,20 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       }
       // (still holding it on the ground: held at the end of the swing, winding up into the tornado)
       if (t >= S.len) {
-        if (mode === 'swing' && input.shoot && ground && durable(ctx)) { t = S.len; if (xHeld >= TORNADO.after) start('tornado', pl); }
+        if (mode === 'swing' && input.shoot && ground && durable(ctx)) { mode = 'spinup'; t = 0; }
         else mode = 'idle';
       }
       break;
     }
+    case 'spinup':
+      // Still holding it after the swing: winding up into the tornado, the mallet coming round faster and faster, his
+      // feet digging in, dust kicking up; let go and it's nothing
+      pl.vel.x *= 0.5; pl.jumpBufferTimer = 0;
+      if (!input.shoot || !ground) { mode = 'idle'; break; }
+      if (t % 3 === 0) state.particles.push({ pos: { x: px + (Math.random() - 0.5) * 40, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -0.5 - Math.random() * 1.5 }, life: 16, color: 'rgba(214, 211, 209, 0.55)', size: 3 + Math.random() * 4 });
+      if (t % 12 === 0) playSound('whoosh', 0.5 + t / 60, -4 + t / 6);
+      if (xHeld >= TORNADO.after) start('tornado', pl);
+      break;
     case 'launch': {
       pl.vel.x *= 0.6;
       if (t === LAUNCH.hitAt) {
@@ -269,6 +279,18 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       pl.vel.x = Math.max(-TORNADO.speed, Math.min(TORNADO.speed, pl.vel.x));
       setArmor(true);
       if (t % 18 === 0) playSound('whirl');
+      // (bullets coming at him: batted back the way they came, a spark and a clang; anything else a stage throws at him,
+      // fire, rocks, sludge, still gets through)
+      for (const q of state.projectiles) {
+        if (q.owner !== 'enemy' || !q.shooterKind || q.thrown || q.isBoulder || q.isSludge || q.isPoop || q.isShrapnel || q.isCocaine || q.isMethBarrel) continue;
+        const qx = q.pos.x + q.width / 2, qy = q.pos.y + q.height / 2;
+        if (Math.abs(qx - px) > TORNADO.radius + 20 || qy < fy - 120 || qy > fy + 10) continue;
+        const away = Math.sign(qx - px) || dir;
+        if (Math.sign(q.vel.x) === away) continue;
+        q.vel.x = away * Math.max(6, Math.abs(q.vel.x) * 1.1); q.vel.y = -Math.abs(q.vel.y) - 1.5;
+        playSound('clang', 0.6, 6);
+        for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: qx, y: qy }, vel: { x: away * (1 + Math.random() * 3), y: (Math.random() - 0.5) * 3 }, life: 8, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 2 });
+      }
       if (t % 4 === 0) state.particles.push({ pos: { x: px + (Math.random() - 0.5) * 60, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 18, color: 'rgba(214, 211, 209, 0.6)', size: 5 + Math.random() * 5 });
       if (t % TORNADO.every === 0) {
         struck = new Set();
@@ -385,6 +407,8 @@ const drawOverlay = (c: Ctx, state: GameState) => {
       let a = 0, lean = 0, crouch = 0;
       let phi: number | null = null;
       if (mode === 'swing' || mode === 'airSwing') { const S = mode === 'swing' ? SWING : AIR_SWING; phi = t < S.hitAt ? lerp(Math.PI * 0.97, 0, ease(t / S.hitAt)) : lerp(0, -0.9, (t - S.hitAt) / 8); }
+      // (winding up the tornado: the mallet coming round and round him, faster each time, a blur building round him)
+      else if (mode === 'spinup') { phi = -0.9 - t * t * 0.012; const k = Math.min(1, t / (TORNADO.after - SWING.len)); c.strokeStyle = `rgba(255, 255, 255, ${(0.15 + 0.4 * k).toFixed(2)})`; c.lineWidth = 4 + 6 * k; c.beginPath(); c.ellipse(x + (f % 2 ? 1 : -1) * k, y - 34, 50 + 14 * k, 12, 0, 0, Math.PI * 2); c.stroke(); }
       else if (mode === 'launch') { const k = t / LAUNCH.hitAt; a = t < LAUNCH.hitAt ? lerp(1.1, -1.4, ease(k)) : -1.5; lean = lerp(0.3, -0.25, k); crouch = t < LAUNCH.hitAt ? 4 * (1 - k) : 0; }
       else if (mode === 'pound') { a = -2.4; lean = -0.15; }
       else if (mode === 'windup') { const k = t / SMASH.windup; a = lerp(0.3, -2.7, ease(k)); lean = lerp(0, -0.3, k); crouch = 2; }
@@ -434,6 +458,7 @@ const drawHeld = (c: Ctx) => { c.save(); c.translate(1, 3); c.rotate(-1.15); dra
 
 /** (for tests: hold him at a frame of a move) */
 export const holdMalletForTests = (m: string, at: number) => { mode = m as Mode; t = at; };
+export const malletModeForTests = () => `${mode}:${t}:${xHeld}`;
 /** Everything it was in the middle of, stopped (through a door). */
 export const stopMallet = () => { if (mode === 'tornado') setArmor(false); mode = 'idle'; words = []; twinkles = []; flat = []; flying = []; };
 
