@@ -22,6 +22,7 @@ import { CANVAS_WIDTH } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { drawEnemyAt } from '../moves/grab';
+import { drawComposited } from '../../m1/game/render/composite';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -115,7 +116,7 @@ const darted = (ctx: FrameContext, e: Enemy, p: Projectile) => {
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
   stuck.push({ e, x: Math.max(0.1, Math.min(0.9, (cx - e.pos.x) / e.width)), y: Math.max(0.1, Math.min(0.9, (cy - e.pos.y) / e.height)), a: Math.atan2(p.vel.y, p.vel.x), t: 0 });
   if (stuck.filter(s => s.e === e).length > 12) stuck.splice(stuck.findIndex(s => s.e === e), 1);
-  for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: -Math.sign(p.vel.x) * Math.random() * 2, y: -Math.random() * 2 }, life: 12, color: i ? '#B91C1C' : '#84CC16', size: 1.5 });
+  for (let i = 0; i < 2; i++) puff(state, { pos: { x: cx, y: cy }, vel: { x: -Math.sign(p.vel.x) * Math.random() * 2, y: -Math.random() * 2 }, life: 12, color: i ? '#B91C1C' : '#84CC16', size: 1.5 });
   playSound('click', 0.4, 10);
   hurt(ctx, e, DART.dmg);
   if (!alive(e) || isMidBoss(e)) return;
@@ -183,7 +184,8 @@ const rotCorpse = (ctx: FrameContext, c: Corpse) => {
   const ps = corpsePose(c);
   if (c.t === BUCKLE) playSound('gush'); if (c.t === BUCKLE + 28) playSound('gush', 0.8, -2);
   // The last of it: a torrent, onto whoever's near (it's still catching), otherwise down in front of him
-  if (c.t >= BUCKLE && c.t < TORRENT_END) {
+  if (c.t >= BUCKLE && c.t < TORRENT_END && globs < MAX_GLOBS) {
+    globs++;
     const kh = e.kind ? KIND_HEAD[e.kind] : undefined;
     const hx = kh ? kh.x + kh.r * 0.8 : e.width * 0.3, hy = kh ? kh.y + kh.r * 0.3 : -e.height * 0.85;
     const th = c.face * ps.a, rx = c.face * hx * ps.sx, ry = (hy + (c.animal ? e.height / 2 : 0)) * ps.sy;
@@ -207,7 +209,7 @@ const rotCorpse = (ctx: FrameContext, c: Corpse) => {
     playSound('thud', 0.8); playSound('splat', 0.6, -4);
     const at = c.animal ? c.x : c.x + c.face * e.height * 0.55, y = floorBelow(state, at, c.y - 4);
     if (y < c.y + 60) puddles.push({ x: at, y, w: Math.max(14, e.height * 0.4), t: 0 });
-    for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: at, y: c.y - 3 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 2.5 }, life: 18, color: PUKE_COLORS[i % 3], size: 3 + Math.random() * 2, grav: 0.3 });
+    for (let i = 0; i < 8; i++) puff(state, { pos: { x: at, y: c.y - 3 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 2.5 }, life: 18, color: PUKE_COLORS[i % 3], size: 3 + Math.random() * 2, grav: 0.3 });
   }
 };
 
@@ -265,7 +267,8 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
   // Spewing: a glob at a time, a long arc onto him (or straight up)
   if (cyc >= REAR && cyc < SPEW_END) {
     if (cyc === REAR || cyc === REAR + 30) playSound('gush');
-    if (cyc % PUKE.every === 0) {
+    if (cyc % PUKE.every === 0 && globs < MAX_GLOBS) {
+      globs++;
       const m = mouthOf(e, dir, lean);
       let vel: { x: number; y: number };
       if (t) {
@@ -290,7 +293,7 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
 const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part, { kind: 'puke' }>) => {
   const { state } = ctx;
   const own = e === part.from;
-  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: p.pos.x + G / 2, y: p.pos.y + G / 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2.5 }, life: 18, color: i === 5 ? BITS[i % 4] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 3, grav: 0.3 });
+  for (let i = 0; i < 6; i++) puff(state, { pos: { x: p.pos.x + G / 2, y: p.pos.y + G / 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2.5 }, life: 18, color: i === 5 ? BITS[i % 4] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 3, grav: 0.3 });
   if (Math.random() < 0.3) playSound('splat', 0.3, 6);
   hurt(ctx, e, own ? PUKE.selfDmg : PUKE.dmg);
   if (!alive(e) || isMidBoss(e)) return;
@@ -300,6 +303,11 @@ const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part,
 };
 
 const PUKE_COLORS = ['#A3B320', '#C5D33B', '#7C8A12'];
+/** What it can have going at once, so a room full of them at it doesn't bring the game to its knees: so many globs in
+ *  the air (past it, a heave just spews thinner), so many specks of it about (past it, no more till there's room). */
+const MAX_GLOBS = 70, PARTICLE_BUDGET = 600;
+let globs = 0;
+const puff = (state: GameState, p: GameState['particles'][number]) => { if (state.particles.length < PARTICLE_BUDGET) state.particles.push(p); };
 /** A glob's size; the bits in it (carrot, corn, something brown). */
 const G = 13;
 const BITS = ['#EA7A12', '#FACC15', '#78350F', '#F97316'];
@@ -334,7 +342,7 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
   part.t++;
   p.vel.y += PUKE.gravity;
   p.pos.x += p.vel.x; p.pos.y += p.vel.y;
-  if (state.frame % 2 === 0 && Math.random() < 0.6) state.particles.push({ pos: { x: p.pos.x + Math.random() * G, y: p.pos.y + G / 2 }, vel: { x: p.vel.x * 0.2, y: 0.3 }, life: 12, color: Math.random() < 0.2 ? BITS[Math.floor(Math.random() * 4)] : PUKE_COLORS[Math.floor(Math.random() * 3)], size: 2 + Math.random() * 2, grav: 0.2 });
+  if (state.frame % 2 === 0 && Math.random() < 0.6) puff(state, { pos: { x: p.pos.x + Math.random() * G, y: p.pos.y + G / 2 }, vel: { x: p.vel.x * 0.2, y: 0.3 }, life: 12, color: Math.random() < 0.2 ? BITS[Math.floor(Math.random() * 4)] : PUKE_COLORS[Math.floor(Math.random() * 3)], size: 2 + Math.random() * 2, grav: 0.2 });
   for (const e of state.enemies) {
     if (!alive(e)) continue;
     // (his own: only coming back down on him, when he threw it up)
@@ -364,7 +372,7 @@ let goo: { x: number; y: number; side: number; t: number; next: number; drips: n
 const GOO_LIFE = 420;
 let drops: { x: number; y: number; vy: number }[] = [];
 const stuckGoo = (state: GameState, x: number, y: number, side: number) => {
-  for (let i = 0; i < 4; i++) state.particles.push({ pos: { x, y }, vel: { x: side * (0.5 + Math.random() * 2), y: (Math.random() - 0.3) * 2 }, life: 12, color: PUKE_COLORS[i % 3], size: 2 + Math.random() * 2, grav: 0.3 });
+  for (let i = 0; i < 4; i++) puff(state, { pos: { x, y }, vel: { x: side * (0.5 + Math.random() * 2), y: (Math.random() - 0.3) * 2 }, life: 12, color: PUKE_COLORS[i % 3], size: 2 + Math.random() * 2, grav: 0.3 });
   playSound('splat', 0.25, 8);
   const near = goo.find(g => Math.abs(g.x - x) < 8 && Math.abs(g.y - y) < 8);
   if (near) { near.t = Math.min(near.t, 60); near.drips = Math.max(0, near.drips - 1); return; }
@@ -386,7 +394,7 @@ const drip = (state: GameState) => {
 
 /** On the floor: a splash, and a puddle (one spreading where there's one already). */
 const splat = (state: GameState, x: number, y: number) => {
-  for (let i = 0; i < 3; i++) state.particles.push({ pos: { x, y: y - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 1.5 }, life: 12, color: PUKE_COLORS[i], size: 2, grav: 0.3 });
+  for (let i = 0; i < 3; i++) puff(state, { pos: { x, y: y - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 1.5 }, life: 12, color: PUKE_COLORS[i], size: 2, grav: 0.3 });
   if (!(y < state.camera.y + 2000)) return;
   const near = puddles.find(q => Math.abs(q.x - x) < q.w && Math.abs(q.y - y) < 4);
   if (near) { near.w = Math.min(46, near.w + 0.8); near.t = Math.min(near.t, 60); }
@@ -400,6 +408,8 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean }, equipped: boolean) 
   const { state } = ctx;
   const want = equipped && input.moveUp && !state.player.isDucking ? -DART.up : 0;
   aim += (want - aim) * 0.35;
+  globs = 0;
+  for (const q of state.projectiles) if (q.custom === 'CROSSBOW' && partOf(q).kind === 'puke') globs++;
   for (const e of tracked) {
     const s = sickness.get(e);
     if (!s || !alive(e) || !state.enemies.includes(e)) { e.pose = undefined; if (!alive(e) || !state.enemies.includes(e)) tracked.delete(e); continue; }
@@ -409,7 +419,7 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean }, equipped: boolean) 
     // Dripping with it
     if (s.doused > 0) {
       s.doused--;
-      if (state.frame % 4 === 0) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + e.height * (0.2 + Math.random() * 0.6) }, vel: { x: 0, y: 0.6 }, life: 18, color: PUKE_COLORS[Math.floor(Math.random() * 3)], size: 2, grav: 0.2 });
+      if (state.frame % 4 === 0) puff(state, { pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + e.height * (0.2 + Math.random() * 0.6) }, vel: { x: 0, y: 0.6 }, life: 18, color: PUKE_COLORS[Math.floor(Math.random() * 3)], size: 2, grav: 0.2 });
     }
   }
   for (const d of stuck) d.t++;
@@ -422,7 +432,7 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean }, equipped: boolean) 
       if (!alive(e) || Math.abs(e.vel.y) > 1) continue;
       const cx = e.pos.x + e.width / 2, fy = e.pos.y + e.height;
       if (!puddles.some(q => Math.abs(cx - q.x) < q.w + e.width * 0.3 && Math.abs(fy - q.y) < 6)) continue;
-      state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * e.width * 0.6, y: fy - 2 }, vel: { x: 0, y: -0.8 }, life: 14, color: 'rgba(163, 179, 32, 0.8)', size: 2 });
+      puff(state, { pos: { x: cx + (Math.random() - 0.5) * e.width * 0.6, y: fy - 2 }, vel: { x: 0, y: -0.8 }, life: 14, color: 'rgba(163, 179, 32, 0.8)', size: 2 });
       hurt(ctx, e, PUDDLE_STING.dmg);
     }
   }
@@ -450,10 +460,10 @@ const draw = (c: Ctx, p: Projectile, frame: number) => {
   // A glob: a lumpy wad of it, three or four lobes stretched out along the way it's going, wobbling; chunks of things in
   // it (carrot, corn, something brown nobody wants to know about); a wet shine on top
   const x = p.pos.x + G / 2, y = p.pos.y + G / 2, a = Math.atan2(p.vel.y, p.vel.x), sd = part.seed;
-  const lobes: [number, number, number][] = [[0, 0, 5.2], [-4.5, 1.5 - sd * 3, 3.6 + sd], [3.5, -2 + sd * 2, 3.4], [-1, 3.5, 2.6 + sd * 1.2]];
+  const lobes: [number, number, number][] = [[0, 0, 5.2], [-4.5, 1.5 - sd * 3, 3.6 + sd], [3.5, -1 + sd * 2.5, 3.4]];
   c.save(); c.translate(x, y); c.rotate(a);
   const wob = Math.sin(frame * 0.8 + sd * 9);
-  for (const [col, g] of [['#3F470A', 1.2], ['#7C8A12', 0], ['#A3B320', -1.2]] as const) {
+  for (const [col, g] of [['#3F470A', 1.2], ['#A3B320', 0]] as const) {
     c.fillStyle = col;
     for (const [lx, ly, r] of lobes) { c.beginPath(); c.ellipse(lx * (1 + wob * 0.06), ly, Math.max(0.5, r + g + wob * 0.3), Math.max(0.5, r * 0.85 + g - wob * 0.3), 0, 0, Math.PI * 2); c.fill(); }
   }
@@ -493,17 +503,20 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     const ps = corpsePose(k), e = k.e;
     c.save();
     c.globalAlpha = k.t > LIE_END ? Math.max(0, 1 - (k.t - LIE_END) / GONE) : 1;
-    c.filter = k.t < FALL_END ? SICK_LOOK[Math.floor(f / 10) % 2] : 'sepia(0.55) hue-rotate(45deg) saturate(1.6) brightness(0.8)';
-    if (k.animal) {
-      // (turned about its middle: on its back, its middle stays where it was)
-      c.translate(k.x, k.y - e.height / 2 * ps.sy); c.scale(ps.sx, ps.sy); c.rotate(k.face * ps.a);
-      drawEnemyAt(c, e, state, 0, e.height / 2, 0, k.face);
-    } else {
-      // (a man, about his feet; lying down, he's lifted by half his thickness: on the floor, not through it)
-      c.translate(k.x, k.y - ps.lift * e.width * 0.5 * ps.sx); c.scale(ps.sx, ps.sy);
-      drawEnemyAt(c, e, state, 0, 0, k.face * ps.a, k.face);
-    }
-    c.filter = 'none';
+    // (green: put on him once, the whole of him, not shape by shape)
+    const filter = k.t < FALL_END ? SICK_LOOK[Math.floor(f / 10) % 2] : 'sepia(0.55) hue-rotate(45deg) saturate(1.6) brightness(0.8)';
+    const r = Math.max(e.width, e.height) * 1.3 + 30;
+    drawComposited(c, { x: k.x - r, y: k.y - r, w: r * 2, h: r + 20 }, g => {
+      if (k.animal) {
+        // (turned about its middle: on its back, its middle stays where it was)
+        g.translate(k.x, k.y - e.height / 2 * ps.sy); g.scale(ps.sx, ps.sy); g.rotate(k.face * ps.a);
+        drawEnemyAt(g, e, state, 0, e.height / 2, 0, k.face);
+      } else {
+        // (a man, about his feet; lying down, he's lifted by half his thickness: on the floor, not through it)
+        g.translate(k.x, k.y - ps.lift * e.width * 0.5 * ps.sx); g.scale(ps.sx, ps.sy);
+        drawEnemyAt(g, e, state, 0, 0, k.face * ps.a, k.face);
+      }
+    }, { filter });
     c.restore();
     if (k.t > FALL_END && k.t < LIE_END) {
       // (the flies)
