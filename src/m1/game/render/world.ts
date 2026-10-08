@@ -29,7 +29,7 @@ import { drawAnimalDeathScreen, animalInDeath } from './player/animalDeaths';
 import { drawFallCam } from './player/fallCams';
 import { drawCrashCam } from './player/crashDeath';
 import { drawEyeFallCam } from './player/eyeFallCam';
-import { drawKindEnemy, animFrame, KIND_TOP_REACH } from './enemies';
+import { drawKindEnemy, animFrame, KIND_TOP_REACH, kindFacing } from './enemies';
 import { isMidBoss } from '../combat/midBoss';
 import { drawBossHud } from './bossHud';
 import { POUND_ZONES, stormSafe } from '../bosses/barry';
@@ -859,7 +859,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
     const tased = isTasedNow(e, state);
     if (tased) { const j = tasedJitter(state); ctx.translate(j.x, j.y); }
     // (posed by the game: leaned, squashed, turned round, tinted, about its feet)
-    if (e.pose && !e.isBlownAway) { const px = e.pos.x + e.width / 2, py = e.pos.y + e.height; ctx.translate(px, py); ctx.rotate(e.pose.lean); ctx.scale(e.pose.sx, e.pose.sy); ctx.translate(-px, -py); if (e.pose.filter) ctx.filter = e.pose.filter; }
+    if (e.pose && !e.isBlownAway) { const px = e.pos.x + e.width / 2, py = e.pos.y + e.height; ctx.translate(px, py); ctx.rotate(e.pose.lean); ctx.scale(e.pose.sx, e.pose.sy); if (e.pose.face && e.kind && kindFacing(e, state) !== e.pose.face) ctx.scale(-1, 1); ctx.translate(-px, -py); if (e.pose.filter) ctx.filter = e.pose.filter; }
     if (e.isBlownAway) { ctx.translate(e.pos.x + e.width / 2, e.pos.y + e.height / 2); ctx.rotate(e.rotation || 0); ctx.translate(-(e.pos.x + e.width / 2), -(e.pos.y + e.height / 2)); }
     else if (e.type === 'boss' && state.arenaLocked && e.hitCooldown && e.hitCooldown > 0 && Math.floor(state.frame / 5) % 2 === 0) ctx.globalAlpha = 0.4;
 

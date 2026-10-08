@@ -15,8 +15,7 @@ import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
-import { KIND_HEAD, KIND_TOP_REACH } from '../../m1/game/render/enemies';
-import { deathFacing } from '../../m1/game/enemies/deaths';
+import { KIND_HEAD, KIND_TOP_REACH, kindFacing } from '../../m1/game/render/enemies';
 import { CANVAS_WIDTH } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
@@ -26,17 +25,21 @@ const INK = '#1A0B06';
 
 /** The darts: the wait between them, how fast, how much they hurt (not much), and how much tolerance each takes. */
 const DART = { cooldown: 7, speed: 17, dmg: 2, sick: 1, gravity: 0.05, up: 0.55 };
+/** Where its tip is from the grip (as the engine's muzzle has it); how far it's tilted up right now (up held: it
+ *  swings up, let go: back down level). */
+const TIP = { x: 27, y: -4 };
+let aim = 0;
 /** Tolerance: a few darts' worth, and more by how much of him there is. Unhit a while, it comes back. */
-const tolMax = (e: Enemy) => 3 + e.maxHealth / 22;
+const tolMax = (e: Enemy) => 2 + e.maxHealth / 35;
 const REGEN_AFTER = 120, REGEN = 0.03;
 /** Being sick: so many heaves, each this long (rearing back, spewing, getting his breath). After, a short spell he's
  *  over it, then he can be got again. */
-const HEAVE = 70, HEAVES = 3, REAR = 14, SPEW_END = 50, IMMUNE = 90;
+const HEAVE = 70, HEAVES = 4, REAR = 14, SPEW_END = 50, IMMUNE = 90;
 /** The puke: a glob every so often while he's spewing; what one does to whoever it lands on (his own, coming down on
  *  him, hurts a bit more); how far he'll look for somebody to throw up on. */
-const PUKE = { every: 2, gravity: 0.35, dmg: 1.5, selfDmg: 1.3, sick: 0.45, reach: 460 };
+const PUKE = { every: 2, gravity: 0.35, dmg: 1.5, selfDmg: 1.3, sick: 0.6, reach: 460 };
 /** How green he looks, sick. */
-const SICK_LOOK = 'sepia(0.45) hue-rotate(40deg) saturate(1.6)';
+const SICK_LOOK = ['sepia(0.6) hue-rotate(42deg) saturate(2.3)', 'sepia(0.7) hue-rotate(48deg) saturate(2.8) brightness(0.92)'];
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
 
@@ -56,7 +59,7 @@ const sickOf = (e: Enemy) => { let s = sickness.get(e); if (!s) { s = { tol: tol
 /** Everybody being (or that's been) got at, for the tick and the drawing (the WeakMap can't be walked). */
 let tracked = new Set<Enemy>();
 
-type Part = { kind: 'dart' } | { kind: 'puke'; from: Enemy; self: boolean; t: number; chunk: boolean };
+type Part = { kind: 'dart' } | { kind: 'puke'; from: Enemy; self: boolean; t: number; seed: number };
 const partOf = (p: Projectile) => p.customData as Part;
 
 /** Darts stuck in somebody (where on him, at what angle), or in a wall; puddles of it. */
@@ -84,9 +87,14 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean }, muzzle: { x: number
   const { state, cheats } = ctx;
   const pl = state.player;
   const dir = pl.facing;
-  const a = input.moveUp ? -DART.up : (Math.random() - 0.5) * 0.04;
+  void input;
+  const a = aim + (Math.random() - 0.5) * 0.04;
+  // (off the tip, wherever it's pointing: turned about the grip)
+  const grip = { x: muzzle.x - dir * TIP.x, y: muzzle.y - TIP.y };
+  const tx = TIP.x * Math.cos(aim) - TIP.y * Math.sin(aim), ty = TIP.x * Math.sin(aim) + TIP.y * Math.cos(aim);
+  const from = { x: grip.x + dir * tx, y: grip.y + ty };
   state.projectiles.push({
-    id: `dart-${state.frame}-${Math.random()}`, pos: { x: muzzle.x - 5, y: muzzle.y - 1.5 }, vel: { x: dir * Math.cos(a) * DART.speed, y: Math.sin(a) * DART.speed },
+    id: `dart-${state.frame}-${Math.random()}`, pos: { x: from.x - 5, y: from.y - 1.5 }, vel: { x: dir * Math.cos(a) * DART.speed, y: Math.sin(a) * DART.speed },
     width: 10, height: 3, health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'CROSSBOW', customData: { kind: 'dart' } satisfies Part,
   });
   pl.shootCooldown = DART.cooldown;
@@ -160,7 +168,7 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
   if (cyc === 0 || (s.target && !alive(s.target)) || (s.target && !state.enemies.includes(s.target))) s.target = pickTarget(state, e);
   if (cyc === 0 && n > 0) playSound('retch', 0.8);
   const t = s.target;
-  const natural = deathFacing(state, e);
+  const natural = (e.kind ? kindFacing(e, state) : e.facing ?? 1) as 1 | -1;
   s.dir = (t ? (Math.sign(t.pos.x + t.width / 2 - (e.pos.x + e.width / 2)) || natural) : natural) as 1 | -1;
   const dir = s.dir, up = !t;
   // The pose: rearing back, then over it (or head back, if it's going up), then getting his breath
@@ -168,7 +176,8 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
   if (cyc < REAR) { const k = cyc / REAR; lean = -dir * 0.14 * k; sy = 1 + 0.06 * k; sx = 1 - 0.04 * k; }
   else if (cyc < SPEW_END) { lean = up ? -dir * 0.32 : dir * (0.3 + Math.sin(cyc * 1.3) * 0.04); sy = 0.95 + Math.sin(cyc * 0.9) * 0.03; sx = 1.03; }
   else { const k = (cyc - SPEW_END) / (HEAVE - SPEW_END); lean = (up ? -dir * 0.32 : dir * 0.3) * (1 - k); }
-  e.pose = { lean, sx: sx * (dir !== natural ? -1 : 1), sy, filter: SICK_LOOK };
+  // (green, going greener and back, all the while he's sick)
+  e.pose = { lean, sx, sy, filter: SICK_LOOK[Math.floor(state.frame / 10) % 2], face: dir };
   // Spewing: a glob at a time, a long arc onto him (or straight up)
   if (cyc >= REAR && cyc < SPEW_END) {
     if (cyc === REAR) playSound('gush');
@@ -185,8 +194,8 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
         vel = { x: (e.pos.x + e.width / 2 - m.x) / T + (Math.random() - 0.5) * 0.8, y: vy };
       }
       state.projectiles.push({
-        id: `puke-${state.frame}-${Math.random()}`, pos: { x: m.x - 4, y: m.y - 4 }, vel, width: 8, height: 8, health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'CROSSBOW',
-        customData: { kind: 'puke', from: e, self: !t, t: 0, chunk: Math.random() < 0.3 } satisfies Part,
+        id: `puke-${state.frame}-${Math.random()}`, pos: { x: m.x - G / 2, y: m.y - G / 2 }, vel, width: G, height: G, health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'CROSSBOW',
+        customData: { kind: 'puke', from: e, self: !t, t: 0, seed: Math.random() } satisfies Part,
       });
     }
   }
@@ -197,7 +206,7 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
 const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part, { kind: 'puke' }>) => {
   const { state } = ctx;
   const own = e === part.from;
-  for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: p.pos.x + 4, y: p.pos.y + 4 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 16, color: PUKE_COLORS[i % 3], size: 2 + Math.random() * 2, grav: 0.3 });
+  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: p.pos.x + G / 2, y: p.pos.y + G / 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2.5 }, life: 18, color: i === 5 ? BITS[i % 4] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 3, grav: 0.3 });
   if (Math.random() < 0.3) playSound('splat', 0.3, 6);
   hurt(ctx, e, own ? PUKE.selfDmg : PUKE.dmg, Math.sign(p.vel.x) || 1);
   if (!alive(e) || isMidBoss(e)) return;
@@ -207,6 +216,9 @@ const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part,
 };
 
 const PUKE_COLORS = ['#A3B320', '#C5D33B', '#7C8A12'];
+/** A glob's size; the bits in it (carrot, corn, something brown). */
+const G = 13;
+const BITS = ['#EA7A12', '#FACC15', '#78350F', '#F97316'];
 
 // ---------------------------------------------------------------------------------------------------------------
 // Darts and puke, moving
@@ -238,7 +250,7 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
   part.t++;
   p.vel.y += PUKE.gravity;
   p.pos.x += p.vel.x; p.pos.y += p.vel.y;
-  if (state.frame % 2 === 0 && Math.random() < 0.5) state.particles.push({ pos: { x: p.pos.x + 4, y: p.pos.y + 4 }, vel: { x: 0, y: 0.3 }, life: 10, color: PUKE_COLORS[Math.floor(Math.random() * 3)], size: 2 });
+  if (state.frame % 2 === 0 && Math.random() < 0.6) state.particles.push({ pos: { x: p.pos.x + Math.random() * G, y: p.pos.y + G / 2 }, vel: { x: p.vel.x * 0.2, y: 0.3 }, life: 12, color: Math.random() < 0.2 ? BITS[Math.floor(Math.random() * 4)] : PUKE_COLORS[Math.floor(Math.random() * 3)], size: 2 + Math.random() * 2, grav: 0.2 });
   for (const e of state.enemies) {
     if (!alive(e)) continue;
     // (his own: only coming back down on him, when he threw it up)
@@ -247,9 +259,9 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     pukedOn(ctx, e, p, part);
     return false;
   }
-  const floor = floorBelow(state, p.pos.x + 4, p.pos.y);
-  if (p.vel.y > 0 && p.pos.y + p.height >= floor) { splat(state, p.pos.x + 4, floor); return false; }
-  if (wallAt(state, p.pos.x, p.pos.y, p.width, p.height)) { splat(state, p.pos.x + 4, floorBelow(state, p.pos.x + 4 - Math.sign(p.vel.x) * 8, p.pos.y)); return false; }
+  const floor = floorBelow(state, p.pos.x + G / 2, p.pos.y);
+  if (p.vel.y > 0 && p.pos.y + p.height >= floor) { splat(state, p.pos.x + G / 2, floor); return false; }
+  if (wallAt(state, p.pos.x, p.pos.y, p.width, p.height)) { splat(state, p.pos.x + G / 2, floorBelow(state, p.pos.x + G / 2 - Math.sign(p.vel.x) * 10, p.pos.y)); return false; }
   return true;
 };
 
@@ -265,8 +277,10 @@ const splat = (state: GameState, x: number, y: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Every frame
 
-const tick = (ctx: FrameContext) => {
+const tick = (ctx: FrameContext, input: { moveUp: boolean }, equipped: boolean) => {
   const { state } = ctx;
+  const want = equipped && input.moveUp && !state.player.isDucking ? -DART.up : 0;
+  aim += (want - aim) * 0.35;
   for (const e of tracked) {
     const s = sickness.get(e);
     if (!s || !alive(e) || !state.enemies.includes(e)) { e.pose = undefined; if (!alive(e) || !state.enemies.includes(e)) tracked.delete(e); continue; }
@@ -301,12 +315,20 @@ const drawDart = (c: Ctx, x: number, y: number, a: number, len = 11) => {
 const draw = (c: Ctx, p: Projectile, frame: number) => {
   const part = partOf(p);
   if (part.kind === 'dart') { drawDart(c, p.vel.x > 0 ? p.pos.x + p.width : p.pos.x, p.pos.y + 1.5, Math.atan2(p.vel.y, p.vel.x)); return; }
-  // A glob: lumpy, yellow-green, a shine on it, now and then a chunk of something orange in it
-  const x = p.pos.x + 4, y = p.pos.y + 4, wob = Math.sin(frame * 0.7 + p.pos.x) * 0.8;
-  c.fillStyle = '#5B6410'; c.beginPath(); c.ellipse(x, y, 4.6 + wob * 0.3, 4 - wob * 0.3, Math.atan2(p.vel.y, p.vel.x), 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#A3B320'; c.beginPath(); c.ellipse(x, y, 3.6 + wob * 0.3, 3 - wob * 0.3, Math.atan2(p.vel.y, p.vel.x), 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#E2EC7A'; c.fillRect(x - 2, y - 2, 2, 1);
-  if (part.chunk) { c.fillStyle = '#EA7A12'; c.fillRect(x, y, 2, 2); }
+  // A glob: a lumpy wad of it, three or four lobes stretched out along the way it's going, wobbling; chunks of things in
+  // it (carrot, corn, something brown nobody wants to know about); a wet shine on top
+  const x = p.pos.x + G / 2, y = p.pos.y + G / 2, a = Math.atan2(p.vel.y, p.vel.x), sd = part.seed;
+  const lobes: [number, number, number][] = [[0, 0, 5.2], [-4.5, 1.5 - sd * 3, 3.6 + sd], [3.5, -2 + sd * 2, 3.4], [-1, 3.5, 2.6 + sd * 1.2]];
+  c.save(); c.translate(x, y); c.rotate(a);
+  const wob = Math.sin(frame * 0.8 + sd * 9);
+  for (const [col, g] of [['#3F470A', 1.2], ['#7C8A12', 0], ['#A3B320', -1.2]] as const) {
+    c.fillStyle = col;
+    for (const [lx, ly, r] of lobes) { c.beginPath(); c.ellipse(lx * (1 + wob * 0.06), ly, Math.max(0.5, r + g + wob * 0.3), Math.max(0.5, r * 0.85 + g - wob * 0.3), 0, 0, Math.PI * 2); c.fill(); }
+  }
+  // (the bits in it)
+  for (let i = 0; i < 3; i++) { const k = (sd * 7 + i * 3.1) % 1; c.fillStyle = BITS[Math.floor((sd * 10 + i) % 4)]; c.fillRect(Math.round(-4 + k * 8), Math.round(-2 + ((k * 5) % 1) * 4), i === 0 ? 3 : 2, 2); }
+  c.fillStyle = '#E2EC7A'; c.fillRect(-2, -4, 3, 1); c.fillRect(-5, -1, 1, 1);
+  c.restore();
 };
 
 const drawOverlay = (c: Ctx, state: GameState) => {
@@ -316,7 +338,8 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     c.globalAlpha = q.t > PUDDLE_LIFE - 60 ? (PUDDLE_LIFE - q.t) / 60 : 1;
     c.fillStyle = '#5B6410'; c.beginPath(); c.ellipse(q.x, q.y - 0.5, q.w + 1, 2.4, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#A3B320'; c.beginPath(); c.ellipse(q.x, q.y - 0.8, q.w, 1.7, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#EA7A12'; c.fillRect(q.x - q.w * 0.3, q.y - 1.5, 2, 1); c.fillRect(q.x + q.w * 0.4, q.y - 1, 1, 1);
+    c.fillStyle = '#7C8A12'; c.beginPath(); c.ellipse(q.x - q.w * 0.35, q.y - 1.6, q.w * 0.3, 1.8, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#EA7A12'; c.fillRect(q.x - q.w * 0.3, q.y - 2.5, 3, 2); c.fillStyle = '#FACC15'; c.fillRect(q.x + q.w * 0.35, q.y - 2, 2, 2); c.fillStyle = '#78350F'; c.fillRect(q.x + q.w * 0.05, q.y - 2, 2, 1);
     c.fillStyle = '#E2EC7A'; c.fillRect(q.x - q.w * 0.5, q.y - 2, 3, 1);
   }
   c.globalAlpha = 1;
@@ -328,9 +351,13 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     const fx = e.pos.x + e.width / 2, fy = e.pos.y + e.height;
     let lx = e.pos.x + d.x * e.width - fx, ly = e.pos.y + d.y * e.height - fy;
     const lean = e.pose?.lean ?? 0;
+    // (turned round to throw up on somebody: they go round with him)
+    const turned = !!e.pose?.face && !!e.kind && kindFacing(e, state) !== e.pose.face;
+    let a = d.a;
+    if (turned) { lx = -lx; a = Math.PI - a; }
     const cs = Math.cos(lean), sn = Math.sin(lean);
     [lx, ly] = [lx * cs - ly * sn, lx * sn + ly * cs];
-    drawDart(c, fx + lx + Math.cos(d.a) * 2, fy + ly + Math.sin(d.a) * 2, d.a + lean, 9);
+    drawDart(c, fx + lx + Math.cos(a) * 2, fy + ly + Math.sin(a) * 2, a + lean, 9);
   }
   for (const e of tracked) {
     const s = sickness.get(e);
@@ -349,8 +376,19 @@ const drawOverlay = (c: Ctx, state: GameState) => {
       c.fillStyle = INK; c.fillRect(x - 9, y - 2, 7, 8); c.fillStyle = k < 0.5 ? '#A3B320' : '#FCD34D'; c.fillRect(x - 8, y - 1, 5, 6);
       c.fillStyle = INK; c.fillRect(x - 7, y + 1, 1, 1); c.fillRect(x - 5, y + 1, 1, 1); c.fillRect(x - 7, y + 3, 3, 1);
     }
-    // Sick: stink lines coming off him, and his HURK!
+    // Sick: a green queasy face over his head (no bar: there's no wearing him down any more till he's over it), the
+    // drool, the stink lines coming off him, and his HURK!
     if (s.t >= 0) {
+      const bob = Math.sin(f * 0.2 + e.pos.x) * 2, x = Math.round(e.pos.x + e.width / 2), y = Math.round(top - 4 + bob), sw = Math.sin(f * 0.35) * 0.18;
+      c.save(); c.translate(x, y); c.rotate(sw);
+      c.fillStyle = INK; c.beginPath(); c.arc(0, 0, 8, 0, Math.PI * 2); c.fill();
+      c.fillStyle = f % 20 < 10 ? '#84CC16' : '#A3B320'; c.beginPath(); c.arc(0, 0, 6.8, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#D9F99D'; c.fillRect(-4, -5, 3, 1);
+      // (eyes screwed up, cheeks puffed, a wobbly mouth)
+      c.fillStyle = INK; c.fillRect(-4, -2, 3, 1); c.fillRect(1, -2, 3, 1);
+      c.fillRect(-3, 2, 1, 1); c.fillRect(-2, 3, 1, 1); c.fillRect(-1, 2, 1, 1); c.fillRect(0, 3, 1, 1); c.fillRect(1, 2, 1, 1); c.fillRect(2, 3, 1, 1);
+      c.fillStyle = '#4D7C0F'; c.fillRect(-6, 0, 2, 2); c.fillRect(4, 0, 2, 2);
+      c.restore();
       for (let i = 0; i < 3; i++) {
         const ph = ((f * 0.03 + i / 3) % 1), x = e.pos.x + e.width * (0.25 + i * 0.25), y = top + 10 - ph * 22;
         c.strokeStyle = `rgba(163, 179, 32, ${(0.7 * (1 - ph)).toFixed(2)})`; c.lineWidth = 1.5;
@@ -370,6 +408,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
 /** In his fist: a jungle crossbow, a bamboo stock wrapped in leather, a bow of bent horn strung across the front, a
  *  dart sat in the groove, a little skull hanging off it. */
 const drawHeld = (c: Ctx) => {
+  c.save(); c.rotate(aim);
   // stock
   c.fillStyle = INK; c.fillRect(-3, -5, 27, 6); c.fillRect(-3, -2, 6, 10);
   c.fillStyle = '#CA8A04'; c.fillRect(-2, -4, 25, 4); c.fillStyle = '#FDE047'; c.fillRect(-2, -4, 25, 1); c.fillStyle = '#854D0E'; c.fillRect(-2, -1, 25, 1);
@@ -385,15 +424,17 @@ const drawHeld = (c: Ctx) => {
   c.strokeStyle = '#78350F'; c.lineWidth = 1; c.beginPath(); c.moveTo(4, 1); c.lineTo(4, 7); c.stroke();
   c.fillStyle = INK; c.fillRect(1, 6, 7, 6); c.fillStyle = '#F5F0E1'; c.fillRect(2, 7, 5, 4);
   c.fillStyle = INK; c.fillRect(3, 8, 1, 1); c.fillRect(5, 8, 1, 1);
+  c.restore();
 };
 
 /** Everything going, stopped (through a door). */
 export const stopCrossbow = () => {
+  aim = 0;
   for (const e of tracked) e.pose = undefined;
   tracked = new Set(); stuck = []; puddles = [];
 };
 
 /** For tests: everybody's tolerance and sickness. */
-export const crossbowForTests = (state: GameState) => state.enemies.filter(e => sickness.has(e)).map(e => { const s = sickness.get(e)!; return `${e.kind}:${s.tol.toFixed(1)}/${s.max.toFixed(1)}:${s.t >= 0 ? 'SICK' + s.t : '-'}:${Math.round(e.health)}`; });
+export const crossbowForTests = (state: GameState) => state.enemies.filter(e => sickness.has(e)).map(e => { const s = sickness.get(e)!; return `${e.kind}:${s.tol.toFixed(1)}/${s.max.toFixed(1)}:${s.t >= 0 ? 'SICK' + s.t : '-'}:${Math.round(e.health)}${s.t >= 0 ? `>${s.target?.kind ?? 'UP'}:face${e.pose?.face}:drawn${e.kind ? kindFacing(e, state) : '?'}` : ''}`; });
 
-export const registerCrossbow = () => registerWeapon('CROSSBOW', { fire: (ctx, input, muzzle) => fire(ctx, input, muzzle), update, draw, drawHeld: c => drawHeld(c), tick: ctx => tick(ctx), drawOverlay });
+export const registerCrossbow = () => registerWeapon('CROSSBOW', { fire: (ctx, input, muzzle) => fire(ctx, input, muzzle), update, draw, drawHeld: c => drawHeld(c), tick: (ctx, input, equipped) => tick(ctx, input, equipped), drawOverlay });

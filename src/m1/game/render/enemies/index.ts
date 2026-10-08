@@ -147,7 +147,8 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
 };
 
 /** Wildlife face where they're headed; goons face you. */
-const kindFacing = (e: Enemy, state: GameState): number => {
+/** Which way a themed enemy's drawn facing (people face Meathead, mostly; animals their own way). */
+export const kindFacing = (e: Enemy, state: GameState): number => {
   if (!isHumanoidKind(e.kind) || e.kind === 'civilian' || e.kind === 'visitor' || e.kind === 'minion' || e.kind === 'tenant') return e.facing ?? -1;
   if (isChargerKind(e.kind) && Math.abs(e.vel.x) > 0.5) return Math.sign(e.vel.x);
   if (e.enemyType === 'shield') return e.facing === 1 ? 1 : -1; // his shield's on the side he's turned to (he turns round after you)

@@ -398,8 +398,8 @@ export interface Enemy extends Entity {
   /** Moved by hand (Meathead 2's staff room): its AI's held off with a short pauseTimer, which isn't a daze (no stars). */
   puppet?: boolean;
   /** Drawn posed (a game's own animation over whatever it's doing: Meathead 2's puking): leaned about its feet by `lean`,
-   *  scaled about them (a negative sx turns it round), and filtered. */
-  pose?: { lean: number; sx: number; sy: number; filter?: string };
+   *  scaled about them, filtered, and (`face`) turned to face that way whichever way it'd be drawn facing. */
+  pose?: { lean: number; sx: number; sy: number; filter?: string; face?: 1 | -1 };
   /** Running from him till this frame (Meathead 2's soul sucker): it faces away, and makes no headway toward him, but
    * still does what it does (shoots, swings). */
   runFrom?: number;
