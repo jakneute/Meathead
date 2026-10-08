@@ -6,9 +6,6 @@
 //   Y: a vertical hit, low to high: tapped, it launches whoever it hits straight up, far harder than an uppercut; tapped
 //      again in the air, up he goes again. Held on the ground, a slow windup, the mallet right back over his head, then
 //      down: whatever it lands on is squashed flat as a pancake, accordion style, dead.
-//   Down + X or down + Y on the ground: a quick spin round, low, a light hit that shoves everybody off him both sides.
-//   Down + X or down + Y in the air: the mallet over his head and down he comes with it, a ground pound: anybody under
-//      him squashed flat, everybody round where he lands bounced up off the floor.
 // It doesn't use ammo, it wears out: DURABILITY, a little gone every time it connects (and spinning). Ammo pickups fill
 // it the same. Its kills are cartoon ones: sent flying off into the distance with a twinkle, or flattened.
 
@@ -36,13 +33,11 @@ const AIR_SWING = { dmg: 75, knock: 22, lift: -4, len: 16, hitAt: 6 };
 const LAUNCH = { dmg: 70, up: -22, len: 18, hitAt: 7 };
 const AIR_LAUNCH = { dmg: 60, up: -19, len: 16, hitAt: 6 };
 const SMASH = { windup: 42, len: 18, reach: 120 };
-const POUND = { fall: 17, radius: 130, dmg: 75, up: -12 };
-const SPIN = { dmg: 12, knock: 14, reach: 95, len: 18, hitAt: 7 };
 const TORNADO = { after: 50, max: 300, every: 9, radius: 76, dmg: 30, knock: 17, speed: 1.8, wear: 30 };
 /** Y held this long (on the ground) is the windup, not a tap. */
 const Y_HOLD = 14;
 
-type Mode = 'idle' | 'swing' | 'airSwing' | 'launch' | 'airLaunch' | 'windup' | 'smash' | 'pound' | 'land' | 'tornado' | 'spin';
+type Mode = 'idle' | 'swing' | 'airSwing' | 'launch' | 'airLaunch' | 'windup' | 'smash' | 'land' | 'tornado';
 let mode: Mode = 'idle', t = 0, dir: 1 | -1 = 1;
 /** X: held how long; Y: held how long, and whether it was let go this frame. */
 let xHeld = 0, yHeld = 0, yWas = false, xWas = false;
@@ -114,7 +109,7 @@ const inBox = (state: GameState, x0: number, y0: number, x1: number, y1: number)
 
 const start = (m: Mode, pl: GameState['player']) => { mode = m; t = 0; dir = pl.facing; struck = new Set(); playSound('whoosh', m === 'tornado' ? 0.6 : 1, m === 'launch' || m === 'airLaunch' ? 4 : -4); };
 
-const tick = (ctx: FrameContext, input: { shoot: boolean; moveDown: boolean; moveUp: boolean }, equipped: boolean) => {
+const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) => {
   const { state } = ctx;
   const pl = state.player;
   // The cartoon bits go on whatever's in his hands
@@ -135,7 +130,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean; moveDown: boolean; mov
   if (!equipped) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; } xHeld = yHeld = 0; return; }
   const ground = pl.isGrounded;
   const yDown = btn('y') || keyHeld('keyf');
-  const xPress = input.shoot && !xWas, yPress = yDown && !yWas, yRelease = !yDown && yWas;
+  const xPress = input.shoot && !xWas, yRelease = !yDown && yWas;
   xWas = input.shoot; yWas = yDown;
   if (input.shoot) xHeld++; else xHeld = 0;
   if (yDown) yHeld++;
@@ -145,9 +140,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean; moveDown: boolean; mov
   const yFree = !grabBusy();
 
   if (mode === 'idle' && durable(ctx) && !pl.isCharging && !pl.isUppercutting && !pl.isDivekicking) {
-    if (!ground && input.moveDown && (xPress || (yPress && yFree))) start('pound', pl);
-    else if (ground && input.moveDown && (xPress || (yPress && yFree))) start('spin', pl);
-    else if (xPress) start(ground ? 'swing' : 'airSwing', pl);
+    if (xPress) start(ground ? 'swing' : 'airSwing', pl);
     else if (tap && yFree) start(ground ? 'launch' : 'airLaunch', pl);
     else if (yDown && yHeld === Y_HOLD && ground && yFree) start('windup', pl);
   }
@@ -171,17 +164,6 @@ const tick = (ctx: FrameContext, input: { shoot: boolean; moveDown: boolean; mov
         if (mode === 'swing' && input.shoot && ground && durable(ctx)) { t = S.len; if (xHeld >= TORNADO.after) start('tornado', pl); }
         else mode = 'idle';
       }
-      break;
-    }
-    case 'spin': {
-      // Round, low: everybody close either side of him shoved off (a light hit)
-      pl.vel.x *= 0.5;
-      if (t === SPIN.hitAt) {
-        const hits = state.enemies.filter(o => alive(o) && Math.abs(o.pos.x + o.width / 2 - px) < SPIN.reach + o.width / 2 && o.pos.y < fy && o.pos.y + o.height > fy - 90);
-        for (const e of hits) { const side = Math.sign(e.pos.x + e.width / 2 - px) || dir; bonk(ctx, e, SPIN.dmg, { x: side * SPIN.knock, y: -4 }, 'fling'); }
-        if (hits.length) wearOut(ctx);
-      }
-      if (t >= SPIN.len) mode = 'idle';
       break;
     }
     case 'launch':
@@ -216,20 +198,6 @@ const tick = (ctx: FrameContext, input: { shoot: boolean; moveDown: boolean; mov
         wearOut(ctx, 3);
       }
       if (t >= SMASH.len) mode = 'idle';
-      break;
-    case 'pound':
-      // Coming down hard with it over his head: anybody under him on the way's squashed flat
-      pl.vel.y = POUND.fall; pl.vel.x *= 0.85;
-      for (const e of inBox(state, pl.pos.x - 6, fy - 10, pl.pos.x + pl.width + 6, fy + POUND.fall + 6)) { struck.add(e); if (isMidBoss(e)) { e.health -= 100; continue; } toonKill(ctx, e, 'flatten', dir); }
-      if (ground && t > 1) {
-        mode = 'land'; t = 0;
-        playSound('slam'); playSound('bonk', 1, -8); shakeScreen(state, 20, 10);
-        word(px, fy - 70, 'WHOMP!', '#FB923C');
-        // (everybody round where he came down: bounced up off the floor)
-        for (const e of state.enemies.filter(o => alive(o) && !struck.has(o) && Math.abs(o.pos.x + o.width / 2 - px) < POUND.radius && Math.abs(o.pos.y + o.height - fy) < 60)) bonk(ctx, e, POUND.dmg, { x: Math.sign(e.pos.x + e.width / 2 - px) * 6, y: POUND.up }, 'launch');
-        for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: px, y: fy - 2 }, vel: { x: (i < 8 ? -1 : 1) * (2 + Math.random() * 6), y: -1 - Math.random() * 3 }, life: 26, color: '#A8A29E', size: 4 + Math.random() * 3 });
-        wearOut(ctx, 2);
-      }
       break;
     case 'land':
       pl.vel.x = 0;
@@ -324,8 +292,6 @@ const drawOverlay = (c: Ctx, state: GameState) => {
       else if (mode === 'launch' || mode === 'airLaunch') { const S = mode === 'launch' ? LAUNCH : AIR_LAUNCH; const k = t / S.hitAt; a = t < S.hitAt ? lerp(1.1, -1.4, ease(k)) : -1.5; lean = lerp(0.3, -0.25, k); crouch = t < S.hitAt ? 4 * (1 - k) : 0; }
       else if (mode === 'windup') { const k = t / SMASH.windup; a = lerp(0.3, -2.7, ease(k)); lean = lerp(0, -0.3, k); crouch = 2; }
       else if (mode === 'smash') { const k = t / 4; a = t < 4 ? lerp(-2.7, 0.9, ease(k)) : 0.9; lean = t < 4 ? lerp(-0.3, 0.45, k) : 0.45; crouch = 6; }
-      else if (mode === 'pound') { a = -2.3; lean = -0.15; }
-      else if (mode === 'spin') { const k = t / SPIN.len; a = 0.5 + k * Math.PI * 2; crouch = 6; if (t < 12) { c.strokeStyle = 'rgba(255, 255, 255, 0.5)'; c.lineWidth = 6; c.beginPath(); c.ellipse(x, y - 30, 70, 16, 0, 0, Math.PI * 2); c.stroke(); } }
       else if (mode === 'land') { a = 1.2; lean = 0.4; crouch = 8; }
       // (the swing's blur)
       if ((mode === 'swing' || mode === 'airSwing') && t >= 3 && t <= 9) { c.fillStyle = 'rgba(255, 255, 255, 0.35)'; c.beginPath(); c.arc(x, y - 46, 62, dir > 0 ? -0.9 : Math.PI - 0.2, dir > 0 ? 0.2 : Math.PI + 0.9); c.lineTo(x, y - 46); c.fill(); }

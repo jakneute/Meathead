@@ -43,10 +43,9 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     description: "A cartoon mallet that hits like a real one. Swing it sideways and they leave the zip code, uppercut them into orbit, smash them flat as a pancake, or spin like a cartoon devil and bonk everybody in the room. No ammo, it just wears out, and ammo pickups patch it up anyway. Physics optional.",
     controls: [
       { pad: ['X'], mouse: 'left', label: 'SWING' },
-      { pad: ['X'], mouse: 'left', label: 'HOLD (GROUND): TORNADO' },
+      { pad: ['X'], mouse: 'left', label: 'HOLD, STANDING: TORNADO' },
       { pad: ['Y'], kb: ['F'], label: 'LAUNCH (AGAIN IN THE AIR)' },
-      { pad: ['Y'], kb: ['F'], label: 'HOLD (GROUND): PANCAKE SMASH' },
-      { pad: ['DPAD_DOWN', 'X'], kb: ['S'], mouse: 'left', join: '+', label: 'SPIN · IN THE AIR: POUND' },
+      { pad: ['Y'], kb: ['F'], label: 'HOLD, STANDING: PANCAKE SMASH' },
     ],
   },
   SOUL_SUCKER: {
