@@ -1164,7 +1164,7 @@ const dropFrozen = (ctx: FrameContext, e: Enemy): boolean => {
 };
 
 /** Kill an enemy from an impact, splattering it (or shattering it if frozen). */
-const impactKill = (ctx: FrameContext, e: Enemy, callout: KillCallout, splatDir: number) => {
+export const impactKill = (ctx: FrameContext, e: Enemy, callout: KillCallout, splatDir: number) => {
   const { fx, state } = ctx;
   e.health = 0;
   if (isFrozen(e)) {

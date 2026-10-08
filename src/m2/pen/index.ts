@@ -1,11 +1,12 @@
 // The staff room behind the STAFF ONLY door: a practice room, like Meathead's gym. A strip of back-of-house concrete
-// with people (and a few animals) walking in from the far end to practice on, a few at a time, forever; he can't be
-// hurt in here (App.tsx). For now they're Meathead 1's; it'll fill up with the regular enemies met in the game. The door
+// with people (and a few animals) walking in from the far end to practice on, a few at a time, forever. Nobody in here
+// fights back: they don't shoot, swing or bump him, they just run about (and away from him, when he comes at them);
+// and he can't be hurt in here anyway (App.tsx). For now they're Meathead 1's; it'll fill up with the regular enemies met in the game. The door
 // back to the hub is at the near end.
 
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
-import type { EnemyKind } from '../../m1/types';
+import type { EnemyKind, Enemy } from '../../m1/types';
 import { groundBlocks } from '../../m1/game/core/terrain';
 import { makeKindEnemy } from '../../m1/game/enemies/kinds';
 import { GROUND_Y, CANVAS_WIDTH } from '../../m1/constants';
@@ -55,6 +56,7 @@ export const penLayout: StageLayout = {
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
     if (!pen) return controls;
     const out = updateGrab(ctx, pen.grab, controls);
+    practice(state);
     // Health doesn't drop off the dead here: the beatdown's how you get it back
     state.pickups = state.pickups.filter(p => !(p.id.startsWith('pickup-') && (p.type === 'small_health' || p.type === 'large_health')));
     // A few at a time, always
@@ -71,6 +73,45 @@ export const penLayout: StageLayout = {
   drawBackdrop: (ctx, state) => { drawPenBackdrop(ctx, state); return true; },
   drawBack: (ctx, state) => drawPenBack(ctx, state),
   drawFront: (ctx, state) => { const pen = getPen(state); if (pen) drawGrab(ctx, state, pen.grab); },
+};
+
+/**
+ * Everybody in here's for practice: harmless to bump, never shooting or swinging, and moved by hand (their own AI held
+ * off): wandering from spot to spot, stopping for a bit, and running off when he gets close (not so fast he can't catch
+ * them). Anybody knocked about (thrown, punched, stunned) is left to that till they've come round.
+ */
+const WANDER = 1.3, FLEE = 2.4, SCARE = 150, EDGE = 60;
+const wander = new WeakMap<Enemy, { to: number; rest: number }>();
+const practice = (state: GameState) => {
+  const p = state.player, px = p.pos.x + p.width / 2;
+  // (anything one of them let fly before they came in here, gone)
+  state.projectiles = state.projectiles.filter(pr => pr.owner !== 'enemy');
+  for (const e of state.enemies) {
+    if (e.health <= 0 || e.isBlownAway) continue;
+    e.harmless = true; e.puppet = true; e.shootTimer = 0;
+    // (nobody ends up out past the walls, however they got sent)
+    e.pos.x = Math.max(X0, Math.min(X0 + LEN - e.width, e.pos.x));
+    // (knocked about by him: left to it)
+    if ((e.pauseTimer || 0) > 2 || Math.abs(e.vel.y) > 0.5 || Math.abs(e.vel.x) > 0.5) continue;
+    e.pauseTimer = 2;
+    let w = wander.get(e);
+    if (!w) { w = { to: e.pos.x, rest: 0 }; wander.set(e, w); }
+    const ex = e.pos.x + e.width / 2, d = ex - px;
+    let dir = 0, speed = WANDER;
+    if (Math.abs(d) < SCARE) {
+      // Running off from him (backed into a wall: past him the other way)
+      dir = d >= 0 ? 1 : -1;
+      if ((dir > 0 && ex > X0 + LEN - EDGE) || (dir < 0 && ex < X0 + EDGE)) dir = -dir;
+      speed = FLEE; w.rest = 0; w.to = ex + dir * 300;
+    } else if (w.rest > 0) w.rest--;
+    else if (Math.abs(w.to - ex) < 8) { w.rest = 30 + Math.floor(Math.random() * 90); w.to = X0 + EDGE + Math.random() * (LEN - EDGE * 2); }
+    else dir = w.to > ex ? 1 : -1;
+    if (!dir) { e.vel.x = 0; continue; }
+    e.facing = dir as 1 | -1;
+    e.pos.x = Math.max(X0 + 10, Math.min(X0 + LEN - e.width - 10, e.pos.x + dir * speed));
+    // (a hair of speed, for which way they're going: not enough to slide them)
+    e.vel.x = dir * 0.01;
+  }
 };
 
 // ---------------------------------------------------------------------------

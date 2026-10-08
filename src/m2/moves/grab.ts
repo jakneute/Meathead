@@ -27,6 +27,7 @@ import { isHumanoidKind, drawKindEnemy, kindHead } from '../../m1/game/render/en
 import { getEnemyMass } from '../../m1/game/combat/knockback';
 import { setArmor } from '../../m1/game/core/resist';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
+import { impactKill } from '../../m1/game/enemies/enemies';
 import { playSound } from '../../m1/game/platform/audio';
 import { INITIAL_PLAYER_HEALTH } from '../../m1/constants';
 import { beginSprite, endSprite } from '../../m1/game/render/player/spriteOutline';
@@ -219,7 +220,7 @@ const lungeHits = (state: GameState, dir: number) => {
   const mid = p.pos.x + p.width / 2;
   let best: Enemy | null = null, bestD = Infinity;
   for (const e of state.enemies) {
-    if (e.health <= 0 || e.isBlownAway || e.innocent || e.harmless) continue;
+    if (e.health <= 0 || e.isBlownAway || e.innocent) continue;
     const slack = isCritter(e) ? 60 : 12;
     if (e.pos.y > p.pos.y + p.height + slack || e.pos.y + e.height < p.pos.y - slack) continue;
     // (anything whose near side is in the stretch, or that he's already partly into, ahead of his middle)
@@ -287,6 +288,8 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
     fl.t++;
     const speed = Math.hypot(e.vel.x, e.vel.y);
     if (e.isBlownAway || e.health <= 0) { e.enemyCollisionCooldown = 0; return false; }
+    // Into a wall: splatted on it, hard (killed, he slides down it)
+    if (wallSplat(ctx, e)) { e.enemyCollisionCooldown = 0; return !e.isBlownAway && e.health > 0; }
     // Coming down: the floor's what hurts him, by how hard he hits it
     if (fl.fall > 2 && e.vel.y <= 0.5 && !fl.oneChunk) {
       hurtThrown(ctx, fl, Math.max(4, Math.round(e.maxHealth * THROW_SHARE * fl.impact * Math.max(0.6, Math.min(1.8, fl.fall / 9)))));
@@ -326,6 +329,38 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
     }
     return true;
   });
+};
+
+/**
+ * A thrown (or booted) body flying into a wall: the side of anything solid, not the floor under it. Going at it hard,
+ * he's splatted on it (half of him and more, the faster he's going the more; with the landing, it finishes most); slower, he just stops
+ * against it. Never through it. True if he hit one.
+ */
+const WALL_SHARE = 0.45, WALL_SHARE_PER_SPEED = 0.035, WALL_SPLAT_SPEED = 3;
+const wallSplat = (ctx: FrameContext, e: Enemy) => {
+  const { state, fx } = ctx;
+  const vx = e.vel.x;
+  if (Math.abs(vx) < 0.5) return false;
+  // (where he'll be next frame, swept from where he is: caught before the engine's own, lighter, wall knock gets him)
+  const mid = e.pos.x + e.width / 2, x0 = Math.min(e.pos.x, e.pos.x + vx), x1 = Math.max(e.pos.x, e.pos.x + vx) + e.width;
+  const wall = state.blocks.find(b => !b.oneWay && b.type !== 'pit' && b.type !== 'door'
+    && x0 < b.x + b.w && x1 > b.x && e.pos.y + 6 < b.y + b.h && e.pos.y + e.height - 6 > b.y
+    && !(mid > b.x && mid < b.x + b.w));
+  if (!wall) return false;
+  const dir = Math.sign(vx);
+  e.pos.x = dir > 0 ? wall.x - e.width : wall.x + wall.w;
+  if (Math.abs(vx) < WALL_SPLAT_SPEED) { e.vel.x = 0; return true; }
+  const dmg = Math.round(Math.max(30, e.maxHealth * Math.min(1, WALL_SHARE + WALL_SHARE_PER_SPEED * Math.abs(vx))));
+  const at = { x: dir > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 };
+  playSound('splat'); playSound('thud', 1.2, -5); shakeScreen(state, 10, 6);
+  fx.spawnExplosion(at, '#8B0000', 14, -dir * 4, 10);
+  e.health -= dmg;
+  if (e.health <= 0) { e.vel.x = 0; impactKill(ctx, e, 'wallsplat', -dir); return true; }
+  fx.spawnDamageNumber(e.pos, dmg, true);
+  // (off it again, a little way, and down)
+  e.vel = { x: -dir * 2, y: Math.min(e.vel.y, -2) };
+  e.pauseTimer = Math.max(e.pauseTimer || 0, THROW_STUN);
+  return true;
 };
 
 /** The one he's thrown, hurt by what he's hit; a hit that finishes him sends him on his way, the grab's kill. */

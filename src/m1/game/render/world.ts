@@ -888,7 +888,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       if (tint || needsComposite(ctx)) drawComposited(ctx, { x: e.pos.x - 40, y: e.pos.y - 60, w: e.width + 80, h: e.height + 100 }, c => drawKindEnemy(c, e, state), tint ? { tint } : null);
       else drawKindEnemy(ctx, e, state);
       // Dazed from a knock: a few stars going round his head
-      if ((e.pauseTimer || 0) > 0 && !e.isBlownAway && e.health > 0) {
+      if ((e.pauseTimer || 0) > (e.puppet ? 2 : 0) && !e.isBlownAway && e.health > 0) {
         const hx = e.pos.x + e.width / 2, hy = e.pos.y - 8 - (KIND_TOP_REACH[e.kind] ?? 0) * 0.6; // (round his head, where it's drawn)
         ctx.save(); ctx.fillStyle = '#FDE047'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.textAlign = 'center';
         for (let k = 0; k < 3; k++) { const a = state.frame * 0.25 + (k * Math.PI * 2) / 3; ctx.fillText('*', hx + Math.cos(a) * 14, hy + Math.sin(a) * 4); }

@@ -377,6 +377,8 @@ export interface Enemy extends Entity {
   pauseTimer?: number;
   /** A practice dummy: bumping into it doesn't hurt. */
   harmless?: boolean;
+  /** Moved by hand (Meathead 2's staff room): its AI's held off with a short pauseTimer, which isn't a daze (no stars). */
+  puppet?: boolean;
   /** A bystander: only Meathead can hurt it (his shots and moves, or something he knocked into it); nothing else does. */
   innocent?: boolean;
   /** A mid-boss already took a hit from this tsunami wave (it's washed over once, not every frame). */

@@ -133,7 +133,7 @@ const App2: React.FC = () => {
         )}
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit) && (
-          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-20 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
+          <div className={`absolute left-1/2 -translate-x-1/2 ${stage === PEN_STAGE ? 'top-[232px]' : 'top-[132px]'} z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600`}>
             <Prompt pad={['DPAD_UP']} kb={['W']} label={nearLand ? `MAP: ${nearLand.name}` : ui.nearExit ? 'BACK TO THE HUB' : 'STAFF ONLY: THE STAFF ROOM'} />
           </div>
         )}
