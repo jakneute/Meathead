@@ -529,6 +529,27 @@ const ART: Record<WeaponType, React.ReactNode> = {
     glint(p, 9, 14);
   }),
 
+  // Meathead 2's crossbow of plagues: a bamboo stock wrapped in leather, a bow of bent horn across the front, a
+  // green-tipped dart sat in it, a little skull hung off it
+  CROSSBOW: draw(p => {
+    const stock = rectC(2, 13, 25, 4);
+    paint(p, stock, rows(stock, ['#FDE047', '#EAB308', '#CA8A04', '#A16207']));
+    for (const x of [8, 15]) paint(p, rectC(x, 12.5, 2, 5), '#78350F');
+    const grip = polyC([[3, 16], [8, 16], [7, 24], [2, 24]]);
+    paint(p, grip, diag(grip, WOOD));
+    const bow = [[21, 2] as Pt, ...quad([21, 2], [27, 15], [21, 28], 12)].map(([x, y]) => [Math.round(x), Math.round(y)] as Pt);
+    polyline(p, bow, '#E7E5E4');
+    polyline(p, bow.map(([x, y]) => [x - 1, y] as Pt), '#A8A29E', null);
+    line(p, 21, 3, 13, 15, '#D6D3D1', null); line(p, 13, 15, 21, 27, '#D6D3D1', null);
+    line(p, 12, 14, 29, 14, '#78350F', null);
+    p.set(29, 14, '#84CC16'); p.set(30, 14, '#84CC16'); p.set(30, 13, '#65A30D', null);
+    p.set(12, 13, '#DC2626', null); p.set(12, 15, '#16A34A', null);
+    line(p, 5, 17, 5, 21, '#78350F', null);
+    const skull = ellC(9, 23, 2.5, 2.2); paint(p, skull, '#F5F0E1');
+    p.set(8, 23, '#0B0B0F', null); p.set(10, 23, '#0B0B0F', null);
+    glint(p, 4, 13);
+  }),
+
   // Dirty Dan's light machine gun: long and black, a vented shroud, a box of rounds hanging off it, the belt
   LMG: draw(p => {
     const stock = polyC([[1, 10.5], [8, 11.5], [8, 16], [1, 18]]);

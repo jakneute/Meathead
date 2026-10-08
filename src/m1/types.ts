@@ -37,7 +37,7 @@ export interface Entity {
 
 export type WeaponType = 'GUN' | 'BOULDER' | 'SHOTGUN' | 'FLAMETHROWER' | 'TSUNAMI' | 'NEEDLES' | 'TASER' | 'SLUDGE' | 'OIL_ROCKET' | 'LMG'
   // (Meathead 2's, from its lands: see combat/customWeapons.ts)
-  | 'SOUVENIR' | 'SOUL_SUCKER' | 'FLINTLOCK' | 'SPELLBOOK' | 'STUNT_CAR' | 'MALLET' | 'SPAWNER';
+  | 'SOUVENIR' | 'SOUL_SUCKER' | 'FLINTLOCK' | 'SPELLBOOK' | 'STUNT_CAR' | 'MALLET' | 'SPAWNER' | 'CROSSBOW';
 
 export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill' | 'truck_wreck' | 'range_boxer_kill' | 'range_balloon_kill' | 'alien_kill';
 
@@ -79,6 +79,8 @@ export type SoundType =
   | 'bonk' | 'twinkle' | 'whirl' | 'squish'
   // (Meathead 2's otherworldly spawner: a litter born, their chatter, their chewing, a skeleton falling to bits)
   | 'spawn' | 'chitter' | 'gnaw' | 'crumble'
+  // (Meathead 2's crossbow of plagues: a dart loosed, somebody retching, the puke coming)
+  | 'twang' | 'retch' | 'gush'
   // his footsteps, by what he's walking on
   | 'step_hard' | 'step_snow' | 'step_metal' | 'step_wood' | 'step_dirt' | 'step_sand' | 'step_wet';
 
@@ -395,6 +397,9 @@ export interface Enemy extends Entity {
   harmless?: boolean;
   /** Moved by hand (Meathead 2's staff room): its AI's held off with a short pauseTimer, which isn't a daze (no stars). */
   puppet?: boolean;
+  /** Drawn posed (a game's own animation over whatever it's doing: Meathead 2's puking): leaned about its feet by `lean`,
+   *  scaled about them (a negative sx turns it round), and filtered. */
+  pose?: { lean: number; sx: number; sy: number; filter?: string };
   /** Running from him till this frame (Meathead 2's soul sucker): it faces away, and makes no headway toward him, but
    * still does what it does (shoots, swings). */
   runFrom?: number;

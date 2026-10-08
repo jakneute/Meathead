@@ -33,6 +33,7 @@ const TIP: Record<WeaponType, { x: number; y: number }> = {
   STUNT_CAR: { x: 18, y: -4 },
   MALLET: { x: 20, y: -10 },
   SPAWNER: { x: 26, y: -3 },
+  CROSSBOW: { x: 27, y: -4 },
 };
 
 /** The flamethrower's nozzle sits this far along the barrel from its pivot. */

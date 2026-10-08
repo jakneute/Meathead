@@ -22,6 +22,8 @@ export const GRAB_CALLOUTS = {
   // (the mallet of pain's: cartoon ones)
   // (the otherworldly spawner's: eaten down to the bone)
   alien: { lines: ['EATEN ALIVE!', 'PICKED CLEAN!', 'DEVOURED!', 'GNAWED!', 'DE-FLESHED!'], color: '#84CC16' },
+  // (the crossbow of plagues': puked to death)
+  plague: { lines: ['PUKED TO DEATH!', 'BARFED ON!', 'CHUNDERED!', 'SPEWED!', 'HURLED!'], color: '#A3B320' },
   mallet: { lines: ['BONKED!', 'FLATTENED!', 'TWINKLED!', 'SQUASHED!', 'CARTOONED!'], color: '#F472B6' },
   // (the spellbook of the damned's)
   spell: { lines: ['SMITED!', 'HEXED!', 'STRUCK DOWN!', 'CURSED!', 'ELEMENTAL!'], color: '#C084FC' },

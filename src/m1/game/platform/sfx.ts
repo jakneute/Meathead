@@ -200,6 +200,21 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.55, vary: 0.4, gap: 120,
     make: () => { const bp = bandpass(); const hits = Array.from({ length: 10 }, (_, i) => i * 0.045 + Math.random() * 0.04); return render(0.7, t => { let x = 0; for (const h of hits) if (t >= h && t < h + 0.004) x += rnd() * 6; return bp(x, 2300, 3) + bp(rnd(), 900, 0.7) * 0.06 * ex(t, 5); }); },
   },
+  twang: {
+    // Meathead 2's crossbow of plagues: the string let go, a tight little thwip
+    gain: 0.4, vary: 0.4, gap: 40,
+    make: () => { let a = 0; const bp = bandpass(); return render(0.12, t => { a += (420 - 900 * t) / SFX_SR; return (Math.sign(Math.sin(TAU * a)) * 0.35 + bp(rnd(), 3200, 1.5) * (t < 0.03 ? 1 : 0)) * ex(t, 30); }); },
+  },
+  retch: {
+    // ...somebody's tolerance gone: a gag, a heave from the gut, a wet gurgle up the throat
+    gain: 0.6, vary: 0.5, gap: 200,
+    make: () => { const lp = lowpass(), bp = bandpass(); let a = 0; return render(0.6, t => { a += (110 + 60 * Math.sin(TAU * 4 * t) + 40 * rnd()) / SFX_SR; const env = t < 0.15 ? t / 0.15 : ex(t - 0.15, 4); return (Math.sign(Math.sin(TAU * a)) * 0.35 + lp(rnd(), 500) * 0.8 + bp(rnd(), 700 + 400 * Math.sin(TAU * 13 * t), 2) * 0.5) * env; }); },
+  },
+  gush: {
+    // ...and up it comes: a splashing gush, gurgling, going on a while
+    gain: 0.5, vary: 0.4, gap: 300,
+    make: () => { const lp = lowpass(), bp = bandpass(); return render(0.65, t => (lp(rnd(), 1300) * 1.1 + bp(rnd(), 500 + 300 * Math.sin(TAU * 17 * t), 3) * 0.6) * Math.min(1, t / 0.03) * ex(Math.max(0, t - 0.35), 6)); },
+  },
   squish: {
     // ...somebody squashed flat: a flat splut and an accordion's wheeze
     gain: 0.5, vary: 0.5, gap: 100,

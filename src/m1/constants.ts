@@ -209,6 +209,8 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'MALLET': 60,
   // (Meathead 2's otherworldly spawner: litters)
   'SPAWNER': 50,
+  // (Meathead 2's crossbow of plagues: darts)
+  'CROSSBOW': 150,
 };
 
 /** A fresh ammo loadout with every weapon topped up. */
