@@ -10416,6 +10416,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ANY MORE PUMP AND I POP!",
+  "from": "BULK_FAIL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "AQUA-CRUSHED",
   "from": "VULGARITIES"
  },
@@ -10893,6 +10898,16 @@
   "voice": "meathead",
   "text": "CAN SPACE GOLD BUY ME NEW PANTS? NO? THEN SHUT UP.",
   "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAN'T FLEX IN MIDAIR!",
+  "from": "BULK_FAIL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAN'T GET ANY BIGGER! YET.",
+  "from": "BULK_FAIL_LINES"
  },
  {
   "voice": "meathead",
@@ -12391,6 +12406,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GOTTA REST BETWEEN SETS!",
+  "from": "BULK_FAIL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GOTTA SUCK SOMEBODY UP FIRST!",
   "from": "EMPTY_BAG_LINES"
  },
@@ -13871,6 +13891,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M ALREADY HUGE!",
+  "from": "BULK_FAIL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M ALREADY KING OF THE MEATS. YOU'RE A GREEN SNACK.",
   "from": "ALIEN_LINES"
  },
@@ -14696,6 +14721,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MUSCLES NEED A BREATHER!",
+  "from": "BULK_FAIL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "MY BLOOD IS LITERALLY FREEZING, FUCK YOU!",
   "from": "HURT"
  },
@@ -14956,6 +14986,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NEED MY FEET UNDER ME!",
+  "from": "BULK_FAIL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NEED YOUR BOAT, GRAMPS.",
   "from": "m1/game/stages/hector/boat.ts:61"
  },
@@ -15143,6 +15178,11 @@
   "voice": "meathead",
   "text": "NO GUTS, NO GLORY!",
   "from": "EMPTY_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO JUICE LEFT IN THIS THING!",
+  "from": "BULK_FAIL_LINES"
  },
  {
   "voice": "meathead",
@@ -15568,6 +15608,11 @@
   "voice": "meathead",
   "text": "OUT OF ICE! ENJOY THE FREEZER, E.T.!",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF MANA, WHATEVER THAT IS!",
+  "from": "BULK_FAIL_LINES"
  },
  {
   "voice": "meathead",
@@ -17131,6 +17176,11 @@
  },
  {
   "voice": "meathead",
+  "text": "STILL RECOVERING!",
+  "from": "BULK_FAIL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "STING THIS!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -17808,6 +17858,11 @@
   "voice": "meathead",
   "text": "THE BAG'S DRY!",
   "from": "EMPTY_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BOOK'S TAPPED OUT!",
+  "from": "BULK_FAIL_LINES"
  },
  {
   "voice": "meathead",

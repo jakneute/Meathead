@@ -18,7 +18,7 @@ import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
 import { CANVAS_WIDTH, HUD_CLEAR_Y } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
-import { BULK_LINES } from '../lines/weaponLines';
+import { BULK_LINES, BULK_FAIL_LINES } from '../lines/weaponLines';
 import { drawPoseSprite, drawPoseHead } from '../moves/grab';
 import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/player/body';
 import { setArmor } from '../../m1/game/core/resist';
@@ -218,7 +218,7 @@ const boltPath = (state: GameState, to: { x: number; y: number }, from: { x: num
 
 let bulkLeft = 0, bulkCool = 0, secondaryWas = false;
 /** The bulk-up's pose, frames left: struck before it takes (nothing interrupts it: hurt, he takes it, but he isn't knocked about). */
-let posing = 0;
+let posing = 0, bulkFailSaidAt = -9999;
 const POSE = 40;
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach(f => f());
@@ -261,7 +261,12 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
       posing = POSE;
       playSound('spell', 1, -8);
       meatheadSays(state, BULK_LINES[Math.floor(Math.random() * BULK_LINES.length)]);
-    } else if (posing <= 0) playSound('click', 0.7, -4);
+    } else if (posing <= 0) {
+      // (it won't: a click, and he says why, a while apart)
+      playSound('click', 0.7, -4);
+      const why = bulkLeft > 0 ? 'already' : bulkCool > 0 ? 'cooldown' : !mana ? 'mana' : 'air';
+      if (state.frame - bulkFailSaidAt > 150) { bulkFailSaidAt = state.frame; const pool = BULK_FAIL_LINES[why]; meatheadSays(state, pool[Math.floor(Math.random() * pool.length)]); }
+    }
   }
   if (posing > 0) {
     // (held there: no moving, no shooting, and nothing knocks him out of it; it still hurts)

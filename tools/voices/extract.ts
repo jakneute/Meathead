@@ -17,7 +17,7 @@ import * as dialogue from '../../src/m1/content/dialogue';
 import * as deaths from '../../src/m1/content/deaths';
 import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
 import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
-import { FULL_BAG_LINES, EMPTY_BAG_LINES, BULK_LINES } from '../../src/m2/lines/weaponLines';
+import { FULL_BAG_LINES, EMPTY_BAG_LINES, BULK_LINES, BULK_FAIL_LINES } from '../../src/m2/lines/weaponLines';
 
 const ROOT = path.resolve(__dirname, '../../src');
 const out = new Map<string, { voice: string; text: string; from: string }>();
@@ -88,6 +88,7 @@ for (const v of Object.values(M2_KILL_LINES)) for (const t of v) add('meathead',
 for (const t of FULL_BAG_LINES) add('meathead', t, 'FULL_BAG_LINES');
 for (const t of EMPTY_BAG_LINES) add('meathead', t, 'EMPTY_BAG_LINES');
 for (const t of BULK_LINES) add('meathead', t, 'BULK_LINES');
+for (const t of Object.values(BULK_FAIL_LINES).flat()) add('meathead', t, 'BULK_FAIL_LINES');
 for (const byGround of Object.values(dialogue.SURFACE_CALLOUTS)) for (const lines of Object.values(byGround ?? {})) for (const t of lines ?? []) add('announcer', t, 'SURFACE_CALLOUTS');
 
 // ---------------------------------------------------------------------------------------------------------------
