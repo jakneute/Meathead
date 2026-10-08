@@ -41,6 +41,7 @@ import { hurtTaken, gritty } from '../core/resist';
 import { inFinale } from '../combat/finaleBuffs';
 import { ROOM_L, ROOM_R } from '../stages/finale/geometry';
 import { noteAnimalKill } from '../player/animalDeaths';
+import { buffs } from '../core/buffs';
 
 /** On the screen right now (the view as drawn, pulled back or pushed in included). */
 const onCamera = (state: FrameContext['state'], e: Enemy) => {
@@ -1007,7 +1008,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
         // (an uppercut sends one off its feet straight up, and what goes up comes down: splat, where it went up)
         const launchUp = player.isUppercutting && !isAirEnemy(e);
         if (launchUp) e.uppercutFlung = true;
-        e.vel = { x: player.isUppercutting ? player.facing * 0.6 : player.facing * 30, y: launchUp ? -22 : player.isUppercutting ? -30 : -5 };
+        e.vel = { x: player.isUppercutting ? player.facing * 0.6 : player.facing * 30 * buffs.knock, y: (launchUp ? -22 : player.isUppercutting ? -30 : -5) * Math.sqrt(buffs.knock) };
         if (wasFrozen) fx.spawnGlassShatter(e.pos);
         else fx.spawnDeathShower(e.pos, player.facing);
         fx.spawnKillCallout(e, getMeleeKillCallout(player, wasFrozen));
@@ -1070,7 +1071,8 @@ const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: bo
   const { player } = ctx.state;
   if (e.unshakeable) return;
   const massResistance = Math.min(1, Math.max(0.1, 1 - mass / 1000));
-  let pushX = ((player.vel.x * PLAYER_MASS / mass) / 2) * massResistance;
+  // (pumped up, he's that much heavier: it goes that much further)
+  let pushX = ((player.vel.x * PLAYER_MASS / mass) / 2) * massResistance * buffs.knock;
   if (wasFrozen) pushX *= FROZEN_PUSH_MULTIPLIER;
   // Shoulder-charging a greased enemy: nothing to grip, it shoots off like a puck
   if (player.isCharging && e.isOiled) {
@@ -1079,7 +1081,7 @@ const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: bo
   }
 
   if (player.isUppercutting) {
-    const launch = UPPERCUT_LAUNCH_SPEED * Math.min(1, Math.max(0.4, 1 - mass / 1500));
+    const launch = UPPERCUT_LAUNCH_SPEED * Math.min(1, Math.max(0.4, 1 - mass / 1500)) * Math.sqrt(buffs.knock);
     e.vel.y = -launch;
     e.vel.x = player.facing * UPPERCUT_LAUNCH_X + pushX;
   } else {
