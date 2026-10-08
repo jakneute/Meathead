@@ -571,7 +571,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   }
   ctx.restore();
   // Shit himself (game/player/gut.ts): the seat of his pants soaked through brown, and it's run down his legs
-  if ((p.gut?.stage ?? 0) >= 2 && !isSwimming) drawShitPants(ctx, isDucking ? -16 : -26, isDucking ? 10 : 20);
+  if (p.gut && (p.gut.stage === 2 || (p.gut.stage === 3 && !p.gut.washed)) && !isSwimming) drawShitPants(ctx, isDucking ? -16 : -26, isDucking ? 10 : 20);
 
   // ==========================================
   // LAYER 3: WEIGHTLIFTING BELT
@@ -1004,7 +1004,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   finishBody();
 
   // The stink coming up off him, and the flies he's picked up
-  if ((p.gut?.stage ?? 0) >= 2 && !p.swimming) drawStink(ctx, p.pos.x + p.width / 2 - p.facing * 14, anchorY - 22, animFrame);
+  if (p.gut && (p.gut.stage === 2 || (p.gut.stage === 3 && !p.gut.washed)) && !p.swimming) drawStink(ctx, p.pos.x + p.width / 2 - p.facing * 14, anchorY - 22, animFrame);
 
   // Pain sparks when knocked out of a special move
   if (hurtT >= 0 && hurtT < 0.5) {

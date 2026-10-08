@@ -46,4 +46,11 @@ export const M2_GUT_LINES = {
     'NOBODY LOOK DOWN.',
     'THE PANTS ARE IN ORBIT. THE PANTS ARE GONE.',
   ],
+  /** Naked, washed clean in clean water: clean, at least. Still no pants. */
+  WASHED: [
+    'CLEAN. STILL NAKED. BUT CLEAN.',
+    "THAT'S BETTER. SORT OF.",
+    'NOBODY SWIM HERE FOR A WHILE.',
+    "WASHED THE ASS. PANTS AREN'T COMING BACK.",
+  ],
 };

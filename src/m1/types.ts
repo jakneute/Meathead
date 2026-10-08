@@ -137,6 +137,9 @@ export interface Player extends Entity {
   gut?: { t: number; stage: 0 | 1 | 2 | 3; lineAt?: number; at?: { x: number; y: number }; again?: boolean;
     /** Up off his haunches since he last did it: he can do it again. */
     rearmed?: boolean;
+    /** Naked, he's been in clean water long enough to wash it off him (`washT` the frames he's been in it): no pants
+     *  still, but clean. */
+    washed?: boolean; washT?: number;
     debris?: { kind: 'shred' | 'briefs'; x: number; y: number; vx: number; vy: number; a: number; va: number; t: number; down: boolean; w: number }[];
     globs?: { x: number; y: number; vx: number; vy: number }[];
     stains?: { x: number; y: number; side: number; r: number; seed: number }[];
