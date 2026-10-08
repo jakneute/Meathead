@@ -135,6 +135,8 @@ export interface Player extends Entity {
    *  and his underpants, blown off him in shreds, flying (and then lying where they landed); `globs` of it flying, `stains`
    *  where they hit (the floor, a wall), and the `pile` of it where he was, torn bits of his pants in it. */
   gut?: { t: number; stage: 0 | 1 | 2 | 3; lineAt?: number; at?: { x: number; y: number }; again?: boolean;
+    /** Up off his haunches since he last did it: he can do it again. */
+    rearmed?: boolean;
     debris?: { kind: 'shred' | 'briefs'; x: number; y: number; vx: number; vy: number; a: number; va: number; t: number; down: boolean; w: number }[];
     globs?: { x: number; y: number; vx: number; vy: number }[];
     stains?: { x: number; y: number; side: number; r: number; seed: number }[];

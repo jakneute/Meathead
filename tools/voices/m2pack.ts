@@ -15,6 +15,7 @@ import { fitsHappyLand } from '../../src/m2/lines/consistency';
 import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
 import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES, BULK_LINES, BULK_FAIL_LINES, DUCK_LINES } from '../../src/m2/lines/weaponLines';
+import { M2_GUT_LINES } from '../../src/m2/lines/gutLines';
 
 const ROOT = path.resolve(__dirname, '../..');
 const IN = path.join(ROOT, 'src/m1/generated/voices.bin');
@@ -32,7 +33,7 @@ const withShots = kinds.flatMap(k => [k, `${k}_shot`, `${k}_club`, `${k}_bash`])
 add('meathead', dialogue.VULGARITIES);
 add('meathead', dialogue.KILL_LINES);
 add('meathead', dialogue.GENERIC_KILL_LINES);
-add('meathead', dialogue.GUT_LINES);
+// (Meathead 2 has its own gut lines: M2_GUT_LINES, below)
 add('meathead', pick(dialogue.ENEMY_KILL_LINES as Record<string, unknown>, kinds));
 add('meathead', pick(dialogue.BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT as Record<string, unknown>, withShots));
 // The announcer's kill callouts
@@ -44,6 +45,7 @@ add('meathead', EMPTY_BAG_LINES);
 add('meathead', BULK_LINES);
 add('meathead', BULK_FAIL_LINES);
 add('meathead', DUCK_LINES);
+add('meathead', M2_GUT_LINES);
 // The death screens
 want.add('death|YOU DIED');
 add('death', deaths.FALL_DEATH_LINES);

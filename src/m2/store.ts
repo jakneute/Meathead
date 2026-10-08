@@ -40,7 +40,7 @@ export const goTo = (dest: string) => { leaving = true; travel?.(dest); };
  */
 let carriedGut: import('../m1/types').Player['gut'] | undefined;
 export const carryGut = (gut: import('../m1/types').Player['gut'] | undefined) => {
-  carriedGut = gut ? { t: 0, stage: gut.stage, at: gut.at, debris: undefined } : undefined;
+  carriedGut = gut ? { t: 0, stage: gut.stage, at: gut.at, debris: undefined, rearmed: gut.rearmed } : undefined;
 };
 export const takeGut = () => { const g = carriedGut; carriedGut = undefined; return g; };
 export const isLeaving = () => leaving;

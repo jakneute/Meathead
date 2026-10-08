@@ -9,6 +9,12 @@ import type { GameState } from '../core/state';
 import { playSound } from '../platform/audio';
 import { say, MEATHEAD_VOICE } from '../platform/speech';
 import { GUT_LINES } from '../../content/dialogue';
+
+/** What he says about it: Meathead 1's (dialogue), or a game's own set (Meathead 2: setGutLines), the again lines too. */
+type GutLines = typeof GUT_LINES & { GRUMBLE_AGAIN?: string[]; WARN_AGAIN?: string[]; BLOWOUT?: string[] };
+let lines: GutLines = GUT_LINES;
+export const setGutLines = (l: GutLines) => { lines = l; };
+const pick = (pool: readonly string[] | undefined) => (pool?.length ? pool[Math.floor(Math.random() * pool.length)] : null);
 import { getStageLayout } from '../stages';
 import { STAIN_FRAMES } from '../core/state';
 import { groundLineAt } from '../core/terrain';
@@ -51,18 +57,18 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
   const p = state.player;
   const gut = (p.gut ??= { t: 0, stage: 0 });
   // (the cheat: shitty from the off, every attempt, no fanfare: it's just how it is)
-  if (ctx.cheats.shittyPants && gut.stage !== 2) { gut.stage = 2; gut.t = 0; gut.lineAt = undefined; }
+  if (ctx.cheats.shittyPants && gut.stage < 2) { gut.stage = 2; gut.t = 0; gut.lineAt = undefined; }
   if (gut.debris) flyPants(ctx, gut.debris);
   if (gut.globs?.length) flyGlobs(state, gut);
   if (gut.stage >= 2) {
     // (his line about it, once the announcer's had his say: queued up behind the callout)
     if (gut.lineAt !== undefined && state.frame >= gut.lineAt) {
       gut.lineAt = undefined;
-      const pool = gut.stage === 3 ? GUT_LINES.BLOWOUT : GUT_LINES.ACCIDENT;
-      meatheadSays(state, pool[Math.floor(Math.random() * pool.length)], true);
+      const line = pick(gut.stage === 3 ? lines.BLOWOUT : lines.ACCIDENT);
+      if (line) meatheadSays(state, line, true);
     }
     leaveTrail(ctx);
-    if (gut.stage === 2 && blowout && !ctx.cheats.shittyPants) again(ctx, input, gut);
+    if (gut.stage === 2 && blowout) again(ctx, input, gut);
     return;
   }
   // Down in a crouch on the ground, doing nothing else at all
@@ -73,9 +79,9 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
   if (gut.stage === 0 && gut.t >= GUT_GRUMBLE) {
     gut.stage = 1;
     playSound('rumble', 0.55, -9);
-    meatheadSays(state, GUT_LINES.GRUMBLE[Math.floor(Math.random() * GUT_LINES.GRUMBLE.length)]);
+    meatheadSays(state, pick(lines.GRUMBLE)!);
   } else if (gut.stage === 1 && gut.t === GUT_WARN) {
-    meatheadSays(state, GUT_LINES.WARN[Math.floor(Math.random() * GUT_LINES.WARN.length)], true);
+    meatheadSays(state, pick(lines.WARN)!, true);
   } else if (gut.stage === 1 && (gut.t - GUT_GRUMBLE) % 150 === 75) {
     playSound('rumble', 0.35, -12); // (still going on in there)
   }
@@ -106,14 +112,16 @@ const again = (ctx: FrameContext, input: FrameInput, gut: NonNullable<GameState[
   const p = state.player;
   const still = p.isDucking && p.isGrounded && !p.swimming && !input.moveLeft && !input.moveRight && !input.moveUp && !input.jump
     && !input.shoot && !input.special && !p.isSliding && !p.isCharging && Math.abs(p.vel.x) < 0.2;
-  if (!still) { gut.t = 0; gut.again = false; return; }
+  // (it's only again once he's been up off his haunches since the first time: staying down after it counts for nothing)
+  if (!still) { gut.t = 0; gut.again = false; gut.rearmed = true; return; }
+  if (!gut.rearmed) return;
   gut.t++;
   if (!gut.again && gut.t >= GUT_GRUMBLE) {
     gut.again = true;
     playSound('rumble', 0.7, -11);
-    meatheadSays(state, GUT_LINES.GRUMBLE_AGAIN[Math.floor(Math.random() * GUT_LINES.GRUMBLE_AGAIN.length)]);
+    { const l = pick(lines.GRUMBLE_AGAIN); if (l) meatheadSays(state, l); }
   } else if (gut.again && gut.t === GUT_WARN) {
-    meatheadSays(state, GUT_LINES.WARN_AGAIN[Math.floor(Math.random() * GUT_LINES.WARN_AGAIN.length)], true);
+    { const l = pick(lines.WARN_AGAIN); if (l) meatheadSays(state, l, true); }
   } else if (gut.again && (gut.t - GUT_GRUMBLE) % 120 === 60) {
     playSound('rumble', 0.45, -13);
   }
