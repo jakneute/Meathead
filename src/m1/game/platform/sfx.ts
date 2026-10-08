@@ -129,6 +129,11 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.35, vary: 0.4, gap: 120, voices: 2,
     make: () => { const bp = bandpass(), lp = lowpass(); return render(0.25, t => bp(rnd(), 1100 + 300 * Math.sin(TAU * 13 * t), 0.7) * 0.9 + lp(rnd(), 300) * 0.5); },
   },
+  dry_gore: {
+    // ...and the gore bag with nothing in it: a wet empty splutter (a squelch, a gasp of air, a last little drip)
+    gain: 0.45, vary: 0.8, gap: 150,
+    make: () => { const bp = bandpass(), lp = lowpass(); let ph = 0; return render(0.4, t => { ph += (90 + 60 * Math.sin(TAU * 31 * t)) / SFX_SR; const sput = Math.floor(t * 28) % 3 === 0 ? 1 : 0.15; return (Math.sign(Math.sin(TAU * ph)) * 0.35 * sput + bp(rnd(), 700, 0.9) * 0.6 * sput) * ex(t, 6) + (t > 0.3 && t < 0.33 ? lp(rnd(), 2500) * 0.5 : 0); }); },
+  },
   sadBolt: {
     // A sad little laser: pew... wew (drooping), half-hearted
     gain: 0.3, vary: 1, gap: 120,

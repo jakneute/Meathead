@@ -68,7 +68,7 @@ export type SoundType =
   // (Meathead 2's souvenir launcher: a hollow pop out of a tube, junk rattling)
   | 'souvenir'
   // (Meathead 2's soul sucker: the vacuum, the grinder, the gore bag emptying)
-  | 'suck' | 'grind' | 'gorespray'
+  | 'suck' | 'grind' | 'gorespray' | 'dry_gore'
   // his footsteps, by what he's walking on
   | 'step_hard' | 'step_snow' | 'step_metal' | 'step_wood' | 'step_dirt' | 'step_sand' | 'step_wet';
 

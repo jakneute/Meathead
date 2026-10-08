@@ -19,7 +19,7 @@ import { KIND_TOP_REACH } from '../../m1/game/render/enemies';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
-import { FULL_BAG_LINES } from '../lines/weaponLines';
+import { FULL_BAG_LINES, EMPTY_BAG_LINES } from '../lines/weaponLines';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -185,13 +185,24 @@ const SPRAY_FRAMES = 100, GLOB_EVERY = 1, GLOB_DMG = 13, GLOB_SPEED = 15, GLOB_S
  * up (birds, somebody on a ledge) to well down (off a ledge, at whoever's below).
  */
 const FAN_UP = 1.0, FAN_DOWN = 0.9, FAN_SHARE = 0.48;
-let sprayLeft = 0;
+let sprayLeft = 0, secondaryWas = false, emptySaidAt = -9999;
+/** How often he says the bag's empty (when he does: about one try in three). */
+const EMPTY_LINE_GAP = 300, EMPTY_LINE_CHANCE = 0.35;
 
 const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; moveDown: boolean }, equipped: boolean) => {
   const { state } = ctx;
   const pl = state.player;
   // Secondary: a spray's worth out of the bag (once it's going it goes; another waits till it's done)
+  const press = !!input.secondary && !secondaryWas;
+  secondaryWas = !!input.secondary;
   if (equipped && input.secondary && sprayLeft <= 0 && gore >= SPRAY) { setGore(gore - SPRAY); sprayLeft = SPRAY_FRAMES; }
+  // (nothing in the bag: it splutters, a drip comes out; now and then he says so)
+  else if (equipped && press && sprayLeft <= 0) {
+    const mouth = muzzlePoint(pl, 'SOUL_SUCKER');
+    playSound('dry_gore');
+    for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: mouth.x, y: mouth.y + 2 }, vel: { x: pl.facing * (0.3 + Math.random()), y: 0.5 + Math.random() }, life: 30, color: i ? '#991B1B' : 'rgba(200, 200, 200, 0.5)', size: i ? 2 : 4 });
+    if (state.frame - emptySaidAt > EMPTY_LINE_GAP && Math.random() < EMPTY_LINE_CHANCE) { emptySaidAt = state.frame; meatheadSays(state, EMPTY_BAG_LINES[Math.floor(Math.random() * EMPTY_BAG_LINES.length)]); }
+  }
   if (sprayLeft > 0) {
     sprayLeft--;
     const mouth = muzzlePoint(pl, 'SOUL_SUCKER');

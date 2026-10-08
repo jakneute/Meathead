@@ -10486,6 +10486,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BAG'S EMPTY!",
+  "from": "EMPTY_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BAG'S FULL!",
   "from": "FULL_BAG_LINES"
  },
@@ -11636,6 +11641,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FEED THE GRINDER!",
+  "from": "EMPTY_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "FEEL THE BURN",
   "from": "VULGARITIES"
  },
@@ -12283,6 +12293,11 @@
   "voice": "meathead",
   "text": "GOTTA EMPTY THE BAG FIRST!",
   "from": "FULL_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOTTA SUCK SOMEBODY UP FIRST!",
+  "from": "EMPTY_BAG_LINES"
  },
  {
   "voice": "meathead",
@@ -13513,6 +13528,11 @@
   "voice": "meathead",
   "text": "I NEED FIFTY PAPER TOWELS AND YOUR HEAD ON A PLATE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I NEED MORE MEAT!",
+  "from": "EMPTY_BAG_LINES"
  },
  {
   "voice": "meathead",
@@ -14971,6 +14991,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO GUTS, NO GLORY!",
+  "from": "EMPTY_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NO MORE CHOPPING FOR YOU!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -15158,6 +15183,11 @@
   "voice": "meathead",
   "text": "NOTHING IN HERE BUT SANDWICHES AND A LOCKED DOOR. ...SO FAR.",
   "from": "m1/game/stages/oscar/bunker.ts:367"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING IN THE BAG!",
+  "from": "EMPTY_BAG_LINES"
  },
  {
   "voice": "meathead",
@@ -15373,6 +15403,11 @@
   "voice": "meathead",
   "text": "OUT OF FUEL! THE CURTAINS AREN'T!",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF GUTS!",
+  "from": "EMPTY_BAG_LINES"
  },
  {
   "voice": "meathead",
@@ -17588,6 +17623,11 @@
   "voice": "meathead",
   "text": "THE BAG GIVES BACK!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BAG'S DRY!",
+  "from": "EMPTY_BAG_LINES"
  },
  {
   "voice": "meathead",

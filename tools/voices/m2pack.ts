@@ -14,7 +14,7 @@ import { M2_ENEMY_KINDS } from '../../src/m2/roster';
 import { fitsHappyLand } from '../../src/m2/lines/consistency';
 import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
 import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
-import { FULL_BAG_LINES } from '../../src/m2/lines/weaponLines';
+import { FULL_BAG_LINES, EMPTY_BAG_LINES } from '../../src/m2/lines/weaponLines';
 
 const ROOT = path.resolve(__dirname, '../..');
 const IN = path.join(ROOT, 'src/m1/generated/voices.bin');
@@ -40,6 +40,7 @@ for (const c of Object.values(dialogue.KILL_CALLOUTS)) add('announcer', (c as { 
 for (const c of Object.values(GRAB_CALLOUTS)) add('announcer', c.lines);
 add('meathead', M2_KILL_LINES);
 add('meathead', FULL_BAG_LINES);
+add('meathead', EMPTY_BAG_LINES);
 // The death screens
 want.add('death|YOU DIED');
 add('death', deaths.FALL_DEATH_LINES);
