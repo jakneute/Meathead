@@ -334,8 +334,14 @@ const flatSwingPose = (c: Ctx, f: number, phi: number, tilt: number, airborne: b
   c.restore();
 };
 
-const malletPose = (c: Ctx, f: number, a: number, lean: number, crouch = 0, airborne = false) => {
+const malletPose = (c: Ctx, f: number, a: number, lean: number, crouch = 0, airborne = false, walk: number | null = null) => {
   if (airborne) { drawLeg(c, [-5, -24], [-10, -16], [-14, -6], 0.4, true); drawLeg(c, [5, -24], [12, -14], [10, -4], 0.4, false); }
+  else if (walk !== null) {
+    // (walking with it up: short stamping steps, the feet taking turns)
+    const s1 = Math.sin(walk), s2 = Math.sin(walk + Math.PI);
+    drawLeg(c, [-5, -24 + crouch], [-6 + s1 * 6, -12 + crouch * 0.5 - Math.max(0, s1) * 3], [-8 + s1 * 10, -Math.max(0, s1) * 4], 0, true);
+    drawLeg(c, [5, -24 + crouch], [8 + s2 * 6, -12 + crouch * 0.5 - Math.max(0, s2) * 3], [8 + s2 * 10, -Math.max(0, s2) * 4], 0, false);
+  }
   else { drawLeg(c, [-5, -24 + crouch], [-12, -12 + crouch * 0.5], [-17, 0], 0, true); drawLeg(c, [5, -24 + crouch], [14, -13 + crouch * 0.5], [18, 0], 0, false); }
   c.save(); c.translate(0, -24 + crouch); c.rotate(lean);
   const sh = { x: 2, y: -22 }, grip = { x: sh.x + Math.cos(a) * 15, y: sh.y + Math.sin(a) * 15 };
@@ -387,7 +393,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
       // (the swing's blur)
       if ((mode === 'swing' || mode === 'airSwing') && t >= 3 && t <= 10) { c.strokeStyle = 'rgba(255, 255, 255, 0.45)'; c.lineWidth = 10; c.beginPath(); c.ellipse(x, y - 34, 64, 14, 0, dir > 0 ? -0.2 : Math.PI - 1.4, dir > 0 ? 1.4 : Math.PI + 0.2); c.stroke(); }
       if (phi !== null) { const p = phi; drawPoseSprite(c, x, y, dir, g => flatSwingPose(g, f, p, mode === 'airSwing' ? 0.25 : -0.12, air)); }
-      else drawPoseSprite(c, x, y, dir, g => malletPose(g, f, a, lean, crouch, air));
+      else { const walk = mode === 'windup' && !air && Math.abs(pl.vel.x) > 0.3 ? f * 0.3 * (Math.sign(pl.vel.x) === dir ? 1 : -1) : null; drawPoseSprite(c, x, y, dir, g => malletPose(g, f, a, lean, crouch, air, walk)); }
     }
   }
   // The comic words, popping up
