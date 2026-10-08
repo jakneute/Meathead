@@ -1,7 +1,7 @@
 import React, { useSyncExternalStore } from 'react';
 import { goreBag, onGore, SPRAY, MAX_SPRAYS } from './weapons/soulSucker';
 
-// The soul sucker's gore bag, on the HUD under its ammo: four blood drops, one per spray, each filling as the grinder
+// The soul sucker's gore bag, on the HUD under its ammo: five blood drops, one per spray, each filling as the grinder
 // fills the bag (full ones glowing: that's a spray ready to go, on secondary fire).
 
 const Drop: React.FC<{ fill: number }> = ({ fill }) => {

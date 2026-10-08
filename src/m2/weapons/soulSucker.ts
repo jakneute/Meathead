@@ -3,7 +3,7 @@
 // and plenty of them turn round and try to get away from it), and it wears their poise down, quicker the closer they
 // are (everybody's got some, shown on them, the beefier the more). Poise gone, they're done: they go in, feet first,
 // and through the grinder, into the gore bag. Sucking uses its ammo; what it grinds fills the gore bag (separate, and
-// it starts empty), up to four sprays' worth. Secondary fire (Y, or F) empties one spray's worth: once pressed, a long
+// it starts empty), up to five sprays' worth. Secondary fire (Y, or F) empties one spray's worth: once pressed, a long
 // gush of gore out the front, all over whoever's there, like Dirty Dan's machine gun. A full bag won't suck any more
 // till some's been sprayed out. Ammo pickups fill its ammo, never the bag: only sucking does.
 
@@ -27,8 +27,8 @@ const INK = '#1A0B06';
 // ---------------------------------------------------------------------------------------------------------------
 // The gore bag
 
-/** One spray's worth of gore; the bag holds four. */
-export const SPRAY = 100, MAX_SPRAYS = 4;
+/** One spray's worth of gore; the bag holds five. */
+export const SPRAY = 100, MAX_SPRAYS = 5;
 let gore = 0;
 const listeners = new Set<() => void>();
 /** How much gore's in the bag, and in sprays (whole and part). */
