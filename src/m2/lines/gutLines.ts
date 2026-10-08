@@ -46,11 +46,25 @@ export const M2_GUT_LINES = {
     'NOBODY LOOK DOWN.',
     'THE PANTS ARE IN ORBIT. THE PANTS ARE GONE.',
   ],
-  /** Naked, washed clean in clean water: clean, at least. Still no pants. */
+  /** Naked and shitty, in clean water: it's washing it off him... */
   WASHED: [
-    'CLEAN. STILL NAKED. BUT CLEAN.',
-    "THAT'S BETTER. SORT OF.",
-    'NOBODY SWIM HERE FOR A WHILE.',
-    "WASHED THE ASS. PANTS AREN'T COMING BACK.",
+    "AH. THE WATER'S TAKING IT. ALL OF IT.",
+    "THAT'S A CLEAN ASS. FIRST TIME TODAY.",
+    "OH, THAT'S BETTER. THAT'S SO MUCH BETTER.",
+    "NOBODY SWIM HERE FOR A WHILE.",
+  ],
+  /** Shitty pants still on, a while in clean water: rinsed out, good as new. */
+  WASHED_PANTS: [
+    'RINSED OUT. GOOD AS NEW. BASICALLY.',
+    "PANTS ARE CLEAN. NOBODY HAS TO KNOW.",
+    "THERE. LIKE IT NEVER HAPPENED.",
+    "AND THAT'S WHY YOU WEAR DARK JEANS.",
+  ],
+  /** ...and, right after: clean, but still no pants. */
+  WASHED_NO_PANTS: [
+    'STILL NO PANTS, THOUGH.',
+    'CLEAN ASS. NO PANTS. ONE OUT OF TWO.',
+    'NOW IF ONLY THE WATER HAD PANTS IN IT.',
+    'SHAME ABOUT THE PANTS.',
   ],
 };

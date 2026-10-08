@@ -52,7 +52,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // (the finale: the hole the alien's laser burned in his jeans, from the cutscene)
   setLegSinge(state.stageId === FINALE_STAGE);
   // (his pants blown off him: naked from the waist down, swinging free; and his jeans and underpants, wherever they went)
-  setNude(p.gut?.stage === 3, p.vel.x, p.vel.y, state.frame);
+  setNude(p.gut?.stage === 3, p.vel.x, p.vel.y, state.frame, p.facing);
   if (p.gut?.stage === 3) drawBlowout(ctx, p.gut, state.frame);
   const gore = getGore();
   ctx.save();

@@ -11,7 +11,7 @@ import { say, MEATHEAD_VOICE } from '../platform/speech';
 import { GUT_LINES } from '../../content/dialogue';
 
 /** What he says about it: Meathead 1's (dialogue), or a game's own set (Meathead 2: setGutLines), the again lines too. */
-type GutLines = typeof GUT_LINES & { GRUMBLE_AGAIN?: string[]; WARN_AGAIN?: string[]; BLOWOUT?: string[]; WASHED?: string[] };
+type GutLines = typeof GUT_LINES & { GRUMBLE_AGAIN?: string[]; WARN_AGAIN?: string[]; BLOWOUT?: string[]; WASHED?: string[]; WASHED_NO_PANTS?: string[]; WASHED_PANTS?: string[] };
 let lines: GutLines = GUT_LINES;
 export const setGutLines = (l: GutLines) => { lines = l; };
 const pick = (pool: readonly string[] | undefined) => (pool?.length ? pool[Math.floor(Math.random() * pool.length)] : null);
@@ -68,7 +68,7 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
       if (line) meatheadSays(state, line, true);
     }
     if (gut.stage !== 3 || !gut.washed) leaveTrail(ctx);
-    if (gut.stage === 3 && !gut.washed) washOff(ctx, gut);
+    if (blowout && (gut.stage === 2 || !gut.washed)) washOff(ctx, gut);
     if (gut.stage === 2 && blowout) again(ctx, input, gut);
     return;
   }
@@ -151,8 +151,9 @@ const again = (ctx: FrameContext, input: FrameInput, gut: NonNullable<GameState[
   ctx.fx.spawnExplosion({ x, y }, '#6B4423', 18, -p.facing * 4, 16);
 };
 
-/** Naked and shitty, in clean water: a while in it (the brown cloud spreading off him, see leaveTrail), and it's off
- *  him; the pants don't come back, though. */
+/** (Meathead 2) Shitty, in clean water: a while in it (the brown cloud spreading off him, see leaveTrail), and it's
+ *  off him. In his pants still, they're rinsed out: as if it never happened. Naked, he's clean, but the pants don't come
+ *  back (he's still naked, as far as anybody's concerned). */
 const WASH = 90;
 const washOff = (ctx: FrameContext, gut: NonNullable<GameState['player']['gut']>) => {
   const { state } = ctx;
@@ -160,7 +161,19 @@ const washOff = (ctx: FrameContext, gut: NonNullable<GameState['player']['gut']>
   const body = p.swimming ? getStageLayout(ctx.stageId)?.waterBodyAt?.(state, p.pos.x + p.width / 2, p.pos.y + p.height - 20) : undefined;
   if (!body || body.kind !== 'clean') return;
   gut.washT = (gut.washT ?? 0) + 1;
-  if (gut.washT >= WASH) { gut.washed = true; playSound('splash', 0.5, 4); const l = pick(lines.WASHED); if (l) meatheadSays(state, l); }
+  if (gut.washT < WASH) return;
+  playSound('splash', 0.5, 4);
+  if (gut.stage === 2) {
+    // (his pants, rinsed out: back to how he was)
+    const l = pick(lines.WASHED_PANTS);
+    gut.stage = 0; gut.t = 0; gut.washT = 0; gut.again = false; gut.rearmed = false; gut.lineAt = undefined;
+    if (l) meatheadSays(state, l);
+    return;
+  }
+  gut.washed = true;
+  const l = pick(lines.WASHED), l2 = pick(lines.WASHED_NO_PANTS);
+  if (l) meatheadSays(state, l);
+  if (l2) meatheadSays(state, l2, true);
 };
 
 /** His jeans and underpants: up, tumbling, down where they land, lying there a good while. */

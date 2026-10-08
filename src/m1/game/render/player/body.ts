@@ -23,16 +23,19 @@ export let pantsShadow = JEANS_SHADOW;
  */
 let nude = false;
 const dangle = { a: 0, va: 0, frame: -1 };
-export const setNude = (on: boolean, vx = 0, vy = 0, frame = 0) => {
+export const setNude = (on: boolean, vx = 0, vy = 0, frame = 0, facing = 1) => {
   nude = on;
   pantsColor = on ? skinTone : JEANS;
   pantsShadow = on ? skinShadow : JEANS_SHADOW;
   if (!on || dangle.frame === frame) return;
   // (a pendulum: it hangs back the way he's going, swings past and settles; walking, it bounces with his step)
   dangle.frame = frame;
-  const want = Math.max(-0.7, Math.min(0.7, -vx * 0.09 + vy * 0.03));
+  // (in his own frame, which is drawn turned round when he faces left: so by how fast he's going forward, not which way
+  // on the screen, and it swings the same whichever way he faces)
+  const fwd = vx * (facing < 0 ? -1 : 1);
+  const want = Math.max(-0.7, Math.min(0.7, -fwd * 0.09 + vy * 0.03));
   dangle.va += (want - dangle.a) * 0.18 - dangle.va * 0.12;
-  if (Math.abs(vx) > 0.5 && frame % 8 === 0) dangle.va += (Math.random() - 0.5) * 0.12 + Math.sign(vx) * 0.04;
+  if (Math.abs(vx) > 0.5 && frame % 8 === 0) dangle.va += (Math.random() - 0.5) * 0.12 + Math.sign(fwd) * 0.04;
   dangle.a += dangle.va;
 };
 export const isNude = () => nude;
