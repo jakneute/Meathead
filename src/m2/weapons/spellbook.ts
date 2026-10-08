@@ -4,7 +4,7 @@
 // and anybody it doesn't kill is frozen solid a good while), and LIGHTNING that strikes a third over and over for
 // a few seconds (the beefy ones can live through it). Fewer than three about, and some of them get more than one of it at once. A spell's a while coming back.
 // Secondary fire (Y, or F) is the support spell, BULK UP: for a while he's a lot faster, a lot bigger, and whatever he
-// charges or throws goes a lot further; a long while coming back. Its ammo's MANA (pickups fill it the same).
+// charges or throws goes a lot further; it costs more mana than a storm, and it's a while coming back. Its ammo's MANA (pickups fill it the same).
 
 import type { Enemy, Projectile } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
@@ -32,7 +32,7 @@ const COMET = { dmg: 45, freeze: 320 };
 /** The lightning: a strike this often, this hard, for this long (three seconds: about 180 in all, a shooter's dead, a
  * bouncer's still standing). */
 const BOLT = { every: 14, dmg: 15, maxFrames: 186 };
-const BULK = { frames: 480, cooldown: 480, speed: 1.6, size: 1.3, knock: 2.2 };
+const BULK = { mana: 3, frames: 720, cooldown: 480, speed: 1.6, size: 1.3, knock: 2.2 };
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
 const mid = (e: Enemy) => ({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 });
@@ -255,7 +255,9 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
   const press = !!input.secondary && !secondaryWas;
   secondaryWas = !!input.secondary;
   if (equipped && press) {
-    if (bulkLeft <= 0 && bulkCool <= 0 && posing <= 0 && pl.isGrounded) {
+    const mana = ctx.cheats.infiniteAmmo || pl.weaponAmmo.SPELLBOOK >= BULK.mana;
+    if (bulkLeft <= 0 && bulkCool <= 0 && posing <= 0 && pl.isGrounded && mana) {
+      if (!ctx.cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK -= BULK.mana;
       // First the pose: the book held up, flexing, the power going into him
       posing = POSE;
       playSound('spell', 1, -8);
