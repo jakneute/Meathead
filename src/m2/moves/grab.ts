@@ -110,6 +110,8 @@ export interface Grab {
   flying: { e: Enemy; hit: Set<string>; t: number; fall: number; still: number; how: GrabCallout; oneChunk: boolean; impact: number }[];
   /** Which way a critter was pitched. */
   pitch: 'left' | 'right' | 'up' | 'down';
+  /** Which way a critter held up is aimed right now (null: no direction held). */
+  aim: 'left' | 'right' | 'up' | 'down' | null;
   /** The fastest they've come down, plummeting together (for how hard they land). */
   fall: number;
   /** Frames body contact still can't hurt him (a grab's on, or just finished). */
@@ -119,7 +121,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right',
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -447,10 +449,13 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     }
 
     case 'critter': {
-      // Up in his fist, squirming: a direction, and it's pitched that way; too long, and it squeaks free
+      // Up in his fist, squirming: a direction, and it's pitched that way; too long, and it squeaks free. A beat first
+      // while it's brought up to his ear (shorter than a shakedown), so whatever was held going into the grab doesn't
+      // fling it straight off: the aim shows, and can be changed, till then
       const e = g.held!;
       const d = controls.down ? 'down' : controls.up ? 'up' : controls.left ? 'left' : controls.right ? 'right' : null;
-      if (d) {
+      g.aim = d;
+      if (d && g.t >= CRITTER_SETTLE) {
         g.pitch = d; g.phase = 'pitch'; g.t = 0;
         if (d === 'left' || d === 'right') p.facing = (d === 'left' ? -1 : 1);
         g.dir = p.facing;
@@ -645,6 +650,8 @@ const crushUnder = (ctx: FrameContext, e: Enemy, dir: number) => {
 
 /** Up in his fist, one-handed, a critter: held there till a direction's pressed (see the 'critter' phase). */
 const CRITTER_HOLD = 120, PITCH_FOLLOW = 12;
+/** Frames it's brought up to his ear before it can be pitched (a shakedown's SHAKE_FRAMES, this is well under). */
+const CRITTER_SETTLE = 16;
 const grabCritter = (state: GameState, g: Grab, e: Enemy, hold: () => Controls) => {
   g.phase = 'critter'; g.t = 0; g.held = e; take(state, e);
   e.facing = g.dir;
@@ -873,6 +880,29 @@ const shootPose = (c: Ctx, f: number, k: number) => {
   c.restore();
 };
 
+/**
+ * Round a critter held up: an arrow each way it can go (right, left, up, down), the one aimed lit up yellow, the rest
+ * faint; while it's still coming up to his ear they're dim (it can't go yet), then they pulse: ready.
+ */
+const aimArrows = (ctx: Ctx, cx: number, cy: number, g: Grab, f: number) => {
+  const ready = g.t >= CRITTER_SETTLE;
+  const R = 30;
+  for (const [d, dx, dy] of [['right', 1, 0], ['left', -1, 0], ['up', 0, -1], ['down', 0, 1]] as const) {
+    const on = g.aim === d;
+    const pulse = ready && !on ? 0.15 * Math.sin(f * 0.3) : 0;
+    ctx.globalAlpha = on ? (ready ? 1 : 0.7) : (ready ? 0.6 : 0.3) + pulse;
+    const ax = cx + dx * R, ay = cy + dy * R, s = on ? 8 : 6;
+    ctx.beginPath();
+    ctx.moveTo(ax + dx * s, ay + dy * s);
+    ctx.lineTo(ax - dx * s * 0.6 + dy * s, ay - dy * s * 0.6 + dx * s);
+    ctx.lineTo(ax - dx * s * 0.6 - dy * s, ay - dy * s * 0.6 - dx * s);
+    ctx.closePath();
+    ctx.fillStyle = on ? '#FDE047' : '#F8FAFC'; ctx.fill();
+    ctx.strokeStyle = '#1A0B06'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+};
+
 /** One-handed: the throwing hand at `arm` (from his hips, facing right), the other out in front for balance. */
 const pitchPose = (c: Ctx, f: number, arm: { x: number; y: number }, k: number) => {
   drawLeg(c, [-5, -24], [-10, -12], [-14, 0], 0, true);
@@ -1014,12 +1044,15 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
     case 'pitch': {
       // One-handed: wound up with it by his ear, squirming (a bird flapping); then the arm's follow-through, the way it went
       const k = g.phase === 'pitch' ? Math.min(1, g.t / 4) : 0;
-      const arm = g.phase === 'critter' ? { x: -6, y: -50 } : g.pitch === 'down' ? { x: 28, y: -2 } : g.pitch === 'up' ? { x: 8, y: -66 } : { x: 34, y: -30 };
+      // (brought up from where he caught it to his ear, over the settle)
+      const up = g.phase === 'critter' ? Math.min(1, g.t / CRITTER_SETTLE) : 1, ease = 1 - (1 - up) * (1 - up);
+      const arm = g.phase === 'critter' ? { x: 24 - 30 * ease, y: -26 - 24 * ease } : g.pitch === 'down' ? { x: 28, y: -2 } : g.pitch === 'up' ? { x: 8, y: -66 } : { x: 34, y: -30 };
       sprite(ctx, x, y, g.dir, c => pitchPose(c, f, arm, k));
       if (g.held) {
         const wiggle = Math.sin(f * 0.9) * 0.25;
         const hx = x + g.dir * (arm.x * Math.cos(-0.1) + 2), hy = y - 24 + arm.y + 6;
         drawEnemyAt(ctx, g.held, state, hx, hy + g.held.height / 2, wiggle, (-g.dir) as 1 | -1);
+        if (g.phase === 'critter') aimArrows(ctx, hx, hy + g.held.height / 2, g, f);
       }
       return;
     }

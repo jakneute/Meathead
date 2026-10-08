@@ -12,6 +12,7 @@ import { INK, dark, lite, ink } from '../../m1/game/render/npc/kit';
 import { mix } from '../../m1/game/render/backdrops/core';
 import { LANDS, SPOTS, HUB_SLOTS, type Land } from './lands';
 import { HUB, HUB_CIRC, slotX } from './geometry';
+import { drawCrowd } from './crowd';
 
 type Ctx = CanvasRenderingContext2D;
 const box = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
@@ -189,6 +190,8 @@ export const drawHubBack = (ctx: Ctx, state: GameState) => {
     laps(state, slotX(i), x => (spot.kind === 'staff' ? staffDoor(ctx, x, f) : spot.kind === 'america' ? americaGate(ctx, x, f) : portal(ctx, LANDS[spot.land], x, f)));
     laps(state, HUB.x0 + i * HUB.slot, x => lamp(ctx, x, i, f));
   }
+  // The crowd, standing about between them
+  drawCrowd(ctx, state, (x, draw) => laps(state, x, draw));
 };
 
 /** In front, along the bottom edge of the plaza: flower beds (on the roundabout, turning with the rest). */
