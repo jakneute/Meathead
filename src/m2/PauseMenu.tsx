@@ -66,7 +66,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
               <M2WeaponArt type={shown} size={88} />
             </div>
             <div className="text-yellow-300 text-[11px] font-black uppercase leading-tight mb-1">{info?.name ?? shown}</div>
-            <div className="text-[7px] text-pink-400 font-black uppercase tracking-wider mb-2">{shown === current ? '[ EQUIPPED ]' : `FROM ${info?.from ?? ''}`}</div>
+            <div className="text-[7px] text-pink-400 font-black uppercase tracking-wider mb-2">FROM {info?.from ?? ''}{shown === current && <span className="text-red-500"> · [ EQUIPPED ]</span>}</div>
             <div className="text-zinc-300 text-[7px] leading-[11px] uppercase font-bold mb-2 min-h-[66px]">&ldquo;{info?.description ?? ''}&rdquo;</div>
             <div className="text-[7px] font-black tracking-wider text-green-400">AMMO: {ammoText(shown)}</div>
           </div>
