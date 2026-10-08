@@ -68,12 +68,12 @@ const openRift = (x: number, y: number, size: number, life: number, follow?: Rif
 let pending: { at: number; el: Element; target: Enemy | null; to: { x: number; y: number }; from: { x: number; y: number } }[] = [];
 
 /** A scorch on the floor where something hit it (lies there, fading slowly). */
-const scorch = (state: GameState, x: number, y: number, size: number, color = '#1C1917') => {
-  for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * size * 2, y: y - 1 }, vel: { x: 0, y: 0 }, life: 400 + Math.random() * 200, color, size: size * (0.5 + Math.random() * 0.5), isSplat: true });
+const scorch = (state: GameState, x: number, y: number, size: number, color = '#1C1917', life = 400) => {
+  for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * size * 2, y: y - 1 }, vel: { x: 0, y: 0 }, life: life + Math.random() * life * 0.5, color, size: size * (0.5 + Math.random() * 0.5), isSplat: true });
 };
 /** Bits thrown up off what's hit: chunks that fall and bounce. */
-const debris = (state: GameState, x: number, y: number, n: number, colors: string[], speed = 7) => {
-  for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6, sp = speed * (0.4 + Math.random() * 0.8); state.particles.push({ pos: { x, y }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp }, life: 50 + Math.random() * 40, color: colors[i % colors.length], size: 2 + Math.random() * 3, grav: 0.35, chunk: true }); }
+const debris = (state: GameState, x: number, y: number, n: number, colors: string[], speed = 7, life = 50) => {
+  for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6, sp = speed * (0.4 + Math.random() * 0.8); state.particles.push({ pos: { x, y }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp }, life: life + Math.random() * life * 0.8, color: colors[i % colors.length], size: 2 + Math.random() * 3, grav: 0.35, chunk: true }); }
 };
 
 /** Killed by a spell: his own death for what got him, the line, the callout. */
@@ -192,11 +192,10 @@ const cometHit = (ctx: FrameContext, at: { x: number; y: number }, hit: Enemy | 
   fx.spawnExplosion(at, '#BAE6FD', 34, 0, 20); fx.spawnExplosion(at, '#FFFFFF', 18, 0, 12); fx.spawnExplosion(at, '#7DD3FC', 14, 0, 16);
   ring(at.x, at.y, 80, '186, 230, 253', 18); ring(at.x, at.y, 40, '255, 255, 255', 10);
   flash = 4; flashColor = '200, 235, 255';
-  fx.spawnGlassShatter({ x: at.x - 10, y: at.y - 10 });
-  debris(state, at.x, at.y, 12, ['#E0F2FE', '#BAE6FD', '#FFFFFF', '#7DD3FC'], 8);
+  debris(state, at.x, at.y, 14, ['#E0F2FE', '#BAE6FD', '#FFFFFF', '#7DD3FC'], 8, 30);
   // (frost hanging in the air a moment)
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: at.x + (Math.random() - 0.5) * 50, y: at.y + (Math.random() - 0.5) * 30 }, vel: { x: (Math.random() - 0.5) * 0.8, y: -0.3 - Math.random() * 0.4 }, life: 50, color: 'rgba(224, 242, 254, 0.5)', size: 6 + Math.random() * 8 });
-  scorch(state, at.x, at.y + 8, 12, 'rgba(186, 230, 253, 0.8)');
+  scorch(state, at.x, at.y + 8, 12, 'rgba(186, 230, 253, 0.8)', 70);
   for (const e of [...state.enemies]) {
     if (!alive(e)) continue;
     const near = e === hit || Math.hypot(mid(e).x - at.x, mid(e).y - at.y) < 34 + e.width / 2;
