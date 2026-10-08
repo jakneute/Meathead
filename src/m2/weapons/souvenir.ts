@@ -158,7 +158,11 @@ interface Flight {
 }
 const flightOf = (p: Projectile) => p.customData as Flight;
 
-const COOLDOWN = 26, REHIT = 30, LIFE = 480, MIN_HIT_SPEED = 1.6;
+/**
+ * LIFE: how long one lasts, still bouncing or not (about five seconds: plenty of time to go round a crowd a few
+ * times); the last FADING of it, it flickers (it's coming apart), then it does.
+ */
+const COOLDOWN = 26, REHIT = 30, LIFE = 300, FADING = 50, MIN_HIT_SPEED = 1.6;
 /** Its fall: the light ones are hollow, floaty; the heavy ones drop. */
 const gravityOf = (t: Trinket) => 0.3 + t.mass * 0.22;
 /** Off the floor (or a head) it comes up higher than it went down by its weight alone: there's spring in the plastic. */
@@ -363,6 +367,9 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
 
 const draw = (c: Ctx, p: Projectile) => {
   const f = flightOf(p);
+  // (nearly done: flickering, quicker the nearer it is)
+  const left = LIFE - f.age;
+  if (left < FADING && Math.floor(f.age / Math.max(2, Math.round(left / 8))) % 2 === 1) return;
   c.save();
   c.translate(p.pos.x + p.width / 2, p.pos.y + p.height / 2);
   c.rotate(f.ang);
