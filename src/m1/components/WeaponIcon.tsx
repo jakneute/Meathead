@@ -495,13 +495,18 @@ const ART: Record<WeaponType, React.ReactNode> = {
 
   // Meathead 2's mallet of pain: a big cartoon mallet, a red barrel of a head banded in yellow on a long wooden handle
   MALLET: draw(p => {
-    const handle = polyC([[3, 27], [6, 29], [20, 14], [17, 12]]);
+    // (the handle up from the bottom left; the head a fat drum across the top of it, square to the handle, both ends
+    // round, one end's flat face showing light, two yellow bands round it: a mallet, not an axe)
+    const handle = polyC([[2, 28], [5, 31], [19, 17], [16, 14]]);
     paint(p, handle, diag(handle, WOOD));
-    const head = polyC([[14, 4], [23, 0], [31, 11], [22, 17]]);
-    paint(p, head, diag(head, ['#F87171', '#DC2626', '#B91C1C', '#7F1D1D']));
-    for (const [x0, y0] of [[16, 5], [24, 12]] as const) for (let k = 0; k < 7; k++) p.set(x0 + k, y0 - Math.round(k * 0.45), '#FACC15');
-    const cap = ellC(18.5, 2.5, 4.5, 2.2); paint(p, cap, '#FEE2E2');
-    glint(p, 19, 3);
+    const c = { x: 19.5, y: 12.5 }, al = { x: 0.707, y: 0.707 }, ac = { x: 0.707, y: -0.707 };
+    const at = (u: number, v: number): Pt => [c.x + al.x * u + ac.x * v, c.y + al.y * u + ac.y * v];
+    const drum = polyC([at(-8, -5.5), at(-8, 5.5), at(8, 5.5), at(8, -5.5)]).concat(ellC(...at(-8, 0), 4.2, 4.2), ellC(...at(8, 0), 4.2, 4.2));
+    // (lit along its length: a stripe of light down the near side of the drum, shade down the far side)
+    paint(p, drum, (x, y) => { const v = (x - c.x) * ac.x + (y - c.y) * ac.y; return step(['#F87171', '#EF4444', '#DC2626', '#B91C1C'], (v + 5.5) / 11, x, y); });
+    for (const u of [-3.5, 3.5]) for (let v = -5; v <= 5; v++) { const [x, y] = at(u, v); p.set(Math.round(x), Math.round(y), '#FACC15'); }
+    const face = ellC(...at(-9.5, 0), 3, 3);
+    paint(p, face, radial(face, ['#FFFFFF', '#FEE2E2', '#FCA5A5'], at(-10, -1)[0], at(-10, -1)[1]));
     glint(p, 6, 26);
   }),
 
