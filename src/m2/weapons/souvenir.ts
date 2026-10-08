@@ -47,7 +47,7 @@ const ink = (c: Ctx, path: () => void, fill: string, line = 1.2) => {
   c.beginPath(); path(); c.strokeStyle = INK; c.lineWidth = line; c.lineJoin = 'round'; c.stroke();
 };
 /** How much bigger than they're drawn at they are in the world (their boxes scale with them). */
-const SIZE = 1.45;
+const SIZE = 1.75;
 const box = (c: Ctx, x: number, y: number, w: number, h: number, fill: string) => { c.fillStyle = fill; c.fillRect(x, y, w, h); };
 
 const TRINKETS: Trinket[] = [
@@ -73,10 +73,14 @@ const TRINKETS: Trinket[] = [
     // Christ the Redeemer, arms out, in glow-in-the-dark plastic
     id: 'redeemer', w: 20, h: 20, mass: 0.28, dmg: 32, stun: 22, speed: 11.5, rest: 0.7, colors: ['#D9F99D', '#A3E635', '#ECFCCB'],
     draw: c => {
-      ink(c, () => { c.rect(-2.5, -6, 5, 16); }, '#D9F99D');
-      ink(c, () => { c.rect(-10, -5, 20, 3.5); }, '#D9F99D');
-      ink(c, () => c.arc(0, -8.5, 2.6, 0, Math.PI * 2), '#ECFCCB');
-      box(c, -4, 9, 8, 2, '#A3E635');
+      // (on his mountain, a green lump; a robed man on top, the robe flaring to his feet; arms straight out, the sleeves
+      // hanging under them; his head bowed a little)
+      ink(c, () => { c.moveTo(-8, 11); c.quadraticCurveTo(-5, 5, 0, 5); c.quadraticCurveTo(5, 5, 8, 11); c.closePath(); }, '#4D7C0F', 0.9);
+      ink(c, () => { c.moveTo(-1.8, -5); c.lineTo(1.8, -5); c.lineTo(3.2, 6); c.lineTo(-3.2, 6); c.closePath(); }, '#D9F99D');
+      ink(c, () => { c.moveTo(-10, -5); c.lineTo(10, -5); c.lineTo(10, -3); c.lineTo(3, -2.5); c.lineTo(2, 0); c.lineTo(-2, 0); c.lineTo(-3, -2.5); c.lineTo(-10, -3); c.closePath(); }, '#D9F99D', 1);
+      box(c, -0.4, -2, 0.8, 7, '#A3E635'); box(c, 9, -5, 1, 2, '#ECFCCB'); box(c, -10, -5, 1, 2, '#ECFCCB');
+      ink(c, () => c.arc(0, -7.6, 2.3, 0, Math.PI * 2), '#ECFCCB', 1);
+      box(c, -1.4, -7.4, 2.8, 0.6, '#A3E635');
     },
   },
   {
@@ -94,11 +98,24 @@ const TRINKETS: Trinket[] = [
     // The Taj Mahal in a snow globe (the snow's glitter, the globe's plastic)
     id: 'taj', w: 18, h: 20, mass: 0.5, dmg: 70, stun: 34, speed: 10, rest: 0.52, colors: ['#BAE6FD', '#F8FAFC', '#7C2D12'],
     draw: c => {
-      ink(c, () => c.rect(-8, 5, 16, 5), '#7C2D12');
-      c.fillStyle = 'rgba(186, 230, 253, 0.55)'; c.beginPath(); c.arc(0, -2, 8.5, 0, Math.PI * 2); c.fill(); c.strokeStyle = INK; c.lineWidth = 1.1; c.stroke();
-      ink(c, () => { c.moveTo(-3.5, 2); c.lineTo(-3.5, -1); c.quadraticCurveTo(-3.5, -6, 0, -7); c.quadraticCurveTo(3.5, -6, 3.5, -1); c.lineTo(3.5, 2); c.closePath(); }, '#F8FAFC', 0.9);
-      box(c, -6, 2, 12, 2.5, '#F1F5F9'); box(c, -5.5, -3, 1, 5, '#F8FAFC'); box(c, 4.5, -3, 1, 5, '#F8FAFC');
-      box(c, -3, -5, 1.5, 1.5, '#FFFFFF');
+      // (the base, a gold band round it)
+      ink(c, () => c.rect(-8.5, 5, 17, 5), '#7C2D12'); box(c, -8.5, 6.5, 17, 1, '#CA8A04');
+      // (the globe: sky blue water)
+      c.fillStyle = 'rgba(147, 197, 253, 0.6)'; c.beginPath(); c.arc(0, -2.5, 9, 0, Math.PI * 2); c.fill();
+      // The Taj: a white terrace; the building, wider than the dome, a tall dark pointed arch in the middle of it; the
+      // onion dome on top, swelling out and pinched to a point, a gold spike on it; two little domes beside it; a
+      // minaret at each corner, capped
+      box(c, -7.5, 3, 15, 2, '#E2E8F0');
+      for (const x of [-6.8, 5.6]) { box(c, x, -3.5, 1.2, 6.5, '#F8FAFC'); c.fillStyle = INK; c.fillRect(x, -3.5, 1.2, 0.4); c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(x + 0.6, -4, 0.9, Math.PI, 0); c.fill(); }
+      ink(c, () => c.rect(-4.5, -1.5, 9, 4.5), '#F8FAFC', 0.7);
+      ink(c, () => { c.moveTo(-1.3, 3); c.lineTo(-1.3, 0.6); c.quadraticCurveTo(-1.3, -0.6, 0, -1); c.quadraticCurveTo(1.3, -0.6, 1.3, 0.6); c.lineTo(1.3, 3); c.closePath(); }, '#334155', 0.5);
+      for (const x of [-3.4, 3.4]) { c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(x, -1.6, 1.1, Math.PI, 0); c.fill(); c.strokeStyle = INK; c.lineWidth = 0.5; c.stroke(); }
+      ink(c, () => { c.moveTo(-2.4, -1.5); c.bezierCurveTo(-4.4, -3.5, -3.2, -6.8, 0, -8.6); c.bezierCurveTo(3.2, -6.8, 4.4, -3.5, 2.4, -1.5); c.closePath(); }, '#FFFFFF', 0.8);
+      c.strokeStyle = '#CA8A04'; c.lineWidth = 0.7; c.beginPath(); c.moveTo(0, -8.6); c.lineTo(0, -10.4); c.stroke();
+      // (snow in it, and the plastic's shine)
+      for (const [x, y] of [[-5, -7], [4.5, -8], [-2, -10], [6, -4], [-7, -1]] as const) box(c, x, y, 0.8, 0.8, '#FFFFFF');
+      c.strokeStyle = INK; c.lineWidth = 1.1; c.beginPath(); c.arc(0, -2.5, 9, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = 'rgba(255, 255, 255, 0.7)'; c.lineWidth = 1; c.beginPath(); c.arc(0, -2.5, 7.5, Math.PI * 1.1, Math.PI * 1.45); c.stroke();
     },
   },
   {
@@ -135,11 +152,14 @@ const TRINKETS: Trinket[] = [
     // An Easter Island head, a bookend: the heaviest thing in the bag, and it drops like a rock
     id: 'moai', w: 14, h: 22, mass: 1, dmg: 260, stun: 75, speed: 8, rest: 0.18, colors: ['#78716C', '#57534E', '#A8A29E'],
     draw: c => {
-      ink(c, () => { c.moveTo(-6, 11); c.lineTo(-6, -6); c.quadraticCurveTo(-6, -11, 0, -11); c.quadraticCurveTo(6, -11, 6, -6); c.lineTo(7, 11); c.closePath(); }, '#78716C');
-      box(c, -5, -6, 10, 2.5, '#44403C');
-      ink(c, () => { c.moveTo(1, -3); c.lineTo(5, 3); c.lineTo(1, 4); c.closePath(); }, '#A8A29E', 0.8);
-      box(c, -3, 6, 6, 1.5, '#44403C');
-      box(c, -6, -3, 1.2, 12, '#A8A29E');
+      // (side on, looking right: the long head, a heavy brow jutting out over a deep-set eye, the long nose, the pursed
+      // lips, the jutting chin, a long ear down the back of it)
+      ink(c, () => { c.moveTo(-6, 11); c.lineTo(-6, -7); c.quadraticCurveTo(-6, -11, -1, -11); c.lineTo(4, -11); c.lineTo(5.5, -6); c.lineTo(4, -5); c.lineTo(7.5, 2); c.lineTo(5, 2.5); c.lineTo(5.5, 4.5); c.lineTo(4.5, 5); c.lineTo(5.5, 7); c.lineTo(4, 9); c.lineTo(4, 11); c.closePath(); }, '#78716C');
+      box(c, -1, -6.5, 5, 1.6, '#292524');
+      box(c, 1, -5, 2, 1, '#44403C');
+      ink(c, () => { c.moveTo(-5, -5); c.lineTo(-2.5, -5); c.lineTo(-2.5, 4); c.lineTo(-4, 6); c.lineTo(-5, 4); c.closePath(); }, '#57534E', 0.6);
+      box(c, 3.5, 4.4, 2, 0.6, '#292524');
+      box(c, -6, 9, 10, 2, '#57534E');
     },
   },
 ];
@@ -395,5 +415,8 @@ const drawHeld = (c: Ctx, frame: number) => {
   box(c, 8, -13 + j, 1, 5, '#EAB308'); box(c, 7, -9 + j, 3, 1, '#CA8A04');
   c.fillStyle = '#FCD34D'; c.beginPath(); c.moveTo(13, -8 + j); c.lineTo(15.5, -12 + j); c.lineTo(18, -8 + j); c.closePath(); c.fill();
 };
+
+/** For tests: each of them drawn in a row, at the size they are in the world. */
+export const drawTrinketsForTests = (c: Ctx) => TRINKETS.forEach((t, i) => { c.save(); c.translate(30 + i * 50, 40); c.scale(SIZE, SIZE); t.draw(c); c.restore(); });
 
 export const registerSouvenirLauncher = () => registerWeapon('SOUVENIR', { fire, update, draw: (c, p) => draw(c, p), drawHeld });
