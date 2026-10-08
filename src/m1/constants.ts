@@ -197,6 +197,8 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'LMG': Infinity,
   // (Meathead 2's souvenir launcher: a big bag of junk)
   'SOUVENIR': 60,
+  // (Meathead 2's soul sucker: frames of sucking)
+  'SOUL_SUCKER': 600,
 };
 
 /** A fresh ammo loadout with every weapon topped up. */

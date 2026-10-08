@@ -6,6 +6,7 @@ import React from 'react';
 import type { WeaponType } from '../../m1/types';
 import { RAYGUN_ART, WeaponArt } from '../../m1/components/WeaponIcon';
 import { registerSouvenirLauncher } from './souvenir';
+import { registerSoulSucker } from './soulSucker';
 
 export interface M2Weapon { name: string; from: string; description: string }
 
@@ -14,14 +15,18 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     name: 'RAY GUN', from: "THE ALIEN'S LEFTOVERS",
     description: "Built out of what was left of the alien's ship, a lot of tape and one bad afternoon. Never runs dry, shoots straight, and whatever it kills doesn't leave much more than its shoes.",
   },
+  SOUL_SUCKER: {
+    name: 'SOUL SUCKER', from: 'SPOOKY LAND',
+    description: "A haunted shop vac with a meat grinder where the bag goes. Hold fire: it drags at everybody in front of it and wears their poise down (the bar over their heads). Poise gone, they go in. Secondary fire sprays what's in the gore bag back out at them.",
+  },
   SOUVENIR: {
     name: 'SOUVENIR LAUNCHER', from: 'FOREIGN LANDS',
     description: "A gift-shop bag of junk taped to a pipe. Every shot's a gamble: the light ones bounce off everything and everybody, the heavy ones hit like a truck and hardly bounce. Anybody it doesn't kill sees stars. When it stops, it's plastic.",
   },
 };
 
-/** What he's got, for now: the ray gun and the souvenir launcher. */
-export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR'];
+/** What he's got, for now: the ray gun, the souvenir launcher and the soul sucker. */
+export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER'];
 
 export const weaponName = (w: WeaponType) => M2_WEAPON_INFO[w]?.name ?? w;
 
@@ -32,4 +37,4 @@ export const M2WeaponArt: React.FC<{ type: WeaponType; size: number }> = ({ type
     : React.createElement(WeaponArt, { type, size });
 
 /** Plugs the lands' weapons into the engine (startup). */
-export const registerWeapons = () => { registerSouvenirLauncher(); };
+export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); };

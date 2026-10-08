@@ -15,7 +15,7 @@ import { drawBoss, drawBossOverlay } from './bosses';
 import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './bosses/victorVents';
 import { drawIcicles, drawIceBlock, drawIceShard } from './bosses/artieIce';
 import { drawBoulder, drawRockChip } from './bosses/boulders';
-import { customWeapon } from '../combat/customWeapons';
+import { customWeapon, customWeapons } from '../combat/customWeapons';
 import { drawBullet, drawThrown, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob, drawDarkOrb, drawOilRocket } from './projectiles';
 import { drawSadBolt } from './bosses/alien';
 import { drawParticle } from './particles';
@@ -182,6 +182,7 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
     drawBarryLighting(wctx, state, stageId);
     if (state.sewerNuke) drawSewerNukeInside(wctx, state);
     if (state.volcanoFinale) drawVolcanoFinaleInside(wctx, state);
+    for (const [, w] of customWeapons()) w.drawOverlay?.(wctx, state);
     layout?.drawFront?.(wctx, state);
     if (state.waterStains?.length) drawWaterStains(wctx, state);
     // (the numbers and the callouts go over everything too: no door or wall of the stage's in front of them)

@@ -27,6 +27,7 @@ const TIP: Record<WeaponType, { x: number; y: number }> = {
   FLAMETHROWER: { x: 4, y: 4 }, // the pivot it swivels on (see flamethrowerNozzle)
   LMG: { x: 34, y: 2 },
   SOUVENIR: { x: 30, y: 2 },
+  SOUL_SUCKER: { x: 30, y: 1 },
 };
 
 /** The flamethrower's nozzle sits this far along the barrel from its pivot. */

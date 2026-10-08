@@ -114,6 +114,21 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.42, vary: 0.8, gap: 80,
     make: () => { const bp = bandpass(); let ph = 0; const clicks = [0.07, 0.11, 0.16, 0.19, 0.24]; return render(0.32, t => { ph += (150 * ex(t, 18) + 70) / SFX_SR; return Math.sin(TAU * ph) * ex(t, 16) * 1.1 + bp(rnd(), 900, 0.8) * ex(t, 40) * 0.7 + clicks.reduce((v, at, k) => v + (t > at && t < at + 0.008 ? rnd() * (0.4 - k * 0.05) : 0), 0); }); },
   },
+  suck: {
+    // Meathead 2's soul sucker going: a vacuum's roar (filtered rushing air, a motor's hum under it), played back to back
+    gain: 0.3, vary: 0.3, gap: 150, voices: 2,
+    make: () => { const lp = lowpass(), bp = bandpass(); let ph = 0; return render(0.3, t => { ph += (110 + 4 * Math.sin(TAU * 9 * t)) / SFX_SR; return lp(rnd(), 1400) * 0.8 + bp(rnd(), 2600, 1.5) * 0.25 + Math.sign(Math.sin(TAU * ph)) * 0.18; }); },
+  },
+  grind: {
+    // ...and what it gets: the grinder chewing somebody up (crunching, wet)
+    gain: 0.55, vary: 0.6, gap: 90,
+    make: () => { const lp = lowpass(), lp2 = lowpass(); let ph = 0; return render(0.55, t => { ph += (60 + 30 * Math.sin(TAU * 23 * t)) / SFX_SR; const crunch = (Math.floor(t * 40) % 2 ? rnd() : rnd() * 0.3); return (lp(crunch, 1800) * 0.9 + Math.sin(TAU * ph) * 0.6 + lp2(rnd(), 500) * 0.5) * Math.min(1, t / 0.01) * ex(Math.max(0, t - 0.3), 6); }); },
+  },
+  gorespray: {
+    // ...and the gore bag emptying: a wet hissing gush
+    gain: 0.35, vary: 0.4, gap: 120, voices: 2,
+    make: () => { const bp = bandpass(), lp = lowpass(); return render(0.25, t => bp(rnd(), 1100 + 300 * Math.sin(TAU * 13 * t), 0.7) * 0.9 + lp(rnd(), 300) * 0.5); },
+  },
   sadBolt: {
     // A sad little laser: pew... wew (drooping), half-hearted
     gain: 0.3, vary: 1, gap: 120,

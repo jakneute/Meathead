@@ -32,6 +32,7 @@ import { isStandingInOil } from '../bosses/oscar';
 import { getBossDef, getArenaRight } from '../bosses/registry';
 import { getStageLeft } from '../stages';
 import { getFinale } from '../stages/finale/state';
+import { customWeapon, customWeapons } from '../combat/customWeapons';
 
 /**
  * Secondary fire (Y on the pad, F on the keyboard), by the weapon in his hands: what it does instead. Only the oil
@@ -129,7 +130,7 @@ export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
   const specialHeld = c.special || !!c.charge;
   const specialPressed = specialHeld && !player.specialHeldLastFrame;
   // (secondary fire only does anything with a weapon that has one in his hands)
-  const hasSecondary = !!SECONDARY[ctx.currentWeapon];
+  const hasSecondary = !!SECONDARY[ctx.currentWeapon] || !!customWeapon(ctx.currentWeapon)?.tick;
   const shootHeld = c.shoot;
   const shootPressed = shootHeld && !player.shootHeldLastFrame;
   player.jumpHeldLastFrame = c.jump;
@@ -249,6 +250,8 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   else updateFlamethrower(ctx, input);
   // (the finale's pitched boulder: the rock leaves his hand partway through the windup)
   updatePitch(ctx);
+  // (a game's own weapons: their every-frame business, held or not)
+  for (const [type, w] of customWeapons()) w.tick?.(ctx, input, type === currentWeapon);
   if (input.shoot && player.shootCooldown <= 0 && hasAmmo(ctx, currentWeapon) && currentWeapon !== 'TASER' && currentWeapon !== 'FLAMETHROWER') {
     fireWeapon(ctx, input);
   }

@@ -37,7 +37,7 @@ export interface Entity {
 
 export type WeaponType = 'GUN' | 'BOULDER' | 'SHOTGUN' | 'FLAMETHROWER' | 'TSUNAMI' | 'NEEDLES' | 'TASER' | 'SLUDGE' | 'OIL_ROCKET' | 'LMG'
   // (Meathead 2's, from its lands: see combat/customWeapons.ts)
-  | 'SOUVENIR';
+  | 'SOUVENIR' | 'SOUL_SUCKER';
 
 export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill' | 'truck_wreck' | 'range_boxer_kill' | 'range_balloon_kill' | 'alien_kill';
 
@@ -67,6 +67,8 @@ export type SoundType =
   | 'raygun'
   // (Meathead 2's souvenir launcher: a hollow pop out of a tube, junk rattling)
   | 'souvenir'
+  // (Meathead 2's soul sucker: the vacuum, the grinder, the gore bag emptying)
+  | 'suck' | 'grind' | 'gorespray'
   // his footsteps, by what he's walking on
   | 'step_hard' | 'step_snow' | 'step_metal' | 'step_wood' | 'step_dirt' | 'step_sand' | 'step_wet';
 

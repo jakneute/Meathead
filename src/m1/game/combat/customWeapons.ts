@@ -5,6 +5,7 @@
 
 import type { Projectile, WeaponType } from '../../types';
 import type { FrameContext } from '../core/context';
+import type { GameState } from '../core/state';
 import type { WeaponInput } from './weapons';
 
 export interface CustomWeapon {
@@ -16,8 +17,16 @@ export interface CustomWeapon {
   draw: (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => void;
   /** Draw it in his fist (local space: the grip at the origin, the business end out along +x). */
   drawHeld: (ctx: CanvasRenderingContext2D, frame: number) => void;
+  /**
+   * Every frame he's in play, whether it's the one he's holding or not (`equipped`): for what keeps going after a
+   * press (a spray), what's pressed besides fire (secondary), and what wears off.
+   */
+  tick?: (ctx: FrameContext, input: WeaponInput & { secondary?: boolean }, equipped: boolean) => void;
+  /** Drawn over the enemies, in world space, every frame (meters on them, things in the air). */
+  drawOverlay?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
 }
 
 const weapons = new Map<string, CustomWeapon>();
 export const registerWeapon = (type: WeaponType, w: CustomWeapon) => { weapons.set(type, w); };
 export const customWeapon = (type: string | undefined) => (type ? weapons.get(type) : undefined);
+export const customWeapons = () => weapons.entries();

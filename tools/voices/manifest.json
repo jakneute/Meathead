@@ -521,6 +521,11 @@
  },
  {
   "voice": "announcer",
+  "text": "GORE SHOWER!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "GOT STOMPED!",
   "from": "KILL_CALLOUTS"
  },
@@ -551,6 +556,11 @@
  },
  {
   "voice": "announcer",
+  "text": "GROUND CHUCK!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "GROUNDED FOREVER!",
   "from": "KILL_CALLOUTS"
  },
@@ -563,6 +573,11 @@
   "voice": "announcer",
   "text": "GUN TO A FISTFIGHT!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HAMBURGERED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -598,6 +613,11 @@
   "voice": "announcer",
   "text": "HIT THE DECK!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HOSED DOWN!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -758,6 +778,11 @@
   "voice": "announcer",
   "text": "MELTED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "MINCED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1116,6 +1141,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SHREDDED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SIDEWALK SPLAT!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -1253,6 +1283,11 @@
   "voice": "announcer",
   "text": "STUCK TO THE CEILING!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SUCKED IN!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -10451,6 +10486,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BAGGED AND TAGGED!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BAKED POTATO!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -10956,6 +10996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CLEAN UP ON AISLE YOU!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "CLEANSED BY THE PUMP",
   "from": "VULGARITIES"
  },
@@ -11223,6 +11268,11 @@
   "voice": "meathead",
   "text": "DIET STARTS NEVER!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DIRT DEVIL, MOTHERFUCKER!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11543,6 +11593,11 @@
   "voice": "meathead",
   "text": "EXTRA CRISPY TRASH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EXTRA LEAN!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -12206,6 +12261,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GORE SHOWER, BITCH!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GORED BY A LONGHORN! RIGHT IN THE GLUTES!",
   "from": "HAZARD_HURT"
  },
@@ -12282,6 +12342,11 @@
  {
   "voice": "meathead",
   "text": "GROUND AND POUND, BITCH!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GROUND BEEF, BITCH!",
   "from": "M2_KILL_LINES"
  },
  {
@@ -12368,6 +12433,11 @@
   "voice": "meathead",
   "text": "HAVE A GOOD SLEEP",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HAVE SOME OF YOUR FRIEND!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -12983,6 +13053,11 @@
   "voice": "meathead",
   "text": "Hope you're waterproof. I'm not.",
   "from": "m1/components/WeaponGetScene.tsx:226"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOSE DOWN!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -13946,6 +14021,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IN THE BAG!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "INCINERATED SCUM",
   "from": "VULGARITIES"
  },
@@ -13953,6 +14033,11 @@
   "voice": "meathead",
   "text": "INTERNAL COMBUSTION FAILURE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "INTO THE GRINDER!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -14068,6 +14153,11 @@
   "voice": "meathead",
   "text": "IT'S RAINING LIZARDS! WHAT THE FUCK, FLORIDA?",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S RAINING MEN! IN BITS!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -14343,6 +14433,11 @@
   "voice": "meathead",
   "text": "MAYDAY, MOTHERFUCKER!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MEAT IS MEAT!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -14921,6 +15016,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO SOUL, NO PROBLEM!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NO TEETH? NO PROBLEM! NO LIFE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -15071,6 +15171,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOW YOU'RE PROTEIN!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "OCEANIC ANGER",
   "from": "VULGARITIES"
  },
@@ -15188,6 +15293,11 @@
   "voice": "meathead",
   "text": "ONE LESS PIGEON IN NEW YORK! NOBODY'LL NOTICE!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE MAN'S GUTS!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15721,6 +15831,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RECYCLED!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "RED DOT, THEN PAIN! I GET IT NOW!",
   "from": "HAZARD_HURT"
  },
@@ -15996,6 +16111,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SECOND HAND GORE!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SECURITY BREACH!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -16052,6 +16172,11 @@
  {
   "voice": "meathead",
   "text": "SHAKEN, THEN TAKEN OUT!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHARE THE LOVE!",
   "from": "M2_KILL_LINES"
  },
  {
@@ -16641,6 +16766,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SPLASH ZONE!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SPLINTERS IN MY TAINT!",
   "from": "HAZARD_HURT"
  },
@@ -16941,6 +17071,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SUCKS TO BE YOU!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SUIT DIDN'T HELP, HUH?",
   "from": "ENEMY_KILL_LINES"
  },
@@ -17062,6 +17197,11 @@
  {
   "voice": "meathead",
   "text": "TAP OUT! OH WAIT, YOU CAN'T.",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TASTE THE MEAT RAIN!",
   "from": "M2_KILL_LINES"
  },
  {
@@ -17311,6 +17451,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S A FULL BAG!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S A LOW BLOW, EARTH-WORM!",
   "from": "HURT"
  },
@@ -17403,6 +17548,11 @@
   "voice": "meathead",
   "text": "THE AIR FORCE IS ON HIS SIDE TOO?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BAG GIVES BACK!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -18968,6 +19118,11 @@
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
   "from": "m1/game/core/update.ts:227"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'VE BEEN HOSED!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",

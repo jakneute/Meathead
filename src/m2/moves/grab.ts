@@ -866,7 +866,7 @@ export const grabbing = (g: Grab) => g.phase !== 'idle';
 
 /** An enemy drawn somewhere else than where it stands: its feet at (x, y), turned by `angle` about them. */
 /** `face`: which way he faces before he's turned (a person's drawn facing whoever's watching, so he's mirrored to it). */
-const drawEnemyAt = (ctx: Ctx, e: Enemy, state: GameState, x: number, y: number, angle: number, face: 1 | -1) => {
+export const drawEnemyAt = (ctx: Ctx, e: Enemy, state: GameState, x: number, y: number, angle: number, face: 1 | -1) => {
   const pos = e.pos, facing = e.facing;
   ctx.save();
   ctx.translate(x, y); ctx.rotate(angle);

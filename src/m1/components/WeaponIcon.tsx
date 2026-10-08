@@ -429,6 +429,25 @@ const ART: Record<WeaponType, React.ReactNode> = {
     glint(p, 10, 7);
   }),
 
+  // Meathead 2's soul sucker: a haunted-house shop vac, a purple drum with a sickly green window, a flared intake out
+  // front with the grinder's teeth in it, the gore bag (red, lumpy) hanging under
+  SOUL_SUCKER: draw(p => {
+    const bag = ellC(10, 22, 6.5, 5);
+    paint(p, bag, radial(bag, ['#F87171', '#DC2626', '#B91C1C', '#7F1D1D'], 8, 20));
+    p.set(8, 20, '#FECACA'); p.set(12, 24, '#450A0A'); p.set(14, 21, '#450A0A');
+    const grip = polyC([[13, 16], [16, 16], [15, 22], [12.5, 22]]);
+    paint(p, grip, diag(grip, ['#52525B', '#3F3F46', '#27272A']));
+    const drum = rectC(2, 8, 15, 9);
+    paint(p, drum, rows(drum, ['#C4B5FD', '#A78BFA', '#8B5CF6', '#7C3AED', '#6D28D9', '#5B21B6', '#4C1D95', '#3B0764', '#2E1065']));
+    const win = rectC(5, 10, 5, 4); paint(p, win, (x, y) => ((x + y) % 2 ? '#86EFAC' : '#4ADE80'));
+    const hose = rectC(17, 10.5, 5, 4); paint(p, hose, rows(hose, ['#71717A', '#52525B', '#3F3F46', '#27272A']));
+    const mouthP = polyC([[22, 10.5], [30.5, 6], [30.5, 19], [22, 14.5]]);
+    paint(p, mouthP, cols(mouthP, ['#A1A1AA', '#D4D4D8', '#A1A1AA', '#71717A']));
+    for (let y = 8; y <= 17; y++) p.set(30, y, '#18181B');
+    for (const y of [8, 11, 14, 17]) p.set(29, y, '#F4F4F5');
+    glint(p, 4, 9);
+  }),
+
   // Dirty Dan's light machine gun: long and black, a vented shroud, a box of rounds hanging off it, the belt
   LMG: draw(p => {
     const stock = polyC([[1, 10.5], [8, 11.5], [8, 16], [1, 18]]);

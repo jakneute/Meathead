@@ -9,6 +9,7 @@ import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menu
 import { hasRightStick } from '../m1/game/platform/device';
 import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
 import PauseMenu from './PauseMenu';
+import GoreBag from './GoreBag';
 import { M2_WEAPONS, M2WeaponArt, weaponName, registerWeapons } from './weapons';
 import { loadVoicePack } from '../m1/game/platform/voiceclips';
 // (its own little pack: just the lines it can say, out of Meathead 1's: tools/voices/m2pack.ts)
@@ -205,7 +206,7 @@ const App2: React.FC = () => {
           onIntroComplete={() => setStatus(GameStatus.PLAYING)}
         />
         {status === GameStatus.PLAYING && ui.map === null && (
-          <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weaponName(weapon)} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} />
+          <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weaponName(weapon)} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : undefined} />
         )}
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit) && (

@@ -11,6 +11,9 @@ export const GRAB_CALLOUTS = {
   suplex: { lines: ['SUPLEXED!', 'GERMAN SUPLEX!', 'BRIDGED!', 'SPIKED!'], color: '#C084FC' },
   // (and not a grab's: the souvenir launcher's junk)
   souvenir: { lines: ['SOUVENIRED!', 'GIFT SHOPPED!', 'TOURIST TRAPPED!', 'BON VOYAGE!'], color: '#F472B6' },
+  // (the soul sucker's: into the grinder, and back out the other end)
+  shred: { lines: ['SHREDDED!', 'GROUND CHUCK!', 'MINCED!', 'HAMBURGERED!', 'SUCKED IN!'], color: '#A78BFA' },
+  gorespray: { lines: ['HOSED DOWN!', 'GORE SHOWER!', 'SPLATTERED!', 'RETURN TO SENDER!'], color: '#DC2626' },
 } as const;
 
 export type GrabCallout = keyof typeof GRAB_CALLOUTS;

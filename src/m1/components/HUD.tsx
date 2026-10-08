@@ -15,11 +15,13 @@ interface HUDProps {
   weaponName?: string;
   /** A picture in place of the weapon's own (Meathead 2's ray gun). */
   weaponArt?: React.ReactNode;
+  /** Something of the weapon's own, under its ammo (Meathead 2's soul sucker: its gore bag). */
+  weaponExtra?: React.ReactNode;
   maxAmmo: number;
 }
 
 /** The in-game HUD: health, power cells and the equipped weapon on a steel plate in the corner. */
-const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt }) => {
+const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra }) => {
   const hp = Math.max(0, Math.min(1, health / maxHealth));
   const low = hp < 0.35;
   const limited = maxAmmo !== Infinity;
@@ -76,6 +78,7 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo
               </div>
               <span className="text-[7px] font-black text-white whitespace-nowrap">{limited ? `${Math.floor(ammo)}/${maxAmmo}` : '∞'}</span>
             </div>
+            {weaponExtra}
           </div>
         </div>
       </div>
