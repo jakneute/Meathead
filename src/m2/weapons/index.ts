@@ -44,7 +44,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     controls: [
       { pad: ['X'], mouse: 'left', label: 'SWING' },
       { pad: ['X'], mouse: 'left', label: 'HOLD, STANDING: TORNADO' },
-      { pad: ['Y'], kb: ['F'], label: 'LAUNCH (AGAIN IN THE AIR)' },
+      { pad: ['Y'], kb: ['F'], label: 'LAUNCH · IN THE AIR: SMASH DOWN' },
       { pad: ['Y'], kb: ['F'], label: 'HOLD, STANDING: PANCAKE SMASH' },
     ],
     note: 'STANDING OR IN THE AIR. NOT WHILE DUCKING.',
