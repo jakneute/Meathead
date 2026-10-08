@@ -15,7 +15,7 @@ import type { PadKey } from '../../m1/components/ButtonIcons';
 
 /** One line of how it's worked, for the pause menu: the buttons (pad, keyboard, mouse; `join`: '+' together), and what they do. */
 export interface Control { pad: PadKey[]; kb?: string[]; mouse?: 'left' | 'right'; join?: '+' | '/'; label: string }
-export interface M2Weapon { name: string; from: string; description: string; controls: Control[] }
+export interface M2Weapon { name: string; from: string; description: string; controls: Control[]; /** A line under its controls (when it can't be used). */ note?: string }
 
 export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   GUN: {
@@ -47,6 +47,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
       { pad: ['Y'], kb: ['F'], label: 'LAUNCH (AGAIN IN THE AIR)' },
       { pad: ['Y'], kb: ['F'], label: 'HOLD, STANDING: PANCAKE SMASH' },
     ],
+    note: 'STANDING OR IN THE AIR. NOT WHILE DUCKING.',
   },
   SOUL_SUCKER: {
     name: 'SOUL SUCKER', from: 'SPOOKY LAND',

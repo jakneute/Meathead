@@ -6,6 +6,7 @@
 //   Y: a vertical hit, low to high: tapped, it launches whoever it hits straight up, far harder than an uppercut; tapped
 //      again in the air, up he goes again. Held on the ground, a slow windup, the mallet right back over his head, then
 //      down: whatever it lands on is squashed flat as a pancake, accordion style, dead.
+// Standing or in the air, never ducking: down there he can't get any leverage on it (and says so).
 // It doesn't use ammo, it wears out: DURABILITY, a little gone every time it connects (and spinning). Ammo pickups fill
 // it the same. Its kills are cartoon ones: sent flying off into the distance with a twinkle, or flattened.
 
@@ -23,6 +24,8 @@ import { drawPoseSprite, drawPoseHead, drawEnemyAt, grabBusy } from '../moves/gr
 import { btn, keyHeld } from '../input';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
+import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
+import { DUCK_LINES } from '../lines/weaponLines';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -43,6 +46,13 @@ let mode: Mode = 'idle', t = 0, dir: 1 | -1 = 1;
 let xHeld = 0, yHeld = 0, yWas = false, xWas = false;
 /** Who this one's hit (each only once a hit). */
 let struck = new Set<Enemy>();
+let duckSaidAt = -9999;
+const meatheadSays = (state: GameState, text: string) => {
+  say(text, MEATHEAD_VOICE, 'casual', {
+    onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
+  });
+};
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
 const wearOut = (ctx: FrameContext, n = 1) => { if (!ctx.cheats.infiniteAmmo) ctx.state.player.weaponAmmo.MALLET = Math.max(0, ctx.state.player.weaponAmmo.MALLET - n); };
@@ -139,7 +149,13 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   // (Y going to a grab: not the mallet's)
   const yFree = !grabBusy();
 
-  if (mode === 'idle' && durable(ctx) && !pl.isCharging && !pl.isUppercutting && !pl.isDivekicking) {
+  // (ducking: nothing, and he says why, a while apart)
+  if (mode === 'idle' && pl.isDucking && (xPress || (tap && yFree))) {
+    playSound('click', 0.6, -6);
+    if (state.frame - duckSaidAt > 180) { duckSaidAt = state.frame; meatheadSays(state, DUCK_LINES[Math.floor(Math.random() * DUCK_LINES.length)]); }
+    return;
+  }
+  if (mode === 'idle' && durable(ctx) && !pl.isCharging && !pl.isUppercutting && !pl.isDivekicking && !pl.isDucking) {
     if (xPress) start(ground ? 'swing' : 'airSwing', pl);
     else if (tap && yFree) start(ground ? 'launch' : 'airLaunch', pl);
     else if (yDown && yHeld === Y_HOLD && ground && yFree) start('windup', pl);

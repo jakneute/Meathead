@@ -18,6 +18,9 @@ export const BULK_FAIL_LINES = {
   air: ['NEED MY FEET UNDER ME!', "CAN'T FLEX IN MIDAIR!"],
 };
 
+/** The mallet of pain, tried while he's ducking. */
+export const DUCK_LINES = ["CAN'T FIND ENOUGH LEVERAGE!", 'NO LEVERAGE DOWN HERE!', 'GOTTA STAND UP TO SWING THIS!', "CAN'T SWING IT ON MY KNEES!"];
+
 /** ...and empty, when he tries to spray it. */
 export const EMPTY_BAG_LINES = [
   "BAG'S EMPTY!", 'NOTHING IN THE BAG!', 'GOTTA SUCK SOMEBODY UP FIRST!', 'OUT OF GUTS!', 'NO GUTS, NO GLORY!',

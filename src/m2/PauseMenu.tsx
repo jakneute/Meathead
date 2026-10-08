@@ -74,6 +74,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
             {info?.controls?.length ? (
               <div className="mt-2 w-full flex flex-col items-start gap-[3px] px-2 py-1 bg-black/40 border border-zinc-700 text-[6px] font-black text-zinc-200 tracking-wider">
                 {info.controls.map((k, i) => <ChordPrompt key={i} pad={k.pad} join={k.join ?? '+'} kb={k.kb} mouse={k.mouse} label={k.label} size={12} />)}
+                {info.note && <span className="text-red-400 mt-[1px]">{info.note}</span>}
               </div>
             ) : null}
           </div>

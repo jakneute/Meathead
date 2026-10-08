@@ -10966,6 +10966,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CAN'T FIND ENOUGH LEVERAGE!",
+  "from": "DUCK_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "CAN'T FLEX IN MIDAIR!",
   "from": "BULK_FAIL_LINES"
  },
@@ -10983,6 +10988,11 @@
   "voice": "meathead",
   "text": "CAN'T SHOOT. BOTH HANDS ON THE MOTOR.",
   "from": "m1/game/stages/hector/chase.ts:182"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAN'T SWING IT ON MY KNEES!",
+  "from": "DUCK_LINES"
  },
  {
   "voice": "meathead",
@@ -12493,6 +12503,11 @@
   "voice": "meathead",
   "text": "GOTTA REST BETWEEN SETS!",
   "from": "BULK_FAIL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOTTA STAND UP TO SWING THIS!",
+  "from": "DUCK_LINES"
  },
  {
   "voice": "meathead",
@@ -15308,6 +15323,11 @@
   "voice": "meathead",
   "text": "NO JUICE LEFT IN THIS THING!",
   "from": "BULK_FAIL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO LEVERAGE DOWN HERE!",
+  "from": "DUCK_LINES"
  },
  {
   "voice": "meathead",
