@@ -23,7 +23,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   },
   SPELLBOOK: {
     name: 'SPELLBOOK OF THE DAMNED', from: 'FANTASY LAND',
-    description: "Fire reads out a storm on up to three of them: a meteor that blows up and leaves them burning, a comet that hurts and freezes them solid, lightning that keeps striking till they're dead. Secondary fire: BULK UP. Faster, bigger, and everything he hits goes flying. Runs on mana.",
+    description: "Fire reads out a storm on up to three of them: a meteor that blows up and leaves them burning, a comet that hurts and freezes them solid, lightning that keeps striking for a few seconds. Secondary fire: BULK UP. Faster, bigger, and everything he hits goes flying. Runs on mana.",
   },
   SOUL_SUCKER: {
     name: 'SOUL SUCKER', from: 'SPOOKY LAND',

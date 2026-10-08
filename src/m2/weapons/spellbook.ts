@@ -1,8 +1,8 @@
 // THE SPELLBOOK OF THE DAMNED (Fantasy Land): a heavy black tome, a skull on the cover, pages that glow. Fire reads
 // out an elemental storm on whoever's about (up to three of them, nearest first): a METEOR that comes down on one and
 // goes up in a blast (anybody it doesn't kill is left burning a while), a COMET that comes down on another (it hurts,
-// and anybody it doesn't kill is frozen solid a good while), and LIGHTNING that strikes a third over and over till
-// he's dead. Fewer than three about, and some of them get more than one of it at once. A spell's a while coming back.
+// and anybody it doesn't kill is frozen solid a good while), and LIGHTNING that strikes a third over and over for
+// a few seconds (the beefy ones can live through it). Fewer than three about, and some of them get more than one of it at once. A spell's a while coming back.
 // Secondary fire (Y, or F) is the support spell, BULK UP: for a while he's a lot faster, a lot bigger, and whatever he
 // charges or throws goes a lot further; a long while coming back. Its ammo's MANA (pickups fill it the same).
 
@@ -29,7 +29,9 @@ const INK = '#1A0B06';
 const CAST_COOLDOWN = 80, REACH = 680, CAST_POSE = 32;
 const METEOR = { dmg: 80, edge: 25, radius: 95, burn: 240, burnDmg: 0.4 };
 const COMET = { dmg: 45, freeze: 320 };
-const BOLT = { every: 14, dmg: 15, maxFrames: 900 };
+/** The lightning: a strike this often, this hard, for this long (three seconds: about 180 in all, a shooter's dead, a
+ * bouncer's still standing). */
+const BOLT = { every: 14, dmg: 15, maxFrames: 186 };
 const BULK = { frames: 480, cooldown: 480, speed: 1.6, size: 1.3, knock: 2.2 };
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
@@ -102,7 +104,7 @@ const fire = (ctx: FrameContext) => {
   const z = at(2);
   if (z) {
     const bolt = { e: z, next: state.frame + RIFT_OPEN + 2, until: state.frame + BOLT.maxFrames, flash: 0, path: [] as { x: number; y: number }[], rift: null as Rift | null };
-    bolt.rift = openRift(mid(z).x, state.camera.y + HUD_CLEAR_Y + 20, 0.8, BOLT.maxFrames, () => (bolts.includes(bolt) ? mid(bolt.e) : null));
+    bolt.rift = openRift(mid(z).x, state.camera.y + HUD_CLEAR_Y + 20, 0.8, BOLT.maxFrames + 12, () => (bolts.includes(bolt) ? mid(bolt.e) : null));
     bolts.push(bolt);
   }
   pl.shootCooldown = CAST_COOLDOWN;
@@ -291,7 +293,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
     if (left % 20 === 0) ctx.fx.spawnDamageNumber(e.pos, Math.round(METEOR.burnDmg * 20));
     if (e.health <= 0) { if (isMidBoss(e)) e.health = 1; else spellKill(ctx, e, 'charred'); }
   }
-  // The lightning: strike, strike, strike, till he's dead
+  // The lightning: strike, strike, strike, for a few seconds (or till he's dead)
   for (const b of [...bolts]) {
     if (b.flash > 0) b.flash--;
     if (!alive(b.e) || state.frame > b.until) { bolts = bolts.filter(o => o !== b); continue; }
