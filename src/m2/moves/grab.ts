@@ -27,7 +27,7 @@ import { isHumanoidKind, drawKindEnemy, kindHead } from '../../m1/game/render/en
 import { getEnemyMass } from '../../m1/game/combat/knockback';
 import { setArmor } from '../../m1/game/core/resist';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
-import { impactKill } from '../../m1/game/enemies/enemies';
+import { impactKill, ceilingSplat } from '../../m1/game/enemies/enemies';
 import { playSound } from '../../m1/game/platform/audio';
 import { INITIAL_PLAYER_HEALTH } from '../../m1/constants';
 import { beginSprite, endSprite } from '../../m1/game/render/player/spriteOutline';
@@ -289,7 +289,8 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
     const speed = Math.hypot(e.vel.x, e.vel.y);
     if (e.isBlownAway || e.health <= 0) { e.enemyCollisionCooldown = 0; return false; }
     // Into a wall: splatted on it, hard (killed, he slides down it)
-    if (wallSplat(ctx, e)) { e.enemyCollisionCooldown = 0; return !e.isBlownAway && e.health > 0; }
+    if (wallSplat(ctx, e) || ceilingBonk(ctx, e)) { e.enemyCollisionCooldown = 0; return !e.isBlownAway && e.health > 0; }
+    catchOnFloor(state, e);
     // Coming down: the floor's what hurts him, by how hard he hits it
     if (fl.fall > 2 && e.vel.y <= 0.5 && !fl.oneChunk) {
       hurtThrown(ctx, fl, Math.max(4, Math.round(e.maxHealth * THROW_SHARE * fl.impact * Math.max(0.6, Math.min(1.8, fl.fall / 9)))));
@@ -361,6 +362,49 @@ const wallSplat = (ctx: FrameContext, e: Enemy) => {
   e.vel = { x: -dir * 2, y: Math.min(e.vel.y, -2) };
   e.pauseTimer = Math.max(e.pauseTimer || 0, THROW_STUN);
   return true;
+};
+
+/**
+ * The same going up into a ceiling (the underside of anything solid over him): swept a frame ahead, so a body going up
+ * fast never ends up through it and on top; splatted on it, hard, by how fast (killed, he's stuck up there, dripping),
+ * or just stopped under it, slow. True if he hit one.
+ */
+const ceilingBonk = (ctx: FrameContext, e: Enemy) => {
+  const { state, fx } = ctx;
+  const vy = e.vel.y;
+  if (vy > -0.5) return false;
+  const top = e.pos.y + vy;
+  const ceil = state.blocks.find(b => !b.oneWay && b.type !== 'pit' && b.type !== 'door'
+    && e.pos.x + 6 < b.x + b.w && e.pos.x + e.width - 6 > b.x
+    && b.y + b.h <= e.pos.y + 2 && b.y + b.h > top);
+  if (!ceil) return false;
+  e.pos.y = ceil.y + ceil.h;
+  if (-vy < WALL_SPLAT_SPEED) { e.vel.y = 0.5; return true; }
+  const dmg = Math.round(Math.max(30, e.maxHealth * Math.min(1, WALL_SHARE + WALL_SHARE_PER_SPEED * -vy)));
+  playSound('splat'); playSound('thud', 1.2, -5); shakeScreen(state, 10, 6);
+  e.health -= dmg;
+  if (e.health <= 0) { e.health = 0; e.vel = { x: 0, y: 0 }; ceilingSplat(ctx, e, e.pos.y); return true; }
+  fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y }, '#8B0000', 14, 0, 10);
+  fx.spawnDamageNumber(e.pos, dmg, true);
+  // (back down off it)
+  e.vel = { x: e.vel.x * 0.5, y: 2 };
+  e.pauseTimer = Math.max(e.pauseTimer || 0, THROW_STUN);
+  return true;
+};
+
+/**
+ * And coming down, however fast (spiked, slammed, dropped from way up): swept a frame ahead too, so he lands on the
+ * floor (a platform he'd stand on included), never through it. Put right on it, still coming down: the engine lands
+ * him there, and the landing's hurt is flyInto's, by how hard.
+ */
+const catchOnFloor = (state: GameState, e: Enemy) => {
+  const vy = e.vel.y;
+  if (vy <= 0) return;
+  const feet = e.pos.y + e.height;
+  const floor = state.blocks.find(b => b.type !== 'pit' && b.type !== 'door'
+    && e.pos.x + 6 < b.x + b.w && e.pos.x + e.width - 6 > b.x
+    && b.y >= feet - 2 && b.y <= feet + vy);
+  if (floor) e.pos.y = floor.y - e.height;
 };
 
 /** The one he's thrown, hurt by what he's hit; a hit that finishes him sends him on his way, the grab's kill. */
@@ -606,6 +650,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     case 'shake': {
       // (nothing makes him let go: he takes whatever hits him and carries on shaking)
       const e = g.held!;
+      g.aim = controls.down ? 'down' : controls.up ? 'up' : controls.left ? 'left' : controls.right ? 'right' : null;
       if (g.t % 6 === 0) playSound('thud', 0.35, 6);
       if (g.t < SHAKE_FRAMES) return hold();
       // Shaken out: the ammo falls out of him (the first time: after that, he's empty)
@@ -936,14 +981,15 @@ const shootPose = (c: Ctx, f: number, k: number) => {
 };
 
 /**
- * Round a critter held up: an arrow each way it can go (right, left, up, down), the one aimed lit up yellow, the rest
- * faint; while it's still coming up to his ear they're dim (it can't go yet), then they pulse: ready.
+ * Round whoever he's holding (a critter up by his ear, somebody being shaken): an arrow each way they can go (right,
+ * left, up, down), the one aimed lit up yellow, the rest faint; till it can go they're dim, then they pulse: ready.
+ * `fallback`: the way it goes with nothing held (a shakedown's forward throw), lit when no direction is.
  */
-const aimArrows = (ctx: Ctx, cx: number, cy: number, g: Grab, f: number) => {
-  const ready = g.t >= CRITTER_SETTLE;
-  const R = 30;
+const SHAKE_READY = 16;
+const aimArrows = (ctx: Ctx, cx: number, cy: number, g: Grab, f: number, ready: boolean, R = 30, fallback: 'left' | 'right' | null = null) => {
+  const aim = g.aim ?? fallback;
   for (const [d, dx, dy] of [['right', 1, 0], ['left', -1, 0], ['up', 0, -1], ['down', 0, 1]] as const) {
-    const on = g.aim === d;
+    const on = aim === d;
     const pulse = ready && !on ? 0.15 * Math.sin(f * 0.3) : 0;
     ctx.globalAlpha = on ? (ready ? 1 : 0.7) : (ready ? 0.6 : 0.3) + pulse;
     const ax = cx + dx * R, ay = cy + dy * R, s = on ? 8 : 6;
@@ -1107,7 +1153,7 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
         const wiggle = Math.sin(f * 0.9) * 0.25;
         const hx = x + g.dir * (arm.x * Math.cos(-0.1) + 2), hy = y - 24 + arm.y + 6;
         drawEnemyAt(ctx, g.held, state, hx, hy + g.held.height / 2, wiggle, (-g.dir) as 1 | -1);
-        if (g.phase === 'critter') aimArrows(ctx, hx, hy + g.held.height / 2, g, f);
+        if (g.phase === 'critter') aimArrows(ctx, hx, hy + g.held.height / 2, g, f, g.t >= CRITTER_SETTLE);
       }
       return;
     }
@@ -1172,6 +1218,8 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
         // holding, out in front of him, over his hands)
         sprite(ctx, x, y, g.dir, c => shakePose(c, f, jig));
         drawHeldByNeck(ctx, g.held, state, x + g.dir * (fist.x + 4), y + fist.y, g.dir, Math.sin(g.t * 1.9 + 0.8) * 0.18);
+        // (which way he'll go when the shaking's done: nothing held, out the front)
+        aimArrows(ctx, x + g.dir * (fist.x + 4), y + fist.y + g.held.height * 0.45, g, f, g.t >= SHAKE_FRAMES - SHAKE_READY, Math.max(34, g.held.height * 0.6 + 6), g.dir > 0 ? 'right' : 'left');
         return;
       }
       sprite(ctx, x, y, g.dir, c => shakePose(c, f, jig));

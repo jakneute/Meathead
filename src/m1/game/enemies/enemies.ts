@@ -1448,7 +1448,7 @@ const ceilingHit = (state: GameState, e: Enemy): Block | undefined => {
 };
 
 /** Flattened on the underside of a ceiling (at `ceilY`), dripping: a blood burst, the callout, and the body stays up there. */
-const ceilingSplat = (ctx: FrameContext, e: Enemy, ceilY: number, callout = true) => {
+export const ceilingSplat = (ctx: FrameContext, e: Enemy, ceilY: number, callout = true) => {
   const { state, fx } = ctx;
   const at = { x: e.pos.x + e.width / 2, y: ceilY + 2 };
   fx.spawnDeathShower(at, 0, 2.5);

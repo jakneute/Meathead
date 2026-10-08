@@ -16,6 +16,8 @@ import { M2_ENEMY_KINDS } from '../roster';
 
 export const PEN_STAGE = 'M2 Staff Pen';
 const X0 = -40000, LEN = 2400;
+/** The end walls: solid, drawn, and the camera stops at their outer faces. */
+const WALL = 60;
 const EXIT_X = X0 + 130;
 /** Who walks in, in turn (the rat's there to show who can't be grabbed). */
 const ROSTER: EnemyKind[] = M2_ENEMY_KINDS;
@@ -43,10 +45,11 @@ export const penLayout: StageLayout = {
     const runs = [{ x1: X0 - 400, y1: GROUND_Y, x2: X0 + LEN + 400, y2: GROUND_Y, surface: 'concrete' }];
     state.groundRuns = runs;
     state.blocks.push(...groundBlocks(runs));
-    state.blocks.push({ x: X0 - 60, y: -3000, w: 60, h: 3600, type: 'wall', hidden: true, tag: 'pen-l' }, { x: X0 + LEN, y: -3000, w: 60, h: 3600, type: 'wall', hidden: true, tag: 'pen-r' });
+    state.blocks.push({ x: X0 - WALL, y: -3000, w: WALL, h: 3600, type: 'wall', hidden: true, tag: 'pen-l' }, { x: X0 + LEN, y: -3000, w: WALL, h: 3600, type: 'wall', hidden: true, tag: 'pen-r' });
     const pen: Pen = { grab: createGrab(state), next: 0, cooldown: 0, upWas: false };
     state.stage = pen;
-    state.cameraMinX = X0 - 60;
+    state.cameraMinX = X0 - WALL;
+    state.cameraMaxX = X0 + LEN + WALL - CANVAS_WIDTH;
     for (let i = 0; i < AT_ONCE; i++) { send(state, pen); state.enemies[state.enemies.length - 1].pos.x -= i * 260; }
   },
   update: (ctx, controls) => {
@@ -163,5 +166,19 @@ const drawPenBack = (ctx: CanvasRenderingContext2D, state: GameState) => {
   ctx.fillStyle = '#FDE047'; ctx.fillText('NOT FOR GUESTS', X0 + 1700, GROUND_Y - 80);
   box(ctx, X0 + 2000, GROUND_Y - 210, 200, 40, '#7F1D1D'); ctx.fillStyle = '#FEF2F2'; ctx.fillText('EMPLOYEES ONLY', X0 + 2100, GROUND_Y - 192); ctx.fillText('SMILE BEFORE YOU GO OUT', X0 + 2100, GROUND_Y - 178);
   ctx.textAlign = 'left';
+  // The end walls, floor to ceiling: poured concrete in bands, lit along the face toward the room, a hazard stripe up
+  // the edge, the form-tie holes in rows
+  const top = state.camera.y - 20, h = GROUND_Y + 120 - top;
+  for (const [wx, face] of [[X0 - WALL, 1], [X0 + LEN, -1]] as const) {
+    const cols = face > 0 ? ['#3F3F46', '#46464E', '#52525B', '#5B5B64', '#6B6B74'] : ['#6B6B74', '#5B5B64', '#52525B', '#46464E', '#3F3F46'];
+    cols.forEach((c, i) => box(ctx, wx + i * (WALL / cols.length), top, WALL / cols.length + 1, h, c));
+    const edge = face > 0 ? wx + WALL - 10 : wx;
+    box(ctx, face > 0 ? edge + 10 - 2 : edge, top, 2, h, face > 0 ? '#A1A1AA' : '#18181B');
+    for (let y = Math.floor(top / 28) * 28; y < GROUND_Y + 120; y += 28) box(ctx, edge + (face > 0 ? -2 : 2), y, 8, 14, (y / 28) % 2 ? '#CA8A04' : '#18181B');
+    for (let y = Math.floor(top / 96) * 96 + 40; y < GROUND_Y; y += 96) for (let k = 0; k < 2; k++) box(ctx, wx + 14 + k * 20 - (face > 0 ? 0 : 0), y, 4, 4, '#27272A');
+    for (let y = Math.floor(top / 192) * 192; y < GROUND_Y; y += 192) box(ctx, wx, y, WALL, 2, '#2A2A30');
+    // (where it meets the floor: a dark seam)
+    box(ctx, wx, GROUND_Y, WALL, 4, '#27272A');
+  }
 };
 
