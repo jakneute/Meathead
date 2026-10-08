@@ -5,7 +5,8 @@
 //      it like a cartoon devil, bonking everybody all round him, edging slowly left or right as he's steered, no jumping.
 //   Y: on the ground, a vertical hit, low to high: tapped, it launches whoever it hits straight up, far harder than an
 //      uppercut. In the air, the mallet over his head and down he comes with it, smashing into the ground: a heavy hit to
-//      everybody round where he lands (heaviest right under him), bounced up off the floor. Held on the ground, a slow windup, the mallet right back over his head, then
+//      everybody round where he lands (heaviest right under him), bounced up off the floor. Coming down on somebody's
+//      head instead and not killing him, he bounces back up off him, pogo style, and can do it again. Held on the ground, a slow windup, the mallet right back over his head, then
 //      down: whatever it lands on is squashed flat as a pancake, accordion style, dead.
 // Standing or in the air, never ducking: down there he can't get any leverage on it (and says so).
 // It doesn't use ammo, it wears out: DURABILITY, a little gone every time it connects (only then: a swing at nothing
@@ -37,8 +38,10 @@ const SWING = { dmg: 85, knock: 26, lift: -7, len: 18, hitAt: 7 };
 const AIR_SWING = { dmg: 75, knock: 22, lift: -4, len: 16, hitAt: 6 };
 const LAUNCH = { dmg: 70, up: -22, len: 18, hitAt: 7 };
 /** The smash down: how fast he comes down; how far round the landing it hits, and how hard (more, right under him). */
-const POUND = { fall: 17, radius: 130, dmg: 60, under: 50, up: -12 };
+const POUND = { fall: 17, radius: 130, dmg: 60, under: 50, up: -12, bounce: -13 };
 const SMASH = { windup: 42, len: 18, reach: 120 };
+/** How fast he can walk while he's winding it up. */
+const WINDUP_WALK = 2.2;
 /** wear: one durability for every so many rounds that hit somebody. */
 const TORNADO = { after: 50, max: 300, every: 9, radius: 76, dmg: 30, knock: 17, speed: 3.6, wear: 3 };
 let spinHits = 0;
@@ -201,8 +204,22 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       break;
     }
     case 'pound':
-      // Coming down hard with it over his head, into the ground
+      // Coming down hard with it over his head, into the ground. Onto somebody's head on the way: the full weight of it
+      // on him; it doesn't finish him, and Meathead's bounced back up off him, pogo style, free to do it again
       pl.vel.y = POUND.fall; pl.vel.x *= 0.85;
+      {
+        const under = inBox(state, pl.pos.x - 4, fy - 6, pl.pos.x + pl.width + 4, fy + POUND.fall + 4).find(e => e.pos.y > pl.pos.y + pl.height * 0.5);
+        if (under && !ground) {
+          bonk(ctx, under, POUND.dmg + POUND.under, { x: dir * 2, y: 3 }, 'flatten');
+          wearOut(ctx);
+          if (alive(under)) {
+            pl.vel.y = POUND.bounce; pl.isGrounded = false;
+            playSound('boing', 1, 2); word(px, fy - 30, 'BOING!', '#4ADE80');
+            mode = 'idle'; t = 0;
+            break;
+          }
+        }
+      }
       if (ground && t > 1) {
         mode = 'land'; t = 0;
         playSound('slam'); playSound('bonk', 1, -8); shakeScreen(state, 20, 10);
@@ -219,8 +236,9 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       }
       break;
     case 'windup':
-      // (let go of it: it was a tap after all, nothing; held, it's all the way up, then down it comes)
-      pl.vel.x = 0; pl.lockTimer = Math.max(pl.lockTimer, 2);
+      // (let go of it: it was a tap after all, nothing; held, it's all the way up, then down it comes. Winding up he can
+      // walk, forward or back, slowly; not jump, not turn round)
+      pl.vel.x = Math.max(-WINDUP_WALK, Math.min(WINDUP_WALK, pl.vel.x)); pl.jumpBufferTimer = 0; pl.facing = dir;
       if (!yDown && t < SMASH.windup) { mode = 'idle'; break; }
       if (t % 10 === 0) playSound('click', 0.6, -6 + t / 10);
       if (t >= SMASH.windup) { mode = 'smash'; t = 0; playSound('whoosh', 1.2, -8); }
@@ -288,6 +306,34 @@ const drawMallet = (c: Ctx, len = 36) => {
  * Him, two-handed on the mallet: `a` the mallet's angle from his shoulders (0 straight out in front, -PI/2 straight
  * up, PI behind him), `lean` his body's, `crouch` how far down he's sunk.
  */
+/**
+ * Swung flat, round him (the horizontal swing): `phi` where it is in the swing, PI right behind him, PI/2 coming round
+ * at you (end on: just the face of its head), 0 straight out in front. Gripped at the waist, his shoulders turning with
+ * it; the mallet drawn foreshortened as it comes round, behind him while it's behind him.
+ */
+const flatSwingPose = (c: Ctx, f: number, phi: number, tilt: number, airborne: boolean) => {
+  if (airborne) { drawLeg(c, [-5, -24], [-10, -16], [-14, -6], 0.4, true); drawLeg(c, [5, -24], [12, -14], [10, -4], 0.4, false); }
+  else { drawLeg(c, [-5, -22], [-13, -11], [-18, 0], 0, true); drawLeg(c, [5, -22], [15, -12], [19, 0], 0, false); }
+  c.save(); c.translate(0, -22); c.rotate(0.12 - Math.cos(phi) * 0.12);
+  const k = Math.cos(phi), grip = { x: 3 + k * 18, y: -16 + tilt * 10 };
+  const mallet = () => {
+    if (Math.abs(k) >= 0.3) { c.save(); c.translate(grip.x, grip.y); c.rotate(tilt); c.scale(k, 1); drawMallet(c, 34); c.restore(); return; }
+    // (end on, coming round at you: the face of the head, big, the handle hidden behind it)
+    const hx = grip.x + k * 30, hy = grip.y, r = 16;
+    c.fillStyle = INK; c.beginPath(); c.arc(hx, hy, r + 2, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#DC2626'; c.beginPath(); c.arc(hx, hy, r, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = '#FACC15'; c.lineWidth = 3; c.beginPath(); c.arc(hx, hy, r - 4, 0, Math.PI * 2); c.stroke();
+    c.fillStyle = '#FEE2E2'; c.beginPath(); c.arc(hx - 5, hy - 5, 4, 0, Math.PI * 2); c.fill();
+  };
+  if (k < 0) mallet();
+  drawArmTo(c, [-8, -22], [(grip.x - 8) / 2 - 3, -12], [grip.x - 2, grip.y], true, 6);
+  drawTorsoFromHips(c);
+  drawPoseHead(c, 3 + k * 2, -37, 0, 'roar', f);
+  if (k >= 0) mallet();
+  drawArmTo(c, [11, -22], [(grip.x + 11) / 2 + 3, -10], [grip.x, grip.y], false, 6);
+  c.restore();
+};
+
 const malletPose = (c: Ctx, f: number, a: number, lean: number, crouch = 0, airborne = false) => {
   if (airborne) { drawLeg(c, [-5, -24], [-10, -16], [-14, -6], 0.4, true); drawLeg(c, [5, -24], [12, -14], [10, -4], 0.4, false); }
   else { drawLeg(c, [-5, -24 + crouch], [-12, -12 + crouch * 0.5], [-17, 0], 0, true); drawLeg(c, [5, -24 + crouch], [14, -13 + crouch * 0.5], [18, 0], 0, false); }
@@ -331,15 +377,17 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     if (mode === 'tornado') drawTornado(c, x, y, f);
     else {
       let a = 0, lean = 0, crouch = 0;
-      if (mode === 'swing' || mode === 'airSwing') { const S = mode === 'swing' ? SWING : AIR_SWING; const k = t / S.hitAt; a = t < S.hitAt ? lerp(Math.PI * 0.95, 0, ease(k)) : lerp(0, mode === 'swing' ? -0.6 : 0.6, (t - S.hitAt) / 6); lean = t < S.hitAt ? lerp(-0.25, 0.15, k) : 0.15; if (mode === 'airSwing') a += 0.3; }
+      let phi: number | null = null;
+      if (mode === 'swing' || mode === 'airSwing') { const S = mode === 'swing' ? SWING : AIR_SWING; phi = t < S.hitAt ? lerp(Math.PI * 0.97, 0, ease(t / S.hitAt)) : lerp(0, -0.9, (t - S.hitAt) / 8); }
       else if (mode === 'launch') { const k = t / LAUNCH.hitAt; a = t < LAUNCH.hitAt ? lerp(1.1, -1.4, ease(k)) : -1.5; lean = lerp(0.3, -0.25, k); crouch = t < LAUNCH.hitAt ? 4 * (1 - k) : 0; }
       else if (mode === 'pound') { a = -2.4; lean = -0.15; }
       else if (mode === 'windup') { const k = t / SMASH.windup; a = lerp(0.3, -2.7, ease(k)); lean = lerp(0, -0.3, k); crouch = 2; }
       else if (mode === 'smash') { const k = t / 4; a = t < 4 ? lerp(-2.7, 0.9, ease(k)) : 0.9; lean = t < 4 ? lerp(-0.3, 0.45, k) : 0.45; crouch = 6; }
       else if (mode === 'land') { a = 1.2; lean = 0.4; crouch = 8; }
       // (the swing's blur)
-      if ((mode === 'swing' || mode === 'airSwing') && t >= 3 && t <= 9) { c.fillStyle = 'rgba(255, 255, 255, 0.35)'; c.beginPath(); c.arc(x, y - 46, 62, dir > 0 ? -0.9 : Math.PI - 0.2, dir > 0 ? 0.2 : Math.PI + 0.9); c.lineTo(x, y - 46); c.fill(); }
-      drawPoseSprite(c, x, y, dir, g => malletPose(g, f, a, lean, crouch, air));
+      if ((mode === 'swing' || mode === 'airSwing') && t >= 3 && t <= 10) { c.strokeStyle = 'rgba(255, 255, 255, 0.45)'; c.lineWidth = 10; c.beginPath(); c.ellipse(x, y - 34, 64, 14, 0, dir > 0 ? -0.2 : Math.PI - 1.4, dir > 0 ? 1.4 : Math.PI + 0.2); c.stroke(); }
+      if (phi !== null) { const p = phi; drawPoseSprite(c, x, y, dir, g => flatSwingPose(g, f, p, mode === 'airSwing' ? 0.25 : -0.12, air)); }
+      else drawPoseSprite(c, x, y, dir, g => malletPose(g, f, a, lean, crouch, air));
     }
   }
   // The comic words, popping up
@@ -378,6 +426,8 @@ const drawTornado = (c: Ctx, x: number, y: number, f: number) => {
 /** In his fist, carried at the ready: gripped low on the handle, the head up in front of him, tipped forward. */
 const drawHeld = (c: Ctx) => { c.save(); c.translate(1, 3); c.rotate(-1.15); drawMallet(c, 28); c.restore(); };
 
+/** (for tests: hold him at a frame of a move) */
+export const holdMalletForTests = (m: string, at: number) => { mode = m as Mode; t = at; };
 /** Everything it was in the middle of, stopped (through a door). */
 export const stopMallet = () => { if (mode === 'tornado') setArmor(false); mode = 'idle'; words = []; twinkles = []; flat = []; flying = []; };
 
