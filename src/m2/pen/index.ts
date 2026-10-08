@@ -27,12 +27,14 @@ const FLYERS = new Set<EnemyKind>(['pigeon', 'seagull', 'hawk', 'eagle', 'vultur
 interface Pen { grab: Grab; next: number; cooldown: number; upWas: boolean }
 const getPen = (state: GameState) => state.stage as Pen | null;
 
-const send = (state: GameState, pen: Pen) => {
+const send = (state: GameState, pen: Pen, x = X0 + LEN - 120 - Math.random() * 200) => {
   const kind = ROSTER[pen.next++ % ROSTER.length];
   // (a bird comes in flying, a way up: low enough to jump and grab)
   const flyer = FLYERS.has(kind);
-  const e = makeKindEnemy(kind, X0 + LEN - 120 - Math.random() * 200, flyer ? GROUND_Y - 70 - Math.random() * 60 : GROUND_Y);
+  const e = makeKindEnemy(kind, x, flyer ? GROUND_Y - 70 - Math.random() * 60 : GROUND_Y);
   e.seen = true;
+  // (practice from the first frame it's in: see practice)
+  e.harmless = true; e.puppet = true; e.pauseTimer = 2;
   state.enemies.push(e);
 };
 
@@ -50,7 +52,8 @@ export const penLayout: StageLayout = {
     state.stage = pen;
     state.cameraMinX = X0 - WALL;
     state.cameraMaxX = X0 + LEN + WALL - CANVAS_WIDTH;
-    for (let i = 0; i < AT_ONCE; i++) { send(state, pen); state.enemies[state.enemies.length - 1].pos.x -= i * 260; }
+    // (already in here when he comes in: spread out down the room, the first few in view, the nearest a little way off from the door)
+    for (let i = 0; i < AT_ONCE; i++) send(state, pen, X0 + 380 + i * 230);
   },
   update: (ctx, controls) => {
     const { state } = ctx;
@@ -60,6 +63,9 @@ export const penLayout: StageLayout = {
     if (!pen) return controls;
     const out = updateGrab(ctx, pen.grab, controls);
     practice(state);
+    // Nothing in here hurts him: not a bump, not anything (the invincibility cheat keeps his health; this keeps the
+    // knock and the flinch off him too)
+    state.player.noContactHurt = true;
     // Health doesn't drop off the dead here: the beatdown's how you get it back
     state.pickups = state.pickups.filter(p => !(p.id.startsWith('pickup-') && (p.type === 'small_health' || p.type === 'large_health')));
     // A few at a time, always
@@ -80,7 +86,7 @@ export const penLayout: StageLayout = {
 
 /**
  * Everybody in here's for practice: harmless to bump, never shooting or swinging, and moved by hand (their own AI held
- * off): wandering from spot to spot, stopping for a bit, and running off when he gets close (not so fast he can't catch
+ * off): wandering from spot to spot round about him (so there's always somebody near), stopping for a bit, and running off when he gets close (not so fast he can't catch
  * them). Anybody knocked about (thrown, punched, stunned) is left to that till they've come round.
  */
 const WANDER = 1.3, FLEE = 2.4, SCARE = 150, EDGE = 60;
@@ -95,19 +101,20 @@ const practice = (state: GameState) => {
     // (nobody ends up out past the walls, however they got sent)
     e.pos.x = Math.max(X0, Math.min(X0 + LEN - e.width, e.pos.x));
     // (knocked about by him: left to it)
-    if ((e.pauseTimer || 0) > 2 || Math.abs(e.vel.y) > 0.5 || Math.abs(e.vel.x) > 0.5) continue;
+    // (their own way of moving, a charger's charge, doesn't count: only what's been done to them)
+    if ((e.pauseTimer || 0) > 2 || Math.abs(e.vel.y) > 0.5) continue;
     e.pauseTimer = 2;
     let w = wander.get(e);
-    if (!w) { w = { to: e.pos.x, rest: 0 }; wander.set(e, w); }
+    if (!w) { w = { to: e.pos.x + e.width / 2, rest: 90 + Math.floor(Math.random() * 120) }; wander.set(e, w); }
     const ex = e.pos.x + e.width / 2, d = ex - px;
     let dir = 0, speed = WANDER;
     if (Math.abs(d) < SCARE) {
       // Running off from him (backed into a wall: past him the other way)
       dir = d >= 0 ? 1 : -1;
       if ((dir > 0 && ex > X0 + LEN - EDGE) || (dir < 0 && ex < X0 + EDGE)) dir = -dir;
-      speed = FLEE; w.rest = 0; w.to = ex + dir * 300;
+      speed = FLEE; w.rest = 0; w.to = ex + dir * 120;
     } else if (w.rest > 0) w.rest--;
-    else if (Math.abs(w.to - ex) < 8) { w.rest = 30 + Math.floor(Math.random() * 90); w.to = X0 + EDGE + Math.random() * (LEN - EDGE * 2); }
+    else if (Math.abs(w.to - ex) < 8) { w.rest = 30 + Math.floor(Math.random() * 90); w.to = Math.max(X0 + EDGE, Math.min(X0 + LEN - EDGE, px + (Math.random() - 0.5) * 800)); }
     else dir = w.to > ex ? 1 : -1;
     if (!dir) { e.vel.x = 0; continue; }
     e.facing = dir as 1 | -1;

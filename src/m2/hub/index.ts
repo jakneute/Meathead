@@ -53,6 +53,7 @@ export const hubLayout: StageLayout = {
     const hub = getHub(state);
     // (dev builds: the state on the window, for poking at it)
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
+    state.player.noContactHurt = false;
     if (!hub) return controls;
     pollM2(state.frame);
     const p = state.player, cx = p.pos.x + p.width / 2;
