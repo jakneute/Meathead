@@ -31,6 +31,8 @@ const LITTER = 3, COOLDOWN = 20;
 const LIFE = 480, LIFE_VARY = 120, DYING = 60;
 /** On foot: how fast, how hard it falls, its biggest leap (that's about 360 up), how near it'll leap from. */
 const RUN = 3.3, GRAVITY = 0.5, LEAP = 19, LEAP_RANGE = 190;
+/** After somebody, they run faster than they do scurrying about looking. */
+const HUNT = 1.4;
 /** One bite: this much, every so many frames. */
 const BITE = { dmg: 1, every: 9 };
 /** A gnawed corpse: the flesh comes off over this long; then the skeleton stands this long, then crumbles. */
@@ -223,7 +225,7 @@ const roam = (ctx: FrameContext, a: Alien) => {
   const sputter = a.life < DYING ? 0.5 : 1;
   const t = a.target;
   if (a.ground) {
-    let goal: number; const speed = RUN * (0.85 + a.seed * 0.3) * sputter;
+    let goal: number; const speed = RUN * (t ? HUNT : 1) * (0.85 + a.seed * 0.3) * sputter;
     if (t) {
       const tx = t.pos.x + t.width / 2, ty = t.pos.y + t.height / 2, dx = tx - a.x, rise = a.y - ty;
       goal = tx;
