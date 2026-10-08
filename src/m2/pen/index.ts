@@ -21,6 +21,8 @@ export const PEN_STAGE = 'M2 Staff Pen';
 const X0 = -40000, LEN = 2400;
 /** The end walls: solid, drawn, and the camera stops at their outer faces. */
 const WALL = 60;
+/** The ceiling: a concrete slab across the whole room, its underside this far down (clear of the HUD's bars). */
+const CEIL_Y = 70;
 const EXIT_X = X0 + 130;
 /** Who walks in, in turn (the rat's there to show who can't be grabbed). */
 const ROSTER: EnemyKind[] = M2_ENEMY_KINDS;
@@ -67,6 +69,7 @@ export const penLayout: StageLayout = {
     state.groundRuns = runs;
     state.blocks.push(...groundBlocks(runs));
     state.blocks.push({ x: X0 - WALL, y: -3000, w: WALL, h: 3600, type: 'wall', hidden: true, tag: 'pen-l' }, { x: X0 + LEN, y: -3000, w: WALL, h: 3600, type: 'wall', hidden: true, tag: 'pen-r' });
+    state.blocks.push({ x: X0 - WALL, y: -3000, w: LEN + WALL * 2, h: 3000 + CEIL_Y, type: 'wall', hidden: true, tag: 'pen-ceiling' });
     const pen: Pen = { grab: createGrab(state), next: 0, cooldown: 0, upWas: false };
     state.stage = pen;
     state.cameraMinX = X0 - WALL;
@@ -169,6 +172,14 @@ const drawPenBackdrop = (ctx: CanvasRenderingContext2D, state: GameState) => {
 
 const drawPenBack = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const f = state.frame;
+  // The ceiling: a concrete slab, its underside in shadow, beams across it, strip lights hung off it
+  box(ctx, X0 - 400, CEIL_Y - 300, LEN + 800, 300, '#3F3F46'); box(ctx, X0 - 400, CEIL_Y - 8, LEN + 800, 8, '#27272A'); box(ctx, X0 - 400, CEIL_Y - 9, LEN + 800, 1, '#52525B');
+  for (let x = X0 - 120; x < X0 + LEN + 120; x += 240) { box(ctx, x, CEIL_Y, 22, 12, '#27272A'); box(ctx, x, CEIL_Y, 22, 2, '#3F3F46'); }
+  for (let x = X0 + 150; x < X0 + LEN; x += 320) {
+    box(ctx, x + 10, CEIL_Y, 2, 10, '#52525B'); box(ctx, x + 78, CEIL_Y, 2, 10, '#52525B');
+    box(ctx, x, CEIL_Y + 10, 90, 6, '#A1A1AA'); box(ctx, x + 3, CEIL_Y + 16, 84, 3, (f + x) % 400 < 3 ? '#A1A1AA' : '#FEFCE8');
+    ctx.fillStyle = 'rgba(254, 252, 232, 0.05)'; ctx.beginPath(); ctx.moveTo(x + 3, CEIL_Y + 19); ctx.lineTo(x + 87, CEIL_Y + 19); ctx.lineTo(x + 140, CEIL_Y + 200); ctx.lineTo(x - 50, CEIL_Y + 200); ctx.closePath(); ctx.fill();
+  }
   // The floor: sealed concrete, a painted walkway line
   box(ctx, X0 - 400, GROUND_Y, LEN + 800, 120, '#57534E'); box(ctx, X0 - 400, GROUND_Y, LEN + 800, 3, '#78716C');
   for (let x = X0; x < X0 + LEN; x += 90) box(ctx, x, GROUND_Y + 22, 50, 4, '#EAB308');
@@ -192,7 +203,10 @@ const drawPenBack = (ctx: CanvasRenderingContext2D, state: GameState) => {
   });
   ctx.fillStyle = '#F4F4F5'; ctx.font = '8px "Press Start 2P"'; ctx.fillText('SPARE HEADS', X0 + 1230, GROUND_Y - 116);
   const sway = Math.sin(f * 0.05) * 0.06;
-  ctx.save(); ctx.translate(X0 + 1700, GROUND_Y - 260); ctx.rotate(sway);
+  ctx.save(); ctx.translate(X0 + 1700, CEIL_Y); ctx.rotate(sway * 0.4);
+  box(ctx, -1, 0, 2, GROUND_Y - 260 - CEIL_Y + 40, '#A1A1AA');
+  ctx.restore();
+  ctx.save(); ctx.translate(X0 + 1700 - Math.sin(sway * 0.4) * (GROUND_Y - 260 - CEIL_Y), GROUND_Y - 260); ctx.rotate(sway);
   box(ctx, -1, 0, 2, 40, '#A1A1AA'); box(ctx, -22, 40, 44, 110, '#7F1D1D'); box(ctx, -22, 40, 8, 110, '#991B1B'); box(ctx, -22, 70, 44, 4, '#450A0A');
   ctx.restore();
   ctx.fillStyle = '#FDE047'; ctx.fillText('NOT FOR GUESTS', X0 + 1700, GROUND_Y - 80);
