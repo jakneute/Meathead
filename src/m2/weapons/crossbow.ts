@@ -303,7 +303,9 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
 const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part, { kind: 'puke' }>) => {
   const { state } = ctx;
   const own = e === part.from;
-  for (let i = 0; i < 6; i++) puff(state, { pos: { x: p.pos.x + G / 2, y: p.pos.y + G / 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2.5 }, life: 18, color: i === 5 ? BITS[i % 4] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 3, grav: 0.3 });
+  for (let i = 0; i < 6; i++) puff(state, { pos: { x: p.pos.x + G / 2, y: p.pos.y + G / 2 }, vel: { x: -Math.sign(p.vel.x || 1) * Math.random() * 3 + (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2.5 }, life: 18, color: i === 5 ? BITS[i % 4] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 3, grav: 0.3 });
+  splashes.push({ x: p.pos.x + G / 2, y: p.pos.y + G / 2, dir: -Math.sign(p.vel.x || 1), t: 0, seed: Math.random() });
+  if (splashes.length > MAX_SPLASHES) splashes.shift();
   if (Math.random() < 0.3) playSound('splat', 0.3, 6);
   hurt(ctx, e, own ? PUKE.selfDmg : PUKE.dmg);
   if (!alive(e) || isMidBoss(e)) return;
@@ -313,6 +315,9 @@ const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part,
 };
 
 const PUKE_COLORS = ['#A3B320', '#C5D33B', '#7C8A12'];
+/** Where a glob's landed on somebody: a splash of it thrown back off him, a few frames (drawn over him: you see it hit). */
+let splashes: { x: number; y: number; dir: number; t: number; seed: number }[] = [];
+const SPLASH = 12, MAX_SPLASHES = 50;
 /** What it can have going at once, so a room full of them at it doesn't bring the game to its knees: so many globs in
  *  the air (past it, a heave just spews thinner), so many specks of it about (past it, no more till there's room). */
 const MAX_GLOBS = 70, PARTICLE_BUDGET = 600;
@@ -359,6 +364,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     if (!alive(e)) continue;
     // (his own: only coming back down on him, when he threw it up)
     if (e === part.from && (!part.self || p.vel.y < 0)) continue;
+    // (out of his mouth a few frames before it lands on anybody: point blank, you still see it go)
+    if (part.t < 4) continue;
     if (p.pos.x > e.pos.x + e.width || p.pos.x + p.width < e.pos.x || p.pos.y > e.pos.y + e.height || p.pos.y + p.height < e.pos.y) continue;
     pukedOn(ctx, e, p, part);
     return false;
@@ -455,6 +462,8 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
     }
   }
   drip(state);
+  for (const k of splashes) k.t++;
+  splashes = splashes.filter(k => k.t < SPLASH);
   for (const c of corpses) rotCorpse(ctx, c);
   corpses = corpses.filter(c => c.t < LIE_END + GONE);
 };
@@ -501,6 +510,21 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     c.fillStyle = '#7C8A12'; c.beginPath(); c.ellipse(q.x - q.w * 0.35, q.y - 1.6, q.w * 0.3, 1.8, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#EA7A12'; c.fillRect(q.x - q.w * 0.3, q.y - 2.5, 3, 2); c.fillStyle = '#FACC15'; c.fillRect(q.x + q.w * 0.35, q.y - 2, 2, 2); c.fillStyle = '#78350F'; c.fillRect(q.x + q.w * 0.05, q.y - 2, 2, 1);
     c.fillStyle = '#E2EC7A'; c.fillRect(q.x - q.w * 0.5, q.y - 2, 3, 1);
+  }
+  c.globalAlpha = 1;
+  // Splashes on people: a flat splat on him, and a crown of droplets thrown back the way it came
+  for (const k of splashes) {
+    const a = k.t / SPLASH, reach = 16 * Math.sqrt(a), r = 3.2 * (1 - a * 0.5);
+    c.globalAlpha = 1 - a * 0.6;
+    c.fillStyle = '#3F470A'; c.beginPath(); c.ellipse(k.x, k.y, 6 + a * 4, 5 + a * 2, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#A3B320'; c.beginPath(); c.ellipse(k.x, k.y, 4.5 + a * 4, 3.8 + a * 2, 0, 0, Math.PI * 2); c.fill();
+    for (let i = 0; i < 6; i++) {
+      const ang = (k.dir > 0 ? 0 : Math.PI) + (i / 5 - 0.5) * 2.2 + (k.seed - 0.5) * 0.4;
+      const x = k.x + Math.cos(ang) * reach, y = k.y + Math.sin(ang) * reach - 4 * a + a * a * 8;
+      c.fillStyle = INK; c.beginPath(); c.arc(x, y, r + 0.8, 0, Math.PI * 2); c.fill();
+      c.fillStyle = i % 2 ? '#C5D33B' : '#A3B320'; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+    }
+    c.fillStyle = BITS[Math.floor(k.seed * 4)]; c.fillRect(k.x - 1, k.y - 1, 3, 2);
   }
   c.globalAlpha = 1;
   // Stuck on walls and ceilings: the splat, the streak running down from it, the drop gathering on the end; drops falling
@@ -634,7 +658,7 @@ const drawHeld = (c: Ctx) => {
 export const stopCrossbow = () => {
   aim = 0;
   for (const e of tracked) { e.pose = undefined; const s = sickness.get(e); if (s) { s.t = -1; recover(e, s); } }
-  tracked = new Set(); stuck = []; puddles = []; corpses = []; goo = []; drops = [];
+  tracked = new Set(); stuck = []; puddles = []; corpses = []; goo = []; drops = []; splashes = [];
 };
 
 /** For tests: everybody's tolerance and sickness. */
