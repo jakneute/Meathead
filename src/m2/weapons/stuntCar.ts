@@ -1,7 +1,8 @@
 // THE CLAPPERBOARD (Hollywood Land): snap it and somebody yells ACTION, and a stunt driver in a red sports car comes
-// tearing in out of nowhere from behind Meathead, flat out the way he's facing, through everybody in its way (every
-// one of them obliterated, the way the tsunami does it). It doesn't go far: a short run past him and it's into its
-// stunt, a flip and a fireball, and the stuntman's thrown out the front of it, flying on, a bonus projectile, taking
+// flying in out of nowhere from behind Meathead, up off a ramp nobody can see, higher than his head, the way he's
+// facing: a jump, sailing over him and coming down out in front of him, through everybody in its way (every one of
+// them obliterated, the way the tsunami does it). Where it comes down is the stunt: it hits the ground nose first, a
+// flip and a fireball, and the stuntman's thrown out the front of it, flying on, a bonus projectile, taking
 // out whoever he comes down on; and the first thing he hits, he splats on (a man, a wall, the floor: that's him done). The fireball's a big one: it
 // takes out a wide stretch round the wreck. It goes straight through the first wall or ceiling it meets (bricks
 // everywhere); a second stops it, and that's where the stunt goes off.
@@ -22,7 +23,9 @@ type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
 /** How fast it comes, how far past him it goes before the stunt, its size; the stuntman's hit; the wait between takes. */
-const CAR = { speed: 21, range: 380, w: 112, h: 34 };
+/** The jump: how fast it comes, how high over his feet it comes in, how hard it's falling, where it comes down past him. */
+const CAR_SCALE = 1.55;
+const CAR = { speed: 18, rise: 170, vy: -4, gravity: 0.42, land: 240, w: Math.round(112 * CAR_SCALE), h: Math.round(34 * CAR_SCALE) };
 /** The fireball at the end: this wide, this hard in the middle (falling off to the edge). */
 const BLAST = { radius: 170, dmg: 140, edge: 40 };
 const STUNTMAN = { dmg: 90, w: 18, h: 30 };
@@ -45,13 +48,17 @@ const fire = (ctx: FrameContext) => {
   const pl = state.player;
   const dir = pl.facing;
   const px = pl.pos.x + pl.width / 2;
-  // (out of nowhere: from just off the screen behind him)
-  const startX = dir > 0 ? Math.min(px - CANVAS_WIDTH / 2 - 40, state.camera.x - CAR.w - 20) : Math.max(px + CANVAS_WIDTH / 2 + 40 - CAR.w, state.camera.x + CANVAS_WIDTH + 20);
-  const y = floorAt(state, px) - CAR.h;
+  // (out of nowhere, up in the air behind him: started so its jump comes down a little way out in front of him)
+  const feet = pl.pos.y + pl.height, landY = floorAt(state, px + dir * CAR.land);
+  const drop = (landY < 2000 ? landY : feet) - (feet - CAR.rise);
+  const T = (-CAR.vy + Math.sqrt(CAR.vy * CAR.vy + 2 * CAR.gravity * Math.max(0, drop))) / CAR.gravity;
+  const startX = px + dir * CAR.land - dir * CAR.speed * T - CAR.w / 2;
+  const y = feet - CAR.rise - CAR.h;
+  playSound('whoosh', 1, -8);
   state.projectiles.push({
-    id: `stuntcar-${state.frame}`, pos: { x: startX, y }, vel: { x: dir * CAR.speed, y: 0 }, width: CAR.w, height: CAR.h,
+    id: `stuntcar-${state.frame}`, pos: { x: startX, y }, vel: { x: dir * CAR.speed, y: CAR.vy }, width: CAR.w, height: CAR.h,
     health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'STUNT_CAR',
-    customData: { kind: 'car', dir, endX: px + dir * CAR.range, hit: [], wheel: 0, wreck: 0, through: 0, inWall: false } satisfies Part,
+    customData: { kind: 'car', dir, endX: px + dir * CAR.land, hit: [], wheel: 0, wreck: 0, through: 0, inWall: false } satisfies Part,
   });
   clap = 30; clapDir = dir;
   pl.shootCooldown = COOLDOWN;
@@ -120,21 +127,22 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
   const { state } = ctx;
   const part = partOf(p);
   if (part.kind === 'car') {
-    p.pos.x += p.vel.x;
-    part.wheel += Math.abs(p.vel.x) * 0.15;
-    // (along the ground: up and down with it)
-    const floor = floorAt(state, p.pos.x + p.width / 2);
-    if (floor < 2000) p.pos.y += (floor - p.height - p.pos.y) * 0.5;
-    // (dust and exhaust off the back)
+    // In the air: the jump, coming down
+    p.vel.y += CAR.gravity;
+    p.pos.x += p.vel.x; p.pos.y += p.vel.y;
+    part.wheel += 1.2;
+    // (exhaust streaming off the back)
     const back = part.dir > 0 ? p.pos.x : p.pos.x + p.width;
-    if (state.frame % 2 === 0) state.particles.push({ pos: { x: back, y: p.pos.y + p.height - 6 }, vel: { x: -part.dir * (1 + Math.random() * 2), y: -0.5 - Math.random() }, life: 20, color: 'rgba(168, 162, 158, 0.55)', size: 5 + Math.random() * 5 });
+    if (state.frame % 2 === 0) state.particles.push({ pos: { x: back, y: p.pos.y + p.height - 8 }, vel: { x: -part.dir * (1 + Math.random() * 2), y: -0.3 - Math.random() * 0.5 }, life: 18, color: 'rgba(120, 113, 108, 0.5)', size: 4 + Math.random() * 4 });
+    // Down: nose into the ground, and that's the stunt
+    const floor = floorAt(state, p.pos.x + p.width / 2);
+    if (p.vel.y > 0 && p.pos.y + p.height >= floor) { p.pos.y = floor - p.height; stunt(ctx, p, part); return false; }
     for (const e of state.enemies) {
       if (!alive(e) || part.hit.includes(e.id)) continue;
-      if (e.pos.x > p.pos.x + p.width || e.pos.x + e.width < p.pos.x || e.pos.y > p.pos.y + p.height || e.pos.y + e.height < p.pos.y - 30) continue;
+      if (e.pos.x > p.pos.x + p.width || e.pos.x + e.width < p.pos.x || e.pos.y > p.pos.y + p.height || e.pos.y + e.height < p.pos.y) continue;
       part.hit.push(e.id);
       runDown(ctx, e, part.dir, CAR.speed, 'car');
     }
-    const past = part.dir > 0 ? p.pos.x + p.width / 2 >= part.endX : p.pos.x + p.width / 2 <= part.endX;
     // A wall (or a ceiling coming down on it): the first one, it's straight through it, bricks everywhere; the next
     // one stops it, and that's the stunt
     const inWall = solidAhead(state, p);
@@ -153,7 +161,7 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     if (onScreen) part.seen = true;
     const front = part.dir > 0 ? p.pos.x + p.width : p.pos.x;
     const leaving = part.seen && (part.dir > 0 ? front > state.camera.x + CANVAS_WIDTH : front < state.camera.x);
-    if (past || leaving) { stunt(ctx, p, part); return false; }
+    if (leaving) { stunt(ctx, p, part); return false; }
     return true;
   }
   // The stuntman: flying, tumbling, till the first thing he hits; whatever it is, he splats on it
@@ -200,10 +208,10 @@ const tick = (ctx: FrameContext) => {
 
 /** The car: a low red sports car, a white racing stripe, the stunt driver's helmet in it, wheels spinning; speed lines. */
 const drawCar = (c: Ctx, x: number, y: number, dir: number, wheel: number, rot = 0) => {
-  c.save(); c.translate(x, y); c.scale(dir, 1); c.rotate(rot);
-  const W = CAR.w, H = CAR.h;
+  c.save(); c.translate(x, y); c.scale(dir * CAR_SCALE, CAR_SCALE); c.rotate(rot);
+  const W = 112, H = 34;
   // (speed lines behind)
-  if (rot === 0) { c.fillStyle = 'rgba(255, 255, 255, 0.6)'; for (let i = 0; i < 4; i++) c.fillRect(-W / 2 - 30 - i * 14, -H / 2 + 4 + i * 6, 24, 2); }
+  if (Math.abs(rot) < Math.PI / 2) { c.fillStyle = 'rgba(255, 255, 255, 0.6)'; for (let i = 0; i < 4; i++) c.fillRect(-W / 2 - 30 - i * 14, -H / 2 + 4 + i * 6, 24, 2); }
   const body = () => { c.beginPath(); c.moveTo(-W / 2, -2); c.lineTo(-W / 2 + 4, -14); c.lineTo(-18, -16); c.lineTo(-6, -28); c.lineTo(22, -28); c.lineTo(36, -16); c.lineTo(W / 2 - 2, -12); c.lineTo(W / 2, -2); c.lineTo(W / 2 - 4, 6); c.lineTo(-W / 2 + 2, 6); c.closePath(); };
   body(); c.fillStyle = INK; c.lineWidth = 3; c.strokeStyle = INK; c.stroke();
   body(); c.fillStyle = '#DC2626'; c.fill();
@@ -245,7 +253,7 @@ const drawStuntman = (c: Ctx, x: number, y: number, dir: number, rot: number, po
 
 const draw = (c: Ctx, p: Projectile) => {
   const part = partOf(p);
-  if (part.kind === 'car') { drawCar(c, p.pos.x + p.width / 2, p.pos.y + p.height - 6, part.dir, part.wheel); return; }
+  if (part.kind === 'car') { drawCar(c, p.pos.x + p.width / 2, p.pos.y + p.height - 6 * CAR_SCALE, part.dir, part.wheel, Math.atan2(p.vel.y, Math.abs(p.vel.x)) * 0.8); return; }
   drawStuntman(c, p.pos.x + p.width / 2, p.pos.y + p.height - 14, part.dir, part.spin, 'tumble');
 };
 
@@ -253,7 +261,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   // The wrecks: on their roofs, burning
   for (const w of wrecks) {
     if (w.t > 170 && w.t % 4 < 2) continue;
-    drawCar(c, w.x, w.y - 16, w.dir, 0, Math.PI);
+    drawCar(c, w.x, w.y - 16 * CAR_SCALE, w.dir, 0, Math.PI);
   }
   // The clapperboard over his head: the clapper snapping down, ACTION!
   if (clap > 0) {

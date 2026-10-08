@@ -28,7 +28,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   },
   STUNT_CAR: {
     name: 'CLAPPERBOARD', from: 'HOLLYWOOD LAND',
-    description: "Snap it and yell ACTION. A stunt driver in a cherry-red sports car comes screaming in from off camera behind you and flattens everything in front of you, no retakes. It doesn't go far before the big finish: flip, fireball, and the stuntman gets launched through the windshield into whoever's next. Union rules say he gets up after.",
+    description: "Snap it and yell ACTION. A stunt driver in a cherry-red sports car comes flying in off a ramp nobody can see, sails right over your head and nose-dives into whoever's in front of you. Big fireball, no retakes, and the stuntman gets launched through the windshield into whatever's next. He doesn't get up. Somebody call his agent.",
   },
   SOUL_SUCKER: {
     name: 'SOUL SUCKER', from: 'SPOOKY LAND',
