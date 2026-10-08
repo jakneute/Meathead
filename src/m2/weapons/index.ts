@@ -9,6 +9,7 @@ import { registerSouvenirLauncher } from './souvenir';
 import { registerSoulSucker, stopSoulSucker } from './soulSucker';
 import { registerFlintlock, stopFlintlock } from './flintlock';
 import { registerSpellbook, stopSpellbook } from './spellbook';
+import { registerStuntCar, stopStuntCar } from './stuntCar';
 
 export interface M2Weapon { name: string; from: string; description: string }
 
@@ -25,6 +26,10 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     name: 'SPELLBOOK OF THE DAMNED', from: 'FANTASY LAND',
     description: "Some wizard's diary, now with more murder. Fire rips holes in the sky and drops a meteor, a comet and a lightning storm on up to three assholes: the meteor sets survivors on fire, the comet freezes them solid, the lightning cooks one in place for a few seconds. Secondary fire is BULK UP: twelve seconds of bigger, faster, and sending everybody you touch into orbit. Try putting your hands on somebody while you're like that. Runs on mana, because of course it does.",
   },
+  STUNT_CAR: {
+    name: 'CLAPPERBOARD', from: 'HOLLYWOOD LAND',
+    description: "Snap it and yell ACTION. A stunt driver in a cherry-red sports car comes screaming in from off camera behind you and flattens everything in front of you, no retakes. It doesn't go far before the big finish: flip, fireball, and the stuntman gets launched through the windshield into whoever's next. Union rules say he gets up after.",
+  },
   SOUL_SUCKER: {
     name: 'SOUL SUCKER', from: 'SPOOKY LAND',
     description: "A haunted shop vac with a meat grinder where the dust bag should be. Hold fire to suck on everybody in front of you, harder the closer they are. Watch the bar over their heads: when it's gone, so are they, feet first into the grinder. Then hit secondary fire and hose their buddies down with them. Waste not, want not.",
@@ -36,7 +41,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
 };
 
 /** What he's got, for now: the ray gun and the lands' weapons built so far. */
-export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER', 'FLINTLOCK', 'SPELLBOOK'];
+export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER', 'FLINTLOCK', 'SPELLBOOK', 'STUNT_CAR'];
 
 export const weaponName = (w: WeaponType) => M2_WEAPON_INFO[w]?.name ?? w;
 
@@ -47,8 +52,8 @@ export const M2WeaponArt: React.FC<{ type: WeaponType; size: number }> = ({ type
     : React.createElement(WeaponArt, { type, size });
 
 /** Plugs the lands' weapons into the engine (startup). */
-export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); registerFlintlock(); registerSpellbook(); };
+export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); registerFlintlock(); registerSpellbook(); registerStuntCar(); };
 /** Whatever any of them was in the middle of, stopped (going through a door). */
-export const stopWeapons = () => { stopSoulSucker(); stopFlintlock(); stopSpellbook(); };
+export const stopWeapons = () => { stopSoulSucker(); stopFlintlock(); stopSpellbook(); stopStuntCar(); };
 /** What its ammo's called (the spellbook's is mana). */
 export const ammoName = (w: WeaponType) => (w === 'SPELLBOOK' ? 'MANA' : 'AMMO');

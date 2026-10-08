@@ -17,6 +17,8 @@ export const GRAB_CALLOUTS = {
   flintlock: { lines: ['HEADSHOT!', 'BLOWN CLEAN OFF!', 'DEAD EYE!', 'HEADS WILL ROLL!', 'DECAPITATED!'], color: '#FB923C' },
   // (the beatdown's finisher, bulked up: the double-fisted smash)
   smash: { lines: ['PULVERIZED!', 'OBLITERATED!', 'PASTE!', 'SPLATTERED!', 'MEAT RAIN!'], color: '#EF4444' },
+  // (the clapperboard's stunt car and stuntman)
+  stunt: { lines: ['ROADKILL!', "THAT'S A WRAP!", 'TOTALED!', 'HIT AND RUN!', 'STUNT DOUBLED!'], color: '#F59E0B' },
   // (the spellbook of the damned's)
   spell: { lines: ['SMITED!', 'HEXED!', 'STRUCK DOWN!', 'CURSED!', 'ELEMENTAL!'], color: '#C084FC' },
   gorespray: { lines: ['HOSED DOWN!', 'GORE SHOWER!', 'SPLATTERED!', 'RETURN TO SENDER!'], color: '#DC2626' },

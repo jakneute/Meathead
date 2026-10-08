@@ -480,6 +480,19 @@ const ART: Record<WeaponType, React.ReactNode> = {
     glint(p, 6, 7);
   }),
 
+  // Meathead 2's clapperboard: the slate, black with its chalk lines, the striped clapper on top cocked open
+  STUNT_CAR: draw(p => {
+    const slate = rectC(4, 12, 24, 16);
+    paint(p, slate, diag(slate, ['#3F3F46', '#27272A', '#18181B']));
+    for (const [y, w] of [[15, 14], [19, 18], [23, 10]] as const) for (let x = 7; x < 7 + w; x++) p.set(x, y, '#E5E7EB', null);
+    const arm = polyC([[4, 11], [27, 4], [28, 8], [5, 13]]);
+    paint(p, arm, (x) => (Math.floor((x - 4) / 4) % 2 ? '#18181B' : '#F8FAFC'));
+    const bar = rectC(4, 9, 24, 3);
+    paint(p, bar, (x) => (Math.floor((x - 4) / 4) % 2 ? '#F8FAFC' : '#18181B'));
+    paint(p, rectC(3, 8, 3, 5), '#A1A1AA');
+    glint(p, 6, 13);
+  }),
+
   // Dirty Dan's light machine gun: long and black, a vented shroud, a box of rounds hanging off it, the belt
   LMG: draw(p => {
     const stock = polyC([[1, 10.5], [8, 11.5], [8, 16], [1, 18]]);

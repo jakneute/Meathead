@@ -30,6 +30,7 @@ const TIP: Record<WeaponType, { x: number; y: number }> = {
   SOUL_SUCKER: { x: 30, y: 1 },
   FLINTLOCK: { x: 32, y: 0.5 },
   SPELLBOOK: { x: 18, y: 0 },
+  STUNT_CAR: { x: 18, y: -4 },
 };
 
 /** The flamethrower's nozzle sits this far along the barrel from its pivot. */

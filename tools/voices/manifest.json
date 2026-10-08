@@ -806,6 +806,11 @@
  },
  {
   "voice": "announcer",
+  "text": "MEAT RAIN!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "MEATEOR!",
   "from": "KILL_CALLOUTS"
  },
@@ -873,6 +878,11 @@
   "voice": "announcer",
   "text": "NUKED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OBLITERATED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -948,6 +958,11 @@
   "voice": "announcer",
   "text": "PARTY'S OVER!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "PASTE!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1042,7 +1057,7 @@
  {
   "voice": "announcer",
   "text": "ROADKILL!",
-  "from": "SURFACE_CALLOUTS"
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1331,6 +1346,11 @@
  },
  {
   "voice": "announcer",
+  "text": "STUNT DOUBLED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SUCKED IN!",
   "from": "GRAB_CALLOUTS"
  },
@@ -1378,6 +1398,11 @@
   "voice": "announcer",
   "text": "TECHNICIAN DOWN!",
   "from": "m1/game/stages/barry/power.ts:278"
+ },
+ {
+  "voice": "announcer",
+  "text": "THAT'S A WRAP!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -10406,6 +10431,11 @@
  },
  {
   "voice": "meathead",
+  "text": "AND SCENE!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "AND THESE VAULTS HAVE STOOD, UNTOUCHED, SINCE EIGHTEEN FIFTY-NINE.",
   "from": "m1/game/stages/ernie/doorCrash.ts:71"
  },
@@ -10666,6 +10696,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BLOCKBUSTER, BITCH!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BODY BY BEEF",
   "from": "VULGARITIES"
  },
@@ -10708,6 +10743,11 @@
   "voice": "meathead",
   "text": "BOWLED OVER BY WINTER, FUCK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOX OFFICE SMASH!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11296,6 +11336,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CUT! PRINT IT!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "DALE'S BEEN DELIVERED. SIGNED FOR AND EVERYTHING.",
   "from": "BOSS_REBUKES"
  },
@@ -11373,6 +11418,11 @@
   "voice": "meathead",
   "text": "DIET STARTS NEVER!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DIRECTED BY MEATHEAD!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11728,6 +11778,11 @@
   "voice": "meathead",
   "text": "FAILED THE DRUG TEST.",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FAST AND THE FUCKED UP!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -12456,6 +12511,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GREEN LIGHT, YOU'RE DEAD!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GREETINGS FROM YOUR FUNERAL!",
   "from": "M2_KILL_LINES"
  },
@@ -13158,6 +13218,11 @@
   "voice": "meathead",
   "text": "hipster",
   "from": "m1/game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIT AND RUN, BABY!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15181,6 +15246,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO INSURANCE, NO PROBLEM!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NO JUICE LEFT IN THIS THING!",
   "from": "BULK_FAIL_LINES"
  },
@@ -15257,6 +15327,11 @@
  {
   "voice": "meathead",
   "text": "NO SOUL, NO PROBLEM!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO STUNT DOUBLE FOR YOU!",
   "from": "M2_KILL_LINES"
  },
  {
@@ -16213,6 +16288,11 @@
   "voice": "meathead",
   "text": "ROAD CLOSED, THEY SAID. I DIDN'T LISTEN.",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROADKILL!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -17763,6 +17843,11 @@
   "voice": "meathead",
   "text": "THAT'S A WRAP ON THE ROUTINE!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S A WRAP!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",

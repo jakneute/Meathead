@@ -37,7 +37,7 @@ export interface Entity {
 
 export type WeaponType = 'GUN' | 'BOULDER' | 'SHOTGUN' | 'FLAMETHROWER' | 'TSUNAMI' | 'NEEDLES' | 'TASER' | 'SLUDGE' | 'OIL_ROCKET' | 'LMG'
   // (Meathead 2's, from its lands: see combat/customWeapons.ts)
-  | 'SOUVENIR' | 'SOUL_SUCKER' | 'FLINTLOCK' | 'SPELLBOOK';
+  | 'SOUVENIR' | 'SOUL_SUCKER' | 'FLINTLOCK' | 'SPELLBOOK' | 'STUNT_CAR';
 
 export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill' | 'truck_wreck' | 'range_boxer_kill' | 'range_balloon_kill' | 'alien_kill';
 
@@ -73,6 +73,8 @@ export type SoundType =
   | 'flintlock' | 'primed'
   // (Meathead 2's spellbook, read out)
   | 'spell' | 'bolt'
+  // (Meathead 2's clapperboard: the snap, the stunt car coming)
+  | 'clap' | 'carroar'
   // his footsteps, by what he's walking on
   | 'step_hard' | 'step_snow' | 'step_metal' | 'step_wood' | 'step_dirt' | 'step_sand' | 'step_wet';
 

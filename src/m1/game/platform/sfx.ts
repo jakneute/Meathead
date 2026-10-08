@@ -155,6 +155,16 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.6, vary: 0.5, gap: 90, voices: 2,
     make: () => { const lp = lowpass(), lp2 = lowpass(); return render(1.0, t => (t < 0.03 ? rnd() * (1 - t / 0.03) : 0) + lp(rnd(), 2200 * ex(t, 9) + 90) * 1.3 * ex(t, 2.6) + lp2(rnd(), 70) * Math.min(1, t / 0.1) * ex(t, 2) * 1.2); },
   },
+  clap: {
+    // Meathead 2's clapperboard: the sticks snapping shut, a sharp wooden clack
+    gain: 0.6, vary: 0.4, gap: 100,
+    make: () => { const bp = bandpass(); return render(0.12, t => (bp(rnd(), 1800, 1.2) * 1.4 + rnd() * 0.5) * ex(t, 60)); },
+  },
+  carroar: {
+    // ...and the stunt car: an engine screaming up through the gears, coming in from nowhere, tires squealing
+    gain: 0.5, vary: 0.3, gap: 300,
+    make: () => { const lp = lowpass(), bp = bandpass(); let ph = 0; return render(1.6, t => { const gear = (t * 3) % 1; ph += (60 + 140 * gear + 40 * t) / SFX_SR; return (lp(Math.sign(Math.sin(TAU * ph)) + rnd() * 0.2, 1800) * 0.7 + bp(rnd(), 3200, 6) * 0.25 * Math.min(1, t / 0.4)) * Math.min(1, t / 0.15) * ex(Math.max(0, t - 1.1), 6); }); },
+  },
   sadBolt: {
     // A sad little laser: pew... wew (drooping), half-hearted
     gain: 0.3, vary: 1, gap: 120,

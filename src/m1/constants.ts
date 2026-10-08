@@ -203,6 +203,8 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'FLINTLOCK': 24,
   // (Meathead 2's spellbook of the damned: its mana, in casts)
   'SPELLBOOK': 30,
+  // (Meathead 2's clapperboard: takes)
+  'STUNT_CAR': 6,
 };
 
 /** A fresh ammo loadout with every weapon topped up. */
