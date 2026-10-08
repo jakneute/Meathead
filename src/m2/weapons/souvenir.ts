@@ -6,7 +6,7 @@
 // them aim (no homing: they go where they're fired and bounce where they bounce). Anybody one hits and doesn't kill is
 // stunned a while, longer the heavier it was. Once one's stopped bouncing it falls apart into the cheap plastic it is.
 
-import { shieldStops, clang } from './shield';
+import { shieldStops, shielded, clang } from './shield';
 import type { Enemy, Projectile } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
@@ -198,7 +198,7 @@ const floorAt = (state: GameState, x: number, w: number, prevBottom: number, bot
 const fire = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, muzzle: { x: number; y: number }) => {
   const { state, fx, cheats } = ctx;
   const pl = state.player;
-  const t = TRINKETS[Math.floor(Math.random() * TRINKETS.length)];
+  const t = TRINKETS.find(k => k.id === forced) ?? TRINKETS[Math.floor(Math.random() * TRINKETS.length)];
   // (aimed a bit: up lofts it, down (in the air) sends it at the floor; a little wild either way: it's junk out a pipe)
   const vy = (input.moveUp ? -7.5 : input.moveDown && !pl.isGrounded ? 3 : -2.6) + (Math.random() - 0.5) * 2;
   const speed = t.speed * (0.92 + Math.random() * 0.16);
@@ -376,6 +376,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
       if (f.hits[e.id] !== undefined && state.frame - f.hits[e.id] < REHIT) continue;
       if (p.pos.x > e.pos.x + e.width || p.pos.x + p.width < e.pos.x || p.pos.y > e.pos.y + e.height || p.pos.y + p.height < e.pos.y) continue;
       // (straight at his shield: off it, like off a wall, clang; dropped on him from above, it's over it and into him)
+      // (the Easter Island head doesn't bounce off a shield: it goes through it, and him)
+      if (t.id === 'moai' && shielded(e) && !isMidBoss(e)) { clang(state, e, p.pos.y + p.height / 2); e.health = Math.min(e.health, 1); hitEnemy(ctx, p, e); break; }
       if (shieldStops(e, p)) {
         f.hits[e.id] = state.frame; clang(state, e, p.pos.y + p.height / 2);
         p.pos.x = p.vel.x > 0 ? e.pos.x - p.width - 0.5 : e.pos.x + e.width + 0.5; p.vel.x = -p.vel.x * t.rest; p.vel.y = Math.min(p.vel.y, -2);
@@ -422,6 +424,10 @@ const drawHeld = (c: Ctx, frame: number) => {
   box(c, 8, -13 + j, 1, 5, '#EAB308'); box(c, 7, -9 + j, 3, 1, '#CA8A04');
   c.fillStyle = '#FCD34D'; c.beginPath(); c.moveTo(13, -8 + j); c.lineTo(15.5, -12 + j); c.lineTo(18, -8 + j); c.closePath(); c.fill();
 };
+
+/** For tests: always this one out of the bag (or any, given nothing). */
+let forced: string | null = null;
+export const forceTrinketForTests = (id: string | null) => { forced = id; };
 
 /** For tests: each of them drawn in a row, at the size they are in the world. */
 export const drawTrinketsForTests = (c: Ctx) => TRINKETS.forEach((t, i) => { c.save(); c.translate(30 + i * 50, 40); c.scale(SIZE, SIZE); t.draw(c); c.restore(); });
