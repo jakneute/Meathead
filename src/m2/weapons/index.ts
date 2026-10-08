@@ -58,7 +58,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   },
   CROSSBOW: {
     name: 'CROSSBOW OF PLAGUES', from: 'ADVENTURE LAND',
-    controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: RAPID FIRE' }, { pad: ['DPAD_UP', 'X'], kb: ['W'], mouse: 'left', join: '+', label: 'AIM UP' }],
+    controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: RAPID FIRE' }, { pad: ['DPAD_UP', 'X'], kb: ['W'], mouse: 'left', join: '+', label: 'AIM UP' }, { pad: ['DPAD_DOWN', 'X'], kb: ['S'], mouse: 'left', join: '+', label: 'IN THE AIR: AIM DOWN (OVER SHIELDS)' }],
     description: "A jungle crossbow and a bucket of darts dipped in something the tour guide warned us about. The darts barely scratch. Keep sticking a guy and his stomach gives up: he starts projectile vomiting on whoever's closest, and whoever gets it in the face is next. The big ones take more darts. Nobody around to hit? He aims for the sky. Gravity takes it from there.",
   },
   SOUL_SUCKER: {

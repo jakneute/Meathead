@@ -29,7 +29,7 @@ type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
 /** The darts: the wait between them, how fast, how much they hurt (not much), and how much tolerance each takes. */
-const DART = { cooldown: 7, speed: 17, dmg: 2, sick: 1, gravity: 0.05, up: 0.55 };
+const DART = { cooldown: 7, speed: 17, dmg: 2, sick: 1, gravity: 0.05, up: 0.55, down: 0.8 };
 /** Where its tip is from the grip (as the engine's muzzle has it); how far it's tilted up right now (up held: it
  *  swings up, let go: back down level). */
 const TIP = { x: 27, y: -4 };
@@ -66,7 +66,8 @@ const sickOf = (e: Enemy) => { let s = sickness.get(e); if (!s) { s = { tol: tol
 /** Everybody being (or that's been) got at, for the tick and the drawing (the WeakMap can't be walked). */
 let tracked = new Set<Enemy>();
 
-type Part = { kind: 'dart' } | { kind: 'puke'; from: Enemy; self: boolean; t: number; seed: number };
+/** A dart: `down`, shot down at him from up in the air (over a shield: it's an overhead shot). */
+type Part = { kind: 'dart'; down?: boolean } | { kind: 'puke'; from: Enemy; self: boolean; t: number; seed: number };
 const partOf = (p: Projectile) => p.customData as Part;
 
 /** Darts stuck in somebody (where on him, at what angle), or in a wall; puddles of it. */
@@ -106,7 +107,7 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean }, muzzle: { x: number
   const from = { x: grip.x + dir * tx, y: grip.y + ty };
   state.projectiles.push({
     id: `dart-${state.frame}-${Math.random()}`, pos: { x: from.x - 5, y: from.y - 1.5 }, vel: { x: dir * Math.cos(a) * DART.speed, y: Math.sin(a) * DART.speed },
-    width: 10, height: 3, health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'CROSSBOW', customData: { kind: 'dart' } satisfies Part,
+    width: 10, height: 3, health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'CROSSBOW', customData: { kind: 'dart', down: aim > DART.down * 0.5 } satisfies Part,
   });
   pl.shootCooldown = DART.cooldown;
   if (!cheats.infiniteAmmo) pl.weaponAmmo.CROSSBOW--;
@@ -336,7 +337,7 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
       if (!alive(e)) continue;
       if (p.pos.x > e.pos.x + e.width || p.pos.x + p.width < e.pos.x || p.pos.y > e.pos.y + e.height || p.pos.y + p.height < e.pos.y) continue;
       // (into his shield: it sticks in that, and that's all)
-      if (shieldStops(e, p)) { clang(state, e, p.pos.y + 1.5); stuck.push({ e, x: p.vel.x > 0 ? 0.08 : 0.92, y: Math.max(0.1, Math.min(0.9, (p.pos.y + 1.5 - e.pos.y) / e.height)), a: Math.atan2(p.vel.y, p.vel.x), t: 0 }); return false; }
+      if (shieldStops(e, p) && !(partOf(p) as { down?: boolean }).down) { clang(state, e, p.pos.y + 1.5); stuck.push({ e, x: p.vel.x > 0 ? 0.08 : 0.92, y: Math.max(0.1, Math.min(0.9, (p.pos.y + 1.5 - e.pos.y) / e.height)), a: Math.atan2(p.vel.y, p.vel.x), t: 0 }); return false; }
       darted(ctx, e, p);
       return false;
     }
@@ -415,9 +416,11 @@ const splat = (state: GameState, x: number, y: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Every frame
 
-const tick = (ctx: FrameContext, input: { moveUp: boolean }, equipped: boolean) => {
+const tick = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, equipped: boolean) => {
   const { state } = ctx;
-  const want = equipped && input.moveUp && !state.player.isDucking ? -DART.up : 0;
+  // (up: tilted up; down, up in the air: tilted down, at their heads from above)
+  const pl = state.player;
+  const want = !equipped ? 0 : input.moveUp && !pl.isDucking ? -DART.up : input.moveDown && !pl.isGrounded ? DART.down : 0;
   aim += (want - aim) * 0.35;
   globs = 0;
   for (const q of state.projectiles) if (q.custom === 'CROSSBOW' && partOf(q).kind === 'puke') globs++;
