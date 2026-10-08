@@ -138,11 +138,20 @@ const landmark = (ctx: Ctx, land: Land, x: number, y: number, f: number) => {
       }
       return;
     }
-    case 'nature': {
-      // The great tree: a fat trunk, the crown in heaps, a giraffe looking over the fence
-      fill('#78350F', () => { ctx.moveTo(x - 40, y); ctx.lineTo(x - 22, y - 140); ctx.lineTo(x + 22, y - 140); ctx.lineTo(x + 46, y); });
-      for (const [dx, dy, r] of [[-70, -170, 54], [0, -210, 70], [70, -170, 56], [-30, -150, 50], [40, -146, 48]] as const) fill(dx % 20 ? '#15803D' : '#16A34A', () => ctx.arc(x + dx, y + dy, r, 0, Math.PI * 2));
-      rect(110, -110, 10, 110, '#F59E0B'); fill('#F59E0B', () => ctx.ellipse(x + 124, y - 116, 16, 8, -0.3, 0, Math.PI * 2));
+    case 'adventure': {
+      // A stepped temple in the jungle, its top broken off, vines down it; behind a tall fence, the head of something
+      // big and hungry looking over it; a waterfall off the cliff
+      for (const [dx, dy, r] of [[-130, -40, 46], [-90, -60, 40], [120, -50, 48], [150, -30, 38]] as const) fill('#166534', () => ctx.arc(x + dx, y + dy, r, 0, Math.PI * 2));
+      for (let k = 0; k < 6; k++) rect(-80 + k * 10, -40 - k * 30, 160 - k * 20, 30, k % 2 ? '#78716C' : '#A8A29E');
+      rect(-14, -40, 28, 30, '#292524'); rect(-30, -210, 14, 30, '#A8A29E');
+      for (const vx of [-60, -20, 30, 55]) rect(vx, -150 + (vx % 3) * 10, 4, 110, '#15803D');
+      rect(95, -170, 4, 170, '#57534E'); rect(185, -170, 4, 170, '#57534E');
+      for (let k = 0; k < 5; k++) rect(95, -160 + k * 34, 94, 2, '#A8A29E');
+      const bob = Math.sin(f * 0.03) * 4;
+      fill('#4D7C0F', () => { ctx.moveTo(x + 140, y - 150 + bob); ctx.quadraticCurveTo(x + 150, y - 220 + bob, x + 190, y - 215 + bob); ctx.lineTo(x + 230, y - 200 + bob); ctx.lineTo(x + 228, y - 186 + bob); ctx.lineTo(x + 180, y - 184 + bob); ctx.quadraticCurveTo(x + 165, y - 170 + bob, x + 162, y - 150 + bob); });
+      rect(188, -208 + bob, 5, 4, '#FDE047');
+      for (let k = 0; k < 4; k++) rect(195 + k * 8, -188 + bob, 3, 4, '#F5F5F4');
+      rect(-170, -150, 18, 150, '#7DD3FC'); rect(-170, -150, 6, 150, '#E0F2FE');
       return;
     }
     case 'foreign': {
@@ -293,11 +302,23 @@ const portal = (ctx: Ctx, land: Land, cx: number, f: number) => {
       }
       arch('#D6D3D1', 24);
       break;
-    case 'nature':
-      for (const x of [L, R]) { pillar(x, '#65A30D'); for (let k = 0; k < 9; k++) box(ctx, x, top + 60 + k * 26, pw, 3, '#3F6212'); }
-      arch('#65A30D', 22);
-      // Leaves heaped round the top of it, a vine hanging down each side
-      for (let k = 0; k < 11; k++) { const a = Math.PI + (k / 10) * Math.PI, r = W / 2 + 20; ink(ctx, () => ctx.ellipse(cx + Math.cos(a) * r, top + W / 2 + Math.sin(a) * r, 18, 12, a, 0, Math.PI * 2), k % 2 ? '#16A34A' : '#22C55E'); }
+    case 'adventure':
+      // A ruin's gateway: cracked stone pillars carved with glyphs, a stone idol's face over the arch, torches either
+      // side, vines hanging off the lot
+      for (const x of [L, R]) {
+        pillar(x, '#A8A29E');
+        for (let k = 0; k < 8; k++) { box(ctx, x, top + 60 + k * 28, pw, 2, '#78716C'); box(ctx, x + 8, top + 68 + k * 28, 6, 6, '#57534E'); box(ctx, x + 18, top + 72 + k * 28, 4, 3, '#57534E'); }
+        box(ctx, x + pw - 7, top + 120, 2, 40, '#44403C'); box(ctx, x + pw - 9, top + 150, 2, 18, '#44403C');
+      }
+      arch('#A8A29E', 24);
+      // (the idol: a square stone face, glaring, its mouth the way through)
+      ink(ctx, () => ctx.rect(cx - 34, top - 30, 68, 50), '#78716C', 2);
+      box(ctx, cx - 30, top - 26, 60, 4, '#A8A29E');
+      box(ctx, cx - 22, top - 14, 14, 8, '#292524'); box(ctx, cx + 8, top - 14, 14, 8, '#292524');
+      box(ctx, cx - 18, top - 12, 6, 4, f % 120 < 60 ? '#F59E0B' : '#FBBF24'); box(ctx, cx + 12, top - 12, 6, 4, f % 120 < 60 ? '#F59E0B' : '#FBBF24');
+      box(ctx, cx - 16, top + 4, 32, 6, '#292524'); for (let k = 0; k < 4; k++) box(ctx, cx - 14 + k * 8, top + 4, 4, 3, '#E7E5E4');
+      // (torches on the pillars, flickering)
+      for (const x of [L - 10, R + pw + 4]) { box(ctx, x, top + 80, 6, 20, '#78350F'); const fl = Math.sin(f * 0.4 + x) * 2; box(ctx, x - 2, top + 68 + fl, 10, 12, '#F97316'); box(ctx, x, top + 72 + fl, 6, 8, '#FDE047'); }
       for (const x of [cx - W / 2 + 16, cx + W / 2 - 16]) for (let k = 0; k < 6; k++) { const sway = Math.sin(f * 0.04 + k * 0.5 + x) * 4; box(ctx, x + sway, top + 40 + k * 16, 4, 16, '#15803D'); box(ctx, x + sway - 4, top + 48 + k * 16, 6, 4, '#4ADE80'); }
       break;
     case 'foreign': {

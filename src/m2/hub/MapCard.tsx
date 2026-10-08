@@ -100,7 +100,7 @@ const landIcon = (g: Ctx, land: Land, at: { x: number; y: number }) => {
     case 'cartoon': g.beginPath(); g.arc(x - 6, y, 9, Math.PI, 0); g.arc(x + 7, y, 11, Math.PI, 0); g.fill(); break;
     case 'hollywood': g.fillRect(x - 14, y - 8, 28, 12); text(g, 'HW', x, y + 1, 5, '#FDE047'); break;
     case 'fantasy': for (const dx of [-8, 0, 8]) { g.fillRect(x + dx - 3, y - 14, 6, 18); g.beginPath(); g.moveTo(x + dx - 5, y - 14); g.lineTo(x + dx, y - 24); g.lineTo(x + dx + 5, y - 14); g.fill(); } break;
-    case 'nature': g.fillRect(x - 2, y - 6, 4, 10); g.beginPath(); g.arc(x, y - 12, 10, 0, Math.PI * 2); g.fill(); break;
+    case 'adventure': for (let k = 0; k < 4; k++) g.fillRect(x - 14 + k * 3.5, y - k * 6, 28 - k * 7, 6); break;
     case 'foreign': g.beginPath(); g.moveTo(x - 10, y + 4); g.lineTo(x, y - 22); g.lineTo(x + 10, y + 4); g.fill(); break;
   }
 };
