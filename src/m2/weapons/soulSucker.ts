@@ -1,5 +1,5 @@
 // THE SOUL SUCKER (Spooky Land): a haunted-house shop vac with a meat grinder where the bag should be. Hold fire and
-// it pulls on everybody in a big, short cone in front of it: it doesn't stop them, but it drags at them (they're slowed,
+// it pulls on everybody in a big, short cone in front of it (and sucks up any bullets coming at him through it): it doesn't stop them, but it drags at them (they're slowed,
 // and plenty of them turn round and try to get away from it), and it wears their poise down, quicker the closer they
 // are (everybody's got some, shown on them, the beefier the more). Poise gone, they're done: they go in, feet first,
 // and through the grinder, into the gore bag. Sucking uses its ammo; what it grinds fills the gore bag (separate, and
@@ -121,6 +121,22 @@ const fire = (ctx: FrameContext) => {
   pl.shootCooldown = 0;
   if (!cheats.infiniteAmmo) pl.weaponAmmo.SOUL_SUCKER--;
   if (state.frame % 9 === 0) playSound('suck', 0.8);
+  // Bullets too: anything shot at him that comes into the cone is bent round into the intake, and gone (not a stage's
+  // hazards: boulders, sludge and the like still get him)
+  state.projectiles = state.projectiles.filter(q => {
+    if (q.owner !== 'enemy' || !q.shooterKind || q.thrown || q.isBoulder || q.isSludge || q.isPoop || q.isShrapnel || q.isCocaine || q.isMethBarrel) return true;
+    const qx = q.pos.x + q.width / 2, qy = q.pos.y + q.height / 2;
+    const dx = (qx - mouth.x) * pl.facing, dy = qy - mouth.y, d = Math.hypot(dx, dy);
+    if (dx < -12 || d > REACH + 20 || (d > 24 && Math.abs(Math.atan2(dy, Math.max(1, dx))) > SPREAD)) return true;
+    if (d < 24) {
+      playSound('click', 0.5, 8);
+      for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: mouth.x, y: mouth.y }, vel: { x: (Math.random() - 0.5) * 2, y: (Math.random() - 0.5) * 2 }, life: 8, color: '#FDE047', size: 2 });
+      return false;
+    }
+    const sp = Math.max(7, Math.hypot(q.vel.x, q.vel.y));
+    q.vel.x = ((mouth.x - qx) / d) * sp; q.vel.y = ((mouth.y - qy) / d) * sp;
+    return true;
+  });
   for (const e of state.enemies) {
     if (!suckable(e)) continue;
     const near = inCone(state, e, mouth);
