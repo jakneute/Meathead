@@ -88,7 +88,7 @@ export const isCritter = (e: Enemy) => !!e.kind && CRITTERS.has(e.kind) && e.hea
 export const grabbable = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind
   && ((isHumanoidKind(e.kind) && !NOT_PEOPLE.has(e.kind)) || MID_ANIMALS.has(e.kind));
 
-type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop' | 'critter' | 'pitch';
+type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop' | 'critter' | 'pitch' | 'smash';
 /** Which throw: on the way he's facing, back (a suplex), straight up, or slammed down. */
 type Toss = 'forward' | 'back' | 'up' | 'down';
 
@@ -634,7 +634,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // (any of X, B or Y throws one)
       if ((press('shoot') || press('special') || press('secondary') || pressed('y')) && g.t >= g.nextPunchAt) {
         g.punchT = PUNCH_FRAMES; g.nextPunchAt = g.t + PUNCH_GAP; g.punchN++;
-        const dmg = PUNCH_DAMAGE;
+        // (bulked up: a lot more in each one)
+        const dmg = Math.round(PUNCH_DAMAGE * (bulked() ? BULK_PUNCH : 1));
         e.health -= dmg;
         p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + PUNCH_HEAL); g.hp = p.health;
         const hx = e.pos.x + e.width / 2 + g.dir * 14, hy = feetY(state) - 8;
@@ -643,6 +644,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: hx, y: hy }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 4 }, life: 22, color: i % 2 ? '#8B0000' : '#B91C1C', size: 2 + Math.random() * 2 });
         playSound('punch', 0.9 + Math.random() * 0.3, Math.random() * 4 - 2);
         shakeScreen(state, 4, 3);
+        // Bulked up, the last one's not a punch: both fists up over his head, and down
+        if (e.health <= 0 && bulked()) { g.phase = 'smash'; g.t = 0; g.punchT = 0; playSound('whoosh', 1.1, -6); return hold(); }
         if (e.health <= 0) {
           // Done: the rest of the health back, and him left lying there
           p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health;
@@ -660,6 +663,12 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
 
     case 'kill':
       if (g.t >= 14) end(state, g);
+      return hold();
+
+    case 'smash':
+      // Up... and down: him burst like a dropped melon, bits of him everywhere (and into whoever's about)
+      if (g.t === SMASH_RAISE && g.held) smashHim(ctx, g, g.held);
+      if (g.t >= SMASH_RAISE + 16) end(state, g);
       return hold();
 
     case 'shake': {
@@ -690,6 +699,39 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       return hold();
     }
   }
+};
+
+/** Bulked up (the spellbook's bulk up): a punch is this many times as hard, and the last one's the double-fisted smash. */
+const BULK_PUNCH = 2.2, SMASH_RAISE = 12, GIBS = 12, GIB_DMG = 35;
+const bulked = () => buffs.knock > 1;
+
+/**
+ * The smash: both fists down on him, and he goes everywhere. No body left: his blood all over, the screen jumping, and
+ * a dozen chunks of him flung up and out (gore chunks, the same the soul sucker sprays: they hurt whoever they land
+ * on, and stain what they hit). All the health back for it, and the line and the callout.
+ */
+const smashHim = (ctx: FrameContext, g: Grab, e: Enemy) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  const at = { x: e.pos.x + e.width / 2, y: feetY(state) - 10 };
+  g.held = null;
+  e.health = 0; e.isBlownAway = true; e.pos = { x: at.x - e.width / 2, y: at.y - e.height / 2 };
+  p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health;
+  playSound('slam'); playSound('crunch', 1.2, -6); playSound('splat', 1.2, -4); playSound('boom', 0.5, -10);
+  shakeScreen(state, 20, 10);
+  for (let k = 0; k < 3; k++) fx.spawnDeathShower(at, (k - 1) * 0.8, 2.2, false, 80);
+  for (let i = 0; i < GIBS; i++) {
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.8, sp = 7 + Math.random() * 8, size = 7 + Math.random() * 6;
+    state.projectiles.push({
+      id: `gib-${state.frame}-${i}`, pos: { x: at.x - size / 2, y: at.y - size / 2 - 6 }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp },
+      width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: GIB_DMG, owner: 'player',
+      custom: 'SOUL_SUCKER', customData: { life: 70, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3 },
+    });
+  }
+  fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
+  fx.spawnKillCallout(e, grabCallout('smash'));
+  fx.speakVulgarity(m2Kill('beatdown_kill'));
+  p.killSatisfactionTimer = 60;
 };
 
 /** How far a throw takes him, by his weight: about 1 for a man of 220, more for lighter, less for heavier (within reason). */
@@ -1061,6 +1103,21 @@ const pitchPose = (c: Ctx, f: number, arm: { x: number; y: number }, k: number) 
   c.restore();
 };
 
+/** The smash: astride him, both fists together; `k` -1 (wound up high over his head, leaning back) .. 0 .. 1 (down on him, all his weight behind it). */
+const smashPose = (c: Ctx, f: number, k: number) => {
+  drawLeg(c, [-5, -16], [-14, -4], [-26, -5], 1.4, true);
+  drawLeg(c, [5, -16], [16, -4], [4, -3], 1.4, false);
+  const t = Math.max(0, k), back = Math.max(0, -k);
+  c.save(); c.translate(0, -16 + t * 3); c.rotate(-0.15 * back + 0.85 * t);
+  const fist: [number, number] = [2 + 34 * t - 4 * back, -60 + 64 * t - 6 * back];
+  const elbowB: [number, number] = [-8 + 22 * t, -42 + 30 * t], elbowF: [number, number] = [12 + 14 * t, -42 + 28 * t];
+  drawArmTo(c, [-8, -22], elbowB, [fist[0] - 3, fist[1]], true, 6);
+  drawTorsoFromHips(c);
+  head(c, 5, -36, 0.2, 'roar', f);
+  drawArmTo(c, [11, -22], elbowF, [fist[0] + 3, fist[1]], false, 7);
+  c.restore();
+};
+
 /** The shakedown's windup: a step in, both hands open and out for the throat (`k` how far out). */
 const reachPose = (c: Ctx, f: number, k: number) => {
   drawLeg(c, [-5, -24], [-10, -12], [-17, 0], 0, true);
@@ -1214,6 +1271,18 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       }
       if (g.held) drawPinned(ctx, g.held, state, x, y + 4, g.dir, 0, 0);
       sprite(ctx, x, y, g.dir, c => mountPose(c, f, 0.1));
+      return;
+    }
+    case 'smash': {
+      // Both fists up over his head, joined, then down on him with everything
+      const up = Math.min(1, g.t / SMASH_RAISE), down = g.t >= SMASH_RAISE;
+      if (g.held) drawPinned(ctx, g.held, state, x, y, g.dir, 0, Math.sin(f * 0.8) * 0.08);
+      sprite(ctx, x, y, g.dir, c => smashPose(c, f, down ? 1 : -up));
+      if (down && g.t < SMASH_RAISE + 4) {
+        const bx = x + g.dir * 40, by = y - 6;
+        ctx.fillStyle = '#FFFFFF'; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; ctx.fillRect(Math.round(bx + Math.cos(a) * 16) - 2, Math.round(by + Math.sin(a) * 8) - 2, 4, 4); }
+        ctx.fillStyle = '#FDE047'; ctx.fillRect(bx - 5, by - 5, 10, 10);
+      }
       return;
     }
     case 'mount':
