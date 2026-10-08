@@ -65,9 +65,9 @@ const suckable = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && 
 const REACH = 190, SPREAD = 1.05;
 /**
  * Poise worn off a frame: at the edge of the cone, right up at the intake; it climbs steeply as he gets closer (by the
- * square of how near), so up close it's a different thing altogether.
+ * cube of how near), so further off it's barely a tug and up close it's a different thing altogether.
  */
-const DRAIN_FAR = 0.8, DRAIN_NEAR = 6.8;
+const DRAIN_FAR = 0.15, DRAIN_NEAR = 6.8;
 /** After this long not being pulled, poise comes back, this much a frame. */
 const REGEN_AFTER = 50, REGEN = 0.5;
 /** How fast they run from it, and how long they keep running once it's let them go. */
@@ -127,13 +127,13 @@ const fire = (ctx: FrameContext) => {
     if (near === null) continue;
     const ps = poiseOf(e);
     ps.lastPulled = state.frame;
-    const pull = near * near;
+    const pull = near * near * near;
     ps.left -= DRAIN_FAR + (DRAIN_NEAR - DRAIN_FAR) * pull;
     // Dragged at: slowed, and pulled in toward the intake (the nearer the harder); and every one of them turns and runs
     // for it (it doesn't stop what they're doing): out at the edge of the cone they can get away, close in they can't
     const toward = mouth.x < e.pos.x + e.width / 2 ? -1 : 1;
     e.vel.x *= 0.8 - pull * 0.55;
-    e.pos.x += toward * (0.6 + pull * 5.2);
+    e.pos.x += toward * (0.1 + pull * 5.7);
     runAway(state, e, -toward);
     ps.fleeUntil = state.frame + PANIC;
     e.runFrom = ps.fleeUntil;
