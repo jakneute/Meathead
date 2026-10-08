@@ -725,8 +725,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     // (coming down on him from above, or plunging steeply in: a boulder spiked down, say)
     const overhead = p.vel.y > 1.5 && (p.pos.y + p.height / 2 < enemy.pos.y + enemy.height * 0.45 || p.vel.y > Math.abs(p.vel.x) * 1.5);
     // (the finale's needles go straight through a ballistic shield, into the man behind it)
-    // (and Meathead 2's ray gun: alien, it goes through anything)
-    const pierces = (p.isDart && inFinale(ctx.stageId)) || icePierce || !!p.isRay;
+    const pierces = (p.isDart && inFinale(ctx.stageId)) || icePierce;
     if (enemy.enemyType === 'shield' && enemy.isShieldActive && hitsShieldSide && !overhead && !pierces) {
       if (isBullet(p)) bulletSparks(ctx, p, boundsOf(enemy));
       if (p.isSludge) {

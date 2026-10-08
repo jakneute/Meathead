@@ -1,5 +1,6 @@
 // Shields, as Meathead 2's weapons have them. Most of what he's got doesn't care: it goes over, round or through. What a
-// shield does stop is a thing thrown straight at its face: the souvenir launcher's junk and the crossbow's darts, coming
+// shield does stop is a thing thrown or shot straight at its face: the ray gun's bolts (the engine's shield block), the souvenir
+// launcher's junk and the crossbow's darts, coming
 // at it from the side it's held to (dropped on him from above, they're over it and into him). The mallet's blows from
 // in front (the swings, the tornado, the launch) land on the shield, not him: he's sent flying all the same, but takes
 // nothing from the blow itself (only from whatever he hits on the way); its overhead blows (the smash down from the
