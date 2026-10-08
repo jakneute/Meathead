@@ -42,4 +42,6 @@ export const pollM2 = (frame: number) => {
   };
 };
 export const btn = (b: keyof M2Buttons) => now[b];
+/** A key held right now (by its code, lowercase: 'keyf'). */
+export const keyHeld = (code: string) => held.has(code);
 export const pressed = (b: keyof M2Buttons) => now[b] && !was[b];

@@ -165,6 +165,26 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.5, vary: 0.3, gap: 300,
     make: () => { const lp = lowpass(), bp = bandpass(); let ph = 0; return render(1.6, t => { const gear = (t * 3) % 1; ph += (60 + 140 * gear + 40 * t) / SFX_SR; return (lp(Math.sign(Math.sin(TAU * ph)) + rnd() * 0.2, 1800) * 0.7 + bp(rnd(), 3200, 6) * 0.25 * Math.min(1, t / 0.4)) * Math.min(1, t / 0.15) * ex(Math.max(0, t - 1.1), 6); }); },
   },
+  bonk: {
+    // Meathead 2's mallet of pain: a big hollow cartoon BONK (a wooden knock with a pitch drop) and a spring after it
+    gain: 0.6, vary: 0.6, gap: 60,
+    make: () => { let a = 0, b = 0; return render(0.45, t => { a += (420 * ex(t, 14) + 120) / SFX_SR; b += (300 + 250 * Math.sin(TAU * 18 * t)) / SFX_SR; return Math.sin(TAU * a) * ex(t, 9) * 1.1 + (t < 0.01 ? rnd() * 0.8 : 0) + (t > 0.08 ? Math.sin(TAU * b) * 0.35 * ex(t - 0.08, 7) : 0); }); },
+  },
+  twinkle: {
+    // ...one sent off into the distance: a bright little ding with a sparkle on it
+    gain: 0.35, vary: 0.3, gap: 80,
+    make: () => { let a = 0, b = 0; return render(0.6, t => { a += 2100 / SFX_SR; b += 3150 / SFX_SR; return (Math.sin(TAU * a) * 0.6 + Math.sin(TAU * b) * 0.35 * (Math.floor(t * 30) % 2)) * ex(t, 5); }); },
+  },
+  whirl: {
+    // ...the tornado: a whooshing wobble round and round
+    gain: 0.35, vary: 0.3, gap: 160, voices: 2,
+    make: () => { const bp = bandpass(); return render(0.32, t => bp(rnd(), 500 + 400 * Math.sin(TAU * 9 * t), 1.2) * 1.2); },
+  },
+  squish: {
+    // ...somebody squashed flat: a flat splut and an accordion's wheeze
+    gain: 0.5, vary: 0.5, gap: 100,
+    make: () => { const lp = lowpass(); let a = 0; return render(0.7, t => { a += (180 + 90 * Math.sin(TAU * 7 * t)) / SFX_SR; return lp(rnd(), 700) * ex(t, 20) * 1.3 + (t > 0.1 ? (Math.sign(Math.sin(TAU * a)) * 0.25 + Math.sin(TAU * a * 1.5) * 0.2) * Math.min(1, (t - 0.1) / 0.1) * ex(t - 0.1, 3) : 0); }); },
+  },
   sadBolt: {
     // A sad little laser: pew... wew (drooping), half-hearted
     gain: 0.3, vary: 1, gap: 120,

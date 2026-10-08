@@ -493,6 +493,18 @@ const ART: Record<WeaponType, React.ReactNode> = {
     glint(p, 6, 13);
   }),
 
+  // Meathead 2's mallet of pain: a big cartoon mallet, a red barrel of a head banded in yellow on a long wooden handle
+  MALLET: draw(p => {
+    const handle = polyC([[3, 27], [6, 29], [20, 14], [17, 12]]);
+    paint(p, handle, diag(handle, WOOD));
+    const head = polyC([[14, 4], [23, 0], [31, 11], [22, 17]]);
+    paint(p, head, diag(head, ['#F87171', '#DC2626', '#B91C1C', '#7F1D1D']));
+    for (const [x0, y0] of [[16, 5], [24, 12]] as const) for (let k = 0; k < 7; k++) p.set(x0 + k, y0 - Math.round(k * 0.45), '#FACC15');
+    const cap = ellC(18.5, 2.5, 4.5, 2.2); paint(p, cap, '#FEE2E2');
+    glint(p, 19, 3);
+    glint(p, 6, 26);
+  }),
+
   // Dirty Dan's light machine gun: long and black, a vented shroud, a box of rounds hanging off it, the belt
   LMG: draw(p => {
     const stock = polyC([[1, 10.5], [8, 11.5], [8, 16], [1, 18]]);

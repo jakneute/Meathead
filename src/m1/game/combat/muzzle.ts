@@ -31,6 +31,7 @@ const TIP: Record<WeaponType, { x: number; y: number }> = {
   FLINTLOCK: { x: 32, y: 0.5 },
   SPELLBOOK: { x: 18, y: 0 },
   STUNT_CAR: { x: 18, y: -4 },
+  MALLET: { x: 20, y: -10 },
 };
 
 /** The flamethrower's nozzle sits this far along the barrel from its pivot. */

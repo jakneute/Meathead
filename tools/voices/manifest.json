@@ -211,6 +211,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BONKED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "BOWLED OVER!",
   "from": "KILL_CALLOUTS"
  },
@@ -253,6 +258,11 @@
   "voice": "announcer",
   "text": "CARPET BOMBED!",
   "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CARTOONED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1316,6 +1326,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SQUASHED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SQUISHED!",
   "from": "KILL_CALLOUTS"
  },
@@ -1478,6 +1493,11 @@
   "voice": "announcer",
   "text": "TRUCKED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TWINKLED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -10721,6 +10741,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BONK! GO TO HELL!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BOOKWORM, BITCH!",
   "from": "M2_KILL_LINES"
  },
@@ -11906,6 +11931,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FLAT AS A PANCAKE!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "FLATTENED LIKE A PANCAKE",
   "from": "VULGARITIES"
  },
@@ -12588,6 +12618,11 @@
   "voice": "meathead",
   "text": "HALF THE FIELD! THE HALF YOU HAVEN'T BEEN STANDING IN!",
   "from": "m1/game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "HAMMERED!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -14346,6 +14381,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S A KNOCKOUT!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S BACKED UP!",
   "from": "FULL_BAG_LINES"
  },
@@ -14636,6 +14676,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LOOK, BIRDIES!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "LOOSE AMMO IN HIS POCKETS. CARELESS. THANKS, CHUCO.",
   "from": "m1/game/stages/dale/junkie.ts:752"
  },
@@ -14673,6 +14718,11 @@
   "voice": "meathead",
   "text": "MALL COP! DEAD COP!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MALLET, MOTHERFUCKER!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15018,6 +15068,11 @@
   "voice": "meathead",
   "text": "MY VEINS ARE FOR BULKING, NOT YOUR SKETCHY SHIT!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAILED IT!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -16476,6 +16531,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SEE YOU IN THE FUNNY PAGES!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SEE YOU NEVER, CROCODILE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -16833,6 +16893,11 @@
   "voice": "meathead",
   "text": "SIT DOWN AND DIE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SIT DOWN, SHORTY!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -17821,6 +17886,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'LL LEAVE A BUMP!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S 100,000 VOLTS STRAIGHT TO MY NUTS!",
   "from": "HURT"
  },
@@ -18661,6 +18731,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TWINKLE TWINKLE, LITTLE PRICK!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
   "from": "m1/game/core/update.ts:227"
  },
@@ -18908,6 +18983,11 @@
   "voice": "meathead",
   "text": "WET FLOOR! YOUR BLOOD!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHACK-A-MOLE, BITCH!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",

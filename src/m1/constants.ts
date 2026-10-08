@@ -205,6 +205,8 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'SPELLBOOK': 30,
   // (Meathead 2's clapperboard: takes)
   'STUNT_CAR': 6,
+  // (Meathead 2's mallet of pain: its durability)
+  'MALLET': 60,
 };
 
 /** A fresh ammo loadout with every weapon topped up. */

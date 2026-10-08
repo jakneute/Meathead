@@ -10,38 +10,59 @@ import { registerSoulSucker, stopSoulSucker } from './soulSucker';
 import { registerFlintlock, stopFlintlock } from './flintlock';
 import { registerSpellbook, stopSpellbook } from './spellbook';
 import { registerStuntCar, stopStuntCar } from './stuntCar';
+import { registerMallet, stopMallet } from './mallet';
+import type { PadKey } from '../../m1/components/ButtonIcons';
 
-export interface M2Weapon { name: string; from: string; description: string }
+/** One line of how it's worked, for the pause menu: the buttons (pad, keyboard, mouse; `join`: '+' together), and what they do. */
+export interface Control { pad: PadKey[]; kb?: string[]; mouse?: 'left' | 'right'; join?: '+' | '/'; label: string }
+export interface M2Weapon { name: string; from: string; description: string; controls: Control[] }
 
 export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   GUN: {
     name: 'RAY GUN', from: "THE ALIEN'S LEFTOVERS",
+    controls: [{ pad: ['X'], mouse: 'left', label: 'FIRE' }],
     description: "Scrapped together from a dead alien's spaceship, a roll of duct tape and zero instructions. Never runs dry, never misses where you point it, and whoever eats a bolt gets vaporized down to his shoes. Somebody's mom is getting a pair of sneakers in the mail.",
   },
   FLINTLOCK: {
     name: 'LASER-GUIDED FLINTLOCK', from: 'FRONTIER LAND',
+    controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: LOCK ON' }, { pad: ['X'], mouse: 'left', label: 'LET GO WHEN IT CLICKS: FIRE' }],
     description: "1700s firepower, 2000s laser pointer. Hold fire and the dot finds the nearest head in front of you, on the ground or in the air. You can walk, you can jump, you can't turn around. When the hammer clacks, let go: every head in a straight line comes clean off, and it bounces off one wall, floor or ceiling looking for one more. Yeehaw.",
   },
   SPELLBOOK: {
     name: 'SPELLBOOK OF THE DAMNED', from: 'FANTASY LAND',
+    controls: [{ pad: ['X'], mouse: 'left', label: 'ELEMENTAL STORM' }, { pad: ['Y'], kb: ['F'], label: 'BULK UP' }],
     description: "Some wizard's diary, now with more murder. Fire rips holes in the sky and drops a meteor, a comet and a lightning storm on up to three assholes: the meteor sets survivors on fire, the comet freezes them solid, the lightning cooks one in place for a few seconds. Secondary fire is BULK UP: twelve seconds of bigger, faster, and sending everybody you touch into orbit. Try putting your hands on somebody while you're like that. Runs on mana, because of course it does.",
   },
   STUNT_CAR: {
     name: 'CLAPPERBOARD', from: 'HOLLYWOOD LAND',
+    controls: [{ pad: ['X'], mouse: 'left', label: 'ACTION!' }],
     description: "Snap it and yell ACTION. A stunt driver in a cherry-red sports car comes flying in off a ramp nobody can see, sails right over your head and nose-dives into whoever's in front of you. Big fireball, no retakes, and the stuntman gets launched through the windshield into whatever's next. He doesn't get up. Somebody call his agent.",
+  },
+  MALLET: {
+    name: 'MALLET OF PAIN', from: 'CARTOON LAND',
+    description: "A cartoon mallet that hits like a real one. Swing it sideways and they leave the zip code, uppercut them into orbit, smash them flat as a pancake, or spin like a cartoon devil and bonk everybody in the room. No ammo, it just wears out, and ammo pickups patch it up anyway. Physics optional.",
+    controls: [
+      { pad: ['X'], mouse: 'left', label: 'SWING' },
+      { pad: ['X'], mouse: 'left', label: 'HOLD (GROUND): TORNADO' },
+      { pad: ['Y'], kb: ['F'], label: 'LAUNCH (AGAIN IN THE AIR)' },
+      { pad: ['Y'], kb: ['F'], label: 'HOLD (GROUND): PANCAKE SMASH' },
+      { pad: ['DPAD_DOWN', 'X'], kb: ['S'], mouse: 'left', join: '+', label: 'SPIN · IN THE AIR: POUND' },
+    ],
   },
   SOUL_SUCKER: {
     name: 'SOUL SUCKER', from: 'SPOOKY LAND',
+    controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: SUCK' }, { pad: ['Y'], kb: ['F'], label: 'GORE SPRAY' }],
     description: "A haunted shop vac with a meat grinder where the dust bag should be. Hold fire to suck on everybody in front of you, harder the closer they are. Watch the bar over their heads: when it's gone, so are they, feet first into the grinder. Then hit secondary fire and hose their buddies down with them. Waste not, want not.",
   },
   SOUVENIR: {
     name: 'SOUVENIR LAUNCHER', from: 'FOREIGN LANDS',
+    controls: [{ pad: ['X'], mouse: 'left', label: 'FIRE' }, { pad: ['DPAD_UP', 'X'], kb: ['W'], mouse: 'left', join: '+', label: 'LOB' }],
     description: "A bag of gift-shop crap taped to a drainpipe. Every shot is a surprise: a little Eiffel Tower pinballs off every wall and face in the room, an Easter Island head drops like a cinder block and flattens whatever it lands on. Whoever lives through it sees stars. Made in a country you can't pronounce, killing people in one you can.",
   },
 };
 
 /** What he's got, for now: the ray gun and the lands' weapons built so far. */
-export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER', 'FLINTLOCK', 'SPELLBOOK', 'STUNT_CAR'];
+export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER', 'FLINTLOCK', 'SPELLBOOK', 'STUNT_CAR', 'MALLET'];
 
 export const weaponName = (w: WeaponType) => M2_WEAPON_INFO[w]?.name ?? w;
 
@@ -52,8 +73,8 @@ export const M2WeaponArt: React.FC<{ type: WeaponType; size: number }> = ({ type
     : React.createElement(WeaponArt, { type, size });
 
 /** Plugs the lands' weapons into the engine (startup). */
-export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); registerFlintlock(); registerSpellbook(); registerStuntCar(); };
+export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); registerFlintlock(); registerSpellbook(); registerStuntCar(); registerMallet(); };
 /** Whatever any of them was in the middle of, stopped (going through a door). */
-export const stopWeapons = () => { stopSoulSucker(); stopFlintlock(); stopSpellbook(); stopStuntCar(); };
+export const stopWeapons = () => { stopSoulSucker(); stopFlintlock(); stopSpellbook(); stopStuntCar(); stopMallet(); };
 /** What its ammo's called (the spellbook's is mana). */
-export const ammoName = (w: WeaponType) => (w === 'SPELLBOOK' ? 'MANA' : 'AMMO');
+export const ammoName = (w: WeaponType) => (w === 'SPELLBOOK' ? 'MANA' : w === 'MALLET' ? 'DURABILITY' : 'AMMO');

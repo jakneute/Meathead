@@ -429,8 +429,12 @@ const hurtThrown = (ctx: FrameContext, fl: { e: Enemy; how: GrabCallout }, dmg: 
 };
 
 /** Runs the grabs. Returns the controls the rest of him gets (none while he's busy). */
+/** Is a grab on (or Y's being held toward one)? For the weapons that use Y themselves, so they keep out of its way. */
+let busy = false;
+export const grabBusy = () => busy;
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const out = stepGrab(ctx, g, controls);
+  busy = g.phase !== 'idle' || g.yChord;
   // (a thrown body's hits first: whoever's where it's landing gets it before they're moved out of his way)
   if (g.flying.length) flyInto(ctx, g);
   // (only once he's got hold of somebody: before that, whoever he's going for has to stay where he can get them)
