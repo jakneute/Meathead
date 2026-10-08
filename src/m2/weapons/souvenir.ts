@@ -13,6 +13,9 @@ import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
+import { muzzlePoint } from '../../m1/game/combat/muzzle';
+import { groundLineAt } from '../../m1/game/core/terrain';
+import { CANVAS_WIDTH } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 
@@ -176,6 +179,8 @@ interface Flight {
   /** Frames left of a straight shot off a wall, floor or ceiling at somebody (no drop on it). */
   line: number;
   age: number;
+  /** Lobbed (up + fire): a mortar's arc, high over and down on whoever it was lobbed at (over his shield and all). */
+  lob?: boolean;
 }
 const flightOf = (p: Projectile) => p.customData as Flight;
 
@@ -199,22 +204,69 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
   const { state, fx, cheats } = ctx;
   const pl = state.player;
   const t = TRINKETS.find(k => k.id === forced) ?? TRINKETS[Math.floor(Math.random() * TRINKETS.length)];
-  // (aimed a bit: up lofts it, down (in the air) sends it at the floor; a little wild either way: it's junk out a pipe)
-  const vy = (input.moveUp ? -7.5 : input.moveDown && !pl.isGrounded ? 3 : -2.6) + (Math.random() - 0.5) * 2;
-  const speed = t.speed * (0.92 + Math.random() * 0.16);
+  // Up + fire: a lob, a mortar's arc, high over and down on the head of whoever's out in front (no wobble: it's the
+  // shot that's aimed; or, nobody about, just a high one out in front). Otherwise aimed a bit: down (in the air) sends it
+  // at the floor; a little wild either way: it's junk out a pipe
+  const lob = input.moveUp;
+  let vel: { x: number; y: number };
+  if (lob) {
+    const from = lobFrom(pl, muzzle), arc = lobArc(state, from, gravityOf(t), lobTarget(state, from));
+    vel = arc.vel;
+    playSound('whoosh', 0.7, 6);
+  } else {
+    const vy = (input.moveDown && !pl.isGrounded ? 3 : -2.6) + (Math.random() - 0.5) * 2;
+    vel = { x: pl.facing * t.speed * (0.92 + Math.random() * 0.16) + pl.vel.x * 0.3, y: vy };
+  }
+  const at = lob ? lobFrom(pl, muzzle) : muzzle;
   state.projectiles.push({
     id: `sv-${state.frame}-${Math.random()}`,
-    pos: { x: muzzle.x - (t.w * SIZE) / 2 + pl.facing * 4, y: muzzle.y - (t.h * SIZE) / 2 },
-    vel: { x: pl.facing * speed + pl.vel.x * 0.3, y: vy },
+    pos: { x: at.x - (t.w * SIZE) / 2 + pl.facing * 4, y: at.y - (t.h * SIZE) / 2 },
+    vel,
     width: t.w * SIZE, height: t.h * SIZE, health: 1, maxHealth: 1, type: 'projectile', damage: t.dmg, owner: 'player',
     custom: 'SOUVENIR',
-    customData: { t, ang: 0, spin: pl.facing * (0.5 - t.mass * 0.35), hits: {}, still: 0, line: 0, age: 0 } satisfies Flight,
+    customData: { t, ang: 0, spin: pl.facing * (0.5 - t.mass * 0.35), hits: {}, still: 0, line: 0, age: 0, lob } satisfies Flight,
   });
   pl.shootCooldown = COOLDOWN;
   if (!cheats.infiniteAmmo) pl.weaponAmmo.SOUVENIR--;
   fx.playGunSound('souvenir');
   // (a puff out the end of the pipe)
   for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: muzzle.x + pl.facing * 6, y: muzzle.y }, vel: { x: pl.facing * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 2 }, life: 12, color: 'rgba(230, 230, 230, 0.7)', size: 3 + Math.random() * 3 });
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The lob
+
+/** How far off he'll lob at somebody; how high over the higher of the two it goes. */
+const LOB = { min: 10, reach: 460, apex: 120 };
+/** Up held with it out: the pipe's tilted up (how far, eased), for the lob. */
+let tilt = 0;
+const TILT = -0.75;
+/** Where a lob leaves the pipe: its end, tilted up. */
+const lobFrom = (pl: GameState['player'], muzzle: { x: number; y: number }) => ({ x: muzzle.x - pl.facing * 8, y: muzzle.y - 14 });
+/** Who a lob's for: the nearest out in front of him, on the screen, in reach. */
+const lobTarget = (state: GameState, from: { x: number; y: number }) => {
+  const f = state.player.facing;
+  let best: Enemy | null = null, bestD = Infinity;
+  for (const e of state.enemies) {
+    if (e.health <= 0 || e.isBlownAway || e.innocent || e.type === 'boss') continue;
+    // (out in front of him: right up in his face counts, the lob just goes up and drops straight down on him)
+    const dx = (e.pos.x + e.width / 2 - (state.player.pos.x + state.player.width / 2)) * f;
+    if (dx < LOB.min || dx > LOB.reach || e.pos.x + e.width < state.camera.x || e.pos.x > state.camera.x + CANVAS_WIDTH) continue;
+    if (dx < bestD) { bestD = dx; best = e; }
+  }
+  return best;
+};
+/** The arc onto him: up over the higher of the two by LOB.apex, and down onto the top of his head. Nobody: a high one
+ *  out in front. Where it comes down, and how long it takes. */
+const lobArc = (state: GameState, from: { x: number; y: number }, g: number, e: Enemy | null) => {
+  const f = state.player.facing;
+  const to = e ? { x: e.pos.x + e.width / 2, y: e.pos.y + 4 } : { x: from.x + f * 260, y: groundLineAt(state.groundRuns, from.x + f * 260) };
+  const top = Math.min(from.y, to.y) - LOB.apex;
+  const vy = -Math.sqrt(2 * g * (from.y - top));
+  const T = -vy / g + Math.sqrt(Math.max(0, 2 * (to.y - top) / g));
+  // (leading him: where he'll be by the time it comes down, the way he's going)
+  if (e && !e.pauseTimer) to.x += Math.max(-80, Math.min(80, (e.vel?.x ?? 0) * T));
+  return { vel: { x: (to.x - from.x) / T, y: vy }, to, T };
 };
 
 /** Falls apart: the cheap plastic it's made of, in bits, and a puff (mid-air too: the bits carry on the way it was going). */
@@ -370,7 +422,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
   f.ang += f.spin * Math.min(1, Math.hypot(p.vel.x, p.vel.y) / 6);
   if (grounded) { f.ang *= 0.8; p.vel.x *= 0.9; }
   // Anybody in its way, while it's still got some go in it
-  if (Math.hypot(p.vel.x, p.vel.y) > MIN_HIT_SPEED) {
+  // (a lob on its way up is going over everybody: it only comes down on them)
+  if (Math.hypot(p.vel.x, p.vel.y) > MIN_HIT_SPEED && !(f.lob && p.vel.y < 0)) {
     for (const e of state.enemies) {
       if (e.health <= 0 || e.isBlownAway || e.innocent || e.type === 'boss') continue;
       if (f.hits[e.id] !== undefined && state.frame - f.hits[e.id] < REHIT) continue;
@@ -378,7 +431,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
       // (straight at his shield: off it, like off a wall, clang; dropped on him from above, it's over it and into him)
       // (the Easter Island head doesn't bounce off a shield: it goes through it, and him)
       if (t.id === 'moai' && shielded(e) && !isMidBoss(e)) { clang(state, e, p.pos.y + p.height / 2); e.health = Math.min(e.health, 1); hitEnemy(ctx, p, e); break; }
-      if (shieldStops(e, p)) {
+      // (a lob coming down on him: over the shield, every time; that's what it's for)
+      if (shieldStops(e, p) && !(f.lob && p.vel.y > 0)) {
         f.hits[e.id] = state.frame; clang(state, e, p.pos.y + p.height / 2);
         p.pos.x = p.vel.x > 0 ? e.pos.x - p.width - 0.5 : e.pos.x + e.width + 0.5; p.vel.x = -p.vel.x * t.rest; p.vel.y = Math.min(p.vel.y, -2);
         break;
@@ -432,4 +486,52 @@ export const forceTrinketForTests = (id: string | null) => { forced = id; };
 /** For tests: each of them drawn in a row, at the size they are in the world. */
 export const drawTrinketsForTests = (c: Ctx) => TRINKETS.forEach((t, i) => { c.save(); c.translate(30 + i * 50, 40); c.scale(SIZE, SIZE); t.draw(c); c.restore(); });
 
-export const registerSouvenirLauncher = () => registerWeapon('SOUVENIR', { fire, update, draw: (c, p) => draw(c, p), drawHeld });
+/** Up held with it out (and something in the bag): aiming a lob. */
+let aiming = false;
+const tick = (ctx: FrameContext, input: { moveUp: boolean }, equipped: boolean) => {
+  const pl = ctx.state.player;
+  aiming = equipped && input.moveUp && !pl.isDucking && (ctx.cheats.infiniteAmmo || pl.weaponAmmo.SOUVENIR > 0);
+  tilt += ((aiming ? TILT : 0) - tilt) * 0.3;
+};
+
+const drawOverlay = (c: Ctx, state: GameState) => {
+  const f = state.frame;
+  // Aiming a lob: the arc it'll take (dots, marching along it), and whoever it's coming down on marked: a ring over
+  // his head, an arrow bobbing down into it
+  if (aiming) {
+    const pl = state.player, from = lobFrom(pl, muzzlePoint(pl, 'SOUVENIR'));
+    const e = lobTarget(state, from), arc = lobArc(state, from, 0.42, e);
+    const n = 16;
+    for (let i = 1; i < n; i++) {
+      const k = ((i + (f * 0.15) % 1) / n) * arc.T;
+      const x = from.x + arc.vel.x * k, y = from.y + arc.vel.y * k + 0.5 * 0.42 * k * k;
+      c.fillStyle = INK; c.fillRect(Math.round(x) - 3, Math.round(y) - 3, 6, 6);
+      c.fillStyle = e ? '#FDE047' : '#E5E7EB'; c.fillRect(Math.round(x) - 2, Math.round(y) - 2, 4, 4);
+    }
+    if (e) {
+      // (target brackets round the top of him, closing in and out; an arrow bobbing down onto his head)
+      const x = e.pos.x + e.width / 2, top = e.pos.y, b = Math.sin(f * 0.25) * 3, s2 = Math.max(16, e.width * 0.55) + Math.sin(f * 0.3) * 2, l = 7;
+      for (const [col, w] of [[INK, 5], ['#FDE047', 2.5]] as const) {
+        c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'square';
+        for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+          const cx = x + sx * s2, cy = top + 14 + sy * s2 * 0.75;
+          c.beginPath(); c.moveTo(cx - sx * l, cy); c.lineTo(cx, cy); c.lineTo(cx, cy - sy * l); c.stroke();
+        }
+      }
+      c.lineCap = 'butt';
+      c.fillStyle = INK; c.beginPath(); c.moveTo(x - 8, top - 30 + b); c.lineTo(x + 8, top - 30 + b); c.lineTo(x, top - 17 + b); c.closePath(); c.fill();
+      c.fillStyle = '#FDE047'; c.beginPath(); c.moveTo(x - 6, top - 29 + b); c.lineTo(x + 6, top - 29 + b); c.lineTo(x, top - 19 + b); c.closePath(); c.fill();
+    }
+  }
+  // A lob in the air: its shadow on the floor under it, getting bigger and darker as it comes down, and a streak behind
+  for (const p of state.projectiles) {
+    if (p.custom !== 'SOUVENIR' || !flightOf(p).lob || flightOf(p).age > 120) continue;
+    const cx = p.pos.x + p.width / 2, gy = groundLineAt(state.groundRuns, cx);
+    if (!(gy < p.pos.y + 900)) continue;
+    const h = Math.max(0, gy - (p.pos.y + p.height)), k = Math.max(0.15, 1 - h / 320);
+    c.fillStyle = `rgba(0, 0, 0, ${(0.35 * k).toFixed(2)})`; c.beginPath(); c.ellipse(cx, gy - 1, 4 + 10 * k, 2 + 2 * k, 0, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = 'rgba(255, 255, 255, 0.35)'; c.lineWidth = 2; c.beginPath(); c.moveTo(cx, p.pos.y + p.height / 2); c.lineTo(cx - p.vel.x * 3, p.pos.y + p.height / 2 - p.vel.y * 3); c.stroke();
+  }
+};
+
+export const registerSouvenirLauncher = () => registerWeapon('SOUVENIR', { fire, update, draw: (c, p) => draw(c, p), drawHeld: (c, frame) => { c.save(); c.rotate(tilt); drawHeld(c, frame); c.restore(); }, tick: (ctx, input, equipped) => tick(ctx, input, equipped), drawOverlay });
