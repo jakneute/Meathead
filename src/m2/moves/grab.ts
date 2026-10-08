@@ -59,6 +59,8 @@ const BOOTED_IMPACT = 0.5;
 const SLAM_BOUNCE = -13.5, SUPLEX_SHARE = 0.4;
 /** Plummeting together after a grab in the air: how fast it builds and tops out; the beatdown's landing's share of him at full speed. */
 const PLUMMET_ACCEL = 0.9, PLUMMET_MAX = 20, PLUMMET_SHARE = 0.55;
+/** Frames a grab asked for while he couldn't is kept for. */
+const GRAB_BUFFER = 10;
 const GRAB_REACH = 64, SHAKE_FRAMES = 44, SHAKE_AMMO = 3, THROW_SPEED = 17, THROW_SHARE = 0.15, SLAM_SHARE = 0.5, GRAB_MISS = 12;
 /** How long Y can be held on its own and still count as a tap (its own button: secondary fire), let go of. */
 const Y_TAP = 15;
@@ -99,6 +101,11 @@ export interface Grab {
   yChord: boolean;
   /** B or X pressed without Y: held back a moment in case Y comes with it (pressed together, near enough). */
   pend: { k: 'b' | 'x'; t: number } | null;
+  /** A grab asked for while he couldn't (mid-charge, knocked back): kept a few frames and started the moment he can. */
+  queued: { want: 'beat' | 'shake'; t: number } | null;
+  /** His knockback last frame, and how long what's left of it is from bumping into somebody (a grab beats that). */
+  pb: number;
+  bumpT: number;
   /** The controls last frame (to catch presses). */
   was: Controls;
   /** Shaken down already: no more ammo in them (they can still be grabbed and thrown again). */
@@ -121,7 +128,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null,
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, pb: 0, bumpT: 0,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -234,6 +241,7 @@ const take = (state: GameState, e: Enemy) => { state.enemies = state.enemies.fil
  * before they come at him again. Whatever's just standing about up against him is moved back out to its own side.
  */
 const CLEAR_GAP = 18, REGROUP = 50;
+const PRE_GRAB = new Set<Phase>(['windup', 'lunge', 'reach', 'whiff', 'miss']);
 const keepClear = (state: GameState, g: Grab) => {
   const p = state.player, cx = centerX(state), half = p.width / 2 + CLEAR_GAP;
   for (const e of state.enemies) {
@@ -335,7 +343,8 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   const out = stepGrab(ctx, g, controls);
   // (a thrown body's hits first: whoever's where it's landing gets it before they're moved out of his way)
   if (g.flying.length) flyInto(ctx, g);
-  if (g.phase !== 'idle') { keepClear(ctx.state, g); easeOff(ctx.state, g); }
+  // (only once he's got hold of somebody: before that, whoever he's going for has to stay where he can get them)
+  if (g.phase !== 'idle') { if (!PRE_GRAB.has(g.phase)) keepClear(ctx.state, g); easeOff(ctx.state, g); }
   // (armor, fighting-game style: through a grab, and for a moment after, with whoever he's just put down still at his
   // feet, anything that hits him hurts him, but nothing knocks him about or out of what he's doing)
   if (g.phase !== 'idle') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
@@ -386,9 +395,20 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         if (!g.yChord && g.yHeld < Y_TAP) out = { ...out, secondary: true };
         g.yHeld = 0; g.yChord = false;
       }
-      // (on the ground or in the air: up there, he and whoever he gets hold of come down together)
-      const free = !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.swimming && !(p.pushbackTimer && p.pushbackTimer > 0);
-      if (!want || !free) return out;
+      // (on the ground or in the air: up there, he and whoever he gets hold of come down together). Bumped back by
+      // somebody he's touching: a grab beats that (it's the body he's after); knocked back by anything else, not till
+      // it's over. Asked for when he can't: kept a few frames, and it goes the moment he can
+      const pb = p.pushbackTimer ?? 0;
+      if (pb > g.pb && state.enemies.some(e => (grabbable(e) || isCritter(e)) && e.pos.x < p.pos.x + p.width + 12 && e.pos.x + e.width > p.pos.x - 12 && e.pos.y < p.pos.y + p.height + 12 && e.pos.y + e.height > p.pos.y - 12)) g.bumpT = pb;
+      else if (g.bumpT > 0) g.bumpT--;
+      g.pb = pb;
+      const touching = pb > 0 && g.bumpT > 0;
+      const free = !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.swimming && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
+      if (want) g.queued = { want, t: 0 };
+      else if (g.queued && ++g.queued.t > GRAB_BUFFER) g.queued = null;
+      if (!g.queued || !free) return out;
+      want = g.queued.want; g.queued = null;
+      if (touching) { p.pushbackTimer = 0; p.vel.x = 0; }
       if (y) g.yChord = true;
       g.dir = p.facing; g.t = 0;
       if (want === 'beat') {
