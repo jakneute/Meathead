@@ -201,6 +201,8 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'SOUL_SUCKER': 600,
   // (Meathead 2's laser-guided flintlock: balls and powder)
   'FLINTLOCK': 24,
+  // (Meathead 2's spellbook of the damned: its mana, in casts)
+  'SPELLBOOK': 30,
 };
 
 /** A fresh ammo loadout with every weapon topped up. */

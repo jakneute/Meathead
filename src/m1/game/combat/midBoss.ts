@@ -21,7 +21,7 @@ export const isMidBoss = (e: Enemy) => !!e.hyper || e.kind === 'moose' || e.kind
  *   machine gun 7 a round, a round every 3 (~140/s)
  */
 export const MIDBOSS_DAMAGE: Record<WeaponType, number> = {
-  GUN: 25, SHOTGUN: 14, BOULDER: 150, FLAMETHROWER: 2.5, TSUNAMI: 300, NEEDLES: 16, TASER: 16, SLUDGE: 14, OIL_ROCKET: 90, LMG: 7, SOUVENIR: 30, SOUL_SUCKER: 0, FLINTLOCK: 150,
+  GUN: 25, SHOTGUN: 14, BOULDER: 150, FLAMETHROWER: 2.5, TSUNAMI: 300, NEEDLES: 16, TASER: 16, SLUDGE: 14, OIL_ROCKET: 90, LMG: 7, SOUVENIR: 30, SOUL_SUCKER: 0, FLINTLOCK: 150, SPELLBOOK: 60,
 };
 /** The oil rocket's splash on a mid-boss (no oil sticks to it). */
 export const MIDBOSS_SPLASH_DAMAGE = 80;

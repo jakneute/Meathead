@@ -7,6 +7,9 @@ export const FULL_BAG_LINES = [
   "THE BAG CAN'T TAKE ANY MORE, AND NEITHER CAN YOU!",
 ];
 
+/** The spellbook's bulk up, cast. */
+export const BULK_LINES = ['BULK UP!', 'MAXIMUM GAINS!', 'I AM THE PUMP!', 'SWOLE MODE!', 'FEEL THE PUMP!', 'HULKING OUT!', 'TOO BIG TO FAIL!'];
+
 /** ...and empty, when he tries to spray it. */
 export const EMPTY_BAG_LINES = [
   "BAG'S EMPTY!", 'NOTHING IN THE BAG!', 'GOTTA SUCK SOMEBODY UP FIRST!', 'OUT OF GUTS!', 'NO GUTS, NO GLORY!',

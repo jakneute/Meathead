@@ -33,6 +33,7 @@ import { getBossDef, getArenaRight } from '../bosses/registry';
 import { getStageLeft } from '../stages';
 import { getFinale } from '../stages/finale/state';
 import { customWeapon, customWeapons } from '../combat/customWeapons';
+import { buffs } from '../core/buffs';
 
 /**
  * Secondary fire (Y on the pad, F on the keyboard), by the weapon in his hands: what it does instead. Only the oil
@@ -466,7 +467,7 @@ const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
   const inOil = isStandingInOil(state);
   // (and out in his oil field: a slick you slide about on, tar that holds your feet)
   const fieldOil = oilUnderfoot(state);
-  const targetVel = movDir * PLAYER_MOVE_SPEED * (inOil || fieldOil === 'tar' ? OSCAR_OIL_SPEED_MULT : 1);
+  const targetVel = movDir * PLAYER_MOVE_SPEED * buffs.speed * (inOil || fieldOil === 'tar' ? OSCAR_OIL_SPEED_MULT : 1);
   const effectiveDir = player.isDucking ? 0 : movDir;
   const bossDef = getBossDef(stageId);
   // A floorless arena's platforms (Tommy's floating boards) aren't terrain blocks, so being grounded there counts as a floor too

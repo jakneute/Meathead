@@ -8,6 +8,7 @@ import { boundsOf } from '../core/utils';
 import { ENEMY_MASS } from '../../constants';
 import { getBossDef } from '../bosses/registry';
 import { KIND_STATS } from '../enemies/kinds';
+import { buffs } from '../core/buffs';
 
 /** An enemy of this mass gets pushed exactly as hard as the push says. */
 const REFERENCE_MASS = 200;
@@ -32,8 +33,10 @@ export const massRatio = (from: Enemy, to: Enemy) => Math.max(0.08, Math.min(2, 
 /** Shove an enemy (a push sized for a reference-weight enemy), dazing it while it goes. */
 export const pushEnemy = (e: Enemy, velX: number, velY: number, dazeFrames: number) => {
   const k = massScale(e);
-  e.vel.x = Math.max(-MAX_PUSH_SPEED, Math.min(MAX_PUSH_SPEED, velX * k));
-  e.vel.y = velY * Math.sqrt(k);
+  // (pumped up: everything goes further, the cap too)
+  const b = buffs.knock, cap = MAX_PUSH_SPEED * b;
+  e.vel.x = Math.max(-cap, Math.min(cap, velX * k * b));
+  e.vel.y = velY * Math.sqrt(k) * Math.sqrt(b);
   e.pauseTimer = dazeFrames;
 };
 

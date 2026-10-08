@@ -145,6 +145,11 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.45, vary: 0.2, gap: 120,
     make: () => { let ph = 0; return render(0.4, t => (t < 0.008 ? rnd() * 0.8 : 0) + (t > 0.05 && t < 0.058 ? rnd() * 0.9 : 0) + (t > 0.06 ? (ph += 2350 / SFX_SR, Math.sin(TAU * ph) * 0.5 * ex(t - 0.06, 9)) : 0)); },
   },
+  spell: {
+    // Meathead 2's spellbook read out: a rising shimmer of bells over a low choir-ish hum, a whoosh up into it
+    gain: 0.4, vary: 0.4, gap: 200,
+    make: () => { const lp = lowpass(); let a = 0, b = 0, c = 0; return render(0.9, t => { a += (520 + 900 * t) / SFX_SR; b += (780 + 1300 * t) / SFX_SR; c += 110 / SFX_SR; return (Math.sin(TAU * a) * 0.35 + Math.sin(TAU * b) * 0.25 * (Math.floor(t * 24) % 2) + Math.sin(TAU * c) * 0.3 + lp(rnd(), 900 + 2400 * t) * 0.3) * Math.min(1, t / 0.05) * ex(Math.max(0, t - 0.4), 5); }); },
+  },
   sadBolt: {
     // A sad little laser: pew... wew (drooping), half-hearted
     gain: 0.3, vary: 1, gap: 120,

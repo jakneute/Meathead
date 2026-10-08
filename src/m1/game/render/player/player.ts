@@ -14,6 +14,7 @@ import { drawPlayerShadow } from './shadow';
 import { drawDeathBrows, drawDeathEyes, drawDeathMouth } from './deathFace';
 import { rayGun } from '../../combat/rayGun';
 import { customWeapon } from '../../combat/customWeapons';
+import { buffs } from '../../core/buffs';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
 import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth, setLegSinge } from './body';
 
@@ -52,6 +53,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   setLegSinge(state.stageId === FINALE_STAGE);
   const gore = getGore();
   ctx.save();
+  // (pumped up: drawn bigger, from his feet)
+  if (buffs.size !== 1) { const fx0 = p.pos.x + p.width / 2, fy0 = p.pos.y + p.height; ctx.translate(fx0, fy0); ctx.scale(buffs.size, buffs.size); ctx.translate(-fx0, -fy0); }
 
   // 1. Filth Shield Aura
   if (p.filthShieldTimer && p.filthShieldTimer > 0 && !state.victoryString && showFilthShield) {

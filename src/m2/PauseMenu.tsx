@@ -2,7 +2,7 @@ import React from 'react';
 import type { WeaponType } from '../m1/types';
 import { maxAmmo } from '../m1/constants';
 import { Prompt } from '../m1/components/ButtonIcons';
-import { M2_WEAPON_INFO, M2WeaponArt } from './weapons';
+import { M2_WEAPON_INFO, M2WeaponArt, ammoName } from './weapons';
 
 // Meathead 2's pause menu: the arsenal (each weapon with how much is left in it), the one picked out up close with its
 // name, where it came from and what it does, and RESUME. Looks the way Meathead 1's does. Moved round with the D-pad or
@@ -68,7 +68,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
             <div className="text-yellow-300 text-[11px] font-black uppercase leading-tight mb-1">{info?.name ?? shown}</div>
             <div className="text-[7px] text-pink-400 font-black uppercase tracking-wider mb-2">FROM {info?.from ?? ''}{shown === current && <span className="text-red-500"> · [ EQUIPPED ]</span>}</div>
             <div className="text-zinc-300 text-[7px] leading-[11px] uppercase font-bold mb-2 min-h-[66px]">&ldquo;{info?.description ?? ''}&rdquo;</div>
-            <div className="text-[7px] font-black tracking-wider text-green-400">AMMO: {ammoText(shown)}</div>
+            <div className="text-[7px] font-black tracking-wider text-green-400">{ammoName(shown)}: {ammoText(shown)}</div>
           </div>
         </div>
 

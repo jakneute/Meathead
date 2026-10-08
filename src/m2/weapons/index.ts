@@ -8,6 +8,7 @@ import { RAYGUN_ART, WeaponArt } from '../../m1/components/WeaponIcon';
 import { registerSouvenirLauncher } from './souvenir';
 import { registerSoulSucker, stopSoulSucker } from './soulSucker';
 import { registerFlintlock, stopFlintlock } from './flintlock';
+import { registerSpellbook, stopSpellbook } from './spellbook';
 
 export interface M2Weapon { name: string; from: string; description: string }
 
@@ -20,6 +21,10 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     name: 'LASER-GUIDED FLINTLOCK', from: 'FRONTIER LAND',
     description: "An old horse pistol with a laser sight duct-taped on. Hold fire to lock onto the head of whoever's in front, ground or air; walk, jump, but no turning. Primed, let go: straight through every head on the line, and the first wall, floor or ceiling bounces it once at somebody else.",
   },
+  SPELLBOOK: {
+    name: 'SPELLBOOK OF THE DAMNED', from: 'FANTASY LAND',
+    description: "Fire reads out a storm on up to three of them: a meteor that blows up and leaves them burning, a comet that hurts and freezes them solid, lightning that keeps striking till they're dead. Secondary fire: BULK UP. Faster, bigger, and everything he hits goes flying. Runs on mana.",
+  },
   SOUL_SUCKER: {
     name: 'SOUL SUCKER', from: 'SPOOKY LAND',
     description: "A haunted shop vac with a meat grinder where the bag goes. Hold fire: it drags at everybody in front of it and wears their poise down (the bar over their heads). Poise gone, they go in. Secondary fire sprays what's in the gore bag back out at them.",
@@ -31,7 +36,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
 };
 
 /** What he's got, for now: the ray gun and the lands' weapons built so far. */
-export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER', 'FLINTLOCK'];
+export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER', 'FLINTLOCK', 'SPELLBOOK'];
 
 export const weaponName = (w: WeaponType) => M2_WEAPON_INFO[w]?.name ?? w;
 
@@ -42,6 +47,8 @@ export const M2WeaponArt: React.FC<{ type: WeaponType; size: number }> = ({ type
     : React.createElement(WeaponArt, { type, size });
 
 /** Plugs the lands' weapons into the engine (startup). */
-export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); registerFlintlock(); };
+export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); registerFlintlock(); registerSpellbook(); };
 /** Whatever any of them was in the middle of, stopped (going through a door). */
-export const stopWeapons = () => { stopSoulSucker(); stopFlintlock(); };
+export const stopWeapons = () => { stopSoulSucker(); stopFlintlock(); stopSpellbook(); };
+/** What its ammo's called (the spellbook's is mana). */
+export const ammoName = (w: WeaponType) => (w === 'SPELLBOOK' ? 'MANA' : 'AMMO');

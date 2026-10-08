@@ -336,6 +336,11 @@
  },
  {
   "voice": "announcer",
+  "text": "CURSED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "DANCE FLOOR DIVE!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -423,6 +428,11 @@
   "voice": "announcer",
   "text": "ELECTRIC BATH!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ELEMENTAL!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -617,6 +627,11 @@
  {
   "voice": "announcer",
   "text": "HEADSHOT!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HEXED!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -1226,6 +1241,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SMITED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SNOW ANGEL!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -1298,6 +1318,11 @@
   "voice": "announcer",
   "text": "STRIKE!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "STRUCK DOWN!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -10296,6 +10321,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ABRACA-DEAD!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "ABSOLUTE ZERO REPS",
   "from": "VULGARITIES"
  },
@@ -10388,6 +10418,11 @@
   "voice": "meathead",
   "text": "AQUA-CRUSHED",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARCANE ASS KICKING!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10596,6 +10631,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BIBBIDI BOBBIDI BOOM!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BIG GREEN TARGET. BIG GUNS. DUH.",
   "from": "FINALE_LINES"
  },
@@ -10638,6 +10678,11 @@
   "voice": "meathead",
   "text": "BOMB SQUAD'S DOWN A GUY!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOOKWORM, BITCH!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10746,6 +10791,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BULK UP!",
+  "from": "BULK_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BULL RUSHED BITCH",
   "from": "VULGARITIES"
  },
@@ -10813,6 +10863,11 @@
   "voice": "meathead",
   "text": "BURY ME IN THE SQUAT RACK",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BY THE POWER OF GAINS!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11678,6 +11733,11 @@
   "voice": "meathead",
   "text": "FEEL THE BURN",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FEEL THE PUMP!",
+  "from": "BULK_LINES"
  },
  {
   "voice": "meathead",
@@ -13101,6 +13161,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOCUS POCUS, YOU'RE BOGUS!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HOLD ON. WHO'S DRIVING NOW?",
   "from": "m1/game/stages/dale/convoy.ts:882"
  },
@@ -13241,6 +13306,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HULKING OUT!",
+  "from": "BULK_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HUMAN BONFIRE BITCH",
   "from": "VULGARITIES"
  },
@@ -13293,6 +13363,11 @@
   "voice": "meathead",
   "text": "I AM MELTING! THIS IS MY LEAST FAVORITE FLAVOR!",
   "from": "m1/game/stages/finale/killCam.ts:174"
+ },
+ {
+  "voice": "meathead",
+  "text": "I AM THE PUMP!",
+  "from": "BULK_LINES"
  },
  {
   "voice": "meathead",
@@ -14491,6 +14566,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MAGIC, MOTHERFUCKER!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "MAKE ME DO WHAT HE DOES, WHEN HE DOES IT! NOT A JUMP!",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -14528,6 +14608,11 @@
   "voice": "meathead",
   "text": "MAX TONNAGE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAXIMUM GAINS!",
+  "from": "BULK_LINES"
  },
  {
   "voice": "meathead",
@@ -14893,6 +14978,11 @@
   "voice": "meathead",
   "text": "NERD DOWN!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NERD SHIT WORKS!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15951,6 +16041,11 @@
  },
  {
   "voice": "meathead",
+  "text": "READ IT AND WEEP!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "READ ME MY RIGHTS NOW, PIG!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -16716,6 +16811,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SMITE THIS!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SMOKE 'EM IF YOU GOT 'EM",
   "from": "VULGARITIES"
  },
@@ -16873,6 +16973,11 @@
   "voice": "meathead",
   "text": "SPARE THIS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPELL CHECK!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -17258,6 +17363,11 @@
   "voice": "meathead",
   "text": "SWITCHBLADE TO THE LATS! THAT'S A NEW YORK HELLO!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SWOLE MODE!",
+  "from": "BULK_LINES"
  },
  {
   "voice": "meathead",
@@ -18286,6 +18396,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TOO BIG TO FAIL!",
+  "from": "BULK_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "TOO MANY EYES! TOO FEW BRAINS!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -19183,6 +19298,11 @@
   "voice": "meathead",
   "text": "YOU SENT ME PENCIL NECKS? ...FOR ME?",
   "from": "m1/components/IntroCutscene.tsx:45"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU SHALL NOT PASS! OR LIVE!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",

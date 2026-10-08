@@ -15,6 +15,8 @@ export const GRAB_CALLOUTS = {
   shred: { lines: ['SHREDDED!', 'GROUND CHUCK!', 'MINCED!', 'HAMBURGERED!', 'SUCKED IN!'], color: '#A78BFA' },
   // (the laser-guided flintlock's)
   flintlock: { lines: ['HEADSHOT!', 'BLOWN CLEAN OFF!', 'DEAD EYE!', 'HEADS WILL ROLL!', 'DECAPITATED!'], color: '#FB923C' },
+  // (the spellbook of the damned's)
+  spell: { lines: ['SMITED!', 'HEXED!', 'STRUCK DOWN!', 'CURSED!', 'ELEMENTAL!'], color: '#C084FC' },
   gorespray: { lines: ['HOSED DOWN!', 'GORE SHOWER!', 'SPLATTERED!', 'RETURN TO SENDER!'], color: '#DC2626' },
 } as const;
 

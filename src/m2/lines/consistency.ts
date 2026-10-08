@@ -12,7 +12,7 @@ const OUT_OF_PLACE = new RegExp([
   // its weather, terrain and set pieces
   'VOLCAN', 'LAVA', 'MAGMA', 'AVALANCH', 'HURRICANE', 'TORNADO', 'QUAKE', 'SNOW', '\\bICE\\b', '\\bICED\\b', 'ICEBERG', 'ICICLE', 'BLIZZARD', 'FROST',
   'MOUNTAIN', 'MOOSE', '\\bSKI', 'PARKA', 'GLACIER', 'DESERT', 'CARTEL', 'SICARIO', 'SEWER', 'SLUDGE', 'TOXIC', '\\bOIL', 'BLACKOUT', 'JET SKI',
-  'TOUR GROUP', 'RANGER STATION', "CLUB'S", 'THIS CLUB', 'SEAFOOD', 'BEACH', '\\bSURF', 'HAZMAT', 'STORM',
+  'TOUR GROUP', 'RANGER STATION', 'FREEZE RAY', "CLUB'S", 'THIS CLUB', 'SEAFOOD', 'BEACH', '\\bSURF', 'HAZMAT', 'STORM',
 ].join('|'), 'i');
 
 /** Does this line fit where he is (Happy Land)? */

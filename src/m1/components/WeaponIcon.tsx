@@ -465,6 +465,21 @@ const ART: Record<WeaponType, React.ReactNode> = {
     glint(p, 4, 14);
   }),
 
+  // Meathead 2's spellbook of the damned: a fat black tome bound in iron, a bone-white skull on the cover, the page edges
+  // glowing violet
+  SPELLBOOK: draw(p => {
+    const book = rectC(4, 5, 21, 23);
+    paint(p, book, diag(book, ['#3F3F46', '#27272A', '#18181B', '#0B0B0F']));
+    const pages = rectC(25, 6, 3, 21);
+    paint(p, pages, (x, y) => ((x + y) % 2 ? '#C084FC' : '#E9D5FF'));
+    for (const [x, y] of [[4, 5], [22, 5], [4, 25], [22, 25]] as const) paint(p, rectC(x, y, 3, 3), '#A1A1AA');
+    const skull = ellC(14.5, 14, 5, 4.5);
+    paint(p, skull, radial(skull, ['#FFFFFF', '#F5F5F4', '#D6D3D1'], 13, 12));
+    paint(p, rectC(11.5, 17.5, 6, 3), '#D6D3D1');
+    for (const [x, y] of [[12, 13], [13, 13], [16, 13], [17, 13], [12, 14], [17, 14], [14, 16], [13, 19], [15, 19]] as const) p.set(x, y, '#0B0B0F', null);
+    glint(p, 6, 7);
+  }),
+
   // Dirty Dan's light machine gun: long and black, a vented shroud, a box of rounds hanging off it, the belt
   LMG: draw(p => {
     const stock = polyC([[1, 10.5], [8, 11.5], [8, 16], [1, 18]]);

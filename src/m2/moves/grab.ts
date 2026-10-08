@@ -28,6 +28,7 @@ import { getEnemyMass } from '../../m1/game/combat/knockback';
 import { setArmor } from '../../m1/game/core/resist';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { impactKill, ceilingSplat } from '../../m1/game/enemies/enemies';
+import { buffs } from '../../m1/game/core/buffs';
 import { playSound } from '../../m1/game/platform/audio';
 import { INITIAL_PLAYER_HEALTH } from '../../m1/constants';
 import { beginSprite, endSprite } from '../../m1/game/render/player/spriteOutline';
@@ -692,7 +693,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
 };
 
 /** How far a throw takes him, by his weight: about 1 for a man of 220, more for lighter, less for heavier (within reason). */
-const heft = (e: Enemy) => Math.max(0.7, Math.min(1.3, Math.sqrt(220 / getEnemyMass(e))));
+const heft = (e: Enemy) => Math.max(0.7, Math.min(1.3, Math.sqrt(220 / getEnemyMass(e)))) * buffs.knock;
 
 /**
  * The slam's shock through the floor: everybody within reach of where he went in takes some of it, the most right at
@@ -919,6 +920,11 @@ const asPose = (ctx: Ctx, state: GameState, pose: Partial<GameState['player']>, 
 
 /** Draws him into a sprite (outlined, like the rest of him), feet at (x, y), facing `dir`. */
 const sprite = (world: Ctx, x: number, y: number, dir: number, paint: (c: Ctx) => void) => {
+  // (pumped up: bigger, from his feet)
+  if (buffs.size !== 1) { world.save(); world.translate(x, y); world.scale(buffs.size, buffs.size); world.translate(-x, -y); }
+  try { spriteAt(world, x, y, dir, paint); } finally { if (buffs.size !== 1) world.restore(); }
+};
+const spriteAt = (world: Ctx, x: number, y: number, dir: number, paint: (c: Ctx) => void) => {
   const s = beginSprite(world);
   const c = s ?? world;
   c.save();
