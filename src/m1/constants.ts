@@ -199,6 +199,8 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'SOUVENIR': 60,
   // (Meathead 2's soul sucker: frames of sucking)
   'SOUL_SUCKER': 600,
+  // (Meathead 2's laser-guided flintlock: balls and powder)
+  'FLINTLOCK': 24,
 };
 
 /** A fresh ammo loadout with every weapon topped up. */

@@ -134,6 +134,17 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.45, vary: 0.8, gap: 150,
     make: () => { const bp = bandpass(), lp = lowpass(); let ph = 0; return render(0.4, t => { ph += (90 + 60 * Math.sin(TAU * 31 * t)) / SFX_SR; const sput = Math.floor(t * 28) % 3 === 0 ? 1 : 0.15; return (Math.sign(Math.sin(TAU * ph)) * 0.35 * sput + bp(rnd(), 700, 0.9) * 0.6 * sput) * ex(t, 6) + (t > 0.3 && t < 0.33 ? lp(rnd(), 2500) * 0.5 : 0); }); },
   },
+  flintlock: {
+    // Meathead 2's laser-guided flintlock: the flint's snap, the pan going whff, then the charge: a big deep boom with
+    // a crack on its front and a long rolling tail
+    gain: 0.75, vary: 0.4, gap: 200,
+    make: () => { const lp = lowpass(), lp2 = lowpass(), bp = bandpass(); return render(1.1, t => (t < 0.012 ? rnd() * 0.6 : 0) + (t > 0.02 && t < 0.07 ? bp(rnd(), 2600, 0.8) * 0.4 : 0) + (t > 0.07 ? (lp(rnd(), 1500 * ex(t - 0.07, 6) + 120) * 1.4 * ex(t - 0.07, 3.2) + (t < 0.085 ? rnd() * 0.9 : 0) + lp2(rnd(), 160) * ex(t - 0.07, 2) * 0.8) : 0)); },
+  },
+  primed: {
+    // ...and ready: the hammer cocked all the way back (a heavy click-clack) and a bright little ring off the steel
+    gain: 0.45, vary: 0.2, gap: 120,
+    make: () => { let ph = 0; return render(0.4, t => (t < 0.008 ? rnd() * 0.8 : 0) + (t > 0.05 && t < 0.058 ? rnd() * 0.9 : 0) + (t > 0.06 ? (ph += 2350 / SFX_SR, Math.sin(TAU * ph) * 0.5 * ex(t - 0.06, 9)) : 0)); },
+  },
   sadBolt: {
     // A sad little laser: pew... wew (drooping), half-hearted
     gain: 0.3, vary: 1, gap: 120,

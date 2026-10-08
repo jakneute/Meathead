@@ -181,6 +181,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BLOWN CLEAN OFF!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "BLOWN TO BITS!",
   "from": "ALIEN_DEATH_CALLOUTS"
  },
@@ -338,6 +343,16 @@
   "voice": "announcer",
   "text": "DAVY JONES!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DEAD EYE!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DECAPITATED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -598,6 +613,11 @@
   "voice": "announcer",
   "text": "HEADS WILL ROLL!",
   "from": "ALIEN_DEATH_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HEADSHOT!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -10751,6 +10771,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BULLSEYE!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BULLSHIT! AND DEAD!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -11403,6 +11428,11 @@
   "voice": "meathead",
   "text": "DOWN THE DRAIN, BALLOON BOY.",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DRAW, PARTNER!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -12286,6 +12316,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GOT A HEAD START!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GOT HIT BY A ROAD SIGN! THE SIGN SAID OUCH!",
   "from": "HAZARD_HURT"
  },
@@ -12616,6 +12651,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE LOST HIS HEAD!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HE MOPPED ME! RIGHT IN THE FACE!",
   "from": "HAZARD_HURT"
  },
@@ -12906,6 +12946,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HEAD COUNT: ZERO!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HEAD IN THE CLOUDS ASSHOLE",
   "from": "VULGARITIES"
  },
@@ -12923,6 +12968,11 @@
   "voice": "meathead",
   "text": "HEADBUTTED BY A GOAT! IN MY OWN TERRITORY!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEADS UP! OH, NO HEAD.",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -14256,6 +14306,11 @@
  },
  {
   "voice": "meathead",
+  "text": "KEEP YOUR HEAD DOWN!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "KEEP YOUR RUSTY SYRINGES OFF MY DELTS!",
   "from": "HURT"
  },
@@ -14278,6 +14333,11 @@
   "voice": "meathead",
   "text": "LAID YOUR BIKE DOWN! AND YOU!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LASER GUIDED, HEAD FINDING!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15343,6 +15403,11 @@
   "voice": "meathead",
   "text": "OKAY. SUIT. NOW WHAT?",
   "from": "m1/game/stages/tommy/escape.ts:142"
+ },
+ {
+  "voice": "meathead",
+  "text": "OLD SCHOOL, BITCH!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -16653,6 +16718,11 @@
   "voice": "meathead",
   "text": "SMOKE 'EM IF YOU GOT 'EM",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMOKE 'EM IF YOU GOT 'EM!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -18086,6 +18156,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THIS TOWN AIN'T BIG ENOUGH!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THIS WHOLE TOWN SMELLS LIKE ME NOW.",
   "from": "m1/game/stages/tommy/bike.ts:46"
  },
@@ -18933,6 +19008,11 @@
   "voice": "meathead",
   "text": "YEE-HAW, ASSHOLE!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEEHAW, MOTHERFUCKER!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",

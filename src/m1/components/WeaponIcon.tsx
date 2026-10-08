@@ -448,6 +448,23 @@ const ART: Record<WeaponType, React.ReactNode> = {
     glint(p, 4, 9);
   }),
 
+  // Meathead 2's laser-guided flintlock: a long horse pistol, a walnut stock curving down into a brass-capped butt, the
+  // long iron barrel banded in brass, the flint cocked back in its hammer, a cheap laser pointer taped under the barrel
+  FLINTLOCK: draw(p => {
+    const stock = polyC([[2, 13], [13, 12], [13, 16], [8, 17], [6, 25], [1, 24]]);
+    paint(p, stock, diag(stock, WOOD));
+    paint(p, rectC(0, 23, 6, 3), (x, y) => step(BRASS, (y - 23) / 3, x, y));
+    const barrel = rectC(12, 11.5, 18, 4);
+    paint(p, barrel, rows(barrel, ['#A1A1AA', '#71717A', '#52525B', '#3F3F46']));
+    for (const bx of [17, 27]) paint(p, rectC(bx, 11, 2, 5), (x, y) => step(BRASS, (y - 11) / 5, x, y));
+    paint(p, rectC(9, 8, 3, 4), '#71717A'); p.set(10, 7, '#E5E7EB'); p.set(11, 7, '#A1A1AA');
+    paint(p, rectC(9, 16, 3, 2), '#52525B');
+    paint(p, rectC(19, 16, 8, 2), rows(rectC(19, 16, 8, 2), ['#3F3F46', '#18181B']));
+    p.set(27, 16, '#EF4444'); p.set(28, 16, '#FCA5A5', null); p.set(30, 16, '#EF4444', null);
+    glint(p, 14, 12);
+    glint(p, 4, 14);
+  }),
+
   // Dirty Dan's light machine gun: long and black, a vented shroud, a box of rounds hanging off it, the belt
   LMG: draw(p => {
     const stock = polyC([[1, 10.5], [8, 11.5], [8, 16], [1, 18]]);

@@ -7,6 +7,7 @@ import type { WeaponType } from '../../m1/types';
 import { RAYGUN_ART, WeaponArt } from '../../m1/components/WeaponIcon';
 import { registerSouvenirLauncher } from './souvenir';
 import { registerSoulSucker, stopSoulSucker } from './soulSucker';
+import { registerFlintlock, stopFlintlock } from './flintlock';
 
 export interface M2Weapon { name: string; from: string; description: string }
 
@@ -14,6 +15,10 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   GUN: {
     name: 'RAY GUN', from: "THE ALIEN'S LEFTOVERS",
     description: "Built out of what was left of the alien's ship, a lot of tape and one bad afternoon. Never runs dry, shoots straight, and whatever it kills doesn't leave much more than its shoes.",
+  },
+  FLINTLOCK: {
+    name: 'LASER-GUIDED FLINTLOCK', from: 'FRONTIER LAND',
+    description: "An old horse pistol with a laser sight duct-taped on. Hold fire to lock onto the head of whoever's in front, ground or air; walk, jump, but no turning. Primed, let go: straight through every head on the line, and the first wall, floor or ceiling bounces it once at somebody else.",
   },
   SOUL_SUCKER: {
     name: 'SOUL SUCKER', from: 'SPOOKY LAND',
@@ -25,8 +30,8 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   },
 };
 
-/** What he's got, for now: the ray gun, the souvenir launcher and the soul sucker. */
-export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER'];
+/** What he's got, for now: the ray gun and the lands' weapons built so far. */
+export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER', 'FLINTLOCK'];
 
 export const weaponName = (w: WeaponType) => M2_WEAPON_INFO[w]?.name ?? w;
 
@@ -37,6 +42,6 @@ export const M2WeaponArt: React.FC<{ type: WeaponType; size: number }> = ({ type
     : React.createElement(WeaponArt, { type, size });
 
 /** Plugs the lands' weapons into the engine (startup). */
-export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); };
+export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); registerFlintlock(); };
 /** Whatever any of them was in the middle of, stopped (going through a door). */
-export const stopWeapons = () => { stopSoulSucker(); };
+export const stopWeapons = () => { stopSoulSucker(); stopFlintlock(); };
