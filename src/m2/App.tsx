@@ -45,8 +45,8 @@ registerWeapons();
 /** What he's carrying (weapons/index.ts). */
 const WEAPONS: WeaponType[] = M2_WEAPONS;
 const STARTING_AMMO = createFullAmmo();
-/** In the staff room (the practice pen) he can't be hurt (no flicker for it: it's how the room is); everywhere else he can. */
-const PRACTICE = { invincible: true, infiniteAmmo: false, infinitePower: false, skipToBoss: false };
+/** In the staff room (the practice pen) he can't be hurt (no flicker for it: it's how the room is) and nothing runs out of ammo; everywhere else he can, and it does. */
+const PRACTICE = { invincible: true, infiniteAmmo: true, infinitePower: false, skipToBoss: false };
 const PLAY = { ...PRACTICE, invincible: false };
 const noop = () => {};
 
@@ -173,7 +173,12 @@ const App2: React.FC = () => {
 
   const onPlayerUpdate = (health: number, power: number, ammo?: Record<WeaponType, number>) => {
     if (ammo) ammoRef.current = ammo;
-    setHud(h => (h.health === health && h.power === power && h.ammo === ammo ? h : { health, power, ammo: ammo ?? h.ammo }));
+    // (the engine hands over the same ammo table every frame, changed in place: it's what's in it that's compared, and
+    // a copy that's kept, or the HUD only caught up when something else changed, his health, his power)
+    setHud(h => {
+      const same = !ammo || WEAPONS.every(w => h.ammo[w] === ammo[w]);
+      return h.health === health && h.power === power && same ? h : { health, power, ammo: ammo ? { ...ammo } : h.ammo };
+    });
   };
 
   const noticeUp = ui.notice && performance.now() - ui.notice.at < 1800;
