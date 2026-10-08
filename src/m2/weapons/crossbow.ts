@@ -11,6 +11,7 @@
 // Every enemy gets the animation: rearing back, heaving forward over it, a green look about him, his mouth going.
 
 import type { Enemy, Projectile } from '../../m1/types';
+import { shieldStops, clang } from './shield';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
@@ -334,6 +335,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     for (const e of state.enemies) {
       if (!alive(e)) continue;
       if (p.pos.x > e.pos.x + e.width || p.pos.x + p.width < e.pos.x || p.pos.y > e.pos.y + e.height || p.pos.y + p.height < e.pos.y) continue;
+      // (into his shield: it sticks in that, and that's all)
+      if (shieldStops(e, p)) { clang(state, e, p.pos.y + 1.5); stuck.push({ e, x: p.vel.x > 0 ? 0.08 : 0.92, y: Math.max(0.1, Math.min(0.9, (p.pos.y + 1.5 - e.pos.y) / e.height)), a: Math.atan2(p.vel.y, p.vel.x), t: 0 }); return false; }
       darted(ctx, e, p);
       return false;
     }

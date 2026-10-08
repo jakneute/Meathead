@@ -30,6 +30,7 @@ import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
 import { DUCK_LINES } from '../lines/weaponLines';
+import { shieldTakesBlow, clang } from './shield';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -116,6 +117,13 @@ const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: num
   playSound('bonk'); shakeScreen(state, 8, 5);
   for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; state.particles.push({ pos: { x: cx, y: cy }, vel: { x: Math.cos(a) * 4, y: Math.sin(a) * 4 }, life: 10, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 3 }); }
   if (isMidBoss(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); return; }
+  // (a blow from in front, at his shield: it's the shield it lands on; he goes flying all the same, but the blow does
+  // him no harm (whatever he hits on the way does). The overhead ones, flattening, come down over it)
+  if (how !== 'flatten' && shieldTakesBlow(e, vel.x || (cx - (state.player.pos.x + state.player.width / 2)))) {
+    clang(state, e, cy); word(cx, cy - 34, 'CLANG!', '#E5E7EB');
+    e.vel = { x: vel.x, y: vel.y }; e.pauseTimer = Math.max(e.pauseTimer || 0, 50);
+    return;
+  }
   e.health -= dmg;
   if (e.health <= 0) { toonKill(ctx, e, how, Math.sign(vel.x) || dir); return; }
   fx.spawnDamageNumber(e.pos, dmg, true);

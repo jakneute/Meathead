@@ -25,7 +25,8 @@ const WALL = 60;
 const CEIL_Y = 70;
 const EXIT_X = X0 + 130;
 /** Who walks in, in turn (the rat's there to show who can't be grabbed). */
-const ROSTER: EnemyKind[] = M2_ENEMY_KINDS;
+/** (and men with shields, every so often, to try things on) */
+const ROSTER: EnemyKind[] = M2_ENEMY_KINDS.flatMap((k, i) => (i % 4 === 3 ? [k, (['shielder', 'riotcop', 'protester'] as EnemyKind[])[Math.floor(i / 4) % 3]] : [k]));
 const AT_ONCE = 5, RESPAWN = 70;
 const FLYERS = new Set<EnemyKind>(['pigeon', 'seagull', 'hawk', 'eagle', 'vulture', 'pelican', 'grackle']);
 
@@ -145,7 +146,8 @@ const practice = (state: GameState) => {
     else if (Math.abs(w.to - ex) < 8) { w.rest = 30 + Math.floor(Math.random() * 90); w.to = Math.max(X0 + EDGE, Math.min(X0 + LEN - EDGE, px + (Math.random() - 0.5) * 800)); }
     else dir = w.to > ex ? 1 : -1;
     if (!dir) { e.vel.x = 0; continue; }
-    e.facing = dir as 1 | -1;
+    // (walking whichever way, a man with a shield keeps it to Meathead)
+    e.facing = (e.enemyType === 'shield' ? (px < ex ? -1 : 1) : dir) as 1 | -1;
     e.pos.x = Math.max(X0 + 10, Math.min(X0 + LEN - e.width - 10, e.pos.x + dir * speed));
     // (a hair of speed, for which way they're going: not enough to slide them)
     e.vel.x = dir * 0.01;

@@ -6,6 +6,7 @@
 // them aim (no homing: they go where they're fired and bounce where they bounce). Anybody one hits and doesn't kill is
 // stunned a while, longer the heavier it was. Once one's stopped bouncing it falls apart into the cheap plastic it is.
 
+import { shieldStops, clang } from './shield';
 import type { Enemy, Projectile } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
@@ -374,6 +375,12 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
       if (e.health <= 0 || e.isBlownAway || e.innocent || e.type === 'boss') continue;
       if (f.hits[e.id] !== undefined && state.frame - f.hits[e.id] < REHIT) continue;
       if (p.pos.x > e.pos.x + e.width || p.pos.x + p.width < e.pos.x || p.pos.y > e.pos.y + e.height || p.pos.y + p.height < e.pos.y) continue;
+      // (straight at his shield: off it, like off a wall, clang; dropped on him from above, it's over it and into him)
+      if (shieldStops(e, p)) {
+        f.hits[e.id] = state.frame; clang(state, e, p.pos.y + p.height / 2);
+        p.pos.x = p.vel.x > 0 ? e.pos.x - p.width - 0.5 : e.pos.x + e.width + 0.5; p.vel.x = -p.vel.x * t.rest; p.vel.y = Math.min(p.vel.y, -2);
+        break;
+      }
       hitEnemy(ctx, p, e);
       break;
     }
