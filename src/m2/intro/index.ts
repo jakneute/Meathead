@@ -35,7 +35,7 @@ import { stopWeapons } from '../weapons';
 import { CAST, type CastMember } from '../cast/people';
 import {
   TICKET_VOICE, GUARD_VOICE, GUARD_F_VOICE, PA_VOICE, GUEST_VOICE, GUEST2_VOICE, type Dressed, MEATHEAD_TICKET, TICKET_LADY, TICKET_NEXT, TICKET_ALARM,
-  GUARD_ALERT, GUARD_BARK, GUARD_IDLE, PA_LINES, GUEST_HURRY, GUEST_CUT, TICKET_CUT, GUEST_HIT,
+  GUARD_ALERT, GUARD_BARK, GUARD_IDLE, GUARD_WELCOME, PA_LINES, GUEST_HURRY, GUEST_CUT, TICKET_CUT, GUEST_HIT,
 } from './lines';
 import { drawIntroBackdrop, drawIntroBack, drawIntroFront } from './draw';
 import { X0, R, CEIL_Y, UPPER, floorY, GARAGE_END, CHECK_END, STAIRS_END, USA_START, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, FRONT_X, WINDOW_X, SPACING, QUEUE_START, TURN_X, GATE_X, END_X } from './geometry';
@@ -69,6 +69,8 @@ export interface Intro {
   alarm: number; inDetector: boolean;
   /** He's walked through the detector: from then on the office keeps sending them out. */
   tripped: boolean;
+  /** A guard's welcomed him to the park. */
+  welcomed: boolean;
 }
 export const getIntro = (state: GameState) => state.stage as Intro | null;
 
@@ -162,7 +164,7 @@ export const introLayout: StageLayout = {
     const intro: Intro = {
       grab: createGrab(state), provoked: false, me: null, nextNumber: 0, serveT: 0, arriveT: 0, hurryT: 0, atWindowT: 0,
       lady: { said: null, ko: 0 }, admitted: false, scene: null, office: { open: 0, cd: 0 },
-      pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, tripped: false,
+      pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, tripped: false, welcomed: false,
     };
     state.stage = intro;
     state.cameraMinX = X0 - 60;
@@ -305,10 +307,12 @@ const security = (ctx: FrameContext, intro: Intro) => {
     if (near) {
       e.facing = px < cx ? -1 : 1; e.vel.x = 0;
       // (a word as he goes by: once each, now and then, depending on the state of him)
-      if (Math.abs(cx - px) < 120 && !intro.bark && state.frame > intro.barkNext && !remarked.has(e) && Math.random() < 0.02) {
-        remarked.add(e);
+      // (the first of them he comes to welcomes him to the park, always; the rest, a word now and then)
+      const first = !intro.welcomed;
+      if (Math.abs(cx - px) < 120 && !intro.bark && state.frame > intro.barkNext && !remarked.has(e) && (first || Math.random() < 0.02)) {
+        remarked.add(e); intro.welcomed = true;
         intro.bark = { e, said: { text: '' } };
-        speak(guardVoice(e), pick(GUARD_IDLE[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; });
+        speak(guardVoice(e), first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }, false, undefined, first);
         intro.barkNext = state.frame + 360;
       }
       continue;

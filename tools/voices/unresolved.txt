@@ -1,3 +1,22 @@
+m2/hub/index.ts:101 name: AMERICA_DENY
+m2/weapons/soulSucker.ts:132 name: FULL_BAG_LINES
+m2/weapons/soulSucker.ts:248 name: EMPTY_BAG_LINES
+m2/weapons/spellbook.ts:298 name: BULK_LINES
+m2/weapons/spellbook.ts:303 name: BULK_FAIL_LINES
+m2/weapons/mallet.ts:175 name: DUCK_LINES
+m2/intro/index.ts:458 name: MEATHEAD_TICKET
+m2/intro/index.ts:136 voice: voice
+m2/intro/index.ts:220 voice: pick(TICKET_CUT)
+m2/intro/index.ts:222 voice: true
+m2/intro/index.ts:269 voice: pick(GUEST_HIT)
+m2/intro/index.ts:282 voice: pick(GUARD_ALERT[dressed(state)])
+m2/intro/index.ts:283 voice: true
+m2/intro/index.ts:315 voice: first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dres
+m2/intro/index.ts:342 voice: pick(GUARD_BARK[dressed(state)])
+m2/intro/index.ts:412 voice: pick(TICKET_NEXT)
+m2/intro/index.ts:441 voice: pick(GUEST_HURRY[dressed(state)])
+m2/intro/index.ts:466 voice: pick(TICKET_LADY[sc.kind])
+m2/intro/index.ts:507 voice: pick(PA_LINES)
 m1/App.tsx:241 voice: getBossVoice(selectedStage)
 m1/App.tsx:468 name: undefined
 m1/App.tsx:469 expr: null
@@ -18,8 +37,8 @@ m1/game/core/deathCause.ts:70 name: undefined
 m1/game/core/deathCause.ts:71 name: ANIMAL_DEATH_LINES
 m1/game/core/deathCause.ts:71 name: undefined
 m1/game/core/deathCause.ts:72 name: undefined
-m1/game/core/effects.ts:243 call: getHurtLines(hurtSource)
-m1/game/core/effects.ts:243 call: killLine(category, victim)
+m1/game/core/effects.ts:256 call: getHurtLines(hurtSource)
+m1/game/core/effects.ts:256 call: killLine(category, victim)
 m1/game/core/update.ts:223 name: undefined
 m1/game/core/update.ts:615 name: undefined
 m1/game/core/update.ts:615 call: pluckDeathMessage(state)
@@ -27,7 +46,7 @@ m1/game/core/update.ts:615 call: animalDeathMessage(state)
 m1/game/core/update.ts:615 call: layout?.deathMessage?.(ctx)
 m1/game/core/update.ts:615 call: deathByCause(state)
 m1/game/core/update.ts:615 call: deathFallback(state, ctx.stageId, fell)
-m1/game/player/player.ts:82 call: message()
+m1/game/player/player.ts:84 call: message()
 m1/game/stages/artie/ski.ts:446 call: skiDeathMessage(state, ski)
 m1/game/stages/artie/ski.ts:446 name: DEATH_LINES
 m1/game/stages/artie/ski.ts:538 name: undefined

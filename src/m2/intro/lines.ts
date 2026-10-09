@@ -37,9 +37,15 @@ export const GUARD_ALERT: Record<Dressed, string[]> = {
   shitty: ["HE'S SOILED AND HE'S VIOLENT! CODE BROWN! CODE RED!", 'OH GOD, HE SMELLS! GET HIM ANYWAY!', 'CODE BROWN! I REPEAT, CODE BROWN AND CODE RED!'],
   nude: ["HE'S NAKED AND HE'S HITTING PEOPLE!", 'SIR, PUT SOMETHING ON AND GET ON THE GROUND!', "CODE RED! AND WHATEVER THE CODE IS FOR THAT!"],
 };
+/** The first guard he comes to, in the garage: the park's welcome (it's Happy Land; America USA's only the bit at the front). */
+export const GUARD_WELCOME: Record<Dressed, string> = {
+  clean: 'WELCOME TO HAPPY LAND, SIR.',
+  shitty: 'WELCOME TO HAPPY LAND, SIR. ...OH. OH, SIR.',
+  nude: 'WELCOME TO HAPPY LAND, SIR. ...SIR?',
+};
 /** Park security, not after him (yet): a word as he goes by, depending on the state of him. */
 export const GUARD_IDLE: Record<Dressed, string[]> = {
-  clean: ['WELCOME TO AMERICA USA, SIR.', 'HAVE A PATRIOTIC DAY, SIR.', "I'M WATCHING YOU, BIG GUY.", 'NICE TRUCK. TERRIBLE PARKING.', 'NO RUNNING, SIR. WALKING ONLY. FREEDOM WALKING.'],
+  clean: ['HAVE A PATRIOTIC DAY, SIR.', 'AMERICA USA IS STRAIGHT AHEAD, SIR.', "I'M WATCHING YOU, BIG GUY.", 'NICE TRUCK. TERRIBLE PARKING.', 'NO RUNNING, SIR. WALKING ONLY. FREEDOM WALKING.'],
   shitty: ['SIR, I THINK YOU HAD AN ACCIDENT.', "IS THAT YOU? THAT'S YOU, ISN'T IT.", 'THERE ARE RESTROOMS ON EVERY LEVEL, SIR. ...TOO LATE, HUH.', 'OH, BUDDY. OH NO.', "I'M GONNA STAND OVER HERE. UPWIND."],
   nude: ["SIR, WHERE ARE YOUR PANTS?", "THAT'S NOT IN THE DRESS CODE, SIR.", "I'M GONNA PRETEND I DIDN'T SEE THAT.", "THAT IS A LOT OF MAN, SIR.", "THEY DON'T PAY ME ENOUGH TO DEAL WITH THAT."],
 };

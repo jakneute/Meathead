@@ -286,6 +286,11 @@
  },
  {
   "voice": "announcer",
+  "text": "CHUNDERED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "CLANG!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -307,7 +312,7 @@
  {
   "voice": "announcer",
   "text": "CODE BROWN!",
-  "from": "m1/game/player/gut.ts:74"
+  "from": "m1/game/player/gut.ts:95"
  },
  {
   "voice": "announcer",
@@ -361,6 +366,11 @@
  },
  {
   "voice": "announcer",
+  "text": "DE-FLESHED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "DEAD EYE!",
   "from": "GRAB_CALLOUTS"
  },
@@ -378,6 +388,11 @@
   "voice": "announcer",
   "text": "DELIVERY DENIED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DEVOURED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -433,6 +448,11 @@
   "voice": "announcer",
   "text": "DUSTED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "EATEN ALIVE!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -538,6 +558,11 @@
   "voice": "announcer",
   "text": "GLUG GLUG!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GNAWED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -683,6 +708,11 @@
   "voice": "announcer",
   "text": "HULL CHECK!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HURLED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -991,6 +1021,11 @@
  },
  {
   "voice": "announcer",
+  "text": "PICKED CLEAN!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "PILE DRIVEN!",
   "from": "GRAB_CALLOUTS"
  },
@@ -1028,6 +1063,11 @@
   "voice": "announcer",
   "text": "PRESSED FLAT!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "PUKED TO DEATH!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1287,6 +1327,11 @@
  {
   "voice": "announcer",
   "text": "SOUVENIRED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SPEWED!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -9750,6 +9795,716 @@
   "from": "m1/game/stages/ernie/jetski.ts:136"
  },
  {
+  "voice": "m2.guard",
+  "text": "AMERICA USA IS STRAIGHT AHEAD, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "CODE BROWN! I REPEAT, CODE BROWN AND CODE RED!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "CODE RED! AND WHATEVER THE CODE IS FOR THAT!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "CODE RED! CODE RED IN AMERICA USA!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "COVER YOURSELF, SIR!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "DON'T LOOK AT IT! TAKE HIM DOWN!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "HAVE A PATRIOTIC DAY, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "HE'S NAKED AND HE'S HITTING PEOPLE!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "HE'S SOILED AND HE'S VIOLENT! CODE BROWN! CODE RED!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "HEY! THAT IS A VIOLATION OF PARK POLICY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "I'M GONNA PRETEND I DIDN'T SEE THAT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "I'M GONNA STAND OVER HERE. UPWIND.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "I'M NOT TOUCHING HIM! YOU TOUCH HIM!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "I'M WATCHING YOU, BIG GUY.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "IS THAT YOU? THAT'S YOU, ISN'T IT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "NICE TRUCK. TERRIBLE PARKING.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "NO RUNNING, SIR. WALKING ONLY. FREEDOM WALKING.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "OH GOD, HE SMELLS! GET HIM ANYWAY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "OH, BUDDY. OH NO.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "SIR, I THINK YOU HAD AN ACCIDENT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "SIR, PUT SOMETHING ON AND GET ON THE GROUND!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "SIR, WHERE ARE YOUR PANTS?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "SIR! HANDS WHERE I CAN SEE THEM!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "SOMEBODY GET A HOSE!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "STOP RESISTING!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "THAT IS A LOT OF MAN, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "THAT IS NOT HOW WE DO THINGS IN AMERICA USA!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "THAT'S NOT IN THE DRESS CODE, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "THERE ARE FAMILIES HERE!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "THERE ARE RESTROOMS ON EVERY LEVEL, SIR. ...TOO LATE, HUH.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "THEY DON'T PAY ME ENOUGH TO DEAL WITH THAT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "THIS ISN'T IN THE HANDBOOK!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "WELCOME TO HAPPY LAND, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "WELCOME TO HAPPY LAND, SIR. ...OH. OH, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "WELCOME TO HAPPY LAND, SIR. ...SIR?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "YOU HAVE THE RIGHT TO REMAIN HAPPY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "AMERICA USA IS STRAIGHT AHEAD, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "CODE BROWN! I REPEAT, CODE BROWN AND CODE RED!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "CODE RED! AND WHATEVER THE CODE IS FOR THAT!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "CODE RED! CODE RED IN AMERICA USA!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "COVER YOURSELF, SIR!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "DON'T LOOK AT IT! TAKE HIM DOWN!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "HAVE A PATRIOTIC DAY, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "HE'S NAKED AND HE'S HITTING PEOPLE!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "HE'S SOILED AND HE'S VIOLENT! CODE BROWN! CODE RED!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "HEY! THAT IS A VIOLATION OF PARK POLICY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "I'M GONNA PRETEND I DIDN'T SEE THAT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "I'M GONNA STAND OVER HERE. UPWIND.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "I'M NOT TOUCHING HIM! YOU TOUCH HIM!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "I'M WATCHING YOU, BIG GUY.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "IS THAT YOU? THAT'S YOU, ISN'T IT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "NICE TRUCK. TERRIBLE PARKING.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "NO RUNNING, SIR. WALKING ONLY. FREEDOM WALKING.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "OH GOD, HE SMELLS! GET HIM ANYWAY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "OH, BUDDY. OH NO.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "SIR, I THINK YOU HAD AN ACCIDENT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "SIR, PUT SOMETHING ON AND GET ON THE GROUND!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "SIR, WHERE ARE YOUR PANTS?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "SIR! HANDS WHERE I CAN SEE THEM!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "SOMEBODY GET A HOSE!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "STOP RESISTING!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "THAT IS A LOT OF MAN, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "THAT IS NOT HOW WE DO THINGS IN AMERICA USA!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "THAT'S NOT IN THE DRESS CODE, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "THERE ARE FAMILIES HERE!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "THERE ARE RESTROOMS ON EVERY LEVEL, SIR. ...TOO LATE, HUH.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "THEY DON'T PAY ME ENOUGH TO DEAL WITH THAT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "THIS ISN'T IN THE HANDBOOK!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "WELCOME TO HAPPY LAND, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "WELCOME TO HAPPY LAND, SIR. ...OH. OH, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "WELCOME TO HAPPY LAND, SIR. ...SIR?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "YOU HAVE THE RIGHT TO REMAIN HAPPY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "BACK OF THE LINE, PAL!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "BACK OF THE LINE, STINKY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "BACK OF THE LINE! AND GET DRESSED!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "CALL SECURITY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "CAN YOU HURRY UP? WE CAN SMELL YOU FROM HERE!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "COME ON, PAL. SOME OF US HAVE RIDES TO GET TO!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "COULD YOU HURRY UP? AND PUT SOMETHING ON?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HE HIT ME!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HEY! NO CUTTING!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HEY! NO CUTTING! ...AND, WOW.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HEY! NO CUTTING! OR NUDITY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HEY! WHAT THE HELL?!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HURRY IT UP, BUDDY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "I DIDN'T PAY TO LOOK AT THAT! HURRY UP!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "I'M CALLING MY LAWYER!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "MOVE IT, STINKY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "MY CHURRO!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "OH GOD, THE WIND CHANGED. HURRY UP!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "OW! MY HIP!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "SIR, MY KIDS ARE BACK HERE! MOVE IT!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "SIR, THE WHOLE LINE'S GAGGING. PLEASE.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "TICKET. WINDOW. HOW HARD IS IT?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WE'VE BEEN IN THIS LINE SINCE BREAKFAST!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHY IS HE NAKED? WHY ISN'T HE MOVING?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "BACK OF THE LINE, PAL!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "BACK OF THE LINE, STINKY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "BACK OF THE LINE! AND GET DRESSED!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "CALL SECURITY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "CAN YOU HURRY UP? WE CAN SMELL YOU FROM HERE!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "COME ON, PAL. SOME OF US HAVE RIDES TO GET TO!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "COULD YOU HURRY UP? AND PUT SOMETHING ON?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HE HIT ME!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HEY! NO CUTTING!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HEY! NO CUTTING! ...AND, WOW.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HEY! NO CUTTING! OR NUDITY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HEY! WHAT THE HELL?!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HURRY IT UP, BUDDY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "I DIDN'T PAY TO LOOK AT THAT! HURRY UP!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "I'M CALLING MY LAWYER!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "MOVE IT, STINKY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "MY CHURRO!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "OH GOD, THE WIND CHANGED. HURRY UP!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "OW! MY HIP!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "SIR, MY KIDS ARE BACK HERE! MOVE IT!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "SIR, THE WHOLE LINE'S GAGGING. PLEASE.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "TICKET. WINDOW. HOW HARD IS IT?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WE'VE BEEN IN THIS LINE SINCE BREAKFAST!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHY IS HE NAKED? WHY ISN'T HE MOVING?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "A FRIENDLY REMINDER: FRENCH FRIES ARE NOW FREEDOM FRIES. FRENCH TOAST IS UNDER REVIEW.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "AMERICA USA: BRINGING YOU THE BEST OF EVERY AMERICAN CITY, WITHOUT THE PEOPLE.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "ATTENTION GUESTS: AMERICA USA IS THE GREATEST LAND IN HAPPY LAND. THIS HAS BEEN INDEPENDENTLY VERIFIED BY AMERICA USA.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "REMEMBER, GUESTS: EVERY SOUVENIR YOU BUY IS A SALUTE TO THE TROOPS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "THE NATIONAL ANTHEM WILL PLAY EVERY FIFTEEN MINUTES. PLEASE REMOVE YOUR HATS. AND YOUR HAND FROM YOUR CHURRO.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "THIS LAND IS YOUR LAND. TERMS AND CONDITIONS APPLY.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "TODAY'S FREEDOM FORECAST: ONE HUNDRED PERCENT, WITH A CHANCE OF FIREWORKS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "WOULD THE OWNER OF A RED PICKUP TRUCK PARKED ACROSS FOUR SPACES ON LEVEL THREE... NEVER MIND. GOD BLESS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "BACK OF THE LINE, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "CODE RED AT THE TICKET BOOTH!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "ENJOY YOUR DAY, SIR! AND REMEMBER: FREEDOM ISN'T FREE. NEITHER ARE CHURROS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "GOD BLESS! NEXT!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "I'M GOING TO SCAN THIS WITH MY EYES. ...OKAY. GO. PLEASE GO.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "NEXT IN LINE, PLEASE!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "NEXT!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "SECURITY! SECURITY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "SIR, THERE IS A LINE.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "SIR, YOU CAN'T COME IN WITHOUT A TICKET. OR PANTS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "SIR. SIR, YOU ARE NAKED. SIR, I NEED YOU TO STEP BACK FROM THE WINDOW.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "SIR... THE TICKET IS... MOIST. ...ENJOY YOUR DAY.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "WELCOME TO HAPPY LAND!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "WELCOME TO HAPPY LAND! GOD BLESS AMERICA, AND GOD BLESS HAPPY LAND!",
+  "from": "INTRO"
+ },
+ {
   "voice": "meathead",
   "text": "...AND THIS.",
   "from": "m1/components/IntroCutscene.tsx:45"
@@ -9816,6 +10571,16 @@
  },
  {
   "voice": "meathead",
+  "text": "...THAT TURKEY LEG WAS GREEN IN THE MIDDLE.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "...THAT WAS NOT A FART. THAT WAS A FUNNEL CAKE.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "...THAT WASN'T A FART.",
   "from": "GUT"
  },
@@ -9853,6 +10618,11 @@
   "voice": "meathead",
   "text": "...WAS THAT THE DOOR? OR WAS THAT ME? THAT WAS ME.",
   "from": "m1/game/core/update.ts:356"
+ },
+ {
+  "voice": "meathead",
+  "text": "...WELL. I'M NAKED NOW.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -10391,6 +11161,11 @@
  },
  {
   "voice": "meathead",
+  "text": "AH. THE WATER'S TAKING IT. ALL OF IT.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "AIRBORNE TRASH",
   "from": "VULGARITIES"
  },
@@ -10408,6 +11183,11 @@
   "voice": "meathead",
   "text": "ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.",
   "from": "m1/game/stages/oscar/bunker.ts:369"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL YOU CAN EAT!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10453,6 +11233,11 @@
   "voice": "meathead",
   "text": "AND SCENE!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "AND THAT'S WHY YOU WEAR DARK JEANS.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -10521,6 +11306,11 @@
  },
  {
   "voice": "meathead",
+  "text": "AT LEAST I STILL GOT MY BOOTS.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "ATOMIZED!",
   "from": "M2_KILL_LINES"
  },
@@ -10563,6 +11353,11 @@
   "voice": "meathead",
   "text": "BACK IN YOUR HOT TUB, GOLDFISH!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK THROUGH ALL THAT PATRIOTISM? NO.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -10633,6 +11428,11 @@
   "voice": "meathead",
   "text": "BALLOON MAN, MEET WATER BALLOON.",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BARF BAG, PLEASE!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10721,6 +11521,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BLOWING CHUNKS FOREVER!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BODY BY BEEF",
   "from": "VULGARITIES"
  },
@@ -10738,6 +11543,11 @@
   "voice": "meathead",
   "text": "BOMB SQUAD'S DOWN A GUY!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BONE APPETIT!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11136,6 +11946,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CHEW ON THAT!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "CHICKEN LEGGED TRASH",
   "from": "VULGARITIES"
  },
@@ -11166,6 +11981,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CHUNKS AWAY!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "CIRCLE THIS, BIRDBRAIN!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -11173,6 +11993,11 @@
   "voice": "meathead",
   "text": "CLEAN AND JERKED TO DEATH!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CLEAN ASS. NO PANTS. ONE OUT OF TWO.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -11376,6 +12201,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DADDY'S SO PROUD!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "DALE'S BEEN DELIVERED. SIGNED FOR AND EVERYTHING.",
   "from": "BOSS_REBUKES"
  },
@@ -11453,6 +12283,11 @@
   "voice": "meathead",
   "text": "DIET STARTS NEVER!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DINNER'S SERVED!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11551,6 +12386,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DON'T SQUAT. THE CHURROS ARE LOOKING FOR THE EXIT.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "DON'T TOUCH ME, YOU SPACE BOOGER!",
   "from": "HURT"
  },
@@ -11558,6 +12398,11 @@
   "voice": "meathead",
   "text": "DON'T TOUCH MY NATURAL TESTOSTERONE, BITCH!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T WORRY ABOUT WHAT'S ON IT.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -11678,6 +12523,11 @@
   "voice": "meathead",
   "text": "EAT THIS, PUSSY.",
   "from": "m1/game/stages/dale/town.ts:823"
+ },
+ {
+  "voice": "meathead",
+  "text": "EAT UP, BOYS!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11996,6 +12846,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FOOD POISONING, BITCH!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "FORTY ONE. THE ELEVATOR HATES ME. EVERYTHING IN THIS CITY HATES ME.",
   "from": "m1/game/stages/barry/runtime.ts:341"
  },
@@ -12003,6 +12858,11 @@
   "voice": "meathead",
   "text": "FOUR HUNDRED A MONTH. SIXTY MONTHS. YOU DO THE MATH.",
   "from": "m1/game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "FOURTEEN CHURROS. IN LINE. FOR THE TEACUPS.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -12276,6 +13136,16 @@
  },
  {
   "voice": "meathead",
+  "text": "GET UP. GET UP. IT'S RIGHT THERE.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET UP. THESE PANTS CAN'T TAKE ANOTHER ONE.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GET YOUR BALD HEAD OUT OF MY FACE, BIRD!",
   "from": "HAZARD_HURT"
  },
@@ -12496,6 +13366,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GOT MY TICKET RIGHT HERE.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "GOTTA EMPTY THE BAG FIRST!",
   "from": "FULL_BAG_LINES"
  },
@@ -12673,6 +13548,11 @@
   "voice": "meathead",
   "text": "HANDS OFF, TWEAKER!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HANG ON. IT'S IN HERE SOMEWHERE. ...IT'S NOT IN HERE.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -13211,6 +14091,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HERE. DON'T ASK.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "Here's your close-up.",
   "from": "m1/components/WeaponGetScene.tsx:226"
  },
@@ -13416,6 +14301,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOW YOU DOING. HERE YOU GO.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "HOW'S THAT FOR DENSITY?",
   "from": "VULGARITIES"
  },
@@ -13457,6 +14347,11 @@
  {
   "voice": "meathead",
   "text": "HUMAN SHOT PUT, BABY!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HURL AND HURL AGAIN!",
   "from": "M2_KILL_LINES"
  },
  {
@@ -13711,6 +14606,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I HAD A TICKET. IT WAS IN MY POCKET. I HAD A POCKET.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "I HAVE A PRESIDENT WAITING ON ME. THEY'RE PLAYING GO FISH.",
   "from": "m1/game/stages/oscar/bunker.ts:367"
  },
@@ -13798,6 +14698,11 @@
   "voice": "meathead",
   "text": "I ONLY NEED MY GUNS.",
   "from": "m1/components/IntroCutscene.tsx:45"
+ },
+ {
+  "voice": "meathead",
+  "text": "I PAID GOOD MONEY TO GET IN HERE. I AM STAYING IN HERE.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -14106,8 +15011,18 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M NOT DRIVING HOME IN THESE.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M NOT GOING BACK IN THAT SEWER. I SMELLED LIKE IT FOR A WEEK.",
   "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT GOING BACK OUT THERE LIKE THIS.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -14128,6 +15043,16 @@
   "voice": "meathead",
   "text": "I'M NOT SITTING DOWN. YOU KNOW WHY. NO.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT WAITING IN THAT LINE AGAIN.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT WALKING BACK PAST THAT TICKET LADY LIKE THIS.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -14296,6 +15221,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IF THIS ONE GOES, THE PANTS GO WITH IT.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "IGUANA? I GOT YA!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -14313,6 +15243,11 @@
   "voice": "meathead",
   "text": "IMPEACHED!",
   "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "IN HAPPY LAND, OF ALL PLACES.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -14396,8 +15331,23 @@
  },
  {
   "voice": "meathead",
+  "text": "IT WAS IN MY BACK POCKET. THAT WAS A MISTAKE.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S A KNOCKOUT!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S A LITTLE DAMP. IT'S STILL GOOD.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S A THEME PARK. SOMEBODY'S SEEN WORSE.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -14443,6 +15393,11 @@
   "voice": "meathead",
   "text": "IT'S NOT A PYRAMID, PAL. IT'S A REVERSE FUNNEL.",
   "from": "m1/game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S NOT DONE. HOW IS IT NOT DONE?!",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -14663,6 +15618,11 @@
   "voice": "meathead",
   "text": "LIMITED TIME OFFER! THIS DEAL EXPIRES WHEN YOU DO!",
   "from": "m1/game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "LIQUID LUNCH!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15061,6 +16021,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY TICKET WAS IN MY PANTS. ...WHERE ARE MY PANTS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "MY TIIIIIIRES!",
   "from": "m1/game/stages/tommy/bike.ts:536"
  },
@@ -15153,6 +16118,11 @@
   "voice": "meathead",
   "text": "NERD SHIT WORKS!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEVER TRUST A HOT DOG SHAPED LIKE A MASCOT.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -15436,8 +16406,18 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY LOOK DOWN.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY SAW THAT. KEEP MOVING.",
   "from": "GUT"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY SWIM HERE FOR A WHILE.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -15448,6 +16428,16 @@
   "voice": "meathead",
   "text": "NOBODY. NOBODY IS DRIVING NOW.",
   "from": "m1/game/stages/dale/convoy.ts:900"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOM NOM, ASSHOLE!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOPE. WHAT HAPPENS IN HAPPY LAND STAYS IN HAPPY LAND.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -15506,6 +16496,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT WITHOUT PANTS. NOT EVEN IN AMERICA.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "NOTE TO SELF: DON'T RUN AT THE CRACKHEAD.",
   "from": "m1/game/stages/dale/junkie.ts:519"
  },
@@ -15536,6 +16531,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOTHING LEFT BUT THE BONES!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NOTHING TO LIGHT IN HERE. YET.",
   "from": "m1/game/stages/oscar/bunker.ts:339"
  },
@@ -15548,6 +16548,11 @@
   "voice": "meathead",
   "text": "NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...",
   "from": "m1/game/stages/oscar/bunker.ts:339"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOW IF ONLY THE WATER HAD PANTS IN IT.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -15626,6 +16631,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OH, THAT'S BETTER. THAT'S SO MUCH BETTER.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "OH. OH NO. OH, THAT'S EVERYWHERE.",
   "from": "GUT"
  },
@@ -15688,6 +16698,11 @@
   "voice": "meathead",
   "text": "OLD SCHOOL, BITCH!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE ADULT. A BIG ONE.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -15891,6 +16906,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PANTS ARE CLEAN. NOBODY HAS TO KNOW.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PAPER CUT! ON MY TRAPS!",
   "from": "HAZARD_HURT"
  },
@@ -15898,6 +16918,11 @@
   "voice": "meathead",
   "text": "PARK RANGERS HAVE GUNS?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PASS THE BUCKET!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15973,6 +16998,11 @@
   "voice": "meathead",
   "text": "PICK ON SOMEBODY YOUR OWN SIZE! OH WAIT.",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PICKED CLEAN, MOTHERFUCKER!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -16066,6 +17096,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PRINTED IT AT HOME. IN COLOR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "PROBE THIS!",
   "from": "M2_KILL_LINES"
  },
@@ -16088,6 +17123,11 @@
   "voice": "meathead",
   "text": "PROTEST THIS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PUKE AND DIE!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -16351,6 +17391,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RINSED OUT. GOOD AS NEW. BASICALLY.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "RIOT SHIELD TO THE FACE! I'M NOT RIOTING!",
   "from": "HAZARD_HURT"
  },
@@ -16428,6 +17473,11 @@
   "voice": "meathead",
   "text": "ROT IN FILTH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROUND TWO. OH GOD, ROUND TWO.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -16601,6 +17651,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHAME ABOUT THE PANTS.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SHARE THE LOVE!",
   "from": "M2_KILL_LINES"
  },
@@ -16771,6 +17826,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOULD HAVE KEPT MY HANDS AND FEET INSIDE THE RIDE.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SHOULD'VE BOUGHT MORE BALLOONS.",
   "from": "KILL_LINES"
  },
@@ -16933,6 +17993,11 @@
   "voice": "meathead",
   "text": "SKEWERED BY THE NATIONAL BIRD!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SKIN AND BONES! MOSTLY BONES!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -17191,6 +18256,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SPEW, MOTHERFUCKER!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SPICY DEATH",
   "from": "VULGARITIES"
  },
@@ -17246,6 +18316,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SQUATTING IS MAKING IT WORSE. I CAN FEEL IT MOVING.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SQUEAK THIS!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -17253,6 +18328,16 @@
   "voice": "meathead",
   "text": "STABBED! BY A GUY IN A SKI MASK! IN JULY!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAND UP, MEATHEAD. FOR THE LOVE OF GOD, STAND UP.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAND UP, OR THIS PARK GETS A NEW WATER RIDE.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -17338,6 +18423,11 @@
   "voice": "meathead",
   "text": "STERILE BITCH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL NO PANTS, THOUGH.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -17916,6 +19006,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S A CLEAN ASS. FIRST TIME TODAY.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S A FULL BAG!",
   "from": "M2_KILL_LINES"
  },
@@ -17966,6 +19061,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S MY BABIES!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S MY MOVE, YOU THIEVING SLAB OF BEEF!",
   "from": "HAZARD_HURT"
  },
@@ -17996,8 +19096,23 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S PRESSURE. THAT'S A LOT OF PRESSURE.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S SOME BAD SUSHI!",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S THE CREW! NEXT TRUCK! GO GO GO!",
   "from": "m1/game/stages/dale/convoy.ts:310"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S THE MOST FREE I'VE EVER FELT.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -18116,6 +19231,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE CORN DOG'S COMING BACK FOR SECONDS.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THE DOG'S GOT MY ANKLE! BAD DOG!",
   "from": "HAZARD_HURT"
  },
@@ -18148,6 +19268,11 @@
   "voice": "meathead",
   "text": "THE FORECAST FOR MIAMI: NO MORE HECTOR.",
   "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE FUNNEL CAKE IS FIGHTING BACK.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -18248,6 +19373,11 @@
   "voice": "meathead",
   "text": "THE OIL'S ON FIRE! I'M ON FIRE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE PANTS ARE IN ORBIT. THE PANTS ARE GONE.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -18356,6 +19486,21 @@
  },
  {
   "voice": "meathead",
+  "text": "THE TRUCK CAN WAIT.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TRUCK DOES NOT NEED THIS.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TRUCK'S SEATS ARE LEATHER. NO.",
+  "from": "HUB"
+ },
+ {
+  "voice": "meathead",
   "text": "THE UMBRELLA! I'M GONNA NEED SUNSCREEN AND STITCHES!",
   "from": "HAZARD_HURT"
  },
@@ -18391,6 +19536,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THERE. LIKE IT NEVER HAPPENED.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THERE'S A GAS LINE UP OVER THE BAND.",
   "from": "m1/game/stages/oscar/bar.ts:213"
  },
@@ -18401,6 +19551,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THERE'S MORE?! WHERE IS IT ALL COMING FROM?!",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THERE'S SHIT IN MY PROTEIN SHAKER NOW! THANKS, HECTOR!",
   "from": "HAZARD_HURT"
  },
@@ -18408,6 +19563,11 @@
   "voice": "meathead",
   "text": "THESE ONES. NO.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY ALREADY THINK I'M A MONSTER OUT THERE.",
+  "from": "HUB"
  },
  {
   "voice": "meathead",
@@ -18551,6 +19711,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TICKET, TICKET, TICKET... OH. OH NO.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "TIDAL WAVE OF FUCK YOU",
   "from": "VULGARITIES"
  },
@@ -18648,6 +19813,11 @@
   "voice": "meathead",
   "text": "TORNADO STRAIGHT TO THE CHEST?! YOU WINDY PRICK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOSSED YOUR COOKIES, THEN YOUR LIFE!",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -19056,6 +20226,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHERE'D MY PANTS GO?! THEY WERE JUST ON ME!",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "WHERE'S THE FIRE? OH, IT'S YOU!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -19221,8 +20396,18 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO'S HUNGRY?",
+  "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO'S NEXT?!",
   "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S SEASICK NOW?",
+  "from": "M2_KILL_LINES"
  },
  {
   "voice": "meathead",
