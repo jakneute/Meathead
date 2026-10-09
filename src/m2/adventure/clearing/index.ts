@@ -121,7 +121,9 @@ const wipeArena = (state: GameState, cl: Clearing, f: Fight) => {
     } });
   }
   // (anybody else about in there)
-  state.enemies.filter(e => e !== f.e && e.health > 0 && !e.isBlownAway && e.type !== 'boss').forEach((e, i) => cl.booms.push({ at: state.frame + 16 + i * 10, go: ctx => popGuide(ctx, e) }));
+  // (only what's in the arena: the rest of the park's enemies are all out there too, miles off)
+  state.enemies.filter(e => e !== f.e && e.health > 0 && !e.isBlownAway && e.type !== 'boss' && e.pos.x + e.width > ARENA_L - 100 && e.pos.x < ARENA_R + 100)
+    .forEach((e, i) => cl.booms.push({ at: state.frame + 16 + i * 10, go: ctx => popGuide(ctx, e) }));
 };
 const runBooms = (ctx: FrameContext, cl: Clearing) => {
   if (!cl.booms.length) return;
