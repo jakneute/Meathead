@@ -1659,7 +1659,7 @@ const flungIntoEnemies = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
       fx.playGunSound('thud');
       continue;
     }
-    const damage = collateral(e) * CORPSE_COLLATERAL;
+    const damage = Math.max(e.minCollateral ?? 0, collateral(e) * CORPSE_COLLATERAL);
     if (damage <= 2) continue;
     const dir = Math.sign(e.vel.x) || 1;
     other.health -= damage;

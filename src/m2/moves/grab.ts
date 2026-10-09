@@ -614,17 +614,19 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     }
 
     case 'critter': {
-      // Up in his fist, squirming: a direction, and it's pitched that way; too long, and it squeaks free. A beat first
-      // while it's brought up to his ear (shorter than a shakedown), so whatever was held going into the grab doesn't
-      // fling it straight off: the aim shows, and can be changed, till then
+      // Up in his fist, squirming: a direction, and it's pitched that way. A beat first while it's brought up to his
+      // ear (shorter than a shakedown), so whatever was held going into the grab doesn't fling it straight off: the aim
+      // shows, and can be changed, till then. Nothing held: at whoever's near (somebody to throw it at), or forward
       const e = g.held!;
       const d = controls.down ? 'down' : controls.up ? 'up' : controls.left ? 'left' : controls.right ? 'right' : null;
       g.aim = d;
-      if (d && g.t >= CRITTER_SETTLE) {
-        g.pitch = d; g.phase = 'pitch'; g.t = 0;
-        if (d === 'left' || d === 'right') p.facing = (d === 'left' ? -1 : 1);
+      if (g.t >= CRITTER_SETTLE) {
+        const target = d ? null : throwTarget(state, e);
+        const way = d ?? (target ? (target.pos.x + target.width / 2 < centerX(state) ? 'left' : 'right') : (p.facing > 0 ? 'right' : 'left'));
+        g.pitch = way; g.phase = 'pitch'; g.t = 0;
+        if (way === 'left' || way === 'right') p.facing = (way === 'left' ? -1 : 1);
         g.dir = p.facing;
-        pitchCritter(ctx, g, e);
+        pitchCritter(ctx, g, e, target);
         g.held = null;
         return hold();
       }
@@ -883,14 +885,33 @@ const grabCritter = (ctx: FrameContext, g: Grab, e: Enemy, hold: () => Controls)
  * Let fly: pitched like a fastball (left or right), spiked into the floor (down), or heaved up into the air (up). It's
  * done for either way (a body now, flying on and taking out whoever it hits, splatting on whatever it meets).
  */
-const pitchCritter = (ctx: FrameContext, g: Grab, e: Enemy) => {
+/** Somebody near to throw a critter at (no direction held): the nearest that's fair game, in front or behind, in reach. */
+const THROW_AT = 520;
+/** What a thrown critter does to whoever it hits, at the least (they're light: a help, not a kill). */
+const CRITTER_HIT = 10;
+const throwTarget = (state: GameState, held: Enemy): Enemy | null => {
+  const p = state.player, cx = centerX(state), cy = p.pos.y + p.height / 2;
+  let best: Enemy | null = null, bestD = Infinity;
+  for (const o of state.enemies) {
+    if (o === held || o.health <= 0 || o.isBlownAway || o.innocent || o.harmless || o.puppet) continue;
+    const ox = o.pos.x + o.width / 2, oy = o.pos.y + o.height / 2, dd = Math.hypot(ox - cx, (oy - cy) * 1.5);
+    if (dd < THROW_AT && Math.abs(oy - cy) < 260 && dd < bestD) { bestD = dd; best = o; }
+  }
+  return best;
+};
+
+const pitchCritter = (ctx: FrameContext, g: Grab, e: Enemy, at: Enemy | null = null) => {
   const { state, fx } = ctx;
   const p = state.player;
   const hand = { x: centerX(state) + g.dir * 18, y: p.pos.y + 6 };
   e.pos = { x: hand.x - e.width / 2, y: hand.y - e.height / 2 };
-  const v = g.pitch === 'down' ? { x: g.dir * 4, y: 24 } : g.pitch === 'up' ? { x: g.dir * 2, y: -24 } : { x: g.dir * 26, y: -2 };
+  // (at somebody: straight at them, hard, a little high for the drop)
+  const aimed = at && (() => { const dx = at.pos.x + at.width / 2 - hand.x, dy = at.pos.y + at.height / 2 - hand.y, n = Math.hypot(dx, dy) || 1; return { x: (dx / n) * 26, y: (dy / n) * 26 - Math.min(6, n * 0.012) }; })();
+  const v = aimed || (g.pitch === 'down' ? { x: g.dir * 4, y: 24 } : g.pitch === 'up' ? { x: g.dir * 2, y: -24 } : { x: g.dir * 26, y: -2 });
   release(state, e);
   e.health = 0;
+  // (light: it's no cannonball, but whoever it hits feels it)
+  e.minCollateral = CRITTER_HIT;
   fx.blowAwayEnemy(e, v, m2Kill('pitch_kill'), g.dir);
   e.meleeFlung = true;
   fx.spawnKillCallout(e, grabCallout(g.pitch === 'down' ? 'slam' : g.pitch === 'up' ? 'launched' : 'thrown'));
