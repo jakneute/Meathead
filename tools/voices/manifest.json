@@ -11936,6 +11936,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "...CAW. CAW. I AM A BIRD.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "...I WAS GONNA AMBUSH YOU. EMPLOYEE SHORTCUTS. YOU DON'T KNOW ABOUT THOSE.",
   "from": "ADVENTURE"
  },
@@ -11952,6 +11957,11 @@
  {
   "voice": "m2.safari",
   "text": "...YOU KNEW HIM?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "AND ON YOUR LEFT... WHAT'S LEFT OF ME...",
   "from": "ADVENTURE"
  },
  {
@@ -12006,6 +12016,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "FINE! I'LL GIVE THE TOUR FROM UP HERE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "FINE! NO MORE GAMES! STAMPEDE!",
   "from": "ADVENTURE"
  },
@@ -12056,6 +12071,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "HEY. HEY, BUDDY. COME LOOK AT THIS BUSH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "HOLD STILL! THIS IS HOW WE CLEAN A CATCH!",
   "from": "ADVENTURE"
  },
@@ -12077,6 +12097,11 @@
  {
   "voice": "m2.safari",
   "text": "HOW'D I GET HERE FIRST? I FOLLOWED THE SMELL BACKWARDS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I CAN SEE MY OWN RIBS! THAT'S NOT IN THE BROCHURE!",
   "from": "ADVENTURE"
  },
  {
@@ -12111,7 +12136,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I'M GONNA NEED A BIGGER FIRST AID KIT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M NOT DEAD... I'M ON BREAK...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M NOT IN HERE. COME CHECK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I'M ON MY BREAK! YOU'RE RUINING MY BREAK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M STAYING UP HERE! I'VE GOT A VINE AND A DREAM!",
   "from": "ADVENTURE"
  },
  {
@@ -12201,6 +12246,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "MY ARM! THAT WAS MY TIPPING ARM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "MY BROTHER WOULD'VE HAD YOU BY NOW! HE WAS AN ASSHOLE, BUT HE WAS FAST!",
   "from": "ADVENTURE"
  },
@@ -12216,12 +12266,22 @@
  },
  {
   "voice": "m2.safari",
+  "text": "NINE NINETY-NINE AT THE GIFT SHOP! WHO'S LAUGHING NOW?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "NO BUSHES, NO PROBLEM! EVERYBODY STAMPEDE!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "NOBODY EVER STAYS FOR THE BACKSIDE OF WATER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOBODY TRAMPLES ARTIE TWICE!",
   "from": "ADVENTURE"
  },
  {
@@ -12296,6 +12356,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "PSST. OVER HERE. NOBODY IN THIS BUSH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "RAMMING SPEED!",
   "from": "ADVENTURE"
  },
@@ -12332,6 +12397,11 @@
  {
   "voice": "m2.safari",
   "text": "THAT CALL WORKS ON ELEPHANTS. AND ONE GUY IN ACCOUNTING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT VINE WAS LOAD-BEARING!",
   "from": "ADVENTURE"
  },
  {
@@ -12391,6 +12461,16 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THERE'S, UH... FREE ICE CREAM IN HERE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THEY CHEWED THROUGH MY VINE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THEY TELL US NEVER BREAK CHARACTER. I'M NOT IN CHARACTER. THIS IS JUST ME. THIS IS WHO I AM NOW.",
   "from": "ADVENTURE"
  },
@@ -12407,6 +12487,16 @@
  {
   "voice": "m2.safari",
   "text": "THEY'RE IN MY SHORTS! THEY'RE IN MY SHORTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS BUSH HAS AN EXTRA FAST PASS IN IT. I'M SERIOUS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS CONCLUDES... THE SKELETON TOUR...",
   "from": "ADVENTURE"
  },
  {
@@ -12441,7 +12531,17 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THOSE ARE MY GUTS! THEY'RE NOT A CHEW TOY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THOSE ARE PIRANHAS. THEY'RE REAL. THAT'S NOT PART OF THE RIDE. NOBODY KNOWS HOW THEY GOT IN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "TREE HOUSE RULES! NO MEATHEADS!",
   "from": "ADVENTURE"
  },
  {
@@ -12476,12 +12576,12 @@
  },
  {
   "voice": "m2.safari",
-  "text": "WHOA, WHOA. SIR, DID YOU COME THROUGH THE BACK? ...YOU KNOW WHAT, I DON'T CARE. WELCOME ABOARD THE JUNGLE CRUISE!",
+  "text": "WHO EATS A VINE?!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "WORKERS' COMP! WORKERS' COMP!",
+  "text": "WHOA, WHOA. SIR, DID YOU COME THROUGH THE BACK? ...YOU KNOW WHAT, I DON'T CARE. WELCOME ABOARD THE JUNGLE CRUISE!",
   "from": "ADVENTURE"
  },
  {
@@ -17441,7 +17541,7 @@
  },
  {
   "voice": "meathead",
-  "text": "I'M NOT WRESTLING A T. REX!",
+  "text": "I'M NOT WRESTLING A T-REX!",
   "from": "TOO_BIG_LINES"
  },
  {
@@ -18861,7 +18961,7 @@
  },
  {
   "voice": "meathead",
-  "text": "NICE T. REX. GOOD T. REX. ...IT'S NOT A GOOD T. REX.",
+  "text": "NICE T-REX. GOOD T-REX. ...IT'S NOT A GOOD T-REX.",
   "from": "ADVENTURE"
  },
  {
@@ -19013,6 +19113,11 @@
   "voice": "meathead",
   "text": "NO TEETH? NO PROBLEM! NO LIFE!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO TIP.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",

@@ -1,9 +1,9 @@
 m2/hub/index.ts:101 name: AMERICA_DENY
 m2/weapons/soulSucker.ts:134 name: FULL_BAG_LINES
 m2/weapons/soulSucker.ts:256 name: EMPTY_BAG_LINES
-m2/weapons/spellbook.ts:303 name: BULK_LINES
-m2/weapons/spellbook.ts:308 name: BULK_FAIL_LINES
-m2/weapons/mallet.ts:180 name: DUCK_LINES
+m2/weapons/spellbook.ts:307 name: BULK_LINES
+m2/weapons/spellbook.ts:312 name: BULK_FAIL_LINES
+m2/weapons/mallet.ts:186 name: DUCK_LINES
 m2/intro/index.ts:332 name: MEATHEAD_PARKED
 m2/intro/index.ts:619 name: MEATHEAD_TICKET
 m2/intro/index.ts:621 name: MEATHEAD_TICKET
@@ -21,24 +21,27 @@ m2/intro/index.ts:589 voice: now
 m2/intro/index.ts:599 voice: pick(GUEST_HURRY[dressed(state)])
 m2/intro/index.ts:633 voice: pick(TICKET_LADY[sc.kind])
 m2/intro/index.ts:685 voice: line
-m2/adventure/section.ts:121 voice: voice(voiceId)
+m2/adventure/section.ts:127 voice: voice(voiceId)
 m2/adventure/queue/talk.ts:32 voice: l.text
-m2/adventure/river/index.ts:306 voice: fromBag(rv, 'gkill', GUESTS_KILL)
-m2/adventure/river/index.ts:312 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
+m2/adventure/river/index.ts:375 voice: fromBag(rv, 'gkill', GUESTS_KILL)
+m2/adventure/river/index.ts:381 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
 m2/adventure/dino/rex.ts:329 voice: true
 m2/adventure/dino/index.ts:177 voice: pick(MAINT_OBLIVIOUS)
-m2/adventure/temple/index.ts:208 voice: text
-m2/adventure/temple/index.ts:253 voice: g.woman ? 'm2.guest' : 'm2.guest2'
-m2/adventure/temple/index.ts:262 voice: 'm2.guest'
-m2/adventure/temple/index.ts:262 voice: 'm2.guest2'
-m2/adventure/temple/index.ts:268 voice: 'm2.operator'
-m2/adventure/temple/index.ts:268 voice: 'm2.operator2'
-m2/adventure/cart/index.ts:132 voice: text
-m2/adventure/cart/index.ts:234 voice: pick(ARTIE_CHASE_START[dressed(state)])
-m2/adventure/roof/index.ts:133 voice: text
-m2/adventure/clearing/index.ts:130 voice: text
-m2/adventure/clearing/fight.ts:216 voice: voice('m2.safari')
-m2/adventure/clearing/fight.ts:222 voice: pick(lines)
+m2/adventure/temple/index.ts:209 voice: text
+m2/adventure/temple/index.ts:254 voice: g.woman ? 'm2.guest' : 'm2.guest2'
+m2/adventure/temple/index.ts:263 voice: 'm2.guest'
+m2/adventure/temple/index.ts:263 voice: 'm2.guest2'
+m2/adventure/temple/index.ts:269 voice: 'm2.operator'
+m2/adventure/temple/index.ts:269 voice: 'm2.operator2'
+m2/adventure/cart/index.ts:136 voice: text
+m2/adventure/cart/index.ts:238 voice: pick(ARTIE_CHASE_START[dressed(state)])
+m2/adventure/roof/index.ts:134 voice: text
+m2/adventure/clearing/index.ts:137 voice: text
+m2/adventure/clearing/fight.ts:241 voice: voice('m2.safari')
+m2/adventure/clearing/fight.ts:247 voice: pick(lines)
+m2/walkAway/artie.ts:355 voice: x
+m2/walkAway/artie.ts:360 voice: x
+m2/walkAway/artie.ts:361 voice: Math.round(sx - c.measureText('LAND').width / 2)
 m1/App.tsx:241 voice: getBossVoice(selectedStage)
 m1/App.tsx:468 name: undefined
 m1/App.tsx:469 expr: null
