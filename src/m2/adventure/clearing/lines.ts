@@ -23,6 +23,11 @@ export const ARTIE_CUPS = [
   'KEEP YOUR EYE ON THE ARTIE!', 'WHICH BUSH? WHICH BUSH?', 'ROUND AND ROUND HE GOES!', 'THE HAND IS QUICKER THAN THE MEATHEAD!',
   'PICK A BUSH. ANY BUSH.', 'FOLLOW THE HAT! YOU CAN\'T SEE THE HAT!', 'I DO THIS FOR TIPS ON SLOW DAYS!',
 ];
+/** The one bush left: hiding in it, trying (sheepishly) to get him over to it. */
+export const ARTIE_LURE = [
+  'PSST. OVER HERE. NOBODY IN THIS BUSH.', 'HEY. HEY, BUDDY. COME LOOK AT THIS BUSH.', "THERE'S, UH... FREE ICE CREAM IN HERE.",
+  "THIS BUSH HAS AN EXTRA FAST PASS IN IT. I'M SERIOUS.", "I'M NOT IN HERE. COME CHECK.", '...CAW. CAW. I AM A BIRD.',
+];
 /** Out of the bush, and he's got him (gutting). */
 export const ARTIE_GRAB = ['FIELD DRESSING!', 'HOLD STILL! THIS IS HOW WE CLEAN A CATCH!', "I'VE GUTTED BIGGER FISH THAN YOU! NOT MANY!"];
 /** Out of the bush, and he's not near enough: the blowgun. */
@@ -86,7 +91,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   ],
   death: [...DEATH_KNIFE, ...DEATH_BLOWDART, ...DEATH_POISON, ...DEATH_RHINO, ...DEATH_HIPPO, ...DEATH_ELEPHANT],
   'm2.safari': [
-    ...all(ARTIE_FOUND), ...ARTIE_START, ...ARTIE_CUPS, ...ARTIE_GRAB, ...ARTIE_DART, ...ARTIE_KNOCKED, ...ARTIE_WHISTLE, ...ARTIE_DODGE,
+    ...all(ARTIE_FOUND), ...ARTIE_START, ...ARTIE_CUPS, ...ARTIE_LURE, ...ARTIE_GRAB, ...ARTIE_DART, ...ARTIE_KNOCKED, ...ARTIE_WHISTLE, ...ARTIE_DODGE,
     ...ARTIE_AGITATED, ...ARTIE_PERCH, ...ARTIE_VINE_SNAP, ...ARTIE_TRAMPLED, ...ARTIE_BUSH, ...ARTIE_NO_BUSHES, ...ARTIE_DIES,
     ...ARTIE_EATEN, ...ARTIE_EATEN_MORE, ...ARTIE_BONES,
   ],

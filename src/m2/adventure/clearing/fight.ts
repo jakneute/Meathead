@@ -165,7 +165,7 @@ export interface Fight {
   /** No bushes left: the gap before the next animal of the endless stampede comes out (after the last one). */
   feedGap: number;
   /** Up his vine to stay (flattened, or no bushes left): till the litter chews through it. The next dart's count. */
-  perch: boolean; spitT: number;
+  perch: boolean; spitT: number; perchT: number; lureT: number;
   e: Enemy;
 }
 
@@ -257,7 +257,7 @@ export const startFight = (state: GameState): Fight => {
     bush: 2, bushes: [], moves: [], moveI: 0, decoy: -1, wait: 0, after: 'whistle', stunLen: STUN,
     agitated: false, calmT: 0, swatT: 0, herd: [], stampedes: 0, overT: 0, darts: [], poison: 0, pokes: 0,
     said: null, nextCups: 0, byWeakness: false, death: null, eaten: null, eatenSaid: 0, eatenOver: false, cam: null, puke: null, noBushesSaid: false,
-    vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, e,
+    vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, perchT: 0, lureT: 0, e,
   };
   // (the vine: up over his hands while he's hanging off it)
   f.vine = {
@@ -309,7 +309,17 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   let out = controls;
   switch (f.mode) {
     case 'intro': if (onArc(f)) { landInBush(state, f); hide(f); } break;
-    case 'hidden': if (f.t >= f.wait) { if (f.moves.length) { to(f, 'move'); f.moveI = 0; } else to(f, 'rise'); } break;
+    case 'hidden': {
+      if (luring(f)) {
+        f.lureT++;
+        if (f.lureT % 70 === 20) bark(f, L.ARTIE_LURE);
+        // (he's there: got him)
+        const b = f.bushes[f.bush], cx = px(state);
+        if (f.t > 40 && Math.abs(cx - b.x) < BUSH_W / 2 + 12 && state.player.pos.y + state.player.height > GY - 110) { to(f, 'rise'); break; }
+      }
+      if (f.t >= f.wait) { if (f.moves.length) { to(f, 'move'); f.moveI = 0; } else to(f, 'rise'); }
+      break;
+    }
     case 'move': shuffle(ctx, f); break;
     case 'rise': rise(ctx, f); break;
     case 'reach':
@@ -357,7 +367,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       // (up onto the vine; hanging on till it's gone by (or, up to stay, till it's chewed through); down)
       if (f.t <= 12) { f.y = GY - VINE_AT * Math.sin((f.t / 12) * Math.PI / 2); f.vy = 0; }
       else if (f.vy === 0 && (staying(f) || nearestTo(f.herd, f.x) < 150)) { if (staying(f)) perched(ctx, f); }
-      else { f.vy += 0.6; f.y = Math.min(GY, f.y + f.vy); if (f.y >= GY) { f.vy = 0; playSound('land', 0.6); to(f, 'watch'); } }
+      else { f.vy += 0.6; f.y = Math.min(GY, f.y + f.vy); if (f.y >= GY) { f.vy = 0; f.perch = false; playSound('land', 0.6); to(f, 'watch'); } }
       break;
     case 'divein': if (onArc(f)) { if (f.bushes[f.bush].gone) diveIn(state, f); else { landInBush(state, f); hide(f); } } break;
     case 'dead':
@@ -425,8 +435,15 @@ const hide = (f: Fight) => {
     }
     // (late on, another bush rustles too, as he comes up)
     if (ph === 3 && Math.random() < 0.6) { const o = bs.filter(j => j !== at); if (o.length) f.decoy = pick(o); }
-  } else f.wait = 70;
+  } else {
+    // (the one bush left: nowhere to shuffle to; he sits tight in it and tries to get him over to it, the hand out of it
+    // beckoning; up he comes once he's there (and has him), or when he gives up on it)
+    f.wait = LURE_WAIT; f.lureT = 0;
+  }
 };
+const LURE_WAIT = 260;
+/** Hiding in the last bush: luring him over. */
+const luring = (f: Fight) => f.mode === 'hidden' && f.wait === LURE_WAIT;
 
 /** The shuffle: each move, there and a pause; then up he comes. */
 const shuffle = (ctx: FrameContext, f: Fight) => {
@@ -632,16 +649,18 @@ const flatten = (ctx: FrameContext, f: Fight, a: Animal) => {
 
 /** Up his vine to stay (he's been flattened: he's not lying about for the next one). */
 const perch = (f: Fight) => {
-  to(f, 'dodge'); f.vy = 0; f.perch = true; f.spitT = 0;
+  to(f, 'dodge'); f.vy = 0; f.perch = true; f.spitT = 0; f.perchT = 0;
   playSound('jump', 0.6, 2);
   bark(f, L.ARTIE_PERCH);
 };
-/** He's staying up it (till it's chewed through). */
-const staying = (f: Fight) => f.perch || liveBushes(f).length === 0;
+/** He's staying up it: with no bushes left, till it's chewed through; with bushes, till the stampede's by and he's had
+ *  a breather up there, then he drops down and it's back to his hidden-ball game. */
+const PERCH_MIN = 150;
+const staying = (f: Fight) => liveBushes(f).length === 0 || (f.perch && (!stampedeOver(f.herd) || f.perchT < PERCH_MIN));
 /** Up there to stay: watching Meathead, and now and then the blowgun up, one-handed, and a dart down at him. */
 const perched = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player;
-  f.perch = true;
+  f.perch = true; f.perchT++;
   faceHim(state, f);
   if (p.health <= 0 || state.deathTimer > 0) { f.spitT = 0; return; }
   f.spitT++;
@@ -944,6 +963,13 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   }
   // The bush he's in, over his legs
   if (IN_BUSH.has(f.mode) || f.mode === 'hidden') { const b = f.bushes[f.bush]; if (b && !b.gone) drawBush(c, state, b, true); }
+  // (luring him over: a sunburned hand out of the side of it, beckoning)
+  if (luring(f)) {
+    const b = f.bushes[f.bush], side = px(state) < b.x ? -1 : 1, hx = b.x + side * (BUSH_W / 2 - 10), hy = GY - 58, wig = Math.sin(state.frame * 0.25) * 4;
+    c.fillStyle = '#A3925F'; c.fillRect(Math.round(side > 0 ? hx - 4 : hx - 10), hy - 3, 14, 7);
+    c.fillStyle = '#E8946B'; c.beginPath(); c.arc(hx + side * 10, hy, 5, 0, Math.PI * 2); c.fill();
+    c.fillRect(Math.round(hx + side * 13 - 1.5), Math.round(hy - 9 + wig), 3, 8);
+  }
   // The vine he's hanging off
   // (chewed: thinner where they've been at it, the more the thinner)
   if (f.mode === 'dodge') {
