@@ -14,6 +14,7 @@ import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menu
 import { hasRightStick } from '../m1/game/platform/device';
 import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
 import PauseMenu from './PauseMenu';
+import { THEMES } from './hudThemes';
 import GoreBag from './GoreBag';
 import { M2_WEAPONS, M2WeaponArt, weaponName, registerWeapons, ammoName } from './weapons';
 import BulkMeter from './BulkMeter';
@@ -242,6 +243,11 @@ const App2: React.FC = () => {
   const noticeUp = ui.notice && performance.now() - ui.notice.at < 1800;
   useEffect(() => { if (!ui.notice) return; const id = setTimeout(() => setUi({ notice: null }), 1900); return () => clearTimeout(id); }, [ui.notice]);
   const nearLand = landAt(ui.near);
+  // (the HUD and the pause menu, done up for wherever he is)
+  // (in dev, ?zone=<zone> shows that one's look anywhere)
+  const devZone = import.meta.env.DEV ? (new URLSearchParams(location.search).get('zone') as keyof typeof THEMES | null) : null;
+  const zone = devZone ?? (stage === HUB_STAGE ? 'hub' : stage === PEN_STAGE ? 'staff' : stage === INTRO_STAGE || stage === ADV_STAGE ? ui.zone : undefined);
+  const theme = zone ? THEMES[zone] : undefined;
 
   return (
     <div className="relative w-screen h-screen flex items-center justify-center bg-black overflow-hidden">
@@ -263,7 +269,7 @@ const App2: React.FC = () => {
           onIntroComplete={() => setStatus(GameStatus.PLAYING)}
         />
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && (
-          <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weaponName(weapon)} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} />
+          <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weaponName(weapon)} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} skin={theme?.hud} />
         )}
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit || ui.nearAmerica) && (
@@ -305,7 +311,7 @@ const App2: React.FC = () => {
         {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={WEAPONS} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
         {status === GameStatus.PAUSED && (
           <PauseMenu weapons={WEAPONS} current={weapon} ammo={hud.ammo} selected={pauseSel}
-            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onSkip={stage === INTRO_STAGE ? skipIntro : undefined} />
+            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onSkip={stage === INTRO_STAGE ? skipIntro : undefined} skin={theme?.pause} />
         )}
         {noticeUp && ui.notice && (
           <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>

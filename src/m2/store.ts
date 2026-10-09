@@ -19,6 +19,8 @@ export interface M2Ui {
   introCutscene?: boolean;
   /** (the hub) At the way back out to America USA. */
   nearAmerica?: boolean;
+  /** Where he is, for the HUD's and the pause menu's look (hudThemes.tsx). */
+  zone?: import('./hudThemes').Zone;
 }
 
 let ui: M2Ui = { near: null, map: null, nearExit: false, notice: null };

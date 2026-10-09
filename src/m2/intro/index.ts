@@ -203,6 +203,8 @@ export const introLayout: StageLayout = {
     if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!intro) return controls;
     const p = state.player, px = p.pos.x + p.width / 2;
+    // (where he is, for the HUD's look)
+    setUi({ zone: px < R(GARAGE_END) ? 'garage' : px < R(USA_START) ? 'security' : px < R(QUEUE_START) - 300 ? 'america' : 'ticket' });
     // (no ammo lying about this early: anything dropped's gone)
     state.pickups = state.pickups.filter(k => k.type !== 'small_ammo' && k.type !== 'large_ammo');
     // (security hits soft: most of whatever he took, given back)

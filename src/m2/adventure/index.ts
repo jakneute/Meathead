@@ -73,8 +73,8 @@ export const advLayout: StageLayout = {
     setUi({ near: null, map: null, nearExit: false });
     let out = sec.update ? sec.update(ctx, controls) : controls;
     out = updateGrab(ctx, adv.grab, out);
-    // (a cutscene in any section: no HUD)
-    setUi({ introCutscene: !!p.inCutscene });
+    // (a cutscene in any section: no HUD; and where he is, for its look: on the river, the boat or under it)
+    setUi({ introCutscene: !!p.inCutscene, zone: sec.id === 'river' ? (p.swimming ? 'underwater' : 'boat') : sec.id });
     return out;
   },
   waterBodyAt: (state, x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null,
