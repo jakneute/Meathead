@@ -5,6 +5,8 @@ import { RAYGUN_ART } from '../m1/components/WeaponIcon';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { GameStatus, WeaponType } from '../m1/types';
 import { setGutBlowout, setGutLines } from '../m1/game/player/gut';
+import { setHurtScale } from '../m1/game/core/resist';
+import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES } from './lines/gutLines';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage } from '../m1/constants';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../m1/game/platform/gamepad';
@@ -53,6 +55,9 @@ setGutBlowout(true);
 setGutLines(M2_GUT_LINES);
 // (his shoulder charge, slide, uppercut and dive kick hit about as hard as his throws: far lighter than Meathead 1's)
 Object.assign(enemyMeleeDamage, { charge: 14, slide: 14, uppercut: 45, divekick: 45 });
+// (everything hits him a good deal softer than in Meathead 1; and enemies hardly ever drop anything, and only small)
+setHurtScale(0.65);
+setDropTable({ health: 0.06, ammo: 0.05 });
 registerWeapons();
 
 /** What he's carrying (weapons/index.ts). */

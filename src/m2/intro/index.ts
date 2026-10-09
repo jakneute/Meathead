@@ -33,10 +33,10 @@ import { stopWeapons } from '../weapons';
 import { CAST, type CastMember } from '../cast/people';
 import {
   TICKET_VOICE, GUARD_VOICE, PA_VOICE, GUEST_VOICE, GUEST2_VOICE, type Dressed, MEATHEAD_TICKET, TICKET_LADY, TICKET_NEXT, TICKET_ALARM,
-  GUARD_ALERT, GUARD_BARK, PA_LINES, GUEST_HURRY, GUEST_CUT, TICKET_CUT, GUEST_HIT,
+  GUARD_ALERT, GUARD_BARK, GUARD_IDLE, PA_LINES, GUEST_HURRY, GUEST_CUT, TICKET_CUT, GUEST_HIT,
 } from './lines';
 import { drawIntroBackdrop, drawIntroBack, drawIntroFront } from './draw';
-import { X0, R, CEIL_Y, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, FRONT_X, WINDOW_X, SPACING, QUEUE_START, TURN_X, GATE_X, END_X } from './geometry';
+import { X0, R, CEIL_Y, UPPER, floorY, GARAGE_END, CHECK_END, STAIRS_END, USA_START, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, FRONT_X, WINDOW_X, SPACING, QUEUE_START, TURN_X, GATE_X, END_X } from './geometry';
 
 export const INTRO_STAGE = 'M2 America USA';
 
@@ -103,9 +103,9 @@ const addGuest = (state: GameState, intro: Intro, x: number, arriving: boolean) 
 };
 
 /** Park security, posted about the place (relative x). */
-const POSTS = [500, 1150, 3500, 3950, 4250, 5300, 6150, 7050, 7900, 8800];
+const POSTS = [500, 1150, 3640, 3950, 4250, 5500, 6350, 7250, 8100, 9000];
 const addGuard = (state: GameState, intro: Intro, x: number) => {
-  const e = makeKindEnemy('parksec', x, GROUND_Y);
+  const e = makeKindEnemy('parksec', x, floorY(x - X0));
   e.seen = true; e.homeX = x + Math.floor(Math.random() * 997); e.facing = Math.random() < 0.5 ? -1 : 1;
   (e as Enemy & { post?: number }).post = x;
   state.enemies.push(e);
@@ -137,14 +137,19 @@ export const introLayout: StageLayout = {
   build: (state) => {
     arrived(); stopWeapons();
     { const g = takeGut(); if (g) state.player.gut = g; }
-    const runs = [{ x1: X0 - 400, y1: GROUND_Y, x2: R(END_X) + 400, y2: GROUND_Y, surface: 'concrete' }];
+    // (up top: the garage level, out along the walkway to the checkpoint; the stairs down; America USA on the ground)
+    const runs = [
+      { x1: X0 - 400, y1: UPPER, x2: R(CHECK_END), y2: UPPER, surface: 'concrete' },
+      { x1: R(CHECK_END), y1: UPPER, x2: R(STAIRS_END), y2: GROUND_Y, surface: 'concrete' },
+      { x1: R(STAIRS_END), y1: GROUND_Y, x2: R(END_X) + 400, y2: GROUND_Y, surface: 'concrete' },
+    ];
     state.groundRuns = runs;
     state.blocks.push(...groundBlocks(runs));
     // The garage, the hallway and the checkpoint have a ceiling; America USA's open to the sky. Walls at both ends.
     state.blocks.push(
       { x: X0 - 60, y: -3000, w: 60, h: 3600, type: 'wall', hidden: true, tag: 'intro-l' },
       { x: R(END_X), y: -3000, w: 60, h: 3600, type: 'wall', hidden: true, tag: 'intro-r' },
-      { x: X0 - 60, y: -3000, w: R(4800) - X0 + 60, h: 3000 + CEIL_Y, type: 'wall', hidden: true, tag: 'intro-ceiling' },
+      { x: X0 - 60, y: -3000, w: R(GARAGE_END) - X0 + 60, h: 3000 + CEIL_Y, type: 'wall', hidden: true, tag: 'intro-ceiling' },
     );
     const intro: Intro = {
       grab: createGrab(state), provoked: false, me: null, nextNumber: 0, serveT: 0, arriveT: 0, hurryT: 0, atWindowT: 0,
@@ -222,7 +227,13 @@ const walkways = (state: GameState) => {
   const on = (x: number) => WALKWAYS.some(([a, b]) => x > R(a) && x < R(b));
   const p = state.player;
   if (p.isGrounded && on(p.pos.x + p.width / 2)) p.pos.x += WALKWAY_SPEED;
-  for (const e of state.enemies) if (e.health > 0 && !e.isBlownAway && Math.abs(e.pos.y + e.height - GROUND_Y) < 3 && on(e.pos.x + e.width / 2)) e.pos.x += WALKWAY_SPEED;
+  // (anybody else: carried along, unless they're walking back against it: then they just walk, slowly, rather than
+  // stand stuck on it treading)
+  for (const e of state.enemies) {
+    if (e.health <= 0 || e.isBlownAway || Math.abs(e.pos.y + e.height - UPPER) >= 3 || !on(e.pos.x + e.width / 2)) continue;
+    const against = e.vel.x < -0.005 || (e.puppet && (e.facing ?? 1) < 0);
+    if (!against) e.pos.x += WALKWAY_SPEED;
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -266,7 +277,9 @@ const provoke = (ctx: FrameContext, intro: Intro, near: Enemy | null) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Park security
 
-const PRACTICE = { from: 3700, to: 4800, atOnce: 3, every: 100 };
+const PRACTICE = { from: 3700, to: CHECK_END, atOnce: 3, every: 100 };
+/** Guards who've said their piece to him already (each says one thing, going by). */
+const remarked = new WeakSet<Enemy>();
 const security = (ctx: FrameContext, intro: Intro) => {
   const { state } = ctx;
   const p = state.player, px = p.pos.x + p.width / 2;
@@ -280,7 +293,17 @@ const security = (ctx: FrameContext, intro: Intro) => {
     e.pauseTimer = 2;
     const post = (e as Enemy & { post?: number }).post ?? e.pos.x;
     const cx = e.pos.x + e.width / 2, near = Math.abs(cx - px) < 170;
-    if (near) { e.facing = px < cx ? -1 : 1; e.vel.x = 0; continue; }
+    if (near) {
+      e.facing = px < cx ? -1 : 1; e.vel.x = 0;
+      // (a word as he goes by: once each, now and then, depending on the state of him)
+      if (Math.abs(cx - px) < 120 && !intro.bark && state.frame > intro.barkNext && !remarked.has(e) && Math.random() < 0.02) {
+        remarked.add(e);
+        intro.bark = { e, said: { text: '' } };
+        speak(GUARD_VOICE, pick(GUARD_IDLE[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; });
+        intro.barkNext = state.frame + 360;
+      }
+      continue;
+    }
     const dir = e.facing ?? 1;
     if ((dir > 0 && cx > post + 80) || (dir < 0 && cx < post - 80)) e.facing = -dir as 1 | -1;
     e.pos.x += (e.facing ?? 1) * 0.6;
@@ -313,7 +336,7 @@ const detector = (ctx: FrameContext, intro: Intro) => {
   const { state } = ctx;
   const p = state.player, px = p.pos.x + p.width / 2;
   if (intro.alarm > 0) intro.alarm--;
-  const inIt = Math.abs(px - R(DETECTOR_X)) < 26 && p.pos.y + p.height > GROUND_Y - 100;
+  const inIt = Math.abs(px - R(DETECTOR_X)) < 26 && p.pos.y + p.height > UPPER - 100;
   if (inIt && !intro.inDetector) {
     intro.alarm = 120;
     playSound('alarm', 0.9);
@@ -346,13 +369,17 @@ const line = (ctx: FrameContext, intro: Intro) => {
   const members: { n: number; e: Enemy | null }[] = inLine(state).map(e => ({ n: guests.get(e)!.number, e }));
   if (intro.me !== null && !intro.admitted) members.push({ n: intro.me, e: null });
   members.sort((a, b) => a.n - b.n);
+  const meRank = members.findIndex(m => !m.e);
   members.forEach((m, rank) => {
     if (!m.e) return;
     const e = m.e, g = guests.get(e)!;
     e.harmless = true; e.puppet = true; e.shootTimer = 0;
     if ((e.pauseTimer || 0) > 2 || Math.abs(e.vel.y) > 0.5) return;
     e.pauseTimer = 2;
-    const want = R(FRONT_X - rank * SPACING), cx = e.pos.x + e.width / 2;
+    // (their place: so far back from the window; behind him, so far back from wherever he's actually stood)
+    let want = R(FRONT_X - rank * SPACING);
+    if (meRank >= 0 && rank > meRank) want = Math.min(want, px - (rank - meRank) * SPACING);
+    const cx = e.pos.x + e.width / 2;
     if (Math.abs(want - cx) > 1.5) { e.pos.x += Math.sign(want - cx) * 1.3; e.facing = 1; }
     else if (g.state === 'arrive') g.state = 'line';
     // (they don't let him walk through them: he can push in with his shoulder, or jump over, but not stroll through)
@@ -452,7 +479,7 @@ const talk = (ctx: FrameContext, intro: Intro) => {
   const { state } = ctx;
   const px = state.player.pos.x + state.player.width / 2;
   if (intro.lady.ko > 0) intro.lady.ko++;
-  if (px > R(4800) && state.frame > intro.pa.next && !intro.scene) {
+  if (px > R(USA_START) && state.frame > intro.pa.next && !intro.scene) {
     intro.pa.next = state.frame + 1500 + Math.floor(Math.random() * 600);
     speak(PA_VOICE, pick(PA_LINES), s => { intro.pa.said = s; });
   }
@@ -466,7 +493,7 @@ const tipAt = (state: GameState, intro: Intro): IntroTip => {
   const x = state.player.pos.x + state.player.width / 2 - X0;
   if (intro.scene) return null;
   if (x < 1300) return 'postal';
-  if (x > 3700 && x < 4800) return 'grabs';
+  if (x > 3700 && x < CHECK_END) return 'grabs';
   if (x > QUEUE_START - 300 && !intro.admitted) return 'line';
   return null;
 };

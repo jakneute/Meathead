@@ -5,7 +5,7 @@
 
 import type { GameState } from '../../m1/game/core/state';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../m1/constants';
-import { X0, R, CEIL_Y, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, GARAGE_END, HALL_END, CHECK_END, USA_END, DISTRICTS, DISTRICT_W, FRONT_X, WINDOW_X, TURN_X, GATE_X, END_X, QUEUE_START, SPACING } from './geometry';
+import { X0, R, CEIL_Y, UPPER, STAIRS_END, USA_START, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, GARAGE_END, HALL_END, CHECK_END, USA_END, DISTRICTS, DISTRICT_W, FRONT_X, WINDOW_X, TURN_X, GATE_X, END_X, QUEUE_START, SPACING } from './geometry';
 import { getIntro, guests } from './index';
 
 type Ctx = CanvasRenderingContext2D;
@@ -55,13 +55,16 @@ const sign = (c: Ctx, x: number, y: number, w: number, h: number, face: string, 
 
 // ---------------------------------------------------------------------------------------------------------------
 
-/** Behind everything: indoors a dark wall; out in America USA, a patriotic sky (bands of blue), a far-off skyline. */
+/**
+ * Behind everything: a patriotic sky (bands of blue, fireworks going off in broad daylight). Out from the garage, the
+ * biggest parking lot anybody's ever seen, rows on rows of cars out to the horizon; down in America USA, a skyline of
+ * every American city's landmarks, far off.
+ */
 export const drawIntroBackdrop = (c: Ctx, state: GameState) => {
   const cam = state.camera.x, f = state.frame;
-  // (the sky)
   const bands = ['#1E3A8A', '#1D4ED8', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE'];
-  bands.forEach((col, i) => box(c, 0, i * 70, CANVAS_WIDTH, 72, col));
-  // (fireworks going off in the daytime, because of course)
+  // (all of it: the last band runs to the bottom, or whatever was there last frame shows through)
+  bands.forEach((col, i) => box(c, 0, i * 70, CANVAS_WIDTH, i === bands.length - 1 ? CANVAS_HEIGHT : 72, col));
   for (let i = 0; i < 3; i++) {
     const t = (f + i * 97) % 240;
     if (t > 60) continue;
@@ -69,16 +72,47 @@ export const drawIntroBackdrop = (c: Ctx, state: GameState) => {
     const col = [RED, WHITE, '#FDE047'][i];
     for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; box(c, bx + Math.cos(a) * r, by + Math.sin(a) * r, 2, 2, col); }
   }
-  // (a skyline far off: a needle, an arch, a torch held up, a dome, plain towers)
+  const mid = cam + CANVAS_WIDTH / 2;
+  if (mid < R(USA_START) - 100) parkingLot(c, cam, f);
+  else skyline(c, cam);
+};
+
+/** The parking lot: asphalt to the horizon, row on row of cars getting smaller, light poles, section signs (LOT EAGLE 47Z). */
+const parkingLot = (c: Ctx, cam: number, f: number) => {
+  const horizon = 250;
+  box(c, 0, horizon, CANVAS_WIDTH, CANVAS_HEIGHT - horizon, '#57534E');
+  const CARS = ['#B91C1C', '#1E3A8A', '#F8FAFC', '#52525B', '#CA8A04', '#166534', '#7C3AED', '#0F172A'];
+  // (rows, far to near: further off, smaller, slower going by)
+  for (let r = 0; r < 9; r++) {
+    const k = r / 8, y = horizon + 6 + k * k * 190, s = 0.25 + k * 1.1, par = 0.08 + k * 0.5;
+    box(c, 0, y + 12 * s, CANVAS_WIDTH, Math.max(1, 2 * s), '#E7E5E4');
+    const step = 46 * s, off = -((cam * par) % step);
+    for (let x = off - step, i = 0; x < CANVAS_WIDTH + step; x += step, i++) {
+      const seed = Math.floor((cam * par) / step) + i + r * 7;
+      if (seed % 9 === 4) continue; // (a gap: an empty space, the one free spot in the whole lot)
+      const col = CARS[(seed * 5 + r) % CARS.length];
+      box(c, x, y, 34 * s, 10 * s, col); box(c, x + 7 * s, y - 5 * s, 18 * s, 6 * s, col); box(c, x + 9 * s, y - 4 * s, 6 * s, 4 * s, '#93C5FD');
+    }
+    // (a light pole now and then, a section sign on it)
+    if (r % 3 === 2) for (let x = off * 3 % 400 - 400; x < CANVAS_WIDTH + 400; x += 400) {
+      box(c, x, y - 60 * s, 2 * s + 1, 60 * s, '#A1A1AA'); box(c, x - 8 * s, y - 62 * s, 18 * s, 3 * s, '#A1A1AA');
+      if (s > 0.7) sign(c, x - 26, y - 50 * s, 52, 12, BLUE, `LOT ${['EAGLE', 'LIBERTY', 'APPLE PIE', 'BALD', 'GLORY'][(Math.floor(x + cam) >> 4) % 5 >>> 0]} ${(r * 7 + 3)}Z`, WHITE, 5);
+    }
+  }
+  void f;
+};
+
+/** Far off over America USA: a needle, an arch, a torch held up, a dome, plain towers. */
+const skyline = (c: Ctx, cam: number) => {
   const sx = -(cam * 0.15) % 900;
   for (let k = -1; k < 3; k++) {
     const o = sx + k * 900;
     c.fillStyle = '#7DA3D9';
     c.fillRect(o + 40, 330, 50, 150); c.fillRect(o + 100, 300, 40, 180); c.fillRect(o + 300, 320, 60, 160); c.fillRect(o + 520, 290, 45, 190); c.fillRect(o + 700, 340, 70, 140);
-    c.fillRect(o + 200, 200, 6, 280); c.beginPath(); c.ellipse(o + 203, 210, 22, 7, 0, 0, Math.PI * 2); c.fill();   // the needle
-    c.strokeStyle = '#7DA3D9'; c.lineWidth = 7; c.beginPath(); c.arc(o + 430, 480, 70, Math.PI, 0); c.stroke();     // the arch
-    c.fillRect(o + 620, 270, 10, 210); c.fillRect(o + 628, 250, 4, 22); c.beginPath(); c.arc(o + 630, 248, 5, 0, Math.PI * 2); c.fill(); // the torch
-    c.beginPath(); c.arc(o + 820, 360, 30, Math.PI, 0); c.fill(); c.fillRect(o + 790, 360, 60, 120);                  // the dome
+    c.fillRect(o + 200, 200, 6, 280); c.beginPath(); c.ellipse(o + 203, 210, 22, 7, 0, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = '#7DA3D9'; c.lineWidth = 7; c.beginPath(); c.arc(o + 430, 480, 70, Math.PI, 0); c.stroke();
+    c.fillRect(o + 620, 270, 10, 210); c.fillRect(o + 628, 250, 4, 22); c.beginPath(); c.arc(o + 630, 248, 5, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.arc(o + 820, 360, 30, Math.PI, 0); c.fill(); c.fillRect(o + 790, 360, 60, 120);
   }
 };
 
@@ -87,126 +121,142 @@ export const drawIntroBack = (c: Ctx, state: GameState) => {
   const intro = getIntro(state);
   const cam = state.camera.x;
   const vis = (a: number, b: number) => b > cam - 100 && a < cam + CANVAS_WIDTH + 100;
-  // Indoors: the wall, the ceiling slab, lights; the floor under everything
-  if (vis(X0 - 400, R(CHECK_END))) indoors(c, f, intro?.office.open ?? 0, intro?.alarm ?? 0, vis);
-  if (vis(R(CHECK_END), R(USA_END))) america(c, f, vis);
+  if (vis(R(GARAGE_END), R(STAIRS_END))) deck(c, f, intro?.office.open ?? 0, intro?.alarm ?? 0, vis);
+  if (vis(X0 - 400, R(GARAGE_END))) garage(c, vis);
+  if (vis(R(USA_START), R(USA_END))) america(c, f, vis);
   if (vis(R(USA_END) - 200, R(END_X) + 400)) plaza(c, state, f);
-  // (the floor: concrete indoors, brick out in America USA, tiles at the plaza)
-  box(c, X0 - 400, GROUND_Y, R(CHECK_END) - X0 + 400, 140, '#52525B'); box(c, X0 - 400, GROUND_Y, R(CHECK_END) - X0 + 400, 3, '#71717A');
-  for (let x = X0; x < R(GARAGE_END); x += 120) box(c, x, GROUND_Y + 30, 60, 4, '#EAB308');
-  box(c, R(CHECK_END), GROUND_Y, R(USA_END) - R(CHECK_END), 140, '#9A3412');
-  for (let y = GROUND_Y + 4; y < GROUND_Y + 60; y += 8) for (let x = R(CHECK_END) + ((y / 8) % 2) * 12; x < R(USA_END); x += 24) box(c, x, y, 22, 6, '#B45309');
-  box(c, R(CHECK_END), GROUND_Y, R(USA_END) - R(CHECK_END), 3, '#D97706');
+  // The floors: the garage level's slab (its edge showing, the drop under it), the stairs down, brick in America USA,
+  // tiles at the plaza
+  box(c, X0 - 400, UPPER, R(CHECK_END) - X0 + 400, CANVAS_HEIGHT, '#52525B'); box(c, X0 - 400, UPPER, R(CHECK_END) - X0 + 400, 3, '#71717A');
+  box(c, X0 - 400, UPPER + 18, R(CHECK_END) - X0 + 400, 6, '#3F3F46');
+  for (let x = X0; x < R(GARAGE_END); x += 120) box(c, x, UPPER + 30, 60, 4, '#EAB308');
+  for (let x = R(GARAGE_END); x < R(CHECK_END); x += 90) { box(c, x, UPPER + 40, 6, 80, '#44403C'); }
+  stairs(c, R(CHECK_END), R(STAIRS_END));
+  box(c, R(STAIRS_END), GROUND_Y, R(USA_END) - R(STAIRS_END), 140, '#9A3412');
+  for (let y = GROUND_Y + 4; y < GROUND_Y + 60; y += 8) for (let x = R(STAIRS_END) + ((y / 8) % 2) * 12; x < R(USA_END); x += 24) box(c, x, y, 22, 6, '#B45309');
+  box(c, R(STAIRS_END), GROUND_Y, R(USA_END) - R(STAIRS_END), 3, '#D97706');
   box(c, R(USA_END), GROUND_Y, R(END_X) - R(USA_END) + 400, 140, '#D6D3D1');
-  for (let x = R(USA_END); x < R(END_X) + 400; x += 40) { box(c, x, GROUND_Y, 1, 140, '#A8A29E'); }
+  for (let x = R(USA_END); x < R(END_X) + 400; x += 40) box(c, x, GROUND_Y, 1, 140, '#A8A29E');
   box(c, R(USA_END), GROUND_Y, R(END_X) - R(USA_END) + 400, 3, '#F5F5F4');
-  // The walkways, on the floor
   for (const [a, b] of WALKWAYS) walkway(c, R(a), R(b), f);
 };
 
-// ---------------------------------------------------------------------------------------------------------------
-// The garage, the hallway, the checkpoint
-
-const indoors = (c: Ctx, f: number, officeOpen: number, alarm: number, vis: (a: number, b: number) => boolean) => {
-  const x0 = X0 - 400, x1 = R(CHECK_END);
-  // (the back wall: bands of concrete; the ceiling slab, its underside in shadow)
-  ['#3F3F46', '#46464E', '#4D4D56', '#54545E'].forEach((col, i) => box(c, x0, CEIL_Y + i * 90, x1 - x0, 92, col));
-  box(c, x0, CEIL_Y - 500, x1 - x0, 500, '#27272A'); box(c, x0, CEIL_Y - 10, x1 - x0, 10, '#18181B');
-  // The garage: fat concrete pillars (yellow and black at the foot), parked cars, his truck parked across four spaces
-  if (vis(X0 - 400, R(GARAGE_END))) {
-    for (let x = X0 - 300; x < R(GARAGE_END); x += 320) {
-      box(c, x, CEIL_Y, 46, GROUND_Y - CEIL_Y, '#6B7280'); box(c, x, CEIL_Y, 8, GROUND_Y - CEIL_Y, '#4B5563');
-      for (let k = 0; k < 4; k++) box(c, x, GROUND_Y - 40 + k * 10, 46, 5, k % 2 ? '#18181B' : '#EAB308');
-    }
-    const car = (x: number, col: string, w = 120) => {
-      box(c, x, GROUND_Y - 34, w, 22, col); box(c, x + w * 0.2, GROUND_Y - 52, w * 0.55, 20, col);
-      box(c, x + w * 0.25, GROUND_Y - 48, w * 0.2, 12, '#94A3B8'); box(c, x + w * 0.5, GROUND_Y - 48, w * 0.2, 12, '#94A3B8');
-      for (const wx of [x + 18, x + w - 30]) { c.fillStyle = '#111827'; c.beginPath(); c.arc(wx + 6, GROUND_Y - 12, 11, 0, Math.PI * 2); c.fill(); }
-    };
-    car(R(560), '#64748B'); car(R(820), '#7F1D1D', 110); car(R(1240), '#334155');
-    // (his: a big red pickup, across four spaces, crooked)
-    c.save(); c.translate(R(110), GROUND_Y - 6); c.rotate(-0.03);
-    box(c, -10, -46, 230, 34, '#B91C1C'); box(c, 40, -78, 90, 34, '#B91C1C'); box(c, 52, -72, 34, 22, '#93C5FD'); box(c, 92, -72, 32, 22, '#93C5FD');
-    box(c, 140, -58, 80, 12, '#7F1D1D'); box(c, -10, -20, 230, 6, '#71717A');
-    for (const wx of [30, 180]) { c.fillStyle = '#0B0B0F'; c.beginPath(); c.arc(wx, -10, 16, 0, Math.PI * 2); c.fill(); c.fillStyle = '#9CA3AF'; c.beginPath(); c.arc(wx, -10, 6, 0, Math.PI * 2); c.fill(); }
-    c.restore();
-    // (the bay lines he's parked over)
-    for (let k = 0; k < 5; k++) box(c, R(60 + k * 70), GROUND_Y - 2, 4, 2, WHITE);
-    sign(c, R(300), CEIL_Y + 20, 210, 30, '#1E3A8A', 'LEVEL 3: LIBERTY', WHITE);
-    sign(c, R(1000), CEIL_Y + 20, 330, 30, '#B91C1C', 'AMERICA USA ->  THIS WAY, PATRIOT', WHITE);
-    sign(c, R(620), CEIL_Y + 110, 300, 26, '#FEF3C7', "PARKING: $45. FREEDOM ISN'T FREE.", '#7F1D1D', 7);
+/** The stairs down to America USA: wide concrete steps, a brass handrail each side, flags at the bottom. */
+const stairs = (c: Ctx, a: number, b: number) => {
+  const n = 10, h = (GROUND_Y - UPPER) / n, w = (b - a) / n;
+  for (let i = 0; i < n; i++) {
+    const x = a + i * w, y = UPPER + i * h;
+    box(c, x, y, w + 1, GROUND_Y - y + 140, i % 2 ? '#A8A29E' : '#9CA3AF');
+    box(c, x, y, w + 1, 3, '#E7E5E4');
+    box(c, x, y + 3, w + 1, 2, '#78716C');
   }
-  // The hallway: cream tile up to the rail, ad lightboxes over it, strip lights; the walkways on the floor
+  c.strokeStyle = '#CA8A04'; c.lineWidth = 3; c.beginPath(); c.moveTo(a, UPPER - 40); c.lineTo(b, GROUND_Y - 40); c.stroke();
+  for (let i = 0; i <= 4; i++) { const x = a + (b - a) * (i / 4); box(c, x - 1, UPPER + (GROUND_Y - UPPER) * (i / 4) - 40, 3, 40, '#A16207'); }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The garage (the only thing indoors), then out on the deck: the walkway, the checkpoint
+
+const garage = (c: Ctx, vis: (a: number, b: number) => boolean) => {
+  const x0 = X0 - 400, x1 = R(GARAGE_END);
+  ['#3F3F46', '#46464E', '#4D4D56'].forEach((col, i) => box(c, x0, CEIL_Y + i * 80, x1 - x0, 82, col));
+  box(c, x0, CEIL_Y - 500, x1 - x0, 500, '#27272A'); box(c, x0, CEIL_Y - 10, x1 - x0, 10, '#18181B');
+  // (the way out: daylight at the far end)
+  box(c, x1 - 40, CEIL_Y, 40, UPPER - CEIL_Y, '#18181B');
+  for (let x = X0 - 300; x < x1 - 60; x += 320) {
+    box(c, x, CEIL_Y, 46, UPPER - CEIL_Y, '#6B7280'); box(c, x, CEIL_Y, 8, UPPER - CEIL_Y, '#4B5563');
+    for (let k = 0; k < 4; k++) box(c, x, UPPER - 40 + k * 10, 46, 5, k % 2 ? '#18181B' : '#EAB308');
+  }
+  const car = (x: number, col: string, w = 120) => {
+    box(c, x, UPPER - 34, w, 22, col); box(c, x + w * 0.2, UPPER - 52, w * 0.55, 20, col);
+    box(c, x + w * 0.25, UPPER - 48, w * 0.2, 12, '#94A3B8'); box(c, x + w * 0.5, UPPER - 48, w * 0.2, 12, '#94A3B8');
+    for (const wx of [x + 18, x + w - 30]) { c.fillStyle = '#111827'; c.beginPath(); c.arc(wx + 6, UPPER - 12, 11, 0, Math.PI * 2); c.fill(); }
+  };
+  if (vis(R(500), R(1400))) { car(R(560), '#64748B'); car(R(820), '#7F1D1D', 110); car(R(1240), '#334155'); }
+  // (his: a big red pickup, across four spaces, crooked)
+  c.save(); c.translate(R(110), UPPER - 6); c.rotate(-0.03);
+  box(c, -10, -46, 230, 34, '#B91C1C'); box(c, 40, -78, 90, 34, '#B91C1C'); box(c, 52, -72, 34, 22, '#93C5FD'); box(c, 92, -72, 32, 22, '#93C5FD');
+  box(c, 140, -58, 80, 12, '#7F1D1D'); box(c, -10, -20, 230, 6, '#71717A');
+  for (const wx of [30, 180]) { c.fillStyle = '#0B0B0F'; c.beginPath(); c.arc(wx, -10, 16, 0, Math.PI * 2); c.fill(); c.fillStyle = '#9CA3AF'; c.beginPath(); c.arc(wx, -10, 6, 0, Math.PI * 2); c.fill(); }
+  c.restore();
+  for (let k = 0; k < 5; k++) box(c, R(60 + k * 70), UPPER - 2, 4, 2, WHITE);
+  sign(c, R(300), CEIL_Y + 20, 210, 30, BLUE, 'LEVEL 3: LIBERTY', WHITE);
+  sign(c, R(1000), CEIL_Y + 20, 330, 30, RED, 'AMERICA USA ->  THIS WAY, PATRIOT', WHITE);
+  sign(c, R(620), CEIL_Y + 110, 300, 26, '#FEF3C7', "PARKING: $45. FREEDOM ISN'T FREE.", '#7F1D1D', 7);
+};
+
+/** Out on the deck: the walkway's canopy and its ads on posts, the checkpoint's tents, its office, the metal detector. */
+const deck = (c: Ctx, f: number, officeOpen: number, alarm: number, vis: (a: number, b: number) => boolean) => {
+  // The walkways' canopy: a long striped awning on posts (it's a shade, not a ceiling: dimmed, way up)
   if (vis(R(GARAGE_END), R(HALL_END))) {
     const a = R(GARAGE_END), b = R(HALL_END);
-    box(c, a, CEIL_Y, b - a, GROUND_Y - CEIL_Y, '#E7E5E4');
-    for (let y = GROUND_Y - 130; y < GROUND_Y; y += 16) for (let x = a + ((y / 16) % 2) * 16; x < b; x += 32) box(c, x, y, 31, 15, '#D6D3D1');
-    box(c, a, GROUND_Y - 134, b - a, 6, RED); box(c, a, GROUND_Y - 128, b - a, 3, WHITE); box(c, a, GROUND_Y - 125, b - a, 4, BLUE);
+    for (let x = a; x < b; x += 30) box(c, x, CEIL_Y - 20, 30, 16, Math.floor((x - a) / 30) % 2 ? '#8B2E2E' : '#B9B9B9');
+    box(c, a, CEIL_Y - 4, b - a, 4, '#3F3F46');
+    for (let x = a + 100; x < b; x += 300) box(c, x, CEIL_Y, 6, UPPER - CEIL_Y, '#52525B');
     const ADS: [string, string, string][] = [
-      ['AMERICA USA', 'NOW 20% MORE AMERICA', '#1E3A8A'],
-      ['FREEDOM FRIES', 'TWO FOR $19.99', '#B91C1C'],
+      ['AMERICA USA', 'NOW 20% MORE AMERICA', BLUE],
+      ['FREEDOM FRIES', 'TWO FOR $19.99', RED],
       ['HAPPY LAND', 'THE HAPPIEST LAND IN THE LAND', '#7C3AED'],
       ['EAGLE DOGS', '100% AMERICAN MEAT. PROBABLY.', '#B45309'],
       ['THE STAR-SPANGLED', 'SPLASH ZONE: OPENS 2031', '#0E7490'],
-      ['BE A PATRIOT', 'BUY A SOUVENIR', '#B91C1C'],
+      ['BE A PATRIOT', 'BUY A SOUVENIR', RED],
     ];
     ADS.forEach(([t1, t2, col], i) => {
-      const x = a + 120 + i * 360;
-      box(c, x - 4, CEIL_Y + 36, 228, 104, '#27272A'); box(c, x, CEIL_Y + 40, 220, 96, col);
-      box(c, x, CEIL_Y + 40, 220, 8, RED); box(c, x, CEIL_Y + 128, 220, 8, BLUE);
-      star(c, x + 20, CEIL_Y + 66, 9, WHITE); star(c, x + 200, CEIL_Y + 66, 9, WHITE);
-      text(c, t1, x + 110, CEIL_Y + 82, WHITE, 10); text(c, t2, x + 110, CEIL_Y + 108, '#FEF9C3', 6);
+      const x = a + 130 + i * 360, y = CEIL_Y + 30;
+      box(c, x + 104, y + 96, 8, UPPER - y - 96, '#3F3F46');
+      box(c, x - 4, y - 4, 228, 104, '#27272A'); box(c, x, y, 220, 96, col);
+      box(c, x, y, 220, 8, RED); box(c, x, y + 88, 220, 8, BLUE);
+      star(c, x + 20, y + 26, 9, WHITE); star(c, x + 200, y + 26, 9, WHITE);
+      text(c, t1, x + 110, y + 42, WHITE, 10); text(c, t2, x + 110, y + 68, '#FEF9C3', 6);
     });
-    for (let x = a + 40; x < b; x += 200) { box(c, x, CEIL_Y, 120, 6, '#F5F5F4'); c.fillStyle = 'rgba(255, 255, 240, 0.05)'; c.beginPath(); c.moveTo(x, CEIL_Y + 6); c.lineTo(x + 120, CEIL_Y + 6); c.lineTo(x + 170, GROUND_Y); c.lineTo(x - 50, GROUND_Y); c.closePath(); c.fill(); }
-    sign(c, R(1560), CEIL_Y + 150, 150, 22, '#FDE047', 'MIND YOUR STEP', INK, 7);
+    sign(c, R(1560), UPPER - 110, 150, 22, '#FDE047', 'MIND YOUR STEP', INK, 7);
   }
-  // The checkpoint: the security office (its door), bag tables, metal detectors, rules
-  if (vis(R(HALL_END), R(CHECK_END))) {
+  // The checkpoint: a white tent over the bag tables, the security office (a portable building), the metal detector
+  if (vis(R(HALL_END), R(STAIRS_END))) {
     const a = R(HALL_END);
-    box(c, a, CEIL_Y, 40, GROUND_Y - CEIL_Y, '#3F3F46');
-    sign(c, a + 120, CEIL_Y + 24, 360, 30, '#1E3A8A', 'SECURITY CHECKPOINT', WHITE, 9);
-    sign(c, a + 120, CEIL_Y + 70, 360, 22, '#FEF3C7', 'ALL BAGS SUBJECT TO PATRIOTISM', '#7F1D1D', 7);
+    c.fillStyle = '#F8FAFC'; c.beginPath(); c.moveTo(a + 60, UPPER - 190); c.lineTo(a + 360, UPPER - 230); c.lineTo(a + 660, UPPER - 190); c.closePath(); c.fill();
+    box(c, a + 60, UPPER - 190, 600, 14, '#E2E8F0'); for (let i = 0; i < 20; i++) box(c, a + 60 + i * 30, UPPER - 176, 15, 10, i % 2 ? RED : WHITE);
+    box(c, a + 70, UPPER - 176, 5, 176, '#A1A1AA'); box(c, a + 646, UPPER - 176, 5, 176, '#A1A1AA');
+    sign(c, a + 200, UPPER - 260, 320, 26, BLUE, 'SECURITY CHECKPOINT', WHITE, 9);
+    sign(c, a + 190, UPPER - 150, 340, 20, '#FEF3C7', 'ALL BAGS SUBJECT TO PATRIOTISM', '#7F1D1D', 7);
+    box(c, a + 380, UPPER - 44, 150, 8, '#71717A'); box(c, a + 390, UPPER - 36, 6, 36, '#52525B'); box(c, a + 514, UPPER - 36, 6, 36, '#52525B'); box(c, a + 420, UPPER - 58, 50, 14, '#A1A1AA');
+    // (the security office: a portable building, a window, its door, its sign)
+    const ox = R(OFFICE_X);
+    box(c, ox - 120, UPPER - 150, 240, 150, '#1F2937'); box(c, ox - 124, UPPER - 156, 248, 8, '#111827');
+    box(c, ox - 104, UPPER - 120, 70, 50, '#60A5FA'); box(c, ox - 104, UPPER - 120, 70, 4, '#BFDBFE'); box(c, ox - 70, UPPER - 120, 2, 50, '#1F2937');
+    sign(c, ox - 30, UPPER - 140, 132, 18, RED, 'SECURITY OFFICE', WHITE, 6);
+    const open = Math.min(1, officeOpen / 12);
+    box(c, ox - 22, UPPER - 100, 56, 100, '#0B0B0F');
+    box(c, ox - 22, UPPER - 100, 56 * (1 - open * 0.85), 100, '#4B5563'); box(c, ox - 22 + 56 * (1 - open * 0.85) - 8, UPPER - 54, 4, 8, '#FACC15');
     // (the metal detector, the way out: a grey arch, a light on top; going off, flashing red, a red glow round it)
     const dx = R(DETECTOR_X) - 40, on = alarm > 0 && (alarm >> 3) % 2 === 0;
-    if (alarm > 0) { c.fillStyle = `rgba(239, 68, 68, ${on ? 0.25 : 0.1})`; c.fillRect(dx - 60, CEIL_Y, 200, GROUND_Y - CEIL_Y); }
-    box(c, dx, GROUND_Y - 110, 10, 110, '#9CA3AF'); box(c, dx + 70, GROUND_Y - 110, 10, 110, '#9CA3AF'); box(c, dx - 2, GROUND_Y - 116, 84, 10, '#6B7280');
-    box(c, dx + 30, GROUND_Y - 124, 20, 8, alarm > 0 ? (on ? '#EF4444' : '#7F1D1D') : ((f >> 5) % 2 ? '#22C55E' : '#15803D'));
-    sign(c, dx - 20, GROUND_Y - 150, 120, 16, '#FEF3C7', 'WALK THROUGH', '#7F1D1D', 6);
-    if (alarm > 0 && on) text(c, 'BEEP BEEP BEEP', dx + 40, GROUND_Y - 170, '#EF4444', 8);
-    // (the bag table, a grey tub on it)
-    box(c, a + 480, GROUND_Y - 44, 150, 8, '#71717A'); box(c, a + 490, GROUND_Y - 36, 6, 36, '#52525B'); box(c, a + 614, GROUND_Y - 36, 6, 36, '#52525B'); box(c, a + 520, GROUND_Y - 58, 50, 14, '#A1A1AA');
-    // (the security office: a window, its door, a sign)
-    const ox = R(OFFICE_X);
-    box(c, ox - 120, CEIL_Y + 110, 240, GROUND_Y - CEIL_Y - 110, '#1F2937');
-    box(c, ox - 104, CEIL_Y + 140, 70, 50, '#60A5FA'); box(c, ox - 104, CEIL_Y + 140, 70, 4, '#BFDBFE'); box(c, ox - 70, CEIL_Y + 140, 2, 50, '#1F2937');
-    sign(c, ox - 30, CEIL_Y + 118, 132, 18, '#B91C1C', 'SECURITY OFFICE', WHITE, 6);
-    const open = Math.min(1, officeOpen / 12);
-    box(c, ox - 22, GROUND_Y - 100, 56, 100, '#0B0B0F');
-    box(c, ox - 22, GROUND_Y - 100, 56 * (1 - open * 0.85), 100, '#4B5563'); box(c, ox - 22 + 56 * (1 - open * 0.85) - 8, GROUND_Y - 54, 4, 8, '#FACC15');
-    // (the way out, into the light: the arch over the way into America USA)
-    const ex = R(CHECK_END);
-    box(c, ex - 30, CEIL_Y, 30, GROUND_Y - CEIL_Y, '#18181B');
-    sign(c, ex - 250, CEIL_Y + 30, 200, 26, '#FDE047', 'SMILE! YOU ARE ON CAMERA', INK, 6);
+    if (alarm > 0) { c.fillStyle = `rgba(239, 68, 68, ${on ? 0.25 : 0.1})`; c.fillRect(dx - 60, UPPER - 260, 200, 260); }
+    box(c, dx, UPPER - 110, 10, 110, '#9CA3AF'); box(c, dx + 70, UPPER - 110, 10, 110, '#9CA3AF'); box(c, dx - 2, UPPER - 116, 84, 10, '#6B7280');
+    box(c, dx + 30, UPPER - 124, 20, 8, alarm > 0 ? (on ? '#EF4444' : '#7F1D1D') : ((f >> 5) % 2 ? '#22C55E' : '#15803D'));
+    sign(c, dx - 20, UPPER - 150, 120, 16, '#FEF3C7', 'WALK THROUGH', '#7F1D1D', 6);
+    if (alarm > 0 && on) text(c, 'BEEP BEEP BEEP', dx + 40, UPPER - 170, '#EF4444', 8);
+    sign(c, R(CHECK_END) - 240, UPPER - 210, 200, 22, '#FDE047', 'SMILE! YOU ARE ON CAMERA', INK, 6);
+    flag(c, R(CHECK_END) - 10, UPPER - 200, f, 34, 22);
   }
 };
 
 /** A moving walkway: a steel tread (its grooves going by), the comb plates at each end, a glass side, the handrail. */
 const walkway = (c: Ctx, a: number, b: number, f: number) => {
-  box(c, a, GROUND_Y - 6, b - a, 6, '#9CA3AF'); box(c, a, GROUND_Y - 6, b - a, 1, '#E5E7EB');
+  box(c, a, UPPER - 6, b - a, 6, '#9CA3AF'); box(c, a, UPPER - 6, b - a, 1, '#E5E7EB');
   const off = (f * WALKWAY_SPEED) % 12;
-  for (let x = a + off; x < b; x += 12) box(c, x, GROUND_Y - 5, 2, 4, '#6B7280');
-  box(c, a - 16, GROUND_Y - 4, 16, 4, '#FACC15'); box(c, b, GROUND_Y - 4, 16, 4, '#FACC15');
-  c.fillStyle = 'rgba(186, 230, 253, 0.25)'; c.fillRect(a, GROUND_Y - 76, b - a, 70);
-  box(c, a, GROUND_Y - 80, b - a, 5, '#18181B');
-  for (let x = a + ((f * WALKWAY_SPEED) % 40); x < b; x += 40) box(c, x, GROUND_Y - 79, 10, 2, '#3F3F46');
-  box(c, a - 4, GROUND_Y - 84, 8, 84, '#71717A'); box(c, b - 4, GROUND_Y - 84, 8, 84, '#71717A');
+  for (let x = a + off; x < b; x += 12) box(c, x, UPPER - 5, 2, 4, '#6B7280');
+  box(c, a - 16, UPPER - 4, 16, 4, '#FACC15'); box(c, b, UPPER - 4, 16, 4, '#FACC15');
+  c.fillStyle = 'rgba(186, 230, 253, 0.25)'; c.fillRect(a, UPPER - 76, b - a, 70);
+  box(c, a, UPPER - 80, b - a, 5, '#18181B');
+  for (let x = a + ((f * WALKWAY_SPEED) % 40); x < b; x += 40) box(c, x, UPPER - 79, 10, 2, '#3F3F46');
+  box(c, a - 4, UPPER - 84, 8, 84, '#71717A'); box(c, b - 4, UPPER - 84, 8, 84, '#71717A');
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // America USA
 
 const america = (c: Ctx, f: number, vis: (a: number, b: number) => boolean) => {
-  const a = R(CHECK_END), b = R(USA_END);
+  const a = R(USA_START), b = R(USA_END);
   // The arch in: AMERICA USA, an eagle on top, stars round it
   const ax = a + 60;
   box(c, ax - 20, GROUND_Y - 330, 30, 330, '#F5F5F4'); box(c, ax + 240, GROUND_Y - 330, 30, 330, '#F5F5F4');
@@ -226,13 +276,13 @@ const america = (c: Ctx, f: number, vis: (a: number, b: number) => boolean) => {
   });
   void b;
   // The Fountain of Freedom: a bald eagle on a column, spitting water
-  const fx = R(6700);
+  const fx = R(6900);
   box(c, fx - 60, GROUND_Y - 30, 120, 30, '#D6D3D1'); box(c, fx - 56, GROUND_Y - 26, 112, 12, '#60A5FA');
   box(c, fx - 12, GROUND_Y - 160, 24, 130, '#E7E5E4'); eagle(c, fx, GROUND_Y - 170, 1);
   for (let i = 0; i < 6; i++) { const t = ((f * 2 + i * 10) % 60) / 60; box(c, fx + 14 + t * 40, GROUND_Y - 160 + t * t * 120, 3, 3, '#BFDBFE'); }
   sign(c, fx - 90, GROUND_Y - 220, 180, 18, '#FEF3C7', 'THE FOUNTAIN OF FREEDOM', '#7F1D1D', 6);
   // Carts out front: FREEDOM FRIES, EAGLE DOGS, apple pie on a stick
-  cart(c, R(6020), 'FREEDOM FRIES', RED); cart(c, R(7340), 'EAGLE DOGS', BLUE); cart(c, R(8300), 'PIE ON A STICK', '#B45309');
+  cart(c, R(6220), 'FREEDOM FRIES', RED); cart(c, R(7540), 'EAGLE DOGS', BLUE); cart(c, R(8500), 'PIE ON A STICK', '#B45309');
 };
 
 const lamp = (c: Ctx, x: number) => {

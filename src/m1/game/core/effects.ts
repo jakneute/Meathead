@@ -8,6 +8,11 @@ import { GameState } from './state';
 import { playSound, playGlassShatterSound } from '../platform/audio';
 import { say, isSpeaking, isTalking, canSpeak, pickFreshLine, announce, MEATHEAD_VOICE, announcerJustSpoke, silenceAll } from '../platform/speech';
 import { pickRandom } from './utils';
+
+/** What enemies drop, as the game playing has it: null, Meathead 1's mix; or a game's own chances (only small ones) of a
+ *  small health or a small ammo (Meathead 2: setDropTable). */
+let dropTable: { health: number; ammo: number } | null = null;
+export const setDropTable = (t: { health: number; ammo: number } | null) => { dropTable = t; };
 import { startEnemyDeath, EnemyDeathKind } from '../enemies/deaths';
 
 const MAX_PARTICLES = 2500;
@@ -164,6 +169,14 @@ export const createFx = (state: GameState) => {
     if (isRangeStage(state.stageId) || state.stageId === FINALE_STAGE) return;
     const r = Math.random(), ammo = byWave ? 0.12 : 0.24;
     let type: PickupType;
+    // (a game with its own, leaner drops: Meathead 2's)
+    if (dropTable) {
+      if (r < dropTable.health) type = 'small_health';
+      else if (r < dropTable.health + dropTable.ammo) type = 'small_ammo';
+      else return;
+      state.pickups.push({ id: `pickup-${Date.now()}-${Math.random()}`, pos: { ...pos }, vel: { x: (Math.random() - 0.5) * 4, y: -5 }, width: 20, height: 20, type, life: 600 });
+      return;
+    }
     if (r < 0.15) type = 'small_health';
     else if (r < 0.21) type = 'large_health';
     else if (r < 0.21 + ammo * 0.75) type = 'small_ammo';
