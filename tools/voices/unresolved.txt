@@ -21,24 +21,24 @@ m2/intro/index.ts:589 voice: now
 m2/intro/index.ts:599 voice: pick(GUEST_HURRY[dressed(state)])
 m2/intro/index.ts:633 voice: pick(TICKET_LADY[sc.kind])
 m2/intro/index.ts:685 voice: line
-m2/adventure/section.ts:119 voice: voice(voiceId)
+m2/adventure/section.ts:121 voice: voice(voiceId)
 m2/adventure/queue/talk.ts:32 voice: l.text
-m2/adventure/river/index.ts:307 voice: fromBag(rv, 'gkill', GUESTS_KILL)
-m2/adventure/river/index.ts:313 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
-m2/adventure/dino/index.ts:171 voice: pick(MAINT_OBLIVIOUS)
-m2/adventure/dino/rex.ts:320 voice: true
-m2/adventure/temple/index.ts:204 voice: text
-m2/adventure/temple/index.ts:244 voice: g.woman ? 'm2.guest' : 'm2.guest2'
-m2/adventure/temple/index.ts:253 voice: 'm2.guest'
-m2/adventure/temple/index.ts:253 voice: 'm2.guest2'
-m2/adventure/temple/index.ts:259 voice: 'm2.operator'
-m2/adventure/temple/index.ts:259 voice: 'm2.operator2'
+m2/adventure/river/index.ts:306 voice: fromBag(rv, 'gkill', GUESTS_KILL)
+m2/adventure/river/index.ts:312 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
+m2/adventure/dino/rex.ts:329 voice: true
+m2/adventure/dino/index.ts:177 voice: pick(MAINT_OBLIVIOUS)
+m2/adventure/temple/index.ts:208 voice: text
+m2/adventure/temple/index.ts:253 voice: g.woman ? 'm2.guest' : 'm2.guest2'
+m2/adventure/temple/index.ts:262 voice: 'm2.guest'
+m2/adventure/temple/index.ts:262 voice: 'm2.guest2'
+m2/adventure/temple/index.ts:268 voice: 'm2.operator'
+m2/adventure/temple/index.ts:268 voice: 'm2.operator2'
 m2/adventure/cart/index.ts:132 voice: text
-m2/adventure/cart/index.ts:232 voice: pick(ARTIE_CHASE_START[dressed(state)])
-m2/adventure/roof/index.ts:104 voice: text
-m2/adventure/clearing/index.ts:63 voice: text
-m2/adventure/clearing/fight.ts:202 voice: voice('m2.safari')
-m2/adventure/clearing/fight.ts:208 voice: pick(lines)
+m2/adventure/cart/index.ts:234 voice: pick(ARTIE_CHASE_START[dressed(state)])
+m2/adventure/roof/index.ts:133 voice: text
+m2/adventure/clearing/index.ts:130 voice: text
+m2/adventure/clearing/fight.ts:216 voice: voice('m2.safari')
+m2/adventure/clearing/fight.ts:222 voice: pick(lines)
 m1/App.tsx:241 voice: getBossVoice(selectedStage)
 m1/App.tsx:468 name: undefined
 m1/App.tsx:469 expr: null
