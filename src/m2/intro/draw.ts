@@ -35,7 +35,7 @@ export const drawIntroBack = (c: Ctx, state: GameState) => {
   const intro = getIntro(state);
   const cam = state.camera.x;
   const vis = (a: number, b: number) => b > cam - 100 && a < cam + CANVAS_WIDTH + 100;
-  if (vis(R(GARAGE_END), R(STAIRS_END))) deck(c, f, intro?.office.open ?? 0, intro?.alarm ?? 0, intro?.cool ?? 0, vis);
+  if (vis(R(GARAGE_END), R(STAIRS_END))) deck(c, f, intro?.office.open ?? 0, intro?.alarm ?? 0, intro?.cool ?? 0, vis, { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT * 0.42 });
   if (vis(X0 - 400, R(GARAGE_END))) garage(c, vis, truckNow(intro, f));
   const eye = { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT * 0.42 };
   if (vis(R(USA_START) - 600, R(USA_END))) america(c, f, vis, eye);

@@ -684,7 +684,68 @@ const paintCheck = (g: Ctx) => {
 };
 
 /** Out on the deck: the walkway's canopy and its ads on posts, the checkpoint's tents, its office, the metal detector. */
-export const deck = (c: Ctx, f: number, officeOpen: number, alarm: number, cool: number, vis: (a: number, b: number) => boolean) => {
+/** Where the camera's looking from (its middle, across and up): for the sides of things, going back from where he is. */
+export interface Eye { x: number; y: number }
+
+/**
+ * The side of something standing out in the open, going back from its front (at x = e, from `top` down to `bottom`)
+ * toward where he's looking: whichever side faces him, wider the further off to that side it is (the way the SNES
+ * faked depth). `depth`: how far back it goes (how much smaller its far end is: 1 none, less, deeper). `paint` puts the
+ * face's own detail on it, given where a point at (along, y) on it is drawn (along 0 at the front, 1 at the back).
+ */
+const sideFace = (c: Ctx, eye: Eye, e: number, side: 1 | -1, top: number, bottom: number, depth: number, col: string,
+  paint?: (pt: (along: number, y: number) => [number, number]) => void) => {
+  if ((eye.x - e) * side <= 2) return;
+  const pt = (k: number, y: number): [number, number] => { const d = 1 - (1 - depth) * k; return [eye.x + (e - eye.x) * d, eye.y + (y - eye.y) * d]; };
+  const [x1, t1] = pt(1, top), [, b1] = pt(1, bottom);
+  const r = rampOf(col);
+  c.fillStyle = r[1]; c.beginPath(); c.moveTo(e, top); c.lineTo(x1, t1); c.lineTo(x1, b1); c.lineTo(e, bottom); c.closePath(); c.fill();
+  // (in steps going back: darker the further)
+  for (const [k0, k1, shade] of [[0.45, 0.75, 'rgba(10, 12, 30, 0.14)'], [0.75, 1, 'rgba(10, 12, 30, 0.26)']] as const) {
+    const [xa, ta] = pt(k0, top), [, ba] = pt(k0, bottom), [xb, tb] = pt(k1, top), [, bb] = pt(k1, bottom);
+    c.fillStyle = shade; c.beginPath(); c.moveTo(xa, ta); c.lineTo(xb, tb); c.lineTo(xb, bb); c.lineTo(xa, ba); c.closePath(); c.fill();
+  }
+  paint?.(pt);
+  // (its edges: the near corner lit, the far one inked)
+  box(c, e - (side > 0 ? 0 : 1), top, 1, bottom - top, r[3]);
+  c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(e, top); c.lineTo(x1, t1); c.lineTo(x1, b1); c.stroke();
+};
+const line = (c: Ctx, a: [number, number], b: [number, number], col: string, w = 1) => { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke(); };
+
+/** Out on the deck: the garage's end wall going back (its levels, their openings, the railings), and the security
+ *  office's side (its siding, a little window), as he goes by them. Drawn first: everything else out there is in front. */
+const outdoorSides = (c: Ctx, eye: Eye, vis: (a: number, b: number) => boolean) => {
+  // The garage, from outside: a big concrete parking structure going a long way back, a level every 170
+  if (vis(GX1 - 40, GX1 + 700)) sideFace(c, eye, GX1, 1, CEIL_Y - 520, UPPER + 160, 0.5, '#7C7C86', pt => {
+    for (let lv = 0; lv < 4; lv++) {
+      const slabY = UPPER - lv * 170 - (lv ? 0 : 0), openTop = slabY - 150;
+      // (the opening of that level: dark, the parked cars' roofs showing in it, the railing along it)
+      const p0 = pt(0.04, openTop), p1 = pt(0.96, openTop), p2 = pt(0.96, slabY - 22), p3 = pt(0.04, slabY - 22);
+      c.fillStyle = '#1C1C22'; c.beginPath(); c.moveTo(...p0); c.lineTo(...p1); c.lineTo(...p2); c.lineTo(...p3); c.closePath(); c.fill();
+      for (let k = 0.12; k < 0.95; k += 0.16) { const a = pt(k, slabY - 40), b = pt(k + 0.1, slabY - 40); line(c, a, b, '#3A3A44', 8); }
+      line(c, pt(0.04, slabY - 26), pt(0.96, slabY - 26), '#A8A8B0', 2);
+      for (let k = 0.04; k <= 0.96; k += 0.08) line(c, pt(k, slabY - 26), pt(k, slabY - 6), '#8A8A92', 1);
+      // (the slab's edge, lit; the level's stripe and number)
+      line(c, pt(0, slabY), pt(1, slabY), '#B4B4BC', 3);
+      line(c, pt(0, slabY - 4), pt(0.35, slabY - 4), lv % 2 ? '#1E3A8A' : '#B91C1C', 2);
+    }
+    // (the columns at the corners going up it)
+    for (const k of [0.02, 0.5, 0.98]) line(c, pt(k, CEIL_Y - 520), pt(k, UPPER + 160), '#5C5C66', 4);
+  });
+  // The security office's sides: tan siding, the courses running back along it, a little window, the roof's edge
+  const ox = R(OFFICE_X), top = UPPER - 156;
+  if (vis(ox - 400, ox + 400)) for (const [e, side] of [[ox - 120, -1], [ox + 120, 1]] as const) sideFace(c, eye, e, side, top, UPPER, 0.84, '#D4CCBA', pt => {
+    for (let y = top + 14; y < UPPER - 4; y += 10) line(c, pt(0, y), pt(1, y), 'rgba(110, 100, 80, 0.45)');
+    const w0 = pt(0.3, UPPER - 118), w1 = pt(0.7, UPPER - 118), w2 = pt(0.7, UPPER - 82), w3 = pt(0.3, UPPER - 82);
+    c.fillStyle = INK; c.beginPath(); c.moveTo(...w0); c.lineTo(...w1); c.lineTo(...w2); c.lineTo(...w3); c.closePath(); c.fill();
+    const g = 2; c.fillStyle = '#5E8CB8'; c.beginPath(); c.moveTo(w0[0] + side * -g, w0[1] + g); c.lineTo(w1[0] - side * -g, w1[1] + g); c.lineTo(w2[0] - side * -g, w2[1] - g); c.lineTo(w3[0] + side * -g, w3[1] - g); c.closePath(); c.fill();
+    line(c, pt(0, top + 4), pt(1, top + 4), '#111827', 5);
+    line(c, pt(0, UPPER - 8), pt(1, UPPER - 8), '#6A6A66', 4);
+  });
+};
+
+export const deck = (c: Ctx, f: number, officeOpen: number, alarm: number, cool: number, vis: (a: number, b: number) => boolean, eye: Eye) => {
+  outdoorSides(c, eye, vis);
   if (vis(R(GARAGE_END), R(HALL_END))) chunked(c, 'm2u-deck', GX1, R(HALL_END), CEIL_Y - 40, UPPER - CEIL_Y + 40, paintDeck);
   if (vis(R(HALL_END), R(STAIRS_END))) {
     chunked(c, 'm2u-chk', R(HALL_END), R(CHECK_END), UPPER - 300, 300, (g: Ctx) => paintCheck(g));
