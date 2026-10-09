@@ -195,6 +195,12 @@ export const drawRiverBack = (c: Ctx, state: GameState, rv: River) => {
   g.addColorStop(0, '#0E7490'); g.addColorStop(1, '#082F49');
   c.fillStyle = g; c.fillRect(R(DOCK), WS, PIPE.x2 - DOCK, 1040 - WS);
   box(c, R(TUNNEL.x1), CEIL, TUNNEL.x2 - TUNNEL.x1, 420, 'rgba(2, 6, 23, 0.35)');
+  // (the whole of it gone red with what's died in it, brown with what he's put in it: behind everything in it)
+  const st = rv.stain;
+  if (st.red > 0.005) box(c, R(DOCK), WS, PIPE.x2 - DOCK, 1040 - WS, `rgba(168, 10, 18, ${(st.red * 0.72).toFixed(3)})`);
+  if (st.brown > 0.005) box(c, R(DOCK), WS, PIPE.x2 - DOCK, 1040 - WS, `rgba(104, 68, 22, ${(st.brown * 0.62).toFixed(3)})`);
+  // (the clouds of it, thick, behind what's in the water: they're only a veil over it, in front)
+  drawClouds(c, state, st.clouds, 1);
   if (seen(state, R(DOCK), R(FALLS.x + 200))) drawBankShow(c, state);
   // The rides graveyard's junk that isn't solid: a carousel horse on its pole, a sign
   if (seen(state, R(6600), R(7300))) {
@@ -217,11 +223,39 @@ export const drawRiverBack = (c: Ctx, state: GameState, rv: River) => {
   if (rv.boat.block && seen(state, rv.boat.x - 40, rv.boat.x + BOAT.w + 40)) drawBoat(c, state, rv);
 };
 
+/** The clouds in the water (blood, and his): soft blobs, see-through, kept under the surface. */
+const drawClouds = (c: Ctx, state: GameState, clouds: River['stain']['clouds'], k: number) => {
+  if (!clouds.length) return;
+  c.save();
+  c.beginPath(); c.rect(state.camera.x - 20, WS, CANVAS_WIDTH + 40, 1040 - WS); c.clip();
+  for (const o of clouds) {
+    if (!seen(state, o.x - o.r, o.x + o.r) || o.y + o.r < state.camera.y || o.y - o.r > state.camera.y + CANVAS_HEIGHT) continue;
+    const a = Math.min(1, o.a) * 0.8 * k, rgb = o.blood ? '178, 12, 22' : '112, 72, 22';
+    const g = c.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+    g.addColorStop(0, `rgba(${rgb}, ${a.toFixed(3)})`); g.addColorStop(0.55, `rgba(${rgb}, ${(a * 0.6).toFixed(3)})`); g.addColorStop(1, `rgba(${rgb}, 0)`);
+    c.fillStyle = g; c.beginPath(); c.arc(o.x, o.y, o.r, 0, Math.PI * 2); c.fill();
+  }
+  c.restore();
+};
+
 export const drawRiverFront = (c: Ctx, state: GameState, rv: River) => {
   if (!seen(state, x0 - 200, x1)) return;
   const f = state.frame, p = state.player;
   // The water over everything in it: a tint, the surface's lit line (wavy), the falls coming down in front of the rock
   c.fillStyle = 'rgba(14, 116, 144, 0.16)'; c.fillRect(R(DOCK), WS, PIPE.x2 - DOCK, 1040 - WS);
+  // (red with the body count, brown with him: a veil over what's in it, only in the water, not over the rock)
+  const st = rv.stain;
+  if (st.red + st.brown > 0.01 || st.clouds.length) {
+    const a0 = Math.max(R(DOCK), state.camera.x - 20), b0 = Math.min(R(PIPE.x2), state.camera.x + CANVAS_WIDTH + 20);
+    c.save();
+    c.beginPath(); c.moveTo(a0, 1040);
+    for (let x = a0; x <= b0 + 8; x += 8) c.lineTo(Math.min(x, b0), Math.max(WS, roofAt(Math.min(x, b0) - x0)));
+    c.lineTo(b0, 1040); c.closePath(); c.clip();
+    if (st.red > 0.005) { c.fillStyle = `rgba(168, 10, 18, ${(st.red * 0.1).toFixed(3)})`; c.fillRect(a0, WS, b0 - a0, 1040 - WS); }
+    if (st.brown > 0.005) { c.fillStyle = `rgba(104, 68, 22, ${(st.brown * 0.1).toFixed(3)})`; c.fillRect(a0, WS, b0 - a0, 1040 - WS); }
+    drawClouds(c, state, st.clouds, 0.3);
+    c.restore();
+  }
   c.fillStyle = 'rgba(186, 230, 253, 0.8)';
   const a = Math.max(R(DOCK), state.camera.x - 20), b = Math.min(R(PIPE.x2), state.camera.x + CANVAS_WIDTH + 20);
   for (let x = a - (a % 16); x < b; x += 16) if (roofAt(x - x0) <= WS) c.fillRect(x, WS - 2 + Math.sin(x * 0.05 + f * 0.08) * 1.5, 10, 2);

@@ -258,10 +258,13 @@ const boa = (ctx: FrameContext, e: Enemy) => {
 const drawBoa = (c: Ctx, e: Enemy, f: number) => {
   // (the branch it's wrapped round, back from its head: in its own coordinates, turned with it)
   // (torn off it, in his fist or flying: the tail just hangs off it, whipping about)
-  const loose = e.aiState === 'loose' || !!e.isBlownAway;
+  // (and with no branch to tie it back to: its death animation's stand-in has no homeY, which strung it up to y = 0;
+  // or knocked or squeaked free well out of reach of it)
   const fx = e.facing ?? 1;
   const hx = 0, hy = -e.height / 2;
-  const ax = loose ? -34 + Math.sin(f * 0.4) * 6 : ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fx, ay = loose ? hy + 30 : (e.homeY ?? 0) - (e.pos.y + e.height);
+  const toBranch = { x: ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fx, y: (e.homeY ?? 0) - (e.pos.y + e.height) };
+  const loose = e.aiState === 'loose' || !!e.isBlownAway || e.homeY === undefined || e.homeX === undefined || !(Math.hypot(toBranch.x, toBranch.y) < BOA_HANG + BOA_REACH + 40);
+  const ax = loose ? -34 + Math.sin(f * 0.4) * 6 : toBranch.x, ay = loose ? hy + 30 : toBranch.y;
   // wrapped coils at the branch
   c.fillStyle = '#3F6B21';
   if (!loose) for (let i = -1; i <= 1; i++) { c.beginPath(); c.ellipse(ax + i * 9, ay, 7, 9, 0, 0, Math.PI * 2); c.fill(); }

@@ -128,6 +128,8 @@ const drawEel = (c: Ctx, e: Enemy, f: number) => {
 // Snapper: rooted at homeX (its middle), homeY (the riverbed); the head (the enemy) on its stalk above
 
 const SNAP_SEES = 170;
+/** The longest its stalk ever gets (its head to its root, snapping straight up is about 180): any further, it's not on it. */
+const SNAP_STALK = 210;
 const snapper = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, p = state.player, pm = mid(p);
   const rx = e.homeX ?? e.pos.x, ry = e.homeY ?? e.pos.y;
@@ -151,9 +153,13 @@ const snapper = (ctx: FrameContext, e: Enemy) => {
 const drawSnapper = (c: Ctx, e: Enemy, f: number) => {
   // (the stalk back down to its root, in the enemy's own space: feet at 0,0 facing right)
   // (torn off its stalk, in his fist or flying: a ragged stub of it hanging off, no roots)
-  const loose = e.aiState === 'loose' || !!e.isBlownAway;
+  // (and with no root to be tied back to: its death animation draws it from a stand-in with no homeY, which tied the
+  // stalk to y = 0, a long green line up off the top of the world; or knocked or squeaked free well out of its
+  // stalk's reach, on its way back to plant itself)
   const fc = e.facing ?? 1;
-  const rx = loose ? -10 + Math.sin(f * 0.3) * 3 : ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fc, ry = loose ? 4 : (e.homeY ?? 0) - (e.pos.y + e.height);
+  const toRoot = { x: ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fc, y: (e.homeY ?? 0) - (e.pos.y + e.height) };
+  const loose = e.aiState === 'loose' || !!e.isBlownAway || e.homeY === undefined || e.homeX === undefined || !(Math.hypot(toRoot.x, toRoot.y) < SNAP_STALK);
+  const rx = loose ? -10 + Math.sin(f * 0.3) * 3 : toRoot.x, ry = loose ? 4 : toRoot.y;
   c.strokeStyle = '#166534'; c.lineWidth = 6;
   c.beginPath(); c.moveTo(0, -e.height / 2); c.quadraticCurveTo(rx * 0.3 + Math.sin(f * 0.05) * 6, ry * 0.5, rx, ry); c.stroke();
   if (loose) { c.fillStyle = '#A3E635'; c.beginPath(); c.arc(rx, ry, 3, 0, Math.PI * 2); c.fill(); }

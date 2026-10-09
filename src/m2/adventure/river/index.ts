@@ -57,6 +57,10 @@ const TOUR_RIDE = 4;
 
 export type BoatPhase = 'moored' | 'ride' | 'stalled' | 'jumped';
 export interface Bubble { x: number; y: number; r: number; vy: number }
+/** A cloud in the water: blood off something he killed in it, or what's coming out of his pants. */
+export interface Cloud { x: number; y: number; r: number; a: number; vx: number; vy: number; blood: boolean }
+/** The river's state of it: how red and how brown the whole of it's got (0 to 1, seeping toward the `To`s), the clouds. */
+export interface Stain { red: number; redTo: number; brown: number; brownTo: number; clouds: Cloud[]; bled: WeakSet<object>; recent: Map<object, { x: number; y: number; at: number }>; shatIn: boolean }
 export interface River {
   talk: Talk;
   boat: { x: number; v: number; phase: BoatPhase; block: ReturnType<typeof ledge> | null; onFor: number; rode: boolean; tour: number; n: number; smoke: number };
@@ -68,6 +72,7 @@ export interface River {
   said: Set<string>;
   guests: Guest[]; guestNext: number; tankDead: number;
   suck: number;
+  stain: Stain;
 }
 export const getRiver = (state: GameState) => sectionState<River>(state, 'river', () => ({
   talk: talk(),
@@ -75,6 +80,7 @@ export const getRiver = (state: GameState) => sectionState<River>(state, 'river'
   artieSaid: null, artieRadio: false, static: 0, bags: {},
   o2: 1, lowSaid: false, drownT: 0, bubbles: [], said: new Set(),
   guests: [], guestNext: 200, tankDead: 0, suck: 0,
+  stain: { red: 0, redTo: 0, brown: 0, brownTo: 0, clouds: [], bled: new WeakSet(), recent: new Map(), shatIn: false },
 }));
 
 /** A line from a pool, never the same one twice running (and round all of them before any comes again). */
@@ -296,6 +302,69 @@ const updateDrain = (state: GameState, rv: River) => {
   if (rx > SUCK_AT) { rv.suck = 1; rv.talk.q = []; rv.talk.q.push(mh(MEATHEAD_UNDER.sucked)); }
 };
 
+/** How much redder the river gets for each thing killed in it, and how red it can get (about a dozen kills). */
+const RED_PER_KILL = 0.075, RED_MAX = 0.9;
+/** How brown it gets with him in it in shitty pants: a splash's worth going in, then up to the most in about 40 seconds. */
+const BROWN_IN = 0.1, BROWN_PER_FRAME = 1 / 2400, BROWN_MAX = 0.9;
+/** How fast the whole of it takes on what's been put in it (the clouds spreading out into it). */
+const SEEP = 0.006;
+const MAX_CLOUDS = 90;
+
+/**
+ * The water fouled: blood off whatever dies in it (a cloud where it happened, drifting and spreading, slowly fading
+ * into the whole river going redder with the body count), and in shitty pants, a brown cloud off his seat and the
+ * river going browner the longer he's in it. It all lasts the visit (dying, it's a fresh river).
+ */
+const updateStain = (ctx: FrameContext, rv: River) => {
+  const { state } = ctx, p = state.player, st = rv.stain;
+  const wet = (x: number, y: number) => inWater(x - x0, y);
+  const cloud = (x: number, y: number, blood: boolean, n: number, r: number) => {
+    for (let i = 0; i < n; i++) st.clouds.push({ x: x + (Math.random() - 0.5) * r, y: y + (Math.random() - 0.5) * r * 0.7, r: r * (0.5 + Math.random() * 0.5), a: blood ? 0.55 : 0.5, vx: (Math.random() - 0.5) * (blood ? 1.4 : 0.6), vy: (Math.random() - 0.6) * 0.5, blood });
+  };
+  const kill = (x: number, y: number) => { st.redTo = Math.min(RED_MAX, st.redTo + RED_PER_KILL); cloud(x, y, true, 5, 26); };
+  for (const [k, r] of st.recent) if (state.frame - r.at > 60) st.recent.delete(k);
+  // What's died in the water (as it dies, or a body flung into it later). (A body flung through it that's then done
+  // for where it lands is the one kill: it's bled already, it just bleeds some more.)
+  for (const d of state.enemyDeaths) {
+    if (st.bled.has(d)) continue;
+    const x = d.x + d.w / 2, y = d.y + d.h / 2;
+    if (d.x - x0 < -200 || d.x - x0 > PIPE.x2 + 200 || !wet(x, y)) continue;
+    st.bled.add(d);
+    if ([...st.recent.values()].some(r => Math.abs(r.x - x) < 140 && Math.abs(r.y - y) < 140)) cloud(x, y, true, 2, 20);
+    else kill(x, y);
+  }
+  // (the bodies flung off flying: the ones dropped where they died leave their death behind them, above)
+  for (const e of state.enemies) {
+    if (!e.isBlownAway) continue;
+    const x = e.pos.x + e.width / 2, y = e.pos.y + e.height / 2;
+    if (!wet(x, y)) continue;
+    st.recent.set(e, { x, y, at: state.frame });
+    if (!st.bled.has(e)) { st.bled.add(e); kill(x, y); }
+    // (a body flying on through it trails it)
+    else if (state.frame % 5 === 0 && Math.abs(e.vel.x) + Math.abs(e.vel.y) > 1.5) cloud(x, y, true, 1, 14);
+  }
+  // Him, in it in shitty pants: a splash of it going in, then a cloud off his seat as he goes, the river browner and browner
+  if (p.swimming && isShat(state)) {
+    const sx = p.pos.x + p.width / 2 - p.facing * 8, sy = p.pos.y + p.height - 22;
+    if (!st.shatIn) { st.shatIn = true; st.brownTo = Math.min(BROWN_MAX, st.brownTo + BROWN_IN); cloud(sx, Math.max(sy, WS + 14), false, 6, 30); }
+    st.brownTo = Math.min(BROWN_MAX, st.brownTo + BROWN_PER_FRAME);
+    if (state.frame % 10 === 0 && sy > WS) cloud(sx, sy, false, 1, 16);
+  } else if (!p.swimming) st.shatIn = false;
+  st.red += (st.redTo - st.red) * SEEP;
+  st.brown += (st.brownTo - st.brown) * SEEP;
+  // The clouds: drifting, spreading, fading out into the rest of it; kept in the water
+  st.clouds = st.clouds.filter(c => {
+    c.x += c.vx; c.y += c.vy; c.vx *= 0.985; c.vy = c.vy * 0.985 + Math.sin((state.frame + c.x) * 0.01) * 0.004;
+    c.r = Math.min(c.blood ? 80 : 90, c.r + 0.06);
+    c.a -= c.blood ? 0.0006 : 0.0005;
+    const rx = c.x - x0, top = Math.max(WS, roofAt(rx)) + c.r * 0.5, bottom = bedAt(rx) - c.r * 0.3;
+    if (c.y < top) { c.y = top; c.vy = Math.abs(c.vy) * 0.3; }
+    if (c.y > bottom) { c.y = bottom; c.vy = -Math.abs(c.vy) * 0.3; }
+    return c.a > 0 && rx > DOCK && rx < PIPE.x2;
+  });
+  if (st.clouds.length > MAX_CLOUDS) st.clouds.splice(0, st.clouds.length - MAX_CLOUDS);
+};
+
 /** The guests behind the tank's glass: a word as he goes by, and when he kills something in there. */
 const updateGallery = (state: GameState, rv: River) => {
   const p = state.player, cx = p.pos.x + p.width / 2, rx = cx - x0;
@@ -334,6 +403,7 @@ export const river: Section = {
     updateBoat(state, rv);
     updateGallery(state, rv);
     updateDrain(state, rv);
+    updateStain(ctx, rv);
     // Saying things the once each, swimming past them
     if (p.swimming) for (const [x, k] of CALLOUTS) if (rx > x && !rv.said.has(k)) { rv.said.add(k); if (rv.talk.q.length < 2) rv.talk.q.push(mh(MEATHEAD_UNDER[k])); }
     stepTalk(state, rv.talk);
@@ -342,7 +412,8 @@ export const river: Section = {
   waterBodyAt: (_state, x, y) => {
     const rx = x - x0;
     if (rx <= DOCK || rx >= PIPE.x2 || y < WS - 12 || y > bedAt(rx) + 10) return null;
-    return { key: 'river', x1: R(DOCK), x2: R(PIPE.x2), surface: WS, bottom: 1020, kind: 'clean' };
+    // (its surface, for what floats up to it or spreads out over it: under the tunnel's roof, the rock's where it stops)
+    return { key: 'river', x1: R(DOCK), x2: R(PIPE.x2), surface: Math.max(WS, roofAt(rx)), bottom: 1020, kind: 'clean' };
   },
   cameraX: () => ({ min: x0, max: x1 - CANVAS_WIDTH }),
   drawBackdrop: (c, state) => drawRiverBackdrop(c, state),

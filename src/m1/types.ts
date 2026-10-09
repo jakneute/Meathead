@@ -235,6 +235,8 @@ export interface Player extends Entity {
    * `th` how far over the vine's swung (radians, + to the right), `om` how fast it's swinging. */
   /** Sat back in a mine cart (Meathead 2's): lounging, leaning back, the free arm draped open over the back of it. */
   cartSeat?: boolean;
+  /** The whole of him drawn turned (radians, about his feet): sat in a cart that's going up a loop. */
+  spriteRot?: number;
   /** Frames since he was last on the ground. */
   offGround?: number;
   vine?: { mode: 'hang' | 'climb' | 'zipUp' | 'zipDown' | 'push'; th: number; om: number };

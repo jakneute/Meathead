@@ -61,6 +61,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.save();
   // (pumped up: drawn bigger, from his feet)
   if (buffs.size !== 1) { const fx0 = p.pos.x + p.width / 2, fy0 = p.pos.y + p.height; ctx.translate(fx0, fy0); ctx.scale(buffs.size, buffs.size); ctx.translate(-fx0, -fy0); }
+  // (turned as a whole, about his feet: sat in a cart going up a loop)
+  if (p.spriteRot) { const fx0 = p.pos.x + p.width / 2, fy0 = p.pos.y + p.height; ctx.translate(fx0, fy0); ctx.rotate(p.spriteRot); ctx.translate(-fx0, -fy0); }
 
   // 1. Filth Shield Aura
   if (p.filthShieldTimer && p.filthShieldTimer > 0 && !state.victoryString && showFilthShield) {
@@ -228,6 +230,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // (on the flat: lowest with his feet apart, a moment after the front one lands and takes the weight; up over the
   // leg he's standing on as the other passes it)
   const walkBob = 2.2 * (1 - Math.abs(Math.cos(walkPhase - 0.3)));
+  // (going backward, facing the other way: a backpedal, slower, its own steps)
+  const backpedal = isWalking && !slopeLegs && Math.sign(p.vel.x) === -p.facing;
+  const backPhase = (animFrame * 0.22) % (Math.PI * 2);
   // 0 rising fast .. 1 falling fast
   const airFall = Math.max(0, Math.min(1, (p.vel.y + 6) / 12));
 
@@ -301,7 +306,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isWalking) {
     // (on a slope or stairs: at his highest passing one foot by the other, his lowest with them apart; and carried a
     // little higher than he stands there, the steeper it is, the foot down the slope pushing off its toe)
-    bodyY = slopeLegs ? -(1 - Math.abs(walkStride)) * 1.5 - Math.min(4, Math.abs(p.stance!.l - p.stance!.r) * 0.35) : walkBob;
+    bodyY = slopeLegs ? -(1 - Math.abs(walkStride)) * 1.5 - Math.min(4, Math.abs(p.stance!.l - p.stance!.r) * 0.35) : backpedal ? 1.6 * (1 - Math.abs(Math.cos(backPhase - 0.3))) : walkBob;
   } else if (isIdle) {
     bodyY = -idleBreath * 0.5;
   } else if (isSwimming) {
@@ -599,6 +604,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     };
     leg(-4, -4 + reach * walkStride, Math.max(0, swing) * lift, true);
     leg(4, 4 - reach * walkStride, Math.max(0, -swing) * lift, false);
+  } else if (isWalking && backpedal) {
+    // Backing up, facing held the other way (aiming, say): shorter, careful steps, the toe reaching back and down first,
+    // the foot rolling onto its heel as he comes back over it, then picked up and set back again behind him
+    walkBackLeg(ctx, -4, backPhase + Math.PI * 1.5, bodyY, bodyRot, true);
+    walkBackLeg(ctx, 4, backPhase + Math.PI * 0.5, bodyY, bodyRot, false);
   } else if (isWalking) {
     // A real stride, a heavy man's: each boot planted flat on the ground and the body carried over it (the foot stays
     // put while he goes by it), the heel lifting and the toe pushing off behind him, then the knee driven up and
@@ -1367,6 +1377,29 @@ const walkLeg = (ctx: CanvasRenderingContext2D, hipX: number, phase: number, bod
     x = -WALK_REACH + e * WALK_REACH * 2;
     y = -Math.sin(Math.PI * Math.pow(k, 0.75)) * WALK_LIFT - 4.5 * Math.max(0, 1 - k / 0.25) - 1.8 * Math.max(0, (k - 0.8) / 0.2);
     a = Math.max(0, 1 - k * 2.2) * 0.35 - k * 0.3;
+  }
+  drawSlopeLeg(ctx, hipX, hipX + x, y, a, bodyY, bodyRot, back, false);
+};
+
+/** One leg backpedaling, `phase` round its step: planted (toe first, rolling back onto the heel) and carried back under
+ *  him as he goes, then lifted (not high: careful) and reached back behind him for the next. */
+const BACK_REACH = WALK_REACH * 0.7;
+const walkBackLeg = (ctx: CanvasRenderingContext2D, hipX: number, phase: number, bodyY: number, bodyRot: number, back: boolean) => {
+  const u = ((phase / (Math.PI * 2)) % 1 + 1) % 1;
+  let x: number, y: number, a: number;
+  if (u < 0.6) {
+    // Down: from behind him to out in front (he's going back over it), the toe down first, then flat, then the toe up
+    const k = u / 0.6;
+    x = -BACK_REACH + k * BACK_REACH * 2;
+    const toe = Math.max(0, 1 - k / 0.15), heel = Math.max(0, (k - 0.75) / 0.25);
+    a = toe * 0.3 - heel * 0.35;
+    y = -toe * 2 - heel * 3;
+  } else {
+    // Up: picked up off the heel and set back behind him
+    const k = (u - 0.6) / 0.4, e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+    x = BACK_REACH - e * BACK_REACH * 2;
+    y = -Math.sin(Math.PI * k) * WALK_LIFT * 0.6 - 3;
+    a = -0.2 + k * 0.45;
   }
   drawSlopeLeg(ctx, hipX, hipX + x, y, a, bodyY, bodyRot, back, false);
 };
