@@ -7,11 +7,12 @@
 //   bottom: it doesn't swing; up/down climbs it, and climbing up past the top of one that runs up onto a ledge puts him
 //   up on the ledge (stood at the top, down takes hold of it again, to go back down).
 //
-//   Charge + up: off it in an uppercut, faster and higher than off the ground (to get up onto things, and through
-//   whatever's up there). Charge + down: off it in a dive kick. Both the engine's own moves (a power cell each).
-//   Charge (or charge + left/right) on a swinging vine: the push, a shoulder charge into the swing (a power cell, like
-//   any charge), the swing driven hard that way, and anything in his way hit like a charge hits it. Charge on a
-//   climbing vine: the quick climb, up it in a rush (and up onto the ledge, if it goes to one).
+//   Charge + up: the aggressive ascent, up it in a rush, hitting whatever's in the way like an uppercut; charge +
+//   down: the aggressive descent, down it in a rush, like a dive kick (a power cell each). He stays on it: each stops at
+//   the end of the vine (holding the way it went doesn't carry him off the end of it, over a pit, till it's let go).
+//   Charge on a climbing vine: the ascent too. Charge (or charge + left/right) on a swinging vine: the push, a shoulder
+//   charge into the swing (a power cell, like any charge), the swing driven hard that way, anything in his way hit like
+//   a charge hits it. Charging never takes him off a vine: jumping off does, or getting hit.
 //
 //   He can shoot the whole time he's on one (left/right turns him). Hurt on one, he's knocked off it.
 
@@ -22,6 +23,7 @@ import type { Rect } from '../../../m1/types';
 import { PLAYER_MOVE_SPEED } from '../../../m1/constants';
 import { rectsOverlap } from '../../../m1/game/core/utils';
 import { meatheadSays } from '../section';
+import { playSound } from '../../../m1/game/platform/audio';
 import { jungleOf, type Hold, type VineRun } from './state';
 import { FIRST_VINE } from './lines';
 
@@ -39,8 +41,6 @@ export interface VineDef {
 /** (gravity on a swing, the pump, the push, the cap on how high it goes) */
 const G = 0.55, PUMP = 0.16, PUSH = 4.2, MAX_TH = 1.3;
 const CLIMB = 2.6, ZIP_UP = 10, ZIP_DOWN = 12;
-/** How much faster (and so higher) an uppercut off a vine goes than one off the ground. */
-const VINE_UPPERCUT = 1.5;
 /** Not right up against the branch: his hands this far down it at the highest. */
 const MIN_S = 18;
 /** How close his hands have to come to a vine to take hold of it. */
@@ -86,6 +86,8 @@ const letGo = (state: GameState, defs: VineDef[], h: Hold, c: Controls, jump: bo
   const p = state.player, i = h.on, d = defs[i], v = jungleOf(state).vines[i];
   const dir = (c.right ? 1 : 0) - (c.left ? 1 : 0);
   p.carried = false; p.vine = undefined;
+  if (h.aggro) { p.isUppercutting = false; p.isDivekicking = false; }
+  h.aggro = false; h.held = 0;
   h.on = -1; h.last = i; h.cd = 40; h.anyCd = 8; h.zip = 0;
   if (knocked) { h.fling = null; return; }
   let vx = d.kind === 'swing' ? h.s * v.om * Math.cos(v.th) : 0;
@@ -195,21 +197,21 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Co
   if (specialIn && !h.specialLatch && !pushing && h.zip === 0) {
     h.specialLatch = true;
     const can = ctx.cheats.infinitePower || p.power >= 1;
-    if (c.up !== c.down && can) {
-      // Up: off it in an uppercut, faster and higher than off the ground, the swing's way with it; down: off it in a
-      // dive kick. (The engine's own moves: a power cell, and hitting like them)
-      const up = !!c.up;
-      letGo(state, defs, h, c, false);
-      if (up) { p.uppercutBoost = VINE_UPPERCUT; p.vel.y = Math.min(p.vel.y, 0); }
-      return { ...c, left: false, right: false, jump: false, up, down: !up, special: true, charge: false };
-    }
-    if (d.kind === 'swing' && can && !c.up && !c.down) {
+    if (((c.up !== c.down) || (d.kind === 'climb' && !dir)) && can) {
+      // Up (or, on a climbing vine, charge alone): the aggressive ascent, up it in a rush, hitting whatever's in the way
+      // like an uppercut; down: the aggressive descent, like a dive kick. A power cell. He stays on it: it stops at
+      // the top, or the bottom (no going off the end of it over a pit)
+      h.zip = c.down ? 1 : -1; h.aggro = true;
+      if (!ctx.cheats.infinitePower) p.power -= 1;
+      p.moveId = (p.moveId || 0) + 1; p.uppercutHitIds = []; p.diveKickHitIds = [];
+      playSound('whoosh', 1, h.zip < 0 ? 3 : -4);
+    } else if (d.kind === 'swing' && can && !c.up && !c.down) {
       // The push (a swinging vine only): the way he's holding, or the way he's swinging (or facing, at the top of it)
       const pd = dir || (Math.abs(v.om) > 0.004 ? Math.sign(v.om) : p.facing);
       p.facing = pd as 1 | -1;
       v.om += (pd * PUSH) / h.s;
       special = true;
-    } else if (d.kind === 'climb' && !dir && !c.up && !c.down) h.zip = -1;
+    }
   }
   if (pushing) special = !!(c.special || c.charge);
 
@@ -218,27 +220,34 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Co
 
   // Climbing (or zipping)
   const s0 = h.s;
+  // (the way a zip went, still held after it: that end of the vine's the end of it, till it's let go)
+  if (h.held === -1 && !c.up) h.held = 0;
+  if (h.held === 1 && !c.down) h.held = 0;
   if (h.zip === -1) h.s -= ZIP_UP;
   else if (h.zip === 1) h.s += ZIP_DOWN;
   else if (c.up && !c.down) h.s -= CLIMB;
   else if (c.down && !c.up) {
-    // (down at the bottom: off it)
-    if (h.s >= lowest(d) - 0.5) { letGo(state, defs, h, c, false); h.specialLatch = !!(c.special || c.charge); return hands(c); }
+    // (down at the bottom: off it; not straight off the end of a zip down, though)
+    if (h.s >= lowest(d) - 0.5) { if (h.held === 1) { h.s = lowest(d); } else { letGo(state, defs, h, c, false); h.specialLatch = !!(c.special || c.charge); return hands(c); } }
     h.s += CLIMB;
   }
   if (h.s <= MIN_S) {
     h.s = MIN_S;
     // (up off the top, onto the ledge it goes up to)
-    const top = (h.zip === -1 || c.up) ? d.top ?? ledgeNear(state, atS(d, v.th, h.s)) : undefined;
+    const top = ((h.zip === -1 && !h.aggro) || (c.up && h.zip === 0 && h.held !== -1)) ? d.top ?? ledgeNear(state, atS(d, v.th, h.s)) : undefined;
     if (top) {
       letGo(state, defs, h, c, false, true);
       p.pos.x = top.x - p.width / 2; p.pos.y = top.y - p.height - 1; p.vel.x = 0; p.vel.y = 0;
       h.jumpLatch = !!c.jump; h.specialLatch = !!(c.special || c.charge); h.downLatch = !!c.down; h.downT = 0;
       return hands(c);
     }
-    if (h.zip === -1) h.zip = 0;
+    if (h.zip === -1) { if (h.aggro) h.held = -1; h.zip = 0; }
   }
-  if (h.s >= lowest(d)) { h.s = lowest(d); if (h.zip === 1) h.zip = 0; }
+  if (h.s >= lowest(d)) { h.s = lowest(d); if (h.zip === 1) { if (h.aggro) h.held = 1; h.zip = 0; } }
+  // (an aggressive zip: hitting like an uppercut going up, a dive kick coming down, till it's over)
+  if (h.zip === 0) h.aggro = false;
+  p.isUppercutting = h.aggro && h.zip === -1; p.isDivekicking = h.aggro && h.zip === 1;
+  if (p.isUppercutting) p.uppercutTimer = 2;
   // (shorter, it swings faster: what it had kept, more or less)
   if (d.kind === 'swing' && h.s !== s0) v.om *= Math.min(1.25, Math.max(0.8, s0 / h.s));
 

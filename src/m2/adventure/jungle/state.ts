@@ -26,6 +26,9 @@ export interface Hold {
   /** Stood at the top of one, how long he's held down (it takes a deliberate hold to go back down it), and down held
    *  from climbing off the top (let go of it first). */
   downT: number; downLatch: boolean;
+  /** The zip's an attack (charge + up: the aggressive ascent, hitting like an uppercut; + down: the aggressive descent,
+   *  like a dive kick); and, after one, the way it went held: no going off the end of the vine on it till it's let go. */
+  aggro: boolean; held: 0 | 1 | -1;
 }
 
 /** Something a monkey's thrown. */
@@ -40,7 +43,7 @@ export interface Jungle {
 
 export const jungleOf = (state: GameState) => sectionState<Jungle>(state, 'jungle', () => ({
   vines: [],
-  hold: { on: -1, s: 0, zip: 0, last: -1, cd: 0, anyCd: 0, jumpLatch: false, specialLatch: false, fling: null, lastX: 0, hurtWas: 0, downT: 0, downLatch: false },
+  hold: { on: -1, s: 0, zip: 0, last: -1, cd: 0, anyCd: 0, jumpLatch: false, specialLatch: false, fling: null, lastX: 0, hurtWas: 0, downT: 0, downLatch: false, aggro: false, held: 0 },
   thrown: [],
   said: {},
 }));
