@@ -24,7 +24,8 @@ import { hubLayout, HUB_STAGE, setHubStart } from './hub/index';
 import { penLayout, PEN_STAGE } from './pen/index';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
 import { setGenderOf, unpaired } from '../m1/content/gender';
-import { KILL_LINES, GENERIC_KILL_LINES, KILL_CALLOUTS } from '../m1/content/dialogue';
+import { KILL_LINES, GENERIC_KILL_LINES, KILL_CALLOUTS, ENEMY_KILL_LINES } from '../m1/content/dialogue';
+import { M2_ENEMY_KINDS } from './roster';
 import TicketCard from './intro/TicketCard';
 import { clearSkyCache } from './intro/art/sky';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
@@ -56,9 +57,12 @@ setRayGun(true, m2Kill('raygun_kill'));
 registerGrabCallouts();
 registerKillLines();
 // (he or she, over whoever it was)
-setGenderOf(introGender);
+// (the animals are its; the people on the way in, who they are)
+const ANIMALS = new Set(['pigeon', 'pitbull', 'seagull', 'goat', 'hawk', 'rat', 'wolverine', 'crab']);
+setGenderOf(e => (ANIMALS.has(e.kind) ? 'n' : introGender(e)));
 if (import.meta.env.DEV) {
-  const pools = [...Object.entries(KILL_LINES).filter(([k]) => !k.startsWith('range_')).flatMap(([, v]) => v), ...GENERIC_KILL_LINES, ...Object.values(KILL_CALLOUTS).flatMap(c => c.lines)] as string[];
+  // (the borrowed Meathead 1 people in the staff room are men, always: their own lines are fine as they are)
+  const pools = [...M2_ENEMY_KINDS.filter(k => ANIMALS.has(k)).flatMap(k => ENEMY_KILL_LINES[k] ?? []), ...Object.entries(KILL_LINES).filter(([k]) => !k.startsWith('range_')).flatMap(([, v]) => v), ...GENERIC_KILL_LINES, ...Object.values(KILL_CALLOUTS).flatMap(c => c.lines)] as string[];
   const loose = unpaired(pools);
   if (loose.length) console.warn('Kill lines that say he or she with no line for the other:', loose);
 }

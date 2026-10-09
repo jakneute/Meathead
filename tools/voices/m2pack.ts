@@ -13,7 +13,7 @@ import * as deaths from '../../src/m1/content/deaths';
 import { M2_ENEMY_KINDS } from '../../src/m2/roster';
 import { fitsHappyLand } from '../../src/m2/lines/consistency';
 import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
-import { FOR_A_WOMAN } from '../../src/m1/content/gender';
+import { FOR_A_WOMAN, FOR_AN_ANIMAL } from '../../src/m1/content/gender';
 import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES, BULK_LINES, BULK_FAIL_LINES, DUCK_LINES } from '../../src/m2/lines/weaponLines';
 import { M2_GUT_LINES, M2_GUT_DEATH } from '../../src/m2/lines/gutLines';
@@ -46,6 +46,7 @@ for (const c of Object.values(GRAB_CALLOUTS)) add('announcer', c.lines);
 {
   const callouts = new Set([...Object.values(dialogue.KILL_CALLOUTS).flatMap(c => c.lines), ...Object.values(GRAB_CALLOUTS).flatMap(c => [...c.lines])]);
   for (const [m, f] of Object.entries(FOR_A_WOMAN)) add(callouts.has(m) ? 'announcer' : 'meathead', f);
+  for (const [m, n] of Object.entries(FOR_AN_ANIMAL)) add(callouts.has(m) ? 'announcer' : 'meathead', n);
 }
 
 add('meathead', M2_KILL_LINES);

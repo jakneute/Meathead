@@ -341,6 +341,11 @@
  },
  {
   "voice": "announcer",
+  "text": "CRITTER OVERBOARD!",
+  "from": "FOR_AN_ANIMAL"
+ },
+ {
+  "voice": "announcer",
   "text": "CRUSHED!",
   "from": "KILL_CALLOUTS"
  },
@@ -743,6 +748,16 @@
   "voice": "announcer",
   "text": "INTO THE RAFTERS!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "IT'S NOT COMING BACK DOWN!",
+  "from": "FOR_AN_ANIMAL"
+ },
+ {
+  "voice": "announcer",
+  "text": "IT'S NOT GETTING UP!",
+  "from": "FOR_AN_ANIMAL"
  },
  {
   "voice": "announcer",
@@ -15576,6 +15591,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT LOST ITS HEAD!",
+  "from": "FOR_AN_ANIMAL"
+ },
+ {
+  "voice": "meathead",
   "text": "IT NEEDS SOMETHING A LOT HEAVIER THAN THAT TO BRING THAT FAN DOWN.",
   "from": "m1/game/stages/dale/junkie.ts:689"
  },
@@ -15666,6 +15686,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S OUT!",
+  "from": "FOR_AN_ANIMAL"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S PARTY TIME.",
   "from": "m1/game/stages/victor/lounge.ts:68"
  },
@@ -15678,6 +15703,11 @@
   "voice": "meathead",
   "text": "IT'S RAINING LIZARDS! WHAT THE FUCK, FLORIDA?",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S RAINING MEAT! IN BITS!",
+  "from": "FOR_AN_ANIMAL"
  },
  {
   "voice": "meathead",
@@ -18521,6 +18551,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMETHING'S GUTS!",
+  "from": "FOR_AN_ANIMAL"
+ },
+ {
+  "voice": "meathead",
   "text": "SON OF A BITCH",
   "from": "VULGARITIES"
  },
@@ -20708,6 +20743,11 @@
   "voice": "meathead",
   "text": "WHO'S A DEAD BOY?!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S A DEAD DOGGY?!",
+  "from": "FOR_AN_ANIMAL"
  },
  {
   "voice": "meathead",

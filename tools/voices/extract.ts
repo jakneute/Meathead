@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as dialogue from '../../src/m1/content/dialogue';
 import * as deaths from '../../src/m1/content/deaths';
 import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
-import { FOR_A_WOMAN } from '../../src/m1/content/gender';
+import { FOR_A_WOMAN, FOR_AN_ANIMAL } from '../../src/m1/content/gender';
 import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES, BULK_LINES, BULK_FAIL_LINES, DUCK_LINES } from '../../src/m2/lines/weaponLines';
 import { M2_GUT_LINES, M2_GUT_DEATH } from '../../src/m2/lines/gutLines';
@@ -92,6 +92,7 @@ for (const c of Object.values(GRAB_CALLOUTS)) for (const t of c.lines) add('anno
 {
   const callouts = new Set([...Object.values(dialogue.KILL_CALLOUTS).flatMap(c => c.lines), ...Object.values(GRAB_CALLOUTS).flatMap(c => [...c.lines])]);
   for (const [m, f] of Object.entries(FOR_A_WOMAN)) add(callouts.has(m) ? 'announcer' : 'meathead', f, 'FOR_A_WOMAN');
+  for (const [m, n] of Object.entries(FOR_AN_ANIMAL)) add(callouts.has(m) ? 'announcer' : 'meathead', n, 'FOR_AN_ANIMAL');
 }
 
 for (const v of Object.values(M2_KILL_LINES)) for (const t of v) add('meathead', t, 'M2_KILL_LINES');
