@@ -265,14 +265,6 @@ const wobble = (c: Ctx, x0: number, y0: number, w: number, h: number, t: number,
   }
 };
 
-/** The SNES's mosaic: a box of the picture in big blocks (his pants gone: the censor). */
-const mosaic = (c: Ctx, x: number, y: number, w: number, h: number, block = 4) => {
-  if (!tmp) tmp = canvas(LW, LH);
-  const g = tmp.getContext('2d')!, sw = Math.ceil(w / block), sh = Math.ceil(h / block);
-  g.imageSmoothingEnabled = true; g.clearRect(0, 0, sw, sh);
-  g.drawImage(c.canvas, x, y, w, h, 0, 0, sw, sh);
-  c.save(); c.imageSmoothingEnabled = false; c.drawImage(tmp, 0, 0, sw, sh, x, y, sw * block, sh * block); c.restore();
-};
 
 /** The picture, in its own pixels. */
 const drawScene = (c: Ctx, w: WalkAway) => {
@@ -304,7 +296,6 @@ const drawScene = (c: Ctx, w: WalkAway) => {
       const pose = poseAt(w);
       const marks = drawMeatheadFront(c, LW / 2, FEET_Y, pose, def.grip, def.drawWeapon);
       lastMouth = marks.mouth;
-      if (w.nude) mosaic(c, marks.crotch[0] - 3, marks.crotch[1] - 2, marks.crotch[2] + 6, marks.crotch[3] + 3, 5);
       continue;
     }
     if (p.wrap && d > 32) continue;

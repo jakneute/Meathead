@@ -146,11 +146,13 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
   for (const side of [order[1]]) leg(c, side, step, bob, p);
   const crotch: [number, number, number, number] = [-12, hipY + 2, 24, 22];
   if (p.nude) {
-    // (what the mosaic's for: drawn, then broken up into blocks by the caller)
+    // (uncensored, the whole hog: swinging with each step, a beat behind it)
+    // (the lot swinging side to side with his stride, the balls a beat behind and bouncing on each footfall, each its own way)
+    const sw = Math.sin(step - 0.6) * 5, bl = Math.sin(step - 1.2) * 4, bo = Math.abs(Math.cos(step)) * 2;
     c.fillStyle = '#3B2414'; c.beginPath(); c.ellipse(0, hipY + 6, 10, 6, 0, 0, Math.PI * 2); c.fill();
-    lump(c, -3, hipY + 15, 4, 4, S); lump(c, 3, hipY + 15, 4, 4, S);
-    poly(c, [[-2, hipY + 6], [3, hipY + 6], [3, hipY + 18], [0, hipY + 21], [-2, hipY + 18]], S[3]);
-    box(c, -1, hipY + 19, 2, 2, '#D9907A');
+    lump(c, -3 + bl, hipY + 15 + bo, 4, 5, S); lump(c, 3 + bl * 0.8, hipY + 16 + bo * 0.6, 4, 5, S);
+    poly(c, [[-2, hipY + 6], [3, hipY + 6], [3 + sw, hipY + 19], [0 + sw, hipY + 22], [-2 + sw, hipY + 19]], S[3]);
+    box(c, -1 + sw, hipY + 20, 2, 2, '#D9907A');
   }
   if (!p.nude) {
     box(c, -1, hipY + 2, 1, 16, PANTS[1]); box(c, 1, hipY + 4, 2, 2, GOLD[2]);
