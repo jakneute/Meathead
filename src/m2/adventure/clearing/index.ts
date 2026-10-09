@@ -23,7 +23,7 @@ import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip'
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES, topBand } from '../../../m1/constants';
-import { drawSafariArtie } from '../river/artie';
+import { drawSafariArtie, ROOF_SCUFFS } from '../river/artie';
 import { type Dressed, MEATHEAD_KICK, ARTIE_FOUND, MEATHEAD_ARTIE } from './lines';
 import { x0, x1, TREE_X, TREE_H, TEMPLE_X, BLIND_X, BLIND_Y, ARENA_L, ARENA_R, PICKUP_X } from './arena';
 import { drawOrbitBackdrop, ORBIT_WRAP } from './orbit';
@@ -291,7 +291,7 @@ export const clearing: Section = {
     const cl = getClearing(state);
     // Artie, up in his blind (till the fight)
     if (cl.fight === 'wait' && (cl.trees[5].a > 0.5 || !cl.domino)) {
-      drawSafariArtie(c, BLIND_X, BLIND_Y, -1, state.frame, cl.said?.text ? 'talk' : 'angry');
+      drawSafariArtie(c, BLIND_X, BLIND_Y, -1, state.frame, cl.said?.text ? 'talk' : 'angry', ROOF_SCUFFS);
       box(c, BLIND_X - 22, BLIND_Y - 30, 44, 4, '#57534E');
     }
     if (cl.said?.text && cl.fight === 'wait') saidOver(c, cl.said.text, Math.min(TEMPLE_X - 130, BLIND_X), BLIND_Y - 100, '#FDE68A');

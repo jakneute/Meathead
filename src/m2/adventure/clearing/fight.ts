@@ -42,7 +42,7 @@ import { body as drawMeatheadBody } from '../../../m1/game/render/player/deathAn
 import { ENEMY_HIT_COOLDOWN } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { aliensOn, brushOff, devour, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
-import { drawSafariArtie, type ArtiePose } from '../river/artie';
+import { drawSafariArtie, ROOF_SCUFFS, type ArtiePose } from '../river/artie';
 import { box, label, saidOver, hands, speak, voice, meatheadSays } from '../section';
 import { GY } from '../geometry';
 import { ARENA_L, ARENA_R, ARENA_MID, BLIND_X, BLIND_Y, BUSH_X, BUSH_W, BUSH_H } from './arena';
@@ -179,12 +179,15 @@ registerM2Kind({
     // (coming up out of the bush: none of him below the ground)
     const sunk = f.y - GY;
     if (sunk > 0) { c.save(); c.beginPath(); c.rect(-120, -300, 240, 300 - sunk); c.clip(); }
-    drawSafariArtie(c, 0, 0, 1, fr, poseOf(f));
+    drawSafariArtie(c, 0, 0, 1, fr, poseOf(f), beaten(f));
     if (sunk > 0) c.restore();
     if (blink) c.globalAlpha = 1;
   },
   ai: () => true,
 });
+
+/** How beaten up he looks: his real HP (the enemy's own is only a hit detector), on top of the roof's scuffs. */
+const beaten = (f: Fight) => Math.max(ROOF_SCUFFS, 1 - Math.max(0, f.hp) / HP);
 
 const poseOf = (f: Fight): ArtiePose => {
   if (f.flash > 0 && f.mode !== 'stunned' && f.mode !== 'gut') return 'hurt';
@@ -782,7 +785,7 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
       const k = f.mode === 'move' && m ? f.t / m.d : f.arc ? Math.min(1, f.t / f.arc.d) : 1;
       c.save(); c.translate(Math.round(f.x), Math.round(f.y - 43));
       c.rotate(f.facing * (Math.PI / 2 - 0.6 + k * 1.2));
-      drawSafariArtie(c, 0, 43, f.facing, fr, 'dive');
+      drawSafariArtie(c, 0, 43, f.facing, fr, 'dive', beaten(f));
       c.restore();
     }
   }
@@ -836,12 +839,12 @@ const star = (c: Ctx, x: number, y: number, col: string) => {
 /** Beaten (not by his weakness): staggers, down on his face, rear in the air; a twitch; one last one out of him. */
 const drawFlat = (c: Ctx, f: Fight, fr: number) => {
   const d = f.death!, t = d.t;
-  if (t < 22) { drawSafariArtie(c, d.x - d.facing * t * 0.8, GY, d.facing, fr, 'hurt'); return; }
+  if (t < 22) { drawSafariArtie(c, d.x - d.facing * t * 0.8, GY, d.facing, fr, 'hurt', beaten(f)); return; }
   const k = Math.min(1, (t - 22) / 14);
   const x = d.x - d.facing * 18;
   const twitch = t > 50 && t < 200 && (t % 37) < 6 ? Math.sin(t * 2) * 0.06 : 0;
   c.save(); c.translate(x, GY - 30); c.rotate(d.facing * (k * (Math.PI / 2 + 0.45) + twitch));
-  drawSafariArtie(c, 0, 12, d.facing, fr, 'stunned');
+  drawSafariArtie(c, 0, 12, d.facing, fr, 'stunned', beaten(f));
   c.restore();
   // (one last one, out of him, green)
   if (t > 70 && t < 160) {
