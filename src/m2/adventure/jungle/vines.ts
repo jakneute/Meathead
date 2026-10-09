@@ -7,10 +7,11 @@
 //   bottom: it doesn't swing; up/down climbs it, and climbing up past the top of one that runs up onto a ledge puts him
 //   up on the ledge (stood at the top, down takes hold of it again, to go back down).
 //
-//   Charge (B, Shift), on a vine that's still: the quick climb, up it in a rush (and up onto the ledge, if it goes to one).
-//   Charge on a swinging vine: the push, a shoulder charge into the swing (a power cell, like any charge), the swing
-//   driven hard the way he's going, and anything in his way hit like a charge hits it.
-//   Charge + down: the quick slide, down it in a rush.
+//   Charge + up: off it in an uppercut, faster and higher than off the ground (to get up onto things, and through
+//   whatever's up there). Charge + down: off it in a dive kick. Both the engine's own moves (a power cell each).
+//   Charge (or charge + left/right) on a swinging vine: the push, a shoulder charge into the swing (a power cell, like
+//   any charge), the swing driven hard that way, and anything in his way hit like a charge hits it. Charge on a
+//   climbing vine: the quick climb, up it in a rush (and up onto the ledge, if it goes to one).
 //
 //   He can shoot the whole time he's on one (left/right turns him). Hurt on one, he's knocked off it.
 
@@ -21,7 +22,7 @@ import type { Rect } from '../../../m1/types';
 import { PLAYER_MOVE_SPEED } from '../../../m1/constants';
 import { rectsOverlap } from '../../../m1/game/core/utils';
 import { meatheadSays } from '../section';
-import { jungleOf, type Hold } from './state';
+import { jungleOf, type Hold, type VineRun } from './state';
 import { FIRST_VINE } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -38,6 +39,8 @@ export interface VineDef {
 /** (gravity on a swing, the pump, the push, the cap on how high it goes) */
 const G = 0.55, PUMP = 0.16, PUSH = 4.2, MAX_TH = 1.3;
 const CLIMB = 2.6, ZIP_UP = 10, ZIP_DOWN = 12;
+/** How much faster (and so higher) an uppercut off a vine goes than one off the ground. */
+const VINE_UPPERCUT = 1.5;
 /** Not right up against the branch: his hands this far down it at the highest. */
 const MIN_S = 18;
 /** How close his hands have to come to a vine to take hold of it. */
@@ -51,8 +54,6 @@ export const VINE_ROW = 470;
 
 const atS = (d: VineDef, th: number, s: number) => ({ x: d.x + Math.sin(th) * s, y: d.y + Math.cos(th) * s });
 const lowest = (d: VineDef) => (d.kind === 'climb' ? d.len - (64 - HAND_DY) : d.len);
-/** Still: a climbing vine always; a swinging one hanging near enough straight down, near enough not moving. */
-const still = (d: VineDef, th: number, om: number) => d.kind === 'climb' || (Math.abs(th) < 0.15 && Math.abs(om) < 0.012);
 
 const boxAt = (state: GameState, hx: number, hy: number): Rect => {
   const p = state.player;
@@ -193,15 +194,22 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Co
   let special = false;
   if (specialIn && !h.specialLatch && !pushing && h.zip === 0) {
     h.specialLatch = true;
-    if (c.down) h.zip = 1;
-    else if (still(d, v.th, v.om)) h.zip = -1;
-    else if (ctx.cheats.infinitePower || p.power >= 1) {
-      // The push: the way he's swinging (or facing, at the top of it)
-      const pd = Math.abs(v.om) > 0.004 ? Math.sign(v.om) : p.facing;
+    const can = ctx.cheats.infinitePower || p.power >= 1;
+    if (c.up !== c.down && can) {
+      // Up: off it in an uppercut, faster and higher than off the ground, the swing's way with it; down: off it in a
+      // dive kick. (The engine's own moves: a power cell, and hitting like them)
+      const up = !!c.up;
+      letGo(state, defs, h, c, false);
+      if (up) { p.uppercutBoost = VINE_UPPERCUT; p.vel.y = Math.min(p.vel.y, 0); }
+      return { ...c, left: false, right: false, jump: false, up, down: !up, special: true, charge: false };
+    }
+    if (d.kind === 'swing' && can && !c.up && !c.down) {
+      // The push (a swinging vine only): the way he's holding, or the way he's swinging (or facing, at the top of it)
+      const pd = dir || (Math.abs(v.om) > 0.004 ? Math.sign(v.om) : p.facing);
       p.facing = pd as 1 | -1;
       v.om += (pd * PUSH) / h.s;
       special = true;
-    }
+    } else if (d.kind === 'climb' && !dir && !c.up && !c.down) h.zip = -1;
   }
   if (pushing) special = !!(c.special || c.charge);
 
@@ -271,29 +279,70 @@ export const onVine = (state: GameState) => jungleOf(state).hold.on >= 0;
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing (crude first pass)
 
+/**
+ * Where a vine runs this frame, as points from where it hangs to its tip. A climbing vine's held fast, straight up the
+ * tree. A swinging one bends with the swing: what's below his hand (or all of it, with nobody on it) trails behind the
+ * way it's going, flexing as it goes; above his hand, it's pulled taut but bows a little. Its tip curls up into a
+ * tendril (the way it's trailing, or its own way, hanging still).
+ */
+const vinePoints = (d: VineDef, v: VineRun, held: number | null, f: number, seed: number): { x: number; y: number }[] => {
+  const pts: { x: number; y: number }[] = [];
+  if (d.kind === 'climb') { const e = atS(d, 0, d.len); for (let k = 0; k <= 8; k++) pts.push({ x: d.x + (e.x - d.x) * k / 8 + Math.sin(k * 1.7 + seed) * 1.5, y: d.y + (e.y - d.y) * k / 8 }); return pts; }
+  const STEP = 6, om = v.om;
+  let x = d.x, y = d.y, u = 0;
+  pts.push({ x, y });
+  // (above his hand: taut from the branch to it, bowed out behind the swing)
+  if (held !== null) {
+    const hand = atS(d, v.th, held);
+    const nx = Math.cos(v.th), ny = -Math.sin(v.th), bow = Math.max(-14, Math.min(14, -om * 160));
+    const n = Math.max(2, Math.round(held / STEP));
+    for (let k = 1; k <= n; k++) { const t = k / n, b = 4 * t * (1 - t) * bow; pts.push({ x: d.x + (hand.x - d.x) * t + nx * b, y: d.y + (hand.y - d.y) * t + ny * b }); }
+    x = hand.x; y = hand.y; u = held;
+  }
+  // (the rest of it: hanging off there, trailing the swing, flexing; the tip curling)
+  const rest = d.len - u, CURL = Math.min(46, rest * 0.4);
+  const side = Math.abs(om) > 0.006 ? -Math.sign(om) : (seed % 2 ? 1 : -1);
+  let a = v.th;
+  for (let w = STEP; w <= rest + 0.01; w += STEP) {
+    const k = w / Math.max(1, rest);
+    // (lagging further behind the swing the further down; a lazy flex either way along it)
+    a = v.th - om * 26 * k * (0.6 + k) + Math.sin(f * 0.05 + seed + w * 0.035) * 0.07 * k;
+    // (the tip: curled round, tighter toward the end)
+    const into = w - (rest - CURL);
+    if (into > 0) a += side * (into / CURL) ** 1.5 * 6;
+    x += Math.sin(a) * STEP; y += Math.cos(a) * STEP;
+    pts.push({ x, y });
+  }
+  return pts;
+};
+
 /** A vine: a twisted green rope with leaves, from the branch it hangs off (a stub of branch, dark: not a ledge). */
 export const drawVines = (c: Ctx, state: GameState, defs: VineDef[]) => {
   const j = jungleOf(state), vx0 = state.camera.x - 300, vx1 = state.camera.x + 1100;
   defs.forEach((d, i) => {
     if (d.x < vx0 || d.x > vx1) return;
-    const th = j.vines[i]?.th ?? 0;
-    const end = atS(d, th, d.len);
+    const v = j.vines[i] ?? { th: 0, om: 0 };
+    const pts = vinePoints(d, v, j.hold.on === i ? j.hold.s : null, state.frame, i * 7 + 3);
     // the branch stub it hangs off
     if (!d.top) { c.fillStyle = '#2E1F12'; c.fillRect(d.x - 22, d.y - 7, 44, 9); c.fillStyle = '#1F3A16'; c.beginPath(); c.ellipse(d.x, d.y - 10, 30, 10, 0, 0, Math.PI * 2); c.fill(); }
-    // the rope, a little bowed
-    const mx = (d.x + end.x) / 2 - Math.cos(th) * 6 * (d.kind === 'swing' ? 1 : 0.3), my = (d.y + end.y) / 2 + Math.sin(th) * 6;
-    c.strokeStyle = '#3F6212'; c.lineWidth = 6;
-    c.beginPath(); c.moveTo(d.x, d.y); c.quadraticCurveTo(mx, my, end.x, end.y); c.stroke();
-    c.strokeStyle = '#84CC16'; c.lineWidth = 2;
-    c.beginPath(); c.moveTo(d.x - 1, d.y); c.quadraticCurveTo(mx - 1, my, end.x - 1, end.y); c.stroke();
-    // leaves along it
+    // the rope (thinning toward the tip), its light side
+    const line = (col: string, w0: number, w1: number, dx: number) => {
+      c.strokeStyle = col; c.lineCap = 'round';
+      for (let k = 1; k < pts.length; k++) {
+        c.lineWidth = w0 + (w1 - w0) * (k / pts.length);
+        c.beginPath(); c.moveTo(pts[k - 1].x + dx, pts[k - 1].y); c.lineTo(pts[k].x + dx, pts[k].y); c.stroke();
+      }
+    };
+    line('#3F6212', 6, d.kind === 'swing' ? 2.5 : 6, 0);
+    line('#84CC16', 2, d.kind === 'swing' ? 1 : 2, -1);
+    // leaves along it, turned with it
     c.fillStyle = '#4D7C0F';
-    for (let s = 30; s < d.len; s += 46) {
-      const t = s / d.len, lx = (1 - t) * (1 - t) * d.x + 2 * (1 - t) * t * mx + t * t * end.x, ly = (1 - t) * (1 - t) * d.y + 2 * (1 - t) * t * my + t * t * end.y;
-      const side = (s / 46) % 2 ? 1 : -1;
-      c.beginPath(); c.ellipse(lx + side * 6, ly, 6, 3, side * 0.6, 0, Math.PI * 2); c.fill();
+    for (let k = 5; k < pts.length - (d.kind === 'swing' ? 5 : 0); k += 8) {
+      const p0 = pts[k - 1], p1 = pts[k], ang = Math.atan2(p1.y - p0.y, p1.x - p0.x), side = (k / 8) % 2 ? 1 : -1;
+      c.beginPath(); c.ellipse(p1.x + Math.cos(ang + side * Math.PI / 2) * 6, p1.y + Math.sin(ang + side * Math.PI / 2) * 6, 6, 3, ang + side * 0.6, 0, Math.PI * 2); c.fill();
     }
     // (a climbing vine's rooted: a tuft at the foot of it)
+    const end = pts[pts.length - 1];
     if (d.kind === 'climb') { c.fillStyle = '#365314'; c.beginPath(); c.ellipse(end.x, end.y, 12, 5, 0, 0, Math.PI * 2); c.fill(); }
   });
 };

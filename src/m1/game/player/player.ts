@@ -386,8 +386,10 @@ const runSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
     if (player.chargeTimer <= 0 || !input.special) endCharge(ctx);
   }
 
+  // (however it ended: a launch's boost goes with it)
+  if (!player.isUppercutting) player.uppercutBoost = undefined;
   if (player.isUppercutting) {
-    player.vel.y = -UPPERCUT_SPEED;
+    player.vel.y = -UPPERCUT_SPEED * (player.uppercutBoost ?? 1);
     player.uppercutTimer--;
     if (player.uppercutTimer <= 0) {
       endUppercut(ctx);
@@ -426,6 +428,7 @@ export const endCharge = (ctx: FrameContext) => {
 export const endUppercut = (ctx: FrameContext) => {
   const { player } = ctx.state;
   player.isUppercutting = false;
+  player.uppercutBoost = undefined;
   if (!player.isGrounded) player.powerLocked = true;
 };
 

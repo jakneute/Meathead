@@ -112,6 +112,8 @@ export interface Player extends Entity {
   chargeFace: 1 | -1;
   chargeTimer: number;
   uppercutTimer: number;
+  /** This uppercut goes up faster than the usual (launched off something: Meathead 2's vines), till it ends. */
+  uppercutBoost?: number;
   /** Special-move power, 0..POWER_CELLS: each charge, slide or uppercut spends a whole cell. */
   power: number;
   /** A power move finished in the air: no refilling until he touches down. */
