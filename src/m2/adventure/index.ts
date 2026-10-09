@@ -5,6 +5,7 @@
 
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
+import type { Enemy } from '../../m1/types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { NO_CONTROLS } from '../../m1/game/platform/input';
 import { setUi, isLeaving, arrived, carryGut, takeGut } from '../store';
@@ -32,7 +33,13 @@ const current = (state: GameState) => ALL[getAdv(state)?.section ?? 'jungle'];
 /** Every checkpoint in the stage, in order. */
 export const ADV_CHECKPOINTS = SECTION_ORDER.flatMap(id => ALL[id].checkpoints).sort((a, b) => a.cp - b.cp);
 
-interface AdvState extends Adv { grab: Grab }
+interface AdvState extends Adv {
+  grab: Grab;
+  /** Just (re)started at a checkpoint: frames left of the grace, and who's being held off for it. */
+  grace: number; held: Set<Enemy>;
+}
+/** Starting again at a checkpoint, whatever's near it holds off a moment (he's not in danger the moment he's back). */
+const GRACE = 120, GRACE_RANGE = 650;
 let devStarted = false;
 
 export const advLayout: StageLayout = {
@@ -43,7 +50,7 @@ export const advLayout: StageLayout = {
   build: (state) => {
     arrived(); stopWeapons();
     { const g = takeGut(); if (g) state.player.gut = g; }
-    const adv: AdvState = { section: 'jungle', s: {}, grab: createGrab(state) };
+    const adv: AdvState = { section: 'jungle', s: {}, grab: createGrab(state), grace: GRACE, held: new Set() };
     state.stage = adv;
     for (const id of SECTION_ORDER) ALL[id].build(state);
     // (back from dying: at the checkpoint he'd got to)
@@ -63,6 +70,15 @@ export const advLayout: StageLayout = {
     if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!adv) return controls;
     const p = state.player;
+    // (just back at a checkpoint: anything near holds off a moment, then it's itself again)
+    if (adv.grace > 0) {
+      adv.grace--;
+      for (const e of state.enemies) {
+        if (e.type === 'boss' || e.health <= 0 || e.isBlownAway) continue;
+        if (adv.grace > 0 && Math.abs(e.pos.x + e.width / 2 - (p.pos.x + p.width / 2)) < GRACE_RANGE && (e.pauseTimer ?? 0) <= 2) { e.puppet = true; e.pauseTimer = 2; adv.held.add(e); }
+      }
+      if (adv.grace === 0) { for (const e of adv.held) e.puppet = false; adv.held.clear(); }
+    }
     // Which section he's in (the one his middle's in), and the camera kept to it
     const sec = sectionAt(p.pos.x + p.width / 2);
     adv.section = sec.id;

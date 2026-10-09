@@ -2,9 +2,8 @@
 // and its robot dinosaurs (see kinds.ts), over the fence, and in through the temple's back door (kicked in).
 //
 //   the pen:      he comes out of the drain with a pebble. The PEBBLE CUTSCENE (first visit, `pebbleSeen`): the
-//                 pebble flies on, over the fence, in through the maintenance booth's window (a picture-in-picture
-//                 following it) and flips the DINOSAUR MODE switch, FRIENDLY to HOSTILE. The maintenance man doesn't
-//                 notice. The raptors' eyes go red. Out of the pen up the feeding platforms and over the fence.
+//                 pebble flies on, over the fence; cut (full screen) to the maintenance booth: in through its window, it
+//                 flips the DINOSAUR MODE switch, FRIENDLY to HOSTILE. The maintenance man doesn't notice. Cut back: The raptors' eyes go red. Out of the pen up the feeding platforms and over the fence.
 //   the field:    the trikes charge along the ground; the boardwalks over it.
 //   the volcano:  a fake one, climbed and gone down, raptors leaping up after him, pteros overhead.
 //   the shop:     the gift shop's roof and the monorail track over it, or the ground under it.
@@ -77,7 +76,8 @@ const SOLIDS: [number, number, number, string][] = [
 
 /** Who's where: [kind, x, the surface it stands on (or, a flyer, how high it flies)]. */
 const ENEMIES: [keyof typeof DINO_KINDS, number, number][] = [
-  ['raptor', D + 450, GY], ['raptor', D + 760, GY],
+  // (well along the pen from where he starts in it: he's not in their jaws the moment he's back)
+  ['raptor', D + 700, GY], ['raptor', D + 880, GY],
   ['trike', D + 1750, GY], ['trike', D + 2300, GY],
   ['raptor', D + 2850, GY - 210], ['raptor', D + 3300, GY - 430], ['raptor', D + 3720, GY - 170],
   ['ptero', D + 3050, GY - 560], ['ptero', D + 3500, GY - 620],
@@ -94,7 +94,7 @@ interface Pebble {
   /** In the world: the pebble, flying on out of the pen. */
   x: number; y: number; vx: number; vy: number;
   landedAt: number;
-  /** The picture-in-picture: how far open (0..1), and its own clock. */
+  /** The cut to the booth (full screen): how far faded in (0..1), and its own clock. */
   pip: number; pt: number;
   clicked: boolean; landedSaid: boolean; maintAsked: boolean; maintSaid: Said | null; maintDone: boolean; closedAt: number;
   redAt: number; done: boolean;
@@ -157,8 +157,8 @@ const runPebble = (ctx: FrameContext, d: Dino): Controls => {
     pb.landedAt = pb.t; playSound('land', 1); playSound('thud', 0.8, -6); shakeScreen(state, 6, 3);
     meatheadSays(state, pick(MEATHEAD_LANDED), true, () => { pb.landedSaid = true; });
   }
-  // The picture-in-picture: opens, follows it in through the window, onto the switch
-  if (pb.t >= PIP_OPEN_AT && pb.closedAt < 0) { pb.pip = Math.min(1, pb.pip + 0.09); pb.pt++; }
+  // The cut to the booth (once he's up and said his piece): the pebble in through the window, onto the switch
+  if (pb.closedAt < 0 && (pb.pip > 0 || (pb.t >= PIP_OPEN_AT && pb.landedSaid) || pb.t > 220)) { pb.pip = Math.min(1, pb.pip + 0.09); if (pb.pip >= 1) pb.pt++; }
   if (pb.closedAt >= 0) pb.pip = Math.max(0, pb.pip - 0.09);
   if (pb.pt === PEBBLE_IN) playSound('glass', 0.25, 10);
   if (pb.pt === PEBBLE_HIT && !pb.clicked) {
@@ -258,7 +258,7 @@ export const dino: Section = {
   drawHud: (c, state) => {
     const d = dinoOf(state);
     if (!d.pebble) return;
-    if (d.pebble.pip > 0) drawPip(c, state, d.pebble);
+    if (d.pebble.pip > 0) drawCut(c, state, d.pebble);
     if (d.pebble.t > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
   },
 };
@@ -351,18 +351,20 @@ const drawDinoBack = (c: Ctx, state: GameState) => {
   }
 };
 
-/** The picture-in-picture: the maintenance booth, close up, the pebble coming in its window and onto the switch. */
-const PIP = { x: 420, y: 140, w: 340, h: 220 };
-const drawPip = (c: Ctx, state: GameState, pb: Pebble) => {
+/** The cut: the maintenance booth, close up, full screen (letterboxed), the pebble coming in its window and onto the
+ *  switch; faded in from black, and back out to it. */
+const PIP = { w: 340, h: 220 };
+const CUT_SCALE = CANVAS_WIDTH / PIP.w;
+const drawCut = (c: Ctx, state: GameState, pb: Pebble) => {
   const k = pb.pip, f = state.frame;
-  const w = PIP.w * k, h = PIP.h * k, x = PIP.x + (PIP.w - w) / 2, y = PIP.y + (PIP.h - h) / 2;
-  box(c, x - 4, y - 4, w + 8, h + 8, '#FFFFFF'); box(c, x - 2, y - 2, w + 4, h + 4, '#1A0B06');
-  if (k < 0.95) return;
-  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip(); c.translate(x, y);
+  box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#000000');
+  if (k < 0.5) return;
+  const h = PIP.h * CUT_SCALE, y = (CANVAS_HEIGHT - h) / 2;
+  c.save(); c.beginPath(); c.rect(0, y, CANVAS_WIDTH, h); c.clip(); c.translate(0, y); c.scale(CUT_SCALE, CUT_SCALE);
   // the booth inside: the wall, the window (the park out of it), the panel, him
   box(c, 0, 0, PIP.w, PIP.h, '#D6D3D1'); box(c, 0, 170, PIP.w, 50, '#78716C');
   box(c, 14, 34, 96, 80, '#1A0B06'); box(c, 18, 38, 88, 72, '#7DD3FC'); box(c, 18, 86, 88, 24, '#4D7C0F');
-  label(c, 'DAYS WITHOUT INCIDENT: 4,380', 230, 24, '#1C1917', 7);
+  label(c, 'DAYS WITHOUT INCIDENT: 4,380', 140, 22, '#1C1917', 7);
   box(c, 180, 60, 130, 96, '#52525B'); box(c, 184, 64, 122, 88, '#71717A');
   label(c, 'DINOSAUR MODE', 245, 80, '#FDE047', 7);
   label(c, 'FRIENDLY', 212, 142, '#4ADE80', 6); label(c, 'HOSTILE', 280, 142, '#F87171', 6);
@@ -392,4 +394,6 @@ const drawPip = (c: Ctx, state: GameState, pb: Pebble) => {
   }
   if (pb.maintSaid) saidOver(c, pb.maintSaid.text, 120, 70, '#FFFFFF', 200);
   c.restore();
+  // (fading in from black, and out to it)
+  if (k < 1) { c.fillStyle = `rgba(0, 0, 0, ${((1 - k) * 2).toFixed(2)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
 };
