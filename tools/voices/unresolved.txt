@@ -4,23 +4,23 @@ m2/weapons/soulSucker.ts:248 name: EMPTY_BAG_LINES
 m2/weapons/spellbook.ts:298 name: BULK_LINES
 m2/weapons/spellbook.ts:303 name: BULK_FAIL_LINES
 m2/weapons/mallet.ts:175 name: DUCK_LINES
-m2/intro/index.ts:316 name: MEATHEAD_PARKED
-m2/intro/index.ts:581 name: MEATHEAD_TICKET
+m2/intro/index.ts:318 name: MEATHEAD_PARKED
 m2/intro/index.ts:583 name: MEATHEAD_TICKET
-m2/intro/index.ts:149 voice: voice
-m2/intro/index.ts:241 voice: pick(TICKET_CUT)
-m2/intro/index.ts:243 voice: true
-m2/intro/index.ts:321 voice: GUARD_WELCOME.clean
-m2/intro/index.ts:373 voice: pick(GUEST_HIT)
-m2/intro/index.ts:386 voice: pick(GUARD_ALERT[dressed(state)])
-m2/intro/index.ts:387 voice: true
-m2/intro/index.ts:420 voice: first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dres
-m2/intro/index.ts:444 voice: pick(GUARD_BARK[dressed(state)])
-m2/intro/index.ts:517 voice: pick(TICKET_NEXT)
-m2/intro/index.ts:554 voice: now
-m2/intro/index.ts:564 voice: pick(GUEST_HURRY[dressed(state)])
-m2/intro/index.ts:595 voice: pick(TICKET_LADY[sc.kind])
-m2/intro/index.ts:647 voice: line
+m2/intro/index.ts:585 name: MEATHEAD_TICKET
+m2/intro/index.ts:151 voice: voice
+m2/intro/index.ts:243 voice: pick(TICKET_CUT)
+m2/intro/index.ts:245 voice: true
+m2/intro/index.ts:323 voice: GUARD_WELCOME.clean
+m2/intro/index.ts:375 voice: pick(GUEST_HIT)
+m2/intro/index.ts:388 voice: pick(GUARD_ALERT[dressed(state)])
+m2/intro/index.ts:389 voice: true
+m2/intro/index.ts:422 voice: first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dres
+m2/intro/index.ts:446 voice: pick(GUARD_BARK[dressed(state)])
+m2/intro/index.ts:519 voice: pick(TICKET_NEXT)
+m2/intro/index.ts:556 voice: now
+m2/intro/index.ts:566 voice: pick(GUEST_HURRY[dressed(state)])
+m2/intro/index.ts:597 voice: pick(TICKET_LADY[sc.kind])
+m2/intro/index.ts:649 voice: line
 m1/App.tsx:241 voice: getBossVoice(selectedStage)
 m1/App.tsx:468 name: undefined
 m1/App.tsx:469 expr: null
@@ -41,8 +41,9 @@ m1/game/core/deathCause.ts:70 name: undefined
 m1/game/core/deathCause.ts:71 name: ANIMAL_DEATH_LINES
 m1/game/core/deathCause.ts:71 name: undefined
 m1/game/core/deathCause.ts:72 name: undefined
-m1/game/core/effects.ts:256 call: getHurtLines(hurtSource)
-m1/game/core/effects.ts:256 call: killLine(category, victim)
+m1/game/core/effects.ts:261 call: forGender(line, gender)
+m1/game/core/effects.ts:258 call: getHurtLines(hurtSource)
+m1/game/core/effects.ts:258 call: killLine(category, victim)
 m1/game/core/update.ts:223 name: undefined
 m1/game/core/update.ts:615 name: undefined
 m1/game/core/update.ts:615 call: pluckDeathMessage(state)

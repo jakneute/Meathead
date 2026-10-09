@@ -22,7 +22,9 @@ import voicePackUrl from './generated/voices.bin?url';
 import { registerStageLayout } from '../m1/game/stages/index';
 import { hubLayout, HUB_STAGE, setHubStart } from './hub/index';
 import { penLayout, PEN_STAGE } from './pen/index';
-import { introLayout, INTRO_STAGE, registerIntro } from './intro/index';
+import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
+import { setGenderOf, unpaired } from '../m1/content/gender';
+import { KILL_LINES, GENERIC_KILL_LINES, KILL_CALLOUTS } from '../m1/content/dialogue';
 import TicketCard from './intro/TicketCard';
 import { clearSkyCache } from './intro/art/sky';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
@@ -53,6 +55,13 @@ setFireKeys([]);
 setRayGun(true, m2Kill('raygun_kill'));
 registerGrabCallouts();
 registerKillLines();
+// (he or she, over whoever it was)
+setGenderOf(introGender);
+if (import.meta.env.DEV) {
+  const pools = [...Object.entries(KILL_LINES).filter(([k]) => !k.startsWith('range_')).flatMap(([, v]) => v), ...GENERIC_KILL_LINES, ...Object.values(KILL_CALLOUTS).flatMap(c => c.lines)] as string[];
+  const loose = unpaired(pools);
+  if (loose.length) console.warn('Kill lines that say he or she with no line for the other:', loose);
+}
 // (already shitty, he can do it again: so hard his pants go, and he's naked: game/player/gut.ts)
 setGutBlowout(true);
 setGutLines(M2_GUT_LINES);

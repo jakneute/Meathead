@@ -1,3 +1,4 @@
+import type { Gender } from '../../content/gender';
 import type { EnemyDeath } from '../enemies/deaths';
 import type { VulgarityType } from '../../types';
 import {
@@ -111,7 +112,7 @@ export interface GameState {
    * when Meathead's got nothing to say). What's waiting to be settled next frame: a quip held back for the announcer,
    * the callout, and when Meathead last got a kill quip out.
    */
-  killVoice?: { quip?: { category: VulgarityType; at: number; kind?: string }; callout?: { text: string; at: number }; quippedAt?: number; forced?: { text: string; at: number }; handed?: { text: string; at: number; quip?: VulgarityType } };
+  killVoice?: { quip?: { category: VulgarityType; at: number; kind?: string; gender?: Gender | null }; callout?: { text: string; at: number }; quippedAt?: number; forced?: { text: string; at: number }; handed?: { text: string; at: number; quip?: VulgarityType } };
   /** What hurt him last, and when (the frame): for what the death screen says. */
   lastHurt?: { source: string; at: number };
   /** When a round last pinged off something hard (the ping isn't repeated every frame of a burst). */

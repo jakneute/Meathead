@@ -85,6 +85,8 @@ export const getIntro = (state: GameState) => state.stage as Intro | null;
 
 /** Who's in the line, by enemy (they're people the engine can hit). */
 export const guests = new WeakMap<Enemy, Guest>();
+/** Who's a woman and who's a man, of the people on the way in (for what's said over them: content/gender). */
+export const introGender = (e: Enemy): 'm' | 'f' | null => (e.kind === 'parksec' ? (isWomanGuard(e) ? 'f' : 'm') : e.kind === 'parkguest' ? (guests.get(e)?.voice === GUEST_VOICE ? 'f' : 'm') : null);
 /** The cast, for the line: people out for the day. Which one a guest is goes in their seed (homeX), so it's the same
  *  person drawn wherever they're drawn (in line, picked up, flung, dead). */
 const LINE_CAST = ['jenny', 'matt', 'bev', 'gus', 'anna', 'sid', 'lucille', 'ed', 'tiffanie', 'glenn', 'stella', 'larry'];

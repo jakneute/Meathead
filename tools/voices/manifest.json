@@ -1206,6 +1206,16 @@
  },
  {
   "voice": "announcer",
+  "text": "SHE'S NOT COMING BACK DOWN!",
+  "from": "FOR_A_WOMAN"
+ },
+ {
+  "voice": "announcer",
+  "text": "SHE'S NOT GETTING UP!",
+  "from": "FOR_A_WOMAN"
+ },
+ {
+  "voice": "announcer",
   "text": "SHIPMENT LOST!",
   "from": "KILL_CALLOUTS"
  },
@@ -1603,6 +1613,11 @@
   "voice": "announcer",
   "text": "WIPEOUT!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WOMAN OVERBOARD!",
+  "from": "FOR_A_WOMAN"
  },
  {
   "voice": "announcer",
@@ -15651,6 +15666,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S RAINING WOMEN! IN BITS!",
+  "from": "FOR_A_WOMAN"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S YELLOW. I'D LOOK LIKE A BANANA. NO.",
   "from": "OSCAR_LINES"
  },
@@ -16951,6 +16971,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ONE WOMAN'S GUTS!",
+  "from": "FOR_A_WOMAN"
+ },
+ {
+  "voice": "meathead",
   "text": "ONE.",
   "from": "m1/game/stages/oscar/bar.ts:165"
  },
@@ -17931,6 +17956,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHE LOST HER HEAD!",
+  "from": "FOR_A_WOMAN"
+ },
+ {
+  "voice": "meathead",
   "text": "SHE STAPLED MY FOREHEAD! THIS IS A HOSTILE WORKPLACE!",
   "from": "HAZARD_HURT"
  },
@@ -17938,6 +17968,11 @@
   "voice": "meathead",
   "text": "SHE THREW THE SPRAY BOTTLE! MY FACE IS SPARKLING CLEAN AND IN PAIN!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE'S OUT!",
+  "from": "FOR_A_WOMAN"
  },
  {
   "voice": "meathead",

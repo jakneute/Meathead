@@ -13,6 +13,7 @@ import * as deaths from '../../src/m1/content/deaths';
 import { M2_ENEMY_KINDS } from '../../src/m2/roster';
 import { fitsHappyLand } from '../../src/m2/lines/consistency';
 import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
+import { FOR_A_WOMAN } from '../../src/m1/content/gender';
 import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES, BULK_LINES, BULK_FAIL_LINES, DUCK_LINES } from '../../src/m2/lines/weaponLines';
 import { M2_GUT_LINES } from '../../src/m2/lines/gutLines';
@@ -41,6 +42,12 @@ add('meathead', pick(dialogue.BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT as Record<strin
 // The announcer's kill callouts
 for (const c of Object.values(dialogue.KILL_CALLOUTS)) add('announcer', (c as { lines: string[] }).lines);
 for (const c of Object.values(GRAB_CALLOUTS)) add('announcer', c.lines);
+// (the other half of every line that says he or she about whoever was killed: Meathead's, the announcer's)
+{
+  const callouts = new Set([...Object.values(dialogue.KILL_CALLOUTS).flatMap(c => c.lines), ...Object.values(GRAB_CALLOUTS).flatMap(c => [...c.lines])]);
+  for (const [m, f] of Object.entries(FOR_A_WOMAN)) add(callouts.has(m) ? 'announcer' : 'meathead', f);
+}
+
 add('meathead', M2_KILL_LINES);
 add('meathead', FULL_BAG_LINES);
 add('meathead', EMPTY_BAG_LINES);
