@@ -909,70 +909,128 @@ const fluted = (g: Ctx, x: number, capY: number, w: number, col: string) => {
   slab(g, x - 9, capY - 14, w + 18, 8, col);
 };
 
-/**
- * The arch in, over the foot of the stairs (the stairs are drawn over its left column's base): a narrow, tall gate,
- * its right column in the gap before the first building, the beam above the rooflines so no shop is hidden.
- */
-const ARCH = { L: R(USA_START) - 84, CW: 36, Rc: R(USA_START) + 44 };
-const archBeam = () => { const bl = ARCH.L - 4, br = ARCH.Rc + ARCH.CW + 4; return { bl, br, bw: br - bl, cxm: (bl + br) / 2 }; };
-const paintArch = (g: Ctx) => {
-  const marble = '#ECE7DD', mr = rampOf(marble);
-  const { L, CW, Rc } = ARCH, { bl, bw, cxm } = archBeam(), capY = GY - 316, sbY = GY - 386;
-  // (the sunburst behind the eagle, the ring of stars round it)
-  g.fillStyle = INK; g.beginPath(); g.arc(cxm, sbY, 72, Math.PI, Math.PI * 2); g.fill();
-  for (let i = 0; i < 12; i++) {
-    const a0 = Math.PI + (i / 12) * Math.PI, a1 = Math.PI + ((i + 1) / 12) * Math.PI;
-    poly(g, [[cxm, sbY], [cxm + Math.cos(a0) * 70, sbY + Math.sin(a0) * 70], [cxm + Math.cos(a1) * 70, sbY + Math.sin(a1) * 70]], i % 2 ? FLAG_WHITE[i < 6 ? 4 : 2] : FLAG_RED[i < 6 ? 3 : 1]);
-  }
-  g.fillStyle = INK; g.beginPath(); g.arc(cxm, sbY, 32, Math.PI, Math.PI * 2); g.fill();
-  g.fillStyle = FLAG_BLUE[2]; g.beginPath(); g.arc(cxm, sbY, 30, Math.PI, Math.PI * 2); g.fill();
-  g.fillStyle = FLAG_BLUE[3]; g.beginPath(); g.arc(cxm - 3, sbY, 24, Math.PI, Math.PI * 1.5); g.fill();
-  for (let i = 0; i < 13; i++) { const a = Math.PI + (i + 0.5) / 13 * Math.PI; shinyStar(g, cxm + Math.cos(a) * 84, sbY + Math.sin(a) * 84, 5, '#FDE047'); }
-  // (the columns)
-  for (const cx of [L, Rc]) fluted(g, cx, capY, CW, marble);
-  // (the spandrel between them under the beam, the arch cut out of it, a keystone)
-  const hw = (Rc - L - CW) / 2, ry = 16;
-  g.beginPath(); g.moveTo(L + CW, capY); g.lineTo(Rc, capY); g.lineTo(Rc, GY - 290); g.ellipse(cxm, GY - 290, hw, ry, 0, 0, Math.PI, true); g.closePath();
-  g.fillStyle = mr[2]; g.fill();
-  g.strokeStyle = mr[1]; g.lineWidth = 4; g.beginPath(); g.ellipse(cxm, GY - 290, hw - 2, ry - 2, 0, Math.PI, Math.PI * 2); g.stroke();
-  g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.ellipse(cxm, GY - 290, hw, ry, 0, Math.PI, Math.PI * 2); g.stroke();
-  poly(g, [[cxm - 8, capY], [cxm + 8, capY], [cxm + 5, GY - 304], [cxm - 5, GY - 304]], INK);
-  poly(g, [[cxm - 7, capY], [cxm + 7, capY], [cxm + 4, GY - 305], [cxm - 4, GY - 305]], mr[3]);
-  // (the entablature: architrave, the sign frieze, dentils, the cornice)
-  slab(g, bl, GY - 332, bw, 16, marble); box(g, bl + 4, GY - 324, bw - 8, 1, mr[1]);
-  slab(g, bl, GY - 374, bw, 44, FLAG_BLUE[1]);
-  g.strokeStyle = GOLD; g.lineWidth = 2; g.strokeRect(bl + 8, GY - 366, bw - 16, 28);
-  g.font = '12px "Press Start 2P"'; g.textAlign = 'center';
-  const by = GY - 345;
-  g.fillStyle = '#3A2A08'; g.fillText('AMERICA USA', cxm + 2, by + 1);
-  g.fillStyle = '#B8862E'; g.fillText('AMERICA USA', cxm, by);
-  g.save(); g.beginPath(); g.rect(bl, by - 16, bw, 9); g.clip(); g.fillStyle = '#F4C430'; g.fillText('AMERICA USA', cxm, by); g.restore();
-  g.save(); g.beginPath(); g.rect(bl, by - 16, bw, 4); g.clip(); g.fillStyle = '#FFF2A0'; g.fillText('AMERICA USA', cxm, by); g.restore();
-  g.textAlign = 'left';
-  for (let x = bl; x < bl + bw - 4; x += 8) { box(g, x, GY - 380, 5, 6, mr[2]); box(g, x, GY - 380, 1, 6, mr[3]); box(g, x, GY - 375, 5, 1, mr[0]); }
-  slab(g, bl - 8, GY - 392, bw + 16, 12, marble);
-  // (the eagle up top, on its plinth)
-  slab(g, cxm - 24, GY - 402, 48, 12, marble);
-  tiny(g, 'EST. NOW', cxm, GY - 393, '#7A5A18', 5, null);
-  eagle(g, cxm, GY - 432, 1.8);
-  // (hung under the arch)
-  const cy0 = Math.round(GY - 290 - ry * Math.sqrt(1 - (38 / hw) ** 2));
-  for (let y = cy0; y < GY - 288; y += 3) { box(g, cxm - 39, y, 3, 2, '#B8BCC4'); box(g, cxm + 36, y, 3, 2, '#B8BCC4'); }
-  sign(g, cxm - 42, GY - 286, 84, 12, '#FEF3C7', "YOU'RE WELCOME", '#7F1D1D', 6);
+// ---------------------------------------------------------------------------------------------------------------
+// Depth that isn't there: the gate in, and the sides of the buildings, drawn as if it's all in 3D (the way the SNES and
+// the Genesis faked it). Nothing moves but the camera; what's nearer slides by faster, what's further slower, and what
+// joins them is drawn slice by slice between the two, so it swings round as he goes by.
+
+/** Where the camera's looking from: its middle, across and up. */
+export interface Eye { x: number; y: number }
+/** Where something at depth `p` (1 the plane he walks in; more, nearer; less, further) is drawn, that's at x in the world. */
+const at = (eye: Eye, x: number, p: number) => eye.x + (x - eye.x) * p;
+
+/** The gate in, at the foot of the stairs: one column out in front of him (nearer than he is), one behind, the
+ *  entablature over the top of the street between them, AMERICA USA along it, the eagle on top. He walks between them. */
+const GATE_X = R(USA_START) + 50, GATE = { front: 1.32, back: 0.78, frontS: 1.28, backS: 0.8, frontFoot: GY + 70, backFoot: GY - 26, CW: 36, H: 316 };
+const MARBLE = '#ECE7DD';
+
+/** A column, s times life size, its foot at (x, foot). */
+const gateColumn = (c: Ctx, x: number, foot: number, s: number, key: string) => {
+  c.save(); c.translate(Math.round(x), Math.round(foot)); c.scale(s, s);
+  const x0 = -GATE.CW / 2;
+  stamp(c, key, x0 - 22, -GATE.H - 30, GATE.CW + 44, GATE.H + 32, g => { g.save(); g.translate(0, -GY); fluted(g, x0, GY - GATE.H, GATE.CW, MARBLE); g.restore(); });
+  c.restore();
 };
-const archLive = (c: Ctx, f: number) => {
-  const { bl, br } = archBeam(), x0 = bl + 4, x1 = br - 4, y0 = GY - 370, y1 = GY - 334;
-  let i = 0;
-  const bulb = (x: number, y: number) => {
-    const on = (i++ + (f >> 3)) % 3 !== 0;
-    if (on) { box(c, x - 2, y - 2, 5, 5, 'rgba(255, 236, 150, 0.35)'); box(c, x - 1, y - 1, 3, 3, '#FFF3B0'); box(c, x - 1, y - 1, 1, 1, '#FFFFFF'); }
-    else box(c, x - 1, y - 1, 3, 3, '#7A5A20');
-  };
-  const n = Math.round((x1 - x0) / 10), m = Math.round((y1 - y0) / 9);
-  for (let k = 0; k < n; k++) bulb(x0 + (x1 - x0) * k / n, y0);
-  for (let k = 0; k < m; k++) bulb(x1, y0 + (y1 - y0) * k / m);
-  for (let k = 0; k < n; k++) bulb(x1 - (x1 - x0) * k / n, y1);
-  for (let k = 0; k < m; k++) bulb(x0, y1 - (y1 - y0) * k / m);
+
+/** The entablature's long side, painted once: marble, the blue frieze, gold, AMERICA USA, stars, dentils. */
+const FRIEZE_W = 360, FRIEZE_H = 66;
+let frieze: HTMLCanvasElement | null = null;
+const friezeArt = () => {
+  if (frieze) return frieze;
+  const cv = document.createElement('canvas'); cv.width = FRIEZE_W; cv.height = FRIEZE_H;
+  const g = cv.getContext('2d')!;
+  const mr = rampOf(MARBLE);
+  slab(g, 0, 0, FRIEZE_W, 12, MARBLE);
+  for (let x = 4; x < FRIEZE_W - 4; x += 8) { box(g, x, 12, 5, 6, mr[2]); box(g, x, 12, 1, 6, mr[3]); box(g, x, 17, 5, 1, mr[0]); }
+  slab(g, 0, 18, FRIEZE_W, 34, FLAG_BLUE[1]);
+  g.strokeStyle = GOLD; g.lineWidth = 2; g.strokeRect(6, 23, FRIEZE_W - 12, 24);
+  g.font = '12px "Press Start 2P"'; g.textAlign = 'center';
+  g.fillStyle = '#3A2A08'; g.fillText('AMERICA USA', FRIEZE_W / 2 + 2, 42);
+  g.fillStyle = '#B8862E'; g.fillText('AMERICA USA', FRIEZE_W / 2, 41);
+  g.save(); g.beginPath(); g.rect(0, 28, FRIEZE_W, 7); g.clip(); g.fillStyle = '#F4C430'; g.fillText('AMERICA USA', FRIEZE_W / 2, 41); g.restore();
+  for (const sx of [24, FRIEZE_W - 24]) shinyStar(g, sx, 35, 6, '#FDE047');
+  slab(g, 0, 52, FRIEZE_W, 14, MARBLE); box(g, 4, 58, FRIEZE_W - 8, 1, mr[1]);
+  g.textAlign = 'left';
+  // (it's only kept once the pixel font's in: until then, painted again next time)
+  if (document.fonts?.check('12px "Press Start 2P"')) frieze = cv;
+  return cv;
+};
+
+/** Where the gate's parts are this frame. */
+const gateNow = (eye: Eye) => {
+  const xf = at(eye, GATE_X, GATE.front), xb = at(eye, GATE_X, GATE.back);
+  const topF = GATE.frontFoot - GATE.H * GATE.frontS, topB = GATE.backFoot - GATE.H * GATE.backS;
+  return { xf, xb, topF, topB };
+};
+
+/** Behind him: the column at the back. */
+export const gateBack = (c: Ctx, eye: Eye) => {
+  const { xb } = gateNow(eye);
+  gateColumn(c, xb, GATE.backFoot, GATE.backS, 'gate-col-back');
+};
+
+/** In front of him: the column at the front, and the entablature over the street from it back to the other, its side
+ *  swinging round as he goes under it (drawn a slice at a time, each one as near as where it is along it). */
+export const gateFront = (c: Ctx, eye: Eye, f: number) => {
+  const { xf, xb, topF, topB } = gateNow(eye);
+  const art = friezeArt();
+  // The entablature: from the back column's top to the front one's, slice by slice
+  const N = 48, flip = xf < xb;
+  for (let i = 0; i < N; i++) {
+    const t0 = i / N, t1 = (i + 1) / N, tm = (t0 + t1) / 2;
+    const x0 = xb + (xf - xb) * t0, x1 = xb + (xf - xb) * t1;
+    const s = GATE.backS + (GATE.frontS - GATE.backS) * tm, bottom = topB + (topF - topB) * tm;
+    const h = FRIEZE_H * s;
+    // (the picture across it, read left to right whichever side of it he's on)
+    const u = flip ? 1 - tm : tm;
+    c.drawImage(art, Math.floor(u * (FRIEZE_W - FRIEZE_W / N)), 0, FRIEZE_W / N, FRIEZE_H, Math.min(x0, x1), bottom - h, Math.abs(x1 - x0) + 1, h);
+  }
+  // (its shade, deeper the further back)
+  c.save(); c.globalAlpha = 0.28; c.fillStyle = '#1E2448';
+  c.beginPath(); c.moveTo(xb, topB - FRIEZE_H * GATE.backS); c.lineTo(xb, topB); c.lineTo(xb + (xf - xb) * 0.45, topB + (topF - topB) * 0.45); c.lineTo(xb + (xf - xb) * 0.45, topB + (topF - topB) * 0.45 - FRIEZE_H * (GATE.backS + (GATE.frontS - GATE.backS) * 0.45)); c.closePath(); c.fill();
+  c.restore();
+  // (the end of it over the front column: square on to him)
+  const s = GATE.frontS, ew = (GATE.CW + 26) * s, eh = FRIEZE_H * s;
+  slab(c, xf - ew / 2, topF - eh, ew, eh, MARBLE);
+  shinyStar(c, xf, topF - eh / 2, 7 * s, '#FDE047');
+  // The eagle up on top, halfway along; YOU'RE WELCOME hung under it
+  const sm = (GATE.backS + GATE.frontS) / 2, xm = (xb + xf) / 2, ym = (topB + topF) / 2;
+  eagle(c, xm, ym - FRIEZE_H * sm - 26 * sm, 1.5 * sm);
+  const sw = 92 * sm, sy = ym + 34 * sm;
+  for (const dx of [-sw / 2 + 6, sw / 2 - 6]) for (let y = ym; y < sy; y += 3 * sm) box(c, xm + dx, y, 2 * sm, 2 * sm, '#B8BCC4');
+  c.save(); c.translate(xm, sy); c.scale(sm, sm); sign(c, -46, 0, 92, 14, '#FEF3C7', "YOU'RE WELCOME", '#7F1D1D', 6); c.restore();
+  // The column out in front of him
+  gateColumn(c, xf, GATE.frontFoot, GATE.frontS, 'gate-col-front');
+  void f;
+};
+
+/** The sides of the buildings, seen in the gaps between them: whichever side faces him, going back from the front of
+ *  the building toward where he's looking, wider the further off to the side it is, shaded; the cornice going back
+ *  along the top of it. */
+const DEPTH = 0.78;
+const buildingSides = (c: Ctx, eye: Eye, x: number, id: Id) => {
+  for (let k = 0; k < 2; k++) {
+    const bx = bldgX(x, k), top = bldgTop(k), b = B[id][k];
+    // (the gaps either side: as far as the next building, or the next district's)
+    const gaps: [number, number, 1 | -1][] = [[bx + BW, k ? x + DISTRICT_W + 20 : bldgX(x, 1), 1], [k ? bldgX(x, 0) + BW : x - 20, bx, -1]];
+    for (const [g0, g1, side] of gaps) {
+      const e = side > 0 ? bx + BW : bx;
+      // (only the side that faces him: the right side when he's off to its right, and the other way)
+      if ((eye.x - e) * side <= 2) continue;
+      const far = eye.x + (e - eye.x) * DEPTH, topFar = eye.y + (top - eye.y) * DEPTH;
+      const wall = dark(dim(b.wall), 0.35), trim = dark(dim(b.trim), 0.2);
+      c.save(); c.beginPath(); c.rect(Math.min(g0, g1), top - 40, Math.abs(g1 - g0), GY - top + 40); c.clip();
+      c.fillStyle = wall; c.beginPath(); c.moveTo(e, top); c.lineTo(far, topFar); c.lineTo(far, GY); c.lineTo(e, GY); c.closePath(); c.fill();
+      // (going back: a darker band toward the far end, the brick courses running back along it, the cornice)
+      c.fillStyle = 'rgba(10, 10, 30, 0.22)'; c.beginPath(); c.moveTo(e + (far - e) * 0.5, top + (topFar - top) * 0.5); c.lineTo(far, topFar); c.lineTo(far, GY); c.lineTo(e + (far - e) * 0.5, GY); c.closePath(); c.fill();
+      c.strokeStyle = 'rgba(10, 10, 30, 0.25)'; c.lineWidth = 1;
+      for (let y = top + 14; y < GY; y += 14) { const yf = eye.y + (y - eye.y) * DEPTH; c.beginPath(); c.moveTo(e, y); c.lineTo(far, yf); c.stroke(); }
+      c.fillStyle = trim; c.beginPath(); c.moveTo(e, top - 2); c.lineTo(far, topFar - 2 * DEPTH); c.lineTo(far, topFar + 8 * DEPTH); c.lineTo(e, top + 8); c.closePath(); c.fill();
+      // (the corner, lit)
+      box(c, e - (side > 0 ? 1 : 0), top, 1, GY - top, lite(dim(b.wall), 0.2));
+      c.restore();
+    }
+  }
 };
 
 const paintLamp = (g: Ctx, x: number, i: number, tag: string | null) => {
@@ -1117,7 +1175,7 @@ const steam = (c: Ctx, x: number, f: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // America USA
 
-export const america = (c: Ctx, f: number, vis: (a: number, b: number) => boolean) => {
+export const america = (c: Ctx, f: number, vis: (a: number, b: number) => boolean, eye: Eye) => {
   // The districts: every one a pastiche of an American city, done as shops and restaurants, tacky as hell
   for (const d of DISTRICTS) {
     const x = R(d.x);
@@ -1133,12 +1191,10 @@ export const america = (c: Ctx, f: number, vis: (a: number, b: number) => boolea
     if (d.id === 'sea') stamp(c, 'usa-sea-pipe', x, PIPE_Y - 4, DISTRICT_W, bldgTop(0) - PIPE_Y + 6, g => paintPipe(g, x));
     districtLive(c, d.id, x, f);
   }
-  // The arch in: AMERICA USA, an eagle on top, stars round it
-  const { bl, br } = archBeam();
-  if (vis(bl - 20, br + 40)) {
-    stamp(c, 'usa-arch', bl - 14, GY - 480, br - bl + 28, 482, paintArch);
-    archLive(c, f);
-  }
+  // The sides of the buildings, in the gaps between them, as he goes by
+  for (const d of DISTRICTS) { const x = R(d.x); if (vis(x - 60, x + DISTRICT_W + 60)) buildingSides(c, eye, x, d.id); }
+  // The gate in: its back column (the front one, and what's over the top, are drawn in front of him: gateFront)
+  if (vis(GATE_X - 600, GATE_X + 600)) gateBack(c, eye);
   // Over the street: bunting from lamp to lamp; flags on every other lamp
   // (lamps in the gaps between the buildings, so none's in front of a shop sign; the mid ones hold the district's sign)
   const lamps = DISTRICTS.flatMap(d => [R(d.x) + 10, R(d.x) + 370]).concat([R(DISTRICTS[DISTRICTS.length - 1].x) + DISTRICT_W]);

@@ -9,7 +9,7 @@ import { X0, R, STAIRS_END, USA_START, GARAGE_END, USA_END, END_X, WINDOW_X } fr
 import { type Ctx, INK, WHITE, RED, box, text } from './art/kit';
 import { drawIntroBackdrop } from './art/sky';
 import { garage, deck, drawUpperFloor, truckDoorFront } from './art/upper';
-import { america, drawAmericaFloor } from './art/america';
+import { america, drawAmericaFloor, gateFront } from './art/america';
 import { plaza, drawPlazaFloor } from './art/plaza';
 
 import { drawPunchCam } from './punchCam';
@@ -37,7 +37,8 @@ export const drawIntroBack = (c: Ctx, state: GameState) => {
   const vis = (a: number, b: number) => b > cam - 100 && a < cam + CANVAS_WIDTH + 100;
   if (vis(R(GARAGE_END), R(STAIRS_END))) deck(c, f, intro?.office.open ?? 0, intro?.alarm ?? 0, intro?.cool ?? 0, vis);
   if (vis(X0 - 400, R(GARAGE_END))) garage(c, vis, truckNow(intro, f));
-  if (vis(R(USA_START), R(USA_END))) america(c, f, vis);
+  const eye = { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT * 0.42 };
+  if (vis(R(USA_START) - 600, R(USA_END))) america(c, f, vis, eye);
   if (vis(R(USA_END) - 200, R(END_X) + 400)) plaza(c, state, f);
   // The floors: the garage level's slab (its edge showing, the drop under it), the stairs down, brick in America USA,
   drawUpperFloor(c, f);
@@ -60,6 +61,8 @@ const said = (c: Ctx, s: string, x: number, y: number, col = WHITE, wide = 220) 
 export const drawIntroFront = (c: Ctx, state: GameState) => {
   const intro = getIntro(state);
   if (!intro) return;
+  // (the gate in at the foot of the stairs: its front column and what's over the top, in front of him)
+  if (Math.abs(state.camera.x + CANVAS_WIDTH / 2 - R(USA_START)) < 1400) gateFront(c, { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT * 0.42 }, state.frame);
   // (naked at the window: him panicking (sweat flying off him), then the punch, up close)
   const sc = intro.scene;
   // (him climbing out of the truck's window: its door in front of his legs; and SKIP >> while it's on)
