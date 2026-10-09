@@ -121,7 +121,7 @@ const App2: React.FC = () => {
       clearSkyCache();
       if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : AMERICA_SLOT);
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: false });
-      setUi({ near: null, map: null, nearExit: false });
+      setUi({ near: null, map: null, nearExit: false, nearAmerica: false });
       setFade(true);
       setTimeout(() => { pending.current = to; setInitialAmmo({ ...ammoRef.current }); setStatus(GameStatus.START); }, 260);
     });
