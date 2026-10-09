@@ -72,9 +72,12 @@ export const drawIntroBackdrop = (c: Ctx, state: GameState) => {
     const col = [RED, WHITE, '#FDE047'][i];
     for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; box(c, bx + Math.cos(a) * r, by + Math.sin(a) * r, 2, 2, col); }
   }
+  // (the parking lot out from the garage, the skyline over America USA: the one fading into the other as he goes down
+  // to it, not cut over from one to the other)
   const mid = cam + CANVAS_WIDTH / 2;
-  if (mid < R(USA_START) - 100) parkingLot(c, cam, f);
-  else skyline(c, cam);
+  const k = Math.max(0, Math.min(1, (mid - R(CHECK_END - 500)) / 900));
+  if (k > 0) { c.globalAlpha = k; skyline(c, cam); c.globalAlpha = 1; }
+  if (k < 1) { c.globalAlpha = 1 - k; parkingLot(c, cam, f); c.globalAlpha = 1; }
 };
 
 /** The parking lot: asphalt to the horizon, row on row of cars getting smaller, light poles, section signs (LOT EAGLE 47Z). */
@@ -93,10 +96,14 @@ const parkingLot = (c: Ctx, cam: number, f: number) => {
       const col = CARS[(seed * 5 + r) % CARS.length];
       box(c, x, y, 34 * s, 10 * s, col); box(c, x + 7 * s, y - 5 * s, 18 * s, 6 * s, col); box(c, x + 9 * s, y - 4 * s, 6 * s, 4 * s, '#93C5FD');
     }
-    // (a light pole now and then, a section sign on it)
-    if (r % 3 === 2) for (let x = off * 3 % 400 - 400; x < CANVAS_WIDTH + 400; x += 400) {
-      box(c, x, y - 60 * s, 2 * s + 1, 60 * s, '#A1A1AA'); box(c, x - 8 * s, y - 62 * s, 18 * s, 3 * s, '#A1A1AA');
-      if (s > 0.7) sign(c, x - 26, y - 50 * s, 52, 12, BLUE, `LOT ${['EAGLE', 'LIBERTY', 'APPLE PIE', 'BALD', 'GLORY'][(Math.floor(x + cam) >> 4) % 5 >>> 0]} ${(r * 7 + 3)}Z`, WHITE, 5);
+    // (a light pole now and then, a section sign on it: going by with its row, the same sign on the same pole)
+    if (r % 3 === 2) {
+      const gap = 400 * s, base = cam * par, first = Math.floor(base / gap) - 1;
+      for (let n = first; n * gap - base < CANVAS_WIDTH + gap; n++) {
+        const x = n * gap - base;
+        box(c, x, y - 60 * s, 2 * s + 1, 60 * s, '#A1A1AA'); box(c, x - 8 * s, y - 62 * s, 18 * s, 3 * s, '#A1A1AA');
+        if (s > 0.7) sign(c, x - 26, y - 50 * s, 52, 12, BLUE, `LOT ${['EAGLE', 'LIBERTY', 'APPLE PIE', 'BALD', 'GLORY'][((n % 5) + 5) % 5]} ${((n * 7 + r) % 90 + 90) % 90}Z`, WHITE, 5);
+      }
     }
   }
   void f;

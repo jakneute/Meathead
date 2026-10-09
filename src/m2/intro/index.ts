@@ -206,7 +206,8 @@ export const introLayout: StageLayout = {
     const upPress = !!controls.up && !intro.upWas;
     intro.upWas = !!controls.up;
     if (atWindow && upPress && !grabbing(intro.grab)) {
-      if (intro.lady.ko > 0 || intro.provoked) startScene(state, intro, 'punch');
+      // (he shows his ticket, whatever's going on; it's only naked, with no ticket to show, that he hits her: see scene)
+      if (intro.lady.ko > 0) startScene(state, intro, 'punch');
       else if (myTurn || intro.me === null && !lineAhead(state, intro)) startScene(state, intro, dressed(state));
       else {
         // (he's cut in: she won't, and the line lets him know)
@@ -216,7 +217,7 @@ export const introLayout: StageLayout = {
       }
     }
     intro.atWindowT = myTurn ? intro.atWindowT + 1 : 0;
-    setUi({ near: null, map: null, nearExit: false, introTip: tipAt(state, intro), introPrompt: atWindow && !intro.scene ? (intro.lady.ko > 0 || intro.provoked ? 'barge' : 'ticket') : null, introAhead: intro.me !== null ? countAhead(state, intro) : null });
+    setUi({ near: null, map: null, nearExit: false, introTip: tipAt(state, intro), introPrompt: atWindow && !intro.scene ? (intro.lady.ko > 0 ? 'barge' : 'ticket') : null, introAhead: intro.me !== null ? countAhead(state, intro) : null });
     return controls;
   },
   drawBackdrop: (ctx, state) => { drawIntroBackdrop(ctx, state); return true; },

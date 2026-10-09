@@ -272,7 +272,7 @@ const App2: React.FC = () => {
         )}
         {status === GameStatus.PLAYING && stage === INTRO_STAGE && !ui.introCutscene && ui.introPrompt && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
-            <Prompt pad={['DPAD_UP']} kb={['W']} label={ui.introPrompt === 'ticket' ? 'SHOW YOUR TICKET' : 'FORGET THE TICKET'} />
+            <Prompt pad={['DPAD_UP']} kb={['W']} label={ui.introPrompt === 'ticket' ? 'SHOW YOUR TICKET' : 'IN YOU GO'} />
           </div>
         )}
         {ui.introTicket && <TicketCard kind={ui.introTicket} />}
