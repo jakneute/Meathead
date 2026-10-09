@@ -47,6 +47,9 @@ const BOOTH = { x: D + 1240, w: 180, top: GY - 140, win: { x: D + 1262, y: GY - 
 /** The paddock's fences, the last fence, the temple's back door. */
 const PADDOCK_IN = D + 6100, PADDOCK_OUT = D + 8500, PADDOCK_TOP = GY - 200;
 const LAST_FENCE = D + 10400, LAST_FENCE_TOP = GY - 110;
+/** The temple (its back): a huge stepped pyramid, from just past the last fence to the end of the park; how far the
+ *  camera pulls out coming up on it. */
+const TEMPLE_L = D + 10480, TEMPLE_R = D + 11900, TIERS = 8, TIER_H = 90, TEMPLE_ZOOM_OUT = 0.45;
 export const TEMPLE_DOOR_X = D + 10850;
 /** Where he comes out, back from the temple through its back door. */
 export const DINO_BACK_DOOR_X = D + 10760;
@@ -249,10 +252,17 @@ export const dino: Section = {
     }
     return controls;
   },
-  // (out of the drain: in on the pebble as it flies, till the cut)
+  // (out of the drain: in on the pebble as it flies, till the cut; and coming up on the temple: out, to take it all in)
   zoom: (state) => {
     const pb = dinoOf(state).pebble;
-    if (!pb || pb.pip > 0 || pb.closedAt >= 0 || pb.t < ZOOM_FROM) return null;
+    if (!pb) {
+      const p = state.player, cx = p.pos.x + p.width / 2;
+      const u = Math.max(0, Math.min(1, (cx - (LAST_FENCE - 900)) / 600)), k = u * u * (3 - 2 * u);
+      if (k <= 0) return null;
+      // (about him, eased over to the left of the screen, so the temple fills the rest of it)
+      return { scale: 1 - TEMPLE_ZOOM_OUT * k, x: cx, y: GY, shiftX: k * (170 - (cx - state.camera.x)) };
+    }
+    if (pb.pip > 0 || pb.closedAt >= 0 || pb.t < ZOOM_FROM) return null;
     const u = Math.min(1, (pb.t - ZOOM_FROM) / (ZOOM_IN - ZOOM_FROM)), k = u * u * (3 - 2 * u);
     return { scale: 1 + 1.8 * k, x: pb.x, y: pb.y, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - pb.x), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - pb.y) };
   },
@@ -289,12 +299,14 @@ const lip = (c: Ctx, x: number, y: number, w: number, col: string) => { box(c, x
 
 const drawDinoBack = (c: Ctx, state: GameState) => {
   const cam = state.camera.x;
-  const vis = (a: number, b: number) => b > cam - 100 && a < cam + CANVAS_WIDTH + 100;
+  // (pulled out up by the temple: a lot more in view)
+  const vis = (a: number, b: number) => b > cam - 900 && a < cam + CANVAS_WIDTH + 900;
   const f = state.frame;
   const d = dinoOf(state);
   // Ground: park dirt and a paved path
-  box(c, Math.max(x0 - 200, cam - 50), GY, CANVAS_WIDTH + 100, 400, '#7C5A3A');
-  box(c, Math.max(x0 - 200, cam - 50), GY, CANVAS_WIDTH + 100, 5, '#A3825C');
+  // (wide: pulled out by the temple, there's a lot more of it in view)
+  box(c, Math.max(x0 - 200, cam - 900), GY, CANVAS_WIDTH + 1800, 400, '#7C5A3A');
+  box(c, Math.max(x0 - 200, cam - 900), GY, CANVAS_WIDTH + 1800, 5, '#A3825C');
   // Far scenery: paddock fences, palms, a sign now and then
   for (let x = Math.floor((cam - 200) / 260) * 260; x < cam + CANVAS_WIDTH + 200; x += 260) {
     if (x < x0 || x > x1) continue;
@@ -346,10 +358,26 @@ const drawDinoBack = (c: Ctx, state: GameState) => {
     for (const x of [PADDOCK_IN, PADDOCK_OUT]) { box(c, x, PADDOCK_TOP, 20, GY - PADDOCK_TOP, '#3F3F46'); lip(c, x - 2, PADDOCK_TOP, 24, '#A1A1AA'); }
   }
   if (vis(LAST_FENCE - 200, x1)) {
-    // The temple, from behind: a stepped pyramid's back, its back door (kicked in: a hole)
-    for (let i = 0; i < 6; i++) box(c, D + 10560 + i * 40, GY - 130 - i * 70, 600 - i * 80, 70, i % 2 ? '#8A7A5A' : '#9C8B66');
-    label(c, 'TEMPLE OF THE JAGUAR', D + 10900, GY - 560, '#FDE047', 10);
-    label(c, '(BACK OF)', D + 10900, GY - 544, '#E7E5E4', 7);
+    // The temple, from behind: a huge stepped pyramid's back (fiberglass: the seams, the access ladders, an AC unit or
+    // two, a shrine on top with its back to him), its back door at the foot of it (kicked in: a hole)
+    const inset = (TEMPLE_R - TEMPLE_L) / 2 / (TIERS + 2.2);
+    for (let i = 0; i < TIERS; i++) {
+      const x0t = TEMPLE_L + i * inset, x1t = TEMPLE_R - i * inset, y = GY - (i + 1) * TIER_H;
+      box(c, x0t, y, x1t - x0t, TIER_H, i % 2 ? '#8A7A5A' : '#9C8B66');
+      box(c, x0t, y, x1t - x0t, 6, '#B8A67E');
+      box(c, x0t, y + TIER_H - 10, x1t - x0t, 10, 'rgba(0,0,0,0.18)');
+      // (the carved band along each tier, and the seams between the panels it's made of)
+      for (let gx = x0t + 30; gx < x1t - 40; gx += 64) { box(c, gx, y + 30, 36, 40, 'rgba(60,48,30,0.35)'); box(c, gx + 8, y + 40, 20, 20, 'rgba(184,166,126,0.5)'); }
+      for (let sx = x0t + 160; sx < x1t; sx += 160) box(c, sx, y + 6, 2, TIER_H - 6, 'rgba(40,30,20,0.35)');
+    }
+    const topY = GY - TIERS * TIER_H, sx0 = TEMPLE_L + TIERS * inset, sx1 = TEMPLE_R - TIERS * inset;
+    box(c, sx0 + 30, topY - 150, sx1 - sx0 - 60, 150, '#7C6C4C'); box(c, sx0 + 20, topY - 168, sx1 - sx0 - 40, 22, '#9C8B66');
+    box(c, (sx0 + sx1) / 2 - 30, topY - 120, 60, 120, '#3B2F1E');
+    // (backstage: a ladder up its back, an AC unit, a cable run)
+    for (let y = GY - 20; y > topY; y -= 18) box(c, TEMPLE_L + 220 + ((GY - y) / TIER_H) * inset, y, 22, 3, '#57534E');
+    box(c, TEMPLE_L + inset * 3 + 300, GY - 4 * TIER_H - 46, 80, 46, '#A1A1AA'); box(c, TEMPLE_L + inset * 3 + 306, GY - 4 * TIER_H - 40, 68, 30, '#71717A');
+    label(c, 'TEMPLE OF THE JAGUAR', (TEMPLE_L + TEMPLE_R) / 2, GY - 4 * TIER_H + 34, '#FDE047', 16);
+    label(c, '(BACK OF. EMPLOYEES ONLY.)', (TEMPLE_L + TEMPLE_R) / 2, GY - 4 * TIER_H + 56, '#E7E5E4', 9);
     if (d.doorKicked) box(c, TEMPLE_DOOR_X, GY - 90, 50, 90, '#0C0A09');
     else { box(c, TEMPLE_DOOR_X, GY - 90, 50, 90, '#78350F'); box(c, TEMPLE_DOOR_X + 38, GY - 48, 6, 6, '#FACC15'); label(c, 'EMPLOYEES', TEMPLE_DOOR_X + 25, GY - 70, '#FDE68A', 6); label(c, 'ONLY', TEMPLE_DOOR_X + 25, GY - 60, '#FDE68A', 6); }
     if (d.kick > 22) { c.save(); const k = d.kick - 22; c.translate(TEMPLE_DOOR_X + 25 + k * 6, GY - 45 - k * 2 + k * k * 0.2); c.rotate(k * 0.25); box(c, -25, -45, 50, 90, '#78350F'); c.restore(); }
