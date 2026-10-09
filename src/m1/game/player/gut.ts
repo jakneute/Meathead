@@ -24,6 +24,8 @@ const pick = (pool: readonly string[] | undefined) => (pool?.length ? pool[Math.
 import { getStageLayout } from '../stages';
 import { STAIN_FRAMES, shakeScreen } from '../core/state';
 import { groundLineAt } from '../core/terrain';
+import { isMidBoss } from '../combat/midBoss';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants';
 
 /** A skid mark this far from the last one's end, laid in the last few frames: the same one, carried on. */
 const SMEAR_JOIN = 14;
@@ -187,7 +189,7 @@ const third = (ctx: FrameContext, input: FrameInput, gut: NonNullable<GameState[
   gut.remains = { x, y: floor, dir: p.facing, at: state.frame };
   playSound('fart', 1, -9); playSound('boom', 1, -2); playSound('splat', 1, -6); playSound('crunch', 0.9, -4);
   state.damageNumbers.push({
-    id: `callout-${state.frame}-meltdown`, text: 'TOTAL BLOWOUT!', pos: { x, y: p.pos.y - 30 },
+    id: `callout-${state.frame}-meltdown`, text: 'SHIT NUKE!', pos: { x: Math.max(state.camera.x + 200, Math.min(state.camera.x + CANVAS_WIDTH - 200, x)), y: p.pos.y - 30 },
     vel: { x: 0, y: -2 }, life: 140, maxLife: 140, isCritical: true, isCallout: true, color: '#8B5A2B',
   });
   ctx.fx.spawnExplosion({ x, y }, '#991B1B', 30, 0, 22);
@@ -197,7 +199,21 @@ const third = (ctx: FrameContext, input: FrameInput, gut: NonNullable<GameState[
   // (and it goes on everything: globs every which way, staining whatever they hit)
   gut.globs = [...(gut.globs ?? []), ...Array.from({ length: 30 }, () => ({ x, y, vx: (Math.random() - 0.5) * 20, vy: -3 - Math.random() * 12 }))];
   gut.stains = gut.stains ?? [];
-  shakeScreen(state, 26, 14);
+  // (a nuclear shit blast: everything on the screen with him goes too, flung off every which way in a brown burst; not
+  // a boss, not a mid-boss, they've got their own endings)
+  const cam = state.camera;
+  for (const e of state.enemies) {
+    if (e.type === 'boss' || isMidBoss(e) || e.health <= 0 || e.isBlownAway || e.kind === 'tenant') continue;
+    const ex = e.pos.x + e.width / 2, ey = e.pos.y + e.height / 2;
+    if (ex < cam.x - 20 || ex > cam.x + CANVAS_WIDTH + 20 || ey < cam.y - 40 || ey > cam.y + CANVAS_HEIGHT + 40) continue;
+    const d = Math.max(1, Math.hypot(ex - x, ey - y)), push = 14 + Math.max(0, 1 - d / 700) * 10;
+    e.health = 0; e.isBlownAway = true; e.frozenTimer = 0;
+    e.vel = { x: ((ex - x) / d) * push, y: -8 - Math.random() * 6 };
+    ctx.fx.spawnDeathShower(e.pos, Math.sign(ex - x) || 1, 2);
+    ctx.fx.spawnPoopExplosion({ x: ex, y: ey }, 14);
+  }
+  for (let i = 0; i < 60; i++) { const a = (i / 60) * Math.PI * 2; state.particles.push({ pos: { x, y }, vel: { x: Math.cos(a) * (10 + Math.random() * 6), y: Math.sin(a) * (6 + Math.random() * 4) - 2 }, life: 40 + Math.random() * 20, color: i % 2 ? '#5C3A16' : 'rgba(132, 155, 60, 0.7)', size: 6 + Math.random() * 6 }); }
+  shakeScreen(state, 40, 20);
   kill?.(ctx, pick(deathLines) ?? 'YOU EXPLODED.', false);
 };
 
