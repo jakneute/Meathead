@@ -260,7 +260,7 @@ const tick = (ctx: FrameContext) => {
 // Drawing
 
 /** The car: a low red sports car, a white racing stripe, the stunt driver's helmet in it, wheels spinning; speed lines. */
-const drawCar = (c: Ctx, x: number, y: number, dir: number, wheel: number, rot: number, paint: Paint) => {
+const drawCar = (c: Ctx, x: number, y: number, dir: number, wheel: number, rot: number, paint: Paint, driver = true) => {
   c.save(); c.translate(x, y); c.scale(dir * CAR_SCALE, CAR_SCALE); c.rotate(rot);
   const W = 112, H = 34;
   // (speed lines behind)
@@ -274,8 +274,8 @@ const drawCar = (c: Ctx, x: number, y: number, dir: number, wheel: number, rot: 
   // windows
   c.fillStyle = '#7DD3FC'; c.beginPath(); c.moveTo(-3, -26); c.lineTo(20, -26); c.lineTo(31, -16); c.lineTo(-14, -16); c.closePath(); c.fill();
   c.restore();
-  // the driver in his helmet, looking where he's going
-  c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(-8, -19, 5.5, 0, Math.PI * 2); c.fill(); c.fillStyle = '#18181B'; c.fillRect(-7, -21, 5, 3);
+  // the driver in his helmet, looking where he's going (not in the wreck: he's been thrown out of it)
+  if (driver) { c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(-8, -19, 5.5, 0, Math.PI * 2); c.fill(); c.fillStyle = '#18181B'; c.fillRect(-7, -21, 5, 3); }
   // lights
   c.fillStyle = '#FEF08A'; c.fillRect(W / 2 - 7, -9, 5, 3); c.fillStyle = '#B91C1C'; c.fillRect(-W / 2 + 1, -10, 4, 3);
   // wheels
@@ -333,7 +333,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   // The wrecks: on their roofs, burning
   for (const w of wrecks) {
     if (w.t > 170 && w.t % 4 < 2) continue;
-    drawCar(c, w.x, w.y - 16 * CAR_SCALE, w.dir, 0, Math.PI, PAINT[w.paint]);
+    drawCar(c, w.x, w.y - 16 * CAR_SCALE, w.dir, 0, Math.PI, PAINT[w.paint], false);
   }
   // The clapperboard over his head: the clapper snapping down, ACTION!
   if (clap > 0) {

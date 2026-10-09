@@ -956,76 +956,145 @@ const friezeArt = () => {
   return cv;
 };
 
-/** Where the gate's parts are this frame. */
+/** The ground at a depth (`s`, how big things are there: 1 where he walks): the line it meets, going back up toward
+ *  where he's looking. */
+const groundAt = (eye: Eye, s: number) => eye.y + (GY - eye.y) * s;
+/** How far back the shop fronts stand, as the gate's columns and the ground go (they slide by with him, the same as he
+ *  does: depth 1). Anything with a smaller depth is behind them; bigger, in front. */
+const SHOPS = 1;
+
+/** Where the gate's parts are this frame (each column standing on the ground at its own depth). */
 const gateNow = (eye: Eye) => {
   const xf = at(eye, GATE_X, GATE.front), xb = at(eye, GATE_X, GATE.back);
-  const topF = GATE.frontFoot - GATE.H * GATE.frontS, topB = GATE.backFoot - GATE.H * GATE.backS;
-  return { xf, xb, topF, topB };
+  const footF = groundAt(eye, GATE.frontS), footB = groundAt(eye, GATE.backS);
+  const topF = footF - GATE.H * GATE.frontS, topB = footB - GATE.H * GATE.backS;
+  return { xf, xb, topF, topB, footF, footB };
 };
 
-/** Behind him: the column at the back. */
-export const gateBack = (c: Ctx, eye: Eye) => {
-  const { xb } = gateNow(eye);
-  gateColumn(c, xb, GATE.backFoot, GATE.backS, 'gate-col-back');
-};
-
-/** In front of him: the column at the front, and the entablature over the street from it back to the other, its side
- *  swinging round as he goes under it (drawn a slice at a time, each one as near as where it is along it). */
-export const gateFront = (c: Ctx, eye: Eye, f: number) => {
+/** The entablature, slice by slice from t0 to t1 of the way from the back column to the front one. */
+const frieze_ = (c: Ctx, eye: Eye, t0: number, t1: number) => {
   const { xf, xb, topF, topB } = gateNow(eye);
   const art = friezeArt();
-  // The eagle up on top, halfway along, and YOU'RE WELCOME hung under it: further back than the side of the
-  // entablature and the front column, so drawn first, behind them
-  const sm = (GATE.backS + GATE.frontS) / 2, xm = (xb + xf) / 2, ym = (topB + topF) / 2;
-  eagle(c, xm, ym - FRIEZE_H * sm - 26 * sm, 1.5 * sm);
-  const sw = 92 * sm, sy = ym + 34 * sm;
-  for (const dx of [-sw / 2 + 6, sw / 2 - 6]) for (let y = ym; y < sy; y += 3 * sm) box(c, xm + dx, y, 2 * sm, 2 * sm, '#B8BCC4');
-  c.save(); c.translate(xm, sy); c.scale(sm, sm); sign(c, -46, 0, 92, 14, '#FEF3C7', "YOU'RE WELCOME", '#7F1D1D', 6); c.restore();
-  // The entablature: from the back column's top to the front one's, slice by slice
   const N = 48, flip = xf < xb;
-  for (let i = 0; i < N; i++) {
-    const t0 = i / N, t1 = (i + 1) / N, tm = (t0 + t1) / 2;
-    const x0 = xb + (xf - xb) * t0, x1 = xb + (xf - xb) * t1;
+  for (let i = Math.floor(t0 * N); i < Math.ceil(t1 * N); i++) {
+    const a = i / N, b = (i + 1) / N, tm = (a + b) / 2;
+    const x0 = xb + (xf - xb) * a, x1 = xb + (xf - xb) * b;
     const s = GATE.backS + (GATE.frontS - GATE.backS) * tm, bottom = topB + (topF - topB) * tm;
     const h = FRIEZE_H * s;
     // (the picture across it, read left to right whichever side of it he's on)
     const u = flip ? 1 - tm : tm;
     c.drawImage(art, Math.floor(u * (FRIEZE_W - FRIEZE_W / N)), 0, FRIEZE_W / N, FRIEZE_H, Math.min(x0, x1), bottom - h, Math.abs(x1 - x0) + 1, h);
+    // (its shade, deeper the further back)
+    if (tm < 0.5) { c.fillStyle = `rgba(30, 36, 72, ${(0.3 * (1 - tm * 2)).toFixed(2)})`; c.fillRect(Math.min(x0, x1), bottom - h, Math.abs(x1 - x0) + 1, h); }
   }
-  // (its shade, deeper the further back)
-  c.save(); c.globalAlpha = 0.28; c.fillStyle = '#1E2448';
-  c.beginPath(); c.moveTo(xb, topB - FRIEZE_H * GATE.backS); c.lineTo(xb, topB); c.lineTo(xb + (xf - xb) * 0.45, topB + (topF - topB) * 0.45); c.lineTo(xb + (xf - xb) * 0.45, topB + (topF - topB) * 0.45 - FRIEZE_H * (GATE.backS + (GATE.frontS - GATE.backS) * 0.45)); c.closePath(); c.fill();
-  c.restore();
+};
+/** Where along the entablature the shop fronts' depth is: the part back of it's behind them, the rest in front. */
+const SHOP_T = (SHOPS - GATE.back) / (GATE.front - GATE.back);
+
+/** Behind the shop fronts (drawn before them): the ground going back behind the street where there's nothing in
+ *  front of it, the back column standing on it, and the back end of the entablature. */
+export const gateBack = (c: Ctx, eye: Eye) => {
+  const { xb, footB } = gateNow(eye);
+  gateColumn(c, xb, footB, GATE.backS, 'gate-col-back');
+  frieze_(c, eye, 0, SHOP_T);
+};
+
+/** In front of him: the near end of the entablature, the eagle and the sign at the middle of it, the column out in
+ *  front. */
+export const gateFront = (c: Ctx, eye: Eye, f: number) => {
+  const { xf, xb, topF, topB, footF } = gateNow(eye);
+  // The eagle up on top, halfway along, and YOU'RE WELCOME hung under it (further back than the near end and the front
+  // column: drawn first)
+  const sm = (GATE.backS + GATE.frontS) / 2, xm = (xb + xf) / 2, ym = (topB + topF) / 2;
+  eagle(c, xm, ym - FRIEZE_H * sm - 26 * sm, 1.5 * sm);
+  const sw = 92 * sm, sy = ym + 34 * sm;
+  for (const dx of [-sw / 2 + 6, sw / 2 - 6]) for (let y = ym; y < sy; y += 3 * sm) box(c, xm + dx, y, 2 * sm, 2 * sm, '#B8BCC4');
+  c.save(); c.translate(xm, sy); c.scale(sm, sm); sign(c, -46, 0, 92, 14, '#FEF3C7', "YOU'RE WELCOME", '#7F1D1D', 6); c.restore();
+  frieze_(c, eye, SHOP_T, 1);
   // (the end of it over the front column: square on to him)
   const s = GATE.frontS, ew = (GATE.CW + 26) * s, eh = FRIEZE_H * s;
   slab(c, xf - ew / 2, topF - eh, ew, eh, MARBLE);
   shinyStar(c, xf, topF - eh / 2, 7 * s, '#FDE047');
-  // The column out in front of him
-  gateColumn(c, xf, GATE.frontFoot, GATE.frontS, 'gate-col-front');
+  gateColumn(c, xf, footF, GATE.frontS, 'gate-col-front');
   void f;
 };
 
-/** The sides of the buildings, seen in the gaps between them: whichever side faces him, going back from the front of
- *  the building toward where he's looking, wider the further off to the side it is, shaded; the cornice going back
- *  along the top of it. */
+/** The ground going back behind the street (where the shop fronts don't hide it): the sidewalk receding up toward
+ *  where he's looking, its joints running back, darker the further. Drawn before everything that stands on it. */
+const backGround = (c: Ctx, eye: Eye, x0: number, x1: number) => {
+  const far = groundAt(eye, 0.62);
+  const bands = ['#8E8676', '#9C9482', '#AAA290', '#B6AE9C'];
+  bands.forEach((col, i) => { const y0 = far + (GY - far) * (i / bands.length), y1 = far + (GY - far) * ((i + 1) / bands.length); box(c, x0, y0, x1 - x0, y1 - y0 + 1, col); });
+  // (joints running back toward where he's looking)
+  c.strokeStyle = 'rgba(60, 54, 44, 0.45)'; c.lineWidth = 1;
+  for (let x = Math.floor(x0 / 48) * 48; x < x1; x += 48) { const xf = eye.x + (x - eye.x) * 0.62; c.beginPath(); c.moveTo(x, GY); c.lineTo(xf, far); c.stroke(); }
+  for (let i = 1; i < 4; i++) { const y = far + (GY - far) * (i / 4) ** 1.4; box(c, x0, y, x1 - x0, 1, 'rgba(60, 54, 44, 0.35)'); }
+};
+
+/** Between the buildings: an alley going back, not sky: the backs of the buildings behind across the end of it (dim
+ *  brick, a lit window, a fire escape, a pipe), and the alley floor coming forward to the street (a dumpster, a puddle). */
+const alleys = (c: Ctx, eye: Eye) => {
+  const far = groundAt(eye, 0.62), top = GY - 360;
+  for (const d of DISTRICTS) {
+    const x = R(d.x);
+    for (const [g0, g1] of [[bldgX(x, 0) + BW, bldgX(x, 1)], [bldgX(x, 1) + BW, x + DISTRICT_W + 20]] as [number, number][]) {
+      if (d === DISTRICTS[DISTRICTS.length - 1] && g1 > x + DISTRICT_W) continue;
+      if (g1 < eye.x - 520 || g0 > eye.x + 520) continue;
+      const a = g0 - 6, w = g1 - g0 + 12;
+      // (the backs of the buildings over the way: dim brick in courses, a window lit, a fire escape)
+      box(c, a, top, w, far - top, '#3E3240');
+      for (let y = top + 6; y < far; y += 8) box(c, a, y, w, 1, '#33283A');
+      for (let y = top + 10, i = 0; y < far - 30; y += 46, i++) {
+        const wx = a + 4 + ((i * 7) % Math.max(1, w - 18));
+        box(c, wx, y, 10, 14, '#1A1420'); if (hash(x + y) > 0.5) box(c, wx + 1, y + 1, 8, 12, '#E8C46A');
+        box(c, a, y + 18, w, 2, '#262030');
+      }
+      box(c, a + w / 2 - 1, top, 2, far - top, '#2A2234');
+      // (the alley floor: cracked asphalt coming forward to the sidewalk, a puddle, a dumpster at the back)
+      const bands = ['#4A4644', '#575250', '#64605C'];
+      bands.forEach((col, i) => box(c, a, far + (GY - far) * (i / 3), w, (GY - far) / 3 + 1, col));
+      box(c, a + 2, far - 14, Math.min(w - 4, 24), 14, '#1E4A2E'); box(c, a + 2, far - 14, Math.min(w - 4, 24), 2, '#2E6A42');
+      c.fillStyle = 'rgba(120, 150, 190, 0.35)'; c.beginPath(); c.ellipse(a + w / 2, GY - 10, w * 0.3, 3, 0, 0, Math.PI * 2); c.fill();
+    }
+  }
+};
+
+/** The sides of the buildings: whichever side faces him, going back from the shop front toward where he's looking,
+ *  standing on the ground going back with it; in the gaps between buildings (the next one's front hides the rest), all
+ *  of it at the open ends of the street. */
 const DEPTH = 0.78;
 const buildingSides = (c: Ctx, eye: Eye, x: number, id: Id) => {
+  const first = x === R(DISTRICTS[0].x), last = x === R(DISTRICTS[DISTRICTS.length - 1].x);
   for (let k = 0; k < 2; k++) {
     const bx = bldgX(x, k), top = bldgTop(k), b = B[id][k];
-    // (the gaps either side: as far as the next building, or the next district's)
-    const gaps: [number, number, 1 | -1][] = [[bx + BW, k ? x + DISTRICT_W + 20 : bldgX(x, 1), 1], [k ? bldgX(x, 0) + BW : x - 20, bx, -1]];
+    // (the gaps either side: as far as the next building, or the next district's; open at the ends of the street)
+    const gaps: [number, number, 1 | -1][] = [
+      [bx + BW, k ? (last ? bx + BW + 900 : x + DISTRICT_W + 20) : bldgX(x, 1), 1],
+      [k ? bldgX(x, 0) + BW : (first ? bx - 900 : x - 20), bx, -1],
+    ];
     for (const [g0, g1, side] of gaps) {
       const e = side > 0 ? bx + BW : bx;
       // (only the side that faces him: the right side when he's off to its right, and the other way)
       if ((eye.x - e) * side <= 2) continue;
-      const far = eye.x + (e - eye.x) * DEPTH, topFar = eye.y + (top - eye.y) * DEPTH;
+      const far = eye.x + (e - eye.x) * DEPTH, topFar = eye.y + (top - eye.y) * DEPTH, botFar = groundAt(eye, DEPTH);
       const wall = dark(dim(b.wall), 0.35), trim = dark(dim(b.trim), 0.2);
-      c.save(); c.beginPath(); c.rect(Math.min(g0, g1), top - 40, Math.abs(g1 - g0), GY - top + 40); c.clip();
-      c.fillStyle = wall; c.beginPath(); c.moveTo(e, top); c.lineTo(far, topFar); c.lineTo(far, GY); c.lineTo(e, GY); c.closePath(); c.fill();
-      // (going back: a darker band toward the far end, the brick courses running back along it, the cornice)
-      c.fillStyle = 'rgba(10, 10, 30, 0.22)'; c.beginPath(); c.moveTo(e + (far - e) * 0.5, top + (topFar - top) * 0.5); c.lineTo(far, topFar); c.lineTo(far, GY); c.lineTo(e + (far - e) * 0.5, GY); c.closePath(); c.fill();
+      c.save(); c.beginPath(); c.rect(Math.min(g0, g1), top - 40, Math.abs(g1 - g0), GY - top + 44); c.clip();
+      // (the ground it stands on, going back with it, and its shadow along the foot)
+      c.fillStyle = '#A39A88'; c.beginPath(); c.moveTo(e, GY); c.lineTo(far, botFar); c.lineTo(far + (far - e), botFar); c.lineTo(far + (far - e), GY); c.closePath(); c.fill();
+      c.fillStyle = 'rgba(20, 16, 12, 0.35)'; c.beginPath(); c.moveTo(e, GY); c.lineTo(far, botFar); c.lineTo(far + (far - e) * 0.25, botFar + 3); c.lineTo(e + (far - e) * 0.3, GY); c.closePath(); c.fill();
+      // (the wall)
+      c.fillStyle = wall; c.beginPath(); c.moveTo(e, top); c.lineTo(far, topFar); c.lineTo(far, botFar); c.lineTo(e, GY); c.closePath(); c.fill();
+      c.fillStyle = 'rgba(10, 10, 30, 0.22)'; c.beginPath(); c.moveTo(e + (far - e) * 0.5, top + (topFar - top) * 0.5); c.lineTo(far, topFar); c.lineTo(far, botFar); c.lineTo(e + (far - e) * 0.5, GY + (botFar - GY) * 0.5); c.closePath(); c.fill();
       c.strokeStyle = 'rgba(10, 10, 30, 0.25)'; c.lineWidth = 1;
       for (let y = top + 14; y < GY; y += 14) { const yf = eye.y + (y - eye.y) * DEPTH; c.beginPath(); c.moveTo(e, y); c.lineTo(far, yf); c.stroke(); }
+      // (a window or two going back along it, at the open ends, where there's room to see them)
+      if (Math.abs(far - e) > 60) for (const kk of [0.3, 0.62]) for (const wy of [top + 40, top + 120]) {
+        const p0x = e + (far - e) * kk, p1x = e + (far - e) * (kk + 0.16);
+        const y0a = wy + (eye.y + (wy - eye.y) * DEPTH - wy) * kk, y0b = wy + (eye.y + (wy - eye.y) * DEPTH - wy) * (kk + 0.16);
+        const h0 = 44 * (1 - (1 - DEPTH) * kk), h1 = 44 * (1 - (1 - DEPTH) * (kk + 0.16));
+        c.fillStyle = '#1F2937'; c.beginPath(); c.moveTo(p0x, y0a); c.lineTo(p1x, y0b); c.lineTo(p1x, y0b + h1); c.lineTo(p0x, y0a + h0); c.closePath(); c.fill();
+        c.fillStyle = 'rgba(147, 197, 253, 0.55)'; c.beginPath(); c.moveTo(p0x + (p1x - p0x) * 0.15, y0a + 3); c.lineTo(p1x - (p1x - p0x) * 0.15, y0b + 3); c.lineTo(p1x - (p1x - p0x) * 0.15, y0b + h1 - 3); c.lineTo(p0x + (p1x - p0x) * 0.15, y0a + h0 - 3); c.closePath(); c.fill();
+      }
       c.fillStyle = trim; c.beginPath(); c.moveTo(e, top - 2); c.lineTo(far, topFar - 2 * DEPTH); c.lineTo(far, topFar + 8 * DEPTH); c.lineTo(e, top + 8); c.closePath(); c.fill();
       // (the corner, lit)
       box(c, e - (side > 0 ? 1 : 0), top, 1, GY - top, lite(dim(b.wall), 0.2));
@@ -1177,6 +1246,11 @@ const steam = (c: Ctx, x: number, f: number) => {
 // America USA
 
 export const america = (c: Ctx, f: number, vis: (a: number, b: number) => boolean, eye: Eye) => {
+  // Behind it all: the ground going back behind the street, and the gate's back column and the far end of what's over
+  // the top of it (the shop fronts stand in front of them)
+  if (vis(R(USA_START) - 700, R(USA_END) + 700)) backGround(c, eye, Math.max(R(STAIRS_END) - 120, eye.x - 900), Math.min(R(USA_END) + 700, eye.x + 900));
+  alleys(c, eye);
+  if (vis(GATE_X - 600, GATE_X + 600)) gateBack(c, eye);
   // The districts: every one a pastiche of an American city, done as shops and restaurants, tacky as hell
   for (const d of DISTRICTS) {
     const x = R(d.x);
@@ -1194,8 +1268,6 @@ export const america = (c: Ctx, f: number, vis: (a: number, b: number) => boolea
   }
   // The sides of the buildings, in the gaps between them, as he goes by
   for (const d of DISTRICTS) { const x = R(d.x); if (vis(x - 60, x + DISTRICT_W + 60)) buildingSides(c, eye, x, d.id); }
-  // The gate in: its back column (the front one, and what's over the top, are drawn in front of him: gateFront)
-  if (vis(GATE_X - 600, GATE_X + 600)) gateBack(c, eye);
   // Over the street: bunting from lamp to lamp; flags on every other lamp
   // (lamps in the gaps between the buildings, so none's in front of a shop sign; the mid ones hold the district's sign)
   const lamps = DISTRICTS.flatMap(d => [R(d.x) + 10, R(d.x) + 370]).concat([R(DISTRICTS[DISTRICTS.length - 1].x) + DISTRICT_W]);
