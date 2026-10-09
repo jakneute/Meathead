@@ -492,7 +492,9 @@ const frontGuest = (state: GameState, intro: Intro) => {
 };
 
 /** How long the window takes over each person (it's real time: he waits); how often somebody new turns up behind him. */
-const SERVE = 270, ARRIVE = 420, HURRY_AFTER = 240, HURRY_EVERY = 400, MAX_BEHIND = 5;
+const SERVE = 270, ARRIVE = 420, HURRY_AFTER = 240, HURRY_EVERY = 400;
+/** The longest the line gets (him in it, or not): past this, nobody else joins it till it's moved up. */
+const LINE_MAX = 12;
 const line = (ctx: FrameContext, intro: Intro) => {
   const { state } = ctx;
   const p = state.player, px = p.pos.x + p.width / 2;
@@ -557,11 +559,18 @@ const line = (ctx: FrameContext, intro: Intro) => {
       if (e.pos.x < state.camera.x - 200) state.enemies = state.enemies.filter(o => o !== e);
     }
   }
-  // People turning up behind him while he waits
-  if (intro.me !== null && !intro.admitted && ++intro.arriveT >= ARRIVE) {
+  // People turning up for it, all the time, whether he's in it or not (as long as it's not out past where it starts):
+  // in from off the screen, walking up to the back of it
+  if (!intro.admitted && ++intro.arriveT >= ARRIVE) {
     intro.arriveT = 0;
-    const behind = inLine(state).filter(e => guests.get(e)!.number > intro.me!).length;
-    if (behind < MAX_BEHIND) addGuest(state, intro, Math.min(px, R(FRONT_X - (members.length) * SPACING)) - 420, true);
+    if (members.length < LINE_MAX) {
+      const back = Math.min(meRank >= 0 ? px : Infinity, R(FRONT_X - members.length * SPACING));
+      // (where nobody sees them pop up: behind the back of it, if that's off the screen; or just off the left of it, on
+      // the street; never up on the deck)
+      const at = back - 420, cl = state.camera.x - 60, cr = state.camera.x + CANVAS_WIDTH + 60;
+      const x = at < cl || at > cr ? at : cl > R(USA_START) + 100 ? cl : null;
+      if (x !== null) addGuest(state, intro, x, true);
+    }
   }
   // The state of him: it happening right in front of them, the nearest one says so; stood near him like that, now and
   // then one of them has something to say about it (each says it once)
