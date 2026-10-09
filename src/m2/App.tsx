@@ -20,8 +20,10 @@ import voicePackUrl from './generated/voices.bin?url';
 import { registerStageLayout } from '../m1/game/stages/index';
 import { hubLayout, HUB_STAGE, setHubStart } from './hub/index';
 import { penLayout, PEN_STAGE } from './pen/index';
+import { introLayout, INTRO_STAGE, registerIntro } from './intro/index';
+import TicketCard from './intro/TicketCard';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi } from './store';
+import { getUi, subscribeUi, onTravel, setUi, goTo } from './store';
 import { attachM2Keys } from './input';
 import { setFireKeys } from '../m1/game/platform/input';
 import { setRayGun } from '../m1/game/combat/rayGun';
@@ -36,6 +38,8 @@ import { registerGrabCallouts } from './moves/callouts';
 
 registerStageLayout(HUB_STAGE, hubLayout);
 registerStageLayout(PEN_STAGE, penLayout);
+registerStageLayout(INTRO_STAGE, introLayout);
+registerIntro();
 loadVoicePack(voicePackUrl);
 attachM2Keys();
 cleanLines();
@@ -69,9 +73,10 @@ const useFitToWindow = () => {
 const App2: React.FC = () => {
   const scale = useFitToWindow();
   const ui = useSyncExternalStore(subscribeUi, getUi);
-  const [stage, setStage] = useState(HUB_STAGE);
+  // (it starts on the way in: the intro)
+  const [stage, setStage] = useState(INTRO_STAGE);
   const [status, setStatus] = useState(GameStatus.START);
-  const pending = useRef<string | null>(HUB_STAGE);
+  const pending = useRef<string | null>(INTRO_STAGE);
   const [fade, setFade] = useState(false);
   const [weapon, setWeapon] = useState<WeaponType>('GUN');
   const [hud, setHud] = useState({ health: INITIAL_PLAYER_HEALTH, power: 0, ammo: STARTING_AMMO as Record<WeaponType, number> });
@@ -92,6 +97,7 @@ const App2: React.FC = () => {
       const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : null;
       if (!to) return;
       if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : AMERICA_SLOT);
+      setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: false });
       setUi({ near: null, map: null, nearExit: false });
       setFade(true);
       setTimeout(() => { pending.current = to; setInitialAmmo({ ...ammoRef.current }); setStatus(GameStatus.START); }, 260);
@@ -102,8 +108,11 @@ const App2: React.FC = () => {
   const [pauseSel, setPauseSel] = useState(0);
   /** The weapon wheel (the right stick): which one it's pointing at, while it's up. */
   const [wheelAt, setWheelAt] = useState<number | null>(null);
-  const live = useRef({ status, weapon });
-  live.current = { status, weapon };
+  const live = useRef({ status, weapon, stage });
+  live.current = { status, weapon, stage };
+  /** (in the intro's pause menu, there's SKIP INTRO after RESUME) */
+  const lastPause = () => (live.current.stage === INTRO_STAGE ? WEAPONS.length + 1 : WEAPONS.length);
+  const skipIntro = () => { setStatus(GameStatus.PLAYING); goTo('hub'); };
   const togglePause = () => {
     const st = live.current.status;
     if (st === GameStatus.PLAYING) { setPauseSel(Math.max(0, WEAPONS.indexOf(live.current.weapon))); setStatus(GameStatus.PAUSED); }
@@ -114,14 +123,14 @@ const App2: React.FC = () => {
   /** In the pause menu: the arsenal's a grid three across, RESUME under it. */
   const movePause = (dx: number, dy: number) => setPauseSel(i => {
     const n = WEAPONS.length;
-    if (i === n) return dy < 0 ? Math.min(n - 1, Math.floor((n - 1) / 3) * 3) : i;
+    if (i >= n) { if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return n; return dy < 0 ? Math.min(n - 1, Math.floor((n - 1) / 3) * 3) : i; }
     if (dy > 0) return i + 3 < n ? i + 3 : n;
     if (dy < 0) return i - 3 >= 0 ? i - 3 : i;
     return Math.max(0, Math.min(n - 1, i + dx));
   });
   const pauseSelRef = useRef(pauseSel);
   pauseSelRef.current = pauseSel;
-  const confirmPause = () => { const i = pauseSelRef.current; if (i >= WEAPONS.length) resume(); else equip(i); };
+  const confirmPause = () => { const i = pauseSelRef.current; if (i === WEAPONS.length + 1) skipIntro(); else if (i >= WEAPONS.length) resume(); else equip(i); };
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
   useEffect(() => {
@@ -213,7 +222,7 @@ const App2: React.FC = () => {
           onBossDeath={noop}
           onIntroComplete={() => setStatus(GameStatus.PLAYING)}
         />
-        {status === GameStatus.PLAYING && ui.map === null && (
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && (
           <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weaponName(weapon)} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} />
         )}
         {/* What up does here */}
@@ -234,11 +243,39 @@ const App2: React.FC = () => {
             <span className="text-yellow-300 pl-1">SMALL CRITTERS (RATS, CRABS, BIRDS...) GIVE NO HEALTH OR AMMO. EITHER GRAB JUST PICKS ONE UP: PRESS A DIRECTION TO PITCH IT LIKE A BASEBALL.</span>
           </div>
         )}
+        {/* The intro: what the panel in the corner's teaching, where he is; what up does at the ticket window; the ticket */}
+        {status === GameStatus.PLAYING && stage === INTRO_STAGE && !ui.introCutscene && ui.introTip && (
+          <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 max-w-[420px] px-3 py-2 text-[8px] leading-[1.6] text-zinc-100 bg-black/70 border-2 border-zinc-600">
+            {ui.introTip === 'postal' && <>
+              <span className="text-sky-300">PARK SECURITY LEAVES YOU ALONE IF YOU LEAVE EVERYBODY ALONE.</span>
+              <span className="text-zinc-400">HIT ANYBODY (OR SET OFF THE METAL DETECTOR) AND THE WHOLE PARK COMES AT YOU.</span>
+              <span className="text-zinc-500">SKIP THE INTRO FROM THE PAUSE MENU.</span>
+            </>}
+            {ui.introTip === 'grabs' && <>
+              <ChordPrompt pad={['Y', 'B']} join="+" kb={['R']} label="BEATDOWN (LUNGE)" />
+              <span className="text-green-400 pl-1">EVERY PUNCH HEALS YOU. FINISHING HIM HEALS A LOT.</span>
+              <span className="text-zinc-400 pl-1">ON HIM: <ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" /> · <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" /></span>
+              <ChordPrompt pad={['Y', 'X']} join="+" kb={['T']} label="SHAKEDOWN (GRAB)" />
+              <span className="text-zinc-400 pl-1">AT THE END, HOLD A DIRECTION TO THROW (DOWN: SLAM). INTO A WALL: SPLAT.</span>
+              <span className="text-yellow-300 pl-1">START SOMETHING AND THEY'LL KEEP COMING OUT OF THE SECURITY OFFICE. PRACTICE.</span>
+            </>}
+            {ui.introTip === 'line' && <>
+              <span className="text-sky-300">WAIT YOUR TURN AT THE WINDOW. OR PLOW THROUGH THEM.</span>
+              {ui.introAhead !== null && ui.introAhead !== undefined && <span className="text-yellow-300">{ui.introAhead > 0 ? `${ui.introAhead} AHEAD OF YOU` : 'YOUR TURN'}</span>}
+            </>}
+          </div>
+        )}
+        {status === GameStatus.PLAYING && stage === INTRO_STAGE && !ui.introCutscene && ui.introPrompt && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
+            <Prompt pad={['DPAD_UP']} kb={['W']} label={ui.introPrompt === 'ticket' ? 'SHOW YOUR TICKET' : 'FORGET THE TICKET'} />
+          </div>
+        )}
+        {ui.introTicket && <TicketCard kind={ui.introTicket} />}
         {ui.map !== null && <MapCard land={ui.map} />}
         {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={WEAPONS} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
         {status === GameStatus.PAUSED && (
           <PauseMenu weapons={WEAPONS} current={weapon} ammo={hud.ammo} selected={pauseSel}
-            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} />
+            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onSkip={stage === INTRO_STAGE ? skipIntro : undefined} />
         )}
         {noticeUp && ui.notice && (
           <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>

@@ -18,15 +18,17 @@ interface Props {
   selected: number;
   onPick: (i: number) => void;
   onResume: () => void;
+  /** In the intro: skip the rest of it (picked out as weapons.length + 1). */
+  onSkip?: () => void;
 }
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onSkip }) => {
   const shown = selected < weapons.length ? weapons[selected] : current;
   const info = M2_WEAPON_INFO[shown];
   const full = (w: WeaponType) => maxAmmo(w);
   const left = (w: WeaponType) => (full(w) === Infinity ? null : (ammo[w] ?? full(w)) / full(w));
   const ammoText = (w: WeaponType) => (full(w) === Infinity ? 'INFINITE' : `${Math.floor(ammo[w] ?? full(w))} / ${full(w)}`);
-  const onResumeBtn = selected === weapons.length;
+  const onResumeBtn = selected === weapons.length, onSkipBtn = selected === weapons.length + 1;
 
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/70">
@@ -87,6 +89,14 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
             {onResumeBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
             <span className="w-4 text-center">▶</span>RESUME
           </button>
+          {onSkip && (
+            <button onClick={onSkip}
+              className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider transition-all ${onSkipBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+              style={{ background: 'linear-gradient(180deg, #2563EB, #1E3A8A)', borderBottom: '4px solid #172554', boxShadow: onSkipBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onSkipBtn ? '2px solid #FACC15' : 'none' }}>
+              {onSkipBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
+              <span className="w-4 text-center">»</span>SKIP INTRO
+            </button>
+          )}
         </div>
         <div className="mt-3 flex items-center gap-4 text-[6px] text-zinc-500 tracking-wider">
           <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />

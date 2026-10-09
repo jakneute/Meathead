@@ -300,7 +300,9 @@ export type EnemyKind =
   | 'suit' | 'temp' | 'clerk' | 'bob' | 'cower'
   // The finale: the Secret Service flooding the White House press room (a shooter, a man who tackles, one behind a
   // ballistic shield, and the jetpack men)
-  | 'agent' | 'agentrush' | 'agentshield' | 'jetagent';
+  | 'agent' | 'agentrush' | 'agentshield' | 'jetagent'
+  // Meathead 2 (drawn by Meathead 2 itself: registerKindDrawer): Happy Land's park security, people in line
+  | 'parksec' | 'parkguest';
 
 export interface Enemy extends Entity {
   /** A beachgoer running from the smell (Meathead's shit himself: game/player/gut.ts), not from a shooting. */

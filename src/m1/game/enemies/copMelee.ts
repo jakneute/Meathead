@@ -9,7 +9,7 @@ import { hurtPlayer } from '../bosses/shared';
 import { rectsOverlap, boundsOf } from '../core/utils';
 import { mid, safeAhead, holdingOff, shieldFacing } from './kinds';
 
-export const isMeleeCop = (e: Enemy) => e.kind === 'cop' || e.kind === 'riotcop';
+export const isMeleeCop = (e: Enemy) => e.kind === 'cop' || e.kind === 'riotcop' || e.kind === 'parksec';
 
 interface Style { reach: number; speed: number; windup: number; strike: number; recover: number; damage: number; shove: number; lunge: number }
 const CLUB: Style = { reach: 72, speed: 4.2, windup: 18, strike: 8, recover: 32, damage: 14, shove: 7, lunge: 0 };

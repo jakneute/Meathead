@@ -10,6 +10,13 @@ export interface M2Ui {
   nearExit: boolean;
   /** A line across the screen for a moment ("COMING SOON"), and when it was put up. */
   notice: { text: string; at: number } | null;
+  /** (the intro) The panel in the corner, what up does at the ticket window, how many are ahead of him in line, the
+   *  ticket up close, and whether a scene's on (no HUD). */
+  introTip?: 'postal' | 'grabs' | 'line' | null;
+  introPrompt?: 'ticket' | 'barge' | null;
+  introAhead?: number | null;
+  introTicket?: 'clean' | 'shitty' | 'nude' | null;
+  introCutscene?: boolean;
 }
 
 let ui: M2Ui = { near: null, map: null, nearExit: false, notice: null };

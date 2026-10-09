@@ -144,6 +144,8 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   agent: { w: 40, h: 66, hp: 110, contact: 6, mass: 210 },
   agentrush: { w: 50, h: 70, hp: 200, contact: 12, mass: 320 },
   agentshield: { w: 52, h: 70, hp: 160, contact: 8, mass: 280 },
+  parksec: { w: 40, h: 66, hp: 120, contact: 4, mass: 220 },
+  parkguest: { w: 34, h: 72, hp: 60, contact: 0, mass: 170 },
   jetagent: { w: 44, h: 66, hp: 90, contact: 8, mass: 200, air: true },
 };
 
@@ -179,6 +181,8 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'shielder': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     // Hector's goons and cops ride on the same logic, dressed for the beach (or the job)
     case 'tourist': case 'cop': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    // (Happy Land's security: the cops' close-in-and-club, and no gun: see copMelee; the park keeps his trigger finger still)
+    case 'parksec': return { ...base, behavior: 'shoot', shootTimer: 0 };
     case 'bouncer': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'surfer': case 'riotcop': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'pelican': case 'shark': return { ...base, enemyType: 'flyer', initialY: pos.y };

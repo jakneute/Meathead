@@ -73,7 +73,7 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   ranger: { x: 2, y: -65, r: 8 }, biker: { x: 4, y: -74, r: 9 }, deputy: { x: 2, y: -65, r: 8 }, armadillo: { x: 16, y: -10, r: 4 },
   longhorn: { x: 42, y: -40, r: 8 }, pickup: { x: 26, y: -52, r: 7 }, cruiser: { x: 10, y: -63, r: 7 }, chopper: { x: -3, y: -70, r: 8 },
   suit: { x: 2, y: -76, r: 7 }, temp: { x: 2, y: -76, r: 7 }, clerk: { x: 2, y: -76, r: 7 }, bob: { x: 0, y: -76, r: 9 }, cower: { x: -2, y: -50, r: 7 },
-  agent: { x: 2, y: -67, r: 8 }, agentrush: { x: 6, y: -76, r: 9 }, agentshield: { x: 0, y: -67, r: 8 }, jetagent: { x: 2, y: -67, r: 8 },
+  agent: { x: 2, y: -67, r: 8 }, agentrush: { x: 6, y: -76, r: 9 }, agentshield: { x: 0, y: -67, r: 8 }, jetagent: { x: 2, y: -67, r: 8 }, parksec: { x: 2, y: -62, r: 9 }, parkguest: { x: 1, y: -68, r: 9 },
 };
 
 /** How far its drawing stands up over the top of its box (a head, a hat, a raised arm: what the box leaves out), for
@@ -111,17 +111,24 @@ export const isHumanoidKind = (kind?: EnemyKind) =>
   || kind === 'labtech' || kind === 'subject' || kind === 'scientist' || kind === 'tenant' || kind === 'minion'
   || kind === 'banger' || kind === 'bruiser' || kind === 'hazmat' || kind === 'bloater' || kind === 'manhole'
   || kind === 'ranger' || kind === 'biker' || kind === 'deputy' || kind === 'suit' || kind === 'temp' || kind === 'clerk' || kind === 'cower'
-  || kind === 'agent' || kind === 'agentrush' || kind === 'agentshield' || kind === 'jetagent';
+  || kind === 'agent' || kind === 'agentrush' || kind === 'agentshield' || kind === 'jetagent' || kind === 'parksec' || kind === 'parkguest';
 
 /** What an x-ray shows inside it. (A rattlesnake's all spine, like a fish; a scorpion's legs and claws, like a crab.) */
 export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' | 'machine' =>
   kind === 'drone' || kind === 'generator' || kind === 'lowrider' || kind === 'pickup' || kind === 'cruiser' || kind === 'chopper' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' || kind === 'pigeon' || kind === 'hawk' || kind === 'grackle' ? 'bird'
   : kind === 'shark' || kind === 'magmafish' || kind === 'rattlesnake' || kind === 'mutantfish' ? 'fish' : kind === 'crab' || kind === 'scorpion' ? 'crab' : 'four-legs';
 
+/** Kinds a game draws for itself (Meathead 2's: its own people, in its own style), by kind: drawn standing at the origin, facing right. */
+type KindDrawer = (ctx: Ctx, e: Enemy, f: number, state: GameState) => void;
+const kindDrawers = new Map<EnemyKind, KindDrawer>();
+export const registerKindDrawer = (kind: EnemyKind, draw: KindDrawer) => { kindDrawers.set(kind, draw); };
+
 const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: GameState) => {
   ctx.save();
   ctx.translate(e.pos.x + e.width / 2, e.pos.y + e.height);
   ctx.scale(facing, 1);
+  const own = e.kind ? kindDrawers.get(e.kind) : undefined;
+  if (own) { own(ctx, e, f, state); ctx.restore(); return; }
   switch (e.kind) {
     case 'wolverine': drawWolverine(ctx, e, f); break;
     case 'goat': drawGoat(ctx, e, f); break;
@@ -149,7 +156,7 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
 /** Wildlife face where they're headed; goons face you. */
 /** Which way a themed enemy's drawn facing (people face Meathead, mostly; animals their own way). */
 export const kindFacing = (e: Enemy, state: GameState): number => {
-  if (!isHumanoidKind(e.kind) || e.kind === 'civilian' || e.kind === 'visitor' || e.kind === 'minion' || e.kind === 'tenant') return e.facing ?? -1;
+  if (!isHumanoidKind(e.kind) || e.kind === 'civilian' || e.kind === 'visitor' || e.kind === 'minion' || e.kind === 'tenant' || e.kind === 'parksec' || e.kind === 'parkguest') return e.facing ?? -1;
   if (isChargerKind(e.kind) && Math.abs(e.vel.x) > 0.5) return Math.sign(e.vel.x);
   if (e.enemyType === 'shield') return e.facing === 1 ? 1 : -1; // his shield's on the side he's turned to (he turns round after you)
   return state.player.pos.x + state.player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;

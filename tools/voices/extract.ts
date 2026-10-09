@@ -19,6 +19,7 @@ import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
 import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES, BULK_LINES, BULK_FAIL_LINES, DUCK_LINES } from '../../src/m2/lines/weaponLines';
 import { M2_GUT_LINES } from '../../src/m2/lines/gutLines';
+import * as introLines from '../../src/m2/intro/lines';
 
 const ROOT = path.resolve(__dirname, '../../src');
 const out = new Map<string, { voice: string; text: string; from: string }>();
@@ -92,6 +93,12 @@ for (const t of BULK_LINES) add('meathead', t, 'BULK_LINES');
 for (const t of Object.values(BULK_FAIL_LINES).flat()) add('meathead', t, 'BULK_FAIL_LINES');
 for (const t of DUCK_LINES) add('meathead', t, 'DUCK_LINES');
 for (const t of Object.values(M2_GUT_LINES).flat()) add('meathead', t, 'M2_GUT_LINES');
+// (Meathead 2's intro: who says what)
+for (const t of allStrings(introLines.MEATHEAD_TICKET)) add('meathead', t, 'INTRO');
+for (const t of allStrings([introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT])) add('m2.ticket', t, 'INTRO');
+for (const t of allStrings([introLines.GUARD_ALERT, introLines.GUARD_BARK])) add('m2.guard', t, 'INTRO');
+for (const t of introLines.PA_LINES) add('m2.pa', t, 'INTRO');
+for (const t of allStrings([introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT])) { add('m2.guest', t, 'INTRO'); add('m2.guest2', t, 'INTRO'); }
 for (const byGround of Object.values(dialogue.SURFACE_CALLOUTS)) for (const lines of Object.values(byGround ?? {})) for (const t of lines ?? []) add('announcer', t, 'SURFACE_CALLOUTS');
 
 // ---------------------------------------------------------------------------------------------------------------
