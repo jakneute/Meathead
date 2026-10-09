@@ -175,6 +175,9 @@ export interface KindDef {
    *  mugger's knife (thrown back, hurt, the charge over; it's not touched). `source` is the hurt (its lines), `label`
    *  what pops up, `damage` how much (the knife's, if not said). */
   pointy?: { source: string; label?: string; damage?: number };
+  /** Something sharp on top of it (a spiked hat): dive kicked from above, he comes down on it and is hurt, bounced off,
+   *  the dive kick over (no stomp, no chain); it's not touched. Same fields as `pointy`. */
+  spiky?: { source: string; label?: string; damage?: number };
 }
 const kindDefs = new Map<EnemyKind, KindDef>();
 export const registerKind = (kind: EnemyKind, def: KindDef) => { KIND_STATS[kind] = def.stats; kindDefs.set(kind, def); };

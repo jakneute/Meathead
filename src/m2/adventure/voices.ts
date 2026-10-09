@@ -8,5 +8,6 @@ import { VOICE_LINES as temple } from './temple/lines';
 import { VOICE_LINES as cart } from './cart/lines';
 import { VOICE_LINES as roof } from './roof/lines';
 import { VOICE_LINES as clearing } from './clearing/lines';
+import { VOICE_LINES as guides } from './guides';
 
-export const ADV_VOICE_LINES: Record<string, string[]>[] = [jungle, queue, river, dino, temple, cart, roof, clearing];
+export const ADV_VOICE_LINES: Record<string, string[]>[] = [jungle, queue, river, dino, temple, cart, roof, clearing, guides];

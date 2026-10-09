@@ -853,6 +853,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   if (onScreen && shieldShove(ctx, e)) return true;
   // Straight into a mugger's switchblade: he sticks you
   if (onScreen && knifeFirst(ctx, e)) return true;
+  // Dive kicked down onto a spiked hat: he's the one that's stuck
+  if (onScreen && spikesUp(ctx, e)) return true;
   // (and one he's left behind off a ramp, dropping back under him: out of it)
   if (e.kind === 'lowrider' && e.aiState === 'lost') return true;
   const stageDef = getBossDef(stageId);
@@ -1252,6 +1254,36 @@ const knifeFirst = (ctx: FrameContext, e: Enemy): boolean => {
     shakeScreen(state, 10, 6);
   }
   e.vel.x = 0;
+  return true;
+};
+
+/**
+ * A dive kick down onto something with spikes on top of it (a spiked hat): he lands on them, not it. Hurt, bounced
+ * up and back off it, the dive kick over (no stomp, nothing to chain off); it doesn't feel a thing. From the side, or
+ * any other move, it goes down like anyone else.
+ */
+const spikesUp = (ctx: FrameContext, e: Enemy): boolean => {
+  const { state, fx, cheats } = ctx;
+  const p = state.player;
+  const spiky = kindDef(e.kind)?.spiky;
+  if (!spiky || !p.isDivekicking || e.health <= 0 || e.isBlownAway || isFrozen(e) || (e.pauseTimer || 0) > 0) return false;
+  if (e.hitByMove === p.moveId || !rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return false;
+  // (coming down on top of it: his feet over its upper half)
+  if (p.pos.y + p.height > e.pos.y + e.height * 0.5) return false;
+  e.hitByMove = p.moveId;
+  const away = p.pos.x + p.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
+  p.isDivekicking = false; p.recoiling = false;
+  p.vel = { x: away * 4.5, y: -10 };
+  p.lockTimer = Math.max(p.lockTimer, 16);
+  if (p.invincibilityTimer <= 0) {
+    if (!cheats.invincible) p.health -= spiky.damage ?? KNIFE_DAMAGE;
+    p.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES; p.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
+    p.isHarmlessPushback = false; p.smugTimer = 0;
+    fx.speakVulgarity('hurt', spiky.source);
+    fx.spawnDeathShower({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height }, 0, 0.8);
+    fx.spawnDamageNumber({ x: p.pos.x - 10, y: p.pos.y - 20 }, spiky.label ?? 'SPIKED!', true, '#F87171');
+    shakeScreen(state, 10, 6);
+  }
   return true;
 };
 

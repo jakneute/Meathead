@@ -10,7 +10,7 @@ const HAIR = ['#1F1611', '#4A2E1A', '#A16207', '#D6D3D1', '#7F1D1D', '#111827', 
 const SHIRTS = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#A855F7', '#EC4899', '#F8FAFC', '#14B8A6'];
 const PANTS = ['#1E3A8A', '#57534E', '#A8A29E', '#0F172A', '#78350F'];
 
-export type Outfit = 'stage' | 'warrior' | 'guest' | 'maint' | 'operator';
+export type Outfit = 'stage' | 'warrior' | 'guest' | 'maint' | 'operator' | 'guide';
 export type Pose = 'stand' | 'walk' | 'sit' | 'fly' | 'crank' | 'thrust';
 
 export interface Look { woman: boolean; skin: string; hair: string; heavy: boolean; face: number; bald: boolean; long: boolean; shirt: string; pants: string; kid: boolean }
@@ -46,8 +46,8 @@ export const drawPerson = (c: Ctx, o: PersonOpts) => {
   const sit = pose === 'sit';
   const stride = pose === 'walk' ? Math.sin(f * 0.25 + o.seed) * 4 : pose === 'fly' ? 6 : 0;
   // The outfit's colors
-  const top = o.outfit === 'stage' ? '#18181B' : o.outfit === 'warrior' ? L.skin : o.outfit === 'maint' ? '#475569' : o.outfit === 'operator' ? '#B45309' : L.shirt;
-  const bottom = o.outfit === 'stage' ? '#27272A' : o.outfit === 'warrior' ? '#B45309' : o.outfit === 'maint' ? '#475569' : o.outfit === 'operator' ? '#D6C7A1' : L.pants;
+  const top = o.outfit === 'stage' ? '#18181B' : o.outfit === 'warrior' ? L.skin : o.outfit === 'maint' ? '#475569' : o.outfit === 'operator' ? '#B45309' : o.outfit === 'guide' ? '#A39264' : L.shirt;
+  const bottom = o.outfit === 'stage' ? '#27272A' : o.outfit === 'warrior' ? '#B45309' : o.outfit === 'maint' ? '#475569' : o.outfit === 'operator' ? '#D6C7A1' : o.outfit === 'guide' ? '#7C6A44' : L.pants;
   const w = L.heavy ? 28 : L.woman ? 20 : 23, hipW = L.heavy ? 26 : 20;
   c.save();
   if (sit) c.translate(0, 18);
@@ -97,6 +97,13 @@ export const drawPerson = (c: Ctx, o: PersonOpts) => {
   }
   if (o.outfit === 'operator') blob(c, () => { c.moveTo(-8, hy - 6); c.lineTo(9, hy - 6); c.lineTo(15, hy - 4); c.lineTo(-8, hy - 3); c.closePath(); }, '#15803D', -8, 15, 1);
   if (o.outfit === 'maint') blob(c, () => { c.moveTo(-8, hy - 4); c.quadraticCurveTo(-7, hy - 13, 1, hy - 13); c.quadraticCurveTo(9, hy - 13, 9.5, hy - 4); c.lineTo(15, hy - 4); c.lineTo(15, hy - 2); c.lineTo(-8, hy - 2); c.closePath(); }, '#1E3A8A', -8, 15);
+  if (o.outfit === 'guide') {
+    // A pith helmet with spikes welded on top (big, steel, catching the light: you can see them coming)
+    for (const [sx, sh] of [[-6, 11], [1, 15], [8, 11]] as const) blob(c, () => { c.moveTo(sx - 3, hy - 10); c.lineTo(sx, hy - 10 - sh); c.lineTo(sx + 3, hy - 10); c.closePath(); }, '#CBD5E1', sx - 3, sx + 3, 1);
+    for (const [sx, sh] of [[-6, 11], [1, 15], [8, 11]] as const) dot(c, sx - 1, hy - 8 - sh, 1, sh - 4, '#F8FAFC');
+    blob(c, () => { c.moveTo(-11, hy - 2); c.quadraticCurveTo(-10, hy - 15, 1, hy - 15); c.quadraticCurveTo(12, hy - 15, 13, hy - 2); c.closePath(); }, '#E7DDBE', -11, 13);
+    rect(c, -13, hy - 3, 28, 3, '#D6C7A1', 1); rect(c, -10, hy - 6, 22, 2, '#7C2D12', 0);
+  }
   // Near arm
   const hand = pose === 'crank' ? [w / 2 + 10, -42 - Math.sin(f * 0.2) * 6] : pose === 'thrust' ? [w / 2 + 16, -48] : pose === 'fly' ? [w / 2 + 10, -70] : sit ? [w / 2 + 6, -44] : [w / 2, -32];
   arm(c, w / 2 - 3, -52, hand[0], hand[1], top, L.skin, o.outfit === 'warrior' ? 0 : 0.5, 6);
