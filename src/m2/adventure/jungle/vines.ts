@@ -41,6 +41,9 @@ export interface VineDef {
 /** (gravity on a swing, the pump, the push, the cap on how high it goes) */
 const G = 0.55, PUMP = 0.16, PUSH = 4.2, MAX_TH = 1.3;
 const CLIMB = 2.6, ZIP_UP = 10, ZIP_DOWN = 12;
+/** How long a swing it is, for its pace: right up by the branch it's no shorter than this (a pendulum that short
+ *  would whip back and forth; and climbing up it, what it kept compounded into a wobble). */
+const swingLen = (s: number) => Math.max(s, 120);
 /** Not right up against the branch: his hands this far down it at the highest. */
 const MIN_S = 18;
 /** How close his hands have to come to a vine to take hold of it. */
@@ -209,7 +212,7 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Co
       // The push (a swinging vine only): the way he's holding, or the way he's swinging (or facing, at the top of it)
       const pd = dir || (Math.abs(v.om) > 0.004 ? Math.sign(v.om) : p.facing);
       p.facing = pd as 1 | -1;
-      v.om += (pd * PUSH) / h.s;
+      v.om += (pd * PUSH) / swingLen(h.s);
       special = true;
     }
   }
@@ -249,13 +252,14 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Co
   p.isUppercutting = h.aggro && h.zip === -1; p.isDivekicking = h.aggro && h.zip === 1;
   if (p.isUppercutting) p.uppercutTimer = 2;
   // (shorter, it swings faster: what it had kept, more or less)
-  if (d.kind === 'swing' && h.s !== s0) v.om *= Math.min(1.25, Math.max(0.8, s0 / h.s));
+  if (d.kind === 'swing' && h.s !== s0) v.om *= Math.min(1.25, Math.max(0.8, swingLen(s0) / swingLen(h.s)));
 
   // The swing
   const th0 = v.th;
   if (d.kind === 'swing') {
-    let a = (-G / h.s) * Math.sin(v.th);
-    if (dir && !pushing) a += (dir * PUMP * Math.cos(v.th)) / h.s;
+    const L = swingLen(h.s);
+    let a = (-G / L) * Math.sin(v.th);
+    if (dir && !pushing) a += (dir * PUMP * Math.cos(v.th)) / L;
     v.om += a; v.om *= dir ? 0.999 : 0.996;
     v.th += v.om;
     if (Math.abs(v.th) > MAX_TH) { v.th = Math.sign(v.th) * MAX_TH; v.om = 0; }

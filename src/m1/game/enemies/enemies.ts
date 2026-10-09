@@ -1033,6 +1033,9 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
         const launchUp = player.isUppercutting && !isAirEnemy(e);
         if (launchUp) e.uppercutFlung = true;
         e.vel = { x: player.isUppercutting ? player.facing * 0.6 : player.facing * 30 * buffs.knock, y: (launchUp ? -22 : player.isUppercutting ? -30 : -5) * Math.sqrt(buffs.knock) };
+        // (charging on a swinging vine (Meathead 2): it goes the way the swing's carrying him, up, down or across)
+        const swing = swingFling(player);
+        if (swing) e.vel = { x: swing.x * 30 * buffs.knock, y: swing.y * 30 * buffs.knock - 3 };
         if (wasFrozen) fx.spawnGlassShatter(e.pos);
         else fx.spawnDeathShower(e.pos, player.facing);
         fx.spawnKillCallout(e, getMeleeKillCallout(player, wasFrozen));
@@ -1091,6 +1094,13 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
  * speed and the mass ratio, and heavy enemies resist it. Uppercuts launch them.
  * The enemy is dazed for a moment either way.
  */
+/** Charging on a swinging vine: the way the swing's carrying him (a unit vector), or null. */
+const swingFling = (player: FrameContext['state']['player']) => {
+  if (!player.vine || !player.isCharging) return null;
+  const n = Math.hypot(player.vel.x, player.vel.y);
+  return n > 0.5 ? { x: player.vel.x / n, y: player.vel.y / n } : { x: player.facing, y: 0 };
+};
+
 const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: boolean) => {
   const { player } = ctx.state;
   if (e.unshakeable) return;
@@ -1112,6 +1122,9 @@ const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: bo
     e.vel.x = pushX;
     if (!player.isDivekicking) e.vel.y = 0;
   }
+  // (charging on a swinging vine (Meathead 2): shoved the way the swing's carrying him, up, down or across)
+  const swing = swingFling(player);
+  if (swing) { const k = Math.max(8, Math.hypot(player.vel.x, player.vel.y)) * (PLAYER_MASS / mass) / 2 * massResistance * buffs.knock; e.vel.x = swing.x * k; e.vel.y = swing.y * k - 2; }
   e.pauseTimer = ENEMY_DAZE_FRAMES;
   // (a shoulder charge's shove: into a wall, that's a lot more than a bump)
   if (player.isCharging && !player.isSliding && !player.isUppercutting) e.chargedAt = ctx.state.frame;
