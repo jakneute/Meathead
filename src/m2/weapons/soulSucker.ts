@@ -330,7 +330,7 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
  * painted from its own random lobes), a smaller spatter or two round it; on a wall or a ceiling, a run down from it.
  * They stay (the oldest go once there are a lot).
  */
-const STAINS = 260;
+const STAINS = 420;
 const stains: Particle[] = [];
 const stain = (state: GameState, p: Projectile, b: { x: number; y: number; w: number; h: number }) => {
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
@@ -348,6 +348,17 @@ const stain = (state: GameState, p: Projectile, b: { x: number; y: number; w: nu
   add(at.x, at.y, 3 + Math.random() * 3.5, floor, !floor && Math.random() < 0.5 ? 1 + Math.floor(Math.random() * 3) : 0);
   for (let i = 0; i < 2; i++) if (Math.random() < 0.7) add(at.x + (floor || ceil ? (Math.random() - 0.5) * 22 : 0), at.y + (floor || ceil ? 0 : (Math.random() - 0.5) * 22), 1 + Math.random() * 2, floor);
   // (too many: the oldest are washed off)
+  if (stains.length > STAINS) { const gone = new Set(stains.splice(0, stains.length - STAINS)); state.particles = state.particles.filter(q => !gone.has(q)); }
+};
+
+/** A body sliding along on its back (goreSlide): where the floor's not red already, it is now, a smear along it. */
+export const smearFloor = (state: GameState, x: number, y: number) => {
+  if (stains.some(q => q.isSplat && Math.abs(q.pos.x - x) < 7 && Math.abs(q.pos.y - y) < 4)) return;
+  const colors = ['#7F1D1D', '#991B1B', '#8B0000', '#6B1414'];
+  for (let k = 0; k < 2; k++) {
+    const q: Particle = { pos: { x: x + (Math.random() - 0.5) * 6, y: y - Math.random() }, vel: { x: 0, y: 0 }, life: 999999, color: colors[Math.floor(Math.random() * colors.length)], size: 4 + Math.random() * 3, isSplat: true };
+    state.particles.push(q); stains.push(q);
+  }
   if (stains.length > STAINS) { const gone = new Set(stains.splice(0, stains.length - STAINS)); state.particles = state.particles.filter(q => !gone.has(q)); }
 };
 

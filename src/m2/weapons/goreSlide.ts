@@ -19,6 +19,7 @@ import { shakeScreen } from '../../m1/game/core/state';
 import { drawEnemyAt } from '../moves/grab';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
+import { smearFloor } from './soulSucker';
 
 type Ctx = CanvasRenderingContext2D;
 type Phase = 'fall' | 'slip' | 'slide' | 'drop' | 'rest';
@@ -135,6 +136,8 @@ const tickOne = (ctx: FrameContext, s: Slider): boolean => {
         else if (floor < s.feet) s.feet = floor;
         // (the slick it leaves, and the squeak of it)
         if (s.t % 3 === 0) state.particles.push({ pos: { x: s.x - s.dir * 20, y: s.feet - 2 }, vel: { x: s.vx * 0.1, y: -0.3 }, life: 40, color: s.t % 6 ? '#7F1D1D' : '#991B1B', size: 3 });
+        // (and wherever the floor under it wasn't red already, it is now: a smear all the way along)
+        smearFloor(state, s.x, s.feet);
         if (s.t % 14 === 0) playSound('squish', 0.5, 4 + Math.random() * 4);
       }
       break;
