@@ -178,6 +178,10 @@ export interface KindDef {
   /** Something sharp on top of it (a spiked hat): dive kicked from above, he comes down on it and is hurt, bounced off,
    *  the dive kick over (no stomp, no chain); it's not touched. Same fields as `pointy`. */
   spiky?: { source: string; label?: string; damage?: number };
+  /** Its own say over him touching it, each frame, before anything else of the engine's (his moves landing on it, it
+   *  hurting him): true if it's dealt with it (the engine does nothing more with that touch this frame). A mid-boss
+   *  made of parts (the T. rex) lands his moves on itself. */
+  touch?: (ctx: FrameContext, e: Enemy) => boolean;
 }
 const kindDefs = new Map<EnemyKind, KindDef>();
 export const registerKind = (kind: EnemyKind, def: KindDef) => { KIND_STATS[kind] = def.stats; kindDefs.set(kind, def); };

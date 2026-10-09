@@ -50,12 +50,14 @@ export interface M2Kind {
   /** A mid-boss (a sub-boss): the weapons give it their mid-boss hit (no instant kills, no status effects), and no
    *  health bar over it (it draws its own: see adventure/dino/rex.ts). */
   midBoss?: boolean;
+  /** Its own say over him touching it (his moves landing on it): see KindDef's `touch`. */
+  touch?: (ctx: FrameContext, e: Enemy) => boolean;
 }
 
 const defs = new Map<string, M2Kind>();
 export const registerM2Kind = (d: M2Kind) => {
   defs.set(d.kind, d);
-  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: d.ai, make: d.make, machine: d.robot, humanoid: d.humanoid, solid: d.solid ?? !d.stats.air, pointy: d.pointy, spiky: d.spiky });
+  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: d.ai, make: d.make, machine: d.robot, humanoid: d.humanoid, solid: d.solid ?? !d.stats.air, pointy: d.pointy, spiky: d.spiky, touch: d.touch });
   registerKindDrawer(d.kind as EnemyKind, d.draw);
   if (d.midBoss) registerMidBossKind(d.kind);
   if (d.head) (KIND_HEAD as Record<string, { x: number; y: number; r: number }>)[d.kind] = d.head;

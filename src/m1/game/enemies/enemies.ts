@@ -847,6 +847,9 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const { player } = state;
   // (a fish down under the lava: nothing to touch)
   if (submerged(e)) return true;
+  // (one that says itself what his touching it does)
+  const touch = kindDef(e.kind)?.touch;
+  if (touch && touch(ctx, e)) return true;
   const scr = screenRect(state);
   const onScreen = e.pos.x + e.width > scr.x && e.pos.x < scr.x + scr.w;
   // Shoulder first into a raised shield: he doesn't go through it, he drives the man behind it back

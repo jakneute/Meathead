@@ -30,9 +30,9 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import type { EnemyKind } from '../../../m1/types';
 import { playSound } from '../../../m1/game/platform/audio';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
-import { getAttackHitbox } from '../../../m1/game/player/player';
+import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
 import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
-import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
+import { topBand, CANVAS_WIDTH, enemyMeleeDamage, ENEMY_HIT_COOLDOWN, POWER_CELLS, BOUNCE_FRAMES } from '../../../m1/constants';
 import { getAdv, solid, box, label, saidOver, speak, meatheadSays, type Said } from '../section';
 import { GY } from '../geometry';
 import {
@@ -63,10 +63,18 @@ const METER_PER_DMG = 0.42, METER_CAP = 30;
 const LIVE_ON = 70, LIVE_OFF = 35, COOL_AFTER = 45, DECAY = 0.32;
 /** A live part takes this share of what goes into it. */
 const LIVE_SHARE = 0.3;
-/** A slide into its legs (not live): this, not the slide's usual 14; and that much more on the meter. */
-const SLIDE_LEG_DAMAGE = 75, SLIDE_LEG_METER = 22;
+/** His moves into a part that isn't live do this many times what they do to anything else (a charge or a slide 14,
+ *  an uppercut or a dive kick 45: 42 and 135 here), well over any gun's hit: going in close with it is the risk. */
+const MELEE_MULT = 3;
+/** A slide into its legs (not live): this, not the slide's 42; and that much more on the meter. */
+const SLIDE_LEG_DAMAGE = 110, SLIDE_LEG_METER = 22;
 /** What it does to him. */
 const BUMP_DMG = 10, BITE_DMG = 18, GUM_DMG = 10, SPRINT_DMG = 22, TAIL_DMG = 16, SHOCK_DMG = 14;
+/** Shocked: thrown off it this hard (a dive kick's: up and out, off it), held out of it this many frames, and no
+ *  shocking him again for this many (a move into a live part in that time just ends, and he's off it). */
+const SHOCK_KB = { x: 14, y: -8 }, SHOCK_KB_DK = { x: 14, y: -12 }, SHOCK_LOCK = 24, SHOCK_GRACE = 50;
+/** Its weight, for bouncing him off it (the parts' own). */
+const MASS = 600;
 const WALK = 1.05, LIMP = 0.55, SPRINT = 7.2;
 /** Frames between sprints (and a random bit more). */
 const SPRINT_EVERY = 330, SPRINT_JITTER = 120;
@@ -96,8 +104,8 @@ interface Rex {
   crouch: number; hx: number; hy: number; jaw: number; tail: number; step: number;
   biteX: number; biteY: number; bit: boolean;
   sprintCd: number; campT: number; post: number; postShake: number; postShook: number;
-  /** A slide into its legs this frame (its move), for the damage it does. */
-  slideMove: number | null; slideAt: number;
+  /** Shocked him: not again till this frame. */
+  shockGrace: number;
   said: Said | null;
   /** Coming apart: frames of it, its head off and rolling, the body going over, the oil. */
   dieT: number; head: { x: number; y: number; vx: number; vy: number; rot: number } | null; fall: number; oil: number;
@@ -148,7 +156,7 @@ export const buildRex = (state: GameState, o: { x: number; inX: number; outX: nu
   const r: Rex = {
     fight: 'wait', x: o.x, vx: 0, facing: -1, st: 'idle', t: 0, stagger: 0, parts,
     crouch: 0, hx: 0, hy: 0, jaw: 0, tail: 0, step: 0, biteX: 0, biteY: 0, bit: false,
-    sprintCd: 200, campT: 0, post: -1, postShake: 0, postShook: -1, slideMove: null, slideAt: -99, said: null,
+    sprintCd: 200, campT: 0, post: -1, postShake: 0, postShook: -1, shockGrace: -1, said: null,
     dieT: 0, head: null, fall: 0, oil: 0,
     minX: o.inX + 20 + 80, maxX: o.outX - 80, inX: o.inX, outX: o.outX, lock: null, back: null, posts: [],
   };
@@ -184,26 +192,30 @@ const placeParts = (r: Rex) => {
 const shrugOff = (e: Enemy) => {
   e.frozenTimer = 0; e.isTased = false; e.pauseTimer = 0; e.sludgeTimer = 0; e.isOiled = false; e.isOnFire = false;
   e.fireTimer = 0; e.needleCount = 0; e.shockedUntil = undefined; e.runFrom = undefined; e.puppet = false;
+  e.pose = undefined; e.frozeAt = undefined; e.returnHome = false; e.vel.x = 0; e.vel.y = 0;
 };
 
-const damage = (ctx: FrameContext, r: Rex, part: Part, raw: number) => {
+/** Something's gone into a part (`raw`, before a live part's share of it): its health, its meter (and `meter` more on
+ *  it), the numbers that went up over it put right (`fixNumbers`: a shot's, put up by the weapon), live, wrecked.
+ *  Returns what it really took. */
+const hit = (ctx: FrameContext, r: Rex, part: Part, raw: number, o: { meter?: number; fixNumbers?: boolean } = {}) => {
   const { state } = ctx;
   const e = part.e!;
-  const slid = part.id === 'legs' && r.slideMove !== null && state.frame - r.slideAt <= 2;
-  let dmg = slid ? SLIDE_LEG_DAMAGE : raw;
-  if (part.live) dmg *= LIVE_SHARE;
-  if (slid) r.slideMove = null;
+  const dmg = part.live ? raw * LIVE_SHARE : raw;
   part.hp -= dmg; part.flash = 5; part.lastHit = state.frame;
-  part.meter = Math.min(100, part.meter + Math.min(METER_CAP, raw * METER_PER_DMG) + (slid ? SLIDE_LEG_METER : 0));
+  part.meter = Math.min(100, part.meter + Math.min(METER_CAP, raw * METER_PER_DMG) + (o.meter ?? 0));
   // (the numbers that went up over it: what it really took)
-  const k = dmg / raw;
-  for (const n of state.damageNumbers) {
-    if (n.value === undefined || n.life < n.maxLife - 2 || Math.abs(n.pos.x - e.pos.x) > 40 || Math.abs(n.pos.y - e.pos.y) > 40) continue;
-    if (k !== 1) n.value = Math.max(0, Math.floor(n.value * k));
-    if (part.live) n.color = '#67E8F9';
+  if (o.fixNumbers) {
+    const k = dmg / raw;
+    for (const n of state.damageNumbers) {
+      if (n.value === undefined || n.life < n.maxLife - 2 || Math.abs(n.pos.x - e.pos.x) > 40 || Math.abs(n.pos.y - e.pos.y) > 40) continue;
+      if (k !== 1) n.value = Math.max(0, Math.floor(n.value * k));
+      if (part.live) n.color = '#67E8F9';
+    }
   }
   if (!part.live && part.meter >= LIVE_ON) goLive(ctx, r, part);
   if (part.hp <= 0) wreck(ctx, r, part);
+  return dmg;
 };
 
 const goLive = (ctx: FrameContext, r: Rex, part: Part) => {
@@ -255,15 +267,31 @@ const blast = (ctx: FrameContext, r: Rex, from: { x: number; y: number }) => {
   p.lockTimer = Math.max(p.lockTimer, 26); p.recoiling = true; p.isHarmlessPushback = true; p.smugTimer = 0;
 };
 
-/** Into a live part with a move: shocked back off it, hurt, the move over. */
-const shock = (ctx: FrameContext, r: Rex, part: Part, e: Enemy) => {
+/** Out of whatever move he was in (a dive kick's stomp chain too: no bounce off it, no power back). */
+const endMove = (p: GameState['player']) => {
+  p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.slideRecoil = false;
+};
+
+/** Into a live part with a move: shocked back off it, hurt, the move over (and any stomp chain with it), thrown well
+ *  clear of it (a dive kick: up and out, off the rex), and a moment's grace before it can do it to him again. */
+const shock = (ctx: FrameContext, r: Rex, e: Enemy) => {
   const { state } = ctx, p = state.player;
   const c = centerOf(boundsOf(e)), pc = { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 };
-  const dir = Math.sign(pc.x - c.x) || -r.facing;
-  p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.slideRecoil = false;
+  const dk = !!p.isDivekicking;
+  // (away from it: a dive kick off the rex as a whole, out the side of it he's come down on)
+  const dir = (dk ? Math.sign(pc.x - r.x) : Math.sign(pc.x - c.x)) || -r.facing;
+  endMove(p);
   e.hitByMove = p.moveId; e.hitCooldown = 20;
-  if (p.invincibilityTimer <= 0) hurtPlayer(ctx, SHOCK_DMG, 'm2:rex_shock', { x: dir * 9, y: -7 });
-  else { p.vel = { x: dir * 9, y: -7 }; p.lockTimer = Math.max(p.lockTimer, 16); p.recoiling = true; p.isHarmlessPushback = true; }
+  r.shockGrace = state.frame + SHOCK_GRACE;
+  const kb = { x: dir * (dk ? SHOCK_KB_DK.x : SHOCK_KB.x), y: dk ? SHOCK_KB_DK.y : SHOCK_KB.y };
+  if (p.invincibilityTimer <= 0) hurtPlayer(ctx, SHOCK_DMG, 'm2:rex_shock', kb, SHOCK_LOCK);
+  // (and blinking from a hurt already, or not: thrown off it all the same, nothing he can do about it a moment)
+  // (a pushback, not a recoil: the recoil's drag on top of it'd leave him hanging right over it)
+  if (p.health > 0) {
+    if (!(p.pushbackTimer > 0)) p.isHarmlessPushback = true;
+    p.vel = { ...kb }; p.isGrounded = false;
+    p.pushbackTimer = Math.max(p.pushbackTimer, SHOCK_LOCK); p.lockTimer = Math.max(p.lockTimer, SHOCK_LOCK); p.recoiling = false;
+  }
   playSound('taser', 1, 0); playSound('bolt', 0.6, 2);
   shakeScreen(state, 8, 5);
   ctx.fx.spawnDamageNumber({ x: pc.x - 10, y: p.pos.y - 20 }, 'ZAP!', true, '#67E8F9');
@@ -273,37 +301,79 @@ const shock = (ctx: FrameContext, r: Rex, part: Part, e: Enemy) => {
     state.particles.push({ pos: { x: c.x + (pc.x - c.x) * k + (Math.random() - 0.5) * 14, y: c.y + (pc.y - c.y) * k + (Math.random() - 0.5) * 14 }, vel: { x: 0, y: 0 }, life: 6 + Math.random() * 6, color: i % 2 ? '#E0F2FE' : '#22D3EE', size: 3 });
   }
   sparks(state, pc.x, pc.y, 14, '#A5F3FC');
-  void part;
 };
 
-/** Its parts' own AI: each frame, a move of his into a live part shocks him (before the engine lands it); a slide into
- *  its legs (not live) is noted for the damage it does, and staggers it (trips it, sprinting). */
-const partAI = (ctx: FrameContext, e: Enemy): boolean => {
-  e.vel.x = 0; e.vel.y = 0;
-  const r = rexOf(ctx.state);
-  if (!r || r.fight === 'gone' || r.fight === 'dying' || r.fight === 'dead') return true;
+/** What a move of his does to a part (not live), before MELEE_MULT: the engine's own for each (Meathead 2's). */
+const moveDamage = (p: GameState['player']) =>
+  p.isUppercutting ? enemyMeleeDamage.uppercut : p.isDivekicking ? enemyMeleeDamage.divekick : p.isSliding ? enemyMeleeDamage.slide : enemyMeleeDamage.charge;
+
+/**
+ * Him touching a part (the engine asks first, before anything of its own: see KindDef's `touch`). The rex lands his
+ * moves on itself, so it's the same whichever part, whichever way he comes at it, whatever part the engine would have
+ * got to first: a move into a live part shocks him; one into a part that isn't lands, MELEE_MULT times what it would on
+ * anything else (a slide into its legs: SLIDE_LEG_DAMAGE, and it staggers), and he bounces off it as off anything (a
+ * dive kick: the stomp, and the power back for it). Its body doesn't hurt him by touching it (it bumps him itself: see
+ * updateRex), so nothing else of the engine's is wanted.
+ */
+const partTouch = (ctx: FrameContext, e: Enemy): boolean => {
+  const { state } = ctx;
+  const r = rexOf(state);
+  // (not on yet, or done: it's nothing to him)
+  if (!r || r.fight !== 'on') return true;
   const part = r.parts[PARTS[e.variant ?? 0]];
-  if (!part || part.broken) return true;
-  const p = ctx.state.player;
+  if (!part || part.broken || !part.e) return true;
+  const p = state.player;
   if (!(p.isCharging || p.isUppercutting || p.isDivekicking) || p.health <= 0) return true;
   if (p.isUppercutting && p.uppercutHitIds.includes(e.id)) return true;
   if (p.isDivekicking && p.diveKickHitIds.includes(e.id)) return true;
-  if (e.hitCooldown && e.hitCooldown > 0 && e.hitByMove === p.moveId) return true;
+  if (e.hitByMove === p.moveId && (e.hitCooldown ?? 0) > 0) return true;
   if (!rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return true;
-  if (part.live) { shock(ctx, r, part, e); return true; }
-  if (part.id === 'legs' && p.isCharging && p.isSliding) {
-    r.slideMove = p.moveId ?? 0; r.slideAt = ctx.state.frame;
-    const c = centerOf(boundsOf(e));
-    playSound('crunch', 1, -4); playSound('clang', 0.8, -8); sparks(ctx.state, c.x, GY - 30, 22); scrap(ctx.state, c.x, GY - 30, 6);
-    shakeScreen(ctx.state, 10, 6);
+  if (part.live) {
+    // (just shocked off it: no second go, nothing in it either way; the move's over and he's off it)
+    if (state.frame < r.shockGrace) {
+      const dir = Math.sign(p.pos.x + p.width / 2 - r.x) || -r.facing;
+      endMove(p);
+      p.vel = { x: dir * SHOCK_KB.x, y: Math.min(p.vel.y, SHOCK_KB.y) }; p.lockTimer = Math.max(p.lockTimer, 12); p.recoiling = true;
+      e.hitByMove = p.moveId; e.hitCooldown = 20;
+      return true;
+    }
+    shock(ctx, r, e);
+    return true;
+  }
+  // It lands
+  const dk = !!p.isDivekicking, up = !!p.isUppercutting;
+  const slidLegs = part.id === 'legs' && p.isCharging && p.isSliding;
+  e.hitByMove = p.moveId; e.hitCooldown = ENEMY_HIT_COOLDOWN;
+  if (up) p.uppercutHitIds.push(e.id);
+  if (dk) p.diveKickHitIds.push(e.id);
+  const c = centerOf(boundsOf(e));
+  if (slidLegs) {
+    playSound('crunch', 1, -4); playSound('clang', 0.8, -8); sparks(state, c.x, GY - 30, 22); scrap(state, c.x, GY - 30, 6);
+    shakeScreen(state, 10, 6);
     if (r.st === 'sprint' || r.st === 'ram') {
       r.st = 'crash'; r.t = 0; r.stagger = 100; r.vx *= 0.4;
       ctx.fx.spawnDamageNumber({ x: c.x - 20, y: GY - 180 }, 'TRIPPED!', true, '#FDE047');
       playSound('thud', 1, -8);
     } else if (r.st !== 'crash' && r.st !== 'intro') { r.st = 'stumble'; r.t = 0; }
   }
+  const took = hit(ctx, r, part, slidLegs ? SLIDE_LEG_DAMAGE : moveDamage(p) * MELEE_MULT, { meter: slidLegs ? SLIDE_LEG_METER : 0 });
+  ctx.fx.spawnDamageNumber({ x: c.x - 10, y: c.y - 20 }, Math.round(took), true);
+  ctx.fx.playGunSound(dk ? 'stomp' : 'punch');
+  // (wrecked by it, or the last of it: it's blown him off already, see wreck)
+  if (part.broken || r.fight !== 'on') return true;
+  if (up) { shakeScreen(state, 10, 6); ctx.fx.spawnExplosion(c, '#FFD700', 15, 0, 12); }
+  if (dk) {
+    // (the stomp: a bounce, and he can dive kick again off it; a power cell back for it, as off anything)
+    p.power = Math.min(POWER_CELLS, p.power + 1);
+    ctx.fx.playGunSound('boing', 0.6);
+    p.vel.y = -Math.abs(p.vel.y) * 0.5; p.vel.x *= 0.5;
+    p.lockTimer = BOUNCE_FRAMES; p.recoiling = true;
+  } else recoilOff(ctx, MASS);
   return true;
 };
+
+/** Its parts' own AI: nothing (they're put where its drawing is each frame: see placeParts). */
+const partAI = (_ctx: FrameContext, e: Enemy): boolean => { e.vel.x = 0; e.vel.y = 0; return true; };
 
 // ---------------------------------------------------------------------------------------------------------------
 // What it does
@@ -356,12 +426,22 @@ export const updateRex = (ctx: FrameContext) => {
   for (const id of PARTS) {
     const part = r.parts[id], e = part.e;
     if (!e) continue;
+    // (killed outright by something, not just hurt: blown away, its health put to nothing, taken out of the world (eaten,
+    // run down, sucked up, headshot, off the screen): it's still there, and for the part it was the killing blow)
+    const killed = e.health <= 0 || !!e.isBlownAway || !state.enemies.includes(e);
     const lost = POOL - e.health;
     e.health = POOL; shrugOff(e);
+    if (killed) {
+      e.isBlownAway = false; e.meleeFlung = false; e.uppercutFlung = false; e.rotation = 0;
+      if (!part.broken && !state.enemies.includes(e)) state.enemies.push(e);
+    }
     if (part.flash > 0) part.flash--;
     if (part.broken) continue;
     // (not till he's well into its paddock: nothing gets through to it from outside, or from just inside the gate)
-    if (lost > 0.01 && r.fight === 'on') damage(ctx, r, part, lost);
+    if (r.fight === 'on') {
+      if (killed) hit(ctx, r, part, (part.hp + 1) / (part.live ? LIVE_SHARE : 1));
+      else if (lost > 0.01) hit(ctx, r, part, lost, { fixNumbers: true });
+    }
     if (r.fight !== 'on') continue;
     // (cooling off, untouched a while)
     if (state.frame - part.lastHit > COOL_AFTER) part.meter = Math.max(0, part.meter - DECAY);
@@ -615,7 +695,7 @@ const updateDeath = (ctx: FrameContext, r: Rex) => {
       if (h.vy > 2.5) { h.vy = -h.vy * 0.35; playSound('clang', 0.6, -2 + Math.random() * 4); } else h.vy = 0;
       h.vx *= 0.985;
     }
-    if (h.x < r.inX + 50 || h.x > r.outX - 30) { h.vx = -h.vx * 0.6; h.x = Math.max(r.inX + 50, Math.min(r.outX - 30, h.x)); playSound('clang', 0.6, 0); }
+    if (h.x < r.inX + 50 || h.x > r.outX - 30) { h.vx = -h.vx * 0.6; h.x = Math.max(r.inX + 50, Math.min(r.outX - 30, h.x)); if (Math.abs(h.vx) > 0.4) playSound('clang', 0.6, 0); }
     h.rot += h.vx / 24;
   }
   if (t > 300) { r.fight = 'dead'; r.st = 'dead'; }
@@ -646,11 +726,12 @@ export const drawRex = (c: Ctx, state: GameState) => {
   const r = rexOf(state);
   if (!r || r.fight === 'gone') return;
   const cam = state.camera.x;
-  if (r.x < cam - 500 && (!r.head || r.head.x < cam - 100)) return;
-  if (r.x > cam + 1300 && (!r.head || r.head.x > cam + 900)) return;
   const f = state.frame;
+  // (the posts and the fences: drawn wherever they're in view, whatever the rex is doing or wherever it is; culled
+  // on the rex's own place, they came and went as he walked off from it)
   // (the feeding platforms' posts: what it rams)
   r.posts.forEach((q, i) => {
+    if (q.x2 < cam - 300 || q.x1 > cam + 1400) return;
     const shake = r.postShook === i && r.postShake > 0 ? Math.sin(r.postShake * 1.7) * r.postShake * 0.2 : 0;
     const cx = (q.x1 + q.x2) / 2;
     box(c, cx - 8 + shake, q.y + 12, 16, GY - q.y - 12, '#6B4F2E'); box(c, cx - 8 + shake, q.y + 12, 4, GY - q.y - 12, '#8B6B43');
@@ -667,6 +748,8 @@ export const drawRex = (c: Ctx, state: GameState) => {
     for (let y = GY - 500; y < GY - 200; y += 26) box(c, r.outX - 4, y, 28, 3, '#71717A');
     if (f % 40 < 30) label(c, 'LOCKED: FEEDING TIME', r.outX + 10, GY - 530, '#FCA5A5', 7);
   }
+  if (r.x < cam - 500 && (!r.head || r.head.x < cam - 100)) return;
+  if (r.x > cam + 1300 && (!r.head || r.head.x > cam + 900)) return;
   // The oil it's lying in
   if (r.oil > 0) { c.fillStyle = 'rgba(12, 10, 9, 0.85)'; c.beginPath(); c.ellipse(r.x - r.facing * 40, GY + 2, 40 + r.oil * 140, 4 + r.oil * 4, 0, 0, Math.PI * 2); c.fill(); }
   c.save();
@@ -814,7 +897,7 @@ export const drawRexHud = (c: Ctx, state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 
 registerM2Kind({
-  kind: REX_KIND, stats: { w: 76, h: 82, hp: POOL, contact: 0, mass: 600, air: true }, ai: partAI,
+  kind: REX_KIND, stats: { w: 76, h: 82, hp: POOL, contact: 0, mass: MASS, air: true }, ai: partAI, touch: partTouch,
   // (drawn whole by drawRex, behind; its parts' boxes draw nothing, and no daze over them)
   draw: (_c, e) => { e.pauseTimer = 0; },
   head: { x: 0, y: -20, r: 18 }, gender: 'n', robot: true, grab: 'none', midBoss: true,
