@@ -12,6 +12,9 @@ import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
+import { gunDeathMode } from '../../m1/game/enemies/gunDeaths';
+import { startGunKill } from '../../m1/game/enemies/deaths';
+import { spared } from '../../m1/game/enemies/enemies';
 import { playSound } from '../../m1/game/platform/audio';
 import { muzzlePoint } from '../../m1/game/combat/muzzle';
 import { groundLineAt } from '../../m1/game/core/terrain';
@@ -291,8 +294,17 @@ const hitEnemy = (ctx: FrameContext, p: Projectile, e: Enemy) => {
   const at = { x: e.pos.x + e.width / 2, y: p.pos.y + p.height / 2 };
   fx.spawnExplosion(at, '#8B0000', 4 + Math.round(t.mass * 8), 0, 6);
   if (e.health <= 0) {
-    fx.blowAwayEnemy(e, { x: p.vel.x * 0.5 + dir * (3 + t.mass * 5), y: -5 - t.mass * 5 }, m2Kill('souvenir_kill'), dir);
-    e.meleeFlung = t.mass >= 0.5;
+    // (killed by it: knocked out cold, the way the pistol does them in Meathead 1: over he goes, stiff, and bursts where
+    // he comes down; anything the pistol has no fall for is blown away, as before)
+    const mode = !spared(e) ? gunDeathMode(e) : null;
+    if (mode) {
+      startGunKill(state, e, mode, { x: p.vel.x * 0.6 + dir * 2, y: p.vel.y * 0.3 });
+      fx.spawnPickup(e.pos);
+      fx.speakVulgarity(m2Kill('souvenir_kill'));
+    } else {
+      fx.blowAwayEnemy(e, { x: p.vel.x * 0.5 + dir * (3 + t.mass * 5), y: -5 - t.mass * 5 }, m2Kill('souvenir_kill'), dir);
+      e.meleeFlung = t.mass >= 0.5;
+    }
     fx.spawnKillCallout(e, grabCallout('souvenir'));
   } else {
     fx.spawnDamageNumber(e.pos, dmg, dmg > 30);
