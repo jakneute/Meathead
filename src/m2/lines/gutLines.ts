@@ -37,6 +37,18 @@ export const M2_GUT_LINES = {
     'STAND UP, MEATHEAD. FOR THE LOVE OF GOD, STAND UP.',
     "THAT'S PRESSURE. THAT'S A LOT OF PRESSURE.",
   ],
+  /** Naked already, squatting a third time: nothing left to blow off. */
+  GRUMBLE_THIRD: [
+    "OH NO. NOT AGAIN. THERE'S NOTHING LEFT TO BLOW OFF.",
+    "MY GUT'S DOING THE THING AGAIN. I'M OUT OF PANTS. WHERE'S IT GONNA GO?",
+    "THAT'S NOT A RUMBLE. THAT'S A COUNTDOWN.",
+  ],
+  /** ...and still squatting: this one's going to take him with it. */
+  WARN_THIRD: [
+    'THIS ONE FEELS DIFFERENT. THIS ONE FEELS STRUCTURAL.',
+    'TELL MY TRUCK I LOVED IT.',
+    'EVERYBODY GET BACK. I MEAN IT. WAY BACK.',
+  ],
   /** ...and it went: so hard his pants and his underpants blew clean off him. Naked but for his boots. */
   BLOWOUT: [
     '...WELL. I\'M NAKED NOW.',
@@ -68,3 +80,11 @@ export const M2_GUT_LINES = {
     'SHAME ABOUT THE PANTS.',
   ],
 };
+
+/** The death screen, the third time: he's blown himself to bits from the inside out (read out by the death announcer). */
+export const M2_GUT_DEATH = [
+  'YOU SHIT YOURSELF TO DEATH.',
+  'NOTHING LEFT TO BLOW OFF. SO YOU BLEW UP.',
+  'CAUSE OF DEATH: THE THIRD ONE.',
+  'DEATH BY CHURRO.',
+];

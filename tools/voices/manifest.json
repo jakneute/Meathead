@@ -312,7 +312,7 @@
  {
   "voice": "announcer",
   "text": "CODE BROWN!",
-  "from": "m1/game/player/gut.ts:95"
+  "from": "m1/game/player/gut.ts:102"
  },
  {
   "voice": "announcer",
@@ -5576,6 +5576,11 @@
  },
  {
   "voice": "death",
+  "text": "CAUSE OF DEATH: THE THIRD ONE.",
+  "from": "M2_GUT_DEATH"
+ },
+ {
+  "voice": "death",
   "text": "CAUTION: DEAD",
   "from": "content/deaths"
  },
@@ -5753,6 +5758,11 @@
   "voice": "death",
   "text": "DEATH BY A THOUSAND PEASHOOTERS",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DEATH BY CHURRO.",
+  "from": "M2_GUT_DEATH"
  },
  {
   "voice": "death",
@@ -6928,6 +6938,11 @@
   "voice": "death",
   "text": "NOT ON THE LIST",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "NOTHING LEFT TO BLOW OFF. SO YOU BLEW UP.",
+  "from": "M2_GUT_DEATH"
  },
  {
   "voice": "death",
@@ -8523,6 +8538,11 @@
   "voice": "death",
   "text": "YOU SET FIRE TO AN OIL-SOAKED TOXIC WASTE MONSTER IN A METHANE-FILLED SEWER. YOU BOTH DIED.",
   "from": "SEWER_NUKE_MESSAGE"
+ },
+ {
+  "voice": "death",
+  "text": "YOU SHIT YOURSELF TO DEATH.",
+  "from": "M2_GUT_DEATH"
  },
  {
   "voice": "death",
@@ -12811,6 +12831,11 @@
  },
  {
   "voice": "meathead",
+  "text": "EVERYBODY GET BACK. I MEAN IT. WAY BACK.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "EVERYBODY'S ON BREAK TODAY.",
   "from": "m1/game/stages/oscar/bar.ts:125"
  },
@@ -16121,6 +16146,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY GUT'S DOING THE THING AGAIN. I'M OUT OF PANTS. WHERE'S IT GONNA GO?",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "MY HEAD! WHERE IS MY HEAD?! HOW AM I STILL TALKING?!",
   "from": "m1/game/stages/finale/killCam.ts:174"
  },
@@ -16848,6 +16878,11 @@
   "voice": "meathead",
   "text": "OH NO.",
   "from": "m1/game/stages/dale/convoy.ts:512"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH NO. NOT AGAIN. THERE'S NOTHING LEFT TO BLOW OFF.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -19031,6 +19066,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TELL MY TRUCK I LOVED IT.",
+  "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "TELL YOUR LARVAE I SHIT MYSELF AND STILL WON.",
   "from": "ALIEN_LINES"
  },
@@ -19338,6 +19378,11 @@
   "voice": "meathead",
   "text": "THAT'S MY MOVE, YOU THIEVING SLAB OF BEEF!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S NOT A RUMBLE. THAT'S A COUNTDOWN.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
@@ -19913,6 +19958,11 @@
   "voice": "meathead",
   "text": "THIS MEETING COULD'VE BEEN AN EMAIL!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIS ONE FEELS DIFFERENT. THIS ONE FEELS STRUCTURAL.",
+  "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",

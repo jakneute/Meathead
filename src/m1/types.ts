@@ -143,7 +143,9 @@ export interface Player extends Entity {
     debris?: { kind: 'shred' | 'briefs'; x: number; y: number; vx: number; vy: number; a: number; va: number; t: number; down: boolean; w: number }[];
     globs?: { x: number; y: number; vx: number; vy: number }[];
     stains?: { x: number; y: number; side: number; r: number; seed: number }[];
-    pile?: { x: number; y: number; dir: number } };
+    pile?: { x: number; y: number; dir: number };
+    /** (Meathead 2) The third one: what's left of him, in a heap (x the middle, y the floor), from frame `at`. */
+    remains?: { x: number; y: number; dir: number; at: number } };
 
   // Recoil from bouncing off an enemy (controls locked while lockTimer runs)
   lockTimer: number;

@@ -45,12 +45,12 @@ m1/game/core/effects.ts:261 call: forGender(line, gender)
 m1/game/core/effects.ts:258 call: getHurtLines(hurtSource)
 m1/game/core/effects.ts:258 call: killLine(category, victim)
 m1/game/core/update.ts:223 name: undefined
-m1/game/core/update.ts:615 name: undefined
-m1/game/core/update.ts:615 call: pluckDeathMessage(state)
-m1/game/core/update.ts:615 call: animalDeathMessage(state)
-m1/game/core/update.ts:615 call: layout?.deathMessage?.(ctx)
-m1/game/core/update.ts:615 call: deathByCause(state)
-m1/game/core/update.ts:615 call: deathFallback(state, ctx.stageId, fell)
+m1/game/core/update.ts:616 name: undefined
+m1/game/core/update.ts:616 call: pluckDeathMessage(state)
+m1/game/core/update.ts:616 call: animalDeathMessage(state)
+m1/game/core/update.ts:616 call: layout?.deathMessage?.(ctx)
+m1/game/core/update.ts:616 call: deathByCause(state)
+m1/game/core/update.ts:616 call: deathFallback(state, ctx.stageId, fell)
 m1/game/player/player.ts:84 call: message()
 m1/game/stages/artie/ski.ts:446 call: skiDeathMessage(state, ski)
 m1/game/stages/artie/ski.ts:446 name: DEATH_LINES

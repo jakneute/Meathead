@@ -1,7 +1,7 @@
 // Top-level game loop step: dispatches on game status and runs each gameplay system in order.
 
 import { isMidBoss } from '../combat/midBoss';
-import { updateGut, isShat } from '../player/gut';
+import { updateGut, isShat, setGutKill } from '../player/gut';
 import { GameStatus, WeaponType } from '../../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, KICK_POSE_FRAMES, MAX_AMMO, maxAmmo,
@@ -578,6 +578,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
 
   updatePlayerActions(ctx, input);
   updatePlayerPhysics(ctx, input);
+  setGutKill(killPlayer);
   updateGut(ctx, input);
   updateFlameSegments(ctx);
   updateTommyArena(ctx);

@@ -1,5 +1,6 @@
 import { Player, WeaponType } from '../../../types';
 import { drawFilthShield } from './filthShield';
+import { drawRemains } from './remains';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD } from '../../combat/muzzle';
@@ -46,6 +47,8 @@ const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false, castShadow = false, hold }: PlayerDrawOptions) => {
   // (talking, in whatever pose: the heads drawn for the moves work their jaws too)
   setTalking(state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity && !p.hidden);
+  // (blown to bits by the third one: the mess, and the heap of him, over the death screen too)
+  if (p.gut?.remains) { drawBlowout(ctx, p.gut, state.frame); drawRemains(ctx, p.gut.remains, state.frame); return; }
   if ((state.deathTimer > 0 && !p.headless && !p.shownDead) || p.hidden) return;
   const animFrame = state.playerAnimFrame;
   setGore(1 - p.health / INITIAL_PLAYER_HEALTH);

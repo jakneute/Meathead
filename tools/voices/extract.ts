@@ -19,7 +19,7 @@ import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
 import { FOR_A_WOMAN } from '../../src/m1/content/gender';
 import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES, BULK_LINES, BULK_FAIL_LINES, DUCK_LINES } from '../../src/m2/lines/weaponLines';
-import { M2_GUT_LINES } from '../../src/m2/lines/gutLines';
+import { M2_GUT_LINES, M2_GUT_DEATH } from '../../src/m2/lines/gutLines';
 import * as introLines from '../../src/m2/intro/lines';
 import { AMERICA_DENY } from '../../src/m2/lines/hubLines';
 
@@ -101,6 +101,7 @@ for (const t of BULK_LINES) add('meathead', t, 'BULK_LINES');
 for (const t of Object.values(BULK_FAIL_LINES).flat()) add('meathead', t, 'BULK_FAIL_LINES');
 for (const t of DUCK_LINES) add('meathead', t, 'DUCK_LINES');
 for (const t of Object.values(M2_GUT_LINES).flat()) add('meathead', t, 'M2_GUT_LINES');
+for (const t of M2_GUT_DEATH) add('death', t, 'M2_GUT_DEATH');
 // (Meathead 2's intro: who says what)
 for (const t of allStrings([introLines.MEATHEAD_TICKET, introLines.MEATHEAD_PARKED])) add('meathead', t, 'INTRO');
 for (const t of allStrings([introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT])) add('m2.ticket', t, 'INTRO');

@@ -11,12 +11,18 @@ import { say, MEATHEAD_VOICE } from '../platform/speech';
 import { GUT_LINES } from '../../content/dialogue';
 
 /** What he says about it: Meathead 1's (dialogue), or a game's own set (Meathead 2: setGutLines), the again lines too. */
-type GutLines = typeof GUT_LINES & { GRUMBLE_AGAIN?: string[]; WARN_AGAIN?: string[]; BLOWOUT?: string[]; WASHED?: string[]; WASHED_NO_PANTS?: string[]; WASHED_PANTS?: string[] };
+type GutLines = typeof GUT_LINES & { GRUMBLE_AGAIN?: string[]; WARN_AGAIN?: string[]; BLOWOUT?: string[]; GRUMBLE_THIRD?: string[]; WARN_THIRD?: string[]; WASHED?: string[]; WASHED_NO_PANTS?: string[]; WASHED_PANTS?: string[] };
 let lines: GutLines = GUT_LINES;
 export const setGutLines = (l: GutLines) => { lines = l; };
+/** The death screen for the third one (Meathead 2's: there's no third one in Meathead 1). */
+let deathLines: string[] = ['YOU EXPLODED.'];
+export const setGutDeathLines = (l: string[]) => { deathLines = l; };
+/** Killing him (player.ts's killPlayer, handed over by it: imported, it'd go round in a circle). */
+let kill: ((ctx: FrameContext, message: string, gore?: boolean) => void) | null = null;
+export const setGutKill = (fn: typeof kill) => { kill = fn; };
 const pick = (pool: readonly string[] | undefined) => (pool?.length ? pool[Math.floor(Math.random() * pool.length)] : null);
 import { getStageLayout } from '../stages';
-import { STAIN_FRAMES } from '../core/state';
+import { STAIN_FRAMES, shakeScreen } from '../core/state';
 import { groundLineAt } from '../core/terrain';
 
 /** A skid mark this far from the last one's end, laid in the last few frames: the same one, carried on. */
@@ -70,6 +76,7 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
     if (gut.stage !== 3 || !gut.washed) leaveTrail(ctx);
     if (blowout && (gut.stage === 2 || !gut.washed)) washOff(ctx, gut);
     if (gut.stage === 2 && blowout) again(ctx, input, gut);
+    if (gut.stage === 3 && blowout && !gut.remains) third(ctx, input, gut);
     return;
   }
   // Down in a crouch on the ground, doing nothing else at all
@@ -129,6 +136,8 @@ const again = (ctx: FrameContext, input: FrameInput, gut: NonNullable<GameState[
   if (!gut.again || gut.t < GUT_ACCIDENT) return;
   // It goes: all of it, so hard the jeans and the underpants go off him, up and away, and he's stood there in his boots
   gut.stage = 3; gut.t = 0; gut.again = false;
+  // (a third one only once he's been up off his haunches since)
+  gut.rearmed = false;
   playSound('fart', 1, -5); playSound('boom', 0.6, 4); playSound('splat', 0.8, -9);
   ctx.fx.announceKill('BLOWOUT!');
   gut.lineAt = state.frame + 14;
@@ -149,6 +158,47 @@ const again = (ctx: FrameContext, input: FrameInput, gut: NonNullable<GameState[
   gut.pile = { x: p.pos.x + p.width / 2 - p.facing * 4, y: groundLineAt(state.groundRuns, p.pos.x + p.width / 2), dir: p.facing };
   for (let i = 0; i < 26; i++) state.particles.push({ pos: { x, y }, vel: { x: -p.facing * (1 + Math.random() * 6) + (Math.random() - 0.5) * 4, y: -2 - Math.random() * 7 }, life: 40 + Math.random() * 30, color: i % 3 === 0 ? 'rgba(132, 155, 60, 0.6)' : i % 3 === 1 ? '#5C3A16' : '#7A4E22', size: 3 + Math.random() * 5, grav: 0.25 });
   ctx.fx.spawnExplosion({ x, y }, '#6B4423', 18, -p.facing * 4, 16);
+};
+
+/** Naked already (the pants gone with the second one), squatting still a third time: the grumble, the warning, and
+ *  then, with nothing left to blow off, it's him that goes. All over the place. Dead; and his bits come down in a heap
+ *  where he was (render/player/remains), his dick on top. */
+const third = (ctx: FrameContext, input: FrameInput, gut: NonNullable<GameState['player']['gut']>) => {
+  const { state } = ctx;
+  const p = state.player;
+  const still = p.isDucking && p.isGrounded && !p.swimming && !input.moveLeft && !input.moveRight && !input.moveUp && !input.jump
+    && !input.shoot && !input.special && !p.isSliding && !p.isCharging && Math.abs(p.vel.x) < 0.2;
+  if (!still) { gut.t = 0; gut.again = false; gut.rearmed = true; return; }
+  if (!gut.rearmed || state.deathTimer > 0) return;
+  gut.t++;
+  if (!gut.again && gut.t >= GUT_GRUMBLE) {
+    gut.again = true;
+    playSound('rumble', 0.9, -14);
+    { const l = pick(lines.GRUMBLE_THIRD); if (l) meatheadSays(state, l); }
+  } else if (gut.again && gut.t === GUT_WARN) {
+    { const l = pick(lines.WARN_THIRD); if (l) meatheadSays(state, l, true); }
+  } else if (gut.again && gut.t > GUT_GRUMBLE && (gut.t - GUT_GRUMBLE) % 90 === 45) {
+    // (louder, closer together: something's giving)
+    playSound('rumble', 0.6, -15);
+  }
+  if (!gut.again || gut.t < GUT_ACCIDENT) return;
+  // He goes: from the inside out
+  const x = p.pos.x + p.width / 2, y = p.pos.y + p.height / 2, floor = groundLineAt(state.groundRuns, x);
+  gut.remains = { x, y: floor, dir: p.facing, at: state.frame };
+  playSound('fart', 1, -9); playSound('boom', 1, -2); playSound('splat', 1, -6); playSound('crunch', 0.9, -4);
+  state.damageNumbers.push({
+    id: `callout-${state.frame}-meltdown`, text: 'TOTAL BLOWOUT!', pos: { x, y: p.pos.y - 30 },
+    vel: { x: 0, y: -2 }, life: 140, maxLife: 140, isCritical: true, isCallout: true, color: '#8B5A2B',
+  });
+  ctx.fx.spawnExplosion({ x, y }, '#991B1B', 30, 0, 22);
+  ctx.fx.spawnExplosion({ x, y: y + 10 }, '#6B4423', 26, 0, 20);
+  ctx.fx.spawnDeathShower(p.pos, p.facing, 4);
+  for (let i = 0; i < 40; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 22, y: -2 - Math.random() * 14 }, life: 50 + Math.random() * 40, color: i % 3 === 0 ? 'rgba(132, 155, 60, 0.6)' : i % 3 === 1 ? '#5C3A16' : '#991B1B', size: 3 + Math.random() * 6, grav: 0.3 });
+  // (and it goes on everything: globs every which way, staining whatever they hit)
+  gut.globs = [...(gut.globs ?? []), ...Array.from({ length: 30 }, () => ({ x, y, vx: (Math.random() - 0.5) * 20, vy: -3 - Math.random() * 12 }))];
+  gut.stains = gut.stains ?? [];
+  shakeScreen(state, 26, 14);
+  kill?.(ctx, pick(deathLines) ?? 'YOU EXPLODED.', false);
 };
 
 /** (Meathead 2) Shitty, in clean water: a while in it (the brown cloud spreading off him, see leaveTrail), and it's

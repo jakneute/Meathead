@@ -16,7 +16,7 @@ import { GRAB_CALLOUTS } from '../../src/m2/moves/callouts';
 import { FOR_A_WOMAN } from '../../src/m1/content/gender';
 import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES, BULK_LINES, BULK_FAIL_LINES, DUCK_LINES } from '../../src/m2/lines/weaponLines';
-import { M2_GUT_LINES } from '../../src/m2/lines/gutLines';
+import { M2_GUT_LINES, M2_GUT_DEATH } from '../../src/m2/lines/gutLines';
 import * as introLines from '../../src/m2/intro/lines';
 import { AMERICA_DENY } from '../../src/m2/lines/hubLines';
 
@@ -55,6 +55,7 @@ add('meathead', BULK_LINES);
 add('meathead', BULK_FAIL_LINES);
 add('meathead', DUCK_LINES);
 add('meathead', M2_GUT_LINES);
+add('death', M2_GUT_DEATH);
 add('meathead', introLines.MEATHEAD_TICKET);
 add('meathead', introLines.MEATHEAD_PARKED);
 add('m2.ticket', [introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT]);

@@ -4,10 +4,10 @@ import HUD from '../m1/components/HUD';
 import { RAYGUN_ART } from '../m1/components/WeaponIcon';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { GameStatus, WeaponType } from '../m1/types';
-import { setGutBlowout, setGutLines } from '../m1/game/player/gut';
+import { setGutBlowout, setGutLines, setGutDeathLines } from '../m1/game/player/gut';
 import { setHurtScale } from '../m1/game/core/resist';
 import { setDropTable } from '../m1/game/core/effects';
-import { M2_GUT_LINES } from './lines/gutLines';
+import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage } from '../m1/constants';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../m1/game/platform/gamepad';
 import { hasRightStick } from '../m1/game/platform/device';
@@ -65,6 +65,7 @@ if (import.meta.env.DEV) {
 // (already shitty, he can do it again: so hard his pants go, and he's naked: game/player/gut.ts)
 setGutBlowout(true);
 setGutLines(M2_GUT_LINES);
+setGutDeathLines(M2_GUT_DEATH);
 // (his shoulder charge, slide, uppercut and dive kick hit about as hard as his throws: far lighter than Meathead 1's)
 Object.assign(enemyMeleeDamage, { charge: 14, slide: 14, uppercut: 45, divekick: 45 });
 // (everything hits him a good deal softer than in Meathead 1; and enemies hardly ever drop anything, and only small)
@@ -267,8 +268,8 @@ const App2: React.FC = () => {
             </>}
             {ui.introTip === 'grabs' && <>
               <ChordPrompt pad={['Y', 'B']} join="+" kb={['R']} label="BEATDOWN (LUNGE)" />
-              <span className="text-green-400 pl-1">EVERY PUNCH HEALS YOU. FINISHING HIM HEALS A LOT.</span>
-              <span className="text-zinc-400 pl-1">ON HIM: <ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" /> · <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" /></span>
+              <span className="text-green-400 pl-1">EVERY PUNCH HEALS YOU. FINISHING THEM HEALS A LOT.</span>
+              <span className="text-zinc-400 pl-1">ON THEM: <ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" /> · <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" /></span>
               <ChordPrompt pad={['Y', 'X']} join="+" kb={['T']} label="SHAKEDOWN (GRAB)" />
               <span className="text-zinc-400 pl-1">AT THE END, HOLD A DIRECTION TO THROW (DOWN: SLAM). INTO A WALL: SPLAT.</span>
               <span className="text-yellow-300 pl-1">WALK THROUGH THE METAL DETECTOR AND A FEW COME OUT OF THE SECURITY OFFICE: PRACTICE ON THEM. ONCE IT'S RESET, WALK THROUGH AGAIN FOR MORE. JUMP OVER IT TO SNEAK PAST.</span>

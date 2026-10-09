@@ -68,7 +68,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   },
   SOUVENIR: {
     name: 'SOUVENIR LAUNCHER', from: 'FOREIGN LANDS',
-    controls: [{ pad: ['X'], mouse: 'left', label: 'FIRE' }, { pad: ['DPAD_UP', 'X'], kb: ['W'], mouse: 'left', join: '+', label: 'LOB: ON HIS HEAD, OVER ANY SHIELD' }],
+    controls: [{ pad: ['X'], mouse: 'left', label: 'FIRE' }, { pad: ['DPAD_UP', 'X'], kb: ['W'], mouse: 'left', join: '+', label: 'LOB: ON THEIR HEAD, OVER ANY SHIELD' }],
     description: "A bag of gift-shop crap taped to a drainpipe. Every shot is a surprise: a little Eiffel Tower pinballs off every wall and face in the room, an Easter Island head drops like a cinder block and flattens whatever it lands on. Whoever lives through it sees stars. Made in a country you can't pronounce, killing people in one you can.",
   },
 };
