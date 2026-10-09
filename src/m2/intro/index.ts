@@ -271,7 +271,8 @@ export const truckNow = (intro: Intro | null, f: number) => {
 const arrival = (ctx: FrameContext, intro: Intro, controls: object) => {
   const { state } = ctx;
   const a = intro.arrival!, p = state.player;
-  p.hidden = true; p.inCutscene = true;
+  // (in the truck till he climbs out of its window)
+  p.hidden = a.t < EMERGE_AT; p.inCutscene = true;
   // (it waits for the sound: a browser holds it back till the first key or click, and the crash with no crash in it is
   // nothing; a button on a pad lets it go too, sound or not, the browser not counting those)
   if (a.waiting) {
