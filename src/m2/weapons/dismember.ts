@@ -55,6 +55,8 @@ export const dismember = (state: GameState, e: Enemy, dir: number, force = 1) =>
   const face = (kindFacing(e, state) >= 0 ? 1 : -1) as 1 | -1;
   const fx = e.pos.x + e.width / 2, fy = e.pos.y + e.height;
   e.vel = { x: 0, y: 0 }; e.pose = undefined; e.melee = undefined;
+  // (dead: nothing on it moves any more, a wing, a leg, a tail: its picture held as it was)
+  e.frozeAt = state.frame; e.frozenTimer = 1e9;
   for (const cut of cutsOf(e)) {
     let lx: number, ly: number;
     if ('x0' in cut) { lx = (cut.x0 + cut.x1) / 2; ly = (cut.y0 + cut.y1) / 2; } else { lx = cut.x; ly = cut.y; }

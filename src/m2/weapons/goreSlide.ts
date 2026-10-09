@@ -60,6 +60,8 @@ export const startGoreSlide = (ctx: FrameContext, e: Enemy): boolean => {
   const floor = floorUnder(state, x, feet);
   const grounded = floor !== null && floor - feet < 4;
   e.pose = undefined; e.melee = undefined; e.vel = { x: 0, y: 0 };
+  // (dead: nothing on it moves any more, a wing, a leg, a tail: its picture held as it was)
+  e.frozeAt = state.frame; e.frozenTimer = 1e9;
   sliders.push({ e, x, feet, vx: 0, vy: 0, dir, t: 0, phase: grounded ? 'slip' : 'fall', turn: 0, lift: 0, restT: 0 });
   if (sliders.length > MAX_BODIES) sliders.shift();
   // (it's not one of them any more: a body, moved and drawn here)
