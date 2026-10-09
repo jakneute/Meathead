@@ -22,7 +22,9 @@ import { makeKindEnemy } from '../../m1/game/enemies/kinds';
 import { GROUND_Y, CANVAS_WIDTH } from '../../m1/constants';
 import { NO_CONTROLS } from '../../m1/game/platform/input';
 import { registerKindDrawer } from '../../m1/game/render/enemies';
-import { drawSecurity } from '../cast/security';
+import { drawSecurity, isWomanGuard } from '../cast/security';
+/** A guard's voice: hers or his. */
+const guardVoice = (e: Enemy) => (isWomanGuard(e) ? GUARD_F_VOICE : GUARD_VOICE);
 import { playSound } from '../../m1/game/platform/audio';
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
@@ -32,7 +34,7 @@ import { setUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
 import { stopWeapons } from '../weapons';
 import { CAST, type CastMember } from '../cast/people';
 import {
-  TICKET_VOICE, GUARD_VOICE, PA_VOICE, GUEST_VOICE, GUEST2_VOICE, type Dressed, MEATHEAD_TICKET, TICKET_LADY, TICKET_NEXT, TICKET_ALARM,
+  TICKET_VOICE, GUARD_VOICE, GUARD_F_VOICE, PA_VOICE, GUEST_VOICE, GUEST2_VOICE, type Dressed, MEATHEAD_TICKET, TICKET_LADY, TICKET_NEXT, TICKET_ALARM,
   GUARD_ALERT, GUARD_BARK, GUARD_IDLE, PA_LINES, GUEST_HURRY, GUEST_CUT, TICKET_CUT, GUEST_HIT,
 } from './lines';
 import { drawIntroBackdrop, drawIntroBack, drawIntroFront } from './draw';
@@ -73,6 +75,8 @@ export const guests = new WeakMap<Enemy, Guest>();
 /** The cast, for the line: people out for the day. Which one a guest is goes in their seed (homeX), so it's the same
  *  person drawn wherever they're drawn (in line, picked up, flung, dead). */
 const LINE_CAST = ['jenny', 'matt', 'bev', 'gus', 'anna', 'sid', 'lucille', 'ed', 'tiffanie', 'glenn', 'stella', 'larry'];
+/** ...the women among them (they speak in a woman's voice; the men in a man's). */
+const WOMEN = new Set(['jenny', 'bev', 'anna', 'lucille', 'tiffanie', 'stella']);
 const GUEST_SEED = 5000, GUEST_STEP = 101;
 const castOf = (seed: number) => { const id = LINE_CAST[(Math.round((seed - GUEST_SEED) / GUEST_STEP) % LINE_CAST.length + LINE_CAST.length) % LINE_CAST.length]; return CAST.find(m => m.id === id) ?? CAST[0]; };
 let castNext = 0;
@@ -96,7 +100,7 @@ const addGuest = (state: GameState, intro: Intro, x: number, arriving: boolean) 
   const e = makeKindEnemy('parkguest', x, GROUND_Y);
   e.seen = true; e.harmless = true; e.puppet = true; e.facing = 1; e.shootTimer = 0;
   e.homeX = GUEST_SEED + (castNext++) * GUEST_STEP;
-  guests.set(e, { who: castOf(e.homeX), number: intro.nextNumber++, state: arriving ? 'arrive' : 'line', voice: Math.random() < 0.5 ? GUEST_VOICE : GUEST2_VOICE });
+  guests.set(e, { who: castOf(e.homeX), number: intro.nextNumber++, state: arriving ? 'arrive' : 'line', voice: WOMEN.has(castOf(e.homeX).id) ? GUEST_VOICE : GUEST2_VOICE });
   state.enemies.push(e);
   intro.hp.set(e, e.health);
   return e;
@@ -268,7 +272,7 @@ const provoke = (ctx: FrameContext, intro: Intro, near: Enemy | null) => {
   // (the nearest guard shouts it; the ticket lady too, if she's in earshot)
   const p = state.player, px = p.pos.x + p.width / 2;
   const guard = state.enemies.filter(e => e.kind === 'parksec' && e.health > 0).sort((a, b) => Math.abs(a.pos.x - px) - Math.abs(b.pos.x - px))[0];
-  if (guard) { const said = { text: '' }; intro.bark = { e: guard, said }; speak(GUARD_VOICE, pick(GUARD_ALERT[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }); }
+  if (guard) { const said = { text: '' }; intro.bark = { e: guard, said }; speak(guardVoice(guard), pick(GUARD_ALERT[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }); }
   if (px > R(QUEUE_START) - 400 && intro.lady.ko <= 0) speak(TICKET_VOICE, pick(TICKET_ALARM), s => { intro.lady.said = s; }, true);
   intro.barkNext = state.frame + 420;
   void near;
@@ -299,7 +303,7 @@ const security = (ctx: FrameContext, intro: Intro) => {
       if (Math.abs(cx - px) < 120 && !intro.bark && state.frame > intro.barkNext && !remarked.has(e) && Math.random() < 0.02) {
         remarked.add(e);
         intro.bark = { e, said: { text: '' } };
-        speak(GUARD_VOICE, pick(GUARD_IDLE[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; });
+        speak(guardVoice(e), pick(GUARD_IDLE[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; });
         intro.barkNext = state.frame + 360;
       }
       continue;
@@ -325,7 +329,7 @@ const security = (ctx: FrameContext, intro: Intro) => {
   if (intro.provoked && state.frame > intro.barkNext && !intro.bark) {
     const onScreen = state.enemies.filter(e => e.kind === 'parksec' && e.health > 0 && !e.isBlownAway && e.pos.x > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH);
     const e = onScreen[Math.floor(Math.random() * onScreen.length)];
-    if (e) { intro.bark = { e, said: { text: '' } }; speak(GUARD_VOICE, pick(GUARD_BARK[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }); }
+    if (e) { intro.bark = { e, said: { text: '' } }; speak(guardVoice(e), pick(GUARD_BARK[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }); }
     intro.barkNext = state.frame + 480 + Math.floor(Math.random() * 300);
   }
   if (intro.bark && (intro.bark.e.health <= 0 || intro.bark.e.isBlownAway)) intro.bark = null;

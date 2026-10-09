@@ -21,6 +21,7 @@
   "guide": { "voice": "af_kore", "speed": 1.0, "rate": 1.0 },
   "m2.ticket": { "voice": "af_bella", "speed": 1.08, "rate": 1.02 },
   "m2.guard": { "voice": "am_eric", "speed": 1.05, "rate": 0.98 },
+  "m2.guardf": { "voice": "af_sarah", "speed": 1.05, "rate": 1.0 },
   "m2.pa": { "voice": "am_michael", "speed": 0.98, "rate": 0.95, "gain": 1.1, "fx": "announcer" },
   "m2.guest": { "voice": "af_nova", "speed": 1.1, "rate": 1.0 },
   "m2.guest2": { "voice": "am_adam", "speed": 1.1, "rate": 1.0 },

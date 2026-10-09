@@ -5,7 +5,9 @@
 
 export const TICKET_VOICE = { id: 'm2.ticket', pitch: 0, rate: 1 };
 export const GUARD_VOICE = { id: 'm2.guard', pitch: 0, rate: 1 };
+export const GUARD_F_VOICE = { id: 'm2.guardf', pitch: 0, rate: 1 };
 export const PA_VOICE = { id: 'm2.pa', pitch: 0, rate: 1 };
+/** People in line: a woman's voice, a man's. */
 export const GUEST_VOICE = { id: 'm2.guest', pitch: 0, rate: 1 };
 export const GUEST2_VOICE = { id: 'm2.guest2', pitch: 0, rate: 1 };
 

@@ -49,7 +49,7 @@ add('meathead', DUCK_LINES);
 add('meathead', M2_GUT_LINES);
 add('meathead', introLines.MEATHEAD_TICKET);
 add('m2.ticket', [introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT]);
-add('m2.guard', [introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE]);
+for (const v of ['m2.guard', 'm2.guardf']) add(v, [introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE]);
 add('m2.pa', introLines.PA_LINES);
 for (const v of ['m2.guest', 'm2.guest2']) add(v, [introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT]);
 // The death screens

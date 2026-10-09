@@ -27,6 +27,9 @@ const lookOf = (seed: number) => ({
   bald: Math.floor(seed / 11) % 6 === 0,
 });
 
+/** Is this one a woman (for her voice)? */
+export const isWomanGuard = (e: Enemy) => lookOf(Math.abs(Math.round(e.homeX || 0))).woman;
+
 export const drawSecurity = (c: Ctx, e: Enemy, f: number) => {
   const seed = Math.abs(Math.round(e.homeX || 0));
   const L = lookOf(seed);

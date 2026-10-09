@@ -96,7 +96,7 @@ for (const t of Object.values(M2_GUT_LINES).flat()) add('meathead', t, 'M2_GUT_L
 // (Meathead 2's intro: who says what)
 for (const t of allStrings(introLines.MEATHEAD_TICKET)) add('meathead', t, 'INTRO');
 for (const t of allStrings([introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT])) add('m2.ticket', t, 'INTRO');
-for (const t of allStrings([introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE])) add('m2.guard', t, 'INTRO');
+for (const t of allStrings([introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE])) { add('m2.guard', t, 'INTRO'); add('m2.guardf', t, 'INTRO'); }
 for (const t of introLines.PA_LINES) add('m2.pa', t, 'INTRO');
 for (const t of allStrings([introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT])) { add('m2.guest', t, 'INTRO'); add('m2.guest2', t, 'INTRO'); }
 for (const byGround of Object.values(dialogue.SURFACE_CALLOUTS)) for (const lines of Object.values(byGround ?? {})) for (const t of lines ?? []) add('announcer', t, 'SURFACE_CALLOUTS');
