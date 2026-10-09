@@ -61,6 +61,11 @@ export const advLayout: StageLayout = {
     if (import.meta.env.DEV && !devStarted) { devStarted = true; const q = new URLSearchParams(location.search).get('adv'); if (q) state.checkpoint = +q; }
     const cp = ADV_CHECKPOINTS.find(c => c.cp === state.checkpoint) ?? ADV_CHECKPOINTS[0];
     adv.section = sectionAt(cp.x).id;
+    // (a boss's checkpoint: back for another go at him, nobody else about)
+    if (cp.clear) {
+      const [l, r] = cp.clear;
+      state.enemies = state.enemies.filter(e => { const ex = e.pos.x + e.width / 2; return ex < cp.x - l || ex > cp.x + r; });
+    }
     const p = state.player;
     p.pos.x = cp.x - p.width / 2; p.pos.y = cp.y - p.height; p.vel.x = 0; p.vel.y = 0;
     state.camera.x = cp.x - CANVAS_WIDTH / 2;
@@ -114,6 +119,7 @@ export const advLayout: StageLayout = {
   },
   drawHud: (c, state) => current(state).drawHud?.(c, state),
   zoom: (state) => current(state).zoom?.(state) ?? null,
+  holdTick: (ctx) => current(ctx.state).holdTick?.(ctx) ?? false,
   lighting: (state) => current(state).lighting?.(state) ?? null,
   cameraRow: (state) => current(state).cameraRow?.(state),
   cylinder: (state) => current(state).cylinder?.(state) ?? null,

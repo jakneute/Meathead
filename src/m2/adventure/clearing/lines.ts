@@ -38,6 +38,10 @@ export const ARTIE_WHISTLE = [
 export const ARTIE_DODGE = ['OLE!', 'MISSED ME, BIG FELLA!', 'TWENTY YEARS OF TOURS! YOU LEARN TO JUMP!', 'NOT TODAY, SWEETHEART!'];
 /** The spawner's things on him, enough of them: he's lost it. */
 export const ARTIE_AGITATED = ["GET 'EM OFF! GET 'EM OFF!", "THEY'RE IN MY SHORTS! THEY'RE IN MY SHORTS!", "WHAT ARE THESE?! THEY'RE NOT IN THE BROCHURE!"];
+/** Flattened: up a vine, and staying up it. */
+export const ARTIE_PERCH = ["NOBODY TRAMPLES ARTIE TWICE!", "I'M STAYING UP HERE! I'VE GOT A VINE AND A DREAM!", "FINE! I'LL GIVE THE TOUR FROM UP HERE!", 'TREE HOUSE RULES! NO MEATHEADS!'];
+/** His vine chewed through under his hands: down he comes. */
+export const ARTIE_VINE_SNAP = ['THEY CHEWED THROUGH MY VINE!', 'THAT VINE WAS LOAD-BEARING!', 'WHO EATS A VINE?!'];
 /** Too busy with them to get out of the way: an animal right through him. */
 export const ARTIE_TRAMPLED = ['NOT MY HIPS!', 'BAD HIPPO! BAD!', "I'VE BEEN MATED WITH!"];
 /** A bush eaten. */
@@ -48,11 +52,15 @@ export const ARTIE_NO_BUSHES = ['FINE! NO MORE GAMES! STAMPEDE!', 'NO BUSHES, NO
 export const ARTIE_DIES = ['THIS CONCLUDES... THE TOUR...', 'PLEASE EXIT... THROUGH THE GIFT SHOP...'];
 /** Beaten by his weakness: eaten alive. */
 export const ARTIE_EATEN = ["THEY'RE EATING MY EVERYTHING!", 'NOT THE BUCK TEETH! THOSE ARE ORIGINAL!'];
+/** ...still going, while they're at it (his arm off, his guts out). */
+export const ARTIE_EATEN_MORE = ['MY ARM! THAT WAS MY TIPPING ARM!', "THOSE ARE MY GUTS! THEY'RE NOT A CHEW TOY!", "I'M GONNA NEED A BIGGER FIRST AID KIT!", "I CAN SEE MY OWN RIBS! THAT'S NOT IN THE BROCHURE!"];
+/** ...and a skeleton, the jaw still going, till it all comes down. */
+export const ARTIE_BONES = ["AND ON YOUR LEFT... WHAT'S LEFT OF ME...", 'THIS CONCLUDES... THE SKELETON TOUR...', "I'M NOT DEAD... I'M ON BREAK..."];
 
 /** Meathead, after. */
 export const MEATHEAD_WON = ['TOUR OVER.', 'FIVE STARS. WOULD NOT RECOMMEND.', 'TIP YOUR GUIDE.'];
 /** ...after his little friends ate him. */
-export const MEATHEAD_EATEN = ['BON APPETIT, BOYS.', 'CLEAN YOUR PLATES.'];
+export const MEATHEAD_EATEN = ['BON APPETIT, BOYS.', 'CLEAN YOUR PLATES.', 'NO TIP.'];
 
 // ---- What he says when each of Artie's things hurts him, and the death screen
 
@@ -79,6 +87,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   death: [...DEATH_KNIFE, ...DEATH_BLOWDART, ...DEATH_POISON, ...DEATH_RHINO, ...DEATH_HIPPO, ...DEATH_ELEPHANT],
   'm2.safari': [
     ...all(ARTIE_FOUND), ...ARTIE_START, ...ARTIE_CUPS, ...ARTIE_GRAB, ...ARTIE_DART, ...ARTIE_KNOCKED, ...ARTIE_WHISTLE, ...ARTIE_DODGE,
-    ...ARTIE_AGITATED, ...ARTIE_TRAMPLED, ...ARTIE_BUSH, ...ARTIE_NO_BUSHES, ...ARTIE_DIES, ...ARTIE_EATEN,
+    ...ARTIE_AGITATED, ...ARTIE_PERCH, ...ARTIE_VINE_SNAP, ...ARTIE_TRAMPLED, ...ARTIE_BUSH, ...ARTIE_NO_BUSHES, ...ARTIE_DIES,
+    ...ARTIE_EATEN, ...ARTIE_EATEN_MORE, ...ARTIE_BONES,
   ],
 };

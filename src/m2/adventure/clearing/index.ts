@@ -30,7 +30,8 @@ import { drawOrbitBackdrop, ORBIT_WRAP } from './orbit';
 import { BEASTS } from './stampede';
 import { popAliensIn } from '../../weapons/spawner';
 import type { Enemy } from '../../../m1/types';
-import { type Fight, startFight as beginFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud } from './fight';
+import { type Fight, startFight as beginFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam } from './fight';
+import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 
 const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
@@ -58,11 +59,13 @@ interface Clearing {
   booms: { at: number; go: (ctx: FrameContext) => void }[];
   /** Artie's death's been seen to (everything in the arena gone off). */
   wiped: boolean;
+  /** Beaten: VICTORY, stamped on the screen, then out. */
+  victory: Victory | null;
 }
 const getClearing = (state: GameState) => sectionState<Clearing>(state, 'clearing', () => ({
   init: false, domino: firstVisit(state), scene: null, t: 0, token: 0,
   trees: TREE_X.map(() => ({ a: 0, v: 0, on: false, done: false })), trunk: null, templeHit: false,
-  fight: 'wait', wonAt: 0, fence: null, f: null, said: null, nextLine: 0, booms: [], wiped: false,
+  fight: 'wait', wonAt: 0, fence: null, f: null, said: null, nextLine: 0, booms: [], wiped: false, victory: null,
 }));
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -105,12 +108,13 @@ const wipeArena = (state: GameState, cl: Clearing, f: Fight) => {
     meatPop(ctx, a.x + b.w / 2, GY - b.h / 2, b.h > 100 ? 4 : 3);
     meatPop(ctx, a.x + b.w * 0.2, GY - b.h * 0.6, 1);
   } }));
-  // (the litter, in slices out from him; not the ones eating what's left of him)
+  // (the litter, in slices out from him; not the ones eating him: they finish, and burst when he comes down)
+  const keep = f.death?.how === 'eaten' ? 60 : 0;
   for (let k = 0; k < 6; k++) {
     const w = 140;
     cl.booms.push({ at: state.frame + 8 + k * 7, go: ctx => {
-      popAliensIn(ctx.state, fromX - (k + 1) * w, -4000, w, 4000 + GY + 40);
-      popAliensIn(ctx.state, fromX + k * w, -4000, w, 4000 + GY + 40);
+      popAliensIn(ctx.state, fromX - keep - (k + 1) * w, -4000, w, 4000 + GY + 40);
+      popAliensIn(ctx.state, fromX + keep + k * w, -4000, w, 4000 + GY + 40);
     } });
   }
   // (anybody else about in there)
@@ -214,6 +218,12 @@ const kick = (ctx: FrameContext, cl: Clearing): Controls => {
   return hands();
 };
 
+/**
+ * Beaten, VICTORY stamped: out of here, back to the hub. (The one place it goes from: whatever comes between the
+ * VICTORY and the hub, the walk away from it, goes in here; `weakness`: it was his weakness death, eaten alive.)
+ */
+const leave = (_state: GameState, _weakness: boolean) => { goTo('hub'); };
+
 const run = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   const cl = getClearing(state);
@@ -232,8 +242,10 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
     if (!cl.domino && cx > ARENA_L + 60) startFight(state, cl);
   } else if (cl.fight === 'on') {
     const f = cl.f!;
-    const out = updateFight(ctx, f, controls);
+    let out = updateFight(ctx, f, controls);
     if (f.mode === 'dead' && !cl.wiped) wipeArena(state, cl, f);
+    // (the kill cam on him: out of Meathead's hands)
+    if (f.cam) { p.inCutscene = true; out = hands(); }
     // (locked in: nothing carries him out of it, a knock, a ride, a drop, a blast)
     const lo = ARENA_L, hi = ARENA_R + 20 - p.width;
     if (p.pos.x < lo) { p.pos.x = lo; if (p.vel.x < 0) p.vel.x = 0; }
@@ -243,9 +255,15 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
       cl.fight = 'won'; cl.wonAt = state.frame;
       endFight(state, f);
       if (cl.fence) { state.blocks = state.blocks.filter(b => b !== cl.fence); cl.fence = null; }
+      cl.victory = startVictory();
     }
     return out;
-  } else if (cl.fight === 'won' && state.frame - cl.wonAt > 60) goTo('hub');
+  } else if (cl.fight === 'won') {
+    // VICTORY, stamped on the screen (out of his hands, no HUD), then back to the hub
+    p.inCutscene = true;
+    if (cl.victory) { tickVictory(state, cl.victory); if (victoryDone(cl.victory) && state.frame - cl.wonAt > 60) { cl.victory = null; leave(state, cl.f?.death?.how === 'eaten'); } }
+    return hands();
+  }
   return controls;
 };
 
@@ -254,7 +272,7 @@ export const clearing: Section = {
   checkpoints: [
     { name: 'THE CLEARING', cp: 70, x: x0 + 150, y: GY },
     // (past the guides and the big health and ammo: back here, nothing's on him)
-    { name: 'THE BOSS', cp: 71, x: x0 + 1000, y: GY },
+    { name: 'THE BOSS', cp: 71, x: x0 + 1000, y: GY, clear: [1200, 600] },
   ],
   build: (state) => {
     resetFight();
@@ -300,7 +318,12 @@ export const clearing: Section = {
   drawHud: (c, state) => {
     const cl = getClearing(state);
     if (cl.fight === 'on' && cl.f) drawFightHud(c, cl.f, topBand(), !!state.player.inCutscene);
+    if (cl.f && cl.fight !== 'wait') drawKillCam(c, cl.f);
+    if (cl.victory) drawVictory(c, cl.victory);
   },
+  // (his weakness death: the kill cam's close-up, in slow motion)
+  zoom: (state) => { const f = getClearing(state).f; return f ? killCamZoom(state, f) : null; },
+  holdTick: (ctx) => { const f = getClearing(ctx.state).f; return f ? killCamTick(f) : false; },
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -333,15 +356,13 @@ const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
   box(c, BLIND_X - 46, BLIND_Y - 4, 92, 8, '#6B4423');
   // (hidden in the leaves, till the trees go)
   if (cl.fight === 'wait' && cl.domino && cl.trees[5].a <= 0.5) { c.fillStyle = '#15803D'; c.beginPath(); c.arc(BLIND_X, BLIND_Y - 40, 56, 0, Math.PI * 2); c.fill(); }
-  // The trees: standing, falling, down (down ones are background: dim)
+  // The trees: standing, falling; down, gone (not drawn at all: a log lying there would read as something to stand on)
   cl.trees.forEach((t, i) => {
+    if (t.done) return;
     const x = TREE_X[i];
     c.save(); c.translate(x, GY); c.rotate(t.a);
-    const down = t.done;
-    // (down, they're background: dimmed, so a log lying there doesn't read as something to stand on)
-    if (down) c.globalAlpha = 0.55;
-    box(c, -14, -TREE_H, 28, TREE_H, down ? '#3B2F1E' : '#5B3A1C');
-    c.fillStyle = down ? '#14532D' : '#15803D';
+    box(c, -14, -TREE_H, 28, TREE_H, '#5B3A1C');
+    c.fillStyle = '#15803D';
     c.beginPath(); c.arc(0, -TREE_H, 60, 0, Math.PI * 2); c.arc(-40, -TREE_H + 30, 40, 0, Math.PI * 2); c.arc(40, -TREE_H + 30, 40, 0, Math.PI * 2); c.fill();
     c.restore();
   });

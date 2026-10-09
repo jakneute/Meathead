@@ -32,7 +32,11 @@ export interface Section {
   id: SectionId;
   x0: number; x1: number;
   /** Its checkpoints (numbered across the whole stage, in order): where he starts again from each. */
-  checkpoints: { name: string; cp: number; x: number; y: number }[];
+  checkpoints: {
+    name: string; cp: number; x: number; y: number;
+    /** A boss's (or a sub-boss's) checkpoint: starting again from it, nobody's about this far left and right of it. */
+    clear?: [number, number];
+  }[];
   /** Puts its ground, its walls, its enemies and its set pieces into the world (all at once, at the start). */
   build: (state: GameState) => void;
   /** Each frame he's in it: its set pieces, its enemies' business, its cutscenes (it can take the controls). */
@@ -47,8 +51,10 @@ export interface Section {
   drawFront?: (c: Ctx, state: GameState) => void;
   /** Screen space, over the world (a meter, a cutscene's picture-in-picture). */
   drawHud?: (c: Ctx, state: GameState) => void;
-  /** The camera pushed in (or pulled out: scale under 1) about a world point. */
-  zoom?: (state: GameState) => { scale: number; x: number; y: number } | null;
+  /** The camera pushed in (or pulled out: scale under 1) about a world point (and that point moved on screen by the shift). */
+  zoom?: (state: GameState) => { scale: number; x: number; y: number; shiftX?: number; shiftY?: number } | null;
+  /** Slow motion: true for a tick that runs no game time (Meathead 1's kill cam). Called every real tick. */
+  holdTick?: (ctx: FrameContext) => boolean;
   lighting?: (state: GameState) => SceneLight | null;
   /** Where on screen his feet sit (default 550 of 600). */
   cameraRow?: (state: GameState) => number | undefined;

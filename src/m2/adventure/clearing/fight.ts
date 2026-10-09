@@ -14,13 +14,20 @@
 //                leaps up out of its way onto a vine. Then back into a bush, and round again.
 //
 // His weakness is the spawner. Its litter goes for a bush if it sees the bush before it sees anybody, and eats it: the
-// fewer bushes, the fewer places to hide (two: the shuffle's between two; one: no shuffle; none: he just whistles up
-// stampedes, one animal after another, for as long as he's up his vine or seeing stars; back on his feet, a moment's
-// lull, and he whistles them up again). They'll go for the vine he's hanging off, too, and chew through it: down he
-// drops, seeing stars, and the first animal through tramples him (the big hit). Enough of them on him at once and he loses it (agitated): too busy slapping at them to
-// get out of the way, and the first animal through flattens him: stunned, and a big hit. Whatever's stampeding runs
-// over the litter (squashed). Beaten by them (finished off while they're on him, or by the stampede he couldn't
-// dodge), they eat him to the bone; beaten any other way, he goes down face first in the dirt, rear in the air.
+// fewer bushes, the fewer places to hide (two: the shuffle's between two; one: no shuffle; none: no more hiding, he
+// whistles up the herd and goes up his vine to stay). Enough of them on him at once and he loses it (agitated): too
+// busy slapping at them to get out of the way, and the first animal through flattens him (a big hit).
+//
+//   THE VINE     Flattened, he doesn't lie there: he scrambles up a vine and stays up it (with no bushes left, he goes
+//                up and stays up any time), the herd thundering by under him one after another, and now and then a
+//                dart down at Meathead. Shots and blows hurt him up there the same as anywhere, but nothing knocks him
+//                off it: only the litter, chewing through the vine over his hands. Down he drops, and it's the fall
+//                that leaves him seeing stars (the window to blast him), and the first animal through flattens him
+//                again: back up. Whatever's stampeding runs over the litter (squashed).
+//
+// Two deaths, Meathead 1's way: beaten by his weakness (finished off by the litter, or while they're on him, or by the
+// stampede they left him in the way of), he's eaten alive (eaten.ts: the gory one); beaten any other way, he goes down
+// face first in the dirt, rear in the air, and lets one last one go.
 //
 // The old rules for hurting a boss (Meathead 1's): after a hit, a breather (ENEMY_HIT_COOLDOWN frames, flickering)
 // when nothing else gets in. The litter's nibbles don't count as hits: they get through, and give him no breather.
@@ -39,9 +46,11 @@ import { hurtTaken } from '../../../m1/game/core/resist';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind, type MeatheadDeath } from '../../../m1/game/player/deathAnim';
 import { body as drawMeatheadBody } from '../../../m1/game/render/player/deathAnim';
-import { ENEMY_HIT_COOLDOWN } from '../../../m1/constants';
+import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
-import { aliensOn, brushOff, devour, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
+import { aliensOn, brushOff, popAliensIn, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
+import { grabCallout } from '../../moves/callouts';
+import { type Eaten, startEaten, updateEaten, landEaten, collapse, drawEatenStanding, drawEatenLoose, swarmAt, FLESH_END, COLLAPSE_MIN, COLLAPSE_MAX } from './eaten';
 import { drawSafariArtie, ROOF_SCUFFS, type ArtiePose } from '../river/artie';
 import { box, label, saidOver, hands, speak, voice, meatheadSays } from '../section';
 import { GY } from '../geometry';
@@ -61,8 +70,10 @@ const HP = 666, BIG = 100000;
 const IFRAMES = ENEMY_HIT_COOLDOWN;
 /** A bush: how much chewing it takes (a litter of three on it eats one in about five seconds). */
 const BUSH_HP = 90;
-/** Stunned, shot out of his bush; stunned, run down by the stampede he didn't get out of the way of. */
-const STUN = 170, TRAMPLE_STUN = 150;
+/** Stunned: shot out of his bush, or dropped off his chewed-through vine. */
+const STUN = 170;
+/** Up his vine to stay: a dart down at Meathead every so often (by how far on the fight is), the blowgun up this long first. */
+const SPIT_EVERY = [0, 170, 140, 110], SPIT_AIM = 24;
 /** Run down while he's agitated: the big hit. */
 const TRAMPLE_DMG = 150;
 /** The litter's bites, on him: only this share of each (one of them's nothing to him; it's what they do to him). */
@@ -71,6 +82,8 @@ const NIBBLE_SHARE = 0.2;
 const VINE_HP = 30;
 /** Hanging off it: how much vine there is above his hands (what they can get at). */
 const VINE_UP = 150;
+/** Hanging off it: how high his feet are (over the elephant's back; in reach of a jump and an uppercut). */
+const VINE_AT = 172;
 /** This many of the litter on him at once and he's lost it. */
 const AGITATE_AT = 4;
 /** The knife: each stab, the last one (and the drop); the blowgun's dart, the poison (every so often, for so long). */
@@ -110,7 +123,7 @@ export type Mode =
   | 'stunned'  // on his backside, stars
   | 'whistle'  // the mating whistle
   | 'watch'    // the stampede going by
-  | 'dodge'    // up on a vine out of the way of one
+  | 'dodge'    // up on a vine out of the way of one (or to stay: `perch`)
   | 'trampled' // run down (agitated): flying
   | 'divein'   // back into a bush
   | 'dead';
@@ -139,6 +152,10 @@ export interface Fight {
   /** How the last of his health went: the litter's nibbles, or the stampede he couldn't dodge (his weakness, both). */
   byWeakness: boolean;
   death: { how: 'eaten' | 'flat'; t: number; x: number; facing: 1 | -1 } | null;
+  /** Eaten alive (his weakness death): how it's going; his say through it (which line he's on; Meathead's after). */
+  eaten: Eaten | null; eatenSaid: number; eatenOver: boolean;
+  /** The kill cam on it (Meathead 1's alien kill): the cut in close, the slow motion. */
+  cam: KillCam | null;
   puke: { x: number; y: number; facing: 1 | -1; lastT: number } | null;
   noBushesSaid: boolean;
   /** His vine: what's left of it, what's been chewed off it since; snapped (the bit that came down with him, falling). */
@@ -147,6 +164,8 @@ export interface Fight {
   dropped: boolean;
   /** No bushes left: the gap before the next animal of the endless stampede comes out (after the last one). */
   feedGap: number;
+  /** Up his vine to stay (flattened, or no bushes left): till the litter chews through it. The next dart's count. */
+  perch: boolean; spitT: number;
   e: Enemy;
 }
 
@@ -174,6 +193,8 @@ registerM2Kind({
   draw: (c, _e, fr) => {
     const f = live;
     if (!f) { drawSafariArtie(c, 0, 0, 1, fr, 'stand'); return; }
+    // (eaten alive: that, instead)
+    if (f.eaten) { drawEatenStanding(c, f.eaten, fr, beaten(f), !!f.said); return; }
     const blink = f.iframes > 0 && f.mode !== 'dead' && Math.floor(fr / 4) % 2 === 0;
     if (blink) c.globalAlpha = 0.45;
     // (coming up out of the bush: none of him below the ground)
@@ -190,7 +211,8 @@ registerM2Kind({
 const beaten = (f: Fight) => Math.max(ROOF_SCUFFS, 1 - Math.max(0, f.hp) / HP);
 
 const poseOf = (f: Fight): ArtiePose => {
-  if (f.flash > 0 && f.mode !== 'stunned' && f.mode !== 'gut') return 'hurt';
+  // (hit up his vine, he hangs on: no letting go to clutch himself)
+  if (f.flash > 0 && f.mode !== 'stunned' && f.mode !== 'gut' && f.mode !== 'dodge') return 'hurt';
   switch (f.mode) {
     case 'reach': case 'gut': return 'grab';
     case 'aim': return 'blowgun';
@@ -234,8 +256,8 @@ export const startFight = (state: GameState): Fight => {
     hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, x: BLIND_X, y: BLIND_Y, vx: 0, vy: 0, facing: -1, arc: null,
     bush: 2, bushes: [], moves: [], moveI: 0, decoy: -1, wait: 0, after: 'whistle', stunLen: STUN,
     agitated: false, calmT: 0, swatT: 0, herd: [], stampedes: 0, overT: 0, darts: [], poison: 0, pokes: 0,
-    said: null, nextCups: 0, byWeakness: false, death: null, puke: null, noBushesSaid: false,
-    vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, e,
+    said: null, nextCups: 0, byWeakness: false, death: null, eaten: null, eatenSaid: 0, eatenOver: false, cam: null, puke: null, noBushesSaid: false,
+    vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, e,
   };
   // (the vine: up over his hands while he's hanging off it)
   f.vine = {
@@ -307,7 +329,12 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
     case 'hop': if (onArc(f)) whistle(f); break;
     case 'knocked': case 'trampled':
       f.x = Math.max(ARENA_L + 30, Math.min(ARENA_R - 30, f.x + f.vx)); f.vy += 0.5; f.y += f.vy;
-      if (f.y >= GY) { f.y = GY; playSound('thud', 0.8); shakeScreen(state, 8, 4); to(f, 'stunned'); }
+      if (f.y >= GY) {
+        f.y = GY; playSound('thud', 0.8); shakeScreen(state, 8, 4);
+        // (flattened: no lying there, it's up a vine and staying there; dropped, or shot out of his bush: stars)
+        if (f.mode === 'trampled') perch(f);
+        else to(f, 'stunned');
+      }
       break;
     case 'stunned':
       if (f.t % 40 === 1) playSound('twinkle', 0.4, 6);
@@ -327,13 +354,24 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       break;
     case 'watch': watch(state, f); break;
     case 'dodge':
-      // (up onto the vine; hanging on till it's gone by; down)
-      if (f.t <= 12) { f.y = GY - 190 * Math.sin((f.t / 12) * Math.PI / 2); f.vy = 0; }
-      else if (f.vy === 0 && nearestTo(f.herd, f.x) < 150) { /* hanging */ }
+      // (up onto the vine; hanging on till it's gone by (or, up to stay, till it's chewed through); down)
+      if (f.t <= 12) { f.y = GY - VINE_AT * Math.sin((f.t / 12) * Math.PI / 2); f.vy = 0; }
+      else if (f.vy === 0 && (staying(f) || nearestTo(f.herd, f.x) < 150)) { if (staying(f)) perched(ctx, f); }
       else { f.vy += 0.6; f.y = Math.min(GY, f.y + f.vy); if (f.y >= GY) { f.vy = 0; playSound('land', 0.6); to(f, 'watch'); } }
       break;
     case 'divein': if (onArc(f)) { if (f.bushes[f.bush].gone) diveIn(state, f); else { landInBush(state, f); hide(f); } } break;
-    case 'dead': if (f.death) f.death.t++; break;
+    case 'dead':
+      if (!f.death) break;
+      f.death.t++;
+      if (f.eaten) eatenAlive(ctx, f);
+      else {
+        // (the standard death's beats: face first into the dirt, then the last one out of him)
+        const t = f.death.t;
+        if (t === 38) { playSound('thud', 1, -4); playSound('crash', 0.4, -6); shakeScreen(state, 6, 3); }
+        if (t === 84) playSound('fart', 1, -2);
+        if (t === 150) playSound('fart', 0.5, 8);
+      }
+      break;
   }
   if (f.snap && ++f.snap.t > 50) f.snap = null;
   feed(state, f);
@@ -454,9 +492,8 @@ const blood = (state: GameState, x: number, y: number, dir: number) => {
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 4), y: -2 - Math.random() * 3 }, life: 30, color: i % 2 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.35 });
 };
 
-const fireDart = (state: GameState, f: Fight) => {
+const fireDart = (state: GameState, f: Fight, sx = f.x + f.facing * 46, sy = f.y - 62) => {
   const p = state.player;
-  const sx = f.x + f.facing * 46, sy = f.y - 62;
   const tx = p.pos.x + p.width / 2, ty = p.pos.y + p.height * 0.35;
   const d = Math.hypot(tx - sx, ty - sy) || 1;
   f.darts.push({ x: sx, y: sy, vx: ((tx - sx) / d) * DART_SPEED, vy: ((ty - sy) / d) * DART_SPEED, life: 120 });
@@ -545,11 +582,12 @@ const watch = (state: GameState, f: Fight) => {
 };
 
 /**
- * No bushes left: the stampede doesn't stop while he's up his vine or seeing stars (one after another, the same way,
- * a fair gap each: more after the elephant, the one he has to go up and over); back on his feet, none new start.
+ * No bushes left, or him up his vine to stay: the stampede doesn't stop while he's up it or seeing stars (one after
+ * another, the same way, a fair gap each: more after the elephant, the one he has to go up and over); back on his
+ * feet, none new start.
  */
 const feed = (state: GameState, f: Fight) => {
-  if (f.mode === 'dead' || liveBushes(f).length) return;
+  if (f.mode === 'dead' || (liveBushes(f).length && !(f.perch && f.mode === 'dodge'))) return;
   const up = f.mode === 'dodge' || f.mode === 'stunned' || f.mode === 'knocked' || f.mode === 'trampled';
   if (!up || f.herd.some(a => !a.done && a.warn > 0)) return;
   const running = f.herd.filter(a => !a.done);
@@ -576,14 +614,14 @@ const animalAtArtie = (ctx: FrameContext, f: Fight, a: Animal) => {
   if (Math.random() < 0.6) bark(f, L.ARTIE_DODGE);
 };
 
-/** Run down (too busy with the litter, or lying there off his vine): the big hit, flying, then stars. */
+/** Run down (too busy with the litter, or lying there off his vine): the big hit, flying; then up a vine (perch). */
 const flatten = (ctx: FrameContext, f: Fight, a: Animal) => {
   const { state } = ctx;
   {
     f.hp -= TRAMPLE_DMG; f.iframes = IFRAMES; f.flash = 14;
     ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - 100 }, TRAMPLE_DMG, true);
     f.agitated = false; f.calmT = 0;
-    to(f, 'trampled'); f.vx = a.dir * 5; f.vy = -11; f.after = 'bush'; f.stunLen = TRAMPLE_STUN;
+    to(f, 'trampled'); f.vx = a.dir * 5; f.vy = -11; f.after = 'bush';
     playSound('crunch', 1); playSound(BEASTS[a.kind].call, 0.8, BEASTS[a.kind].pitch); shakeScreen(state, 18, 9);
     blood(state, f.x, f.y - 40, a.dir);
     if (f.hp <= 0) { f.byWeakness = true; die(ctx, f); return; }
@@ -591,18 +629,41 @@ const flatten = (ctx: FrameContext, f: Fight, a: Animal) => {
   }
 };
 
+/** Up his vine to stay (he's been flattened: he's not lying about for the next one). */
+const perch = (f: Fight) => {
+  to(f, 'dodge'); f.vy = 0; f.perch = true; f.spitT = 0;
+  playSound('jump', 0.6, 2);
+  bark(f, L.ARTIE_PERCH);
+};
+/** He's staying up it (till it's chewed through). */
+const staying = (f: Fight) => f.perch || liveBushes(f).length === 0;
+/** Up there to stay: watching Meathead, and now and then the blowgun up, one-handed, and a dart down at him. */
+const perched = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, p = state.player;
+  f.perch = true;
+  faceHim(state, f);
+  if (p.health <= 0 || state.deathTimer > 0) { f.spitT = 0; return; }
+  f.spitT++;
+  if (f.spitT === SPIT_EVERY[phase(f)] - SPIT_AIM && Math.random() < 0.5) bark(f, L.ARTIE_DART);
+  if (f.spitT >= SPIT_EVERY[phase(f)]) { f.spitT = 0; const m = mouth(f); fireDart(state, f, m.x, m.y); }
+};
+/** His mouth, hanging off the vine. */
+const mouth = (f: Fight) => ({ x: f.x + f.facing * 4, y: f.y - 70 });
+/** The blowgun's up (hanging off the vine): aiming. */
+const aiming = (f: Fight) => f.mode === 'dodge' && f.perch && f.vy === 0 && f.t > 12 && f.spitT >= SPIT_EVERY[phase(f)] - SPIT_AIM;
+
 /** The vine chewed: frayed, then through, and down he comes (seeing stars, for whatever's coming). */
 const chewVine = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   if (f.vineChewed <= 0) return;
   f.vineHp -= f.vineChewed; f.vineChewed = 0;
   if (f.vineHp > 0 || !hanging(f)) return;
-  f.vineHp = VINE_HP;
+  f.vineHp = VINE_HP; f.perch = false;
   f.snap = { x: f.x, y: f.y - 86, t: 0 };
   to(f, 'knocked'); f.vx = 0; f.vy = 0; f.after = 'whistle'; f.stunLen = STUN; f.dropped = true;
   playSound('crack', 0.9, 4); playSound('whoosh', 0.5, -2);
   for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: f.x, y: f.y - 90 - Math.random() * 40 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 30, color: i % 2 ? '#3F6212' : '#65A30D', size: 2 + Math.random() * 3, grav: 0.2 });
-  bark(f, L.ARTIE_KNOCKED);
+  bark(f, L.ARTIE_VINE_SNAP);
 };
 
 /** Shot out of his bush (or left in the open when it's eaten under him): flying out into the clearing, then stars. */
@@ -690,12 +751,28 @@ const die = (ctx: FrameContext, f: Fight) => {
   f.darts = [];
   for (const a of f.herd) a.tame = true;
   f.flash = 0;
+  f.perch = false;
   if (eaten) {
+    // (he stays in the world, for the litter to keep at: and more of them pile on)
     if (!state.enemies.includes(e)) state.enemies.push(e);
-    f.y = Math.min(f.y, GY); sync(state, f);
-    devour(ctx, e);
+    f.y = Math.min(f.y, GY); f.vx = 0; f.vy = 0;
     f.death = { how: 'eaten', t: 0, x: f.x, facing: f.facing };
-    announce(f, L.ARTIE_EATEN, () => meatheadSays(state, pick(L.MEATHEAD_EATEN)));
+    // (the arena's walls, in his own space: the loose bits of him stop at them)
+    const lo = f.facing > 0 ? ARENA_L - f.x : f.x - ARENA_R, hi = f.facing > 0 ? ARENA_R - f.x : f.x - ARENA_L;
+    f.eaten = startEaten(f.y - GY, lo, hi);
+    if (f.y >= GY) landEaten(f.eaten);
+    sync(state, f);
+    ctx.fx.spawnKillCallout(e, grabCallout('alien'));
+    state.player.killSatisfactionTimer = 60;
+    // (the kill cam: a white flash, a cut in close on him, slow motion; out of Meathead's hands from here)
+    f.cam = { t: 0, acc: 0, z: 1, payT: -1, out: false };
+    state.player.inCutscene = true;
+    state.damageNumbers = [];
+    playSound('crack', 1.2, -10); playSound('thunder', 0.7, 4);
+    playSound('gnaw', 1, -4); playSound('splat', 0.6, -2); playSound('chitter', 0.8);
+    f.eatenSaid = 1;
+    // (he never shuts up: through all of it, a line at a time, each when the last one's done)
+    announce(f, L.ARTIE_EATEN, () => { f.eatenSaid = 2; announce(f, L.ARTIE_EATEN_MORE, () => { f.eatenSaid = 3; }); });
   } else {
     state.enemies = state.enemies.filter(o => o !== e);
     f.death = { how: 'flat', t: 0, x: f.x, facing: f.facing };
@@ -705,8 +782,83 @@ const die = (ctx: FrameContext, f: Fight) => {
   }
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// The kill cam (his weakness death: Meathead 1's alien kill, killCam.ts): a white flash and a cut in close on him, the
+// game in slow motion, easing back up to speed as he's eaten, dipping again as the arm comes off; pulled back out once
+// he's in a heap.
+
+export interface KillCam { t: number; acc: number; z: number; payT: number; out: boolean }
+/** How close it goes; the slow motion at the kill (held, then back up to speed), and again at the arm. */
+const CAM_Z = 2.3, SLOW = 0.22, SLOW_HOLD = 45, SLOW_RAMP = 100, PAY_SLOW = 0.3, PAY_HOLD = 16, PAY_RAMP = 40;
+
+/** Every real tick: the camera in (or back out), and whether this tick runs game time. True: it doesn't. */
+export const killCamTick = (f: Fight): boolean => {
+  const cam = f.cam;
+  if (!cam) return false;
+  cam.t++;
+  cam.z += ((cam.out ? 1 : CAM_Z) - cam.z) * (cam.out ? 0.05 : cam.t < 6 ? 0.35 : 0.08);
+  if (cam.out && cam.z < 1.004) cam.z = 1;
+  let rate = cam.t < SLOW_HOLD ? SLOW : Math.min(1, SLOW + ((1 - SLOW) * (cam.t - SLOW_HOLD)) / SLOW_RAMP);
+  if (cam.payT >= 0) { const d = cam.t - cam.payT; rate = Math.min(rate, d < PAY_HOLD ? PAY_SLOW : Math.min(1, PAY_SLOW + ((1 - PAY_SLOW) * (d - PAY_HOLD)) / PAY_RAMP)); }
+  if (cam.out) rate = 1;
+  cam.acc += rate;
+  if (cam.acc >= 1) { cam.acc -= 1; return false; }
+  return true;
+};
+/** The view pushed in on him (his middle in the middle of the screen, as far in as it's gone). */
+export const killCamZoom = (state: GameState, f: Fight) => {
+  const cam = f.cam, d = f.death;
+  if (!cam || !d || cam.z <= 1) return null;
+  const k = (cam.z - 1) / (CAM_Z - 1);
+  const fx = d.x, fy = Math.min(GY, f.y) - 46;
+  return { scale: cam.z, x: fx, y: fy, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - fx), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 + 40 - fy) };
+};
+/** Screen space: the flash it cuts in on, the bars. */
+export const drawKillCam = (c: Ctx, f: Fight) => {
+  const cam = f.cam;
+  if (!cam) return;
+  const k = cam.out ? Math.max(0, (cam.z - 1) / (CAM_Z - 1)) : Math.min(1, cam.t / 20);
+  const bar = Math.round(k * 44);
+  if (bar > 0) { c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar); }
+  if (cam.t < 14) { c.fillStyle = `rgba(255, 255, 255, ${(1 - cam.t / 14).toFixed(2)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
+};
+
 /** Done with: the fight's over and he's had his say (the death played out). */
-export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.death.t > 260;
+export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && (f.death.how === 'eaten' ? f.eatenOver : f.death.t > 300);
+
+/**
+ * Eaten alive, each frame: down out of the air first; then it goes on (eaten.ts), his lines through it, the skull
+ * still talking; then the heap (the litter on him bursting, full), and Meathead's say.
+ */
+const eatenAlive = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, g = f.eaten!, d = f.death!;
+  const at = (x: number, y: number) => ({ x: d.x + d.facing * x, y: GY + y });
+  const ev = updateEaten(state, g, at);
+  if (!g.landed) {
+    f.y = GY + g.y;
+    if (f.y >= GY) { f.y = GY; g.y = 0; landEaten(g); playSound('thud', 0.9); playSound('splat', 0.7); shakeScreen(state, 8, 4); }
+    return;
+  }
+  if (ev === 'helmet') { playSound('bonk', 0.7, 4); playSound('gorespray', 0.5); }
+  if (ev === 'arm') { playSound('crunch', 1, -2); playSound('gorespray', 0.9); shakeScreen(state, 6, 3); if (f.cam) f.cam.payT = f.cam.t; }
+  if (ev === 'gut') { playSound('gush', 0.9, -2); playSound('squish', 0.7); }
+  // (the skull's say, once the flesh is off it and he's done with the last one)
+  if (f.eatenSaid === 3 && g.t > FLESH_END + 10) { f.eatenSaid = 4; announce(f, L.ARTIE_BONES, () => { f.eatenSaid = 5; }); }
+  // Down it comes: when he's done talking (or he's taking too long about it)
+  if (g.heapAt < 0 && ((f.eatenSaid === 5 && g.t > COLLAPSE_MIN) || g.t > COLLAPSE_MAX)) {
+    collapse(g);
+    // (the ones on him burst, full: his and the gun's both)
+    for (const s of swarmAt(g)) { const w = at(s.x, s.y); for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: w.x, y: w.y }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 26, color: i % 2 ? '#65A30D' : '#BEF264', size: 2 + Math.random() * 2, grav: 0.3 }); }
+    popAliensIn(state, f.x - 60, GY - 140, 120, 160);
+    state.enemies = state.enemies.filter(o => o !== f.e);
+    playSound('squish', 1, -2);
+  }
+  // (the kill cam pulls back out once he's in a heap)
+  if (f.cam && g.heapAt >= 0 && g.t >= g.heapAt + 30) f.cam.out = true;
+  // Meathead's say, after it; then it's over
+  if (g.heapAt >= 0 && g.t === g.heapAt + 50) meatheadSays(state, pick(L.MEATHEAD_EATEN), true, () => { f.eatenSaid = 6; });
+  if (g.heapAt >= 0 && ((f.eatenSaid === 6 && g.t > g.heapAt + 110) || g.t > g.heapAt + 600)) f.eatenOver = true;
+};
 /** The fight's done with: its animals' backs out of the world. */
 export const endFight = (state: GameState, f: Fight) => { clearStampede(state, f.herd); };
 
@@ -807,20 +959,31 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   if (f.mode === 'whistle') for (let i = 0; i < 3; i++) { const t = (fr + i * 13) % 40; label(c, '♪', f.x + f.facing * (18 + t * 0.6), f.y - 80 - t, '#F472B6', 10); }
   // Agitated: a word over him
   if (f.agitated && isOut(f) && f.mode !== 'dead' && Math.floor(fr / 8) % 2 === 0) label(c, '!!', f.x, f.y - 110, '#F87171', 10);
+  const p = state.player;
   // The herd and its warnings
   drawStampede(c, state, f.herd);
   drawWarnings(c, state, f.herd);
   // Darts
   for (const d of f.darts) { c.strokeStyle = '#000'; c.lineWidth = 3; c.beginPath(); c.moveTo(d.x, d.y); c.lineTo(d.x - d.vx * 1.2, d.y - d.vy * 1.2); c.stroke(); c.strokeStyle = '#FDE047'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(d.x, d.y); c.lineTo(d.x - d.vx * 1.2, d.y - d.vy * 1.2); c.stroke(); box(c, d.x - 2, d.y - 2, 4, 4, '#DC2626'); }
   // Poisoned: green round the gills
-  const p = state.player;
   if (f.poison > 0 && p.health > 0 && !p.hidden) {
     const hx = p.pos.x + p.width / 2;
     for (let i = 0; i < 3; i++) { const t = (fr + i * 11) % 34; c.fillStyle = `rgba(132, 204, 22, ${(1 - t / 34).toFixed(2)})`; c.beginPath(); c.arc(hx - 8 + i * 8, p.pos.y - 6 - t * 0.7, 3 + t * 0.08, 0, Math.PI * 2); c.fill(); }
     label(c, 'POISONED', hx, p.pos.y - 34, '#A3E635', 6);
   }
-  // His death (face down in the dirt); his words
+  // Up his vine to stay, the blowgun up (one-handed, the other on the vine), aimed down at him
+  if (aiming(f)) {
+    const m = mouth(f), tx = p.pos.x + p.width / 2, ty = p.pos.y + p.height * 0.35;
+    const dd = Math.hypot(tx - m.x, ty - m.y) || 1, ux = (tx - m.x) / dd, uy = (ty - m.y) / dd;
+    c.lineCap = 'round';
+    c.strokeStyle = '#3E2E16'; c.lineWidth = 4.4; c.beginPath(); c.moveTo(m.x, m.y); c.lineTo(m.x + ux * 40, m.y + uy * 40); c.stroke();
+    c.strokeStyle = '#B89A58'; c.lineWidth = 2.6; c.beginPath(); c.moveTo(m.x, m.y); c.lineTo(m.x + ux * 40, m.y + uy * 40); c.stroke();
+    // (cheeks puffed)
+    c.fillStyle = '#EAA080'; c.beginPath(); c.arc(m.x - f.facing, m.y + 1, 3.2 + Math.min(1, (f.spitT - SPIT_EVERY[phase(f)] + SPIT_AIM) / 12) * 1.6, 0, Math.PI * 2); c.fill();
+  }
+  // His death (face down in the dirt; or the loose bits of him, eaten); his words
   if (f.death?.how === 'flat') drawFlat(c, f, fr);
+  if (f.eaten && f.death) { c.save(); c.translate(Math.round(f.death.x), GY); c.scale(f.death.facing, 1); drawEatenLoose(c, f.eaten, fr); c.restore(); }
   if (f.said) {
     const sx = Math.max(ARENA_L + 130, Math.min(ARENA_R - 130, f.x));
     const sy = f.mode === 'hidden' || f.mode === 'move' ? GY - BUSH_H - 40 : f.y - 104;
@@ -836,22 +999,56 @@ const star = (c: Ctx, x: number, y: number, col: string) => {
   c.closePath(); c.fill();
 };
 
-/** Beaten (not by his weakness): staggers, down on his face, rear in the air; a twitch; one last one out of him. */
+/**
+ * Beaten (not by his weakness): Meathead 1's standard death, his way. He staggers back, wobbling, and goes over
+ * forward, flat on his face, rear up in the air (a bounce, and the dust); lies there, a leg twitching now and then;
+ * then one last one goes out of him (a long one, green, rising), and a little one after it; and the flies find him.
+ */
 const drawFlat = (c: Ctx, f: Fight, fr: number) => {
   const d = f.death!, t = d.t;
-  if (t < 22) { drawSafariArtie(c, d.x - d.facing * t * 0.8, GY, d.facing, fr, 'hurt', beaten(f)); return; }
-  const k = Math.min(1, (t - 22) / 14);
+  if (t < 24) {
+    // (staggering back, this way and that)
+    const wob = Math.sin(t * 0.55) * 0.12;
+    c.save(); c.translate(d.x - d.facing * t * 0.75, GY); c.rotate(wob);
+    drawSafariArtie(c, 0, 0, d.facing, fr, 'hurt', beaten(f));
+    c.restore();
+    return;
+  }
+  // Over he goes (slow, then all at once), a bounce off the ground, then lying there
+  const fall = Math.min(1, (t - 24) / 14);
+  const bounce = t > 38 && t < 50 ? Math.sin(((t - 38) / 12) * Math.PI) * 0.12 : 0;
   const x = d.x - d.facing * 18;
-  const twitch = t > 50 && t < 200 && (t % 37) < 6 ? Math.sin(t * 2) * 0.06 : 0;
-  c.save(); c.translate(x, GY - 30); c.rotate(d.facing * (k * (Math.PI / 2 + 0.45) + twitch));
+  const twitch = t > 56 && (t % 41) < 6 ? Math.sin(t * 2.2) * 0.05 : 0;
+  c.save(); c.translate(x, GY - 30); c.rotate(d.facing * (fall * fall * (Math.PI / 2 + 0.45) - bounce + twitch));
   drawSafariArtie(c, 0, 12, d.facing, fr, 'stunned', beaten(f));
   c.restore();
-  // (one last one, out of him, green)
-  if (t > 70 && t < 160) {
-    const s = (t - 70) / 90;
-    c.fillStyle = `rgba(163, 190, 60, ${(0.55 * (1 - s)).toFixed(2)})`;
-    c.beginPath(); c.arc(x - d.facing * (6 + s * 16), GY - 40 - s * 24, 8 + s * 22, 0, Math.PI * 2); c.fill();
+  // (the dust where he hit, his face in it)
+  if (t >= 38 && t < 80) {
+    const s = (t - 38) / 42;
+    for (let i = 0; i < 4; i++) {
+      c.fillStyle = `rgba(168, 140, 100, ${(0.5 * (1 - s)).toFixed(2)})`;
+      c.beginPath(); c.arc(x + d.facing * (40 + i * 14 + s * 20 * (i - 1)), GY - 6 - s * 10 - (i % 2) * 4, 6 + s * 10, 0, Math.PI * 2); c.fill();
+    }
   }
+  // One last one out of him (green, rising off his rear), and a little one after it
+  const rx = x - d.facing * 8, ry = GY - 44;
+  for (const [t0, len, big] of [[84, 110, 1], [150, 60, 0.45]] as const) {
+    if (t < t0 || t >= t0 + len) continue;
+    const s = (t - t0) / len;
+    c.fillStyle = `rgba(163, 190, 60, ${(0.6 * (1 - s)).toFixed(2)})`;
+    c.beginPath(); c.arc(rx - d.facing * (4 + s * 14), ry - s * 30, (8 + s * 24) * big, 0, Math.PI * 2); c.fill();
+    c.fillStyle = `rgba(132, 160, 40, ${(0.5 * (1 - s)).toFixed(2)})`;
+    c.beginPath(); c.arc(rx - d.facing * (10 + s * 20), ry - 6 - s * 36, (5 + s * 14) * big, 0, Math.PI * 2); c.fill();
+    // (stink lines, wavering up off it)
+    c.strokeStyle = `rgba(101, 163, 13, ${(0.8 * (1 - s)).toFixed(2)})`; c.lineWidth = 1.5;
+    for (let i = -1; i <= 1; i++) {
+      c.beginPath();
+      for (let k = 0; k <= 6; k++) { const yy = ry - 10 - s * 30 - k * 4, xx = rx - d.facing * (8 + s * 16) + i * 9 + Math.sin(k + fr * 0.3 + i) * 2; if (k) c.lineTo(xx, yy); else c.moveTo(xx, yy); }
+      c.stroke();
+    }
+  }
+  // (the flies, round his rear)
+  if (t > 170) for (let i = 0; i < 3; i++) { const a = fr * 0.17 + i * 2.1; c.fillStyle = '#111'; c.fillRect(Math.round(rx + Math.cos(a) * 12 + Math.sin(a * 2.7) * 3), Math.round(ry - 8 + Math.sin(a * 1.3) * 6), 2, 2); }
 };
 
 /** Meathead, poisoned to death: doubled over, heaving, then the lot comes up, again and again, and down he goes in it. */
