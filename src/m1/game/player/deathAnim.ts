@@ -134,6 +134,9 @@ const BY_SOURCE: Record<string, MeatheadDeathKind> = {
   alien_laser: 'vaporized',
 };
 
+/** Another game's hurt (Meathead 2's stampeding animals) dies one of these deaths. */
+export const registerDeathKind = (source: string, kind: MeatheadDeathKind) => { BY_SOURCE[source] = kind; };
+
 /** (vaporized) Held lit up in the beam, then going (frames); and when the medal comes off his chest. */
 export const MH_VAPOR_HOLD = 10, MH_VAPOR_GO = 44, MH_MEDAL_DROP = 30;
 /** (vaporized) How far through going he is (0..1). */

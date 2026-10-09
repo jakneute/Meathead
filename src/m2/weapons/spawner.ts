@@ -42,6 +42,17 @@ const EAT = 54, STAND = 110, TEETER = 22;
 const LIE = 300, FADE = 60;
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
+/**
+ * Something that isn't anybody, that they'll go for all the same if it's nearer than anybody when they look (Safari
+ * Artie's bushes: adventure/clearing): chewed down a bite at a time. Whoever owns them hands the gun the list.
+ */
+export interface SpawnerBait { x: number; y: number; w: number; h: number; alive: () => boolean; bite: (dmg: number) => void }
+let baitsOf: (state: GameState) => SpawnerBait[] = () => [];
+export const setSpawnerBaits = (fn: ((state: GameState) => SpawnerBait[]) | null) => { baitsOf = fn ?? (() => []); };
+/** What they've bitten out of each one since it was last asked (a fight telling their nibbles from a real hit). */
+const bitten = new WeakMap<Enemy, number>();
+export const takeBites = (e: Enemy) => { const n = bitten.get(e) ?? 0; bitten.delete(e); return n; };
+
 const flies = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';
 
 /** What one looks like: their skin (light, mid, dark, outline). No two litters quite alike; they've one, two or three eyes. */
@@ -61,6 +72,8 @@ interface Alien {
   bite: number; chomp: number;
   /** Nobody to go for: where it's scurrying to, looking. */
   roamTo: number | null;
+  /** Gone for something that isn't anybody (a bush), and latched onto it (where on it). */
+  bait?: SpawnerBait | null; onBait?: { b: SpawnerBait; ox: number; oy: number } | null;
 }
 
 /** One bone, in the skeleton's own space (its feet the origin, facing right). */
@@ -178,6 +191,7 @@ const tick = (ctx: FrameContext) => {
   for (const a of aliens) {
     a.life--;
     if (a.life <= 0) { pop(state, a); continue; }
+    if (a.onBait) { chewBait(state, a); live.push(a); continue; }
     if (a.on) { if (gnaw(ctx, a)) live.push(a); continue; }
     roam(ctx, a);
     // (gone down a pit, or way off out of it)
@@ -211,6 +225,7 @@ const gnaw = (ctx: FrameContext, a: Alien) => {
   if (--a.bite > 0) return true;
   a.bite = BITE.every + Math.floor(Math.random() * 3);
   e.health -= BITE.dmg;
+  bitten.set(e, (bitten.get(e) ?? 0) + BITE.dmg);
   // (a squirt of him)
   if (Math.random() < 0.5) state.particles.push({ pos: { x: a.x + a.face * 4, y: a.y - 6 }, vel: { x: -a.face * (0.5 + Math.random() * 2), y: -1 - Math.random() * 2 }, life: 16, color: Math.random() < 0.5 ? '#B91C1C' : '#7F1D1D', size: 1.5 + Math.random() * 2, grav: 0.3 });
   if (Math.random() < 0.25) playSound('gnaw', 0.5);
@@ -222,12 +237,21 @@ const gnaw = (ctx: FrameContext, a: Alien) => {
 const roam = (ctx: FrameContext, a: Alien) => {
   const { state } = ctx;
   if (a.leapWait > 0) a.leapWait--;
-  if (--a.retarget <= 0 || (a.target && !edible(state, a.target))) { a.target = pickTarget(state, a); a.retarget = 20 + Math.floor(Math.random() * 10); }
+  if (a.bait && !a.bait.alive()) { a.bait = null; a.retarget = 0; }
+  // (gone for a bait: it sticks with it till it's gone)
+  if (!a.bait && (--a.retarget <= 0 || (a.target && !edible(state, a.target)))) {
+    a.target = pickTarget(state, a); a.retarget = 20 + Math.floor(Math.random() * 10);
+    const b = nearestBait(state, a), t = a.target;
+    if (b && (!t || Math.abs(b.x + b.w / 2 - a.x) < Math.abs(t.pos.x + t.width / 2 - a.x))) { a.bait = b; a.target = null; }
+  }
   const sputter = a.life < DYING ? 0.5 : 1;
   const t = a.target;
+  const bt = a.bait ? { pos: { x: a.bait.x, y: a.bait.y }, width: a.bait.w, height: a.bait.h, vel: { x: 0, y: 0 } } : null;
+  const goalOf = t ?? bt;
   if (a.ground) {
-    let goal: number; const speed = RUN * (t ? HUNT : 1) * (0.85 + a.seed * 0.3) * sputter;
-    if (t) {
+    let goal: number; const speed = RUN * (goalOf ? HUNT : 1) * (0.85 + a.seed * 0.3) * sputter;
+    if (goalOf) {
+      const t = goalOf;
       const tx = t.pos.x + t.width / 2, ty = t.pos.y + t.height / 2, dx = tx - a.x, rise = a.y - ty;
       goal = tx;
       // Up high (a bird, somebody up on a ledge), near enough under him: a flea's leap, right at him
@@ -268,9 +292,60 @@ const roam = (ctx: FrameContext, a: Alien) => {
     if (a.vy >= 0 && ny >= floor) { a.y = floor; a.vy = 0; a.ground = true; }
     else { a.y = ny; a.ground = a.vy === 0 && a.y >= floor - 0.5; if (!a.ground && a.vy === 0) a.vy = 0.1; }
   }
-  // Anybody it runs (or leaps) into, it's on
+  // Anybody it runs (or leaps) into, it's on (or the bait it's after)
+  const b = a.bait;
+  if (b && a.x + 5 > b.x && a.x - 5 < b.x + b.w && a.y > b.y && a.y - 9 < b.y + b.h) {
+    a.onBait = { b, ox: 0.1 + Math.random() * 0.8, oy: 0.2 + Math.random() * 0.75 }; a.vx = 0; a.vy = 0; a.bite = 3 + Math.floor(Math.random() * BITE.every);
+    if (Math.random() < 0.3) playSound('chitter', 0.4, 2);
+    return;
+  }
   for (const e of state.enemies) if (edible(state, e) && touching(a, e)) { latch(a, e); break; }
 };
+
+/** The nearest bait about, if any. */
+const nearestBait = (state: GameState, a: Alien) => {
+  let best: SpawnerBait | null = null, d = 700;
+  for (const b of baitsOf(state)) { if (!b.alive()) continue; const dx = Math.abs(b.x + b.w / 2 - a.x); if (dx < d) { d = dx; best = b; } }
+  return best;
+};
+
+/** On a bait: chewing it, a bite at a time, till it's gone; then off looking for the next. */
+const chewBait = (state: GameState, a: Alien) => {
+  const o = a.onBait!;
+  if (!o.b.alive()) { a.onBait = null; a.bait = null; letGo(a); return; }
+  a.x = o.b.x + o.ox * o.b.w; a.y = o.b.y + o.oy * o.b.h;
+  a.chomp++;
+  if (--a.bite > 0) return;
+  a.bite = BITE.every + Math.floor(Math.random() * 3);
+  o.b.bite(BITE.dmg);
+  if (Math.random() < 0.5) state.particles.push({ pos: { x: a.x + a.face * 4, y: a.y - 6 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 18, color: Math.random() < 0.5 ? '#15803D' : '#65A30D', size: 2 + Math.random() * 2, grav: 0.2 });
+  if (Math.random() < 0.2) playSound('gnaw', 0.4, 4);
+};
+
+/** How many are on him (alive, chewing). */
+export const aliensOn = (e: Enemy) => aliens.reduce((n, a) => n + (a.on && !a.on.corpse && a.on.e === e ? 1 : 0), 0);
+/** He's swatted `n` of them off him: flicked away (they'll be back). */
+export const brushOff = (e: Enemy, n = 1) => {
+  for (const a of aliens) {
+    if (n <= 0) break;
+    if (!a.on || a.on.corpse || a.on.e !== e) continue;
+    letGo(a); a.vx = (a.x < e.pos.x + e.width / 2 ? -1 : 1) * (5 + Math.random() * 3); a.vy = -6 - Math.random() * 3; a.retarget = 25;
+    n--;
+  }
+};
+/** Something's run over whatever's in this box (a stampede): squashed, every one. How many. */
+export const trample = (state: GameState, x: number, y: number, w: number, h: number) => {
+  let n = 0;
+  aliens = aliens.filter(a => {
+    if (a.x < x || a.x > x + w || a.y < y || a.y - 6 > y + h) return true;
+    pop(state, a); n++;
+    return false;
+  });
+  if (n) playSound('squish', Math.min(1, 0.4 + n * 0.15));
+  return n;
+};
+/** Eaten alive, the gun's own way (a mid-boss's fight finishing him: it only ever does that for itself). */
+export const devour = (ctx: FrameContext, e: Enemy) => eatenAlive(ctx, e);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Eaten alive: a death of its own
@@ -541,13 +616,13 @@ const drawAlien = (c: Ctx, a: Alien, f: number) => {
   const skin = dying ? { hi: '#D6D3D1', mid: '#A8A29E', lo: '#78716C', line: '#292524' } : k;
   // legs: running (two and two), latched on (splayed, clinging), in the air (tucked back)
   const step = Math.floor(f / 3 + a.seed * 7) % 2;
-  if (a.on) { px(-6, -6, 2, 1, skin.line); px(-6, -3, 2, 1, skin.line); px(4, -8, 1, 2, skin.line); px(-1, -1, 1, 2, skin.line); }
+  if (a.on || a.onBait) { px(-6, -6, 2, 1, skin.line); px(-6, -3, 2, 1, skin.line); px(4, -8, 1, 2, skin.line); px(-1, -1, 1, 2, skin.line); }
   else if (!a.ground) { px(-6, -4, 3, 1, skin.line); px(-5, -2, 3, 1, skin.line); px(1, -2, 2, 1, skin.line); px(3, -3, 2, 1, skin.line); }
   else { const r = Math.abs(a.vx) > 0.4 ? step : 0; px(-4 + r, -2, 1, 2, skin.line); px(-2 - r, -2, 1, 2, skin.line); px(1 + r, -2, 1, 2, skin.line); px(3 - r, -2, 1, 2, skin.line); }
   // the body
   px(-5, -7, 9, 6, skin.line); px(-4, -6, 7, 4, skin.mid); px(-3, -6, 5, 1, skin.hi); px(-4, -3, 7, 1, skin.lo);
   // the head, out front, too big for it
-  const bob = a.on ? (Math.floor(a.chomp / 3) % 2) : 0;
+  const bob = a.on || a.onBait ? (Math.floor(a.chomp / 3) % 2) : 0;
   const hy = -12 + bob;
   px(0, hy, 7, 7, skin.line); px(1, hy + 1, 5, 5, skin.mid); px(1, hy + 1, 5, 1, skin.hi); px(1, hy + 5, 5, 1, skin.lo);
   // a feeler
@@ -558,7 +633,7 @@ const drawAlien = (c: Ctx, a: Alien, f: number) => {
   else if (a.eyes === 2) { eye(2, hy + 1, 1); eye(5, hy + 1, 1); }
   else { eye(2, hy + 1, 1); eye(4, hy + 1, 1); eye(3, hy + 3, 1); }
   // the mouth: chomping when it's on somebody
-  const open = a.on ? Math.floor(a.chomp / 3) % 2 === 0 : !a.ground;
+  const open = a.on || a.onBait ? Math.floor(a.chomp / 3) % 2 === 0 : !a.ground;
   if (open) { px(3, hy + 4, 4, 3, '#450A0A'); px(3, hy + 4, 1, 1, '#FFFFFF'); px(5, hy + 4, 1, 1, '#FFFFFF'); px(4, hy + 6, 1, 1, '#FFFFFF'); if (a.on) px(4, hy + 5, 2, 1, GORE); }
   else { px(3, hy + 4, 4, 1, '#450A0A'); px(4, hy + 4, 1, 1, '#FFFFFF'); }
   c.restore();

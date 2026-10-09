@@ -2,101 +2,38 @@
 // it, and the trees go down like dominoes, the last one into the temple's side (it takes a hit: it's still standing),
 // and there's Safari Artie, up in a hunting blind waiting to ambush him (the first time: `domino`). Then the fight.
 //
-// THE FIGHT IS A PLACEHOLDER: Artie walks at him, stops to shoot tranquilizer darts, now and then charges. Simple and
-// beatable, till his real fight's designed. Beaten, back to the hub.
+// Then the fight (fight.ts: his bushes, his hidden-ball game, his mating whistle and its stampede, stampede.ts). The
+// fence goes up behind him for it and comes down after. Beaten, back to the hub.
 //
 // Crude on purpose (the first pass): boxes and words.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
-import type { Enemy, EnemyKind } from '../../../m1/types';
 import type { Section, Said } from '../section';
-import { lay, speak, meatheadSays, box, label, saidOver,  hands, sectionState } from '../section';
-import { SECTIONS, GY } from '../geometry';
+import type { EnemyKind } from '../../../m1/types';
+import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
+import { GUIDE_KIND } from '../guides';
+import { lay, solid, speak, meatheadSays, box, label, saidOver, hands, sectionState } from '../section';
+import { GY } from '../geometry';
 import { goTo, setUi } from '../../store';
 import { playSound } from '../../../m1/game/platform/audio';
 import { silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
-import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { enemyProjectile } from '../../../m1/game/bosses/shared';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES, topBand } from '../../../m1/constants';
-import { registerM2Kind, registerHurtLines } from '../../kinds';
-import { drawSafariArtie, type ArtiePose } from '../river/artie';
-import {
-  type Dressed, MEATHEAD_KICK, ARTIE_FOUND, MEATHEAD_ARTIE, ARTIE_FIGHT, MEATHEAD_WON, HURT_ARTIE, DEATH_ARTIE, HURT_DART, DEATH_DART,
-} from './lines';
-
-const { x0, x1 } = SECTIONS.clearing;
+import { drawSafariArtie } from '../river/artie';
+import { type Dressed, MEATHEAD_KICK, ARTIE_FOUND, MEATHEAD_ARTIE } from './lines';
+import { x0, x1, TREE_X, TREE_H, TEMPLE_X, BLIND_X, BLIND_Y, ARENA_L, PICKUP_X } from './arena';
+import { type Fight, startFight as beginFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud } from './fight';
 
 const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 /** First time through (a return trip will differ). One flag per set piece. */
 const firstVisit = (_state: GameState) => true;
-
-/** The trees in a row (the first one's in his way), the temple's side past them, Artie's blind. */
-const TREE_X = Array.from({ length: 7 }, (_, i) => x0 + 1100 + i * 170);
-const TREE_H = 320;
-const TEMPLE_X = x0 + 2350;
-const BLIND_X = x0 + 2190, BLIND_Y = GY - 150;
-/** The fight's bounds: the bamboo fence that goes up behind him, the temple's wall. */
-const ARENA_L = TEMPLE_X - 800, ARENA_R = TEMPLE_X - 20;
-const PICKUP_X = x0 + 800;
-
-// ---------------------------------------------------------------------------------------------------------------
-// Safari Artie (the placeholder fight)
-
-const ARTIE_KIND = 'm2:safariartie' as const;
-const FIGHT_POSE: Record<string, ArtiePose> = { walk: 'run', charge: 'run', aim: 'point', shoot: 'point', taunt: 'angry' };
-registerM2Kind({
-  kind: ARTIE_KIND,
-  stats: { w: 34, h: 86, hp: 500, contact: 12, mass: 260 },
-  gender: 'm',
-  // (a person, but the boss: no getting hold of him, the lunge stops dead against him)
-  humanoid: true, grab: 'none',
-  head: { x: 2, y: -66, r: 10 },
-  draw: (c, e, f) => drawSafariArtie(c, 0, 0, 1, f, (e.hitFlash ?? 0) > 0 ? 'hurt' : FIGHT_POSE[e.aiState ?? ''] ?? 'stand'),
-  ai: (ctx, e) => {
-    const { state } = ctx, p = state.player;
-    const px = p.pos.x + p.width / 2, ex = e.pos.x + e.width / 2;
-    const dir = px < ex ? -1 : 1;
-    e.aiTimer = (e.aiTimer ?? 0) + 1;
-    const t = e.aiTimer;
-    const to = (s: string) => { e.aiState = s; e.aiTimer = 0; };
-    switch (e.aiState) {
-      case 'walk':
-        e.facing = dir;
-        if (Math.abs(px - ex) > 90) e.pos.x += dir * 1.8;
-        if (t > 100) { e.shootTimer = (e.shootTimer ?? 0) + 1; to(e.shootTimer % 3 === 0 ? 'charge' : 'aim'); }
-        break;
-      case 'aim':
-        e.facing = dir;
-        if (t > 30) to('shoot');
-        break;
-      case 'shoot':
-        if (t % 14 === 1 && t < 40) {
-          const y = e.pos.y + 30;
-          state.projectiles.push(enemyProjectile(`artie-dart-${state.frame}-${t}`, ex + e.facing * 24, y, e.facing * 7.5, 0, 14, 4, 10, { shooterKind: ARTIE_KIND }));
-          playSound('dart', 0.7);
-        }
-        if (t > 50) to('walk');
-        break;
-      case 'charge':
-        if (t === 1) { e.facing = dir; playSound('whoosh', 0.7); }
-        if (t > 20) e.pos.x += e.facing * 6;
-        if (t > 75) to('walk');
-        break;
-      default:
-        to('walk');
-    }
-    e.pos.x = Math.max(ARENA_L + 10, Math.min(ARENA_R - e.width - 10, e.pos.x));
-    return false;
-  },
-});
-registerHurtLines(ARTIE_KIND, HURT_ARTIE, DEATH_ARTIE);
-registerHurtLines(`${ARTIE_KIND}_shot`, HURT_DART, DEATH_DART);
+/** The rock on the way in. */
+const ROCK = { x: x0 + 560, w: 70, h: 56 };
 
 // ---------------------------------------------------------------------------------------------------------------
 
@@ -111,13 +48,13 @@ interface Clearing {
   templeHit: boolean;
   /** The fight: not yet, on, won (and when). */
   fight: 'wait' | 'on' | 'won'; wonAt: number; fence: unknown;
-  artie: Enemy | null; maxHp: number;
+  f: Fight | null;
   said: Said | null; nextLine: number;
 }
 const getClearing = (state: GameState) => sectionState<Clearing>(state, 'clearing', () => ({
   init: false, domino: firstVisit(state), scene: null, t: 0, token: 0,
   trees: TREE_X.map(() => ({ a: 0, v: 0, on: false, done: false })), trunk: null, templeHit: false,
-  fight: 'wait', wonAt: 0, fence: null, artie: null, maxHp: 500, said: null, nextLine: 0,
+  fight: 'wait', wonAt: 0, fence: null, f: null, said: null, nextLine: 0,
 }));
 
 const artieSays = (state: GameState, cl: Clearing, text: string, onDone?: () => void) => {
@@ -160,14 +97,9 @@ const fallTrees = (state: GameState, cl: Clearing) => {
 
 const startFight = (state: GameState, cl: Clearing) => {
   cl.fight = 'on';
-  const e = makeKindEnemy(ARTIE_KIND as EnemyKind, BLIND_X, GY);
-  e.facing = -1; e.seen = true; e.aiState = 'taunt'; e.aiTimer = -40;
-  state.enemies.push(e);
-  cl.artie = e; cl.maxHp = e.maxHealth;
+  cl.f = beginFight(state);
   cl.fence = { x: ARENA_L - 30, y: -4000, w: 30, h: 4000 + GY, type: 'wall', hidden: true, tag: 'artie-fence' };
   state.blocks.push(cl.fence as never);
-  cl.nextLine = state.frame + 400;
-  playSound('jump', 0.8);
 };
 
 const endKick = (state: GameState, cl: Clearing, skipped: boolean) => {
@@ -224,15 +156,18 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   if (cl.fight === 'wait') {
     if (cl.domino && cx > TREE_X[0] - 60 && p.isGrounded) { cl.scene = 'kick'; cl.t = 0; cl.nextLine = 0; return kick(ctx, cl); }
     // (in past the fallen trees, up to his blind: down he comes out of it, and it's on)
-    if (!cl.domino && cx > ARENA_L + 60) { startFight(state, cl); artieSays(state, cl, pick(ARTIE_FIGHT)); }
+    if (!cl.domino && cx > ARENA_L + 60) startFight(state, cl);
   } else if (cl.fight === 'on') {
-    const e = cl.artie!;
-    if (e.health <= 0 || !state.enemies.includes(e)) {
-      cl.fight = 'won'; cl.wonAt = state.frame; cl.token++; cl.said = null;
+    const f = cl.f!;
+    const out = updateFight(ctx, f, controls);
+    // (his death played out: the fence comes down, and on)
+    if (fightOver(f)) {
+      cl.fight = 'won'; cl.wonAt = state.frame;
+      endFight(state, f);
       if (cl.fence) { state.blocks = state.blocks.filter(b => b !== cl.fence); cl.fence = null; }
-      meatheadSays(state, pick(MEATHEAD_WON));
-    } else if (state.frame > cl.nextLine && !cl.said) { cl.nextLine = state.frame + 500 + Math.floor(Math.random() * 300); artieSays(state, cl, pick(ARTIE_FIGHT)); }
-  } else if (cl.fight === 'won' && state.frame - cl.wonAt > 300) goTo('hub');
+    }
+    return out;
+  } else if (cl.fight === 'won' && state.frame - cl.wonAt > 60) goTo('hub');
   return controls;
 };
 
@@ -240,9 +175,11 @@ export const clearing: Section = {
   id: 'clearing', x0, x1,
   checkpoints: [
     { name: 'THE CLEARING', cp: 70, x: x0 + 150, y: GY },
-    { name: 'THE BOSS', cp: 71, x: x0 + 650, y: GY },
+    // (past the guides and the big health and ammo: back here, nothing's on him)
+    { name: 'THE BOSS', cp: 71, x: x0 + 1000, y: GY },
   ],
   build: (state) => {
+    resetFight();
     lay(state, [{ x1: x0, y1: GY, x2: x1, y2: GY, surface: 'grass' }]);
     // (the temple's side: no way on past it)
     state.blocks.push({ x: TEMPLE_X, y: -4000, w: 400, h: 4000 + GY, type: 'wall', hidden: true, tag: 'clearing-temple' } as never);
@@ -252,6 +189,10 @@ export const clearing: Section = {
     // The tree in his way (its trunk)
     cl.trunk = { x: TREE_X[0] - 16, y: GY - TREE_H, w: 32, h: TREE_H, type: 'wall', hidden: true, tag: 'clearing-tree' };
     state.blocks.push(cl.trunk as never);
+    // Artie's junior guides on the way in (spiked helmets: no dive kicking them), in ones and twos, one up on a rock
+    // (tempting to come down on)
+    solid(state, ROCK.x, GY - ROCK.h, ROCK.w, ROCK.h, { tag: 'clearing-rock', hidden: true });
+    for (const [x, y] of [[x0 + 430, GY], [ROCK.x + ROCK.w / 2, GY - ROCK.h], [x0 + 690, GY], [x0 + 730, GY]] as const) state.enemies.push(makeKindEnemy(GUIDE_KIND as EnemyKind, x, y));
     // Before the boss: the big health and the big ammo
     state.pickups.push(
       { id: 'clearing-health', pos: { x: PICKUP_X - 30, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
@@ -262,7 +203,7 @@ export const clearing: Section = {
   cameraX: (state) => {
     const cl = getClearing(state);
     // (the fight: the arena, all of it, on the screen)
-    return cl.fight === 'on' ? { min: ARENA_L - 10, max: ARENA_L - 10 } : { min: x0, max: TEMPLE_X + 60 - CANVAS_WIDTH };
+    return cl.fight !== 'wait' ? { min: ARENA_L - 10, max: ARENA_L - 10 } : { min: x0, max: TEMPLE_X + 60 - CANVAS_WIDTH };
   },
   drawBackdrop: (c, state) => {
     const g = c.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
@@ -280,21 +221,12 @@ export const clearing: Section = {
       drawSafariArtie(c, BLIND_X, BLIND_Y, -1, state.frame, cl.said?.text ? 'talk' : 'angry');
       box(c, BLIND_X - 22, BLIND_Y - 30, 44, 4, '#57534E');
     }
-    if (cl.said?.text) {
-      const e = cl.artie;
-      const at = e && cl.fight === 'on' ? { x: e.pos.x + e.width / 2, y: e.pos.y - 24 } : { x: BLIND_X, y: BLIND_Y - 100 };
-      saidOver(c, cl.said.text, Math.min(TEMPLE_X - 130, at.x), at.y, '#FDE68A');
-    }
+    if (cl.said?.text && cl.fight === 'wait') saidOver(c, cl.said.text, Math.min(TEMPLE_X - 130, BLIND_X), BLIND_Y - 100, '#FDE68A');
+    if (cl.f && cl.fight !== 'wait') drawFightFront(c, state, cl.f);
   },
   drawHud: (c, state) => {
     const cl = getClearing(state);
-    const band = topBand();
-    if (cl.fight === 'on' && cl.artie && !state.player.inCutscene) {
-      const w = band.x2 - band.x1, k = Math.max(0, cl.artie.health / cl.maxHp);
-      box(c, band.x1, 22, w, 14, '#18181B'); box(c, band.x1 + 2, 24, (w - 4) * k, 10, '#F59E0B');
-      label(c, 'SAFARI ARTIE (PLACEHOLDER FIGHT)', band.mid, 50, '#FDE68A', 7);
-    }
-    if (cl.fight === 'won') label(c, 'PLACEHOLDER BOSS DOWN: BACK TO THE HUB', CANVAS_WIDTH / 2, 140, '#FDE68A', 9);
+    if (cl.fight === 'on' && cl.f) drawFightHud(c, cl.f, topBand(), !!state.player.inCutscene);
   },
 };
 
@@ -309,9 +241,11 @@ const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
   box(c, x0, GY, x1 - x0, 400, '#3F6212'); box(c, x0, GY, x1 - x0, 4, '#84CC16');
   // Jungle, back (dim)
   for (let x = x0; x < TREE_X[0] - 100; x += 130) { box(c, x + 20, GY - 260, 18, 260, '#3B2F1E'); box(c, x - 20, GY - 300, 100, 60, '#14532D'); }
+  // The rock (a guide up on it): its top lit, it's something to stand on
+  box(c, ROCK.x, GY - ROCK.h, ROCK.w, ROCK.h, '#78716C'); box(c, ROCK.x, GY - ROCK.h, ROCK.w, 3, '#D6D3D1'); box(c, ROCK.x + 6, GY - ROCK.h + 14, ROCK.w - 20, 3, '#57534E');
   // A sign before it
   box(c, x0 + 940, GY - 70, 4, 70, '#57534E'); box(c, x0 + 890, GY - 94, 104, 26, '#1C1917');
-  label(c, 'BOSS (TO COME)', x0 + 942, GY - 77, '#FCA5A5', 6);
+  label(c, 'HUNTING AREA', x0 + 942, GY - 77, '#FCA5A5', 6);
   // The temple's side (stepped), knocked about where the tree hit it, still standing
   box(c, TEMPLE_X, GY - 420, 900, 420, '#7A7066');
   for (let y = GY - 400; y < GY; y += 28) box(c, TEMPLE_X, y, 900, 2, '#615850');
@@ -337,6 +271,8 @@ const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
     c.beginPath(); c.arc(0, -TREE_H, 60, 0, Math.PI * 2); c.arc(-40, -TREE_H + 30, 40, 0, Math.PI * 2); c.arc(40, -TREE_H + 30, 40, 0, Math.PI * 2); c.fill();
     c.restore();
   });
+  // The fight: the bushes
+  if (cl.f && cl.fight !== 'wait') drawFightBack(c, state, cl.f);
   // The fence behind him for the fight
   if (cl.fence) for (let y = GY - 400; y < GY; y += 20) box(c, ARENA_L - 30, y, 30, 18, y % 40 ? '#A3A35A' : '#848440');
   // The big health and ammo: lit up, so they're seen

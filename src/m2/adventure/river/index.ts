@@ -203,6 +203,8 @@ const updateBoat = (state: GameState, rv: River) => {
     const wasRiding = b.phase !== 'moored';
     b.phase = 'jumped';
     t.q = [];
+    // (off it, he's off it: Artie's not having him back aboard, there's no climbing back on)
+    if (wasRiding && b.block) { const blk = b.block; state.blocks = state.blocks.filter(o => o !== blk); }
     if (wasRiding) t.q.push(mh(pick(MEATHEAD_JUMP)));
     if (wasRiding) t.q.push(artie(rv, fromBag(rv, 'jumped', ARTIE_JUMPED)), artie(rv, fromBag(rv, 'jumped', ARTIE_JUMPED)));
   }
@@ -212,7 +214,7 @@ const updateBoat = (state: GameState, rv: River) => {
   }
   // The boat moves (him with it, stood on it)
   if (b.v > 0) {
-    b.x += b.v; b.block.x = b.x;
+    b.x += b.v; if (b.block) b.block.x = b.x;
     if (aboard) p.pos.x += b.v;
   }
   if (rv.static > 0) rv.static--;

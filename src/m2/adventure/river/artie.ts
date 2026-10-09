@@ -15,7 +15,15 @@ export type ArtiePose =
   | 'point'   // pointing out at something (the "wildlife")
   | 'sit'     // at the boat's wheel / in a cart: from the waist up, the legs hidden
   | 'run'     // running (the clearing, the roof)
-  | 'hurt';   // hit (the boss)
+  | 'hurt'    // hit (the boss)
+  // (his fight, in the clearing)
+  | 'dive'    // diving (into a bush, between bushes): arms out ahead, legs straight (the caller tilts him)
+  | 'grab'    // got hold of somebody with one hand, stabbing with the knife in the other
+  | 'blowgun' // the blowgun up at his lips, cheeks puffed
+  | 'whistle' // two fingers in his mouth: the mating whistle
+  | 'stunned' // knocked on his backside, legs out, head lolling
+  | 'dodge'   // hanging off a vine overhead by both hands, knees tucked up (the caller draws the vine)
+  | 'agitated'; // things all over him: flailing, slapping at himself
 
 const SKIN = '#F0C8A2';
 const KHAKI = '#C8B47A';
@@ -27,9 +35,16 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
   c.save();
   c.translate(Math.round(x), Math.round(feetY));
   c.scale(facing < 0 ? -1 : 1, 1);
-  const talking = pose === 'talk' || pose === 'radio' || pose === 'angry' || pose === 'point';
+  const talking = pose === 'talk' || pose === 'radio' || pose === 'angry' || pose === 'point' || pose === 'agitated' || pose === 'grab';
+  // (sat down hard: all of him lower, his legs out in front)
+  if (pose === 'stunned') c.translate(0, 18);
   // ---- the legs
-  if (pose !== 'sit') {
+  if (pose === 'stunned') {
+    rect(c, -4, -33, 22, 7, SHORTS, 1.5); rect(c, 16, -33, 12, 6, '#F8FAFC', 1);
+    blob(c, () => c.roundRect(27, -38, 5, 10, [2, 2, 1, 1]), '#57534E', 27, 32);
+  } else if (pose === 'dodge') {
+    for (const s of [-1, 1]) { rect(c, -4 + s, -34, 15, 6, SHORTS, 1.5); rect(c, 8 + s, -33, 5, 12, '#F8FAFC', 1); blob(c, () => c.roundRect(7 + s, -23, 9, 5, [2, 3, 1, 1]), '#57534E', 7, 16); }
+  } else if (pose !== 'sit') {
     if (pose === 'run') {
       const k = Math.sin(f * 0.35);
       c.save(); c.translate(0, 0);
@@ -46,7 +61,7 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
       for (const s of [-1, 1]) { rect(c, s * 4 - 2.5, -14, 5, 10, '#F8FAFC', 1); dot(c, s * 4 - 2.5, -13, 5, 1.5, '#DC2626'); }
     }
   }
-  const b = pose === 'run' ? Math.abs(Math.sin(f * 0.35)) * -2 : breathe(f, 4);
+  const b = pose === 'run' ? Math.abs(Math.sin(f * 0.35)) * -2 : pose === 'agitated' ? Math.abs(Math.sin(f * 0.6)) * -3 : breathe(f, 4);
   c.translate(0, b);
   // ---- the shirt (too big: wide at the hips, hanging out), the stain, the name tag, the radio on the belt
   torso(c, -30, -54, 19, 21, KHAKI);
@@ -80,6 +95,34 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
     const k = Math.sin(f * 0.35) * 8;
     arm(c, -8, -51, -8 - k, -36, KHAKI, SKIN, 0.4);
     arm(c, 8, -51, 8 + k, -36, KHAKI, SKIN, 0.4);
+  } else if (pose === 'dive') {
+    arm(c, -6, -51, 4, -86, KHAKI, SKIN, 0.4);
+    arm(c, 6, -51, 12, -85, KHAKI, SKIN, 0.4);
+  } else if (pose === 'grab') {
+    // (out ahead, a fistful of him; the knife going in and out)
+    arm(c, 8, -51, 30, -50, KHAKI, SKIN, 0.4, 6);
+    const k = Math.abs(Math.sin(f * 0.16));
+    const hx = 4 + k * 22, hy = -72 + k * 26;
+    arm(c, -6, -51, hx, hy, KHAKI, SKIN, 0.4, 6);
+    c.strokeStyle = INK; c.lineWidth = 3.4; c.beginPath(); c.moveTo(hx, hy); c.lineTo(hx + 6 + k * 6, hy - 9 + k * 12); c.stroke();
+    c.strokeStyle = '#D4D4D8'; c.lineWidth = 2; c.beginPath(); c.moveTo(hx + 1, hy - 1); c.lineTo(hx + 6 + k * 6, hy - 9 + k * 12); c.stroke();
+    dot(c, hx - 2, hy - 1, 4, 3, '#3F2A14');
+  } else if (pose === 'blowgun') {
+    arm(c, -8, -51, 10, -62, KHAKI, SKIN, 0.4);
+    arm(c, 8, -51, 22, -62, KHAKI, SKIN, 0.4);
+  } else if (pose === 'whistle') {
+    arm(c, -8, -51, -12, -34, KHAKI, SKIN, 0.4, 6);
+    arm(c, 8, -51, 7, -60, KHAKI, SKIN, 0.4);
+  } else if (pose === 'stunned') {
+    arm(c, -8, -51, -16, -33, KHAKI, SKIN, 0.4);
+    arm(c, 8, -51, 14, -33, KHAKI, SKIN, 0.4);
+  } else if (pose === 'dodge') {
+    arm(c, -6, -51, -3, -88, KHAKI, SKIN, 0.4);
+    arm(c, 6, -51, 4, -88, KHAKI, SKIN, 0.4);
+  } else if (pose === 'agitated') {
+    const a = f * 0.9;
+    arm(c, -8, -51, -14 + Math.sin(a) * 12, -58 + Math.cos(a) * 16, KHAKI, SKIN, 0.4);
+    arm(c, 8, -51, 4 + Math.cos(a * 1.3) * 12, -44 + Math.sin(a * 1.3) * 12, KHAKI, SKIN, 0.4);
   } else if (pose === 'hurt') {
     arm(c, -8, -51, -18, -66, KHAKI, SKIN, 0.4);
     arm(c, 8, -51, 16, -68, KHAKI, SKIN, 0.4);
@@ -88,18 +131,25 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
     arm(c, 8, -51, 10, -32, KHAKI, SKIN, 0.4);
   }
   // ---- the head: the buck teeth, the long face
-  const hy = pose === 'hurt' ? -64 : -66;
+  const hy = pose === 'hurt' ? -64 : pose === 'stunned' ? -64 + Math.sin(f * 0.12) * 1.5 : -66;
+  const hx = pose === 'stunned' ? Math.sin(f * 0.12) * 2.5 : 0;
+  c.translate(hx, 0);
   head(c, 0, hy, 9, 11, SKIN);
-  const eyeStyle = pose === 'angry' ? 'angry' : pose === 'hurt' ? 'closed' : 'open';
+  const eyeStyle = pose === 'angry' || pose === 'grab' ? 'angry' : pose === 'hurt' ? 'closed' : pose === 'stunned' ? 'dead' : pose === 'agitated' || pose === 'dodge' ? 'wide' : 'open';
   eyes(c, 1.5, hy - 1, 3.8, eyeStyle, f, 0.7, 2.3, dk(SKIN, 0.1));
   nose(c, 5, hy + 3, 2.4, SKIN, 2);
-  mouth(c, 3, hy + 6.5, 7, talking ? 'talk' : pose === 'hurt' ? 'o' : 'teeth', f);
+  const puffed = pose === 'blowgun' || pose === 'whistle';
+  mouth(c, 3, hy + 6.5, 7, puffed ? 'o' : pose === 'grab' ? 'teeth' : talking ? 'talk' : pose === 'hurt' || pose === 'stunned' ? 'o' : 'teeth', f);
+  // (cheeks blown out; the blowgun at his lips, a long cane tube out ahead; the whistling fingers)
+  if (puffed) blob(c, () => c.ellipse(6, hy + 4, 3.5, 3, 0, 0, Math.PI * 2), '#F4B48C', 2.5, 9.5, 0.8);
+  if (pose === 'blowgun') { rect(c, 7, hy + 4, 40, 3.5, '#A3843F', 1); dot(c, 44, hy + 4, 3, 3.5, '#57534E'); }
+  if (pose === 'whistle') { dot(c, 5, hy + 5, 4, 2, SKIN); dot(c, 5, hy + 7, 4, 2, SKIN); }
   // (the teeth, out over the lip whatever he's doing)
   dot(c, 1.5, hy + 6.8, 3.2, 3, '#FFFFFF'); c.strokeStyle = INK; c.lineWidth = 0.6; c.strokeRect(1.5, hy + 6.8, 3.2, 3);
   // (a sunburned nose, a scrap of mustache)
   dot(c, 5, hy + 2, 3, 2, '#F87171'); dot(c, 1, hy + 5, 7, 1.2, '#7C4A1E');
   // ---- the plastic pith helmet: the dome, the brim, the band, the crack (taped)
-  const tilt = pose === 'hurt' ? -0.35 : 0;
+  const tilt = pose === 'hurt' ? -0.35 : pose === 'stunned' ? 0.5 : pose === 'agitated' ? Math.sin(f * 0.7) * 0.2 : 0;
   c.save(); c.translate(0, hy - 6); c.rotate(tilt);
   blob(c, () => c.ellipse(0, 0, 14, 3, 0, 0, Math.PI * 2), HELMET, -14, 14, 1);
   blob(c, () => c.ellipse(0, -1, 10, 9, 0, Math.PI, 0), HELMET, -10, 10);
