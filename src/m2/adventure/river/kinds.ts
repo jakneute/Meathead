@@ -150,11 +150,14 @@ const snapper = (ctx: FrameContext, e: Enemy) => {
 };
 const drawSnapper = (c: Ctx, e: Enemy, f: number) => {
   // (the stalk back down to its root, in the enemy's own space: feet at 0,0 facing right)
+  // (torn off its stalk, in his fist or flying: a ragged stub of it hanging off, no roots)
+  const loose = e.aiState === 'loose' || !!e.isBlownAway;
   const fc = e.facing ?? 1;
-  const rx = ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fc, ry = (e.homeY ?? 0) - (e.pos.y + e.height);
+  const rx = loose ? -10 + Math.sin(f * 0.3) * 3 : ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fc, ry = loose ? 4 : (e.homeY ?? 0) - (e.pos.y + e.height);
   c.strokeStyle = '#166534'; c.lineWidth = 6;
   c.beginPath(); c.moveTo(0, -e.height / 2); c.quadraticCurveTo(rx * 0.3 + Math.sin(f * 0.05) * 6, ry * 0.5, rx, ry); c.stroke();
-  for (const s of [-1, 1]) { c.fillStyle = '#15803D'; c.beginPath(); c.ellipse(rx + s * 12, ry - 6, 14, 5, s * 0.4, 0, Math.PI * 2); c.fill(); }
+  if (loose) { c.fillStyle = '#A3E635'; c.beginPath(); c.arc(rx, ry, 3, 0, Math.PI * 2); c.fill(); }
+  else for (const s of [-1, 1]) { c.fillStyle = '#15803D'; c.beginPath(); c.ellipse(rx + s * 12, ry - 6, 14, 5, s * 0.4, 0, Math.PI * 2); c.fill(); }
   // (the trap: two lobes with teeth round the edge, open wide, or shut on the snap)
   const open = e.aiState === 'snap' ? 0.1 : e.aiState === 'rear' ? 0.9 : 0.5 + Math.sin(f * 0.08) * 0.15;
   c.save(); c.translate(0, -e.height / 2);
@@ -170,7 +173,7 @@ const drawSnapper = (c: Ctx, e: Enemy, f: number) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 
-registerM2Kind({ kind: 'm2:piranha', stats: { w: 28, h: 18, hp: 22, contact: 5, mass: 25, air: true }, ai: piranha, draw: drawPiranha, head: { x: 8, y: -9, r: 6 }, gender: 'n', make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
-registerM2Kind({ kind: 'm2:eel', stats: { w: 80, h: 16, hp: 60, contact: 9, mass: 60, air: true }, ai: eel, draw: drawEel, head: { x: 32, y: -8, r: 7 }, gender: 'n', make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
-registerM2Kind({ kind: 'm2:snapper', stats: { w: 34, h: 30, hp: 80, contact: 10, mass: 80, air: true }, ai: snapper, draw: drawSnapper, head: { x: 8, y: -15, r: 10 }, gender: 'n', make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
+registerM2Kind({ kind: 'm2:piranha', stats: { w: 28, h: 18, hp: 22, contact: 5, mass: 25, air: true }, ai: piranha, draw: drawPiranha, head: { x: 8, y: -9, r: 6 }, gender: 'n', grab: 'critter', make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
+registerM2Kind({ kind: 'm2:eel', stats: { w: 80, h: 16, hp: 60, contact: 9, mass: 60, air: true }, ai: eel, draw: drawEel, head: { x: 32, y: -8, r: 7 }, gender: 'n', grab: 'critter', grabHurts: { dmg: 9, when: e => e.aiState === 'zap' || e.aiState === 'lunge' }, make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
+registerM2Kind({ kind: 'm2:snapper', stats: { w: 34, h: 30, hp: 80, contact: 10, mass: 80, air: true }, ai: snapper, draw: drawSnapper, head: { x: 8, y: -15, r: 10 }, gender: 'n', grab: 'critter', make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, [...l.hurt], [...l.death]);

@@ -22,6 +22,14 @@ const dyingSeen = new WeakSet<Enemy>();
 const inside = (p: Particle, x: number, y: number, w: number, h: number, pad: number) =>
   p.pos.x > x - pad && p.pos.x < x + w + pad && p.pos.y > y - pad && p.pos.y < y + h + pad;
 
+/**
+ * A machine that's out of the enemy list for now (held in somebody's hands, being taken apart): whatever gore's thrown
+ * off around (x, y, w, h) over the next few frames is scrap too.
+ */
+export const markMachineGore = (state: GameState, x: number, y: number, w: number, h: number, frames = 4) => {
+  recent.push({ x, y, w, h, until: state.frame + frames });
+};
+
 /** Every frame, before the particles move: any new blood about a machine turned to scrap, sparks and oil. */
 export const scrapMachineGore = (state: GameState) => {
   const zones: { x: number; y: number; w: number; h: number; pad: number }[] = [];

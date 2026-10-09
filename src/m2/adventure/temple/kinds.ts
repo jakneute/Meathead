@@ -61,7 +61,7 @@ const stagehandAI = (ctx: FrameContext, e: Enemy): boolean => {
 };
 
 registerM2Kind({
-  kind: 'm2:actor', stats: { w: 40, h: 66, hp: 120, contact: 10, mass: 210 }, ai: actorAI,
+  kind: 'm2:actor', stats: { w: 40, h: 66, hp: 120, contact: 10, mass: 210 }, ai: actorAI, humanoid: true,
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -66, r: 9 },
   draw: (c, e, f) => {
@@ -72,7 +72,7 @@ registerM2Kind({
   },
 });
 registerM2Kind({
-  kind: 'm2:stagehand', stats: { w: 36, h: 66, hp: 40, contact: 0, mass: 190 }, ai: stagehandAI,
+  kind: 'm2:stagehand', stats: { w: 36, h: 66, hp: 40, contact: 0, mass: 190 }, ai: stagehandAI, humanoid: true,
   make: b => ({ ...b, harmless: true }),
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -66, r: 9 },

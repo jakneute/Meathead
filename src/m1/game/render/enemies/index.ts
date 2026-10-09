@@ -14,7 +14,7 @@ import { drawTommyKind } from './tommy';
 import { drawOscarKind } from './oscar';
 import { drawGymKind } from './gym';
 import { drawFinaleKind } from './finale';
-import { isChargerKind, isMachineKind } from '../../enemies/kinds';
+import { isChargerKind, isMachineKind, kindDef } from '../../enemies/kinds';
 import type { GameState } from '../../core/state';
 import { INK, ink, shaded, shadedTop, lite, dark, limb } from '../npc/kit';
 import { pixelBlob } from '../pixelArt';
@@ -111,7 +111,9 @@ export const isHumanoidKind = (kind?: EnemyKind) =>
   || kind === 'labtech' || kind === 'subject' || kind === 'scientist' || kind === 'tenant' || kind === 'minion'
   || kind === 'banger' || kind === 'bruiser' || kind === 'hazmat' || kind === 'bloater' || kind === 'manhole'
   || kind === 'ranger' || kind === 'biker' || kind === 'deputy' || kind === 'suit' || kind === 'temp' || kind === 'clerk' || kind === 'cower'
-  || kind === 'agent' || kind === 'agentrush' || kind === 'agentshield' || kind === 'jetagent' || kind === 'parksec' || kind === 'parkguest';
+  || kind === 'agent' || kind === 'agentrush' || kind === 'agentshield' || kind === 'jetagent' || kind === 'parksec' || kind === 'parkguest'
+  // (and another game's own people: registerKind's `humanoid`)
+  || !!kindDef(kind)?.humanoid;
 
 /** What an x-ray shows inside it. (A rattlesnake's all spine, like a fish; a scorpion's legs and claws, like a crab.) */
 export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' | 'machine' =>
@@ -156,7 +158,8 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
 /** Wildlife face where they're headed; goons face you. */
 /** Which way a themed enemy's drawn facing (people face Meathead, mostly; animals their own way). */
 export const kindFacing = (e: Enemy, state: GameState): number => {
-  if (!isHumanoidKind(e.kind) || e.kind === 'civilian' || e.kind === 'visitor' || e.kind === 'minion' || e.kind === 'tenant' || e.kind === 'parksec' || e.kind === 'parkguest') return e.facing ?? -1;
+  // (another game's own kinds, people included, face whichever way their AI turns them)
+  if (!isHumanoidKind(e.kind) || kindDef(e.kind) || e.kind === 'civilian' || e.kind === 'visitor' || e.kind === 'minion' || e.kind === 'tenant' || e.kind === 'parksec' || e.kind === 'parkguest') return e.facing ?? -1;
   if (isChargerKind(e.kind) && Math.abs(e.vel.x) > 0.5) return Math.sign(e.vel.x);
   if (e.enemyType === 'shield') return e.facing === 1 ? 1 : -1; // his shield's on the side he's turned to (he turns round after you)
   return state.player.pos.x + state.player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;

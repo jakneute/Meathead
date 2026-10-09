@@ -16,14 +16,17 @@
 // While he's at either he's armored, fighting-game style: what hits him (a club, a bullet, a body) still hurts, but
 // nothing knocks him back or out of it.
 //
-// Both work on people and the mid-sized animals; not the little ones, the big ones, the machines or the bosses.
+// Both work on people and the mid-sized animals (Meathead 2's own robots of that size too: scrap, not gore); the
+// little ones (and birds, and whatever swims, or hangs off a branch or a stalk: torn loose) are grabbed one-handed and
+// pitched; the big ones and the bosses can't be got hold of (the lunge stops dead against them, the hands close on air).
+// Swimming, or hanging off a vine, it's only the one-handed kind (no floor to slam anybody into).
 
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { shakeScreen } from '../../m1/game/core/state';
 import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
 import type { Enemy, EnemyKind, WeaponType } from '../../m1/types';
-import { isHumanoidKind, drawKindEnemy, kindHead } from '../../m1/game/render/enemies';
+import { isHumanoidKind, drawKindEnemy, kindHead, kindFacing } from '../../m1/game/render/enemies';
 import { getEnemyMass } from '../../m1/game/combat/knockback';
 import { setArmor } from '../../m1/game/core/resist';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
@@ -37,6 +40,10 @@ import { drawPlayer } from '../../m1/game/render/player/player';
 import { btn, pressed, pollM2 } from '../input';
 import { grabCallout, type GrabCallout } from './callouts';
 import { m2Kill } from './killLines';
+import { m2Grab, m2Kind } from '../kinds';
+import { isMachineKind } from '../../m1/game/enemies/kinds';
+import { markMachineGore } from '../../m1/game/enemies/machineGore';
+import { hurtPlayer } from '../../m1/game/bosses/shared';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -83,10 +90,23 @@ const NOT_PEOPLE = new Set<EnemyKind>(['doorman', 'manhole', 'tenant', 'cardoor'
 /** The little ones (and the birds): grabbed one-handed and pitched, not beaten or shaken (see the 'critter' phase). */
 const CRITTERS = new Set<EnemyKind>(['rat', 'crab', 'iguana', 'raccoon', 'armadillo', 'scorpion', 'rattlesnake', 'salamander', 'sludgeling',
   'pigeon', 'seagull', 'pelican', 'eagle', 'vulture', 'hawk', 'grackle']);
-export const isCritter = (e: Enemy) => !!e.kind && CRITTERS.has(e.kind) && e.health > 0 && !e.isBlownAway && e.type !== 'boss';
+/** (Meathead 2's own say what they are: see registerM2Kind's `grab`) */
+export const isCritter = (e: Enemy) => !!e.kind && (m2Grab(e) ?? (CRITTERS.has(e.kind) ? 'critter' : null)) === 'critter' && e.health > 0 && !e.isBlownAway && e.type !== 'boss' && !e.puppet;
 
-export const grabbable = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind
-  && ((isHumanoidKind(e.kind) && !NOT_PEOPLE.has(e.kind)) || MID_ANIMALS.has(e.kind));
+export const grabbable = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind && !e.puppet
+  && (m2Grab(e) ? m2Grab(e) === 'body' : (isHumanoidKind(e.kind) && !NOT_PEOPLE.has(e.kind)) || MID_ANIMALS.has(e.kind));
+
+/** Swimming, or hanging off a vine: only what goes in the one hand (nothing to stand on to beat or shake anybody). */
+const handsOnly = (state: GameState) => !!(state.player.swimming || state.player.carried);
+/** One he could get hold of right now, the way he is. */
+const canGrab = (state: GameState, e: Enemy) => isCritter(e) || (grabbable(e) && !handsOnly(state));
+
+/** Some bite back just for being picked up (a poison frog in his bare hand, a live eel): its own hurt, its own lines. */
+const grabbedHurts = (ctx: FrameContext, e: Enemy) => {
+  const h = m2Kind(e.kind)?.grabHurts, p = ctx.state.player;
+  if (!h || (h.when && !h.when(e)) || (p.invincibilityTimer ?? 0) > 0) return;
+  hurtPlayer(ctx, h.dmg, e.kind!, { x: 0, y: 0 }, 0);
+};
 
 type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop' | 'critter' | 'pitch' | 'smash';
 /** Which throw: on the way he's facing, back (a suplex), straight up, or slammed down. */
@@ -207,7 +227,7 @@ const inReach = (state: GameState, dir: number, reach: number) => {
   const mid = p.pos.x + p.width / 2;
   for (const e of state.enemies) {
     const critter = isCritter(e);
-    if (!grabbable(e) && !critter) continue;
+    if (!canGrab(state, e)) continue;
     // (forgiving up and down: somebody just landing from a throw, still bouncing, is in reach; a bird a good way up too)
     const slack = critter ? 60 : 24;
     if (e.pos.y > p.pos.y + p.height + slack || e.pos.y + e.height < p.pos.y - slack) continue;
@@ -439,6 +459,8 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   const out = stepGrab(ctx, g, controls);
   busy = g.phase !== 'idle' || g.yChord;
   holding = g.held;
+  // (a machine in his hands is out of the enemy list: what comes off it, punched, shaken, smashed, is scrap all the same)
+  if (g.held && isMachineKind(g.held.kind)) { const p = ctx.state.player; markMachineGore(ctx.state, p.pos.x - 70, p.pos.y - 70, p.width + 140, p.height + 80, 30); }
   // (a thrown body's hits first: whoever's where it's landing gets it before they're moved out of his way)
   if (g.flying.length) flyInto(ctx, g);
   // (only once he's got hold of somebody: before that, whoever he's going for has to stay where he can get them)
@@ -497,12 +519,12 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // somebody he's touching: a grab beats that (it's the body he's after); knocked back by anything else, not till
       // it's over. Asked for when he can't: kept a few frames, and it goes the moment he can
       const pb = p.pushbackTimer ?? 0;
-      if (pb > g.pb && state.enemies.some(e => (grabbable(e) || isCritter(e)) && e.pos.x < p.pos.x + p.width + 12 && e.pos.x + e.width > p.pos.x - 12 && e.pos.y < p.pos.y + p.height + 12 && e.pos.y + e.height > p.pos.y - 12)) g.bumpT = pb;
+      if (pb > g.pb && state.enemies.some(e => canGrab(state, e) && e.pos.x < p.pos.x + p.width + 12 && e.pos.x + e.width > p.pos.x - 12 && e.pos.y < p.pos.y + p.height + 12 && e.pos.y + e.height > p.pos.y - 12)) g.bumpT = pb;
       else if (g.bumpT > 0) g.bumpT--;
       g.pb = pb;
       const touching = pb > 0 && g.bumpT > 0;
-      if (p.isGrounded) g.airSpent = false;
-      const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.swimming && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
+      if (p.isGrounded || handsOnly(state)) g.airSpent = false;
+      const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
       if (want) g.queued = { want, t: 0 };
       else if (g.queued && ++g.queued.t > GRAB_BUFFER) g.queued = null;
       if (!g.queued || !free) return out;
@@ -525,7 +547,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // reach while they're going out is got hold of then and there
       const e = inReach(state, g.dir, GRAB_REACH);
       if (!e) { if (g.t >= REACH) { g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6); } return hold(); }
-      if (isCritter(e)) return grabCritter(state, g, e, hold);
+      if (isCritter(e)) return grabCritter(ctx, g, e, hold);
       // Got him: up by the neck (in the air: down they both come first, no harm in the landing for him)
       g.phase = p.isGrounded ? 'shake' : 'drop'; g.t = 0; g.held = e; g.thrown = null; take(state, e); g.fall = 0;
       e.facing = (-g.dir) as 1 | -1;
@@ -544,7 +566,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // Swept, not stepped: the first body anywhere along this frame's stretch of it stops him there, right up against
       // it (at this speed he'd otherwise go clean through one between frames); one he can't grab, and he's stopped dead
       const hit = lungeHits(state, g.dir);
-      if (hit && !grabbable(hit) && !isCritter(hit)) {
+      if (hit && !canGrab(state, hit)) {
         placeAt(state, g.dir > 0 ? hit.pos.x - p.width : hit.pos.x + hit.width, p.pos.x);
         g.phase = 'whiff'; g.t = 0; playSound('thud', 0.8, -4); shakeScreen(state, 4, 3);
         return hold();
@@ -552,7 +574,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (!hit) { const nx = p.pos.x + g.dir * LUNGE_SPEED; if (!walled(state, nx)) p.pos.x = nx; }
       else placeAt(state, g.dir > 0 ? hit.pos.x - p.width + 6 : hit.pos.x + hit.width - 6, p.pos.x);
       const e = hit ?? inReach(state, g.dir, LUNGE_REACH);
-      if (e && isCritter(e)) return grabCritter(state, g, e, hold);
+      if (e && isCritter(e)) return grabCritter(ctx, g, e, hold);
       if (e) {
         // Down he goes, Meathead on top of him (in the air, the two of them plummet first)
         g.phase = p.isGrounded ? 'mount' : 'plummet'; g.t = 0; g.held = e; take(state, e); g.fall = 0;
@@ -583,7 +605,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         return hold();
       }
       if (g.t >= CRITTER_HOLD) {
-        // (squeaked free: out of his hand and off, running)
+        // (squeaked free: out of his hand and off, running; back to whatever it was doing)
+        if (e.aiState === 'loose') { e.aiState = 'idle'; e.aiTimer = 0; }
         putBack(state, e, centerX(state) + g.dir * 26);
         e.vel = { x: g.dir * 4, y: -6 }; e.pauseTimer = 20;
         playSound('boing', 0.6, 14);
@@ -722,6 +745,9 @@ const smashHim = (ctx: FrameContext, g: Grab, e: Enemy) => {
   const { state, fx } = ctx;
   const p = state.player;
   const at = { x: e.pos.x + e.width / 2, y: feetY(state) - 10 };
+  // (a machine: it's bits of casing that go everywhere, and oil and sparks, not meat)
+  const scrap = isMachineKind(e.kind);
+  if (scrap) markMachineGore(state, at.x - 80, at.y - 80, 160, 120, 40);
   g.held = null;
   e.health = 0; e.isBlownAway = true; e.pos = { x: at.x - e.width / 2, y: at.y - e.height / 2 };
   p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health;
@@ -733,7 +759,7 @@ const smashHim = (ctx: FrameContext, g: Grab, e: Enemy) => {
     state.projectiles.push({
       id: `gib-${state.frame}-${i}`, pos: { x: at.x - size / 2, y: at.y - size / 2 - 6 }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp },
       width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: GIB_DMG, owner: 'player',
-      custom: 'SOUL_SUCKER', customData: { life: 70, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3 },
+      custom: 'SOUL_SUCKER', customData: { life: 70, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3, scrap },
     });
   }
   fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
@@ -818,10 +844,14 @@ const crushUnder = (ctx: FrameContext, e: Enemy, dir: number) => {
 const CRITTER_HOLD = 120, PITCH_FOLLOW = 12;
 /** Frames it's brought up to his ear before it can be pitched (a shakedown's SHAKE_FRAMES, this is well under). */
 const CRITTER_SETTLE = 16;
-const grabCritter = (state: GameState, g: Grab, e: Enemy, hold: () => Controls) => {
-  g.phase = 'critter'; g.t = 0; g.held = e; take(state, e);
+const grabCritter = (ctx: FrameContext, g: Grab, e: Enemy, hold: () => Controls) => {
+  g.phase = 'critter'; g.t = 0; g.held = e; take(ctx.state, e);
   e.facing = g.dir;
+  // (one of Meathead 2's own: torn loose from whatever it hung off or lived in, a branch, a stalk, a hole: drawn
+  // dangling, not tied back to it; its AI's not running while he's got it)
+  if (m2Kind(e.kind)) e.aiState = 'loose';
   playSound('boing', 0.4, 16);
+  grabbedHurts(ctx, e);
   return hold();
 };
 
@@ -923,12 +953,9 @@ export const drawEnemyAt = (ctx: Ctx, e: Enemy, state: GameState, x: number, y: 
   ctx.translate(x, y); ctx.rotate(angle);
   e.pos = { x: -e.width / 2, y: -e.height };
   e.facing = face;
-  // (a person, not behind a shield, turns to face Meathead whatever: drawn here, at the origin, that's one way, so he's
-  // mirrored if it's not the way wanted)
-  if (isHumanoidKind(e.kind) && e.enemyType !== 'shield') {
-    const natural = state.player.pos.x + state.player.width / 2 < 0 ? -1 : 1;
-    if (natural !== face) ctx.scale(-1, 1);
-  }
+  // (a person, not behind a shield, turns to face Meathead whatever, a charger the way he's running: drawn here, at the
+  // origin, that's one way or the other, so he's mirrored if it's not the way wanted)
+  if (kindFacing(e, state) !== face) ctx.scale(-1, 1);
   try { drawKindEnemy(ctx, e, state); } finally { e.pos = pos; e.facing = facing; ctx.restore(); }
 };
 

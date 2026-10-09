@@ -297,17 +297,18 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
 /** A glob of gore: straight out, dropping a little, through whoever it hits (once each), splatting on whatever's solid. */
 const update = (ctx: FrameContext, p: Projectile): boolean => {
   const { state, fx } = ctx;
-  const g = p.customData as { life: number; hit: string[]; chunk: boolean; spin: number; shade: number };
+  const g = p.customData as { life: number; hit: string[]; chunk: boolean; spin: number; shade: number; scrap?: boolean };
   p.vel.y += g.chunk ? 0.4 : 0.25;
   g.spin += 0.3;
-  // (dripping as it goes)
-  if (Math.random() < 0.3) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: p.vel.x * 0.3, y: p.vel.y * 0.3 + 0.5 }, life: 20, color: '#B91C1C', size: 1.5 + Math.random() * 2 });
+  // (dripping as it goes; a machine's bits, sparking and leaking oil)
+  if (Math.random() < 0.3) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: p.vel.x * 0.3, y: p.vel.y * 0.3 + 0.5 }, life: g.scrap ? 10 : 20, color: g.scrap ? (Math.random() < 0.5 ? '#FDE047' : '#1C1917') : '#B91C1C', size: 1.5 + Math.random() * 2 });
   p.pos.x += p.vel.x; p.pos.y += p.vel.y;
-  const splat = () => { for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: -p.vel.x * 0.1 + (Math.random() - 0.5) * 2, y: -Math.random() * 2 }, life: 18, color: '#7F1D1D', size: 2 + Math.random() * 2 }); };
+  const splat = () => { for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: -p.vel.x * 0.1 + (Math.random() - 0.5) * 2, y: -Math.random() * 2 }, life: 18, color: g.scrap ? ['#FDE047', '#9CA3AF', '#0A0A0A'][i] : '#7F1D1D', size: 2 + Math.random() * 2 }); };
   if (--g.life <= 0) return false;
   const hit = state.blocks.find(b => b.type !== 'pit' && b.type !== 'door' && p.pos.x < b.x + b.w && p.pos.x + p.width > b.x && p.pos.y < b.y + b.h && p.pos.y + p.height > b.y
     && (!b.oneWay || (p.vel.y > 0 && p.pos.y + p.height - p.vel.y <= b.y + 2)));
-  if (hit) { splat(); stain(state, p, hit); return false; }
+  // (scrap just clatters off it: no stain)
+  if (hit) { splat(); if (!g.scrap) stain(state, p, hit); else playSound('clink', 0.5, 4); return false; }
   for (const e of state.enemies) {
     if (e.health <= 0 || e.isBlownAway || e.innocent || e.type === 'boss' || g.hit.includes(e.id)) continue;
     if (p.pos.x > e.pos.x + e.width || p.pos.x + p.width < e.pos.x || p.pos.y > e.pos.y + e.height || p.pos.y + p.height < e.pos.y) continue;
@@ -364,7 +365,18 @@ export const smearFloor = (state: GameState, x: number, y: number) => {
 
 const draw = (c: Ctx, p: Projectile) => {
   const x = p.pos.x + p.width / 2, y = p.pos.y + p.height / 2, r = p.width / 2;
-  const g = p.customData as { chunk?: boolean; spin?: number; shade?: number };
+  const g = p.customData as { chunk?: boolean; spin?: number; shade?: number; scrap?: boolean };
+  if (g.chunk && g.scrap) {
+    // A chunk of a machine: a bent plate of its casing, a bolt in it, a wire hanging out, tumbling
+    c.save(); c.translate(x, y); c.rotate(g.spin ?? 0);
+    c.fillStyle = INK; c.fillRect(-r - 1, -r * 0.7 - 1, r * 2 + 2, r * 1.4 + 2);
+    c.fillStyle = ['#9CA3AF', '#6B7280', '#78716C'][g.shade ?? 0]; c.fillRect(-r, -r * 0.7, r * 2, r * 1.4);
+    c.fillStyle = '#D1D5DB'; c.fillRect(-r, -r * 0.7, r * 2, Math.max(1, r * 0.3));
+    c.fillStyle = INK; c.fillRect(-r * 0.5, -r * 0.1, 2, 2);
+    c.fillStyle = '#DC2626'; c.fillRect(r * 0.6, r * 0.5, 1.5, r * 0.8);
+    c.restore();
+    return;
+  }
   if (g.chunk) {
     // A chunk of somebody: lumpy meat, a bit of fat, a bit of bone, tumbling
     c.save(); c.translate(x, y); c.rotate(g.spin ?? 0);

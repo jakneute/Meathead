@@ -27,12 +27,23 @@ export interface M2Kind {
   gender?: 'm' | 'f' | 'n' | ((e: Enemy) => 'm' | 'f' | 'n');
   /** A machine: scrap and sparks, not blood and guts (see adventure/dino). */
   robot?: boolean;
+  /** A person (a human skeleton, keels over flat when killed); drawn facing whichever way its AI turns it, still. */
+  humanoid?: boolean;
+  /**
+   * What the grabs (moves/grab.ts) make of it: 'body' (beaten down, or shaken by the neck and thrown: a person or a
+   * mid-sized animal), 'critter' (up in his fist one-handed and pitched, dead: the little ones, birds, whatever flies,
+   * swims or hangs off something, torn loose), 'none' (too big, a boss: the lunge stops dead against it, the shakedown
+   * closes on air). Unset: 'body' for a humanoid, otherwise 'none'.
+   */
+  grab?: 'body' | 'critter' | 'none';
+  /** Grabbing it hurts him (a poison frog in his bare hand, a live eel): the damage, and when (unset: always). Its hurt lines are its own kind's. */
+  grabHurts?: { dmg: number; when?: (e: Enemy) => boolean };
 }
 
 const defs = new Map<string, M2Kind>();
 export const registerM2Kind = (d: M2Kind) => {
   defs.set(d.kind, d);
-  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: d.ai, make: d.make, machine: d.robot });
+  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: d.ai, make: d.make, machine: d.robot, humanoid: d.humanoid });
   registerKindDrawer(d.kind as EnemyKind, d.draw);
   if (d.head) (KIND_HEAD as Record<string, { x: number; y: number; r: number }>)[d.kind] = d.head;
 };
@@ -45,6 +56,11 @@ export const m2KindGender = (e: Enemy): 'm' | 'f' | 'n' | null => {
 };
 /** Is it a machine? */
 export const isRobot = (e?: Enemy | null) => !!(e && m2Kind(e.kind)?.robot);
+/** What a grab makes of one of Meathead 2's own (null: not one of them; the grabs' own lists decide). */
+export const m2Grab = (e: Enemy): 'body' | 'critter' | 'none' | null => {
+  const d = m2Kind(e.kind);
+  return d ? d.grab ?? (d.humanoid ? 'body' : 'none') : null;
+};
 
 /**
  * What Meathead says when `source` hurts him (an enemy's kind for its bite or bump, `kind_shot` for what it throws or

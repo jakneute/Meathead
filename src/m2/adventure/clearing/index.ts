@@ -54,6 +54,8 @@ registerM2Kind({
   kind: ARTIE_KIND,
   stats: { w: 34, h: 86, hp: 500, contact: 12, mass: 260 },
   gender: 'm',
+  // (a person, but the boss: no getting hold of him, the lunge stops dead against him)
+  humanoid: true, grab: 'none',
   head: { x: 2, y: -66, r: 10 },
   draw: (c, e, f) => drawSafariArtie(c, 0, 0, 1, f, (e.hitFlash ?? 0) > 0 ? 'hurt' : FIGHT_POSE[e.aiState ?? ''] ?? 'stand'),
   ai: (ctx, e) => {

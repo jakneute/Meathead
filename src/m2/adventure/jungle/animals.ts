@@ -257,12 +257,14 @@ const boa = (ctx: FrameContext, e: Enemy) => {
 
 const drawBoa = (c: Ctx, e: Enemy, f: number) => {
   // (the branch it's wrapped round, back from its head: in its own coordinates, turned with it)
+  // (torn off it, in his fist or flying: the tail just hangs off it, whipping about)
+  const loose = e.aiState === 'loose' || !!e.isBlownAway;
   const fx = e.facing ?? 1;
-  const ax = ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fx, ay = (e.homeY ?? 0) - (e.pos.y + e.height);
   const hx = 0, hy = -e.height / 2;
+  const ax = loose ? -34 + Math.sin(f * 0.4) * 6 : ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fx, ay = loose ? hy + 30 : (e.homeY ?? 0) - (e.pos.y + e.height);
   // wrapped coils at the branch
   c.fillStyle = '#3F6B21';
-  for (let i = -1; i <= 1; i++) { c.beginPath(); c.ellipse(ax + i * 9, ay, 7, 9, 0, 0, Math.PI * 2); c.fill(); }
+  if (!loose) for (let i = -1; i <= 1; i++) { c.beginPath(); c.ellipse(ax + i * 9, ay, 7, 9, 0, 0, Math.PI * 2); c.fill(); }
   // the hanging body: a sag between the branch and the head
   const mx = (ax + hx) / 2 + Math.sin(f * 0.05) * 10, my = Math.max(ay, hy) + 20;
   c.strokeStyle = '#3F6B21'; c.lineWidth = 11; c.lineCap = 'round';
@@ -368,12 +370,12 @@ const drawFrog = (c: Ctx, e: Enemy, f: number) => {
 
 const flyer = (b: Enemy): Enemy => ({ ...b, enemyType: 'flyer', initialY: b.pos.y });
 
-registerM2Kind({ kind: 'm2:monkey', stats: { w: 28, h: 36, hp: 20, contact: 6, mass: 25 }, ai: monkey, draw: drawMonkey, head: { x: 4, y: -27, r: 8 }, gender: 'n' });
-registerM2Kind({ kind: 'm2:chimp', stats: { w: 40, h: 54, hp: 60, contact: 14, mass: 70 }, ai: chimp, draw: drawChimp, head: { x: 11, y: -44, r: 10 }, gender: 'n' });
-registerM2Kind({ kind: 'm2:jaguar', stats: { w: 72, h: 36, hp: 90, contact: 18, mass: 100 }, ai: jaguar, draw: drawJaguar, head: { x: 32, y: -28, r: 10 }, gender: 'n' });
-registerM2Kind({ kind: 'm2:boa', stats: { w: 28, h: 20, hp: 50, contact: 12, mass: 60, air: true }, ai: boa, make: flyer, draw: drawBoa, head: { x: 4, y: -10, r: 9 }, gender: 'n' });
-registerM2Kind({ kind: 'm2:macaw', stats: { w: 30, h: 22, hp: 15, contact: 8, mass: 3, air: true }, ai: macaw, make: flyer, draw: drawMacaw, head: { x: 10, y: -15, r: 6 }, gender: 'n' });
-registerM2Kind({ kind: 'm2:frog', stats: { w: 22, h: 16, hp: 8, contact: 10, mass: 2 }, ai: frog, draw: drawFrog, head: { x: 5, y: -10, r: 5 }, gender: 'n' });
+registerM2Kind({ kind: 'm2:monkey', stats: { w: 28, h: 36, hp: 20, contact: 6, mass: 25 }, ai: monkey, draw: drawMonkey, head: { x: 4, y: -27, r: 8 }, gender: 'n', grab: 'critter' });
+registerM2Kind({ kind: 'm2:chimp', stats: { w: 40, h: 54, hp: 60, contact: 14, mass: 70 }, ai: chimp, draw: drawChimp, head: { x: 11, y: -44, r: 10 }, gender: 'n', grab: 'body' });
+registerM2Kind({ kind: 'm2:jaguar', stats: { w: 72, h: 36, hp: 90, contact: 18, mass: 100 }, ai: jaguar, draw: drawJaguar, head: { x: 32, y: -28, r: 10 }, gender: 'n', grab: 'body' });
+registerM2Kind({ kind: 'm2:boa', stats: { w: 28, h: 20, hp: 50, contact: 12, mass: 60, air: true }, ai: boa, make: flyer, draw: drawBoa, head: { x: 4, y: -10, r: 9 }, gender: 'n', grab: 'critter' });
+registerM2Kind({ kind: 'm2:macaw', stats: { w: 30, h: 22, hp: 15, contact: 8, mass: 3, air: true }, ai: macaw, make: flyer, draw: drawMacaw, head: { x: 10, y: -15, r: 6 }, gender: 'n', grab: 'critter' });
+registerM2Kind({ kind: 'm2:frog', stats: { w: 22, h: 16, hp: 8, contact: 10, mass: 2 }, ai: frog, draw: drawFrog, head: { x: 5, y: -10, r: 5 }, gender: 'n', grab: 'critter', grabHurts: { dmg: 10 } });
 
 // ---------------------------------------------------------------------------------------------------------------
 // What the monkeys have thrown: in the air till it hits him or something solid

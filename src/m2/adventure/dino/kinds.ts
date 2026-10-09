@@ -342,13 +342,13 @@ const drawRex = (c: Ctx, e: Enemy, f: number) => {
 
 export const DINO_KINDS = { raptor: 'm2:raptor', trike: 'm2:trike', ptero: 'm2:ptero', rex: 'm2:rex' } as const;
 
-registerM2Kind({ kind: 'm2:raptor', stats: { w: 64, h: 50, hp: 140, contact: 12, mass: 170 }, ai: raptorAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawRaptor(c, e, f); }, head: { x: 27, y: -50, r: 8 }, gender: 'n', robot: true });
-registerM2Kind({ kind: 'm2:trike', stats: { w: 96, h: 56, hp: 260, contact: 14, mass: 700 }, ai: trikeAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawTrike(c, e, f); }, head: { x: 50, y: -38, r: 10 }, gender: 'n', robot: true });
+registerM2Kind({ kind: 'm2:raptor', stats: { w: 64, h: 50, hp: 140, contact: 12, mass: 170 }, ai: raptorAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawRaptor(c, e, f); }, head: { x: 27, y: -50, r: 8 }, gender: 'n', robot: true, grab: 'body' });
+registerM2Kind({ kind: 'm2:trike', stats: { w: 96, h: 56, hp: 260, contact: 14, mass: 700 }, ai: trikeAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawTrike(c, e, f); }, head: { x: 50, y: -38, r: 10 }, gender: 'n', robot: true, grab: 'none' });
 registerM2Kind({
-  kind: 'm2:ptero', stats: { w: 70, h: 30, hp: 60, contact: 10, mass: 70, air: true }, ai: pteroAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawPtero(c, e, f); }, head: { x: 22, y: -22, r: 6 }, gender: 'n', robot: true,
+  kind: 'm2:ptero', stats: { w: 70, h: 30, hp: 60, contact: 10, mass: 70, air: true }, ai: pteroAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawPtero(c, e, f); }, head: { x: 22, y: -22, r: 6 }, gender: 'n', robot: true, grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
 });
-registerM2Kind({ kind: 'm2:rex', stats: { w: 150, h: 140, hp: 900, contact: 20, mass: 1800 }, ai: rexAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawRex(c, e, f); }, head: { x: 58, y: -118, r: 16 }, gender: 'n', robot: true });
+registerM2Kind({ kind: 'm2:rex', stats: { w: 150, h: 140, hp: 900, contact: 20, mass: 1800 }, ai: rexAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawRex(c, e, f); }, head: { x: 58, y: -118, r: 16 }, gender: 'n', robot: true, grab: 'none' });
 
 registerHurtLines('m2:raptor', HURT_RAPTOR, DEATH_RAPTOR);
 registerHurtLines('m2:trike', HURT_TRIKE, DEATH_TRIKE);

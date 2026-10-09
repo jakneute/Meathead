@@ -166,7 +166,11 @@ export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind ==
  * Another game's own kinds (Meathead 2's, `m2:...`): their stats, their AI (true: it moved itself, as the eagle does),
  * how one's made from the base enemy (a flyer, a shield...). Registered at its startup.
  */
-export interface KindDef { stats: KindStats; ai?: (ctx: FrameContext, e: Enemy) => boolean; make?: (base: Enemy) => Enemy; /** A machine: it doesn't bleed (scrap, sparks and oil: see machineGore). */ machine?: boolean }
+export interface KindDef {
+  stats: KindStats; ai?: (ctx: FrameContext, e: Enemy) => boolean; make?: (base: Enemy) => Enemy;
+  /** A machine: it doesn't bleed (scrap, sparks and oil: see machineGore). */ machine?: boolean;
+  /** A person (isHumanoidKind: a human skeleton, keels over flat, grabbed by the neck), but facing its own way when drawn. */ humanoid?: boolean;
+}
 const kindDefs = new Map<EnemyKind, KindDef>();
 export const registerKind = (kind: EnemyKind, def: KindDef) => { KIND_STATS[kind] = def.stats; kindDefs.set(kind, def); };
 export const kindDef = (kind?: EnemyKind) => (kind ? kindDefs.get(kind) : undefined);
