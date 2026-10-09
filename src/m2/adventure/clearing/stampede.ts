@@ -81,7 +81,7 @@ export const updateStampede = (ctx: FrameContext, herd: Animal[], artieX: number
     a.t++;
     a.x += a.dir * b.speed;
     // (the ground shakes under it, the bigger the more)
-    if (a.t % Math.round(48 / b.speed) === 0) { playSound('thud', 0.35 + b.h / 300, -6 - b.h / 30); shakeScreen(state, 6, b.h / 40); }
+    if (!a.tame && a.t % Math.round(48 / b.speed) === 0) { playSound('thud', 0.35 + b.h / 300, -6 - b.h / 30); shakeScreen(state, 6, b.h / 40); }
     if (a.t % 4 === 0) state.particles.push({ pos: { x: a.dir > 0 ? a.x + 10 : a.x + b.w - 10, y: GY - 4 }, vel: { x: -a.dir * (1 + Math.random() * 2), y: -0.5 - Math.random() * 1.5 }, life: 26, color: Math.random() < 0.5 ? 'rgba(168, 140, 100, 0.7)' : 'rgba(120, 100, 70, 0.6)', size: 4 + Math.random() * 6 });
     // Squashing whatever's under it
     trample(state, a.x, GY - b.h, b.w, b.h + 6);

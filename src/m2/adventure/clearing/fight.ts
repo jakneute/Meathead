@@ -787,6 +787,15 @@ const die = (ctx: FrameContext, f: Fight) => {
     // (the kill cam: a white flash, a cut in close on him, slow motion; out of Meathead's hands from here)
     f.cam = { t: 0, acc: 0, z: 1, payT: -1, out: false };
     state.player.inCutscene = true;
+    // (Meathead out of the way: the kill's what's in the picture, not him in front of it)
+    {
+      const p = state.player, pc = p.pos.x + p.width / 2, CLEAR = 190;
+      if (Math.abs(pc - f.x) < CLEAR) {
+        const side = pc < f.x ? (f.x - CLEAR > ARENA_L + 30 ? -1 : 1) : (f.x + CLEAR < ARENA_R - 30 ? 1 : -1);
+        p.pos.x = f.x + side * CLEAR - p.width / 2; p.vel.x = 0;
+        p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.recoiling = false;
+      }
+    }
     state.damageNumbers = [];
     playSound('crack', 1.2, -10); playSound('thunder', 0.7, 4);
     playSound('gnaw', 1, -4); playSound('splat', 0.6, -2); playSound('chitter', 0.8);
