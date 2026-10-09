@@ -4,20 +4,21 @@ m2/weapons/soulSucker.ts:248 name: EMPTY_BAG_LINES
 m2/weapons/spellbook.ts:298 name: BULK_LINES
 m2/weapons/spellbook.ts:303 name: BULK_FAIL_LINES
 m2/weapons/mallet.ts:175 name: DUCK_LINES
-m2/intro/index.ts:483 name: MEATHEAD_TICKET
-m2/intro/index.ts:142 voice: voice
-m2/intro/index.ts:226 voice: pick(TICKET_CUT)
-m2/intro/index.ts:228 voice: true
-m2/intro/index.ts:275 voice: pick(GUEST_HIT)
-m2/intro/index.ts:288 voice: pick(GUARD_ALERT[dressed(state)])
-m2/intro/index.ts:289 voice: true
-m2/intro/index.ts:322 voice: first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dres
-m2/intro/index.ts:346 voice: pick(GUARD_BARK[dressed(state)])
-m2/intro/index.ts:419 voice: pick(TICKET_NEXT)
-m2/intro/index.ts:456 voice: now
-m2/intro/index.ts:466 voice: pick(GUEST_HURRY[dressed(state)])
-m2/intro/index.ts:491 voice: pick(TICKET_LADY[sc.kind])
-m2/intro/index.ts:532 voice: pick(PA_LINES)
+m2/intro/index.ts:491 name: MEATHEAD_TICKET
+m2/intro/index.ts:493 name: MEATHEAD_TICKET
+m2/intro/index.ts:146 voice: voice
+m2/intro/index.ts:232 voice: pick(TICKET_CUT)
+m2/intro/index.ts:234 voice: true
+m2/intro/index.ts:283 voice: pick(GUEST_HIT)
+m2/intro/index.ts:296 voice: pick(GUARD_ALERT[dressed(state)])
+m2/intro/index.ts:297 voice: true
+m2/intro/index.ts:330 voice: first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dres
+m2/intro/index.ts:354 voice: pick(GUARD_BARK[dressed(state)])
+m2/intro/index.ts:427 voice: pick(TICKET_NEXT)
+m2/intro/index.ts:464 voice: now
+m2/intro/index.ts:474 voice: pick(GUEST_HURRY[dressed(state)])
+m2/intro/index.ts:505 voice: pick(TICKET_LADY[sc.kind])
+m2/intro/index.ts:555 voice: pick(PA_LINES)
 m1/App.tsx:241 voice: getBossVoice(selectedStage)
 m1/App.tsx:468 name: undefined
 m1/App.tsx:469 expr: null

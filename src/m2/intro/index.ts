@@ -59,7 +59,7 @@ export interface Intro {
   /** The ticket window: what she's saying, whether she's out cold; whether he's been let in. */
   lady: { said: Said | null; ko: number }; admitted: boolean;
   /** The ticket scene at the window: how it went, how far it's got. */
-  scene: { kind: Dressed; t: number; done: boolean; punched: boolean; card: boolean; cardAt: number } | null;
+  scene: { kind: Dressed; t: number; done: boolean; punched: boolean; card: boolean; cardAt: number; pip: number } | null;
   /** The checkpoint's security office: the door, the next one out. */
   office: { open: number; cd: number; due: number };
   /** The PA (what it's saying, when next), the guards' barks. */
@@ -73,6 +73,8 @@ export interface Intro {
   tripped: boolean;
   /** A guard's welcomed him to the park. */
   welcomed: boolean;
+  /** He's laid into the people in line: he can go to the window whenever he likes. */
+  lineFight: boolean;
   /** The state of him the line last saw, and when somebody in it can next say something about it. */
   seenDressed: Dressed; reactNext: number;
 }
@@ -109,6 +111,8 @@ const addGuest = (state: GameState, intro: Intro, x: number, arriving: boolean) 
   e.seen = true; e.harmless = true; e.puppet = true; e.facing = 1; e.shootTimer = 0;
   // (security and all: they walk on past whoever's stood there, into the line)
   e.noCrowd = true;
+  // (one hit and they're done)
+  e.health = 1; e.maxHealth = 1;
   e.homeX = GUEST_SEED + (castNext++) * GUEST_STEP;
   guests.set(e, { who: castOf(e.homeX), number: intro.nextNumber++, state: arriving ? 'arrive' : 'line', voice: WOMEN.has(castOf(e.homeX).id) ? GUEST_VOICE : GUEST2_VOICE });
   state.enemies.push(e);
@@ -170,7 +174,7 @@ export const introLayout: StageLayout = {
     const intro: Intro = {
       grab: createGrab(state), provoked: false, me: null, nextNumber: 0, serveT: 0, arriveT: 0, hurryT: 0, atWindowT: 0,
       lady: { said: null, ko: 0 }, admitted: false, scene: null, office: { open: 0, cd: 0, due: 0 },
-      pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, cool: 0, tripped: false, welcomed: false, seenDressed: 'clean', reactNext: 0,
+      pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, cool: 0, tripped: false, welcomed: false, lineFight: false, seenDressed: 'clean', reactNext: 0,
     };
     state.stage = intro;
     state.cameraMinX = X0 - 60;
@@ -215,12 +219,14 @@ export const introLayout: StageLayout = {
     // (anywhere from his spot at the window up to the turnstile)
   const atWindow = px > R(FRONT_X) - 34 && px < R(TURN_X) + 10 && p.isGrounded && !intro.admitted;
     const myTurn = atWindow && (intro.me !== null && !lineAhead(state, intro));
+    // (he shows it only once everybody ahead of him has shown theirs, unless he's laid into the line)
+    const mayShow = myTurn || (atWindow && intro.lineFight);
     const upPress = !!controls.up && !intro.upWas;
     intro.upWas = !!controls.up;
     if (atWindow && upPress && !grabbing(intro.grab)) {
       // (he shows his ticket, whatever's going on; it's only naked, with no ticket to show, that he hits her: see scene)
       if (intro.lady.ko > 0) startScene(state, intro, 'punch');
-      else if (myTurn || intro.me === null && !lineAhead(state, intro)) startScene(state, intro, dressed(state));
+      else if (mayShow) startScene(state, intro, dressed(state));
       else {
         // (he's cut in: she won't, and the line lets him know)
         speak(TICKET_VOICE, pick(TICKET_CUT), s => { intro.lady.said = s; });
@@ -229,7 +235,7 @@ export const introLayout: StageLayout = {
       }
     }
     intro.atWindowT = myTurn ? intro.atWindowT + 1 : 0;
-    setUi({ near: null, map: null, nearExit: false, introTip: tipAt(state, intro), introPrompt: atWindow && !intro.scene ? (intro.lady.ko > 0 ? 'barge' : 'ticket') : null, introAhead: intro.me !== null ? countAhead(state, intro) : null });
+    setUi({ near: null, map: null, nearExit: false, introTip: tipAt(state, intro), introPrompt: atWindow && !intro.scene ? (intro.lady.ko > 0 ? 'barge' : mayShow ? 'ticket' : 'wait') : null, introAhead: intro.me !== null ? countAhead(state, intro) : null });
     return controls;
   },
   drawBackdrop: (ctx, state) => { drawIntroBackdrop(ctx, state); return true; },
@@ -270,6 +276,8 @@ const watchForTrouble = (ctx: FrameContext, intro: Intro) => {
   if (held && (held.kind === 'parksec' || guests.has(held))) hit = held;
   if (hit) {
     const g = guests.get(hit);
+    // (he's started on the line: nobody's making him wait his turn now)
+    if (g) intro.lineFight = true;
     if (g && g.state !== 'flee') {
       g.state = 'flee';
       speak(g.voice, pick(GUEST_HIT), s => { g.line = s?.text; });
@@ -472,16 +480,22 @@ const line = (ctx: FrameContext, intro: Intro) => {
 
 const startScene = (state: GameState, intro: Intro, kind: Dressed | 'punch') => {
   const k: Dressed = kind === 'punch' ? dressed(state) : kind;
-  intro.scene = { kind: k, t: 0, done: false, punched: false, card: false, cardAt: 0 };
+  intro.scene = { kind: k, t: 0, done: false, punched: false, card: false, cardAt: 0, pip: -1 };
   const sc = intro.scene;
   if (kind === 'punch' || intro.lady.ko > 0) {
     // (past caring: over the counter at her, and in)
     sc.punched = true; sc.done = true;
     return;
   }
-  // Him first, always: then out comes the ticket (or the slap on his bare hip), then her (nobody talks over anybody)
+  // Naked: no ticket, nowhere he could have kept one: he panics, then she gets it in the face (up close, in a box)
+  if (k === 'nude') { meatheadSays(state, pick(MEATHEAD_TICKET.nude), true, () => punchCam(intro), true); return; }
+  // Him first, always: then out comes the ticket, then her (nobody talks over anybody)
   meatheadSays(state, pick(MEATHEAD_TICKET[k]), true, () => ladyTurn(intro), true);
 };
+
+/** The punch, up close (see punchCam.ts): how long it runs, the frame the fist lands. */
+export const PIP_LEN = 170, PIP_HIT = 40;
+const punchCam = (intro: Intro) => { const sc = intro.scene; if (sc && sc.pip < 0) sc.pip = 0; };
 
 /** His line said: out comes the ticket (or the slap on his bare hip), and it's her turn. */
 const ladyTurn = (intro: Intro) => {
@@ -494,6 +508,16 @@ const ladyTurn = (intro: Intro) => {
 const scene = (ctx: FrameContext, intro: Intro) => {
   const sc = intro.scene!;
   sc.t++;
+  // Naked: he panics (his line, or its time), then the punch, up close; then in he goes
+  if (sc.kind === 'nude' && !sc.punched) {
+    if (sc.pip < 0 && sc.t > 260) punchCam(intro);
+    if (sc.pip >= 0 && ++sc.pip === PIP_HIT) knockOut(ctx, intro);
+    setUi({ introTicket: null, introCutscene: true, introPrompt: null });
+    if (sc.pip < PIP_LEN) return;
+    intro.admitted = true; intro.scene = null;
+    setUi({ introTicket: null, introCutscene: false });
+    return;
+  }
   // (it doesn't hang on the voices: his line's had its time, the ticket comes out; hers has had its time, on we go)
   if (!sc.card && !sc.punched && sc.t > 200) ladyTurn(intro);
   if (sc.card && !sc.done && sc.t - sc.cardAt > 330) sc.done = true;
@@ -504,8 +528,7 @@ const scene = (ctx: FrameContext, intro: Intro) => {
     if (sc.punched && sc.t === 10) knockOut(ctx, intro);
     if (!sc.punched || sc.t < 40) return;
   }
-  // How it ends: naked, no ticket: he knocks her out and goes in; otherwise she lets him in
-  if (sc.kind === 'nude' && !sc.punched) { sc.punched = true; sc.t = 0; return; }
+  // How it ends: she lets him in (or she's in no state to stop him)
   intro.admitted = true;
   intro.scene = null;
   setUi({ introTicket: null, introCutscene: false });

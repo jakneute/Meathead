@@ -13,7 +13,7 @@ export interface M2Ui {
   /** (the intro) The panel in the corner, what up does at the ticket window, how many are ahead of him in line, the
    *  ticket up close, and whether a scene's on (no HUD). */
   introTip?: 'postal' | 'grabs' | 'line' | null;
-  introPrompt?: 'ticket' | 'barge' | null;
+  introPrompt?: 'ticket' | 'barge' | 'wait' | null;
   introAhead?: number | null;
   introTicket?: 'clean' | 'shitty' | 'nude' | null;
   introCutscene?: boolean;
