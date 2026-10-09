@@ -25,7 +25,7 @@ import { registerKindDrawer } from '../../m1/game/render/enemies';
 import { drawSecurity, isWomanGuard } from '../cast/security';
 /** A guard's voice: hers or his. */
 const guardVoice = (e: Enemy) => (isWomanGuard(e) ? GUARD_F_VOICE : GUARD_VOICE);
-import { playSound } from '../../m1/game/platform/audio';
+import { playSound, audioRunning, getAudioContext } from '../../m1/game/platform/audio';
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
 import { shakeScreen } from '../../m1/game/core/state';
@@ -79,7 +79,7 @@ export interface Intro {
   /** The state of him the line last saw, and when somebody in it can next say something about it. */
   seenDressed: Dressed; reactNext: number;
   /** The way he gets here (the first time): the truck into the pillar, him out of its window. */
-  arrival: { t: number; landed: number; said: boolean; done: number } | null;
+  arrival: { t: number; landed: number; said: boolean; done: number; waiting: boolean } | null;
 }
 export const getIntro = (state: GameState) => state.stage as Intro | null;
 
@@ -178,7 +178,7 @@ export const introLayout: StageLayout = {
       grab: createGrab(state), provoked: false, me: null, nextNumber: 0, serveT: 0, arriveT: 0, hurryT: 0, atWindowT: 0,
       lady: { said: null, ko: 0 }, admitted: false, scene: null, office: { open: 0, cd: 0, due: 0 },
       pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, cool: 0, tripped: false, welcomed: false, lineFight: false, seenDressed: 'clean', reactNext: 0,
-      arrival: crashedIn ? null : { t: 0, landed: 0, said: false, done: 0 },
+      arrival: crashedIn ? null : { t: 0, landed: 0, said: false, done: 0, waiting: true },
     };
     // (only the once: back here after dying, the truck's already in the pillar and he's already out of it)
     if (!crashedIn) { crashedIn = true; state.player.hidden = true; state.player.inCutscene = true; setUi({ introCutscene: true }); }
@@ -203,7 +203,7 @@ export const introLayout: StageLayout = {
     intro.hpWas = p.health;
 
     // The way in: the truck, the pillar, him out of the window (nothing else to do till he's out)
-    if (intro.arrival) { arrival(ctx, intro); security(ctx, intro); return { ...NO_CONTROLS }; }
+    if (intro.arrival) { arrival(ctx, intro, controls); security(ctx, intro); return { ...NO_CONTROLS }; }
 
     walkways(state);
     watchForTrouble(ctx, intro);
@@ -268,9 +268,18 @@ export const truckNow = (intro: Intro | null, f: number) => {
   return { dx, dy, crash: t - CRASH_AT, f, emerging: !!intro?.arrival && t >= EMERGE_AT && t < DIVE_AT + 10 };
 };
 
-const arrival = (ctx: FrameContext, intro: Intro) => {
+const arrival = (ctx: FrameContext, intro: Intro, controls: object) => {
   const { state } = ctx;
   const a = intro.arrival!, p = state.player;
+  p.hidden = true; p.inCutscene = true;
+  // (it waits for the sound: a browser holds it back till the first key or click, and the crash with no crash in it is
+  // nothing; a button on a pad lets it go too, sound or not, the browser not counting those)
+  if (a.waiting) {
+    setUi({ introCutscene: true, introTip: null, introPrompt: null });
+    getAudioContext();
+    if (audioRunning() || Object.values(controls).some(v => v === true)) a.waiting = false;
+    else return;
+  }
   a.t++;
   p.inCutscene = true;
   setUi({ introCutscene: true, introTip: null, introPrompt: null });

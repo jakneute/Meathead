@@ -26,6 +26,7 @@ import { introLayout, INTRO_STAGE, registerIntro } from './intro/index';
 import TicketCard from './intro/TicketCard';
 import { clearSkyCache } from './intro/art/sky';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
+import { getAudioContext } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
 import { getUi, subscribeUi, onTravel, setUi, goTo } from './store';
 import { attachM2Keys } from './input';
@@ -148,6 +149,8 @@ const App2: React.FC = () => {
     const playing = () => live.current.status === GameStatus.PLAYING, paused = () => live.current.status === GameStatus.PAUSED;
     const onWheel = (e: WheelEvent) => { if (playing() || paused()) cycle(e.deltaY > 0 ? 1 : -1); };
     const onKey = (e: KeyboardEvent) => {
+      // (the first key lets the sound out: the browser holds it back till then)
+      getAudioContext();
       if (e.repeat) return;
       if (e.code === 'Escape' || e.code === 'KeyP') { togglePause(); return; }
       const digit = /^Digit([1-9])$/.exec(e.code);
@@ -164,6 +167,9 @@ const App2: React.FC = () => {
     window.addEventListener('wheel', onWheel);
     window.addEventListener('keydown', onKey);
     window.addEventListener('contextmenu', onContext);
+    // (a click lets the sound out too)
+    const onPointer = () => { getAudioContext(); };
+    window.addEventListener('pointerdown', onPointer);
     let id = 0, lastMove = 0;
     const prev = { lb: false, rb: false, start: false, ok: false, back: false };
     const wheel: { at: number | null } = { at: null };
@@ -196,7 +202,7 @@ const App2: React.FC = () => {
       id = requestAnimationFrame(poll);
     };
     id = requestAnimationFrame(poll);
-    return () => { window.removeEventListener('wheel', onWheel); window.removeEventListener('keydown', onKey); window.removeEventListener('contextmenu', onContext); cancelAnimationFrame(id); };
+    return () => { window.removeEventListener('wheel', onWheel); window.removeEventListener('keydown', onKey); window.removeEventListener('contextmenu', onContext); window.removeEventListener('pointerdown', onPointer); cancelAnimationFrame(id); };
   }, []);
 
   const onPlayerUpdate = (health: number, power: number, ammo?: Record<WeaponType, number>) => {

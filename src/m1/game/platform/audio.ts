@@ -12,6 +12,9 @@ export const getAudioContext = (): AudioContext => {
   return audioCtx;
 };
 
+/** Is sound actually coming out yet? (A browser holds it back till the first key or click.) */
+export const audioRunning = () => audioCtx?.state === 'running';
+
 export const closeAudio = () => {
   audioCtx?.close();
   audioCtx = null;
@@ -52,7 +55,12 @@ export const playHornDrone = (seconds: number) => {
 
 /** A sound effect (see sfx.ts), a little louder or quieter (`vol`), higher or lower (`pitch`, semitones). */
 export const playSound = (type: SoundType = 'gun', vol = 1, pitch = 0) => {
-  try { playSfx(getAudioContext(), type, vol, pitch); } catch { /* audio is best-effort; never let it break the game loop */ }
+  try {
+    const c = getAudioContext();
+    // (held back by the browser: dropped, not queued up to all go off at once, late, the moment it's let through)
+    if (c.state !== 'running') return;
+    playSfx(c, type, vol, pitch);
+  } catch { /* audio is best-effort; never let it break the game loop */ }
 };
 
 /**

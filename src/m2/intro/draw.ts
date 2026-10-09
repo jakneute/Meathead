@@ -63,7 +63,8 @@ export const drawIntroFront = (c: Ctx, state: GameState) => {
   // (naked at the window: him panicking (sweat flying off him), then the punch, up close)
   const sc = intro.scene;
   // (him climbing out of the truck's window: its door in front of his legs; and SKIP >> while it's on)
-  if (intro.arrival) {
+  if (intro.arrival?.waiting) { c.save(); c.translate(state.camera.x, state.camera.y); c.fillStyle = 'rgba(0, 0, 0, 0.55)'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); if ((state.frame >> 5) % 2 === 0) text(c, 'PRESS ANY BUTTON', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, '#FDE047', 12); c.restore(); }
+  else if (intro.arrival) {
     const tr = truckNow(intro, state.frame);
     if (tr.emerging) truckDoorFront(c, tr);
     if (intro.arrival.t > SKIP_AFTER) { c.save(); c.translate(state.camera.x, state.camera.y); drawSkipPrompt(c, CANVAS_WIDTH); c.restore(); }
