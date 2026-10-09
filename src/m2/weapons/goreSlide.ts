@@ -1,9 +1,8 @@
 // Killed by the soul sucker's gore spray (someone else's insides, hosed at them): not more gore, a pratfall. Marv on the
 // ice in Home Alone 2: their feet fly out from under them the way they were facing, they come down flat on their back,
-// and they go, sliding along the slick on their back, flailing, till they hit a wall, or somebody alive (who takes a
+// and they go, sliding along the slick on their back, limp, till they hit a wall, or somebody alive (who takes a
 // knock for it by its weight and speed, and trips; and if that kills him, he's off on his own slide), or go off the
-// edge of something (down stairs, they land and keep going; off a cliff, gone); and come to a stop, a twitch, and they
-// burst. Something in the air comes down to the
+// edge of something (down stairs, they land and keep going; off a cliff, gone); and the moment they stop, they burst. Something in the air comes down to the
 // floor first, flailing, and then goes. The dead don't hit the dead: they slide through each other.
 // A body's taken out of the enemies when it starts (it's not one any more), and moved and drawn here.
 
@@ -25,8 +24,8 @@ type Ctx = CanvasRenderingContext2D;
 type Phase = 'fall' | 'slip' | 'slide' | 'drop' | 'rest';
 interface Slider { e: Enemy; x: number; feet: number; vx: number; vy: number; dir: 1 | -1; t: number; phase: Phase; turn: number; lift: number; restT: number }
 
-/** The slip (frames), how fast they go, how quickly the slick lets them slow, how long they lie there twitching before they burst. */
-const SLIP = 16, SPEED = 10, FRICTION = 0.085, LIE = 45, MAX_BODIES = 24;
+/** The slip (frames), how fast they go, how quickly the slick lets them slow, how long they're stopped before they burst. */
+const SLIP = 16, SPEED = 10, FRICTION = 0.085, LIE = 1, MAX_BODIES = 24;
 /** A bump into somebody alive: how hard (by the body's weight and speed), never more than this. */
 const BUMP = 2.2, BUMP_MAX = 30;
 
@@ -143,7 +142,7 @@ const tickOne = (ctx: FrameContext, s: Slider): boolean => {
       break;
     }
     case 'rest':
-      // (come to a stop: a twitch or two, and then put out of its misery: it bursts)
+      // (stopped: into a wall, into somebody, or out of slick: it bursts, there and then)
       if (++s.restT >= LIE) {
         const cx = s.x + s.dir * (isHumanoidKind(e.kind) ? e.height * 0.2 : 0), cy = s.feet - 10;
         ctx.fx.spawnDeathShower({ x: cx - e.width / 2, y: cy - e.height / 2 }, 0, 1.2);
@@ -153,28 +152,20 @@ const tickOne = (ctx: FrameContext, s: Slider): boolean => {
       }
       break;
   }
-  // (flailing: the legs going as if running, faster the faster it goes; a twitch now and then after)
-  e.vel.x = s.phase === 'rest' ? (s.restT < 50 && s.restT % 12 < 6 ? s.dir * 2 : 0) : s.dir * Math.max(2.5, Math.abs(s.vx)) * 1.5;
+  // (limp: it just goes, feet first, the way it's going; nothing moving on it, so it's drawn the one way the whole time)
+  e.vel.x = 0; e.vel.y = 0;
   return true;
 };
 
 export const tickGoreSlides = (ctx: FrameContext) => { if (sliders.length) sliders = sliders.filter(s => tickOne(ctx, s)); };
 
-/** The bodies: on their backs, flailing (world space). */
+/** The bodies: on their backs, limp, feet first (world space). */
 export const drawGoreSlides = (c: Ctx, state: GameState) => {
   for (const s of sliders) {
-    const e = s.e, k = s.turn, f = state.frame + s.t;
-    const fade = 1;
-    const flail = s.phase === 'rest' ? 0 : Math.sin(f * 0.9) * 0.14 + Math.sin(f * 1.7) * 0.06;
-    c.save(); c.globalAlpha = fade;
-    if (isHumanoidKind(e.kind)) {
-      // (a person: flat on their back, feet first, the way it's going, face up, arms and legs going)
-      drawEnemyAt(c, e, state, s.x + s.dir * e.height * 0.45 * k, s.feet - 5 * k - s.lift, -s.dir * (Math.PI / 2) * k + flail * k, s.dir);
-    } else {
-      // (an animal: rolled right over, legs in the air, kicking)
-      drawEnemyAt(c, e, state, s.x + s.dir * 6 * k, s.feet - (e.height + 2) * k - s.lift, Math.PI * k + flail * k, s.dir);
-    }
-    c.restore();
+    const e = s.e, k = s.turn;
+    // (a person flat on their back, face up; an animal rolled right over, legs in the air)
+    if (isHumanoidKind(e.kind)) drawEnemyAt(c, e, state, s.x + s.dir * e.height * 0.45 * k, s.feet - 5 * k - s.lift, -s.dir * (Math.PI / 2) * k, s.dir);
+    else drawEnemyAt(c, e, state, s.x + s.dir * 6 * k, s.feet - (e.height + 2) * k - s.lift, Math.PI * k, s.dir);
   }
 };
 /** (for tests: what each body is doing) */
