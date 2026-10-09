@@ -496,6 +496,16 @@ const line = (ctx: FrameContext, intro: Intro) => {
   const p = state.player, px = p.pos.x + p.width / 2;
   // (he joins the line on reaching it: behind everybody already in it)
   if (intro.me === null && !intro.admitted && px > R(QUEUE_START)) intro.me = intro.nextNumber++;
+  // (back behind somebody who was behind him: they're ahead of him now, he's behind them; and off out of the line
+  // altogether, behind everybody and past where it starts, he's lost his place: they all move up, nobody waits)
+  if (intro.me !== null && !intro.admitted && p.isGrounded) {
+    for (const e of inLine(state)) {
+      const g = guests.get(e)!;
+      if (g.number > intro.me && e.pos.x + e.width / 2 > px + 12) intro.me = g.number + 0.5;
+    }
+    const behind = inLine(state).some(e => guests.get(e)!.number > intro.me!);
+    if (!behind && px < R(QUEUE_START) - 80) intro.me = null;
+  }
   // Everybody's place: in number order (him too, if he's in it), from the window back
   const members: { n: number; e: Enemy | null }[] = inLine(state).map(e => ({ n: guests.get(e)!.number, e }));
   if (intro.me !== null && !intro.admitted) members.push({ n: intro.me, e: null });
