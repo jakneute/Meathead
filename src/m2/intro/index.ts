@@ -219,6 +219,13 @@ export const introLayout: StageLayout = {
 
     // The ticket scene: nothing else while it's on
     if (intro.scene) {
+      // (everybody holds still for it: security's not on him, nobody swings at him, mid-swing or not, while the ticket's
+      // out or the punch is going in; it all picks up again after, see security)
+      for (const e of state.enemies) {
+        if (e.health <= 0 || e.isBlownAway || guests.has(e)) continue;
+        e.puppet = true; e.harmless = true; e.melee = undefined; e.shootTimer = 0;
+        e.pauseTimer = Math.max(e.pauseTimer || 0, 2); e.vel.x = 0;
+      }
       scene(ctx, intro);
       p.vel.x = 0;
       return { ...NO_CONTROLS };
