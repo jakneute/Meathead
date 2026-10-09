@@ -25,6 +25,7 @@ import { grabCallout } from '../moves/callouts';
 import { drawEnemyAt } from '../moves/grab';
 import { drawComposited } from '../../m1/game/render/composite';
 import { isRobot } from '../kinds';
+import { drawGooPuddle, drawGooOverhang, drawGooString, gooOverhangDrips, type GooPalette } from '../../m1/game/render/goo';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -75,8 +76,15 @@ const partOf = (p: Projectile) => p.customData as Part;
 
 /** Darts stuck in somebody (where on him, at what angle), or in a wall; puddles of it. */
 let stuck: { e: Enemy | null; x: number; y: number; a: number; t: number }[] = [];
-let puddles: { x: number; y: number; w: number; t: number }[] = [];
-const STUCK_LIFE = 360, PUDDLE_LIFE = 480;
+/** A puddle of it (like Meathead 1's sludge): `x` its middle, `w` half its width, `y` the floor it's on; it runs no
+ *  further than whatever it's lying on does (`lo`, `hi`). Up on a drop-through ledge it soaks through (`ledge`: the
+ *  ledge's underside), dripping off the bottom of it onto whatever's under it, and the first of it coming through in a
+ *  string (`soak`: when). */
+interface Puddle { x: number; y: number; w: number; t: number; seed: number; lo: number; hi: number; ledge?: { y: number; x1: number; x2: number }; soak: number }
+let puddles: Puddle[] = [];
+const STUCK_LIFE = 360, PUDDLE_LIFE = 480, PUDDLE_MAX = 46, MAX_PUDDLES = 80;
+/** How long it takes to soak through a ledge before the first string of it comes through. */
+const SOAK = 16;
 /** A puddle's sting: this much, every so often, to anybody stood in one. */
 const PUDDLE_STING = { every: 20, dmg: 1 };
 
@@ -216,7 +224,7 @@ const rotCorpse = (ctx: FrameContext, c: Corpse) => {
     playSound('thud', 0.8); playSound('splat', 0.6, -4);
     const at = c.animal ? c.x : c.x + c.face * e.height * 0.55, y = floorBelow(state, at, c.y - 4);
     const robot = isRobot(e);
-    if (y < c.y + 60 && !robot) puddles.push({ x: at, y, w: Math.max(14, e.height * 0.4), t: 0 });
+    if (y < c.y + 60 && !robot) pool(state, at, y, Math.max(14, e.height * 0.4));
     for (let i = 0; i < 8; i++) puff(state, { pos: { x: at, y: c.y - 3 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 2.5 }, life: robot ? 120 : 18, color: robot ? OIL_BITS[i % 3] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 2, grav: 0.3, chunk: robot });
   }
 };
@@ -406,7 +414,11 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
  *  falling off it to the floor (into a puddle); then it's dried up. `side`: which way the wall's face looks (0: a ceiling). */
 let goo: { x: number; y: number; side: number; t: number; next: number; drips: number }[] = [];
 const GOO_LIFE = 420;
-let drops: { x: number; y: number; vy: number }[] = [];
+/** Drops of it falling (off a wall, or through a ledge: `small`, a drip off a ledge's underside). */
+let drops: { x: number; y: number; vy: number; small?: boolean }[] = [];
+/** The first of a puddle on a ledge coming through it: a string of it stretched down off the underside (`from`), a glob
+ *  on the end, slow, till it's too long and lets go (`snap`); it puddles under it as big as the one up there (`w`). */
+let strands: { x: number; y: number; vy: number; from: number; w: number; snap: number; seed: number }[] = [];
 const stuckGoo = (state: GameState, x: number, y: number, side: number) => {
   for (let i = 0; i < 4; i++) puff(state, { pos: { x, y }, vel: { x: side * (0.5 + Math.random() * 2), y: (Math.random() - 0.3) * 2 }, life: 12, color: PUKE_COLORS[i % 3], size: 2 + Math.random() * 2, grav: 0.3 });
   playSound('splat', 0.25, 8);
@@ -414,27 +426,108 @@ const stuckGoo = (state: GameState, x: number, y: number, side: number) => {
   if (near) { near.t = Math.min(near.t, 60); near.drips = Math.max(0, near.drips - 1); return; }
   goo.push({ x, y, side, t: 0, next: 40 + Math.floor(Math.random() * 50), drips: 0 });
 };
-const drip = (state: GameState) => {
+/** A drip of it off a ledge on somebody's head: this much hurt, this much of his tolerance. */
+const DRIP = { dmg: 0.4, sick: 0.2 };
+/** Something of it falling through a ledge (a drip; `big`, the string of it letting go) landing on somebody under it:
+ *  a splash on him, and it's working on him. True if it landed on somebody. */
+const dripHits = (ctx: FrameContext, x: number, y: number, big: boolean) => {
+  const { state } = ctx;
+  for (const e of state.enemies) {
+    if (!alive(e) || x < e.pos.x || x > e.pos.x + e.width || y < e.pos.y || y > e.pos.y + e.height) continue;
+    splashes.push({ x, y, dir: Math.random() < 0.5 ? -1 : 1, t: 0, seed: Math.random() });
+    if (splashes.length > MAX_SPLASHES) splashes.shift();
+    if (Math.random() < (big ? 0.6 : 0.2)) playSound('splat', 0.3, 6);
+    hurt(ctx, e, big ? PUKE.dmg : DRIP.dmg);
+    if (!alive(e) || isMidBoss(e)) return true;
+    const s = sickOf(e); tracked.add(e);
+    s.doused = Math.max(s.doused, big ? 120 : 50); s.lastHit = state.frame;
+    if (s.t < 0 && state.frame >= s.immuneUntil) { s.tol -= big ? PUKE.sick : DRIP.sick; if (s.tol <= 0) getSick(state, e, s); }
+    return true;
+  }
+  return false;
+};
+const drip = (ctx: FrameContext) => {
+  const { state } = ctx;
   for (const g of goo) {
     g.t++;
     if (g.drips < 4 && g.t >= g.next) { g.drips++; g.next = g.t + 50 + Math.floor(Math.random() * 70); drops.push({ x: g.x + g.side * 1.5, y: g.y + (g.side ? Math.min(16, g.t * 0.08) : 3), vy: 0.5 }); }
   }
   goo = goo.filter(g => g.t < GOO_LIFE);
+  // Puddles up on drop-through ledges, soaking through (Meathead 1's sludge does): the first of it coming through in a
+  // string; after that, drips gathering on the underside and letting go, one after another, as long as it's lying there
+  for (const q of puddles) {
+    if (!q.ledge || q.t > PUDDLE_LIFE - 60) continue;
+    if (q.t === q.soak) strands.push({ x: Math.max(q.ledge.x1 + 4, Math.min(q.ledge.x2 - 4, q.x)), y: q.ledge.y + 2, vy: 0.2, from: q.ledge.y, w: q.w, snap: 30 + Math.random() * 30, seed: Math.random() });
+    if (q.t < q.soak) continue;
+    const d = gooOverhangDrips(puddleShape(q), q.ledge, state.frame);
+    if (d) for (const k of d.drips) if (k.phase === k.letGo) drops.push({ x: k.x, y: q.ledge.y + 14, vy: 1, small: true });
+  }
+  strands = strands.filter(k => {
+    // (stretching, slow; then, too long, it lets go and drops)
+    k.vy = k.y - k.from < k.snap ? Math.min(1.2, k.vy + 0.04) : Math.min(10, k.vy + PUKE.gravity);
+    k.y += k.vy;
+    if (dripHits(ctx, k.x, k.y, true)) return false;
+    const floor = floorBelow(state, k.x, k.y - k.vy - 1);
+    if (k.y >= floor) { splat(state, k.x, floor, k.w); playSound('splat', 0.35, 4); return false; }
+    return k.y < state.camera.y + 2000;
+  });
   drops = drops.filter(d => {
     d.vy = Math.min(9, d.vy + 0.3); d.y += d.vy;
+    if (d.small && dripHits(ctx, d.x, d.y, false)) return false;
     const floor = floorBelow(state, d.x, d.y - d.vy - 1);
     if (d.y >= floor) { splat(state, d.x, floor); return false; }
     return d.y < state.camera.y + 2000;
   });
 };
 
-/** On the floor: a splash, and a puddle (one spreading where there's one already). */
-const splat = (state: GameState, x: number, y: number) => {
-  for (let i = 0; i < 3; i++) puff(state, { pos: { x, y: y - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 1.5 }, life: 12, color: PUKE_COLORS[i], size: 2, grav: 0.3 });
+/** What it's lying on at (x, y): how far that runs either way (on along whatever's flush with it), and if it's a
+ *  drop-through ledge, the underside of it (it soaks through). The ground: no end to it. */
+const surfaceAt = (state: GameState, x: number, y: number): { lo: number; hi: number; ledge?: Puddle['ledge'] } => {
+  const g = groundLineAt(state.groundRuns, x);
+  const b = Math.abs(g - y) < 1 ? undefined : state.blocks.find(o => solid(o) && Math.abs(o.y - y) < 1 && x >= o.x - 1 && x <= o.x + o.w + 1);
+  if (!b) return { lo: -Infinity, hi: Infinity };
+  let lo = b.x, hi = b.x + b.w;
+  for (let more = true; more;) {
+    more = false;
+    for (const o of state.blocks) {
+      if (!solid(o) || Math.abs(o.y - y) >= 1) continue;
+      if (o.x < lo && o.x + o.w >= lo - 1) { lo = o.x; more = true; }
+      if (o.x + o.w > hi && o.x <= hi + 1) { hi = o.x + o.w; more = true; }
+    }
+  }
+  return { lo, hi, ledge: b.oneWay ? { y: b.y + b.h, x1: b.x, x2: b.x + b.w } : undefined };
+};
+
+/** It on the floor (on a ledge, on a rock, wherever it's come down): a puddle, or more of one where there's one
+ *  already (it spreads; `w`: at least this big). */
+const pool = (state: GameState, x: number, y: number, w: number, grow = 0.8) => {
   if (!(y < state.camera.y + 2000)) return;
   const near = puddles.find(q => Math.abs(q.x - x) < q.w && Math.abs(q.y - y) < 4);
-  if (near) { near.w = Math.min(46, near.w + 0.8); near.t = Math.min(near.t, 60); }
-  else puddles.push({ x, y, w: 6 + Math.random() * 4, t: 0 });
+  if (near) { near.w = Math.min(PUDDLE_MAX, Math.max(near.w + grow, w)); near.t = Math.min(near.t, 60); return; }
+  const on = surfaceAt(state, x, y);
+  puddles.push({ x, y, w: Math.min(PUDDLE_MAX, w), t: 0, seed: Math.floor(Math.random() * 997), lo: on.lo, hi: on.hi, ledge: on.ledge, soak: SOAK + Math.floor(Math.random() * 10) });
+  if (puddles.length > MAX_PUDDLES) puddles.shift();
+};
+
+/** On the floor: a splash, and a puddle (one spreading where there's one already). */
+const splat = (state: GameState, x: number, y: number, w = 6 + Math.random() * 4) => {
+  for (let i = 0; i < 3; i++) puff(state, { pos: { x, y: y - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 1.5 }, life: 12, color: PUKE_COLORS[i], size: 2, grav: 0.3 });
+  pool(state, x, y, w);
+};
+
+/** A puddle as the goo drawing has it: no further than what it's on, and thicker the bigger it is. */
+const puddleShape = (q: Puddle) => {
+  const x0 = Math.max(q.lo, q.x - q.w), x1 = Math.min(q.hi, q.x + q.w), h = 7 + q.w * 0.12;
+  return { pos: { x: x0, y: q.y - h }, width: Math.max(4, x1 - x0), height: h, id: 'puke', seed: q.seed };
+};
+/** Puke, on the level: yellow-green, carrot and corn in it. */
+const PUKE_GOO: GooPalette = {
+  dark: '#5B6410', mid: '#7C8A12', light: '#A3B320',
+  skin: '#C5D33B', skinLit: '#E2EC7A', ink: '#3F470A', sheen: '#F4F8B8',
+  fleck: '#5B6410', fleckLit: '#A3B320',
+  chunkShadow: '#3F470A', chunkA: '#EA7A12', chunkB: '#FACC15', chunkALit: '#FDBA74', chunkBLit: '#FEF08A',
+  bubble: '#C5D33B', bubbleInk: '#5B6410', bubbleLit: '#E2EC7A',
+  strand: '#5B6410', strandMid: '#A3B320', strandLit: '#E2EC7A',
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -474,12 +567,13 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
     for (const e of [...state.enemies]) {
       if (!alive(e) || Math.abs(e.vel.y) > 1) continue;
       const cx = e.pos.x + e.width / 2, fy = e.pos.y + e.height;
-      if (!puddles.some(q => Math.abs(cx - q.x) < q.w + e.width * 0.3 && Math.abs(fy - q.y) < 6)) continue;
+      // (on the slope it's lying along, where he's stood)
+      if (!puddles.some(q => { const sh = puddleShape(q), g = q.lo === -Infinity ? groundLineAt(state.groundRuns, cx) : q.y; return cx > sh.pos.x - e.width * 0.3 && cx < sh.pos.x + sh.width + e.width * 0.3 && Math.abs(fy - (Math.abs(g - q.y) < 24 ? g : q.y)) < 6; })) continue;
       puff(state, { pos: { x: cx + (Math.random() - 0.5) * e.width * 0.6, y: fy - 2 }, vel: { x: 0, y: -0.8 }, life: 14, color: 'rgba(163, 179, 32, 0.8)', size: 2 });
       hurt(ctx, e, PUDDLE_STING.dmg);
     }
   }
-  drip(state);
+  drip(ctx);
   for (const k of splashes) k.t++;
   splashes = splashes.filter(k => k.t < SPLASH);
   for (const c of corpses) rotCorpse(ctx, c);
@@ -538,15 +632,26 @@ const drawBolt = (c: Ctx, x: number, y: number, a: number, sd: number) => {
 const drawOverlay = (c: Ctx, state: GameState) => {
   const f = state.frame;
   // Puddles of it
+  // (lying along whatever they're on, like Meathead 1's sludge, in puke; up on a ledge, soaking through and hanging off
+  // the underside of it in drips: the drops that let go are real ones, falling, see drip)
+  const vx0 = state.camera.x - 80, vx1 = state.camera.x + CANVAS_WIDTH + 80;
   for (const q of puddles) {
+    if (q.x + q.w < vx0 || q.x - q.w > vx1) continue;
     c.globalAlpha = q.t > PUDDLE_LIFE - 60 ? (PUDDLE_LIFE - q.t) / 60 : 1;
-    c.fillStyle = '#5B6410'; c.beginPath(); c.ellipse(q.x, q.y - 0.5, q.w + 1, 2.4, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#A3B320'; c.beginPath(); c.ellipse(q.x, q.y - 0.8, q.w, 1.7, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#7C8A12'; c.beginPath(); c.ellipse(q.x - q.w * 0.35, q.y - 1.6, q.w * 0.3, 1.8, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#EA7A12'; c.fillRect(q.x - q.w * 0.3, q.y - 2.5, 3, 2); c.fillStyle = '#FACC15'; c.fillRect(q.x + q.w * 0.35, q.y - 2, 2, 2); c.fillStyle = '#78350F'; c.fillRect(q.x + q.w * 0.05, q.y - 2, 2, 1);
-    c.fillStyle = '#E2EC7A'; c.fillRect(q.x - q.w * 0.5, q.y - 2, 3, 1);
+    const sh = puddleShape(q);
+    drawGooPuddle(c, state, sh, PUKE_GOO);
+    if (q.ledge && q.t >= q.soak) drawGooOverhang(c, sh, q.ledge, f, PUKE_GOO, 0);
   }
   c.globalAlpha = 1;
+  // Strings of it coming through a ledge, a glob on the end
+  for (const k of strands) {
+    const r = 3 + Math.min(3, k.w * 0.08);
+    if (k.y - k.from < k.snap) drawGooString(c, { pos: { x: k.x - r, y: k.y - r }, width: r * 2, height: r * 2 }, k.from, PUKE_GOO);
+    c.fillStyle = '#3F470A'; c.beginPath(); c.ellipse(k.x, k.y, r + 1, r + 1.5, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#A3B320'; c.beginPath(); c.ellipse(k.x, k.y, r, r + 0.5, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = BITS[Math.floor(k.seed * 4)]; c.fillRect(Math.round(k.x - 1), Math.round(k.y), 2, 2);
+    c.fillStyle = '#E2EC7A'; c.fillRect(Math.round(k.x - r * 0.5), Math.round(k.y - r * 0.6), 2, 1);
+  }
   // Splashes on people: a flat splat on him, and a crown of droplets thrown back the way it came
   for (const k of splashes) {
     const a = k.t / SPLASH, reach = 16 * Math.sqrt(a), r = 3.2 * (1 - a * 0.5);
@@ -693,7 +798,7 @@ const drawHeld = (c: Ctx) => {
 export const stopCrossbow = () => {
   aim = 0;
   for (const e of tracked) { e.pose = undefined; const s = sickness.get(e); if (s) { s.t = -1; recover(e, s); } }
-  tracked = new Set(); stuck = []; puddles = []; corpses = []; goo = []; drops = []; splashes = [];
+  tracked = new Set(); stuck = []; puddles = []; corpses = []; goo = []; drops = []; strands = []; splashes = [];
 };
 
 /** For tests: everybody's tolerance and sickness. */
