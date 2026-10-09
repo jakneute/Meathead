@@ -467,6 +467,10 @@ export const resetStageState = (s: GameState) => {
   s.playerLastVulgarity = "";
   // (and in clean pants: a new stage, a respawn, back to the menu; whatever happened crouching last time, didn't)
   s.player.gut = undefined;
+  // (and seen: whatever had him out of sight last time (a cutscene, a hiding place) is over; a stage hides him again if
+  // it wants to, after this)
+  s.player.hidden = false;
+  s.player.inCutscene = false;
   s.playerVulgarityTimer = 0;
   s.bossLastVulgarity = "";
   s.bossVulgarityTimer = 0;

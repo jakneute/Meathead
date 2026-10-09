@@ -4,6 +4,7 @@ import { isKnownStage } from '../../content/roster';
 import { GameState, resetStageState } from './state';
 import { createBoss, getBossDef, getArenaRight, getStageWidth } from '../bosses/registry';
 import { getStageLayout } from '../stages';
+import { groundLineAt } from './terrain';
 
 /** Where the player starts: the stage start, or just before the boss door when skipping. */
 export const getStartX = (skipToBoss: boolean, stageId: string | null = null) =>
@@ -69,6 +70,11 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
   // (back on his feet clean)
   p.bleedT = 0; p.bloodHp = undefined;
   const checkpointStart = buildLevel(state, stageId, atBoss);
+  // (a stage he starts on his feet in: back on his feet on its floor, there, not dropped from up where a ceiling might be)
+  if (getStageLayout(stageId)?.startsStanding && !checkpointStart && state.groundRuns.length) {
+    p.pos.y = groundLineAt(state.groundRuns, p.pos.x + p.width / 2) - p.height;
+    state.camera.x = Math.max(state.cameraMinX, p.pos.x - 250);
+  }
   // A long stage's checkpoint: start there instead, with the camera already on him
   if (checkpointStart && !atBoss) {
     p.pos = { x: checkpointStart.x, y: checkpointStart.y - p.height };
