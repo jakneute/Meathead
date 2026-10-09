@@ -378,7 +378,7 @@ registerM2Kind({ kind: 'm2:chimp', stats: { w: 40, h: 54, hp: 60, contact: 14, m
 registerM2Kind({ kind: 'm2:jaguar', stats: { w: 72, h: 36, hp: 90, contact: 18, mass: 100 }, ai: jaguar, draw: drawJaguar, head: { x: 32, y: -28, r: 10 }, gender: 'n', grab: 'body' });
 registerM2Kind({ kind: 'm2:boa', stats: { w: 28, h: 20, hp: 50, contact: 12, mass: 60, air: true }, ai: boa, make: flyer, draw: drawBoa, head: { x: 4, y: -10, r: 9 }, gender: 'n', grab: 'critter' });
 registerM2Kind({ kind: 'm2:macaw', stats: { w: 30, h: 22, hp: 15, contact: 8, mass: 3, air: true }, ai: macaw, make: flyer, draw: drawMacaw, head: { x: 10, y: -15, r: 6 }, gender: 'n', grab: 'critter' });
-registerM2Kind({ kind: 'm2:frog', stats: { w: 22, h: 16, hp: 8, contact: 10, mass: 2 }, ai: frog, draw: drawFrog, head: { x: 5, y: -10, r: 5 }, gender: 'n', grab: 'critter', grabHurts: { dmg: 10 } });
+registerM2Kind({ kind: 'm2:frog', stats: { w: 22, h: 16, hp: 8, contact: 10, mass: 2 }, ai: frog, draw: drawFrog, head: { x: 5, y: -10, r: 5 }, gender: 'n', grab: 'critter' });
 
 // ---------------------------------------------------------------------------------------------------------------
 // What the monkeys have thrown: in the air till it hits him or something solid

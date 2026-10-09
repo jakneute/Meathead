@@ -158,12 +158,14 @@ export interface Grab {
   fall: number;
   /** Frames body contact still can't hurt him (a grab's on, or just finished). */
   clearT: number;
+  /** Small fry near him made harmless to bump into while he grabs one (and a moment after): back as they were after. */
+  calmed: Set<Enemy>;
   /** Buttons still held from the grab (the last punch): they don't start a charge or a shot till they're let go. */
   gate: Set<keyof Controls>;
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, pb: 0, bumpT: 0, airSpent: false,
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, pb: 0, bumpT: 0, airSpent: false,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -484,6 +486,15 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   // feet, anything that hits him hurts him, but nothing knocks him about or out of what he's doing)
   if (g.phase !== 'idle') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
   setArmor(g.clearT > 0);
+  // (going for a critter, holding one, pitching one: the little things right by him don't hurt just for touching him,
+  // or snatching one up would cost a bite most times; back to themselves once it's over)
+  const p = ctx.state.player, cx = p.pos.x + p.width / 2;
+  if (g.clearT > 0) {
+    for (const e of ctx.state.enemies) {
+      if (e.harmless || !isCritter(e) || Math.abs(e.pos.x + e.width / 2 - cx) > 90 || Math.abs(e.pos.y + e.height / 2 - (p.pos.y + p.height / 2)) > 90) continue;
+      e.harmless = true; g.calmed.add(e);
+    }
+  } else if (g.calmed.size) { for (const e of g.calmed) e.harmless = false; g.calmed.clear(); }
   return out;
 };
 
