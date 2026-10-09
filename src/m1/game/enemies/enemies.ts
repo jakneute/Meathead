@@ -185,7 +185,7 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   // (On a hilly stage things sit above and below the view all the time, hopping, leaping and flying about:
   // only ones launched by a hit count going up, and only ones with nothing under them going down)
   const launched = (e.pauseTimer || 0) > 0 && e.vel.y < -2;
-  const up = !openAbove && e.pos.y + e.height < scr.y && (!hilly || launched);
+  const up = !openAbove && !getStageLayout(stageId)?.noMoonKills && e.pos.y + e.height < scr.y && (!hilly || launched);
   const down = e.pos.y > scr.y + scr.h && (!hilly || !hasFloorBelow(state, e));
   // (going out of bounds is about falling off the bottom or being launched off the top; off the ends only counts
   // on the old flat stages, where being knocked clean off either end is the joke)

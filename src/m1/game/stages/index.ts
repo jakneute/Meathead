@@ -105,6 +105,9 @@ export interface StageLayout {
   playerTilt?: (state: GameState) => { x: number; y: number; angle: number } | null;
   /** A body he's sent flying only takes out the ones on screen (the gym: each room's lesson is for that room, not the next one's). */
   collateralOnScreenOnly?: boolean;
+  /** Nothing knocked up off the top of the screen is gone for it ("TO THE MOON"): what goes up comes back down, and
+   *  takes what the landing does to it (Meathead 2). */
+  noMoonKills?: boolean;
   /** He's already standing there when it starts (the gym): no dropping in out of the sky. */
   startsStanding?: boolean;
   /** The stage's update keeps running once the boss's arena has locked (a stage that's all arena: the finale). */

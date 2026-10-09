@@ -49,6 +49,8 @@ import { registerGrabCallouts } from './moves/callouts';
 // Meathead 2: Meathead Goes to Happy Land. For now: the hub (walk round it, look at the map for each land) and the
 // test pen behind the staff door (try out the beatdown and the shakedown on whoever walks in).
 
+// (in Meathead 2, what's thrown up off the top of the screen comes back down: no "TO THE MOON")
+for (const l of [hubLayout, penLayout, advLayout, introLayout]) l.noMoonKills = true;
 registerStageLayout(HUB_STAGE, hubLayout);
 registerStageLayout(PEN_STAGE, penLayout);
 registerStageLayout(ADV_STAGE, advLayout);
