@@ -53,7 +53,7 @@ add('m2.ticket', [introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TIC
 for (const v of ['m2.guard', 'm2.guardf']) add(v, [introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE, introLines.GUARD_WELCOME]);
 add('m2.pa', introLines.PA_LINES);
 add('meathead', AMERICA_DENY);
-for (const v of ['m2.guest', 'm2.guest2']) add(v, [introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT]);
+for (const v of ['m2.guest', 'm2.guest2']) add(v, [introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT, introLines.GUEST_REACT, introLines.GUEST_REACT_NOW]);
 // The death screens
 want.add('death|YOU DIED');
 add('death', deaths.FALL_DEATH_LINES);

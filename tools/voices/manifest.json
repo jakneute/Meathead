@@ -10191,6 +10191,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "DID HE JUST... IN LINE?!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
   "text": "HE HIT ME!",
   "from": "INTRO"
  },
@@ -10216,7 +10221,22 @@
  },
  {
   "voice": "m2.guest",
+  "text": "HIS PANTS JUST EXPLODED!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HONEY, DON'T BREATHE.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
   "text": "HURRY IT UP, BUDDY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "I CAN TASTE IT. WHY CAN I TASTE IT?",
   "from": "INTRO"
  },
  {
@@ -10227,6 +10247,26 @@
  {
   "voice": "m2.guest",
   "text": "I'M CALLING MY LAWYER!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "I'VE SEEN THINGS TODAY. TERRIBLE THINGS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IS HE ALLOWED IN LIKE THAT?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IS THAT COMING FROM HIM?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "KIDS, LOOK AT THE FLAGS. ONLY THE FLAGS.",
   "from": "INTRO"
  },
  {
@@ -10246,7 +10286,22 @@
  },
  {
   "voice": "m2.guest",
+  "text": "OH MY GOD! COVER THE KIDS' EYES!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "OH NO. OH NO, HE DID.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
   "text": "OW! MY HIP!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "PUT IT AWAY, PAL!",
   "from": "INTRO"
  },
  {
@@ -10261,12 +10316,37 @@
  },
  {
   "voice": "m2.guest",
+  "text": "SIR, YOU'RE NAKED. AT A FAMILY PARK.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "SIR. YOUR PANTS. YOUR PANTS, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "SOMEBODY GET A MOP. AND A PRIEST.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
   "text": "TICKET. WINDOW. HOW HARD IS IT?",
   "from": "INTRO"
  },
  {
   "voice": "m2.guest",
   "text": "WE'VE BEEN IN THIS LINE SINCE BREAKFAST!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHAT IN THE... WHERE'D HIS PANTS GO?!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHAT WAS THAT NOISE? OH GOD, THE SMELL!",
   "from": "INTRO"
  },
  {
@@ -10311,6 +10391,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "DID HE JUST... IN LINE?!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "HE HIT ME!",
   "from": "INTRO"
  },
@@ -10336,7 +10421,22 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "HIS PANTS JUST EXPLODED!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HONEY, DON'T BREATHE.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "HURRY IT UP, BUDDY!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "I CAN TASTE IT. WHY CAN I TASTE IT?",
   "from": "INTRO"
  },
  {
@@ -10347,6 +10447,26 @@
  {
   "voice": "m2.guest2",
   "text": "I'M CALLING MY LAWYER!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "I'VE SEEN THINGS TODAY. TERRIBLE THINGS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IS HE ALLOWED IN LIKE THAT?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IS THAT COMING FROM HIM?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "KIDS, LOOK AT THE FLAGS. ONLY THE FLAGS.",
   "from": "INTRO"
  },
  {
@@ -10366,7 +10486,22 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "OH MY GOD! COVER THE KIDS' EYES!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "OH NO. OH NO, HE DID.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "OW! MY HIP!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "PUT IT AWAY, PAL!",
   "from": "INTRO"
  },
  {
@@ -10381,12 +10516,37 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "SIR, YOU'RE NAKED. AT A FAMILY PARK.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "SIR. YOUR PANTS. YOUR PANTS, SIR.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "SOMEBODY GET A MOP. AND A PRIEST.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "TICKET. WINDOW. HOW HARD IS IT?",
   "from": "INTRO"
  },
  {
   "voice": "m2.guest2",
   "text": "WE'VE BEEN IN THIS LINE SINCE BREAKFAST!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHAT IN THE... WHERE'D HIS PANTS GO?!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHAT WAS THAT NOISE? OH GOD, THE SMELL!",
   "from": "INTRO"
  },
  {

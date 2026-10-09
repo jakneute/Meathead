@@ -420,6 +420,8 @@ export interface Enemy extends Entity {
   /** Being electrocuted till this frame by something other than his taser (Meathead 2's lightning): shown the same,
    * and it goes nowhere meanwhile. */
   shockedUntil?: number;
+  /** Walks through other enemies rather than being eased apart from them (Meathead 2's people in line). */
+  noCrowd?: boolean;
   /** A bystander: only Meathead can hurt it (his shots and moves, or something he knocked into it); nothing else does. */
   innocent?: boolean;
   /** A mid-boss already took a hit from this tsunami wave (it's washed over once, not every frame). */

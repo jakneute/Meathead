@@ -35,7 +35,7 @@ import { stopWeapons } from '../weapons';
 import { CAST, type CastMember } from '../cast/people';
 import {
   TICKET_VOICE, GUARD_VOICE, GUARD_F_VOICE, PA_VOICE, GUEST_VOICE, GUEST2_VOICE, type Dressed, MEATHEAD_TICKET, TICKET_LADY, TICKET_NEXT, TICKET_ALARM,
-  GUARD_ALERT, GUARD_BARK, GUARD_IDLE, GUARD_WELCOME, PA_LINES, GUEST_HURRY, GUEST_CUT, TICKET_CUT, GUEST_HIT,
+  GUARD_ALERT, GUARD_BARK, GUARD_IDLE, GUARD_WELCOME, PA_LINES, GUEST_HURRY, GUEST_CUT, TICKET_CUT, GUEST_HIT, GUEST_REACT, GUEST_REACT_NOW,
 } from './lines';
 import { drawIntroBackdrop, drawIntroBack, drawIntroFront } from './draw';
 import { X0, R, CEIL_Y, UPPER, floorY, GARAGE_END, CHECK_END, STAIRS_END, USA_START, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, FRONT_X, WINDOW_X, SPACING, QUEUE_START, TURN_X, GATE_X, END_X } from './geometry';
@@ -46,7 +46,7 @@ const pick = <T,>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
 /** Somebody in line: who they are (the cast), their place in it (lower first), what they're up to. */
-export interface Guest { who: CastMember; number: number; state: 'arrive' | 'line' | 'served' | 'flee'; line?: string; voice: typeof GUEST_VOICE }
+export interface Guest { who: CastMember; number: number; state: 'arrive' | 'line' | 'served' | 'flee'; line?: string; voice: typeof GUEST_VOICE; reacted?: Dressed[] }
 /** Who's talking right now, over their head (only while the voice is going). */
 interface Said { text: string }
 
@@ -73,6 +73,8 @@ export interface Intro {
   tripped: boolean;
   /** A guard's welcomed him to the park. */
   welcomed: boolean;
+  /** The state of him the line last saw, and when somebody in it can next say something about it. */
+  seenDressed: Dressed; reactNext: number;
 }
 export const getIntro = (state: GameState) => state.stage as Intro | null;
 
@@ -105,6 +107,8 @@ export const registerIntro = () => {
 const addGuest = (state: GameState, intro: Intro, x: number, arriving: boolean) => {
   const e = makeKindEnemy('parkguest', x, GROUND_Y);
   e.seen = true; e.harmless = true; e.puppet = true; e.facing = 1; e.shootTimer = 0;
+  // (security and all: they walk on past whoever's stood there, into the line)
+  e.noCrowd = true;
   e.homeX = GUEST_SEED + (castNext++) * GUEST_STEP;
   guests.set(e, { who: castOf(e.homeX), number: intro.nextNumber++, state: arriving ? 'arrive' : 'line', voice: WOMEN.has(castOf(e.homeX).id) ? GUEST_VOICE : GUEST2_VOICE });
   state.enemies.push(e);
@@ -166,7 +170,7 @@ export const introLayout: StageLayout = {
     const intro: Intro = {
       grab: createGrab(state), provoked: false, me: null, nextNumber: 0, serveT: 0, arriveT: 0, hurryT: 0, atWindowT: 0,
       lady: { said: null, ko: 0 }, admitted: false, scene: null, office: { open: 0, cd: 0, due: 0 },
-      pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, cool: 0, tripped: false, welcomed: false,
+      pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, cool: 0, tripped: false, welcomed: false, seenDressed: 'clean', reactNext: 0,
     };
     state.stage = intro;
     state.cameraMinX = X0 - 60;
@@ -437,6 +441,24 @@ const line = (ctx: FrameContext, intro: Intro) => {
     const behind = inLine(state).filter(e => guests.get(e)!.number > intro.me!).length;
     if (behind < MAX_BEHIND) addGuest(state, intro, Math.min(px, R(FRONT_X - (members.length) * SPACING)) - 420, true);
   }
+  // The state of him: it happening right in front of them, the nearest one says so; stood near him like that, now and
+  // then one of them has something to say about it (each says it once)
+  const k = dressed(state);
+  if (k !== 'clean' && px > R(QUEUE_START) - 300 && !intro.admitted) {
+    const near = inLine(state).filter(e => Math.abs(e.pos.x + e.width / 2 - px) < 220);
+    const now = k !== intro.seenDressed;
+    if (now || state.frame > intro.reactNext) {
+      const fresh = near.filter(e => !guests.get(e)!.reacted?.includes(k));
+      const e = now ? near.sort((a, b) => Math.abs(a.pos.x - px) - Math.abs(b.pos.x - px))[0] : fresh[Math.floor(Math.random() * fresh.length)];
+      if (e) {
+        const g = guests.get(e)!;
+        (g.reacted ??= []).push(k);
+        speak(g.voice, pick((now ? GUEST_REACT_NOW : GUEST_REACT)[k]), s => { g.line = s?.text; }, now);
+        intro.reactNext = state.frame + 300 + Math.floor(Math.random() * 240);
+      } else if (!now) intro.reactNext = state.frame + 60;
+    }
+  }
+  intro.seenDressed = k;
   // Holding it up: at the front, not showing his ticket: the people behind let him know
   if (intro.atWindowT > HURRY_AFTER && !intro.scene && (intro.atWindowT - HURRY_AFTER) % HURRY_EVERY === 0) {
     const behind = inLine(state).filter(e => guests.get(e)!.number > (intro.me ?? 0));

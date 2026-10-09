@@ -74,6 +74,16 @@ export const GUEST_HURRY: Record<Dressed, string[]> = {
   shitty: ['CAN YOU HURRY UP? WE CAN SMELL YOU FROM HERE!', 'MOVE IT, STINKY!', "SIR, THE WHOLE LINE'S GAGGING. PLEASE.", 'OH GOD, THE WIND CHANGED. HURRY UP!'],
   nude: ['COULD YOU HURRY UP? AND PUT SOMETHING ON?', "SIR, MY KIDS ARE BACK HERE! MOVE IT!", "I DIDN'T PAY TO LOOK AT THAT! HURRY UP!", "WHY IS HE NAKED? WHY ISN'T HE MOVING?"],
 };
+/** The people in line, about the state of him: when it happens right there in front of them... */
+export const GUEST_REACT_NOW: Record<Exclude<Dressed, 'clean'>, string[]> = {
+  shitty: ['DID HE JUST... IN LINE?!', 'OH NO. OH NO, HE DID.', 'WHAT WAS THAT NOISE? OH GOD, THE SMELL!'],
+  nude: ['HIS PANTS JUST EXPLODED!', "WHAT IN THE... WHERE'D HIS PANTS GO?!", "OH MY GOD! COVER THE KIDS' EYES!"],
+};
+/** ...and, stood near him while he's like that, now and then. */
+export const GUEST_REACT: Record<Exclude<Dressed, 'clean'>, string[]> = {
+  shitty: ['IS THAT COMING FROM HIM?', "HONEY, DON'T BREATHE.", 'SIR. YOUR PANTS. YOUR PANTS, SIR.', 'I CAN TASTE IT. WHY CAN I TASTE IT?', 'SOMEBODY GET A MOP. AND A PRIEST.'],
+  nude: ['KIDS, LOOK AT THE FLAGS. ONLY THE FLAGS.', "SIR, YOU'RE NAKED. AT A FAMILY PARK.", 'IS HE ALLOWED IN LIKE THAT?', 'PUT IT AWAY, PAL!', "I'VE SEEN THINGS TODAY. TERRIBLE THINGS."],
+};
 /** ...when he's got past them to the window. */
 export const GUEST_CUT: Record<Dressed, string[]> = {
   clean: ['HEY! NO CUTTING!', 'BACK OF THE LINE, PAL!'],
