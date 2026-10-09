@@ -27,7 +27,10 @@ export const ADV_STAGE = 'M2 Adventure Land';
 const ALL: Record<SectionId, Section> = { jungle, queue, river, dino, temple, cart, roof, clearing };
 const sectionAt = (x: number): Section => {
   for (const id of SECTION_ORDER) { const s = ALL[id]; if (x >= s.x0 && x < s.x1) return s; }
-  return ALL.jungle;
+  // (between sections, or off the end of one: the nearest, never the jungle's for nothing)
+  let best = ALL.jungle, bestD = Infinity;
+  for (const id of SECTION_ORDER) { const s = ALL[id], d = x < s.x0 ? s.x0 - x : x - s.x1; if (d < bestD) { bestD = d; best = s; } }
+  return best;
 };
 const current = (state: GameState) => ALL[getAdv(state)?.section ?? 'jungle'];
 /** Every checkpoint in the stage, in order. */

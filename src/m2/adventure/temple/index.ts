@@ -9,7 +9,7 @@
 //                     operators are over the wall.
 //   the loading station: the line, a long one, in the background; a cart with a family in it. THE LOADING SCENE (first
 //                     visit, `loadingSeen`): he kicks them out of it one by one and sits down, and the operators, who
-//                     care, put him on the actual dangerous track. Then he's off to the mine cart (SECTIONS.cart).
+//                     care (or don't), put him on the actual dangerous track. Then he's off to the mine cart (SECTIONS.cart).
 // Cast members in the warrior costume (with real spears) along the way.
 //
 // Backtrackable: back out through the kicked-in back door, to the dino park (it stays open).
@@ -35,7 +35,7 @@ import { DINO_BACK_DOOR_X } from '../dino';
 import { drawPerson } from './people';
 import './kinds';
 import {
-  type Dressed, GUEST_KICKED, LINE_ASKS, LINE_ANSWERS, MEATHEAD_BOARDS, OPERATOR_PROTEST, OPERATOR2_ENGAGE, OPERATOR_OBJECTS, OPERATOR2_LEVER,
+  type Dressed, GUEST_KICKED, LINE_ASKS, LINE_ANSWERS, MEATHEAD_BOARDS, OPERATOR_PROTEST, OPERATOR2_ENGAGE,
   HURT_BOULDER, DEATH_BOULDER, HURT_DART, DEATH_DART, HURT_SNAKE, DEATH_SNAKE,
 } from './lines';
 
@@ -256,8 +256,7 @@ const runLoading = (ctx: FrameContext, tp: Temple): Controls => {
   }
   if (ld.step === 2) {
     ld.step = 3;
-    say(ld, 'm2.operator', OPERATOR_PROTEST[dr], () => say(ld, 'm2.operator2', OPERATOR2_ENGAGE, () =>
-      say(ld, 'm2.operator', OPERATOR_OBJECTS, () => say(ld, 'm2.operator2', OPERATOR2_LEVER[dr], () => { ld.step = 4; ld.t = 0; }))));
+    say(ld, 'm2.operator', OPERATOR_PROTEST[dr], () => say(ld, 'm2.operator2', OPERATOR2_ENGAGE, () => { ld.step = 4; ld.t = 0; }));
   }
   if (p.carried) { p.pos.x = CART_X + ld.rolling - p.width / 2; p.pos.y = GY - 18 - p.height; }
   // The lever; and away it goes

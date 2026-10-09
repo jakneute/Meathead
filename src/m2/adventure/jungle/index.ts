@@ -43,8 +43,10 @@ export const jungle: Section = {
     if (state.checkpoint === 0 && rx < 400 && state.frame > 40) once('arrive', ARRIVE);
     if (rx > 6700 && p.pos.y < GY - 300) once('gorge', GORGE);
     if (rx > 11400) once('leave', LEAVING);
-    // On into the Jungle Cruise's queue
-    if (p.pos.x + p.width / 2 > x1 - 120) { if (onVine(state)) j.hold.on = -1; p.carried = false; p.vine = undefined; teleport(state, SECTIONS.queue.x0 + 150, GY); }
+    // On into the Jungle Cruise's queue (from the end of the jungle only: the stage falls back on the jungle for
+    // anywhere that isn't in a section, and that's never a reason to send him to the queue)
+    const jx = p.pos.x + p.width / 2;
+    if (jx > x1 - 120 && jx < x1 + 600) { if (onVine(state)) j.hold.on = -1; p.carried = false; p.vine = undefined; teleport(state, SECTIONS.queue.x0 + 150, GY); }
     return out;
   },
   drawBackdrop: (c, state) => drawJungleBackdrop(c, state),

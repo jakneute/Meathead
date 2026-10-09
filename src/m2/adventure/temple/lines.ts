@@ -16,19 +16,13 @@ export const LINE_ANSWERS = "I DIDN'T EVEN KNOW THEY SOLD THAT.";
 /** Meathead, sat in the cart. */
 export const MEATHEAD_BOARDS = ['DRIVE.', 'ONE, PLEASE.', 'HIT IT.'];
 
-/** The operators: he cares (m2.operator), she cares more (m2.operator2). */
+/** The operators: he cares (m2.operator), she's done caring (m2.operator2). */
 export const OPERATOR_PROTEST: Record<Dressed, string> = {
   clean: 'SIR! SIR, YOU CAN\'T DO THAT! THOSE PEOPLE WAITED IN LINE!',
   shitty: "SIR! YOU CAN'T— OH, NO. YOU SAT DOWN. YOU SAT DOWN IN THAT.",
   nude: "SIR! YOU CAN'T RIDE NAKED! THERE'S A SIGN! ...THERE SHOULD BE A SIGN!",
 };
 export const OPERATOR2_ENGAGE = '...YOU KNOW WHAT? ENGAGE THE ACTUAL DANGEROUS TRACK.';
-export const OPERATOR_OBJECTS = "THE ACTUAL DANGEROUS TRACK? THAT TRACK'S CONDEMNED. THAT'S, LIKE, A CRIME.";
-export const OPERATOR2_LEVER: Record<Dressed, string> = {
-  clean: 'SO WAS THAT. PULL THE LEVER.',
-  shitty: 'SO IS WHAT HE DID TO THAT SEAT. PULL THE LEVER.',
-  nude: 'SO IS HIS WHOLE DEAL. PULL THE LEVER.',
-};
 
 /** What he says when these hurt him, and the death screen when they kill him. */
 export const HURT_BOULDER = ["THAT'S NOT FOAM! THAT'S NOT FOAM!", 'WHO LOADS REAL ROCKS IN A RIDE?!', 'MY SHINS! MY EVERYTHING!'];
@@ -51,6 +45,6 @@ export const VOICE_LINES: Record<string, string[]> = {
   death: [...DEATH_BOULDER, ...DEATH_DART, ...DEATH_SNAKE, ...DEATH_ACTOR, ...DEATH_SPEAR],
   'm2.guest': [...all(GUEST_KICKED), LINE_ASKS],
   'm2.guest2': [...all(GUEST_KICKED), LINE_ANSWERS],
-  'm2.operator': [...each(OPERATOR_PROTEST), OPERATOR_OBJECTS],
-  'm2.operator2': [OPERATOR2_ENGAGE, ...each(OPERATOR2_LEVER)],
+  'm2.operator': each(OPERATOR_PROTEST),
+  'm2.operator2': [OPERATOR2_ENGAGE],
 };
