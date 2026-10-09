@@ -582,12 +582,13 @@ const watch = (state: GameState, f: Fight) => {
 };
 
 /**
- * No bushes left, or him up his vine to stay: the stampede doesn't stop while he's up it or seeing stars (one after
+ * No bushes left: the stampede doesn't stop while he's up his vine or seeing stars (one after
  * another, the same way, a fair gap each: more after the elephant, the one he has to go up and over); back on his
  * feet, none new start.
  */
 const feed = (state: GameState, f: Fight) => {
-  if (f.mode === 'dead' || (liveBushes(f).length && !(f.perch && f.mode === 'dodge'))) return;
+  // (not while there's a bush left: then it's just the stampede he whistled up, however long he's up his vine)
+  if (f.mode === 'dead' || liveBushes(f).length) return;
   const up = f.mode === 'dodge' || f.mode === 'stunned' || f.mode === 'knocked' || f.mode === 'trampled';
   if (!up || f.herd.some(a => !a.done && a.warn > 0)) return;
   const running = f.herd.filter(a => !a.done);
