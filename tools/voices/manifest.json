@@ -5316,6 +5316,11 @@
  },
  {
   "voice": "death",
+  "text": "ALL YOU CAN EAT",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "ALL YOU CAN EAT MEATHEAD",
   "from": "ADVENTURE"
  },
@@ -5671,8 +5676,18 @@
  },
  {
   "voice": "death",
+  "text": "CHARGED THE POINTY END",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "CHECKED INTO THE BOARDS",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CHEWED UP BY A THEME PARK",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -5818,6 +5833,11 @@
   "voice": "death",
   "text": "DANCED TO DEATH",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DARTED",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -6131,6 +6151,11 @@
  },
  {
   "voice": "death",
+  "text": "ELECTROCUTED BY A KIDS RIDE",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "ELECTROCUTED BY AN EEL",
   "from": "ADVENTURE"
  },
@@ -6153,11 +6178,6 @@
   "voice": "death",
   "text": "ELECTROCUTED! WATER AND A POWER PLANT: NOT A COMBO",
   "from": "m1/game/stages/barry/power.ts:324"
- },
- {
-  "voice": "death",
-  "text": "END OF THE TOUR",
-  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -6216,6 +6236,11 @@
  },
  {
   "voice": "death",
+  "text": "FEEDING TIME",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "FELL FOR IT",
   "from": "content/deaths"
  },
@@ -6227,6 +6252,11 @@
  {
   "voice": "death",
   "text": "FERTILIZER",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "FIELD DRESSED",
   "from": "ADVENTURE"
  },
  {
@@ -6283,6 +6313,11 @@
   "voice": "death",
   "text": "FLATTENED BY A TANK",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FLATTENED BY AN ELEPHANT",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -6471,8 +6506,23 @@
  },
  {
   "voice": "death",
-  "text": "GUIDED TO DEATH",
+  "text": "GROUNDED. PERMANENTLY.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "GUIDED TO THE AFTERLIFE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "GUTTED LIKE A TROUT",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "HAT TRICK",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -6501,6 +6551,11 @@
  },
  {
   "voice": "death",
+  "text": "HEAD-ON WITH A TRICERATOPS",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "HEADBANGER",
   "from": "ADVENTURE"
  },
@@ -6518,6 +6573,11 @@
   "voice": "death",
   "text": "HIGH NOON",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HIPPO'D",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -6568,6 +6628,11 @@
   "voice": "death",
   "text": "HOME RUN",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HORNED",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -6647,6 +6712,11 @@
  {
   "voice": "death",
   "text": "HYDRATED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "IMPALED FROM BELOW",
   "from": "content/deaths"
  },
  {
@@ -6793,6 +6863,11 @@
   "voice": "death",
   "text": "KILLED BY A SAD LITTLE LASER",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A STRAW",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -7057,6 +7132,11 @@
  {
   "voice": "death",
   "text": "MURDERED BY A HOUSEPLANT",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "MUST GO FASTER",
   "from": "ADVENTURE"
  },
  {
@@ -7466,6 +7546,11 @@
  },
  {
   "voice": "death",
+  "text": "RAN ONTO A SPEAR",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "RANGERED",
   "from": "content/deaths"
  },
@@ -7508,6 +7593,11 @@
   "voice": "death",
   "text": "RETURN TO SENDER",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RHINO'D",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -7591,6 +7681,11 @@
  },
  {
   "voice": "death",
+  "text": "RUN DOWN BY A HIPPO",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "RUN DOWN BY A LOWRIDER",
   "from": "content/deaths"
  },
@@ -7608,6 +7703,11 @@
   "voice": "death",
   "text": "RUN OFF THE ROAD",
   "from": "m1/game/stages/oscar/chase.ts:587"
+ },
+ {
+  "voice": "death",
+  "text": "RUN OVER BY A RIDE",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -7941,6 +8041,11 @@
  },
  {
   "voice": "death",
+  "text": "SHOULDER-CHARGED A LIVE WIRE",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "SHREDDED BY GLASS",
   "from": "content/deaths"
  },
@@ -7958,6 +8063,11 @@
   "voice": "death",
   "text": "SKEWERED BY AN ICICLE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SKEWERED BY THE DRAMA CLUB",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -7988,11 +8098,6 @@
   "voice": "death",
   "text": "SLEEPING WITH THE CACTI",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "SLEEPING WITH THE HIPPOS",
-  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -8081,6 +8186,11 @@
  },
  {
   "voice": "death",
+  "text": "SPANKED TO DEATH",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "SPECIAL DELIVERY: YOU",
   "from": "m1/game/stages/dale/convoy.ts:487"
  },
@@ -8132,6 +8242,16 @@
  {
   "voice": "death",
   "text": "STEAMED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STEPPED ON",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "STOMPED A SPIKED HAT",
   "from": "content/deaths"
  },
  {
@@ -8231,6 +8351,11 @@
  },
  {
   "voice": "death",
+  "text": "SWATTED LIKE A FLY",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "SWATTED WITH THE SPORTS SECTION",
   "from": "content/deaths"
  },
@@ -8251,6 +8376,11 @@
  },
  {
   "voice": "death",
+  "text": "T-BONED",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "T-REKT",
   "from": "ADVENTURE"
  },
@@ -8263,6 +8393,11 @@
   "voice": "death",
   "text": "TACKY AND DEAD",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TAIL-WHIPPED",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -8566,6 +8701,11 @@
  },
  {
   "voice": "death",
+  "text": "THE STRONGEST LINK",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "THE TRAM ONLY GOES ONE WAY",
   "from": "content/deaths"
  },
@@ -8613,6 +8753,11 @@
   "voice": "death",
   "text": "THIN ICE",
   "from": "m1/game/stages/artie/ski.ts:541"
+ },
+ {
+  "voice": "death",
+  "text": "THREE HOLES, ONE MEATHEAD",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -8686,6 +8831,16 @@
  },
  {
   "voice": "death",
+  "text": "TOSSED HIS COOKIES. AND HIS LIFE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "TOUR OVER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "TOXIC SPRAYED",
   "from": "content/deaths"
  },
@@ -8708,11 +8863,6 @@
   "voice": "death",
   "text": "TRAMPLED FLAT BY A MOOSE",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "TRANQUILIZED",
-  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -8802,6 +8952,11 @@
  {
   "voice": "death",
   "text": "WAKE BOARDED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "WALKING-STICKED TO DEATH",
   "from": "content/deaths"
  },
  {
@@ -11531,11 +11686,6 @@
  },
  {
   "voice": "m2.operator",
-  "text": "THE ACTUAL DANGEROUS TRACK? THAT TRACK'S CONDEMNED. THAT'S, LIKE, A CRIME.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.operator",
   "text": "YOU SMELL LIKE MY WHOLE SHIFT.",
   "from": "ADVENTURE"
  },
@@ -11642,21 +11792,6 @@
  {
   "voice": "m2.operator2",
   "text": "SIR, YOU'RE NAKED. ...I'M ON BREAK, THOUGH.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.operator2",
-  "text": "SO IS HIS WHOLE DEAL. PULL THE LEVER.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.operator2",
-  "text": "SO IS WHAT HE DID TO THAT SEAT. PULL THE LEVER.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.operator2",
-  "text": "SO WAS THAT. PULL THE LEVER.",
   "from": "ADVENTURE"
  },
  {
@@ -11785,6 +11920,21 @@
   "from": "INTRO"
  },
  {
+  "voice": "m2.rex",
+  "text": "I AM A FRIENDLY TYRANNOSAURUS! PLEASE KEEP YOUR ARMS INSIDE MY MOUTH AT ALL TIMES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "RAWR! HI, KIDS! HI, KIDS! HI, KI- HI, KI- HIIIII...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "THANK YOU FOR VISITING! THANK YOU FOR VIS- THANK YOU FOR- THANK- THAAAANK...",
+  "from": "ADVENTURE"
+ },
+ {
   "voice": "m2.safari",
   "text": "...I WAS GONNA AMBUSH YOU. EMPLOYEE SHORTCUTS. YOU DON'T KNOW ABOUT THOSE.",
   "from": "ADVENTURE"
@@ -11816,7 +11966,37 @@
  },
  {
   "voice": "m2.safari",
+  "text": "BAD HIPPO! BAD!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "BLOWGUN! AUTHENTIC! I GOT IT AT THE GIFT SHOP!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "BUMPER CARTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "COME TO DADDY, MY LOVELIES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "DO YOU KNOW WHAT A BUSH COSTS IN THIS PARK?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FFFT! GOTCHA!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FIELD DRESSING!",
   "from": "ADVENTURE"
  },
  {
@@ -11826,7 +12006,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "FINE! NO MORE GAMES! STAMPEDE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOLLOW THE HAT! YOU CAN'T SEE THE HAT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FROG POISON! THE FROG DIDN'T NEED IT ANYMORE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "GET 'EM OFF! GET 'EM OFF!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "HE DIDN'T EVEN TIP.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HERE, BIG FELLA! ARTIE'S IN SEASON!",
   "from": "ADVENTURE"
  },
  {
@@ -11851,7 +12056,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "HOLD STILL! I'M TRAINED FOR HIPPOS!",
+  "text": "HOLD STILL! THIS IS HOW WE CLEAN A CATCH!",
   "from": "ADVENTURE"
  },
  {
@@ -11876,7 +12081,17 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I DO THIS FOR TIPS ON SLOW DAYS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I HAVE A DEGREE IN MARINE BIOLOGY. THIS IS WHAT IT GETS YOU.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I SEE TOUCANS...",
   "from": "ADVENTURE"
  },
  {
@@ -11921,7 +12136,12 @@
  },
  {
   "voice": "m2.safari",
-  "text": "I'VE GOT A TRANQ GUN AND NOTHING TO LOSE!",
+  "text": "I'VE BEEN MATED WITH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'VE GUTTED BIGGER FISH THAN YOU! NOT MANY!",
   "from": "ADVENTURE"
  },
  {
@@ -11931,7 +12151,17 @@
  },
  {
   "voice": "m2.safari",
+  "text": "KEEP YOUR EYE ON THE ARTIE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "KEEP YOUR HANDS AND ARMS INSIDE THE CART SO I CAN BREAK THEM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "LET'S PLAY A LITTLE GAME I LIKE TO CALL HIDE AND GUT!",
   "from": "ADVENTURE"
  },
  {
@@ -11966,6 +12196,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "MISSED ME, BIG FELLA!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "MY BROTHER WOULD'VE HAD YOU BY NOW! HE WAS AN ASSHOLE, BUT HE WAS FAST!",
   "from": "ADVENTURE"
  },
@@ -11976,7 +12211,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "MY BUSH! THEY ATE MY BUSH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NO BUSHES, NO PROBLEM! EVERYBODY STAMPEDE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "NOBODY EVER STAYS FOR THE BACKSIDE OF WATER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT MY HIPS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT THE BUCK TEETH! THOSE ARE ORIGINAL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT TODAY, SWEETHEART!",
   "from": "ADVENTURE"
  },
  {
@@ -12001,7 +12261,17 @@
  },
  {
   "voice": "m2.safari",
+  "text": "OLE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "ON YOUR LEFT, THE MIGHTY RIVER ELEPHANT. HE IS SPRAYING US. THAT IS NOT WATER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OW! NO FAIR! YOU PICKED THE RIGHT BUSH!",
   "from": "ADVENTURE"
  },
  {
@@ -12011,7 +12281,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "PICK A BUSH. ANY BUSH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "PLEASE EXIT... THROUGH THE GIFT SHOP...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "PLEASE KEEP YOUR ARMS AND LEGS INSIDE THE BUSH AT ALL TIMES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "RAMMING SPEED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ROUND AND ROUND HE GOES!",
   "from": "ADVENTURE"
  },
  {
@@ -12031,7 +12321,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "SOUND THE MATING CALL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT BUSH WAS LANDSCAPED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT CALL WORKS ON ELEPHANTS. AND ONE GUY IN ACCOUNTING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THAT WAS MY BROTHER. ALSO NAMED ARTIE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT WAS MY SPECIAL BUSH!",
   "from": "ADVENTURE"
  },
  {
@@ -12066,6 +12376,16 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THE BUSH WAS SUPPOSED TO PROTECT ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE HAND IS QUICKER THAN THE MEATHEAD!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THE HAT IS PLASTIC. IT CRACKED IN 2019. THEY SAID TAPE IT. I TAPED IT.",
   "from": "ADVENTURE"
  },
@@ -12081,22 +12401,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THEY'RE EATING MY EVERYTHING!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THEY'RE IN MY SHORTS! THEY'RE IN MY SHORTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS CONCLUDES... THE TOUR...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THIS IS AN UNAUTHORIZED RIDE EXPERIENCE!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "THIS IS ARTIE. IF ANYBODY'S LISTENING, I'D LIKE TO FILE A COMPLAINT ABOUT MAINTENANCE. TO MAINTENANCE. OVER.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "THIS IS FOR THE BOAT!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "THIS IS FOR THE ROOF!",
   "from": "ADVENTURE"
  },
  {
@@ -12111,7 +12436,17 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THIS WHISTLE MEANS \"I'M READY TO BREED.\" IN HIPPO.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THOSE ARE PIRANHAS. THEY'RE REAL. THAT'S NOT PART OF THE RIDE. NOBODY KNOWS HOW THEY GOT IN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "TWENTY YEARS OF TOURS! YOU LEARN TO JUMP!",
   "from": "ADVENTURE"
  },
  {
@@ -12122,6 +12457,21 @@
  {
   "voice": "m2.safari",
   "text": "WE GET ABOUT FOUR HUNDRED GUESTS AN HOUR. MOST OF THEM ARE BETTER THAN YOU. NO OFFENSE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WELCOME TO THE INTERACTIVE PORTION OF THE TOUR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WHAT ARE THESE?! THEY'RE NOT IN THE BROCHURE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WHICH BUSH? WHICH BUSH?",
   "from": "ADVENTURE"
  },
  {
@@ -13316,6 +13666,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BLOW DART! IN MY NECK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "BLOWING CHUNKS FOREVER!",
   "from": "M2_KILL_LINES"
  },
@@ -13338,6 +13693,11 @@
   "voice": "meathead",
   "text": "BOMB SQUAD'S DOWN A GUY!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BON APPETIT, BOYS.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -13818,6 +14178,11 @@
   "voice": "meathead",
   "text": "CLEAN UP ON AISLE YOU!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CLEAN YOUR PLATES.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -14931,6 +15296,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET OFF ME, YOU FAT RIVER PIG!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "GET OFF ME, YOU RADIOACTIVE SARDINE!",
   "from": "HAZARD_HURT"
  },
@@ -15091,6 +15461,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET YOUR GIFT SHOP TEETH OFF MY BUTT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "GET YOUR GLOW STICK OUT OF MY EAR!",
   "from": "HAZARD_HURT"
  },
@@ -15103,11 +15478,6 @@
   "voice": "meathead",
   "text": "GET YOUR HANDS OFF ME, OFFICER!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "GET YOUR HANDS OFF ME, TOUR GUIDE!",
-  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -15167,7 +15537,7 @@
  {
   "voice": "meathead",
   "text": "GIVE THOSE BACK, YOU FEATHERED BASTARD!",
-  "from": "m1/game/player/deathAnim.ts:353"
+  "from": "m1/game/player/deathAnim.ts:356"
  },
  {
   "voice": "meathead",
@@ -15611,6 +15981,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE HIT ME WITH A HIKING STICK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "HE HIT ME WITH HIS BALL AND CHAIN!",
   "from": "HAZARD_HURT"
  },
@@ -15876,6 +16251,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S GUTTING ME LIKE A FISH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S HIDING BEHIND A DOOR! COME OUT AND FIGHT!",
   "from": "HAZARD_HURT"
  },
@@ -16086,6 +16466,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HIPPO BUTT! ALL OVER ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "hipster",
   "from": "m1/game/stages/ernie/jetski.ts:136"
  },
@@ -16098,6 +16483,11 @@
   "voice": "meathead",
   "text": "HIT BY A CAR! IN AN EARTHQUAKE! TODAY SUCKS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIT BY A DINOSAUR AT HIGHWAY SPEED!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -16341,18 +16731,28 @@
  },
  {
   "voice": "meathead",
+  "text": "I AM NOT ON THE MENU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "I AM THE PUMP!",
   "from": "BULK_LINES"
  },
  {
   "voice": "meathead",
   "text": "I BENCH FOUR HUNDRED AND I'M LOSING TO A BREEZE?!",
-  "from": "m1/game/player/deathAnim.ts:402"
+  "from": "m1/game/player/deathAnim.ts:405"
  },
  {
   "voice": "meathead",
   "text": "I BENCH HEAVIER ROCKS THAN THAT FOR WARM-UP!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAME UP TO ITS KNEE!",
+  "from": "TOO_BIG_LINES"
  },
  {
   "voice": "meathead",
@@ -16402,7 +16802,12 @@
  {
   "voice": "meathead",
   "text": "I CAN'T SEE MY GAINS!",
-  "from": "m1/game/player/deathAnim.ts:353"
+  "from": "m1/game/player/deathAnim.ts:356"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CHARGED THE POINTY END!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -16438,6 +16843,11 @@
   "voice": "meathead",
   "text": "I DON'T EXPIRE. I'M NOT MILK.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T FEEL SO GOOD...",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -16661,6 +17071,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I RAN STRAIGHT ONTO THE SPEAR! SHOULDER FIRST!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "I REGRET NOTHIIIIIIING",
   "from": "m1/game/stages/ernie/bridge.ts:211"
  },
@@ -16716,6 +17131,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I STOMPED A PINCUSHION!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "I STRUCK OIL! WITH MY BODY!",
   "from": "HAZARD_HURT"
  },
@@ -16737,7 +17157,7 @@
  {
   "voice": "meathead",
   "text": "I WEIGH TWO-SIXTY! WHAT KIND OF WIND DOES THIS?!",
-  "from": "m1/game/player/deathAnim.ts:402"
+  "from": "m1/game/player/deathAnim.ts:405"
  },
  {
   "voice": "meathead",
@@ -16891,11 +17311,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I'M GETTING SLEEPY... NO I'M NOT!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "I'M GOING TO MELT YOUR SMUG FACE!",
   "from": "HURT"
  },
@@ -16913,6 +17328,11 @@
   "voice": "meathead",
   "text": "I'M GONNA LEVEL WITH YOU, PAL. I DON'T LIKE YOU. NOBODY LIKES YOU RIGHT NOW.",
   "from": "m1/game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M GONNA NEED BIGGER HANDS!",
+  "from": "TOO_BIG_LINES"
  },
  {
   "voice": "meathead",
@@ -17018,6 +17438,11 @@
   "voice": "meathead",
   "text": "I'M NOT WALKING BACK PAST THAT TICKET LADY LIKE THIS.",
   "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT WRESTLING A T. REX!",
+  "from": "TOO_BIG_LINES"
  },
  {
   "voice": "meathead",
@@ -17256,6 +17681,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IS THAT IN THE TOUR?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "IS THAT WATER? THAT LOOKS LIKE WATER. I COULD JUST JUMP IN THE WATER.",
   "from": "ADVENTURE"
  },
@@ -17268,6 +17698,11 @@
   "voice": "meathead",
   "text": "IS THIS TOMMY'S LAIR?",
   "from": "m1/game/stages/tommy/escape.ts:263"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT BIT ME! IT ACTUALLY BIT ME!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -17303,6 +17738,11 @@
   "voice": "meathead",
   "text": "IT BURNS! GET THE FUCK OUT!",
   "from": "m1/game/stages/tommy/sewer.ts:100"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT CAN RUN?! WHY CAN IT RUN?!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -17346,6 +17786,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT SPANKED ME WITH ITS TAIL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "IT STEPPED ON ME! IT STEPPED ON ALL OF ME!",
   "from": "ADVENTURE"
  },
@@ -17386,6 +17831,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S BOLTED TOGETHER! NOTHING TO GRAB!",
+  "from": "TOO_BIG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S CHEWING ON MY CALVES! THOSE ARE EXPENSIVE!",
   "from": "HAZARD_HURT"
  },
@@ -17411,6 +17861,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S GOT THREE OF THEM! I COUNTED! WITH MY SHOULDER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S HEADED FOR THE SHORTS. OH, IT'S GONNA REGRET THAT.",
   "from": "m1/game/player/animalDeaths.ts:123"
  },
@@ -17423,6 +17878,16 @@
   "voice": "meathead",
   "text": "IT'S IN MY MOUTH! WHY IS IT IN MY MOUTH?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S LIKE HUGGING A DUMP TRUCK!",
+  "from": "TOO_BIG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S LIVE! THAT PART IS LIVE!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -17911,6 +18376,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY ARMS DON'T GO AROUND THAT!",
+  "from": "TOO_BIG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "MY BLOOD IS LITERALLY FREEZING, FUCK YOU!",
   "from": "HURT"
  },
@@ -17947,7 +18417,7 @@
  {
   "voice": "meathead",
   "text": "MY EYES! MY BEAUTIFUL EYES!",
-  "from": "m1/game/player/deathAnim.ts:353"
+  "from": "m1/game/player/deathAnim.ts:356"
  },
  {
   "voice": "meathead",
@@ -17961,8 +18431,18 @@
  },
  {
   "voice": "meathead",
+  "text": "MY FEET! MY EVERYTHING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "MY FILLINGS ARE RATTLING! STOP TAZING ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY FILLINGS! I CAN TASTE MY FILLINGS!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -17988,6 +18468,16 @@
   "voice": "meathead",
   "text": "MY GUT'S DOING THE THING AGAIN. I'M OUT OF PANTS. WHERE'S IT GONNA GO?",
   "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY GUTS ARE BURNING!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY HAIR! ALL OF IT! EVERYWHERE!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -18371,6 +18861,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NICE T. REX. GOOD T. REX. ...IT'S NOT A GOOD T. REX.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "NICE TACKLE. NICE CORPSE.",
   "from": "ENEMY_KILL_LINES"
  },
@@ -18581,6 +19076,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOPE. THAT'S NOT A HUG-SIZED ANIMAL.",
+  "from": "TOO_BIG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NOPE. WHAT HAPPENS IN HAPPY LAND STAYS IN HAPPY LAND.",
   "from": "HUB"
  },
@@ -18616,6 +19116,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT THE ABS! NOT THE ABS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT THE CALVES! DO YOU KNOW HOW HARD CALVES ARE?!",
   "from": "m1/game/player/animalDeaths.ts:123"
  },
@@ -18643,6 +19148,11 @@
   "voice": "meathead",
   "text": "NOT WITHOUT PANTS. NOT EVEN IN AMERICA.",
   "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTE TO SELF: DO NOT JUMP ON THE POINTY HAT.",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -18761,6 +19271,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OH NO. IT'S COMING UP.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "OH NO. NO NO NO NO NO.",
   "from": "ADVENTURE"
  },
@@ -18782,6 +19297,11 @@
  {
   "voice": "meathead",
   "text": "OH, COME ON. IT'S THE BOAT GUY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH, GOOD. THE BIG ONE.",
   "from": "ADVENTURE"
  },
  {
@@ -19051,6 +19571,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! HE SPIT THAT AT ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! IS THAT A DIRTY NEEDLE, YOU SICK FUCK?!",
   "from": "HURT"
  },
@@ -19083,11 +19608,6 @@
   "voice": "meathead",
   "text": "OW! THE HOT STICK GOT ME!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "OW! YOU BUCK-TOOTHED PRICK!",
-  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -19158,6 +19678,11 @@
   "voice": "meathead",
   "text": "PEACEFUL PROTEST MY ASS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PEANUTS! I GOT PEANUTS! NOT ME!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -19471,6 +19996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "QUIT WHACKING ME, SCOUT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "QUIT ZAPPING MY PUMP, YOU GREEN BASTARD!",
   "from": "HAZARD_HURT"
  },
@@ -19573,6 +20103,11 @@
   "voice": "meathead",
   "text": "RETURN TO SENDER, DALE!",
   "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RHINO! RIGHT IN THE TAINT!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -20001,6 +20536,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHISH-KE-ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "SHIT",
   "from": "VULGARITIES"
  },
@@ -20158,6 +20698,11 @@
   "voice": "meathead",
   "text": "SHOULDER TO THE STRATOSPHERE!",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULDER VERSUS THREE HORNS! HORNS WIN!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -20561,6 +21106,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SPIKES! ON THE HAT! WHO PUTS SPIKES ON A HAT?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "SPINNING FIREBALLS! WHO BUILDS THESE?!",
   "from": "HAZARD_HURT"
  },
@@ -20733,6 +21283,11 @@
   "voice": "meathead",
   "text": "STING THIS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOMPED BY DUMBO!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -21006,6 +21561,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TAIL! TAIL! TAIL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "TAINTED PRODUCT ASSHOLE, I'LL BREAK YOUR VAULT!",
   "from": "HURT"
  },
@@ -21186,6 +21746,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT HIPPO'S FASTER THAN IT LOOKS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT HORN WENT PLACES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT HURTS MOTHERFUCKER",
   "from": "VULGARITIES"
  },
@@ -21306,11 +21876,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THAT WAS FOR A HIPPO!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "THAT WAS JUST A WARM-UP SET.",
   "from": "VULGARITIES"
  },
@@ -21356,6 +21921,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S A LOT OF DINOSAUR.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S A LOW BLOW, EARTH-WORM!",
   "from": "HURT"
  },
@@ -21363,6 +21933,11 @@
   "voice": "meathead",
   "text": "THAT'S A LUCKY HORSESHOE, ALL RIGHT! FOR HIM!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S A WHOLE-ASS DINOSAUR!",
+  "from": "TOO_BIG_LINES"
  },
  {
   "voice": "meathead",
@@ -21406,8 +21981,18 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S MY GOOD KIDNEY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S MY MOVE, YOU THIEVING SLAB OF BEEF!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S NOT A PET. THAT'S A BUILDING.",
+  "from": "TOO_BIG_LINES"
  },
  {
   "voice": "meathead",
@@ -21438,6 +22023,11 @@
   "voice": "meathead",
   "text": "THAT'S NOT GOOD. THAT'S A LOT OF RUMBLING.",
   "from": "m1/game/stages/tommy/escape.ts:126"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S NOT IN THE SCRIPT!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -21488,6 +22078,11 @@
   "voice": "meathead",
   "text": "THE AIR FORCE IS ON HIS SIDE TOO?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BACK END! THE BACK END IS ALSO DANGEROUS!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -21926,6 +22521,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE WHOLE ELEPHANT! THE WHOLE THING!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "THE WIND HIT ME WITH AN UMBRELLA!",
   "from": "HAZARD_HURT"
  },
@@ -22052,7 +22652,7 @@
  {
   "voice": "meathead",
   "text": "THIS ISN'T WIND! THIS IS A ROCKET ENGINE!",
-  "from": "m1/game/player/deathAnim.ts:402"
+  "from": "m1/game/player/deathAnim.ts:405"
  },
  {
   "voice": "meathead",
@@ -22113,6 +22713,11 @@
   "voice": "meathead",
   "text": "THREE GAS LINES IN HERE, BY THE SMELL. PISTOL SHOULD DO IT.",
   "from": "m1/game/stages/oscar/bar.ts:213"
+ },
+ {
+  "voice": "meathead",
+  "text": "THREE HORNS AND NO HANDLES!",
+  "from": "TOO_BIG_LINES"
  },
  {
   "voice": "meathead",
@@ -22186,6 +22791,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TINY ARMS, BIG EVERYTHING ELSE!",
+  "from": "TOO_BIG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "TINY BUG! TINY GRAVE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -22238,6 +22848,11 @@
   "voice": "meathead",
   "text": "TOO MANY EYES! TOO FEW BRAINS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOO MUCH ANIMAL!",
+  "from": "TOO_BIG_LINES"
  },
  {
   "voice": "meathead",
@@ -22318,11 +22933,6 @@
   "voice": "meathead",
   "text": "TRAIN TO FAILURE",
   "from": "VULGARITIES"
- },
- {
-  "voice": "meathead",
-  "text": "TRANQ DART! IN MY ASS!",
-  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -22546,11 +23156,6 @@
  },
  {
   "voice": "meathead",
-  "text": "WATCH IT, ARTIE!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "WATCH IT, UNION BOY!",
   "from": "HAZARD_HURT"
  },
@@ -22666,6 +23271,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHAT WAS ON THAT THING?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "WHAT? IT SAID EXIT.",
   "from": "ADVENTURE"
  },
@@ -22693,6 +23303,11 @@
   "voice": "meathead",
   "text": "WHERE DO I GO NOW?",
   "from": "m1/game/stages/tommy/escape.ts:227"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHERE DO YOU EVEN GRAB THAT?!",
+  "from": "TOO_BIG_LINES"
  },
  {
   "voice": "meathead",
@@ -22746,8 +23361,18 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO CHARGES A SPEAR?! ME! I DO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO EVEN ARE YOU?!",
   "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO GAVE IT A TURBO BUTTON?!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -22827,7 +23452,12 @@
  {
   "voice": "meathead",
   "text": "WHO PUT A JET ENGINE IN A HURRICANE?!",
-  "from": "m1/game/player/deathAnim.ts:402"
+  "from": "m1/game/player/deathAnim.ts:405"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO PUTS REAL TEETH IN A KIDS RIDE?!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -22882,7 +23512,12 @@
  {
   "voice": "meathead",
   "text": "WHO TURNED OFF THE LIGHTS?!",
-  "from": "m1/game/player/deathAnim.ts:353"
+  "from": "m1/game/player/deathAnim.ts:356"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO WHISTLES FOR A RHINO?!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -23173,6 +23808,11 @@
   "voice": "meathead",
   "text": "YOU DON'T GET ON THAT LIST BY BEING NICE.",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU DON'T SHAKE DOWN A TRICERATOPS!",
+  "from": "TOO_BIG_LINES"
  },
  {
   "voice": "meathead",
@@ -23508,6 +24148,11 @@
   "voice": "meathead",
   "text": "ZAPPED OUT OF EXISTENCE!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ZAPPED! IT ZAPPED ME!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
