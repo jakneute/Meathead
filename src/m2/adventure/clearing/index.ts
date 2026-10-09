@@ -25,7 +25,11 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES, topBand } from '../../../m1/constants';
 import { drawSafariArtie } from '../river/artie';
 import { type Dressed, MEATHEAD_KICK, ARTIE_FOUND, MEATHEAD_ARTIE } from './lines';
-import { x0, x1, TREE_X, TREE_H, TEMPLE_X, BLIND_X, BLIND_Y, ARENA_L, PICKUP_X } from './arena';
+import { x0, x1, TREE_X, TREE_H, TEMPLE_X, BLIND_X, BLIND_Y, ARENA_L, ARENA_R, PICKUP_X } from './arena';
+import { drawOrbitBackdrop, ORBIT_WRAP } from './orbit';
+import { BEASTS } from './stampede';
+import { popAliensIn } from '../../weapons/spawner';
+import type { Enemy } from '../../../m1/types';
 import { type Fight, startFight as beginFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud } from './fight';
 
 const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
@@ -50,12 +54,75 @@ interface Clearing {
   fight: 'wait' | 'on' | 'won'; wonAt: number; fence: unknown;
   f: Fight | null;
   said: Said | null; nextLine: number;
+  /** Things going off one after another (the leftover guides at the lair's door; everything in it when Artie dies). */
+  booms: { at: number; go: (ctx: FrameContext) => void }[];
+  /** Artie's death's been seen to (everything in the arena gone off). */
+  wiped: boolean;
 }
 const getClearing = (state: GameState) => sectionState<Clearing>(state, 'clearing', () => ({
   init: false, domino: firstVisit(state), scene: null, t: 0, token: 0,
   trees: TREE_X.map(() => ({ a: 0, v: 0, on: false, done: false })), trunk: null, templeHit: false,
-  fight: 'wait', wonAt: 0, fence: null, f: null, said: null, nextLine: 0,
+  fight: 'wait', wonAt: 0, fence: null, f: null, said: null, nextLine: 0, booms: [], wiped: false,
 }));
+
+// ---------------------------------------------------------------------------------------------------------------
+// Going off: a chain of them, one after another (undignified: a wet pop and bits)
+
+const meatPop = (ctx: FrameContext, x: number, y: number, size: number) => {
+  const { state, fx } = ctx;
+  fx.spawnDeathShower({ x, y }, 0, size);
+  fx.spawnExplosion({ x, y }, '#8B0000', Math.round(10 * size), 0, 16 + size * 4);
+  for (let i = 0; i < 4 + size * 2; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 9, y: -3 - Math.random() * 6 }, life: 50, color: ['#7F1D1D', '#B91C1C', '#F9A8D4'][i % 3], size: 4 + Math.random() * 4 * size, grav: 0.35 });
+  playSound('splat', 1, -size); playSound('crunch', 0.6, 4 - size); shakeScreen(state, 6 + size * 3, 3 + size);
+};
+/** A guide, gone off where he stands. */
+const popGuide = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx;
+  if (!state.enemies.includes(e) || e.health <= 0 || e.isBlownAway) return;
+  e.health = 0;
+  state.enemies = state.enemies.filter(o => o !== e);
+  meatPop(ctx, e.pos.x + e.width / 2, e.pos.y + e.height / 2, 2);
+  // (his hat, up in the air and down again)
+  state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: e.pos.y }, vel: { x: (Math.random() - 0.5) * 3, y: -9 }, life: 60, color: '#D6C9A0', size: 9, grav: 0.35 });
+};
+const liveGuides = (state: GameState) => state.enemies.filter(e => e.kind === GUIDE_KIND && e.health > 0 && !e.isBlownAway);
+/** Into the lair: every guide still about goes off, one after another (none locked in with him, none waiting outside). */
+const popGuides = (state: GameState, cl: Clearing) => {
+  liveGuides(state).forEach((e, i) => cl.booms.push({ at: state.frame + 4 + i * 9, go: ctx => popGuide(ctx, e) }));
+};
+/** Artie's dead: everything in the arena goes off, a chain, out from him (the animals running, the litter). */
+const wipeArena = (state: GameState, cl: Clearing, f: Fight) => {
+  cl.wiped = true;
+  const fromX = f.x;
+  // (none that haven't come out yet ever will)
+  for (const a of f.herd) if (!a.done && a.warn > 0) a.done = true;
+  const out = f.herd.filter(a => !a.done);
+  out.sort((a, b) => Math.abs(a.x + BEASTS[a.kind].w / 2 - fromX) - Math.abs(b.x + BEASTS[b.kind].w / 2 - fromX));
+  out.forEach((a, i) => cl.booms.push({ at: state.frame + 12 + i * 12, go: ctx => {
+    if (a.done) return;
+    a.done = true;
+    const b = BEASTS[a.kind];
+    meatPop(ctx, a.x + b.w / 2, GY - b.h / 2, b.h > 100 ? 4 : 3);
+    meatPop(ctx, a.x + b.w * 0.2, GY - b.h * 0.6, 1);
+  } }));
+  // (the litter, in slices out from him; not the ones eating what's left of him)
+  for (let k = 0; k < 6; k++) {
+    const w = 140;
+    cl.booms.push({ at: state.frame + 8 + k * 7, go: ctx => {
+      popAliensIn(ctx.state, fromX - (k + 1) * w, -4000, w, 4000 + GY + 40);
+      popAliensIn(ctx.state, fromX + k * w, -4000, w, 4000 + GY + 40);
+    } });
+  }
+  // (anybody else about in there)
+  state.enemies.filter(e => e !== f.e && e.health > 0 && !e.isBlownAway && e.type !== 'boss').forEach((e, i) => cl.booms.push({ at: state.frame + 16 + i * 10, go: ctx => popGuide(ctx, e) }));
+};
+const runBooms = (ctx: FrameContext, cl: Clearing) => {
+  if (!cl.booms.length) return;
+  const now = ctx.state.frame;
+  const due = cl.booms.filter(b => b.at <= now);
+  cl.booms = cl.booms.filter(b => b.at > now);
+  for (const b of due) b.go(ctx);
+};
 
 const artieSays = (state: GameState, cl: Clearing, text: string, onDone?: () => void) => {
   const tok = cl.token;
@@ -89,7 +156,7 @@ const fallTrees = (state: GameState, cl: Clearing) => {
       if (i === cl.trees.length - 1) {
         cl.templeHit = true;
         playSound('boom', 0.6); playSound('crunch', 0.8); shakeScreen(state, 16, 8);
-        for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: TEMPLE_X + Math.random() * 30, y: GY - 300 + Math.random() * 60 }, vel: { x: -Math.random() * 3, y: -1 - Math.random() * 3 }, life: 60, color: ['#A8A29E', '#78716C', '#D6D3D1'][k % 3], size: 4 + Math.random() * 8 });
+        for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: TEMPLE_X + Math.random() * 30, y: GY - 250 + Math.random() * 60 }, vel: { x: -Math.random() * 3, y: -1 - Math.random() * 3 }, life: 60, color: ['#A8A29E', '#78716C', '#D6D3D1'][k % 3], size: 4 + Math.random() * 8 });
       }
     }
   });
@@ -97,6 +164,7 @@ const fallTrees = (state: GameState, cl: Clearing) => {
 
 const startFight = (state: GameState, cl: Clearing) => {
   cl.fight = 'on';
+  popGuides(state, cl);
   cl.f = beginFight(state);
   cl.fence = { x: ARENA_L - 30, y: -4000, w: 30, h: 4000 + GY, type: 'wall', hidden: true, tag: 'artie-fence' };
   state.blocks.push(cl.fence as never);
@@ -126,8 +194,12 @@ const kick = (ctx: FrameContext, cl: Clearing): Controls => {
     meatheadSays(state, pick(MEATHEAD_KICK));
   }
   fallTrees(state, cl);
-  // (the view goes along the trees with them, to the temple)
-  if (t > 30) state.cameraOverride = { x: TEMPLE_X + 160 - CANVAS_WIDTH, y: state.camera.y };
+  // (the view goes along the trees with them, round the loop to the temple: it swings round as they go)
+  if (t > 30) {
+    const front = cl.trees.reduce((n, tr, i) => (tr.on ? i : n), 0);
+    const want = TREE_X[front] + 170 * Math.sin(cl.trees[front].a) + 140 - CANVAS_WIDTH / 2;
+    state.cameraOverride = { x: Math.min(TEMPLE_X + 160 - CANVAS_WIDTH, Math.max(state.camera.x, want)), y: state.camera.y };
+  }
   // All down: there he is
   if (cl.templeHit && cl.trees.every(tr => tr.done) && !cl.said && t > 0 && cl.nextLine === 0) {
     cl.nextLine = -1;
@@ -151,6 +223,7 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
     // (back for another go, or not the first time: they're down already, he's waiting)
     if (!cl.domino || state.checkpoint >= 71) { cl.domino = false; treesDown(state, cl); }
   }
+  runBooms(ctx, cl);
   if (cl.scene === 'kick') return kick(ctx, cl);
   const cx = p.pos.x + p.width / 2;
   if (cl.fight === 'wait') {
@@ -160,6 +233,11 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   } else if (cl.fight === 'on') {
     const f = cl.f!;
     const out = updateFight(ctx, f, controls);
+    if (f.mode === 'dead' && !cl.wiped) wipeArena(state, cl, f);
+    // (locked in: nothing carries him out of it, a knock, a ride, a drop, a blast)
+    const lo = ARENA_L, hi = ARENA_R + 20 - p.width;
+    if (p.pos.x < lo) { p.pos.x = lo; if (p.vel.x < 0) p.vel.x = 0; }
+    if (p.pos.x > hi) { p.pos.x = hi; if (p.vel.x > 0) p.vel.x = 0; }
     // (his death played out: the fence comes down, and on)
     if (fightOver(f)) {
       cl.fight = 'won'; cl.wonAt = state.frame;
@@ -205,14 +283,9 @@ export const clearing: Section = {
     // (the fight: the arena, all of it, on the screen)
     return cl.fight !== 'wait' ? { min: ARENA_L - 10, max: ARENA_L - 10 } : { min: x0, max: TEMPLE_X + 60 - CANVAS_WIDTH };
   },
-  drawBackdrop: (c, state) => {
-    const g = c.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    g.addColorStop(0, '#38BDF8'); g.addColorStop(1, '#BBF7D0');
-    c.fillStyle = g; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    const off = (state.camera.x * 0.25) % 140;
-    for (let i = -1; i < 8; i++) box(c, i * 140 - off, 300 - ((i * 41) % 80), 120, 400, '#166534');
-    return true;
-  },
+  // The path's a loop round the temple: the strip bent round as it curves, the temple and the rest past it (orbit.ts)
+  cylinder: () => ({ radius: ORBIT_WRAP }),
+  drawBackdrop: (c, state) => { drawOrbitBackdrop(c, state, getClearing(state).templeHit); return true; },
   drawBack: (c, state) => drawClearing(c, state),
   drawFront: (c, state) => {
     const cl = getClearing(state);
@@ -237,21 +310,22 @@ const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
   if (v.x > x1 || v.x + v.w < x0) return;
   const cl = getClearing(state);
-  // The ground
-  box(c, x0, GY, x1 - x0, 400, '#3F6212'); box(c, x0, GY, x1 - x0, 4, '#84CC16');
-  // Jungle, back (dim)
-  for (let x = x0; x < TREE_X[0] - 100; x += 130) { box(c, x + 20, GY - 260, 18, 260, '#3B2F1E'); box(c, x - 20, GY - 300, 100, 60, '#14532D'); }
+  // The ground: the path (the near side of the loop: its far side's out past the temple, orbit.ts), on past both ends
+  // (the strip's drawn wider than the screen, to bend round)
+  box(c, x0 - 1200, GY, x1 - x0 + 2400, 400, '#8A6E4B'); box(c, x0 - 1200, GY, x1 - x0 + 2400, 4, '#A88A5E');
+  for (let x = x0 - 1200; x < x1 + 1200; x += 46) box(c, x + ((x / 46) % 3) * 9, GY + 14 + ((x / 23) % 2) * 10, 10, 3, '#6E5638');
   // The rock (a guide up on it): its top lit, it's something to stand on
   box(c, ROCK.x, GY - ROCK.h, ROCK.w, ROCK.h, '#78716C'); box(c, ROCK.x, GY - ROCK.h, ROCK.w, 3, '#D6D3D1'); box(c, ROCK.x + 6, GY - ROCK.h + 14, ROCK.w - 20, 3, '#57534E');
   // A sign before it
   box(c, x0 + 940, GY - 70, 4, 70, '#57534E'); box(c, x0 + 890, GY - 94, 104, 26, '#1C1917');
   label(c, 'HUNTING AREA', x0 + 942, GY - 77, '#FCA5A5', 6);
-  // The temple's side (stepped), knocked about where the tree hit it, still standing
-  box(c, TEMPLE_X, GY - 420, 900, 420, '#7A7066');
-  for (let y = GY - 400; y < GY; y += 28) box(c, TEMPLE_X, y, 900, 2, '#615850');
-  box(c, TEMPLE_X + 110, GY - 560, 900, 140, '#857B70');
+  // The temple's wing, where it crosses the path (the rest of it's out past the strip, orbit.ts), knocked about where
+  // the tree hit it, still standing. Nothing lit along its top: it's not something to get up on
+  box(c, TEMPLE_X, GY - 220, 900, 220, '#7A7066'); box(c, TEMPLE_X, GY - 220, 6, 220, '#5E554C');
+  for (let y = GY - 186; y < GY; y += 34) box(c, TEMPLE_X, y, 900, 2, '#615850');
+  box(c, TEMPLE_X + 40, GY - 300, 900, 80, '#6F665C');
   if (cl.templeHit) {
-    box(c, TEMPLE_X, GY - 330, 40, 50, '#3F3A35'); box(c, TEMPLE_X + 10, GY - 280, 6, 60, '#3F3A35');
+    box(c, TEMPLE_X, GY - 250, 40, 56, '#3F3A35'); box(c, TEMPLE_X + 10, GY - 196, 6, 50, '#3F3A35');
     for (let i = 0; i < 5; i++) box(c, TEMPLE_X - 40 + i * 14, GY - 14 - (i % 2) * 6, 18, 14, '#A8A29E');
   }
   // Artie's blind: up on its stilts, a camouflage net round it

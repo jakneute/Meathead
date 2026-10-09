@@ -46,7 +46,11 @@ const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.t
  * Something that isn't anybody, that they'll go for all the same if it's nearer than anybody when they look (Safari
  * Artie's bushes: adventure/clearing): chewed down a bite at a time. Whoever owns them hands the gun the list.
  */
-export interface SpawnerBait { x: number; y: number; w: number; h: number; alive: () => boolean; bite: (dmg: number) => void }
+export interface SpawnerBait {
+  x: number; y: number; w: number; h: number; alive: () => boolean; bite: (dmg: number) => void;
+  /** Up in the air (a vine he's hanging off): one fired at it flies straight to it. */
+  air?: boolean;
+}
 let baitsOf: (state: GameState) => SpawnerBait[] = () => [];
 export const setSpawnerBaits = (fn: ((state: GameState) => SpawnerBait[]) | null) => { baitsOf = fn ?? (() => []); };
 /** What they've bitten out of each one since it was last asked (a fight telling their nibbles from a real hit). */
@@ -74,6 +78,10 @@ interface Alien {
   roamTo: number | null;
   /** Gone for something that isn't anybody (a bush), and latched onto it (where on it). */
   bait?: SpawnerBait | null; onBait?: { b: SpawnerBait; ox: number; oy: number } | null;
+  /** Just fired, not down yet: if it sees something up in the air to latch onto, it flies at it. */
+  fresh?: boolean;
+  /** Flying at something up in the air (somebody, or a bait), frames of it left. */
+  homing?: { e: Enemy | null; b: SpawnerBait | null; t: number } | null;
 }
 
 /** One bone, in the skeleton's own space (its feet the origin, facing right). */
@@ -125,7 +133,7 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean }, muzzle: { x: number
     aliens.push({
       x: muzzle.x, y: muzzle.y + 4, vx: dir * (7 + Math.random() * 5) + pl.vel.x * 0.5, vy: input.moveUp ? -11 - Math.random() * 3 : -3 - Math.random() * 4,
       ground: false, face: dir, life: max, max, skin: Math.random() < 0.8 ? skin : Math.floor(Math.random() * SKINS.length),
-      eyes: (1 + Math.floor(Math.random() * 3)) as 1 | 2 | 3, seed: Math.random(), target: null, retarget: 0, leapWait: 0, on: null, bite: 0, chomp: 0, roamTo: null,
+      eyes: (1 + Math.floor(Math.random() * 3)) as 1 | 2 | 3, seed: Math.random(), target: null, retarget: 0, leapWait: 0, on: null, bite: 0, chomp: 0, roamTo: null, fresh: true,
     });
   }
   // (born wet: slime off the end of it)
@@ -233,9 +241,57 @@ const gnaw = (ctx: FrameContext, a: Alien) => {
   return true;
 };
 
+/** Somebody up in the air (flying, or off the ground: on a vine, mid-leap), or a bait that's up there: in front of
+ *  the gun, near enough. The nearest. */
+const airTarget = (state: GameState, a: Alien) => {
+  let best: { e: Enemy | null; b: SpawnerBait | null } | null = null, d = 520;
+  const ahead = (x: number) => (x - a.x) * a.face > -40;
+  for (const e of state.enemies) {
+    if (!edible(state, e)) continue;
+    const cx = e.pos.x + e.width / 2, feet = e.pos.y + e.height;
+    const up = flies(e) || floorBelow(state, cx, feet - 2) - feet > 28;
+    if (!up || !ahead(cx)) continue;
+    const dd = Math.hypot(cx - a.x, e.pos.y + e.height / 2 - a.y);
+    if (dd < d) { d = dd; best = { e, b: null }; }
+  }
+  for (const b of baitsOf(state)) {
+    if (!b.air || !b.alive() || !ahead(b.x + b.w / 2)) continue;
+    const dd = Math.hypot(b.x + b.w / 2 - a.x, b.y + b.h / 2 - a.y);
+    if (dd < d) { d = dd; best = { e: null, b }; }
+  }
+  return best;
+};
+
+/** Flying at it (a short arc, homing in): on it the moment it gets there. False once it's given up (or it's gone). */
+const homeIn = (state: GameState, a: Alien) => {
+  const h = a.homing!;
+  const goneE = h.e && (!edible(state, h.e) || !state.enemies.includes(h.e)), goneB = h.b && !h.b.alive();
+  if (goneE || goneB || --h.t <= 0) { a.homing = null; return false; }
+  const tx = h.e ? h.e.pos.x + h.e.width / 2 : h.b!.x + h.b!.w / 2, ty = h.e ? h.e.pos.y + h.e.height * 0.45 : h.b!.y + h.b!.h / 2;
+  const dx = tx - a.x, dy = ty - a.y, dd = Math.hypot(dx, dy) || 1, sp = 11;
+  a.vx += ((dx / dd) * sp - a.vx) * 0.3; a.vy += ((dy / dd) * sp - a.vy) * 0.3 + 0.12;
+  if (Math.abs(a.vx) > 0.3) a.face = (a.vx > 0 ? 1 : -1);
+  if (wallAt(state, a.x + a.vx - 5, a.y + a.vy - 9, 10, 8)) { a.homing = null; return false; }
+  a.x += a.vx; a.y += a.vy; a.ground = false;
+  if (h.e && touching(a, h.e)) { a.homing = null; a.fresh = false; latch(a, h.e); }
+  else if (h.b && a.x + 5 > h.b.x && a.x - 5 < h.b.x + h.b.w && a.y > h.b.y && a.y - 9 < h.b.y + h.b.h) {
+    a.homing = null; a.fresh = false; a.bait = h.b;
+    a.onBait = { b: h.b, ox: 0.1 + Math.random() * 0.8, oy: 0.2 + Math.random() * 0.75 }; a.vx = 0; a.vy = 0; a.bite = 3 + Math.floor(Math.random() * BITE.every);
+    if (Math.random() < 0.3) playSound('chitter', 0.4, 2);
+  }
+  return true;
+};
+
 /** Loose: after somebody, leaping for what's up high; nobody about, scurrying round looking. */
 const roam = (ctx: FrameContext, a: Alien) => {
   const { state } = ctx;
+  // Just fired and still in the air: something up there to latch onto, it goes straight for it (no landing first)
+  if (a.homing && homeIn(state, a)) return;
+  if (a.fresh && !a.ground && !a.homing) {
+    const t = airTarget(state, a);
+    if (t) { a.homing = { ...t, t: 70 }; a.fresh = false; if (Math.random() < 0.5) playSound('chitter', 0.4, 8); homeIn(state, a); return; }
+  }
+  if (a.ground) a.fresh = false;
   if (a.leapWait > 0) a.leapWait--;
   if (a.bait && !a.bait.alive()) { a.bait = null; a.retarget = 0; }
   // (gone for a bait: it sticks with it till it's gone)
@@ -338,6 +394,17 @@ export const trample = (state: GameState, x: number, y: number, w: number, h: nu
   let n = 0;
   aliens = aliens.filter(a => {
     if (a.x < x || a.x > x + w || a.y < y || a.y - 6 > y + h) return true;
+    pop(state, a); n++;
+    return false;
+  });
+  if (n) playSound('squish', Math.min(1, 0.4 + n * 0.15));
+  return n;
+};
+/** Everything loose or chewing in this box pops (not the ones eating what's left of somebody: they finish). How many. */
+export const popAliensIn = (state: GameState, x: number, y: number, w: number, h: number) => {
+  let n = 0;
+  aliens = aliens.filter(a => {
+    if (a.on?.corpse || a.x < x || a.x > x + w || a.y < y || a.y - 6 > y + h) return true;
     pop(state, a); n++;
     return false;
   });

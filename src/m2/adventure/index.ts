@@ -116,4 +116,5 @@ export const advLayout: StageLayout = {
   zoom: (state) => current(state).zoom?.(state) ?? null,
   lighting: (state) => current(state).lighting?.(state) ?? null,
   cameraRow: (state) => current(state).cameraRow?.(state),
+  cylinder: (state) => current(state).cylinder?.(state) ?? null,
 };

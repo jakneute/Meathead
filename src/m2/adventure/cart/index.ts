@@ -395,7 +395,14 @@ export const cart: Section = {
     // (the cave's floor, way down under the track: the gaps go down to it)
     lay(state, [{ x1: x0, y1: GY + 700, x2: x1, y2: GY + 700, surface: 'concrete' }]);
   },
-  update: (ctx, controls) => { const out = run(ctx, controls); setUi({ introCutscene: !!ctx.state.player.inCutscene }); return out; },
+  update: (ctx, controls) => {
+    const out = run(ctx, controls);
+    setUi({ introCutscene: !!ctx.state.player.inCutscene });
+    // (sat back in it, relaxed, while it's got him: not ducking under a beam, not flying off the top of the ramp)
+    const p = ctx.state.player, cart = getCart(ctx.state);
+    p.cartSeat = p.carried && p.health > 0 && !p.isDucking && (cart.mode === 'ride' || (cart.mode === 'outro' && !cart.me?.fly));
+    return out;
+  },
   cameraRow: () => 420,
   drawBackdrop: (c, state) => {
     const g = c.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
@@ -406,7 +413,7 @@ export const cart: Section = {
     for (let i = -1; i < 7; i++) box(c, i * 160 - off, 80 + ((i * 37) % 60), 90, 380, '#2A190E');
     return true;
   },
-  drawBack: (c, state) => drawTrack(c, state),
+  drawBack: (c, state) => { drawTrack(c, state); drawCarts(c, state, true); },
   drawFront: (c, state) => drawCarts(c, state),
   drawHud: (c, state) => {
     const cart = getCart(state);
@@ -497,14 +504,19 @@ const drawTrack = (c: CanvasRenderingContext2D, state: GameState) => {
   }
 };
 
-const drawCartBox = (c: CanvasRenderingContext2D, x: number, y: number, f: number, col: string, rot = 0) => {
+/** A cart: `back` its back (built up into something to lean on: behind whoever's in it), or the rest of it, the tub
+ *  and the wheels (in front of him: he's sat down in it). */
+const drawCartBox = (c: CanvasRenderingContext2D, x: number, y: number, f: number, col: string, rot = 0, back = false) => {
   c.save(); c.translate(x, y); c.rotate(rot);
-  box(c, -36, -36, 72, 26, col); box(c, -36, -36, 72, 4, '#D6D3D1'); box(c, -36, -14, 72, 4, '#1C1917');
-  for (const wx of [-22, 22]) { c.fillStyle = '#18181B'; c.beginPath(); c.arc(wx, -6, 7, 0, Math.PI * 2); c.fill(); box(c, wx - 1 + Math.round(Math.cos(f * 0.5) * 3), -7, 2, 2, '#A1A1AA'); }
+  if (back) { box(c, -50, -64, 14, 54, col); box(c, -50, -64, 14, 4, '#D6D3D1'); box(c, -38, -64, 2, 54, 'rgba(0,0,0,0.25)'); c.restore(); return; }
+  // (a big tub of a cart)
+  box(c, -46, -40, 92, 30, col); box(c, -46, -40, 92, 4, '#D6D3D1'); box(c, -46, -14, 92, 4, '#1C1917');
+  for (const rx of [-30, -6, 18]) box(c, rx, -36, 3, 22, 'rgba(0,0,0,0.18)');
+  for (const wx of [-28, 28]) { c.fillStyle = '#18181B'; c.beginPath(); c.arc(wx, -6, 7, 0, Math.PI * 2); c.fill(); box(c, wx - 1 + Math.round(Math.cos(f * 0.5) * 3), -7, 2, 2, '#A1A1AA'); }
   c.restore();
 };
 
-const drawCarts = (c: CanvasRenderingContext2D, state: GameState) => {
+const drawCarts = (c: CanvasRenderingContext2D, state: GameState, back = false) => {
   const cart = getCart(state);
   if (cart.mode === 'gone' || (cart.mode === 'off' && !cart.artie.on)) return;
   const f = state.frame;
@@ -513,19 +525,25 @@ const drawCarts = (c: CanvasRenderingContext2D, state: GameState) => {
   if (a.end) {
     // (the end of the line: on the ramp right behind him, then flying off the top of it, arms up)
     const e = a.end, ay = riderY(e);
+    if (back) drawCartBox(c, e.x + e.drift, e.y, f, '#7C2D12', e.rot, true);
+    else {
     drawSafariArtie(c, e.x - 4, ay, 1, f, e.fly ? 'hurt' : a.said?.text ? 'talk' : 'sit');
     drawCartBox(c, e.x + e.drift, e.y, f, '#7C2D12', e.rot);
     if (a.said?.text) saidOver(c, a.said.text, e.x, ay - 96, '#FDE68A');
+    }
   } else if (a.on && Math.abs(a.x - state.camera.x - 400) < 700) {
     const ay = artieTrackY(a.x);
     const ducking = BEAMS.some(b => Math.abs(b - a.x) < 60);
+    if (back) drawCartBox(c, a.x, ay, f, '#7C2D12', 0, true);
+    else {
     drawSafariArtie(c, a.x - 4, ay - SINK + (ducking ? 22 : 0), 1, f, a.said?.text ? 'talk' : 'sit');
     drawCartBox(c, a.x, ay, f, '#7C2D12');
     label(c, 'TOUR', a.x, ay - 18, '#FDE68A', 7);
     if (a.said?.text) saidOver(c, a.said.text, a.x, ay - 110, '#FDE68A');
+    }
   }
   if (cart.mode === 'off') return;
-  if (cart.mode === 'outro' && cart.me) { drawCartBox(c, cart.me.x + cart.me.drift, cart.me.y, f, '#57534E', cart.me.rot); return; }
+  if (cart.mode === 'outro' && cart.me) { drawCartBox(c, cart.me.x + cart.me.drift, cart.me.y, f, '#57534E', cart.me.rot, back); return; }
   const rot = cart.air ? Math.max(-0.3, Math.min(0.3, cart.vy * 0.03)) : 0;
-  drawCartBox(c, cart.x, cart.y, f, '#57534E', rot);
+  drawCartBox(c, cart.x, cart.y, f, '#57534E', rot, back);
 };

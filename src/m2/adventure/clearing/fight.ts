@@ -15,7 +15,9 @@
 //
 // His weakness is the spawner. Its litter goes for a bush if it sees the bush before it sees anybody, and eats it: the
 // fewer bushes, the fewer places to hide (two: the shuffle's between two; one: no shuffle; none: he just whistles up
-// one stampede after another). Enough of them on him at once and he loses it (agitated): too busy slapping at them to
+// stampedes, one animal after another, for as long as he's up his vine or seeing stars; back on his feet, a moment's
+// lull, and he whistles them up again). They'll go for the vine he's hanging off, too, and chew through it: down he
+// drops, seeing stars, and the first animal through tramples him (the big hit). Enough of them on him at once and he loses it (agitated): too busy slapping at them to
 // get out of the way, and the first animal through flattens him: stunned, and a big hit. Whatever's stampeding runs
 // over the litter (squashed). Beaten by them (finished off while they're on him, or by the stampede he couldn't
 // dodge), they eat him to the bone; beaten any other way, he goes down face first in the dirt, rear in the air.
@@ -65,6 +67,10 @@ const STUN = 170, TRAMPLE_STUN = 150;
 const TRAMPLE_DMG = 150;
 /** The litter's bites, on him: only this share of each (one of them's nothing to him; it's what they do to him). */
 const NIBBLE_SHARE = 0.2;
+/** His vine: how much chewing it takes (it's the same vine each time he goes up, till it's chewed through). */
+const VINE_HP = 30;
+/** Hanging off it: how much vine there is above his hands (what they can get at). */
+const VINE_UP = 150;
 /** This many of the litter on him at once and he's lost it. */
 const AGITATE_AT = 4;
 /** The knife: each stab, the last one (and the drop); the blowgun's dart, the poison (every so often, for so long). */
@@ -135,6 +141,12 @@ export interface Fight {
   death: { how: 'eaten' | 'flat'; t: number; x: number; facing: 1 | -1 } | null;
   puke: { x: number; y: number; facing: 1 | -1; lastT: number } | null;
   noBushesSaid: boolean;
+  /** His vine: what's left of it, what's been chewed off it since; snapped (the bit that came down with him, falling). */
+  vineHp: number; vineChewed: number; vine: SpawnerBait; snap: { x: number; y: number; t: number } | null;
+  /** Dropped off his chewed-through vine, seeing stars: the first animal through runs him down. */
+  dropped: boolean;
+  /** No bushes left: the gap before the next animal of the endless stampede comes out (after the last one). */
+  feedGap: number;
   e: Enemy;
 }
 
@@ -143,7 +155,9 @@ let live: Fight | null = null;
 /** A fresh start (a new life): nothing of the last one's left to see. */
 export const resetFight = () => { live = null; };
 
-setSpawnerBaits(() => (live && live.mode !== 'dead' ? live.bushes.filter(b => !b.gone).map(b => b.bait) : []));
+setSpawnerBaits(() => (live && live.mode !== 'dead' ? [...live.bushes.filter(b => !b.gone).map(b => b.bait), live.vine] : []));
+/** Hanging off his vine (up, and staying there). */
+const hanging = (f: Fight) => f.mode === 'dodge' && f.t > 12 && f.vy === 0;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Artie, the enemy
@@ -217,7 +231,14 @@ export const startFight = (state: GameState): Fight => {
     hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, x: BLIND_X, y: BLIND_Y, vx: 0, vy: 0, facing: -1, arc: null,
     bush: 2, bushes: [], moves: [], moveI: 0, decoy: -1, wait: 0, after: 'whistle', stunLen: STUN,
     agitated: false, calmT: 0, swatT: 0, herd: [], stampedes: 0, overT: 0, darts: [], poison: 0, pokes: 0,
-    said: null, nextCups: 0, byWeakness: false, death: null, puke: null, noBushesSaid: false, e,
+    said: null, nextCups: 0, byWeakness: false, death: null, puke: null, noBushesSaid: false,
+    vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, e,
+  };
+  // (the vine: up over his hands while he's hanging off it)
+  f.vine = {
+    get x() { return f.x - 8; }, get y() { return f.y - 86 - VINE_UP; }, w: 16, h: VINE_UP, air: true,
+    alive: () => live === f && hanging(f),
+    bite: d => { f.vineChewed += d; },
   };
   f.bushes = BUSH_X.map(x => {
     const b: Bush = { x, hp: BUSH_HP, shake: 0, gone: false, goneAt: 0, chewed: 0, bait: null as unknown as SpawnerBait };
@@ -256,6 +277,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   takeHits(ctx, f);
   if (f.hp <= 0 && f.mode !== 'dead') die(ctx, f);
   chewBushes(ctx, f);
+  chewVine(ctx, f);
   for (const b of f.bushes) if (b.shake > 0) b.shake--;
   if (isOut(f) && f.mode !== 'dead') agitation(ctx, f);
   tickPoison(ctx, f);
@@ -287,6 +309,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
     case 'stunned':
       if (f.t % 40 === 1) playSound('twinkle', 0.4, 6);
       if (f.t >= f.stunLen) {
+        f.dropped = false;
         if (!stampedeOver(f.herd)) to(f, 'watch');
         else if (f.after === 'whistle' || f.agitated) whistle(f);
         else diveIn(state, f);
@@ -309,6 +332,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
     case 'divein': if (onArc(f)) { if (f.bushes[f.bush].gone) diveIn(state, f); else { landInBush(state, f); hide(f); } } break;
     case 'dead': if (f.death) f.death.t++; break;
   }
+  if (f.snap && ++f.snap.t > 50) f.snap = null;
+  feed(state, f);
   updateStampede(ctx, f.herd, isOut(f) && f.mode !== 'dead' ? f.x : null, a => animalAtArtie(ctx, f, a), f.mode === 'gut');
   updateDarts(ctx, f);
   sync(state, f);
@@ -512,17 +537,46 @@ const watch = (state: GameState, f: Fight) => {
   if (f.agitated) { if (f.overT > 30) whistle(f); return; }
   if (liveBushes(f).length) { if (f.overT > 20) diveIn(state, f); return; }
   if (!f.noBushesSaid) { f.noBushesSaid = true; bark(f, L.ARTIE_NO_BUSHES); }
-  if (f.overT > 80) whistle(f);
+  // (a breather, short: then he's at it again)
+  if (f.overT > 20) whistle(f);
+};
+
+/**
+ * No bushes left: the stampede doesn't stop while he's up his vine or seeing stars (one after another, the same way,
+ * a fair gap each: more after the elephant, the one he has to go up and over); back on his feet, none new start.
+ */
+const feed = (state: GameState, f: Fight) => {
+  if (f.mode === 'dead' || liveBushes(f).length) return;
+  const up = f.mode === 'dodge' || f.mode === 'stunned' || f.mode === 'knocked' || f.mode === 'trampled';
+  if (!up || f.herd.some(a => !a.done && a.warn > 0)) return;
+  const running = f.herd.filter(a => !a.done);
+  const last = running.reduce<Animal | null>((m, a) => (!m || a.t < m.t ? a : m), null);
+  if (last && last.t < f.feedGap) return;
+  const kind = pick(['rhino', 'hippo', 'elephant'] as const);
+  const dir: 1 | -1 = last ? last.dir : px(state) < ARENA_MID ? -1 : 1;
+  f.herd = running.concat(makeStampede([kind], dir, []));
+  // (the gap behind this one, before the next: so no faster one runs up its back, and there's room to get over it)
+  f.feedGap = kind === 'elephant' ? 60 + Math.random() * 30 : 10 + Math.random() * 40;
 };
 
 /** One's got to him. */
 const animalAtArtie = (ctx: FrameContext, f: Fight, a: Animal) => {
-  const { state } = ctx;
   if (f.mode === 'dead' || a.tame) return;
+  // (down off his chewed-through vine, seeing stars: run down, the same as agitated, breather or not)
+  if (f.dropped && (f.mode === 'stunned' || f.mode === 'knocked')) { f.dropped = false; flatten(ctx, f, a); return; }
   const free = f.mode === 'watch' || f.mode === 'whistle' || f.mode === 'hop' || f.mode === 'exposed';
   if (!free) return;
-  if (f.agitated) {
-    // (too busy with the litter: flattened)
+  // (too busy with the litter: flattened)
+  if (f.agitated) { flatten(ctx, f, a); return; }
+  to(f, 'dodge'); f.vy = 0;
+  playSound('jump', 0.6, 4);
+  if (Math.random() < 0.6) bark(f, L.ARTIE_DODGE);
+};
+
+/** Run down (too busy with the litter, or lying there off his vine): the big hit, flying, then stars. */
+const flatten = (ctx: FrameContext, f: Fight, a: Animal) => {
+  const { state } = ctx;
+  {
     f.hp -= TRAMPLE_DMG; f.iframes = IFRAMES; f.flash = 14;
     ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - 100 }, TRAMPLE_DMG, true);
     f.agitated = false; f.calmT = 0;
@@ -531,11 +585,21 @@ const animalAtArtie = (ctx: FrameContext, f: Fight, a: Animal) => {
     blood(state, f.x, f.y - 40, a.dir);
     if (f.hp <= 0) { f.byWeakness = true; die(ctx, f); return; }
     bark(f, L.ARTIE_TRAMPLED);
-    return;
   }
-  to(f, 'dodge'); f.vy = 0;
-  playSound('jump', 0.6, 4);
-  if (Math.random() < 0.6) bark(f, L.ARTIE_DODGE);
+};
+
+/** The vine chewed: frayed, then through, and down he comes (seeing stars, for whatever's coming). */
+const chewVine = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx;
+  if (f.vineChewed <= 0) return;
+  f.vineHp -= f.vineChewed; f.vineChewed = 0;
+  if (f.vineHp > 0 || !hanging(f)) return;
+  f.vineHp = VINE_HP;
+  f.snap = { x: f.x, y: f.y - 86, t: 0 };
+  to(f, 'knocked'); f.vx = 0; f.vy = 0; f.after = 'whistle'; f.stunLen = STUN; f.dropped = true;
+  playSound('crack', 0.9, 4); playSound('whoosh', 0.5, -2);
+  for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: f.x, y: f.y - 90 - Math.random() * 40 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 30, color: i % 2 ? '#3F6212' : '#65A30D', size: 2 + Math.random() * 3, grav: 0.2 });
+  bark(f, L.ARTIE_KNOCKED);
 };
 
 /** Shot out of his bush (or left in the open when it's eaten under him): flying out into the clearing, then stars. */
@@ -617,7 +681,10 @@ const die = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, e = f.e;
   const eaten = f.byWeakness || aliensOn(e) > 0;
   to(f, 'dead');
-  f.poison = 0; f.darts = [];
+  f.poison = 0;
+  // (the darts in the air: gone, a puff each)
+  for (const d of f.darts) for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: d.x, y: d.y }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: i % 2 ? '#FDE047' : '#DC2626', size: 2, grav: 0.2 });
+  f.darts = [];
   for (const a of f.herd) a.tame = true;
   f.flash = 0;
   if (eaten) {
@@ -722,7 +789,15 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   // The bush he's in, over his legs
   if (IN_BUSH.has(f.mode) || f.mode === 'hidden') { const b = f.bushes[f.bush]; if (b && !b.gone) drawBush(c, state, b, true); }
   // The vine he's hanging off
-  if (f.mode === 'dodge') { c.strokeStyle = '#3F6212'; c.lineWidth = 4; c.beginPath(); c.moveTo(f.x, state.camera.y - 20); c.lineTo(f.x, f.y - 86); c.stroke(); }
+  // (chewed: thinner where they've been at it, the more the thinner)
+  if (f.mode === 'dodge') {
+    const k = f.vineHp / VINE_HP, ny = f.y - 86 - VINE_UP * 0.55;
+    c.strokeStyle = '#3F6212'; c.lineWidth = 4; c.beginPath(); c.moveTo(f.x, state.camera.y - 20); c.lineTo(f.x, ny - 7); c.moveTo(f.x, ny + 7); c.lineTo(f.x, f.y - 86); c.stroke();
+    c.lineWidth = Math.max(1, 4 * k); c.beginPath(); c.moveTo(f.x, ny - 8); c.lineTo(f.x, ny + 8); c.stroke();
+    if (k < 1) { c.strokeStyle = '#A3E635'; c.lineWidth = 1; for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(f.x, ny); c.lineTo(f.x + sd * (3 + (1 - k) * 6), ny + sd * 3); c.stroke(); } }
+  }
+  // (snapped: the end of it coming down after him)
+  if (f.snap) { const t = f.snap.t, fall = t * t * 0.25; c.strokeStyle = '#3F6212'; c.lineWidth = 3; c.beginPath(); c.moveTo(f.snap.x, f.snap.y - VINE_UP * 0.55 + fall); c.lineTo(f.snap.x + Math.sin(t * 0.3) * 6, f.snap.y + fall); c.stroke(); }
   // Stars round his head
   if (f.mode === 'stunned') for (let i = 0; i < 3; i++) { const a = fr * 0.12 + (i * Math.PI * 2) / 3; star(c, f.x + Math.cos(a) * 18, f.y - 62 + Math.sin(a) * 5, '#FDE047'); }
   // Notes, the whistle

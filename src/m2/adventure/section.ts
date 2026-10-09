@@ -52,6 +52,8 @@ export interface Section {
   lighting?: (state: GameState) => SceneLight | null;
   /** Where on screen his feet sit (default 550 of 600). */
   cameraRow?: (state: GameState) => number | undefined;
+  /** The world wrapped round a turning cylinder of this radius (Meathead 1's storm-climb trick), or null: flat. */
+  cylinder?: (state: GameState) => { radius: number } | null;
   /** The camera's limits in it (default its x0..x1). */
   cameraX?: (state: GameState) => { min: number; max: number } | undefined;
 }

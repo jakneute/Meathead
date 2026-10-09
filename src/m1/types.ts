@@ -233,6 +233,8 @@ export interface Player extends Entity {
   /** Hanging off a vine (Meathead 2's jungle): one-handed, the gun in the other. How: just hanging (swinging or not),
    * climbing, the quick climb (zipUp), the quick slide (zipDown), or the push (a shoulder charge into the swing).
    * `th` how far over the vine's swung (radians, + to the right), `om` how fast it's swinging. */
+  /** Sat back in a mine cart (Meathead 2's): lounging, leaning back, the free arm draped open over the back of it. */
+  cartSeat?: boolean;
   vine?: { mode: 'hang' | 'climb' | 'zipUp' | 'zipDown' | 'push'; th: number; om: number };
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
   kickPose?: number;

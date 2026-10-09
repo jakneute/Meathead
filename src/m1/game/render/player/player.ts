@@ -107,7 +107,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Grim determination after a charge that didn't kill (like the Doom guy's rampage face)
   const isAngry = !!p.angryTimer && p.angryTimer > 0 && !isHurt && !isRelieving;
   // Sat astride the jet ski: knees forward, off-hand on the handlebars (the gun hand's free)
-  const isSeated = !!p.jetski && hurtT < 0;
+  const isSeated = (!!p.jetski || !!p.cartSeat) && hurtT < 0;
+  // (in a mine cart: sat back in it, relaxed, an arm over the back)
+  const lounging = isSeated && !p.jetski;
   // Hanging off a vine by one hand (the gun in the other): its own poses, the push among them (not the charge's)
   const vine = p.vine && hurtT < 0 && !p.headless ? p.vine : null;
   const vineMode = vine?.mode;
@@ -268,6 +270,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isUppercutting) {
     bodyRot = -0.15; // Dynamic backward launch arch
     bodyY = -6;
+  } else if (lounging) {
+    // Leaning back against the back of the cart, at his ease, rocking with the rails
+    bodyRot = -0.3;
+    bodyY = 3 + Math.sin(animFrame * 0.2) * 0.8;
   } else if (isSeated) {
     // Sat up straight, riding the chop (leaning back into the landings)
     bodyRot = isAirborne ? -0.12 : -0.04;
@@ -383,6 +389,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath();
     ctx.arc(-30, -34, 5, 0, Math.PI * 2); // Fist
     ctx.fill();
+  } else if (lounging) {
+    // Draped back over the back of the cart, open, the hand hanging over the side
+    drawReachingArm(ctx, -8, -42, -24, -44, -34, -30, skinShadow);
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(-34, -29, 4.5, 0, Math.PI * 2); ctx.fill();
   } else if (isSeated) {
     // Reaching forward to the handlebars
     drawReachingArm(ctx, -6, -40, 6, -35, 21, -40, skinShadow);
