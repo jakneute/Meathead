@@ -39,13 +39,16 @@ export const HURT_SNAKE = ['THE SNAKE! THE BIG RUBBER SNAKE!', "WHY'D IT HAVE TO
 export const DEATH_SNAKE = ['KILLED BY A PUPPET', 'SNAKE EYES', 'PNEUMATICALLY DECEASED'];
 export const HURT_ACTOR = ['THE PROP SPEAR IS REAL!', 'HE STABBED ME! IN CHARACTER!', 'STAY IN YOUR LANE, DRAMA CLUB!'];
 export const DEATH_ACTOR = ['METHOD ACTING', 'STABBED BY A CAST MEMBER', 'A TRAGIC PERFORMANCE'];
+/** Shoulder charged right onto a cast member's spear. */
+export const HURT_SPEAR = ['I RAN STRAIGHT ONTO THE SPEAR! SHOULDER FIRST!', 'WHO CHARGES A SPEAR?! ME! I DO!', "THAT'S NOT IN THE SCRIPT!", 'SHISH-KE-ME!'];
+export const DEATH_SPEAR = ['RAN ONTO A SPEAR', 'SKEWERED BY THE DRAMA CLUB', 'THE STRONGEST LINK'];
 
 const all = (r: Record<Dressed, string[]>) => [...r.clean, ...r.shitty, ...r.nude];
 const each = (r: Record<Dressed, string>) => [r.clean, r.shitty, r.nude];
 
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...MEATHEAD_BOARDS, ...HURT_BOULDER, ...HURT_DART, ...HURT_SNAKE, ...HURT_ACTOR],
-  death: [...DEATH_BOULDER, ...DEATH_DART, ...DEATH_SNAKE, ...DEATH_ACTOR],
+  meathead: [...MEATHEAD_BOARDS, ...HURT_BOULDER, ...HURT_DART, ...HURT_SNAKE, ...HURT_ACTOR, ...HURT_SPEAR],
+  death: [...DEATH_BOULDER, ...DEATH_DART, ...DEATH_SNAKE, ...DEATH_ACTOR, ...DEATH_SPEAR],
   'm2.guest': [...all(GUEST_KICKED), LINE_ASKS],
   'm2.guest2': [...all(GUEST_KICKED), LINE_ANSWERS],
   'm2.operator': [...each(OPERATOR_PROTEST), OPERATOR_OBJECTS],

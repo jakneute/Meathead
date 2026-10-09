@@ -10,7 +10,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { playSound } from '../../../m1/game/platform/audio';
 import { drawPerson, drawSpear, lookOf } from './people';
-import { HURT_ACTOR, DEATH_ACTOR } from './lines';
+import { HURT_ACTOR, DEATH_ACTOR, HURT_SPEAR, DEATH_SPEAR } from './lines';
 
 const mid = (o: { pos: { x: number; y: number }; width: number; height: number }) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
 const seedOf = (e: Enemy) => Math.abs(Math.round(e.homeX || 0)) + (e.variant ?? 0) * 31;
@@ -62,6 +62,8 @@ const stagehandAI = (ctx: FrameContext, e: Enemy): boolean => {
 
 registerM2Kind({
   kind: 'm2:actor', stats: { w: 40, h: 66, hp: 120, contact: 10, mass: 210 }, ai: actorAI, humanoid: true,
+  // (the spear out in front of them: don't shoulder charge one from the front)
+  pointy: { source: 'm2:actor_spear', label: 'SKEWERED!' },
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -66, r: 9 },
   draw: (c, e, f) => {
@@ -80,3 +82,4 @@ registerM2Kind({
 });
 
 registerHurtLines('m2:actor', HURT_ACTOR, DEATH_ACTOR);
+registerHurtLines('m2:actor_spear', HURT_SPEAR, DEATH_SPEAR);

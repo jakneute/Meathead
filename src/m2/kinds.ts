@@ -27,6 +27,11 @@ export interface M2Kind {
   gender?: 'm' | 'f' | 'n' | ((e: Enemy) => 'm' | 'f' | 'n');
   /** A machine: scrap and sparks, not blood and guts (see adventure/dino). */
   robot?: boolean;
+  /** Walls stop it going along (it doesn't walk into rock): the default for anything that doesn't fly. */
+  solid?: boolean;
+  /** Something sharp out in front (a spear, horns): shoulder charging into it from the front hurts him (the mugger's
+   *  knife). Its hurt (`source`) needs its own lines: registerHurtLines. */
+  pointy?: { source: string; label?: string; damage?: number };
   /** A person (a human skeleton, keels over flat when killed); drawn facing whichever way its AI turns it, still. */
   humanoid?: boolean;
   /**
@@ -43,7 +48,7 @@ export interface M2Kind {
 const defs = new Map<string, M2Kind>();
 export const registerM2Kind = (d: M2Kind) => {
   defs.set(d.kind, d);
-  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: d.ai, make: d.make, machine: d.robot, humanoid: d.humanoid });
+  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: d.ai, make: d.make, machine: d.robot, humanoid: d.humanoid, solid: d.solid ?? !d.stats.air, pointy: d.pointy });
   registerKindDrawer(d.kind as EnemyKind, d.draw);
   if (d.head) (KIND_HEAD as Record<string, { x: number; y: number; r: number }>)[d.kind] = d.head;
 };

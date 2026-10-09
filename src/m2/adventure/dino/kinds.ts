@@ -17,7 +17,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { getAdv } from '../section';
-import { HURT_RAPTOR, DEATH_RAPTOR, HURT_TRIKE, DEATH_TRIKE, HURT_PTERO, DEATH_PTERO, HURT_REX, DEATH_REX } from './lines';
+import { HURT_RAPTOR, DEATH_RAPTOR, HURT_TRIKE, DEATH_TRIKE, HURT_HORNS, DEATH_HORNS, HURT_PTERO, DEATH_PTERO, HURT_REX, DEATH_REX } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -57,6 +57,13 @@ const calm = (ctx: FrameContext, e: Enemy): boolean => {
 // ---------------------------------------------------------------------------------------------------------------
 // The AIs
 
+/** A rock face (or a wall) right in front of it, low enough to leap up onto. */
+const faceAhead = (state: GameState, e: Enemy, dir: number) => {
+  const feet = e.pos.y + e.height, x = dir > 0 ? e.pos.x + e.width : e.pos.x;
+  return state.blocks.some(b => !b.oneWay && (b.type === 'wall' || b.type === 'ground' || b.type === 'platform')
+    && b.y < feet - 26 && b.y > feet - 240 && (dir > 0 ? b.x >= x - 2 && b.x < x + 16 : b.x + b.w <= x + 2 && b.x + b.w > x - 16));
+};
+
 const raptorAI = (ctx: FrameContext, e: Enemy): boolean => {
   if (calm(ctx, e)) return false;
   const { state } = ctx;
@@ -69,6 +76,7 @@ const raptorAI = (ctx: FrameContext, e: Enemy): boolean => {
       const home = e.homeX ?? e.pos.x;
       if (e.facing === undefined) e.facing = -1;
       if (Math.abs(e.pos.x - home) > 80) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
+      if (faceAhead(state, e, e.facing)) e.facing = (-e.facing) as 1 | -1;
       e.vel.x = e.facing * 1.1;
       if (sees(state, e, 520, 280)) { e.aiState = 'stalk'; e.aiTimer = 0; playSound('snort', 0.6, 8); }
       break;
@@ -79,6 +87,8 @@ const raptorAI = (ctx: FrameContext, e: Enemy): boolean => {
       // (him up on a ledge: up after him)
       if (grounded && p.y < m.y - 60 && adx < 230 && e.aiTimer > 24) { e.vel.y = -13.5; e.vel.x = e.facing * 4.2; e.aiTimer = 0; playSound('jump', 0.4, 6); }
       else if (grounded && adx < 170 && Math.abs(p.y - m.y) < 70) { e.aiState = 'crouch'; e.aiTimer = 0; }
+      // (a rock face in the way: up onto it)
+      else if (grounded && adx > 40 && faceAhead(state, e, e.facing) && e.aiTimer > 10) { e.vel.y = -13.5; e.vel.x = e.facing * 3.2; e.aiTimer = 0; playSound('jump', 0.4, 6); }
       if (!sees(state, e, 800, 420)) { e.aiState = 'idle'; e.aiTimer = 0; e.homeX = e.pos.x; }
       break;
     case 'crouch':
@@ -343,13 +353,14 @@ const drawRex = (c: Ctx, e: Enemy, f: number) => {
 export const DINO_KINDS = { raptor: 'm2:raptor', trike: 'm2:trike', ptero: 'm2:ptero', rex: 'm2:rex' } as const;
 
 registerM2Kind({ kind: 'm2:raptor', stats: { w: 64, h: 50, hp: 140, contact: 12, mass: 170 }, ai: raptorAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawRaptor(c, e, f); }, head: { x: 27, y: -50, r: 8 }, gender: 'n', robot: true, grab: 'body' });
-registerM2Kind({ kind: 'm2:trike', stats: { w: 96, h: 56, hp: 260, contact: 14, mass: 700 }, ai: trikeAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawTrike(c, e, f); }, head: { x: 50, y: -38, r: 10 }, gender: 'n', robot: true, grab: 'none' });
+registerM2Kind({ kind: 'm2:trike', stats: { w: 96, h: 56, hp: 260, contact: 14, mass: 700 }, ai: trikeAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawTrike(c, e, f); }, head: { x: 50, y: -38, r: 10 }, gender: 'n', robot: true, grab: 'none', pointy: { source: 'm2:trike_horns', label: 'GORED!', damage: 14 } });
 registerM2Kind({
   kind: 'm2:ptero', stats: { w: 70, h: 30, hp: 60, contact: 10, mass: 70, air: true }, ai: pteroAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawPtero(c, e, f); }, head: { x: 22, y: -22, r: 6 }, gender: 'n', robot: true, grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
 });
 registerM2Kind({ kind: 'm2:rex', stats: { w: 150, h: 140, hp: 900, contact: 20, mass: 1800 }, ai: rexAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawRex(c, e, f); }, head: { x: 58, y: -118, r: 16 }, gender: 'n', robot: true, grab: 'none' });
 
+registerHurtLines('m2:trike_horns', HURT_HORNS, DEATH_HORNS);
 registerHurtLines('m2:raptor', HURT_RAPTOR, DEATH_RAPTOR);
 registerHurtLines('m2:trike', HURT_TRIKE, DEATH_TRIKE);
 registerHurtLines('m2:ptero', HURT_PTERO, DEATH_PTERO);

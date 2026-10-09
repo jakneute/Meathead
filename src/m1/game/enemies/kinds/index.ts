@@ -170,6 +170,11 @@ export interface KindDef {
   stats: KindStats; ai?: (ctx: FrameContext, e: Enemy) => boolean; make?: (base: Enemy) => Enemy;
   /** A machine: it doesn't bleed (scrap, sparks and oil: see machineGore). */ machine?: boolean;
   /** A person (isHumanoidKind: a human skeleton, keels over flat, grabbed by the neck), but facing its own way when drawn. */ humanoid?: boolean;
+  /** Walls stop it: going along, it doesn't walk (or pounce, or charge) into rock or a wall, it stops against it. */ solid?: boolean;
+  /** Something sharp out in front of it (a spear, horns): shoulder charged from the front, he runs onto it, like the
+   *  mugger's knife (thrown back, hurt, the charge over; it's not touched). `source` is the hurt (its lines), `label`
+   *  what pops up, `damage` how much (the knife's, if not said). */
+  pointy?: { source: string; label?: string; damage?: number };
 }
 const kindDefs = new Map<EnemyKind, KindDef>();
 export const registerKind = (kind: EnemyKind, def: KindDef) => { KIND_STATS[kind] = def.stats; kindDefs.set(kind, def); };

@@ -31,7 +31,7 @@ import { ejectLowriderCrew } from './gunDeaths';
 import { getEnemyMass, enemyGrip, massRatio } from '../combat/knockback';
 import { floorTopAt, groundLineAt } from '../core/terrain';
 import { getStageLeft, getStageLayout } from '../stages';
-import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, safeAhead, walkableTo, isSmallCritter, weakShot } from './kinds';
+import { kindDef, runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, safeAhead, walkableTo, isSmallCritter, weakShot } from './kinds';
 import { selfPropelled } from './kinds/hector';
 import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
@@ -98,7 +98,10 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
 
   const shoveSpeed = e.vel.x;
   const shockedAt = e.shockedUntil !== undefined && e.shockedUntil >= ctx.state.frame && e.type !== 'boss' ? e.pos.x : null;
+  const xWas = e.pos.x;
   moveEnemy(ctx, e);
+  // (one that walls stop, going along under its own steam: stopped against them, not into them)
+  if (kindDef(e.kind)?.solid && !e.isBlownAway && !((e.pauseTimer || 0) > 0)) keepOutOfWalls(ctx.state, e, xWas);
   // (being electrocuted: going nowhere, whatever it was doing)
   if (shockedAt !== null && !e.isBlownAway) { e.pos.x = shockedAt; e.vel.x = 0; }
   // (running from him: turned away, and whatever it was doing to come at him undone)
@@ -132,6 +135,25 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
 const floorUnder = (state: FrameContext['state'], e: Enemy, reach = 26) =>
   floorTopAt(state.blocks, e.pos.x + e.width / 2, e.pos.y + e.height, reach);
 const hasFloorBelow = (state: FrameContext['state'], e: Enemy) => floorUnder(state, e) !== null;
+
+/** Gone into a wall (or the face of rock or ground higher than a step) since `xWas`: back out against it. */
+const keepOutOfWalls = (state: FrameContext['state'], e: Enemy, xWas: number) => {
+  const dx = e.pos.x - xWas;
+  if (!dx) return;
+  const feet = e.pos.y + e.height;
+  for (const b of state.blocks) {
+    if (b.oneWay || !(b.type === 'wall' || b.type === 'ground' || b.type === 'platform')) continue;
+    // (a step it walks up, or something over its head)
+    if (b.y >= feet - SHOVE_STEP || b.y + b.h <= e.pos.y + 4) continue;
+    if (e.pos.x + e.width <= b.x || e.pos.x >= b.x + b.w) continue;
+    // (only a face it's just gone through: not one it was already in, say set into a hole in the rock)
+    const crossed = dx > 0 ? xWas + e.width <= b.x + 1 : xWas >= b.x + b.w - 1;
+    if (!crossed) continue;
+    e.pos.x = dx > 0 ? b.x - e.width : b.x + b.w;
+    e.vel.x = 0;
+    return;
+  }
+};
 
 /**
  * Knocked clean off the stage: an enemy that ends up entirely outside anywhere
@@ -1209,21 +1231,24 @@ const KNIFE_DAMAGE = 16;
 const knifeFirst = (ctx: FrameContext, e: Enemy): boolean => {
   const { state, fx, cheats } = ctx;
   const p = state.player;
-  if (e.kind !== 'mugger' || !p.isCharging || p.isSliding || e.health <= 0 || e.isBlownAway || isFrozen(e) || (e.pauseTimer || 0) > 0) return false;
+  // (the mugger's switchblade; or a kind with something as sharp out in front of it, a spear, horns)
+  const pointy = e.kind === 'mugger' ? { source: 'mugger_knife', label: 'STABBED!', damage: KNIFE_DAMAGE } : kindDef(e.kind)?.pointy;
+  if (!pointy || !p.isCharging || p.isSliding || e.health <= 0 || e.isBlownAway || isFrozen(e) || (e.pauseTimer || 0) > 0) return false;
   if (e.hitByMove === p.moveId || !rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return false;
   const pc = p.pos.x + p.width / 2, ec = e.pos.x + e.width / 2;
   const side = pc < ec ? -1 : 1;
-  const facing = Math.abs(e.vel.x) > 0.5 ? Math.sign(e.vel.x) : side;
+  // (which way it's pointed: the mugger the way he's going (or at him); one of the others, the way it faces)
+  const facing = e.kind === 'mugger' ? (Math.abs(e.vel.x) > 0.5 ? Math.sign(e.vel.x) : side) : (e.facing ?? side);
   if (facing !== side) return false;
   e.hitByMove = p.moveId;
   harmlessBounce(ctx, e, PLAYER_PUSHBACK_VEL_X * 1.4, PLAYER_PUSHBACK_VEL_Y);
   if (p.invincibilityTimer <= 0) {
-    if (!cheats.invincible) p.health -= KNIFE_DAMAGE;
+    if (!cheats.invincible) p.health -= pointy.damage ?? KNIFE_DAMAGE;
     p.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES; p.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
     p.isHarmlessPushback = false; p.smugTimer = 0;
-    fx.speakVulgarity('hurt', 'mugger_knife');
+    fx.speakVulgarity('hurt', pointy.source);
     fx.spawnDeathShower({ x: pc, y: p.pos.y + p.height / 2 }, side, 0.8);
-    fx.spawnDamageNumber({ x: p.pos.x - 10, y: p.pos.y - 20 }, 'STABBED!', true, '#F87171');
+    fx.spawnDamageNumber({ x: p.pos.x - 10, y: p.pos.y - 20 }, pointy.label ?? 'STABBED!', true, '#F87171');
     shakeScreen(state, 10, 6);
   }
   e.vel.x = 0;
@@ -1347,7 +1372,9 @@ const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
   // teleported to the end of the ceiling block). Where it was before this move tells which.
   const prevMidX = e.pos.x + e.width / 2 - speed;
   const wall = state.blocks.find(b => (b.type === 'wall' || (b.type === 'door' && state.doorState !== 'opening' && state.doorState !== 'open' && state.doorState !== 'closing'))
-    && rectsOverlap(boundsOf(e), b) && !(prevMidX > b.x && prevMidX < b.x + b.w));
+    && rectsOverlap(boundsOf(e), b) && !(prevMidX > b.x && prevMidX < b.x + b.w)
+    // (one it's stood on top of is its floor, not a wall: a rock step, a wall's top)
+    && b.y < e.pos.y + e.height - 8);
   if (!wall) return false;
 
   const dir = Math.sign(speed) || (e.pos.x + e.width / 2 < wall.x + wall.w / 2 ? 1 : -1);

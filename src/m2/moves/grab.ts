@@ -44,6 +44,9 @@ import { m2Grab, m2Kind } from '../kinds';
 import { isMachineKind } from '../../m1/game/enemies/kinds';
 import { markMachineGore } from '../../m1/game/enemies/machineGore';
 import { hurtPlayer } from '../../m1/game/bosses/shared';
+import { enemyGender } from '../../m1/content/gender';
+import { meatheadSays } from '../adventure/section';
+import { TOO_BIG_LINES, TOO_BIG_BY_KIND } from '../lines/weaponLines';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -219,15 +222,27 @@ const letGo = (state: GameState, g: Grab, toss = false) => {
   end(state, g);
 };
 
-/** The nearest one he could get his hands on, in front of him, within `reach` of his front. */
-const inReach = (state: GameState, dir: number, reach: number) => {
+/** An animal far too big to get hold of (not a boss: they've their own business). */
+const tooBigAnimal = (e: Enemy | null) => !!e && e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss' && !isCritter(e) && !grabbable(e) && enemyGender(e) === 'n';
+/** ...and he says so (not every time). */
+let tooBigAt = -9999;
+const tooBig = (state: GameState, e: Enemy) => {
+  if (state.frame - tooBigAt < 150) return;
+  tooBigAt = state.frame;
+  const own = (e.kind && TOO_BIG_BY_KIND[e.kind]) || [];
+  const pool = own.length && Math.random() < 0.7 ? own : TOO_BIG_LINES;
+  meatheadSays(state, pool[Math.floor(Math.random() * pool.length)], false);
+};
+
+/** The nearest one he could get his hands on, in front of him, within `reach` of his front (`any`: whether he could or not). */
+const inReach = (state: GameState, dir: number, reach: number, any = false) => {
   const p = state.player;
   const front = dir > 0 ? p.pos.x + p.width : p.pos.x;
   let best: Enemy | null = null, bestD = Infinity;
   const mid = p.pos.x + p.width / 2;
   for (const e of state.enemies) {
     const critter = isCritter(e);
-    if (!canGrab(state, e)) continue;
+    if (any ? e.health <= 0 || e.isBlownAway || e.innocent : !canGrab(state, e)) continue;
     // (forgiving up and down: somebody just landing from a throw, still bouncing, is in reach; a bird a good way up too)
     const slack = critter ? 60 : 24;
     if (e.pos.y > p.pos.y + p.height + slack || e.pos.y + e.height < p.pos.y - slack) continue;
@@ -546,7 +561,15 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // Hands out for his throat: committed (whatever hits him, he takes it, and keeps coming); anybody who comes into
       // reach while they're going out is got hold of then and there
       const e = inReach(state, g.dir, GRAB_REACH);
-      if (!e) { if (g.t >= REACH) { g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6); } return hold(); }
+      if (!e) {
+        if (g.t >= REACH) {
+          g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6);
+          // (hands out at something far too big to get hold of)
+          const big = inReach(state, g.dir, GRAB_REACH, true);
+          if (tooBigAnimal(big)) tooBig(state, big!);
+        }
+        return hold();
+      }
       if (isCritter(e)) return grabCritter(ctx, g, e, hold);
       // Got him: up by the neck (in the air: down they both come first, no harm in the landing for him)
       g.phase = p.isGrounded ? 'shake' : 'drop'; g.t = 0; g.held = e; g.thrown = null; take(state, e); g.fall = 0;
@@ -569,6 +592,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (hit && !canGrab(state, hit)) {
         placeAt(state, g.dir > 0 ? hit.pos.x - p.width : hit.pos.x + hit.width, p.pos.x);
         g.phase = 'whiff'; g.t = 0; playSound('thud', 0.8, -4); shakeScreen(state, 4, 3);
+        if (tooBigAnimal(hit)) tooBig(state, hit);
         return hold();
       }
       if (!hit) { const nx = p.pos.x + g.dir * LUNGE_SPEED; if (!walled(state, nx)) p.pos.x = nx; }
