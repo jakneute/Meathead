@@ -2,7 +2,8 @@
 // ice in Home Alone 2: their feet fly out from under them the way they were facing, they come down flat on their back,
 // and they go, sliding along the slick on their back, flailing, till they hit a wall, or somebody alive (who takes a
 // knock for it by its weight and speed, and trips; and if that kills him, he's off on his own slide), or go off the
-// edge of something (down stairs, they land and keep going; off a cliff, gone). Something in the air comes down to the
+// edge of something (down stairs, they land and keep going; off a cliff, gone); and come to a stop, a twitch, and they
+// burst. Something in the air comes down to the
 // floor first, flailing, and then goes. The dead don't hit the dead: they slide through each other.
 // A body's taken out of the enemies when it starts (it's not one any more), and moved and drawn here.
 
@@ -23,8 +24,8 @@ type Ctx = CanvasRenderingContext2D;
 type Phase = 'fall' | 'slip' | 'slide' | 'drop' | 'rest';
 interface Slider { e: Enemy; x: number; feet: number; vx: number; vy: number; dir: 1 | -1; t: number; phase: Phase; turn: number; lift: number; restT: number }
 
-/** The slip (frames), how fast they go, how quickly the slick lets them slow, how long they lie there after. */
-const SLIP = 16, SPEED = 10, FRICTION = 0.085, LIE = 900, MAX_BODIES = 24;
+/** The slip (frames), how fast they go, how quickly the slick lets them slow, how long they lie there twitching before they burst. */
+const SLIP = 16, SPEED = 10, FRICTION = 0.085, LIE = 45, MAX_BODIES = 24;
 /** A bump into somebody alive: how hard (by the body's weight and speed), never more than this. */
 const BUMP = 2.2, BUMP_MAX = 30;
 
@@ -139,7 +140,14 @@ const tickOne = (ctx: FrameContext, s: Slider): boolean => {
       break;
     }
     case 'rest':
-      if (++s.restT > LIE) return false;
+      // (come to a stop: a twitch or two, and then put out of its misery: it bursts)
+      if (++s.restT >= LIE) {
+        const cx = s.x + s.dir * (isHumanoidKind(e.kind) ? e.height * 0.2 : 0), cy = s.feet - 10;
+        ctx.fx.spawnDeathShower({ x: cx - e.width / 2, y: cy - e.height / 2 }, 0, 1.2);
+        ctx.fx.spawnExplosion({ x: cx, y: cy }, '#8B0000', 16, 0, 10);
+        playSound('splat', 1, -2); playSound('crunch', 0.6, 2);
+        return false;
+      }
       break;
   }
   // (flailing: the legs going as if running, faster the faster it goes; a twitch now and then after)
@@ -153,7 +161,7 @@ export const tickGoreSlides = (ctx: FrameContext) => { if (sliders.length) slide
 export const drawGoreSlides = (c: Ctx, state: GameState) => {
   for (const s of sliders) {
     const e = s.e, k = s.turn, f = state.frame + s.t;
-    const fade = s.phase === 'rest' && s.restT > LIE - 60 ? (LIE - s.restT) / 60 : 1;
+    const fade = 1;
     const flail = s.phase === 'rest' ? 0 : Math.sin(f * 0.9) * 0.14 + Math.sin(f * 1.7) * 0.06;
     c.save(); c.globalAlpha = fade;
     if (isHumanoidKind(e.kind)) {
@@ -166,3 +174,5 @@ export const drawGoreSlides = (c: Ctx, state: GameState) => {
     c.restore();
   }
 };
+/** (for tests: what each body is doing) */
+export const goreSlidesForTests = () => sliders.map(s => `${s.e.kind}:${s.phase}:${s.restT}:${Math.round(s.vx * 10) / 10}:${Math.round(s.x)}`);
