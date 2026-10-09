@@ -11,9 +11,10 @@ import { clearSkyCache } from './intro/art/sky';
 export interface M2Cheats { god: boolean; ammo: boolean; allWeapons: boolean }
 let cheats: M2Cheats = { god: false, ammo: false, allWeapons: false };
 const listeners = new Set<() => void>();
-const ping = () => listeners.forEach(l => l());
+/** (a fresh copy each time, so whatever's showing them redraws: the pants and the hour too) */
+const ping = () => { cheats = { ...cheats }; listeners.forEach(l => l()); };
 export const getCheats = () => cheats;
-export const setCheat = (k: keyof M2Cheats, on: boolean) => { if (cheats[k] === on) return; cheats = { ...cheats, [k]: on }; ping(); };
+export const setCheat = (k: keyof M2Cheats, on: boolean) => { if (cheats[k] === on) return; cheats = { ...cheats, [k]: on }; listeners.forEach(l => l()); };
 export const subscribeCheats = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l); }; };
 
 /** What he can pick from: what he's got this playthrough (store.ts), or the lot (the cheat). In arsenal order. */

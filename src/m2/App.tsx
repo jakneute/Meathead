@@ -36,7 +36,8 @@ import { clearSkyCache } from './intro/art/sky';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi, goTo } from './store';
+import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill } from './store';
+import { getCheats, subscribeCheats, availableWeapons, subscribeArsenal, setLiveState } from './cheats';
 import { attachM2Keys } from './input';
 import { setFireKeys } from '../m1/game/platform/input';
 import { setRayGun } from '../m1/game/combat/rayGun';
@@ -91,12 +92,12 @@ setHurtScale(0.65);
 setDropTable({ health: 0.06, ammo: 0.05 });
 registerWeapons();
 
-/** What he's carrying (weapons/index.ts). */
-const WEAPONS: WeaponType[] = M2_WEAPONS;
+/** What he can pick from: what he's got this playthrough, or every weapon (the cheat): cheats.ts. */
+const arsenal = availableWeapons;
 const STARTING_AMMO = createFullAmmo();
-/** In the staff room (the practice pen) he can't be hurt (no flicker for it: it's how the room is) and nothing runs out of ammo; everywhere else he can, and it does. */
+/** In the staff room (the practice pen) he can't be hurt (no flicker for it: it's how the room is) and nothing runs out of ammo; everywhere else he can, and it does (bar the cheats: cheats.ts). */
 const PRACTICE = { invincible: true, infiniteAmmo: true, infinitePower: false, skipToBoss: false };
-const PLAY = { ...PRACTICE, invincible: false };
+const PLAY = { ...PRACTICE, invincible: false, infiniteAmmo: false };
 const noop = () => {};
 
 const useFitToWindow = () => {
@@ -119,6 +120,14 @@ const App2: React.FC = () => {
   const [hud, setHud] = useState({ health: INITIAL_PLAYER_HEALTH, power: 0, ammo: STARTING_AMMO as Record<WeaponType, number> });
   const ammoRef = useRef(hud.ammo);
   const [initialAmmo, setInitialAmmo] = useState(STARTING_AMMO as Record<WeaponType, number>);
+  // (what he can pick from, and the cheats: the arsenal shrinks back to what he's got when ALL WEAPONS goes off, and
+  // if he's holding one he hasn't got, it's the ray gun)
+  const owned = useSyncExternalStore(subscribeArsenal, availableWeapons);
+  const cheat = useSyncExternalStore(subscribeCheats, getCheats);
+  useEffect(() => {
+    if (!owned.includes(weapon)) setWeapon('GUN');
+    setPauseSel(i => (i < owned.length ? i : Math.max(0, owned.indexOf(owned.includes(weapon) ? weapon : 'GUN'))));
+  }, [owned]);
 
   // Off to a stage: through black, the stage cleared, then built
   useEffect(() => {
@@ -140,7 +149,9 @@ const App2: React.FC = () => {
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: false });
       setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false });
       setFade(true);
-      setTimeout(() => { pending.current = to; setInitialAmmo({ ...ammoRef.current }); setStatus(GameStatus.START); }, 260);
+      // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
+      const refill = (dest !== 'hub' && dest !== 'pen') || (to === HUB_STAGE && takeBossKill());
+      setTimeout(() => { pending.current = to; setInitialAmmo(refill ? createFullAmmo() : { ...ammoRef.current }); setStatus(GameStatus.START); }, 260);
     });
   }, [stage]);
 
@@ -151,21 +162,21 @@ const App2: React.FC = () => {
   const live = useRef({ status, weapon, stage });
   live.current = { status, weapon, stage };
   /** (in the intro's pause menu, there's SKIP INTRO after RESUME) */
-  const lastPause = () => (live.current.stage === INTRO_STAGE ? WEAPONS.length + 1 : WEAPONS.length);
+  const lastPause = () => (live.current.stage === INTRO_STAGE ? arsenal().length + 1 : arsenal().length);
   const skipIntro = () => { setStatus(GameStatus.PLAYING); goTo('hub'); };
   const togglePause = () => {
     const st = live.current.status;
     // (a scene that can be skipped: START / ESC skips it, rather than pausing)
     if (st === GameStatus.PLAYING && canSkip()) { requestSkip(); return; }
-    if (st === GameStatus.PLAYING) { setPauseSel(getUi().noSwitch ? WEAPONS.length : Math.max(0, WEAPONS.indexOf(live.current.weapon))); setStatus(GameStatus.PAUSED); }
+    if (st === GameStatus.PLAYING) { setPauseSel(getUi().noSwitch ? arsenal().length : Math.max(0, arsenal().indexOf(live.current.weapon))); setStatus(GameStatus.PAUSED); }
     else if (st === GameStatus.PAUSED) setStatus(GameStatus.PLAYING);
   };
   const resume = () => { if (live.current.status === GameStatus.PAUSED) setStatus(GameStatus.PLAYING); };
   // (stuck with what he's got, for now: the mine cart)
-  const equip = (i: number) => { if (WEAPONS[i] && !getUi().noSwitch) setWeapon(WEAPONS[i]); };
+  const equip = (i: number) => { if (arsenal()[i] && !getUi().noSwitch) setWeapon(arsenal()[i]); };
   /** In the pause menu: the arsenal's a grid three across, RESUME under it. */
   const movePause = (dx: number, dy: number) => setPauseSel(i => {
-    const n = WEAPONS.length;
+    const n = arsenal().length;
     if (i >= n) { if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return n; return dy < 0 ? Math.min(n - 1, Math.floor((n - 1) / 3) * 3) : i; }
     if (dy > 0) return i + 3 < n ? i + 3 : n;
     if (dy < 0) return i - 3 >= 0 ? i - 3 : i;
@@ -173,11 +184,11 @@ const App2: React.FC = () => {
   });
   const pauseSelRef = useRef(pauseSel);
   pauseSelRef.current = pauseSel;
-  const confirmPause = () => { const i = pauseSelRef.current; if (i === WEAPONS.length + 1) skipIntro(); else if (i >= WEAPONS.length) resume(); else equip(i); };
+  const confirmPause = () => { const i = pauseSelRef.current; if (i === arsenal().length + 1) skipIntro(); else if (i >= arsenal().length) resume(); else equip(i); };
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
   useEffect(() => {
-    const cycle = (d: number) => { if (!getUi().noSwitch) setWeapon(w => WEAPONS[(WEAPONS.indexOf(w) + d + WEAPONS.length) % WEAPONS.length]); };
+    const cycle = (d: number) => { if (!getUi().noSwitch) setWeapon(w => arsenal()[(arsenal().indexOf(w) + d + arsenal().length) % arsenal().length]); };
     const playing = () => live.current.status === GameStatus.PLAYING, paused = () => live.current.status === GameStatus.PAUSED;
     const onWheel = (e: WheelEvent) => { if (playing() || paused()) cycle(e.deltaY > 0 ? 1 : -1); };
     const onKey = (e: KeyboardEvent) => {
@@ -186,7 +197,7 @@ const App2: React.FC = () => {
       if (e.repeat) return;
       if (e.code === 'Escape' || e.code === 'KeyP') { togglePause(); return; }
       const digit = /^Digit([1-9])$/.exec(e.code);
-      if (digit && (playing() || paused())) { const i = +digit[1] - 1; equip(i); if (paused() && i < WEAPONS.length && !getUi().noSwitch) setPauseSel(i); return; }
+      if (digit && (playing() || paused())) { const i = +digit[1] - 1; equip(i); if (paused() && i < arsenal().length && !getUi().noSwitch) setPauseSel(i); return; }
       if (!paused()) return;
       if (e.code === 'ArrowLeft' || e.code === 'KeyA') movePause(-1, 0);
       else if (e.code === 'ArrowRight' || e.code === 'KeyD') movePause(1, 0);
@@ -224,9 +235,9 @@ const App2: React.FC = () => {
         }
         // The weapon wheel, on the right stick: push it any way and it comes up, pointing at a weapon; let it go and
         // that's the one (not on a Joy-Con on its own: it hasn't got one)
-        if (playing() && !getUi().noSwitch && hasRightStick(gp.id) && gp.mapping === 'standard' && WEAPONS.length > 1) {
+        if (playing() && !getUi().noSwitch && hasRightStick(gp.id) && gp.mapping === 'standard' && arsenal().length > 1) {
           const rx = gp.axes[2] ?? 0, ry = gp.axes[3] ?? 0, mag = Math.hypot(rx, ry);
-          if (mag > 0.55) { const i = wheelIndexAt(rx, ry, WEAPONS.length); if (wheel.at !== i) { wheel.at = i; setWheelAt(i); } }
+          if (mag > 0.55) { const i = wheelIndexAt(rx, ry, arsenal().length); if (wheel.at !== i) { wheel.at = i; setWheelAt(i); } }
           else if (mag < 0.3 && wheel.at !== null) { equip(wheel.at); wheel.at = null; setWheelAt(null); }
         } else if (wheel.at !== null) { wheel.at = null; setWheelAt(null); }
         Object.assign(prev, btn);
@@ -242,7 +253,7 @@ const App2: React.FC = () => {
     // (the engine hands over the same ammo table every frame, changed in place: it's what's in it that's compared, and
     // a copy that's kept, or the HUD only caught up when something else changed, his health, his power)
     setHud(h => {
-      const same = !ammo || WEAPONS.every(w => h.ammo[w] === ammo[w]);
+      const same = !ammo || M2_WEAPONS.every(w => h.ammo[w] === ammo[w]);
       return h.health === health && h.power === power && same ? h : { health, power, ammo: ammo ? { ...ammo } : h.ammo };
     });
   };
@@ -263,9 +274,10 @@ const App2: React.FC = () => {
           status={status}
           stageId={stage}
           currentWeapon={weapon}
-          availableWeapons={WEAPONS}
+          availableWeapons={arsenal()}
           initialAmmo={initialAmmo}
-          cheats={stage === PEN_STAGE ? PRACTICE : PLAY}
+          cheats={stage === PEN_STAGE ? PRACTICE : { ...PLAY, invincible: cheat.god, infiniteAmmo: cheat.ammo }}
+          onState={setLiveState}
           quietInvincible
           bossTauntText=""
           onPlayerUpdate={onPlayerUpdate}
@@ -315,9 +327,9 @@ const App2: React.FC = () => {
         )}
         {ui.introTicket && <TicketCard kind={ui.introTicket} />}
         {ui.map !== null && <MapCard land={ui.map} />}
-        {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={WEAPONS} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
+        {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
         {status === GameStatus.PAUSED && (
-          <PauseMenu weapons={WEAPONS} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch}
+          <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch}
             onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onSkip={stage === INTRO_STAGE ? skipIntro : undefined} skin={theme?.pause} />
         )}
         {noticeUp && ui.notice && (
