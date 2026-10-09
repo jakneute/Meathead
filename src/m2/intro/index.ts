@@ -184,6 +184,9 @@ export const introLayout: StageLayout = {
     };
     // (only the once: back here after dying, the truck's already in the pillar and he's already out of it)
     if (!crashedIn) { crashedIn = true; state.player.hidden = true; state.player.inCutscene = true; setUi({ introCutscene: true }); }
+    // (back after dying: on his feet by his truck, on the garage floor; not where the engine puts him, up in the garage's
+    // ceiling, where he'd be stuck out of sight)
+    else { const p = state.player; p.hidden = false; p.inCutscene = false; p.pos = { x: R(190) - p.width / 2, y: UPPER - p.height }; p.vel = { x: 0, y: 0 }; p.facing = 1; }
     state.stage = intro;
     state.cameraMinX = X0 - 60;
     state.cameraMaxX = R(END_X) + 60 - CANVAS_WIDTH;
