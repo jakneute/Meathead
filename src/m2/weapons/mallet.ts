@@ -137,6 +137,11 @@ const inBox = (state: GameState, x0: number, y0: number, x1: number, y1: number)
 // ---------------------------------------------------------------------------------------------------------------
 // What he's doing with it
 
+/** Winding up either charge (the smash's, the tornado's), the smash coming down, the tornado going: hurt, but not
+ *  knocked about or out of it (armor: core/resist). */
+const ARMORED: Mode[] = ['windup', 'spinup', 'smash', 'tornado'];
+let armored = false;
+const syncArmor = () => { const want = ARMORED.includes(mode); if (want !== armored) { armored = want; setArmor(want); } };
 const start = (m: Mode, pl: GameState['player']) => { mode = m; t = 0; dir = pl.facing; struck = new Set(); playSound('whoosh', m === 'tornado' ? 0.6 : 1, m === 'launch' ? 4 : -4); };
 
 const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) => {
@@ -157,7 +162,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   flying = flying.filter(f => !f.done && state.frame % 600 !== 0);
   flat.forEach(f => f.t++); flat = flat.filter(f => f.t < 150);
 
-  if (!equipped) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; } xHeld = yHeld = 0; return; }
+  if (!equipped) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); } xHeld = yHeld = 0; return; }
   const ground = pl.isGrounded;
   const yDown = btn('y') || keyHeld('keyf');
   const xPress = input.shoot && !xWas, yRelease = !yDown && yWas;
@@ -176,14 +181,14 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
     return;
   }
   // (a grab on: the mallet's put away for it, whatever it was doing)
-  if (grabBusy()) { if (mode !== 'idle') { if (mode === 'tornado') setArmor(false); mode = 'idle'; pl.hidden = false; } return; }
+  if (grabBusy()) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); } return; }
   if (mode === 'idle' && durable(ctx) && !pl.isCharging && !pl.isUppercutting && !pl.isDivekicking && !pl.isDucking) {
     if (xPress) start(ground ? 'swing' : 'airSwing', pl);
     else if (tap && yFree) start(ground ? 'launch' : 'pound', pl);
     else if (yDown && yHeld === Y_HOLD && ground && yFree) start('windup', pl);
   }
   // (not swinging it: he's drawn as he is, or by whatever's got him; nothing of the mallet's to do)
-  if (mode === 'idle') return;
+  if (mode === 'idle') { syncArmor(); return; }
   t++;
   pl.hidden = true;
   const px = pl.pos.x + pl.width / 2, fy = pl.pos.y + pl.height;
@@ -288,7 +293,6 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       // time, or it's worn out, or he's off the ground) and he stops, dizzy a moment
       pl.jumpBufferTimer = 0;
       pl.vel.x = Math.max(-TORNADO.speed, Math.min(TORNADO.speed, pl.vel.x));
-      setArmor(true);
       if (t % 18 === 0) playSound('whirl');
       // (bullets coming at him: batted back the way they came, a spark and a clang; anything else a stage throws at him,
       // fire, rocks, sludge, still gets through)
@@ -313,11 +317,12 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         // (worn by what it hits, a bit a go round, never by spinning at nothing)
         if (hits.length && ++spinHits % TORNADO.wear === 0) wearOut(ctx);
       }
-      if (!input.shoot || t >= TORNADO.max || !durable(ctx) || !ground) { mode = 'land'; t = 0; setArmor(false); playSound('boing', 0.8, -6); }
+      if (!input.shoot || t >= TORNADO.max || !durable(ctx) || !ground) { mode = 'land'; t = 0; playSound('boing', 0.8, -6); }
       break;
     }
   }
   if (mode === 'idle') pl.hidden = false;
+  syncArmor();
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -471,7 +476,7 @@ const drawHeld = (c: Ctx) => { c.save(); c.translate(1, 3); c.rotate(-1.15); dra
 export const holdMalletForTests = (m: string, at: number) => { mode = m as Mode; t = at; };
 export const malletModeForTests = () => `${mode}:${t}:${xHeld}`;
 /** Everything it was in the middle of, stopped (through a door). */
-export const stopMallet = () => { if (mode === 'tornado') setArmor(false); mode = 'idle'; words = []; twinkles = []; flat = []; flying = []; };
+export const stopMallet = () => { mode = 'idle'; syncArmor(); words = []; twinkles = []; flat = []; flying = []; };
 
 export const registerMallet = () => registerWeapon('MALLET', {
   // (all its business is in tick: X and Y both, held and tapped)

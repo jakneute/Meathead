@@ -267,13 +267,18 @@ const meatheadSays = (state: GameState, text: string) => {
   });
 };
 
+/** Armored while he's reading a storm out or bulking up: hurt, but not knocked about or out of it (core/resist). */
+let armored = false;
+const syncArmor = () => { const want = casting > 0 || posing > 0; if (want !== armored) { armored = want; setArmor(want); } };
+
 const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boolean) => {
   const { state } = ctx;
   const pl = state.player;
   if (casting > 0) {
-    // (reading it out: struck in the pose a moment, standing his ground; a hit knocks him out of it)
-    if (pl.pushbackTimer > 0 || state.deathTimer > 0) { casting = 0; pl.hidden = false; }
-    else { casting--; pl.vel.x = 0; pl.lockTimer = Math.max(pl.lockTimer, 2); pl.hidden = casting > 0; }
+    // (reading it out: struck in the pose a moment, standing his ground; hurt, he takes it, but nothing knocks him out
+    // of it (armor: core/resist); only dying does)
+    if (state.deathTimer > 0) { casting = 0; pl.hidden = false; }
+    else { casting--; pl.vel.x = 0; pl.pushbackTimer = 0; pl.lockTimer = Math.max(pl.lockTimer, 2); pl.hidden = casting > 0; }
   }
   if (flash > 0) flash--;
   // Rifts opening, hanging there, closing; what's due out of them
@@ -303,14 +308,15 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
       if (state.frame - bulkFailSaidAt > 150) { bulkFailSaidAt = state.frame; const pool = BULK_FAIL_LINES[why]; meatheadSays(state, pool[Math.floor(Math.random() * pool.length)]); }
     }
   }
+  syncArmor();
   if (posing > 0) {
     // (held there: no moving, no shooting, and nothing knocks him out of it; it still hurts)
-    pl.vel.x = 0; pl.lockTimer = Math.max(pl.lockTimer, 2); pl.hidden = true; setArmor(true);
+    pl.vel.x = 0; pl.lockTimer = Math.max(pl.lockTimer, 2); pl.hidden = true;
     pl.pushbackTimer = 0;
     if (state.frame % 2 === 0) { const a = Math.random() * Math.PI * 2, r = 50; state.particles.push({ pos: { x: pl.pos.x + pl.width / 2 + Math.cos(a) * r, y: pl.pos.y + pl.height / 2 + Math.sin(a) * r }, vel: { x: -Math.cos(a) * 3, y: -Math.sin(a) * 3 }, life: 16, color: Math.random() < 0.5 ? '#C084FC' : '#F87171', size: 3 }); }
     if (--posing === 0) {
       // ...and it takes: the burst, and he's huge
-      pl.hidden = false; setArmor(false);
+      pl.hidden = false;
       bulkLeft = BULK.frames;
       setBuffs({ speed: BULK.speed, size: BULK.size, knock: BULK.knock });
       playSound('slam', 0.9, -6); playSound('boom', 0.6, -8); shakeScreen(state, 12, 6);
@@ -364,7 +370,7 @@ export const holdPoseForTests = (cast: number, bulk = 0) => { casting = cast; po
 /** For tests: where the rifts are, and whether any's in something solid or off the screen. */
 export const riftsForTests = (state: GameState) => rifts.map(r => `${Math.round(r.x - state.camera.x)},${Math.round(r.y - state.camera.y)}${inSolid(state, r.x, r.y, r.size) ? ':IN-WALL' : ''}`);
 
-export const stopSpellbook = () => { if (posing > 0) setArmor(false); posing = 0; bolts = []; burning.clear(); casting = 0; rings = []; flash = 0; rifts = []; pending = []; bulkLeft = 0; setBuffs({ speed: 1, size: 1, knock: 1 }); publish(); };
+export const stopSpellbook = () => { posing = 0; casting = 0; syncArmor(); bolts = []; burning.clear(); casting = 0; rings = []; flash = 0; rifts = []; pending = []; bulkLeft = 0; setBuffs({ speed: 1, size: 1, knock: 1 }); publish(); };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
