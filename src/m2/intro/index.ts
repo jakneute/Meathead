@@ -64,7 +64,7 @@ export interface Intro {
   /** The checkpoint's security office: the door, the next one out. */
   office: { open: number; cd: number; due: number };
   /** The PA (what it's saying, when next), the guards' barks. */
-  pa: { said: Said | null; next: number }; bark: { e: Enemy; said: Said } | null; barkNext: number;
+  pa: { said: Said | null; next: number; heard: string[] }; bark: { e: Enemy; said: Said } | null; barkNext: number;
   hp: WeakMap<Enemy, number>; hpWas: number; upWas: boolean;
   /** The metal detector: going off (frames left), and whether he's in it. */
   alarm: number; inDetector: boolean;
@@ -177,7 +177,7 @@ export const introLayout: StageLayout = {
     const intro: Intro = {
       grab: createGrab(state), provoked: false, me: null, nextNumber: 0, serveT: 0, arriveT: 0, hurryT: 0, atWindowT: 0,
       lady: { said: null, ko: 0 }, admitted: false, scene: null, office: { open: 0, cd: 0, due: 0 },
-      pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, cool: 0, tripped: false, welcomed: false, lineFight: false, seenDressed: 'clean', reactNext: 0,
+      pa: { said: null, next: 600, heard: [] }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, cool: 0, tripped: false, welcomed: false, lineFight: false, seenDressed: 'clean', reactNext: 0,
       arrival: crashedIn ? null : { t: 0, landed: 0, said: false, done: 0, waiting: true },
     };
     // (only the once: back here after dying, the truck's already in the pillar and he's already out of it)
@@ -642,7 +642,9 @@ const talk = (ctx: FrameContext, intro: Intro) => {
   if (intro.lady.ko > 0) intro.lady.ko++;
   if (px > R(USA_START) && state.frame > intro.pa.next && !intro.scene) {
     intro.pa.next = state.frame + 1500 + Math.floor(Math.random() * 600);
-    speak(PA_VOICE, pick(PA_LINES), s => { intro.pa.said = s; });
+    // (never the same thing twice in the one life: once it's said them all, it's said its piece)
+    const fresh = PA_LINES.filter(l => !intro.pa.heard.includes(l));
+    if (fresh.length) { const line = pick(fresh); speak(PA_VOICE, line, s => { intro.pa.said = s; if (s && !intro.pa.heard.includes(line)) intro.pa.heard.push(line); }); }
   }
 };
 
