@@ -251,7 +251,7 @@ const App2: React.FC = () => {
               <span className="text-zinc-400 pl-1">ON HIM: <ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" /> · <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" /></span>
               <ChordPrompt pad={['Y', 'X']} join="+" kb={['T']} label="SHAKEDOWN (GRAB)" />
               <span className="text-zinc-400 pl-1">AT THE END, HOLD A DIRECTION TO THROW (DOWN: SLAM). INTO A WALL: SPLAT.</span>
-              <span className="text-yellow-300 pl-1">WALK THROUGH THE METAL DETECTOR AND THEY'LL KEEP COMING OUT OF THE SECURITY OFFICE: PRACTICE ON THEM. JUMP OVER IT TO SNEAK PAST.</span>
+              <span className="text-yellow-300 pl-1">WALK THROUGH THE METAL DETECTOR AND A FEW COME OUT OF THE SECURITY OFFICE: PRACTICE ON THEM. ONCE IT'S RESET, WALK THROUGH AGAIN FOR MORE. JUMP OVER IT TO SNEAK PAST.</span>
             </>}
             {ui.introTip === 'line' && <>
               <span className="text-sky-300">WAIT YOUR TURN AT THE WINDOW. OR PLOW THROUGH THEM.</span>

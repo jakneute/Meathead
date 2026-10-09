@@ -102,7 +102,11 @@ const parkingLot = (c: Ctx, cam: number, f: number) => {
       for (let n = first; n * gap - base < CANVAS_WIDTH + gap; n++) {
         const x = n * gap - base;
         box(c, x, y - 60 * s, 2 * s + 1, 60 * s, '#A1A1AA'); box(c, x - 8 * s, y - 62 * s, 18 * s, 3 * s, '#A1A1AA');
-        if (s > 0.7) sign(c, x - 26, y - 50 * s, 52, 12, BLUE, `LOT ${['EAGLE', 'LIBERTY', 'APPLE PIE', 'BALD', 'GLORY'][((n % 5) + 5) % 5]} ${((n * 7 + r) % 90 + 90) % 90}Z`, WHITE, 5);
+        if (s > 0.7) {
+          // (the sign as wide as the lot's name, centered on its pole)
+          const name = `LOT ${['EAGLE', 'LIBERTY', 'APPLE PIE', 'BALD', 'GLORY'][((n % 5) + 5) % 5]} ${((n * 7 + r) % 90 + 90) % 90}Z`, sw = name.length * 5 + 8;
+          sign(c, x + s - sw / 2, y - 50 * s, sw, 12, BLUE, name, WHITE, 5);
+        }
       }
     }
   }
@@ -128,7 +132,7 @@ export const drawIntroBack = (c: Ctx, state: GameState) => {
   const intro = getIntro(state);
   const cam = state.camera.x;
   const vis = (a: number, b: number) => b > cam - 100 && a < cam + CANVAS_WIDTH + 100;
-  if (vis(R(GARAGE_END), R(STAIRS_END))) deck(c, f, intro?.office.open ?? 0, intro?.alarm ?? 0, vis);
+  if (vis(R(GARAGE_END), R(STAIRS_END))) deck(c, f, intro?.office.open ?? 0, intro?.alarm ?? 0, intro?.cool ?? 0, vis);
   if (vis(X0 - 400, R(GARAGE_END))) garage(c, vis);
   if (vis(R(USA_START), R(USA_END))) america(c, f, vis);
   if (vis(R(USA_END) - 200, R(END_X) + 400)) plaza(c, state, f);
@@ -196,7 +200,7 @@ const garage = (c: Ctx, vis: (a: number, b: number) => boolean) => {
 };
 
 /** Out on the deck: the walkway's canopy and its ads on posts, the checkpoint's tents, its office, the metal detector. */
-const deck = (c: Ctx, f: number, officeOpen: number, alarm: number, vis: (a: number, b: number) => boolean) => {
+const deck = (c: Ctx, f: number, officeOpen: number, alarm: number, cool: number, vis: (a: number, b: number) => boolean) => {
   // The walkways' canopy: a long striped awning on posts (it's a shade, not a ceiling: dimmed, way up)
   if (vis(R(GARAGE_END), R(HALL_END))) {
     const a = R(GARAGE_END), b = R(HALL_END);
@@ -238,11 +242,13 @@ const deck = (c: Ctx, f: number, officeOpen: number, alarm: number, vis: (a: num
     const open = Math.min(1, officeOpen / 12);
     box(c, ox - 22, UPPER - 100, 56, 100, '#0B0B0F');
     box(c, ox - 22, UPPER - 100, 56 * (1 - open * 0.85), 100, '#4B5563'); box(c, ox - 22 + 56 * (1 - open * 0.85) - 8, UPPER - 54, 4, 8, '#FACC15');
-    // (the metal detector, the way out: a grey arch, a light on top; going off, flashing red, a red glow round it)
+    // (the metal detector, the way out: a grey arch, a light on top; going off, flashing red, a red glow round it;
+    // resetting after, amber)
     const dx = R(DETECTOR_X) - 40, on = alarm > 0 && (alarm >> 3) % 2 === 0;
     if (alarm > 0) { c.fillStyle = `rgba(239, 68, 68, ${on ? 0.25 : 0.1})`; c.fillRect(dx - 60, UPPER - 260, 200, 260); }
     box(c, dx, UPPER - 110, 10, 110, '#9CA3AF'); box(c, dx + 70, UPPER - 110, 10, 110, '#9CA3AF'); box(c, dx - 2, UPPER - 116, 84, 10, '#6B7280');
-    box(c, dx + 30, UPPER - 124, 20, 8, alarm > 0 ? (on ? '#EF4444' : '#7F1D1D') : ((f >> 5) % 2 ? '#22C55E' : '#15803D'));
+    box(c, dx + 30, UPPER - 124, 20, 8, alarm > 0 ? (on ? '#EF4444' : '#7F1D1D') : cool > 0 ? '#F59E0B' : ((f >> 5) % 2 ? '#22C55E' : '#15803D'));
+    if (alarm <= 0 && cool > 0) text(c, 'RESETTING...', dx + 40, UPPER - 170, '#F59E0B', 6);
     sign(c, dx - 20, UPPER - 150, 120, 16, '#FEF3C7', 'WALK THROUGH', '#7F1D1D', 6);
     if (alarm > 0 && on) text(c, 'BEEP BEEP BEEP', dx + 40, UPPER - 170, '#EF4444', 8);
     sign(c, R(CHECK_END) - 240, UPPER - 210, 200, 22, '#FDE047', 'SMILE! YOU ARE ON CAMERA', INK, 6);

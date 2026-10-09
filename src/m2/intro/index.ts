@@ -61,13 +61,15 @@ export interface Intro {
   /** The ticket scene at the window: how it went, how far it's got. */
   scene: { kind: Dressed; t: number; done: boolean; punched: boolean; card: boolean; cardAt: number } | null;
   /** The checkpoint's security office: the door, the next one out. */
-  office: { open: number; cd: number };
+  office: { open: number; cd: number; due: number };
   /** The PA (what it's saying, when next), the guards' barks. */
   pa: { said: Said | null; next: number }; bark: { e: Enemy; said: Said } | null; barkNext: number;
   hp: WeakMap<Enemy, number>; hpWas: number; upWas: boolean;
   /** The metal detector: going off (frames left), and whether he's in it. */
   alarm: number; inDetector: boolean;
-  /** He's walked through the detector: from then on the office keeps sending them out. */
+  /** The detector resetting after going off (walking through it meanwhile does nothing). */
+  cool: number;
+  /** He's walked through the detector (at least once). */
   tripped: boolean;
   /** A guard's welcomed him to the park. */
   welcomed: boolean;
@@ -163,8 +165,8 @@ export const introLayout: StageLayout = {
     );
     const intro: Intro = {
       grab: createGrab(state), provoked: false, me: null, nextNumber: 0, serveT: 0, arriveT: 0, hurryT: 0, atWindowT: 0,
-      lady: { said: null, ko: 0 }, admitted: false, scene: null, office: { open: 0, cd: 0 },
-      pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, tripped: false, welcomed: false,
+      lady: { said: null, ko: 0 }, admitted: false, scene: null, office: { open: 0, cd: 0, due: 0 },
+      pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, cool: 0, tripped: false, welcomed: false,
     };
     state.stage = intro;
     state.cameraMinX = X0 - 60;
@@ -288,7 +290,8 @@ const provoke = (ctx: FrameContext, intro: Intro, near: Enemy | null) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Park security
 
-const PRACTICE = { from: 3700, to: CHECK_END, atOnce: 3, every: 100 };
+/** The detector going off sends out a set number from the office, one after another; then it needs a while to reset. */
+const PRACTICE = { batch: 3, every: 60, reset: 360 };
 /** Guards who've said their piece to him already (each says one thing, going by). */
 const remarked = new WeakSet<Enemy>();
 const security = (ctx: FrameContext, intro: Intro) => {
@@ -322,18 +325,15 @@ const security = (ctx: FrameContext, intro: Intro) => {
     e.pos.x += (e.facing ?? 1) * 0.6;
     e.vel.x = (e.facing ?? 1) * 0.01;
   }
-  // The checkpoint's security office: once he's walked through the metal detector, they keep coming out of it (practice,
-  // as long as he likes); nothing else he does brings more
+  // The checkpoint's security office: each time the metal detector goes off, a set number come out of it, one after
+  // another (practice: set it off again, once it's reset, for more); nothing else he does brings more
   if (intro.office.open > 0) intro.office.open--;
   if (intro.office.cd > 0) intro.office.cd--;
-  if (intro.tripped && px > R(PRACTICE.from) - 200 && px < R(PRACTICE.to) + 300 && intro.office.cd <= 0) {
-    const here = state.enemies.filter(e => e.kind === 'parksec' && e.health > 0 && !e.isBlownAway && Math.abs(e.pos.x - R(OFFICE_X)) < 900).length;
-    if (here < PRACTICE.atOnce) {
-      const e = addGuard(state, intro, R(OFFICE_X));
-      e.facing = px < R(OFFICE_X) ? -1 : 1;
-      intro.office.open = 40; intro.office.cd = PRACTICE.every;
-      playSound('click', 0.6, -8);
-    }
+  if (intro.office.due > 0 && intro.office.cd <= 0) {
+    const e = addGuard(state, intro, R(OFFICE_X));
+    e.facing = px < R(OFFICE_X) ? -1 : 1;
+    intro.office.due--; intro.office.open = 40; intro.office.cd = PRACTICE.every;
+    playSound('click', 0.6, -8);
   }
   // Now and then, one of them having a go at him
   if (intro.provoked && state.frame > intro.barkNext && !intro.bark) {
@@ -350,9 +350,12 @@ const detector = (ctx: FrameContext, intro: Intro) => {
   const { state } = ctx;
   const p = state.player, px = p.pos.x + p.width / 2;
   if (intro.alarm > 0) intro.alarm--;
+  if (intro.cool > 0) intro.cool--;
   const inIt = Math.abs(px - R(DETECTOR_X)) < 26 && p.pos.y + p.height > UPPER - 100;
-  if (inIt && !intro.inDetector) {
-    intro.alarm = 120; intro.tripped = true;
+  // (resetting, it lets him through without a peep)
+  if (inIt && !intro.inDetector && intro.cool <= 0) {
+    intro.alarm = 120; intro.cool = PRACTICE.reset; intro.tripped = true;
+    intro.office.due += PRACTICE.batch;
     playSound('alarm', 0.9);
     playSound('click', 1, 12);
     if (!intro.provoked) provoke(ctx, intro, null);
