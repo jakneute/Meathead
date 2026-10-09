@@ -7,6 +7,7 @@
 // takes out a wide stretch round the wreck. It goes straight through the first wall or ceiling it meets (bricks
 // everywhere); a second stops it, and that's where the stunt goes off.
 
+import { dismember, tickDismember, drawDismember, stopDismember } from './dismember';
 import type { Enemy, Projectile } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
@@ -100,11 +101,23 @@ const runDown = (ctx: FrameContext, e: Enemy, dir: number, speed: number, how: '
     return;
   }
   e.health = 0;
-  // (the car's: up over the roof and away, not shoved on ahead of it into the next one, out of its way; the stuntman's:
-  // on into whoever's behind)
-  const car = how === 'car';
-  fx.blowAwayEnemy(e, car ? { x: dir * (6 + Math.random() * 6), y: -16 - Math.random() * 6 } : { x: dir * (speed + 6), y: -10 - Math.random() * 6 }, m2Kill('stunt_kill'), dir, 1.5);
-  e.meleeFlung = !car;
+  // (the car's: burst on the spot, the moment it hits, not knocked anywhere: meat on the bonnet and all over the road)
+  if (how === 'car') {
+    const at = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 };
+    fx.spawnDeathShower(e.pos, dir, 2.2);
+    fx.spawnExplosion(at, '#8B0000', 26, dir * 4, 14);
+    // (and every piece of them off in the carnage: the head, the trunk, the arms, the legs)
+    dismember(state, e, dir, 1.2);
+    fx.spawnPickup(e.pos);
+    fx.speakVulgarity(m2Kill('stunt_kill'));
+    fx.spawnKillCallout(e, grabCallout('stunt'));
+    playSound('splat', 1, -3); playSound('crunch', 1, -2); shakeScreen(state, 8, 5);
+    state.enemies = state.enemies.filter(o => o !== e);
+    return;
+  }
+  // (the stuntman's: on into whoever's behind)
+  fx.blowAwayEnemy(e, { x: dir * (speed + 6), y: -10 - Math.random() * 6 }, m2Kill('stunt_kill'), dir, 1.5);
+  e.meleeFlung = true;
   fx.spawnKillCallout(e, grabCallout('stunt'));
   playSound('crunch', 1, -2); shakeScreen(state, 8, 5);
 };
@@ -233,6 +246,7 @@ const splat = (ctx: FrameContext, p: Projectile, on: 'man' | 'floor' | 'wall') =
 
 /** Every frame: the clapperboard, the wrecks burning. */
 const tick = (ctx: FrameContext) => {
+  tickDismember(ctx.state);
   const { state } = ctx;
   if (clap > 0) clap--;
   for (const w of wrecks) {
@@ -315,6 +329,7 @@ const draw = (c: Ctx, p: Projectile, frame: number) => {
 };
 
 const drawOverlay = (c: Ctx, state: GameState) => {
+  drawDismember(c, state);
   // The wrecks: on their roofs, burning
   for (const w of wrecks) {
     if (w.t > 170 && w.t % 4 < 2) continue;
@@ -346,6 +361,6 @@ const drawHeld = (c: Ctx) => {
 };
 
 /** Everything it was in the middle of, stopped (through a door). */
-export const stopStuntCar = () => { clap = 0; wrecks = []; };
+export const stopStuntCar = () => { clap = 0; wrecks = []; stopDismember(); };
 
 export const registerStuntCar = () => registerWeapon('STUNT_CAR', { fire: ctx => fire(ctx), update, draw, drawHeld: c => drawHeld(c), tick: ctx => tick(ctx), drawOverlay });
