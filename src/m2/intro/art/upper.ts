@@ -694,11 +694,18 @@ export interface Eye { x: number; y: number }
  * face's own detail on it, given where a point at (along, y) on it is drawn (along 0 at the front, 1 at the back).
  */
 const sideFace = (c: Ctx, eye: Eye, e: number, side: 1 | -1, top: number, bottom: number, depth: number, col: string,
-  paint?: (pt: (along: number, y: number) => [number, number]) => void) => {
+  paint?: (pt: (along: number, y: number) => [number, number]) => void, ground?: string) => {
   if ((eye.x - e) * side <= 2) return;
   const pt = (k: number, y: number): [number, number] => { const d = 1 - (1 - depth) * k; return [eye.x + (e - eye.x) * d, eye.y + (y - eye.y) * d]; };
   const [x1, t1] = pt(1, top), [, b1] = pt(1, bottom);
   const r = rampOf(col);
+  // (what it stands on, going back with it: the ground under its far end, up to where he walks, and its shadow along
+  // the foot of it, so it's stood on something, not hung in the air)
+  if (ground) {
+    const g = rampOf(ground);
+    c.fillStyle = g[2]; c.beginPath(); c.moveTo(e, bottom); c.lineTo(x1, b1); c.lineTo(x1 + (x1 - e) * 0.15, b1); c.lineTo(x1 + (x1 - e) * 0.15, bottom); c.closePath(); c.fill();
+    c.fillStyle = 'rgba(20, 16, 12, 0.35)'; c.beginPath(); c.moveTo(e, bottom); c.lineTo(x1, b1); c.lineTo(x1, b1 + 4); c.lineTo(e, bottom + 2); c.closePath(); c.fill();
+  }
   c.fillStyle = r[1]; c.beginPath(); c.moveTo(e, top); c.lineTo(x1, t1); c.lineTo(x1, b1); c.lineTo(e, bottom); c.closePath(); c.fill();
   // (in steps going back: darker the further)
   for (const [k0, k1, shade] of [[0.45, 0.75, 'rgba(10, 12, 30, 0.14)'], [0.75, 1, 'rgba(10, 12, 30, 0.26)']] as const) {
@@ -741,7 +748,7 @@ const outdoorSides = (c: Ctx, eye: Eye, vis: (a: number, b: number) => boolean) 
     const g = 2; c.fillStyle = '#5E8CB8'; c.beginPath(); c.moveTo(w0[0] + side * -g, w0[1] + g); c.lineTo(w1[0] - side * -g, w1[1] + g); c.lineTo(w2[0] - side * -g, w2[1] - g); c.lineTo(w3[0] + side * -g, w3[1] - g); c.closePath(); c.fill();
     line(c, pt(0, top + 4), pt(1, top + 4), '#111827', 5);
     line(c, pt(0, UPPER - 8), pt(1, UPPER - 8), '#6A6A66', 4);
-  });
+  }, '#B8B2A4');
 };
 
 export const deck = (c: Ctx, f: number, officeOpen: number, alarm: number, cool: number, vis: (a: number, b: number) => boolean, eye: Eye) => {

@@ -5,8 +5,8 @@
 
 import type { GameState } from '../../m1/game/core/state';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../m1/constants';
-import { X0, R, STAIRS_END, USA_START, GARAGE_END, USA_END, END_X, WINDOW_X } from './geometry';
-import { type Ctx, INK, WHITE, RED, box, text } from './art/kit';
+import { X0, R, STAIRS_END, USA_START, GARAGE_END, USA_END, END_X, WINDOW_X, UPPER, CHECK_END } from './geometry';
+import { type Ctx, INK, WHITE, RED, box, text, bendFloor } from './art/kit';
 import { drawIntroBackdrop } from './art/sky';
 import { garage, deck, drawUpperFloor, truckDoorFront } from './art/upper';
 import { america, drawAmericaFloor, gateFront } from './art/america';
@@ -44,6 +44,9 @@ export const drawIntroBack = (c: Ctx, state: GameState) => {
   drawUpperFloor(c, f);
   if (vis(R(STAIRS_END), R(USA_END))) drawAmericaFloor(c);
   drawPlazaFloor(c);
+  // (and the ground in perspective: the top of the deck's slab, the street and the plaza fanning out toward him)
+  if (vis(X0 - 400, R(CHECK_END))) bendFloor(c, eye, UPPER, UPPER, UPPER + 34, -Infinity, R(CHECK_END));
+  if (vis(R(STAIRS_END), R(END_X) + 400)) bendFloor(c, eye, GROUND_Y, GROUND_Y, GROUND_Y + 160, R(STAIRS_END), Infinity);
 };
 
 // ---------------------------------------------------------------------------------------------------------------

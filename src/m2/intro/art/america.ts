@@ -974,6 +974,13 @@ export const gateBack = (c: Ctx, eye: Eye) => {
 export const gateFront = (c: Ctx, eye: Eye, f: number) => {
   const { xf, xb, topF, topB } = gateNow(eye);
   const art = friezeArt();
+  // The eagle up on top, halfway along, and YOU'RE WELCOME hung under it: further back than the side of the
+  // entablature and the front column, so drawn first, behind them
+  const sm = (GATE.backS + GATE.frontS) / 2, xm = (xb + xf) / 2, ym = (topB + topF) / 2;
+  eagle(c, xm, ym - FRIEZE_H * sm - 26 * sm, 1.5 * sm);
+  const sw = 92 * sm, sy = ym + 34 * sm;
+  for (const dx of [-sw / 2 + 6, sw / 2 - 6]) for (let y = ym; y < sy; y += 3 * sm) box(c, xm + dx, y, 2 * sm, 2 * sm, '#B8BCC4');
+  c.save(); c.translate(xm, sy); c.scale(sm, sm); sign(c, -46, 0, 92, 14, '#FEF3C7', "YOU'RE WELCOME", '#7F1D1D', 6); c.restore();
   // The entablature: from the back column's top to the front one's, slice by slice
   const N = 48, flip = xf < xb;
   for (let i = 0; i < N; i++) {
@@ -993,12 +1000,6 @@ export const gateFront = (c: Ctx, eye: Eye, f: number) => {
   const s = GATE.frontS, ew = (GATE.CW + 26) * s, eh = FRIEZE_H * s;
   slab(c, xf - ew / 2, topF - eh, ew, eh, MARBLE);
   shinyStar(c, xf, topF - eh / 2, 7 * s, '#FDE047');
-  // The eagle up on top, halfway along; YOU'RE WELCOME hung under it
-  const sm = (GATE.backS + GATE.frontS) / 2, xm = (xb + xf) / 2, ym = (topB + topF) / 2;
-  eagle(c, xm, ym - FRIEZE_H * sm - 26 * sm, 1.5 * sm);
-  const sw = 92 * sm, sy = ym + 34 * sm;
-  for (const dx of [-sw / 2 + 6, sw / 2 - 6]) for (let y = ym; y < sy; y += 3 * sm) box(c, xm + dx, y, 2 * sm, 2 * sm, '#B8BCC4');
-  c.save(); c.translate(xm, sy); c.scale(sm, sm); sign(c, -46, 0, 92, 14, '#FEF3C7', "YOU'RE WELCOME", '#7F1D1D', 6); c.restore();
   // The column out in front of him
   gateColumn(c, xf, GATE.frontFoot, GATE.frontS, 'gate-col-front');
   void f;

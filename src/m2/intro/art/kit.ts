@@ -201,3 +201,40 @@ export const eagle = (c: Ctx, x: number, y: number, s: number) => {
   box(c, 1, -12, 2, 2, INK); box(c, 0, -14, 4, 1, '#8E8A84');
   c.restore();
 };
+
+/**
+ * The ground, in perspective, the way the SNES did it a scanline at a time: the floor already painted flat between
+ * y0 and y1 (world), from `line` (where he walks) down toward the viewer, redrawn row by row, each row spread out from
+ * where he's looking (eye.x) the nearer it is, and the rows getting deeper the nearer they are (the far ones squashed
+ * up under the line). So whatever runs across it (tile joints, stall lines, cracks) fans out toward him and swings as
+ * he goes by. Only between x0 and x1 (world). Call it right after the floor's painted, before anything stands on it.
+ */
+let bendBuf: HTMLCanvasElement | null = null;
+export const BEND = 0.004;
+export const bendFloor = (c: Ctx, eye: { x: number }, line: number, y0: number, y1: number, x0 = -Infinity, x1 = Infinity) => {
+  if (typeof document === 'undefined') return;
+  const m = c.getTransform(), W = c.canvas.width, Hc = c.canvas.height;
+  const dy0 = Math.max(0, Math.floor(y0 * m.d + m.f)), dy1 = Math.min(Hc, Math.ceil(y1 * m.d + m.f));
+  const dx0 = Math.max(0, Math.floor(x0 * m.a + m.e)), dx1 = Math.min(W, Math.ceil(x1 * m.a + m.e));
+  if (dy1 - dy0 < 2 || dx1 - dx0 < 2) return;
+  const h = dy1 - dy0;
+  if (!bendBuf) bendBuf = document.createElement('canvas');
+  if (bendBuf.width !== W || bendBuf.height < h) { bendBuf.width = W; bendBuf.height = Math.max(h, bendBuf.height); }
+  const b = bendBuf.getContext('2d')!;
+  b.clearRect(0, 0, W, h);
+  b.drawImage(c.canvas, 0, dy0, W, h, 0, 0, W, h);
+  const ex = eye.x * m.a + m.e, lineD = line * m.d + m.f, span = Math.max(1, (y1 - line) * m.d);
+  const step = Math.max(1, Math.round(m.d));
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
+  c.beginPath(); c.rect(dx0, dy0, dx1 - dx0, h); c.clip();
+  c.imageSmoothingEnabled = false;
+  for (let yd = dy0; yd < dy1; yd += step) {
+    const u = Math.max(0, (yd - lineD) / span);
+    // (deeper rows nearer: where this row comes from, the far rows squashed up under the line)
+    const ys = Math.min(h - step, Math.max(0, Math.round(lineD + Math.pow(u, 1.3) * span - dy0)));
+    const k = 1 + u * span / m.d * BEND;
+    const sx = ex - ex / k, sw = W / k;
+    c.drawImage(bendBuf, sx, ys, sw, step, 0, yd, W, step);
+  }
+  c.restore();
+};

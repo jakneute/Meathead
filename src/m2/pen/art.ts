@@ -14,6 +14,7 @@ import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import {
   type Ctx, INK, FLAG_RED, FLAG_WHITE, FLAG_BLUE, box, text, sign, slab, pole, ball, shinyStar, star, rampOf, lite, dark, dim, mix,
   hash, checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, tilePattern, stamp,
+  bendFloor,
 } from '../intro/art/kit';
 import { X0, LEN, WALL, CEIL_Y, EXIT_X } from './index';
 
@@ -1153,6 +1154,8 @@ export const drawPenBack = (ctx: Ctx, state: GameState) => {
     const a = STRIP_X0() + i * CHUNK - 2, b = Math.min(STRIP_X0() + (i + 1) * CHUNK, X0 + LEN + WALL) + 2;
     if (vis(a, b)) stamp(ctx, `pen-strip-${i}`, a, -60, b - a, CANVAS_HEIGHT + 120, g => strip(g, i));
   }
+  // (the floor in perspective: fanning out toward him from where he walks, the rows deeper the nearer they are)
+  bendFloor(ctx, { x: cam + CANVAS_WIDTH / 2 }, G, G, G + 120);
   lights(ctx, f, vis);
   if (vis(rx(1880), rx(1940))) drip(ctx, f);
   critters(ctx, f, vis);
