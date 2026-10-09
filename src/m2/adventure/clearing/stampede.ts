@@ -2,8 +2,9 @@
 // one at a time early on and several later, spaced unevenly. Each its own size and pace and hit:
 //   rhino     small and quick: jump it
 //   hippo     wider, steadier: jump it (a good jump)
-//   elephant  big and slow: too tall to clear, but its back's low enough to land on and ride
-// All three have a back to stand on (lit along the top: standable reads standable). Each comes with a warning: dust
+//   elephant  big and slow: too tall to jump; jump and uppercut over it
+// Touching any of them anywhere hurts: there's no standing on them (nothing lit along their tops: they don't read
+// as standable). Each comes with a warning: dust
 // at the edge it's coming from, the ground rumbling, a flashing arrow. Whatever the spawner's let loose in its path
 // (on the ground, on a bush) is squashed. They're not anybody: no shooting them, nothing to grab.
 
@@ -37,7 +38,7 @@ export interface Animal {
   /** Frames till it comes out (the warning's up for the last WARN of them). */
   warn: number;
   t: number; done: boolean;
-  /** Its back, as something to stand on. */
+  /** (nothing to stand on: always null) */
   block: Block | null;
   /** Got to Artie (he's dealt with it, one way or another). */
   metArtie: boolean;
@@ -55,10 +56,10 @@ export const makeStampede = (kinds: Beast[], dir: 1 | -1, gaps: number[]): Anima
   });
 };
 
-/** Its body (what hurts): under its back. */
+/** Its body (what hurts): all of it, top to toe, head to tail. */
 const bodyOf = (a: Animal) => {
   const b = BEASTS[a.kind], head = 18;
-  return { x: a.x + 6 - (a.dir < 0 ? head : 0), y: GY - b.h + 10, w: b.w - 12 + head, h: b.h - 10 };
+  return { x: a.x + 2 - (a.dir < 0 ? head : 0), y: GY - b.h - 2, w: b.w - 4 + head, h: b.h + 2 };
 };
 const overlaps = (r: { x: number; y: number; w: number; h: number }, x: number, y: number, w: number, h: number) => r.x < x + w && r.x + r.w > x && r.y < y + h && r.y + r.h > y;
 
@@ -82,11 +83,6 @@ export const updateStampede = (ctx: FrameContext, herd: Animal[], artieX: number
     // (the ground shakes under it, the bigger the more)
     if (a.t % Math.round(48 / b.speed) === 0) { playSound('thud', 0.35 + b.h / 300, -6 - b.h / 30); shakeScreen(state, 6, b.h / 40); }
     if (a.t % 4 === 0) state.particles.push({ pos: { x: a.dir > 0 ? a.x + 10 : a.x + b.w - 10, y: GY - 4 }, vel: { x: -a.dir * (1 + Math.random() * 2), y: -0.5 - Math.random() * 1.5 }, life: 26, color: Math.random() < 0.5 ? 'rgba(168, 140, 100, 0.7)' : 'rgba(120, 100, 70, 0.6)', size: 4 + Math.random() * 6 });
-    // Its back: somewhere to stand, and whoever's on it goes along with it
-    if (!a.block) { a.block = { x: a.x + 12, y: GY - b.h, w: b.w - 24, h: 10, type: 'platform', oneWay: true, tag: 'clearing-beast' } as Block; state.blocks.push(a.block); }
-    const onIt = p.isGrounded && Math.abs(p.pos.y + p.height - a.block.y) < 4 && p.pos.x + p.width / 2 > a.block.x && p.pos.x + p.width / 2 < a.block.x + a.block.w;
-    a.block.x = a.x + 12;
-    if (onIt && !holdPlayer) p.pos.x += a.dir * b.speed;
     // Squashing whatever's under it
     trample(state, a.x, GY - b.h, b.w, b.h + 6);
     // Into him
@@ -156,7 +152,7 @@ const drawBeast = (c: Ctx, a: Animal, f: number) => {
   c.translate(Math.round(a.x + w / 2), GY);
   c.scale(a.dir, 1);
   const L = -w / 2, step = Math.sin(a.t * b.speed * 0.09);
-  const dark = shade(col, -0.25), lite = shade(col, 0.25);
+  const dark = shade(col, -0.25);
   // legs: front pair and back pair, going
   const legW = a.kind === 'elephant' ? 24 : a.kind === 'hippo' ? 18 : 14, legH = a.kind === 'elephant' ? 44 : a.kind === 'hippo' ? 22 : 22;
   for (const [lx, ph] of [[L + w * 0.18, 0], [L + w * 0.7, Math.PI]] as const) {
@@ -172,9 +168,6 @@ const drawBeast = (c: Ctx, a: Animal, f: number) => {
   c.fillStyle = '#1C1917'; c.beginPath(); c.roundRect(L - 1, top - 1, w + 2, h - legH + 8, 18); c.fill();
   c.fillStyle = col; c.beginPath(); c.roundRect(L, top, w, h - legH + 6, 18); c.fill();
   c.fillStyle = dark; c.fillRect(L + 8, top + (h - legH) * 0.7, w - 16, 6);
-  // its back, lit (it's something to stand on)
-  c.fillStyle = lite; c.fillRect(L + 12, top, w - 24, 3);
-  c.fillStyle = 'rgba(255, 255, 255, 0.5)'; c.fillRect(L + 14, top, w - 28, 1);
   // a tail behind
   box(c, L - 6, top + 14, 8, 3, dark);
   // the head, out front
