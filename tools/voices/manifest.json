@@ -13021,6 +13021,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FOUR SPACES. NOBODY TOUCH IT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "FOURTEEN CHURROS. IN LINE. FOR THE TEACUPS.",
   "from": "M2_GUT_LINES"
  },
@@ -14761,6 +14766,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I HAD A TICKET! IT WENT WITH THE PANTS! THE PANTS WENT EVERYWHERE!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "I HAVE A PRESIDENT WAITING ON ME. THEY'RE PLAYING GO FISH.",
   "from": "m1/game/stages/oscar/bunker.ts:367"
  },
@@ -15486,11 +15496,6 @@
  },
  {
   "voice": "meathead",
-  "text": "IT WAS IN MY POCKET! I HAD A POCKET! OH GOD! OH GOD!",
-  "from": "INTRO"
- },
- {
-  "voice": "meathead",
   "text": "IT'S A KNOCKOUT!",
   "from": "M2_KILL_LINES"
  },
@@ -16206,6 +16211,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NAILED IT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "NAMASTE, PEASANTS!",
   "from": "m1/game/stages/ernie/doorCrash.ts:71"
  },
@@ -16826,6 +16836,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OKAY. DON'T PANIC. THE TICKET WAS IN THE PANTS. THE PANTS EXPLODED. ...I'M PANICKING. I'M PANICKING!",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "OKAY. FINE. WE WAIT. I'LL JUST STAND HERE. SHRINKING.",
   "from": "m1/game/stages/oscar/bunker.ts:367"
  },
@@ -16833,11 +16848,6 @@
   "voice": "meathead",
   "text": "OKAY. NO MORE GUN. TIME FOR SHOULDER.",
   "from": "m1/game/stages/gym/runtime.ts:310"
- },
- {
-  "voice": "meathead",
-  "text": "OKAY. OKAY. DON'T PANIC. ...I'M PANICKING. I'M PANICKING!",
-  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -17073,6 +17083,11 @@
   "voice": "meathead",
   "text": "PARK RANGERS HAVE GUNS?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PARKED.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -19071,6 +19086,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT PILLAR WASN'T THERE LAST TIME.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT PROTEIN SHAKE WAS IN THE TRUCK ALL WEEK. IN THE SUN.",
   "from": "GUT"
  },
@@ -19866,7 +19886,7 @@
  },
  {
   "voice": "meathead",
-  "text": "TICKET, TICKET, TICKET... OH NO. OH NO NO NO NO NO.",
+  "text": "TICKET, TICKET... IT WAS IN MY PANTS. MY PANTS BLEW UP. OH NO. OH NO NO NO NO.",
   "from": "INTRO"
  },
  {
@@ -20386,7 +20406,7 @@
  },
  {
   "voice": "meathead",
-  "text": "WHERE'S MY TICKET? WHERE ARE MY PANTS? WHERE ARE MY PANTS?!",
+  "text": "WHERE'S MY TICKET?! IT WAS IN MY BACK POCKET! MY BACK POCKET BLEW UP WITH THE REST OF THEM!",
   "from": "INTRO"
  },
  {

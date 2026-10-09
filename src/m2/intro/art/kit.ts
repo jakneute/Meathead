@@ -7,9 +7,16 @@
 import { GROUND_Y } from '../../../m1/constants';
 import { mix, ramp } from '../../../m1/game/render/backdrops/core';
 import { checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, tilePattern, brickPattern, PIX } from '../../../m1/game/render/pixelArt';
-import { stamp } from '../../../m1/game/render/stamp';
+import { stamp as stampOnce } from '../../../m1/game/render/stamp';
 
-export { mix, ramp, checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, tilePattern, brickPattern, PIX, stamp };
+export { mix, ramp, checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, tilePattern, brickPattern, PIX };
+
+/** Has the pixel font loaded? (Until it has, anything with words on it is painted live, not stamped: a stamp painted in
+ * the fallback font would keep it for good, half a sign in one font and half in the other.) */
+let fontIn = false;
+const fontReady = () => fontIn || (fontIn = typeof document !== 'undefined' && !!document.fonts?.check('8px "Press Start 2P"'));
+/** A stamp (see m1 render/stamp), once the font's in. */
+export const stamp: typeof stampOnce = (c, key, x, y, w, h, paint) => (fontReady() ? stampOnce(c, key, x, y, w, h, paint) : paint(c));
 
 export type Ctx = CanvasRenderingContext2D;
 export const INK = '#1A0B06';

@@ -154,7 +154,7 @@ const elevator = (g: Ctx, x: number) => {
 
 /** A sign hung off the ceiling on two rods. */
 const hungSign = (g: Ctx, x: number, y: number, w: number, h: number, face: string, words: string, ink: string, size = 8) => {
-  for (const rx of [x + 14, x + w - 16]) { box(g, rx, CEIL_Y - 2, 2, y - CEIL_Y - 2, '#6A6E76'); box(g, rx, CEIL_Y - 2, 1, y - CEIL_Y - 2, '#9AA0A8'); }
+  for (const rx of [x + 14, x + w - 18]) { pole(g, rx, CEIL_Y - 2, 4, y - CEIL_Y - 2, '#8A9098'); box(g, rx - 3, CEIL_Y - 2, 10, 3, INK); box(g, rx - 2, CEIL_Y - 2, 8, 2, '#6A6E76'); }
   sign(g, x, y, w, h, face, words, ink, size);
 };
 
@@ -226,7 +226,18 @@ const paintGarage = (g: Ctx, a: number, b: number) => {
   // The signs (hung, or on the wall)
   if (near(R(300), R(520))) hungSign(g, R(300), CEIL_Y + 20, 210, 30, BLUE, 'LEVEL 3: LIBERTY', WHITE);
   if (near(R(1000), R(1340))) hungSign(g, R(1000), CEIL_Y + 20, 330, 30, RED, 'AMERICA USA ->  THIS WAY, PATRIOT', WHITE);
-  if (near(R(610), R(930))) sign(g, R(620), CEIL_Y + 110, 300, 26, '#FEF3C7', "PARKING: $45. FREEDOM ISN'T FREE.", '#7F1D1D', 7);
+  // (the pay station between the parked cars, its sign up on two posts over it)
+  if (near(R(630), R(900))) {
+    for (const px of [R(650), R(866)]) { box(g, px - 4, UPPER - 4, 12, 4, INK); pole(g, px, UPPER - 118, 4, 114, '#8A9098'); }
+    sign(g, R(640), UPPER - 140, 240, 24, '#FEF3C7', "PARKING: $45. FREEDOM ISN'T FREE.", '#7F1D1D', 6);
+    const kx = R(728);
+    checker(g, kx + 40, UPPER - 74, 8, 74, 'rgba(0, 0, 0, 0.3)');
+    slab(g, kx, UPPER - 78, 40, 78, '#2D4F8E');
+    slab(g, kx + 6, UPPER - 70, 28, 18, '#1A2A3A'); box(g, kx + 8, UPPER - 68, 24, 6, '#5ADA8A'); text(g, '$45.00', kx + 20, UPPER - 63, '#0A3A1A', 5, 'center', null);
+    box(g, kx + 8, UPPER - 46, 10, 3, INK); box(g, kx + 22, UPPER - 46, 10, 3, INK);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) box(g, kx + 9 + j * 6, UPPER - 38 + i * 5, 4, 3, '#C8CCD2');
+    box(g, kx + 6, UPPER - 16, 28, 6, '#141820'); text(g, 'PAY HERE', kx + 20, UPPER - 82, WHITE, 5, 'center', INK);
+  }
 
   // The way out: daylight pouring in at the far end, in steps, and the mouth's last column catching it
   if (near(GX1 - 320, GX1)) {
@@ -360,10 +371,87 @@ const truck = (g: Ctx) => {
   g.restore();
 };
 
-export const garage = (c: Ctx, vis: (a: number, b: number) => boolean) => {
+/** The truck now (see intro/index truckNow): dx from where it ends up, a bounce, frames since it hit (< 0: not yet). */
+export interface TruckNow { dx: number; dy: number; crash: number; f: number; emerging: boolean }
+
+/** What the pillar and the truck's front look like after: the pillar cratered and cracked, rebar showing; the hood
+ * crumpled up like an accordion and popped, the grille stove in, a headlight smashed; steam coming off it, forever. */
+const wreck = (c: Ctx, tr: TruckNow) => {
+  const T = tr.crash, P = R(340);
+  // (the pillar: the crater, the cracks running up it, the rebar)
+  box(c, P - 1, UPPER - 74, 30, 44, INK); box(c, P, UPPER - 72, 28, 40, '#3A3A42'); checker(c, P, UPPER - 72, 28, 40, '#2A2A30');
+  for (const [x, y, w] of [[P + 4, UPPER - 66, 8], [P + 14, UPPER - 58, 10], [P + 6, UPPER - 46, 12]]) { box(c, x, y, w, 4, '#5C5C66'); box(c, x, y, w, 1, '#7C7C86'); }
+  box(c, P + 2, UPPER - 64, 26, 2, '#8A3A1A'); box(c, P + 4, UPPER - 50, 24, 2, '#7A2E14');
+  c.strokeStyle = INK; c.lineWidth = 1;
+  for (const [x1, y1, x2, y2, x3, y3] of [[P + 20, UPPER - 74, P + 26, UPPER - 104, P + 22, UPPER - 140], [P + 10, UPPER - 74, P + 4, UPPER - 96, P + 9, UPPER - 118], [P + 28, UPPER - 50, P + 40, UPPER - 62, P + 44, UPPER - 90]]) {
+    c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.lineTo(x3, y3); c.stroke();
+  }
+  // (the truck's front, crumpled: in its own coordinates, like the stamp)
+  c.save(); c.translate(R(110) + Math.round(tr.dx), UPPER - 6 + Math.round(tr.dy)); c.rotate(-0.03);
+  c.fillStyle = INK; c.beginPath(); c.moveTo(184, -64); c.lineTo(214, -80); c.lineTo(234, -64); c.closePath(); c.fill();
+  c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(188, -64); c.lineTo(214, -77); c.lineTo(230, -64); c.closePath(); c.fill();
+  box(c, 196, -72, 18, 2, '#F47A66');
+  for (let i = 0; i < 4; i++) { const x = 206 + i * 6; box(c, x, -62, 2, 38, INK); box(c, x + 2, -62, 2, 38, '#DC3A2E'); box(c, x - 2, -62, 2, 38, '#7A1010'); }
+  box(c, 224, -58, 12, 32, INK); box(c, 225, -56, 9, 28, '#3A3F46'); box(c, 226, -50, 6, 2, '#C8CCD2'); box(c, 228, -40, 5, 2, '#C8CCD2');
+  box(c, 218, -61, 12, 8, INK); box(c, 219, -60, 10, 6, '#2A2E34'); box(c, 220, -59, 3, 2, '#FFF6C8'); box(c, 225, -57, 2, 2, '#FFFFFF');
+  box(c, 222, -30, 18, 6, INK); box(c, 223, -29, 16, 4, '#9AA0A8');
+  c.restore();
+  // (steam off the radiator, rising; a lot at first, never quite stopping)
+  const sx = R(330) + tr.dx, sy = UPPER - 78;
+  const n = T < 200 ? 7 : 3;
+  for (let k = 0; k < n; k++) {
+    const age = (tr.f * 1.3 + k * (120 / n)) % 120;
+    const a = (T < 200 ? 0.6 : 0.3) * (1 - age / 120);
+    pixelBlob(c, sx + Math.sin((tr.f + k * 40) * 0.05) * 6 + age * 0.15, sy - age * 0.9, 5 + age * 0.12, 4 + age * 0.1, `rgba(232, 236, 240, ${a.toFixed(2)})`);
+  }
+  // (the bits: chunks of the pillar and glass, thrown out, come to rest on the floor)
+  for (let k = 0; k < 10; k++) {
+    const vx = -1.5 + hash(k) * 5, vy = -2 - hash(k * 3) * 4, g = 0.35, y0 = UPPER - 56;
+    const land = (-vy + Math.sqrt(vy * vy + 2 * g * (UPPER - 3 - y0))) / g, tt = Math.min(Math.max(T, 0), land);
+    const x = P + 20 + vx * tt, y = y0 + vy * tt + 0.5 * g * tt * tt;
+    if (k < 6) { box(c, x - 1, y - 1, 5, 4, INK); box(c, x, y, 3, 2, '#7C7C86'); }
+    else { box(c, x, y, 2, 2, '#BFE0FF'); box(c, x, y, 1, 1, '#FFFFFF'); }
+  }
+  // (a hubcap, off the front wheel, rolling away to the guard's feet, wobbling down flat there)
+  const roll = Math.min(Math.max(T, 0), 70), hx = R(300) + 5 * roll - 0.036 * roll * roll, hy = UPPER - 9;
+  if (T < 70) {
+    const spin = roll * 0.4;
+    c.fillStyle = INK; c.beginPath(); c.arc(hx, hy, 9, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#D8DCE2'; c.beginPath(); c.arc(hx, hy, 8, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#9AA0A8'; c.beginPath(); c.arc(hx, hy, 4, 0, Math.PI * 2); c.fill();
+    for (let i = 0; i < 5; i++) { const an = spin + (i / 5) * Math.PI * 2; box(c, hx + Math.cos(an) * 6, hy + Math.sin(an) * 6, 2, 2, '#FFFFFF'); }
+  } else {
+    const w = Math.max(0, 1 - (T - 70) / 22), ry = 2 + 7 * w * Math.abs(Math.cos((T - 70) * 0.6));
+    c.fillStyle = INK; c.beginPath(); c.ellipse(hx, UPPER - ry - 1, 9, ry + 1, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#D8DCE2'; c.beginPath(); c.ellipse(hx, UPPER - ry - 1, 8, ry, 0, 0, Math.PI * 2); c.fill();
+    box(c, hx - 4, UPPER - ry - 2, 8, 1, '#FFFFFF');
+  }
+};
+
+/** In front of him while he climbs out of the window: the truck's door again (so it's in front of his legs). */
+export const truckDoorFront = (c: Ctx, tr: TruckNow) => {
+  c.save();
+  c.beginPath(); c.rect(R(110) + 112, UPPER - 72, 72, 66); c.clip();
+  c.translate(Math.round(tr.dx), Math.round(tr.dy));
+  stamp(c, 'm2u-truck', R(110) - 40, UPPER - 150, 300, 152, truck);
+  c.restore();
+};
+
+export const garage = (c: Ctx, vis: (a: number, b: number) => boolean, tr: TruckNow) => {
   chunked(c, 'm2u-gar', GX0, GX1, -80, UPPER + 80, paintGarage);
   for (const [x, col, w] of CARS) if (vis(x - 10, x + w + 10)) stamp(c, `m2u-car:${x}`, x - 8, UPPER - 72, w + 16, 74, g => sedan(g, x, w, col));
-  if (vis(R(60), R(380))) stamp(c, 'm2u-truck', R(110) - 40, UPPER - 150, 300, 152, truck);
+  if (vis(R(60) + tr.dx, R(380) + tr.dx)) {
+    // (coming in: dust kicked up behind it, speed lines)
+    if (tr.crash < 0) for (let k = 0; k < 6; k++) {
+      const age = (tr.f * 2 + k * 7) % 28, x = R(70) + tr.dx - age * 3 - k * 6;
+      pixelBlob(c, x, UPPER - 8 - age * 0.4, 6 + age * 0.3, 4 + age * 0.15, `rgba(150, 146, 140, ${(0.5 * (1 - age / 28)).toFixed(2)})`);
+      box(c, R(40) + tr.dx - k * 30 - (tr.f * 9) % 30, UPPER - 30 - k * 14, 26, 2, 'rgba(255, 255, 255, 0.5)');
+    }
+    c.save(); c.translate(Math.round(tr.dx), Math.round(tr.dy));
+    stamp(c, 'm2u-truck', R(110) - 40, UPPER - 150, 300, 152, truck);
+    c.restore();
+    if (tr.crash >= 0) wreck(c, tr);
+  }
   // (the tube on its way out: off, on, off...)
   if (vis(FLICKER - 80, FLICKER + 144) && typeof performance !== 'undefined') {
     const now = performance.now(), t = Math.floor(now / 70);
@@ -490,7 +578,7 @@ const paintCheck = (g: Ctx) => {
     g.fillStyle = rp[2]; g.beginPath(); g.ellipse(x + 14, EAVE + 10, 11, 5, 0, 0, Math.PI); g.fill();
   }
   // (the signs: SECURITY CHECKPOINT on the ridge, ALL BAGS hung inside)
-  for (const px of [A + 230, A + 490]) box(g, px, UPPER - 236, 3, 30, '#8A9098');
+  for (const px of [A + 230, A + 490]) pole(g, px, UPPER - 236, 5, 26, '#8A9098');
   sign(g, A + 200, UPPER - 260, 320, 26, BLUE, 'SECURITY CHECKPOINT', WHITE, 9);
   shinyStar(g, A + 214, UPPER - 247, 6, '#F1EFEA'); shinyStar(g, A + 506, UPPER - 247, 6, '#F1EFEA');
   for (const px of [A + 220, A + 500]) box(g, px, EAVE + 24, 1, UPPER - 150 - EAVE - 28, '#6A707A');
@@ -578,7 +666,7 @@ const paintCheck = (g: Ctx) => {
   slab(g, dx - 4, UPPER - 122, 88, 14, '#9AA0AA');
   text(g, 'FREEDOM-SCAN', dx + 40, UPPER - 112, '#1E3A8A', 5, 'center', null);
   box(g, dx + 30, UPPER - 126, 20, 4, INK); box(g, dx + 31, UPPER - 125, 18, 3, '#3A3F46');
-  for (const rx of [dx + 4, dx + 74]) box(g, rx, UPPER - 132, 2, 10, '#6A707A');
+  for (const rx of [dx + 4, dx + 72]) pole(g, rx, UPPER - 136, 4, 15, '#8A9098');
   sign(g, dx - 20, UPPER - 150, 120, 16, '#FEF3C7', 'WALK THROUGH', '#7F1D1D', 6);
 
   // The camera on its pole (its light is live), the sign hung off it
@@ -586,7 +674,8 @@ const paintCheck = (g: Ctx) => {
   box(g, px - 6, UPPER - 4, 18, 4, INK); box(g, px - 5, UPPER - 4, 16, 3, '#6A707A');
   pole(g, px, UPPER - 252, 6, 248, '#8A9098');
   box(g, px, UPPER - 226, 200, 4, INK); box(g, px, UPPER - 225, 200, 2, dim('#9AA0AA'));
-  for (const cx of [px + 16, px + 196]) box(g, cx, UPPER - 222, 1, 12, '#5A606A');
+  // (hung off the arm on short chains)
+  for (const cx of [px + 16, px + 196]) for (let y = UPPER - 222; y < UPPER - 210; y += 4) { box(g, cx - 1, y, 4, 3, INK); box(g, cx, y + 1, 2, 1, '#B8BCC4'); }
   sign(g, R(CHECK_END) - 240, UPPER - 210, 200, 22, '#FDE047', 'SMILE! YOU ARE ON CAMERA', INK, 6);
   box(g, px - 8, UPPER - 256, 14, 4, '#5A606A');
   slab(g, px - 42, UPPER - 266, 36, 7, '#C8CCD2');

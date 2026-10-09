@@ -56,16 +56,27 @@ const paint = (g: Ctx, chosen: number, t: number) => {
   // The hub in the middle, and you in it
   g.fillStyle = '#E7D9BC'; g.beginPath(); g.ellipse(HUB_C.x, HUB_C.y, HUB_R + 6, (HUB_R + 6) * 0.82, 0, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#3B2A14'; g.stroke();
   text(g, 'HAPPY', HUB_C.x, HUB_C.y - 2, 6, '#7C2D12'); text(g, 'HUB', HUB_C.x, HUB_C.y + 8, 6, '#7C2D12');
-  // America USA: the one way in, a narrow street through the gap in the lands at the bottom, from the ticket booths up
-  // to the hub, shops all down it, flags out; the booths at the bottom of it, the parking past them (all of it)
-  const gap = sliceMid(AMERICA_SECTOR, HUB_R + 8);
-  g.fillStyle = '#E7D9BC'; g.beginPath(); g.moveTo(gap.x - 7, gap.y - 4); g.lineTo(gap.x + 7, gap.y - 4); g.lineTo(gap.x + 9, H - 52); g.lineTo(gap.x - 9, H - 52); g.closePath(); g.fill();
+  // America USA: the one way in, a narrow street up through the gap in the lands at the bottom: in from the parking and
+  // the security checkpoint at the bottom, shops all up it, flags out, the ticket booths and the gate at the top end of
+  // it, right before the hub
+  const gap = sliceMid(AMERICA_SECTOR, HUB_R + 8), foot = H - 52;
+  g.fillStyle = '#E7D9BC'; g.beginPath(); g.moveTo(gap.x - 7, gap.y - 4); g.lineTo(gap.x + 7, gap.y - 4); g.lineTo(gap.x + 9, foot); g.lineTo(gap.x - 9, foot); g.closePath(); g.fill();
   g.strokeStyle = '#3B2A14'; g.lineWidth = 1; g.stroke();
-  for (let y = gap.y + 6; y < H - 56; y += 9) { const k = Math.round(y / 9); g.fillStyle = k % 2 ? '#DC2626' : '#1E3A8A'; g.fillRect(gap.x - 18, y, 8, 6); g.fillRect(gap.x + 10, y, 8, 6); g.fillStyle = '#F8FAFC'; g.fillRect(gap.x - 17, y + 1, 2, 2); g.fillRect(gap.x + 11, y + 1, 2, 2); }
-  text(g, 'AMERICA USA', gap.x + 26, (gap.y + H - 52) / 2, 6, '#1E3A8A', 'left');
-  text(g, '(ONE WAY. NO RE-ENTRY.)', gap.x + 26, (gap.y + H - 52) / 2 + 10, 4, '#57534E', 'left');
-  g.fillStyle = '#7F1D1D'; for (let k = -2; k <= 2; k++) g.fillRect(gap.x + k * 9 - 3, H - 52, 6, 8);
-  text(g, 'TICKETS', gap.x - 24, H - 44, 5, '#57534E', 'right');
+  for (let y = gap.y + 22; y < foot - 8; y += 9) { const k = Math.round(y / 9); g.fillStyle = k % 2 ? '#DC2626' : '#1E3A8A'; g.fillRect(gap.x - 18, y, 8, 6); g.fillRect(gap.x + 10, y, 8, 6); g.fillStyle = '#F8FAFC'; g.fillRect(gap.x - 17, y + 1, 2, 2); g.fillRect(gap.x + 11, y + 1, 2, 2); }
+  // (the booths and the gate, across the top of the street)
+  const label = (s: string, x: number, y: number, size: number, col: string, align: CanvasTextAlign) => {
+    g.font = `${size}px "Press Start 2P"`; const tw = g.measureText(s).width + 6;
+    g.fillStyle = 'rgba(255, 255, 255, 0.85)'; g.fillRect(align === 'left' ? x - 3 : align === 'right' ? x - tw + 3 : x - tw / 2, y - size - 2, tw, size + 5);
+    text(g, s, x, y, size, col, align);
+  };
+  g.fillStyle = '#7F1D1D'; for (let k = -1; k <= 1; k++) g.fillRect(gap.x + k * 7 - 3, gap.y + 6, 6, 7);
+  g.fillStyle = '#EC4899'; g.fillRect(gap.x - 12, gap.y + 2, 24, 3);
+  label('TICKETS + GATE', gap.x - 22, gap.y + 13, 5, '#7F1D1D', 'right');
+  // (the checkpoint at the bottom of it; the name of the street down there, clear of the lands either side)
+  g.fillStyle = '#1E3A8A'; g.fillRect(gap.x - 10, foot - 6, 20, 6);
+  label('SECURITY', gap.x - 22, foot - 1, 5, '#1E3A8A', 'right');
+  label('AMERICA USA', gap.x + 26, foot - 18, 6, '#1E3A8A', 'left');
+  label('(ONE WAY. NO RE-ENTRY.)', gap.x + 26, foot - 7, 4, '#57534E', 'left');
   g.fillStyle = '#A8A29E'; g.fillRect(HUB_C.x - 80, H - 34, 160, 22); g.strokeStyle = '#57534E'; g.strokeRect(HUB_C.x - 80, H - 34, 160, 22);
   text(g, 'PARKING P1-P47', HUB_C.x, H - 20, 6, '#1C1917');
   text(g, 'OVERFLOW PARKING: NEXT STATE >', W - 8, H - 20, 5, '#57534E', 'right');

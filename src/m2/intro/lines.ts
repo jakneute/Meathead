@@ -13,11 +13,13 @@ export const GUEST2_VOICE = { id: 'm2.guest2', pitch: 0, rate: 1 };
 
 export type Dressed = 'clean' | 'shitty' | 'nude';
 
+/** Meathead, out of the truck he's just put into a pillar (and out of its window: the door won't open now). */
+export const MEATHEAD_PARKED = ['PARKED.', 'NAILED IT.', 'FOUR SPACES. NOBODY TOUCH IT.', "THAT PILLAR WASN'T THERE LAST TIME."];
 /** Meathead at the window, before he shows his ticket (or goes for it and finds he hasn't got one). */
 export const MEATHEAD_TICKET: Record<Dressed, string[]> = {
   clean: ['GOT MY TICKET RIGHT HERE.', 'ONE ADULT. A BIG ONE.', 'HOW YOU DOING. HERE YOU GO.', 'PRINTED IT AT HOME. IN COLOR.'],
   shitty: ["IT'S A LITTLE DAMP. IT'S STILL GOOD.", "DON'T WORRY ABOUT WHAT'S ON IT.", "HERE. DON'T ASK.", 'IT WAS IN MY BACK POCKET. THAT WAS A MISTAKE.'],
-  nude: ['TICKET, TICKET, TICKET... OH NO. OH NO NO NO NO NO.', "WHERE'S MY TICKET? WHERE ARE MY PANTS? WHERE ARE MY PANTS?!", 'IT WAS IN MY POCKET! I HAD A POCKET! OH GOD! OH GOD!', "OKAY. OKAY. DON'T PANIC. ...I'M PANICKING. I'M PANICKING!"],
+  nude: ['TICKET, TICKET... IT WAS IN MY PANTS. MY PANTS BLEW UP. OH NO. OH NO NO NO NO.', "WHERE'S MY TICKET?! IT WAS IN MY BACK POCKET! MY BACK POCKET BLEW UP WITH THE REST OF THEM!", 'I HAD A TICKET! IT WENT WITH THE PANTS! THE PANTS WENT EVERYWHERE!', "OKAY. DON'T PANIC. THE TICKET WAS IN THE PANTS. THE PANTS EXPLODED. ...I'M PANICKING. I'M PANICKING!"],
 };
 
 /** The ticket lady, to him. */

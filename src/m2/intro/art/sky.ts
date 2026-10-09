@@ -21,6 +21,8 @@ const W = CANVAS_WIDTH, HT = CANVAS_HEIGHT;
 // ---------------------------------------------------------------------------------------------------------------------
 
 const held = new Map<string, HTMLCanvasElement>();
+/** Lets go of all of it (on the way out of the intro: none of it's wanted anywhere else). */
+export const clearSkyCache = () => held.clear();
 const fontReady = () => typeof document !== 'undefined' && !!document.fonts?.check?.('8px "Press Start 2P"');
 
 /** The held canvas for `key` (painted now if it hasn't been), or null when it can't be held yet (no pixel font yet). */

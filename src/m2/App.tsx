@@ -24,6 +24,8 @@ import { hubLayout, HUB_STAGE, setHubStart } from './hub/index';
 import { penLayout, PEN_STAGE } from './pen/index';
 import { introLayout, INTRO_STAGE, registerIntro } from './intro/index';
 import TicketCard from './intro/TicketCard';
+import { clearSkyCache } from './intro/art/sky';
+import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
 import { getUi, subscribeUi, onTravel, setUi, goTo } from './store';
 import { attachM2Keys } from './input';
@@ -101,6 +103,7 @@ const App2: React.FC = () => {
     onTravel(dest => {
       const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : null;
       if (!to) return;
+      clearSkyCache();
       if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : AMERICA_SLOT);
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: false });
       setUi({ near: null, map: null, nearExit: false });
@@ -120,6 +123,8 @@ const App2: React.FC = () => {
   const skipIntro = () => { setStatus(GameStatus.PLAYING); goTo('hub'); };
   const togglePause = () => {
     const st = live.current.status;
+    // (a scene that can be skipped: START / ESC skips it, rather than pausing)
+    if (st === GameStatus.PLAYING && canSkip()) { requestSkip(); return; }
     if (st === GameStatus.PLAYING) { setPauseSel(Math.max(0, WEAPONS.indexOf(live.current.weapon))); setStatus(GameStatus.PAUSED); }
     else if (st === GameStatus.PAUSED) setStatus(GameStatus.PLAYING);
   };

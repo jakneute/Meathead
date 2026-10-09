@@ -647,7 +647,8 @@ const neon = (c: Ctx, on: boolean, col: string, build: (c: Ctx) => void) => {
   else { c.strokeStyle = dark(col, 0.55); c.lineWidth = 3; c.stroke(); c.strokeStyle = dark(col, 0.3); c.lineWidth = 1; c.stroke(); }
   c.lineCap = 'butt'; c.lineJoin = 'miter';
 };
-const strut = (g: Ctx, x: number, y0: number, y1: number) => { const s = rampOf(dim('#6B7280')); box(g, x - 1, y0, 4, y1 - y0, INK); box(g, x, y0, 2, y1 - y0, s[2]); box(g, x, y0, 1, y1 - y0, s[3]); };
+/** A steel strut from y0 down to y1 (what a rooftop sign stands on): stout enough to read, a foot plate where it's bolted down. */
+const strut = (g: Ctx, x: number, y0: number, y1: number) => { const s = rampOf('#5A616E'); box(g, x - 2, y0, 7, y1 - y0, INK); box(g, x - 1, y0, 5, y1 - y0, s[2]); box(g, x - 1, y0, 1, y1 - y0, s[4]); box(g, x + 3, y0, 1, y1 - y0, s[0]); box(g, x - 4, y1 - 3, 11, 3, INK); box(g, x - 3, y1 - 3, 9, 2, s[3]); };
 
 const steeple = (g: Ctx, bx: number, top: number, wallCol: string) => {
   const cx = bx + 230, wr = rampOf(dim('#EEEAE0'));

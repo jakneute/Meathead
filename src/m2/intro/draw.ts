@@ -8,11 +8,12 @@ import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_X, HUD_CLEAR_Y } from 
 import { X0, R, STAIRS_END, USA_START, GARAGE_END, USA_END, END_X, WINDOW_X } from './geometry';
 import { type Ctx, INK, WHITE, RED, box, text } from './art/kit';
 import { drawIntroBackdrop } from './art/sky';
-import { garage, deck, drawUpperFloor } from './art/upper';
+import { garage, deck, drawUpperFloor, truckDoorFront } from './art/upper';
 import { america, drawAmericaFloor } from './art/america';
 import { plaza, drawPlazaFloor } from './art/plaza';
 
 import { drawPunchCam } from './punchCam';
+import { SKIP_AFTER, drawSkipPrompt } from '../../m1/game/platform/skip';
 
 export { drawIntroBackdrop };
 
@@ -26,7 +27,7 @@ const panic = (c: Ctx, state: GameState) => {
   }
   if ((f >> 3) % 2) text(c, '!!', x + 2, y - 18, '#FDE047', 12);
 };
-import { getIntro, guests } from './index';
+import { getIntro, guests, truckNow } from './index';
 
 
 export const drawIntroBack = (c: Ctx, state: GameState) => {
@@ -35,7 +36,7 @@ export const drawIntroBack = (c: Ctx, state: GameState) => {
   const cam = state.camera.x;
   const vis = (a: number, b: number) => b > cam - 100 && a < cam + CANVAS_WIDTH + 100;
   if (vis(R(GARAGE_END), R(STAIRS_END))) deck(c, f, intro?.office.open ?? 0, intro?.alarm ?? 0, intro?.cool ?? 0, vis);
-  if (vis(X0 - 400, R(GARAGE_END))) garage(c, vis);
+  if (vis(X0 - 400, R(GARAGE_END))) garage(c, vis, truckNow(intro, f));
   if (vis(R(USA_START), R(USA_END))) america(c, f, vis);
   if (vis(R(USA_END) - 200, R(END_X) + 400)) plaza(c, state, f);
   // The floors: the garage level's slab (its edge showing, the drop under it), the stairs down, brick in America USA,
@@ -61,6 +62,12 @@ export const drawIntroFront = (c: Ctx, state: GameState) => {
   if (!intro) return;
   // (naked at the window: him panicking (sweat flying off him), then the punch, up close)
   const sc = intro.scene;
+  // (him climbing out of the truck's window: its door in front of his legs; and SKIP >> while it's on)
+  if (intro.arrival) {
+    const tr = truckNow(intro, state.frame);
+    if (tr.emerging) truckDoorFront(c, tr);
+    if (intro.arrival.t > SKIP_AFTER) { c.save(); c.translate(state.camera.x, state.camera.y); drawSkipPrompt(c, CANVAS_WIDTH); c.restore(); }
+  }
   if (sc?.kind === 'nude' && sc.pip < 0) panic(c, state);
   if (sc && sc.pip >= 0) drawPunchCam(c, state.camera.x, state.camera.y, sc.pip);
   if (intro.lady.said?.text) said(c, intro.lady.said.text, R(WINDOW_X) - 10, GROUND_Y - 220, '#FDE047');

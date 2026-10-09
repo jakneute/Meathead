@@ -29,12 +29,13 @@ import { playSound } from '../../m1/game/platform/audio';
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
 import { shakeScreen } from '../../m1/game/core/state';
+import { SKIP_AFTER, offerSkip, takeSkip } from '../../m1/game/platform/skip';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
 import { setUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
 import { stopWeapons } from '../weapons';
 import { CAST, type CastMember } from '../cast/people';
 import {
-  TICKET_VOICE, GUARD_VOICE, GUARD_F_VOICE, PA_VOICE, GUEST_VOICE, GUEST2_VOICE, type Dressed, MEATHEAD_TICKET, TICKET_LADY, TICKET_NEXT, TICKET_ALARM,
+  TICKET_VOICE, GUARD_VOICE, GUARD_F_VOICE, PA_VOICE, GUEST_VOICE, GUEST2_VOICE, type Dressed, MEATHEAD_TICKET, MEATHEAD_PARKED, TICKET_LADY, TICKET_NEXT, TICKET_ALARM,
   GUARD_ALERT, GUARD_BARK, GUARD_IDLE, GUARD_WELCOME, PA_LINES, GUEST_HURRY, GUEST_CUT, TICKET_CUT, GUEST_HIT, GUEST_REACT, GUEST_REACT_NOW,
 } from './lines';
 import { drawIntroBackdrop, drawIntroBack, drawIntroFront } from './draw';
@@ -77,6 +78,8 @@ export interface Intro {
   lineFight: boolean;
   /** The state of him the line last saw, and when somebody in it can next say something about it. */
   seenDressed: Dressed; reactNext: number;
+  /** The way he gets here (the first time): the truck into the pillar, him out of its window. */
+  arrival: { t: number; landed: number; said: boolean; done: number } | null;
 }
 export const getIntro = (state: GameState) => state.stage as Intro | null;
 
@@ -175,7 +178,10 @@ export const introLayout: StageLayout = {
       grab: createGrab(state), provoked: false, me: null, nextNumber: 0, serveT: 0, arriveT: 0, hurryT: 0, atWindowT: 0,
       lady: { said: null, ko: 0 }, admitted: false, scene: null, office: { open: 0, cd: 0, due: 0 },
       pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, cool: 0, tripped: false, welcomed: false, lineFight: false, seenDressed: 'clean', reactNext: 0,
+      arrival: crashedIn ? null : { t: 0, landed: 0, said: false, done: 0 },
     };
+    // (only the once: back here after dying, the truck's already in the pillar and he's already out of it)
+    if (!crashedIn) { crashedIn = true; state.player.hidden = true; state.player.inCutscene = true; setUi({ introCutscene: true }); }
     state.stage = intro;
     state.cameraMinX = X0 - 60;
     state.cameraMaxX = R(END_X) + 60 - CANVAS_WIDTH;
@@ -195,6 +201,9 @@ export const introLayout: StageLayout = {
     // (security hits soft: most of whatever he took, given back)
     if (p.health < intro.hpWas && p.health > 0) p.health = Math.min(intro.hpWas, p.health + (intro.hpWas - p.health) * 0.65);
     intro.hpWas = p.health;
+
+    // The way in: the truck, the pillar, him out of the window (nothing else to do till he's out)
+    if (intro.arrival) { arrival(ctx, intro); security(ctx, intro); return { ...NO_CONTROLS }; }
 
     walkways(state);
     watchForTrouble(ctx, intro);
@@ -241,6 +250,77 @@ export const introLayout: StageLayout = {
   drawBackdrop: (ctx, state) => { drawIntroBackdrop(ctx, state); return true; },
   drawBack: (ctx, state) => drawIntroBack(ctx, state),
   drawFront: (ctx, state) => { drawIntroFront(ctx, state); const intro = getIntro(state); if (intro) drawGrab(ctx, state, intro.grab); },
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The way in: in comes his truck, flat out, straight into the pillar at the end of the bay (the horn stuck on after);
+// the door won't open, so out of the window he climbs and dives; he says his piece; the guard right there couldn't
+// care less ("welcome to Happy Land, sir"). Only the once (crashedIn). Skippable, the lot.
+
+let crashedIn = false;
+/** Frames: the truck hits the pillar; he's up in the window; he dives out. */
+export const CRASH_AT = 70, EMERGE_AT = 140, DIVE_AT = 164;
+/** Where the truck is, and how long since it hit (for intro/art/upper's drawing). */
+export const truckNow = (intro: Intro | null, f: number) => {
+  const t = intro?.arrival ? intro.arrival.t : 100000;
+  const dx = t < CRASH_AT ? -560 + 8 * t : t < CRASH_AT + 12 ? -7 * Math.sin(((t - CRASH_AT) / 12) * Math.PI) : 0;
+  const dy = t < CRASH_AT ? ((t >> 1) % 3 === 0 ? -1 : 0) : t < CRASH_AT + 8 ? -Math.round(4 * Math.sin(((t - CRASH_AT) / 8) * Math.PI)) : 0;
+  return { dx, dy, crash: t - CRASH_AT, f, emerging: !!intro?.arrival && t >= EMERGE_AT && t < DIVE_AT + 10 };
+};
+
+const arrival = (ctx: FrameContext, intro: Intro) => {
+  const { state } = ctx;
+  const a = intro.arrival!, p = state.player;
+  a.t++;
+  p.inCutscene = true;
+  setUi({ introCutscene: true, introTip: null, introPrompt: null });
+  if (a.t > SKIP_AFTER) offerSkip();
+  if (a.t > SKIP_AFTER && takeSkip()) { endArrival(state, intro, true); return; }
+  const t = a.t;
+  // In it comes, flat out (him inside, so not out here yet)
+  if (t < EMERGE_AT) { p.hidden = true; p.vel.x = 0; }
+  if (t === 1) playSound('carroar', 0.9, -4);
+  if (t === 36) playSound('truckhorn', 0.7);
+  if (t === CRASH_AT) {
+    playSound('crash', 1); playSound('crunch', 1, -6); playSound('glass', 0.8); playSound('slam', 0.9, -4);
+    shakeScreen(state, 16, 12);
+  }
+  // (the horn, stuck on after, honking)
+  if (t === CRASH_AT + 26 || t === CRASH_AT + 44) playSound('truckhorn', 0.55, -2);
+  // Up in the window: climbing out of it (the door's in front of his legs: see intro/art/upper truckDoorFront)
+  if (t >= EMERGE_AT && t < DIVE_AT) {
+    const k = Math.min(1, (t - EMERGE_AT) / 16), sill = UPPER - 74;
+    p.hidden = false; p.facing = -1;
+    p.pos.x = R(258) - p.width / 2;
+    // (rising up out of it, then wriggling, stuck at the hips a moment)
+    p.pos.y = sill + 4 - k * 48 + (t - EMERGE_AT > 16 ? Math.round(Math.abs(Math.sin(t * 0.8)) * 2) : 0);
+    p.vel.x = 0; p.vel.y = 0; p.isGrounded = false;
+  }
+  // ...and out he dives
+  if (t === DIVE_AT) { p.vel.x = -3.4; p.vel.y = -6.5; playSound('jump', 0.8); playSound('whoosh', 0.5); }
+  if (t > DIVE_AT + 4 && p.isGrounded && !a.landed) { a.landed = t; p.vel.x = 0; playSound('land', 1); playSound('thud', 0.6, -6); shakeScreen(state, 4, 3); }
+  if (a.landed && t === a.landed + 18) p.facing = 1;
+  // He says his piece; then the guard right there, who couldn't care less
+  if (a.landed && t === a.landed + 26 && !a.said) {
+    a.said = true;
+    meatheadSays(state, pick(MEATHEAD_PARKED), true, () => {
+      const guard = state.enemies.filter(e => e.kind === 'parksec' && e.health > 0).sort((x, y) => Math.abs(x.pos.x - p.pos.x) - Math.abs(y.pos.x - p.pos.x))[0];
+      if (!guard) { a.done = 1; return; }
+      remarked.add(guard); intro.welcomed = true;
+      intro.bark = { e: guard, said: { text: '' } };
+      speak(guardVoice(guard), GUARD_WELCOME.clean, s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }, true, () => { a.done = 1; }, true);
+    }, true);
+  }
+  // (it doesn't wait forever on the voices)
+  if (a.done || (a.landed && t > a.landed + 330)) endArrival(state, intro, false);
+};
+
+const endArrival = (state: GameState, intro: Intro, skipped: boolean) => {
+  const p = state.player;
+  intro.arrival = null;
+  p.hidden = false; p.inCutscene = false;
+  setUi({ introCutscene: false });
+  if (skipped) { p.pos.x = R(190) - p.width / 2; p.pos.y = UPPER - p.height; p.vel.x = 0; p.vel.y = 0; p.isGrounded = true; p.facing = 1; }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -324,7 +404,7 @@ const security = (ctx: FrameContext, intro: Intro) => {
       // (a word as he goes by: once each, now and then, depending on the state of him)
       // (the first of them he comes to welcomes him to the park, always; the rest, a word now and then)
       const first = !intro.welcomed;
-      if (Math.abs(cx - px) < 120 && !intro.bark && state.frame > intro.barkNext && !remarked.has(e) && (first || Math.random() < 0.02)) {
+      if (!intro.arrival && Math.abs(cx - px) < 120 && !intro.bark && state.frame > intro.barkNext && !remarked.has(e) && (first || Math.random() < 0.02)) {
         remarked.add(e); intro.welcomed = true;
         intro.bark = { e, said: { text: '' } };
         speak(guardVoice(e), first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }, false, undefined, first);
