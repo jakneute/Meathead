@@ -164,6 +164,8 @@ export interface LineHooks {
   onHide: () => void;
   /** Called once the line is over or cut off (not for queued lines that went stale unsaid). */
   onDone?: () => void;
+  /** Waiting its turn, it never got one (it went stale, or everything was cut): it'll never be said. */
+  onDropped?: () => void;
   /** Said however recently it was last said (a scene's own line, every time the scene plays). */
   always?: boolean;
 }
@@ -193,7 +195,9 @@ export const cutBossLines = () => cutVoice('boss.');
 
 /** Someone killed mid-sentence (voices whose id starts `prefix`): what they were saying, and had waiting, is cut off. */
 export const cutVoice = (prefix: string) => {
+  const cut = queue.filter(l => l.voice.id.startsWith(prefix));
   queue = queue.filter(l => !l.voice.id.startsWith(prefix));
+  for (const l of cut) l.onDropped?.();
   if (current && current.voice.id.startsWith(prefix)) {
     const c = current;
     current = null;
@@ -245,7 +249,7 @@ const finish = (line: Playing) => {
 const playNext = () => {
   while (queue.length > 0) {
     const line = queue.shift()!;
-    if (Date.now() - line.queuedAt > STALE_MS) continue;
+    if (Date.now() - line.queuedAt > STALE_MS) { line.onDropped?.(); continue; }
     start(line);
     return;
   }
@@ -328,7 +332,9 @@ export const say = (text: string, voice: Voice, priority: SpeechPriority, hooks:
 export const cancelSpeech = () => {
   const playing = current;
   current = null;
+  const waiting = queue;
   queue = [];
+  for (const l of waiting) l.onDropped?.();
   playing?.clip?.stop();
   if (playing) {
     playing.onHide();

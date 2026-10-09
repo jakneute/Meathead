@@ -101,6 +101,8 @@ export const meatheadSays = (state: GameState, text: string, after = true, onDon
       if (!spoken) setTimeout(() => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; onDone?.(); }, Math.max(1800, text.length * 70));
     },
     onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; onDone?.(); },
+    // (waiting its turn, it never got one: on with the scene anyway)
+    onDropped: () => onDone?.(),
   });
   // (no voice for it yet: up for a while anyway, so a scene doesn't hang on it)
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; setTimeout(() => onDone?.(), 2500); }
@@ -119,6 +121,7 @@ export const speak = (voiceId: string, text: string, set: (s: Said | null) => vo
     // (not recorded: the engine never takes it down, so it's up its usual while, then done)
     onShow: spoken => { set(s); if (!spoken) setTimeout(() => { set(null); onDone?.(); }, Math.max(1800, text.length * 70)); },
     onHide: () => { set(null); onDone?.(); },
+    onDropped: () => { set(null); onDone?.(); },
   });
   if (!shown) { set(s); setTimeout(() => { set(null); onDone?.(); }, Math.max(1800, text.length * 70)); }
 };

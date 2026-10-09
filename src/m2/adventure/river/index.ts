@@ -46,8 +46,8 @@ const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(
  */
 export const boatRide = { on: true };
 
-/** Air: frames of it held (about 15 seconds), how fast it comes back, what a bubble's worth. */
-const AIR_FRAMES = 900, AIR_REFILL = 5, BUBBLE_AIR = 0.3;
+/** Air: frames of it held (about 22 seconds), how fast it comes back (a full tank in 3 seconds), what a bubble's worth. */
+const AIR_FRAMES = 1350, AIR_REFILL = 7.5, BUBBLE_AIR = 0.3;
 /** Out of air: a hurt this often. */
 const DROWN_EVERY = 45, DROWN_DAMAGE = 7;
 /** How far Artie's heard. */

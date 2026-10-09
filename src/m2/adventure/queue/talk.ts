@@ -13,16 +13,21 @@ export interface Line {
   /** Said: what to do then. */
   then?: () => void;
 }
-export interface Talk { q: Line[]; busy: boolean; gap: number; current: Line | null }
-export const talk = (): Talk => ({ q: [], busy: false, gap: 0, current: null });
+export interface Talk { q: Line[]; busy: boolean; gap: number; current: Line | null; since: number }
+export const talk = (): Talk => ({ q: [], busy: false, gap: 0, current: null, since: 0 });
+/** However a line went, it's never waited on longer than this (frames): the talk goes on. */
+const STUCK = 60 * 20;
 
 /** Each frame: the next line out, if it's time. */
 export const stepTalk = (state: GameState, t: Talk, beat = 24) => {
   if (t.gap > 0) t.gap--;
+  // (a line that never came back: on without it)
+  if (t.busy && state.frame - t.since > STUCK) { const l = t.current; l?.set?.(null); t.busy = false; t.current = null; l?.then?.(); }
   if (t.busy || t.gap > 0 || !t.q.length) return;
   const l = t.q.shift()!;
-  t.busy = true; t.current = l;
-  const done = () => { t.busy = false; t.current = null; t.gap = beat; l.then?.(); };
+  t.busy = true; t.current = l; t.since = state.frame;
+  let over = false;
+  const done = () => { if (over) return; over = true; if (t.current !== l) return; t.busy = false; t.current = null; t.gap = beat; l.then?.(); };
   if (l.voice === 'meathead') meatheadSays(state, l.text, true, done);
   else speak(l.voice, l.text, s => l.set?.(s ? s.text : null), true, done);
 };
