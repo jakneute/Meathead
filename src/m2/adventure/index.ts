@@ -33,6 +33,7 @@ const current = (state: GameState) => ALL[getAdv(state)?.section ?? 'jungle'];
 export const ADV_CHECKPOINTS = SECTION_ORDER.flatMap(id => ALL[id].checkpoints).sort((a, b) => a.cp - b.cp);
 
 interface AdvState extends Adv { grab: Grab }
+let devStarted = false;
 
 export const advLayout: StageLayout = {
   left: SECTIONS.jungle.x0 - 200,
@@ -46,6 +47,8 @@ export const advLayout: StageLayout = {
     state.stage = adv;
     for (const id of SECTION_ORDER) ALL[id].build(state);
     // (back from dying: at the checkpoint he'd got to)
+    // (in dev, ?adv=<checkpoint> starts there, the first time)
+    if (import.meta.env.DEV && !devStarted) { devStarted = true; const q = new URLSearchParams(location.search).get('adv'); if (q) state.checkpoint = +q; }
     const cp = ADV_CHECKPOINTS.find(c => c.cp === state.checkpoint) ?? ADV_CHECKPOINTS[0];
     adv.section = sectionAt(cp.x).id;
     const p = state.player;

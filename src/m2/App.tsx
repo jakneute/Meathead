@@ -102,10 +102,11 @@ const useFitToWindow = () => {
 const App2: React.FC = () => {
   const scale = useFitToWindow();
   const ui = useSyncExternalStore(subscribeUi, getUi);
-  // (it starts on the way in: the intro)
-  const [stage, setStage] = useState(INTRO_STAGE);
+  // (it starts on the way in: the intro; in dev, ?adv=<checkpoint> starts in Adventure Land)
+  const first = import.meta.env.DEV && new URLSearchParams(location.search).has('adv') ? ADV_STAGE : INTRO_STAGE;
+  const [stage, setStage] = useState(first);
   const [status, setStatus] = useState(GameStatus.START);
-  const pending = useRef<string | null>(INTRO_STAGE);
+  const pending = useRef<string | null>(first);
   const [fade, setFade] = useState(false);
   const [weapon, setWeapon] = useState<WeaponType>('GUN');
   const [hud, setHud] = useState({ health: INITIAL_PLAYER_HEALTH, power: 0, ammo: STARTING_AMMO as Record<WeaponType, number> });
