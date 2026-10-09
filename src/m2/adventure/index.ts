@@ -1,0 +1,95 @@
+// Adventure Land: the stage. Its sections (see geometry.ts) each in a folder of their own, each a Section (section.ts);
+// this runs whichever one he's in, keeps the camera to it, and puts him back at the right checkpoint after dying.
+//
+// The first pass is a crude one on purpose (prototype boxes and words, to get the feel of it before the real look).
+
+import type { StageLayout } from '../../m1/game/stages/index';
+import type { GameState } from '../../m1/game/core/state';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
+import { NO_CONTROLS } from '../../m1/game/platform/input';
+import { setUi, isLeaving, arrived, carryGut, takeGut } from '../store';
+import { stopWeapons } from '../weapons';
+import { createGrab, updateGrab, drawGrab, type Grab } from '../moves/grab';
+import { SECTIONS, SECTION_ORDER, type SectionId } from './geometry';
+import { getAdv, type Adv, type Section } from './section';
+import { jungle } from './jungle';
+import { queue } from './queue';
+import { river } from './river';
+import { dino } from './dino';
+import { temple } from './temple';
+import { cart } from './cart';
+import { roof } from './roof';
+import { clearing } from './clearing';
+
+export const ADV_STAGE = 'M2 Adventure Land';
+
+const ALL: Record<SectionId, Section> = { jungle, queue, river, dino, temple, cart, roof, clearing };
+const sectionAt = (x: number): Section => {
+  for (const id of SECTION_ORDER) { const s = ALL[id]; if (x >= s.x0 && x < s.x1) return s; }
+  return ALL.jungle;
+};
+const current = (state: GameState) => ALL[getAdv(state)?.section ?? 'jungle'];
+/** Every checkpoint in the stage, in order. */
+export const ADV_CHECKPOINTS = SECTION_ORDER.flatMap(id => ALL[id].checkpoints).sort((a, b) => a.cp - b.cp);
+
+interface AdvState extends Adv { grab: Grab }
+
+export const advLayout: StageLayout = {
+  left: SECTIONS.jungle.x0 - 200,
+  startX: SECTIONS.jungle.x0 + 150,
+  verticalCamera: true,
+  startsStanding: true,
+  build: (state) => {
+    arrived(); stopWeapons();
+    { const g = takeGut(); if (g) state.player.gut = g; }
+    const adv: AdvState = { section: 'jungle', s: {}, grab: createGrab(state) };
+    state.stage = adv;
+    for (const id of SECTION_ORDER) ALL[id].build(state);
+    // (back from dying: at the checkpoint he'd got to)
+    const cp = ADV_CHECKPOINTS.find(c => c.cp === state.checkpoint) ?? ADV_CHECKPOINTS[0];
+    adv.section = sectionAt(cp.x).id;
+    const p = state.player;
+    p.pos.x = cp.x - p.width / 2; p.pos.y = cp.y - p.height; p.vel.x = 0; p.vel.y = 0;
+    state.camera.x = cp.x - CANVAS_WIDTH / 2;
+    return { x: cp.x, y: cp.y };
+  },
+  update: (ctx, controls) => {
+    const { state } = ctx;
+    const adv = getAdv(state) as AdvState | null;
+    if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
+    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
+    if (!adv) return controls;
+    const p = state.player;
+    // Which section he's in (the one his middle's in), and the camera kept to it
+    const sec = sectionAt(p.pos.x + p.width / 2);
+    adv.section = sec.id;
+    const lim = sec.cameraX?.(state) ?? { min: sec.x0, max: sec.x1 - CANVAS_WIDTH };
+    state.cameraMinX = lim.min; state.cameraMaxX = lim.max;
+    // (passing a checkpoint: it's his)
+    for (const c of sec.checkpoints) if (c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
+    setUi({ near: null, map: null, nearExit: false });
+    let out = sec.update ? sec.update(ctx, controls) : controls;
+    out = updateGrab(ctx, adv.grab, out);
+    return out;
+  },
+  waterBodyAt: (state, x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null,
+  drawBackdrop: (c, state) => {
+    const sec = current(state);
+    if (sec.drawBackdrop?.(c, state)) return true;
+    c.fillStyle = '#1F2937'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    return true;
+  },
+  drawBack: (c, state) => {
+    // (the ones either side too, so walking from one into the next there's no gap)
+    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawBack?.(c, state); }
+  },
+  drawFront: (c, state) => {
+    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawFront?.(c, state); }
+    const adv = getAdv(state) as AdvState | null;
+    if (adv) drawGrab(c, state, adv.grab);
+  },
+  drawHud: (c, state) => current(state).drawHud?.(c, state),
+  zoom: (state) => current(state).zoom?.(state) ?? null,
+  lighting: (state) => current(state).lighting?.(state) ?? null,
+  cameraRow: (state) => current(state).cameraRow?.(state),
+};

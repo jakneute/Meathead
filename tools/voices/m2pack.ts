@@ -18,6 +18,7 @@ import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES, BULK_LINES, BULK_FAIL_LINES, DUCK_LINES } from '../../src/m2/lines/weaponLines';
 import { M2_GUT_LINES, M2_GUT_DEATH } from '../../src/m2/lines/gutLines';
 import * as introLines from '../../src/m2/intro/lines';
+import { ADV_VOICE_LINES } from '../../src/m2/adventure/voices';
 import { AMERICA_DENY } from '../../src/m2/lines/hubLines';
 
 const ROOT = path.resolve(__dirname, '../..');
@@ -62,6 +63,7 @@ add('meathead', introLines.MEATHEAD_PARKED);
 add('m2.ticket', [introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT]);
 for (const v of ['m2.guard', 'm2.guardf']) add(v, [introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE, introLines.GUARD_WELCOME]);
 add('m2.pa', introLines.PA_LINES);
+for (const byVoice of ADV_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
 add('meathead', AMERICA_DENY);
 for (const v of ['m2.guest', 'm2.guest2']) add(v, [introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT, introLines.GUEST_REACT, introLines.GUEST_REACT_NOW]);
 // The death screens

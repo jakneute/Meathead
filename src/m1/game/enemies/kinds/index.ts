@@ -27,7 +27,7 @@ import { runFinaleKindAI } from './finale';
 
 /** (mass: how heavy it is, for every push and shove: what it takes to move it, and what it does to whatever it's flung
  * into; 200 is a grown man, and a push is sized for him) */
-interface KindStats { w: number; h: number; hp: number; contact: number; mass: number; air?: boolean }
+export interface KindStats { w: number; h: number; hp: number; contact: number; mass: number; air?: boolean }
 
 export const KIND_STATS: Record<EnemyKind, KindStats> = {
   wolverine: { w: 46, h: 28, hp: 60, contact: 9, mass: 90 },
@@ -162,6 +162,15 @@ export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind ==
   || kind === 'hooker' || kind === 'mugger' || kind === 'commuter' || kind === 'intern' || kind === 'janitor' || kind === 'subject'
   || kind === 'bruiser' || kind === 'bloater' || kind === 'biker' || kind === 'temp' || kind === 'agentrush';
 
+/**
+ * Another game's own kinds (Meathead 2's, `m2:...`): their stats, their AI (true: it moved itself, as the eagle does),
+ * how one's made from the base enemy (a flyer, a shield...). Registered at its startup.
+ */
+export interface KindDef { stats: KindStats; ai?: (ctx: FrameContext, e: Enemy) => boolean; make?: (base: Enemy) => Enemy }
+const kindDefs = new Map<EnemyKind, KindDef>();
+export const registerKind = (kind: EnemyKind, def: KindDef) => { KIND_STATS[kind] = def.stats; kindDefs.set(kind, def); };
+export const kindDef = (kind?: EnemyKind) => (kind ? kindDefs.get(kind) : undefined);
+
 let spawnCount = 0;
 
 /** A themed enemy standing on the ground at (x, groundY) (or flying `above` it). */
@@ -244,7 +253,7 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'agent': case 'agentrush': return { ...base, aiState: 'enter' };
     case 'agentshield': return { ...base, enemyType: 'shield', isShieldActive: true, aiState: 'enter' };
     case 'jetagent': return { ...base, enemyType: 'flyer', initialY: pos.y, aiState: 'enter' };
-    default: return base;
+    default: { const d = kindDefs.get(kind); return d?.make ? d.make(base) : base; }
   }
 };
 
@@ -284,7 +293,7 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'armadillo': wolverine(ctx, e); return false;
     case 'longhorn': goat(ctx, e); return false;
     case 'agent': case 'agentrush': case 'agentshield': case 'jetagent': return runFinaleKindAI(ctx, e);
-    default: return false;
+    default: { const d = e.kind ? kindDefs.get(e.kind) : undefined; return d?.ai ? d.ai(ctx, e) : false; }
   }
 };
 

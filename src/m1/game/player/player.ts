@@ -504,6 +504,9 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
 
   if (player.shootCooldown > 0) player.shootCooldown--;
   const wasGrounded = player.isGrounded;
+  // (held where something else has him, a vine: it moves him, not his own legs or gravity)
+  if (player.carried) { player.isGrounded = false; }
+  else {
   updateVerticalVelocity(ctx, input);
   if (state.playerStunTimer > 0) player.pos.y += (state.frame % 2 === 0 ? -2 : 2);
 
@@ -511,6 +514,7 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
   moveVertically(ctx);
   if (wasGrounded) stickToGround(ctx);
   pushOutOfSolids(state);
+  }
   // (on a slope or stairs: where the ground is under his feet, for drawing them down onto it and the gun with them)
   player.stance = player.isGrounded && !player.skiing && !player.jetski && !player.bike && !player.moto && !player.swimming ? stanceGround(state.groundRuns, player.pos.x, player.width, player.pos.y + player.height) : undefined;
 

@@ -1,0 +1,134 @@
+// What a section of Adventure Land is, and the bits every section uses (laying ground down, moving him on to the next
+// section, cutscene control, saying things). Each section's in its own folder (jungle/, river/, dino/...), exporting a
+// Section; index.ts runs whichever one he's in.
+
+import type { GameState } from '../../m1/game/core/state';
+import type { FrameContext } from '../../m1/game/core/context';
+import type { Controls } from '../../m1/game/platform/input';
+import type { WaterBody } from '../../m1/game/stages/index';
+import type { SceneLight } from '../../m1/game/render/lighting';
+import type { Block } from '../../m1/types';
+import { groundBlocks, type GroundRun } from '../../m1/game/core/terrain';
+import { CANVAS_WIDTH } from '../../m1/constants';
+import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
+import type { SectionId } from './geometry';
+
+type Ctx = CanvasRenderingContext2D;
+
+/** Adventure Land's own state (state.stage): which section he's in, and each section's own state by its id. */
+export interface Adv {
+  section: SectionId;
+  /** Each section's own (it puts whatever it likes in here, under its id). */
+  s: Partial<Record<SectionId, unknown>>;
+}
+export const getAdv = (state: GameState) => state.stage as Adv | null;
+/** A section's own state, made the first time it's asked for. */
+export const sectionState = <T>(state: GameState, id: SectionId, make: () => T): T => {
+  const adv = getAdv(state)!;
+  return (adv.s[id] ??= make()) as T;
+};
+
+export interface Section {
+  id: SectionId;
+  x0: number; x1: number;
+  /** Its checkpoints (numbered across the whole stage, in order): where he starts again from each. */
+  checkpoints: { name: string; cp: number; x: number; y: number }[];
+  /** Puts its ground, its walls, its enemies and its set pieces into the world (all at once, at the start). */
+  build: (state: GameState) => void;
+  /** Each frame he's in it: its set pieces, its enemies' business, its cutscenes (it can take the controls). */
+  update?: (ctx: FrameContext, controls: Controls) => Controls;
+  /** The water in it, if any (he swims in it). */
+  waterBodyAt?: (state: GameState, x: number, y: number) => WaterBody | null;
+  /** Screen space: its sky, its far-off scenery. Return false for nothing. */
+  drawBackdrop?: (c: Ctx, state: GameState) => boolean;
+  /** World space, behind everything that moves. */
+  drawBack?: (c: Ctx, state: GameState) => void;
+  /** World space, in front of everything. */
+  drawFront?: (c: Ctx, state: GameState) => void;
+  /** Screen space, over the world (a meter, a cutscene's picture-in-picture). */
+  drawHud?: (c: Ctx, state: GameState) => void;
+  /** The camera pushed in (or pulled out: scale under 1) about a world point. */
+  zoom?: (state: GameState) => { scale: number; x: number; y: number } | null;
+  lighting?: (state: GameState) => SceneLight | null;
+  /** Where on screen his feet sit (default 550 of 600). */
+  cameraRow?: (state: GameState) => number | undefined;
+  /** The camera's limits in it (default its x0..x1). */
+  cameraX?: (state: GameState) => { min: number; max: number } | undefined;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Ground
+
+/** Lays ground down: runs of floor (flat, or sloping from y1 to y2), as the engine's ground and its blocks. */
+export const lay = (state: GameState, runs: GroundRun[]) => {
+  state.groundRuns.push(...runs);
+  state.blocks.push(...groundBlocks(runs));
+};
+/** A solid block (a wall, a ledge, a box). */
+export const solid = (state: GameState, x: number, y: number, w: number, h: number, extra: Partial<Block> = {}) => {
+  const b: Block = { x, y, w, h, type: 'wall', ...extra } as Block;
+  state.blocks.push(b);
+  return b;
+};
+/** A platform you can jump up through and stand on. */
+export const ledge = (state: GameState, x: number, y: number, w: number, extra: Partial<Block> = {}) => {
+  const b: Block = { x, y, w, h: 16, type: 'platform', oneWay: true, ...extra } as Block;
+  state.blocks.push(b);
+  return b;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Moving him on, and cutscenes
+
+/** On to somewhere else in the world, now (the camera with him: no swinging across). */
+export const teleport = (state: GameState, x: number, feetY: number) => {
+  const p = state.player;
+  p.pos.x = x - p.width / 2; p.pos.y = feetY - p.height;
+  p.vel.x = 0; p.vel.y = 0;
+  state.camera.x = x - CANVAS_WIDTH / 2;
+};
+
+/** Nobody touches anything (a cutscene). */
+export const hands = (): Controls => ({}) as Controls;
+
+/** He says something (in his voice): up over him while it's said. */
+export const meatheadSays = (state: GameState, text: string, after = true, onDone?: () => void) => {
+  const shown = say(text, MEATHEAD_VOICE, after ? 'queue' : 'casual', {
+    always: true,
+    onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 9999; },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; onDone?.(); },
+  });
+  // (no voice for it yet: up for a while anyway, so a scene doesn't hang on it)
+  if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; setTimeout(() => onDone?.(), 2500); }
+};
+
+/**
+ * Somebody else says something, in their voice: `set` gets what's shown (null when it's done), for drawing it over
+ * their head. Unrecorded lines still show a while, so nothing hangs waiting on them.
+ */
+export interface Said { text: string }
+export const voice = (id: string) => ({ id, pitch: 0, rate: 1 });
+export const speak = (voiceId: string, text: string, set: (s: Said | null) => void, after = true, onDone?: () => void) => {
+  const s = { text };
+  const shown = say(text, voice(voiceId), after ? 'queue' : 'casual', { always: true, onShow: () => set(s), onHide: () => { set(null); onDone?.(); } });
+  if (!shown) { set(s); setTimeout(() => { set(null); onDone?.(); }, Math.max(1800, text.length * 70)); }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Drawing, crude (the first pass: Atari-2600 boxes and words, to get the feel before the real look goes on)
+
+export const box = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+export const label = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF', size = 8) => {
+  c.font = `${size}px "Press Start 2P"`; c.textAlign = 'center';
+  c.fillStyle = '#000'; c.fillText(s, x + 1, y + 1); c.fillStyle = col; c.fillText(s, x, y);
+  c.textAlign = 'left';
+};
+/** Words over somebody's head, wrapped (only while they're said). */
+export const saidOver = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF', wide = 240) => {
+  c.font = '7px "Press Start 2P"';
+  const words = s.split(' '), lines: string[] = [];
+  let cur = '';
+  for (const w of words) { const t = cur ? `${cur} ${w}` : w; if (c.measureText(t).width > wide && cur) { lines.push(cur); cur = w; } else cur = t; }
+  if (cur) lines.push(cur);
+  lines.forEach((l, i) => label(c, l, x, y - (lines.length - 1 - i) * 11, col, 7));
+};

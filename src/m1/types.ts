@@ -223,6 +223,9 @@ export interface Player extends Entity {
   skiSpeed?: number;
   /** Not drawn (rolled up inside a snowball, say). */
   hidden?: boolean;
+  /** Held where something else puts him (Meathead 2's vines): no gravity, no moving himself, the engine leaves his
+   * position alone; he can still face, shoot and be hurt. */
+  carried?: boolean;
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
   kickPose?: number;
   /** Counts up each time he starts a charge, uppercut or dive kick (an enemy's only hit once per move, but again by the next one). */
@@ -304,7 +307,9 @@ export type EnemyKind =
   // ballistic shield, and the jetpack men)
   | 'agent' | 'agentrush' | 'agentshield' | 'jetagent'
   // Meathead 2 (drawn by Meathead 2 itself: registerKindDrawer): Happy Land's park security, people in line
-  | 'parksec' | 'parkguest';
+  | 'parksec' | 'parkguest'
+  // Meathead 2's own enemies, registered by it at startup (enemies/kinds: registerKind): stats, AI, look, all its own
+  | `m2:${string}`;
 
 export interface Enemy extends Entity {
   /** A beachgoer running from the smell (Meathead's shit himself: game/player/gut.ts), not from a shooting. */

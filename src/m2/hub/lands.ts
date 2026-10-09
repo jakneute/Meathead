@@ -20,7 +20,7 @@ export const LANDS: Land[] = [
   { id: 'cartoon', name: 'CARTOON LAND', blurb: 'EVERYTHING IS SOFT. NOTHING CAN HURT YOU. PROBABLY.', swirl: ['#831843', '#EC4899', '#FDE68A'], sign: '#DB2777', signText: '#FFFBEB', open: false },
   { id: 'hollywood', name: 'HOLLYWOOD LAND', blurb: 'THE MAGIC OF THE MOVIES. MOSTLY PLYWOOD.', swirl: ['#111827', '#B91C1C', '#FDE047'], sign: '#18181B', signText: '#FACC15', open: false },
   { id: 'fantasy', name: 'FANTASY LAND', blurb: 'WIZARDS, CASTLES, A $14 BUTTER DRINK.', swirl: ['#0C1A2E', '#1D4ED8', '#FDE68A'], sign: '#3F2A14', signText: '#FDE68A', open: false },
-  { id: 'adventure', name: 'ADVENTURE LAND', blurb: 'ANCIENT RUINS. HOSTILE WILDLIFE. SIGN THE WAIVER.', swirl: ['#1C1917', '#3F6212', '#FBBF24'], sign: '#57534E', signText: '#FDE68A', open: false },
+  { id: 'adventure', name: 'ADVENTURE LAND', blurb: 'ANCIENT RUINS. HOSTILE WILDLIFE. SIGN THE WAIVER.', swirl: ['#1C1917', '#3F6212', '#FBBF24'], sign: '#57534E', signText: '#FDE68A', open: true },
   { id: 'foreign', name: 'FOREIGN LANDS', blurb: 'THE WHOLE WORLD, FIXED. NO PASSPORT NEEDED. NO PASSPORT ALLOWED.', swirl: ['#7F1D1D', '#1E40AF', '#F8FAFC'], sign: '#1E3A8A', signText: '#FEE2E2', open: false },
 ];
 

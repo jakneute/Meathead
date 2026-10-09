@@ -23,6 +23,8 @@ import voicePackUrl from './generated/voices.bin?url';
 import { registerStageLayout } from '../m1/game/stages/index';
 import { hubLayout, HUB_STAGE, setHubStart } from './hub/index';
 import { penLayout, PEN_STAGE } from './pen/index';
+import { advLayout, ADV_STAGE } from './adventure/index';
+import { SPOTS, LANDS } from './hub/lands';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
 import { setGenderOf, unpaired } from '../m1/content/gender';
 import { KILL_LINES, GENERIC_KILL_LINES, KILL_CALLOUTS, ENEMY_KILL_LINES } from '../m1/content/dialogue';
@@ -47,6 +49,7 @@ import { registerGrabCallouts } from './moves/callouts';
 
 registerStageLayout(HUB_STAGE, hubLayout);
 registerStageLayout(PEN_STAGE, penLayout);
+registerStageLayout(ADV_STAGE, advLayout);
 registerStageLayout(INTRO_STAGE, introLayout);
 registerIntro();
 loadVoicePack(voicePackUrl);
@@ -119,10 +122,12 @@ const App2: React.FC = () => {
   }, [status]);
   useEffect(() => {
     onTravel(dest => {
-      const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : null;
+      const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : dest === 'adventure' ? ADV_STAGE : null;
       if (!to) return;
       clearSkyCache();
-      if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : AMERICA_SLOT);
+      // (back at the hub where he left it: the staff door, the land's portal, or America USA's way in)
+      const landSlot = (id: string) => SPOTS.findIndex(s => s.kind === 'land' && LANDS[s.land].id === id);
+      if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : stage === ADV_STAGE ? landSlot('adventure') : AMERICA_SLOT);
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: false });
       setUi({ near: null, map: null, nearExit: false, nearAmerica: false });
       setFade(true);
