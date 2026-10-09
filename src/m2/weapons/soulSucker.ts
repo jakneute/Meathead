@@ -11,6 +11,7 @@ import type { Enemy, Particle, Projectile } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
+import { setArmor } from '../../m1/game/core/resist';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { muzzlePoint } from '../../m1/game/combat/muzzle';
@@ -231,7 +232,12 @@ let sprayLeft = 0, secondaryWas = false, emptySaidAt = -9999;
 /** How often he says the bag's empty (when he does: about one try in three). */
 const EMPTY_LINE_GAP = 300, EMPTY_LINE_CHANCE = 0.35;
 
+/** Sucking: hurt, he takes it, but he's not knocked about or off the trigger (armor: core/resist). */
+let armored = false;
+const syncArmor = (on: boolean) => { if (on !== armored) { armored = on; setArmor(on); } };
+
 const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; moveDown: boolean }, equipped: boolean) => {
+  syncArmor(equipped && ctx.state.frame - suckingAt <= 2);
   // (got over his panic, or gone: himself again; till then, running off his own way, but not shooting)
   for (const e of panicking) { const ps = poise.get(e); if (!ps || ctx.state.frame > ps.fleeUntil || e.health <= 0 || e.isBlownAway) calmDown(e); else e.shootTimer = 0; }
   const { state } = ctx;
@@ -429,6 +435,6 @@ const drawOverlay = (c: Ctx, state: GameState) => {
 /** Everything it was in the middle of, stopped (through a door): no spray going, nobody half way in, nothing pulled. */
 const calmDown = (e: Enemy) => { const ps = poise.get(e); if (ps?.held) { e.puppet = ps.held.puppet; e.harmless = ps.held.harmless; ps.held = undefined; } panicking.delete(e); };
 export const stopSoulSucker = () => {
-  for (const e of [...panicking]) calmDown(e); sprayLeft = 0; swallowing = []; suckingAt = -10; stains.length = 0; };
+  for (const e of [...panicking]) calmDown(e); sprayLeft = 0; swallowing = []; suckingAt = -10; stains.length = 0; syncArmor(false); };
 
 export const registerSoulSucker = () => registerWeapon('SOUL_SUCKER', { fire: ctx => fire(ctx), update, draw: (c, p) => draw(c, p), drawHeld, tick, drawOverlay });
