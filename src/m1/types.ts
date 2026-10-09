@@ -228,6 +228,8 @@ export interface Player extends Entity {
   /** Held where something else puts him (Meathead 2's vines): no gravity, no moving himself, the engine leaves his
    * position alone; he can still face, shoot and be hurt. */
   carried?: boolean;
+  /** No specials at all (no charge, slide, uppercut or dive kick), whatever's pressed: sat in Meathead 2's mine cart. */
+  noSpecials?: boolean;
   /** Hanging off a vine (Meathead 2's jungle): one-handed, the gun in the other. How: just hanging (swinging or not),
    * climbing, the quick climb (zipUp), the quick slide (zipDown), or the push (a shoulder charge into the swing).
    * `th` how far over the vine's swung (radians, + to the right), `om` how fast it's swinging. */

@@ -219,7 +219,9 @@ const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
   // (on his feet in it, for ducking: the engine's crouch wants him on the ground)
   p.isGrounded = !cart.air;
   state.cameraRestY = cart.y - SINK - 420;
-  return { ...controls, jump: false, charge: false, special: false, secondary: controls.secondary };
+  // (facing the way it's going, always: left and right are the cart's, not his; no specials of any kind, see run)
+  p.facing = 1;
+  return { ...controls, left: false, right: false, jump: false, charge: false, special: false, secondary: controls.secondary };
 };
 
 const artieChase = (ctx: FrameContext, cart: Cart) => {
@@ -325,7 +327,9 @@ const stepFlier = (state: GameState, f: Flier, lead: Flier | null) => {
 const endOutro = (state: GameState, cart: Cart, skipped: boolean) => {
   const p = state.player;
   if (skipped) silenceAll();
-  cart.mode = 'gone'; cart.me = null; cart.artie.end = null; cart.artie.on = false; cart.artie.said = null;
+  cart.mode = 'gone'; cart.me = null;
+  // (out of the cart: his moves back, and his choice of weapon)
+  p.noSpecials = false; setUi({ noSwitch: false }); cart.artie.end = null; cart.artie.on = false; cart.artie.said = null;
   (getAdv(state)!.s as Record<string, unknown>).roofArrival = true;
   state.cameraLeadX = 0; state.cameraOverride = null;
   // (still in the cutscene: the roof's carries on from here; it takes him from under the roof, in the hole)
@@ -370,7 +374,10 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   // (handed over by the temple, or back at a checkpoint: into the cart either way. Never out of it here, walking:
   // anywhere in the mine he's in the cart)
   if (c.mode === 'off') board(state, c);
-  if (c.mode === 'gone') return controls;
+  if (c.mode === 'gone') { p.noSpecials = false; setUi({ noSwitch: false }); return controls; }
+  // (sat in it: no charge, slide, uppercut, dive kick or grab, whatever's pressed, and stuck with the weapon he got in
+  // with: the one he's holding, out and pointed the way it's going)
+  p.noSpecials = true; setUi({ noSwitch: true });
   // (the camera ahead of him; rolling out past the scanner, held on it and the fork a moment)
   state.cameraLeadX = c.mode !== 'ride' ? 0
     : c.x < SLOW_TO + 400 ? Math.max(Math.min(c.x - 160, FORK_CAM_X), c.x - 250) - (c.x - CANVAS_WIDTH / 2) : 150;

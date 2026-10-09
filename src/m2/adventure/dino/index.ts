@@ -26,7 +26,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../m1/constants';
 import { DINO_KINDS } from './kinds';
 import { buildRex, updateRex, drawRex, drawRexHud } from './rex';
 import { drawPerson } from '../temple/people';
@@ -141,7 +141,10 @@ const endPebble = (state: GameState, d: Dino, skipped: boolean) => {
   for (const e of state.enemies) if (e.kind?.startsWith('m2:')) e.puppet = false;
 };
 
-const PIP_OPEN_AT = 34, PEBBLE_IN = 12, PEBBLE_HIT = 50;
+const PEBBLE_IN = 12, PEBBLE_HIT = 50;
+/** Out of the drain: the camera pushes in on the pebble as it flies (from ZOOM_FROM, all the way in by ZOOM_IN), and on
+ *  it, cut to the booth (ZOOM_CUT). */
+const ZOOM_FROM = 6, ZOOM_IN = 34, ZOOM_CUT = 66;
 const runPebble = (ctx: FrameContext, d: Dino): Controls => {
   const { state } = ctx, p = state.player;
   const pb = d.pebble!;
@@ -159,7 +162,7 @@ const runPebble = (ctx: FrameContext, d: Dino): Controls => {
     meatheadSays(state, pick(MEATHEAD_LANDED), true, () => { pb.landedSaid = true; });
   }
   // The cut to the booth (once he's up and said his piece): the pebble in through the window, onto the switch
-  if (pb.closedAt < 0 && (pb.pip > 0 || (pb.t >= PIP_OPEN_AT && pb.landedSaid) || pb.t > 220)) { pb.pip = Math.min(1, pb.pip + 0.09); if (pb.pip >= 1) pb.pt++; }
+  if (pb.closedAt < 0 && (pb.pip > 0 || pb.t >= ZOOM_CUT)) { pb.pip = Math.min(1, pb.pip + 0.09); if (pb.pip >= 1) pb.pt++; }
   if (pb.closedAt >= 0) pb.pip = Math.max(0, pb.pip - 0.09);
   if (pb.pt === PEBBLE_IN) playSound('glass', 0.25, 10);
   if (pb.pt === PEBBLE_HIT && !pb.clicked) {
@@ -227,12 +230,16 @@ export const dino: Section = {
     if (d.kick > 0) {
       d.kick++;
       p.inCutscene = true; p.vel.x = 0; p.facing = 1;
+      // (a beat squared up to it, then the boot: the door goes when it's all the way out)
+      if ((p.kickPose || 0) > 0) p.kickPose!--;
+      if (d.kick === 2) p.pos.x = TEMPLE_DOOR_X - 44 - p.width / 2;
+      if (d.kick === 22 - 9) { p.kickPose = KICK_POSE_FRAMES; playSound('whoosh', 0.6, -4); }
       if (d.kick === 22) {
         d.doorKicked = true;
         playSound('slam', 1); playSound('crash', 0.9); playSound('crunch', 0.7, -6); shakeScreen(state, 12, 6);
         for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: TEMPLE_DOOR_X + Math.random() * 40, y: GY - 10 - Math.random() * 80 }, vel: { x: 2 + Math.random() * 5, y: -3 - Math.random() * 4 }, life: 30 + Math.random() * 20, color: i % 2 ? '#A8A29E' : '#78716C', size: 3 + Math.random() * 4, grav: 0.3, chunk: true });
       }
-      if (d.kick >= 44) { d.kick = 0; p.inCutscene = false; teleport(state, SECTIONS.temple.x0 + 150, GY); p.facing = 1; }
+      if (d.kick >= 44) { d.kick = 0; p.inCutscene = false; p.kickPose = 0; teleport(state, SECTIONS.temple.x0 + 150, GY); p.facing = 1; }
       return hands();
     }
     if (p.isGrounded && cx > TEMPLE_DOOR_X - 60 && p.pos.y + p.height > GY - 4) {
@@ -241,6 +248,13 @@ export const dino: Section = {
       return hands();
     }
     return controls;
+  },
+  // (out of the drain: in on the pebble as it flies, till the cut)
+  zoom: (state) => {
+    const pb = dinoOf(state).pebble;
+    if (!pb || pb.pip > 0 || pb.closedAt >= 0 || pb.t < ZOOM_FROM) return null;
+    const u = Math.min(1, (pb.t - ZOOM_FROM) / (ZOOM_IN - ZOOM_FROM)), k = u * u * (3 - 2 * u);
+    return { scale: 1 + 1.8 * k, x: pb.x, y: pb.y, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - pb.x), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - pb.y) };
   },
   drawBackdrop: (c) => {
     // A hot afternoon over a fake jungle: banded sky, a far ridge, palms

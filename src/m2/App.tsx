@@ -132,7 +132,7 @@ const App2: React.FC = () => {
       const landSlot = (id: string) => SPOTS.findIndex(s => s.kind === 'land' && LANDS[s.land].id === id);
       if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : stage === ADV_STAGE ? landSlot('adventure') : AMERICA_SLOT);
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: false });
-      setUi({ near: null, map: null, nearExit: false, nearAmerica: false });
+      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false });
       setFade(true);
       setTimeout(() => { pending.current = to; setInitialAmmo({ ...ammoRef.current }); setStatus(GameStatus.START); }, 260);
     });
@@ -151,11 +151,12 @@ const App2: React.FC = () => {
     const st = live.current.status;
     // (a scene that can be skipped: START / ESC skips it, rather than pausing)
     if (st === GameStatus.PLAYING && canSkip()) { requestSkip(); return; }
-    if (st === GameStatus.PLAYING) { setPauseSel(Math.max(0, WEAPONS.indexOf(live.current.weapon))); setStatus(GameStatus.PAUSED); }
+    if (st === GameStatus.PLAYING) { setPauseSel(getUi().noSwitch ? WEAPONS.length : Math.max(0, WEAPONS.indexOf(live.current.weapon))); setStatus(GameStatus.PAUSED); }
     else if (st === GameStatus.PAUSED) setStatus(GameStatus.PLAYING);
   };
   const resume = () => { if (live.current.status === GameStatus.PAUSED) setStatus(GameStatus.PLAYING); };
-  const equip = (i: number) => { if (WEAPONS[i]) setWeapon(WEAPONS[i]); };
+  // (stuck with what he's got, for now: the mine cart)
+  const equip = (i: number) => { if (WEAPONS[i] && !getUi().noSwitch) setWeapon(WEAPONS[i]); };
   /** In the pause menu: the arsenal's a grid three across, RESUME under it. */
   const movePause = (dx: number, dy: number) => setPauseSel(i => {
     const n = WEAPONS.length;
@@ -170,7 +171,7 @@ const App2: React.FC = () => {
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
   useEffect(() => {
-    const cycle = (d: number) => setWeapon(w => WEAPONS[(WEAPONS.indexOf(w) + d + WEAPONS.length) % WEAPONS.length]);
+    const cycle = (d: number) => { if (!getUi().noSwitch) setWeapon(w => WEAPONS[(WEAPONS.indexOf(w) + d + WEAPONS.length) % WEAPONS.length]); };
     const playing = () => live.current.status === GameStatus.PLAYING, paused = () => live.current.status === GameStatus.PAUSED;
     const onWheel = (e: WheelEvent) => { if (playing() || paused()) cycle(e.deltaY > 0 ? 1 : -1); };
     const onKey = (e: KeyboardEvent) => {
@@ -179,7 +180,7 @@ const App2: React.FC = () => {
       if (e.repeat) return;
       if (e.code === 'Escape' || e.code === 'KeyP') { togglePause(); return; }
       const digit = /^Digit([1-9])$/.exec(e.code);
-      if (digit && (playing() || paused())) { const i = +digit[1] - 1; equip(i); if (paused() && i < WEAPONS.length) setPauseSel(i); return; }
+      if (digit && (playing() || paused())) { const i = +digit[1] - 1; equip(i); if (paused() && i < WEAPONS.length && !getUi().noSwitch) setPauseSel(i); return; }
       if (!paused()) return;
       if (e.code === 'ArrowLeft' || e.code === 'KeyA') movePause(-1, 0);
       else if (e.code === 'ArrowRight' || e.code === 'KeyD') movePause(1, 0);
@@ -217,7 +218,7 @@ const App2: React.FC = () => {
         }
         // The weapon wheel, on the right stick: push it any way and it comes up, pointing at a weapon; let it go and
         // that's the one (not on a Joy-Con on its own: it hasn't got one)
-        if (playing() && hasRightStick(gp.id) && gp.mapping === 'standard' && WEAPONS.length > 1) {
+        if (playing() && !getUi().noSwitch && hasRightStick(gp.id) && gp.mapping === 'standard' && WEAPONS.length > 1) {
           const rx = gp.axes[2] ?? 0, ry = gp.axes[3] ?? 0, mag = Math.hypot(rx, ry);
           if (mag > 0.55) { const i = wheelIndexAt(rx, ry, WEAPONS.length); if (wheel.at !== i) { wheel.at = i; setWheelAt(i); } }
           else if (mag < 0.3 && wheel.at !== null) { equip(wheel.at); wheel.at = null; setWheelAt(null); }
@@ -310,7 +311,7 @@ const App2: React.FC = () => {
         {ui.map !== null && <MapCard land={ui.map} />}
         {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={WEAPONS} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
         {status === GameStatus.PAUSED && (
-          <PauseMenu weapons={WEAPONS} current={weapon} ammo={hud.ammo} selected={pauseSel}
+          <PauseMenu weapons={WEAPONS} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch}
             onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onSkip={stage === INTRO_STAGE ? skipIntro : undefined} skin={theme?.pause} />
         )}
         {noticeUp && ui.notice && (

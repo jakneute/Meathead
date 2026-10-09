@@ -282,7 +282,7 @@ export const oilUnderfoot = (state: GameState): 'slick' | 'tar' | null => {
 const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   const { state, cheats, fx } = ctx;
   const { player } = state;
-  if (!input.specialPressed || player.isTasing || state.playerStunTimer > 0 || (player.skiing && !player.jetski)) return;
+  if (!input.specialPressed || player.isTasing || state.playerStunTimer > 0 || (player.skiing && !player.jetski) || player.noSpecials) return;
   // (thrown off something too greasy to hold: nothing till he's got his balance back)
   if ((player.slipT ?? 0) > 0) return;
   // (on the jet ski every move goes forward, whichever way he's turned to shoot)

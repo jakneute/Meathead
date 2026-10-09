@@ -539,7 +539,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       g.pb = pb;
       const touching = pb > 0 && g.bumpT > 0;
       if (p.isGrounded || handsOnly(state)) g.airSpent = false;
-      const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
+      const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.noSpecials && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
       if (want) g.queued = { want, t: 0 };
       else if (g.queued && ++g.queued.t > GRAB_BUFFER) g.queued = null;
       if (!g.queued || !free) return out;

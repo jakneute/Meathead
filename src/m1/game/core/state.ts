@@ -535,6 +535,7 @@ export const resetStageState = (s: GameState) => {
   p.skiSpeed = 0;
   p.hidden = false;
   p.inCutscene = false;
+  p.noSpecials = false;
   s.cameraLeadX = 0;
   s.lockWeapon = undefined;
   s.groundOil = undefined;

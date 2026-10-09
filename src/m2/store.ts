@@ -21,6 +21,8 @@ export interface M2Ui {
   nearAmerica?: boolean;
   /** Where he is, for the HUD's and the pause menu's look (hudThemes.tsx). */
   zone?: import('./hudThemes').Zone;
+  /** Stuck with the weapon he's got (the mine cart): no switching, by any button, wheel or the pause menu. */
+  noSwitch?: boolean;
 }
 
 let ui: M2Ui = { near: null, map: null, nearExit: false, notice: null };

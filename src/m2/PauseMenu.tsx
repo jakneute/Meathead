@@ -23,9 +23,11 @@ interface Props {
   onSkip?: () => void;
   /** Done up for wherever he is (hudThemes.tsx). */
   skin?: PauseSkin;
+  /** Stuck with the one he's holding for now (the mine cart): the rest shown, but not to be picked. */
+  locked?: boolean;
 }
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onSkip, skin = PLAIN_PAUSE }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onSkip, skin = PLAIN_PAUSE, locked = false }) => {
   const shown = selected < weapons.length ? weapons[selected] : current;
   const info = M2_WEAPON_INFO[shown];
   const full = (w: WeaponType) => maxAmmo(w);
@@ -50,8 +52,8 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
               {weapons.map((w, i) => {
                 const on = selected === i, equipped = w === current, fill = left(w);
                 return (
-                  <button key={w} onClick={() => onPick(i)}
-                    className={`relative w-[64px] h-[64px] flex items-center justify-center border-2 transition-transform ${on ? 'scale-110 border-white' : equipped ? 'border-yellow-500' : 'border-zinc-600'}`}
+                  <button key={w} onClick={() => { if (!locked) onPick(i); }}
+                    className={`relative w-[64px] h-[64px] flex items-center justify-center border-2 transition-transform ${on ? 'scale-110 border-white' : equipped ? 'border-yellow-500' : 'border-zinc-600'} ${locked && !equipped ? 'opacity-35' : ''}`}
                     style={{ background: on ? skin.slotOn : skin.slot, boxShadow: on ? '0 0 12px rgba(250,204,21,0.6)' : 'none' }}>
                     <span className="absolute left-1 top-0 text-[7px] font-black text-zinc-300">{i + 1}</span>
                     <M2WeaponArt type={w} size={46} />
@@ -100,7 +102,8 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         </div>
         <div className="mt-3 flex items-center gap-4 text-[6px] tracking-wider px-2 py-1 bg-black/60 text-zinc-400">
           <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />
-          <Prompt pad={['DPAD', 'OK']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />
+          {locked ? <span className="text-red-400 font-black">WEAPON SWITCHING LOCKED</span>
+            : <Prompt pad={['DPAD', 'OK']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />}
         </div>
       </div>
     </div>

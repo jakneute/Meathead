@@ -29,7 +29,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { isShat, isNude } from '../../../m1/game/player/gut';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../m1/constants';
 import { registerHurtLines } from '../../kinds';
 import { DINO_BACK_DOOR_X } from '../dino';
 import { drawPerson } from './people';
@@ -85,6 +85,8 @@ interface Flyer { seed: number; woman: boolean; x: number; y: number; vx: number
 interface Loading {
   step: number; t: number; walked: boolean;
   kicked: number; flying: Flyer[];
+  /** The boot on its way out (frames since it started; 0: not kicking). */
+  boot: number;
   said: { who: string; s: Said } | null; busy: boolean;
   rolling: number;
 }
@@ -193,10 +195,12 @@ const runFog = (state: GameState, tp: Temple) => {
 const GUESTS = [{ seed: 7101, woman: false }, { seed: 3317, woman: true }, { seed: 5523, woman: true }];
 /** Where they sit in the cart, from its middle. */
 const SEAT = [-34, -6, 22];
+/** Frames from the kick starting to the boot all the way out (where it lands). */
+const KICK_LANDS = 9;
 
 const startLoading = (state: GameState, tp: Temple) => {
   tp.loadingSeen = true;
-  tp.loading = { step: 0, t: 0, walked: false, kicked: 0, flying: [], said: null, busy: false, rolling: 0 };
+  tp.loading = { step: 0, t: 0, walked: false, kicked: 0, boot: 0, flying: [], said: null, busy: false, rolling: 0 };
   state.player.inCutscene = true;
 };
 const say = (ld: Loading, who: string, text: string, next: () => void) => {
@@ -213,6 +217,7 @@ const handOff = (state: GameState) => {
 
 const endLoading = (state: GameState, tp: Temple, skipped: boolean) => {
   if (skipped) silenceAll();
+  state.player.kickPose = 0;
   tp.loading = null;
   handOff(state);
 };
@@ -226,9 +231,10 @@ const runLoading = (ctx: FrameContext, tp: Temple): Controls => {
   if (ld.t > SKIP_AFTER && takeSkip()) { endLoading(state, tp, true); return hands(); }
   const dr = dressed(state);
   for (const g of ld.flying) { g.vy += 0.4; g.x += g.vx; g.y += g.vy; g.rot += 0.18; }
+  if ((p.kickPose || 0) > 0) p.kickPose!--;
   // Up to the cart
   if (!ld.walked) {
-    const to = CART_X - 90;
+    const to = CART_X - 100;
     p.facing = 1;
     if (p.pos.x + p.width / 2 < to) { p.pos.x += 3; p.vel.x = 0.01; }
     else { ld.walked = true; ld.t = 0; }
@@ -236,9 +242,12 @@ const runLoading = (ctx: FrameContext, tp: Temple): Controls => {
   }
   // One at a time out of the cart, each with something to say about it; then the line has its say
   if (ld.kicked < GUESTS.length) {
-    if (!ld.busy && ld.t > 16) {
+    p.facing = 1;
+    // (the boot comes up and drives out; it lands on the cart when it's all the way out, and out they go)
+    if (!ld.boot && !ld.busy && ld.t > 16) { ld.boot = 1; p.kickPose = KICK_POSE_FRAMES; playSound('whoosh', 0.6, -4); }
+    else if (ld.boot && ++ld.boot > KICK_LANDS) {
       const i = ld.kicked, g = GUESTS[i];
-      ld.kicked++; ld.t = 0;
+      ld.kicked++; ld.t = 0; ld.boot = 0;
       playSound('punch', 1); playSound('whoosh', 0.6); shakeScreen(state, 5, 3);
       ld.flying.push({ seed: g.seed, woman: g.woman, x: CART_X + SEAT[i], y: GY - 30, vx: -(5 + i), vy: -10 - i, rot: 0 });
       say(ld, g.woman ? 'm2.guest' : 'm2.guest2', GUEST_KICKED[dr][i], () => {});
