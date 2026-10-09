@@ -26,7 +26,7 @@ import { drawSecurity, isWomanGuard } from '../cast/security';
 /** A guard's voice: hers or his. */
 const guardVoice = (e: Enemy) => (isWomanGuard(e) ? GUARD_F_VOICE : GUARD_VOICE);
 import { playSound, audioRunning, getAudioContext } from '../../m1/game/platform/audio';
-import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
+import { say, MEATHEAD_VOICE, silenceAll } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
 import { shakeScreen } from '../../m1/game/core/state';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../m1/game/platform/skip';
@@ -605,6 +605,9 @@ const startScene = (state: GameState, intro: Intro, kind: Dressed | 'punch') => 
   const k: Dressed = kind === 'punch' ? dressed(state) : kind;
   intro.scene = { kind: k, t: 0, done: false, punched: false, card: false, cardAt: 0, pip: -1 };
   const sc = intro.scene;
+  // (the PA cut off, mid-word, and whoever else was going: it's his moment at the window)
+  silenceAll(); intro.pa.said = null;
+  intro.pa.next = Math.max(intro.pa.next, state.frame + 900);
   if (kind === 'punch' || intro.lady.ko > 0) {
     // (past caring: over the counter at her, and in)
     sc.punched = true; sc.done = true;
