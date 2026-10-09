@@ -89,17 +89,20 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isUppercutting = p.isUppercutting;
   const isDivekicking = !!p.isDivekicking;
   const isDucking = p.isDucking || surf;
-  const isAirborne = !p.isGrounded;
+  // (a moment off the bottom underwater, stepping down it, isn't swimming or a jump: he walks on)
+  const offBottom = !p.isGrounded && !(p.swimming && (p.offGround ?? 99) <= 5 && Math.abs(p.vel.y) < 1.5);
+  const onFeet = !offBottom;
+  const isAirborne = offBottom;
   // In the water (off the bottom): arms stroking, legs kicking; freestyle when he's going somewhere, treading water when he isn't
-  const isSwimming = !!p.swimming && !p.isGrounded && hurtT < 0;
+  const isSwimming = !!p.swimming && offBottom && hurtT < 0;
   // (stretched out flat he's a lot longer than he is stood up: up against a wall or a pipe, he treads water instead,
   // so he never pokes through it)
   const swimRoom = { x: p.pos.x - 30, y: p.pos.y + 8, w: p.width + 60, h: p.height - 16 };
   const cramped = isSwimming && state.blocks.some(b => b.type !== 'pit' && !b.oneWay && b.x < swimRoom.x + swimRoom.w && b.x + b.w > swimRoom.x && b.y < swimRoom.y + swimRoom.h && b.y + b.h > swimRoom.y);
   const swimMoving = isSwimming && Math.abs(p.vel.x) > 0.8 && !cramped;
   // (on skis he glides in a stance rather than running)
-  const isWalking = !p.skiing && p.isGrounded && Math.abs(p.vel.x) > 0.4 && !isCharging && !isDucking && !isDivekicking;
-  const isIdle = p.isGrounded && !isWalking && !isCharging && !isDucking && !isUppercutting && !isDivekicking && !isHurt;
+  const isWalking = !p.skiing && onFeet && Math.abs(p.vel.x) > 0.4 && !isCharging && !isDucking && !isDivekicking;
+  const isIdle = onFeet && !isWalking && !isCharging && !isDucking && !isUppercutting && !isDivekicking && !isHurt;
   // Victory lap after a weakness kill: weapon put away, and both hands on the job while he pisses
   const isUnarmed = !!state.bossCorpse && !!state.victoryString;
   const pee = peeProgress(p.peeTimer);
@@ -234,6 +237,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   let spinAroundCenter = false;
   /** On a vine: where his hand's round it (his local frame), and how his body hangs off it. */
   const GRIP: [number, number] = [vineGrip(p).x, vineGrip(p).y];
+  // (mid-move with what's in his free hand, a swing or a cast: that arm the weapon's own way, level from the shoulder)
+  // (not mid push or quick climb: those have the arm)
+  const vineArm = vine && !isCharging && !isUppercutting && !isDivekicking ? customWeapon(currentWeapon)?.vineArm?.(state) ?? null : null;
   if (vine) {
     // Along the vine, a bit behind it (his weight lags the swing); leaning into the push, tucked in a quick climb
     bodyRot = vineLean(p);
@@ -270,6 +276,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isUppercutting) {
     bodyRot = -0.15; // Dynamic backward launch arch
     bodyY = -6;
+  } else if (lounging && isDucking) {
+    // Ducked right down in it, hunched over, under whatever's coming
+    bodyRot = 0.5;
+    bodyY = 5;
   } else if (lounging) {
     // Leaning back against the back of the cart, at his ease, rocking with the rails
     bodyRot = -0.3;
@@ -341,6 +351,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       // (rope burn)
       for (let k = 0; k < 3; k++) { const t = ((animFrame + k * 5) % 15) / 15; ctx.fillStyle = `rgba(214, 211, 209, ${0.55 * (1 - t)})`; ctx.beginPath(); ctx.arc(fist[0] + Math.sin(k * 2.3 + animFrame) * 3, fist[1] - 4 - t * 14, 2 + t * 4, 0, Math.PI * 2); ctx.fill(); }
     }
+    // (whatever of his weapon arm's round behind him)
+    if (vineArm) { ctx.save(); ctx.translate(VINE_SHOULDER.x, VINE_SHOULDER.y); ctx.rotate(-bodyRot); ctx.translate(-VINE_SHOULDER.x, -VINE_SHOULDER.y); vineArm(ctx, animFrame, 14, -45, true); ctx.restore(); }
   } else if (surf) {
     // Surfing: back arm out behind him, low, for balance
     // (from the shoulder at the side of his chest, crouched as he is: clear of his face)
@@ -389,10 +401,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath();
     ctx.arc(-30, -34, 5, 0, Math.PI * 2); // Fist
     ctx.fill();
+  } else if (lounging && isDucking) {
+    // Ducked: this one over his head too
+    drawReachingArm(ctx, -6, -40, -4, -60, 6, -70, skinShadow);
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(6, -70, 4.5, 0, Math.PI * 2); ctx.fill();
   } else if (lounging) {
-    // Draped back over the back of the cart, open, the hand hanging over the side
-    drawReachingArm(ctx, -8, -42, -24, -44, -34, -30, skinShadow);
-    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(-34, -29, 4.5, 0, Math.PI * 2); ctx.fill();
+    // Draped back over the back of the cart, open, the hand resting on the top of it
+    drawReachingArm(ctx, -8, -42, -22, -48, -18, -60, skinShadow);
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(-18, -60, 4.5, 0, Math.PI * 2); ctx.fill();
   } else if (isSeated) {
     // Reaching forward to the handlebars
     drawReachingArm(ctx, -6, -40, 6, -35, 21, -40, skinShadow);
@@ -1004,6 +1020,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = skinTone; ctx.beginPath(); ctx.ellipse(ramX, ramY, 8.5, 7.5, 0.3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.ellipse(ramX - 1, ramY + 5, 6, 1.6, 0.3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = skinHighlight; ctx.beginPath(); ctx.ellipse(ramX + 2.5, ramY - 3, 3.5, 2, 0.3, 0, Math.PI * 2); ctx.fill();
+  } else if (lounging && isDucking) {
+    // Ducked in the cart: both arms over his head
+    drawReachingArm(ctx, 8, -42, 12, -60, 2, -72, skinTone);
+    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(2, -72, 5, 0, Math.PI * 2); ctx.fill();
+  } else if (lounging) {
+    // Sat back in the cart, nothing in his hand: the arm along the front of it, the hand over the side
+    drawReachingArm(ctx, 8, -42, 20, -34, 30, -32, skinTone);
+    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(30, -32, 5, 0, Math.PI * 2); ctx.fill();
   } else if (isHurt) {
     // Lead arm knocked back, hanging loose
     drawArm(ctx, 13, -45, 10, -33, 8, -23, skinTone, skinShadow, skinHighlight);
@@ -1046,6 +1070,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     } else if (pitchK >= 0) {
       // Pitching: the throwing arm, the rock in his fist till it's gone
       (p.throwKeg ? drawKegArm : drawPitchArm)(ctx, pitchK, armBaseX + 6, armBaseY - 3);
+    } else if (vineArm) {
+      // (on a vine, mid-move: the weapon's own way, what's in his fist and all)
+      vineArm(ctx, animFrame, armBaseX + 6, armBaseY - 3, false);
     } else {
     // Shoulder at the edge of his chest, elbow down by his side (pumping a little as he walks), the fist out at the gun
     drawArm(ctx, armBaseX + 6, armBaseY - 3, armBaseX + 4 + pump * 0.4, armBaseY + 8, armBaseX + 11 + pump, armBaseY + 6, skinTone, skinShadow, skinHighlight, armBaseX + 15 + pump);
@@ -1062,7 +1089,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // (his hand's empty for a moment after a throw)
     if (hold) hold(ctx, wpnX, wpnY);
     // (out of boulders: nothing in his hand at all)
-    else if (!isUnarmed && !throwing && !outOfRocks(p, currentWeapon) && shrugging <= 0) drawHeldWeapon(ctx, currentWeapon, wpnX, wpnY, p.flameAngle || 0, animFrame);
+    else if (!vineArm && !isUnarmed && !throwing && !outOfRocks(p, currentWeapon) && shrugging <= 0) drawHeldWeapon(ctx, currentWeapon, wpnX, wpnY, p.flameAngle || 0, animFrame);
   }
   ctx.restore();
 

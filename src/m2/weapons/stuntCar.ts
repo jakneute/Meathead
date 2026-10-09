@@ -337,7 +337,8 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   }
   // The clapperboard over his head: the clapper snapping down, ACTION!
   if (clap > 0) {
-    const pl = state.player, x = pl.pos.x + pl.width / 2, y = pl.pos.y - 34, k = clap / 30;
+    // (hanging off a vine, his hand up on it over his head: up off to the front of it, clear of his fist)
+    const pl = state.player, x = pl.pos.x + pl.width / 2 + (pl.vine ? pl.facing * 26 : 0), y = pl.pos.y - (pl.vine ? 26 : 34), k = clap / 30;
     const shut = clap < 24, open = shut ? 0 : (clap - 24) / 6 * 0.6;
     c.save(); c.translate(x, y);
     c.fillStyle = INK; c.fillRect(-21, -6, 42, 28); c.fillStyle = '#27272A'; c.fillRect(-20, -5, 40, 26);

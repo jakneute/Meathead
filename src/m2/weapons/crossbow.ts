@@ -442,10 +442,11 @@ const splat = (state: GameState, x: number, y: number) => {
 
 const tick = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, equipped: boolean) => {
   const { state } = ctx;
-  // (up: tilted up; down, up in the air: tilted down, at their heads from above)
+  // (up: tilted up; down, up in the air: tilted down, at their heads from above; never on a vine)
   const pl = state.player;
+  // (hanging off a vine: straight out level, always; up and down are for climbing it)
   const want = !equipped ? 0 : input.moveUp && !pl.isDucking ? -DART.up : input.moveDown && !pl.isGrounded ? DART.down : 0;
-  aim += (want - aim) * 0.35;
+  aim = pl.vine ? 0 : aim + (want - aim) * 0.35;
   globs = 0;
   for (const q of state.projectiles) if (q.custom === 'CROSSBOW' && partOf(q).kind === 'puke') globs++;
   for (const e of tracked) {

@@ -25,6 +25,8 @@ export type ArtiePose =
   | 'angry'   // displeased: fists down, eyebrows in
   | 'point'   // pointing out at something (the "wildlife")
   | 'sit'     // at the boat's wheel / in a cart: from the waist up, the legs hidden
+  | 'duck'    // down in his cart under a beam: hunched right down, knees up, both hands holding his helmet on, panicking;
+              // nothing of him lower than his feet point, his helmet top about 72 above it (no offset needed by the caller)
   | 'run'     // running (the clearing, the roof)
   | 'hurt'    // hit (the boss)
   // (his fight, in the clearing)
@@ -149,6 +151,10 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
   c.scale(facing < 0 ? -1 : 1, 1);
   // (sat down hard: all of him lower, his legs out in front)
   if (pose === 'stunned') c.translate(0, 18);
+  // (hanging off the vine: all of him up a bit, so his hands get up to it)
+  if (pose === 'dodge') c.translate(0, -6);
+  // (ducking in his cart: all of him down low, folded up)
+  if (pose === 'duck') c.translate(0, 18);
   const b = pose === 'run' ? Math.abs(Math.sin(f * 0.35)) * -2 : pose === 'agitated' ? Math.abs(Math.sin(f * 0.6)) * -3 : Math.sin(f * 0.05 + 4) * 0.7;
   // ---- the blowgun slung across his back (behind all of him), the canteen at his hip
   if (pose !== 'blowgun') {
@@ -166,25 +172,28 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
   // ---- the shirt, the belt and what's on it
   drawShirt(c, pose, f, d);
   // ---- the arms (the far one first), the neck, the head, what's in his hands
-  const A = armsFor(pose, f);
-  // (arms up over his head go behind it, their hands back on over the helmet after)
-  const up = pose === 'dive' || pose === 'dodge' || pose === 'hurt' || pose === 'agitated';
-  const e0 = drawArm(c, -10.2, -53.5, A[0], A[1], A[2], false, d, pose, f);
-  const e1 = pose !== 'radio' && pose !== 'whistle' ? drawArm(c, 10.2, -53.5, A[3], A[4], A[5], true, d, pose, f) : e0;
-  const hy = pose === 'hurt' ? -66 : pose === 'stunned' ? -66 + Math.sin(f * 0.12) * 1.5 : -68;
-  const hx = pose === 'stunned' ? Math.sin(f * 0.12) * 2.5 : pose === 'dive' ? 1.5 : 0.5;
+  const hy = pose === 'duck' ? -63.5 : pose === 'hurt' ? -66 : pose === 'stunned' ? -66 + Math.sin(f * 0.12) * 1.5 : -68;
+  // (arms straight up over him: his head ducked back out of the way of the near one, which goes on over it)
+  const reach = pose === 'dodge' || pose === 'dive';
+  const hx = pose === 'stunned' ? Math.sin(f * 0.12) * 2.5 : reach ? -5 : 0.5;
+  const [far, near] = armsFor(pose, f, hx, hy);
+  // (arms up over his head go behind it, their hands back on over the helmet after; the hand at his face after it)
+  const up = pose === 'dive' || pose === 'dodge' || pose === 'hurt' || pose === 'agitated' || pose === 'duck';
+  const atFace = pose === 'radio' || pose === 'whistle';
+  if (!atFace) drawArm(c, far, false, d, pose, f);
+  if (!reach) drawArm(c, near, true, d, pose, f);
   drawNeck(c, hx, hy, pose, f, d);
   const tilt = pose === 'hurt' ? -0.35 : pose === 'stunned' ? 0.5 : pose === 'agitated' ? Math.sin(f * 0.7) * 0.2 : 0;
-  const nod = pose === 'stunned' ? Math.sin(f * 0.12) * 0.12 : pose === 'hurt' ? -0.12 : pose === 'dive' ? 0.1 : 0;
+  const nod = pose === 'stunned' ? Math.sin(f * 0.12) * 0.12 : pose === 'hurt' ? -0.12 : pose === 'dive' ? 0.1 : pose === 'dodge' ? -0.1 : 0;
   c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS);
   drawHead(c, pose, f, d, tilt);
   c.restore();
-  if (up) { hand(c, A[0], A[1], e0[0], e0[1], false, pose, f); hand(c, A[3], A[4], e1[0], e1[1], true, pose, f); }
-  // (the hand over the face goes on after it)
-  if (pose === 'radio') { drawArm(c, 10.2, -53.5, A[3], A[4], A[5], true, d, pose, f); drawRadio(c, A[3] - 3, A[4] - 11, f, true); }
-  if (pose === 'whistle') drawArm(c, 10.2, -53.5, A[3], A[4], A[5], true, d, pose, f);
+  if (up) { hand(c, far, false, pose, f); if (reach) drawArm(c, near, true, d, pose, f); else hand(c, near, true, pose, f); }
+  // (the radio, the whistle: brought up across his chest to his mouth by the far hand, over his chin)
+  if (atFace) drawArm(c, far, false, d, pose, f);
+  if (pose === 'radio') { drawRadio(c, far.hx - 1.6, far.hy - 9, f, true); hand(c, far, false, pose, f); }
   if (pose === 'blowgun') drawBlowgun(c, hx, hy, f);
-  if (pose === 'grab') drawKnife(c, A[3], A[4], f, d);
+  if (pose === 'grab') drawKnife(c, far, f, d);
   c.restore();
 };
 
@@ -201,7 +210,8 @@ export const ARTIE_H = 88;
 const drawLegs = (c: Ctx, pose: ArtiePose, f: number, d: number) => {
   // [hipX, hipY, kneeX, kneeY, ankleX, ankleY, boot angle] for the far leg, then the near one
   let L: number[][];
-  if (pose === 'stunned') L = [[-2, -27, 9, -30, 21, -27, -1.35], [3, -27, 13, -29, 25, -27, -1.45]];
+  if (pose === 'duck') L = [[-2, -27, 11, -37, 7, -26, 0.15], [3, -27, 14, -36, 11, -26, 0.2]];
+  else if (pose === 'stunned') L = [[-2, -27, 9, -30, 21, -27, -1.35], [3, -27, 13, -29, 25, -27, -1.45]];
   else if (pose === 'dodge') L = [[-2, -27, 8, -34, 7, -21, 0.15], [3, -27, 11, -33, 11, -20, 0.2]];
   else if (pose === 'run') {
     const k = Math.sin(f * 0.35);
@@ -393,41 +403,105 @@ const drawRadio = (c: Ctx, x: number, y: number, f: number, held: boolean) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Arms: a khaki short sleeve with a rolled cuff, a pale upper arm, a cooked hairy forearm, a fist
 
-/** Each pose's hands: [far hand x, y, elbow bend, near hand x, y, elbow bend]. */
-const armsFor = (pose: ArtiePose, f: number): number[] => {
-  const wave = Math.sin(f * 0.18) * 5;
+/** His arm bones: the upper arm, the forearm (fixed: an arm's never longer or shorter than it is). */
+const UPPER = 12.2, FORE = 11.8, REACH = UPPER + FORE - 0.3;
+
+/** An arm, solved: shoulder, elbow, hand. */
+interface Arm { sx: number; sy: number; ex: number; ey: number; hx: number; hy: number }
+
+/**
+ * Two-bone IK: the hand as near the target as the shoulder's reach lets it get, the elbow on whichever side of the
+ * shoulder-to-hand line goes more the way of `(ux, uy)` (down for a gesture, out for a flung arm, back for a run).
+ */
+const solve = (sx: number, sy: number, tx: number, ty: number, ux: number, uy: number): Arm => {
+  let dx = tx - sx, dy = ty - sy;
+  const dist = Math.hypot(dx, dy) || 0.001;
+  const k = dist > REACH ? REACH / dist : dist < 5 ? 5 / dist : 1;
+  dx *= k; dy *= k;
+  const hx = sx + dx, hy = sy + dy, mx = sx + dx / 2, my = sy + dy / 2;
+  const a = joint(sx, sy, hx, hy, UPPER, FORE, 1), b = joint(sx, sy, hx, hy, UPPER, FORE, -1);
+  const [ex, ey] = (a[0] - mx) * ux + (a[1] - my) * uy >= (b[0] - mx) * ux + (b[1] - my) * uy ? a : b;
+  return { sx, sy, ex, ey, hx, hy };
+};
+
+/** Smoothly round a loop of keyframes ([x, y] each), `t` counted in keyframes. */
+const cycle = (keys: number[][], t: number) => {
+  const n = keys.length, i = Math.floor(t), u = t - i, e = u * u * (3 - 2 * u);
+  const A = keys[((i % n) + n) % n], B = keys[(((i + 1) % n) + n) % n];
+  return [lerp(A[0], B[0], e), lerp(A[1], B[1], e)];
+};
+
+/** Each pose's arms, solved: [far, near]. (hx, hy): where his head is (the radio, the whistle, the blowgun go to his mouth). */
+const armsFor = (pose: ArtiePose, f: number, hx: number, hy: number): [Arm, Arm] => {
+  const hang = pose === 'dodge' || pose === 'dive' || pose === 'duck';
+  const SX = hang ? 9.2 : 10.2, SY = hang ? -55 : -53.5;
+  const far = (x: number, y: number, ux: number, uy: number) => solve(-SX, SY, x, y, ux, uy);
+  const near = (x: number, y: number, ux: number, uy: number) => solve(SX, SY, x, y, ux, uy);
+  // (the far hand on his hip, knuckles in, elbow out behind: how he stands about, yapping)
+  const hip = () => far(-13.8, -33, -1, -0.15);
+  const nearHip = () => near(13.8, -33, 1, -0.15);
+  const mouthX = hx + 5.4 * HS, mouthY = hy + 7.6 * HS;
+  const sway = Math.sin(f * 0.05) * 0.8;
   switch (pose) {
-    case 'radio': return [-10, -33, -1, 9, -60, 1];
-    case 'angry': return [-13, -34, -1, 13, -34, 1];
-    case 'point': return [-10, -33, -1, 27, -59, 1];
-    case 'talk': return [-10, -33, -1, 19, -49 + wave, 1];
-    case 'sit': return [14, -40, 1, 18, -42, 1];
-    case 'run': { const k = Math.sin(f * 0.35) * 8; return [-8 - k, -37, -1, 8 + k, -37, -1]; }
-    case 'dive': return [4, -88, 1, 12, -87, 1];
-    case 'grab': { const k = Math.abs(Math.sin(f * 0.16)); return [30, -50, 1, 4 + k * 22, -72 + k * 26, 1]; }
-    case 'blowgun': return [12, -60, 1, 24, -61, 1];
-    case 'whistle': return [-13, -35, -1, 8, -60, 1];
-    case 'stunned': return [-16, -33, -1, 14, -33, 1];
-    case 'dodge': return [-3, -89, -1, 4, -89, 1];
-    case 'agitated': { const a = f * 0.9; return [-14 + Math.sin(a) * 12, -58 + Math.cos(a) * 16, -1, 4 + Math.cos(a * 1.3) * 12, -44 + Math.sin(a * 1.3) * 12, 1]; }
-    case 'hurt': return [-18, -67, -1, 16, -69, 1];
-    default: return [-10.5, -33, -1, 10.5, -33, 1];
+    case 'talk': {
+      // (explaining it: palm up out at you, up for the big point, a shrug, a chop down on the punchline)
+      const [x, y] = cycle([[20, -41], [22, -62], [23, -46], [21, -37], [24, -52]], f / 26);
+      return [hip(), near(x, y, 0.2, 1)];
+    }
+    case 'radio': return [far(mouthX + 3, mouthY + 4, 0, 1), nearHip()];
+    case 'whistle': return [far(mouthX - 2.6, mouthY + 1.4, 0, 1), nearHip()];
+    case 'angry': {
+      // (a fist shaking at you, the other balled at his side)
+      const j = Math.sin(f * 1.7);
+      return [far(-14, -33.5, -1, 0.2), near(22 + j, -66 + Math.abs(j), 0.3, 1)];
+    }
+    case 'point': {
+      // (out straight at it, jabbing)
+      const j = Math.max(0, Math.sin(f * 0.22)) * 2;
+      return [hip(), near(36 + j, -61, 0, 1)];
+    }
+    case 'sit': return [far(13, -40, 0, 1), near(19, -42, 0, 1)];
+    case 'run': {
+      // (pumping: elbows bent back, the hands coming up in front by turns)
+      const k = Math.sin(f * 0.35);
+      return [far(-6 - k * 7, -38 - Math.max(0, -k) * 4, -1, 0.5), near(7 + k * 7, -38 - Math.max(0, k) * 4, -1, 0.5)];
+    }
+    case 'dive': return [far(-3, -82, -1, 0), near(6, -82, 1, 0)];
+    case 'duck': {
+      // (both hands clamped on the helmet's brim, elbows out, trembling)
+      const j = Math.sin(f * 1.9) * 0.5;
+      return [far(-9 + j, -73, -1, -0.2), near(10 - j, -74, 1, -0.2)];
+    }
+    case 'dodge': return [far(-4.5, -82, -1, 0), near(4.5, -82, 1, 0)];
+    case 'grab': {
+      // (a fistful of him held out ahead; the knife going in low, a shank to the gut)
+      const k = Math.abs(Math.sin(f * 0.16));
+      return [far(2 + k * 14, -40 - k * 4, -0.3, 1), near(28, -52, 0, 1)];
+    }
+    case 'blowgun': return [far(mouthX + 7, mouthY + 0.6, 0, 1), near(mouthX + 19, mouthY + 0.6, 0, 1)];
+    case 'stunned': return [far(-17, -31, -1, -0.2), near(16, -31, 1, -0.2)];
+    case 'hurt': return [far(-20, -69, -1, 0.6), near(19, -71, 1, 0.6)];
+    case 'agitated': {
+      // (slapping at himself, flinging his arms up, slapping again)
+      const a = Math.sin(f * 0.45) * 0.5 + 0.5, b = Math.sin(f * 0.45 + 2.2) * 0.5 + 0.5;
+      return [far(lerp(-2, -21, a), lerp(-57, -72, a), -1, 0.4), near(lerp(6, 21, b), lerp(-40, -71, b), 1, 0.4)];
+    }
+    default: return [hip(), near(11.8 + sway * 0.4, -30.5, 1, 0.1)];
   }
 };
 
-const drawArm = (c: Ctx, sx: number, sy: number, hx: number, hy: number, bend: number, near: boolean, d: number, pose: ArtiePose, f: number) => {
-  const dist = Math.hypot(hx - sx, hy - sy), l = Math.max(10.6, dist / 2 + 0.05);
-  const [ex, ey] = joint(sx, sy, hx, hy, l, l, bend);
+const drawArm = (c: Ctx, A: Arm, near: boolean, d: number, pose: ArtiePose, f: number) => {
+  const { sx, sy, ex, ey, hx, hy } = A;
   const burnt = near ? BURNT : back(BURNT), pale = near ? PALE : back(PALE), khaki = near ? KHAKI : back(KHAKI);
   const torn = near && d >= 0.65;
-  tube(c, [sx, sy, ex, ey, hx, hy], [5.2, 4.6], [pale, burnt]);
+  tube(c, [sx, sy, ex, ey, hx, hy], [4.8, 4.3], [pale, burnt]);
   // (forearm hair; scratches, a gash)
   for (let i = 0; i < 4; i++) { const k = 0.25 + i * 0.16; px(c, lerp(ex, hx, k) + (i % 2 ? 0.8 : -1), lerp(ey, hy, k) - 0.4, 0.5, 1.1, HAIR[3]); }
   if (d >= 0.3) cut(c, lerp(ex, hx, 0.3) - 1, lerp(ey, hy, 0.3) - 0.8, lerp(ex, hx, 0.55) + 0.6, lerp(ey, hy, 0.55) + 0.8);
   if (near && d >= 0.6) { const gx = lerp(ex, hx, 0.62), gy = lerp(ey, hy, 0.62); smear(c, gx, gy, 2.4, 1.6); drip(c, gx, gy, 3 + d * 3); }
   // (the sleeve: down over most of the upper arm, a rolled cuff; torn off to a ragged stub once he's had it, a gash on the arm under it)
   const k = torn ? 0.38 : 0.78, cx = lerp(sx, ex, k), cy = lerp(sy, ey, k);
-  tube(c, [sx, sy, cx, cy], [6.6], [khaki]);
+  tube(c, [sx, sy, cx, cy], [6], [khaki]);
   const nx = -(ey - sy), ny = ex - sx, nl = Math.hypot(nx, ny) || 1;
   const ox = (nx / nl) * 3.6, oy = (ny / nl) * 3.6;
   if (torn) {
@@ -438,20 +512,19 @@ const drawArm = (c: Ctx, sx: number, sy: number, hx: number, hy: number, bend: n
   line(c, [sx + ox * 0.4, sy + oy * 0.4, lerp(sx, cx, 0.8) + ox * 0.3, lerp(sy, cy, 0.8) + oy * 0.3], 0.5, khaki[3]);
   // (sweat under the arm)
   if (!torn) ell(c, lerp(sx, cx, 0.35) + ox * 0.3, lerp(sy, cy, 0.35) + oy * 0.3, 1.4, 1.4, khaki[2]);
-  hand(c, hx, hy, ex, ey, near, pose, f);
-  return [ex, ey] as const;
+  hand(c, A, near, pose, f);
 };
 
 /** A hand: a fist (its knuckles, its thumb), or for the pointing one, a finger out; the whistling one's two fingers. */
-const hand = (c: Ctx, x: number, y: number, ex: number, ey: number, near: boolean, pose: ArtiePose, f: number) => {
+const hand = (c: Ctx, A: Arm, near: boolean, pose: ArtiePose, f: number) => {
   const r = near ? BURNT : back(BURNT);
-  const a = Math.atan2(y - ey, x - ex);
+  const x = A.hx, y = A.hy, a = Math.atan2(y - A.ey, x - A.ex);
   c.save(); c.translate(x, y); c.rotate(a);
   shape(c, () => c.ellipse(0.4, 0, 3, 2.6, 0, 0, Math.PI * 2), r, -2.6, 3.4, 0.8);
   if (near && pose === 'point') {
     tube(c, [2.4, -0.6, 7.4, -0.8], [1.8], [r]);
     px(c, 7, -1.4, 0.8, 0.8, '#F5E6D3');
-  } else if (near && pose === 'whistle') {
+  } else if (!near && pose === 'whistle') {
     tube(c, [2.2, -1, 5.2, -1.4], [1.5], [r]); tube(c, [2.2, 0.8, 5.2, 0.6], [1.5], [r]);
   } else if (near && pose === 'talk') {
     // (an open hand, palm up, fingers going)
@@ -476,11 +549,11 @@ const drawNeck = (c: Ctx, hx: number, hy: number, pose: ArtiePose, f: number, d:
 // ---------------------------------------------------------------------------------------------------------------
 // Held things
 
-const drawKnife = (c: Ctx, hx: number, hy: number, f: number, d: number) => {
+const drawKnife = (c: Ctx, A: Arm, f: number, d: number) => {
+  // (held point forward, tipped up a touch as it goes in)
   const k = Math.abs(Math.sin(f * 0.16));
-  const tx = hx + 6 + k * 6, ty = hy - 9 + k * 12;
-  const ang = Math.atan2(ty - hy, tx - hx), len = Math.hypot(tx - hx, ty - hy) + 2;
-  c.save(); c.translate(hx, hy); c.rotate(ang);
+  const ang = -0.35 + k * 0.25, len = 11;
+  c.save(); c.translate(A.hx, A.hy); c.rotate(ang);
   shape(c, () => { c.moveTo(1.5, -1.4); c.lineTo(len - 2.5, -1.4); c.lineTo(len, 0.2); c.lineTo(len - 3, 1.2); c.lineTo(1.5, 1.2); c.closePath(); }, STEEL, 1.5, len, 0.7);
   line(c, [2.5, -0.9, len - 3, -0.9], 0.5, '#FFFFFF');
   // (blood up the blade: somebody's)
@@ -517,7 +590,7 @@ const faceOf = (pose: ArtiePose, d: number): Face => {
     case 'grab': return 'manic';
     case 'hurt': return 'yelp';
     case 'stunned': return 'dazed';
-    case 'agitated': case 'dodge': return 'panic';
+    case 'agitated': case 'dodge': case 'duck': return 'panic';
     case 'blowgun': return 'aim';
     case 'whistle': return 'whistle';
     default: return d > 0.62 ? 'grit' : 'smug';

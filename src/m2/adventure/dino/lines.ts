@@ -30,7 +30,7 @@ export const HURT_REX = ['IT STEPPED ON ME! IT STEPPED ON ALL OF ME!', 'BIG TEET
 export const DEATH_REX = ['T-REKT', 'A SNACK', 'OBJECTS IN MIRROR ARE CLOSER THAN THEY APPEAR'];
 
 /** The T. rex paddock's sub-boss (rex.ts). Walking into the paddock, it waking up. */
-export const MEATHEAD_REX_INTRO = ['OH, GOOD. THE BIG ONE.', "THAT'S A LOT OF DINOSAUR.", "NICE T. REX. GOOD T. REX. ...IT'S NOT A GOOD T. REX."];
+export const MEATHEAD_REX_INTRO = ['OH, GOOD. THE BIG ONE.', "THAT'S A LOT OF DINOSAUR.", "NICE T-REX. GOOD T-REX. ...IT'S NOT A GOOD T-REX."];
 /** Its bite. */
 export const HURT_REX_BITE = ['IT BIT ME! IT ACTUALLY BIT ME!', 'I AM NOT ON THE MENU!', 'WHO PUTS REAL TEETH IN A KIDS RIDE?!', 'GET YOUR GIFT SHOP TEETH OFF MY BUTT!'];
 export const DEATH_REX_BITE = ['FEEDING TIME', 'ALL YOU CAN EAT', 'CHEWED UP BY A THEME PARK'];

@@ -518,6 +518,9 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
   if (wasGrounded) stickToGround(ctx);
   pushOutOfSolids(state);
   }
+  // (how long since he was on the ground: walking along the bottom underwater, the ground stepping down a pixel at a
+  // time, he sinks so slowly he floats off each step for a moment; he's drawn walking through that, not swimming)
+  player.offGround = player.isGrounded ? 0 : (player.offGround ?? 0) + 1;
   // (on a slope or stairs: where the ground is under his feet, for drawing them down onto it and the gun with them)
   player.stance = player.isGrounded && !player.skiing && !player.jetski && !player.bike && !player.moto && !player.swimming ? stanceGround(state.groundRuns, player.pos.x, player.width, player.pos.y + player.height) : undefined;
 

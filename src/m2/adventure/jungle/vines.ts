@@ -149,6 +149,10 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Co
   // ---- Dead, or knocked off it
   if (h.on >= 0 && (p.health <= 0 || state.deathTimer > 0)) { letGo(state, defs, h, c, false, true); return c; }
   if (h.on >= 0 && (p.hurtTimer ?? 0) > h.hurtWas) { letGo(state, defs, h, c, false, true); return { ...c, jump: false, special: false, charge: false }; }
+  // (something he's doing takes him off it, the mallet's smash down: dropping off it, and not caught by the next one on
+  // the way down)
+  if (h.on >= 0 && p.dropVine) { p.dropVine = false; letGo(state, defs, h, c, false); h.anyCd = 30; return hands(c); }
+  p.dropVine = false;
 
   // ---- Not on one: carried on by the swing he let go of, or taking hold of one
   if (h.on < 0) {

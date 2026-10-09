@@ -10,6 +10,9 @@
 //      head instead and not killing him, he bounces back up off him, pogo style, and can do it again. Held on the ground, a slow windup, the mallet right back over his head, then
 //      down: whatever it lands on is squashed flat as a pancake, accordion style, dead.
 // Standing or in the air, never ducking: down there he can't get any leverage on it (and says so).
+// Hanging off a vine (Meathead 2's jungle), one-handed, the other hand on the vine: the air moves (X the air swing, Y
+// the smash down: he lets go of the vine and comes down with it), and the held ones as well, the vine his footing: X
+// held, the tornado (spinning round on the vine); Y held, the windup and the pancake smash (down in front of him).
 // It doesn't use ammo, it wears out: DURABILITY, a little gone every time it connects (only then: a swing at nothing
 // costs nothing). Ammo pickups fill
 // it the same. Its kills are cartoon ones: sent flying off into the distance with a twinkle, or flattened.
@@ -23,6 +26,7 @@ import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { setArmor } from '../../m1/game/core/resist';
 import { CANVAS_WIDTH } from '../../m1/constants';
+import { vineGrip, vineLean } from '../../m1/game/combat/muzzle';
 import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/player/body';
 import { drawPoseSprite, drawPoseHead, drawEnemyAt, grabBusy } from '../moves/grab';
 import { btn, keyHeld } from '../input';
@@ -164,6 +168,8 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
 
   if (!equipped) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); } xHeld = yHeld = 0; return; }
   const ground = pl.isGrounded;
+  // (on a vine: in the air, but it's as good as the ground to him for the held ones)
+  const hang = !!pl.vine, footed = ground || hang;
   const yDown = btn('y') || keyHeld('keyf');
   const xPress = input.shoot && !xWas, yRelease = !yDown && yWas;
   xWas = input.shoot; yWas = yDown;
@@ -184,13 +190,15 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   if (grabBusy()) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); } return; }
   if (mode === 'idle' && durable(ctx) && !pl.isCharging && !pl.isUppercutting && !pl.isDivekicking && !pl.isDucking) {
     if (xPress) start(ground ? 'swing' : 'airSwing', pl);
-    else if (tap && yFree) start(ground ? 'launch' : 'pound', pl);
-    else if (yDown && yHeld === Y_HOLD && ground && yFree) start('windup', pl);
+    // (the smash down, from a vine: he lets go of it, to come down with it)
+    else if (tap && yFree) { start(ground ? 'launch' : 'pound', pl); if (hang) pl.dropVine = true; }
+    else if (yDown && yHeld === Y_HOLD && footed && yFree) start('windup', pl);
   }
   // (not swinging it: he's drawn as he is, or by whatever's got him; nothing of the mallet's to do)
   if (mode === 'idle') { syncArmor(); return; }
   t++;
-  pl.hidden = true;
+  // (on a vine he's drawn hanging off it as ever, the mallet in his free hand: vineArm, below)
+  pl.hidden = !hang;
   const px = pl.pos.x + pl.width / 2, fy = pl.pos.y + pl.height;
 
   switch (mode) {
@@ -203,9 +211,9 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         for (const e of hits) bonk(ctx, e, S.dmg, { x: dir * S.knock, y: S.lift }, 'fling');
         if (hits.length) wearOut(ctx, WEAR.swing);
       }
-      // (still holding it on the ground: held at the end of the swing, winding up into the tornado)
+      // (still holding it on the ground, or on a vine: held at the end of the swing, winding up into the tornado)
       if (t >= S.len) {
-        if (mode === 'swing' && input.shoot && ground && durable(ctx)) { mode = 'spinup'; t = 0; }
+        if (input.shoot && durable(ctx) && (mode === 'swing' ? ground : hang)) { mode = 'spinup'; t = 0; }
         else mode = 'idle';
       }
       break;
@@ -214,8 +222,8 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       // Still holding it after the swing: winding up into the tornado, the mallet coming round faster and faster, his
       // feet digging in, dust kicking up; let go and it's nothing
       pl.vel.x *= 0.5; pl.jumpBufferTimer = 0;
-      if (!input.shoot || !ground) { mode = 'idle'; break; }
-      if (t % 3 === 0) state.particles.push({ pos: { x: px + (Math.random() - 0.5) * 40, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -0.5 - Math.random() * 1.5 }, life: 16, color: 'rgba(214, 211, 209, 0.55)', size: 3 + Math.random() * 4 });
+      if (!input.shoot || !footed) { mode = 'idle'; break; }
+      if (t % 3 === 0 && ground) state.particles.push({ pos: { x: px + (Math.random() - 0.5) * 40, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -0.5 - Math.random() * 1.5 }, life: 16, color: 'rgba(214, 211, 209, 0.55)', size: 3 + Math.random() * 4 });
       if (t % 12 === 0) playSound('whoosh', 0.5 + t / 60, -4 + t / 6);
       if (xHeld >= TORNADO.after) start('tornado', pl);
       break;
@@ -233,6 +241,8 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       // Coming down hard with it over his head, into the ground. Onto somebody's head on the way: the full weight of it
       // on him; it doesn't finish him, and Meathead's bounced back up off him, pogo style, free to do it again
       pl.vel.y = POUND.fall; pl.vel.x *= 0.85;
+      // (on a vine, or caught by one on the way down: off it, he's coming down)
+      if (hang) pl.dropVine = true;
       {
         const under = inBox(state, pl.pos.x - 4, fy - 6, pl.pos.x + pl.width + 4, fy + POUND.fall + 4).find(e => e.pos.y > pl.pos.y + pl.height * 0.5);
         if (under && !ground) {
@@ -265,7 +275,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       // (let go of it: it was a tap after all, nothing; held, it's all the way up, then down it comes. Winding up he can
       // walk, forward or back, slowly; not jump, not turn round)
       pl.vel.x = Math.max(-WINDUP_WALK, Math.min(WINDUP_WALK, pl.vel.x)); pl.jumpBufferTimer = 0; pl.facing = dir;
-      if (!yDown && t < SMASH.windup) { mode = 'idle'; break; }
+      if ((!yDown && t < SMASH.windup) || !footed) { mode = 'idle'; break; }
       if (t % 10 === 0) playSound('click', 0.6, -6 + t / 10);
       if (t >= SMASH.windup) { mode = 'smash'; t = 0; playSound('whoosh', 1.2, -8); }
       break;
@@ -274,12 +284,13 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       if (t === 4) {
         playSound('slam'); playSound('bonk', 1, -6); shakeScreen(state, 18, 9);
         word(px + dir * 70, fy - 50, 'KA-BLAM!', '#FDE047');
-        for (const e of inBox(state, px + dir * 15, fy - 80, px + dir * SMASH.reach, fy + 6)) {
+        // (from a vine: down in front of him, under his feet as well)
+        for (const e of inBox(state, px + dir * 15, fy - 80, px + dir * SMASH.reach, fy + (hang ? 45 : 6))) {
           struck.add(e);
           if (isMidBoss(e)) { e.health -= 120; ctx.fx.spawnDamageNumber(e.pos, 120, true); continue; }
           toonKill(ctx, e, 'flatten', dir);
         }
-        for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: px + dir * 70, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 4 }, life: 24, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 3 });
+        if (!hang) for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: px + dir * 70, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 4 }, life: 24, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 3 });
         if (struck.size) wearOut(ctx, WEAR.pancake);
       }
       if (t >= SMASH.len) mode = 'idle';
@@ -294,6 +305,8 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       pl.jumpBufferTimer = 0;
       pl.vel.x = Math.max(-TORNADO.speed, Math.min(TORNADO.speed, pl.vel.x));
       if (t % 18 === 0) playSound('whirl');
+      // (on a vine: spinning round on it, one-handed, the mallet out at arm's length)
+      if (hang) pl.facing = Math.cos(t * 0.45) >= 0 ? dir : (-dir as 1 | -1);
       // (bullets coming at him: batted back the way they came, a spark and a clang; anything else a stage throws at him,
       // fire, rocks, sludge, still gets through)
       for (const q of state.projectiles) {
@@ -306,10 +319,10 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         playSound('clang', 0.6, 6);
         for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: qx, y: qy }, vel: { x: away * (1 + Math.random() * 3), y: (Math.random() - 0.5) * 3 }, life: 8, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 2 });
       }
-      if (t % 4 === 0) state.particles.push({ pos: { x: px + (Math.random() - 0.5) * 60, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 18, color: 'rgba(214, 211, 209, 0.6)', size: 5 + Math.random() * 5 });
+      if (t % 4 === 0 && ground) state.particles.push({ pos: { x: px + (Math.random() - 0.5) * 60, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 18, color: 'rgba(214, 211, 209, 0.6)', size: 5 + Math.random() * 5 });
       if (t % TORNADO.every === 0) {
         struck = new Set();
-        const hits = state.enemies.filter(o => alive(o) && Math.abs(o.pos.x + o.width / 2 - px) < TORNADO.radius + o.width / 2 && o.pos.y < fy + 10 && o.pos.y + o.height > fy - 110);
+        const hits = state.enemies.filter(o => alive(o) && Math.abs(o.pos.x + o.width / 2 - px) < TORNADO.radius + o.width / 2 && o.pos.y < fy + (hang ? 40 : 10) && o.pos.y + o.height > fy - 110);
         for (const e of hits) {
           const side = Math.sign(e.pos.x + e.width / 2 - px) || dir;
           bonk(ctx, e, TORNADO.dmg, { x: side * TORNADO.knock, y: -9 }, 'fling');
@@ -317,7 +330,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         // (worn by what it hits, a bit a go round, never by spinning at nothing)
         if (hits.length && ++spinHits % TORNADO.wear === 0) wearOut(ctx);
       }
-      if (!input.shoot || t >= TORNADO.max || !durable(ctx) || !ground) { mode = 'land'; t = 0; playSound('boing', 0.8, -6); }
+      if (!input.shoot || t >= TORNADO.max || !durable(ctx) || !footed) { mode = 'land'; t = 0; pl.facing = dir; playSound('boing', 0.8, -6); }
       break;
     }
   }
@@ -416,7 +429,20 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     c.closePath(); c.fill(); c.fillStyle = '#FDE047'; c.fillRect(w.x - 2, w.y - 2, 4, 4);
   }
   // Him, swinging it
-  if (mode !== 'idle' && pl.currentWeapon === 'MALLET') {
+  if (mode !== 'idle' && pl.currentWeapon === 'MALLET' && pl.vine) {
+    // (on a vine he's drawn hanging off it, the mallet in his free hand (vineArm); round him, the blur of it)
+    const s = vineShoulder(pl), cx = s.x - pl.facing * 12;
+    if ((mode === 'swing' || mode === 'airSwing') && t >= 3 && t <= 10) { c.strokeStyle = 'rgba(255, 255, 255, 0.45)'; c.lineWidth = 10; c.beginPath(); c.ellipse(cx, s.y + 6, 60, 14, 0, dir > 0 ? -0.2 : Math.PI - 1.4, dir > 0 ? 1.4 : Math.PI + 0.2); c.stroke(); }
+    else if (mode === 'spinup' || mode === 'tornado') {
+      const k = mode === 'tornado' ? 1 : Math.min(1, t / (TORNADO.after - SWING.len));
+      c.strokeStyle = `rgba(255, 255, 255, ${(0.15 + 0.4 * k).toFixed(2)})`; c.lineWidth = 4 + 6 * k;
+      c.beginPath(); c.ellipse(cx + (f % 2 ? 1 : -1) * k, s.y + 6, 50 + 14 * k, 12, 0, 0, Math.PI * 2); c.stroke();
+      if (mode === 'tornado') {
+        c.strokeStyle = 'rgba(255, 255, 255, 0.7)'; c.lineWidth = 2;
+        for (let i = 0; i < 4; i++) { const yy = s.y - 30 + i * 24, sd = (f * 0.4 + i) % 2 < 1 ? 1 : -1; c.beginPath(); c.moveTo(cx + sd * 50, yy); c.lineTo(cx + sd * 66, yy - 4); c.stroke(); }
+      }
+    }
+  } else if (mode !== 'idle' && pl.currentWeapon === 'MALLET') {
     const x = pl.pos.x + pl.width / 2, y = pl.pos.y + pl.height, air = !pl.isGrounded;
     if (mode === 'tornado') drawTornado(c, x, y, f);
     else {
@@ -469,6 +495,54 @@ const drawTornado = (c: Ctx, x: number, y: number, f: number) => {
   for (let i = 0; i < 4; i++) { const yy = y - 20 - i * 24, s = (f * 0.4 + i) % 2 < 1 ? 1 : -1; c.beginPath(); c.moveTo(x + s * 50, yy); c.lineTo(x + s * 66, yy - 4); c.stroke(); }
 };
 
+/** On a vine: where his weapon shoulder is (world), his body hung off his hand on the vine as the renderer has it. */
+const vineShoulder = (pl: GameState['player']) => {
+  const g = vineGrip(pl), a = vineLean(pl), dx = 14 - g.x, dy = -45 - g.y;
+  return { x: pl.pos.x + pl.width / 2 + pl.facing * (g.x + dx * Math.cos(a) - dy * Math.sin(a)), y: pl.pos.y + pl.height + g.y + dx * Math.sin(a) + dy * Math.cos(a) };
+};
+
+/**
+ * On a vine, mid-move: one-handed, his weapon arm from the shoulder (sx, sy) in its level frame (the other hand's up on
+ * the vine). A flat swing (`phi` as flatSwingPose has it: PI round behind him, 0 out in front) goes round him, drawn
+ * behind him while it's behind; the rest are the mallet at an angle `a` from the shoulder (0 out in front, -PI/2 up).
+ */
+const vineArm = (state: GameState) => {
+  const pl = state.player;
+  if (mode === 'idle' || pl.currentWeapon !== 'MALLET' || !pl.vine) return null;
+  let phi: number | null = null, tilt = 0.25, a = 0;
+  if (mode === 'swing' || mode === 'airSwing') { const S = mode === 'swing' ? SWING : AIR_SWING; phi = t < S.hitAt ? lerp(Math.PI * 0.97, 0, ease(t / S.hitAt)) : lerp(0, -0.9, (t - S.hitAt) / 8); }
+  else if (mode === 'spinup') phi = -0.9 - t * t * 0.012;
+  // (spinning round on the vine, the mallet out at arm's length, a little round from in front)
+  else if (mode === 'tornado') { phi = 0.35; tilt = 0.1; }
+  else if (mode === 'launch') { const k = t / LAUNCH.hitAt; a = t < LAUNCH.hitAt ? lerp(1.1, -1.4, ease(k)) : -1.5; }
+  else if (mode === 'pound') a = -2.3;
+  else if (mode === 'windup') a = lerp(0.3, -2.6, ease(t / SMASH.windup));
+  else if (mode === 'smash') a = t < 4 ? lerp(-2.6, 1.0, ease(t / 4)) : 1.0;
+  else if (mode === 'land') a = 1.1;
+  return (c: Ctx, f: number, sx: number, sy: number, behind: boolean) => {
+    if (phi !== null) {
+      const k = Math.cos(phi);
+      if ((k < 0) !== behind) return;
+      const grip = { x: sx - 10 + k * 22, y: sy + 9 + tilt * 10 };
+      if (Math.abs(k) >= 0.3) { c.save(); c.translate(grip.x, grip.y); c.rotate(tilt); c.scale(k, 1); drawMallet(c, 34); c.restore(); }
+      else {
+        // (end on, coming round at you: the face of the head, big, the handle hidden behind it)
+        const hx = grip.x + k * 30, hy = grip.y, r = 16;
+        c.fillStyle = INK; c.beginPath(); c.arc(hx, hy, r + 2, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#DC2626'; c.beginPath(); c.arc(hx, hy, r, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = '#FACC15'; c.lineWidth = 3; c.beginPath(); c.arc(hx, hy, r - 4, 0, Math.PI * 2); c.stroke();
+        c.fillStyle = '#FEE2E2'; c.beginPath(); c.arc(hx - 5, hy - 5, 4, 0, Math.PI * 2); c.fill();
+      }
+      drawArmTo(c, [sx, sy], [(sx + grip.x) / 2, (sy + grip.y) / 2 + 4], [grip.x, grip.y], false, 6);
+      return;
+    }
+    if (behind) return;
+    const fist = { x: sx + Math.cos(a) * 15, y: sy + Math.sin(a) * 15 };
+    c.save(); c.translate(fist.x, fist.y); c.rotate(a); drawMallet(c); c.restore();
+    drawArmTo(c, [sx, sy], [sx + Math.cos(a) * 8 + Math.sin(a) * 3, sy + Math.sin(a) * 8 - Math.cos(a) * 3 + 2], [fist.x - Math.cos(a) * 3, fist.y - Math.sin(a) * 3], false, 6);
+  };
+};
+
 /** In his fist, carried at the ready: gripped low on the handle, the head up in front of him, tipped forward. */
 const drawHeld = (c: Ctx) => { c.save(); c.translate(1, 3); c.rotate(-1.15); drawMallet(c, 28); c.restore(); };
 
@@ -481,5 +555,5 @@ export const stopMallet = () => { mode = 'idle'; syncArmor(); words = []; twinkl
 export const registerMallet = () => registerWeapon('MALLET', {
   // (all its business is in tick: X and Y both, held and tapped)
   fire: ctx => { ctx.state.player.shootCooldown = 0; },
-  update: () => false, draw: () => {}, drawHeld: c => drawHeld(c), tick, drawOverlay,
+  update: () => false, draw: () => {}, drawHeld: c => drawHeld(c), tick, drawOverlay, vineArm,
 });

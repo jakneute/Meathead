@@ -33,6 +33,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../m1/const
 import { registerHurtLines } from '../../kinds';
 import { DINO_BACK_DOOR_X } from '../dino';
 import { drawPerson } from './people';
+import { drawRideCart, SEAT_DX, RIDE_SINK, JAGUAR_EXPRESS } from '../rideCart';
 import './kinds';
 import {
   type Dressed, GUEST_KICKED, LINE_ASKS, LINE_ANSWERS, MEATHEAD_BOARDS, OPERATOR_PROTEST, OPERATOR2_ENGAGE,
@@ -210,7 +211,7 @@ const say = (ld: Loading, who: string, text: string, next: () => void) => {
 
 const handOff = (state: GameState) => {
   const p = state.player;
-  p.carried = false; p.hidden = false; p.inCutscene = false;
+  p.carried = false; p.hidden = false; p.inCutscene = false; p.cartSeat = false;
   teleport(state, SECTIONS.cart.x0 + 150, GY);
   (getAdv(state)!.s as Record<string, unknown>).cartBoarded = true;
 };
@@ -257,7 +258,7 @@ const runLoading = (ctx: FrameContext, tp: Temple): Controls => {
   // In he gets
   if (ld.step === 0 && !ld.busy) {
     ld.step = 1;
-    p.carried = true; p.pos.x = CART_X - p.width / 2; p.pos.y = GY - 18 - p.height; p.vel.x = 0; p.vel.y = 0;
+    p.carried = true; p.cartSeat = true; p.facing = 1; p.pos.x = CART_X + SEAT_DX - p.width / 2; p.pos.y = GY - RIDE_SINK - p.height; p.vel.x = 0; p.vel.y = 0;
     playSound('land', 0.8); playSound('clang', 0.4, -4);
     say(ld, 'm2.guest', LINE_ASKS, () => say(ld, 'm2.guest2', LINE_ANSWERS, () => {
       ld.busy = true; meatheadSays(state, pick(MEATHEAD_BOARDS), true, () => { ld.busy = false; ld.step = 2; });
@@ -267,7 +268,7 @@ const runLoading = (ctx: FrameContext, tp: Temple): Controls => {
     ld.step = 3;
     say(ld, 'm2.operator', OPERATOR_PROTEST[dr], () => say(ld, 'm2.operator2', OPERATOR2_ENGAGE, () => { ld.step = 4; ld.t = 0; }));
   }
-  if (p.carried) { p.pos.x = CART_X + ld.rolling - p.width / 2; p.pos.y = GY - 18 - p.height; }
+  if (p.carried) { p.cartSeat = true; p.pos.x = CART_X + SEAT_DX + ld.rolling - p.width / 2; p.pos.y = GY - RIDE_SINK - p.height; }
   // The lever; and away it goes
   if (ld.step === 4) {
     if (ld.t === 10) { playSound('clang', 1, -8); playSound('thud', 0.8); }
@@ -324,7 +325,8 @@ export const temple: Section = {
     c.fillStyle = '#1C1917'; for (let x = 20; x < CANVAS_WIDTH; x += 120) c.fillRect(x, 0, 10, CANVAS_HEIGHT);
     return true;
   },
-  drawBack: (c, state) => drawTempleBack(c, state),
+  // (and the back of the ride's cart, over all that: behind whoever's sat in it)
+  drawBack: (c, state) => { drawTempleBack(c, state); drawRideCart(c, CART_X + (templeOf(state).loading?.rolling ?? 0), GY, state.frame, JAGUAR_EXPRESS, true); },
   drawFront: (c, state) => drawTempleFront(c, state),
   drawHud: (c, state) => {
     const tp = templeOf(state);
@@ -443,9 +445,7 @@ const drawTempleBack = (c: Ctx, state: GameState) => {
 const drawCart = (c: Ctx, x: number, f: number, riders: number[]) => {
   // the guests still in it, sat
   riders.forEach(i => { c.save(); c.translate(x + SEAT[i], GY - 12); c.scale(0.9, 0.9); drawPerson(c, { seed: GUESTS[i].seed, woman: GUESTS[i].woman, outfit: 'guest', pose: 'sit', f, mood: 'happy' }); c.restore(); });
-  box(c, x - 60, GY - 40, 120, 30, '#7C2D12'); box(c, x - 60, GY - 40, 120, 4, '#C2410C');
-  for (const wx of [-40, 40]) { c.fillStyle = '#1C1917'; c.beginPath(); c.arc(x + wx, GY - 8, 9, 0, Math.PI * 2); c.fill(); }
-  label(c, 'JAGUAR EXPRESS', x, GY - 22, '#FDE047', 6);
+  drawRideCart(c, x, GY, f, JAGUAR_EXPRESS, false);
 };
 
 const drawTempleFront = (c: Ctx, state: GameState) => {

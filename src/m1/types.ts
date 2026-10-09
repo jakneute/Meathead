@@ -235,7 +235,11 @@ export interface Player extends Entity {
    * `th` how far over the vine's swung (radians, + to the right), `om` how fast it's swinging. */
   /** Sat back in a mine cart (Meathead 2's): lounging, leaning back, the free arm draped open over the back of it. */
   cartSeat?: boolean;
+  /** Frames since he was last on the ground. */
+  offGround?: number;
   vine?: { mode: 'hang' | 'climb' | 'zipUp' | 'zipDown' | 'push'; th: number; om: number };
+  /** Something he's doing takes him off the vine he's on (Meathead 2: the mallet's smash down, from one): let go of it. */
+  dropVine?: boolean;
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
   kickPose?: number;
   /** Counts up each time he starts a charge, uppercut or dive kick (an enemy's only hit once per move, but again by the next one). */

@@ -5,6 +5,9 @@
 // a few seconds (the beefy ones can live through it). Fewer than three about, and some of them get more than one of it at once. A spell's a while coming back.
 // Secondary fire (Y, or F) is the support spell, BULK UP: for a while he's a lot faster, a lot bigger, and whatever he
 // charges or throws goes a lot further; it costs more mana than a storm, and it's a while coming back. Its ammo's MANA (pickups fill it the same).
+// Hanging off a vine (Meathead 2's jungle), both work one-handed, the other hand on the vine: the storm read out of the
+// book thrust out at arm's length, its pages flipping over, the vine fizzing in his other fist; the bulk-up a one-armed
+// flex, the book up in his fist.
 
 import type { Enemy, Projectile } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
@@ -22,6 +25,7 @@ import { BULK_LINES, BULK_FAIL_LINES } from '../lines/weaponLines';
 import { drawPoseSprite, drawPoseHead } from '../moves/grab';
 import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/player/body';
 import { setArmor } from '../../m1/game/core/resist';
+import { vineGrip } from '../../m1/game/combat/muzzle';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -278,7 +282,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
     // (reading it out: struck in the pose a moment, standing his ground; hurt, he takes it, but nothing knocks him out
     // of it (armor: core/resist); only dying does)
     if (state.deathTimer > 0) { casting = 0; pl.hidden = false; }
-    else { casting--; pl.vel.x = 0; pl.pushbackTimer = 0; pl.lockTimer = Math.max(pl.lockTimer, 2); pl.hidden = casting > 0; }
+    else { casting--; pl.vel.x = 0; pl.pushbackTimer = 0; pl.lockTimer = Math.max(pl.lockTimer, 2); pl.hidden = casting > 0 && !pl.vine; }
   }
   if (flash > 0) flash--;
   // Rifts opening, hanging there, closing; what's due out of them
@@ -295,7 +299,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
   secondaryWas = !!input.secondary;
   if (equipped && press) {
     const mana = ctx.cheats.infiniteAmmo || pl.weaponAmmo.SPELLBOOK >= BULK.mana;
-    if (bulkLeft <= 0 && bulkCool <= 0 && posing <= 0 && pl.isGrounded && mana) {
+    if (bulkLeft <= 0 && bulkCool <= 0 && posing <= 0 && (pl.isGrounded || !!pl.vine) && mana) {
       if (!ctx.cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK -= BULK.mana;
       // First the pose: the book held up, flexing, the power going into him
       posing = POSE;
@@ -311,7 +315,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
   syncArmor();
   if (posing > 0) {
     // (held there: no moving, no shooting, and nothing knocks him out of it; it still hurts)
-    pl.vel.x = 0; pl.lockTimer = Math.max(pl.lockTimer, 2); pl.hidden = true;
+    pl.vel.x = 0; pl.lockTimer = Math.max(pl.lockTimer, 2); pl.hidden = !pl.vine;
     pl.pushbackTimer = 0;
     if (state.frame % 2 === 0) { const a = Math.random() * Math.PI * 2, r = 50; state.particles.push({ pos: { x: pl.pos.x + pl.width / 2 + Math.cos(a) * r, y: pl.pos.y + pl.height / 2 + Math.sin(a) * r }, vel: { x: -Math.cos(a) * 3, y: -Math.sin(a) * 3 }, life: 16, color: Math.random() < 0.5 ? '#C084FC' : '#F87171', size: 3 }); }
     if (--posing === 0) {
@@ -425,8 +429,9 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   if (posing > 0) {
     const pl = state.player, f = state.frame, k = 1 - posing / POSE;
     const x = pl.pos.x + pl.width / 2 + (f % 2 ? 1 : -1) * k * 1.5, y = pl.pos.y + pl.height;
-    c.fillStyle = `rgba(192, 132, 252, ${(0.15 + 0.2 * k).toFixed(2)})`; c.beginPath(); c.ellipse(x, y - 34, 34 + k * 14, 46 + k * 14, 0, 0, Math.PI * 2); c.fill();
-    drawPoseSprite(c, x, y, pl.facing, g => {
+    c.fillStyle = `rgba(192, 132, 252, ${(0.15 + 0.2 * k).toFixed(2)})`; c.beginPath(); c.ellipse(x, pl.vine ? pl.pos.y + pl.height / 2 : y - 34, 34 + k * 14, 46 + k * 14, 0, 0, Math.PI * 2); c.fill();
+    // (on a vine: he's drawn hanging off it, flexing the one arm, the book up in his fist: vineArm, below)
+    if (!pl.vine) drawPoseSprite(c, x, y, pl.facing, g => {
       drawLeg(g, [-5, -24], [-13, -12], [-17, 0], 0, true);
       drawLeg(g, [5, -24], [13, -12], [17, 0], 0, false);
       g.save(); g.translate(0, -24);
@@ -441,7 +446,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     });
     // (light shooting up out of the book)
     c.fillStyle = `rgba(233, 213, 255, ${(0.3 + 0.3 * Math.sin(f * 0.5)).toFixed(2)})`;
-    const bx = x + pl.facing * 18; c.beginPath(); c.moveTo(bx - 8, y - 88); c.lineTo(bx + 8, y - 88); c.lineTo(bx + 22, y - 180); c.lineTo(bx - 22, y - 180); c.closePath(); c.fill();
+    const bx = x + pl.facing * 18; if (!pl.vine) { c.beginPath(); c.moveTo(bx - 8, y - 88); c.lineTo(bx + 8, y - 88); c.lineTo(bx + 22, y - 180); c.lineTo(bx - 22, y - 180); c.closePath(); c.fill(); }
   }
   // The whole screen lit up a moment
   if (flash > 0) { c.fillStyle = `rgba(${flashColor}, ${(flash * 0.07).toFixed(2)})`; c.fillRect(state.camera.x - 20, state.camera.y - 20, CANVAS_WIDTH + 40, 700); }
@@ -466,7 +471,8 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   // sky, chest out, roaring up at it), runes going round him
   if (casting > 0) {
     const pl = state.player, f = state.frame, x = pl.pos.x + pl.width / 2, y = pl.pos.y + pl.height;
-    drawPoseSprite(c, x, y, pl.facing, g => {
+    // (on a vine: he's drawn hanging off it, the book thrust out in his free hand: vineArm, below)
+    if (!pl.vine) drawPoseSprite(c, x, y, pl.facing, g => {
       drawLeg(g, [-5, -24], [-12, -12], [-16, 0], 0, true);
       drawLeg(g, [5, -24], [14, -13], [18, 0], 0, false);
       g.save(); g.translate(0, -24); g.rotate(-0.08);
@@ -480,14 +486,48 @@ const drawOverlay = (c: Ctx, state: GameState) => {
       g.fillStyle = 'rgba(233, 213, 255, 0.5)'; g.beginPath(); g.moveTo(31, -38); g.lineTo(47, -38); g.lineTo(58, -70); g.lineTo(26, -70); g.closePath(); g.fill();
       g.restore();
     });
-    // (sparks off the raised hand)
-    if (f % 2 === 0) state.particles.push({ pos: { x: x - pl.facing * 10, y: y - 82 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 14, color: Math.random() < 0.5 ? '#C084FC' : '#FFFFFF', size: 2 });
+    // (sparks off the raised hand: on a vine, the one round the vine, the vine fizzing)
+    const raised = pl.vine ? (() => { const g = vineGrip(pl); return { x: x + pl.facing * g.x, y: y + g.y }; })() : { x: x - pl.facing * 10, y: y - 82 };
+    if (f % 2 === 0) state.particles.push({ pos: raised, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 14, color: Math.random() < 0.5 ? '#C084FC' : '#FFFFFF', size: 2 });
     const cx = pl.pos.x + pl.width / 2, cy = pl.pos.y + pl.height / 2, k = casting / CAST_POSE;
     c.strokeStyle = `rgba(192, 132, 252, ${(0.8 * k).toFixed(2)})`; c.lineWidth = 2;
     c.beginPath(); c.arc(cx, cy, 44 - k * 10, 0, Math.PI * 2); c.stroke();
     c.fillStyle = `rgba(233, 213, 255, ${k.toFixed(2)})`;
     for (let i = 0; i < 8; i++) { const a = state.frame * 0.12 + (i / 8) * Math.PI * 2, rr = 44 - k * 10; c.fillRect(cx + Math.cos(a) * rr - 2, cy + Math.sin(a) * rr - 3, 4, 6); }
   }
+};
+
+/**
+ * On a vine (vineArm: the arm's level frame, the shoulder at (sx, sy)), one-handed. Reading the storm out: the book
+ * thrust out at arm's length, open and blazing, its pages flipping over and over, light pouring up off it. Bulking up:
+ * a one-armed flex, the elbow out level, the book up in his fist, open, light shooting up out of it, shaking with it.
+ */
+const vineArm = (state: GameState) => {
+  const pl = state.player;
+  if (!pl.vine || pl.currentWeapon !== 'SPELLBOOK' || (casting <= 0 && posing <= 0)) return null;
+  return (c: Ctx, f: number, sx: number, sy: number, behind: boolean) => {
+    if (behind) return;
+    if (posing > 0) {
+      const k = 1 - posing / POSE, j = (f % 2 ? 1 : -1) * k * 1.2;
+      const el: [number, number] = [sx + 13, sy - 5 + j], fist: [number, number] = [sx + 8, sy - 23 + j];
+      c.fillStyle = `rgba(233, 213, 255, ${(0.3 + 0.3 * Math.sin(f * 0.5)).toFixed(2)})`;
+      c.beginPath(); c.moveTo(fist[0] - 7, fist[1] - 16); c.lineTo(fist[0] + 9, fist[1] - 16); c.lineTo(fist[0] + 22, fist[1] - 110); c.lineTo(fist[0] - 20, fist[1] - 110); c.closePath(); c.fill();
+      drawArmTo(c, [sx, sy], el, fist, false, 6);
+      c.fillStyle = INK; c.fillRect(fist[0] - 8, fist[1] - 17, 18, 13); c.fillStyle = '#27272A'; c.fillRect(fist[0] - 7, fist[1] - 16, 16, 11);
+      c.fillStyle = f % 6 < 3 ? '#E9D5FF' : '#C084FC'; c.fillRect(fist[0] - 5, fist[1] - 15, 5, 9); c.fillRect(fist[0] + 2, fist[1] - 15, 5, 9);
+      return;
+    }
+    // (thrust out level, a little up; the fist under the book)
+    const fist: [number, number] = [sx + 21, sy - 4];
+    drawArmTo(c, [sx, sy], [sx + 11, sy + 2], fist, false, 6);
+    const bx = fist[0] - 4, by = fist[1] - 10;
+    c.fillStyle = 'rgba(233, 213, 255, 0.5)'; c.beginPath(); c.moveTo(bx + 2, by); c.lineTo(bx + 18, by); c.lineTo(bx + 30, by - 34); c.lineTo(bx - 4, by - 34); c.closePath(); c.fill();
+    c.fillStyle = INK; c.fillRect(bx, by, 20, 14); c.fillStyle = '#27272A'; c.fillRect(bx + 1, by + 1, 18, 12);
+    c.fillStyle = f % 6 < 3 ? '#E9D5FF' : '#C084FC'; c.fillRect(bx + 3, by + 2, 6, 10); c.fillRect(bx + 11, by + 2, 6, 10);
+    // (a page flipping over, spine to edge and over again: narrowing to the spine and out the other side)
+    const ph = (f % 8) / 8, w = Math.cos(ph * Math.PI) * 7;
+    c.fillStyle = '#FAF5FF'; c.fillRect(Math.min(bx + 10, bx + 10 + w), by + 1 - Math.sin(ph * Math.PI) * 3, Math.abs(w) || 1, 10);
+  };
 };
 
 /** In his fist: the tome, black and bound in iron, a skull on the cover, the pages glowing out the edge. */
@@ -502,4 +542,4 @@ const drawHeld = (c: Ctx, frame: number) => {
   if (frame % 40 < 20) { c.fillStyle = 'rgba(192, 132, 252, 0.5)'; c.fillRect(19, -4 - (frame % 20) * 0.3, 2, 2); }
 };
 
-export const registerSpellbook = () => registerWeapon('SPELLBOOK', { fire: ctx => fire(ctx), update, draw, drawHeld, tick, drawOverlay });
+export const registerSpellbook = () => registerWeapon('SPELLBOOK', { fire: ctx => fire(ctx), update, draw, drawHeld, tick, drawOverlay, vineArm });
