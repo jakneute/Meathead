@@ -66,6 +66,8 @@ registerKillLines();
 // (the animals are its; the people on the way in, who they are)
 const ANIMALS = new Set(['pigeon', 'pitbull', 'seagull', 'goat', 'hawk', 'rat', 'wolverine', 'crab']);
 setGenderOf(e => m2KindGender(e) ?? (ANIMALS.has(e.kind) ? 'n' : introGender(e)));
+// (dev: ?walkaway plays the after-the-boss walk-away screen on its own, walkAway.ts)
+if (import.meta.env.DEV && new URLSearchParams(location.search).has('walkaway')) void import('./walkAway').then(m => m.devPreviewWalkAway());
 if (import.meta.env.DEV) {
   // (the borrowed Meathead 1 people in the staff room are men, always: their own lines are fine as they are)
   const pools = [...M2_ENEMY_KINDS.filter(k => ANIMALS.has(k)).flatMap(k => ENEMY_KILL_LINES[k] ?? []), ...Object.entries(KILL_LINES).filter(([k]) => !k.startsWith('range_')).flatMap(([, v]) => v), ...GENERIC_KILL_LINES, ...Object.values(KILL_CALLOUTS).flatMap(c => c.lines)] as string[];

@@ -32,6 +32,7 @@ import { popAliensIn } from '../../weapons/spawner';
 import type { Enemy } from '../../../m1/types';
 import { type Fight, startFight as beginFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam } from './fight';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
+import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 
 const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
@@ -61,11 +62,13 @@ interface Clearing {
   wiped: boolean;
   /** Beaten: VICTORY, stamped on the screen, then out. */
   victory: Victory | null;
+  /** After VICTORY: him walking away from it all, his new weapon in his hands (till A). */
+  walk: WalkAway | null;
 }
 const getClearing = (state: GameState) => sectionState<Clearing>(state, 'clearing', () => ({
   init: false, domino: firstVisit(state), scene: null, t: 0, token: 0,
   trees: TREE_X.map(() => ({ a: 0, v: 0, on: false, done: false })), trunk: null, templeHit: false,
-  fight: 'wait', wonAt: 0, fence: null, f: null, said: null, nextLine: 0, booms: [], wiped: false, victory: null,
+  fight: 'wait', wonAt: 0, fence: null, f: null, said: null, nextLine: 0, booms: [], wiped: false, victory: null, walk: null,
 }));
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -222,7 +225,11 @@ const kick = (ctx: FrameContext, cl: Clearing): Controls => {
  * Beaten, VICTORY stamped: out of here, back to the hub. (The one place it goes from: whatever comes between the
  * VICTORY and the hub, the walk away from it, goes in here; `weakness`: it was his weakness death, eaten alive.)
  */
-const leave = (_state: GameState, _weakness: boolean) => { goTo('hub'); };
+/** Done here: him walking away from the carnage (Safari Artie's, eaten or not), then the hub. */
+const leave = (state: GameState, weakness: boolean) => {
+  const cl = getClearing(state);
+  cl.walk = playWalkAway(state, { boss: 'safari-artie', weakness, onDone: () => goTo('hub') });
+};
 
 const run = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
@@ -262,6 +269,7 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
     // VICTORY, stamped on the screen (out of his hands, no HUD), then back to the hub
     p.inCutscene = true;
     if (cl.victory) { tickVictory(state, cl.victory); if (victoryDone(cl.victory) && state.frame - cl.wonAt > 60) { cl.victory = null; leave(state, cl.f?.death?.how === 'eaten'); } }
+    if (cl.walk) tickWalkAway(cl.walk, controls);
     return hands();
   }
   return controls;
@@ -320,6 +328,7 @@ export const clearing: Section = {
     if (cl.fight === 'on' && cl.f) drawFightHud(c, cl.f, topBand(), !!state.player.inCutscene);
     if (cl.f && cl.fight !== 'wait') drawKillCam(c, cl.f);
     if (cl.victory) drawVictory(c, cl.victory);
+    if (cl.walk) drawWalkAway(c, cl.walk);
   },
   // (his weakness death: the kill cam's close-up, in slow motion)
   zoom: (state) => { const f = getClearing(state).f; return f ? killCamZoom(state, f) : null; },
