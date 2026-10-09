@@ -407,9 +407,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.arc(-30, -34, 5, 0, Math.PI * 2); // Fist
     ctx.fill();
   } else if (lounging && isDucking) {
-    // Ducked: this one over his head too
-    drawReachingArm(ctx, -6, -40, -4, -60, 6, -70, skinShadow);
-    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(6, -70, 4.5, 0, Math.PI * 2); ctx.fill();
+    // Ducked: hunched right over, both hands gripping the front of the cart, head down
+    drawReachingArm(ctx, -6, -40, 6, -30, 18, -28, skinShadow);
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(18, -28, 4.5, 0, Math.PI * 2); ctx.fill();
   } else if (lounging) {
     // Draped back over the back of the cart, open, the hand resting on the top of it
     drawReachingArm(ctx, -8, -42, -22, -48, -18, -60, skinShadow);
@@ -1035,9 +1035,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.ellipse(ramX - 1, ramY + 5, 6, 1.6, 0.3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = skinHighlight; ctx.beginPath(); ctx.ellipse(ramX + 2.5, ramY - 3, 3.5, 2, 0.3, 0, Math.PI * 2); ctx.fill();
   } else if (lounging && isDucking) {
-    // Ducked in the cart: both arms over his head
-    drawReachingArm(ctx, 8, -42, 12, -60, 2, -72, skinTone);
-    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(2, -72, 5, 0, Math.PI * 2); ctx.fill();
+    // Ducked in the cart: hunched over, gripping the front of it white-knuckled
+    drawReachingArm(ctx, 8, -42, 18, -32, 26, -26, skinTone);
+    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(26, -26, 5, 0, Math.PI * 2); ctx.fill();
   } else if (lounging) {
     // Sat back in the cart, nothing in his hand: the arm along the front of it, the hand over the side
     drawReachingArm(ctx, 8, -42, 20, -34, 30, -32, skinTone);

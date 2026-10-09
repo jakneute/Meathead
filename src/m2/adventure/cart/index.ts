@@ -81,6 +81,14 @@ const BEAM_CLEAR = 66, SINK = 14;
 
 const runAt = (x: number) => RUNS.find(r => x >= r[0] && x <= r[1]);
 const trackY = (x: number): number | null => { const r = runAt(x); return r ? r[2] + ((x - r[0]) / (r[1] - r[0])) * (r[3] - r[2]) : null; };
+/** How the track leans at x (radians: up a hill to the right, negative), from its height either side; `y` for where
+ *  there's no track (a gap). */
+const slopeAt = (x: number, y: (x: number) => number | null = trackY) => {
+  const a = y(x - 14), b = y(x + 14);
+  return a === null || b === null ? null : Math.atan2(b - a, 28);
+};
+/** The cart's lean on the ride: along the track under it; in the air, nosing with its climb or fall. */
+const rideRot = (cart: Cart) => (cart.air ? Math.max(-0.3, Math.min(0.3, cart.vy * 0.03)) : slopeAt(cart.x) ?? 0);
 /** (Artie's cart: over a gap, it hops it) */
 const artieTrackY = (x: number) => {
   const y = trackY(x);
@@ -415,7 +423,9 @@ export const cart: Section = {
     // (sat back in it, relaxed, while it's got him: not ducking under a beam, not flying off the top of the ramp)
     const p = ctx.state.player, cart = getCart(ctx.state);
     p.cartSeat = p.carried && p.health > 0 && (cart.mode === 'ride' || (cart.mode === 'outro' && !cart.me?.fly));
-    if (cart.mode !== 'outro') p.spriteRot = 0;
+    // (turned with the cart: along the track, up the hills and down them)
+    if (cart.mode === 'ride' && p.carried) p.spriteRot = rideRot(cart);
+    else if (cart.mode !== 'outro') p.spriteRot = 0;
     // (sat back enjoying the ride: no gun out, no shooting)
     if (p.cartSeat) return { ...out, shoot: false, secondary: false };
     return out;
@@ -550,15 +560,18 @@ const drawCarts = (c: CanvasRenderingContext2D, state: GameState, back = false) 
   } else if (a.on && Math.abs(a.x - state.camera.x - 400) < 700) {
     const ay = artieTrackY(a.x);
     const ducking = BEAMS.some(b => Math.abs(b - a.x) < 60);
-    if (back) drawCartBox(c, a.x, ay, f, TOUR_CART, 0, true);
+    const ar = slopeAt(a.x, artieTrackY) ?? 0;
+    if (back) drawCartBox(c, a.x, ay, f, TOUR_CART, ar, true);
     else {
-    drawSafariArtie(c, a.x - 4, ay - SINK, 1, f, ducking ? 'duck' : a.said?.text ? 'talk' : 'sit');
-    drawCartBox(c, a.x, ay, f, TOUR_CART);
+    // (sat in it, turned with it along the track)
+    c.save(); c.translate(a.x, ay); c.rotate(ar);
+    drawSafariArtie(c, -4, -SINK, 1, f, ducking ? 'duck' : a.said?.text ? 'talk' : 'sit');
+    c.restore();
+    drawCartBox(c, a.x, ay, f, TOUR_CART, ar);
     if (a.said?.text) saidOver(c, a.said.text, a.x, ay - 110, '#FDE68A');
     }
   }
   if (cart.mode === 'off') return;
   if (cart.mode === 'outro' && cart.me) { drawCartBox(c, cart.me.x + cart.me.drift, cart.me.y, f, JAGUAR_EXPRESS, cart.me.rot, back); return; }
-  const rot = cart.air ? Math.max(-0.3, Math.min(0.3, cart.vy * 0.03)) : 0;
-  drawCartBox(c, cart.x, cart.y, f, JAGUAR_EXPRESS, rot, back);
+  drawCartBox(c, cart.x, cart.y, f, JAGUAR_EXPRESS, rideRot(cart), back);
 };
