@@ -252,12 +252,16 @@ const drawCar = (c: Ctx, x: number, y: number, dir: number, wheel: number, rot: 
   // (speed lines behind)
   if (Math.abs(rot) < Math.PI / 2) { c.fillStyle = 'rgba(255, 255, 255, 0.6)'; for (let i = 0; i < 4; i++) c.fillRect(-W / 2 - 30 - i * 14, -H / 2 + 4 + i * 6, 24, 2); }
   const body = () => { c.beginPath(); c.moveTo(-W / 2, -2); c.lineTo(-W / 2 + 4, -14); c.lineTo(-18, -16); c.lineTo(-6, -28); c.lineTo(22, -28); c.lineTo(36, -16); c.lineTo(W / 2 - 2, -12); c.lineTo(W / 2, -2); c.lineTo(W / 2 - 4, 6); c.lineTo(-W / 2 + 2, 6); c.closePath(); };
+  // (the body and its glass the right way round: the long hood out front, the way it's going, the cabin set back)
+  c.save(); c.scale(-1, 1);
   body(); c.fillStyle = INK; c.lineWidth = 3; c.strokeStyle = INK; c.stroke();
   body(); c.fillStyle = paint.body; c.fill();
   c.save(); body(); c.clip(); c.fillStyle = paint.top; c.fillRect(-W / 2, -30, W, 6); c.fillStyle = paint.low; c.fillRect(-W / 2, 0, W, 8); c.fillStyle = paint.stripe; c.fillRect(-W / 2, -9, W, 3); c.restore();
-  // windows, the driver in his helmet
+  // windows
   c.fillStyle = '#7DD3FC'; c.beginPath(); c.moveTo(-3, -26); c.lineTo(20, -26); c.lineTo(31, -16); c.lineTo(-14, -16); c.closePath(); c.fill();
-  c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(8, -19, 5.5, 0, Math.PI * 2); c.fill(); c.fillStyle = '#18181B'; c.fillRect(9, -21, 5, 3);
+  c.restore();
+  // the driver in his helmet, looking where he's going
+  c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(-8, -19, 5.5, 0, Math.PI * 2); c.fill(); c.fillStyle = '#18181B'; c.fillRect(-7, -21, 5, 3);
   // lights
   c.fillStyle = '#FEF08A'; c.fillRect(W / 2 - 7, -9, 5, 3); c.fillStyle = '#B91C1C'; c.fillRect(-W / 2 + 1, -10, 4, 3);
   // wheels
