@@ -17,6 +17,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { x0, TEMPLE_X } from './arena';
+import { timeOfDay, skyRamp, farTint, sunAt, drawSun, drawStars, drawMoon } from '../../timeOfDay';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -214,7 +215,8 @@ const band = (c: Ctx, v: View, r: number, height: (a: number) => number, col: st
 
 const FS = 4, FW = CANVAS_WIDTH / FS, FH = CANVAS_HEIGHT / FS;
 let floorCanvas: HTMLCanvasElement | null = null, floorImg: ImageData | null = null;
-const HAZE = [150, 196, 160];
+const HAZE_DAY = [150, 196, 160];
+const mixRgb = (a: number[], b: number[], k: number) => a.map((v, i) => v + (b[i] - v) * k);
 const GRASS = [[61, 107, 26], [70, 120, 30]], GRASS_DOT = [92, 140, 40];
 const DIRT = [138, 110, 75], DIRT_DK = [112, 88, 58], FOOT = [107, 90, 64], JUNGLE = [31, 77, 36];
 const hash2 = (a: number, b: number) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5; return x - Math.floor(x); };
@@ -224,6 +226,8 @@ const drawFloor = (c: Ctx, v: View) => {
   if (!floorCanvas) { floorCanvas = document.createElement('canvas'); floorCanvas.width = FW; floorCanvas.height = FH; floorImg = floorCanvas.getContext('2d')!.createImageData(FW, FH); }
   const d = floorImg!.data;
   d.fill(0);
+  // (the haze at the hour's color)
+  const hz = timeOfDay().haze, HAZE = mixRgb(HAZE_DAY, [1, 3, 5].map(i => parseInt(hz.slice(i, i + 2), 16)), Math.max(0, timeOfDay().skyK - 0.1));
   const cam = camPos(v);
   const rx = v.cos, rz = -v.sin, fx = -v.sin, fz = -v.cos;
   const row0 = Math.max(0, Math.floor(v.hy / FS) + 1);
@@ -263,13 +267,20 @@ const drawFloor = (c: Ctx, v: View) => {
 export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean) => {
   const v = viewOf(state);
   // Sky, in bands (no smooth gradient: the old way)
-  const SKY = ['#2A7FC9', '#3A8FD3', '#4C9FDB', '#62AFE0', '#7CBFE4', '#98CEE6', '#B4DCE6'];
+  // (as the hour has it: timeOfDay.ts)
+  const tod = timeOfDay();
+  const SKY = skyRamp(['#2A7FC9', '#3A8FD3', '#4C9FDB', '#62AFE0', '#7CBFE4', '#98CEE6', '#B4DCE6'], tod);
   const top = Math.max(0, Math.min(v.hy, CANVAS_HEIGHT));
   for (let i = 0; i < SKY.length; i++) { c.fillStyle = SKY[i]; c.fillRect(0, Math.floor((top * i) / SKY.length), CANVAS_WIDTH, Math.ceil(top / SKY.length) + 1); }
-  c.fillStyle = '#B4DCE6'; c.fillRect(0, top, CANVAS_WIDTH, CANVAS_HEIGHT - top);
+  c.fillStyle = SKY[SKY.length - 1]; c.fillRect(0, top, CANVAS_WIDTH, CANVAS_HEIGHT - top);
+  // (after sundown, the stars, turning with the loop; the moon, the sun low over the hills)
+  drawStars(c, 0, 0, CANVAS_WIDTH, top, state.frame, v.phi * 1600, tod);
+  const sk = ((((-v.phi * 700 + 560) % 1600) + 1600) % 1600) - 400;
+  drawMoon(c, sk, Math.max(40, top - 300), 18, tod);
+  { const s = sunAt(sk + 300, top - 240, top, tod); drawSun(c, s.x, s.y, 22, tod); }
   // The hills, far off (they slide by the other way, fastest); a nearer ridge
-  band(c, v, 4200, a => 700 + 260 * Math.sin(3 * a) + 140 * Math.sin(7 * a + 1) + 60 * Math.sin(17 * a + 2), '#6E9C96', 600);
-  band(c, v, 3000, a => 380 + 120 * Math.sin(5 * a + 2) + 70 * Math.sin(13 * a), '#4A7A5E', 600);
+  band(c, v, 4200, a => 700 + 260 * Math.sin(3 * a) + 140 * Math.sin(7 * a + 1) + 60 * Math.sin(17 * a + 2), farTint('#6E9C96', 1, tod), 600);
+  band(c, v, 3000, a => 380 + 120 * Math.sin(5 * a + 2) + 70 * Math.sin(13 * a), farTint('#4A7A5E', 0.7, tod), 600);
   drawFloor(c, v);
   // The jungle's canopy round the loop (its far side)
   band(c, v, PR + 520, a => 330 + 60 * Math.sin(9 * a) + 40 * Math.sin(23 * a + 1), '#1B5E2E', DC - 150);

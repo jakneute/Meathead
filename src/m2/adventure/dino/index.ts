@@ -14,6 +14,7 @@
 // the temple's back door, once it's kicked in, stays open: back through it from the temple's side, see temple/).
 // Crude on purpose (the first pass): boxes and words.
 
+import { skyRamp, skyTint, farTint, sunAt, drawSun, drawStars, drawMoon } from '../../timeOfDay';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -267,16 +268,20 @@ export const dino: Section = {
     const u = Math.min(1, (pb.t - ZOOM_FROM) / (ZOOM_IN - ZOOM_FROM)), k = u * u * (3 - 2 * u);
     return { scale: 1 + 1.8 * k, x: pb.x, y: pb.y, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - pb.x), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - pb.y) };
   },
-  drawBackdrop: (c) => {
-    // A hot afternoon over a fake jungle: banded sky, a far ridge, palms
-    const bands = ['#7DD3FC', '#93DBFB', '#A5E1F8', '#BDE8F2', '#D4EEE6'];
+  drawBackdrop: (c, state) => {
+    // Over a fake jungle (at whatever hour it is: timeOfDay.ts): banded sky, a far ridge, palms
+    const bands = skyRamp(['#7DD3FC', '#93DBFB', '#A5E1F8', '#BDE8F2', '#D4EEE6'], undefined, 0, 0.9);
     bands.forEach((col, i) => { c.fillStyle = col; c.fillRect(0, (i * CANVAS_HEIGHT) / bands.length * 0.7, CANVAS_WIDTH, CANVAS_HEIGHT); });
-    c.fillStyle = '#4D7C0F'; c.beginPath(); c.moveTo(0, 420);
+    drawStars(c, 0, 0, CANVAS_WIDTH, 400, state.frame);
+    drawMoon(c, 560, 110);
+    { const s = sunAt(650, 90, 400); drawSun(c, s.x, s.y); }
+    c.fillStyle = farTint('#4D7C0F'); c.beginPath(); c.moveTo(0, 420);
     for (let x = 0; x <= CANVAS_WIDTH; x += 40) c.lineTo(x, 400 - Math.sin(x * 0.013) * 30 - Math.sin(x * 0.041) * 12);
     c.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT); c.lineTo(0, CANVAS_HEIGHT); c.closePath(); c.fill();
-    c.fillStyle = '#3F6212'; c.fillRect(0, 440, CANVAS_WIDTH, CANVAS_HEIGHT);
+    c.fillStyle = farTint('#3F6212', 0.6); c.fillRect(0, 440, CANVAS_WIDTH, CANVAS_HEIGHT);
     return true;
   },
+  outdoors: () => 1,
   drawBack: (c, state) => drawDinoBack(c, state),
   drawFront: (c, state) => {
     const d = dinoOf(state);
@@ -412,7 +417,7 @@ const drawCut = (c: Ctx, state: GameState, pb: Pebble) => {
   c.save(); c.beginPath(); c.rect(0, y, CANVAS_WIDTH, h); c.clip(); c.translate(0, y); c.scale(CUT_SCALE, CUT_SCALE);
   // the booth inside: the wall, the window (the park out of it), the panel, him
   box(c, 0, 0, PIP.w, PIP.h, '#D6D3D1'); box(c, 0, 170, PIP.w, 50, '#78716C');
-  box(c, 14, 34, 96, 80, '#1A0B06'); box(c, 18, 38, 88, 72, '#7DD3FC'); box(c, 18, 86, 88, 24, '#4D7C0F');
+  box(c, 14, 34, 96, 80, '#1A0B06'); box(c, 18, 38, 88, 72, skyTint('#7DD3FC', 0.5)); box(c, 18, 86, 88, 24, farTint('#4D7C0F'));
   label(c, 'DAYS WITHOUT INCIDENT: 4,380', 140, 22, '#1C1917', 7);
   box(c, 180, 60, 130, 96, '#52525B'); box(c, 184, 64, 122, 88, '#71717A');
   label(c, 'DINOSAUR MODE', 245, 80, '#FDE047', 7);

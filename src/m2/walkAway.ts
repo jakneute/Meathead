@@ -19,6 +19,8 @@ import { M2_WEAPON_INFO } from './weapons/index';
 import { type Ctx, type Prop, type SceneDef, LW, LH, TOP, BOT, HOR, F, CAM_H, SPEED, STEP, FEET_Y, ME_D, VP_X, ME_X, INK, project, stipple } from './walkAway/kit';
 import { drawMeatheadFront, type Pose } from './walkAway/meathead';
 import { SAFARI_ARTIE } from './walkAway/artie';
+import { timeOfDay, multiply } from './timeOfDay';
+import { mix } from '../m1/game/render/backdrops/core';
 
 /** The bosses that have a walk-away (add each boss's SceneDef here). */
 export const WALK_AWAY_SCENES = { 'safari-artie': SAFARI_ARTIE } satisfies Record<string, SceneDef>;
@@ -141,37 +143,49 @@ const mouthAt = (_w: WalkAway) => lastMouth;
 let lo: HTMLCanvasElement | null = null, loC: Ctx | null = null;
 let tmp: HTMLCanvasElement | null = null;
 let groundImg: ImageData | null = null;
-const tiles = new Map<SceneDef, { px: Uint32Array; size: number }>();
-const skies = new Map<SceneDef, HTMLCanvasElement>();
+// (each keyed by the scene and the hour: timeOfDay.ts)
+const tiles = new Map<string, { px: Uint32Array; size: number }>();
+const skies = new Map<string, HTMLCanvasElement>();
 const sprites = new Map<string, HTMLCanvasElement[]>();
 let vignette: HTMLCanvasElement | null = null;
 const TILE = 256, TPM = 16;
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 const hexRgb = (h: string) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 
+/** The hour's light over the picture (timeOfDay.ts): its multiply, eased (the scene's own art carries some of it). */
+const gradeOf = () => mix('#FFFFFF', timeOfDay().mul, 0.8);
+/** The far haze: the hour's (the scene's own at sundown, where it was painted). */
+const hazeOf = (def: SceneDef) => mix(timeOfDay().haze, def.haze, 0.35);
+
 const canvas = (w: number, h: number) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 
 const tileOf = (def: SceneDef) => {
-  let t = tiles.get(def);
+  const key = `${def.land}|${timeOfDay().key}`;
+  let t = tiles.get(key);
   if (!t) {
     const c = canvas(TILE, TILE), g = c.getContext('2d')!;
     def.ground(g, TILE, TILE);
+    // (lit by the hour)
+    g.globalCompositeOperation = 'multiply'; g.fillStyle = gradeOf(); g.fillRect(0, 0, TILE, TILE); g.globalCompositeOperation = 'source-over';
     t = { px: new Uint32Array(g.getImageData(0, 0, TILE, TILE).data.buffer.slice(0)), size: TILE };
-    tiles.set(def, t);
+    tiles.set(key, t);
   }
   return t;
 };
 
 const skyOf = (def: SceneDef) => {
-  let s = skies.get(def);
+  const tod = timeOfDay(), key = `${def.land}|${tod.key}`;
+  let s = skies.get(key);
   if (!s) {
+    // (the hour's own sky, top to horizon, lit as everything else is)
+    const sky = tod.sky.map(c => multiply(c, gradeOf()));
     s = canvas(LW, HOR + 2);
     const g = s.getContext('2d')!;
     // (banded: flat steps, a dithered row where each meets the next)
     const n = 22, bh = (HOR + 2) / n;
     const at = (k: number) => {
-      const f = Math.min(0.9999, k) * (def.sky.length - 1), i = Math.floor(f), m = f - i;
-      const a = hexRgb(def.sky[i]), b = hexRgb(def.sky[i + 1]);
+      const f = Math.min(0.9999, k) * (sky.length - 1), i = Math.floor(f), m = f - i;
+      const a = hexRgb(sky[i]), b = hexRgb(sky[i + 1]);
       return `rgb(${a.map((v, j) => Math.round(v + (b[j] - v) * m)).join(',')})`;
     };
     for (let i = 0; i < n; i++) {
@@ -179,25 +193,30 @@ const skyOf = (def: SceneDef) => {
       g.fillStyle = at(i / (n - 1)); g.fillRect(0, y0, LW, y1 - y0);
       if (i < n - 1) { g.fillStyle = stipple(g, at((i + 1) / (n - 1))); g.fillRect(0, y1 - 1, LW, 1); }
     }
-    skies.set(def, s);
+    skies.set(key, s);
   }
   return s;
 };
 
 /** A prop's picture at a fog level (0..3: the haze laid over it in steps, a palette swap's worth). */
 const spriteOf = (def: SceneDef, p: Prop, fog: number) => {
-  const key = `${p.id}|${p.w}|${p.h}`;
+  const key = `${p.id}|${p.w}|${p.h}|${timeOfDay().key}`;
   let arr = sprites.get(key);
   if (!arr) {
     const ppm = p.ppm ?? 20, w = Math.max(2, Math.round(p.w * ppm)), h = Math.max(2, Math.round(p.h * ppm));
     const base = canvas(w, h);
     const g = base.getContext('2d')!;
     p.paint!(g, w, h);
-    arr = [base];
+    // (lit by the hour: multiplied, then cut back to its own shape)
+    const lit = canvas(w, h), lg = lit.getContext('2d')!;
+    lg.drawImage(base, 0, 0);
+    lg.globalCompositeOperation = 'multiply'; lg.fillStyle = gradeOf(); lg.fillRect(0, 0, w, h);
+    lg.globalCompositeOperation = 'destination-in'; lg.drawImage(base, 0, 0);
+    arr = [lit];
     for (let f = 1; f <= 3; f++) {
       const c = canvas(w, h), cg = c.getContext('2d')!;
-      cg.drawImage(base, 0, 0);
-      cg.globalCompositeOperation = 'source-atop'; cg.globalAlpha = 0.16 * f; cg.fillStyle = def.haze; cg.fillRect(0, 0, w, h);
+      cg.drawImage(lit, 0, 0);
+      cg.globalCompositeOperation = 'source-atop'; cg.globalAlpha = 0.16 * f; cg.fillStyle = hazeOf(def); cg.fillRect(0, 0, w, h);
       arr.push(c);
     }
     sprites.set(key, arr);
@@ -228,7 +247,7 @@ const drawGround = (c: Ctx, def: SceneDef, travel: number, sway: number) => {
   if (!groundImg || groundImg.height !== rows) groundImg = c.createImageData(LW, rows);
   const out = new Uint32Array(groundImg.data.buffer);
   const tile = tileOf(def).px, mask = TILE - 1;
-  const [hr, hg, hb] = hexRgb(def.haze);
+  const [hr, hg, hb] = hexRgb(hazeOf(def));
   for (let r = 0; r < rows; r++) {
     const dy = r + 0.5, d = (F * CAM_H) / dy;
     const z = d - travel;

@@ -59,3 +59,34 @@ export const takeGut = () => { const g = carriedGut; carriedGut = undefined; ret
 export const isLeaving = () => leaving;
 /** (the next stage built: he's arrived) */
 export const arrived = () => { leaving = false; };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Progress: what he's done, kept here in the one place (for saving, later). In memory for now.
+
+/** The lands he's cleared (their boss beaten: lands.ts ids). */
+const cleared = new Set<string>();
+const progressListeners = new Set<() => void>();
+/** A land's boss is beaten: the land's cleared (the day goes on: timeOfDay.ts). */
+export const markLandCleared = (id: string) => { if (cleared.has(id)) return; cleared.add(id); progressListeners.forEach(l => l()); };
+export const isLandCleared = (id: string) => cleared.has(id);
+/** How many lands he's cleared (0..9). */
+export const landsCleared = () => cleared.size;
+/** Every land he's cleared (for a save). */
+export const clearedLands = () => [...cleared];
+/** Put back from a save. */
+export const restoreClearedLands = (ids: string[]) => { cleared.clear(); ids.forEach(id => cleared.add(id)); progressListeners.forEach(l => l()); };
+export const subscribeProgress = (l: () => void) => { progressListeners.add(l); return () => { progressListeners.delete(l); }; };
+
+/** Each land's boss's weapon: clearing the land gets it him. */
+const LAND_WEAPON: Record<string, import('../m1/types').WeaponType> = {
+  adventure: 'CROSSBOW', frontier: 'FLINTLOCK', fantasy: 'SPELLBOOK', hollywood: 'STUNT_CAR', cartoon: 'MALLET',
+  space: 'SPAWNER', spooky: 'SOUL_SUCKER', foreign: 'SOUVENIR',
+};
+/** The weapons he's got this playthrough: the ray gun, and every cleared land's boss's (worked out from the lands
+ *  cleared: the one thing that's kept). */
+export const ownsWeapon = (w: import('../m1/types').WeaponType) => w === 'GUN' || [...cleared].some(id => LAND_WEAPON[id] === w);
+
+/** A boss just died (the walk-away's on): back at the hub after it, everything's topped up. Taken once. */
+let bossKill = false;
+export const noteBossKill = () => { bossKill = true; };
+export const takeBossKill = () => { const k = bossKill; bossKill = false; return k; };

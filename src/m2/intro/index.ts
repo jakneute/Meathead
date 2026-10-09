@@ -33,6 +33,7 @@ import { SKIP_AFTER, offerSkip, takeSkip } from '../../m1/game/platform/skip';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
 import { setUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
 import { stopWeapons } from '../weapons';
+import { todLight } from '../timeOfDay';
 import { CAST, type CastMember } from '../cast/people';
 import {
   TICKET_VOICE, GUARD_VOICE, GUARD_F_VOICE, PA_VOICE, GUEST_VOICE, GUEST2_VOICE, type Dressed, MEATHEAD_TICKET, MEATHEAD_PARKED, TICKET_LADY, TICKET_NEXT, TICKET_ALARM,
@@ -264,6 +265,12 @@ export const introLayout: StageLayout = {
     return controls;
   },
   drawBackdrop: (ctx, state) => { drawIntroBackdrop(ctx, state); return true; },
+  // (out of the garage it's all out in the open: the time of day's light over it (timeOfDay.ts), coming on as he
+  // leaves the garage; in the garage, none)
+  lighting: (state) => {
+    const k = Math.max(0, Math.min(1, (state.camera.x + CANVAS_WIDTH / 2 - R(GARAGE_END)) / 300));
+    return k > 0 ? todLight([], k) : null;
+  },
   drawBack: (ctx, state) => drawIntroBack(ctx, state),
   drawFront: (ctx, state) => { drawIntroFront(ctx, state); const intro = getIntro(state); if (intro) drawGrab(ctx, state, intro.grab); },
 };

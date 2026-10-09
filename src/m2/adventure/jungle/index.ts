@@ -53,4 +53,6 @@ export const jungle: Section = {
   drawBack: (c, state) => { drawJungleBack(c, state); drawVines(c, state, VINES); },
   drawFront: (c, state) => { drawThrown(c, state); },
   cameraRow: (state) => (onVine(state) ? VINE_ROW : 500),
+  // (under the canopy: the hour's light, a little less of it)
+  outdoors: () => 0.85,
 };

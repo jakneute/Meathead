@@ -30,6 +30,8 @@ export interface SceneLight {
   rim?: number;
   /** Just the dark, all over (a view that isn't flat, like the inside of the storm, where nothing's where it'd be on screen). */
   flat?: boolean;
+  /** A color multiplied over the whole picture first (a time of day's light: warm at golden hour, blue after dark). */
+  grade?: string;
 }
 
 /** The world as it's drawn: zoom about (x, y), then the camera. */
@@ -123,6 +125,11 @@ const SHADE_SCALE = 0.5;
 
 /** The dark over the finished frame, the lights cut out of it, their color, the actors lit. Screen space. */
 export const drawSceneLighting = (ctx: Ctx, state: GameState, scene: SceneLight, view: View) => {
+  if (scene.grade && scene.grade.toUpperCase() !== '#FFFFFF') {
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = scene.grade; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.restore();
+  }
   const d = scene.dark;
   if (d <= 0.02) return;
   if (!shade) { if (typeof document === 'undefined') return; shade = document.createElement('canvas'); shade.width = CANVAS_WIDTH * SHADE_SCALE; shade.height = CANVAS_HEIGHT * SHADE_SCALE; }

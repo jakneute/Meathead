@@ -1,4 +1,5 @@
-// The walk-away from Safari Artie (Adventure Land's boss): the clearing at sundown, wrecked. The temple behind him with
+// The walk-away from Safari Artie (Adventure Land's boss): the clearing at whatever hour it is now
+// (timeOfDay.ts: its look was painted for sundown, and goes by day and by night too), wrecked. The temple behind him with
 // its roof caved in and the tree that went into it, both burning; the ground trampled to dirt by the stampede, hoof
 // prints all over it; the bushes chewed down to stalks; a hippo on its back, legs up; an elephant's leg, standing there
 // on its own; Artie's gift-shop parachute (I HEART ADVENTURE LAND, the $9.99 tag still on it) caught on a stalk; his
@@ -10,6 +11,8 @@
 import {
   type Ctx, type Prop, type SceneDef, INK, LW, HOR, ME_X, box, hash, lump, poly, rampOf, stipple, fire, smoke, flies,
 } from './kit';
+import { mix } from '../../m1/game/render/backdrops/core';
+import { timeOfDay, hourMix, sunAt, drawStars, drawMoon } from '../timeOfDay';
 
 const STONE = rampOf('#8A7766');
 const MOSS = ['#2E3A14', '#3F5219', '#56701F'];
@@ -64,62 +67,78 @@ const ground = (g: Ctx, w: number, h: number) => {
 // The sky's furniture: the sun going down, the clouds, the hills (Adventure Land's coaster out on them), the jungle
 
 const back = (c: Ctx, t: number, sway: number) => {
-  // The sun, low, behind the jungle: stepped glow, a banded disk, the old cut-out stripes across its bottom half
-  const sx = 118 + sway * 0.1, sy = HOR - 14;
-  for (let i = 5; i >= 1; i--) { c.fillStyle = `rgba(255, 214, 140, ${0.06 + (5 - i) * 0.035})`; c.beginPath(); c.arc(sx, sy, 22 + i * 9, 0, Math.PI * 2); c.fill(); }
-  const sun = ['#FFF4C8', '#FFE08A', '#FDC85A', '#F9A03C', '#F27A2E'];
-  for (let i = 0; i < sun.length; i++) {
-    c.save(); c.beginPath(); c.rect(sx - 24, sy - 24 + i * 9.6, 48, 9.6); c.clip();
-    c.fillStyle = sun[i]; c.beginPath(); c.arc(sx, sy, 22, 0, Math.PI * 2); c.fill(); c.restore();
+  // (whatever hour he's walking off at: timeOfDay.ts. The art's own sundown look, and its day and night)
+  const tod = timeOfDay();
+  const H = (day: string, sundown: string, night: string) => hourMix(day, sundown, night, tod);
+  // After dark: the stars, the moon over the hills
+  drawStars(c, 0, 0, LW, HOR - 10, t, 0, tod, 1);
+  drawMoon(c, 56, 20, 8, tod);
+  // The sun, behind the jungle (low at sundown, high by day): stepped glow, a banded disk, the old cut-out stripes
+  // across its bottom half once it's low
+  const sp = sunAt(118 + sway * 0.1, 22, HOR, tod), sx = sp.x, sy = sp.y;
+  if (sp.up > 0.02) {
+    const [gr, gg, gb] = [1, 3, 5].map(i => parseInt(tod.sunGlow.slice(i, i + 2), 16));
+    c.save(); c.globalAlpha = sp.up;
+    for (let i = 5; i >= 1; i--) { c.fillStyle = `rgba(${gr}, ${gg}, ${gb}, ${0.06 + (5 - i) * 0.035})`; c.beginPath(); c.arc(sx, sy, 22 + i * 9, 0, Math.PI * 2); c.fill(); }
+    const sun = [mix(tod.sun, '#FFFFFF', 0.7), mix(tod.sun, '#FFFFFF', 0.3), tod.sun, mix(tod.sun, tod.sunGlow, 0.5), tod.sunGlow];
+    for (let i = 0; i < sun.length; i++) {
+      c.save(); c.beginPath(); c.rect(sx - 24, sy - 24 + i * 9.6, 48, 9.6); c.clip();
+      c.fillStyle = sun[i]; c.beginPath(); c.arc(sx, sy, 22, 0, Math.PI * 2); c.fill(); c.restore();
+    }
+    if (tod.sunH < 0.45) for (let i = 0; i < 4; i++) box(c, sx - 24, sy + 2 + i * 5, 48, 1 + Math.floor(i / 2), tod.sunGlow);
+    c.restore();
   }
-  for (let i = 0; i < 4; i++) box(c, sx - 24, sy + 2 + i * 5, 48, 1 + Math.floor(i / 2), '#F08A3C');
   // Clouds: two strata, drifting, lit from under by the sun
   const strip = (y: number, len: number, th: number, x: number, col: string, lit: string) => {
     c.fillStyle = col; c.beginPath(); c.roundRect(Math.round(x), y, len, th, th / 2); c.fill();
     c.fillStyle = lit; c.fillRect(Math.round(x + th / 2), y + th - 1, len - th, 1);
   };
+  const hi = [H('#E8EEF8', '#3E1B57', '#262C52'), H('#FFFFFF', '#B04A5A', '#4A5284')];
+  const lo = [H('#D2DCEC', '#6E2A57', '#2E355E'), H('#FFFFFF', '#F2995A', '#5A6294')];
   for (let i = 0; i < 6; i++) {
     const x = ((i * 97 - t * 0.04) % (LW + 160) + LW + 160) % (LW + 160) - 120;
-    strip(14 + (i % 3) * 8, 60 + (i % 2) * 40, 4, x, '#3E1B57', '#B04A5A');
+    strip(14 + (i % 3) * 8, 60 + (i % 2) * 40, 4, x, hi[0], hi[1]);
   }
   for (let i = 0; i < 5; i++) {
     const x = ((i * 131 - t * 0.11) % (LW + 200) + LW + 200) % (LW + 200) - 140;
-    strip(40 + (i % 2) * 9, 80 + (i % 3) * 30, 5, x, '#6E2A57', '#F2995A');
+    strip(40 + (i % 2) * 9, 80 + (i % 3) * 30, 5, x, lo[0], lo[1]);
   }
   // The hills, far off (dim), the coaster's loop up on them
   const hx = sway * 0.15;
-  c.fillStyle = '#6A3462';
+  c.fillStyle = H('#7E9AAE', '#6A3462', '#1C2244');
   c.beginPath(); c.moveTo(0, HOR);
   for (let x = 0; x <= LW; x += 2) c.lineTo(x, HOR - 16 - Math.round(7 * Math.sin((x + hx) * 0.021) + 4 * Math.sin((x + hx) * 0.057 + 1)));
   c.lineTo(LW, HOR); c.fill();
-  c.strokeStyle = '#4C2450'; c.lineWidth = 1;
+  const coaster = H('#5E7A90', '#4C2450', '#141834');
+  c.strokeStyle = coaster; c.lineWidth = 1;
   const lx = 330 + hx;
   c.beginPath(); c.arc(lx, HOR - 30, 8, 0, Math.PI * 2); c.stroke();
   c.beginPath(); c.moveTo(lx - 40, HOR - 18); c.quadraticCurveTo(lx - 20, HOR - 34, lx, HOR - 22); c.quadraticCurveTo(lx + 22, HOR - 12, lx + 50, HOR - 26); c.stroke();
-  for (let k = -36; k < 50; k += 6) box(c, lx + k, HOR - 24 + Math.abs(k) * 0.08, 1, 10, '#4C2450');
+  for (let k = -36; k < 50; k += 6) box(c, lx + k, HOR - 24 + Math.abs(k) * 0.08, 1, 10, coaster);
   // The jungle: a wall of canopy (lumps, their tops caught by the sun), palms over it; a gap where the trees went down
   // like dominoes
   const jx = sway * 0.35;
   const canopy = (x: number) => 9 + Math.round(5 * Math.abs(Math.sin((x + jx) * 0.07)) + 4 * Math.abs(Math.sin((x + jx) * 0.023 + 2)));
   const gap = (x: number) => x > 236 && x < 300;
-  c.fillStyle = '#2B1B36';
+  const jungle = H('#2C4A26', '#2B1B36', '#0C1024'), jungleLit = H('#5A8034', '#5A2E4A', '#222A4C');
+  c.fillStyle = jungle;
   c.beginPath(); c.moveTo(0, HOR + 1);
   for (let x = 0; x <= LW; x += 2) c.lineTo(x, HOR - (gap(x) ? 2 : canopy(x)));
   c.lineTo(LW, HOR + 1); c.fill();
-  for (let x = 0; x < LW; x += 2) if (!gap(x)) { const y = HOR - canopy(x); box(c, x, y, 2, 1, '#5A2E4A'); if (x % 6 === 0) box(c, x, y + 1, 1, 1, '#4A2442'); }
+  for (let x = 0; x < LW; x += 2) if (!gap(x)) { const y = HOR - canopy(x); box(c, x, y, 2, 1, jungleLit); if (x % 6 === 0) box(c, x, y + 1, 1, 1, mix(jungle, jungleLit, 0.5)); }
   for (let i = 0; i < 9; i++) {
     const px = ((i * 47 + 13) % LW) + jx;
     if (px > 226 && px < 310) continue;
     const top = HOR - 26 - (i % 3) * 5, lean = (i % 2 ? 1 : -1) * 3;
     // (the trunk, curved; the fronds drooping off its crown)
-    c.strokeStyle = '#2B1B36'; c.lineWidth = 2; c.beginPath(); c.moveTo(px, HOR - 6); c.quadraticCurveTo(px + lean * 0.3, (top + HOR) / 2, px + lean, top); c.stroke();
+    c.strokeStyle = jungle; c.lineWidth = 2; c.beginPath(); c.moveTo(px, HOR - 6); c.quadraticCurveTo(px + lean * 0.3, (top + HOR) / 2, px + lean, top); c.stroke();
     for (const [dx, dy] of [[-9, 4], [9, 4], [-7, -2], [7, -2], [-4, 6], [4, 6], [0, -4]]) {
       c.beginPath(); c.moveTo(px + lean, top); c.quadraticCurveTo(px + lean + dx * 0.6, top + Math.min(0, dy) - 3, px + lean + dx, top + dy); c.stroke();
     }
-    box(c, px + lean - 1, top - 1, 3, 2, '#5A2E4A');
+    box(c, px + lean - 1, top - 1, 3, 2, jungleLit);
   }
   // (the stumps in the gap, splintered)
-  for (let i = 0; i < 4; i++) box(c, 244 + i * 15 + jx, HOR - 4 - (i % 2), 2, 4 + (i % 2), '#3A2440');
+  for (let i = 0; i < 4; i++) box(c, 244 + i * 15 + jx, HOR - 4 - (i % 2), 2, 4 + (i % 2), H('#4A3420', '#3A2440', '#121428'));
 };
 
 // ---------------------------------------------------------------------------------------------------------------

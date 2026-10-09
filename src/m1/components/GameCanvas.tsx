@@ -24,6 +24,8 @@ interface GameCanvasProps extends GameEvents {
   startCheckpoint?: number;
   /** Invincible without the flicker that shows it (Meathead 2's test build: he just can't be hurt). */
   quietInvincible?: boolean;
+  /** Handed the game's state once, as it's made (Meathead 2's cheats set his pants on it). */
+  onState?: (state: GameState) => void;
   /** Power is 0..POWER_CELLS (special-move cells, refilling over time). */
   onPlayerUpdate: (health: number, power: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType, lockedTo?: WeaponType, cutscene?: boolean) => void;
 }
@@ -58,6 +60,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
     };
   }, []);
 
+  useEffect(() => { props.onState?.(stateRef.current!); }, []);
   useEffect(() => { stateRef.current!.player.currentWeapon = currentWeapon; }, [currentWeapon]);
 
   // The music asks what should be on (the stage's theme and where in it, a mid-boss, the boss, a jingle), and whether he's under water

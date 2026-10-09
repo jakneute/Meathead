@@ -4,6 +4,8 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { box, label } from '../section';
+import { timeOfDay, farTint, sunAt } from '../../timeOfDay';
+import { mix } from '../../../m1/game/render/backdrops/core';
 import { SECTIONS, GY } from '../geometry';
 import { GROUND, BRANCHES, SIGNS, BOA_BRANCHES, X, Y } from './layout';
 
@@ -11,18 +13,21 @@ type Ctx = CanvasRenderingContext2D;
 
 /** Screen space: green gloom, the trunks going back in two rows, the canopy over it all. */
 export const drawJungleBackdrop = (c: Ctx, state: GameState) => {
+  const tod = timeOfDay();
   const g = c.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-  g.addColorStop(0, '#0E2A17'); g.addColorStop(0.5, '#173D20'); g.addColorStop(1, '#0A1F10');
+  g.addColorStop(0, farTint('#0E2A17', 0.5)); g.addColorStop(0.5, farTint('#173D20', 0.5)); g.addColorStop(1, farTint('#0A1F10', 0.5));
   c.fillStyle = g; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   const cx = state.camera.x - SECTIONS.jungle.x0, cy = state.camera.y;
-  // (light coming down through it, in shafts)
-  c.fillStyle = 'rgba(190, 242, 100, 0.05)';
+  // (light coming down through it, in shafts: the sun's, gold as it gets low; after it's down, the moon's, faint)
+  const sun = sunAt(0, 0, 1, tod).up;
+  const [sr, sg, sb] = [1, 3, 5].map(i => parseInt(mix('#BEF264', tod.sunGlow, tod.skyK).slice(i, i + 2), 16));
+  c.fillStyle = sun > 0.05 ? `rgba(${sr}, ${sg}, ${sb}, ${(0.05 + 0.03 * tod.skyK * sun).toFixed(3)})` : `rgba(170, 190, 255, ${(0.035 * tod.moon).toFixed(3)})`;
   for (let i = 0; i < 4; i++) {
     const x = ((i * 290 - cx * 0.1) % 1160 + 1160) % 1160 - 180;
     c.beginPath(); c.moveTo(x, 0); c.lineTo(x + 60, 0); c.lineTo(x + 200, CANVAS_HEIGHT); c.lineTo(x + 110, CANVAS_HEIGHT); c.fill();
   }
   // two rows of trunks, the far one fainter
-  for (const [k, gap, w, col] of [[0.15, 170, 26, '#123320'], [0.35, 240, 44, '#18402A']] as [number, number, number, string][]) {
+  for (const [k, gap, w, col] of [[0.15, 170, 26, farTint('#123320', 0.8)], [0.35, 240, 44, farTint('#18402A', 0.5)]] as [number, number, number, string][]) {
     const off = cx * k;
     for (let x = -((off % gap) + gap) % gap - gap; x < CANVAS_WIDTH + gap; x += gap) {
       const n = Math.floor((x + off) / gap);
@@ -32,7 +37,7 @@ export const drawJungleBackdrop = (c: Ctx, state: GameState) => {
   }
   // the canopy across the top (with the camera, a little)
   const top = Math.max(-80, Math.min(60, -cy * 0.15 - 20));
-  c.fillStyle = '#0B2412';
+  c.fillStyle = farTint('#0B2412', 0.3);
   for (let x = -((cx * 0.5) % 90) - 90; x < CANVAS_WIDTH + 90; x += 45) {
     c.beginPath(); c.ellipse(x, top + 20 + Math.sin(x * 0.07) * 14, 50, 36, 0, 0, Math.PI * 2); c.fill();
   }

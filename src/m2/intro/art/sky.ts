@@ -12,6 +12,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import {
   type Ctx, INK, WHITE, BLUE, box, text, sign, star, pole, mix, rampOf, dim, hash, checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, PIX,
 } from './kit';
+import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, drawStars, drawMoon } from '../../timeOfDay';
 
 const W = CANVAS_WIDTH, HT = CANVAS_HEIGHT;
 
@@ -29,7 +30,8 @@ const fontReady = () => typeof document !== 'undefined' && !!document.fonts?.che
 const heldCanvas = (c: Ctx, key: string, w: number, h: number, paint: (g: Ctx) => void, font = false) => {
   if (typeof document === 'undefined' || (font && !fontReady())) return null;
   const a = Math.abs(c.getTransform().a) || 1;
-  const id = `${key}@${a.toFixed(3)}`;
+  // (and the hour: timeOfDay.ts, the sky and everything out in it painted for it)
+  const id = `${key}@${a.toFixed(3)}@${timeOfDay().key}`;
   let cv = held.get(id);
   if (!cv) {
     if (held.size > 700) held.clear();
@@ -74,6 +76,8 @@ export const drawIntroBackdrop = (c: Ctx, state: GameState) => {
   const cam = state.camera.x, f = state.frame || 0;
   // (all of it, to the bottom, every frame: or whatever was there last frame shows through)
   held_(c, 'm2sky', 0, 0, W, HT, paintSky);
+  drawStars(c, 0, 0, W, HZ - 20, f, cam * 0.02);
+  drawMoon(c, 480, 110);
   clouds(c, cam, f, 0);
   blimp(c, cam, f);
   fireworks(c, f);
@@ -95,32 +99,38 @@ const SKY = ['#0C1F5C', '#14318A', '#1F4AB4', '#3367CE', '#5287DE', '#7EA8EA', '
 const SKY_PALE = '#DCE8F4';
 
 const paintSky = (g: Ctx) => {
-  bandedGradient(g, 0, 0, W, HT, SKY, 22);
+  const tod = timeOfDay();
+  bandedGradient(g, 0, 0, W, HT, skyRamp(SKY, tod), 22);
   // (wisps of cirrus way up, thin and flat, lit along their tops)
   for (let i = 0; i < 6; i++) {
     const x = Math.round(hash(i * 3.1) * 700) - 40, y = 30 + i * 26 + Math.round(hash(i * 5.7) * 10), w = 120 + Math.round(hash(i * 9.3) * 140);
     g.globalAlpha = 0.22 + 0.05 * (i % 3);
-    box(g, x + 10, y, w - 20, 2, '#EAF2FF'); box(g, x + 30, y - 2, w - 70, 2, '#FFFFFF'); box(g, x + 20, y + 2, w - 46, 2, '#B9CCEA');
-    checker(g, x, y, 10, 2, '#EAF2FF'); checker(g, x + w - 10, y, 10, 2, '#EAF2FF', 1);
+    box(g, x + 10, y, w - 20, 2, cloudTint('#EAF2FF', tod)); box(g, x + 30, y - 2, w - 70, 2, cloudTint('#FFFFFF', tod)); box(g, x + 20, y + 2, w - 46, 2, cloudTint('#B9CCEA', tod));
+    checker(g, x, y, 10, 2, cloudTint('#EAF2FF', tod)); checker(g, x + w - 10, y, 10, 2, cloudTint('#EAF2FF', tod), 1);
     g.globalAlpha = 1;
   }
-  // (the sun, high in the upper right: rings of glare stepped out round it, a white-hot disc with a stepped rim)
-  const sx = 676, sy = 64;
-  steppedGlow(g, sx, sy, 128, '#FFF4C8', 0.3, 0, 6);
-  steppedGlow(g, sx, sy, 52, '#FFFBE6', 0.7, 0.25, 4);
-  g.fillStyle = '#FFE58A'; g.beginPath(); g.arc(sx, sy, 22, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#FFF4C0'; g.beginPath(); g.arc(sx, sy, 20, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(sx - 1, sy - 1, 16, 0, Math.PI * 2); g.fill();
+  // (the sun, high in the upper right: rings of glare stepped out round it, a white-hot disc with a stepped rim; as the
+  // day goes, sinking, gold, then gone)
+  const sun = sunAt(676, 64, HZ, tod);
+  if (sun.up <= 0.02) return;
+  g.globalAlpha = sun.up;
+  const sx = sun.x, sy = sun.y;
+  steppedGlow(g, sx, sy, 128, sunTint('#FFF4C8', tod), 0.3, 0, 6);
+  steppedGlow(g, sx, sy, 52, sunTint('#FFFBE6', tod), 0.7, 0.25, 4);
+  g.fillStyle = sunTint('#FFE58A', tod); g.beginPath(); g.arc(sx, sy, 22, 0, Math.PI * 2); g.fill();
+  g.fillStyle = sunTint('#FFF4C0', tod); g.beginPath(); g.arc(sx, sy, 20, 0, Math.PI * 2); g.fill();
+  g.fillStyle = sunTint('#FFFFFF', tod); g.beginPath(); g.arc(sx - 1, sy - 1, 16, 0, Math.PI * 2); g.fill();
   // (a dithered ring where the disc meets the glare)
   for (let a = 0; a < 64; a++) {
     const t = (a / 64) * Math.PI * 2, x = Math.round((sx + Math.cos(t) * 23) / PIX) * PIX, y = Math.round((sy + Math.sin(t) * 23) / PIX) * PIX;
-    if (a % 2) box(g, x, y, PIX, PIX, '#FFE58A');
+    if (a % 2) box(g, x, y, PIX, PIX, sunTint('#FFE58A', tod));
   }
   // (short stepped rays off it, the four ways and the diagonals)
   for (let i = 0; i < 8; i++) {
     const t = (i / 8) * Math.PI * 2, long = i % 2 ? 38 : 54;
-    for (let d = 30; d < long; d += 4) box(g, sx + Math.cos(t) * d - 1, sy + Math.sin(t) * d - 1, 2, 2, d < 40 ? '#FFF8D8' : '#FFEFB0');
+    for (let d = 30; d < long; d += 4) box(g, sx + Math.cos(t) * d - 1, sy + Math.sin(t) * d - 1, 2, 2, sunTint(d < 40 ? '#FFF8D8' : '#FFEFB0', tod));
   }
+  g.globalAlpha = 1;
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -138,7 +148,7 @@ const paintCloud = (g: Ctx, w: number, h: number, seed: number, far: boolean) =>
     const r = (h * 0.32) * (0.65 + 0.55 * Math.sin(t * Math.PI)) * (0.85 + hash(seed + i * 13) * 0.3);
     puffs.push([x, base - r * 0.55, r]);
   }
-  const tint = (col: string) => (far ? mix(col, '#B8CCEA', 0.35) : col);
+  const tint = (col: string) => cloudTint(far ? mix(col, '#B8CCEA', 0.35) : col);
   // (the flat belly, then the heap in steps: shade, body, lit toward the sun up on the right, a glint or two of white)
   pixelBlob(g, w / 2, base - 2, w * 0.42, 9, tint(CLOUD.belly));
   for (const [x, y, r] of puffs) pixelBlob(g, x, y + 4, r * 1.05, r * 0.82, tint(CLOUD.shade));

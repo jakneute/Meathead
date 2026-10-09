@@ -9,6 +9,7 @@
 //
 // Crude on purpose (the first pass): boxes and words.
 
+import { drawTodSky, farTint } from '../../timeOfDay';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -509,13 +510,13 @@ export const roof: Section = {
   // (up on the roof, the temple's tiers under him in view)
   cameraRow: (state) => (state.player.pos.y + state.player.height < RY + 60 && !getRoof(state).tumbled ? 380 : undefined),
   drawBackdrop: (c, state) => {
-    const g = c.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    g.addColorStop(0, '#60A5FA'); g.addColorStop(1, '#BAE6FD');
-    c.fillStyle = g; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    // (the sky, as the hour has it: timeOfDay.ts)
+    drawTodSky(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#3B82F6', '#60A5FA', '#93C5FD', '#BAE6FD'], { sun: [640, 80], moon: [470, 70], horizon: 380, t: state.frame, scroll: state.camera.x * 0.05 });
     const off = (state.camera.x * 0.2) % 200;
-    for (let i = -1; i < 6; i++) box(c, i * 200 - off, 380 - ((i * 53) % 70), 160, 300, '#3F6212');
+    for (let i = -1; i < 6; i++) box(c, i * 200 - off, 380 - ((i * 53) % 70), 160, 300, farTint('#3F6212', 0.7));
     return true;
   },
+  outdoors: () => 1,
   drawBack: (c, state) => drawTemple(c, state),
   drawFront: (c, state) => drawRoofFront(c, state),
   drawHud: (c, state) => {

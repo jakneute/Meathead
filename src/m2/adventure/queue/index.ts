@@ -9,6 +9,7 @@
 //   440..1480  out back: dumpsters, pallets, an AC unit, the staff on break; the line through the chain-link behind
 //   1480..2000 the loading dock: the front of the line, the operator, the boat (on to the river at its end)
 
+import { drawTodSky, farTint } from '../../timeOfDay';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Enemy } from '../../../m1/types';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
@@ -123,14 +124,15 @@ export const queue: Section = {
     return controls;
   },
   drawBackdrop: (c, state) => {
-    const g = c.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    g.addColorStop(0, '#7DD3FC'); g.addColorStop(1, '#BEF264');
-    c.fillStyle = g; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    c.fillStyle = '#166534';
-    for (let i = -1; i < 10; i++) { const x = i * 120 - ((state.camera.x * 0.2) % 120); c.beginPath(); c.arc(x, GY - 360 - state.camera.y, 90, Math.PI, 0); c.fill(); }
-    c.fillStyle = '#14532D'; c.fillRect(0, GY - 360 - state.camera.y, CANVAS_WIDTH, CANVAS_HEIGHT + 1000);
+    // (the sky, as the hour has it: timeOfDay.ts)
+    const hz = GY - 360 - state.camera.y;
+    drawTodSky(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#38BDF8', '#7DD3FC', '#BAE6FD', '#D9F99D', '#BEF264'], { sun: [620, 70], moon: [470, 70], horizon: hz, t: state.frame, scroll: state.camera.x * 0.05 });
+    c.fillStyle = farTint('#166534', 0.7);
+    for (let i = -1; i < 10; i++) { const x = i * 120 - ((state.camera.x * 0.2) % 120); c.beginPath(); c.arc(x, hz, 90, Math.PI, 0); c.fill(); }
+    c.fillStyle = farTint('#14532D', 0.7); c.fillRect(0, hz, CANVAS_WIDTH, CANVAS_HEIGHT + 1000);
     return true;
   },
+  outdoors: () => 1,
   drawBack: (c, state) => {
     if (state.camera.x > x1 + 200 || state.camera.x + CANVAS_WIDTH < x0 - 200) return;
     const q = getQ(state), f = state.frame;

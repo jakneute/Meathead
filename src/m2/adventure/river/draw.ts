@@ -5,6 +5,8 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { box, label, saidOver } from '../section';
+import { drawTodSky, farTint, timeOfDay, skyAt } from '../../timeOfDay';
+import { mix } from '../../../m1/game/render/backdrops/core';
 import { SECTIONS, GY } from '../geometry';
 import { drawGuestsDimmed } from '../queue/crowd';
 import { drawSafariArtie, ARTIE_H } from './artie';
@@ -17,17 +19,16 @@ const R = (x: number) => x0 + x;
 const seen = (state: GameState, a: number, b: number) => b > state.camera.x - 100 && a < state.camera.x + CANVAS_WIDTH + 100;
 
 export const drawRiverBackdrop = (c: Ctx, state: GameState) => {
-  const g = c.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-  g.addColorStop(0, '#7DD3FC'); g.addColorStop(1, '#BEF264');
-  c.fillStyle = g; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  // (far jungle hills, slow)
+  // (the sky, as the hour has it: timeOfDay.ts)
   const cy = -state.camera.y;
-  c.fillStyle = '#166534';
+  drawTodSky(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#38BDF8', '#7DD3FC', '#BAE6FD', '#D9F99D', '#BEF264'], { sun: [600, cy + GY - 420], moon: [460, cy + GY - 400], horizon: cy + GY - 120, t: state.frame, scroll: state.camera.x * 0.05 });
+  // (far jungle hills, slow)
+  c.fillStyle = farTint('#166534', 0.7);
   for (let i = -1; i < 10; i++) {
     const x = i * 120 - ((state.camera.x * 0.2) % 120);
     c.beginPath(); c.arc(x, cy + GY - 120, 90, Math.PI, 0); c.fill();
   }
-  c.fillStyle = '#14532D'; c.fillRect(0, cy + GY - 120, CANVAS_WIDTH, CANVAS_HEIGHT + 2000);
+  c.fillStyle = farTint('#14532D', 0.7); c.fillRect(0, cy + GY - 120, CANVAS_WIDTH, CANVAS_HEIGHT + 2000);
   return true;
 };
 
@@ -192,7 +193,8 @@ export const drawRiverBack = (c: Ctx, state: GameState, rv: River) => {
   label(c, 'JUNGLE CRUISE', R(190), GY - 140, '#FEF3C7', 10);
   // The deep water, behind everything in it (darker the deeper; a cave in the tunnel)
   const g = c.createLinearGradient(0, WS, 0, 1040);
-  g.addColorStop(0, '#0E7490'); g.addColorStop(1, '#082F49');
+  // (the light filtering down into it: the hour's, a little, near the top)
+  { const tod = timeOfDay(); g.addColorStop(0, mix('#0E7490', skyAt(0.85, tod), 0.3 * tod.skyK)); g.addColorStop(1, '#082F49'); }
   c.fillStyle = g; c.fillRect(R(DOCK), WS, PIPE.x2 - DOCK, 1040 - WS);
   box(c, R(TUNNEL.x1), CEIL, TUNNEL.x2 - TUNNEL.x1, 420, 'rgba(2, 6, 23, 0.35)');
   // (the whole of it gone red with what's died in it, brown with what he's put in it: behind everything in it)

@@ -8,6 +8,7 @@ import type { GameState } from '../../m1/game/core/state';
 import type { Enemy } from '../../m1/types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { NO_CONTROLS } from '../../m1/game/platform/input';
+import { todLight } from '../timeOfDay';
 import { setUi, isLeaving, arrived, carryGut, takeGut } from '../store';
 import { stopWeapons } from '../weapons';
 import { createGrab, updateGrab, drawGrab, type Grab } from '../moves/grab';
@@ -124,7 +125,13 @@ export const advLayout: StageLayout = {
   drawHud: (c, state) => current(state).drawHud?.(c, state),
   zoom: (state) => current(state).zoom?.(state) ?? null,
   holdTick: (ctx) => current(ctx.state).holdTick?.(ctx) ?? false,
-  lighting: (state) => current(state).lighting?.(state) ?? null,
+  // (a section's own lighting if it has one; else outdoors, the time of day's (timeOfDay.ts); indoors, none)
+  lighting: (state) => {
+    const sec = current(state);
+    if (sec.lighting) return sec.lighting(state);
+    const out = sec.outdoors?.(state) ?? 0;
+    return out > 0 ? todLight(sec.lamps?.(state) ?? [], out) : null;
+  },
   cameraRow: (state) => current(state).cameraRow?.(state),
   cylinder: (state) => current(state).cylinder?.(state) ?? null,
 };

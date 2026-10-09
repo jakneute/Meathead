@@ -16,7 +16,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { GUIDE_KIND } from '../guides';
 import { lay, solid, speak, meatheadSays, box, label, saidOver, hands, sectionState } from '../section';
 import { GY } from '../geometry';
-import { goTo, setUi } from '../../store';
+import { goTo, setUi, markLandCleared, noteBossKill } from '../../store';
 import { playSound } from '../../../m1/game/platform/audio';
 import { silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
@@ -230,6 +230,9 @@ const kick = (ctx: FrameContext, cl: Clearing): Controls => {
 /** Done here: him walking away from the carnage (Safari Artie's, eaten or not), then the hub. */
 const leave = (state: GameState, weakness: boolean) => {
   const cl = getClearing(state);
+  // (Adventure Land's cleared: the day moves on, the walk-away already at the new hour: timeOfDay.ts)
+  markLandCleared('adventure');
+  noteBossKill();
   cl.walk = playWalkAway(state, { boss: 'safari-artie', weakness, onDone: () => goTo('hub') });
 };
 
@@ -313,6 +316,7 @@ export const clearing: Section = {
   },
   // The path's a loop round the temple: the strip bent round as it curves, the temple and the rest past it (orbit.ts)
   cylinder: () => ({ radius: ORBIT_WRAP }),
+  outdoors: () => 1,
   drawBackdrop: (c, state) => { drawOrbitBackdrop(c, state, getClearing(state).templeHit); return true; },
   drawBack: (c, state) => drawClearing(c, state),
   drawFront: (c, state) => {

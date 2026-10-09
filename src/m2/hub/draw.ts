@@ -13,6 +13,7 @@ import { mix } from '../../m1/game/render/backdrops/core';
 import { LANDS, SPOTS, HUB_SLOTS, type Land } from './lands';
 import { HUB, HUB_CIRC, slotX } from './geometry';
 import { drawCrowd } from './crowd';
+import { timeOfDay, skyRamp, skyTint, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, lampGlow } from '../timeOfDay';
 
 type Ctx = CanvasRenderingContext2D;
 const box = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
@@ -25,11 +26,15 @@ const SKY = ['#4C7BE0', '#5A88E6', '#6995EB', '#7AA3EF', '#8DB1F2', '#A1BFF4', '
 // ---------------------------------------------------------------------------
 
 /** Behind it all, flat: the sky (bands run straight across, so turning doesn't show on it), and the lawn at the bottom. */
-export const drawHubBackdrop = (ctx: Ctx, _state: GameState) => {
-  bands(ctx, 0, 0, CANVAS_WIDTH, 470, SKY);
+export const drawHubBackdrop = (ctx: Ctx, state: GameState) => {
+  // (the sky as the hour has it: timeOfDay.ts; after sundown, the stars and the moon, flat behind it all like the sky)
+  const tod = timeOfDay();
+  bands(ctx, 0, 0, CANVAS_WIDTH, 470, skyRamp(SKY, tod));
+  drawStars(ctx, 0, 0, CANVAS_WIDTH, 400, state.frame, 0, tod);
+  drawMoon(ctx, 610, 96, 20, tod);
   // (the lawn under it all, down to the bottom: from inside the ring the plaza's wall dips at the sides, and this is
   // what's behind it there)
-  bands(ctx, 0, 472, CANVAS_WIDTH, CANVAS_HEIGHT - 472, ['#2F6B3A', '#2A6034', '#25562F', '#204C2A']);
+  bands(ctx, 0, 472, CANVAS_WIDTH, CANVAS_HEIGHT - 472, ['#2F6B3A', '#2A6034', '#25562F', '#204C2A'].map(c => farTint(c, 0.3, tod)));
 };
 
 /**
@@ -43,18 +48,26 @@ const drawHubFar = (ctx: Ctx, state: GameState) => {
   const f = state.frame, top = state.camera.y;
   const x0 = state.camera.x - 1200, x1 = state.camera.x + CANVAS_WIDTH + 1200;
   const each = (x: number, draw: (x: number) => void) => laps(state, x, draw);
-  // The sun, in rings, over Fantasy Land
-  each(slotX(5) + 120, x => { for (const [r, c] of [[46, '#F8E4B0'], [38, '#FBEFC6'], [30, '#FFF7DC'], [24, '#FFFDF2']] as const) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, top + 92, r, 0, Math.PI * 2); ctx.fill(); } });
-  // Clouds drifting (flat-bottomed puffs, lit on top)
+  const tod = timeOfDay();
+  // The sun, in rings, over Fantasy Land (sinking toward the skyline as the day goes: timeOfDay.ts)
+  const sun = sunAt(0, top + 92, top + 440, tod);
+  if (sun.up > 0.02) each(slotX(5) + 120, x => {
+    ctx.save(); ctx.globalAlpha = sun.up;
+    for (const [r, c] of [[46, '#F8E4B0'], [38, '#FBEFC6'], [30, '#FFF7DC'], [24, '#FFFDF2']] as const) { ctx.fillStyle = sunTint(c, tod); ctx.beginPath(); ctx.arc(x, sun.y, r * (1 + Math.max(0, 0.4 - tod.sunH) * 0.4), 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+  });
+  // Clouds drifting (flat-bottomed puffs, lit on top: by the hour)
+  const cloud = [cloudTint('#E8EEF8', tod), cloudTint('#FFFFFF', tod), cloudTint('#D3DCEB', tod)];
   for (let i = 0; i < 9; i++) each(HUB.x0 + i * (HUB_CIRC / 9) + ((f * 0.15 + i * 97) % (HUB_CIRC / 9)), x => {
     const y = top + 60 + (i % 3) * 46;
-    for (const [dx, r] of [[-30, 16], [0, 24], [28, 18], [52, 12]] as const) { ctx.fillStyle = '#E8EEF8'; ctx.beginPath(); ctx.arc(x + dx, y, r, Math.PI, 0); ctx.fill(); ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(x + dx - 2, y - 3, r * 0.7, Math.PI, 0); ctx.fill(); }
-    box(ctx, x - 46, y, 110, 4, '#D3DCEB');
+    for (const [dx, r] of [[-30, 16], [0, 24], [28, 18], [52, 12]] as const) { ctx.fillStyle = cloud[0]; ctx.beginPath(); ctx.arc(x + dx, y, r, Math.PI, 0); ctx.fill(); ctx.fillStyle = cloud[1]; ctx.beginPath(); ctx.arc(x + dx - 2, y - 3, r * 0.7, Math.PI, 0); ctx.fill(); }
+    box(ctx, x - 46, y, 110, 4, cloud[2]);
   });
   // Each land's landmark on the skyline, right behind its portal
   SPOTS.forEach((s, i) => { if (s.kind === 'land') each(slotX(i), x => landmark(ctx, LANDS[s.land], x, top + 440, f)); else if (s.kind === 'america') each(slotX(i), x => americaLandmark(ctx, x, top + 440, f)); });
   // The haze down at the horizon
-  for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(246, 231, 210, ${(0.12 + i * 0.1).toFixed(2)})`; ctx.fillRect(x0, top + 380 + i * 18, x1 - x0, 18); }
+  const [hr, hg, hb] = [1, 3, 5].map(i => parseInt(mix('#F6E7D2', tod.haze, tod.skyK).slice(i, i + 2), 16));
+  for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(${hr}, ${hg}, ${hb}, ${(0.12 + i * 0.1).toFixed(2)})`; ctx.fillRect(x0, top + 380 + i * 18, x1 - x0, 18); }
   // The treeline, and the monorail on its beam with the train going round
   for (let x = Math.floor(x0 / 60) * 60; x < x1; x += 60) {
     const r = 22 + (Math.abs(x / 60) * 7) % 14;
@@ -75,7 +88,7 @@ const drawHubFar = (ctx: Ctx, state: GameState) => {
 
 /** A land's big landmark, its base on (x, y): hazed into the sky by distance (flat, with a lit edge). */
 const landmark = (ctx: Ctx, land: Land, x: number, y: number, f: number) => {
-  const haze = (c: string) => mix(c, '#B7CDF4', 0.42);
+  const haze = (c: string) => mix(c, skyTint('#B7CDF4', 0.8), 0.42);
   const fill = (c: string, path: () => void) => { ctx.fillStyle = haze(c); ctx.beginPath(); path(); ctx.fill(); };
   const rect = (rx: number, ry: number, w: number, h: number, c: string) => box(ctx, x + rx, y + ry, w, h, haze(c));
   switch (land.id) {
@@ -220,7 +233,9 @@ const lamp = (ctx: Ctx, x: number, i: number, f: number) => {
   const top = GROUND_Y - 230;
   box(ctx, x - 4, top, 8, 230, '#1F2937'); box(ctx, x - 4, top, 3, 230, '#4B5563');
   box(ctx, x - 12, GROUND_Y - 14, 24, 14, '#111827');
-  ink(ctx, () => ctx.roundRect(x - 12, top - 26, 24, 26, [10, 10, 2, 2]), '#FEF3C7');
+  // (its glass: lit up as it gets dark, a glow round it over the dark: drawHubLampGlow)
+  ink(ctx, () => ctx.roundRect(x - 12, top - 26, 24, 26, [10, 10, 2, 2]), mix('#FEF3C7', '#FFFBEB', lampGlow()));
+  if (lampGlow() > 0.3) { box(ctx, x - 6, top - 20, 12, 14, '#FFFFFF'); }
   box(ctx, x - 14, top - 2, 28, 4, '#111827');
   const land = LANDS[i % LANDS.length], wave = Math.sin(f * 0.06 + i) * 3;
   ctx.fillStyle = land.sign; ctx.beginPath(); ctx.moveTo(x + 4, top + 20); ctx.lineTo(x + 40, top + 20 + wave); ctx.lineTo(x + 40, top + 90 + wave); ctx.lineTo(x + 22, top + 80 + wave * 0.5); ctx.lineTo(x + 4, top + 90); ctx.closePath(); ctx.fill();
@@ -343,7 +358,7 @@ const portal = (ctx: Ctx, land: Land, cx: number, f: number) => {
 
 /** Behind America USA's way in: the biggest flag in the world on the biggest pole, and a bald eagle on top of it. */
 const americaLandmark = (ctx: Ctx, x: number, y: number, f: number) => {
-  const haze = (c: string) => mix(c, '#B7CDF4', 0.42);
+  const haze = (c: string) => mix(c, skyTint('#B7CDF4', 0.8), 0.42);
   box(ctx, x - 4, y - 300, 8, 300, haze('#A8A29E')); box(ctx, x - 4, y - 300, 3, 300, haze('#E7E5E4'));
   for (let s = 0; s < 13; s++) {
     const wave = (k: number) => Math.sin(f * 0.05 + k * 0.08) * 6;
@@ -498,5 +513,32 @@ const staffDoor = (ctx: Ctx, cx: number, f: number) => {
   // (a sticky note on it, flapping)
   ctx.save(); ctx.translate(cx - 10, GROUND_Y - 70); ctx.rotate(Math.sin(f * 0.05) * 0.06);
   box(ctx, 0, 0, 18, 16, '#FDE047'); ctx.fillStyle = '#1E3A8A'; ctx.font = '4px "Press Start 2P"'; ctx.fillText('NO', 2, 7); ctx.fillText('GUESTS', 2, 13);
+  ctx.restore();
+};
+
+/**
+ * After dark, the lamp posts' glow (screen space, over the time of day's dark: the hub's a cylinder seen from inside,
+ * so each lamp's put where the wrap puts it). Stepped rings, added on.
+ */
+export const drawHubLampGlow = (ctx: Ctx, state: GameState, radius: number, horizon: number) => {
+  const k = lampGlow();
+  if (k <= 0.05) return;
+  const half = CANVAS_WIDTH / 2, top = GROUND_Y - 230 - 13;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < HUB_SLOTS; i++) laps(state, HUB.x0 + i * HUB.slot, x => {
+    const a = (x - state.camera.x - half) / radius;
+    if (Math.abs(a) > 1.2) return;
+    const c = Math.cos(a), sx = half + radius * Math.tan(a), sy = horizon + (top - state.camera.y - horizon) / c;
+    if (sx < -120 || sx > CANVAS_WIDTH + 120) return;
+    const r = 70 / c;
+    for (let ring = 3; ring >= 1; ring--) {
+      ctx.fillStyle = `rgba(255, 176, 84, ${(0.06 * k * (4 - ring) / 2).toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(Math.round(sx), Math.round(sy), r * (0.35 + ring * 0.22), 0, Math.PI * 2); ctx.fill();
+    }
+    // (the glass itself, lit: back up out of the dark)
+    ctx.fillStyle = `rgba(255, 236, 190, ${(0.75 * k).toFixed(3)})`;
+    ctx.beginPath(); ctx.roundRect(Math.round(sx - 10 / c), Math.round(sy - 11 / c), Math.round(20 / c), Math.round(22 / c), [8 / c, 8 / c, 2, 2]); ctx.fill();
+  });
   ctx.restore();
 };

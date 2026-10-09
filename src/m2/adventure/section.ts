@@ -6,7 +6,7 @@ import type { GameState } from '../../m1/game/core/state';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { Controls } from '../../m1/game/platform/input';
 import type { WaterBody } from '../../m1/game/stages/index';
-import type { SceneLight } from '../../m1/game/render/lighting';
+import type { SceneLight, Light } from '../../m1/game/render/lighting';
 import type { Block } from '../../m1/types';
 import { groundBlocks, type GroundRun } from '../../m1/game/core/terrain';
 import { CANVAS_WIDTH } from '../../m1/constants';
@@ -56,6 +56,11 @@ export interface Section {
   /** Slow motion: true for a tick that runs no game time (Meathead 1's kill cam). Called every real tick. */
   holdTick?: (ctx: FrameContext) => boolean;
   lighting?: (state: GameState) => SceneLight | null;
+  /** How open to the sky it is here (1 open air; less under a canopy or the water; left out: indoors), for the time of
+   *  day's light over it (timeOfDay.ts). Only when it has no lighting of its own. */
+  outdoors?: (state: GameState) => number;
+  /** Its lamps (torches, signs, lit windows), glowing as the day goes: world space. */
+  lamps?: (state: GameState) => Light[];
   /** Where on screen his feet sit (default 550 of 600). */
   cameraRow?: (state: GameState) => number | undefined;
   /** The world wrapped round a turning cylinder of this radius (Meathead 1's storm-climb trick), or null: flat. */

@@ -19,7 +19,7 @@ import { groundBlocks, type GroundRun } from '../../../m1/game/core/terrain';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { playSound } from '../../../m1/game/platform/audio';
-import { SWIM_LEAP, CANVAS_WIDTH } from '../../../m1/constants';
+import { SWIM_LEAP, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import type { Section } from '../section';
 import { lay, solid, ledge, teleport, getAdv, sectionState } from '../section';
 import { SECTIONS, GY } from '../geometry';
@@ -423,6 +423,14 @@ export const river: Section = {
     return { key: 'river', x1: R(DOCK), x2: R(PIPE.x2), surface: Math.max(WS, roofAt(rx)), bottom: 1020, kind: 'clean' };
   },
   cameraX: () => ({ min: x0, max: x1 - CANVAS_WIDTH }),
+  // (open air on the surface; down in the water, less of the hour's light the deeper the camera goes; the tunnel, the
+  // tank and the pipe on from it are under rock and roof: none)
+  outdoors: (state) => {
+    const rx = state.camera.x + CANVAS_WIDTH / 2 - x0;
+    if (rx > TUNNEL.x1) return 0;
+    const depth = (state.camera.y + CANVAS_HEIGHT / 2 - WS) / 500;
+    return 1 - 0.45 * Math.max(0, Math.min(1, depth));
+  },
   drawBackdrop: (c, state) => drawRiverBackdrop(c, state),
   drawBack: (c, state) => drawRiverBack(c, state, getRiver(state)),
   drawFront: (c, state) => drawRiverFront(c, state, getRiver(state)),
