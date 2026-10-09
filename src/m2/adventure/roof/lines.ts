@@ -11,8 +11,8 @@ export const ARTIE_LANDED: Record<Dressed, string[]> = {
 };
 /** Meathead, back on his feet. */
 export const MEATHEAD_LANDED = ['BEST RIDE IN THE PARK.', 'TEN OUT OF TEN. WOULD BREAK AGAIN.', "WHAT? IT SAID EXIT."];
-/** Safari Artie, as the roof goes out from under him. */
-export const ARTIE_FALLS = ["WORKERS' COMP! WORKERS' COMP!"];
+/** Safari Artie, leaping off the roof as it goes, a gift-shop parachute popping open over him. */
+export const ARTIE_CHUTE = ["NINE NINETY-NINE AT THE GIFT SHOP! WHO'S LAUGHING NOW?"];
 
 /** The people in line outside, watching the roof come in (a woman, a man). */
 export const GUEST_GASP = ['OH MY GOD! THE TEMPLE!', 'THE ROOF! THE ROOF IS COMING IN!'];
@@ -35,7 +35,7 @@ const all = (r: Record<Dressed, string[]>) => [...r.clean, ...r.shitty, ...r.nud
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [...MEATHEAD_LANDED, ...MEATHEAD_TO_LINE, ...HURT_ROOF],
   death: DEATH_ROOF,
-  'm2.safari': [...all(ARTIE_LANDED), ...ARTIE_FALLS],
+  'm2.safari': [...all(ARTIE_LANDED), ...ARTIE_CHUTE],
   'm2.guest': [...GUEST_GASP, ...GUEST_AFTER],
   'm2.guest2': Object.values(GUEST2_HIM),
 };

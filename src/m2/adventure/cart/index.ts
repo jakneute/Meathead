@@ -102,8 +102,11 @@ interface Flier {
   fly: boolean; vy: number; t: number; out: number;
   /** (the cart, falling away: off to one side) */
   drift: number;
+  /** The one riding it: where (his feet) and his turn (sat in it, the cart's; off the top, his own), and where he was
+   * from the cart (along the rail) when it went off the top. */
+  rx: number; ry: number; rrot: number; sdx: number; sdy: number;
 }
-const flier = (s: number, v: number): Flier => ({ s, v, x: 0, y: 0, rot: 0, fly: false, vy: 0, t: 0, out: 0, drift: 0 });
+const flier = (s: number, v: number): Flier => ({ s, v, x: 0, y: 0, rot: 0, fly: false, vy: 0, t: 0, out: 0, drift: 0, rx: 0, ry: 0, rrot: 0, sdx: 0, sdy: 0 });
 
 interface Cart {
   /** Not on yet, riding, the end of the line (the cutscene: up the ramp and off the top), gone (on to the roof). */
@@ -278,12 +281,14 @@ const endPath = (s: number) => {
   if (s < PATH_FLAT) { const x = OUTRO_X + s; return { x, y: artieTrackY(x), rot: 0 }; }
   if (s < PATH_FLAT + PATH_ARC) {
     const a = (s - PATH_FLAT) / RAMP_R;
-    return { x: RAMP_X + Math.sin(a) * RAMP_R, y: RAMP_Y - (1 - Math.cos(a)) * RAMP_R, rot: -0.45 * (a / (Math.PI / 2)) };
+    return { x: RAMP_X + Math.sin(a) * RAMP_R, y: RAMP_Y - (1 - Math.cos(a)) * RAMP_R, rot: -a };
   }
-  return { x: RAMP_X + RAMP_R, y: RAMP_Y - RAMP_R - (s - PATH_FLAT - PATH_ARC), rot: -0.45 };
+  return { x: RAMP_X + RAMP_R, y: RAMP_Y - RAMP_R - (s - PATH_FLAT - PATH_ARC), rot: -Math.PI / 2 };
 };
 /** Where the one riding it is (his feet). */
-const riderY = (f: Flier) => f.y - SINK - f.out;
+const riderY = (f: Flier) => f.ry;
+/** (how far ahead of the seat its front wheels are: off the top of the rail, it's off) */
+const FRONT_WHEEL = -SEAT_DX + 40;
 
 const startOutro = (state: GameState, cart: Cart) => {
   const p = state.player;
@@ -309,9 +314,11 @@ const stepFlier = (state: GameState, f: Flier, lead: Flier | null) => {
     f.s += f.v;
     const pt = endPath(f.s);
     f.x = pt.x; f.y = pt.y; f.rot = pt.rot;
+    // (sat in it, turned with it: his feet SINK up off the rail, the way the cart's up)
+    f.rx = f.x + SINK * Math.sin(f.rot); f.ry = f.y - SINK * Math.cos(f.rot); f.rrot = f.rot;
     if (!wasArc && f.s >= PATH_FLAT) { playSound('clang', 0.7, -6); playSound('grind', 0.7, -8); }
-    if (f.y <= RAIL_TOP) {
-      f.fly = true; f.vy = -f.v; f.t = 0;
+    if (f.y + FRONT_WHEEL * Math.sin(f.rot) <= RAIL_TOP) {
+      f.fly = true; f.vy = -f.v; f.t = 0; f.sdx = f.rx - f.x; f.sdy = f.ry - f.y;
       playSound('whoosh', 1, lead ? -2 : -6); playSound('clang', 0.8, -10); shakeScreen(state, 8, 4);
       for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: f.x, y: RAIL_TOP }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 5 }, life: 24, color: i % 2 ? '#FDE047' : '#F97316', size: 2 + Math.random() * 2 });
     }
@@ -323,12 +330,18 @@ const stepFlier = (state: GameState, f: Flier, lead: Flier | null) => {
   // (his falls away out to the right, clear of Artie coming up under him)
   f.drift += lead ? -1.6 : 3;
   f.out += Math.max(0, 3.2 - f.t * 0.02);
+  // The riders: on up, out over where the rail was. Him righting himself (a wobble, then feet down: he lands on the
+  // roof); Artie head over heels, flailing
+  f.sdx *= 0.94;
+  f.rx = f.x + f.sdx; f.ry = f.y + f.sdy - f.out;
+  if (lead) f.rrot -= 0.2;
+  else f.rrot = f.rrot * 0.93 + Math.sin(f.t * 0.6) * 0.12 * Math.max(0, 1 - f.t / 30);
 };
 
 const endOutro = (state: GameState, cart: Cart, skipped: boolean) => {
   const p = state.player;
   if (skipped) silenceAll();
-  cart.mode = 'gone'; cart.me = null;
+  cart.mode = 'gone'; cart.me = null; p.spriteRot = 0;
   // (out of the cart: his moves back, and his choice of weapon)
   p.noSpecials = false; setUi({ noSwitch: false }); cart.artie.end = null; cart.artie.on = false; cart.artie.said = null;
   (getAdv(state)!.s as Record<string, unknown>).roofArrival = true;
@@ -351,7 +364,7 @@ const outro = (ctx: FrameContext, cart: Cart): Controls => {
   if (a) stepFlier(state, a, me);
   // (for the rest of the cart's own business: where his is)
   cart.x = me.x; cart.y = me.y;
-  p.pos.x = me.x - p.width / 2; p.pos.y = riderY(me) - p.height; p.vel.x = 0; p.vel.y = me.fly ? me.vy : -1;
+  p.pos.x = me.rx - p.width / 2; p.pos.y = riderY(me) - p.height; p.spriteRot = me.rrot; p.vel.x = 0; p.vel.y = me.fly ? me.vy : -1;
   p.isGrounded = false;
   // The camera: on the two of them, the ramp in view, going up with them
   const k = Math.max(0, Math.min(1, (me.s - PATH_FLAT) / PATH_ARC));
@@ -402,6 +415,7 @@ export const cart: Section = {
     // (sat back in it, relaxed, while it's got him: not ducking under a beam, not flying off the top of the ramp)
     const p = ctx.state.player, cart = getCart(ctx.state);
     p.cartSeat = p.carried && p.health > 0 && (cart.mode === 'ride' || (cart.mode === 'outro' && !cart.me?.fly));
+    if (cart.mode !== 'outro') p.spriteRot = 0;
     // (sat back enjoying the ride: no gun out, no shooting)
     if (p.cartSeat) return { ...out, shoot: false, secondary: false };
     return out;
@@ -508,8 +522,12 @@ const drawTrack = (c: CanvasRenderingContext2D, state: GameState) => {
 };
 
 /** A cart (the ride's own, as at the station: rideCart.ts), whoever's in it sat at its seat, here at `x`. */
-const drawCartBox = (c: CanvasRenderingContext2D, x: number, y: number, f: number, look: CartLook, rot = 0, back = false) =>
-  drawRideCart(c, x - SEAT_DX, y, f, look, back, rot);
+const drawCartBox = (c: CanvasRenderingContext2D, x: number, y: number, f: number, look: CartLook, rot = 0, back = false) => {
+  // (turned about the seat, on the rail under it: whoever's in it turns about the same place)
+  c.save(); c.translate(x, y); c.rotate(rot);
+  drawRideCart(c, -SEAT_DX, 0, f, look, back);
+  c.restore();
+};
 
 const drawCarts = (c: CanvasRenderingContext2D, state: GameState, back = false) => {
   const cart = getCart(state);
@@ -522,9 +540,12 @@ const drawCarts = (c: CanvasRenderingContext2D, state: GameState, back = false) 
     const e = a.end, ay = riderY(e);
     if (back) drawCartBox(c, e.x + e.drift, e.y, f, TOUR_CART, e.rot, true);
     else {
-    drawSafariArtie(c, e.x - 4, ay, 1, f, e.fly ? 'hurt' : a.said?.text ? 'talk' : 'sit');
+    // (sat in it turned with it up the ramp; off the top, head over heels)
+    c.save(); c.translate(e.rx, ay); c.rotate(e.rrot);
+    drawSafariArtie(c, -4, 0, 1, f, e.fly ? 'hurt' : a.said?.text ? 'talk' : 'sit');
+    c.restore();
     drawCartBox(c, e.x + e.drift, e.y, f, TOUR_CART, e.rot);
-    if (a.said?.text) saidOver(c, a.said.text, e.x, ay - 96, '#FDE68A');
+    if (a.said?.text) saidOver(c, a.said.text, e.rx, ay - 96, '#FDE68A');
     }
   } else if (a.on && Math.abs(a.x - state.camera.x - 400) < 700) {
     const ay = artieTrackY(a.x);

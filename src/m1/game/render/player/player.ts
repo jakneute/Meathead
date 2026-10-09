@@ -537,6 +537,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       drawJointedLeg(ctx, -4, -22, -0.55, 1.05, pantsShadow, false);
       drawJointedLeg(ctx, 5, -22, -0.62, 1.1, pantsColor, true);
     }
+  } else if (lounging && isDucking) {
+    // Ducked in the cart: knees pulled right up, boots tucked back under him (hunched over, nothing pokes out under it)
+    drawJointedLeg(ctx, -4, -22, -2.25, 2.75, pantsShadow, false);
+    drawJointedLeg(ctx, 5, -22, -2.3, 2.8, pantsColor, true);
   } else if (isSeated) {
     // Astride the seat: thighs out forward, shins down into the footwell
     drawJointedLeg(ctx, -4, -22, -1.3, 1.2, pantsShadow, false);

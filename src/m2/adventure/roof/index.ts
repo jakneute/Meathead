@@ -27,7 +27,7 @@ import { registerHurtLines } from '../../kinds';
 import { drawSafariArtie } from '../river/artie';
 import { drawPlayer } from '../../../m1/game/render/player/player';
 import {
-  type Dressed, ARTIE_LANDED, MEATHEAD_LANDED, ARTIE_FALLS, GUEST_GASP, GUEST2_HIM, MEATHEAD_TO_LINE, GUEST_AFTER, HURT_ROOF, DEATH_ROOF,
+  type Dressed, ARTIE_LANDED, MEATHEAD_LANDED, ARTIE_CHUTE, GUEST_GASP, GUEST2_HIM, MEATHEAD_TO_LINE, GUEST_AFTER, HURT_ROOF, DEATH_ROOF,
 } from './lines';
 
 const { x0, x1 } = SECTIONS.roof;
@@ -101,7 +101,8 @@ interface Roof {
   said: Said | null; saidBy: 'artie' | 'f' | 'm' | null;
   /** Him flying up out of it (the cutscene's own physics). */
   me: { x: number; y: number; vx: number; vy: number; landed: boolean };
-  artie: { on: boolean; x: number; y: number; vx: number; vy: number; landed: boolean; falling: boolean; gone: boolean };
+  /** `falling`: off the roof (a leap, and down under his parachute: `chute` frames since it opened, 0 not yet). */
+  artie: { on: boolean; x: number; y: number; vx: number; vy: number; landed: boolean; falling: boolean; gone: boolean; chute: number };
   emptyCart: { x: number; y: number; vy: number; on: boolean };
   step: number;
   /** The view pulled out on the temple (0..1). */
@@ -121,7 +122,7 @@ const getRoof = (state: GameState) => sectionState<Roof>(state, 'roof', () => ({
   tiles: [], scene: null, t: 0, token: 0, front: HOLE_X + HOLE_W / 2, frontAt: 0,
   said: null, saidBy: null,
   me: { x: HOLE_X, y: RY + 120, vx: 2.1, vy: -15, landed: false },
-  artie: { on: false, x: HOLE_X, y: RY + 120, vx: -1.4, vy: -14, landed: false, falling: false, gone: false },
+  artie: { on: false, x: HOLE_X, y: RY + 120, vx: -1.4, vy: -14, landed: false, falling: false, gone: false, chute: 0 },
   emptyCart: { x: HOLE_X, y: RY + 120, vy: -12, on: false },
   step: 0, zoomK: 0, tum: null, tumbled: false, inHole: false, poof: 0, poofX: HOLE_X,
   caved: false, horror: false, dust: [],
@@ -160,7 +161,9 @@ const endArrival = (state: GameState, r: Roof, skipped: boolean) => {
     p.pos.x = r.me.x - p.width / 2; p.pos.y = RY - p.height;
     if (p.pos.x + p.width / 2 < HOLE_X + HOLE_W / 2 + 20) p.pos.x = HOLE_X + HOLE_W / 2 + 60 - p.width / 2;
   }
-  r.artie.gone = true; r.artie.on = false; r.emptyCart.on = false;
+  // (under his parachute, he drifts on off on his own, out of sight; otherwise he's gone)
+  if (skipped || !r.artie.chute) { r.artie.gone = true; r.artie.on = false; }
+  r.emptyCart.on = false;
   p.carried = false; p.hidden = false; p.inCutscene = false; p.vel.x = 0; p.vel.y = 0;
   r.frontAt = state.frame + 20;
 };
@@ -201,7 +204,7 @@ const arrive = (ctx: FrameContext, r: Roof): Controls => {
     a.x = Math.max(a.x, ROOF_L + 14);
     if (a.vy > 0 && a.y >= RY && a.x < HOLE_X - HOLE_W / 2 - 10) { a.y = RY; a.landed = true; playSound('thud', 1, -6); playSound('crunch', 0.6); }
   }
-  // Their say, then the left of the roof goes (and him on it)
+  // Their say, then the left of the roof goes (Artie off it first)
   if (m.landed && a.landed && r.step === 0 && t > 100) {
     r.step = 1;
     someoneSays(r, 'artie', 'm2.safari', pick(ARTIE_LANDED[dressed(state)]), () => {
@@ -219,15 +222,17 @@ const arrive = (ctx: FrameContext, r: Roof): Controls => {
       if (ROOF_L + i * TILE + TILE > HOLE_X - HOLE_W / 2 + TILE) break;
       if (!r.tiles[i].gone) { crumble(state, r, i); break; }
     }
-    // Under Artie: down he goes
+    // Coming for Artie: he's off it before it gets him, a leap up and out over the roof (and a parachute)
     if (a.landed && !a.falling) {
       const i = Math.floor((a.x - ROOF_L) / TILE);
-      const under = [i - 1, i, i + 1].some(k => r.tiles[k] && r.tiles[k].gone);
-      if (under) { a.falling = true; a.vy = -2; r.step = 4; r.said = null; someoneSays(r, 'artie', 'm2.safari', ARTIE_FALLS[0], () => { r.step = 5; }); }
+      const near = [i - 3, i - 2, i - 1, i, i + 1].some(k => r.tiles[k] && r.tiles[k].gone);
+      if (near) {
+        a.falling = true; a.vy = -11; a.vx = 2.4; r.step = 4; r.said = null; playSound('whoosh', 0.8, 2);
+        someoneSays(r, 'artie', 'm2.safari', ARTIE_CHUTE[0], () => { r.step = 5; });
+      }
     }
-    if (a.falling) { a.vy += 0.4; a.y += a.vy; if (a.y > RY + 300) a.gone = true; }
     const leftGone = r.tiles.every((tl, k) => ROOF_L + k * TILE + TILE > HOLE_X - HOLE_W / 2 + TILE || tl.gone);
-    if ((r.step === 5 || t > 1100) && a.gone && leftGone) endArrival(state, r, false);
+    if ((r.step === 5 || t > 1100) && (a.gone || a.chute > 0) && leftGone) endArrival(state, r, false);
   }
   return hands();
 };
@@ -396,6 +401,23 @@ const zoomOut = (ctx: FrameContext, r: Roof): Controls => {
 
 // ---------------------------------------------------------------------------------------------------------------
 
+/** Artie off the roof: up, the parachute pops (a yank), and he drifts down and off to the right on the breeze (toward the
+ * clearing), out of sight. */
+const floatArtie = (state: GameState, r: Roof) => {
+  const a = r.artie;
+  if (!a.on || a.gone || !a.falling) return;
+  if (!a.chute) {
+    a.vy += 0.45; a.x += a.vx; a.y += a.vy;
+    if (a.vy > 1) { a.chute = 1; a.vy = -1.5; playSound('whoosh', 1, 6); }
+    return;
+  }
+  a.chute++;
+  a.vy += (0.75 - a.vy) * 0.06; a.vx += (3.2 - a.vx) * 0.03;
+  a.x += a.vx + Math.sin(a.chute * 0.05) * 0.7; a.y += a.vy;
+  // (out of sight: off the right of the view, or down below the trees)
+  if (a.x > state.camera.x + CANVAS_WIDTH + 140 || a.y > GY + 40) a.gone = true;
+};
+
 const run = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   const r = getRoof(state);
@@ -405,6 +427,7 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
     if (adv.roofArrival && firstVisit(state)) { adv.roofArrival = false; r.scene = 'arrive'; }
     else { blownOpen(state, r); p.carried = false; r.frontAt = state.frame + 60; r.t = 1; }
   }
+  floatArtie(state, r);
   if (r.scene === 'arrive') return arrive(ctx, r);
   if (r.scene === 'tumble') return tumble(ctx, r);
   if (r.scene === 'zoom') return zoomOut(ctx, r);
@@ -613,6 +636,40 @@ const drawPoof = (c: CanvasRenderingContext2D, r: Roof) => {
   c.restore();
 };
 
+/** Artie's parachute (from the gift shop: a souvenir, and it shows): popping open over him, swaying, its lines down to
+ * his fists (up over his head: the 'dodge' pose's, 88 over his feet). */
+const drawChute = (c: CanvasRenderingContext2D, x: number, feetY: number, t: number, f: number) => {
+  const open = Math.min(1, 0.25 + t / 10), sway = Math.sin(t * 0.05) * 0.12;
+  c.save(); c.translate(x, feetY - 88); c.rotate(sway);
+  const W = 68 * open, TOP = -96 - 10 * open, RIM = -62;
+  // the lines, from the rim down to his fists
+  c.strokeStyle = '#E7E5E4'; c.lineWidth = 1; c.beginPath();
+  for (const k of [-1, -0.45, 0.45, 1]) { c.moveTo(k * W, RIM); c.lineTo(k < 0 ? -4.5 : 4.5, 0); }
+  c.stroke();
+  // the canopy: loud panels, alternating, a cheap nylon shine
+  const PANELS = ['#F472B6', '#FDE047', '#22D3EE', '#FDE047', '#F472B6', '#FDE047', '#22D3EE', '#FDE047'];
+  for (let i = 0; i < PANELS.length; i++) {
+    const a0 = Math.PI + (i / PANELS.length) * Math.PI, a1 = Math.PI + ((i + 1) / PANELS.length) * Math.PI;
+    c.fillStyle = PANELS[i]; c.beginPath(); c.moveTo(0, RIM);
+    c.ellipse(0, RIM, W, RIM - TOP, 0, a0, a1); c.closePath(); c.fill();
+  }
+  c.fillStyle = 'rgba(255,255,255,0.25)'; c.beginPath(); c.ellipse(-W * 0.3, RIM - (RIM - TOP) * 0.6, W * 0.35, (RIM - TOP) * 0.18, -0.3, 0, Math.PI * 2); c.fill();
+  // (scalloped rim)
+  c.fillStyle = '#BE185D';
+  for (let k = -W; k < W - 1; k += W / 4) { c.beginPath(); c.ellipse(k + W / 8, RIM, W / 8, 3, 0, 0, Math.PI); c.fill(); }
+  // what's printed on it, once it's open: I (heart) ADVENTURE LAND, and the price tag still on it
+  if (open >= 1) {
+    label(c, 'I', -6, RIM - 21, '#1E1B4B', 7);
+    c.fillStyle = '#DC2626'; c.beginPath(); c.arc(3.5, RIM - 27, 2.6, Math.PI, 0); c.arc(8.7, RIM - 27, 2.6, Math.PI, 0); c.lineTo(6.1, RIM - 21); c.closePath(); c.fill();
+    label(c, 'ADVENTURE LAND', 0, RIM - 10, '#1E1B4B', 6);
+    const ty = RIM + 10 + Math.sin(f * 0.2) * 1.5;
+    c.beginPath(); c.moveTo(W * 0.8, RIM + 1); c.lineTo(W * 0.8 + 3, ty); c.stroke();
+    box(c, W * 0.8 - 2, ty, 20, 9, '#FAFAF9');
+    label(c, '$9.99', W * 0.8 + 8, ty + 7, '#DC2626', 4);
+  }
+  c.restore();
+};
+
 const drawRoofFront = (c: CanvasRenderingContext2D, state: GameState) => {
   const r = getRoof(state), f = state.frame;
   // Gone in the hole: the temple's front back over him (he's behind it, falling)
@@ -628,12 +685,15 @@ const drawRoofFront = (c: CanvasRenderingContext2D, state: GameState) => {
   }
   if (r.tum) drawTumbler(c, state, r.tum);
   const a = r.artie;
-  if (a.on && !a.gone) drawSafariArtie(c, a.x, a.y, 1, f, a.falling || !a.landed ? 'hurt' : r.saidBy === 'artie' ? 'angry' : 'hurt');
+  if (a.on && !a.gone) {
+    if (a.chute) drawChute(c, a.x, a.y, a.chute, f);
+    drawSafariArtie(c, a.x, a.y, 1, f, a.chute ? 'dodge' : a.falling ? 'run' : !a.landed ? 'hurt' : r.saidBy === 'artie' ? 'angry' : 'hurt');
+  }
   const ec = r.emptyCart;
   if (ec.on) { box(c, ec.x - 36, ec.y - 36, 72, 26, '#57534E'); box(c, ec.x - 36, ec.y - 36, 72, 4, '#D6D3D1'); }
   // What's being said, over whoever's saying it
   if (r.said?.text) {
-    const who = r.saidBy === 'artie' ? { x: a.x, y: a.y - 100 } : r.saidBy === 'f' ? { x: GUESTS[SPEAKER_F].x, y: GY - 90 } : r.saidBy === 'm' ? { x: GUESTS[SPEAKER_M].x, y: GY - 90 } : null;
+    const who = r.saidBy === 'artie' ? { x: a.x, y: a.y - (a.chute ? 212 : 100) } : r.saidBy === 'f' ? { x: GUESTS[SPEAKER_F].x, y: GY - 90 } : r.saidBy === 'm' ? { x: GUESTS[SPEAKER_M].x, y: GY - 90 } : null;
     if (who && r.zoomK <= 0.001) saidOver(c, r.said.text, Math.min(x1 - 160, Math.max(x0 + 160, who.x)), who.y, r.saidBy === 'artie' ? '#FDE68A' : '#FFFFFF');
   }
 };
