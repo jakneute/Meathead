@@ -1,0 +1,1160 @@
+// The staff room, painted: Happy Land's back of house, where the cheer stops. A break room nobody's cleaned since the
+// park opened: painted block walls gone the green of a hospital corridor, a faded red-white-and-blue stripe peeling off
+// them, stained drop-ceiling tiles (one missing, the roof dripping through it into a bucket), cracked tile underfoot.
+// Along it, near end to far: the door out, the time clock, the mirror that tells you to smile, the board that's never
+// got past 0, a fire exit you can't get to, the lockers, the costume closet, a rack of limp mascot suits, the spare
+// heads over a headless body taking its break, the punching bag, the break table, the counter, the fridge, the vending
+// machine. Peak SNES: stepped ramps, dither where they meet, ink lines, never a smooth gradient.
+//
+// All the still art is painted once into six stamps a strip of the room wide (see kit's stamp); what moves (the
+// lights, the flicker, the drip, the roaches, the flies, the punching bag, the microwave's clock) is drawn live over it.
+
+import type { GameState } from '../../m1/game/core/state';
+import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
+import {
+  type Ctx, INK, FLAG_RED, FLAG_WHITE, FLAG_BLUE, box, text, sign, slab, pole, ball, shinyStar, star, rampOf, lite, dark, dim, mix,
+  hash, checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, tilePattern, stamp,
+} from '../intro/art/kit';
+import { X0, LEN, WALL, CEIL_Y, EXIT_X } from './index';
+
+const G = GROUND_Y;
+/** World x from a distance into the room (0 at the near wall's face). */
+const rx = (r: number) => X0 + r;
+
+// The wall's bands, top to bottom: painted block, the stripe, the tiled wainscot, the rubber base.
+const STRIPE = 410, WAIN = 430, BASE = 536;
+const WALLC = '#646B58';
+const fade = (c: string, k = 0.45) => mix(c, WALLC, k);
+
+// ---------------------------------------------------------------------------------------------------------------
+// Little things everything's put up with
+
+const poly = (c: Ctx, pts: number[], col: string) => {
+  c.fillStyle = col; c.beginPath(); c.moveTo(pts[0], pts[1]);
+  for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]);
+  c.closePath(); c.fill();
+};
+const line = (c: Ctx, pts: number[], col: string, w = 1) => {
+  c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(pts[0], pts[1]);
+  for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]);
+  c.stroke();
+};
+const oval = (c: Ctx, x: number, y: number, rx_: number, ry: number, col: string) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, y, rx_, ry, 0, 0, Math.PI * 2); c.fill(); };
+/** The shadow something casts on the wall behind it (lit from the upper left: down and right). */
+const shade = (c: Ctx, x: number, y: number, w: number, h: number, k = 0.34, d = 3) => box(c, x + d, y + d, w, h, `rgba(18, 12, 6, ${k})`);
+const screw = (c: Ctx, x: number, y: number) => { box(c, x, y, 2, 2, '#26282C'); box(c, x, y, 1, 1, '#D3D9E0'); };
+const tape = (c: Ctx, x: number, y: number, w = 10, h = 5) => { box(c, x, y, w, h, 'rgba(226, 214, 160, 0.78)'); box(c, x, y, w, 1, 'rgba(255, 250, 220, 0.6)'); box(c, x, y + h - 1, w, 1, 'rgba(120, 100, 60, 0.35)'); };
+const tack = (c: Ctx, x: number, y: number, col: string) => { box(c, x - 1, y - 1, 5, 5, INK); box(c, x, y, 3, 3, col); box(c, x, y, 1, 1, '#FFFFFF'); };
+/** A background thing's top edge, put in shade: nothing back here reads as somewhere to stand. */
+const dimTop = (c: Ctx, x: number, y: number, w: number, col: string, h = 3) => box(c, x + 1, y + 1, w - 2, h, dark(col, 0.3));
+
+/** A paper note sized to its words (Press Start 2P is monospace: `size` px a letter), taped, tacked or stuck on. */
+const note = (c: Ctx, x: number, y: number, lines: string[], opts: { size?: number; paper?: string; ink?: string; mount?: 'tape' | 'tack' | 'magnet' | 'none'; pinCol?: string } = {}) => {
+  const size = opts.size ?? 6, paper = opts.paper ?? '#EDE8D4', ink = opts.ink ?? '#26324A';
+  const w = Math.max(...lines.map(s => s.length)) * size + 8, lh = size + 3, h = lines.length * lh + 6;
+  x = Math.round(x); y = Math.round(y);
+  shade(c, x, y, w, h, 0.32, 2);
+  const p = rampOf(paper);
+  box(c, x, y, w, h, paper);
+  box(c, x, y, w, 1, p[4]); box(c, x, y, 1, h, p[3]);
+  box(c, x, y + h - 2, w, 2, p[1]); box(c, x + w - 1, y, 1, h, p[1]);
+  checker(c, x + 1, y + h - 4, w - 2, 2, p[1], 1);
+  // (a corner curled off the wall)
+  poly(c, [x + w, y + h - 6, x + w, y + h, x + w - 6, y + h], 'rgba(18, 12, 6, 0.35)');
+  poly(c, [x + w - 6, y + h, x + w, y + h - 6, x + w - 6, y + h - 6], p[0]);
+  lines.forEach((s, i) => text(c, s, x + w / 2, y + 4 + size + i * lh, ink, size, 'center', null));
+  const m = opts.mount ?? 'tape';
+  if (m === 'tape') { tape(c, x - 3, y - 2, 10, 5); tape(c, x + w - 7, y - 2, 10, 5); }
+  else if (m === 'tack') tack(c, x + w / 2 - 1, y - 2, opts.pinCol ?? '#C02424');
+  else if (m === 'magnet') { box(c, x + w / 2 - 4, y - 3, 8, 6, INK); box(c, x + w / 2 - 3, y - 2, 6, 4, opts.pinCol ?? '#2D51B0'); box(c, x + w / 2 - 3, y - 2, 3, 1, '#FFFFFF'); }
+  return { w, h };
+};
+
+/** A screwed-up plate of one or more lines, sized to its words. `cx` is its middle. */
+const plate = (c: Ctx, cx: number, y: number, lines: string[], face: string, ink: string, size = 8) => {
+  const w = Math.max(...lines.map(s => s.length)) * size + 18, lh = size + 5, h = lines.length * lh + 9;
+  const x = Math.round(cx - w / 2);
+  shade(c, x - 4, y - 4, w + 8, h + 8, 0.38, 4);
+  box(c, x - 4, y - 4, w + 8, h + 8, INK);
+  const fp = rampOf('#3A3F48');
+  box(c, x - 3, y - 3, w + 6, h + 6, fp[2]); box(c, x - 3, y - 3, w + 6, 1, fp[4]); box(c, x - 3, y - 3, 1, h + 6, fp[3]);
+  box(c, x - 3, y + h + 2, w + 6, 1, fp[0]); box(c, x + w + 2, y - 3, 1, h + 6, fp[1]);
+  const fc = rampOf(face);
+  box(c, x, y, w, h, face);
+  box(c, x, y, w, 2, fc[3]); checker(c, x, y + 2, w, 2, fc[3]);
+  box(c, x, y + h - 2, w, 2, fc[1]); checker(c, x, y + h - 4, w, 2, fc[1], 1);
+  for (const [bx, by] of [[x + 2, y + 2], [x + w - 4, y + 2], [x + 2, y + h - 4], [x + w - 4, y + h - 4]]) screw(c, bx, by);
+  lines.forEach((s, i) => text(c, s, cx, y + 5 + size + i * lh, ink, size, 'center', mix(face, INK, 0.5)));
+  return { x, w, h };
+};
+
+/** A sign put up with `sign` (kit): its shadow on the wall first, and screws in it. */
+const wallSign = (c: Ctx, x: number, y: number, words: string, face: string, ink: string, size = 8) => {
+  const w = words.length * size + 16, h = size + 12;
+  shade(c, x - 4, y - 4, w + 8, h + 8, 0.38, 4);
+  sign(c, x, y, w, h, face, words, ink, size);
+  return w;
+};
+
+/** A water stain down from the ceiling: rings of brown, streaks running down from it. */
+const stain = (c: Ctx, x: number, y: number, r: number, run: number) => {
+  pixelBlob(c, x, y, r, r * 0.7, 'rgba(92, 70, 28, 0.22)');
+  pixelBlob(c, x - r * 0.15, y - 2, r * 0.7, r * 0.45, 'rgba(110, 84, 34, 0.2)');
+  c.strokeStyle = 'rgba(70, 50, 18, 0.35)'; c.lineWidth = 2; c.beginPath(); c.ellipse(x, y, r, r * 0.7, 0, 0.2, Math.PI - 0.2); c.stroke();
+  for (let k = 0; k < 4; k++) {
+    const sx = Math.round(x - r * 0.6 + k * r * 0.4 + hash(x + k) * 6), len = run * (0.4 + hash(x * 3 + k) * 0.6);
+    box(c, sx, y, 2, len, 'rgba(84, 62, 24, 0.22)');
+    box(c, sx, y + len - 4, 2, 4, 'rgba(84, 62, 24, 0.3)');
+  }
+};
+/** Black mold in a corner: a dark bloom, specks round it. */
+const mold = (c: Ctx, x: number, y: number, rw: number, rh: number) => {
+  pixelBlob(c, x, y, rw, rh, 'rgba(24, 34, 18, 0.45)');
+  pixelBlob(c, x, y, rw * 0.6, rh * 0.6, 'rgba(16, 24, 12, 0.5)');
+  for (let k = 0; k < 26; k++) {
+    const a = hash(x * 0.7 + k * 13) * Math.PI * 2, d = 0.6 + hash(y + k * 7) * 0.7;
+    box(c, Math.round(x + Math.cos(a) * rw * d), Math.round(y + Math.sin(a) * rh * d), 2, 2, k % 3 ? 'rgba(20, 30, 14, 0.6)' : 'rgba(60, 74, 34, 0.6)');
+  }
+};
+/** Paint peeled off the block: bare gray concrete showing in a ragged patch, the broken paint edge shadowed along the
+ * top and left (the light's from up there), lit along the bottom and right, a flake curling off one end. */
+const peel = (c: Ctx, x: number, y: number, w: number, h: number) => {
+  const x0 = Math.round(x - w / 2), y0 = Math.round(y - h / 2), bare = '#8A887A';
+  for (const [px, py, pw, ph] of [[0, 4, w, h - 8], [4, 0, w - 12, h], [8, h - 2, w * 0.4, 4], [w * 0.5, -2, w * 0.3, 4]]) box(c, x0 + px, y0 + py, pw, ph, bare);
+  for (let k = 0; k < 8; k++) box(c, x0 + 3 + Math.floor(hash(x + k) * (w - 6)), y0 + 2 + Math.floor(hash(y + k * 3) * (h - 4)), 2, 1, '#6E6C60');
+  box(c, x0 + 4, y0, w - 12, 1, '#3A4030'); box(c, x0, y0 + 4, 1, h - 8, '#3A4030'); box(c, x0 + w * 0.5, y0 - 2, w * 0.3, 1, '#3A4030');
+  box(c, x0 + 4, y0 + h, w - 12, 1, lite(WALLC, 0.3)); box(c, x0 + w, y0 + 4, 1, h - 8, lite(WALLC, 0.3));
+  poly(c, [x0 + w, y0 + 4, x0 + w + 6, y0 + 2, x0 + w + 4, y0 + 10, x0 + w, y0 + 9], lite(WALLC, 0.18));
+  box(c, x0 + w + 1, y0 + 10, 4, 1, dark(WALLC, 0.35));
+};
+/** A crack across something: a jagged ink line, a lit lip under it. */
+const crack = (c: Ctx, x: number, y: number, len: number, seed: number, col = 'rgba(26, 11, 6, 0.75)') => {
+  const pts: number[] = [x, y]; let px = x, py = y;
+  for (let i = 0; i < 5; i++) { px += len / 5; py += (hash(seed + i) - 0.5) * 10; pts.push(Math.round(px), Math.round(py)); }
+  line(c, pts.map((v, i) => (i % 2 ? v + 1 : v)), 'rgba(255, 255, 240, 0.18)');
+  line(c, pts, col);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The room itself: ceiling, wall, floor, end walls (painted a strip at a time, a..b)
+
+const ceiling = (c: Ctx, a: number, b: number) => {
+  const w = b - a;
+  bandedGradient(c, a, -60, w, CEIL_Y - 4 + 60, ['#3E3C32', '#5E5A4A', '#86806A', '#A29A80'], 8);
+  // (the grid: tiles 60 wide, two rows of them in view, the T-bar between)
+  for (const ty of [26, CEIL_Y - 8]) { box(c, a, ty, w, 2, '#C4C0AE'); box(c, a, ty + 2, w, 1, '#5A5646'); }
+  for (let x = Math.floor((a - X0) / 60) * 60 + X0; x < b; x += 60) {
+    box(c, x, -60, 2, CEIL_Y - 8 + 60, '#B4B09E'); box(c, x + 2, -60, 1, CEIL_Y - 8 + 60, '#5A5646');
+    for (const [t0, t1] of [[-60, 26], [28, CEIL_Y - 8]]) {
+      // (the pinholes in the acoustic tile, and a stain on every few)
+      for (let k = 0; k < 14; k++) box(c, x + 4 + Math.floor(hash(x + k * 3.1 + t0) * 52), t0 + 2 + Math.floor(hash(x * 1.3 + k + t1) * (t1 - t0 - 4)), 1, 1, 'rgba(40, 36, 26, 0.5)');
+      const s = hash(x * 0.37 + t0);
+      if (s > 0.6) pixelBlob(c, x + 18 + s * 24, (t0 + t1) / 2 + 2, 10 + s * 8, 6 + s * 4, 'rgba(110, 82, 30, 0.28)');
+    }
+  }
+  // (the edge of it, where it meets the wall: a dark trim, the underside in shadow)
+  box(c, a, CEIL_Y - 6, w, 6, '#34322A'); box(c, a, CEIL_Y - 6, w, 1, '#5A5646'); checker(c, a, CEIL_Y - 2, w, 2, '#1E1C16');
+};
+
+/** The two tiles in the ceiling that aren't right: one missing (the roof dripping through it), one sagging. */
+const ceilingFaults = (c: Ctx) => {
+  // (missing: the dark above, a pipe, a cable hanging out, the tile's edges water-rotted)
+  const mx = rx(1880);
+  box(c, mx + 3, 28, 57, CEIL_Y - 36, '#0C0B0A');
+  box(c, mx + 3, 40, 57, 6, '#3A3F48'); box(c, mx + 3, 40, 57, 1, '#6B737E'); box(c, mx + 3, 45, 57, 1, '#1A1C20');
+  for (let k = 0; k < 3; k++) box(c, mx + 10 + k * 18, 47, 2, 2, '#5A3A18');
+  line(c, [mx + 40, 30, mx + 44, 50, mx + 38, 66, mx + 42, 80], '#1A1A1A', 2);
+  box(c, mx + 40, 78, 4, 6, '#B91C1C');
+  pixelBlob(c, mx + 30, 26, 40, 8, 'rgba(92, 64, 22, 0.45)');
+  stain(c, mx + 30, CEIL_Y + 8, 26, 120);
+  // (sagging: bowed down below the grid, brown in the middle)
+  const sx = rx(720);
+  poly(c, [sx + 3, CEIL_Y - 8, sx + 57, CEIL_Y - 8, sx + 50, CEIL_Y + 2, sx + 30, CEIL_Y + 6, sx + 10, CEIL_Y + 2], '#8C8670');
+  pixelBlob(c, sx + 30, CEIL_Y - 2, 18, 6, 'rgba(100, 72, 24, 0.5)');
+  line(c, [sx + 8, CEIL_Y + 2, sx + 30, CEIL_Y + 6, sx + 52, CEIL_Y + 2], INK, 1);
+};
+
+const wall = (c: Ctx, a: number, b: number) => {
+  const w = b - a;
+  // Painted block: dingy institutional green, darker up under the ceiling, a shade lighter where the lights hit it
+  bandedGradient(c, a, CEIL_Y, w, STRIPE - CEIL_Y, ['#3A3F32', '#525A46', '#646B58', '#6E7561', '#666D59'], 12);
+  for (let y = CEIL_Y + 10, row = 0; y < STRIPE; y += 24, row++) {
+    box(c, a, y, w, 2, 'rgba(36, 40, 30, 0.55)'); box(c, a, y + 2, w, 1, 'rgba(160, 170, 140, 0.18)');
+    for (let x = Math.floor((a - X0) / 48) * 48 + X0 - 48 + (row % 2) * 24; x < b; x += 48) {
+      box(c, x, y + 2, 2, 22, 'rgba(36, 40, 30, 0.45)'); box(c, x + 2, y + 2, 1, 22, 'rgba(160, 170, 140, 0.14)');
+      // (the block's face: pitted, a darker smudge on some)
+      for (let k = 0; k < 4; k++) box(c, x + 4 + Math.floor(hash(x + y * 0.1 + k) * 40), y + 4 + Math.floor(hash(x * 0.3 + y + k * 5) * 18), 2, 1, 'rgba(30, 34, 24, 0.35)');
+      if (hash(x * 0.11 + y) > 0.85) checker(c, x + 6, y + 6, 30, 12, 'rgba(40, 36, 20, 0.18)');
+    }
+  }
+  // The stripe the park paints on everything: red, white and blue, gone pale, chipped
+  box(c, a, STRIPE, w, 8, fade(FLAG_RED[2], 0.42)); box(c, a, STRIPE, w, 1, fade(FLAG_RED[3], 0.4));
+  box(c, a, STRIPE + 8, w, 4, fade(FLAG_WHITE[3], 0.4));
+  box(c, a, STRIPE + 12, w, 8, fade(FLAG_BLUE[2], 0.4)); box(c, a, STRIPE + 19, w, 1, fade(FLAG_BLUE[0], 0.4));
+  checker(c, a, STRIPE + 6, w, 2, fade(FLAG_RED[1], 0.4));
+  for (let x = Math.floor((a - X0) / 70) * 70 + X0; x < b; x += 70) {
+    const s = hash(x * 0.21);
+    if (s < 0.45) continue;
+    const cw = 6 + Math.floor(s * 22), cy = STRIPE + Math.floor(hash(x) * 10);
+    box(c, x + 10, cy, cw, 6 + Math.floor(s * 6), '#6A6E5E'); box(c, x + 10, cy + 6 + Math.floor(s * 6), cw, 1, '#3E4234');
+    box(c, x + 10, cy, cw, 1, '#8A8E7C');
+  }
+  // The wainscot: glazed tile, gone the color of old teeth, grime working up from the floor
+  const tile = tilePattern(c, 'pen-wain', 16, 16, g => {
+    g.fillStyle = '#4E4B3A'; g.fillRect(0, 0, 16, 16);
+    g.fillStyle = '#8F8B72'; g.fillRect(0, 0, 15, 15);
+    g.fillStyle = '#A29E84'; g.fillRect(0, 0, 15, 1); g.fillRect(0, 0, 1, 15);
+    g.fillStyle = '#7A765F'; g.fillRect(1, 13, 14, 2); g.fillRect(13, 1, 2, 13);
+    g.fillStyle = '#B4B096'; g.fillRect(2, 2, 3, 1);
+  });
+  c.fillStyle = tile; c.fillRect(a, WAIN, w, BASE - WAIN);
+  box(c, a, WAIN, w, 4, '#454234'); box(c, a, WAIN, w, 1, '#5E5A48');
+  hazeBands(c, a, WAIN + 40, w, BASE - WAIN - 40, '#2A2414', 0.02, 0.5, 5);
+  // (cracked and missing tiles, here and there)
+  for (let x = Math.floor((a - X0) / 16) * 16 + X0; x < b; x += 16) for (let y = WAIN + 4; y < BASE - 8; y += 16) {
+    const s = hash(x * 0.917 + y * 0.31);
+    if (s > 0.985) { box(c, x, y - 2, 15, 15, '#3A3628'); for (let k = 0; k < 3; k++) box(c, x + 2, y + 1 + k * 4, 11, 1, '#2A2618'); box(c, x, y - 2, 15, 1, '#24201A'); }
+    else if (s > 0.955) line(c, [x + 1, y + 1, x + 6, y + 6, x + 4, y + 9, x + 12, y + 13], 'rgba(26, 11, 6, 0.6)');
+  }
+  // The rubber base, scuffed
+  box(c, a, BASE, w, G - BASE, '#25231E'); box(c, a, BASE, w, 1, '#3A372E'); box(c, a, BASE + 1, w, 1, '#2E2B24');
+  for (let x = Math.floor((a - X0) / 30) * 30 + X0; x < b; x += 30) if (hash(x * 0.53) > 0.5) box(c, x + hash(x) * 20, BASE + 4 + hash(x * 2) * 6, 6 + hash(x * 3) * 10, 1, '#4A463A');
+};
+
+/** Faults on the wall: water stains, peeling, mold in the corners (the ones in a..b). */
+const wallFaults = (c: Ctx) => {
+  for (const [r, rad, run] of [[60, 20, 90], [470, 24, 140], [1240, 18, 70], [1730, 22, 120], [2210, 20, 60]]) stain(c, rx(r), CEIL_Y + 12, rad, run);
+  for (const [r, y, w, h] of [[300, 120, 28, 16], [770, 300, 22, 14], [1110, 140, 30, 18], [1440, 300, 24, 14], [1900, 380, 26, 16], [2370, 150, 30, 20], [700, 384, 18, 12], [1270, 200, 20, 12]]) peel(c, rx(r), y, w, h);
+  mold(c, rx(10), CEIL_Y + 14, 34, 24); mold(c, rx(LEN - 10), CEIL_Y + 16, 40, 28);
+  mold(c, rx(12), BASE - 6, 28, 22); mold(c, rx(LEN - 8), BASE - 10, 30, 26);
+  mold(c, rx(1910), CEIL_Y + 30, 30, 18); mold(c, rx(2300), BASE - 4, 26, 14); mold(c, rx(770), BASE - 2, 20, 12);
+};
+
+const floor = (c: Ctx, a: number, b: number) => {
+  const w = b - a, bottom = CANVAS_HEIGHT + 60;
+  // Vinyl tile, faded the two colors it once was, cracked, scuffed, grime in the seams
+  const pat = tilePattern(c, 'pen-floor', 64, 16, g => {
+    for (let i = 0; i < 2; i++) {
+      const col = i ? '#6C6750' : '#7E7860', r = rampOf(col);
+      g.fillStyle = '#3A3626'; g.fillRect(i * 32, 0, 32, 16);
+      g.fillStyle = col; g.fillRect(i * 32, 0, 31, 15);
+      g.fillStyle = r[3]; g.fillRect(i * 32, 0, 31, 1); g.fillRect(i * 32, 0, 1, 15);
+      g.fillStyle = r[1]; g.fillRect(i * 32 + 1, 13, 30, 2);
+      g.fillStyle = r[1]; for (let k = 0; k < 6; k++) g.fillRect(i * 32 + 3 + ((k * 11) % 26), 3 + ((k * 7) % 9), 2, 1);
+    }
+  });
+  c.save(); c.translate(0, G + 4); c.fillStyle = pat; c.fillRect(a, 0, w, bottom - G); c.restore();
+  hazeBands(c, a, G + 4, w, 60, '#14120C', 0.05, 0.6, 5);
+  // (the edge he walks on: the only lit top in the room)
+  box(c, a, G, w, 2, '#D4CEAE'); box(c, a, G + 2, w, 2, '#9C9678'); checker(c, a, G + 4, w, 2, '#9C9678');
+  for (let x = Math.floor((a - X0) / 32) * 32 + X0; x < b; x += 32) {
+    const s = hash(x * 0.71);
+    if (s > 0.7) crack(c, x + 4, G + 8 + Math.floor(s * 10), 24, x);
+    if (s < 0.25) box(c, x + Math.floor(s * 60), G + 6 + Math.floor(hash(x) * 20), 8 + Math.floor(s * 30), 1, 'rgba(14, 12, 8, 0.6)');
+    if (s > 0.45 && s < 0.5) pixelBlob(c, x + 16, G + 14, 14, 4, 'rgba(70, 50, 20, 0.35)');
+  }
+};
+
+const endWall = (c: Ctx, wx: number, face: 1 | -1) => {
+  const top = -60, h = CANVAS_HEIGHT + 120;
+  const cols = face > 0 ? ['#2E2F2A', '#373832', '#41433B', '#4B4D44', '#56594E'] : ['#56594E', '#4B4D44', '#41433B', '#373832', '#2E2F2A'];
+  cols.forEach((col, i) => box(c, wx + i * (WALL / cols.length), top, WALL / cols.length + 1, h, col));
+  for (let i = 1; i < cols.length; i++) checker(c, wx + i * (WALL / cols.length) - 2, top, 2, h, cols[i - 1]);
+  const edge = face > 0 ? wx + WALL - 10 : wx;
+  box(c, face > 0 ? wx + WALL - 2 : wx, top, 2, h, face > 0 ? '#8A8C7E' : '#121210');
+  for (let y = top; y < G; y += 28) box(c, edge + (face > 0 ? -2 : 2), y, 8, 14, (Math.floor(y / 28) % 2) ? fade('#CA8A04', 0.3) : '#18181B');
+  for (let y = top + 40; y < G; y += 96) for (let k = 0; k < 2; k++) { box(c, wx + 14 + k * 20, y, 4, 4, '#1E1E1A'); box(c, wx + 14 + k * 20, y + 4, 4, 1, '#6A6C60'); }
+  for (let y = top; y < G; y += 192) box(c, wx, y, WALL, 2, '#24241F');
+  box(c, wx, G, WALL, 4, '#1A1A16');
+  // (a run of grime and a water line along its foot)
+  hazeBands(c, wx, G - 40, WALL, 40, '#14120C', 0, 0.45, 4);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The props, near end to far
+
+/** The door out to the hub (the player presses up at it), TO THE HUB over it. */
+const exitDoor = (c: Ctx) => {
+  const x = EXIT_X - 34, y = G - 120, w = 68, h = 120;
+  shade(c, x - 6, y - 6, w + 12, h + 6, 0.3, 4);
+  box(c, x - 7, y - 7, w + 14, h + 7, INK);
+  slab(c, x - 6, y - 6, w + 12, h + 6, '#3E434A', { ink: false });
+  box(c, x - 1, y - 1, w + 2, h + 1, '#0E0F12');
+  slab(c, x, y, w, h, '#56606C');
+  for (const py of [y + 60, y + 90]) { box(c, x + 6, py, w - 12, 1, '#3C434C'); box(c, x + 6, py + 1, w - 12, 1, '#7A8592'); }
+  // (wired glass, a glint across it)
+  box(c, x + 17, y + 13, 34, 38, INK);
+  bandedGradient(c, x + 19, y + 15, 30, 34, ['#1E2C38', '#34485A', '#24323E'], 4);
+  for (let k = 0; k < 30; k += 6) { box(c, x + 19 + k, y + 15, 1, 34, 'rgba(160, 170, 180, 0.25)'); box(c, x + 19, y + 15 + k, 30, 1, 'rgba(160, 170, 180, 0.25)'); }
+  line(c, [x + 22, y + 46, x + 40, y + 18], 'rgba(255, 255, 255, 0.45)', 2); line(c, [x + 30, y + 46, x + 46, y + 22], 'rgba(255, 255, 255, 0.25)', 1);
+  // (the kick plate, kicked; the lever)
+  slab(c, x + 3, G - 22, w - 6, 18, '#8C8F94', { ink: false });
+  for (let k = 0; k < 5; k++) line(c, [x + 8 + k * 11, G - 18 + (k % 2) * 4, x + 14 + k * 11, G - 8], 'rgba(30, 30, 34, 0.6)');
+  oval(c, x + 40, G - 12, 6, 4, 'rgba(30, 30, 34, 0.45)');
+  box(c, x + w - 22, y + 62, 14, 4, INK); box(c, x + w - 21, y + 62, 12, 3, '#C8CCD2'); box(c, x + w - 21, y + 62, 12, 1, '#FFFFFF');
+  ball(c, x + w - 10, y + 64, 3, '#A3ABB6');
+  // (a faded smiley sticker, half scraped off)
+  ball(c, x + 14, y + 72, 6, '#C8B048', false); box(c, x + 11, y + 70, 2, 2, '#4A3A10'); box(c, x + 16, y + 70, 2, 2, '#4A3A10'); box(c, x + 11, y + 75, 7, 1, '#4A3A10');
+  box(c, x + 14, y + 66, 8, 12, '#5A6470');
+  box(c, x, G - 2, w, 2, '#08090A');
+  wallSign(c, EXIT_X - 48, G - 156, 'TO THE HUB', '#1F6B3A', '#ECFCCB');
+  // (an arrow pointing at it, painted on the wall, and the path worn into the floor in front)
+  for (const [ax, dir] of [[x - 22, 1], [x + w + 22, -1]] as const) { box(c, ax - 5, G - 70, 10, 4, fade('#EAB308', 0.35)); poly(c, [ax + dir * 5, G - 74, ax + dir * 11, G - 68, ax + dir * 5, G - 62], fade('#EAB308', 0.35)); }
+};
+
+/** A dead potted plant in the corner, a little flag still stuck in it. */
+const deadPlant = (c: Ctx) => {
+  const x = rx(46), y = G - 30;
+  shade(c, x - 18, y, 36, 30, 0.3);
+  poly(c, [x - 19, y - 1, x + 19, y - 1, x + 15, G + 1, x - 15, G + 1], INK);
+  poly(c, [x - 18, y, x + 18, y, x + 14, G, x - 14, G], '#8A4A26');
+  poly(c, [x - 18, y, x - 6, y, x - 6, G, x - 14, G], '#A8623A');
+  poly(c, [x + 8, y, x + 18, y, x + 14, G, x + 8, G], '#6A3418');
+  box(c, x - 19, y - 4, 38, 6, '#6A3418'); box(c, x - 19, y - 4, 38, 1, '#8A4A26');
+  crack(c, x - 10, y + 8, 14, 9, INK);
+  // (the stalks, brown and bent over, the leaves dropped)
+  line(c, [x - 4, y - 2, x - 8, y - 40, x - 20, y - 52], '#5A4020', 2);
+  line(c, [x + 2, y - 2, x + 6, y - 50, x + 18, y - 44], '#5A4020', 2);
+  line(c, [x, y - 2, x + 1, y - 30, x - 4, y - 36], '#6A4C24', 2);
+  for (const [lx, ly] of [[-20, -52], [18, -44], [-6, -26], [8, -36]]) poly(c, [x + lx, y + ly, x + lx + 6, y + ly + 3, x + lx + 2, y + ly + 6], '#7A5A2A');
+  for (const [lx, ly] of [[-26, 0], [22, -2], [30, 0], [-32, -2]]) poly(c, [x + lx, G - 2 + ly, x + lx + 7, G - 3 + ly, x + lx + 4, G + ly], '#6A4C24');
+  box(c, x + 10, y - 26, 1, 24, '#C8C4B8');
+  box(c, x + 11, y - 26, 10, 6, fade(FLAG_RED[2], 0.2)); box(c, x + 11, y - 26, 4, 3, fade(FLAG_BLUE[2], 0.2)); box(c, x + 11, y - 23, 10, 1, '#E8E4D8');
+};
+
+/** The time clock, the punch cards, LATE? DOCKED., the suggestion box (taped shut), the mousetraps. */
+const timeClock = (c: Ctx) => {
+  const x = rx(180), y = 334;
+  // (the clock: beige steel, a dial stopped at five to nine, the slot)
+  shade(c, x, y, 52, 66);
+  slab(c, x, y, 52, 66, '#B4AA8A');
+  ball(c, x + 26, y + 22, 15, '#E8E2CC');
+  for (let k = 0; k < 12; k++) { const t = k * Math.PI / 6; box(c, Math.round(x + 26 + Math.cos(t) * 12), Math.round(y + 22 + Math.sin(t) * 12), 1, 1, INK); }
+  line(c, [x + 26, y + 22, x + 26, y + 12], INK, 2); line(c, [x + 26, y + 22, x + 33, y + 25], INK, 1);
+  line(c, [x + 16, y + 14, x + 34, y + 32], 'rgba(255, 255, 255, 0.35)');
+  box(c, x + 12, y + 44, 28, 5, INK); box(c, x + 16, y + 36, 20, 9, '#E8DFC0'); box(c, x + 16, y + 38, 20, 2, '#B91C1C');
+  box(c, x + 40, y + 66, 2, G - (y + 66), '#1E1E1E');
+  // (the racks of cards, two of them)
+  const rx0 = rx(240);
+  for (let r = 0; r < 2; r++) {
+    const ry = 318 + r * 64;
+    shade(c, rx0, ry, 54, 58);
+    slab(c, rx0, ry, 54, 58, '#6B737E');
+    for (let k = 0; k < 4; k++) {
+      const ly = ry + 12 + k * 12;
+      for (let s = 0; s < 3; s++) {
+        if (hash(r * 31 + k * 7 + s) < 0.2) continue;
+        const cx = rx0 + 5 + s * 16, up = 6 + Math.floor(hash(r + k + s * 3) * 4);
+        box(c, cx, ly - up, 13, up + 2, '#E8DFC0'); box(c, cx, ly - up, 13, 1, '#FFF8E0'); box(c, cx + 1, ly - up + 2, 11, 1, '#B91C1C');
+      }
+      box(c, rx0 + 3, ly, 48, 3, '#3A4048'); box(c, rx0 + 3, ly, 48, 1, '#A3ABB6');
+    }
+  }
+  // (one on the floor, footprint on it)
+  box(c, rx(262), G - 3, 18, 3, '#D8CFB0'); box(c, rx(266), G - 3, 6, 1, '#6A6050');
+  plate(c, rx(238), 282, ['LATE?', 'DOCKED.'], '#7A1E1A', '#FDEFD8');
+  // (the suggestion box: a slot taped over in an X, a padlock on it)
+  const sx = rx(186), sy = 414;
+  shade(c, sx, sy, 42, 34);
+  slab(c, sx, sy, 42, 34, '#7A5232');
+  box(c, sx + 9, sy + 6, 24, 3, INK);
+  line(c, [sx + 6, sy + 2, sx + 36, sy + 14], 'rgba(170, 170, 160, 0.9)', 3); line(c, [sx + 36, sy + 2, sx + 6, sy + 14], 'rgba(170, 170, 160, 0.9)', 3);
+  note(c, sx + 2, sy + 16, ['IDEAS'], { mount: 'none', paper: '#E8E0C8' });
+  box(c, sx + 18, sy + 34, 6, 6, '#B08A2A'); line(c, [sx + 19, sy + 34, sx + 19, sy + 31, sx + 23, sy + 31, sx + 23, sy + 34], '#8A8E96', 1);
+  // (mousetraps: one set, cheese gone hard; one gone off on nothing)
+  for (const [mx, set] of [[rx(206), true], [rx(296), false]] as const) {
+    box(c, mx - 1, G - 5, 20, 5, INK); box(c, mx, G - 4, 18, 4, '#B08850'); box(c, mx, G - 4, 18, 1, '#D0AA70');
+    if (set) { line(c, [mx + 2, G - 5, mx + 2, G - 9, mx + 10, G - 9], '#A3ABB6'); poly(c, [mx + 11, G - 4, mx + 17, G - 4, mx + 17, G - 9], '#E8C040'); }
+    else line(c, [mx + 2, G - 5, mx + 16, G - 6], '#A3ABB6', 2);
+  }
+};
+
+/** EMPLOYEES ONLY / SMILE BEFORE YOU GO OUT, over a cracked mirror with a smile drawn on it in lipstick. */
+const mirror = (c: Ctx) => {
+  plate(c, rx(410), 190, ['EMPLOYEES ONLY', 'SMILE BEFORE YOU GO OUT'], '#8E2A22', '#FDEFD8');
+  const x = rx(362), y = 248, w = 96, h = 124;
+  shade(c, x, y, w, h, 0.38, 4);
+  slab(c, x, y, w, h, '#A3ABB6');
+  box(c, x + 6, y + 6, w - 12, h - 12, INK);
+  bandedGradient(c, x + 7, y + 7, w - 14, h - 14, ['#3E505C', '#5A707E', '#6E8696', '#55697A', '#3A4A56'], 8);
+  // (what it shows: the room behind you, dimmer)
+  box(c, x + 7, y + h - 40, w - 14, 2, 'rgba(30, 36, 30, 0.5)');
+  for (const [gx, gw] of [[14, 26], [30, 12]]) line(c, [x + gx, y + 60, x + gx + gw, y + 14], 'rgba(255, 255, 255, 0.35)', 2);
+  // (cracked from a corner)
+  const cx = x + 72, cy = y + 30;
+  for (const [ex, ey] of [[x + 88, y + 8], [x + 52, y + 12], [x + 40, y + 52], [x + 86, y + 70], [x + 64, y + 90]]) line(c, [cx, cy, (cx + ex) / 2 + 3, (cy + ey) / 2 - 2, ex, ey], 'rgba(230, 240, 245, 0.55)');
+  box(c, cx - 2, cy - 2, 4, 4, 'rgba(230, 240, 245, 0.7)');
+  // (the lipstick: eyes, a big smile)
+  c.strokeStyle = '#C0304A'; c.lineWidth = 3; c.beginPath(); c.arc(x + 46, y + 66, 22, 0.15 * Math.PI, 0.85 * Math.PI); c.stroke();
+  box(c, x + 34, y + 44, 4, 8, '#C0304A'); box(c, x + 54, y + 44, 4, 8, '#C0304A');
+  note(c, x - 4, y + h - 30, ['YOU ARE', 'THE MAGIC'], { paper: '#F2C6D4', ink: '#6E1840' });
+  // (a shelf under it, dim; a comb, a can of something that says FRESH on it in another language)
+  box(c, x + 8, y + h + 4, w - 16, 5, dim('#6B5A40')); dimTop(c, x + 8, y + h + 4, w - 16, dim('#6B5A40'), 2);
+  box(c, x + 20, y + h + 1, 14, 3, '#2A2A2A'); for (let k = 0; k < 6; k++) box(c, x + 21 + k * 2, y + h + 3, 1, 1, '#2A2A2A');
+  pole(c, x + 62, y + h - 14, 8, 18, '#5A7A9A'); box(c, x + 62, y + h - 17, 8, 3, '#A3ABB6');
+};
+
+/** The mop bucket (gray water), the mop leaned on the wall, a CAUTION sign with nobody on it but the stick man. */
+const mopBucket = (c: Ctx) => {
+  const x = rx(322);
+  line(c, [x + 30, G - 26, x + 70, G - 176], INK, 5); line(c, [x + 30, G - 26, x + 70, G - 176], '#9A7A4A', 3); line(c, [x + 29, G - 28, x + 69, G - 178], '#C49A62', 1);
+  shade(c, x, G - 34, 50, 34, 0.25, 3);
+  poly(c, [x - 1, G - 35, x + 51, G - 35, x + 47, G - 3, x + 3, G - 3], INK);
+  poly(c, [x, G - 34, x + 50, G - 34, x + 46, G - 4, x + 4, G - 4], '#B48A10');
+  poly(c, [x, G - 34, x + 14, G - 34, x + 14, G - 4, x + 4, G - 4], '#D4A82A');
+  poly(c, [x + 38, G - 34, x + 50, G - 34, x + 46, G - 4, x + 38, G - 4], '#8A6408');
+  box(c, x + 1, G - 36, 48, 4, '#5A5A48'); box(c, x + 1, G - 36, 48, 1, '#6E6E58');
+  box(c, x + 30, G - 46, 18, 14, '#6B737E'); box(c, x + 30, G - 46, 18, 2, '#A3ABB6'); box(c, x + 46, G - 52, 3, 8, '#3A4048');
+  pixelBlob(c, x + 28, G - 36, 14, 6, '#8A8676');
+  for (let k = 0; k < 6; k++) box(c, x + 18 + k * 4, G - 36, 2, 10 + (k % 3) * 3, '#7A7666');
+  for (const wx of [x + 8, x + 42]) { ball(c, wx, G - 3, 3, '#2A2A2A'); }
+  checker(c, x + 4, G - 18, 42, 2, 'rgba(60, 40, 0, 0.4)');
+  // (the wet floor sign: a yellow A-frame, faded, a man slipping)
+  const sx = rx(440);
+  poly(c, [sx - 1, G + 1, sx + 15, G - 47, sx + 31, G - 47, sx + 47, G + 1], INK);
+  poly(c, [sx + 1, G, sx + 16, G - 45, sx + 30, G - 45, sx + 45, G], fade('#EAB308', 0.15));
+  poly(c, [sx + 1, G, sx + 16, G - 45, sx + 20, G - 45, sx + 8, G], lite(fade('#EAB308', 0.15), 0.25));
+  poly(c, [sx + 36, G - 18, sx + 30, G - 45, sx + 45, G], dark(fade('#EAB308', 0.15), 0.25));
+  ball(c, sx + 18, G - 34, 3, '#1A1A1A', false);
+  line(c, [sx + 18, G - 30, sx + 24, G - 20, sx + 32, G - 22], '#1A1A1A', 3); line(c, [sx + 24, G - 20, sx + 16, G - 12], '#1A1A1A', 3);
+  line(c, [sx + 20, G - 28, sx + 12, G - 24], '#1A1A1A', 2); line(c, [sx + 10, G - 8, sx + 36, G - 8], '#1A1A1A', 2);
+};
+
+/** The board that's never got past 0 (the 0 rubbed out and written in again, a lot), and the record. */
+const incidentBoard = (c: Ctx) => {
+  const x = rx(530), y = 128, w = 220, h = 142;
+  shade(c, x, y, w, h, 0.38, 4);
+  slab(c, x, y, w, h, '#A3ABB6');
+  box(c, x + 6, y + 6, w - 12, h - 12, '#5A6068');
+  bandedGradient(c, x + 7, y + 7, w - 14, h - 14, ['#F4F4EE', '#E8E8E0', '#DADAD0'], 5);
+  for (const [sx, sy, sw] of [[110, 84, 30], [96, 100, 40], [140, 70, 20]]) pixelBlob(c, x + sx, y + sy, sw, 8, 'rgba(120, 130, 150, 0.1)');
+  text(c, '1', x + 84, y + 100, 'rgba(200, 40, 40, 0.14)', 24, 'center', null);
+  text(c, 'DAYS WITHOUT', x + w / 2, y + 30, '#1E3A8A', 8, 'center', null);
+  text(c, 'AN INCIDENT:', x + w / 2, y + 46, '#1E3A8A', 8, 'center', null);
+  text(c, '0', x + w / 2, y + 100, '#DC2626', 24, 'center', '#F4A0A0');
+  text(c, 'RECORD: 1', x + w / 2, y + 124, '#3A3F48', 8, 'center', null);
+  for (const [bx, by] of [[x + 3, y + 3], [x + w - 5, y + 3], [x + 3, y + h - 5], [x + w - 5, y + h - 5]]) screw(c, bx, by);
+  // (the marker on its string, dried out)
+  box(c, x + 30, y + h - 2, 1, 30, '#E8E4D8');
+  box(c, x + 27, y + h + 26, 7, 18, INK); box(c, x + 28, y + h + 27, 5, 13, '#2A3A9A'); box(c, x + 28, y + h + 40, 5, 3, '#1A1A1A');
+};
+
+/** The fire exit, chained and padlocked, boxes of the park's spare cheer stacked in front of it. */
+const fireExit = (c: Ctx) => {
+  const x = rx(566), y = 410, w = 78, h = G - 410;
+  shade(c, x - 5, y - 5, w + 10, h + 5, 0.3, 4);
+  box(c, x - 6, y - 6, w + 12, h + 6, INK);
+  slab(c, x - 5, y - 5, w + 10, h + 5, '#3A3F48', { ink: false });
+  slab(c, x, y, w, h, '#5A4A44');
+  box(c, x + w / 2, y, 1, h, '#2A201C');
+  text(c, 'KEEP CLEAR', x + w / 2, y + 22, '#D8D0C0', 6, 'center', '#2A201C');
+  // (the crash bar, a chain round it, a padlock)
+  slab(c, x + 6, y + 60, w - 12, 7, '#A3ABB6', { ink: true });
+  for (let k = 0; k < 9; k++) { const lx = x + 8 + k * 7; c.strokeStyle = k % 2 ? '#8A8E96' : '#B8BCC4'; c.lineWidth = 2; c.strokeRect(lx, y + 58 + (k % 2) * 3, 6, 5); }
+  box(c, x + w / 2 - 5, y + 68, 10, 10, INK); box(c, x + w / 2 - 4, y + 69, 8, 8, '#B08A2A'); box(c, x + w / 2 - 4, y + 69, 8, 2, '#D8B650'); box(c, x + w / 2 - 1, y + 72, 2, 3, INK);
+  // (the sign over it, on a bracket: lit, the one light in here somebody keeps on)
+  box(c, x + 10, 362, 3, 10, '#3A3F48'); box(c, x + w - 13, 362, 3, 10, '#3A3F48');
+  steppedGlow(c, x + w / 2, 382, 40, '#FF5A4A', 0.08, 0.0, 4);
+  wallSign(c, x + w / 2 - 44, 372, 'FIRE EXIT', '#4A0E0E', '#FF6A50');
+  // (the boxes: labels sized to their words)
+  const crate = (bx: number, by: number, bw: number, bh: number, label: string, seed: number) => {
+    const cr = rampOf('#9A7044');
+    shade(c, bx, by, bw, bh, 0.3, 3);
+    slab(c, bx, by, bw, bh, '#9A7044');
+    dimTop(c, bx, by, bw, '#9A7044', 4);
+    box(c, bx + bw / 2 - 5, by + 2, 10, bh * 0.4, 'rgba(206, 186, 130, 0.7)');
+    if (label) {
+      const lw = label.length * 6 + 6;
+      box(c, bx + bw / 2 - lw / 2, by + bh - 18, lw, 11, '#D8C8A0');
+      text(c, label, bx + bw / 2, by + bh - 9, '#3A2A18', 6, 'center', null);
+    }
+    if (hash(seed) > 0.4) pixelBlob(c, bx + bw * 0.7, by + bh - 6, bw * 0.25, 6, 'rgba(60, 40, 16, 0.4)');
+    box(c, bx + 2, by + bh - 2, bw - 4, 1, cr[0]);
+  };
+  crate(rx(524), G - 48, 60, 48, 'BUNTING', 1);
+  crate(rx(584), G - 40, 72, 40, 'FOAM HANDS', 2);
+  crate(rx(656), G - 64, 48, 64, 'FLAGS', 3);
+  crate(rx(536), G - 90, 68, 42, 'SPARKLERS', 4);
+  crate(rx(606), G - 72, 46, 32, 'MISC', 5);
+  crate(rx(664), G - 90, 32, 26, '', 6);
+  // (an open flap, foam hands poking out)
+  poly(c, [rx(664), G - 90, rx(672), G - 102, rx(676), G - 90], '#B48A58');
+  for (let k = 0; k < 2; k++) { box(c, rx(676 + k * 10), G - 104 + k * 4, 8, 14, INK); box(c, rx(677 + k * 10), G - 103 + k * 4, 6, 12, k ? '#2D51B0' : '#D93A2E'); box(c, rx(679 + k * 10), G - 110 + k * 4, 3, 7, k ? '#2D51B0' : '#D93A2E'); }
+};
+
+/** An overflowing trash can, what didn't fit round it on the floor. */
+const trash = (c: Ctx) => {
+  const x = rx(708);
+  pole(c, x, G - 56, 48, 56, '#5B6B7A');
+  for (const yy of [G - 50, G - 30, G - 10]) { box(c, x, yy, 48, 2, '#3A4652'); box(c, x, yy + 2, 48, 1, '#7A8A98'); }
+  box(c, x - 2, G - 58, 52, 4, INK);
+  // (the heap: bags, cups, a pizza box, a banana peel)
+  pixelBlob(c, x + 24, G - 64, 30, 14, '#1E1E22'); pixelBlob(c, x + 18, G - 68, 18, 10, '#34343C'); pixelBlob(c, x + 14, G - 72, 8, 4, '#4A4A54');
+  poly(c, [x + 26, G - 62, x + 58, G - 76, x + 60, G - 70, x + 30, G - 56], '#B4844A'); line(c, [x + 26, G - 62, x + 58, G - 76], '#D8B070');
+  box(c, x + 6, G - 82, 10, 14, INK); box(c, x + 7, G - 81, 8, 12, '#F1EFEA'); box(c, x + 7, G - 77, 8, 3, '#B91C1C');
+  poly(c, [x + 34, G - 80, x + 42, G - 84, x + 40, G - 74], '#D8C030'); poly(c, [x + 40, G - 74, x + 46, G - 70, x + 40, G - 70], '#A89020');
+  for (const [lx, w_, col] of [[-16, 10, '#F1EFEA'], [52, 8, '#9A7044'], [60, 12, '#B91C1C']] as const) { box(c, x + lx, G - 5, w_, 5, INK); box(c, x + lx + 1, G - 4, w_ - 2, 3, col); }
+  pixelBlob(c, x + 24, G - 2, 30, 3, 'rgba(70, 50, 16, 0.4)');
+};
+
+/** The mural the park painted on the wall to keep spirits up: faded, peeling, a mustache drawn on the star. */
+const mural = (c: Ctx) => {
+  const x = rx(796), y = 106, w = 264, h = 140, k = 0.52;
+  box(c, x, y, w, h, fade(FLAG_BLUE[2], k));
+  checker(c, x, y + h - 2, w, 2, fade(FLAG_BLUE[1], k));
+  for (let i = 0; i < 4; i++) { box(c, x, y + h - 30 + i * 8, w, 4, fade(FLAG_RED[2], k)); box(c, x, y + h - 26 + i * 8, w, 4, fade(FLAG_WHITE[3], k)); }
+  for (let i = 0; i < 9; i++) star(c, x + 16 + i * 30, y + 14 + (i % 2) * 6, 5, fade('#F1EFEA', k));
+  text(c, 'HAPPY LAND', x + w / 2 + 30, y + 54, fade('#F06A55', k - 0.08), 16, 'center', fade('#F1EFEA', k));
+  text(c, 'FUN IS MANDATORY', x + w / 2 + 30, y + 82, fade('#FFF0A0', k - 0.05), 8, 'center', fade(INK, k));
+  // (the park's star, grinning, a mustache in marker)
+  const sx = x + 38, sy = y + 66;
+  star(c, sx + 2, sy + 2, 30, fade(INK, k)); star(c, sx, sy, 30, fade('#F2CC4A', k - 0.05));
+  box(c, sx - 8, sy - 6, 4, 6, fade(INK, 0.3)); box(c, sx + 4, sy - 6, 4, 6, fade(INK, 0.3));
+  c.strokeStyle = fade(INK, 0.3); c.lineWidth = 2; c.beginPath(); c.arc(sx, sy + 2, 8, 0.15 * Math.PI, 0.85 * Math.PI); c.stroke();
+  line(c, [sx - 10, sy + 4, sx - 4, sy + 1, sx, sy + 3, sx + 4, sy + 1, sx + 10, sy + 4], '#1A1A1A', 2);
+  // (peeled, and somebody scratched HELP into it)
+  for (const [px, py, pw, ph] of [[60, 20, 30, 18], [200, 100, 36, 20], [250, 30, 18, 24], [140, 120, 24, 14]]) peel(c, x + px, y + py, pw, ph);
+  text(c, 'HELP', x + w - 30, y + 112, 'rgba(30, 30, 30, 0.55)', 6, 'center', null);
+  for (let i = 0; i < 6; i++) box(c, x + 20 + i * 44, y + h, 2, 6 + (i % 3) * 5, fade(FLAG_BLUE[2], k));
+};
+
+/** A bank of six lockers: dented, taped, stickered, one hanging open, a mascot's tail shut in another. Tops unlit. */
+const lockers = (c: Ctx) => {
+  const x0 = rx(810), y = 334, lw = 42, h = G - y;
+  const cols = ['#3C557A', '#3C557A', '#7A3C3C', '#3C557A', '#6B6F68', '#3C557A'];
+  shade(c, x0, y, lw * 6, h, 0.35, 4);
+  for (let i = 0; i < 6; i++) {
+    const x = x0 + i * lw, col = cols[i], r = rampOf(col);
+    slab(c, x, y, lw, h, col);
+    dimTop(c, x, y, lw, col, 4);
+    for (let k = 0; k < 5; k++) { box(c, x + 10, y + 12 + k * 5, lw - 20, 2, r[0]); box(c, x + 10, y + 14 + k * 5, lw - 20, 1, r[3]); }
+    for (let k = 0; k < 5; k++) { box(c, x + 10, y + h - 40 + k * 5, lw - 20, 2, r[0]); box(c, x + 10, y + h - 38 + k * 5, lw - 20, 1, r[3]); }
+    box(c, x + lw - 12, y + 92, 5, 22, INK); box(c, x + lw - 11, y + 93, 3, 20, '#A3ABB6'); box(c, x + lw - 11, y + 93, 1, 20, '#F6F8FA');
+    box(c, x + 14, y + 44, 14, 7, '#B08A2A'); box(c, x + 14, y + 44, 14, 1, '#F4E08C');
+    // (rust along the foot)
+    for (let k = 0; k < 6; k++) box(c, x + 3 + Math.floor(hash(i * 9 + k) * (lw - 8)), y + h - 6 - Math.floor(hash(i + k * 3) * 10), 3, 2, '#6A3418');
+    if (hash(i * 4.3) > 0.4) { const dx = x + 8 + hash(i) * 20, dy = y + 60 + hash(i * 2) * 80; oval(c, dx, dy, 7, 9, r[1]); oval(c, dx - 1, dy - 2, 5, 6, r[0]); box(c, dx + 4, dy + 4, 3, 2, r[3]); }
+  }
+  // (0: do not open; 1: stickers; 2: chained; 4: not my smell; 5: duct tape, the tail)
+  note(c, x0 + 6, y + 64, ['DO', 'NOT', 'OPEN'], { paper: '#F2E890' });
+  line(c, [x0 + 8, y + 10, x0 + 34, y + 36], 'rgba(170, 170, 160, 0.9)', 4); line(c, [x0 + 34, y + 10, x0 + 8, y + 36], 'rgba(170, 170, 160, 0.9)', 4);
+  { const x = x0 + lw; shinyStar(c, x + 14, y + 74, 7, '#F2CC4A'); ball(c, x + 28, y + 128, 6, '#E8C040'); box(c, x + 25, y + 126, 2, 2, INK); box(c, x + 30, y + 126, 2, 2, INK); box(c, x + 25, y + 130, 6, 1, INK);
+    box(c, x + 6, y + 150, 30, 12, INK); box(c, x + 7, y + 151, 28, 10, '#F1EFEA'); text(c, 'USA', x + 21, y + 160, '#B91C1C', 6, 'center', null); }
+  { const x = x0 + lw * 2; for (let k = 0; k < 7; k++) { c.strokeStyle = k % 2 ? '#8A8E96' : '#B8BCC4'; c.lineWidth = 2; c.strokeRect(x + 6 + k * 5, y + 100 + (k % 2) * 2, 5, 4); }
+    box(c, x + 18, y + 106, 10, 10, INK); box(c, x + 19, y + 107, 8, 8, '#B08A2A'); }
+  // (3: hanging open: the inside, the staff polo on a hook, a glove, a photo, sneakers; the door swung out)
+  { const x = x0 + lw * 3;
+    box(c, x + 2, y + 2, lw - 4, h - 4, '#14161C'); bandedGradient(c, x + 3, y + 3, lw - 6, h - 6, ['#0E1016', '#1E222C', '#262A34'], 4);
+    box(c, x + 3, y + 40, lw - 6, 3, '#3A4048');
+    box(c, x + 20, y + 46, 2, 6, '#A3ABB6');
+    poly(c, [x + 8, y + 54, x + 34, y + 54, x + 36, y + 66, x + 30, y + 66, x + 30, y + 110, x + 12, y + 110, x + 12, y + 66, x + 6, y + 66], '#9B2020');
+    poly(c, [x + 8, y + 54, x + 18, y + 54, x + 14, y + 110, x + 12, y + 110, x + 12, y + 66, x + 6, y + 66], '#BE3A2E');
+    star(c, x + 26, y + 72, 4, '#F1EFEA'); box(c, x + 18, y + 54, 6, 4, '#F1EFEA');
+    pixelBlob(c, x + 21, y + 34, 10, 5, '#E8E4D8'); for (let k = 0; k < 4; k++) box(c, x + 13 + k * 4, y + 24, 3, 8, '#E8E4D8');
+    box(c, x + 6, y + 12, 12, 14, '#E8E4D8'); box(c, x + 7, y + 13, 10, 9, '#5A7AA0'); box(c, x + 9, y + 16, 4, 4, '#D49A70');
+    for (const sx of [x + 6, x + 22]) { box(c, sx, G - 14, 14, 8, INK); box(c, sx + 1, G - 13, 12, 6, '#E8E4D8'); box(c, sx + 1, G - 9, 12, 2, '#B91C1C'); }
+    const dc = rampOf(cols[3]);
+    poly(c, [x + lw - 2, y, x + lw + 12, y + 12, x + lw + 12, y + h - 4, x + lw - 2, y + h], INK);
+    poly(c, [x + lw - 1, y + 2, x + lw + 10, y + 13, x + lw + 10, y + h - 6, x + lw - 1, y + h - 2], dc[1]);
+    poly(c, [x + lw - 1, y + 2, x + lw + 3, y + 6, x + lw + 3, y + h - 3, x + lw - 1, y + h - 2], dc[2]);
+    for (let k = 0; k < 4; k++) box(c, x + lw + 5, y + 18 + k * 6, 4, 2, dc[0]); }
+  note(c, x0 + lw * 4 - 1, y + 70, ['NOT MY', 'SMELL'], { paper: '#C8E0F0' });
+  { const x = x0 + lw * 5; box(c, x + 8, y + 120, 24, 16, '#8A8E8A'); box(c, x + 8, y + 120, 24, 1, '#B0B4B0'); for (let k = 0; k < 4; k++) box(c, x + 10 + k * 6, y + 122, 1, 12, '#6A6E6A');
+    pixelBlob(c, x + 18, y + h - 6, 7, 6, '#9A6A30'); pixelBlob(c, x + 16, y + h - 2, 5, 5, '#C49A62'); box(c, x + 10, y + h - 14, 18, 2, INK); }
+  // (on top: a box nobody's opened since, dim)
+  slab(c, x0 + 14, y - 22, 40, 22, dim('#9A7044'), { ink: false }); dimTop(c, x0 + 14, y - 22, 40, dim('#9A7044'), 3);
+  slab(c, x0 + 190, y - 16, 30, 16, dim('#5B6B7A'), { ink: false }); dimTop(c, x0 + 190, y - 16, 30, dim('#5B6B7A'), 3);
+  // (the bench in front: seat unlit, a sock, an energy drink)
+  const bx = rx(830), bw = 210;
+  for (const lx of [bx + 10, bx + bw - 16]) { box(c, lx, 512, 6, G - 512, INK); box(c, lx + 1, 512, 4, G - 512, '#6B737E'); }
+  box(c, bx - 1, 503, bw + 2, 11, INK); box(c, bx, 504, bw, 9, '#6A4E30'); box(c, bx, 504, bw, 2, '#5A4026'); box(c, bx, 508, bw, 1, '#3E2C1A'); box(c, bx, 511, bw, 2, '#4A3420');
+  poly(c, [bx + 60, G - 2, bx + 76, G - 4, bx + 80, G, bx + 60, G], '#E8E4D8'); box(c, bx + 60, G - 2, 6, 2, '#B91C1C');
+  pole(c, bx + 150, G - 14, 7, 14, '#2D9A3A'); box(c, bx + 150, G - 14, 7, 2, '#A3ABB6');
+};
+
+/** The costume closet: its door hanging off the one hinge, inside a mess of foam and fur. COSTUMES over it. */
+const closet = (c: Ctx) => {
+  const x = rx(1086), y = 300, w = 140, h = G - y;
+  plate(c, x + w / 2, 268, ['COSTUMES'], '#2A3A6A', '#F2CC4A');
+  shade(c, x - 6, y - 6, w + 12, h + 6, 0.3, 4);
+  box(c, x - 7, y - 7, w + 14, h + 7, INK);
+  slab(c, x - 6, y - 6, w + 12, h + 6, '#6A4A2A', { ink: false });
+  bandedGradient(c, x, y, w, h, ['#0A090C', '#16131A', '#221D24', '#1A161C'], 6);
+  // (the rod, costumes on it in the dark)
+  box(c, x + 4, y + 18, w - 8, 3, '#5A5E66');
+  for (let i = 0; i < 4; i++) {
+    const cx = x + 18 + i * 22, col = dark(['#9B1530', '#2D51B0', '#5C3A16', '#D4A017'][i], 0.35);
+    poly(c, [cx - 8, y + 22, cx + 8, y + 22, cx + 10, y + 120 + (i % 2) * 14, cx - 10, y + 124], col);
+    poly(c, [cx - 8, y + 22, cx - 2, y + 22, cx - 4, y + 120, cx - 10, y + 124], lite(col, 0.15));
+  }
+  // (a shelf up the back: a foam crown, a busted head)
+  box(c, x + 92, y + 56, 44, 4, dim('#5A4026'));
+  poly(c, [x + 96, y + 56, x + 100, y + 40, x + 104, y + 50, x + 110, y + 36, x + 116, y + 50, x + 122, y + 40, x + 126, y + 56], fade('#4CA084', 0.2));
+  ball(c, x + 112, y + 90, 18, dark('#E8C040', 0.3)); box(c, x + 103, y + 84, 6, 6, INK); line(c, [x + 115, y + 82, x + 123, y + 90], INK, 2); line(c, [x + 123, y + 82, x + 115, y + 90], INK, 2);
+  box(c, x + 92, y + 108, 44, 4, dim('#5A4026'));
+  note(c, x + 46, y + 140, ['RETURN HEADS', 'OR PAY $40'], { paper: '#D8D0B8' });
+  // (on the floor of it: a giant foam finger, a mascot foot, shoes)
+  poly(c, [x + 10, G - 2, x + 30, G - 90, x + 42, G - 88, x + 30, G - 2], '#2D51B0'); poly(c, [x + 30, G - 90, x + 34, G - 120, x + 42, G - 118, x + 42, G - 88], '#2D51B0');
+  line(c, [x + 30, G - 90, x + 34, G - 120], '#4570D0', 2);
+  oval(c, x + 90, G - 10, 26, 10, INK); oval(c, x + 90, G - 11, 24, 8, '#7A5224'); oval(c, x + 84, G - 14, 12, 4, '#9A6C36');
+  for (let k = 0; k < 3; k++) { box(c, x + 50 + k * 14, G - 8, 12, 8, INK); box(c, x + 51 + k * 14, G - 7, 10, 6, ['#2A2A2A', '#6A4C24', '#E8E4D8'][k]); }
+  // (the door: off its top hinge, swung out, sagging on the bottom one)
+  poly(c, [x - 6, y - 4, x - 34, y + 18, x - 34, G, x - 6, G], INK);
+  poly(c, [x - 7, y - 2, x - 32, y + 19, x - 32, G - 1, x - 7, G - 1], '#7A5A38');
+  poly(c, [x - 7, y - 2, x - 16, y + 6, x - 16, G - 1, x - 7, G - 1], '#9A7A50');
+  poly(c, [x - 26, y + 14, x - 32, y + 19, x - 32, G - 1, x - 26, G - 1], '#5A3E22');
+  for (const py of [y + 60, y + 150]) line(c, [x - 10, py, x - 30, py + 8], '#5A3E22', 2);
+  box(c, x - 10, G - 30, 4, 12, '#B08A2A');
+  line(c, [x - 6, y + 4, x - 1, y + 2, x - 4, y + 8, x + 1, y + 10], '#C49A62', 2);
+};
+
+/** One mascot suit on a hanger: no head, limp, the arms hanging, the legs crumpled, pits gone dark. */
+const suit = (c: Ctx, cx: number, top: number, col: string, kind: number) => {
+  const r = rampOf(col);
+  line(c, [cx, top - 10, cx, top - 4, cx + 4, top - 8, cx + 2, top - 12], INK, 2);
+  line(c, [cx - 16, top + 2, cx, top - 4, cx + 16, top + 2], '#5A4026', 3);
+  const body = [cx - 15, top, cx + 15, top, cx + 13, top + 70, cx + 16, top + 130, cx + 4, top + 150, cx - 4, top + 148, cx - 16, top + 132, cx - 13, top + 70];
+  const out = body.map((v, i) => (i % 2 ? v : v + (v < cx ? -1 : 1)));
+  poly(c, out, INK);
+  poly(c, body, r[2]);
+  poly(c, [cx - 15, top, cx - 5, top, cx - 6, top + 146, cx - 16, top + 132, cx - 13, top + 70], r[3]);
+  poly(c, [cx + 7, top, cx + 15, top, cx + 13, top + 70, cx + 16, top + 130, cx + 4, top + 150], r[1]);
+  checker(c, cx - 6, top + 4, 4, 140, r[3]); checker(c, cx + 5, top + 4, 2, 140, r[1], 1);
+  // (the arms: empty sleeves straight down, the paws hanging)
+  for (const s of [-1, 1]) {
+    const ax = cx + s * 17 - (s > 0 ? 0 : 6);
+    box(c, ax - 1, top + 3, 8, 82, INK); box(c, ax, top + 4, 6, 80, s < 0 ? r[3] : r[1]);
+    oval(c, ax + 3, top + 88, 6, 7, INK); oval(c, ax + 3, top + 88, 5, 6, kind === 0 ? '#E8C040' : '#F1EFEA');
+  }
+  // (each its own)
+  if (kind === 0) { poly(c, [cx - 15, top, cx + 15, top, cx + 10, top + 16, cx - 10, top + 16], '#F1EFEA'); for (let k = 0; k < 5; k++) box(c, cx - 10 + k * 5, top + 30 + (k % 2) * 8, 3, 6, r[0]); }
+  if (kind === 1) { for (let k = 0; k < 3; k++) shinyStar(c, cx - 6 + (k % 2) * 12, top + 30 + k * 30, 5, '#F1EFEA'); }
+  if (kind === 2) { for (let k = 0; k < 4; k++) box(c, cx - 12 + k * 7, top + 2, 3, 140 - (k === 0 || k === 3 ? 14 : 0), 'rgba(241, 239, 234, 0.75)'); }
+  if (kind === 3) { shinyStar(c, cx, top + 44, 10, '#F1EFEA'); for (let k = 0; k < 8; k++) box(c, cx - 12 + (k * 7) % 24, top + 80 + k * 7, 2, 2, r[4]); }
+  // (sweat: the pits, the seat)
+  pixelBlob(c, cx - 11, top + 12, 5, 8, 'rgba(40, 30, 10, 0.35)'); pixelBlob(c, cx + 11, top + 12, 5, 8, 'rgba(40, 30, 10, 0.35)');
+  pixelBlob(c, cx, top + 120, 8, 10, 'rgba(40, 30, 10, 0.25)');
+};
+
+/** The rolling rack of suits; one's slid off into a heap underneath. The AC vent over it, furred with dust. */
+const rack = (c: Ctx) => {
+  const x0 = rx(1250), x1 = rx(1432), top = 330;
+  for (const ux of [x0 + 4, x1 - 10]) pole(c, ux, top, 6, G - 14 - top, '#A3ABB6');
+  pole(c, x0, G - 16, x1 - x0, 5, '#8A929C', true);
+  box(c, x0 - 2, top - 2, x1 - x0 + 4, 7, INK); box(c, x0, top, x1 - x0, 3, '#D3D9E0'); box(c, x0, top + 3, x1 - x0, 2, '#6B737E');
+  for (const wx of [x0 + 8, x0 + 22, x1 - 22, x1 - 8]) ball(c, wx, G - 5, 5, '#2A2A2E');
+  const suits: [number, string][] = [[1288, '#7A5224'], [1330, '#D4A017'], [1372, '#B91C1C'], [1412, '#2D51B0']];
+  suits.forEach(([sx, col], i) => suit(c, rx(sx), top + 12, col, i));
+  // (the one that fell)
+  pixelBlob(c, rx(1350), G - 6, 40, 8, INK); pixelBlob(c, rx(1350), G - 7, 38, 6, '#2D7A3A'); pixelBlob(c, rx(1340), G - 9, 18, 3, '#4CA04A');
+  // (the vent up by the ceiling: dust hanging off it, a black streak down the wall under it)
+  const vx = rx(1290), vy = 84;
+  for (let k = 0; k < 5; k++) box(c, vx + 10 + k * 16, vy + 30, 6, 40 + (k % 2) * 30, 'rgba(26, 24, 18, 0.18)');
+  shade(c, vx, vy, 100, 30);
+  slab(c, vx, vy, 100, 30, '#8A8C84');
+  for (let k = 0; k < 6; k++) { box(c, vx + 6, vy + 5 + k * 4, 88, 2, '#2A2C28'); box(c, vx + 6, vy + 7 + k * 4, 88, 1, '#B0B2A8'); }
+  for (let k = 0; k < 7; k++) { const dx = vx + 8 + k * 13; pixelBlob(c, dx, vy + 30, 3, 3 + (k % 3) * 2, '#9A988C'); box(c, dx, vy + 30, 1, 6 + (k % 4) * 3, '#8A887C'); }
+};
+
+/** The spare heads on their shelf, grinning; a headless body slumped in a chair under them on its break. */
+const heads = (c: Ctx) => {
+  const x0 = rx(1450), x1 = rx(1720), sy = 396;
+  for (const bx of [x0 + 20, x1 - 30]) { shade(c, bx, sy + 6, 10, 18); poly(c, [bx, sy + 6, bx + 10, sy + 6, bx + 10, sy + 26], INK); poly(c, [bx + 1, sy + 7, bx + 8, sy + 7, bx + 8, sy + 22], '#6B737E'); screw(c, bx + 6, sy + 16); }
+  shade(c, x0, sy, x1 - x0, 8);
+  box(c, x0 - 1, sy - 1, x1 - x0 + 2, 10, INK); box(c, x0, sy, x1 - x0, 8, '#4A4E56'); box(c, x0, sy + 6, x1 - x0, 2, '#2E3238');
+  const H: [number, string][] = [[1490, '#E05A9A'], [1555, '#E8C040'], [1620, '#4A86D8'], [1685, '#3EB860']];
+  H.forEach(([hx, col], i) => {
+    const x = rx(hx), y = sy - 24;
+    oval(c, x + 4, sy - 1, 22, 3, 'rgba(18, 12, 6, 0.4)');
+    ball(c, x, y, 24, col);
+    checker(c, x - 18, y - 4, 10, 14, rampOf(col)[3]);
+    // (the eyes, staring; one googly eye fallen to the bottom)
+    for (const s of [-1, 1]) {
+      oval(c, x + s * 9, y - 7, 7, 9, INK); oval(c, x + s * 9, y - 7, 6, 8, '#FFFFFF');
+      const dy = i === 2 && s > 0 ? 4 : -1;
+      box(c, x + s * 9 - 2, y - 7 + dy, 5, 5, INK); box(c, x + s * 9 - 1, y - 7 + dy, 2, 2, '#FFFFFF');
+    }
+    // (the grin)
+    c.fillStyle = INK; c.beginPath(); c.arc(x, y + 5, 14, 0.05 * Math.PI, 0.95 * Math.PI); c.closePath(); c.fill();
+    c.fillStyle = '#5A0A1A'; c.beginPath(); c.arc(x, y + 5, 12, 0.08 * Math.PI, 0.92 * Math.PI); c.closePath(); c.fill();
+    for (let k = 0; k < 5; k++) box(c, x - 10 + k * 4, y + 6, 3, 4, '#F4F0E0');
+    // (the neck hole, under, dark)
+    oval(c, x, y + 22, 11, 3, '#0A0A0E');
+    if (i === 1) { tape(c, x + 6, y - 22, 12, 5); }
+  });
+  plate(c, rx(1585), 414, ['SPARE HEADS'], '#2A2E36', '#F4F4F5');
+  for (const wx of [rx(1585) - 50, rx(1585) + 50]) box(c, wx, sy + 8, 1, 6, '#A3ABB6');
+  // (the chair: an orange shell on legs, faded)
+  const cx = rx(1530);
+  shade(c, cx - 34, 440, 68, 60, 0.3);
+  slab(c, cx - 34, 440, 68, 56, fade('#D86A2A', 0.15));
+  for (const lx of [cx - 30, cx + 26]) { box(c, lx, 500, 4, G - 500, INK); box(c, lx + 1, 500, 2, G - 500, '#8A929C'); }
+  // (the body: the blue bear, slumped over to one side, a can in its paw)
+  const B = rampOf('#3D5A9A');
+  oval(c, cx + 6, 474, 33, 33, INK); oval(c, cx + 6, 474, 32, 32, B[2]); oval(c, cx - 2, 466, 22, 22, B[3]); oval(c, cx + 18, 486, 18, 16, B[1]);
+  checker(c, cx - 18, 450, 40, 40, B[3]);
+  oval(c, cx + 8, 490, 16, 12, '#F1EFEA'); shinyStar(c, cx + 8, 488, 8, fade('#B91C1C', 0.1));
+  oval(c, cx + 4, 444, 14, 5, INK); oval(c, cx + 4, 444, 12, 4, '#0A0A0E'); box(c, cx - 4, 441, 16, 1, B[4]);
+  for (const lx of [cx - 12, cx + 16]) { box(c, lx - 1, 498, 16, G - 506, INK); box(c, lx, 498, 14, G - 508, B[1]); box(c, lx, 498, 5, G - 508, B[2]); oval(c, lx + 8, G - 5, 13, 6, INK); oval(c, lx + 8, G - 6, 12, 5, B[2]); oval(c, lx + 4, G - 8, 6, 2, B[3]); }
+  box(c, cx - 33, 466, 10, 60, INK); box(c, cx - 32, 466, 8, 58, B[2]); oval(c, cx - 28, 528, 7, 6, INK); oval(c, cx - 28, 528, 6, 5, '#F1EFEA');
+  box(c, cx + 32, 470, 10, 26, INK); box(c, cx + 33, 470, 8, 24, B[1]); oval(c, cx + 34, 498, 7, 6, INK); oval(c, cx + 34, 498, 6, 5, '#F1EFEA');
+  pole(c, cx + 38, 488, 8, 13, '#B91C1C'); box(c, cx + 38, 488, 8, 2, '#D3D9E0');
+  // (up the wall: the safety poster, the clock and its plaque, the first aid box with one bandage left)
+  const px = rx(1458), py = 140, pw = 144, ph = 150;
+  shade(c, px, py, pw, ph, 0.35, 3);
+  box(c, px, py, pw, ph, '#E2D6B2'); box(c, px, py, pw, 1, '#F4ECD0'); box(c, px + pw - 2, py, 2, ph, '#B8AC88');
+  box(c, px, py, pw, 24, '#2F7D3A'); box(c, px, py, pw, 2, '#4CA04A'); box(c, px, py + 22, pw, 2, '#1E5A2A');
+  text(c, 'SAFETY FIRST', px + pw / 2, py + 16, '#F4ECD0', 8, 'center', '#123A1C');
+  text(c, 'INJURIES', px + pw / 2, py + 42, '#3A2A18', 8, 'center', null);
+  text(c, 'THIS YEAR:', px + pw / 2, py + 56, '#3A2A18', 8, 'center', null);
+  ['2', '1', '4'].forEach((d, i) => { const dx = px + pw / 2 - 33 + i * 23; box(c, dx, py + 64, 20, 28, INK); box(c, dx + 1, py + 65, 18, 13, '#2A2A2E'); box(c, dx + 1, py + 78, 18, 13, '#1A1A1E'); text(c, d, dx + 10, py + 87, '#F4F4F5', 16, 'center', null); });
+  text(c, 'AND COUNTING!', px + pw / 2, py + 108, '#B91C1C', 8, 'center', null);
+  text(c, 'KEEP SMILING', px + pw / 2, py + 130, '#3A2A18', 6, 'center', null);
+  ball(c, px + pw / 2, py + 140, 4, '#E8C040', false);
+  poly(c, [px + pw, py + ph - 14, px + pw, py + ph, px + pw - 14, py + ph], 'rgba(18, 12, 6, 0.35)');
+  poly(c, [px + pw - 14, py + ph, px + pw, py + ph - 14, px + pw - 14, py + ph - 14], '#B8AC88');
+  tape(c, px - 3, py - 2, 12, 6); tape(c, px + pw - 9, py - 2, 12, 6); tape(c, px - 3, py + ph - 4, 12, 6);
+  const kx = rx(1680), ky = 186;
+  oval(c, kx + 3, ky + 3, 22, 22, 'rgba(18, 12, 6, 0.35)');
+  ball(c, kx, ky, 21, '#3A3F48'); ball(c, kx, ky, 17, '#EDE6D0', false);
+  for (let k = 0; k < 12; k++) { const t = k * Math.PI / 6; box(c, Math.round(kx + Math.cos(t) * 14), Math.round(ky + Math.sin(t) * 14), 2, 2, INK); }
+  line(c, [kx, ky, kx - 6, ky - 10], INK, 2); line(c, [kx, ky, kx + 12, ky + 2], INK, 1);
+  line(c, [kx - 14, ky - 6, kx + 2, ky + 4, kx + 10, ky + 14], 'rgba(26, 11, 6, 0.5)');
+  plate(c, kx, 216, ['TIME THEFT', 'IS THEFT'], '#4A3A20', '#F2CC4A');
+  const fx = rx(1612), fy = 268, fw = 66, fh = 46;
+  shade(c, fx, fy, fw, fh);
+  slab(c, fx, fy, fw, fh, '#E8E4D8');
+  box(c, fx + 4, fy + 4, fw - 8, 11, '#B91C1C'); text(c, 'FIRST AID', fx + fw / 2, fy + 13, '#F4F0E0', 6, 'center', null);
+  box(c, fx + 4, fy + 17, fw - 8, fh - 21, '#3A3A40'); box(c, fx + 5, fy + 18, fw - 10, fh - 23, '#5A5A62');
+  box(c, fx + 10, fy + 34, 14, 5, '#E8C8A0'); box(c, fx + 15, fy + 34, 4, 5, '#F4ECD8');
+  box(c, fx + 34, fy + 20, 24, 1, '#3A3A40');
+  poly(c, [fx + fw, fy + 16, fx + fw + 12, fy + 21, fx + fw + 12, fy + fh - 4, fx + fw, fy + fh], INK); poly(c, [fx + fw + 1, fy + 18, fx + fw + 11, fy + 22, fx + fw + 11, fy + fh - 5, fx + fw + 1, fy + fh - 2], '#D8D4C8');
+};
+
+/** The laundry cart, heaped with sweaty costume parts, a striped sleeve over the side. */
+const laundry = (c: Ctx) => {
+  const x = rx(1598), w = 112, y = 470;
+  shade(c, x, y, w, G - y - 10, 0.3);
+  poly(c, [x - 1, y - 1, x + w + 1, y - 1, x + w - 5, G - 11, x + 5, G - 11], INK);
+  poly(c, [x, y, x + w, y, x + w - 6, G - 12, x + 6, G - 12], '#A89E80');
+  poly(c, [x, y, x + 20, y, x + 22, G - 12, x + 6, G - 12], '#BCB294');
+  poly(c, [x + w - 18, y, x + w, y, x + w - 6, G - 12, x + w - 18, G - 12], '#8A8064');
+  for (let k = 0; k < 4; k++) pixelBlob(c, x + 20 + k * 26, y + 30 + (k % 2) * 14, 10, 6, 'rgba(90, 70, 30, 0.3)');
+  text(c, 'LAUNDRY', x + w / 2, y + 26, fade('#2D51B0', 0.25), 8, 'center', null);
+  box(c, x - 2, y - 2, w + 4, 4, '#6B737E'); box(c, x - 2, y - 2, w + 4, 1, '#A3ABB6');
+  for (const wx of [x + 10, x + w - 10]) { box(c, wx - 1, G - 12, 3, 6, '#3A4048'); ball(c, wx, G - 5, 5, '#2A2A2E'); }
+  // (the heap)
+  pixelBlob(c, x + 30, y - 10, 28, 14, '#D4A017'); pixelBlob(c, x + 70, y - 12, 30, 16, '#7A5224'); pixelBlob(c, x + 54, y - 22, 18, 10, '#2D51B0');
+  pixelBlob(c, x + 26, y - 14, 10, 6, '#F2CC4A'); pixelBlob(c, x + 66, y - 18, 12, 6, '#9A6C36');
+  for (let k = 0; k < 5; k++) box(c, x + 6 + k * 6, y, 6, 30, k % 2 ? '#F1EFEA' : '#B91C1C');
+  box(c, x + 5, y + 30, 32, 6, INK); box(c, x + 6, y + 30, 30, 5, '#F1EFEA');
+  oval(c, x + 92, y - 2, 10, 8, INK); oval(c, x + 92, y - 2, 9, 7, '#F1EFEA'); for (let k = 0; k < 3; k++) box(c, x + 96 + k * 3, y + 4, 2, 8, '#F1EFEA');
+};
+
+/** NOT FOR GUESTS on the wall by the punching bag; the hole somebody punched in the tile instead. */
+const bagWall = (c: Ctx) => {
+  wallSign(c, rx(1694), 262, 'NOT FOR GUESTS', '#2A2E36', '#FDE047');
+  const hx = rx(1790), hy = 470;
+  pixelBlob(c, hx, hy, 16, 12, '#2A2618'); pixelBlob(c, hx - 2, hy - 2, 10, 7, '#141208');
+  for (const [ex, ey] of [[-26, -14], [24, -10], [-20, 16], [22, 18], [2, -22]]) line(c, [hx, hy, hx + ex, hy + ey], 'rgba(26, 11, 6, 0.6)');
+  for (let k = 0; k < 6; k++) poly(c, [hx - 30 + k * 12, G - 2, hx - 26 + k * 12, G - 5, hx - 22 + k * 12, G - 2], '#8F8B72');
+};
+
+/** The bucket under the hole in the ceiling, a puddle round it, the leak reported (years ago). */
+const leakBucket = (c: Ctx) => {
+  const x = rx(1888);
+  pixelBlob(c, x + 22, G - 1, 44, 3, 'rgba(150, 170, 180, 0.35)');
+  shade(c, x, G - 28, 44, 28, 0.25, 2);
+  poly(c, [x - 1, G - 29, x + 45, G - 29, x + 41, G, x + 3, G], INK);
+  poly(c, [x, G - 28, x + 44, G - 28, x + 40, G - 1, x + 4, G - 1], '#6A7A8A');
+  poly(c, [x, G - 28, x + 12, G - 28, x + 12, G - 1, x + 4, G - 1], '#8A9AAA');
+  poly(c, [x + 34, G - 28, x + 44, G - 28, x + 40, G - 1, x + 34, G - 1], '#4A5866');
+  box(c, x + 1, G - 30, 42, 4, '#3A4652'); box(c, x + 3, G - 29, 38, 2, '#5A7484');
+  line(c, [x + 2, G - 26, x + 22, G - 40, x + 42, G - 26], '#3A4048', 1);
+  note(c, rx(1884), 330, ['LEAK REPORTED', 'MAY 2009'], { paper: '#F2E890' });
+  note(c, rx(1906), 362, ['STILL'], { paper: '#C8E0F0', ink: '#6E1840' });
+};
+
+/** HAPPY 4TH! pennants still up, whatever month it is: one fallen off, the string sagging where it went. */
+const pennants = (c: Ctx) => {
+  const x0 = rx(2252), x1 = rx(2392), y = 112, n = 9;
+  tack(c, x0 - 2, y - 2, '#C02424'); tack(c, x1 - 2, y - 2, '#2D51B0');
+  const sag = (k: number) => y + Math.sin(k * Math.PI) * 14 + (k > 0.3 && k < 0.6 ? 6 * Math.sin((k - 0.3) / 0.3 * Math.PI) : 0);
+  const pts: number[] = [];
+  for (let i = 0; i <= 20; i++) { const k = i / 20; pts.push(x0 + (x1 - x0) * k, sag(k)); }
+  line(c, pts, '#C8C4B8', 1);
+  'HAPPY 4TH'.split('').forEach((ch, i) => {
+    if (ch === ' ' || i === 4) return;
+    const k = (i + 0.5) / n, px = Math.round(x0 + (x1 - x0) * k), py = Math.round(sag(k));
+    const col = fade([FLAG_RED[2], FLAG_WHITE[3], FLAG_BLUE[2]][i % 3], 0.3);
+    poly(c, [px - 8, py, px + 8, py, px, py + 22], INK);
+    poly(c, [px - 7, py + 1, px + 7, py + 1, px, py + 20], col);
+    poly(c, [px - 7, py + 1, px - 2, py + 1, px, py + 20], lite(col, 0.15));
+    text(c, ch, px, py + 11, i % 3 === 1 ? '#7A1E1A' : '#F4F0E0', 8, 'center', null);
+  });
+};
+
+/** The bulletin board: cork, tacks, the memos. */
+const bulletin = (c: Ctx) => {
+  const x = rx(1946), y = 124, w = 192, h = 186;
+  shade(c, x, y, w, h, 0.38, 4);
+  slab(c, x, y, w, h, '#6A4A2A');
+  box(c, x + 6, y + 6, w - 12, h - 12, '#3A2A16');
+  box(c, x + 7, y + 7, w - 14, h - 14, '#A67C4E');
+  checker(c, x + 7, y + 7, w - 14, h - 14, '#946A3E');
+  for (let k = 0; k < 40; k++) box(c, x + 8 + Math.floor(hash(k * 3.3) * (w - 18)), y + 8 + Math.floor(hash(k * 1.7 + 9) * (h - 18)), 2, 2, k % 2 ? '#7A5430' : '#C49A62');
+  note(c, x + 10, y + 10, ['MANDATORY FUN:', 'SATURDAY', '(UNPAID)'], { mount: 'tack', paper: '#F4F0E0', pinCol: '#C02424' });
+  note(c, x + 102, y + 12, ['SMILING IS', 'PART OF YOUR', 'UNIFORM'], { mount: 'tack', paper: '#F2E890', pinCol: '#2D51B0' });
+  note(c, x + 12, y + 52, ['BREAKS ARE A', 'PRIVILEGE'], { mount: 'tack', paper: '#F2C6D4', pinCol: '#2F7D3A' });
+  note(c, x + 102, y + 54, ['PIZZA PARTY', 'CANCELED'], { mount: 'tack', paper: '#C8E0F0', pinCol: '#E8C040' });
+  note(c, x + 10, y + 86, ['POTLUCK', 'SIGN UP:', '1.', '2.', '3.'], { mount: 'tack', paper: '#F4F0E0', pinCol: '#C02424' });
+  note(c, x + 72, y + 88, ['DO NOT', 'DISCUSS', 'WAGES'], { mount: 'tack', paper: '#F2E890', pinCol: '#C02424' });
+  note(c, x + 130, y + 86, ['HEAT IS', 'A STATE', 'OF MIND'], { mount: 'tack', paper: '#E0F0D0', pinCol: '#2D51B0' });
+  note(c, x + 72, y + 132, ['SICK DAYS', 'ARE FOR', 'THE WEAK'], { mount: 'tack', paper: '#F4F0E0', pinCol: '#E8C040' });
+  // (a polaroid: the mascot crew, all heads, no faces)
+  const px = x + 146, py = y + 132;
+  shade(c, px, py, 32, 38, 0.3, 2);
+  box(c, px, py, 32, 38, '#F4F2EA'); box(c, px + 3, py + 3, 26, 24, '#5A7A8A');
+  for (let k = 0; k < 3; k++) ball(c, px + 8 + k * 8, py + 16, 4, ['#E05A9A', '#E8C040', '#4A86D8'][k], false);
+  tack(c, px + 15, py + 1, '#2F7D3A');
+};
+
+/** The break table, its mismatched chairs, the one that broke lying in front. Everything's top dim. */
+const breakTable = (c: Ctx) => {
+  const x = rx(1962), w = 156, ty = 484;
+  for (const lx of [x + 8, x + w - 14]) { box(c, lx, ty + 8, 6, G - ty - 8, INK); box(c, lx + 1, ty + 8, 4, G - ty - 8, '#6B737E'); }
+  box(c, x + w - 16, G - 4, 10, 4, '#E8E4D8');
+  shade(c, x, ty, w, 10, 0.3, 3);
+  box(c, x - 1, ty - 1, w + 2, 10, INK); box(c, x, ty, w, 8, '#9A8C6A'); box(c, x, ty, w, 2, '#86785A'); box(c, x, ty + 6, w, 2, '#6A5E44');
+  for (let k = 0; k < 5; k++) pixelBlob(c, x + 14 + k * 30, ty + 4, 8, 2, 'rgba(70, 40, 20, 0.35)');
+  // (on it: the pizza box with a crust, ketchup, a cupcake with a flag in it, a mug)
+  poly(c, [x + 10, ty, x + 52, ty, x + 50, ty - 6, x + 12, ty - 6], '#B4844A'); poly(c, [x + 12, ty - 6, x + 50, ty - 6, x + 46, ty - 30, x + 14, ty - 30], '#C49A62');
+  pixelBlob(c, x + 30, ty - 6, 10, 2, '#C88A3A');
+  pole(c, x + 66, ty - 22, 9, 22, '#B91C1C'); box(c, x + 68, ty - 26, 5, 4, '#F1EFEA');
+  poly(c, [x + 90, ty, x + 104, ty, x + 102, ty - 8, x + 92, ty - 8], '#E8C8E0'); pixelBlob(c, x + 97, ty - 10, 7, 4, '#F4ECD8');
+  box(c, x + 97, ty - 22, 1, 12, '#C8C4B8'); box(c, x + 98, ty - 22, 7, 4, fade(FLAG_RED[2], 0.1)); box(c, x + 98, ty - 22, 3, 2, FLAG_BLUE[2]);
+  box(c, x + 118, ty - 14, 14, 14, INK); box(c, x + 119, ty - 13, 12, 12, '#F1EFEA'); box(c, x + 119, ty - 13, 12, 2, '#3A2414'); line(c, [x + 132, ty - 11, x + 136, ty - 7, x + 132, ty - 3], INK, 2);
+  // (chairs: a blue plastic one, a wooden one from somebody's kitchen)
+  const chair = (cx: number, col: string, dir: 1 | -1) => {
+    const r = rampOf(col);
+    box(c, cx - 1, 459, 7, 51, INK); box(c, cx, 460, 5, 50, r[2]);
+    const sx = dir > 0 ? cx : cx - 26;
+    box(c, sx - 1, 505, 32, 8, INK); box(c, sx, 506, 30, 6, r[1]);
+    for (const lx of [sx + 2, sx + 24]) { box(c, lx, 512, 4, G - 512, INK); box(c, lx + 1, 512, 2, G - 512, r[2]); }
+  };
+  chair(rx(1932), '#3A6AA8', 1);
+  chair(rx(2132), '#7A5224', -1);
+  // (the broken one, on its side: seat on the floor, a leg off it)
+  const bx = rx(2000);
+  poly(c, [bx, G, bx + 6, G - 30, bx + 12, G - 30, bx + 8, G], INK); poly(c, [bx + 1, G - 1, bx + 7, G - 29, bx + 10, G - 29, bx + 7, G - 1], '#A84820');
+  box(c, bx + 8, G - 10, 36, 6, INK); box(c, bx + 9, G - 9, 34, 4, '#C2622A');
+  line(c, [bx + 40, G - 8, bx + 58, G - 22], INK, 4); line(c, [bx + 40, G - 8, bx + 58, G - 22], '#8A929C', 2);
+  line(c, [bx + 30, G - 6, bx + 40, G - 18], INK, 4); line(c, [bx + 30, G - 6, bx + 40, G - 18], '#8A929C', 2);
+  box(c, bx + 60, G - 3, 18, 3, INK); box(c, bx + 61, G - 3, 16, 2, '#8A929C');
+};
+
+/** The counter: the microwave (something exploded in it), the coffee maker (the pot burnt black), a cabinet door gone. */
+const counter = (c: Ctx) => {
+  const x = rx(2142), w = 106, ty = 466;
+  // (over it: the employee of the month, from 1994; a note about your mother)
+  const ex = rx(2148), ey = 150;
+  box(c, ex + 47, ey - 12, 2, 2, '#26282C'); line(c, [ex + 8, ey, ex + 48, ey - 11, ex + 88, ey], '#3A3F48', 1);
+  shade(c, ex, ey, 96, 124, 0.38, 4);
+  slab(c, ex, ey, 96, 124, '#B08A2A');
+  box(c, ex + 6, ey + 6, 84, 112, '#F4ECD8');
+  text(c, 'EMPLOYEE OF', ex + 48, ey + 18, '#1E3A8A', 6, 'center', null);
+  text(c, 'THE MONTH', ex + 48, ey + 27, '#1E3A8A', 6, 'center', null);
+  bandedGradient(c, ex + 14, ey + 32, 68, 64, ['#8EA6B4', '#A8B8B8', '#B8B4A0'], 4);
+  oval(c, ex + 48, ey + 66, 14, 18, '#C8A88C'); oval(c, ex + 46, ey + 62, 10, 12, '#D8BCA0');
+  box(c, ex + 36, ey + 46, 24, 7, '#8E5A5A'); box(c, ex + 34, ey + 52, 30, 3, '#7A4A4A');
+  box(c, ex + 42, ey + 64, 3, 3, '#4A3A30'); box(c, ex + 52, ey + 64, 3, 3, '#4A3A30');
+  box(c, ex + 40, ey + 72, 16, 3, '#6A4A30'); box(c, ex + 43, ey + 77, 10, 2, '#9A6A5A');
+  poly(c, [ex + 28, ey + 96, ex + 34, ey + 84, ex + 62, ey + 84, ex + 68, ey + 96], '#9A6A6A');
+  text(c, 'MAR 1994', ex + 48, ey + 110, '#6A5A40', 6, 'center', null);
+  line(c, [ex + 20, ey + 90, ex + 40, ey + 40], 'rgba(255, 255, 255, 0.3)', 2);
+  note(c, rx(2150), 296, ["YOUR MOM", "DOESN'T WORK", 'HERE.'], { paper: '#F4F0E0', ink: '#7A1E1A' });
+  note(c, rx(2196), 344, ['THIS MEANS', 'YOU, GARY'], { paper: '#F2E890', ink: '#26324A' });
+  // (the cabinet under it: laminate, one door hanging open, one gone, a pipe and a roach trap in the dark)
+  slab(c, x, ty, w, G - ty, '#6E5A3E');
+  dimTop(c, x, ty, w, '#6E5A3E', 4);
+  box(c, x - 2, ty - 2, w + 4, 6, INK); box(c, x - 1, ty - 1, w + 2, 4, '#5E5040');
+  box(c, x + 6, ty + 10, 44, G - ty - 16, '#3E3222'); box(c, x + 8, ty + 12, 40, G - ty - 20, '#5A4A34'); box(c, x + 40, ty + 30, 3, 12, '#A3ABB6');
+  box(c, x + 56, ty + 10, 44, G - ty - 16, '#0E0C0A');
+  pole(c, x + 70, ty + 10, 6, 40, '#8A929C'); box(c, x + 70, ty + 48, 22, 6, '#6B737E');
+  box(c, x + 62, G - 16, 20, 8, '#E8E4D8'); box(c, x + 66, G - 14, 12, 3, '#B91C1C');
+  // (the microwave)
+  const mx = x + 4, my = ty - 40;
+  shade(c, mx, my, 62, 40, 0.35, 3);
+  slab(c, mx, my, 62, 40, '#C8BFA2');
+  dimTop(c, mx, my, 62, '#C8BFA2', 3);
+  box(c, mx + 4, my + 6, 38, 28, INK); box(c, mx + 5, my + 7, 36, 26, '#2A2620');
+  for (const [bx, by, br, col] of [[12, 14, 6, '#B4442A'], [26, 20, 8, '#D88A3A'], [34, 12, 5, '#B4442A'], [18, 26, 5, '#8A2A1A'], [30, 28, 4, '#E8B060']] as const) pixelBlob(c, mx + bx, my + by, br, br * 0.7, col);
+  for (let k = 0; k < 5; k++) box(c, mx + 8 + k * 7, my + 10 + (k % 2) * 6, 1, 6 + k % 3 * 3, '#8A2A1A');
+  line(c, [mx + 8, my + 30, mx + 22, my + 10], 'rgba(255, 255, 255, 0.25)', 2);
+  box(c, mx + 43, my + 6, 17, 9, '#0A140A');
+  for (let r = 0; r < 3; r++) for (let k = 0; k < 2; k++) box(c, mx + 47 + k * 6, my + 18 + r * 5, 4, 3, '#8A8470');
+  // (the coffee maker: black plastic, the pot burnt to a crust, sugar packets)
+  const cx = x + 72, cy = ty - 50;
+  shade(c, cx, cy, 32, 50, 0.35, 3);
+  slab(c, cx, cy, 32, 12, '#2A2A2E'); slab(c, cx + 22, cy, 10, 50, '#2A2A2E'); slab(c, cx - 2, ty - 6, 34, 6, '#2A2A2E');
+  box(c, cx + 25, cy + 30, 3, 3, '#FF3A2A');
+  box(c, cx + 1, cy + 18, 20, 22, INK); box(c, cx + 2, cy + 19, 18, 20, '#3A3028');
+  box(c, cx + 2, cy + 30, 18, 9, '#140C06'); box(c, cx + 2, cy + 28, 18, 2, '#4A2A10');
+  box(c, cx + 4, cy + 22, 2, 14, 'rgba(255, 255, 255, 0.3)');
+  box(c, cx + 2, cy + 16, 18, 3, '#1A1A1E');
+  for (let k = 0; k < 3; k++) { box(c, x + 106 - 12 + k * 3, ty - 4 + (k % 2), 6, 3, k % 2 ? '#F1EFEA' : '#F2E890'); }
+};
+
+/** The fridge, covered in notes about whose food is whose. A puddle under it. */
+const fridge = (c: Ctx) => {
+  const x = rx(2252), y = 368, w = 82, h = G - y;
+  shade(c, x, y, w, h, 0.35, 4);
+  slab(c, x, y, w, h, '#C9C3A6');
+  dimTop(c, x, y, w, '#C9C3A6', 4);
+  box(c, x + 2, y + 62, w - 4, 2, '#6A6450'); box(c, x + 2, y + 64, w - 4, 1, '#E8E2C6');
+  for (const [hy, hh] of [[y + 20, 30], [y + 74, 50]]) { box(c, x + 4, hy, 5, hh, INK); box(c, x + 5, hy + 1, 3, hh - 2, '#D3D9E0'); box(c, x + 5, hy + 1, 1, hh - 2, '#FFFFFF'); }
+  for (let k = 0; k < 8; k++) box(c, x + 4 + Math.floor(hash(k * 5.1) * (w - 10)), G - 6 - Math.floor(hash(k) * 12), 4, 3, '#7A4A20');
+  box(c, x + 3, G - 10, w - 6, 8, '#3A3628');
+  oval(c, x + 50, y + 130, 8, 10, '#ACA68A'); oval(c, x + 49, y + 128, 6, 7, '#9A9478');
+  note(c, x + 8, y + 10, ['LABEL YOUR', 'FOOD!!!'], { mount: 'magnet', paper: '#F4F0E0', ink: '#B91C1C', pinCol: '#B91C1C' });
+  note(c, x + 8, y + 72, ['WHO ATE MY', 'YOGURT'], { mount: 'magnet', paper: '#F2E890', pinCol: '#2D51B0' });
+  note(c, x + 30, y + 104, ['IT WAS', 'ME'], { mount: 'tape', paper: '#F2C6D4', ink: '#6E1840' });
+  note(c, x + 10, y + 132, ['CLEANED', 'OUT FRI'], { mount: 'magnet', paper: '#C8E0F0', pinCol: '#2F7D3A' });
+  shinyStar(c, x + 66, y + 50, 6, '#F2CC4A');
+  box(c, x + 56, y + 46, 4, 10, INK); box(c, x + 57, y + 47, 2, 8, FLAG_RED[2]);
+  slab(c, x + 8, y - 20, 36, 20, dim('#9A7044'), { ink: false }); dimTop(c, x + 8, y - 20, 36, dim('#9A7044'), 3);
+  pixelBlob(c, x + 40, G + 1, 40, 3, 'rgba(150, 170, 180, 0.3)');
+};
+
+/** The vending machine: OUT OF ORDER, a bag of chips hung up in its coil, a boot print on its side. */
+const vending = (c: Ctx) => {
+  const x = rx(2338), y = 326, w = 60, h = G - y;
+  shade(c, x, y, w, h, 0.35, 2);
+  slab(c, x, y, w, h, fade('#B91C1C', 0.25));
+  dimTop(c, x, y, w, fade('#B91C1C', 0.25), 4);
+  text(c, 'SNAX', x + 22, y + 16, fade('#F1EFEA', 0.2), 8, 'center', INK);
+  box(c, x, y + 22, w, 3, fade('#F1EFEA', 0.3)); box(c, x, y + 25, w, 3, fade('#2D51B0', 0.3));
+  box(c, x + 4, y + 30, 38, 130, INK);
+  bandedGradient(c, x + 5, y + 31, 36, 128, ['#1A2028', '#242C36', '#1A2028'], 4);
+  const snacks = ['#E8C040', '#B91C1C', '#2D9A3A', '#D86A2A', '#8A3AB4', '#2D51B0'];
+  for (let r = 0; r < 5; r++) {
+    const ry = y + 34 + r * 25;
+    for (let k = 0; k < 3; k++) {
+      if (r === 2 && k === 1) continue;
+      if (hash(r * 7 + k) < 0.2) continue;
+      const col = snacks[(r * 3 + k) % snacks.length];
+      box(c, x + 7 + k * 11, ry + 2, 9, 16, INK); box(c, x + 8 + k * 11, ry + 3, 7, 14, col); box(c, x + 8 + k * 11, ry + 3, 2, 14, lite(col, 0.3));
+    }
+    box(c, x + 5, ry + 19, 36, 2, '#6B737E');
+    for (let k = 0; k < 3; k++) for (let s = 0; s < 4; s++) box(c, x + 8 + k * 11 + s * 2, ry + 17, 1, 3, '#A3ABB6');
+  }
+  // (the one that didn't drop: hung up, tipped)
+  poly(c, [x + 18, y + 84 + 4, x + 27, y + 84 + 0, x + 31, y + 84 + 16, x + 22, y + 84 + 20], INK);
+  poly(c, [x + 19, y + 84 + 5, x + 26, y + 84 + 2, x + 29, y + 84 + 15, x + 22, y + 84 + 18], '#D86A2A');
+  line(c, [x + 8, y + 50, x + 26, y + 32], 'rgba(255, 255, 255, 0.28)', 2); line(c, [x + 10, y + 150, x + 38, y + 112], 'rgba(255, 255, 255, 0.18)', 2);
+  // (the panel, the slot, the flap)
+  box(c, x + 45, y + 32, 11, 50, '#2A2A2E'); box(c, x + 47, y + 36, 7, 10, '#0A140A'); for (let k = 0; k < 4; k++) box(c, x + 47, y + 50 + k * 6, 7, 4, '#8A8470');
+  box(c, x + 48, y + 88, 5, 10, INK);
+  box(c, x + 8, y + 170, 32, 14, INK); box(c, x + 9, y + 171, 30, 12, '#1A1A1E');
+  note(c, x + 1, y + 104, ['OUT OF', 'ORDER'], { paper: '#F4F0E0', ink: '#B91C1C' });
+  // (a boot print, a dent)
+  oval(c, x + 30, y + 196, 9, 5, 'rgba(26, 11, 6, 0.4)'); for (let k = 0; k < 3; k++) box(c, x + 24 + k * 5, y + 194, 2, 4, 'rgba(26, 11, 6, 0.5)');
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The room in strips: everything still, painted once per strip
+
+const CHUNK = 420;
+const STRIP_X0 = () => X0 - WALL;
+const STRIPS = () => Math.ceil((LEN + WALL * 2) / CHUNK);
+/** The props, with the stretch of room (world x) each one's paint can reach. */
+let items: { a: number; b: number; paint: (c: Ctx) => void }[] | null = null;
+const propList = () => items ?? (items = [
+  { a: rx(-10), b: rx(110), paint: deadPlant },
+  { a: EXIT_X - 70, b: EXIT_X + 70, paint: exitDoor },
+  { a: rx(170), b: rx(320), paint: timeClock },
+  { a: rx(300), b: rx(520), paint: mirror },
+  { a: rx(310), b: rx(500), paint: mopBucket },
+  { a: rx(520), b: rx(760), paint: incidentBoard },
+  { a: rx(515), b: rx(715), paint: fireExit },
+  { a: rx(685), b: rx(780), paint: trash },
+  { a: rx(780), b: rx(1080), paint: mural },
+  { a: rx(800), b: rx(1080), paint: lockers },
+  { a: rx(1040), b: rx(1240), paint: closet },
+  { a: rx(1230), b: rx(1440), paint: rack },
+  { a: rx(1440), b: rx(1740), paint: heads },
+  { a: rx(1590), b: rx(1720), paint: laundry },
+  { a: rx(1680), b: rx(1840), paint: bagWall },
+  { a: rx(1860), b: rx(1980), paint: leakBucket },
+  { a: rx(2240), b: rx(2400), paint: pennants },
+  { a: rx(1930), b: rx(2150), paint: bulletin },
+  { a: rx(1920), b: rx(2140), paint: breakTable },
+  { a: rx(2135), b: rx(2255), paint: counter },
+  { a: rx(2245), b: rx(2340), paint: fridge },
+  { a: rx(2330), b: rx(2400), paint: vending },
+]);
+
+const strip = (c: Ctx, i: number) => {
+  const a = STRIP_X0() + i * CHUNK - 2, b = Math.min(STRIP_X0() + (i + 1) * CHUNK, X0 + LEN + WALL) + 2;
+  c.save(); c.beginPath(); c.rect(a, -60, b - a, CANVAS_HEIGHT + 120); c.clip();
+  const ia = Math.max(a, X0), ib = Math.min(b, X0 + LEN);
+  if (ib > ia) {
+    ceiling(c, ia, ib);
+    wall(c, ia, ib);
+    floor(c, ia, ib);
+    if (a < rx(1950) && b > rx(700)) ceilingFaults(c);
+    wallFaults(c);
+    for (const it of propList()) if (it.b > a && it.a < b) it.paint(c);
+  }
+  if (a < X0) endWall(c, X0 - WALL, 1);
+  if (b > X0 + LEN) endWall(c, X0 + LEN, -1);
+  c.restore();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// What moves
+
+const FIXTURES = [210, 570, 930, 1290, 1650, 2010, 2310];
+/** The fixture that flickers, and the one that's dead. */
+const FLICKER = 930, DEAD = 2310;
+
+const lights = (c: Ctx, f: number, vis: (a: number, b: number) => boolean) => {
+  for (const fr of FIXTURES) {
+    const x = rx(fr) - 48;
+    if (!vis(x - 80, x + 176)) continue;
+    let on = fr !== DEAD;
+    if (fr === FLICKER) { const t = Math.floor(f / 3); on = hash(t * 0.37) > 0.3 && !(Math.floor(f / 90) % 4 === 1 && hash(t) > 0.15); }
+    else if ((f + fr) % 520 < 3) on = false;
+    // (the light down the wall: banded, each step a shade fainter)
+    if (on) for (let k = 0; k < 3; k++) {
+      const spread = 30 + k * 40;
+      c.fillStyle = 'rgba(250, 248, 220, 0.035)'; c.beginPath();
+      c.moveTo(x + 4 - k * 6, CEIL_Y + 22); c.lineTo(x + 92 + k * 6, CEIL_Y + 22); c.lineTo(x + 96 + spread, G); c.lineTo(x - spread, G); c.closePath(); c.fill();
+    }
+    // (the fixture: chains, the housing, the tubes, dead bugs in the tray)
+    box(c, x + 10, CEIL_Y, 2, 10, '#5A5E66'); box(c, x + 84, CEIL_Y, 2, 10, '#5A5E66');
+    box(c, x - 1, CEIL_Y + 9, 98, 10, INK); box(c, x, CEIL_Y + 10, 96, 8, '#8A8C86'); box(c, x, CEIL_Y + 10, 96, 2, '#B0B2AA'); box(c, x, CEIL_Y + 16, 96, 2, '#5A5C56');
+    for (let k = 0; k < 4; k++) box(c, x + 14 + k * 21 + (fr % 7), CEIL_Y + 13, 2, 1, '#2A2A22');
+    const tube = on ? '#FAFCEC' : '#6F7468', glow = on ? '#E8F0D0' : '#5A5E54';
+    box(c, x + 3, CEIL_Y + 19, 90, 4, glow); box(c, x + 3, CEIL_Y + 19, 90, 1, tube); box(c, x + 3, CEIL_Y + 21, 90, 1, tube);
+    if (fr === DEAD || fr === FLICKER) { box(c, x + 3, CEIL_Y + 19, 8, 4, '#3A3A30'); box(c, x + 85, CEIL_Y + 19, 8, 4, '#3A3A30'); }
+    box(c, x + 1, CEIL_Y + 19, 2, 4, '#3A3F48'); box(c, x + 93, CEIL_Y + 19, 2, 4, '#3A3F48');
+  }
+};
+
+/** The drip: a drop from the hole in the ceiling every so often, into the bucket, a ring going out on the water. */
+const drip = (c: Ctx, f: number) => {
+  const x = rx(1910), top = CEIL_Y + 6, bottom = G - 27, period = 64;
+  const t = f % period;
+  if (t < 12) { const s = Math.floor(t / 4); box(c, x - 1, top, 3, 2 + s, '#A8C8D8'); }
+  else {
+    const fall = (t - 12) / 20, y = top + fall * fall * (bottom - top);
+    if (y < bottom) { box(c, x - 1, y, 3, 5, '#A8C8D8'); box(c, x - 1, y, 1, 2, '#E8F4FA'); }
+    else { const k = t - 12 - 20; if (k < 14) { const r = 3 + k; box(c, x - r, bottom - 1, r * 2, 1, 'rgba(200, 225, 235, 0.7)'); if (k < 6) { box(c, x - 4, bottom - 4 - k, 2, 2, '#A8C8D8'); box(c, x + 3, bottom - 4 - k, 2, 2, '#A8C8D8'); } } }
+  }
+};
+
+/** A roach: a brown body lit along its back, the legs going, the feelers. */
+const roach = (c: Ctx, x: number, y: number, dir: number, f: number, up = false) => {
+  x = Math.round(x); y = Math.round(y);
+  if (up) {
+    box(c, x - 2, y - 4, 5, 9, INK); box(c, x - 1, y - 3, 3, 7, '#5A3014'); box(c, x - 1, y - 3, 1, 6, '#8A5428');
+    const l = f % 4 < 2 ? 1 : -1;
+    for (let k = 0; k < 3; k++) { box(c, x - 4, y - 2 + k * 3 + l, 2, 1, INK); box(c, x + 3, y - 2 + k * 3 - l, 2, 1, INK); }
+    const hy = dir < 0 ? y - 8 : y + 5;
+    box(c, x - 2, hy, 1, 3, INK); box(c, x + 2, hy, 1, 3, INK);
+    return;
+  }
+  box(c, x - 4, y - 4, 9, 4, INK); box(c, x - 3, y - 4, 7, 3, '#5A3014'); box(c, x - 3, y - 4, 6, 1, '#8A5428');
+  const l = f % 4 < 2 ? 1 : 0;
+  for (let k = 0; k < 3; k++) box(c, x - 3 + k * 3 + l, y - 1, 1, 1, INK);
+  box(c, x + dir * 5, y - 4, 2, 2, INK);
+  box(c, x + dir * 7, y - 6, 3, 1, INK);
+};
+
+const critters = (c: Ctx, f: number, vis: (a: number, b: number) => boolean) => {
+  // (one across the floor under the table, stopping and starting)
+  if (vis(rx(1940), rx(2340))) {
+    const t = f * 0.012, p = Math.sin(t) + 0.3 * Math.sin(t * 3.7);
+    const dir = Math.cos(t) + 1.1 * Math.cos(t * 3.7) > 0 ? 1 : -1;
+    roach(c, rx(2140) + p * 150, G, dir, f);
+  }
+  // (one up and down the wall by the trash)
+  if (vis(rx(760), rx(800))) { const t = f * 0.015, dy = Math.sin(t) * 40; roach(c, rx(786), 478 + dy, Math.cos(t) > 0 ? -1 : 1, f, true); }
+  // (one in and out of the microwave)
+  if (vis(rx(2140), rx(2210))) { const t = f * 0.02, k = Math.sin(t); if (k > -0.4) roach(c, rx(2176) + k * 28, 466, Math.cos(t) > 0 ? 1 : -1, f); }
+  // (flies over the trash and the laundry)
+  for (const [fx, fy] of [[rx(732), G - 82], [rx(1660), 448]] as const) {
+    if (!vis(fx - 30, fx + 30)) continue;
+    for (let i = 0; i < 3; i++) {
+      const x = Math.round(fx + Math.sin(f * 0.11 + i * 2.1) * 16 + Math.sin(f * 0.37 + i) * 4), y = Math.round(fy + Math.cos(f * 0.15 + i * 1.3) * 9);
+      box(c, x, y, 2, 2, '#14140E'); if ((f + i) % 3) box(c, x - 1, y - 1, 1, 1, 'rgba(220, 230, 240, 0.7)');
+    }
+  }
+  // (the laundry's smell, rising)
+  if (vis(rx(1600), rx(1720))) for (let k = 0; k < 3; k++) {
+    const bx = rx(1626 + k * 30);
+    for (let s = 0; s < 6; s++) { const y = 430 - s * 8 - ((f * 0.5 + k * 10) % 8); box(c, Math.round(bx + Math.sin(f * 0.05 + s * 0.9 + k) * 4), Math.round(y), 2, 4, `rgba(140, 170, 60, ${(0.45 - s * 0.06).toFixed(2)})`); }
+  }
+  // (the burnt pot, smoking)
+  if (vis(rx(2200), rx(2260))) for (let s = 0; s < 5; s++) {
+    const y = 404 - ((f * 0.4 + s * 9) % 45), a = 0.3 * (1 - (404 - y) / 45);
+    box(c, Math.round(rx(2226) + Math.sin(f * 0.04 + s) * 3), Math.round(y), 3, 3, `rgba(60, 56, 50, ${a.toFixed(2)})`);
+  }
+  // (the microwave's clock: 12:00, blinking, forever)
+  if (vis(rx(2180), rx(2210)) && f % 60 < 36) {
+    const d0 = rx(2146) + 45, my = 466 - 40 + 8;
+    const seg = (x: number, d: string) => {
+      const on = (s: number) => ({ 1: [1, 2], 2: [0, 1, 3, 4, 6], 0: [0, 1, 2, 3, 4, 5] } as Record<string, number[]>)[d].includes(s);
+      const S = [[0, 0, 3, 1], [2, 0, 1, 3], [2, 2, 1, 3], [0, 4, 3, 1], [0, 2, 1, 3], [0, 0, 1, 3], [0, 2, 3, 1]];
+      S.forEach(([sx, sy, sw, sh], i) => { if (on(i)) box(c, x + sx, my + sy, sw, sh, '#5AFF6A'); });
+    };
+    seg(d0 - 2, '1'); seg(d0 + 2, '2'); box(c, d0 + 6, my + 1, 1, 1, '#5AFF6A'); box(c, d0 + 6, my + 3, 1, 1, '#5AFF6A'); seg(d0 + 8, '0'); seg(d0 + 12, '0');
+  }
+  // (a ribbon tied to the AC vent, the one sign it works)
+  if (vis(rx(1290), rx(1400))) for (let s = 0; s < 8; s++) {
+    const y = 114 + s * 3, x = rx(1376) + Math.sin(f * 0.25 - s * 0.6) * s * 0.9;
+    box(c, Math.round(x), y, 3, 3, [FLAG_RED[2], FLAG_WHITE[3], FLAG_BLUE[2]][Math.floor(s / 3) % 3]);
+  }
+};
+
+/** The punching bag, swinging a little on its chain; MGMT taped on it. */
+const bag = (c: Ctx, f: number) => {
+  const X = rx(1850), len = 290 - CEIL_Y, sway = Math.sin(f * 0.05) * 0.06;
+  c.save(); c.translate(X, CEIL_Y); c.rotate(sway * 0.4);
+  for (let y = 0; y < len; y += 6) { box(c, -2, y, 4, 5, INK); box(c, -1, y, 2, 4, y % 12 ? '#8A8E96' : '#B8BCC4'); }
+  c.restore();
+  c.save(); c.translate(X - Math.sin(sway * 0.4) * len, 290); c.rotate(sway);
+  line(c, [-16, 14, 0, 0, 16, 14], '#8A8E96', 2);
+  box(c, -23, 12, 46, 122, INK);
+  pole(c, -22, 14, 44, 118, '#8E1E1E', false);
+  box(c, -22, 14, 44, 6, '#3A0A0A'); box(c, -22, 126, 44, 6, '#3A0A0A');
+  box(c, -22, 60, 44, 3, '#3A0A0A');
+  box(c, -14, 84, 18, 10, '#8A8E8A'); box(c, -14, 84, 18, 1, '#B0B4B0'); box(c, 4, 100, 14, 8, '#8A8E8A');
+  box(c, -12, 28, 28, 28, '#E8E4D0'); box(c, -12, 28, 28, 1, '#FFFFF0');
+  box(c, -7, 34, 4, 3, INK); box(c, 6, 34, 4, 3, INK); box(c, -5, 42, 12, 2, INK); box(c, -8, 32, 6, 1, INK); box(c, 5, 32, 6, 1, INK);
+  text(c, 'MGMT', 2, 53, '#B91C1C', 6, 'center', null);
+  tape(c, -14, 26, 8, 4); tape(c, 10, 26, 8, 4);
+  c.restore();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Behind the room: nothing but the dark (the room's own walls fill the screen). */
+export const drawPenBackdrop = (ctx: Ctx, _state: GameState) => {
+  void _state;
+  box(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#121410');
+};
+
+export const drawPenBack = (ctx: Ctx, state: GameState) => {
+  const f = state.frame, cam = state.camera.x;
+  const vis = (a: number, b: number) => b > cam - 20 && a < cam + CANVAS_WIDTH + 20;
+  for (let i = 0; i < STRIPS(); i++) {
+    const a = STRIP_X0() + i * CHUNK - 2, b = Math.min(STRIP_X0() + (i + 1) * CHUNK, X0 + LEN + WALL) + 2;
+    if (vis(a, b)) stamp(ctx, `pen-strip-${i}`, a, -60, b - a, CANVAS_HEIGHT + 120, g => strip(g, i));
+  }
+  lights(ctx, f, vis);
+  if (vis(rx(1880), rx(1940))) drip(ctx, f);
+  critters(ctx, f, vis);
+  if (vis(rx(1790), rx(1910))) bag(ctx, f);
+};

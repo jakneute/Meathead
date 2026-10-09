@@ -16,14 +16,15 @@ import { stopWeapons } from '../weapons';
 import { NO_CONTROLS } from '../../m1/game/platform/input';
 import { M2_ENEMY_KINDS } from '../roster';
 import { beingSucked } from '../weapons/soulSucker';
+import { drawPenBackdrop, drawPenBack } from './art';
 
 export const PEN_STAGE = 'M2 Staff Pen';
-const X0 = -40000, LEN = 2400;
+export const X0 = -40000, LEN = 2400;
 /** The end walls: solid, drawn, and the camera stops at their outer faces. */
-const WALL = 60;
+export const WALL = 60;
 /** The ceiling: a concrete slab across the whole room, its underside this far down (clear of the HUD's bars). */
-const CEIL_Y = 70;
-const EXIT_X = X0 + 130;
+export const CEIL_Y = 70;
+export const EXIT_X = X0 + 130;
 /** Who walks in, in turn (the rat's there to show who can't be grabbed). */
 /** (and men with shields, every so often, to try things on) */
 const ROSTER: EnemyKind[] = M2_ENEMY_KINDS.flatMap((k, i) => (i % 4 === 3 ? [k, (['shielder', 'riotcop', 'protester'] as EnemyKind[])[Math.floor(i / 4) % 3]] : [k]));
@@ -155,80 +156,3 @@ const practice = (state: GameState) => {
     e.vel.x = dir * 0.01;
   }
 };
-
-// ---------------------------------------------------------------------------
-// Back of house: painted rough for now
-// ---------------------------------------------------------------------------
-
-const box = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, c: string) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
-
-const drawPenBackdrop = (ctx: CanvasRenderingContext2D, state: GameState) => {
-  // The block wall, in bands, a stripe of safety yellow along it, pipes up top
-  const bands = ['#26262B', '#2C2C33', '#33333B', '#3A3A43', '#40404A'];
-  bands.forEach((c, i) => box(ctx, 0, i * 110, CANVAS_WIDTH, 112, c));
-  const sx = -(state.camera.x * 0.6) % 64;
-  for (let y = 0; y < 520; y += 32) for (let x = sx - 64 + (y / 32 % 2) * 32; x < CANVAS_WIDTH; x += 64) box(ctx, x, y, 1, 31, '#1F1F24');
-  for (let y = 0; y < 520; y += 32) box(ctx, 0, y, CANVAS_WIDTH, 1, '#1F1F24');
-  box(ctx, 0, 420, CANVAS_WIDTH, 14, '#CA8A04'); for (let x = (-(state.camera.x * 0.6) % 28) - 28; x < CANVAS_WIDTH; x += 28) box(ctx, x, 420, 14, 14, '#18181B');
-  const px = -(state.camera.x * 0.75) % 400;
-  for (let k = -1; k < 3; k++) { box(ctx, px + k * 400, 40, 400, 10, '#52525B'); box(ctx, px + k * 400, 40, 400, 3, '#71717A'); box(ctx, px + k * 400 + 120, 30, 8, 30, '#3F3F46'); }
-};
-
-const drawPenBack = (ctx: CanvasRenderingContext2D, state: GameState) => {
-  const f = state.frame;
-  // The ceiling: a concrete slab, its underside in shadow, beams across it, strip lights hung off it
-  box(ctx, X0 - 400, CEIL_Y - 300, LEN + 800, 300, '#3F3F46'); box(ctx, X0 - 400, CEIL_Y - 8, LEN + 800, 8, '#27272A'); box(ctx, X0 - 400, CEIL_Y - 9, LEN + 800, 1, '#52525B');
-  for (let x = X0 - 120; x < X0 + LEN + 120; x += 240) { box(ctx, x, CEIL_Y, 22, 12, '#27272A'); box(ctx, x, CEIL_Y, 22, 2, '#3F3F46'); }
-  for (let x = X0 + 150; x < X0 + LEN; x += 320) {
-    box(ctx, x + 10, CEIL_Y, 2, 10, '#52525B'); box(ctx, x + 78, CEIL_Y, 2, 10, '#52525B');
-    box(ctx, x, CEIL_Y + 10, 90, 6, '#A1A1AA'); box(ctx, x + 3, CEIL_Y + 16, 84, 3, (f + x) % 400 < 3 ? '#A1A1AA' : '#FEFCE8');
-    ctx.fillStyle = 'rgba(254, 252, 232, 0.05)'; ctx.beginPath(); ctx.moveTo(x + 3, CEIL_Y + 19); ctx.lineTo(x + 87, CEIL_Y + 19); ctx.lineTo(x + 140, CEIL_Y + 200); ctx.lineTo(x - 50, CEIL_Y + 200); ctx.closePath(); ctx.fill();
-  }
-  // The floor: sealed concrete, a painted walkway line
-  box(ctx, X0 - 400, GROUND_Y, LEN + 800, 120, '#57534E'); box(ctx, X0 - 400, GROUND_Y, LEN + 800, 3, '#78716C');
-  for (let x = X0; x < X0 + LEN; x += 90) box(ctx, x, GROUND_Y + 22, 50, 4, '#EAB308');
-  // The door back out to the hub, with its sign
-  box(ctx, EXIT_X - 34, GROUND_Y - 120, 68, 120, '#3F3F46'); box(ctx, EXIT_X - 30, GROUND_Y - 116, 60, 116, '#71717A');
-  box(ctx, EXIT_X + 18, GROUND_Y - 62, 6, 4, '#E5E7EB');
-  box(ctx, EXIT_X - 44, GROUND_Y - 152, 88, 24, '#14532D'); ctx.fillStyle = '#ECFCCB'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('TO THE HUB', EXIT_X, GROUND_Y - 136);
-  // Back-of-house things: the board, crates, a rack of spare mascot heads, a punching bag (sign: NOT FOR GUESTS)
-  box(ctx, X0 + 300, GROUND_Y - 260, 220, 120, '#F4F4F5'); box(ctx, X0 + 300, GROUND_Y - 260, 220, 6, '#A1A1AA');
-  ctx.fillStyle = '#1E3A8A'; ctx.font = '8px "Press Start 2P"';
-  ctx.fillText('DAYS WITHOUT', X0 + 410, GROUND_Y - 230); ctx.fillText('AN INCIDENT:', X0 + 410, GROUND_Y - 214);
-  ctx.fillStyle = '#DC2626'; ctx.font = '24px "Press Start 2P"'; ctx.fillText('0', X0 + 410, GROUND_Y - 172);
-  for (let i = 0; i < 3; i++) { box(ctx, X0 + 700 + i * 50, GROUND_Y - 44 - (i === 1 ? 44 : 0), 46, 44, '#92400E'); box(ctx, X0 + 702 + i * 50, GROUND_Y - 42 - (i === 1 ? 44 : 0), 42, 3, '#B45309'); }
-  // (the mascot heads on their shelf: big grins, staring)
-  box(ctx, X0 + 1100, GROUND_Y - 150, 260, 8, '#52525B');
-  ['#F472B6', '#FACC15', '#60A5FA', '#4ADE80'].forEach((c, i) => {
-    const hx = X0 + 1130 + i * 62, hy = GROUND_Y - 176;
-    ctx.fillStyle = c; ctx.beginPath(); ctx.arc(hx, hy, 24, 0, Math.PI * 2); ctx.fill();
-    box(ctx, hx - 10, hy - 6, 6, 8, '#111'); box(ctx, hx + 4, hy - 6, 6, 8, '#111');
-    ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.arc(hx, hy + 6, 10, 0, Math.PI); ctx.fill();
-  });
-  ctx.fillStyle = '#F4F4F5'; ctx.font = '8px "Press Start 2P"'; ctx.fillText('SPARE HEADS', X0 + 1230, GROUND_Y - 116);
-  const sway = Math.sin(f * 0.05) * 0.06;
-  ctx.save(); ctx.translate(X0 + 1700, CEIL_Y); ctx.rotate(sway * 0.4);
-  box(ctx, -1, 0, 2, GROUND_Y - 260 - CEIL_Y + 40, '#A1A1AA');
-  ctx.restore();
-  ctx.save(); ctx.translate(X0 + 1700 - Math.sin(sway * 0.4) * (GROUND_Y - 260 - CEIL_Y), GROUND_Y - 260); ctx.rotate(sway);
-  box(ctx, -1, 0, 2, 40, '#A1A1AA'); box(ctx, -22, 40, 44, 110, '#7F1D1D'); box(ctx, -22, 40, 8, 110, '#991B1B'); box(ctx, -22, 70, 44, 4, '#450A0A');
-  ctx.restore();
-  ctx.fillStyle = '#FDE047'; ctx.fillText('NOT FOR GUESTS', X0 + 1700, GROUND_Y - 80);
-  box(ctx, X0 + 2000, GROUND_Y - 210, 200, 40, '#7F1D1D'); ctx.fillStyle = '#FEF2F2'; ctx.fillText('EMPLOYEES ONLY', X0 + 2100, GROUND_Y - 192); ctx.fillText('SMILE BEFORE YOU GO OUT', X0 + 2100, GROUND_Y - 178);
-  ctx.textAlign = 'left';
-  // The end walls, floor to ceiling: poured concrete in bands, lit along the face toward the room, a hazard stripe up
-  // the edge, the form-tie holes in rows
-  const top = state.camera.y - 20, h = GROUND_Y + 120 - top;
-  for (const [wx, face] of [[X0 - WALL, 1], [X0 + LEN, -1]] as const) {
-    const cols = face > 0 ? ['#3F3F46', '#46464E', '#52525B', '#5B5B64', '#6B6B74'] : ['#6B6B74', '#5B5B64', '#52525B', '#46464E', '#3F3F46'];
-    cols.forEach((c, i) => box(ctx, wx + i * (WALL / cols.length), top, WALL / cols.length + 1, h, c));
-    const edge = face > 0 ? wx + WALL - 10 : wx;
-    box(ctx, face > 0 ? edge + 10 - 2 : edge, top, 2, h, face > 0 ? '#A1A1AA' : '#18181B');
-    for (let y = Math.floor(top / 28) * 28; y < GROUND_Y + 120; y += 28) box(ctx, edge + (face > 0 ? -2 : 2), y, 8, 14, (y / 28) % 2 ? '#CA8A04' : '#18181B');
-    for (let y = Math.floor(top / 96) * 96 + 40; y < GROUND_Y; y += 96) for (let k = 0; k < 2; k++) box(ctx, wx + 14 + k * 20 - (face > 0 ? 0 : 0), y, 4, 4, '#27272A');
-    for (let y = Math.floor(top / 192) * 192; y < GROUND_Y; y += 192) box(ctx, wx, y, WALL, 2, '#2A2A30');
-    // (where it meets the floor: a dark seam)
-    box(ctx, wx, GROUND_Y, WALL, 4, '#27272A');
-  }
-};
-
