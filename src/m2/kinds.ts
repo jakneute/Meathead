@@ -10,6 +10,7 @@ import { registerKind, type KindStats } from '../m1/game/enemies/kinds';
 import { registerKindDrawer, KIND_HEAD } from '../m1/game/render/enemies';
 import { BOSS_DIALOGUE } from '../m1/content/dialogue';
 import { DEATH_LINES } from '../m1/content/deaths';
+import { registerMidBossKind } from '../m1/game/combat/midBoss';
 
 export interface M2Kind {
   kind: `m2:${string}`;
@@ -43,6 +44,9 @@ export interface M2Kind {
   grab?: 'body' | 'critter' | 'none';
   /** Grabbing it hurts him (a poison frog in his bare hand, a live eel): the damage, and when (unset: always). Its hurt lines are its own kind's. */
   grabHurts?: { dmg: number; when?: (e: Enemy) => boolean };
+  /** A mid-boss (a sub-boss): the weapons give it their mid-boss hit (no instant kills, no status effects), and no
+   *  health bar over it (it draws its own: see adventure/dino/rex.ts). */
+  midBoss?: boolean;
 }
 
 const defs = new Map<string, M2Kind>();
@@ -50,6 +54,7 @@ export const registerM2Kind = (d: M2Kind) => {
   defs.set(d.kind, d);
   registerKind(d.kind as EnemyKind, { stats: d.stats, ai: d.ai, make: d.make, machine: d.robot, humanoid: d.humanoid, solid: d.solid ?? !d.stats.air, pointy: d.pointy });
   registerKindDrawer(d.kind as EnemyKind, d.draw);
+  if (d.midBoss) registerMidBossKind(d.kind);
   if (d.head) (KIND_HEAD as Record<string, { x: number; y: number; r: number }>)[d.kind] = d.head;
 };
 export const m2Kind = (kind?: string) => (kind ? defs.get(kind) : undefined);

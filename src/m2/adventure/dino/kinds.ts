@@ -5,7 +5,7 @@
 //   raptor: prowls; sees him, runs him down, leaps up onto ledges after him, crouches and pounces.
 //   trike:  stands its ground; sees him level with it, paws, and charges (it doesn't leap: get up out of its way).
 //   ptero:  circles its patch of sky, folds and dives at him, climbs back.
-//   rex:    the big one. Stomps after him, roars, opens wide and lunges for a bite.
+//   rex:    the big one, the paddock's sub-boss: its own file (rex.ts).
 // Crude on purpose (the first pass): boxes and polygons, panel seams, bolts.
 
 import type { Enemy } from '../../../m1/types';
@@ -17,7 +17,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { getAdv } from '../section';
-import { HURT_RAPTOR, DEATH_RAPTOR, HURT_TRIKE, DEATH_TRIKE, HURT_HORNS, DEATH_HORNS, HURT_PTERO, DEATH_PTERO, HURT_REX, DEATH_REX } from './lines';
+import { HURT_RAPTOR, DEATH_RAPTOR, HURT_TRIKE, DEATH_TRIKE, HURT_HORNS, DEATH_HORNS, HURT_PTERO, DEATH_PTERO } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -174,46 +174,6 @@ const pteroAI = (ctx: FrameContext, e: Enemy): boolean => {
   return true;
 };
 
-const rexAI = (ctx: FrameContext, e: Enemy): boolean => {
-  if (calm(ctx, e)) return false;
-  const { state } = ctx;
-  e.aiTimer = (e.aiTimer || 0) + 1;
-  const p = mid(state.player), m = mid(e), adx = Math.abs(p.x - m.x);
-  const near = Math.abs(m.x - (state.camera.x + CANVAS_WIDTH / 2)) < 600;
-  switch (e.aiState) {
-    case 'idle':
-    default:
-      e.vel.x = 0;
-      if (sees(state, e, 600, 400)) { e.aiState = 'roar'; e.aiTimer = 0; }
-      break;
-    case 'roar':
-      e.vel.x = 0; e.facing = toward(state, e);
-      if (e.aiTimer === 6) { playSound('roar', 1, -6); if (near) shakeScreen(state, 18, 5); }
-      if (e.aiTimer > 60) { e.aiState = 'walk'; e.aiTimer = 0; }
-      break;
-    case 'walk':
-      e.facing = toward(state, e);
-      e.vel.x = adx > 100 ? e.facing * 1.5 : 0;
-      if (e.aiTimer % 30 === 0 && near) { playSound('stomp', 0.7, -8); shakeScreen(state, 4, 3); }
-      if (adx < 200 && Math.abs(p.y - m.y) < 140 && e.aiTimer > 30) { e.aiState = 'open'; e.aiTimer = 0; }
-      if (e.aiTimer > 420) { e.aiState = 'roar'; e.aiTimer = 0; }
-      break;
-    case 'open':
-      e.vel.x = 0;
-      if (e.aiTimer > 28) { e.aiState = 'lunge'; e.aiTimer = 0; playSound('bellow', 0.9, -6); }
-      break;
-    case 'lunge':
-      e.vel.x = e.facing! * 7;
-      if (e.aiTimer > 14) { e.aiState = 'close'; e.aiTimer = 0; playSound('crunch', 0.8, -6); }
-      break;
-    case 'close':
-      e.vel.x *= 0.8;
-      if (e.aiTimer > 34) { e.aiState = 'walk'; e.aiTimer = 0; }
-      break;
-  }
-  return false;
-};
-
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing (feet at the origin, facing right)
 
@@ -316,41 +276,9 @@ const drawPtero = (c: Ctx, e: Enemy, f: number) => {
   c.fillStyle = '#3F3F46'; c.fillRect(-6, by + 8, 2, 6); c.fillRect(-2, by + 8, 2, 6);
 };
 
-const REX = '#5C5348', REX_LO = '#3E372F', REX_HI = '#7A7064';
-const drawRex = (c: Ctx, e: Enemy, f: number) => {
-  const st = stepOf(e, f, 0.18), bob = bobOf(e, f);
-  const by = -110 + bob;
-  for (const [s, col] of [[-1, REX_LO], [1, REX]] as const) {
-    const k = st * s * 10;
-    poly(c, [-24 + k * 0.5, by + 40, 10 + k * 0.5, by + 40, 14 + k, -30, -10 + k, -30], col);
-    poly(c, [-8 + k, -34, 12 + k, -34, 8 + k, -6, -6 + k, -6], col);
-    poly(c, [-14 + k, -8, 26 + k, -8, 28 + k, 0, -14 + k, 0], '#3F3F46');
-  }
-  // tail
-  poly(c, [-40, by + 20, -110, by + 30 + Math.sin(f * 0.06) * 6, -112, by + 36 + Math.sin(f * 0.06) * 6, -40, by + 56], REX_LO);
-  // body
-  poly(c, [-48, by + 14, 20, by - 6, 44, by + 18, 36, by + 64, -40, by + 62], REX);
-  c.fillStyle = REX_HI; c.fillRect(-40, by + 12, 56, 4);
-  c.strokeStyle = REX_LO; c.lineWidth = 1.5; for (const x of [-26, -4, 18]) { c.beginPath(); c.moveTo(x, by + 6); c.lineTo(x, by + 62); c.stroke(); }
-  bolts(c, [-34, by + 22, -14, by + 20, 8, by + 16, -34, by + 54, -14, by + 54, 8, by + 54, 28, by + 40]);
-  // the silly little arm
-  poly(c, [34, by + 34, 46, by + 42, 44, by + 46, 32, by + 40], REX_LO);
-  // neck, head: jaw opens for the bite
-  const open = e.aiState === 'open' ? Math.min(1, (e.aiTimer || 0) / 12) * 18 : e.aiState === 'lunge' ? 18 : 0;
-  const hx = 34, hy = by - 18;
-  poly(c, [24, by, 44, by - 10, 52, hy + 30, 36, by + 26], REX);
-  poly(c, [hx, hy, hx + 48, hy + 4, hx + 50, hy + 18, hx, hy + 22], REX);
-  c.fillStyle = REX_HI; c.fillRect(hx + 2, hy + 1, 40, 3);
-  poly(c, [hx + 4, hy + 22, hx + 46, hy + 18 + open, hx + 44, hy + 28 + open, hx + 4, hy + 32], REX_LO);
-  c.fillStyle = '#F4F4F5';
-  for (let i = 0; i < 7; i++) { c.fillRect(hx + 10 + i * 5, hy + 18, 2, 4); c.fillRect(hx + 10 + i * 5, hy + 18 + open - 2 + (open ? 0 : 2), 2, 3); }
-  bolts(c, [hx + 6, hy + 8, hx + 20, hy + 14]);
-  eye(c, e, f, hx + 22, hy + 7, 2.6);
-};
-
 // ---------------------------------------------------------------------------------------------------------------
 
-export const DINO_KINDS = { raptor: 'm2:raptor', trike: 'm2:trike', ptero: 'm2:ptero', rex: 'm2:rex' } as const;
+export const DINO_KINDS = { raptor: 'm2:raptor', trike: 'm2:trike', ptero: 'm2:ptero' } as const;
 
 registerM2Kind({ kind: 'm2:raptor', stats: { w: 64, h: 50, hp: 140, contact: 12, mass: 170 }, ai: raptorAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawRaptor(c, e, f); }, head: { x: 27, y: -50, r: 8 }, gender: 'n', robot: true, grab: 'body' });
 registerM2Kind({ kind: 'm2:trike', stats: { w: 96, h: 56, hp: 260, contact: 14, mass: 700 }, ai: trikeAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawTrike(c, e, f); }, head: { x: 50, y: -38, r: 10 }, gender: 'n', robot: true, grab: 'none', pointy: { source: 'm2:trike_horns', label: 'GORED!', damage: 14 } });
@@ -358,10 +286,8 @@ registerM2Kind({
   kind: 'm2:ptero', stats: { w: 70, h: 30, hp: 60, contact: 10, mass: 70, air: true }, ai: pteroAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawPtero(c, e, f); }, head: { x: 22, y: -22, r: 6 }, gender: 'n', robot: true, grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
 });
-registerM2Kind({ kind: 'm2:rex', stats: { w: 150, h: 140, hp: 900, contact: 20, mass: 1800 }, ai: rexAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawRex(c, e, f); }, head: { x: 58, y: -118, r: 16 }, gender: 'n', robot: true, grab: 'none' });
 
 registerHurtLines('m2:trike_horns', HURT_HORNS, DEATH_HORNS);
 registerHurtLines('m2:raptor', HURT_RAPTOR, DEATH_RAPTOR);
 registerHurtLines('m2:trike', HURT_TRIKE, DEATH_TRIKE);
 registerHurtLines('m2:ptero', HURT_PTERO, DEATH_PTERO);
-registerHurtLines('m2:rex', HURT_REX, DEATH_REX);

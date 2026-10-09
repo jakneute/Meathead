@@ -28,6 +28,7 @@ import { silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { DINO_KINDS } from './kinds';
+import { buildRex, updateRex, drawRex, drawRexHud } from './rex';
 import { drawPerson } from '../temple/people';
 import { MEATHEAD_LANDED, MEATHEAD_RED_EYES, MAINT_OBLIVIOUS, DINO_FRIENDLY, MEATHEAD_DOOR } from './lines';
 
@@ -82,7 +83,7 @@ const ENEMIES: [keyof typeof DINO_KINDS, number, number][] = [
   ['raptor', D + 2850, GY - 210], ['raptor', D + 3300, GY - 430], ['raptor', D + 3720, GY - 170],
   ['ptero', D + 3050, GY - 560], ['ptero', D + 3500, GY - 620],
   ['raptor', D + 4950, GY], ['raptor', D + 5150, GY - 280], ['raptor', D + 5450, GY], ['ptero', D + 4600, GY - 470],
-  ['rex', D + 7300, GY], ['ptero', D + 7900, GY - 520],
+  ['ptero', D + 7900, GY - 520],
   ['raptor', D + 9300, GY], ['raptor', D + 9700, GY], ['raptor', D + 10050, GY], ['raptor', D + 9310, GY - 245], ['ptero', D + 9800, GY - 500],
 ];
 
@@ -203,6 +204,8 @@ export const dino: Section = {
       e.facing = -1;
       state.enemies.push(e);
     }
+    // (the paddock's sub-boss: rex.ts)
+    buildRex(state, { x: D + 7300, inX: PADDOCK_IN, outX: PADDOCK_OUT, top: PADDOCK_TOP });
     dinoOf(state);
     // (in dev, ?adv=30 the first time: as if he'd just come down the drain)
     if (import.meta.env.DEV && !devPebble && new URLSearchParams(location.search).get('adv') === '30') {
@@ -216,6 +219,7 @@ export const dino: Section = {
     // Down the drain into the pen: the first time, the pebble
     if (s.dinoArrival) { s.dinoArrival = false; if (!d.pebbleSeen) startPebble(state, d); }
     if (d.pebble) return runPebble(ctx, d);
+    updateRex(ctx);
     // (been through the temple's back door already, this life: it's open)
     if (state.checkpoint >= 40) d.doorKicked = true;
     // The temple's back door: kicked in, the first time; through it after that
@@ -256,6 +260,7 @@ export const dino: Section = {
     if (d.pebble && !d.hostile) for (const e of state.enemies) if (e.kind === 'm2:raptor' && Math.abs(e.pos.x - state.player.pos.x) < 700) saidOver(c, DINO_FRIENDLY[(Math.floor(state.frame / 120) + Math.round(e.pos.x)) % 2], e.pos.x + e.width / 2, e.pos.y - 14, '#BFDBFE', 140);
   },
   drawHud: (c, state) => {
+    drawRexHud(c, state);
     const d = dinoOf(state);
     if (!d.pebble) return;
     if (d.pebble.pip > 0) drawCut(c, state, d.pebble);
@@ -349,6 +354,7 @@ const drawDinoBack = (c: Ctx, state: GameState) => {
     if (!vis(x, x + w)) continue;
     box(c, x, y, w, 12, '#8B6B43'); lip(c, x, y, w, '#D6B88A');
   }
+  drawRex(c, state);
 };
 
 /** The cut: the maintenance booth, close up, full screen (letterboxed), the pebble coming in its window and onto the

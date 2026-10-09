@@ -27,6 +27,7 @@
   "m2.operator": { "voice": "am_echo", "speed": 1.05, "rate": 1.0 },
   "m2.operator2": { "voice": "af_heart", "speed": 1.05, "rate": 1.0 },
   "m2.maint": { "voice": "am_onyx", "speed": 0.85, "rate": 0.95 },
+  "m2.rex": { "voice": "am_puck", "speed": 1.15, "rate": 1.1, "fx": "radio" },
   "m2.guest": { "voice": "af_nova", "speed": 1.1, "rate": 1.0 },
   "m2.guest2": { "voice": "am_adam", "speed": 1.1, "rate": 1.0 },
   "tourist": { "voice": "af_sky", "speed": 1.05, "rate": 1.08 },
