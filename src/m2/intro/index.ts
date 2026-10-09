@@ -5,7 +5,7 @@
 //
 // Postal rules: park security leaves him alone as long as he leaves everybody alone. They stroll about, keep an eye on
 // him, and that's all. Hit anybody (a guard, somebody in the line, the ticket lady) and the whole park's security comes
-// at him with nightsticks (they hit soft). At the checkpoint, once it's kicked off, they keep coming out of the security
+// at him with nightsticks (they hit soft). Security doesn't send more on its own; but walk through the checkpoint's metal detector and they keep coming out of the security
 // office, for as long as he wants to practice on them.
 //
 // The line's real: he waits his turn behind the people in front (they're served one at a time), people line up
@@ -59,7 +59,7 @@ export interface Intro {
   /** The ticket window: what she's saying, whether she's out cold; whether he's been let in. */
   lady: { said: Said | null; ko: number }; admitted: boolean;
   /** The ticket scene at the window: how it went, how far it's got. */
-  scene: { kind: Dressed; t: number; done: boolean; punched: boolean } | null;
+  scene: { kind: Dressed; t: number; done: boolean; punched: boolean; card: boolean; cardAt: number } | null;
   /** The checkpoint's security office: the door, the next one out. */
   office: { open: number; cd: number };
   /** The PA (what it's saying, when next), the guards' barks. */
@@ -67,6 +67,8 @@ export interface Intro {
   hp: WeakMap<Enemy, number>; hpWas: number; upWas: boolean;
   /** The metal detector: going off (frames left), and whether he's in it. */
   alarm: number; inDetector: boolean;
+  /** He's walked through the detector: from then on the office keeps sending them out. */
+  tripped: boolean;
 }
 export const getIntro = (state: GameState) => state.stage as Intro | null;
 
@@ -107,7 +109,7 @@ const addGuest = (state: GameState, intro: Intro, x: number, arriving: boolean) 
 };
 
 /** Park security, posted about the place (relative x). */
-const POSTS = [500, 1150, 3640, 3950, 4250, 5500, 6350, 7250, 8100, 9000];
+const POSTS = [500, 1150, 3640, 3950, 4250, 5900, 6750, 7650, 8500, 9400];
 const addGuard = (state: GameState, intro: Intro, x: number) => {
   const e = makeKindEnemy('parksec', x, floorY(x - X0));
   e.seen = true; e.homeX = x + Math.floor(Math.random() * 997); e.facing = Math.random() < 0.5 ? -1 : 1;
@@ -117,18 +119,20 @@ const addGuard = (state: GameState, intro: Intro, x: number) => {
   return e;
 };
 
-const meatheadSays = (state: GameState, text: string, after = false, onDone?: () => void) => {
+const meatheadSays = (state: GameState, text: string, after = false, onDone?: () => void, always = false) => {
   const shown = say(text, MEATHEAD_VOICE, after ? 'queue' : 'casual', {
+    always,
     onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; },
     onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; onDone?.(); },
   });
-  if (!shown) onDone?.();
+  // (it has to be said: if the voice won't (it's been said already, say), it's up on the screen anyway)
+  if (!shown) { if (always) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; } onDone?.(); }
 };
 /** Somebody says something over their own head, only while it's being said. */
-const speak = (voice: typeof TICKET_VOICE, text: string, set: (s: Said | null) => void, after = false, onDone?: () => void) => {
+const speak = (voice: typeof TICKET_VOICE, text: string, set: (s: Said | null) => void, after = false, onDone?: () => void, always = false) => {
   const s = { text };
-  const shown = say(text, voice, after ? 'queue' : 'casual', { onShow: () => set(s), onHide: () => { set(null); onDone?.(); } });
-  if (!shown) onDone?.();
+  const shown = say(text, voice, after ? 'queue' : 'casual', { always, onShow: () => set(s), onHide: () => { set(null); onDone?.(); } });
+  if (!shown) { if (always) { set(s); setTimeout(() => set(null), 2500); } onDone?.(); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -158,7 +162,7 @@ export const introLayout: StageLayout = {
     const intro: Intro = {
       grab: createGrab(state), provoked: false, me: null, nextNumber: 0, serveT: 0, arriveT: 0, hurryT: 0, atWindowT: 0,
       lady: { said: null, ko: 0 }, admitted: false, scene: null, office: { open: 0, cd: 0 },
-      pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false,
+      pa: { said: null, next: 600 }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, tripped: false,
     };
     state.stage = intro;
     state.cameraMinX = X0 - 60;
@@ -314,10 +318,11 @@ const security = (ctx: FrameContext, intro: Intro) => {
     e.pos.x += (e.facing ?? 1) * 0.6;
     e.vel.x = (e.facing ?? 1) * 0.01;
   }
-  // The checkpoint's security office: once it's kicked off, they keep coming out of it (practice, as long as he likes)
+  // The checkpoint's security office: once he's walked through the metal detector, they keep coming out of it (practice,
+  // as long as he likes); nothing else he does brings more
   if (intro.office.open > 0) intro.office.open--;
   if (intro.office.cd > 0) intro.office.cd--;
-  if (intro.provoked && px > R(PRACTICE.from) - 200 && px < R(PRACTICE.to) + 300 && intro.office.cd <= 0) {
+  if (intro.tripped && px > R(PRACTICE.from) - 200 && px < R(PRACTICE.to) + 300 && intro.office.cd <= 0) {
     const here = state.enemies.filter(e => e.kind === 'parksec' && e.health > 0 && !e.isBlownAway && Math.abs(e.pos.x - R(OFFICE_X)) < 900).length;
     if (here < PRACTICE.atOnce) {
       const e = addGuard(state, intro, R(OFFICE_X));
@@ -343,7 +348,7 @@ const detector = (ctx: FrameContext, intro: Intro) => {
   if (intro.alarm > 0) intro.alarm--;
   const inIt = Math.abs(px - R(DETECTOR_X)) < 26 && p.pos.y + p.height > UPPER - 100;
   if (inIt && !intro.inDetector) {
-    intro.alarm = 120;
+    intro.alarm = 120; intro.tripped = true;
     playSound('alarm', 0.9);
     playSound('click', 1, 12);
     if (!intro.provoked) provoke(ctx, intro, null);
@@ -438,25 +443,34 @@ const line = (ctx: FrameContext, intro: Intro) => {
 
 const startScene = (state: GameState, intro: Intro, kind: Dressed | 'punch') => {
   const k: Dressed = kind === 'punch' ? dressed(state) : kind;
-  intro.scene = { kind: k, t: 0, done: false, punched: false };
+  intro.scene = { kind: k, t: 0, done: false, punched: false, card: false, cardAt: 0 };
   const sc = intro.scene;
   if (kind === 'punch' || intro.lady.ko > 0) {
     // (past caring: over the counter at her, and in)
     sc.punched = true; sc.done = true;
     return;
   }
-  // Him, then her: one after the other (nobody talks over anybody)
-  meatheadSays(state, pick(MEATHEAD_TICKET[k]), true);
-  speak(TICKET_VOICE, pick(TICKET_LADY[k]), s => { intro.lady.said = s; }, true, () => { sc.done = true; });
+  // Him first, always: then out comes the ticket (or the slap on his bare hip), then her (nobody talks over anybody)
+  meatheadSays(state, pick(MEATHEAD_TICKET[k]), true, () => ladyTurn(intro), true);
+};
+
+/** His line said: out comes the ticket (or the slap on his bare hip), and it's her turn. */
+const ladyTurn = (intro: Intro) => {
+  const sc = intro.scene;
+  if (!sc || sc.card) return;
+  sc.card = true; sc.cardAt = sc.t;
+  speak(TICKET_VOICE, pick(TICKET_LADY[sc.kind]), s => { intro.lady.said = s; }, true, () => { if (intro.scene === sc) sc.done = true; }, true);
 };
 
 const scene = (ctx: FrameContext, intro: Intro) => {
   const sc = intro.scene!;
   sc.t++;
+  // (it doesn't hang on the voices: his line's had its time, the ticket comes out; hers has had its time, on we go)
+  if (!sc.card && !sc.punched && sc.t > 200) ladyTurn(intro);
+  if (sc.card && !sc.done && sc.t - sc.cardAt > 330) sc.done = true;
   // (the ticket, up close: what he's got, or hasn't)
-  setUi({ introTicket: sc.t > 20 && !sc.punched ? sc.kind : null, introCutscene: true, introPrompt: null });
+  setUi({ introTicket: sc.card && !sc.punched ? sc.kind : null, introCutscene: true, introPrompt: null });
   // (the lines might never get said, the voice busy or missing: it doesn't wait forever for them)
-  if (sc.t > 720) sc.done = true;
   if (!sc.done || sc.t < 150) {
     if (sc.punched && sc.t === 10) knockOut(ctx, intro);
     if (!sc.punched || sc.t < 40) return;

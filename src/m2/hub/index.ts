@@ -8,7 +8,10 @@ import { groundBlocks } from '../../m1/game/core/terrain';
 import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
 import { playMenuOk, playMenuBack } from '../../m1/game/platform/audio';
 import { GROUND_Y } from '../../m1/constants';
-import { LANDS, SPOTS, STAFF_SLOT, HUB_SLOTS, landAt } from './lands';
+import { LANDS, SPOTS, STAFF_SLOT, AMERICA_SLOT, HUB_SLOTS, landAt } from './lands';
+import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
+import { isShat, isNude } from '../../m1/game/player/gut';
+import { AMERICA_DENY } from '../lines/hubLines';
 import { setUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
 import { stopWeapons } from '../weapons';
 import { pollM2, pressed } from '../input';
@@ -69,6 +72,8 @@ export const hubLayout: StageLayout = {
     let near: number | null = null;
     // (America USA's way back out is closed: nothing to do there)
     for (let i = 0; i < HUB_SLOTS; i++) if (SPOTS[i].kind !== 'america' && Math.abs(at - slotX(i)) < (i === STAFF_SLOT ? 46 : 90) && p.isGrounded) near = i;
+    // (the way back out to America USA: he's having none of it)
+    const nearAmerica = Math.abs(at - slotX(AMERICA_SLOT)) < 90 && p.isGrounded;
     // The map's up: nothing else till it's dealt with
     if (hub.map !== null) {
       p.vel.x = 0;
@@ -79,7 +84,7 @@ export const hubLayout: StageLayout = {
         hub.map = null;
       } else if (pressed('back')) { hub.map = null; playMenuBack(); }
       if (hub.map === null) for (const k of GATED) hub.gate.add(k);
-      setUi({ near, map: hub.map, nearExit: false });
+      setUi({ near, map: hub.map, nearExit: false, nearAmerica: false });
       hub.upWas = !!controls.up;
       return { ...NO_CONTROLS };
     }
@@ -92,12 +97,23 @@ export const hubLayout: StageLayout = {
     // (the grabs: no use for them here, with nobody about, but he can still throw them)
     controls = updateGrab(ctx, hub.grab, controls);
     if (grabbing(hub.grab)) near = null;
+    if (nearAmerica && near === null && controls.up && !hub.upWas && !grabbing(hub.grab)) {
+      const pool = AMERICA_DENY[isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean'];
+      const text = pool[Math.floor(Math.random() * pool.length)];
+      const shown = say(text, MEATHEAD_VOICE, 'casual', {
+        always: true,
+        onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; },
+        onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
+      });
+      if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; }
+      playMenuBack();
+    }
     if (near !== null && controls.up && !hub.upWas) {
       if (near === STAFF_SLOT) goTo('pen');
       else { const land = landAt(near); if (land) { hub.map = LANDS.indexOf(land); playMenuOk(); } }
     }
     hub.upWas = !!controls.up;
-    setUi({ near, map: hub.map, nearExit: false });
+    setUi({ near, map: hub.map, nearExit: false, nearAmerica: nearAmerica && near === null });
     return hub.map !== null ? { ...NO_CONTROLS } : controls;
   },
   // (from the inside: he's walking round the inside of the ring, the far side of it facing him)

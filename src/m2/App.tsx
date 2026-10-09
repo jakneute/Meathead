@@ -231,21 +231,9 @@ const App2: React.FC = () => {
           <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weaponName(weapon)} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} />
         )}
         {/* What up does here */}
-        {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit) && (
+        {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit || ui.nearAmerica) && (
           <div className={`absolute left-1/2 -translate-x-1/2 ${stage === PEN_STAGE ? 'top-[232px]' : 'top-[132px]'} z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600`}>
-            <Prompt pad={['DPAD_UP']} kb={['W']} label={nearLand ? `MAP: ${nearLand.name}` : ui.nearExit ? 'BACK TO THE HUB' : 'STAFF ONLY: THE STAFF ROOM'} />
-          </div>
-        )}
-        {/* The pen: how the grabs go */}
-        {status === GameStatus.PLAYING && stage === PEN_STAGE && (
-          <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 max-w-[440px] px-3 py-2 text-[8px] leading-[1.6] text-zinc-100 bg-black/70 border-2 border-zinc-600">
-            <ChordPrompt pad={['Y', 'B']} join="+" kb={['R']} label="BEATDOWN (LUNGE)" />
-            <span className="text-green-400 pl-1">EVERY PUNCH HEALS YOU. FINISHING HIM HEALS A LOT.</span>
-            <span className="text-zinc-400 pl-1">ON HIM: <ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" /> · <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" /></span>
-            <ChordPrompt pad={['Y', 'X']} join="+" kb={['T']} label="SHAKEDOWN (GRAB)" />
-            <span className="text-sky-400 pl-1">SHAKE THE AMMO OUT OF HIM (ONCE PER GUY).</span>
-            <span className="text-zinc-400 pl-1">AT THE END, HOLD A DIRECTION TO THROW (DOWN: SLAM)</span>
-            <span className="text-yellow-300 pl-1">SMALL CRITTERS (RATS, CRABS, BIRDS...) GIVE NO HEALTH OR AMMO. EITHER GRAB JUST PICKS ONE UP: PRESS A DIRECTION TO PITCH IT LIKE A BASEBALL.</span>
+            <Prompt pad={['DPAD_UP']} kb={['W']} label={nearLand ? `MAP: ${nearLand.name}` : ui.nearExit ? 'BACK TO THE HUB' : ui.nearAmerica ? 'BACK TO AMERICA USA' : 'STAFF ONLY: THE STAFF ROOM'} />
           </div>
         )}
         {/* The intro: what the panel in the corner's teaching, where he is; what up does at the ticket window; the ticket */}
@@ -254,6 +242,7 @@ const App2: React.FC = () => {
             {ui.introTip === 'postal' && <>
               <span className="text-sky-300">PARK SECURITY LEAVES YOU ALONE IF YOU LEAVE EVERYBODY ALONE.</span>
               <span className="text-zinc-400">HIT ANYBODY (OR SET OFF THE METAL DETECTOR) AND THE WHOLE PARK COMES AT YOU.</span>
+              <span className="text-zinc-400">SECURITY DOESN'T SEND MORE ON ITS OWN.</span>
               <span className="text-zinc-500">SKIP THE INTRO FROM THE PAUSE MENU.</span>
             </>}
             {ui.introTip === 'grabs' && <>
@@ -262,7 +251,7 @@ const App2: React.FC = () => {
               <span className="text-zinc-400 pl-1">ON HIM: <ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" /> · <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" /></span>
               <ChordPrompt pad={['Y', 'X']} join="+" kb={['T']} label="SHAKEDOWN (GRAB)" />
               <span className="text-zinc-400 pl-1">AT THE END, HOLD A DIRECTION TO THROW (DOWN: SLAM). INTO A WALL: SPLAT.</span>
-              <span className="text-yellow-300 pl-1">START SOMETHING AND THEY'LL KEEP COMING OUT OF THE SECURITY OFFICE. PRACTICE.</span>
+              <span className="text-yellow-300 pl-1">WALK THROUGH THE METAL DETECTOR AND THEY'LL KEEP COMING OUT OF THE SECURITY OFFICE: PRACTICE ON THEM. JUMP OVER IT TO SNEAK PAST.</span>
             </>}
             {ui.introTip === 'line' && <>
               <span className="text-sky-300">WAIT YOUR TURN AT THE WINDOW. OR PLOW THROUGH THEM.</span>

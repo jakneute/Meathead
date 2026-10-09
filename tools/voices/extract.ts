@@ -20,6 +20,7 @@ import { M2_KILL_LINES } from '../../src/m2/moves/killLines';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES, BULK_LINES, BULK_FAIL_LINES, DUCK_LINES } from '../../src/m2/lines/weaponLines';
 import { M2_GUT_LINES } from '../../src/m2/lines/gutLines';
 import * as introLines from '../../src/m2/intro/lines';
+import { AMERICA_DENY } from '../../src/m2/lines/hubLines';
 
 const ROOT = path.resolve(__dirname, '../../src');
 const out = new Map<string, { voice: string; text: string; from: string }>();
@@ -98,6 +99,7 @@ for (const t of allStrings(introLines.MEATHEAD_TICKET)) add('meathead', t, 'INTR
 for (const t of allStrings([introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT])) add('m2.ticket', t, 'INTRO');
 for (const t of allStrings([introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE])) { add('m2.guard', t, 'INTRO'); add('m2.guardf', t, 'INTRO'); }
 for (const t of introLines.PA_LINES) add('m2.pa', t, 'INTRO');
+for (const t of allStrings(AMERICA_DENY)) add('meathead', t, 'HUB');
 for (const t of allStrings([introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT])) { add('m2.guest', t, 'INTRO'); add('m2.guest2', t, 'INTRO'); }
 for (const byGround of Object.values(dialogue.SURFACE_CALLOUTS)) for (const lines of Object.values(byGround ?? {})) for (const t of lines ?? []) add('announcer', t, 'SURFACE_CALLOUTS');
 

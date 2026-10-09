@@ -17,6 +17,8 @@ export interface M2Ui {
   introAhead?: number | null;
   introTicket?: 'clean' | 'shitty' | 'nude' | null;
   introCutscene?: boolean;
+  /** (the hub) At the way back out to America USA. */
+  nearAmerica?: boolean;
 }
 
 let ui: M2Ui = { near: null, map: null, nearExit: false, notice: null };

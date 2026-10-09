@@ -75,7 +75,7 @@ export const drawIntroBackdrop = (c: Ctx, state: GameState) => {
   // (the parking lot out from the garage, the skyline over America USA: the one fading into the other as he goes down
   // to it, not cut over from one to the other)
   const mid = cam + CANVAS_WIDTH / 2;
-  const k = Math.max(0, Math.min(1, (mid - R(CHECK_END - 500)) / 900));
+  const k = Math.max(0, Math.min(1, (mid - R(CHECK_END - 300)) / 1100));
   if (k > 0) { c.globalAlpha = k; skyline(c, cam); c.globalAlpha = 1; }
   if (k < 1) { c.globalAlpha = 1 - k; parkingLot(c, cam, f); c.globalAlpha = 1; }
 };
@@ -150,7 +150,7 @@ export const drawIntroBack = (c: Ctx, state: GameState) => {
 
 /** The stairs down to America USA: wide concrete steps, a brass handrail each side, flags at the bottom. */
 const stairs = (c: Ctx, a: number, b: number) => {
-  const n = 10, h = (GROUND_Y - UPPER) / n, w = (b - a) / n;
+  const n = 24, h = (GROUND_Y - UPPER) / n, w = (b - a) / n;
   for (let i = 0; i < n; i++) {
     const x = a + i * w, y = UPPER + i * h;
     box(c, x, y, w + 1, GROUND_Y - y + 140, i % 2 ? '#A8A29E' : '#9CA3AF');
@@ -158,7 +158,10 @@ const stairs = (c: Ctx, a: number, b: number) => {
     box(c, x, y + 3, w + 1, 2, '#78716C');
   }
   c.strokeStyle = '#CA8A04'; c.lineWidth = 3; c.beginPath(); c.moveTo(a, UPPER - 40); c.lineTo(b, GROUND_Y - 40); c.stroke();
-  for (let i = 0; i <= 4; i++) { const x = a + (b - a) * (i / 4); box(c, x - 1, UPPER + (GROUND_Y - UPPER) * (i / 4) - 40, 3, 40, '#A16207'); }
+  for (let i = 0; i <= 8; i++) { const x = a + (b - a) * (i / 8); box(c, x - 1, UPPER + (GROUND_Y - UPPER) * (i / 8) - 40, 3, 40, '#A16207'); }
+  // (flags all the way down, a sign at the top)
+  for (let i = 1; i < 4; i++) flag(c, a + (b - a) * (i / 4) + 20, UPPER + (GROUND_Y - UPPER) * (i / 4) - 150, 0, 26, 16);
+  sign(c, a + 20, UPPER - 130, 200, 18, BLUE, 'AMERICA USA: ALL THE WAY DOWN', WHITE, 6);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -283,13 +286,13 @@ const america = (c: Ctx, f: number, vis: (a: number, b: number) => boolean) => {
   });
   void b;
   // The Fountain of Freedom: a bald eagle on a column, spitting water
-  const fx = R(6900);
+  const fx = R(7300);
   box(c, fx - 60, GROUND_Y - 30, 120, 30, '#D6D3D1'); box(c, fx - 56, GROUND_Y - 26, 112, 12, '#60A5FA');
   box(c, fx - 12, GROUND_Y - 160, 24, 130, '#E7E5E4'); eagle(c, fx, GROUND_Y - 170, 1);
   for (let i = 0; i < 6; i++) { const t = ((f * 2 + i * 10) % 60) / 60; box(c, fx + 14 + t * 40, GROUND_Y - 160 + t * t * 120, 3, 3, '#BFDBFE'); }
   sign(c, fx - 90, GROUND_Y - 220, 180, 18, '#FEF3C7', 'THE FOUNTAIN OF FREEDOM', '#7F1D1D', 6);
   // Carts out front: FREEDOM FRIES, EAGLE DOGS, apple pie on a stick
-  cart(c, R(6220), 'FREEDOM FRIES', RED); cart(c, R(7540), 'EAGLE DOGS', BLUE); cart(c, R(8500), 'PIE ON A STICK', '#B45309');
+  cart(c, R(6620), 'FREEDOM FRIES', RED); cart(c, R(7940), 'EAGLE DOGS', BLUE); cart(c, R(8900), 'PIE ON A STICK', '#B45309');
 };
 
 const lamp = (c: Ctx, x: number) => {
