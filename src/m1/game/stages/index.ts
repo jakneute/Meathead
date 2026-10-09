@@ -108,6 +108,8 @@ export interface StageLayout {
   /** Nothing knocked up off the top of the screen is gone for it ("TO THE MOON"): what goes up comes back down, and
    *  takes what the landing does to it (Meathead 2). */
   noMoonKills?: boolean;
+  /** Where the camera should be jumps (a cutscene's camera let go of, the view locking onto an arena): glide to it. */
+  smoothCameraSnaps?: boolean;
   /** He's already standing there when it starts (the gym): no dropping in out of the sky. */
   startsStanding?: boolean;
   /** The stage's update keeps running once the boss's arena has locked (a stage that's all arena: the finale). */

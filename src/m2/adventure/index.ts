@@ -40,6 +40,8 @@ interface AdvState extends Adv {
   grab: Grab;
   /** Just (re)started at a checkpoint: frames left of the grace, and who's being held off for it. */
   grace: number; held: Set<Enemy>;
+  /** The section the camera was last put into. */
+  lastSec?: string;
 }
 /** Starting again at a checkpoint, whatever's near it holds off a moment (he's not in danger the moment he's back). */
 const GRACE = 120, GRACE_RANGE = 650;
@@ -92,6 +94,8 @@ export const advLayout: StageLayout = {
     adv.section = sec.id;
     const lim = sec.cameraX?.(state) ?? { min: sec.x0, max: sec.x1 - CANVAS_WIDTH };
     state.cameraMinX = lim.min; state.cameraMaxX = lim.max;
+    // (into a section (or back at a checkpoint): the camera's put right on him there, no gliding in from somewhere else)
+    if (adv.lastSec !== sec.id) { adv.lastSec = sec.id; state.camera.x = Math.max(lim.min, Math.min(lim.max, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2)); }
     // (passing a checkpoint: it's his)
     for (const c of sec.checkpoints) if (c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
     setUi({ near: null, map: null, nearExit: false });

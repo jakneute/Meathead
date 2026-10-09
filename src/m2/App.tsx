@@ -51,6 +51,8 @@ import { registerGrabCallouts } from './moves/callouts';
 
 // (in Meathead 2, what's thrown up off the top of the screen comes back down: no "TO THE MOON")
 for (const l of [hubLayout, penLayout, advLayout, introLayout]) l.noMoonKills = true;
+// (and the camera glides where it'd jump in Adventure Land: out of a cutscene's view, onto a fight's arena)
+advLayout.smoothCameraSnaps = true;
 registerStageLayout(HUB_STAGE, hubLayout);
 registerStageLayout(PEN_STAGE, penLayout);
 registerStageLayout(ADV_STAGE, advLayout);

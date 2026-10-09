@@ -839,7 +839,11 @@ const updateCamera = (ctx: FrameContext) => {
     // Camera follows the player but can't scroll past the closed boss door (nor on the frame it starts opening: the
     // glide in takes it from there)
     const maxX = state.cameraMaxX ?? (state.doorState === 'closed' || state.doorState === 'opening' ? BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH : getStageWidth(stageId) - CANVAS_WIDTH);
-    state.camera.x = Math.max(state.cameraMinX, Math.min(maxX, followX));
+    const wantX = Math.max(state.cameraMinX, Math.min(maxX, followX));
+    // (a stage that asks for it: a sudden jump in where the camera should be (a cutscene's camera let go of, the view
+    // locking onto an arena) is glided to, not cut to; following him as he goes is as ever)
+    if (layout?.smoothCameraSnaps && Math.abs(wantX - state.camera.x) > 24) state.camera.x += (wantX - state.camera.x) * 0.12;
+    else state.camera.x = wantX;
   } else if (state.arenaLocked && getArenaRight(stageId) > ARENA_RIGHT) {
     // A wider-than-usual arena (Oscar's) scrolls with you
     state.camera.x = Math.max(BOSS_DOOR_X, Math.min(getStageWidth(stageId) - CANVAS_WIDTH, followX));
