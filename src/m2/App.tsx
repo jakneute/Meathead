@@ -5,6 +5,7 @@ import { RAYGUN_ART } from '../m1/components/WeaponIcon';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { GameStatus, WeaponType } from '../m1/types';
 import { setGutBlowout, setGutLines, setGutDeathLines } from '../m1/game/player/gut';
+import { setFootstepVolume } from '../m1/game/player/footsteps';
 import { setHurtScale } from '../m1/game/core/resist';
 import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
@@ -70,6 +71,8 @@ if (import.meta.env.DEV) {
 setGutBlowout(true);
 setGutLines(M2_GUT_LINES);
 setGutDeathLines(M2_GUT_DEATH);
+// (his footsteps, up where they can be heard over everything)
+setFootstepVolume(2.4);
 // (his shoulder charge, slide, uppercut and dive kick hit about as hard as his throws: far lighter than Meathead 1's)
 Object.assign(enemyMeleeDamage, { charge: 14, slide: 14, uppercut: 45, divekick: 45 });
 // (everything hits him a good deal softer than in Meathead 1; and enemies hardly ever drop anything, and only small)

@@ -158,6 +158,8 @@ export const introLayout: StageLayout = {
   left: X0 - 400,
   startX: R(260),
   verticalCamera: false,
+  // (his footsteps: the walkways' steel treads ring under him; everything else out here's concrete, brick or tile)
+  footstep: (state) => { const x = state.player.pos.x + state.player.width / 2; return WALKWAYS.some(([a, b]) => x > R(a) && x < R(b)) && state.player.pos.y + state.player.height < UPPER + 2 ? 'metal' : 'hard'; },
   startsStanding: true,
   build: (state) => {
     arrived(); stopWeapons();

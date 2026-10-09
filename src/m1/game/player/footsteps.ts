@@ -12,7 +12,9 @@ export type Surface = 'hard' | 'snow' | 'metal' | 'wood' | 'dirt' | 'sand' | 'we
 /** How far he goes between steps (px). */
 const STRIDE = 36;
 /** How loud, over the sounds' own (already quiet) levels. */
-const VOLUME = 0.8;
+let VOLUME = 0.8;
+/** A game's own level for them (Meathead 2's are up over its music and its PA). */
+export const setFootstepVolume = (v: number) => { VOLUME = v; };
 
 /** Each stage's ground outdoors, and what its raised boards and walkways (the one-way platforms) are. */
 const STAGE_GROUND: Record<string, { ground: Surface; deck: Surface }> = {
