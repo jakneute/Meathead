@@ -1,0 +1,43 @@
+// The jungle's own state (in Adventure Land's, under 'jungle'): its vines as they swing, his hold on one, what the
+// monkeys have thrown that's still in the air, and what he's said already.
+
+import type { GameState } from '../../../m1/game/core/state';
+import { sectionState } from '../section';
+
+/** A vine, as it is this frame: its angle off straight down (radians, + swung right) and how fast that's changing. */
+export interface VineRun { th: number; om: number }
+
+/** His hold on a vine (or none), and the business round letting go. */
+export interface Hold {
+  /** Which vine he's on (-1: none). */
+  on: number;
+  /** How far down it his hands are, from where it hangs. */
+  s: number;
+  /** Zipping up it (-1, the quick climb) or down it (1, the quick slide). */
+  zip: 0 | 1 | -1;
+  /** The last vine he let go of, and how long before he can take hold of it again (any other, a moment). */
+  last: number; cd: number; anyCd: number;
+  /** The buttons held when he took hold or let go: not passed on to him again till they're let go of. */
+  jumpLatch: boolean; specialLatch: boolean;
+  /** The swing he let go with, kept up a while (the air would otherwise eat it at once). */
+  fling: { vx: number; t: number } | null;
+  lastX: number;
+  hurtWas: number;
+}
+
+/** Something a monkey's thrown. */
+export interface Thrown { x: number; y: number; vx: number; vy: number; kind: 'poo' | 'fruit'; fruit: number; t: number }
+
+export interface Jungle {
+  vines: VineRun[];
+  hold: Hold;
+  thrown: Thrown[];
+  said: Record<string, boolean>;
+}
+
+export const jungleOf = (state: GameState) => sectionState<Jungle>(state, 'jungle', () => ({
+  vines: [],
+  hold: { on: -1, s: 0, zip: 0, last: -1, cd: 0, anyCd: 0, jumpLatch: false, specialLatch: false, fling: null, lastX: 0, hurtWas: 0 },
+  thrown: [],
+  said: {},
+}));

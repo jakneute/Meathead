@@ -14,7 +14,7 @@ import { drawTommyKind } from './tommy';
 import { drawOscarKind } from './oscar';
 import { drawGymKind } from './gym';
 import { drawFinaleKind } from './finale';
-import { isChargerKind } from '../../enemies/kinds';
+import { isChargerKind, isMachineKind } from '../../enemies/kinds';
 import type { GameState } from '../../core/state';
 import { INK, ink, shaded, shadedTop, lite, dark, limb } from '../npc/kit';
 import { pixelBlob } from '../pixelArt';
@@ -115,7 +115,7 @@ export const isHumanoidKind = (kind?: EnemyKind) =>
 
 /** What an x-ray shows inside it. (A rattlesnake's all spine, like a fish; a scorpion's legs and claws, like a crab.) */
 export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' | 'machine' =>
-  kind === 'drone' || kind === 'generator' || kind === 'lowrider' || kind === 'pickup' || kind === 'cruiser' || kind === 'chopper' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' || kind === 'pigeon' || kind === 'hawk' || kind === 'grackle' ? 'bird'
+  kind === 'drone' || kind === 'generator' || kind === 'lowrider' || kind === 'pickup' || kind === 'cruiser' || kind === 'chopper' || isMachineKind(kind) ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' || kind === 'pigeon' || kind === 'hawk' || kind === 'grackle' ? 'bird'
   : kind === 'shark' || kind === 'magmafish' || kind === 'rattlesnake' || kind === 'mutantfish' ? 'fish' : kind === 'crab' || kind === 'scorpion' ? 'crab' : 'four-legs';
 
 /** Kinds a game draws for itself (Meathead 2's: its own people, in its own style), by kind: drawn standing at the origin, facing right. */

@@ -21,6 +21,7 @@ import { CANVAS_WIDTH } from '../../m1/constants';
 import { drawEnemyAt, grabHolding } from '../moves/grab';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
+import { isRobot } from '../kinds';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -63,7 +64,7 @@ interface Alien {
 }
 
 /** One bone, in the skeleton's own space (its feet the origin, facing right). */
-interface Bone { kind: 'long' | 'vert' | 'rib' | 'hrib' | 'pelvis' | 'skull' | 'snout' | 'beak'; x: number; y: number; a: number; l: number; s: number; flip: 1 | -1; blood: number }
+interface Bone { kind: 'long' | 'vert' | 'rib' | 'hrib' | 'pelvis' | 'skull' | 'snout' | 'beak'; x: number; y: number; a: number; l: number; s: number; flip: 1 | -1; blood: number; /** A robot's endoskeleton: steel, no blood, its eyes still lit. */ metal?: boolean }
 /** ...and come loose: in the world, falling. */
 interface Piece { b: Bone; x: number; y: number; a: number; vx: number; vy: number; va: number; face: 1 | -1; t: number; still: boolean }
 
@@ -306,7 +307,7 @@ const rot = (ctx: FrameContext, c: Corpse) => {
   const floor = floorBelow(state, c.x, c.y - 2);
   if (c.y < floor - 0.5) { c.vy += 0.5; c.y = Math.min(floor, c.y + c.vy); if (c.y >= floor) { c.vy = 0; c.landedAt = c.t; playSound('thud', 0.5); } }
   else if (c.landedAt < 0) c.landedAt = c.t;
-  const e = c.e;
+  const e = c.e, robot = isRobot(e);
   // The flesh, bitten away (bites go in where they're chewing, and all over)
   if (c.t <= EAT && c.flesh) {
     const g = c.flesh.getContext('2d')!;
@@ -316,13 +317,14 @@ const rot = (ctx: FrameContext, c: Corpse) => {
     for (let i = 0; i < n; i++) {
       let bx = c.fx + (Math.random() - 0.5) * e.width * 1.6, by = c.fy - Math.random() * e.height * 1.25;
       if (chewers.length && Math.random() < 0.4) { const a = chewers[Math.floor(Math.random() * chewers.length)]; bx = c.fx + (a.x - c.x) + (Math.random() - 0.5) * r * 2; by = c.fy + (a.y - c.y) - 4 + (Math.random() - 0.5) * r * 2; }
-      g.globalCompositeOperation = 'source-atop'; g.fillStyle = Math.random() < 0.5 ? '#7F1D1D' : '#991B1B';
+      // (a robot's casing: chewed through, its edges torn metal, sparking)
+      g.globalCompositeOperation = 'source-atop'; g.fillStyle = robot ? (Math.random() < 0.5 ? '#27272A' : '#52525B') : Math.random() < 0.5 ? '#7F1D1D' : '#991B1B';
       g.beginPath(); g.arc(bx, by, r + 2.5, 0, Math.PI * 2); g.fill();
       g.globalCompositeOperation = 'destination-out';
       g.beginPath(); g.arc(bx, by, r, 0, Math.PI * 2); g.fill();
-      if (Math.random() < 0.15) state.particles.push({ pos: { x: c.x + (bx - c.fx), y: c.y + (by - c.fy) }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 20, color: '#991B1B', size: 2 + Math.random() * 2, grav: 0.3 });
+      if (Math.random() < 0.15) state.particles.push({ pos: { x: c.x + (bx - c.fx), y: c.y + (by - c.fy) }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: robot ? 10 : 20, color: robot ? (Math.random() < 0.5 ? '#FDE047' : '#FFFFFF') : '#991B1B', size: 2 + Math.random() * 2, grav: 0.3 });
     }
-    g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(127, 29, 29, 0.05)'; g.fillRect(0, 0, c.flesh.width, c.flesh.height);
+    g.globalCompositeOperation = 'source-atop'; g.fillStyle = robot ? 'rgba(24, 24, 27, 0.05)' : 'rgba(127, 29, 29, 0.05)'; g.fillRect(0, 0, c.flesh.width, c.flesh.height);
     g.globalCompositeOperation = 'source-over';
     if (state.frame % 5 === 0) playSound('gnaw', 0.6);
   }
@@ -330,7 +332,7 @@ const rot = (ctx: FrameContext, c: Corpse) => {
   // The skeleton: dripping
   if (c.t > EAT && c.bones.length && state.frame % 5 === 0) {
     const b = c.bones[Math.floor(Math.random() * c.bones.length)];
-    state.particles.push({ pos: { x: c.x + c.face * b.x, y: c.y + b.y }, vel: { x: 0, y: 0.5 }, life: 26, color: '#991B1B', size: 2, grav: 0.25 });
+    state.particles.push({ pos: { x: c.x + c.face * b.x, y: c.y + b.y }, vel: { x: 0, y: 0.5 }, life: 26, color: robot ? '#0A0A0A' : '#991B1B', size: 2, grav: 0.25 });
   }
   // ...and down it comes, in bits (once it's on the floor and has stood there a while)
   const down = c.landedAt >= 0 && c.t >= Math.max(EAT + STAND, c.landedAt + 40);
@@ -424,10 +426,15 @@ const skeleton = (e: Enemy): Bone[] => {
       long(hx + sd * w * 0.02, -s * 0.6, hx + sd * w * 0.02 + w * 0.13, -s * 0.6, s * 0.8);
     }
   }
+  // (a robot: what's under the casing is a steel endoskeleton, no blood on it, its eyes still lit red)
+  if (isRobot(e)) for (const b of out) { b.metal = true; b.blood = 0; }
   return out;
 };
 
-const BONE = '#EFE7D2', BONE_LO = '#C9BC9C', BLOOD = 'rgba(127, 29, 29, 0.9)', GORE = '#991B1B';
+/** Bone (or a robot's steel): set per bone as it's drawn. */
+let BONE = '#EFE7D2', BONE_LO = '#C9BC9C';
+const BONE_WHITE = BONE, BONE_WHITE_LO = BONE_LO, STEEL = '#A1A1AA', STEEL_LO = '#52525B';
+const BLOOD = 'rgba(127, 29, 29, 0.9)', GORE = '#991B1B';
 
 const circle = (c: Ctx, x: number, y: number, r: number) => { c.beginPath(); c.arc(x, y, Math.max(0.5, r), 0, Math.PI * 2); c.fill(); };
 
@@ -435,6 +442,9 @@ const circle = (c: Ctx, x: number, y: number, r: number) => { c.beginPath(); c.a
 const drawBone = (c: Ctx, b: Bone) => {
   c.save(); c.translate(b.x, b.y); c.rotate(b.a); c.scale(b.flip, 1);
   const s = b.s, l = b.l;
+  BONE = b.metal ? STEEL : BONE_WHITE; BONE_LO = b.metal ? STEEL_LO : BONE_WHITE_LO;
+  // (a robot's skull: its eye still lit, red, and on)
+  const eyeAt = b.metal ? (b.kind === 'skull' ? [0.42, -0.05, 0.3] : b.kind === 'snout' ? [0.35, -0.2, 0.26] : b.kind === 'beak' ? [0.1, -0.15, 0.42] : null) : null;
   switch (b.kind) {
     case 'long': {
       const h = l / 2, r = s * 0.62;
@@ -508,6 +518,12 @@ const drawBone = (c: Ctx, b: Bone) => {
       if (b.blood > 0.15) { c.fillStyle = BLOOD; circle(c, -l * 0.4, l * 0.3, l * 0.45); }
       break;
     }
+  }
+  if (eyeAt) {
+    const [ex, ey, er] = eyeAt;
+    c.fillStyle = 'rgba(239, 68, 68, 0.35)'; circle(c, l * ex, l * ey, l * er * 1.6);
+    c.fillStyle = '#EF4444'; circle(c, l * ex, l * ey, l * er * 0.75);
+    c.fillStyle = '#FECACA'; circle(c, l * ex, l * ey, l * er * 0.3);
   }
   c.restore();
 };

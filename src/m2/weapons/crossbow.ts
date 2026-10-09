@@ -24,6 +24,7 @@ import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { drawEnemyAt } from '../moves/grab';
 import { drawComposited } from '../../m1/game/render/composite';
+import { isRobot } from '../kinds';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -44,6 +45,8 @@ const HEAVE = 90, HEAVES = 4, REAR = 14, SPEW_END = 72, IMMUNE = 90;
  *  him, hurts a bit more); how far he'll look for somebody to throw up on. */
 const PUKE = { every: 2, gravity: 0.35, dmg: 1.1, selfDmg: 1, sick: 0.6, reach: 460 };
 /** How green he looks, sick. */
+/** ...a robot, sick: on the fritz (flickering, washed out). */
+const ROBOT_SICK_LOOK = ['saturate(0.3) brightness(1.25)', 'saturate(0.6) brightness(0.8) contrast(1.4)'];
 const SICK_LOOK = ['sepia(0.6) hue-rotate(42deg) saturate(2.3)', 'sepia(0.7) hue-rotate(48deg) saturate(2.8) brightness(0.92)'];
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
@@ -212,8 +215,9 @@ const rotCorpse = (ctx: FrameContext, c: Corpse) => {
   if (c.t === FALL_END) {
     playSound('thud', 0.8); playSound('splat', 0.6, -4);
     const at = c.animal ? c.x : c.x + c.face * e.height * 0.55, y = floorBelow(state, at, c.y - 4);
-    if (y < c.y + 60) puddles.push({ x: at, y, w: Math.max(14, e.height * 0.4), t: 0 });
-    for (let i = 0; i < 8; i++) puff(state, { pos: { x: at, y: c.y - 3 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 2.5 }, life: 18, color: PUKE_COLORS[i % 3], size: 3 + Math.random() * 2, grav: 0.3 });
+    const robot = isRobot(e);
+    if (y < c.y + 60 && !robot) puddles.push({ x: at, y, w: Math.max(14, e.height * 0.4), t: 0 });
+    for (let i = 0; i < 8; i++) puff(state, { pos: { x: at, y: c.y - 3 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 2.5 }, life: robot ? 120 : 18, color: robot ? OIL_BITS[i % 3] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 2, grav: 0.3, chunk: robot });
   }
 };
 
@@ -273,7 +277,7 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
   else if (cyc < SPEW_END) { lean = up ? -dir * 0.32 : dir * (0.3 + Math.sin(cyc * 1.3) * 0.04); sy = 0.95 + Math.sin(cyc * 0.9) * 0.03; sx = 1.03; }
   else { const k = (cyc - SPEW_END) / (HEAVE - SPEW_END); lean = (up ? -dir * 0.32 : dir * 0.3) * (1 - k); }
   // (green, going greener and back, all the while he's sick)
-  e.pose = { lean, sx, sy, filter: SICK_LOOK[Math.floor(state.frame / 10) % 2], face: dir };
+  e.pose = { lean, sx, sy, filter: (isRobot(e) ? ROBOT_SICK_LOOK : SICK_LOOK)[Math.floor(state.frame / 10) % 2], face: dir };
   // Spewing: a glob at a time, a long arc onto him (or straight up)
   if (cyc >= REAR && cyc < SPEW_END) {
     if (cyc === REAR || cyc === REAR + 30) playSound('gush');
@@ -303,8 +307,10 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
 const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part, { kind: 'puke' }>) => {
   const { state } = ctx;
   const own = e === part.from;
-  for (let i = 0; i < 6; i++) puff(state, { pos: { x: p.pos.x + G / 2, y: p.pos.y + G / 2 }, vel: { x: -Math.sign(p.vel.x || 1) * Math.random() * 3 + (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2.5 }, life: 18, color: i === 5 ? BITS[i % 4] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 3, grav: 0.3 });
-  splashes.push({ x: p.pos.x + G / 2, y: p.pos.y + G / 2, dir: -Math.sign(p.vel.x || 1), t: 0, seed: Math.random() });
+  const bolt = isRobot(part.from);
+  for (let i = 0; i < 6; i++) puff(state, { pos: { x: p.pos.x + G / 2, y: p.pos.y + G / 2 }, vel: { x: -Math.sign(p.vel.x || 1) * Math.random() * 3 + (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2.5 }, life: 18, color: bolt ? (i % 2 ? '#FDE047' : OIL_BITS[i % 3]) : i === 5 ? BITS[i % 4] : PUKE_COLORS[i % 3], size: 3 + Math.random() * 3, grav: 0.3 });
+  if (bolt) { if (Math.random() < 0.5) playSound('clink', 0.35, 4); }
+  else splashes.push({ x: p.pos.x + G / 2, y: p.pos.y + G / 2, dir: -Math.sign(p.vel.x || 1), t: 0, seed: Math.random() });
   if (splashes.length > MAX_SPLASHES) splashes.shift();
   if (Math.random() < 0.3) playSound('splat', 0.3, 6);
   hurt(ctx, e, own ? PUKE.selfDmg : PUKE.dmg);
@@ -315,6 +321,15 @@ const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part,
 };
 
 const PUKE_COLORS = ['#A3B320', '#C5D33B', '#7C8A12'];
+/** A robot's: oil and metal, not puke. */
+const OIL_BITS = ['#0A0A0A', '#4B5563', '#9CA3AF'];
+/** A robot's bolt landing (on the floor, off a wall): a clink and a spark, and it lies there a while. */
+const boltDown = (state: GameState, p: Projectile) => {
+  const x = p.pos.x + G / 2, y = p.pos.y + G / 2;
+  for (let i = 0; i < 2; i++) puff(state, { pos: { x, y }, vel: { x: -p.vel.x * 0.2 + (Math.random() - 0.5) * 2, y: -1.5 - Math.random() * 2 }, life: 200, color: i ? '#9CA3AF' : '#6B7280', size: 3, grav: 0.35, chunk: true });
+  puff(state, { pos: { x, y }, vel: { x: 0, y: -1 }, life: 6, color: '#FDE047', size: 2 });
+  if (Math.random() < 0.4) playSound('clink', 0.3, 6);
+};
 /** Where a glob's landed on somebody: a splash of it thrown back off him, a few frames (drawn over him: you see it hit). */
 let splashes: { x: number; y: number; dir: number; t: number; seed: number }[] = [];
 const SPLASH = 12, MAX_SPLASHES = 50;
@@ -359,7 +374,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
   part.t++;
   p.vel.y += PUKE.gravity;
   p.pos.x += p.vel.x; p.pos.y += p.vel.y;
-  if (state.frame % 2 === 0 && Math.random() < 0.6) puff(state, { pos: { x: p.pos.x + Math.random() * G, y: p.pos.y + G / 2 }, vel: { x: p.vel.x * 0.2, y: 0.3 }, life: 12, color: Math.random() < 0.2 ? BITS[Math.floor(Math.random() * 4)] : PUKE_COLORS[Math.floor(Math.random() * 3)], size: 2 + Math.random() * 2, grav: 0.2 });
+  const bolt = isRobot(part.from);
+  if (state.frame % 2 === 0 && Math.random() < 0.6) puff(state, { pos: { x: p.pos.x + Math.random() * G, y: p.pos.y + G / 2 }, vel: { x: p.vel.x * 0.2, y: 0.3 }, life: 12, color: bolt ? OIL_BITS[Math.floor(Math.random() * 3)] : Math.random() < 0.2 ? BITS[Math.floor(Math.random() * 4)] : PUKE_COLORS[Math.floor(Math.random() * 3)], size: 2 + Math.random() * 2, grav: 0.2 });
   for (const e of state.enemies) {
     if (!alive(e)) continue;
     // (his own: only coming back down on him, when he threw it up)
@@ -371,8 +387,9 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     return false;
   }
   const floor = floorBelow(state, p.pos.x + G / 2, p.pos.y);
-  if (p.vel.y > 0 && p.pos.y + p.height >= floor) { splat(state, p.pos.x + G / 2, floor); return false; }
+  if (p.vel.y > 0 && p.pos.y + p.height >= floor) { if (bolt) boltDown(state, p); else splat(state, p.pos.x + G / 2, floor); return false; }
   const b = blockAt(state, p.pos.x, p.pos.y, p.width, p.height);
+  if (b && bolt) { boltDown(state, p); return false; }
   if (b) {
     // Into a wall (it was clear of it a step ago, across) or up into a ceiling: it sticks there, and drips down
     const across = !wallAt(state, p.pos.x - p.vel.x, p.pos.y, p.width, p.height);
@@ -484,6 +501,8 @@ const drawDart = (c: Ctx, x: number, y: number, a: number, len = 11) => {
 const draw = (c: Ctx, p: Projectile, frame: number) => {
   const part = partOf(p);
   if (part.kind === 'dart') { drawDart(c, p.vel.x > 0 ? p.pos.x + p.width : p.pos.x, p.pos.y + 1.5, Math.atan2(p.vel.y, p.vel.x)); return; }
+  // (a machine's: it can't throw up, so it throws up what it's got: nuts and bolts)
+  if (isRobot(part.from)) { drawBolt(c, p.pos.x + G / 2, p.pos.y + G / 2, frame * 0.4 + part.seed * 6, part.seed); return; }
   // A glob: a lumpy wad of it, three or four lobes stretched out along the way it's going, wobbling; chunks of things in
   // it (carrot, corn, something brown nobody wants to know about); a wet shine on top
   const x = p.pos.x + G / 2, y = p.pos.y + G / 2, a = Math.atan2(p.vel.y, p.vel.x), sd = part.seed;
@@ -498,6 +517,21 @@ const draw = (c: Ctx, p: Projectile, frame: number) => {
   for (let i = 0; i < 3; i++) { const k = (sd * 7 + i * 3.1) % 1; c.fillStyle = BITS[Math.floor((sd * 10 + i) % 4)]; c.fillRect(Math.round(-4 + k * 8), Math.round(-2 + ((k * 5) % 1) * 4), i === 0 ? 3 : 2, 2); }
   c.fillStyle = '#E2EC7A'; c.fillRect(-2, -4, 3, 1); c.fillRect(-5, -1, 1, 1);
   c.restore();
+};
+
+/** A bolt (a hex head, a threaded shank) and a nut with it, tumbling: what a robot barfs. */
+const drawBolt = (c: Ctx, x: number, y: number, a: number, sd: number) => {
+  c.save(); c.translate(Math.round(x), Math.round(y)); c.rotate(a);
+  c.fillStyle = INK; c.fillRect(-7, -3, 15, 6);
+  c.fillStyle = '#9CA3AF'; c.fillRect(-6, -2, 4, 4);
+  c.fillStyle = '#6B7280'; c.fillRect(-2, -1, 9, 2);
+  c.fillStyle = '#D1D5DB'; c.fillRect(-6, -2, 4, 1);
+  for (let i = 0; i < 4; i++) { c.fillStyle = '#4B5563'; c.fillRect(-1 + i * 2, -1, 1, 2); }
+  c.restore();
+  const nx = Math.round(x + Math.cos(a * 1.7 + sd * 5) * 6), ny = Math.round(y + Math.sin(a * 1.3) * 4);
+  c.fillStyle = INK; c.fillRect(nx - 3, ny - 3, 6, 6);
+  c.fillStyle = '#A1A1AA'; c.fillRect(nx - 2, ny - 2, 4, 4);
+  c.fillStyle = INK; c.fillRect(nx - 1, ny - 1, 2, 2);
 };
 
 const drawOverlay = (c: Ctx, state: GameState) => {

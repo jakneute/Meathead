@@ -1,24 +1,349 @@
-// THE RIVER (a placeholder to walk through: its real build goes here).
+// THE RIVER: the Jungle Cruise with Safari Artie, then under it. See course.ts for the layout.
+//
+// The boat ride (the first time through: `boatRide`): he gets on at the dock, Artie welcomes him aboard (he came
+// through the back; Artie doesn't care), the name comes up (Artie Avalanche: his brother, also Artie, a fucking
+// asshole), the tour, the boat runs out of gas short of the backside of water, Artie radios maintenance (nobody comes,
+// ever) and never shuts up. Getting out's up to him: into the water whenever he likes (Artie's not happy about it).
+// The swim needs none of it: off the dock into the water does the same.
+//
+// Under the water: his air (bubbles from vents on the bed, pockets of air up through the tunnel's roof), the river's
+// wildlife after him (kinds.ts), the theme park showing through (discarded rides, then animatronic dinosaurs), the
+// aquatic dinosaur tank with the guests behind its glass, and the storm drain's intake: it pulls, then it has him,
+// and he comes out over the raptor pen (the dino section's start, falling: `dinoArrival` set for it).
 
+import type { GameState } from '../../../m1/game/core/state';
+import type { FrameContext } from '../../../m1/game/core/context';
+import type { Enemy } from '../../../m1/types';
+import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
+import { groundBlocks, type GroundRun } from '../../../m1/game/core/terrain';
+import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { isShat, isNude } from '../../../m1/game/player/gut';
+import { playSound } from '../../../m1/game/platform/audio';
+import { SWIM_LEAP, CANVAS_WIDTH } from '../../../m1/constants';
 import type { Section } from '../section';
-import { lay, teleport, box, label } from '../section';
+import { lay, solid, ledge, teleport, getAdv, sectionState } from '../section';
 import { SECTIONS, GY } from '../geometry';
+import { talk, stepTalk, pick, type Talk, type Line } from '../queue/talk';
+import { guestAt, type Guest } from '../queue/crowd';
+import './kinds';
+import {
+  WS, CEIL, DOCK, BOAT, FALLS, TUNNEL, POCKETS, POCKET_TOP, TANK, PIPE, SUCK_AT, BED, bedAt, roofAt, PROPS, VENTS,
+  PIRANHAS_BOAT, PIRANHAS, EELS, SNAPPERS, GALLERY, CALLOUTS,
+} from './course';
+import {
+  ARTIE_WELCOME, BROTHER, ARTIE_TOUR, ARTIE_GAS, ARTIE_RADIO, ARTIE_STUCK, MEATHEAD_STUCK, ARTIE_JUMPED, ARTIE_ALONE,
+  MEATHEAD_JUMP, MEATHEAD_UNDER, MEATHEAD_AIR, GUESTS_SEE, GUESTS_KILL, type Dressed,
+} from './lines';
+import { drawRiverBackdrop, drawRiverBack, drawRiverFront } from './draw';
 
 const { x0, x1 } = SECTIONS.river;
+const R = (x: number) => x0 + x;
+const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
+
+/**
+ * The boat ride with Artie: on for the first trip. (Coming back later, there's no skipper: he just goes in off the
+ * dock. Turn it off here and the swim's exactly the same.)
+ */
+export const boatRide = { on: true };
+
+/** Air: frames of it held (about 15 seconds), how fast it comes back, what a bubble's worth. */
+const AIR_FRAMES = 900, AIR_REFILL = 5, BUBBLE_AIR = 0.3;
+/** Out of air: a hurt this often. */
+const DROWN_EVERY = 45, DROWN_DAMAGE = 7;
+/** How far Artie's heard. */
+const EARSHOT = 760;
+/** How much of the tour he gets through on the way (the rest he does stuck). */
+const TOUR_RIDE = 4;
+
+export type BoatPhase = 'moored' | 'ride' | 'stalled' | 'jumped';
+export interface Bubble { x: number; y: number; r: number; vy: number }
+export interface River {
+  talk: Talk;
+  boat: { x: number; v: number; phase: BoatPhase; block: ReturnType<typeof ledge> | null; onFor: number; rode: boolean; tour: number; n: number; smoke: number };
+  /** What Artie's saying (shown over him), the radio's static after a call. */
+  artieSaid: string | null; artieRadio: boolean; static: number;
+  bags: Record<string, number[]>;
+  o2: number; lowSaid: boolean; drownT: number;
+  bubbles: Bubble[];
+  said: Set<string>;
+  guests: Guest[]; guestNext: number; tankDead: number;
+  suck: number;
+}
+export const getRiver = (state: GameState) => sectionState<River>(state, 'river', () => ({
+  talk: talk(),
+  boat: { x: R(BOAT.x), v: 0, phase: 'moored', block: null, onFor: 0, rode: false, tour: 0, n: 0, smoke: 0 },
+  artieSaid: null, artieRadio: false, static: 0, bags: {},
+  o2: 1, lowSaid: false, drownT: 0, bubbles: [], said: new Set(),
+  guests: [], guestNext: 200, tankDead: 0, suck: 0,
+}));
+
+/** A line from a pool, never the same one twice running (and round all of them before any comes again). */
+const fromBag = (rv: River, key: string, pool: readonly string[]) => {
+  let bag = rv.bags[key];
+  if (!bag?.length) {
+    bag = pool.map((_, i) => i).sort(() => Math.random() - 0.5);
+    const last = rv.bags[`${key}:last`]?.[0];
+    if (bag.length > 1 && bag[bag.length - 1] === last) bag.unshift(bag.pop()!);
+    rv.bags[key] = bag;
+  }
+  const i = bag.pop()!;
+  rv.bags[`${key}:last`] = [i];
+  return pool[i];
+};
+const artie = (rv: River, text: string, radio = false): Line => ({
+  voice: 'm2.safari', text,
+  set: t => { rv.artieSaid = t; rv.artieRadio = radio && !!t; if (!t && radio) rv.static = 70; },
+});
+const mh = (text: string): Line => ({ voice: 'meathead', text });
+
+/** Where Artie stands in his boat (his feet). */
+export const artieAt = (rv: River) => ({ x: rv.boat.x + 200, y: BOAT.deck });
+
+// ---------------------------------------------------------------------------------------------------------------
+
+const runsFrom = (pts: [number, number][]): GroundRun[] => pts.slice(1).map(([bx, by], i) => ({ x1: R(pts[i][0]), y1: pts[i][1], x2: R(bx), y2: by, surface: 'riverbed' }));
+
+const build = (state: GameState) => {
+  const rv = getRiver(state);
+  // The dock (dry land), then the river bed (its blocks tagged: the camera leaves it alone till he's under)
+  lay(state, [{ x1: x0, y1: GY, x2: R(DOCK), y2: GY, surface: 'dock' }]);
+  const bed = runsFrom(BED);
+  state.groundRuns.push(...bed);
+  state.blocks.push(...groundBlocks(bed).map(b => ({ ...b, tag: 'seabed' })));
+  const rock = (x: number, y: number, w: number, h: number) => solid(state, x, y, w, h, { hidden: true });
+  // The backside of water, the tunnel's roof (up through it at the pockets, to a hollow over each), the tank's wall
+  // down to the intake, the pipe's roof, the end
+  rock(R(FALLS.x), -3000, FALLS.w, 3000 + FALLS.bottom);
+  let x = TUNNEL.x1;
+  for (const p of POCKETS) { rock(R(x), -3000, p.x - x, 3000 + CEIL); rock(R(p.x), -3000, p.w, 3000 + POCKET_TOP); x = p.x + p.w; }
+  rock(R(x), -3000, TUNNEL.x2 - x, 3000 + CEIL);
+  rock(R(TANK.x2), -3000, TANK.wall + (PIPE.x2 - PIPE.x1), 3000 + PIPE.top);
+  rock(R(PIPE.x2), -3000, 200, 4500);
+  for (const p of PROPS) solid(state, R(p.x), bedAt(p.x + p.w / 2) - p.h, p.w, p.h + 30, { hidden: true });
+  // The boat (a deck to stand on: it moves), only on the boat ride
+  if (boatRide.on) rv.boat.block = ledge(state, rv.boat.x, BOAT.deck, BOAT.w, { hidden: true });
+  // The wildlife
+  const fish = (x: number, y: number, box: Enemy['swimBox']) => {
+    const e = makeKindEnemy('m2:piranha', R(x), y);
+    e.swimBox = box; e.homeX = e.pos.x; e.homeY = e.pos.y;
+    state.enemies.push(e);
+  };
+  const openBox = { x1: R(DOCK), x2: R(FALLS.x), y1: WS, y2: 870 };
+  for (const px of PIRANHAS_BOAT) fish(px, WS + 90 + (px % 3) * 20, openBox);
+  for (const [px, py] of PIRANHAS) {
+    const tank = px >= TANK.x1;
+    fish(px, py, tank ? { x1: R(TANK.x1), x2: R(TANK.x2), y1: WS, y2: 1020 } : { x1: R(TUNNEL.x1), x2: R(TUNNEL.x2), y1: CEIL, y2: 1010 });
+  }
+  for (const el of EELS) {
+    const y = el.y || bedAt(el.x) - 46;
+    const e = makeKindEnemy('m2:eel', R(el.x), y + 16);
+    e.homeX = R(el.x); e.homeY = y; e.aiX = el.dir; e.aiState = 'in'; e.facing = el.dir;
+    state.enemies.push(e);
+  }
+  for (const sx of SNAPPERS) {
+    const e = makeKindEnemy('m2:snapper', R(sx), bedAt(sx) - 70);
+    e.homeX = R(sx); e.homeY = bedAt(sx);
+    state.enemies.push(e);
+  }
+  // The guests behind the tank's glass
+  for (let i = 0, n = 12; i < n; i++) rv.guests.push(guestAt(i + 50, R(GALLERY.x1 + 40 + i * ((GALLERY.x2 - GALLERY.x1 - 80) / (n - 1))), GALLERY.floor, i % 3 === 0 ? -1 : 1, 1));
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The boat ride
+
+const onBoat = (state: GameState, rv: River) => {
+  const p = state.player, b = rv.boat;
+  const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  return !!b.block && p.isGrounded && Math.abs(feet - BOAT.deck) < 3 && cx > b.x - 4 && cx < b.x + BOAT.w + 4;
+};
+
+const updateBoat = (state: GameState, rv: River) => {
+  const b = rv.boat, t = rv.talk, p = state.player;
+  if (!b.block) return;
+  const aboard = onBoat(state, rv);
+  const near = Math.abs(p.pos.x - artieAt(rv).x) < EARSHOT && p.pos.y < 1100;
+  // Out of earshot: whatever he had to say goes unheard (he's still saying it)
+  if (!near) t.q = t.q.filter(l => l.voice !== 'm2.safari');
+  // Boarding: welcome aboard, and off. The name comes up; the tour.
+  if (b.phase === 'moored') {
+    b.onFor = aboard ? b.onFor + 1 : 0;
+    if (b.onFor > 15) {
+      b.phase = 'ride'; b.rode = true;
+      t.q.push(artie(rv, ARTIE_WELCOME[0]), artie(rv, ARTIE_WELCOME[1]));
+      t.q.push(mh(BROTHER.meathead1), artie(rv, BROTHER.artie1), mh(BROTHER.meathead2), artie(rv, BROTHER.artie2), mh(BROTHER.meathead3), artie(rv, BROTHER.artie3), mh(BROTHER.meathead4));
+    }
+  }
+  if (b.phase === 'ride') {
+    // (the spiel, in order, once the introductions are done: the first of it on the way, the rest when he's stuck)
+    if (!t.q.length && !t.busy && b.tour < TOUR_RIDE) t.q.push(artie(rv, ARTIE_TOUR[b.tour++]));
+    // The boat's pace: there by the time he's done (a crawl, if he's not), never quicker than it goes
+    const left = R(BOAT.stop) - b.x;
+    const talkLeft = [...t.q, ...ARTIE_TOUR.slice(b.tour, TOUR_RIDE).map(text => ({ text }))].reduce((n, l) => n + l.text.length * 4.5 + 30, 0) + 120;
+    const want = left <= 0 ? 0.25 : Math.max(0.35, Math.min(BOAT.speed, left / talkLeft));
+    b.v += (want - b.v) * 0.02;
+    // Out of gas: the engine coughs, and that's it (once he's through the spiel, there or as near as makes no odds)
+    if ((left <= 0 && b.tour >= TOUR_RIDE && !t.q.length) || b.x >= R(BOAT.stop + 160)) {
+      b.phase = 'stalled'; b.smoke = 90;
+      t.q = t.q.filter(l => l.voice !== 'm2.safari');
+      t.q.push(artie(rv, ARTIE_GAS[0]), artie(rv, ARTIE_RADIO[0], true), artie(rv, ARTIE_GAS[1]));
+    }
+  } else if (b.v > 0) b.v = Math.max(0, b.v - 0.03);
+  if (b.smoke > 0) b.smoke--;
+  // Stuck: he never shuts up (the radio, the life story, round and round; Meathead's at the end of his rope)
+  if (b.phase === 'stalled' && near && !t.q.length && !t.busy) {
+    b.n++;
+    if (b.n % 4 === 0) t.q.push(artie(rv, fromBag(rv, 'radio', ARTIE_RADIO), true));
+    else if (b.tour < ARTIE_TOUR.length) t.q.push(artie(rv, ARTIE_TOUR[b.tour++]));
+    else t.q.push(artie(rv, fromBag(rv, 'stuck', ARTIE_STUCK)));
+    if (b.n % 3 === 2) t.q.push(mh(fromBag(rv, 'mstuck', MEATHEAD_STUCK)));
+  }
+  // Over the side (whenever he likes): Artie's not happy. Then on at himself, and the radio.
+  if (b.phase !== 'jumped' && p.swimming) {
+    const wasRiding = b.phase !== 'moored';
+    b.phase = 'jumped';
+    t.q = [];
+    if (wasRiding) t.q.push(mh(pick(MEATHEAD_JUMP)));
+    if (wasRiding) t.q.push(artie(rv, fromBag(rv, 'jumped', ARTIE_JUMPED)), artie(rv, fromBag(rv, 'jumped', ARTIE_JUMPED)));
+  }
+  if (b.phase === 'jumped' && b.rode && near && !t.q.length && !t.busy && p.swimming) {
+    b.n++;
+    t.q.push(b.n % 3 === 0 ? artie(rv, fromBag(rv, 'radio', ARTIE_RADIO), true) : artie(rv, fromBag(rv, 'alone', ARTIE_ALONE)));
+  }
+  // The boat moves (him with it, stood on it)
+  if (b.v > 0) {
+    b.x += b.v; b.block.x = b.x;
+    if (aboard) p.pos.x += b.v;
+  }
+  if (rv.static > 0) rv.static--;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// In the water
+
+const inWater = (rx: number, y: number) => rx > DOCK && rx < PIPE.x2 && y > WS && y < bedAt(rx) + 4;
+
+const updateSwim = (ctx: FrameContext, rv: River) => {
+  const { state } = ctx, p = state.player;
+  const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2, rx = cx - x0;
+  const was = p.swimming;
+  p.swimming = inWater(rx, cy) && !p.inCutscene && !p.carried;
+  p.swimSurfaceY = WS; p.swimLeap = SWIM_LEAP;
+  if (p.swimming && !was && p.vel.y > 3) {
+    for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: cx, y: WS }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 5 }, life: 26, color: i % 2 ? '#E0F2FE' : '#7DD3FC', size: 3 + Math.random() * 4 });
+    ctx.fx.playGunSound('splash');
+  }
+  if (p.swimming && state.frame % 14 === 0) state.particles.push({ pos: { x: cx + p.facing * 8, y: p.pos.y + 10 }, vel: { x: 0, y: -1.2 }, life: 40, color: 'rgba(224, 242, 254, 0.8)', size: 3 });
+  // His air: going while his head's under (under the roof, it's always under), back when it's out
+  const under = p.swimming && p.pos.y + 6 > WS;
+  if (state.deathTimer > 0 || p.health <= 0) return;
+  if (under) {
+    rv.o2 = Math.max(0, rv.o2 - 1 / AIR_FRAMES);
+    if (rv.o2 < 0.3 && !rv.lowSaid) { rv.lowSaid = true; rv.talk.q.unshift(mh(fromBag(rv, 'air', MEATHEAD_AIR))); }
+    if (rv.o2 < 0.25 && state.frame % 20 === 0) playSound('beep');
+    if (rv.o2 <= 0 && ++rv.drownT >= DROWN_EVERY) {
+      rv.drownT = 0;
+      p.invincibilityTimer = 0;
+      hurtPlayer(ctx, DROWN_DAMAGE, 'm2:drown');
+      for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: cx + p.facing * 10, y: p.pos.y + 12 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 40, color: 'rgba(224, 242, 254, 0.9)', size: 3 + Math.random() * 4 });
+    }
+  } else {
+    rv.o2 = Math.min(1, rv.o2 + AIR_REFILL / AIR_FRAMES);
+    rv.drownT = 0;
+    if (rv.o2 > 0.6) rv.lowSaid = false;
+  }
+  // The vents' bubbles: up to the roof (or the surface) and gone; one he swims into's a breath
+  for (const v of VENTS) if ((state.frame + v) % 70 === 0 && Math.abs(R(v) - cx) < 900) rv.bubbles.push({ x: R(v) + (Math.random() - 0.5) * 16, y: bedAt(v) - 8, r: 7 + Math.random() * 4, vy: -1.1 - Math.random() * 0.5 });
+  rv.bubbles = rv.bubbles.filter(b => {
+    b.y += b.vy; b.x += Math.sin((b.y + b.r * 10) * 0.05) * 0.6;
+    if (p.swimming && b.x > p.pos.x - 8 && b.x < p.pos.x + p.width + 8 && b.y > p.pos.y - 8 && b.y < p.pos.y + 44) {
+      rv.o2 = Math.min(1, rv.o2 + BUBBLE_AIR);
+      for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: b.x, y: b.y }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 14, color: 'rgba(224, 242, 254, 0.9)', size: 2 + Math.random() * 2 });
+      playSound('glug', 0.5);
+      return false;
+    }
+    return b.y - b.r > Math.max(WS, roofAt(b.x - x0));
+  });
+};
+
+/** The drain's pull, then it has him: out the other end, over the raptor pen. */
+const updateDrain = (state: GameState, rv: River) => {
+  const p = state.player, cx = p.pos.x + p.width / 2, rx = cx - x0;
+  if (rv.suck > 0) {
+    rv.suck++;
+    p.carried = true; p.inCutscene = true;
+    const tx = R(PIPE.x2 - 30) - p.width / 2, ty = PIPE.top + 20;
+    p.pos.x += (tx - p.pos.x) * 0.08; p.pos.y += (ty - p.pos.y) * 0.08;
+    p.facing = (rv.suck >> 2) % 2 ? 1 : -1;
+    if (state.frame % 3 === 0) state.particles.push({ pos: { x: cx, y: p.pos.y + 30 }, vel: { x: 4, y: (Math.random() - 0.5) * 2 }, life: 20, color: 'rgba(224, 242, 254, 0.8)', size: 3 });
+    if (rv.suck > 75) {
+      // (out over the raptor pen, falling: the dino section takes it from there)
+      rv.suck = 0;
+      p.carried = false; p.inCutscene = false; p.swimming = false; p.hidden = false;
+      rv.o2 = 1;
+      teleport(state, SECTIONS.dino.x0 + 150, GY - 520);
+      state.camera.y = GY - 520 - 250;
+      (getAdv(state)!.s as Record<string, unknown>).dinoArrival = true;
+    }
+    return;
+  }
+  if (!p.swimming) return;
+  // The pull: toward the intake from the far end of the tank, harder in the pipe
+  const pull = rx > PIPE.x1 ? 0.45 + (rx - PIPE.x1) / (PIPE.x2 - PIPE.x1) * 0.5 : rx > TANK.x2 - 300 && p.pos.y + p.height > PIPE.top - 60 ? 0.2 : 0;
+  if (pull) { p.vel.x += pull; if (rx > PIPE.x1) p.vel.y += (PIPE.top + 30 - p.pos.y) * 0.004; }
+  if (rx > SUCK_AT) { rv.suck = 1; rv.talk.q = []; rv.talk.q.push(mh(MEATHEAD_UNDER.sucked)); }
+};
+
+/** The guests behind the tank's glass: a word as he goes by, and when he kills something in there. */
+const updateGallery = (state: GameState, rv: River) => {
+  const p = state.player, cx = p.pos.x + p.width / 2, rx = cx - x0;
+  const inTank = p.swimming && rx > TANK.x1 && rx < TANK.x2;
+  const dead = state.enemies.filter(e => e.health <= 0 && e.pos.x > R(TANK.x1) && e.pos.x < R(TANK.x2)).length;
+  const nearest = rv.guests.reduce((a, g) => (Math.abs(g.x - cx) < Math.abs(a.x - cx) ? g : a));
+  const say = (g: Guest, text: string) => rv.talk.q.push({ voice: g.voice, text, set: t => { g.said = t; } });
+  if (inTank && dead > rv.tankDead && rv.talk.q.length < 2) say(nearest, fromBag(rv, 'gkill', GUESTS_KILL));
+  rv.tankDead = dead;
+  if (!inTank) return;
+  if (--rv.guestNext <= 0 && !rv.talk.q.length && !rv.talk.busy) {
+    rv.guestNext = 160 + Math.floor(Math.random() * 120);
+    const d = dressed(state);
+    say(nearest, fromBag(rv, `gsee:${d}`, GUESTS_SEE[d]));
+  }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 
 export const river: Section = {
   id: 'river', x0, x1,
-  checkpoints: [{ name: 'THE RIVER', cp: 20, x: x0 + 150, y: GY }],
-  build: (state) => {
-    lay(state, [{ x1: x0, y1: GY, x2: x1, y2: GY, surface: 'concrete' }]);
-  },
+  checkpoints: [
+    { name: 'THE JUNGLE CRUISE', cp: 20, x: x0 + 150, y: GY },
+    { name: 'UNDER THE RIVER', cp: 21, x: R(3620), y: 860 },
+    { name: 'THE RIDE GRAVEYARD', cp: 22, x: R(5300), y: 900 },
+    { name: 'THE DINOSAUR TANK', cp: 23, x: R(9900), y: 900 },
+  ],
+  build,
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player;
-    if (p.pos.x + p.width / 2 > SECTIONS.river.x1 - 120) teleport(state, SECTIONS.dino.x0 + 150, GY);
-    return controls;
+    const rv = getRiver(state);
+    const rx = p.pos.x + p.width / 2 - x0;
+    // (back off the dock the way he came: the queue's end)
+    if (rx < 40 && !p.swimming) { teleport(state, SECTIONS.queue.x1 - 220, GY); p.facing = -1; return controls; }
+    updateSwim(ctx, rv);
+    updateBoat(state, rv);
+    updateGallery(state, rv);
+    updateDrain(state, rv);
+    // Saying things the once each, swimming past them
+    if (p.swimming) for (const [x, k] of CALLOUTS) if (rx > x && !rv.said.has(k)) { rv.said.add(k); if (rv.talk.q.length < 2) rv.talk.q.push(mh(MEATHEAD_UNDER[k])); }
+    stepTalk(state, rv.talk);
+    return rv.suck > 0 ? ({}) as typeof controls : controls;
   },
-  drawBack: (c, state) => {
-    box(c, x0, GY, x1 - x0, 200, '#0E7490');
-    if (state.camera.x < x1 && state.camera.x + 800 > x0) label(c, 'THE RIVER: TO COME', Math.max(x0 + 200, Math.min(x1 - 200, state.camera.x + 400)), GY - 200, '#FDE047', 10);
+  waterBodyAt: (_state, x, y) => {
+    const rx = x - x0;
+    if (rx <= DOCK || rx >= PIPE.x2 || y < WS - 12 || y > bedAt(rx) + 10) return null;
+    return { key: 'river', x1: R(DOCK), x2: R(PIPE.x2), surface: WS, bottom: 1020, kind: 'clean' };
   },
+  cameraX: () => ({ min: x0, max: x1 - CANVAS_WIDTH }),
+  drawBackdrop: (c, state) => drawRiverBackdrop(c, state),
+  drawBack: (c, state) => drawRiverBack(c, state, getRiver(state)),
+  drawFront: (c, state) => drawRiverFront(c, state, getRiver(state)),
 };

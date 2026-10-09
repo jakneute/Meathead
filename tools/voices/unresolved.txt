@@ -1,26 +1,43 @@
 m2/hub/index.ts:101 name: AMERICA_DENY
-m2/weapons/soulSucker.ts:132 name: FULL_BAG_LINES
-m2/weapons/soulSucker.ts:248 name: EMPTY_BAG_LINES
-m2/weapons/spellbook.ts:298 name: BULK_LINES
-m2/weapons/spellbook.ts:303 name: BULK_FAIL_LINES
-m2/weapons/mallet.ts:175 name: DUCK_LINES
-m2/intro/index.ts:318 name: MEATHEAD_PARKED
-m2/intro/index.ts:583 name: MEATHEAD_TICKET
-m2/intro/index.ts:585 name: MEATHEAD_TICKET
+m2/weapons/soulSucker.ts:134 name: FULL_BAG_LINES
+m2/weapons/soulSucker.ts:256 name: EMPTY_BAG_LINES
+m2/weapons/spellbook.ts:303 name: BULK_LINES
+m2/weapons/spellbook.ts:308 name: BULK_FAIL_LINES
+m2/weapons/mallet.ts:180 name: DUCK_LINES
+m2/intro/index.ts:330 name: MEATHEAD_PARKED
+m2/intro/index.ts:617 name: MEATHEAD_TICKET
+m2/intro/index.ts:619 name: MEATHEAD_TICKET
 m2/intro/index.ts:151 voice: voice
-m2/intro/index.ts:243 voice: pick(TICKET_CUT)
-m2/intro/index.ts:245 voice: true
-m2/intro/index.ts:323 voice: GUARD_WELCOME.clean
-m2/intro/index.ts:375 voice: pick(GUEST_HIT)
-m2/intro/index.ts:388 voice: pick(GUARD_ALERT[dressed(state)])
-m2/intro/index.ts:389 voice: true
-m2/intro/index.ts:422 voice: first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dres
-m2/intro/index.ts:446 voice: pick(GUARD_BARK[dressed(state)])
-m2/intro/index.ts:519 voice: pick(TICKET_NEXT)
-m2/intro/index.ts:556 voice: now
-m2/intro/index.ts:566 voice: pick(GUEST_HURRY[dressed(state)])
-m2/intro/index.ts:597 voice: pick(TICKET_LADY[sc.kind])
-m2/intro/index.ts:649 voice: line
+m2/intro/index.ts:255 voice: pick(TICKET_CUT)
+m2/intro/index.ts:257 voice: true
+m2/intro/index.ts:335 voice: GUARD_WELCOME.clean
+m2/intro/index.ts:387 voice: pick(GUEST_HIT)
+m2/intro/index.ts:400 voice: pick(GUARD_ALERT[dressed(state)])
+m2/intro/index.ts:401 voice: true
+m2/intro/index.ts:434 voice: first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dres
+m2/intro/index.ts:458 voice: pick(GUARD_BARK[dressed(state)])
+m2/intro/index.ts:543 voice: pick(TICKET_NEXT)
+m2/intro/index.ts:587 voice: now
+m2/intro/index.ts:597 voice: pick(GUEST_HURRY[dressed(state)])
+m2/intro/index.ts:631 voice: pick(TICKET_LADY[sc.kind])
+m2/intro/index.ts:683 voice: line
+m2/adventure/section.ts:117 voice: voice(voiceId)
+m2/adventure/queue/talk.ts:27 voice: l.text
+m2/adventure/river/index.ts:304 voice: fromBag(rv, 'gkill', GUESTS_KILL)
+m2/adventure/river/index.ts:310 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
+m2/adventure/dino/index.ts:170 voice: pick(MAINT_OBLIVIOUS)
+m2/adventure/temple/index.ts:204 voice: text
+m2/adventure/temple/index.ts:244 voice: g.woman ? 'm2.guest' : 'm2.guest2'
+m2/adventure/temple/index.ts:253 voice: 'm2.guest'
+m2/adventure/temple/index.ts:253 voice: 'm2.guest2'
+m2/adventure/temple/index.ts:259 voice: 'm2.operator'
+m2/adventure/temple/index.ts:259 voice: 'm2.operator2'
+m2/adventure/temple/index.ts:260 voice: 'm2.operator'
+m2/adventure/temple/index.ts:260 voice: 'm2.operator2'
+m2/adventure/cart/index.ts:108 voice: text
+m2/adventure/cart/index.ts:201 voice: pick(ARTIE_CHASE_START[dressed(state)])
+m2/adventure/roof/index.ts:104 voice: text
+m2/adventure/clearing/index.ts:124 voice: text
 m1/App.tsx:241 voice: getBossVoice(selectedStage)
 m1/App.tsx:468 name: undefined
 m1/App.tsx:469 expr: null
@@ -44,13 +61,13 @@ m1/game/core/deathCause.ts:72 name: undefined
 m1/game/core/effects.ts:261 call: forGender(line, gender)
 m1/game/core/effects.ts:258 call: getHurtLines(hurtSource)
 m1/game/core/effects.ts:258 call: killLine(category, victim)
-m1/game/core/update.ts:223 name: undefined
-m1/game/core/update.ts:616 name: undefined
-m1/game/core/update.ts:616 call: pluckDeathMessage(state)
-m1/game/core/update.ts:616 call: animalDeathMessage(state)
-m1/game/core/update.ts:616 call: layout?.deathMessage?.(ctx)
-m1/game/core/update.ts:616 call: deathByCause(state)
-m1/game/core/update.ts:616 call: deathFallback(state, ctx.stageId, fell)
+m1/game/core/update.ts:224 name: undefined
+m1/game/core/update.ts:617 name: undefined
+m1/game/core/update.ts:617 call: pluckDeathMessage(state)
+m1/game/core/update.ts:617 call: animalDeathMessage(state)
+m1/game/core/update.ts:617 call: layout?.deathMessage?.(ctx)
+m1/game/core/update.ts:617 call: deathByCause(state)
+m1/game/core/update.ts:617 call: deathFallback(state, ctx.stageId, fell)
 m1/game/player/player.ts:84 call: message()
 m1/game/stages/artie/ski.ts:446 call: skiDeathMessage(state, ski)
 m1/game/stages/artie/ski.ts:446 name: DEATH_LINES

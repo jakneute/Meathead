@@ -95,7 +95,11 @@ export const hands = (): Controls => ({}) as Controls;
 export const meatheadSays = (state: GameState, text: string, after = true, onDone?: () => void) => {
   const shown = say(text, MEATHEAD_VOICE, after ? 'queue' : 'casual', {
     always: true,
-    onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 9999; },
+    onShow: spoken => {
+      state.playerLastVulgarity = text; state.playerVulgarityTimer = 9999;
+      // (not recorded: the engine never takes it down, so it's up its usual while, then done)
+      if (!spoken) setTimeout(() => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; onDone?.(); }, Math.max(1800, text.length * 70));
+    },
     onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; onDone?.(); },
   });
   // (no voice for it yet: up for a while anyway, so a scene doesn't hang on it)
@@ -110,7 +114,12 @@ export interface Said { text: string }
 export const voice = (id: string) => ({ id, pitch: 0, rate: 1 });
 export const speak = (voiceId: string, text: string, set: (s: Said | null) => void, after = true, onDone?: () => void) => {
   const s = { text };
-  const shown = say(text, voice(voiceId), after ? 'queue' : 'casual', { always: true, onShow: () => set(s), onHide: () => { set(null); onDone?.(); } });
+  const shown = say(text, voice(voiceId), after ? 'queue' : 'casual', {
+    always: true,
+    // (not recorded: the engine never takes it down, so it's up its usual while, then done)
+    onShow: spoken => { set(s); if (!spoken) setTimeout(() => { set(null); onDone?.(); }, Math.max(1800, text.length * 70)); },
+    onHide: () => { set(null); onDone?.(); },
+  });
   if (!shown) { set(s); setTimeout(() => { set(null); onDone?.(); }, Math.max(1800, text.length * 70)); }
 };
 

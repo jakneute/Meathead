@@ -25,7 +25,7 @@ import { pickRandom, rectsOverlap, boundsOf, isOnScreen, screenRect } from '../c
 import { getAttackHitbox } from '../player/player';
 import { shakeScreen, GameState } from '../core/state';
 import { getStageLayout } from '../stages';
-import { shieldFacing } from '../enemies/kinds';
+import { shieldFacing, isMachineKind } from '../enemies/kinds';
 import { isMidBoss } from './midBoss';
 import { inFinale, FINALE_FREEZE_TIME, PITCH_SPEED, PITCH_HOMING, FINALE_SLUDGE_LINGER, FINALE_SLICK_SPREAD, FINALE_SLICK_ALIEN_EVERY, FINALE_SLICK_ALIEN_DAMAGE } from './finaleBuffs';
 import { ROOM_L, ROOM_R, FLOOR } from '../stages/finale/geometry';
@@ -740,7 +740,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     }
 
     // (a round off a machine sparks)
-    if (isBullet(p) && METAL.has(enemy.kind || '')) bulletSparks(ctx, p, boundsOf(enemy));
+    if (isBullet(p) && (METAL.has(enemy.kind || '') || isMachineKind(enemy.kind))) bulletSparks(ctx, p, boundsOf(enemy));
     // A stage's mid-boss takes hits its own way (or the shot just went past it: a round thing in a square box)
     const special = enemy.kind ? getStageLayout(ctx.stageId)?.hitSpecialEnemy?.(ctx, enemy, p) : undefined;
     if (special === 'miss') continue;
@@ -757,7 +757,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
 
     // A dart into a machine (a generator, an electrical panel, a car): it's only a dart. It doesn't stick, nothing gets
     // into it, nothing to overdose: just the hit
-    if (p.isDart && METAL.has(enemy.kind || '')) {
+    if (p.isDart && (METAL.has(enemy.kind || '') || isMachineKind(enemy.kind))) {
       enemy.health -= p.damage;
       fx.spawnDamageNumber(enemy.pos, p.damage);
       if (enemy.health <= 0) fx.blowAwayEnemy(enemy, { x: (Math.random() - 0.5) * 10, y: -15 }, 'dart_kill');
@@ -800,7 +800,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     if (p.isIce) { if (!wasFrozen) enemy.frozeAt = state.frame; enemy.frozenTimer = inFinale(ctx.stageId) ? FINALE_FREEZE_TIME : SHOTGUN_FREEZE_TIME; }
     fx.spawnDamageNumber(enemy.pos, p.damage, p.isBoulder);
     if (p.isIce) spawnIceMist(state, p, 8);
-    if (isBullet(p) && enemy.health > 0 && !wasFrozen && !BLOODLESS.has(enemy.kind || '')) bulletBlood(ctx, p, enemy);
+    if (isBullet(p) && enemy.health > 0 && !wasFrozen && !(BLOODLESS.has(enemy.kind || '') || isMachineKind(enemy.kind))) bulletBlood(ctx, p, enemy);
     if (enemy.health <= 0) {
       // (the plain pistol: a person through the forehead, an animal its own stupid way: see gunDeaths.ts)
       const gunMode = !wasFrozen && p.id.startsWith('p-') && !p.isLmg && !spared(enemy) ? gunDeathMode(enemy) : null;

@@ -32,7 +32,7 @@ export interface M2Kind {
 const defs = new Map<string, M2Kind>();
 export const registerM2Kind = (d: M2Kind) => {
   defs.set(d.kind, d);
-  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: d.ai, make: d.make });
+  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: d.ai, make: d.make, machine: d.robot });
   registerKindDrawer(d.kind as EnemyKind, d.draw);
   if (d.head) (KIND_HEAD as Record<string, { x: number; y: number; r: number }>)[d.kind] = d.head;
 };
