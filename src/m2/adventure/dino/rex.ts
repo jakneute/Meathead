@@ -102,7 +102,8 @@ interface Rex {
   /** Coming apart: frames of it, its head off and rolling, the body going over, the oil. */
   dieT: number; head: { x: number; y: number; vx: number; vy: number; rot: number } | null; fall: number; oil: number;
   minX: number; maxX: number; inX: number; outX: number;
-  lock: Block | null; posts: Post[];
+  /** The far fence closed off (till it's down), and the near one, once the fight's on (shut in with it). */
+  lock: Block | null; back: Block | null; posts: Post[];
 }
 const rexOf = (state: GameState) => (getAdv(state)?.s as Record<string, unknown> | undefined)?.rex as Rex | undefined;
 const dinoMode = (state: GameState) => {
@@ -149,7 +150,7 @@ export const buildRex = (state: GameState, o: { x: number; inX: number; outX: nu
     crouch: 0, hx: 0, hy: 0, jaw: 0, tail: 0, step: 0, biteX: 0, biteY: 0, bit: false,
     sprintCd: 200, campT: 0, post: -1, postShake: 0, postShook: -1, slideMove: null, slideAt: -99, said: null,
     dieT: 0, head: null, fall: 0, oil: 0,
-    minX: o.inX + 20 + 80, maxX: o.outX - 80, inX: o.inX, outX: o.outX, lock: null, posts: [],
+    minX: o.inX + 20 + 80, maxX: o.outX - 80, inX: o.inX, outX: o.outX, lock: null, back: null, posts: [],
   };
   // (its feeding platforms: their posts are what it rams)
   for (const b of state.blocks) if (b.type === 'platform' && b.oneWay && b.x > o.inX && b.x + b.w < o.outX) r.posts.push({ x1: b.x, x2: b.x + b.w, y: b.y });
@@ -307,8 +308,15 @@ const partAI = (ctx: FrameContext, e: Enemy): boolean => {
 // ---------------------------------------------------------------------------------------------------------------
 // What it does
 
+/** How far into the paddock he has to be before it's on (and he's shut in with it). */
+const ENGAGE = 340;
+
 const startFight = (state: GameState, r: Rex) => {
   r.fight = 'on'; r.st = 'intro'; r.t = 0;
+  // (the near fence shuts behind him: no going back out to pick off raptors, no fighting it from outside)
+  r.back = solid(state, r.inX, GY - 1000, 20, 1000, { hidden: true, tag: 'dino' });
+  const p = state.player;
+  if (p.pos.x < r.inX + 20) p.pos.x = r.inX + 22;
   r.facing = state.player.pos.x + state.player.width / 2 < r.x ? -1 : 1;
   meatheadSays(state, pick(MEATHEAD_REX_INTRO), true);
 };
@@ -317,6 +325,7 @@ const die = (ctx: FrameContext, r: Rex) => {
   r.fight = 'dying'; r.st = 'dying'; r.t = 0; r.dieT = 0; r.vx = 0;
   for (const id of PARTS) { const e = r.parts[id].e; if (e) { e.health = 0; e.seen = true; } r.parts[id].e = null; }
   if (r.lock) r.lock.x = -1e7;
+  if (r.back) r.back.x = -1e7;
   speak('m2.rex', pick(REX_SPEAKER_DYING), s => { r.said = s; }, true);
   const c = centerOf(worldBox(r, 'body'));
   ctx.fx.spawnDamageNumber({ x: c.x - 40, y: c.y - 80 }, 'EXTINCT!', true, '#FDE047');
@@ -351,7 +360,8 @@ export const updateRex = (ctx: FrameContext) => {
     e.health = POOL; shrugOff(e);
     if (part.flash > 0) part.flash--;
     if (part.broken) continue;
-    if (lost > 0.01) { if (r.fight === 'wait') startFight(state, r); damage(ctx, r, part, lost); }
+    // (not till he's well into its paddock: nothing gets through to it from outside, or from just inside the gate)
+    if (lost > 0.01 && r.fight === 'on') damage(ctx, r, part, lost);
     if (r.fight !== 'on') continue;
     // (cooling off, untouched a while)
     if (state.frame - part.lastHit > COOL_AFTER) part.meter = Math.max(0, part.meter - DECAY);
@@ -373,8 +383,10 @@ export const updateRex = (ctx: FrameContext) => {
   if (!m.hostile || m.held) { r.st = 'idle'; r.vx = 0; pose(r, 0, 0, 0, 0, 0, state.frame); placeParts(r); return; }
   if (r.fight === 'wait') {
     pose(r, 0, Math.sin(state.frame * 0.03) * 4, Math.sin(state.frame * 0.02) * 3, 0, 0, state.frame);
-    if (p.health > 0 && p.pos.x + p.width / 2 > r.inX + 40 && p.pos.x < r.outX) startFight(state, r);
+    if (p.health > 0 && p.pos.x + p.width / 2 > r.inX + ENGAGE && p.pos.x < r.outX) startFight(state, r);
     placeParts(r);
+    // (till then there's nothing there to hit: shots and moves go clean through it)
+    if (r.fight === 'wait') for (const id of PARTS) { const e = r.parts[id].e; if (e) e.pos.y = -100000; }
     return;
   }
   think(ctx, r);
@@ -643,6 +655,12 @@ export const drawRex = (c: Ctx, state: GameState) => {
     const cx = (q.x1 + q.x2) / 2;
     box(c, cx - 8 + shake, q.y + 12, 16, GY - q.y - 12, '#6B4F2E'); box(c, cx - 8 + shake, q.y + 12, 4, GY - q.y - 12, '#8B6B43');
   });
+  // The near fence, shut behind him once it's on
+  if (r.back && r.back.x > -1e6) {
+    box(c, r.inX, GY - 520, 20, 330, '#27272A');
+    for (let y = GY - 500; y < GY - 200; y += 26) box(c, r.inX - 4, y, 28, 3, '#71717A');
+    if (f % 40 < 30) label(c, 'LOCKED IN WITH IT', r.inX + 10, GY - 530, '#FCA5A5', 7);
+  }
   // The far fence, closed off high while it's alive
   if (r.lock && r.lock.x > -1e6) {
     box(c, r.outX, GY - 520, 20, 330, '#27272A');
