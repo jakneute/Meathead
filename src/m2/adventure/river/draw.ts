@@ -6,7 +6,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { box, label, saidOver } from '../section';
 import { SECTIONS, GY } from '../geometry';
-import { drawGuest } from '../queue/crowd';
+import { drawGuestsDimmed } from '../queue/crowd';
 import { drawSafariArtie, ARTIE_H } from './artie';
 import type { River } from './index';
 import { WS, CEIL, DOCK, BOAT, FALLS, TUNNEL, POCKETS, POCKET_TOP, TANK, PIPE, BED, bedAt, roofAt, PROPS, DINOS, GALLERY, VENTS } from './course';
@@ -117,7 +117,7 @@ const drawTank = (c: Ctx, state: GameState, rv: River) => {
   label(c, 'PLEASE DO NOT TAP ON THE GLASS', R((TANK.x1 + TANK.x2) / 2), WS - 270, '#BFDBFE', 7);
   // The gallery behind the glass
   box(c, R(GALLERY.x1), GALLERY.glassTop, GALLERY.x2 - GALLERY.x1, GALLERY.floor - GALLERY.glassTop + 20, '#0B1120');
-  for (const g of rv.guests) drawGuest(c, g, f, 'brightness(0.7) saturate(0.7)');
+  drawGuestsDimmed(c, rv.guests, f, 0.32, '40, 50, 60');
   c.fillStyle = 'rgba(125, 211, 252, 0.18)'; c.fillRect(R(GALLERY.x1), GALLERY.glassTop, GALLERY.x2 - GALLERY.x1, GALLERY.floor - GALLERY.glassTop);
   for (let x = GALLERY.x1; x <= GALLERY.x2; x += 280) box(c, R(x) - 4, GALLERY.glassTop, 8, GALLERY.floor - GALLERY.glassTop + 20, '#334155');
   box(c, R(GALLERY.x1), GALLERY.glassTop - 6, GALLERY.x2 - GALLERY.x1, 8, '#334155');

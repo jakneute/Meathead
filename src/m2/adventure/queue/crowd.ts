@@ -13,12 +13,31 @@ export const guestAt = (i: number, x: number, y: number, facing: 1 | -1 = 1, sca
   const woman = WOMEN.has(id);
   return { who, woman, voice: woman ? 'm2.guest' : 'm2.guest2', x, y, facing, scale, seed: i * 37, said: null };
 };
-/** `filter`: dimmed (behind a fence, behind glass), e.g. 'brightness(0.6)'. */
-export const drawGuest = (c: CanvasRenderingContext2D, g: Guest, f: number, filter?: string) => {
+/** One of them, drawn where they stand. */
+export const drawGuest = (c: CanvasRenderingContext2D, g: Guest, f: number) => {
   c.save();
-  if (filter) c.filter = filter;
   c.translate(Math.round(g.x), Math.round(g.y));
   c.scale(g.scale * g.facing, g.scale);
   g.who.draw(c, f + g.seed, !!g.said);
   c.restore();
+};
+
+/**
+ * A crowd of them dimmed (behind a fence, behind glass): `dim` how dark (0..1), `tint` what with. All drawn onto one
+ * layer and darkened together, then put down in one go (a canvas filter per person is ruinously slow).
+ */
+let layer: HTMLCanvasElement | null = null;
+export const drawGuestsDimmed = (c: CanvasRenderingContext2D, gs: Guest[], f: number, dim: number, tint = '0, 0, 0') => {
+  if (!gs.length) return;
+  const W = c.canvas.width, H = c.canvas.height;
+  layer ??= document.createElement('canvas');
+  if (layer.width !== W || layer.height !== H) { layer.width = W; layer.height = H; }
+  const l = layer.getContext('2d')!;
+  l.setTransform(1, 0, 0, 1, 0, 0); l.clearRect(0, 0, W, H);
+  l.imageSmoothingEnabled = c.imageSmoothingEnabled;
+  l.setTransform(c.getTransform());
+  for (const g of gs) drawGuest(l, g, f);
+  l.setTransform(1, 0, 0, 1, 0, 0);
+  l.globalCompositeOperation = 'source-atop'; l.fillStyle = `rgba(${tint}, ${dim})`; l.fillRect(0, 0, W, H); l.globalCompositeOperation = 'source-over';
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(layer, 0, 0); c.restore();
 };

@@ -41,14 +41,16 @@ const CLIMB = 2.6, ZIP_UP = 10, ZIP_DOWN = 12;
 /** Not right up against the branch: his hands this far down it at the highest. */
 const MIN_S = 18;
 /** How close his hands have to come to a vine to take hold of it. */
-const REACH = 28;
-/** Where his hands are on him: his top, the middle. */
-const HAND_DY = 6;
+const REACH = 22;
+/** Stood at the top of one: how long down has to be held to take hold of it again. */
+const DOWN_HOLD = 14;
+/** Where his hand is on him: up over his head (he hangs one-handed, the gun in the other). */
+const HAND_DY = -16;
 /** Where the camera keeps his feet, on a vine. */
 export const VINE_ROW = 470;
 
 const atS = (d: VineDef, th: number, s: number) => ({ x: d.x + Math.sin(th) * s, y: d.y + Math.cos(th) * s });
-const lowest = (d: VineDef) => (d.kind === 'climb' ? d.len - 58 : d.len);
+const lowest = (d: VineDef) => (d.kind === 'climb' ? d.len - (64 - HAND_DY) : d.len);
 /** Still: a climbing vine always; a swinging one hanging near enough straight down, near enough not moving. */
 const still = (d: VineDef, th: number, om: number) => d.kind === 'climb' || (Math.abs(th) < 0.15 && Math.abs(om) < 0.012);
 
@@ -82,7 +84,7 @@ const grab = (state: GameState, defs: VineDef[], h: Hold, i: number, s: number, 
 const letGo = (state: GameState, defs: VineDef[], h: Hold, c: Controls, jump: boolean, knocked = false) => {
   const p = state.player, i = h.on, d = defs[i], v = jungleOf(state).vines[i];
   const dir = (c.right ? 1 : 0) - (c.left ? 1 : 0);
-  p.carried = false;
+  p.carried = false; p.vine = undefined;
   h.on = -1; h.last = i; h.cd = 40; h.anyCd = 8; h.zip = 0;
   if (knocked) { h.fling = null; return; }
   let vx = d.kind === 'swing' ? h.s * v.om * Math.cos(v.th) : 0;
@@ -97,6 +99,25 @@ const letGo = (state: GameState, defs: VineDef[], h: Hold, c: Controls, jump: bo
   h.lastX = p.pos.x;
   if (p.isCharging) { p.isCharging = false; p.isSliding = false; }
   p.powerLocked = false;
+};
+
+/** Climbed right to the top of one: whatever he could stand on up by his hands (a branch, a ledge, the top of a
+ *  cliff), and where on it he'd be stood, nudged in onto it off the edge. */
+const ledgeNear = (state: GameState, hand: { x: number; y: number }): { x: number; y: number } | undefined => {
+  const p = state.player, w = p.width;
+  let best: { x: number; y: number } | undefined, bestD = Infinity;
+  for (const b of state.blocks) {
+    if (b.type === 'pit' || b.w < w + 8) continue;
+    // (its top up round his hands: from a bit over them to his chest)
+    if (b.y < hand.y - 70 || b.y > hand.y + 30) continue;
+    if (hand.x < b.x - 48 || hand.x > b.x + b.w + 48) continue;
+    const x = Math.max(b.x + w / 2 + 6, Math.min(b.x + b.w - w / 2 - 6, hand.x));
+    const r = { x: x - w / 2, y: b.y - p.height - 1, w, h: p.height };
+    if (blocked(state, r)) continue;
+    const dd = Math.abs(x - hand.x) + Math.abs(b.y - hand.y);
+    if (dd < bestD) { bestD = dd; best = { x, y: b.y }; }
+  }
+  return best;
 };
 
 /** Every vine's swing, and him on his (or taking hold of one, or carried on by the swing he let go of). */
@@ -134,12 +155,17 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Co
     const out: Controls = { ...c, jump: c.jump && !h.jumpLatch, special: c.special && !h.specialLatch, charge: c.charge && !h.specialLatch };
     if (p.health <= 0 || p.swimming || p.isDivekicking || p.isUppercutting || (p.pushbackTimer ?? 0) > 0 || p.skiing) return out;
     const hx = cx, hy = p.pos.y + HAND_DY;
+    // (down, stood still: held a moment, it's going back down a vine; and not with the down he climbed off one with)
+    if (!c.down) h.downLatch = false;
+    h.downT = c.down && !h.downLatch && !dir && p.isGrounded ? h.downT + 1 : 0;
     for (let i = 0; i < defs.length; i++) {
       const d = defs[i];
       if (Math.abs(d.x - hx) > d.len + 60 || (i === h.last && h.cd > 0) || h.anyCd > 0) continue;
       const v = j.vines[i], end = atS(d, v.th, d.len);
       // In the air: hands near enough the vine, he's got it
       if (!p.isGrounded) {
+        // (dropping on purpose: not caught by one going by)
+        if (c.down) continue;
         const ex = end.x - d.x, ey = end.y - d.y, len2 = ex * ex + ey * ey;
         const t = Math.max(0, Math.min(1, ((hx - d.x) * ex + (hy - d.y) * ey) / len2));
         const px = d.x + ex * t, py = d.y + ey * t;
@@ -148,7 +174,7 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Co
       }
       // Stood under one (up: up it), or stood at the top of one that comes up onto his ledge (down: down it)
       if (c.up && Math.abs(end.x - hx) < 26 && end.y > hy - 40 && hy > d.y + MIN_S) { grab(state, defs, h, i, Math.min(hy - d.y, lowest(d)), c); return hands(c); }
-      if (c.down && d.top && Math.abs(d.top.x - hx) < 40 && Math.abs(p.pos.y + p.height - d.top.y) < 4) {
+      if (h.downT >= DOWN_HOLD && d.top && Math.abs(d.top.x - hx) < 28 && Math.abs(p.pos.y + p.height - d.top.y) < 4) {
         h.on = i; h.s = MIN_S;
         const a = atS(d, 0, MIN_S);
         if (blocked(state, boxAt(state, a.x, a.y))) { h.on = -1; continue; }
@@ -195,10 +221,11 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Co
   if (h.s <= MIN_S) {
     h.s = MIN_S;
     // (up off the top, onto the ledge it goes up to)
-    if (d.top && (h.zip === -1 || c.up)) {
+    const top = (h.zip === -1 || c.up) ? d.top ?? ledgeNear(state, atS(d, v.th, h.s)) : undefined;
+    if (top) {
       letGo(state, defs, h, c, false, true);
-      p.pos.x = d.top.x - p.width / 2; p.pos.y = d.top.y - p.height - 1; p.vel.x = 0; p.vel.y = 0;
-      h.jumpLatch = !!c.jump; h.specialLatch = !!(c.special || c.charge);
+      p.pos.x = top.x - p.width / 2; p.pos.y = top.y - p.height - 1; p.vel.x = 0; p.vel.y = 0;
+      h.jumpLatch = !!c.jump; h.specialLatch = !!(c.special || c.charge); h.downLatch = !!c.down; h.downT = 0;
       return hands(c);
     }
     if (h.zip === -1) h.zip = 0;
@@ -226,6 +253,11 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Co
   // (for his pose: which way he's going)
   p.vel.x = h.s * v.om * Math.cos(v.th); p.vel.y = d.kind === 'swing' ? -h.s * v.om * Math.sin(v.th) : (h.zip || (c.up ? -1 : c.down ? 1 : 0)) * 2;
   p.isGrounded = false;
+  // (his pose on it)
+  p.vine = {
+    mode: pushing ? 'push' : h.zip === -1 ? 'zipUp' : h.zip === 1 ? 'zipDown' : h.s !== s0 ? 'climb' : 'hang',
+    th: d.kind === 'swing' ? v.th : 0, om: d.kind === 'swing' ? v.om : 0,
+  };
   state.cameraRestY = p.pos.y + p.height - VINE_ROW;
   h.hurtWas = p.hurtTimer ?? 0;
   return { ...c, left: false, right: false, up: false, down: false, jump: false, special, charge: special && !!c.charge };
@@ -264,14 +296,4 @@ export const drawVines = (c: Ctx, state: GameState, defs: VineDef[]) => {
     // (a climbing vine's rooted: a tuft at the foot of it)
     if (d.kind === 'climb') { c.fillStyle = '#365314'; c.beginPath(); c.ellipse(end.x, end.y, 12, 5, 0, 0, Math.PI * 2); c.fill(); }
   });
-};
-
-/** His fists round it, over him. */
-export const drawGrip = (c: Ctx, state: GameState) => {
-  const h = jungleOf(state).hold;
-  if (h.on < 0) return;
-  const p = state.player, x = p.pos.x + p.width / 2, y = p.pos.y + HAND_DY;
-  c.fillStyle = '#E0A779';
-  c.fillRect(x - 6, y - 8, 12, 7); c.fillRect(x - 5, y + 1, 10, 6);
-  c.fillStyle = '#9A6B4B'; c.fillRect(x - 6, y - 2, 12, 1);
 };

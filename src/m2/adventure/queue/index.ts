@@ -18,7 +18,7 @@ import type { Section } from '../section';
 import { lay, solid, ledge, teleport, box, label, saidOver, sectionState } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { talk, stepTalk, pick, type Talk } from './talk';
-import { guestAt, drawGuest, type Guest } from './crowd';
+import { guestAt, drawGuest, drawGuestsDimmed, type Guest } from './crowd';
 import { staffDoing, staffTalking, staffLook, type StaffDoing } from './staff';
 import { MEATHEAD_SIGNS, MEATHEAD_BACK, GUEST_CUT, STAFF_EXCUSE, STAFF_IDLE, STAFF_HIT, GUEST_FRONT, OPERATOR_DOCK, type Dressed } from './lines';
 
@@ -147,13 +147,13 @@ export const queue: Section = {
       label(c, a, sx, sy + 13, '#7C2D12', 5); label(c, b, sx, sy + 27, '#B91C1C', 7);
     });
     // (the line, at the plaza: behind the rails)
-    for (const g of q.plaza) drawGuest(c, g, f, 'brightness(0.75)');
+    drawGuestsDimmed(c, q.plaza, f, 0.25);
     box(c, R(140), GY - 40, 290, 4, '#A8A29E'); box(c, R(140), GY - 20, 290, 4, '#A8A29E');
     for (let x = 140; x <= 430; x += 48) box(c, R(x), GY - 44, 4, 44, '#78716C');
     // Out back: the building's backside, the chain-link with the line packed in behind it
     box(c, R(440), GY - 300, 1040, 300, '#57534E');
     for (let x = 440; x < 1480; x += 80) box(c, R(x), GY - 300, 2, 300, '#44403C');
-    for (const g of q.back) drawGuest(c, g, f, 'brightness(0.6)');
+    drawGuestsDimmed(c, q.back, f, 0.4);
     c.strokeStyle = 'rgba(203,213,225,0.45)'; c.lineWidth = 1;
     for (let x = 440; x < 1480; x += 10) { c.beginPath(); c.moveTo(R(x), GY - 150); c.lineTo(R(x + 10), GY - 40); c.moveTo(R(x + 10), GY - 150); c.lineTo(R(x), GY - 40); c.stroke(); }
     box(c, R(440), GY - 152, 1040, 4, '#94A3B8'); box(c, R(440), GY - 42, 1040, 3, '#94A3B8');

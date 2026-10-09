@@ -39,9 +39,28 @@ const TIP: Record<WeaponType, { x: number; y: number }> = {
 /** The flamethrower's nozzle sits this far along the barrel from its pivot. */
 export const FLAMETHROWER_BARREL = 27;
 
+/**
+ * On a vine (Meathead 2): his body hangs off his hand on it, turned about it (`rot`, in his local frame), but the gun arm
+ * stays level from the shoulder, aimed where the shots go.
+ */
+export const vineGrip = (p: Player) => ({ x: -3, y: -(p.height + 16) });
+export const VINE_SHOULDER = { x: 8, y: -42 };
+export const vineLean = (p: Player) => {
+  const v = p.vine;
+  if (!v) return 0;
+  return -v.th * p.facing * 0.85 - v.om * 3 * p.facing + (v.mode === 'push' ? 0.55 : v.mode === 'zipUp' ? -0.08 : 0);
+};
+
 /** World position of the equipped weapon's tip. */
 export const muzzlePoint = (player: Player, weapon: WeaponType) => {
   const tip = TIP[weapon];
+  if (player.vine) {
+    // (the shoulder, where the turned body has it; the gun held level out from there)
+    const g = vineGrip(player), a = vineLean(player), dx = VINE_SHOULDER.x - g.x, dy = VINE_SHOULDER.y - g.y;
+    const sx = g.x + dx * Math.cos(a) - dy * Math.sin(a), sy = g.y + dx * Math.sin(a) + dy * Math.cos(a);
+    const lx = sx + HOLD.x - VINE_SHOULDER.x + tip.x, ly = sy + HOLD.y - VINE_SHOULDER.y + tip.y;
+    return { x: player.pos.x + player.width / 2 + player.facing * lx, y: player.pos.y + player.height + ly };
+  }
   const hold = player.isSliding ? SLIDE_HOLD : player.isDucking ? { x: HOLD.x + DUCK_SHIFT.x, y: HOLD.y + DUCK_SHIFT.y } : HOLD;
   const lx = hold.x + tip.x;
   const ly = hold.y + tip.y;

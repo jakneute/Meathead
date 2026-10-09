@@ -6,7 +6,7 @@ import type { Section } from '../section';
 import { lay, ledge, teleport, meatheadSays } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { updateVines, drawVines, drawGrip, onVine, VINE_ROW } from './vines';
+import { updateVines, drawVines, onVine, VINE_ROW } from './vines';
 import { updateThrown, drawThrown } from './animals';
 import { jungleOf } from './state';
 import { GROUND, BRANCHES, VINES, ANIMALS, PICKUPS, CHECKPOINTS, X, Y } from './layout';
@@ -44,11 +44,11 @@ export const jungle: Section = {
     if (rx > 6700 && p.pos.y < GY - 300) once('gorge', GORGE);
     if (rx > 11400) once('leave', LEAVING);
     // On into the Jungle Cruise's queue
-    if (p.pos.x + p.width / 2 > x1 - 120) { if (onVine(state)) j.hold.on = -1; p.carried = false; teleport(state, SECTIONS.queue.x0 + 150, GY); }
+    if (p.pos.x + p.width / 2 > x1 - 120) { if (onVine(state)) j.hold.on = -1; p.carried = false; p.vine = undefined; teleport(state, SECTIONS.queue.x0 + 150, GY); }
     return out;
   },
   drawBackdrop: (c, state) => drawJungleBackdrop(c, state),
   drawBack: (c, state) => { drawJungleBack(c, state); drawVines(c, state, VINES); },
-  drawFront: (c, state) => { drawThrown(c, state); drawGrip(c, state); },
+  drawFront: (c, state) => { drawThrown(c, state); },
   cameraRow: (state) => (onVine(state) ? VINE_ROW : 500),
 };

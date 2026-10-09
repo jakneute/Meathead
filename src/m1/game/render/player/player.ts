@@ -3,7 +3,7 @@ import { drawFilthShield } from './filthShield';
 import { drawRemains } from './remains';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
-import { SLIDE_HOLD } from '../../combat/muzzle';
+import { SLIDE_HOLD, vineGrip, vineLean, VINE_SHOULDER } from '../../combat/muzzle';
 import { pitchLean, drawPitchLegs, drawPitchArm, drawPitchGloveArm, kegLean, drawKegLegs, drawKegArm, drawKegGloveArm } from './pitch';
 import { PITCH_FRAMES } from '../../combat/finaleBuffs';
 import { sprintLeg, drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
@@ -17,7 +17,7 @@ import { rayGun } from '../../combat/rayGun';
 import { customWeapon } from '../../combat/customWeapons';
 import { buffs } from '../../core/buffs';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
-import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth, setLegSinge, setNude } from './body';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawArmTo, drawHead, setTalking, drawTalkingMouth, setLegSinge, setNude } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -108,6 +108,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isAngry = !!p.angryTimer && p.angryTimer > 0 && !isHurt && !isRelieving;
   // Sat astride the jet ski: knees forward, off-hand on the handlebars (the gun hand's free)
   const isSeated = !!p.jetski && hurtT < 0;
+  // Hanging off a vine by one hand (the gun in the other): its own poses, the push among them (not the charge's)
+  const vine = p.vine && hurtT < 0 && !p.headless ? p.vine : null;
+  const vineMode = vine?.mode;
   // On skis: a racer's crouch going along (knees bent, leaning into it, the off arm back for balance), knees tucked up
   // in the air, and right down in an egg tuck ducking
   const isSki = !!p.skiing && !p.jetski && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking;
@@ -187,7 +190,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   // Squash on landing, stretch on take-off and when moving fast vertically
   const isSpecial = p.isCharging || p.isUppercutting || !!p.isDivekicking;
-  const airStretch = !p.isGrounded && !isSpecial && !p.swimming ? Math.min(1, Math.abs(p.vel.y) / PLAYER_TERMINAL_VELOCITY) * 0.1 : 0;
+  const airStretch = !p.isGrounded && !isSpecial && !p.swimming && !vine ? Math.min(1, Math.abs(p.vel.y) / PLAYER_TERMINAL_VELOCITY) * 0.1 : 0;
   const squash = p.squash || 0;
   ctx.scale(1 + squash * 0.25 - airStretch * 0.5, 1 - squash * 0.25 + airStretch);
 
@@ -198,7 +201,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     return;
   }
   // The special moves are full poses of their own (unless he's been knocked out of one)
-  const movePose = hurtT >= 0 || p.headless ? null
+  const movePose = hurtT >= 0 || p.headless || vine ? null
     // (on the jet ski they're the ski's moves: a wheelie, a leap out of the water, a nose-first dive)
     : p.jetski ? (isCharging ? drawJetskiWheelie : isUppercutting ? drawJetskiLeap : isDivekicking ? drawJetskiDive : null)
     // (booting somebody off his skis, boat or jet ski: a big standing front kick)
@@ -227,7 +230,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   let bodyRot = 0;
   let bodyY = 0;
   let spinAroundCenter = false;
-  if (hurtT >= 0) {
+  /** On a vine: where his hand's round it (his local frame), and how his body hangs off it. */
+  const GRIP: [number, number] = [vineGrip(p).x, vineGrip(p).y];
+  if (vine) {
+    // Along the vine, a bit behind it (his weight lags the swing); leaning into the push, tucked in a quick climb
+    bodyRot = vineLean(p);
+    bodyY = vineMode === 'climb' ? Math.sin(animFrame * 0.3) * 2.5 : 0;
+  } else if (hurtT >= 0) {
     const ease = 1 - Math.pow(1 - hurtT, 3);
     switch (p.hurtForm) {
       case 'slide':
@@ -293,7 +302,12 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   bodyRot += slopeLean;
   if (pitchK >= 0) { const lean = p.throwKeg ? kegLean(pitchK) : pitchLean(pitchK); bodyRot = lean.rot * (isAirborne ? 0.5 : 1); bodyY = lean.y; }
 
-  if (spinAroundCenter) {
+  if (vine) {
+    // (turned about his hand on the vine: that stays put)
+    ctx.translate(GRIP[0], GRIP[1] + bodyY);
+    ctx.rotate(bodyRot);
+    ctx.translate(-GRIP[0], -GRIP[1]);
+  } else if (spinAroundCenter) {
     ctx.translate(0, bodyY - 32);
     ctx.rotate(bodyRot);
     ctx.translate(0, 32);
@@ -308,7 +322,20 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   let freeArm: (() => void) | null = null;
   // ==========================================
   ctx.save();
-  if (surf) {
+  if (vine) {
+    // Up over his head, the fist round the vine (climbing: hand over hand, the arm hauling him up to it and reaching
+    // again; in a quick climb, yanking; sliding down, clamped on, the rope smoking in his fist)
+    const ph = animFrame * 0.3;
+    const reach = vineMode === 'climb' ? Math.sin(ph) * 7 : vineMode === 'zipUp' ? Math.sin(animFrame * 0.9) * 5 : 0;
+    const fist: [number, number] = [GRIP[0], GRIP[1] - (vineMode === 'climb' ? reach - bodyY : 0)];
+    const sh: [number, number] = [-9, -46];
+    const el: [number, number] = [(sh[0] + fist[0]) / 2 - 5, (sh[1] + fist[1]) / 2 + 2];
+    drawArmTo(ctx, sh, el, fist, true, 5.5);
+    if (vineMode === 'zipDown') {
+      // (rope burn)
+      for (let k = 0; k < 3; k++) { const t = ((animFrame + k * 5) % 15) / 15; ctx.fillStyle = `rgba(214, 211, 209, ${0.55 * (1 - t)})`; ctx.beginPath(); ctx.arc(fist[0] + Math.sin(k * 2.3 + animFrame) * 3, fist[1] - 4 - t * 14, 2 + t * 4, 0, Math.PI * 2); ctx.fill(); }
+    }
+  } else if (surf) {
     // Surfing: back arm out behind him, low, for balance
     // (from the shoulder at the side of his chest, crouched as he is: clear of his face)
     ctx.fillStyle = skinShadow;
@@ -425,7 +452,31 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // LAYER 2: LEGS & BOOTS
   // ==========================================
   ctx.save();
-  if (pitchK >= 0 && !isAirborne) {
+  if (vine) {
+    const sway = Math.max(-0.5, Math.min(0.5, -vine.om * 6 * p.facing));
+    if (vineMode === 'climb') {
+      // Shinning up it: the knees coming up in turn, the boots clamping
+      const k = Math.sin(animFrame * 0.3);
+      drawJointedLeg(ctx, -4, -22, -0.45 - Math.max(0, k) * 0.7, 0.9 + Math.max(0, k) * 0.9, pantsShadow, false);
+      drawJointedLeg(ctx, 5, -22, -0.45 - Math.max(0, -k) * 0.7, 0.9 + Math.max(0, -k) * 0.9, pantsColor, true);
+    } else if (vineMode === 'zipUp') {
+      // Knees tucked right up, yanked up it
+      drawJointedLeg(ctx, -4, -22, -1.25, 2.1, pantsShadow, false);
+      drawJointedLeg(ctx, 5, -22, -1.05, 1.9, pantsColor, true);
+    } else if (vineMode === 'zipDown') {
+      // Legs straight down together, toes pointed: dropping down it
+      drawJointedLeg(ctx, -4, -22, 0.06, 0.05, pantsShadow, false);
+      drawJointedLeg(ctx, 5, -22, -0.04, 0.08, pantsColor, true);
+    } else if (vineMode === 'push') {
+      // Legs flung back behind him, driving into the swing
+      drawJointedLeg(ctx, -4, -22, 0.95, 0.55, pantsShadow, false);
+      drawJointedLeg(ctx, 5, -22, 0.7, 0.85, pantsColor, true);
+    } else {
+      // Hanging: legs loose, a little apart, trailing the swing
+      drawJointedLeg(ctx, -4, -22, 0.16 + sway, 0.3 + Math.abs(sway) * 0.3, pantsShadow, false);
+      drawJointedLeg(ctx, 5, -22, -0.22 + sway, 0.45 + Math.abs(sway) * 0.3, pantsColor, true);
+    }
+  } else if (pitchK >= 0 && !isAirborne) {
     // Pitching: the leg kick, the stride, the back leg up behind him
     (p.throwKeg ? drawKegLegs : drawPitchLegs)(ctx, pitchK);
   } else if (isDivekicking) {
@@ -950,6 +1001,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     drawReachingArm(ctx, 8, -42, 13, -32, 12, -21, skinTone);
   } else {
     // Walking / Standing / Ducking Aiming Pose
+    // (hanging off a vine, however he's swung: the gun arm held level from the shoulder, aimed where the shots go)
+    if (vine) { ctx.translate(VINE_SHOULDER.x, VINE_SHOULDER.y); ctx.rotate(-bodyRot); ctx.translate(-VINE_SHOULDER.x, -VINE_SHOULDER.y); }
     const armPump = isWalking ? walkStride * 8 : 0;
     const armBaseX = isDucking ? 10 : 8;
     const armBaseY = isDucking ? -26 : -42;
