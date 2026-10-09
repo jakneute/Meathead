@@ -12,6 +12,7 @@ import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { setArmor } from '../../m1/game/core/resist';
+import { startGoreSlide, tickGoreSlides, drawGoreSlides, stopGoreSlides } from './goreSlide';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { muzzlePoint } from '../../m1/game/combat/muzzle';
@@ -238,6 +239,7 @@ const syncArmor = (on: boolean) => { if (on !== armored) { armored = on; setArmo
 
 const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; moveDown: boolean }, equipped: boolean) => {
   syncArmor(equipped && ctx.state.frame - suckingAt <= 2);
+  tickGoreSlides(ctx);
   // (got over his panic, or gone: himself again; till then, running off his own way, but not shooting)
   for (const e of panicking) { const ps = poise.get(e); if (!ps || ctx.state.frame > ps.fleeUntil || e.health <= 0 || e.isBlownAway) calmDown(e); else e.shootTimer = 0; }
   const { state } = ctx;
@@ -313,7 +315,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     e.health -= p.damage;
     splat();
     const dir = Math.sign(p.vel.x) || 1;
-    if (e.health <= 0) { fx.blowAwayEnemy(e, { x: dir * 6, y: -6 }, m2Kill('gore_kill'), dir); fx.spawnKillCallout(e, grabCallout('gorespray')); }
+    // (killed by it: a pratfall, slid off along the slick on their back: goreSlide; a boss's end is his own)
+    if (e.health <= 0) { if (!startGoreSlide(ctx, e)) { fx.blowAwayEnemy(e, { x: dir * 6, y: -6 }, m2Kill('gore_kill'), dir); fx.spawnKillCallout(e, grabCallout('gorespray')); } }
     // (no knockback: it holds them in it, slowed, rather than washing them out of it)
     else { fx.spawnDamageNumber(e.pos, p.damage); e.vel.x *= 0.8; }
     // (one in two goes on through: it's a gush, not bullets)
@@ -391,6 +394,7 @@ const drawHeld = (c: Ctx, frame: number) => {
 /** Over the enemies: everybody's poise (a bar on them, while it's been worn at or he's got the sucker out), the cone of
  * air while it's going, and whoever's going in. */
 const drawOverlay = (c: Ctx, state: GameState) => {
+  drawGoreSlides(c, state);
   const pl = state.player, out = pl.currentWeapon === 'SOUL_SUCKER';
   void out;
   const sucking = state.frame - suckingAt <= 1 && out;
@@ -435,6 +439,6 @@ const drawOverlay = (c: Ctx, state: GameState) => {
 /** Everything it was in the middle of, stopped (through a door): no spray going, nobody half way in, nothing pulled. */
 const calmDown = (e: Enemy) => { const ps = poise.get(e); if (ps?.held) { e.puppet = ps.held.puppet; e.harmless = ps.held.harmless; ps.held = undefined; } panicking.delete(e); };
 export const stopSoulSucker = () => {
-  for (const e of [...panicking]) calmDown(e); sprayLeft = 0; swallowing = []; suckingAt = -10; stains.length = 0; syncArmor(false); };
+  for (const e of [...panicking]) calmDown(e); sprayLeft = 0; swallowing = []; suckingAt = -10; stains.length = 0; syncArmor(false); stopGoreSlides(); };
 
 export const registerSoulSucker = () => registerWeapon('SOUL_SUCKER', { fire: ctx => fire(ctx), update, draw: (c, p) => draw(c, p), drawHeld, tick, drawOverlay });
