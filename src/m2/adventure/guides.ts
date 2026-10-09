@@ -23,6 +23,13 @@ export const VOICE_LINES: Record<string, string[]> = {
 const mid = (o: { pos: { x: number; y: number }; width: number; height: number }) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
 const seedOf = (e: Enemy) => Math.abs(Math.round(e.homeX || 0)) * 7 + (e.variant ?? 0) * 31 + 11;
 
+/** Something to hop up onto right in front of him (a rock, a crate, a step too tall to walk up). */
+const stepAhead = (state: FrameContext['state'], e: Enemy, dir: number) => {
+  const feet = e.pos.y + e.height, x = dir > 0 ? e.pos.x + e.width : e.pos.x;
+  return state.blocks.some(b => !b.oneWay && b.type !== 'pit' && b.type !== 'door' && b.y < feet - 26 && b.y > feet - 170
+    && (dir > 0 ? b.x >= x - 2 && b.x < x + 16 : b.x + b.w <= x + 2 && b.x + b.w > x - 16));
+};
+
 const guideAI = (ctx: FrameContext, e: Enemy): boolean => {
   const { state } = ctx;
   e.aiTimer = (e.aiTimer || 0) + 1;
@@ -34,11 +41,15 @@ const guideAI = (ctx: FrameContext, e: Enemy): boolean => {
       e.vel.x = 0;
       if (adx < 500 && Math.abs(p.y - m.y) < 160 && state.player.health > 0) { e.aiState = 'walk'; e.aiTimer = 0; playSound('beep', 0.4, 8); }
       break;
-    case 'walk':
+    case 'walk': {
       e.facing = face;
       e.vel.x = adx > 60 ? face * 2.1 : 0;
+      const grounded = e.vel.y === 0;
+      // (him up on something, or a step in the way: up after him, a hop)
+      if (grounded && e.aiTimer > 20 && ((p.y < m.y - 50 && adx < 200) || stepAhead(state, e, face))) { e.vel.y = -12.5; e.vel.x = face * 3.4; e.aiTimer = 0; playSound('jump', 0.4, 2); }
       if (adx < 90 && level) { e.aiState = 'windup'; e.aiTimer = 0; }
       break;
+    }
     case 'windup':
       e.vel.x = 0; e.facing = face;
       if (e.aiTimer > 18) { e.aiState = 'swing'; e.aiTimer = 0; playSound('whoosh', 0.6, 0); }

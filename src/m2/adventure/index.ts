@@ -78,7 +78,7 @@ export const advLayout: StageLayout = {
       adv.grace--;
       for (const e of state.enemies) {
         if (e.type === 'boss' || e.health <= 0 || e.isBlownAway) continue;
-        if (adv.grace > 0 && Math.abs(e.pos.x + e.width / 2 - (p.pos.x + p.width / 2)) < GRACE_RANGE && (e.pauseTimer ?? 0) <= 2) { e.puppet = true; e.pauseTimer = 2; adv.held.add(e); }
+        if (adv.grace > 0 && Math.abs(e.pos.x + e.width / 2 - (p.pos.x + p.width / 2)) < GRACE_RANGE && (e.pauseTimer ?? 0) <= 2) { e.puppet = true; e.pauseTimer = 2; e.vel.x = 0; adv.held.add(e); }
       }
       if (adv.grace === 0) { for (const e of adv.held) e.puppet = false; adv.held.clear(); }
     }

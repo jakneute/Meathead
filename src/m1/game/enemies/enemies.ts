@@ -1405,11 +1405,13 @@ const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
   const prevMidX = e.pos.x + e.width / 2 - speed;
   const wall = state.blocks.find(b => (b.type === 'wall' || (b.type === 'door' && state.doorState !== 'opening' && state.doorState !== 'open' && state.doorState !== 'closing'))
     && rectsOverlap(boundsOf(e), b) && !(prevMidX > b.x && prevMidX < b.x + b.w)
-    // (one it's stood on top of is its floor, not a wall: a rock step, a wall's top)
-    && b.y < e.pos.y + e.height - 8);
+    // (one it's stood on top of, or coming down onto, is its floor, not a wall: a rock step, a wall's top)
+    && b.y < e.pos.y + e.height - 8 - Math.max(0, e.vel.y));
   if (!wall) return false;
 
-  const dir = Math.sign(speed) || (e.pos.x + e.width / 2 < wall.x + wall.w / 2 ? 1 : -1);
+  // (the side of it it's on: by where its middle is, not which way it's going; one just catching the edge of a wall
+  // it's dropping away from isn't put through to the far side of it)
+  const dir = e.pos.x + e.width / 2 < wall.x + wall.w / 2 ? 1 : -1;
   e.pos.x = dir > 0 ? wall.x - e.width : wall.x + wall.w;
   e.vel.x = 0;
   // Only a shove (or a blast) slams it into the wall; walking into one under its own steam it just stops there
