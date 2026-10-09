@@ -63,6 +63,8 @@ export interface Cloud { x: number; y: number; r: number; a: number; vx: number;
 export interface Stain { red: number; redTo: number; brown: number; brownTo: number; clouds: Cloud[]; bled: WeakSet<object>; recent: Map<object, { x: number; y: number; at: number }>; shatIn: boolean }
 export interface River {
   talk: Talk;
+  /** He's been in the water this visit (the first time in, the piranhas keep off a moment). */
+  wetYet?: boolean;
   boat: { x: number; v: number; phase: BoatPhase; block: ReturnType<typeof ledge> | null; onFor: number; rode: boolean; tour: number; n: number; smoke: number };
   /** What Artie's saying (shown over him), the radio's static after a call. */
   artieSaid: string | null; artieRadio: boolean; static: number;
@@ -237,6 +239,11 @@ const updateSwim = (ctx: FrameContext, rv: River) => {
   const was = p.swimming;
   p.swimming = inWater(rx, cy) && !p.inCutscene && !p.carried;
   p.swimSurfaceY = WS; p.swimLeap = SWIM_LEAP;
+  // (in for the first time: the piranhas about aren't right there waiting; they keep off a few seconds, then it's on)
+  if (p.swimming && !was && !rv.wetYet) {
+    rv.wetYet = true;
+    for (const e of state.enemies) if (e.kind === 'm2:piranha' && Math.abs(e.pos.x - cx) < 520) e.runFrom = state.frame + 180;
+  }
   if (p.swimming && !was && p.vel.y > 3) {
     for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: cx, y: WS }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 5 }, life: 26, color: i % 2 ? '#E0F2FE' : '#7DD3FC', size: 3 + Math.random() * 4 });
     ctx.fx.playGunSound('splash');

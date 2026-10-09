@@ -67,7 +67,8 @@ export const DINOS: { x: number; look: 'stego' | 'rex' | 'trike' | 'bronto' }[] 
 export const VENTS = [4100, 5250, 6200, 7450, 8150, 9350, 11000, 12100, 12900];
 
 /** Who's in the water: piranhas (x, y), eels (in a hole: its mouth, which way it comes out), snapping plants (root x). */
-export const PIRANHAS_BOAT = [900, 1300, 1700, 2100, 2500, 2800, 3150];
+// (none right where the boat runs dry and he goes over the side: they're off up the river, coming)
+export const PIRANHAS_BOAT = [900, 1300, 1700, 2100, 2350];
 export const PIRANHAS: [number, number][] = [
   [3900, 760], [3960, 800], [4900, 740], [5000, 790], [5800, 760], [6500, 760], [6560, 820], [7700, 760], [8500, 800],
   [9100, 760], [9180, 820], [10800, 760], [11900, 800],
