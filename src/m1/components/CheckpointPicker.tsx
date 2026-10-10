@@ -12,6 +12,9 @@ const CheckpointPicker: React.FC<{ stageId: string; onPick: (at: StartAt) => voi
   const items: { label: string; at: StartAt }[] = list ?? [...stageCheckpoints(stageId).map((c, k) => ({ label: `${k + 1}. ${c.name}`, at: c.cp as StartAt })), { label: 'THE BOSS', at: 'boss' }];
   const [i, setI] = useState(0);
   useCursorSound(i);
+  // (a list taller than the screen scrolls: the one picked kept in view as the cursor moves)
+  const rows = useRef<(HTMLButtonElement | null)[]>([]);
+  useEffect(() => { rows.current[i]?.scrollIntoView({ block: 'nearest' }); }, [i]);
   const ref = useRef({ i, items, onPick, onCancel });
   ref.current = { i, items, onPick, onCancel };
   useEffect(() => {
@@ -42,13 +45,14 @@ const CheckpointPicker: React.FC<{ stageId: string; onPick: (at: StartAt) => voi
   }, []);
   return (
     <div className="absolute inset-0 z-[78] flex items-center justify-center bg-black/80 select-none" style={{ fontFamily: '"Press Start 2P", monospace' }}>
-      <div className="w-[360px] p-3 border-4 border-red-600 bg-zinc-950 shadow-[4px_4px_0_#000]">
+      <style>{`.cp-scroll{scrollbar-width:thin;scrollbar-color:#facc15 #18181b}.cp-scroll::-webkit-scrollbar{width:10px}.cp-scroll::-webkit-scrollbar-track{background:#18181b;border-left:2px solid #3f3f46}.cp-scroll::-webkit-scrollbar-thumb{background:#facc15;border:2px solid #18181b;box-shadow:inset -2px -2px 0 #a16207}`}</style>
+      <div className="w-[360px] max-h-[92%] flex flex-col p-3 border-4 border-red-600 bg-zinc-950 shadow-[4px_4px_0_#000]">
         <div className="text-[8px] text-red-500 tracking-widest">SKIP LEVEL</div>
         <div className="mt-1 text-[11px] text-yellow-300">{stageId.toUpperCase()}: START WHERE?</div>
-        <div className="mt-3 flex flex-col gap-1">
+        <div className="cp-scroll mt-3 flex flex-col gap-1 min-h-0 overflow-y-auto pr-1">
           {items.map((it, k) => (
-            <button key={it.label} onMouseEnter={() => setI(k)} onClick={() => onPick(it.at)}
-              className={`text-left px-2 py-[5px] text-[8px] border-2 ${k === i ? 'bg-yellow-400 text-black border-yellow-400' : 'bg-zinc-900 text-white border-zinc-700'}`}>
+            <button key={it.label} ref={el => { rows.current[k] = el; }} onMouseEnter={() => setI(k)} onClick={() => onPick(it.at)}
+              className={`shrink-0 text-left px-2 py-[5px] text-[8px] border-2 ${k === i ? 'bg-yellow-400 text-black border-yellow-400' : 'bg-zinc-900 text-white border-zinc-700'}`}>
               {k === i ? '▶ ' : '  '}{it.label}
             </button>
           ))}
