@@ -5261,11 +5261,6 @@
  },
  {
   "voice": "death",
-  "text": "A PUDDLE OF HIS FORMER SELF",
-  "from": "SPOOKY"
- },
- {
-  "voice": "death",
   "text": "A RACCOON ATE YOUR THROAT",
   "from": "content/deaths"
  },
@@ -7431,11 +7426,6 @@
  },
  {
   "voice": "death",
-  "text": "LIQUEFIED",
-  "from": "SPOOKY"
- },
- {
-  "voice": "death",
   "text": "LIQUIDATED",
   "from": "content/deaths"
  },
@@ -7528,11 +7518,6 @@
   "voice": "death",
   "text": "MEAT VERSUS METAL. METAL WINS",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "MEATHEAD SOUP",
-  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -9648,11 +9633,6 @@
   "voice": "death",
   "text": "TRUCK: 1, DELTS: 0",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "TURNED INSIDE OUT",
-  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -12596,51 +12576,6 @@
  },
  {
   "voice": "m2.donnie.pa",
-  "text": "...I MEAN. YES. MY MIST. IT FOLLOWS THE SMELL. YOU HAVE A LOT OF SMELL. RUN, MORTAL. I'M NOT KIDDING, BUDDY. GO.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "...I MEAN. YES. MY MIST. IT VILL COVER YOU. FINALLY, SOMETHING VILL. RUN. NO, SERIOUSLY. RUN, PAL.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "...I MEAN. YES. MY MIST. MY TERRIBLE MIST. RUN, MORTAL. NO, SERIOUSLY. RUN. I'M NOT KIDDING HERE.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "...OKAY. HE MADE IT. AND THE MIST SPAT HIM BACK OUT. EVEN THE MIST VOULD NOT. GARY? ...GARY?",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "...OKAY. HE MADE IT. GOOD. GOOD. GARY, VE ARE TURNING THAT THING OFF. GARY? ...GARY?",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "...OKAY. HE MADE IT. NAKED. THROUGH THAT. I HAVE QUESTIONS. GARY? ...GARY?",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "AH. YOU SURVIVED. AS... I PLANNED. ALL PART OF THE TOUR. VE DO THAT EVERY DAY. YES.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "AH. YOU SURVIVED. AS... I PLANNED. THE NUDITY VAS NOT PLANNED. NONE OF IT VAS PLANNED.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "AH. YOU SURVIVED. THE MIST TOOK ONE SNIFF OF YOU AND GAVE UP. AS... I PLANNED.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
   "text": "AHEAD, THE DESCENDING CEILINK. BUILT BY A CONTRACTOR NAMED SAL. SAL TESTED IT HIMSELF. HE DIED VITH DIGNITY. AND CLEAN PANTS. THAT IS MORE THAN YOU VILL GET.",
   "from": "SPOOKY"
  },
@@ -12652,21 +12587,6 @@
  {
   "voice": "m2.donnie.pa",
   "text": "AHEAD, THE DESCENDING CEILINK. BUILT BY A CONTRACTOR NAMED SAL. SAL TESTED IT HIMSELF. VE KEPT THE SPIKES. VE DID NOT KEEP SAL. VELL. MOST OF SAL.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "AND NOV... THE FINAL ORDEAL. THE HALLVAY OF... VAIT. VHAT IS THAT? GARY? IS THE FOG MACHINE ON? GARY, VHY IS IT RED?",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "AND NOV... THE FINAL ORDEAL. THE HALLVAY OF... VAIT. VHAT IS THAT? IS THAT COMING OFF OF YOU? NO. IT IS RED. GARY? IS THE FOG MACHINE ON?",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "AND NOV... THE FINAL ORDEAL. THE HALLVAY OF... VAIT. VHAT IS THAT? VHAT IS THAT RED... GARY? IS THE FOG MACHINE ON? GARY?",
   "from": "SPOOKY"
  },
  {
@@ -12981,6 +12901,21 @@
  },
  {
   "voice": "m2.donnie.pa",
+  "text": "THE LIBRARY. DOCTOR ABERNATHY OPENED THE FORBIDDEN TOME. IT VAS THE TERMS AND CONDITIONS. ELEVEN YEARS, HE READ. HE NEVER LEFT HIS CHAIR. HE DID VHAT YOU DID. IN THE CHAIR. FOR ELEVEN YEARS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE LIBRARY. DOCTOR ABERNATHY OPENED THE FORBIDDEN TOME. IT VAS THE TERMS AND CONDITIONS. HE READ EVERY VORD. IT TOOK ELEVEN YEARS. HE DIED ON PAGE FOUR THOUSAND.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE LIBRARY. DOCTOR ABERNATHY OPENED THE FORBIDDEN TOME. IT VAS THE TERMS AND CONDITIONS. HE READ EVERY VORD. NOVHERE IN THEM DOES IT SAY NO PANTS IS ALLOVED. I CHECKED. TVICE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
   "text": "THE LIGHTS GROW DIM. AT LAST. A MERCY. FOR ME. SOMETHING DOWN THERE IS VATCHING YOU. IT HAS SEEN YOU NAKED. IT VILL NEVER BE THE SAME.",
   "from": "SPOOKY"
  },
@@ -13072,21 +13007,6 @@
  {
   "voice": "m2.donnie.pa",
   "text": "THE STOVES HAVE NEVER GONE OUT SINCE. THEY ARE STILL HUNGRY. MIND THE BURNERS. AND THE COOKS. MOSTLY THE COOKS.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "THE STUDY. DOCTOR ABERNATHY OPENED THE FORBIDDEN TOME. IT VAS THE TERMS AND CONDITIONS. ELEVEN YEARS, HE READ. HE NEVER LEFT HIS CHAIR. HE DID VHAT YOU DID. IN THE CHAIR. FOR ELEVEN YEARS.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "THE STUDY. DOCTOR ABERNATHY OPENED THE FORBIDDEN TOME. IT VAS THE TERMS AND CONDITIONS. HE READ EVERY VORD. IT TOOK ELEVEN YEARS. HE DIED ON PAGE FOUR THOUSAND.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.donnie.pa",
-  "text": "THE STUDY. DOCTOR ABERNATHY OPENED THE FORBIDDEN TOME. IT VAS THE TERMS AND CONDITIONS. HE READ EVERY VORD. NOVHERE IN THEM DOES IT SAY NO PANTS IS ALLOVED. I CHECKED. TVICE.",
   "from": "SPOOKY"
  },
  {
@@ -17965,16 +17885,6 @@
   "from": "SPOOKY"
  },
  {
-  "voice": "m2.spooky.gary",
-  "text": "OH NO. OH NO NO NO. THAT IS NOT OURS!",
-  "from": "SPOOKY"
- },
- {
-  "voice": "m2.spooky.gary",
-  "text": "THAT'S NOT IN THE SCRIPT! THAT'S NOT IN THE SCRIPT!",
-  "from": "SPOOKY"
- },
- {
   "voice": "m2.ticket",
   "text": "BACK OF THE LINE, SIR.",
   "from": "INTRO"
@@ -18138,11 +18048,6 @@
   "voice": "meathead",
   "text": "...THAT WASN'T A FART.",
   "from": "GUT"
- },
- {
-  "voice": "meathead",
-  "text": "...THAT WASN'T IN THE BROCHURE.",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18448,11 +18353,6 @@
   "voice": "meathead",
   "text": "A HARD HAT! TO THE FACE! THE IRONY!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "A HAUNTED HOUSE IS SUPPOSED TO BE FAKE! THAT IS THE WHOLE DEAL!",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19441,11 +19341,6 @@
  },
  {
   "voice": "meathead",
-  "text": "BRICKED UP. OF COURSE IT'S BRICKED UP.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "BRIEFCASE DENIED!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -20182,11 +20077,6 @@
  {
   "voice": "meathead",
   "text": "DID HE JUST CALL HIS DAD?",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "DID THAT GUY JUST TURN INTO SOUP?!",
   "from": "SPOOKY"
  },
  {
@@ -23326,11 +23216,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I WAS GONNA PUNCH THAT WALL. IT JUST GAVE UP.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "I WAS UNDER IT! WHY WAS I UNDER IT?!",
   "from": "SPOOKY"
  },
@@ -23546,11 +23431,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I'M GONNA PRETEND THAT DIDN'T HAPPEN. THAT DIDN'T HAPPEN.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "I'M GONNA PUNCH THIS WHOLE BLOCK! THE WHOLE BLOCK!",
   "from": "m1/game/stages/tommy/escape.ts:227"
  },
@@ -23663,11 +23543,6 @@
   "voice": "meathead",
   "text": "I'M NOT RIDING THAT CONVOY AGAIN. MY SPINE STILL HURTS.",
   "from": "BOSS_REBUKES"
- },
- {
-  "voice": "meathead",
-  "text": "I'M NOT SCARED! I'M ANNOYED! THERE'S A DIFFERENCE!",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23881,11 +23756,6 @@
  },
  {
   "voice": "meathead",
-  "text": "IF THAT STUFF TOUCHES ME I'M GONNA BE SO PISSED!",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "IF THIS ONE GOES, THE PANTS GO WITH IT.",
   "from": "M2_GUT_LINES"
  },
@@ -24038,11 +23908,6 @@
   "voice": "meathead",
   "text": "IT BURNS! GET THE FUCK OUT!",
   "from": "m1/game/stages/tommy/sewer.ts:100"
- },
- {
-  "voice": "meathead",
-  "text": "IT BURNS! IT BURNS INSIDE!",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24626,11 +24491,6 @@
  },
  {
   "voice": "meathead",
-  "text": "LOCKED?! WHO LOCKS A DOOR IN A DEATH MAZE?!",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "LOOK WHO READ THE MANUAL. ALL FOUR WORDS OF IT.",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -24978,11 +24838,6 @@
   "voice": "meathead",
   "text": "MY GUTS ARE BURNING!",
   "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "MY GUTS ARE ON THE OUTSIDE!",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25661,11 +25516,6 @@
  },
  {
   "voice": "meathead",
-  "text": "NOPE. WRONG WAY. SUPERNATURAL MAZE. GREAT.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "NOT DINNER! NOT YET!",
   "from": "HAZARD_HURT"
  },
@@ -25856,11 +25706,6 @@
  },
  {
   "voice": "meathead",
-  "text": "OH GOD. THE SHEET GUY. HE MELTED. HE MELTED INTO HIS SHEET.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "OH HELL YEAH!",
   "from": "m1/App.tsx:551"
  },
@@ -25952,11 +25797,6 @@
  {
   "voice": "meathead",
   "text": "OH. HI.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "OH. IT OPENS. SURE. WHY NOT.",
   "from": "SPOOKY"
  },
  {
@@ -26808,11 +26648,6 @@
   "voice": "meathead",
   "text": "RED DOT! THEN PAIN! EVERY TIME!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "RED FOG. NOPE. NOPE NOPE NOPE.",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -28951,11 +28786,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THAT'S NOT A FOG MACHINE! FOG MACHINES DON'T EAT PEOPLE!",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "THAT'S NOT A GHOST STORY, THAT'S A HEALTH CODE VIOLATION.",
   "from": "SPOOKY"
  },
@@ -29113,11 +28943,6 @@
   "voice": "meathead",
   "text": "THE BIRD ROBOT! THE BIRD ROBOT!",
   "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "THE BLOOD'S GOING UP THE WALL! BLOOD DOESN'T GO UP! THAT'S NOT HOW BLOOD WORKS!",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -29551,11 +29376,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THE REST OF THIS PLACE IS PAPER MACHE AND A GUY IN A SHEET! WHY IS THIS PART REAL?!",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "THE RIDE FELL ON MY HEAD!",
   "from": "SPOOKY"
  },
@@ -29681,11 +29501,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THE WALLS ARE BREATHING. WHY ARE THE WALLS BREATHING?!",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "THE WHOLE EAST SIDE JUST PUNCHED ME!",
   "from": "HAZARD_HURT"
  },
@@ -29738,11 +29553,6 @@
   "voice": "meathead",
   "text": "THERE'S MORE?! WHERE IS IT ALL COMING FROM?!",
   "from": "M2_GUT_LINES"
- },
- {
-  "voice": "meathead",
-  "text": "THERE'S NO WAY THIS PASSED INSPECTION!",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -29838,11 +29648,6 @@
   "voice": "meathead",
   "text": "THIS HURRICANE IS BLOWING MY SWEATPANTS OFF!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "THIS IS A LAWSUIT! THIS IS A HUGE LAWSUIT!",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -30581,11 +30386,6 @@
  },
  {
   "voice": "meathead",
-  "text": "WHAT IS THAT? WHAT IS THAT?!",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "WHAT KIND OF FISH LIVES IN LAVA?!",
   "from": "HAZARD_HURT"
  },
@@ -30708,11 +30508,6 @@
   "voice": "meathead",
   "text": "WHO CHARGES A SPEAR?! ME! I DO!",
   "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "WHO DO I TALK TO ABOUT THE MIST? I WANT THE MIST'S MANAGER!",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -30951,11 +30746,6 @@
  },
  {
   "voice": "meathead",
-  "text": "WHO'S SLAMMING THE DOORS?! NOBODY'S SLAMMING THE DOORS!",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "WHO'S STILL RIDING THIS THING?!",
   "from": "SPOOKY"
  },
@@ -31063,11 +30853,6 @@
   "voice": "meathead",
   "text": "WHY IS THE WATER SPICY!",
   "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "WHY IS THERE ACTUAL SUPERNATURAL SHIT IN A THEME PARK?!",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",

@@ -1,4 +1,4 @@
-m2/hub/index.ts:113 name: AMERICA_DENY
+m2/hub/index.ts:121 name: AMERICA_DENY
 m2/weapons/spellbook.ts:307 name: BULK_LINES
 m2/weapons/spellbook.ts:312 name: BULK_FAIL_LINES
 m2/weapons/mallet.ts:186 name: DUCK_LINES
@@ -42,14 +42,7 @@ m2/adventure/section.ts:135 voice: voice(voiceId)
 m2/walkAway/artie.ts:378 voice: x
 m2/walkAway/artie.ts:383 voice: x
 m2/walkAway/artie.ts:384 voice: Math.round(sx - c.measureText('LAND').width / 2)
-m2/spooky/castle/pa.ts:53 voice: line
-m2/spooky/mist/index.ts:200 voice: state
-m2/spooky/mist/index.ts:215 voice: state
-m2/spooky/mist/index.ts:224 voice: state
-m2/spooky/mist/index.ts:229 voice: state
-m2/spooky/mist/index.ts:245 voice: pick(L.GARY_SCREAM)
-m2/spooky/mist/index.ts:249 voice: state
-m2/spooky/mist/index.ts:252 voice: state
+m2/spooky/castle/pa.ts:72 voice: voice(PA)
 m2/spooky/hell/satan.ts:109 voice: SATAN_CORE
 m2/spooky/hell/satan.ts:112 voice: pick(dressedPool(state))
 m2/spooky/hell/demon.ts:117 voice: voice('m2.demon')
