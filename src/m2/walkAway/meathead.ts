@@ -223,8 +223,6 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
     // (a vein down the bicep)
     box(c, side * 47, -120 + ty, 1, 6, '#C2410C'); box(c, side * 46, -114 + ty, 1, 5, '#C2410C');
   }
-  // His forearms, the toy, his fists
-  handsAndToy(c, p, ty, grip, drawWeapon, S);
   // The neck: a stump, the cords down it, his jaw's shadow over it
   const hy = ty + p.headY;
   poly(c, [[-12, -140 + ty], [12, -140 + ty], [11, -152 + hy], [-11, -152 + hy]], S[2]);
@@ -277,6 +275,9 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
     if (open > 1) box(c, -3, mouthY + 2, 7, 1, '#7F1D1D');
     box(c, 6, mouthY - 2, 2, 2, INK); box(c, -7, mouthY + 1, 1, 1, INK);
   }
+  // His forearms, the toy, his fists: last, in front of everything (his head too: up at his nose, it's in front of his
+  // face; held at his chest, nothing's in its way)
+  handsAndToy(c, p, ty, grip, drawWeapon, S);
   c.restore();
   return { mouth: [x + 0, y + mouthY + 1], crotch: [x + crotch[0], y + crotch[1], crotch[2], crotch[3]] };
 };
