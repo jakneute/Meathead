@@ -259,7 +259,7 @@ const artieChase = (ctx: FrameContext, cart: Cart) => {
     playSound('crash', 0.8); playSound('clang', 1, -4); shakeScreen(state, 12, 6);
     cart.speed += 2.5;
     if (state.player.invincibilityTimer <= 0) hurtPlayer(ctx, 12, 'cart_artie');
-    if (Math.random() < 0.6) artieSays(cart, pick(ARTIE_BUMP));
+    if (Math.random() < 0.6) artieSays(cart, pick(ARTIE_BUMP[dressed(state)]));
   }
   // Shot at: it slows him down (and he's got something to say about it, now and then)
   const ay = artieTrackY(a.x);
@@ -271,9 +271,9 @@ const artieChase = (ctx: FrameContext, cart: Cart) => {
     a.v = Math.max(3, a.v - 1.6);
     playSound('clink', 0.7);
     for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: pr.pos.x, y: pr.pos.y }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 3 }, life: 14, color: '#FDE047', size: 2 });
-    if (state.frame - a.shotSaid > 400) { a.shotSaid = state.frame; artieSays(cart, pick(ARTIE_SHOT)); }
+    if (state.frame - a.shotSaid > 400) { a.shotSaid = state.frame; artieSays(cart, pick(ARTIE_SHOT[dressed(state)])); }
   }
-  if (--a.next <= 0) { a.next = 420 + Math.floor(Math.random() * 200); artieSays(cart, pick(ARTIE_TAUNT)); }
+  if (--a.next <= 0) { a.next = 420 + Math.floor(Math.random() * 200); artieSays(cart, pick(ARTIE_TAUNT[dressed(state)])); }
 };
 
 /** Up the curve, then straight up and out (on to the roof). */
@@ -308,7 +308,7 @@ const startOutro = (state: GameState, cart: Cart) => {
   if (a.on) {
     const gap = Math.max(150, Math.min(280, cart.x - a.x));
     a.end = flier(cart.me.s - gap, cart.me.v + 0.5);
-    artieSays(cart, ARTIE_RAMP[0]);
+    artieSays(cart, pick(ARTIE_RAMP[dressed(state)]));
   }
 };
 

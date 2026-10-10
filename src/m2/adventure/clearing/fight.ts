@@ -42,6 +42,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
 import { say } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { isShat, isNude } from '../../../m1/game/player/gut';
 import { hurtTaken } from '../../../m1/game/core/resist';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind, type MeatheadDeath } from '../../../m1/game/player/deathAnim';
@@ -236,20 +237,24 @@ const isOut = (f: Fight) => OUT.has(f.mode) || (f.mode === 'rise' && f.t >= 16);
 // ---------------------------------------------------------------------------------------------------------------
 // Saying things (he never shuts up: barks, dropped if somebody's already talking; the big ones wait their turn)
 
-const bark = (f: Fight, lines: readonly string[]) => {
-  const text = pick(lines);
+/** The game he's in (for the state of Meathead's pants: what Artie says goes by it, as he says it). */
+let game: GameState | null = null;
+const pants = (): L.Dressed => (!game ? 'clean' : isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean');
+const bark = (f: Fight, lines: L.ByPants) => {
+  const text = pick(lines[pants()]);
   say(text, voice('m2.safari'), 'casual', {
     always: true,
     onShow: spoken => { f.said = text; if (!spoken) setTimeout(() => { if (f.said === text) f.said = null; }, Math.max(1600, text.length * 65)); },
     onHide: () => { if (f.said === text) f.said = null; },
   });
 };
-const announce = (f: Fight, lines: readonly string[], onDone?: () => void) => speak('m2.safari', pick(lines), s => { f.said = s?.text ?? null; }, true, onDone);
+const announce = (f: Fight, lines: L.ByPants, onDone?: () => void) => speak('m2.safari', pick(lines[pants()]), s => { f.said = s?.text ?? null; }, true, onDone);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Starting
 
 export const startFight = (state: GameState): Fight => {
+  game = state;
   const e = makeKindEnemy(ARTIE_KIND as EnemyKind, BLIND_X, BLIND_Y);
   e.facing = -1; e.seen = true;
   const f: Fight = {
@@ -295,7 +300,7 @@ const faceHim = (state: GameState, f: Fight) => { f.facing = px(state) < f.x ? -
 
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx;
-  live = f;
+  live = f; game = state;
   f.t++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;

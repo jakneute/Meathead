@@ -229,7 +229,7 @@ const arrive = (ctx: FrameContext, r: Roof): Controls => {
       const near = [i - 3, i - 2, i - 1, i, i + 1].some(k => r.tiles[k] && r.tiles[k].gone);
       if (near) {
         a.falling = true; a.vy = -11; a.vx = 2.4; r.step = 4; r.said = null; playSound('whoosh', 0.8, 2);
-        someoneSays(r, 'artie', 'm2.safari', ARTIE_CHUTE[0], () => { r.step = 5; });
+        someoneSays(r, 'artie', 'm2.safari', pick(ARTIE_CHUTE[dressed(state)]), () => { r.step = 5; });
       }
     }
     const leftGone = r.tiles.every((tl, k) => ROOF_L + k * TILE + TILE > HOLE_X - HOLE_W / 2 + TILE || tl.gone);

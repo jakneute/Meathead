@@ -31,7 +31,7 @@ import {
   PIRANHAS_BOAT, PIRANHAS, EELS, SNAPPERS, GALLERY, CALLOUTS,
 } from './course';
 import {
-  ARTIE_WELCOME, BROTHER, ARTIE_TOUR, ARTIE_GAS, ARTIE_RADIO, ARTIE_STUCK, MEATHEAD_STUCK, ARTIE_JUMPED, ARTIE_ALONE,
+  ARTIE_WELCOME, BROTHER, BROTHER_ARTIE, ARTIE_TOUR, ARTIE_GAS, ARTIE_RADIO, ARTIE_STUCK, MEATHEAD_STUCK, ARTIE_JUMPED, ARTIE_ALONE,
   MEATHEAD_JUMP, MEATHEAD_UNDER, MEATHEAD_AIR, GUESTS_SEE, GUESTS_KILL, type Dressed,
 } from './lines';
 import { drawRiverBackdrop, drawRiverBack, drawRiverFront } from './draw';
@@ -98,10 +98,23 @@ const fromBag = (rv: River, key: string, pool: readonly string[]) => {
   rv.bags[`${key}:last`] = [i];
   return pool[i];
 };
-const artie = (rv: River, text: string, radio = false): Line => ({
-  voice: 'm2.safari', text,
-  set: t => { rv.artieSaid = t; rv.artieRadio = radio && !!t; if (!t && radio) rv.static = 70; },
-});
+/**
+ * A line of Artie's: worded for the state of Meathead's pants when it's said, not when it's queued (a blowout can
+ * come any time). Each way's wording is settled the first time it's asked for (so a line from a bag stays put).
+ */
+const artie = (state: GameState, rv: River, words: (d: Dressed) => string, radio = false): Line => {
+  const memo: Partial<Record<Dressed, string>> = {};
+  return {
+    voice: 'm2.safari',
+    get text() { const d = dressed(state); return (memo[d] ??= words(d)); },
+    set: t => { rv.artieSaid = t; rv.artieRadio = radio && !!t; if (!t && radio) rv.static = 70; },
+  };
+};
+/** ...one of a pool (round the bag for that way before any comes again). */
+const artieFrom = (state: GameState, rv: River, key: string, pool: Record<Dressed, readonly string[]>, radio = false) =>
+  artie(state, rv, d => fromBag(rv, `${key}:${d}`, pool[d]), radio);
+/** The spiel's next joke (in order: the same one, whichever way it's worded). */
+const tour = (state: GameState, rv: River, i: number) => artie(state, rv, d => ARTIE_TOUR[d][i]);
 const mh = (text: string): Line => ({ voice: 'meathead', text });
 
 /** Where Artie stands in his boat (his feet). */
@@ -178,32 +191,33 @@ const updateBoat = (state: GameState, rv: River) => {
     b.onFor = aboard ? b.onFor + 1 : 0;
     if (b.onFor > 15) {
       b.phase = 'ride'; b.rode = true;
-      t.q.push(artie(rv, ARTIE_WELCOME[0]), artie(rv, ARTIE_WELCOME[1]));
-      t.q.push(mh(BROTHER.meathead1), artie(rv, BROTHER.artie1), mh(BROTHER.meathead2), artie(rv, BROTHER.artie2), mh(BROTHER.meathead3), artie(rv, BROTHER.artie3), mh(BROTHER.meathead4));
+      t.q.push(artie(state, rv, d => ARTIE_WELCOME[d][0]), artie(state, rv, d => ARTIE_WELCOME[d][1]));
+      const bro = (i: number) => artie(state, rv, d => BROTHER_ARTIE[d][i]);
+      t.q.push(mh(BROTHER.meathead1), bro(0), mh(BROTHER.meathead2), bro(1), mh(BROTHER.meathead3), bro(2), mh(BROTHER.meathead4));
     }
   }
   if (b.phase === 'ride') {
     // (the spiel, in order, once the introductions are done: the first of it on the way, the rest when he's stuck)
-    if (!t.q.length && !t.busy && b.tour < TOUR_RIDE) t.q.push(artie(rv, ARTIE_TOUR[b.tour++]));
+    if (!t.q.length && !t.busy && b.tour < TOUR_RIDE) t.q.push(tour(state, rv, b.tour++));
     // The boat's pace: there by the time he's done (a crawl, if he's not), never quicker than it goes
     const left = R(BOAT.stop) - b.x;
-    const talkLeft = [...t.q, ...ARTIE_TOUR.slice(b.tour, TOUR_RIDE).map(text => ({ text }))].reduce((n, l) => n + l.text.length * 4.5 + 30, 0) + 120;
+    const talkLeft = [...t.q, ...ARTIE_TOUR[dressed(state)].slice(b.tour, TOUR_RIDE).map(text => ({ text }))].reduce((n, l) => n + l.text.length * 4.5 + 30, 0) + 120;
     const want = left <= 0 ? 0.25 : Math.max(0.35, Math.min(BOAT.speed, left / talkLeft));
     b.v += (want - b.v) * 0.02;
     // Out of gas: the engine coughs, and that's it (once he's through the spiel, there or as near as makes no odds)
     if ((left <= 0 && b.tour >= TOUR_RIDE && !t.q.length) || b.x >= R(BOAT.stop + 160)) {
       b.phase = 'stalled'; b.smoke = 90;
       t.q = t.q.filter(l => l.voice !== 'm2.safari');
-      t.q.push(artie(rv, ARTIE_GAS[0]), artie(rv, ARTIE_RADIO[0], true), artie(rv, ARTIE_GAS[1]));
+      t.q.push(artie(state, rv, d => ARTIE_GAS[d][0]), artie(state, rv, d => ARTIE_RADIO[d][0], true), artie(state, rv, d => ARTIE_GAS[d][1]));
     }
   } else if (b.v > 0) b.v = Math.max(0, b.v - 0.03);
   if (b.smoke > 0) b.smoke--;
   // Stuck: he never shuts up (the radio, the life story, round and round; Meathead's at the end of his rope)
   if (b.phase === 'stalled' && near && !t.q.length && !t.busy) {
     b.n++;
-    if (b.n % 4 === 0) t.q.push(artie(rv, fromBag(rv, 'radio', ARTIE_RADIO), true));
-    else if (b.tour < ARTIE_TOUR.length) t.q.push(artie(rv, ARTIE_TOUR[b.tour++]));
-    else t.q.push(artie(rv, fromBag(rv, 'stuck', ARTIE_STUCK)));
+    if (b.n % 4 === 0) t.q.push(artieFrom(state, rv, 'radio', ARTIE_RADIO, true));
+    else if (b.tour < ARTIE_TOUR.clean.length) t.q.push(tour(state, rv, b.tour++));
+    else t.q.push(artieFrom(state, rv, 'stuck', ARTIE_STUCK));
     if (b.n % 3 === 2) t.q.push(mh(fromBag(rv, 'mstuck', MEATHEAD_STUCK)));
   }
   // Over the side (whenever he likes): Artie's not happy. Then on at himself, and the radio.
@@ -214,11 +228,11 @@ const updateBoat = (state: GameState, rv: River) => {
     // (off it, he's off it: Artie's not having him back aboard, there's no climbing back on)
     if (wasRiding && b.block) { const blk = b.block; state.blocks = state.blocks.filter(o => o !== blk); }
     if (wasRiding) t.q.push(mh(pick(MEATHEAD_JUMP)));
-    if (wasRiding) t.q.push(artie(rv, fromBag(rv, 'jumped', ARTIE_JUMPED)), artie(rv, fromBag(rv, 'jumped', ARTIE_JUMPED)));
+    if (wasRiding) t.q.push(artieFrom(state, rv, 'jumped', ARTIE_JUMPED), artieFrom(state, rv, 'jumped', ARTIE_JUMPED));
   }
   if (b.phase === 'jumped' && b.rode && near && !t.q.length && !t.busy && p.swimming) {
     b.n++;
-    t.q.push(b.n % 3 === 0 ? artie(rv, fromBag(rv, 'radio', ARTIE_RADIO), true) : artie(rv, fromBag(rv, 'alone', ARTIE_ALONE)));
+    t.q.push(b.n % 3 === 0 ? artieFrom(state, rv, 'radio', ARTIE_RADIO, true) : artieFrom(state, rv, 'alone', ARTIE_ALONE));
   }
   // The boat moves (him with it, stood on it)
   if (b.v > 0) {
