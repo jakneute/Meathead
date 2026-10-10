@@ -2,6 +2,7 @@
   "_about": "Words the voices say wrong, fixed where they come up. Each fix: 'in' is a bit of a line (any case) where the word is said wrong, and 'say' is the same bit spelled the way it should sound (a sound-alike spelling: LIVS for the verb 'lives', LED for the metal). Only lines with that bit in them change, so a fix can be as narrow as the one line ('FISH LIVES') or as wide as the word everywhere it's used. 'voice' (optional) keeps it to one voice; 'word': true only changes it where it's a whole word (OW, not HOW). Then: npm run voices.",
   "fixes": [
     { "in": "THE A LINE", "say": "THE AY LINE" },
+    { "in": "MY RESUME", "say": "MY REZ OO MAY" },
     { "in": "SHITPANTS", "say": "SHIT PANTS" },
     { "in": "FACEPLANT", "say": "FACE PLANT" },
     { "in": "GANGRENE", "say": "GANG GREEN", "word": true },
