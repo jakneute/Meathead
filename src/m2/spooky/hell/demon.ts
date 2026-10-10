@@ -40,7 +40,7 @@ import { ARENA_IN, ARENA_OUT, DEMON_HOME } from './layout';
 import { hellOf } from './state';
 import {
   DEMON_NAME, DEMON_INTRO, DEMON_CHATTER, DEMON_HIT, DEMON_HURT, MH_DEMON, HURT_FORK, DEATH_FORK, HURT_QUAKE, DEATH_QUAKE,
-  HURT_BELLY, DEATH_BELLY, type Dressed, type ByPants,
+  HURT_BELLY, DEATH_BELLY, HURT_BOUNCE_FIRE, DEATH_BOUNCE_FIRE, type Dressed, type ByPants,
 } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -55,6 +55,10 @@ export const DONE_CP = 53;
 const HP = 2400, POOL = 100000, W = 120, H = 150, MASS = 2400;
 /** How hard his moves bounce off him (a firm shove back, not a launch). */
 const RECOIL_MASS = 450;
+/** A shoulder charge into him: thrown back this hard (and up), locked out of it this long. */
+const CHARGE_BOUNCE = { x: 46, y: -8, lock: 44 };
+/** The fire walls (the way in's, the far one's), and how far over he can get between them. */
+const BACK_X = ARENA_IN + 20, WALL_W = 30, D_MIN = BACK_X + WALL_W + 62, D_MAX = ARENA_OUT - 62;
 const THRUST_DMG = 26, SLAM_DMG = 26, SWEEP_DMG = 22, QUAKE_DMG = 10, BELLY_DMG = 28, BUMP_DMG = 10;
 /** Windups (frames; shortened under 40%). */
 const THRUST_WIND = 52, SLAM_WIND = 62, SWEEP_WIND = 48, CROUCH = 38;
@@ -71,6 +75,9 @@ const THRUST_REACH = 235, SLAM_NEAR = 95, SLAM_FAR = 245, SWEEP_REACH = 265;
  *  and a chain of them is fair game (never capped: the game's own). */
 const MELEE = { charge: 34, slide: 22, uppercut: 110, divekick: 60 };
 const SWAT_WIND = 16, SWAT_DMG = 20;
+/** Touching a fire wall (the engine's own fire hurt: its lines, the burnt death). */
+const FIRE_WALL_DMG = 12;
+const FIRE_BOUNCE = 'm2:demon_bounce_fire';
 
 type St = 'lounge' | 'rise' | 'walk' | 'thrustWind' | 'thrust' | 'slamWind' | 'slam' | 'stuck' | 'sweepWind' | 'sweep'
   | 'crouch' | 'air' | 'land' | 'stagger' | 'swatWind' | 'swat' | 'beaten' | 'sink';
@@ -81,6 +88,10 @@ export interface Demon {
   st: St; t: number; cd: number;
   hp: number; flash: number; hurtSince: number; hurtAt: number;
   e: Enemy | null; lock: Block | null;
+  /** The fire wall over the way in: up once he's roused (no backing out), down when he's beaten. */
+  back: Block | null;
+  /** When a charge last bounced him off (into the fire behind him: its own hurt lines). */
+  bouncedAt: number;
   /** The slam's spot (its middle), the jump's landing; whether this strike's landed yet. */
   slamX: number; jumpTo: number; hit: boolean;
   said: Said | null; talkAt: number; used: string[];
@@ -120,7 +131,7 @@ export const buildDemon = (state: GameState) => {
   if (state.checkpoint >= DONE_CP) { h.demon = gone(); return; }
   const d: Demon = {
     fight: 'wait', x: DEMON_HOME, y: GY, vx: 0, vy: 0, facing: -1, st: 'lounge', t: 0, cd: 60,
-    hp: HP, flash: 0, hurtSince: 0, hurtAt: -999, e: null, lock: null, slamX: 0, jumpTo: 0, hit: false,
+    hp: HP, flash: 0, hurtSince: 0, hurtAt: -999, e: null, lock: null, back: null, bouncedAt: -999, slamX: 0, jumpTo: 0, hit: false,
     said: null, talkAt: 0, used: [], forkAt: null, sink: 0, stomps: 0, stompAt: -999,
   };
   d.lock = solid(state, ARENA_OUT, GY - 1200, 30, 1200, { hidden: true, tag: 'hell-lock' });
@@ -131,7 +142,7 @@ export const buildDemon = (state: GameState) => {
 };
 const gone = (): Demon => ({
   fight: 'gone', x: DEMON_HOME, y: GY, vx: 0, vy: 0, facing: -1, st: 'sink', t: 0, cd: 0, hp: 0, flash: 0, hurtSince: 0, hurtAt: 0,
-  e: null, lock: null, slamX: 0, jumpTo: 0, hit: false, said: null, talkAt: 0, used: [], forkAt: DEMON_HOME - 90, sink: 1, stomps: 0, stompAt: 0,
+  e: null, lock: null, back: null, bouncedAt: -999, slamX: 0, jumpTo: 0, hit: false, said: null, talkAt: 0, used: [], forkAt: DEMON_HOME - 90, sink: 1, stomps: 0, stompAt: 0,
 });
 
 const place = (d: Demon) => {
@@ -202,6 +213,17 @@ const demonTouch = (ctx: FrameContext, e: Enemy): boolean => {
     p.vel.y = -Math.abs(p.vel.y) * 0.5; p.vel.x *= 0.5;
     p.lockTimer = BOUNCE_FRAMES; p.recoiling = true;
     d.stomps = state.frame - d.stompAt < 100 ? d.stomps + 1 : 1; d.stompAt = state.frame;
+  } else if (!up && !slide) {
+    // (a shoulder charge into all that gut: it goes in, and it throws him back hard, a long way, off his feet: in this
+    // room, likely into the fire behind him)
+    recoilOff(ctx, RECOIL_MASS);
+    // (a pushback, not a recoil: the recoil's drag would have him stop short)
+    p.recoiling = false; p.isHarmlessPushback = true;
+    p.vel.x = -dir * CHARGE_BOUNCE.x; p.vel.y = CHARGE_BOUNCE.y; p.isGrounded = false;
+    p.pushbackTimer = Math.max(p.pushbackTimer, CHARGE_BOUNCE.lock); p.lockTimer = Math.max(p.lockTimer, CHARGE_BOUNCE.lock);
+    d.bouncedAt = state.frame;
+    playSound('boing', 0.9, -10); playSound('thud', 0.8, -6); shakeScreen(state, 8, 4);
+    ctx.fx.spawnDamageNumber({ x: pc - 30, y: p.pos.y - 30 }, 'BOING!', true, '#FDE68A');
   } else recoilOff(ctx, RECOIL_MASS);
   return true;
 };
@@ -220,8 +242,15 @@ const hurt = (ctx: FrameContext, d: Demon, dmg: number) => {
   }
 };
 
+/** The fire wall over the way in (between the arch's posts), and the far one. */
 const startFight = (state: GameState, d: Demon) => {
   d.fight = 'on'; d.st = 'rise'; d.t = 0;
+  // (the way in goes up in fire behind him: no backing out now)
+  d.back = solid(state, BACK_X, GY - 1200, WALL_W, 1200, { hidden: true, tag: 'hell-lock' });
+  const p = state.player;
+  if (p.pos.x < BACK_X + WALL_W + 2) p.pos.x = BACK_X + WALL_W + 2;
+  playSound('flame', 1, -6); playSound('ignite', 0.9, -4); shakeScreen(state, 8, 4);
+  for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: BACK_X + Math.random() * WALL_W, y: GY - Math.random() * 40 }, vel: { x: (Math.random() - 0.5) * 3, y: -3 - Math.random() * 6 }, life: 30, color: i % 2 ? '#F97316' : '#FDE047', size: 3 + Math.random() * 4 });
   meatheadSays(state, pick(MH_DEMON), true);
   demonSays(state, d, DEMON_INTRO, true);
   d.talkAt = state.frame + 900;
@@ -233,6 +262,7 @@ const beaten = (ctx: FrameContext, d: Demon) => {
   d.forkAt = d.x + d.facing * 80;
   if (d.e) { const i = ctx.state.enemies.indexOf(d.e); if (i >= 0) ctx.state.enemies.splice(i, 1); d.e = null; }
   if (d.lock) d.lock.x = -1e7;
+  if (d.back) d.back.x = -1e7;
   cutVoice('m2.demon'); d.said = null;
   ctx.state.checkpoint = Math.max(ctx.state.checkpoint, DONE_CP);
   playSound('thud', 1, -10); shakeScreen(ctx.state, 14, 6);
@@ -293,6 +323,16 @@ export const updateDemon = (ctx: FrameContext) => {
     place(d);
     return;
   }
+  // (the fire walls: touch one and it burns)
+  for (const w of [d.back, d.lock]) {
+    if (!w || w.x < -1e6 || p.health <= 0 || p.invincibilityTimer > 0) continue;
+    const hb = hurtbox(state);
+    if (rectsOverlap(hb, { x: w.x - 12, y: GY - 300, w: w.w + 24, h: 300 })) {
+      const away = p.pos.x + p.width / 2 < w.x + w.w / 2 ? -1 : 1;
+      // (back out of it, off his feet, so he's not left standing in it)
+      hurtPlayer(ctx, FIRE_WALL_DMG, state.frame - d.bouncedAt < 90 ? FIRE_BOUNCE : 'fire', { x: away * 9, y: -8 });
+    }
+  }
   think(ctx, d);
   // (grumbling, now and then)
   if (f > d.talkAt && p.health > 0) d.talkAt = f + (demonSays(state, d, DEMON_CHATTER, false) ? 600 + Math.random() * 300 : 90);
@@ -323,7 +363,7 @@ const think = (ctx: FrameContext, d: Demon) => {
       if (pc < ARENA_IN - 10) {
         const home = DEMON_HOME - d.x;
         d.vx = Math.abs(home) > 20 ? Math.sign(home) * 0.9 : 0;
-        if (d.cd <= 0 && state.frame - d.hurtAt < 4) { d.st = 'crouch'; d.t = 0; d.vx = 0; d.jumpTo = ARENA_IN + 90; }
+        if (d.cd <= 0 && state.frame - d.hurtAt < 4) { d.st = 'crouch'; d.t = 0; d.vx = 0; d.jumpTo = D_MIN; }
         break;
       }
       d.vx = adx > 150 ? toward * 1.1 : 0;
@@ -331,11 +371,21 @@ const think = (ctx: FrameContext, d: Demon) => {
       const level = pFeet > GY - 40;
       // (far off, or up on a ledge: over at him, and the quake; or he plods on over a while)
       if (adx > 300 || (!level && adx > 140 && Math.random() < 0.02)) {
-        if (Math.random() < 0.6 || !level) { d.st = 'crouch'; d.t = 0; d.vx = 0; d.jumpTo = Math.max(ARENA_IN + 90, Math.min(ARENA_OUT - 90, pc)); break; }
+        if (Math.random() < 0.6 || !level) { d.st = 'crouch'; d.t = 0; d.vx = 0; d.jumpTo = Math.max(D_MIN, Math.min(D_MAX, pc)); break; }
         d.cd = 70; break;
       }
       if (adx < 260) {
         const r = Math.random();
+        // (backed up against a fire wall, there's nowhere to step off the slam: he goes for something that can still be
+        // dodged where he's standing (duck the thrust, jump the sweep), or jumps at him)
+        const wallBehind = toward > 0 ? ARENA_OUT - pc : pc - (BACK_X + WALL_W);
+        const cornered = wallBehind < 250;
+        if (cornered && !level) { d.st = 'crouch'; d.t = 0; d.vx = 0; d.jumpTo = Math.max(D_MIN, Math.min(D_MAX, pc)); break; }
+        if (cornered) {
+          if (r < 0.5 && adx > 80) { d.st = 'thrustWind'; d.t = 0; d.vx = 0; playSound('snort', 0.8, -10); }
+          else { d.st = 'sweepWind'; d.t = 0; d.vx = 0; playSound('grind', 0.6, -2); }
+          break;
+        }
         if (!level) { d.st = 'slamWind'; d.t = 0; d.vx = 0; d.slamX = d.x + d.facing * (SLAM_NEAR + SLAM_FAR) / 2; playSound('grind', 0.5, -6); }
         else if (r < 0.38 && adx > 80) { d.st = 'thrustWind'; d.t = 0; d.vx = 0; playSound('snort', 0.8, -10); }
         else if (r < 0.7 && adx > 70) { d.st = 'slamWind'; d.t = 0; d.vx = 0; d.slamX = d.x + d.facing * (SLAM_NEAR + SLAM_FAR) / 2; playSound('grind', 0.5, -6); }
@@ -416,7 +466,7 @@ const think = (ctx: FrameContext, d: Demon) => {
       break;
   }
   // Along, kept in his pit
-  d.x = Math.max(ARENA_IN + 70, Math.min(ARENA_OUT - 70, d.x + d.vx));
+  d.x = Math.max(D_MIN, Math.min(D_MAX, d.x + d.vx));
   // (just walked into: his gut)
   const walking = d.st === 'walk' || d.st === 'rise';
   if (walking && alive && p.isGrounded && p.invincibilityTimer <= 0 && !(p.isCharging || p.isUppercutting || p.isDivekicking) && rectsOverlap(hb, { x: d.x - W / 2 + 10, y: d.y - H + 20, w: W - 20, h: H - 20 })) {
@@ -602,14 +652,20 @@ export const drawDemonSaid = (c: Ctx, state: GameState) => {
   saidOver(c, d.said.text, d.x, d.y - H - 50 + d.sink * 200, '#FCA5A5', 230);
 };
 
-/** The wall of fire across the far side of his pit, while he's alive. */
+/** The walls of fire across his pit's two ways out (the way in only once he's roused), while he's at it. */
 export const drawFireWall = (c: Ctx, state: GameState) => {
-  const d = demonOf(state);
-  if (!d?.lock || d.lock.x < -1e6) return;
-  const x = ARENA_OUT, f = state.frame;
-  for (let i = 0; i < 8; i++) {
-    const hgt = 260 + Math.sin(f * 0.3 + i) * 30 - i * 14, w = 34 - i * 3;
-    box(c, x + 15 - w / 2 + Math.sin(f * 0.5 + i * 2) * 3, GY - hgt, w, hgt, ['#7F1D1D', '#B91C1C', '#DC2626', '#EA580C', '#F97316', '#FB923C', '#FDBA74', '#FEF3C7'][i]);
+  const d = demonOf(state), f = state.frame;
+  if (!d) return;
+  for (const w of [d.back, d.lock]) {
+    if (!w || w.x < -1e6) continue;
+    const x = w.x;
+    if (x < state.camera.x - 100 || x > state.camera.x + CANVAS_WIDTH + 100) continue;
+    c.fillStyle = 'rgba(249, 115, 22, 0.18)'; c.fillRect(x - 30, GY - 300, w.w + 60, 300);
+    for (let i = 0; i < 8; i++) {
+      const hgt = 260 + Math.sin(f * 0.3 + i + x) * 30 - i * 14, ww = 34 - i * 3;
+      box(c, x + w.w / 2 - ww / 2 + Math.sin(f * 0.5 + i * 2) * 3, GY - hgt, ww, hgt, ['#7F1D1D', '#B91C1C', '#DC2626', '#EA580C', '#F97316', '#FB923C', '#FDBA74', '#FEF3C7'][i]);
+    }
+    for (let k = 0; k < 3; k++) { const tx = x + 4 + k * 11, th = 20 + Math.sin(f * 0.7 + k + x) * 10; c.fillStyle = k === 1 ? '#FDE047' : '#F97316'; c.beginPath(); c.moveTo(tx - 5, GY - 230); c.lineTo(tx, GY - 250 - th); c.lineTo(tx + 5, GY - 230); c.fill(); }
   }
 };
 
@@ -633,3 +689,5 @@ registerHurtLines(BELLY, HURT_BELLY, DEATH_BELLY);
 registerDeathKind(BELLY, 'flattened');
 registerHurtLines(FORK, HURT_FORK, DEATH_FORK);
 registerHurtLines(QUAKE, HURT_QUAKE, DEATH_QUAKE);
+registerHurtLines(FIRE_BOUNCE, HURT_BOUNCE_FIRE, DEATH_BOUNCE_FIRE);
+registerDeathKind(FIRE_BOUNCE, 'burnt');

@@ -18,8 +18,8 @@
 //   the lake      D+6150..7150  all of it at once: a rock with a jet on it, crumbling rocks climbing, an imp on a
 //                               pillar, bats over it; a crumbling rock way up high with health on it.
 //   the shore     D+7150..7900  hounds on the run in, the goat, an imp on a rock; the big health and ammo; the gate.
-//   the arena     D+7900..9400  the demon (BLOATHAZAR); its far side shut by a wall of fire till he's beaten.
-//   the doorstep  D+9400..11000 Satan's lake; the geyser vent (EXPRESS TO SURFACE): the way up to Donnie's control room.
+//   the arena     D+7900..8900  the demon (BLOATHAZAR); its far side shut by a wall of fire till he's beaten.
+//   the doorstep  D+8900..11000 Satan's lake; the geyser vent (EXPRESS TO SURFACE): the way up to Donnie's control room.
 
 import { SECTIONS, GY } from '../geometry';
 
@@ -86,7 +86,7 @@ export const LEDGES: [number, number, number][] = [
   // (the shore's imp)
   [D + 7520, GY - 120, 130],
   // (the arena's two)
-  [D + 8130, GY - 165, 170], [D + 9050, GY - 165, 170],
+  [D + 8100, GY - 165, 150], [D + 8640, GY - 165, 150],
 ];
 /** Pickups put out on the side paths (for whoever goes up there): [x, the floor under it, small health or ammo]. */
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
@@ -102,7 +102,7 @@ export const BONES: number[] = [D + 1380, D + 1720, D + 2600, D + 4450, D + 5620
 /** The big health and ammo, before the demon. */
 export const REFILL_X = D + 7760;
 /** The demon's pit: in at ARENA_IN (always open), out at ARENA_OUT (fire till he's beaten); where he lounges. */
-export const ARENA_IN = D + 7900, ARENA_OUT = D + 9400, DEMON_HOME = D + 8420;
+export const ARENA_IN = D + 7900, ARENA_OUT = D + 8900, DEMON_HOME = D + 8420;
 export const ARENA_MID = (ARENA_IN + ARENA_OUT) / 2;
 /** Satan's geyser vent: the way up to Donnie's control room (and where he's put coming back down from it). */
 export const VENT_X = D + 9950;
