@@ -14,6 +14,8 @@ let pending = false;
 export const notePortalArrival = () => { pending = true; };
 /** As the land's built: is he coming in through a portal? (Once.) */
 export const takePortalArrival = () => { const p = pending; pending = false; return p; };
+/** Is he on his way in through a portal (not taken yet)? (The HUD stays down from the moment he goes.) */
+export const portalArrivalPending = () => pending;
 
 /** Frames: black (the camera settling, under it); then the iris opening. */
 const HOLD = 20, OPEN = 36;

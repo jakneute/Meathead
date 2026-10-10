@@ -14,6 +14,7 @@ import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menu
 import { hasRightStick } from '../m1/game/platform/device';
 import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
 import PauseMenu from './PauseMenu';
+import { portalArrivalPending } from './portalArrival';
 import { THEMES } from './hudThemes';
 import GoreBag from './GoreBag';
 import { M2_WEAPONS, M2WeaponArt, weaponName, registerWeapons, ammoName } from './weapons';
@@ -152,7 +153,8 @@ const App2: React.FC = () => {
       // (back at the hub where he left it: the staff door, the land's portal, or America USA's way in)
       const landSlot = (id: string) => SPOTS.findIndex(s => s.kind === 'land' && LANDS[s.land].id === id);
       if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : stage === ADV_STAGE ? landSlot('adventure') : AMERICA_SLOT);
-      setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: false });
+      // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
+      setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: portalArrivalPending() });
       setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
