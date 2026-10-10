@@ -333,7 +333,8 @@ export const drawStaff = (c: Ctx, costume: Costume, seed: number, f: number, pos
     dot(c, hx - 9, hy - 9, 18, 3, '#18181B'); // (the hood's edge)
   } else if (costume === 'batsuit') {
     rect(c, hx - 10, hy - 10, 20, 14, '#27272A', 4);
-    for (const s of [-1, 1]) { c.fillStyle = '#27272A'; c.beginPath(); c.moveTo(hx + s * 4, hy - 9); c.lineTo(hx + s * 9, hy - 20); c.lineTo(hx + s * 9, hy - 8); c.closePath(); c.fill(); c.strokeStyle = INK; c.stroke(); }
+    // (round floppy ears on the hood, a cheap mascot costume's: a bat, nothing more heroic than that)
+    for (const s of [-1, 1]) { c.fillStyle = '#27272A'; c.beginPath(); c.ellipse(hx + s * 8, hy - 11, 5.5, 6.5, s * 0.5, 0, Math.PI * 2); c.fill(); c.strokeStyle = INK; c.lineWidth = 1.2; c.stroke(); c.fillStyle = '#9F7A8A'; c.beginPath(); c.ellipse(hx + s * 8, hy - 11, 2.5, 3.5, s * 0.5, 0, Math.PI * 2); c.fill(); }
     eyes(c, hx + 2.5, hy - 1, 3.4, 'angry', f, 0.6, 2, '#27272A'); mouth(c, hx + 4, hy + 6, 5, 'teeth', f);
   } else if (costume === 'mummy') {
     for (let k = 0; k < 4; k++) dot(c, hx - 8, hy - 7 + k * 4.5, 16, 1, '#B8B19A');

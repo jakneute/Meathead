@@ -24,7 +24,7 @@ export const roomAt = (x: number) => ROOMS.find(r => x >= r.a && x < r.b) ?? nul
 export const CEIL = GY - 820;
 
 /** Things to stand on (jump-through, lit lips): [x, top y, w, look]. */
-export type LedgeLook = 'stair' | 'balcony' | 'table' | 'shelf' | 'canopy' | 'toyshelf' | 'cauldron' | 'frame';
+export type LedgeLook = 'stair' | 'balcony' | 'table' | 'shelf' | 'canopy' | 'toyshelf' | 'cauldron' | 'frame' | 'rack';
 export const LEDGES: [number, number, number, LedgeLook][] = [
   // the foyer's grand stair up to its balcony
   [X(480), GY - 80, 120, 'stair'], [X(600), GY - 160, 120, 'stair'], [X(720), GY - 240, 520, 'balcony'],
@@ -32,7 +32,9 @@ export const LEDGES: [number, number, number, LedgeLook][] = [
   [X(1700), GY - 72, 1200, 'table'],
   // the study's shelves and its reading balcony
   [X(3480), GY - 130, 170, 'shelf'], [X(3700), GY - 250, 170, 'shelf'], [X(3960), GY - 340, 520, 'balcony'], [X(4540), GY - 230, 170, 'shelf'], [X(4760), GY - 120, 170, 'shelf'],
-  // the witch's cauldron stand in the kitchen
+  // the pot rack between the stoves (up off a stove top, between its flare-ups: a little health up there), the witch's
+  // hearth (solid stone) with her cauldron on it
+  [X(5700), GY - 210, 220, 'rack'],
   [X(6420), GY - 150, 230, 'cauldron'],
   // the bed's canopy (bounce up onto it)
   [X(7490), GY - 370, 620, 'canopy'],
@@ -97,7 +99,10 @@ export const CAST: [StaffKind, number, number][] = [
 
 /** A little health and ammo on the way (lean: small ones only). */
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
-  [X(3240), GY, 'small_ammo'], [X(5060), GY, 'small_health'], [X(8660), GY, 'small_health'], [X(10260), GY, 'small_ammo'],
+  // (each up a side path: the foyer's balcony, the study's reading balcony, the kitchen's pot rack, the bed's canopy, the
+  // nursery's high shelf, the gallery's big frame)
+  [X(1190), GY - 240, 'small_ammo'], [X(4230), GY - 340, 'small_health'], [X(5810), GY - 210, 'small_health'], [X(7820), GY - 370, 'small_ammo'],
+  [X(9690), GY - 220, 'small_health'], [X(11450), GY - 210, 'small_ammo'],
 ];
 
 // ---------------------------------------------------------------------------------------------------------------

@@ -206,7 +206,8 @@ export const castle: SpookySection = {
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'wood' }]);
     endWalls(state, 'castle');
     solid(state, x0 - 200, CEIL - 60, x1 - x0 + 400, 60, { hidden: true, tag: 'castle-ceiling' });
-    for (const [x, y, w] of LEDGES) ledge(state, x, y, w, { hidden: true, tag: 'castle-ledge' });
+    // (the witch's hearth is stone: solid; the rest jump-through)
+    for (const [x, y, w, look] of LEDGES) if (look === 'cauldron') solid(state, x, y, w, GY - y, { hidden: true, tag: 'castle-hearth' }); else ledge(state, x, y, w, { hidden: true, tag: 'castle-ledge' });
     for (const [x, w] of STOVES) solid(state, x, STOVE_TOP, w, GY - STOVE_TOP, { hidden: true, tag: 'castle-stove' });
     solid(state, BED.x, BED.top, BED.w, GY - BED.top, { hidden: true, tag: 'castle-bed' });
     CAST.forEach(([kind, x, y], i) => spawnStaff(state, kind, x, y, i));

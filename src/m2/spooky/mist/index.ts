@@ -214,6 +214,7 @@ const run = (ctx: FrameContext, m: Mist) => {
 const seenX = (state: GameState, a: number, b: number) => b > state.camera.x - 100 && a < state.camera.x + CANVAS_WIDTH + 100;
 const seenR = (state: GameState, a: number, t: number, b: number, bot: number) => seenX(state, a, b) && bot > state.camera.y - 100 && t < state.camera.y + CANVAS_HEIGHT + 100;
 const HORNS: [number, number][] = [[X(420), LV[0] - 300]];
+const INK_M = '#0A0202';
 
 const drawHall = (c: CanvasRenderingContext2D, state: GameState, m: Mist) => {
   const f = state.frame, after = done(state);
@@ -226,6 +227,14 @@ const drawHall = (c: CanvasRenderingContext2D, state: GameState, m: Mist) => {
     const br = Math.sin(f * 0.04 + a * 0.001) * 3;
     for (let x = a + 30; x < b - 10; x += 60) if (seenX(state, x, x + 20)) box(c, x - br, t + 20, 12 + br * 2, bot - t - 110, '#4A1C1C');
     box(c, a, bot - 90, b - a, 90, '#2A0C0C'); box(c, a, bot - 96, b - a, 6, '#5A2222');
+    // (down the long halls: doors to nowhere, crooked pictures, lamps; every so often)
+    if (b - a > 600) for (let x = a + 140, k = 0; x < b - 100; x += 230, k++) {
+      if (!seenX(state, x - 40, x + 80)) continue;
+      const kind = (k + Math.round(a / 7)) % 3;
+      if (kind === 0) { box(c, x - 4, bot - 170, 58, 170, '#1A0606'); box(c, x, bot - 166, 50, 166, '#3A1A10'); box(c, x + 6, bot - 158, 38, 64, '#2A120A'); box(c, x + 40, bot - 90, 5, 6, '#A16207'); }
+      else if (kind === 1) { c.save(); c.translate(x + 30, bot - 230); c.rotate(((k * 7) % 5 - 2) * 0.05); box(c, -32, -40, 64, 80, '#5A4210'); box(c, -26, -34, 52, 68, '#1E1416'); box(c, -8, -20, 16, 18, '#7A5A50'); box(c, -4, -14, 3, 3, '#B91C1C'); box(c, 2, -14, 3, 3, '#B91C1C'); c.restore(); }
+      else { box(c, x + 24, bot - 250, 10, 30, '#57534E'); box(c, x + 18, bot - 266, 22, 18, (f + k * 11) % 47 < 3 ? '#3A2A20' : '#FCA5A5'); }
+    }
   }
   // Blood running up the walls (up, not down), near him
   const p = state.player, px = p.pos.x;
@@ -250,8 +259,11 @@ const drawHall = (c: CanvasRenderingContext2D, state: GameState, m: Mist) => {
   });
   // The piles to hop (lit along the top: you can stand on them)
   for (const [x, fl, w, h] of PILES) if (seenX(state, x, x + w)) {
-    box(c, x, fl - h, w, h, '#3A2418'); box(c, x + 8, fl - h + 10, w - 16, 8, '#2A180E'); box(c, x, fl - h, w, 4, '#C08A5A');
-    box(c, x + w - 20, fl - h - 18, 6, 18, '#3A2418');
+    // (a toppled dresser, a chair on it legs-up: hop it)
+    box(c, x - 2, fl - h - 2, w + 4, h + 2, INK_M); box(c, x, fl - h, w, h, '#4A2C1C');
+    for (let k = 0; k < 2; k++) { box(c, x + 6, fl - h + 8 + k * (h / 2 - 2), w - 12, h / 2 - 8, '#3A2216'); box(c, x + w / 2 - 4, fl - h + 14 + k * (h / 2 - 2), 8, 3, '#A16207'); }
+    box(c, x, fl - h, w, 4, '#C08A5A');
+    box(c, x + 10, fl - h - 22, 5, 22, '#5A3420'); box(c, x + w - 18, fl - h - 22, 5, 22, '#5A3420');
   }
   // The floors' lit lips
   for (const [a, , b, bot] of OPEN) if (seenX(state, a, b)) {

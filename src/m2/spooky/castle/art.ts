@@ -22,7 +22,7 @@ const seen = (state: GameState, a: number, b: number) => b > state.camera.x - 10
 /** A standable thing's look: its body and its lit lip. */
 const LOOKS: Record<LedgeLook, [string, string]> = {
   stair: ['#4A2A1E', '#C08A5A'], balcony: ['#3E2418', '#D4A373'], table: ['#5A3420', '#E0A86A'], shelf: ['#3A2A16', '#C9A060'],
-  canopy: ['#5A1030', '#F472B6'], toyshelf: ['#3E3E6A', '#A5B4FC'], cauldron: ['#2A2A2A', '#A3A3A3'], frame: ['#5A4210', '#FACC15'],
+  canopy: ['#5A1030', '#F472B6'], toyshelf: ['#3E3E6A', '#A5B4FC'], cauldron: ['#57524C', '#C8C2BA'], frame: ['#8A6A14', '#FDE047'], rack: ['#3F3F46', '#D4D4D8'],
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -40,6 +40,44 @@ const drawRoomWalls = (c: Ctx, r: (typeof ROOMS)[number]) => {
   // (the sconces: a candle on a bracket, every so often; what lights the place)
   for (let x = r.a + 150; x < r.b; x += 420) { box(c, x - 8, GY - 250, 16, 4, '#57534E'); box(c, x - 2, GY - 250, 4, 14, '#57534E'); box(c, x - 3, GY - 270, 6, 20, '#F5F5F4'); }
 };
+/** A tall gothic window (way up: the scale of the place), moonlight through it, the curtains either side. Stamped. */
+const gothicWindow = (c: Ctx, x: number, w: number, h: number) => stamp(c, `cWin:${w}:${h}`, x - 50, GY - 230 - h - w / 2 - 20, w + 100, h + w / 2 + 60, g => {
+  const bot = GY - 230, top = bot - h;
+  box(g, x - 10, top - w / 2 - 6, w + 20, h + w / 2 + 16, '#2A2224');
+  // (the arch, in steps)
+  for (let k = 0; k < 6; k++) { const inset = Math.round((w / 2) * (1 - Math.sqrt(1 - ((k + 1) / 6) ** 2))); box(g, x + inset, top - (k + 1) * (w / 12), w - inset * 2, w / 12 + 1, '#1E3A5F'); }
+  box(g, x, top, w, h, '#1E3A5F');
+  for (let k = 0; k < 5; k++) box(g, x + 6 + k * 10, top + 20 + k * 30, 8, 60, '#2F5A85');
+  box(g, x + w / 2 - 3, top - w / 2, 6, h + w / 2, '#2A2224'); for (let y = top + 50; y < bot; y += 70) box(g, x, y, w, 5, '#2A2224');
+  box(g, x - 4, bot, w + 8, 10, '#5A4A44');
+  // (the curtains, heavy, tied back)
+  for (const cx of [x - 34, x + w + 8]) { box(g, cx, top - w / 2 - 10, 26, h + w / 2 + 30, '#5A0E1A'); box(g, cx + 4, top - w / 2 - 10, 5, h + w / 2 + 30, '#7A1E2A'); box(g, cx - 2, bot - 120, 30, 8, '#C9A227'); }
+  box(g, x - 44, top - w / 2 - 18, w + 88, 10, '#3A2A10');
+});
+/** A fireplace, big as a garage: the stone surround, the mantel, the opening (its fire drawn live). */
+const fireplace = (c: Ctx, x: number, f: number) => {
+  stamp(c, 'cFireplace', x - 130, GY - 260, 260, 260, g => {
+    box(g, x - 120, GY - 230, 240, 230, '#5A524C'); for (let y = GY - 220; y < GY; y += 26) for (let bx = x - 116 + ((y / 26) % 2) * 20; bx < x + 110; bx += 40) box(g, bx, y, 36, 22, '#6A625C');
+    box(g, x - 130, GY - 250, 260, 22, '#7A6A60'); box(g, x - 130, GY - 250, 260, 4, '#9A8A80');
+    box(g, x - 80, GY - 170, 160, 170, '#0E0606');
+    box(g, x - 50, GY - 14, 100, 8, '#3A2416'); box(g, x - 40, GY - 22, 80, 8, '#4A2A16');
+  });
+  for (let k = 0; k < 6; k++) { const h = 30 + Math.sin(f * 0.3 + k * 1.9) * 12 + (k % 2) * 14; box(c, x - 46 + k * 15, GY - 22 - h, 12, h, k % 2 ? '#F97316' : '#EA580C'); box(c, x - 43 + k * 15, GY - 22 - h * 0.5, 6, h * 0.5, '#FDE047'); }
+};
+/** A candelabra (three candles, lit), its foot at (x, y). */
+const candelabra = (c: Ctx, x: number, y: number, f: number) => {
+  box(c, x - 8, y - 4, 16, 4, '#A16207'); box(c, x - 2, y - 26, 4, 22, '#A16207'); box(c, x - 14, y - 28, 28, 4, '#A16207');
+  for (const dx of [-12, 0, 12]) { box(c, x + dx - 2, y - 40, 4, 12, '#F5F5F4'); box(c, x + dx - 1, y - 47 - ((f + dx) % 7 < 3 ? 1 : 0), 3, 6, '#FDBA74'); }
+};
+/** A portrait's eyes, following him (live, over the stamped painting): two pupils turned his way. */
+const eyesFollow = (c: Ctx, state: GameState, x: number, y: number) => {
+  const p = state.player, dx = Math.sign(p.pos.x + p.width / 2 - x), dy = p.pos.y + 30 > y ? 1 : 0;
+  box(c, x - 7, y - 1, 5, 4, '#F5F5F4'); box(c, x + 2, y - 1, 5, 4, '#F5F5F4');
+  box(c, x - 6 + dx * 1.5 + 0.5, y + dy, 2, 2, INK); box(c, x + 3 + dx * 1.5 + 0.5, y + dy, 2, 2, INK);
+};
+/** Each room's windows (from its left end). */
+const WINDOWS: Record<string, number[]> = { foyer: [560], dining: [600, 1260], study: [1100], kitchen: [700, 1200], bedroom: [380, 1000], nursery: [320, 1180], gallery: [1450] };
+
 /** The arch between two rooms (dark through it, the pillars either side). */
 const drawArch = (c: Ctx, x: number) => {
   box(c, x - 90, GY - 420, 180, 420, '#0A0406');
@@ -96,13 +134,27 @@ const drawWreck = (c: Ctx, x: number, y: number) => {
 };
 
 const drawStove = (c: Ctx, x: number, w: number, i: number, t: number, f: number) => {
-  box(c, x, STOVE_TOP, w, GY - STOVE_TOP, '#27272A');
-  box(c, x + 12, STOVE_TOP + 24, w - 24, GY - STOVE_TOP - 34, '#18181B'); box(c, x + 20, STOVE_TOP + 34, w - 40, 20, '#3F3F46');
-  box(c, x, STOVE_TOP, w, 4, '#D4D4D8'); // (the lit lip)
-  const ph = stovePhase(t, i);
+  const ph = stovePhase(t, i), hot = ph !== 'off';
+  // (a big black iron range: the body, two oven doors with their windows (glowing when it's about to go), the knobs,
+  // the handle rails, the feet)
+  box(c, x - 2, STOVE_TOP - 2, w + 4, GY - STOVE_TOP + 2, INK);
+  box(c, x, STOVE_TOP, w, GY - STOVE_TOP - 6, '#2E2E33');
+  box(c, x + 6, STOVE_TOP + 8, w - 12, 6, '#52525B');
+  for (let k = 0; k < 6; k++) box(c, x + 18 + k * ((w - 36) / 5) - 4, STOVE_TOP + 9, 8, 4, '#A1A1AA');
+  for (const ox of [x + 12, x + w / 2 + 6]) {
+    const ow = w / 2 - 18;
+    box(c, ox, STOVE_TOP + 22, ow, GY - STOVE_TOP - 34, '#1C1C20'); box(c, ox, STOVE_TOP + 22, ow, 3, '#3F3F46');
+    box(c, ox + 14, STOVE_TOP + 34, ow - 28, 18, hot ? (ph === 'fire' || (f >> 2) % 2 ? '#F97316' : '#7C2D12') : '#18181B');
+    box(c, ox + 8, STOVE_TOP + 26, ow - 16, 3, '#D4D4D8');
+  }
+  for (const fx of [x + 6, x + w - 18]) box(c, fx, GY - 8, 12, 8, '#18181B');
+  box(c, x, STOVE_TOP, w, 4, '#D4D4D8'); // (the lit lip: stand on it, between flare-ups)
+  // (the burners: iron rings on the top, red-hot when they're going)
   for (const [bx, bw] of BURNERS) {
-    box(c, x + bx, STOVE_TOP - 4, bw, 4, ph === 'off' ? '#52525B' : '#B91C1C');
-    if (ph === 'tell' && (f >> 2) % 2) for (let k = 0; k < 3; k++) box(c, x + bx + 10 + k * 22, STOVE_TOP - 10 - ((f + k * 5) % 8), 6, 6, '#F97316');
+    box(c, x + bx - 2, STOVE_TOP - 6, bw + 4, 6, INK);
+    box(c, x + bx, STOVE_TOP - 5, bw, 4, ph === 'off' ? '#52525B' : ph === 'tell' ? ((f >> 2) % 2 ? '#DC2626' : '#7F1D1D') : '#EF4444');
+    for (let k = 1; k < 4; k++) box(c, x + bx + k * (bw / 4) - 1, STOVE_TOP - 6, 2, 6, INK);
+    if (ph === 'tell' && (f >> 2) % 2) for (let k = 0; k < 3; k++) box(c, x + bx + 10 + k * 22, STOVE_TOP - 12 - ((f + k * 5) % 10), 6, 6, '#F97316');
   }
 };
 /** The burners' flames (over everything behind: drawn in front of him). */
@@ -160,14 +212,17 @@ export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
   for (const r of ROOMS) {
     if (!seen(state, r.a, r.b)) continue;
     drawRoomWalls(c, r);
+    // (the windows, way up: how big the place is)
+    for (const wx of WINDOWS[r.id]) gothicWindow(c, r.a + wx, 70, 300);
     // Each room's own things
     switch (r.id) {
       case 'foyer':
         armor(c, r.a + 380); armor(c, r.a + 1300);
-        portrait(c, r.a + 900, GY - 640, 160, 200, 0);
+        portrait(c, r.a + 900, GY - 640, 160, 200, 0); eyesFollow(c, state, r.a + 980, GY - 640 + 68);
         break;
       case 'dining':
         for (let k = 0; k < 4; k++) portrait(c, r.a + 220 + k * 440, GY - 620, 110, 140, k + 1);
+        fireplace(c, r.a + 1700, f);
         // (the chairs along the table, dimmed back: not to stand on)
         for (let k = 0; k < 9; k++) { const cx = r.a + 330 + k * 135; box(c, cx, GY - 130, 30, 6, '#3A2216'); box(c, cx + 24, GY - 190, 6, 130, '#3A2216'); }
         break;
@@ -175,14 +230,16 @@ export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
         bookcase(c, r.a + 120, 220, 520, 0); bookcase(c, r.a + 700, 260, 600, 1); bookcase(c, r.a + 1350, 220, 520, 2);
         box(c, r.a + 980, GY - 90, 160, 8, '#3A2216'); box(c, r.a + 990, GY - 82, 10, 82, '#3A2216'); box(c, r.a + 1120, GY - 82, 10, 82, '#3A2216');
         box(c, r.a + 1020, GY - 104, 50, 14, '#FEF3C7'); // (the open tome)
+        fireplace(c, r.a + 560, f);
         break;
       case 'kitchen':
         for (let k = 0; k < 6; k++) { const hx = r.a + 200 + k * 260; box(c, hx, CEIL + 38, 3, 300 + (k % 3) * 40, '#52525B'); box(c, hx - 14, CEIL + 338 + (k % 3) * 40, 30, 50, '#9A3412'); }
-        // (the cauldron on its stand)
-        box(c, r.a + 1350, GY - 150, 200, 150, '#1C1917');
+        // (the chopping block, the cleaver in it)
+        box(c, r.a + 40, GY - 70, 90, 70, '#6B4423'); box(c, r.a + 40, GY - 70, 90, 6, '#8A5A30'); box(c, r.a + 76, GY - 96, 6, 28, '#A1A1AA'); box(c, r.a + 70, GY - 100, 20, 10, '#D4D4D8');
         break;
       case 'bedroom':
-        portrait(c, r.a + 900, GY - 680, 150, 190, 4);
+        portrait(c, r.a + 1300, GY - 680, 150, 190, 4); eyesFollow(c, state, r.a + 1375, GY - 680 + 65);
+        fireplace(c, r.a + 1340, f);
         break;
       case 'nursery': {
         // (the rocking horse, the blocks, the crib: dimmed toys)
@@ -194,7 +251,7 @@ export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
         break;
       }
       case 'gallery':
-        for (let k = 0; k < 6; k++) portrait(c, r.a + 160 + k * 250, GY - 560 + (k % 2) * 40, 150, 200, k);
+        for (let k = 0; k < 6; k++) { portrait(c, r.a + 160 + k * 250, GY - 560 + (k % 2) * 40, 150, 200, k); eyesFollow(c, state, r.a + 235 + k * 250, GY - 560 + (k % 2) * 40 + 68); }
         // (the empty frame at the end: his)
         box(c, r.b - 330, GY - 600, 190, 250, '#6B4E10'); box(c, r.b - 320, GY - 590, 170, 230, '#140A0A');
         wallSign(c, r.b - 235, GY - 330, 'RESERVED', '#3A0A0A', '#FCA5A5');
@@ -213,10 +270,40 @@ export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
   // What he can stand on
   for (const [x, y, w, look] of LEDGES) if (seen(state, x, x + w)) {
     const [fill, lip] = LOOKS[look];
-    if (look === 'table') { box(c, x + 20, y + 16, 14, GY - y - 16, fill); box(c, x + w - 34, y + 16, 14, GY - y - 16, fill); box(c, x + w / 2 - 7, y + 16, 14, GY - y - 16, fill); }
-    if (look === 'balcony') for (let bx = x + 10; bx < x + w - 10; bx += 24) box(c, bx, y - 36, 4, 36, '#5A3420');
-    if (look === 'cauldron') { box(c, x + 40, y - 60, 150, 60, '#18181B'); box(c, x + 50, y - 64, 130, 8, '#22C55E'); }
+    if (look === 'table') {
+      // (turned legs, the tablecloth hanging down off it, scalloped; candelabras and place settings along it)
+      for (const lx of [x + 20, x + w / 2 - 7, x + w - 34]) { box(c, lx, y + 16, 14, GY - y - 16, fill); box(c, lx - 3, y + 40, 20, 8, fill); }
+      box(c, x - 4, y + 4, w + 8, 18, '#E7E2D6'); for (let k = x; k < x + w; k += 30) box(c, k + 6, y + 22, 18, 4, '#E7E2D6');
+    }
+    if (look === 'balcony') {
+      // (its rail and balusters; columns holding it up, see-through between)
+      box(c, x, y - 40, w, 5, '#7A4A28'); for (let bx = x + 10; bx < x + w - 10; bx += 24) box(c, bx, y - 36, 4, 36, '#5A3420');
+      for (const px of [x + 8, x + w - 26]) { box(c, px, y + 16, 18, GY - y - 16, '#4A3A34'); box(c, px - 4, y + 16, 26, 10, '#5A4A44'); box(c, px - 4, GY - 12, 26, 12, '#5A4A44'); }
+    }
+    if (look === 'stair') { for (let bx = x + 8; bx < x + w - 4; bx += 22) box(c, bx, y + 16, 4, GY - y - 16, '#3A2216'); box(c, x - 6, y - 34, w + 12, 4, '#7A4A28'); box(c, x - 6, y - 34, 4, 34, '#7A4A28'); }
+    if (look === 'shelf' || look === 'toyshelf') {
+      // (on the wall, on iron brackets)
+      for (const bx of [x + 16, x + w - 26]) { c.fillStyle = '#27272A'; c.beginPath(); c.moveTo(bx, y + 14); c.lineTo(bx + 10, y + 14); c.lineTo(bx + 4, y + 50); c.closePath(); c.fill(); }
+    }
+    if (look === 'rack') {
+      // (a pot rack on chains from way up, the pots and pans hung under it)
+      box(c, x + 10, CEIL + 38, 3, y - CEIL - 38, '#52525B'); box(c, x + w - 13, CEIL + 38, 3, y - CEIL - 38, '#52525B');
+      for (let k = 0; k < 4; k++) { const px = x + 20 + k * ((w - 40) / 3); box(c, px, y + 14, 2, 14, '#3F3F46'); box(c, px - 12, y + 28, 24, 16, k % 2 ? '#9A3412' : '#71717A'); box(c, px + 10, y + 32, 10, 3, '#3F3F46'); }
+    }
+    if (look === 'frame') {
+      // (a huge gilt frame on the wall, its top edge his to stand on; an ancestor in it, watching him)
+      box(c, x, y + 10, w, 170, '#8A6A14'); box(c, x + 10, y + 20, w - 20, 150, '#2A2430');
+      box(c, x + w / 2 - 14, y + 50, 28, 32, '#C9A98A'); box(c, x + w / 2 - 34, y + 90, 68, 80, '#1E1A22');
+      eyesFollow(c, state, x + w / 2, y + 62);
+    }
+    if (look === 'cauldron') {
+      // (the stone hearth (solid: up onto it), the cauldron on it, bubbling green)
+      box(c, x - 2, y - 2, w + 4, GY - y + 2, INK); box(c, x, y, w, GY - y, '#57524C'); for (let yy = y + 14; yy < GY; yy += 22) box(c, x + 4, yy, w - 8, 3, '#45403B');
+      box(c, x + 70, y - 70, 110, 64, '#18181B'); box(c, x + 60, y - 74, 130, 10, '#27272A');
+      box(c, x + 70, y - 80, 110, 8, '#22C55E'); for (let k = 0; k < 4; k++) { const ph = (f + k * 13) % 30; if (ph < 18) box(c, x + 80 + k * 24, y - 84 - ph * 0.6, 8, 8, '#4ADE80'); }
+    }
     ledgeBox(c, x, y, w, fill, lip);
+    if (look === 'table') for (let k = x + 90; k < x + w - 40; k += 200) { candelabra(c, k, y, f); box(c, k + 60, y - 3, 26, 3, '#F5F5F4'); box(c, k + 66, y - 6, 14, 3, '#B45309'); }
   }
   // The set pieces
   if (seen(state, BED.x, BED.x + BED.w)) drawBed(c);
