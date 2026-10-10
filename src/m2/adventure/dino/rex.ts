@@ -35,6 +35,8 @@ import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { topBand, CANVAS_WIDTH, enemyMeleeDamage, ENEMY_HIT_COOLDOWN, POWER_CELLS, BOUNCE_FRAMES } from '../../../m1/constants';
 import { getAdv, solid, box, label, saidOver, speak, meatheadSays, type Said } from '../section';
 import { GY } from '../geometry';
+import { plate, servo } from './art/robots';
+import { rampOf } from '../../intro/art/kit';
 import {
   HURT_REX, DEATH_REX, HURT_REX_BITE, DEATH_REX_BITE, HURT_REX_SPRINT, DEATH_REX_SPRINT, HURT_REX_TAIL, DEATH_REX_TAIL,
   HURT_REX_SHOCK, DEATH_REX_SHOCK, MEATHEAD_REX_INTRO, REX_SPEAKER_DYING,
@@ -705,15 +707,20 @@ const updateDeath = (ctx: FrameContext, r: Rex) => {
 // Drawing (crude: the first pass) — world space, behind him (the dino park's back layer calls it)
 
 const REX = '#5C5348', REX_LO = '#3E372F', REX_HI = '#7A7064', INK = '#1A0B06', METAL = '#3F3F46';
-const poly = (c: Ctx, pts: number[], col: string) => {
-  c.beginPath(); c.moveTo(pts[0], pts[1]);
-  for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]);
-  c.closePath(); c.fillStyle = col; c.fill(); c.strokeStyle = INK; c.lineWidth = 1.5; c.stroke();
+/** A part of it, shaded the way the park's other robots are (art/robots.ts): its color's ramp, lit rim, dark rim, ink. */
+const ramps = new Map<string, string[]>();
+const poly = (c: Ctx, pts: number[], col: string, belly = 0.3, inside?: () => void) => {
+  let r = ramps.get(col);
+  if (!r) { r = rampOf(col); ramps.set(col, r); }
+  plate(c, pts, r, belly, inside, 1.6);
 };
-const bolts = (c: Ctx, pts: number[]) => { c.fillStyle = '#D4D4D8'; for (let i = 0; i < pts.length; i += 2) c.fillRect(pts[i] - 1, pts[i + 1] - 1, 2, 2); };
+const bolts = (c: Ctx, pts: number[]) => { for (let i = 0; i < pts.length; i += 2) { c.fillStyle = '#1A0B06'; c.fillRect(pts[i] - 1.5, pts[i + 1] - 1.5, 3, 3); c.fillStyle = '#8A929C'; c.fillRect(pts[i] - 1, pts[i + 1] - 1, 2, 2); c.fillStyle = '#E4E8EE'; c.fillRect(pts[i] - 1, pts[i + 1] - 1, 1, 1); } };
 /** A panel gone (dark inside, wires). */
 const hole = (c: Ctx, x: number, y: number, w: number, h: number, f: number) => {
+  c.fillStyle = INK; c.fillRect(x - 1, y - 1, w + 2, h + 2);
   c.fillStyle = '#0C0A09'; c.fillRect(x, y, w, h);
+  servo(c, x + w * 0.3, y + h * 0.5, Math.min(w, h) * 0.25, DARK_STEEL);
+  if ((f + Math.round(x)) % 41 < 4) for (let i = 0; i < 4; i++) { c.fillStyle = i % 2 ? '#FFFFFF' : '#FDE047'; c.fillRect(x + w / 2 + Math.cos(i * 1.6) * (3 + (f % 41) * 2), y + Math.sin(i * 1.6) * (3 + (f % 41) * 2), 2, 2); }
   const W = ['#DC2626', '#2563EB', '#FACC15'];
   for (let i = 0; i < 3; i++) { c.strokeStyle = W[i]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x + 3 + i * (w / 4), y + 2); c.quadraticCurveTo(x + w / 2, y + h + 6 + Math.sin(f * 0.1 + i) * 2, x + w - 4 - i * 3, y + h - 2); c.stroke(); }
 };
@@ -734,20 +741,17 @@ export const drawRex = (c: Ctx, state: GameState) => {
     if (q.x2 < cam - 300 || q.x1 > cam + 1400) return;
     const shake = r.postShook === i && r.postShake > 0 ? Math.sin(r.postShake * 1.7) * r.postShake * 0.2 : 0;
     const cx = (q.x1 + q.x2) / 2;
-    box(c, cx - 8 + shake, q.y + 12, 16, GY - q.y - 12, '#6B4F2E'); box(c, cx - 8 + shake, q.y + 12, 4, GY - q.y - 12, '#8B6B43');
+    // (a steel post, bolted collars, hazard striped at the foot)
+    c.fillStyle = INK; c.fillRect(cx - 9 + shake, q.y + 12, 18, GY - q.y - 12);
+    c.fillStyle = '#5A626C'; c.fillRect(cx - 8 + shake, q.y + 12, 16, GY - q.y - 12);
+    c.fillStyle = '#8A929C'; c.fillRect(cx - 8 + shake, q.y + 12, 4, GY - q.y - 12); c.fillStyle = '#3A4048'; c.fillRect(cx + 4 + shake, q.y + 12, 4, GY - q.y - 12);
+    for (let y = q.y + 30; y < GY - 30; y += 48) { c.fillStyle = INK; c.fillRect(cx - 11 + shake, y, 22, 6); c.fillStyle = '#A8B0BA'; c.fillRect(cx - 10 + shake, y + 1, 20, 4); }
+    for (let y = GY - 28; y < GY; y += 7) { c.fillStyle = (y >> 2) % 2 ? '#E8B400' : '#1C1A1E'; c.fillRect(cx - 8 + shake, y, 16, 7); }
   });
   // The near fence, shut behind him once it's on
-  if (r.back && r.back.x > -1e6) {
-    box(c, r.inX, GY - 520, 20, 330, '#27272A');
-    for (let y = GY - 500; y < GY - 200; y += 26) box(c, r.inX - 4, y, 28, 3, '#71717A');
-    if (f % 40 < 30) label(c, 'LOCKED IN WITH IT', r.inX + 10, GY - 530, '#FCA5A5', 7);
-  }
+  if (r.back && r.back.x > -1e6) lockGate(c, r.inX, f, 'LOCKED IN', 'WITH IT', 1);
   // The far fence, closed off high while it's alive
-  if (r.lock && r.lock.x > -1e6) {
-    box(c, r.outX, GY - 520, 20, 330, '#27272A');
-    for (let y = GY - 500; y < GY - 200; y += 26) box(c, r.outX - 4, y, 28, 3, '#71717A');
-    if (f % 40 < 30) label(c, 'LOCKED: FEEDING TIME', r.outX + 10, GY - 530, '#FCA5A5', 7);
-  }
+  if (r.lock && r.lock.x > -1e6) lockGate(c, r.outX, f, 'LOCKED:', 'FEEDING TIME', -1);
   if (r.x < cam - 500 && (!r.head || r.head.x < cam - 100)) return;
   if (r.x > cam + 1300 && (!r.head || r.head.x > cam + 900)) return;
   // The oil it's lying in
@@ -774,6 +778,25 @@ export const drawRex = (c: Ctx, state: GameState) => {
   }
 };
 
+const DARK_STEEL = ['#0E1014', '#1E2228', '#323840', '#4C545E', '#727A86'];
+/** A gate run up over a paddock fence (from GY - 520 down onto it): steel bars in a frame, hazard striped, a beacon
+ *  going round on top, and its sign bolted to its face (on the side facing in: `side` 1, its right). */
+const lockGate = (c: Ctx, x: number, f: number, l1: string, l2: string, side: number) => {
+  c.fillStyle = INK; c.fillRect(x - 3, GY - 522, 26, 334);
+  c.fillStyle = '#3F3F46'; c.fillRect(x - 2, GY - 521, 24, 332);
+  c.fillStyle = '#71717A'; c.fillRect(x - 2, GY - 521, 3, 332); c.fillStyle = '#27272A'; c.fillRect(x + 19, GY - 521, 3, 332);
+  for (let y = GY - 500; y < GY - 200; y += 26) { c.fillStyle = INK; c.fillRect(x - 5, y - 1, 30, 5); c.fillStyle = '#8A929C'; c.fillRect(x - 4, y, 28, 3); c.fillStyle = '#C4CCD6'; c.fillRect(x - 4, y, 28, 1); }
+  for (let y = GY - 216; y < GY - 192; y += 8) { c.fillStyle = (y / 8) % 2 ? '#E8B400' : '#1C1A1E'; c.fillRect(x - 2, y, 24, 8); }
+  const on = (f >> 3) % 2 === 0;
+  c.fillStyle = INK; c.fillRect(x + 3, GY - 534, 14, 12); c.fillStyle = on ? '#FF3B30' : '#7A1010'; c.fillRect(x + 4, GY - 533, 12, 10);
+  if (on) { c.fillStyle = 'rgba(255, 59, 48, 0.22)'; c.beginPath(); c.arc(x + 10, GY - 528, 20, 0, Math.PI * 2); c.fill(); }
+  const sx = side > 0 ? x + 26 : x - 114, sy = GY - 470;
+  c.fillStyle = '#3A3A3A'; c.fillRect(side > 0 ? x + 20 : x - 8, sy + 8, 8, 3); c.fillRect(side > 0 ? x + 20 : x - 8, sy + 28, 8, 3);
+  c.fillStyle = INK; c.fillRect(sx - 2, sy - 2, 94, 40); c.fillStyle = '#B91C1C'; c.fillRect(sx, sy, 90, 36); c.fillStyle = '#DC2626'; c.fillRect(sx, sy, 90, 4); c.fillStyle = '#7F1D1D'; c.fillRect(sx, sy + 32, 90, 4);
+  c.font = '6px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#3A0A0A'; c.fillText(l1, sx + 46, sy + 15); c.fillText(l2, sx + 46, sy + 27);
+  c.fillStyle = '#FFFFFF'; c.fillText(l1, sx + 45, sy + 14); c.fillText(l2, sx + 45, sy + 26); c.textAlign = 'left';
+};
+
 const drawBody = (c: Ctx, r: Rex, f: number) => {
   const P = r.parts, cr = r.crouch;
   const st = Math.sin(r.step);
@@ -785,7 +808,12 @@ const drawBody = (c: Ctx, r: Rex, f: number) => {
     const hipY = -82 + cr * 0.5;
     poly(c, [-28 + k * 0.4, hipY, 14 + k * 0.4, hipY, 16 + k, -36 + knee, -12 + k, -36 + knee], tint(P.legs, col));
     poly(c, [-8 + k, -40 + knee, 12 + k, -40 + knee, 8 + k, -8, -6 + k, -8], tint(P.legs, col));
-    poly(c, [-14 + k, -9, 28 + k, -9, 30 + k, 0, -14 + k, 0], METAL);
+    poly(c, [-14 + k, -9, 28 + k, -9, 30 + k, 0, -14 + k, 0], METAL, 0.4);
+    // (the toe claws, the ram down the shin, the knee servo)
+    for (let t = 0; t < 3; t++) poly(c, [22 + k + t * 4, -9, 27 + k + t * 4, -13, 30 + k + t * 4, -6], '#3E3E46', 0);
+    c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(-18 + k * 0.4, hipY + 14); c.lineTo(-2 + k, -14); c.stroke();
+    c.strokeStyle = s > 0 ? '#8A929E' : '#545C68'; c.lineWidth = 3; c.beginPath(); c.moveTo(-18 + k * 0.4, hipY + 14); c.lineTo(-2 + k, -14); c.stroke();
+    servo(c, 2 + k, -38 + knee, 6, s > 0 ? undefined : DARK_STEEL);
     if (lw >= 2 && s > 0) hole(c, -20 + k * 0.4, hipY + 10, 26, 18, f);
   }
   // Tail (raised to whip, slammed down, or wrecked: on the ground, dragging, in bits)
@@ -803,9 +831,15 @@ const drawBody = (c: Ctx, r: Rex, f: number) => {
   }
   // Body
   const by = -165 + cr;
-  poly(c, [-72, by + 18, -40, by, 40, by - 2, 62, by + 20, 56, by + 80, -66, by + 82], tint(P.body, REX));
+  poly(c, [-72, by + 18, -40, by, 40, by - 2, 62, by + 20, 56, by + 80, -66, by + 82], tint(P.body, REX), 0.3, () => {
+    // (its hide's stripes, the pale belly, its number stenciled on the flank)
+    for (let x = -56; x < 40; x += 18) { c.fillStyle = 'rgba(30, 24, 18, 0.35)'; c.beginPath(); c.moveTo(x, by + 2); c.lineTo(x + 8, by + 2); c.lineTo(x + 2, by + 30); c.closePath(); c.fill(); }
+    c.fillStyle = 'rgba(200, 180, 140, 0.35)'; c.fillRect(-60, by + 64, 116, 10);
+    c.fillStyle = 'rgba(230, 220, 200, 0.6)'; c.font = '6px "Press Start 2P"'; if (c.getTransform().a < 0) { c.save(); c.scale(-1, 1); c.fillText('REX-01', 52 - 36, by + 56); c.restore(); } else c.fillText('REX-01', -52, by + 56);
+  });
   c.fillStyle = P.body.broken ? '#3F3A35' : REX_HI; c.fillRect(-60, by + 6, 90, 4);
-  c.strokeStyle = REX_LO; c.lineWidth = 1.5; for (const x of [-40, -10, 22]) { c.beginPath(); c.moveTo(x, by + 4); c.lineTo(x, by + 80); c.stroke(); }
+  for (const x of [-40, -10, 22]) { c.strokeStyle = REX_LO; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, by + 4); c.lineTo(x, by + 80); c.stroke(); c.strokeStyle = REX_HI; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 1.5, by + 4); c.lineTo(x + 1.5, by + 80); c.stroke(); }
+  servo(c, -8, by + 76, 9);
   bolts(c, [-50, by + 20, -24, by + 18, 6, by + 16, -50, by + 70, -24, by + 70, 6, by + 70, 40, by + 50]);
   if (bw >= 1) { c.fillStyle = 'rgba(0,0,0,0.3)'; c.fillRect(-36, by + 30, 20, 14); }
   if (bw >= 2) hole(c, -8, by + 24, 28, 30, f);
@@ -830,13 +864,18 @@ const drawHead = (c: Ctx, r: Rex, f: number, x: number, y: number, off: boolean)
   // jaw (hinged at the back; wrecked, hanging off one hinge)
   const jy = y + 32;
   poly(c, [x + 4, jy, x + 92, jy - 6 + open, x + 88, jy + 8 + open, x + 6, jy + 12], tint(P, REX_LO));
-  c.fillStyle = '#F4F4F5';
+  if (open > 2) { c.fillStyle = '#5A1414'; c.beginPath(); c.moveTo(x + 8, y + 30); c.lineTo(x + 92, y + 28); c.lineTo(x + 90, jy - 6 + open); c.lineTo(x + 8, jy + 2); c.closePath(); c.fill(); }
   for (let i = 0; i < 10; i++) {
     const tx = x + 16 + i * 7.5;
-    c.fillRect(tx, y + 26, 3, 6);
-    if (!(broken && i % 3 === 1)) c.fillRect(tx, jy - 6 + open * ((tx - x) / 92) + 1, 3, 5);
+    const tooth = (ty: number, d: number) => { c.fillStyle = INK; c.beginPath(); c.moveTo(tx - 0.5, ty); c.lineTo(tx + 1.5, ty + d * 7); c.lineTo(tx + 3.5, ty); c.fill(); c.fillStyle = '#EEECE4'; c.beginPath(); c.moveTo(tx, ty); c.lineTo(tx + 1.5, ty + d * 5.5); c.lineTo(tx + 3, ty); c.fill(); c.fillStyle = '#FFFFFF'; c.fillRect(tx, ty, 1, d * 2); };
+    tooth(y + 26, 1);
+    if (!(broken && i % 3 === 1)) tooth(jy - 6 + open * ((tx - x) / 92) + 6, -1);
   }
   bolts(c, [x + 8, y + 12, x + 26, y + 20, x + 60, y + 22]);
+  // (the brow ridge over the eye, the nostril, the jaw's servo)
+  poly(c, [x + 22, y + 6, x + 48, y + 3, x + 46, y + 9, x + 24, y + 10], tint(P, REX_HI), 0);
+  c.fillStyle = INK; c.fillRect(x + 86, y + 8, 4, 3);
+  servo(c, x + 8, y + 30, 6);
   if (wear(P) >= 2 || broken) hole(c, x + 40, y + 8, 18, 12, f);
   // the eye: red and glowing; wrecked, dead (a flicker now and then)
   const ex = x + 34, ey = y + 12;

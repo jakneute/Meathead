@@ -6,7 +6,7 @@
 //   trike:  stands its ground; sees him level with it, paws, and charges (it doesn't leap: get up out of its way).
 //   ptero:  circles its patch of sky, folds and dives at him, climbs back.
 //   rex:    the big one, the paddock's sub-boss: its own file (rex.ts).
-// Crude on purpose (the first pass): boxes and polygons, panel seams, bolts.
+// The look: art/robots.ts.
 
 import type { Enemy } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -17,10 +17,9 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { getAdv } from '../section';
+import { drawRaptorBot, drawTrikeBot, drawPteroBot } from './art/robots';
 import { HURT_RAPTOR, DEATH_RAPTOR, HURT_TRIKE, DEATH_TRIKE, HURT_HORNS, DEATH_HORNS, HURT_PTERO, DEATH_PTERO } from './lines';
 
-type Ctx = CanvasRenderingContext2D;
-const INK = '#1A0B06';
 
 /** What the dino park's own state says about the robots: hostile yet? a cutscene holding them? */
 export interface DinoMode { hostile: boolean; held: boolean }
@@ -174,116 +173,16 @@ const pteroAI = (ctx: FrameContext, e: Enemy): boolean => {
   return true;
 };
 
-// ---------------------------------------------------------------------------------------------------------------
-// Drawing (feet at the origin, facing right)
-
-const poly = (c: Ctx, pts: number[], col: string) => {
-  c.beginPath(); c.moveTo(pts[0], pts[1]);
-  for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]);
-  c.closePath(); c.fillStyle = col; c.fill(); c.strokeStyle = INK; c.lineWidth = 1.5; c.stroke();
-};
-const box = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = INK; c.fillRect(x - 1, y - 1, w + 2, h + 2); c.fillStyle = col; c.fillRect(x, y, w, h); };
-const bolts = (c: Ctx, pts: number[]) => { c.fillStyle = '#D4D4D8'; for (let i = 0; i < pts.length; i += 2) c.fillRect(pts[i] - 1, pts[i + 1] - 1, 2, 2); };
-/** Its eye: red and glowing (hostile), blue (friendly). */
-/** (set as each one's drawn: friendly mode, before the switch) */
-let friendlyNow = false;
-const eye = (c: Ctx, _e: Enemy, f: number, x: number, y: number, r: number) => {
-  const friendly = friendlyNow;
-  const glow = friendly ? 'rgba(96, 165, 250, 0.35)' : `rgba(239, 68, 68, ${0.35 + 0.15 * Math.sin(f * 0.3)})`;
-  c.fillStyle = glow; c.beginPath(); c.arc(x, y, r * 2.2, 0, Math.PI * 2); c.fill();
-  c.fillStyle = friendly ? '#60A5FA' : '#EF4444'; c.fillRect(Math.round(x - r), Math.round(y - r), Math.round(r * 2), Math.round(r * 2));
-  c.fillStyle = friendly ? '#DBEAFE' : '#FECACA'; c.fillRect(Math.round(x - r / 2), Math.round(y - r / 2), Math.max(1, Math.round(r)), Math.max(1, Math.round(r)));
-};
-const stepOf = (e: Enemy, f: number, rate = 0.3) => (Math.abs(e.vel.x) > 0.4 ? Math.sin(f * rate * Math.min(2, Math.abs(e.vel.x) / 2)) : 0);
-/** (friendly mode: a little animatronic bob and head-turn, doing its bit for the kids) */
-const bobOf = (e: Enemy, f: number) => (friendlyNow ? Math.round(Math.sin(f * 0.08 + (e.homeX || 0)) * 2) : 0);
-
-const RAPTOR = '#5B6E58', RAPTOR_LO = '#3F4F3D', RAPTOR_HI = '#7C8F78';
-const drawRaptor = (c: Ctx, e: Enemy, f: number) => {
-  const st = stepOf(e, f, 0.35), crouch = e.aiState === 'crouch' ? 6 : 0, bob = bobOf(e, f);
-  const by = -40 + crouch + bob;
-  // legs (far, then near): thigh, shin back, foot
-  for (const [s, col] of [[-1, RAPTOR_LO], [1, RAPTOR]] as const) {
-    const k = st * s * 7;
-    poly(c, [-6 + k * 0.4, by + 10, 4 + k * 0.4, by + 10, 6 + k, -12, 0 + k, -12], col);
-    poly(c, [0 + k, -14, 6 + k, -14, 3 + k, -2, -2 + k, -2], col);
-    poly(c, [-3 + k, -4, 12 + k, -4, 13 + k, 0, -3 + k, 0], '#3F3F46');
-    c.fillStyle = '#E4E4E7'; c.fillRect(12 + k, -6, 3, 2);
-  }
-  // tail
-  poly(c, [-14, by + 2, -52, by - 2 + Math.sin(f * 0.1) * 3, -54, by + 1 + Math.sin(f * 0.1) * 3, -14, by + 14], RAPTOR_LO);
-  // body
-  poly(c, [-16, by, 14, by - 4, 20, by + 6, 10, by + 18, -14, by + 16], RAPTOR);
-  c.fillStyle = RAPTOR_HI; c.fillRect(-12, by, 22, 2);
-  c.strokeStyle = RAPTOR_LO; c.lineWidth = 1; c.beginPath(); c.moveTo(-2, by - 2); c.lineTo(-2, by + 16); c.stroke();
-  bolts(c, [-10, by + 4, 6, by + 2, -10, by + 12, 6, by + 12]);
-  // arm: a little claw
-  poly(c, [12, by + 8, 20, by + 14, 18, by + 16, 10, by + 12], RAPTOR_LO);
-  // neck and head (jaw open crouching/pouncing)
-  const hx = 18, hy = by - 14 + (friendlyNow ? Math.round(Math.sin(f * 0.05) * 2) : 0);
-  poly(c, [10, by + 2, 20, by - 6, 24, hy + 8, 16, by + 6], RAPTOR);
-  const open = e.aiState === 'crouch' || e.aiState === 'pounce' ? 5 : 0;
-  poly(c, [hx, hy, hx + 18, hy + 2, hx + 18, hy + 7, hx, hy + 9], RAPTOR);
-  poly(c, [hx + 2, hy + 9, hx + 17, hy + 8 + open, hx + 16, hy + 11 + open, hx + 2, hy + 12], RAPTOR_LO);
-  c.fillStyle = '#F4F4F5'; for (let i = 0; i < 4; i++) c.fillRect(hx + 5 + i * 3, hy + 7, 1, 2);
-  eye(c, e, f, hx + 9, hy + 3, 1.6);
-};
-
-const TRIKE = '#6B6252', TRIKE_LO = '#4A4438', FRILL = '#8A7A5A';
-const drawTrike = (c: Ctx, e: Enemy, f: number) => {
-  const st = stepOf(e, f, 0.25), bob = bobOf(e, f);
-  const by = -48 + bob;
-  for (const [lx, s, col] of [[-26, 1, TRIKE_LO], [18, -1, TRIKE_LO], [-20, -1, TRIKE], [24, 1, TRIKE]] as const) {
-    const k = st * s * 5;
-    box(c, lx + k - 5, by + 26, 11, -by - 26, col);
-    box(c, lx + k - 7, -5, 15, 5, '#3F3F46');
-  }
-  // tail, body (a barrel), plating
-  poly(c, [-36, by + 10, -60, by + 22, -36, by + 26], TRIKE_LO);
-  poly(c, [-40, by + 6, -30, by - 4, 22, by - 4, 34, by + 8, 32, by + 32, -38, by + 32], TRIKE);
-  c.fillStyle = '#857B68'; c.fillRect(-30, by - 2, 50, 3);
-  c.strokeStyle = TRIKE_LO; c.lineWidth = 1; for (const x of [-20, 0, 18]) { c.beginPath(); c.moveTo(x, by - 3); c.lineTo(x, by + 31); c.stroke(); }
-  bolts(c, [-24, by + 4, -4, by + 4, 14, by + 4, -24, by + 26, -4, by + 26, 14, by + 26]);
-  // frill, head, beak, three horns (head down charging)
-  const down = e.aiState === 'charge' || e.aiState === 'paw' ? 6 : 0;
-  poly(c, [30, by - 18 + down, 44, by - 22 + down, 46, by + 14 + down, 32, by + 16], FRILL);
-  bolts(c, [36, by - 14 + down, 40, by + 4 + down]);
-  poly(c, [36, by + 2 + down, 58, by + 6 + down, 62, by + 18 + down, 40, by + 24 + down], TRIKE);
-  poly(c, [56, by + 10 + down, 66, by + 16 + down, 56, by + 20 + down], '#3F3F46');
-  poly(c, [44, by + 2 + down, 64, by - 14 + down, 48, by + 4 + down], '#E7E5E4');
-  poly(c, [50, by + 4 + down, 72, by - 6 + down, 54, by + 6 + down], '#E7E5E4');
-  poly(c, [56, by + 10 + down, 64, by + 2 + down, 60, by + 12 + down], '#E7E5E4');
-  eye(c, e, f, 48, by + 9 + down, 1.8);
-};
-
-const PTERO = '#64748B', PTERO_LO = '#475569', WING = '#94A3B8';
-const drawPtero = (c: Ctx, e: Enemy, f: number) => {
-  const diving = e.aiState === 'dive';
-  const flap = diving ? -0.2 : Math.sin(f * 0.25 + (e.homeX || 0));
-  const by = -16;
-  // far wing, body, near wing
-  poly(c, [-4, by, -20, by - 12 - flap * 14, -38, by - 4 - flap * 18, -10, by + 4], PTERO_LO);
-  poly(c, [-16, by + 2, 10, by - 4, 18, by + 2, 6, by + 8, -14, by + 8], PTERO);
-  bolts(c, [-8, by + 2, 4, by + 2]);
-  poly(c, [2, by, 14, by - 14 - flap * 16, 34, by - 6 - flap * 22, 6, by + 6], WING);
-  c.strokeStyle = PTERO_LO; c.lineWidth = 1; c.beginPath(); c.moveTo(2, by); c.lineTo(28, by - 6 - flap * 20); c.stroke();
-  // head, crest, long beak
-  poly(c, [14, by - 6, 22, by - 10, 26, by - 4, 18, by], PTERO);
-  poly(c, [16, by - 8, 6, by - 16, 20, by - 10], PTERO_LO);
-  poly(c, [24, by - 7, 44, by - 3, 24, by - 2], '#CBD5E1');
-  eye(c, e, f, 20, by - 6, 1.4);
-  // feet
-  c.fillStyle = '#3F3F46'; c.fillRect(-6, by + 8, 2, 6); c.fillRect(-2, by + 8, 2, 6);
-};
+// Drawing: art/robots.ts (feet at the origin, facing right; stamped a frame at a time)
 
 // ---------------------------------------------------------------------------------------------------------------
 
 export const DINO_KINDS = { raptor: 'm2:raptor', trike: 'm2:trike', ptero: 'm2:ptero' } as const;
 
-registerM2Kind({ kind: 'm2:raptor', stats: { w: 64, h: 50, hp: 140, contact: 12, mass: 170 }, ai: raptorAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawRaptor(c, e, f); }, head: { x: 27, y: -50, r: 8 }, gender: 'n', robot: true, grab: 'body' });
-registerM2Kind({ kind: 'm2:trike', stats: { w: 96, h: 56, hp: 260, contact: 14, mass: 700 }, ai: trikeAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawTrike(c, e, f); }, head: { x: 50, y: -38, r: 10 }, gender: 'n', robot: true, grab: 'none', pointy: { source: 'm2:trike_horns', label: 'GORED!', damage: 14 } });
+registerM2Kind({ kind: 'm2:raptor', stats: { w: 64, h: 50, hp: 140, contact: 12, mass: 170 }, ai: raptorAI, draw: (c, e, f, state) => drawRaptorBot(c, e, f, { friendly: !modeOf(state).hostile }), head: { x: 27, y: -50, r: 8 }, gender: 'n', robot: true, grab: 'body' });
+registerM2Kind({ kind: 'm2:trike', stats: { w: 96, h: 56, hp: 260, contact: 14, mass: 700 }, ai: trikeAI, draw: (c, e, f, state) => drawTrikeBot(c, e, f, { friendly: !modeOf(state).hostile }), head: { x: 50, y: -38, r: 10 }, gender: 'n', robot: true, grab: 'none', pointy: { source: 'm2:trike_horns', label: 'GORED!', damage: 14 } });
 registerM2Kind({
-  kind: 'm2:ptero', stats: { w: 70, h: 30, hp: 60, contact: 10, mass: 70, air: true }, ai: pteroAI, draw: (c, e, f, state) => { friendlyNow = !modeOf(state).hostile; drawPtero(c, e, f); }, head: { x: 22, y: -22, r: 6 }, gender: 'n', robot: true, grab: 'critter',
+  kind: 'm2:ptero', stats: { w: 70, h: 30, hp: 60, contact: 10, mass: 70, air: true }, ai: pteroAI, draw: (c, e, f, state) => drawPteroBot(c, e, f, { friendly: !modeOf(state).hostile }), head: { x: 22, y: -22, r: 6 }, gender: 'n', robot: true, grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
 });
 
