@@ -46,7 +46,7 @@ import { talk, stepTalk, pick, type Talk } from '../../adventure/queue/talk';
 import { updateLadders, drawLadders, type LadderDef } from '../../moves/ladders';
 import { TK, updateThrown, drawThrown, thrown } from './kinds';
 import { runHazards, drawDebris, storyOf, canHurt, cover, clearView, worksKill, type Debris } from './hazards';
-import { newRide, runRide, lampOn, type Ride, type Car } from './ride';
+import { newRide, runRide, lampOn, shaftCar, loadedCar, type Ride, type Car } from './ride';
 import { drawTowerBackdrop, drawTowerBack } from './art';
 import {
   x0, x1, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, TX0, TX1, U, WALL, SH0, SH1, SHM, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
@@ -55,7 +55,7 @@ import {
 } from './layout';
 import {
   type Dressed, MEATHEAD_HOW, MEATHEAD_ASK, OPERATOR_REFUSE, MEATHEAD_REFUSED, OPERATOR_SECURITY, OPERATOR_SPIEL, OPERATOR_AFTER, OPERATOR_NEXT,
-  RIDER_DROP, RIDER_REAL, MEATHEAD_BEAM_SIGN, MEATHEAD_BEAM_BROKE, MEATHEAD_WOBBLE, MEATHEAD_MAIN, MEATHEAD_CRASH, MEATHEAD_JUMP,
+  RIDER_DROP, RIDER_REAL, RIDER_RISE, MEATHEAD_BEAM_SIGN, MEATHEAD_BEAM_BROKE, MEATHEAD_WOBBLE, MEATHEAD_MAIN, MEATHEAD_CRASH, MEATHEAD_JUMP,
   MEATHEAD_DOWN, MEATHEAD_LAMP, MEATHEAD_BASE, MEATHEAD_CHUTE,
 } from './lines';
 
@@ -95,6 +95,10 @@ interface Tower {
   rot: number[];
   /** The town's staff held unseeing behind a beam. */
   blinded: Set<Enemy>;
+  /** The car whose riders are saying something. */
+  riderCar?: Car;
+  /** He's seen a car go first thing in the tower (one sent up the shaft as he comes in). */
+  firstCar?: boolean;
 }
 const towerOf = (state: GameState) => spookyState<Tower>(state, 'tower', () => ({
   talk: talk(), ride: newRide(), beamHp: BEAMS.map(b => b.hp), beamMove: BEAMS.map(() => -1),
@@ -225,11 +229,8 @@ const startCrash = (state: GameState, t: Tower) => {
   t.swayV += 0.02;
   // (the cable goes: the car, wherever it is in the shaft; or (a white flash over it) the one waiting at the top)
   const r = t.ride;
-  if (!r.car || (r.car.phase !== 'rise' && r.car.phase !== 'hold' && r.car.phase !== 'drop')) {
-    const old = r.car;
-    r.car = { phase: 'drop', t: 0, x: SHM, y: CAR_TOP, vy: 0, riders: old?.riders ?? [0, 1, 2, 3].map(i => ({ seed: 9100 + i * 53, woman: i % 2 === 0, boardAt: 0 })), real: true, crash: true };
-  }
-  const c = r.car;
+  let c = shaftCar(r);
+  if (!c) { c = loadedCar(r, 'drop', SHM, CAR_TOP); r.cars.push(c); }
   c.phase = 'drop'; c.t = 0; c.real = true; c.crash = true; c.vy = Math.max(c.vy, 2); c.x = SHM;
   r.held = false;
   for (const e of state.enemies) { e.puppet = true; e.pauseTimer = 2; }
@@ -275,7 +276,7 @@ const afterCrash = (state: GameState, t: Tower, quiet: boolean) => {
 
 const endCrash = (state: GameState, t: Tower, skipped: boolean) => {
   const p = state.player;
-  if (skipped) { silenceAll(); if (t.ride.car?.crash) { t.ride.car = null; t.ride.next = 240; } }
+  if (skipped) { silenceAll(); t.ride.cars = t.ride.cars.filter(c => !c.crash); }
   afterCrash(state, t, true);
   t.crash = null;
   p.inCutscene = false;
@@ -296,11 +297,11 @@ const runCrash = (ctx: FrameContext, t: Tower): Controls => {
   for (const e of state.enemies) { e.puppet = true; e.pauseTimer = 2; }
   if (cr.t > SKIP_AFTER) offerSkip();
   if (cr.t > SKIP_AFTER && takeSkip()) { endCrash(state, t, true); return hands(); }
-  const car = t.ride.car;
+  const car = t.ride.cars.find(c => c.crash);
   if (cr.phase === 'fall') {
     // (a beat on the lurch first, then down after it)
     if (car && cr.t > 24) state.cameraOverride = { x: camX(SHM), y: Math.min(car.y - 330, GY - 120) };
-    if (cr.t === 30) t.talk.q.push({ voice: Math.random() < 0.5 ? 'm2.guest' : 'm2.guest2', text: pick(RIDER_REAL), set: s => { t.riderSaid = s; } });
+    if (cr.t === 30) t.talk.q.push({ voice: Math.random() < 0.5 ? 'm2.guest' : 'm2.guest2', text: pick(RIDER_REAL), set: s => { t.riderSaid = s; t.riderCar = car; } });
     if (!car || car.y > B1 + 200) { cr.phase = 'hold'; cr.hold = 0; }
   } else if (cr.phase === 'hold') {
     state.cameraOverride = { x: camX(SHM), y: GY - 120 };
@@ -384,9 +385,15 @@ const runBay = (state: GameState, t: Tower) => {
 const inColumn = (state: GameState) => { const cx = state.player.pos.x + state.player.width / 2; return cx > SH0 - 8 && cx < SH1 + 8; };
 const runDescent = (ctx: FrameContext, t: Tower) => {
   const { state } = ctx, p = state.player, feet = p.pos.y + p.height;
-  const car = t.ride.car, k = storyOf(state);
+  const k = storyOf(state);
+  for (const car of t.ride.cars) runCarPast(ctx, t, car, k, feet);
+  // The lines on the way down (below)
+  descentLines(state, t, k, feet);
+};
+const runCarPast = (ctx: FrameContext, t: Tower, car: Car, k: number, feet: number) => {
+  const { state } = ctx, p = state.player;
   // The tell: the lamps (art), the bell; and his line the first time
-  if (car && car.real && !car.crash && car.phase === 'hold' && car.t === 1 && (k >= 0 || feet > GY)) {
+  if (car.real && !car.crash && car.phase === 'hold' && car.t === 1 && (k >= 0 || feet > GY)) {
     playSound('alarm', 0.35, 4); playSound('ding', 0.5, -6);
     if (!t.lampSaid && t.leftTop) { t.lampSaid = true; t.talk.q.push({ voice: 'meathead', text: pick(MEATHEAD_LAMP) }); }
   }
@@ -408,11 +415,31 @@ const runDescent = (ctx: FrameContext, t: Tower) => {
     const ex = e.pos.x + e.width / 2;
     if (ex > SH0 && ex < SH1 && car.y > e.pos.y && car.y - 150 < e.pos.y + e.height) worksKill(ctx, e, SHM, 'NEXT!');
   }
-  // The lines on the way down
+};
+const descentLines = (state: GameState, t: Tower, k: number, feet: number) => {
+  const p = state.player;
   if (k >= 0 && k < STORIES) t.leftTop = true;
   if (!t.downSaid && k === 5 && p.isGrounded) { t.downSaid = true; t.talk.q.push({ voice: 'meathead', text: pick(MEATHEAD_DOWN) }); }
   if (!t.baseSaid && t.leftTop && k === 0 && p.isGrounded && p.pos.x + p.width / 2 > SH1) { t.baseSaid = true; t.talk.q.push({ voice: 'meathead', text: pick(MEATHEAD_BASE) }); }
   if (!t.chuteSaid && feet > B1 + 80) { t.chuteSaid = true; meatheadSays(state, pick(MEATHEAD_CHUTE), false); }
+};
+
+// The ride during the climb (safe: nets and the shaft's lattice keep him out of its way): its riders going up past
+// him, nervous; coming down, screaming; the first car sent up the moment he's in, so he sees one go right away
+
+const runRideClimb = (state: GameState, t: Tower) => {
+  const p = state.player, k = storyOf(state);
+  if (k < 0) return;
+  if (!t.firstCar) {
+    t.firstCar = true;
+    // (one already on its way up, above where he can see from the foot: it'll drop a few seconds in)
+    if (!shaftCar(t.ride)) t.ride.cars.push(loadedCar(t.ride, 'rise', SHM, Math.max(CAR_TOP + 100, F(Math.min(STORIES, k + 4)))));
+  }
+  for (const car of t.ride.cars) {
+    if (car.phase !== 'rise' || car.saidUp || Math.abs(car.y - 60 - (p.pos.y + p.height / 2)) > 160) continue;
+    car.saidUp = true;
+    if (!t.talk.busy && !t.talk.q.length && Math.random() < 0.7) t.talk.q.push({ voice: Math.random() < 0.5 ? 'm2.guest' : 'm2.guest2', text: pick(RIDER_RISE), set: s => { t.riderSaid = s; t.riderCar = car; } });
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -500,7 +527,7 @@ export const tower: SpookySection = {
       },
       dropped: (car: Car) => {
         const nearCar = Math.abs(cx - car.x) < 900 && Math.abs(p.pos.y - car.y) < 700;
-        if (nearCar && !car.crash && !t.talk.busy && !t.talk.q.length && Math.random() < 0.6) t.talk.q.push({ voice: Math.random() < 0.5 ? 'm2.guest' : 'm2.guest2', text: pick(car.real ? RIDER_REAL : RIDER_DROP), set: s => { t.riderSaid = s; } });
+        if (nearCar && !car.crash && !t.talk.busy && !t.talk.q.length && Math.random() < 0.6) t.talk.q.push({ voice: Math.random() < 0.5 ? 'm2.guest' : 'm2.guest2', text: pick(car.real ? RIDER_REAL : RIDER_DROP), set: s => { t.riderSaid = s; t.riderCar = car; } });
         if (car.real && !car.crash && cx < TX0 && !t.talk.busy && !t.talk.q.length) opSays(t, pick(OPERATOR_NEXT));
       },
       passing: (car: Car, from: number, to: number) => {
@@ -510,7 +537,7 @@ export const tower: SpookySection = {
         if (to >= B1 - 10) breakB1(state, t);
       },
     });
-    if (t.ride.car?.crash && t.ride.car.y > HELL_AT + 500) { t.ride.car = null; t.ride.next = 240; }
+    t.ride.cars = t.ride.cars.filter(c => !(c.crash && c.y > HELL_AT + 500));
     if (t.crash) return runCrash(ctx, t);
     // The way back to the hallway
     runExits(state, [{ x0: x0 - 40, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.mist.end }]);
@@ -532,6 +559,7 @@ export const tower: SpookySection = {
     runBeams(ctx, t);
     if (t.crash) return hands();
     if (t.crashed) runDescent(ctx, t);
+    else runRideClimb(state, t);
     const k = storyOf(state);
     // What he says: at the first beam's plaque, at the main support, now and then as it gets worse
     if (!t.signSaid && k === 0 && Math.abs(cx - BEAMS[0].x) < 240 && t.beamHp[0] > 0) { t.signSaid = true; t.talk.q.push({ voice: 'meathead', text: MEATHEAD_BEAM_SIGN[0] }); }
@@ -593,7 +621,7 @@ export const tower: SpookySection = {
     drawDebris(c, t.debris);
     drawThrown(c);
     if (t.opSaid) saidOver(c, t.opSaid, BOOTH_X, GY - 176, '#FCA5A5');
-    const car = t.ride.car;
+    const car = t.riderCar;
     if (t.riderSaid && car) saidOver(c, t.riderSaid, car.x, car.y - 140, '#FDE68A');
   },
   drawHud: (c, state) => {

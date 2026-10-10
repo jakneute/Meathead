@@ -61,7 +61,9 @@ export const OPERATOR_NEXT = ['NEXT!', 'NEXT CAR, PLEASE. WE HAVE PLENTY.', "THE
 // The riders
 
 /** Somebody in the car as it drops (the fake drop). */
-export const RIDER_DROP = ['WHEEEEEE!', 'AAAAAAAAH!', "I'M GONNA PUKE! I'M GONNA PUKE!", 'MOM! MOOOOM!', 'BEST! RIDE! EVER!'];
+export const RIDER_DROP = ['WHEEEEEE!', 'AAAAAAAAH!', "I'M GONNA PUKE! I'M GONNA PUKE!", 'MOM! MOOOOM!', 'BEST! RIDE! EVER!', 'WOOOOOOOO!', 'YEEEEEHAW!'];
+/** Somebody in the car going up the shaft (slowly: click, clack), nervous. */
+export const RIDER_RISE = ['HERE WE GO. HERE WE GO. HERE WE GO.', "OH GOD, IT'S SO HIGH.", 'I CHANGED MY MIND! CAN I CHANGE MY MIND?', 'HOLD MY HAND. HOLD MY HAND!', "WHY IS IT SO SLOW? WHY IS IT SO SLOW?!", "DON'T LOOK DOWN. I LOOKED DOWN."];
 /** ...and going down into the real one. */
 export const RIDER_REAL = ['THIS IS LONGER THAN LAST TIME!', 'IS THIS PART OF IT?!', 'IT SMELLS LIKE ACTUAL SULFUR!', 'I CAN SEE THE ACTUAL DEVIL! FIVE STARS!', 'WHERE IS THE GIFT SHOP?!'];
 
@@ -149,6 +151,6 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...DEATH_MUMMY, ...DEATH_BRIDE, ...DEATH_BOUQUET, ...DEATH_CAR,
   ],
   'm2.hellop': [...flat(OPERATOR_REFUSE), ...flat(OPERATOR_SECURITY), ...OPERATOR_SPIEL, ...flat(OPERATOR_AFTER), ...OPERATOR_NEXT],
-  'm2.guest': [...RIDER_DROP, ...RIDER_REAL],
-  'm2.guest2': [...RIDER_DROP, ...RIDER_REAL],
+  'm2.guest': [...RIDER_DROP, ...RIDER_REAL, ...RIDER_RISE],
+  'm2.guest2': [...RIDER_DROP, ...RIDER_REAL, ...RIDER_RISE],
 };

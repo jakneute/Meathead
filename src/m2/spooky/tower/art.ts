@@ -95,8 +95,7 @@ const drawBay = (c: Ctx, state: GameState, look: TowerLook) => {
   box(c, PLATFORM_X0, GY - 22, TX0 - PLATFORM_X0, 22, '#292524'); box(c, PLATFORM_X0, GY - 22, TX0 - PLATFORM_X0, 3, '#57534E');
   box(c, PLATFORM_X0, GY - 30, TX0 - PLATFORM_X0, 4, '#52525B');
   // the car, at the platform or rolling off it (behind the gate)
-  const car = look.ride.car;
-  if (car && (car.phase === 'board' || car.phase === 'roll') && car.x < TX0 + 100) drawCar(c, car, f);
+  for (const car of look.ride.cars) if ((car.phase === 'board' || car.phase === 'roll') && car.x < TX0 + 100) drawCar(c, car, f);
   // the gate (a turnstile, a chain), and the rail along the front of the platform
   box(c, PLATFORM_X0 - 10, GY - 60, 8, 60, '#A1A1AA'); box(c, PLATFORM_X0 - 30, GY - 56, 30, 6, '#D4D4D8');
   box(c, PLATFORM_X0, GY - 50, PLATFORM_X1 - PLATFORM_X0, 4, '#D97706');
@@ -347,8 +346,7 @@ export const drawTowerBack = (c: Ctx, state: GameState, look: TowerLook) => {
     }
   }
   // the car in the shaft (behind everything of the tower's own)
-  const car = look.ride.car;
-  if (car && !((car.phase === 'board' || car.phase === 'roll') && car.x < TX0 + 100)) {
+  for (const car of look.ride.cars) if (!((car.phase === 'board' || car.phase === 'roll') && car.x < TX0 + 100)) {
     c.save(); c.beginPath(); c.rect(TX0, ROOF - 50, W + 200, HELL_AT - ROOF + 1000); c.clip();
     drawCar(c, car, f);
     c.restore();
