@@ -13,14 +13,14 @@
 // Cast members in the warrior costume (with real spears) along the way.
 //
 // Backtrackable: back out through the kicked-in back door, to the dino park (it stays open).
-// Crude on purpose (the first pass): boxes and words.
+// Painted in art.ts (the backstage seen from behind: the set's raw back, the rigs, the station and its line).
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy, EnemyKind } from '../../../m1/types';
-import type { Section, Said } from '../section';
-import { lay, solid, ledge, teleport, hands, box, label, saidOver, speak, meatheadSays, getAdv, sectionState } from '../section';
+import type { Section } from '../section';
+import { lay, solid, ledge, teleport, hands, speak, meatheadSays, getAdv, sectionState } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
@@ -29,20 +29,20 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { isShat, isNude } from '../../../m1/game/player/gut';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../m1/constants';
+import { CANVAS_WIDTH, KICK_POSE_FRAMES } from '../../../m1/constants';
 import { registerHurtLines } from '../../kinds';
 import { DINO_BACK_DOOR_X } from '../dino';
-import { drawPerson } from './people';
 import { drawRideCart, SEAT_DX, RIDE_SINK, JAGUAR_EXPRESS } from '../rideCart';
 import './kinds';
+import {
+  x0, x1, T, CATAPULT_X, DART_WALL, SNAKE_WALL, SNAKE_Y, SNAKE_REACH, CART_X, SCENE_AT, POSTS, LEDGES, SOLIDS, ACTORS,
+  type Temple, type Loading, crewed, DART_EVERY, DART_TELL, DART_SPEED, dartY, SNAKE_CYCLE, SNAKE_WIND, snakeOut, GUESTS, SEAT,
+} from './layout';
+import { drawTempleBackdrop, drawTempleBack, drawTempleFront, templeLighting } from './art';
 import {
   type Dressed, GUEST_KICKED, LINE_ASKS, LINE_ANSWERS, MEATHEAD_BOARDS, OPERATOR_PROTEST, OPERATOR2_ENGAGE,
   HURT_BOULDER, DEATH_BOULDER, HURT_DART, DEATH_DART, HURT_SNAKE, DEATH_SNAKE,
 } from './lines';
-
-const { x0, x1 } = SECTIONS.temple;
-const T = x0;
-type Ctx = CanvasRenderingContext2D;
 
 registerHurtLines('temple_boulder', HURT_BOULDER, DEATH_BOULDER);
 registerHurtLines('temple_dart', HURT_DART, DEATH_DART);
@@ -52,58 +52,10 @@ const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
 // ---------------------------------------------------------------------------------------------------------------
-// The layout
-
-const CATAPULT_X = T + 1500, DART_WALL = T + 2700, DART_TOP = GY - 200, SNAKE_WALL = T + 3900, SNAKE_TOP = GY - 340;
-const SNAKE_Y = GY - 268, SNAKE_REACH = 230;
-const STATION_X = T + 4400, CART_X = T + 5300, BOOTH_X = T + 5470, SCENE_AT = T + 5130;
-/** The stagehands' posts, by which trick they run (`variant`). */
-const POSTS: [number, number, 1 | -1][] = [[1, T + 1600, -1], [2, T + 2810, -1], [3, T + 4020, -1], [3, T + 4070, -1]];
-
-const LEDGES: [number, number, number][] = [
-  // over the catapult's run
-  [T + 650, GY - 120, 160], [T + 950, GY - 200, 160], [T + 1250, GY - 120, 140],
-  // up the dart wall
-  [T + 2560, GY - 110, 120],
-  // the snake's scaffold (this side), and down the far side
-  [T + 3560, GY - 115, 140], [T + 3760, GY - 230, 140], [T + 3970, GY - 230, 110], [T + 4100, GY - 115, 120],
-  // the queue's rail, by the station
-  [T + 4600, GY - 110, 200],
-];
-const SOLIDS: [number, number, number][] = [
-  [T - 60, GY - 700, 70], [DART_WALL, DART_TOP, 40], [SNAKE_WALL, SNAKE_TOP, 50],
-  // the end of the station (past the cart, the track goes on through a wall)
-  [T + 5800, GY - 700, 200],
-];
-const ACTORS = [T + 1050, T + 2050, T + 2400, T + 3300, T + 4500];
-
-// ---------------------------------------------------------------------------------------------------------------
 // Its state
 
-interface Boulder { x: number; y: number; vx: number; vy: number; r: number; rolling: boolean; t: number }
-interface Dart { x: number; y: number }
-interface Flyer { seed: number; woman: boolean; x: number; y: number; vx: number; vy: number; rot: number }
-interface Loading {
-  step: number; t: number; walked: boolean;
-  kicked: number; flying: Flyer[];
-  /** The boot on its way out (frames since it started; 0: not kicking). */
-  boot: number;
-  said: { who: string; s: Said } | null; busy: boolean;
-  rolling: number;
-}
-interface Temple {
-  boulders: Boulder[]; catapultT: number;
-  darts: Dart[]; dartT: number; dartHigh: boolean;
-  snakeT: number;
-  /** First visit: the loading scene's been (a revisit would skip it). */
-  loadingSeen: boolean;
-  loading: Loading | null;
-  fog: { x: number; y: number; r: number; t: number; vx: number }[];
-}
 const templeOf = (state: GameState) => sectionState<Temple>(state, 'temple', () => ({ boulders: [], catapultT: 60, darts: [], dartT: 90, dartHigh: false, snakeT: 0, loadingSeen: false, loading: null, fog: [] }));
 
-/** Is the stagehand running this trick still at it? */
-const crewed = (state: GameState, post: number) => state.enemies.some(e => e.kind === 'm2:stagehand' && e.variant === post && e.health > 0 && !e.isBlownAway);
 const pBox = (state: GameState) => {
   const p = state.player;
   const duck = p.isDucking || p.isSliding ? 28 : 0;
@@ -142,8 +94,6 @@ const runCatapult = (ctx: FrameContext, tp: Temple) => {
   });
 };
 
-const DART_EVERY = 75, DART_TELL = 18, DART_SPEED = 9;
-const dartY = (high: boolean) => (high ? GY - 52 : GY - 16);
 const runDarts = (ctx: FrameContext, tp: Temple) => {
   const { state } = ctx, p = state.player, px = p.pos.x + p.width / 2;
   if (crewed(state, 2) && px > T + 1750 && px < DART_WALL) {
@@ -163,15 +113,6 @@ const runDarts = (ctx: FrameContext, tp: Temple) => {
   });
 };
 
-const SNAKE_CYCLE = 150, SNAKE_WIND = 40, SNAKE_OUT = 10, SNAKE_HOLD = 24;
-/** How far out the snake's head is (0..1), and whether it's rearing back (the tell). */
-const snakeOut = (t: number) => {
-  const c = t % SNAKE_CYCLE;
-  if (c < SNAKE_WIND) return { k: -0.12 * (c / SNAKE_WIND), rear: true };
-  if (c < SNAKE_WIND + SNAKE_OUT) return { k: (c - SNAKE_WIND) / SNAKE_OUT, rear: false };
-  if (c < SNAKE_WIND + SNAKE_OUT + SNAKE_HOLD) return { k: 1, rear: false };
-  return { k: Math.max(0, 1 - (c - SNAKE_WIND - SNAKE_OUT - SNAKE_HOLD) / 40), rear: false };
-};
 const runSnake = (ctx: FrameContext, tp: Temple) => {
   const { state } = ctx, p = state.player, px = p.pos.x + p.width / 2;
   if (!crewed(state, 3)) return;
@@ -193,9 +134,6 @@ const runFog = (state: GameState, tp: Temple) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The loading scene
 
-const GUESTS = [{ seed: 7101, woman: false }, { seed: 3317, woman: true }, { seed: 5523, woman: true }];
-/** Where they sit in the cart, from its middle. */
-const SEAT = [-34, -6, 22];
 /** Frames from the kick starting to the boot all the way out (where it lands). */
 const KICK_LANDS = 9;
 
@@ -319,173 +257,14 @@ export const temple: Section = {
     }
     return controls;
   },
-  drawBackdrop: (c) => {
-    // Backstage: black, the underside of the set, work lights
-    c.fillStyle = '#0C0A09'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    c.fillStyle = '#1C1917'; for (let x = 20; x < CANVAS_WIDTH; x += 120) c.fillRect(x, 0, 10, CANVAS_HEIGHT);
-    return true;
-  },
+  drawBackdrop: (c, state) => { drawTempleBackdrop(c, state); return true; },
   // (and the back of the ride's cart, over all that: behind whoever's sat in it)
-  drawBack: (c, state) => { drawTempleBack(c, state); drawRideCart(c, CART_X + (templeOf(state).loading?.rolling ?? 0), GY, state.frame, JAGUAR_EXPRESS, true); },
-  drawFront: (c, state) => drawTempleFront(c, state),
+  drawBack: (c, state) => { drawTempleBack(c, state, templeOf(state)); drawRideCart(c, CART_X + (templeOf(state).loading?.rolling ?? 0), GY, state.frame, JAGUAR_EXPRESS, true); },
+  drawFront: (c, state) => drawTempleFront(c, state, templeOf(state)),
+  lighting: (state) => templeLighting(state, templeOf(state)),
   drawHud: (c, state) => {
     const tp = templeOf(state);
     if (tp.loading && tp.loading.t > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
   },
 };
 
-// ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude: the first pass)
-
-const lip = (c: Ctx, x: number, y: number, w: number, col: string) => { box(c, x, y, w, 4, col); box(c, x, y + 4, w, 2, 'rgba(0,0,0,0.3)'); };
-
-const drawTempleBack = (c: Ctx, state: GameState) => {
-  const cam = state.camera.x, f = state.frame;
-  const vis = (a: number, b: number) => b > cam - 150 && a < cam + CANVAS_WIDTH + 150;
-  if (!vis(T - 200, x1)) return;
-  const tp = templeOf(state);
-  // The floor: painted black plywood, gaffer tape
-  box(c, Math.max(T - 200, cam - 50), GY, CANVAS_WIDTH + 100, 400, '#292524');
-  box(c, Math.max(T - 200, cam - 50), GY, CANVAS_WIDTH + 100, 3, '#57534E');
-  for (let x = Math.floor(cam / 180) * 180; x < cam + CANVAS_WIDTH; x += 180) box(c, x + 40, GY + 6, 30, 3, '#FACC15');
-  // The backs of the set's flats along the far side: stud frames, stenciled
-  for (let x = Math.floor((cam - 200) / 300) * 300; x < cam + CANVAS_WIDTH + 200; x += 300) {
-    if (x < T || x > STATION_X - 100) continue;
-    box(c, x, GY - 380, 290, 380, '#4A3A28');
-    for (let k = 0; k < 4; k++) box(c, x + k * 96, GY - 380, 6, 380, '#6B5338');
-    box(c, x, GY - 260, 290, 6, '#6B5338');
-    label(c, 'THIS SIDE BACK', x + 145, GY - 300, '#A8A29E', 7);
-  }
-  // The back door (kicked in), the break room
-  if (vis(T - 60, T + 400)) {
-    box(c, T - 60, GY - 700, 70, 700, '#44403C');
-    box(c, T + 10, GY - 92, 52, 92, '#0C0A09');
-    label(c, 'TO DINO PARK', T + 36, GY - 104, '#A8A29E', 6);
-    box(c, T + 220, GY - 70, 90, 70, '#57534E'); label(c, 'BREAK ROOM', T + 265, GY - 80, '#E7E5E4', 7);
-    label(c, 'TEMPLE OF THE JAGUAR', T + 300, GY - 420, '#FDE047', 10);
-    label(c, 'BACKSTAGE. CAST AND CREW ONLY. NO FLASH PHOTOGRAPHY OF THE MAGIC.', T + 300, GY - 404, '#E7E5E4', 6);
-  }
-  // The catapult: an A-frame, the arm (back, then flung up), the bucket of boulders
-  if (vis(CATAPULT_X - 120, CATAPULT_X + 200)) {
-    const cocked = tp.catapultT > 20 ? 1 : tp.catapultT / 20;
-    box(c, CATAPULT_X - 60, GY - 30, 140, 30, '#78350F');
-    box(c, CATAPULT_X - 10, GY - 90, 14, 60, '#92400E');
-    c.save(); c.translate(CATAPULT_X - 3, GY - 84); c.rotate(-0.4 - cocked * 0.9 + (crewed(state, 1) ? 0 : 0.6)); box(c, -6, -100, 10, 104, '#A16207'); box(c, -16, -112, 30, 14, '#57534E'); c.restore();
-    for (let i = 0; i < 4; i++) { c.fillStyle = '#78716C'; c.beginPath(); c.arc(CATAPULT_X + 110 + (i % 2) * 22, GY - 14 - (i >> 1) * 22, 12, 0, Math.PI * 2); c.fill(); }
-    label(c, 'BOULDERS (REAL)', CATAPULT_X + 120, GY - 64, '#FDE047', 6);
-    label(c, 'INSURANCE SAID FOAM', CATAPULT_X + 120, GY - 54, '#FCA5A5', 6);
-    label(c, 'THE ROLLING BOULDER', CATAPULT_X, GY - 220, '#FDE047', 8);
-  }
-  // The dart wall: the backs of the stone faces, the holes (glowing before a volley), the leaf blower behind it
-  if (vis(DART_WALL - 100, DART_WALL + 200)) {
-    box(c, DART_WALL, DART_TOP, 40, GY - DART_TOP, '#78716C'); lip(c, DART_WALL, DART_TOP, 40, '#D6D3D1');
-    const tell = crewed(state, 2) && tp.dartT <= DART_TELL;
-    for (const h of [true, false]) {
-      const lit = tell && tp.dartHigh === h;
-      box(c, DART_WALL - 4, dartY(h) - 4, 6, 8, lit ? (f % 4 < 2 ? '#FDE047' : '#F97316') : '#1C1917');
-    }
-    box(c, DART_WALL + 40, GY - 70, 30, 6, '#3F3F46');
-    label(c, 'POISON DART TRAP', DART_WALL - 60, DART_TOP - 30, '#FDE047', 8);
-    label(c, '(LEAF BLOWER, BUCKET OF DARTS)', DART_WALL - 60, DART_TOP - 18, '#E7E5E4', 6);
-  }
-  // Smoke and mirrors: the fog machine, the ghost pane and the guy in the skeleton suit behind it
-  if (vis(T + 3150, T + 3550)) {
-    c.save(); c.translate(T + 3300, GY); c.rotate(-0.35); box(c, -4, -170, 8, 170, 'rgba(186, 230, 253, 0.35)'); c.restore();
-    c.save(); c.translate(T + 3230, GY); c.scale(-1, 1);
-    drawPerson(c, { seed: 909, outfit: 'stage', f, pose: (f % 120) < 60 ? 'fly' : 'stand', mood: 'bored' });
-    c.restore();
-    c.fillStyle = '#F5F5F4'; for (let i = 0; i < 4; i++) c.fillRect(T + 3226 - 6, GY - 50 + i * 8, 12, 2);
-    label(c, "PEPPER'S GHOST", T + 3290, GY - 200, '#FDE047', 8);
-    label(c, '(DO NOT LEAN ON GLASS)', T + 3290, GY - 188, '#E7E5E4', 6);
-    box(c, T + 3420, GY - 34, 50, 34, '#3F3F46'); label(c, 'FOG', T + 3445, GY - 14, '#E7E5E4', 7);
-  }
-  // The snake rig: the wall, the ram and its hose, the lever on the far side
-  if (vis(SNAKE_WALL - 300, SNAKE_WALL + 250)) {
-    box(c, SNAKE_WALL, SNAKE_TOP, 50, GY - SNAKE_TOP, '#57534E'); lip(c, SNAKE_WALL, SNAKE_TOP, 50, '#A8A29E');
-    box(c, SNAKE_WALL + 50, SNAKE_Y - 8, 90, 16, '#3F3F46');
-    box(c, SNAKE_WALL + 140, GY - 80, 10, 80, '#71717A');
-    label(c, 'THE SERPENT OF DOOM', SNAKE_WALL - 150, SNAKE_TOP - 40, '#FDE047', 8);
-    label(c, '(PNEUMATIC. 1,200 PSI. DO NOT STAND IN FRONT.)', SNAKE_WALL - 150, SNAKE_TOP - 28, '#FCA5A5', 6);
-  }
-  // The loading station: the line (long), the platform, the track, the cart, the operators' booth
-  if (vis(STATION_X - 100, x1)) {
-    // the line, switching back and forth behind
-    for (let row = 0; row < 3; row++) {
-      box(c, STATION_X + 100, GY - 160 - row * 70, 1100, 4, '#A16207');
-      for (let i = 0; i < 18; i++) {
-        const gx = STATION_X + 140 + i * 60 + (row % 2) * 30, seed = 200 + row * 40 + i * 7;
-        c.save(); c.translate(gx, GY - 160 - row * 70 + 2); c.scale((i + row) % 2 ? 0.55 : -0.55, 0.55);
-        c.globalAlpha = 0.75;
-        drawPerson(c, { seed, outfit: 'guest', f, mood: 'bored' });
-        c.restore();
-      }
-    }
-    label(c, 'WAIT TIME FROM HERE: 240 MINUTES', STATION_X + 650, GY - 380, '#FDE047', 8);
-    label(c, 'KEEP HANDS, ARMS AND EXPECTATIONS INSIDE THE CART AT ALL TIMES', STATION_X + 650, GY - 366, '#E7E5E4', 6);
-    // the track, on through the end wall
-    box(c, STATION_X + 600, GY - 6, x1 - STATION_X - 600, 6, '#52525B');
-    box(c, T + 5800, GY - 700, 200, 700, '#44403C');
-    label(c, 'FRIENDLY TRACK', T + 5700, GY - 120, '#86EFAC', 7);
-    // the operators' booth, them in it
-    box(c, BOOTH_X, GY - 120, 170, 120, '#57534E'); box(c, BOOTH_X + 10, GY - 110, 150, 50, '#1E293B');
-    const ld = templeOf(state).loading;
-    for (const [i, seed, woman] of [[0, 818, false], [1, 1331, true]] as const) {
-      c.save(); c.translate(BOOTH_X + 50 + i * 70, GY - 30); c.scale(-1, 1);
-      const voice = i ? 'm2.operator2' : 'm2.operator';
-      drawPerson(c, { seed, woman, outfit: 'operator', f, mood: i ? 'bored' : 'shocked', talking: ld?.said?.who === voice });
-      c.restore();
-    }
-    box(c, BOOTH_X + 120, GY - 64, 6, 24, '#A1A1AA'); box(c, BOOTH_X + 117, GY - 70, 12, 8, '#DC2626');
-    label(c, 'OPERATORS', BOOTH_X + 85, GY - 126, '#E7E5E4', 7);
-  }
-  // Solids and ledges, lit
-  for (const [x, y, w] of LEDGES) { if (!vis(x, x + w)) continue; box(c, x, y, w, 10, '#52525B'); lip(c, x, y, w, '#A1A1AA'); }
-};
-
-const drawCart = (c: Ctx, x: number, f: number, riders: number[]) => {
-  // the guests still in it, sat
-  riders.forEach(i => { c.save(); c.translate(x + SEAT[i], GY - 12); c.scale(0.9, 0.9); drawPerson(c, { seed: GUESTS[i].seed, woman: GUESTS[i].woman, outfit: 'guest', pose: 'sit', f, mood: 'happy' }); c.restore(); });
-  drawRideCart(c, x, GY, f, JAGUAR_EXPRESS, false);
-};
-
-const drawTempleFront = (c: Ctx, state: GameState) => {
-  const cam = state.camera.x, f = state.frame;
-  if (cam > x1 || cam + CANVAS_WIDTH < T - 200) return;
-  const tp = templeOf(state);
-  // Boulders
-  for (const b of tp.boulders) {
-    c.save(); c.translate(b.x, b.y); c.rotate(b.x * 0.06);
-    c.fillStyle = '#1A0B06'; c.beginPath(); c.arc(0, 0, b.r + 1.5, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#78716C'; c.beginPath(); c.arc(0, 0, b.r, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#A8A29E'; c.fillRect(-b.r * 0.5, -b.r * 0.6, b.r * 0.6, 3); c.fillStyle = '#57534E'; c.fillRect(-2, 2, b.r * 0.7, 3);
-    c.restore();
-  }
-  // Darts (feathered)
-  for (const d of tp.darts) { box(c, d.x, d.y - 1, 14, 2, '#D4D4D8'); box(c, d.x + 12, d.y - 3, 6, 6, '#EF4444'); }
-  // The snake: a big painted rubber head on the ram
-  if (crewed(state, 3) || tp.snakeT % SNAKE_CYCLE !== 0) {
-    const s = crewed(state, 3) ? snakeOut(tp.snakeT) : { k: 0, rear: false };
-    const hx = SNAKE_WALL - Math.max(-0.12, s.k) * SNAKE_REACH;
-    box(c, hx + 20, SNAKE_Y - 6, SNAKE_WALL - hx - 20 + 50, 12, '#A1A1AA');
-    box(c, hx - 32, SNAKE_Y - 28, 56, 56, '#15803D'); box(c, hx - 32, SNAKE_Y - 28, 56, 6, '#22C55E');
-    box(c, hx - 44, SNAKE_Y - 4, 16, 22, '#7F1D1D');
-    c.fillStyle = '#FDE047'; c.fillRect(hx - 20, SNAKE_Y - 18, 8, 6);
-    if (s.rear && f % 6 < 3) label(c, 'HSSSS', hx, SNAKE_Y - 40, '#BBF7D0', 7);
-    if (!crewed(state, 3)) label(c, '(OFF)', hx, SNAKE_Y - 40, '#A8A29E', 6);
-  }
-  // Fog over the floor there
-  for (const fg of tp.fog) { c.fillStyle = `rgba(214, 211, 209, ${0.16 * (1 - fg.t / 260)})`; c.beginPath(); c.arc(fg.x, fg.y, fg.r, 0, Math.PI * 2); c.fill(); }
-  // The cart, and whoever's still in it; the ones kicked out, flying
-  const ld = tp.loading;
-  const riders = ld ? GUESTS.map((_, i) => i).filter(i => i >= ld.kicked) : tp.loadingSeen ? [] : [0, 1, 2];
-  drawCart(c, CART_X + (ld?.rolling ?? 0), f, riders);
-  if (ld) for (const g of ld.flying) { c.save(); c.translate(g.x, g.y); c.rotate(-g.rot); drawPerson(c, { seed: g.seed, woman: g.woman, outfit: 'guest', pose: 'fly', f, mood: 'shocked' }); c.restore(); }
-  // What's being said (over whoever's saying it)
-  if (ld?.said) {
-    const who = ld.said.who;
-    const at = who === 'm2.operator' ? { x: BOOTH_X + 50, y: GY - 140 } : who === 'm2.operator2' ? { x: BOOTH_X + 120, y: GY - 160 }
-      : ld.step >= 1 ? { x: STATION_X + 520 + (who === 'm2.guest' ? 0 : 90), y: GY - 250 }
-      : ld.flying.length ? { x: Math.max(cam + 140, ld.flying[ld.flying.length - 1].x), y: Math.max(state.camera.y + 140, ld.flying[ld.flying.length - 1].y - 50) } : { x: CART_X - 300, y: GY - 300 };
-    saidOver(c, ld.said.s.text, at.x, at.y, who.startsWith('m2.operator') ? '#FDE68A' : '#FFFFFF', 260);
-  }
-};

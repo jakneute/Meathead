@@ -7,15 +7,20 @@
 // slows him. At the end (a cutscene: THE END OF THE LINE) the track curves up and goes straight up, and the two of
 // them fly off the top of it, on up through the temple's roof.
 //
-// Crude on purpose (the first pass): boxes and lines.
+// The mine itself is painted in art.ts.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { Section, Said } from '../section';
-import { lay, speak, meatheadSays, box, label, saidOver, hands, getAdv, sectionState } from '../section';
-import { SECTIONS, GY } from '../geometry';
+import { lay, speak, meatheadSays, saidOver, hands, getAdv, sectionState } from '../section';
+import { GY } from '../geometry';
 import { HOLE_X as ROOF_HOLE_X } from '../roof';
+import {
+  x0, x1, X, RUNS, RAMP_X, RAMP_R, RAMP_Y, RAIL_TOP, BEAMS, SCANNER_X, CHASE_X, SLOW_TO, FORK_CAM_X, OUTRO_X, SINK,
+  trackY, slopeAt, artieTrackY,
+} from './layout';
+import { drawCartBackdrop, drawCartTrack, drawCartFront, cartLighting } from './art';
 import { setUi } from '../../store';
 import { silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
@@ -32,8 +37,6 @@ import {
   HURT_BEAM, DEATH_BEAM, HURT_ARTIE, DEATH_ARTIE, HURT_PIT, DEATH_PIT,
 } from './lines';
 
-const { x0, x1 } = SECTIONS.cart;
-const X = x0;
 
 registerHurtLines('cart_beam', HURT_BEAM, DEATH_BEAM);
 registerHurtLines('cart_artie', HURT_ARTIE, DEATH_ARTIE);
@@ -44,60 +47,8 @@ const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(
 /** First time through (return trips will differ: no Artie, say). One flag per set piece. */
 const firstVisit = (_state: GameState) => true;
 
-// ---------------------------------------------------------------------------------------------------------------
-// The track: runs of rail (x from, x to, y from, y to: from X, and from GY), with the gaps between them
-
-const RUNS: [number, number, number, number][] = [
-  [0, 1200, 0, 0],            // the loading station, out of it (slowly), the scanner, the fork
-  [1200, 1950, 0, -260],      // UNFRIENDLY GUESTS: up the hill (and getting going)
-  [1950, 2500, -260, -260],
-  [2500, 2900, -260, -200],   // down a dip
-  [3060, 3800, -200, -200],   // (the first gap: 160; the first beam)
-  [3800, 4700, -200, -260],
-  [4700, 5400, -260, -260],   // (the checkpoint; Artie)
-  [5580, 6200, -260, -200],
-  [6200, 6900, -200, -200],
-  [7080, 7500, -200, -120],
-  [7500, 8200, -120, -120],
-  [8400, 9000, -120, -260],
-  [9000, 9700, -260, -100],
-  [9880, 10600, -100, -100],
-  [10600, 11200, -100, -100],
-  [11380, 11700, -100, -100], // and the ramp
-].map(([a, b, ya, yb]) => [X + a, X + b, GY + ya, GY + yb]);
-/** Where it curves up to go straight up, and how tight; where the straight-up rail ends (they fly off it). */
-const RAMP_X = X + 11700, RAMP_R = 200, RAMP_Y = GY - 100, RAIL_TOP = RAMP_Y - RAMP_R - 520;
-/** Low beams over the track (duck). */
-const BEAMS = [3450, 6500, 7850, 9500, 10300, 10950].map(b => X + b);
-const SCANNER_X = X + 760, FORK_X = X + 1150, CHASE_X = X + 5450;
-/** Out of the station it rolls slowly to here (the scanner and the fork: there to be seen), then gets up to speed. */
-const SLOW_TO = FORK_X + 250;
-/** (where the camera holds a moment, rolling by: the scanner, the switch and both signs in view at once) */
-const FORK_CAM_X = X + 590;
-/** Past the last gap: the end of the line, a cutscene from here (no more steering). */
-const OUTRO_X = X + 11420;
-/** How far the beam's bottom is over the rail, and how far down in the cart his feet are. */
-const BEAM_CLEAR = 66, SINK = 14;
-
-const runAt = (x: number) => RUNS.find(r => x >= r[0] && x <= r[1]);
-const trackY = (x: number): number | null => { const r = runAt(x); return r ? r[2] + ((x - r[0]) / (r[1] - r[0])) * (r[3] - r[2]) : null; };
-/** How the track leans at x (radians: up a hill to the right, negative), from its height either side; `y` for where
- *  there's no track (a gap). */
-const slopeAt = (x: number, y: (x: number) => number | null = trackY) => {
-  const a = y(x - 14), b = y(x + 14);
-  return a === null || b === null ? null : Math.atan2(b - a, 28);
-};
 /** The cart's lean on the ride: along the track under it; in the air, nosing with its climb or fall. */
 const rideRot = (cart: Cart) => (cart.air ? Math.max(-0.3, Math.min(0.3, cart.vy * 0.03)) : slopeAt(cart.x) ?? 0);
-/** (Artie's cart: over a gap, it hops it) */
-const artieTrackY = (x: number) => {
-  const y = trackY(x);
-  if (y !== null) return y;
-  const before = [...RUNS].reverse().find(r => r[1] < x), after = RUNS.find(r => r[0] > x);
-  if (!before || !after) return GY;
-  const u = (x - before[1]) / (after[0] - before[1]);
-  return before[3] + (after[2] - before[3]) * u - Math.sin(u * Math.PI) * 70;
-};
 
 // ---------------------------------------------------------------------------------------------------------------
 
@@ -116,7 +67,7 @@ interface Flier {
 }
 const flier = (s: number, v: number): Flier => ({ s, v, x: 0, y: 0, rot: 0, fly: false, vy: 0, t: 0, out: 0, drift: 0, rx: 0, ry: 0, rrot: 0, sdx: 0, sdy: 0 });
 
-interface Cart {
+export interface Cart {
   /** Not on yet, riding, the end of the line (the cutscene: up the ramp and off the top), gone (on to the roof). */
   mode: 'off' | 'ride' | 'outro' | 'gone';
   x: number; y: number; railY: number; vy: number; speed: number; air: boolean;
@@ -431,17 +382,10 @@ export const cart: Section = {
     return out;
   },
   cameraRow: () => 420,
-  drawBackdrop: (c, state) => {
-    const g = c.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-    g.addColorStop(0, '#1C1009'); g.addColorStop(1, '#3B2414');
-    c.fillStyle = g; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    // (far rock, dim)
-    const off = (state.camera.x * 0.3) % 160;
-    for (let i = -1; i < 7; i++) box(c, i * 160 - off, 80 + ((i * 37) % 60), 90, 380, '#2A190E');
-    return true;
-  },
-  drawBack: (c, state) => { drawTrack(c, state); drawCarts(c, state, true); },
-  drawFront: (c, state) => drawCarts(c, state),
+  drawBackdrop: (c, state) => { drawCartBackdrop(c, state); return true; },
+  drawBack: (c, state) => { drawCartTrack(c, state, getCart(state)); drawCarts(c, state, true); },
+  drawFront: (c, state) => { drawCarts(c, state); drawCartFront(c, state); },
+  lighting: (state) => cartLighting(state, getCart(state)),
   drawHud: (c, state) => {
     const cart = getCart(state);
     if (cart.mode !== 'outro') return;
@@ -451,85 +395,7 @@ export const cart: Section = {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude)
-
-const drawTrack = (c: CanvasRenderingContext2D, state: GameState) => {
-  const L = state.camera.x - 100, R = state.camera.x + CANVAS_WIDTH + 100;
-  if (R < x0 || L > x1) return;
-  const f = state.frame;
-  // The cave: timber frames every so often (background: dim)
-  for (let x = Math.floor(L / 320) * 320; x < R; x += 320) {
-    const y = artieTrackY(x);
-    box(c, x - 6, y - 260, 12, 420, '#3F2A17'); box(c, x - 40, y - 266, 92, 12, '#3F2A17');
-  }
-  // The friendly route: straight on at the fork, into a nice tunnel (we're not going that way)
-  const FRIENDLY_END = X + 2400;
-  if (R > FORK_X && L < FRIENDLY_END + 200) {
-    box(c, FORK_X, GY - 4, FRIENDLY_END - FORK_X, 4, '#6B7280');
-    for (let x = FORK_X; x < FRIENDLY_END; x += 24) box(c, x, GY - 2, 14, 6, '#4B2E14');
-    box(c, FRIENDLY_END - 300, GY - 150, 300, 150, '#7DD3FC'); box(c, FRIENDLY_END - 240, GY - 110, 180, 110, '#0C4A6E');
-    label(c, "IT'S A FRIENDLY WORLD", FRIENDLY_END - 150, GY - 125, '#FDF2F8', 8);
-    for (let i = 0; i < 3; i++) { const bx = X + 1600 + i * 90, bob = Math.sin(f * 0.1 + i) * 4; box(c, bx, GY - 60 + bob, 30, 40, '#F9A8D4'); box(c, bx + 8, GY - 52 + bob, 4, 4, '#000'); box(c, bx + 18, GY - 52 + bob, 4, 4, '#000'); box(c, bx + 8, GY - 40 + bob, 14, 3, '#000'); }
-  }
-  // The rails: the trestle under them, the ties, the rail (lit along its top: it's what he's on)
-  for (const [a, b, ya, yb] of RUNS) {
-    if (b < L || a > R) continue;
-    for (let x = Math.max(a, Math.floor(L / 60) * 60); x <= Math.min(b, R); x += 60) {
-      const y = ya + ((x - a) / (b - a)) * (yb - ya);
-      box(c, x - 4, y + 4, 8, 600, '#2B1A0C');
-    }
-    for (let x = Math.max(a, Math.floor(L / 20) * 20); x <= Math.min(b, R); x += 20) {
-      const y = ya + ((x - a) / (b - a)) * (yb - ya);
-      box(c, x - 6, y, 12, 6, '#5B3A1C');
-    }
-    c.strokeStyle = '#9CA3AF'; c.lineWidth = 3; c.beginPath(); c.moveTo(a, ya - 1); c.lineTo(b, yb - 1); c.stroke();
-    c.strokeStyle = '#E5E7EB'; c.lineWidth = 1; c.beginPath(); c.moveTo(a, ya - 2.5); c.lineTo(b, yb - 2.5); c.stroke();
-  }
-  // The ramp: round and straight up
-  if (R > RAMP_X - 50 && L < RAMP_X + RAMP_R + 100) {
-    c.strokeStyle = '#9CA3AF'; c.lineWidth = 3; c.beginPath();
-    box(c, RAMP_X + RAMP_R + 2, RAIL_TOP, 40, RAMP_Y + 600 - RAIL_TOP, '#2B1A0C');
-    c.strokeStyle = '#9CA3AF'; c.lineWidth = 3; c.beginPath();
-    c.arc(RAMP_X, RAMP_Y - RAMP_R, RAMP_R, Math.PI / 2, 0, true); c.lineTo(RAMP_X + RAMP_R, RAIL_TOP); c.stroke();
-    // (where it ends: a bent stop, and nothing after it but the roof)
-    box(c, RAMP_X + RAMP_R - 10, RAIL_TOP - 6, 54, 8, '#7C2D12');
-    label(c, 'END OF LINE', RAMP_X + RAMP_R - 70, RAMP_Y - 250, '#F87171', 8);
-    label(c, 'NO RIDERS PAST THIS POINT', RAMP_X + RAMP_R - 70, RAMP_Y - 234, '#FCA5A5', 6);
-  }
-  // Signs: the first gap and the first beam (to teach), and the fork
-  const sign = (x: number, y: number, s: string, col = '#FDE047') => { box(c, x - 2, y, 4, 40, '#3F2A17'); box(c, x - 46, y - 22, 92, 24, '#1C1917'); label(c, s, x, y - 6, col, 7); };
-  sign(X + 2780, (trackY(X + 2780) ?? GY) - 60, 'GAP AHEAD');
-  sign(X + 3310, (trackY(X + 3310) ?? GY) - 60, 'LOW BEAM', '#FCA5A5');
-  // Beams: hanging from above
-  for (const b of BEAMS) {
-    if (b < L || b > R) continue;
-    const y = trackY(b) ?? GY;
-    box(c, b - 12, y - BEAM_CLEAR - 500, 24, 500, '#6B4423');
-    box(c, b - 30, y - BEAM_CLEAR - 18, 60, 18, '#7C4A1E');
-    for (let i = 0; i < 4; i++) box(c, b - 28 + i * 15, y - BEAM_CLEAR - 18, 8, 18, i % 2 ? '#FDE047' : '#1C1917');
-  }
-  // The scanner and the fork
-  if (R > SCANNER_X - 200 && L < FORK_X + 300) {
-    const cart = getCart(state);
-    box(c, SCANNER_X - 60, GY - 190, 12, 190, '#52525B'); box(c, SCANNER_X + 48, GY - 190, 12, 190, '#52525B');
-    box(c, SCANNER_X - 70, GY - 220, 140, 34, '#27272A');
-    label(c, 'GUEST SCANNER', SCANNER_X, GY - 198, '#A5F3FC', 7);
-    if (cart.scanT > 0 && cart.scanT < 400) {
-      const flash = Math.floor(cart.scanT / 8) % 2 === 0;
-      const what = isNude(state) ? 'UNFRIENDLY (NO PANTS)' : isShat(state) ? 'UNFRIENDLY (SOILED)' : 'UNFRIENDLY';
-      box(c, SCANNER_X - 150, GY - 290, 300, 50, '#18181B');
-      label(c, 'GUEST STATUS:', SCANNER_X, GY - 270, '#E5E7EB', 8);
-      label(c, what, SCANNER_X, GY - 252, flash ? '#F87171' : '#FCA5A5', 8);
-      c.fillStyle = 'rgba(248,113,113,0.18)'; c.fillRect(SCANNER_X - 48, GY - 186, 96, 186);
-    }
-    // The switch, thrown up the hill
-    const up = cart.scanT >= 40 || cart.x > FORK_X;
-    box(c, FORK_X - 30, GY - 30, 20, 30, '#3F3F46');
-    c.save(); c.translate(FORK_X - 20, GY - 30); c.rotate(up ? -0.6 : 0.6); box(c, -2, -30, 4, 30, '#A1A1AA'); box(c, -5, -36, 10, 8, '#DC2626'); c.restore();
-    sign(FORK_X + 60, GY - 70, 'FRIENDLY GUESTS >', '#86EFAC');
-    sign(FORK_X + 180, GY - 170, 'UNFRIENDLY GUESTS ^', '#FCA5A5');
-  }
-};
+// The carts (the mine itself is painted in art.ts)
 
 /** A cart (the ride's own, as at the station: rideCart.ts), whoever's in it sat at its seat, here at `x`. */
 const drawCartBox = (c: CanvasRenderingContext2D, x: number, y: number, f: number, look: CartLook, rot = 0, back = false) => {
