@@ -69,6 +69,13 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
   state.lastHurt = undefined;
   // (back on his feet clean)
   p.bleedT = 0; p.bloodHp = undefined;
+  // (and nothing left over from how he died, or what he was in the middle of: no pose, no twitch, no hold on him)
+  p.stabbed = undefined; p.kickPose = 0; p.deathFace = undefined; p.gut = undefined; p.headless = undefined; p.shownDead = undefined;
+  p.hidden = undefined; p.spriteRot = undefined; p.squash = undefined; p.ledgeDrop = 0;
+  p.hurtForm = undefined; p.hurtFormTimer = 0; p.hurtTimer = 0; p.pushbackTimer = 0; p.lockTimer = 0; p.recoiling = false;
+  p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.isDucking = false;
+  p.throwTimer = 0; p.barfTimer = 0; p.peeTimer = 0; p.isTasing = false; p.isFlaming = false;
+  p.vine = undefined; p.dropVine = undefined; p.carried = undefined; p.cartSeat = undefined; p.inCutscene = undefined;
   const checkpointStart = buildLevel(state, stageId, atBoss);
   // (a stage he starts on his feet in: back on his feet on its floor, there, not dropped from up where a ceiling might be)
   if (getStageLayout(stageId)?.startsStanding && !checkpointStart && state.groundRuns.length) {
