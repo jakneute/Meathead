@@ -169,7 +169,9 @@ const distantTrestle = (c: Ctx, eye: Eye, f: number) => {
 /** Where the timber sets stand (front-plane x), and the rail height they're set to there. */
 const setsOn = (eye: Eye) => {
   const out: { x: number; y: number }[] = [];
-  const [s0, s1] = spanAt(eye, SET_D, 120);
+  // (one more set past each edge of what's on screen: the cap beam and lagging run from each set to the next, so the
+  // span either side of the screen's edge needs both its ends, or it pops in as the next set comes into view)
+  const [s0, s1] = spanAt(eye, SET_D, 120 + 320);
   for (let x = Math.floor(s0 / 320) * 320; x < s1; x += 320) {
     if (x < X - 200 || x > RAMP_X - 100) continue;
     out.push({ x, y: artieTrackY(x) });
@@ -238,8 +240,9 @@ const drawShelf = (c: Ctx, eye: Eye, L: number, R: number) => {
     const col = [r[0], mix(r[0], r[1], 0.5), r[1], mix(r[1], r[2], 0.5), r[2]][i];
     quad(c, col, at(eye, SHELF_X0, GY, ds[i]), at(eye, SHELF_X1, GY, ds[i]), at(eye, SHELF_X1, GY, ds[i + 1]), at(eye, SHELF_X0, GY, ds[i + 1]));
   }
-  // (grit on it)
-  for (let x = Math.floor(Math.max(L, SHELF_X0) / 40) * 40; x < Math.min(R, SHELF_X1); x += 40) {
+  // (grit on it: as far back as 0.75, so culled by where that lands on screen, not by his plane's edges)
+  const [g0, g1] = spanAt(eye, 0.75, 10);
+  for (let x = Math.floor(Math.max(g0, SHELF_X0) / 40) * 40; x < Math.min(g1, SHELF_X1); x += 40) {
     const d = 0.75 + hash(x * 0.3) * 0.3, p = at(eye, x, GY, d);
     box(c, p[0], p[1], 4 * d, 2, r[3]); box(c, p[0] + 6, p[1] + 1, 2, 1, r[0]);
   }
@@ -374,7 +377,8 @@ const drawFriendly = (c: Ctx, eye: Eye, f: number, L: number, R: number) => {
     for (let k = 0; k < 8; k++) { const on = (Math.floor(f / 8) + k) % 3 === 0; box(c, ax + 12 + k * 38, GY - 296, 6, 6, on ? '#FFFFFF' : '#F9A8D4'); }
   });
   // (the rails and ties of it, bending back)
-  for (let x = Math.max(FORK_X, Math.floor(L / 20) * 20); x < Math.min(FRIENDLY_END - 150, R + 40); x += 20) {
+  const [t0, t1] = spanAt(eye, 0.79, 20);
+  for (let x = Math.max(FORK_X, Math.floor(t0 / 20) * 20); x < Math.min(FRIENDLY_END - 150, t1); x += 20) {
     const d = friendlyD(x);
     quad(c, '#5E4028', at(eye, x - 5, GY + 1, d - 0.065), at(eye, x + 5, GY + 1, d - 0.065), at(eye, x + 5, GY + 1, d + 0.005), at(eye, x - 5, GY + 1, d + 0.005));
   }
@@ -491,15 +495,39 @@ const drawScanner = (c: Ctx, eye: Eye, state: GameState, cart: Cart) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The low beams: a timber set right across the track, at head height, striped; a lamp on it, blinking
 
+/**
+ * Each low beam is the foot of a bulkhead: a timbered wall across the track from the wall behind it (SET_D) to past
+ * the camera (BULK_NEAR), solid from the beam right up out of sight, the gap under it all there is. Seen from the side
+ * it's its end (cut at the near side) and the face of it toward the eye, going back.
+ */
+const BULK_NEAR = 1.1, BULK_W = 22;
+/** Up out of sight at every depth it's drawn at (however high the camera is). */
+const bulkTop = (eye: Eye) => eye.y - (CANVAS_HEIGHT * 0.42 + 60) / SET_D;
+const bulkSide = (c: Ctx, eye: Eye, b: number, d0: number, d1: number) => {
+  const rail = trackY(b) ?? GY, by = rail - BEAM_CLEAR - 22, top = bulkTop(eye);
+  const sx = eye.x < b - BULK_W ? b - BULK_W : eye.x > b + BULK_W ? b + BULK_W : null;
+  if (sx === null) return;
+  const r = rampOf(dark(TIMBER, 0.25));
+  // (in steps going back, darker the further: the lagging planks' ends)
+  const steps = [d0, d0 + (d1 - d0) * 0.34, d0 + (d1 - d0) * 0.67, d1];
+  for (let i = 0; i < 3; i++) {
+    const a = steps[i], z = steps[i + 1], col = [r[1], mix(r[1], r[2], 0.5), r[2]][d1 > 1 ? 2 : i];
+    quad(c, col, at(eye, sx, top, a), at(eye, sx, top, z), at(eye, sx, by, z), at(eye, sx, by, a));
+  }
+  // (the planks, one over the next all the way up: their seams going back)
+  c.strokeStyle = r[0]; c.lineWidth = 1; c.beginPath();
+  for (let y = by - 18; y > top; y -= 18) { const p = at(eye, sx, y, d0), q = at(eye, sx, y, d1); c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); }
+  c.stroke();
+  // (its bottom edge, over the gap, lit)
+  seg(c, at(eye, sx, by, d0), at(eye, sx, by, d1), r[3], 2);
+};
 const drawBeam = (c: Ctx, eye: Eye, b: number, f: number) => {
   const rail = trackY(b) ?? GY, by = rail - BEAM_CLEAR;
-  // (the back post, up into the dark)
-  const bp = at(eye, b, by - 18, 0.9);
-  box(c, bp[0] - 9, bp[1] - 600, 18, 600, INK); box(c, bp[0] - 8, bp[1] - 600, 16, 600, '#4A3420'); box(c, bp[0] - 8, bp[1] - 600, 4, 600, '#5E4430');
+  // (the bulkhead's face toward the eye, from the wall behind out to his plane)
+  bulkSide(c, eye, b, SET_D, 1);
   // (the beam itself: end on, going back across the track; its top seen from above, its underside's shadow)
-  const f0 = at(eye, b - 22, by - 22, 1.1), f1 = at(eye, b + 22, by - 22, 1.1), k0 = at(eye, b - 22, by - 22, 0.9), k1 = at(eye, b + 22, by - 22, 0.9);
-  if (eye.y < by - 22) quad(c, '#8A6A40', f0, f1, k1, k0);
-  const lo0 = at(eye, b - 22, by, 1.1), lo1 = at(eye, b + 22, by, 1.1);
+  const f0 = at(eye, b - 22, by - 22, 1.1), f1 = at(eye, b + 22, by - 22, 1.1);
+  const lo0 = at(eye, b - 22, by, 1.1);
   // (its front end: hazard stripes painted on it)
   box(c, f0[0] - 1, f0[1] - 1, f1[0] - f0[0] + 2, lo0[1] - f0[1] + 2, INK);
   c.save(); c.beginPath(); c.rect(f0[0], f0[1], f1[0] - f0[0], lo0[1] - f0[1]); c.clip();
@@ -508,17 +536,25 @@ const drawBeam = (c: Ctx, eye: Eye, b: number, f: number) => {
   for (let k = -40; k < 60; k += 12) { c.beginPath(); c.moveTo(f0[0] + k, f0[1]); c.lineTo(f0[0] + k + 6, f0[1]); c.lineTo(f0[0] + k + 6 - 24, lo0[1]); c.lineTo(f0[0] + k - 24, lo0[1]); c.closePath(); c.fill(); }
   box(c, f0[0], f0[1], f1[0] - f0[0], 2, 'rgba(255,255,255,0.35)');
   c.restore();
-  void lo1;
-  // (the lamp on top: amber, blinking)
-  const on = f % 40 < 24;
-  ball(c, (f0[0] + f1[0]) / 2, f0[1] - 6, 5, on ? '#F59E0B' : '#78350F');
-  if (on) steppedGlow(c, (f0[0] + f1[0]) / 2, f0[1] - 6, 26, '#F59E0B', 0.25, 0.02, 3);
+  void f;
 };
-/** The beam's front post: nearer than the track (drawn over everything), up into the dark. */
-const beamFrontPost = (c: Ctx, eye: Eye, b: number) => {
-  const rail = trackY(b) ?? GY, by = rail - BEAM_CLEAR;
-  const p = at(eye, b, by - 22, 1.1);
-  box(c, p[0] - 11, p[1] - 700, 22, 700, INK); box(c, p[0] - 10, p[1] - 700, 20, 700, '#3A2818'); box(c, p[0] - 10, p[1] - 700, 5, 700, '#4E3826');
+/** The bulkhead's near part: its face toward the eye from his plane on out, and its cut end; the lamp on it. */
+const beamFrontPost = (c: Ctx, eye: Eye, b: number, f: number) => {
+  const rail = trackY(b) ?? GY, by = rail - BEAM_CLEAR - 22, top = bulkTop(eye);
+  bulkSide(c, eye, b, 1, BULK_NEAR);
+  const a = at(eye, b - BULK_W, top, BULK_NEAR), z = at(eye, b + BULK_W, by, BULK_NEAR);
+  const w = z[0] - a[0], h = z[1] - a[1];
+  const r = rampOf(dark(TIMBER, 0.35));
+  box(c, a[0] - 2, a[1], w + 4, h, INK);
+  box(c, a[0], a[1], w, h, r[1]);
+  // (its planks' ends, stepped: one in three a shade lighter; the posts either side of it)
+  for (let k = 0; ; k++) { const y = z[1] - (k + 1) * 20; if (y < a[1]) break; box(c, a[0], y, w, 1, r[0]); if (k % 3 === 1) box(c, a[0] + 6, y + 1, w - 12, 19, r[2]); }
+  box(c, a[0], a[1], 6, h, r[2]); box(c, a[0] + w - 6, a[1], 6, h, r[0]);
+  // (the lamp on it, over the beam: amber, blinking)
+  const on = f % 40 < 24, lx = a[0] + w / 2, ly = z[1] - 14;
+  box(c, lx - 7, ly - 7, 14, 14, INK);
+  ball(c, lx, ly, 5, on ? '#F59E0B' : '#78350F');
+  if (on) steppedGlow(c, lx, ly, 26, '#F59E0B', 0.25, 0.02, 3);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -615,7 +651,8 @@ export const drawCartTrack = (c: Ctx, state: GameState, cart: Cart) => {
     if (L < X + 600 && R > X + 200) postSign(c, X + 470, GY, 60, 170, 'KEEP SEATED', '#14532D', '#BBF7D0', 6);
   });
   for (const b of BEAMS) if (b > L - 60 && b < R + 60) drawBeam(c, eye, b, f);
-  if (R > RAMP_X - 400) drawRamp(c, eye, f);
+  // (the ramp's overhead (the temple's floor from under) starts 700 short of it)
+  if (R > RAMP_X - 720) drawRamp(c, eye, f);
   // (and the dark coming up out of the depths under it all)
   const rail = cart.mode === 'ride' ? cart.railY : eye.y + 182;
   hazeBands(c, state.camera.x - 10, rail + 70, CANVAS_WIDTH + 20, 420, '#04050A', 0, 0.8, 6);
@@ -627,7 +664,7 @@ export const drawCartFront = (c: Ctx, state: GameState) => {
   const L = state.camera.x - 100, R = state.camera.x + CANVAS_WIDTH + 100;
   if (R < X - 400 || L > x1) return;
   const eye = eyeOf(state);
-  for (const b of BEAMS) if (b > L - 60 && b < R + 60) beamFrontPost(c, eye, b);
+  for (const b of BEAMS) if (b > L - 60 && b < R + 60) beamFrontPost(c, eye, b, state.frame);
   const d = 1.4;
   const [s0, s1] = spanAt(eye, d, 100);
   inDepth(c, eye, d, () => {

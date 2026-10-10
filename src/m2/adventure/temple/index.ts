@@ -35,7 +35,7 @@ import { DINO_BACK_DOOR_X } from '../dino';
 import { drawRideCart, SEAT_DX, RIDE_SINK, JAGUAR_EXPRESS } from '../rideCart';
 import './kinds';
 import {
-  x0, x1, T, CATAPULT_X, DART_WALL, SNAKE_WALL, SNAKE_Y, SNAKE_REACH, CART_X, SCENE_AT, POSTS, LEDGES, SOLIDS, ACTORS,
+  x0, x1, T, END_WALL, CATAPULT_X, DART_WALL, SNAKE_WALL, SNAKE_Y, SNAKE_REACH, CART_X, SCENE_AT, POSTS, LEDGES, SOLIDS, ACTORS,
   type Temple, type Loading, crewed, DART_EVERY, DART_TELL, DART_SPEED, dartY, SNAKE_CYCLE, SNAKE_WIND, snakeOut, GUESTS, SEAT,
 } from './layout';
 import { drawTempleBackdrop, drawTempleBack, drawTempleFront, templeLighting } from './art';
@@ -134,6 +134,8 @@ const runFog = (state: GameState, tp: Temple) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The loading scene
 
+/** How long the scene's held after he's sent off, before the ride itself (frames: a beat, ~1.75 s). */
+const SENT_OFF_HOLD = 105;
 /** Frames from the kick starting to the boot all the way out (where it lands). */
 const KICK_LANDS = 9;
 
@@ -212,7 +214,9 @@ const runLoading = (ctx: FrameContext, tp: Temple): Controls => {
     if (ld.t === 10) { playSound('clang', 1, -8); playSound('thud', 0.8); }
     if (ld.t === 30) { playSound('alarm', 0.5); playSound('grind', 0.7, -6); }
     if (ld.t > 30) ld.rolling += Math.min(9, (ld.t - 30) * 0.25);
-    if (ld.t > 80) endLoading(state, tp, false);
+    // (into the tunnel: gone into the dark of it once he's past its mouth; the scene held on a beat after)
+    if (p.pos.x + p.width / 2 > END_WALL - 6) p.hidden = true;
+    if (ld.t > 80 + SENT_OFF_HOLD) endLoading(state, tp, false);
   }
   return hands();
 };
@@ -259,7 +263,13 @@ export const temple: Section = {
   },
   drawBackdrop: (c, state) => { drawTempleBackdrop(c, state); return true; },
   // (and the back of the ride's cart, over all that: behind whoever's sat in it)
-  drawBack: (c, state) => { drawTempleBack(c, state, templeOf(state)); drawRideCart(c, CART_X + (templeOf(state).loading?.rolling ?? 0), GY, state.frame, JAGUAR_EXPRESS, true); },
+  drawBack: (c, state) => {
+    drawTempleBack(c, state, templeOf(state));
+    // (clipped at the end wall: it rolls off into the tunnel there)
+    c.save(); c.beginPath(); c.rect(T - 400, GY - 1000, END_WALL - T + 400, 1100); c.clip();
+    drawRideCart(c, CART_X + (templeOf(state).loading?.rolling ?? 0), GY, state.frame, JAGUAR_EXPRESS, true);
+    c.restore();
+  },
   drawFront: (c, state) => drawTempleFront(c, state, templeOf(state)),
   lighting: (state) => templeLighting(state, templeOf(state)),
   drawHud: (c, state) => {

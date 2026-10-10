@@ -54,25 +54,35 @@ const seg = (c: Ctx, a: [number, number], b: [number, number], col: string, w = 
  * from it to `back` (its top, if he's above it; the side that faces him), the top's front edge lit (somewhere to stand).
  */
 export const block3d = (c: Ctx, eye: Eye, x: number, top: number, w: number, bottom: number, col: string, back = 0.9,
-  face?: (g: Ctx) => void, opts: { lip?: boolean; key?: string } = {}) => {
+  face?: (g: Ctx) => void, opts: { lip?: boolean; key?: string; part?: 'back' | 'front'; at?: number } = {}) => {
   const r = rampOf(col);
-  // (the side that faces him)
-  const side = eye.x < x ? x : eye.x > x + w ? x + w : null;
-  if (side !== null) {
-    const a1 = at(eye, side, top, back), b1 = at(eye, side, bottom, back);
-    quad(c, r[1], [side, top], a1, b1, [side, bottom]);
-    quad(c, 'rgba(10, 6, 2, 0.3)', at(eye, side, top, (1 + back) / 2), a1, b1, at(eye, side, bottom, (1 + back) / 2));
-    seg(c, a1, b1, INK);
+  // (its front can stand back from his plane: `at` deep)
+  const fd = opts.at ?? 1, mid = (fd + back) / 2;
+  // (drawn in two goes where something stands right beside it: its side and top (going back) first, then whatever's
+  // beside it, nearer the eye than that side, then its front over the lot)
+  if (opts.part !== 'front') {
+    // (the side that faces him)
+    const side = eye.x < x ? x : eye.x > x + w ? x + w : null;
+    if (side !== null) {
+      const a1 = at(eye, side, top, back), b1 = at(eye, side, bottom, back);
+      quad(c, r[1], at(eye, side, top, fd), a1, b1, at(eye, side, bottom, fd));
+      quad(c, 'rgba(10, 6, 2, 0.3)', at(eye, side, top, mid), a1, b1, at(eye, side, bottom, mid));
+      seg(c, a1, b1, INK);
+    }
+    // (its top, if he's above it)
+    if (eye.y < top) {
+      quad(c, r[3], at(eye, x, top, fd), at(eye, x + w, top, fd), at(eye, x + w, top, back), at(eye, x, top, back));
+      seg(c, at(eye, x, top, back), at(eye, x + w, top, back), r[2], 2);
+    }
   }
-  // (its top, if he's above it)
-  if (eye.y < top) {
-    quad(c, r[3], [x, top], [x + w, top], at(eye, x + w, top, back), at(eye, x, top, back));
-    seg(c, at(eye, x, top, back), at(eye, x + w, top, back), r[2], 2);
-  }
-  if (face && opts.key) stamp(c, opts.key, x - 2, top - 2, w + 4, bottom - top + 4, face);
-  else if (face) face(c);
-  else slab(c, x, top, w, bottom - top, col);
-  if (opts.lip !== false) { box(c, x, top, w, 2, r[4]); box(c, x, top + 2, w, 2, r[3]); }
+  if (opts.part === 'back') return;
+  const front = () => {
+    if (face && opts.key) stamp(c, opts.key, x - 2, top - 2, w + 4, bottom - top + 4, face);
+    else if (face) face(c);
+    else slab(c, x, top, w, bottom - top, col);
+    if (opts.lip !== false) { box(c, x, top, w, 2, r[4]); box(c, x, top + 2, w, 2, r[3]); }
+  };
+  if (fd === 1) front(); else inDepth(c, eye, fd, front);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -90,6 +100,14 @@ const showAt = (i: number, f: number) => {
 };
 
 const WALL_D = 0.5, FACADE_D = 0.78, PROPS_D = 0.9, TRUSS_D = 0.62;
+/** The room's two ends (the back door's wall, the end wall): planes going straight back from his plane to the far wall. */
+const ROOM_L = T + 10, ROOM_R = END_WALL;
+/** Where the rigging (chains, cables) goes up to: out of sight above the screen, however high he's climbed. */
+const CHAIN_TOP = GY - 1700;
+/** A chain hung from y0 down to y1 (links: 4 on, 2 off). */
+const chain = (c: Ctx, x: number, y0: number, y1: number, col: string) => {
+  c.strokeStyle = col; c.lineWidth = 2; c.setLineDash([4, 2]); c.beginPath(); c.moveTo(x + 1, y0); c.lineTo(x + 1, y1); c.stroke(); c.setLineDash([]);
+};
 const HAZE = [0.52, 0.56, 0.6, 0.66, 0.74, 0.84, 0.95];
 /** The facade's panels: where each starts (front-plane units at FACADE_D), its look. */
 const PANELS: { x: number; w: number; kind: number }[] = [];
@@ -171,26 +189,94 @@ const drawFloor = (c: Ctx, eye: Eye, L: number, R: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The room's ends: the back door's wall and the end wall, each a plane going straight back from his plane to the far
+// wall (only the one facing the eye shows): painted block, its courses, the conduit and the dado band carried round
+// from the far wall, all going back to the same point as the floor's seams
+
+const drawRoomEnd = (c: Ctx, eye: Eye, X: number) => {
+  if (X === ROOM_L ? eye.x <= X : eye.x >= X) return;
+  const p = (y: number, d: number) => at(eye, X, y, d);
+  // (where it lands on screen: cull by that, not by where it stands)
+  const xs = [p(GY, 1)[0], p(GY, WALL_D)[0]];
+  const L = eye.x - CANVAS_WIDTH / 2 - 4, R = eye.x + CANVAS_WIDTH / 2 + 4;
+  if (Math.max(...xs) < L || Math.min(...xs) > R) return;
+  const ds = [1, 0.9, 0.8, 0.7, 0.6, WALL_D];
+  const cols = ['#2E2620', '#29221C', '#241D18', '#1E1814', '#191310'];
+  for (let i = 0; i < cols.length; i++) quad(c, cols[i], p(CHAIN_TOP, ds[i]), p(CHAIN_TOP, ds[i + 1]), p(GY, ds[i + 1]), p(GY, ds[i]));
+  // (the dado band low down, as on the far wall)
+  quad(c, '#1F1813', p(GY - 118, 1), p(GY - 118, WALL_D), p(GY, WALL_D), p(GY, 1));
+  seg(c, p(GY - 119, 1), p(GY - 119, WALL_D), '#2A221C', 2);
+  // (block courses: every 32 up, going back)
+  // (each course's top lit a little, its joint dark)
+  c.strokeStyle = '#3A3029'; c.lineWidth = 1; c.beginPath();
+  for (let y = GY - 31; y > CHAIN_TOP; y -= 32) { const a = p(y, 1), b = p(y, WALL_D); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); }
+  c.stroke();
+  c.strokeStyle = '#0F0B09'; c.lineWidth = 1; c.beginPath();
+  for (let y = GY - 32; y > CHAIN_TOP; y -= 32) { const a = p(y, 1), b = p(y, WALL_D); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); }
+  // (and the joints, staggered: up the wall at steps going back)
+  for (let i = 0; i < 12; i++) {
+    const d = 1 - (1 - WALL_D) * (i + 0.5) / 12;
+    for (let y = GY - 32 * (i % 2 ? 1 : 2); y > GY - 900; y -= 64) { const a = p(y, d), b = p(y + 32, d); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); }
+  }
+  c.stroke();
+  // (the conduit, carried round from the far wall)
+  for (const cy of [GY - 520, GY - 540]) { seg(c, p(cy, 1), p(cy, WALL_D), '#4A4A4E', 2); seg(c, p(cy + 2, 1), p(cy + 2, WALL_D), '#26262A', 2); }
+  // (the corner with the far wall, and the edge where it's cut off at his plane)
+  seg(c, p(CHAIN_TOP, WALL_D), p(GY, WALL_D), '#0A0706', 2);
+  seg(c, p(CHAIN_TOP, 1), p(GY, 1), INK, 2);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // The truss overhead: box truss, the lamps hung off it (their beams, dust in them)
 
 const TRUSS_Y = GY - 640;
+/** How deep the box truss is (its back chords that much further back than its front ones). */
+const TRUSS_BACK = TRUSS_D - 0.035;
+/** The span of the truss (in its own units): wall to wall, nothing past the room's ends. */
+const trussSpan = (eye: Eye, pad: number): [number, number] => {
+  const [s0, s1] = spanAt(eye, TRUSS_D, pad);
+  return [Math.max(s0, ROOM_L), Math.min(s1, ROOM_R)];
+};
 const trussLamps = (eye: Eye) => {
   const out: number[] = [];
   const [s0, s1] = spanAt(eye, TRUSS_D, 200);
-  for (let x = Math.floor(s0 / 420) * 420 + 150; x < s1; x += 420) out.push(x);
+  for (let x = Math.floor(s0 / 420) * 420 + 150; x < s1; x += 420) if (x > ROOM_L + 40 && x < ROOM_R - 40) out.push(x);
   return out;
 };
 const drawTruss = (c: Ctx, eye: Eye, f: number) => {
+  // (it's a box truss: its back chords first, the underside between them and the front ones (he's under it: rungs
+  // going back to the one point everything goes back to), then the front)
+  {
+    const [s0, s1] = trussSpan(eye, 40);
+    if (s1 > s0) {
+      inDepth(c, eye, TRUSS_BACK, () => {
+        box(c, s0, TRUSS_Y, s1 - s0, 3, '#3A3E46'); box(c, s0, TRUSS_Y + 36, s1 - s0, 3, '#33363E');
+        c.strokeStyle = '#2C2F36'; c.lineWidth = 2; c.beginPath();
+        for (let x = Math.floor(s0 / 40) * 40; x < s1; x += 40) { c.moveTo(Math.max(s0, x), TRUSS_Y + 3); c.lineTo(x + 20, TRUSS_Y + 36); c.lineTo(Math.min(s1, x + 40), TRUSS_Y + 3); }
+        c.stroke();
+      });
+      if (eye.y > TRUSS_Y + 39) {
+        const a0 = at(eye, s0, TRUSS_Y + 39, TRUSS_D), a1 = at(eye, s1, TRUSS_Y + 39, TRUSS_D), b0 = at(eye, s0, TRUSS_Y + 39, TRUSS_BACK), b1 = at(eye, s1, TRUSS_Y + 39, TRUSS_BACK);
+        quad(c, 'rgba(20, 21, 26, 0.55)', a0, a1, b1, b0);
+        c.strokeStyle = '#3A3E46'; c.lineWidth = 2; c.beginPath();
+        for (let x = Math.ceil(s0 / 40) * 40; x <= s1; x += 40) { const p = at(eye, x, TRUSS_Y + 38, TRUSS_D), q = at(eye, x, TRUSS_Y + 38, TRUSS_BACK); c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); }
+        c.stroke();
+      }
+    }
+  }
   inDepth(c, eye, TRUSS_D, () => {
-    const [s0, s1] = spanAt(eye, TRUSS_D, 40);
+    const [s0, s1] = trussSpan(eye, 40);
+    if (s1 <= s0) return;
     const a = Math.floor(s0 / 40) * 40;
     box(c, s0, TRUSS_Y, s1 - s0, 3, '#5A5E66'); box(c, s0, TRUSS_Y + 3, s1 - s0, 1, '#2A2C30');
     box(c, s0, TRUSS_Y + 36, s1 - s0, 3, '#4A4E56'); box(c, s0, TRUSS_Y + 39, s1 - s0, 1, '#22242A');
+    c.save(); c.beginPath(); c.rect(s0, TRUSS_Y, s1 - s0, 40); c.clip();
     c.strokeStyle = '#3E424A'; c.lineWidth = 2; c.beginPath();
     for (let x = a; x < s1; x += 40) { c.moveTo(x, TRUSS_Y + 3); c.lineTo(x + 20, TRUSS_Y + 36); c.lineTo(x + 40, TRUSS_Y + 3); }
     c.stroke();
-    // (chains up into the dark)
-    for (let x = Math.floor(s0 / 600) * 600 + 80; x < s1; x += 600) for (let y = TRUSS_Y - 300; y < TRUSS_Y; y += 6) box(c, x, y, 2, 4, '#3A3A3E');
+    c.restore();
+    // (chains up into the dark: up past the top of the screen, however high he's climbed)
+    for (let x = Math.floor(s0 / 600) * 600 + 80; x < s1; x += 600) if (x > s0) chain(c, x, CHAIN_TOP, TRUSS_Y, '#3A3A3E');
     // the lamps: clamped on, pointed down
     for (const x of trussLamps(eye)) {
       box(c, x - 2, TRUSS_Y + 36, 4, 10, '#22242A');
@@ -261,7 +347,8 @@ const paintPanel = (g: Ctx, p: { x: number; w: number; kind: number }, i: number
 };
 
 const drawFacade = (c: Ctx, eye: Eye, f: number) => {
-  const [s0, s1] = spanAt(eye, FACADE_D, 60);
+  // (padded for what spills past a panel: its glow, the light pool off its seam, the kickers' sandbags)
+  const [s0, s1] = spanAt(eye, FACADE_D, 140);
   inDepth(c, eye, FACADE_D, () => {
     PANELS.forEach((p, i) => {
       if (p.x + p.w < s0 || p.x > s1) return;
@@ -382,7 +469,7 @@ const paintProp = (g: Ctx, p: Prop) => {
     }
     case 'title': {
       // (hung from the truss on chains, way up: the crew's own sign)
-      for (const cx of [x + 10, x + 250]) for (let y = TRUSS_Y; y < GY - 470; y += 6) box(g, cx, y, 2, 4, '#4A4A4E');
+      // (its chains, up out of sight, are drawn over the stamp: drawProps)
       sign(g, x - 10, GY - 470, 280, 28, '#5A1A0C', 'TEMPLE OF THE JAGUAR', '#F2C14E', 10, '#7A5224');
       sign(g, x + 10, GY - 424, 240, 30, '#E7E2D2', 'CAST AND CREW ONLY', '#1A0B06', 7, '#6B7280');
       text(g, 'NO FLASH PHOTOGRAPHY OF THE MAGIC', x + 130, GY - 400, '#B91C1C', 6, 'center', null);
@@ -414,7 +501,8 @@ const drawProps = (c: Ctx, eye: Eye) => {
     for (const p of PROPS) {
       const [a, w] = PROP_W[p.kind];
       if (p.x + a + w < s0 || p.x + a > s1) continue;
-      const top = p.kind === 'title' ? TRUSS_Y : GY - 270;
+      const top = p.kind === 'title' ? GY - 480 : GY - 270;
+      if (p.kind === 'title') for (const cx of [p.x + 10, p.x + 250]) chain(c, cx, CHAIN_TOP, GY - 470, '#4A4A4E');
       stamp(c, `tpl-prop-${p.x}`, p.x + a, top, w, GY - top + 6, g => paintProp(g, p));
     }
   });
@@ -475,25 +563,42 @@ const drawBackDoor = (c: Ctx, eye: Eye, f: number) => {
     slab(g, T - 60, GY - 700, 70, 700, '#3A3330', { edge: 4 });
     for (let y = GY - 700; y < GY; y += 16) box(g, T - 58, y, 66, 1, '#2A2422');
     box(g, T - 60, GY - 16, 70, 16, '#4A403A');
-  }, { key: 'tpl-door-wall', lip: false });
-  // (the doorway: a hole through to the dino park's day, the frame round it)
-  const dx = T + 10;
-  inDepth(c, eye, 0.97, () => {
-    box(c, dx - 4, GY - 100, 60, 100, '#5A5E66');
-    bandedGradient(c, dx, GY - 94, 52, 94, ['#8FB8D8', '#B9D7C2', '#5E8A4A'], 6);
-    box(c, dx, GY - 30, 52, 30, '#4E6B34'); box(c, dx + 30, GY - 70, 14, 50, '#2E4A22');
-    box(c, dx - 4, GY - 104, 60, 6, '#3A3E44');
+  }, { key: 'tpl-door-wall', lip: false, part: 'front' });
+  // (the doorway: in that wall (the room's end, going back), a hole through to the dino park's day, its frame)
+  const X = ROOM_L, D0 = 0.995, D1 = 0.9, H = 104;
+  const p = (y: number, d: number) => at(eye, X, y, d);
+  if (eye.x > X) {
+    quad(c, '#5A5E66', p(GY - H - 4, D0 + 0.004), p(GY - H - 4, D1 - 0.008), p(GY, D1 - 0.008), p(GY, D0 + 0.004));
+    c.save(); c.beginPath();
+    const q = [p(GY - H, D0), p(GY - H, D1), p(GY, D1), p(GY, D0)];
+    c.moveTo(q[0][0], q[0][1]); for (const v of q.slice(1)) c.lineTo(v[0], v[1]); c.closePath(); c.clip();
+    // (the day out there: sky, the park's green, a palm; banded)
+    const top = Math.min(q[0][1], q[1][1]), bot = Math.max(q[2][1], q[3][1]), l = Math.min(q[0][0], q[1][0]), w = Math.max(q[0][0], q[1][0]) - l;
+    bandedGradient(c, l, top, w, bot - top, ['#8FB8D8', '#B9D7C2', '#5E8A4A'], 6);
+    quad(c, '#4E6B34', p(GY - 30, D0), p(GY - 30, D1), p(GY, D1), p(GY, D0));
+    quad(c, '#2E4A22', p(GY - 70, 0.95), p(GY - 70, 0.93), p(GY - 20, 0.93), p(GY - 20, 0.95));
+    c.restore();
+    seg(c, p(GY - H - 2, D0), p(GY - H - 2, D1), '#3A3E44', 3);
+  }
+  // (the door: kicked in, swung right round into the room on its hinges at the far jamb (so it's face on, back
+  // there), and hanging off the top one; splintered at the lock)
+  inDepth(c, eye, D1, () => {
+    c.save(); c.translate(X + 2, GY - 1); c.rotate(0.12);
+    slab(c, 0, -96, 50, 96, '#5A5E66', { edge: 2 });
+    box(c, 6, -88, 38, 34, '#4E525A'); box(c, 6, -46, 38, 38, '#4E525A');
+    box(c, 40, -50, 8, 3, '#C0C4CC');
+    box(c, 46, -58, 4, 8, '#D8C08A'); box(c, 44, -50, 2, 4, '#D8C08A');
+    c.restore();
   });
-  // (the door: kicked in, hanging off its bottom hinge, splintered at the lock)
-  c.save(); c.translate(dx + 52, GY - 2); c.rotate(0.22);
-  slab(c, -6, -92, 10, 92, '#5A5E66', { edge: 2 }); box(c, -6, -48, 10, 3, '#C0C4CC');
-  c.restore();
-  box(c, dx + 50, GY - 56, 4, 6, '#D8C08A'); box(c, dx + 48, GY - 50, 2, 3, '#D8C08A');
-  // (the exit sign over it, lit, and what it's for)
-  const glow = f % 180 < 2 ? '#14532D' : '#22C55E';
-  slab(c, dx - 2, GY - 140, 56, 22, '#1A1A1A', { edge: 2 });
-  text(c, 'EXIT', dx + 26, GY - 125, glow, 8, 'center', '#052E16');
-  sign(c, dx - 8, GY - 112, 68, 8, '#F1EFEA', 'DINO PARK', '#1A0B06', 6, '#6B7280');
+  // (the exit sign over it: a blade sign, stuck out from the wall face on to him, lit; and what it's for)
+  inDepth(c, eye, 0.95, () => {
+    const dx = X;
+    box(c, dx, GY - 146, 6, 4, '#3A3E44');
+    const glow = f % 180 < 2 ? '#14532D' : '#22C55E';
+    slab(c, dx + 4, GY - 150, 56, 22, '#1A1A1A', { edge: 2 });
+    text(c, 'EXIT', dx + 32, GY - 135, glow, 8, 'center', '#052E16');
+    sign(c, dx + 2, GY - 124, 68, 8, '#F1EFEA', 'DINO PARK', '#1A0B06', 6, '#6B7280');
+  });
 };
 
 const drawCatapult = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
@@ -507,7 +612,7 @@ const drawCatapult = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
   block3d(c, eye, X - 70, GY - 34, 150, GY - 12, '#6A4A2A', 0.93, g => {
     slab(g, X - 70, GY - 34, 150, 22, '#6A4A2A', { edge: 2 });
     for (const bx of [X - 64, X - 10, X + 62]) { box(g, bx, GY - 30, 6, 14, '#3A3E44'); box(g, bx + 1, GY - 28, 2, 2, '#C0C4CC'); }
-  }, { key: 'tpl-cata-base', lip: false });
+  }, { key: 'tpl-cata-base', lip: false, part: 'front' });
   for (const wx of [X - 50, X + 60]) { ball(c, wx, GY - 10, 10, '#3A3E44'); box(c, wx - 1 + Math.round(Math.cos(wx) * 5), GY - 11, 3, 3, '#9CA3AF'); }
   // (the A-frame uprights, the axle; the back one dimmer)
   for (const d of [0.95, 1]) {
@@ -563,7 +668,7 @@ const drawDartWall = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
       box(g, X + 6, fy + 2, 28, 3, '#4C6B3A');
     }
     box(g, X, DART_TOP, 40, 6, '#4C6B3A');
-  }, { key: 'tpl-dart-wall' });
+  }, { key: 'tpl-dart-wall', part: 'front' });
   // (the holes: glowing before a volley)
   const tell = crewed(state, 2) && tp.dartT <= DART_TELL;
   for (const h of [true, false]) {
@@ -663,7 +768,7 @@ const drawSnakeRig = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
     text(g, 'DO NOT', X + 25, GY - 164, INK, 4, 'center', null);
     text(g, 'STAND IN', X + 25, GY - 158, INK, 4, 'center', null);
     text(g, 'FRONT', X + 25, GY - 152, INK, 4, 'center', null);
-  }, { key: 'tpl-snake-wall' });
+  }, { key: 'tpl-snake-wall', part: 'front' });
   // (the hole)
   c.fillStyle = INK; c.beginPath(); c.ellipse(X + 4, SNAKE_Y, 10, 30, 0, 0, Math.PI * 2); c.fill();
   // (the speaker, bolted up by the hole: its cone thumping with the hiss)
@@ -763,8 +868,25 @@ const rows = (): Row[] => {
 const drawQueueRow = (c: Ctx, eye: Eye, row: Row, k: number, f: number) => {
   const { d, rise } = row;
   const y = GY - rise;
-  const [s0, s1] = spanAt(eye, d, 60);
-  if (QX1 < s0 || QX0 > s1) return;
+  // (what's going back from this row to the next one back: the corral's outer rails, or the ramp's deck)
+  const all = rows(), next = all[k + 1], dn = next ? next.d : FAR_D;
+  // (culled by where it lands on screen: as far back as it goes, it's nearer the middle)
+  const [s0, s1] = spanAt(eye, dn, 60);
+  if (QX1 + 60 < s0 || QX0 - 60 > s1) return;
+  if (next && !rise && !next.rise) {
+    for (const x of [QX0 - 20, QX1 + 20]) {
+      seg(c, at(eye, x, GY - 28, dn), at(eye, x, GY - 28, d), '#B8963C', 3 * d); seg(c, at(eye, x, GY - 29, dn), at(eye, x, GY - 29, d), '#FFF0B0', 1);
+      seg(c, at(eye, x, GY - 10, dn), at(eye, x, GY - 10, d), '#A88A3C', 2 * d);
+    }
+  }
+  if (rise > 0) {
+    // (the ramp's deck under this row, going back to the next: seen from above)
+    const a = at(eye, QX0 - 40, y, d), b = at(eye, QX1 + 40, y, d), b2 = at(eye, QX1 + 40, y, dn), a2 = at(eye, QX0 - 40, y, dn);
+    if (eye.y < y) { quad(c, '#3A2E24', a, b, b2, a2); seg(c, a2, b2, '#241C16', 1); }
+    // (its open end's side, toward the eye: the frame under it)
+    const sx = eye.x < QX0 - 40 ? QX0 - 40 : eye.x > QX1 + 40 ? QX1 + 40 : null;
+    if (sx !== null) quad(c, '#1E1813', at(eye, sx, y, d), at(eye, sx, y, dn), at(eye, sx, GY, dn), at(eye, sx, GY, d));
+  }
   inDepth(c, eye, d, () => {
     // (the ramp's deck under this switchback, if it's up off the floor: its front face down to the floor)
     if (rise > 0) {
@@ -792,7 +914,10 @@ const drawQueue = (c: Ctx, eye: Eye, f: number, upTo: number, from: number) => {
 
 /** The queue's far end: stairs up into the dark (the line goes on up them, out of sight). */
 const FAR_D = 0.5, FAR_RISE = 3 * 44;
+/** Whether the line's far end (its stairs, the sign over them) lands on screen. */
+const farInView = (eye: Eye) => { const [s0, s1] = spanAt(eye, FAR_D, 40); return QX0 + 460 > s0 && QX0 - 60 < s1; };
 const drawQueueFar = (c: Ctx, eye: Eye) => {
+  if (!farInView(eye)) return;
   inDepth(c, eye, FAR_D, () => {
     const y = GY - FAR_RISE;
     slab(c, QX0 - 60, y - 160, 260, 160 + FAR_RISE, '#120D0A', { edge: 2 });
@@ -801,6 +926,7 @@ const drawQueueFar = (c: Ctx, eye: Eye) => {
 };
 /** ...and the sign over where it goes up: lit (drawn over the haze). */
 const drawWaitSign = (c: Ctx, eye: Eye, f: number) => {
+  if (!farInView(eye)) return;
   inDepth(c, eye, FAR_D, () => {
     const y = GY - FAR_RISE, sx = QX0 + 230;
     box(c, sx + 30, y - 90, 3, 90, '#3A3A3E'); box(c, sx + 190, y - 90, 3, 90, '#3A3A3E');
@@ -810,12 +936,38 @@ const drawWaitSign = (c: Ctx, eye: Eye, f: number) => {
   });
 };
 
+/** The booth's front and back (set back behind the track: past its ties, short of the line's first row). */
+export const BOOTH_D = 0.944;
+const BOOTH_BACK = 0.906;
+/** Where the track lever stands on the booth's console (by the second operator, her side of it). */
+const LEVER_X = BOOTH_X + 152;
+/** The switch on the track, just ahead of the cart: the points that send it the other way, the actual dangerous track. */
+const SWITCH_X = BOOTH_X - 70;
+const drawSwitch = (c: Ctx, eye: Eye, f: number, thrown: boolean) => {
+  // (the cable from the lever: out of the booth's base, along the floor in its conduit, to the switch machine)
+  const b0 = at(eye, BOOTH_X + 4, GY - 2, BOOTH_D), b1 = at(eye, SWITCH_X + 34, GY - 2, BOOTH_D);
+  seg(c, b0, b1, '#18181B', 3); seg(c, [b0[0], b0[1] - 1], [b1[0], b1[1] - 1], '#E8C130', 1);
+  // (the switch machine, beside the far rail: a box, a lamp on it, green for the ride's track, red for the other)
+  inDepth(c, eye, BOOTH_D, () => {
+    slab(c, SWITCH_X + 6, GY - 26, 36, 26, '#3A3E44', { edge: 2 });
+    box(c, SWITCH_X + 10, GY - 20, 28, 7, '#E8C130'); text(c, 'SWITCH', SWITCH_X + 24, GY - 15, INK, 4, 'center', null);
+    pole(c, SWITCH_X + 22, GY - 50, 4, 24, '#4A4E56');
+    const col = thrown ? (f % 20 < 12 ? '#EF4444' : '#7F1D1D') : '#22C55E';
+    ball(c, SWITCH_X + 24, GY - 54, 6, col);
+  });
+  // (its throw rod, under the rails, to the points; the points themselves: the blade over against the rail, or not)
+  const r0 = at(eye, SWITCH_X + 20, GY, BOOTH_D), r1 = at(eye, SWITCH_X + 20, GY, 1.005);
+  seg(c, r0, r1, '#5A5E66', 2);
+  const tip = thrown ? 0.985 : 0.997;
+  seg(c, at(eye, SWITCH_X + 20, GY - 2, tip), at(eye, SWITCH_X + 140, GY - 2, 1), '#D1D5DB', 2);
+};
+
 const drawStation = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
   const f = state.frame;
   // the banner over the station, hung from the truss
   inDepth(c, eye, 0.92, () => {
     const bx = STATION_X + 460, by = GY - 360;
-    for (const cx of [bx + 20, bx + 560]) for (let y = TRUSS_Y; y < by; y += 6) box(c, cx, y, 2, 4, '#4A4A4E');
+    for (const cx of [bx + 20, bx + 560]) chain(c, cx, CHAIN_TOP, by, '#4A4A4E');
     slab(c, bx, by, 600, 40, '#5A1A0C', { edge: 2 });
     for (let k = 0; k < 600; k += 20) box(c, bx + k, by + 36, 10, 4, '#E8B400');
     text(c, 'JAGUAR EXPRESS', bx + 300, by + 16, '#F2C14E', 10, 'center', INK);
@@ -833,6 +985,14 @@ const drawStation = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
     const a = at(eye, tx0, GY - 2, d), b = at(eye, tx1, GY - 2, d);
     seg(c, [a[0], a[1] + 2], [b[0], b[1] + 2], '#2A2C30', 3); seg(c, a, b, d < 1 ? '#7D8794' : '#B8C0CA', 2); seg(c, [a[0], a[1] - 1], [b[0], b[1] - 1], '#E5E7EB', 1);
   }
+  // (the tunnel the track goes on into: a hole in the end wall (the room's end, going back), its frame; the rails go
+  // into the dark of it)
+  if (eye.x < END_WALL) {
+    const m = (y: number, d: number) => at(eye, END_WALL, y, d);
+    quad(c, '#3A3E44', m(GY - 136, 1), m(GY - 136, 0.925), m(GY + 2, 0.925), m(GY + 2, 1));
+    quad(c, '#050302', m(GY - 130, 1), m(GY - 130, 0.932), m(GY + 2, 0.932), m(GY + 2, 1));
+    quad(c, '#0E0A08', m(GY - 130, 0.95), m(GY - 130, 0.932), m(GY + 2, 0.932), m(GY + 2, 0.95));
+  }
   // (the platform's yellow edge, where he stands)
   for (let x = STATION_X + 20; x < tx0; x += 16) box(c, x, GY, 8, 3, '#E8C130');
   // the end wall, and the tunnel the track goes on through
@@ -842,42 +1002,46 @@ const drawStation = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
     // (painted on the wall, up over the tunnel: an arrow, which way they go)
     sign(g, END_WALL + 20, GY - 250, 160, 22, '#14532D', 'FRIENDLY TRACK', '#BBF7D0', 7, '#4A4E56');
     box(g, END_WALL + 40, GY - 222, 120, 9, TAPE_W); text(g, '(MOSTLY)', END_WALL + 100, GY - 215, '#B91C1C', 6, 'center', null);
-  }, { key: 'tpl-end-wall', lip: false });
-  // (the tunnel mouth, on its side going back: dark, a warning beacon over it)
-  const m0 = at(eye, END_WALL, GY - 110, 0.99), m1 = at(eye, END_WALL, GY - 110, 0.93), m2 = at(eye, END_WALL, GY, 0.93), m3 = at(eye, END_WALL, GY, 0.99);
-  if (eye.x < END_WALL) quad(c, '#050302', m0, m1, m2, m3);
-  ball(c, END_WALL - 8, GY - 130, 5, f % 50 < 25 ? '#F59E0B' : '#78350F');
-  // the booth: the operators in it (behind the glass), the console, the lever
+  }, { key: 'tpl-end-wall', lip: false, part: 'front' });
+  // (the beacon over the tunnel, stuck out from the wall)
+  const bc = at(eye, END_WALL - 6, GY - 150, 0.965);
+  ball(c, bc[0], bc[1], 5, f % 50 < 25 ? '#F59E0B' : '#78350F');
+  // the booth: set back behind the track (its front just past the ties, its back short of the line's first row): the
+  // operators in it (behind the glass), the console, the lever in reach of her; the cable from it to the switch
   const ld = tp.loading;
-  block3d(c, eye, BOOTH_X, GY - 130, 170, GY, '#6B4A2C', 0.92, g => {
+  const thrown = !!ld && ld.step === 4 && ld.t >= 10;
+  drawSwitch(c, eye, f, thrown);
+  block3d(c, eye, BOOTH_X, GY - 130, 170, GY, '#6B4A2C', BOOTH_BACK, g => {
     slab(g, BOOTH_X, GY - 130, 170, 130, '#6B4A2C', { edge: 4 });
     slab(g, BOOTH_X - 6, GY - 140, 182, 14, '#3A2A1A', { edge: 2 });
     for (let k = 0; k < 170; k += 22) box(g, BOOTH_X + k, GY - 60, 2, 56, '#5A3E24');
     box(g, BOOTH_X + 8, GY - 116, 154, 54, '#0E1A24');
-  }, { key: 'tpl-booth', lip: false });
-  text(c, 'OPERATORS', BOOTH_X + 85, GY - 130, '#F2C14E', 6, 'center', INK);
-  c.save(); c.beginPath(); c.rect(BOOTH_X + 8, GY - 116, 154, 54); c.clip();
-  box(c, BOOTH_X + 8, GY - 116, 154, 54, '#2A3A44');
-  for (const [i, seed, woman] of [[0, 818, false], [1, 1331, true]] as const) {
-    c.save(); c.translate(BOOTH_X + 50 + i * 70, GY - 30); c.scale(-1, 1);
-    const voice = i ? 'm2.operator2' : 'm2.operator';
-    drawPerson(c, { seed, woman, outfit: 'operator', f, mood: i ? 'bored' : 'shocked', talking: ld?.said?.who === voice });
+  }, { key: 'tpl-booth', lip: false, at: BOOTH_D });
+  inDepth(c, eye, BOOTH_D, () => {
+    text(c, 'OPERATORS', BOOTH_X + 85, GY - 130, '#F2C14E', 6, 'center', INK);
+    c.save(); c.beginPath(); c.rect(BOOTH_X + 8, GY - 116, 154, 54); c.clip();
+    box(c, BOOTH_X + 8, GY - 116, 154, 54, '#2A3A44');
+    for (const [i, seed, woman] of [[0, 818, false], [1, 1331, true]] as const) {
+      c.save(); c.translate(BOOTH_X + 50 + i * 70, GY - 30); c.scale(-1, 1);
+      const voice = i ? 'm2.operator2' : 'm2.operator';
+      drawPerson(c, { seed, woman, outfit: 'operator', f, mood: i ? 'bored' : 'shocked', talking: ld?.said?.who === voice });
+      c.restore();
+    }
+    // (the lever: on the console in there, at her elbow; thrown when they send him off)
+    c.save(); c.translate(LEVER_X, GY - 62); c.rotate(thrown ? 0.75 : -0.35);
+    box(c, -3, -34, 6, 34, INK); box(c, -2, -34, 4, 34, '#A1A1AA'); box(c, -2, -34, 1, 34, '#E5E7EB'); ball(c, 0, -36, 6, '#DC2626');
     c.restore();
-  }
-  // (the glass: reflections in bands)
-  c.fillStyle = 'rgba(160, 200, 230, 0.12)'; c.fillRect(BOOTH_X + 8, GY - 116, 154, 54);
-  for (let k = 0; k < 3; k++) { c.fillStyle = `rgba(230, 245, 255, ${0.12 - k * 0.03})`; c.beginPath(); c.moveTo(BOOTH_X + 20 + k * 40, GY - 116); c.lineTo(BOOTH_X + 34 + k * 40, GY - 116); c.lineTo(BOOTH_X + 4 + k * 40, GY - 62); c.lineTo(BOOTH_X - 10 + k * 40, GY - 62); c.closePath(); c.fill(); }
-  c.restore();
-  // (the console's sill: buttons blinking, DISPATCH)
-  slab(c, BOOTH_X + 4, GY - 64, 162, 8, '#3A3E44', { edge: 2 });
-  for (let k = 0; k < 8; k++) box(c, BOOTH_X + 12 + k * 10, GY - 62, 5, 3, ['#22C55E', '#EF4444', '#F59E0B', '#3B82F6'][k % 4] === '#22C55E' && (f + k * 11) % 40 < 20 ? '#14532D' : ['#22C55E', '#EF4444', '#F59E0B', '#3B82F6'][k % 4]);
-  slab(c, BOOTH_X + 100, GY - 54, 50, 14, '#1A1A1A', { edge: 2 }); text(c, 'DISPATCH', BOOTH_X + 125, GY - 44, '#22C55E', 4, 'center', null);
-  // (the lever: thrown when they send him off)
-  const thrown = !!ld && ld.step === 4 && ld.t >= 10;
-  c.save(); c.translate(BOOTH_X + 160, GY - 40); c.rotate(thrown ? 0.7 : -0.3);
-  box(c, -3, -30, 6, 30, INK); box(c, -2, -30, 4, 30, '#A1A1AA'); ball(c, 0, -32, 6, '#DC2626');
-  c.restore();
-  slab(c, BOOTH_X + 150, GY - 44, 20, 10, '#3A3E44', { edge: 2 });
+    // (the glass: reflections in bands)
+    c.fillStyle = 'rgba(160, 200, 230, 0.12)'; c.fillRect(BOOTH_X + 8, GY - 116, 154, 54);
+    for (let k = 0; k < 3; k++) { c.fillStyle = `rgba(230, 245, 255, ${0.12 - k * 0.03})`; c.beginPath(); c.moveTo(BOOTH_X + 20 + k * 40, GY - 116); c.lineTo(BOOTH_X + 34 + k * 40, GY - 116); c.lineTo(BOOTH_X + 4 + k * 40, GY - 62); c.lineTo(BOOTH_X - 10 + k * 40, GY - 62); c.closePath(); c.fill(); }
+    c.restore();
+    // (the console's sill: buttons blinking, DISPATCH; the lever's quadrant, its slot, what it does)
+    slab(c, BOOTH_X + 4, GY - 64, 162, 8, '#3A3E44', { edge: 2 });
+    for (let k = 0; k < 8; k++) box(c, BOOTH_X + 12 + k * 10, GY - 62, 5, 3, ['#22C55E', '#EF4444', '#F59E0B', '#3B82F6'][k % 4] === '#22C55E' && (f + k * 11) % 40 < 20 ? '#14532D' : ['#22C55E', '#EF4444', '#F59E0B', '#3B82F6'][k % 4]);
+    slab(c, BOOTH_X + 96, GY - 54, 40, 14, '#1A1A1A', { edge: 2 }); text(c, 'DISPATCH', BOOTH_X + 116, GY - 44, '#22C55E', 4, 'center', null);
+    slab(c, LEVER_X - 12, GY - 66, 24, 6, '#26262A', { edge: 2 });
+    box(c, LEVER_X - 14, GY - 52, 28, 10, '#E8C130'); text(c, 'TRACK', LEVER_X, GY - 45, INK, 4, 'center', null);
+  });
   // the wait-time sign at the line's entrance, on its post
   pole(c, STATION_X + 70, GY - 150, 6, 150, '#5A5E66');
   sign(c, STATION_X + 10, GY - 196, 126, 46, '#1A1A1A', '', '#F2C14E', 6, '#6B4A2C');
@@ -907,6 +1071,9 @@ export const drawTempleBack = (c: Ctx, state: GameState, tp: Temple) => {
     }
   });
   drawFloor(c, eye, L, R);
+  // The room's ends, going back to the far wall
+  drawRoomEnd(c, eye, ROOM_L);
+  drawRoomEnd(c, eye, ROOM_R);
   // Everything in between, back to front, a haze over what's past each step back
   const haze = (d: number) => {
     const y = floorAt(eye, d);
@@ -918,7 +1085,8 @@ export const drawTempleBack = (c: Ctx, state: GameState, tp: Temple) => {
     [PROPS_D, () => drawProps(c, eye)],
     [FAR_D, () => drawQueueFar(c, eye)],
   ];
-  if (vis(QX0 - 200, QX1 + 400)) for (const row of rows()) layers.push([row.d, () => drawQueue(c, eye, f, row.d, row.d - 0.001)]);
+  // (the line's rows cull themselves by where they land on screen, as do the far end and its sign)
+  for (const row of rows()) layers.push([row.d, () => drawQueue(c, eye, f, row.d, row.d - 0.001)]);
   layers.sort((a, b) => a[0] - b[0]);
   let hi = 0;
   for (const [d, draw] of layers) {
@@ -926,8 +1094,12 @@ export const drawTempleBack = (c: Ctx, state: GameState, tp: Temple) => {
     draw();
   }
   while (hi < HAZE.length) haze(HAZE[hi++]);
-  if (vis(QX0 - 200, QX1 + 400)) drawWaitSign(c, eye, f);
-  // His level: the scaffolds (behind the walls they stand against), the door, the tricks, the station
+  drawWaitSign(c, eye, f);
+  // His level: the walls' sides and tops going back first (anything standing beside one, on his side of it, is in
+  // front of that), then the scaffolds, then the walls' fronts, the door, the tricks, the station
+  if (vis(CATAPULT_X - 120, CATAPULT_X + 220)) block3d(c, eye, CATAPULT_X - 70, GY - 34, 150, GY - 12, '#6A4A2A', 0.93, undefined, { part: 'back' });
+  if (vis(DART_WALL - 40, DART_WALL + 180)) block3d(c, eye, DART_WALL, DART_TOP, 40, GY, '#7A7466', 0.86, undefined, { part: 'back' });
+  if (vis(SNAKE_WALL - 40, SNAKE_WALL + 270)) block3d(c, eye, SNAKE_WALL, SNAKE_TOP, 50, GY, '#6E665A', 0.86, undefined, { part: 'back' });
   LEDGES.forEach(([x, y, w], i) => { if (vis(x, x + w)) scaffold(c, eye, x, y, w, i, f); });
   if (vis(T - 80, T + 120)) drawBackDoor(c, eye, f);
   if (vis(CATAPULT_X - 120, CATAPULT_X + 220)) drawCatapult(c, eye, state, tp);
@@ -1001,13 +1173,16 @@ export const drawTempleFront = (c: Ctx, state: GameState, tp: Temple) => {
   // The cart, and whoever's still in it; the ones kicked out, flying
   const ld = tp.loading;
   const riders = ld ? GUESTS.map((_, i) => i).filter(i => i >= ld.kicked) : tp.loadingSeen ? [] : [0, 1, 2];
+  c.save(); c.beginPath(); c.rect(T - 400, GY - 1000, END_WALL - T + 400, 1100); c.clip();
   drawCart(c, CART_X + (ld?.rolling ?? 0), f, riders);
+  c.restore();
   if (ld) for (const g of ld.flying) { c.save(); c.translate(g.x, g.y); c.rotate(-g.rot); drawPerson(c, { seed: g.seed, woman: g.woman, outfit: 'guest', pose: 'fly', f, mood: 'shocked' }); c.restore(); }
   drawForeground(c, eye);
   // What's being said (over whoever's saying it)
   if (ld?.said) {
     const who = ld.said.who;
-    const pos = who === 'm2.operator' ? { x: BOOTH_X + 50, y: GY - 150 } : who === 'm2.operator2' ? { x: BOOTH_X + 120, y: GY - 170 }
+    const op = (x: number, y: number) => { const [px, py] = at(eye, x, y, BOOTH_D); return { x: px, y: py }; };
+    const pos = who === 'm2.operator' ? op(BOOTH_X + 50, GY - 150) : who === 'm2.operator2' ? op(BOOTH_X + 120, GY - 170)
       : ld.step >= 1 ? { x: STATION_X + 520 + (who === 'm2.guest' ? 0 : 90), y: GY - 250 }
       : ld.flying.length ? { x: Math.max(cam + 140, ld.flying[ld.flying.length - 1].x), y: Math.max(state.camera.y + 140, ld.flying[ld.flying.length - 1].y - 50) } : { x: CART_X - 300, y: GY - 300 };
     saidOver(c, ld.said.s.text, pos.x, pos.y, who.startsWith('m2.operator') ? '#FDE68A' : '#FFFFFF', 260);
@@ -1036,7 +1211,8 @@ export const templeLighting = (state: GameState, tp: Temple): SceneLight => {
   if (near(DART_WALL) && crewed(state, 2) && tp.dartT <= DART_TELL) lights.push({ x: DART_WALL - 4, y: dartY(tp.dartHigh), r: 70, a: 0.8, color: 'rgba(253, 224, 71, 0.18)' });
   if (near(STATION_X + 600)) {
     for (const x of [STATION_X + 300, STATION_X + 700, STATION_X + 1100]) lights.push({ x, y: GY - 300, r: 330, a: 0.6, cone: 170, color: 'rgba(255, 210, 150, 0.08)' });
-    lights.push({ x: BOOTH_X + 85, y: GY - 90, r: 130, a: 0.7, color: 'rgba(160, 220, 255, 0.08)' });
+    const [bx, by] = at(eye, BOOTH_X + 85, GY - 90, BOOTH_D);
+    lights.push({ x: bx, y: by, r: 130, a: 0.7, color: 'rgba(160, 220, 255, 0.08)' });
   }
   // (the hazards: kept in sight)
   for (const b of tp.boulders) lights.push({ x: b.x, y: b.y, r: 60, a: 0.55 });
