@@ -11921,7 +11921,272 @@
  },
  {
   "voice": "m2.rex",
+  "text": "ATTENTION, GUESTS! A CODE BROWN HAS BEEN REPORTED IN THE T. REX PADDOCK! IT IS YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "ATTENTION, GUESTS! A NAKED MAN HAS ENTERED THE PADDOCK! PLEASE COVER YOUR CHILDREN'S EYES! AND MINE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "BITE REGISTERED. LOCATION: ...I WILL BE FILING A REPORT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "CODE BROWN. CODE BROWN. CODE BRRRRRZZT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "CORE BREACH! CORE BREACH! ...THAT'S JUST WHAT THEY CALL MY TUMMY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "DID I DO THAT? DID I SCARE IT OUT OF YOU? ...THAT'S THE NICEST THING ANYONE'S EVER DONE FOR ME.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "DID YOU KNOW? T. REX COULD BITE WITH THE FORCE OF THREE STAT- THREE STAT- THREE STATION WAGONS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "DID YOU KNOW? T. REX COULD BITE WITH THE FORCE OF THREE STATION WAGONS! LET'S FIND OUT TOGETHER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "ELECTRIFIED FOR YOUR SAFETY! AND FOR MY ENTERTAINMENT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "ERROR FOUR-OH-FOUR. FRIENDLINESS NOT FOUND. DEFAULTING TO: EAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "FUN FACT! FOSSILIZED T. REX POOP IS CALLED A COPROLITE! YOURS IS CALLED A PROBLEM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "FUN FACT! T. REX COULD ONLY SEE THINGS THAT MOVE! AND OH BOY, IS THAT MOVING!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "GOODBYE, YOUNG PALEONTOLOGIST! DON'T FORGET TO VISIT THE GIFT SHO- SHO- SHHHHHHH...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "GOODBYE, YOUNG PALEONTOLOGIST... PLEASE... WASH... YOUR...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "GOODBYE... COVER... COVER YOURSELF... FOR THE CHILDREN... FOR ME...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "HAPPY BIRTHDAY, CHILD NAME! YOU ARE AGE YEARS OLD! RAWR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "HELLO, YOUNG PALEONTOLOGIST! I AM REX, AND I AM SIXTY-SIX MILLION YEARS YOUNG! RAWR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "HELLO, YOUNG PALEONTOLOGIST! MY NOSE SENSORS DETECT... A FOSSIL! A FRESH ONE! IN YOUR PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "HELLO, YOUNG PALEONTOLOGIST! YOU ARE NOT WEARING ANY PANTS! WAIT. YOU ARE NOT YOUNG, EITHER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "HI THERE, FRIEND! I SEE YOU'VE BROUGHT YOUR OWN DINOSAUR DROPPINGS! THAT'S THE SPIRIT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "HI THERE, FRIEND! PLEASE KEEP ALL LOOSE ITEMS OUT OF MY REACH. ...THAT INCLUDES THOSE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "HI THERE, FRIEND! PLEASE STAND BEHIND THE YELLOW LINE FOR YOUR SAFETY! ...THE YELLOW LINE IS IN MY MOUTH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "HOLD STILL, FRIEND! IT'S PICTURE TIME! SAY CHEESE! I SAID HOLD! STILL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
   "text": "I AM A FRIENDLY TYRANNOSAURUS! PLEASE KEEP YOUR ARMS INSIDE MY MOUTH AT ALL TIMES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "I AM FULL OF BEES. ELECTRIC BEES. DO NOT TOUCH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "I CAN'T FEEL MY TAIL. I NEVER COULD. BUT NOW I KNOW I CAN'T.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "I GOT A MOUTHFUL OF SOMETHING. I WILL NOT BE ASKING WHAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "I MEANT TO DO THAT! I WAS PROGRAMMED TO DO THAT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "I WAS BUILT TO TERRIFY. I DID NOT THINK IT WOULD WORK THAT WELL.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "I'M GOING EXTINCT. AND THE LAST THING I EVER SMELLED... WAS YOU.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "I'M LIMPING! T. REX DOES NOT LIMP! T. REX STRUTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "I'M TINGLING! IS THIS WHAT JOY FEELS LIKE? IT FEELS LIKE TWELVE THOUSAND VOLTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "IS THAT THE SNACK SIZE? I WAS PROMISED A FULL MEAL.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "IS THIS WHAT EXTINCTION FEELS LIKE? IT FEELS LIKE A SHORT CIRCUIT. AND A LITTLE LIKE PEEING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "JAW SERVO FAILURE. I WILL NOW GUM YOU TO DEATH. HAVE A MAGICAL DAY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "KNEE ERROR! KNEE ERROR! I DON'T EVEN HAVE KNEES IN THE BROCHURE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "LEGS OFFLINE. PLEASE PROCEED TO THE NEAREST EXIT. I'LL BE RIGHT BEHIND YOU. SLOWLY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "MY ARMS ARE SHORT, BUT MY ARMS ARE SHORT, BUT MY ARMS ARE SHORT, BUT MY ARMS",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "MY ARMS ARE SHORT, BUT MY LOVE OF LEARNING IS LONG! RAWR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "MY BALANCE! THE TAIL WAS MY BALANCE! IT WAS ALSO MY WHOLE PERSONALITY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "MY EYES ARE BROKEN, AND I CAN STILL SEE IT. WHY CAN I STILL SEE IT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "MY FACE! THE CHILDREN LOVED MY FACE! THEY CRIED, BUT THEY LOVED IT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "MY NOSE IS BROKEN. MY NOSE IS BROKEN, AND I CAN STILL SMELL YOU.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "MY TORSO WAS HANDCRAFTED BY ARTISANS! UNDERPAID ARTISANS! YOU MONSTER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "NO SHIRT, NO SHOES, NO SERVICE! ...I WILL MAKE AN EXCEPTION. FOR LUNCH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "NO SHIRT. NO SHOES. NO... NO... NO SERVICE. NO SERVICE. THERE'S NO SERVICE OUT HERE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "NOM NOM NOM! FUN FACT: YOU TASTE LIKE CHICKEN! EVERYTHING DOES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "NOM NOM NOM! NO WRAPPER! HOW CONVENIENT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "NOM NOM- ERROR. ERROR. CONTAMINANT DETECTED. RINSE CYCLE NOT FOUND.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "OH GOOD, A GROWN-UP! GROWN-UPS HAVE MORE MEAT ON THEM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "OUCHIE! FUN FACT: THAT WAS MY SPINE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "PLEASE STAND BY. A CAST MEMBER WILL BE WITH YOU SHORTLY. NO CAST MEMBER IS COMING. NO ONE IS COMING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "PLEASE STOP SWINGING IT AT ME. I'M ALREADY DYING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "PLEASE. I HAVE A CONTRACT. I'M SUPPOSED TO DO THIS UNTIL TWENTY-FORTY.",
   "from": "ADVENTURE"
  },
  {
@@ -11931,7 +12196,167 @@
  },
  {
   "voice": "m2.rex",
+  "text": "RAWR. RAWR. RAW. RA. R. ...LOW BATTERY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "REMEMBER TO CHEW SIXTY-SIX TIMES BEFORE SWALLOWING! ONE! TWO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "REMEMBER, KIDS: NO RUNNING IN THE PADDOCK! ...UNLESS I'M CHASING YOU.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "SAFETY INSPECTION OVERDUE. SAFETY INSPECTION OVERDUE. SAFETY INSPECTION OVERDUE SINCE NINETEEN NINETY-SEVEN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "SCIENTISTS NOW BELIEVE I HAD FEATHERS! THE PARK DID NOT HAVE THE BUDGET!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "SHORT CIRCUIT DETECTED. HUGS ARE NOW FATAL.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "SIXTY-SIX MILLION YEARS I WAITED FOR THIS, AND YOU BROKE ME IN A MINUTE AND A HALF.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "SYSTEM RESTORE POINT FOUND: CRETACEOUS. RESTORING... RESTORING... RESTORING...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "TAIL DETACHED! THIS IS NOT A LIZARD FEATURE! IT DOES NOT GROW BACK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "TASTE SENSORS... OVERLOADED. WHY. WHY DID I PUT THAT END IN MY MOUTH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "TELL THE TRICERATOPS... TELL HER SHE WAS ALWAYS THE PRETTIER ANIMATRONIC.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "THANK YOU FOR FEEDING THE DINOSAUR! YOU ARE THE FOOD!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "THANK YOU FOR VISITING! PLEASE TAKE YOUR... YOUR DROPPINGS WITH YOU... ON YOUR WAY OUT...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
   "text": "THANK YOU FOR VISITING! THANK YOU FOR VIS- THANK YOU FOR- THANK- THAAAANK...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "THANK YOU FOR VISITING... NEXT TIME... WEAR... SOMETHI-",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "THAT WAS NOT CHICKEN. THAT WAS NOT CHICKEN AT ALL.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "THE ASTEROID... WAS A NAKED MAN. NOBODY... WILL EVER BELIEVE ME...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "THE LAST THING I EVER SEE... IS THAT. OF ALL THE THINGS. THAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "THIS DINOSAUR IS BROUGHT TO YOU BY CRUNCH-O'S CEREAL! CRUNCH! CRUNCH! CRUNCH! CRUNCH! CRUNCH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "VISION OFFLINE! WHO TURNED OFF THE- OH. ME. THAT WAS MY FACE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WARNING: STUFFING VISIBLE. THIS DINOSAUR IS NOW RATED PG-THIRTEEN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WARNING! LIVE VOLTAGE! PLEASE DO NOT LICK THE DINOSAUR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WELCOME TO MY PADDOCK! DID YOU KNOW? DINOSAURS DID NOT WEAR CLOTHES EITHER! WE HAVE SO MUCH IN COMMON! RAWR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WELCOME TO MY PADDOCK! DID YOU KNOW? MY TEETH ARE THE SIZE OF BANANAS! LET ME SHOW YOU! UP CLOSE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WELCOME TO MY PADDOCK! DID YOU KNOW? T. REX COULD SMELL ITS PREY FROM MILES AWAY! I CAN SMELL YOU FROM THE PARKING LOT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WELCOME TO THE GIFT SHOP! ...WE ARE SORRY. THE GIFT SHOP. IS. YOU.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WHAT NICE PANTS! DON'T WORRY! THEY'LL COME OUT THE OTHER END JUST FINE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WHO PUT A FENCE THERE?! ...THE FENCE HAS ALWAYS BEEN THERE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "WHOOPSIE! T. REX HAS FALLEN, AND HE CAN'T GET UP!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "YOU BROKE MY TAIL. I WAS GOING TO WAG IT AT THE CHILDREN. NOW I WAG NOTHING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "YOU HAVE NICE PANTS. I HAD NICE LEGS. ONCE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "YOU'RE A VERY STRONG LITTLE BOY. A VERY LARGE, STRONG, HAIRY LITTLE BOY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.rex",
+  "text": "ZZT! RA-ZZT! RAWR-ZZT! FUN-ZZT FACT-ZZT!",
   "from": "ADVENTURE"
  },
  {
@@ -12012,6 +12437,21 @@
  {
   "voice": "m2.safari",
   "text": "ANYWAY. THE JUNGLE. VERY DANGEROUS. LOTS OF... TREES. I'VE RUN OUT OF JUNGLE. I'M GOING TO START OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ATTENTION, JUNIOR GUIDES! A GUEST HAS SHIT HIMSELF IN THE CAMP. FOLLOW YOUR NOSES. STAB WHAT YOU FIND!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ATTENTION, JUNIOR GUIDES! A GUEST IS LOOSE IN THE CAMP. YOU KNOW WHAT TO DO. A MERIT BADGE FOR EVERY LIMB!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ATTENTION, JUNIOR GUIDES! THERE'S A NAKED MAN IN THE CAMP. DO NOT LOOK DIRECTLY AT IT. STAB IT!",
   "from": "ADVENTURE"
  },
  {
@@ -12592,6 +13032,21 @@
  {
   "voice": "m2.safari",
   "text": "IS IT WARM? IT LOOKS WARM. DON'T TELL ME. I DON'T WANT TO KNOW.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "JUNIOR GUIDES, FALL IN! THAT MAN HAS NO PANTS AND NO TICKET! TAKE HIM OUT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "JUNIOR GUIDES, FALL IN! THAT MAN IS NOT ON THE TOUR! TAKE HIM OFF IT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "JUNIOR GUIDES! THERE'S A BROWN-PANTS BEAR IN THE CAMP! YOU KNOW THE DRILL! SALUTE, WHISTLE, STAB!",
   "from": "ADVENTURE"
  },
  {
@@ -13522,6 +13977,21 @@
  {
   "voice": "m2.safari",
   "text": "THIS IS ARTIE. IF ANYBODY'S LISTENING, I'D LIKE TO FILE A COMPLAINT ABOUT MAINTENANCE. TO MAINTENANCE. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS IS YOUR SCOUTMASTER SPEAKING. A NUDIST HAS ENTERED THE CAMP. AIM ABOVE THE WAIST! WAY ABOVE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS IS YOUR SCOUTMASTER SPEAKING. SOMETHING IS STINKING UP THE CAMPFIRE. IT'S A MAN. KILL IT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS IS YOUR SCOUTMASTER SPEAKING. THERE'S AN INTRUDER BY THE CAMPFIRE. SALUTE, WHISTLE, STAB!",
   "from": "ADVENTURE"
  },
  {
