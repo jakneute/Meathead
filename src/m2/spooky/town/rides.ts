@@ -340,16 +340,21 @@ const drawTrain = (c: Ctx, state: GameState) => {
   }
   fb(c, a - 30, GY - 2, b - a + 60, 4, '#71717A');
   for (let x = a - 30; x < b + 30; x += 16) fb(c, x, GY + 2, 8, 3, '#3F2A1A');
-  // The warnings, at both lips: the park's official one (a skull on it), and a cheap rope barrier with its tag
+  // The warnings: one sign to a post, low (eye level, by the rope barriers), spread along both lips, so none of them
+  // ever sits over another (or over the tower's sign far off behind)
+  const skull = (x: number, y: number) => { oval(c, x, y, 8, 7, '#F5F5F4', 1.5); fb(c, x - 4, y - 2, 3, 3, INK); fb(c, x + 1, y - 2, 3, 3, INK); fb(c, x - 3, y + 5, 6, 3, '#F5F5F4'); };
+  const lowSign = (x: number, s: string, col: string, ink: string, size: number, withSkull: boolean, h = 60) => {
+    ob(c, x - 3, GY - h, 6, h, '#3F3F46', 1);
+    const w = board(c, x, GY - h, s, col, ink, size);
+    if (withSkull) skull(x - w / 2 - 12, GY - h);
+  };
+  // (clear of where the train docks at each station: it'd cover them)
+  lowSign(a - 320, 'BOTTOMLESS PIT. NO, REALLY.', '#450A0A', '#FECACA', 7, true);
+  lowSign(X(TRAIN.a) - 75, 'PLEASE STAY ON THE TRAIN', '#1C1917', '#FDE68A', 6, false, 28);
+  lowSign(X(TRAIN.b) + TRAIN.len + 80, 'DROP TIME: ETERNITY', '#450A0A', '#FECACA', 7, true);
+  // (the cheap rope barriers, along both lips behind the track: two stanchions, the rope sagging, its DANGER tag)
   for (const [ex, s] of [[a, -1], [b, 1]] as const) {
-    const px = ex + s * 40;
-    ob(c, px - 3, GY - 170, 6, 170, '#3F3F46', 1);
-    board(c, px, GY - 176, 'BOTTOMLESS PIT. NO, REALLY.', '#450A0A', '#FECACA', 7);
-    oval(c, px, GY - 150, 10, 9, '#F5F5F4', 1.5); fb(c, px - 5, GY - 153, 3, 3, INK); fb(c, px + 2, GY - 153, 3, 3, INK); fb(c, px - 4, GY - 143, 8, 3, '#F5F5F4');
-    board(c, px, GY - 124, 'DROP TIME: ETERNITY', '#1C1917', '#FDE68A', 6);
-    board(c, px, GY - 104, 'PLEASE STAY ON THE TRAIN', '#1C1917', '#FDE68A', 6);
-    // (the rope barrier, along the lip behind the track: two stanchions, the rope sagging, its DANGER tag)
-    const r0 = ex + s * 4, r1 = ex + s * 90;
+    const r0 = ex + s * 4, r1 = ex + s * 70;
     for (const rx of [r0, r1]) ob(c, rx - 2, GY - 34, 4, 34, '#CA8A04', 1);
     c.strokeStyle = '#B91C1C'; c.lineWidth = 3; c.beginPath(); c.moveTo(r0, GY - 30); c.quadraticCurveTo((r0 + r1) / 2, GY - 14, r1, GY - 30); c.stroke();
     ob(c, (r0 + r1) / 2 - 16, GY - 22, 32, 10, '#FDE047', 1); words(c, 'DANGER', (r0 + r1) / 2, GY - 14, INK, 5);
