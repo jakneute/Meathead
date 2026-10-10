@@ -8,7 +8,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { box, label, postSign, wallSign, doorway, groundBox, ledgeBox } from '../section';
 import { drawPerson } from '../../adventure/temple/people';
 import {
-  x0, MIST_DOOR_X, WAIT_SIGN_X, HOW_BOARD_X, QUEUE_X0, QUEUE_X1, BOOTH_X, PLATFORM_X0, PLATFORM_X1, STAFF_DOOR_X, BAY_TOP,
+  x0, ENTRY_DOOR_X, WAIT_SIGN_X, HOW_BOARD_X, QUEUE_X0, QUEUE_X1, BOOTH_X, PLATFORM_X0, PLATFORM_X1, STAFF_DOOR_X, BAY_TOP,
   TX0, TX1, W, U, WALL, SH0, SH1, SHM, DOOR_H, F, STORIES, SLAB, TOP, ROOF, B1, CH0, CH1, HELL_AT, LEDGES, CHUTE_LEDGES, BEAMS, beamTop, PENDULUMS,
   CUCKOOS, GALLERY, WHOLE, WRECK, JAMS, upRight, LIFT, liftY, ROTTEN, TORN_NET, type Piece,
 } from './layout';
@@ -56,7 +56,7 @@ const drawBay = (c: Ctx, state: GameState, look: TowerLook) => {
   // (fake torches: flame-shaped bulbs)
   for (let x = x0 + 180; x < TX0 - 100; x += 360) { box(c, x - 4, GY - 300, 8, 24, '#44403C'); box(c, x - 6, GY - 316 + (f >> 3) % 2, 12, 16, '#F97316'); box(c, x - 3, GY - 312, 6, 8, '#FDE047'); }
   // the way back to the hallway
-  doorway(c, MIST_DOOR_X + 10, GY, 'HALLWAY');
+  doorway(c, ENTRY_DOOR_X + 10, GY, 'DUNGEON');
   postSign(c, WAIT_SIGN_X, GY, 'WAIT FROM HERE: 45 MIN', '#450A0A', '#FDBA74');
   // HOW THE RIDE WORKS: a board on the wall, four panels
   const hx = HOW_BOARD_X, hy = GY - 360;

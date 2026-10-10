@@ -7,7 +7,7 @@
 //               grinds up, and it's a run for it under the spikes (low by then: duck, or slide). The spikes hurt (a
 //               new hurt: voiced callouts); all the way down, they kill (skewered: his own death, dungeon/death.ts).
 //               Out, it slams down behind him, comes back up and jams, low (the way back stays open: under it).
-//   then a stretch of corridor to the EMERGENCY EXIT: the red-mist hallway.
+//   then the rope walk, and up the stairs at the far end to the ELEVATOR TO HELL's loading bay (the tower section).
 // Checkpoints: the dungeon's start, the chamber's door (a quick retry), and past it.
 //
 // Indoors (no time of day): torchlight of its own.
@@ -229,7 +229,7 @@ const drawDungeon = (c: CanvasRenderingContext2D, state: GameState, dg: Dungeon)
   }
   // The corridor on, the emergency exit
   if (seen(state, RB, x1)) {
-    doorway(c, x1 - 90, GY, 'EMERGENCY EXIT', '#7F1D1D', '#0A0404');
+    doorway(c, x1 - 90, GY, 'TO THE LOADING BAY', '#57534E', '#0A0A0A'); for (let k = 0; k < 6; k++) box(c, x1 - 120 + k * 10, GY - 20 - k * 18, 70, 6, '#3F3A36');
   }
   // Torches
   for (let x = CELLS + 200; x < x1; x += 400) if (seen(state, x - 20, x + 20) && (x < RA || x > RB)) { box(c, x - 3, GY - 300, 6, 24, '#57534E'); box(c, x - 6, GY - 316 - ((f + x) % 7 < 3 ? 2 : 0), 12, 16, '#F97316'); box(c, x - 3, GY - 310, 6, 8, '#FDE047'); }

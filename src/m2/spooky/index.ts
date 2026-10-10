@@ -22,7 +22,6 @@ import { getSpooky, type Spooky, type SpookySection } from './section';
 import { town } from './town';
 import { castle } from './castle';
 import { dungeon } from './dungeon';
-import { mist } from './mist';
 import { tower } from './tower';
 import { hell } from './hell';
 import { control } from './control';
@@ -31,7 +30,7 @@ export { SPOOKY_VOICE_LINES } from './voices';
 
 export const SPOOKY_STAGE = 'M2 Spooky Land';
 
-const ALL: Record<SpookyId, SpookySection> = { town, castle, dungeon, mist, tower, hell, control, ballroom };
+const ALL: Record<SpookyId, SpookySection> = { town, castle, dungeon, tower, hell, control, ballroom };
 const sectionAt = (x: number): SpookySection => {
   for (const id of SECTION_ORDER) { const s = ALL[id]; if (x >= s.x0 && x < s.x1) return s; }
   // (between sections, or off the end of one: the nearest)

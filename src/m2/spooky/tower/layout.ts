@@ -20,7 +20,7 @@ import { SECTIONS, GY } from '../geometry';
 export const { x0, x1 } = SECTIONS.tower;
 
 // ---- The loading bay
-export const MIST_DOOR_X = x0 + 50;
+export const ENTRY_DOOR_X = x0 + 50;
 export const WAIT_SIGN_X = x0 + 205;
 export const HOW_BOARD_X = x0 + 640;
 export const QUEUE_X0 = x0 + 330, QUEUE_X1 = x0 + 1000;

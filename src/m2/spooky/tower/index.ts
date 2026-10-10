@@ -1,7 +1,7 @@
 // THE CLOCK TOWER: section 5 of Spooky Land, and the land's one real there-and-back: up the tower from its foot, and
 // all the way back down it, past the foot, and under it.
 //
-// THE LOADING BAY. Out of the red-mist hallway into the ELEVATOR TO HELL's loading bay: HOW THE RIDE WORKS on the wall
+// THE LOADING BAY. Up out of the dungeon into the ELEVATOR TO HELL's loading bay: HOW THE RIDE WORKS on the wall
 // (board the car, up the clock tower, drop to hell, exit through the gift shop), the line in its switchbacks, a car
 // loading at the platform and rolling off into the foot of the tower. The ride operator won't let him on (clean /
 // shitty / naked) and calls security (out of the CAST MEMBERS ONLY door). So in through the tower's maintenance door.
@@ -540,7 +540,7 @@ export const tower: SpookySection = {
     t.ride.cars = t.ride.cars.filter(c => !(c.crash && c.y > HELL_AT + 500));
     if (t.crash) return runCrash(ctx, t);
     // The way back to the hallway
-    runExits(state, [{ x0: x0 - 40, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.mist.end }]);
+    runExits(state, [{ x0: x0 - 40, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.dungeon.end }]);
     runBay(state, t);
     updateThrown(ctx);
     runLift(state);

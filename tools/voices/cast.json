@@ -88,7 +88,6 @@
   "oscar.smokerB": { "voice": "am_liam", "speed": 1.05, "rate": 1.03 },
 
   "m2.donnie.pa": { "voice": [["bm_george", 0.55], ["am_santa", 0.45]], "speed": 0.88, "rate": 0.94, "gain": 1.1, "fx": "radio_mild" },
-  "m2.spooky.gary": { "voice": "am_echo", "speed": 1.25, "rate": 1.08 },
   "m2.donnie": { "voice": [["am_eric", 0.6], ["am_puck", 0.4]], "speed": 1.18, "rate": 1.06 },
   "m2.spooky.clerk": { "voice": "am_liam", "speed": 1.12, "rate": 1.02 },
   "m2.spooky.clerkf": { "voice": "af_sarah", "speed": 1.12, "rate": 1.02 }

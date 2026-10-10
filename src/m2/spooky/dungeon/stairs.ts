@@ -21,7 +21,8 @@ export const CELLS = S + 1950;
 export const STAIR_TOP = GY - 1000;
 /** The stairway's line, his feet's: the top landing, then flight, landing, flight... down to the cells' floor. */
 const PTS: [number, number][] = [
-  [S - 200, STAIR_TOP], [S + 200, STAIR_TOP], [S + 550, STAIR_TOP + 250], [S + 650, STAIR_TOP + 250], [S + 1000, STAIR_TOP + 500],
+  // (from the section's own start: a run reaching back past it would be a solid block in the castle's way)
+  [S, STAIR_TOP], [S + 200, STAIR_TOP], [S + 550, STAIR_TOP + 250], [S + 650, STAIR_TOP + 250], [S + 1000, STAIR_TOP + 500],
   [S + 1150, STAIR_TOP + 500], [S + 1500, STAIR_TOP + 750], [S + 1600, STAIR_TOP + 750], [CELLS, GY],
 ];
 export const stairRuns = (): GroundRun[] => PTS.slice(1).map((b, i) => ({ x1: PTS[i][0], y1: PTS[i][1], x2: b[0], y2: b[1], surface: 'hard' }));
@@ -79,15 +80,15 @@ export const stairsLighting = (state: GameState) => {
 
 const seen = (state: GameState, a: number, b: number) => b > state.camera.x - 100 && a < state.camera.x + 900;
 export const drawStairs = (c: CanvasRenderingContext2D, state: GameState) => {
-  if (!seen(state, S - 200, CELLS)) return;
+  if (!seen(state, S, CELLS)) return;
   const f = state.frame;
   // The rock it's cut through, and the tunnel down it (stone blocks)
-  box(c, S - 200, STAIR_TOP - HEAD - 200, CELLS - S + 200, GY - STAIR_TOP + HEAD + 600, '#0A0807');
+  box(c, S, STAIR_TOP - HEAD - 200, CELLS - S, GY - STAIR_TOP + HEAD + 600, '#0A0807');
   c.fillStyle = '#26221F'; c.beginPath(); c.moveTo(PTS[0][0], PTS[0][1] - HEAD);
   for (const [x, y] of PTS) c.lineTo(x, y - HEAD);
   for (let i = PTS.length - 1; i >= 0; i--) c.lineTo(PTS[i][0], PTS[i][1]);
   c.closePath(); c.fill();
-  for (let x = S - 160; x < CELLS; x += 80) if (seen(state, x, x + 80)) { const fl = floorAt(x + 40); for (let y = fl - HEAD + 20; y < fl - 30; y += 44) box(c, x + ((y / 44) % 2 ? 0 : 20), y, 72, 38, '#2E2925'); }
+  for (let x = S; x < CELLS; x += 80) if (seen(state, x, x + 80)) { const fl = floorAt(x + 40); for (let y = fl - HEAD + 20; y < fl - 30; y += 44) box(c, x + ((y / 44) % 2 ? 0 : 20), y, 72, 38, '#2E2925'); }
   // The steps: the flights in steps (each one's tread lit), the landings flat (lit along the top), the rock under them
   for (let i = 1; i < PTS.length; i++) {
     const [ax, ay] = PTS[i - 1], [bx, by] = PTS[i];

@@ -9,7 +9,6 @@ section's index.ts header says what goes in it.
 |---|---|---|
 | Town | `town/` | town (0-9) |
 | Castle + dungeon | `castle/`, `dungeon/` | castle (10-19), dungeon (20-29) |
-| Mist | `mist/` | mist (30-39) |
 | Tower | `tower/` | tower (40-49) |
 | Hell | `hell/` | hell (50-59) |
 | Control + ballroom | `control/`, `ballroom/` | control (60-69), ballroom (70-79) |
@@ -31,7 +30,6 @@ and report your section's length and estimated playtime.
 | town | SX+0 .. SX+12000 (12000 wide) | 12000 | ~2.5 min |
 | castle | SX+14000 .. SX+26000 (12000) | 12000 | ~2.5 min (plus the PA's tour stories) |
 | dungeon | SX+28000 .. SX+31000 (3000) | 3000 | ~40 s |
-| mist | SX+34000 .. SX+40000 (6000 wide) | ~8000 equivalent: a long, winding climb (vertical px count as walked px; climbing is slower) | ~1.5 min (a chase: fast) |
 | tower | SX+42000 .. SX+47000 (5000 wide) | ~9000 equivalent: the loading bay (~1500) + the climb (the bulk; ~2400+ px up, beams on the way) | ~2 min |
 | hell | SX+49000 .. SX+60000 (11000) | 11000 incl. the demon arena | ~2.5 min + the demon fight |
 | control | SX+63000 .. SX+68000 (5000) | 5000 (control room + gift shop chase) | ~1 min + the reveal |
