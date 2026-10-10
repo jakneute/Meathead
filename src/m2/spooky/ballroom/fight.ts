@@ -75,6 +75,7 @@ const HOVER_T = [0, 150, 115, 90], HOVER_UP = 160;
 const WINDED_T = [0, 80, 65, 50];
 /** The grab: the tell, the swoop's length, how far past him it carries on. */
 const AIM_T = [0, 46, 38, 32], DIVE_T = [0, 50, 44, 38], DIVE_PAST = 240;
+// (only on the way down and at the bottom: once he's pulling back up past the mark, he can't get hold of anybody)
 /** The grab's target is locked this long before he goes (the marker stops following him: move off it). */
 const LOCK_T = 16;
 /** Held: a drain every so often (his damage, Donnie's heal), let go after this long at most, or this many presses. */
@@ -83,11 +84,15 @@ const DRAIN_EVERY = 18, DRAIN_DMG = 5, DRAIN_HEAL = 5, DRAIN_MAX = 150, ESCAPE_P
 const GUEST_EVERY = [0, 640, 520, 420], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 20;
 /** The spew: the aim first, then the stream (by phase), a drop every so often, how hard, how fast; how fast his aim
  *  can follow Meathead (px a frame: about his walk, so standing still or walking straight away gets you hosed). */
-const SPEW_AIM = 34, SPEW_T = [0, 66, 80, 96], SPEW_EVERY = 3, BLOOD_DMG = 4, BLOOD_SPEED = 8.5, AIM_FOLLOW = 3.6;
+const SPEW_AIM = 34, SPEW_T = [0, 99, 120, 144], SPEW_EVERY = 3, BLOOD_DMG = 3, BLOOD_SPEED = 8.5, AIM_FOLLOW = 3.2;
+/** The spray: drops a go, how wide the cone (radians either side of the aim), how big a drop's hit is (px about it). */
+const SPRAY_N = 2, SPRAY_CONE = 0.13, DROP_HIT = 5;
 /** The stream comes in bursts: this many frames on, this many off. */
 const BURST_ON = 18, BURST_OFF = 12;
 /** Satan's nags, Donnie's taunts: every so often (frames). */
 const NAG_EVERY = 900, TAUNT_EVERY = 520;
+/** At least this long between one of Satan and Donnie's beats and the next (frames). */
+const BEAT_GAP = 360;
 
 /** Sources of hurt (each with its lines and its death screen). */
 const BLOOD = 'm2:donnie_blood';
@@ -98,11 +103,11 @@ registerHurtLines(BLOOD, L.HURT_BLOOD, L.DEATH_BLOOD);
 // The state
 
 type Intro = 'plead' | 'reply' | 'open' | 'bestow' | 'rise' | 'powered' | 'soul' | 'panic' | 'mh' | 'close';
-export type Mode = 'intro' | 'hover' | 'aim' | 'dive' | 'drain' | 'rise' | 'hunt' | 'suck' | 'spew' | 'winded' | 'stunned' | 'dead';
+export type Mode = 'intro' | 'hover' | 'aim' | 'dive' | 'drain' | 'rise' | 'hunt' | 'suck' | 'spew' | 'winded' | 'flinch' | 'stunned' | 'dead';
 
 interface Guest { x: number; dir: 1 | -1; seed: number; state: 'run' | 'held' | 'fall' | 'husk'; y: number; vy: number; t: number; said: string | null; facing: 1 | -1 }
-interface Drop { x: number; y: number; vx: number; vy: number }
-interface Splat { x: number; w: number }
+interface Drop { x: number; y: number; vx: number; vy: number; r: number }
+interface Splat { x: number; w: number; t: number }
 export interface KillCam { t: number; acc: number; z: number; out: boolean }
 
 export interface Fight {
@@ -131,6 +136,9 @@ export interface Fight {
   death: { how: 'flat' | 'burn'; t: number; x: number; y: number; vy: number; facing: 1 | -1; land: number } | null;
   deathSaid: number;
   cam: KillCam | null;
+  /** Satan and Donnie's beats: the next one waiting its turn, one going now, which have gone (the once-only ones),
+   *  how many guests he's sucked dry; flinching (frames), and where the phases have got to. */
+  beat: { s: L.ByPants; d: L.ByPants; flinch: boolean } | null; beatOn: boolean; beatEnd: number; beatsDone: Set<string>; guestKills: number;
   /** The wig, off (knocked off half way), lying where it fell. */
   wigOff: { x: number; y: number; vy: number } | null;
   e: Enemy;
@@ -159,7 +167,8 @@ setSouvenirPick(all => {
   }
   return f.hp <= lesserMax(all) + inAir ? 'redeemer' : null;
 });
-setSouvenirHit((e, id) => { if (live && e === live.e) live.souvenir = { id }; });
+// (the Redeemer comes apart on him: one hit, its one chunk, no bouncing back for more)
+setSouvenirHit((e, id) => { if (!live || e !== live.e) return false; live.souvenir = { id }; return id === 'redeemer'; });
 
 // ---------------------------------------------------------------------------------------------------------------
 // Donnie, the enemy (the engine's: for the hits. He's drawn here, not by it)
@@ -180,7 +189,7 @@ registerM2Kind({
 
 /** A bark: dropped if somebody's talking. */
 /** Nobody in the fight saying anything just now (Donnie, Satan, a guest): one voice at a time, text only while said. */
-const quiet = (f: Fight) => !f.said && !f.satanSaid && !f.guests.some(g => g.said);
+const quiet = (f: Fight) => !f.said && !f.satanSaid && !f.beatOn && !f.guests.some(g => g.said);
 const bark = (f: Fight, lines: L.ByPants) => {
   if (!quiet(f)) return;
   const text = pick(lines[pants()]);
@@ -188,15 +197,6 @@ const bark = (f: Fight, lines: L.ByPants) => {
     always: true,
     onShow: spoken => { f.said = text; if (!spoken) setTimeout(() => { if (f.said === text) f.said = null; }, Math.max(1600, text.length * 65)); },
     onHide: () => { if (f.said === text) f.said = null; },
-  });
-};
-const satanBark = (f: Fight, lines: L.ByPants) => {
-  if (!quiet(f)) return;
-  const text = pick(lines[pants()]);
-  say(text, voice('m2.satan'), 'casual', {
-    always: true,
-    onShow: spoken => { f.satanSaid = text; if (!spoken) setTimeout(() => { if (f.satanSaid === text) f.satanSaid = null; }, Math.max(1800, text.length * 65)); },
-    onHide: () => { if (f.satanSaid === text) f.satanSaid = null; },
   });
 };
 /** A line that waits its turn, then (if the scene's still the same) on to whatever's next. */
@@ -222,12 +222,18 @@ export const startFight = (state: GameState): Fight => {
     guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0,
     said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove,
     death: null, deathSaid: 0, cam: null, wigOff: null, e,
+    beat: null, beatOn: false, beatEnd: -9999, beatsDone: new Set(), guestKills: 0,
   };
   live = f;
+  // (a retry: he's up and waiting already, powered, no cutscene)
+  if (introSeen) { f.x = ARENA_MID + 140; f.y = GY - HOVER_UP; beginFight(state, f); bark(f, L.DONNIE_TAUNT); return f; }
   state.player.inCutscene = true;
-  line(f, 'donnie', L.DONNIE_PLEAD, () => { f.intro = 'reply'; f.introT = 0; meatheadSays(state, pick(L.MEATHEAD_INTRO), true, tokened(() => { f.intro = 'open'; f.introT = 0; })); });
+  line(f, 'donnie', L.DONNIE_PLEAD, () => { f.intro = 'open'; f.introT = 0; });
   return f;
 };
+/** Seen the intro this time through (a retry from outside the doors skips it). Reset coming at the land fresh. */
+let introSeen = false;
+export const forgetFightIntro = () => { introSeen = false; };
 const tokened = (fn: () => void) => { const tok = token; return () => { if (tok === token) fn(); }; };
 
 /** The intro, each frame (out of his hands; skippable, all of it). */
@@ -245,14 +251,14 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
       f.circle = Math.min(1, t / 70);
       if (t % 8 === 0) { playSound('rumble', 0.5 + f.circle * 0.5, -8); shakeScreen(state, 2 + f.circle * 6, 3); }
       if (t === 40) playSound('thunder', 0.8, -6);
-      if (t >= 80) { f.intro = 'bestow'; f.introT = 0; line(f, 'satan', L.SATAN_BESTOW, () => { f.intro = 'rise'; f.introT = 0; }); }
+      if (t >= 80) { f.intro = 'bestow'; f.introT = 0; line(f, 'satan', L.SATAN_GRANT, () => { f.intro = 'rise'; f.introT = 0; }); }
       break;
     case 'rise':
       // (up out of his corner, changed: lifted, the flash, the wings out)
       f.y = GY - Math.min(1, t / 70) * HOVER_UP;
       f.x += (ARENA_MID + 140 - f.x) * 0.03;
       if (t === 36) { f.powered = true; playSound('thunder', 1, -2); playSound('roar', 0.7, 4); shakeScreen(state, 14, 8); }
-      if (t >= 80) { f.intro = 'powered'; f.introT = 0; line(f, 'donnie', L.DONNIE_POWERED, () => { f.intro = 'soul'; f.introT = 0; line(f, 'satan', L.SATAN_SOUL, () => { f.intro = 'panic'; f.introT = 0; line(f, 'donnie', L.DONNIE_SATAN_PANIC, () => { f.intro = 'mh'; meatheadSays(state, pick(L.MEATHEAD_SATAN), true, tokened(() => { f.intro = 'close'; f.introT = 0; })); }); }); }); }
+      if (t >= 80) { f.intro = 'close'; f.introT = 0; }
       break;
     case 'close':
       f.circle = Math.max(0, 1 - t / 40);
@@ -267,7 +273,7 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
 
 /** On: out of the cutscene, into the air, the circle shut. */
 const beginFight = (state: GameState, f: Fight) => {
-  token++;
+  token++; introSeen = true;
   f.said = null; f.satanSaid = null;
   f.powered = true; f.circle = 0;
   if (f.y > GY - HOVER_UP + 20) { f.y = GY - HOVER_UP; f.x = ARENA_MID + 140; }
@@ -297,6 +303,12 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   if (f.hp <= 0 && f.mode !== 'dead') die(ctx, f);
   let out = controls;
   const ph = phase(f);
+  // Satan and Donnie: their beats, at their moments
+  if (f.mode !== 'dead') {
+    if (ph >= 2) queueBeat(f, 'yours', L.SATAN_SOUL, L.DONNIE_SATAN_PANIC, true);
+    if (f.hp < HP * 0.25) queueBeat(f, 'low', L.SATAN_LOW, L.DONNIE_LOW, true);
+    runBeat(f);
+  }
   // (half gone: the wig comes off, and stays off)
   if (!f.wigOff && f.hp < HP / 2 && f.mode !== 'dead') { f.wigOff = { x: f.x, y: f.y - 90, vy: -4 }; playSound('whoosh', 0.5, 8); }
   if (f.wigOff && f.wigOff.y < GY - 4) { f.wigOff.vy += 0.4; f.wigOff.y = Math.min(GY - 4, f.wigOff.y + f.wigOff.vy); }
@@ -310,7 +322,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       f.x += f.vx; f.y += f.vy;
       faceHim(state, f);
       if (++f.tauntT >= TAUNT_EVERY) { f.tauntT = Math.floor(Math.random() * 120); bark(f, L.DONNIE_TAUNT); }
-      if (++f.nagT >= NAG_EVERY) { f.nagT = Math.floor(Math.random() * 200); satanBark(f, L.SATAN_NAG); }
+      if (++f.nagT >= NAG_EVERY) { f.nagT = Math.floor(Math.random() * 200); queueBeat(f, 'nag', L.SATAN_NAG, L.DONNIE_SHOWOFF, false, true); }
       // (a guest in the room: he can't help himself)
       const prey = f.guests.find(g => g.state === 'run' && g.x > ARENA_L + 40 && g.x < ARENA_R - 40);
       if (prey && f.t > 30) { f.prey = prey; to(f, 'hunt'); bark(f, L.DONNIE_SNATCH); playSound('whoosh', 0.8, -4); break; }
@@ -343,7 +355,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       if (state.frame % 2 === 0) state.particles.push({ pos: { x: f.x, y: f.y - 50 }, vel: { x: -f.vx * 0.2, y: -f.vy * 0.2 }, life: 14, color: 'rgba(127, 29, 29, 0.6)', size: 6 });
       // (his claws on him: got him)
       const m = pmid(state), p = state.player;
-      if (canHurtHim(state) && p.invincibilityTimer <= 0 && Math.abs(m.x - f.x) < 34 && Math.abs(m.y - (f.y - 46)) < 46) { grab(state, f, controls); break; }
+      if (s < 0.62 && canHurtHim(state) && p.invincibilityTimer <= 0 && Math.abs(m.x - f.x) < 34 && Math.abs(m.y - (f.y - 46)) < 46) { grab(state, f, controls); break; }
       if (s >= 1) { f.dive = null; to(f, 'winded'); }
       break;
     }
@@ -378,6 +390,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       if (f.t >= SUCK_T) {
         g.state = 'fall'; g.vy = -1; g.y = f.y - 30; g.facing = f.facing;
         f.hp = Math.min(HP, f.hp + GUEST_HEAL); f.prey = null;
+        if (++f.guestKills === 1 || f.guestKills === 3) queueBeat(f, 'guest' + f.guestKills, L.SATAN_GUEST, L.DONNIE_GUEST, false);
         playSound('crumble', 0.8);
         to(f, 'spew'); f.aimX = pmid(state).x; f.aimY = pmid(state).y;
         bark(f, L.DONNIE_SPEW);
@@ -392,13 +405,23 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       f.aimX += Math.max(-AIM_FOLLOW, Math.min(AIM_FOLLOW, m.x - f.aimX)); f.aimY += Math.max(-AIM_FOLLOW, Math.min(AIM_FOLLOW, m.y - f.aimY));
       const firing = f.t > SPEW_AIM && (f.t - SPEW_AIM) % (BURST_ON + BURST_OFF) < BURST_ON;
       if (firing && f.t % SPEW_EVERY === 0) {
-        const mx = f.x + f.facing * 14, my = f.y - 74, dx = f.aimX - mx, dy = f.aimY - my, dd = Math.hypot(dx, dy) || 1;
-        f.drops.push({ x: mx, y: my, vx: (dx / dd) * BLOOD_SPEED + (Math.random() - 0.5) * 0.6, vy: (dy / dd) * BLOOD_SPEED + (Math.random() - 0.5) * 0.6 });
+        const mx = f.x + f.facing * 14, my = f.y - 74, dx = f.aimX - mx, dy = f.aimY - my;
+        // (a spray: a few at a go, spread about the aim, some bigger than others)
+        const a0 = Math.atan2(dy, dx);
+        for (let k = 0; k < SPRAY_N; k++) {
+          const a = a0 + (Math.random() * 2 - 1) * SPRAY_CONE, sp = BLOOD_SPEED * (0.9 + Math.random() * 0.25);
+          f.drops.push({ x: mx, y: my, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 4 + Math.random() * 4 });
+        }
         if (f.t % 6 === 0) playSound('gush', 0.25, 6 + Math.random() * 4);
       }
       if (f.t >= SPEW_AIM + SPEW_T[ph]) to(f, 'winded');
       break;
     }
+    case 'flinch':
+      // (Satan's got to him: a shudder in the air, a dip, a beat where he's not paying attention)
+      f.vy = (f.vy + (GY - HOVER_UP + 30 - f.y) * 0.04) * 0.85; f.y += f.vy; f.x += Math.sin(f.t * 1.3) * 1.2;
+      if (f.t >= 50) to(f, 'hover');
+      break;
     case 'stunned':
       // (down out of the air, onto his backside, smoking; then back up)
       if (f.y < GY) { f.vy += 0.6; f.y = Math.min(GY, f.y + f.vy); if (f.y >= GY) { playSound('thud', 1, -4); shakeScreen(state, 8, 4); } }
@@ -487,10 +510,18 @@ const updateDrops = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player;
   f.drops = f.drops.filter(d => {
     d.x += d.vx; d.y += d.vy; d.vy += 0.08;
-    if (d.y >= GY - 2) { if (f.splats.length < 60) f.splats.push({ x: d.x, w: 4 + Math.random() * 6 }); return false; }
+    if (d.y >= GY - 2) {
+      // (a splash, and the pool growing where they land)
+      for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: d.x, y: GY - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2.5 }, life: 16, color: i % 2 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 2, grav: 0.3 });
+      const near = f.splats.find(sp => Math.abs(sp.x - d.x) < sp.w / 2 + 6);
+      if (near) near.w = Math.min(90, near.w + 1.2);
+      else if (f.splats.length < 90) f.splats.push({ x: d.x, w: 8 + Math.random() * 10, t: state.frame });
+      if (state.frame % 4 === 0) playSound('splat', 0.18, 6);
+      return false;
+    }
     if (d.x < ARENA_L - 40 || d.x > ARENA_R + 40) return false;
     const top = p.pos.y + (p.isDucking || p.isSliding ? 28 : 0);
-    if (canHurtHim(state) && p.invincibilityTimer <= 0 && f.mode !== 'drain' && d.x > p.pos.x - 3 && d.x < p.pos.x + p.width + 3 && d.y > top && d.y < p.pos.y + p.height) {
+    if (canHurtHim(state) && p.invincibilityTimer <= 0 && f.mode !== 'drain' && d.x > p.pos.x - DROP_HIT && d.x < p.pos.x + p.width + DROP_HIT && d.y > top - DROP_HIT && d.y < p.pos.y + p.height) {
       hurtPlayer(ctx, BLOOD_DMG, BLOOD, { x: Math.sign(d.vx) * 2, y: -2 }, 6);
       for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: d.x, y: d.y }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 20, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
       playSound('splat', 0.4, 4);
@@ -523,7 +554,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: f.x, y: f.y - 50 }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 4 }, life: 30, color: ['#FEF9C3', '#FDE047', '#ECFCCB', '#FFFFFF'][i % 4], size: 2 + Math.random() * 3, grav: 0.15 });
     if (f.hp <= 0) { f.hp = 0; die(ctx, f, true); return; }
     stun(state, f);
-    bark(f, L.DONNIE_REDEEMER);
+    if (!f.beatsDone.has('stun')) queueBeat(f, 'stun', L.SATAN_STUN, L.DONNIE_STUN, false);
+    else bark(f, L.DONNIE_REDEEMER);
     return;
   }
   if (f.iframes > 0) return;
@@ -678,11 +710,29 @@ const poseOf = (f: Fight): DonniePose => {
     case 'drain': case 'suck': return 'bite';
     case 'spew': return f.t > SPEW_AIM ? 'spew' : 'fly';
     case 'stunned': return 'stunned';
+    case 'flinch': return 'panic';
     case 'aim': return 'summon';
     case 'hunt': case 'dive': return 'lunge';
     case 'winded': return f.t < 12 ? 'fly' : 'fumble';
     default: return 'fly';
   }
+};
+
+/** A beat waiting its turn (`key`: the once-only ones go the once; `again`: a nag, any time it's due). */
+const queueBeat = (f: Fight, key: string, s: L.ByPants, d: L.ByPants, flinch: boolean, again = false) => {
+  if (f.beat || (!again && f.beatsDone.has(key))) return;
+  f.beatsDone.add(key);
+  f.beat = { s, d, flinch };
+};
+/** Its turn: nobody talking, Donnie not got hold of him (the mash prompt's his alone). Satan, then Donnie back. */
+const runBeat = (f: Fight) => {
+  // (a breather between them: the fight's not a talk show)
+  if (!f.beat || f.beatOn || !quiet(f) || f.mode === 'drain' || f.mode === 'intro' || f.total - f.beatEnd < BEAT_GAP) return;
+  const b = f.beat; f.beat = null; f.beatOn = true;
+  line(f, 'satan', b.s, () => {
+    if (b.flinch && (f.mode === 'hover' || f.mode === 'aim' || f.mode === 'rise')) { to(f, 'flinch'); f.mark = null; playSound('screams', 0.3, 14); }
+    line(f, 'donnie', b.d, () => { f.beatOn = false; f.beatEnd = f.total; });
+  });
 };
 
 /** The circle in the floor: a ring of fire, the light up out of it, him in the light (horns, eyes). World space. */
@@ -712,7 +762,12 @@ const drawCircle = (c: Ctx, k: number, fr: number) => {
 
 /** World space, behind him: the circle, the blood on the floor, the husks, the wig once it's off. */
 export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
-  for (const s of f.splats) { c.fillStyle = '#7F1D1D'; c.fillRect(Math.round(s.x - s.w / 2), GY - 1, Math.round(s.w), 3); }
+  // (the pools of it: dark, a wet highlight, spreading as more lands)
+  for (const sp of f.splats) {
+    c.fillStyle = '#450A0A'; c.beginPath(); c.ellipse(sp.x, GY + 1, sp.w / 2 + 1, 4, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(sp.x, GY + 1, sp.w / 2, 3, 0, 0, Math.PI * 2); c.fill();
+    box(c, sp.x - sp.w * 0.2, GY - 1, Math.max(2, sp.w * 0.25), 1, '#DC2626');
+  }
   drawCircle(c, f.circle, state.frame);
   for (const g of f.guests) if (g.state === 'husk') drawHusk(c, g.x, GY, g.facing, 0.85, 1);
   if (f.wigOff) drawLooseWig(c, f.wigOff.x, f.wigOff.y, state.frame, 1, 0.5);
@@ -748,7 +803,7 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     c.restore();
     if (blink) c.globalAlpha = 1;
     // (the stream out of his mouth)
-    if (f.mode === 'spew' && f.t > SPEW_AIM) { const mx = f.x + f.facing * 14, my = f.y - 74; c.fillStyle = '#B91C1C'; for (let i = 0; i < 3; i++) c.fillRect(Math.round(mx + f.facing * i * 3) - 2, Math.round(my - 1 + Math.sin(fr + i)), 4, 3); }
+    if (f.mode === 'spew' && f.t > SPEW_AIM && (f.t - SPEW_AIM) % (BURST_ON + BURST_OFF) < BURST_ON) { const mx = f.x + f.facing * 14, my = f.y - 74; for (let i = 0; i < 5; i++) { box(c, mx + f.facing * i * 5 - 4, my - 3 + Math.sin(fr + i) * 2, 9, 7, '#1A0B06'); box(c, mx + f.facing * i * 5 - 3, my - 2 + Math.sin(fr + i) * 2, 7, 5, i % 2 ? '#B91C1C' : '#DC2626'); } }
     // (stunned: the little statue's halo of stars over him)
     if (f.mode === 'stunned') for (let i = 0; i < 4; i++) { const a = fr * 0.12 + i * 1.57; box(c, f.x + Math.cos(a) * 22 - 2, f.y - 80 + Math.sin(a) * 5 - 2, 4, 4, i % 2 ? '#FDE047' : '#ECFCCB'); }
   }
@@ -781,7 +836,15 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     box(c, x + 30, y - 3, 48, 6, '#1A0B06'); box(c, x + 31, y - 2, 46 * k, 4, '#FDE047');
   }
   // The blood in the air
-  for (const d of f.drops) { box(c, d.x - 5, d.y - 4, 10, 8, '#1A0B06'); box(c, d.x - 4, d.y - 3, 8, 6, '#991B1B'); box(c, d.x - 3, d.y - 2, 4, 3, '#EF4444'); }
+  for (const d of f.drops) {
+    // (each a blob, stretched along its way, a lit fleck on it)
+    const a = Math.atan2(d.vy, d.vx);
+    c.save(); c.translate(d.x, d.y); c.rotate(a);
+    c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(0, 0, d.r * 1.6 + 1, d.r + 1, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#991B1B'; c.beginPath(); c.ellipse(0, 0, d.r * 1.6, d.r, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#EF4444'; c.beginPath(); c.ellipse(d.r * 0.4, -d.r * 0.3, d.r * 0.6, d.r * 0.35, 0, 0, Math.PI * 2); c.fill();
+    c.restore();
+  }
   // His words; Satan's (up over the room, out of nowhere, red)
   if (f.said) saidOver(c, f.said, f.mode === 'dead' && f.death ? f.death.x : f.x, (f.mode === 'dead' && f.death ? f.death.y : f.y) - DONNIE_H - 16, '#FDE68A');
   if (f.satanSaid) saidOver(c, f.satanSaid, CIRCLE_X, GY - 330, '#F87171', 300);

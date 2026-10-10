@@ -184,6 +184,8 @@ interface Flight {
   age: number;
   /** Lobbed (up + fire): a mortar's arc, high over and down on whoever it was lobbed at (over his shield and all). */
   lob?: boolean;
+  /** Done: it came apart on whoever it hit (a boss's weakness says so: setSouvenirHit returning true). */
+  gone?: boolean;
 }
 const flightOf = (p: Projectile) => p.customData as Flight;
 
@@ -291,7 +293,7 @@ const hitEnemy = (ctx: FrameContext, p: Projectile, e: Enemy) => {
   // (how fast it's going counts for a light one; a heavy one hits hard however it gets there: it's the weight)
   const dmg = Math.round(t.dmg * Math.max(0.5 + t.mass * 0.45, Math.min(1.2, speed / t.speed)));
   const dir = Math.sign(p.vel.x) || 1;
-  hitHook?.(e, t.id, dmg);
+  if (hitHook?.(e, t.id, dmg)) f.gone = true;
   e.health -= dmg;
   const at = { x: e.pos.x + e.width / 2, y: p.pos.y + p.height / 2 };
   fx.spawnExplosion(at, '#8B0000', 4 + Math.round(t.mass * 8), 0, 6);
@@ -455,6 +457,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
       break;
     }
   }
+  // (come apart on whoever it hit: a boss's weakness)
+  if (f.gone) { disintegrate(state, p); return false; }
   // Stopped (lying still a moment), or it's had its time, or it's gone off past anywhere he'll see it: it falls apart
   f.still = grounded && Math.abs(p.vel.x) < 0.5 ? f.still + 1 : 0;
   const far = p.pos.x < state.camera.x - 600 || p.pos.x > state.camera.x + 1400 || p.pos.y > state.camera.y + 1200;
@@ -497,8 +501,9 @@ const drawHeld = (c: Ctx, frame: number) => {
  *  for the usual luck of the draw. Set while the fight's on, cleared after. */
 let pickHook: ((all: readonly { id: string; dmg: number }[]) => string | null) | null = null;
 export const setSouvenirPick = (f: typeof pickHook) => { pickHook = f; };
-/** Told whenever one hits somebody, before its damage goes on (which one it was, how hard): a boss's weakness. */
-let hitHook: ((e: Enemy, id: string, dmg: number) => void) | null = null;
+/** Told whenever one hits somebody, before its damage goes on (which one it was, how hard): a boss's weakness. True
+ *  back: it comes apart on him there and then (no bounce, no more hits). */
+let hitHook: ((e: Enemy, id: string, dmg: number) => boolean | void) | null = null;
 export const setSouvenirHit = (f: typeof hitHook) => { hitHook = f; };
 /** The most one of them can hit for (a straight shot, fast: its damage x 1.2). */
 export const souvenirMaxHit = (dmg: number) => Math.round(dmg * 1.2);

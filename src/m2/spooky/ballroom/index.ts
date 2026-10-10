@@ -44,11 +44,8 @@ const leave = (state: GameState, weakness: boolean) => {
 
 export const ballroom: SpookySection = {
   id: 'ballroom', x0, x1,
-  checkpoints: [
-    { name: 'THE BALLROOM DOOR', cp: 70, x: x0 + 200, y: GY },
-    // (past the foyer: back here, nothing's about, and it's the intro again)
-    { name: 'DONNIE DRACULA', cp: 71, x: ARENA_L - 120, y: GY, clear: [900, 1200] },
-  ],
+  // (none of its own: the boss's checkpoint is just outside the doors, in the gift shop: control/index.ts)
+  checkpoints: [],
   build: (state) => {
     resetFight();
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'parquet' }]);
@@ -148,22 +145,14 @@ const drawBallroom = (c: Ctx, state: GameState) => {
   for (let x = x0 + 150; x < ARENA_R; x += 300) box(c, x, GY - 440, 18, 440, '#A16207');
   box(c, x0 - 200, GY - 96, ARENA_R - x0 + 400, 6, '#A16207');
   box(c, x0 - 200, GY - 446, ARENA_R - x0 + 400, 10, '#1E0A33');
-  // ---- The foyer: the coat check, the buffet, folding chairs stacked
-  if (vis(x0, ARENA_L)) {
-    box(c, x0 + 40 - 40, GY - 150, 80, 150, '#A16207'); box(c, x0 + 8, GY - 142, 64, 142, '#0B0B0D');
-    wallSign(c, x0 + 40, GY - 172, 'GIFT SHOP', '#3B0764', '#FDE047');
-    box(c, x0 + 170, GY - 110, 120, 110, '#57534E'); box(c, x0 + 170, GY - 114, 120, 4, '#D6D3D1');
-    wallSign(c, x0 + 230, GY - 140, 'COAT CHECK', '#1C1917', '#FDE68A');
-    // (the buffet: a long table, a white cloth, chafing dishes, the punch bowl, a sad ice sculpture of a bat)
-    box(c, x0 + 360, GY - 60, 240, 60, '#F8FAFC'); box(c, x0 + 360, GY - 62, 240, 3, '#FFFFFF');
-    for (let i = 0; i < 4; i++) { box(c, x0 + 372 + i * 44, GY - 74, 30, 12, '#A1A1AA'); box(c, x0 + 372 + i * 44, GY - 76, 30, 2, '#E4E4E7'); }
-    c.fillStyle = '#BAE6FD'; c.beginPath(); c.ellipse(x0 + 560, GY - 70, 16, 8, 0, 0, Math.PI); c.fill();
-    box(c, x0 + 550, GY - 86, 4, 16, '#E0F2FE'); box(c, x0 + 540, GY - 92, 24, 6, '#E0F2FE');
-    wallSign(c, x0 + 480, GY - 150, 'ALL YOU CAN EAT $29.99', '#3B0764', '#FDE68A');
-    for (let k = 0; k < 6; k++) box(c, x0 + 640 + (k % 2) * 4, GY - 20 - k * 12, 50, 10, '#71717A');
-    // (the velvet rope's gate onto the floor: up once he's through)
-    for (const px of [ARENA_L - 40, ARENA_L - 4]) { box(c, px, GY - 60, 8, 60, '#A16207'); box(c, px - 2, GY - 64, 12, 6, '#FDE047'); }
-    if (b.gate) box(c, ARENA_L - 34, GY - 52, 32, 6, '#B91C1C'); else { box(c, ARENA_L - 34, GY - 40, 4, 34, '#B91C1C'); }
+  // ---- The way in: the doorway he kicked in, on the left wall, its doors flat on the floor inside it
+  if (vis(ARENA_L - 60, ARENA_L + 160)) {
+    const dx = ARENA_L + 30;
+    box(c, dx - 61, GY - 181, 122, 181, '#1A0B06'); box(c, dx - 60, GY - 180, 120, 180, '#A16207');
+    box(c, dx - 52, GY - 172, 104, 172, '#3B0A0A');
+    box(c, dx - 50, GY - 12, 70, 12, '#1A0B06'); box(c, dx - 49, GY - 11, 68, 10, '#581C87');
+    box(c, dx + 10, GY - 8, 76, 8, '#1A0B06'); box(c, dx + 11, GY - 7, 74, 6, '#6B21A8'); box(c, dx + 40, GY - 6, 6, 4, '#FDE047');
+    for (let i = 0; i < 4; i++) box(c, dx + 54 - i * 4, GY - 160 + i * 30, 7, 2, '#A16207');
   }
   // ---- The dance floor: the lit checker, the stage, the DJ booth, fog machines, the chandeliers, the disco ball
   if (vis(ARENA_L - 100, ARENA_R + 100)) {

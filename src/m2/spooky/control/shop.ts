@@ -303,15 +303,6 @@ export const drawShop = (c: Ctx, state: GameState, sh: Shop) => {
   for (const [rel, h, w, kind] of STANDS) { const x = at(rel); if (vis(x, x + w)) drawStand(c, x, h, w, kind, f); }
   // The photo booth, the cardboard Satan
   if (vis(at(BOOTH) - 140, at(BOOTH) + 140)) drawBooth(c, sh, f);
-  // The ballroom's doors
-  const D = G.BALL_DOOR;
-  if (vis(D - 100, D + 100)) {
-    ol(c, D - 70, GY - 180, 140, 180, '#A16207');
-    box(c, D - 62, GY - 172, 60, 172, '#581C87'); box(c, D + 2, GY - 172, 60, 172, '#581C87');
-    for (const dx of [-54, 10]) { box(c, D + dx, GY - 160, 44, 60, '#6B21A8'); box(c, D + dx, GY - 90, 44, 70, '#6B21A8'); }
-    box(c, D - 10, GY - 96, 6, 18, '#FDE047'); box(c, D + 4, GY - 96, 6, 18, '#FDE047');
-    wallSign(c, D, GY - 205, 'GRAND BALLROOM', '#3B0764', '#FDE047');
-  }
   // The pickups' table, its sign on a post
   if (vis(G.PICKUP_X - 80, G.PICKUP_X + 140)) { ol(c, G.PICKUP_X - 50, GY - 8, 100, 8, '#78350F'); postSign(c, G.PICKUP_X + 90, GY, 'FREE SAMPLES', '#450A0A', '#FDE68A'); }
 };

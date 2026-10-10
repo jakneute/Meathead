@@ -29,7 +29,9 @@ import { isLandCleared } from '../../store';
 import { drawDonnie, drawLooseWig, drawLooseFangs, DONNIE_H, type DonniePose, type DonnieLook } from '../../cast/donnie';
 import { drawBars, Lines } from './cine';
 import { tickStaff, drawGlobes, drawStaffSaid, resetStaff } from './staff';
-import { type Shop, makeShop, setShopGeo, buildShop, startChase, shopAftermath, tickShop, shopDonnieOut, drawShop, drawShopFront } from './shop';
+import { type Shop, makeShop, setShopGeo, buildShop, startChase, shopAftermath, tickShop, shopDonnieOut, shopDonnieGone, drawShop, drawShopFront } from './shop';
+import { type Doors, makeDoors, buildDoors, doorsDown, lockDoors, tickDoors, forgetDoors, doorsKicked, drawDoors, drawDoorsFront, drawDoorsHud } from './doors';
+import { forgetFightIntro } from '../ballroom/fight';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -60,11 +62,13 @@ interface Control {
   burst: boolean; burstT: number;
   /** The gift shop: the chase, its racks and barrels, the booth (shop.ts). */
   shop: Shop;
+  /** The ballroom's doors (doors.ts). */
+  doors: Doors;
   lines: Lines;
 }
 const ctl = (state: GameState) => spookyState<Control>(state, 'control', () => ({
   init: false, reveal: 'pending', step: 'pa', t: 0, stepT: 0, dx: MIC_X, dfacing: 1, said: null, saidOn: 'pa',
-  burst: false, burstT: 0, shop: makeShop(),
+  burst: false, burstT: 0, shop: makeShop(), doors: makeDoors(BALL_DOOR),
   lines: new Lines(),
 }));
 
@@ -193,12 +197,16 @@ export const control: SpookySection = {
     { name: 'THE CONTROL ROOM', cp: 60, x: x0 + 200, y: GY },
     // (the souvenir hall: the mezzanine or the floor under it)
     { name: 'THE GIFT SHOP', cp: 61, x: SHOP_X + 1260, y: GY },
+    // (just outside the ballroom's doors, the big refill beside it: the boss's checkpoint. Back here, nothing's about,
+    // the doors are down, and in he walks)
+    { name: 'DONNIE DRACULA', cp: 62, x: BALL_DOOR - 230, y: GY, clear: [700, 300] },
   ],
   build: (state) => {
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'tile' }]);
     endWalls(state, 'control');
     resetStaff();
     buildShop(state);
+    buildDoors(state, ctl(state).doors);
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, cs = ctl(state);
@@ -206,9 +214,13 @@ export const control: SpookySection = {
     if (!cs.init) {
       cs.init = true;
       // (coming at it fresh, from before it: the reveal plays when he gets here. The checkpoint's only known by now)
-      if (state.checkpoint < 60) revealSeen = false;
-      if (isLandCleared('spooky')) { cs.reveal = 'done'; cs.burst = true; shopAftermath(state, cs.shop); }
-      else if (revealSeen || state.checkpoint >= 61) {
+      if (state.checkpoint < 60) { revealSeen = false; forgetDoors(); forgetFightIntro(); }
+      if (isLandCleared('spooky')) { cs.reveal = 'done'; cs.burst = true; shopAftermath(state, cs.shop); doorsDown(state, cs.doors); }
+      else if (state.checkpoint >= 62 || doorsKicked()) {
+        // (back outside the ballroom: Donnie's in there, the doors are down)
+        cs.reveal = 'done'; cs.burst = true; revealSeen = true;
+        shopAftermath(state, cs.shop); doorsDown(state, cs.doors);
+      } else if (revealSeen || state.checkpoint >= 61) {
         cs.reveal = 'done'; cs.burst = true; revealSeen = true;
         // (back for another go: Donnie up ahead again, looking back for him)
         const cp = state.checkpoint >= 61 ? SHOP_X + 1260 : x0 + 200;
@@ -218,6 +230,9 @@ export const control: SpookySection = {
     if (cs.reveal === 'pending' && !isLandCleared('spooky') && p.pos.x + p.width / 2 < ROOM_DOOR) startReveal(state, cs);
     if (cs.reveal === 'on') return reveal(ctx, cs);
     tickShop(ctx, cs.shop);
+    // (Donnie through the ballroom's doors: they're locked behind him; up to them, the boot)
+    if (cs.shop.d && shopDonnieGone(cs.shop)) lockDoors(cs.doors);
+    { const out = tickDoors(ctx, cs.doors); if (out) return out; }
     // (through the ballroom's doors: Donnie's in there already, if he wasn't)
     if (runExits(state, endExits('control'))) shopDonnieOut(cs.shop);
     return controls;
@@ -225,7 +240,7 @@ export const control: SpookySection = {
   // (the reveal: the room, held still, all of it in the picture)
   cameraX: (state) => (ctl(state).reveal === 'on' ? { min: x0, max: x0 } : undefined),
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#0C0A10'); return true; },
-  drawBack: (c, state) => { drawRoom(c, state); drawShop(c, state, ctl(state).shop); },
+  drawBack: (c, state) => { drawRoom(c, state); drawShop(c, state, ctl(state).shop); drawDoors(c, ctl(state).doors, state.frame); },
   drawFront: (c, state) => {
     const cs = ctl(state), f = state.frame;
     // Donnie: in the reveal; running ahead in the chase
@@ -234,6 +249,7 @@ export const control: SpookySection = {
       drawDonnie(c, cs.dx, GY, cs.dfacing, f, pose, 0, look);
       if (cs.said?.text) saidOver(c, cs.said.text, cs.dx, GY - DONNIE_H - (cs.saidOn === 'pa' ? 30 : 14), cs.saidOn === 'pa' ? '#C4B5FD' : '#FDE68A');
     } else drawShopFront(c, state, cs.shop);
+    drawDoorsFront(c, cs.doors);
     drawGlobes(c);
     drawStaffSaid(c, state);
     // (the lava column he came up on, for a moment after)
@@ -245,6 +261,7 @@ export const control: SpookySection = {
   },
   drawHud: (c, state) => {
     const cs = ctl(state);
+    drawDoorsHud(c, cs.doors);
     if (cs.reveal === 'on') { drawBars(c, Math.min(1, cs.t / 20)); if (cs.t > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH); }
   },
 };
