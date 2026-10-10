@@ -1,17 +1,24 @@
-// SAFARI ARTIE, the fight. Three bushes in the clearing, and his game:
+// SAFARI ARTIE, the fight. Five bushes end to end across the clearing, and his game:
 //
 //   HIDDEN BALL  He dives into a bush and shuffles: dives (a leap over, plain to see) and, later, crawls (a ripple
 //                through the grass, his helmet just showing) between the bushes, faster and more of them as the fight
 //                goes on; late on, a bush he isn't in rustles too. Then he comes up out of one:
 //                  - Meathead at that bush (its plane): he grabs him and guts him with his knife (three stabs), then
 //                    drops him.
-//                  - Anywhere else: the blowgun, a quick dart; it poisons him (damage over a few seconds, then it's
-//                    done). If the poison kills him, he pukes himself to death.
-//                While he's up out of the bush, one shot knocks him out of it into the clearing, seeing stars: the
-//                window to blast him.
-//   THE WHISTLE  After that (stunned or not) he's out in the open: his mating whistle, and here they come, a rhino, a
-//                hippo, an elephant (one at a time early on, several later, spaced unevenly). One gets to him and he
-//                leaps up out of its way onto a vine. Then back into a bush, and round again.
+//                  - Anywhere else, one or the other (not the same one three times running):
+//                      THE VOLLEY  the blowgun up (a beat to see it coming), then three darts, quick, each aimed
+//                                  fresh; each poisons him (damage over a few seconds, then it's done). If the poison
+//                                  kills him, he pukes himself to death. (Ducked or sliding, they go over him.)
+//                      THE LUNGE   coiled down in the bush, the knife out and glinting (a beat), then out he flies at
+//                                  him, low: it lands on him and it's the knife, the same as at the bush; jumped over (or
+//                                  slid under), he lands in the open, and has to get himself back to a bush.
+//                While he's up out of the bush, gunfire hurts him but doesn't shift him: it takes a charge move (the
+//                shoulder charge, the slide, the uppercut, the dive kick) to knock him out of it (or out of his lunge)
+//                into the clearing, seeing stars: the window to blast him.
+//   THE WHISTLE  Two goes at him like that (three, late on), back into a bush between them; then (stunned or not) he's
+//                out in the open: his mating whistle, and here they come, a rhino, a hippo, an elephant (one at a time
+//                early on, several later, spaced unevenly). One gets to him and he leaps up out of its way onto a vine.
+//                Then back into a bush, and round again.
 //
 // His weakness is the spawner. Its litter goes for a bush if it sees the bush before it sees anybody, and eats it: the
 // fewer bushes, the fewer places to hide (two: the shuffle's between two; one: no shuffle; none: no more hiding, he
@@ -94,6 +101,13 @@ const STAB = 9, STAB_LAST = 10, DART_DMG = 5, DART_SPEED = 11, POISON_TICK = 3, 
 const PLANE = BUSH_W / 2 + 12, PLANE_UP = 110;
 /** The puke death, how long. */
 const PUKE_LEN = 190;
+/** His goes at him from a bush before he whistles (by how far on the fight is). */
+const ATTACKS = [0, 2, 2, 3];
+/** The volley: the blowgun up this long first (by phase), then a dart every so often, so many. */
+const VOLLEY_AIM = [0, 32, 28, 24], VOLLEY_GAP = 9, VOLLEY_N = 3;
+/** The lunge: coiled this long first (by phase); how fast he flies (frames, at most / at least); landed, how long he
+ *  stands there before he's off back to a bush (or whistling). */
+const COIL = [0, 34, 30, 26], LUNGE_MIN = 16, LUNGE_MAX = 44, LANDED = 40;
 
 /** Sources of hurt (each with its lines and its death screen). */
 const KNIFE = 'm2:safari_knife', BLOWDART = 'm2:safari_dart', POISON = 'm2:safari_poison';
@@ -118,7 +132,10 @@ export type Mode =
   | 'rise'     // coming up out of one
   | 'reach'    // reaching out for him
   | 'gut'      // got him: the knife
-  | 'aim'      // the blowgun up
+  | 'aim'      // the blowgun up: the volley
+  | 'coil'     // down in the bush, the knife out: about to lunge
+  | 'lunge'    // flying at him
+  | 'landed'   // the lunge missed (or he's done gutting him out there): stood in the open a moment
   | 'exposed'  // done: stood there in the bush a moment
   | 'hop'      // out of the bush into the open
   | 'knocked'  // shot out of it, flying
@@ -130,7 +147,7 @@ export type Mode =
   | 'divein'   // back into a bush
   | 'dead';
 
-interface Bush { x: number; hp: number; shake: number; gone: boolean; goneAt: number; chewed: number; bait: SpawnerBait }
+interface Bush { x: number; hp: number; shake: number; gone: boolean; goneAt: number; chewed: number; bait: SpawnerBait; flip: boolean }
 interface Move { to: number; how: 'dive' | 'crawl'; d: number; pause: number; fromX: number }
 interface Dart { x: number; y: number; vx: number; vy: number; life: number }
 
@@ -171,6 +188,11 @@ export interface Fight {
   /** Still up in his blind at the start (saying his piece), till the view's come round onto the arena (tower.ts turns
    *  the blind side on as it does); how long he's been waiting on it. */
   inBlind: boolean; blindT: number;
+  /** His goes at him out of a bush since he last whistled; the last one (and how many of it running); out of his bush
+   *  on a lunge (till he's back in one). */
+  attacks: number; lastAttack: 'volley' | 'lunge' | null; sameRun: number; lunged: boolean;
+  /** The last of Meathead's moves that landed on him (a new one landing is a charge move, not a shot). */
+  moveSeen: number | undefined;
   e: Enemy;
 }
 
@@ -205,7 +227,19 @@ registerM2Kind({
     // (coming up out of the bush: none of him below the ground)
     const sunk = f.y - GY;
     if (sunk > 0) { c.save(); c.beginPath(); c.rect(-120, -300, 240, 300 - sunk); c.clip(); }
-    drawSafariArtie(c, 0, 0, 1, fr, poseOf(f), beaten(f));
+    if (f.mode === 'lunge' && f.arc) {
+      // (flying at him, low, arms out ahead: tipping over as he goes)
+      const k = Math.min(1, f.t / f.arc.d);
+      c.save(); c.translate(0, -43); c.rotate(Math.PI / 2 - 0.9 + k * 0.7);
+      drawSafariArtie(c, 0, 43, 1, fr, 'dive', beaten(f));
+      c.restore();
+    } else if (f.mode === 'coil') {
+      // (coiled down in the bush, the knife out, trembling with it: lower and wider the longer he's held it)
+      const k = Math.min(1, f.t / 10), sh = f.t > 10 ? (fr % 4 < 2 ? 1 : -1) : 0;
+      c.save(); c.translate(sh, 0); c.scale(1 + 0.08 * k, 1 - 0.2 * k);
+      drawSafariArtie(c, 0, 0, 1, fr, f.flash > 0 ? 'hurt' : 'grab', beaten(f));
+      c.restore();
+    } else drawSafariArtie(c, 0, 0, 1, fr, poseOf(f), beaten(f));
     if (sunk > 0) c.restore();
     if (blink) c.globalAlpha = 1;
   },
@@ -219,7 +253,9 @@ const poseOf = (f: Fight): ArtiePose => {
   // (hit up his vine, he hangs on: no letting go to clutch himself)
   if (f.flash > 0 && f.mode !== 'stunned' && f.mode !== 'gut' && f.mode !== 'dodge') return 'hurt';
   switch (f.mode) {
-    case 'reach': case 'gut': return 'grab';
+    case 'reach': case 'gut': case 'coil': return 'grab';
+    case 'lunge': return 'dive';
+    case 'landed': return f.agitated ? 'agitated' : f.said ? 'talk' : 'angry';
     case 'aim': return 'blowgun';
     case 'exposed': return f.agitated ? 'agitated' : 'talk';
     case 'hop': return f.agitated ? 'agitated' : 'run';
@@ -233,9 +269,11 @@ const poseOf = (f: Fight): ArtiePose => {
 };
 
 /** He's out where he can be hit (in the world, as an enemy). */
-const OUT: ReadonlySet<Mode> = new Set(['reach', 'gut', 'aim', 'exposed', 'hop', 'knocked', 'stunned', 'whistle', 'watch', 'dodge', 'trampled']);
-/** Up out of a bush: a hit there knocks him out of it. */
-const IN_BUSH: ReadonlySet<Mode> = new Set(['rise', 'reach', 'gut', 'aim', 'exposed']);
+const OUT: ReadonlySet<Mode> = new Set(['reach', 'gut', 'aim', 'coil', 'lunge', 'landed', 'exposed', 'hop', 'knocked', 'stunned', 'whistle', 'watch', 'dodge', 'trampled']);
+/** Up out of a bush: a charge move there knocks him out of it. */
+const IN_BUSH: ReadonlySet<Mode> = new Set(['rise', 'reach', 'gut', 'aim', 'coil', 'exposed']);
+/** In his bush (up out of it), not off out of it on a lunge (gutting him out in the open). */
+const inBush = (f: Fight) => IN_BUSH.has(f.mode) && !f.lunged;
 const isOut = (f: Fight) => OUT.has(f.mode) || (f.mode === 'rise' && f.t >= 16);
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -266,7 +304,8 @@ export const startFight = (state: GameState): Fight => {
     bush: 2, bushes: [], moves: [], moveI: 0, decoy: -1, wait: 0, after: 'whistle', stunLen: STUN,
     agitated: false, calmT: 0, swatT: 0, herd: [], stampedes: 0, overT: 0, darts: [], poison: 0, pokes: 0,
     said: null, nextCups: 0, byWeakness: false, death: null, eaten: null, eatenSaid: 0, eatenOver: false, cam: null, puke: null, noBushesSaid: false,
-    vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, perchT: 0, lureT: 0, inBlind: true, blindT: 0, e,
+    vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, perchT: 0, lureT: 0, inBlind: true, blindT: 0,
+    attacks: 0, lastAttack: null, sameRun: 0, lunged: false, moveSeen: e.hitByMove, e,
   };
   // (the vine: up over his hands while he's hanging off it)
   f.vine = {
@@ -274,14 +313,15 @@ export const startFight = (state: GameState): Fight => {
     alive: () => live === f && hanging(f),
     bite: d => { f.vineChewed += d; },
   };
-  f.bushes = BUSH_X.map(x => {
-    const b: Bush = { x, hp: BUSH_HP, shake: 0, gone: false, goneAt: 0, chewed: 0, bait: null as unknown as SpawnerBait };
+  f.bushes = BUSH_X.map((x, i) => {
+    const b: Bush = { x, hp: BUSH_HP, shake: 0, gone: false, goneAt: 0, chewed: 0, bait: null as unknown as SpawnerBait, flip: i % 2 === 1 };
     b.bait = { x: x - BUSH_W / 2, y: GY - BUSH_H, w: BUSH_W, h: BUSH_H, alive: () => !b.gone && live === f && f.mode !== 'dead', bite: d => { b.chewed += d; } };
     return b;
   });
   // (down out of his blind, into the bush furthest from him)
   const p = state.player, px = p.pos.x + p.width / 2;
-  f.bush = Math.abs(px - BUSH_X[0]) > Math.abs(px - BUSH_X[2]) ? 0 : 2;
+  const last = BUSH_X.length - 1;
+  f.bush = Math.abs(px - BUSH_X[0]) > Math.abs(px - BUSH_X[last]) ? 0 : last;
   f.arc = { x0: BLIND_X, y0: BLIND_Y, x1: BUSH_X[f.bush], y1: GY, d: 46, up: 90 };
   live = f;
   playSound('jump', 0.8);
@@ -343,12 +383,28 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       }
       break;
     case 'gut': out = gut(ctx, f, controls); break;
-    case 'aim':
+    case 'aim': {
+      // (the volley: the blowgun up, the bush rustling round him, a beat; then three, quick, each aimed fresh)
       faceHim(state, f);
+      const aimT = VOLLEY_AIM[phase(f)];
       if (f.t === 1 && Math.random() < 0.6) bark(f, L.ARTIE_DART);
-      if (f.t >= 30) { fireDart(state, f); to(f, 'exposed'); }
+      if (f.t < aimT) { if (f.t % 6 === 0) f.bushes[f.bush].shake = Math.max(f.bushes[f.bush].shake, 5); }
+      else if ((f.t - aimT) % VOLLEY_GAP === 0) {
+        fireDart(state, f);
+        if ((f.t - aimT) / VOLLEY_GAP >= VOLLEY_N - 1) to(f, 'exposed');
+      }
       break;
-    case 'exposed': if (f.t >= 40) hopOut(state, f); break;
+    }
+    case 'coil':
+      // (down in the bush, the knife out: a beat; then he's out of it, flying at him)
+      faceHim(state, f);
+      if (f.t === 1) { playSound('whoosh', 0.3, 12); if (Math.random() < 0.75) bark(f, L.ARTIE_LUNGE); }
+      if (f.t % 5 === 0) f.bushes[f.bush].shake = Math.max(f.bushes[f.bush].shake, 6);
+      if (f.t >= COIL[phase(f)]) lunge(state, f);
+      break;
+    case 'lunge': lunging(state, f); break;
+    case 'landed': if (f.t >= LANDED) afterAttack(state, f); break;
+    case 'exposed': if (f.t >= 40) afterAttack(state, f); break;
     case 'hop': if (onArc(f)) whistle(f); break;
     case 'knocked': case 'trampled':
       f.x = Math.max(ARENA_L + 30, Math.min(ARENA_R - 30, f.x + f.vx)); f.vy += 0.5; f.y += f.vy;
@@ -429,7 +485,7 @@ const landInBush = (state: GameState, f: Fight) => {
 
 /** Into the bush: and the shuffle planned (between however many are left). */
 const hide = (f: Fight) => {
-  to(f, 'hidden');
+  to(f, 'hidden'); f.lunged = false;
   f.wait = 30;
   f.moves = []; f.decoy = -1;
   const bs = liveBushes(f);
@@ -496,13 +552,62 @@ const rise = (ctx: FrameContext, f: Fight) => {
   if (f.t === 16) { playSound('crash', 0.4, 8); leaves(state, b.x, 6); }
   faceHim(state, f);
   f.y = GY + 60 * Math.max(0, 1 - (f.t - 16) / 12);
-  if (f.t >= 28) { f.y = GY; to(f, inPlane(state, f) ? 'reach' : 'aim'); }
+  if (f.t >= 28) { f.y = GY; to(f, inPlane(state, f) ? 'reach' : pickAttack(f) === 'volley' ? 'aim' : 'coil'); }
+};
+
+/** Him not at the bush: the volley or the lunge (an even chance, but never the same one three times running). */
+const pickAttack = (f: Fight): 'volley' | 'lunge' => {
+  let a: 'volley' | 'lunge' = Math.random() < 0.5 ? 'volley' : 'lunge';
+  if (f.lastAttack === a && f.sameRun >= 2) a = a === 'volley' ? 'lunge' : 'volley';
+  f.sameRun = f.lastAttack === a ? f.sameRun + 1 : 1;
+  f.lastAttack = a;
+  return a;
+};
+
+/** Out of the bush at him: low and fast, at where he is now (jump it, or get out from under it). */
+const lunge = (state: GameState, f: Fight) => {
+  const tx = Math.max(ARENA_L + 30, Math.min(ARENA_R - 30, px(state)));
+  const dx = tx - f.x;
+  to(f, 'lunge'); f.lunged = true;
+  f.facing = dx < 0 ? -1 : 1;
+  f.arc = { x0: f.x, y0: GY, x1: tx, y1: GY, d: Math.round(Math.max(LUNGE_MIN, Math.min(LUNGE_MAX, Math.abs(dx) / 11))), up: 34 + Math.min(40, Math.abs(dx) * 0.06) };
+  f.bushes[f.bush].shake = 22; leaves(state, f.x, 10);
+  playSound('whoosh', 0.8, -2); playSound('crash', 0.4, 8);
+};
+
+/** In the air at him: lands on him, it's the knife; lands on nothing, he's stood out in the open. */
+const lunging = (state: GameState, f: Fight) => {
+  const p = state.player, done = onArc(f);
+  if (state.frame % 2 === 0) state.particles.push({ pos: { x: f.x - f.facing * 20, y: f.y - 40 }, vel: { x: -f.facing * 1.5, y: -0.5 }, life: 12, color: 'rgba(255, 255, 255, 0.5)', size: 4 });
+  // (him on the ground or near it, not past it: ducking or sliding, he's under it)
+  const top = p.pos.y + (p.isDucking || p.isSliding ? 28 : 0), bottom = p.pos.y + p.height;
+  const near = Math.abs(px(state) - f.x) < 34 && bottom > f.y - 86 && top < f.y - 10 && bottom > GY - PLANE_UP;
+  if (near && p.health > 0 && state.deathTimer <= 0 && p.invincibilityTimer <= 0 && !p.inCutscene) {
+    f.arc = null; f.y = GY;
+    faceHim(state, f);
+    to(f, 'gut'); bark(f, L.ARTIE_GRAB); playSound('punch', 0.8); shakeScreen(state, 6, 3);
+    return;
+  }
+  if (done) {
+    f.y = GY; to(f, 'landed');
+    playSound('land', 0.8); playSound('thud', 0.5, 4);
+    for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 30, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 1.5 }, life: 22, color: 'rgba(168, 140, 100, 0.7)', size: 4 + Math.random() * 3, grav: 0.05 });
+  }
+};
+
+/** A go at him done: another out of a bush (back into one first), or, that's enough of them (or he's lost it), the
+ *  whistle (out into the open for it, from a bush). */
+const afterAttack = (state: GameState, f: Fight) => {
+  f.attacks++;
+  if (!f.agitated && f.attacks < ATTACKS[phase(f)] && liveBushes(f).length) { diveIn(state, f); return; }
+  f.attacks = 0;
+  if (f.mode === 'landed') whistle(f); else hopOut(state, f);
 };
 
 /** Got him: pinned in front of him, stabbed three times, dropped. */
 const gut = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
-  if (p.health <= 0 || state.deathTimer > 0) { to(f, 'exposed'); return controls; }
+  if (p.health <= 0 || state.deathTimer > 0) { to(f, f.lunged ? 'landed' : 'exposed'); return controls; }
   p.pos.x = f.x + f.facing * 26 - p.width / 2; p.pos.y = GY - p.height; p.vel.x = 0; p.vel.y = 0;
   p.facing = (f.facing > 0 ? -1 : 1);
   if (f.t === 18 || f.t === 38) {
@@ -514,7 +619,7 @@ const gut = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
     hurtPlayer(ctx, STAB_LAST, KNIFE, { x: f.facing * 7, y: -6 }, 18);
     blood(state, p.pos.x + p.width / 2, p.pos.y + p.height * 0.5, f.facing);
     playSound('splat', 1); shakeScreen(state, 10, 5);
-    to(f, 'exposed');
+    to(f, f.lunged ? 'landed' : 'exposed');
   }
   return hands();
 };
@@ -578,7 +683,7 @@ const hopOut = (state: GameState, f: Fight) => {
   leaves(state, f.x, 6);
 };
 
-const whistle = (f: Fight) => { to(f, 'whistle'); f.facing = f.x < ARENA_MID ? 1 : -1; };
+const whistle = (f: Fight) => { to(f, 'whistle'); f.lunged = false; f.attacks = 0; f.facing = f.x < ARENA_MID ? 1 : -1; };
 
 /** The herd, by how far on the fight is: one early, then two, then three, spaced unevenly. */
 const stampede = (state: GameState, f: Fight) => {
@@ -636,7 +741,7 @@ const animalAtArtie = (ctx: FrameContext, f: Fight, a: Animal) => {
   if (f.mode === 'dead' || a.tame) return;
   // (down off his chewed-through vine, seeing stars: run down, the same as agitated, breather or not)
   if (f.dropped && (f.mode === 'stunned' || f.mode === 'knocked')) { f.dropped = false; flatten(ctx, f, a); return; }
-  const free = f.mode === 'watch' || f.mode === 'whistle' || f.mode === 'hop' || f.mode === 'exposed';
+  const free = f.mode === 'watch' || f.mode === 'whistle' || f.mode === 'hop' || f.mode === 'exposed' || f.mode === 'landed';
   if (!free) return;
   // (too busy with the litter: flattened)
   if (f.agitated) { flatten(ctx, f, a); return; }
@@ -702,10 +807,11 @@ const chewVine = (ctx: FrameContext, f: Fight) => {
 /** Shot out of his bush (or left in the open when it's eaten under him): flying out into the clearing, then stars. */
 const knock = (ctx: FrameContext, f: Fight, shot: boolean) => {
   const { state } = ctx;
-  to(f, 'knocked');
+  const wasIn = !f.lunged;
+  to(f, 'knocked'); f.arc = null; f.lunged = false; f.attacks = 0;
   f.vx = (f.x < ARENA_MID ? 1 : -1) * 3.5; f.vy = shot ? -9 : -6; f.y = Math.min(f.y, GY);
   f.after = 'whistle'; f.stunLen = STUN;
-  if (f.bushes[f.bush] && !f.bushes[f.bush].gone) { f.bushes[f.bush].shake = 26; leaves(state, f.x, 10); }
+  if (wasIn && f.bushes[f.bush] && !f.bushes[f.bush].gone) { f.bushes[f.bush].shake = 26; leaves(state, f.x, 10); }
   playSound('punch', 0.8); playSound('crash', 0.4, 4);
   bark(f, L.ARTIE_KNOCKED);
 };
@@ -714,6 +820,10 @@ const diveIn = (state: GameState, f: Fight) => {
   const bs = liveBushes(f);
   if (!bs.length) { to(f, 'watch'); f.overT = 0; return; }
   // (the nearest, as often as not; or the furthest from him)
+  // (not the one he's stood in: another)
+  const at = Math.abs(f.x - f.bushes[f.bush].x) < 8 && f.y >= GY - 1 ? f.bush : -1;
+  if (bs.length > 1 && at >= 0) bs.splice(bs.indexOf(at), 1);
+  f.lunged = false;
   const p = px(state);
   const far = bs.slice().sort((a, b) => Math.abs(f.bushes[b].x - p) - Math.abs(f.bushes[a].x - p))[0];
   const near = bs.slice().sort((a, b) => Math.abs(f.bushes[a].x - f.x) - Math.abs(f.bushes[b].x - f.x))[0];
@@ -732,7 +842,8 @@ const agitation = (ctx: FrameContext, f: Fight) => {
     bark(f, L.ARTIE_AGITATED);
     // (up in a bush: out of it, flailing, and the whistle to have the herd run them off him)
     if (f.mode === 'gut') { const p = state.player; p.vel = { x: f.facing * 5, y: -5 }; }
-    if (IN_BUSH.has(f.mode)) hopOut(state, f);
+    if (inBush(f)) hopOut(state, f);
+    else if (f.mode === 'gut' || f.mode === 'coil') to(f, 'landed');
   }
   if (!f.agitated) return;
   if (n === 0) { if (++f.calmT > 120) f.agitated = false; } else f.calmT = 0;
@@ -745,15 +856,22 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const bites = takeBites(e);
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
+  // (a charge move landed on him: the engine marks him with the move; a shot doesn't)
+  const melee = e.hitByMove !== f.moveSeen;
+  f.moveSeen = e.hitByMove;
   if (f.mode === 'dead' || dealt <= 0 || !state.enemies.includes(e)) return;
   const nib = Math.min(dealt, bites), hit = dealt - nib;
   // (the litter's nibbles: always, no breather)
   if (nib > 0) { f.hp -= nib * NIBBLE_SHARE; if (f.hp <= 0) f.byWeakness = true; }
-  if (hit > 0.5 && f.iframes <= 0) {
+  if (hit <= 0.5) return;
+  // (up in his bush, or flying at him on a lunge: gunfire hurts him but doesn't shift him; a charge move knocks him out
+  // into the clearing, his breather or not)
+  const knockable = melee && (inBush(f) || f.mode === 'lunge' || f.mode === 'coil');
+  if (f.iframes <= 0) {
     f.hp -= hit; f.iframes = IFRAMES; f.flash = 10;
     if (f.hp <= 0) { f.byWeakness = aliensOn(e) > 0; return; }
-    if (IN_BUSH.has(f.mode)) knock(ctx, f, true);
   }
+  if (knockable) knock(ctx, f, true);
 };
 
 /** A bush chewed: thinner, then gone (and if he's in it, out he comes). */
@@ -769,7 +887,7 @@ const chewBushes = (ctx: FrameContext, f: Fight) => {
     playSound('crash', 0.5, 4); playSound('gnaw', 0.8);
     if (f.mode !== 'dead') bark(f, L.ARTIE_BUSH);
     if (f.bush === i && (f.mode === 'hidden' || f.mode === 'rise')) { f.x = b.x; f.y = GY; knock(ctx, f, false); }
-    else if (f.bush === i && IN_BUSH.has(f.mode) && f.mode !== 'gut') hopOut(state, f);
+    else if (f.bush === i && inBush(f) && f.mode !== 'gut') hopOut(state, f);
   });
 };
 
@@ -930,7 +1048,7 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
 const drawBush = (c: Ctx, state: GameState, b: Bush, fringe: boolean) => {
   const k = b.gone ? 0 : Math.max(0, b.hp / BUSH_HP);
   const sx = b.shake > 0 ? Math.round(Math.sin(state.frame * 1.7) * Math.min(6, b.shake * 0.5)) : 0;
-  drawBushArt(c, b.x + sx, k, b.gone, fringe);
+  drawBushArt(c, b.x + sx, k, b.gone, fringe, b.flip);
 };
 
 /** World space, over everything: the bush he's in over his legs, him when he's not an enemy, the herd, the darts, the
@@ -956,7 +1074,7 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     }
   }
   // The bush he's in, over his legs
-  if (IN_BUSH.has(f.mode) || f.mode === 'hidden') { const b = f.bushes[f.bush]; if (b && !b.gone) drawBush(c, state, b, true); }
+  if (inBush(f) || f.mode === 'hidden') { const b = f.bushes[f.bush]; if (b && !b.gone) drawBush(c, state, b, true); }
   // (luring him over: a sunburned hand out of the side of it, beckoning)
   if (luring(f)) {
     const b = f.bushes[f.bush], side = px(state) < b.x ? -1 : 1, hx = b.x + side * (BUSH_W / 2 - 10), hy = GY - 58, wig = Math.sin(state.frame * 0.25) * 4;
@@ -974,6 +1092,8 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   if (f.snap) { const t = f.snap.t, fall = t * t * 0.25; c.save(); c.translate(f.snap.x, f.snap.y + fall); c.rotate(Math.sin(t * 0.3) * 0.2); drawVine(c, 0, -VINE_UP * 0.55, 0, -999, 1); c.restore(); }
   // Stars round his head
   if (f.mode === 'stunned') for (let i = 0; i < 3; i++) { const a = fr * 0.12 + (i * Math.PI * 2) / 3; star(c, f.x + Math.cos(a) * 18, f.y - 62 + Math.sin(a) * 5, '#FDE047'); }
+  // Coiled to lunge: the knife catching the light (twice), and the bush he's in bristling
+  if (f.mode === 'coil' && (f.t % 16) < 7) { const s = 1 - Math.abs((f.t % 16) - 3) / 4; glint(c, f.x + f.facing * GLINT_X, f.y - GLINT_Y, 4 + s * 7); }
   // Notes, the whistle
   if (f.mode === 'whistle') for (let i = 0; i < 3; i++) { const t = (fr + i * 13) % 40; note(c, f.x + f.facing * (18 + t * 0.6), f.y - 80 - t + Math.sin(t * 0.3) * 3); }
   // Agitated: a word over him
@@ -1020,6 +1140,16 @@ const note = (c: Ctx, x: number, y: number) => {
   x = Math.round(x); y = Math.round(y);
   box(c, x - 5, y - 1, 8, 7, '#1A0B06'); box(c, x + 1, y - 14, 3, 15, '#1A0B06'); box(c, x + 2, y - 15, 6, 5, '#1A0B06');
   box(c, x - 4, y, 6, 5, '#F472B6'); box(c, x + 2, y - 13, 1, 14, '#F472B6'); box(c, x + 3, y - 14, 4, 3, '#F472B6'); box(c, x - 3, y + 1, 2, 1, '#FBCFE8');
+};
+
+/** Where the knife's tip is, coiled (the grab pose, squashed down). */
+const GLINT_X = 30, GLINT_Y = 58;
+/** A glint (pixel-drawn): a four-point white flash, a pale core. */
+const glint = (c: Ctx, x: number, y: number, r: number) => {
+  x = Math.round(x); y = Math.round(y); r = Math.round(r);
+  box(c, x - r, y - 1, r * 2 + 1, 3, '#FEF9C3'); box(c, x - 1, y - r, 3, r * 2 + 1, '#FEF9C3');
+  box(c, x - r + 2, y, r * 2 - 3, 1, '#FFFFFF'); box(c, x, y - r + 2, 1, r * 2 - 3, '#FFFFFF');
+  box(c, x - 1, y - 1, 3, 3, '#FFFFFF');
 };
 
 const star = (c: Ctx, x: number, y: number, col: string) => {

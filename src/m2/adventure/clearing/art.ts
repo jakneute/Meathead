@@ -8,7 +8,7 @@
 //     down, they lie back off the path, dimmed (nothing to stand on); the last leans on the temple.
 //   The temple's wing across the path: its stonework (the roof's, the dino park's), hit where the last tree struck it.
 //   (Artie's hunting blind is tower.ts: stood out on the loop, coming round onto the strip.)
-//   The fight: the bamboo fence behind him, the three bushes (lush, leaf on leaf, thinning as they're chewed down to
+//   The fight: the bamboo fence behind him, the five bushes (lush, leaf on leaf, thinning as they're chewed down to
 //     twigs), his vine (twisted, leafy, chewed thin where they've been at it).
 
 import { INK, box, checker, mix, hash, pixelBlob, pole, text, stamp, dim } from '../../intro/art/kit';
@@ -249,10 +249,12 @@ const leafCluster = (g: Ctx, x: number, y: number, r: number, seed: number) => {
  * A bush, its middle at x, on the ground: `k` how much of it's left (1 whole .. 0 gone: twigs, leaves on the ground).
  * `fringe`: just its front leaves (over whoever's in it). Painted once per step of thinning.
  */
-export const drawBushArt = (c: Ctx, x: number, k: number, gone: boolean, fringe: boolean) => {
+export const drawBushArt = (c: Ctx, x: number, k: number, gone: boolean, fringe: boolean, flip = false) => {
   const step = gone ? 0 : Math.max(1, Math.ceil(k * 7));
   const key = `clBush:${step}:${fringe ? 1 : 0}`;
   c.save(); c.translate(Math.round(x), GY);
+  // (every other one mirrored: a row of five that isn't one bush five times over)
+  if (flip) c.scale(-1, 1);
   stamp(c, key, -BUSH_W / 2 - 16, -BUSH_H - 20, BUSH_W + 32, BUSH_H + 24, g => {
     const n = step === 0 ? 0 : Math.round((CLUSTERS.length * step) / 7);
     if (fringe) {

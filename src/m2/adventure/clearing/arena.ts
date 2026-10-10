@@ -1,4 +1,4 @@
-// The clearing laid out: the fallen trees, the temple's side, Artie's blind, the fight's bounds and its three bushes.
+// The clearing laid out: the fallen trees, the temple's side, Artie's blind, the fight's bounds and its five bushes.
 
 import { SECTIONS, GY } from '../geometry';
 
@@ -15,6 +15,6 @@ export const VIEW_L = ARENA_L - 10, VIEW_R = VIEW_L + 800;
 export const ARENA_MID = (ARENA_L + ARENA_R) / 2;
 export const PICKUP_X = x0 + 800;
 
-/** The three bushes he plays his game in: where (their middles), how big. */
-export const BUSH_X = [ARENA_L + 150, ARENA_L + 400, ARENA_L + 650];
+/** The five bushes he plays his game in, end to end across the fight (their middles), how big. */
 export const BUSH_W = 124, BUSH_H = 66;
+export const BUSH_X = Array.from({ length: 5 }, (_, i) => ARENA_L + 78 + i * 156);
