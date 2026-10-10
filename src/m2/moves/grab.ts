@@ -46,7 +46,7 @@ import { markMachineGore } from '../../m1/game/enemies/machineGore';
 import { hurtPlayer } from '../../m1/game/bosses/shared';
 import { enemyGender } from '../../m1/content/gender';
 import { meatheadSays } from '../adventure/section';
-import { TOO_BIG_LINES, TOO_BIG_BY_KIND } from '../lines/weaponLines';
+import { TOO_BIG_LINES, TOO_BIG_BY_KIND, GRAB_IMMUNE_LINES } from '../lines/weaponLines';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -229,15 +229,18 @@ const letGo = (state: GameState, g: Grab, toss = false) => {
   end(state, g);
 };
 
-/** An animal far too big to get hold of (not a boss: they've their own business). */
-const tooBigAnimal = (e: Enemy | null) => !!e && e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss' && !isCritter(e) && !grabbable(e) && enemyGender(e) === 'n';
-/** ...and he says so (not every time). */
+/** Somebody the grabs don't work on: a boss, a mid-boss, a machine, an animal far too big, a person they're no good on. */
+const tooBigAnimal = (e: Enemy | null) => !!e && e.health > 0 && !e.isBlownAway && !e.innocent && !isCritter(e) && !grabbable(e);
+/** ...and he says so (not every time), by what it is. */
 let tooBigAt = -9999;
 const tooBig = (state: GameState, e: Enemy) => {
   if (state.frame - tooBigAt < 150) return;
   tooBigAt = state.frame;
   const own = (e.kind && TOO_BIG_BY_KIND[e.kind]) || [];
-  const pool = own.length && Math.random() < 0.7 ? own : TOO_BIG_LINES;
+  const general = e.type === 'boss' || isMidBoss(e) ? GRAB_IMMUNE_LINES.boss
+    : isMachineKind(e.kind) || !!m2Kind(e.kind)?.robot ? GRAB_IMMUNE_LINES.machine
+    : enemyGender(e) === 'n' ? TOO_BIG_LINES : GRAB_IMMUNE_LINES.person;
+  const pool = own.length && Math.random() < 0.7 ? own : general;
   meatheadSays(state, pool[Math.floor(Math.random() * pool.length)], false);
 };
 
