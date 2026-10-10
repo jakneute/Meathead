@@ -5206,6 +5206,11 @@
  },
  {
   "voice": "death",
+  "text": "A BLACK CAT CROSSED HIS PATH. THEN HIS THROAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "A CAR FELL ON YOU. AT SEA.",
   "from": "content/deaths"
  },
@@ -5241,6 +5246,11 @@
  },
  {
   "voice": "death",
+  "text": "A MURDER OF CROWS. HE WAS THE MURDER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "A PIGEON TOOK YOUR EYES",
   "from": "content/deaths"
  },
@@ -5248,6 +5258,11 @@
   "voice": "death",
   "text": "A PINCUSHION",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "A PUDDLE OF HIS FORMER SELF",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -5346,6 +5361,16 @@
  },
  {
   "voice": "death",
+  "text": "ASSISTED TO DEATH",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "BAAAAD END",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "BACKTRACKED OFF A MOUNTAIN",
   "from": "content/deaths"
  },
@@ -5391,8 +5416,23 @@
  },
  {
   "voice": "death",
+  "text": "BAT OUT OF HELL",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "BATTED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "BATTED AROUND",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BATTERED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -5441,8 +5481,23 @@
  },
  {
   "voice": "death",
+  "text": "BEATEN WITH A COFFIN LID",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "BEATEN WITH A FOAM TOMBSTONE",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "BELLY FLOP OF THE CENTURY",
   "from": "m1/game/stages/ernie/bridge.ts:223"
+ },
+ {
+  "voice": "death",
+  "text": "BELLY-FLOPPED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -5506,6 +5561,21 @@
  },
  {
   "voice": "death",
+  "text": "BONED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "BONED BY A SKELETON",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "BONED TO DEATH",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "BOOT HILL, PLOT 12",
   "from": "m1/game/stages/dale/runtime.ts:190"
  },
@@ -5528,6 +5598,11 @@
   "voice": "death",
   "text": "BOWLED OVER BY AN ARMADILLO",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BRAINED BY A BRICK",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -5596,6 +5671,11 @@
  },
  {
   "voice": "death",
+  "text": "BUTTED TO DEATH",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "BUZZED TO DEATH",
   "from": "content/deaths"
  },
@@ -5646,6 +5726,16 @@
  },
  {
   "voice": "death",
+  "text": "CAUGHT IN THE WORKS",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "CAUGHT THE BOUQUET",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "CAUSE OF DEATH: THE THIRD ONE.",
   "from": "M2_GUT_DEATH"
  },
@@ -5676,13 +5766,33 @@
  },
  {
   "voice": "death",
+  "text": "CHANDELIERED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "CHARGED THE POINTY END",
   "from": "ADVENTURE"
  },
  {
   "voice": "death",
+  "text": "CHECKED IF HE WAS DONE. HE WAS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "CHECKED INTO THE BOARDS",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CHECKED OUT",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "CHEW TOY OF THE DAMNED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -5728,6 +5838,11 @@
   "voice": "death",
   "text": "CLIPBOARDED TO DEATH",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CLOCKWORK ORANGE JUICE",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -5781,6 +5896,11 @@
  },
  {
   "voice": "death",
+  "text": "COOKED ON A STOVE",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "COULDN'T GET PAST THE SHIELD",
   "from": "content/deaths"
  },
@@ -5816,6 +5936,16 @@
  },
  {
   "voice": "death",
+  "text": "CRUSHED BY A FAT DEVIL",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "CUCKOO",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "CURIOSITY: SATISFIED",
   "from": "m1/game/stages/hector/eye.ts:133"
  },
@@ -5843,6 +5973,16 @@
   "voice": "death",
   "text": "DEAD IN DEADWOOD GULCH",
   "from": "m1/game/stages/dale/runtime.ts:190"
+ },
+ {
+  "voice": "death",
+  "text": "DEAD ROSES, DEAD MEATHEAD",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "DEATH BY A THOUSAND LITTLE DEVILS",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -5936,6 +6076,16 @@
  },
  {
   "voice": "death",
+  "text": "DINNER WAS SERVED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "DIPPED IN HELL",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "DIRTY NEEDLE",
   "from": "content/deaths"
  },
@@ -5961,6 +6111,11 @@
  },
  {
   "voice": "death",
+  "text": "DISSOLVED IN A NOVELTY POTION",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "DISSOLVED IN SLUDGE",
   "from": "content/deaths"
  },
@@ -5973,6 +6128,11 @@
   "voice": "death",
   "text": "DIVE BOMBED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DOG FOOD",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -5993,6 +6153,11 @@
   "voice": "death",
   "text": "DONE IN BY TINFOIL",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DONE. STICK A FORK IN HIM.",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6018,6 +6183,21 @@
   "voice": "death",
   "text": "DRAGGED DOWN BY THE SLUDGE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DRAINED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "DRAINED BY A BAT THE SIZE OF A SANDWICH",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "DRANK IT THROUGH HIS FACE",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6058,6 +6238,11 @@
   "voice": "death",
   "text": "DROWNED IN DECAF",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DROWNED IN SECONDHAND BLOOD",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6181,6 +6366,16 @@
  },
  {
   "voice": "death",
+  "text": "ELEVATED TO HELL",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "ENTOMBED BY A GUY IN TP",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "ERNIE SHOOK YOU LOOSE",
   "from": "content/deaths"
  },
@@ -6271,6 +6466,16 @@
  },
  {
   "voice": "death",
+  "text": "FIREBALLED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "FLAMBEED BY A BAT",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "FLAME BROILED",
   "from": "content/deaths"
  },
@@ -6306,6 +6511,16 @@
  },
  {
   "voice": "death",
+  "text": "FLATTENED BY A FIGURINE",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "FLATTENED BY A GUY IN PLATFORM BOOTS",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "FLATTENED BY A SNOWBALL",
   "from": "content/deaths"
  },
@@ -6318,6 +6533,11 @@
   "voice": "death",
   "text": "FLATTENED BY AN ELEPHANT",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "FLATTENED BY FOAM",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6366,8 +6586,18 @@
  },
  {
   "voice": "death",
+  "text": "FOR WHOM THE BELL TOLLED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "FORGOT TO BREATHE",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "FORKED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6456,13 +6686,28 @@
  },
  {
   "voice": "death",
+  "text": "GNAWED TO DEATH AT THE ANKLES",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "GO FOR THE THROAT, THEY SAID",
   "from": "content/deaths"
  },
  {
   "voice": "death",
+  "text": "GOATED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "GOD HATES YOU SPECIFICALLY",
   "from": "m1/game/stages/hector/hazards.ts:448"
+ },
+ {
+  "voice": "death",
+  "text": "GOING DOWN",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6501,6 +6746,11 @@
  },
  {
   "voice": "death",
+  "text": "GROUND INTO TIME",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "GROUNDED",
   "from": "content/deaths"
  },
@@ -6521,6 +6771,11 @@
  },
  {
   "voice": "death",
+  "text": "HALVED ON THE HOUR",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "HAT TRICK",
   "from": "content/deaths"
  },
@@ -6533,6 +6788,11 @@
   "voice": "death",
   "text": "HAWK-EYED. HAWK HAS THE EYES.",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HE BROUGHT THE HOUSE DOWN. ON HIMSELF.",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6571,6 +6831,11 @@
  },
  {
   "voice": "death",
+  "text": "HEXED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "HIGH NOON",
   "from": "content/deaths"
  },
@@ -6578,6 +6843,11 @@
   "voice": "death",
   "text": "HIPPO'D",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "HIS BELL WAS RUNG",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6621,6 +6891,11 @@
  },
  {
   "voice": "death",
+  "text": "HIT BY THE LITTLE ENGINE THAT COULD",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "HIT WITH A FORTY",
   "from": "content/deaths"
  },
@@ -6638,6 +6913,11 @@
   "voice": "death",
   "text": "HORSESHOE TO THE HEAD",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HOSED DOWN",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6663,6 +6943,11 @@
   "voice": "death",
   "text": "HOT TUB DEATH MACHINE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HOUNDED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6701,8 +6986,18 @@
  },
  {
   "voice": "death",
+  "text": "HUGGED TO DEATH BY A MASCOT",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "HUGGED TO DEATH BY A SNAKE",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "HUMPED TO DEATH",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6716,8 +7011,18 @@
  },
  {
   "voice": "death",
+  "text": "IGORED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "IMPALED FROM BELOW",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "IMPOSSIBLE",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6756,6 +7061,11 @@
  },
  {
   "voice": "death",
+  "text": "IT WAS HIS HOUR",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "JET SKIED",
   "from": "content/deaths"
  },
@@ -6766,13 +7076,28 @@
  },
  {
   "voice": "death",
+  "text": "JILTED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "JUGULARED BY A WOLVERINE",
   "from": "content/deaths"
  },
  {
   "voice": "death",
+  "text": "JUICE BOX",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "JUST ANOTHER NEW YORK STATISTIC",
   "from": "m1/game/stages/barry/runtime.ts:424"
+ },
+ {
+  "voice": "death",
+  "text": "KEBABED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6831,6 +7156,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A MAN IN A BAT SUIT",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A MAN WITH NO TRAPS",
   "from": "content/deaths"
  },
@@ -6866,6 +7196,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A SOUVENIR",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A STRAW",
   "from": "ADVENTURE"
  },
@@ -6891,6 +7226,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY LAUNDRY",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY LAWN DECOR",
   "from": "content/deaths"
  },
@@ -6901,8 +7241,18 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY READING",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY THE INTERN",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY THE MASTER'S HELPER",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6923,6 +7273,16 @@
   "voice": "death",
   "text": "KING OF THE HILL: THE GOAT",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KNIGHTED. FATALLY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "KNOCKED OFF BY A WITCH ON A BROOM",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -6971,6 +7331,16 @@
  },
  {
   "voice": "death",
+  "text": "LEFT AT THE ALTAR",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "LEFT AT THE ALTAR. IN PIECES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "LEG DAY MEETS FRONT BUMPER",
   "from": "m1/game/stages/dale/town.ts:796"
  },
@@ -7001,6 +7371,11 @@
  },
  {
   "voice": "death",
+  "text": "LIQUEFIED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "LIQUIDATED",
   "from": "content/deaths"
  },
@@ -7013,6 +7388,11 @@
   "voice": "death",
   "text": "LIZARD FOOD",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "LOBBED TO DEATH",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7051,6 +7431,16 @@
  },
  {
   "voice": "death",
+  "text": "MANHANDLED BY A BAT SUIT",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "MASCOTTED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "MAULED BY A MONKEY THE SIZE OF A HOUSECAT",
   "from": "ADVENTURE"
  },
@@ -7061,6 +7451,11 @@
  },
  {
   "voice": "death",
+  "text": "MAULED BY A RENTAL FUR SUIT",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "MAULED BY A WOLVERINE",
   "from": "content/deaths"
  },
@@ -7068,6 +7463,11 @@
   "voice": "death",
   "text": "MEAT VERSUS METAL. METAL WINS",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "MEATHEAD SOUP",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7083,6 +7483,11 @@
   "voice": "death",
   "text": "METHOD ACTING",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "MIND THE DOORS",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7123,6 +7528,11 @@
   "voice": "death",
   "text": "MOST INTERESTING THING IT'S EVER SEEN",
   "from": "m1/game/stages/hector/eye.ts:133"
+ },
+ {
+  "voice": "death",
+  "text": "MOST OF MEATHEAD",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7171,6 +7581,21 @@
  },
  {
   "voice": "death",
+  "text": "NEXT TO GO",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "NIBBLED BY AN IMP",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "NIBBLED TO DEATH BY A BAT",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "NIBBLED TO THE BONE",
   "from": "ADVENTURE"
  },
@@ -7203,6 +7628,11 @@
   "voice": "death",
   "text": "NO FRIES, NO MERCY",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "NO REFUNDS",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7381,6 +7811,11 @@
  },
  {
   "voice": "death",
+  "text": "PECKED TO DEATH BY THE TIME",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "PEER REVIEWED",
   "from": "content/deaths"
  },
@@ -7403,6 +7838,11 @@
   "voice": "death",
   "text": "PICKED CLEAN BY A VULTURE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PICKED CLEAN BY CROWS. THEY WERE PATIENT.",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7471,8 +7911,23 @@
  },
  {
   "voice": "death",
+  "text": "POINTY HAT, POINTY END",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "POISONED BY A POTION",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "POLICE BRUTALITY",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PRICED TO MOVE",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7541,6 +7996,11 @@
  },
  {
   "voice": "death",
+  "text": "RAMMED THE WRONG GOAT",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "RAN ONTO A KNIFE",
   "from": "content/deaths"
  },
@@ -7558,6 +8018,11 @@
   "voice": "death",
   "text": "RATTLED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RATTLED TO DEATH",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7636,6 +8101,11 @@
  },
  {
   "voice": "death",
+  "text": "ROASTED FROM BELOW",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "ROCKED",
   "from": "content/deaths"
  },
@@ -7696,6 +8166,11 @@
  },
  {
   "voice": "death",
+  "text": "RUN DOWN BY A TOY TRAIN",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "RUN DOWN BY THE UNION",
   "from": "content/deaths"
  },
@@ -7738,6 +8213,11 @@
   "voice": "death",
   "text": "RUN OVER, THEN PEED ON",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RUNG UP",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7786,8 +8266,23 @@
  },
  {
   "voice": "death",
+  "text": "SEISMIC",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "SERVED IN COURSES",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SERVED ON A PITCHFORK",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "SEVEN YEARS BAD LUCK, ALL AT ONCE",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7803,6 +8298,11 @@
   "voice": "death",
   "text": "SHAKEN TO PIECES",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHAKEN, NOT STIRRED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7863,6 +8363,11 @@
   "voice": "death",
   "text": "SHISH KEBABBED",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "SHISH-KA-GOAT",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8066,6 +8571,16 @@
  },
  {
   "voice": "death",
+  "text": "SKEWERED BY MERCHANDISE",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "SKEWERED BY THE CEILING",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "SKEWERED BY THE DRAMA CLUB",
   "from": "ADVENTURE"
  },
@@ -8088,6 +8603,11 @@
   "voice": "death",
   "text": "SKIPPED THE REST OF CHEST DAY",
   "from": "m1/game/stages/gym/runtime.ts:380"
+ },
+ {
+  "voice": "death",
+  "text": "SLAIN BY A TIN CAN",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8126,6 +8646,11 @@
  },
  {
   "voice": "death",
+  "text": "SMOTHERED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "SNAKE BIT",
   "from": "content/deaths"
  },
@@ -8143,6 +8668,11 @@
   "voice": "death",
   "text": "SNIPED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SNOW GLOBED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8173,6 +8703,11 @@
   "voice": "death",
   "text": "SOMETHING WARM KILLED YOU",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SOUP OF THE DAMNED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8208,6 +8743,16 @@
   "voice": "death",
   "text": "SPLAT ON FIFTH AVENUE",
   "from": "m1/game/stages/barry/runtime.ts:429"
+ },
+ {
+  "voice": "death",
+  "text": "SPOOKED BY A GUY IN A BEDSHEET",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "SPRAYED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8256,8 +8801,18 @@
  },
  {
   "voice": "death",
+  "text": "STOMPED FLAT BY THE NIGHT-SHIFT MONSTER",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "STOMPED INTO THE SNOW",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STOMPED ON A SPIKED HELMET",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8301,8 +8856,18 @@
  },
  {
   "voice": "death",
+  "text": "STRUCK ON THE HOUR",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "STRUCTURAL FAILURE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STUCK A FORK IN HIM. HE WAS DONE.",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8318,6 +8883,11 @@
   "voice": "death",
   "text": "STUNTMAN HE IS NOT",
   "from": "m1/game/stages/oscar/chase.ts:585"
+ },
+ {
+  "voice": "death",
+  "text": "SUCKED DRY",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8368,6 +8938,11 @@
   "voice": "death",
   "text": "SWEPT",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SWEPT UNDER THE RUG",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8456,6 +9031,11 @@
  },
  {
   "voice": "death",
+  "text": "THE BATS GOT HIM. OF COURSE THERE WERE BATS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "THE BAY SAYS NO",
   "from": "m1/game/stages/ernie/bridge.ts:223"
  },
@@ -8483,6 +9063,11 @@
   "voice": "death",
   "text": "THE BUOY WON",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE CEILING CAME DOWN",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8591,6 +9176,11 @@
  },
  {
   "voice": "death",
+  "text": "THE LABEL SAID NOT FOR DRINKING. HE WORE IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "THE LAVA SPIT",
   "from": "content/deaths"
  },
@@ -8651,6 +9241,11 @@
  },
  {
   "voice": "death",
+  "text": "THE PIT AND THE MEATHEAD",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "THE PRISON FELL ON YOU",
   "from": "m1/game/stages/ernie/quake.ts:338"
  },
@@ -8668,6 +9263,11 @@
   "voice": "death",
   "text": "THE RAT WINS",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE RATS HAD HIM FOR LUNCH. AND DINNER.",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8736,6 +9336,11 @@
  },
  {
   "voice": "death",
+  "text": "THE WOLFMAN GOT HIM. IT WASN'T EVEN A FULL MOON.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "THE WOLVERINE GOT YOUR ANKLES",
   "from": "content/deaths"
  },
@@ -8771,8 +9376,18 @@
  },
  {
   "voice": "death",
+  "text": "THROWN A BONE. IN THE TEMPLE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "THROWN OUT OF THE OFFICE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THROWN THE BOOK AT",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8781,8 +9396,23 @@
  },
  {
   "voice": "death",
+  "text": "TILL DEATH DID THEM PART",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "TIMBER",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TIME CUT HIM SHORT",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "TOASTED BY A TODDLER DEVIL",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8836,6 +9466,11 @@
  },
  {
   "voice": "death",
+  "text": "TOSSED LIKE A SALAD",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "TOUR OVER",
   "from": "content/deaths"
  },
@@ -8881,8 +9516,18 @@
  },
  {
   "voice": "death",
+  "text": "TROD ON BY CLOCKWORK",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "TRUCK: 1, DELTS: 0",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TURNED INSIDE OUT",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8896,8 +9541,18 @@
  },
  {
   "voice": "death",
+  "text": "TWO-PLY DEATH",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "UNCORKED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "UNWRAPPED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -9011,6 +9666,21 @@
  },
  {
   "voice": "death",
+  "text": "WIPED OUT BY A MUMMY",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "WITCHED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "WOODEN IT BE NICE",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "WRAPPED AND ROASTED",
   "from": "content/deaths"
  },
@@ -9023,6 +9693,11 @@
   "voice": "death",
   "text": "YACHT ROCKED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "YES, MASTER",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -10335,6 +11010,1836 @@
   "from": "m1/game/stages/ernie/jetski.ts:136"
  },
  {
+  "voice": "m2.demon",
+  "text": "CAN WE MAKE THIS QUICK? MY SOUL'S GETTING COLD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "DAD SAID IF ANYBODY CAME DOWN HERE I HAD TO 'DEAL WITH IT.' FINE. HOLD MY SOUL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "DAD SAID TO DEAL WITH INTRUDERS. HE DIDN'T SAY I'D HAVE TO LOOK AT THEM. HOLD MY SOUL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "DAD SAID TO DEAL WITH INTRUDERS. HE DIDN'T SAY THEY'D BE SOGGY. HOLD MY SOUL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "DON'T TOUCH ME WITH THOSE PANTS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "EVERY TIME YOU JUMP, IT FLOPS. I SEE IT. I CAN'T UNSEE IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FUCK THIS. DAAAAAD! A NAKED MORTAL IS HURTING ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FUCK THIS. DAAAAAD! THIS MORTAL IS HURTING ME AND HE STINKS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FUCK THIS. DAAAAAD! THIS MORTAL IS HURTING ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FUCK THIS. DAAAAAD! THIS MORTAL IS HURTING ME! AND HE SHAT HIMSELF!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FUCK THIS. DAAAAAD! THIS MORTAL IS HURTING ME! AND HE'S NAKED!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "FUCK THIS. I QUIT. DAAAAAD! THIS MORTAL IS HURTING ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "GOT YA. AND NOW I HAVE TO HOSE THIS OFF.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "GOT YA. CAN I GO NOW?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "GOT YA. I'M BURNING THIS FORK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "HEY! I BRUISE LIKE A PEACH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "HOLD STILL. I DON'T WANT TO STAND UP AGAIN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "I COULD BE TORMENTING A LAWYER RIGHT NOW. INSTEAD I'M DOING THIS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "I LIVE IN A LAKE OF FIRE AND YOU'RE THE WORST THING I'VE SMELLED ALL DAY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "I'M GONNA NEED A NEW PITCHFORK AFTER THIS. AND NEW EYES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "I'M NOT STABBING THAT. THE FORK'LL NEVER BE CLEAN AGAIN. ...FINE. I'M STABBING IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "I'VE SEEN THE NINTH CIRCLE. THIS IS WORSE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "OH, GREAT. ANOTHER ONE. CAN'T YOU SEE I'M EATING? THIS SOUL WAS A TAX ATTORNEY. HE'S STILL WARM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "OH, GREAT. YOU BROUGHT YOUR OWN BRIMSTONE. IN YOUR PANTS. I WAS HAVING A NICE LUNCH.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "OH, GREAT. YOU CAME ALL THE WAY DOWN TO HELL WITH NO PANTS? EVEN THE DAMNED GET PANTS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "OW! AND NOW IT'S ON ME! IT'S ON MY BELLY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "OW! DON'T RUB ON ME! DON'T RUB ON ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "OW! WHAT IS WRONG WITH YOU?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "PUT IT AWAY. PUT ALL OF IT AWAY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "QUIT RUNNING AROUND. YOU'RE SPREADING IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "SHISH KEBAB. DAD WOULD BE SO PROUD. HE WON'T BE. BUT HE WOULD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "SKEWERED. AND SOILED. GREAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "SOMETHING TOUCHED ME! SOMETHING DANGLY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "STOP THAT! I HAVE A NOTE FROM MY DAD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "THAT ONE WAS FOR MAKING ME LOOK AT YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "THAT WAS SKIN! YOUR SKIN WAS ON MY SKIN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "THERE. NOW LIE DOWN AND DIE SO I CAN FINISH MY LUNCH.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "UGH. A MORTAL. AND HE SMELLS WORSE THAN THE SULFUR. I'M TRYING TO EAT HERE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "UGH. A MORTAL. I'M ON MY LUNCH BREAK. I'VE BEEN ON MY LUNCH BREAK FOR SIX HUNDRED YEARS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "UGH. A NAKED MORTAL. I WAS EATING. I'M NOT ANYMORE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "UGH. I POKED SOMETHING I SHOULDN'T HAVE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "UGH. IT'S ON THE FORK. IT'S ON THE FORK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "YOU GOT IT IN MY BELLY BUTTON!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "YOU KNOW HOW MANY CALORIES THIS IS? I'M NOT SUPPOSED TO DO CARDIO.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.demon",
+  "text": "YOU KNOW WE HAVE A WHOLE CIRCLE FOR PEOPLE LIKE YOU? IT'S THE SEWER ONE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "AAAGH! IT BURNS! AND IT SMELLS LIKE YOUR POCKET!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "AAAGH! IT BURNS! WHERE WERE YOU EVEN CARRYING THAT?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "AAAGH! WHAT IS THAT?! IT BURNS! IT BURNS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "BEHOLD! I AM THE LORD OF THE NIGHT! I AM BREATHING THROUGH MY MOUTH! BEHOLD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "BEHOLD! I AM THE LORD OF THE NIGHT! YOU WANT THE CAPE? YOU CAN HAVE THE CAPE! COVER UP!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "BEHOLD! I AM THE LORD OF THE... THIS CAPE IS ON INSIDE OUT. BEHOLD ANYWAY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "BLOOD CANNON!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "BLOOD CANNON! AT LEAST IT'S COVERING YOU!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "BLOOD CANNON! HOSE HIM DOWN! SOMEBODY HAS TO!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "COME TO DONNIE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "COME TO DONNIE! BY THE SHOULDERS! ONLY THE SHOULDERS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "COME TO DONNIE! NOT ALL OF YOU! JUST THE NECK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "DON'T HIT ME! DON'T TOUCH ME! DON'T SIT ON ANYTHING! THIS IS A RENTAL HALL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "DON'T HIT ME! I BRUISE LIKE A PEACH! I'M A PEACH! I'M JUST A BIG SOFT PEACH IN A CAPE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "DON'T HIT ME! I'M ALREADY TRAUMATIZED! I'VE SEEN THE WHOLE THING! THE WHOLE THING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "DON'T LOOK! I'M PUTTING ON MY HAIR! YOU COULD PUT ON ANYTHING! ANYTHING AT ALL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "DON'T LOOK! THE COUNT DOES NOT RECEIVE GUESTS WITHOUT HIS HAIR!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "DON'T LOOK! THE COUNT DOES NOT RECEIVE GUESTS WITHOUT HIS HAIR! OR GUESTS WHO SMELL LIKE A BUS STATION!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "EVERYTHING IN THE GIFT SHOP IS FORTY PERCENT OFF! TAKE SOMETHING! TAKE ANYTHING! STOP CHASING ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "EVERYTHING IS FORTY PERCENT OFF! THE T-SHIRTS! THE T-SHIRTS ARE RIGHT THERE! PUT ONE ON!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "EVERYTHING'S FORTY PERCENT OFF! INCLUDING PANTS! WE HAVE PANTS! GET SOME PANTS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "EXCUSE ME, MA'AM! SIR! WHOEVER YOU ARE! LUNCH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "EXCUSE ME! YOU HAVE PANTS! YOU ARE MY NEW FAVORITE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "EXCUSE ME! YOU SMELL NORMAL! COME HERE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "FINE! I GOT PLENTY MORE SWOOPS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "FINE! I GOT PLENTY MORE SWOOPS! AND PLENTY MORE WET WIPES!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "FINE! I GOT PLENTY MORE SWOOPS! I NEED A MINUTE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "FROM ABOVE! HOLDING MY BREATH ON THE WAY DOWN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "FROM ABOVE! I CAN DO FROM ABOVE NOW!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "FROM ABOVE! WHICH IS THE WORST ANGLE ON YOU!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HA! TICKLES!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HA! TICKLES! DON'T JUMP! IT ALL GOES UP AND DOWN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HA! TICKLES! DON'T TOUCH ME WITH IT AGAIN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HEY! GOOD! GO! I NEEDED AIR ANYWAY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HEY! HEY! THAT WASN'T THE DEAL! WHAT WAS THE DEAL?! WHAT DID I AGREE TO?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HEY! I WASN'T DONE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HEY! I WASN'T DONE! AND YOU WERE TOUCHING ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HEY! THAT WASN'T THE DEAL! I WANT A LAWYER! A REGULAR ONE! WITH CLOTHES!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HEY! THAT WASN'T THE DEAL! TAKE HIS! HIS IS ALREADY HALFWAY OUT HIS PANTS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HOLD ON. HOLD ON! I AM... COUNT... DAMN IT, WHERE ARE MY TEETH?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HOLD ON. HOLD ON! I AM... COUNT... MY EYES ARE WATERING. DO YOU KNOW YOUR PANTS ARE FULL?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HOLD ON. HOLD ON! I AM... COUNT... WHY ARE WE BOTH GETTING DRESSED BUT ONLY ONE OF US IS?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HOW DID YOU GET IN HERE?! YOU WERE IN HELL! I WATCHED YOU GO! I HAD A SANDWICH ABOUT IT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HOW DID YOU GET IN HERE?! YOU WERE IN HELL! THEY DIDN'T EVEN GIVE YOU A ROBE?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "HOW DID YOU GET IN HERE?! YOU WERE IN HELL! YOU SMELL WORSE THAN HELL! HOW IS THAT POSSIBLE?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I GOT MORE THAN I NEED! HAVE SOME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I GOT MORE THAN I NEED! HERE! WEAR IT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I GOT MORE THAN I NEED! TAKE A SHOWER IN IT! YOU NEED A SHOWER!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I'M BURNING! AND THE LAST THING I SEE IS... AAAAGH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I'M BURNING! AT LEAST I CAN'T SMELL YOU OVER ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I'M GONNA PUT THIS ON MY RESUME! 'DEFEATED A MAN WHO SHIT HIMSELF.' IT'LL STAND OUT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I'M GONNA PUT THIS ON MY RESUME! I'M LEAVING OUT THE PART WHERE YOU WERE NAKED!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I'M GONNA PUT THIS ON MY RESUME! UNDER SKILLS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "I'M MELTING! I'M SMOKING! I'M SMOKING AND I QUIT IN NINETY-EIGHT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IN HERE! THE COUNT WILL FACE YOU IN THE BALLROOM! THE COUNT HAS A PLAN! THE COUNT DOES NOT HAVE A PLAN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IN HERE! THE COUNT WILL FACE YOU IN THE BALLROOM! THE COUNT WILL BE AT THE FAR END! BY THE FOG MACHINES!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IN HERE! THE COUNT WILL FACE YOU IN THE BALLROOM! THE COUNT WILL FACE YOU FROM THE NECK UP!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IS THAT ALL?! I'M A CREATURE OF THE NIGHT NOW!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IS THAT ALL?! I'M A CREATURE OF THE NIGHT! I CAN SMELL YOU FROM ROMANIA!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IS THAT ALL?! THAT'S ALL OF YOU?! I'VE SEEN ALL OF YOU!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IS THAT JESUS?! COVER YOURSELF! HE CAN SEE YOU!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IS THAT JESUS?! WHERE HAS HE BEEN?! WHERE HAVE YOU BEEN KEEPING HIM?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IS THAT JESUS?! WHY DO YOU HAVE A LITTLE JESUS?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IT WAS THE BEST DAY OF MY LIFE... AND THE LAST...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IT WAS THE BEST DAY OF MY LIFE... IT SMELLED LIKE THE WORST...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "IT WAS THE BEST DAY OF MY LIFE... UNTIL THE NUDITY...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "LOOK AT ME! I CAN FLY! I HAVE A CAPE! I HAVE MORE CLOTHES THAN YOU AND I CAN FLY! I'M GONNA KILL YOU WITH STYLE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "LOOK AT ME! I CAN FLY! YOU CAN'T EVEN HOLD IT IN! WHO'S THE MONSTER NOW?! STILL ME! I'M GONNA SHOW YOU!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "LOOK AT ME! I FEEL YOUNG! I FEEL SICK! I FEEL YOUNG AND SICK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "LOOK AT ME! I GOT MY COLOR BACK! I NEVER HAD COLOR!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "LOOK AT ME! I'M FLYING! I PAID TWO HUNDRED BUCKS FOR A ZIPLINE IN CANCUN AND NOW I'M FLYING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "LOOK AT ME! I'M FLYING! THE BEST PART IS THE AIR UP HERE IS SO MUCH CLEANER!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "LOOK AT ME! I'M FLYING! WHICH MEANS I'M LOOKING DOWN! I REGRET IT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "LOOK AT ME! I'M TWENTY-FIVE! YOU'RE NAKED! IT'S A WEIRD DAY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "LOOK AT THIS! LOOK AT ME! I CAN FLY! WHO CARES ABOUT A SOUL?! I'M GONNA KILL YOU WITH MY BRAND NEW SICK POWERS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MINE?! NO! ...OKAY. OKAY. KILL HIM FIRST. EYES ON THE NECK. PANIC LATER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MINE?! NO! ...OKAY. OKAY. KILL HIM FIRST. FROM ABOVE. UPWIND. PANIC LATER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MINE?! NO! IT'S MY SOUL! I'M USING IT! ...OKAY. OKAY. KILL HIM FIRST. PANIC LATER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MORE! BLOOD'S BLOOD! IT'S ALL BLOOD! DON'T THINK ABOUT IT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MORE! FROM THE NECK! JUST THE NECK! THE NECK IS FINE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MORE! THIS IS BETTER THAN THE BUFFET!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY HEART! I'M FIFTY-THREE! I HAVEN'T RUN SINCE THE BICENTENNIAL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY HEART! I'M FIFTY-THREE! I'M TOO OLD TO BE CHASED BY THAT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY HEART! MY LUNGS! THE SMELL IS GETTING INTO MY LUNGS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY POWERS... AND THE LAST THING I SEE... IS THAT...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY POWERS... AND THE LAST THING I SMELL... IS THAT...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "MY POWERS... I HAD THEM FOR TEN MINUTES...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "NO WIGGLING! EVERYTHING WIGGLES WHEN YOU WIGGLE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "NO WIGGLING! IT GETS ON ME WHEN YOU WIGGLE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "NO WIGGLING! IT WAS GOING SO WELL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "NOT LIKE THIS! NOT BY A KEYCHAIN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "NOT LIKE THIS! NOT BY A NAKED MAN WITH A STATUE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "NOT LIKE THIS! NOT BY A SOUVENIR OUT OF A SHITTY MAN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "NOT THE LITTLE STATUE! ANYTHING BUT THE LITTLE STATUE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "NOT THE LITTLE STATUE! HE HAS HIS ARMS OUT! HE WANTS YOU TO PUT SOMETHING ON!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "NOT THE LITTLE STATUE! HE LOOKED SO DISAPPOINTED IN ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OH NO. OH NO NO NO. HOW DID YOU GET IN HERE?! AND WHY IS IT ALL OUT?! IT'S ALL JUST OUT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OH NO. OH NO NO NO. HOW DID YOU GET IN HERE?! IS THAT... AW, IT'S ON MY CARPET! IT'S ON MY CARPET!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OH NO. OH NO NO NO. HOW DID YOU GET IN HERE?! THAT FLOOR IS LOAD-BEARING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OH YEAH! I CAN FEEL IT! I CAN ALSO SMELL IT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OH YEAH! I CAN FEEL IT! I CAN FEEL EVERYTHING! WHY CAN I FEEL EVERYTHING?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OH YEAH! I CAN FEEL IT! I FEEL TWENTY-FIVE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OH. OH, WOW. I'M FLOATING. AND FROM UP HERE I CAN SEE EVERYTHING. FORGET THE SOUL. I'M GONNA KILL YOU FOR THAT VIEW.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OH. OH, WOW. I'M FLOATING. AND I CAN STILL SMELL YOU UP HERE. FORGET THE SOUL. I'M KILLING YOU FOR THE AIR QUALITY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OH. OH, WOW. OKAY. I'M FLOATING. I HAVE REAL TEETH. FORGET THE SOUL, I'M GONNA KILL THIS GUY SO HARD IT GOES ON THE WEBSITE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OKAY, OKAY, YOU WIN! TAKE THE CAPE! TAKE THE TEETH! I'LL GIVE YOU MY EMPLOYEE DISCOUNT! TWELVE PERCENT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OKAY, YOU WIN! TAKE THE CAPE! PUT IT ON! PLEASE PUT IT ON!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OKAY, YOU WIN! TAKE THE CAPE! WIPE WITH IT! I DON'T CARE! JUST STAY OVER THERE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OKAY! I BELIEVE! I BELIEVE IN PANTS! AAAAGH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OKAY! I BELIEVE! I BELIEVE YOU NEED A SHOWER! AAAAGH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OKAY! OKAY! I BELIEVE! I BELIEVE! AAAAGH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OOH! TAKEOUT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OOH! TAKEOUT! SOMETHING THAT DOESN'T SMELL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OOH! TAKEOUT! WITH CLOTHES ON! HOW CIVILIZED!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OW! I MEAN... HA! IMMORTAL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OW! I MEAN... HA! IMMORTAL! AND UPWIND!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OW! I MEAN... HA! IMMORTAL! STOP FLEXING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OW! WATCH THE CAPE! IT ABSORBS ODORS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OW! WATCH THE CAPE! IT'S THE ONLY CLOTHES IN THE ROOM!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OW! WATCH THE CAPE! STILL A RENTAL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "PLEASE DON'T HURT ME! AND DON'T COME CLOSER! MOSTLY THE SECOND ONE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "PLEASE DON'T HURT ME! AND DON'T STAND LIKE THAT! WITH YOUR LEGS LIKE THAT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "PLEASE DON'T HURT ME! I'M NOT REALLY DRACULA! I'M DONNIE! I HAVE A CONDO!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "RAT-A-TAT-TAT! AIMING HIGH! AIMING SO HIGH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "RAT-A-TAT-TAT! THAT'S THE SOUND OF A PRESSURE WASH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "RAT-A-TAT-TAT! THAT'S THE SOUND OF BLOOD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "REAL WINGS! REAL TEETH! I'M GONNA KILL YOU AND IT'S GONNA LOOK SO COOL! FROM UP HERE! WAY UP HERE! AWAY FROM THAT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "REAL WINGS! REAL TEETH! I'M GONNA SHOW YOU WHAT A REAL CREATURE OF THE NIGHT CAN DO! TO YOUR FACE! ONLY YOUR FACE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SANCTUARY! THIS IS SANCTUARY! I READ THAT IN A BOOK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SANCTUARY! THIS IS SANCTUARY! SANCTUARY HAS A NO-SMELL POLICY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SANCTUARY! THIS IS SANCTUARY! SANCTUARY REQUIRES A SHIRT AND SHOES! AND PANTS! MOSTLY PANTS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SAY HELLO TO MY LITTLE... BLOOD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SAY HELLO TO MY LITTLE... CLEANUP CREW!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SAY HELLO TO MY LITTLE... DON'T SAY LITTLE! I DIDN'T MEAN LITTLE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SECURITY! SECURITY! AND JANITORIAL! MOSTLY JANITORIAL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SECURITY! SECURITY! WE DON'T HAVE SECURITY! WE HAVE A GUY NAMED RAY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SECURITY! SECURITY! WE HAVE A NAKED MAN IN THE GIFT SHOP! AGAIN! THIS TIME HE'S ANGRY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STAFF! STOP HIM! DO NOT GRAB HIM BY ANYTHING! WHOEVER STOPS HIM GETS A FREE HOT DOG!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STAFF! STOP HIM! WEAR GLOVES! WHOEVER STOPS HIM GETS A FREE HOT DOG AND A TETANUS SHOT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STAFF! STOP HIM! WHOEVER STOPS HIM GETS A FREE HOT DOG!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STAY BACK! I KNOW KARATE! AND I KNOW WHAT'S IN YOUR PANTS! BYE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STAY BACK! I KNOW KARATE! DON'T MAKE ME KICK AT THAT! BYE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STAY BACK! I KNOW KARATE! I DON'T! BYE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STOP CHASING ME! I'M IN A CAPE! THERE'S NO WAY TO RUN IN A CAPE WITH DIGNITY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STOP CHASING ME! THINGS ARE SWINGING! I CAN HEAR THEM SWINGING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STOP CHASING ME! YOU'RE LEAVING A TRAIL! WE JUST HAD THE FLOORS WAXED!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SWOOP! AND STRAIGHT BACK UP! FAST!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SWOOP! EYES CLOSED! SWOOPING WITH MY EYES CLOSED!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "SWOOP! I SAID SWOOP! I MEANT TO SAY SWOOP!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "TELL MY MOTHER... I FLEW...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "TELL MY MOTHER... I FLEW... AND BURN THE CARPET...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "TELL MY MOTHER... I FLEW... AND I SAW A NAKED MAN...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THAT WOULD HAVE HURT YESTERDAY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THAT WOULD HAVE HURT YESTERDAY! THE SMELL STILL HURTS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THAT WOULD HAVE HURT YESTERDAY! TODAY I HAVE WINGS AND YOU HAVE NOTHING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THE BALLROOM! IT'S BLACK TIE! YOU'RE NOT EVEN BLACK SOCKS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THE BALLROOM! YOU CAN'T COME IN HERE LIKE THAT! THERE'S A BUFFET!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THE BALLROOM! YOU WOULDN'T FIGHT A MAN IN HIS OWN BALLROOM! IT'S RENTED FOR A WEDDING SATURDAY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THE COUNT MUST... GO! FAR AWAY! UPWIND!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THE COUNT MUST... GO! FAR AWAY! VERY FAST!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THE COUNT MUST... GO! FAR AWAY! WHERE THERE ARE PANTS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THE SOUL'S HIS PROBLEM! THE KILLING'S MINE! AND I'M GOOD AT IT! I JUST FOUND OUT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THE SOUL'S HIS PROBLEM! THE KILLING'S MINE! THE NUDITY'S EVERYBODY'S PROBLEM!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THE SOUL'S HIS PROBLEM! YOUR PANTS ARE YOURS! THE KILLING'S MINE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THESE ARE REAL WINGS! MA! MA, LOOK! I'M GONNA KILL A GUY WITH 'EM! SOUL SCHMOUL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THIS IS AMAZING! DON'T PRESS! I SAID DON'T PRESS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THIS IS AMAZING! DON'T SQUIRM! IT SQUISHES WHEN YOU SQUIRM!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THIS IS AMAZING! YOU TASTE LIKE PROTEIN POWDER!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THIS IS WHAT I GOT INTO THE BUSINESS FOR! NOT FOR THE SMELLS! NEVER FOR THE SMELLS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THIS IS WHAT I GOT INTO THE BUSINESS FOR! NOT THE MIC! THIS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THIS IS WHAT I GOT INTO THE BUSINESS FOR! TO RISE ABOVE! ABOVE YOU! WELL ABOVE YOU!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WAIT, WHAT? MY SOUL? NOBODY SAID MY SOUL! I DIDN'T SIGN ANYTHING! DID I SIGN SOMETHING?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WAIT, WHAT? MY SOUL? TAKE HIS! HE'S NOT USING ANYTHING! HE'S NOT EVEN USING PANTS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WAIT, WHAT? MY SOUL? YOU CAN HAVE HIS! IT'S RIGHT THERE! FOLLOW THE SMELL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WATCH THIS! DON'T WATCH ME! I'M NOT WATCHING YOU!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WATCH THIS! THEN WATCH ME WASH MY HANDS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WATCH THIS! THIS IS WHAT A DRESSED PERSON TASTES LIKE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WATCH THIS! THIS ONE BATHED!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WATCH THIS! WATCH WHAT I CAN DO TO A GUY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WATCH THIS! WATCH! THIS IS THE COOL PART!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WHA... HOW DID YOU GET IN HERE?! AND WHY DID YOU BRING THAT SMELL?! THIS ROOM HAS NO WINDOWS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WHA... HOW DID YOU GET IN HERE?! PUT SOMETHING ON! THIS IS AN EMPLOYEE AREA! THERE IS A DRESS CODE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WHA... HOW DID YOU GET IN HERE?! THIS IS AN EMPLOYEE AREA! THERE IS A SIGN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU BREAK IT, YOU BUY IT! AND YOU ARE BREAKING EVERYTHING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU BREAK IT, YOU BUY IT! WITH WHAT?! WHERE DO YOU KEEP A WALLET?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU BREAK IT, YOU BUY IT! YOU SIT ON IT, WE BURN IT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU CAN'T KILL WHAT'S ALREADY DEAD! PUT IT AWAY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU CAN'T KILL WHAT'S ALREADY DEAD! YOU CAN STINK IT TO DEATH, THOUGH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU CAN'T KILL WHAT'S ALREADY... WAIT, AM I DEAD? AM I DEAD NOW?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU KNOW WHAT I WAS THIS MORNING? ASSISTANT MANAGER! NOW I'M BAT GOD! YOU'RE A NUDIST WITH A GUN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU KNOW WHAT I WAS THIS MORNING? ASSISTANT MANAGER! NOW I'M BAT GOD! YOU'RE STILL A GUY IN DIRTY PANTS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU KNOW WHAT I WAS THIS MORNING? ASSISTANT MANAGER! YOU KNOW WHAT I AM NOW? BAT GOD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU'LL NEVER TAKE ME ALIVE! NOT LOOKING LIKE THAT YOU WON'T!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU'LL NEVER TAKE ME ALIVE! YOU'LL NEVER TAKE ME DOWNWIND OF YOU EITHER!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU'LL NEVER TAKE ME ALIVE! YOU'LL PROBABLY NEVER TAKE ME AT ALL! I'M SURPRISINGLY QUICK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "...HE GOT OUT. AND HE LEFT SOMETHING BEHIND. ON THE FLOOR. SAL, GET A MOP. SAL? SAL IS DEAD. GET A MOP ANYVAY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "...HE GOT OUT. OF COURSE HE GOT OUT. SAL, YOU USELESS... I MEAN. YES. YOU HAVE PASSED THE ORDEAL. HA. HA.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "...HE GOT OUT. THE SPIKES MISSED EVERYTHING. EVERY... DANGLING... THING. HOV?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "...I MEAN. YES. MY MIST. IT FOLLOWS THE SMELL. YOU HAVE A LOT OF SMELL. RUN, MORTAL. I'M NOT KIDDING, BUDDY. GO.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "...I MEAN. YES. MY MIST. IT VILL COVER YOU. FINALLY, SOMETHING VILL. RUN. NO, SERIOUSLY. RUN, PAL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "...I MEAN. YES. MY MIST. MY TERRIBLE MIST. RUN, MORTAL. NO, SERIOUSLY. RUN. I'M NOT KIDDING HERE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "...OKAY. HE MADE IT. AND THE MIST SPAT HIM BACK OUT. EVEN THE MIST VOULD NOT. GARY? ...GARY?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "...OKAY. HE MADE IT. GOOD. GOOD. GARY, VE ARE TURNING THAT THING OFF. GARY? ...GARY?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "...OKAY. HE MADE IT. NAKED. THROUGH THAT. I HAVE QUESTIONS. GARY? ...GARY?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AH. YOU SURVIVED. AS... I PLANNED. ALL PART OF THE TOUR. VE DO THAT EVERY DAY. YES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AH. YOU SURVIVED. AS... I PLANNED. THE NUDITY VAS NOT PLANNED. NONE OF IT VAS PLANNED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AH. YOU SURVIVED. THE MIST TOOK ONE SNIFF OF YOU AND GAVE UP. AS... I PLANNED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AHEAD, THE CHAMBER OF THE DESCENDING CEILINK. INSTALLED BY A CONTRACTOR NAMED SAL. SAL ALSO DID THE PLUMBING. YOU COULD HAVE USED IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AHEAD, THE CHAMBER OF THE DESCENDING CEILINK. INSTALLED IN NINETEEN SIXTY-TWO BY A CONTRACTOR NAMED SAL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AHEAD, THE CHAMBER OF THE DESCENDING CEILINK. VITH SPIKES. I VOULD NOT GO IN THERE VITH SO MUCH... EXPOSED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AND NOV... THE FINAL ORDEAL. THE HALLVAY OF... VAIT. VHAT IS THAT? GARY? IS THE FOG MACHINE ON? GARY, VHY IS IT RED?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AND NOV... THE FINAL ORDEAL. THE HALLVAY OF... VAIT. VHAT IS THAT? IS THAT COMING OFF OF YOU? NO. IT IS RED. GARY? IS THE FOG MACHINE ON?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AND NOV... THE FINAL ORDEAL. THE HALLVAY OF... VAIT. VHAT IS THAT? VHAT IS THAT RED... GARY? IS THE FOG MACHINE ON? GARY?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AND THE EMPTY FRAME AT THE END IS RESERVED FOR YOU. A NUDE. VE VILL NEED A MUCH SMALLER CANVAS THAN I THOUGHT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AND THE EMPTY FRAME AT THE END IS RESERVED FOR YOU. VE VILL PAINT YOU IN BROVN. VE HAVE A LOT OF REFERENCE MATERIAL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "AND THE EMPTY FRAME AT THE END... IS RESERVED. FOR YOU. VE HAVE ALREADY BOUGHT THE PAINT. IT IS RED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "ANOTHER CAST MEMBER, RETURNED TO THE EARTH. HE VAS ALREADY DYING. FROM THE SMELL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "ANOTHER CAST MEMBER, RETURNED TO THE EARTH. THE LAST THING HE SAV VAS... ALL OF YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "ANOTHER CAST MEMBER... RETURNED TO THE EARTH. HUMAN RESOURCES VILL HEAR OF THIS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "ATTENTION, CHILDREN OF THE NIGHT. THE ELEVATOR TO HELL IS CLOSED. A GUEST FELL DOWN THE SHAFT. HE HAD ALREADY SOILED HIMSELF. HELL CAN KEEP HIM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "ATTENTION, CHILDREN OF THE NIGHT. THE ELEVATOR TO HELL IS CLOSED. A NAKED GUEST FELL DOWN THE SHAFT. EVERYTHING BOUNCED. IT WAS HORRIBLE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "ATTENTION, CHILDREN OF THE NIGHT. THE ELEVATOR TO HELL IS TEMPORARILY CLOSED. A GUEST FELL DOWN THE SHAFT. HE WAS VERY RUDE. GOOD RIDDANCE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "CLEANUP CREW TO THE HELL PIT. ONE GUEST, EXTREMELY DEAD, EXTREMELY NUDE. BRING A MOP. BRING A TARP. BRING A BIG TARP.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "CLEANUP CREW TO THE HELL PIT. ONE GUEST, EXTREMELY DEAD. BRING A MOP. BRING A HOSE. HE WAS LEAKING BEFORE HE FELL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "CLEANUP CREW TO THE HELL PIT. ONE GUEST, EXTREMELY DEAD. BRING A MOP. BRING TWO MOPS. HE WAS A LARGE MAN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "DELICIOUS. I MEAN THE KILL. NOT YOU. PUT IT AVAY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "DELICIOUS. I MEAN... TRAGIC. A TRAGEDY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "DELICIOUS. NO. NOT VITH YOU STANDING THERE. NOTHING IS DELICIOUS VITH YOU STANDING THERE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "DO NOT DUCK. I VANT TO SEE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "DO NOT DUCK. NOT LIKE THAT. NOT NAKED. NOT TOVARD THE CAMERA.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "DO NOT DUCK. VHEN YOU DUCK, IT GETS VORSE. FOR EVERYBODY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "GOOD EVENINK... AND VELCOME TO MY OTHER CASTLE. I AM DRACULA. AND I SMELL... DEATH. NO. VORSE THAN DEATH. VHAT IS THAT?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "GOOD EVENINK... AND VELCOME TO MY OTHER CASTLE. I AM DRACULA. AND YOU ARE... NAKED. IN MY FOYER. HOW BOLD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "GOOD EVENINK... AND VELCOME TO MY OTHER CASTLE. I AM DRACULA. YES. THAT ONE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "GREAT-UNCLE VLADISLAV CHOKED ON A GRAPE. GRANDMOTHER LOST AN ARGUMENT VITH A VINDMILL. NOT ONE OF THEM DIED IN THEIR OVN FILTH. THEY HAD STANDARDS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "GREAT-UNCLE VLADISLAV CHOKED ON A GRAPE. YOU CAN SEE THE GRAPE. GRANDMOTHER LOST AN ARGUMENT VITH A VINDMILL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "GREAT-UNCLE VLADISLAV CHOKED ON A GRAPE. YOU CAN SEE THE GRAPE. YOU CAN SEE YOUR GRAPES TOO. EVERYONE CAN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "HE VAS ONLY SEASONAL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "HE VAS ONLY SEASONAL! AND HE DIED LOOKING AT YOUR PANTS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "HE VAS ONLY SEASONAL! HE DID NOT SIGN UP TO BE KILLED BY A NUDIST!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "IMPRESSIVE. THE CEILINK IS VERY DISAPPOINTED IN YOU. AS AM I.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "IMPRESSIVE. YOU ESCAPED. THE CEILINK IS RELIEVED. IT DID NOT VANT TO TOUCH YOU EITHER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "IMPRESSIVE. YOU ESCAPED. THE SMELL DID NOT. IT VILL LIVE IN THERE FOREVER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "IT VAS THE TERMS AND CONDITIONS. ELEVEN YEARS, HE READ. HE NEVER LEFT HIS CHAIR. HE DID VHAT YOU DID. IN THE CHAIR. FOR ELEVEN YEARS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "IT VAS THE TERMS AND CONDITIONS. HE READ EVERY VORD. IT TOOK ELEVEN YEARS. HE DIED ON PAGE FOUR THOUSAND.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "IT VAS THE TERMS AND CONDITIONS. HE READ EVERY VORD. NOVHERE IN THEM DOES IT SAY NO PANTS IS ALLOVED. I CHECKED. TVICE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "LOVER... LOVER... THE CEILINK IS COMING DOWN TO MEET YOU. HOV POLITE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "LOVER... LOVER... THE CEILINK IS COMING DOWN. IT VILL SEAL THE SMELL IN. LIKE A LID.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "LOVER... LOVER... THE CEILINK IS COMING DOWN. THE SPIKES ARE AIMING. THERE IS SO MUCH TO AIM AT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "NOBODY NOTICED FOR THREE COURSES. SHE VAS SERVED NAKED. ON A PLATTER. VITH AN APPLE. YOU ARE HALFVAY THERE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "NOBODY NOTICED FOR THREE COURSES. SHE VAS, BY ALL ACCOUNTS, DELICIOUS. THE COUNT ASKED FOR SECONDS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "NOBODY NOTICED FOR THREE COURSES. THE SMELL OF A VOMAN ROASTING. IT VAS STILL BETTER THAN VHAT IS COMING OFF OF YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "NOBODY TOLD THE CHEF ABOUT THE SHELLFISH ALLERGIES. ALL FORTY. THEY SVELLED UP LIKE BALLOONS AND FLOATED TO THE CEILINK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "NOBODY TOLD THE CHEF ABOUT THE SHELLFISH ALLERGIES. THEY SVELLED UP AND FLOATED AVAY. THEY VERE THE LUCKY ONES. THEY CANNOT SMELL YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "NOBODY TOLD THE CHEF ABOUT THE SHELLFISH ALLERGIES. THEY SVELLED UP LIKE BALLOONS. AS HAVE YOU, I SEE. IN PLACES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "PLEASE ENJOY THE TOUR. DO NOT SIT ON THE ANTIQUE FURNITURE. I BEG OF YOU. NOT IN THOSE PANTS. THEY ARE FOUR HUNDRED YEARS OLD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "PLEASE ENJOY THE TOUR. THE CASTLE IS FULL OF HISTORY. AND BLOOD. MOSTLY BLOOD. FLASH PHOTOGRAPHY IS PUNISHABLE BY DEATH.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "PLEASE ENJOY THE TOUR. THE GIFT SHOP SELLS CAPES. I SUGGEST YOU VEAR ONE. BACKVARDS. TIED AT THE VAIST.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "SAL TESTED IT HIMSELF. HE DIED VITH DIGNITY. AND CLEAN PANTS. THAT IS MORE THAN YOU VILL GET.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "SAL TESTED IT HIMSELF. VE KEPT THE SPIKES. THE SPIKES HAVE SEEN THINGS. NOTHING LIKE VHAT THEY ARE ABOUT TO SEE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "SAL TESTED IT HIMSELF. VE KEPT THE SPIKES. VE DID NOT KEEP SAL. VELL. MOST OF SAL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "SURVIVE THE ORDEALS OF MY HUMBLE HOME, AND PERHAPS... YOU VILL BE GRANTED AN AUDIENCE. FROM ACROSS THE ROOM. I VILL BE UPVIND.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "SURVIVE THE ORDEALS OF MY HUMBLE HOME, AND PERHAPS... YOU VILL BE GRANTED AN AUDIENCE. THE AUDIENCE REQUIRES PANTS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "SURVIVE THE ORDEALS OF MY HUMBLE HOME, AND PERHAPS... YOU VILL BE GRANTED AN AUDIENCE. VITH ME. I AM VERY BUSY. IT IS AN HONOR.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THAT ONE HAD A FAMILY. AT THE FUNERAL THEY VILL ASK VHAT HE SAV. ME, I VILL SAY NOTHING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THAT ONE HAD A FAMILY. I DO NOT KNOW THEM. BUT STATISTICALLY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THAT ONE HAD A FAMILY. THEY VILL ASK HOV HE DIED. I VILL SAY BRAVELY. I VILL NOT SAY IT VAS DOWNVIND OF YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE BLOOD OF MY SERVANTS ON MY GOOD CARPET. AND VORSE, VHERE YOU VERE STANDING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE BLOOD OF MY SERVANTS ON MY GOOD CARPET. AND YOU, BARE-BOTTOMED, ON MY GOOD CARPET.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE BLOOD OF MY SERVANTS. ON MY GOOD CARPET. DO YOU KNOW VHAT CARPET COSTS?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE BOOKS ARE STILL ANGRY ABOUT IT. THEY THROW THEMSELVES AT VISITORS. AT YOU, THEY VILL THROW THEMSELVES HARDER. TO GET IT OVER VITH.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE BOOKS ARE STILL ANGRY ABOUT IT. THEY THROW THEMSELVES AT VISITORS. DO NOT TAKE IT PERSONALLY. TAKE IT IN THE FACE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE BOOKS ARE STILL ANGRY ABOUT IT. THEY THROW THEMSELVES AT VISITORS. HOLD ONE IN FRONT OF YOU. A BIG ONE. AN ATLAS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE DINING ROOM. IN EIGHTEEN EIGHTY-SEVEN, THE COUNTESS HOSTED A FEAST HERE. FORTY GUESTS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE DINING ROOM. IN EIGHTEEN EIGHTY-SEVEN, THE COUNTESS HOSTED A FEAST HERE. FORTY GUESTS. A FORMAL DINNER. VITH CLOTHES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE DINING ROOM. IN EIGHTEEN EIGHTY-SEVEN, THE COUNTESS HOSTED A FEAST HERE. FORTY GUESTS. ALL OF THEM IN CLEAN PANTS. UNLIKE SOME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE DOORS ARE LOCKED. THE LEVER IS UP THERE. CLIMB. NO, VAIT, DO NOT CLIMB. I CAN SEE EVERYTHING VHEN YOU CLIMB.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE DOORS ARE LOCKED. THE LEVER IS UP THERE. NOT THAT I AM HELPING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE DOORS ARE LOCKED. THE LEVER IS UP THERE. THE SMELL, HOVEVER, IS DOWN HERE. VITH YOU. ALVAYS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE DUNGEON. MY GUESTS COME DOWN HERE TO... HANG OUT. FOREVER. IT SMELLED BETTER DOWN HERE VITH THE BODIES. BEFORE YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE DUNGEON. MY GUESTS COME DOWN HERE TO... HANG OUT. ON THE VALL. IN CHAINS. FOREVER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE DUNGEON. MY GUESTS COME DOWN HERE TO... HANG OUT. YOU ARE ALREADY HANGING OUT. EVERYTHING IS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE KITCHEN. VHERE THE COOK, BARTHOLOMEW, MISTOOK THE COUNT'S MOTHER-IN-LAV FOR A HOLIDAY HAM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE KITCHEN. VHERE THE COOK, BARTHOLOMEW, MISTOOK THE COUNT'S MOTHER-IN-LAV FOR A HOLIDAY HAM. HE VOULD NEVER MISTAKE YOU FOR FOOD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE KITCHEN. VHERE THE COOK, BARTHOLOMEW, MISTOOK THE COUNT'S MOTHER-IN-LAV FOR A HOLIDAY HAM. YOU, HE VOULD MISTAKE FOR A RACK OF RIBS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE MAID FOUND HER IN THE SPRING. UNDER THE MATTRESS. FULLY CLOTHED. SHE HAD MORE DIGNITY DEAD THAN YOU HAVE ALIVE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE MAID FOUND HER IN THE SPRING. UNDER THE MATTRESS. THE COUNT HAD SLEPT ON HER ALL SEASON. HE SAID IT VAS LUMPY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE MAID FOUND HER IN THE SPRING. UNDER THE MATTRESS. THE MATTRESS VAS RUINED. IT IS NOT THE VORST THING THAT VILL HAPPEN TO A MATTRESS TODAY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE MASTER BEDROOM. LADY MORTIMER RETIRED TO THIS VERY BED ONE VINTER, IN HER NIGHTGOVN. A NIGHTGOVN. LOOK IT UP.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE MASTER BEDROOM. LADY MORTIMER RETIRED TO THIS VERY BED ONE VINTER... AND NEVER CAME OUT. SHE VAS TOO AFRAID. SHE COULD SMELL YOU COMING. IN THE FUTURE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE MASTER BEDROOM. LADY MORTIMER RETIRED TO THIS VERY BED ONE VINTER... AND VAS NEVER SEEN AGAIN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE MATTRESS IS STILL VERY BOUNCY. AND HIS BRIDES STILL VAIT IN THE VARDROBES. JEALOUS. AND VERY, VERY FAST.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE MATTRESS IS STILL VERY BOUNCY. DO NOT SIT ON IT. BOUNCE, BUT DO NOT SIT. AND HIS BRIDES VAIT IN THE VARDROBES. VITH CLOTHESPINS ON THEIR NOSES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE MATTRESS IS STILL VERY BOUNCY. PLEASE DO NOT BOUNCE ON IT LIKE THAT. NOT LIKE THAT. AND HIS BRIDES VAIT IN THE VARDROBES. THEY HAVE NEVER SEEN A MAN. THEY STILL HAVEN'T.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE NURSERY BURNED DOWN FOUR TIMES. EACH TIME, THE COUNT REBUILT IT. OUT OF THE SAME VOOD. HE VAS NOT A LEARNER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE NURSERY BURNED DOWN FOUR TIMES. HE RAN THROUGH THE HALLS NAKED, ON FIRE. NOT UNLIKE YOU. MINUS THE FIRE. FOR NOV.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE NURSERY BURNED DOWN FOUR TIMES. THE FIRST FIRE VAS VILHELM. THE OTHER THREE VERE TO GET RID OF THE DIAPER SMELL. IT DID NOT VORK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE NURSERY. LITTLE VILHELM PLAYED HERE VITH HIS FAVORITE TOY. A LIT CANDLE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE NURSERY. LITTLE VILHELM PLAYED HERE VITH HIS FAVORITE TOY. A LIT CANDLE. ALSO, LIKE YOU, HE REFUSED TO VEAR PANTS. HE VAS THREE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE NURSERY. LITTLE VILHELM PLAYED HERE VITH HIS FAVORITE TOY. A LIT CANDLE. HE VAS NEVER POTTY TRAINED EITHER. YOU VOULD HAVE BEEN FRIENDS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE PORTRAIT GALLERY. MY ANCESTORS. EACH ONE PAINTED AT THE MOMENT OF THEIR DEATH.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE PORTRAIT GALLERY. MY ANCESTORS. EACH ONE PAINTED AT THE MOMENT OF THEIR DEATH. FULLY DRESSED. EVERY ONE. EVEN THE ONE IN THE BATH.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE PORTRAIT GALLERY. MY ANCESTORS. EACH ONE PAINTED AT THE MOMENT OF THEIR DEATH. NOTICE HOV THEY ARE ALL HOLDING THEIR NOSES. THEY KNEV YOU VOULD COME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE STOVES HAVE NEVER GONE OUT SINCE. MIND THE BURNERS. YOU HAVE NOTHING BETVEEN YOU AND THE BURNERS. NOTHING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE STOVES HAVE NEVER GONE OUT SINCE. PLEASE, STAND ON ONE. COOK IT OFF. IT IS THE ONLY VAY. IT VILL NEVER VASH OUT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE STOVES HAVE NEVER GONE OUT SINCE. THEY ARE STILL HUNGRY. MIND THE BURNERS. AND THE COOKS. MOSTLY THE COOKS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE STUDY. HERE THE COUNT'S SCHOLAR, DOCTOR ABERNATHY, OPENED THE FORBIDDEN TOME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE STUDY. HERE THE COUNT'S SCHOLAR, DOCTOR ABERNATHY, OPENED THE FORBIDDEN TOME. IT SMELLED BETTER THAN YOU. IT VAS BOUND IN GOAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THE STUDY. HERE THE COUNT'S SCHOLAR, DOCTOR ABERNATHY, OPENED THE FORBIDDEN TOME. THE ONLY THING IN HERE MORE EXPOSED THAN YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THIS IS YOUR HOST, COUNT DRACULA. THE BALD INTRUDER HAS BEEN DEALT WITH. BY GRAVITY. MOSTLY BY ME. RESUME SCREAMING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THIS IS YOUR HOST, COUNT DRACULA. THE INTRUDER WITH THE LOADED TROUSERS HAS BEEN DEALT WITH. PLEASE IGNORE THE SMELL. IT IS HISTORIC.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "THIS IS YOUR HOST, COUNT DRACULA. THE NUDIST HAS BEEN DEALT WITH. YOU MAY OPEN YOUR EYES. CHILDREN, NOT YET.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "TO THIS DAY, THE CHANDELIERS COME DOWN FOR DINNER. I HOPE ONE COMES DOWN ON YOU. FOR THE SMELL. IT VOULD SEAL IT IN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "TO THIS DAY, THE CHANDELIERS COME DOWN FOR DINNER. ON VHOEVER IS UNDERNEATH. SIT VHERE YOU LIKE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "TO THIS DAY, THE CHANDELIERS COME DOWN FOR DINNER. PLEASE DO NOT SIT ON MY TABLE. VE EAT OFF OF THAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "VILHELM'S TRAIN STILL RUNS. IT RUNS AT ANKLE HEIGHT. BE GRATEFUL IT IS NOT ANY HIGHER. YOU ARE VERY... AVAILABLE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "VILHELM'S TRAIN STILL RUNS. IT VILL RUN YOU DOWN. IT VILL NOT STOP TO SMELL YOU. NOBODY VOULD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "VILHELM'S TRAIN STILL RUNS. NOBODY VINDS IT. NOBODY HAS EVER FOUND THE KEY. IT IS VERY FAST. FOR A TOY. VATCH YOUR ANKLES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "YOU KILL MY STAFF? I VILL HIRE MORE. AT MINIMUM VAGE. AGAIN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "YOU KILL MY STAFF? THE SURVIVORS VILL NEED THERAPY. NOT FOR THE KILLING. FOR THE REST OF IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie.pa",
+  "text": "YOU KILL MY STAFF? THEY VILL BE RELIEVED. THEY DID NOT VANT TO TOUCH YOU EITHER.",
+  "from": "SPOOKY"
+ },
+ {
   "voice": "m2.guard",
   "text": "AMERICA USA IS STRAIGHT AHEAD, SIR.",
   "from": "INTRO"
@@ -10701,6 +13206,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "AAAAAAAAH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
   "text": "BACK OF THE LINE, PAL!",
   "from": "INTRO"
  },
@@ -10718,6 +13228,11 @@
   "voice": "m2.guest",
   "text": "BEST EXHIBIT IN THE PARK.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "BEST! RIDE! EVER!",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.guest",
@@ -10786,6 +13301,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "HE'S GOT REAL FANGS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
   "text": "HE'S NAKED AND HE'S TAKING OUR BOAT!",
   "from": "ADVENTURE"
  },
@@ -10803,6 +13323,11 @@
   "voice": "m2.guest",
   "text": "HE'S SITTING IN IT! HE'S SITTING IN IT WITH THAT!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HELP! HELP! SOMEBODY!",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.guest",
@@ -10856,6 +13381,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "I CAN SEE THE ACTUAL DEVIL! FIVE STARS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
   "text": "I CAN TASTE IT. WHY CAN I TASTE IT?",
   "from": "INTRO"
  },
@@ -10863,6 +13393,11 @@
   "voice": "m2.guest",
   "text": "I DIDN'T PAY TO LOOK AT THAT! HURRY UP!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "I JUST CAME FOR THE BUFFET!",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.guest",
@@ -10878,6 +13413,11 @@
   "voice": "m2.guest",
   "text": "I'M CALLING MY LAWYER!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "I'M GONNA PUKE! I'M GONNA PUKE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.guest",
@@ -10921,6 +13461,16 @@
  },
  {
   "voice": "m2.guest",
+  "text": "IS THIS PART OF IT?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IT SMELLS LIKE ACTUAL SULFUR!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
   "text": "KIDS, DON'T LOOK. THAT'S NOT A DINOSAUR.",
   "from": "ADVENTURE"
  },
@@ -10938,6 +13488,11 @@
   "voice": "m2.guest",
   "text": "MOM, THERE'S A MAN IN THE DINOSAUR TANK.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "MOM! MOOOOM!",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.guest",
@@ -11036,6 +13591,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "THAT GUY'S FLYING! WHY IS THAT GUY FLYING?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
   "text": "THAT'S MY SEAT, YOU— OW!",
   "from": "ADVENTURE"
  },
@@ -11063,6 +13623,16 @@
   "voice": "m2.guest",
   "text": "THERE'S A NAKED MAN CUTTING THE LINE!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THIS IS LONGER THAN LAST TIME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THIS IS NOT IN THE BROCHURE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.guest",
@@ -11101,6 +13671,21 @@
  },
  {
   "voice": "m2.guest",
+  "text": "WHEEEEEE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHERE IS THE EXIT?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHERE IS THE GIFT SHOP?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
   "text": "WHY DOES HE GET TO GO BACK THERE?",
   "from": "ADVENTURE"
  },
@@ -11121,6 +13706,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "AAAAAAAAH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "BACK OF THE LINE, PAL!",
   "from": "INTRO"
  },
@@ -11138,6 +13728,11 @@
   "voice": "m2.guest2",
   "text": "BEST EXHIBIT IN THE PARK.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "BEST! RIDE! EVER!",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.guest2",
@@ -11221,6 +13816,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "HE'S GOT REAL FANGS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "HE'S NAKED AND HE'S TAKING OUR BOAT!",
   "from": "ADVENTURE"
  },
@@ -11238,6 +13838,11 @@
   "voice": "m2.guest2",
   "text": "HE'S SITTING IN IT! HE'S SITTING IN IT WITH THAT!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HELP! HELP! SOMEBODY!",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.guest2",
@@ -11291,6 +13896,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "I CAN SEE THE ACTUAL DEVIL! FIVE STARS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "I CAN TASTE IT. WHY CAN I TASTE IT?",
   "from": "INTRO"
  },
@@ -11306,6 +13916,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "I JUST CAME FOR THE BUFFET!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "I PAID FORTY DOLLARS FOR THIS AND THERE'S A MAN IN IT.",
   "from": "ADVENTURE"
  },
@@ -11318,6 +13933,11 @@
   "voice": "m2.guest2",
   "text": "I'M CALLING MY LAWYER!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "I'M GONNA PUKE! I'M GONNA PUKE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.guest2",
@@ -11356,6 +13976,16 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "IS THIS PART OF IT?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT SMELLS LIKE ACTUAL SULFUR!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "KIDS, DON'T LOOK. THAT'S NOT A DINOSAUR.",
   "from": "ADVENTURE"
  },
@@ -11373,6 +14003,11 @@
   "voice": "m2.guest2",
   "text": "MOM, THERE'S A MAN IN THE DINOSAUR TANK.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "MOM! MOOOOM!",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.guest2",
@@ -11466,6 +14101,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "THAT GUY'S FLYING! WHY IS THAT GUY FLYING?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "THAT'S MY SEAT, YOU— OW!",
   "from": "ADVENTURE"
  },
@@ -11488,6 +14128,16 @@
   "voice": "m2.guest2",
   "text": "THERE'S A NAKED MAN CUTTING THE LINE!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THIS IS LONGER THAN LAST TIME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THIS IS NOT IN THE BROCHURE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.guest2",
@@ -11526,6 +14176,21 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "WHEEEEEE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHERE IS THE EXIT?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHERE IS THE GIFT SHOP?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "WHY DOES HE GET TO GO BACK THERE?",
   "from": "ADVENTURE"
  },
@@ -11543,6 +14208,151 @@
   "voice": "m2.guest2",
   "text": "WHY IS THE WATER GOING BROWN AROUND HIM?",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "IT'S PART OF THE RIDE NOW. NEXT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "NEXT CAR, PLEASE. WE HAVE PLENTY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "NEXT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "NO SHIRT, NO SHOES, NO PANTS, NO HELL. IT'S ON THE SIGN. IT'S ON EVERY SIGN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "NO WRISTBAND, NO HELL. THOSE ARE THE RULES. I DON'T MAKE 'EM. I JUST ENFORCE 'EM FOR NINE BUCKS AN HOUR.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "NOBODY'S COMPLAINED. NOBODY'S COME BACK TO COMPLAIN, BUT NOBODY'S COMPLAINED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "NOPE. RIDERS MUST BE THIS CLEAN TO RIDE. YOU ARE NOT THIS CLEAN. NOBODY'S EVER BEEN LESS THIS CLEAN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "OH, YOU AGAIN. YOU STILL CAN'T RIDE. YOU STILL STINK. THE RIDE'S FINE. IT'S BETTER THAN FINE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "PLEASE PULL THE LAP BAR DOWN UNTIL YOU FEEL IT CRUSH YOUR SINS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "PUT SOMETHING ON. THE RIDERS HAVE ENOUGH TO DEAL WITH NOW.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "RIDERS WITH HEART CONDITIONS, BACK PROBLEMS OR A CONSCIENCE SHOULD NOT RIDE. ENJOY YOUR DESCENT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "SECURITY TO HELL, PLEASE. SECURITY TO HELL. WE'VE GOT A GUY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "SECURITY TO HELL. CODE BROWN. I REPEAT, CODE BROWN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "SECURITY TO HELL. WE'VE GOT A STREAKER. A SLOW ONE. A BIG ONE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "SECURITY! LINE JUMPER AT THE GATE! THE BIG ONE! WITH THE FACE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "SECURITY! THERE'S A GUY AT THE GATE WHO SHIT HIMSELF! BRING GLOVES! BRING ALL THE GLOVES!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "SECURITY! THERE'S A NAKED GUY AT THE GATE! DON'T LOOK DOWN! DON'T LOOK ANYWHERE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "SIR, THE LAP BAR GOES RIGHT WHERE YOUR... NO. ABSOLUTELY NOT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "SIR, YOU'VE CLEARLY ALREADY BEEN ON A RIDE TODAY. AND IT WON.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "SORRY, PAL. YOU CAME IN THROUGH THE EMERGENCY EXIT. THAT'S NOT A LINE. THAT'S A FIRE CODE VIOLATION.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "STILL NAKED, HUH? STILL CAN'T RIDE. THE NEW DROP'S A LOT LONGER, THOUGH.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "THE CARS DON'T COME BACK NOW. NEITHER DOES THE SMELL. WHAT DID YOU DO?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "THE ON-RIDE PHOTO WILL BE AVAILABLE IN THE GIFT SHOP. YOUR SCREAM IS INCLUDED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "THEY'RE FINE. THEY'RE FINE. NEXT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "WE'RE CALLING IT AN UPGRADE. THE LINE'S NEVER BEEN LONGER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "WELCOME TO THE ELEVATOR TO HELL. KEEP YOUR HANDS, FEET AND SOUL INSIDE THE CAR AT ALL TIMES.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "WHOA. NO. THE CAR'S FABRIC SEATS, MAN. I'M NOT HOSING OUT HELL AGAIN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "YOU CAN'T RIDE NAKED. THE ON-RIDE PHOTO GOES STRAIGHT TO THE GIFT SHOP. THERE ARE CHILDREN AT THE GIFT SHOP.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.hellop",
+  "text": "YOU'RE NOT GETTING ON MY RIDE. YOU'VE GOT THE LOOK OF A GUY WHO STANDS UP DURING THE DROP.",
+  "from": "SPOOKY"
  },
  {
   "voice": "m2.maint",
@@ -14295,6 +17105,366 @@
   "from": "ADVENTURE"
  },
  {
+  "voice": "m2.satan",
+  "text": "A SOUL IS A SOUL. COME, DONALD. AT LEAST YOU DIED DRESSED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "A SOUL IS A SOUL. COME, DONALD. WE WILL BURN THE CAPE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "A SOUL IS A SOUL. COME, DONALD. YOUR PAPERWORK IS WAITING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "AND PUT SOMETHING ON. EVEN I HAVE LIMITS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "AND STOP HITTING MY SON. HE IS SENSITIVE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "AND YOU HAVE SOILED MY LAVA. GET OUT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. FOCUS. EYES ON THE NECK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. FOCUS. THE SOUL IS THE POINT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. FOCUS. YOU HAVE SMELLED WORSE. YOU WORK IN A THEME PARK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. RISE. BECOME WHAT YOUR NAME TAG ONLY PRETENDS. DRAIN HIM DRY. HIS SOUL IS OWED TO ME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. RISE. DRAIN HIM DRY. HE CAME INTO MY HOUSE WEARING NOTHING. I WANT HIS SOUL FOR THAT ALONE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. RISE. DRAIN HIM DRY. I WANT HIS SOUL. I HAVE BEEN DOWN THERE A LONG TIME, AND EVEN I THINK THAT SMELL IS EXCESSIVE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. STOP SNIVELING. I GIVE YOU THE POWER OF THE TRUE NIGHT. DRAIN THAT MAN. BRING ME HIS SOUL. LEAVE THE PANTS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. STOP SNIVELING. I GIVE YOU THE POWER OF THE TRUE NIGHT. DRAIN THAT NAKED MAN. BRING ME HIS SOUL. JUST THE SOUL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. STOP SNIVELING. I GIVE YOU THE POWER OF THE TRUE NIGHT. FANGS. WINGS. HUNGER. NOW DRAIN THAT MAN. BRING ME HIS SOUL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. TAKE MY GIFT. FEED ON HIM. AIM FOR THE NECK. THE NECK, DONALD. HIS SOUL COMES TO ME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. TAKE MY GIFT. FEED ON HIM. YES, EVEN HIM. YES, EVEN SMELLING LIKE THAT. HIS SOUL COMES TO ME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. YOU HAVE PLAYED AT VAMPIRE LONG ENOUGH. TAKE MY GIFT. FEED. AND THE SOUL OF THE MAN CALLED MEATHEAD COMES TO ME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "ENJOY IT, DONALD. ONE DAY YOUR SOUL WILL BE MINE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "ENJOY IT, DONALD. ONE DAY YOUR SOUL WILL BE MINE. IT WILL ARRIVE BETTER DRESSED THAN HIS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "ENJOY IT, DONALD. ONE DAY YOUR SOUL WILL BE MINE. THAT ONE, I WILL HAVE CLEANED FIRST.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "EVEN HELL HAS STANDARDS. GO WASH.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "FLY, LITTLE BAT. ONE DAY YOUR SOUL WILL BE MINE. HOLD YOUR BREATH UNTIL THEN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "FLY, LITTLE BAT. ONE DAY YOUR SOUL WILL BE MINE. SOONER THAN YOU THINK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "FLY, LITTLE BAT. ONE DAY YOUR SOUL WILL BE MINE. THE NAKED ONE FIRST.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "HIS SOUL, DONALD. I WANT NOTHING ELSE OF HIS. NOTHING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "HIS SOUL, DONALD. NOT HIS BODY. THE SOUL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "HIS SOUL, DONALD. THE SOUL IS CLEAN. THE REST IS NOT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "I HAVE SEEN EVERY SIN THERE IS. COVER THAT ONE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "MEATHEAD. ONE OF THESE DAYS YOUR SOUL WILL BE MINE FOREVER. THAT DAY IS NOT TODAY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "NOW GET OUT OF MY HOUSE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "POOR DONALD. ...I WILL BE SEEING YOU, MEATHEAD. ALL OF YOU, APPARENTLY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "POOR DONALD. ...I WILL BE SEEING YOU, MEATHEAD. FROM A DISTANCE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "POOR DONALD. HE SHOULD HAVE TAKEN THE SOUL. ...I WILL BE SEEING YOU, MEATHEAD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "SHOW OFF ALL YOU LIKE, DONALD. ONE DAY YOUR SOUL WILL BE MINE. AND HIS. HOSED DOWN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "SHOW OFF ALL YOU LIKE, DONALD. ONE DAY YOUR SOUL WILL BE MINE. IT IS IN THE PAPERWORK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "SHOW OFF ALL YOU LIKE, DONALD. ONE DAY YOUR SOUL WILL BE MINE. TRY NOT TO LOOK DOWN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "THE SOUL, DONALD. DRAIN HIM. I KNOW. I CAN SMELL IT TOO. DRAIN HIM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "THE SOUL, DONALD. DRAIN HIM. STOP LOOKING AWAY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "THE SOUL, DONALD. DRAIN HIM. STOP POSING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "TOLD YOU, DONALD. YOURS WILL DO FOR NOW. ...AND YOU, MEATHEAD: BATHE BEFORE YOU COME TO ME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "TOLD YOU, DONALD. YOURS WILL DO FOR NOW. ...AND YOU, MEATHEAD: WE HAVE ROBES IN HELL. USE THEM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "TOLD YOU, DONALD. YOURS WILL DO FOR NOW. ...ANOTHER DAY, MEATHEAD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "YOU ARE SHOWING OFF, DONALD. AND HOLDING YOUR NOSE. PICK ONE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "YOU ARE SHOWING OFF, DONALD. HE IS ALSO SHOWING OFF. IT IS UNBEARABLE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "YOU ARE SHOWING OFF, DONALD. I DID NOT GIVE YOU WINGS TO SHOW OFF.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "CLEANUP ON EVERY AISLE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "COVER IT WITH A TOTE BAG!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "HAVE YOU HEARD ABOUT OUR MEMBERSHIP PROGRAM?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "NO SHIRT, NO SHOES, NO... ANYTHING, NO SERVICE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "SIR, YOU CAN'T BE BACK HERE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "SIR, YOU CAN'T SHIT BACK HERE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "SIR, YOU CANNOT BE NAKED IN THE GIFT SHOP!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "THE COUNT SAYS YOU DON'T LEAVE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "WE DO NOT SELL PANTS! WE SHOULD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "WELCOME TO THE GIFT SHOP OF THE DAMNED! DIE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "WELCOME TO THE GIFT SHOP OF THE DAMNED! OH GOD, THE SMELL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerk",
+  "text": "WELCOME TO THE GIFT SHOP OF THE DAMNED! WE HAVE ROBES!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "CLEANUP ON EVERY AISLE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "COVER IT WITH A TOTE BAG!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "HAVE YOU HEARD ABOUT OUR MEMBERSHIP PROGRAM?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "NO SHIRT, NO SHOES, NO... ANYTHING, NO SERVICE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "SIR, YOU CAN'T BE BACK HERE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "SIR, YOU CAN'T SHIT BACK HERE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "SIR, YOU CANNOT BE NAKED IN THE GIFT SHOP!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "THE COUNT SAYS YOU DON'T LEAVE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "WE DO NOT SELL PANTS! WE SHOULD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "WELCOME TO THE GIFT SHOP OF THE DAMNED! DIE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "WELCOME TO THE GIFT SHOP OF THE DAMNED! OH GOD, THE SMELL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.clerkf",
+  "text": "WELCOME TO THE GIFT SHOP OF THE DAMNED! WE HAVE ROBES!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.gary",
+  "text": "OH NO. OH NO NO NO. THAT IS NOT OURS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.spooky.gary",
+  "text": "THAT'S NOT IN THE SCRIPT! THAT'S NOT IN THE SCRIPT!",
+  "from": "SPOOKY"
+ },
+ {
   "voice": "m2.ticket",
   "text": "BACK OF THE LINE, SIR.",
   "from": "INTRO"
@@ -14451,8 +17621,23 @@
  },
  {
   "voice": "meathead",
+  "text": "...THAT WAS NOT THE GIFT SHOP.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "...THAT WASN'T A FART.",
   "from": "GUT"
+ },
+ {
+  "voice": "meathead",
+  "text": "...THAT WASN'T IN THE BROCHURE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "...THAT'S HIS DAD.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -14523,6 +17708,11 @@
   "voice": "meathead",
   "text": "A BARREL TO THE SHINS! WHO LEAVES A BARREL IN THE OCEAN?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BAT CAROUSEL. THE BATS GO ROUND. THE KIDS GO ROUND. NOBODY GOES TO HELL.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -14603,6 +17793,11 @@
   "voice": "meathead",
   "text": "A DRONE HIT ME! AM I ON CAMERA?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A DUNGEON. FINALLY. SOMETHING HONEST.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -14701,6 +17896,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A GHOST TRAIN FOR TODDLERS. THE GHOST HAS A PACIFIER. THE GHOST IS A BABY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "A GOLD GUN! HOW MUCH PRODUCT DID THAT COST?!",
   "from": "HAZARD_HURT"
  },
@@ -14733,6 +17933,11 @@
   "voice": "meathead",
   "text": "A HARD HAT! TO THE FACE! THE IRONY!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A HAUNTED HOUSE IS SUPPOSED TO BE FAKE! THAT IS THE WHOLE DEAL!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -14841,6 +18046,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A PHOTO BOOTH. 'HAVE YOUR PICTURE TAKEN WITH SATAN.' DID THAT. HE WAS TALLER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "A PIANO! I HEARD IT COMING! IN C MINOR!",
   "from": "HAZARD_HURT"
  },
@@ -14853,6 +18063,11 @@
   "voice": "meathead",
   "text": "A PIPE WRENCH! TO THE DOME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PLASTIC FEMUR TO THE FACE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -14911,6 +18126,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A SKELETON PONY. TWENTY-FIVE CENTS. IT'S A DEAD HORSE AND THEY'RE STILL BEATING IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "A SNIPER RIFLE? FOR PUSSIES. A REAL MAN GETS UP CLOSE. ...WELL. NOT TODAY. NOBODY GETS UP CLOSE TODAY.",
   "from": "m1/game/stages/dale/town.ts:656"
  },
@@ -14918,6 +18138,11 @@
   "voice": "meathead",
   "text": "A SNIPER RIFLE? SHOOTING A GUY FROM A MILE AWAY? THAT'S FOR PUSSIES. A REAL MAN SHOOTS HIM FROM ACROSS THE STREET.",
   "from": "m1/game/stages/dale/town.ts:656"
+ },
+ {
+  "voice": "meathead",
+  "text": "A SNOW GLOBE?! IN HELL?!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -14931,6 +18156,21 @@
  },
  {
   "voice": "meathead",
+  "text": "A SOUVENIR PITCHFORK! RIGHT IN THE GUT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A SPIKED CEILING. IN A KIDS PARK. WHO SIGNED OFF ON THIS?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A SPOOKY VICTORIAN TOWN. WITH AN ATM IN THE CRYPT. VERY AUTHENTIC.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "A STAPLER TO THE HEAD! I'M FILING A COMPLAINT! WITH WHO?!",
   "from": "HAZARD_HURT"
  },
@@ -14938,6 +18178,11 @@
   "voice": "meathead",
   "text": "A TANK WON'T CRUSH THESE QUADS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TEACUP RIDE IN A CAPE IS STILL A TEACUP RIDE.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -14976,8 +18221,18 @@
  },
  {
   "voice": "meathead",
+  "text": "A TOY TRAIN! A TOY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "A TRAILER! A WHOLE TRAILER! IT'S MOBILE, ALL RIGHT!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TRAIN NOBODY WINDS UP. THAT IS THE LEAST SCARY HAUNTING I EVER HEARD OF.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -15111,8 +18366,18 @@
  },
  {
   "voice": "meathead",
+  "text": "AN AUDIENCE WITH DRACULA. I'VE GOT AN AUDIENCE FOR YOU. IT'S MY FIST.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.",
   "from": "m1/game/stages/dale/town.ts:272"
+ },
+ {
+  "voice": "meathead",
+  "text": "AN ELEVATOR FELL ON ME!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -15216,6 +18481,16 @@
  },
  {
   "voice": "meathead",
+  "text": "ASHES TO ASHES. DORK TO DUST.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ASKED FOR SECONDS. RESPECT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "AT LEAST I STILL GOT MY BOOTS.",
   "from": "M2_GUT_LINES"
  },
@@ -15286,6 +18561,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BAD DOG! BAD FLAMING DOG!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "BAD KITTY! BAD! KITTY!",
   "from": "ADVENTURE"
  },
@@ -15293,6 +18573,11 @@
   "voice": "meathead",
   "text": "BAD LITTLE BADGER THING!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BAD LUCK! BAD KITTY! BAD EVERYTHING!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -15366,6 +18651,21 @@
  },
  {
   "voice": "meathead",
+  "text": "BAT! BAT IN MY HAIR!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BAT! IN MY HAIR!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BATS! ON FIRE! IN MY HAIR!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "BATTER UP! BATTER DOWN!",
   "from": "M2_KILL_LINES"
  },
@@ -15401,6 +18701,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BEGGING DOESN'T WORK ON ME. NOTHING WORKS ON ME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "BEST RIDE IN THE PARK.",
   "from": "ADVENTURE"
  },
@@ -15421,8 +18726,18 @@
  },
  {
   "voice": "meathead",
+  "text": "BIG FLATHEADED SON OF A BITCH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "BIG GREEN TARGET. BIG GUNS. DUH.",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BIG GUY. HE'S EATING A GHOST.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -15453,6 +18768,11 @@
   "voice": "meathead",
   "text": "BLOCKBUSTER, BITCH!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BLOOD MACHINE GUN! THAT'S NOT A THING!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -15496,8 +18816,23 @@
  },
  {
   "voice": "meathead",
+  "text": "BONE SUIT GUY CAN SWING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "BONK! GO TO HELL!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOO YOURSELF!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOOK TO THE FACE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -15568,6 +18903,11 @@
   "voice": "meathead",
   "text": "BRING BACK MY LOWER HALF!",
   "from": "m1/game/player/animalDeaths.ts:123"
+ },
+ {
+  "voice": "meathead",
+  "text": "BRING IT, BAT BOY.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -15761,6 +19101,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CANNONBAAAALL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "CANNONBALL!",
   "from": "ADVENTURE"
  },
@@ -15941,6 +19286,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CHOO CHOO MY ASS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "CHUNKS AWAY!",
   "from": "M2_KILL_LINES"
  },
@@ -16013,6 +19363,11 @@
   "voice": "meathead",
   "text": "COFFEE RUN'S CANCELED!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "COFFINS THAT SPIN. AT TWO MILES AN HOUR. TERRIFYING. I'M SHAKING.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -16101,6 +19456,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CRAZY BRIDE! CRAZY BRIDE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "CREATINE CRASH",
   "from": "VULGARITIES"
  },
@@ -16161,8 +19521,18 @@
  },
  {
   "voice": "meathead",
+  "text": "CUCKOO! CUCKOO! OW!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "CULTURE, BITCH!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CUSTOMER SERVICE IS BRUTAL HERE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -16246,6 +19616,21 @@
  },
  {
   "voice": "meathead",
+  "text": "DEVIL HORN HEADBANDS. FOR WHEN YOU WANT TO LOOK STUPID IN HELL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "DID HE JUST CALL HIS DAD?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "DID THAT GUY JUST TURN INTO SOUP?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "DID YOU JUST DISRUPT ME?!",
   "from": "HAZARD_HURT"
  },
@@ -16263,6 +19648,16 @@
   "voice": "meathead",
   "text": "DIET STARTS NEVER!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DING DONG! THAT WAS MY SKULL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "DINNER IS SERVED! ON ME!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -16396,6 +19791,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DOOM. SIX FEET OF DOOM. THE SIGN IS TALLER THAN THE RIDE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "DOOR TO THE FACE! AT LEAST LET ME IN FIRST!",
   "from": "HAZARD_HURT"
  },
@@ -16418,6 +19818,26 @@
   "voice": "meathead",
   "text": "DOWN THE DRAIN, BALLOON BOY.",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DOWN, BOY! DOWN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "DOWNSTAIRS. GUESS WE SKIPPED THE GIFT SHOP.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "DRACULA'S OTHER CASTLE. THAT'S A LOT OF STAIRS FOR A GUY WHO CAN TURN INTO A BAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "DRACULA'S OTHER CASTLE. WHERE'S HIS FIRST ONE? WHO GOT THAT ONE IN THE DIVORCE?",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -16558,6 +19978,16 @@
   "voice": "meathead",
   "text": "ELEVATOR TO HELL",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ELEVATOR TO HELL. NOW THAT IS A RIDE. I AM RIDING THAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ELEVEN YEARS OF READING. I CAN BEAT THAT. I WON'T, BUT I CAN.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -16746,6 +20176,16 @@
  },
  {
   "voice": "meathead",
+  "text": "FINALLY. A RIDE THAT DOESN'T SUCK. I'M IN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "FINE. I KNOW A SHORTCUT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "FIRE FROM THE GROUND! WHO BUILT THIS PLACE?!",
   "from": "HAZARD_HURT"
  },
@@ -16756,8 +20196,18 @@
  },
  {
   "voice": "meathead",
+  "text": "FIRE UP THE BUTT! FIRE UP THE BUTT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "FIRE UP THE GRILL",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIREBALL! TO THE FACE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -16851,6 +20301,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FLY THAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "FLY, YOU PIECE OF SHIT!",
   "from": "M2_KILL_LINES"
  },
@@ -16873,6 +20328,11 @@
   "voice": "meathead",
   "text": "FORTY ONE. THE ELEVATOR HATES ME. EVERYTHING IN THIS CITY HATES ME.",
   "from": "m1/game/stages/barry/runtime.ts:341"
+ },
+ {
+  "voice": "meathead",
+  "text": "FORTY PEOPLE DIED AND THE FOOD STILL GOT ONE STAR.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17026,6 +20486,16 @@
  },
  {
   "voice": "meathead",
+  "text": "GAS LAMPS, GRAVESTONES, FREE WI-FI. JACK THE RIPPER WOULD'VE LOVED THE WI-FI.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "GEARS! WHO PUTS THE GEARS ON THE OUTSIDE?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GEOLOGY SAYS FUCK YOU",
   "from": "VULGARITIES"
  },
@@ -17036,8 +20506,18 @@
  },
  {
   "voice": "meathead",
+  "text": "GERONIMOOOO!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GET A JOB! OH. TOO LATE.",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET BACK HERE, COUNT DORKULA.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17048,6 +20528,11 @@
   "voice": "meathead",
   "text": "GET BACK IN YOUR DUMPSTER!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET BACK IN YOUR HOUSE, BIRD!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17081,8 +20566,33 @@
  },
  {
   "voice": "meathead",
+  "text": "GET DOWN HERE, YOU FLYING CAT LADY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GET FUCKED!",
   "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET IT OFF! GET IT OFF!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OFF ME, HUNCHY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OFF ME, QUASIMODO!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OFF ME, YOU DEVIL GREMLIN!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17121,6 +20631,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET OFF MY NECK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GET OFF MY NIPPLE!",
   "from": "ADVENTURE"
  },
@@ -17131,6 +20646,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET OFF! I'M NOT A FRUIT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GET OUT FROM BEHIND THAT DOOR AND FIGHT!",
   "from": "HAZARD_HURT"
  },
@@ -17138,6 +20658,11 @@
   "voice": "meathead",
   "text": "GET OUT GET OUT GET OUT!",
   "from": "m1/game/stages/tommy/sewer.ts:100"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OUT OF MY FACE, YOU FLAMING RAT!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17176,6 +20701,16 @@
  },
  {
   "voice": "meathead",
+  "text": "GET THAT FOAM HEAD OUT OF MY FACE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET THAT FORK OUT OF MY ASS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GET THAT FORKLIFT AWAY FROM ME!",
   "from": "ADVENTURE"
  },
@@ -17211,6 +20746,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET UP. I WANT TO HIT YOU STANDING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GET UP. THESE PANTS CAN'T TAKE ANOTHER ONE.",
   "from": "M2_GUT_LINES"
  },
@@ -17228,6 +20768,11 @@
   "voice": "meathead",
   "text": "GET YOUR BIG STUPID BEAK OUTTA MY FACE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR BROOM OUT OF MY FACE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17311,8 +20856,28 @@
  },
  {
   "voice": "meathead",
+  "text": "GET YOUR TEETH OUT OF MY NECK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GET YOUR TINFOIL SUIT OFF ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR WINGS OUT OF MY MOUTH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR WRAPPED HANDS OFF ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "GIDDY UP, BONES. ACTUALLY NO. YOU STAY.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17327,7 +20892,7 @@
  {
   "voice": "meathead",
   "text": "GIVE THOSE BACK, YOU FEATHERED BASTARD!",
-  "from": "m1/game/player/deathAnim.ts:356"
+  "from": "m1/game/player/deathAnim.ts:376"
  },
  {
   "voice": "meathead",
@@ -17338,6 +20903,11 @@
   "voice": "meathead",
   "text": "GLASS CLEANER IN THE EYES! STREAK FREE! BUT IT BURNS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GLASS! IN MY FACE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17396,6 +20966,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GOING UP.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GOLD STAR. REALLY. SO PROUD. TOOK LONG ENOUGH.",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -17448,6 +21023,11 @@
   "voice": "meathead",
   "text": "GOT HIT BY A ROAD SIGN! THE SIGN SAID OUCH!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOT IT! DOOR! DOOR!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17576,6 +21156,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GUY IN A BAT SUIT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GYM CLOSED... FOREVER",
   "from": "VULGARITIES"
  },
@@ -17641,6 +21226,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HARDCOVER! HARDCOVER!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HAVE A GOOD SLEEP",
   "from": "VULGARITIES"
  },
@@ -17671,6 +21261,16 @@
  },
  {
   "voice": "meathead",
+  "text": "HE BIT ME! HE BIT ME IN CHARACTER!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE BIT ME! THE IGOR BIT ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE BODIED ME WITH HIS SHIELD!",
   "from": "HAZARD_HURT"
  },
@@ -17678,6 +21278,11 @@
   "voice": "meathead",
   "text": "HE BODY CHECKED ME WITH A BRIEFCASE! ON HIS WAY TO WORK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE BUMPED ME! HE WEIGHS A TON!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17713,6 +21318,21 @@
   "voice": "meathead",
   "text": "HE FEELS LIKE A WET BAG OF HAM!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE FLEW INTO ME! ON A STRING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE FORKED ME! I'VE BEEN FORKED!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE FORKED ME! LIKE A HAM!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17766,6 +21386,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE HIT ME WITH A COFFIN LID!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE HIT ME WITH A FIREBALL ON A STRING!",
   "from": "HAZARD_HURT"
  },
@@ -17773,6 +21398,11 @@
   "voice": "meathead",
   "text": "HE HIT ME WITH A HIKING STICK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HIT ME WITH BOTH FISTS! WHO DOES THAT?!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17808,6 +21438,11 @@
   "voice": "meathead",
   "text": "HE KNOCKED ME OUT OF THE AIR! RUDE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE LANDED ON ME! WITH HIS GUT!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17881,6 +21516,21 @@
  },
  {
   "voice": "meathead",
+  "text": "HE RANG MY BELL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE REALLY DID NOT LIKE THAT KEYCHAIN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SHOOK MY FILLINGS LOOSE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE SHOT ME WITH HIS GOLD PLATED PISTOL! TACKY!",
   "from": "HAZARD_HURT"
  },
@@ -17906,6 +21556,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE SLEPT ON A DEAD LADY ALL WINTER AND COMPLAINED ABOUT THE MATTRESS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE SLID INTO MY ANKLES!",
   "from": "HAZARD_HURT"
  },
@@ -17913,6 +21568,11 @@
   "voice": "meathead",
   "text": "HE SLIDES, I SLIDE! SAME MOVE, SAME TIME! THROUGH THE SLAB!",
   "from": "m1/game/stages/victor/doorman.ts:540"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SPIT BLOOD AT ME! SOMEBODY ELSE'S BLOOD!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -17938,6 +21598,16 @@
   "voice": "meathead",
   "text": "HE SWINGS LIKE HE'S IN THE MAJORS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE TATTLED. THE DEVIL'S KID TATTLED ON ME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW A BONE AT ME!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18106,6 +21776,16 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S STRONGER THAN HE SMELLS! AND HE SMELLS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S SUCKING ME DRY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S TOO SQUISHY TO TACKLE. TIME FOR SOMETHING THAT GOES BOOM.",
   "from": "FINALE_LINES"
  },
@@ -18118,6 +21798,11 @@
   "voice": "meathead",
   "text": "HE'S VIBING ON ME! STOP VIBING ON ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S WRAPPED IN TWO-PLY!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18148,6 +21833,11 @@
   "voice": "meathead",
   "text": "HEADS UP! OH, NO HEAD.",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEADS UP! THAT WAS MY HEAD!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18206,8 +21896,18 @@
  },
  {
   "voice": "meathead",
+  "text": "HEY, TUBBY. PUT DOWN THE GHOST.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HEY! PUT ME DOWN! I'M NOT DONE!",
   "from": "m1/game/stages/oscar/swirly.ts:103"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEY. NOT TODAY, REMEMBER? YOU SAID.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18386,6 +22086,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOT FOOT! HOT FOOT! IT'S REAL LAVA!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HOT LIZARD, COLD CORPSE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -18398,6 +22103,11 @@
   "voice": "meathead",
   "text": "HOT STEAM IN MY FACE! STOP SCALDING THE MERCHANDISE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT. HOT. HOT HOT HOT.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18451,6 +22161,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HUH. IT WENT ALL THE WAY DOWN. THE REAL WAY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HUH. WHERE'D THAT HIPSTER LAND? HE WAS RIGHT BEHIND ME.",
   "from": "m1/game/stages/ernie/runtime.ts:26"
  },
@@ -18473,6 +22188,11 @@
   "voice": "meathead",
   "text": "HUMAN SHOT PUT, BABY!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HUNCHBACK GOT ME!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18532,7 +22252,7 @@
  {
   "voice": "meathead",
   "text": "I BENCH FOUR HUNDRED AND I'M LOSING TO A BREEZE?!",
-  "from": "m1/game/player/deathAnim.ts:405"
+  "from": "m1/game/player/deathAnim.ts:425"
  },
  {
   "voice": "meathead",
@@ -18543,6 +22263,11 @@
   "voice": "meathead",
   "text": "I CAME UP TO ITS KNEE!",
   "from": "TOO_BIG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAN FEEL IT IN MY KNEES. AND MY LUNCH.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18563,6 +22288,11 @@
   "voice": "meathead",
   "text": "I CAN SEE YOU THROUGH THE SCREEN, CHAMP.",
   "from": "m1/game/stages/victor/doorman.ts:540"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAN SEE YOUR SNEAKERS, BUDDY!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18592,7 +22322,22 @@
  {
   "voice": "meathead",
   "text": "I CAN'T SEE MY GAINS!",
-  "from": "m1/game/player/deathAnim.ts:356"
+  "from": "m1/game/player/deathAnim.ts:376"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAUGHT THE BOUQUET! WITH MY FACE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CHARGED A FORK! LIKE A SALAD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CHARGED INTO THE HORNS! THE HORNS!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18628,6 +22373,11 @@
   "voice": "meathead",
   "text": "I DON'T DO MATH. MATH DOES ME. ...WAIT.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T EVEN KNOW YOU, LADY!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18708,6 +22458,11 @@
   "voice": "meathead",
   "text": "I DON'T WEAR SUITS. SHIRTS ARE ALREADY TOO MUCH.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DONE READ ENOUGH!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -18846,6 +22601,16 @@
  },
  {
   "voice": "meathead",
+  "text": "I NEVER READ THOSE. I JUST CLICK AGREE. LIKE A MAN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I OBJECT! I OBJECT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I ONLY NEED MY GUNS.",
   "from": "m1/components/IntroCutscene.tsx:45"
  },
@@ -18931,6 +22696,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I SURVIVED HELL. YEAH YOU DID. AND IT'S A SMALL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I THINK I CAME FROM OVER THERE. OR THERE.",
   "from": "m1/game/stages/tommy/escape.ts:227"
  },
@@ -18947,7 +22717,7 @@
  {
   "voice": "meathead",
   "text": "I WEIGH TWO-SIXTY! WHAT KIND OF WIND DOES THIS?!",
-  "from": "m1/game/player/deathAnim.ts:405"
+  "from": "m1/game/player/deathAnim.ts:425"
  },
  {
   "voice": "meathead",
@@ -19046,6 +22816,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'LL TAKE THE STAIRS. AND THEN I'LL TAKE YOUR RIDE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I'LL TIE YOUR WIND IN A KNOT!",
   "from": "HURT"
  },
@@ -19086,6 +22861,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M COOKING! I'M COOKING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M COVERED IN RANCID PUKE, FUCK!",
   "from": "HURT"
  },
@@ -19098,6 +22878,11 @@
   "voice": "meathead",
   "text": "I'M GETTING CHARBROILED OVER HERE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M GETTING SHORTER!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19126,6 +22911,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M GONNA PRETEND THAT DIDN'T HAPPEN. THAT DIDN'T HAPPEN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M GONNA PUNCH THIS WHOLE BLOCK! THE WHOLE BLOCK!",
   "from": "m1/game/stages/tommy/escape.ts:227"
  },
@@ -19151,8 +22941,23 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M NEXT?! NEXT FOR WHAT?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT A BELL! I'M NOT A BELL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M NOT A CUSTOMER! I'M NOT A CUSTOMER!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT A POT ROAST!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19181,8 +22986,18 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M NOT DEAD YET, YOU VULTURE WANNABE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M NOT DONE TILL YOU'RE DONE!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT DONE YET, CHEF!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19216,8 +23031,18 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M NOT SCARED! I'M ANNOYED! THERE'S A DIFFERENCE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M NOT SITTING DOWN. YOU KNOW WHY. NO.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT STOPPING NOW.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19276,6 +23101,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M SEARED! I'M A STEAK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M SKIDDING LIKE A BALD TIRE, SON OF A BITCH!",
   "from": "HURT"
  },
@@ -19316,8 +23146,18 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M UNDER THE BELLY! I'M UNDER THE BELLY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M WELL DONE, NOW YOU'RE DEAD!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'VE BEEN WAITING MY WHOLE LIFE FOR THIS ONE. OPEN THE GATE.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19406,8 +23246,18 @@
  },
  {
   "voice": "meathead",
+  "text": "IF THAT STUFF TOUCHES ME I'M GONNA BE SO PISSED!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IF THIS ONE GOES, THE PANTS GO WITH IT.",
   "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "IF YOU PAINT ME, GET MY GOOD SIDE. IT IS ALL SIDES.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19486,8 +23336,18 @@
  },
  {
   "voice": "meathead",
+  "text": "IS THE WHOLE TOWER SUPPOSED TO DO THAT?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IS THIS TOMMY'S LAIR?",
   "from": "m1/game/stages/tommy/escape.ts:263"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT BIT ME AND IT'S ON FIRE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19511,6 +23371,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT BIT MY ANKLE! I NEED A SHOT NOW!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT BIT MY ASS! FLORIDA BIT MY ASS!",
   "from": "HAZARD_HURT"
  },
@@ -19526,8 +23391,23 @@
  },
  {
   "voice": "meathead",
+  "text": "IT BIT MY NECK! DO I GET POWERS NOW?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT BURNS! GET THE FUCK OUT!",
   "from": "m1/game/stages/tommy/sewer.ts:100"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT BURNS! IT BURNS INSIDE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT BURNS! WHY DOES IT BURN?!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19541,8 +23421,18 @@
  },
  {
   "voice": "meathead",
+  "text": "IT CROSSED MY PATH AND THEN IT CROSSED MY FACE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT HEADBUTTED ME! A PUPPET HEADBUTTED ME!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT HEADBUTTED MY KIDNEYS!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19561,6 +23451,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT PECKED ME! THE CLOCK PECKED ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT RAMMED ME! IN THE GROIN! ALL THREE!",
   "from": "ADVENTURE"
  },
@@ -19568,6 +23463,11 @@
   "voice": "meathead",
   "text": "IT RATTLED! I SHOULD HAVE LISTENED TO THE RATTLE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT SET MY HEAD ON FIRE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19583,6 +23483,11 @@
   "voice": "meathead",
   "text": "IT STEPPED ON ME! IT STEPPED ON ALL OF ME!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT THREW FIRE AT ME! LITTLE PRICK!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19626,6 +23531,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S CHEWING ME! THE CLOCK IS CHEWING ME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S CHEWING ON MY CALVES! THOSE ARE EXPENSIVE!",
   "from": "HAZARD_HURT"
  },
@@ -19641,8 +23551,18 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S FINE. IT'S A CLOCK TOWER. IT'S GOT PLENTY OF TIME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S FULL OF GUYS!",
   "from": "FULL_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S GETTING REAL HOT UNDER MY-",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19656,6 +23576,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S GREEN! IT BURNS! WHY IS IT GREEN?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S HEADED FOR THE SHORTS. OH, IT'S GONNA REGRET THAT.",
   "from": "m1/game/player/animalDeaths.ts:123"
  },
@@ -19666,8 +23591,23 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S IN MY MOUTH! IT'S IN MY MOUTH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S IN MY MOUTH! WHY IS IT IN MY MOUTH?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S LEANING. EVERYTHING'S LEANING. I'M LEANING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S LIKE A CHIHUAHUA FROM HELL!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19743,6 +23683,16 @@
   "voice": "meathead",
   "text": "IT'S RAINING WOMEN! IN BITS!",
   "from": "FOR_A_WOMAN"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S SWAYING. I LOVE IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S SWEATY UNDER HERE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19851,6 +23801,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LAST ONE UP TOP. THEN THEY GET THEIR DROP.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "LAST ROCKET! THE WHOLE ROOM'S GREASED!",
   "from": "FINALE_LINES"
  },
@@ -19936,6 +23891,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LEVER! YES! GO GO GO!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "LICENSE AND REGISTRATION? DEAD!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -19948,6 +23908,11 @@
   "voice": "meathead",
   "text": "LIGHTS OUT? GOOD. MY ABS GLOW IN THE DARK.",
   "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LIL LUCIFER HITS LIKE A TRUCK!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19981,6 +23946,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LOAD-BEARING. DO NOT RAM. ...CHALLENGE ACCEPTED.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "LOOK WHO READ THE MANUAL. ALL FOUR WORDS OF IT.",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -19998,6 +23968,11 @@
   "voice": "meathead",
   "text": "LOW ENOUGH NOW?!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LUMPY. YEAH. THAT'LL HAPPEN.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -20111,6 +24086,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MINI DROP OF DOOM. SIX FEET. I'VE FALLEN FURTHER OFF A BARSTOOL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "MOIST MOTHERFUCKER",
   "from": "VULGARITIES"
  },
@@ -20141,6 +24121,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MOST OF SAL. GREAT. LOVE THAT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "MOTHERFUCKER",
   "from": "VULGARITIES"
  },
@@ -20161,13 +24146,33 @@
  },
  {
   "voice": "meathead",
+  "text": "MUMMY! MUMMY, NO!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "MUSCLES NEED A BREATHER!",
   "from": "BULK_FAIL_LINES"
  },
  {
   "voice": "meathead",
+  "text": "MY ANKLES!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "MY ARMS DON'T GO AROUND THAT!",
   "from": "TOO_BIG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY ASS IS ON FIRE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY ASS IS ON FIRE. AGAIN.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -20201,13 +24206,28 @@
  },
  {
   "voice": "meathead",
+  "text": "MY EARS ARE RINGING! MY WHOLE BODY IS RINGING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "MY EVERYTHING!",
   "from": "m1/game/stages/dale/convoy.ts:403"
  },
  {
   "voice": "meathead",
+  "text": "MY EYEBROWS! SHE MELTED MY EYEBROWS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY EYEBROWS! WHERE ARE MY EYEBROWS?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "MY EYES! MY BEAUTIFUL EYES!",
-  "from": "m1/game/player/deathAnim.ts:356"
+  "from": "m1/game/player/deathAnim.ts:376"
  },
  {
   "voice": "meathead",
@@ -20218,6 +24238,11 @@
   "voice": "meathead",
   "text": "MY FACE! MY BEAUTIFUL FACE!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY FEET! MY BEAUTIFUL FEET!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -20266,6 +24291,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY GUTS ARE ON THE OUTSIDE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "MY HAIR! ALL OF IT! EVERYWHERE!",
   "from": "ADVENTURE"
  },
@@ -20298,6 +24328,11 @@
   "voice": "meathead",
   "text": "MY KNEES AREN'T MEANT FOR THIS VIBRATION!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY KNEES! THE FLOOR HIT MY KNEES!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -20371,6 +24406,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY SHIRT! IT ATE MY SHIRT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "MY SHOULDER JUST BOUNCES OFF THIS GUY. WHAT ELSE I GOT?",
   "from": "FINALE_LINES"
  },
@@ -20433,6 +24473,11 @@
   "voice": "meathead",
   "text": "MY TOES ARE MELTING!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY TOES! MY TOES ARE COOKING!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -20571,6 +24616,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NICE ACCENT. WHERE ARE YOU FROM, TRANSYLVANIA, NEW JERSEY?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "NICE BAT! NOW IT'S MINE! KIDDING!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -20583,6 +24633,11 @@
   "voice": "meathead",
   "text": "NICE BIKE. I'M TAKING IT. DON'T SNIFF THE SEAT AFTER.",
   "from": "m1/game/stages/tommy/bike.ts:183"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE CAPE. IS IT FLAME RETARDANT?",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -20628,6 +24683,11 @@
   "voice": "meathead",
   "text": "NICE JETPACK. DUMBASS.",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE ONESIE, BONES!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -20766,6 +24826,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO RETURNS, HUH?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "NO RINGS, NO RULES!",
   "from": "RANGE_KILL_LINES"
  },
@@ -20841,6 +24906,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY RUNS FROM ME. ESPECIALLY NOT IN A CAPE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY SAW THAT. KEEP MOVING.",
   "from": "GUT"
  },
@@ -20853,6 +24923,11 @@
   "voice": "meathead",
   "text": "NOBODY TALKS ABOUT MY MOM.",
   "from": "m1/components/RadioCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY UP THERE IS READING THE REVIEWS.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -20906,6 +24981,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT ON THE HELMET, IDIOT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT SO TOUGH WITHOUT THE CLAWS, HUH?",
   "from": "ENEMY_KILL_LINES"
  },
@@ -20913,6 +24993,11 @@
   "voice": "meathead",
   "text": "NOT THE ABS! NOT THE ABS!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT THE BIG FORK!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -21046,6 +25131,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OH GOD. THE SHEET GUY. HE MELTED. HE MELTED INTO HIS SHEET.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "OH HELL YEAH!",
   "from": "m1/App.tsx:551"
  },
@@ -21086,8 +25176,18 @@
  },
  {
   "voice": "meathead",
+  "text": "OH, COME ON-",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "OH, COME ON.",
   "from": "m1/game/stages/hector/boat.ts:61"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH, COME ON. A SPIKE ROOM? REALLY?",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -21118,6 +25218,16 @@
   "voice": "meathead",
   "text": "OH, YOU WANNA GO? LET'S GO, GECKOS.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH, YOU'RE RUNNING? GOOD. I LIKE A CHASE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH. HI.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -21191,6 +25301,16 @@
  },
  {
   "voice": "meathead",
+  "text": "OKAY. THAT'S A LOT OF DEVIL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "OKAY. THAT'S REAL LAVA. THAT IS NOT A FOG MACHINE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "OLD SCHOOL, BITCH!",
   "from": "M2_KILL_LINES"
  },
@@ -21198,6 +25318,16 @@
   "voice": "meathead",
   "text": "ONE ADULT. A BIG ONE.",
   "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE CASTLE BETWEEN ME AND THE ELEVATOR TO HELL. I'VE GONE THROUGH WORSE FOR LESS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE FOR HELL, PLEASE.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -21236,6 +25366,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ONE. FRONT SEAT. LET ME ON.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "ONLY YOU CAN PREVENT ME!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -21248,6 +25383,16 @@
   "voice": "meathead",
   "text": "OOH. SHINY LETTERS. ...ONE OF 'EM'S AN L, I THINK.",
   "from": "m1/game/stages/tommy/escape.ts:221"
+ },
+ {
+  "voice": "meathead",
+  "text": "OOOH, SPOOKY. A CHOO-CHOO. SOMEBODY CALL A PRIEST.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "OOPS.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -21346,6 +25491,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! A BRICK! A WHOLE BRICK!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! A DIRTY SYRINGE STRAIGHT INTO MY GLUTES!",
   "from": "HAZARD_HURT"
  },
@@ -21361,6 +25511,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! FORTY PERCENT OFF MY KIDNEY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! GLASS! A FORK! A NEEDLE! ...A WHOLE FISH?!",
   "from": "m1/game/stages/barry/dumpster.ts:87"
  },
@@ -21373,6 +25528,11 @@
   "voice": "meathead",
   "text": "OW! IS THAT A DIRTY NEEDLE, YOU SICK FUCK?!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! MY RENAISSANCE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -21406,6 +25566,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! TOP OF THE HEAD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "OW. ...THAT DOOR WAS LIVE.",
   "from": "DOOR_KICK"
  },
@@ -21413,6 +25578,11 @@
   "voice": "meathead",
   "text": "OW. ...THAT DOOR WAS LIVE. NOW SO ARE MY SHORTS.",
   "from": "m1/game/core/update.ts:357"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW. I LANDED ON SOMEBODY.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -21636,6 +25806,11 @@
  },
  {
   "voice": "meathead",
+  "text": "POTION TO THE FACE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "PRE-OWNED? LIKE SOMEBODY ELSE'S? GROSS.",
   "from": "OSCAR_LINES"
  },
@@ -21781,6 +25956,11 @@
  },
  {
   "voice": "meathead",
+  "text": "QUIT LOBBING THAT SHIT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "QUIT RAMMING ME!",
   "from": "ADVENTURE"
  },
@@ -21798,6 +25978,11 @@
   "voice": "meathead",
   "text": "QUIT ZAPPING MY PUMP, YOU GREEN BASTARD!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RABIES! I GOT RABIES!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -21823,6 +26008,11 @@
   "voice": "meathead",
   "text": "RAT RACE OVER!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RAT! UP MY PANT LEG!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -21873,6 +26063,11 @@
   "voice": "meathead",
   "text": "RED DOT! THEN PAIN! EVERY TIME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RED FOG. NOPE. NOPE NOPE NOPE.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -22181,6 +26376,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SEE THAT CLOCK TOWER? ELEVATOR TO HELL. THAT'S THE ONE. THAT'S MY RIDE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "SEE THE WORLD! FEEL THE WORLD!",
   "from": "M2_KILL_LINES"
  },
@@ -22276,8 +26476,18 @@
  },
  {
   "voice": "meathead",
+  "text": "SHE BIT ME! LADY, I'M NOT YOUR HUSBAND!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "SHE HIT ME WITH HER PURSE! WHAT'S IN THERE, A BRICK?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE HIT ME WITH THE BROOM! THE BROOM IS FOR SWEEPING!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -22308,6 +26518,11 @@
   "voice": "meathead",
   "text": "SHE'S OUT!",
   "from": "FOR_A_WOMAN"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE'S STRONGER THAN SHE LOOKS!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -22461,6 +26676,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOULD'VE KEPT BEGGING.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "SHOULD'VE KEPT THE FIRE ON THE STRING!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -22498,6 +26718,11 @@
   "voice": "meathead",
   "text": "SHOULDER VERSUS THREE HORNS! HORNS WIN!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULDER, MEET HORN! OW!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -22811,6 +27036,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMEBODY'S GONNA HAVE TO CLEAN THAT UP. NOT ME.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMEBODY'S GRANDMA JUST LANDED ON ME!",
   "from": "HAZARD_HURT"
  },
@@ -22871,6 +27101,16 @@
  },
  {
   "voice": "meathead",
+  "text": "SOUVENIR PITCHFORKS. FIFTEEN BUCKS. I GOT ONE FOR FREE. IN MY BACK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOUVENIRS. NEVER LEAVE HOME WITHOUT ONE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "SPACE AGE SLAUGHTER!",
   "from": "M2_KILL_LINES"
  },
@@ -22901,8 +27141,23 @@
  },
  {
   "voice": "meathead",
+  "text": "SPIKES ON HIS HEAD! WHO DOES THAT?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPIKES! IN MY HEAD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "SPIKES! ON THE HAT! WHO PUTS SPIKES ON A HAT?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPINNING COFFIN CUPS. THE SCARIEST THING HERE IS WHOEVER'S CLEANING THE PUKE OUT OF THOSE.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23191,6 +27446,11 @@
  },
  {
   "voice": "meathead",
+  "text": "STOP SWAYING! I'M TRYING TO CLIMB YOU!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "STOP TAZING MY TRAPS, YOU SHOCK-JOCK BITCH!",
   "from": "HURT"
  },
@@ -23241,6 +27501,11 @@
  },
  {
   "voice": "meathead",
+  "text": "STOVE! HOT STOVE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "STREAK FREE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -23271,8 +27536,18 @@
  },
  {
   "voice": "meathead",
+  "text": "STUPID GOTH PIGEON!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "SUB-ZERO IQ",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SUCK IT, SAL.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23531,6 +27806,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT FUR SUIT SMELLS LIKE A WET DOG'S FUNERAL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT GAS LINE. ONE SHOT. THAT'S ALL IT WOULD TAKE.",
   "from": "m1/game/stages/oscar/bunker.ts:367"
  },
@@ -23538,6 +27818,11 @@
   "voice": "meathead",
   "text": "THAT GOAT HAS A HARDER HEAD THAN ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT GUY'S IN SIX PLACES.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23606,8 +27891,23 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT ONE PINCHED SOMETHING IMPORTANT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT ONE THERE IS HOLDING UP THE WHOLE RIDE. GOOD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT PILLAR WASN'T THERE LAST TIME.",
   "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT POTION IS JUST ANTIFREEZE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23621,6 +27921,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT RAT'S BIGGER THAN THE ONES AT HOME!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT ROCKET SPLATTERED PETROLEUM ON MY PECS!",
   "from": "HURT"
  },
@@ -23628,6 +27933,11 @@
   "voice": "meathead",
   "text": "THAT SEPTIC SLIME RUINED MY FRESH LIFTING SNEAKERS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT SHIELD IS FOAM! WHY DOES IT HURT?!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23641,6 +27951,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT SWORD IS NOT PLASTIC!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT THING HAS MORE TEETH THAN SENSE!",
   "from": "HAZARD_HURT"
  },
@@ -23651,6 +27966,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT TRAIN'S GOING SLOWER THAN I WALK. AND I WALK LIKE I'M CARRYING A FRIDGE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT TRUCK ALMOST COMPACTED MY GLUTES!",
   "from": "HURT"
  },
@@ -23658,6 +27978,11 @@
   "voice": "meathead",
   "text": "THAT TURD WAS TRAVELING AT HIGHWAY SPEED!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT WAS A LONG WAY DOWN. HUH. IT'S WARM DOWN HERE.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23673,6 +27998,11 @@
   "voice": "meathead",
   "text": "THAT WAS JUST A WARM-UP SET.",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT WAS LOAD-BEARING? HUH.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23706,6 +28036,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S A COIN RIDE OUTSIDE A GROCERY STORE WITH A HALLOWEEN COSTUME ON.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S A FULL BAG!",
   "from": "M2_KILL_LINES"
  },
@@ -23721,6 +28056,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S A LOT OF FRAMES FOR A GUY WHO SHOULDN'T SHOW UP IN A MIRROR.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S A LOW BLOW, EARTH-WORM!",
   "from": "HURT"
  },
@@ -23728,6 +28068,16 @@
   "voice": "meathead",
   "text": "THAT'S A LUCKY HORSESHOE, ALL RIGHT! FOR HIM!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S A REAL PITCHFORK! THEY SELL REAL ONES?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S A SNOW GLOBE OF HELL! IT'S FULL OF FIRE GLITTER!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23776,6 +28126,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S MY BLOOD! I NEED THAT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S MY GOOD KIDNEY!",
   "from": "ADVENTURE"
  },
@@ -23786,6 +28141,21 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S NOT A DROP TOWER, THAT'S A TALL CHAIR WITH ANXIETY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S NOT A FOG MACHINE! FOG MACHINES DON'T EAT PEOPLE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S NOT A GHOST STORY, THAT'S A HEALTH CODE VIOLATION.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S NOT A PET. THAT'S A BUILDING.",
   "from": "TOO_BIG_LINES"
  },
@@ -23793,6 +28163,11 @@
   "voice": "meathead",
   "text": "THAT'S NOT A RUMBLE. THAT'S A COUNTDOWN.",
   "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S NOT A SHIELD, IT'S FURNITURE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23851,13 +28226,33 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S THE FATTEST DEVIL I EVER SAW.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S THE MEANEST GOAT ALIVE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S THE MOST FREE I'VE EVER FELT.",
   "from": "M2_GUT_LINES"
  },
  {
   "voice": "meathead",
+  "text": "THAT'S THE VOICE? YOU'RE THE VOICE?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S THE WHOLE MOTOR POOL. WHERE'S THE BOSS?",
   "from": "m1/game/stages/oscar/chase.ts:195"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S THREE HOLES! THREE NEW HOLES!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23896,8 +28291,23 @@
  },
  {
   "voice": "meathead",
+  "text": "THE BEDSHEET GUY HIT ME! IT'S A GUY IN A SHEET!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BIG WOODEN GUY! THE BIG WOODEN GUY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BIRD ROBOT! THE BIRD ROBOT!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BLOOD'S GOING UP THE WALL! BLOOD DOESN'T GO UP! THAT'S NOT HOW BLOOD WORKS!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23908,6 +28318,11 @@
   "voice": "meathead",
   "text": "THE BOOKS! YOU WANT MY BOOKS?! TAKE THE BOOKS!",
   "from": "m1/game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BRIDE'S GOT A RIGHT HOOK!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23931,6 +28346,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE CAT! THE MANGY CAT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE CEILING IS LEAKING ON MY TRAPS!",
   "from": "HAZARD_HURT"
  },
@@ -23938,6 +28358,11 @@
   "voice": "meathead",
   "text": "THE CEILING IS STABBING ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CEILING! IT GOT MY SCALP!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23951,8 +28376,23 @@
  },
  {
   "voice": "meathead",
+  "text": "THE CEILING'S MOVING. THE CEILING IS MOVING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CHANDELIER! ON MY HEAD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE CHIMP'S GOT A RIGHT HOOK!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CLERK HIT ME!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -23991,6 +28431,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THE COUNT IS DOWN. THE COUNT IS ALSO OUT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CROW WENT FOR MY EYE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE DOG'S GOT MY ANKLE! BAD DOG!",
   "from": "HAZARD_HURT"
  },
@@ -24011,6 +28461,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE ELEVATOR'S STILL BACK THERE. I'M COMING FOR YOU, ELEVATOR.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE EXTRA FAST PASS LINE IS LONGER THAN THE FAST PASS LINE.",
   "from": "ADVENTURE"
  },
@@ -24018,6 +28473,11 @@
   "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
   "from": "m1/game/core/update.ts:228"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE FLOOR FARTED FIRE AT ME!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24053,6 +28513,11 @@
   "voice": "meathead",
   "text": "THE GIFT SHOP'S THAT WAY, ASSHOLE!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GOAT! THE DEVIL GOAT!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24101,8 +28566,23 @@
  },
  {
   "voice": "meathead",
+  "text": "THE LITTLE RED GUY BIT MY ANKLE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE LITTLE TANK BIT MY ANKLE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE MAIN SUPPORT. OF COURSE IT IS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE MASCOT! HE'S HUGE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24113,6 +28593,11 @@
   "voice": "meathead",
   "text": "THE MONKEY BIT ME!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE MOTHER-IN-LAW WAS THE HAM. I GOT IT. I GOT IT THE FIRST TIME.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24146,6 +28631,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE ORGAN MUSIC'S DOING ALL THE WORK ON THAT ONE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE PANTS ARE IN ORBIT. THE PANTS ARE GONE.",
   "from": "M2_GUT_LINES"
  },
@@ -24166,8 +28656,18 @@
  },
  {
   "voice": "meathead",
+  "text": "THE PENDULUM! I WAS WATCHING IT! I WAS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE PICKUP GOT ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE PITCHFORK'S REAL! WHY IS THE PITCHFORK REAL?!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24216,6 +28716,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THE REST OF THIS PLACE IS PAPER MACHE AND A GUY IN A SHEET! WHY IS THIS PART REAL?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE RIDE FELL ON MY HEAD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE ROCK IS FALLING APART! THE ACTUAL ROCK!",
   "from": "HAZARD_HURT"
  },
@@ -24256,6 +28766,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE SKELETON BASHED ME WITH HIS TOMBSTONE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE SNAKE! THE BIG RUBBER SNAKE!",
   "from": "ADVENTURE"
  },
@@ -24273,6 +28788,21 @@
   "voice": "meathead",
   "text": "THE TEST SUBJECT HUGGED ME TOO HARD!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TOILET PAPER GUY HIT ME! IT'S TWO-PLY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TOWER MOVED. I MOVED THE TOWER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TOWER'S FALLING ON ME! A LITTLE AT A TIME!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24311,6 +28841,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE WALLS ARE BREATHING. WHY ARE THE WALLS BREATHING?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE WHOLE EAST SIDE JUST PUNCHED ME!",
   "from": "HAZARD_HURT"
  },
@@ -24323,6 +28858,11 @@
   "voice": "meathead",
   "text": "THE WIND HIT ME WITH AN UMBRELLA!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE WITCH! THE BROOM WITCH!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24356,6 +28896,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THERE'S NO WAY THIS PASSED INSPECTION!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THERE'S SHIT IN MY PROTEIN SHAKER NOW! THANKS, HECTOR!",
   "from": "HAZARD_HURT"
  },
@@ -24371,8 +28916,18 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY KEEP SENDING THEM DOWN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY RAN ME OVER WITH A CANDY PAINT JOB!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY SPENT THE WHOLE BUDGET ON THIS PART.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24421,13 +28976,28 @@
  },
  {
   "voice": "meathead",
+  "text": "THIS ENTIRE BUILDING IS A MISTAKE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THIS HURRICANE IS BLOWING MY SWEATPANTS OFF!",
   "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
+  "text": "THIS IS A LAWSUIT! THIS IS A HUGE LAWSUIT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THIS IS GONNA BE THE BEST PART OF THE TOUR.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIS IS HOW THE LEANING TOWER STARTED.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24447,7 +29017,7 @@
  {
   "voice": "meathead",
   "text": "THIS ISN'T WIND! THIS IS A ROCKET ENGINE!",
-  "from": "m1/game/player/deathAnim.ts:405"
+  "from": "m1/game/player/deathAnim.ts:425"
  },
  {
   "voice": "meathead",
@@ -24486,8 +29056,18 @@
  },
  {
   "voice": "meathead",
+  "text": "THORNS! THE ROSES HAVE THORNS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THOSE HORNS ARE WIDER THAN MY LATS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THOSE PLATFORM BOOTS ARE A WEAPON!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24511,6 +29091,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THREE HOLES! THREE NEW HOLES!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THREE HORNS AND NO HANDLES!",
   "from": "TOO_BIG_LINES"
  },
@@ -24531,6 +29116,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THROW ME A BONE! NOT LIKE THAT!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THROWN ACROSS THE ROOM BY A GUY WHO WEIGHS NINETY POUNDS!",
   "from": "HAZARD_HURT"
  },
@@ -24538,6 +29128,11 @@
   "voice": "meathead",
   "text": "THROWN OUT WITH THE TRASH!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TICK, TOCK, MY FACE!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24581,6 +29176,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TIN CAN WITH A SWORD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "TINFOIL DIDN'T HELP, HUH?",
   "from": "ENEMY_KILL_LINES"
  },
@@ -24621,6 +29221,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TOILET PAPER MAN HITS HARD!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "TOMMY! COME OUT HERE AND FIGHT ME, YOU COWARD!",
   "from": "m1/game/stages/tommy/escape.ts:227"
  },
@@ -24658,6 +29263,11 @@
   "voice": "meathead",
   "text": "TOO MUCH MEAT, NOT ENOUGH BAG!",
   "from": "FULL_BAG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOO SLOW, CEILING.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24791,6 +29401,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TWO MORE. MAYBE ONE. I LOST COUNT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "TWO.",
   "from": "m1/game/stages/oscar/bar.ts:165"
  },
@@ -24843,6 +29458,11 @@
   "voice": "meathead",
   "text": "UNPAID AND UNALIVE!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "UP THE CLOCK TOWER, DROP INTO HELL, EXIT THROUGH THE GIFT SHOP.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24901,8 +29521,18 @@
  },
  {
   "voice": "meathead",
+  "text": "WAIT FOR MEEEE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WAIT WAIT WAIT",
   "from": "m1/game/stages/dale/convoy.ts:403"
+ },
+ {
+  "voice": "meathead",
+  "text": "WAIT, WHAT'S IT DOING-",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24961,8 +29591,18 @@
  },
  {
   "voice": "meathead",
+  "text": "WATCH THE HUMP!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WATCH THE LATS",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WATCH WHERE YOU WALK, PINOCCHIO!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25021,8 +29661,23 @@
  },
  {
   "voice": "meathead",
+  "text": "WELL, THAT RIDE'S GETTING A BAD REVIEW.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "WELL. THAT'S NOT THE GIFT SHOP.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WELL. THERE GO THE GAINS.",
   "from": "GUT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WELL. THEY WANTED HELL.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25056,8 +29711,18 @@
  },
  {
   "voice": "meathead",
+  "text": "WHAT IS THAT? WHAT IS THAT?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WHAT KIND OF FISH LIVES IN LAVA?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT WAS IN THAT BOTTLE?!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25083,6 +29748,11 @@
   "voice": "meathead",
   "text": "WHAT'S IT GONNA TAKE TO PUT YOU IN A NEW RIG TODAY?",
   "from": "m1/game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT'S UNDER THAT HUMP?! IS IT A FANNY PACK?!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25156,8 +29826,18 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO BUILT THIS? A GUY WHO BUILDS BIRDHOUSES?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO CHARGES A SPEAR?! ME! I DO!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO DO I TALK TO ABOUT THE MIST? I WANT THE MIST'S MANAGER!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25186,13 +29866,28 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO GIVES A KID A CANDLE? FOUR TIMES?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO HANGS A BEAM THERE?!",
   "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
+  "text": "WHO HANGS THAT OVER A TABLE?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO HAS A STANDBY JET SKI?",
   "from": "m1/game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO IS STILL GETTING ON THAT THING?!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25247,12 +29942,22 @@
  {
   "voice": "meathead",
   "text": "WHO PUT A JET ENGINE IN A HURRICANE?!",
-  "from": "m1/game/player/deathAnim.ts:405"
+  "from": "m1/game/player/deathAnim.ts:425"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO PUTS REAL LAVA IN HELL?! ...OH. HELL DOES.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
   "text": "WHO PUTS REAL TEETH IN A KIDS RIDE?!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO SHARPENS A PENDULUM?!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25291,6 +29996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO THREW THAT?! THE CEILING?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO THROWS COCONUTS?! SURFERS THROW COCONUTS!",
   "from": "HAZARD_HURT"
  },
@@ -25307,7 +30017,7 @@
  {
   "voice": "meathead",
   "text": "WHO TURNED OFF THE LIGHTS?!",
-  "from": "m1/game/player/deathAnim.ts:356"
+  "from": "m1/game/player/deathAnim.ts:376"
  },
  {
   "voice": "meathead",
@@ -25323,6 +30033,11 @@
   "voice": "meathead",
   "text": "WHO'S A DEAD DOGGY?!",
   "from": "FOR_AN_ANIMAL"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S A GOOD BOY?! NOT YOU!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25351,6 +30066,16 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO'S SLAMMING THE DOORS?! NOBODY'S SLAMMING THE DOORS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S STILL RIDING THIS THING?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO'S THE ASTRONAUT?",
   "from": "m1/game/stages/tommy/bike.ts:495"
  },
@@ -25371,6 +30096,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHOA WHOA WHOA! THE GROUND!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WHOA-OA-OA-OAAAAAAH!",
   "from": "m1/game/stages/barry/dumpster.ts:65"
  },
@@ -25383,6 +30113,11 @@
   "voice": "meathead",
   "text": "WHOA. THE ROOF'S SIZZLING. MAYBE DON'T BARF ON THE THING I'M STANDING ON.",
   "from": "m1/game/stages/dale/convoy.ts:772"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOA. WHOA. OKAY.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25406,6 +30141,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHY DID I RAM THE POINTY GOAT?!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WHY DOESN'T ANYBODY LABEL ANYTHING?!",
   "from": "m1/game/stages/tommy/escape.ts:227"
  },
@@ -25421,8 +30161,18 @@
  },
  {
   "voice": "meathead",
+  "text": "WHY IS THE HELL RIDE ACTUALLY HELL?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "WHY IS THE WATER SPICY!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHY IS THERE ACTUAL SUPERNATURAL SHIT IN A THEME PARK?!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25458,6 +30208,11 @@
   "voice": "meathead",
   "text": "WISH YOU WERE HERE!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WITCH SLAPPED ME!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25511,6 +30266,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YEAH! RUN TO DADDY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "YEAH! THAT'S RIGHT!",
   "from": "GENERIC_KILL_LINES"
  },
@@ -25533,6 +30293,11 @@
   "voice": "meathead",
   "text": "YOU AGAIN? DON'T YOU HAVE A BOAT TO SINK?",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU AGAIN. GET A HOBBY.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25573,6 +30338,11 @@
   "voice": "meathead",
   "text": "YOU CALL THIS HEAT? I'VE HAD HOTTER SHOWERS!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU CAN'T MAKE A MERRY-GO-ROUND SCARY BY GLUING FANGS ON THE HORSES. THOSE ARE HORSES.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25741,6 +30511,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU. YOU TALK TOO MUCH.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU'RE AN ACTOR! STAY IN THE SCRIPT!",
   "from": "HAZARD_HURT"
  },
@@ -25773,6 +30548,11 @@
   "voice": "meathead",
   "text": "YOU'RE FRYING MY NERVOUS SYSTEM, ASSHOLE!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE GONNA REGRET THAT, DEVIL BOY.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25818,6 +30598,11 @@
   "voice": "meathead",
   "text": "YOU'RE STILL WEARING HIS SKIN, YOU SICK FUCK!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE THE DRACULA GUY?",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
