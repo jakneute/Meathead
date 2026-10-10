@@ -52,7 +52,7 @@ const LEVER = { x: RA + 385, y: GY - 300 };
 /** The cells' ledges (chains hung off the wall), and who's in them. */
 const CLEDGES: [number, number, number][] = [[X(560), GY - 140, 170], [X(860), GY - 230, 170]];
 const CAST: ['igor' | 'skeleton' | 'knight' | 'bride' | 'bat', number, number][] = [
-  ['igor', X(720), GY], ['skeleton', X(980), GY], ['bride', X(1200), GY], ['bat', X(700), GY - 330], ['bat', X(1000), GY - 360],
+  ['igor', X(720), GY], ['skeleton', X(980), GY], ['bride', X(1060), GY], ['bat', X(700), GY - 330], ['bat', X(1000), GY - 360],
 ];
 const HORNS: [number, number][] = [[SECTIONS.dungeon.x0 + 420, STAIR_TOP - 60], [SECTIONS.dungeon.x0 + 1250, STAIR_TOP + 320], [X(420), GY - 350], [X(1060), GY - 350], [RA + 900, GY - 340], [RA + 1700, GY - 340], [X(3600), GY - 350]];
 const CEIL_TOP = GY - 900;
@@ -243,7 +243,8 @@ export const dungeon: SpookySection = {
   checkpoints: [
     { name: 'THE DUNGEON STAIRS', cp: 20, x: x0 + 100, y: STAIR_TOP },
     { name: 'THE DUNGEON', cp: 21, x: CELLS + 120, y: GY },
-    { name: 'THE SPIKED CEILING', cp: 22, x: RA - 120, y: GY },
+    // (back for another go at it: the cells' cast cleared off its door, nobody rushing him as he comes back)
+    { name: 'THE SPIKED CEILING', cp: 22, x: RA - 120, y: GY, clear: [700, 0] },
     { name: 'PAST THE SPIKED CEILING', cp: 23, x: RB + 140, y: GY },
   ],
   build: (state) => {
@@ -287,6 +288,7 @@ export const dungeon: SpookySection = {
     if (state.player.pos.x < CELLS - 60) return stairsLighting(state);
     const lights = [];
     for (let x = CELLS + 200; x < x1; x += 400) if (x > state.camera.x - 300 && x < state.camera.x + CANVAS_WIDTH + 300 && (x < RA || x > RB)) lights.push({ x, y: GY - 300, r: 240, a: 0.8, color: 'rgba(249, 115, 22, 0.10)' });
+    if (RB > state.camera.x - 200 && RA < state.camera.x + CANVAS_WIDTH + 200) lights.push(...state.enemies.filter(e => e.health > 0 && e.pos.x > RA - 100 && e.pos.x < RB + 100).map(e => ({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2, r: 70, a: 0.55, color: 'rgba(248, 113, 113, 0.12)' })));
     if (RB > state.camera.x - 200 && RA < state.camera.x + CANVAS_WIDTH + 200) lights.push({ x: LEVER.x, y: LEVER.y, r: 200, a: 0.7, color: 'rgba(220, 38, 38, 0.10)' }, { x: LEVER_B.x, y: LEVER_B.y, r: 200, a: 0.7, color: 'rgba(220, 38, 38, 0.10)' }, { x: RA + 500, y: GY - 120, r: 520, a: 0.5 }, { x: RA + 1500, y: GY - 120, r: 520, a: 0.5 });
     return { dark: 0.55, shade: [18, 10, 8] as [number, number, number], lights };
   },
