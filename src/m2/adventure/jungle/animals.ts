@@ -7,7 +7,7 @@
 //   macaw   loops about its patch of canopy, then swoops at him and beats its way back up.
 //   frog    a poison dart frog, bright blue: hops at him. Tiny. Touch it and it's poison.
 //
-// Crude first-pass drawing (shapes, to get the feel of them). Every one of them has its hurt and death lines.
+// Drawn in animalArt.ts (stamped frames). Every one of them has its hurt and death lines.
 
 import type { Enemy } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -19,6 +19,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { jungleOf } from './state';
 import { HURT } from './lines';
+import { drawMonkeyArt, drawChimpArt, drawJaguarArt, drawBoaArt, drawMacawArt, drawFrogArt } from './animalArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -72,25 +73,7 @@ const monkey = (ctx: FrameContext, e: Enemy) => {
   return false;
 };
 
-const drawMonkey = (c: Ctx, e: Enemy, f: number) => {
-  const throwing = e.aiState === 'windup';
-  const bob = Math.sin(f * 0.15) * 1;
-  // tail, curled
-  c.strokeStyle = '#5B3A1E'; c.lineWidth = 3;
-  c.beginPath(); c.moveTo(-8, -8); c.quadraticCurveTo(-22, -4, -18, -20 + Math.sin(f * 0.1) * 3); c.stroke();
-  // body, sat
-  c.fillStyle = '#7A4B26'; c.beginPath(); c.ellipse(0, -12 + bob, 10, 12, 0, 0, Math.PI * 2); c.fill();
-  // head, face
-  c.beginPath(); c.arc(3, -27 + bob, 8, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#E8C39E'; c.beginPath(); c.ellipse(6, -26 + bob, 5, 5, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#000'; c.fillRect(6, -29 + bob, 2, 2); c.fillRect(9, -29 + bob, 2, 2);
-  // the throwing arm: back over his head, then over
-  c.strokeStyle = '#7A4B26'; c.lineWidth = 4;
-  const k = throwing ? Math.min(1, e.aiTimer! / 16) : 0;
-  const ax = throwing ? (e.aiTimer! < 16 ? -10 + k * 4 : 14) : 10, ay = throwing ? (e.aiTimer! < 16 ? -38 : -26) : -8;
-  c.beginPath(); c.moveTo(4, -16 + bob); c.lineTo(ax, ay + bob); c.stroke();
-  if (throwing && e.aiTimer! < 16) { c.fillStyle = '#5A3A12'; c.beginPath(); c.arc(ax, ay + bob - 3, 4, 0, Math.PI * 2); c.fill(); }
-};
+const drawMonkey = (c: Ctx, e: Enemy, f: number) => drawMonkeyArt(c, e, f);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Chimp: hoots, then leaps on him
@@ -131,24 +114,7 @@ const chimp = (ctx: FrameContext, e: Enemy) => {
   return false;
 };
 
-const drawChimp = (c: Ctx, e: Enemy, f: number) => {
-  const hoot = e.aiState === 'hoot', leap = e.aiState === 'leap';
-  const step = e.aiState === 'idle' || !e.aiState ? Math.sin(f * 0.25) * 3 : 0;
-  c.fillStyle = '#2B211B';
-  // legs
-  c.fillRect(-12, -14, 8, 14 + (step > 0 ? 0 : -2)); c.fillRect(4, -14, 8, 14 + (step > 0 ? -2 : 0));
-  // body, hunched
-  c.beginPath(); c.ellipse(0, -28, 16, 17, leap ? -0.3 : 0.15, 0, Math.PI * 2); c.fill();
-  // arms: up and hooting, or down on its knuckles
-  c.strokeStyle = '#2B211B'; c.lineWidth = 7;
-  if (hoot || leap) { c.beginPath(); c.moveTo(-8, -36); c.lineTo(-14, -56 + Math.sin(f * 0.6) * 3); c.moveTo(8, -36); c.lineTo(16, -56 - Math.sin(f * 0.6) * 3); c.stroke(); }
-  else { c.beginPath(); c.moveTo(8, -34); c.lineTo(16 + step, -2); c.stroke(); }
-  // head, face
-  c.fillStyle = '#2B211B'; c.beginPath(); c.arc(10, -44, 10, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#C9A08A'; c.beginPath(); c.ellipse(14, -42, 6, 7, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#000'; c.fillRect(13, -46, 2, 2); c.fillRect(17, -46, 2, 2);
-  if (hoot) { c.fillStyle = '#5B1A1A'; c.beginPath(); c.ellipse(16, -38, 3, 4 + Math.abs(Math.sin(f * 0.6)) * 2, 0, 0, Math.PI * 2); c.fill(); }
-};
+const drawChimp = (c: Ctx, e: Enemy, f: number) => drawChimpArt(c, e, f);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Jaguar: prowls, crouches, pounces (up at him on a vine too)
@@ -190,29 +156,7 @@ const jaguar = (ctx: FrameContext, e: Enemy) => {
   return false;
 };
 
-const drawJaguar = (c: Ctx, e: Enemy, f: number) => {
-  const crouch = e.aiState === 'crouch', pounce = e.aiState === 'pounce';
-  const walk = !e.aiState || e.aiState === 'idle' ? Math.sin(f * 0.22) * 4 : 0;
-  const low = crouch ? 6 : 0;
-  // tail
-  c.strokeStyle = '#D9952B'; c.lineWidth = 4;
-  c.beginPath(); c.moveTo(-30, -22 + low); c.quadraticCurveTo(-46, -26, -44, -10 + Math.sin(f * 0.12) * 4); c.stroke();
-  // legs
-  c.fillStyle = '#C98420';
-  if (pounce) { c.fillRect(18, -20, 16, 6); c.fillRect(-36, -18, 16, 6); }
-  else { c.fillRect(-26 + walk, -12, 7, 12); c.fillRect(-14 - walk, -12, 7, 12); c.fillRect(12 + walk, -12, 7, 12); c.fillRect(22 - walk, -12, 7, 12); }
-  // body
-  c.fillStyle = '#E3A537';
-  c.beginPath(); c.ellipse(0, -22 + low, 32, 11, pounce ? -0.15 : 0, 0, Math.PI * 2); c.fill();
-  // rosettes
-  c.fillStyle = '#3B2208';
-  for (let i = 0; i < 7; i++) { c.beginPath(); c.arc(-24 + i * 8, -24 + low + (i % 2 ? 4 : -2), 2.2, 0, Math.PI * 2); c.fill(); }
-  // head
-  c.fillStyle = '#E3A537'; c.beginPath(); c.arc(32, -28 + low * 1.3, 10, 0, Math.PI * 2); c.fill();
-  c.beginPath(); c.moveTo(26, -36 + low); c.lineTo(28, -42 + low); c.lineTo(32, -37 + low); c.fill();
-  c.fillStyle = '#000'; c.fillRect(34, -31 + low * 1.3, 2, 2);
-  if (pounce || crouch) { c.fillStyle = '#7F1D1D'; c.fillRect(34, -24 + low * 1.3, 7, 3); c.fillStyle = '#FFF'; c.fillRect(35, -24 + low * 1.3, 2, 2); c.fillRect(39, -24 + low * 1.3, 2, 2); }
-};
+const drawJaguar = (c: Ctx, e: Enemy, f: number) => drawJaguarArt(c, e, f);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Boa: hangs off a branch (homeX, homeY: where it's wrapped round), its head (the enemy's box) swaying under it
@@ -261,26 +205,11 @@ const drawBoa = (c: Ctx, e: Enemy, f: number) => {
   // (and with no branch to tie it back to: its death animation's stand-in has no homeY, which strung it up to y = 0;
   // or knocked or squeaked free well out of reach of it)
   const fx = e.facing ?? 1;
-  const hx = 0, hy = -e.height / 2;
+  const hy = -e.height / 2;
   const toBranch = { x: ((e.homeX ?? 0) - (e.pos.x + e.width / 2)) * fx, y: (e.homeY ?? 0) - (e.pos.y + e.height) };
   const loose = e.aiState === 'loose' || !!e.isBlownAway || e.homeY === undefined || e.homeX === undefined || !(Math.hypot(toBranch.x, toBranch.y) < BOA_HANG + BOA_REACH + 40);
   const ax = loose ? -34 + Math.sin(f * 0.4) * 6 : toBranch.x, ay = loose ? hy + 30 : toBranch.y;
-  // wrapped coils at the branch
-  c.fillStyle = '#3F6B21';
-  if (!loose) for (let i = -1; i <= 1; i++) { c.beginPath(); c.ellipse(ax + i * 9, ay, 7, 9, 0, 0, Math.PI * 2); c.fill(); }
-  // the hanging body: a sag between the branch and the head
-  const mx = (ax + hx) / 2 + Math.sin(f * 0.05) * 10, my = Math.max(ay, hy) + 20;
-  c.strokeStyle = '#3F6B21'; c.lineWidth = 11; c.lineCap = 'round';
-  c.beginPath(); c.moveTo(ax, ay); c.quadraticCurveTo(mx, my, hx, hy); c.stroke();
-  c.strokeStyle = '#A3B83A'; c.lineWidth = 3; c.setLineDash([5, 7]);
-  c.beginPath(); c.moveTo(ax, ay); c.quadraticCurveTo(mx, my, hx, hy); c.stroke();
-  c.setLineDash([]); c.lineCap = 'butt';
-  // head
-  const open = e.aiState === 'strike' || e.aiState === 'coil';
-  c.fillStyle = '#4D7C2A'; c.beginPath(); c.ellipse(hx + 4, hy, 13, 8, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#FDE047'; c.fillRect(hx + 7, hy - 5, 3, 3); c.fillStyle = '#000'; c.fillRect(hx + 8, hy - 5, 1, 3);
-  if (open) { c.fillStyle = '#9F1239'; c.beginPath(); c.moveTo(hx + 8, hy + 1); c.lineTo(hx + 20, hy - 3); c.lineTo(hx + 20, hy + 7); c.fill(); }
-  else if (Math.floor(f / 20) % 3 === 0) { c.strokeStyle = '#DC2626'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(hx + 16, hy + 2); c.lineTo(hx + 24, hy + 2); c.lineTo(hx + 27, hy); c.moveTo(hx + 24, hy + 2); c.lineTo(hx + 27, hy + 5); c.stroke(); }
+  drawBoaArt(c, e, f, ax, ay, loose);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -319,22 +248,7 @@ const macaw = (ctx: FrameContext, e: Enemy) => {
   return true;
 };
 
-const drawMacaw = (c: Ctx, e: Enemy, f: number) => {
-  const flap = Math.sin(f * (e.aiState === 'climb' ? 0.7 : 0.4));
-  const swoop = e.aiState === 'swoop';
-  // tail
-  c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(-8, -10); c.lineTo(-24, swoop ? -16 : -2); c.lineTo(-20, swoop ? -10 : 2); c.closePath(); c.fill();
-  // body
-  c.fillStyle = '#DC2626'; c.beginPath(); c.ellipse(0, -11, 11, 7, swoop ? 0.3 : 0, 0, Math.PI * 2); c.fill();
-  // wing (blue over yellow)
-  const wy = swoop ? -4 : -11 - flap * 12;
-  c.fillStyle = '#FACC15'; c.beginPath(); c.moveTo(-4, -12); c.lineTo(-10, wy - 2); c.lineTo(4, -12); c.fill();
-  c.fillStyle = '#2563EB'; c.beginPath(); c.moveTo(-6, -12); c.lineTo(-12, wy); c.lineTo(2, -12); c.fill();
-  // head, white face, hooked beak
-  c.fillStyle = '#DC2626'; c.beginPath(); c.arc(10, -15, 6, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#F5F5F4'; c.fillRect(10, -17, 4, 4); c.fillStyle = '#000'; c.fillRect(11, -16, 2, 2);
-  c.fillStyle = '#1C1917'; c.beginPath(); c.moveTo(15, -17); c.lineTo(20, -13); c.lineTo(15, -11); c.fill();
-};
+const drawMacaw = (c: Ctx, e: Enemy, f: number) => drawMacawArt(c, e, f);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Poison dart frog: hops at him
@@ -356,18 +270,7 @@ const frog = (ctx: FrameContext, e: Enemy) => {
   return false;
 };
 
-const drawFrog = (c: Ctx, e: Enemy, f: number) => {
-  const air = e.vel.y !== 0;
-  c.fillStyle = '#1D4ED8';
-  if (air) { c.fillRect(-11, -4, 6, 3); c.fillRect(5, -4, 6, 3); }
-  c.fillStyle = '#38BDF8'; c.beginPath(); c.ellipse(0, -7, 10, air ? 5 : 7, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#0B1220';
-  c.fillRect(-5, -10, 3, 3); c.fillRect(1, -6, 3, 3); c.fillRect(-2, -12, 2, 2);
-  // eyes
-  c.fillStyle = '#0B1220'; c.beginPath(); c.arc(6, -12, 2.5, 0, Math.PI * 2); c.fill();
-  // throat going
-  if (!air && Math.floor(f / 12) % 4 === 0) { c.fillStyle = '#93C5FD'; c.beginPath(); c.arc(8, -4, 3, 0, Math.PI * 2); c.fill(); }
-};
+const drawFrog = (c: Ctx, e: Enemy, f: number) => drawFrogArt(c, e, f);
 
 // ---------------------------------------------------------------------------------------------------------------
 

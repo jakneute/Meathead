@@ -10,7 +10,7 @@ import { updateVines, drawVines, onVine, VINE_ROW } from './vines';
 import { updateThrown, drawThrown } from './animals';
 import { jungleOf } from './state';
 import { GROUND, BRANCHES, VINES, ANIMALS, PICKUPS, CHECKPOINTS, X, Y } from './layout';
-import { drawJungleBackdrop, drawJungleBack } from './draw';
+import { drawJungleBackdrop, drawJungleBack, drawJungleFront, jungleLamps } from './draw';
 import { ARRIVE, GORGE, LEAVING } from './lines';
 
 const { x0, x1 } = SECTIONS.jungle;
@@ -51,8 +51,10 @@ export const jungle: Section = {
   },
   drawBackdrop: (c, state) => drawJungleBackdrop(c, state),
   drawBack: (c, state) => { drawJungleBack(c, state); drawVines(c, state, VINES); },
-  drawFront: (c, state) => { drawThrown(c, state); },
+  drawFront: (c, state) => { drawThrown(c, state); drawJungleFront(c, state); },
   cameraRow: (state) => (onVine(state) ? VINE_ROW : 500),
   // (under the canopy: the hour's light, a little less of it)
   outdoors: () => 0.85,
+  // (after dark: the torches at the way out, the lamp over the cast members' door)
+  lamps: () => jungleLamps(),
 };

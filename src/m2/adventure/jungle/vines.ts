@@ -26,6 +26,10 @@ import { meatheadSays } from '../section';
 import { playSound } from '../../../m1/game/platform/audio';
 import { jungleOf, type Hold, type VineRun } from './state';
 import { FIRST_VINE } from './lines';
+import { INK, LEAF, leaf } from './art/paint';
+
+/** A liana's colors, darkest first. */
+const LIANA = ['#1E2A0E', '#3A4A1A', '#5A6E26', '#7E9638', '#AEC660'];
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -294,7 +298,7 @@ const hands = (c: Controls): Controls => ({ ...c, left: false, right: false, up:
 export const onVine = (state: GameState) => jungleOf(state).hold.on >= 0;
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude first pass)
+// Drawing
 
 /**
  * Where a vine runs this frame, as points from where it hangs to its tip. A climbing vine's held fast, straight up the
@@ -335,31 +339,50 @@ const vinePoints = (d: VineDef, v: VineRun, held: number | null, f: number, seed
 
 /** A vine: a twisted green rope with leaves, from the branch it hangs off (a stub of branch, dark: not a ledge). */
 export const drawVines = (c: Ctx, state: GameState, defs: VineDef[]) => {
-  const j = jungleOf(state), vx0 = state.camera.x - 300, vx1 = state.camera.x + 1100;
+  const j = jungleOf(state), vx0 = state.camera.x - 300, vx1 = state.camera.x + 1100, f = state.frame;
   defs.forEach((d, i) => {
     if (d.x < vx0 || d.x > vx1) return;
     const v = j.vines[i] ?? { th: 0, om: 0 };
     const pts = vinePoints(d, v, j.hold.on === i ? j.hold.s : null, state.frame, i * 7 + 3);
-    // the branch stub it hangs off
-    if (!d.top) { c.fillStyle = '#2E1F12'; c.fillRect(d.x - 22, d.y - 7, 44, 9); c.fillStyle = '#1F3A16'; c.beginPath(); c.ellipse(d.x, d.y - 10, 30, 10, 0, 0, Math.PI * 2); c.fill(); }
-    // the rope (thinning toward the tip), its light side
-    const line = (col: string, w0: number, w1: number, dx: number) => {
+    const climb = d.kind === 'climb', n = pts.length;
+    // (a liana: inked, a dark green-brown, lit down one side, highlighted; thinning toward the tip)
+    const w0 = climb ? 7 : 6, w1 = climb ? 6 : 2.5;
+    const line = (col: string, add: number, dx: number, dy = 0) => {
       c.strokeStyle = col; c.lineCap = 'round';
-      for (let k = 1; k < pts.length; k++) {
-        c.lineWidth = w0 + (w1 - w0) * (k / pts.length);
-        c.beginPath(); c.moveTo(pts[k - 1].x + dx, pts[k - 1].y); c.lineTo(pts[k].x + dx, pts[k].y); c.stroke();
+      for (let k = 1; k < n; k++) {
+        c.lineWidth = Math.max(1, w0 + (w1 - w0) * (k / n) + add);
+        c.beginPath(); c.moveTo(pts[k - 1].x + dx, pts[k - 1].y + dy); c.lineTo(pts[k].x + dx, pts[k].y + dy); c.stroke();
       }
     };
-    line('#3F6212', 6, d.kind === 'swing' ? 2.5 : 6, 0);
-    line('#84CC16', 2, d.kind === 'swing' ? 1 : 2, -1);
-    // leaves along it, turned with it
-    c.fillStyle = '#4D7C0F';
-    for (let k = 5; k < pts.length - (d.kind === 'swing' ? 5 : 0); k += 8) {
-      const p0 = pts[k - 1], p1 = pts[k], ang = Math.atan2(p1.y - p0.y, p1.x - p0.x), side = (k / 8) % 2 ? 1 : -1;
-      c.beginPath(); c.ellipse(p1.x + Math.cos(ang + side * Math.PI / 2) * 6, p1.y + Math.sin(ang + side * Math.PI / 2) * 6, 6, 3, ang + side * 0.6, 0, Math.PI * 2); c.fill();
+    line(INK, 2, 0); line(LIANA[1], 0, 0); line(LIANA[2], -2.5, -1); line(LIANA[4], -4.5, -1.5);
+    c.lineCap = 'butt';
+    // (the twist: a spiral of shade wound round it, a knot every so often)
+    for (let k = 1; k < n; k++) {
+      const p0 = pts[k - 1], p1 = pts[k], ang = Math.atan2(p1.y - p0.y, p1.x - p0.x), nx = -Math.sin(ang), ny = Math.cos(ang);
+      const w = (w0 + (w1 - w0) * (k / n)) / 2;
+      if (k % 2 === 0) { c.strokeStyle = LIANA[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(p1.x - nx * w, p1.y - ny * w); c.lineTo(p1.x + nx * w + Math.cos(ang) * 3, p1.y + ny * w + Math.sin(ang) * 3); c.stroke(); }
+      if (k % 7 === 3 && k < n - 4) { c.fillStyle = INK; c.beginPath(); c.ellipse(p1.x, p1.y, w + 2, w + 1.5, ang, 0, Math.PI * 2); c.fill(); c.fillStyle = LIANA[3]; c.beginPath(); c.ellipse(p1.x - 0.5, p1.y - 0.5, w + 1, w + 0.5, ang, 0, Math.PI * 2); c.fill(); }
+    }
+    // (leaves along it in pairs off the knots, turned with it, stirring a little)
+    for (let k = 3; k < n - (climb ? 0 : 3); k += climb ? 4 : 5) {
+      const p0 = pts[k - 1], p1 = pts[k], ang = Math.atan2(p1.y - p0.y, p1.x - p0.x);
+      const side = (k / 4 + i) % 2 ? 1 : -1, stir = Math.sin(f * 0.05 + k + i) * 0.12;
+      leaf(c, p1.x, p1.y, 9 + ((k * 7 + i) % 4) * 2, ang + side * (Math.PI / 2 - 0.5) + stir, LEAF, side > 0 ? 4 : 3);
+      if (k % 3 === 0) leaf(c, p1.x, p1.y, 7, ang - side * (Math.PI / 2 - 0.7) + stir, LEAF, 3);
+    }
+    // (a climbing one's tendrils, gripping the trunk or the rock beside it)
+    if (climb) for (let k = 2; k < n; k += 2) {
+      const p = pts[k], s = k % 4 ? 1 : -1;
+      c.strokeStyle = LIANA[2]; c.lineWidth = 1; c.beginPath(); c.moveTo(p.x, p.y); c.quadraticCurveTo(p.x + s * 9, p.y - 4, p.x + s * 7, p.y + 6); c.stroke();
+    }
+    // (a swinging one's tip: the curl, a tendril off it, a last few leaves)
+    const end = pts[n - 1];
+    if (!climb && n > 3) {
+      const pe = pts[n - 3], ang = Math.atan2(end.y - pe.y, end.x - pe.x);
+      c.strokeStyle = LIANA[2]; c.lineWidth = 1; c.beginPath(); c.arc(end.x + Math.cos(ang) * 3, end.y + Math.sin(ang) * 3, 3, 0, Math.PI * 1.6); c.stroke();
+      leaf(c, end.x, end.y, 10, ang + 0.6, LEAF, 4); leaf(c, end.x, end.y, 8, ang - 0.7, LEAF, 3);
     }
     // (a climbing vine's rooted: a tuft at the foot of it)
-    const end = pts[pts.length - 1];
-    if (d.kind === 'climb') { c.fillStyle = '#365314'; c.beginPath(); c.ellipse(end.x, end.y, 12, 5, 0, 0, Math.PI * 2); c.fill(); }
+    if (climb) { for (let a = -2; a <= 2; a++) leaf(c, end.x, end.y, 12, -Math.PI / 2 + a * 0.5, LEAF, a < 0 ? 4 : 3); }
   });
 };
