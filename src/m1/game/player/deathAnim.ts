@@ -36,6 +36,9 @@
 //   headshot   an enemy's bullet (any gun goon's, a gunner's out of a car): through his forehead, out the back of his
 //              head in a spray, his head snapped back; and over he goes, the way it went, and bursts on the floor (shot
 //              up in the air, he drops first, and bursts where he lands)
+//   gutted     a knife in the belly (Meathead 2's Safari Artie): staggering back clutching it, his guts sliding out in
+//              loops between his fingers, trying to stuff them back in (they won't go), down onto his knees, and flat
+//              on his face in them, in a spreading pool
 //   (and the animals' own, when it's their attack that's done it: see animalDeaths)
 
 import type { FrameContext } from '../core/context';
@@ -67,6 +70,8 @@ export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen'
   | 'eye_fall'
   // an enemy's bullet, through the forehead
   | 'headshot'
+  // a knife in the belly (another game's: registerDeathKind)
+  | 'gutted'
   // an animal's attack (see animalDeaths)
   | AnimalDeathKind;
 
@@ -112,7 +117,7 @@ export const MEATHEAD_DEATH_FRAMES: Record<MeatheadDeathKind, number> = {
   burnt: 95, lava: 125, boiled: 85, fried: 85, frozen: 80, buried: 95, flattened: 70, dissolved: 110, roadkill: 80, overdose: 120,
   impaled: 80, cactus: 80, plucked: 150, spiked: 100, crash: 150, fall_moto: 150, airfall: 60, vaporized: 120,
   space: 360, eye_fall: 190, fall_crevasse: 110, fall_trench: 100, fall_alley: 120, fall_crude: 150, fall_arroyo: 130, fall_rocks: 120, fall_dungeon: 110,
-  headshot: 50, ...ANIMAL_DEATH_FRAMES,
+  headshot: 50, gutted: 200, ...ANIMAL_DEATH_FRAMES,
 };
 
 const BY_SOURCE: Record<string, MeatheadDeathKind> = {
@@ -215,6 +220,9 @@ const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 const GORE = PARTICLE_PALETTES.GORE;
 /** The deaths that work up in the air as they are (the rest, up there, are an airfall). */
 const AIR_OK = new Set<MeatheadDeathKind>(['roadkill', 'overdose', 'impaled', 'cactus', 'space', 'eye_fall', 'spiked', 'vaporized', 'headshot', ...ANIMAL_AIR_OK]);
+/** (gutted) The loops coming out; his shoves at them (stuffing them back in); onto his knees; over on his face (and how
+ * long the going over takes). */
+export const GUT_SPILL = 22, GUT_STUFF = 66, GUT_PUSHES = [70, 86, 102], GUT_KNEES = 120, GUT_FLOP = 140, GUT_FLOP_LEN = 12;
 /** (airfall) How fast he drops. */
 export const AIR_G = 0.7;
 /** (airfall) Where he is, t frames in (his feet), till he hits. */
@@ -429,6 +437,18 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       if (t === SPIKE_HIT + 8) playSound('crunch', 0.5, -8);
       break;
     case 'headshot': tickHeadshot(ctx, d, t); break;
+    case 'gutted': {
+      if (t === 1) { playSound('hurt', 0.9); playSound('squish', 0.6, 4); }
+      if (t === GUT_SPILL) { playSound('gush', 1, -2); playSound('squish', 0.9, -4); }
+      if (t > GUT_SPILL && t < GUT_STUFF && t % 9 === 0) playSound('squish', 0.35, rnd(-2, 4));
+      for (const at of GUT_PUSHES) if (t === at) { playSound('squish', 0.8, 2); playSound('splat', 0.3, 8); }
+      if (t === GUT_KNEES) { playSound('thud', 0.8, 2); shakeScreen(state, 4, 2); }
+      if (t === GUT_FLOP + GUT_FLOP_LEN) { playSound('splat', 1, -6); playSound('squish', 0.9, -6); shakeScreen(state, 8, 4); }
+      if (t === GUT_FLOP + GUT_FLOP_LEN + 34) playSound('glug', 0.5, -4);
+      // (a dribble off the hole, and off the loops as they come)
+      if (t < GUT_FLOP && t % 4 === 0) P.push({ pos: { x: d.x + d.facing * rnd(4, 12), y: d.y - (t < GUT_KNEES ? 28 : 16) }, vel: { x: d.facing * rnd(0, 0.8), y: 0.8 }, life: 18, color: GORE[t % GORE.length], size: rnd(2, 3) });
+      break;
+    }
     case 'overdose':
       if (t === 1) playSound('dart', 1);
       if (t === 20) playSound('powerup', 0.7, -8);

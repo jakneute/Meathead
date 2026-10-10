@@ -9,6 +9,7 @@ import { drawFlameLicks } from '../fx/fireball';
 import { mhVaporK, medalFall, MH_VAPOR_HOLD, MH_VAPOR_GO, MH_MEDAL_DROP } from '../../player/deathAnim';
 import { drawAnimalDeath } from './animalDeaths';
 import { headshotOver, headshotFeet, HS_STAND } from '../../player/deathAnim';
+import { GUT_SPILL, GUT_STUFF, GUT_PUSHES, GUT_KNEES, GUT_FLOP, GUT_FLOP_LEN } from '../../player/deathAnim';
 import { airfallY, MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, PLUCKS, PLUCK_AWAY, PLUCK_FALL, pluckSway, pluckDark, SPIKE_HIT, MeatheadDeath } from '../../player/deathAnim';
 import { drawBloodPool } from '../spatter';
 
@@ -25,7 +26,7 @@ export const body = (ctx: Ctx, state: GameState, d: MeatheadDeath, weapon: Weapo
     ...p, pos: { x: d.x - p.width / 2, y: d.y - p.height }, facing: d.facing, hidden: false, headless: 0, shownDead: false, isGrounded: true,
     vel: { x: 0, y: 0 }, invincibilityTimer: 0, hurtTimer: 0, pushbackTimer: 0, isCharging: false, isSliding: false, isUppercutting: false,
     isDivekicking: false, isDucking: false, squash: 0, hurtForm: null, hurtFormTimer: 0, filthShieldTimer: 0,
-    bossKillSatisfactionTimer: 0, killSatisfactionTimer: 0, deathFace: faceFor(d, state.deathScene?.t ?? 9999), ...extra,
+    bossKillSatisfactionTimer: 0, killSatisfactionTimer: 0, stabbed: undefined, deathFace: faceFor(d, state.deathScene?.t ?? 9999), ...extra,
   };
   drawPlayer(ctx, b as typeof p, { ...state, deathTimer: 0, playerVulgarityTimer: 0 }, { currentWeapon: weapon, showFilthShield: false, invincibilityEnabled: false });
 };
@@ -47,6 +48,7 @@ const faceFor = (d: MeatheadDeath, t: number): DeathFace => {
     case 'spiked': return t < SPIKE_HIT + 18 ? 'scream' : 'dead';
     case 'fall_crevasse': case 'fall_crude': return 'scream';
     case 'vaporized': return t < 10 ? 'shock' : 'agony';
+    case 'gutted': return t < GUT_SPILL ? 'shock' : t < GUT_FLOP ? 'agony' : 'dead';
     default: return 'dead';
   }
 };
@@ -413,9 +415,108 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       ctx.fillStyle = '#991B1B'; ctx.fillRect(hx - 1, hy + 2, 2, Math.min(8, 1 + t * 0.6));
       break;
     }
+    case 'gutted': drawGutted(ctx, state, d, weapon, t, f); break;
     default: drawAnimalDeath(ctx, state, d, weapon, t, f);
   }
   ctx.restore();
+};
+
+/** (gutted) His pose, handed to the body (one, reused: see Player.stabbed). */
+const gutPose = { t: 0, at: [] as readonly number[], hunch: 0, hand: 0 };
+/** (gutted) A shove at them: up into the hole, and the hand sliding back out (0..1). */
+const gutPush = (t: number) => {
+  let k = 0;
+  for (const at of GUT_PUSHES) { const u = t - at; if (u >= -5 && u < 0) k = Math.max(k, 1 + u / 5); else if (u >= 0 && u < 9) k = Math.max(k, 1 - u / 9); }
+  return k;
+};
+/** (gutted) His guts, the SNES way: loop after loop hanging out of the hole (hx, hy), U-shaped, each its own depth and
+ * width, swinging; what reaches the floor spreading out along it. Each loop drawn whole in bands (a dark outline, the
+ * shaded underside, the pink, a glint along the top) so they read as loops, not a lump. */
+const GUT_STEP = 2;
+const GUT_LOOPS = [[16, 14, -5], [26, 18, 1], [11, 12, -2], [30, 16, 5], [20, 15, -4], [24, 18, 2], [14, 13, 0]] as const;
+const gutBead = (u: number, k: number, hx: number, hy: number, floor: number, facing: number, sway: number, out: { x: number; y: number }) => {
+  const [dep, w, off] = GUT_LOOPS[k], hang = Math.sin(u * Math.PI);
+  let x = hx + facing * (off + u * w + hang * Math.sin(sway + k * 1.7) * 3);
+  let y = hy + 1 + dep * hang;
+  const over = y - (floor - 3);
+  if (over > 0) { y = floor - 3; x += facing * over * (u < 0.5 ? 0.5 : 1.1); }
+  out.x = Math.round(x) + 0.5; out.y = Math.round(y) + 0.5;
+};
+const bead = { x: 0, y: 0 };
+const GUT_BANDS = [['#4A0420', 7, 0], ['#9D174D', 5, 0.5], ['#E86A9A', 3, -0.5], ['#FBCFE8', 1, -1.5]] as const;
+const drawGuts = (ctx: Ctx, hx: number, hy: number, floor: number, facing: number, len: number, sway: number) => {
+  let rem = len;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (let k = 0; k < GUT_LOOPS.length && rem > 0; k++) {
+    const L = GUT_LOOPS[k][0] * 2 + GUT_LOOPS[k][1], show = Math.min(L, rem);
+    rem -= L;
+    const n = Math.floor(show / GUT_STEP);
+    if (n < 1) break;
+    // (each band over the last: the outline, the shade, the pink, the glint)
+    for (const [col, lw, dy] of GUT_BANDS) {
+      ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.beginPath();
+      for (let i = 0; i <= n; i++) { gutBead((i * GUT_STEP) / L, k, hx, hy, floor, facing, sway, bead); if (i) ctx.lineTo(bead.x, bead.y + dy); else ctx.moveTo(bead.x, bead.y + dy); }
+      ctx.stroke();
+    }
+    // (its segments: a crease every few; wet: a fleck of blood)
+    for (let i = 3; i < n; i += 4) {
+      gutBead((i * GUT_STEP) / L, k, hx, hy, floor, facing, sway, bead);
+      ctx.fillStyle = '#BE185D'; ctx.fillRect(bead.x - 1.5, bead.y - 1.5, 1, 3);
+      if (i % 8 === 7) { ctx.fillStyle = '#7F1D1D'; ctx.fillRect(bead.x + 0.5, bead.y + 0.5, 1, 1); }
+    }
+  }
+  ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
+};
+
+/**
+ * Gutted (Safari Artie's knife): staggering back, doubled over, clutching his belly; his guts sliding out in loops
+ * between his fingers and down to the floor; shoving them back in (three goes; they come back out every time); down on
+ * his knees; over on his face, onto them, and the pool spreading out from under him, a last kick of a boot.
+ */
+const drawGutted = (ctx: Ctx, state: GameState, d: MeatheadDeath, weapon: WeaponType, t: number, f: number) => {
+  const { x, y, facing } = d;
+  const stagger = -facing * 12 * (1 - (1 - clamp01(t / 18)) ** 2) + (t < 18 ? Math.sin(t * 0.9) * 1.5 : 0);
+  const knees = t >= GUT_KNEES;
+  const push = gutPush(t);
+  const flop = clamp01((t - GUT_FLOP) / GUT_FLOP_LEN), fl = flop * flop;
+  const down = t >= GUT_FLOP + GUT_FLOP_LEN;
+  // How far he's doubled over (more at each shove), and (on his knees) a slump forward
+  const hunch = (t < 18 ? 0.25 + 0.15 * (t / 18) : 0.4 + Math.sin(t * 0.12) * 0.03) + push * 0.12 + (knees ? 0.18 : 0);
+  const kneel = t >= GUT_KNEES - 6 && t < GUT_KNEES ? -(t - (GUT_KNEES - 6)) * 0.5 : 0;
+  const bx = x + stagger;
+  // Where the hole in him is (his local frame, at his feet, the way he faces: leant over by `hunch`)
+  const kneeling = knees && !down;
+  const lx = kneeling ? 10 : 9, ly = kneeling ? -20 : -31, by0 = kneeling ? 0 : 2;
+  const c = Math.cos(hunch), sn = Math.sin(hunch);
+  let hx = bx + facing * (lx * c - ly * sn), hy = y + kneel + lx * sn + ly * c + by0;
+  // (going over: turned about his feet, till he's flat (his lean and all), lifted so it's his front on the floor)
+  const px = bx, py = y, a = facing * fl * (Math.PI / 2 - hunch), lift = -13 * fl;
+  if (flop > 0) { const dx = hx - px, dy = hy - py; hx = px + dx * Math.cos(a) - dy * Math.sin(a); hy = py + lift + dx * Math.sin(a) + dy * Math.cos(a); }
+  // How much of them is out: sliding out, sucked back a way at each shove, slithering out again
+  let len = t < GUT_SPILL ? 0 : Math.min(150, (t - GUT_SPILL) * 3.6);
+  if (t >= GUT_STUFF) len = 150 - push * 40 + Math.min(70, Math.max(0, t - GUT_STUFF) * 0.9);
+  if (down) len = Math.min(330, len + (t - GUT_FLOP - GUT_FLOP_LEN) * 2);
+  const sway = (t - GUT_SPILL) * 0.09;
+  // The pool: a trickle where he stands, spreading out from under him once he's down
+  if (t >= GUT_SPILL) {
+    const r = down ? 30 + Math.min(34, (t - GUT_FLOP - GUT_FLOP_LEN) * 0.6) : 6 + Math.min(22, (t - GUT_SPILL) * 0.25);
+    drawBloodPool(ctx, Math.round(bx + facing * (down ? 30 : 12)), y + 1, Math.round(r), 517);
+  }
+  // (face down in them: they're under him)
+  if (flop >= 0.5) drawGuts(ctx, hx, hy, y, facing, len, sway);
+  // Him
+  gutPose.t = t; gutPose.hunch = hunch; gutPose.hand = push;
+  ctx.save();
+  // (nothing of him below the floor: his gun, kneeling or flat on his face, goes under him into the dirt)
+  ctx.beginPath(); ctx.rect(x - 120, y - 140, 240, 142); ctx.clip();
+  if (flop > 0) { ctx.translate(0, lift); about(ctx, px, py, a); }
+  // (a last kick of his boots, flat out)
+  if (down && t > 168 && t < 176) ctx.translate(0, -Math.sin((t - 168) / 8 * Math.PI) * 1.5);
+  ctx.translate(stagger, kneel);
+  body(ctx, state, d, weapon, { stabbed: gutPose, isDucking: kneeling, deathFace: faceFor(d, t) });
+  ctx.restore();
+  if (flop < 0.5) drawGuts(ctx, hx, hy, y, facing, len, sway);
+  void f;
 };
 
 /** (plucked) His sight going: the dark closing in round him, all the way to black. Screen space, over everything. */

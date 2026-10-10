@@ -44,6 +44,16 @@ const SOOT_FADE = 120;
 const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
+/** Held on the knife (Player.stabbed, its stabs): how far he's doubled over (his lean about his feet) and sagged down;
+ *  he jerks over at each stab, and sags back. */
+export const stabLean = (st: { t: number; at: readonly number[] }) => {
+  let k = 0;
+  for (const a of st.at) { const u = st.t - a; if (u >= 0 && u < 16) k = Math.max(k, u < 3 ? u / 3 : Math.pow(1 - (u - 3) / 13, 2)); }
+  return { rot: 0.14 + 0.3 * k, y: 2 + 3 * k - (st.t < 8 ? st.t * 0.4 : 3) };
+};
+/** Held on the knife: where the hole's in him (his local frame: the way he faces, from his feet). */
+export const STAB_WOUND = { x: 13, y: -34 };
+
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false, castShadow = false, hold }: PlayerDrawOptions) => {
   // (talking, in whatever pose: the heads drawn for the moves work their jaws too)
   setTalking(state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity && !p.hidden);
@@ -70,7 +80,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   }
 
   // 2. Invincibility / Hurt Flicker
-  const isFlicker = (p.invincibilityTimer > 0 || invincibilityEnabled) && !p.inCutscene && Math.floor(animFrame / 2) % 2 === 0;
+  // (not held on the knife: that's a pose to see)
+  const isFlicker = (p.invincibilityTimer > 0 || invincibilityEnabled) && !p.inCutscene && !p.stabbed && Math.floor(animFrame / 2) % 2 === 0;
   if (isFlicker) {
     ctx.globalAlpha = 0.45;
   }
@@ -249,6 +260,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Along the vine, a bit behind it (his weight lags the swing); leaning into the push, tucked in a quick climb
     bodyRot = vineLean(p);
     bodyY = vineMode === 'climb' ? Math.sin(animFrame * 0.3) * 2.5 : 0;
+  } else if (p.stabbed) {
+    // Held on the knife: hunched round it, up on his toes; at each stab he doubles over and jerks, then sags back
+    const st = p.stabbed;
+    if (st.hunch !== undefined) { bodyRot = st.hunch; bodyY = isDucking ? 0 : 2; }
+    else { const l = stabLean(st); bodyRot = l.rot + Math.sin(animFrame * 1.3) * 0.02; bodyY = l.y; }
   } else if (hurtT >= 0) {
     const ease = 1 - Math.pow(1 - hurtT, 3);
     switch (p.hurtForm) {
@@ -418,6 +434,18 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Reaching forward to the handlebars
     drawReachingArm(ctx, -6, -40, 6, -35, 21, -40, skinShadow);
     ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(20, -40, 4.5, 0, Math.PI * 2); ctx.fill();
+  } else if (p.stabbed) {
+    // Held on the knife (or gutted): the hand clamped over the hole in his belly, blood out between the fingers (shoved
+    // up into it, stuffing them back in)
+    const st = p.stabbed, push = st.hand ?? 0;
+    // (held on it: the hand clawing at the hole just under the blade)
+    const live = st.hunch === undefined;
+    const fx = (isDucking ? 9 : live ? 10 : 8) - push * 2, fy = (isDucking ? -21 : live ? -26 : -32) + push * 3 + (live ? Math.sin(animFrame * 0.9) * 0.6 : 0);
+    freeArm = () => {
+      drawArm(ctx, -15, isDucking ? -32 : -45, -9, isDucking ? -18 : -30, fx - 4, fy + 1, skinTone, skinShadow, skinHighlight);
+      ctx.fillStyle = '#991B1B'; ctx.fillRect(fx - 2, fy + 3, 3, 2); ctx.fillRect(fx + 2, fy - 1, 2, 3);
+      ctx.fillStyle = '#B91C1C'; ctx.fillRect(fx - 1, fy + 5, 2, 2 + (animFrame >> 2) % 4); ctx.fillRect(fx + 3, fy + 2, 1, 2 + (animFrame >> 3) % 3);
+    };
   } else if (isHurt) {
     // Flailing back in shock
     ctx.fillStyle = skinShadow;

@@ -54,6 +54,7 @@ import { hurtTaken } from '../../../m1/game/core/resist';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind, type MeatheadDeath } from '../../../m1/game/player/deathAnim';
 import { body as drawMeatheadBody } from '../../../m1/game/render/player/deathAnim';
+import { stabLean, STAB_WOUND } from '../../../m1/game/render/player/player';
 import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { aliensOn, brushOff, popAliensIn, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
@@ -121,6 +122,8 @@ registerHurtLines('m2:elephant', L.HURT_ELEPHANT, L.DEATH_ELEPHANT);
 registerDeathKind('m2:rhino', 'roadkill');
 registerDeathKind('m2:hippo', 'flattened');
 registerDeathKind('m2:elephant', 'flattened');
+// (the knife: gutted, his guts out in his hands)
+registerDeathKind(KNIFE, 'gutted');
 
 // ---------------------------------------------------------------------------------------------------------------
 // The state
@@ -356,6 +359,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   if (isOut(f) && f.mode !== 'dead') agitation(ctx, f);
   tickPoison(ctx, f);
   let out = controls;
+  // (Meathead's held on the knife only while he's being gutted)
+  if (f.mode !== 'gut' && state.player.stabbed) state.player.stabbed = undefined;
   switch (f.mode) {
     case 'intro':
       // (up in his blind till the view's come round onto the arena (or it's been long enough), then down out of it)
@@ -604,12 +609,16 @@ const afterAttack = (state: GameState, f: Fight) => {
   if (f.mode === 'landed') whistle(f); else hopOut(state, f);
 };
 
+/** When the knife goes in (frames into the gut). */
+const STABS_AT = [18, 38, 60] as const;
 /** Got him: pinned in front of him, stabbed three times, dropped. */
 const gut = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   if (p.health <= 0 || state.deathTimer > 0) { to(f, f.lunged ? 'landed' : 'exposed'); return controls; }
   p.pos.x = f.x + f.facing * 26 - p.width / 2; p.pos.y = GY - p.height; p.vel.x = 0; p.vel.y = 0;
   p.facing = (f.facing > 0 ? -1 : 1);
+  // (his own pose for it: held on the knife, doubling over at each stab)
+  p.stabbed = { t: f.t, at: STABS_AT };
   if (f.t === 18 || f.t === 38) {
     hurtPlayer(ctx, STAB, KNIFE, undefined, 0);
     blood(state, p.pos.x + p.width / 2, p.pos.y + p.height * 0.5, f.facing);
@@ -1023,7 +1032,7 @@ const eatenAlive = (ctx: FrameContext, f: Fight) => {
   if (g.heapAt >= 0 && ((f.eatenSaid === 6 && g.t > g.heapAt + 110) || g.t > g.heapAt + 600)) f.eatenOver = true;
 };
 /** The fight's done with: its animals' backs out of the world. */
-export const endFight = (state: GameState, f: Fight) => { clearStampede(state, f.herd); };
+export const endFight = (state: GameState, f: Fight) => { clearStampede(state, f.herd); state.player.stabbed = undefined; };
 
 /** The enemy, where he is (in the world while he's out, out of it while he's hidden). */
 const sync = (state: GameState, f: Fight) => {
@@ -1104,6 +1113,8 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   drawWarnings(c, state, f.herd);
   // Darts
   for (const d of f.darts) { c.strokeStyle = '#000'; c.lineWidth = 3; c.beginPath(); c.moveTo(d.x, d.y); c.lineTo(d.x - d.vx * 1.2, d.y - d.vy * 1.2); c.stroke(); c.strokeStyle = '#FDE047'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(d.x, d.y); c.lineTo(d.x - d.vx * 1.2, d.y - d.vy * 1.2); c.stroke(); box(c, d.x - 2, d.y - 2, 4, 4, '#DC2626'); }
+  // The knife in him: his fist on it, pulled back and rammed in at each stab
+  if (f.mode === 'gut' && p.stabbed && !p.hidden && state.deathTimer <= 0) drawGutKnife(c, state, f);
   // Poisoned: green round the gills
   if (f.poison > 0 && p.health > 0 && !p.hidden) {
     const hx = p.pos.x + p.width / 2;
@@ -1133,6 +1144,50 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     saidOver(c, f.said, sx, Math.max(state.camera.y + 130, sy), '#FDE68A');
   }
   if (f.puke && state.deathScene) drawPuke(c, state, f);
+};
+
+/** (gut) How far his fist's pulled back off the hole, t frames in: held off at first, then back and in at each stab
+ *  (back slow, in fast), left in between. */
+const knifeBack = (t: number) => {
+  for (const a of STABS_AT) {
+    const u = t - (a - 12);
+    if (u < 0) return a === STABS_AT[0] ? 7 : 0;
+    if (u < 9) return 11 * Math.sin((u / 9) * Math.PI / 2);
+    if (u < 12) return 11 * (1 - (u - 9) / 3);
+  }
+  return 0;
+};
+/** (gut) Artie's knife hand, out of him (his body's behind Meathead): the sleeve, the sunburned fist round the handle,
+ *  and the blade between it and the hole in Meathead's belly (only what's out of him), bloody; catching the light as
+ *  it's drawn back, and a spurt as it goes in. */
+const drawGutKnife = (c: Ctx, state: GameState, f: Fight) => {
+  const p = state.player, st = p.stabbed!, pf = p.facing;
+  const l = stabLean(st), cs = Math.cos(l.rot), sn = Math.sin(l.rot);
+  const wx = Math.round(p.pos.x + p.width / 2 + pf * (STAB_WOUND.x * cs - STAB_WOUND.y * sn)), wy = Math.round(p.pos.y + p.height + l.y + STAB_WOUND.x * sn + STAB_WOUND.y * cs);
+  const back = Math.round(knifeBack(f.t)), d = -pf;             // (pointing back at Meathead from Artie's side)
+  const hx = wx - d * (back + 5);                                 // the fist
+  // (his forearm, back up into him, behind: khaki sleeve, ink round it, lit along the top)
+  const ex = hx - d * 13, ey = wy - 9;
+  c.lineCap = 'round';
+  c.strokeStyle = '#1A0B06'; c.lineWidth = 8; c.beginPath(); c.moveTo(hx, wy); c.lineTo(ex, ey); c.stroke();
+  c.strokeStyle = '#7C6D43'; c.lineWidth = 6; c.beginPath(); c.moveTo(hx, wy); c.lineTo(ex, ey); c.stroke();
+  c.strokeStyle = '#A3925F'; c.lineWidth = 4; c.beginPath(); c.moveTo(hx, wy - 1); c.lineTo(ex, ey - 1); c.stroke();
+  c.strokeStyle = '#C9B98A'; c.lineWidth = 1; c.beginPath(); c.moveTo(hx, wy - 3); c.lineTo(ex, ey - 3); c.stroke();
+  c.lineCap = 'butt';
+  // (the blade, what's out of him: steel, its edge lit, his blood up it)
+  if (back > 0) {
+    const bx0 = Math.min(hx + d * 4, wx), bw = Math.abs(wx - (hx + d * 4));
+    box(c, bx0, wy - 2, bw, 4, '#1A0B06');
+    box(c, bx0, wy - 1, bw, 2, '#9CA3AF'); box(c, bx0, wy - 1, bw, 1, '#E5E7EB');
+    for (let i = 0; i < bw; i += 2) box(c, bx0 + i, wy + (i % 4 ? 0 : -1), 1, 1, '#B91C1C');
+  }
+  // (the fist round the handle: ink, sunburn, its shade, the knuckles)
+  box(c, hx - 4, wy - 4, 9, 9, '#1A0B06');
+  box(c, hx - 3, wy - 3, 7, 7, '#E8946B'); box(c, hx - 3, wy + 2, 7, 2, '#B4583A'); box(c, hx - 2, wy - 3, 3, 1, '#F8C3A0');
+  box(c, hx + d * 2 - (d > 0 ? 0 : 1), wy - 2, 2, 1, '#B4583A'); box(c, hx + d * 2 - (d > 0 ? 0 : 1), wy + 1, 2, 1, '#B4583A');
+  // (drawn back, the blade catches the light; rammed in, a spurt out round it)
+  if (back >= 8) glint(c, (hx + wx) / 2, wy - 1, 3 + (back - 8));
+  if (STABS_AT.some(a => f.t >= a && f.t < a + 4)) for (let i = 0; i < 4; i++) box(c, wx + pf * (2 + i * 2) - 1, wy - 5 + i * 3 - (f.t % 2) * 2, 2, 2, i % 2 ? '#7F1D1D' : '#DC2626');
 };
 
 /** A music note (the whistle's), pixel-drawn: an ink edge, a pink head and stem, a flag. */

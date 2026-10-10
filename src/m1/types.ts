@@ -244,6 +244,10 @@ export interface Player extends Entity {
   dropVine?: boolean;
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
   kickPose?: number;
+  /** Being stabbed, held up on the knife (a game's boss doing it): frames since it started, and the frames each stab
+   *  lands on (he doubles over at each). Or posed outright (his gutted death): how far he's doubled over (`hunch`, his
+   *  lean in radians) and where his clutching hand's got to (`hand`: 0 on the wound, 1 shoved up into it). */
+  stabbed?: { t: number; at: readonly number[]; hunch?: number; hand?: number };
   /** Counts up each time he starts a charge, uppercut or dive kick (an enemy's only hit once per move, but again by the next one). */
   moveId?: number;
   /** In a cutscene: can't be hurt, and doesn't flicker for it. */
