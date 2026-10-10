@@ -1,47 +1,47 @@
-m2/hub/index.ts:101 name: AMERICA_DENY
+m2/hub/index.ts:102 name: AMERICA_DENY
 m2/weapons/soulSucker.ts:134 name: FULL_BAG_LINES
 m2/weapons/soulSucker.ts:256 name: EMPTY_BAG_LINES
 m2/weapons/spellbook.ts:307 name: BULK_LINES
 m2/weapons/spellbook.ts:312 name: BULK_FAIL_LINES
 m2/weapons/mallet.ts:186 name: DUCK_LINES
-m2/intro/index.ts:332 name: MEATHEAD_PARKED
-m2/intro/index.ts:619 name: MEATHEAD_TICKET
-m2/intro/index.ts:621 name: MEATHEAD_TICKET
-m2/intro/index.ts:151 voice: voice
-m2/intro/index.ts:257 voice: pick(TICKET_CUT)
-m2/intro/index.ts:259 voice: true
-m2/intro/index.ts:337 voice: GUARD_WELCOME.clean
-m2/intro/index.ts:389 voice: pick(GUEST_HIT)
-m2/intro/index.ts:402 voice: pick(GUARD_ALERT[dressed(state)])
-m2/intro/index.ts:403 voice: true
-m2/intro/index.ts:436 voice: first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dres
-m2/intro/index.ts:460 voice: pick(GUARD_BARK[dressed(state)])
-m2/intro/index.ts:545 voice: pick(TICKET_NEXT)
-m2/intro/index.ts:589 voice: now
-m2/intro/index.ts:599 voice: pick(GUEST_HURRY[dressed(state)])
-m2/intro/index.ts:633 voice: pick(TICKET_LADY[sc.kind])
-m2/intro/index.ts:685 voice: line
-m2/adventure/section.ts:127 voice: voice(voiceId)
+m2/intro/index.ts:339 name: MEATHEAD_PARKED
+m2/intro/index.ts:626 name: MEATHEAD_TICKET
+m2/intro/index.ts:628 name: MEATHEAD_TICKET
+m2/intro/index.ts:152 voice: voice
+m2/intro/index.ts:258 voice: pick(TICKET_CUT)
+m2/intro/index.ts:260 voice: true
+m2/intro/index.ts:344 voice: GUARD_WELCOME.clean
+m2/intro/index.ts:396 voice: pick(GUEST_HIT)
+m2/intro/index.ts:409 voice: pick(GUARD_ALERT[dressed(state)])
+m2/intro/index.ts:410 voice: true
+m2/intro/index.ts:443 voice: first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dres
+m2/intro/index.ts:467 voice: pick(GUARD_BARK[dressed(state)])
+m2/intro/index.ts:552 voice: pick(TICKET_NEXT)
+m2/intro/index.ts:596 voice: now
+m2/intro/index.ts:606 voice: pick(GUEST_HURRY[dressed(state)])
+m2/intro/index.ts:640 voice: pick(TICKET_LADY[sc.kind])
+m2/intro/index.ts:692 voice: line
+m2/adventure/section.ts:132 voice: voice(voiceId)
 m2/adventure/queue/talk.ts:32 voice: l.text
-m2/adventure/river/index.ts:375 voice: fromBag(rv, 'gkill', GUESTS_KILL)
-m2/adventure/river/index.ts:381 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
-m2/adventure/dino/rex.ts:329 voice: true
-m2/adventure/dino/index.ts:177 voice: pick(MAINT_OBLIVIOUS)
+m2/adventure/river/index.ts:396 voice: fromBag(rv, 'gkill', GUESTS_KILL)
+m2/adventure/river/index.ts:402 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
+m2/adventure/dino/index.ts:178 voice: pick(MAINT_OBLIVIOUS)
+m2/adventure/dino/rex.ts:399 voice: true
 m2/adventure/temple/index.ts:209 voice: text
 m2/adventure/temple/index.ts:254 voice: g.woman ? 'm2.guest' : 'm2.guest2'
 m2/adventure/temple/index.ts:263 voice: 'm2.guest'
 m2/adventure/temple/index.ts:263 voice: 'm2.guest2'
 m2/adventure/temple/index.ts:269 voice: 'm2.operator'
 m2/adventure/temple/index.ts:269 voice: 'm2.operator2'
-m2/adventure/cart/index.ts:136 voice: text
-m2/adventure/cart/index.ts:238 voice: pick(ARTIE_CHASE_START[dressed(state)])
-m2/adventure/roof/index.ts:134 voice: text
-m2/adventure/clearing/index.ts:137 voice: text
-m2/adventure/clearing/fight.ts:241 voice: voice('m2.safari')
-m2/adventure/clearing/fight.ts:247 voice: pick(lines)
-m2/walkAway/artie.ts:355 voice: x
-m2/walkAway/artie.ts:360 voice: x
-m2/walkAway/artie.ts:361 voice: Math.round(sx - c.measureText('LAND').width / 2)
+m2/adventure/cart/index.ts:144 voice: text
+m2/adventure/cart/index.ts:246 voice: pick(ARTIE_CHASE_START[dressed(state)])
+m2/adventure/roof/index.ts:135 voice: text
+m2/adventure/clearing/fight.ts:245 voice: voice('m2.safari')
+m2/adventure/clearing/fight.ts:251 voice: pick(lines[pants()])
+m2/adventure/clearing/index.ts:139 voice: text
+m2/walkAway/artie.ts:374 voice: x
+m2/walkAway/artie.ts:379 voice: x
+m2/walkAway/artie.ts:380 voice: Math.round(sx - c.measureText('LAND').width / 2)
 m1/App.tsx:241 voice: getBossVoice(selectedStage)
 m1/App.tsx:468 name: undefined
 m1/App.tsx:469 expr: null

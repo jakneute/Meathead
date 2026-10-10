@@ -11936,7 +11936,17 @@
  },
  {
   "voice": "m2.safari",
+  "text": "...BUZZ. BUZZ. I AM A FLY. I AM VERY, VERY INTERESTED IN YOU.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "...CAW. CAW. I AM A BIRD.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "...CAW. CAW. I AM A BIRD. I'VE SEEN A LOT FROM UP IN THE SKY. NEVER THAT.",
   "from": "ADVENTURE"
  },
  {
@@ -11961,12 +11971,42 @@
  },
  {
   "voice": "m2.safari",
+  "text": "...YOU KNEW HIM? ...IS THAT WHY YOU SHIT YOURSELF?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "...YOU KNEW HIM? ...WERE YOU NAKED THEN, TOO?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "AND ON YOUR LEFT... WHAT'S LEFT OF ME...",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
+  "text": "AND ON YOUR LEFT... WHAT'S LEFT OF ME... AND ON YOUR RIGHT... WHAT CAME OUT OF HIM...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "AND ON YOUR LEFT... WHAT'S LEFT OF ME... NOW I'M THE NAKEDEST ONE HERE...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "AND THERE'S A HIPPO. HIPPOS DON'T WEAR PANTS EITHER. BUT THE HIPPO HAS THE DECENCY TO STAY UNDERWATER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "AND THERE'S A HIPPO. HIPPOS KILL MORE PEOPLE EVERY YEAR THAN ANY OTHER ANIMAL. EXCEPT CHURROS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "AND THERE'S A HIPPO. HIPPOS SPIN THEIR TAILS WHILE THEY POOP, TO SPREAD IT AROUND. YOU TWO WOULD GET ALONG.",
   "from": "ADVENTURE"
  },
  {
@@ -11981,7 +12021,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "BAD HIPPO! BAD! THE NAKED ONE! I SAID THE NAKED ONE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "BAD HIPPO! BAD! THE SMELLY ONE! I SAID THE SMELLY ONE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "BLOWGUN! AUTHENTIC! I GOT IT AT THE GIFT SHOP!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "BLOWGUN! FROM A NICE, SAFE, UPWIND DISTANCE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "BLOWGUN! SO MUCH BARE SKIN! I CAN'T MISS!",
   "from": "ADVENTURE"
  },
  {
@@ -11991,7 +12051,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "BUMPER CARTS! ...OH GOD, IT SPLASHED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "BUMPER CARTS! ...WHY DID IT ALL JIGGLE LIKE THAT?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "COME TO DADDY, MY LOVELIES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "COME TO DADDY, MY LOVELIES! FOLLOW THE STINK! THE STINK IS THE BAD MAN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "COME TO DADDY, MY LOVELIES! THE PINK ONE! GET THE BIG PINK ONE!",
   "from": "ADVENTURE"
  },
  {
@@ -12001,7 +12081,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "DO YOU KNOW WHAT A BUSH COSTS IN THIS PARK?! LESS THAN CLEANING UP AFTER YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "DO YOU KNOW WHAT A BUSH COSTS IN THIS PARK?! MORE THAN PANTS! BUY SOME PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "FFFT! GOTCHA!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FFFT! GOTCHA! ...OH GOD, I BREATHED IN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FFFT! GOTCHA! SOMEWHERE! I WASN'T LOOKING!",
   "from": "ADVENTURE"
  },
  {
@@ -12011,7 +12111,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "FIELD DRESSING! ...OH NO. OH NO, SOMEBODY ALREADY STARTED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FIELD DRESSING! WELL, THERE'S NOTHING TO UNDRESS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "FINE! GO! THE PIRANHAS ARE REAL, ASSHOLE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FINE! GO! THE PIRANHAS ARE REAL! ...THEY WON'T TOUCH YOU, THOUGH. NOBODY WOULD.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FINE! GO! THE PIRANHAS ARE REAL! AND THEY GO FOR THE DANGLY BITS FIRST, ASSHOLE!",
   "from": "ADVENTURE"
  },
  {
@@ -12021,12 +12141,52 @@
  },
  {
   "voice": "m2.safari",
+  "text": "FINE! I'LL GIVE THE TOUR FROM UP HERE! AND DIRECTLY BELOW ME, SOMETHING NOBODY SHOULD SEE FROM ABOVE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FINE! I'LL GIVE THE TOUR FROM UP HERE! THE SMELL RISES, BUT NOT THIS HIGH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "FINE! NO MORE GAMES! STAMPEDE!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
+  "text": "FINE! NO MORE GAMES! STAMPEDE! NOW NOBODY HAS ANYTHING TO HIDE BEHIND! ESPECIALLY YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FINE! NO MORE GAMES! STAMPEDE! TRAMPLE THE SMELL RIGHT OUT OF HIM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOLLOW THE HAT! I'M HOLDING MY BREATH IN HERE! LONGER THAN YOU HELD YOURS IN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOLLOW THE HAT! LOOK AT THE HAT! EVERYBODY LOOK AT THE HAT AND NOWHERE ELSE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "FOLLOW THE HAT! YOU CAN'T SEE THE HAT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FROG POISON! IT GOES RIGHT THROUGH YOU! NOT THAT ANYBODY COULD TELL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FROG POISON! RIGHT IN THE CHEEK! I'M NOT SAYING WHICH CHEEK!",
   "from": "ADVENTURE"
  },
  {
@@ -12041,7 +12201,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "GET 'EM OFF! GET 'EM OFF! GO EAT THE SMELLY ONE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "GET 'EM OFF! GET 'EM OFF! THERE'S A NAKED GUY RIGHT THERE! MORE SKIN! GO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "HE DIDN'T EVEN TIP.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HE DIDN'T EVEN TIP. HE LEFT ME SOMETHING, THOUGH. ON THE SEAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HE DIDN'T EVEN TIP. WHERE WOULD HE EVEN KEEP A TIP.",
   "from": "ADVENTURE"
  },
  {
@@ -12051,7 +12231,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "HERE, BIG FELLA! ARTIE'S IN SEASON! AND THAT ONE'S ALREADY UNDRESSED FOR YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HERE, BIG FELLA! ARTIE'S IN SEASON! IGNORE THE SMELL! THAT'S HIM, NOT ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "HEY! I DO NOT GET PAID ENOUGH FOR THIS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HEY! I DO NOT GET PAID ENOUGH FOR THIS! I DON'T GET PAID ENOUGH FOR THE SMELL ALONE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HEY! I DO NOT GET PAID ENOUGH FOR THIS! NOBODY GETS PAID ENOUGH TO SEE THAT!",
   "from": "ADVENTURE"
  },
  {
@@ -12076,12 +12276,42 @@
  },
  {
   "voice": "m2.safari",
+  "text": "HEY. HEY, BUDDY. COME LOOK AT THIS BUSH. IT'S GOT A HOSE IN IT. YOU COULD RINSE OFF.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HEY. HEY, BUDDY. COME LOOK AT THIS BUSH. IT'S GOT LEAVES. BIG ONES. FIG LEAVES.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "HOLD STILL! THIS IS HOW WE CLEAN A CATCH!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
+  "text": "HOLD STILL! THIS IS HOW WE CLEAN A CATCH! AND YOU NEED A LOT OF CLEANING!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HOLD STILL! THIS IS HOW WE CLEAN A CATCH! WHY IS THIS CATCH SO SLIPPERY?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "HOW DO YOU LIKE THAT, BIG GUY?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HOW DO YOU LIKE THAT, NAKED BOY?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HOW DO YOU LIKE THAT, STINKY?!",
   "from": "ADVENTURE"
  },
  {
@@ -12101,12 +12331,47 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I CAN SEE MY OWN RIBS! AND I CAN STILL SMELL YOU! WHY CAN I STILL SMELL YOU?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I CAN SEE MY OWN RIBS! NOW I'M MORE NAKED THAN YOU! HOW DID I LOSE THAT ONE?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I CAN SEE MY OWN RIBS! THAT'S NOT IN THE BROCHURE!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
+  "text": "I CAN'T SEE YOU IN THE DARK! DOESN'T MATTER! I CAN FOLLOW MY NOSE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I DO THIS FOR TIPS ON SLOW DAYS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I DO THIS FOR TIPS ON SLOW DAYS! I'LL WAIVE THE TIP IF YOU STAND FURTHER AWAY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I DO THIS FOR TIPS ON SLOW DAYS! WHERE WOULD YOU EVEN KEEP YOUR WALLET?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I HAVE A DEGREE IN MARINE BIOLOGY. I'VE SEEN EVERY SHRIVELED LITTLE THING IN THE OCEAN. AND NOW, THIS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I HAVE A DEGREE IN MARINE BIOLOGY. NOW I SIT DOWNWIND OF A MAN WHO SHIT HIMSELF. THIS IS WHAT IT GETS YOU.",
   "from": "ADVENTURE"
  },
  {
@@ -12121,7 +12386,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I SEE TOUCANS... AND A NAKED MAN... PLEASE LET THE NAKED MAN BE THE CONCUSSION...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I SEE TOUCANS... THE TOUCANS ARE WEARING GAS MASKS...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I WASN'T DONE! ...NO, I WAS. I WAS DONE THE MINUTE YOU SAT DOWN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I WASN'T DONE! I HAD TWENTY MORE MINUTES OF MATERIAL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I WASN'T DONE! I HAD TWENTY MORE MINUTES OF MATERIAL! NONE OF IT FOR NAKED PEOPLE, BUT STILL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'D OPEN A WINDOW, BUT IT'S A BOAT. IT'S ALL WINDOW. AND IT'S STILL NOT ENOUGH WINDOW.",
   "from": "ADVENTURE"
  },
  {
@@ -12131,7 +12421,22 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I'M ARTIE, I'LL BE YOUR SKIPPER TODAY. KEEP YOUR HANDS AND FEET INSIDE THE BOAT, AND WHATEVER THAT IS INSIDE YOUR PANTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I'M ARTIE, I'LL BE YOUR SKIPPER TODAY. KEEP YOUR HANDS AND FEET INSIDE THE BOAT, AND YOUR OPINIONS TO YOURSELF.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M ARTIE, I'LL BE YOUR SKIPPER TODAY. KEEP YOUR HANDS AND FEET INSIDE THE BOAT. AND PLEASE, DON'T SIT ON ANYTHING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M GOING TO LOOK AT THE TREES. I'M LOOKING AT THE TREES NOW. ...I LOOKED. I'M SORRY. THE TREES AREN'T THAT INTERESTING.",
   "from": "ADVENTURE"
  },
  {
@@ -12141,7 +12446,37 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I'M GONNA NEED A BIGGER FIRST AID KIT! AND HE'S GONNA NEED A BIGGER DIAPER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M GONNA NEED A BIGGER FIRST AID KIT! AND HE'S GONNA NEED A FIG LEAF!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I'M NOT DEAD... I'M ON BREAK...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M NOT DEAD... I'M ON BREAK... AND YOU STILL NEED A SHOWER...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M NOT DEAD... I'M ON BREAK... DON'T STAND OVER ME LIKE THAT...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M NOT IN HERE. AND I'M NOT HOLDING MY NOSE IN HERE, EITHER. COME CHECK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M NOT IN HERE. AND I'M NOT LOOKING. I'M DEFINITELY NOT LOOKING. COME CHECK.",
   "from": "ADVENTURE"
  },
  {
@@ -12151,12 +12486,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I'M ON MY BREAK! I WAS GONNA EAT LUNCH! I'M NEVER EATING LUNCH AGAIN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M ON MY BREAK! THIS IS NOT WHAT I WANTED TO LOOK AT ON MY BREAK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I'M ON MY BREAK! YOU'RE RUINING MY BREAK!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
+  "text": "I'M STAYING UP HERE! DON'T CLIMB UP AFTER ME! NOT LIKE THAT! NOT WITH ME LOOKING DOWN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I'M STAYING UP HERE! I'VE GOT A VINE AND A DREAM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M STAYING UP HERE! I'VE GOT A VINE, A DREAM, AND FRESH AIR!",
   "from": "ADVENTURE"
  },
  {
@@ -12181,7 +12536,37 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I'VE BEEN DRIVING THESE CARTS SINCE TWO THOUSAND NINE! NEVER BEHIND A BARE ASS! NOT ONCE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'VE BEEN DRIVING THESE CARTS SINCE TWO THOUSAND NINE! YOURS IS THE FIRST ONE THEY'LL HAVE TO BURN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I'VE BEEN MATED WITH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'VE BEEN MATED WITH! AND IT STILL SMELLED BETTER THAN YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'VE BEEN MATED WITH! AND THE NAKED GUY WATCHED! THIS DAY CAN'T GET ANY WORSE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'VE GUTTED BIGGER FISH THAN YOU! AT LEAST THEY HAD THEIR SCALES ON!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'VE GUTTED BIGGER FISH THAN YOU! NONE OF THEM HAD ALREADY EMPTIED THEMSELVES!",
   "from": "ADVENTURE"
  },
  {
@@ -12196,7 +12581,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "IF ANYONE FALLS OVERBOARD, I'M LEGALLY REQUIRED TO SAY OH NO. FOR YOU, I'D SAY GOOD. THE RIVER COULD RINSE YOU.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "IF ANYONE FALLS OVERBOARD, I'M LEGALLY REQUIRED TO SAY OH NO. IF A NAKED MAN FALLS OVERBOARD, THERE'S A WHOLE FORM.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "IS IT WARM? IT LOOKS WARM. DON'T TELL ME. I DON'T WANT TO KNOW.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "KEEP YOUR EYE ON THE ARTIE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "KEEP YOUR EYE ON THE ARTIE! I'M KEEPING MINE ON THE BUSHES! ONLY THE BUSHES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "KEEP YOUR EYE ON THE ARTIE! YOU CAN'T SNIFF ME OUT! YOU CAN'T SMELL ANYTHING BUT YOU!",
   "from": "ADVENTURE"
  },
  {
@@ -12206,7 +12616,37 @@
  },
  {
   "voice": "m2.safari",
+  "text": "KEEP YOUR HANDS AND ARMS INSIDE THE CART! AND WHATEVER ELSE IS FLAPPING AROUND IN THERE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "KILLED BY... A MAN IN SHITTY PANTS... DON'T PUT THAT... ON MY HEADSTONE...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "LET'S PLAY A LITTLE GAME I LIKE TO CALL HIDE AND GUT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "LET'S PLAY A LITTLE GAME I LIKE TO CALL HIDE AND GUT! YOU ALREADY EMPTIED YOURS, BUT IT'S STILL FUN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "LET'S PLAY A LITTLE GAME I LIKE TO CALL HIDE AND GUT! YOU'VE GOT NOTHING LEFT TO HIDE, BUT I DO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "LOOK AT THOSE GORILLAS. THAT'S DAVE. DAVE THROWS POOP AT THE BOATS. DAVE TOOK ONE LOOK AT YOU AND PUT IT DOWN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "LOOK AT THOSE GORILLAS. THAT'S DAVE. DAVE WEARS A FULL BODY SUIT ALL DAY, IN THIS HEAT. YOU COULDN'T MANAGE PANTS.",
   "from": "ADVENTURE"
  },
  {
@@ -12221,7 +12661,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "MAINTENANCE, BOAT SEVEN. I HAVE A GUEST WHO SHIT HIMSELF. HE'S NOT EVEN EMBARRASSED. HE'S LOOKING AT ME. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, BOAT SEVEN. I HAVE A NAKED GUEST. I'M TRYING NOT TO LOOK AT HIM. IT'S HARD. NOT LIKE THAT. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, COME IN. ...I CAN HEAR YOU EATING. HOW CAN YOU EAT? I'M NEVER EATING AGAIN. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "MAINTENANCE, COME IN. ...MAINTENANCE. I CAN HEAR YOU EATING. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, COME IN. I NEED GAS, AND A PAIR OF PANTS. SIZE... HUSKY. OVER.",
   "from": "ADVENTURE"
  },
  {
@@ -12231,7 +12691,37 @@
  },
  {
   "voice": "m2.safari",
+  "text": "MAINTENANCE, DO YOU COPY? ...I KNOW YOU COPY. I CAN SEE YOU LAUGHING. IT'S NOT FUNNY. HE'S RIGHT NEXT TO ME. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, DO YOU COPY? IF YOU COME OUT HERE, BRING A MOP. AND A PRIEST. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, HAS ANYBODY TURNED IN A PAIR OF PANTS TO LOST AND FOUND? BIG ONES? OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, I LOST A GUEST. ...NO, OVERBOARD. ...NO, NO PANTS. NO, I DIDN'T TAKE THEM. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "MAINTENANCE, I LOST A GUEST. ...NO, OVERBOARD. ...NO, ON PURPOSE. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, I LOST A GUEST. ...NO, OVERBOARD. ...NO, THAT'S GOOD NEWS. BRING A HOSE FOR THE BENCH. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, THE FLIES HAVE FOUND US. THE FLIES HAVE FOUND US, AND THEY'RE STAYING. OVER.",
   "from": "ADVENTURE"
  },
  {
@@ -12241,12 +12731,62 @@
  },
  {
   "voice": "m2.safari",
+  "text": "MAINTENANCE, THIS IS ARTIE ON BOAT SEVEN. WE ARE OUT OF GAS. ALSO, I NEED A HAZMAT TEAM. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, THIS IS ARTIE ON BOAT SEVEN. WE ARE OUT OF GAS. AND THE GUEST IS OUT OF PANTS. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "MISSED ME, BIG FELLA!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
+  "text": "MISSED ME, BIG FELLA! GO FOR THE ONE WITH NO PANTS! NOTHING TO SLOW YOU DOWN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MISSED ME, BIG FELLA! GO GET THE SMELLY ONE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "MY ARM! THAT WAS MY TIPPING ARM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY ARM! THAT WAS MY TIPPING ARM! AND MY NOSE-HOLDING ARM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY ARM! THAT WAS MY TIPPING ARM! I WAS GONNA USE IT TO COVER YOUR... NEVER MIND!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY BROTHER ONCE SHIT HIMSELF ON A SKI LIFT. HE SAT IN IT ALL DAY, OUT OF SPITE. YOU REMIND ME OF HIM.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY BROTHER SKIED NAKED ONCE. ONE RUN. FROSTBITE. HE NEVER TALKED ABOUT IT. YOU'D BETTER HOPE THIS RIVER'S WARM.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY BROTHER WOULD'VE HAD YOU BY NOW! HE ALSO WOULD'VE BEEN SMART ENOUGH TO STAY UPWIND!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY BROTHER WOULD'VE HAD YOU BY NOW! HE WAS AN ASSHOLE, BUT HE KEPT HIS ASS COVERED!",
   "from": "ADVENTURE"
  },
  {
@@ -12266,6 +12806,26 @@
  },
  {
   "voice": "m2.safari",
+  "text": "MY BUSH! THEY ATE MY BUSH! THAT WAS THE ONLY ONE YOU HADN'T STUNK UP!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY BUSH! THEY ATE MY BUSH! YOU COULD HAVE WORN THAT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NINE NINETY-NINE AT THE GIFT SHOP! AND FINALLY, I'M UPWIND OF YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NINE NINETY-NINE AT THE GIFT SHOP! THEY SELL PANTS TOO, YOU KNOW! RIGHT NEXT TO THE PARACHUTES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "NINE NINETY-NINE AT THE GIFT SHOP! WHO'S LAUGHING NOW?",
   "from": "ADVENTURE"
  },
@@ -12276,7 +12836,22 @@
  },
  {
   "voice": "m2.safari",
+  "text": "NO BUSHES, NO PROBLEM! EVERYBODY STAMPEDE! RIGHT AT THE NAKED GUY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NO BUSHES, NO PROBLEM! EVERYBODY STAMPEDE! RIGHT AT THE STINK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "NOBODY EVER STAYS FOR THE BACKSIDE OF WATER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOBODY EVER STAYS FOR THE BACKSIDE OF WATER. THAT'S OKAY. I'VE SEEN ENOUGH BACKSIDES FOR ONE DAY.",
   "from": "ADVENTURE"
  },
  {
@@ -12286,7 +12861,37 @@
  },
  {
   "voice": "m2.safari",
+  "text": "NOBODY TRAMPLES ARTIE TWICE! ...OH NO. THE VIEW FROM UP HERE IS SO MUCH WORSE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOBODY TRAMPLES ARTIE TWICE! AND UP HERE, THE AIR IS CLEAN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "NOT MY HIPS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT MY HIPS! AND IT STEPPED IN WHATEVER YOU LEFT BACK THERE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT MY HIPS! WHY ME?! HE'S THE ONE WHO'S DRESSED FOR IT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT THE BUCK TEETH! EAT HIM! HE'S ALREADY UNWRAPPED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT THE BUCK TEETH! EAT THE SMELLY ONE! ...NO?! EVEN YOU WON'T?!",
   "from": "ADVENTURE"
  },
  {
@@ -12301,7 +12906,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "NOT TODAY, SWEETHEART! HE'S RIGHT THERE! FOLLOW YOUR NOSE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT TODAY, SWEETHEART! TAKE THE NAKED ONE! HE'S READY FOR YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OH GREAT. A NAKED MAN IN THE RIVER. THAT'S NOT A WRITE-UP. THAT'S THE EVENING NEWS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "OH GREAT. GREAT. THAT'S A WRITE-UP. THAT'S A WRITE-UP FOR ME.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OH GREAT. NOW IT'S IN THE RIVER. THAT'S A WRITE-UP. THAT'S A WRITE-UP FOR THE WHOLE RIVER.",
   "from": "ADVENTURE"
  },
  {
@@ -12311,7 +12936,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "OH NO. NOT THE RAMP. NOT THE RAMP! ...OH GOD. NOW I GET IT. NOW I UNDERSTAND YOUR PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OH NO. NOT THE RAMP. NOT THE RAMP! NOT RIGHT BEHIND HIM! NOT LOOKING UP AT HIM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "OH, COME ON. COME ON. ...WE'RE OUT OF GAS. AGAIN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OH, COME ON. COME ON. ...WE'RE OUT OF GAS. STUCK IN A BOAT WITH A NAKED MAN. AGAIN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OH, COME ON. COME ON. ...WE'RE OUT OF GAS. YOU HEAR THAT? NOW I CAN'T EVEN OUTRUN THE SMELL.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OKAY FOLKS, SLIGHT DELAY. THE BOAT'S OUT OF GAS. PLEASE REMAIN SEATED. ON A TOWEL. SIR, I'M BEGGING YOU, FIND A TOWEL.",
   "from": "ADVENTURE"
  },
  {
@@ -12321,7 +12971,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "OKAY FOLKS, SLIGHT DELAY. THE BOAT'S OUT OF GAS. YOU, CLEARLY, ARE NOT. THIS IS A NORMAL PART OF THE EXPERIENCE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "OLE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OLE! THE NAKED ONE! GET THE NAKED ONE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OLE! YOU SMELL HIM TOO, HUH?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ON YOUR LEFT, THE MIGHTY RIVER ELEPHANT, AND HIS FAMOUS TRUNK. ...SIR, PLEASE STOP STANDING LIKE THAT. IT'S NOT A CONTEST.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ON YOUR LEFT, THE MIGHTY RIVER ELEPHANT. HE IS SPRAYING US. HONESTLY? IT SMELLS BETTER THAN YOU.",
   "from": "ADVENTURE"
  },
  {
@@ -12331,7 +13006,17 @@
  },
  {
   "voice": "m2.safari",
+  "text": "OW! NO FAIR! I WAS DISTRACTED! YOU KNOW WHAT I WAS DISTRACTED BY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "OW! NO FAIR! YOU PICKED THE RIGHT BUSH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OW! NO FAIR! YOU PICKED THE RIGHT BUSH! AND YOU STUNK UP THE OTHER TWO!",
   "from": "ADVENTURE"
  },
  {
@@ -12341,7 +13026,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "OW! THAT'S A WRITE-UP! INDECENT EXPOSURE AND ASSAULT! THAT'S TWO WRITE-UPS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OW! YOU CAN'T AIM AND YOU CAN'T HOLD IT! IS THERE ANYTHING YOU CAN DO?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "PICK A BUSH. ANY BUSH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "PICK A BUSH. ANY BUSH. JUST DON'T SQUAT IN IT. WE JUST HAD THEM LANDSCAPED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "PICK A BUSH. ANY BUSH. TAKE A FEW LEAVES. COVER SOMETHING.",
   "from": "ADVENTURE"
  },
  {
@@ -12351,7 +13056,22 @@
  },
  {
   "voice": "m2.safari",
+  "text": "PLEASE EXIT... THROUGH THE GIFT SHOP... AND BUY SOME PANTS...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "PLEASE KEEP YOUR ARMS AND LEGS INSIDE THE BUSH AT ALL TIMES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "PLEASE KEEP YOUR ARMS AND LEGS INSIDE THE BUSH AT ALL TIMES! YOU SHOULD GET IN ONE TOO! FOR EVERYBODY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "PLEASE STOP SITTING LIKE THAT. OR STANDING LIKE THAT. HONESTLY, THERE IS NO GOOD WAY FOR YOU TO BE IN THIS BOAT.",
   "from": "ADVENTURE"
  },
  {
@@ -12361,7 +13081,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "PSST. OVER HERE. NOBODY IN THIS BUSH. COME CLOSER. NOT THAT CLOSE. NO, YES, THAT CLOSE. UGH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "PSST. OVER HERE. NOBODY IN THIS BUSH. IT'S A NICE BIG BUSH. YOU COULD HIDE IN IT. YOU SHOULD.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "RAMMING SPEED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "RAMMING SPEED! EYES CLOSED! EYES CLOSED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "RAMMING SPEED! I'M HOLDING MY BREATH!",
   "from": "ADVENTURE"
  },
  {
@@ -12371,12 +13111,52 @@
  },
  {
   "voice": "m2.safari",
+  "text": "ROUND AND ROUND HE GOES! AND ROUND AND ROUND GO YOUR FLIES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ROUND AND ROUND HE GOES! STOP JUMPING! EVERYTHING ON YOU GOES ROUND AND ROUND TOO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "SEE THAT ROCK? THAT ROCK HAS A NAME. IT'S GERALD. I TALK TO GERALD ON SLOW DAYS.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
+  "text": "SEE THAT ROCK? THAT'S GERALD. GERALD, DON'T LOOK. ...HE LOOKED. HE'S A ROCK. HE CAN'T NOT LOOK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SEE THAT ROCK? THAT'S GERALD. GERALD'S BEEN HERE TWENTY YEARS. I'VE NEVER SEEN HIM FLINCH. GERALD'S FLINCHING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "SIR! SIR, YOU CANNOT EXIT THE BOAT DURING THE RIDE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SIR! SIR, YOU CANNOT EXIT THE BOAT DURING THE RIDE! ...ACTUALLY, NO. GO. GO AHEAD. PLEASE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SIR! SIR, YOU CANNOT EXIT THE BOAT DURING THE RIDE! NOT LIKE THAT! THERE ARE CHILDREN ON THE NEXT BOAT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SO WHILE WE WAIT, A LITTLE ABOUT ME. I WAS GOING TO BE A VETERINARIAN. I KNOW MY ANATOMY. I KNOW WHAT I'M LOOKING AT. I WISH I DIDN'T.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SO WHILE WE WAIT, A LITTLE ABOUT ME. I WAS GOING TO BE A VETERINARIAN. I'VE HAD MY ARM UP A COW. THE COW SMELLED BETTER.",
   "from": "ADVENTURE"
  },
  {
@@ -12391,7 +13171,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "SOUND THE MATING CALL! NOT FOR YOU, STINKY! NOBODY'S MATING WITH THAT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SOUND THE MATING CALL! NOT FOR YOU! STOP LOOKING SO HOPEFUL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THAT BUSH WAS LANDSCAPED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT BUSH WAS LANDSCAPED! YOU SHOULD THINK ABOUT IT TOO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT BUSH WAS LANDSCAPED! YOU WERE GONNA NEED THOSE LEAVES! FOR WIPING!",
   "from": "ADVENTURE"
  },
  {
@@ -12401,7 +13201,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THAT CALL WORKS ON ELEPHANTS. NOTHING WORKS ON YOU. NOT EVEN PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT CALL WORKS ON ELEPHANTS. YOUR SMELL WORKS ON VULTURES. YOU'RE GETTING BOTH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THAT VINE WAS LOAD-BEARING!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT VINE WAS LOAD-BEARING! AND IT WAS UPWIND!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT VINE WAS LOAD-BEARING! CATCH ME! NO! DON'T CATCH ME! NOT NAKED!",
   "from": "ADVENTURE"
  },
  {
@@ -12411,7 +13231,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THAT WAS MY BROTHER. ALSO NAMED ARTIE. ...SORRY, I'M TRYING VERY HARD TO LOOK AT YOUR FACE RIGHT NOW.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT WAS MY BROTHER. ALSO NAMED ARTIE. HE ALSO SMELLED LIKE THAT, NOW THAT I THINK ABOUT IT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THAT WAS MY SPECIAL BUSH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT WAS MY SPECIAL BUSH! HONESTLY, YOU NEED IT MORE THAN I DO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT WAS MY SPECIAL BUSH! NOW IT SMELLS LIKE YOU!",
   "from": "ADVENTURE"
  },
  {
@@ -12436,7 +13276,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THAT'S FINE. I'LL JUST TALK TO GERALD. WE'RE NEVER GOING TO TALK ABOUT THAT, RIGHT, GERALD?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT'S FINE. I'LL JUST TALK TO GERALD. YOU CAN BREATHE AGAIN, GERALD. ...ME TOO.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THAT'S FOR THE BOAT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT'S FOR THE BOAT! AND FOR MY EYES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT'S FOR THE BOAT! AND FOR THE BENCH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE ANIMALS ARE NERVOUS TODAY! THEY SMELL SOMETHING DEAD! IT'S YOU! IT'S YOUR PANTS!",
   "from": "ADVENTURE"
  },
  {
@@ -12446,7 +13311,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THE BACKSIDE OF WATER IS COMING UP. ...SPEAKING OF BACKSIDES, YOURS IS LEAKING ON MY BENCH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE BACKSIDE OF WATER IS COMING UP. ...YOUR BACKSIDE IS ALREADY OUT. NOBODY NEEDED BOTH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE BOAT'S DRIFTING. EVERYTHING'S DRIFTING. SOME THINGS MORE THAN OTHERS. ...THAT WAS UNPROFESSIONAL. I APOLOGIZE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THE BUSH WAS SUPPOSED TO PROTECT ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE BUSH WAS SUPPOSED TO PROTECT ME! FROM YOU! FROM ALL OF YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE BUSH WAS SUPPOSED TO PROTECT ME! IT DIDN'T EVEN PROTECT ME FROM THE SMELL!",
   "from": "ADVENTURE"
  },
  {
@@ -12456,7 +13346,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THE HAND IS QUICKER THAN THE MEATHEAD! AND A LOT BIGGER THAN... NEVER MIND!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE HAND IS QUICKER THAN THE MEATHEAD! SO IS THE NOSE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THE HAT IS PLASTIC. IT CRACKED IN 2019. THEY SAID TAPE IT. I TAPED IT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE RIVER'S GOING BROWN. THEY'RE GONNA SAY THAT WAS ME. THEY ALWAYS SAY IT WAS ME.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THERE'S A FLY ON YOUR BACK. NOW THERE'S TWO. NOW THERE'S A FAMILY. THEY'RE PUTTING IN A POOL.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THERE'S, UH... A PAIR OF PANTS IN HERE. KHAKI. PLEATED. COME AND SEE.",
   "from": "ADVENTURE"
  },
  {
@@ -12466,7 +13381,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THERE'S, UH... FREE TOILET PAPER IN HERE. A WHOLE ROLL. YOU REALLY COULD USE IT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THEY CHEWED THROUGH MY VINE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THEY CHEWED THROUGH MY VINE! DON'T LET ME LAND ON HIM! DON'T LET ME LAND ON ANY OF HIM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THEY CHEWED THROUGH MY VINE! NOT DOWN THERE! IT SMELLS DOWN THERE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THEY TELL US NEVER BREAK CHARACTER. A KID THREW UP ON ME ONCE. I STAYED IN CHARACTER. THIS, I'M BREAKING FOR.",
   "from": "ADVENTURE"
  },
  {
@@ -12476,7 +13411,22 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THEY TELL US NEVER BREAK CHARACTER. THERE IS NO CHARACTER FOR THIS. THERE'S NO PAGE IN THE MANUAL FOR A NAKED MAN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THEY WEREN'T CREATIVE PEOPLE. HE WAS A FUCKING ASSHOLE, BY THE WAY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THEY WEREN'T CREATIVE PEOPLE. HE WAS A FUCKING ASSHOLE, BY THE WAY. BUT AT LEAST HE WORE PANTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THEY WEREN'T CREATIVE PEOPLE. HE WAS A FUCKING ASSHOLE, BY THE WAY. THE KIND OF GUY WHO'D SHIT HIMSELF ON A BOAT.",
   "from": "ADVENTURE"
  },
  {
@@ -12486,7 +13436,37 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THEY'RE EATING MY EVERYTHING! THERE'S A WHOLE NAKED BUFFET RIGHT THERE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THEY'RE EATING MY EVERYTHING! WHY NOT HIM?! ...OH. RIGHT. NOBODY WANTS TO EAT THAT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THEY'RE IN MY SHORTS! AT LEAST I'VE STILL GOT SHORTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THEY'RE IN MY SHORTS! MINE ARE THE CLEAN ONES! WHY MINE?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THEY'RE IN MY SHORTS! THEY'RE IN MY SHORTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS BUSH HAS A BEACH TOWEL IN IT. I'M SERIOUS. COME COVER UP.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS BUSH HAS A CLEAN PAIR OF PANTS IN IT. YOUR SIZE. I'M SERIOUS.",
   "from": "ADVENTURE"
  },
  {
@@ -12501,12 +13481,42 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THIS CONCLUDES... THE SKELETON TOUR... NO NOSE... FINALLY... I CAN'T SMELL YOU...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS CONCLUDES... THE SKELETON TOUR... NOW WE ARE BOTH... VERY NAKED...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THIS CONCLUDES... THE TOUR...",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
+  "text": "THIS CONCLUDES... THE TOUR... SOMEBODY... OPEN A WINDOW...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS CONCLUDES... THE TOUR... THE LAST THING I SAW... WAS THAT...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THIS IS AN UNAUTHORIZED RIDE EXPERIENCE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS IS AN UNAUTHORIZED RIDE EXPERIENCE! AND THOSE SEATS ARE NOT RATED FOR BARE SKIN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS IS AN UNAUTHORIZED RIDE EXPERIENCE! AND YOU'RE LEAVING A TRAIL!",
   "from": "ADVENTURE"
  },
  {
@@ -12521,7 +13531,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THIS RIVER IS FED BY THE MIGHTY NILE, THE AMAZON, AND A GARDEN HOSE. SIR, THAT SEAT IS VINYL. YOU ARE GOING TO STICK TO IT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS RIVER IS FED BY THE MIGHTY NILE, THE AMAZON, AND, AS OF A MINUTE AGO, THE BACK OF YOUR PANTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THIS SUIT? COMPANY ISSUE. IT'S MADE OF THE SAME STUFF AS A SHOWER CURTAIN. IT DOESN'T BREATHE. NEITHER DO I, IN IT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS SUIT? IT DOESN'T BREATHE. FOR ONCE, THAT'S A BLESSING. I'M BREATHING THROUGH THE HAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS SUIT? SHOWER CURTAIN MATERIAL. I'D LEND IT TO YOU, BUT THEN WE'D BOTH BE NAKED, AND I'M NOT READY FOR THAT.",
   "from": "ADVENTURE"
  },
  {
@@ -12531,7 +13561,37 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THIS WHISTLE MEANS DINNER. IN HIPPO. THE SMELL MEANS SOMETHING ELSE. IN EVERYTHING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS WHISTLE MEANS SOMEBODY'S NAKED AND READY. IN HIPPO. AND LOOK! SOMEBODY IS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THOSE ARE MY GUTS! AT LEAST WHAT WAS IN MINE STAYED IN, TILL NOW!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THOSE ARE MY GUTS! EVERYBODY'S SEEING EVERYTHING TODAY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THOSE ARE MY GUTS! THEY'RE NOT A CHEW TOY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THOSE ARE PIRANHAS. THEY'RE FOLLOWING THE BOAT. I THINK THEY CAN SMELL YOU. I KNOW I CAN.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THOSE ARE PIRANHAS. THEY'RE REAL. AND WITH EVERYTHING HANGING OUT LIKE THAT, IF I WERE YOU, I WOULD NOT DANGLE.",
   "from": "ADVENTURE"
  },
  {
@@ -12546,7 +13606,37 @@
  },
  {
   "voice": "m2.safari",
+  "text": "TREE HOUSE RULES! NO MEATHEADS! NO SHITTY PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "TREE HOUSE RULES! NO MEATHEADS! PANTS REQUIRED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "TWENTY YEARS OF TOURS! YOU LEARN TO JUMP!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "TWENTY YEARS OF TOURS! YOU LEARN TO JUMP! AND NEVER TO LOOK DOWN! ESPECIALLY TODAY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "TWENTY YEARS OF TOURS! YOU LEARN TO JUMP! AND TO HOLD YOUR BREATH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WATCH IT! I AM NOT DYING DOWNWIND OF YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WATCH IT! NAKED GUYS DON'T GET TO SHOOT AT PEOPLE! THAT'S A RULE! IT SHOULD BE!",
   "from": "ADVENTURE"
  },
  {
@@ -12561,7 +13651,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "WE GET FOUR HUNDRED GUESTS AN HOUR. ONE OF THEM SHIT HERSELF ONCE. SHE WAS FOUR. SHE CRIED. YOU HAVEN'T EVEN NOTICED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WE GET FOUR HUNDRED GUESTS AN HOUR. YOU KNOW HOW MANY WEAR PANTS? FOUR HUNDRED. IT'S NOT A HARD NUMBER TO HIT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "WELCOME TO THE INTERACTIVE PORTION OF THE TOUR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WELCOME TO THE INTERACTIVE PORTION OF THE TOUR! GUESTS WHO SHIT THEMSELVES, PLEASE STAY DOWNWIND!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WELCOME TO THE INTERACTIVE PORTION OF THE TOUR! THE NUDE BEACH IS IN A DIFFERENT PARK!",
   "from": "ADVENTURE"
  },
  {
@@ -12571,7 +13681,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "WHAT ARE THESE?! THEY'RE WORSE THAN THE FLIES ON YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WHAT ARE THESE?! WHERE WERE YOU EVEN KEEPING THEM?! YOU DON'T HAVE POCKETS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "WHICH BUSH? WHICH BUSH?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WHICH BUSH? WHICH BUSH? THE ONE THAT DOESN'T SMELL LIKE YOU! SO, ALL OF THEM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WHICH BUSH? WHICH BUSH? YOU'RE NOT THE ONLY ONE WHO NEEDS A BUSH RIGHT NOW!",
   "from": "ADVENTURE"
  },
  {
@@ -12581,7 +13711,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "WHO EATS A VINE?! WHO LOSES THEIR PANTS?! WHAT IS WRONG WITH THIS PARK?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WHO EATS A VINE?! WHO SHITS THEIR PANTS?! WHAT'S WRONG WITH EVERYBODY TODAY?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WHOA, WHOA. SIR, DID YOU COME THROUGH THE BACK? ...WHAT IS THAT SMELL? YOU KNOW WHAT, I DON'T CARE. WELCOME ABOARD THE JUNGLE CRUISE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "WHOA, WHOA. SIR, DID YOU COME THROUGH THE BACK? ...YOU KNOW WHAT, I DON'T CARE. WELCOME ABOARD THE JUNGLE CRUISE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WHOA, WHOA. SIR, DID YOU COME THROUGH THE BACK? WHERE ARE YOUR PANTS? ...YOU KNOW WHAT, I DON'T CARE. WELCOME ABOARD THE JUNGLE CRUISE!",
   "from": "ADVENTURE"
  },
  {
@@ -12602,6 +13752,16 @@
  {
   "voice": "m2.safari",
   "text": "YOU KNOW WHAT THE WORST PART OF THIS JOB IS? EVERYTHING. EVERYTHING IS THE WORST PART.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU KNOW WHAT THE WORST PART OF THIS JOB IS? NORMALLY, EVERYTHING. TODAY? IT IS VERY SPECIFICALLY YOU.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU KNOW WHAT THE WORST PART OF THIS JOB IS? THE SUNBURN. AND YOU'RE ABOUT TO FIND OUT WHERE.",
   "from": "ADVENTURE"
  },
  {
