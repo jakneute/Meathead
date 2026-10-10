@@ -225,6 +225,8 @@ export const drawFence = (c: Ctx, top: number) => {
 
 /** A bush's leaf clusters (each a cluster of leaves: its middle, its size), outer ones first to go. */
 const CLUSTERS: [number, number, number][] = [
+  // (its spread at the ends, reaching to the next one's: no gap between them along the row; the first eaten away)
+  [-68, -16, 15], [68, -16, 15], [-62, -36, 13], [62, -36, 13],
   [-50, -14, 18], [50, -14, 18], [-36, -44, 20], [36, -44, 20], [0, -58, 22], [-18, -56, 18], [20, -58, 18],
   [-52, -30, 16], [52, -30, 16], [-30, -20, 22], [30, -20, 22], [0, -34, 26], [-12, -14, 22], [14, -14, 22],
 ];

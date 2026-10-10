@@ -16,5 +16,5 @@ export const ARENA_MID = (ARENA_L + ARENA_R) / 2;
 export const PICKUP_X = x0 + 800;
 
 /** The five bushes he plays his game in, end to end across the fight (their middles), how big. */
-export const BUSH_W = 124, BUSH_H = 66;
+export const BUSH_W = 140, BUSH_H = 66;
 export const BUSH_X = Array.from({ length: 5 }, (_, i) => ARENA_L + 78 + i * 156);

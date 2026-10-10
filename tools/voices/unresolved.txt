@@ -22,22 +22,22 @@ m2/intro/index.ts:612 voice: pick(GUEST_HURRY[dressed(state)])
 m2/intro/index.ts:646 voice: pick(TICKET_LADY[sc.kind])
 m2/intro/index.ts:698 voice: line
 m2/adventure/queue/talk.ts:32 voice: l.text
-m2/adventure/river/index.ts:396 voice: fromBag(rv, 'gkill', GUESTS_KILL)
-m2/adventure/river/index.ts:402 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
+m2/adventure/river/index.ts:408 voice: fromBag(rv, 'gkill', GUESTS_KILL)
+m2/adventure/river/index.ts:414 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
 m2/adventure/dino/rex.ts:146 voice: voice('m2.rex')
 m2/adventure/dino/index.ts:141 voice: pick(MAINT_OBLIVIOUS)
 m2/adventure/temple/index.ts:149 voice: text
-m2/adventure/temple/index.ts:194 voice: g.woman ? 'm2.guest' : 'm2.guest2'
-m2/adventure/temple/index.ts:203 voice: 'm2.guest'
-m2/adventure/temple/index.ts:203 voice: 'm2.guest2'
-m2/adventure/temple/index.ts:209 voice: 'm2.operator'
-m2/adventure/temple/index.ts:209 voice: 'm2.operator2'
+m2/adventure/temple/index.ts:196 voice: g.woman ? 'm2.guest' : 'm2.guest2'
+m2/adventure/temple/index.ts:205 voice: 'm2.guest'
+m2/adventure/temple/index.ts:205 voice: 'm2.guest2'
+m2/adventure/temple/index.ts:211 voice: 'm2.operator'
+m2/adventure/temple/index.ts:211 voice: 'm2.operator2'
 m2/adventure/cart/index.ts:95 voice: text
 m2/adventure/cart/index.ts:197 voice: pick(ARTIE_CHASE_START[dressed(state)])
-m2/adventure/roof/index.ts:104 voice: text
-m2/adventure/clearing/fight.ts:246 voice: voice('m2.safari')
-m2/adventure/clearing/fight.ts:252 voice: pick(lines[pants()])
-m2/adventure/clearing/index.ts:167 voice: text
+m2/adventure/roof/index.ts:114 voice: text
+m2/adventure/clearing/index.ts:168 voice: text
+m2/adventure/clearing/fight.ts:287 voice: voice('m2.safari')
+m2/adventure/clearing/fight.ts:293 voice: pick(lines[pants()])
 m2/adventure/section.ts:132 voice: voice(voiceId)
 m2/walkAway/artie.ts:378 voice: x
 m2/walkAway/artie.ts:383 voice: x

@@ -13,8 +13,8 @@
 //                                  him, low: it lands on him and it's the knife, the same as at the bush; jumped over (or
 //                                  slid under), he lands in the open, and has to get himself back to a bush.
 //                While he's up out of the bush, gunfire hurts him but doesn't shift him: it takes a charge move (the
-//                shoulder charge, the slide, the uppercut, the dive kick) to knock him out of it (or out of his lunge)
-//                into the clearing, seeing stars: the window to blast him.
+//                shoulder charge, the slide, the uppercut, the dive kick) to knock him out of it into the clearing,
+//                seeing stars: the window to blast him. The lunge itself can't be stopped: jump it, slide under it.
 //   THE WHISTLE  Two goes at him like that (three, late on), back into a bush between them; then (stunned or not) he's
 //                out in the open: his mating whistle, and here they come, a rhino, a hippo, an elephant (one at a time
 //                early on, several later, spaced unevenly). One gets to him and he leaps up out of its way onto a vine.
@@ -864,9 +864,9 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // (the litter's nibbles: always, no breather)
   if (nib > 0) { f.hp -= nib * NIBBLE_SHARE; if (f.hp <= 0) f.byWeakness = true; }
   if (hit <= 0.5) return;
-  // (up in his bush, or flying at him on a lunge: gunfire hurts him but doesn't shift him; a charge move knocks him out
-  // into the clearing, his breather or not)
-  const knockable = melee && (inBush(f) || f.mode === 'lunge' || f.mode === 'coil');
+  // (up in his bush: gunfire hurts him but doesn't shift him; a charge move knocks him out into the clearing, his
+  // breather or not. Flying at him on a lunge, nothing stops him: it's to be got out of the way of)
+  const knockable = melee && (inBush(f) || f.mode === 'coil');
   if (f.iframes <= 0) {
     f.hp -= hit; f.iframes = IFRAMES; f.flash = 10;
     if (f.hp <= 0) { f.byWeakness = aliensOn(e) > 0; return; }
