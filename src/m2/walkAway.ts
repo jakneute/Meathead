@@ -20,9 +20,10 @@ import { type Ctx, type Prop, type SceneDef, LW, LH, TOP, BOT, HOR, SPEED, STEP,
 import { lowRes, canvas, drawGround, skyOf, spriteOf, fogAt, vignetteOf, wobble, drawStink, drawTitle, blitPicture, font } from './walkAway/screen';
 import { drawMeatheadFront, type Pose } from './walkAway/meathead';
 import { SAFARI_ARTIE } from './walkAway/artie';
+import { DONNIE_DRACULA } from './walkAway/donnie';
 
 /** The bosses that have a walk-away (add each boss's SceneDef here). */
-export const WALK_AWAY_SCENES = { 'safari-artie': SAFARI_ARTIE } satisfies Record<string, SceneDef>;
+export const WALK_AWAY_SCENES = { 'safari-artie': SAFARI_ARTIE, 'donnie-dracula': DONNIE_DRACULA } satisfies Record<string, SceneDef>;
 export type WalkAwayBoss = keyof typeof WALK_AWAY_SCENES;
 
 export interface WalkAwayOpts {
@@ -283,7 +284,7 @@ export const drawWalkAway = (c: Ctx, w: WalkAway) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Dev: ?walkaway=artie (&weak for his weakness death; &shat, &nude) plays it on its own over the page, again and again.
+// Dev: ?walkaway=artie (or =donnie; &weak for his weakness death; &shat, &nude) plays it on its own over the page, again and again.
 
 export const devPreviewWalkAway = () => {
   if (typeof document === 'undefined') return;
@@ -296,7 +297,7 @@ export const devPreviewWalkAway = () => {
   window.addEventListener('keydown', e => { if (e.key === ' ') jumpDown = true; });
   window.addEventListener('keyup', e => { if (e.key === ' ') jumpDown = false; });
   const start = () => {
-    const w = playWalkAway(null, { boss: 'safari-artie', weakness: q.has('weak'), onDone: () => setTimeout(() => { cur = start(); }, 400) });
+    const w = playWalkAway(null, { boss: q.get('walkaway') === 'donnie' ? 'donnie-dracula' : 'safari-artie', weakness: q.has('weak'), onDone: () => setTimeout(() => { cur = start(); }, 400) });
     w.shat = q.has('shat'); w.nude = q.has('nude');
     return w;
   };

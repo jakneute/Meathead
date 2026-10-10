@@ -206,7 +206,8 @@ const floorAt = (state: GameState, x: number, w: number, prevBottom: number, bot
 const fire = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, muzzle: { x: number; y: number }) => {
   const { state, fx, cheats } = ctx;
   const pl = state.player;
-  const t = TRINKETS.find(k => k.id === forced) ?? TRINKETS[Math.floor(Math.random() * TRINKETS.length)];
+  const want = forced ?? pickHook?.(TRINKETS) ?? null;
+  const t = TRINKETS.find(k => k.id === want) ?? TRINKETS[Math.floor(Math.random() * TRINKETS.length)];
   // Up + fire: a lob, a mortar's arc, high over and down on the head of whoever's out in front (no wobble: it's the
   // shot that's aimed; or, nobody about, just a high one out in front). Otherwise aimed a bit: down (in the air) sends it
   // at the floor; a little wild either way: it's junk out a pipe
@@ -290,6 +291,7 @@ const hitEnemy = (ctx: FrameContext, p: Projectile, e: Enemy) => {
   // (how fast it's going counts for a light one; a heavy one hits hard however it gets there: it's the weight)
   const dmg = Math.round(t.dmg * Math.max(0.5 + t.mass * 0.45, Math.min(1.2, speed / t.speed)));
   const dir = Math.sign(p.vel.x) || 1;
+  hitHook?.(e, t.id, dmg);
   e.health -= dmg;
   const at = { x: e.pos.x + e.width / 2, y: p.pos.y + p.height / 2 };
   fx.spawnExplosion(at, '#8B0000', 4 + Math.round(t.mass * 8), 0, 6);
@@ -490,6 +492,16 @@ const drawHeld = (c: Ctx, frame: number) => {
   box(c, 8, -13 + j, 1, 5, '#EAB308'); box(c, 7, -9 + j, 3, 1, '#CA8A04');
   c.fillStyle = '#FCD34D'; c.beginPath(); c.moveTo(13, -8 + j); c.lineTo(15.5, -12 + j); c.lineTo(18, -8 + j); c.closePath(); c.fill();
 };
+
+/** A boss fight's say over what comes out of the bag next (Donnie Dracula's: spooky/ballroom/fight.ts): an id, or null
+ *  for the usual luck of the draw. Set while the fight's on, cleared after. */
+let pickHook: ((all: readonly { id: string; dmg: number }[]) => string | null) | null = null;
+export const setSouvenirPick = (f: typeof pickHook) => { pickHook = f; };
+/** Told whenever one hits somebody, before its damage goes on (which one it was, how hard): a boss's weakness. */
+let hitHook: ((e: Enemy, id: string, dmg: number) => void) | null = null;
+export const setSouvenirHit = (f: typeof hitHook) => { hitHook = f; };
+/** The most one of them can hit for (a straight shot, fast: its damage x 1.2). */
+export const souvenirMaxHit = (dmg: number) => Math.round(dmg * 1.2);
 
 /** For tests: always this one out of the bag (or any, given nothing). */
 let forced: string | null = null;
