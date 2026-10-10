@@ -65,9 +65,10 @@ export const drawGoingBack = (c: Ctx, v: View) => {
   // The gorge's far end: a rock wall a long way back, the waterfall coming down it (drawn first: everything's in front)
   const gorge = PITS.find(p => p.ya < GY - 100);
   if (gorge && gorge.b > v.v0 - 400 && gorge.a < v.v1 + 400) waterfall(c, v, gorge.a, gorge.b);
-  // The ravines going back: dark, misty, between their banks (drawn under the strips)
+  // The ravines going back: dark, misty, between their banks (drawn under the strips). Not the gorge: it's got a
+  // floor (the river) and the falls' cliff at its end, seen all the way down to it
   for (const p of PITS) {
-    if (p.b < v.v0 - 300 || p.a > v.v1 + 300) continue;
+    if (p === gorge || p.b < v.v0 - 300 || p.a > v.v1 + 300) continue;
     const [ax, ay] = pt(p.a, p.ya, FAR), [bx, by] = pt(p.b, p.yb, FAR);
     const topY = Math.min(ay, by, p.ya, p.yb);
     c.save();
@@ -82,6 +83,9 @@ export const drawGoingBack = (c: Ctx, v: View) => {
     }
     c.restore();
   }
+  // The gorge's floor: the river the falls come down into, from the pool at their foot out toward him (between its
+  // walls: they're drawn after, in front of it)
+  if (gorge && gorge.b > v.v0 - 400 && gorge.a < v.v1 + 400) gorgeRiver(c, v, gorge.a, gorge.b);
   // The ground behind him, going back: bands, darker and hazier the further (bushes along the far edge, later)
   for (const r of RUNS) {
     if (r.b < v.v0 - 400 || r.a > v.v1 + 400 || eye.y > r.y - 2) continue;
@@ -154,7 +158,9 @@ const bankFace = (c: Ctx, v: View, e: number, side: 1 | -1, top: number, bottom:
   const q = (k0: number, y0: number, k1: number, y1: number, col: string) => poly(c, [pt(k0, y0), pt(k1, y0), pt(k1, y1), pt(k0, y1)], col);
   // (only as far down as can be seen)
   const bot = Math.min(bottom, eye.y + (v.bot - eye.y) / FAR + 40);
-  const shade = (col: string, k: number, y: number) => mix(mix(farTint(col, 0.3, tod), haze, k * 0.25), '#030605', Math.min(0.85, Math.max(0, (y - top - 80) / 520)));
+  // (darker the deeper below the ground line: a raised one's face, the overlook's, is lit rock down to there)
+  const lit0 = Math.max(top, GY - 60);
+  const shade = (col: string, k: number, y: number) => mix(mix(farTint(col, 0.3, tod), haze, k * 0.25), '#030605', Math.min(0.85, Math.max(0, (y - lit0 - 80) / 520)));
   const soil = raised ? 0 : 40;
   if (soil) for (let j = 0; j < 4; j++) { q(j / 4, top, (j + 1) / 4, top + soil, shade(EARTH[3 - (j >> 1)], j / 4, top)); q(j / 4, top, (j + 1) / 4, top + 3, shade(EARTH[5], j / 4, top)); }
   let y = top + soil, row = 0;
@@ -183,9 +189,50 @@ const bankFace = (c: Ctx, v: View, e: number, side: 1 | -1, top: number, bottom:
   c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(e, top); c.lineTo(x1, t1); c.stroke();
 };
 
+/** The gorge's floor: a river, this far down. */
+const RIVER_Y = GY + 260;
+/** How far back the falls are. */
+const FALLS_D = 0.48;
+
+/**
+ * The river at the bottom of the gorge, seen from above: from the pool at the falls' foot (white water, spray) out
+ * toward him, banded by depth (paler far off, where it takes the sky; darker near), flecks of foam riding it his way.
+ */
+const gorgeRiver = (c: Ctx, v: View, a: number, b: number) => {
+  const tod = timeOfDay(), eye = v.eye, f = v.f, mid = (a + b) / 2, haze = skyAt(0.88, tod);
+  // (only seen from above it: and from up on the overlook, or across, it is)
+  if (eye.y > RIVER_Y - 20) return;
+  const pt = (x: number, d: number) => at(eye, x, RIVER_Y, d);
+  // (the river's width: the gorge's at him, the far cliff's at the falls)
+  const xl = (d: number) => a + (mid - 560 - a) * (1 - d) / (1 - FALLS_D), xr = (d: number) => b + (mid + 560 - b) * (1 - d) / (1 - FALLS_D);
+  const W = ['#0E2A36', '#163A48', '#1E4C5A', '#2A6070', '#3E7A88', '#5A96A2'].map(col => mix(farTint(col, 0.8, tod), haze, 0.15));
+  const N = 6;
+  for (let i = 0; i < N; i++) {
+    const d0 = 1 - (1 - FALLS_D) * i / N, d1 = 1 - (1 - FALLS_D) * (i + 1) / N;
+    poly(c, [pt(xl(d0), d0), pt(xr(d0), d0), pt(xr(d1), d1), pt(xl(d1), d1)], W[i]);
+    const [lx, sy] = pt(xl(d1), d1), [rx] = pt(xr(d1), d1);
+    checker(c, lx, sy, rx - lx, PIX, W[Math.min(N - 1, i + 1)]);
+  }
+  // (foam riding it toward him: flecks, bigger and faster the nearer)
+  for (let k = 0; k < 40; k++) {
+    const t = ((hash(k * 3.3) + f * (0.0012 + hash(k) * 0.0008)) % 1), d = FALLS_D + (1 - FALLS_D) * t;
+    const x = xl(d) + (xr(d) - xl(d)) * (0.15 + hash(k * 7.1) * 0.7), [sx, sy] = pt(x, d);
+    box(c, sx, sy, Math.max(2, 10 * d * (0.5 + hash(k * 2.2))), Math.max(1, 2 * d), k % 3 ? 'rgba(220, 240, 245, 0.55)' : 'rgba(255, 255, 255, 0.75)');
+  }
+  // (the pool at the falls' foot: churned white, spray rising off it in steps)
+  const w = 150 * FALLS_D;
+  const [px, py] = pt(mid, FALLS_D);
+  for (let k = 0; k < 3; k++) {
+    const rw = w * (1.1 + k * 0.45), rh = 6 + k * 5;
+    c.fillStyle = k === 0 ? 'rgba(250, 254, 255, 0.85)' : k === 1 ? 'rgba(220, 240, 248, 0.5)' : 'rgba(200, 230, 240, 0.25)';
+    c.beginPath(); c.ellipse(Math.round(px), Math.round(py + k * 3), rw / 2 + Math.sin(f * 0.1 + k) * 2, rh, 0, 0, Math.PI * 2); c.fill();
+  }
+  for (let k = 0; k < 4; k++) hazeBands(c, px - w * 1.6, py - 30 - k * 18, w * 3.2, 22, mix(haze, '#FFFFFF', 0.4), 0.0, 0.16 - k * 0.035, 3);
+};
+
 /** The gorge's far end: a cliff a long way back with the falls coming down it, the spray at the bottom. */
 const waterfall = (c: Ctx, v: View, a: number, b: number) => {
-  const tod = timeOfDay(), d = 0.48, mid = (a + b) / 2, f = v.f;
+  const tod = timeOfDay(), d = FALLS_D, mid = (a + b) / 2, f = v.f;
   const haze = skyAt(0.88, tod);
   atDepth(c, v.eye, d, () => {
     const x0 = mid - 560, x1 = mid + 560, top = Y(640);
@@ -203,16 +250,19 @@ const waterfall = (c: Ctx, v: View, a: number, b: number) => {
     // (the falls: a sheet of water in bands, streaks running down it, white where it breaks over the lip)
     const w = 150, fx = mid - w / 2, fy = top + 14;
     const W = ['#3E6A86', '#5A8CA8', '#7EB0C8', '#A8D4E4', '#DDF2F8'].map(col => mix(farTint(col, 0.8, tod), haze, 0.25));
-    box(c, fx, fy, w, DEEP - fy, W[1]);
-    for (let i = 0; i < 10; i++) box(c, fx + (i * w) / 10, fy, w / 10 + 1, DEEP - fy, W[(i * 7 + 3) % 4]);
+    // (down into the river at the gorge's floor)
+    box(c, fx, fy, w, RIVER_Y - fy, W[1]);
+    for (let i = 0; i < 10; i++) box(c, fx + (i * w) / 10, fy, w / 10 + 1, RIVER_Y - fy, W[(i * 7 + 3) % 4]);
     // (streaks falling: color cycling down the sheet)
+    c.save(); c.beginPath(); c.rect(fx - 4, fy, w + 8, RIVER_Y - fy); c.clip();
     for (let i = 0; i < 26; i++) {
       const sx = fx + hash(i * 3.1) * (w - 4), sp = 3 + hash(i) * 2, len = 30 + hash(i * 5.7) * 60;
       for (let k = 0; k < 6; k++) {
-        const sy = fy + (((f * sp + hash(i * 9 + k) * 2000) % 1600));
+        const sy = fy + (((f * sp + hash(i * 9 + k) * 2000) % (RIVER_Y - fy + 100))) - 60;
         box(c, sx, sy, 2, len, k % 2 ? W[3] : W[4]);
       }
     }
+    c.restore();
     // (the lip: white water curling over, rocks either side)
     for (let i = 0; i < w; i += 6) box(c, fx + i, fy - 4 + Math.round(Math.sin(f * 0.2 + i) * 1.5), 6, 8, i % 12 ? W[4] : W[3]);
     clump(c, fx - 20, fy - 6, 34, 22, 31, LEAF.map(col => mix(farTint(col, 1, tod), haze, 0.4)), 1);

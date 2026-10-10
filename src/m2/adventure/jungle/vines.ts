@@ -337,6 +337,25 @@ const vinePoints = (d: VineDef, v: VineRun, held: number | null, f: number, seed
   return pts;
 };
 
+/**
+ * The top of a climbing vine that runs up onto a ledge: from where it ends up on the ledge, back along the top, over
+ * the lip (bowed up a little over the edge) and down to the top of the part that's climbed, in that order.
+ */
+const runOver = (d: VineDef, top: { x: number; y: number }) => {
+  const dir = Math.sign(top.x - d.x) || 1, lip = d.x + (top.x - d.x) * 0.5;
+  const pts: { x: number; y: number }[] = [];
+  // (lying along the top: from its end up there back to the lip)
+  const end = top.x + dir * 24;
+  for (let k = 0; k <= 4; k++) { const x = end + (lip - end) * k / 4; pts.push({ x, y: top.y - 3 + Math.sin(k * 2.1) * 0.8 }); }
+  // (over the lip and down onto the climb: a curve round the edge, into the climb's own top)
+  for (let k = 1; k < 4; k++) {
+    const t = k / 4, cx = lip - dir * 4, cy = top.y - 8;
+    const x = (1 - t) * (1 - t) * lip + 2 * t * (1 - t) * cx + t * t * d.x, y = (1 - t) * (1 - t) * (top.y - 3) + 2 * t * (1 - t) * cy + t * t * d.y;
+    pts.push({ x, y });
+  }
+  return pts;
+};
+
 /** A vine: a twisted green rope with leaves, from the branch it hangs off (a stub of branch, dark: not a ledge). */
 export const drawVines = (c: Ctx, state: GameState, defs: VineDef[]) => {
   const j = jungleOf(state), vx0 = state.camera.x - 300, vx1 = state.camera.x + 1100, f = state.frame;
@@ -344,7 +363,12 @@ export const drawVines = (c: Ctx, state: GameState, defs: VineDef[]) => {
     if (d.x < vx0 || d.x > vx1) return;
     const v = j.vines[i] ?? { th: 0, om: 0 };
     const pts = vinePoints(d, v, j.hold.on === i ? j.hold.s : null, state.frame, i * 7 + 3);
-    const climb = d.kind === 'climb', n = pts.length;
+    const climb = d.kind === 'climb';
+    // (a climbing one that runs up onto a ledge doesn't stop in the air at the top: it goes on up over the lip and
+    // along the top a way, rooted up there too)
+    const over = climb && d.top ? runOver(d, d.top) : null;
+    if (over) pts.unshift(...over);
+    const n = pts.length;
     // (a liana: inked, a dark green-brown, lit down one side, highlighted; thinning toward the tip)
     const w0 = climb ? 7 : 6, w1 = climb ? 6 : 2.5;
     const line = (col: string, add: number, dx: number, dy = 0) => {
@@ -382,7 +406,8 @@ export const drawVines = (c: Ctx, state: GameState, defs: VineDef[]) => {
       c.strokeStyle = LIANA[2]; c.lineWidth = 1; c.beginPath(); c.arc(end.x + Math.cos(ang) * 3, end.y + Math.sin(ang) * 3, 3, 0, Math.PI * 1.6); c.stroke();
       leaf(c, end.x, end.y, 10, ang + 0.6, LEAF, 4); leaf(c, end.x, end.y, 8, ang - 0.7, LEAF, 3);
     }
-    // (a climbing vine's rooted: a tuft at the foot of it)
+    // (a climbing vine's rooted: a tuft at the foot of it; and, run up onto a ledge, another where it ends up there)
     if (climb) { for (let a = -2; a <= 2; a++) leaf(c, end.x, end.y, 12, -Math.PI / 2 + a * 0.5, LEAF, a < 0 ? 4 : 3); }
+    if (over) { const s = pts[0], dir = Math.sign(s.x - d.x) || 1; for (let a = -1; a <= 2; a++) leaf(c, s.x, s.y, 10, -Math.PI / 2 + dir * a * 0.55, LEAF, a < 1 ? 4 : 3); }
   });
 };

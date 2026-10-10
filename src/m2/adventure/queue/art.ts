@@ -429,12 +429,16 @@ const dock = (c: Ctx, eye: Eye, f: number) => {
   const a = R(1480), b = R(2000);
   // (the river out past the dock: going back to the far bank, banded, its sheen sliding)
   const wcol = hourMix('#1E5A68', '#4A5268', '#121E38');
+  // (only seen past the dock's start: going back, it'd slide left over the back route's things as he walks, but they're
+  // stood in front of it)
+  c.save(); c.beginPath(); c.rect(a, GY - 2000, 4000, 4000); c.clip();
   quad(c, P(eye, a, GY, 0.82), P(eye, b + 200, GY, 0.82), P(eye, b + 200, GY, 0.55), P(eye, a, GY, 0.55), mix(wcol, '#BFE6F0', 0.18));
   quad(c, P(eye, a, GY, 0.68), P(eye, b + 200, GY, 0.68), P(eye, b + 200, GY, 0.55), P(eye, a, GY, 0.55), mix(wcol, '#BFE6F0', 0.32));
   for (let k = 0; k < 10; k++) { const s = 0.58 + (k % 5) * 0.05, x = R(1500 + ((k * 97 + f * 0.4 * s) % 520)); const [px, py] = P(eye, x, GY, s); box(c, px, py, 10 * s, 1, 'rgba(230, 248, 255, 0.55)'); }
   // (the far bank: scrub and trunks)
   atDepth(c, eye, 0.55);
   for (let x = 1440; x < 2100; x += 46) { box(c, R(x) + 10, GY - 120, 6, 120, farTint('#4A3A2A', 0.5)); c.fillStyle = farTint('#2E5A30', 0.5); c.beginPath(); c.arc(R(x) + 13, GY - 120, 30, 0, Math.PI * 2); c.fill(); c.beginPath(); c.arc(R(x) + 30, GY - 10, 26, Math.PI, 0); c.fill(); }
+  c.restore();
   c.restore();
   // The dock's boards, going back
   const pr = rampOf(PLANK);
