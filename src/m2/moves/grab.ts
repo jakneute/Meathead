@@ -600,7 +600,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
 
     case 'windup':
       // Coiled up for it, half a second: hurt in that time, and he's knocked out of it (the hit's own knockback goes)
-      if (p.health < g.windHp) { g.phase = 'idle'; g.t = 0; playSound('thud', 0.5, 4); return controls; }
+      if (p.health < g.windHp) { end(state, g); playSound('thud', 0.5, 4); return controls; }
       if (g.t >= WINDUP) { g.phase = 'lunge'; g.t = 0; playSound('whoosh', 1, -2); }
       return hold();
 
