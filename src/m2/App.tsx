@@ -26,6 +26,7 @@ import { registerStageLayout } from '../m1/game/stages/index';
 import { hubLayout, HUB_STAGE, setHubStart } from './hub/index';
 import { penLayout, PEN_STAGE } from './pen/index';
 import { advLayout, ADV_STAGE, ADV_CHECKPOINTS } from './adventure/index';
+import { spookyLayout, SPOOKY_STAGE, SPOOKY_CHECKPOINTS } from './spooky/index';
 import { SPOTS, LANDS } from './hub/lands';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
 import { setGenderOf, unpaired } from '../m1/content/gender';
@@ -53,12 +54,14 @@ import { registerGrabCallouts } from './moves/callouts';
 // test pen behind the staff door (try out the beatdown and the shakedown on whoever walks in).
 
 // (in Meathead 2, what's thrown up off the top of the screen comes back down: no "TO THE MOON")
-for (const l of [hubLayout, penLayout, advLayout, introLayout]) l.noMoonKills = true;
-// (and the camera glides where it'd jump in Adventure Land: out of a cutscene's view, onto a fight's arena)
+for (const l of [hubLayout, penLayout, advLayout, spookyLayout, introLayout]) l.noMoonKills = true;
+// (and the camera glides where it'd jump in the lands: out of a cutscene's view, onto a fight's arena)
 advLayout.smoothCameraSnaps = true;
+spookyLayout.smoothCameraSnaps = true;
 registerStageLayout(HUB_STAGE, hubLayout);
 registerStageLayout(PEN_STAGE, penLayout);
 registerStageLayout(ADV_STAGE, advLayout);
+registerStageLayout(SPOOKY_STAGE, spookyLayout);
 registerStageLayout(INTRO_STAGE, introLayout);
 registerIntro();
 loadVoicePack(voicePackUrl);
@@ -105,6 +108,12 @@ const STARTING_AMMO = createFullAmmo();
 const PRACTICE = { invincible: true, infiniteAmmo: true, infinitePower: false, skipToBoss: false };
 const PLAY = { ...PRACTICE, invincible: false, infiniteAmmo: false };
 const noop = () => {};
+/** The lands that are built: each one's stage, by its lands.ts id, and every checkpoint in it (the checkpoint-skip cheat). */
+const LAND_STAGES: Record<string, { stage: string; checkpoints: { name: string; cp: number }[] }> = {
+  adventure: { stage: ADV_STAGE, checkpoints: ADV_CHECKPOINTS },
+  spooky: { stage: SPOOKY_STAGE, checkpoints: SPOOKY_CHECKPOINTS },
+};
+const landOfStage = (stage: string) => Object.keys(LAND_STAGES).find(id => LAND_STAGES[id].stage === stage) ?? null;
 
 const useFitToWindow = () => {
   const fit = () => Math.max(0.5, Math.min(window.innerWidth / 808, window.innerHeight / 608));
@@ -116,9 +125,10 @@ const useFitToWindow = () => {
 const App2: React.FC = () => {
   const scale = useFitToWindow();
   const ui = useSyncExternalStore(subscribeUi, getUi);
-  // (it starts on the way in: the intro; in dev, ?adv=<checkpoint> starts in Adventure Land, ?hub=<spot> at the hub)
+  // (it starts on the way in: the intro; in dev, ?adv=<checkpoint> starts in Adventure Land, ?spooky=<checkpoint> in
+  // Spooky Land, ?hub=<spot> at the hub)
   const devQ = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
-  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('hub') ? HUB_STAGE : INTRO_STAGE;
+  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('hub') ? HUB_STAGE : INTRO_STAGE;
   const [stage, setStage] = useState(first);
   const [status, setStatus] = useState(GameStatus.START);
   const pending = useRef<string | null>(first);
@@ -147,12 +157,13 @@ const App2: React.FC = () => {
   }, [status]);
   useEffect(() => {
     onTravel(dest => {
-      const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : dest === 'adventure' ? ADV_STAGE : null;
+      const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : LAND_STAGES[dest]?.stage ?? null;
       if (!to) return;
       clearSkyCache();
       // (back at the hub where he left it: the staff door, the land's portal, or America USA's way in)
       const landSlot = (id: string) => SPOTS.findIndex(s => s.kind === 'land' && LANDS[s.land].id === id);
-      if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : stage === ADV_STAGE ? landSlot('adventure') : AMERICA_SLOT);
+      const from = landOfStage(stage);
+      if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : from ? landSlot(from) : AMERICA_SLOT);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: portalArrivalPending() });
       setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false });
@@ -170,7 +181,7 @@ const App2: React.FC = () => {
   const live = useRef({ status, weapon, stage });
   live.current = { status, weapon, stage };
   /** (after RESUME: SKIP INTRO in the intro; BACK TO HUB out in a land, or the break room) */
-  const canHub = () => live.current.stage === ADV_STAGE || live.current.stage === PEN_STAGE;
+  const canHub = () => !!landOfStage(live.current.stage) || live.current.stage === PEN_STAGE;
   const lastPause = () => (live.current.stage === INTRO_STAGE || canHub() ? arsenal().length + 1 : arsenal().length);
   const skipIntro = () => { setStatus(GameStatus.PLAYING); goTo('hub'); };
   /** BACK TO HUB, asked first: ARE YOU SURE? (null: not asking; 0 NO, 1 YES picked out, NO to start with) */
@@ -313,7 +324,7 @@ const App2: React.FC = () => {
   // (the HUD and the pause menu, done up for wherever he is)
   // (in dev, ?zone=<zone> shows that one's look anywhere)
   const devZone = import.meta.env.DEV ? (new URLSearchParams(location.search).get('zone') as keyof typeof THEMES | null) : null;
-  const zone = devZone ?? (stage === HUB_STAGE ? 'hub' : stage === PEN_STAGE ? 'staff' : stage === INTRO_STAGE || stage === ADV_STAGE ? ui.zone : undefined);
+  const zone = devZone ?? (stage === HUB_STAGE ? 'hub' : stage === PEN_STAGE ? 'staff' : stage === INTRO_STAGE || landOfStage(stage) ? ui.zone : undefined);
   const theme = zone ? THEMES[zone] : undefined;
 
   return (
@@ -377,17 +388,20 @@ const App2: React.FC = () => {
         {ui.introTicket && <TicketCard kind={ui.introTicket} />}
         {ui.map !== null && <MapCard land={ui.map} />}
         {/* (the checkpoint-skip cheat: where in the land to start) */}
-        {ui.pick && (
-          <CheckpointPicker stageId={LANDS.find(l => l.id === ui.pick)?.name ?? ui.pick}
-            list={ADV_CHECKPOINTS.map((c, k) => ({ label: `${k + 1}. ${c.name}`, at: c.cp }))}
-            onCancel={() => setUi({ pick: null })}
-            onPick={at => { const id = ui.pick!; setUi({ pick: null }); setStartCheckpoint(typeof at === 'number' ? at : ADV_CHECKPOINTS[ADV_CHECKPOINTS.length - 1].cp); goTo(id); }} />
-        )}
+        {ui.pick && LAND_STAGES[ui.pick] && (() => {
+          const cps = LAND_STAGES[ui.pick].checkpoints;
+          return (
+            <CheckpointPicker stageId={LANDS.find(l => l.id === ui.pick)?.name ?? ui.pick}
+              list={cps.map((c, k) => ({ label: `${k + 1}. ${c.name}`, at: c.cp }))}
+              onCancel={() => setUi({ pick: null })}
+              onPick={at => { const id = ui.pick!; setUi({ pick: null }); setStartCheckpoint(typeof at === 'number' ? at : cps[cps.length - 1].cp); goTo(id); }} />
+          );
+        })()}
         {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
         {status === GameStatus.PAUSED && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch}
             onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onSkip={stage === INTRO_STAGE ? skipIntro : undefined}
-            onHub={stage === ADV_STAGE || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause} />
+            onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause} />
         )}
         {noticeUp && ui.notice && (
           <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>

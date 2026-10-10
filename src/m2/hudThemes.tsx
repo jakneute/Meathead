@@ -9,7 +9,8 @@ import type { HudSkin } from '../m1/components/HUD';
 
 export type Zone =
   | 'garage' | 'security' | 'america' | 'ticket' | 'hub' | 'staff'
-  | 'jungle' | 'queue' | 'boat' | 'underwater' | 'dino' | 'temple' | 'cart' | 'roof' | 'clearing';
+  | 'jungle' | 'queue' | 'boat' | 'underwater' | 'dino' | 'temple' | 'cart' | 'roof' | 'clearing'
+  | 'spooky';
 
 /** How the pause menu looks. */
 export interface PauseSkin {
@@ -374,6 +375,26 @@ export const THEMES: Record<Zone, Theme> = {
       well: { background: 'rgba(26,46,5,0.6)', border: '1px solid #65A30D' },
       slot: 'rgba(26,46,5,0.92)', slotOn: 'rgba(234,88,12,0.85)',
       button: 'linear-gradient(180deg, #EA580C, #9A3412)', buttonEdge: '#431407',
+    },
+  },
+  // Spooky Land (the first pass: one look for all of it): a tombstone, slime green on it
+  spooky: {
+    hud: {
+      panel: { background: 'linear-gradient(180deg, rgba(46,16,101,0.96), rgba(26,11,46,0.96))', border: '2px solid #86EFAC', boxShadow: PIXEL_SHADOW },
+      deco: <>{edge('#86EFAC', 4)}{tag('R.I.P.', { background: '#86EFAC', color: '#1A0B2E' })}</>,
+      label: '#BBF7D0', value: '#FFFFFF', name: '#86EFAC',
+      track: { background: '#1A0B2E', borderColor: '#5B21B6' },
+      slot: { background: 'rgba(26,11,46,0.6)', borderColor: '#86EFAC' },
+    },
+    pause: {
+      title: 'PAUSED', sub: 'THE GHOSTS ARE ON BREAK TOO',
+      titleStyle: { color: '#86EFAC', textShadow: '3px 3px 0 #2E1065, 5px 5px 0 #000' },
+      frame: { background: 'linear-gradient(180deg, #2E1065, #1A0B2E)', border: '4px solid #86EFAC', boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9)' },
+      stripe: 'repeating-linear-gradient(135deg, #86EFAC 0 8px, #2E1065 8px 16px)',
+      accent: '#86EFAC', text: '#EDE9FE', muted: '#C4B5FD',
+      well: { background: 'rgba(26,11,46,0.6)', border: '1px solid #5B21B6' },
+      slot: 'rgba(26,11,46,0.92)', slotOn: 'rgba(134,239,172,0.8)',
+      button: 'linear-gradient(180deg, #5B21B6, #2E1065)', buttonEdge: '#1A0B2E',
     },
   },
 };

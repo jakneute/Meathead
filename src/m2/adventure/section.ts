@@ -15,21 +15,22 @@ import type { SectionId } from './geometry';
 
 type Ctx = CanvasRenderingContext2D;
 
-/** Adventure Land's own state (state.stage): which section he's in, and each section's own state by its id. */
-export interface Adv {
-  section: SectionId;
+/** Adventure Land's own state (state.stage): which section he's in, and each section's own state by its id. (Other
+ *  lands built the same way, Spooky Land, use it with their own section ids.) */
+export interface Adv<Id extends string = SectionId> {
+  section: Id;
   /** Each section's own (it puts whatever it likes in here, under its id). */
-  s: Partial<Record<SectionId, unknown>>;
+  s: Partial<Record<Id, unknown>>;
 }
 export const getAdv = (state: GameState) => state.stage as Adv | null;
 /** A section's own state, made the first time it's asked for. */
-export const sectionState = <T>(state: GameState, id: SectionId, make: () => T): T => {
-  const adv = getAdv(state)!;
+export const sectionState = <T, Id extends string = SectionId>(state: GameState, id: Id, make: () => T): T => {
+  const adv = state.stage as Adv<Id>;
   return (adv.s[id] ??= make()) as T;
 };
 
-export interface Section {
-  id: SectionId;
+export interface Section<Id extends string = SectionId> {
+  id: Id;
   x0: number; x1: number;
   /** Its checkpoints (numbered across the whole stage, in order): where he starts again from each. */
   checkpoints: {

@@ -20,9 +20,10 @@ import { type Ctx, type Prop, type PortalDef, LW, TOP, BOT, HOR, F, CAM_H, STEP,
 import { lowRes, canvas, drawGround, skyOf, spriteOf, fogAt, vignetteOf, drawStink, drawTitle, blitPicture, font, iris, mosaic } from './walkAway/screen';
 import { drawMeatheadBack, type BackPose } from './walkAway/meatheadBack';
 import { INTO_ADVENTURE } from './walkAway/intoAdventure';
+import { INTO_SPOOKY } from './walkAway/intoSpooky';
 
 /** The lands that have a walk in (add each land's PortalDef here, by its lands.ts id). */
-export const PORTAL_SCENES: Record<string, PortalDef> = { adventure: INTO_ADVENTURE };
+export const PORTAL_SCENES: Record<string, PortalDef> = { adventure: INTO_ADVENTURE, spooky: INTO_SPOOKY };
 export const hasPortalWalk = (land: string) => land in PORTAL_SCENES;
 
 /** How fast the camera comes on up the path (m a frame); how much faster he goes (he pulls away from it). */
