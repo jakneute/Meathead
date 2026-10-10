@@ -16,7 +16,9 @@ const leaves = (g: Ctx): Leaves => ({ lineCap: g.lineCap, lineJoin: g.lineJoin, 
 interface Stamp { c: HTMLCanvasElement; L: number; T: number; after: Leaves }
 /** Most recently used last; the oldest are let go once they add up to more than BUDGET bytes. */
 const stamps = new Map<string, Stamp>();
-const BUDGET = 48 * 1024 * 1024;
+// (a busy stretch of Adventure Land wants ~100 MB of them at once: under that, the whole lot is let go and painted
+// again every frame, and the frame rate goes through the floor. Twice that, so only stamps from somewhere else go)
+const BUDGET = 192 * 1024 * 1024;
 let bytes = 0;
 /** Asked for once but not painted yet: a stamp's only painted the second time it's wanted at that scale (a zoom
  * sweeping through scales frame by frame never fills the cache with ones it'll never use again). */
