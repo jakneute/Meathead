@@ -21,6 +21,8 @@ export const jungle: Section = {
   checkpoints: CHECKPOINTS,
   build: (state) => {
     lay(state, GROUND.map(([a, b, h]) => ({ x1: X(a), y1: Y(h), x2: X(b), y2: Y(h), surface: 'jungle' })));
+    // (the land's start: no going off the left of it, past the screen's edge)
+    state.blocks.push({ x: x0 - 40, y: -4000, w: 40, h: 4000 + GY + 400, type: 'wall', hidden: true, tag: 'jungle-start' } as never);
     for (const [a, b, h] of BRANCHES) ledge(state, X(a), Y(h), X(b) - X(a), { hidden: true });
     jungleOf(state);
     state.player.carried = false;
