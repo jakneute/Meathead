@@ -94,6 +94,18 @@ export const MEATHEAD_CRASH = ['...THAT WAS NOT THE GIFT SHOP.', 'WELL. THEY WAN
 export const MEATHEAD_JUMP = ['CANNONBAAAALL!', 'GERONIMOOOO!', 'WAIT FOR MEEEE!'];
 
 // ---------------------------------------------------------------------------------------------------------------
+// The way down (after the car's gone through)
+
+/** Meathead, setting off down: on the wreckage jammed in the shaft. */
+export const MEATHEAD_DOWN = ["NOW I GOTTA GO ALL THE WAY BACK DOWN. GREAT.", 'WHAT GOES UP...', "THE SHAFT'S JAMMED. GUESS I'M TAKING THE FLOORS."];
+/** ...the first time the shaft's red lamps go (a car coming down). */
+export const MEATHEAD_LAMP = ["RED LIGHT. THAT'S FOR ME, ISN'T IT.", 'INCOMING CAR!', "THEY'RE STILL SENDING THEM DOWN?!"];
+/** ...back on the ground floor, where he came in. */
+export const MEATHEAD_BASE = ['BACK WHERE I STARTED. ONLY WORSE.', 'HEY. I KNOW THIS FLOOR.', 'THE GROUND FLOOR. AND THEN SOME.'];
+/** ...down the hole under it. */
+export const MEATHEAD_CHUTE = ['THE BASEMENT HAS A BASEMENT.', 'IT JUST KEEPS GOING.', 'I CAN SMELL IT. IT SMELLS LIKE A GRILL.'];
+
+// ---------------------------------------------------------------------------------------------------------------
 // What he says when these hurt him, and the death screen when they kill him
 
 export const HURT_GEAR = ['MY SHIRT! IT ATE MY SHIRT!', 'GEARS! WHO PUTS THE GEARS ON THE OUTSIDE?!', "IT'S CHEWING ME! THE CLOCK IS CHEWING ME!", 'THAT ONE PINCHED SOMETHING IMPORTANT!'];
@@ -120,17 +132,21 @@ export const DEATH_BRIDE = ['TILL DEATH DID THEM PART', 'LEFT AT THE ALTAR', 'JI
 export const HURT_BOUQUET = ['THORNS! THE ROSES HAVE THORNS!', "I CAUGHT THE BOUQUET! WITH MY FACE!", "I'M NEXT?! NEXT FOR WHAT?!"];
 export const DEATH_BOUQUET = ['CAUGHT THE BOUQUET', 'DEAD ROSES, DEAD MEATHEAD', 'NEXT TO GO'];
 
+/** What comes off a car falling past him down the shaft (a shoe, a purse, the lap bar...). */
+export const HURT_CAR = ['A WHOLE CAR WENT BY MY FACE!', "SOMEBODY'S PURSE! RIGHT IN THE TEETH!", 'A SHOE! WHO LOSES A SHOE ON A RIDE?!', "THE LAP BAR! THEY DON'T EVEN NEED IT ANYMORE!"];
+export const DEATH_CAR = ['NEXT!', 'SHOULD HAVE WAITED FOR THE NEXT ONE', 'HIT BY THE RIDE HE NEVER GOT ON'];
+
 const flat = (r: ByPants) => Object.values(r).flat();
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...MEATHEAD_HOW, ...MEATHEAD_ASK, ...MEATHEAD_REFUSED, ...MEATHEAD_BEAM_SIGN, ...MEATHEAD_BEAM_BROKE.flat(), ...MEATHEAD_WOBBLE,
-    ...MEATHEAD_MAIN, ...MEATHEAD_CRASH, ...MEATHEAD_JUMP,
+    ...MEATHEAD_MAIN, ...MEATHEAD_CRASH, ...MEATHEAD_JUMP, ...MEATHEAD_DOWN, ...MEATHEAD_LAMP, ...MEATHEAD_BASE, ...MEATHEAD_CHUTE, ...HURT_CAR,
     ...HURT_GEAR, ...HURT_PENDULUM, ...HURT_DEBRIS, ...HURT_CUCKOO, ...HURT_RINGER, ...HURT_HAMMER, ...HURT_IGOR, ...HURT_PITCHFORK,
     ...HURT_MUMMY, ...HURT_BRIDE, ...HURT_BOUQUET,
   ],
   death: [
     ...DEATH_GEAR, ...DEATH_PENDULUM, ...DEATH_DEBRIS, ...DEATH_CUCKOO, ...DEATH_RINGER, ...DEATH_HAMMER, ...DEATH_IGOR, ...DEATH_PITCHFORK,
-    ...DEATH_MUMMY, ...DEATH_BRIDE, ...DEATH_BOUQUET,
+    ...DEATH_MUMMY, ...DEATH_BRIDE, ...DEATH_BOUQUET, ...DEATH_CAR,
   ],
   'm2.hellop': [...flat(OPERATOR_REFUSE), ...flat(OPERATOR_SECURITY), ...OPERATOR_SPIEL, ...flat(OPERATOR_AFTER), ...OPERATOR_NEXT],
   'm2.guest': [...RIDER_DROP, ...RIDER_REAL],

@@ -257,99 +257,119 @@ const ringerAI = (ctx: FrameContext, e: Enemy): boolean => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude: boxes, the first pass). Feet at the origin, facing right.
+// Drawing (crude: flat shapes, a few tones, inked round so they read). Feet at the origin, facing right.
 
+const INK = '#0C0A09';
+/** A box, inked round. */
+const ob = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { box(c, x - 1, y - 1, w + 2, h + 2, INK); box(c, x, y, w, h, col); };
+/** A polygon, inked. */
+const poly = (c: Ctx, pts: [number, number][], col: string) => {
+  c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath();
+  c.fillStyle = col; c.fill(); c.strokeStyle = INK; c.lineWidth = 1.5; c.stroke();
+};
 const stride = (e: Enemy, f: number) => (Math.abs(e.vel.x) > 0.2 ? Math.sin(f * 0.25 + (e.initialX || 0)) * 4 : 0);
+/** A face: their own skin, eyes (narrowed when they mean it), a mouth. */
+const face = (c: Ctx, x: number, y: number, skin: string, angry: boolean) => {
+  ob(c, x, y, 14, 14, skin);
+  box(c, x + 8, y + 4, 3, angry ? 2 : 3, INK); box(c, x + 3, y + 4, 3, angry ? 2 : 3, INK);
+  box(c, x + 4, y + 10, 7, 2, angry ? '#7F1D1D' : '#57534E');
+};
 
 const drawIgor = (c: Ctx, e: Enemy, f: number) => {
-  const L = lookOf(seedOf(e)), s = stride(e, f), w = L.heavy ? 30 : L.woman ? 22 : 26;
-  const robe = ['#78350F', '#57534E', '#44403C'][seedOf(e) % 3];
-  // legs, the robe (hunched forward), the hump
-  box(c, -8 + s, -14, 7, 14, '#27272A'); box(c, 2 - s, -14, 7, 14, '#1C1917');
-  box(c, -w / 2, -46, w, 34, robe);
-  box(c, -w / 2 - 6, -54, 18, 16, robe); box(c, -w / 2 - 4, -54, 14, 3, '#A16207');
-  box(c, -w / 2, -14, w, 3, '#27272A');
-  // the head, low and forward (the face theirs: skin, hair sticking out the hood)
-  box(c, 4, -58, 15, 14, L.skin);
-  box(c, 2, -62, 19, 6, robe); box(c, 0, -56, 5, 12, robe);
-  if (!L.bald) box(c, 1, -46, 4, 5, L.hair);
-  box(c, 13, -54, 3, 3, '#18181B');
-  box(c, 8, -48, 8, 2, e.aiState === 'windup' ? '#7F1D1D' : '#3F3F46');
-  // the pitchfork (a real one): drawn back for the windup, jabbed out for the thrust
-  const out = e.aiState === 'thrust' ? 24 : e.aiState === 'windup' ? -14 : 4;
-  box(c, -14 + out, -34, 56, 4, '#78350F');
-  box(c, 40 + out, -40, 4, 16, '#D4D4D8');
-  for (const dy of [-40, -33, -26]) box(c, 42 + out, dy, 14, 2, '#E4E4E7');
-  box(c, 8, -38, 8, 8, L.skin);
+  const L = lookOf(seedOf(e)), s = stride(e, f);
+  const robe = ['#78350F', '#57534E', '#4D3B26'][seedOf(e) % 3];
+  const wind = e.aiState === 'windup', thrust = e.aiState === 'thrust';
+  // sandals, the robe hanging to the shins (a rope belt), the hump up over the back
+  ob(c, -9 + s, -10, 7, 10, L.skin); ob(c, 3 - s, -10, 7, 10, L.skin);
+  box(c, -10 + s, -2, 9, 2, '#44403C'); box(c, 2 - s, -2, 9, 2, '#44403C');
+  poly(c, [[-14, -10], [14, -10], [10, -44], [-8, -48]], robe);
+  box(c, -12, -28, 24, 3, '#D6C7A1');
+  poly(c, [[-14, -40], [-4, -58], [8, -50], [6, -40]], robe);
+  // the head, low and forward under the hood; one eye bigger than the other (that's the costume)
+  face(c, 4, -54, L.skin, wind || thrust);
+  box(c, 12, -51, 5, 5, '#FAFAFA'); box(c, 14, -49, 2, 2, INK);
+  poly(c, [[0, -44], [2, -60], [16, -60], [20, -54], [6, -50]], robe);
+  if (!L.bald) box(c, 3, -46, 3, 6, L.hair);
+  // the pitchfork (a real one): drawn back for the windup (the tell, a glint), jabbed out for the thrust
+  const out = thrust ? 26 : wind ? -16 : 4;
+  ob(c, -16 + out, -33, 58, 4, '#92400E');
+  ob(c, 40 + out, -41, 4, 20, '#A1A1AA');
+  for (const dy of [-41, -32, -23]) ob(c, 43 + out, dy, 14, 2, '#E4E4E7');
+  if (wind) box(c, 58 + out, -42, 3, 3, '#FDE68A');
+  ob(c, 6, -36, 8, 7, L.skin);
 };
 
 const drawMummy = (c: Ctx, e: Enemy, f: number) => {
-  const L = lookOf(seedOf(e)), s = stride(e, f), w = L.heavy ? 40 : 34;
+  const L = lookOf(seedOf(e)), s = stride(e, f), w = L.heavy ? 42 : 36;
   const tp = '#E7E5E4', band = '#A8A29E';
-  box(c, -12 + s, -26, 11, 26, tp); box(c, 2 - s, -26, 11, 26, tp);
-  box(c, -w / 2, -66, w, 42, tp);
-  for (let y = -62; y < -26; y += 8) box(c, -w / 2, y, w, 2, band);
-  // the head: wrapped, the eyes (theirs) showing through a slit
-  box(c, -11, -84, 22, 20, tp);
-  box(c, -7, -77, 16, 5, L.skin); box(c, 1, -76, 2, 2, '#18181B'); box(c, 6, -76, 2, 2, '#18181B');
-  for (let y = -82; y < -66; y += 6) box(c, -11, y, 22, 1, band);
-  // (a loose strip trailing)
-  box(c, -w / 2 - 3, -50 + Math.sin(f * 0.1) * 3, 4, 26, tp);
-  // the arms: out in front shambling; up for the swipe; down and across in it
+  // legs, the body: wrapped (the strips at an angle), a loose end trailing
+  ob(c, -13 + s, -28, 12, 28, tp); ob(c, 2 - s, -28, 12, 28, tp);
+  ob(c, -w / 2, -68, w, 42, tp);
+  c.save(); c.beginPath(); c.rect(-w / 2, -68, w, 42); c.clip();
+  c.strokeStyle = band; c.lineWidth = 2; for (let y = -76; y < -20; y += 8) { c.beginPath(); c.moveTo(-w / 2, y); c.lineTo(w / 2, y + 10); c.stroke(); }
+  c.restore();
+  for (const y of [-22, -12]) { box(c, -13 + s, y, 12, 2, band); box(c, 2 - s, y, 12, 2, band); }
+  box(c, -w / 2 - 4, -50 + Math.sin(f * 0.1) * 3, 4, 30, tp);
+  // the head: wrapped; their eyes through the slit
+  ob(c, -12, -88, 24, 22, tp);
+  box(c, -8, -80, 18, 6, L.skin); box(c, 0, -79, 3, 3, INK); box(c, 6, -79, 3, 3, INK);
+  for (let y = -86; y < -68; y += 6) box(c, -12, y, 24, 1, band);
+  // the arms: out in front shambling; both up for the swipe (the tell); down and across in it
   const st = e.aiState;
-  if (st === 'raise') { box(c, 6, -112, 9, 40, tp); box(c, -6, -110, 9, 40, band); }
-  else if (st === 'swipe') { box(c, 4, -54, 44, 10, tp); box(c, 4, -42, 40, 9, band); }
-  else { box(c, 6, -60, 30, 9, tp); box(c, 6, -50, 28, 8, band); }
+  if (st === 'raise') { ob(c, 6, -116, 10, 44, tp); ob(c, -8, -114, 10, 44, band); }
+  else if (st === 'swipe') { ob(c, 4, -54, 48, 11, tp); ob(c, 4, -41, 44, 10, band); }
+  else { ob(c, 6, -62, 32, 9, tp); ob(c, 6, -52, 30, 8, band); }
 };
 
 const drawBride = (c: Ctx, e: Enemy, f: number) => {
   const L = lookOf(seedOf(e)), dress = '#D6D3D1';
-  // the dress (a bell of it, gone gray), the bodice
-  c.fillStyle = dress; c.beginPath(); c.moveTo(-20, 0); c.lineTo(20, 0); c.lineTo(9, -34); c.lineTo(-9, -34); c.closePath(); c.fill();
-  box(c, -20, -3, 40, 3, '#A8A29E');
-  box(c, -9, -52, 18, 20, dress); box(c, -9, -52, 18, 3, '#78716C');
-  // the head, pale makeup over their own skin, dark lips, the veil
-  box(c, -6, -66, 13, 14, L.skin); box(c, -6, -66, 13, 14, 'rgba(255,255,255,0.35)');
-  box(c, 3, -62, 2, 2, '#18181B'); box(c, 1, -56, 5, 2, '#4C0519');
-  box(c, -8, -70, 16, 6, L.bald ? '#E7E5E4' : L.hair);
-  c.fillStyle = 'rgba(231,229,228,0.7)'; c.fillRect(-12, -70, 6, 34);
-  // the bouquet: held, then up over the shoulder to throw
-  if (e.aiState === 'windup') { box(c, -6, -70, 5, 18, dress); drawBouquet(c, -4, -78, -0.4 + Math.min(1, (e.aiTimer || 0) / 22) * 1.2); }
-  else { box(c, 6, -48, 10, 5, dress); drawBouquet(c, 16, -44, 0.3 + Math.sin(f * 0.05) * 0.1); }
+  // the dress (a bell of it, gone gray, its hem in tatters), the bodice
+  poly(c, [[-22, 0], [-16, -4], [-10, 0], [-4, -4], [2, 0], [8, -4], [14, 0], [22, 0], [10, -36], [-10, -36]], dress);
+  ob(c, -9, -54, 18, 20, dress); box(c, -9, -54, 18, 3, '#78716C');
+  // the head: pale makeup over their own skin, dark lips, the hair, the veil down the back
+  ob(c, -6, -68, 13, 14, L.skin); box(c, -6, -68, 13, 14, 'rgba(255,255,255,0.35)');
+  box(c, 3, -64, 2, 2, INK); box(c, 1, -58, 5, 2, '#4C0519');
+  ob(c, -8, -72, 16, 6, L.bald ? '#18181B' : L.hair);
+  c.fillStyle = 'rgba(231,229,228,0.75)'; c.beginPath(); c.moveTo(-6, -72); c.lineTo(-16, -30); c.lineTo(-6, -34); c.closePath(); c.fill();
+  box(c, -4, -74, 8, 3, '#F5F5F4');
+  // the bouquet: held, then up over her shoulder to throw (the tell)
+  if (e.aiState === 'windup') { ob(c, -6, -72, 5, 18, dress); drawBouquet(c, -4, -80, -0.4 + Math.min(1, (e.aiTimer || 0) / 22) * 1.2); }
+  else { ob(c, 6, -50, 10, 5, dress); drawBouquet(c, 16, -46, 0.3 + Math.sin(f * 0.05) * 0.1); }
 };
 
 const drawCuckoo = (c: Ctx, e: Enemy, f: number) => {
-  const flap = e.aiState === 'dart' || e.aiState === 'back' ? (Math.floor(f / 3) % 2 ? -5 : 3) : 0;
-  box(c, -11, -18, 22, 14, '#92400E');
-  box(c, -11, -18, 22, 3, '#B45309');
-  box(c, 8, -16, 8, 3, '#F59E0B');
-  box(c, 3, -15, 3, 3, '#FAFAFA'); box(c, 4, -14, 2, 2, '#18181B');
-  box(c, -14, -6, 8, 3, '#78350F');
-  box(c, -6, -14 + flap, 12, 5, '#78350F');
+  const flap = e.aiState === 'dart' || e.aiState === 'back' ? (Math.floor(f / 3) % 2 ? -6 : 3) : 0;
   // (the spring it's on, out of its door)
-  if (e.aiState === 'pop' || e.aiState === 'idle' || !e.aiState) for (let i = 0; i < 4; i++) box(c, -18 - i * 5, -12 + (i % 2) * 3, 4, 2, '#A1A1AA');
+  if (e.aiState === 'pop' || e.aiState === 'idle' || !e.aiState) for (let i = 0; i < 4; i++) box(c, -20 - i * 5, -12 + (i % 2) * 3, 4, 2, '#A1A1AA');
+  poly(c, [[-12, -6], [-16, -2], [-8, -4]], '#78350F');
+  ob(c, -11, -18, 22, 14, '#92400E'); box(c, -11, -18, 22, 3, '#B45309');
+  poly(c, [[10, -14], [18, -11], [10, -9]], '#F59E0B');
+  box(c, 3, -16, 4, 4, '#FAFAFA'); box(c, 5, -15, 2, 2, INK);
+  poly(c, [[-6, -12], [6, -12 + flap], [-2, -18 + flap]], '#78350F');
 };
 
 const drawRinger = (c: Ctx, e: Enemy, f: number) => {
   const s = stride(e, f) * 0.5, wood = '#9A3412', paint = '#1D4ED8', gold = '#CA8A04';
-  // the base it's on (a little track carriage), the legs (stiff), the body, the arms; the face painted on
-  box(c, -24, -10, 48, 10, '#44403C'); box(c, -20, -4, 8, 4, '#18181B'); box(c, 12, -4, 8, 4, '#18181B');
-  box(c, -14 + s, -40, 11, 30, wood); box(c, 3 - s, -40, 11, 30, wood);
-  box(c, -20, -90, 40, 52, paint); box(c, -20, -90, 40, 4, gold); box(c, -3, -86, 6, 44, gold);
-  box(c, -13, -114, 26, 24, '#FCD9B6'); box(c, -13, -120, 26, 8, '#7F1D1D'); box(c, -16, -122, 32, 4, '#7F1D1D');
-  box(c, 3, -106, 4, 4, '#18181B'); box(c, -5, -106, 4, 4, '#18181B'); box(c, -4, -97, 10, 3, '#7F1D1D');
-  box(c, -9, -101, 4, 3, '#F87171'); box(c, 7, -101, 4, 3, '#F87171');
+  // the carriage it rides its track on, its stiff legs, the coat (brass buttons), the face painted on, the hat
+  ob(c, -24, -10, 48, 10, '#44403C'); box(c, -20, -4, 8, 4, INK); box(c, 12, -4, 8, 4, INK);
+  ob(c, -14 + s, -40, 11, 30, wood); ob(c, 3 - s, -40, 11, 30, wood);
+  poly(c, [[-22, -40], [22, -40], [18, -92], [-18, -92]], paint);
+  box(c, -3, -88, 6, 46, gold); for (let y = -84; y < -44; y += 10) box(c, -2, y, 4, 4, '#FDE68A');
+  ob(c, -13, -116, 26, 24, '#FCD9B6');
+  ob(c, -16, -124, 32, 6, '#7F1D1D'); ob(c, -11, -140, 22, 16, '#7F1D1D'); box(c, -11, -128, 22, 3, gold);
+  box(c, 3, -108, 4, 4, INK); box(c, -5, -108, 4, 4, INK); box(c, -4, -99, 10, 3, '#7F1D1D');
+  box(c, -10, -103, 4, 3, '#F87171'); box(c, 7, -103, 4, 3, '#F87171');
   // (the key in its back, turning)
   const k = Math.sin(f * 0.15) * 6;
-  box(c, -26, -72, 6, 4, gold); box(c, -34, -76 - k / 2, 8, 12 + k, gold);
-  // the hammer: carried, wound up over its head, down in front
+  ob(c, -26, -72, 6, 4, gold); ob(c, -36, -78 - k / 2, 10, 14 + k, gold);
+  // the hammer: carried, wound up over its head (ratcheting: the tell), down in front
   const st = e.aiState;
   const t = Math.min(1, (e.aiTimer || 0) / 46);
   const a = st === 'raise' ? -0.4 - t * 2.4 : st === 'strike' ? 0.9 : st === 'recover' ? 0.8 : -0.2;
   c.save(); c.translate(12, -80); c.rotate(a);
-  box(c, 0, -4, 60, 8, '#78350F'); box(c, 52, -16, 22, 32, '#57534E'); box(c, 52, -16, 22, 4, '#A8A29E');
+  ob(c, 0, -4, 60, 8, '#78350F'); ob(c, 52, -17, 24, 34, '#57534E'); box(c, 52, -17, 24, 4, '#A8A29E');
   c.restore();
-  box(c, 8, -84, 10, 10, wood);
+  ob(c, 8, -86, 10, 10, wood);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -362,7 +382,7 @@ registerM2Kind({
   draw: (c, e, f) => drawIgor(c, e, f),
 });
 registerM2Kind({
-  kind: TK.mummy, stats: { w: 46, h: 84, hp: 340, contact: 13, mass: 430 }, ai: mummyAI, humanoid: true, gender: personGender,
+  kind: TK.mummy, stats: { w: 46, h: 84, hp: 300, contact: 13, mass: 430 }, ai: mummyAI, humanoid: true, gender: personGender,
   head: { x: 0, y: -74, r: 11 }, draw: (c, e, f) => drawMummy(c, e, f),
 });
 registerM2Kind({
@@ -375,6 +395,6 @@ registerM2Kind({
   head: { x: 6, y: -14, r: 5 }, draw: (c, e, f) => drawCuckoo(c, e, f),
 });
 registerM2Kind({
-  kind: TK.ringer, stats: { w: 50, h: 120, hp: 420, contact: 10, mass: 900 }, ai: ringerAI, robot: true, gender: 'n', grab: 'none',
+  kind: TK.ringer, stats: { w: 50, h: 120, hp: 300, contact: 10, mass: 900 }, ai: ringerAI, robot: true, gender: 'n', grab: 'none',
   head: { x: 0, y: -104, r: 13 }, draw: (c, e, f) => drawRinger(c, e, f),
 });

@@ -1,20 +1,31 @@
-// THE CLOCK TOWER: section 5 of Spooky Land. Out of the red-mist hallway into the ELEVATOR TO HELL's loading bay.
-// HOW THE RIDE WORKS is on the wall (board the car, up the clock tower, drop to hell, exit through the gift shop), the
-// line's in its switchbacks, a car loads at the platform and rolls off into the foot of the tower. The ride operator
-// won't let him on (clean / shitty / naked, every way he is), and calls security (out of the CAST MEMBERS ONLY door).
-// So in through the tower's maintenance door, and up the inside of it, floor by floor (layout.ts): the clock's works
-// out to get him (hazards.ts: gears, pendulums, cuckoo clocks; what the wobble shakes loose), the park's staff in their
-// monster-mash costumes and the clock's own bell-ringers (kinds.ts), the car going up its shaft behind him (ride.ts).
-// A support beam on every floor, floor to ceiling, LOAD-BEARING. DO NOT RAM: charged into (any of his charge moves;
-// not his guns) they break, and the tower wobbles worse for each one (the world sways about: worldTilt; only the
-// drawing, everything still moves and lands upright). The main support's in the clock room at the top: that one out,
-// the car comes down so hard it goes through the floor into the real hell (a cutscene: the camera down after it, the
-// nets snapping, the grate and the floor under it smashed through). Then he's free to jump down the shaft after it,
-// the long fall, out the bottom into the hell section (DOORS.hell.start). The cars keep coming, and keep going down
-// for good, every one of them, from then on (revisits too). Nobody cares.
+// THE CLOCK TOWER: section 5 of Spooky Land, and the land's one real there-and-back: up the tower from its foot, and
+// all the way back down it, past the foot, and under it.
 //
-// Backtrackable: out the bay's left end to the hallway; back from hell, he's put by the hole on the tower's ground
-// floor (DOORS.tower.end); the beams stay out, the floors' shaft crossings are jumps once the nets are gone.
+// THE LOADING BAY. Out of the red-mist hallway into the ELEVATOR TO HELL's loading bay: HOW THE RIDE WORKS on the wall
+// (board the car, up the clock tower, drop to hell, exit through the gift shop), the line in its switchbacks, a car
+// loading at the platform and rolling off into the foot of the tower. The ride operator won't let him on (clean /
+// shitty / naked) and calls security (out of the CAST MEMBERS ONLY door). So in through the tower's maintenance door.
+//
+// UP (layout.ts): floor by floor, a zigzag. On every floor a support beam, floor to ceiling, on the half he comes in on
+// (LOAD-BEARING. DO NOT RAM): only his charge moves break it (shoulder charge, slide, uppercut, dive kick: not his
+// guns), and he can't get by till it's out. Each one out, the tower sways worse (the world tilts and swings about:
+// worldTilt, only the drawing; everything moves and lands upright), it groans and shakes, and from the third, bits of
+// it come down on him. Taught one at a time, then mixed: the beam (floor 1), the igor's pitchfork and the cuckoos
+// (2), the pendulum and the mummy (3), the bell ringer and a gear in the floor (4), the lot (5, 6); the car going up
+// its shaft behind him. The main support's in the clock room: that one out, the car comes down so hard it goes
+// through every net, the grate at the foot and the floor under that, into the real hell (a cutscene: the camera down
+// after it), and every floor it passes sags, caves in or jams with wreckage (WRECK).
+//
+// DOWN: back down through what he climbed, wrecked. The shaft's open in places and jammed in others: down it where he
+// can, out across the floors where it's jammed (one caved in to the floor under it; sagging floors to the gaps), the
+// staff regrouped against him (DESCENT_FOES), the pendulums swinging wild, floor 2's down with its blade stuck in the
+// floor. And the cars keep coming: the shaft's red DROP lamps flash (the tell) and one comes down past him, shedding
+// shoes and purses on whoever's in the shaft. Down to the ground floor where he came in (the bay through the door),
+// into the hole the car made: the ride's "hell" under the floor (the camera pulls out: the bay with its line still
+// boarding, the tower's foot, the hole), down the chute under it into the real hell (DOORS.hell.start).
+//
+// Backtrackable: out the bay's left end to the hallway; back from hell, he's put on the tower's ground floor by the
+// hole (DOORS.tower.end); everything stays wrecked.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -25,6 +36,7 @@ import { layOwn, solid, ledge, endWalls, runExits, teleport, hands, meatheadSays
 import { DOORS, GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { makeKindEnemy, kindDef } from '../../../m1/game/enemies/kinds';
+import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { silenceAll } from '../../../m1/game/platform/speech';
@@ -32,16 +44,18 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { talk, stepTalk, pick, type Talk } from '../../adventure/queue/talk';
 import { TK, updateThrown, drawThrown, thrown } from './kinds';
-import { runHazards, drawDebris, storyOf, type Debris } from './hazards';
-import { newRide, runRide, type Ride, type Car } from './ride';
+import { runHazards, drawDebris, storyOf, canHurt, type Debris } from './hazards';
+import { newRide, runRide, lampOn, type Ride, type Car } from './ride';
 import { drawTowerBackdrop, drawTowerBack } from './art';
 import {
-  x0, x1, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, TX0, TX1, WALL, SH0, SH1, SHM, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1, HELL_AT,
-  LEDGES, BEAMS, beamTop, slabRuns, CUCKOOS, FOES, SECURITY, CAR_TOP, type TowerFoe,
+  x0, x1, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, TX0, TX1, U, WALL, SH0, SH1, SHM, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
+  HELL_AT, LEDGES, CHUTE_LEDGES, BEAMS, beamTop, WHOLE, WRECK, JAMS, pieceY, floorAt, CUCKOOS, FOES, DESCENT_FOES, SECURITY, PICKUPS, CAR_TOP,
+  LIFT, liftY, ROTTEN, TORN_NET, type TowerFoe, type FoeAt, type Piece,
 } from './layout';
 import {
   type Dressed, MEATHEAD_HOW, MEATHEAD_ASK, OPERATOR_REFUSE, MEATHEAD_REFUSED, OPERATOR_SECURITY, OPERATOR_SPIEL, OPERATOR_AFTER, OPERATOR_NEXT,
   RIDER_DROP, RIDER_REAL, MEATHEAD_BEAM_SIGN, MEATHEAD_BEAM_BROKE, MEATHEAD_WOBBLE, MEATHEAD_MAIN, MEATHEAD_CRASH, MEATHEAD_JUMP,
+  MEATHEAD_DOWN, MEATHEAD_LAMP, MEATHEAD_BASE, MEATHEAD_CHUTE,
 } from './lines';
 
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
@@ -54,9 +68,13 @@ interface Crash { t: number; phase: 'fall' | 'hold' | 'back'; hold: number }
 interface Tower {
   talk: Talk; ride: Ride;
   beamHp: number[]; beamMove: number[];
-  crashed: boolean; nets: boolean[]; grate: boolean; b1: boolean;
+  /** The car's gone through (everything's wrecked: the way down). */
+  crashed: boolean;
+  /** The nets across the shaft still up (by floor), each floor wrecked yet, the grate at the foot, the ride's hell's floor. */
+  nets: boolean[]; wrecked: boolean[]; grate: boolean; b1: boolean;
   debris: Debris[];
-  how: boolean; asked: boolean; securityOut: boolean; afterSaid: boolean; signSaid: boolean; mainSaid: boolean; jumped: boolean;
+  how: boolean; asked: boolean; securityOut: boolean; afterSaid: boolean; signSaid: boolean; mainSaid: boolean;
+  downSaid: boolean; lampSaid: boolean; baseSaid: boolean; chuteSaid: boolean; jumped: boolean; leftTop: boolean;
   spielAt: number; wobbleAt: number; wobbleN: number;
   opSaid: string | null; riderSaid: string | null;
   /** The lurch (a spring: kicked by every beam hit). */
@@ -66,14 +84,21 @@ interface Tower {
   fallCam: boolean;
   rumbleAt: number;
   inited?: boolean;
+  /** The move he was last seen in (moveId). */
+  lastMove?: number;
   /** Frames since it was built (since he started again). */
-  age?: number;
+  age: number;
+  /** How far the camera's pulled out (the bay seen from the hole), eased. */
+  pull: number;
+  /** Floor 5's rotten boards: 0 whole, >0 cracking (frames), <0 gone (frames till it's back). */
+  rot: number[];
 }
 const towerOf = (state: GameState) => spookyState<Tower>(state, 'tower', () => ({
   talk: talk(), ride: newRide(), beamHp: BEAMS.map(b => b.hp), beamMove: BEAMS.map(() => -1),
-  crashed: false, nets: Array(STORIES + 1).fill(true), grate: true, b1: true, debris: [],
-  how: false, asked: false, securityOut: false, afterSaid: false, signSaid: false, mainSaid: false, jumped: false,
-  spielAt: -99999, wobbleAt: 0, wobbleN: 0, opSaid: null, riderSaid: null, sway: 0, swayV: 0, crash: null, fallCam: false, rumbleAt: 0,
+  crashed: false, nets: Array(STORIES + 1).fill(true), wrecked: Array(STORIES + 1).fill(false), grate: true, b1: true, debris: [],
+  how: false, asked: false, securityOut: false, afterSaid: false, signSaid: false, mainSaid: false,
+  downSaid: false, lampSaid: false, baseSaid: false, chuteSaid: false, jumped: false, leftTop: false,
+  spielAt: -99999, wobbleAt: 0, wobbleN: 0, opSaid: null, riderSaid: null, sway: 0, swayV: 0, crash: null, fallCam: false, rumbleAt: 0, age: 0, pull: 0, rot: ROTTEN.boards.map(() => 0),
 }));
 const brokenOf = (t: Tower) => t.beamHp.filter(h => h <= 0).length;
 
@@ -82,18 +107,20 @@ const beamsBefore = (cp: number) => (cp >= 45 ? BEAMS.length : cp >= 44 ? 6 : cp
 
 // ---------------------------------------------------------------------------------------------------------------
 // Checkpoints. The stage passes one when he's right of its x; up here they're by floor, so a checkpoint only counts on
-// its own floor (and the drop's only once the car's gone through).
+// its own floor (and the way down's only once the car's gone through).
 
 const CPS: SpookySection['checkpoints'] = [
   { name: 'THE LOADING BAY', cp: 40, x: x0 + 200, y: GY },
   { name: 'THE CLOCK TOWER', cp: 41, x: TX0 + 80, y: GY },
-  { name: 'THE PENDULUM', cp: 42, x: TX0 + 175, y: F(2) },
-  { name: 'THE TOWER, FLOOR 5', cp: 43, x: TX0 + 190, y: F(4) },
-  { name: 'THE CLOCK ROOM', cp: 44, x: TX0 + 200, y: TOP },
-  { name: 'THE DROP', cp: 45, x: SH0 - 130, y: TOP },
+  { name: 'THE PENDULUM', cp: 42, x: U(210), y: F(2) },
+  { name: 'THE TOWER, FLOOR 5', cp: 43, x: U(220), y: F(4) },
+  { name: 'THE CLOCK ROOM', cp: 44, x: U(205), y: TOP },
+  { name: 'THE WAY DOWN', cp: 45, x: U(300), y: TOP },
+  { name: 'HALFWAY DOWN', cp: 46, x: U(400), y: F(2) },
+  { name: 'BACK AT THE BASE', cp: 47, x: U(940), y: GY },
 ];
 const where = { feet: Infinity, crashed: false, live: false };
-const passable = (c: SpookySection['checkpoints'][number]) => where.feet <= c.y + 12 && where.feet > c.y - STORY + 40 && (c.cp !== 45 || where.crashed);
+const passable = (c: SpookySection['checkpoints'][number]) => where.feet <= c.y + 12 && where.feet > c.y - STORY + 40 && (c.cp < 45 || where.crashed);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Building it
@@ -113,9 +140,24 @@ const spawn = (state: GameState, f: TowerFoe, x: number, floor: number, i: numbe
   state.enemies.push(e);
   return e;
 };
+const spawnAll = (state: GameState, list: FoeAt[], wrecked: boolean, base: number) =>
+  list.forEach(([f, u, y, k], i) => spawn(state, f, U(u), y === 'floor' ? floorAt(k, u, wrecked) : y, base + i));
+/** Ours (not the cuckoos): the way up's (0..), security (90..), the way down's (200..). */
+const isFoe = (e: Enemy) => (e.variant ?? -1) < 50 || ((e.variant ?? 0) >= 90 && (e.variant ?? 0) < 100);
 
 const NET = (k: number) => `tw-net-${k}`;
 const BEAM = (i: number) => `tw-beam-${i}`;
+const WHOLE_TAG = (k: number) => `tw-whole-${k}`;
+
+/** A stretch of floor into the world: flat, one block; sagging, a block every few px (he walks it either way). */
+const layPiece = (state: GameState, k: number, p: Piece, tag: string) => {
+  if (p[2] === p[3]) { solid(state, U(p[0]), F(k) + p[2], p[1] - p[0], SLAB, { tag, hidden: true }); return; }
+  for (let u = p[0]; u < p[1]; u += 12) solid(state, U(u), pieceY(k, p, u + 6), Math.min(12, p[1] - u), SLAB, { tag, hidden: true });
+};
+
+const addPickups = (state: GameState, after: boolean) => {
+  for (const [u, y, type, only] of PICKUPS) if (only === after) state.pickups.push({ id: `tower-${u}-${y}`, pos: { x: U(u) - 10, y: y - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The beams: his charge moves into one
@@ -126,13 +168,19 @@ const moving = (state: GameState) => {
 };
 const runBeams = (ctx: FrameContext, t: Tower) => {
   const { state } = ctx, p = state.player;
-  if (!moving(state) || p.inCutscene) return;
   const mid = p.moveId ?? 0;
+  // (a move started since last frame: a charge started flush against a beam is over (the wall stops it) before we see it)
+  const fresh = mid !== t.lastMove;
+  t.lastMove = mid;
+  if ((!moving(state) && !fresh) || p.inCutscene) return;
   BEAMS.forEach((b, i) => {
     if (t.beamHp[i] <= 0 || t.beamMove[i] === mid) return;
     const top = beamTop(b), bot = F(b.k);
     const hit = p.pos.x - 14 < b.x + b.w && p.pos.x + p.width + 14 > b.x && p.pos.y - 6 < bot && p.pos.y + p.height + 6 > top;
     if (!hit) return;
+    // (a charge or a slide has to be at it, not away from it)
+    const toward = (b.x + b.w / 2 > p.pos.x + p.width / 2 ? 1 : -1) === (p.chargeFace ?? p.facing);
+    if (!p.isUppercutting && !p.isDivekicking && !toward) return;
     t.beamMove[i] = mid;
     t.beamHp[i]--;
     const dir = p.pos.x + p.width / 2 < b.x + b.w / 2 ? 1 : -1;
@@ -141,6 +189,8 @@ const runBeams = (ctx: FrameContext, t: Tower) => {
     t.swayV += dir * 0.005;
     const hy = Math.min(bot - 20, Math.max(top + 20, p.pos.y + p.height / 2));
     for (let j = 0; j < 14; j++) state.particles.push({ pos: { x: b.x + b.w / 2, y: hy + (Math.random() - 0.5) * 40 }, vel: { x: -dir * (1 + Math.random() * 4), y: -2 - Math.random() * 3 }, life: 30, color: b.look === 'wood' ? '#B45309' : '#94A3B8', size: 2 + Math.random() * 3, grav: 0.3, chunk: true });
+    // (dust down off the ceiling with it)
+    for (let j = 0; j < 10; j++) state.particles.push({ pos: { x: b.x - 60 + Math.random() * (b.w + 120), y: top + 2 }, vel: { x: 0, y: 1 + Math.random() }, life: 50, color: '#A8A29E', size: 2, grav: 0.05 });
     // (he bounces off it, the move spent)
     if (p.isCharging) { p.isCharging = false; p.isSliding = false; p.chargeTimer = 0; p.vel.x = -dir * 4; }
     if (p.isDivekicking) { p.isDivekicking = false; p.vel.y = -8; p.vel.x = -dir * 3; }
@@ -157,7 +207,7 @@ const runBeams = (ctx: FrameContext, t: Tower) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The crash: the last beam out, the car comes down through everything into the real hell
+// The crash: the last beam out, the car comes down through everything into the real hell, and wrecks the tower
 
 const startCrash = (state: GameState, t: Tower) => {
   const p = state.player;
@@ -178,14 +228,17 @@ const startCrash = (state: GameState, t: Tower) => {
   for (const e of state.enemies) { e.puppet = true; e.pauseTimer = 2; }
 };
 
-/** Everything the car smashes on its way down (also what a skip puts right in one go). */
-const breakNet = (state: GameState, t: Tower, k: number, quiet = false) => {
-  if (!t.nets[k]) return;
-  t.nets[k] = false;
-  state.blocks = state.blocks.filter(b => b.tag !== NET(k));
+/** Floor k, as the car goes through it: the net's gone, the floor sags or caves in, wreckage jams the shaft. */
+const wreckFloor = (state: GameState, t: Tower, k: number, quiet = false) => {
+  if (t.wrecked[k]) return;
+  t.wrecked[k] = true; t.nets[k] = false;
+  state.blocks = state.blocks.filter(b => b.tag !== NET(k) && b.tag !== WHOLE_TAG(k) && !(k === ROTTEN.k && b.tag?.startsWith('tw-rot')));
+  if (k === ROTTEN.k) t.rot.fill(0);
+  for (const p of WRECK[k]) layPiece(state, k, p, `tw-wreck-${k}`);
+  if (JAMS.includes(k)) solid(state, SH0, F(k), SH1 - SH0, SLAB, { tag: `tw-jam-${k}`, hidden: true });
   if (quiet) return;
-  playSound('crack', 0.8, 6);
-  for (let j = 0; j < 12; j++) state.particles.push({ pos: { x: SH0 + Math.random() * (SH1 - SH0), y: F(k) }, vel: { x: (Math.random() - 0.5) * 6, y: Math.random() * 4 }, life: 50, color: '#D6D3D1', size: 2, grav: 0.2 });
+  playSound('crack', 0.9, 4); playSound('crumble', 0.8);
+  for (let j = 0; j < 26; j++) state.particles.push({ pos: { x: TX0 + Math.random() * (TX1 - TX0), y: F(k) + 10 }, vel: { x: (Math.random() - 0.5) * 6, y: Math.random() * 3 }, life: 60, color: j % 3 ? '#A8A29E' : '#D6D3D1', size: 2 + Math.random() * 2, grav: 0.15 });
 };
 const breakGrate = (state: GameState, t: Tower, quiet = false) => {
   if (!t.grate) return;
@@ -203,22 +256,31 @@ const breakB1 = (state: GameState, t: Tower, quiet = false) => {
   playSound('boom', 1, -14); shakeScreen(state, 30, 12);
   for (let j = 0; j < 40; j++) state.particles.push({ pos: { x: SH0 + Math.random() * (SH1 - SH0), y: B1 }, vel: { x: (Math.random() - 0.5) * 12, y: -6 - Math.random() * 8 }, life: 60, color: j % 3 ? '#F97316' : '#3F0D0D', size: 3 + Math.random() * 5, grav: 0.35, chunk: j % 3 === 0 });
 };
-const smashAll = (state: GameState, t: Tower) => { for (let k = 1; k <= STORIES; k++) breakNet(state, t, k); breakGrate(state, t); breakB1(state, t); };
+/** Everything after: the floors wrecked, the hole open, the staff regrouped for the way down, its pickups. */
+const afterCrash = (state: GameState, t: Tower, quiet: boolean) => {
+  for (let k = 1; k <= STORIES; k++) wreckFloor(state, t, k, quiet);
+  breakGrate(state, t, quiet); breakB1(state, t, quiet);
+  t.crashed = true;
+  state.enemies = state.enemies.filter(e => !(e.kind?.startsWith('m2:') && isFoe(e) && e.health > 0));
+  spawnAll(state, DESCENT_FOES, true, 200);
+  addPickups(state, true);
+};
 
 const endCrash = (state: GameState, t: Tower, skipped: boolean) => {
   const p = state.player;
-  if (skipped) { silenceAll(); smashAll(state, t); if (t.ride.car?.crash) { t.ride.car = null; t.ride.next = 240; } }
-  t.crash = null; t.crashed = true;
+  if (skipped) { silenceAll(); if (t.ride.car?.crash) { t.ride.car = null; t.ride.next = 240; } }
+  afterCrash(state, t, true);
+  t.crash = null;
   p.inCutscene = false;
   state.cameraOverride = null;
-  if (skipped) { state.camera.x = Math.max(TX0, Math.min(TX1 + 60 - CANVAS_WIDTH, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2)); state.camera.y = p.pos.y + p.height - 470; }
+  if (skipped) { state.camera.x = camX(p.pos.x + p.width / 2); state.camera.y = p.pos.y + p.height - 470; }
   for (const e of state.enemies) e.puppet = false;
   if (state.checkpoint < 45) state.checkpoint = 45;
   t.talk.q.length = 0;
   meatheadSays(state, pick(MEATHEAD_CRASH));
 };
 
-const camX = (x: number) => Math.max(TX0, Math.min(TX1 + 60 - CANVAS_WIDTH, x - CANVAS_WIDTH / 2));
+const camX = (x: number) => Math.max(TX0 - WALL, Math.min(TX1 + 60 - CANVAS_WIDTH, x - CANVAS_WIDTH / 2));
 
 const runCrash = (ctx: FrameContext, t: Tower): Controls => {
   const { state } = ctx, p = state.player, cr = t.crash!;
@@ -237,11 +299,50 @@ const runCrash = (ctx: FrameContext, t: Tower): Controls => {
     state.cameraOverride = { x: camX(SHM), y: GY - 120 };
     if (++cr.hold > 80) cr.phase = 'back';
   } else {
+    // (back up past every floor it wrecked, to him)
     const ty = p.pos.y + p.height - 470;
     state.cameraOverride = { x: camX(p.pos.x + p.width / 2), y: ty };
     if (Math.abs(state.camera.y - ty) < 30) endCrash(state, t, false);
   }
   return hands();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Floor 3's counterweight (he rides it), floor 5's rotten boards (they go under him)
+
+const runLift = (state: GameState) => {
+  const b = state.blocks.find(k => k.tag === 'tw-lift');
+  if (!b) return;
+  const p = state.player, ny = liftY(state.frame), dy = ny - b.y;
+  const on = p.isGrounded && Math.abs(p.pos.y + p.height - b.y) < 4 && p.pos.x + p.width > b.x && p.pos.x < b.x + b.w;
+  b.y = ny;
+  if (on) p.pos.y += dy;
+  // (the chain ratcheting as it goes, when he's by it)
+  if (state.frame % 12 === 0 && Math.abs(p.pos.y - ny) < 500 && Math.abs(p.pos.x - b.x) < 600) playSound('click', 0.15, -12);
+};
+const runRotten = (state: GameState, t: Tower) => {
+  if (t.crashed) return;
+  const p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height, y = F(ROTTEN.k);
+  ROTTEN.boards.forEach(([a, b], i) => {
+    const tag = `tw-rot-${i}`;
+    if (t.rot[i] < 0) {
+      // (gone: back after a while, when he's not where it goes)
+      if (++t.rot[i] >= 0) {
+        if (cx > U(a) - 30 && cx < U(b) + 30 && Math.abs(feet - y) < 70) { t.rot[i] = -20; return; }
+        solid(state, U(a), y, b - a, SLAB, { tag, hidden: true });
+        t.rot[i] = 0;
+      }
+      return;
+    }
+    const on = p.isGrounded && Math.abs(feet - y) < 3 && p.pos.x + p.width > U(a) + 4 && p.pos.x < U(b) - 4;
+    if (t.rot[i] === 0 && on) { t.rot[i] = 1; playSound('crack', 0.6, 8); }
+    else if (t.rot[i] > 0 && ++t.rot[i] > 28) {
+      state.blocks = state.blocks.filter(k => k.tag !== tag);
+      t.rot[i] = -300;
+      playSound('crack', 0.9, -2); playSound('crumble', 0.7);
+      for (let j = 0; j < 12; j++) state.particles.push({ pos: { x: U(a) + Math.random() * (b - a), y: y + 6 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 3 }, life: 50, color: j % 2 ? '#5B3A1A' : '#3F2812', size: 4 + Math.random() * 5, grav: 0.3, chunk: true });
+    }
+  });
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -271,60 +372,104 @@ const runBay = (state: GameState, t: Tower) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The way down: the cars still coming down the shaft (what comes off them hits whoever's in it), the lines
+
+const inColumn = (state: GameState) => { const cx = state.player.pos.x + state.player.width / 2; return cx > SH0 - 8 && cx < SH1 + 8; };
+const runDescent = (ctx: FrameContext, t: Tower) => {
+  const { state } = ctx, p = state.player, feet = p.pos.y + p.height;
+  const car = t.ride.car, k = storyOf(state);
+  // The tell: the lamps (art), the bell; and his line the first time
+  if (car && car.real && !car.crash && car.phase === 'hold' && car.t === 1 && (k >= 0 || feet > GY)) {
+    playSound('alarm', 0.35, 4); playSound('ding', 0.5, -6);
+    if (!t.lampSaid && t.leftTop) { t.lampSaid = true; t.talk.q.push({ voice: 'meathead', text: pick(MEATHEAD_LAMP) }); }
+  }
+  // The car going by: what comes off it (a shoe, a purse, the lap bar), on him if he's in the shaft as it passes
+  if (car && car.real && !car.crash && car.phase === 'drop') {
+    const passing = car.y > p.pos.y && car.y - 150 < feet;
+    if (passing && Math.abs(car.y - feet) < 40) playSound('whoosh', 0.8, -8);
+    if (passing && !car.hit && inColumn(state) && canHurt(state)) {
+      car.hit = true;
+      const dir = p.pos.x + p.width / 2 < SHM ? -1 : 1;
+      hurtPlayer(ctx, 10, 'tower_car', { x: dir * 8, y: -5 });
+      playSound('thud', 0.9); playSound('crash', 0.5, 6);
+      for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + 10 }, vel: { x: (Math.random() - 0.5) * 8, y: -3 - Math.random() * 3 }, life: 40, color: ['#7F1D1D', '#FBBF24', '#1D4ED8', '#F5F5F4'][i % 4], size: 3 + Math.random() * 3, grav: 0.3, chunk: true });
+    }
+  }
+  // The lines on the way down
+  if (k >= 0 && k < STORIES) t.leftTop = true;
+  if (!t.downSaid && k === 5 && p.isGrounded) { t.downSaid = true; t.talk.q.push({ voice: 'meathead', text: pick(MEATHEAD_DOWN) }); }
+  if (!t.baseSaid && t.leftTop && k === 0 && p.isGrounded && p.pos.x + p.width / 2 > SH1) { t.baseSaid = true; t.talk.q.push({ voice: 'meathead', text: pick(MEATHEAD_BASE) }); }
+  if (!t.chuteSaid && feet > B1 + 80) { t.chuteSaid = true; meatheadSays(state, pick(MEATHEAD_CHUTE), false); }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 
 const AMP = [0, 0.005, 0.01, 0.016, 0.022, 0.028, 0.035, 0.045];
-/** How much of the sway he's in (none out in the bay; it comes on through the tower's door). */
-const inTower = (state: GameState) => Math.max(0, Math.min(1, (state.player.pos.x + state.player.width / 2 - (TX0 - 300)) / 300));
+/** How much of the sway he's in (none out in the bay; it comes on through the tower's door, and goes under it). */
+const inTower = (state: GameState) => {
+  const p = state.player, feet = p.pos.y + p.height;
+  const across = Math.max(0, Math.min(1, (p.pos.x + p.width / 2 - (TX0 - 300)) / 300));
+  return across * Math.max(0, Math.min(1, 1 - (feet - GY - 60) / 200));
+};
 
 export const tower: SpookySection = {
   id: 'tower', x0, x1,
   get checkpoints() { return where.live ? CPS.filter(passable) : CPS; },
   build: (state) => {
-    towerOf(state);
+    const t = towerOf(state);
     // (nothing passes a checkpoint on the first frame: where he is isn't known till the stage has put him there)
     where.live = true; where.feet = Infinity;
     thrown.length = 0;
-    // Ground: the bay's floor and the tower's, the shaft's hole between (the grate over it, the ride's hell's floor under it)
+    // Ground: the bay's floor and the tower's; under the tower's middle, the ride's "hell" (B1) and the chute under it
     layOwn(state, [
-      { x1: x0 - 200, y1: GY, x2: SH0, y2: GY, surface: 'stone' },
-      { x1: SH1, y1: GY, x2: x1 + 200, y2: GY, surface: 'wood' },
+      { x1: x0 - 200, y1: GY, x2: CH0, y2: GY, surface: 'stone' },
+      { x1: CH1, y1: GY, x2: x1 + 200, y2: GY, surface: 'wood' },
     ]);
     const n0 = state.blocks.length;
     endWalls(state, 'tower');
-    solid(state, SH0, GY, SH1 - SH0, 40, { tag: 'tw-grate' });
-    solid(state, SH0, B1, SH1 - SH0, 40, { tag: 'tw-b1' });
+    solid(state, CH0, GY, SH0 - CH0, 30); solid(state, SH1, GY, CH1 - SH1, 30);
+    solid(state, SH0, GY, SH1 - SH0, 30, { tag: 'tw-grate' });
+    solid(state, CH0, B1, SH0 - CH0, 30); solid(state, SH1, B1, CH1 - SH1, 30);
+    solid(state, SH0, B1, SH1 - SH0, 30, { tag: 'tw-b1' });
+    for (const [x, y, w] of CHUTE_LEDGES) ledge(state, x, y, w);
     // The tower: its walls (the maintenance door at the foot of the left one), its roof, its floors, the nets
     solid(state, TX0 - WALL, ROOF - 200, WALL, GY - DOOR_H - (ROOF - 200));
     solid(state, TX1, ROOF - 200, WALL, GY - (ROOF - 200));
     solid(state, TX0, ROOF - 40, TX1 - TX0, 40);
     for (let k = 1; k <= STORIES; k++) {
-      for (const [a, b] of slabRuns(k)) solid(state, a, F(k), b - a, SLAB);
-      solid(state, SH0, F(k), SH1 - SH0, SLAB, { tag: NET(k) });
+      for (const p of WHOLE[k]) layPiece(state, k, p, WHOLE_TAG(k));
+      if (k !== TORN_NET) solid(state, SH0, F(k), SH1 - SH0, SLAB, { tag: NET(k) });
     }
+    t.nets[TORN_NET] = false;
+    ROTTEN.boards.forEach(([a, b], i) => solid(state, U(a), F(ROTTEN.k), b - a, SLAB, { tag: `tw-rot-${i}` }));
+    ledge(state, LIFT.x, liftY(state.frame), LIFT.w, { tag: 'tw-lift' });
     for (const [x, y, w] of LEDGES) ledge(state, x, y, w);
     BEAMS.forEach((b, i) => solid(state, b.x, beamTop(b), b.w, F(b.k) - beamTop(b), { tag: BEAM(i) }));
     for (let i = n0; i < state.blocks.length; i++) state.blocks[i].hidden = true;
-    // Who's in it
-    FOES.forEach(([f, x, floor], i) => spawn(state, f, x, floor, i));
+    // Who's in it (the way up's; the way down's come after the crash)
+    spawnAll(state, FOES, false, 0);
     CUCKOOS.forEach(([x, y], i) => {
       const e = makeKindEnemy(TK.cuckoo as EnemyKind, x, y);
       e.pos.x = x - e.width / 2; e.pos.y = y - 17 - e.height / 2; e.homeX = e.pos.x; e.homeY = e.pos.y; e.variant = 50 + i;
       state.enemies.push(e);
     });
+    addPickups(state, false);
+    t.age = 0;
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player;
     const t = towerOf(state);
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     // (the first frame: as it was at the checkpoint he's starting from (the stage only says which once it's built). Past
-    // a floor, its beam's out; past the drop, or back from hell, it's all been smashed)
+    // a floor, its beam's out; on the way down, or back from hell, it's all wrecked)
     if (!t.inited) {
       t.inited = true;
       const before = beamsBefore(state.checkpoint);
       BEAMS.forEach((_, i) => { if (i < before) { t.beamHp[i] = 0; state.blocks = state.blocks.filter(b => b.tag !== BEAM(i)); } });
-      if (state.checkpoint >= 45) { t.crashed = true; t.nets.fill(true); t.grate = true; t.b1 = true; for (let k = 1; k <= STORIES; k++) breakNet(state, t, k, true); breakGrate(state, t, true); breakB1(state, t, true); }
+      if (state.checkpoint >= 45) { afterCrash(state, t, true); t.leftTop = state.checkpoint >= 46; }
     }
     where.feet = feet; where.crashed = t.crashed; where.live = true;
+    t.age++;
     stepTalk(state, t.talk);
     // (the sway's spring)
     t.swayV += -t.sway * 0.02; t.swayV *= 0.95; t.sway += t.swayV;
@@ -341,7 +486,7 @@ export const tower: SpookySection = {
       },
       passing: (car: Car, from: number, to: number) => {
         if (!car.crash) return;
-        for (let k = 1; k <= STORIES; k++) if (from < F(k) && to >= F(k) - 10) breakNet(state, t, k);
+        for (let k = 1; k <= STORIES; k++) if (from < F(k) && to >= F(k) - 10) wreckFloor(state, t, k);
         if (to >= GY - 10) breakGrate(state, t);
         if (to >= B1 - 10) breakB1(state, t);
       },
@@ -352,11 +497,13 @@ export const tower: SpookySection = {
     runExits(state, [{ x0: x0 - 40, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.mist.end }]);
     runBay(state, t);
     updateThrown(ctx);
+    runLift(state);
+    runRotten(state, t);
     // (just started again: a moment before anything's shaken loose over him)
-    t.age = (t.age ?? 0) + 1;
-    runHazards(ctx, t.debris, t.age > 240 ? brokenOf(t) : 0);
+    runHazards(ctx, t.debris, t.age > 240 ? brokenOf(t) : 0, t.crashed);
     runBeams(ctx, t);
     if (t.crash) return hands();
+    if (t.crashed) runDescent(ctx, t);
     const k = storyOf(state);
     // What he says: at the first beam's plaque, at the main support, now and then as it gets worse
     if (!t.signSaid && k === 0 && Math.abs(cx - BEAMS[0].x) < 240 && t.beamHp[0] > 0) { t.signSaid = true; t.talk.q.push({ voice: 'meathead', text: MEATHEAD_BEAM_SIGN[0] }); }
@@ -368,16 +515,20 @@ export const tower: SpookySection = {
     }
     // (the tower groaning now and then, worse the more beams are out)
     if (broken >= 2 && k >= 0 && state.frame - t.rumbleAt > 600 - broken * 50) { t.rumbleAt = state.frame; playSound('rumble', 0.25 + broken * 0.06); shakeScreen(state, 20 + broken * 4, 1 + broken * 0.6); }
-    // Down the shaft, once it's open: the camera after him all the way, and out the bottom into the real hell
-    const inShaft = !t.grate && cx > SH0 - 4 && cx < SH1 + 4;
-    if (inShaft && !p.isGrounded && p.vel.y > 2) {
-      if (!t.jumped && feet < GY - 300) { t.jumped = true; meatheadSays(state, pick(MEATHEAD_JUMP), false); }
+    // Down the shaft (or the hole under the foot, or the chute), once it's open: the camera after him down it
+    const chute = feet > GY + 20 && cx > CH0 && cx < CH1;
+    const dropping = t.crashed && (inColumn(state) || chute) && !p.isGrounded && p.vel.y > 2;
+    if (dropping) {
+      if (!t.jumped && feet > GY + 20) { t.jumped = true; meatheadSays(state, pick(MEATHEAD_JUMP), false); }
       t.fallCam = true;
       state.cameraOverride = { x: camX(cx), y: p.pos.y - 260 };
-    } else if (t.fallCam && (p.isGrounded || !inShaft)) { t.fallCam = false; state.cameraOverride = null; }
-    if (inShaft && feet > HELL_AT) {
+    } else if (t.fallCam) { t.fallCam = false; state.cameraOverride = null; }
+    // (the camera pulled out going through the foot of the tower: the bay there through the door, the line still boarding)
+    const pullTo = t.crashed && feet > GY - 200 && feet < B1 + 600 && cx > CH0 - 100 && cx < CH1 + 100 ? 1 : 0;
+    t.pull += (pullTo - t.pull) * 0.08;
+    if (t.crashed && chute && feet > HELL_AT) {
       const vy = p.vel.y;
-      t.fallCam = false; state.cameraOverride = null; t.jumped = false;
+      t.fallCam = false; state.cameraOverride = null; t.jumped = false; t.pull = 0;
       teleport(state, DOORS.hell.start.x, DOORS.hell.start.y);
       p.vel.y = Math.max(8, vy);
       return controls;
@@ -386,6 +537,13 @@ export const tower: SpookySection = {
   },
   cameraX: () => ({ min: x0, max: TX1 + 60 - CANVAS_WIDTH }),
   cameraRow: (state) => (inTower(state) > 0.5 ? 470 : undefined),
+  zoom: (state) => {
+    const t = towerOf(state), p = state.player;
+    if (t.pull < 0.01 || t.crash) return null;
+    const k = t.pull * t.pull * (3 - 2 * t.pull);
+    // (pulled well out, him eased right of the middle: the bay off to the left, through the tower's foot)
+    return { scale: 1 - 0.45 * k, x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2, shiftX: 150 * k };
+  },
   worldTilt: (state) => {
     const t = towerOf(state), r = inTower(state);
     if (r <= 0) return null;
@@ -399,7 +557,7 @@ export const tower: SpookySection = {
   drawBackdrop: (c) => { drawTowerBackdrop(c); return true; },
   drawBack: (c, state) => {
     const t = towerOf(state);
-    drawTowerBack(c, state, { ride: t.ride, broken: brokenOf(t), beamHp: t.beamHp, crashed: t.crashed, nets: t.nets, grate: t.grate, b1: t.b1, opTalking: !!t.opSaid });
+    drawTowerBack(c, state, { rot: t.rot, ride: t.ride, broken: brokenOf(t), beamHp: t.beamHp, crashed: t.crashed, nets: t.nets, grate: t.grate, b1: t.b1, opTalking: !!t.opSaid, lamp: lampOn(t.ride, t.crashed) });
   },
   drawFront: (c, state) => {
     const t = towerOf(state);

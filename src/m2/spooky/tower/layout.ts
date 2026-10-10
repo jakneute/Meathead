@@ -4,12 +4,15 @@
 //   x0 .. TX0      the ELEVATOR TO HELL loading bay: the way back to the hallway, the wait-time sign, HOW THE RIDE
 //                  WORKS on the wall, the queue's switchbacks (riders in line), the operator's booth at the gate, the
 //                  boarding platform (the car docks there), the CAST MEMBERS ONLY door (security comes out of it)
-//   TX0 .. TX1     the clock tower, inside: in through its maintenance door at the foot of it. Seven floors up
-//                  (stories 0..5, then the clock room at the top), each one a full floor slab with a stairwell gap at
-//                  one end, the zigzag up them; the ride's shaft up the middle of it (SH0..SH1), the car going up it
-//                  behind; safety nets across the shaft at every floor (they snap when the car falls), the grate over
-//                  the shaft at the foot of it (and under that, a level down, the ride's "hell": its floor breaks open
-//                  into the real one)
+//   TX0 .. TX1     the clock tower, inside, 1000 across (u: 0..1000 from its left wall). The ride's shaft up the middle
+//                  (u 420..580), the car going up it behind everything. Seven floors: the ground floor (0), floors 1..5,
+//                  the clock room (6) at the top; each floor slab a stairwell gap at one end (the zigzag). The way UP:
+//                  every floor's support beam on the half he comes in on (ram it to get by), the shaft's net to cross,
+//                  the ledges up to the gap on the far half. The way DOWN (after the car's gone through, everything
+//                  wrecked: WRECK): the shaft open in places and jammed with wreckage in others, floors sagging, one
+//                  caved in; down the shaft where he can (the cars still coming down it), through the floors where it's
+//                  jammed; down past the ground floor he started from, through the ride's "hell" under it (B1), down
+//                  the hole the car made (the chute) into the real one.
 // Up is negative y from GY.
 
 import { SECTIONS, GY } from '../geometry';
@@ -31,10 +34,12 @@ export const STAFF_DOOR_X = x0 + 1600;
 export const BAY_TOP = GY - 520;
 
 // ---- The tower
-export const TX0 = x0 + 1700, TX1 = x0 + 2900;
+export const TX0 = x0 + 1700, W = 1000, TX1 = TX0 + W;
+/** A point across the tower (u: 0 at its left wall). */
+export const U = (u: number) => TX0 + u;
 export const WALL = 40;
 /** The ride's shaft up the middle. */
-export const SH0 = TX0 + 520, SH1 = TX0 + 680, SHM = (SH0 + SH1) / 2;
+export const SH0 = U(420), SH1 = U(580), SHM = (SH0 + SH1) / 2;
 /** The maintenance door's height (in through the tower's foot from the bay). */
 export const DOOR_H = 150;
 /** Each floor's height (floor to floor), and how thick a floor slab is. */
@@ -44,127 +49,214 @@ export const F = (k: number) => GY - k * STORY;
 export const STORIES = 6;
 /** The clock room: its floor, its ceiling. */
 export const TOP = F(STORIES), ROOF = TOP - 560;
-/** The ride's "hell", a level under the tower's foot (its floor's what breaks open into the real one). */
+/** Under the ground floor: the ride's "hell" (B1, a room a level down, its floor at B1), and the hole the car made
+ *  under that (the chute, CH0..CH1), down to HELL_AT: on into the real hell. */
 export const B1 = GY + 320;
-/** Fallen this far below the ground floor, through the hole: on into the real hell. */
-export const HELL_AT = GY + 760;
-/** The stairwell gap in each floor slab: how wide; which end (story k's way up out of it: right if k is even). */
-export const GAP = 150;
+export const CH0 = U(300), CH1 = U(700);
+export const HELL_AT = GY + 1300;
+/** The stairwell gap in each floor slab: how wide; which end (floor k's way up out of it: right if k is even). */
+export const GAP = 180;
 export const upRight = (k: number) => k % 2 === 0;
 
-/** Each floor slab k (1..6): its solid stretches (the shaft's own stretch is a net, separate). */
-export const slabRuns = (k: number): [number, number][] => {
-  // (the gap is at the end story k-1 climbs out of)
-  const right = upRight(k - 1);
-  const a = right ? TX0 : TX0 + GAP, b = right ? TX1 - GAP : TX1;
-  return [[a, SH0], [SH1, b]];
+// ---------------------------------------------------------------------------------------------------------------
+// The floor slabs: each a few pieces [u0, u1, dy0, dy1] (dy: down from the floor's line at each end: a piece that sags
+// is a slope, stepped so he walks it both ways). WHOLE: as built (the shaft's stretch is a net, separate). WRECK: after
+// the crash (the shaft's stretch a jam of wreckage where there is one: JAMS).
+
+export type Piece = [number, number, number, number];
+const wholeOf = (k: number): Piece[] => (k === 5 ? [[0, 150, 0, 0], [580, 820, 0, 0]] : upRight(k - 1) ? [[0, 420, 0, 0], [580, 820, 0, 0]] : [[180, 420, 0, 0], [580, 1000, 0, 0]]);
+export const WHOLE: Piece[][] = [[], ...[1, 2, 3, 4, 5, 6].map(wholeOf)];
+export const WRECK: Piece[][] = [
+  [],
+  // floor 1: its far half sags toward the gap
+  [[0, 420, 0, 0], [580, 790, 0, 45]],
+  // floor 2: whole, both halves
+  [[180, 420, 0, 0], [580, 1000, 0, 0]],
+  // floor 3: its far half sags
+  [[0, 420, 0, 0], [580, 790, 0, 45]],
+  // floor 4: caved in on the left (all but a ledge of it by the shaft): down through it to floor 3
+  [[330, 420, 0, 0], [580, 1000, 0, 0]],
+  // floor 5: its far half sags toward the gap, steep
+  [[0, 420, 0, 0], [580, 790, 0, 50]],
+  // the clock room's floor
+  [[180, 420, 0, 0], [580, 1000, 0, 0]],
+];
+// (a sagging half tears away short of the wall: drop off its low end onto the climb's middle ledge below)
+/** Floor 3's way up: the clock's counterweight (a ton of iron on its chain), going up and down by the wall, from
+ *  its floor to the gap in the floor over it. Ride it. */
+export const LIFT = { k: 3, x: U(40), w: 130, top: F(3) - 330, bottom: F(3), period: 330 };
+export const liftY = (frame: number) => LIFT.bottom + (LIFT.top - LIFT.bottom) * (0.5 - 0.5 * Math.cos((frame / LIFT.period) * Math.PI * 2));
+/** Floor 5's near half: rotten boards (stand on one and it cracks, and goes: down to floor 4), till the crash. */
+export const ROTTEN = { k: 5, boards: [[150, 215], [215, 280], [280, 350], [350, 420]] as [number, number][] };
+/** Floor 4's net's torn out: a gap over the shaft (jump it; miss it and it's floor 3 again). */
+export const TORN_NET = 4;
+/** The shaft jammed with wreckage at these floors, after (the car's torn-off roof, girders across): stand on them. */
+export const JAMS = [1, 2, 5];
+/** A slab piece's floor height at u (world y). */
+export const pieceY = (k: number, p: Piece, u: number) => F(k) + p[2] + (p[3] - p[2]) * Math.max(0, Math.min(1, (u - p[0]) / (p[1] - p[0])));
+/** Where to stand an enemy on floor k at u (the slab's top there, wrecked or whole). */
+export const floorAt = (k: number, u: number, wrecked: boolean) => {
+  if (k === 0) return GY;
+  const p = (wrecked ? WRECK : WHOLE)[k].find(q => u >= q[0] && u <= q[1]);
+  return p ? pieceY(k, p, u) : F(k);
 };
 
-/** The ledges up to each story's way out: [x, y, w] (one-way). */
+// ---------------------------------------------------------------------------------------------------------------
+// The ledges (one-way). Up the far half of every floor to its gap (they're the way down too); and the extras.
+
 export const LEDGES: [number, number, number][] = [];
 for (let k = 0; k < STORIES; k++) {
-  const f = F(k), r = upRight(k);
-  const at = (dx: number, w: number) => (r ? TX1 - dx - w : TX0 + dx);
-  // (the top one under the gap, the middle one half under it: no bumping his head on the slab going up)
-  LEDGES.push([at(270, 140), f - 100, 140], [at(100, 130), f - 195, 130], [at(10, 120), f - 290, 120]);
+  const f = F(k);
+  // (floor 3's way up is the clock's counterweight instead: LIFT)
+  if (k === 3) continue;
+  // (the middle one's far end under the gap: up through the top one from there)
+  if (upRight(k)) LEDGES.push([U(590), f - 105, 120], [U(760), f - 200, 140], [U(875), f - 290, 120]);
+  else LEDGES.push([U(290), f - 105, 120], [U(100), f - 200, 140], [U(5), f - 290, 120]);
 }
-// (the clock room: up to the bell's gallery, and the gear train's walkway)
-export const GALLERY: [number, number, number] = [TX1 - 330, TOP - 230, 320];
-LEDGES.push([TX1 - 470, TOP - 115, 110], GALLERY, [TX0 + 60, TOP - 150, 220]);
+// floor 1: a shelf out over the shaft (a long jump from the middle ledge: ammo on it)
+LEDGES.push([U(440), F(1) - 240, 120]);
+// the clock room: up to the bell's gallery, and a ledge over the way in
+export const GALLERY: [number, number, number] = [U(700), TOP - 230, 290];
+LEDGES.push([U(600), TOP - 115, 100], GALLERY, [U(40), TOP - 150, 200]);
+// down the chute: rock shelves to catch himself on (or not)
+export const CHUTE_LEDGES: [number, number, number][] = [[U(310), GY + 560, 110], [U(590), GY + 760, 110], [U(320), GY + 960, 100], [U(570), GY + 1130, 120]];
 
-/** The support beams: which story, where (x: its left side), how wide, how many hits it takes, how it looks. One per
- *  story, and the main support in the clock room. Floor to ceiling: he can't get by one without breaking it. */
+// ---------------------------------------------------------------------------------------------------------------
+// The support beams: one per floor, floor to ceiling, on the half he comes in on (he can't get by without ramming it);
+// the main support up in the clock room, by the shaft. How many hits each takes, how it looks.
+
 export interface BeamDef { k: number; x: number; w: number; hp: number; look: 'wood' | 'steel' | 'main' }
 export const BEAMS: BeamDef[] = [
-  { k: 0, x: TX0 + 330, w: 34, hp: 1, look: 'wood' },
-  { k: 1, x: TX0 + 470, w: 34, hp: 1, look: 'wood' },
-  { k: 2, x: TX1 - 480, w: 36, hp: 2, look: 'steel' },
-  { k: 3, x: TX0 + 470, w: 36, hp: 2, look: 'wood' },
-  { k: 4, x: TX1 - 480, w: 38, hp: 2, look: 'steel' },
-  { k: 5, x: TX0 + 470, w: 38, hp: 2, look: 'steel' },
-  { k: 6, x: SH0 - 70, w: 54, hp: 3, look: 'main' },
+  { k: 0, x: U(300), w: 34, hp: 1, look: 'wood' },
+  { k: 1, x: U(620), w: 34, hp: 1, look: 'wood' },
+  { k: 2, x: U(376), w: 36, hp: 2, look: 'steel' },
+  { k: 3, x: U(620), w: 36, hp: 2, look: 'wood' },
+  { k: 4, x: U(380), w: 38, hp: 2, look: 'steel' },
+  { k: 5, x: U(600), w: 38, hp: 2, look: 'steel' },
+  { k: 6, x: U(356), w: 54, hp: 3, look: 'main' },
 ];
 /** The beam's top (the slab over it, or the clock room's roof). */
 export const beamTop = (b: BeamDef) => (b.k < STORIES ? F(b.k + 1) + SLAB : ROOF);
 
-/** The gears on the walls (and the ones rolling along a floor): center, radius, spin (radians a frame); a roller goes
- *  back and forth between x and x + roll. */
-export interface GearDef { x: number; y: number; r: number; spin: number; roll?: number }
-/** A gear by story k's climb: `dx` in from the wall it climbs up against, `dy` up off the floor. */
-const climbGear = (k: number, dx: number, dy: number, r: number, spin: number): GearDef => ({ x: upRight(k) ? TX1 - dx : TX0 + dx, y: F(k) - dy, r, spin: upRight(k) ? spin : -spin });
+// ---------------------------------------------------------------------------------------------------------------
+// The works
+
+/** The gears on the walls (and one half sunk in a floor): center, radius, spin (radians a frame); a roller goes back
+ *  and forth between x and x + roll. */
+export interface GearDef { x: number; y: number; r: number; spin: number; roll?: number; wholeOnly?: boolean }
+/** A gear by floor k's climb, against the wall it climbs: between the middle and top ledges (don't fall off the middle
+ *  one's far end). */
+const climbGear = (k: number, spin: number): GearDef => ({ x: upRight(k) ? U(965) : U(35), y: F(k) - 170, r: 28, spin: upRight(k) ? spin : -spin });
 export const GEARS: GearDef[] = [
-  // story 0: the first one, by the climb (between the ledges, against the wall: don't drop off the middle one there)
-  climbGear(0, 40, 150, 30, 0.03),
-  // story 1: two by the climb
-  climbGear(1, 40, 150, 30, 0.035), climbGear(1, 300, 330, 28, -0.05),
-  // story 2: one half sunk in the floor's middle, teeth up (jump it)
-  { x: TX0 + 790, y: F(2) + 8, r: 30, spin: 0.06 },
-  climbGear(2, 40, 150, 30, 0.04),
-  // story 3: by the climb
-  climbGear(3, 40, 150, 30, 0.04), climbGear(3, 300, 330, 28, 0.05),
-  // story 4: a roller along the floor (jump it as it comes)
-  { x: TX0 + 300, y: F(4) - 30, r: 30, spin: 0.08, roll: 190 },
-  climbGear(4, 40, 150, 30, 0.045),
-  // story 5: the climb's lined with them
-  climbGear(5, 40, 150, 30, 0.05), climbGear(5, 300, 330, 30, -0.06), climbGear(5, 200, 60, 26, 0.07),
-  // the clock room: the gear train, high up round the clock (out of reach: the look of it)
-  { x: TX1 - 120, y: ROOF + 110, r: 52, spin: 0.012 },
-  { x: TX1 - 210, y: ROOF + 70, r: 30, spin: -0.02 },
+  climbGear(0, 0.03), climbGear(1, 0.035), climbGear(2, 0.04), climbGear(4, 0.045), climbGear(5, 0.05),
+  // floor 1: the cuckoo floor's climb has a second one, over the middle ledge's near end
+  { x: U(200), y: F(1) - 300, r: 22, spin: 0.06 },
+  // floor 3: beside the counterweight's run (stand on its far end, not its near one, riding up)
+  { x: U(232), y: F(3) - 210, r: 24, spin: 0.05 },
+  // floor 3: one half sunk in the floor on the way to the beam, teeth up (jump it)
+  { x: U(760), y: F(3) + 8, r: 30, spin: 0.06, wholeOnly: true },
+  // floor 5: over the middle ledge's far end (jump from its near end)
+  { x: U(215), y: F(5) - 310, r: 22, spin: -0.06 },
+  // the clock room: the gear train, high up round the clock (the look of it)
+  { x: U(930), y: ROOF + 110, r: 52, spin: 0.012 },
+  { x: U(840), y: ROOF + 70, r: 30, spin: -0.02 },
 ];
 
-/** The pendulums: the pivot (the ceiling), the length, the swing (radians either side), its period (frames), phase. */
-/** (none of them swings out over the shaft: the car's way, and his, down it) */
-export interface PendDef { x: number; y: number; len: number; amp: number; period: number; phase: number }
+/** The pendulums: the pivot (the ceiling), the length, the swing (radians either side), its period (frames), phase.
+ *  At the ends of its swing it's up over his head; at the bottom it's not. (None swings out over the shaft far: the
+ *  car's way, and his, down it.) `wild`: after, the tower leaning, it swings further and faster; `snaps`: after, it's
+ *  down, its blade stuck in the floor (jump it). */
+export interface PendDef { x: number; y: number; len: number; amp: number; period: number; phase: number; snaps?: boolean }
 export const PENDULUMS: PendDef[] = [
-  // story 2: the first one, swinging over the floor (time it)
-  { x: TX0 + 400, y: F(3) + SLAB, len: 300, amp: 0.4, period: 150, phase: 0 },
-  // story 4: by the climb
-  { x: TX1 - 330, y: F(5) + SLAB, len: 270, amp: 0.7, period: 130, phase: 0.3 },
-  // story 5: one more, by the way in
-  { x: TX1 - 300, y: F(6) + SLAB, len: 300, amp: 0.7, period: 140, phase: 0.25 },
+  // floor 2: the first (time it: the beam's under the end of its swing)
+  { x: U(360), y: F(3) + SLAB, len: 280, amp: 0.4, period: 140, phase: 0, snaps: true },
+  // floor 5: over the way in, the beam under the end of its swing
+  { x: U(720), y: F(6) + SLAB, len: 290, amp: 0.55, period: 130, phase: 0.25 },
 ];
 
 /** The cuckoo clocks on the walls (their birds come out at him): [x, y] (the clock's middle). */
 export const CUCKOOS: [number, number][] = [
-  [TX1 - 380, F(1) - 220],
-  [TX0 + 260, F(3) - 230], [TX1 - 280, F(3) - 250],
-  [TX0 + 900, F(4) - 260],
-  [TX1 - 300, F(5) - 230],
-  [TX1 - 150, TOP - 380],
+  // floor 1: the cuckoo floor (one by the way in, one over the beam, one up the climb)
+  [U(780), F(1) - 240], [U(560), F(1) - 300], [U(330), F(1) - 300],
+  [U(340), F(3) - 260],
+  [U(500), F(4) - 280],
+  [U(780), F(5) - 260],
+  [U(880), TOP - 380],
 ];
 
-/** Who's where in the tower (cuckoos aside): [kind, x, the floor it's on]. The bell ringers' patrols: their home ±. */
+/** Who's where: [kind, u across, floor] (stood on the floor there; a bride on a ledge: the ledge's y given instead). */
 export type TowerFoe = 'igor' | 'mummy' | 'bride' | 'ringer' | 'wolfman' | 'monster';
-/** (none of them stood over the shaft: its nets go, and they'd go down it) */
-export const FOES: [TowerFoe, number, number][] = [
-  // story 1: an igor (the pitchfork: don't charge him from the front), in front of the beam
-  ['igor', TX0 + 780, F(1)],
-  // story 2: the mummy, on the way to the beam (slow, and takes a lot)
-  ['mummy', TX0 + 470, F(2)],
-  // story 3: the bell ringer (the automaton: the hammer), an igor by the climb
-  ['ringer', TX0 + 860, F(3)],
-  ['igor', TX0 + 300, F(3)],
-  // story 4: the mix (a bride lobbing her bouquet down off the climb, wolfmen running him down, an igor at the beam)
-  ['bride', TX1 - 190, F(4) - 195],
-  ['wolfman', TX0 + 450, F(4)],
-  ['igor', TX0 + 700, F(4)],
-  ['wolfman', TX0 + 960, F(4)],
-  // story 5: all of it
-  ['monster', TX0 + 800, F(5)],
-  ['ringer', TX0 + 1000, F(5)],
-  ['igor', TX0 + 420, F(5)],
-  ['mummy', TX0 + 300, F(5)],
-  ['bride', TX0 + 75, F(5) - 290],
-  // the clock room: the clock's own figure up by the bell, and a last couple at the main support
-  ['ringer', GALLERY[0] + 160, GALLERY[1]],
-  ['bride', TX0 + 170, TOP - 150],
-  ['igor', TX0 + 390, TOP],
+export type FoeAt = [TowerFoe, number, number | 'floor', number];
+/** On the way up. */
+export const FOES: FoeAt[] = [
+  // floor 1: an igor (the pitchfork: don't charge him from the front), between him and the beam
+  ['igor', 720, 'floor', 1],
+  // floor 2: the mummy, past the beam, on the way to the climb (slow, takes a beating)
+  ['mummy', 690, 'floor', 2],
+  // floor 3: the bell ringer on the long half (the hammer), an igor at the climb
+  ['ringer', 760, 'floor', 3],
+  ['igor', 330, 'floor', 3],
+  // floor 4: an igor at the beam, a wolfman across the shaft (he comes when the beam's out), a bride up the climb
+  ['igor', 350, 'floor', 4],
+  ['wolfman', 820, 'floor', 4],
+  ['bride', 790, F(4) - 200, 4],
+  // floor 5: the monster at the climb, a bride up it
+  ['monster', 300, 'floor', 5],
+  ['bride', 70, F(5) - 290, 5],
+  // the clock room: an igor at the main support, a bride over the way in, the clock's own figure up by the bell
+  ['igor', 335, 'floor', 6],
+  ['bride', 140, TOP - 150, 6],
+  ['ringer', 860, GALLERY[1], 6],
+];
+/** On the way down (the staff regrouped: everything from before that's still standing is gone). */
+export const DESCENT_FOES: FoeAt[] = [
+  ['ringer', 860, GALLERY[1], 6],
+  // floor 5: an igor coming up the sag at him
+  ['igor', 760, 'floor', 5],
+  // floor 4: a bride on the climb he goes down
+  ['bride', 790, F(4) - 200, 4],
+  // floor 3: the bell ringer on the sag, between him and the gap
+  ['ringer', 700, 'floor', 3],
+  // floor 2: the mummy in front of the way down
+  ['mummy', 230, 'floor', 2],
+  // floor 1: the monster on the sag
+  ['monster', 700, 'floor', 1],
+  // the ground floor: security, up from the bay
+  ['wolfman', 620, 'floor', 0],
+  ['igor', 690, 'floor', 0],
 ];
 /** Security, out of the CAST MEMBERS ONLY door when the operator calls them. */
 export const SECURITY: TowerFoe[] = ['wolfman', 'igor'];
 
+/** Floor 2's pendulum, snapped: its blade stuck in the floor here, after (u). */
+export const BLADE_U = 280;
+
+/** The pickups (small: Meathead 2's lean): [u, y (where it sits), type, after the crash only]. */
+export const PICKUPS: [number, number, 'small_health' | 'small_ammo', boolean][] = [
+  // floor 1: on the shelf out over the shaft
+  [500, F(1) - 240, 'small_ammo', false],
+  // floor 2: right under the pendulum's swing
+  [320, F(2), 'small_health', false],
+  // floor 4: on the ledge left of the shaft, across from the climb (after: the way through the floors, not the shaft)
+  [375, F(4), 'small_health', true],
+  // the chute: on a shelf
+  [640, GY + 760, 'small_health', true],
+];
+
 /** The car: how high it goes (its floor, at the top: in the clock room), where it hangs. */
 export const CAR_W = 150, CAR_H = 120;
 export const CAR_TOP = TOP - 40;
-/** The riders in line (scenery), and seats in the car (from its middle). */
+/** The seats in the car (from its middle). */
 export const SEATS = [-48, -16, 16, 48];
+
+/** Where the ladders go once Spooky Land has them (moves/ladders.ts, LadderDef {x, top, bottom}): not wired yet.
+ *  Up: the clock room's gallery (a ladder up to the bell); floor 3, a perch over the bell ringer's beat (shoot it
+ *  from the ladder); floor 5, the way up to its beam's floor runs up a ladder that tops out beside the beam (no
+ *  ramming from a ladder: off it first). Down: a ladder hanging off the edge of floor 4's cave-in, down to floor 3;
+ *  one torn loose and dangling in the shaft under floor 5's jam (a step off it onto floor 4). */
+export const LADDER_SPOTS: { x: number; top: number; bottom: number; after?: boolean }[] = [
+  { x: U(975), top: GALLERY[1], bottom: TOP },
+  { x: U(700), top: F(3) - 200, bottom: F(3) },
+  { x: U(345), top: F(4) + 10, bottom: F(3) - 40, after: true },
+  { x: U(560), top: F(5) + 30, bottom: F(4) - 60, after: true },
+];

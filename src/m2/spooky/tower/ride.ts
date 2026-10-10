@@ -26,11 +26,17 @@ export interface Car {
   crash?: boolean;
   /** Screamed this drop already. */
   screamed?: boolean;
+  /** What came off it's hit him already, this drop. */
+  hit?: boolean;
 }
 export interface Ride { car: Car | null; next: number; count: number; held: boolean }
 export const newRide = (): Ride => ({ car: null, next: 60, count: 0, held: false });
 
 const RISE = 3, ROLL = 4;
+/** After: how long it's held at the top with the shaft's red lamps going (the tell) before it drops. */
+export const LAMP_HOLD = 75;
+/** The shaft's red lamps: on while a car's held at the top about to drop for good, and while it's coming down. */
+export const lampOn = (r: Ride, crashed: boolean) => crashed && !!r.car && (r.car.phase === 'hold' || (r.car.phase === 'drop' && !r.car.crash));
 let seedN = 9000;
 const newCar = (r: Ride): Car => {
   r.count++;
@@ -58,7 +64,7 @@ export const runRide = (state: GameState, r: Ride, crashed: boolean, ev: RideEve
   const near = Math.abs(state.player.pos.x - c.x) < 900 && Math.abs(state.player.pos.y - c.y) < 700;
   switch (c.phase) {
     case 'board':
-      if (c.t === 150) { if (near) playSound('clang', 0.5, -8); c.phase = 'roll'; c.t = 0; }
+      if (c.t === (crashed ? 90 : 150)) { if (near) playSound('clang', 0.5, -8); c.phase = 'roll'; c.t = 0; }
       break;
     case 'roll':
       c.x = Math.min(SHM, c.x + ROLL);
@@ -66,14 +72,14 @@ export const runRide = (state: GameState, r: Ride, crashed: boolean, ev: RideEve
       if (c.x >= SHM) { c.phase = 'rise'; c.t = 0; }
       break;
     case 'rise':
-      c.y = Math.max(CAR_TOP, c.y - RISE);
+      c.y = Math.max(CAR_TOP, c.y - (crashed ? RISE * 2 : RISE));
       if (c.t % 15 === 0 && near) playSound('click', 0.2, -14);
       if (c.y <= CAR_TOP) { c.phase = 'hold'; c.t = 0; if (near) playSound('ding', 0.7, -18); }
       break;
     case 'hold':
       // (tick, tock; the clock room's held one there for the drop, the last beam still up: it waits)
       if (c.t % 30 === 0 && near) playSound('click', 0.4, c.t % 60 ? -6 : 6);
-      if (!r.held && c.t > 100) { c.phase = 'drop'; c.t = 0; c.real = crashed; ev.dropped?.(c); }
+      if (!r.held && c.t > (crashed ? LAMP_HOLD : 100)) { c.phase = 'drop'; c.t = 0; c.real = crashed; ev.dropped?.(c); }
       break;
     case 'drop': {
       const from = c.y;
