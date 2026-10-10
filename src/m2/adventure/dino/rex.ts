@@ -33,13 +33,17 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
 import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { topBand, CANVAS_WIDTH, enemyMeleeDamage, ENEMY_HIT_COOLDOWN, POWER_CELLS, BOUNCE_FRAMES } from '../../../m1/constants';
-import { getAdv, solid, box, label, saidOver, speak, meatheadSays, type Said } from '../section';
+import { getAdv, solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
+import { say, cutVoice } from '../../../m1/game/platform/speech';
+import { isShat, isNude } from '../../../m1/game/player/gut';
 import { GY } from '../geometry';
 import { plate, servo } from './art/robots';
 import { rampOf } from '../../intro/art/kit';
+import { eyeOf, prism } from './art/kit';
 import {
   HURT_REX, DEATH_REX, HURT_REX_BITE, DEATH_REX_BITE, HURT_REX_SPRINT, DEATH_REX_SPRINT, HURT_REX_TAIL, DEATH_REX_TAIL,
-  HURT_REX_SHOCK, DEATH_REX_SHOCK, MEATHEAD_REX_INTRO, REX_SPEAKER_DYING,
+  HURT_REX_SHOCK, DEATH_REX_SHOCK, MEATHEAD_REX_INTRO, REX_INTRO, REX_CHATTER, REX_SEES_WHOLE, REX_SEES_BROKEN, REX_WRECKED,
+  REX_LIVE, REX_BIT, REX_CRASHED, REX_DYING, type Dressed,
 } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -109,6 +113,9 @@ interface Rex {
   /** Shocked him: not again till this frame. */
   shockGrace: number;
   said: Said | null;
+  /** Its speaker: when it next pipes up, when it last did, what it's said this fight (not again till it's run through
+   *  the lot). */
+  talkAt: number; talkedAt: number; used: string[];
   /** Coming apart: frames of it, its head off and rolling, the body going over, the oil. */
   dieT: number; head: { x: number; y: number; vx: number; vy: number; rot: number } | null; fall: number; oil: number;
   minX: number; maxX: number; inX: number; outX: number;
@@ -119,6 +126,46 @@ const rexOf = (state: GameState) => (getAdv(state)?.s as Record<string, unknown>
 const dinoMode = (state: GameState) => {
   const d = (getAdv(state)?.s as { dino?: { hostile?: boolean; held?: boolean } } | undefined)?.dino;
   return { hostile: d?.hostile ?? true, held: d?.held ?? false };
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Its speaker: the park's canned kids' spiel (it never stops doing the friendly bit), coming apart as it does. Out of
+// its head, in its own voice, only while it's said; nobody's talked over (the dialogue queue): chatter's dropped if
+// anyone's talking, the big moments (a part wrecked, its last words) wait their turn.
+
+const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
+/** A line out of `pool` it hasn't said yet this fight (all of them said: round again). */
+const fresh = (r: Rex, pool: readonly string[]) => {
+  let left = pool.filter(l => !r.used.includes(l));
+  if (!left.length) { r.used = r.used.filter(l => !pool.includes(l)); left = [...pool]; }
+  return pick(left);
+};
+/** It says something: `wait`, it waits its turn if anyone's talking; otherwise it's not said at all. Whether it will be. */
+const rexSays = (state: GameState, r: Rex, pool: readonly string[], wait: boolean) => {
+  const text = fresh(r, pool), s: Said = { text };
+  const ok = say(text, voice('m2.rex'), wait ? 'queue' : 'casual', {
+    always: true,
+    // (not recorded yet: up a while, then down)
+    onShow: spoken => { r.said = s; r.talkedAt = state.frame; if (!spoken) setTimeout(() => { if (r.said === s) r.said = null; }, Math.max(1800, text.length * 70)); },
+    onHide: () => { if (r.said === s) r.said = null; },
+    onDropped: () => { if (r.said === s) r.said = null; },
+  });
+  if (ok) r.used.push(text);
+  return ok;
+};
+/** How far gone it is: 0 whole .. 3 one part left (its parts wrecked, or near enough by its health all told). */
+const wornDown = (r: Rex) => {
+  const broken = PARTS.filter(id => r.parts[id].broken).length;
+  const hp = PARTS.reduce((n, id) => n + Math.max(0, r.parts[id].hp), 0) / PARTS.reduce((n, id) => n + r.parts[id].max, 0);
+  return Math.min(3, Math.max(broken, Math.floor((1 - hp) * 3.4)));
+};
+/** Every so often in the fight: its spiel, worse the further gone it is; now and then, what it makes of him. */
+const chatter = (state: GameState, r: Rex) => {
+  if (state.player.health <= 0 || state.frame < r.talkAt) return;
+  const lv = wornDown(r);
+  const pool = Math.random() < 0.35 ? (lv >= 2 ? REX_SEES_BROKEN : REX_SEES_WHOLE)[dressed(state)] : REX_CHATTER[lv];
+  // (somebody's talking: it tries again in a bit)
+  r.talkAt = state.frame + (rexSays(state, r, pool, false) ? 480 + Math.random() * 360 : 75);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -158,7 +205,7 @@ export const buildRex = (state: GameState, o: { x: number; inX: number; outX: nu
   const r: Rex = {
     fight: 'wait', x: o.x, vx: 0, facing: -1, st: 'idle', t: 0, stagger: 0, parts,
     crouch: 0, hx: 0, hy: 0, jaw: 0, tail: 0, step: 0, biteX: 0, biteY: 0, bit: false,
-    sprintCd: 200, campT: 0, post: -1, postShake: 0, postShook: -1, shockGrace: -1, said: null,
+    sprintCd: 200, campT: 0, post: -1, postShake: 0, postShook: -1, shockGrace: -1, said: null, talkAt: 0, talkedAt: -9999, used: [],
     dieT: 0, head: null, fall: 0, oil: 0,
     minX: o.inX + 20 + 80, maxX: o.outX - 80, inX: o.inX, outX: o.outX, lock: null, back: null, posts: [],
   };
@@ -222,6 +269,7 @@ const hit = (ctx: FrameContext, r: Rex, part: Part, raw: number, o: { meter?: nu
 
 const goLive = (ctx: FrameContext, r: Rex, part: Part) => {
   part.live = true;
+  if (ctx.state.frame - r.talkedAt > 240) rexSays(ctx.state, r, REX_LIVE, false);
   playSound('taser', 0.7, -4); playSound('bolt', 0.4, 6);
   const c = centerOf(worldBox(r, part.id));
   ctx.fx.spawnDamageNumber({ x: c.x - 20, y: c.y - 30 }, `${PART_NAME[part.id]} LIVE!`, true, '#67E8F9');
@@ -254,6 +302,8 @@ const wreck = (ctx: FrameContext, r: Rex, part: Part) => {
   ctx.fx.spawnDamageNumber({ x: c.x - 30, y: c.y - 40 }, `${PART_NAME[part.id]} WRECKED!`, true, '#FB923C');
   blast(ctx, r, c);
   if (PARTS.every(id => r.parts[id].broken)) { die(ctx, r); return; }
+  rexSays(state, r, REX_WRECKED[part.id], true);
+  r.talkAt = Math.max(r.talkAt, state.frame + 420);
   // (it reels)
   if (r.st !== 'dying') { r.st = 'crash'; r.t = 0; r.stagger = 50; }
 };
@@ -356,6 +406,7 @@ const partTouch = (ctx: FrameContext, e: Enemy): boolean => {
       r.st = 'crash'; r.t = 0; r.stagger = 100; r.vx *= 0.4;
       ctx.fx.spawnDamageNumber({ x: c.x - 20, y: GY - 180 }, 'TRIPPED!', true, '#FDE047');
       playSound('thud', 1, -8);
+      if (Math.random() < 0.6) rexSays(state, r, REX_CRASHED, false);
     } else if (r.st !== 'crash' && r.st !== 'intro') { r.st = 'stumble'; r.t = 0; }
   }
   const took = hit(ctx, r, part, slidLegs ? SLIDE_LEG_DAMAGE : moveDamage(p) * MELEE_MULT, { meter: slidLegs ? SLIDE_LEG_METER : 0 });
@@ -391,6 +442,9 @@ const startFight = (state: GameState, r: Rex) => {
   if (p.pos.x < r.inX + 20) p.pos.x = r.inX + 22;
   r.facing = state.player.pos.x + state.player.width / 2 < r.x ? -1 : 1;
   meatheadSays(state, pick(MEATHEAD_REX_INTRO), true);
+  // (and it wakes up doing the bit)
+  rexSays(state, r, REX_INTRO[dressed(state)], true);
+  r.talkAt = state.frame + 720;
 };
 
 const die = (ctx: FrameContext, r: Rex) => {
@@ -398,7 +452,9 @@ const die = (ctx: FrameContext, r: Rex) => {
   for (const id of PARTS) { const e = r.parts[id].e; if (e) { e.health = 0; e.seen = true; } r.parts[id].e = null; }
   if (r.lock) r.lock.x = -1e7;
   if (r.back) r.back.x = -1e7;
-  speak('m2.rex', pick(REX_SPEAKER_DYING), s => { r.said = s; }, true);
+  // (whatever it was going on about, cut off: its last words)
+  cutVoice('m2.rex'); r.said = null;
+  rexSays(ctx.state, r, REX_DYING[dressed(ctx.state)], true);
   const c = centerOf(worldBox(r, 'body'));
   ctx.fx.spawnDamageNumber({ x: c.x - 40, y: c.y - 80 }, 'EXTINCT!', true, '#FDE047');
   playSound('alarm', 0.4, -8);
@@ -472,6 +528,7 @@ export const updateRex = (ctx: FrameContext) => {
     return;
   }
   think(ctx, r);
+  chatter(state, r);
   placeParts(r);
 };
 
@@ -565,7 +622,12 @@ const think = (ctx: FrameContext, r: Rex) => {
     case 'lunge':
       pose(r, 6, r.biteX, r.biteY, r.t < 6 ? 1 : 0, 0, f, 0.45);
       r.vx = r.t < 6 ? r.facing * 2.5 : 0;
-      if (!r.bit && touching('head')) { r.bit = bump(ctx, head ? BITE_DMG : GUM_DMG, 'm2:rex_bite', r.facing * 8, -6) || r.bit; }
+      if (!r.bit && touching('head')) {
+        const got = bump(ctx, head ? BITE_DMG : GUM_DMG, 'm2:rex_bite', r.facing * 8, -6);
+        // (and it's got something to say about how he tastes, once he's done yelling)
+        if (got && Math.random() < 0.6) rexSays(state, r, REX_BIT[dressed(state)], true);
+        r.bit = got || r.bit;
+      }
       if (r.t === 6) playSound('crunch', 1, -8);
       if (r.t > 10) { r.st = 'chew'; r.t = 0; r.vx = 0; }
       break;
@@ -636,6 +698,7 @@ const think = (ctx: FrameContext, r: Rex) => {
     if (r.st === 'sprint' || r.st === 'ram') {
       r.st = 'crash'; r.t = 0; r.stagger = 80; r.vx = 0;
       playSound('crash', 1, -6); playSound('clang', 1, -10); shakeScreen(state, 22, 8);
+      if (Math.random() < 0.5) rexSays(state, r, REX_CRASHED, false);
       const fx = r.facing > 0 ? r.outX : r.inX + 20;
       sparks(state, fx, GY - 120, 24); scrap(state, fx, GY - 100, 8);
     } else r.vx = 0;
@@ -670,6 +733,10 @@ const ramPost = (ctx: FrameContext, r: Rex, q: Post) => {
   }
 };
 
+/** The rolling head's lowest point below its middle, turned `rot` (its box, the jaw hanging open off it included). */
+const HEAD_BOX = [[-HEAD_W / 2, -HEAD_H / 2], [HEAD_W / 2, -HEAD_H / 2], [HEAD_W / 2, 42], [-HEAD_W / 2, 42]];
+const headLow = (rot: number) => Math.max(...HEAD_BOX.map(([x, y]) => x * Math.sin(rot) + y * Math.cos(rot)));
+
 /** Coming apart: the head off and rolling, the body going over, the oil. */
 const updateDeath = (ctx: FrameContext, r: Rex) => {
   const { state } = ctx;
@@ -692,10 +759,14 @@ const updateDeath = (ctx: FrameContext, r: Rex) => {
   const h = r.head;
   if (h) {
     h.vy += 0.5; h.x += h.vx; h.y += h.vy;
-    if (h.y > GY - 24) {
-      h.y = GY - 24;
+    // (on the ground by whichever corner of it's lowest as it turns: never sunk into it; slowed right down, it tips
+    // over onto its side or its jaw, whichever it's nearer)
+    const low = headLow(h.rot);
+    if (h.y > GY - low) {
+      h.y = GY - low;
       if (h.vy > 2.5) { h.vy = -h.vy * 0.35; playSound('clang', 0.6, -2 + Math.random() * 4); } else h.vy = 0;
       h.vx *= 0.985;
+      if (Math.abs(h.vx) < 0.6) { const rest = Math.round(h.rot / Math.PI) * Math.PI; h.rot += (rest - h.rot) * 0.12; h.vx *= 0.9; }
     }
     if (h.x < r.inX + 50 || h.x > r.outX - 30) { h.vx = -h.vx * 0.6; h.x = Math.max(r.inX + 50, Math.min(r.outX - 30, h.x)); if (Math.abs(h.vx) > 0.4) playSound('clang', 0.6, 0); }
     h.rot += h.vx / 24;
@@ -734,6 +805,7 @@ export const drawRex = (c: Ctx, state: GameState) => {
   if (!r || r.fight === 'gone') return;
   const cam = state.camera.x;
   const f = state.frame;
+  const eye = eyeOf(state);
   // (the posts and the fences: drawn wherever they're in view, whatever the rex is doing or wherever it is; culled
   // on the rex's own place, they came and went as he walked off from it)
   // (the feeding platforms' posts: what it rams)
@@ -741,6 +813,10 @@ export const drawRex = (c: Ctx, state: GameState) => {
     if (q.x2 < cam - 300 || q.x1 > cam + 1400) return;
     const shake = r.postShook === i && r.postShake > 0 ? Math.sin(r.postShake * 1.7) * r.postShake * 0.2 : 0;
     const cx = (q.x1 + q.x2) / 2;
+    // (its side going back, the side facing the eye, as everything else standing out here: under the deck, not over it)
+    c.save(); c.beginPath(); c.rect(cx - 80, q.y + 12, 160, GY - q.y); c.clip();
+    prism(c, eye, cx - 8 + shake, q.y + 12, 16, GY, 0.95, '#5A626C', { noTop: true, shadow: false });
+    c.restore();
     // (a steel post, bolted collars, hazard striped at the foot)
     c.fillStyle = INK; c.fillRect(cx - 9 + shake, q.y + 12, 18, GY - q.y - 12);
     c.fillStyle = '#5A626C'; c.fillRect(cx - 8 + shake, q.y + 12, 16, GY - q.y - 12);
@@ -749,9 +825,9 @@ export const drawRex = (c: Ctx, state: GameState) => {
     for (let y = GY - 28; y < GY; y += 7) { c.fillStyle = (y >> 2) % 2 ? '#E8B400' : '#1C1A1E'; c.fillRect(cx - 8 + shake, y, 16, 7); }
   });
   // The near fence, shut behind him once it's on
-  if (r.back && r.back.x > -1e6) lockGate(c, r.inX, f, 'LOCKED IN', 'WITH IT', 1);
+  if (r.back && r.back.x > -1e6) lockGate(c, r.inX, f, 'LOCKED IN', 'WITH IT', 1, eye);
   // The far fence, closed off high while it's alive
-  if (r.lock && r.lock.x > -1e6) lockGate(c, r.outX, f, 'LOCKED:', 'FEEDING TIME', -1);
+  if (r.lock && r.lock.x > -1e6) lockGate(c, r.outX, f, 'LOCKED:', 'FEEDING TIME', -1, eye);
   if (r.x < cam - 500 && (!r.head || r.head.x < cam - 100)) return;
   if (r.x > cam + 1300 && (!r.head || r.head.x > cam + 900)) return;
   // The oil it's lying in
@@ -759,8 +835,7 @@ export const drawRex = (c: Ctx, state: GameState) => {
   c.save();
   c.translate(Math.round(r.x), GY);
   c.scale(r.facing, 1);
-  // (going over, dying: tipped back about its feet, sinking)
-  if (r.fall > 0) { c.translate(0, r.fall * 20); c.rotate(-r.fall * 1.35); }
+  // (going down, dying: its legs folding out from under it, flat on its belly on the ground: see drawBody)
   drawBody(c, r, f);
   c.restore();
   // Live and wrecked parts, over it (world space)
@@ -771,17 +846,23 @@ export const drawRex = (c: Ctx, state: GameState) => {
     drawHead(c, r, f, -HEAD_W / 2, -HEAD_H / 2, true);
     c.restore();
   }
-  // What its speaker's saying (out of the head)
-  if (r.said?.text) {
-    const at = r.head ?? centerOf(worldBox(r, 'head'));
-    saidOver(c, r.said.text, Math.max(state.camera.x + 130, Math.min(state.camera.x + CANVAS_WIDTH - 130, at.x)), at.y - 46, '#BFDBFE', 220);
-  }
+};
+
+/** What its speaker's saying, out of its head (over everything: drawn with the park's front layer), only while it's said. */
+export const drawRexSaid = (c: Ctx, state: GameState) => {
+  const r = rexOf(state);
+  if (!r || r.fight === 'gone' || !r.said?.text) return;
+  const at = r.head ?? centerOf(worldBox(r, 'head'));
+  if (Math.abs(at.x - (state.camera.x + CANVAS_WIDTH / 2)) > CANVAS_WIDTH) return;
+  saidOver(c, r.said.text, Math.max(state.camera.x + 130, Math.min(state.camera.x + CANVAS_WIDTH - 130, at.x)), Math.max(state.camera.y + 110, at.y - 46), '#BFDBFE', 220);
 };
 
 const DARK_STEEL = ['#0E1014', '#1E2228', '#323840', '#4C545E', '#727A86'];
 /** A gate run up over a paddock fence (from GY - 520 down onto it): steel bars in a frame, hazard striped, a beacon
  *  going round on top, and its sign bolted to its face (on the side facing in: `side` 1, its right). */
-const lockGate = (c: Ctx, x: number, f: number, l1: string, l2: string, side: number) => {
+const lockGate = (c: Ctx, x: number, f: number, l1: string, l2: string, side: number, eye: { x: number; y: number }) => {
+  // (its side and its top going back, as the paddock's own pylons')
+  prism(c, eye, x - 2, GY - 521, 24, GY - 189, 0.96, '#3F3F46', { shadow: false });
   c.fillStyle = INK; c.fillRect(x - 3, GY - 522, 26, 334);
   c.fillStyle = '#3F3F46'; c.fillRect(x - 2, GY - 521, 24, 332);
   c.fillStyle = '#71717A'; c.fillRect(x - 2, GY - 521, 3, 332); c.fillStyle = '#27272A'; c.fillRect(x + 19, GY - 521, 3, 332);
@@ -797,24 +878,53 @@ const lockGate = (c: Ctx, x: number, f: number, l1: string, l2: string, side: nu
   c.fillStyle = '#FFFFFF'; c.fillText(l1, sx + 45, sy + 14); c.fillText(l2, sx + 45, sy + 26); c.textAlign = 'left';
 };
 
+/** Lying dead: how far down its belly comes (the body's bottom edge: 5 off the ground). */
+const SLUMP = 78;
+/** Between two poses' points (a polygon's, or a line's), u of the way. */
+const lerpPts = (a: number[], b: number[], u: number) => a.map((v, i) => v + (b[i] - v) * u);
+/** A leg laid out dead (facing right, from its feet): thigh, shin, foot, its three claws, the ram (from, to), the knee
+ *  servo. Thrown out in front of it along the ground, the foot up, toes in the air; the far one kicked up higher. */
+const DEAD_LEG = (s: number) => {
+  // (the far one: the same, swung up about the hip)
+  const a = s < 0 ? -0.38 : 0, ca = Math.cos(a), sa = Math.sin(a), hx = -10, hy = -44;
+  const o = (pts: number[]) => pts.map((v, i) => {
+    const x = i % 2 ? pts[i - 1] : v, y = i % 2 ? v : pts[i + 1];
+    return i % 2 ? hy + (x - hx) * sa + (y - hy) * ca : hx + (x - hx) * ca - (y - hy) * sa;
+  });
+  return {
+    thigh: o([-26, -42, 6, -50, 50, -24, 40, -8]),
+    shin: o([44, -24, 44, -4, 92, -6, 92, -18]),
+    foot: o([92, -4, 92, -46, 101, -48, 101, -4]),
+    claws: [0, 1, 2].map(t => o([93 + t * 3, -46, 95 + t * 3, -55, 98 + t * 3, -46])),
+    ram: o([-10, -34, 60, -16]),
+    knee: o([44, -14]),
+  };
+};
 const drawBody = (c: Ctx, r: Rex, f: number) => {
-  const P = r.parts, cr = r.crouch;
-  const st = Math.sin(r.step);
+  const P = r.parts;
+  // (dying: u of the way from how it stood to flat on its belly, the legs out from under it)
+  const u = r.fall * r.fall * (3 - 2 * r.fall);
+  const cr = r.crouch + (SLUMP - r.crouch) * u;
+  const st = Math.sin(r.step) * (1 - u);
   const lw = wear(P.legs), bw = wear(P.body), tw = wear(P.tail);
   // Legs: far, then near (a wrecked pair: one knee buckled, sparking)
   for (const [s, col] of [[-1, REX_LO], [1, REX]] as const) {
     const k = st * s * 12;
     const knee = P.legs.broken && s > 0 ? 10 : 0;
-    const hipY = -82 + cr * 0.5;
-    poly(c, [-28 + k * 0.4, hipY, 14 + k * 0.4, hipY, 16 + k, -36 + knee, -12 + k, -36 + knee], tint(P.legs, col));
-    poly(c, [-8 + k, -40 + knee, 12 + k, -40 + knee, 8 + k, -8, -6 + k, -8], tint(P.legs, col));
-    poly(c, [-14 + k, -9, 28 + k, -9, 30 + k, 0, -14 + k, 0], METAL, 0.4);
+    const hipY = -82 + r.crouch * 0.5;
+    const dead = DEAD_LEG(s);
+    const at = (stand: number[], down: number[]) => (u > 0 ? lerpPts(stand, down, u) : stand);
+    poly(c, at([-28 + k * 0.4, hipY, 14 + k * 0.4, hipY, 16 + k, -36 + knee, -12 + k, -36 + knee], dead.thigh), tint(P.legs, col));
+    poly(c, at([-8 + k, -40 + knee, 12 + k, -40 + knee, 8 + k, -8, -6 + k, -8], dead.shin), tint(P.legs, col));
+    poly(c, at([-14 + k, -9, 28 + k, -9, 30 + k, 0, -14 + k, 0], dead.foot), METAL, 0.4);
     // (the toe claws, the ram down the shin, the knee servo)
-    for (let t = 0; t < 3; t++) poly(c, [22 + k + t * 4, -9, 27 + k + t * 4, -13, 30 + k + t * 4, -6], '#3E3E46', 0);
-    c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(-18 + k * 0.4, hipY + 14); c.lineTo(-2 + k, -14); c.stroke();
-    c.strokeStyle = s > 0 ? '#8A929E' : '#545C68'; c.lineWidth = 3; c.beginPath(); c.moveTo(-18 + k * 0.4, hipY + 14); c.lineTo(-2 + k, -14); c.stroke();
-    servo(c, 2 + k, -38 + knee, 6, s > 0 ? undefined : DARK_STEEL);
-    if (lw >= 2 && s > 0) hole(c, -20 + k * 0.4, hipY + 10, 26, 18, f);
+    for (let t = 0; t < 3; t++) poly(c, at([22 + k + t * 4, -9, 27 + k + t * 4, -13, 30 + k + t * 4, -6], dead.claws[t]), '#3E3E46', 0);
+    const [r0, r1, r2, r3] = at([-18 + k * 0.4, hipY + 14, -2 + k, -14], dead.ram);
+    c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(r0, r1); c.lineTo(r2, r3); c.stroke();
+    c.strokeStyle = s > 0 ? '#8A929E' : '#545C68'; c.lineWidth = 3; c.beginPath(); c.moveTo(r0, r1); c.lineTo(r2, r3); c.stroke();
+    const [kx, ky] = at([2 + k, -38 + knee], dead.knee);
+    servo(c, kx, ky, 6, s > 0 ? undefined : DARK_STEEL);
+    if (lw >= 2 && s > 0 && u < 0.5) hole(c, -20 + k * 0.4, hipY + 10, 26, 18, f);
   }
   // Tail (raised to whip, slammed down, or wrecked: on the ground, dragging, in bits)
   const tailCol = tint(P.tail, REX_LO);

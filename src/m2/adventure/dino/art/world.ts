@@ -18,6 +18,7 @@
 
 import type { GameState } from '../../../../m1/game/core/state';
 import { GY } from '../../geometry';
+import { sunBehind } from '../../../sunFlare';
 import { drawPerson } from '../../temple/people';
 import {
   type Ctx, type Eye, type Pt, INK, box, text, sign, slab, pole, ball, rampOf, dark, lite, mix, hash, checker, steppedGlow, pixelBlob, stamp,
@@ -62,11 +63,15 @@ export const drawDinoWorld = (c: Ctx, state: GameState, look: DinoLook, drawRex:
   if (visAt(D - 100, FENCE_X + 200, 0.7)) atDepth(c, eye, 0.7, () => penBackWall(c, state));
   if (visAt(D + 1000, D + 2500, 0.74)) atDepth(c, eye, 0.74, () => meadowRail(c, state));
   if (visAt(D + 3880, D + 5920, 0.76)) atDepth(c, eye, 0.76, () => plazaBack(c, state, f));
-  if (visAt(PADDOCK_IN - 300, PADDOCK_OUT + 300, 0.68)) atDepth(c, eye, 0.68, () => paddockBack(c, state, f));
+  if (visAt(PADDOCK_IN - 60, PADDOCK_OUT + 80, PAD_BACK)) atDepth(c, eye, PAD_BACK, () => paddockBack(c, state, eye, f));
   if (visAt(D + 8600, LAST_FENCE + 100, 0.72)) atDepth(c, eye, 0.72, () => jungleBack(c, state));
   // The ground toward him (bent: the rows nearer, wider)
   floor(c, state, v);
   bendFloor(c, eye, GY, GY, GY + 170, v.x - 10, v.x + v.w + 10);
+  // (the paddock's gates: whichever of them lands on screen anywhere from the walk plane back to its back fence)
+  const gates = [PADDOCK_IN, PADDOCK_OUT].filter(gx => vis(gx - 140, gx + 160) || visAt(gx - 140, gx + 160, PAD_BACK));
+  // (their side fences and the arches' back halves: well back, before anything standing in front of them)
+  for (const gx of gates) gateBack(c, eye, gx, f);
   // The set pieces
   if (vis(D - 60, D + 300)) drainWall(c, eye, f);
   if (vis(D + 2350, D + 4000)) volcano(c, state, eye, f);
@@ -76,10 +81,13 @@ export const drawDinoWorld = (c: Ctx, state: GameState, look: DinoLook, drawRex:
   if (vis(D + 1500, D + 2500)) meadowSign(c, state, eye);
   // (the pen's fence going back from its front post to the back wall: behind the feeding platforms, so before them)
   if (vis(FENCE_X - 300, FENCE_X + 300)) penFenceBack(c, eye);
-  for (const [x, y, w] of LEDGES) if (vis(x - 40, x + w + 40) && !(x > PADDOCK_IN && x + w < PADDOCK_OUT)) platform(c, state, eye, x, y, w, f);
-  if (vis(D + 8800, D + 10200)) trees(c, state, eye, f);
+  // (the platforms: all but the trees' (trees(): round their trunks))
+  for (const [x, y, w] of LEDGES) if (vis(x - 40, x + w + 40) && x < TREE_X) platform(c, state, eye, x, y, w, f);
+  if (vis(TREE_X - 200, LAST_FENCE)) trees(c, state, eye, f);
   if (vis(FENCE_X - 300, FENCE_X + 300)) penFence(c, state, eye, f, look);
-  if (vis(PADDOCK_IN - 400, PADDOCK_OUT + 400)) paddock(c, state, eye, f);
+  // (the gates' front halves, over the platforms by them (whose decks go back behind them), then the gates)
+  for (const gx of gates) gateFront(c, eye, gx, f);
+  if (vis(PADDOCK_IN - 400, PADDOCK_OUT + 400)) paddock(c, state, eye);
   if (vis(LAST_FENCE - 600, x1 + 400)) temple(c, state, eye, f, look);
   if (vis(LAST_FENCE - 200, LAST_FENCE + 200)) lastFence(c, state, eye);
   drawRex();
@@ -233,19 +241,42 @@ const plazaBack = (c: Ctx, state: GameState, f: number) => {
   void f;
 };
 
+/** How far back the paddock's back fence stands, and its top. */
+const PAD_BACK = 0.68, PAD_TOP = GY - 420;
+/** The back fence's pylons: one at each end (where the side fences meet it), one every 240 between. */
+const PAD_PYLONS = [
+  PADDOCK_IN - 7,
+  ...Array.from({ length: 20 }, (_, i) => Math.ceil((PADDOCK_IN + 160) / 240) * 240 + i * 240).filter(x => x < PADDOCK_OUT - 160),
+  PADDOCK_OUT - 7,
+];
+const padTower = (x: number) => x === PAD_PYLONS[0] || x === PAD_PYLONS[PAD_PYLONS.length - 1] || Math.floor(x / 240) % 2 === 0;
 /** The paddock's back: a huge fence (concrete pylons, steel bars, a top rail sparking), floodlight towers, the warning
- *  signs along it. */
-const paddockBack = (c: Ctx, state: GameState, f: number) => {
-  const top = GY - 420;
-  chunked(c, state, 'dpad-back', PADDOCK_IN - 300, PADDOCK_OUT + 320, top - 80, GY - top + 80, (g, a, b) => {
-    for (let x = Math.floor(a / 16) * 16; x < b; x += 16) { box(g, x, top + 20, 4, GY - top - 20, '#4A525C'); box(g, x, top + 20, 1, GY - top - 20, '#6A747E'); }
-    for (const y of [top + 30, top + 140, top + 260, GY - 30]) { box(g, a, y, b - a, 8, '#5A626C'); box(g, a, y, b - a, 2, '#8A949E'); }
-    for (let x = Math.floor(a / 240) * 240; x < b; x += 240) {
+ *  signs along it; from one side fence to the other. (Drawn pushed back: the pylons and towers show their sides.) */
+const paddockBack = (c: Ctx, state: GameState, eye: Eye, f: number) => {
+  const top = PAD_TOP;
+  // (the pylons' and the towers' sides going back (the side facing the eye): before the fence's face, which is over them)
+  const m = c.getTransform(), W = c.canvas.width;
+  for (const x of PAD_PYLONS) {
+    const sx = m.a * x + m.e;
+    if (sx < -160 || sx > W + 160) continue;
+    prism(c, eye, x, top, 34, GY, 0.96, '#8E8A80', { noTop: true });
+    if (padTower(x)) {
+      prism(c, eye, x + 14, top - 70, 6, top, 0.97, '#4A525C', { noTop: true, shadow: false });
+      prism(c, eye, x - 6, top - 84, 46, top - 68, 0.96, '#3A424C', { shadow: false });
+    }
+  }
+  chunked(c, state, 'dpad-back2', PADDOCK_IN - 10, PADDOCK_OUT + 30, top - 90, GY - top + 90, (g, a, b) => {
+    const l = Math.max(a, PADDOCK_IN + 10), r = Math.min(b, PADDOCK_OUT + 10);
+    for (let x = Math.floor(l / 16) * 16; x < r; x += 16) { box(g, x, top + 20, 4, GY - top - 20, '#4A525C'); box(g, x, top + 20, 1, GY - top - 20, '#6A747E'); }
+    if (r > l) for (const y of [top + 30, top + 140, top + 260, GY - 30]) { box(g, l, y, r - l, 8, '#5A626C'); box(g, l, y, r - l, 2, '#8A949E'); }
+    for (const x of PAD_PYLONS) {
+      if (x + 200 < a || x - 20 > b) continue;
       slab(g, x, top, 34, GY - top, '#8E8A80', { ink: false }); box(g, x + 4, top + 4, 26, 4, '#B4B0A4');
       hazard(g, x, GY - 40, 34, 14);
       // (a floodlight tower every other one)
-      if (Math.floor(x / 240) % 2 === 0) { pole(g, x + 14, top - 70, 6, 70, '#4A525C'); slab(g, x - 6, top - 84, 46, 16, '#3A424C'); for (let k = 0; k < 4; k++) box(g, x - 2 + k * 10, top - 80, 8, 8, '#D8DCE0'); }
-      // (a warning sign on every pylon)
+      if (padTower(x)) { pole(g, x + 14, top - 70, 6, 70, '#4A525C'); slab(g, x - 6, top - 84, 46, 16, '#3A424C'); for (let k = 0; k < 4; k++) box(g, x - 2 + k * 10, top - 80, 8, 8, '#D8DCE0'); }
+      // (a warning sign on every pylon, but the far end's)
+      if (x >= PADDOCK_OUT - 100) continue;
       const sx = x + 60;
       sign(g, sx, top + 170, 120, 40, '#F2D024', '', '#000000', 6);
       text(g, 'WARNING', sx + 60, top + 184, '#B91C1C', 8, 'center', null);
@@ -366,13 +397,6 @@ const platform = (c: Ctx, state: GameState, eye: Eye, x: number, y: number, w: n
       for (let px = x + 4; px < x + w; px += 48) { box(g, px, y - 22, 4, 22, '#5A3E22'); box(g, px, y - 22, 1, 22, '#8A6A44'); }
       g.strokeStyle = '#C8B07A'; g.lineWidth = 2;
       for (let px = x + 6; px + 48 < x + w + 4; px += 48) { g.beginPath(); g.moveTo(px, y - 20); g.quadraticCurveTo(px + 24, y - 10, px + 48, y - 20); g.stroke(); }
-    });
-  } else if (kind === 'branch') {
-    // (the boughs it's bolted to, back to the trunk)
-    stamp(c, `dbranch-${x}`, x, y + T, w, 40, g => {
-      g.strokeStyle = '#4A3826'; g.lineWidth = 6; g.beginPath(); g.moveTo(x + 12, y + T); g.lineTo(x + w / 2 - 6, y + T + 34); g.moveTo(x + w - 12, y + T); g.lineTo(x + w / 2 + 6, y + T + 34); g.stroke();
-      g.strokeStyle = '#6E5434'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 11, y + T - 1); g.lineTo(x + w / 2 - 7, y + T + 33); g.stroke();
-      for (const bx of [x + 8, x + w - 14]) { box(g, bx, y + T, 6, 6, '#5A626C'); box(g, bx + 2, y + T + 2, 2, 2, '#C8D0DA'); }
     });
   } else if (kind === 'scaffold') {
     // (a ladder down its side)
@@ -526,6 +550,7 @@ const volcano = (c: Ctx, state: GameState, eye: Eye, f: number) => {
   const d = 0.86;
   atDepth(c, eye, d, () => {
     stamp(c, 'dvolcano-cone', VX0, VPEAK - 30, VX1 - VX0, GY - VPEAK + 30, g => paintCone(g));
+    sunBehind(c, (x, y) => x > VX0 && x < VX1 && y > coneTop(x)); // (the sun's lens glare fades behind it: sunFlare.ts)
     // (the fake lava: in the crater, and down its channels, cycling through its colors (the old palette trick))
     const t = Math.floor(f / 5);
     for (let i = 0; i < 12; i++) box(c, CRATER.x - 84 + i * 14, VPEAK + 4, 14, 8, LAVA[(i + t) % LAVA.length]);
@@ -692,39 +717,90 @@ const monorail = (c: Ctx, state: GameState, eye: Eye) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The T. rex paddock: its gates (the arch over the way in, torches), the walls
+// The T. rex paddock: its gates (an arch over each, standing on the line of the side fence going back from it, its
+// sign facing the path, torches on its pillars), the side fences back to the back fence, the gates' walls
 
-const paddock = (c: Ctx, state: GameState, eye: Eye, f: number) => {
-  // The arches over the gates (well back of them), their torches burning
-  for (const [gx, words, line2, sub1, sub2] of [[PADDOCK_IN, 'TYRANNOSAURUS REX', 'FEEDING: 2PM, 4PM, WHENEVER', 'DO NOT TAP ON THE GLASS', '(THERE IS NO GLASS)'], [PADDOCK_OUT, 'THANK YOU FOR', 'NOT BEING EATEN', 'PLEASE COME AGAIN', '']] as const) {
-    atDepth(c, eye, 0.82, () => {
-      stamp(c, `dpad-arch-${gx}`, gx - 150, GY - 500, 320, 500, g => {
-        for (const px of [gx - 130, gx + 110]) {
-          slab(g, px, GY - 440, 40, 440, '#7A5A3A');
-          for (let y = GY - 430; y < GY; y += 30) { box(g, px + 2, y, 36, 2, '#5A3E22'); box(g, px + 2, y + 2, 36, 1, '#9A7A54'); }
-          slab(g, px - 6, GY - 452, 52, 16, '#5A3E22');
-          box(g, px + 12, GY - 474, 16, 22, '#3A2A1A'); box(g, px + 8, GY - 478, 24, 6, '#5A3E22');
-        }
-        sign(g, gx - 120, GY - 430, 260, 46, '#5A3A1A', '', '#000', 8, '#3E2810');
-        text(g, words, gx + 10, GY - 408, '#F2C23A', words.length > 14 ? 10 : 12, 'center', '#2A1A0A');
-        text(g, line2, gx + 10, GY - 392, '#E8DCB8', 6, 'center', '#2A1A0A');
-        for (const px of [gx - 50, gx + 70]) box(g, px, GY - 380, 2, 10, '#3A3A3A');
-        sign(g, gx - 80, GY - 370, 180, sub2 ? 24 : 14, '#E8DCB8', '', '#5A1A0A', 6, '#3E2810');
-        text(g, sub1, gx + 10, GY - 360, '#5A1A0A', 6, 'center', null);
-        if (sub2) text(g, sub2, gx + 10, GY - 350, '#5A1A0A', 6, 'center', null);
-      });
-      // (the torches' flames: stepped, flickering)
-      for (const px of [gx - 110, gx + 130]) {
-        const fy = GY - 478, fl = Math.sin(f * 0.3 + px) * 2;
-        steppedGlow(c, px, fy - 8, 30, '#FFA040', 0.25, 0.03, 4);
-        c.fillStyle = '#E8541A'; c.beginPath(); c.moveTo(px - 8, fy); c.quadraticCurveTo(px - 6 + fl, fy - 18, px + fl, fy - 26); c.quadraticCurveTo(px + 6 + fl, fy - 14, px + 8, fy); c.closePath(); c.fill();
-        c.fillStyle = '#FFC040'; c.beginPath(); c.moveTo(px - 4, fy); c.quadraticCurveTo(px - 3 + fl, fy - 10, px + fl * 0.5, fy - 16); c.quadraticCurveTo(px + 4, fy - 8, px + 4, fy); c.closePath(); c.fill();
-      }
-    });
+/** Each gate (gx: the wall he hops, in the walk plane, 20 wide, going back into the gateway to GATE_BACK): the arch's
+ *  pillars on the fence line going back from it (the front one just behind the wall, the back one where the side fence
+ *  starts), the beam across their tops, going back; the side fence on back from there to the back fence. */
+const ARCH_F = 0.955, ARCH_B = 0.8, PILLAR = 0.025, GATE_BACK = 0.965;
+const ARCH_TOP = GY - 452, ARCH_BEAM = GY - 436;
+const PILLAR_COL = '#7A5A3A', BEAM_COL = '#5A3E22';
+/** A block drawn at depth d0, going back to d1 (kit's prism, pushed back). */
+const blockAt = (c: Ctx, eye: Eye, d0: number, d1: number, x: number, top: number, w: number, bottom: number, col: string, opts: Parameters<typeof prism>[8] = {}) =>
+  atDepth(c, eye, d0, () => prism(c, eye, x, top, w, bottom, d1 / d0, col, opts));
+
+/** An arch pillar's face (walk-plane numbers: it's drawn pushed back): timber-clad, banded, its cap, the torch's cup. */
+const pillarFace = (g: Ctx, px: number) => {
+  slab(g, px, GY - 440, 40, 440, PILLAR_COL);
+  for (let y = GY - 430; y < GY; y += 30) { box(g, px + 2, y, 36, 2, '#5A3E22'); box(g, px + 2, y + 2, 36, 1, '#9A7A54'); }
+  slab(g, px - 6, ARCH_TOP, 52, 16, BEAM_COL);
+  box(g, px + 12, GY - 474, 16, 22, '#3A2A1A'); box(g, px + 8, GY - 478, 24, 6, BEAM_COL);
+};
+/** A torch's flame, stepped, flickering (at (px, fy): its cup's rim). */
+const torch = (c: Ctx, px: number, fy: number, f: number) => {
+  const fl = Math.sin(f * 0.3 + px) * 2;
+  steppedGlow(c, px, fy - 8, 30, '#FFA040', 0.25, 0.03, 4);
+  c.fillStyle = '#E8541A'; c.beginPath(); c.moveTo(px - 8, fy); c.quadraticCurveTo(px - 6 + fl, fy - 18, px + fl, fy - 26); c.quadraticCurveTo(px + 6 + fl, fy - 14, px + 8, fy); c.closePath(); c.fill();
+  c.fillStyle = '#FFC040'; c.beginPath(); c.moveTo(px - 4, fy); c.quadraticCurveTo(px - 3 + fl, fy - 10, px + fl * 0.5, fy - 16); c.quadraticCurveTo(px + 4, fy - 8, px + 4, fy); c.closePath(); c.fill();
+};
+
+/** A gate's back half: the side fence (from the arch's back pillar to the back fence: steel bars, rails, concrete posts,
+ *  all running back to the eye's point), the back pillar and its torch, the beam over the gateway. */
+const gateBack = (c: Ctx, eye: Eye, gx: number, f: number) => {
+  const x = gx + 10, top = PAD_TOP, d1 = ARCH_B - PILLAR;
+  // The side fence: bars (thinner going back), the rails along it, posts at depths
+  for (let d = d1 - 0.004; d > PAD_BACK + 0.002; d -= 0.0055) {
+    const a = P(eye, x, top + 20, d), b = P(eye, x, GY, d);
+    seg(c, a, b, '#4A525C', Math.max(2, 4 * d)); seg(c, [a[0] - 1, a[1]], [b[0] - 1, b[1]], '#6A747E', 1);
   }
-  // The gates' walls (the solids he hops): concrete pylons, steel bars, hazard striped, a lit top
+  for (const y of [top + 30, top + 140, top + 260, GY - 30]) {
+    quad(c, [P(eye, x, y, d1), P(eye, x, y, PAD_BACK), P(eye, x, y + 8, PAD_BACK), P(eye, x, y + 8, d1)], '#5A626C');
+    seg(c, P(eye, x, y, d1), P(eye, x, y, PAD_BACK), '#8A949E', 2);
+  }
+  for (const d of [0.735, 0.705]) {
+    const [l, t] = P(eye, x - 12, top, d), [r, bt] = P(eye, x + 12, GY, d);
+    box(c, l, t, r - l, bt - t, dark('#8E8A80', 0.15 + (1 - d) * 0.4)); box(c, l, t, 2, bt - t, dark('#B4B0A4', 0.2));
+    const [, hz] = P(eye, x, GY - 40, d); hazard(c, l, hz, r - l, 14 * d);
+  }
+  // The back pillar (its side, its cap's, its face), its torch
+  blockAt(c, eye, ARCH_B, ARCH_B - PILLAR, gx - 10, GY - 440, 40, GY, PILLAR_COL, { noTop: true });
+  blockAt(c, eye, ARCH_B, ARCH_B - PILLAR, gx - 16, ARCH_TOP, 52, ARCH_BEAM, BEAM_COL, { shadow: false });
+  atDepth(c, eye, ARCH_B, () => { stamp(c, `dpad-pillar-${gx}`, gx - 18, GY - 480, 56, 480, g => pillarFace(g, gx - 10)); torch(c, gx + 10, GY - 478, f); });
+  // The beam across the pillars' tops, going back: its underside (he's under it), planked; its side facing the eye
+  const bx0 = gx - 16, bx1 = gx + 36;
+  if (eye.y > ARCH_BEAM) {
+    quad(c, [P(eye, bx0, ARCH_BEAM, ARCH_F), P(eye, bx1, ARCH_BEAM, ARCH_F), P(eye, bx1, ARCH_BEAM, ARCH_B), P(eye, bx0, ARCH_BEAM, ARCH_B)], '#3E2A16');
+    for (let k = 1; k < 6; k++) { const d = ARCH_F + (ARCH_B - ARCH_F) * (k / 6); seg(c, P(eye, bx0, ARCH_BEAM, d), P(eye, bx1, ARCH_BEAM, d), '#2A1C0E'); }
+  }
+  blockAt(c, eye, ARCH_F, ARCH_B, bx0, ARCH_TOP, bx1 - bx0, ARCH_BEAM, BEAM_COL, { shadow: false, side: pt => seg(c, pt(0, ARCH_TOP + 8), pt(1, ARCH_TOP + 8), 'rgba(30, 18, 8, 0.5)') });
+};
+
+/** A gate's front half: the front pillar, its torch, the arch's sign hung off the beam's front, facing the path. */
+const gateFront = (c: Ctx, eye: Eye, gx: number, f: number) => {
+  const [words, line2, sub1, sub2] = gx === PADDOCK_IN
+    ? ['TYRANNOSAURUS REX', 'FEEDING: 2PM, 4PM, WHENEVER', 'DO NOT TAP ON THE GLASS', '(THERE IS NO GLASS)']
+    : ['THANK YOU FOR', 'NOT BEING EATEN', 'PLEASE COME AGAIN', ''];
+  blockAt(c, eye, ARCH_F, ARCH_F - PILLAR, gx - 10, GY - 440, 40, GY, PILLAR_COL, { noTop: true });
+  atDepth(c, eye, ARCH_F, () => {
+    stamp(c, `dpad-front-${gx}`, gx - 124, GY - 480, 268, 480, g => {
+      pillarFace(g, gx - 10);
+      sign(g, gx - 120, GY - 430, 260, 46, '#5A3A1A', '', '#000', 8, '#3E2810');
+      text(g, words, gx + 10, GY - 408, '#F2C23A', words.length > 14 ? 10 : 12, 'center', '#2A1A0A');
+      text(g, line2, gx + 10, GY - 392, '#E8DCB8', 6, 'center', '#2A1A0A');
+      for (const px of [gx - 50, gx + 70]) box(g, px, GY - 380, 2, 10, '#3A3A3A');
+      sign(g, gx - 80, GY - 370, 180, sub2 ? 24 : 14, '#E8DCB8', '', '#5A1A0A', 6, '#3E2810');
+      text(g, sub1, gx + 10, GY - 360, '#5A1A0A', 6, 'center', null);
+      if (sub2) text(g, sub2, gx + 10, GY - 350, '#5A1A0A', 6, 'center', null);
+    });
+    torch(c, gx + 10, GY - 478, f);
+  });
+};
+
+/** The gates' walls (the solids he hops: concrete, hazard striped, a lit top), going back into the gateway; the goat. */
+const paddock = (c: Ctx, state: GameState, eye: Eye) => {
   for (const gx of [PADDOCK_IN, PADDOCK_OUT]) {
-    prism(c, eye, gx, PADDOCK_TOP, 20, GY, 0.82, CONC, {});
+    prism(c, eye, gx, PADDOCK_TOP, 20, GY, GATE_BACK, CONC, {});
     stamp(c, `dpad-gate-${gx}`, gx - 4, PADDOCK_TOP - 4, 28, GY - PADDOCK_TOP + 4, g => {
       slab(g, gx, PADDOCK_TOP, 20, GY - PADDOCK_TOP, CONC);
       hazard(g, gx + 2, PADDOCK_TOP + 10, 16, 10);
@@ -732,8 +808,7 @@ const paddock = (c: Ctx, state: GameState, eye: Eye, f: number) => {
       lipOn(g, gx - 2, PADDOCK_TOP - 2, 24, '#D8D4C8');
     });
   }
-  // Inside: the feeding platforms' decks (their posts are the rex's: rex.ts shakes them), a goat (rubber), on a chain
-  for (const [x, y, w] of LEDGES) if (x > PADDOCK_IN && x + w < PADDOCK_OUT) platform(c, state, eye, x, y, w, f);
+  // (a goat (rubber), on a chain)
   const gx = D + 7350;
   stamp(c, 'dpad-goat', gx - 40, GY - 90, 80, 90, g => {
     pole(g, gx - 2, GY - 80, 5, 80, '#5A626C'); box(g, gx - 10, GY - 82, 20, 4, '#3A3A3A');
@@ -742,23 +817,33 @@ const paddock = (c: Ctx, state: GameState, eye: Eye, f: number) => {
     for (const lx of [gx + 16, gx + 34]) box(g, lx, GY - 30, 3, 14, '#E8E4DC');
     box(g, gx + 12, GY - 16, 32, 6, '#7A5A3A'); for (const wx of [gx + 15, gx + 37]) box(g, wx, GY - 12, 5, 5, '#2A2A2A');
   });
+  void state;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The last stretch: the trees, the last fence
 
-const TREES: [number, number, number][] = [[D + 9065, GY - 140, 130], [D + 9325, GY - 245, 150], [D + 9585, GY - 140, 130], [D + 9970, GY - 180, 140]];
+/** The last stretch's big fake trees: one through the middle of each platform past here (its deck bolted round it). */
+const TREE_X = D + 8700, TREE_D = 0.95;
 const trees = (c: Ctx, state: GameState, eye: Eye, f: number) => {
-  // (each a big fake tree: a fiberglass trunk going up behind its platform, the canopy above (dark, well behind),
-  // roots spreading at its foot, and on one, a patch of bark knocked off showing the steel inside)
-  for (const [tx, , w] of TREES) {
-    const r = 18 + w * 0.06;
-    atDepth(c, eye, 0.94, () => {
+  // (each a big fake tree: a fiberglass trunk standing a little back (TREE_D), through the middle of its deck (which
+  // goes back from the walk plane past it), the canopy above (dark), roots spreading at its foot, and on one, a patch
+  // of bark knocked off showing the steel inside. The deck's front half is in front of the trunk, its back half behind:
+  // the deck first, then the trunk over all but the deck's front half, then the boughs under it, out from the trunk)
+  const T = 12;
+  for (const [x, y, w] of LEDGES) {
+    if (x < TREE_X || x > LAST_FENCE) continue;
+    const tx = x + w / 2, r = 18 + w * 0.06;
+    platform(c, state, eye, x, y, w, f);
+    const yb = P(eye, tx, y, TREE_D)[1];
+    c.save();
+    c.beginPath(); c.rect(x - 400, GY - 900, w + 800, 1400); c.rect(x - 4, Math.min(y, yb) - 1, w + 8, y + T + 1 - Math.min(y, yb) + 1); c.clip('evenodd');
+    atDepth(c, eye, TREE_D, () => {
       stamp(c, `dtree-${tx}`, tx - 120, GY - 520, 240, 520, g => {
         pole(g, tx - r, GY - 440, r * 2, 440, '#5A4430');
-        for (let y = GY - 430; y < GY; y += 18) box(g, tx - r + 4 + (y % 36 ? 6 : 0), y, 6, 10, '#3E2E1E');
+        for (let yy = GY - 430; yy < GY; yy += 18) box(g, tx - r + 4 + (yy % 36 ? 6 : 0), yy, 6, 10, '#3E2E1E');
         for (const s of [-1, 1]) { g.fillStyle = '#4A3826'; g.beginPath(); g.moveTo(tx + s * r, GY - 40); g.quadraticCurveTo(tx + s * (r + 30), GY - 6, tx + s * (r + 46), GY); g.lineTo(tx + s * r * 0.4, GY); g.closePath(); g.fill(); }
-        if (tx === TREES[1][0]) { box(g, tx - 6, GY - 120, 16, 22, '#7A828C'); box(g, tx - 4, GY - 118, 2, 18, '#A8B0BA'); for (let k = 0; k < 3; k++) box(g, tx - 6, GY - 114 + k * 6, 16, 1, '#4A525C'); }
+        if (w === 150) { box(g, tx - 6, GY - 120, 16, 22, '#7A828C'); box(g, tx - 4, GY - 118, 2, 18, '#A8B0BA'); for (let k = 0; k < 3; k++) box(g, tx - 6, GY - 114 + k * 6, 16, 1, '#4A525C'); }
         for (let i = 0; i < 9; i++) {
           const a = (i / 9) * Math.PI, cx = tx + Math.cos(a) * 90, cy = GY - 450 - Math.sin(a) * 50;
           pixelBlob(g, cx, cy, 46, 26, '#24401C'); pixelBlob(g, cx - 6, cy - 6, 30, 14, '#30522A');
@@ -770,10 +855,16 @@ const trees = (c: Ctx, state: GameState, eye: Eye, f: number) => {
     });
     // (a vine or two swaying off it)
     const sw = Math.sin(f * 0.03 + tx) * 4;
-    const [vx, vy] = P(eye, tx + 30, GY - 400, 0.94);
+    const [vx, vy] = P(eye, tx + 30, GY - 400, TREE_D);
     c.strokeStyle = '#3A6A2A'; c.lineWidth = 2; c.beginPath(); c.moveTo(vx, vy); c.quadraticCurveTo(vx + sw, vy + 80, vx + sw * 2, vy + 150); c.stroke();
+    c.restore();
+    // The boughs it's bolted to: from under its front edge, back and down into the trunk (in front of it)
+    for (const s of [-1, 1]) {
+      const a = P(eye, s < 0 ? x + 12 : x + w - 12, y + T, 0.985), b = P(eye, tx + s * r * 0.55, y + T + 36, TREE_D);
+      seg(c, a, b, '#4A3826', 6); seg(c, [a[0], a[1] - 1], [b[0], b[1] - 2], '#6E5434', 2);
+      for (const bx of [s < 0 ? x + 8 : x + w - 14]) { box(c, bx, y + T, 6, 6, '#5A626C'); box(c, bx + 2, y + T + 2, 2, 2, '#C8D0DA'); }
+    }
   }
-  void state;
 };
 
 const lastFence = (c: Ctx, state: GameState, eye: Eye) => {
@@ -897,7 +988,7 @@ export const dinoLamps = (state: GameState) => {
     { x: FENCE_X + 10, y: FENCE_TOP - 8, r: 70, a: 0.7, color: '#FF5050' },
     { ...at(CRATER.x, coneTop(CRATER.x) - 20, 0.86), r: 320, a: 0.9, color: '#FF8A2A' },
     { x: SHOP.x + 90, y: GY - 70, r: 140, a: 0.7, color: '#FFE0A0' }, { x: SHOP.x + 310, y: GY - 70, r: 140, a: 0.7, color: '#FFE0A0' },
-    ...[PADDOCK_IN - 110, PADDOCK_IN + 130, PADDOCK_OUT - 110, PADDOCK_OUT + 130].map(x => ({ ...at(x, GY - 486, 0.82), r: 200, a: 0.85, color: '#FFA040' })),
+    ...[PADDOCK_IN, PADDOCK_OUT].flatMap(gx => [ARCH_F, ARCH_B].map(d => ({ ...at(gx + 10, GY - 486, d), r: 200, a: 0.85, color: '#FFA040' }))),
     { x: TEMPLE_DOOR_X + 25, y: GY - 104, r: 150, a: 0.8, color: '#FFE0A0' },
     ...Array.from({ length: 7 }, (_, i) => ({ ...at(D + 3860 + i * 300, GY - 156, 0.76), r: 110, a: 0.6, color: '#FFE8B0' })),
   ];

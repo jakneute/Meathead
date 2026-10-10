@@ -29,7 +29,7 @@ import { silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../m1/constants';
 import { DINO_KINDS } from './kinds';
-import { buildRex, updateRex, drawRex, drawRexHud } from './rex';
+import { buildRex, updateRex, drawRex, drawRexHud, drawRexSaid } from './rex';
 import { drawDinoBackdrop } from './art/sky';
 import { drawDinoWorld, dinoLamps } from './art/world';
 import { drawBoothCut } from './art/booth';
@@ -241,6 +241,8 @@ export const dino: Section = {
   },
   drawFront: (c, state) => {
     const d = dinoOf(state);
+    // (the T. rex's speaker: what it's saying, over its head)
+    drawRexSaid(c, state);
     if (d.pebble) { c.fillStyle = '#1A0B06'; c.fillRect(Math.round(d.pebble.x) - 3, Math.round(d.pebble.y) - 3, 7, 6); c.fillStyle = '#A8A29E'; c.fillRect(Math.round(d.pebble.x) - 2, Math.round(d.pebble.y) - 2, 5, 4); }
     // (friendly mode, before the switch: the speakers in their heads, doing the bit for the kids)
     if (d.pebble && !d.hostile) for (const e of state.enemies) if (e.kind === 'm2:raptor' && Math.abs(e.pos.x - state.player.pos.x) < 700) saidOver(c, DINO_FRIENDLY[(Math.floor(state.frame / 120) + Math.round(e.pos.x)) % 2], e.pos.x + e.width / 2, e.pos.y - 14, '#BFDBFE', 140);
