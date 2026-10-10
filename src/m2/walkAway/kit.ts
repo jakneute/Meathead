@@ -27,8 +27,9 @@ export const ME_X = ((LW / 2 - VP_X) * ME_D) / F;
 
 export const INK = '#1A0B06';
 
-/** A point on the ground (x across, d away, meters) on the picture, and how many picture px a meter is there. */
-export const project = (x: number, d: number, sway = 0) => ({ sx: VP_X + sway + (F * x) / d, sy: HOR + (F * CAM_H) / d, s: F / d });
+/** A point on the ground (x across, d away, meters) on the picture, and how many picture px a meter is there (`vp`:
+ * where the ground runs off to: the walk-away's, off to his side, unless said). */
+export const project = (x: number, d: number, sway = 0, vp = VP_X) => ({ sx: vp + sway + (F * x) / d, sy: HOR + (F * CAM_H) / d, s: F / d });
 
 /** Something lying about in the wreckage: where (x across; z: how far off it was when he set out, meters), how big
  * (meters), its picture (painted once at `ppm` px a meter, then scaled: the SNES's sprite scaling), anything on it that
@@ -68,9 +69,33 @@ export interface SceneDef {
   embers?: string[];
 }
 
+/**
+ * A land's version of the walk in through its portal (portalWalk.ts): him from behind, walking away from the camera
+ * up the way into the land, the land's entrance coming up ahead. The camera's behind him, the ground running off
+ * straight ahead (to the middle of the picture), his path down the middle of it.
+ */
+export interface PortalDef {
+  /** The land's name, for the title (HEADING TO ...). */
+  land: string;
+  /** Along the bottom bar: a line or two about the place (~70 characters each at most). */
+  lines: string[];
+  /** The haze the far ground fades into. */
+  haze: string;
+  /** The ground's tile (16 m square, 16 px a meter, the path down its middle), painted once. */
+  ground: (g: Ctx, w: number, h: number) => void;
+  /** The sky's furniture and the far layers (the sun, the land's skyline): over the sky, under everything else. */
+  back: (c: Ctx, t: number, sway: number) => void;
+  /** What's along the way and up ahead (z: how far off it is when he sets off, meters; x across from his path). */
+  props: () => Prop[];
+  /** Over the lot (him too): overhangs, light shafts, things in the air. `travel`: how far the camera's come (m). */
+  front?: (c: Ctx, t: number, sway: number, travel: number) => void;
+  /** The light from where he's headed, round his edges. */
+  rim: () => string;
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 
-export const box = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+export const box =(c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
 /** A deterministic 0..1 noise from a number. */
 export const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 export const lite = (col: string, k = 0.25) => mix(col, '#FFFFFF', k);

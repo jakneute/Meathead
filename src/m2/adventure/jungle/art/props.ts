@@ -142,7 +142,7 @@ const legalSign = (g: Ctx, x: number, foot: number, a: string, b: string) => {
 };
 
 /** The gate in: a bamboo frame, a thatch cap, the carved board hung under it. */
-const gateSign = (g: Ctx, x: number, foot: number, a: string, b: string) => {
+export const gateSign = (g: Ctx, x: number, foot: number, a: string, b: string) => {
   const top = foot - 150;
   bamboo(g, x - 112, top, foot - top, 9); bamboo(g, x + 103, top, foot - top, 9);
   bamboo(g, x - 126, top, 252, 8, true);

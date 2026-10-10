@@ -5,14 +5,14 @@
 
 import { type Ctx, INK, box, lump, poly, mix, stipple } from './kit';
 
-const SKIN = ['#6E3F1C', '#A0662E', '#C68B45', '#E0AC69', '#F5D0A9'];
-const GREEN = ['#3A4A12', '#5C6E1E', '#7E9434', '#A8BC5A', '#D2E08A'];
-const JEANS = ['#0B1438', '#172554', '#1E3A8A', '#2D4FA8', '#4A6CC4'];
-const BOOT = ['#050507', '#18181B', '#27272A', '#3F3F46', '#94A3B8'];
-const BELT = ['#3B1A06', '#5C2A0B', '#78350F', '#9A4A1A', '#B8652E'];
-const GOLD = ['#7C5A05', '#CA8A04', '#FACC15', '#FDE047', '#FEF9C3'];
-const HAIR = ['#050507', '#09090B', '#18181B', '#2A2A30', '#45454D'];
-const BAND = ['#000000', '#09090B', '#1C1C20', '#33333A', '#55555E'];
+export const SKIN = ['#6E3F1C', '#A0662E', '#C68B45', '#E0AC69', '#F5D0A9'];
+export const GREEN = ['#3A4A12', '#5C6E1E', '#7E9434', '#A8BC5A', '#D2E08A'];
+export const JEANS = ['#0B1438', '#172554', '#1E3A8A', '#2D4FA8', '#4A6CC4'];
+export const BOOT = ['#050507', '#18181B', '#27272A', '#3F3F46', '#94A3B8'];
+export const BELT = ['#3B1A06', '#5C2A0B', '#78350F', '#9A4A1A', '#B8652E'];
+export const GOLD = ['#7C5A05', '#CA8A04', '#FACC15', '#FDE047', '#FEF9C3'];
+export const HAIR = ['#050507', '#09090B', '#18181B', '#2A2A30', '#45454D'];
+export const BAND = ['#000000', '#09090B', '#1C1C20', '#33333A', '#55555E'];
 
 export interface Pose {
   /** His walk: the step's phase (radians: a step every π). */
@@ -37,9 +37,9 @@ const TOY = 1.3;
 const lerpRamp = (a: string[], b: string[], k: number) => (k <= 0 ? a : a.map((col, i) => mix(col, b[i], k)));
 
 /** A tapered limb (a leg, a forearm): from (x0, y0) w0 wide to (x1, y1) w1 wide; lit down its left, shaded down its right. */
-const limb = (c: Ctx, x0: number, y0: number, w0: number, x1: number, y1: number, w1: number, r: string[], rim?: string) => {
+export const limb = (c: Ctx, x0: number, y0: number, w0: number, x1: number, y1: number, w1: number, r: string[], rim?: string, ink: string | null = INK) => {
   const pts = [[x0 - w0 / 2, y0], [x0 + w0 / 2, y0], [x1 + w1 / 2, y1], [x1 - w1 / 2, y1]];
-  poly(c, pts, r[2]);
+  poly(c, pts, r[2], ink);
   // (lit along the left, shaded along the right, a stepped edge each)
   c.save(); c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.clip();
   const n = 8;

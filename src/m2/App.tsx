@@ -74,6 +74,10 @@ const ANIMALS = new Set(['pigeon', 'pitbull', 'seagull', 'goat', 'hawk', 'rat', 
 setGenderOf(e => m2KindGender(e) ?? (ANIMALS.has(e.kind) ? 'n' : introGender(e)));
 // (dev: ?walkaway plays the after-the-boss walk-away screen on its own, walkAway.ts)
 if (import.meta.env.DEV && new URLSearchParams(location.search).has('walkaway')) void import('./walkAway').then(m => m.devPreviewWalkAway());
+// (dev: ?hub=<spot> starts at the hub, stood at that spot round it: 7 is Adventure Land's portal)
+if (import.meta.env.DEV && new URLSearchParams(location.search).get('hub')) setHubStart(+new URLSearchParams(location.search).get('hub')!);
+// (dev: ?portal plays the walk into a land (after its portal at the hub) on its own, portalWalk.ts)
+if (import.meta.env.DEV && new URLSearchParams(location.search).has('portal')) void import('./portalWalk').then(m => m.devPreviewPortalWalk());
 if (import.meta.env.DEV) {
   // (the borrowed Meathead 1 people in the staff room are men, always: their own lines are fine as they are)
   const pools = [...M2_ENEMY_KINDS.filter(k => ANIMALS.has(k)).flatMap(k => ENEMY_KILL_LINES[k] ?? []), ...Object.entries(KILL_LINES).filter(([k]) => !k.startsWith('range_')).flatMap(([, v]) => v), ...GENERIC_KILL_LINES, ...Object.values(KILL_CALLOUTS).flatMap(c => c.lines)] as string[];
@@ -111,8 +115,9 @@ const useFitToWindow = () => {
 const App2: React.FC = () => {
   const scale = useFitToWindow();
   const ui = useSyncExternalStore(subscribeUi, getUi);
-  // (it starts on the way in: the intro; in dev, ?adv=<checkpoint> starts in Adventure Land)
-  const first = import.meta.env.DEV && new URLSearchParams(location.search).has('adv') ? ADV_STAGE : INTRO_STAGE;
+  // (it starts on the way in: the intro; in dev, ?adv=<checkpoint> starts in Adventure Land, ?hub=<spot> at the hub)
+  const devQ = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
+  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('hub') ? HUB_STAGE : INTRO_STAGE;
   const [stage, setStage] = useState(first);
   const [status, setStatus] = useState(GameStatus.START);
   const pending = useRef<string | null>(first);

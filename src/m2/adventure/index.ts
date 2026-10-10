@@ -13,6 +13,7 @@ import { drawNotedSunFlare } from '../sunFlare';
 import { setUi, isLeaving, arrived, carryGut, takeGut, takeStartCheckpoint } from '../store';
 import { stopWeapons } from '../weapons';
 import { createGrab, updateGrab, drawGrab, type Grab } from '../moves/grab';
+import { takePortalArrival, startPortalArrival, tickPortalArrival, drawPortalArrival, type PortalArrival } from '../portalArrival';
 import { SECTIONS, SECTION_ORDER, type SectionId } from './geometry';
 import { getAdv, type Adv, type Section } from './section';
 import { jungle } from './jungle';
@@ -44,6 +45,8 @@ interface AdvState extends Adv {
   grace: number; held: Set<Enemy>;
   /** The section the camera was last put into. */
   lastSec?: string;
+  /** In through the hub's portal: the land opening on him (portalArrival.ts). */
+  arrive?: PortalArrival;
 }
 /** Starting again at a checkpoint, whatever's near it holds off a moment (he's not in danger the moment he's back). */
 const GRACE = 120, GRACE_RANGE = 650;
@@ -57,7 +60,7 @@ export const advLayout: StageLayout = {
   build: (state) => {
     arrived(); stopWeapons();
     { const g = takeGut(); if (g) state.player.gut = g; }
-    const adv: AdvState = { section: 'jungle', s: {}, grab: createGrab(state), grace: GRACE, held: new Set() };
+    const adv: AdvState = { section: 'jungle', s: {}, grab: createGrab(state), grace: GRACE, held: new Set(), arrive: takePortalArrival() ? startPortalArrival() : undefined };
     state.stage = adv;
     for (const id of SECTION_ORDER) ALL[id].build(state);
     // (back from dying: at the checkpoint he'd got to)
@@ -103,8 +106,13 @@ export const advLayout: StageLayout = {
     // (passing a checkpoint: it's his)
     for (const c of sec.checkpoints) if (c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
     setUi({ near: null, map: null, nearExit: false });
+    // (in through the portal: not his till the land's opened on him)
+    const arriving = !!adv.arrive && tickPortalArrival(state, adv.arrive, sec.cameraRow?.(state) ?? 550);
+    if (adv.arrive && !arriving) adv.arrive = undefined;
+    if (arriving) controls = { ...NO_CONTROLS };
     let out = sec.update ? sec.update(ctx, controls) : controls;
     out = updateGrab(ctx, adv.grab, out);
+    if (arriving) out = { ...NO_CONTROLS };
     // (a cutscene in any section: no HUD; and where he is, for its look: on the river, the boat or under it)
     setUi({ introCutscene: !!p.inCutscene, zone: sec.id === 'river' ? (p.swimming ? 'underwater' : 'boat') : sec.id });
     return out;
@@ -126,7 +134,13 @@ export const advLayout: StageLayout = {
     if (adv) drawGrab(c, state, adv.grab);
   },
   // (the lens's ghosts off the sun, as outdoors as the section is (sunFlare.ts), under the section's own HUD things)
-  drawHud: (c, state) => { const sec = current(state); drawNotedSunFlare(c, sec.outdoors?.(state) ?? 0, sec.cylinder ? undefined : state); sec.drawHud?.(c, state); },
+  drawHud: (c, state) => {
+    const sec = current(state);
+    drawNotedSunFlare(c, sec.outdoors?.(state) ?? 0, sec.cylinder ? undefined : state);
+    sec.drawHud?.(c, state);
+    const adv = getAdv(state) as AdvState | null;
+    if (adv?.arrive) drawPortalArrival(c, state, adv.arrive);
+  },
   zoom: (state) => current(state).zoom?.(state) ?? null,
   holdTick: (ctx) => current(ctx.state).holdTick?.(ctx) ?? false,
   // (a section's own lighting if it has one; else outdoors, the time of day's (timeOfDay.ts); indoors, none)

@@ -1200,6 +1200,9 @@ const drawRayGun = (ctx: CanvasRenderingContext2D, frame: number) => {
   ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(14, 5); ctx.quadraticCurveTo(12, 10, 7, 8); ctx.stroke();
 };
 
+/** The weapon as he holds it, on its own: its grip at the origin, pointing +x (the walk screens draw it in his fist). */
+export const drawHeldWeaponArt = (ctx: CanvasRenderingContext2D, weapon: WeaponType, frame: number) => drawHeldWeapon(ctx, weapon, 0, 0, 0, frame);
+
 const drawHeldWeapon = (ctx: CanvasRenderingContext2D, weapon: WeaponType, wpnX: number, wpnY: number, flameAngle: number, frame: number) => {
   ctx.save();
   ctx.translate(wpnX, wpnY);
