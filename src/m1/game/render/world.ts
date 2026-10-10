@@ -152,6 +152,7 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
     drawTsunamiBack(wctx, state);
     drawEnemies(wctx, state, view);
     drawEnemyDeaths(wctx, state);
+    for (const [, w] of customWeapons()) w.drawUnder?.(wctx, state);
     if (inTommyArena && state.tommyBoards) drawTommyPool(wctx, state);
     // (the window-crash intro keeps him out of sight until he jumps through the glass; in the skyfall one he's falling into view)
     if (status !== GameStatus.LEVEL_INTRO || LEVEL_INTRO_STYLE === 'skyfall' || state.introTimer >= 80) {

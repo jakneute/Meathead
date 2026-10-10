@@ -783,8 +783,12 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     drawBone(c, p.b);
     c.restore();
   }
-  // The litter
-  for (const a of aliens) drawAlien(c, a, f);
+  // The litter (not the ones on a bush: they're back there with it, behind him: drawUnder)
+  for (const a of aliens) if (!a.onBait) drawAlien(c, a, f);
+};
+/** The litter latched on a bush, gnawing it: back with the bush, behind him. */
+const drawUnder = (c: Ctx, state: GameState) => {
+  for (const a of aliens) if (a.onBait) drawAlien(c, a, state.frame);
 };
 
 /** In his fist: a fat lump of purple shell, a see-through green sac on top with things moving in it, a puckered pink
@@ -816,4 +820,4 @@ export const stopSpawner = () => { aliens = []; corpses = []; pieces = []; puddl
 /** For tests: how many there are, what they're up to. */
 export const spawnerForTests = () => ({ aliens: aliens.length, latched: aliens.filter(a => a.on).length, corpses: corpses.length, pieces: pieces.length, puddles: puddles.length, skeletons: corpses.filter(c => c.bones.length).length, ages: corpses.map(c => c.t) });
 
-export const registerSpawner = () => registerWeapon('SPAWNER', { fire: (ctx, input, muzzle) => fire(ctx, input, muzzle), update: () => false, draw, drawHeld, tick: ctx => tick(ctx), drawOverlay });
+export const registerSpawner = () => registerWeapon('SPAWNER', { fire: (ctx, input, muzzle) => fire(ctx, input, muzzle), update: () => false, draw, drawHeld, tick: ctx => tick(ctx), drawOverlay, drawUnder });

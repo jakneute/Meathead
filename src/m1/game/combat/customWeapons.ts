@@ -24,6 +24,8 @@ export interface CustomWeapon {
   tick?: (ctx: FrameContext, input: WeaponInput & { secondary?: boolean }, equipped: boolean) => void;
   /** Drawn over the enemies, in world space, every frame (meters on them, things in the air). */
   drawOverlay?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
+  /** Behind him (after the enemies, before the player): its things that are further back than he is. */
+  drawUnder?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
   /**
    * Hanging off a vine (Meathead 2), mid-move with it (a swing, a cast): his weapon arm and what's in it, drawn its own
    * way this frame (null: the usual way, held out level). Called twice: `behind` before his torso is drawn (whatever's
