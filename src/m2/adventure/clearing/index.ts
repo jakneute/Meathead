@@ -5,7 +5,8 @@
 // Then the fight (fight.ts: his bushes, his hidden-ball game, his mating whistle and its stampede, stampede.ts). The
 // fence goes up behind him for it and comes down after. Beaten, back to the hub.
 //
-// The look: art.ts (the strip's own things) and orbit.ts (round the temple, past the strip).
+// The look: art.ts (the strip's own things), orbit.ts (round the temple, past the strip) and tower.ts (Artie's blind,
+// out on the loop till the view's round to it, then on the strip).
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -15,7 +16,7 @@ import type { EnemyKind } from '../../../m1/types';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { GUIDE_KIND } from '../guides';
 import { lay, solid, speak, meatheadSays, saidOver, hands, sectionState } from '../section';
-import { drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawBlind, drawBlindFront, drawFence, CAMPFIRE, SPEAKER, drawSpeaker } from './art';
+import { drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawFence, CAMPFIRE, SPEAKER, drawSpeaker } from './art';
 import { GY } from '../geometry';
 import { goTo, setUi, markLandCleared, noteBossKill } from '../../store';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -24,14 +25,14 @@ import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip'
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES, topBand } from '../../../m1/constants';
-import { drawSafariArtie, ROOF_SCUFFS } from '../river/artie';
 import { type Dressed, MEATHEAD_KICK, ARTIE_FOUND, ARTIE_SENDS, MEATHEAD_ARTIE } from './lines';
-import { x0, x1, TREE_X, TREE_H, TEMPLE_X, BLIND_X, BLIND_Y, ARENA_L, ARENA_R, PICKUP_X } from './arena';
+import { x0, x1, TREE_X, TREE_H, TEMPLE_X, BLIND_X, ARENA_L, ARENA_R, PICKUP_X } from './arena';
 import { drawOrbitBackdrop, ORBIT_WRAP } from './orbit';
+import { type BlindLook, blindOrbitItem, drawBlindOnStrip, blindWordsAt } from './tower';
 import { BEASTS } from './stampede';
 import { popAliensIn } from '../../weapons/spawner';
 import type { Enemy } from '../../../m1/types';
-import { type Fight, startFight as beginFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam } from './fight';
+import { type Fight, startFight as beginFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam, artieInBlind } from './fight';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 
@@ -360,24 +361,21 @@ export const clearing: Section = {
   outdoors: () => 1,
   // (the junior guides' campfire, at night)
   lamps: () => [{ x: CAMPFIRE.x, y: CAMPFIRE.y, r: 140, a: 0.9, color: '#FFB060' }],
-  drawBackdrop: (c, state) => { drawOrbitBackdrop(c, state, getClearing(state).templeHit); return true; },
+  // (his blind out there too, from well back once the trees are down: tower.ts; on the strip once the view's round to it)
+  drawBackdrop: (c, state) => { const cl = getClearing(state); drawOrbitBackdrop(c, state, cl.templeHit, blindOrbitItem(c, state, blindLook(state, cl))); return true; },
   drawBack: (c, state) => drawClearing(c, state),
   drawFront: (c, state) => {
     const cl = getClearing(state);
-    // Artie, up in his blind (till the fight)
-    if (cl.fight === 'wait' && (cl.trees[5].a > 0.5 || !cl.domino)) {
-      drawSafariArtie(c, BLIND_X, BLIND_Y, -1, state.frame, cl.said?.text ? 'talk' : 'angry', ROOF_SCUFFS);
-      // (the hide's netting across his legs)
-      drawBlindFront(c);
-    }
-    if (cl.said?.text && cl.fight === 'wait') {
-      if (cl.saidAt === 'speaker') saidOver(c, cl.said.text, SPEAKER.x + 12, SPEAKER.y - 18, '#FDE68A');
-      else saidOver(c, cl.said.text, Math.min(TEMPLE_X - 130, BLIND_X), BLIND_Y - 100, '#FDE68A');
-    }
+    // Artie, up in his blind (till the fight), and the hide's netting across his legs (on the strip: tower.ts)
+    if (cl.fight === 'wait') drawBlindOnStrip(c, state, blindLook(state, cl), 'front');
+    if (cl.said?.text && cl.fight === 'wait' && cl.saidAt === 'speaker') saidOver(c, cl.said.text, SPEAKER.x + 12, SPEAKER.y - 18, '#FDE68A');
     if (cl.f && cl.fight !== 'wait') drawFightFront(c, state, cl.f);
   },
   drawHud: (c, state) => {
     const cl = getClearing(state);
+    // (his words over him up in his blind, wherever on the screen it's got to: out on the loop or on the strip)
+    const said = cl.fight === 'wait' ? (cl.saidAt === 'blind' ? cl.said?.text : null) : cl.f && artieInBlind(cl.f) ? cl.f.said : null;
+    if (said) { const w = blindWordsAt(state); saidOver(c, said, w.x, w.y, '#FDE68A'); }
     if (cl.fight === 'on' && cl.f) drawFightHud(c, cl.f, topBand(), !!state.player.inCutscene);
     if (cl.f && cl.fight !== 'wait') drawKillCam(c, cl.f);
     if (cl.victory) drawVictory(c, cl.victory);
@@ -390,6 +388,15 @@ export const clearing: Section = {
 
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing (crude)
+
+/** How his blind looks just now: in the leaves still, Artie up in it (and how), or not. */
+const blindLook = (state: GameState, cl: Clearing): BlindLook => {
+  const hidden = cl.fight === 'wait' && cl.domino && cl.trees[5].a <= 0.5;
+  let artie: BlindLook['artie'] = null;
+  if (cl.fight === 'wait' && !hidden) artie = cl.said?.text ? 'talk' : 'angry';
+  else if (cl.fight === 'on' && cl.f && artieInBlind(cl.f)) artie = cl.f.said ? 'talk' : 'angry';
+  return { hidden, artie, frame: state.frame };
+};
 
 const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
@@ -409,8 +416,9 @@ const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
   // The temple's wing, where it crosses the path (the rest of it's out past the strip, orbit.ts), knocked about where
   // the tree hit it, still standing. Nothing lit along its top: it's not something to get up on
   if (vis(TEMPLE_X - 60, TEMPLE_X + 940)) drawWing(c, cl.templeHit);
-  // Artie's blind: up on its stilts (hidden in the leaves, till the trees go)
-  if (vis(BLIND_X - 80, BLIND_X + 80)) drawBlind(c, cl.fight === 'wait' && cl.domino && cl.trees[5].a <= 0.5, f);
+  // Artie's blind: up on its stilts (hidden in the leaves, till the trees go), once the view's round to it (out on the
+  // loop till then: tower.ts); waiting on him, Artie's drawn over its back (drawFront)
+  if (vis(BLIND_X - 120, BLIND_X + 120)) drawBlindOnStrip(c, state, blindLook(state, cl), cl.fight === 'wait' ? 'back' : 'all');
   // The trees still standing, or going over; down, gone (not drawn at all: a log lying there would read as something
   // to stand on)
   cl.trees.forEach((t, i) => { if (!t.done && vis(TREE_X[i] - 100, TREE_X[i] + TREE_H + 100)) drawTree(c, TREE_X[i], t.a, i, f, false); });

@@ -56,7 +56,7 @@ import { drawSafariArtie, ROOF_SCUFFS, type ArtiePose } from '../river/artie';
 import { box, label, saidOver, hands, speak, voice, meatheadSays } from '../section';
 import { GY } from '../geometry';
 import { drawBushArt, drawVine } from './art';
-import { ARENA_L, ARENA_R, ARENA_MID, BLIND_X, BLIND_Y, BUSH_X, BUSH_W, BUSH_H } from './arena';
+import { ARENA_L, ARENA_R, ARENA_MID, BLIND_X, BLIND_Y, BUSH_X, BUSH_W, BUSH_H, VIEW_L } from './arena';
 import { type Animal, type Beast, BEASTS, makeStampede, updateStampede, stampedeOver, nearestTo, clearStampede, drawStampede, drawWarnings } from './stampede';
 import * as L from './lines';
 
@@ -168,6 +168,9 @@ export interface Fight {
   feedGap: number;
   /** Up his vine to stay (flattened, or no bushes left): till the litter chews through it. The next dart's count. */
   perch: boolean; spitT: number; perchT: number; lureT: number;
+  /** Still up in his blind at the start (saying his piece), till the view's come round onto the arena (tower.ts turns
+   *  the blind side on as it does); how long he's been waiting on it. */
+  inBlind: boolean; blindT: number;
   e: Enemy;
 }
 
@@ -263,7 +266,7 @@ export const startFight = (state: GameState): Fight => {
     bush: 2, bushes: [], moves: [], moveI: 0, decoy: -1, wait: 0, after: 'whistle', stunLen: STUN,
     agitated: false, calmT: 0, swatT: 0, herd: [], stampedes: 0, overT: 0, darts: [], poison: 0, pokes: 0,
     said: null, nextCups: 0, byWeakness: false, death: null, eaten: null, eatenSaid: 0, eatenOver: false, cam: null, puke: null, noBushesSaid: false,
-    vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, perchT: 0, lureT: 0, e,
+    vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, perchT: 0, lureT: 0, inBlind: true, blindT: 0, e,
   };
   // (the vine: up over his hands while he's hanging off it)
   f.vine = {
@@ -314,7 +317,11 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   tickPoison(ctx, f);
   let out = controls;
   switch (f.mode) {
-    case 'intro': if (onArc(f)) { landInBush(state, f); hide(f); } break;
+    case 'intro':
+      // (up in his blind till the view's come round onto the arena (or it's been long enough), then down out of it)
+      if (f.inBlind) { f.t = 0; if (Math.abs(state.camera.x - VIEW_L) < 1 || ++f.blindT > 150) f.inBlind = false; break; }
+      if (onArc(f)) { landInBush(state, f); hide(f); }
+      break;
     case 'hidden': {
       if (luring(f)) {
         f.lureT++;
@@ -858,6 +865,9 @@ export const drawKillCam = (c: Ctx, f: Fight) => {
   if (cam.t < 14) { c.fillStyle = `rgba(255, 255, 255, ${(1 - cam.t / 14).toFixed(2)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
 };
 
+/** Still up in his blind at the start: the clearing draws him there (tower.ts), his words over him. */
+export const artieInBlind = (f: Fight) => f.mode === 'intro' && f.inBlind;
+
 /** Done with: the fight's over and he's had his say (the death played out). */
 export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && (f.death.how === 'eaten' ? f.eatenOver : f.death.t > 300);
 
@@ -928,7 +938,7 @@ const drawBush = (c: Ctx, state: GameState, b: Bush, fringe: boolean) => {
 export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   const fr = state.frame;
   // Him, diving (in, between, out of the blind) or crawling: not an enemy just now, drawn here
-  const travelling = f.mode === 'intro' || f.mode === 'divein' || (f.mode === 'move' && f.moves[f.moveI] && f.t <= f.moves[f.moveI].d);
+  const travelling = (f.mode === 'intro' && !f.inBlind) || f.mode === 'divein' || (f.mode === 'move' && f.moves[f.moveI] && f.t <= f.moves[f.moveI].d);
   if (travelling) {
     const m = f.mode === 'move' ? f.moves[f.moveI] : null;
     if (m && m.how === 'crawl') {
@@ -996,7 +1006,8 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   // His death (face down in the dirt; or the loose bits of him, eaten); his words
   if (f.death?.how === 'flat') drawFlat(c, f, fr);
   if (f.eaten && f.death) { c.save(); c.translate(Math.round(f.death.x), GY); c.scale(f.death.facing, 1); drawEatenLoose(c, f.eaten, fr); c.restore(); }
-  if (f.said) {
+  // (up in his blind still: those go over him in it, the clearing's (tower.ts))
+  if (f.said && !artieInBlind(f)) {
     const sx = Math.max(ARENA_L + 130, Math.min(ARENA_R - 130, f.x));
     const sy = f.mode === 'hidden' || f.mode === 'move' ? GY - BUSH_H - 40 : f.y - 104;
     saidOver(c, f.said, sx, Math.max(state.camera.y + 130, sy), '#FDE68A');

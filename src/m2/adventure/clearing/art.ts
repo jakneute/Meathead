@@ -7,8 +7,7 @@
 //   The trees going down like dominoes: real jungle trees (buttress roots, banded bark, a crown of leaves, vines);
 //     down, they lie back off the path, dimmed (nothing to stand on); the last leans on the temple.
 //   The temple's wing across the path: its stonework (the roof's, the dino park's), hit where the last tree struck it.
-//   Artie's hunting blind: on lashed log stilts, a camo-net hide, a thatch roof, a ladder; hidden in leaves till the
-//     trees go.
+//   (Artie's hunting blind is tower.ts: stood out on the loop, coming round onto the strip.)
 //   The fight: the bamboo fence behind him, the three bushes (lush, leaf on leaf, thinning as they're chewed down to
 //     twigs), his vine (twisted, leafy, chewed thin where they've been at it).
 
@@ -16,7 +15,7 @@ import { INK, box, checker, mix, hash, pixelBlob, pole, text, stamp, dim } from 
 import { STONE, MOSS, PLY, SHELL, DARK, stoneWall, vineDown, plaque, glyph } from '../roof/stone';
 import { crown } from '../roof/art';
 import { GY } from '../geometry';
-import { x0, TREE_H, TEMPLE_X, BLIND_X, BLIND_Y, ARENA_L, PICKUP_X, BUSH_W, BUSH_H } from './arena';
+import { x0, TREE_H, TEMPLE_X, ARENA_L, PICKUP_X, BUSH_W, BUSH_H } from './arena';
 
 type Ctx = CanvasRenderingContext2D;
 const r1 = (a: number, b = 0) => hash(a * 12.9898 + b * 78.233);
@@ -210,47 +209,7 @@ export const drawWing = (c: Ctx, hit: boolean) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The blind
-
-export const drawBlind = (c: Ctx, hidden: boolean, f: number) => {
-  stamp(c, 'clBlind', BLIND_X - 70, BLIND_Y - 110, 140, GY - BLIND_Y + 114, g => {
-    // (the stilts: logs, lashed, braced across)
-    for (const sx of [-40, 34]) { pole(g, BLIND_X + sx, BLIND_Y, 7, GY - BLIND_Y, BARK[3]); for (const ly of [BLIND_Y + 20, BLIND_Y + 90]) { box(g, BLIND_X + sx - 1, ly, 9, 4, '#C9A86A'); box(g, BLIND_X + sx - 1, ly + 4, 9, 1, '#7A5A2A'); } }
-    g.strokeStyle = BARK[2]; g.lineWidth = 4; g.beginPath(); g.moveTo(BLIND_X - 36, BLIND_Y + 20); g.lineTo(BLIND_X + 38, GY - 20); g.moveTo(BLIND_X + 38, BLIND_Y + 20); g.lineTo(BLIND_X - 36, GY - 20); g.stroke();
-    // (the ladder up the side)
-    for (const lx of [BLIND_X + 44, BLIND_X + 58]) box(g, lx, BLIND_Y, 3, GY - BLIND_Y, BARK[2]);
-    for (let y = BLIND_Y + 14; y < GY; y += 18) { box(g, BLIND_X + 44, y, 17, 3, BARK[3]); box(g, BLIND_X + 44, y, 17, 1, BARK[4]); }
-    // (the platform)
-    box(g, BLIND_X - 50, BLIND_Y - 4, 100, 10, INK); box(g, BLIND_X - 48, BLIND_Y - 3, 96, 7, '#8A6038'); box(g, BLIND_X - 48, BLIND_Y - 3, 96, 2, '#B08048');
-    // (the thatch roof on its corner posts)
-    for (const px of [BLIND_X - 46, BLIND_X + 42]) box(g, px, BLIND_Y - 76, 4, 40, BARK[2]);
-    g.fillStyle = INK; g.beginPath(); g.moveTo(BLIND_X - 62, BLIND_Y - 70); g.lineTo(BLIND_X, BLIND_Y - 104); g.lineTo(BLIND_X + 62, BLIND_Y - 70); g.fill();
-    g.fillStyle = '#B8A060'; g.beginPath(); g.moveTo(BLIND_X - 58, BLIND_Y - 72); g.lineTo(BLIND_X, BLIND_Y - 101); g.lineTo(BLIND_X + 58, BLIND_Y - 72); g.fill();
-    for (let k = -54; k < 56; k += 6) box(g, BLIND_X + k, BLIND_Y - 74 - (54 - Math.abs(k)) * 0.5, 2, 6 + (k % 12 ? 2 : 6), '#8A7038');
-    box(g, BLIND_X - 58, BLIND_Y - 74, 116, 4, '#8A7038');
-    // (a sign on its front: no peeking)
-    plaque(g, BLIND_X, BLIND_Y + 18, 64, 14, '#8A5A2E', ['PRIVATE'], '#FDE68A', 5);
-  });
-  // Hidden in the leaves, till the trees go
-  if (hidden) {
-    const ramp = [LEAF[1], LEAF[2], LEAF[3], LEAF[5]];
-    for (const [dx, dy, r] of [[-30, -40, 50], [32, -30, 48], [0, -80, 46], [-6, 0, 44], [40, 20, 36], [-44, 10, 36]] as const) crown(c, BLIND_X + dx, BLIND_Y + dy + Math.sin(f * 0.03 + dx) * 1, r, ramp);
-  }
-};
-
-// ---------------------------------------------------------------------------------------------------------------
 // The fight's: the fence, the bushes, his vine
-
-/** The hide's front (over him, standing in it): camo netting hung round it, leaves stuck in it. */
-export const drawBlindFront = (c: Ctx) => {
-  stamp(c, 'clBlindNet', BLIND_X - 50, BLIND_Y - 42, 100, 46, g => {
-      // (the hide: camo netting hung round the front of it, leaves stuck in it; a slot to shoot out of)
-      box(g, BLIND_X - 48, BLIND_Y - 40, 96, 36, INK);
-      box(g, BLIND_X - 46, BLIND_Y - 38, 92, 34, '#4A5A2A');
-      for (let k = 0; k < 40; k++) { const lx = BLIND_X - 46 + r1(k, 1) * 88, ly = BLIND_Y - 38 + r1(k, 2) * 30; box(g, lx, ly, 6, 4, ['#3A4A1E', '#6A7A34', '#5A4A2A', '#7E8A44'][k % 4]); }
-      for (let k = 0; k < 92; k += 6) box(g, BLIND_X - 46 + k, BLIND_Y - 6, 3, 4 + (k % 12 ? 0 : 4), '#3A4A1E');
-  });
-};
 
 /** The bamboo fence that goes up behind him for the fight (lashed poles, cut to points). */
 export const drawFence = (c: Ctx, top: number) => {

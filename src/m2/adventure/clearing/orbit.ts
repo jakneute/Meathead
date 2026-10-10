@@ -8,6 +8,8 @@
 // drawn chunky), the path's far side on it; the temple a scaled set of boxes (its faces coming round into view and
 // going out of it, nearer and bigger at the start and the end, smaller across the loop in the middle); the jungle
 // round the loop and the hills past it slide by at their own rates, the far ones the other way.
+// Everything out there's put through the one camera (proj()), and put in order back to front piece by piece (inOrder):
+// the temple's tiers, its wing (cut into slabs that sit on the steps, never through them), the trees, Artie's blind.
 //
 // The loop's angle is world x over its radius, so the near side of it moves with the strip (1:1 where it meets it).
 //
@@ -29,12 +31,15 @@ type Ctx = CanvasRenderingContext2D;
 /** The strip's wrapped round a cylinder of this (a gentle bend: the fight's edges stay put). */
 export const ORBIT_WRAP = 700;
 /** The loop: its radius; its angle where he comes in (left of the temple) and where it ends (the wing), even about 0. */
-const PR = 560;
+export const PR = 560;
 const A_END = (TEMPLE_X - x0) / PR / 2, A_START = -A_END;
 /** The temple's middle: out from the loop's middle toward its open side (polar angle PI), front (stairs) facing in. */
 const TD = 420;
-/** The camera: focal length (the near side of the loop at 1:1 on the strip), how far out from the loop's middle, how high. */
-const F = 900, DC = F + PR, HC = 400;
+/** The camera: focal length (the near side of the loop at 1:1 on the strip), how far out from the loop's middle, how high.
+ *  (Its eye's HC up, looking level: the horizon's HC over where the near side of the loop meets the strip's ground, GY,
+ *  so the floor and everything stood on it meet the strip there; off the middle the strip's own bend (ORBIT_WRAP) and
+ *  the loop's part a little, which is why things handed from one to the other (Artie's blind, tower.ts) blend across.) */
+export const F = 900, DC = F + PR, HC = 400;
 /** The temple's wing across the path at its end: how wide, the angle its middle's at (its near face at the wall). */
 const WING_W = 180;
 const WING_A = A_END + Math.asin(WING_W / 2 / PR);
@@ -42,26 +47,26 @@ const WING_U0 = 300;
 /** Where the last tree hits the wing (its face, out at the path; how high). */
 const HIT_U = PR - 10, HIT_Y = 221;
 /** Light from one side (world-fixed: the faces brighten and darken as they come round). */
-const SUN = (() => { const x = -0.6, z = 0.75, l = Math.hypot(x, z); return { x: x / l, z: z / l }; })();
+export const SUN = (() => { const x = -0.6, z = 0.75, l = Math.hypot(x, z); return { x: x / l, z: z / l }; })();
 
 /** The loop's angle at a world x. */
 export const orbitAngle = (worldX: number) => A_START + (worldX - x0) / PR;
 
-interface View { phi: number; hy: number; cos: number; sin: number }
-const viewOf = (state: GameState): View => {
+export interface View { phi: number; hy: number; cos: number; sin: number }
+export const viewOf = (state: GameState): View => {
   const phi = orbitAngle(state.camera.x + CANVAS_WIDTH / 2);
   // (the horizon put where the near side of the loop lands on the strip's ground, wherever the camera is up and down)
   return { phi, hy: GY - state.camera.y - HC, cos: Math.cos(phi), sin: Math.sin(phi) };
 };
 /** A ground-plane point (px, pz: the loop's middle at 0) at height y: on screen, how far, its scale. */
-const proj = (v: View, px: number, y: number, pz: number) => {
+export const proj = (v: View, px: number, y: number, pz: number) => {
   const X = px * v.cos - pz * v.sin, Z = DC - px * v.sin - pz * v.cos;
   const k = F / Math.max(40, Z);
   return { x: CANVAS_WIDTH / 2 + X * k, y: v.hy + (HC - y) * k, z: Z, k };
 };
-const depth = (v: View, px: number, pz: number) => DC - px * v.sin - pz * v.cos;
-const polar = (r: number, a: number) => ({ x: r * Math.sin(a), z: r * Math.cos(a) });
-const camPos = (v: View) => ({ x: DC * v.sin, z: DC * v.cos });
+export const depth = (v: View, px: number, pz: number) => DC - px * v.sin - pz * v.cos;
+export const polar = (r: number, a: number) => ({ x: r * Math.sin(a), z: r * Math.cos(a) });
+export const camPos = (v: View) => ({ x: DC * v.sin, z: DC * v.cos });
 
 const shade = (hex: string, k: number) => {
   const n = parseInt(hex.slice(1), 16);
@@ -75,30 +80,49 @@ const poly = (c: Ctx, pts: { x: number; y: number }[], col: string) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Boxes (the temple's tiers, its wing): a footprint (four corners, going round), from y0 up to y1
+// Prisms (the temple's tiers, its wing): a footprint (a convex outline, going round), from y0 up to y1, stood on the
+// floor. Each face's turned by its own edge (its normal square to it, out from the middle), seen only when it's turned
+// toward the camera; the top only from above. Pieces butt up against each other (never through each other: the wing's
+// cut where it meets the temple's steps), so they can be put in order back to front (see inOrder).
 
-type Pt = { x: number; z: number };
+export type Pt = { x: number; z: number };
+/** A footprint edge's own frame (for things on its face): where `along` starts from, which way it runs; its name. */
+interface Edge { tag: string; o: Pt; d: Pt }
 interface BoxOpts {
   col: string;
-  /** Something on a face once it's drawn (stairs, damage): which face (its corner index), and the face's frame. */
-  onFace?: (c: Ctx, v: View, face: number, at: (along: number, y: number, out?: number) => { x: number; y: number }) => void;
+  /** Something on a face once it's drawn (stairs, damage): which face (its edge's tag), and the face's frame. */
+  onFace?: (c: Ctx, v: View, face: string, at: (along: number, y: number, out?: number) => { x: number; y: number }) => void;
   /** The top edge broken (the roof caved in): its notches. */
   broken?: boolean;
 }
 /** A face's stone, stepped from the ramp by how lit it is (0.62 .. 1.02). */
 const stoneAt = (lit: number, off = 0) => SR[Math.max(0, Math.min(SR.length - 1, Math.round(1 + ((lit - 0.62) / 0.4) * 4) + off))];
 const seg = (c: Ctx, p: { x: number; y: number }, q: { x: number; y: number }, col: string, w = 1) => { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.stroke(); };
-const drawBox = (c: Ctx, v: View, corners: Pt[], y0: number, y1: number, o: BoxOpts) => {
+const centroid = (pts: Pt[]) => ({ x: pts.reduce((s, p) => s + p.x, 0) / pts.length, z: pts.reduce((s, p) => s + p.z, 0) / pts.length });
+/** An edge's outward normal (unit), square to the edge, away from the middle. */
+const normalOf = (a: Pt, b: Pt, mid: Pt) => {
+  let nx = b.z - a.z, nz = -(b.x - a.x); const l = Math.hypot(nx, nz) || 1; nx /= l; nz /= l;
+  if (nx * ((a.x + b.x) / 2 - mid.x) + nz * ((a.z + b.z) / 2 - mid.z) < 0) { nx = -nx; nz = -nz; }
+  return { x: nx, z: nz };
+};
+/** Plain edges, named by their index (a square's faces: 0 back, 1 +x side, 2 front, 3 -x side), measured from their start. */
+const plainEdges = (pts: Pt[]): Edge[] => pts.map((a, i) => { const b = pts[(i + 1) % pts.length], l = Math.hypot(b.x - a.x, b.z - a.z) || 1; return { tag: String(i), o: a, d: { x: (b.x - a.x) / l, z: (b.z - a.z) / l } }; });
+
+const drawBox = (c: Ctx, v: View, corners: Pt[], y0: number, y1: number, o: BoxOpts, edges = plainEdges(corners)) => {
   const cam = camPos(v);
-  const mid = { x: corners.reduce((s, p) => s + p.x, 0) / 4, z: corners.reduce((s, p) => s + p.z, 0) / 4 };
+  const mid = centroid(corners);
   const stone = o.col === STONE || o.col === STONE_WING || o.col === SHRINE;
   const tone = o.col === STONE ? 0 : -1;
-  for (let i = 0; i < 4; i++) {
-    const a = corners[i], b = corners[(i + 1) % 4];
-    const m = { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 };
-    let nx = m.x - mid.x, nz = m.z - mid.z; const nl = Math.hypot(nx, nz) || 1; nx /= nl; nz /= nl;
+  const n = corners.length;
+  for (let i = 0; i < n; i++) {
+    const a = corners[i], b = corners[(i + 1) % n], E = edges[i];
+    // (a cut face: up against the piece next to it, never seen)
+    if (E.tag === 'cut') continue;
+    const len = Math.hypot(b.x - a.x, b.z - a.z);
+    if (len < 1) continue;
+    const { x: nx, z: nz } = normalOf(a, b, mid);
     // (turned away: not seen)
-    if (nx * (cam.x - m.x) + nz * (cam.z - m.z) <= 0) continue;
+    if (nx * (cam.x - a.x) + nz * (cam.z - a.z) <= 0) continue;
     const lit = 0.62 + 0.4 * Math.max(0, nx * SUN.x + nz * SUN.z);
     const top = (t: number) => (o.broken && t > 0.25 && t < 0.75 ? y1 - 26 - 18 * Math.sin(t * 40 + i) ** 2 : y1);
     const pts: { x: number; y: number }[] = [proj(v, a.x, y0, a.z), proj(v, b.x, y0, b.z)];
@@ -107,28 +131,31 @@ const drawBox = (c: Ctx, v: View, corners: Pt[], y0: number, y1: number, o: BoxO
     poly(c, pts, face);
     const P = (t: number, y: number) => proj(v, a.x + (b.x - a.x) * t, y, a.z + (b.z - a.z) * t);
     const dk = stone ? stoneAt(lit, tone - 2) : shade(o.col, lit * 0.7), lt = stone ? stoneAt(lit, tone + 1) : shade(o.col, lit * 1.15);
-    // (moss along the foot)
-    poly(c, [P(0, y0), P(1, y0), P(1, y0 + 9), P(0, y0 + 9)], MOSS[1]);
-    // (the courses: a dark joint, a lit lip under it; the blocks' joints staggered course to course)
-    const len = Math.hypot(b.x - a.x, b.z - a.z), nj = Math.max(2, Math.round(len / 64));
-    for (let y = y0 + 17, row = 0; y < y1 - 6; y += 17, row++) {
+    // (moss along the foot, if it's stood on the floor)
+    if (y0 === 0) poly(c, [P(0, y0), P(1, y0), P(1, y0 + 9), P(0, y0 + 9)], MOSS[1]);
+    // (the courses: a dark joint, a lit lip under it; the blocks' joints staggered course to course, all on the one
+    // grid up the building, so pieces stacked on each other carry the same courses on)
+    const nj = Math.max(1, Math.round(len / 64));
+    for (let y = Math.ceil((y0 + 1) / 17) * 17, row = Math.round(y / 17); y < y1 - 6; y += 17, row++) {
       seg(c, P(0, y), P(1, y), dk); seg(c, P(0, y - 1.5), P(1, y - 1.5), lt);
       const yb = Math.min(y + 17, y1 - 2);
       for (let j = 0; j < nj; j++) { const t = (j + (row % 2 ? 0.5 : 0.1)) / nj; if (t < 0.98) seg(c, P(t, y), P(t, yb), dk); }
     }
     // (the cornice: lit along the top edge, its shadow under it)
-    if (!o.broken) { poly(c, [P(0, y1 - 6), P(1, y1 - 6), P(1, y1), P(0, y1)], stone ? stoneAt(lit, tone + 2) : lt); seg(c, P(0, y1 - 7), P(1, y1 - 7), dk); }
+    if (!o.broken && y1 - y0 > 14) { poly(c, [P(0, y1 - 6), P(1, y1 - 6), P(1, y1), P(0, y1)], stone ? stoneAt(lit, tone + 2) : lt); seg(c, P(0, y1 - 7), P(1, y1 - 7), dk); }
     // (glyph panels, carved in, and a vine or two down it)
-    if (y1 - y0 >= 60) for (let j = 1; j < nj; j += 2) {
+    if (y1 - y0 >= 60 && nj >= 2) for (let j = 1; j < nj; j += 2) {
       const t = j / nj, w2 = 0.35 / nj, yy = (y0 + y1) / 2;
       poly(c, [P(t - w2, yy - 10), P(t + w2, yy - 10), P(t + w2, yy + 10), P(t - w2, yy + 10)], dk);
       poly(c, [P(t - w2 * 0.6, yy - 6), P(t + w2 * 0.6, yy - 6), P(t + w2 * 0.6, yy + 6), P(t - w2 * 0.6, yy + 6)], face);
       seg(c, P(t - w2, yy + 10), P(t + w2, yy + 10), lt);
     }
-    for (let j = 0; j < 3; j++) { const t = ((j * 0.37 + i * 0.21) % 0.9) + 0.05, hgt = (y1 - y0) * (0.3 + ((j + i) % 3) * 0.2); seg(c, P(t, y1 - 4), P(t + 0.004, y1 - hgt), MOSS[2], 2); }
+    if (y1 - y0 > 14 && len > 30) for (let j = 0; j < 3; j++) { const t = ((j * 0.37 + i * 0.21) % 0.9) + 0.05, hgt = (y1 - y0) * (0.3 + ((j + i) % 3) * 0.2); seg(c, P(t, y1 - 4), P(t + 0.004, y1 - hgt), MOSS[2], 2); }
     if (o.onFace) {
-      const ux = (b.x - a.x) / len, uz = (b.z - a.z) / len;
-      o.onFace(c, v, i, (along, y, out = 0) => proj(v, a.x + ux * along + nx * out, y, a.z + uz * along + nz * out));
+      // (kept to its face)
+      c.save(); c.beginPath(); pts.forEach((p, k) => (k ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y))); c.closePath(); c.clip();
+      o.onFace(c, v, E.tag, (along, y, out = 0) => proj(v, E.o.x + E.d.x * along + nx * out, y, E.o.z + E.d.z * along + nz * out));
+      c.restore();
     }
   }
   // Its top, if it's below the eye
@@ -136,11 +163,31 @@ const drawBox = (c: Ctx, v: View, corners: Pt[], y0: number, y1: number, o: BoxO
 };
 /** The temple's footprint at this half-size (its middle out at TD, toward the loop's open side). */
 const square = (a: number): Pt[] => [{ x: -a, z: -a - TD }, { x: a, z: -a - TD }, { x: a, z: a - TD }, { x: -a, z: a - TD }];
-/** A box along the wing's line: u out from the loop's middle, w across. */
-const wingBox = (u0: number, u1: number, w: number): Pt[] => {
-  const d = { x: Math.sin(WING_A), z: Math.cos(WING_A) }, e = { x: Math.cos(WING_A), z: -Math.sin(WING_A) };
-  const at = (u: number, s: number) => ({ x: d.x * u + e.x * s, z: d.z * u + e.z * s });
-  return [at(u0, -w / 2), at(u1, -w / 2), at(u1, w / 2), at(u0, w / 2)];
+
+/** The wing's line: out from the loop's middle (WD), and across it (WE). */
+const WD = { x: Math.sin(WING_A), z: Math.cos(WING_A) }, WE = { x: Math.cos(WING_A), z: -Math.sin(WING_A) };
+const wingAt = (u: number, s: number) => ({ x: WD.x * u + WE.x * s, z: WD.z * u + WE.z * s });
+/** A box along the wing's line (u out from the loop's middle, w across), its edges named: `near` the face he comes up
+ *  to (the tree hit it), `tail` its far end, `back`, `end` the end at the temple. */
+const wingBox = (u0: number, u1: number, w: number): { pts: Pt[]; edges: Edge[] } => {
+  const pts = [wingAt(u0, -w / 2), wingAt(u1, -w / 2), wingAt(u1, w / 2), wingAt(u0, w / 2)];
+  return { pts, edges: [{ tag: 'near', o: pts[0], d: WD }, { tag: 'tail', o: pts[1], d: WE }, { tag: 'back', o: pts[2], d: { x: -WD.x, z: -WD.z } }, { tag: 'end', o: pts[3], d: { x: -WE.x, z: -WE.z } }] };
+};
+/** A footprint cut down to one side of x = at (`keep` +1: x past it; -1: short of it), the cut's edge named `cut`. */
+const clipX = (f: { pts: Pt[]; edges: Edge[] }, at: number, keep: 1 | -1) => {
+  const pts: Pt[] = [], edges: Edge[] = [], n = f.pts.length;
+  const cut: Edge = { tag: 'cut', o: { x: at, z: 0 }, d: { x: 0, z: 1 } };
+  for (let i = 0; i < n; i++) {
+    const A = f.pts[i], B = f.pts[(i + 1) % n];
+    const da = (A.x - at) * keep, db = (B.x - at) * keep;
+    if (da >= 0) { pts.push(A); edges.push(f.edges[i]); }
+    if ((da >= 0) !== (db >= 0)) {
+      const t = da / (da - db);
+      pts.push({ x: A.x + (B.x - A.x) * t, z: A.z + (B.z - A.z) * t });
+      edges.push(da >= 0 ? cut : f.edges[i]);
+    }
+  }
+  return { pts, edges };
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -149,15 +196,20 @@ const STONE = SR[4], STONE_WING = SR[3], SHRINE = SR[2];
 const TIERS = 5, TIER_H = 70, BASE = 300, INSET = 45;
 const SHRINE_A = 90, SHRINE_H = 90;
 
-/** The temple: its stepped tiers (stairs up the front), the shrine on top with its roof caved in. */
-const drawTemple = (c: Ctx, v: View) => {
+/** Something in the scene to put in order: what it stands on (a footprint; a tree's just its trunk's point), from how
+ *  high to how high, how far off its middle is (the tie-break), and drawing it. */
+export interface OrbitItem { foot: Pt[]; y0: number; y1: number; z: number; draw: () => void }
+
+/** The temple: its stepped tiers (stairs up the front), the shrine on top with its roof caved in. A piece apiece. */
+const templeItems = (c: Ctx, v: View): OrbitItem[] => {
+  const out: OrbitItem[] = [];
   for (let i = 0; i < TIERS; i++) {
-    const a = BASE - INSET * i, y0 = TIER_H * i, y1 = y0 + TIER_H;
-    drawBox(c, v, square(a), y0, y1, {
+    const a = BASE - INSET * i, y0 = TIER_H * i, y1 = y0 + TIER_H, foot = square(a);
+    out.push({ foot, y0, y1, z: depth(v, 0, -TD), draw: () => drawBox(c, v, foot, y0, y1, {
       col: STONE,
       // (the stairs, up the middle of the front: face 2 runs +x to -x on its loop side)
       onFace: (c2, _v, face, at) => {
-        if (face !== 2) return;
+        if (face !== '2') return;
         const s0 = a - 55, s1 = a + 55;
         poly(c2, [at(s0 - 8, y0), at(s0, y0), at(s0, y1), at(s0 - 8, y1)], SR[2]);
         poly(c2, [at(s1, y0), at(s1 + 8, y0), at(s1 + 8, y1), at(s1, y1)], SR[2]);
@@ -165,42 +217,101 @@ const drawTemple = (c: Ctx, v: View) => {
         // (each step: its lit tread, the riser's shadow under it)
         for (let y = y0 + 10; y < y1; y += 10) { const l = at(s0, y), r = at(s1, y), l2 = at(s0, y - 3), r2 = at(s1, y - 3); poly(c2, [l2, r2, r, l], SR[5]); seg(c2, l, r, SR[1]); }
       },
-    });
+    }) });
   }
   // The shrine on top: its doorway (the jaguar's mouth), its roof fallen in
-  const sy0 = TIER_H * TIERS;
-  drawBox(c, v, square(SHRINE_A), sy0, sy0 + SHRINE_H, {
+  const sy0 = TIER_H * TIERS, sf = square(SHRINE_A);
+  out.push({ foot: sf, y0: sy0, y1: sy0 + SHRINE_H, z: depth(v, 0, -TD), draw: () => drawBox(c, v, sf, sy0, sy0 + SHRINE_H, {
     col: SHRINE, broken: true,
     onFace: (c2, _v, face, at) => {
-      if (face !== 2) return;
+      if (face !== '2') return;
       poly(c2, [at(SHRINE_A - 26, sy0), at(SHRINE_A + 26, sy0), at(SHRINE_A + 26, sy0 + 50), at(SHRINE_A, sy0 + 62), at(SHRINE_A - 26, sy0 + 50)], '#1C1917');
       // (its fangs)
       for (const s of [-14, 0, 14]) poly(c2, [at(SHRINE_A + s - 5, sy0 + 50), at(SHRINE_A + s + 5, sy0 + 50), at(SHRINE_A + s, sy0 + 40)], '#E7E5E4');
     },
-  });
+  }) });
+  return out;
 };
 
-/** The wing that runs out across the path (the wall at the end), knocked about where the last tree hit it. */
-const drawWing = (c: Ctx, v: View, hit: boolean) => {
-  drawBox(c, v, wingBox(WING_U0, PR + 240, WING_W), 0, 220, {
-    col: STONE_WING,
-    onFace: (c2, _v, face, at) => {
-      // (face 0 is the one toward him as he comes: along it is out from the loop's middle)
-      if (face !== 0 || !hit) return;
-      const u = HIT_U - WING_U0, pts: { x: number; y: number }[] = [];
-      for (let k = 0; k < 10; k++) {
-        const ang = (k / 10) * Math.PI * 2, rr = k % 2 ? 26 : 44;
-        pts.push(at(u + Math.cos(ang) * rr, HIT_Y + Math.sin(ang) * rr * 0.8));
-      }
-      poly(c2, pts, '#3F3A35');
-      c2.strokeStyle = '#2B2724'; c2.lineWidth = 2;
-      for (const [du, dy] of [[-70, -50], [60, -70], [-40, 40]] as const) {
-        const a0 = at(u, HIT_Y), a1 = at(u + du, HIT_Y + dy);
-        c2.beginPath(); c2.moveTo(a0.x, a0.y); c2.lineTo(a1.x, a1.y); c2.stroke();
-      }
-    },
+/** The wing that runs out across the path (the wall at the end), knocked about where the last tree hit it. It comes
+ *  off the temple's front corner: cut where it meets the steps (each slab of it sat on the step it's over, up to the
+ *  next step's face), so no piece of it goes into the temple. */
+const WING_H = 220;
+const wingItems = (c: Ctx, v: View, hit: boolean): OrbitItem[] => {
+  const low = wingBox(WING_U0, PR + 240, WING_W);
+  const out: OrbitItem[] = [];
+  const hitFace = (c2: Ctx, _v: View, face: string, at: (along: number, y: number, out?: number) => { x: number; y: number }) => {
+    // (the face toward him as he comes: along it is out from the loop's middle)
+    if (face !== 'near' || !hit) return;
+    const u = HIT_U - WING_U0, pts: { x: number; y: number }[] = [];
+    for (let k = 0; k < 10; k++) {
+      const ang = (k / 10) * Math.PI * 2, rr = k % 2 ? 26 : 44;
+      pts.push(at(u + Math.cos(ang) * rr, HIT_Y + Math.sin(ang) * rr * 0.8));
+    }
+    poly(c2, pts, '#3F3A35');
+    c2.strokeStyle = '#2B2724'; c2.lineWidth = 2;
+    for (const [du, dy] of [[-70, -50], [60, -70], [-40, 40]] as const) {
+      const a0 = at(u, HIT_Y), a1 = at(u + du, HIT_Y + dy);
+      c2.beginPath(); c2.moveTo(a0.x, a0.y); c2.lineTo(a1.x, a1.y); c2.stroke();
+    }
+  };
+  // (the slabs: past the bottom step's face, all the way up; then over each step, from its top up)
+  const steps = [BASE, BASE - INSET, BASE - INSET * 2, BASE - INSET * 3];
+  steps.forEach((x, k) => {
+    let f = clipX(low, x, 1);
+    if (k > 0) f = clipX(f, steps[k - 1], -1);
+    const y0 = k * TIER_H;
+    if (f.pts.length < 3 || y0 >= WING_H) return;
+    const m = centroid(f.pts);
+    out.push({ foot: f.pts, y0, y1: WING_H, z: depth(v, m.x, m.z), draw: () => drawBox(c, v, f.pts, y0, WING_H, { col: STONE_WING, onFace: hitFace }, f.edges) });
   });
-  drawBox(c, v, wingBox(WING_U0, PR - 160, WING_W - 40), 220, 300, { col: STONE_WING });
+  // (its parapet, set back along the top)
+  const up = wingBox(WING_U0, PR - 160, WING_W - 40);
+  const um = centroid(up.pts);
+  out.push({ foot: up.pts, y0: WING_H, y1: 300, z: depth(v, um.x, um.z), draw: () => drawBox(c, v, up.pts, WING_H, 300, { col: STONE_WING }, up.edges) });
+  return out;
+};
+
+/**
+ * Back to front. Anything one piece's footprint keeps clear of across one of its edges is behind or in front of it by
+ * which side of that edge the camera's on; anything wholly above or below another, by which side of that height the
+ * eye is. (Pieces up against each other, the trees round them, the blind: none drawn over what's in front of it, as
+ * one point's depth each would.) Nothing to say either way: the further off first.
+ */
+const inOrder = (items: OrbitItem[], cam: Pt) => {
+  const n = items.length;
+  const before: number[][] = items.map(() => []), deg = new Array<number>(n).fill(0);
+  const mids = items.map(it => centroid(it.foot));
+  /** +1: q's in front of p (q's all outside one of p's edges, the camera on q's side of it); -1 behind; 0 neither. */
+  const across = (p: number, q: number) => {
+    const f = items[p].foot, g = items[q].foot, m = mids[p];
+    if (f.length < 3) return 0;
+    for (let i = 0; i < f.length; i++) {
+      const a = f[i], b = f[(i + 1) % f.length];
+      const nrm = normalOf(a, b, m);
+      if (g.every(r => nrm.x * (r.x - a.x) + nrm.z * (r.z - a.z) >= -0.5)) return nrm.x * (cam.x - a.x) + nrm.z * (cam.z - a.z) > 0 ? 1 : -1;
+    }
+    return 0;
+  };
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    const A = items[i], B = items[j];
+    // (+1: j's in front of i)
+    let r: number;
+    if (B.y0 >= A.y1 - 0.5) r = HC > A.y1 ? 1 : -1;
+    else if (A.y0 >= B.y1 - 0.5) r = HC > B.y1 ? -1 : 1;
+    else r = across(i, j) || -across(j, i);
+    if (r > 0) { before[i].push(j); deg[j]++; } else if (r < 0) { before[j].push(i); deg[i]++; }
+  }
+  const done = new Array<boolean>(n).fill(false), out: OrbitItem[] = [];
+  for (let k = 0; k < n; k++) {
+    // (the furthest off of what's free to go; caught in a circle (it shouldn't be), the furthest off of the lot)
+    let pick = -1;
+    for (let i = 0; i < n; i++) if (!done[i] && deg[i] === 0 && (pick < 0 || items[i].z > items[pick].z)) pick = i;
+    if (pick < 0) for (let i = 0; i < n; i++) if (!done[i] && (pick < 0 || items[i].z > items[pick].z)) pick = i;
+    done[pick] = true; out.push(items[pick]);
+    for (const j of before[pick]) deg[j]--;
+  }
+  return out;
 };
 
 /** A jungle tree (a scaled sprite: as big as it is near, dimmer further back): a two-tone trunk, a crown in steps. */
@@ -291,7 +402,9 @@ const drawFloor = (c: Ctx, v: View) => {
       const r = Math.hypot(px, pz);
       let col: number[];
       if (r > PR + 470) col = JUNGLE;
-      else if (Math.abs(px) < BASE + 50 && Math.abs(pz + TD) < BASE + 50) col = FOOT;
+      // (the beaten earth round the foot of the temple and its wing: just a lip round what's stood there)
+      else if (Math.abs(px) < BASE + 12 && Math.abs(pz + TD) < BASE + 12) col = FOOT;
+      else if (px * WD.x + pz * WD.z > WING_U0 - 12 && px * WD.x + pz * WD.z < PR + 252 && Math.abs(px * WE.x + pz * WE.z) < WING_W / 2 + 12) col = FOOT;
       else {
         const off = Math.abs(r - PR);
         const a = Math.atan2(px, pz);
@@ -311,8 +424,10 @@ const drawFloor = (c: Ctx, v: View) => {
   c.restore();
 };
 
-/** The lot: sky, hills, the jungle round the loop, its floor (the path's far side on it), the temple, back to front. */
-export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean) => {
+/** The lot: sky, hills, the jungle round the loop, its floor (the path's far side on it), the temple, back to front.
+ *  `extra`: something else stood out there (Artie's blind, tower.ts), put in order with the rest; or, coming round
+ *  onto the strip, over the lot. */
+export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean, extra?: { item: OrbitItem; over: boolean } | null) => {
   const v = viewOf(state);
   // Sky, in bands (no smooth gradient: the old way)
   // (as the hour has it: timeOfDay.ts)
@@ -339,11 +454,11 @@ export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean) 
   drawFloor(c, v);
   // The jungle's canopy round the loop (its far side)
   band(c, v, PR + 520, a => 330 + 60 * Math.sin(9 * a) + 40 * Math.sin(23 * a + 1), '#1B5E2E', DC - 150, '#2E7A3A');
-  // The trees round about and the temple, back to front (the near side of the loop is the play strip's)
-  const items: { z: number; draw: () => void }[] = [];
-  TREES.forEach((p, i) => { const z = depth(v, p.x, p.z); if (z > F + 420) items.push({ z, draw: () => drawTree(c, v, p.x, p.z, i) }); });
-  items.push({ z: depth(v, 0, -TD), draw: () => drawTemple(c, v) });
-  const wm = polar((WING_U0 + PR + 240) / 2, WING_A);
-  items.push({ z: depth(v, wm.x, wm.z), draw: () => drawWing(c, v, templeHit) });
-  items.sort((a, b) => b.z - a.z).forEach(it => it.draw());
+  // The trees round about, the temple and its wing, back to front (the near side of the loop is the play strip's)
+  const items: OrbitItem[] = [];
+  TREES.forEach((p, i) => { const z = depth(v, p.x, p.z); if (z > F + 420) items.push({ foot: [p], y0: 0, y1: 370 + ((i * 37) % 120), z, draw: () => drawTree(c, v, p.x, p.z, i) }); });
+  items.push(...templeItems(c, v), ...wingItems(c, v, templeHit));
+  if (extra && !extra.over) items.push(extra.item);
+  inOrder(items, camPos(v)).forEach(it => it.draw());
+  if (extra?.over) extra.item.draw();
 };
