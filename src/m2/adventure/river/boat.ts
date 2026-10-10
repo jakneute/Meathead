@@ -13,7 +13,7 @@ const hullPath = (c: Ctx, x: number, d: number, w: number, depth: number) => {
   c.beginPath(); c.moveTo(x - 10, d); c.lineTo(x + w + 18, d - 4); c.lineTo(x + w - 8, d + depth); c.lineTo(x + 6, d + depth); c.lineTo(x - 10, d + 6); c.closePath();
 };
 
-export const drawLaunch = (c: Ctx, x: number, d: number, f: number, opts: { w?: number; name?: boolean; rock?: number } = {}) => {
+export const drawLaunch = (c: Ctx, x: number, d: number, f: number, opts: { w?: number; name?: boolean; rock?: number; dry?: boolean } = {}) => {
   const w = opts.w ?? 240, depth = 34;
   x = Math.round(x); d = Math.round(d + (opts.rock ?? 0));
   const hr = rampOf(HULL), tr = rampOf(TEAK);
@@ -92,5 +92,11 @@ export const drawLaunch = (c: Ctx, x: number, d: number, f: number, opts: { w?: 
     const er = rampOf('#6A6E78');
     box(c, ex, ey, 22, 24, er[2]); box(c, ex, ey, 22, 5, er[3]); box(c, ex, ey, 4, 24, er[3]); box(c, ex + 18, ey, 4, 24, er[1]); box(c, ex, ey + 20, 22, 4, er[1]);
     box(c, ex + 4, ey + 9, 14, 4, '#C8322A'); box(c, ex, ey, 22, 1, er[4]);
+    // (out of gas: the low-fuel light on its cowl, blinking red, and its little E plate)
+    if (opts.dry) {
+      box(c, ex + 6, ey + 15, 10, 5, INK); box(c, ex + 7, ey + 16, 3, 3, (f >> 4) % 2 ? '#FF3030' : '#5A1010');
+      box(c, ex + 11, ey + 16, 1, 3, '#E8E8E8'); box(c, ex + 11, ey + 16, 3, 1, '#E8E8E8'); box(c, ex + 11, ey + 17, 2, 1, '#E8E8E8'); box(c, ex + 11, ey + 18, 3, 1, '#E8E8E8');
+      if ((f >> 4) % 2) { c.fillStyle = 'rgba(255, 48, 48, 0.25)'; c.fillRect(ex + 4, ey + 13, 8, 9); }
+    }
   }
 };

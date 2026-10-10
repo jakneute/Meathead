@@ -34,7 +34,7 @@ import {
   ARTIE_WELCOME, BROTHER, BROTHER_ARTIE, ARTIE_TOUR, ARTIE_GAS, ARTIE_RADIO, ARTIE_STUCK, MEATHEAD_STUCK, ARTIE_JUMPED, ARTIE_ALONE,
   MEATHEAD_JUMP, MEATHEAD_UNDER, MEATHEAD_AIR, GUESTS_SEE, GUESTS_KILL, type Dressed,
 } from './lines';
-import { drawRiverBackdrop, drawRiverBack, drawRiverFront } from './draw';
+import { drawRiverBackdrop, drawRiverBack, drawRiverFront, COUGHS } from './draw';
 
 const { x0, x1 } = SECTIONS.river;
 const R = (x: number) => x0 + x;
@@ -211,7 +211,19 @@ const updateBoat = (state: GameState, rv: River) => {
       t.q.push(artie(state, rv, d => ARTIE_GAS[d][0]), artie(state, rv, d => ARTIE_RADIO[d][0], true), artie(state, rv, d => ARTIE_GAS[d][1]));
     }
   } else if (b.v > 0) b.v = Math.max(0, b.v - 0.03);
-  if (b.smoke > 0) b.smoke--;
+  // (out of gas: the engine sputters, coughs black smoke a few times, backfires and dies)
+  if (b.smoke > 0) {
+    const sx = b.x - 22, sy = BOAT.deck - 18;
+    if (b.smoke === 90) playSound('engine', 0.45, -9);
+    if (COUGHS.includes(b.smoke)) {
+      const last = b.smoke === COUGHS[COUGHS.length - 1];
+      playSound('thud', last ? 0.7 : 0.45, last ? -2 : 4); playSound('click', 0.5, -3);
+      if (last) { playSound('boom', 0.3, 8); for (let k = 0; k < 6; k++) state.particles.push({ pos: { x: sx - 4, y: sy + 4 }, vel: { x: -1.5 - Math.random() * 2, y: (Math.random() - 0.5) * 1.5 }, life: 10, color: k % 2 ? '#FDE047' : '#F97316', size: 4 }); }
+      for (let k = 0; k < (last ? 9 : 5); k++) state.particles.push({ pos: { x: sx + (Math.random() - 0.5) * 6, y: sy + (Math.random() - 0.5) * 6 }, vel: { x: -0.6 - Math.random() * 1.2, y: -0.6 - Math.random() * 1.1 }, life: 50 + Math.random() * 30, color: k % 3 ? '#27272A' : '#52525B', size: 6 + Math.random() * 6 });
+    }
+    if (b.smoke === 20) playSound('clink', 0.6, -6);
+    b.smoke--;
+  }
   // Stuck: he never shuts up (the radio, the life story, round and round; Meathead's at the end of his rope)
   if (b.phase === 'stalled' && near && !t.q.length && !t.busy) {
     b.n++;

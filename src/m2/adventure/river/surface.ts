@@ -397,7 +397,8 @@ const drawDock = (c: Ctx, state: GameState, eye: Eye) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 
-export interface BoatNow { x: number; v: number; on: boolean }
+/** `jolt`: a lurch (the engine coughing), px; `dry`: out of gas (the cowl's warning light blinking). */
+export interface BoatNow { x: number; v: number; on: boolean; jolt?: number; dry?: boolean }
 
 /** Behind everything (world space), above the waterline: the bank, the water across, the show, the dock. */
 export const drawSurfaceBack = (c: Ctx, state: GameState) => {
@@ -424,7 +425,7 @@ export const drawSurfaceBoat = (c: Ctx, state: GameState, b: BoatNow) => {
     }
     for (let k = 0; k < 4; k++) box(c, b.x + BOAT.w + 6 + k * 4, WS - 3 - (k % 2) * 2 - Math.round(Math.sin(f * 0.3 + k)), 4, 2, '#F4FCFF');
   }
-  drawLaunch(c, b.x, BOAT.deck, f, { rock: b.v > 0.05 ? Math.round(Math.sin(f * 0.12)) : Math.round(Math.sin(f * 0.04) * 0.6) });
+  drawLaunch(c, b.x, BOAT.deck, f, { rock: (b.v > 0.05 ? Math.round(Math.sin(f * 0.12)) : Math.round(Math.sin(f * 0.04) * 0.6)) + (b.jolt ?? 0), dry: b.dry });
 };
 
 /** The falls: a sheet of water, its stripes cycling down; its spray boiling at the foot; the mist off it. */

@@ -27,13 +27,19 @@ export const drawRiverBackdrop = (c: Ctx, state: GameState) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 
+/** When the dying engine coughs (b.smoke counting down from 90). */
+export const COUGHS = [80, 66, 52, 38];
+
 /** The boat, and Artie in it. */
 const drawBoat = (c: Ctx, state: GameState, rv: River) => {
   const b = rv.boat, x = b.x, d = BOAT.deck, f = state.frame;
   // (the launch itself, its wake: surface.ts)
-  drawSurfaceBoat(c, state, { x, v: b.v, on: true });
-  // (the engine at the back, coughing when it's dry)
-  if (b.smoke > 0 && f % 6 === 0) state.particles.push({ pos: { x: x - 20, y: d - 22 }, vel: { x: -0.5, y: -1 }, life: 40, color: '#52525B', size: 6 });
+  // (dying: it lurches with each cough; out of gas, its low-fuel light blinks)
+  const dying = b.phase !== 'moored' && b.phase !== 'ride';
+  const jolt = b.smoke > 30 && COUGHS.some(k => b.smoke <= k && b.smoke > k - 6) ? -2 : 0;
+  drawSurfaceBoat(c, state, { x, v: b.v, on: true, jolt, dry: dying });
+  // (the engine at the back: dead, a thin wisp off its cowl now and then)
+  if (dying && b.smoke <= 0 && f % 20 === 0) state.particles.push({ pos: { x: x - 20, y: d - 22 }, vel: { x: -0.3, y: -0.7 }, life: 50, color: 'rgba(160, 160, 168, 0.5)', size: 4 });
   // Artie
   const ax = x + 200, p = state.player;
   const facing = p.pos.x + p.width / 2 < ax ? -1 : 1;
