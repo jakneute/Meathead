@@ -188,21 +188,30 @@ const back = (ctx: Ctx, lift: number) => {
 };
 
 /** The back of his head: the flat-top, the back cropped short, the ears, the thick neck. */
-const backOfHead = (ctx: Ctx, hy: number) => {
-  ctx.fillStyle = skinTone; ctx.fillRect(-6, hy + 4, 12, 7);
-  ctx.fillStyle = skinShadow; ctx.fillRect(-6, hy + 9, 12, 1); ctx.fillRect(-0.5, hy + 5, 1, 5);
-  ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.roundRect(-12, hy - 7, 3.5, 7, 1.5); ctx.roundRect(8.5, hy - 7, 3.5, 7, 1.5); ctx.fill();
-  ctx.fillStyle = skinTone; ctx.beginPath(); ctx.roundRect(-10, hy - 12, 20, 18, [4, 4, 4, 4]); ctx.fill();
-  // (cropped short up the back: stubble going up into the flat-top)
-  ctx.fillStyle = 'rgba(24, 24, 27, 0.4)'; ctx.fillRect(-10, hy - 12, 20, 6);
-  ctx.fillStyle = 'rgba(24, 24, 27, 0.18)'; ctx.fillRect(-10, hy - 6, 20, 5);
-  // (lit from above: the back of his skull, the bulge of it)
-  ctx.fillStyle = skinHighlight; ctx.fillRect(-5, hy - 1, 7, 1.2);
-  ctx.fillStyle = HAIR; ctx.fillRect(-10, hy - 16, 20, 5); ctx.fillRect(-11, hy - 14, 22, 4);
-  ctx.fillStyle = HAIR_LIT; ctx.fillRect(-8, hy - 15.5, 15, 1);
-  ctx.fillStyle = '#52525B'; for (let i = 0; i < 6; i++) ctx.fillRect(-8 + i * 3, hy - 16.8, 1, 1.3);
-  // (the crease at the base of his skull)
-  ctx.fillStyle = skinShadow; ctx.fillRect(-5, hy + 5, 10, 1);
+const backOfHead = (ctx: Ctx, hy0: number) => {
+  // (on whole pixels: crisp, like the side-on head; the same size as it, 20 wide, the flat-top on top)
+  const hy = Math.round(hy0);
+  // The thick neck, down into the traps (in shadow under his skull, lit down the middle)
+  ctx.fillStyle = skinShadow; ctx.fillRect(-7, hy + 3, 14, 9);
+  ctx.fillStyle = skinTone; ctx.fillRect(-5, hy + 5, 10, 7);
+  ctx.fillStyle = skinShadow; ctx.fillRect(0, hy + 6, 1, 6);
+  // The ears, out either side (the rim lit, the hollow dark)
+  for (const x of [-13, 10]) {
+    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.roundRect(x, hy - 7, 3, 7, 1); ctx.fill();
+    ctx.fillStyle = '#A0662E'; ctx.fillRect(x + 1, hy - 5, 1, 3);
+  }
+  // The skull: skin at the nape, the back cropped short (dark), rounded off at the bottom corners
+  ctx.fillStyle = skinTone; ctx.beginPath(); ctx.roundRect(-10, hy - 12, 20, 18, [3, 3, 6, 6]); ctx.fill();
+  ctx.fillStyle = '#27272A'; ctx.beginPath(); ctx.roundRect(-10, hy - 12, 20, 13, [3, 3, 4, 4]); ctx.fill();
+  // (the hairline at the nape: a ragged edge of stubble onto the skin band)
+  ctx.fillStyle = '#3F3F46'; for (let x = -8; x < 8; x += 2) ctx.fillRect(x, hy + 1, 1, 1);
+  ctx.fillStyle = skinHighlight; ctx.fillRect(-6, hy + 3, 12, 1);
+  // (the crop lit from above, a little, down the one side)
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(3, hy - 10, 5, 1); ctx.fillRect(6, hy - 9, 2, 6);
+  // The flat-top: flat across, squared off at the sides, the bristles
+  ctx.fillStyle = HAIR; ctx.fillRect(-10, hy - 16, 20, 5); ctx.fillRect(-11, hy - 14, 22, 6);
+  ctx.fillStyle = HAIR_LIT; ctx.fillRect(-8, hy - 15, 14, 1);
+  ctx.fillStyle = '#52525B'; for (let i = 0; i < 7; i++) ctx.fillRect(-9 + i * 3, hy - 17, 1, 1);
 };
 
 /**
@@ -232,18 +241,19 @@ export const drawLadderClimb = (ctx: Ctx, l: Ladder, frame: number, pants: Ladde
   backLeg(ctx, 1, slide ? 9 : 6, fBy, pants, slide ? 0 : mount ? 0.8 : Math.max(0, (-fBy - 4) / 11));
   seat(ctx, pants, frame, sway);
   // (bent over the top: his head down under the line of his shoulders, behind his back)
-  if (mount) backOfHead(ctx, -55 + 9 * bend);
+  // (bent over the top: his head down under the line of his shoulders, behind his back; drawn unsquashed, crisp)
+  if (mount) { ctx.restore(); backOfHead(ctx, -55 + (-56 * sq + 3 + 55) * bend); ctx.save(); ctx.scale(1, sq); }
   back(ctx, lift);
   // Arms: up to the rungs (or down on the lip), the elbows out; the gun up along the rail in the +x fist
   const arm = (side: number, h: { y: number; reach: number }, lit: boolean) => {
     const sh: [number, number] = [side * 14, -47];
-    const fist: [number, number] = [side * 13 + side * h.reach * 3, h.y];
+    const fist: [number, number] = [side * (mount ? 17 : 13) + side * h.reach * 3, h.y];
     const el: [number, number] = [(sh[0] + fist[0]) / 2 + side * 7, (sh[1] + fist[1]) / 2 + 2];
     drawArmTo(ctx, sh, el, fist, !lit, 5.5);
     return fist;
   };
   const fa = arm(-1, hA, false);
-  ctx.save(); ctx.translate(13 + hB.reach * 3, hB.y); ctx.rotate(-Math.PI / 2); ctx.translate(-1, -4); weapon(ctx); ctx.restore();
+  ctx.save(); ctx.translate((mount ? 17 : 13) + hB.reach * 3, hB.y); ctx.rotate(-Math.PI / 2); ctx.translate(-1, -4); weapon(ctx); ctx.restore();
   const fb = arm(1, hB, true);
   // (his head between his arms, over them: they're out beside it)
   if (!mount) backOfHead(ctx, -55);
