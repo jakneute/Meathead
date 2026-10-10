@@ -9,17 +9,17 @@
 //   440..1480  out back: dumpsters, pallets, an AC unit, the staff on break; the line through the chain-link behind
 //   1480..2000 the loading dock: the front of the line, the operator, the boat (on to the river at its end)
 
-import { drawTodSky, farTint } from '../../timeOfDay';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Enemy } from '../../../m1/types';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { isShat, isNude } from '../../../m1/game/player/gut';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { Section } from '../section';
-import { lay, solid, ledge, teleport, box, label, saidOver, sectionState } from '../section';
+import { lay, solid, ledge, teleport, saidOver, sectionState } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { talk, stepTalk, pick, type Talk } from './talk';
-import { guestAt, drawGuest, drawGuestsDimmed, type Guest } from './crowd';
+import { guestAt, type Guest } from './crowd';
+import { drawQueueBackdrop, drawQueueBack, drawQueueLanterns, queueLamps, type QueueSpots } from './art';
 import { staffDoing, staffTalking, staffLook, type StaffDoing } from './staff';
 import { MEATHEAD_SIGNS, MEATHEAD_BACK, GUEST_CUT, STAFF_EXCUSE, STAFF_IDLE, STAFF_HIT, GUEST_FRONT, OPERATOR_DOCK, type Dressed } from './lines';
 
@@ -37,6 +37,7 @@ const OPERATOR_X = 1720;
 /** Where the people in line, out back, complain through the fence (relative x, once each). */
 const CUT_AT = [720, 1010, 1360];
 const BOARD_AT = 1880;
+const SPOTS: QueueSpots = { fence: FENCE, crates: CRATES, dumpster: DUMPSTER, ac: AC, pallets: PALLETS };
 
 interface Queue {
   talk: Talk;
@@ -123,68 +124,16 @@ export const queue: Section = {
     if (rx < 40) { teleport(state, SECTIONS.jungle.x1 - 200, GY); p.facing = -1; }
     return controls;
   },
-  drawBackdrop: (c, state) => {
-    // (the sky, as the hour has it: timeOfDay.ts)
-    const hz = GY - 360 - state.camera.y;
-    drawTodSky(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#38BDF8', '#7DD3FC', '#BAE6FD', '#D9F99D', '#BEF264'], { sun: [620, 70], moon: [470, 70], horizon: hz, t: state.frame, scroll: state.camera.x * 0.05 });
-    c.fillStyle = farTint('#166534', 0.7);
-    for (let i = -1; i < 10; i++) { const x = i * 120 - ((state.camera.x * 0.2) % 120); c.beginPath(); c.arc(x, hz, 90, Math.PI, 0); c.fill(); }
-    c.fillStyle = farTint('#14532D', 0.7); c.fillRect(0, hz, CANVAS_WIDTH, CANVAS_HEIGHT + 1000);
-    return true;
-  },
+  drawBackdrop: (c, state) => { drawQueueBackdrop(c, state); return true; },
   outdoors: () => 1,
+  lamps: () => queueLamps(),
   drawBack: (c, state) => {
     if (state.camera.x > x1 + 200 || state.camera.x + CANVAS_WIDTH < x0 - 200) return;
-    const q = getQ(state), f = state.frame;
-    // (the sky's the jungle's: far trees, then the queue building's back wall)
-    for (let x = x0; x < x1; x += 90) { box(c, x + 30, GY - 330, 12, 330, '#713F12'); c.fillStyle = '#15803D'; c.beginPath(); c.arc(x + 36, GY - 340, 50, 0, Math.PI * 2); c.fill(); }
-    // The plaza: the entrance arch, the signs
-    box(c, R(40), GY - 260, 20, 260, '#78350F'); box(c, R(240), GY - 260, 20, 260, '#78350F');
-    box(c, R(30), GY - 290, 240, 46, '#A16207');
-    label(c, 'JUNGLE CRUISE', R(150), GY - 262, '#FEF3C7', 12);
-    const signs: [string, string][] = [['STANDBY', '180 MIN'], ['FAST PASS', '175 MIN'], ['EXTRA FAST PASS', '185 MIN']];
-    signs.forEach(([a, b], i) => {
-      const sx = R(70 + i * 86), sy = GY - 220 + i * 6;
-      box(c, sx - 42, sy, 84, 34, '#1C1917'); box(c, sx - 40, sy + 2, 80, 30, '#FDE68A');
-      label(c, a, sx, sy + 13, '#7C2D12', 5); label(c, b, sx, sy + 27, '#B91C1C', 7);
-    });
-    // (the line, at the plaza: behind the rails)
-    drawGuestsDimmed(c, q.plaza, f, 0.25);
-    box(c, R(140), GY - 40, 290, 4, '#A8A29E'); box(c, R(140), GY - 20, 290, 4, '#A8A29E');
-    for (let x = 140; x <= 430; x += 48) box(c, R(x), GY - 44, 4, 44, '#78716C');
-    // Out back: the building's backside, the chain-link with the line packed in behind it
-    box(c, R(440), GY - 300, 1040, 300, '#57534E');
-    for (let x = 440; x < 1480; x += 80) box(c, R(x), GY - 300, 2, 300, '#44403C');
-    drawGuestsDimmed(c, q.back, f, 0.4);
-    c.strokeStyle = 'rgba(203,213,225,0.45)'; c.lineWidth = 1;
-    for (let x = 440; x < 1480; x += 10) { c.beginPath(); c.moveTo(R(x), GY - 150); c.lineTo(R(x + 10), GY - 40); c.moveTo(R(x + 10), GY - 150); c.lineTo(R(x), GY - 40); c.stroke(); }
-    box(c, R(440), GY - 152, 1040, 4, '#94A3B8'); box(c, R(440), GY - 42, 1040, 3, '#94A3B8');
-    label(c, 'CAST MEMBERS ONLY', R(560), GY - 230, '#FDE047', 8);
-    label(c, 'EXTRA FAST PASS  >>', R(1000), GY - 200, '#F472B6', 8);
-    label(c, 'NO SMOKING', R(660), GY - 180, '#FCA5A5', 6);
-    // The dock: the loading platform, the water, the boat waiting
-    box(c, R(1480), GY - 300, 520, 300, '#3F3F46');
-    label(c, 'LOADING DOCK', R(1640), GY - 240, '#FDE68A', 9);
-    label(c, 'PLEASE WAIT HERE', R(1600), GY - 120, '#E5E7EB', 6);
-    for (const g of q.front) drawGuest(c, g, f);
-    // The ground, the crates, the fence (lit top lips: they're stood on), the dumpster, the pallets, the AC
-    box(c, x0, GY, x1 - x0, 400, '#78716C'); box(c, x0, GY, x1 - x0, 3, '#A8A29E');
-    box(c, R(1480), GY, 420, 400, '#92400E'); for (let x = 1480; x < 1900; x += 24) box(c, R(x), GY, 2, 30, '#78350F');
-    // (the end of the dock: the river, the boat waiting)
-    box(c, R(1900), GY, 100, 400, '#0E7490'); box(c, R(1900), GY + 38, 100, 2, '#BAE6FD');
-    box(c, R(1904), GY + 24, 96, 26, '#B45309'); box(c, R(1904), GY + 24, 96, 3, '#FDE68A');
-    for (let k = 0; k < 96; k += 24) { box(c, R(1904 + k), GY - 102, 12, 10, '#DC2626'); box(c, R(1916 + k), GY - 102, 12, 10, '#F8FAFC'); }
-    box(c, R(1910), GY - 96, 4, 120, '#A8A29E');
-    for (const cr of CRATES) { box(c, R(cr.x), GY - cr.h, cr.w, cr.h, '#B45309'); box(c, R(cr.x), GY - cr.h, cr.w, 3, '#FCD34D'); c.strokeStyle = '#78350F'; c.lineWidth = 2; c.strokeRect(R(cr.x) + 3, GY - cr.h + 4, cr.w - 6, cr.h - 7); }
-    box(c, R(FENCE.x), GY - FENCE.h, FENCE.w, FENCE.h, '#0F766E'); box(c, R(FENCE.x), GY - FENCE.h, FENCE.w, 3, '#5EEAD4');
-    label(c, 'STAFF', R(FENCE.x + 12), GY - 90, '#F8FAFC', 5);
-    box(c, R(DUMPSTER.x), GY - DUMPSTER.h, DUMPSTER.w, DUMPSTER.h, '#166534'); box(c, R(DUMPSTER.x), GY - DUMPSTER.h, DUMPSTER.w, 3, '#4ADE80');
-    box(c, R(AC.x), GY - AC.h, AC.w, AC.h, '#9CA3AF'); box(c, R(AC.x), GY - AC.h, AC.w, 3, '#F3F4F6');
-    c.strokeStyle = '#6B7280'; c.beginPath(); c.arc(R(AC.x + 35), GY - 35, 22, 0, Math.PI * 2); c.stroke();
-    box(c, R(PALLETS.x), GY - PALLETS.y, PALLETS.w, 12, '#A16207'); box(c, R(PALLETS.x), GY - PALLETS.y, PALLETS.w, 3, '#FDE68A');
-    for (let x = 0; x < PALLETS.w; x += 22) box(c, R(PALLETS.x + x), GY - PALLETS.y + 12, 8, PALLETS.y - 12, '#854D0E');
+    const q = getQ(state);
+    drawQueueBack(c, state, q, SPOTS);
+    drawQueueLanterns(c, state);
     // Said over people in line
-    for (const g of [...q.plaza, ...q.back, ...q.front]) if (g.said) saidOver(c, g.said, g.x, g.y - 90, '#FDE68A');
+    for (const g of [...q.plaza, ...q.back, ...q.front]) if (g.said) saidOver(c, g.said, g.x, g.y - 95 * g.scale, '#FDE68A');
   },
   drawFront: (c, state) => {
     if (state.camera.x > x1 + 200 || state.camera.x + CANVAS_WIDTH < x0 - 200) return;
