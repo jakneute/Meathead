@@ -45,7 +45,7 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { talk, stepTalk, pick, type Talk } from '../../adventure/queue/talk';
 import { updateLadders, drawLadders, type LadderDef } from '../../moves/ladders';
 import { TK, updateThrown, drawThrown, thrown } from './kinds';
-import { runHazards, drawDebris, storyOf, canHurt, type Debris } from './hazards';
+import { runHazards, drawDebris, storyOf, canHurt, cover, clearView, worksKill, type Debris } from './hazards';
 import { newRide, runRide, lampOn, type Ride, type Car } from './ride';
 import { drawTowerBackdrop, drawTowerBack } from './art';
 import {
@@ -93,13 +93,15 @@ interface Tower {
   pull: number;
   /** Floor 5's rotten boards: 0 whole, >0 cracking (frames), <0 gone (frames till it's back). */
   rot: number[];
+  /** The town's staff held unseeing behind a beam. */
+  blinded: Set<Enemy>;
 }
 const towerOf = (state: GameState) => spookyState<Tower>(state, 'tower', () => ({
   talk: talk(), ride: newRide(), beamHp: BEAMS.map(b => b.hp), beamMove: BEAMS.map(() => -1),
   crashed: false, nets: Array(STORIES + 1).fill(true), wrecked: Array(STORIES + 1).fill(false), grate: true, b1: true, debris: [],
   how: false, asked: false, securityOut: false, afterSaid: false, signSaid: false, mainSaid: false,
   downSaid: false, lampSaid: false, baseSaid: false, chuteSaid: false, jumped: false, leftTop: false,
-  spielAt: -99999, wobbleAt: 0, wobbleN: 0, opSaid: null, riderSaid: null, sway: 0, swayV: 0, crash: null, fallCam: false, rumbleAt: 0, age: 0, pull: 0, rot: ROTTEN.boards.map(() => 0),
+  spielAt: -99999, wobbleAt: 0, wobbleN: 0, opSaid: null, riderSaid: null, sway: 0, swayV: 0, crash: null, fallCam: false, rumbleAt: 0, age: 0, pull: 0, rot: ROTTEN.boards.map(() => 0), blinded: new Set(),
 }));
 const brokenOf = (t: Tower) => t.beamHp.filter(h => h <= 0).length;
 
@@ -400,6 +402,12 @@ const runDescent = (ctx: FrameContext, t: Tower) => {
       for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + 10 }, vel: { x: (Math.random() - 0.5) * 8, y: -3 - Math.random() * 3 }, life: 40, color: ['#7F1D1D', '#FBBF24', '#1D4ED8', '#F5F5F4'][i % 4], size: 3 + Math.random() * 3, grav: 0.3, chunk: true });
     }
   }
+  // (and whoever's been knocked into the shaft as it goes by: run over by the ride)
+  if (car && car.real && !car.crash && car.phase === 'drop') for (const e of state.enemies) {
+    if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.kind?.endsWith('cuckoo')) continue;
+    const ex = e.pos.x + e.width / 2;
+    if (ex > SH0 && ex < SH1 && car.y > e.pos.y && car.y - 150 < e.pos.y + e.height) worksKill(ctx, e, SHM, 'NEXT!');
+  }
   // The lines on the way down
   if (k >= 0 && k < STORIES) t.leftTop = true;
   if (!t.downSaid && k === 5 && p.isGrounded) { t.downSaid = true; t.talk.q.push({ voice: 'meathead', text: pick(MEATHEAD_DOWN) }); }
@@ -430,6 +438,10 @@ export const tower: SpookySection = {
       { x1: x0 - 200, y1: GY, x2: CH0, y2: GY, surface: 'stone' },
       { x1: CH1, y1: GY, x2: x1 + 200, y2: GY, surface: 'wood' },
     ]);
+    // (the ground line goes on over the hole under the tower's middle, for the engine's sake: with none under him
+    // there, it took him for jumping a crevasse, on any floor up the middle, and nobody would start on him. No block:
+    // the hole's still a hole)
+    state.groundRuns.push({ x1: CH0, y1: GY, x2: CH1, y2: GY, surface: 'wood' });
     const n0 = state.blocks.length;
     endWalls(state, 'tower');
     solid(state, CH0, GY, SH0 - CH0, 30); solid(state, SH1, GY, CH1 - SH1, 30);
@@ -507,6 +519,15 @@ export const tower: SpookySection = {
     runLift(state);
     runRotten(state, t);
     // (just started again: a moment before anything's shaken loose over him)
+    // (the beams still up: cover; the town's staff in here don't see him through them either: held, unnoticing)
+    cover.length = 0;
+    BEAMS.forEach((b, i) => { if (t.beamHp[i] > 0) cover.push({ x0: b.x, x1: b.x + b.w, y0: beamTop(b), y1: F(b.k) }); });
+    for (const e of state.enemies) {
+      if (!e.kind?.startsWith('m2:town_') || e.health <= 0 || e.isBlownAway) continue;
+      const blind = !clearView(e.pos.x + e.width / 2, e.pos.y + 12, cx, p.pos.y + p.height / 2);
+      if (blind) { e.puppet = true; e.pauseTimer = 2; e.vel.x = 0; t.blinded.add(e); }
+      else if (t.blinded.has(e)) { e.puppet = false; t.blinded.delete(e); }
+    }
     runHazards(ctx, t.debris, t.age > 240 ? brokenOf(t) : 0, t.crashed);
     runBeams(ctx, t);
     if (t.crash) return hands();

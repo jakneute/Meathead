@@ -24,6 +24,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { lookOf } from '../../adventure/temple/people';
 import { box } from '../section';
+import { inDanger, clearView } from './hazards';
 import {
   HURT_IGOR, DEATH_IGOR, HURT_PITCHFORK, DEATH_PITCHFORK, HURT_MUMMY, DEATH_MUMMY, HURT_BRIDE, DEATH_BRIDE, HURT_BOUQUET, DEATH_BOUQUET,
   HURT_CUCKOO, DEATH_CUCKOO, HURT_RINGER, DEATH_RINGER, HURT_HAMMER, DEATH_HAMMER,
@@ -48,7 +49,9 @@ const dirTo = (e: Enemy, x: number) => (x < mid(e).x ? -1 : 1) as 1 | -1;
 /** He's about, on its floor (the tower's floors are 380 apart: nothing on the next one up or down comes for him). */
 const sees = (state: GameState, e: Enemy, rx: number, ry: number) => {
   const p = mid(state.player), m = mid(e);
-  return state.player.health > 0 && !holdingOff(state) && !state.player.inCutscene && Math.abs(p.x - m.x) < rx && Math.abs(p.y - m.y) < ry;
+  return state.player.health > 0 && !holdingOff(state) && !state.player.inCutscene && Math.abs(p.x - m.x) < rx && Math.abs(p.y - m.y) < ry
+    // (not through a support beam: they're cover)
+    && clearView(m.x, e.pos.y + 12, p.x, p.y);
 };
 const canHurt = (state: GameState) => state.player.health > 0 && state.player.invincibilityTimer <= 0 && !state.player.inCutscene;
 /** Who's under the costume: the same person every time (where it was put down). */
@@ -97,7 +100,7 @@ const igorAI = (ctx: FrameContext, e: Enemy): boolean => {
       break;
     case 'walk':
       e.facing = dirTo(e, p.x);
-      e.vel.x = Math.abs(dx) > 80 && safeAhead(ctx, e, e.facing) ? e.facing * 1.7 : 0;
+      e.vel.x = Math.abs(dx) > 80 && safeAhead(ctx, e, e.facing) && !inDanger(e, e.pos.x + e.facing * 6) ? e.facing * 1.7 : 0;
       if (Math.abs(dx) < 110 && Math.abs(p.y - m.y) < 70) setState(e, 'windup');
       if (!sees(state, e, 800, 160)) setState(e, 'idle');
       break;
@@ -107,7 +110,7 @@ const igorAI = (ctx: FrameContext, e: Enemy): boolean => {
       if (e.aiTimer > 22) { setState(e, 'thrust'); playSound('whoosh', 0.6, 2); }
       break;
     case 'thrust':
-      e.vel.x = e.aiTimer < 8 && safeAhead(ctx, e, e.facing!) ? e.facing! * 6 : 0;
+      e.vel.x = e.aiTimer < 8 && safeAhead(ctx, e, e.facing!) && !inDanger(e, e.pos.x + e.facing! * 14) ? e.facing! * 6 : 0;
       if (e.aiTimer > 16) setState(e, 'recover');
       break;
     case 'recover':
@@ -129,7 +132,7 @@ const mummyAI = (ctx: FrameContext, e: Enemy): boolean => {
       break;
     case 'walk':
       e.facing = dirTo(e, p.x);
-      e.vel.x = Math.abs(dx) > 70 && safeAhead(ctx, e, e.facing) ? e.facing * 0.75 : 0;
+      e.vel.x = Math.abs(dx) > 70 && safeAhead(ctx, e, e.facing) && !inDanger(e, e.pos.x + e.facing * 6) ? e.facing * 0.75 : 0;
       if (Math.abs(dx) < 110 && Math.abs(p.y - m.y) < 80) setState(e, 'raise');
       break;
     case 'raise':
@@ -224,7 +227,8 @@ const ringerAI = (ctx: FrameContext, e: Enemy): boolean => {
       // Its beat, back and forth (it doesn't chase: it's on a track, like the clock's figures)
       const home = e.homeX ?? e.pos.x;
       e.facing ??= -1;
-      if (Math.abs(e.pos.x - home) > 150 || !safeAhead(ctx, e, e.facing)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
+      if (Math.abs(e.pos.x - home) > 150 || !safeAhead(ctx, e, e.facing) || inDanger(e, e.pos.x + e.facing * 8)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
+      if (inDanger(e, e.pos.x + e.facing * 8)) { e.vel.x = 0; break; }
       e.vel.x = e.facing * 0.8;
       if (state.frame % 40 === 0 && Math.abs(dx) < 700 && Math.abs(p.y - m.y) < 200) playSound('click', 0.2, -10);
       if (sees(state, e, 150, 90) && dx * e.facing > -30) setState(e, 'raise');

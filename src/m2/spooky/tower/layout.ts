@@ -211,8 +211,8 @@ export const FOES: FoeAt[] = [
 /** On the way down (the staff regrouped: everything from before that's still standing is gone). */
 export const DESCENT_FOES: FoeAt[] = [
   ['ringer', 860, GALLERY[1], 6],
-  // floor 5: an igor coming up the sag at him
-  ['igor', 760, 'floor', 5],
+  // floor 5: an igor at the jam's left (out of the loose pendulum's sweep: knock him into it)
+  ['igor', 370, 'floor', 5],
   // floor 4: a bride on the climb he goes down
   ['bride', 790, F(4) - 200, 4],
   // floor 3: the bell ringer on the sag, between him and the gap

@@ -10,6 +10,8 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { registerHurtLines } from '../../kinds';
+import { isMidBoss } from '../../../m1/game/combat/midBoss';
+import type { Enemy } from '../../../m1/types';
 import { box } from '../section';
 import { GEARS, PENDULUMS, TX0, TX1, F, U, STORY, SLAB, STORIES, ROOF, BLADE_U, type GearDef, type PendDef } from './layout';
 import { HURT_GEAR, DEATH_GEAR, HURT_PENDULUM, DEATH_PENDULUM, HURT_DEBRIS, DEATH_DEBRIS, HURT_CAR, DEATH_CAR } from './lines';
@@ -28,6 +30,48 @@ const touches = (state: GameState, cx: number, cy: number, r: number) => {
   const p = state.player;
   const nx = Math.max(p.pos.x, Math.min(cx, p.pos.x + p.width)), ny = Math.max(p.pos.y, Math.min(cy, p.pos.y + p.height));
   return (nx - cx) ** 2 + (ny - cy) ** 2 < r * r;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The works hurt the staff too (knocked into them: they don't walk in on their own, see dangerZones)
+
+/** The beams still standing (index.ts keeps it up to date): cover. Nobody sees him through one. */
+export const cover: { x0: number; x1: number; y0: number; y1: number }[] = [];
+/** Can a point (an enemy's eyes) see another (him)? Not through a standing beam. */
+export const clearView = (ax: number, ay: number, bx: number, by: number) => {
+  for (const c of cover) {
+    if (Math.max(ax, bx) < c.x0 || Math.min(ax, bx) > c.x1) continue;
+    // (where the line between them is, across the beam)
+    const mx = Math.max(c.x0, Math.min(c.x1, (ax + bx) / 2)), k = bx === ax ? 0.5 : (mx - ax) / (bx - ax);
+    const y = ay + (by - ay) * Math.max(0, Math.min(1, k));
+    if (y > c.y0 && y < c.y1) return false;
+  }
+  return true;
+};
+/** Where the blades are dangerous (their whole sweep, low enough to hit a man), this frame: the staff's AIs keep out. */
+export const dangerZones: { x0: number; x1: number; y0: number; y1: number }[] = [];
+/** Would walking to x put it in a blade's way? */
+export const inDanger = (e: Enemy, x: number) => dangerZones.some(z => x + e.width > z.x0 && x < z.x1 && e.pos.y < z.y1 && e.pos.y + e.height > z.y0);
+const victims = (state: GameState) => state.enemies.filter(e => e.health > 0 && !e.isBlownAway && e.type !== 'boss' && !e.innocent && !isMidBoss(e) && !e.kind?.endsWith('cuckoo'));
+const eTouches = (e: Enemy, cx: number, cy: number, r: number) => {
+  const nx = Math.max(e.pos.x, Math.min(cx, e.pos.x + e.width)), ny = Math.max(e.pos.y, Math.min(cy, e.pos.y + e.height));
+  return (nx - cx) ** 2 + (ny - cy) ** 2 < r * r;
+};
+/** One of the staff (or the clock's own) done in by the works: flung, the gore (or the scrap: machines), the callout. */
+export const worksKill = (ctx: FrameContext, e: Enemy, fromX: number, call: string) => {
+  const { state, fx } = ctx;
+  const away = e.pos.x + e.width / 2 < fromX ? -1 : 1;
+  e.health = 0;
+  fx.blowAwayEnemy(e, { x: away * 10, y: -11 }, 'charge_kill', away, 1.6);
+  fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 30 }, call, true, '#FCA5A5');
+  playSound('crunch', 0.9, -4);
+  state.player.killSatisfactionTimer = 60;
+  if (import.meta.env.DEV) (state as unknown as { towerKill?: string }).towerKill = `${call} ${state.frame}`;
+};
+/** Hurt by the works but not done in (a brick on the head): a chunk off, a flash; done in, as above. */
+export const worksHit = (ctx: FrameContext, e: Enemy, dmg: number, fromX: number, call: string) => {
+  e.health -= dmg; e.hitFlash = 8;
+  if (e.health <= 0) worksKill(ctx, e, fromX, call);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -87,9 +131,16 @@ export const pendAt = (p: PendDef, frame: number, crashed: boolean) => {
 const BLADE_R = 26;
 const runPendulums = (ctx: FrameContext, crashed: boolean) => {
   const { state } = ctx, pl = state.player, pcx = pl.pos.x + pl.width / 2;
+  dangerZones.length = 0;
+  const vs = victims(state);
   for (const p of PENDULUMS) {
     const b = pendAt(p, state.frame, crashed);
     if (!b || 'still' in b) continue;
+    // (its sweep, as far down as it comes: the staff keep out of it)
+    const reach = Math.sin(b.amp) * p.len + BLADE_R;
+    dangerZones.push({ x0: p.x - reach, x1: p.x + reach, y0: p.y + Math.cos(b.amp) * p.len - BLADE_R, y1: p.y + p.len + BLADE_R });
+    // (anybody knocked into it: chopped)
+    for (const e of vs) if (Math.abs(e.pos.x - b.x) < 120 && eTouches(e, b.x, b.y, BLADE_R)) worksKill(ctx, e, b.x, 'CHOPPED!');
     // (the whoosh as it comes through the bottom of its swing, when he's near enough to hear it: and the creak at the top)
     const ph = ((state.frame / b.period) + p.phase) % 0.5;
     const near = Math.abs(b.x - pcx) < 600 && Math.abs(b.y - pl.pos.y) < 300;
@@ -102,6 +153,11 @@ const runPendulums = (ctx: FrameContext, crashed: boolean) => {
     }
   }
   // (floor 2's, down: its blade stuck up out of the floor)
+  if (crashed) {
+    const bx = U(BLADE_U), by = F(2);
+    dangerZones.push({ x0: bx - 24, x1: bx + 24, y0: by - 40, y1: by });
+    for (const e of vs) if (e.pos.x < bx + 22 && e.pos.x + e.width > bx - 22 && e.pos.y + e.height > by - 30 && e.pos.y < by) worksKill(ctx, e, bx, 'SKEWERED!');
+  }
   if (crashed && canHurt(state)) {
     const bx = U(BLADE_U), by = F(2);
     if (pl.pos.x < bx + 22 && pl.pos.x + pl.width > bx - 22 && pl.pos.y + pl.height > by - 30 && pl.pos.y < by) {
@@ -173,6 +229,12 @@ const runDebris = (ctx: FrameContext, list: Debris[], broken: number) => {
     d.vy = Math.min(14, d.vy + 0.5); d.y += d.vy; d.rot += 0.2;
     if (canHurt(state) && d.x > p.pos.x - 10 && d.x < p.pos.x + p.width + 10 && d.y > p.pos.y && d.y < p.pos.y + p.height) {
       hurtPlayer(ctx, 7, 'tower_debris', { x: 0, y: -3 });
+      playSound('thud', 0.7, 4);
+      list.splice(i, 1); continue;
+    }
+    const hitE = victims(state).find(e => d.x > e.pos.x - 6 && d.x < e.pos.x + e.width + 6 && d.y > e.pos.y && d.y < e.pos.y + e.height);
+    if (hitE) {
+      worksHit(ctx, hitE, 45, d.x, 'BRAINED!');
       playSound('thud', 0.7, 4);
       list.splice(i, 1); continue;
     }
