@@ -160,6 +160,14 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
     box(c, -22, hipY + 1, 6, 1, PANTS[4]); box(c, 16, hipY + 1, 6, 1, PANTS[4]);
   }
   c.translate(roll * 0.4, 0);
+  // (his pants gone, the belt with them: his lower belly where the belt was, the navel, the trail down from it)
+  if (p.nude) {
+    const by = -88 + bob;
+    poly(c, [[-27, by], [27, by], [27, by + 16], [-27, by + 16]], S[2]);
+    box(c, -27, by, 3, 16, S[1]); box(c, 24, by, 3, 16, S[1]); box(c, -18, by + 2, 36, 2, S[3]);
+    c.fillStyle = S[0]; c.beginPath(); c.ellipse(0, by + 6, 2, 2.5, 0, 0, Math.PI * 2); c.fill();
+    for (let y = by + 10; y < by + 16; y += 2) box(c, -1 + ((y >> 1) % 2), y, 1, 1, '#3B2414');
+  }
   // The lifting belt (not with his pants gone)
   if (!p.nude) {
     const by = -86 + bob;
