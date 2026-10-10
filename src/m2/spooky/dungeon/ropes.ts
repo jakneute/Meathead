@@ -26,9 +26,12 @@ registerHurtLines('spooky_spikepit', L.HURT_SPIKEPIT, L.DEATH_SPIKEPIT);
 registerHurtLines('spooky_vat', L.HURT_VAT, L.DEATH_VAT);
 registerDeathKind('spooky_vat', 'boiled');
 
-const X = (dx: number) => SECTIONS.dungeon.x0 + 1950 + dx;
+/** (from the foot of the dungeon stairs, past the 2000-wide ceiling chamber) */
+const X = (dx: number) => SECTIONS.dungeon.x0 + 1950 + 800 + dx;
 /** The pits: where, how deep their floor (or the vat's surface) is, what's in them. */
 export const PITS: { a: number; b: number; depth: number; kind: 'ditch' | 'spikes' | 'vat' }[] = [
+  // (the one in the ceiling chamber, under its fast middle section: index.ts)
+  { a: X(1850), b: X(1960), depth: 110, kind: 'spikes' },
   { a: X(2780), b: X(3020), depth: 50, kind: 'ditch' },
   { a: X(3140), b: X(3780), depth: 110, kind: 'spikes' },
   { a: X(3900), b: X(4380), depth: 70, kind: 'vat' },
@@ -83,7 +86,7 @@ export const runRopes = (ctx: FrameContext, controls: Controls): Controls => {
 const seen = (state: GameState, a: number, b: number) => b > state.camera.x - 100 && a < state.camera.x + 900;
 export const drawRopeWalk = (c: CanvasRenderingContext2D, state: GameState) => {
   const f = state.frame;
-  if (!seen(state, X(2700), X(4400))) return;
+  if (!seen(state, X(1800), X(4400))) return;
   // The beam the ropes hang off, the length of it, on brackets
   box(c, X(2760), BEAM - 22, X(4400) - X(2760), 18, '#4A3018'); box(c, X(2760), BEAM - 22, X(4400) - X(2760), 3, '#6A4A28');
   for (let x = X(2780); x < X(4400); x += 320) box(c, x, BEAM - 60, 10, 40, '#3A2418');

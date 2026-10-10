@@ -31,7 +31,7 @@ export const SECTIONS = {
   castle: { x0: SX + 14000, x1: SX + 26000 },
   /** The dungeon: the spiked ceiling that drops (and here it hurts). */
   // (its stairway down from the castle comes first: SX + 26050 to SX + 28000; the cells from there)
-  dungeon: { x0: SX + 26050, x1: SX + 32600 },
+  dungeon: { x0: SX + 26050, x1: SX + 33400 },
   /** The red-mist hallway: long, winding, vertical; the mist after him (it kills outright). */
   mist: { x0: SX + 34000, x1: SX + 40000 },
   /** The ELEVATOR TO HELL loading bay, then the clock tower climb: support beams to charge out, the wobble, the
