@@ -7,6 +7,8 @@
 // floor or a ceiling it ricochets, once, straight at whoever's nearest that's still got a head (a little one low down
 // is shot at downward, so the floor behind him nearly always gives it that second go). Fired with nobody in front, it
 // goes straight out (up or down if he's holding that), and a wall can still find it somebody.
+// A boss or a mid-boss keeps his head: the ball goes into him and stays there (no going on through, no ricochet), a big
+// hit (BOSS_HIT), one boss hit a shot (the T. rex's parts can't all take it off one ball).
 
 import type { Enemy } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
@@ -19,12 +21,17 @@ import { KIND_TOP_REACH, KIND_HEAD } from '../../m1/game/render/enemies';
 import { deathFacing } from '../../m1/game/enemies/deaths';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
+import { isRobot } from '../kinds';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
 /** How long it's held to go off; how near somebody has to be for it to find him; how far a ball goes. */
 const CHARGE = 48, LOCK_REACH = 560, RANGE = 1500, COOLDOWN = 34, RICOCHET_REACH = 700;
+/** A boss or a mid-boss hit: one ball a CHARGE + COOLDOWN (82 frames): ~110 a second, about the ray gun's 125 (25
+ *  every 12), the gun's six bolts' worth in one go. Against a boss with Meathead 1's breather (Safari Artie: one hit a
+ *  second counts) it's the best there is a shot. */
+const BOSS_HIT = 150;
 
 let charge = 0, chargedAt = -10, target: Enemy | null = null, lockFacing: 1 | -1 = 1;
 /** The lines the last balls went down (and the sparks off what they ricocheted on), fading. */
@@ -63,14 +70,21 @@ const solidAt = (state: GameState, x: number, y: number) =>
 const line = (ctx: FrameContext, x: number, y: number, dx: number, dy: number, killed: Set<Enemy>) => {
   const { state, fx } = ctx;
   const STEP = 4;
-  let cx = x, cy = y, wall = false;
-  for (let d = 0; d < RANGE; d += STEP) {
+  let cx = x, cy = y, wall = false, lodged = false;
+  for (let d = 0; d < RANGE && !lodged; d += STEP) {
     cx = x + dx * d; cy = y + dy * d;
     if (d > 6 && solidAt(state, cx, cy)) { wall = true; break; }
     for (const e of state.enemies) {
       if (!alive(e) || killed.has(e)) continue;
       if (cx < e.pos.x || cx > e.pos.x + e.width || cy < e.pos.y - (KIND_TOP_REACH[e.kind ?? ''] ?? 0) || cy > e.pos.y + e.height) continue;
       killed.add(e);
+      // (a boss: it's in him, and that's where it stops; one a shot, the ricochet included)
+      if (isMidBoss(e)) {
+        if (bossHitThisShot) continue;
+        bossHitThisShot = true; lodged = true;
+        bossHit(ctx, e, cx, cy, dx, dy);
+        break;
+      }
       headOff(ctx, e, dx, dy);
     }
   }
@@ -79,10 +93,25 @@ const line = (ctx: FrameContext, x: number, y: number, dx: number, dy: number, k
   return { x: cx - dx * STEP, y: cy - dy * STEP, wall };
 };
 
-/** His head, off: the headshot (the sniper's), the line, the callout. A mid-boss just takes a lot of it. */
+let bossHitThisShot = false;
+/** A boss or a mid-boss: no headshot; the ball goes in where it hit, a big hit, blood out of it (a machine: sparks,
+ *  a bolt or two and oil, and a little blood: they bleed too). */
+const bossHit = (ctx: FrameContext, e: Enemy, x: number, y: number, dx: number, dy: number) => {
+  const { state, fx } = ctx;
+  e.health -= BOSS_HIT; e.hitFlash = 4;
+  fx.spawnDamageNumber(e.pos, BOSS_HIT, true);
+  const robot = isRobot(e);
+  fx.spawnExplosion({ x, y }, robot ? '#FDE047' : '#8B0000', robot ? 10 : 12, -dx * 3, 10);
+  for (let i = 0; i < 8; i++) {
+    const c = robot ? (i < 2 ? '#B91C1C' : i % 3 === 0 ? '#0A0A0A' : i % 3 === 1 ? '#9CA3AF' : '#FDE047') : (i % 2 ? '#B91C1C' : '#7F1D1D');
+    state.particles.push({ pos: { x, y }, vel: { x: -dx * (1.5 + Math.random() * 3) + (Math.random() - 0.5) * 2, y: -1.5 - Math.random() * 2.5 }, life: 30 + Math.random() * 20, color: c, size: 2 + Math.random() * 2, grav: 0.3 });
+  }
+  if (robot) playSound('clang', 0.6, 2); else playSound('splat', 0.7, -2);
+};
+
+/** His head, off: the headshot (the sniper's), the line, the callout. (A mid-boss never gets here: bossHit.) */
 const headOff = (ctx: FrameContext, e: Enemy, dx: number, dy: number) => {
   const { fx } = ctx;
-  if (isMidBoss(e)) { e.health -= 150; fx.spawnDamageNumber(e.pos, 150, true); return; }
   const h = headOf(e);
   fx.spawnExplosion(h, '#8B0000', 14, dx * 6, 14);
   fx.killWithAnimation(e, 'headshot', m2Kill('flintlock_kill'), grabCallout('flintlock'), { x: dx * 6, y: -6 + dy * 4 });
@@ -94,6 +123,7 @@ const shoot = (ctx: FrameContext) => {
   const pl = state.player;
   const m = muzzlePoint(pl, 'FLINTLOCK');
   const killed = new Set<Enemy>();
+  bossHitThisShot = false;
   let dx = pl.facing, dy = 0;
   if (target && alive(target)) { const h = headOf(target); const d = Math.hypot(h.x - m.x, h.y - m.y) || 1; dx = (h.x - m.x) / d; dy = (h.y - m.y) / d; }
   else if (state.player.steer) { const a = state.player.steer * 0.6; dx = pl.facing * Math.cos(a); dy = Math.sin(a); }

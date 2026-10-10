@@ -6,6 +6,9 @@
 // it starts empty), up to five sprays' worth. Secondary fire (Y, or F) empties one spray's worth: once pressed, a long
 // gush of gore out the front, all over whoever's there, like Dirty Dan's machine gun. A full bag won't suck any more
 // till some's been sprayed out. Ammo pickups fill its ammo, never the bag: only sucking does.
+// A boss or a mid-boss won't come: it doesn't pull on him at all. It draws the blood out of him instead (a machine:
+// bolts, oil, and a little blood too), a stream of it across into the intake, a gulp at a time, hurting him about as
+// much as the ray gun would, and every gulp of it goes in the bag.
 
 import type { Enemy, Particle, Projectile } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
@@ -23,6 +26,7 @@ import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES } from '../lines/weaponLines';
+import { isRobot } from '../kinds';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -62,6 +66,8 @@ export const beingSucked = (e: Enemy, frame: number) => { const ps = poise.get(e
 export const poiseLeft = (e: Enemy) => poise.get(e)?.left;
 /** What can be pulled in: anybody but a boss, a mid-boss or a bystander. */
 const suckable = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss' && !isMidBoss(e);
+/** What's too big to pull in, so it's bled instead: a mid-boss (Meathead 2's bosses are, to the engine). */
+const bleedable = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss' && isMidBoss(e);
 
 // ---------------------------------------------------------------------------------------------------------------
 // The pull
@@ -122,6 +128,54 @@ const inCone = (state: GameState, e: Enemy, mouth: { x: number; y: number }) => 
   const d = Math.hypot(Math.max(0, dx), dy);
   if (d > REACH + e.width / 2 || Math.abs(Math.atan2(dy, Math.max(1, dx))) > SPREAD) return null;
   return 1 - Math.min(1, d / REACH);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The bleed (a boss: too big to pull in)
+
+/**
+ * Blood drawn a frame: from BLEED.far at the cone's edge up to BLEED.near right up at him (2 a frame: 120 a second, about
+ * the ray gun's 125, 25 every 12; it's all close in, and it fills the bag). It goes in as a gulp every BLEED.gulp frames
+ * (one number, one hit: a boss with Meathead 1's breather, Safari Artie, counts one hit a second, so ~40 a second on
+ * him, the gun's 25). Each point of it puts BLEED.bag in the bag (a spray's worth for every 250 drawn).
+ */
+const BLEED = { near: 2, far: 0.8, gulp: 20, bag: 0.4 };
+let bleedFrom: Enemy | null = null, bleedBank = 0, bleedT = 0, bleedAt = -10, bleedRobot = false;
+/** Where it's coming out of him (the side of him nearest the intake). */
+const bleedSrc = { x: 0, y: 0 };
+/** The stream: drops on their way across, made once and reused. `k`: how far across (0..1); `sp`: how fast; `off`:
+ *  how far it bows out of line; `kind`: 0-1 blood (big, small), 2 a bolt, 3 oil, 4 a spark. */
+interface Drop { on: boolean; k: number; sp: number; off: number; kind: number }
+const DROPS: Drop[] = Array.from({ length: 40 }, () => ({ on: false, k: 0, sp: 0, off: 0, kind: 0 }));
+const spawnDrop = (kind: number) => {
+  for (const d of DROPS) if (!d.on) { d.on = true; d.k = 0; d.sp = 0.07 + Math.random() * 0.05; d.off = (Math.random() - 0.5) * 14; d.kind = kind; return; }
+};
+const bleed = (ctx: FrameContext, e: Enemy, near: number, mouth: { x: number; y: number }) => {
+  const { state, fx } = ctx;
+  // (a fresh go at him: the first gulp comes quicker)
+  if (bleedFrom !== e || state.frame - bleedAt > 2) { bleedFrom = e; bleedT = BLEED.gulp >> 1; bleedBank = 0; }
+  bleedAt = state.frame;
+  bleedRobot = isRobot(e);
+  bleedSrc.x = Math.max(e.pos.x + 4, Math.min(e.pos.x + e.width - 4, mouth.x));
+  bleedSrc.y = Math.max(e.pos.y + 6, Math.min(e.pos.y + e.height - 6, mouth.y));
+  bleedBank += BLEED.far + (BLEED.near - BLEED.far) * near;
+  // (the stream: blood; a machine's mostly bolts and oil and sparks, with a bit of blood in it: they bleed too)
+  const n = near > 0.5 ? 3 : 2;
+  for (let i = 0; i < n; i++) {
+    const r = Math.random();
+    spawnDrop(bleedRobot ? (r < 0.3 ? 2 : r < 0.6 ? 3 : r < 0.8 ? 4 : 1) : (r < 0.55 ? 0 : 1));
+  }
+  if (++bleedT % BLEED.gulp !== 0) return;
+  const dmg = Math.floor(bleedBank);
+  bleedBank -= dmg;
+  if (dmg <= 0) return;
+  e.health -= dmg; e.hitFlash = 3;
+  fx.spawnDamageNumber(e.pos, dmg);
+  setGore(gore + dmg * BLEED.bag);
+  playSound('glug', 0.6, -3);
+  if (bleedRobot) playSound('clink', 0.4, 4); else playSound('splat', 0.35, 2);
+  // (a spurt out of the hole, some of it going down him)
+  for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: bleedSrc.x, y: bleedSrc.y }, vel: { x: (Math.random() - 0.5) * 2.5, y: -0.5 - Math.random() * 1.5 }, life: 26, color: bleedRobot && i % 2 ? (i === 1 ? '#FDE047' : '#0A0A0A') : (i % 2 ? '#B91C1C' : '#7F1D1D'), size: 2, grav: 0.3 });
 };
 
 const fire = (ctx: FrameContext) => {
@@ -185,6 +239,14 @@ const fire = (ctx: FrameContext) => {
     if (Math.random() < 0.35) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height }, vel: { x: toward * (2 + near * 4), y: (mouth.y - e.pos.y - e.height / 2) * 0.03 }, life: 14, color: Math.random() < 0.5 ? 'rgba(220, 220, 220, 0.6)' : '#78716C', size: 1.5 + Math.random() * 1.5 });
     if (ps.left <= 0) swallow(ctx, e);
   }
+  // Too big to pull in: the nearest of them in it is bled (no pull at all)
+  let big: Enemy | null = null, bigNear = -1;
+  for (const e of state.enemies) {
+    if (!bleedable(e)) continue;
+    const near = inCone(state, e, mouth);
+    if (near !== null && near > bigNear) { big = e; bigNear = near; }
+  }
+  if (big) bleed(ctx, big, bigNear, mouth);
 };
 
 /** Poise gone: in he goes. Out of the fight right away; drawn going in, and ground up at the end of it. */
@@ -287,6 +349,8 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
     const ps = poise.get(e);
     if (ps && state.frame - ps.lastPulled > REGEN_AFTER && ps.left < poiseMax(e)) ps.left = Math.min(poiseMax(e), ps.left + REGEN * 2);
   }
+  // The stream's drops, on their way across
+  for (const d of DROPS) if (d.on && (d.k += d.sp) >= 1) d.on = false;
   // Whoever's going in
   if (swallowing.length) {
     for (const s of swallowing) if (++s.t === SWALLOW) grind(ctx, s);
@@ -414,6 +478,26 @@ const drawHeld = (c: Ctx, frame: number) => {
   c.fillStyle = '#F4F4F5'; for (let k = 0; k < 4; k++) c.fillRect(28.5, -4 + ((k * 3 + frame) % 12), 1, 1.5);
 };
 
+const BLOOD = ['#5F0F0F', '#991B1B', '#DC2626', '#F87171'];
+const drawBleed = (c: Ctx, mouth: { x: number; y: number }) => {
+  const sx = bleedSrc.x, sy = bleedSrc.y, dx = mouth.x - sx, dy = mouth.y - sy, len = Math.hypot(dx, dy) || 1;
+  // (bowed out across the line of it: square to it)
+  const nx = -dy / len, ny = dx / len;
+  for (const d of DROPS) {
+    if (!d.on) continue;
+    // (slow out of him, quicker into the intake)
+    const k = d.k * d.k * 0.6 + d.k * 0.4, bow = Math.sin(d.k * Math.PI) * d.off;
+    const x = Math.round(sx + dx * k + nx * bow), y = Math.round(sy + dy * k + ny * bow);
+    switch (d.kind) {
+      case 0: c.fillStyle = BLOOD[0]; c.fillRect(x - 2, y - 1, 4, 3); c.fillStyle = BLOOD[2]; c.fillRect(x - 1, y - 1, 2, 2); c.fillStyle = BLOOD[3]; c.fillRect(x - 1, y - 1, 1, 1); break;
+      case 1: c.fillStyle = BLOOD[1]; c.fillRect(x - 1, y, 2, 2); break;
+      case 2: c.fillStyle = INK; c.fillRect(x - 2, y - 2, 4, 4); c.fillStyle = '#9CA3AF'; c.fillRect(x - 1, y - 1, 2, 2); c.fillStyle = '#E5E7EB'; c.fillRect(x - 1, y - 1, 1, 1); break;
+      case 3: c.fillStyle = '#0A0A0A'; c.fillRect(x - 1, y - 1, 3, 2); c.fillStyle = '#4B5563'; c.fillRect(x, y - 1, 1, 1); break;
+      default: c.fillStyle = (d.k * 10) % 2 < 1 ? '#FDE047' : '#FFFFFF'; c.fillRect(x, y, 1, 1);
+    }
+  }
+};
+
 /** Over the enemies: everybody's poise (a bar on them, while it's been worn at or he's got the sucker out), the cone of
  * air while it's going, and whoever's going in. */
 const drawOverlay = (c: Ctx, state: GameState) => {
@@ -432,6 +516,8 @@ const drawOverlay = (c: Ctx, state: GameState) => {
       c.beginPath(); c.moveTo(x, y); c.lineTo(x - pl.facing * Math.cos(a) * 14, y - Math.sin(a) * 14); c.stroke();
     }
   }
+  // The bleed: drops across from him into the intake (pixels, stepped shades, no blending)
+  drawBleed(c, mouth);
   // Poise, on anybody it's been worn at: a bar hovering over his head, gold going down to nothing (flashing red when
   // it's nearly gone), till it's come back full
   for (const e of state.enemies) {
@@ -462,6 +548,6 @@ const drawOverlay = (c: Ctx, state: GameState) => {
 /** Everything it was in the middle of, stopped (through a door): no spray going, nobody half way in, nothing pulled. */
 const calmDown = (e: Enemy) => { const ps = poise.get(e); if (ps?.held) { e.puppet = ps.held.puppet; e.harmless = ps.held.harmless; ps.held = undefined; } panicking.delete(e); };
 export const stopSoulSucker = () => {
-  for (const e of [...panicking]) calmDown(e); sprayLeft = 0; swallowing = []; suckingAt = -10; stains.length = 0; syncArmor(false); stopGoreSlides(); };
+  for (const e of [...panicking]) calmDown(e); for (const d of DROPS) d.on = false; bleedFrom = null; bleedBank = 0; sprayLeft = 0; swallowing = []; suckingAt = -10; stains.length = 0; syncArmor(false); stopGoreSlides(); };
 
 export const registerSoulSucker = () => registerWeapon('SOUL_SUCKER', { fire: ctx => fire(ctx), update, draw: (c, p) => draw(c, p), drawHeld, tick, drawOverlay });

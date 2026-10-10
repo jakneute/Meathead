@@ -263,10 +263,10 @@ const updateSwim = (ctx: FrameContext, rv: River) => {
     ctx.fx.playGunSound('splash');
   }
   if (p.swimming && state.frame % 14 === 0) state.particles.push({ pos: { x: cx + p.facing * 8, y: p.pos.y + 10 }, vel: { x: 0, y: -1.2 }, life: 40, color: 'rgba(224, 242, 254, 0.8)', size: 3 });
-  // His air: going while his head's under (under the roof, it's always under), back when it's out
+  // His air: going while his head's under (under the roof, it's always under), back when it's out (god mode: it never goes)
   const under = p.swimming && p.pos.y + 6 > WS;
   if (state.deathTimer > 0 || p.health <= 0) return;
-  if (under) {
+  if (under && !ctx.cheats.invincible) {
     rv.o2 = Math.max(0, rv.o2 - 1 / AIR_FRAMES);
     if (rv.o2 < 0.3 && !rv.lowSaid) { rv.lowSaid = true; rv.talk.q.unshift(mh(fromBag(rv, 'air', MEATHEAD_AIR))); }
     if (rv.o2 < 0.25 && state.frame % 20 === 0) playSound('beep');

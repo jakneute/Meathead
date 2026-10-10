@@ -9,6 +9,8 @@
 // little at a time, anybody stood in one. Puked to death is a death of its own: buckling, one last torrent of it (onto
 // whoever's near: it can still pass it on), keeling over face first into it, and lying there with the flies.
 // Every enemy gets the animation: rearing back, heaving forward over it, a green look about him, his mouth going.
+// A boss or a mid-boss never gets sick on it (unless his own fight says otherwise: none does yet): the darts just hit
+// him harder, a machine gun (BOSS_DART_DMG).
 
 import type { Enemy, Projectile } from '../../m1/types';
 import { shieldStops, clang } from './shield';
@@ -32,6 +34,9 @@ const INK = '#1A0B06';
 
 /** The darts: the wait between them, how fast, how much they hurt (not much), and how much tolerance each takes. */
 const DART = { cooldown: 7, speed: 17, dmg: 2, sick: 1, gravity: 0.05, up: 0.55, down: 0.8 };
+/** A dart in a boss or a mid-boss: what's on it does nothing to him (no tolerance, no puking), but it hits harder: a
+ *  machine gun. 14 a dart, a dart every 7 frames: ~120 a second, about the ray gun's 125 (25 every 12). */
+const BOSS_DART_DMG = 14;
 /** Where its tip is from the grip (as the engine's muzzle has it); how far it's tilted up right now (up held: it
  *  swings up, let go: back down level). */
 const TIP = { x: 27, y: -4 };
@@ -133,8 +138,9 @@ const darted = (ctx: FrameContext, e: Enemy, p: Projectile) => {
   if (stuck.filter(s => s.e === e).length > 12) stuck.splice(stuck.findIndex(s => s.e === e), 1);
   for (let i = 0; i < 2; i++) puff(state, { pos: { x: cx, y: cy }, vel: { x: -Math.sign(p.vel.x) * Math.random() * 2, y: -Math.random() * 2 }, life: 12, color: i ? '#B91C1C' : '#84CC16', size: 1.5 });
   playSound('click', 0.4, 10);
+  if (isMidBoss(e)) { hurt(ctx, e, BOSS_DART_DMG); e.hitFlash = 2; ctx.fx.spawnDamageNumber(e.pos, BOSS_DART_DMG); return; }
   hurt(ctx, e, DART.dmg);
-  if (!alive(e) || isMidBoss(e)) return;
+  if (!alive(e)) return;
   const s = sickOf(e); tracked.add(e);
   s.lastHit = state.frame;
   if (s.t < 0 && state.frame >= s.immuneUntil) { s.tol -= DART.sick; if (s.tol <= 0) getSick(state, e, s); }

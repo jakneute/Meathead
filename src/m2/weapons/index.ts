@@ -64,7 +64,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   SOUL_SUCKER: {
     name: 'SOUL SUCKER', from: 'SPOOKY LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: SUCK' }, { pad: ['Y'], kb: ['F'], label: 'GORE SPRAY' }],
-    description: "A haunted shop vac with a meat grinder where the dust bag should be. Hold fire to suck on everybody in front of you, harder the closer they are. Watch the bar over their heads: when it's gone, so are they, feet first into the grinder. Then hit secondary fire and hose their buddies down with them. Waste not, want not.",
+    description: "A haunted shop vac with a meat grinder where the dust bag should be. Hold fire to suck on everybody in front of you, harder the closer they are. Watch the bar over their heads: when it's gone, so are they, feet first into the grinder. Too big to fit? It drinks the blood right out of them instead. Then hit secondary fire and hose their buddies down with them. Waste not, want not.",
   },
   SOUVENIR: {
     name: 'SOUVENIR LAUNCHER', from: 'FOREIGN LANDS',
