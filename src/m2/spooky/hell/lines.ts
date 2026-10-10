@@ -128,7 +128,7 @@ export const DEMON_BEATEN: ByPants = {
 // Satan: up out of the lava after his boy's gone crying to him. The core line's always the same; what follows it is
 // by the state of Meathead's pants.
 
-export const SATAN_CORE = 'MEATHEAD. ONE OF THESE DAYS YOUR SOUL WILL BE MINE FOREVER. THAT DAY IS NOT TODAY.';
+export const SATAN_CORE = 'MEATHEAD. ONE OF THESE DAYS YOUR SOUL WILL BE MINE FOREVER. THAT TIME IS NOT NOW.';
 export const SATAN_PARTING: ByPants = {
   clean: ['NOW GET OUT OF MY HOUSE.', 'AND STOP HITTING MY SON. HE IS SENSITIVE.'],
   shitty: ['AND YOU HAVE SOILED MY LAVA. GET OUT.', 'EVEN HELL HAS STANDARDS. GO WASH.'],
