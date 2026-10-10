@@ -51,9 +51,10 @@ import { TOO_BIG_LINES, TOO_BIG_BY_KIND } from '../lines/weaponLines';
 type Ctx = CanvasRenderingContext2D;
 
 // The beatdown
-/** Like a fighting game's grab: once it's started, he's committed. Both windups are nearly instant (what limits them is
- * their reach); a hit in the beatdown's knocks him out of it, nothing stops the shakedown's. */
-const WINDUP = 4, LUNGE = 4, LUNGE_SPEED = 21, WHIFF = 22, REACH = 6;
+/** Like a fighting game's grab: once it's going, he's committed. The beatdown's windup is a real one (half a second,
+ * coiled down low: seen coming, and a hit in it knocks him out of it, it being so strong); the shakedown's is nearly
+ * instant, and nothing stops it. */
+const WINDUP = 30, LUNGE = 4, LUNGE_SPEED = 21, WHIFF = 22, REACH = 6;
 /** How far ahead of him, as he lunges, he can still get hold of somebody. */
 const LUNGE_REACH = 20;
 /**
@@ -138,6 +139,8 @@ export interface Grab {
   pend: { k: 'b' | 'x'; t: number } | null;
   /** A grab asked for while he couldn't (mid-charge, knocked back): kept a few frames and started the moment he can. */
   queued: { want: 'beat' | 'shake'; t: number } | null;
+  /** His health as the beatdown's windup began (less, and it's off). */
+  windHp: number;
   /** His knockback last frame, and how long what's left of it is from bumping into somebody (a grab beats that). */
   pb: number;
   /** Missed a grab in the air: none again till he's landed. */
@@ -167,7 +170,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, pb: 0, bumpT: 0, airSpent: false,
+  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, airSpent: false,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -486,7 +489,8 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   if (g.phase !== 'idle') { if (!PRE_GRAB.has(g.phase)) keepClear(ctx.state, g); easeOff(ctx.state, g); }
   // (armor, fighting-game style: through a grab, and for a moment after, with whoever he's just put down still at his
   // feet, anything that hits him hurts him, but nothing knocks him about or out of what he's doing)
-  if (g.phase !== 'idle') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
+  // (not in the beatdown's windup: that's open, a hit knocks him out of it, back as it would)
+  if (g.phase !== 'idle' && g.phase !== 'windup') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
   setArmor(g.clearT > 0);
   // (going for a critter, holding one, pitching one: the little things right by him don't hurt just for touching him,
   // or snatching one up would cost a bite most times; back to themselves once it's over)
@@ -561,7 +565,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (y) g.yChord = true;
       g.dir = p.facing; g.t = 0;
       if (want === 'beat') {
-        g.phase = 'windup';
+        g.phase = 'windup'; g.windHp = p.health;
         playSound('snort', 0.8, -4);
         return hold();
       }
@@ -592,7 +596,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     }
 
     case 'windup':
-      // Coiled up, committed: armored, nothing knocks him out of it
+      // Coiled up for it, half a second: hurt in that time, and he's knocked out of it (the hit's own knockback goes)
+      if (p.health < g.windHp) { g.phase = 'idle'; g.t = 0; playSound('thud', 0.5, 4); return controls; }
       if (g.t >= WINDUP) { g.phase = 'lunge'; g.t = 0; playSound('whoosh', 1, -2); }
       return hold();
 
