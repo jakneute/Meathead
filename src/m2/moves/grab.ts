@@ -94,9 +94,11 @@ const NOT_PEOPLE = new Set<EnemyKind>(['doorman', 'manhole', 'tenant', 'cardoor'
 const CRITTERS = new Set<EnemyKind>(['rat', 'crab', 'iguana', 'raccoon', 'armadillo', 'scorpion', 'rattlesnake', 'salamander', 'sludgeling',
   'pigeon', 'seagull', 'pelican', 'eagle', 'vulture', 'hawk', 'grackle']);
 /** (Meathead 2's own say what they are: see registerM2Kind's `grab`) */
-export const isCritter = (e: Enemy) => !!e.kind && (m2Grab(e) ?? (CRITTERS.has(e.kind) ? 'critter' : null)) === 'critter' && e.health > 0 && !e.isBlownAway && e.type !== 'boss' && !e.puppet;
+export const isCritter = (e: Enemy) => !!e.kind && (m2Grab(e) ?? (CRITTERS.has(e.kind) ? 'critter' : null)) === 'critter' && e.health > 0 && !e.isBlownAway && e.type !== 'boss';
 
-export const grabbable = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind && !e.puppet
+// (held by hand isn't held off: the break room's dummies are all puppets, and a cutscene's puppets are out of his reach
+// anyway, him being out of his own hands then)
+export const grabbable = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind
   && (m2Grab(e) ? m2Grab(e) === 'body' : (isHumanoidKind(e.kind) && !NOT_PEOPLE.has(e.kind)) || MID_ANIMALS.has(e.kind));
 
 /** Swimming, or hanging off a vine: only what goes in the one hand (nothing to stand on to beat or shake anybody). */
