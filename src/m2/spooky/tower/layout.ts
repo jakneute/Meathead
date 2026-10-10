@@ -64,7 +64,7 @@ export const upRight = (k: number) => k % 2 === 0;
 // the crash (the shaft's stretch a jam of wreckage where there is one: JAMS).
 
 export type Piece = [number, number, number, number];
-const wholeOf = (k: number): Piece[] => (k === 5 ? [[0, 150, 0, 0], [580, 820, 0, 0]] : upRight(k - 1) ? [[0, 420, 0, 0], [580, 820, 0, 0]] : [[180, 420, 0, 0], [580, 1000, 0, 0]]);
+const wholeOf = (k: number): Piece[] => (k === 5 ? [[0, 150, 0, 0], [580, 690, 0, 0], [740, 820, 0, 0]] : upRight(k - 1) ? [[0, 420, 0, 0], [580, 820, 0, 0]] : [[180, 420, 0, 0], [580, 1000, 0, 0]]);
 export const WHOLE: Piece[][] = [[], ...[1, 2, 3, 4, 5, 6].map(wholeOf)];
 export const WRECK: Piece[][] = [
   [],
@@ -166,12 +166,12 @@ export const GEARS: GearDef[] = [
  *  At the ends of its swing it's up over his head; at the bottom it's not. (None swings out over the shaft far: the
  *  car's way, and his, down it.) `wild`: after, the tower leaning, it swings further and faster; `snaps`: after, it's
  *  down, its blade stuck in the floor (jump it). */
-export interface PendDef { x: number; y: number; len: number; amp: number; period: number; phase: number; snaps?: boolean }
+export interface PendDef { x: number; y: number; len: number; amp: number; period: number; phase: number; snaps?: boolean; wildOnly?: boolean }
 export const PENDULUMS: PendDef[] = [
   // floor 2: the first (time it: the beam's under the end of its swing)
   { x: U(360), y: F(3) + SLAB, len: 280, amp: 0.4, period: 140, phase: 0, snaps: true },
-  // floor 5: over the way in, the beam under the end of its swing
-  { x: U(720), y: F(6) + SLAB, len: 290, amp: 0.55, period: 130, phase: 0.25 },
+  // floor 6 (k 5): still on the way up (the hatch's ladder comes up under it); after, it's loose, swinging wild over the sag
+  { x: U(720), y: F(6) + SLAB, len: 290, amp: 0.55, period: 130, phase: 0.25, wildOnly: true },
 ];
 
 /** The cuckoo clocks on the walls (their birds come out at him): [x, y] (the clock's middle). */
@@ -249,14 +249,19 @@ export const CAR_TOP = TOP - 40;
 /** The seats in the car (from its middle). */
 export const SEATS = [-48, -16, 16, 48];
 
-/** Where the ladders go once Spooky Land has them (moves/ladders.ts, LadderDef {x, top, bottom}): not wired yet.
- *  Up: the clock room's gallery (a ladder up to the bell); floor 3, a perch over the bell ringer's beat (shoot it
- *  from the ladder); floor 5, the way up to its beam's floor runs up a ladder that tops out beside the beam (no
- *  ramming from a ladder: off it first). Down: a ladder hanging off the edge of floor 4's cave-in, down to floor 3;
- *  one torn loose and dangling in the shaft under floor 5's jam (a step off it onto floor 4). */
-export const LADDER_SPOTS: { x: number; top: number; bottom: number; after?: boolean }[] = [
+/** The ladders (moves/ladders.ts: up/down on one, shoot from one, no shoulder charge on one). Each one's top level
+ *  with a one-way ledge or a floor that stops short of it. `after`: only once the car's gone through (only before,
+ *  if false; both if left out). */
+export const LADDER_SPOTS: { x: number; top: number; bottom: number; ledge?: { x: number; y: number }; after?: boolean }[] = [
+  // the clock room: up to the bell's gallery
   { x: U(975), top: GALLERY[1], bottom: TOP },
+  // floor 4 (k 3): up to a perch over the bell ringer's beat (shoot it from the ladder, or the perch)
   { x: U(700), top: F(3) - 200, bottom: F(3) },
-  { x: U(345), top: F(4) + 10, bottom: F(3) - 40, after: true },
-  { x: U(560), top: F(5) + 30, bottom: F(4) - 60, after: true },
+  // floor 6 (k 5): up through a hatch from the floor under it, out right beside its beam: off the ladder to ram it
+  { x: U(715), top: F(5), bottom: F(4), ledge: { x: U(668), y: F(5) }, after: false },
+  // after: one hanging off the edge of floor 5's cave-in (k 4), down toward floor 4's climb
+  { x: U(298), top: F(4), bottom: F(3) - 125, ledge: { x: U(360), y: F(4) }, after: true },
 ];
+/** Floor 4's perch (over the bell ringer, at the ladder's top). */
+export const PERCH: [number, number, number] = [U(660), F(3) - 200, 90];
+LEDGES.push(PERCH);

@@ -43,6 +43,7 @@ import { silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { talk, stepTalk, pick, type Talk } from '../../adventure/queue/talk';
+import { updateLadders, drawLadders, type LadderDef } from '../../moves/ladders';
 import { TK, updateThrown, drawThrown, thrown } from './kinds';
 import { runHazards, drawDebris, storyOf, canHurt, type Debris } from './hazards';
 import { newRide, runRide, lampOn, type Ride, type Car } from './ride';
@@ -50,7 +51,7 @@ import { drawTowerBackdrop, drawTowerBack } from './art';
 import {
   x0, x1, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, TX0, TX1, U, WALL, SH0, SH1, SHM, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
   HELL_AT, LEDGES, CHUTE_LEDGES, BEAMS, beamTop, WHOLE, WRECK, JAMS, pieceY, floorAt, CUCKOOS, FOES, DESCENT_FOES, SECURITY, PICKUPS, CAR_TOP,
-  LIFT, liftY, ROTTEN, TORN_NET, type TowerFoe, type FoeAt, type Piece,
+  LIFT, liftY, ROTTEN, TORN_NET, LADDER_SPOTS, type TowerFoe, type FoeAt, type Piece,
 } from './layout';
 import {
   type Dressed, MEATHEAD_HOW, MEATHEAD_ASK, OPERATOR_REFUSE, MEATHEAD_REFUSED, OPERATOR_SECURITY, OPERATOR_SPIEL, OPERATOR_AFTER, OPERATOR_NEXT,
@@ -144,6 +145,10 @@ const spawnAll = (state: GameState, list: FoeAt[], wrecked: boolean, base: numbe
   list.forEach(([f, u, y, k], i) => spawn(state, f, U(u), y === 'floor' ? floorAt(k, u, wrecked) : y, base + i));
 /** Ours (not the cuckoos): the way up's (0..), security (90..), the way down's (200..). */
 const isFoe = (e: Enemy) => (e.variant ?? -1) < 50 || ((e.variant ?? 0) >= 90 && (e.variant ?? 0) < 100);
+
+/** The ladders: before the crash, and after (the hatch's is gone with floor 6's sag; one hangs off floor 5's cave-in). */
+const LADDERS_UP: LadderDef[] = LADDER_SPOTS.filter(l => l.after !== true).map(({ x, top, bottom, ledge }) => ({ x, top, bottom, ledge }));
+const LADDERS_DOWN: LadderDef[] = LADDER_SPOTS.filter(l => l.after !== false).map(({ x, top, bottom, ledge }) => ({ x, top, bottom, ledge }));
 
 const NET = (k: number) => `tw-net-${k}`;
 const BEAM = (i: number) => `tw-beam-${i}`;
@@ -459,6 +464,8 @@ export const tower: SpookySection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player;
     const t = towerOf(state);
+    // (the ladders first: what he does on one is theirs)
+    if (!t.crash) controls = updateLadders(ctx, t.crashed ? LADDERS_DOWN : LADDERS_UP, controls);
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     // (the first frame: as it was at the checkpoint he's starting from (the stage only says which once it's built). Past
     // a floor, its beam's out; on the way down, or back from hell, it's all wrecked)
@@ -558,6 +565,7 @@ export const tower: SpookySection = {
   drawBack: (c, state) => {
     const t = towerOf(state);
     drawTowerBack(c, state, { rot: t.rot, ride: t.ride, broken: brokenOf(t), beamHp: t.beamHp, crashed: t.crashed, nets: t.nets, grate: t.grate, b1: t.b1, opTalking: !!t.opSaid, lamp: lampOn(t.ride, t.crashed) });
+    drawLadders(c, state, t.crashed ? LADDERS_DOWN : LADDERS_UP);
   },
   drawFront: (c, state) => {
     const t = towerOf(state);

@@ -78,6 +78,8 @@ export const drawGear = (c: Ctx, x: number, y: number, r: number, a: number, col
 /** Swinging now (after the crash: wild, further and faster); null: it's down. */
 export const pendAt = (p: PendDef, frame: number, crashed: boolean) => {
   if (crashed && p.snaps) return null;
+  // (tied back up to the ceiling, out of the way, till the crash shakes it loose)
+  if (!crashed && p.wildOnly) return { a: -1.2, x: p.x + Math.sin(-1.2) * p.len, y: p.y + Math.cos(-1.2) * p.len, period: p.period, amp: 0, still: true };
   const amp = crashed ? Math.min(1.05, p.amp * 1.7) : p.amp, period = crashed ? p.period * 0.8 : p.period;
   const a = amp * Math.sin(((frame / period) + p.phase) * Math.PI * 2);
   return { a, x: p.x + Math.sin(a) * p.len, y: p.y + Math.cos(a) * p.len, period, amp };
@@ -87,7 +89,7 @@ const runPendulums = (ctx: FrameContext, crashed: boolean) => {
   const { state } = ctx, pl = state.player, pcx = pl.pos.x + pl.width / 2;
   for (const p of PENDULUMS) {
     const b = pendAt(p, state.frame, crashed);
-    if (!b) continue;
+    if (!b || 'still' in b) continue;
     // (the whoosh as it comes through the bottom of its swing, when he's near enough to hear it: and the creak at the top)
     const ph = ((state.frame / b.period) + p.phase) % 0.5;
     const near = Math.abs(b.x - pcx) < 600 && Math.abs(b.y - pl.pos.y) < 300;
@@ -128,9 +130,10 @@ export const drawPendulum = (c: Ctx, p: PendDef, frame: number, crashed: boolean
     c.restore();
     return;
   }
+  if ('still' in b) { box(c, b.x - 2, p.y, 4, b.y - p.y - 20, '#52525B'); for (let y = p.y; y < b.y - 20; y += 10) box(c, b.x - 3, y, 6, 4, '#71717A'); }
   // (a smear behind the blade at speed)
   const prev = pendAt(p, frame - 3, crashed)!;
-  c.globalAlpha = 0.18; c.fillStyle = '#E4E4E7'; c.beginPath(); c.arc(prev.x, prev.y, 30, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+  if (!('still' in b)) c.globalAlpha = 0.18; else c.globalAlpha = 0; c.fillStyle = '#E4E4E7'; c.beginPath(); c.arc(prev.x, prev.y, 30, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
   c.save(); c.translate(p.x, p.y); c.rotate(-b.a);
   box(c, -4, 0, 8, p.len - 10, INK); box(c, -3, 0, 6, p.len - 10, '#78716C'); box(c, -1, 0, 2, p.len - 10, '#A8A29E');
   drawBlade(c, p.len - 14);
