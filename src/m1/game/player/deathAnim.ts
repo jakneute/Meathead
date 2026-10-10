@@ -72,6 +72,8 @@ export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen'
   | 'headshot'
   // a knife in the belly (another game's: registerDeathKind)
   | 'gutted'
+  // another game's own, ticked and drawn by it (registerDeathAnim)
+  | `own:${string}`
   // an animal's attack (see animalDeaths)
   | AnimalDeathKind;
 
@@ -137,6 +139,16 @@ const BY_SOURCE: Record<string, MeatheadDeathKind> = {
   cruiser: 'roadkill', chopper: 'roadkill', moose: 'roadkill', longhorn: 'roadkill', floating_car: 'roadkill',
   needle: 'overdose', powder_blast: 'overdose', meth_barrel: 'overdose',
   alien_laser: 'vaporized',
+};
+
+/** Another game's own death (Meathead 2's): how long it plays, whether it works up in the air as it is, its sounds and
+ *  bits each frame (its drawing: render/player/deathAnim's registerDeathDraw). */
+export interface OwnDeath { frames: number; airOk?: boolean; tick?: (ctx: FrameContext, d: MeatheadDeath, t: number) => void }
+const OWN_DEATHS = new Map<string, OwnDeath>();
+export const registerDeathAnim = (kind: `own:${string}`, def: OwnDeath) => {
+  OWN_DEATHS.set(kind, def);
+  MEATHEAD_DEATH_FRAMES[kind] = def.frames;
+  if (def.airOk) AIR_OK.add(kind);
 };
 
 /** Another game's hurt (Meathead 2's stampeding animals) dies one of these deaths. */
@@ -454,7 +466,7 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       if (t === 20) playSound('powerup', 0.7, -8);
       if (t % 3 === 0) { const y = d.y - overdoseRise(t); P.push({ pos: { x: d.x + rnd(-20, 20), y: y - rnd(0, 64) }, vel: { x: rnd(-0.8, 0.8), y: rnd(-1, 0.6) }, life: 30, color: ['#F472B6', '#A78BFA', '#67E8F9', '#FDE047', '#86EFAC'][t % 5], size: rnd(2, 5) }); }
       break;
-    default: if (d.animal) tickAnimalDeath(ctx, d, t);
+    default: if (d.animal) tickAnimalDeath(ctx, d, t); else OWN_DEATHS.get(d.kind)?.tick?.(ctx, d, t);
   }
 };
 

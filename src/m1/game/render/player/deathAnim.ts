@@ -416,10 +416,15 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       break;
     }
     case 'gutted': drawGutted(ctx, state, d, weapon, t, f); break;
-    default: drawAnimalDeath(ctx, state, d, weapon, t, f);
+    default: { const own = OWN_DRAW.get(d.kind); if (own) own(ctx, state, d, weapon, t, f); else drawAnimalDeath(ctx, state, d, weapon, t, f); }
   }
   ctx.restore();
 };
+
+/** Another game's own death's drawing (player/deathAnim's registerDeathAnim): him (`body`), t frames into it. */
+type OwnDraw = (ctx: Ctx, state: GameState, d: MeatheadDeath, weapon: WeaponType, t: number, f: number) => void;
+const OWN_DRAW = new Map<string, OwnDraw>();
+export const registerDeathDraw = (kind: `own:${string}`, draw: OwnDraw) => { OWN_DRAW.set(kind, draw); };
 
 /** (gutted) His pose, handed to the body (one, reused: see Player.stabbed). */
 const gutPose = { t: 0, at: [] as readonly number[], hunch: 0, hand: 0 };

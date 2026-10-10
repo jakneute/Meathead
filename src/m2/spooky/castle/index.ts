@@ -1,49 +1,244 @@
-// THE CASTLE: section 2 of Spooky Land, DRACULA'S OTHER CASTLE. In through the door at the top of the stairs, and a PA
-// greets him: Dracula (it's Donnie, the fat balding guy in the control room, doing a pompous fake-Transylvanian voice
-// over his Jersey one; never revealed here), a real pretentious prick spouting spooky insidious stuff: survive the
-// ordeals and you might gain an audience with him. Then a ghost tour (Silent Hill 3's haunted manor, as a theme-park
-// walkthrough): a run of absurdly spacious rooms, the dining room, the study, the kitchen, the bedroom and a few
-// more, and in each the PA's spooky but stupid story of the unfortunate circumstances that happened there. Threats in
-// every room (costumed park staff among them: Monster Mash characters, mixed people under them). On into the dungeon.
+// THE CASTLE: section 2 of Spooky Land, DRACULA'S OTHER CASTLE. In through the door at the top of the stairs (it
+// shuts behind him on its own), and the PA greets him: "Dracula" (Donnie, the boss, in his control room, in a fake
+// accent; never revealed here), a pretentious prick: survive the ordeals and you might be granted an audience. Then a
+// ghost tour (Silent Hill 3's haunted manor, as a theme-park walkthrough): seven absurdly spacious rooms, and in each
+// the PA's spooky but stupid story of what happened there (Meathead has his say back after each), each room with its
+// own threat built into the story:
+//   the foyer:    the grand stair and its balcony; one skeleton with a coffin-lid shield (the shield, on its own).
+//   dining room:  the table, the whole length of it (up on it, or under the chandeliers); the chandeliers come down
+//                 on whoever's under them (a creak, a shake, the shadow first; they crush the cast too); more shields.
+//   the study:    shelves and a reading balcony over the spiked-helmet knights (tempting a dive kick: don't);
+//                 the poltergeist bookcases throw volleys of books (they rattle first).
+//   the kitchen:  the stoves (stand on them between flare-ups: they sputter first); the igors' roasting forks (no
+//                 shoulder charging into those); the witch up on her cauldron, lobbing potions.
+//   the bedroom:  the bed bounces him (up to the canopy); vampire brides burst out of the wardrobes and from
+//                 under the bed (hiss, then flat out at him).
+//   the nursery:  the toy train runs the length of the floor (jump it); bat suits swooping on their rigs; real
+//                 bats out of the chimney.
+//   the gallery:  a mummy (the tank) on his own; then everything at once. The empty frame at the end: RESERVED.
+// Then the stairs down to the dungeon. Every type taught on its own before they're mixed.
 //
-// Indoors (no time of day). PA lines: full clean / shitty / naked pools, every group the same size.
-//
-// PLACEHOLDER (the skeleton's crude first pass): one long flat floor, each room's name on a plaque on the wall, the
-// way on at the right end (walk into it), the way back out to the stairs at the left. Owner: see ../OWNERSHIP.md.
+// Indoors (no time of day): candlelight of its own. The PA's lines: full clean / shitty / naked pools (lines.ts).
 
+import type { GameState } from '../../../m1/game/core/state';
+import type { FrameContext } from '../../../m1/game/core/context';
 import type { SpookySection } from '../section';
-import { layOwn, endWalls, endExits, runExits, wallSign, doorway, groundBox, box } from '../section';
-import { SECTIONS, GY } from '../geometry';
+import { layOwn, endWalls, endExits, runExits, solid, ledge, getSpooky } from '../section';
+import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { playSound } from '../../../m1/game/platform/audio';
+import { shakeScreen } from '../../../m1/game/core/state';
+import { registerHurtLines } from '../../kinds';
+import { registerDeathKind } from '../../../m1/game/player/deathAnim';
+import { box } from '../section';
+import { spookyState } from '../section';
+import { spawnStaff, STAFF } from './staff';
+import { paStory, paQuip, paBusy, pick, byPants, drawPaWords } from './pa';
+import { drawCastleBack, drawBooks, drawStoveFire, castleLighting } from './art';
+import {
+  x0, x1, ROOMS, roomAt, CEIL, LEDGES, STOVES, STOVE_TOP, BURNERS, stovePhase, FIRE_H, STOVE_CYCLE, STOVE_FIRE, BED, BOUNCE, CHANDELIERS, CHAND_Y, CHAND_W, CHAND_TELL,
+  BOOKCASES, BOOK_EVERY, BOOK_TELL, TRAIN, WARDROBES, HORNS, CAST, PICKUPS, type Castle,
+} from './layout';
+import * as L from './lines';
 
-const { x0, x1 } = SECTIONS.castle;
-const ROOMS: [x: number, name: string][] = [[0, 'THE FOYER'], [1500, 'THE DINING ROOM'], [3500, 'THE STUDY'], [5500, 'THE KITCHEN'], [7500, 'THE BEDROOM'], [9500, 'THE NURSERY']];
+registerHurtLines('spooky_chandelier', L.HURT_CHANDELIER, L.DEATH_CHANDELIER);
+registerHurtLines('spooky_books', L.HURT_BOOKS, L.DEATH_BOOKS);
+registerHurtLines('spooky_stove', L.HURT_STOVE, L.DEATH_STOVE);
+registerHurtLines('spooky_train', L.HURT_TRAIN, L.DEATH_TRAIN);
+registerDeathKind('spooky_chandelier', 'flattened');
+registerDeathKind('spooky_stove', 'burnt');
+registerDeathKind('spooky_train', 'roadkill');
+
+export { HORNS };
+const castleOf = (state: GameState) => spookyState<Castle>(state, 'castle', () => ({
+  init: false, told: new Set(), chand: [], books: [], shelfT: BOOKCASES.map((_, i) => BOOK_EVERY - i * 50), stoveT: 0,
+  train: { x: TRAIN.a + 200, dir: 1, bell: 0 }, wardrobe: WARDROBES.map(() => false), underBed: false, kills: 0, quipAt: -9999, doorShut: 0,
+}));
+
+/** The stories he's heard, kept across his deaths (no hearing the dining room's again every time he dies in the study);
+ *  back to the start of the land (the town), they're all fresh. */
+const heard = new Set<L.RoomId>();
+
+const pBox = (state: GameState) => {
+  const p = state.player, low = p.isDucking || p.isSliding ? 28 : 0;
+  return { x: p.pos.x, y: p.pos.y + low, w: p.width, h: p.height - low };
+};
+const hits = (b: { x: number; y: number; w: number; h: number }, x: number, y: number, w: number, h: number) => x < b.x + b.w && x + w > b.x && y < b.y + b.h && y + h > b.y;
+const canHurt = (state: GameState) => state.player.invincibilityTimer <= 0 && state.player.health > 0 && !state.player.inCutscene;
+const isStaff = new Set<string>(Object.values(STAFF));
+
+// ---------------------------------------------------------------------------------------------------------------
+// The tour: the greeting, each room's story, the quips
+
+const runTour = (state: GameState, cs: Castle) => {
+  const p = state.player, cx = p.pos.x + p.width / 2;
+  if (!heard.has('foyer') && cx > x0 + 240) {
+    heard.add('foyer');
+    cs.doorShut = 1; playSound('slam', 1, -6); shakeScreen(state, 6, 3);
+    paStory(state, byPants(state, L.PA_GREET), pick(L.MH_GREET));
+  }
+  const r = roomAt(cx);
+  if (r && r.id !== 'foyer' && !heard.has(r.id) && cx > r.a + 180) {
+    heard.add(r.id);
+    paStory(state, byPants(state, L.PA_STORY[r.id]), pick(L.MH_REPLY[r.id]));
+  }
+  // (now and then, as he kills off the cast: a quip, if the PA's quiet)
+  const liveNow = state.enemies.filter(e => isStaff.has(e.kind ?? '') && e.health > 0 && !e.isBlownAway && e.pos.x > x0 && e.pos.x < x1).length;
+  if (cs.kills > liveNow && heard.has('foyer') && state.frame - cs.quipAt > 900 && !paBusy(state) && Math.random() < 0.5) {
+    if (paQuip(state, pick(byPants(state, L.PA_KILL)))) cs.quipAt = state.frame;
+  }
+  cs.kills = liveNow;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The set pieces
+
+const runChandeliers = (ctx: FrameContext, cs: Castle) => {
+  const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
+  for (const ch of cs.chand) {
+    ch.t++;
+    if (ch.state === 'hang' && Math.abs(cx - ch.x) < 150 && p.pos.y > CHAND_Y) { ch.state = 'tell'; ch.t = 0; playSound('crack', 0.6, -6); playSound('clink', 0.5, -4); }
+    else if (ch.state === 'tell') {
+      if (ch.t % 6 === 0) state.particles.push({ pos: { x: ch.x + (Math.random() - 0.5) * 40, y: CEIL + 40 }, vel: { x: 0, y: 2 }, life: 60, color: '#A8A29E', size: 3 });
+      if (ch.t >= CHAND_TELL) { ch.state = 'fall'; ch.t = 0; ch.vy = 0; playSound('whoosh', 0.8, -8); }
+    } else if (ch.state === 'fall') {
+      ch.vy += 0.9; ch.y += ch.vy;
+      // (it comes down on the table, or the floor)
+      const floor = ch.x > LEDGES[3][0] && ch.x < LEDGES[3][0] + LEDGES[3][2] ? LEDGES[3][1] : GY;
+      const bottom = ch.y + 34;
+      if (canHurt(state) && hits(pBox(state), ch.x - CHAND_W / 2, ch.y, CHAND_W, 34)) hurtPlayer(ctx, 18, 'spooky_chandelier', { x: Math.sign(cx - ch.x || 1) * 5, y: -4 });
+      // (and on whoever of the cast is under it: flat)
+      for (const e of state.enemies) if (e.health > 0 && !e.isBlownAway && hits({ x: e.pos.x, y: e.pos.y, w: e.width, h: e.height }, ch.x - CHAND_W / 2, ch.y, CHAND_W, 34)) {
+        e.health = 0; e.isBlownAway = true; e.vel = { x: Math.sign(e.pos.x - ch.x || 1) * 4, y: -3 };
+        ctx.fx.spawnDeathShower({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 }, 0, 3);
+        playSound('splat', 1, -4);
+      }
+      if (bottom >= floor) {
+        ch.y = floor; ch.state = 'down';
+        playSound('glass', 1, -4); playSound('crash', 0.9, -6); shakeScreen(state, 10, 5);
+        for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: ch.x + (Math.random() - 0.5) * 60, y: floor - 10 }, vel: { x: (Math.random() - 0.5) * 8, y: -2 - Math.random() * 5 }, life: 40, color: i % 3 ? '#E0F2FE' : '#FACC15', size: 2 + Math.random() * 3, grav: 0.35 });
+      }
+    }
+  }
+};
+
+const BOOK_COLS = ['#7F1D1D', '#1E3A8A', '#14532D', '#78350F', '#4C1D95'];
+const runBooks = (ctx: FrameContext, cs: Castle) => {
+  const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
+  BOOKCASES.forEach(([x, y], i) => {
+    const near = Math.abs(cx - x) < 520 && Math.abs(cy - y) < 400 && canHurt(state);
+    if (!near && cs.shelfT[i] > BOOK_TELL) return;
+    cs.shelfT[i]--;
+    if (cs.shelfT[i] === BOOK_TELL) playSound('crumble', 0.5, 6);
+    if (cs.shelfT[i] <= 0) {
+      cs.shelfT[i] = BOOK_EVERY;
+      const dx = cx - x, dy = cy - (y - 60), len = Math.hypot(dx, dy) || 1;
+      for (let k = 0; k < 3; k++) {
+        const a = (k - 1) * 0.16, vx = (dx / len) * 7.5, vy = (dy / len) * 7.5;
+        cs.books.push({ x, y: y - 60 - k * 22, vx: vx * Math.cos(a) - vy * Math.sin(a), vy: vx * Math.sin(a) + vy * Math.cos(a), rot: 0, t: 0, col: BOOK_COLS[(k + i) % BOOK_COLS.length] });
+      }
+      playSound('whoosh', 0.8, 6);
+    }
+  });
+  cs.books = cs.books.filter(b => {
+    b.t++; b.x += b.vx; b.y += b.vy; b.vy += 0.04; b.rot += 0.35 * Math.sign(b.vx || 1);
+    if (canHurt(state) && hits(pBox(state), b.x - 9, b.y - 6, 18, 12)) { hurtPlayer(ctx, 8, 'spooky_books', { x: Math.sign(b.vx) * 4, y: -3 }); return false; }
+    if (b.y > GY - 4 || b.t > 140) { for (let k = 0; k < 4; k++) state.particles.push({ pos: { x: b.x, y: Math.min(b.y, GY - 4) }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 30, color: '#FEF3C7', size: 3, grav: 0.2 }); return false; }
+    return true;
+  });
+};
+
+const runStoves = (ctx: FrameContext, cs: Castle) => {
+  const { state } = ctx;
+  const p = state.player, cx = p.pos.x + p.width / 2;
+  if (Math.abs(cx - STOVES[0][0]) < 1400) cs.stoveT++;
+  STOVES.forEach(([x], i) => {
+    const ph = stovePhase(cs.stoveT, i);
+    const k = (cs.stoveT + i * 100) % STOVE_CYCLE;
+    if (k === STOVE_CYCLE - STOVE_FIRE && Math.abs(cx - x) < 900) { playSound('ignite', 0.8, -4); playSound('flame', 0.4, -6); }
+    if (ph !== 'fire' || !canHurt(state)) return;
+    for (const [bx, bw] of BURNERS) if (hits(pBox(state), x + bx, STOVE_TOP - FIRE_H, bw, FIRE_H)) { hurtPlayer(ctx, 12, 'spooky_stove', { x: cx < x + bx + bw / 2 ? -5 : 5, y: -7 }); return; }
+  });
+};
+
+const runBed = (ctx: FrameContext, cs: Castle) => {
+  const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  if (p.isGrounded && cx > BED.x && cx < BED.x + BED.w && Math.abs(feet - BED.top) < 3 && p.health > 0) {
+    p.vel.y = -BOUNCE; p.isGrounded = false; p.jumpHoldTimer = 0; p.jumpBufferTimer = 0; p.coyoteJumpTimer = 0;
+    playSound('boing', 0.8, -2);
+    // (somebody under it: she's out)
+    if (!cs.underBed) { cs.underBed = true; const e = spawnStaff(state, 'bride', BED.x + BED.w + 40, GY, 7, -1); e.facing = cx < e.pos.x ? -1 : 1; e.aiState = 'hiss'; playSound('snort', 0.8, 10); }
+  }
+  // Out of the wardrobes as he comes near
+  WARDROBES.forEach((x, i) => {
+    if (cs.wardrobe[i] || cx < x - 250 || cx > x + 400) return;
+    cs.wardrobe[i] = true;
+    const e = spawnStaff(state, 'bride', x, GY, 3 + i * 5, cx < x ? -1 : 1);
+    e.aiState = 'hiss';
+    playSound('crack', 0.8, -2); playSound('snort', 0.8, 10);
+  });
+};
+
+const runTrain = (ctx: FrameContext, cs: Castle) => {
+  const { state } = ctx, tr = cs.train, p = state.player, cx = p.pos.x + p.width / 2;
+  if (Math.abs(cx - (TRAIN.a + TRAIN.b) / 2) > 1400) return;
+  tr.x += tr.dir * TRAIN.speed;
+  if (tr.x > TRAIN.b) { tr.x = TRAIN.b; tr.dir = -1; playSound('ding', 0.4, 6); }
+  if (tr.x < TRAIN.a) { tr.x = TRAIN.a; tr.dir = 1; playSound('ding', 0.4, 6); }
+  if (++tr.bell % 50 === 0 && Math.abs(cx - tr.x) < 600) playSound('ding', 0.25, 12);
+  if (canHurt(state) && hits(pBox(state), tr.x, GY - TRAIN.h, TRAIN.w, TRAIN.h)) hurtPlayer(ctx, 14, 'spooky_train', { x: tr.dir * 7, y: -6 });
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 
 export const castle: SpookySection = {
   id: 'castle', x0, x1,
   checkpoints: [
     { name: 'THE CASTLE FOYER', cp: 10, x: x0 + 200, y: GY },
-    { name: 'THE BEDROOM', cp: 11, x: x0 + 7600, y: GY },
+    { name: 'THE STUDY', cp: 11, x: ROOMS[2].a + 60, y: GY },
+    { name: 'THE MASTER BEDROOM', cp: 12, x: ROOMS[4].a + 60, y: GY },
+    { name: 'THE PORTRAIT GALLERY', cp: 13, x: ROOMS[6].a + 60, y: GY },
   ],
   build: (state) => {
-    layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'carpet' }]);
+    // (back at the start of the land: the tour's all fresh)
+    if (state.checkpoint < 10) heard.clear();
+    layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'wood' }]);
     endWalls(state, 'castle');
+    solid(state, x0 - 200, CEIL - 60, x1 - x0 + 400, 60, { hidden: true, tag: 'castle-ceiling' });
+    for (const [x, y, w] of LEDGES) ledge(state, x, y, w, { hidden: true, tag: 'castle-ledge' });
+    for (const [x, w] of STOVES) solid(state, x, STOVE_TOP, w, GY - STOVE_TOP, { hidden: true, tag: 'castle-stove' });
+    solid(state, BED.x, BED.top, BED.w, GY - BED.top, { hidden: true, tag: 'castle-bed' });
+    CAST.forEach(([kind, x, y], i) => spawnStaff(state, kind, x, y, i));
+    for (const [x, y, type] of PICKUPS) state.pickups.push({ id: `castle-${x}`, pos: { x: x - 10, y: y - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
+    const cs = castleOf(state);
+    cs.chand = CHANDELIERS.map(x => ({ x, y: CHAND_Y, vy: 0, state: 'hang', t: 0 }));
   },
   update: (ctx, controls) => {
-    runExits(ctx.state, endExits('castle'));
+    const { state } = ctx;
+    const cs = castleOf(state);
+    if (!cs.init) {
+      // (starting further in (the checkpoint's only known once the stage is built): the rooms behind him have had their say)
+      cs.init = true;
+      const from = state.checkpoint >= 20 ? Infinity : castle.checkpoints.find(c => c.cp === state.checkpoint)?.x ?? -Infinity;
+      for (const r of ROOMS) if (r.b <= from) heard.add(r.id);
+    }
+    if (runExits(state, endExits('castle'))) return controls;
+    runTour(state, cs);
+    runChandeliers(ctx, cs);
+    runBooks(ctx, cs);
+    runStoves(ctx, cs);
+    runBed(ctx, cs);
+    runTrain(ctx, cs);
     return controls;
   },
-  drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#2B0F14'); return true; },
-  drawBack: (c) => {
-    // (the rooms' walls, alternating, a pillar between each)
-    ROOMS.forEach(([rx, name], i) => {
-      const a = x0 + rx, b = i + 1 < ROOMS.length ? x0 + ROOMS[i + 1][0] : x1;
-      box(c, a, GY - 600, b - a, 600, i % 2 ? '#3A1820' : '#44202A');
-      box(c, a, GY - 600, 40, 600, '#1C0A0E');
-      wallSign(c, a + 300, GY - 320, name, '#4A0E0E', '#FDE68A');
-    });
-    groundBox(c, x0 - 200, x1 + 200, GY, '#5A1A1A', '#B45353');
-    doorway(c, x0 + 40, GY, 'OUT');
-    doorway(c, x1 - 60, GY, 'DUNGEON');
+  drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#140608'); return true; },
+  drawBack: (c, state) => drawCastleBack(c, state, castleOf(state)),
+  drawFront: (c, state) => {
+    const cs = castleOf(state);
+    drawStoveFire(c, state, cs);
+    drawBooks(c, cs);
+    if (getSpooky(state)?.section === 'castle') drawPaWords(c, state, HORNS);
   },
+  lighting: (state) => castleLighting(state, castleOf(state)),
 };

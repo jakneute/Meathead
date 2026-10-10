@@ -1,6 +1,65 @@
-// Every line said in this section of Spooky Land, by voice id (the voice pack records these: spooky/voices.ts gathers
-// them; tools/voices/m2pack.ts and extract.ts take them from there). Meathead's lines go under 'meathead'; anybody
-// else's under their voice id (new speakers need an entry in tools/voices/cast.json). Keep the clean / shitty / naked
-// pools the same size wherever lines react to how he is.
+// What's said in the dungeon (by voice: spooky/voices.ts gathers these). The PA ('m2.donnie.pa': Donnie as "Dracula")
+// three ways every time, clean / shitty pants / naked, each pool the same size. The spiked ceiling's a new way to hurt
+// him: its hurt callouts and its death lines (and its own death: dungeon/death.ts).
 
-export const VOICE_LINES: Record<string, string[]> = {};
+import { PA, type ByPants } from '../castle/lines';
+
+/** In through the dungeon door: its story, and the spiked ceiling's, ahead. */
+export const PA_DUNGEON: ByPants = {
+  clean: [
+    'THE DUNGEON. MY GUESTS COME DOWN HERE TO... HANG OUT. ON THE VALL. IN CHAINS. FOREVER.',
+    'AHEAD, THE CHAMBER OF THE DESCENDING CEILINK. INSTALLED IN NINETEEN SIXTY-TWO BY A CONTRACTOR NAMED SAL.',
+    'SAL TESTED IT HIMSELF. VE KEPT THE SPIKES. VE DID NOT KEEP SAL. VELL. MOST OF SAL.',
+  ],
+  shitty: [
+    'THE DUNGEON. MY GUESTS COME DOWN HERE TO... HANG OUT. FOREVER. IT SMELLED BETTER DOWN HERE VITH THE BODIES. BEFORE YOU.',
+    'AHEAD, THE CHAMBER OF THE DESCENDING CEILINK. INSTALLED BY A CONTRACTOR NAMED SAL. SAL ALSO DID THE PLUMBING. YOU COULD HAVE USED IT.',
+    'SAL TESTED IT HIMSELF. HE DIED VITH DIGNITY. AND CLEAN PANTS. THAT IS MORE THAN YOU VILL GET.',
+  ],
+  nude: [
+    'THE DUNGEON. MY GUESTS COME DOWN HERE TO... HANG OUT. YOU ARE ALREADY HANGING OUT. EVERYTHING IS.',
+    'AHEAD, THE CHAMBER OF THE DESCENDING CEILINK. VITH SPIKES. I VOULD NOT GO IN THERE VITH SO MUCH... EXPOSED.',
+    'SAL TESTED IT HIMSELF. VE KEPT THE SPIKES. THE SPIKES HAVE SEEN THINGS. NOTHING LIKE VHAT THEY ARE ABOUT TO SEE.',
+  ],
+};
+/** The doors shut, and the ceiling starts down. */
+export const PA_CEILING: ByPants = {
+  clean: [
+    'THE DOORS ARE LOCKED. THE LEVER IS UP THERE. NOT THAT I AM HELPING.',
+    'LOVER... LOVER... THE CEILINK IS COMING DOWN TO MEET YOU. HOV POLITE.',
+    'DO NOT DUCK. I VANT TO SEE.',
+  ],
+  shitty: [
+    'THE DOORS ARE LOCKED. THE LEVER IS UP THERE. THE SMELL, HOVEVER, IS DOWN HERE. VITH YOU. ALVAYS.',
+    'LOVER... LOVER... THE CEILINK IS COMING DOWN. IT VILL SEAL THE SMELL IN. LIKE A LID.',
+    'DO NOT DUCK. VHEN YOU DUCK, IT GETS VORSE. FOR EVERYBODY.',
+  ],
+  nude: [
+    'THE DOORS ARE LOCKED. THE LEVER IS UP THERE. CLIMB. NO, VAIT, DO NOT CLIMB. I CAN SEE EVERYTHING VHEN YOU CLIMB.',
+    'LOVER... LOVER... THE CEILINK IS COMING DOWN. THE SPIKES ARE AIMING. THERE IS SO MUCH TO AIM AT.',
+    'DO NOT DUCK. NOT LIKE THAT. NOT NAKED. NOT TOVARD THE CAMERA.',
+  ],
+};
+/** He got out. */
+export const PA_ESCAPED: ByPants = {
+  clean: ['...HE GOT OUT. OF COURSE HE GOT OUT. SAL, YOU USELESS... I MEAN. YES. YOU HAVE PASSED THE ORDEAL. HA. HA.', 'IMPRESSIVE. THE CEILINK IS VERY DISAPPOINTED IN YOU. AS AM I.'],
+  shitty: ['...HE GOT OUT. AND HE LEFT SOMETHING BEHIND. ON THE FLOOR. SAL, GET A MOP. SAL? SAL IS DEAD. GET A MOP ANYVAY.', 'IMPRESSIVE. YOU ESCAPED. THE SMELL DID NOT. IT VILL LIVE IN THERE FOREVER.'],
+  nude: ['...HE GOT OUT. THE SPIKES MISSED EVERYTHING. EVERY... DANGLING... THING. HOV?', 'IMPRESSIVE. YOU ESCAPED. THE CEILINK IS RELIEVED. IT DID NOT VANT TO TOUCH YOU EITHER.'],
+};
+
+/** Meathead. */
+export const MH_DUNGEON = ['MOST OF SAL. GREAT. LOVE THAT.', 'A SPIKED CEILING. IN A KIDS PARK. WHO SIGNED OFF ON THIS?'];
+export const MH_CEILING = ["THE CEILING'S MOVING. THE CEILING IS MOVING!", 'OH, COME ON. A SPIKE ROOM? REALLY?'];
+export const MH_LEVER = ['GOT IT! DOOR! DOOR!', 'LEVER! YES! GO GO GO!'];
+export const MH_ESCAPED = ['SUCK IT, SAL.', 'TOO SLOW, CEILING.'];
+
+export const HURT_CEILING = ['SPIKES! IN MY HEAD!', 'THE CEILING! IT GOT MY SCALP!', 'OW! TOP OF THE HEAD!', "I'M GETTING SHORTER!"];
+export const DEATH_CEILING = ['SKEWERED BY THE CEILING', 'KEBABED', 'MOST OF MEATHEAD'];
+
+const all = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
+
+export const VOICE_LINES: Record<string, string[]> = {
+  [PA]: [...all(PA_DUNGEON), ...all(PA_CEILING), ...all(PA_ESCAPED)],
+  meathead: [...MH_DUNGEON, ...MH_CEILING, ...MH_LEVER, ...MH_ESCAPED, ...HURT_CEILING],
+  death: [...DEATH_CEILING],
+};
