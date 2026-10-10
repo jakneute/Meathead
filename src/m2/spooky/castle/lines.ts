@@ -33,7 +33,7 @@ export const PA_GREET: ByPants = {
 
 export type RoomId = 'foyer' | 'dining' | 'study' | 'kitchen' | 'bedroom' | 'nursery' | 'gallery';
 
-export const PA_STORY: Record<Exclude<RoomId, 'foyer'>, ByPants> = {
+const STORY_FULL: Record<Exclude<RoomId, 'foyer'>, ByPants> = {
   dining: {
     clean: [
       'THE DINING ROOM. IN EIGHTEEN EIGHTY-SEVEN, THE COUNTESS HOSTED A FEAST HERE. FORTY GUESTS.',
@@ -138,6 +138,21 @@ export const PA_STORY: Record<Exclude<RoomId, 'foyer'>, ByPants> = {
   },
 };
 
+/** Each room's story, as it's told: two lines (the full three were a little much): a line of who and what, run into
+ *  the story's best beat; then its punchline (the room's threat, as often as not). */
+const STORY_HEAD: Record<Exclude<RoomId, 'foyer'>, string> = {
+  dining: 'THE DINING ROOM. A FEAST FOR FORTY, EIGHTEEN EIGHTY-SEVEN.',
+  study: 'THE STUDY. DOCTOR ABERNATHY OPENED THE FORBIDDEN TOME.',
+  kitchen: "THE KITCHEN. THE COOK MISTOOK THE COUNT'S MOTHER-IN-LAV FOR A HAM.",
+  bedroom: 'THE MASTER BEDROOM. LADY MORTIMER VENT TO BED ONE VINTER.',
+  nursery: "THE NURSERY. LITTLE VILHELM'S FAVORITE TOY VAS A LIT CANDLE.",
+  gallery: 'THE PORTRAIT GALLERY. MY ANCESTORS, EACH PAINTED AS THEY DIED.',
+};
+const twoLines = (head: string, r: ByPants): ByPants => ({
+  clean: [`${head} ${r.clean[1]}`, r.clean[2]], shitty: [`${head} ${r.shitty[1]}`, r.shitty[2]], nude: [`${head} ${r.nude[1]}`, r.nude[2]],
+});
+export const PA_STORY = Object.fromEntries(Object.entries(STORY_FULL).map(([k, r]) => [k, twoLines(STORY_HEAD[k as keyof typeof STORY_HEAD], r)])) as Record<Exclude<RoomId, 'foyer'>, ByPants>;
+
 /** The PA, now and then, as he kills off the cast (once the story's done, never over it). */
 export const PA_KILL: ByPants = {
   clean: [
@@ -181,25 +196,6 @@ export const MH_REPLY: Record<Exclude<RoomId, 'foyer'>, readonly string[]> = {
   nursery: ['WHO GIVES A KID A CANDLE? FOUR TIMES?', 'A TRAIN NOBODY WINDS UP. THAT IS THE LEAST SCARY HAUNTING I EVER HEARD OF.'],
   gallery: ["THAT'S A LOT OF FRAMES FOR A GUY WHO SHOULDN'T SHOW UP IN A MIRROR.", 'IF YOU PAINT ME, GET MY GOOD SIDE. IT IS ALL SIDES.'],
 };
-/** The trapdoor at the end of the gallery: the PA, as the floor goes under him (one of). */
-export const PA_TRAPDOOR: ByPants = {
-  clean: [
-    'AH. YOU HAVE FOUND THE EXIT. IT IS NOT THE EXIT. IT IS DOWN. ENJOY THE DUNGEON, MORTAL.',
-    'THE TOUR CONTINUES... BELOW. MIND THE FIRST STEP. IT IS FORTY FEET.',
-  ],
-  shitty: [
-    'AH. THE FLOOR HAS DECIDED IT CANNOT HOLD YOU EITHER. NOBODY WANTS TO. DOWN YOU GO.',
-    'THE TOUR CONTINUES... BELOW. WITH THE OTHER THINGS THAT SMELL. YOU WILL FIT RIGHT IN.',
-  ],
-  nude: [
-    'AH. THE FLOOR OPENS. AS DID YOUR... EVERYTHING. DOWN YOU GO. ALL OF YOU. FLAPPING.',
-    'THE TOUR CONTINUES... BELOW. TRY TO LAND ON SOMETHING SOFT. NOT LIKE THAT. NOT ON THAT.',
-  ],
-};
-/** Meathead, down the shaft. */
-export const MH_FALL = ['OH, COME ON!', 'NOT AGAIN! WAIT, THIS IS THE FIRST TIME!', 'WHO PUTS A TRAPDOOR IN AN ART GALLERY?!'];
-/** Meathead, on the trapdoor as it creaks (if the PA's quiet). */
-export const MH_CREAK = ['THAT FLOOR SOUNDS WRONG.'];
 
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -239,9 +235,9 @@ export const DEATH_TRAIN = ['RUN DOWN BY A TOY TRAIN', 'HIT BY THE LITTLE ENGINE
 const all = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 
 export const VOICE_LINES: Record<string, string[]> = {
-  [PA]: [...all(PA_GREET), ...Object.values(PA_STORY).flatMap(all), ...all(PA_KILL), ...all(PA_TRAPDOOR)],
+  [PA]: [...all(PA_GREET), ...Object.values(PA_STORY).flatMap(all), ...all(PA_KILL)],
   meathead: [
-    ...MH_GREET, ...Object.values(MH_REPLY).flat(), ...MH_FALL, ...MH_CREAK,
+    ...MH_GREET, ...Object.values(MH_REPLY).flat(),
     ...HURT_SKELETON, ...HURT_KNIGHT, ...HURT_KNIGHT_SPIKES, ...HURT_IGOR, ...HURT_FORK, ...HURT_WITCH, ...HURT_FLASK, ...HURT_BRIDE,
     ...HURT_BATSUIT, ...HURT_MUMMY, ...HURT_BAT, ...HURT_CHANDELIER, ...HURT_BOOKS, ...HURT_STOVE, ...HURT_TRAIN,
   ],

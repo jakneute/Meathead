@@ -61,6 +61,11 @@ export const GARY_SCREAM = ['OH NO. OH NO NO NO. THAT IS NOT OURS!', "THAT'S NOT
 /** Meathead, through the door, it shut on the mist behind him. */
 export const MH_MIST_SAFE = ["...THAT WASN'T IN THE BROCHURE.", "I'M GONNA PRETEND THAT DIDN'T HAPPEN. THAT DIDN'T HAPPEN."];
 
+/** ...down a dead end of it. */
+export const MH_DEADEND = ['NOPE. WRONG WAY. SUPERNATURAL MAZE. GREAT.', "BRICKED UP. OF COURSE IT'S BRICKED UP.", 'LOCKED?! WHO LOCKS A DOOR IN A DEATH MAZE?!'];
+/** ...a way on that looked like a dead end. */
+export const MH_FALSE_DOOR = ['OH. IT OPENS. SURE. WHY NOT.'];
+export const MH_FALSE_WALL = ['I WAS GONNA PUNCH THAT WALL. IT JUST GAVE UP.'];
 export const HURT_MIST = ['IT BURNS! IT BURNS INSIDE!', 'MY GUTS ARE ON THE OUTSIDE!'];
 export const DEATH_MIST = ['TURNED INSIDE OUT', 'LIQUEFIED', 'MEATHEAD SOUP', 'A PUDDLE OF HIS FORMER SELF'];
 
@@ -68,7 +73,7 @@ const all = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 
 export const VOICE_LINES: Record<string, string[]> = {
   [PA]: [...all(PA_MIST), ...all(PA_MIST_SAFE)],
-  meathead: [...MH_MIST_START, ...MH_MIST, ...MH_GARY, ...MH_MIST_SAFE, ...HURT_MIST],
+  meathead: [...MH_DEADEND, ...MH_FALSE_DOOR, ...MH_FALSE_WALL, ...MH_MIST_START, ...MH_MIST, ...MH_GARY, ...MH_MIST_SAFE, ...HURT_MIST],
   death: [...DEATH_MIST],
   'm2.spooky.gary': [...GARY_SCREAM],
 };

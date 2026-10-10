@@ -49,10 +49,14 @@ const OPEN: [number, number, number, number][] = [
   [X(0), LV[0] - HALL, RCOL[1], LV[0]],
   [RCOL[0], LV[1] - HALL, RCOL[1], LV[0]],
   [LCOL[0], LV[1] - HALL, RCOL[1], LV[1]],
+  // (a dead end: on past the shaft up, to a bricked-up arch)
+  [X(1850), LV[1] - HALL, LCOL[0], LV[1]],
   [LCOL[0], LV[2] - HALL, LCOL[1], LV[1]],
   [LCOL[0], LV[2] - HALL, RCOL[1], LV[2]],
   [RCOL[0], LV[3] - HALL, RCOL[1], LV[2]],
   [LCOL[0], LV[3] - HALL, RCOL[1], LV[3]],
+  // (another: on past the shaft up, to a locked door)
+  [X(1850), LV[3] - HALL, LCOL[0], LV[3]],
   [LCOL[0], LV[4] - HALL, LCOL[1], LV[3]],
   [LCOL[0], LV[4] - HALL, TOP_END, LV[4]],
 ];
@@ -84,8 +88,20 @@ const PILES: [number, number, number, number][] = [
 ];
 /** The doors across the halls that slam on their own (open a while, then shut a while): x, floor, phase. */
 const SLAMS: [number, number, number][] = [
-  [X(1300), LV[0], 0], [X(2500), LV[0], 50], [X(3400), LV[0], 100], [X(3000), LV[1], 30], [X(3700), LV[2], 80], [X(2700), LV[3], 10], [X(3000), LV[4], 60],
+  [X(1300), LV[0], 0], [X(2500), LV[0], 50], [X(3400), LV[0], 100], [X(3000), LV[1], 30], [X(3050), LV[2], 80], [X(2700), LV[3], 10], [X(3000), LV[4], 60],
 ];
+/** The maze of it. Dead ends (on past the way up, to a bricked-up arch, a locked door): short, and it's plain soon
+ *  enough what they are; while he's in one the mist all but waits (a turn back costs him a second or two, not his
+ *  life). And two that only look like dead ends: a door shut across the way that opens as he comes up to it, and a wall
+ *  of rotten boards across the top hall that gives as he shoves (or charges) into it. */
+const DEAD = [
+  { a: X(1850), b: LCOL[0], fl: LV[1], look: 'bricks' as const },
+  { a: X(1850), b: LCOL[0], fl: LV[3], look: 'locked' as const },
+];
+/** Where the dead ends branch off the way (the foot of the shaft up, on the way along), and how far along the way that is. */
+const JX = X(2350);
+const junction = (d: (typeof DEAD)[number]) => CUM[d.fl === LV[1] ? 3 : 7];
+const FALSE_DOOR = { x: X(3760), fl: LV[2] }, ROTTEN = { x: X(3800), fl: LV[4] };
 const SLAM_CYCLE = 150, SLAM_SHUT = 42, SLAM_TELL = 18;
 const slamShutAt = (t: number, ph: number) => (t + ph) % SLAM_CYCLE >= SLAM_CYCLE - SLAM_SHUT;
 const slamTell = (t: number, ph: number) => { const k = (t + ph) % SLAM_CYCLE; return k >= SLAM_CYCLE - SLAM_SHUT - SLAM_TELL && k < SLAM_CYCLE - SLAM_SHUT; };
@@ -143,11 +159,12 @@ interface Mist {
   /** Where he's got to along the way (the furthest). */
   ps: number;
   slams: Block[]; fire: Block | null; fireShut: number;
+  falseDoor: Block | null; rotten: Block | null; push: number; branchT: number; deadSaid: boolean[]; falseSaid: boolean;
   told: boolean; quietAt: number; talking: boolean;
   gary: { x: number; state: 'idle' | 'run' | 'gone'; said: Said | null; t: number };
 }
 const mistOf = (state: GameState) => spookyState<Mist>(state, 'mist', () => ({
-  init: false, mist: 'wait', s: 0, t: 0, startedAt: 0, ps: 0, slams: [], fire: null, fireShut: 0, told: false, quietAt: 0, talking: false,
+  init: false, mist: 'wait', s: 0, t: 0, startedAt: 0, ps: 0, slams: [], fire: null, fireShut: 0, falseDoor: null, rotten: null, push: 0, branchT: 0, deadSaid: [false, false], falseSaid: false, told: false, quietAt: 0, talking: false,
   gary: { x: X(1650), state: 'idle', said: null, t: 0 },
 }));
 /** Heard the PA's start of it already, and how far through his remarks he's got (kept across his deaths: no hearing
@@ -166,6 +183,10 @@ const run = (ctx: FrameContext, m: Mist) => {
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   const ps = progressOf(cx, feet);
   if (ps !== null) m.ps = ps;
+  // (in a dead end, or headed into one past the shaft up: as far along as the shaft's foot (the way on's back there);
+  // the mist all but waits for him while he's in there, and comes on in after him if it gets to the shaft first)
+  let branch = false;
+  for (const d of DEAD) if (cx < JX && cx > d.a - 20 && feet <= d.fl + 4 && feet > d.fl - 60) { m.ps = junction(d); branch = true; }
   // The PA starts the final ordeal (and goes off script)
   if (!m.told && cx > X(240) && m.mist === 'wait') {
     m.told = true;
@@ -188,12 +209,33 @@ const run = (ctx: FrameContext, m: Mist) => {
     if (shut && b.y < -9000 && !inWay) { b.y = fl - HALL; if (Math.abs(cx - x) < 900 && Math.abs(feet - fl) < 500) { playSound('slam', 0.9, -2); shakeScreen(state, 4, 2); } }
     else if (!shut && b.y > -9000) b.y = -99999;
   });
+  // The door that only looks like the end of it: it opens as he comes up to it
+  if (m.falseDoor && m.falseDoor.y > -9000 && Math.abs(cx - FALSE_DOOR.x) < 150 && feet <= FALSE_DOOR.fl + 2 && feet > FALSE_DOOR.fl - HALL) {
+    m.falseDoor.y = -99999; playSound('clang', 0.8, -8); playSound('whoosh', 0.5, -10);
+    if (!m.falseSaid && !m.talking && !paBusy(state)) { m.falseSaid = true; say(m, state, pick(L.MH_FALSE_DOOR)); }
+  }
+  // The rotten boards: shoved a moment (or charged, slid into), they give
+  if (m.rotten && m.rotten.y > -9000) {
+    const against = Math.abs(cx - ROTTEN.x) < p.width / 2 + 16 && feet <= ROTTEN.fl + 2 && feet > ROTTEN.fl - HALL;
+    m.push = against ? m.push + 1 : 0;
+    if (against && (p.isCharging || p.isSliding || m.push > 12)) {
+      m.rotten.y = -99999; playSound('crash', 1, -4); playSound('crack', 0.8, -6); shakeScreen(state, 6, 3);
+      for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: ROTTEN.x, y: ROTTEN.fl - Math.random() * HALL }, vel: { x: 2 + Math.random() * 5, y: -2 - Math.random() * 3 }, life: 50, color: k % 2 ? '#5A3420' : '#3A2216', size: 4 + Math.random() * 6, grav: 0.35 });
+      if (!m.falseSaid && !m.talking && !paBusy(state)) { m.falseSaid = true; say(m, state, pick(L.MH_FALSE_WALL)); }
+    }
+  }
+  // A dead end: he's in one (it all but waits for him), and he's got something to say about it
+  const dead = DEAD.findIndex(d => cx > d.a - 10 && cx < d.b && feet <= d.fl + 4 && feet > d.fl - HALL);
+  if (dead >= 0 && m.mist === 'on' && !m.deadSaid[dead] && cx < DEAD[dead].b - 120 && !m.talking && !paBusy(state)) { m.deadSaid[dead] = true; say(m, state, pick(L.MH_DEADEND)); }
   if (m.mist !== 'on') return;
   m.t++;
   // On it comes, quicker the further back it is (it's always right there)
   const gap = m.ps - m.s, seg = SEG[pointAt(m.s).i];
   const base = seg.flat ? MIST_FLAT : MIST_UP;
-  const mult = gap > 300 ? Math.min(2.6, 1 + (gap - 300) / 300) : gap < 140 ? 0.92 : 1;
+  // (down a dead end, or on his way back out of one: it all but waits)
+  m.branchT = branch ? 30 : Math.max(0, m.branchT - 1);
+  const mult0 = gap > 300 ? Math.min(2.6, 1 + (gap - 300) / 300) : gap < 140 ? 0.92 : 1;
+  const mult = m.branchT > 0 ? Math.min(1, mult0) * 0.1 : mult0;
   m.s += base * mult;
   if (m.t % 30 === 0) playSound('rumble', 0.25, -14);
   // It has him
@@ -266,6 +308,23 @@ const drawHall = (c: CanvasRenderingContext2D, state: GameState, m: Mist) => {
       box(c, x + 16 + r, fl - HALL + 14, after ? 22 : 10, HALL - 14, after ? '#3A2214' : '#4A2A18');
     }
   });
+  // The dead ends: a bricked-up arch, a door chained and padlocked
+  for (const d of DEAD) if (seenR(state, d.a - 20, d.fl - HALL, d.a + 120, d.fl)) {
+    if (d.look === 'bricks') { box(c, d.a, d.fl - HALL + 40, 90, HALL - 40, '#5A2A22'); for (let y = d.fl - HALL + 44; y < d.fl; y += 18) for (let x = d.a + ((y / 18) % 2 ? 0 : 12); x < d.a + 86; x += 24) box(c, x, y, 21, 15, '#7A3A2E'); box(c, d.a + 90, d.fl - HALL + 30, 14, HALL - 30, '#3A2A24'); }
+    else { box(c, d.a, d.fl - 220, 80, 220, '#3A1A10'); box(c, d.a + 6, d.fl - 212, 68, 212, '#4A2A18'); box(c, d.a, d.fl - 140, 80, 6, '#71717A'); box(c, d.a, d.fl - 90, 80, 6, '#71717A'); box(c, d.a + 30, d.fl - 128, 20, 22, '#A1A1AA'); wallSign(c, d.a + 40, d.fl - 260, 'LOCKED', '#3F3F46', '#E4E4E7'); }
+  }
+  // The door across the middle hall (shut: it looks like the end of it), and the rotten boards across the top one
+  if (seenR(state, FALSE_DOOR.x - 60, FALSE_DOOR.fl - HALL, FALSE_DOOR.x + 60, FALSE_DOOR.fl)) {
+    const x = FALSE_DOOR.x, fl = FALSE_DOOR.fl;
+    box(c, x - 18, fl - HALL, 36, HALL, '#1A0606');
+    if (m.falseDoor && m.falseDoor.y > -9000) { box(c, x - 14, fl - HALL + 10, 28, HALL - 10, '#4A2A18'); box(c, x - 14, fl - 200, 28, 4, '#2A1408'); box(c, x + 6, fl - 190, 4, 8, '#A16207'); }
+    else box(c, x + 14, fl - HALL + 10, 8, HALL - 10, '#4A2A18');
+  }
+  if (seenR(state, ROTTEN.x - 60, ROTTEN.fl - HALL, ROTTEN.x + 60, ROTTEN.fl) && m.rotten && m.rotten.y > -9000) {
+    const x = ROTTEN.x, fl = ROTTEN.fl, sh = m.push > 0 ? Math.sin(f * 2) * 2 : 0;
+    for (let k = 0; k < 8; k++) box(c, x - 14 + sh, fl - HALL + k * 47, 30, 42, k % 2 ? '#4A2C1C' : '#5A3420');
+    for (let k = 0; k < 6; k++) box(c, x - 6 + (k % 3) * 6 + sh, fl - HALL + 20 + k * 58, 2, 18, '#FCA5A5'); // (light through the cracks)
+  }
   // The piles to hop (lit along the top: you can stand on them)
   for (const [x, fl, w, h] of PILES) if (seenX(state, x, x + w)) {
     // (a toppled dresser, a chair on it legs-up: hop it)
@@ -343,6 +402,8 @@ const drawMist = (c: CanvasRenderingContext2D, state: GameState, m: Mist) => {
       fill(col[0], top, col[1] - col[0], s.a[1] - top);
     }
   });
+  // (on into a dead end after him)
+  for (const d of DEAD) { const J = junction(d); if (ms > J) { const w = Math.min(JX - d.a, ms - J); fill(JX - w, d.fl - HALL, w, HALL); } }
   // The front: billows rolling, tendrils out ahead of it
   const pt = pointAt(ms), seg = SEG[pt.i];
   for (let k = 0; k < 9; k++) {
@@ -393,13 +454,15 @@ export const mist: SpookySection = {
     for (const [x, fl, w, h] of PILES) solid(state, x, fl - h, w, h, { hidden: true, tag: 'mist-pile' });
     const m = mistOf(state);
     m.slams = SLAMS.map(([x]) => solid(state, x - 12, -99999, 24, HALL, { hidden: true, tag: 'mist-slam' }));
+    m.falseDoor = solid(state, FALSE_DOOR.x - 12, FALSE_DOOR.fl - HALL, 24, HALL, { hidden: true, tag: 'mist-falsedoor' });
+    m.rotten = solid(state, ROTTEN.x - 12, ROTTEN.fl - HALL, 24, HALL, { hidden: true, tag: 'mist-rotten' });
     m.fire = solid(state, FIRE_DOOR - 14, -99999, 28, HALL, { hidden: true, tag: 'mist-fire' });
   },
   update: (ctx, controls0) => {
     const { state } = ctx, m = mistOf(state);
     const controls = updateLadders(ctx, LADDERS, controls0);
     // (the checkpoint's only known once the stage is built: back past the top, it's over)
-    if (!m.init) { m.init = true; if (done(state)) { m.mist = 'done'; m.told = true; m.gary.state = 'gone'; } }
+    if (!m.init) { m.init = true; if (done(state)) { m.mist = 'done'; m.told = true; m.gary.state = 'gone'; if (m.falseDoor) m.falseDoor.y = -99999; if (m.rotten) m.rotten.y = -99999; } }
     if (runExits(state, EXITS())) return controls;
     // (the fire door: shut on the mist, it opens again for him coming back the other way)
     if (m.fire && m.mist === 'done') { const p = state.player, cx = p.pos.x + p.width / 2; if (m.fire.y > -9000 && cx > FIRE_DOOR + 60 && cx < FIRE_DOOR + 140 && p.facing < 0 && done(state)) { m.fire.y = -99999; playSound('clang', 0.7, -6); } }

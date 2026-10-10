@@ -26,7 +26,7 @@ registerHurtLines('spooky_spikepit', L.HURT_SPIKEPIT, L.DEATH_SPIKEPIT);
 registerHurtLines('spooky_vat', L.HURT_VAT, L.DEATH_VAT);
 registerDeathKind('spooky_vat', 'boiled');
 
-const X = (dx: number) => SECTIONS.dungeon.x0 + dx;
+const X = (dx: number) => SECTIONS.dungeon.x0 + 1950 + dx;
 /** The pits: where, how deep their floor (or the vat's surface) is, what's in them. */
 export const PITS: { a: number; b: number; depth: number; kind: 'ditch' | 'spikes' | 'vat' }[] = [
   { a: X(2780), b: X(3020), depth: 50, kind: 'ditch' },

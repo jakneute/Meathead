@@ -12,7 +12,7 @@ import { GY } from '../geometry';
 import { drawHorn, paSaying } from './pa';
 import {
   x0, x1, ROOMS, CEIL, LEDGES, STOVES, STOVE_TOP, BURNERS, stovePhase, FIRE_H, STOVE_CYCLE, STOVE_FIRE, BED, CHAND_W, BOOKCASES, BOOK_EVERY, BOOK_TELL,
-  TRAIN, WARDROBES, HORNS, TRAPDOOR, BALLPIT, type Castle, type LedgeLook,
+  TRAIN, WARDROBES, HORNS, BALLPIT, type Castle, type LedgeLook,
 } from './layout';
 
 type Ctx = CanvasRenderingContext2D;
@@ -264,6 +264,12 @@ export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
   }
   // The castle's front door (the way back out to the stairs), the stairs down to the dungeon at the far end
   if (seen(state, x0, x0 + 200)) doorway(c, x0 + 60, GY, 'EXIT', '#4A2814', cs.doorShut > 0 ? '#2A1408' : '#09090B');
+  if (seen(state, x1 - 300, x1)) {
+    // (the arch at the end of the gallery: stone steps going down into the dark)
+    box(c, x1 - 190, GY - 230, 190, 230, '#3A3430'); box(c, x1 - 170, GY - 210, 170, 210, '#050303');
+    for (let k = 0; k < 6; k++) box(c, x1 - 160 + k * 26, GY - 40 + k * 8, 160 - k * 26, 6, k < 3 ? '#3F3A36' : '#211D1A');
+    wallSign(c, x1 - 95, GY - 260, 'TO THE DUNGEON', '#27272A', '#FCA5A5');
+  }
   // What he can stand on
   for (const [x, y, w, look] of LEDGES) if (seen(state, x, x + w)) {
     const [fill, lip] = LOOKS[look];
@@ -327,30 +333,6 @@ export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
   // The floor
   groundBox(c, x0 - 200, x1 + 200, GY, '#4A1418', '#B45353');
   for (const r of ROOMS) if (seen(state, r.a, r.b)) box(c, r.a + 80, GY + 6, r.b - r.a - 160, 30, '#6B1A22');
-  if (seen(state, TRAPDOOR.a - 40, TRAPDOOR.b + 40)) drawTrapdoor(c, cs, f);
-};
-
-/** The trapdoor: two leaves of floor with a seam down the middle (it shows, if you look); creaking, the seam opens
- *  and dust puffs up; open, the leaves hang down the shaft (a SORRY sign on one), the shaft dark below. */
-const drawTrapdoor = (c: Ctx, cs: Castle, f: number) => {
-  const { a, b } = TRAPDOOR, w = b - a, mid = a + w / 2;
-  if (cs.trap !== 'open') {
-    box(c, a, GY, w, 40, '#5A2A1A'); box(c, a, GY, w, 4, '#B45353');
-    for (let x = a + 20; x < b; x += 40) box(c, x, GY + 4, 2, 36, '#3A1A10');
-    const gap = cs.trap === 'creak' ? 2 + Math.min(4, cs.trapT / 12) + ((f >> 1) % 2) : 1;
-    box(c, mid - gap / 2, GY, gap, 40, '#050202');
-    box(c, a, GY, 3, 40, '#050202'); box(c, b - 3, GY, 3, 40, '#050202');
-    for (const hx of [a + 14, b - 26]) box(c, hx, GY + 10, 12, 6, '#71717A');
-    return;
-  }
-  // (open: the shaft down, the two leaves hung off their hinges)
-  box(c, a, GY, w, 500, '#050202');
-  for (let y = GY + 30; y < GY + 500; y += 40) { box(c, a, y, 10, 4, '#2A1410'); box(c, b - 10, y + 20, 10, 4, '#2A1410'); }
-  box(c, a, GY, 16, 160, '#5A2A1A'); box(c, b - 16, GY, 16, 160, '#5A2A1A');
-  box(c, a - 2, GY - 4, w + 4, 4, '#3A1A10');
-  // (the sign on the wall over it, for the next one)
-  c.font = '8px "Press Start 2P"'; box(c, mid - 62, GY - 172, 124, 26, '#000000'); box(c, mid - 60, GY - 170, 120, 22, '#FDE68A');
-  c.fillStyle = '#7F1D1D'; c.textAlign = 'center'; c.fillText('SORRY! :)', mid, GY - 155); c.textAlign = 'left';
 };
 
 /** The ball pit: a pit of plastic balls (in front of him: he's in up to his thighs), its padded rim, its sign. */

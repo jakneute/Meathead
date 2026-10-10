@@ -73,9 +73,6 @@ export const TRAIN = { a: X(8800), b: X(9200), w: 76, h: 34, speed: 6.2 };
 /** The nursery's ball pit (a pit: wading it is slow going, the bat suits over it; or over it on the toy shelves). */
 export const BALLPIT = { a: X(9300), b: X(9760), depth: 30 };
 
-/** The trapdoor at the end of the gallery (the way on: down a shaft into the dungeon's cells): where it runs, how
- *  long it creaks before it goes, the most it waits on the PA. */
-export const TRAPDOOR = { a: x1 - 380, b: x1 - 80 }, TRAP_CREAK = 50, TRAP_WAIT = 300;
 
 /** The wardrobes (a bride in each), and where one hides under the bed. */
 export const WARDROBES = [X(7330), X(8460)];
@@ -132,6 +129,4 @@ export interface Castle {
   kills: number; quipAt: number;
   /** The castle's front door (it shut behind him on the way in: the PA's cue). */
   doorShut: number;
-  /** The trapdoor: shut, creaking (he's on it; the PA gloating), open (hanging down the shaft); frames in; its block. */
-  trap: 'shut' | 'creak' | 'open'; trapT: number; trapBlock: import('../../../m1/types').Block | null; trapSaid: boolean;
 }

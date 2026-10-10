@@ -5,7 +5,7 @@
 import { PA, type ByPants } from '../castle/lines';
 
 /** In through the dungeon door: its story, and the spiked ceiling's, ahead. */
-export const PA_DUNGEON: ByPants = {
+const DUNGEON_FULL: ByPants = {
   clean: [
     'THE DUNGEON. MY GUESTS COME DOWN HERE TO... HANG OUT. ON THE VALL. IN CHAINS. FOREVER.',
     'AHEAD, THE CHAMBER OF THE DESCENDING CEILINK. INSTALLED IN NINETEEN SIXTY-TWO BY A CONTRACTOR NAMED SAL.',
@@ -22,6 +22,29 @@ export const PA_DUNGEON: ByPants = {
     'SAL TESTED IT HIMSELF. VE KEPT THE SPIKES. THE SPIKES HAVE SEEN THINGS. NOTHING LIKE VHAT THEY ARE ABOUT TO SEE.',
   ],
 };
+/** ...as it's told (two lines: the full three were a little much): the dungeon, then the chamber ahead and Sal. */
+const SAL = 'AHEAD, THE DESCENDING CEILINK. BUILT BY A CONTRACTOR NAMED SAL.';
+export const PA_DUNGEON: ByPants = {
+  clean: [DUNGEON_FULL.clean[0], `${SAL} ${DUNGEON_FULL.clean[2]}`],
+  shitty: [DUNGEON_FULL.shitty[0], `${SAL} ${DUNGEON_FULL.shitty[2]}`],
+  nude: [DUNGEON_FULL.nude[0], `${SAL} ${DUNGEON_FULL.nude[2]}`],
+};
+/** The stairs down: at the top, and halfway (in order). */
+export const PA_STAIRS: ByPants = {
+  clean: [
+    'DESCEND, MORTAL. DOWN, DOWN, INTO THE BOVELS OF MY CASTLE. NINETY-NINE STEPS. ONE FOR EACH OF MY VICTIMS. VE RAN OUT OF VICTIMS. THE REST ARE JUST STEPS.',
+    'THE LIGHTS GROW DIM... AS DOES YOUR HOPE. ALSO, VE ARE VERY OVER BUDGET ON CANDLES. SOMETHING DOWN THERE IS VATCHING YOU. IT IS NOT STAFF.',
+  ],
+  shitty: [
+    'DESCEND, MORTAL. DOWN, DOWN, INTO THE BOVELS OF MY CASTLE. YOU KNOW ALL ABOUT BOVELS. YOURS ARE ALL OVER MY STAIRS.',
+    'THE LIGHTS GROW DIM. THANK GOODNESS. SOMETHING DOWN THERE IS VATCHING YOU. IT CANNOT SEE YOU. IT KNOWS EXACTLY VHERE YOU ARE.',
+  ],
+  nude: [
+    'DESCEND, MORTAL. DOWN, DOWN, INTO THE DEPTHS. NINETY-NINE STEPS. NINETY-NINE JIGGLES. I COUNTED.',
+    'THE LIGHTS GROW DIM. AT LAST. A MERCY. FOR ME. SOMETHING DOWN THERE IS VATCHING YOU. IT HAS SEEN YOU NAKED. IT VILL NEVER BE THE SAME.',
+  ],
+};
+
 /** The doors shut, and the ceiling starts down. */
 export const PA_CEILING: ByPants = {
   clean: [
@@ -47,6 +70,9 @@ export const PA_ESCAPED: ByPants = {
   nude: ['...HE GOT OUT. THE SPIKES MISSED EVERYTHING. EVERY... DANGLING... THING. HOV?', 'IMPRESSIVE. YOU ESCAPED. THE CEILINK IS RELIEVED. IT DID NOT VANT TO TOUCH YOU EITHER.'],
 };
 
+/** Meathead, going down into the dark. */
+export const MH_DARK = ["I CAN'T SEE SHIT.", "WHO'S IN CHARGE OF THE LIGHTS? FIRE HIM. SET HIM ON FIRE. THEN WE'D HAVE A LIGHT."];
+export const MH_EYES = ['THERE ARE EYES. WHY ARE THERE EYES?', "WHATEVER'S LOOKING AT ME, I CAN SEE YOU TOO. KINDA."];
 /** Meathead. */
 export const MH_DUNGEON = ['MOST OF SAL. GREAT. LOVE THAT.', 'A SPIKED CEILING. IN A KIDS PARK. WHO SIGNED OFF ON THIS?'];
 export const MH_CEILING = ["THE CEILING'S MOVING. THE CEILING IS MOVING!", 'OH, COME ON. A SPIKE ROOM? REALLY?'];
@@ -65,7 +91,7 @@ export const DEATH_CEILING = ['SKEWERED BY THE CEILING', 'KEBABED', 'MOST OF MEA
 const all = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 
 export const VOICE_LINES: Record<string, string[]> = {
-  [PA]: [...all(PA_DUNGEON), ...all(PA_CEILING), ...all(PA_ESCAPED)],
-  meathead: [...MH_DUNGEON, ...MH_CEILING, ...MH_LEVER, ...MH_ESCAPED, ...HURT_CEILING, ...MH_ROPE, ...HURT_SPIKEPIT, ...HURT_VAT],
+  [PA]: [...all(PA_DUNGEON), ...all(PA_STAIRS), ...all(PA_CEILING), ...all(PA_ESCAPED)],
+  meathead: [...MH_DARK, ...MH_EYES, ...MH_DUNGEON, ...MH_CEILING, ...MH_LEVER, ...MH_ESCAPED, ...HURT_CEILING, ...MH_ROPE, ...HURT_SPIKEPIT, ...HURT_VAT],
   death: [...DEATH_CEILING, ...DEATH_SPIKEPIT, ...DEATH_VAT],
 };
