@@ -35,40 +35,45 @@ export const drawTownBackdrop = (c: Ctx, state: GameState) => {
   // The far hills
   const hill = hourMix('#2A1F3E', '#2B1A33', '#120C1E');
   for (let i = 0; i < 9; i++) { const hx = i * 140 - (camX * 0.02) % 140 - 140; box(c, hx, horizon - 30 - (i % 3) * 14, 150, 200, hill); }
-  // The ELEVATOR TO HELL: a big clock tower, far off (slides only a little across the whole town: it's always there)
-  const tx = 560 - camX * 0.022, top = 24 + oy, base = horizon + 10;
+  // The ELEVATOR TO HELL: a big clock tower behind the town (the same one he climbs later, past the castle). Far off
+  // and small behind the rooftops at the gate, it looms as he goes: by the castle stairs it's huge, its spire off the
+  // top of the screen, its foot sunk behind the roofs. All of it from how far along he is (never a jump), drawn live.
+  const k = Math.max(0, Math.min(1, camX / (STAIRS.a0 - CANVAS_WIDTH / 2))), ke = k * k * (3 - 2 * k);
+  const ts = 0.6 + 0.9 * ke;
+  const tx = 620 - camX * (0.012 + 0.012 * k), base = horizon + 10 + ke * 110;
   const tw = hourMix('#2C2244', '#2E1F3A', '#161024'), tl = hourMix('#3B2F58', '#3E2A4A', '#211833');
-  box(c, tx - 50, top + 70, 100, base - top - 70, tw);
-  box(c, tx - 50, top + 70, 6, base - top - 70, tl);
-  box(c, tx - 60, top + 60, 120, 14, tl);
-  // (its pointed roof, stepped)
-  for (let i = 0; i < 6; i++) box(c, tx - 44 + i * 7, top + 60 - (i + 1) * 10, 88 - i * 14, 10, tw);
-  box(c, tx - 2, top - 14, 4, 16, tw);
+  c.save(); c.translate(Math.round(tx), Math.round(base)); c.scale(ts, ts);
+  const T = -430;
+  box(c, -50, T + 70, 100, -T - 70, tw);
+  box(c, -50, T + 70, 6, -T - 70, tl);
+  box(c, -60, T + 60, 120, 14, tl);
+  // (its pointed roof, stepped; the spire)
+  for (let i = 0; i < 6; i++) box(c, -44 + i * 7, T + 60 - (i + 1) * 10, 88 - i * 14, 10, tw);
+  box(c, -2, T - 14, 4, 16, tw);
   // (the clock: the hands go round)
-  box(c, tx - 26, top + 88, 52, 52, '#0F0B18');
-  box(c, tx - 23, top + 91, 46, 46, '#D9C98A');
+  box(c, -26, T + 88, 52, 52, '#0F0B18');
+  box(c, -23, T + 91, 46, 46, '#D9C98A');
   const t = state.frame * 0.002;
-  c.save(); c.translate(tx, top + 114);
   c.strokeStyle = '#1E1036'; c.lineWidth = 3;
-  c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.sin(t) * 18, -Math.cos(t) * 18); c.stroke();
-  c.lineWidth = 4; c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.sin(t / 12) * 12, -Math.cos(t / 12) * 12); c.stroke();
-  c.restore();
+  c.beginPath(); c.moveTo(0, T + 114); c.lineTo(Math.sin(t) * 18, T + 114 - Math.cos(t) * 18); c.stroke();
+  c.lineWidth = 4; c.beginPath(); c.moveTo(0, T + 114); c.lineTo(Math.sin(t / 12) * 12, T + 114 - Math.cos(t / 12) * 12); c.stroke();
   // (the ride's sign, bolted to the front of it, lit red)
   const glow = 0.6 + 0.4 * Math.max(timeOfDay().lamps, (Math.floor(state.frame / 20) % 6 ? 1 : 0.4));
-  box(c, tx - 58, top + 156, 116, 44, '#0F0B18');
-  box(c, tx - 55, top + 159, 110, 38, `rgba(127, 29, 29, ${glow.toFixed(2)})`);
-  label(c, 'ELEVATOR', tx, top + 175, '#FECACA', 8);
-  label(c, 'TO HELL', tx, top + 190, '#FECACA', 8);
+  box(c, -58, T + 156, 116, 44, '#0F0B18');
+  box(c, -55, T + 159, 110, 38, `rgba(127, 29, 29, ${glow.toFixed(2)})`);
+  label(c, 'ELEVATOR', 0, T + 175, '#FECACA', 8);
+  label(c, 'TO HELL', 0, T + 190, '#FECACA', 8);
   // (the track up its side, and the car: up slow, a moment at the top, then the drop)
-  box(c, tx + 50, top + 80, 8, base - top - 80, '#18121F');
-  for (let y = top + 86; y < base; y += 14) box(c, tx + 50, y, 8, 2, '#3F3550');
-  const cyc = RIDE_UP + RIDE_HOLD + RIDE_DROP + RIDE_REST, k = state.frame % cyc;
-  const lo = base - 30, hi = top + 90;
-  const carY = k < RIDE_UP ? lo - (lo - hi) * (k / RIDE_UP) : k < RIDE_UP + RIDE_HOLD ? hi : k < RIDE_UP + RIDE_HOLD + RIDE_DROP ? hi + (lo - hi) * ((k - RIDE_UP - RIDE_HOLD) / RIDE_DROP) ** 2 : lo;
-  box(c, tx + 56, carY, 22, 20, '#7F1D1D');
-  box(c, tx + 58, carY + 3, 18, 7, '#FDE68A');
+  box(c, 50, T + 80, 8, -T - 80, '#18121F');
+  for (let y = T + 86; y < 0; y += 14) box(c, 50, y, 8, 2, '#3F3550');
+  const cyc = RIDE_UP + RIDE_HOLD + RIDE_DROP + RIDE_REST, kk = state.frame % cyc;
+  const lo = -30, hi = T + 90;
+  const carY = kk < RIDE_UP ? lo - (lo - hi) * (kk / RIDE_UP) : kk < RIDE_UP + RIDE_HOLD ? hi : kk < RIDE_UP + RIDE_HOLD + RIDE_DROP ? hi + (lo - hi) * ((kk - RIDE_UP - RIDE_HOLD) / RIDE_DROP) ** 2 : lo;
+  box(c, 56, carY, 22, 20, '#7F1D1D');
+  box(c, 58, carY + 3, 18, 7, '#FDE68A');
   // (the dots of the riders' heads in its window)
-  for (let i = 0; i < 3; i++) box(c, tx + 60 + i * 5, carY + 5, 3, 3, '#3F2A1A');
+  for (let i = 0; i < 3; i++) box(c, 60 + i * 5, carY + 5, 3, 3, '#3F2A1A');
+  c.restore();
   // The town's rooftops, nearer (gables, chimneys, a lit window or two)
   const roof = hourMix('#1B1526', '#1D1422', '#0C0912'), win = hourMix('#5B4A2A', '#8A5A2A', '#E0A94A');
   const off = (camX * 0.3) % 600;
