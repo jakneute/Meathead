@@ -83,6 +83,15 @@ export const drawCamp = (c: Ctx, f: number) => {
   for (let i = 0; i < 3; i++) { const t = (f + i * 23) % 60; box(c, fx + Math.sin(t * 0.2 + i) * 6, fy - 20 - t * 0.8, 2, 2, t < 30 ? '#FDE047' : '#F97316'); }
 };
 export const CAMPFIRE = { x: CAMP + 160, y: GY - 40 };
+/** The tent's flap thrown back as a junior guide comes out (k: frames of it left): the dark of the tent opening wide,
+ *  the flap swung aside. */
+export const drawTentFlap = (c: Ctx, k: number) => {
+  if (k <= 0) return;
+  const tx = CAMP + 40, open = Math.min(1, k / 12);
+  const d = (col: string) => dim(col);
+  c.fillStyle = d('#1A1408'); c.beginPath(); c.moveTo(tx + 50 - 22 * open, GY - 19); c.lineTo(tx + 50, GY - 80); c.lineTo(tx + 50 + 22 * open, GY - 19); c.fill();
+  c.fillStyle = d('#D6C28A'); c.beginPath(); c.moveTo(tx + 50, GY - 80); c.lineTo(tx + 50 - 22 * open, GY - 19); c.lineTo(tx + 50 - 34 * open, GY - 24); c.fill();
+};
 /** The camp's loudspeaker, up the banner's left pole (Artie's voice, sending them): where it is, where its words go. */
 export const SPEAKER = { x: CAMP - 14, y: GY - 184 };
 /** The loudspeaker: a gray horn on a bracket, turned out over the camp; it shakes a little while it's talking. */

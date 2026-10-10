@@ -16,7 +16,7 @@ import type { EnemyKind } from '../../../m1/types';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { GUIDE_KIND } from '../guides';
 import { lay, solid, speak, meatheadSays, saidOver, hands, sectionState } from '../section';
-import { drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawFence, CAMPFIRE, SPEAKER, drawSpeaker } from './art';
+import { drawTentFlap, drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawFence, CAMPFIRE, SPEAKER, drawSpeaker } from './art';
 import { GY } from '../geometry';
 import { goTo, setUi, markLandCleared, noteBossKill } from '../../store';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -41,7 +41,7 @@ const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(
 /** First time through (a return trip will differ). One flag per set piece. */
 const firstVisit = (_state: GameState) => true;
 /** The rock on the way in. */
-const ROCK = { x: x0 + 560, w: 70, h: 56 };
+const ROCK = { x: x0 + 700, w: 70, h: 56 };
 
 // ---------------------------------------------------------------------------------------------------------------
 
@@ -69,6 +69,8 @@ interface Clearing {
   /** The camp: Artie on its loudspeaker sending his junior guides (none about till he has: nothing on him as he
    *  comes in); then out they come, one by one; `out` how many so far. */
   call: 'no' | 'saying' | 'sent'; callT: number; out: number;
+  /** The tent's flap, thrown back as one comes out of it (frames). */
+  flap: number;
   /** Who's saying what's said: Artie up in his blind, or over the camp's loudspeaker. */
   saidAt: 'blind' | 'speaker';
 }
@@ -76,11 +78,11 @@ const getClearing = (state: GameState) => sectionState<Clearing>(state, 'clearin
   init: false, domino: firstVisit(state), scene: null, t: 0, token: 0,
   trees: TREE_X.map(() => ({ a: 0, v: 0, on: false, done: false })), trunk: null, templeHit: false,
   fight: 'wait', wonAt: 0, fence: null, f: null, said: null, nextLine: 0, booms: [], wiped: false, victory: null, walk: null,
-  call: 'no', callT: 0, out: 0, saidAt: 'blind',
+  call: 'no', callT: 0, out: 0, flap: 0, saidAt: 'blind',
 }));
 
 /** The junior guides: where each comes to (one up on the rock, tempting to come down on), in the order they come. */
-const GUIDE_SPOTS = (): [number, number][] => [[x0 + 430, GY], [ROCK.x + ROCK.w / 2, GY - ROCK.h], [x0 + 690, GY], [x0 + 730, GY]];
+const GUIDE_SPOTS = (): [number, number][] => [[x0 + 520, GY], [ROCK.x + ROCK.w / 2, GY - ROCK.h], [x0 + 860, GY], [x0 + 940, GY]];
 /** Out of the tent's flap they come (or ahead of him, if he's past it: never on top of him). */
 const TENT_X = x0 + 350;
 const sendGuides = (state: GameState, cl: Clearing) => {
@@ -90,12 +92,13 @@ const guidesOut = (state: GameState, cl: Clearing) => {
   if (cl.call !== 'sent' || cl.out >= GUIDE_SPOTS().length) return;
   cl.callT++;
   if (cl.callT < 20 + cl.out * 34) return;
-  const [sx, sy] = GUIDE_SPOTS()[cl.out];
+  // (every one of them out of the tent's flap, on the ground there: none out of thin air, none off out of bounds)
   const px = state.player.pos.x + state.player.width / 2;
-  // (the one on the rock's put up there; the rest come out of the tent, at least a good way off him)
-  const x = sy < GY ? sx : Math.max(TENT_X, px + 240);
-  const e = makeKindEnemy(GUIDE_KIND as EnemyKind, x, sy);
+  const e = makeKindEnemy(GUIDE_KIND as EnemyKind, TENT_X, GY);
+  e.facing = px < TENT_X ? -1 : 1;
   state.enemies.push(e);
+  cl.flap = 24;
+  for (let k = 0; k < 5; k++) state.particles.push({ pos: { x: TENT_X + (Math.random() - 0.5) * 20, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 2, y: -0.5 - Math.random() }, life: 22, color: '#B8A36A', size: 4 + Math.random() * 4 });
   playSound('beep', 0.4, 6 + cl.out);
   cl.out++;
 };
@@ -326,7 +329,7 @@ export const clearing: Section = {
   checkpoints: [
     { name: 'THE CLEARING', cp: 70, x: x0 + 150, y: GY },
     // (past the guides and the big health and ammo: back here, nothing's on him)
-    { name: 'THE BOSS', cp: 71, x: x0 + 1000, y: GY, clear: [1200, 600] },
+    { name: 'THE BOSS', cp: 71, x: x0 + 1300, y: GY, clear: [1500, 600] },
   ],
   build: (state) => {
     resetFight();
@@ -407,12 +410,12 @@ const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
   // (the strip's drawn wider than the screen, to bend round)
   drawPath(c, Math.max(x0 - 1200, v.x - 400), Math.min(x1 + 1200, v.x + v.w + 400));
   // The junior guides' camp, back off the path
-  if (vis(x0 + 180, x0 + 700)) { drawCamp(c, f); drawSpeaker(c, cl.saidAt === 'speaker' && !!cl.said?.text, f); }
+  if (vis(x0 + 180, x0 + 700)) { drawCamp(c, f); drawTentFlap(c, cl.flap > 0 ? cl.flap-- : 0); drawSpeaker(c, cl.saidAt === 'speaker' && !!cl.said?.text, f); }
   // The rock (a guide up on it): its top lit, it's something to stand on
   if (vis(ROCK.x, ROCK.x + ROCK.w)) drawRock(c, ROCK.x, ROCK.w, ROCK.h);
   // The first-aid stop (the big health and ammo on its crate), the sign before the hunting area
   if (vis(PICKUP_X - 100, PICKUP_X + 100)) drawAidStop(c, state.pickups.some(p => p.id.startsWith('clearing-')));
-  if (vis(x0 + 870, x0 + 1010)) drawHuntSign(c, x0 + 942);
+  if (vis(x0 + 1170, x0 + 1310)) drawHuntSign(c, x0 + 1242);
   // The temple's wing, where it crosses the path (the rest of it's out past the strip, orbit.ts), knocked about where
   // the tree hit it, still standing. Nothing lit along its top: it's not something to get up on
   if (vis(TEMPLE_X - 60, TEMPLE_X + 940)) drawWing(c, cl.templeHit);
