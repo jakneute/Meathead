@@ -15,7 +15,7 @@ import type { EnemyKind } from '../../../m1/types';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { GUIDE_KIND } from '../guides';
 import { lay, solid, speak, meatheadSays, saidOver, hands, sectionState } from '../section';
-import { drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawBlind, drawBlindFront, drawFence, CAMPFIRE } from './art';
+import { drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawBlind, drawBlindFront, drawFence, CAMPFIRE, SPEAKER, drawSpeaker } from './art';
 import { GY } from '../geometry';
 import { goTo, setUi, markLandCleared, noteBossKill } from '../../store';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -25,7 +25,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES, topBand } from '../../../m1/constants';
 import { drawSafariArtie, ROOF_SCUFFS } from '../river/artie';
-import { type Dressed, MEATHEAD_KICK, ARTIE_FOUND, MEATHEAD_ARTIE } from './lines';
+import { type Dressed, MEATHEAD_KICK, ARTIE_FOUND, ARTIE_SENDS, MEATHEAD_ARTIE } from './lines';
 import { x0, x1, TREE_X, TREE_H, TEMPLE_X, BLIND_X, BLIND_Y, ARENA_L, ARENA_R, PICKUP_X } from './arena';
 import { drawOrbitBackdrop, ORBIT_WRAP } from './orbit';
 import { BEASTS } from './stampede';
@@ -65,12 +65,39 @@ interface Clearing {
   victory: Victory | null;
   /** After VICTORY: him walking away from it all, his new weapon in his hands (till A). */
   walk: WalkAway | null;
+  /** The camp: Artie on its loudspeaker sending his junior guides (none about till he has: nothing on him as he
+   *  comes in); then out they come, one by one; `out` how many so far. */
+  call: 'no' | 'saying' | 'sent'; callT: number; out: number;
+  /** Who's saying what's said: Artie up in his blind, or over the camp's loudspeaker. */
+  saidAt: 'blind' | 'speaker';
 }
 const getClearing = (state: GameState) => sectionState<Clearing>(state, 'clearing', () => ({
   init: false, domino: firstVisit(state), scene: null, t: 0, token: 0,
   trees: TREE_X.map(() => ({ a: 0, v: 0, on: false, done: false })), trunk: null, templeHit: false,
   fight: 'wait', wonAt: 0, fence: null, f: null, said: null, nextLine: 0, booms: [], wiped: false, victory: null, walk: null,
+  call: 'no', callT: 0, out: 0, saidAt: 'blind',
 }));
+
+/** The junior guides: where each comes to (one up on the rock, tempting to come down on), in the order they come. */
+const GUIDE_SPOTS = (): [number, number][] => [[x0 + 430, GY], [ROCK.x + ROCK.w / 2, GY - ROCK.h], [x0 + 690, GY], [x0 + 730, GY]];
+/** Out of the tent's flap they come (or ahead of him, if he's past it: never on top of him). */
+const TENT_X = x0 + 350;
+const sendGuides = (state: GameState, cl: Clearing) => {
+  cl.call = 'sent'; cl.callT = 0; cl.out = 0;
+};
+const guidesOut = (state: GameState, cl: Clearing) => {
+  if (cl.call !== 'sent' || cl.out >= GUIDE_SPOTS().length) return;
+  cl.callT++;
+  if (cl.callT < 20 + cl.out * 34) return;
+  const [sx, sy] = GUIDE_SPOTS()[cl.out];
+  const px = state.player.pos.x + state.player.width / 2;
+  // (the one on the rock's put up there; the rest come out of the tent, at least a good way off him)
+  const x = sy < GY ? sx : Math.max(TENT_X, px + 240);
+  const e = makeKindEnemy(GUIDE_KIND as EnemyKind, x, sy);
+  state.enemies.push(e);
+  playSound('beep', 0.4, 6 + cl.out);
+  cl.out++;
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Going off: a chain of them, one after another (undignified: a wet pop and bits)
@@ -134,9 +161,9 @@ const runBooms = (ctx: FrameContext, cl: Clearing) => {
   for (const b of due) b.go(ctx);
 };
 
-const artieSays = (state: GameState, cl: Clearing, text: string, onDone?: () => void) => {
+const artieSays = (state: GameState, cl: Clearing, text: string, onDone?: () => void, at: Clearing['saidAt'] = 'blind') => {
   const tok = cl.token;
-  cl.said = { text };
+  cl.said = { text }; cl.saidAt = at;
   speak('m2.safari', text, s => { if (cl.token === tok) cl.said = s; }, true, () => { if (cl.token === tok) onDone?.(); });
 };
 
@@ -250,7 +277,19 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   if (cl.scene === 'kick') return kick(ctx, cl);
   const cx = p.pos.x + p.width / 2;
   if (cl.fight === 'wait') {
-    if (cl.domino && cx > TREE_X[0] - 60 && p.isGrounded) { cl.scene = 'kick'; cl.t = 0; cl.nextLine = 0; return kick(ctx, cl); }
+    // The camp: in a moment (or once he's in among it), Artie on the loudspeaker, sending them; then out they come
+    if (cl.call === 'no' && state.checkpoint < 71) {
+      cl.callT++;
+      if (cl.callT > 50 || cx > x0 + 240) {
+        cl.call = 'saying';
+        const tok = cl.token;
+        artieSays(state, cl, pick(ARTIE_SENDS[dressed(state)]), () => { if (cl.token === tok) { cl.said = null; sendGuides(state, cl); } }, 'speaker');
+      }
+    }
+    guidesOut(state, cl);
+    // (the tree's only kicked once they're all dead: the ones in the spiked helmets)
+    const guidesDone = cl.call !== 'no' && cl.call !== 'saying' ? cl.out >= GUIDE_SPOTS().length && liveGuides(state).length === 0 : state.checkpoint >= 71;
+    if (cl.domino && guidesDone && cx > TREE_X[0] - 60 && p.isGrounded) { cl.scene = 'kick'; cl.t = 0; cl.nextLine = 0; return kick(ctx, cl); }
     // (in past the fallen trees, up to his blind: down he comes out of it, and it's on)
     if (!cl.domino && cx > ARENA_L + 60) startFight(state, cl);
   } else if (cl.fight === 'on') {
@@ -302,7 +341,8 @@ export const clearing: Section = {
     // Artie's junior guides on the way in (spiked helmets: no dive kicking them), in ones and twos, one up on a rock
     // (tempting to come down on)
     solid(state, ROCK.x, GY - ROCK.h, ROCK.w, ROCK.h, { tag: 'clearing-rock', hidden: true });
-    for (const [x, y] of [[x0 + 430, GY], [ROCK.x + ROCK.w / 2, GY - ROCK.h], [x0 + 690, GY], [x0 + 730, GY]] as const) state.enemies.push(makeKindEnemy(GUIDE_KIND as EnemyKind, x, y));
+    // (not out yet: Artie sends them, over the camp's loudspeaker, once he's in. Back here again, a fresh go at it)
+    cl.call = 'no'; cl.callT = 0; cl.out = 0;
     // Before the boss: the big health and the big ammo
     state.pickups.push(
       { id: 'clearing-health', pos: { x: PICKUP_X - 30, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
@@ -330,7 +370,10 @@ export const clearing: Section = {
       // (the hide's netting across his legs)
       drawBlindFront(c);
     }
-    if (cl.said?.text && cl.fight === 'wait') saidOver(c, cl.said.text, Math.min(TEMPLE_X - 130, BLIND_X), BLIND_Y - 100, '#FDE68A');
+    if (cl.said?.text && cl.fight === 'wait') {
+      if (cl.saidAt === 'speaker') saidOver(c, cl.said.text, SPEAKER.x + 12, SPEAKER.y - 18, '#FDE68A');
+      else saidOver(c, cl.said.text, Math.min(TEMPLE_X - 130, BLIND_X), BLIND_Y - 100, '#FDE68A');
+    }
     if (cl.f && cl.fight !== 'wait') drawFightFront(c, state, cl.f);
   },
   drawHud: (c, state) => {
@@ -357,7 +400,7 @@ const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
   // (the strip's drawn wider than the screen, to bend round)
   drawPath(c, Math.max(x0 - 1200, v.x - 400), Math.min(x1 + 1200, v.x + v.w + 400));
   // The junior guides' camp, back off the path
-  if (vis(x0 + 180, x0 + 700)) drawCamp(c, f);
+  if (vis(x0 + 180, x0 + 700)) { drawCamp(c, f); drawSpeaker(c, cl.saidAt === 'speaker' && !!cl.said?.text, f); }
   // The rock (a guide up on it): its top lit, it's something to stand on
   if (vis(ROCK.x, ROCK.x + ROCK.w)) drawRock(c, ROCK.x, ROCK.w, ROCK.h);
   // The first-aid stop (the big health and ammo on its crate), the sign before the hunting area

@@ -16,7 +16,7 @@ import type { Section, Said } from '../section';
 import { lay, speak, meatheadSays, teleport, saidOver, hands, getAdv, sectionState } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { x0, x1, BASE_L, BASE_R, TIER_H, TIER_IN, RY, ROOF_L, ROOF_R, HOLE_X, HOLE_W, TILE, ZOOM_TO, ZOOM_X, ZOOM_Y, TILES, SPLAT_X, EXIT_X, GUESTS, SPEAKER_F, SPEAKER_M } from './layout';
-import { drawRoofBackdrop, drawTempleBody, drawLine, drawDust, drawPoof, drawCart, drawChute, CHUNK_COLORS, TORCHES } from './art';
+import { drawRoofBackdrop, drawTempleBody, drawLine, drawLineBack, drawDust, drawPoof, drawCart, drawChute, CHUNK_COLORS, TORCHES } from './art';
 export { HOLE_X } from './layout';
 import { setUi } from '../../store';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
@@ -511,8 +511,10 @@ const drawTemple = (c: CanvasRenderingContext2D, state: GameState) => {
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
   if (v.x > x1 + 600 || v.x + v.w < x0 - 600) return;
   const r = getRoof(state);
+  // The ride's line going back in switchbacks across the plaza: behind the temple, so first
+  drawLineBack(c, state, r);
   drawTempleBody(c, state, r);
-  // The ride's line (going back in switchbacks), its signs, the way on
+  // The line's front row, its signs, the way on
   drawLine(c, state, r, r.said?.text ? (r.saidBy === 'f' ? SPEAKER_F : r.saidBy === 'm' ? SPEAKER_M : -1) : -1);
   // The dust coming up out of it
   drawDust(c, r);

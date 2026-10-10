@@ -1140,6 +1140,54 @@ const bag = (c: Ctx, f: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The room's side walls, in perspective: coming toward him from the back wall's corners (the same eye as the floor's),
+// the same block, stripe, wainscot and base as the back wall turned side on; the ceiling over them and the floor
+// under them running on to the screen's edge. A room's end, not a way on.
+
+/** The eye: the middle of the screen across, a little above the middle of the wall up and down. */
+// (made when first wanted: CEIL_Y comes from index.ts, which imports this)
+const eyeY = () => CEIL_Y + (G - CEIL_Y) * 0.45;
+const sideBands = (): [number, number, string][] => [
+  [CEIL_Y, STRIPE, '#4C5240'],
+  [STRIPE, STRIPE + 8, fade(FLAG_RED[1], 0.42)], [STRIPE + 8, STRIPE + 12, fade(FLAG_WHITE[2], 0.42)], [STRIPE + 12, STRIPE + 20, fade(FLAG_BLUE[1], 0.42)],
+  [STRIPE + 20, WAIN, '#4C5240'], [WAIN, WAIN + 4, '#36342A'], [WAIN + 4, BASE, '#6A6652'], [BASE, G, '#1C1A16'],
+];
+const sideWall = (c: Ctx, cam: number, corner: number, side: -1 | 1) => {
+  const ex = cam + CANVAS_WIDTH / 2;
+  if ((corner - ex) * side <= 4) return;
+  // (out to past the screen's edge)
+  const edge = side < 0 ? cam - 60 : cam + CANVAS_WIDTH + 60;
+  const D = Math.max(1.02, (edge - ex) / (corner - ex));
+  if (D <= 1.02 && (side < 0 ? corner < cam - 40 : corner > cam + CANVAS_WIDTH + 40)) return;
+  const EYE_Y = eyeY();
+  const P = (y: number, d: number): [number, number] => [ex + (corner - ex) * d, EYE_Y + (y - EYE_Y) * d];
+  const quad = (pts: [number, number][], col: string) => { c.fillStyle = col; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.fill(); };
+  const far = 2000;
+  // The ceiling over it and the floor under it, on to the edge
+  const [cx1, cy1] = P(CEIL_Y, D), [fx1, fy1] = P(G, D);
+  quad([[corner, CEIL_Y], [cx1, cy1], [cx1, -far], [corner, -far]], '#4E4B3E');
+  quad([[corner, G], [fx1, fy1], [fx1, far], [corner, far]], '#6C6750');
+  // (the floor's tile rows and the ceiling's T-bars, going on toward him)
+  for (let d = 1.12; d < D; d *= 1.12) {
+    const [x0, y0] = P(G, d);
+    c.fillStyle = 'rgba(40, 36, 24, 0.55)'; c.fillRect(Math.min(corner, x0), Math.round(y0), Math.abs(x0 - corner), 1);
+    const [, yc] = P(CEIL_Y, d);
+    c.fillStyle = 'rgba(196, 192, 174, 0.35)'; c.fillRect(Math.min(corner, x0), Math.round(yc), Math.abs(x0 - corner), 1);
+  }
+  // The wall itself, band by band
+  for (const [y0, y1, col] of sideBands()) quad([P(y0, 1), P(y0, D), P(y1, D), P(y1, 1)], col);
+  // (the block's courses and joints, going back to the corner: wider apart the nearer)
+  c.strokeStyle = 'rgba(30, 34, 24, 0.5)'; c.lineWidth = 1; c.beginPath();
+  for (let y = CEIL_Y + 34; y < STRIPE; y += 24) { const [a, b] = P(y, 1), [e, f] = P(y, D); c.moveTo(a, b); c.lineTo(e, f); }
+  for (let d = 1.1; d < D; d *= 1.1) { const [a, b] = P(CEIL_Y, d), [, f] = P(STRIPE, d); c.moveTo(Math.round(a) + 0.5, b); c.lineTo(Math.round(a) + 0.5, f); }
+  c.stroke();
+  // (the corner: shadowed into it, an inked line down it)
+  quad([P(CEIL_Y, 1), P(CEIL_Y, 1.06), P(G, 1.06), P(G, 1)], 'rgba(10, 10, 8, 0.35)');
+  box(c, corner - (side < 0 ? 1 : 0), CEIL_Y, 1, G - CEIL_Y, '#1A1A16');
+  // (the ceiling's edge along its top, the floor's along its foot)
+  c.strokeStyle = '#2A281F'; c.lineWidth = 2; c.beginPath();
+  c.moveTo(...P(CEIL_Y, 1)); c.lineTo(...P(CEIL_Y, D)); c.moveTo(...P(G, 1)); c.lineTo(...P(G, D)); c.stroke();
+};
 
 /** Behind the room: nothing but the dark (the room's own walls fill the screen). */
 export const drawPenBackdrop = (ctx: Ctx, _state: GameState) => {
@@ -1155,7 +1203,9 @@ export const drawPenBack = (ctx: Ctx, state: GameState) => {
     if (vis(a, b)) stamp(ctx, `pen-strip-${i}`, a, -60, b - a, CANVAS_HEIGHT + 120, g => strip(g, i));
   }
   // (the floor in perspective: fanning out toward him from where he walks, the rows deeper the nearer they are)
-  bendFloor(ctx, { x: cam + CANVAS_WIDTH / 2 }, G, G, G + 120);
+  bendFloor(ctx, { x: cam + CANVAS_WIDTH / 2 }, G, G, G + 120, X0, X0 + LEN);
+  // (the side walls: after the bend, which is the floor's alone)
+  sideWall(ctx, cam, X0, -1); sideWall(ctx, cam, X0 + LEN, 1);
   lights(ctx, f, vis);
   if (vis(rx(1880), rx(1940))) drip(ctx, f);
   critters(ctx, f, vis);

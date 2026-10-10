@@ -211,6 +211,11 @@ const drawTree = (c: Ctx, v: View, px: number, pz: number, i: number) => {
   const h = 300 + ((i * 37) % 120), t = proj(v, px, h, pz);
   const dim = Math.max(0.5, Math.min(1, 1.3 - b.z / 3000));
   const tw = Math.max(2, Math.round(18 * b.k));
+  // (stood on the ground: its shadow pooled round its foot, flattened by how far off it is; its roots flaring out)
+  c.fillStyle = shade('#1E3A14', dim);
+  c.beginPath(); c.ellipse(Math.round(b.x + tw * 0.6), Math.round(b.y), Math.max(3, tw * 2.4), Math.max(1, tw * 0.45), 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = shade('#3A2C1E', dim);
+  c.beginPath(); c.moveTo(b.x - tw * 1.3, b.y + 1); c.lineTo(b.x - tw / 2, b.y - tw * 1.4); c.lineTo(b.x + tw / 2, b.y - tw * 1.4); c.lineTo(b.x + tw * 1.3, b.y + 1); c.closePath(); c.fill();
   c.fillStyle = shade('#4A3826', dim); c.fillRect(Math.round(b.x - tw / 2), Math.round(t.y), tw, Math.round(b.y - t.y));
   c.fillStyle = shade('#6E5438', dim); c.fillRect(Math.round(b.x - tw / 2), Math.round(t.y), Math.max(1, Math.round(tw / 3)), Math.round(b.y - t.y));
   const r = 70 * b.k;

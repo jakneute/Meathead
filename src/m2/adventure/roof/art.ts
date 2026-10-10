@@ -450,11 +450,15 @@ const guest = (c: Ctx, x: number, y: number, s: number, dir: 1 | -1, seed: numbe
   c.restore();
 };
 
-export const drawLine = (c: Ctx, state: GameState, r: RoofLook, saying: number) => {
+/** The line's rows going back across the plaza: behind the strip, so behind the temple too (drawn before it). */
+export const drawLineBack = (c: Ctx, state: GameState, r: RoofLook) => {
   const e = eyeOf(state), f = state.frame;
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
   const horror = r.horror || r.caved;
-  if (v.x < LINE_R + 400 && v.x + v.w > LINE_L - 300 && v.y < GY) {
+  // (culled by where the rows land on screen: taken back toward the eye, they're not where the line stands)
+  const s0 = rowAt(ROWS[ROWS.length - 1].z).s, ext = (x: number) => [x, e.x + (x - e.x) * s0];
+  const [l0, l1] = ext(LINE_L - 120), [r0, r1] = ext(LINE_R + 160);
+  if (Math.min(l0, l1) < v.x + v.w + 40 && Math.max(r0, r1) > v.x - 40 && v.y < GY) {
     // The rows going back, furthest first, each hazed once as it goes down (the further, the more)
     for (let k = ROWS.length - 1; k >= 0; k--) {
       const row = ROWS[k], at = rowAt(row.z), y = GY - at.up, s = at.s;
@@ -469,6 +473,11 @@ export const drawLine = (c: Ctx, state: GameState, r: RoofLook, saying: number) 
       });
     }
   }
+};
+
+/** The line's front row along the rope (on the strip, in front of everything back there), its signs, the way on. */
+export const drawLine = (c: Ctx, state: GameState, r: RoofLook, saying: number) => {
+  const f = state.frame, horror = r.horror || r.caved;
   // The front row: along the rope, nearest him
   for (let x = LINE_L - 20; x <= LINE_R + 20; x += 80) post(c, x, GY, 1);
   rope(c, LINE_L - 20, LINE_R + 20, GY - 28, 1);

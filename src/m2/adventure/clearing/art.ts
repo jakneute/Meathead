@@ -84,6 +84,21 @@ export const drawCamp = (c: Ctx, f: number) => {
   for (let i = 0; i < 3; i++) { const t = (f + i * 23) % 60; box(c, fx + Math.sin(t * 0.2 + i) * 6, fy - 20 - t * 0.8, 2, 2, t < 30 ? '#FDE047' : '#F97316'); }
 };
 export const CAMPFIRE = { x: CAMP + 160, y: GY - 40 };
+/** The camp's loudspeaker, up the banner's left pole (Artie's voice, sending them): where it is, where its words go. */
+export const SPEAKER = { x: CAMP - 14, y: GY - 184 };
+/** The loudspeaker: a gray horn on a bracket, turned out over the camp; it shakes a little while it's talking. */
+export const drawSpeaker = (c: Ctx, talking: boolean, f: number) => {
+  const x = SPEAKER.x, y = SPEAKER.y + (talking && (f >> 1) % 2 ? 1 : 0);
+  const d = (col: string) => dim(col);
+  box(c, x - 6, y + 2, 10, 3, INK); box(c, x - 5, y + 3, 8, 1, d('#6B7280'));
+  // (the horn: narrow at the bracket, flaring out, its bell's mouth dark)
+  c.fillStyle = INK; c.beginPath(); c.moveTo(x, y - 3); c.lineTo(x + 22, y - 11); c.lineTo(x + 22, y + 11); c.lineTo(x, y + 3); c.fill();
+  c.fillStyle = d('#9CA3AF'); c.beginPath(); c.moveTo(x + 1, y - 2); c.lineTo(x + 20, y - 9); c.lineTo(x + 20, y + 9); c.lineTo(x + 1, y + 2); c.fill();
+  c.fillStyle = d('#D1D5DB'); c.beginPath(); c.moveTo(x + 1, y - 2); c.lineTo(x + 20, y - 9); c.lineTo(x + 20, y - 6); c.lineTo(x + 1, y); c.fill();
+  box(c, x + 19, y - 10, 4, 20, INK); box(c, x + 20, y - 8, 2, 16, d('#374151'));
+  // (the sound off it, in steps)
+  if (talking) for (let k = 0; k < 3; k++) { const r = 6 + k * 6 + ((f >> 2) % 3) * 2; c.strokeStyle = `rgba(253, 230, 138, ${0.5 - k * 0.15})`; c.lineWidth = 2; c.beginPath(); c.arc(x + 22, y, r, -0.7, 0.7); c.stroke(); }
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The rock, the signs, the first-aid stop
@@ -122,7 +137,7 @@ export const drawHuntSign = (c: Ctx, x: number) => {
 /** Before the boss: a supply crate (what's on it is the big health and ammo) under a first-aid sign on a post. */
 export const drawAidStop = (c: Ctx, stocked: boolean) => {
   const x = PICKUP_X - 10;
-  stamp(c, `clAid:${stocked ? 1 : 0}`, x - 80, GY - 150, 160, 152, g => {
+  stamp(c, `clAid:${stocked ? 1 : 0}`, x - 80, GY - 156, 200, 158, g => {
     pole(g, x + 60, GY - 120, 6, 120, '#7A5430');
     plaque(g, x + 63, GY - 126, 92, 32, '#F5F0E0', ['LAST CHANCE', 'FIRST AID'], '#B91C1C', 5);
     box(g, x + 59 - 6, GY - 150, 18, 12, INK); box(g, x + 57, GY - 149, 10, 10, '#F8FAFC'); box(g, x + 60, GY - 148, 4, 8, '#DC2626'); box(g, x + 58, GY - 146, 8, 4, '#DC2626');
