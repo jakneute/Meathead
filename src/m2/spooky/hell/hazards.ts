@@ -27,7 +27,7 @@ const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
 export const LAVA = 'm2:hell_lava', JET = 'm2:hell_jet', CAR = 'm2:hell_car';
 const LAVA_DMG = 16, LAVA_LAUNCH = 13, JET_DMG = 18, FIREBALL_DMG = 12, CAR_DMG = 30;
 /** A jet's cycle: quiet, then the warning (WARN..BLAST), then the fire (BLAST..CYCLE). */
-const CYCLE = 160, WARN = 70, BLAST = 112, JET_H = 170;
+const CYCLE = 160, WARN = 70, BLAST = 112, JET_H = 150;
 /** A crumbling rock: shaking this long before it goes; back this long after. */
 const SHAKE = 32, BACK = 210;
 const CAR_W = 120, CAR_H = 110;
@@ -51,11 +51,14 @@ export const updateHazards = (ctx: FrameContext, h: Hell) => {
   const alive = p.health > 0 && state.deathTimer <= 0;
   // The lava: HOT FOOT, straight back up out of it (killed in it: he goes under, see the 'lava' death)
   if (alive && overLava(cx) && feet >= GY + LAVA_DROP - 2) {
+    // (popped back out toward the nearer bank, whatever he was doing: never bounced about in it till he's cooked)
+    const pool = POOLS.find(([a, b]) => cx > a && cx < b)!;
+    const bank = cx - pool[0] < pool[1] - cx ? -1 : 1, out = bank * Math.min(6, 2 + Math.min(cx - pool[0], pool[1] - cx) / 40);
     if (p.invincibilityTimer <= 0) {
-      hurtPlayer(ctx, LAVA_DMG, LAVA, { x: p.vel.x * 0.5, y: -LAVA_LAUNCH });
+      hurtPlayer(ctx, LAVA_DMG, LAVA, { x: out, y: -LAVA_LAUNCH });
       if (p.health > 0) ctx.fx.spawnDamageNumber({ x: cx - 30, y: p.pos.y - 20 }, 'HOT FOOT!', true, '#F97316');
     }
-    if (p.health > 0) { p.vel.y = -LAVA_LAUNCH; p.isGrounded = false; p.isCharging = false; p.isSliding = false; }
+    if (p.health > 0) { p.vel.y = -LAVA_LAUNCH; if (p.pushbackTimer > 0 || Math.sign(p.vel.x) !== bank) p.vel.x = out; p.isGrounded = false; p.isCharging = false; p.isSliding = false; }
     for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: cx, y: GY + LAVA_DROP }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 6 }, life: 26, color: i % 2 ? '#F97316' : '#FDE047', size: 3 + Math.random() * 4 });
     playSound('ignite');
   }
@@ -88,7 +91,7 @@ export const updateHazards = (ctx: FrameContext, h: Hell) => {
     if (ph === WARN) playSound('rumble', 0.25, 6);
     if (ph > WARN && ph < BLAST && ph % 6 === 0) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 16, y: base - 4 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1.2 - Math.random() }, life: 30, color: 'rgba(87, 83, 78, 0.6)', size: 5 + Math.random() * 4 });
     if (ph === BLAST) { playSound('flame', 0.7); playSound('ignite', 0.6, -4); }
-    if (ph >= BLAST && alive && p.invincibilityTimer <= 0 && rectsOverlap(hurtbox(state), { x: x - 18, y: base - JET_H, w: 36, h: JET_H })) {
+    if (ph >= BLAST && alive && p.invincibilityTimer <= 0 && rectsOverlap(hurtbox(state), { x: x - 18, y: base - 16 - JET_H, w: 36, h: JET_H + 16 })) {
       const dir = Math.sign(cx - x) || -p.facing;
       hurtPlayer(ctx, JET_DMG, JET, { x: dir * 7, y: -9 });
     }
@@ -120,7 +123,7 @@ const updateCars = (ctx: FrameContext, h: Hell) => {
   const inPit = cx < SHAFT_R + 300 && p.health > 0 && !p.inCutscene;
   if (!h.car) {
     if (inPit && --h.carIn <= 0) {
-      h.car = { x: Math.max(SHAFT_L + 90, Math.min(SHAFT_R - 90, cx + (Math.random() - 0.5) * 160)), y: GY - 1400, vy: 0, warn: 90 };
+      h.car = { x: Math.max(SHAFT_L + 400, Math.min(SHAFT_R - 90, cx + (Math.random() - 0.5) * 160)), y: GY - 1400, vy: 0, warn: 90 };
       playSound('grind', 0.6, -10);
     }
     return;
@@ -154,8 +157,9 @@ const updateCars = (ctx: FrameContext, h: Hell) => {
 
 /** A wrecked elevator car (the ride's: an elevator cab, red and gold, ELEVATOR TO HELL on a plate over its doors),
  *  crumpled, its doors burst, at (x, the ground), tipped `tilt`. */
-export const drawWreckedCar = (c: Ctx, x: number, y: number, tilt: number, f: number) => {
+export const drawWreckedCar = (c: Ctx, x: number, y: number, tilt: number, f: number, standable = false) => {
   c.save(); c.translate(x, y); c.rotate(tilt);
+  box(c, -58, -126, 116, 126, '#0C0303');
   // (the cab, its roof caved in on one side)
   box(c, -56, -124, 112, 124, '#7F1D1D'); box(c, -56, -124, 112, 5, '#B91C1C'); box(c, -56, -6, 112, 6, '#450A0A');
   c.fillStyle = '#450A0A'; c.beginPath(); c.moveTo(10, -124); c.lineTo(56, -124); c.lineTo(56, -92); c.lineTo(30, -108); c.closePath(); c.fill();
@@ -173,56 +177,74 @@ export const drawWreckedCar = (c: Ctx, x: number, y: number, tilt: number, f: nu
   c.font = '6px "Press Start 2P"'; c.fillStyle = f % 60 < 30 ? '#EF4444' : '#7F1D1D'; c.fillText('H', -3, -128);
   // (blood down its front)
   box(c, -30, -8, 40, 8, '#991B1B'); box(c, -24, -40, 5, 34, '#991B1B'); box(c, 4, -30, 4, 24, '#7F1D1D');
+  // (stood on: its roof's lit lip)
+  if (standable) { box(c, -56, -124, 112, 3, '#FB923C'); }
   c.restore();
 };
 
-/** The lava pools: glowing, bubbling, banded (no lip: not something to stand on). */
+/** The lava pools: a glow up off them, a crust drifting on them, bubbles popping (no lip: not something to stand on). */
 export const drawLava = (c: Ctx, state: GameState) => {
   const f = state.frame;
   for (const [a, b] of POOLS) {
     if (b < state.camera.x - 100 || a > state.camera.x + CANVAS_WIDTH + 100) continue;
     const top = GY + LAVA_DROP;
+    // (the glow, up off it, over the banks' walls)
+    c.fillStyle = 'rgba(249, 115, 22, 0.16)'; c.fillRect(a, top - 40, b - a, 40);
+    c.fillStyle = 'rgba(249, 115, 22, 0.12)'; c.fillRect(a, top - 70, b - a, 30);
     box(c, a, top, b - a, 400, '#7C2D12');
-    box(c, a, top, b - a, 22, '#C2410C');
-    box(c, a, top, b - a, 8, '#F97316');
-    for (let x = a + ((f >> 2) % 24); x < b - 8; x += 24) box(c, x, top + 1, 10, 3, '#FDE047');
+    box(c, a, top + 10, b - a, 14, '#C2410C');
+    box(c, a, top, b - a, 10, '#F97316');
+    box(c, a, top, b - a, 3, '#FDE047');
+    // (crust: dark plates drifting on it)
+    for (let i = 0; i < Math.floor((b - a) / 90); i++) {
+      const px = a + ((i * 97 + f * 0.25 * (i % 2 ? 1 : -1)) % (b - a - 40) + (b - a - 40)) % (b - a - 40);
+      box(c, px, top + 1, 26 + (i % 3) * 8, 4, '#3B1408'); box(c, px + 4, top, 14, 2, '#57260A');
+    }
     for (let i = 0; i < 3; i++) {
       const bx = a + 20 + ((i * 137 + Math.floor(f / 40) * 59) % Math.max(1, b - a - 40)), ph = (f + i * 13) % 40;
-      if (ph < 20) { c.fillStyle = '#FB923C'; c.beginPath(); c.arc(bx, top + 2, 2 + ph * 0.25, Math.PI, 0); c.fill(); }
+      if (ph < 20) { c.fillStyle = '#FDE047'; c.beginPath(); c.arc(bx, top + 2, 2 + ph * 0.3, Math.PI, 0); c.fill(); }
+      else if (ph < 24) box(c, bx - 1, top - 6 - (ph - 20) * 3, 3, 3, '#FB923C');
     }
-    // (the walls of the pool: rock down to it)
-    box(c, a - 4, GY, 4, LAVA_DROP, '#292524'); box(c, b, GY, 4, LAVA_DROP, '#292524');
+    // (the banks: rock walls down into it, outlined)
+    box(c, a - 6, GY, 6, LAVA_DROP + 4, '#170804'); box(c, b, GY, 6, LAVA_DROP + 4, '#170804');
   }
 };
 
 export const drawHazards = (c: Ctx, state: GameState) => {
   const h = hellOf(state), f = state.frame;
-  // The crumbling rocks: cracked, shaking when he's on them
+  // The crumbling rocks: paler, cracked right through, outlined; shaking (and shedding) when he's on them
   for (const r of h.crumbles) {
     if (r.gone > 0 || !near(state, r.x)) continue;
-    const sh = r.shake > 0 ? Math.sin(r.shake * 1.9) * 2 : 0;
-    box(c, r.x + sh, r.y, r.w, 18, '#44403C'); box(c, r.x + sh, r.y, r.w, 3, '#FB923C');
-    box(c, r.x + sh + 6, r.y + 18, r.w - 12, 8, '#292524');
-    c.strokeStyle = '#1C1917'; c.lineWidth = 1.5;
-    c.beginPath(); c.moveTo(r.x + sh + r.w * 0.3, r.y + 3); c.lineTo(r.x + sh + r.w * 0.4, r.y + 12); c.lineTo(r.x + sh + r.w * 0.35, r.y + 18); c.stroke();
-    c.beginPath(); c.moveTo(r.x + sh + r.w * 0.7, r.y + 3); c.lineTo(r.x + sh + r.w * 0.62, r.y + 14); c.stroke();
+    const sh = r.shake > 0 ? Math.sin(r.shake * 1.9) * 2 : 0, x = r.x + sh, y = r.y, w = r.w;
+    box(c, x - 2, y - 1, w + 4, 20, '#0C0303');
+    box(c, x, y, w, 18, '#6B4A3A'); box(c, x + w * 0.6, y + 4, w * 0.4, 14, '#55392C');
+    c.fillStyle = '#0C0303'; c.beginPath(); c.moveTo(x + 4, y + 18); c.lineTo(x + w / 2, y + 34); c.lineTo(x + w - 4, y + 18); c.fill();
+    c.fillStyle = '#55392C'; c.beginPath(); c.moveTo(x + 8, y + 18); c.lineTo(x + w / 2, y + 30); c.lineTo(x + w - 8, y + 18); c.fill();
+    box(c, x, y, w, 3, r.shake > 0 && r.shake % 8 < 4 ? '#FDE047' : '#FDBA74');
+    c.strokeStyle = '#0C0303'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(x + w * 0.3, y + 3); c.lineTo(x + w * 0.42, y + 12); c.lineTo(x + w * 0.36, y + 22); c.stroke();
+    c.beginPath(); c.moveTo(x + w * 0.72, y + 3); c.lineTo(x + w * 0.62, y + 15); c.stroke();
   }
-  // The fire jets: the vent, its warning glow and smoke, the column of fire
+  // The fire jets: a little chimney of rock with a glowing throat; its warning (the glow building, smoke, sparks
+  // spitting out of it), then the column of fire, tongues licking off the top of it
   for (const [x, base, off] of JETS) {
     if (!near(state, x)) continue;
     const ph = jetPhase(f, off);
-    box(c, x - 16, base - 6, 32, 6, '#1C1917'); box(c, x - 10, base - 4, 20, 3, ph > WARN ? '#F97316' : '#7C2D12');
+    c.fillStyle = '#0C0303'; c.beginPath(); c.moveTo(x - 24, base); c.lineTo(x - 12, base - 18); c.lineTo(x + 12, base - 18); c.lineTo(x + 24, base); c.fill();
+    c.fillStyle = '#3B1408'; c.beginPath(); c.moveTo(x - 21, base); c.lineTo(x - 10, base - 16); c.lineTo(x + 10, base - 16); c.lineTo(x + 21, base); c.fill();
+    box(c, x - 8, base - 17, 16, 4, ph > WARN ? '#FDE047' : ph > WARN - 20 ? '#F97316' : '#7C2D12');
     if (ph > WARN && ph < BLAST) {
       const k = (ph - WARN) / (BLAST - WARN);
-      c.fillStyle = `rgba(249, 115, 22, ${0.15 + k * 0.35})`; c.beginPath(); c.ellipse(x, base - 3, 18 + k * 10, 6 + k * 4, 0, 0, Math.PI * 2); c.fill();
-      if (ph % 8 < 4) box(c, x - 3, base - 10 - k * 14, 6, 8, '#FDE047');
+      c.fillStyle = `rgba(249, 115, 22, ${0.15 + k * 0.4})`; c.beginPath(); c.ellipse(x, base - 18, 14 + k * 12, 6 + k * 6, 0, 0, Math.PI * 2); c.fill();
+      if (ph % 6 < 3) { box(c, x - 2 + Math.sin(ph) * 6, base - 26 - k * 30, 4, 4, '#FDE047'); box(c, x + 3 - Math.sin(ph) * 5, base - 22 - k * 20, 3, 3, '#FB923C'); }
     }
     if (ph >= BLAST) {
-      const k = Math.min(1, (ph - BLAST) / 6), hgt = JET_H * k;
+      const k = Math.min(1, (ph - BLAST) / 5) * (ph > CYCLE - 8 ? (CYCLE - ph) / 8 : 1), hgt = JET_H * k, top = base - 16 - hgt;
       for (let i = 0; i < 5; i++) {
-        const w = 34 - i * 6, wob = Math.sin(f * 0.8 + i) * 3;
-        box(c, x - w / 2 + wob, base - hgt + i * 6, w, hgt - i * 6, ['#B91C1C', '#EA580C', '#F97316', '#FDBA74', '#FEF9C3'][i]);
+        const w = 36 - i * 6, wob = Math.sin(f * 0.8 + i) * 3;
+        box(c, x - w / 2 + wob, top + i * 6, w, hgt - i * 6, ['#B91C1C', '#EA580C', '#F97316', '#FDBA74', '#FEF9C3'][i]);
       }
+      for (let i = 0; i < 3; i++) { const tx = x - 12 + i * 12 + Math.sin(f * 0.9 + i * 2) * 4, th = 14 + Math.sin(f * 0.7 + i) * 8; c.fillStyle = i === 1 ? '#FDE047' : '#F97316'; c.beginPath(); c.moveTo(tx - 6, top + 4); c.lineTo(tx, top - th); c.lineTo(tx + 6, top + 4); c.fill(); }
     }
   }
   // Wrecks piled up from the cars that have come down since

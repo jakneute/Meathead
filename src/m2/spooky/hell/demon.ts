@@ -30,6 +30,8 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { say, cutVoice } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
+import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
+import { ENEMY_HIT_COOLDOWN, POWER_CELLS, BOUNCE_FRAMES } from '../../../m1/constants';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import { solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
@@ -50,18 +52,28 @@ const FORK = 'm2:demon_fork', QUAKE = 'm2:demon_quake', BELLY = 'm2:demon_belly'
 export const DONE_CP = 53;
 
 // The numbers
-const HP = 1700, POOL = 100000, W = 120, H = 150, MASS = 2400;
-const THRUST_DMG = 26, SLAM_DMG = 30, SWEEP_DMG = 22, QUAKE_DMG = 10, BELLY_DMG = 28, BUMP_DMG = 10;
+const HP = 2400, POOL = 100000, W = 120, H = 150, MASS = 2400;
+/** How hard his moves bounce off him (a firm shove back, not a launch). */
+const RECOIL_MASS = 450;
+const THRUST_DMG = 26, SLAM_DMG = 26, SWEEP_DMG = 22, QUAKE_DMG = 10, BELLY_DMG = 28, BUMP_DMG = 10;
 /** Windups (frames; shortened under 40%). */
 const THRUST_WIND = 52, SLAM_WIND = 62, SWEEP_WIND = 48, CROUCH = 38;
 /** Hurt this much in a short while, and he sits down. */
-const STAGGER_AT = 280, STAGGER_FRAMES = 80;
+const STAGGER_AT = 520, STAGGER_FRAMES = 80;
+/** What his blubber lets through of a shot (or anything else that isn't one of his moves): it's going in close that
+ *  gets him. */
+const SHOT_SHARE = 0.55;
 const GRAV = 0.6;
 /** Reach: the thrust's tines, the slam's zone (from his middle), the sweep's. */
 const THRUST_REACH = 235, SLAM_NEAR = 95, SLAM_FAR = 245, SWEEP_REACH = 265;
+/** His moves on him (his own say, not the engine's: see demonTouch). A charge is the bread and butter (it always lands,
+ *  again and again); an uppercut's the big one (two power cells' worth); a stomp's good, and it gives the power back,
+ *  and a chain of them is fair game (never capped: the game's own). */
+const MELEE = { charge: 34, slide: 22, uppercut: 110, divekick: 60 };
+const SWAT_WIND = 16, SWAT_DMG = 20;
 
 type St = 'lounge' | 'rise' | 'walk' | 'thrustWind' | 'thrust' | 'slamWind' | 'slam' | 'stuck' | 'sweepWind' | 'sweep'
-  | 'crouch' | 'air' | 'land' | 'stagger' | 'beaten' | 'sink';
+  | 'crouch' | 'air' | 'land' | 'stagger' | 'swatWind' | 'swat' | 'beaten' | 'sink';
 
 export interface Demon {
   fight: 'wait' | 'on' | 'beaten' | 'gone';
@@ -74,6 +86,8 @@ export interface Demon {
   said: Said | null; talkAt: number; used: string[];
   /** Beaten: the fork left stuck in the floor where he dropped it; how far he's sunk away. */
   forkAt: number | null; sink: number;
+  /** Stomped on the head this many times running (and when last): twice, and he swats up over his head. */
+  stomps: number; stompAt: number;
 }
 export const demonOf = (state: GameState) => hellOf(state).demon;
 
@@ -107,7 +121,7 @@ export const buildDemon = (state: GameState) => {
   const d: Demon = {
     fight: 'wait', x: DEMON_HOME, y: GY, vx: 0, vy: 0, facing: -1, st: 'lounge', t: 0, cd: 60,
     hp: HP, flash: 0, hurtSince: 0, hurtAt: -999, e: null, lock: null, slamX: 0, jumpTo: 0, hit: false,
-    said: null, talkAt: 0, used: [], forkAt: null, sink: 0,
+    said: null, talkAt: 0, used: [], forkAt: null, sink: 0, stomps: 0, stompAt: -999,
   };
   d.lock = solid(state, ARENA_OUT, GY - 1200, 30, 1200, { hidden: true, tag: 'hell-lock' });
   const e = makeKindEnemy(DEMON_KIND as EnemyKind, d.x, GY);
@@ -117,7 +131,7 @@ export const buildDemon = (state: GameState) => {
 };
 const gone = (): Demon => ({
   fight: 'gone', x: DEMON_HOME, y: GY, vx: 0, vy: 0, facing: -1, st: 'sink', t: 0, cd: 0, hp: 0, flash: 0, hurtSince: 0, hurtAt: 0,
-  e: null, lock: null, slamX: 0, jumpTo: 0, hit: false, said: null, talkAt: 0, used: [], forkAt: DEMON_HOME - 90, sink: 1,
+  e: null, lock: null, slamX: 0, jumpTo: 0, hit: false, said: null, talkAt: 0, used: [], forkAt: DEMON_HOME - 90, sink: 1, stomps: 0, stompAt: 0,
 });
 
 const place = (d: Demon) => {
@@ -150,6 +164,60 @@ const strike = (ctx: FrameContext, d: Demon, dmg: number, source: string, kx: nu
   hurtPlayer(ctx, dmg, source, { x: kx, y: ky });
   playSound('crunch', 1, -6); shakeScreen(ctx.state, 10, 5);
   if (p.health > 0 && Math.random() < 0.6) demonSays(ctx.state, d, DEMON_HIT, true);
+};
+
+/** A spurt of him (he bleeds, black-red, hot) where a hit's gone in. */
+const spurt = (state: GameState, x: number, y: number, n: number, dir: number) => {
+  for (let i = 0; i < n; i++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 5) + (Math.random() - 0.5) * 3, y: -2 - Math.random() * 5 }, life: 24 + Math.random() * 16, color: i % 3 ? '#7F1D1D' : '#F97316', size: 2 + Math.random() * 4, grav: 0.35 });
+};
+
+/** His moves landing on him (the engine asks first: KindDef's `touch`); his body's own bumps are think()'s. */
+const demonTouch = (ctx: FrameContext, e: Enemy): boolean => {
+  const { state } = ctx, p = state.player;
+  const d = demonOf(state);
+  if (!d || d.fight !== 'on' || d.e !== e) return true;
+  if (!(p.isCharging || p.isUppercutting || p.isDivekicking) || p.health <= 0) return true;
+  if (p.isUppercutting && p.uppercutHitIds.includes(e.id)) return true;
+  if (p.isDivekicking && p.diveKickHitIds.includes(e.id)) return true;
+  if (e.hitByMove === p.moveId && (e.hitCooldown ?? 0) > 0) return true;
+  if (!rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return true;
+  const up = !!p.isUppercutting, dk = !!p.isDivekicking, slide = !up && !dk && !!p.isSliding;
+  const dmg = up ? MELEE.uppercut : dk ? MELEE.divekick : slide ? MELEE.slide : MELEE.charge;
+  e.hitByMove = p.moveId; e.hitCooldown = ENEMY_HIT_COOLDOWN;
+  if (up) p.uppercutHitIds.push(e.id);
+  if (dk) p.diveKickHitIds.push(e.id);
+  const pc = p.pos.x + p.width / 2, dir = Math.sign(d.x - pc) || 1;
+  const at = { x: d.x - dir * W * 0.4, y: dk ? d.y - H + 10 : up ? d.y - H * 0.6 : d.y - H * 0.45 };
+  hurt(ctx, d, dmg);
+  ctx.fx.spawnDamageNumber({ x: at.x - 10, y: at.y - 20 }, dmg, up || dk);
+  ctx.fx.playGunSound(dk ? 'stomp' : 'punch');
+  spurt(state, at.x, at.y, up ? 16 : 8, -dir);
+  if (d.fight !== 'on') return true;
+  if (up) { shakeScreen(state, 10, 6); ctx.fx.spawnExplosion(at, '#FFD700', 15, 0, 12); playSound('crunch', 0.8, -6); }
+  if (dk) {
+    // (the stomp: the bounce and the power back, as off anything; chains of them are his to keep: no swatting him off
+    // (stomp chains refunding power are the game's own, never capped))
+    p.power = Math.min(POWER_CELLS, p.power + 1);
+    ctx.fx.playGunSound('boing', 0.6);
+    p.vel.y = -Math.abs(p.vel.y) * 0.5; p.vel.x *= 0.5;
+    p.lockTimer = BOUNCE_FRAMES; p.recoiling = true;
+    d.stomps = state.frame - d.stompAt < 100 ? d.stomps + 1 : 1; d.stompAt = state.frame;
+  } else recoilOff(ctx, RECOIL_MASS);
+  return true;
+};
+
+/** Damage into him: his health, the flash, the stagger (enough at a go and he sits down), beaten. */
+const hurt = (ctx: FrameContext, d: Demon, dmg: number) => {
+  const { state } = ctx, f = state.frame;
+  d.hp -= dmg; d.flash = 6;
+  if (f - d.hurtAt > 240) d.hurtSince = 0;
+  d.hurtSince += dmg; d.hurtAt = f;
+  if (d.hp <= 0) { beaten(ctx, d); return; }
+  if (d.hurtSince >= STAGGER_AT && d.st !== 'air' && d.st !== 'crouch' && d.st !== 'stagger' && d.st !== 'rise' && d.st !== 'swat') {
+    d.st = 'stagger'; d.t = 0; d.vx = 0; d.hurtSince = 0;
+    playSound('bellow', 0.8, -8); shakeScreen(state, 8, 4);
+    demonSays(state, d, DEMON_HURT, false);
+  }
 };
 
 const startFight = (state: GameState, d: Demon) => {
@@ -206,16 +274,15 @@ export const updateDemon = (ctx: FrameContext) => {
     e.health = POOL; shrugOff(e);
     if (killed) { e.isBlownAway = false; e.meleeFlung = false; e.uppercutFlung = false; e.rotation = 0; if (!state.enemies.includes(e)) state.enemies.push(e); }
     if (d.fight === 'on' && lost > 0.01) {
-      d.hp -= lost; d.flash = 5;
-      if (f - d.hurtAt > 240) d.hurtSince = 0;
-      d.hurtSince += lost; d.hurtAt = f;
-      if (d.hp <= 0) { beaten(ctx, d); return; }
-      if (d.hurtSince >= STAGGER_AT && d.st !== 'air' && d.st !== 'crouch' && d.st !== 'stagger' && d.st !== 'rise') {
-        d.st = 'stagger'; d.t = 0; d.vx = 0; d.hurtSince = 0;
-        playSound('bellow', 0.8, -8); shakeScreen(state, 8, 4);
-        demonSays(state, d, DEMON_HURT, false);
+      // (the numbers that went up over him: what really got through)
+      for (const n of state.damageNumbers) {
+        if (n.value === undefined || n.life < n.maxLife - 2 || Math.abs(n.pos.x - e.pos.x) > W || Math.abs(n.pos.y - e.pos.y) > H) continue;
+        n.value = Math.max(1, Math.round(n.value * SHOT_SHARE));
       }
+      hurt(ctx, d, lost * SHOT_SHARE);
+      if (d.fight === 'on') spurt(state, d.x - d.facing * 10 + (Math.random() - 0.5) * W * 0.6, d.y - H * (0.3 + Math.random() * 0.4), 3, -d.facing);
     }
+    if (d.fight !== 'on' && d.fight !== 'wait') return;
   }
   if (d.fight === 'beaten') { d.t++; return; }
   if (d.fight === 'wait') {
@@ -251,12 +318,21 @@ const think = (ctx: FrameContext, d: Demon) => {
     default: {
       d.st = 'walk';
       if (d.t > 10) d.facing = toward;
+      // (he's backed out of the pit: not worth getting up for. Back to his spot; but shoot him from out there and he
+      // comes down on the gate)
+      if (pc < ARENA_IN - 10) {
+        const home = DEMON_HOME - d.x;
+        d.vx = Math.abs(home) > 20 ? Math.sign(home) * 0.9 : 0;
+        if (d.cd <= 0 && state.frame - d.hurtAt < 4) { d.st = 'crouch'; d.t = 0; d.vx = 0; d.jumpTo = ARENA_IN + 90; }
+        break;
+      }
       d.vx = adx > 150 ? toward * 1.1 : 0;
       if (d.cd > 0 || !alive) break;
       const level = pFeet > GY - 40;
-      // (far off, or up on a ledge: over at him, and the quake)
-      if (adx > 340 || (!level && adx > 140 && Math.random() < 0.02)) {
+      // (far off, or up on a ledge: over at him, and the quake; or he plods on over a while)
+      if (adx > 300 || (!level && adx > 140 && Math.random() < 0.02)) {
         if (Math.random() < 0.6 || !level) { d.st = 'crouch'; d.t = 0; d.vx = 0; d.jumpTo = Math.max(ARENA_IN + 90, Math.min(ARENA_OUT - 90, pc)); break; }
+        d.cd = 70; break;
       }
       if (adx < 260) {
         const r = Math.random();
@@ -325,6 +401,15 @@ const think = (ctx: FrameContext, d: Demon) => {
       d.vx = 0;
       if (d.t > 56 * mad) { d.st = 'walk'; d.t = 0; d.cd = 30 + Math.random() * 30; }
       break;
+    case 'swatWind':
+      // (looking up, the fork coming round over his head: the tell)
+      d.vx = 0;
+      if (d.t > SWAT_WIND) { d.st = 'swat'; d.t = 0; d.hit = false; playSound('whoosh', 1, -4); }
+      break;
+    case 'swat':
+      if (d.t >= 2 && d.t <= 8 && rectsOverlap(hb, { x: d.x - 90, y: d.y - H - 170, w: 180, h: 190 })) strike(ctx, d, SWAT_DMG, FORK, (Math.sign(pc - d.x) || 1) * 10, -9);
+      if (d.t > 30) { d.st = 'walk'; d.t = 0; d.cd = 20; }
+      break;
     case 'stagger':
       d.vx = 0;
       if (d.t > STAGGER_FRAMES) { d.st = 'walk'; d.t = 0; d.cd = 20; }
@@ -334,7 +419,7 @@ const think = (ctx: FrameContext, d: Demon) => {
   d.x = Math.max(ARENA_IN + 70, Math.min(ARENA_OUT - 70, d.x + d.vx));
   // (just walked into: his gut)
   const walking = d.st === 'walk' || d.st === 'rise';
-  if (walking && alive && p.invincibilityTimer <= 0 && !(p.isCharging || p.isUppercutting || p.isDivekicking) && rectsOverlap(hb, { x: d.x - W / 2 + 10, y: d.y - H + 20, w: W - 20, h: H - 20 })) {
+  if (walking && alive && p.isGrounded && p.invincibilityTimer <= 0 && !(p.isCharging || p.isUppercutting || p.isDivekicking) && rectsOverlap(hb, { x: d.x - W / 2 + 10, y: d.y - H + 20, w: W - 20, h: H - 20 })) {
     hurtPlayer(ctx, BUMP_DMG, DEMON_KIND, { x: toward * -8, y: -6 });
   }
 };
@@ -487,6 +572,8 @@ const drawBodyAndFork = (c: Ctx, d: Demon, f: number, st: St, t: number) => {
     case 'air': hx = 44; hy = -120; ang = -0.9; break;
     case 'land': hx = 50; hy = -60; ang = 0.5; break;
     case 'stagger': hx = 30; hy = -40; ang = 0.9; break;
+    case 'swatWind': { const k = Math.min(1, t / SWAT_WIND); hx = 20 - k * 30; hy = -150 - k * 20; ang = -1.35 - k * 1.2; glint = t % 6 < 3; hot = k; break; }
+    case 'swat': { const k = Math.min(1, t / 5); hx = -10 + k * 30; hy = -170; ang = -2.55 + k * 2.2; hot = 1; break; }
     case 'beaten': case 'sink': hx = 0; hy = -9999; break;
   }
   const showFork = hy > -9000;
@@ -539,7 +626,7 @@ registerM2Kind({
   kind: DEMON_KIND, stats: { w: W, h: H, hp: POOL, contact: 0, mass: MASS }, ai: (_ctx, e) => { e.vel.x = 0; e.vel.y = 0; return true; },
   // (drawn whole by drawDemon, behind; its box draws nothing, and no daze over it)
   draw: (_c, e) => { e.pauseTimer = 0; },
-  head: { x: 14, y: -150, r: 20 }, gender: 'm', grab: 'none', midBoss: true,
+  head: { x: 14, y: -150, r: 20 }, gender: 'm', grab: 'none', midBoss: true, touch: demonTouch,
 });
 registerHurtLines(DEMON_KIND, HURT_BELLY, DEATH_BELLY);
 registerHurtLines(BELLY, HURT_BELLY, DEATH_BELLY);

@@ -21,7 +21,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import {
   x0, x1, D, SHAFT_L, SHAFT_R, SHAFT_TOP, LEFT_ROCK_BOTTOM, RIGHT_ROCK_BOTTOM, RIGHT_ROCK_W, STAIRS_X, POOLS, LAVA_DROP, ROCKS, LEDGES,
-  REFILL_X, VENT_X,
+  REFILL_X, VENT_X, WRECK_X, CAB_W, CAB_H, PICKUPS,
 } from './layout';
 import { hellOf } from './state';
 import { HELL_KINDS } from './kinds';
@@ -33,18 +33,23 @@ import { MH_LANDED, MH_BODIES, MH_LAVA } from './lines';
 
 const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
 
-/** Who's where: [kind, x, the floor under it (or, flying, how high)]. Taught one at a time, then mixed. */
+/** Who's where: [kind, x, the floor under it (or, flying, how high)]. Each kind on its own first, where its type
+ *  works (the thrower up on a rock, the rushers on a long run, the flyers over the lava), then mixed. */
 const ENEMIES: [keyof typeof HELL_KINDS, number, number][] = [
-  // (the critters: an imp; another up on a rock; a hound; two; bats over the first lava)
-  ['imp', D + 1600, GY], ['imp', D + 2200, GY - 210],
-  ['hound', D + 2650, GY], ['hound', D + 3050, GY], ['hound', D + 3200, GY],
-  ['bat', D + 3530, GY - 230], ['bat', D + 4150, GY - 260],
-  // (the hell goat on its own, on the flat past the crumbling rocks)
-  ['goat', D + 5850, GY],
+  // (the bone yard: an imp up on a low rock; another higher)
+  ['imp', D + 1950, GY - 110], ['imp', D + 2200, GY - 220],
+  // (the hound run: one, then two)
+  ['hound', D + 2700, GY], ['hound', D + 3180, GY], ['hound', D + 3300, GY],
+  // (the first lava's pool: bats over it)
+  ['bat', D + 4020, GY - 230], ['bat', D + 4270, GY - 250],
+  // (the high road over the vents: an imp on it)
+  ['imp', D + 5000, GY - 200],
+  // (the goat, alone on its flat)
+  ['goat', D + 5920, GY],
   // (the lake: an imp on the pillar, bats over it)
-  ['imp', D + 6830, GY - 90], ['bat', D + 6450, GY - 300], ['bat', D + 6900, GY - 280],
-  // (the shore: two hounds and an imp, the goat behind them)
-  ['hound', D + 7300, GY], ['hound', D + 7420, GY], ['imp', D + 7560, GY], ['goat', D + 7480, GY],
+  ['imp', D + 6830, GY - 90], ['bat', D + 6480, GY - 330], ['bat', D + 6930, GY - 290],
+  // (the shore: hounds on the run in, the goat behind them, an imp up on its rock)
+  ['hound', D + 7260, GY], ['hound', D + 7360, GY], ['goat', D + 7460, GY], ['imp', D + 7585, GY - 120],
 ];
 
 export const hell: SpookySection = {
@@ -67,6 +72,8 @@ export const hell: SpookySection = {
     solid(state, SHAFT_R, SHAFT_TOP, RIGHT_ROCK_W, RIGHT_ROCK_BOTTOM - SHAFT_TOP, { hidden: true, tag: 'hell' });
     for (const [x, top, w] of ROCKS) solid(state, x, top, w, GY + LAVA_DROP + 40 - top, { hidden: true, tag: 'hell' });
     for (const [x, y, w] of LEDGES) ledge(state, x, y, w, { hidden: true, tag: 'hell' });
+    // (the wreck's cab: stand on its roof)
+    solid(state, WRECK_X - CAB_W / 2, GY - CAB_H, CAB_W, CAB_H, { hidden: true, tag: 'hell-cab' });
     endWalls(state, 'hell');
     const h = hellOf(state);
     buildHazards(state, h);
@@ -80,6 +87,8 @@ export const hell: SpookySection = {
     state.pickups.push(
       { id: 'hell-health', pos: { x: REFILL_X - 30, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
       { id: 'hell-ammo', pos: { x: REFILL_X + 10, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 },
+      // (and what's out on the side paths)
+      ...PICKUPS.map(([x, y, type], i) => ({ id: `hell-side-${i}`, pos: { x: x - 10, y: y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 })),
     );
   },
   update: (ctx, controls) => {

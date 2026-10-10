@@ -204,41 +204,50 @@ const flames = (c: Ctx, x: number, y: number, w: number, h: number, f: number, s
   }
 };
 
+/** A box with an outline round it (the crude look still reads against the dark). */
+const ob = (c: Ctx, x: number, y: number, w: number, h: number, col: string, rim = '#0C0303') => { box(c, x - 1, y - 1, w + 2, h + 2, rim); box(c, x, y, w, h, col); };
+
 const drawImp = (c: Ctx, e: Enemy, f: number) => {
   const hop = grounded(e) ? 0 : -2, wind = e.aiState === 'wind';
-  // (tail, legs, body, wings, head and horns)
-  box(c, -16, -14 + hop, 8, 3, '#991B1B'); box(c, -19, -18 + hop, 4, 5, '#7F1D1D');
-  box(c, -7, -10, 5, 10, '#991B1B'); box(c, 3, -10, 5, 10, '#991B1B');
-  box(c, -9, -28 + hop, 18, 19, '#DC2626'); box(c, -9, -28 + hop, 18, 3, '#F87171');
   const flap = Math.floor(f / 5) % 2 ? 4 : 0;
-  box(c, -17, -32 + hop + flap, 9, 8, '#450A0A'); box(c, 8, -32 + hop + flap, 9, 8, '#450A0A');
-  box(c, -8, -40 + hop, 16, 13, '#DC2626'); box(c, -8, -40 + hop, 16, 2, '#F87171');
-  box(c, -8, -45 + hop, 3, 5, '#FEF3C7'); box(c, 5, -45 + hop, 3, 5, '#FEF3C7');
-  glowEye(c, 2, -36 + hop, f); box(c, 1, -30 + hop, 7, 2, '#450A0A');
-  // (the fireball in its fist, growing: the tell)
+  // (bat wings behind it, the tail with its arrowhead, legs, a pot belly, a big head, horns, a grin)
+  c.fillStyle = '#0C0303';
+  for (const s of [-1, 1]) { c.beginPath(); c.moveTo(s * 4, -30 + hop); c.lineTo(s * 22, -40 + hop + flap); c.lineTo(s * 16, -24 + hop + flap * 0.5); c.closePath(); c.fill(); }
+  c.fillStyle = '#450A0A';
+  for (const s of [-1, 1]) { c.beginPath(); c.moveTo(s * 5, -29 + hop); c.lineTo(s * 20, -38 + hop + flap); c.lineTo(s * 15, -25 + hop + flap * 0.5); c.closePath(); c.fill(); }
+  ob(c, -18, -14 + hop, 10, 3, '#991B1B'); c.fillStyle = '#991B1B'; c.beginPath(); c.moveTo(-24, -12 + hop); c.lineTo(-18, -18 + hop); c.lineTo(-18, -8 + hop); c.fill();
+  ob(c, -7, -10, 5, 10, '#991B1B'); ob(c, 3, -10, 5, 10, '#991B1B');
+  ob(c, -10, -28 + hop, 20, 19, '#DC2626'); box(c, -6, -22 + hop, 12, 10, '#F87171');
+  ob(c, -10, -44 + hop, 20, 17, '#DC2626'); box(c, -10, -44 + hop, 20, 3, '#F87171');
+  box(c, -9, -50 + hop, 4, 6, '#FEF3C7'); box(c, 5, -50 + hop, 4, 6, '#FEF3C7');
+  glowEye(c, 2, -39 + hop, f); glowEye(c, -5, -39 + hop, f);
+  box(c, -4, -32 + hop, 12, 3, '#450A0A'); box(c, -2, -32 + hop, 2, 2, '#FFFFFF'); box(c, 4, -32 + hop, 2, 2, '#FFFFFF');
+  // (the fireball in its fist, growing over its head: the tell)
   if (wind) {
-    const r = 3 + Math.min(1, (e.aiTimer || 0) / 26) * 5;
-    c.fillStyle = 'rgba(249, 115, 22, 0.4)'; c.beginPath(); c.arc(10, -42 + hop, r + 4, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FDE047'; c.beginPath(); c.arc(10, -42 + hop, r, 0, Math.PI * 2); c.fill();
-    box(c, 6, -36 + hop, 5, 10, '#DC2626');
-  } else box(c, 8, -24 + hop, 7, 4, '#DC2626');
+    const r = 3 + Math.min(1, (e.aiTimer || 0) / 26) * 6;
+    c.fillStyle = 'rgba(249, 115, 22, 0.45)'; c.beginPath(); c.arc(10, -54 + hop, r + 5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FDE047'; c.beginPath(); c.arc(10, -54 + hop, r, 0, Math.PI * 2); c.fill();
+    ob(c, 7, -48 + hop, 5, 22, '#DC2626');
+  } else ob(c, 9, -24 + hop, 8, 4, '#DC2626');
 };
 
 const drawHound = (c: Ctx, e: Enemy, f: number) => {
   const run = Math.abs(e.vel.x) > 0.5, st = run ? Math.sin(f * 0.5) * 6 : 0, crouch = e.aiState === 'crouch' ? 6 : 0;
-  // (legs, body, the burning mane and tail, the head, the jaws)
-  box(c, -24 + st, -16, 6, 16, '#18181B'); box(c, -14 - st, -16, 6, 16, '#27272A');
-  box(c, 12 - st, -16, 6, 16, '#18181B'); box(c, 20 + st, -16, 6, 16, '#27272A');
-  box(c, -28, -36 + crouch, 56, 22, '#1C1917'); box(c, -28, -36 + crouch, 56, 3, '#44403C');
+  const RIM = '#7C2D12';
+  // (legs, a lean black body, ribs showing, the burning mane and tail, a long head, its jaws)
+  ob(c, -24 + st, -16, 6, 16, '#18181B', RIM); ob(c, -14 - st, -16, 6, 16, '#27272A', RIM);
+  ob(c, 12 - st, -16, 6, 16, '#18181B', RIM); ob(c, 20 + st, -16, 6, 16, '#27272A', RIM);
+  ob(c, -28, -36 + crouch, 56, 22, '#1C1917', RIM); box(c, -28, -36 + crouch, 56, 3, '#44403C');
   for (let i = 0; i < 6; i++) box(c, -22 + i * 8, -26 + crouch, 3, 6, '#57534E');
   flames(c, -10, -34 + crouch, 32, 16, f);
-  flames(c, -36, -28 + crouch, 10, 12, f, 3);
-  box(c, 22, -44 + crouch, 20, 18, '#1C1917'); box(c, 38, -38 + crouch, 10, 8, '#1C1917');
-  box(c, 24, -50 + crouch, 5, 7, '#0C0A09');
-  glowEye(c, 32, -40 + crouch, f);
-  const open = e.aiState === 'pounce' || e.aiState === 'crouch' ? 5 : 1;
-  box(c, 38, -30 + crouch, 10, open, '#7F1D1D');
-  box(c, 39, -30 + crouch, 2, 2, '#FFFFFF'); box(c, 44, -30 + crouch, 2, 2, '#FFFFFF');
+  flames(c, -38, -28 + crouch, 12, 14, f, 3);
+  ob(c, 22, -46 + crouch, 22, 20, '#1C1917', RIM); ob(c, 40, -38 + crouch, 14, 10, '#1C1917', RIM);
+  ob(c, 24, -54 + crouch, 6, 9, '#0C0A09', RIM); ob(c, 33, -54 + crouch, 5, 8, '#0C0A09', RIM);
+  glowEye(c, 34, -42 + crouch, f);
+  const open = e.aiState === 'pounce' || e.aiState === 'crouch' ? 6 : 1;
+  box(c, 40, -29 + crouch, 14, open, '#B91C1C');
+  for (let i = 0; i < 3; i++) box(c, 42 + i * 4, -29 + crouch, 2, 3, '#FFFFFF');
+  if (e.aiState === 'crouch' || e.aiState === 'pounce') box(c, 46, -24 + crouch + open, 2, 4, '#E5E5E5');
 };
 
 const drawBat = (c: Ctx, e: Enemy, f: number) => {
@@ -260,17 +269,22 @@ const drawBat = (c: Ctx, e: Enemy, f: number) => {
 const drawGoat = (c: Ctx, e: Enemy, f: number) => {
   const walk = Math.abs(e.vel.x) > 0.3 ? Math.sin(f * (e.aiState === 'charge' ? 0.6 : 0.25)) * 5 : 0;
   const low = e.aiState === 'paw' || e.aiState === 'charge' ? 10 : 0;
-  for (const [x, s] of [[-26, 1], [-14, -1], [14, 1], [24, -1]] as const) { box(c, x + walk * s, -22, 7, 22, '#3B0F0F'); box(c, x + walk * s, -4, 7, 4, '#0C0A09'); }
-  box(c, -32, -54, 64, 34, '#5B1A12'); box(c, -32, -54, 64, 4, '#7C2D12');
-  box(c, -36, -50, 6, 18, '#3B0F0F');
-  // (the head down for the charge, the horns out front: the pointy end)
+  // (four legs, black hooves; a shaggy body; the tail; the head down for the charge, the horns out front: the pointy end)
+  for (const [x, s] of [[-26, 1], [-14, -1], [14, 1], [24, -1]] as const) { ob(c, x + walk * s, -22, 7, 22, '#3B0F0F'); box(c, x + walk * s, -4, 7, 4, '#0C0A09'); }
+  ob(c, -32, -54, 64, 34, '#5B1A12'); box(c, -32, -54, 64, 4, '#7C2D12');
+  for (let i = 0; i < 5; i++) box(c, -28 + i * 12, -24, 6, 5, '#5B1A12');
+  ob(c, -38, -52, 7, 14, '#3B0F0F');
   const hy = -64 + low;
-  box(c, 22, hy, 22, 22, '#5B1A12'); box(c, 38, hy + 12, 12, 10, '#3B0F0F');
-  box(c, 26, hy + 22, 8, 8, '#292524');
+  ob(c, 22, hy, 22, 22, '#5B1A12'); ob(c, 40, hy + 12, 12, 10, '#3B0F0F');
+  box(c, 26, hy + 22, 8, 9, '#292524');
+  c.fillStyle = '#0C0303';
+  c.beginPath(); c.moveTo(24, hy + 1); c.lineTo(66, hy - 6 + low * 0.8); c.lineTo(30, hy + 11); c.closePath(); c.fill();
   c.fillStyle = '#E7E5E4';
   c.beginPath(); c.moveTo(26, hy + 2); c.lineTo(62, hy - 4 + low * 0.8); c.lineTo(30, hy + 9); c.closePath(); c.fill();
   c.fillStyle = '#A8A29E';
   c.beginPath(); c.moveTo(30, hy + 8); c.lineTo(58, hy + 6 + low * 0.6); c.lineTo(32, hy + 14); c.closePath(); c.fill();
+  // (the paw: snorting, a glint on the horn tips)
+  if (e.aiState === 'paw' && f % 10 < 5) { box(c, 58, hy - 6 + low * 0.8, 4, 4, '#FFFFFF'); box(c, 46, hy + 14, 6, 3, '#E5E5E5'); }
   glowEye(c, 34, hy + 6, f);
 };
 
