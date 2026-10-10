@@ -24,7 +24,7 @@ import { lay, solid, ledge, teleport, hands, speak, meatheadSays, getAdv, sectio
 import { SECTIONS, GY } from '../geometry';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
-import { playSound } from '../../../m1/game/platform/audio';
+import { playSound, stopSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
@@ -158,6 +158,8 @@ const handOff = (state: GameState) => {
 
 const endLoading = (state: GameState, tp: Temple, skipped: boolean) => {
   if (skipped) silenceAll();
+  // (the alarm stops with the scene)
+  stopSound('alarm');
   state.player.kickPose = 0;
   tp.loading = null;
   handOff(state);
@@ -212,7 +214,9 @@ const runLoading = (ctx: FrameContext, tp: Temple): Controls => {
   // The lever; and away it goes
   if (ld.step === 4) {
     if (ld.t === 10) { playSound('clang', 1, -8); playSound('thud', 0.8); }
-    if (ld.t === 30) { playSound('alarm', 0.5); playSound('grind', 0.7, -6); }
+    if (ld.t === 30) playSound('grind', 0.7, -6);
+    // (the alarm, from the lever thrown, going the whole time he's sent off: one ring after another)
+    if (ld.t >= 12 && (ld.t - 12) % 54 === 0) playSound('alarm', 0.5);
     if (ld.t > 30) ld.rolling += Math.min(9, (ld.t - 30) * 0.25);
     // (into the tunnel: gone into the dark of it once he's past its mouth; the scene held on a beat after)
     if (p.pos.x + p.width / 2 > END_WALL - 6) p.hidden = true;

@@ -1,5 +1,5 @@
 import { SoundType } from '../../types';
-import { playSfx, warmSfx } from './sfx';
+import { playSfx, warmSfx, stopSfx } from './sfx';
 
 // Sound: the context everything plays in, the sound effects (sampled: see sfx.ts), and a few that are built live
 // (the truck horn held down, the sniper's report, the menus' clunks, the radio).
@@ -62,6 +62,9 @@ export const playSound = (type: SoundType = 'gun', vol = 1, pitch = 0) => {
     playSfx(c, type, vol, pitch);
   } catch { /* audio is best-effort; never let it break the game loop */ }
 };
+
+/** Cuts off a sound effect still going (every instance of it). */
+export const stopSound = (type: SoundType) => { try { stopSfx(type); } catch { /* best-effort */ } };
 
 /**
  * A big-bore rifle from a long way off: the round's supersonic crack, a heavy low thump under it, and the report

@@ -625,8 +625,18 @@ export const playSfx = (c: AudioContext, name: string, vol = 1, pitch = 0) => {
   const g = c.createGain(); g.gain.value = def.gain * vol;
   src.connect(g); g.connect(out);
   playing[name] = (playing[name] ?? 0) + 1;
-  src.onended = () => { playing[name] = Math.max(0, (playing[name] ?? 1) - 1); try { g.disconnect(); } catch { /* fine */ } };
+  const live = (sounding[name] ??= new Set());
+  live.add(src);
+  src.onended = () => { live.delete(src); playing[name] = Math.max(0, (playing[name] ?? 1) - 1); try { g.disconnect(); } catch { /* fine */ } };
   src.start();
+};
+/** Each sound's instances still going (so a scene's can be cut off when it ends). */
+const sounding: Record<string, Set<AudioBufferSourceNode>> = {};
+/** Cuts off every instance of a sound still going (an alarm left ringing when its scene ends). */
+export const stopSfx = (name: string) => {
+  const live = sounding[name];
+  if (!live) return;
+  for (const src of [...live]) try { src.stop(); } catch { /* already stopped */ }
 };
 
 /** Makes every sound's sample ahead of time, a few at a time (so none of them hitches the first time). */
