@@ -167,9 +167,16 @@ const App2: React.FC = () => {
   const [wheelAt, setWheelAt] = useState<number | null>(null);
   const live = useRef({ status, weapon, stage });
   live.current = { status, weapon, stage };
-  /** (in the intro's pause menu, there's SKIP INTRO after RESUME) */
-  const lastPause = () => (live.current.stage === INTRO_STAGE ? arsenal().length + 1 : arsenal().length);
+  /** (after RESUME: SKIP INTRO in the intro; BACK TO HUB out in a land, or the break room) */
+  const canHub = () => live.current.stage === ADV_STAGE || live.current.stage === PEN_STAGE;
+  const lastPause = () => (live.current.stage === INTRO_STAGE || canHub() ? arsenal().length + 1 : arsenal().length);
   const skipIntro = () => { setStatus(GameStatus.PLAYING); goTo('hub'); };
+  /** BACK TO HUB, asked first: ARE YOU SURE? (null: not asking; 0 NO, 1 YES picked out, NO to start with) */
+  const [hubAsk, setHubAsk] = useState<0 | 1 | null>(null);
+  const hubAskRef = useRef(hubAsk);
+  hubAskRef.current = hubAsk;
+  const askHub = () => setHubAsk(0);
+  const answerHub = (yes: boolean) => { setHubAsk(null); if (yes) { setStatus(GameStatus.PLAYING); goTo('hub'); } };
   const togglePause = () => {
     const st = live.current.status;
     // (a scene that can be skipped: START / ESC skips it, rather than pausing)
@@ -190,7 +197,7 @@ const App2: React.FC = () => {
   });
   const pauseSelRef = useRef(pauseSel);
   pauseSelRef.current = pauseSel;
-  const confirmPause = () => { const i = pauseSelRef.current; if (i === arsenal().length + 1) skipIntro(); else if (i >= arsenal().length) resume(); else equip(i); };
+  const confirmPause = () => { const i = pauseSelRef.current; if (i === arsenal().length + 1) { if (canHub()) askHub(); else skipIntro(); } else if (i >= arsenal().length) resume(); else equip(i); };
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
   useEffect(() => {
@@ -203,6 +210,13 @@ const App2: React.FC = () => {
       if (e.repeat) return;
       // (the cheat panel up: the pause menu behind it doesn't move, nor does the game unpause, till it's shut)
       if (paused() && cheatPanelOpen()) { if (e.code === 'Escape') setCheatPanelOpen(false); return; }
+      // (ARE YOU SURE? up: left/right between NO and YES, ENTER answers, ESC is no)
+      if (paused() && hubAskRef.current !== null) {
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA' || e.code === 'ArrowRight' || e.code === 'KeyD') setHubAsk(a => (a === 1 ? 0 : 1));
+        else if (e.code === 'Enter' || e.code === 'Space') answerHub(hubAskRef.current === 1);
+        else if (e.code === 'Escape' || e.code === 'Backspace') setHubAsk(null);
+        return;
+      }
       if (e.code === 'Escape' || e.code === 'KeyP') { togglePause(); return; }
       const digit = /^Digit([1-9])$/.exec(e.code);
       if (digit && (playing() || paused())) { const i = +digit[1] - 1; equip(i); if (paused() && i < arsenal().length && !getUi().noSwitch) setPauseSel(i); return; }
@@ -214,7 +228,7 @@ const App2: React.FC = () => {
       else if (e.code === 'Enter' || e.code === 'Space') confirmPause();
     };
     // (right-click in the pause menu: back out of it)
-    const onContext = (e: MouseEvent) => { if (paused()) { e.preventDefault(); if (!cheatPanelOpen()) resume(); } };
+    const onContext = (e: MouseEvent) => { if (paused()) { e.preventDefault(); if (hubAskRef.current !== null) setHubAsk(null); else if (!cheatPanelOpen()) resume(); } };
     window.addEventListener('wheel', onWheel);
     window.addEventListener('keydown', onKey);
     window.addEventListener('contextmenu', onContext);
@@ -238,6 +252,17 @@ const App2: React.FC = () => {
           if (!dx && !dy) lastMove = 0;
           if (pressed('ok')) activateCheat();
           if (pressed('back') || pressed('x') || pressed('start')) setCheatPanelOpen(false);
+          Object.assign(prev, btn);
+          id = requestAnimationFrame(poll);
+          return;
+        }
+        // ARE YOU SURE? (back to the hub): left/right, OK answers, BACK (or START) is no
+        if (paused() && hubAskRef.current !== null) {
+          const m = getGamepadMovement(gp, 0.25);
+          if ((m.left || m.right) && now - lastMove > 180) { setHubAsk(a => (a === 1 ? 0 : 1)); lastMove = now; }
+          if (!m.left && !m.right) lastMove = 0;
+          if (pressed('ok')) answerHub(hubAskRef.current === 1);
+          if (pressed('back') || pressed('start')) setHubAsk(null);
           Object.assign(prev, btn);
           id = requestAnimationFrame(poll);
           return;
@@ -359,7 +384,8 @@ const App2: React.FC = () => {
         {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
         {status === GameStatus.PAUSED && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch}
-            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onSkip={stage === INTRO_STAGE ? skipIntro : undefined} skin={theme?.pause} />
+            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onSkip={stage === INTRO_STAGE ? skipIntro : undefined}
+            onHub={stage === ADV_STAGE || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause} />
         )}
         {noticeUp && ui.notice && (
           <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>

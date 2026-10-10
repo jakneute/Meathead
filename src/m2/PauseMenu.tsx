@@ -68,9 +68,15 @@ interface Props {
   skin?: PauseSkin;
   /** Stuck with the one he's holding for now (the mine cart): the rest shown, but not to be picked. */
   locked?: boolean;
+  /** Out in a land (or the break room): BACK TO HUB (picked out as weapons.length + 1), asked first. */
+  onHub?: () => void;
+  /** ARE YOU SURE? up: which answer's picked out (0 NO, 1 YES), or null. */
+  hubAsk?: 0 | 1 | null;
+  onHubAnswer?: (yes: boolean) => void;
+  onHubPick?: (a: 0 | 1) => void;
 }
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onSkip, skin = PLAIN_PAUSE, locked = false }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onSkip, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick }) => {
   const shown = selected < weapons.length ? weapons[selected] : current;
   const info = M2_WEAPON_INFO[shown];
   const full = (w: WeaponType) => maxAmmo(w);
@@ -97,6 +103,27 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         {/* (over the whole of the menu while it's up: nothing behind it can be clicked) */}
         {cheatsOpen && <div className="absolute inset-0 z-[9]" onClick={e => e.stopPropagation()} onContextMenu={e => e.preventDefault()} />}
         {cheatsOpen && <CheatPanel skin={skin} onClose={() => setCheatsOpen(false)} />}
+        {/* BACK TO HUB, asked first (over the menu: nothing behind it can be clicked) */}
+        {hubAsk !== null && (
+          <div className="absolute inset-0 z-[20] flex items-center justify-center bg-black/70" onClick={e => e.stopPropagation()} onContextMenu={e => e.preventDefault()}>
+            <div className="flex flex-col items-center gap-3 px-6 py-4 border-4 border-red-600 bg-zinc-950 shadow-[4px_4px_0_#000]">
+              <div className="text-[12px] font-black tracking-widest text-yellow-300">BACK TO THE HUB?</div>
+              <div className="text-[7px] font-black tracking-wider text-zinc-300">YOU'LL LOSE YOUR PLACE IN THIS LAND.</div>
+              <div className="flex gap-3">
+                {(['NO', 'YES'] as const).map((t, k) => (
+                  <button key={t} onMouseEnter={() => onHubPick?.(k as 0 | 1)} onClick={() => onHubAnswer?.(k === 1)}
+                    className={`px-4 py-[6px] text-[10px] font-black border-2 ${hubAsk === k ? 'bg-yellow-400 text-black border-yellow-400' : 'bg-zinc-900 text-white border-zinc-700'}`}>
+                    {hubAsk === k ? '▶ ' : ''}{t}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-4 text-[6px] tracking-wider text-zinc-400">
+                <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="ANSWER" size={14} />
+                <Prompt pad={['BACK']} kb={['ESC']} mouse="right" label="NO" size={14} />
+              </div>
+            </div>
+          </div>
+        )}
         <h2 className={`mt-1 ${skin.sub ? 'mb-1' : 'mb-3'} ${skin.title.length > 12 ? 'text-2xl' : 'text-3xl'} font-black italic tracking-widest whitespace-nowrap`} style={skin.titleStyle}>{skin.title}</h2>
         {skin.sub && <div className="mb-3 text-[7px] font-black tracking-wider" style={{ color: skin.muted }}>{skin.sub}</div>}
 
@@ -153,6 +180,14 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
               style={{ background: 'linear-gradient(180deg, #2563EB, #1E3A8A)', borderBottom: '4px solid #172554', boxShadow: onSkipBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onSkipBtn ? '2px solid #FACC15' : 'none' }}>
               {onSkipBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
               <span className="w-4 text-center">»</span>SKIP INTRO
+            </button>
+          )}
+          {onHub && (
+            <button onClick={onHub}
+              className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider transition-all ${onSkipBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+              style={{ background: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', borderBottom: '4px solid #450A0A', boxShadow: onSkipBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onSkipBtn ? '2px solid #FACC15' : 'none' }}>
+              {onSkipBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
+              <span className="w-4 text-center">«</span>BACK TO HUB
             </button>
           )}
         </div>
