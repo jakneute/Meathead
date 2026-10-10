@@ -3,6 +3,9 @@
   "fixes": [
     { "in": "THE A LINE", "say": "THE AY LINE" },
     { "in": "MY RESUME", "say": "MY REZ OO MAY" },
+    { "in": "HE READ", "say": "HE RED" },
+    { "in": "DONE READ", "say": "DONE RED" },
+    { "in": "I READ THAT", "say": "I RED THAT" },
     { "in": "SHITPANTS", "say": "SHIT PANTS" },
     { "in": "FACEPLANT", "say": "FACE PLANT" },
     { "in": "GANGRENE", "say": "GANG GREEN", "word": true },
