@@ -8,8 +8,8 @@
 //   1540   The street: the selfie-station gallows (a step up to the potion shop's balcony, a crow perched over it), rats,
 //          a ghost, the CRYPT-O ATM.
 //   2350   SET PIECE: the SPINNING COFFIN CUPS. A turntable the coffins sweep across, left to right, along the floor:
-//          they knock him flying if they hit him; jump on one and it carries him over (and up to the canopy over the
-//          hub: ammo). Rats on the turntable.
+//          they knock him flying if they hit him (and anybody else in the way); jump on one and it carries him over (and
+//          up to the canopy over the hub: ammo).
 //   2950   CHECKPOINT (the kiddie rides). The long straight: the wolfman (the rusher), alone; then another.
 //   3550   The ADA ramp up to the crypt terrace (the phone-charging coffin; a crow on the lamp, the cat).
 //   4450   SET PIECE: the BAT-O-ROUND. Its bat seats go round and bob up and down: they shove him walking through
@@ -91,8 +91,8 @@ export const ENEMIES: [TownKind, number, number][] = [
   // the street: a crow over the gallows, rats, a ghost
   ['m2:town_crow', 1950, 300],
   ['m2:town_rat', 2080, 0], ['m2:town_ghost', 2250, 0],
-  // the cups: rats on the turntable
-  ['m2:town_rat', 2700, 0], ['m2:town_rat', 2820, 0],
+  // (rats by the cups, off the turntable: nobody stands in a ride's way)
+  ['m2:town_rat', 2160, 0], ['m2:town_rat', 3060, 0],
   // the long straight: a wolfman alone, then another
   ['m2:town_wolfman', 3250, 0], ['m2:town_wolfman', 3500, 0],
   // the terrace: a crow on the lamp, the cat
@@ -102,10 +102,10 @@ export const ENEMIES: [TownKind, number, number][] = [
   // the monster, alone
   ['m2:town_monster', 5250, 0],
   // the moat: bats, the witch over it; a ghost waiting at the far station
-  ['m2:town_bat', 6300, 210], ['m2:town_witch', 6560, 270], ['m2:town_ghost', 6950, 0],
+  ['m2:town_bat', 6300, 210], ['m2:town_witch', 6560, 270], ['m2:town_ghost', 7010, 0],
   // the drop tower: the high road (a crow, the witch) and the low (the mix)
   ['m2:town_crow', 7560, 330], ['m2:town_witch', 7800, 360],
-  ['m2:town_monster', 7500, 0], ['m2:town_wolfman', 7900, 0], ['m2:town_ghost', 8150, 0], ['m2:town_cat', 8250, 0],
+  ['m2:town_monster', 7500, 0], ['m2:town_wolfman', 7900, 0], ['m2:town_ghost', 8200, 0], ['m2:town_cat', 8120, 0],
   // the arcade: the skeleton, alone, under its roof
   ['m2:town_skeleton', 8740, 0],
   // the stairs

@@ -104,6 +104,13 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
 export const PONY_LAUNCHED = ['WHOA! BAD HORSE! DEAD HORSE! BAD DEAD HORSE!', "IT THREW ME! A QUARTER'S WORTH OF RODEO!"];
 /** Riding the ghost train over the moat (once). */
 export const TRAIN_RIDE = ['ALL ABOARD. ONE TODDLER, EXTRA LARGE.', 'CHOO CHOO, MOTHERFUCKERS.'];
+/** His first look at the pit the ghost train goes over (once). */
+export const PIT_SEEN = [
+  'A BOTTOMLESS PIT. IN A KIDDIE RIDE. FOR TODDLERS. WHO DESIGNED THIS PARK, SATAN?',
+  "BOTTOMLESS PIT, NO, REALLY. I BELIEVE YOU. I'M TAKING THE BABY TRAIN.",
+];
+/** Falling into it: the scream, going away down into the dark. */
+export const FALL_SCREAM = ['AAAAAAAAAAAAAAAAAaaaaaaaaaaaa...', 'NOOOOOOOOOOOOOOOooooooooo...'];
 /** The pumpkin-head at the top of the stairs, first seen rolling them (once). */
 export const PUMPKINS_SEEN = ["HE'S BOWLING JACK-O'-LANTERNS AT ME. DOWN THE STAIRS. AT A THEME PARK."];
 
@@ -143,7 +150,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...ARRIVE, ...ELEVATOR_SEEN, ...ELEVATOR_AGAIN, ...STAIRS,
     ...Object.values(RIDE_LINES).flat(),
-    ...PONY_LAUNCHED, ...TRAIN_RIDE, ...PUMPKINS_SEEN,
+    ...PONY_LAUNCHED, ...TRAIN_RIDE, ...PUMPKINS_SEEN, ...PIT_SEEN, ...FALL_SCREAM,
     ...Object.values(HURT).flatMap(h => h.hurt),
     ...Object.values(RIDE_HURT).flatMap(h => h.hurt),
   ],

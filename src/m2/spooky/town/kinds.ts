@@ -27,6 +27,7 @@ import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { lookOf } from '../../adventure/temple/people';
 import { townOf, type Lobbed } from './state';
 import { HURT, RIDE_HURT } from './lines';
+import { townDanger } from './rideHits';
 import { rollPumpkin } from './rides';
 import { X, STAIRS } from './layout';
 import { drawBat, drawCrow, drawRat, drawCat, drawGhost, drawWolfman, drawMonster, drawWitch, drawSkeleton, drawPumpkinHead, drawPotion, drawBone } from './kindArt';
@@ -35,6 +36,10 @@ type Ctx = CanvasRenderingContext2D;
 
 for (const [source, l] of Object.entries({ ...HURT, ...RIDE_HURT })) registerHurtLines(source, l.hurt, l.death);
 
+/** Ground to step onto ahead, and not a ride's way (nobody walks into a ride of their own accord; already in one, they
+ *  can walk out). */
+const safe = (ctx: FrameContext, e: Enemy, dir: number, look = 8) =>
+  safeAhead(ctx, e, dir, look) && !(townDanger(e, e.pos.x + dir * (look + 6)) && !townDanger(e, e.pos.x));
 const dirTo = (e: Enemy, x: number) => (x < mid(e).x ? -1 : 1) as 1 | -1;
 const tick = (e: Enemy) => (e.aiTimer = (e.aiTimer || 0) + 1);
 const setState = (e: Enemy, s: string) => { e.aiState = s; e.aiTimer = 0; };
@@ -172,13 +177,13 @@ const rat = (ctx: FrameContext, e: Enemy) => {
     default: {
       const home = e.homeX ?? e.pos.x;
       e.facing ??= -1;
-      if (Math.abs(e.pos.x - home) > 50 || !safeAhead(ctx, e, e.facing)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
+      if (Math.abs(e.pos.x - home) > 50 || !safe(ctx, e, e.facing)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
       e.vel.x = e.facing * 1.6;
       if (e.aiTimer > 30 && sees(state, e, 280, 70)) { setState(e, 'rush'); e.facing = dirTo(e, p.x); }
       break;
     }
     case 'rush':
-      if (!safeAhead(ctx, e, e.facing!, 16)) { e.vel.x = 0; setState(e, 'recover'); break; }
+      if (!safe(ctx, e, e.facing!, 16)) { e.vel.x = 0; setState(e, 'recover'); break; }
       e.vel.x = e.facing! * 5;
       if (e.aiTimer > 36) setState(e, 'recover');
       break;
@@ -197,7 +202,7 @@ const cat = (ctx: FrameContext, e: Enemy) => {
     default: {
       const home = e.homeX ?? e.pos.x;
       e.facing ??= -1;
-      if (Math.abs(e.pos.x - home) > 70 || !safeAhead(ctx, e, e.facing, 12)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
+      if (Math.abs(e.pos.x - home) > 70 || !safe(ctx, e, e.facing, 12)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
       e.vel.x = e.facing * 0.8;
       if (e.aiTimer > 30 && sees(state, e, 320, 120)) setState(e, 'hiss');
       break;
@@ -236,7 +241,7 @@ const ghost = (ctx: FrameContext, e: Enemy) => {
       break;
     case 'shuffle':
       e.facing = dirTo(e, p.x);
-      e.vel.x = Math.abs(dx) > 60 && safeAhead(ctx, e, e.facing) ? e.facing * 1.1 : 0;
+      e.vel.x = Math.abs(dx) > 60 && safe(ctx, e, e.facing) ? e.facing * 1.1 : 0;
       if (Math.abs(dx) < 110 && Math.abs(p.y - m.y) < 70 && !holdingOff(state)) setState(e, 'boo');
       break;
     case 'boo':
@@ -244,7 +249,7 @@ const ghost = (ctx: FrameContext, e: Enemy) => {
       if (e.aiTimer > 22) { setState(e, 'lunge'); playSound('whoosh', 0.5, 1); }
       break;
     case 'lunge':
-      e.vel.x = safeAhead(ctx, e, e.facing!, 20) ? e.facing! * (e.aiTimer < 10 ? 5 : 0) : 0;
+      e.vel.x = safe(ctx, e, e.facing!, 20) ? e.facing! * (e.aiTimer < 10 ? 5 : 0) : 0;
       if (e.aiTimer > 14) setState(e, 'recover');
       break;
     case 'recover':
@@ -262,7 +267,7 @@ const wolfman = (ctx: FrameContext, e: Enemy) => {
     default: {
       const home = e.homeX ?? e.pos.x;
       e.facing ??= -1;
-      if (Math.abs(e.pos.x - home) > 60 || !safeAhead(ctx, e, e.facing)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
+      if (Math.abs(e.pos.x - home) > 60 || !safe(ctx, e, e.facing)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
       e.vel.x = e.facing * 0.7;
       if (e.aiTimer > 20 && sees(state, e, 520, 110)) setState(e, 'howl');
       break;
@@ -275,7 +280,7 @@ const wolfman = (ctx: FrameContext, e: Enemy) => {
       break;
     case 'rush': {
       // Flat out, past him and on (he can't stop on a dime in that suit)
-      const ahead = safeAhead(ctx, e, e.facing!, 40);
+      const ahead = safe(ctx, e, e.facing!, 40);
       e.vel.x = ahead ? e.facing! * 6.5 : 0;
       const past = (p.x - m.x) * e.facing! < -140;
       if (!ahead || past || e.aiTimer > 80) setState(e, 'skid');
@@ -300,7 +305,7 @@ const monster = (ctx: FrameContext, e: Enemy) => {
       break;
     case 'walk':
       e.facing = dirTo(e, p.x);
-      e.vel.x = Math.abs(dx) > 70 && safeAhead(ctx, e, e.facing) ? e.facing * 0.9 : 0;
+      e.vel.x = Math.abs(dx) > 70 && safe(ctx, e, e.facing) ? e.facing * 0.9 : 0;
       if (Math.abs(dx) < 120 && Math.abs(p.y - m.y) < 90 && !holdingOff(state)) setState(e, 'raise');
       break;
     case 'raise':
@@ -341,7 +346,7 @@ const witch = (ctx: FrameContext, e: Enemy) => {
   e.facing = dirTo(e, p.x);
   switch (e.aiState) {
     default:
-      if (awake && e.aiTimer > 120 && Math.abs(p.x - m.x) < 420) setState(e, 'cackle');
+      if (awake && e.aiTimer > 120 && Math.abs(p.x - m.x) < 370) setState(e, 'cackle');
       break;
     case 'cackle':
       e.vel.x *= 0.3; e.vel.y *= 0.3;
@@ -361,7 +366,7 @@ const skeleton = (ctx: FrameContext, e: Enemy) => {
   if (e.aiState !== 'throw') { e.facing = dirTo(e, p.x); e.isShieldActive = true; }
   switch (e.aiState) {
     default:
-      e.vel.x = awake && Math.abs(dx) > 170 && safeAhead(ctx, e, e.facing!) ? e.facing! * 0.8 : 0;
+      e.vel.x = awake && Math.abs(dx) > 170 && safe(ctx, e, e.facing!) ? e.facing! * 0.8 : 0;
       if (awake) e.shootTimer++;
       if (e.shootTimer > 140) setState(e, 'throw');
       break;

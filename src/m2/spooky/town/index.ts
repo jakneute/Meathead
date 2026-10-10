@@ -20,9 +20,11 @@ import { updateLobbed, drawLobbed } from './kinds';
 import { townOf } from './state';
 import { GROUND, LEDGES, SOLIDS, LADDERS, ENEMIES, PICKUPS, RIDES, CHECKPOINTS, STAIRS, MOAT, X, Y } from './layout';
 import { buildRides, updateRides, drawPumpkins } from './rides';
+import { townDanger } from './rideHits';
 import { updateLadders, drawLadders, type LadderDef } from '../../moves/ladders';
 import { drawTownBackdrop, drawTownBack, townLamps } from './art';
-import { ARRIVE, ELEVATOR_SEEN, ELEVATOR_AGAIN, STAIRS as STAIRS_LINES, RIDE_LINES, PONY_LAUNCHED, TRAIN_RIDE, PUMPKINS_SEEN } from './lines';
+import { ARRIVE, ELEVATOR_SEEN, ELEVATOR_AGAIN, STAIRS as STAIRS_LINES, RIDE_LINES, PONY_LAUNCHED, TRAIN_RIDE, PUMPKINS_SEEN, PIT_SEEN, FALL_SCREAM } from './lines';
+import { playSound } from '../../../m1/game/platform/audio';
 
 const { x0, x1 } = SECTIONS.town;
 /** The town's ladders (layout.ts), as the ladders want them: each up to the ledge it's for, stepped off onto it. */
@@ -47,6 +49,10 @@ export const town: SpookySection = {
       const ground = profileYAt(state.groundRuns, X(rx)) ?? GY;
       const air = kind === 'm2:town_bat' || kind === 'm2:town_witch' || kind === 'm2:town_crow';
       const e = makeKindEnemy(kind as EnemyKind, X(rx), air ? Y(h) : Math.min(ground, Y(h)));
+      // (never put down in a ride's way, on its track or over the pit: moved on, clear of it; a flyer up over one is fine)
+      const unsafe = () => townDanger(e, e.pos.x) || (!air && profileYAt(state.groundRuns, e.pos.x + e.width / 2) === undefined);
+      for (let n = 0; n < 40 && unsafe(); n++) { e.pos.x += 40; const g = profileYAt(state.groundRuns, e.pos.x + e.width / 2); if (!air && g !== undefined) e.pos.y = g - e.height; }
+      if (import.meta.env.DEV && e.pos.x !== X(rx) - e.width / 2) console.warn(`town: ${kind} at ${rx} moved clear of a ride to ${Math.round(e.pos.x + e.width / 2 - x0)}`);
       e.homeX = e.pos.x; e.homeY = e.pos.y; e.initialY = e.pos.y;
       e.variant = (i * 7 + rx) % 13;
       state.enemies.push(e);
@@ -71,6 +77,14 @@ export const town: SpookySection = {
       if (rx > MOAT.a + 60 && rx < MOAT.b - 60 && p.pos.y + p.height < GY - 30) once('train', TRAIN_RIDE);
       if ((t.rides?.pony.buck ?? 99) === 6) once('pony', PONY_LAUNCHED);
       if (t.pumpkins.length && rx > STAIRS.a0 - 300) once('pumpkins', PUMPKINS_SEEN);
+      if (rx > MOAT.a - 320 && rx < MOAT.b + 320) once('pit', PIT_SEEN);
+    }
+    // (over the edge into the pit: the scream, going away down into the dark; once a fall)
+    if (p.isGrounded) t.said.falling = false;
+    else if (!t.said.falling && rx > MOAT.a && rx < MOAT.b && p.pos.y + p.height > GY + 30) {
+      t.said.falling = true;
+      meatheadSays(state, pick(FALL_SCREAM), false);
+      playSound('whoosh', 0.8, -8);
     }
     // Up the stairs and in at the castle's door (the end of the town: on to the castle's start)
     runExits(state, endExits('town'));
@@ -79,6 +93,11 @@ export const town: SpookySection = {
   drawBackdrop: (c, state) => { drawTownBackdrop(c, state); return true; },
   drawBack: (c, state) => { drawTownBack(c, state); drawLadders(c, state, TOWN_LADDERS); },
   drawFront: (c, state) => { drawPumpkins(c, state); drawLobbed(c, state); },
+  // (near the pit, the camera sits higher on him: more of the drop on screen, so it reads as no bottom at all)
+  cameraRow: (state) => {
+    const px = state.player.pos.x + state.player.width / 2, d = Math.max(0, X(MOAT.a) - px, px - X(MOAT.b));
+    return 550 - 220 * Math.max(0, Math.min(1, 1 - d / 700));
+  },
   outdoors: () => 1,
   lamps: () => townLamps(),
 };

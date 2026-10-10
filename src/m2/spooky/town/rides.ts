@@ -24,8 +24,11 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { townOf, type Rides } from './state';
+import { rideHit, rideVictims, eIn } from './rideHits';
 import { X, Y, CUPS, CAROUSEL, TRAIN, DROP, PONY, MOAT, STAIRS } from './layout';
-import { INK, fb, ob, poly, oval, bar, board, signPost } from './crude';
+import { INK, fb, ob, poly, oval, bar, board, signPost, words } from './crude';
+
+const LIP_PIT = '#9A93AE';
 
 type Ctx = CanvasRenderingContext2D;
 const AWAY = GY + 4000;
@@ -98,6 +101,8 @@ export const updateRides = (ctx: FrameContext) => {
   const { state } = ctx, r = townOf(state).rides, p = state.player, f = state.frame;
   if (!r) return;
   const near = (x: number) => Math.abs(x - (p.pos.x + p.width / 2)) < CANVAS_WIDTH;
+  // (whoever's about the rides: the staff and the wildlife get hit by them too)
+  const foes = rideVictims(state).filter(e => Math.abs(e.pos.x - p.pos.x) < CANVAS_WIDTH * 1.5);
 
   // The coffin cups
   r.cups.forEach((b, i) => {
@@ -105,6 +110,7 @@ export const updateRides = (ctx: FrameContext) => {
     const front = c.z > 0.05;
     move(state, b, c.x - CUPS.cupW / 2, front ? Y(CUPS.cupH) : AWAY);
     if (front && runsInto(state, c.x - CUPS.cupW / 2, Y(CUPS.cupH), CUPS.cupW, CUPS.cupH) && p.pos.x + p.width / 2 > c.x) hit(ctx, 8, 'm2:town_cups', 7, -6);
+    if (front) for (const e of foes) if (eIn(e, c.x - CUPS.cupW / 2, Y(CUPS.cupH), CUPS.cupW, CUPS.cupH) && e.pos.x + e.width / 2 > c.x) rideHit(ctx, e, 60, c.x, 'CUPPED!');
   });
 
   // The carousel's seats
@@ -113,6 +119,7 @@ export const updateRides = (ctx: FrameContext) => {
     const front = s.z > 0.15;
     move(state, b, s.x - 25, front ? Y(s.h) : AWAY);
     if (front && runsInto(state, s.x - 25, Y(s.h), 50, 22) && p.pos.x + p.width / 2 > s.x) hit(ctx, 6, 'm2:town_carousel', 6, -5);
+    if (front) for (const e of foes) if (eIn(e, s.x - 25, Y(s.h), 50, 22) && e.pos.x + e.width / 2 > s.x) rideHit(ctx, e, 45, s.x, 'BATTED!');
   });
   if (f % 90 === 0 && near(X(CAROUSEL.x))) playSound('ding', 0.15, 5);
 
@@ -131,6 +138,8 @@ export const updateRides = (ctx: FrameContext) => {
     // (its nose runs him down if he's stood on the track in front of it: always away from the moat)
     const nose = tr.dir > 0 ? tr.x + TRAIN.len - 14 : tr.x - 4;
     if (runsInto(state, nose, Y(46), 18, 46) && (tr.dir > 0 ? p.pos.x + p.width / 2 > nose : p.pos.x + p.width / 2 < nose + 18)) hit(ctx, 7, 'm2:town_train', tr.dir * 8, -6);
+    // (anybody else on the track: run down, flat)
+    for (const e of foes) if (eIn(e, nose - 6, Y(46), 30, 46)) rideHit(ctx, e, 0, nose + 9 - tr.dir * 30, 'RUN OVER!', { kill: true, up: 8 });
     if (tr.x === to) { tr.mode = 'wait'; tr.t = 0; tr.dir = (tr.dir > 0 ? -1 : 1); if (near(tr.x)) playSound('ding', 0.4, 3); }
   }
 
@@ -148,6 +157,7 @@ export const updateRides = (ctx: FrameContext) => {
     // (under it as it comes down: the ring lands on him)
     const rx = X(DROP.x) - DROP.w / 2;
     if (runsInto(state, rx, Y(was), DROP.w, was - d.h + 16) && !standingOn(state, d.ring)) hit(ctx, 12, 'm2:town_drop', p.pos.x + p.width / 2 < X(DROP.x) ? -7 : 7, -5);
+    for (const e of foes) if (eIn(e, rx, Y(was), DROP.w, was - d.h + 16)) rideHit(ctx, e, 0, X(DROP.x), 'SQUASHED!', { kill: true, up: 4 });
     if (d.h <= DROP.lo) {
       d.mode = 'rest'; d.t = 0;
       if (near(X(DROP.x))) { playSound('slam', 0.7); shakeScreen(state, 10, standingOn(state, d.ring) ? 6 : 3); }
@@ -172,6 +182,7 @@ export const updateRides = (ctx: FrameContext) => {
   } else po.on = 0;
   // (the back hooves, as it bucks)
   if (po.buck === 3 && runsInto(state, X(PONY.x) - 90, Y(60), 50, 60)) hit(ctx, 8, 'm2:town_pony', -8, -6);
+  if (po.buck === 3) for (const e of foes) if (eIn(e, X(PONY.x) - 95, Y(60), 60, 60)) rideHit(ctx, e, 90, X(PONY.x), 'KICKED!', { up: 9 });
 
   updatePumpkins(ctx);
 };
@@ -204,6 +215,9 @@ const updatePumpkins = (ctx: FrameContext) => {
       if (p.isCharging || p.isSliding || p.isUppercutting) { smash(); return false; }
       hit(ctx, 9, 'm2:town_pumpkin', -6, -6); smash(); return false;
     }
+    // (the staff on the stairs are in its way too: bowled over)
+    const pins = rideVictims(state).find(e => e.kind !== 'm2:town_pumpkinhead' && Math.abs(e.pos.x + e.width / 2 - k.x) < PUMPKIN_R + e.width / 2 - 2 && e.pos.y + e.height > k.y - PUMPKIN_R * 2 && e.pos.y < k.y);
+    if (pins) { rideHit(ctx, pins, 45, k.x + 20, 'STRIKE!', { up: 7 }); smash(); return false; }
     if (k.x < X(STAIRS.a0 - 160)) { smash(); return false; }
     return k.t < 900;
   });
@@ -289,15 +303,57 @@ const drawCarousel = (c: Ctx, state: GameState) => {
 
 const drawTrain = (c: Ctx, state: GameState) => {
   const tr = townOf(state).rides!.train, f = state.frame;
-  // The moat (a pit: fog, no bottom), the trestle the track runs over, the stations
-  const a = X(MOAT.a), b = X(MOAT.b);
-  fb(c, a, GY, b - a, 600, '#0B0710');
-  for (let i = 0; i < 6; i++) fb(c, a, GY + 30 + i * 28, b - a, 14, `rgba(134, 239, 172, ${(0.05 + i * 0.015).toFixed(3)})`);
-  for (let x = a; x < b; x += 40) { bar(c, x + 4, GY + 4, x + 24, GY + 120, 3, '#3F2A1A', false); bar(c, x + 36, GY + 4, x + 16, GY + 120, 3, '#3F2A1A', false); }
+  // The BOTTOMLESS PIT the train crosses (a real pit: no bottom, and no way out of it). Its walls go down in stepped
+  // bands of stone, darker and darker, to pure black; the lips crumble, bits trickling off them and gone; a cold
+  // updraft of mist at the bottom of the screen; the trestle's legs down into the black, never touching anything.
+  const a = X(MOAT.a), b = X(MOAT.b), deep = GY + 900;
+  fb(c, a, GY, b - a, deep - GY, '#000000');
+  const WALL = ['#3F3A4A', '#332F3D', '#292532', '#1F1C27', '#17141D', '#100E14', '#09080C', '#040305'];
+  WALL.forEach((col, i) => {
+    const y = GY + i * 34, w = 46 - i * 4;
+    fb(c, a, y, w, 34, col); fb(c, b - w, y, w, 34, col);
+    // (each band's ledge, lit a little less each time down)
+    if (i < 5) { fb(c, a, y, w, 2, i ? '#4A4458' : LIP_PIT); fb(c, b - w, y, w, 2, i ? '#4A4458' : LIP_PIT); }
+  });
+  // (the lips: broken, chunks out of them)
+  for (const [ex, s] of [[a, 1], [b, -1]] as const) {
+    poly(c, [ex, GY, ex + s * 22, GY, ex + s * 14, GY + 8, ex + s * 26, GY + 14, ex + s * 8, GY + 22, ex, GY + 18], '#3F3A4A', 1.5);
+    poly(c, [ex - s * 6, GY + 30, ex + s * 10, GY + 36, ex - s * 2, GY + 46], '#2A2533', 1);
+  }
+  // (rubble trickling off the lips, falling away into the black and gone)
+  for (let i = 0; i < 6; i++) {
+    const ph = ((f * 0.012 + i * 0.37) % 1), side = i % 2 ? b - 14 - (i % 3) * 6 : a + 10 + (i % 3) * 6;
+    const fy = GY + ph * ph * 520, sz = 3 - Math.floor(ph * 3);
+    if (sz > 0) fb(c, side + Math.sin(i + ph * 4) * 4, fy, sz, sz, ph < 0.5 ? '#78716C' : '#44403C');
+  }
+  // (the cold updraft: pale mist rising out of it at the bottom of the screen)
+  const sb = state.camera.y + 600;
+  for (let i = 0; i < 9; i++) {
+    const ph = (f * 0.004 + i / 9) % 1, mx = a + 40 + ((i * 97) % (b - a - 80)), my = sb - ph * 140;
+    if (my > GY + 30) { c.globalAlpha = 0.18 * Math.sin(ph * Math.PI); oval(c, mx + Math.sin(f * 0.01 + i) * 12, my, 46, 10, '#CBD5E1', 0); c.globalAlpha = 1; }
+  }
+  // (the trestle: a narrow track bed, its legs going down into nothing)
+  for (let x = a + 20; x < b; x += 60) {
+    for (let k = 0; k < 8; k++) { c.globalAlpha = 1 - k / 8; fb(c, x - 3, GY + 6 + k * 50, 6, 50, '#3F2A1A'); }
+    c.globalAlpha = 1;
+    bar(c, x - 26, GY + 6, x + 4, GY + 60, 2, '#3F2A1A', false); bar(c, x + 26, GY + 6, x - 4, GY + 60, 2, '#3F2A1A', false);
+  }
   fb(c, a - 30, GY - 2, b - a + 60, 4, '#71717A');
   for (let x = a - 30; x < b + 30; x += 16) fb(c, x, GY + 2, 8, 3, '#3F2A1A');
-  signPost(c, X(MOAT.a) - 70, GY, 120, 'BOTTOMLESS MOAT', '#450A0A', '#FECACA', 7);
-  board(c, X(MOAT.a) - 70, GY - 96, 'NO SWIMMING', '#1C1917', '#FDE68A', 7);
+  // The warnings, at both lips: the park's official one (a skull on it), and a cheap rope barrier with its tag
+  for (const [ex, s] of [[a, -1], [b, 1]] as const) {
+    const px = ex + s * 40;
+    ob(c, px - 3, GY - 170, 6, 170, '#3F3F46', 1);
+    board(c, px, GY - 176, 'BOTTOMLESS PIT. NO, REALLY.', '#450A0A', '#FECACA', 7);
+    oval(c, px, GY - 150, 10, 9, '#F5F5F4', 1.5); fb(c, px - 5, GY - 153, 3, 3, INK); fb(c, px + 2, GY - 153, 3, 3, INK); fb(c, px - 4, GY - 143, 8, 3, '#F5F5F4');
+    board(c, px, GY - 124, 'DROP TIME: ETERNITY', '#1C1917', '#FDE68A', 6);
+    board(c, px, GY - 104, 'PLEASE STAY ON THE TRAIN', '#1C1917', '#FDE68A', 6);
+    // (the rope barrier, along the lip behind the track: two stanchions, the rope sagging, its DANGER tag)
+    const r0 = ex + s * 4, r1 = ex + s * 90;
+    for (const rx of [r0, r1]) ob(c, rx - 2, GY - 34, 4, 34, '#CA8A04', 1);
+    c.strokeStyle = '#B91C1C'; c.lineWidth = 3; c.beginPath(); c.moveTo(r0, GY - 30); c.quadraticCurveTo((r0 + r1) / 2, GY - 14, r1, GY - 30); c.stroke();
+    ob(c, (r0 + r1) / 2 - 16, GY - 22, 32, 10, '#FDE047', 1); words(c, 'DANGER', (r0 + r1) / 2, GY - 14, INK, 5);
+  }
   // (the stations: a yellow line to stand behind, a shelter, its sign)
   for (const [sx, dir] of [[X(TRAIN.a), -1], [X(TRAIN.b) + TRAIN.len, 1]] as const) {
     fb(c, sx + dir * 14, GY - 2, 4 * dir, 3, '#FDE047');
