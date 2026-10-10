@@ -204,6 +204,11 @@ const laps = (state: GameState, x: number, draw: (x: number) => void) => {
   }
 };
 
+/** A portal going (hub/portal.ts): which spot's, and how far on its swirl's been wound (it turns faster as it takes
+ * him: its frame count, run ahead). Set every frame (slot -1: none). */
+const surge = { slot: -1, phase: 0 };
+export const setPortalSurge = (slot: number, phase: number) => { surge.slot = slot; surge.phase = phase; };
+
 export const drawHubBack = (ctx: Ctx, state: GameState) => {
   drawHubFar(ctx, state);
   const f = state.frame, x0 = state.camera.x - 1200, x1 = state.camera.x + CANVAS_WIDTH + 1200;
@@ -220,7 +225,8 @@ export const drawHubBack = (ctx: Ctx, state: GameState) => {
   // The portals, the staff door, and the lamp posts between
   for (let i = 0; i < HUB_SLOTS; i++) {
     const spot = SPOTS[i];
-    laps(state, slotX(i), x => (spot.kind === 'staff' ? staffDoor(ctx, x, f) : spot.kind === 'america' ? americaGate(ctx, x, f) : portal(ctx, LANDS[spot.land], x, f)));
+    const pf = i === surge.slot ? f + surge.phase : f;
+    laps(state, slotX(i), x => (spot.kind === 'staff' ? staffDoor(ctx, x, f) : spot.kind === 'america' ? americaGate(ctx, x, f) : portal(ctx, LANDS[spot.land], x, pf)));
     laps(state, HUB.x0 + i * HUB.slot, x => lamp(ctx, x, i, f));
   }
   // The crowd, standing about between them
@@ -531,25 +537,28 @@ const staffDoor = (ctx: Ctx, cx: number, f: number) => {
  * After dark, the lamp posts' glow (screen space, over the time of day's dark: the hub's a cylinder seen from inside,
  * so each lamp's put where the wrap puts it). Stepped rings, added on.
  */
-export const drawHubLampGlow = (ctx: Ctx, state: GameState, radius: number, horizon: number) => {
+export const drawHubLampGlow = (ctx: Ctx, state: GameState, radius: number, horizon: number, zoom?: { scale: number; x: number; y: number } | null) => {
   const k = lampGlow();
   if (k <= 0.05) return;
   const half = CANVAS_WIDTH / 2, top = GROUND_Y - 230 - 13;
+  // (pushed in (the stage's zoom): where the world pass put it on the flat strip, before the wall's wrapped round)
+  const zs = zoom?.scale ?? 1, zx = zoom?.x ?? 0, zy = zoom?.y ?? 0;
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   for (let i = 0; i < HUB_SLOTS; i++) laps(state, HUB.x0 + i * HUB.slot, x => {
-    const a = (x - state.camera.x - half) / radius;
+    const u = (x - zx) * zs + zx - state.camera.x, v = (top - zy) * zs + zy - state.camera.y;
+    const a = (u - half) / radius;
     if (Math.abs(a) > 1.2) return;
-    const c = Math.cos(a), sx = half + radius * Math.tan(a), sy = horizon + (top - state.camera.y - horizon) / c;
-    if (sx < -120 || sx > CANVAS_WIDTH + 120) return;
-    const r = 70 / c;
+    const c = Math.cos(a), sx = half + radius * Math.tan(a), sy = horizon + (v - horizon) / c;
+    if (sx < -120 * zs || sx > CANVAS_WIDTH + 120 * zs) return;
+    const r = (70 * zs) / c;
     for (let ring = 3; ring >= 1; ring--) {
       ctx.fillStyle = `rgba(255, 176, 84, ${(0.06 * k * (4 - ring) / 2).toFixed(3)})`;
       ctx.beginPath(); ctx.arc(Math.round(sx), Math.round(sy), r * (0.35 + ring * 0.22), 0, Math.PI * 2); ctx.fill();
     }
     // (the glass itself, lit: back up out of the dark)
     ctx.fillStyle = `rgba(255, 236, 190, ${(0.75 * k).toFixed(3)})`;
-    ctx.beginPath(); ctx.roundRect(Math.round(sx - 10 / c), Math.round(sy - 11 / c), Math.round(20 / c), Math.round(22 / c), [8 / c, 8 / c, 2, 2]); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(Math.round(sx - (10 * zs) / c), Math.round(sy - (11 * zs) / c), Math.round((20 * zs) / c), Math.round((22 * zs) / c), [(8 * zs) / c, (8 * zs) / c, 2, 2]); ctx.fill();
   });
   ctx.restore();
 };

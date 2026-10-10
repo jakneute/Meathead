@@ -1,9 +1,9 @@
 // Into a land through its portal: the walk-away's other half (walkAway.ts), the other way round. Confirming a portal
-// at the hub (hub/index.ts), the camera pushes in on it as he walks into the swirl (seen from behind: drawBackFigure),
+// at the hub (hub/portal.ts), the camera pushes in on it as he walks up into the swirl and it takes him,
 // the swirl goes white, and out of the white: him from behind, walking away from the camera up the way into the land,
 // the land's entrance coming up ahead, the world coming at the camera under him (the Mode-7 ground, the scaled
-// sprites), him a little smaller with every step (he's out-walking it). Across the top: HEADING TO <LAND>. A few
-// seconds of it, then the SNES's way out: the picture breaks up into mosaic blocks as an iris closes down on him, to
+// sprites), him a little smaller with every step (he's out-walking it). Across the top: HEADING TO <LAND>. Seven
+// seconds or so of it, then the SNES's way out: the picture breaks up into mosaic blocks as an iris closes down on him, to
 // black; and in the land, the iris opens on him there, in the side view, the blocks resolving (portalArrival.ts). It
 // flows on by itself (no A to continue); A or the skip skips the whole of it (the hub runs that).
 //
@@ -26,9 +26,10 @@ export const PORTAL_SCENES: Record<string, PortalDef> = { adventure: INTO_ADVENT
 export const hasPortalWalk = (land: string) => land in PORTAL_SCENES;
 
 /** How fast the camera comes on up the path (m a frame); how much faster he goes (he pulls away from it). */
-const CAM_V = 0.026, OUTWALK = 0.0022;
-/** Frames: out of the white; the iris starts closing; closed; done (a beat of black). */
-const FLASH_T = 22, CLOSE_AT = 228, CLOSE_T = 40, DONE_AT = CLOSE_AT + CLOSE_T + 8;
+const CAM_V = 0.02, OUTWALK = 0.0014;
+/** Frames: out of the white; the iris starts closing (about seven seconds of walk: time to read the bottom bar);
+ * closed; done (a beat of black). */
+const FLASH_T = 22, CLOSE_AT = 400, CLOSE_T = 40, DONE_AT = CLOSE_AT + CLOSE_T + 8;
 /** The ground runs off straight ahead (to the middle of the picture); his path down it a little to the left of the
  * camera (we're over his right shoulder: what he's walking at's in sight past him), meters across. */
 const VP = LW / 2, PATH_X = (-52 * ME_D) / F;

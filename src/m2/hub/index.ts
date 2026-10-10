@@ -6,10 +6,9 @@ import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
 import { groundBlocks } from '../../m1/game/core/terrain';
 import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
-import { playMenuOk, playMenuBack, playSound } from '../../m1/game/platform/audio';
-import { SKIP_AFTER, offerSkip, takeSkip } from '../../m1/game/platform/skip';
-import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
-import { LANDS, SPOTS, STAFF_SLOT, AMERICA_SLOT, HUB_SLOTS, landAt, type Land } from './lands';
+import { playMenuOk, playMenuBack } from '../../m1/game/platform/audio';
+import { GROUND_Y } from '../../m1/constants';
+import { LANDS, SPOTS, STAFF_SLOT, AMERICA_SLOT, HUB_SLOTS, landAt } from './lands';
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
 import { AMERICA_DENY } from '../lines/hubLines';
@@ -19,8 +18,8 @@ import { stopWeapons } from '../weapons';
 import { pollM2, pressed } from '../input';
 import { drawHubBackdrop, drawHubBack, drawHubFront, drawHubLampGlow, HUB_HORIZON } from './draw';
 import { drawNotedSunFlare, takeSun } from '../sunFlare';
-import { hasPortalWalk, playPortalWalk, tickPortalWalk, drawPortalWalk, drawBackFigure, type PortalWalk } from '../portalWalk';
-import { notePortalArrival } from '../portalArrival';
+import { hasPortalWalk } from '../portalWalk';
+import { type Portal, startPortal, runPortal, portalZoom, portalLights, portalLightAmount, notePortalSurge, drawPortalBack, drawPortalFront, drawPortalHud } from './portal';
 import { todLight } from '../timeOfDay';
 import { HUB, HUB_CIRC, slotX } from './geometry';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
@@ -33,115 +32,8 @@ export const setHubStart = (slot: number) => { startSlot = slot; };
 
 const GATED: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
 
-/**
- * Through a portal (a land picked on the map, confirmed): the camera pushing in on it as he walks into the swirl, from
- * behind; the swirl going white; then the walk in (portalWalk.ts), and off to the land. Out of his hands the whole
- * way (no HUD); A or the skip ends it, off to the land straight away.
- */
-interface Portal {
-  land: Land; slot: number; t: number;
-  /** Where he was stood when he went (his feet). */
-  fromX: number;
-  /** The walk in, once he's through. */
-  walk: PortalWalk | null;
-  /** A has to be let go of first (it may be what confirmed it). */
-  armed: boolean;
-}
-
-interface Hub { map: number | null; upWas: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; portal?: Portal | null }
+interface Hub { map: number | null; upWas: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; /** Going through a portal (portal.ts). */ portal?: Portal | null }
 const getHub = (state: GameState) => state.stage as Hub | null;
-
-/** Frames: walking into the portal (the camera pushing in); the white coming up over the end of it. */
-const IN_T = 84, WHITE_T = 18;
-/** The push in: how far; where (the swirl's middle, a little over his head: up the arch); where it ends up on screen. */
-const ZOOM_TO = 2.5, SWIRL_Y = GROUND_Y - 130, ZOOM_SY = 310;
-const ease = (k: number) => { const u = Math.max(0, Math.min(1, k)); return u * u * (3 - 2 * u); };
-
-const startPortal = (state: GameState, hub: Hub, land: Land) => {
-  const slot = SPOTS.findIndex(s => s.kind === 'land' && LANDS[s.land] === land);
-  hub.portal = { land, slot, t: 0, fromX: state.player.pos.x + state.player.width / 2, walk: null, armed: false };
-  // (no HUD, no prompt, from the frame it's confirmed)
-  setUi({ near: null, introCutscene: true });
-  playMenuOk();
-};
-
-/** Off to the land (the walk in's over, or it's been skipped). */
-const leaveThrough = (portal: Portal, arrive: boolean) => {
-  if (arrive) notePortalArrival();
-  goTo(portal.land.id);
-};
-
-/** A frame of it: true while it's going (he's not his). */
-const runPortal = (state: GameState, hub: Hub, controls: Controls) => {
-  const pt = hub.portal!, p = state.player;
-  pt.t++;
-  p.inCutscene = true; p.vel.x = 0; p.vel.y = 0;
-  setUi({ near: null, map: null, nearExit: false, nearAmerica: false, introCutscene: true });
-  // (A, fresh, or the skip: the whole of it, gone; straight there)
-  if (!controls.jump) pt.armed = true;
-  if (pt.t > SKIP_AFTER) offerSkip();
-  if (pt.t > SKIP_AFTER && (takeSkip() || (pt.armed && controls.jump))) { leaveThrough(pt, false); return; }
-  if (pt.t <= IN_T) {
-    // Into the swirl: he's turned his back on us, walking up into it, getting smaller; the camera pushing in on it
-    p.hidden = true;
-    if (pt.t === 1) playSound('land', 0.2, -4);
-    if (pt.t === 46) playSound('whoosh', 0.45, -10);
-    if (pt.t === IN_T - WHITE_T) playSound('whoosh', 0.5, 4);
-    if (pt.t === IN_T) pt.walk = playPortalWalk(state, { land: pt.land.id, flash: true, onDone: () => leaveThrough(pt, true) });
-    return;
-  }
-  if (pt.walk) tickPortalWalk(pt.walk);
-};
-
-/** The push in on the portal (the stage's zoom: StageLayout.zoom). */
-const portalZoom = (state: GameState) => {
-  const pt = getHub(state)?.portal;
-  if (!pt || pt.walk) return null;
-  const k = ease(pt.t / IN_T), s = 1 + (ZOOM_TO - 1) * k;
-  if (s < 1.001) return null;
-  // (the swirl's middle, from where it is on screen to the middle of the screen as it goes)
-  const cam = state.camera, Zx = slotX(pt.slot), Zy = SWIRL_Y;
-  const Sx = (Zx - cam.x) + (CANVAS_WIDTH / 2 - (Zx - cam.x)) * k, Sy = (Zy - cam.y) + (ZOOM_SY - (Zy - cam.y)) * k;
-  return { scale: s, x: (Sx + cam.x - Zx * s) / (1 - s), y: (Sy + cam.y - Zy * s) / (1 - s) };
-};
-
-/** Him walking into the swirl, from behind (world space, over the portal). */
-const drawIntoPortal = (c: CanvasRenderingContext2D, state: GameState) => {
-  const pt = getHub(state)?.portal;
-  if (!pt || pt.walk) return;
-  const u = Math.min(1, pt.t / IN_T);
-  // (across to the middle of it first, then up into it: smaller, higher, the swirl taking him)
-  const x = pt.fromX + (slotX(pt.slot) - pt.fromX) * ease(u * 1.7);
-  // (drawn in: up toward the middle of the swirl as he goes, smaller and smaller)
-  const into = ease((u - 0.1) / 0.85);
-  const feet = GROUND_Y - 2 - 96 * into * into;
-  // (his size here: the game's him, about 70 px tall, to 186 px in his own picture; going in, a third of that)
-  const s = (72 / 186) * (1 - 0.66 * into);
-  const alpha = 1 - ease((u - 0.62) / 0.3);
-  if (alpha <= 0) return;
-  drawBackFigure(c, x, feet, s, { step: (pt.t * Math.PI) / 15, t: pt.t, nude: isNude(state), shat: isShat(state), weapon: state.player.currentWeapon ?? 'GUN', rim: pt.land.swirl[2], alpha });
-  // (the swirl washing over him as he goes)
-  if (into > 0.3) {
-    c.save(); c.globalAlpha = Math.min(0.85, (into - 0.3) * 1.4) * alpha;
-    c.fillStyle = pt.land.swirl[1];
-    c.beginPath(); c.ellipse(x, feet - 36 * s * 2.4, 30 * s * 2.6, 84 * s * 1.2, 0, 0, Math.PI * 2); c.fill();
-    c.restore();
-  }
-};
-
-/** Over everything (screen space): the white over the end of the push in, then the walk in itself. */
-const drawPortalHud = (c: CanvasRenderingContext2D, state: GameState) => {
-  const pt = getHub(state)?.portal;
-  if (!pt) return;
-  if (pt.walk) { drawPortalWalk(c, pt.walk); return; }
-  const w = (pt.t - (IN_T - WHITE_T)) / WHITE_T;
-  if (w > 0) { c.fillStyle = mixWhite(pt.land.swirl[2], w); c.globalAlpha = Math.min(1, w * 1.2); c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); c.globalAlpha = 1; }
-};
-/** The portal's brightest, going to white. */
-const mixWhite = (col: string, k: number) => {
-  const v = [1, 3, 5].map(i => parseInt(col.slice(i, i + 2), 16)).map(x => Math.round(x + (255 - x) * Math.min(1, Math.max(0, k))));
-  return `rgb(${v[0]}, ${v[1]}, ${v[2]})`;
-};
 
 /** Round the lap: everything shifts by a whole lap, so he never runs out of roundabout. */
 const shiftLap = (state: GameState, dx: number) => {
@@ -179,7 +71,7 @@ export const hubLayout: StageLayout = {
     if (!hub) return controls;
     pollM2(state.frame);
     // (through a portal: nothing else till he's there)
-    if (hub.portal) { runPortal(state, hub, controls); return { ...NO_CONTROLS }; }
+    if (hub.portal) return runPortal(state, hub.portal, controls);
     const p = state.player, cx = p.pos.x + p.width / 2;
     if (cx < HUB.x0) shiftLap(state, HUB_CIRC);
     else if (cx > HUB.x0 + HUB_CIRC) shiftLap(state, -HUB_CIRC);
@@ -198,7 +90,7 @@ export const hubLayout: StageLayout = {
         const land = LANDS[hub.map];
         // (the checkpoint-skip cheat: where in it to start, asked first)
         if (land.open && getCheats().skip) setUi({ pick: land.id });
-        else if (land.open && hasPortalWalk(land.id)) startPortal(state, hub, land);
+        else if (land.open && hasPortalWalk(land.id)) hub.portal = startPortal(state, land);
         else if (land.open) goTo(land.id);
         else { setUi({ notice: { text: `${land.name}: COMING SOON`, at: performance.now() } }); playMenuBack(); }
         hub.map = null;
@@ -240,22 +132,16 @@ export const hubLayout: StageLayout = {
   cylinder: () => ({ radius: HUB.radius, inside: { horizon: HUB_HORIZON } }),
   drawBackdrop: (ctx, state) => { drawHubBackdrop(ctx, state); return true; },
   // (out in the open: the time of day's light over it (timeOfDay.ts), the lamps glowing through it after dark)
-  lighting: () => todLight(),
+  lighting: (state) => { const pt = getHub(state)?.portal; return todLight(portalLights(pt), portalLightAmount(pt)); },
   // (the lamps' glow; the lens's ghosts off the sun: sunFlare.ts)
   drawHud: (ctx, state) => {
-    if (getHub(state)?.portal) {
-      // (the lamps' glow pushed in with the rest; the sun's ghosts left off)
-      const z = portalZoom(state), cam = state.camera;
-      ctx.save();
-      if (z) { ctx.translate(z.x - cam.x, z.y - cam.y); ctx.scale(z.scale, z.scale); ctx.translate(cam.x - z.x, cam.y - z.y); }
-      drawHubLampGlow(ctx, state, HUB.radius, HUB_HORIZON);
-      ctx.restore();
-      takeSun(); drawPortalHud(ctx, state);
-      return;
-    }
+    const pt = getHub(state)?.portal;
+    // (going through a portal: the lamps' glow pushed in with the rest (draw.ts maps it through the zoom and the
+    // wall's curve); the sun's ghosts left off; then the portal's own)
+    if (pt) { drawHubLampGlow(ctx, state, HUB.radius, HUB_HORIZON, portalZoom(state, pt)); takeSun(); drawPortalHud(ctx, pt); return; }
     drawHubLampGlow(ctx, state, HUB.radius, HUB_HORIZON); drawNotedSunFlare(ctx);
   },
-  drawBack: (ctx, state) => drawHubBack(ctx, state),
-  drawFront: (ctx, state) => { drawHubFront(ctx, state); drawIntoPortal(ctx, state); const hub = getHub(state); if (hub) drawGrab(ctx, state, hub.grab); },
-  zoom: (state) => portalZoom(state),
+  drawBack: (ctx, state) => { const pt = getHub(state)?.portal; notePortalSurge(pt); drawHubBack(ctx, state); drawPortalBack(ctx, state, pt); },
+  drawFront: (ctx, state) => { drawHubFront(ctx, state); drawPortalFront(ctx, state, getHub(state)?.portal); const hub = getHub(state); if (hub) drawGrab(ctx, state, hub.grab); },
+  zoom: (state) => portalZoom(state, getHub(state)?.portal),
 };
