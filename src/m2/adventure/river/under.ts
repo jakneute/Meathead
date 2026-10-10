@@ -13,9 +13,9 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { SECTIONS } from '../geometry';
 import { timeOfDay, type TimeOfDay } from '../../timeOfDay';
-import { box, ramp, mix, dark, lite, checker, steppedGlow, stamp, hash, text, sign, INK, PIX } from '../../intro/art/kit';
+import { box, ramp, rampOf, mix, dark, lite, checker, steppedGlow, stamp, hash, text, sign, INK, PIX } from '../../intro/art/kit';
 import type { River } from './index';
-import { WS, CEIL, DOCK, FALLS, TUNNEL, POCKETS, POCKET_TOP, TANK, PIPE, BED, bedAt, roofAt, PROPS, VENTS } from './course';
+import { WS, CEIL, DOCK, FALLS, TUNNEL, POCKETS, POCKET_TOP, TANK, PIPE, BED, bedAt, roofAt, PROPS, VENTS, EELS, eelMouth, EEL_HOLE } from './course';
 
 export type Ctx = CanvasRenderingContext2D;
 export const { x0 } = SECTIONS.river;
@@ -88,8 +88,30 @@ const fillWater = (c: Ctx, v: V) => {
       if (i) { checker(c, a, ya, b - a, PIX, waterAt(zn.z, (i - 1) / (BANDS - 1), v.tod), 1); }
     }
   }
-  // (where one zone's water runs into the next with nothing between: dithered across)
-  for (const [bx, za, zb] of [[YARD, 'culvert', 'yard'], [STORE, 'yard', 'store'], [TANK.x1, 'store', 'tank']] as [number, Zone, Zone][]) {
+  // (where the culvert's water opens into the vault's, and the vault's into the storage's: crossfaded across a wide band in
+  // steps, each step's edge dithered into the last)
+  const FADE = 8, FW = 32;
+  for (const [bx, za, zb] of [[YARD, 'culvert', 'yard'], [STORE, 'yard', 'store']] as [number, Zone, Zone][]) {
+    const x0b = R(bx) - (FADE * FW) / 2;
+    if (!onScreen(v, x0b, x0b + FADE * FW, 8)) continue;
+    for (let i = 0; i < BANDS; i++) {
+      const ya = Math.floor(WS + i * BAND_H), yb = Math.floor(WS + (i + 1) * BAND_H);
+      if (yb < y0 || ya > y1) continue;
+      const ca = waterAt(za, i / (BANDS - 1), v.tod), cb = waterAt(zb, i / (BANDS - 1), v.tod);
+      const pa = i ? waterAt(za, (i - 1) / (BANDS - 1), v.tod) : ca, pb = i ? waterAt(zb, (i - 1) / (BANDS - 1), v.tod) : cb;
+      let prev = ca;
+      for (let j = 0; j <= FADE; j++) {
+        const t = j / FADE, col = mix(ca, cb, t), x = x0b + j * FW;
+        const w = j === FADE ? 4 : FW;
+        if (j < FADE) box(c, x, ya, w, yb - ya + 1, col);
+        checker(c, x, ya, 4, yb - ya + 1, prev);
+        // (the band above's color dithered along its top, as everywhere else)
+        if (i && j < FADE) checker(c, x, ya, w, PIX, mix(pa, pb, t), 1);
+        prev = col;
+      }
+    }
+  }
+  for (const [bx, za, zb] of [[TANK.x1, 'store', 'tank']] as [number, Zone, Zone][]) {
     if (!onScreen(v, R(bx) - 40, R(bx) + 40)) continue;
     for (let i = 0; i < BANDS; i++) {
       const ya = Math.floor(WS + i * BAND_H), h = Math.ceil(BAND_H) + 1;
@@ -227,27 +249,62 @@ const paintCulvertChunk = (g: Ctx, i: number, u0: number, top: number, bot: numb
   }
 };
 
-/** The vault the culvert opens into (the ride graveyard): great arches through to the dark, junk piled beyond. */
-const paintYardChunk = (g: Ctx, i: number, u0: number, top: number, bot: number) => {
+/** The vault the culvert opens into (the ride graveyard): great arches through to the dark, junk piled beyond. Its bays
+ * are laid out from where the vault starts on the back plane (six of them, to where the storage starts), not chunk by
+ * chunk: a chunk paints whatever of them falls in it, so an arch is never cut off where a seam comes. */
+const YARD_BAYS = 6;
+const WALL_SEAMS: [number, Zone, Zone][] = [[YARD, 'culvert', 'yard'], [STORE, 'yard', 'store']];
+const paintYardChunk = (g: Ctx, _i: number, u0: number, top: number, bot: number) => {
   const C = CONC.map(c => fogged(c, 0.45));
+  const uY = R(YARD) * S_BACK, BAY = (STORE - YARD) * S_BACK / YARD_BAYS;
+  g.save(); g.beginPath(); g.rect(u0, top, CHUNK, bot - top); g.clip();
   box(g, u0, top, CHUNK, bot - top, C[2]);
-  // (an arch in each chunk: its opening dark (what's beyond is on the far plane, drawn through it))
-  const ax = u0 + 40, aw = 240, ar = aw / 2;
-  g.save();
-  g.globalCompositeOperation = 'destination-out';
-  g.beginPath(); g.moveTo(ax, bot); g.lineTo(ax, top + 40 + ar); g.arc(ax + ar, top + 40 + ar, ar, Math.PI, 0); g.lineTo(ax + aw, bot); g.closePath(); g.fill();
-  g.restore();
-  // (the arch's voussoirs: stepped blocks round it, lit on top)
-  for (let k = 0; k <= 12; k++) {
-    const a = Math.PI + (k / 12) * Math.PI, bx = ax + ar + Math.cos(a) * (ar + 6), by = top + 40 + ar + Math.sin(a) * (ar + 6);
-    box(g, bx - 5, by - 5, 10, 10, k % 2 ? C[3] : C[4]); box(g, bx - 5, by - 5, 10, 2, C[5]);
+  const names = ['BONEYARD', 'BAY 2', 'SURPLUS', 'BAY 4', 'SCRAP ONLY', 'BAY 6'];
+  for (let j = Math.max(0, Math.floor((u0 - uY) / BAY)); j < YARD_BAYS && uY + j * BAY < u0 + CHUNK; j++) {
+    const b0 = uY + j * BAY;
+    // (the arch: its opening cut through (what's beyond is on the far plane, drawn through it))
+    const ax = b0 + 40, aw = BAY - 80, ar = aw / 2;
+    g.save();
+    g.globalCompositeOperation = 'destination-out';
+    g.beginPath(); g.moveTo(ax, bot); g.lineTo(ax, top + 40 + ar); g.arc(ax + ar, top + 40 + ar, ar, Math.PI, 0); g.lineTo(ax + aw, bot); g.closePath(); g.fill();
+    g.restore();
+    // (the arch's voussoirs: stepped blocks round it, lit on top)
+    for (let k = 0; k <= 12; k++) {
+      const a = Math.PI + (k / 12) * Math.PI, bx = ax + ar + Math.cos(a) * (ar + 6), by = top + 40 + ar + Math.sin(a) * (ar + 6);
+      box(g, bx - 5, by - 5, 10, 10, k % 2 ? C[3] : C[4]); box(g, bx - 5, by - 5, 10, 2, C[5]);
+    }
+    // (the piers either side: lit on the left)
+    box(g, b0, top, 40, bot - top, C[3]); box(g, b0, top, 4, bot - top, C[4]); box(g, b0 + 36, top, 4, bot - top, C[1]);
+    box(g, b0 + BAY - 40, top, 40, bot - top, C[3]); box(g, b0 + BAY - 40, top, 4, bot - top, C[4]);
+    // (a sign over every other arch, mounted with brackets)
+    if (j % 2 === 0) sign(g, ax + ar - 50, top + 8, 100, 18, fogged('#B8A040', 0.4), names[j], fogged('#1A1408', 0.2), 7, fogged('#3A3F48', 0.4));
   }
-  // (the piers either side: lit on the left)
-  box(g, u0, top, 40, bot - top, C[3]); box(g, u0, top, 4, bot - top, C[4]); box(g, u0 + 36, top, 4, bot - top, C[1]);
-  box(g, u0 + 280, top, 40, bot - top, C[3]); box(g, u0 + 280, top, 4, bot - top, C[4]);
-  // (a sign over some of the arches, mounted with brackets)
-  const names = ['BONEYARD', 'BAY 2', 'SURPLUS', 'BAY 4', 'SCRAP ONLY'];
-  if (i % 2 === 1) sign(g, ax + ar - 50, top + 8, 100, 18, fogged('#B8A040', 0.4), names[(i >> 1) % names.length], fogged('#1A1408', 0.2), 7, fogged('#3A3F48', 0.4));
+  g.restore();
+};
+
+/** Where one zone's back wall gives onto the next: the culvert's end broken off against the vault's first pier (a
+ * headwall, a shade between the two), the vault's last pier against the storage's backdrop. */
+const paintPortal = (g: Ctx, uS: number, top: number, bot: number, zl: Zone, zr: Zone) => {
+  if (zl === 'culvert' && zr === 'yard') {
+    const A = CONC.map(c => fogged(c, 0.35)), M = CONC.map(c => fogged(c, 0.4));
+    // (the culvert's last panel, its end broken off ragged: the break stepped back into shadow, the rebar out of it)
+    for (let y = top; y < bot; y += 8) {
+      const d = 6 + Math.floor(hash(y * 0.37) * 14);
+      box(g, uS - d, y, d, 8, A[0]); box(g, uS - d, y, 2, 8, A[1]);
+      if (hash(y * 1.7) > 0.7) { box(g, uS - d - 6, y + 3, 6 + d, 1, fogged('#7A4A2A', 0.35)); box(g, uS - d - 6, y + 2, 2, 3, fogged('#7A4A2A', 0.35)); }
+    }
+    // (the headwall the vault's built onto: a thick pilaster, a shade between the culvert's and the vault's, stepped)
+    box(g, uS, top, 44, bot - top, M[3]); box(g, uS, top, 4, bot - top, M[4]); box(g, uS + 4, top, 2, bot - top, M[5]);
+    box(g, uS + 40, top, 4, bot - top, M[1]);
+    for (let y = top + 24; y < bot; y += 56) { box(g, uS + 8, y, 28, 2, M[1]); box(g, uS + 8, y + 2, 28, 1, M[4]); }
+    // (dithered into the vault's wall on its right: the shade steps across)
+    checker(g, uS + 44, top, 8, bot - top, M[2]);
+    text(g, 'END CULVERT 3', uS + 22, top + 48, fogged('#D9C27A', 0.4), 5, 'center', null);
+  } else {
+    const C = CONC.map(c => fogged(c, 0.45));
+    box(g, uS - 20, top, 40, bot - top, C[3]); box(g, uS - 20, top, 4, bot - top, C[4]); box(g, uS + 16, top, 4, bot - top, C[1]);
+    checker(g, uS + 20, top, 6, bot - top, C[1]);
+  }
 };
 
 /** The prop storage: an old ride's painted backdrop (a jungle, a volcano, the sunrise), peeling off the concrete. */
@@ -294,9 +351,12 @@ const paintChunk = (z: Zone, g: Ctx, i: number, u0: number, top: number, bot: nu
 /** The far plane behind the vault's arches: the junk heaped in the dark (a Ferris wheel, a coaster's loop, a head). */
 const drawFarJunk = (c: Ctx, v: V) => {
   const s = S_FAR, ox = offX(v, s), oy = offY(v, s);
-  const a = Math.max(R(YARD), unX(v, s, v.l)), b = Math.min(R(STORE), unX(v, s, v.r));
-  if (b <= a) return;
-  c.save(); c.translate(ox, oy);
+  // (it's only ever seen through the vault's arches: kept to where the vault's wall is on screen, and laid on well past
+  // the vault's ends on its own plane, so there's always junk behind an arch whichever way the eye's looking)
+  const wa = pX(v, S_BACK, R(YARD)), wb = pX(v, S_BACK, R(STORE));
+  const a = Math.max(R(YARD) - 1600, unX(v, s, Math.max(v.l, wa) - 260)), b = Math.min(R(STORE) + 1600, unX(v, s, Math.min(v.r, wb) + 4));
+  if (b <= a || wb < v.l || wa > v.r) return;
+  c.save(); c.beginPath(); c.rect(wa, WS, wb - wa, BOTTOM - WS + 200); c.clip(); c.translate(ox, oy);
   const top = CEIL * s, bot = BOTTOM * s;
   const SIL = '#0B2530', RIM = '#1E4A55';
   box(c, a * s, top, (b - a) * s, bot - top, '#0A2029');
@@ -353,11 +413,26 @@ const drawTunnelBack = (c: Ctx, v: V) => {
     c.beginPath(); c.rect(t0, WS, t1 - t0, BOTTOM - WS + 200); c.clip();
     c.translate(ox, oy);
     const top = Math.round(WALL_TOP * s), bot = Math.round(WALL_BOT * s) + 120;
+    const walled = (z: Zone) => z === 'culvert' || z === 'yard' || z === 'store';
     for (let i = Math.floor(a * s / CHUNK); i * CHUNK < b * s; i++) {
-      const u0 = i * CHUNK, wx = u0 / s;
-      const z = zoneAt(wx + CHUNK / s / 2 - x0);
-      if (z !== 'culvert' && z !== 'yard' && z !== 'store') continue;
-      stamp(c, `uw-${z}-${i}`, u0, top, CHUNK, bot - top, g => paintChunk(z, g, i, u0, top, bot));
+      const u0 = i * CHUNK;
+      const zl = zoneAt(u0 / s - x0), zr = zoneAt((u0 + CHUNK) / s - x0 - 0.01);
+      if (!walled(zl) && !walled(zr)) continue;
+      // (the seams between two zones' walls near it: each side its own, the seam where the zone changes on this plane
+      // (the same place it changes on the floor and in the water), the piece that bridges them over it)
+      const near = WALL_SEAMS.filter(([sx]) => { const uS = R(sx) * s; return uS > u0 - 64 && uS < u0 + CHUNK + 64; });
+      if (!near.length && zl === zr) { stamp(c, `uw-${zl}-${i}`, u0, top, CHUNK, bot - top, g => paintChunk(zl, g, i, u0, top, bot)); continue; }
+      stamp(c, `uw-seam-${i}`, u0, top, CHUNK, bot - top, g => {
+        const uS = zl === zr ? u0 + CHUNK : R(ZONES.find(zn => zn.z === zr)!.a) * s;
+        // (a zone with no wall of its own here (the open river's, past the tunnel's mouth) is left bare: it's clipped off)
+        for (const [z, xa, xb] of [[zl, u0, uS], [zr, uS, u0 + CHUNK]] as [Zone, number, number][]) {
+          if (!walled(z) || xb <= xa) continue;
+          g.save(); g.beginPath(); g.rect(xa, top, xb - xa, bot - top); g.clip(); paintChunk(z, g, i, u0, top, bot); g.restore();
+        }
+        g.save(); g.beginPath(); g.rect(u0, top, CHUNK, bot - top); g.clip();
+        for (const [sx, za, zb] of near) paintPortal(g, R(sx) * s, top, bot, za, zb);
+        g.restore();
+      });
     }
     c.restore();
     // (the vault's far junk shows through its arches: under the wall, drawn after it by punching through... see drawFarJunk)
@@ -380,43 +455,56 @@ const drawTunnelBack = (c: Ctx, v: V) => {
 };
 
 /** The floor running back from the bed to the back plane (the river's sand, the culvert's silted concrete, the tank's
- * gravel), banded, furrows fanning toward the eye, the caustics crawling over it where the light gets down. */
-const drawFloorPlane = (c: Ctx, v: V, s: number, a: number, b: number, z: Zone) => {
-  const SAND: Record<Zone, string[]> = {
-    open: ['#3D4A3A', '#4E5A44', '#62694E', '#7A7C5C'],
-    culvert: ['#2E3A38', '#38463F', '#435146', '#4F5D4E'],
-    yard: ['#2C3838', '#35423F', '#3F4C46', '#4A564E'],
-    store: ['#2E3A36', '#37443C', '#414E44', '#4C584C'],
-    tank: ['#4E5E78', '#5C6C86', '#6C7C94', '#7E8EA4'],
-    drain: ['#202A2A', '#283232', '#303A3A', '#384242'],
-  };
-  const cols = SAND[z].map(col => mix(col, waterAt(z, 0.75, v.tod), 0.35));
+ * gravel), banded, furrows fanning toward the eye, the caustics crawling over it where the light gets down. Each column
+ * is worked out piece by piece going back, each piece's zone by the world x it's at at its depth: where one zone's floor
+ * gives onto the next, the seam runs back along the line to the eye (as the back wall's seam does), not straight down
+ * the screen. `zoneOf` (a relative x) says whose floor that is, null for none of this pass's (left as it is). */
+const SAND: Record<Zone, string[]> = {
+  open: ['#3D4A3A', '#4E5A44', '#62694E', '#7A7C5C'],
+  culvert: ['#2E3A38', '#38463F', '#435146', '#4F5D4E'],
+  yard: ['#2C3838', '#35423F', '#3F4C46', '#4A564E'],
+  store: ['#2E3A36', '#37443C', '#414E44', '#4C584C'],
+  tank: ['#4E5E78', '#5C6C86', '#6C7C94', '#7E8EA4'],
+  drain: ['#202A2A', '#283232', '#303A3A', '#384242'],
+};
+/** The pieces down a column: each band split in two, so a seam steps across it finely. */
+const FLOOR_K = [0, 0.09, 0.18, 0.3, 0.42, 0.56, 0.7, 0.85, 1];
+const drawFloorPlane = (c: Ctx, v: V, s: number, a: number, b: number, zoneOf: (rx: number) => Zone | null) => {
+  const pal = new Map<Zone, string[]>();
+  const colsOf = (z: Zone) => { let p = pal.get(z); if (!p) { p = SAND[z].map(col => mix(col, waterAt(z, 0.75, v.tod), 0.35)); pal.set(z, p); } return p; };
+  const eye = v.cx + CANVAS_WIDTH / 2;
   const path = new Path2D();
-  let any = false;
+  let lit = false;
   for (let x = Math.floor(Math.max(a, v.l - 4) / 4) * 4; x < Math.min(b, v.r + 4); x += 4) {
     const front = bedAt(x + 2 - x0);
-    const back = pY(v, s, bedAt(unX(v, s, x + 2) - x0)) ;
+    const back = pY(v, s, bedAt(unX(v, s, x + 2) - x0));
     if (back >= front - 1) continue;
     const span = front - back;
-    for (let k = 0; k < 4; k++) {
-      const ya = Math.round(back + span * [0, 0.18, 0.42, 0.7][k]), yb = Math.round(back + span * [0.18, 0.42, 0.7, 1][k]);
-      box(c, x, ya, 4, yb - ya + 1, cols[k]);
+    for (let j = 0; j < 8; j++) {
+      const ya = Math.round(back + span * FLOOR_K[j]), yb = Math.round(back + span * FLOOR_K[j + 1]);
+      if (yb <= ya) continue;
+      const sk = s + (1 - s) * (FLOOR_K[j] + FLOOR_K[j + 1]) / 2, u = (x + 2 - eye * (1 - sk)) / sk;
+      const z = zoneOf(u - x0);
+      if (!z) continue;
+      box(c, x, ya, 4, yb - ya + (j === 7 ? 1 : 0), colsOf(z)[j >> 1]);
+      if (z === 'open' || z === 'tank') { path.rect(x, ya, 4, yb - ya); lit = true; }
     }
-    path.rect(x, back, 4, span); any = true;
   }
-  // (the furrows and the ripples: dots along lines from the back to the front)
+  // (the furrows and the ripples: dots along lines from the back to the front, each at one world x all the way)
   for (let wx = Math.floor((Math.max(a, v.l) - 100) / 64) * 64; wx < Math.min(b, v.r) + 100; wx += 64) {
+    const z = zoneOf(wx - x0);
+    if (!z) continue;
     const fy = bedAt(wx - x0), bxp = pX(v, s, wx), byp = pY(v, s, bedAt(wx - x0));
     if (byp >= fy - 2) continue;
     for (let k = 0.1; k < 1; k += 0.12) {
       const x = Math.round(bxp + (wx - bxp) * k), y = Math.round(byp + (fy - byp) * k);
       if (x < a || x > b) continue;
-      box(c, x, y, 2, 1, cols[3]);
+      box(c, x, y, 2, 1, colsOf(z)[3]);
     }
   }
-  if (!any) return;
-  const lightK = z === 'open' ? 0.22 * (0.35 + 0.65 * Math.max(0, Math.min(1, v.tod.sunH + 0.4))) : z === 'tank' ? 0.2 : 0;
-  if (lightK > 0) { c.save(); c.beginPath(); c.rect(a, v.t, b - a, CANVAS_HEIGHT); c.clip(); causticOver(c, v, path, lightK, s); c.restore(); }
+  if (!lit) return;
+  const lightK = 0.22 * (0.35 + 0.65 * Math.max(0, Math.min(1, v.tod.sunH + 0.4)));
+  c.save(); c.beginPath(); c.rect(a, v.t, b - a, CANVAS_HEIGHT); c.clip(); causticOver(c, v, path, lightK, s); c.restore();
 };
 const causticOver = (c: Ctx, v: V, path: Path2D, a: number, s: number) => {
   c.save();
@@ -466,12 +554,13 @@ export const drawUnderWater = (c: Ctx, state: GameState) => {
   if (!onScreen(v, R(DOCK), R(PIPE.x2)) || v.b < WS) return;
   fillWater(c, v);
   // The open river: the far ridges, the floor plane running back to them
-  if (onScreen(v, R(DOCK), R(TUNNEL.x1))) { drawRidges(c, v); drawFloorPlane(c, v, S_BACK, R(DOCK), R(TUNNEL.x1), 'open'); }
+  if (onScreen(v, R(DOCK), R(TUNNEL.x1))) { drawRidges(c, v); drawFloorPlane(c, v, S_BACK, R(DOCK), R(TUNNEL.x1), () => 'open'); }
   // The tunnel: the back wall, the junk through the vault's arches, the ceiling and floor planes
   if (onScreen(v, R(TUNNEL.x1), R(TUNNEL.x2))) {
     drawFarJunkUnder(c, v);
     drawTunnelBack(c, v);
-    for (const zn of ZONES.slice(1, 4)) if (onScreen(v, R(zn.a), R(zn.b))) drawFloorPlane(c, v, S_BACK, R(zn.a), R(zn.b), zn.z);
+    // (in the tunnel's front only; what of it's back past the tunnel's ends is behind the mouths' sides, drawn already)
+    drawFloorPlane(c, v, S_BACK, R(TUNNEL.x1), R(TUNNEL.x2), rx => (rx < TUNNEL.x1 || rx >= TUNNEL.x2 ? null : zoneAt(rx)));
     drawCeilingPlane(c, v);
   }
   // (the tank's and the drain's backs are their own: under-tank.ts, drawn next, before the wobble)
@@ -483,7 +572,7 @@ export const drawUnderWave = (c: Ctx, state: GameState) => {
   wave(c, v, Math.max(R(DOCK), v.l), Math.min(R(PIPE.x2), v.r), Math.max(WS + 2, v.t), Math.min(BOTTOM, v.b));
 };
 /** (The far junk goes in first, the wall over it: its arches are cut through to show it.) */
-const drawFarJunkUnder = (c: Ctx, v: V) => { if (onScreen(v, R(YARD) - 400, R(STORE) + 400)) drawFarJunk(c, v); };
+const drawFarJunkUnder = (c: Ctx, v: V) => drawFarJunk(c, v);
 
 // ---------------------------------------------------------------------------------------------------------------
 // The light down through the water
@@ -642,7 +731,7 @@ const earth = (c: Ctx, v: V, a: number, b: number, top: number, bottom: number) 
 
 /** The concrete wall at the far end of the tank, over the intake (front plane: it's solid), the earth over the pipe. */
 const drawTankEnd = (c: Ctx, v: V) => {
-  const a = R(TANK.x2), b = R(PIPE.x2 + 200), bottom = PIPE.top;
+  const a = R(TANK.x2), b = R(PIPE.x2 + 600), bottom = PIPE.top;
   earth(c, v, a + 60, b, bottom - 1600, bottom - 36);
   earth(c, v, a, a + 60, bottom - 1600, bottom - 700);
   // (the pipe's casing along the bottom, over the pipe: a concrete band, its joints)
@@ -653,6 +742,20 @@ const drawTankEnd = (c: Ctx, v: V) => {
   }
   // (the tank's end wall, and the warning over the intake: stamped)
   if (onScreen(v, a, a + 320)) stamp(c, 'uw-tankend', a, bottom - 700, 320, 700, paintTankEnd);
+};
+/** Past the pipe's burst end: earth, solid, down past the bed and on past the screen's last edge; the pipe's concrete
+ * collar round its end (the grate was bolted into it). */
+const drawPipeEnd = (c: Ctx, v: V) => {
+  const a = R(PIPE.x2), b = R(PIPE.x2 + 600), top = PIPE.top - 36;
+  earth(c, v, a, b, top, Math.max(v.b + 8, BOTTOM + 400));
+  // (the collar: poured round the pipe's mouth, lit on its left, a lip of it over the top and under the bottom)
+  const bed = Math.round(bedAt(PIPE.x2 - 1));
+  if (!onScreen(v, a - 4, a + 30)) return;
+  box(c, a, top, 24, bed - top + 30, CONC[3]); box(c, a, top, 3, bed - top + 30, CONC[5]); box(c, a + 3, top, 2, bed - top + 30, CONC[4]);
+  box(c, a + 20, top, 4, bed - top + 30, CONC[1]);
+  for (let y = top + 20; y < bed + 30; y += 32) { box(c, a + 6, y, 12, 2, CONC[1]); box(c, a + 6, y + 2, 12, 1, CONC[4]); }
+  for (let y = top + 10; y < bed + 20; y += 24) box(c, a + 10, y, 4, 4, '#5A3A22');
+  checker(c, a + 24, top, 6, bed - top + 30, EARTH[0]);
 };
 const paintTankEnd = (g: Ctx) => {
   const a = R(TANK.x2), bottom = PIPE.top;
@@ -743,6 +846,8 @@ export const drawRockAndBed = (c: Ctx, state: GameState) => {
     const top = Math.min(bedAt(k * BED_CHUNK), bedAt((k + 1) * BED_CHUNK), ...BED.filter(([bx]) => bx >= k * BED_CHUNK && bx <= (k + 1) * BED_CHUNK).map(([, by]) => by));
     stamp(c, `uw-bed-${k}`, R(k * BED_CHUNK), top - 2, BED_CHUNK, 380, g => paintBed(g, k));
   }
+  // The rock the pipe goes on into past its end (the section's end: solid to past the last of the screen)
+  if (onScreen(v, R(PIPE.x2) - 20, R(PIPE.x2 + 600))) drawPipeEnd(c, v);
   // (the light on the bed's lip: caustics where it's lit from above)
   const lip = new Path2D();
   for (let rx = Math.floor((v.l - x0) / 8) * 8; rx < v.r - x0; rx += 8) {
@@ -773,18 +878,42 @@ export const drawVents = (c: Ctx, state: GameState) => {
   }
 };
 
-/** The eels' holes: a pipe mouth in the bed or the rock, dark inside, lit on its rim. */
+const HOLE_RIM: Record<(typeof EELS)[number]['host'], string> = { rock: '#5C564A', fake: '#5E6E80', boat: '#A8481A', booth: '#1A8AA0' };
+/** A row-stepped ellipse (two-pixel rows), filled: the SNES's round. */
+const stepOval = (c: Ctx, cx: number, cy: number, rx: number, ry: number, col: string) => {
+  for (let y = -ry; y < ry; y += 2) {
+    const t = (y + 1) / ry, hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - t * t)));
+    if (hw > 0) box(c, cx - hw, cy + y, hw * 2, 2, col);
+  }
+};
+/** A hole in whatever it's in (the scenery's, not the eel's: it's there whether the eel is or not): a broken rim of that
+ * thing's own stuff (lit along the top, its lip shadowed under), the dark going in in steps. */
+const paintEelHole = (g: Ctx, el: (typeof EELS)[number]) => {
+  const m = eelMouth(el), r = rampOf(HOLE_RIM[el.host]);
+  const cx = R(m.x) - m.dir * EEL_HOLE.inset, cy = Math.round(m.y), { rx, ry } = EEL_HOLE;
+  // (the rim: the stuff round it chipped back, a ring a few pixels out, lit on its top, dark under)
+  stepOval(g, cx, cy, rx + 4, ry + 4, r[1]);
+  stepOval(g, cx, cy - 1, rx + 3, ry + 2, r[3]);
+  stepOval(g, cx, cy + 1, rx + 2, ry + 2, r[0]);
+  // (the dark going in: three steps, the deepest off toward the back of it)
+  stepOval(g, cx, cy, rx, ry, '#141A18');
+  stepOval(g, cx - m.dir * 2, cy, rx - 2, ry - 2, '#0A0E0C');
+  stepOval(g, cx - m.dir * 3, cy + 1, rx - 5, ry - 5, '#040605');
+  // (the break round it, by what it's in: splinters off the planks, chips off the rock, the paneling's torn edge)
+  if (el.host === 'boat') for (const [dx, dy, w, h] of [[-rx - 4, -6, 4, 2], [rx + 1, -9, 5, 2], [-rx - 2, 7, 3, 2], [rx, 6, 4, 2], [-3, -ry - 5, 2, 3]]) box(g, cx + dx, cy + dy, w, h, r[4]);
+  else if (el.host === 'booth') for (const [dx, dy] of [[-rx - 3, -4], [rx + 2, 2], [-2, -ry - 4], [3, ry + 3]]) box(g, cx + dx, cy + dy, 3, 3, r[3]);
+  else for (const [dx, dy] of [[-rx - 3, -5], [rx + 2, -8], [-rx - 1, 8], [rx + 1, 7]]) { box(g, cx + dx, cy + dy, 3, 2, r[2]); box(g, cx + dx, cy + dy, 3, 1, r[4]); }
+  // (slime round the lip, below it, where the eel's dragged itself in and out)
+  checker(g, cx - rx, cy + ry + 2, rx * 2, 2, '#2E4A26');
+};
 export const drawEelHoles = (c: Ctx, state: GameState) => {
   const v = viewOf(state);
-  for (const e of state.enemies) {
-    if (e.kind !== 'm2:eel') continue;
-    const hx = e.homeX ?? 0, hy = (e.homeY ?? 0) - 8;
-    if (!onScreen(v, hx - 20, hx + 20)) continue;
-    c.fillStyle = '#5A5A52'; c.beginPath(); c.ellipse(hx, hy, 14, 18, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#8A8A7C'; c.beginPath(); c.ellipse(hx - 1, hy - 1, 13, 17, 0, Math.PI, Math.PI * 1.6); c.fill();
-    c.fillStyle = '#070908'; c.beginPath(); c.ellipse(hx, hy, 10, 14, 0, 0, Math.PI * 2); c.fill();
-    box(c, hx - 2, hy - 10, 2, 2, '#2A2A26');
-  }
+  EELS.forEach((el, i) => {
+    const x = R(el.x);
+    if (!onScreen(v, x - 30, x + 30)) return;
+    const m = eelMouth(el);
+    stamp(c, `uw-eelhole-${i}`, x - 30, m.y - 24, 60, 48, g => paintEelHole(g, el));
+  });
 };
 
 // ---------------------------------------------------------------------------------------------------------------

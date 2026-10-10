@@ -92,15 +92,20 @@ export const drawRiverFront = (c: Ctx, state: GameState, rv: River) => {
   if (!seen(state, x0 - 200, x1)) return;
   const f = state.frame, p = state.player;
   // The water over everything in it: a tint, the surface's lit line (wavy), the falls coming down in front of the rock
-  c.fillStyle = 'rgba(14, 116, 144, 0.16)'; c.fillRect(R(DOCK), WS, PIPE.x2 - DOCK, 1040 - WS);
+  // (only in the water: not over the rock and the earth over the tunnel and the pipe)
+  const a0 = Math.max(R(DOCK), state.camera.x - 20), b0 = Math.min(R(PIPE.x2), state.camera.x + CANVAS_WIDTH + 20);
+  const water = () => {
+    c.beginPath(); c.moveTo(a0, 1040);
+    // (stepped, two pixels at a time: square to the rock's corners, never cutting across them)
+    for (let x = a0; x < b0; x += 2) { const y = Math.max(WS, roofAt(x - x0)); c.lineTo(x, y); c.lineTo(Math.min(x + 2, b0), y); }
+    c.lineTo(b0, 1040); c.closePath();
+  };
+  if (b0 > a0) { c.save(); water(); c.clip(); c.fillStyle = 'rgba(14, 116, 144, 0.16)'; c.fillRect(a0, WS, b0 - a0, 1040 - WS); c.restore(); }
   // (red with the body count, brown with him: a veil over what's in it, only in the water, not over the rock)
   const st = rv.stain;
-  if (st.red + st.brown > 0.01 || st.clouds.length) {
-    const a0 = Math.max(R(DOCK), state.camera.x - 20), b0 = Math.min(R(PIPE.x2), state.camera.x + CANVAS_WIDTH + 20);
+  if (b0 > a0 && (st.red + st.brown > 0.01 || st.clouds.length)) {
     c.save();
-    c.beginPath(); c.moveTo(a0, 1040);
-    for (let x = a0; x <= b0 + 8; x += 8) c.lineTo(Math.min(x, b0), Math.max(WS, roofAt(Math.min(x, b0) - x0)));
-    c.lineTo(b0, 1040); c.closePath(); c.clip();
+    water(); c.clip();
     if (st.red > 0.005) { c.fillStyle = `rgba(168, 10, 18, ${(st.red * 0.1).toFixed(3)})`; c.fillRect(a0, WS, b0 - a0, 1040 - WS); }
     if (st.brown > 0.005) { c.fillStyle = `rgba(104, 68, 22, ${(st.brown * 0.1).toFixed(3)})`; c.fillRect(a0, WS, b0 - a0, 1040 - WS); }
     drawClouds(c, state, st.clouds, 0.3);

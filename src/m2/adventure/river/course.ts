@@ -73,9 +73,17 @@ export const PIRANHAS: [number, number][] = [
   [3900, 760], [3960, 800], [4900, 740], [5000, 790], [5800, 760], [6500, 760], [6560, 820], [7700, 760], [8500, 800],
   [9100, 760], [9180, 820], [10800, 760], [11900, 800],
 ];
-export const EELS: { x: number; y: number; dir: 1 | -1 }[] = [
-  { x: 4250, y: 960 - 60, dir: -1 }, { x: 5740, y: 0, dir: 1 }, { x: 8000, y: 0, dir: -1 }, { x: 11590, y: 0, dir: 1 },
+// (each hole's in something solid, its mouth flush with that thing's face: the rock's left side, the sunk boat's stern,
+// the ticket booth's side (it was out in open water at 8000: moved), the tank's fake rock's right side)
+export const EELS: { x: number; y: number; dir: 1 | -1; host: 'rock' | 'fake' | 'boat' | 'booth' }[] = [
+  { x: 4250, y: 960 - 60, dir: -1, host: 'rock' }, { x: 5740, y: 0, dir: 1, host: 'boat' }, { x: 7254, y: 0, dir: -1, host: 'booth' }, { x: 11590, y: 0, dir: 1, host: 'fake' },
 ];
+/** An eel's home (relative x; y the top of its box when it's in: its body's middle is 8 under that). */
+export const eelHome = (el: (typeof EELS)[number]) => ({ x: el.x, y: el.y || bedAt(el.x) - 46, dir: el.dir });
+/** Where the eel's hole's mouth is (relative x, its middle's y). */
+export const eelMouth = (el: (typeof EELS)[number]) => { const h = eelHome(el); return { x: h.x, y: h.y + 8, dir: h.dir }; };
+/** The eels' holes' size: the dark of the hole (half width, half height), its middle in from the face it's in. */
+export const EEL_HOLE = { rx: 8, ry: 10, inset: 5 };
 export const SNAPPERS = [4850, 6300, 6900, 8800, 9650, 11200, 12000];
 
 /** The gallery behind the tank's glass: where the guests stand. */

@@ -28,7 +28,7 @@ import { guestAt, type Guest } from '../queue/crowd';
 import './kinds';
 import {
   WS, CEIL, DOCK, BOAT, FALLS, TUNNEL, POCKETS, POCKET_TOP, TANK, PIPE, SUCK_AT, BED, bedAt, roofAt, PROPS, VENTS,
-  PIRANHAS_BOAT, PIRANHAS, EELS, SNAPPERS, GALLERY, CALLOUTS,
+  PIRANHAS_BOAT, PIRANHAS, EELS, eelHome, SNAPPERS, GALLERY, CALLOUTS,
 } from './course';
 import {
   ARTIE_WELCOME, BROTHER, BROTHER_ARTIE, ARTIE_TOUR, ARTIE_GAS, ARTIE_RADIO, ARTIE_STUCK, MEATHEAD_STUCK, ARTIE_JUMPED, ARTIE_ALONE,
@@ -156,7 +156,7 @@ const build = (state: GameState) => {
     fish(px, py, tank ? { x1: R(TANK.x1), x2: R(TANK.x2), y1: WS, y2: 1020 } : { x1: R(TUNNEL.x1), x2: R(TUNNEL.x2), y1: CEIL, y2: 1010 });
   }
   for (const el of EELS) {
-    const y = el.y || bedAt(el.x) - 46;
+    const { y } = eelHome(el);
     const e = makeKindEnemy('m2:eel', R(el.x), y + 16);
     e.homeX = R(el.x); e.homeY = y; e.aiX = el.dir; e.aiState = 'in'; e.facing = el.dir;
     state.enemies.push(e);

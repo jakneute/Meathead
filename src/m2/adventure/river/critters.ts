@@ -8,6 +8,8 @@
 import type { Enemy } from '../../../m1/types';
 import { stamp } from '../../../m1/game/render/stamp';
 import { mix } from '../../../m1/game/render/backdrops/core';
+import { SECTIONS } from '../geometry';
+import { EELS, eelMouth, EEL_HOLE } from './course';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -178,19 +180,50 @@ const paintEel = (c: Ctx, pose: EelPose, k: number, w: number) => {
   c.restore();
 };
 
+/** The hole an eel lives in (by its home: the dead one's corpse keeps the home it had), world coordinates. */
+const holeOf = (e: Enemy) => {
+  if (e.homeX === undefined) return null;
+  const el = EELS.find(h => Math.abs(SECTIONS.river.x0 + h.x - e.homeX!) < 1);
+  if (!el) return null;
+  const m = eelMouth(el);
+  return { x: SECTIONS.river.x0 + m.x, y: m.y, dir: m.dir };
+};
+
 export const drawEel = (c: Ctx, e: Enemy, f: number) => {
-  const holeAware = true;
   const since = sinceHurt(e, f), w = e.width;
   const pose: EelPose = e.health <= 0 ? 'dead' : since < 10 ? 'hurt' : e.aiState === 'zap' ? 'zap' : e.aiState === 'lunge' ? 'lunge' : 'wave';
   const k = pose === 'zap' ? Math.floor(f / 2) % 8 : pose === 'dead' ? 0 : Math.floor((f + (e.homeX ?? 0)) / (pose === 'lunge' ? 2 : 5)) % 8;
-  c.save();
-  // (in its hole, or on its way back into it: only what's out of the hole shows)
-  if (holeAware && e.homeX !== undefined && (e.aiState === 'in' || e.aiState === 'back') && e.health > 0 && !e.isBlownAway) {
-    const fc = e.facing ?? 1, hole = (e.homeX - (e.pos.x + w / 2)) * fc;
-    c.beginPath(); c.rect(hole - 2, -60, 200, 120); c.clip();
+  // (whatever of it's still back in its hole doesn't show: only what's out of the hole's mouth, and its neck in the dark
+  // of the hole, in the hole's shadow. The body's middle (8 up from its feet) runs out of the hole's middle; on the way
+  // out at him, its tail's held to the mouth while it's still in, the body bent up or down to where its head's got to)
+  const hole = holeOf(e), fc = e.facing ?? 1;
+  const live = e.health > 0 && e.aiState !== 'loose' && e.aiState !== 'recover' && !e.isBlownAway;
+  const body = (g: Ctx) => stamp(g, `cr-eel-${pose}-${k}-${w}`, -w / 2 - 6, -28, w + 24, 42, s => paintEel(s, pose, k, w));
+  let held = false;
+  if (hole) {
+    const cx = e.pos.x + w / 2, feet = e.pos.y + e.height;
+    const out = hole.dir * fc, mouth = (hole.x - cx) * fc, ocx = (hole.x - hole.dir * EEL_HOLE.inset - cx) * fc, ocy = hole.y - feet;
+    const tail = -w / 2 + 4;
+    // (the dead one, only while it's still in the hole where it died; it's the eel's own business after that)
+    const inHole = (out > 0 ? tail < mouth : -tail > mouth) && Math.abs(ocy + 8) < EEL_HOLE.ry + 2;
+    if (live || (e.aiState === 'recover' && inHole)) {
+      held = true;
+      const bend = () => {
+        if (!live || out <= 0) return;
+        const head = w / 2 - 14, anchor = Math.max(mouth, tail);
+        const dy = (ocy + 8) * Math.max(0, Math.min(1, 1 - (tail - mouth) / 60));
+        if (Math.abs(dy) >= 1 && head - anchor > 8) { const b = dy / (anchor - head); c.transform(1, b, 0, 1, 0, -b * head); }
+      };
+      const side = (outward: boolean) => { const r = outward === out > 0; c.beginPath(); c.rect(r ? mouth : mouth - 800, -400, 800, 800); c.clip(); };
+      // (out of it)
+      c.save(); side(true); bend(); body(c); c.restore();
+      // (in it: only in the dark of the hole, shadowed)
+      c.save();
+      c.beginPath(); c.ellipse(ocx, ocy, EEL_HOLE.rx, EEL_HOLE.ry, 0, 0, Math.PI * 2); c.clip(); side(false);
+      c.globalAlpha = 0.45; bend(); body(c); c.restore();
+    }
   }
-  stamp(c, `cr-eel-${pose}-${k}-${w}`, -w / 2 - 6, -28, w + 24, 42, g => paintEel(g, pose, k, w));
-  c.restore();
+  if (!held) body(c);
   // (the charge: crackling arcs over it, jagged, live)
   if (pose === 'zap' || (pose === 'lunge' && f % 6 < 2)) {
     c.save(); c.translate(0, -8);
