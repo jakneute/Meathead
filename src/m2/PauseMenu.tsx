@@ -1,46 +1,49 @@
-import React, { useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useSyncExternalStore } from 'react';
 import type { WeaponType } from '../m1/types';
 import { maxAmmo } from '../m1/constants';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { M2_WEAPON_INFO, M2WeaponArt, ammoName } from './weapons';
 import ChordPrompt from './ChordPrompt';
 import { PLAIN_PAUSE, type PauseSkin } from './hudThemes';
-import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, type Pants } from './cheats';
+import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, type Pants } from './cheats';
 
 /** The cheats (FOR NOW: out before it ships), mouse only: click to flip them. Not buttons (ENTER and SPACE would set
  *  off whichever was clicked last, along with the menu's own). */
-const Chip: React.FC<{ on: boolean; skin: PauseSkin; onClick: () => void; children: React.ReactNode; w?: number }> = ({ on, skin, onClick, children, w }) => (
+const Chip: React.FC<{ on: boolean; skin: PauseSkin; onClick: () => void; children: React.ReactNode; w?: number; at?: boolean }> = ({ on, skin, onClick, children, w, at }) => (
   <div role="button" onClick={onClick} onMouseDown={e => e.preventDefault()}
-    className="cursor-pointer select-none px-[6px] py-[5px] text-center text-[8px] font-black tracking-wider border-2 hover:brightness-125"
-    style={{ minWidth: w, background: on ? skin.slotOn : skin.slot, color: on ? '#000' : skin.text, borderColor: on ? '#FFFFFF' : '#52525B', boxShadow: '2px 2px 0 #000' }}>{children}</div>
+    className={`cursor-pointer select-none px-[6px] py-[5px] text-center text-[8px] font-black tracking-wider border-2 hover:brightness-125 ${at ? 'scale-110' : ''}`}
+    style={{ minWidth: w, background: on ? skin.slotOn : skin.slot, color: on ? '#000' : skin.text, borderColor: on ? '#FFFFFF' : '#52525B', boxShadow: at ? '0 0 0 2px #FACC15, 0 0 10px rgba(250,204,21,0.7)' : '2px 2px 0 #000' }}>{children}</div>
 );
 
 const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, onClose }) => {
   const c = useSyncExternalStore(subscribeCheats, getCheats);
   const pants = pantsNow(), tod = todNow();
+  // (where the pad's cursor is: row by row, CHEAT_ROWS)
+  const cur = cheatCursor();
+  const at = (r: number, col: number) => cur.row === r && cur.col === col;
   const row = (label: string, body: React.ReactNode) => (
     <div className="flex items-center gap-3 w-full">
       <div className="w-[110px] shrink-0 text-[8px] font-black tracking-widest text-right" style={{ color: skin.accent }}>{label}</div>
       <div className="flex flex-wrap gap-[5px]">{body}</div>
     </div>
   );
-  const flag = (k: 'god' | 'ammo' | 'allWeapons') => (<>
-    <Chip on={c[k]} skin={skin} w={40} onClick={() => setCheat(k, true)}>ON</Chip>
-    <Chip on={!c[k]} skin={skin} w={40} onClick={() => setCheat(k, false)}>OFF</Chip>
-  </>);
+  const flag = (k: 'god' | 'ammo' | 'allWeapons') => { const r = CHEAT_ROWS.indexOf(k); return (<>
+    <Chip on={c[k]} at={at(r, 0)} skin={skin} w={40} onClick={() => setCheat(k, true)}>ON</Chip>
+    <Chip on={!c[k]} at={at(r, 1)} skin={skin} w={40} onClick={() => setCheat(k, false)}>OFF</Chip>
+  </>); };
   return (
-    <div className="absolute inset-x-4 top-[56px] bottom-4 z-10 flex flex-col items-center gap-3 px-4 py-3" style={{ ...skin.well, background: 'rgba(0,0,0,0.92)' }}>
+    <div className="absolute inset-x-4 top-[56px] bottom-4 z-10 flex flex-col items-center gap-3 px-4 py-3" style={{ ...skin.well, background: 'rgba(0,0,0,0.97)' }}>
       <div className="text-[10px] font-black tracking-widest" style={{ color: skin.text }}>CHEATS</div>
       {row('GOD MODE', flag('god'))}
       {row('UNLIMITED AMMO', flag('ammo'))}
       {row('ALL WEAPONS', flag('allWeapons'))}
-      {row('PANTS', (['normal', 'shitty', 'naked'] as Pants[]).map(p => <Chip key={p} on={pants === p} skin={skin} w={56} onClick={() => setPants(p)}>{p.toUpperCase()}</Chip>))}
+      {row('PANTS', (['normal', 'shitty', 'naked'] as Pants[]).map((p, i) => <Chip key={p} on={pants === p} at={at(3, i)} skin={skin} w={56} onClick={() => setPants(p)}>{p.toUpperCase()}</Chip>))}
       {row('TIME OF DAY', <>
-        <Chip on={tod === null} skin={skin} w={40} onClick={() => setTod(null)}>AUTO</Chip>
-        {Array.from({ length: 10 }, (_, n) => <Chip key={n} on={tod === n} skin={skin} w={18} onClick={() => setTod(n)}>{n}</Chip>)}
+        <Chip on={tod === null} at={at(4, 0)} skin={skin} w={40} onClick={() => setTod(null)}>AUTO</Chip>
+        {Array.from({ length: 10 }, (_, n) => <Chip key={n} on={tod === n} at={at(4, n + 1)} skin={skin} w={18} onClick={() => setTod(n)}>{n}</Chip>)}
       </>)}
       <div className="text-[6px] tracking-wider" style={{ color: skin.muted }}>TIME OF DAY: LANDS CLEARED (0 MORNING, 9 NIGHT). AUTO FOLLOWS THE GAME.</div>
-      <div className="mt-auto"><Chip on={false} skin={skin} w={80} onClick={onClose}>DONE</Chip></div>
+      <div className="mt-auto"><Chip on={false} at={at(5, 0)} skin={skin} w={80} onClick={onClose}>DONE</Chip></div>
     </div>
   );
 };
@@ -73,7 +76,12 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
   const left = (w: WeaponType) => (full(w) === Infinity ? null : (ammo[w] ?? full(w)) / full(w));
   const ammoText = (w: WeaponType) => (full(w) === Infinity ? 'INFINITE' : `${Math.floor(ammo[w] ?? full(w))} / ${full(w)}`);
   const onResumeBtn = selected === weapons.length, onSkipBtn = selected === weapons.length + 1;
-  const [cheatsOpen, setCheatsOpen] = useState(false);
+  // (open, the menu behind it is dead to the pad and the keys: App asks cheatPanelOpen(); X on the pad opens it too;
+  // shut when the menu goes)
+  useSyncExternalStore(subscribeCheats, getCheats);
+  const cheatsOpen = cheatPanelOpen();
+  const setCheatsOpen = (open: boolean) => setCheatPanelOpen(open);
+  useEffect(() => () => setCheatPanelOpen(false), []);
 
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/70">
@@ -85,6 +93,8 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         {!cheatsOpen && <div role="button" onClick={() => setCheatsOpen(true)} onMouseDown={e => e.preventDefault()}
           className="absolute right-3 top-3 z-10 cursor-pointer select-none px-[5px] py-[2px] text-[6px] font-black tracking-widest border opacity-70 hover:opacity-100"
           style={{ color: skin.muted, borderColor: skin.muted, background: 'rgba(0,0,0,0.5)' }}>CHEATS</div>}
+        {/* (over the whole of the menu while it's up: nothing behind it can be clicked) */}
+        {cheatsOpen && <div className="absolute inset-0 z-[9]" onClick={e => e.stopPropagation()} onContextMenu={e => e.preventDefault()} />}
         {cheatsOpen && <CheatPanel skin={skin} onClose={() => setCheatsOpen(false)} />}
         <h2 className={`mt-1 ${skin.sub ? 'mb-1' : 'mb-3'} ${skin.title.length > 12 ? 'text-2xl' : 'text-3xl'} font-black italic tracking-widest whitespace-nowrap`} style={skin.titleStyle}>{skin.title}</h2>
         {skin.sub && <div className="mb-3 text-[7px] font-black tracking-wider" style={{ color: skin.muted }}>{skin.sub}</div>}
@@ -149,6 +159,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
           <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />
           {locked ? <span className="text-red-400 font-black">WEAPON SWITCHING LOCKED</span>
             : <Prompt pad={['DPAD', 'OK']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />}
+          <Prompt pad={['X']} mouse="left" label="CHEATS" size={15} />
         </div>
       </div>
     </div>

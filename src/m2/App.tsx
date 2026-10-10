@@ -37,7 +37,7 @@ import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
 import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill } from './store';
-import { getCheats, subscribeCheats, availableWeapons, subscribeArsenal, setLiveState } from './cheats';
+import { getCheats, subscribeCheats, availableWeapons, subscribeArsenal, setLiveState, cheatPanelOpen, setCheatPanelOpen, moveCheatCursor, activateCheat } from './cheats';
 import { attachM2Keys } from './input';
 import { setFireKeys } from '../m1/game/platform/input';
 import { setRayGun } from '../m1/game/combat/rayGun';
@@ -190,11 +190,13 @@ const App2: React.FC = () => {
   useEffect(() => {
     const cycle = (d: number) => { if (!getUi().noSwitch) setWeapon(w => arsenal()[(arsenal().indexOf(w) + d + arsenal().length) % arsenal().length]); };
     const playing = () => live.current.status === GameStatus.PLAYING, paused = () => live.current.status === GameStatus.PAUSED;
-    const onWheel = (e: WheelEvent) => { if (playing() || paused()) cycle(e.deltaY > 0 ? 1 : -1); };
+    const onWheel = (e: WheelEvent) => { if ((playing() || paused()) && !(paused() && cheatPanelOpen())) cycle(e.deltaY > 0 ? 1 : -1); };
     const onKey = (e: KeyboardEvent) => {
       // (the first key lets the sound out: the browser holds it back till then)
       getAudioContext();
       if (e.repeat) return;
+      // (the cheat panel up: the pause menu behind it doesn't move, nor does the game unpause, till it's shut)
+      if (paused() && cheatPanelOpen()) { if (e.code === 'Escape') setCheatPanelOpen(false); return; }
       if (e.code === 'Escape' || e.code === 'KeyP') { togglePause(); return; }
       const digit = /^Digit([1-9])$/.exec(e.code);
       if (digit && (playing() || paused())) { const i = +digit[1] - 1; equip(i); if (paused() && i < arsenal().length && !getUi().noSwitch) setPauseSel(i); return; }
@@ -206,7 +208,7 @@ const App2: React.FC = () => {
       else if (e.code === 'Enter' || e.code === 'Space') confirmPause();
     };
     // (right-click in the pause menu: back out of it)
-    const onContext = (e: MouseEvent) => { if (paused()) { e.preventDefault(); resume(); } };
+    const onContext = (e: MouseEvent) => { if (paused()) { e.preventDefault(); if (!cheatPanelOpen()) resume(); } };
     window.addEventListener('wheel', onWheel);
     window.addEventListener('keydown', onKey);
     window.addEventListener('contextmenu', onContext);
@@ -214,21 +216,35 @@ const App2: React.FC = () => {
     const onPointer = () => { getAudioContext(); };
     window.addEventListener('pointerdown', onPointer);
     let id = 0, lastMove = 0;
-    const prev = { lb: false, rb: false, start: false, ok: false, back: false };
+    const prev = { lb: false, rb: false, start: false, ok: false, back: false, x: false };
     const wheel: { at: number | null } = { at: null };
     const poll = () => {
       const gp = getActiveGamepad();
       if (gp) {
         const now = performance.now();
-        const btn = { lb: isButtonPressed(gp, GP_BUTTONS.LB), rb: isButtonPressed(gp, GP_BUTTONS.RB), start: isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT), ok: isButtonPressed(gp, menuButtons(gp).ok), back: isButtonPressed(gp, menuButtons(gp).back) };
-        const just = (k: keyof typeof btn) => btn[k] && !prev[k];
+        const btn = { lb: isButtonPressed(gp, GP_BUTTONS.LB), rb: isButtonPressed(gp, GP_BUTTONS.RB), start: isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT), ok: isButtonPressed(gp, menuButtons(gp).ok), back: isButtonPressed(gp, menuButtons(gp).back), x: isButtonPressed(gp, GP_BUTTONS.X) };
+        const pressed = (k: keyof typeof btn) => btn[k] && !prev[k];
+        // The cheat panel (X in the pause menu): its own cursor; backing out of it is back to the weapon select
+        if (paused() && cheatPanelOpen()) {
+          const m = getGamepadMovement(gp, 0.25);
+          const dx = m.left ? -1 : m.right ? 1 : 0, dy = m.up ? -1 : m.down ? 1 : 0;
+          if ((dx || dy) && now - lastMove > 180) { moveCheatCursor(dx, dy); lastMove = now; }
+          if (!dx && !dy) lastMove = 0;
+          if (pressed('ok')) activateCheat();
+          if (pressed('back') || pressed('x') || pressed('start')) setCheatPanelOpen(false);
+          Object.assign(prev, btn);
+          id = requestAnimationFrame(poll);
+          return;
+        }
+        if (paused() && pressed('x')) { setCheatPanelOpen(true); Object.assign(prev, btn); id = requestAnimationFrame(poll); return; }
+        const just = pressed;
         if ((playing() || paused()) && just('lb')) cycle(-1);
         if ((playing() || paused()) && just('rb')) cycle(1);
         if (just('start')) togglePause();
         if (paused()) {
           const m = getGamepadMovement(gp, 0.25);
           const dx = m.left ? -1 : m.right ? 1 : 0, dy = m.up ? -1 : m.down ? 1 : 0;
-          if ((dx || dy) && now - lastMove > 180) { movePause(dx, dy); lastMove = now; }
+          if ((dx || dy) && now - lastMove > 180 && !cheatPanelOpen()) { movePause(dx, dy); lastMove = now; }
           if (!dx && !dy) lastMove = 0;
           if (just('ok')) confirmPause();
           if (just('back')) resume();
