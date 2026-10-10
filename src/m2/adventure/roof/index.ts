@@ -13,7 +13,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { Section, Said } from '../section';
-import { lay, speak, meatheadSays, teleport, saidOver, hands, getAdv, sectionState } from '../section';
+import { lay, speak, meatheadSays, teleport, saidOver, hands, getAdv, sectionState, label } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { x0, x1, BASE_L, BASE_R, TIER_H, TIER_IN, RY, ROOF_L, ROOF_R, HOLE_X, HOLE_W, TILE, ZOOM_TO, ZOOM_X, ZOOM_Y, TILES, SPLAT_X, EXIT_X, GUESTS, SPEAKER_F, SPEAKER_M } from './layout';
 import { drawRoofBackdrop, drawTempleBody, drawLine, drawLineBack, drawDust, drawPoof, drawCart, drawChute, CHUNK_COLORS, TORCHES } from './art';
@@ -25,7 +25,7 @@ import { silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { registerHurtLines } from '../../kinds';
 import { drawSafariArtie } from '../river/artie';
 import { drawPlayer } from '../../../m1/game/render/player/player';
@@ -48,6 +48,12 @@ const HOPS = [
   { x: SPLAT_X, y: GY },
 ];
 const HOP_T = 24, SPLAT_HOLD = 60, GET_UP = 18;
+/** The roof going in after him: how fast; the lead he gets before it starts (off the arrival; back from a checkpoint);
+ * how far behind him it's let fall at most (it catches up to that, so it's all in by the time he's off the edge); how
+ * long the RUN! warning's up. */
+const FRONT_V = 2.6, LEAD_ARRIVE = 60, LEAD_RESPAWN = 110, FRONT_TRAIL = 150, WARN_T = 170;
+/** The tiles over where he comes up through it (intact till the cart bursts through them). */
+const holeTile = (i: number) => { const x = ROOF_L + i * TILE; return x + TILE > HOLE_X - HOLE_W / 2 && x < HOLE_X + HOLE_W / 2; };
 
 interface Tumble {
   /** Which hop, how far into it, from where. */
@@ -68,6 +74,10 @@ interface Roof {
   token: number;
   /** The roof going in from the hole rightward, after him (where it's got to), and when it starts. */
   front: number; frontAt: number;
+  /** Going in on the way down the side: how fast the rest of it goes (it's all in by his first bonk). */
+  frontV: number;
+  /** When the RUN! warning went up (0 none). */
+  warnAt: number;
   said: Said | null; saidBy: 'artie' | 'f' | 'm' | null;
   /** Him flying up out of it (the cutscene's own physics). */
   me: { x: number; y: number; vx: number; vy: number; landed: boolean };
@@ -89,7 +99,7 @@ interface Roof {
 }
 
 const getRoof = (state: GameState) => sectionState<Roof>(state, 'roof', () => ({
-  tiles: [], scene: null, t: 0, token: 0, front: HOLE_X + HOLE_W / 2, frontAt: 0,
+  tiles: [], scene: null, t: 0, token: 0, front: HOLE_X + HOLE_W / 2, frontAt: 0, frontV: 0, warnAt: 0,
   said: null, saidBy: null,
   me: { x: HOLE_X, y: RY + 120, vx: 2.1, vy: -15, landed: false },
   artie: { on: false, x: HOLE_X, y: RY + 120, vx: -1.4, vy: -14, landed: false, falling: false, gone: false, chute: 0 },
@@ -104,11 +114,12 @@ const someoneSays = (r: Roof, who: 'artie' | 'f' | 'm', voiceId: string, text: s
   speak(voiceId, text, s => { if (r.token !== tok) return; r.said = s; if (!s) r.saidBy = null; }, true, () => { if (r.token === tok) onDone?.(); });
 };
 
-const crumble = (state: GameState, r: Roof, i: number) => {
+const crumble = (state: GameState, r: Roof, i: number, quiet = false) => {
   const t = r.tiles[i];
   if (!t || t.gone) return;
-  t.gone = true;
+  t.gone = true; t.shake = 0;
   if (t.b) { state.blocks = state.blocks.filter(b => b !== t.b); t.b = null; }
+  if (quiet) return;
   const x = ROOF_L + i * TILE;
   for (let k = 0; k < 3; k++) state.particles.push({ pos: { x: x + Math.random() * TILE, y: RY + Math.random() * 10 }, vel: { x: (Math.random() - 0.5) * 2, y: Math.random() * 2 }, life: 40, color: CHUNK_COLORS[Math.floor(Math.random() * CHUNK_COLORS.length)], size: 4 + Math.random() * 6 });
   if (Math.random() < 0.4) r.dust.push({ x: x + TILE / 2, y: RY, vx: (Math.random() - 0.5) * 0.6, vy: -0.6 - Math.random() * 0.6, r: 14 + Math.random() * 14, life: 90 });
@@ -117,9 +128,42 @@ const crumble = (state: GameState, r: Roof, i: number) => {
 
 /** The roof as it is when he's back here from a checkpoint: already blown open, the left of it gone, no Artie. */
 const blownOpen = (state: GameState, r: Roof) => {
-  for (let i = 0; i < TILES; i++) if (ROOF_L + i * TILE < HOLE_X + HOLE_W / 2) crumble(state, r, i);
+  for (let i = 0; i < TILES; i++) if (ROOF_L + i * TILE < HOLE_X + HOLE_W / 2) crumble(state, r, i, true);
   r.artie.gone = true; r.artie.on = false; r.emptyCart.on = false;
   r.caved = true; r.dust = [];
+};
+
+/** The roof starts going in after him: a lead first, and the warning (and him saying so). */
+const startCollapse = (state: GameState, r: Roof, lead: number) => {
+  r.front = HOLE_X + HOLE_W / 2; r.frontAt = state.frame + lead; r.warnAt = state.frame;
+  playSound('rumble', 0.9); shakeScreen(state, 10, 3);
+  meatheadSays(state, HURT_ROOF[0], true);
+};
+
+/** Back here from a checkpoint (from dying, too): the roof as it stands then, whatever it was when he died: every tile
+ * of it back but the hole's (blown open) and the left of it (gone in with Artie), nothing cracked, the collapse not
+ * started, no dust; the view put right up on him (not gliding up from the ground). */
+const freshFromCheckpoint = (state: GameState, r: Roof) => {
+  const p = state.player;
+  r.tiles.forEach(t => { t.shake = 0; });
+  blownOpen(state, r);
+  r.scene = null; r.inHole = false; r.poof = 0; r.tumbled = false; r.tum = null; r.zoomK = 0; r.frontV = 0;
+  state.cameraOverride = null;
+  p.carried = false; p.hidden = false;
+  if (p.pos.y + p.height < RY + 60) state.camera.y = state.cameraRestY = p.pos.y + p.height - 380;
+  r.t = 1;
+  startCollapse(state, r, LEAD_RESPAWN);
+};
+
+/** The front moved on (and every tile behind it in; the ones just ahead cracking). */
+const advanceFront = (state: GameState, r: Roof, v: number) => {
+  r.front += v;
+  if (state.frame % 20 === 0) shakeScreen(state, 6, 2);
+  for (let i = 0; i < TILES; i++) {
+    const tx = ROOF_L + i * TILE;
+    if (tx < r.front) crumble(state, r, i);
+    else if (tx < r.front + 60) r.tiles[i].shake = 1;
+  }
 };
 
 const endArrival = (state: GameState, r: Roof, skipped: boolean) => {
@@ -135,7 +179,7 @@ const endArrival = (state: GameState, r: Roof, skipped: boolean) => {
   if (skipped || !r.artie.chute) { r.artie.gone = true; r.artie.on = false; }
   r.emptyCart.on = false;
   p.carried = false; p.hidden = false; p.inCutscene = false; p.vel.x = 0; p.vel.y = 0;
-  r.frontAt = state.frame + 20;
+  startCollapse(state, r, LEAD_ARRIVE);
 };
 
 /** Up through the roof, both of them; their say; the left of it going in, Artie with it. */
@@ -147,9 +191,19 @@ const arrive = (ctx: FrameContext, r: Roof): Controls => {
   if (r.t > SKIP_AFTER && takeSkip()) { endArrival(state, r, true); return hands(); }
   const t = r.t;
   if (t === 1) { playSound('rumble', 1); shakeScreen(state, 20, 4); state.cameraRestY = RY - 420; }
+  // (the tiles over the cart's ramp, intact, then cracking and lifting under what's coming up: a knock, a bigger one)
+  if (t > 1 && t < 20) for (let i = 0; i < TILES; i++) if (holeTile(i)) r.tiles[i].shake = 1;
+  if (t === 8 || t === 14) {
+    playSound('crack', t === 8 ? 0.7 : 1, -2); shakeScreen(state, 8, t === 8 ? 3 : 5);
+    for (let k = 0; k < (t === 8 ? 5 : 9); k++) state.particles.push({ pos: { x: HOLE_X + (Math.random() - 0.5) * HOLE_W, y: RY - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1.5 - Math.random() * 2.5 }, life: 26 + Math.random() * 14, color: CHUNK_COLORS[k % CHUNK_COLORS.length], size: 2 + Math.random() * 4 });
+    r.dust.push({ x: HOLE_X + (Math.random() - 0.5) * 40, y: RY - 6, vx: (Math.random() - 0.5) * 0.6, vy: -0.4, r: 10 + Math.random() * 8, life: 50 });
+  }
   // The blowout
   if (t === 20) {
+    // (and through: the tiles burst up in pieces, the hole's there from now)
+    for (let i = 0; i < TILES; i++) if (holeTile(i)) crumble(state, r, i, true);
     playSound('crash', 1); playSound('boom', 0.8); shakeScreen(state, 24, 12);
+    for (let i = 0; i < TILES; i++) if (holeTile(i)) for (let k = 0; k < 3; k++) state.particles.push({ pos: { x: ROOF_L + i * TILE + Math.random() * TILE, y: RY + 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -7 - Math.random() * 8 }, life: 60 + Math.random() * 20, color: k ? CHUNK_COLORS[(i + k) % 4] : CHUNK_COLORS[4 + (i % 2)], size: 8 + Math.random() * 8 });
     for (let i = 0; i < 40; i++) state.particles.push({ pos: { x: HOLE_X + (Math.random() - 0.5) * HOLE_W, y: RY }, vel: { x: (Math.random() - 0.5) * 10, y: -4 - Math.random() * 10 }, life: 50 + Math.random() * 30, color: CHUNK_COLORS[i % CHUNK_COLORS.length], size: 3 + Math.random() * 8 });
     for (let i = 0; i < 8; i++) r.dust.push({ x: HOLE_X + (Math.random() - 0.5) * 80, y: RY - 10, vx: (Math.random() - 0.5) * 1.5, vy: -1 - Math.random(), r: 20 + Math.random() * 20, life: 120 });
     r.emptyCart.on = true;
@@ -215,6 +269,8 @@ const startTumble = (state: GameState, r: Roof) => {
   const x = p.pos.x + p.width / 2, y = p.pos.y + p.height;
   r.scene = 'tumble'; r.tumbled = true; r.t = 0;
   r.tum = { i: 0, t: 0, fx: x, fy: y, x, y, ang: 0, spin: 0.28, squash: 0, flat: 0, up: 0 };
+  // (what's left of the roof goes in right behind him: all of it by his first bonk)
+  r.frontV = Math.max(FRONT_V, (ROOF_R + TILE - r.front) / (HOP_T - 4));
   p.facing = 1;
   playSound('whoosh', 0.8);
 };
@@ -222,6 +278,7 @@ const startTumble = (state: GameState, r: Roof) => {
 /** Down, standing by the line (where the tumble, or skipping it, leaves him). */
 const endTumble = (state: GameState, r: Roof) => {
   const p = state.player;
+  for (let i = 0; i < TILES; i++) crumble(state, r, i, true);
   r.tum = null; p.hidden = false; p.carried = false; p.isGrounded = true;
   p.pos.x = SPLAT_X - p.width / 2; p.pos.y = GY - p.height; p.vel.x = 0; p.vel.y = 0; p.facing = 1;
 };
@@ -242,6 +299,7 @@ const tumble = (ctx: FrameContext, r: Roof): Controls => {
   if (r.t > SKIP_AFTER) offerSkip();
   if (r.t > SKIP_AFTER && takeSkip()) { endTumble(state, r); endZoom(state, r, true); return hands(); }
   m.squash *= 0.8;
+  if (r.front < ROOF_R + TILE) advanceFront(state, r, r.frontV || FRONT_V);
   if (m.i < HOPS.length) {
     // A hop: across and down to the next step, popping up off the last one, spinning
     const to = HOPS[m.i];
@@ -395,7 +453,7 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   // Coming up through it (from the cart), the first time; back here from a checkpoint, it's blown open already
   if (r.t === 0 && r.scene === null && !r.caved) {
     if (adv.roofArrival && firstVisit(state)) { adv.roofArrival = false; r.scene = 'arrive'; }
-    else { blownOpen(state, r); p.carried = false; r.frontAt = state.frame + 60; r.t = 1; }
+    else freshFromCheckpoint(state, r);
   }
   floatArtie(state, r);
   if (r.scene === 'arrive') return arrive(ctx, r);
@@ -405,15 +463,8 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   const onRoof = !r.tumbled && feet < RY + 40 && cx > ROOF_L - 40 && cx < ROOF_R + 40;
   // The roof going in after him, from the hole rightward (cracking a little way ahead of where it's got to)
-  if (onRoof && r.frontAt && state.frame > r.frontAt) {
-    r.front += 2.6;
-    if (state.frame % 20 === 0) shakeScreen(state, 6, 2);
-    for (let i = 0; i < TILES; i++) {
-      const tx = ROOF_L + i * TILE;
-      if (tx < r.front) crumble(state, r, i);
-      else if (tx < r.front + 60) r.tiles[i].shake = 1;
-    }
-  }
+  // (never more than a way behind him: run as he likes, it's right on his heels when he goes off the edge)
+  if (onRoof && r.frontAt && state.frame > r.frontAt) advanceFront(state, r, Math.max(FRONT_V, Math.min(7, (cx - FRONT_TRAIL - r.front) * 0.05)));
   // In through it: down the hole, behind its front (and that's him)
   if (!r.tumbled && feet > RY + 14 && cx > ROOF_L - 20 && cx < ROOF_R + 20) r.inHole = true;
   if (r.inHole && feet > RY + 110 && p.health > 0) {
@@ -463,10 +514,10 @@ export const roof: Section = {
     const r = getRoof(state);
     for (let i = 0; i < TILES; i++) {
       const x = ROOF_L + i * TILE;
-      const inHole = x + TILE > HOLE_X - HOLE_W / 2 && x < HOLE_X + HOLE_W / 2;
-      const b = inHole ? null : { x, y: RY, w: TILE, h: 30, type: 'wall', hidden: true, tag: 'roof' };
+      // (over the hole-to-be: there, but nothing to stand on: he's coming up through it)
+      const b = holeTile(i) ? null : { x, y: RY, w: TILE, h: 30, type: 'wall', hidden: true, tag: 'roof' };
       if (b) state.blocks.push(b as never);
-      r.tiles.push({ b, gone: inHole, shake: 0 });
+      r.tiles.push({ b, gone: false, shake: 0 });
     }
   },
   update: (ctx, controls) => { const out = run(ctx, controls); setUi({ introCutscene: !!ctx.state.player.inCutscene }); return out; },
@@ -501,6 +552,13 @@ export const roof: Section = {
       saidOver(c, state.playerLastVulgarity, Math.max(130, Math.min(CANVAS_WIDTH - 130, sx)), Math.max(130, sy - 30), '#FDE047');
     }
     if ((r.scene === 'arrive' || r.scene === 'tumble') && r.t > SKIP_AFTER || r.scene === 'zoom') drawSkipPrompt(c, CANVAS_WIDTH);
+    // RUN! (the roof's going: up top, clear of the HUD, flashing)
+    const w = state.frame - r.warnAt;
+    if (r.warnAt && w >= 0 && w < WARN_T && !r.scene && !r.tumbled && !r.inHole && !state.player.inCutscene && state.player.health > 0) {
+      const band = topBand(), on = Math.floor(w / 8) % 2 === 0;
+      label(c, 'RUN!', band.mid, 52, on ? '#FDE047' : '#EF4444', 24);
+      label(c, 'THE ROOF IS GOING!', band.mid, 76, '#FFFFFF', 8);
+    }
   },
 };
 

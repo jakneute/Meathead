@@ -90,13 +90,15 @@ export const palm = (g: Ctx, x: number, y: number, h: number, ramp: string[], tr
 };
 /** A canopy strip: crowns along it (the bumpy top), filled solid below, palms poking up here and there. */
 const canopyStrip = (g: Ctx, w: number, h: number, seed: number, ramp: string[], r0: number, palms: number) => {
+  // (each palm one piece, its trunk from down in the canopy (its foot hidden in it) up; the crowns in front of its foot)
+  const foot = r0 * 1.7;
+  for (let i = 0; i < palms; i++) { const px = ((i + 0.5) / palms) * w + (r1(i, seed) - 0.5) * 60; palm(g, px, foot, foot - r0 * 0.6 + r0 * 0.9 + r1(i, seed + 1) * r0 * 0.6, ramp, mix(ramp[1], '#6B4A2A', 0.5)); }
   box(g, 0, r0 * 0.9, w, h, ramp[0]);
   for (let x = -r0; x < w + r0; x += r0 * 0.9) {
     const s = r1(x, seed), r = r0 * (0.75 + s * 0.5);
     // (wrapped: a crown off one end is painted again off the other, so the strip tiles)
     for (const wx of [x, x - w, x + w]) if (wx > -r * 1.4 && wx < w + r * 1.4) crown(g, wx, r0 + (s - 0.5) * r0 * 0.5, r, ramp);
   }
-  for (let i = 0; i < palms; i++) { const px = ((i + 0.5) / palms) * w + (r1(i, seed) - 0.5) * 60; palm(g, px, r0 * 0.6, r0 * 0.9 + r1(i, seed + 1) * r0 * 0.6, ramp, mix(ramp[1], '#6B4A2A', 0.5)); }
   checker(g, 0, r0 * 1.6, w, 2, ramp[1]);
 };
 
@@ -209,21 +211,24 @@ const paverPattern = (c: Ctx) => tilePattern(c, 'rfPaver', 64, 32, g => {
 /** The treeline at the back of the plaza: painted once, slid at its own rate (it's further off than the strip). */
 const TREE_PAR = 0.55;
 const treeline = (c: Ctx, e: Eye, v: { x: number; w: number }) => {
-  const top = GY - BACK_H - 300;
+  const top = GY - BACK_H - 380;
   // (at the depth it's at: x on the strip taken back toward the eye)
   const ramp = ['#173A22', '#22502C', '#336834', '#4E8440'].map(cl => mix(cl, '#5A7A8A', 0.32));
   const sh = Math.round(e.x * (1 - TREE_PAR));
   c.save(); c.translate(sh, 0);
   const L = Math.floor((x0 - 900) * TREE_PAR), R = Math.ceil((x1 + 900) * TREE_PAR);
   const paint = (g: Ctx, a: number, b: number) => {
-    box(g, a, top + 200, b - a, 120, ramp[0]);
+    const gy = GY - BACK_H;
+    // (the palms, furthest back: standing on the ground (their feet behind the trees), up over the canopy)
+    for (let x = L + 60; x < R; x += 230) if (x > a - 40 && x < b + 40) palm(g, x, gy, 270 + r1(x) * 60, ramp, mix('#6B4A2A', '#5A7A8A', 0.3));
+    box(g, a, gy - 100, b - a, 120, ramp[0]);
     for (let x = L; x < R; x += 38) {
       if (x < a - 80 || x > b + 40) continue;
-      const s = r1(x, 2), h = 150 + s * 120;
-      box(g, x + 8, GY - BACK_H - h * 0.55, 14, h * 0.55, mix('#4A3626', '#5A7A8A', 0.3)); box(g, x + 8, GY - BACK_H - h * 0.55, 4, h * 0.55, mix('#6E5438', '#5A7A8A', 0.3));
-      crown(g, x + 16, GY - BACK_H - h * 0.85, 40 + s * 22, ramp);
+      const s = r1(x, 2), h = 150 + s * 120, th = h * 0.55, cr = 40 + s * 22;
+      box(g, x + 8, gy - th, 14, th, mix('#4A3626', '#5A7A8A', 0.3)); box(g, x + 8, gy - th, 4, th, mix('#6E5438', '#5A7A8A', 0.3));
+      // (its crown sat down over its trunk's top: no daylight between)
+      crown(g, x + 16, gy - th - cr * 0.4, cr, ramp);
     }
-    for (let x = L + 60; x < R; x += 230) if (x > a - 40 && x < b + 40) palm(g, x, GY - BACK_H - 120, 150 + r1(x) * 60, ramp, mix('#6B4A2A', '#5A7A8A', 0.3));
     // (ferns along its foot)
     for (let x = a - (a - L) % 10; x < b; x += 10) { const hh = 10 + r1(x, 7) * 14; box(g, x, GY - BACK_H - hh, 6, hh + 2, ramp[1 + (Math.floor(x / 10) % 2)]); box(g, x + 1, GY - BACK_H - hh, 3, 2, ramp[3]); }
   };
@@ -231,7 +236,7 @@ const treeline = (c: Ctx, e: Eye, v: { x: number; w: number }) => {
   const CH = 400;
   for (let cx = L; cx < R; cx += CH) {
     if (cx + sh > v.x + v.w + 40 || cx + CH + sh < v.x - 40) continue;
-    stamp(c, `rfTreeline:${cx}`, cx, top, CH, 320, g => { g.save(); g.beginPath(); g.rect(cx, top - 4, CH, 330); g.clip(); paint(g, cx, cx + CH); g.restore(); });
+    stamp(c, `rfTreeline2:${cx}`, cx, top, CH, 400, g => { g.save(); g.beginPath(); g.rect(cx, top, CH, 400); g.clip(); paint(g, cx, cx + CH); g.restore(); });
   }
   c.restore();
 };
