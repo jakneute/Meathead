@@ -121,6 +121,12 @@ export const DONNIE_CHASE: ByPants = {
     "YOU BREAK IT, YOU BUY IT! WITH WHAT?! WHERE DO YOU KEEP A WALLET?!",
   ],
 };
+/** Throwing the shop at him (a rack over, globes, a barrel). */
+export const DONNIE_THROW: ByPants = {
+  clean: ['HAVE A RACK! ON THE HOUSE!', "CATCH! DON'T CATCH! DUCK!", 'EVERYTHING MUST GO! AT YOU!'],
+  shitty: ["HAVE A RACK! WIPE ON THE SHIRTS! THEY'RE RUINED ANYWAY!", 'CATCH! AND STAY BACK THERE! WAY BACK!', 'EVERYTHING MUST GO! INCLUDING YOU! INCLUDING THAT SMELL!'],
+  nude: ["HAVE A RACK! THEY'RE SHIRTS! PUT ONE ON!", 'CATCH! WITH YOUR HANDS! NOT WITH... HANDS!', 'EVERYTHING MUST GO! TAKE A HAT! COVER SOMETHING WITH IT!'],
+};
 /** At the ballroom's doors, before he's in through them. */
 export const DONNIE_DOOR: ByPants = {
   clean: [
@@ -157,6 +163,8 @@ export const HURT_CLERK = ['THE CLERK HIT ME!', 'NO RETURNS, HUH?!', 'CUSTOMER S
 export const DEATH_CLERK = ['RUNG UP', 'CHECKED OUT', 'NO REFUNDS'];
 export const HURT_GLOBE = ['A SNOW GLOBE?! IN HELL?!', "THAT'S A SNOW GLOBE OF HELL! IT'S FULL OF FIRE GLITTER!", 'GLASS! IN MY FACE!'];
 export const DEATH_GLOBE = ['SNOW GLOBED', 'KILLED BY A SOUVENIR', 'SHAKEN, NOT STIRRED'];
+export const HURT_BARREL = ['A BARREL OF PITCHFORKS! WHO ROLLS THAT?!', 'MY SHINS! MY EVERYTHING BELOW THE KNEE!', "THAT'S FIFTEEN BUCKS A FORK, DONNIE!"];
+export const DEATH_BARREL = ['BARRELED OVER', 'ROLLED FLAT', 'MARKED DOWN'];
 export const HURT_MASCOT = ["THE MASCOT! HE'S HUGE!", 'GET THAT FOAM HEAD OUT OF MY FACE!', 'LIL LUCIFER HITS LIKE A TRUCK!'];
 export const DEATH_MASCOT = ['HUGGED TO DEATH BY A MASCOT', 'MASCOTTED', 'FLATTENED BY FOAM'];
 /** The staff, as they come at him (each by how he looks: a clean / shitty / naked pool). */
@@ -167,10 +175,10 @@ export const STAFF_BARK: ByPants = {
 };
 
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...MEATHEAD_SEES, ...MEATHEAD_AFTER, ...MEATHEAD_SHOP, ...MEATHEAD_BURST, ...HURT_PITCHFORK, ...HURT_CLERK, ...HURT_GLOBE, ...HURT_MASCOT],
-  death: [...DEATH_PITCHFORK, ...DEATH_CLERK, ...DEATH_GLOBE, ...DEATH_MASCOT],
+  meathead: [...MEATHEAD_SEES, ...MEATHEAD_AFTER, ...MEATHEAD_SHOP, ...MEATHEAD_BURST, ...HURT_PITCHFORK, ...HURT_CLERK, ...HURT_GLOBE, ...HURT_MASCOT, ...HURT_BARREL],
+  death: [...DEATH_PITCHFORK, ...DEATH_CLERK, ...DEATH_GLOBE, ...DEATH_MASCOT, ...DEATH_BARREL],
   'm2.donnie.pa': [...all(PA_CAUGHT)],
-  'm2.donnie': [...[DONNIE_SEES, DONNIE_DRESS, DONNIE_FLEES, DONNIE_CHASE, DONNIE_DOOR].flatMap(all)],
+  'm2.donnie': [...[DONNIE_SEES, DONNIE_DRESS, DONNIE_FLEES, DONNIE_CHASE, DONNIE_THROW, DONNIE_DOOR].flatMap(all)],
   'm2.spooky.clerk': [...all(STAFF_BARK)],
   'm2.spooky.clerkf': [...all(STAFF_BARK)],
 };

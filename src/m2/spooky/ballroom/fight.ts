@@ -46,6 +46,8 @@ import { drawPerson, lookOf } from '../../adventure/temple/people';
 import { drawDonnie, drawLooseWig, DONNIE_H, type DonniePose } from '../../cast/donnie';
 import { box, label, saidOver, hands, speak, voice, meatheadSays } from '../section';
 import { GY } from '../geometry';
+import { inputDevice, padFamily } from '../../../m1/game/platform/device';
+import { drawPadFace } from '../../../m1/game/render/padGlyph';
 import { DRAIN, drawHusk } from './husk';
 import { ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X } from './arena';
 import * as L from './lines';
@@ -59,20 +61,31 @@ const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
 /** His health (Meathead 1's bosses'), and the enemy's (never runs out: the hits are taken off ours). */
 const HP = 666, BIG = 100000;
 /** Most weapons: this share of their usual damage gets through (at least 1), and a short breather after each hit. */
-const SHARE = 0.35, IFRAMES = Math.round(ENEMY_HIT_COOLDOWN / 3);
+const SHARE = 0.35, IFRAMES = Math.round(ENEMY_HIT_COOLDOWN / 5);
+/** The launcher's other souvenirs (it hits hard, and fast, and they bounce back for more): a smaller share, a longer
+ *  breather (the Redeemer's the point of it, not the rest of the bag). */
+const SOUV_SHARE = 0.15, SOUV_IFRAMES = 30;
 /** The Redeemer: what it takes off him, how long he's down for. */
-const REDEEMER_DMG = 150, REDEEMER_STUN = 150;
+const REDEEMER_DMG = 90, REDEEMER_STUN = 120;
+/** After one's put him down, he's wise to it a while: another in that time is just a souvenir (unless it'd finish him). */
+const REDEEMER_GRACE = 300;
 /** Hovering about between goes (frames, by phase); how high (feet above the floor). */
-const HOVER_T = [0, 150, 115, 90], HOVER_UP = 190;
+const HOVER_T = [0, 150, 115, 90], HOVER_UP = 160;
+/** Winded (down on the floor, catching his breath: the window), after a swoop that missed and after the spew (by phase). */
+const WINDED_T = [0, 80, 65, 50];
 /** The grab: the tell, the swoop's length, how far past him it carries on. */
-const AIM_T = [0, 40, 32, 26], DIVE_T = [0, 50, 44, 38], DIVE_PAST = 240;
+const AIM_T = [0, 46, 38, 32], DIVE_T = [0, 50, 44, 38], DIVE_PAST = 240;
+/** The grab's target is locked this long before he goes (the marker stops following him: move off it). */
+const LOCK_T = 16;
 /** Held: a drain every so often (his damage, Donnie's heal), let go after this long at most, or this many presses. */
-const DRAIN_EVERY = 18, DRAIN_DMG = 5, DRAIN_HEAL = 8, DRAIN_MAX = 150, ESCAPE_PRESSES = 9;
+const DRAIN_EVERY = 18, DRAIN_DMG = 5, DRAIN_HEAL = 5, DRAIN_MAX = 150, ESCAPE_PRESSES = 9;
 /** The guests: how often one runs through (by phase), how fast; sucking one dry, how long and what it heals. */
-const GUEST_EVERY = [0, 640, 520, 420], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 30;
+const GUEST_EVERY = [0, 640, 520, 420], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 20;
 /** The spew: the aim first, then the stream (by phase), a drop every so often, how hard, how fast; how fast his aim
  *  can follow Meathead (px a frame: about his walk, so standing still or walking straight away gets you hosed). */
-const SPEW_AIM = 26, SPEW_T = [0, 60, 76, 92], SPEW_EVERY = 3, BLOOD_DMG = 4, BLOOD_SPEED = 8.5, AIM_FOLLOW = 3.6;
+const SPEW_AIM = 34, SPEW_T = [0, 66, 80, 96], SPEW_EVERY = 3, BLOOD_DMG = 4, BLOOD_SPEED = 8.5, AIM_FOLLOW = 3.6;
+/** The stream comes in bursts: this many frames on, this many off. */
+const BURST_ON = 18, BURST_OFF = 12;
 /** Satan's nags, Donnie's taunts: every so often (frames). */
 const NAG_EVERY = 900, TAUNT_EVERY = 520;
 
@@ -85,7 +98,7 @@ registerHurtLines(BLOOD, L.HURT_BLOOD, L.DEATH_BLOOD);
 // The state
 
 type Intro = 'plead' | 'reply' | 'open' | 'bestow' | 'rise' | 'powered' | 'soul' | 'panic' | 'mh' | 'close';
-export type Mode = 'intro' | 'hover' | 'aim' | 'dive' | 'drain' | 'rise' | 'hunt' | 'suck' | 'spew' | 'stunned' | 'dead';
+export type Mode = 'intro' | 'hover' | 'aim' | 'dive' | 'drain' | 'rise' | 'hunt' | 'suck' | 'spew' | 'winded' | 'stunned' | 'dead';
 
 interface Guest { x: number; dir: 1 | -1; seed: number; state: 'run' | 'held' | 'fall' | 'husk'; y: number; vy: number; t: number; said: string | null; facing: 1 | -1 }
 interface Drop { x: number; y: number; vx: number; vy: number }
@@ -102,10 +115,14 @@ export interface Fight {
   circle: number; powered: boolean;
   /** The swoop: its curve (from, the bottom of it at him, on past), how long. */
   dive: { ax: number; ay: number; cx: number; cy: number; bx: number; by: number; d: number } | null;
+  /** Where the swoop's going to bottom out (shown on the floor through the tell): following him, then locked. */
+  mark: { x: number; y: number; locked: boolean } | null;
   held: { t: number; presses: number; was: Controls } | null;
   guests: Guest[]; guestT: number; prey: Guest | null;
   drops: Drop[]; splats: Splat[]; aimX: number; aimY: number;
   stunT: number; side: 1 | -1;
+  /** When the Redeemer can put him down again (frames, by f.total). */
+  redeemAt: number;
   said: string | null; satanSaid: string | null; nagT: number; tauntT: number;
   /** What a souvenir did to him this frame (the launcher tells us: its hit hook). */
   souvenir: { id: string } | null;
@@ -129,7 +146,7 @@ export const resetFight = () => { live = null; };
 // The weakness: the souvenir launcher's say (which comes out of the bag), and its hits on him
 
 /** What a lesser souvenir (anything but the Redeemer) could take off him at most. */
-const lesserMax = (all: readonly { id: string; dmg: number }[]) => Math.max(0, ...all.filter(t => t.id !== 'redeemer').map(t => Math.max(1, souvenirMaxHit(t.dmg) * SHARE)));
+const lesserMax = (all: readonly { id: string; dmg: number }[]) => Math.max(0, ...all.filter(t => t.id !== 'redeemer').map(t => Math.max(1, souvenirMaxHit(t.dmg) * SOUV_SHARE)));
 setSouvenirPick(all => {
   const f = live;
   if (!f || !game || f.mode === 'dead' || f.mode === 'intro') return null;
@@ -138,7 +155,7 @@ setSouvenirPick(all => {
   for (const p of game.projectiles) {
     if (p.custom !== 'SOUVENIR') continue;
     const t = (p.customData as { t?: { id: string; dmg: number } } | undefined)?.t;
-    if (t && t.id !== 'redeemer') inAir += Math.max(1, souvenirMaxHit(t.dmg) * SHARE);
+    if (t && t.id !== 'redeemer') inAir += Math.max(1, souvenirMaxHit(t.dmg) * SOUV_SHARE);
   }
   return f.hp <= lesserMax(all) + inAir ? 'redeemer' : null;
 });
@@ -162,7 +179,10 @@ registerM2Kind({
 // Saying things
 
 /** A bark: dropped if somebody's talking. */
+/** Nobody in the fight saying anything just now (Donnie, Satan, a guest): one voice at a time, text only while said. */
+const quiet = (f: Fight) => !f.said && !f.satanSaid && !f.guests.some(g => g.said);
 const bark = (f: Fight, lines: L.ByPants) => {
+  if (!quiet(f)) return;
   const text = pick(lines[pants()]);
   say(text, voice('m2.donnie'), 'casual', {
     always: true,
@@ -171,6 +191,7 @@ const bark = (f: Fight, lines: L.ByPants) => {
   });
 };
 const satanBark = (f: Fight, lines: L.ByPants) => {
+  if (!quiet(f)) return;
   const text = pick(lines[pants()]);
   say(text, voice('m2.satan'), 'casual', {
     always: true,
@@ -197,8 +218,8 @@ export const startFight = (state: GameState): Fight => {
   e.facing = -1; e.seen = true;
   const f: Fight = {
     hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, total: 0, x: CORNER_X, y: GY, vx: 0, vy: 0, facing: -1,
-    intro: 'plead', introT: 0, skipT: 0, circle: 0, powered: false, dive: null, held: null,
-    guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1,
+    intro: 'plead', introT: 0, skipT: 0, circle: 0, powered: false, dive: null, mark: null, held: null,
+    guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0,
     said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove,
     death: null, deathSaid: 0, cam: null, wigOff: null, e,
   };
@@ -300,12 +321,18 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       // (the tell: hanging there, wings wide, eyes flaring, a screech)
       faceHim(state, f); f.vx *= 0.8; f.vy *= 0.8; f.x += f.vx; f.y += f.vy;
       if (f.t === 1) { playSound('screams', 0.35, 10); if (Math.random() < 0.6) bark(f, L.DONNIE_DIVE); }
+      {
+        // (the marker: on him (his feet), till it locks)
+        const m = pmid(state), p = state.player;
+        if (!f.mark || !f.mark.locked) f.mark = { x: m.x, y: Math.min(GY, p.pos.y + p.height), locked: f.t >= AIM_T[ph] - LOCK_T };
+        if (f.mark.locked && f.t === AIM_T[ph] - LOCK_T) playSound('click', 0.6, 8);
+      }
       if (f.t >= AIM_T[ph]) {
-        const m = pmid(state), tx = m.x, ty = Math.min(GY, m.y + 45);
+        const mk = f.mark!, tx = mk.x, ty = Math.min(GY, mk.y - 30 + 45);
         const bx = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, tx + f.facing * DIVE_PAST)), by = GY - HOVER_UP;
         // (a curve from him, through him at the bottom, back up the far side)
         f.dive = { ax: f.x, ay: f.y, cx: 2 * tx - (f.x + bx) / 2, cy: 2 * ty - (f.y + by) / 2, bx, by, d: DIVE_T[ph] };
-        to(f, 'dive'); playSound('whoosh', 1, -4);
+        to(f, 'dive'); playSound('whoosh', 1, -4); f.mark = null;
       }
       break;
     case 'dive': {
@@ -317,10 +344,17 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       // (his claws on him: got him)
       const m = pmid(state), p = state.player;
       if (canHurtHim(state) && p.invincibilityTimer <= 0 && Math.abs(m.x - f.x) < 34 && Math.abs(m.y - (f.y - 46)) < 46) { grab(state, f, controls); break; }
-      if (s >= 1) { f.dive = null; to(f, 'hover'); }
+      if (s >= 1) { f.dive = null; to(f, 'winded'); }
       break;
     }
     case 'drain': out = drain(ctx, f, controls); break;
+    case 'winded':
+      // (down on the floor, bent over, puffing: the window to get at him)
+      f.vx *= 0.85; f.x += f.vx; f.y += (GY - f.y) * 0.18;
+      if (f.t === 12) playSound('land', 0.6, -2);
+      if (f.t % 24 === 0) state.particles.push({ pos: { x: f.x + f.facing * 16, y: f.y - 70 }, vel: { x: f.facing * 0.6, y: -0.6 }, life: 20, color: 'rgba(230, 230, 230, 0.6)', size: 4 });
+      if (f.t >= WINDED_T[ph]) { to(f, 'rise'); f.vy = -3; }
+      break;
     case 'rise':
       f.vy = (f.vy + (GY - HOVER_UP - f.y) * 0.03) * 0.85; f.y += f.vy; f.x += f.vx; f.vx *= 0.92;
       if (f.t > 40) to(f, 'hover');
@@ -356,12 +390,13 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       faceHim(state, f);
       const m = pmid(state);
       f.aimX += Math.max(-AIM_FOLLOW, Math.min(AIM_FOLLOW, m.x - f.aimX)); f.aimY += Math.max(-AIM_FOLLOW, Math.min(AIM_FOLLOW, m.y - f.aimY));
-      if (f.t > SPEW_AIM && f.t % SPEW_EVERY === 0) {
+      const firing = f.t > SPEW_AIM && (f.t - SPEW_AIM) % (BURST_ON + BURST_OFF) < BURST_ON;
+      if (firing && f.t % SPEW_EVERY === 0) {
         const mx = f.x + f.facing * 14, my = f.y - 74, dx = f.aimX - mx, dy = f.aimY - my, dd = Math.hypot(dx, dy) || 1;
         f.drops.push({ x: mx, y: my, vx: (dx / dd) * BLOOD_SPEED + (Math.random() - 0.5) * 0.6, vy: (dy / dd) * BLOOD_SPEED + (Math.random() - 0.5) * 0.6 });
         if (f.t % 6 === 0) playSound('gush', 0.25, 6 + Math.random() * 4);
       }
-      if (f.t >= SPEW_AIM + SPEW_T[ph]) to(f, 'hover');
+      if (f.t >= SPEW_AIM + SPEW_T[ph]) to(f, 'winded');
       break;
     }
     case 'stunned':
@@ -430,7 +465,7 @@ const guests = (ctx: FrameContext, f: Fight) => {
     f.guests.push(g);
     playSound('screams', 0.4, 6);
     const text = pick(L.GUEST_SCREAM);
-    say(text, voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2'), 'casual', {
+    if (quiet(f)) say(text, voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2'), 'casual', {
       always: true,
       onShow: spoken => { g.said = text; if (!spoken) setTimeout(() => { if (g.said === text) g.said = null; }, 1800); },
       onHide: () => { if (g.said === text) g.said = null; },
@@ -472,11 +507,17 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, e = f.e;
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
+  const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
   const sv = f.souvenir; f.souvenir = null;
+  // (a charge move landing on him: knocked back, and whatever he'd got hold of (a guest) let go)
+  if (melee && dealt > 0 && f.mode !== 'dead' && f.mode !== 'drain' && f.mode !== 'stunned' && state.enemies.includes(e)) stagger(state, f);
   if (f.mode === 'dead' || dealt <= 0 || !state.enemies.includes(e)) return;
   // The Redeemer: down he goes, and it hurts (no breather can stop it)
-  if (sv?.id === 'redeemer') {
+  // (once per go: it bounces about and hits him again, but it's the first one that puts him down; down already, it's
+  // just another souvenir till he's back up)
+  if (sv?.id === 'redeemer' && ((f.mode !== 'stunned' && f.total >= f.redeemAt) || f.hp <= REDEEMER_DMG)) {
+    f.redeemAt = f.total + REDEEMER_STUN + REDEEMER_GRACE;
     f.hp -= REDEEMER_DMG; f.flash = 16; f.iframes = IFRAMES;
     playSound('ding', 1, 6); playSound('crack', 0.8, -4); shakeScreen(state, 10, 5);
     for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: f.x, y: f.y - 50 }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 4 }, life: 30, color: ['#FEF9C3', '#FDE047', '#ECFCCB', '#FFFFFF'][i % 4], size: 2 + Math.random() * 3, grav: 0.15 });
@@ -486,12 +527,25 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     return;
   }
   if (f.iframes > 0) return;
-  let dmg = Math.max(1, dealt * SHARE);
+  let dmg = Math.max(1, dealt * (sv ? SOUV_SHARE : SHARE));
   // (a lesser souvenir never finishes him: a souvenir kill on him is the Redeemer's, always)
   if (sv && f.hp - dmg <= 0) dmg = Math.max(0, f.hp - 1);
-  f.hp -= dmg; f.iframes = IFRAMES; f.flash = 8;
+  f.hp -= dmg; f.iframes = sv ? SOUV_IFRAMES : IFRAMES; f.flash = 8;
+  for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: f.x, y: f.y - 50 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
+  playSound('gunhit', 0.5, 2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - 90 }, Math.max(1, Math.round(dmg)), false);
   if (f.hp > 0 && Math.random() < 0.18) bark(f, L.DONNIE_HURT);
+};
+
+/** A charge move: knocked back off him, the guest dropped (they run for it), back up into the air. */
+const stagger = (state: GameState, f: Fight) => {
+  const dir = pmid(state).x < f.x ? 1 : -1;
+  if (f.prey) { f.prey.state = 'run'; f.prey.y = GY; f.prey = null; bark(f, L.DONNIE_HURT); }
+  f.dive = null; f.mark = null;
+  f.vx = dir * 7; f.vy = -4;
+  to(f, 'rise');
+  playSound('punch', 0.9, -2); shakeScreen(state, 5, 3);
+  for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: f.x, y: f.y - 50 }, vel: { x: dir * (1 + Math.random() * 3), y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#B91C1C' : '#18181B', size: 2 + Math.random() * 3, grav: 0.3 });
 };
 
 /** The Redeemer got him: whatever he was at, dropped (Meathead let go, the guest let go: they run), and down. */
@@ -626,6 +680,7 @@ const poseOf = (f: Fight): DonniePose => {
     case 'stunned': return 'stunned';
     case 'aim': return 'summon';
     case 'hunt': case 'dive': return 'lunge';
+    case 'winded': return f.t < 12 ? 'fly' : 'fumble';
     default: return 'fly';
   }
 };
@@ -697,8 +752,36 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     // (stunned: the little statue's halo of stars over him)
     if (f.mode === 'stunned') for (let i = 0; i < 4; i++) { const a = fr * 0.12 + i * 1.57; box(c, f.x + Math.cos(a) * 22 - 2, f.y - 80 + Math.sin(a) * 5 - 2, 4, 4, i % 2 ? '#FDE047' : '#ECFCCB'); }
   }
+  // The grab's tell: where he'll come down on (following Meathead's feet, then locked: a ring on the floor closing in)
+  if (f.mode === 'aim' && f.mark) {
+    const k = Math.min(1, f.t / AIM_T[phase(f)]), r = 34 - k * 16, lk = f.mark.locked;
+    const col = lk ? (Math.floor(fr / 3) % 2 ? '#FDE047' : '#EF4444') : '#EF4444';
+    c.strokeStyle = '#1A0B06'; c.lineWidth = 4; c.beginPath(); c.ellipse(f.mark.x, f.mark.y, r, r * 0.25, 0, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = col; c.lineWidth = 2; c.stroke();
+    for (const s2 of [-1, 1]) box(c, f.mark.x + s2 * (r + 4) - 3, f.mark.y - 2, 6, 4, col);
+  }
+  // The spew's tell: the line from his mouth to where it's aimed, before it comes (and dotted between the bursts)
+  if (f.mode === 'spew') {
+    const firing = f.t > SPEW_AIM && (f.t - SPEW_AIM) % (BURST_ON + BURST_OFF) < BURST_ON;
+    if (!firing) {
+      const mx = f.x + f.facing * 14, my = f.y - 74, n = 14;
+      for (let i = 1; i < n; i++) { if ((i + Math.floor(fr / 3)) % 2) continue; const k = i / n, dx = mx + (f.aimX - mx) * k, dy = my + (f.aimY - my) * k; box(c, dx - 4, dy - 4, 8, 8, '#1A0B06'); box(c, dx - 3, dy - 3, 6, 6, '#EF4444'); }
+    }
+  }
+  // Held: the button to mash, over him (pulsing), and how near he is to getting loose
+  if (f.mode === 'drain' && f.held) {
+    const p = state.player, x = p.pos.x + p.width / 2, y = GY + 22, pulse = Math.floor(fr / 5) % 2;
+    if (inputDevice() === 'pad') drawPadFace(c, x, y, pulse ? 11 : 9, 'A', padFamily());
+    else {
+      c.font = '7px "Press Start 2P"'; const w = 44;
+      box(c, x - w / 2 - 1, y - 9 - (pulse ? 1 : 0), w + 2, 18, '#1A0B06'); box(c, x - w / 2, y - 8 - (pulse ? 1 : 0), w, 16, '#E4E4E7');
+      label(c, 'SPACE', x, y + 3 - (pulse ? 1 : 0), '#18181B', 7);
+    }
+    const k = Math.min(1, f.held.presses / ESCAPE_PRESSES);
+    box(c, x + 30, y - 3, 48, 6, '#1A0B06'); box(c, x + 31, y - 2, 46 * k, 4, '#FDE047');
+  }
   // The blood in the air
-  for (const d of f.drops) { box(c, d.x - 3, d.y - 2, 6, 4, '#7F1D1D'); box(c, d.x - 2, d.y - 1.5, 4, 3, '#DC2626'); }
+  for (const d of f.drops) { box(c, d.x - 5, d.y - 4, 10, 8, '#1A0B06'); box(c, d.x - 4, d.y - 3, 8, 6, '#991B1B'); box(c, d.x - 3, d.y - 2, 4, 3, '#EF4444'); }
   // His words; Satan's (up over the room, out of nowhere, red)
   if (f.said) saidOver(c, f.said, f.mode === 'dead' && f.death ? f.death.x : f.x, (f.mode === 'dead' && f.death ? f.death.y : f.y) - DONNIE_H - 16, '#FDE68A');
   if (f.satanSaid) saidOver(c, f.satanSaid, CIRCLE_X, GY - 330, '#F87171', 300);

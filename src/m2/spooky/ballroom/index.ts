@@ -13,7 +13,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import type { SpookySection } from '../section';
-import { layOwn, endWalls, endExits, runExits, wallSign, groundBox, box, spookyState } from '../section';
+import { layOwn, endWalls, endExits, runExits, wallSign, groundBox, ledgeBox, box, ledge, spookyState } from '../section';
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
@@ -22,7 +22,7 @@ import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } fro
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { hands } from '../section';
 import { drawBars } from '../control/cine';
-import { x0, x1, ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X, TRIGGER_X } from './arena';
+import { x0, x1, ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X, TRIGGER_X, CHANDELIERS, RISER } from './arena';
 import { type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam, killedByWeakness, introOn, introSkipT } from './fight';
 
 type Ctx = CanvasRenderingContext2D;
@@ -55,6 +55,10 @@ export const ballroom: SpookySection = {
     endWalls(state, 'ballroom');
     // (the stage's wall: the end of the floor)
     state.blocks.push({ x: ARENA_R, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'ballroom-stage' } as Block);
+    // The arena's high ground: the two chandeliers (stood on: up level with him in the air, for a shot at him, or out of
+    // the way of the blood), the bandstand's riser in the corner
+    for (const ch of CHANDELIERS) ledge(state, ch.x, GY - ch.h, ch.w, { hidden: true, tag: 'ballroom-chandelier' });
+    ledge(state, RISER.x, GY - RISER.h, RISER.w, { hidden: true, tag: 'ballroom-riser' });
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, b = ballOf(state);
@@ -115,13 +119,31 @@ export const ballroom: SpookySection = {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing (crude: the first pass)
 
+const INK = '#1A0B06';
+const ol = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { box(c, x - 1, y - 1, w + 2, h + 2, INK); box(c, x, y, w, h, col); };
+const drawChandelier = (c: Ctx, x: number, top: number, w: number, f: number) => {
+  const mid = x + w / 2;
+  // (the chains up to the ceiling)
+  for (const cx of [x + 14, mid, x + w - 14]) for (let y = GY - 440; y < top - 2; y += 8) { box(c, cx - 2, y, 4, 5, INK); box(c, cx - 1, y + 1, 2, 3, '#CA8A04'); }
+  // (the body: tiers of brass, narrowing down, a finial)
+  ol(c, x + 20, top + 16, w - 40, 10, '#A16207'); ol(c, x + 40, top + 26, w - 80, 10, '#854D0E'); ol(c, mid - 5, top + 36, 10, 14, '#CA8A04');
+  // (the crystals hanging off it, glinting)
+  for (let i = 0; i < 9; i++) { const cx = x + 10 + i * ((w - 20) / 8), len = 10 + (i % 3) * 5; box(c, cx - 1, top + 16, 2, len, '#E0F2FE'); box(c, cx - 2, top + 16 + len, 4, 4, (i + Math.floor(f / 8)) % 4 ? '#BAE6FD' : '#FFFFFF'); }
+  // (the ring: stood on)
+  ledgeBox(c, x, top, w, '#A16207', '#FDE047');
+  // (the candle bulbs at its ends, flickering)
+  for (const cx of [x + 4, x + w - 10]) { ol(c, cx, top - 12, 6, 12, '#FEF9C3'); box(c, cx + 1, top - 18 - (Math.floor(f / 6 + cx) % 2), 4, 6, '#FDE047'); }
+  // (the glow under it)
+  c.fillStyle = 'rgba(253, 224, 71, 0.06)'; c.beginPath(); c.ellipse(mid, top + 80, w * 0.7, 60, 0, 0, Math.PI * 2); c.fill();
+};
+
 const drawBallroom = (c: Ctx, state: GameState) => {
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
   if (v.x > x1 + 200 || v.x + v.w < x0 - 200) return;
   const f = state.frame, b = ballOf(state), cleared = isLandCleared('spooky');
   const vis = (a: number, z: number) => z > v.x - 100 && a < v.x + v.w + 100;
   // The walls: purple flock wallpaper, gold pilasters, a dado rail; the ceiling's edge
-  box(c, x0 - 200, GY - 440, ARENA_R - x0 + 400, 440, '#3B0764');
+  box(c, x0 - 200, GY - 900, ARENA_R - x0 + 400, 460, '#1E0A33'); box(c, x0 - 200, GY - 440, ARENA_R - x0 + 400, 440, '#3B0764');
   for (let x = x0; x < ARENA_R; x += 30) for (let y = GY - 420; y < GY - 90; y += 34) box(c, x + ((y / 34) % 2) * 15, y, 6, 10, '#4C1D95');
   for (let x = x0 + 150; x < ARENA_R; x += 300) box(c, x, GY - 440, 18, 440, '#A16207');
   box(c, x0 - 200, GY - 96, ARENA_R - x0 + 400, 6, '#A16207');
@@ -154,18 +176,22 @@ const drawBallroom = (c: Ctx, state: GameState) => {
     box(c, ARENA_R - 66, GY - 100, 6, 6, '#BAE6FD'); box(c, ARENA_R - 38, GY - 100, 6, 6, '#BAE6FD');
     wallSign(c, ARENA_R - 50, GY - 150, 'KITCHEN', '#1C1917', '#E5E7EB');
     // (fog machines in the corners, puffing)
-    for (const fx of [ARENA_L + 20, ARENA_R - 110]) {
+    for (const fx of [ARENA_L + 20, ARENA_R - 175]) {
       box(c, fx, GY - 22, 40, 22, '#27272A'); box(c, fx + 4, GY - 18, 8, 4, '#EF4444');
       for (let i = 0; i < 4; i++) { const u = ((f + i * 40 + fx) % 160) / 160; c.fillStyle = `rgba(226, 232, 240, ${(0.25 * (1 - u)).toFixed(2)})`; c.beginPath(); c.ellipse(fx + 40 + u * 120, GY - 12 - u * 10, 20 + u * 40, 8 + u * 6, 0, 0, Math.PI * 2); c.fill(); }
     }
     // (folding chairs round the edge, one or two knocked over once it's done)
-    for (let i = 0; i < 5; i++) { const cx = ARENA_L + 100 + i * 150; if (cleared && i % 2) { box(c, cx - 12, GY - 10, 26, 6, '#71717A'); continue; } box(c, cx - 8, GY - 50, 4, 50, '#71717A'); box(c, cx + 8, GY - 30, 4, 30, '#71717A'); box(c, cx - 8, GY - 30, 20, 4, '#A1A1AA'); }
-    // (the plastic chandeliers)
-    for (const cx of [ARENA_L + 180, ARENA_R - 180]) {
-      box(c, cx - 1, GY - 440, 2, 50, '#A16207');
-      box(c, cx - 36, GY - 392, 72, 8, '#FDE047'); box(c, cx - 26, GY - 384, 52, 8, '#FACC15');
-      for (let i = 0; i < 6; i++) box(c, cx - 30 + i * 12, GY - 376, 3, 12 + (i % 2) * 6, '#FEF9C3');
-    }
+    for (let i = 0; i < 4; i++) { const cx = ARENA_L + 90 + i * 150; if (cleared && i % 2) { box(c, cx - 12, GY - 10, 26, 6, '#71717A'); continue; } box(c, cx - 8, GY - 50, 4, 50, '#71717A'); box(c, cx + 8, GY - 30, 4, 30, '#71717A'); box(c, cx - 8, GY - 30, 20, 4, '#A1A1AA'); }
+    // (the bandstand's riser in the corner: a step up, its skirt pleated, a drum kit on it)
+    ol(c, RISER.x, GY - RISER.h, RISER.w, RISER.h, '#7F1D1D');
+    for (let i = 0; i < RISER.w; i += 10) box(c, RISER.x + i, GY - RISER.h + 8, 2, RISER.h - 8, '#991B1B');
+    ledgeBox(c, RISER.x - 2, GY - RISER.h, RISER.w + 4, '#57534E', '#FBBF24');
+    c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(RISER.x + RISER.w - 30, GY - RISER.h - 14, 16, 14, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#F8FAFC'; c.beginPath(); c.ellipse(RISER.x + RISER.w - 30, GY - RISER.h - 14, 14, 12, 0, 0, Math.PI * 2); c.fill();
+    box(c, RISER.x + RISER.w - 36, GY - RISER.h - 18, 12, 4, '#DC2626');
+    // (the chandeliers: hung on chains, a brass ring you can stand on (its rim lit), candle bulbs at its ends, crystals
+    // dangling under, swaying a touch)
+    for (const ch of CHANDELIERS) drawChandelier(c, ch.x, GY - ch.h, ch.w, f);
     // (the disco ball over the middle of the floor, glinting, spots going round the walls; down on the floor once it's
     // all over, or till the fight's death brings it down)
     const ballDown = cleared || (b.f?.mode === 'dead' && b.f.death?.how === 'flat' && (b.f.death.land ? b.f.death.t - b.f.death.land > 60 : false));

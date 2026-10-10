@@ -37,10 +37,15 @@ registerHurtLines(HAWKER, L.HURT_CLERK, L.DEATH_CLERK);
 // ---------------------------------------------------------------------------------------------------------------
 // What they say (a bark each, the first time they come for him; over their heads while it's said)
 
-const said = new WeakMap<Enemy, string>();
+const said = new Map<Enemy, string>();
 let game: GameState | null = null;
+/** Somebody else on screen talking (Donnie, in the chase): the staff keep it to themselves till they're done. */
+let othersTalking: () => boolean = () => false;
+export const setStaffHush = (f: () => boolean) => { othersTalking = f; };
+/** Any of them saying something just now. */
+export const staffTalking = () => { for (const [e, t] of said) if (t && e.health > 0) return true; return false; };
 const bark = (e: Enemy) => {
-  if (!game) return;
+  if (!game || othersTalking() || staffTalking()) return;
   const pool = L.STAFF_BARK[isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean'];
   const text = pick(pool);
   const woman = e.kind !== MASCOT && lookOf(seedOf(e)).woman;
@@ -60,12 +65,13 @@ export const drawStaffSaid = (c: Ctx, state: GameState) => {
 
 interface Globe { x: number; y: number; vx: number; vy: number; spin: number }
 let globes: Globe[] = [];
-export const resetStaff = () => { globes = []; };
+export const resetStaff = () => { globes = []; said.clear(); };
 
-const lob = (state: GameState, e: Enemy) => {
-  const m = mid(e), p = mid(state.player);
-  const sx = m.x + (e.facing ?? 1) * 14, sy = e.pos.y + 14;
-  const T = 44, g = 0.42;
+const lob = (state: GameState, e: Enemy) => throwGlobe(state, mid(e).x + (e.facing ?? 1) * 14, e.pos.y + 14);
+/** A snow globe lobbed from (sx, sy) to come down on him (the hawkers'; Donnie's, over his shoulder in the chase). */
+export const throwGlobe = (state: GameState, sx: number, sy: number, T = 44) => {
+  const p = mid(state.player);
+  const g = 0.42;
   const vx = (p.x - sx) / T, vy = (p.y - sy - 0.5 * g * T * T) / T;
   globes.push({ x: sx, y: sy, vx: Math.max(-9, Math.min(9, vx)), vy: Math.max(-14, vy), spin: 0 });
   playSound('whoosh', 0.5, 6);
@@ -155,6 +161,8 @@ const hawkerAI = (ctx: FrameContext, e: Enemy): boolean => {
       // (keeps his distance: backs off if he's close, comes up if he's far)
       e.facing = dx < 0 ? -1 : 1;
       e.vel.x = adx < 200 ? -(e.facing ?? 1) * 1.6 : adx > 420 ? (e.facing ?? 1) * 1.6 : 0;
+      // (up on a perch, he stays up on it: no wandering off the edge)
+      if (e.homeY + e.height < GY - 20 && ((e.vel.x < 0 && e.pos.x < e.homeX - 30) || (e.vel.x > 0 && e.pos.x > e.homeX + 30))) e.vel.x = 0;
       if (e.aiTimer > 80 && adx < 560) { e.aiState = 'windup'; e.aiTimer = 0; e.vel.x = 0; }
       break;
     case 'windup':

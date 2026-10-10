@@ -11,3 +11,6 @@ export const ARENA_MID = (ARENA_L + ARENA_R) / 2;
 export const CIRCLE_X = ARENA_MID + 60;
 /** Walking in past here starts it. */
 export const TRIGGER_X = ARENA_L + 130;
+/** The chandeliers he can stand on (x of the left end, height of the top off the floor, width), and the bandstand's riser. */
+export const CHANDELIERS = [{ x: ARENA_L + 110, h: 150, w: 130 }, { x: ARENA_R - 270, h: 150, w: 130 }];
+export const RISER = { x: ARENA_R - 120, h: 36, w: 120 };
