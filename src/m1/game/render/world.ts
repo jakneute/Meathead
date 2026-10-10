@@ -119,6 +119,8 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
     // A stage can push the camera in on something (a clash), keeping that spot where it is on screen
     const zoom = getStageLayout(stageId)?.zoom?.(state);
     if (zoom && zoom.scale !== 1) { wctx.translate(zoom.shiftX ?? 0, zoom.shiftY ?? 0); wctx.translate(zoom.x, zoom.y); wctx.scale(zoom.scale, zoom.scale); wctx.translate(-zoom.x, -zoom.y); }
+    // (the world swaying about a point: a stage's leaning, wobbling tower)
+    { const wt = getStageLayout(stageId)?.worldTilt?.(state); if (wt && wt.angle) { wctx.translate(wt.x, wt.y); wctx.rotate(wt.angle); wctx.translate(-wt.x, -wt.y); } }
     // (what of the world that puts on screen: what's drawn to fill the screen fills this)
     const camX = state.camera.x - shiftX, camY = state.camera.y;
     state.view = zoom && zoom.scale !== 1

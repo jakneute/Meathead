@@ -103,6 +103,9 @@ export interface StageLayout {
   holdTick?: (ctx: FrameContext) => boolean;
   /** What he's stood on is tipping (Riggs's truck swerving): he's drawn turned by `angle` about the world point (x, y) along with it. Null: upright. */
   playerTilt?: (state: GameState) => { x: number; y: number; angle: number } | null;
+  /** The whole world's view swaying (a tower leaning and wobbling: Spooky Land's clock tower): drawn turned by `angle` about
+   *  the world point (x, y). Only the drawing turns: everything moves and collides upright, as ever. Null: upright. */
+  worldTilt?: (state: GameState) => { x: number; y: number; angle: number } | null;
   /** A body he's sent flying only takes out the ones on screen (the gym: each room's lesson is for that room, not the next one's). */
   collateralOnScreenOnly?: boolean;
   /** Nothing knocked up off the top of the screen is gone for it ("TO THE MOON"): what goes up comes back down, and

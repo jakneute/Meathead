@@ -68,6 +68,8 @@ export interface Section<Id extends string = SectionId> {
   cylinder?: (state: GameState) => { radius: number } | null;
   /** The camera's limits in it (default its x0..x1). */
   cameraX?: (state: GameState) => { min: number; max: number } | undefined;
+  /** The world's view swaying (drawn turned by `angle` about the world point (x, y)): see StageLayout's worldTilt. */
+  worldTilt?: (state: GameState) => { x: number; y: number; angle: number } | null;
 }
 
 // ---------------------------------------------------------------------------------------------------------------

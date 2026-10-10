@@ -154,4 +154,5 @@ export const spookyLayout: StageLayout = {
   },
   cameraRow: (state) => current(state).cameraRow?.(state),
   cylinder: (state) => current(state).cylinder?.(state) ?? null,
+  worldTilt: (state) => current(state).worldTilt?.(state) ?? null,
 };
