@@ -19,7 +19,7 @@ import { pollM2, pressed } from '../input';
 import { drawHubBackdrop, drawHubBack, drawHubFront, drawHubLampGlow, HUB_HORIZON } from './draw';
 import { drawNotedSunFlare, takeSun } from '../sunFlare';
 import { hasPortalWalk } from '../portalWalk';
-import { type Portal, startPortal, runPortal, portalZoom, portalLights, portalLightAmount, notePortalSurge, drawPortalBack, drawPortalFront, drawPortalHud } from './portal';
+import { type Show, startPortal, startExit, runShow, portalZoom, portalLights, portalLightAmount, notePortalSurge, drawPortalBack, drawPortalFront, drawPortalHud } from './portal';
 import { todLight } from '../timeOfDay';
 import { HUB, HUB_CIRC, slotX } from './geometry';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
@@ -29,10 +29,15 @@ export const HUB_STAGE = 'M2 Happy Hub';
 /** Where he's stood when it starts: at the staff door, for now (handy for practicing); later, out of America USA's street. */
 let startSlot = STAFF_SLOT;
 export const setHubStart = (slot: number) => { startSlot = slot; };
+/** Back from a land (after its boss's walk-away, or BACK TO HUB): he comes back out of its portal (portal.ts). */
+let exitNext = false;
+export const setHubExit = (on: boolean) => { exitNext = on; };
+/** Is he about to come out of a portal? (No HUD as the hub loads, then.) */
+export const hubExitPending = () => exitNext;
 
 const GATED: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
 
-interface Hub { map: number | null; upWas: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; /** Going through a portal (portal.ts). */ portal?: Portal | null }
+interface Hub { map: number | null; upWas: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; /** Going through a portal, or back out of one (portal.ts). */ portal?: Show | null }
 const getHub = (state: GameState) => state.stage as Hub | null;
 
 /** Round the lap: everything shifts by a whole lap, so he never runs out of roundabout. */
@@ -57,7 +62,10 @@ export const hubLayout: StageLayout = {
     const runs = [{ x1: HUB.x0 - HUB_CIRC, y1: GROUND_Y, x2: HUB.x0 + HUB_CIRC * 2, y2: GROUND_Y, surface: 'plaza' }];
     state.groundRuns = runs;
     state.blocks.push(...groundBlocks(runs));
-    state.stage = { map: null, upWas: false, gate: new Set(), grab: createGrab(state) } satisfies Hub;
+    // (back out of a land's portal, if that's where he's come from)
+    const portal = exitNext ? startExit(startSlot) : null;
+    exitNext = false;
+    state.stage = { map: null, upWas: false, gate: new Set(), grab: createGrab(state), portal } satisfies Hub;
     state.cameraMinX = HUB.x0 - HUB_CIRC;
   },
   update: (ctx, controls) => {
@@ -71,7 +79,7 @@ export const hubLayout: StageLayout = {
     if (!hub) return controls;
     pollM2(state.frame);
     // (through a portal: nothing else till he's there)
-    if (hub.portal) return runPortal(state, hub.portal, controls);
+    if (hub.portal) return runShow(state, hub, controls);
     const p = state.player, cx = p.pos.x + p.width / 2;
     if (cx < HUB.x0) shiftLap(state, HUB_CIRC);
     else if (cx > HUB.x0 + HUB_CIRC) shiftLap(state, -HUB_CIRC);
@@ -90,7 +98,7 @@ export const hubLayout: StageLayout = {
         const land = LANDS[hub.map];
         // (the checkpoint-skip cheat: where in it to start, asked first)
         if (land.open && getCheats().skip) setUi({ pick: land.id });
-        else if (land.open && hasPortalWalk(land.id)) hub.portal = startPortal(state, land);
+        else if (land.open && hasPortalWalk(land.id)) hub.portal = startPortal(land);
         else if (land.open) goTo(land.id);
         else { setUi({ notice: { text: `${land.name}: COMING SOON`, at: performance.now() } }); playMenuBack(); }
         hub.map = null;

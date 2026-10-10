@@ -137,7 +137,41 @@ const handsAndToy = (c: Ctx, p: Pose, bob: number, grip: [[number, number], [num
   }
 };
 
-export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [[number, number], [number, number]], drawWeapon: (c: Ctx, t: number) => void): Marks => {
+/** The weapon's drawn this much bigger than it is in the game, hanging from his fist (walking, not holding it up). */
+const HANG = 2.4;
+
+/**
+ * Walking, not admiring it: his arms hanging and swinging against his stride, what he's carrying down by his thigh
+ * in his left fist (he's left-handed: from the front, the one on the screen's right), muzzle to the ground.
+ */
+const swingingArms = (c: Ctx, p: Pose, ty: number, weapon: ((c: Ctx, t: number) => void) | null, R: string[]) => {
+  const sw = Math.sin(p.step);
+  const FORE = [R[0], R[0], R[1], R[2], R[3]];
+  for (const side of [-1, 1]) {
+    // (his right arm swings with his left leg; his left, with the weapon in it, hardly at all. Swung toward us: the
+    // fist lower and a touch bigger)
+    const swing = side < 0 ? sw : -sw * 0.35;
+    const ex = side * 47, ey = -97 + ty;
+    const fx = side * (45 + swing * 1.2), fy = -64 + ty + swing * 3;
+    limb(c, ex, ey, 14, fx, fy - 4, 11, FORE, side > 0 ? p.rim : undefined);
+    lump(c, ex, ey, 6, 5, FORE);
+    const wx = ex + (fx - ex) * 0.8, wy = ey + (fy - 4 - ey) * 0.8;
+    c.fillStyle = INK; c.beginPath(); c.ellipse(wx, wy, 7, 4, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = BAND[2]; c.beginPath(); c.ellipse(wx, wy, 6, 3, 0, 0, Math.PI * 2); c.fill();
+    box(c, wx - 4, wy - 2, 5, 1, BAND[4]);
+    if (side > 0 && weapon) {
+      c.save(); c.translate(fx, fy + 1); c.rotate(Math.PI / 2 - 0.22 - swing * 0.04); c.scale(HANG, -HANG); c.translate(-5, -6);
+      weapon(c, p.t);
+      c.restore();
+    }
+    // (the fist: knuckles toward us)
+    lump(c, fx, fy, 7 + Math.max(0, swing) * 0.5, 7, R);
+    box(c, fx - 5, fy - 2, 10, 1, R[1]); box(c, fx - 4, fy + 1, 8, 1, R[1]); box(c, fx - 5, fy - 4, 2, 1, R[4]);
+  }
+};
+
+/** `walking`: arms hanging and swinging, `walking.weapon` in his left fist (in place of the toy held up in both). */
+export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [[number, number], [number, number]], drawWeapon: (c: Ctx, t: number) => void, walking?: { weapon: ((c: Ctx, t: number) => void) | null }): Marks => {
   c.save();
   c.translate(Math.round(x), Math.round(y));
   const step = p.step;
@@ -290,7 +324,8 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
   }
   // His forearms, the toy, his fists: last, in front of everything (his head too: up at his nose, it's in front of his
   // face; held at his chest, nothing's in its way)
-  handsAndToy(c, p, ty, grip, drawWeapon, S);
+  if (walking) swingingArms(c, p, ty, walking.weapon, S);
+  else handsAndToy(c, p, ty, grip, drawWeapon, S);
   c.restore();
   return { mouth: [x + 0, y + mouthY + 1], crotch: [x + crotch[0], y + crotch[1], crotch[2], crotch[3]] };
 };

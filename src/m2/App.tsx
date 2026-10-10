@@ -23,7 +23,7 @@ import { loadVoicePack } from '../m1/game/platform/voiceclips';
 // (its own little pack: just the lines it can say, out of Meathead 1's: tools/voices/m2pack.ts)
 import voicePackUrl from './generated/voices.bin?url';
 import { registerStageLayout } from '../m1/game/stages/index';
-import { hubLayout, HUB_STAGE, setHubStart } from './hub/index';
+import { hubLayout, HUB_STAGE, setHubStart, setHubExit, hubExitPending } from './hub/index';
 import { penLayout, PEN_STAGE } from './pen/index';
 import { advLayout, ADV_STAGE, ADV_CHECKPOINTS } from './adventure/index';
 import { spookyLayout, SPOOKY_STAGE, SPOOKY_CHECKPOINTS } from './spooky/index';
@@ -164,8 +164,10 @@ const App2: React.FC = () => {
       const landSlot = (id: string) => SPOTS.findIndex(s => s.kind === 'land' && LANDS[s.land].id === id);
       const from = landOfStage(stage);
       if (to === HUB_STAGE) setHubStart(stage === PEN_STAGE ? STAFF_SLOT : from ? landSlot(from) : AMERICA_SLOT);
+      // (back from a land, its boss beaten or BACK TO HUB: out of its portal he comes; not from the break room or the way in)
+      setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
-      setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: portalArrivalPending() });
+      setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: portalArrivalPending() || hubExitPending() });
       setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)

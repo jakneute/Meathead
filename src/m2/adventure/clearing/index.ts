@@ -272,6 +272,8 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   const cl = getClearing(state);
   p.carried = false;
+  // (dev: the boss beaten without the fight, for trying out what comes after: the walk-away, back out at the hub)
+  if (import.meta.env.DEV) (window as unknown as { __clearingWin: (weak?: boolean) => void }).__clearingWin = (weak = false) => { if (!cl.walk) { cl.fight = 'won'; cl.victory = null; leave(state, weak); } };
   if (!cl.init) {
     cl.init = true;
     // (back for another go, or not the first time: they're down already, he's waiting)
