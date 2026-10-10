@@ -3,8 +3,8 @@
 //
 // The room: cinder block painted institutional green, a window out onto the pen (the hour's sky in it, the fence, a
 // raptor standing about), the console under it (the DINOSAUR MODE panel, its big toggle, a beacon on top), the board
-// counting DAYS WITHOUT INCIDENT, a 1997 calendar nobody's turned, a mini fridge, a coffee maker; him, sat with his back
-// to all of it, boots up on an upturned bucket, reading DIRT BIKE.
+// counting DAYS WITHOUT INCIDENT, a 1997 calendar nobody's turned, a mini fridge, a coffee maker; him, sat at his desk
+// in his swivel chair with his back to all of it, reading DIRT BIKE.
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../../m1/constants';
 import { skyTint, farTint } from '../../../timeOfDay';
@@ -45,13 +45,16 @@ export const drawBoothCut = (c: Ctx, f: number, cut: CutNow, after: (c: Ctx) => 
     c.fillStyle = 'rgba(239, 68, 68, 0.14)'; c.beginPath(); c.moveTo(298, 32); c.lineTo(298 + Math.cos(turn) * 400, 32 + Math.sin(turn) * 140); c.lineTo(298 + Math.cos(turn + 0.35) * 400, 32 + Math.sin(turn + 0.35) * 140); c.closePath(); c.fill();
     steppedGlow(c, 298, 32, 22, '#EF4444', 0.3, 0.04, 3);
   }
-  // Him: sat with his back to it all, boots up, the magazine
-  c.save(); c.translate(110, 196); c.scale(-1.5, 1.5);
+  // Him: sat at his desk in his swivel chair, his back to it all, reading DIRT BIKE
+  stamp(c, 'dcut-chair', 92, 132, 52, 80, chair);
+  c.save(); c.translate(110, 186); c.scale(-1.5, 1.5);
   drawPerson(c, { seed: 4242, outfit: 'maint', pose: 'sit', f, mood: 'bored', woman: false, talking: cut.talking });
   c.restore();
-  slab(c, 50, 116, 28, 22, '#F8FAFC', { ink: true });
-  box(c, 52, 118, 24, 6, '#DC2626'); text(c, 'DIRT', 64, 124, '#FFFFFF', 4, 'center', null);
-  box(c, 54, 126, 20, 9, '#7A8A9A'); box(c, 58, 128, 10, 4, '#3A3A3A');
+  stamp(c, 'dcut-desk', 34, 136, 66, 74, desk);
+  // (the magazine, held up in front of him)
+  slab(c, 74, 128, 22, 18, '#F8FAFC', { ink: true });
+  box(c, 76, 130, 18, 5, '#DC2626'); text(c, 'DIRT', 85, 135, '#FFFFFF', 4, 'center', null);
+  box(c, 77, 137, 16, 7, '#7A8A9A'); box(c, 80, 139, 8, 3, '#3A3A3A');
   // The pebble: in through the window, onto the switch's knob, and off it to the floor
   const t = cut.pt;
   if (t >= cut.inAt) {
@@ -69,6 +72,38 @@ export const drawBoothCut = (c: Ctx, f: number, cut: CutNow, after: (c: Ctx) => 
   c.restore();
   // (fading in from black, and out to it)
   if (k < 1) { c.fillStyle = `rgba(0, 0, 0, ${((1 - k) * 2).toFixed(2)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
+};
+
+/** His swivel chair: the seat under him, its back behind him (he's facing left), the gas post, the five-star base on
+ *  its casters on the floor. */
+const chair = (c: Ctx) => {
+  const r = rampOf('#3F3F46'), cu = rampOf('#7F1D1D');
+  // (the base and casters, on the floor)
+  box(c, 96, 202, 34, 4, INK); box(c, 97, 203, 32, 2, r[2]); box(c, 97, 203, 32, 1, r[3]);
+  for (const x of [96, 111, 126]) { box(c, x, 205, 5, 5, INK); box(c, x + 1, 206, 3, 3, r[1]); }
+  // (the post)
+  box(c, 110, 176, 5, 27, INK); box(c, 111, 176, 3, 27, r[3]); box(c, 111, 176, 1, 27, r[4]);
+  // (the back: up behind him, on its arm)
+  box(c, 124, 168, 10, 4, INK); box(c, 125, 169, 8, 2, r[2]); box(c, 130, 166, 4, 8, INK); box(c, 131, 166, 2, 8, r[2]);
+  box(c, 129, 132, 12, 38, INK); box(c, 130, 133, 10, 36, cu[2]); box(c, 130, 133, 3, 36, cu[3]); box(c, 138, 133, 2, 36, cu[1]);
+  box(c, 131, 140, 6, 1, cu[1]); box(c, 131, 150, 6, 1, cu[1]); box(c, 131, 160, 6, 1, cu[1]);
+  // (the seat, under him)
+  box(c, 96, 172, 32, 7, INK); box(c, 97, 173, 30, 5, cu[2]); box(c, 97, 173, 30, 2, cu[3]); box(c, 97, 177, 30, 1, cu[1]);
+};
+
+/** His desk, in front of him: a steel desk, a drawer, his mug, a spike of work orders nobody's done. */
+const desk = (c: Ctx) => {
+  const r = rampOf('#6B7280');
+  // (the top)
+  box(c, 36, 154, 62, 6, INK); box(c, 37, 155, 60, 4, r[3]); box(c, 37, 155, 60, 1, r[4]);
+  // (the pedestal, the drawers, the far leg)
+  box(c, 38, 160, 24, 46, INK); box(c, 39, 160, 22, 45, r[2]); box(c, 39, 160, 2, 45, r[3]);
+  for (const y of [166, 181, 194]) { box(c, 41, y, 18, 1, r[0]); box(c, 47, y + 5, 6, 2, '#D4D4D8'); }
+  box(c, 92, 160, 4, 46, INK); box(c, 93, 160, 2, 46, r[1]);
+  // (on it: a mug, the work orders on their spike)
+  box(c, 42, 146, 8, 9, INK); box(c, 43, 147, 6, 7, '#F8FAFC'); box(c, 43, 147, 6, 2, '#1E3A8A'); box(c, 49, 149, 2, 3, INK);
+  box(c, 58, 140, 1, 15, INK); box(c, 54, 152, 9, 2, INK);
+  for (let i = 0; i < 4; i++) box(c, 54 + (i % 2), 143 + i * 2, 8, 2, i % 2 ? '#FDE68A' : '#F8FAFC');
 };
 
 const lamp = (c: Ctx, x: number, y: number, on: boolean, col: string) => {

@@ -55,13 +55,15 @@ const REGIONS: Region[] = [
 export const drawDinoWorld = (c: Ctx, state: GameState, look: DinoLook, drawRex: () => void) => {
   const eye = eyeOf(state), v = viewOf(state), f = state.frame || 0;
   const vis = (a: number, b: number) => b > v.x - 60 && a < v.x + v.w + 60;
+  // (something pushed back to depth d is on screen where it's drawn, slid toward the eye: not where it stands)
+  const visAt = (a: number, b: number, d: number) => vis(eye.x + (a - eye.x) * d, eye.x + (b - eye.x) * d);
   // The ground going back, and what stands along the back of it
   backGround(c, eye, v);
-  if (vis(D - 100, FENCE_X + 200)) atDepth(c, eye, 0.7, () => penBackWall(c, state));
-  if (vis(D + 1000, D + 2500)) atDepth(c, eye, 0.74, () => meadowRail(c, state));
-  if (vis(D + 3880, D + 5920)) atDepth(c, eye, 0.76, () => plazaBack(c, state, f));
-  if (vis(PADDOCK_IN - 300, PADDOCK_OUT + 300)) atDepth(c, eye, 0.68, () => paddockBack(c, state, f));
-  if (vis(D + 8600, LAST_FENCE + 100)) atDepth(c, eye, 0.72, () => jungleBack(c, state));
+  if (visAt(D - 100, FENCE_X + 200, 0.7)) atDepth(c, eye, 0.7, () => penBackWall(c, state));
+  if (visAt(D + 1000, D + 2500, 0.74)) atDepth(c, eye, 0.74, () => meadowRail(c, state));
+  if (visAt(D + 3880, D + 5920, 0.76)) atDepth(c, eye, 0.76, () => plazaBack(c, state, f));
+  if (visAt(PADDOCK_IN - 300, PADDOCK_OUT + 300, 0.68)) atDepth(c, eye, 0.68, () => paddockBack(c, state, f));
+  if (visAt(D + 8600, LAST_FENCE + 100, 0.72)) atDepth(c, eye, 0.72, () => jungleBack(c, state));
   // The ground toward him (bent: the rows nearer, wider)
   floor(c, state, v);
   bendFloor(c, eye, GY, GY, GY + 170, v.x - 10, v.x + v.w + 10);
@@ -72,6 +74,8 @@ export const drawDinoWorld = (c: Ctx, state: GameState, look: DinoLook, drawRex:
   if (vis(D + 4050, D + 5750)) monorail(c, state, eye);
   if (vis(BOOTH.x - 200, BOOTH.x + BOOTH.w + 200)) booth(c, state, eye, f, look);
   if (vis(D + 1500, D + 2500)) meadowSign(c, state, eye);
+  // (the pen's fence going back from its front post to the back wall: behind the feeding platforms, so before them)
+  if (vis(FENCE_X - 300, FENCE_X + 300)) penFenceBack(c, eye);
   for (const [x, y, w] of LEDGES) if (vis(x - 40, x + w + 40) && !(x > PADDOCK_IN && x + w < PADDOCK_OUT)) platform(c, state, eye, x, y, w, f);
   if (vis(D + 8800, D + 10200)) trees(c, state, eye, f);
   if (vis(FENCE_X - 300, FENCE_X + 300)) penFence(c, state, eye, f, look);
@@ -376,18 +380,25 @@ const platform = (c: Ctx, state: GameState, eye: Eye, x: number, y: number, w: n
   }
 };
 
+/** The wires' heights, on every post. */
+const FENCE_WIRES = [FENCE_TOP + 20, FENCE_TOP + 60, FENCE_TOP + 100, FENCE_TOP + 140, FENCE_TOP + 180, GY - 20];
+/** The pen's fence going back from the front post to the pen's back wall (0.7 back: the last post just in front of
+ *  it): posts at depths, the wires strung between them, each wire running straight back to the eye's point. */
+const penFenceBack = (c: Ctx, eye: Eye) => {
+  const top = FENCE_TOP, x = FENCE_X, deps = [1, 0.925, 0.85, 0.775, 0.71];
+  for (const wy of FENCE_WIRES) seg(c, P(eye, x + 10, wy, deps[0]), P(eye, x + 10, wy, deps[deps.length - 1]), 'rgba(40, 44, 50, 0.8)');
+  for (let i = deps.length - 1; i > 0; i--) {
+    const d = deps[i], [px, pt0] = P(eye, x + 10, top, d), [, pb] = P(eye, x + 10, GY, d);
+    box(c, px - 3 * d, pt0, 6 * d, pb - pt0, dark(STEEL, 0.2 + (1 - d)));
+    // (its insulators, where the wires cross it)
+    for (const wy of FENCE_WIRES) { const [, iy] = P(eye, x + 10, wy, d); box(c, px - 4 * d, iy - 1, 8 * d, 2, dark('#E8E0C8', 0.15 + (1 - d))); }
+  }
+};
+
 /** The pen's fence: tall steel posts going back from where he hops it (the front one's the solid), the wires strung
  *  on insulators, humming (a spark along them now and then, more of them hostile), the warning signs bolted to it. */
 const penFence = (c: Ctx, state: GameState, eye: Eye, f: number, look: DinoLook) => {
-  const top = FENCE_TOP, x = FENCE_X;
-  // (the fence going back: posts at depths, wires joining them)
-  const deps = [1, 0.92, 0.84, 0.76, 0.68];
-  const wires = [top + 20, top + 60, top + 100, top + 140, top + 180, GY - 20];
-  for (let i = deps.length - 1; i > 0; i--) {
-    const [px, pt0] = P(eye, x + 10, top, deps[i]), [, pb] = P(eye, x + 10, GY, deps[i]);
-    box(c, px - 3 * deps[i], pt0, 6 * deps[i], pb - pt0, dark(STEEL, 0.2 + (1 - deps[i])));
-  }
-  for (const wy of wires) for (let i = 0; i < deps.length - 1; i++) seg(c, P(eye, x + 10, wy, deps[i]), P(eye, x + 10, wy, deps[i + 1]), 'rgba(40, 44, 50, 0.8)');
+  const top = FENCE_TOP, x = FENCE_X, wires = FENCE_WIRES;
   // (the front post: the solid he hops)
   prism(c, eye, x, top, 20, GY, 0.96, STEEL, { shadow: true });
   stamp(c, 'dpen-fencepost', x - 4, top - 10, 28, GY - top + 10, g => {

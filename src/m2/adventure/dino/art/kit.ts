@@ -80,10 +80,13 @@ export const prism = (c: Ctx, eye: Eye, x: number, top: number, w: number, botto
 /** A long still stretch, stamped in chunks (only those on screen put down), each painted clipped to itself. */
 const CH = 400;
 export const chunked = (c: Ctx, state: GameState, key: string, x0: number, x1: number, y: number, h: number, paint: (g: Ctx, a: number, b: number) => void) => {
-  const v = viewOf(state);
+  // (culled where it lands on screen: under a push back in depth, that's not where it stands)
+  const m = c.getTransform(), W = c.canvas.width;
+  void viewOf; void state;
   for (let a = x0; a < x1; a += CH) {
     const b = Math.min(x1, a + CH);
-    if (b < v.x - 20 || a > v.x + v.w + 20) continue;
+    const sa = m.a * a + m.e, sb = m.a * b + m.e;
+    if (Math.max(sa, sb) < -40 || Math.min(sa, sb) > W + 40) continue;
     stamp(c, `${key}:${a}`, a, y, b - a, h, g => { g.save(); g.beginPath(); g.rect(a, y, b - a, h); g.clip(); paint(g, a, b); g.restore(); });
   }
 };
