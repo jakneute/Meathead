@@ -9,7 +9,7 @@ import type { WaterBody } from '../../m1/game/stages/index';
 import type { SceneLight, Light } from '../../m1/game/render/lighting';
 import type { Block } from '../../m1/types';
 import { groundBlocks, type GroundRun } from '../../m1/game/core/terrain';
-import { CANVAS_WIDTH } from '../../m1/constants';
+import { CANVAS_WIDTH, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../m1/constants';
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
 import type { SectionId } from './geometry';
 
@@ -155,5 +155,17 @@ export const saidOver = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF
   let cur = '';
   for (const w of words) { const t = cur ? `${cur} ${w}` : w; if (c.measureText(t).width > wide && cur) { lines.push(cur); cur = w; } else cur = t; }
   if (cur) lines.push(cur);
+  // (kept whole on screen: slid in off the edges, down off the top and out from under the HUD; a speaker near an
+  // edge, or a fixed camera framing them close to it, would cut the words off)
+  const m = c.getTransform(), k = c.canvas.width / CANVAS_WIDTH;
+  if (m.a > 0 && m.d > 0) {
+    const half = Math.max(...lines.map(l => c.measureText(l).width)) / 2 + 6, top = y - (lines.length - 1) * 11 - 9;
+    const L = -m.e / m.a, R = (c.canvas.width - m.e) / m.a, T = -m.f / m.d;
+    x = Math.min(Math.max(x, L + half), R - half);
+    let dy = Math.max(0, T + 6 - top);
+    const hudR = (HUD_CLEAR_X * k - m.e) / m.a, hudB = (HUD_CLEAR_Y * k - m.f) / m.d;
+    if (x - half < hudR && top + dy < hudB) dy = hudB + 4 - top;
+    y += dy;
+  }
   lines.forEach((l, i) => label(c, l, x, y - (lines.length - 1 - i) * 11, col, 7));
 };
