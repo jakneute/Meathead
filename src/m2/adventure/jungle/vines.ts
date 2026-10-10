@@ -25,8 +25,25 @@ import { rectsOverlap } from '../../../m1/game/core/utils';
 import { meatheadSays } from '../section';
 import { playSound } from '../../../m1/game/platform/audio';
 import { jungleOf, type Hold, type VineRun } from './state';
+import type { GameState as GS } from '../../../m1/game/core/state';
 import { FIRST_VINE } from './lines';
 import { INK, LEAF, leaf } from './art/paint';
+
+// ---------------------------------------------------------------------------------------------------------------
+// Other places that swing on things (Spooky Land's dungeon ropes) use the same: their own state (where their swings
+// and his hold are kept), their own look (a hemp rope), their own first words on one. Unset: the jungle's, as ever.
+
+/** Where a place keeps its vines' swings, his hold on one, and what's been said. */
+export interface VineStore { vines: VineRun[]; hold: Hold; said: Record<string, boolean> }
+export interface VineOpts { store: (state: GS) => VineStore; style?: 'liana' | 'rope'; firstLines?: readonly string[] }
+export const newVineStore = (): VineStore => ({
+  vines: [],
+  hold: { on: -1, s: 0, zip: 0, last: -1, cd: 0, anyCd: 0, jumpLatch: false, specialLatch: false, fling: null, lastX: 0, hurtWas: 0, downT: 0, downLatch: false, aggro: false, held: 0 },
+  said: {},
+});
+let active: VineOpts | null = null;
+const storeOf = (state: GS): VineStore => active ? active.store(state) : jungleOf(state);
+const within = <T>(opts: VineOpts | undefined, f: () => T): T => { const was = active; active = opts ?? null; try { return f(); } finally { active = was; } };
 
 /** A liana's colors, darkest first. */
 const LIANA = ['#1E2A0E', '#3A4A1A', '#5A6E26', '#7E9638', '#AEC660'];
@@ -76,7 +93,7 @@ const place = (state: GameState, hx: number, hy: number) => {
 
 /** Takes hold of vine i, `s` down it (his momentum into its swing). */
 const grab = (state: GameState, defs: VineDef[], h: Hold, i: number, s: number, c: Controls) => {
-  const p = state.player, d = defs[i], v = jungleOf(state).vines[i];
+  const p = state.player, d = defs[i], v = storeOf(state).vines[i];
   h.on = i; h.s = Math.max(MIN_S, Math.min(lowest(d), s)); h.zip = 0; h.fling = null;
   if (d.kind === 'swing') v.om = Math.max(-0.08, Math.min(0.08, v.om + ((p.vel.x * Math.cos(v.th) - p.vel.y * Math.sin(v.th)) / h.s) * 0.8));
   p.carried = true;
@@ -84,13 +101,13 @@ const grab = (state: GameState, defs: VineDef[], h: Hold, i: number, s: number, 
   p.recoiling = false; p.lockTimer = 0; p.jumpHoldTimer = 0; p.powerLocked = false;
   h.jumpLatch = !!c.jump; h.specialLatch = !!(c.special || c.charge);
   h.hurtWas = p.hurtTimer ?? 0;
-  const j = jungleOf(state);
-  if (!j.said.vine) { j.said.vine = true; meatheadSays(state, FIRST_VINE[Math.floor(Math.random() * FIRST_VINE.length)], false); }
+  const j = storeOf(state);
+  if (!j.said.vine) { j.said.vine = true; const lines = active?.firstLines ?? FIRST_VINE; if (lines.length) meatheadSays(state, lines[Math.floor(Math.random() * lines.length)], false); }
 };
 
 /** Lets go: `jump` a jump off it (a kick upward, and the way he's holding), otherwise just dropping off it. */
 const letGo = (state: GameState, defs: VineDef[], h: Hold, c: Controls, jump: boolean, knocked = false) => {
-  const p = state.player, i = h.on, d = defs[i], v = jungleOf(state).vines[i];
+  const p = state.player, i = h.on, d = defs[i], v = storeOf(state).vines[i];
   const dir = (c.right ? 1 : 0) - (c.left ? 1 : 0);
   p.carried = false; p.vine = undefined;
   if (h.aggro) { p.isUppercutting = false; p.isDivekicking = false; }
@@ -131,8 +148,9 @@ const ledgeNear = (state: GameState, hand: { x: number; y: number }): { x: numbe
 };
 
 /** Every vine's swing, and him on his (or taking hold of one, or carried on by the swing he let go of). */
-export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Controls => {
-  const { state } = ctx, p = state.player, j = jungleOf(state), h = j.hold;
+export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls, opts?: VineOpts): Controls => within(opts, () => updateVinesIn(ctx, defs, c));
+const updateVinesIn = (ctx: FrameContext, defs: VineDef[], c: Controls): Controls => {
+  const { state } = ctx, p = state.player, j = storeOf(state), h = j.hold;
   while (j.vines.length < defs.length) j.vines.push({ th: 0, om: 0 });
   const held = h.on;
   // The free ones swing themselves still (only the ones near enough to matter)
@@ -295,7 +313,7 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls): Co
 /** Nobody touching anything but the trigger. */
 const hands = (c: Controls): Controls => ({ ...c, left: false, right: false, up: false, down: false, jump: false, special: false, charge: false });
 
-export const onVine = (state: GameState) => jungleOf(state).hold.on >= 0;
+export const onVine = (state: GameState, opts?: VineOpts) => within(opts, () => storeOf(state).hold.on >= 0);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
@@ -357,12 +375,15 @@ const runOver = (d: VineDef, top: { x: number; y: number }) => {
 };
 
 /** A vine: a twisted green rope with leaves, from the branch it hangs off (a stub of branch, dark: not a ledge). */
-export const drawVines = (c: Ctx, state: GameState, defs: VineDef[]) => {
-  const j = jungleOf(state), vx0 = state.camera.x - 300, vx1 = state.camera.x + 1100, f = state.frame;
+export const drawVines = (c: Ctx, state: GameState, defs: VineDef[], opts?: VineOpts) => within(opts, () => drawVinesIn(c, state, defs));
+const drawVinesIn = (c: Ctx, state: GameState, defs: VineDef[]) => {
+  const rope = active?.style === 'rope';
+  const j = storeOf(state), vx0 = state.camera.x - 300, vx1 = state.camera.x + 1100, f = state.frame;
   defs.forEach((d, i) => {
     if (d.x < vx0 || d.x > vx1) return;
     const v = j.vines[i] ?? { th: 0, om: 0 };
     const pts = vinePoints(d, v, j.hold.on === i ? j.hold.s : null, state.frame, i * 7 + 3);
+    if (rope) { drawRope(c, d, pts); return; }
     const climb = d.kind === 'climb';
     // (a climbing one that runs up onto a ledge doesn't stop in the air at the top: it goes on up over the lip and
     // along the top a way, rooted up there too)
@@ -410,4 +431,30 @@ export const drawVines = (c: Ctx, state: GameState, defs: VineDef[]) => {
     if (climb) { for (let a = -2; a <= 2; a++) leaf(c, end.x, end.y, 12, -Math.PI / 2 + a * 0.5, LEAF, a < 0 ? 4 : 3); }
     if (over) { const s = pts[0], dir = Math.sign(s.x - d.x) || 1; for (let a = -1; a <= 2; a++) leaf(c, s.x, s.y, 10, -Math.PI / 2 + dir * a * 0.55, LEAF, a < 1 ? 4 : 3); }
   });
+};
+
+/** A rough hemp rope (the dungeon's): inked, a braided twist down it, tied off to an iron ring on a beam up top, a knot
+ *  at the end of it. */
+const HEMP = ['#3A2A14', '#7A5A2E', '#A07A44', '#C9A468'];
+const drawRope = (c: Ctx, d: VineDef, pts: { x: number; y: number }[]) => {
+  const n = pts.length;
+  const line = (col: string, w: number, dx: number) => { c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.beginPath(); c.moveTo(pts[0].x + dx, pts[0].y); for (let k = 1; k < n; k++) c.lineTo(pts[k].x + dx, pts[k].y); c.stroke(); };
+  line(INK, 7, 0); line(HEMP[1], 4.5, 0); line(HEMP[2], 1.5, -1);
+  c.lineCap = 'butt';
+  // (the braid: short slanted strands, every few px)
+  c.strokeStyle = HEMP[0]; c.lineWidth = 1;
+  for (let k = 1; k < n; k++) {
+    const p0 = pts[k - 1], p1 = pts[k], ang = Math.atan2(p1.y - p0.y, p1.x - p0.x), nx = -Math.sin(ang), ny = Math.cos(ang);
+    c.beginPath(); c.moveTo(p1.x - nx * 2.2, p1.y - ny * 2.2); c.lineTo(p1.x + nx * 2.2 + Math.cos(ang) * 3, p1.y + ny * 2.2 + Math.sin(ang) * 3); c.stroke();
+  }
+  // (the knot at its end)
+  const e = pts[n - 1];
+  c.fillStyle = INK; c.beginPath(); c.ellipse(e.x, e.y, 6, 7, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = HEMP[2]; c.beginPath(); c.ellipse(e.x - 0.5, e.y - 0.5, 4.5, 5.5, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = HEMP[3]; c.fillRect(e.x - 2, e.y - 3, 2, 3);
+  c.strokeStyle = HEMP[1]; c.lineWidth = 2; c.beginPath(); c.moveTo(e.x, e.y + 5); c.lineTo(e.x + 2, e.y + 12); c.stroke();
+  // (tied off up top: an iron ring through an iron plate on the beam)
+  c.fillStyle = '#3F3F46'; c.fillRect(d.x - 9, d.y - 10, 18, 6);
+  c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.arc(d.x, d.y - 1, 5, 0, Math.PI * 2); c.stroke();
+  c.strokeStyle = '#A1A1AA'; c.lineWidth = 2; c.beginPath(); c.arc(d.x, d.y - 1, 5, 0, Math.PI * 2); c.stroke();
 };

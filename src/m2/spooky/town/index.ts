@@ -12,17 +12,21 @@
 
 import type { EnemyKind } from '../../../m1/types';
 import type { SpookySection } from '../section';
-import { layOwn, ledge, endWalls, endExits, runExits, meatheadSays } from '../section';
+import { layOwn, ledge, solid, endWalls, endExits, runExits, meatheadSays } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { profileYAt } from '../../../m1/game/core/terrain';
 import { updateLobbed, drawLobbed } from './kinds';
 import { townOf } from './state';
-import { GROUND, LEDGES, ENEMIES, PICKUPS, RIDES, CHECKPOINTS, STAIRS, X, Y } from './layout';
+import { GROUND, LEDGES, SOLIDS, LADDERS, ENEMIES, PICKUPS, RIDES, CHECKPOINTS, STAIRS, MOAT, X, Y } from './layout';
+import { buildRides, updateRides, drawPumpkins } from './rides';
+import { updateLadders, drawLadders, type LadderDef } from '../../moves/ladders';
 import { drawTownBackdrop, drawTownBack, townLamps } from './art';
-import { ARRIVE, ELEVATOR_SEEN, ELEVATOR_AGAIN, STAIRS as STAIRS_LINES, RIDE_LINES } from './lines';
+import { ARRIVE, ELEVATOR_SEEN, ELEVATOR_AGAIN, STAIRS as STAIRS_LINES, RIDE_LINES, PONY_LAUNCHED, TRAIN_RIDE, PUMPKINS_SEEN } from './lines';
 
 const { x0, x1 } = SECTIONS.town;
+/** The town's ladders (layout.ts), as the ladders want them: each up to the ledge it's for, stepped off onto it. */
+const TOWN_LADDERS: LadderDef[] = LADDERS.map(([rx, bottom, top, , offX]) => ({ x: X(rx), top: Y(top), bottom: Y(bottom), ledge: { x: X(rx + offX), y: Y(top) } }));
 const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
 
 export const town: SpookySection = {
@@ -34,6 +38,8 @@ export const town: SpookySection = {
       ...(surface === 'stairs' ? { steps: { n: 20 } } : {}),
     }) as never));
     for (const [rx, h, w] of LEDGES) ledge(state, X(rx), Y(h), w, { hidden: true, tag: 'town' });
+    for (const [rx, top, w, base] of SOLIDS) solid(state, X(rx), Y(top), w, top - base, { hidden: true, tag: 'town' });
+    buildRides(state);
     endWalls(state, 'town');
     townOf(state);
     ENEMIES.forEach(([kind, rx, h], i) => {
@@ -49,8 +55,10 @@ export const town: SpookySection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, t = townOf(state);
+    controls = updateLadders(ctx, TOWN_LADDERS, controls);
     const rx = p.pos.x + p.width / 2 - x0, onGround = p.pos.y + p.height > GY - 700;
     updateLobbed(ctx);
+    updateRides(ctx);
     // What he's got to say about it (once each, each in its turn)
     const once = (k: string, lines: string[]) => { if (!t.said[k]) { t.said[k] = true; meatheadSays(state, pick(lines), true); } };
     if (!p.inCutscene && p.health > 0 && onGround) {
@@ -59,14 +67,18 @@ export const town: SpookySection = {
       for (const r of RIDES) if (Math.abs(rx - r.x) < 220) once(`ride-${r.id}`, RIDE_LINES[r.id]);
       if (rx > STAIRS.a0 - 350 && rx < STAIRS.a0) once('stairs', STAIRS_LINES);
       if (rx > STAIRS.land1 - 200 && rx < STAIRS.land1 + 200) once('elevator2', ELEVATOR_AGAIN);
+      // (riding the train out over the moat; bucked off the pony; the first pumpkin coming down at him)
+      if (rx > MOAT.a + 60 && rx < MOAT.b - 60 && p.pos.y + p.height < GY - 30) once('train', TRAIN_RIDE);
+      if ((t.rides?.pony.buck ?? 99) === 6) once('pony', PONY_LAUNCHED);
+      if (t.pumpkins.length && rx > STAIRS.a0 - 300) once('pumpkins', PUMPKINS_SEEN);
     }
     // Up the stairs and in at the castle's door (the end of the town: on to the castle's start)
     runExits(state, endExits('town'));
     return controls;
   },
   drawBackdrop: (c, state) => { drawTownBackdrop(c, state); return true; },
-  drawBack: (c, state) => drawTownBack(c, state),
-  drawFront: (c, state) => drawLobbed(c, state),
+  drawBack: (c, state) => { drawTownBack(c, state); drawLadders(c, state, TOWN_LADDERS); },
+  drawFront: (c, state) => { drawPumpkins(c, state); drawLobbed(c, state); },
   outdoors: () => 1,
   lamps: () => townLamps(),
 };

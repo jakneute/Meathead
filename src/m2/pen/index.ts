@@ -2,7 +2,8 @@
 // with people (and a few animals) walking in from the far end to practice on, a few at a time, forever. Nobody in here
 // fights back: they don't shoot, swing or bump him, they just run about (and away from him, when he comes at them);
 // and he can't be hurt in here anyway (App.tsx). For now they're Meathead 1's; it'll fill up with the regular enemies met in the game. The door
-// back to the hub is at the near end.
+// back to the hub is at the near end. And ladders to try (moves/ladders.ts): one up to a high shelf, one up to nothing
+// (to shoot from).
 
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
@@ -17,6 +18,7 @@ import { NO_CONTROLS } from '../../m1/game/platform/input';
 import { M2_ENEMY_KINDS } from '../roster';
 import { beingSucked } from '../weapons/soulSucker';
 import { drawPenBackdrop, drawPenBack } from './art';
+import { updateLadders, drawLadders, type LadderDef } from '../moves/ladders';
 
 export const PEN_STAGE = 'M2 Staff Pen';
 export const X0 = -40000, LEN = 2400;
@@ -25,6 +27,12 @@ export const WALL = 60;
 /** The ceiling: a concrete slab across the whole room, its underside this far down (clear of the HUD's bars). */
 export const CEIL_Y = 70;
 export const EXIT_X = X0 + 130;
+/** The high shelf (a one-way ledge: up through it from under), and the ladders: one up to it, one up to nothing. */
+const SHELF = { x: X0 + 880, y: GROUND_Y - 210, w: 300 };
+const LADDERS: LadderDef[] = [
+  { x: SHELF.x + 18, top: SHELF.y, bottom: GROUND_Y, ledge: { x: SHELF.x + 60, y: SHELF.y } },
+  { x: X0 + 1560, top: GROUND_Y - 300, bottom: GROUND_Y },
+];
 /** Who walks in, in turn (the rat's there to show who can't be grabbed). */
 /** (and men with shields, every so often, to try things on) */
 const ROSTER: EnemyKind[] = M2_ENEMY_KINDS.flatMap((k, i) => (i % 4 === 3 ? [k, (['shielder', 'riotcop', 'protester'] as EnemyKind[])[Math.floor(i / 4) % 3]] : [k]));
@@ -74,6 +82,7 @@ export const penLayout: StageLayout = {
     state.blocks.push(...groundBlocks(runs));
     state.blocks.push({ x: X0 - WALL, y: -3000, w: WALL, h: 3600, type: 'wall', hidden: true, tag: 'pen-l' }, { x: X0 + LEN, y: -3000, w: WALL, h: 3600, type: 'wall', hidden: true, tag: 'pen-r' });
     state.blocks.push({ x: X0 - WALL, y: -3000, w: LEN + WALL * 2, h: 3000 + CEIL_Y, type: 'wall', hidden: true, tag: 'pen-ceiling' });
+    state.blocks.push({ x: SHELF.x, y: SHELF.y, w: SHELF.w, h: 16, type: 'platform', oneWay: true, hidden: true, tag: 'pen-shelf' } as never);
     const pen: Pen = { grab: createGrab(state), next: 0, cooldown: 0, upWas: false };
     state.stage = pen;
     state.cameraMinX = X0 - WALL;
@@ -89,7 +98,7 @@ export const penLayout: StageLayout = {
     // (on the way out: out of his hands, and whatever he had going stopped)
     if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!pen) return controls;
-    const out = updateGrab(ctx, pen.grab, controls);
+    const out = updateGrab(ctx, pen.grab, updateLadders(ctx, LADDERS, controls));
     practice(state);
     // Nothing in here hurts him: not a bump, not anything (the invincibility cheat keeps his health; this keeps the
     // knock and the flinch off him too)
@@ -108,7 +117,7 @@ export const penLayout: StageLayout = {
     return out;
   },
   drawBackdrop: (ctx, state) => { drawPenBackdrop(ctx, state); return true; },
-  drawBack: (ctx, state) => drawPenBack(ctx, state),
+  drawBack: (ctx, state) => { drawPenBack(ctx, state); drawShelf(ctx, state); drawLadders(ctx, state, LADDERS); },
   drawFront: (ctx, state) => { const pen = getPen(state); if (pen) drawGrab(ctx, state, pen.grab); },
 };
 
@@ -155,4 +164,24 @@ const practice = (state: GameState) => {
     // (a hair of speed, for which way they're going: not enough to slide them)
     e.vel.x = dir * 0.01;
   }
+};
+
+/** The high shelf: a steel plank on brackets off the back wall, its top lip lit (stood on), boxes along it. */
+const drawShelf = (c: CanvasRenderingContext2D, state: GameState) => {
+  const { x, y, w } = SHELF;
+  if (x + w < state.camera.x - 20 || x > state.camera.x + CANVAS_WIDTH + 20) return;
+  // (brackets down to the wall)
+  for (const bx of [x + 30, x + w - 40]) {
+    c.fillStyle = '#1C1A1E'; c.beginPath(); c.moveTo(bx, y + 14); c.lineTo(bx + 10, y + 14); c.lineTo(bx + 3, y + 54); c.lineTo(bx, y + 54); c.closePath(); c.fill();
+    c.fillStyle = '#4A4650'; c.fillRect(bx + 1, y + 14, 2, 38);
+  }
+  // (a box or two up there)
+  c.fillStyle = '#2A1E14'; c.fillRect(x + 150, y - 34, 46, 34); c.fillStyle = '#8A6A44'; c.fillRect(x + 152, y - 32, 42, 30);
+  c.fillStyle = '#6E5234'; c.fillRect(x + 152, y - 20, 42, 3); c.fillStyle = '#B08A5C'; c.fillRect(x + 152, y - 32, 42, 2);
+  c.fillStyle = '#2A1E14'; c.fillRect(x + 204, y - 22, 34, 22); c.fillStyle = '#7A5C3A'; c.fillRect(x + 206, y - 20, 30, 18); c.fillStyle = '#A8845A'; c.fillRect(x + 206, y - 20, 30, 2);
+  // (the plank: inked, its face dark, the top lip lit)
+  c.fillStyle = '#0E0C10'; c.fillRect(x - 2, y - 2, w + 4, 18);
+  c.fillStyle = '#4C4852'; c.fillRect(x, y + 3, w, 11);
+  c.fillStyle = '#36323A'; c.fillRect(x, y + 10, w, 4);
+  c.fillStyle = '#C8C2B4'; c.fillRect(x, y, w, 3);
 };

@@ -181,8 +181,26 @@ export const MH_REPLY: Record<Exclude<RoomId, 'foyer'>, readonly string[]> = {
   nursery: ['WHO GIVES A KID A CANDLE? FOUR TIMES?', 'A TRAIN NOBODY WINDS UP. THAT IS THE LEAST SCARY HAUNTING I EVER HEARD OF.'],
   gallery: ["THAT'S A LOT OF FRAMES FOR A GUY WHO SHOULDN'T SHOW UP IN A MIRROR.", 'IF YOU PAINT ME, GET MY GOOD SIDE. IT IS ALL SIDES.'],
 };
-/** Going down to the dungeon. */
-export const MH_DUNGEON_STAIRS = ['A DUNGEON. FINALLY. SOMETHING HONEST.', 'DOWNSTAIRS. GUESS WE SKIPPED THE GIFT SHOP.'];
+/** The trapdoor at the end of the gallery: the PA, as the floor goes under him (one of). */
+export const PA_TRAPDOOR: ByPants = {
+  clean: [
+    'AH. YOU HAVE FOUND THE EXIT. IT IS NOT THE EXIT. IT IS DOWN. ENJOY THE DUNGEON, MORTAL.',
+    'THE TOUR CONTINUES... BELOW. MIND THE FIRST STEP. IT IS FORTY FEET.',
+  ],
+  shitty: [
+    'AH. THE FLOOR HAS DECIDED IT CANNOT HOLD YOU EITHER. NOBODY WANTS TO. DOWN YOU GO.',
+    'THE TOUR CONTINUES... BELOW. WITH THE OTHER THINGS THAT SMELL. YOU WILL FIT RIGHT IN.',
+  ],
+  nude: [
+    'AH. THE FLOOR OPENS. AS DID YOUR... EVERYTHING. DOWN YOU GO. ALL OF YOU. FLAPPING.',
+    'THE TOUR CONTINUES... BELOW. TRY TO LAND ON SOMETHING SOFT. NOT LIKE THAT. NOT ON THAT.',
+  ],
+};
+/** Meathead, down the shaft. */
+export const MH_FALL = ['OH, COME ON!', 'NOT AGAIN! WAIT, THIS IS THE FIRST TIME!', 'WHO PUTS A TRAPDOOR IN AN ART GALLERY?!'];
+/** Meathead, on the trapdoor as it creaks (if the PA's quiet). */
+export const MH_CREAK = ['THAT FLOOR SOUNDS WRONG.'];
+
 
 // ---------------------------------------------------------------------------------------------------------------
 // What he says when each thing in the castle hurts him, and the death screen
@@ -221,9 +239,9 @@ export const DEATH_TRAIN = ['RUN DOWN BY A TOY TRAIN', 'HIT BY THE LITTLE ENGINE
 const all = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 
 export const VOICE_LINES: Record<string, string[]> = {
-  [PA]: [...all(PA_GREET), ...Object.values(PA_STORY).flatMap(all), ...all(PA_KILL)],
+  [PA]: [...all(PA_GREET), ...Object.values(PA_STORY).flatMap(all), ...all(PA_KILL), ...all(PA_TRAPDOOR)],
   meathead: [
-    ...MH_GREET, ...Object.values(MH_REPLY).flat(), ...MH_DUNGEON_STAIRS,
+    ...MH_GREET, ...Object.values(MH_REPLY).flat(), ...MH_FALL, ...MH_CREAK,
     ...HURT_SKELETON, ...HURT_KNIGHT, ...HURT_KNIGHT_SPIKES, ...HURT_IGOR, ...HURT_FORK, ...HURT_WITCH, ...HURT_FLASK, ...HURT_BRIDE,
     ...HURT_BATSUIT, ...HURT_MUMMY, ...HURT_BAT, ...HURT_CHANDELIER, ...HURT_BOOKS, ...HURT_STOVE, ...HURT_TRAIN,
   ],

@@ -16,8 +16,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Block } from '../../../m1/types';
 import type { SpookySection } from '../section';
-import { layOwn, endWalls, endExits, runExits, solid, ledge, wallSign, doorway, groundBox, ledgeBox, box, meatheadSays, getSpooky, spookyState } from '../section';
-import { SECTIONS, GY } from '../geometry';
+import { layOwn, endWalls, endExits, runExits, solid, ledge, wallSign, doorway, groundBox, ledgeBox, box, meatheadSays, getSpooky, spookyState, teleport } from '../section';
+import { SECTIONS, DOORS, GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -27,6 +27,9 @@ import { spawnStaff } from '../castle/staff';
 import { paStory, paQuip, paBusy, byPants, pick, drawHorn, drawPaWords, paSaying } from '../castle/pa';
 import { skewer, skewerRise, SKEWERED } from './death';
 import * as L from './lines';
+import { dropIn } from './drop';
+import { updateLadders, drawLadders, onLadder, type LadderDef } from '../../moves/ladders';
+import { floorRuns, buildRopes, runRopes, drawRopeWalk, ropeRow } from './ropes';
 
 registerHurtLines('spooky_ceiling', L.HURT_CEILING, L.DEATH_CEILING);
 
@@ -47,6 +50,10 @@ const CAST: ['igor' | 'skeleton' | 'knight' | 'bride' | 'bat', number, number][]
 ];
 const HORNS: [number, number][] = [[X(420), GY - 350], [X(1060), GY - 350], [RA + 900, GY - 340], [X(2800), GY - 350]];
 const CEIL_TOP = GY - 900;
+/** The shaft down from the castle's trapdoor (he drops in through it), the catwalk at its foot up there, the ladder up
+ *  to it. */
+const SHAFT = { a: X(240), b: X(420), top: GY - 560 }, CATWALK = { x: X(232), y: GY - 520, w: 80 };
+const LADDERS: LadderDef[] = [{ x: X(272), top: GY - 520, bottom: GY, ledge: { x: X(262), y: GY - 520 } }];
 
 interface Dungeon {
   init: boolean;
@@ -71,7 +78,14 @@ const shutDoor = (b: Block | null) => { if (b) b.y = GY - DOOR_H; };
 const run = (ctx: FrameContext, dg: Dungeon) => {
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
   // The story, in through the dungeon door
-  if (!toldDungeon && cx > X(200)) { toldDungeon = true; paStory(state, byPants(state, L.PA_DUNGEON), pick(L.MH_DUNGEON)); }
+  // Down the castle's trapdoor: he lands in the cells (a thud, the dust)
+  if (dropIn.on && p.isGrounded) {
+    dropIn.on = false;
+    playSound('thud', 1, -8); playSound('land', 1, -4); shakeScreen(state, 10, 5);
+    for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 40, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -0.5 - Math.random() * 2 }, life: 40, color: k % 2 ? '#A8A29E' : '#78716C', size: 4 + Math.random() * 5 });
+  }
+  // The story (once he's down, on his feet)
+  if (!toldDungeon && cx > X(200) && p.isGrounded && !dropIn.on) { toldDungeon = true; paStory(state, byPants(state, L.PA_DUNGEON), pick(L.MH_DUNGEON)); }
   switch (dg.room) {
     case 'idle':
       if (cx > RA + 170 && p.health > 0) {
@@ -163,7 +177,7 @@ const drawDungeon = (c: CanvasRenderingContext2D, state: GameState, dg: Dungeon)
       box(c, rx + 30, GY - 70, 110, 6, '#E7E2D6'); box(c, rx + 22, GY - 74, 14, 12, '#E7E2D6'); box(c, rx + 25, GY - 71, 3, 3, '#1A0A04'); box(c, rx + 30, GY - 71, 3, 3, '#1A0A04');
       box(c, rx + 8, GY - 67, 22, 2, '#A8A29E'); box(c, rx + 140, GY - 67, 22, 2, '#A8A29E'); }
     // (the iron maiden: a coffin stood on end with a face on its lid, the lid hung open, the spikes inside)
-    { const mx = X(195); c.fillStyle = '#1A1A1E'; c.beginPath(); c.moveTo(mx - 34, GY); c.lineTo(mx - 40, GY - 140); c.lineTo(mx - 24, GY - 210); c.lineTo(mx + 24, GY - 210); c.lineTo(mx + 40, GY - 140); c.lineTo(mx + 34, GY); c.closePath(); c.fill();
+    { const mx = X(578); c.fillStyle = '#1A1A1E'; c.beginPath(); c.moveTo(mx - 34, GY); c.lineTo(mx - 40, GY - 140); c.lineTo(mx - 24, GY - 210); c.lineTo(mx + 24, GY - 210); c.lineTo(mx + 40, GY - 140); c.lineTo(mx + 34, GY); c.closePath(); c.fill();
       c.fillStyle = '#52525B'; c.beginPath(); c.moveTo(mx - 28, GY - 4); c.lineTo(mx - 34, GY - 140); c.lineTo(mx - 20, GY - 204); c.lineTo(mx + 20, GY - 204); c.lineTo(mx + 34, GY - 140); c.lineTo(mx + 28, GY - 4); c.closePath(); c.fill();
       box(c, mx - 10, GY - 190, 20, 26, '#A1A1AA'); box(c, mx - 6, GY - 182, 4, 3, '#1A1A1E'); box(c, mx + 2, GY - 182, 4, 3, '#1A1A1E'); box(c, mx - 4, GY - 172, 8, 2, '#1A1A1E');
       box(c, mx + 36, GY - 200, 50, 196, '#3F3F46'); for (let k = 0; k < 7; k++) box(c, mx + 40, GY - 186 + k * 26, 14, 3, '#D4D4D8'); }
@@ -202,10 +216,18 @@ const drawDungeon = (c: CanvasRenderingContext2D, state: GameState, dg: Dungeon)
   }
   // The corridor on, the emergency exit
   if (seen(state, RB, x1)) {
-    box(c, RB + 340, GY - 220, 4, 220, '#3F3F46');
     doorway(c, x1 - 90, GY, 'EMERGENCY EXIT', '#7F1D1D', '#0A0404');
   }
-  if (seen(state, x0, x0 + 200)) doorway(c, x0 + 80, GY, 'UP TO THE CASTLE', '#3F3F46', '#050505');
+  // The shaft he came down (a dark column up out of the ceiling, a pile of broken boards under it), and the ladder
+  // back up it: to the catwalk at the top of the shaft, and on up into the castle
+  if (seen(state, x0, x0 + 500)) {
+    box(c, SHAFT.a, CEIL_TOP, SHAFT.b - SHAFT.a, SHAFT.top - CEIL_TOP + 40, '#050303');
+    box(c, SHAFT.a - 6, SHAFT.top + 40, SHAFT.b - SHAFT.a + 12, 8, '#3F3A36');
+    for (let k = 0; k < 5; k++) box(c, X(300) + k * 22, GY - 8 - (k % 2) * 6, 26, 6, '#5A3A20');
+    ledgeBox(c, CATWALK.x, CATWALK.y, CATWALK.w, '#3F3A36', '#C9C2BA');
+    wallSign(c, X(420), SHAFT.top - 20, 'UP TO THE CASTLE', '#3F3F46', '#E4E4E7');
+  }
+  drawLadders(c, state, LADDERS);
   // Torches
   for (let x = x0 + 200; x < x1; x += 400) if (seen(state, x - 20, x + 20) && (x < RA || x > RB)) { box(c, x - 3, GY - 300, 6, 24, '#57534E'); box(c, x - 6, GY - 316 - ((f + x) % 7 < 3 ? 2 : 0), 12, 16, '#F97316'); box(c, x - 3, GY - 310, 6, 8, '#FDE047'); }
   const talking = !!paSaying(state);
@@ -222,7 +244,9 @@ export const dungeon: SpookySection = {
   ],
   build: (state) => {
     if (state.checkpoint < 10) toldDungeon = false;
-    layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'hard' }]);
+    layOwn(state, floorRuns(x0 - 200, x1 + 200));
+    buildRopes(state);
+    ledge(state, CATWALK.x, CATWALK.y, CATWALK.w, { hidden: true, tag: 'dungeon-catwalk' });
     endWalls(state, 'dungeon');
     solid(state, x0 - 200, CEIL_TOP - 60, x1 - x0 + 400, 60, { hidden: true, tag: 'dungeon-ceiling' });
     for (const [x, y, w] of [...CLEDGES, ...RLEDGES]) ledge(state, x, y, w, { hidden: true, tag: 'dungeon-ledge' });
@@ -240,12 +264,17 @@ export const dungeon: SpookySection = {
       if (ctx.state.checkpoint >= 21) toldDungeon = true;
       if (ctx.state.checkpoint >= 22) { dg.room = 'jammed'; dg.tip = JAM; dg.lever = true; dg.door = 1; }
     }
-    if (runExits(ctx.state, endExits('dungeon'))) return controls;
+    const c0 = updateLadders(ctx, LADDERS, controls);
+    // (up the ladder onto the catwalk at the top of the shaft: on up into the castle, by the trapdoor)
+    { const p = ctx.state.player, cx = p.pos.x + p.width / 2; if (!onLadder(ctx.state) && p.isGrounded && Math.abs(p.pos.y + p.height - CATWALK.y) < 3 && cx > CATWALK.x - 10 && cx < CATWALK.x + CATWALK.w + 10) { teleport(ctx.state, DOORS.castle.end.x, DOORS.castle.end.y); playSound('clang', 0.6, -6); return c0; } }
+    // (the way on: the emergency exit; the way back: up the ladder)
+    if (runExits(ctx.state, endExits('dungeon').filter(e => e.to !== DOORS.castle.end))) return c0;
     run(ctx, dg);
-    return controls;
+    return runRopes(ctx, c0);
   },
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#0C0A09'); return true; },
-  drawBack: (c, state) => drawDungeon(c, state, dungeonOf(state)),
+  drawBack: (c, state) => { drawDungeon(c, state, dungeonOf(state)); drawRopeWalk(c, state); },
+  cameraRow: (state) => ropeRow(state) ?? (onLadder(state) ? 470 : undefined),
   drawFront: (c, state) => { if (getSpooky(state)?.section === 'dungeon') drawPaWords(c, state, HORNS); },
   lighting: (state) => {
     const lights = [];

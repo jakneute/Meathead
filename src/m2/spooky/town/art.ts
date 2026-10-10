@@ -1,5 +1,5 @@
-// The town, drawn crude (the prototype pass: Atari-2600 boxes and flat colors, every sign on something; the real look
-// comes in the final pass). The backdrop: a gloomy sky (by the hour), the ELEVATOR TO HELL's clock tower far off (its
+// The town, drawn crude but readable (the game-feel pass: flat colors, inked outlines, every thing its own shape, every
+// sign on something; the real look comes in the final pass). The backdrop: a gloomy sky (by the hour), the ELEVATOR TO HELL's clock tower far off (its
 // car going up and dropping, all the way along), the town's rooftops nearer. In the world: the shopfronts at the back
 // of the street (dimmed: not to stand on, but their balconies are, lit along the top), the haunted kiddie rides, the
 // modern conveniences, the gas lamps, the ground, the stairs, and the castle at the top of them.
@@ -9,9 +9,11 @@ import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { stamp } from '../../../m1/game/render/stamp';
 import { drawTodSky, timeOfDay, hourMix } from '../../timeOfDay';
-import { box, label, groundBox, ledgeBox, postSign, wallSign } from '../section';
+import { box, label } from '../section';
 import { SECTIONS, GY } from '../geometry';
-import { X, Y, STAIRS, RAMP, LEDGES, RIDES, LAMPS, type RideId } from './layout';
+import { X, Y, STAIRS, RAMP, PLAZA, MOAT, LEDGES, SOLIDS, LAMPS } from './layout';
+import { INK, fb, ob, poly, oval, bar, board } from './crude';
+import { drawRides } from './rides';
 
 type Ctx = CanvasRenderingContext2D;
 const { x0, x1 } = SECTIONS.town;
@@ -34,7 +36,7 @@ export const drawTownBackdrop = (c: Ctx, state: GameState) => {
   const hill = hourMix('#2A1F3E', '#2B1A33', '#120C1E');
   for (let i = 0; i < 9; i++) { const hx = i * 140 - (camX * 0.02) % 140 - 140; box(c, hx, horizon - 30 - (i % 3) * 14, 150, 200, hill); }
   // The ELEVATOR TO HELL: a big clock tower, far off (slides only a little across the whole town: it's always there)
-  const tx = 560 - camX * 0.022, top = 70 + oy, base = horizon + 10;
+  const tx = 560 - camX * 0.022, top = 24 + oy, base = horizon + 10;
   const tw = hourMix('#2C2244', '#2E1F3A', '#161024'), tl = hourMix('#3B2F58', '#3E2A4A', '#211833');
   box(c, tx - 50, top + 70, 100, base - top - 70, tw);
   box(c, tx - 50, top + 70, 6, base - top - 70, tl);
@@ -82,34 +84,42 @@ export const drawTownBackdrop = (c: Ctx, state: GameState) => {
   }
 };
 
+
 // ---------------------------------------------------------------------------------------------------------------
 // The world (world space, behind everything that moves)
 
-/** The shopfronts along the back of the street: [x, w, h, color, sign]. Balconies drawn where the ledges are. */
-const SHOPS: [number, number, number, string, string][] = [
-  [450, 300, 250, '#2E2338', 'APOTHECARY - NOW WITH PHARMACY DRIVE-THRU'],
-  [800, 240, 220, '#33263A', ''],
-  [1820, 520, 300, '#2B2233', 'POTION SHOPPE - TAP TO PAY'],
-  [3000, 300, 240, '#30253A', 'CANDLES (BATTERY OPERATED)'],
-  [5500, 340, 260, '#2D2236', 'FORTUNES TOLD - CARDS ACCEPTED'],
-  [7520, 760, 300, '#2B2233', 'YE OLDE SMOOTHIE BAR'],
-  [8450, 300, 230, '#33263A', 'CURSED GIFTS & SUNSCREEN'],
-];
-
 /** (the stamps with words on them: painted again once the pixel font's in, if it wasn't the first time) */
 const fontIn = () => (typeof document !== 'undefined' && document.fonts?.check('8px "Press Start 2P"') ? 'f' : 'n');
-
 const inView = (state: GameState, a: number, b: number) => b > state.camera.x - 300 && a < state.camera.x + CANVAS_WIDTH + 300;
 
+/** The shopfronts along the back of the street: [x, w, h, wall color, sign]. Dimmed: not to stand on (their balconies
+ *  are, drawn with the ledges). */
+const SHOPS: [number, number, number, string, string][] = [
+  [380, 260, 230, '#2E2338', 'APOTHECARY - NOW WITH DRIVE-THRU'],
+  [700, 420, 280, '#33263A', ''],
+  [1760, 380, 290, '#2B2233', 'POTION SHOPPE - TAP TO PAY'],
+  [3050, 340, 220, '#30253A', 'CANDLES (BATTERY OPERATED)'],
+  [5100, 300, 225, '#2D2236', 'FORTUNES TOLD - CARDS ACCEPTED'],
+  [7200, 720, 300, '#2B2233', 'YE OLDE SMOOTHIE BAR'],
+  [8150, 280, 215, '#33263A', 'CURSED GIFTS & SUNSCREEN'],
+];
+
 const paintShop = (g: Ctx, x: number, w: number, h: number, col: string, sign: string) => {
-  const top = GY - h;
-  box(g, x, top, w, h, col);
-  for (let s = 0; s < 3; s++) box(g, x + 10 + s * 12, top - 12 - s * 12, w - 20 - s * 24, 12, col);
-  box(g, x + w - 50, top - 60, 18, 40, col);
-  // (windows, in rows; the door)
-  for (let row = 0; row < 2; row++) for (let wx = x + 24; wx < x + w - 40; wx += 70) box(g, wx, top + 30 + row * 80, 30, 44, '#1A1424');
-  box(g, x + w / 2 - 20, GY - 70, 40, 70, '#120E18');
-  if (sign) wallSign(g, x + w / 2, GY - 92, sign, '#1E1036', '#E9D5FF');
+  const top = GY - h, dark = '#1A1424', trim = '#4A3A58', gh = Math.min(60, w * 0.25);
+  // (the front, a steep gable with its finial, a chimney, rows of arched windows, the door)
+  fb(g, x, top, w, h, col);
+  poly(g, [x - 10, top, x + w + 10, top, x + w / 2, top - gh], col, 2);
+  fb(g, x + w / 2 - 2, top - gh - 14, 4, 14, trim);
+  ob(g, x + w - 60, top - 70, 20, 50, col, 2);
+  fb(g, x, top, w, 4, trim);
+  for (let row = 0; row < 2; row++) for (let wx = x + 22; wx < x + w - 44; wx += 66) {
+    ob(g, wx, top + 26 + row * 76, 30, 46, dark, 2);
+    fb(g, wx + 14, top + 26 + row * 76, 2, 46, trim); fb(g, wx, top + 46 + row * 76, 30, 2, trim);
+    poly(g, [wx - 4, top + 26 + row * 76, wx + 34, top + 26 + row * 76, wx + 15, top + 16 + row * 76], trim, 1);
+  }
+  ob(g, x + w / 2 - 20, GY - 72, 40, 72, '#120E18', 2);
+  poly(g, [x + w / 2 - 20, GY - 72, x + w / 2 + 20, GY - 72, x + w / 2, GY - 86], '#120E18', 2);
+  if (sign) board(g, x + w / 2, GY - 104, sign, '#1E1036', '#E9D5FF', 7);
 };
 
 const drawShops = (c: Ctx, state: GameState) => {
@@ -117,319 +127,294 @@ const drawShops = (c: Ctx, state: GameState) => {
   SHOPS.forEach(([rx, w, h, col, sign], i) => {
     const x = X(rx);
     if (!inView(state, x, x + w)) return;
-    stamp(c, `town-shop${i}${fontIn()}`, x - 20, GY - h - 80, w + 40, h + 80, g => paintShop(g, x, w, h, col, sign));
-    // (lit windows after dark)
-    if (lit > 0.1) for (let row = 0; row < 2; row++) for (let wx = x + 24; wx < x + w - 40; wx += 70) if ((wx + row * 3) % 4 < 2) box(c, wx + 2, GY - h + 32 + row * 80, 26, 40, `rgba(224, 169, 74, ${(0.5 * lit).toFixed(2)})`);
+    stamp(c, `town2-shop${i}${fontIn()}`, x - 30, GY - h - 140, w + 60, h + 140, g => paintShop(g, x, w, h, col, sign));
+    if (lit > 0.1) for (let row = 0; row < 2; row++) for (let wx = x + 22; wx < x + w - 44; wx += 66) if ((wx + row * 3) % 4 < 2) fb(c, wx + 2, GY - h + 28 + row * 76, 26, 42, `rgba(224, 169, 74, ${(0.45 * lit).toFixed(2)})`);
   });
 };
 
-/** A balcony (or a platform) to stand on: brackets under it, its lit top lip. */
+/** The balconies and the gallows (what stands out from the wall): brackets, the rail behind, the lit top lip. (The
+ *  carousel's roof and the cups' canopy are the rides' own: rides.ts.) */
 const drawLedges = (c: Ctx, state: GameState) => {
   LEDGES.forEach(([rx, h, w], i) => {
-    const x = X(rx);
+    const x = X(rx), y = Y(h);
     if (!inView(state, x, x + w)) return;
-    // (the carousel's roof, the restrooms' roof: their own tops, lit along the edge)
-    if (i === 3) { ledgeBox(c, x, Y(h), w, '#6B21A8', '#E9D5FF'); return; }
-    if (i === 4) { ledgeBox(c, x, Y(h), w, '#5E5868', '#C4BCD4'); return; }
-    ledgeBox(c, x, Y(h), w, '#57483A', '#D6B98A');
-    box(c, x + 10, Y(h) + 16, 6, 14, '#3F3428'); box(c, x + w - 16, Y(h) + 16, 6, 14, '#3F3428');
-    // (the railing, behind)
-    box(c, x, Y(h) - 26, w, 3, '#27272A');
-    for (let px = x + 4; px < x + w; px += 14) box(c, px, Y(h) - 26, 2, 26, '#27272A');
+    if (i === 3 || i === 4) return;
+    if (i === 1) {
+      // The gallows: the selfie station (posts, the platform, the beam, a ring light where the noose would be)
+      ob(c, x + 6, y, 10, GY - y, '#3F2A1A'); ob(c, x + w - 16, y, 10, GY - y, '#3F2A1A');
+      ob(c, x + w - 30, y - 150, 10, 150, '#3F2A1A'); ob(c, x + 20, y - 150, w - 40, 10, '#3F2A1A');
+      bar(c, x + w - 30, y - 110, x + w - 70, y - 145, 5, '#3F2A1A');
+      bar(c, x + 50, y - 140, x + 50, y - 90, 2, '#A8A29E', false);
+      c.strokeStyle = '#FEF9C3'; c.lineWidth = 5; c.beginPath(); c.arc(x + 50, y - 72, 17, 0, Math.PI * 2); c.stroke();
+      ob(c, x + w - 56, y - 26, 6, 26, '#18181B', 1); ob(c, x + w - 62, y - 34, 18, 10, '#18181B', 1);
+      board(c, x + w / 2, y - 168, 'SELFIE STATION', '#1E1036', '#E9D5FF');
+      ob(c, x, y, w, 14, '#57483A'); fb(c, x, y - 1, w, 3, '#D6B98A');
+      return;
+    }
+    ob(c, x, y, w, 14, '#57483A');
+    fb(c, x, y - 1, w, 3, '#D6B98A');
+    poly(c, [x + 10, y + 14, x + 26, y + 14, x + 10, y + 34], '#3F3428', 1.5);
+    poly(c, [x + w - 26, y + 14, x + w - 10, y + 14, x + w - 10, y + 34], '#3F3428', 1.5);
+    fb(c, x, y - 28, w, 3, '#27272A');
+    for (let px = x + 4; px < x + w; px += 14) fb(c, px, y - 28, 2, 28, '#27272A');
   });
 };
 
-// The ground: the cobbled street, the ramp and the terrace, the stairs
-const STONE = '#3F3A4A', LIP = '#9A93AE';
+/** The solid things: a crate, the vending machine, the fountain and its statue, a hearse, the arcade. */
+const paintSolid = (g: Ctx, i: number) => {
+  const [rx, top, w, base, what] = SOLIDS[i];
+  const x = X(rx), y = Y(top), h = top - base, b = Y(base);
+  switch (what) {
+    case 'crate':
+      ob(g, x, y, w, h, '#8B5A2B'); bar(g, x + 4, y + 4, x + w - 4, b - 4, 3, '#5B3A1A', false); bar(g, x + w - 4, y + 4, x + 4, b - 4, 3, '#5B3A1A', false);
+      fb(g, x, y - 1, w, 3, '#E7C68A'); break;
+    case 'vending':
+      // BLOOD-COLA: rows of cans behind the glass, the coin slot, the drop
+      ob(g, x, y, w, h, '#991B1B');
+      ob(g, x + 6, y + 18, 32, 66, '#18181B', 1);
+      for (let r = 0; r < 5; r++) for (let k = 0; k < 3; k++) fb(g, x + 9 + k * 10, y + 22 + r * 12, 7, 9, ['#DC2626', '#F5F5F4', '#16A34A'][(r + k) % 3]);
+      ob(g, x + 44, y + 22, 10, 22, '#D4D4D8', 1); fb(g, x + 48, y + 26, 2, 8, INK);
+      ob(g, x + 8, b - 26, 44, 12, '#09090B', 1);
+      fb(g, x + 4, y + 4, w - 8, 10, '#FECACA'); label(g, 'BLOOD', x + w / 2, y + 12, '#7F1D1D', 6);
+      fb(g, x, y - 1, w, 3, '#FCA5A5'); break;
+    case 'fountain':
+      // A fountain: the basin (its rim to stand on), green water
+      ob(g, x, y, w, h, '#57534E'); fb(g, x + 8, y + 6, w - 16, 10, '#4D7C0F'); fb(g, x, y - 1, w, 3, '#A8A29E');
+      for (let k = 0; k < 4; k++) fb(g, x + 12 + k * 38, y + 22, 20, 3, '#44403C'); break;
+    case 'statue':
+      // (the gargoyle on its pedestal, wings out, spitting into the basin)
+      ob(g, x, y + 24, w, h - 24, '#6B6560');
+      poly(g, [x - 6, y + 24, x + w + 6, y + 24, x + w, y + 6, x + w / 2 + 8, y - 4, x + w / 2 - 8, y - 4, x, y + 6], '#57534E');
+      poly(g, [x - 4, y + 4, x - 18, y - 12, x - 2, y + 14], '#57534E', 1.5); poly(g, [x + w + 4, y + 4, x + w + 18, y - 12, x + w + 2, y + 14], '#57534E', 1.5);
+      fb(g, x + 10, y + 6, 4, 3, '#FDE047'); fb(g, x + w - 14, y + 6, 4, 3, '#FDE047');
+      fb(g, x - 6, y - 5, w + 12, 3, '#A8A29E');
+      board(g, x + w / 2, y + 48, 'WISHES $1', '#14532D', '#BBF7D0', 6); break;
+    case 'hearse':
+      // A hearse, parked: VALET ONLY (its roof to stand on)
+      ob(g, x, y + 16, w, h - 26, '#18181B');
+      poly(g, [x + 30, y + 16, x + 40, y, x + w - 8, y, x + w, y + 16], '#18181B');
+      fb(g, x + 48, y + 4, 40, 10, '#3F3F46'); fb(g, x + 96, y + 4, 60, 10, '#3F3F46');
+      for (const k of [0, 1]) { const ex = x + 50 + k * 90; poly(g, [ex, y + 30, ex + 20, y + 26, ex + 20, y + 34], '#A8A29E', 0); }
+      oval(g, x + 36, b - 10, 12, 12, '#09090B'); oval(g, x + w - 36, b - 10, 12, 12, '#09090B');
+      oval(g, x + 36, b - 10, 5, 5, '#A1A1AA', 0); oval(g, x + w - 36, b - 10, 5, 5, '#A1A1AA', 0);
+      fb(g, x + 40, y - 1, w - 48, 3, '#A1A1AA');
+      ob(g, x - 30, y - 30, 4, 30 + h, '#3F3F46', 1);
+      board(g, x - 28, y - 40, 'HEARSE PARKING - VALET ONLY', '#1C1917', '#FDE68A', 6); break;
+    case 'arcade':
+      // The arcade: a stone walkway roof on columns (to stand on), the way under it (no jumping over anyone in there)
+      ob(g, x, y, w, h, '#4A4458'); fb(g, x, y - 1, w, 3, '#B8B0CC');
+      for (let k = 0; k <= 6; k++) { const cx = x + 10 + k * ((w - 30) / 6); ob(g, cx, y + h, 14, b - y - h, '#5E5868', 1.5); fb(g, cx - 4, y + h, 22, 6, '#6B6478'); }
+      board(g, x + w / 2, y + h / 2 + 1, 'THE GRAND ARCADE - NO LOITERING', '#1E1036', '#E9D5FF', 6); break;
+  }
+};
+const drawSolids = (c: Ctx, state: GameState) => {
+  SOLIDS.forEach(([rx, top, w], i) => {
+    if (!inView(state, X(rx) - 60, X(rx) + w + 60)) return;
+    stamp(c, `town2-solid${i}${fontIn()}`, X(rx) - 220, Y(top) - 100, w + 440, top + 120, g => paintSolid(g, i));
+  });
+  // (the fountain's water, spat out by the gargoyle: live)
+  const sx = X(1080), sy = Y(150);
+  if (inView(state, sx - 100, sx + 100)) for (let k = 0; k < 6; k++) { const t = (state.frame * 0.04 + k / 6) % 1; fb(c, sx - 22 - t * 50, sy + t * t * 50, 3, 3, '#86EFAC'); fb(c, sx + 22 + t * 50, sy + t * t * 50, 3, 3, '#86EFAC'); }
+};
+
+// The ground: the cobbled street, the plaza's steps, the ramp and the terrace, the moat's banks, the stairs
+const STONE = '#3F3A4A', LIP = '#9A93AE', STEP = '#4A4458';
+const flat = (c: Ctx, a: number, b: number, h: number, L: number, R: number, col = STONE) => {
+  const s = Math.max(L, X(a)), e = Math.min(R, X(b));
+  if (e <= s) return;
+  fb(c, s, Y(h), e - s, 600 + h, col);
+  fb(c, s, Y(h), e - s, 4, LIP);
+  for (let x = Math.floor(s / 24) * 24; x < e; x += 24) fb(c, x, Y(h) + 8 + ((x / 24) % 2) * 6, 14, 3, '#352F40');
+};
+const flight = (c: Ctx, a: number, b: number, h0: number, h1: number, n: number, L: number, R: number) => {
+  const dx = (X(b) - X(a)) / n, dy = (h1 - h0) / n;
+  for (let i = 0; i < n; i++) {
+    const sx = X(a) + i * dx;
+    if (sx + dx < L || sx > R) continue;
+    const top = dy >= 0 ? Y(h0 + (i + 1) * dy) : Y(h0 + i * dy);
+    fb(c, sx, top, dx + 1, GY + 600 - top, STEP);
+    fb(c, sx, top, dx + 1, 3, LIP);
+    fb(c, dy >= 0 ? sx + dx - 2 : sx, top, 2, Math.abs(dy), '#2E2938');
+  }
+};
 const drawGround = (c: Ctx, state: GameState) => {
   const L = state.camera.x - 100, R = state.camera.x + CANVAS_WIDTH + 100;
-  // (the street)
-  for (const [a, b] of [[-200, RAMP.r0], [RAMP.t1, STAIRS.a0]] as const) if (X(b) > L && X(a) < R) {
-    groundBox(c, Math.max(L, X(a)), Math.min(R, X(b)), GY, STONE, LIP);
-    for (let x = Math.floor(Math.max(L, X(a)) / 24) * 24; x < Math.min(R, X(b)); x += 24) box(c, x, GY + 8 + ((x / 24) % 2) * 6, 14, 3, '#352F40');
-  }
-  // (the ADA ramp: a slope with a handrail, up to the terrace; the terrace's front wall)
+  flat(c, -200, PLAZA.a, 0, L, R);
+  flight(c, PLAZA.a, PLAZA.b, 0, PLAZA.h, 4, L, R);
+  flat(c, PLAZA.b, PLAZA.c, PLAZA.h, L, R, '#463F52');
+  flight(c, PLAZA.c, PLAZA.d, PLAZA.h, 0, 4, L, R);
+  flat(c, PLAZA.d, RAMP.r0, 0, L, R);
+  // (the ADA ramp: a slope with its handrail; the terrace, its front wall)
   if (X(RAMP.t1) > L && X(RAMP.r0) < R) {
-    c.fillStyle = '#4A4458';
-    c.beginPath(); c.moveTo(X(RAMP.r0), GY); c.lineTo(X(RAMP.r1), Y(RAMP.h)); c.lineTo(X(RAMP.r1), GY + 400); c.lineTo(X(RAMP.r0), GY + 400); c.fill();
-    c.strokeStyle = LIP; c.lineWidth = 4; c.beginPath(); c.moveTo(X(RAMP.r0), GY + 1); c.lineTo(X(RAMP.r1), Y(RAMP.h) + 1); c.stroke();
-    c.strokeStyle = '#A1A1AA'; c.lineWidth = 3; c.beginPath(); c.moveTo(X(RAMP.r0) + 10, GY - 40); c.lineTo(X(RAMP.r1), Y(RAMP.h) - 40); c.lineTo(X(RAMP.r1 + 60), Y(RAMP.h) - 40); c.stroke();
-    for (let i = 0; i <= 5; i++) { const k = i / 5; box(c, X(RAMP.r0 + 10 + (RAMP.r1 - RAMP.r0 - 10) * k), GY - 40 - RAMP.h * k, 3, 40, '#71717A'); }
-    groundBox(c, X(RAMP.r1), X(RAMP.t1), Y(RAMP.h), '#4A4458', LIP);
-    box(c, X(RAMP.t1) - 6, Y(RAMP.h), 6, RAMP.h, '#2A2533');
-    for (let y = Y(RAMP.h) + 16; y < GY; y += 18) box(c, X(RAMP.r1) + 4, y, X(RAMP.t1) - X(RAMP.r1) - 10, 2, '#3A3446');
+    poly(c, [X(RAMP.r0), GY, X(RAMP.r1), Y(RAMP.h), X(RAMP.r1), GY + 600, X(RAMP.r0), GY + 600], STEP, 0);
+    bar(c, X(RAMP.r0), GY + 1, X(RAMP.r1), Y(RAMP.h) + 1, 4, LIP, false);
+    bar(c, X(RAMP.r0) + 10, GY - 40, X(RAMP.r1), Y(RAMP.h) - 40, 3, '#A1A1AA');
+    for (let i = 0; i <= 5; i++) { const k = i / 5; ob(c, X(RAMP.r0 + 10 + (RAMP.r1 - RAMP.r0 - 10) * k), GY - 40 - RAMP.h * k, 3, 40, '#71717A', 1); }
+    flat(c, RAMP.r1, RAMP.t1, RAMP.h, L, R, STEP);
+    fb(c, X(RAMP.t1) - 6, Y(RAMP.h), 6, RAMP.h, '#2A2533');
   }
-  // (the stairs: two flights, the landing; the castle's own stone at the top)
+  flat(c, RAMP.t1, MOAT.a, 0, L, R);
+  // (the moat's banks: sheer)
+  if (X(MOAT.b) + 20 > L && X(MOAT.a) - 20 < R) { fb(c, X(MOAT.a) - 8, GY, 8, 600, '#2A2533'); fb(c, X(MOAT.b), GY, 8, 600, '#2A2533'); }
+  flat(c, MOAT.b, STAIRS.a0, 0, L, R);
+  // (the stairs: two flights, the landing, the top; the balustrade up the side, behind)
   if (X(12040) > L && X(STAIRS.a0) < R) {
-    const flight = (a: number, b: number, h0: number, h1: number, n: number) => {
-      const dx = (X(b) - X(a)) / n, dy = (h1 - h0) / n;
-      for (let i = 0; i < n; i++) {
-        const sx = X(a) + i * dx;
-        if (sx + dx < L || sx > R) continue;
-        const sy = Y(h0 + (i + 1) * dy);
-        box(c, sx, sy, dx + 1, GY + 400 - sy, '#4A4458');
-        box(c, sx, sy, dx + 1, 3, LIP);
-        box(c, sx + dx - 2, sy, 2, dy, '#2E2938');
-      }
-    };
-    flight(STAIRS.a0, STAIRS.a1, 0, STAIRS.mid, 20);
-    groundBox(c, X(STAIRS.a1), X(STAIRS.land1), Y(STAIRS.mid), '#4A4458', LIP);
-    box(c, X(STAIRS.a1), Y(STAIRS.mid) + 400, X(STAIRS.land1) - X(STAIRS.a1), STAIRS.mid, '#4A4458');
-    flight(STAIRS.land1, STAIRS.b1, STAIRS.mid, STAIRS.top, 20);
-    groundBox(c, X(STAIRS.b1), X(12040), Y(STAIRS.top), '#4A4458', LIP);
-    box(c, X(STAIRS.b1), Y(STAIRS.top) + 400, X(12040) - X(STAIRS.b1), STAIRS.top, '#4A4458');
-    // (the balustrades up the side, behind)
-    c.strokeStyle = '#27272A'; c.lineWidth = 4;
-    c.beginPath(); c.moveTo(X(STAIRS.a0), GY - 46); c.lineTo(X(STAIRS.a1), Y(STAIRS.mid) - 46); c.lineTo(X(STAIRS.land1), Y(STAIRS.mid) - 46); c.lineTo(X(STAIRS.b1), Y(STAIRS.top) - 46); c.stroke();
+    flight(c, STAIRS.a0, STAIRS.a1, 0, STAIRS.mid, 20, L, R);
+    flat(c, STAIRS.a1, STAIRS.land1, STAIRS.mid, L, R, STEP);
+    flight(c, STAIRS.land1, STAIRS.b1, STAIRS.mid, STAIRS.top, 20, L, R);
+    flat(c, STAIRS.b1, 12040, STAIRS.top, L, R, STEP);
+    bar(c, X(STAIRS.a0), GY - 46, X(STAIRS.a1), Y(STAIRS.mid) - 46, 4, '#27272A', false);
+    bar(c, X(STAIRS.a1), Y(STAIRS.mid) - 46, X(STAIRS.land1), Y(STAIRS.mid) - 46, 4, '#27272A', false);
+    bar(c, X(STAIRS.land1), Y(STAIRS.mid) - 46, X(STAIRS.b1), Y(STAIRS.top) - 46, 4, '#27272A', false);
   }
 };
 
 // The castle at the top of the stairs: DRACULA'S OTHER CASTLE (its front, its door: in, to the castle)
 const paintCastle = (g: Ctx) => {
   const L = X(11250), R = x1 + 40, base = Y(STAIRS.top), top = base - 640;
-  box(g, L, top, R - L, base - top, '#27202F');
-  for (let x = L; x < R; x += 50) box(g, x, top - 30, 30, 30, '#27202F');
-  // (towers either side of the door)
-  box(g, X(11700), top - 160, 120, 160, '#2C2434');
-  for (let x = X(11700); x < X(11820); x += 30) box(g, x, top - 186, 18, 26, '#2C2434');
-  for (let row = 0; row < 4; row++) for (let wx = L + 60; wx < R - 60; wx += 120) box(g, wx, top + 60 + row * 130, 26, 50, '#140F1A');
-  // (the ride's own sign over the door: it's a theme park's castle)
-  wallSign(g, x1 - 160, base - 230, "DRACULA'S OTHER CASTLE", '#450A0A', '#FECACA');
-  wallSign(g, x1 - 160, base - 200, 'NO FLASH PHOTOGRAPHY - NO STROLLERS', '#1E1036', '#E9D5FF');
-  // (the door: big, studded, open a crack)
-  box(g, x1 - 130, base - 170, 100, 170, '#57534E');
-  box(g, x1 - 120, base - 160, 80, 160, '#3B2416');
-  box(g, x1 - 82, base - 160, 6, 160, '#09090B');
-  for (let y = base - 150; y < base; y += 24) { box(g, x1 - 112, y, 4, 4, '#A8A29E'); box(g, x1 - 52, y, 4, 4, '#A8A29E'); }
+  fb(g, L, top, R - L, base - top, '#27202F');
+  for (let x = L; x < R; x += 50) ob(g, x, top - 30, 30, 30, '#27202F');
+  ob(g, X(11690), top - 160, 140, 160, '#2C2434');
+  for (let x = X(11690); x < X(11830); x += 34) ob(g, x, top - 186, 20, 26, '#2C2434');
+  poly(g, [X(11690) - 10, top - 186, X(11830) + 10, top - 186, X(11760), top - 280], '#3B0764');
+  for (let row = 0; row < 4; row++) for (let wx = L + 60; wx < R - 60; wx += 120) { ob(g, wx, top + 60 + row * 130, 26, 50, '#140F1A'); poly(g, [wx, top + 60 + row * 130, wx + 26, top + 60 + row * 130, wx + 13, top + 44 + row * 130], '#140F1A'); }
+  board(g, x1 - 160, base - 236, "DRACULA'S OTHER CASTLE", '#450A0A', '#FECACA');
+  board(g, x1 - 160, base - 206, 'NO FLASH PHOTOGRAPHY - NO STROLLERS', '#1E1036', '#E9D5FF', 6);
+  // (the door: big, arched, studded, open a crack)
+  ob(g, x1 - 132, base - 170, 104, 170, '#57534E');
+  poly(g, [x1 - 132, base - 170, x1 - 28, base - 170, x1 - 80, base - 196], '#57534E');
+  fb(g, x1 - 122, base - 160, 84, 160, '#3B2416');
+  fb(g, x1 - 82, base - 160, 6, 160, '#09090B');
+  for (let y = base - 150; y < base; y += 24) { fb(g, x1 - 114, y, 4, 4, '#A8A29E'); fb(g, x1 - 52, y, 4, 4, '#A8A29E'); }
+  oval(g, x1 - 92, base - 80, 5, 5, '#A16207');
 };
 const drawCastle = (c: Ctx, state: GameState) => {
   if (!inView(state, X(11250), x1 + 40)) return;
   const base = Y(STAIRS.top);
-  stamp(c, `town-castle${fontIn()}`, X(11250) - 10, base - 840, x1 + 60 - X(11250), 860, paintCastle);
-};
-
-// ---------------------------------------------------------------------------------------------------------------
-// The haunted kiddie rides (they move: drawn live, crude, only in view)
-
-const drawRide = (c: Ctx, id: RideId, x: number, f: number) => {
-  switch (id) {
-    case 'cups': {
-      // Spinning coffins, each with a kid's head poking up, round a turntable
-      box(c, x - 150, GY - 14, 300, 14, '#3B2F4A'); box(c, x - 150, GY - 14, 300, 2, '#6B5A7E');
-      box(c, x - 6, GY - 70, 12, 56, '#52525B');
-      const cups = [0, 1, 2, 3].map(i => { const a = f * 0.02 + (i * Math.PI) / 2; return { a, dx: Math.cos(a) * 110, z: Math.sin(a) }; }).sort((p, q) => p.z - q.z);
-      for (const cup of cups) {
-        const s = 0.8 + cup.z * 0.15, cx = x + cup.dx, w = 50 * s, h = 26 * s;
-        box(c, cx - w / 2, GY - 14 - h, w, h, '#4A2C1A');
-        box(c, cx - w / 2 + 3, GY - 14 - h + 3, w - 6, 4, '#78350F');
-        box(c, cx - 6 * s, GY - 14 - h - 10 * s, 12 * s, 10 * s, ['#F0C8A2', '#A86B43', '#6E4426', '#F6DCC8'][Math.floor(cup.a / (Math.PI / 2)) & 3]);
-      }
-      postSign(c, x + 210, GY, 'SPINNING COFFIN CUPS', '#3B0764', '#F5D0FE');
-      postSign(c, x - 220, GY, 'MUST BE THIS SHORT', '#1E1036', '#E9D5FF');
-      break;
-    }
-    case 'carousel': {
-      // The BAT-O-ROUND: its roof (the ledge) on a center pole, bats on poles going round
-      const rx0 = x - 165, w = 330, roofY = GY - 170;
-      box(c, x - 8, roofY, 16, 170, '#A16207');
-      box(c, rx0, GY - 20, w, 20, '#3B2F4A'); box(c, rx0, GY - 20, w, 2, '#6B5A7E');
-      // (the canopy's scalloped valance under the roof, the sign on it)
-      box(c, rx0, roofY + 16, w, 18, '#581C87');
-      for (let sx = rx0; sx < rx0 + w; sx += 22) box(c, sx, roofY + 34, 14, 6, '#581C87');
-      label(c, 'BAT-O-ROUND', x, roofY + 30, '#F5D0FE', 8);
-      const bats = [0, 1, 2, 3, 4, 5].map(i => { const a = f * 0.025 + (i * Math.PI) / 3; return { dx: Math.cos(a) * 130, z: Math.sin(a), bob: Math.sin(f * 0.08 + i) * 10 }; }).sort((p, q) => p.z - q.z);
-      for (const b of bats) {
-        const bx = x + b.dx, s = 0.85 + b.z * 0.15;
-        box(c, bx - 1, roofY + 40, 3, 130 - 20, '#D4D4D8');
-        const by = GY - 80 + b.bob;
-        box(c, bx - 12 * s, by, 24 * s, 14 * s, '#18181B');
-        box(c, bx - 28 * s, by - 6 * s, 16 * s, 10 * s, '#27272A'); box(c, bx + 12 * s, by - 6 * s, 16 * s, 10 * s, '#27272A');
-        box(c, bx - 4 * s, by + 3 * s, 2, 2, '#EF4444'); box(c, bx + 3 * s, by + 3 * s, 2, 2, '#EF4444');
-      }
-      break;
-    }
-    case 'train': {
-      // LI'L GHOST TRAIN: a tiny loop of track, a tiny train with a ghost face (and a pacifier) on the front
-      box(c, x - 210, GY - 6, 420, 4, '#52525B');
-      for (let tx = x - 206; tx < x + 210; tx += 16) box(c, tx, GY - 4, 8, 4, '#3F2A1A');
-      const tx = x + Math.sin(f * 0.006) * 170, dir = Math.cos(f * 0.006) >= 0 ? 1 : -1;
-      for (let i = 1; i <= 2; i++) { const cx = tx - dir * i * 40; box(c, cx - 16, GY - 30, 32, 22, '#7E22CE'); box(c, cx - 5, GY - 42, 10, 12, ['#F0C8A2', '#6E4426'][i - 1]); box(c, cx - 12, GY - 10, 6, 6, '#09090B'); box(c, cx + 6, GY - 10, 6, 6, '#09090B'); }
-      box(c, tx - 18, GY - 44, 36, 36, '#F5F5F4');
-      box(c, tx - 10 + dir * 4, GY - 36, 5, 5, '#09090B'); box(c, tx + 3 + dir * 4, GY - 36, 5, 5, '#09090B');
-      box(c, tx - 4 + dir * 4, GY - 26, 9, 6, '#F9A8D4'); box(c, tx - 1 + dir * 4, GY - 24, 3, 2, '#DB2777');
-      box(c, tx - 12, GY - 10, 7, 7, '#09090B'); box(c, tx + 5, GY - 10, 7, 7, '#09090B');
-      postSign(c, x + 260, GY, "LI'L GHOST TRAIN - AGES 2 TO 4", '#3B0764', '#F5D0FE');
-      break;
-    }
-    case 'drop': {
-      // The MINI DROP OF DOOM: a tower not much taller than him, the seat ring creeping up and dropping a foot
-      box(c, x - 6, GY - 110, 12, 110, '#71717A');
-      box(c, x - 14, GY - 120, 28, 10, '#DC2626');
-      const k = f % 300, h = k < 240 ? 20 + (k / 240) * 60 : k < 250 ? 80 - ((k - 240) / 10) * 60 : 20;
-      box(c, x - 30, GY - h - 16, 60, 16, '#B91C1C');
-      box(c, x - 24, GY - h - 30, 10, 14, '#F0C8A2'); box(c, x + 14, GY - h - 30, 10, 14, '#A86B43');
-      // (the sign, a lot taller than the ride)
-      box(c, x + 80, GY - 200, 8, 200, '#3F3F46'); box(c, x + 170, GY - 200, 8, 200, '#3F3F46');
-      box(c, x + 60, GY - 236, 140, 50, '#09090B'); box(c, x + 62, GY - 234, 136, 46, '#7F1D1D');
-      label(c, 'MINI DROP', x + 130, GY - 216, '#FECACA', 8); label(c, 'OF DOOM', x + 130, GY - 200, '#FECACA', 8);
-      wallSign(c, x + 130, GY - 160, 'HEIGHT: 6 FT', '#1E1036', '#E9D5FF');
-      break;
-    }
-    case 'pony': {
-      // A coin-op skeleton pony, rocking on its base
-      box(c, x - 40, GY - 16, 80, 16, '#52525B'); box(c, x - 40, GY - 16, 80, 2, '#A1A1AA');
-      const r = Math.sin(f * 0.15) * 4;
-      box(c, x - 26, GY - 52 + r, 52, 18, '#E7E5E4');
-      for (let i = 0; i < 4; i++) box(c, x - 22 + i * 12, GY - 50 + r, 3, 14, '#57534E');
-      box(c, x + 20, GY - 76 - r, 16, 26, '#E7E5E4'); box(c, x + 30, GY - 70 - r, 3, 3, '#09090B');
-      for (const lx of [-22, -12, 12, 20]) box(c, x + lx, GY - 34, 4, 18, '#E7E5E4');
-      box(c, x - 36, GY - 60 + r, 12, 4, '#E7E5E4');
-      postSign(c, x - 100, GY, 'SKELETON PONY - 25 CENTS', '#3B0764', '#F5D0FE');
-      break;
-    }
-  }
-};
-
-const drawRides = (c: Ctx, state: GameState) => {
-  for (const r of RIDES) { const x = X(r.x); if (inView(state, x - 300, x + 300)) drawRide(c, r.id, x, state.frame); }
+  stamp(c, `town2-castle${fontIn()}`, X(11250) - 20, base - 940, x1 + 80 - X(11250), 960, paintCastle);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The modern conveniences (and the rest of the town's furniture), each with its sign on it
 
+/** The gate's arch: an iron bar curved over, its bars. */
+const arch = (g: Ctx, x: number) => {
+  g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(x - 118, GY - 200); g.quadraticCurveTo(x, GY - 250, x + 118, GY - 200); g.stroke();
+  g.strokeStyle = '#3F3F46'; g.lineWidth = 4; g.beginPath(); g.moveTo(x - 118, GY - 200); g.quadraticCurveTo(x, GY - 250, x + 118, GY - 200); g.stroke();
+  for (let px = x - 100; px <= x + 100; px += 20) bar(g, px, GY - 196, px, GY - 150, 2, '#27272A', false);
+};
 const paintGag = (g: Ctx, i: number) => {
   switch (i) {
-    case 0: { // the gate in
-      const x = X(330);
-      box(g, x - 130, GY - 200, 24, 200, '#1C1917'); box(g, x + 106, GY - 200, 24, 200, '#1C1917');
-      box(g, x - 140, GY - 226, 280, 34, '#09090B'); box(g, x - 136, GY - 222, 272, 26, '#2E1065');
-      label(g, 'WELCOME TO SPOOKY LAND', x, GY - 205, '#BBF7D0', 8);
-      for (let px = x - 104; px < x + 104; px += 16) box(g, px, GY - 190, 3, 20, '#27272A');
+    case 0: { // the gate in: iron pillars, the arch, its sign
+      const x = X(250);
+      for (const px of [x - 130, x + 106]) { ob(g, px, GY - 200, 24, 200, '#1C1917'); poly(g, [px - 4, GY - 200, px + 28, GY - 200, px + 12, GY - 220], '#1C1917'); }
+      arch(g, x);
+      board(g, x, GY - 228, 'WELCOME TO SPOOKY LAND', '#2E1065', '#BBF7D0');
       break;
     }
-    case 1: { // the vending machine
-      const x = X(1020);
-      box(g, x - 30, GY - 120, 60, 120, '#7F1D1D'); box(g, x - 24, GY - 112, 34, 60, '#18181B');
-      for (let r = 0; r < 4; r++) for (let k = 0; k < 3; k++) box(g, x - 21 + k * 11, GY - 108 + r * 14, 8, 10, ['#DC2626', '#F5F5F4', '#16A34A'][(r + k) % 3]);
-      box(g, x + 14, GY - 100, 10, 20, '#D4D4D8'); box(g, x - 20, GY - 30, 40, 12, '#09090B');
-      wallSign(g, x, GY - 136, 'BLOOD-COLA', '#450A0A', '#FECACA');
+    case 1: { // the crypt with the ATM in it
+      const x = X(2240);
+      ob(g, x - 60, GY - 130, 120, 130, '#44403C');
+      poly(g, [x - 72, GY - 130, x + 72, GY - 130, x, GY - 176], '#57534E');
+      for (const px of [x - 52, x + 38]) ob(g, px, GY - 124, 14, 124, '#6B6560', 1.5);
+      ob(g, x - 22, GY - 100, 44, 100, '#1C1917');
+      ob(g, x - 16, GY - 90, 32, 22, '#22D3EE', 1); fb(g, x - 12, GY - 86, 24, 3, '#0E7490');
+      ob(g, x - 12, GY - 60, 24, 14, '#52525B', 1);
+      for (let k = 0; k < 3; k++) fb(g, x - 9 + k * 7, GY - 57, 4, 3, '#D4D4D8');
+      fb(g, x - 10, GY - 40, 20, 3, INK);
+      board(g, x, GY - 150, 'CRYPT-O ATM', '#0C4A6E', '#BAE6FD', 7);
+      board(g, x, GY - 114, 'FEES APPLY', '#1C1917', '#E7E5E4', 6);
       break;
     }
-    case 2: { // the gallows: the selfie station (its platform's a ledge: drawn with them)
-      const x = X(1280);
-      box(g, x + 20, GY - 250, 10, 150, '#3F2A1A'); box(g, x + 20, GY - 250, 110, 10, '#3F2A1A');
-      box(g, x + 110, GY - 240, 2, 50, '#A8A29E');
-      // (a ring light where the noose would be)
-      g.strokeStyle = '#FEF9C3'; g.lineWidth = 4; g.beginPath(); g.arc(x + 111, GY - 176, 16, 0, Math.PI * 2); g.stroke();
-      box(g, x + 30, GY - 100, 8, 100, '#3F2A1A'); box(g, x + 140, GY - 100, 8, 100, '#3F2A1A');
-      wallSign(g, x + 75, GY - 270, 'SELFIE STATION', '#1E1036', '#E9D5FF');
-      break;
-    }
-    case 3: { // the crypt with the ATM in it
-      const x = X(1640);
-      box(g, x - 60, GY - 130, 120, 130, '#44403C'); box(g, x - 70, GY - 146, 140, 18, '#57534E');
-      box(g, x - 22, GY - 100, 44, 100, '#1C1917');
-      box(g, x - 16, GY - 90, 32, 22, '#22D3EE'); box(g, x - 12, GY - 60, 24, 14, '#52525B'); box(g, x - 10, GY - 40, 20, 3, '#09090B');
-      wallSign(g, x, GY - 166, 'CRYPT-O ATM', '#0C4A6E', '#BAE6FD');
-      wallSign(g, x, GY - 116, 'FEES APPLY', '#1C1917', '#E7E5E4');
-      break;
-    }
-    case 4: { // the ADA sign at the foot of the ramp
+    case 2: { // the ADA sign at the foot of the ramp
       const x = X(RAMP.r0 - 70);
-      box(g, x - 3, GY - 120, 6, 120, '#3F3F46');
-      box(g, x - 40, GY - 160, 80, 44, '#1D4ED8');
-      // (the wheelchair, crude)
-      g.strokeStyle = '#F8FAFC'; g.lineWidth = 3; g.beginPath(); g.arc(x - 18, GY - 130, 8, 0, Math.PI * 2); g.stroke();
-      box(g, x - 22, GY - 152, 4, 4, '#F8FAFC'); box(g, x - 22, GY - 147, 3, 12, '#F8FAFC'); box(g, x - 22, GY - 138, 10, 3, '#F8FAFC');
-      label(g, 'CRYPT', x + 14, GY - 140, '#F8FAFC', 7); label(g, 'ACCESS', x + 14, GY - 128, '#F8FAFC', 7);
+      ob(g, x - 3, GY - 120, 6, 120, '#3F3F46', 1);
+      ob(g, x - 40, GY - 164, 80, 46, '#1D4ED8');
+      g.strokeStyle = '#F8FAFC'; g.lineWidth = 3; g.beginPath(); g.arc(x - 20, GY - 132, 9, 0, Math.PI * 2); g.stroke();
+      oval(g, x - 22, GY - 156, 3, 3, '#F8FAFC', 0); fb(g, x - 23, GY - 152, 3, 13, '#F8FAFC'); fb(g, x - 23, GY - 141, 12, 3, '#F8FAFC');
+      label(g, 'CRYPT', x + 14, GY - 144, '#F8FAFC', 7); label(g, 'ACCESS', x + 14, GY - 132, '#F8FAFC', 7);
       break;
     }
-    case 5: { // up on the terrace: the crypt the ramp's for, and the phone-charging coffin in front of it
-      const cx = X(4100), base = Y(RAMP.h);
-      box(g, cx - 80, base - 170, 160, 170, '#3F3A44'); box(g, cx - 90, base - 186, 180, 18, '#52525B');
-      for (let i = 0; i < 4; i++) box(g, cx - 70 + i * 10, base - 186 - (i + 1) * 8, 140 - i * 20, 8, '#52525B');
-      box(g, cx - 26, base - 110, 52, 110, '#120E18');
-      wallSign(g, cx, base - 128, 'NOW ADA COMPLIANT', '#1E1036', '#E9D5FF');
-      const kx = X(3900);
-      box(g, kx - 40, base - 26, 80, 26, '#4A2C1A'); box(g, kx - 46, base - 30, 92, 6, '#78350F');
-      for (let i = 0; i < 4; i++) { box(g, kx - 32 + i * 18, base - 46, 10, 16, '#18181B'); box(g, kx - 30 + i * 18, base - 44, 6, 10, ['#22D3EE', '#A3E635', '#22D3EE', '#F472B6'][i]); box(g, kx - 28 + i * 18, base - 30, 2, 6, '#D4D4D8'); }
-      box(g, kx - 3, base - 90, 6, 64, '#3F3F46');
-      wallSign(g, kx, base - 64, 'PHONE CHARGING COFFIN', '#1E1036', '#E9D5FF');
-      wallSign(g, kx, base - 90, '20 MIN LIMIT', '#1C1917', '#FDE68A');
+    case 3: { // up on the terrace: the crypt the ramp's for, and the phone-charging coffin
+      const cx = X(4050), base = Y(RAMP.h);
+      ob(g, cx - 80, base - 170, 160, 170, '#3F3A44');
+      poly(g, [cx - 96, base - 170, cx + 96, base - 170, cx, base - 236], '#52525B');
+      for (const px of [cx - 70, cx + 52]) ob(g, px, base - 160, 18, 160, '#5E5868', 1.5);
+      ob(g, cx - 26, base - 110, 52, 110, '#120E18');
+      poly(g, [cx - 26, base - 110, cx + 26, base - 110, cx, base - 130], '#120E18');
+      board(g, cx, base - 150, 'NOW ADA COMPLIANT', '#1E1036', '#E9D5FF', 7);
+      const kx = X(3930);
+      poly(g, [kx - 44, base - 26, kx - 30, base - 34, kx + 30, base - 34, kx + 44, base - 26, kx + 30, base, kx - 30, base], '#4A2C1A');
+      fb(g, kx - 30, base - 32, 60, 4, '#A16207');
+      for (let k = 0; k < 4; k++) { ob(g, kx - 32 + k * 18, base - 50, 10, 16, '#18181B', 1); fb(g, kx - 30 + k * 18, base - 48, 6, 10, ['#22D3EE', '#A3E635', '#22D3EE', '#F472B6'][k]); bar(g, kx - 27 + k * 18, base - 34, kx - 27 + k * 18, base - 28, 1, '#D4D4D8', false); }
+      ob(g, kx + 50, base - 96, 6, 96, '#3F3F46', 1);
+      board(g, kx + 53, base - 96, 'PHONE CHARGING COFFIN', '#1E1036', '#E9D5FF', 6);
+      board(g, kx + 53, base - 76, '20 MIN LIMIT', '#1C1917', '#FDE68A', 6);
       break;
     }
-    case 6: { // the gargoyle with the security camera
-      const x = X(5380);
-      box(g, x - 16, GY - 150, 32, 150, '#52525B'); box(g, x - 22, GY - 156, 44, 8, '#71717A');
-      box(g, x - 16, GY - 186, 30, 30, '#44403C'); box(g, x - 22, GY - 182, 8, 14, '#44403C'); box(g, x + 14, GY - 182, 8, 14, '#44403C');
-      box(g, x + 10, GY - 200, 22, 10, '#E5E7EB'); box(g, x + 30, GY - 198, 4, 6, '#09090B'); box(g, x + 12, GY - 196, 3, 3, '#EF4444');
-      wallSign(g, x, GY - 110, "SMILE! YOU'RE ON CAMERA", '#1C1917', '#FDE68A');
+    case 4: { // the gargoyle with the security camera
+      const x = X(4980);
+      ob(g, x - 16, GY - 150, 32, 150, '#52525B'); ob(g, x - 22, GY - 158, 44, 8, '#71717A');
+      poly(g, [x - 16, GY - 158, x + 16, GY - 158, x + 12, GY - 186, x - 12, GY - 186], '#44403C');
+      poly(g, [x - 14, GY - 176, x - 32, GY - 196, x - 12, GY - 166], '#44403C', 1.5); poly(g, [x + 14, GY - 176, x + 32, GY - 196, x + 12, GY - 166], '#44403C', 1.5);
+      ob(g, x + 6, GY - 204, 26, 12, '#E5E7EB', 1.5); ob(g, x + 30, GY - 202, 6, 8, '#09090B', 1);
+      board(g, x, GY - 110, "SMILE! YOU'RE ON CAMERA", '#1C1917', '#FDE68A', 6);
       break;
     }
-    case 7: { // the mausoleum restrooms (its roof's a ledge)
-      const x = X(6930), w = 170;
-      box(g, x + 8, Y(130) + 16, w - 16, 130 - 16, '#4B4553');
-      for (let i = 0; i < 3; i++) box(g, x + 22 + i * 52, Y(130) + 30, 10, 100, '#5E5868');
-      box(g, x + 64, GY - 70, 42, 70, '#120E18');
-      wallSign(g, x + w / 2, Y(130) + 52, 'RESTROOMS', '#1E1036', '#E9D5FF');
-      wallSign(g, x + w / 2, Y(130) + 80, 'BABY CHANGING', '#1E1036', '#E9D5FF');
-      break;
-    }
-    case 8: { // the hitching post with the car charger
+    case 5: { // the hitching post with the car charger
       const x = X(9000);
-      box(g, x - 50, GY - 50, 100, 8, '#3F2A1A'); box(g, x - 46, GY - 50, 8, 50, '#3F2A1A'); box(g, x + 38, GY - 50, 8, 50, '#3F2A1A');
-      box(g, x + 60, GY - 110, 30, 110, '#E5E7EB'); box(g, x + 64, GY - 104, 22, 14, '#16A34A'); box(g, x + 86, GY - 70, 14, 4, '#18181B');
-      box(g, x + 72, GY - 130, 6, 20, '#3F3F46');
-      wallSign(g, x + 75, GY - 130, 'HORSE & BUGGY EV CHARGING', '#14532D', '#BBF7D0');
+      ob(g, x - 50, GY - 50, 100, 8, '#3F2A1A', 1.5); ob(g, x - 46, GY - 42, 8, 42, '#3F2A1A', 1.5); ob(g, x + 38, GY - 42, 8, 42, '#3F2A1A', 1.5);
+      ob(g, x + 60, GY - 110, 30, 110, '#E5E7EB'); fb(g, x + 64, GY - 104, 22, 14, '#16A34A');
+      bar(g, x + 88, GY - 70, x + 110, GY - 30, 3, '#18181B', false);
+      ob(g, x + 72, GY - 150, 6, 40, '#3F3F46', 1);
+      board(g, x + 75, GY - 150, 'HORSE & BUGGY EV CHARGING', '#14532D', '#BBF7D0', 6);
       break;
     }
-    case 9: { // the castle sign at the foot of the stairs, and the stair lift (out of order)
-      const x = X(STAIRS.a0 - 120);
-      box(g, x - 120, GY - 190, 10, 190, '#3F2A1A'); box(g, x + 110, GY - 190, 10, 190, '#3F2A1A');
-      box(g, x - 140, GY - 230, 280, 58, '#09090B'); box(g, x - 136, GY - 226, 272, 50, '#450A0A');
-      label(g, "DRACULA'S", x, GY - 206, '#FECACA', 8); label(g, 'OTHER CASTLE', x, GY - 190, '#FECACA', 8);
-      label(g, '>', x + 120, GY - 196, '#FECACA', 8);
+    case 6: { // the castle sign at the foot of the stairs, and the stair lift (out of order)
+      const x = X(STAIRS.a0 - 130);
+      ob(g, x - 120, GY - 190, 10, 190, '#3F2A1A'); ob(g, x + 110, GY - 190, 10, 190, '#3F2A1A');
+      ob(g, x - 140, GY - 236, 280, 60, '#450A0A', 3);
+      label(g, "DRACULA'S", x, GY - 212, '#FECACA', 8); label(g, 'OTHER CASTLE', x, GY - 194, '#FECACA', 8);
+      poly(g, [x + 118, GY - 214, x + 130, GY - 206, x + 118, GY - 198], '#FECACA', 0);
       const sx = X(STAIRS.a0 + 30);
-      box(g, sx - 14, GY - 46, 30, 8, '#1D4ED8'); box(g, sx - 14, GY - 76, 8, 36, '#1D4ED8'); box(g, sx - 6, GY - 38, 6, 30, '#52525B');
-      box(g, sx + 30, GY - 100, 6, 100, '#3F3F46');
-      wallSign(g, sx + 33, GY - 100, 'STAIR LIFT OUT OF ORDER', '#1C1917', '#FDE68A');
+      ob(g, sx - 14, GY - 46, 30, 8, '#1D4ED8', 1.5); ob(g, sx - 14, GY - 76, 8, 30, '#1D4ED8', 1.5); ob(g, sx - 6, GY - 38, 6, 30, '#52525B', 1);
+      ob(g, sx + 36, GY - 100, 6, 100, '#3F3F46', 1);
+      board(g, sx + 39, GY - 100, 'STAIR LIFT OUT OF ORDER', '#1C1917', '#FDE68A', 6);
       break;
     }
-    case 10: { // the landing: a bench, and the sign
-      const x = X(STAIRS.a1 + 130), base = Y(STAIRS.mid);
-      box(g, x - 40, base - 22, 80, 6, '#3F2A1A'); box(g, x - 36, base - 16, 6, 16, '#18181B'); box(g, x + 30, base - 16, 6, 16, '#18181B');
-      postSign(g, x, base - 30, 'HALFWAY! (NOT REALLY)', '#1E1036', '#E9D5FF');
+    case 7: { // the landing: a bench, and the sign
+      const x = X(STAIRS.a1 + 150), base = Y(STAIRS.mid);
+      ob(g, x - 40, base - 22, 80, 6, '#3F2A1A', 1.5); ob(g, x - 36, base - 16, 6, 16, '#18181B', 1); ob(g, x + 30, base - 16, 6, 16, '#18181B', 1);
+      ob(g, x - 3, base - 110, 6, 88, '#3F3F46', 1);
+      board(g, x, base - 110, 'HALFWAY! (NOT REALLY)', '#1E1036', '#E9D5FF', 7);
       break;
     }
   }
 };
 /** Each gag: where it is (for culling) [from, to]. */
-const GAGS: [number, number][] = [[150, 500], [980, 1180], [1280, 1450], [1560, 1720], [RAMP.r0 - 120, RAMP.r0], [3820, 4200], [5340, 5440], [6930, 7100], [8920, 9100], [STAIRS.a0 - 280, STAIRS.a0 + 140], [STAIRS.a1 + 40, STAIRS.a1 + 230]];
+const GAGS: [number, number][] = [[100, 400], [2160, 2320], [RAMP.r0 - 120, RAMP.r0], [3860, 4150], [4940, 5020], [8940, 9120], [STAIRS.a0 - 290, STAIRS.a0 + 200], [STAIRS.a1 + 80, STAIRS.a1 + 260]];
 const drawGags = (c: Ctx, state: GameState) => {
   GAGS.forEach(([a, b], i) => {
     if (!inView(state, X(a), X(b))) return;
-    // (stamped: they don't move; the box round each is generous)
-    stamp(c, `town-gag${i}${fontIn()}`, X(a) - 160, GY - 420, X(b) - X(a) + 320, 440, g => paintGag(g, i));
+    stamp(c, `town2-gag${i}${fontIn()}`, X(a) - 170, GY - 470, X(b) - X(a) + 340, 490, g => paintGag(g, i));
   });
-  // (the phones' screens glowing, the ATM's and the camera's lights: live, a blink)
-  if (state.frame % 60 < 30) {
-    if (inView(state, X(5380), X(5440))) box(c, X(5380) + 12, GY - 196, 3, 3, '#FCA5A5');
-  }
+  // (live: the camera's red light)
+  if (state.frame % 60 < 30 && inView(state, X(4980), X(5020))) fb(c, X(4980) + 10, GY - 200, 3, 3, '#EF4444');
 };
 
-// The gas lamps (each with something modern on it: the first one, the Wi-Fi)
+// The gas lamps (two of them with something modern on them)
 const drawLamps = (c: Ctx, state: GameState) => {
   const lit = timeOfDay().lamps;
   LAMPS.forEach(([rx, h], i) => {
     const x = X(rx), base = Y(h);
     if (!inView(state, x - 40, x + 40)) return;
-    box(c, x - 3, base - 150, 6, 150, '#18181B');
-    box(c, x - 8, base - 6, 16, 6, '#27272A');
-    box(c, x - 10, base - 172, 20, 22, '#18181B');
-    box(c, x - 7, base - 169, 14, 16, lit > 0.05 ? '#FDE68A' : '#8A7A4A');
-    if (lit > 0.05) box(c, x - 18, base - 178, 36, 34, `rgba(253, 230, 138, ${(0.18 * lit).toFixed(2)})`);
-    if (i === 0) wallSign(c, x, base - 110, 'FREE WI-FI', '#1E1036', '#BBF7D0');
-    if (i === 2) wallSign(c, x, base - 110, 'USB PORT >', '#1E1036', '#BBF7D0');
+    ob(c, x - 3, base - 150, 6, 150, '#18181B', 1);
+    ob(c, x - 9, base - 8, 18, 8, '#27272A', 1);
+    poly(c, [x - 10, base - 152, x + 10, base - 152, x + 7, base - 172, x - 7, base - 172], lit > 0.05 ? '#FDE68A' : '#8A7A4A', 2);
+    poly(c, [x - 12, base - 172, x + 12, base - 172, x, base - 182], '#18181B', 1);
+    if (lit > 0.05) fb(c, x - 20, base - 184, 40, 36, `rgba(253, 230, 138, ${(0.16 * lit).toFixed(2)})`);
+    if (i === 0) board(c, x, base - 62, 'FREE WI-FI', '#1E1036', '#BBF7D0', 7);
+    if (i === 2) board(c, x, base - 62, 'USB PORT', '#1E1036', '#BBF7D0', 7);
   });
 };
 
@@ -439,9 +424,10 @@ export const townLamps = (): Light[] => LAMPS.map(([rx, h]) => ({ x: X(rx), y: Y
 export const drawTownBack = (c: Ctx, state: GameState) => {
   drawShops(c, state);
   drawCastle(c, state);
-  drawRides(c, state);
   drawGags(c, state);
-  drawLedges(c, state);
   drawLamps(c, state);
+  drawLedges(c, state);
+  drawSolids(c, state);
   drawGround(c, state);
+  drawRides(c, state);
 };

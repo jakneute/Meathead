@@ -47,7 +47,8 @@ export const vineGrip = (p: Player) => ({ x: -3, y: -(p.height + 16) });
 export const VINE_SHOULDER = { x: 8, y: -42 };
 export const vineLean = (p: Player) => {
   const v = p.vine;
-  if (!v) return 0;
+  // (on a ladder: upright, whatever)
+  if (!v || p.ladder) return 0;
   return -v.th * p.facing * 0.85 - v.om * 3 * p.facing + (v.mode === 'push' ? 0.55 : v.mode === 'zipUp' ? -0.08 : 0);
 };
 

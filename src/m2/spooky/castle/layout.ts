@@ -27,11 +27,11 @@ export const CEIL = GY - 820;
 export type LedgeLook = 'stair' | 'balcony' | 'table' | 'shelf' | 'canopy' | 'toyshelf' | 'cauldron' | 'frame' | 'rack';
 export const LEDGES: [number, number, number, LedgeLook][] = [
   // the foyer's grand stair up to its balcony
-  [X(480), GY - 80, 120, 'stair'], [X(600), GY - 160, 120, 'stair'], [X(720), GY - 240, 520, 'balcony'],
+  [X(480), GY - 80, 120, 'stair'], [X(600), GY - 160, 120, 'stair'], [X(720), GY - 240, 520, 'balcony'], [X(1250), GY - 160, 80, 'stair'], [X(1320), GY - 80, 70, 'stair'],
   // the dining table, the whole length of the room
   [X(1700), GY - 72, 1200, 'table'],
   // the study's shelves and its reading balcony
-  [X(3480), GY - 130, 170, 'shelf'], [X(3700), GY - 250, 170, 'shelf'], [X(3960), GY - 340, 520, 'balcony'], [X(4540), GY - 230, 170, 'shelf'], [X(4760), GY - 120, 170, 'shelf'],
+  [X(3480), GY - 130, 170, 'shelf'], [X(3700), GY - 250, 170, 'shelf'], [X(3960), GY - 340, 520, 'balcony'], [X(4540), GY - 230, 170, 'shelf'], [X(4760), GY - 120, 170, 'shelf'], [X(4500), GY - 450, 220, 'shelf'],
   // the pot rack between the stoves (up off a stove top, between its flare-ups: a little health up there), the witch's
   // hearth (solid stone) with her cauldron on it
   [X(5700), GY - 210, 220, 'rack'],
@@ -69,7 +69,13 @@ export const BOOKCASES: [number, number][] = [[X(3560), GY - 60], [X(4960), GY -
 export const BOOK_EVERY = 160, BOOK_TELL = 44;
 
 /** The toy train: its track (x0..x1), how fast it goes. */
-export const TRAIN = { a: X(8820), b: X(10220), w: 76, h: 34, speed: 6.2 };
+export const TRAIN = { a: X(8800), b: X(9200), w: 76, h: 34, speed: 6.2 };
+/** The nursery's ball pit (a pit: wading it is slow going, the bat suits over it; or over it on the toy shelves). */
+export const BALLPIT = { a: X(9300), b: X(9760), depth: 30 };
+
+/** The trapdoor at the end of the gallery (the way on: down a shaft into the dungeon's cells): where it runs, how
+ *  long it creaks before it goes, the most it waits on the PA. */
+export const TRAPDOOR = { a: x1 - 380, b: x1 - 80 }, TRAP_CREAK = 50, TRAP_WAIT = 300;
 
 /** The wardrobes (a bride in each), and where one hides under the bed. */
 export const WARDROBES = [X(7330), X(8460)];
@@ -94,14 +100,14 @@ export const CAST: [StaffKind, number, number][] = [
   ['igor', X(9820), GY],
   // the gallery: the mummy on his own; then all of it at once
   ['mummy', X(10760), GY],
-  ['skeleton', X(11240), GY], ['witch', X(11440), GY - 210], ['mummy', X(11650), GY], ['bride', X(11880), GY], ['knight', X(11420), GY],
+  ['skeleton', X(11240), GY], ['witch', X(11440), GY - 210], ['mummy', X(11650), GY], ['bride', X(11560), GY], ['knight', X(11420), GY],
 ];
 
 /** A little health and ammo on the way (lean: small ones only). */
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
   // (each up a side path: the foyer's balcony, the study's reading balcony, the kitchen's pot rack, the bed's canopy, the
   // nursery's high shelf, the gallery's big frame)
-  [X(1190), GY - 240, 'small_ammo'], [X(4230), GY - 340, 'small_health'], [X(5810), GY - 210, 'small_health'], [X(7820), GY - 370, 'small_ammo'],
+  [X(1190), GY - 240, 'small_ammo'], [X(4610), GY - 450, 'small_health'], [X(5810), GY - 210, 'small_health'], [X(7820), GY - 370, 'small_ammo'],
   [X(9690), GY - 220, 'small_health'], [X(11450), GY - 210, 'small_ammo'],
 ];
 
@@ -126,4 +132,6 @@ export interface Castle {
   kills: number; quipAt: number;
   /** The castle's front door (it shut behind him on the way in: the PA's cue). */
   doorShut: number;
+  /** The trapdoor: shut, creaking (he's on it; the PA gloating), open (hanging down the shaft); frames in; its block. */
+  trap: 'shut' | 'creak' | 'open'; trapT: number; trapBlock: import('../../../m1/types').Block | null; trapSaid: boolean;
 }

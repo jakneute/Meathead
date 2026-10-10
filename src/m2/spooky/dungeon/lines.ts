@@ -53,6 +53,12 @@ export const MH_CEILING = ["THE CEILING'S MOVING. THE CEILING IS MOVING!", 'OH, 
 export const MH_LEVER = ['GOT IT! DOOR! DOOR!', 'LEVER! YES! GO GO GO!'];
 export const MH_ESCAPED = ['SUCK IT, SAL.', 'TOO SLOW, CEILING.'];
 
+/** His first rope. */
+export const MH_ROPE = ['ROPES. IN A DUNGEON. FOR WHO? FOR WHAT?', "I'M A NATURAL AT THIS. I'M A NATURAL AT EVERYTHING."];
+export const HURT_SPIKEPIT = ['SPIKES! IN MY EVERYTHING!', 'MY FEET! MY FEET ARE KEBABS!', 'WHO PUTS SPIKES UNDER A ROPE?!'];
+export const DEATH_SPIKEPIT = ['FELL ON THE POINTY END', 'PINCUSHIONED'];
+export const HURT_VAT = ['HOT LARD! HOT LARD! HOT LARD!', "I'M DEEP FRIED!", "IT SAID DO NOT SWIM! I WASN'T SWIMMING!"];
+export const DEATH_VAT = ['DEEP FRIED IN LARD', 'RENDERED'];
 export const HURT_CEILING = ['SPIKES! IN MY HEAD!', 'THE CEILING! IT GOT MY SCALP!', 'OW! TOP OF THE HEAD!', "I'M GETTING SHORTER!"];
 export const DEATH_CEILING = ['SKEWERED BY THE CEILING', 'KEBABED', 'MOST OF MEATHEAD'];
 
@@ -60,6 +66,6 @@ const all = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 
 export const VOICE_LINES: Record<string, string[]> = {
   [PA]: [...all(PA_DUNGEON), ...all(PA_CEILING), ...all(PA_ESCAPED)],
-  meathead: [...MH_DUNGEON, ...MH_CEILING, ...MH_LEVER, ...MH_ESCAPED, ...HURT_CEILING],
-  death: [...DEATH_CEILING],
+  meathead: [...MH_DUNGEON, ...MH_CEILING, ...MH_LEVER, ...MH_ESCAPED, ...HURT_CEILING, ...MH_ROPE, ...HURT_SPIKEPIT, ...HURT_VAT],
+  death: [...DEATH_CEILING, ...DEATH_SPIKEPIT, ...DEATH_VAT],
 };

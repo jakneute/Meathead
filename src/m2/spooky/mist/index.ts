@@ -30,6 +30,7 @@ import { registerHurtLines } from '../../kinds';
 import { lookOf } from '../../adventure/temple/people';
 import { paStory, paBusy, byPants, pick, drawHorn, drawPaWords, paSaying, once } from '../castle/pa';
 import { LIQUEFIED } from './death';
+import { updateLadders, drawLadders, onLadder, type LadderDef } from '../../moves/ladders';
 import * as L from './lines';
 
 registerHurtLines('spooky_mist', L.HURT_MIST, L.DEATH_MIST);
@@ -68,6 +69,14 @@ const shaftLedges = (col: readonly [number, number], floor: number, topOnLeft: b
 };
 const LEDGES: [number, number, number][] = [
   ...shaftLedges(RCOL, LV[0], true), ...shaftLedges(LCOL, LV[1], false), ...shaftLedges(RCOL, LV[2], true), ...shaftLedges(LCOL, LV[3], false),
+];
+/** A ladder up each shaft too, against the wall by its way out: steady (no jump to miss) but slower than the ledges,
+ *  with the mist coming up after him: a ladder or the ledges, his call. */
+const LADDERS: LadderDef[] = [
+  { x: RCOL[0] + 18, top: LV[1], bottom: LV[0], ledge: { x: RCOL[0] - 30, y: LV[1] } },
+  { x: LCOL[1] - 18, top: LV[2], bottom: LV[1], ledge: { x: LCOL[1] + 30, y: LV[2] } },
+  { x: RCOL[0] + 18, top: LV[3], bottom: LV[2], ledge: { x: RCOL[0] - 30, y: LV[3] } },
+  { x: LCOL[1] - 18, top: LV[4], bottom: LV[3], ledge: { x: LCOL[1] + 30, y: LV[4] } },
 ];
 /** Furniture piled across the halls (hop it): x, floor, w, h. */
 const PILES: [number, number, number, number][] = [
@@ -386,8 +395,9 @@ export const mist: SpookySection = {
     m.slams = SLAMS.map(([x]) => solid(state, x - 12, -99999, 24, HALL, { hidden: true, tag: 'mist-slam' }));
     m.fire = solid(state, FIRE_DOOR - 14, -99999, 28, HALL, { hidden: true, tag: 'mist-fire' });
   },
-  update: (ctx, controls) => {
+  update: (ctx, controls0) => {
     const { state } = ctx, m = mistOf(state);
+    const controls = updateLadders(ctx, LADDERS, controls0);
     // (the checkpoint's only known once the stage is built: back past the top, it's over)
     if (!m.init) { m.init = true; if (done(state)) { m.mist = 'done'; m.told = true; m.gary.state = 'gone'; } }
     if (runExits(state, EXITS())) return controls;
@@ -397,7 +407,8 @@ export const mist: SpookySection = {
     return controls;
   },
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#0E0404'); return true; },
-  drawBack: (c, state) => drawHall(c, state, mistOf(state)),
+  drawBack: (c, state) => { drawHall(c, state, mistOf(state)); drawLadders(c, state, LADDERS); },
+  cameraRow: (state) => (onLadder(state) ? 470 : undefined),
   drawFront: (c, state) => {
     const m = mistOf(state);
     drawMist(c, state, m);

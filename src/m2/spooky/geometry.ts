@@ -30,7 +30,7 @@ export const SECTIONS = {
    *  bedroom, more), absurdly spacious. */
   castle: { x0: SX + 14000, x1: SX + 26000 },
   /** The dungeon: the spiked ceiling that drops (and here it hurts). */
-  dungeon: { x0: SX + 28000, x1: SX + 31000 },
+  dungeon: { x0: SX + 28000, x1: SX + 32600 },
   /** The red-mist hallway: long, winding, vertical; the mist after him (it kills outright). */
   mist: { x0: SX + 34000, x1: SX + 40000 },
   /** The ELEVATOR TO HELL loading bay, then the clock tower climb: support beams to charge out, the wobble, the
@@ -51,7 +51,9 @@ export const SECTION_ORDER: SpookyId[] = ['town', 'castle', 'dungeon', 'mist', '
  *  into each one from the one before it (start), and coming back into it from the one after it (end). Feet (x, y). */
 export const DOORS: Record<SpookyId, { start: { x: number; y: number }; end: { x: number; y: number } }> = {
   town: { start: { x: SECTIONS.town.x0 + 200, y: GY }, end: { x: SECTIONS.town.x1 - 250, y: GY - 600 } },
-  castle: { start: { x: SECTIONS.castle.x0 + 200, y: GY }, end: { x: SECTIONS.castle.x1 - 250, y: GY } },
+  // (castle: back up from the dungeon on the staff lift, he's put in the gallery just short of the trapdoor he fell
+  // through: castle/layout.ts TRAPDOOR)
+  castle: { start: { x: SECTIONS.castle.x0 + 200, y: GY }, end: { x: SECTIONS.castle.x1 - 480, y: GY } },
   dungeon: { start: { x: SECTIONS.dungeon.x0 + 200, y: GY }, end: { x: SECTIONS.dungeon.x1 - 250, y: GY } },
   // (mist: back from the loading bay, he's put at the top of the hallway, by its LOADING BAY door: mist/index.ts)
   mist: { start: { x: SECTIONS.mist.x0 + 200, y: GY }, end: { x: SECTIONS.mist.x0 + 4950, y: GY - 2400 } },

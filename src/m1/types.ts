@@ -240,6 +240,12 @@ export interface Player extends Entity {
   /** Frames since he was last on the ground. */
   offGround?: number;
   vine?: { mode: 'hang' | 'climb' | 'zipUp' | 'zipDown' | 'push'; th: number; om: number };
+  /** On a ladder (Meathead 2's, src/m2/moves/ladders.ts): set along with `vine` (hanging there, mode 'hang', th 0, so
+   * everything that works one-handed off a vine works off a ladder: the shots, the muzzle, the weapons' own vine
+   * ways), and this for his poses on it: turned out to shoot ('hang'), climbing hand over hand, the rush up it, the
+   * slide down it. `up`: how far his feet are up it from its foot; `rung`: the rungs' spacing (his hands and feet go on
+   * them); `reach`: how far up from his feet the rails go (his hands go no higher); `shove`: 0..1, his shoulder bounced off it (the charge he can't do on one). */
+  ladder?: { mode: 'hang' | 'climb' | 'rush' | 'slide'; up: number; rung: number; reach: number; shove?: number };
   /** Something he's doing takes him off the vine he's on (Meathead 2: the mallet's smash down, from one): let go of it. */
   dropVine?: boolean;
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */

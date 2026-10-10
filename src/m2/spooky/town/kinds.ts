@@ -26,12 +26,14 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { lookOf } from '../../adventure/temple/people';
 import { townOf, type Lobbed } from './state';
-import { HURT } from './lines';
-import { drawBat, drawCrow, drawRat, drawCat, drawGhost, drawWolfman, drawMonster, drawWitch, drawSkeleton, drawPotion, drawBone } from './kindArt';
+import { HURT, RIDE_HURT } from './lines';
+import { rollPumpkin } from './rides';
+import { X, STAIRS } from './layout';
+import { drawBat, drawCrow, drawRat, drawCat, drawGhost, drawWolfman, drawMonster, drawWitch, drawSkeleton, drawPumpkinHead, drawPotion, drawBone } from './kindArt';
 
 type Ctx = CanvasRenderingContext2D;
 
-for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
+for (const [source, l] of Object.entries({ ...HURT, ...RIDE_HURT })) registerHurtLines(source, l.hurt, l.death);
 
 const dirTo = (e: Enemy, x: number) => (x < mid(e).x ? -1 : 1) as 1 | -1;
 const tick = (e: Enemy) => (e.aiTimer = (e.aiTimer || 0) + 1);
@@ -329,7 +331,9 @@ const witch = (ctx: FrameContext, e: Enemy) => {
   const awake = sees(state, e, 640, 700);
   // Up in the air, off to one side of him (the side she's on), bobbing on the broom
   const side = m.x < p.x ? -1 : 1;
-  const tx = awake ? p.x + side * 250 - e.width / 2 : (e.homeX ?? e.pos.x);
+  // (kept to her own patch of sky: she won't follow him down the street and camp him)
+  const home = e.homeX ?? e.pos.x;
+  const tx = awake ? Math.max(home - 260, Math.min(home + 260, p.x + side * 250 - e.width / 2)) : home;
   // (as high over him as she started over the ground: never lower than that)
   const ty = Math.min(hy, (awake ? p.y - 200 : hy)) + Math.sin((state.frame + seedOf(e)) * 0.05) * 14;
   e.vel.x = Math.max(-3, Math.min(3, (tx - e.pos.x) * 0.03));
@@ -337,7 +341,7 @@ const witch = (ctx: FrameContext, e: Enemy) => {
   e.facing = dirTo(e, p.x);
   switch (e.aiState) {
     default:
-      if (awake && e.aiTimer > 110 && Math.abs(p.x - m.x) < 460) setState(e, 'cackle');
+      if (awake && e.aiTimer > 120 && Math.abs(p.x - m.x) < 420) setState(e, 'cackle');
       break;
     case 'cackle':
       e.vel.x *= 0.3; e.vel.y *= 0.3;
@@ -370,6 +374,26 @@ const skeleton = (ctx: FrameContext, e: Enemy) => {
   return false;
 };
 
+/** The pumpkin-head at the top of the stairs (a thrower): heaves a jack-o'-lantern over his head (the tell) and rolls
+ *  it down at him, as long as he's on the way up; up close, he shoves. Stop him and the pumpkins stop. */
+const pumpkinhead = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx, p = mid(state.player), m = mid(e);
+  tick(e);
+  e.facing = dirTo(e, p.x);
+  e.vel.x = 0;
+  const below = alive(state) && p.x < m.x - 60 && p.x > X(STAIRS.a0 - 300) && !holdingOff(state);
+  switch (e.aiState) {
+    default:
+      if (below && e.aiTimer > 120) setState(e, 'heave');
+      break;
+    case 'heave':
+      if (e.aiTimer === 22) rollPumpkin(state, m.x - 30);
+      if (e.aiTimer > 34) setState(e, 'idle');
+      break;
+  }
+  return false;
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 
 const flyer = (b: Enemy): Enemy => ({ ...b, enemyType: 'flyer', initialY: b.pos.y });
@@ -381,10 +405,11 @@ registerM2Kind({ kind: 'm2:town_rat', stats: { w: 30, h: 14, hp: 14, contact: 6,
 registerM2Kind({ kind: 'm2:town_cat', stats: { w: 36, h: 24, hp: 20, contact: 9, mass: 6 }, ai: cat, draw: (c, e, f) => drawCat(c, e, f), head: { x: 13, y: -18, r: 6 }, gender: 'n', grab: 'critter' });
 registerM2Kind({ kind: 'm2:town_ghost', stats: { w: 38, h: 64, hp: 60, contact: 8, mass: 180 }, ai: ghost, humanoid: true, gender: personGender, head: { x: 2, y: -54, r: 9 }, draw: (c, e, f) => drawGhost(c, e, f, seedOf(e)) });
 registerM2Kind({ kind: 'm2:town_wolfman', stats: { w: 42, h: 74, hp: 100, contact: 14, mass: 220 }, ai: wolfman, humanoid: true, gender: personGender, head: { x: 4, y: -64, r: 10 }, draw: (c, e, f) => drawWolfman(c, e, f, seedOf(e)) });
-registerM2Kind({ kind: 'm2:town_monster', stats: { w: 54, h: 94, hp: 280, contact: 12, mass: 420 }, ai: monster, humanoid: true, gender: personGender, head: { x: 2, y: -80, r: 11 }, draw: (c, e, f) => drawMonster(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:town_monster', stats: { w: 54, h: 94, hp: 280, contact: 12, mass: 420 }, ai: monster, humanoid: true, gender: personGender, head: { x: 2, y: -88, r: 11 }, draw: (c, e, f) => drawMonster(c, e, f, seedOf(e)) });
 registerM2Kind({ kind: 'm2:town_witch', stats: { w: 44, h: 56, hp: 70, contact: 10, mass: 160, air: true }, ai: witch, make: flyer, humanoid: true, gender: personGender, head: { x: 4, y: -50, r: 9 }, draw: (c, e, f) => drawWitch(c, e, f, seedOf(e)) });
 registerM2Kind({
   kind: 'm2:town_skeleton', stats: { w: 48, h: 68, hp: 170, contact: 9, mass: 260 }, ai: skeleton, humanoid: true, gender: personGender, head: { x: 2, y: -60, r: 9 },
   make: b => ({ ...b, enemyType: 'shield', isShieldActive: true, shootTimer: 60 }),
   draw: (c, e, f) => drawSkeleton(c, e, f, seedOf(e)),
 });
+registerM2Kind({ kind: 'm2:town_pumpkinhead', stats: { w: 46, h: 80, hp: 120, contact: 9, mass: 240 }, ai: pumpkinhead, humanoid: true, gender: personGender, head: { x: 0, y: -66, r: 14 }, draw: (c, e, f) => drawPumpkinHead(c, e, f, seedOf(e)) });

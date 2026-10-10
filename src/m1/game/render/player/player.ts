@@ -1,5 +1,6 @@
 import { Player, WeaponType } from '../../../types';
 import { drawFilthShield } from './filthShield';
+import { drawLadderBackArm, drawLadderLegs, drawLadderGunArm } from './ladder';
 import { drawRemains } from './remains';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
@@ -129,6 +130,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Hanging off a vine by one hand (the gun in the other): its own poses, the push among them (not the charge's)
   const vine = p.vine && hurtT < 0 && !p.headless ? p.vine : null;
   const vineMode = vine?.mode;
+  // (on a ladder, Meathead 2's: he's on a vine, hanging, as far as everything else knows; these are his poses on it)
+  const ladder = vine && p.ladder ? p.ladder : null;
   // On skis: a racer's crouch going along (knees bent, leaning into it, the off arm back for balance), knees tucked up
   // in the air, and right down in an egg tuck ducking
   const isSki = !!p.skiing && !p.jetski && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking;
@@ -255,11 +258,12 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const GRIP: [number, number] = [vineGrip(p).x, vineGrip(p).y];
   // (mid-move with what's in his free hand, a swing or a cast: that arm the weapon's own way, level from the shoulder)
   // (not mid push or quick climb: those have the arm)
-  const vineArm = vine && !isCharging && !isUppercutting && !isDivekicking ? customWeapon(currentWeapon)?.vineArm?.(state) ?? null : null;
+  const vineArm = vine && !isCharging && !isUppercutting && !isDivekicking && (!ladder || ladder.mode === 'hang') ? customWeapon(currentWeapon)?.vineArm?.(state) ?? null : null;
   if (vine) {
     // Along the vine, a bit behind it (his weight lags the swing); leaning into the push, tucked in a quick climb
-    bodyRot = vineLean(p);
-    bodyY = vineMode === 'climb' ? Math.sin(animFrame * 0.3) * 2.5 : 0;
+    // (on a ladder: upright, his hands and feet on the rungs; leaning in, his shoulder bounced off it)
+    bodyRot = ladder ? (ladder.shove ?? 0) * 0.2 : vineLean(p);
+    bodyY = vineMode === 'climb' && !ladder ? Math.sin(animFrame * 0.3) * 2.5 : 0;
   } else if (p.stabbed) {
     // Held on the knife: hunched round it, up on his toes; at each stab he doubles over and jerks, then sags back
     const st = p.stabbed;
@@ -359,7 +363,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   let freeArm: (() => void) | null = null;
   // ==========================================
   ctx.save();
-  if (vine) {
+  if (ladder) {
+    drawLadderBackArm(ctx, ladder, animFrame);
+    if (vineArm) { ctx.save(); ctx.translate(VINE_SHOULDER.x, VINE_SHOULDER.y); ctx.rotate(-bodyRot); ctx.translate(-VINE_SHOULDER.x, -VINE_SHOULDER.y); vineArm(ctx, animFrame, 14, -45, true); ctx.restore(); }
+  } else if (vine) {
     // Up over his head, the fist round the vine (climbing: hand over hand, the arm hauling him up to it and reaching
     // again; in a quick climb, yanking; sliding down, clamped on, the rope smoking in his fist)
     const ph = animFrame * 0.3;
@@ -511,7 +518,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // LAYER 2: LEGS & BOOTS
   // ==========================================
   ctx.save();
-  if (vine) {
+  if (ladder) {
+    drawLadderLegs(ctx, ladder);
+  } else if (vine) {
     const sway = Math.max(-0.5, Math.min(0.5, -vine.om * 6 * p.facing));
     if (vineMode === 'climb') {
       // Shinning up it: the knees coming up in turn, the boots clamping
@@ -992,7 +1001,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // LAYER 6: LEAD ARM (Main Arm & Weapon)
   // ==========================================
   ctx.save();
-  if (surf) {
+  if (ladder && ladder.mode !== 'hang') {
+    // On a ladder, climbing or sliding: the fist on a rung, the gun still in it, pointed up
+    drawLadderGunArm(ctx, ladder, animFrame, c => { if (!isUnarmed && !outOfRocks(p, currentWeapon)) drawHeldWeapon(c, currentWeapon, 0, 0, 0, animFrame); });
+  } else if (surf) {
     // Surfing: lead arm out in front, up a bit, throwing a shaka (thumb and little finger out)
     // (from the shoulder at the side of his chest, crouched as he is: the arm goes out and up past his face, not over it)
     ctx.fillStyle = skinTone;

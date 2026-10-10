@@ -126,9 +126,9 @@ const App2: React.FC = () => {
   const scale = useFitToWindow();
   const ui = useSyncExternalStore(subscribeUi, getUi);
   // (it starts on the way in: the intro; in dev, ?adv=<checkpoint> starts in Adventure Land, ?spooky=<checkpoint> in
-  // Spooky Land, ?hub=<spot> at the hub)
+  // Spooky Land, ?hub=<spot> at the hub, ?pen in the staff room)
   const devQ = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
-  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('hub') ? HUB_STAGE : INTRO_STAGE;
+  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : INTRO_STAGE;
   const [stage, setStage] = useState(first);
   const [status, setStatus] = useState(GameStatus.START);
   const pending = useRef<string | null>(first);

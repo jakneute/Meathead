@@ -100,11 +100,52 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
 };
 
+/** Bucked sky-high off the skeleton pony (once). */
+export const PONY_LAUNCHED = ['WHOA! BAD HORSE! DEAD HORSE! BAD DEAD HORSE!', "IT THREW ME! A QUARTER'S WORTH OF RODEO!"];
+/** Riding the ghost train over the moat (once). */
+export const TRAIN_RIDE = ['ALL ABOARD. ONE TODDLER, EXTRA LARGE.', 'CHOO CHOO, MOTHERFUCKERS.'];
+/** The pumpkin-head at the top of the stairs, first seen rolling them (once). */
+export const PUMPKINS_SEEN = ["HE'S BOWLING JACK-O'-LANTERNS AT ME. DOWN THE STAIRS. AT A THEME PARK."];
+
+/** The rides themselves (and the stairs' pumpkins), when they hurt him. */
+export const RIDE_HURT: Record<string, { hurt: string[]; death: string[] }> = {
+  'm2:town_cups': {
+    hurt: ['THE COFFIN HIT ME! THE TEACUP COFFIN HIT ME!', 'WATCH WHERE YOU SPIN!', 'RUN OVER BY A KIDDIE RIDE!'],
+    death: ['RUN DOWN BY A SPINNING TEACUP', 'THE COFFIN FINALLY GOT ITS OCCUPANT'],
+  },
+  'm2:town_carousel': {
+    hurt: ['A FIBERGLASS BAT TO THE FACE!', 'THE CAROUSEL SHOVED ME!', 'THESE BATS HAVE KIDS ON THEM AND THEY STILL HIT HARDER THAN THE REAL ONES!'],
+    death: ['TRAMPLED BY A MERRY-GO-ROUND', 'WENT ROUND AND ROUND. THEN DOWN.'],
+  },
+  'm2:town_train': {
+    hurt: ['HIT BY A TRAIN! A BABY TRAIN!', 'IT HAS A PACIFIER AND IT HIT ME!', 'TOOT TOOT MY ASS!'],
+    death: ['HIT BY A TRAIN FOR TODDLERS', "THE LI'L GHOST TRAIN CLAIMED ITS FIRST SOUL"],
+  },
+  'm2:town_drop': {
+    hurt: ['THE DROP TOWER LANDED ON ME!', 'SIX FEET OF DOOM, RIGHT ON MY HEAD!', 'I WAS UNDER IT! WHY WAS I UNDER IT?!'],
+    death: ['CRUSHED BY A SIX FOOT DROP', 'DOOM, MINI'],
+  },
+  'm2:town_pony': {
+    hurt: ['IT KICKED ME! THE DEAD HORSE KICKED ME!', 'RIGHT IN THE NUTS! FROM A SKELETON!', "THAT'S A QUARTER I'M NEVER GETTING BACK!"],
+    death: ['KICKED TO DEATH BY A DEAD HORSE', 'BEAT A DEAD HORSE. IT BEAT HIM BACK.'],
+  },
+  'm2:town_pumpkin': {
+    hurt: ["A PUMPKIN! A WHOLE DAMN PUMPKIN!", 'STRIKE! I AM THE PINS!', 'PIE FILLING! IN MY EYES!'],
+    death: ["BOWLED OVER BY A JACK-O'-LANTERN", 'SMASHED LIKE A PUMPKIN ON NOVEMBER FIRST'],
+  },
+  'm2:town_pumpkinhead': {
+    hurt: ["PUMPKIN HEAD HIT ME! HE CAN'T EVEN SEE OUT OF THAT!", 'GET YOUR GOURD OUT OF MY FACE!', 'THAT HEAD SMELLS LIKE A COMPOST BIN!'],
+    death: ['BEATEN BY A MAN WITH A GOURD FOR A HEAD', 'CARVED UP BY A PUMPKIN'],
+  },
+};
+
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...ARRIVE, ...ELEVATOR_SEEN, ...ELEVATOR_AGAIN, ...STAIRS,
     ...Object.values(RIDE_LINES).flat(),
+    ...PONY_LAUNCHED, ...TRAIN_RIDE, ...PUMPKINS_SEEN,
     ...Object.values(HURT).flatMap(h => h.hurt),
+    ...Object.values(RIDE_HURT).flatMap(h => h.hurt),
   ],
-  death: Object.values(HURT).flatMap(h => h.death),
+  death: [...Object.values(HURT).flatMap(h => h.death), ...Object.values(RIDE_HURT).flatMap(h => h.death)],
 };

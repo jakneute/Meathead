@@ -23,7 +23,10 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { SpookySection } from '../section';
-import { layOwn, endWalls, endExits, runExits, solid, ledge, getSpooky } from '../section';
+import { layOwn, endWalls, endExits, runExits, solid, ledge, getSpooky, teleport, meatheadSays } from '../section';
+import { DOORS, SECTIONS } from '../geometry';
+import { dropIn } from '../dungeon/drop';
+import { updateLadders, drawLadders, onLadder, type LadderDef } from '../../moves/ladders';
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
@@ -35,12 +38,18 @@ import { box } from '../section';
 import { spookyState } from '../section';
 import { spawnStaff, STAFF } from './staff';
 import { paStory, paQuip, paBusy, pick, byPants, drawPaWords } from './pa';
-import { drawCastleBack, drawBooks, drawStoveFire, castleLighting } from './art';
+import { drawCastleBack, drawBooks, drawStoveFire, drawBallPit, castleLighting } from './art';
 import {
   x0, x1, ROOMS, roomAt, CEIL, LEDGES, STOVES, STOVE_TOP, BURNERS, stovePhase, FIRE_H, STOVE_CYCLE, STOVE_FIRE, BED, BOUNCE, CHANDELIERS, CHAND_Y, CHAND_W, CHAND_TELL,
-  BOOKCASES, BOOK_EVERY, BOOK_TELL, TRAIN, WARDROBES, HORNS, CAST, PICKUPS, type Castle,
+  BOOKCASES, BOOK_EVERY, BOOK_TELL, TRAIN, WARDROBES, HORNS, CAST, PICKUPS, TRAPDOOR, BALLPIT, TRAP_CREAK, TRAP_WAIT, type Castle,
 } from './layout';
 import * as L from './lines';
+
+/** The study's library ladders: up to the reading balcony, and from it up to the top shelf (the health up there). */
+const LADDERS: LadderDef[] = [
+  { x: ROOMS[2].a + 645, top: GY - 340, bottom: GY, ledge: { x: ROOMS[2].a + 690, y: GY - 340 } },
+  { x: ROOMS[2].a + 1170, top: GY - 450, bottom: GY - 340, ledge: { x: ROOMS[2].a + 1240, y: GY - 450 } },
+];
 
 registerHurtLines('spooky_chandelier', L.HURT_CHANDELIER, L.DEATH_CHANDELIER);
 registerHurtLines('spooky_books', L.HURT_BOOKS, L.DEATH_BOOKS);
@@ -54,6 +63,7 @@ export { HORNS };
 const castleOf = (state: GameState) => spookyState<Castle>(state, 'castle', () => ({
   init: false, told: new Set(), chand: [], books: [], shelfT: BOOKCASES.map((_, i) => BOOK_EVERY - i * 50), stoveT: 0,
   train: { x: TRAIN.a + 200, dir: 1, bell: 0 }, wardrobe: WARDROBES.map(() => false), underBed: false, kills: 0, quipAt: -9999, doorShut: 0,
+  trap: 'shut', trapT: 0, trapBlock: null, trapSaid: false,
 }));
 
 /** The stories he's heard, kept across his deaths (no hearing the dining room's again every time he dies in the study);
@@ -191,6 +201,36 @@ const runTrain = (ctx: FrameContext, cs: Castle) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The trapdoor: on it, the floor creaks and its seam opens up (and the PA gloats); then it drops open, and he's down
+// the shaft into the dungeon's cells. (Back up the staff lift, it's hanging open, a SORRY sign on it.)
+
+const openTrap = (cs: Castle) => { cs.trap = 'open'; if (cs.trapBlock) cs.trapBlock.y = -99999; };
+const runTrapdoor = (ctx: FrameContext, cs: Castle) => {
+  const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  const on = cx > TRAPDOOR.a && cx < TRAPDOOR.b;
+  if (cs.trap === 'shut' && on && p.isGrounded && p.health > 0) {
+    cs.trap = 'creak'; cs.trapT = 0; cs.trapSaid = false;
+    playSound('crack', 0.9, -8); shakeScreen(state, 3, 2);
+    // (the PA's gloat: it goes when he's done (or after a while, whatever he's saying))
+    paStory(state, [pick(byPants(state, L.PA_TRAPDOOR))]);
+  } else if (cs.trap === 'creak') {
+    cs.trapT++;
+    if (cs.trapT % 12 === 0) { playSound('crack', 0.4, -10 + (cs.trapT % 5)); state.particles.push({ pos: { x: TRAPDOOR.a + Math.random() * (TRAPDOOR.b - TRAPDOOR.a), y: GY + 2 }, vel: { x: 0, y: -0.6 }, life: 30, color: '#A8A29E', size: 3 }); }
+    if (cs.trapT > TRAP_CREAK && (!paBusy(state) || cs.trapT > TRAP_WAIT)) {
+      openTrap(cs); playSound('crash', 0.9, -8); playSound('clang', 0.8, -10); shakeScreen(state, 8, 4);
+      for (let k = 0; k < 16; k++) state.particles.push({ pos: { x: TRAPDOOR.a + Math.random() * (TRAPDOOR.b - TRAPDOOR.a), y: GY }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 3 }, life: 40, color: k % 2 ? '#6B4423' : '#A8A29E', size: 3 + Math.random() * 3 });
+    }
+  }
+  // Down the shaft: his line on the way, and out the bottom into the dungeon's cells
+  if (cs.trap === 'open' && on && feet > GY + 20 && !cs.trapSaid) { cs.trapSaid = true; if (!paBusy(state)) meatheadSays(state, pick(L.MH_FALL), false); }
+  if (on && feet > GY + 240) {
+    teleport(state, SECTIONS.dungeon.x0 + 360, GY - 470);
+    state.player.vel.y = 6;
+    dropIn.on = true;
+    return true;
+  }
+  return false;
+};
 
 export const castle: SpookySection = {
   id: 'castle', x0, x1,
@@ -203,7 +243,12 @@ export const castle: SpookySection = {
   build: (state) => {
     // (back at the start of the land: the tour's all fresh)
     if (state.checkpoint < 10) heard.clear();
-    layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'wood' }]);
+    // (the floor, either side of the trapdoor; the trapdoor itself a block that goes when it opens)
+    layOwn(state, [
+      { x1: x0 - 200, y1: GY, x2: BALLPIT.a, y2: GY, surface: 'wood' }, { x1: BALLPIT.b, y1: GY, x2: TRAPDOOR.a, y2: GY, surface: 'wood' },
+      { x1: TRAPDOOR.b, y1: GY, x2: x1 + 200, y2: GY, surface: 'wood' },
+    ]);
+    solid(state, BALLPIT.a, GY + BALLPIT.depth, BALLPIT.b - BALLPIT.a, 200, { hidden: true, tag: 'castle-ballpit' });
     endWalls(state, 'castle');
     solid(state, x0 - 200, CEIL - 60, x1 - x0 + 400, 60, { hidden: true, tag: 'castle-ceiling' });
     // (the witch's hearth is stone: solid; the rest jump-through)
@@ -213,31 +258,41 @@ export const castle: SpookySection = {
     CAST.forEach(([kind, x, y], i) => spawnStaff(state, kind, x, y, i));
     for (const [x, y, type] of PICKUPS) state.pickups.push({ id: `castle-${x}`, pos: { x: x - 10, y: y - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
     const cs = castleOf(state);
+    cs.trapBlock = solid(state, TRAPDOOR.a, GY, TRAPDOOR.b - TRAPDOOR.a, 40, { hidden: true, tag: 'castle-trapdoor' });
     cs.chand = CHANDELIERS.map(x => ({ x, y: CHAND_Y, vy: 0, state: 'hang', t: 0 }));
   },
-  update: (ctx, controls) => {
+  update: (ctx, controls0) => {
     const { state } = ctx;
     const cs = castleOf(state);
+    const controls = updateLadders(ctx, LADDERS, controls0);
     if (!cs.init) {
       // (starting further in (the checkpoint's only known once the stage is built): the rooms behind him have had their say)
       cs.init = true;
       const from = state.checkpoint >= 20 ? Infinity : castle.checkpoints.find(c => c.cp === state.checkpoint)?.x ?? -Infinity;
       for (const r of ROOMS) if (r.b <= from) heard.add(r.id);
+      // (been down it before: it's hanging open)
+      if (state.checkpoint >= 20) openTrap(cs);
     }
-    if (runExits(state, endExits('castle'))) return controls;
+    // (the way back out to the stairs; the way on is the trapdoor)
+    if (runExits(state, endExits('castle').filter(e => e.to === DOORS.town.end))) return controls;
+    if (runTrapdoor(ctx, cs)) return controls;
     runTour(state, cs);
     runChandeliers(ctx, cs);
     runBooks(ctx, cs);
     runStoves(ctx, cs);
     runBed(ctx, cs);
     runTrain(ctx, cs);
+    // (wading the ball pit: slow going, the balls flying)
+    { const p = state.player, cx = p.pos.x + p.width / 2; if (cx > BALLPIT.a && cx < BALLPIT.b && p.pos.y + p.height > GY + 8) { p.vel.x *= 0.8; if (Math.abs(p.vel.x) > 0.5 && state.frame % 6 === 0) { state.particles.push({ pos: { x: cx, y: GY }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 2 }, life: 30, color: ['#EF4444', '#3B82F6', '#FACC15', '#22C55E'][state.frame % 4], size: 5, grav: 0.3 }); playSound('clink', 0.2, 8); } } }
     return controls;
   },
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#140608'); return true; },
-  drawBack: (c, state) => drawCastleBack(c, state, castleOf(state)),
+  drawBack: (c, state) => { drawCastleBack(c, state, castleOf(state)); drawLadders(c, state, LADDERS); },
+  cameraRow: (state) => (onLadder(state) ? 470 : undefined),
   drawFront: (c, state) => {
     const cs = castleOf(state);
     drawStoveFire(c, state, cs);
+    drawBallPit(c, state);
     drawBooks(c, cs);
     if (getSpooky(state)?.section === 'castle') drawPaWords(c, state, HORNS);
   },
