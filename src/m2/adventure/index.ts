@@ -9,7 +9,7 @@ import type { Enemy } from '../../m1/types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { NO_CONTROLS } from '../../m1/game/platform/input';
 import { todLight } from '../timeOfDay';
-import { setUi, isLeaving, arrived, carryGut, takeGut } from '../store';
+import { setUi, isLeaving, arrived, carryGut, takeGut, takeStartCheckpoint } from '../store';
 import { stopWeapons } from '../weapons';
 import { createGrab, updateGrab, drawGrab, type Grab } from '../moves/grab';
 import { SECTIONS, SECTION_ORDER, type SectionId } from './geometry';
@@ -60,6 +60,8 @@ export const advLayout: StageLayout = {
     state.stage = adv;
     for (const id of SECTION_ORDER) ALL[id].build(state);
     // (back from dying: at the checkpoint he'd got to)
+    // (the checkpoint-skip cheat: where he picked to start, the first time in)
+    { const pick = takeStartCheckpoint(); if (pick !== null) state.checkpoint = pick; }
     // (in dev, ?adv=<checkpoint> starts there, the first time)
     if (import.meta.env.DEV && !devStarted) { devStarted = true; const q = new URLSearchParams(location.search).get('adv'); if (q) state.checkpoint = +q; }
     const cp = ADV_CHECKPOINTS.find(c => c.cp === state.checkpoint) ?? ADV_CHECKPOINTS[0];

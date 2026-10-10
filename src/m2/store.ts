@@ -17,6 +17,8 @@ export interface M2Ui {
   introAhead?: number | null;
   introTicket?: 'clean' | 'shitty' | 'nude' | null;
   introCutscene?: boolean;
+  /** (the checkpoint-skip cheat) A land picked on the map: where in it to start, being asked. */
+  pick?: string | null;
   /** (the hub) At the way back out to America USA. */
   nearAmerica?: boolean;
   /** Where he is, for the HUD's and the pause menu's look (hudThemes.tsx). */
@@ -90,3 +92,8 @@ export const ownsWeapon = (w: import('../m1/types').WeaponType) => w === 'GUN' |
 let bossKill = false;
 export const noteBossKill = () => { bossKill = true; };
 export const takeBossKill = () => { const k = bossKill; bossKill = false; return k; };
+
+/** (the checkpoint-skip cheat) Where in the land he's going into to start: taken once, by the land, as it's built. */
+let startCheckpoint: number | null = null;
+export const setStartCheckpoint = (cp: number | null) => { startCheckpoint = cp; };
+export const takeStartCheckpoint = () => { const cp = startCheckpoint; startCheckpoint = null; return cp; };

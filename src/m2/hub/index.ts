@@ -12,7 +12,8 @@ import { LANDS, SPOTS, STAFF_SLOT, AMERICA_SLOT, HUB_SLOTS, landAt } from './lan
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
 import { AMERICA_DENY } from '../lines/hubLines';
-import { setUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
+import { getCheats } from '../cheats';
+import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
 import { stopWeapons } from '../weapons';
 import { pollM2, pressed } from '../input';
 import { drawHubBackdrop, drawHubBack, drawHubFront, drawHubLampGlow } from './draw';
@@ -75,12 +76,16 @@ export const hubLayout: StageLayout = {
     for (let i = 0; i < HUB_SLOTS; i++) if (SPOTS[i].kind !== 'america' && Math.abs(at - slotX(i)) < (i === STAFF_SLOT ? 46 : 90) && p.isGrounded) near = i;
     // (the way back out to America USA: he's having none of it)
     const nearAmerica = Math.abs(at - slotX(AMERICA_SLOT)) < 90 && p.isGrounded;
+    // (asked where in the land to start: nothing else till that's answered)
+    if (getUi().pick) { p.vel.x = 0; return { ...NO_CONTROLS }; }
     // The map's up: nothing else till it's dealt with
     if (hub.map !== null) {
       p.vel.x = 0;
       if (pressed('ok')) {
         const land = LANDS[hub.map];
-        if (land.open) goTo(land.id);
+        // (the checkpoint-skip cheat: where in it to start, asked first)
+        if (land.open && getCheats().skip) setUi({ pick: land.id });
+        else if (land.open) goTo(land.id);
         else { setUi({ notice: { text: `${land.name}: COMING SOON`, at: performance.now() } }); playMenuBack(); }
         hub.map = null;
       } else if (pressed('back')) { hub.map = null; playMenuBack(); }

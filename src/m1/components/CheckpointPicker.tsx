@@ -7,8 +7,9 @@ import { Prompt } from './ButtonIcons';
 /** The skip-level cheat's picker: which checkpoint of the stage to start at (or straight to the boss). */
 export type StartAt = number | 'boss';
 
-const CheckpointPicker: React.FC<{ stageId: string; onPick: (at: StartAt) => void; onCancel: () => void }> = ({ stageId, onPick, onCancel }) => {
-  const items: { label: string; at: StartAt }[] = [...stageCheckpoints(stageId).map((c, k) => ({ label: `${k + 1}. ${c.name}`, at: c.cp as StartAt })), { label: 'THE BOSS', at: 'boss' }];
+/** `list`: the places to start from, if not the stage's own checkpoints (a game's own: Meathead 2's lands). */
+const CheckpointPicker: React.FC<{ stageId: string; onPick: (at: StartAt) => void; onCancel: () => void; list?: { label: string; at: StartAt }[] }> = ({ stageId, onPick, onCancel, list }) => {
+  const items: { label: string; at: StartAt }[] = list ?? [...stageCheckpoints(stageId).map((c, k) => ({ label: `${k + 1}. ${c.name}`, at: c.cp as StartAt })), { label: 'THE BOSS', at: 'boss' }];
   const [i, setI] = useState(0);
   useCursorSound(i);
   const ref = useRef({ i, items, onPick, onCancel });

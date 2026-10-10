@@ -24,7 +24,7 @@ import voicePackUrl from './generated/voices.bin?url';
 import { registerStageLayout } from '../m1/game/stages/index';
 import { hubLayout, HUB_STAGE, setHubStart } from './hub/index';
 import { penLayout, PEN_STAGE } from './pen/index';
-import { advLayout, ADV_STAGE } from './adventure/index';
+import { advLayout, ADV_STAGE, ADV_CHECKPOINTS } from './adventure/index';
 import { SPOTS, LANDS } from './hub/lands';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
 import { setGenderOf, unpaired } from '../m1/content/gender';
@@ -36,12 +36,13 @@ import { clearSkyCache } from './intro/art/sky';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill } from './store';
+import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint } from './store';
 import { getCheats, subscribeCheats, availableWeapons, subscribeArsenal, setLiveState, cheatPanelOpen, setCheatPanelOpen, moveCheatCursor, activateCheat } from './cheats';
 import { attachM2Keys } from './input';
 import { setFireKeys } from '../m1/game/platform/input';
 import { setRayGun } from '../m1/game/combat/rayGun';
 import MapCard from './hub/MapCard';
+import CheckpointPicker from '../m1/components/CheckpointPicker';
 import ChordPrompt from './ChordPrompt';
 import { registerKillLines, m2Kill } from './moves/killLines';
 import { cleanLines } from './lines/clean';
@@ -343,6 +344,13 @@ const App2: React.FC = () => {
         )}
         {ui.introTicket && <TicketCard kind={ui.introTicket} />}
         {ui.map !== null && <MapCard land={ui.map} />}
+        {/* (the checkpoint-skip cheat: where in the land to start) */}
+        {ui.pick && (
+          <CheckpointPicker stageId={LANDS.find(l => l.id === ui.pick)?.name ?? ui.pick}
+            list={ADV_CHECKPOINTS.map((c, k) => ({ label: `${k + 1}. ${c.name}`, at: c.cp }))}
+            onCancel={() => setUi({ pick: null })}
+            onPick={at => { const id = ui.pick!; setUi({ pick: null }); setStartCheckpoint(typeof at === 'number' ? at : ADV_CHECKPOINTS[ADV_CHECKPOINTS.length - 1].cp); goTo(id); }} />
+        )}
         {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
         {status === GameStatus.PAUSED && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch}

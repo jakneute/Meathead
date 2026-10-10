@@ -8,8 +8,8 @@ import { ownsWeapon, subscribeProgress } from './store';
 import { setTimeOfDayOverride, timeOfDayOverride } from './timeOfDay';
 import { clearSkyCache } from './intro/art/sky';
 
-export interface M2Cheats { god: boolean; ammo: boolean; allWeapons: boolean }
-let cheats: M2Cheats = { god: false, ammo: false, allWeapons: false };
+export interface M2Cheats { god: boolean; ammo: boolean; allWeapons: boolean; skip: boolean }
+let cheats: M2Cheats = { god: false, ammo: false, allWeapons: false, skip: false };
 const listeners = new Set<() => void>();
 /** (a fresh copy each time, so whatever's showing them redraws: the pants and the hour too) */
 const ping = () => { cheats = { ...cheats }; listeners.forEach(l => l()); };
@@ -54,7 +54,7 @@ export const todNow = () => { const v = timeOfDayOverride(); return v === null ?
  */
 let panelOpen = false;
 /** The panel's rows, in order, and what's along each. */
-export const CHEAT_ROWS = ['god', 'ammo', 'allWeapons', 'pants', 'tod', 'done'] as const;
+export const CHEAT_ROWS = ['god', 'ammo', 'allWeapons', 'skip', 'pants', 'tod', 'done'] as const;
 export type CheatRow = typeof CHEAT_ROWS[number];
 const rowLength = (r: CheatRow) => (r === 'pants' ? 3 : r === 'tod' ? 11 : r === 'done' ? 1 : 2);
 let cursor = { row: 0, col: 0 };
@@ -69,7 +69,7 @@ export const setCheatPanelOpen = (open: boolean) => {
 };
 /** What's set in a row, as its column (so moving onto a row puts the cursor on its current choice). */
 const colOf = (r: CheatRow) =>
-  r === 'god' ? (cheats.god ? 0 : 1) : r === 'ammo' ? (cheats.ammo ? 0 : 1) : r === 'allWeapons' ? (cheats.allWeapons ? 0 : 1)
+  r === 'god' ? (cheats.god ? 0 : 1) : r === 'ammo' ? (cheats.ammo ? 0 : 1) : r === 'allWeapons' ? (cheats.allWeapons ? 0 : 1) : r === 'skip' ? (cheats.skip ? 0 : 1)
     : r === 'pants' ? ['normal', 'shitty', 'naked'].indexOf(pantsNow()) : r === 'tod' ? (todNow() === null ? 0 : todNow()! + 1) : 0;
 export const moveCheatCursor = (dx: number, dy: number) => {
   if (dy) { const row = (cursor.row + dy + CHEAT_ROWS.length) % CHEAT_ROWS.length; cursor = { row, col: colOf(CHEAT_ROWS[row]) }; }
@@ -79,7 +79,7 @@ export const moveCheatCursor = (dx: number, dy: number) => {
 /** Confirm: set what the cursor's on (DONE: shut the panel). */
 export const activateCheat = () => {
   const r = CHEAT_ROWS[cursor.row], c = cursor.col;
-  if (r === 'god' || r === 'ammo' || r === 'allWeapons') setCheat(r, c === 0);
+  if (r === 'god' || r === 'ammo' || r === 'allWeapons' || r === 'skip') setCheat(r, c === 0);
   else if (r === 'pants') setPants((['normal', 'shitty', 'naked'] as Pants[])[c]);
   else if (r === 'tod') setTod(c === 0 ? null : c - 1);
   else setCheatPanelOpen(false);

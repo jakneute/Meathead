@@ -27,7 +27,7 @@ const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, 
       <div className="flex flex-wrap gap-[5px]">{body}</div>
     </div>
   );
-  const flag = (k: 'god' | 'ammo' | 'allWeapons') => { const r = CHEAT_ROWS.indexOf(k); return (<>
+  const flag = (k: 'god' | 'ammo' | 'allWeapons' | 'skip') => { const r = CHEAT_ROWS.indexOf(k); return (<>
     <Chip on={c[k]} at={at(r, 0)} skin={skin} w={40} onClick={() => setCheat(k, true)}>ON</Chip>
     <Chip on={!c[k]} at={at(r, 1)} skin={skin} w={40} onClick={() => setCheat(k, false)}>OFF</Chip>
   </>); };
@@ -37,13 +37,14 @@ const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, 
       {row('GOD MODE', flag('god'))}
       {row('UNLIMITED AMMO', flag('ammo'))}
       {row('ALL WEAPONS', flag('allWeapons'))}
-      {row('PANTS', (['normal', 'shitty', 'naked'] as Pants[]).map((p, i) => <Chip key={p} on={pants === p} at={at(3, i)} skin={skin} w={56} onClick={() => setPants(p)}>{p.toUpperCase()}</Chip>))}
+      {row('CHECKPOINT SKIP', flag('skip'))}
+      {row('PANTS', (['normal', 'shitty', 'naked'] as Pants[]).map((p, i) => <Chip key={p} on={pants === p} at={at(4, i)} skin={skin} w={56} onClick={() => setPants(p)}>{p.toUpperCase()}</Chip>))}
       {row('TIME OF DAY', <>
-        <Chip on={tod === null} at={at(4, 0)} skin={skin} w={40} onClick={() => setTod(null)}>AUTO</Chip>
-        {Array.from({ length: 10 }, (_, n) => <Chip key={n} on={tod === n} at={at(4, n + 1)} skin={skin} w={18} onClick={() => setTod(n)}>{n}</Chip>)}
+        <Chip on={tod === null} at={at(5, 0)} skin={skin} w={40} onClick={() => setTod(null)}>AUTO</Chip>
+        {Array.from({ length: 10 }, (_, n) => <Chip key={n} on={tod === n} at={at(5, n + 1)} skin={skin} w={18} onClick={() => setTod(n)}>{n}</Chip>)}
       </>)}
       <div className="text-[6px] tracking-wider" style={{ color: skin.muted }}>TIME OF DAY: LANDS CLEARED (0 MORNING, 9 NIGHT). AUTO FOLLOWS THE GAME.</div>
-      <div className="mt-auto"><Chip on={false} at={at(5, 0)} skin={skin} w={80} onClick={onClose}>DONE</Chip></div>
+      <div className="mt-auto"><Chip on={false} at={at(6, 0)} skin={skin} w={80} onClick={onClose}>DONE</Chip></div>
     </div>
   );
 };
