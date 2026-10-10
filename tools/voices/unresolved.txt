@@ -43,21 +43,21 @@ m2/walkAway/artie.ts:378 voice: x
 m2/walkAway/artie.ts:383 voice: x
 m2/walkAway/artie.ts:384 voice: Math.round(sx - c.measureText('LAND').width / 2)
 m2/spooky/castle/pa.ts:53 voice: line
-m2/spooky/mist/index.ts:170 voice: state
-m2/spooky/mist/index.ts:194 voice: pick(L.GARY_SCREAM)
-m2/spooky/mist/index.ts:198 voice: state
-m2/spooky/mist/index.ts:201 voice: state
-m2/spooky/hell/demon.ts:92 voice: voice('m2.demon')
+m2/spooky/mist/index.ts:179 voice: state
+m2/spooky/mist/index.ts:203 voice: pick(L.GARY_SCREAM)
+m2/spooky/mist/index.ts:207 voice: state
+m2/spooky/mist/index.ts:210 voice: state
 m2/spooky/hell/satan.ts:109 voice: SATAN_CORE
 m2/spooky/hell/satan.ts:112 voice: pick(dressedPool(state))
-m2/spooky/control/staff.ts:47 voice: voice(woman ? 'm2.spooky.clerkf' : 'm2.spooky.clerk')
-m2/spooky/control/index.ts:94 voice: pick(lines[dressed(state)])
-m2/spooky/control/index.ts:220 voice: voice('m2.donnie')
-m2/spooky/control/index.ts:230 voice: true
-m2/spooky/ballroom/fight.ts:167 voice: voice('m2.donnie')
-m2/spooky/ballroom/fight.ts:175 voice: voice('m2.satan')
-m2/spooky/ballroom/fight.ts:185 voice: pick(lines[pants()])
-m2/spooky/ballroom/fight.ts:433 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
+m2/spooky/hell/demon.ts:106 voice: voice('m2.demon')
+m2/spooky/control/staff.ts:52 voice: voice(woman ? 'm2.spooky.clerkf' : 'm2.spooky.clerk')
+m2/spooky/control/index.ts:80 voice: pick(lines[dressed(state)])
+m2/spooky/control/shop.ts:225 voice: true
+m2/spooky/control/shop.ts:232 voice: voice('m2.donnie')
+m2/spooky/ballroom/fight.ts:187 voice: voice('m2.donnie')
+m2/spooky/ballroom/fight.ts:196 voice: voice('m2.satan')
+m2/spooky/ballroom/fight.ts:206 voice: pick(lines[pants()])
+m2/spooky/ballroom/fight.ts:468 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
 m1/App.tsx:241 voice: getBossVoice(selectedStage)
 m1/App.tsx:468 name: undefined
 m1/App.tsx:469 expr: null
