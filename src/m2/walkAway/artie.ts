@@ -13,6 +13,7 @@ import {
 } from './kit';
 import { mix } from '../../m1/game/render/backdrops/core';
 import { timeOfDay, hourMix, sunAt, drawStars, drawMoon } from '../timeOfDay';
+import { noteSun } from '../sunFlare';
 
 const STONE = rampOf('#8A7766');
 const MOSS = ['#2E3A14', '#3F5219', '#56701F'];
@@ -76,6 +77,9 @@ const back = (c: Ctx, t: number, sway: number) => {
   // The sun, behind the jungle (low at sundown, high by day): stepped glow, a banded disk, the old cut-out stripes
   // across its bottom half once it's low
   const sp = sunAt(118 + sway * 0.1, 22, HOR, tod), sx = sp.x, sy = sp.y;
+  // (its glare, in this scene's own pixels (half the screen's), behind the jungle; drawWalkAway puts the lens's ghosts
+  // over the picture: sunFlare.ts)
+  noteSun(c, sx, sy, 1, 1, 0.5);
   if (sp.up > 0.02) {
     const [gr, gg, gb] = [1, 3, 5].map(i => parseInt(tod.sunGlow.slice(i, i + 2), 16));
     c.save(); c.globalAlpha = sp.up;

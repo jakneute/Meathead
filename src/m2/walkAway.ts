@@ -2,7 +2,7 @@
 // ending walk, done the SNES way). He walks in place; the world goes away behind him: the ground a Mode-7 plane
 // rolling off to the horizon under his feet, the wreck behind him shrinking as it goes (sprite scaling), the haze over
 // the fires rippling (raster wobble), the fires' palettes cycling, a banded sky, layered parallax, embers, dither, a
-// stepped vignette, letterbox bars. Across the top: NOW HEADING BACK TO HUB. Along the bottom (in the bar, nothing over
+// stepped vignette, letterbox bars. Across the top: HEADING BACK TO HUB. Along the bottom (in the bar, nothing over
 // the picture): the new weapon, what it does, the break room line, and PRESS [A] TO CONTINUE. It goes on till A.
 //
 // Each boss has its own version (walkAway/*.ts: the wreck, the time of day, the weapon, the gags). Shared: any boss
@@ -20,6 +20,7 @@ import { type Ctx, type Prop, type SceneDef, LW, LH, TOP, BOT, HOR, F, CAM_H, SP
 import { drawMeatheadFront, type Pose } from './walkAway/meathead';
 import { SAFARI_ARTIE } from './walkAway/artie';
 import { timeOfDay, multiply } from './timeOfDay';
+import { takeSun, drawSunGhosts } from './sunFlare';
 import { mix } from '../m1/game/render/backdrops/core';
 
 /** The bosses that have a walk-away (add each boss's SceneDef here). */
@@ -47,7 +48,8 @@ export interface WalkAway {
 }
 
 /** How long before A does anything (so a mashed jump off the boss's death doesn't skip it unseen). */
-const A_AFTER = 50;
+/** A few seconds of it before A takes him on (its prompt only up then). */
+const A_AFTER = 180;
 
 // Enter on the keyboard counts too (not one of the game's controls)
 let enterDown = false;
@@ -346,7 +348,7 @@ const drawScene = (c: Ctx, w: WalkAway) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The words
 
-const TITLE = 'NOW HEADING BACK TO HUB';
+const TITLE = 'HEADING BACK TO HUB';
 const TS = 20;
 let titleFill: HTMLCanvasElement | null = null;
 
@@ -484,6 +486,9 @@ export const drawWalkAway = (c: Ctx, w: WalkAway) => {
   c.scale(cw / W, ch / H);
   c.imageSmoothingEnabled = false;
   c.drawImage(lo!, 0, TOP, LW * 2, LH * 2);
+  // (the lens's ghosts, if the scene has its sun up: over the picture, inside the letterbox; sunFlare.ts)
+  const sun = takeSun();
+  if (sun) drawSunGhosts(c, sun.x, TOP + sun.y, sun.k * sun.ghosts, { x: 0, y: TOP, w: W, h: BOT - TOP });
   bar(c, 0, TOP, TOP - 2);
   bar(c, BOT, H - BOT, BOT);
   // The line under the title: where he's leaving

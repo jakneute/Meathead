@@ -25,6 +25,7 @@ import {
   x0, x1, BASE_L, BASE_R, TIER_H, TIER_IN, RY, ROOF_L, ROOF_R, HOLE_X, TILE, LINE_L, LINE_R, EXIT_X, DOOR_X, DOOR_W, DOOR_H, GUESTS,
 } from './layout';
 import { GY } from '../geometry';
+import { sunBehind } from '../../sunFlare';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -388,6 +389,8 @@ export const drawTempleBody = (c: Ctx, state: GameState, r: RoofLook) => {
   drawGround(c, state, e);
   sides(c, e);
   stamp(c, `rfFront:${r.caved ? 1 : 0}`, BASE_L - 4, RY - 4, BASE_R - BASE_L + 8, GY - RY + 8, g => fronts(g, r.caved));
+  // (the sun behind it: the lens's glare fades, sunFlare.ts)
+  sunBehind(c, (x, y) => { for (let k = 0; k < 4; k++) if (x > tierL(k) && x < tierR(k) && y > tierTop(k) && y < GY) return true; return false; });
   roofTop(c, e, r, f);
   for (const tx of TORCHES) torch(c, tx, f);
 };

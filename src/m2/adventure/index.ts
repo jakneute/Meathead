@@ -9,6 +9,7 @@ import type { Enemy } from '../../m1/types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { NO_CONTROLS } from '../../m1/game/platform/input';
 import { todLight } from '../timeOfDay';
+import { drawNotedSunFlare } from '../sunFlare';
 import { setUi, isLeaving, arrived, carryGut, takeGut, takeStartCheckpoint } from '../store';
 import { stopWeapons } from '../weapons';
 import { createGrab, updateGrab, drawGrab, type Grab } from '../moves/grab';
@@ -124,7 +125,8 @@ export const advLayout: StageLayout = {
     const adv = getAdv(state) as AdvState | null;
     if (adv) drawGrab(c, state, adv.grab);
   },
-  drawHud: (c, state) => current(state).drawHud?.(c, state),
+  // (the lens's ghosts off the sun, as outdoors as the section is (sunFlare.ts), under the section's own HUD things)
+  drawHud: (c, state) => { const sec = current(state); drawNotedSunFlare(c, sec.outdoors?.(state) ?? 0, sec.cylinder ? undefined : state); sec.drawHud?.(c, state); },
   zoom: (state) => current(state).zoom?.(state) ?? null,
   holdTick: (ctx) => current(ctx.state).holdTick?.(ctx) ?? false,
   // (a section's own lighting if it has one; else outdoors, the time of day's (timeOfDay.ts); indoors, none)

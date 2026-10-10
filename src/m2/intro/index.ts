@@ -34,6 +34,7 @@ import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/
 import { setUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
 import { stopWeapons } from '../weapons';
 import { todLight } from '../timeOfDay';
+import { drawNotedSunFlare } from '../sunFlare';
 import { CAST, type CastMember } from '../cast/people';
 import {
   TICKET_VOICE, GUARD_VOICE, GUARD_F_VOICE, PA_VOICE, GUEST_VOICE, GUEST2_VOICE, type Dressed, MEATHEAD_TICKET, MEATHEAD_PARKED, TICKET_LADY, TICKET_NEXT, TICKET_ALARM,
@@ -155,6 +156,9 @@ const speak = (voice: typeof TICKET_VOICE, text: string, set: (s: Said | null) =
 
 // ---------------------------------------------------------------------------------------------------------------
 
+/** How far out of the garage the view is (0 in it, 1 out in the open). */
+const outOfGarage = (state: GameState) => Math.max(0, Math.min(1, (state.camera.x + CANVAS_WIDTH / 2 - R(GARAGE_END)) / 300));
+
 export const introLayout: StageLayout = {
   left: X0 - 400,
   startX: R(260),
@@ -268,9 +272,11 @@ export const introLayout: StageLayout = {
   // (out of the garage it's all out in the open: the time of day's light over it (timeOfDay.ts), coming on as he
   // leaves the garage; in the garage, none)
   lighting: (state) => {
-    const k = Math.max(0, Math.min(1, (state.camera.x + CANVAS_WIDTH / 2 - R(GARAGE_END)) / 300));
+    const k = outOfGarage(state);
     return k > 0 ? todLight([], k) : null;
   },
+  // (the lens's ghosts off the sun, out in the open: sunFlare.ts)
+  drawHud: (ctx, state) => drawNotedSunFlare(ctx, outOfGarage(state), state),
   drawBack: (ctx, state) => drawIntroBack(ctx, state),
   drawFront: (ctx, state) => { drawIntroFront(ctx, state); const intro = getIntro(state); if (intro) drawGrab(ctx, state, intro.grab); },
 };

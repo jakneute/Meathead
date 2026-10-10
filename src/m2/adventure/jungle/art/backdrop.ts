@@ -6,6 +6,7 @@
 import type { GameState } from '../../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../../m1/constants';
 import { timeOfDay, farTint, skyRamp, skyAt, drawStars, drawMoon, sunAt, type TimeOfDay } from '../../../timeOfDay';
+import { noteSun } from '../../../sunFlare';
 import { stamp, bandedGradient, hazeBands, steppedGlow, pixelBlob } from '../../../intro/art/kit';
 import { type Ctx, INK, box, mix, hash, poly, clump, fern, bigLeaf, bark, LEAF, BARK } from './paint';
 
@@ -175,6 +176,8 @@ export const drawJungleBackdrop = (c: Ctx, state: GameState) => {
   drawMoon(c, 610, 90 + up * 0.04, 16, tod);
   const sun = sunAt(560, 60, 360, tod);
   if (sun.up > 0.05) steppedGlow(c, sun.x, sun.y + up * 0.04, 120, tod.sunGlow, 0.5 * sun.up, 0.0, 5);
+  // (its glare, gentle and behind the leaves: it's peeking through them, so no ghosts on the lens: sunFlare.ts)
+  noteSun(c, sun.x, sun.y + up * 0.04, 0.4, 0);
   // The far crowns, the misty trunks, the near trunks (each its own pace; lower as he climbs)
   tile(c, `jg-far-${tod.key}`, cx, 0.06, 360 - 560 + up * 0.06, 700, g => paintFar(g, tod));
   hazeBands(c, 0, 300 + up * 0.06, CANVAS_WIDTH, 80, skyAt(0.9, tod), 0, 0.18, 4);

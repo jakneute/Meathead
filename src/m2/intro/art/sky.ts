@@ -13,6 +13,7 @@ import {
   type Ctx, INK, WHITE, BLUE, box, text, sign, star, pole, mix, rampOf, dim, hash, checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, PIX,
 } from './kit';
 import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, drawStars, drawMoon } from '../../timeOfDay';
+import { noteSun } from '../../sunFlare';
 
 const W = CANVAS_WIDTH, HT = CANVAS_HEIGHT;
 
@@ -76,6 +77,8 @@ export const drawIntroBackdrop = (c: Ctx, state: GameState) => {
   const cam = state.camera.x, f = state.frame || 0;
   // (all of it, to the bottom, every frame: or whatever was there last frame shows through)
   held_(c, 'm2sky', 0, 0, W, HT, paintSky);
+  // (the sun's glare, over its disc and under the clouds; the lens's ghosts later on: sunFlare.ts)
+  { const s = sunAt(676, 64, HZ); noteSun(c, s.x, s.y); }
   drawStars(c, 0, 0, W, HZ - 20, f, cam * 0.02);
   drawMoon(c, 480, 110);
   clouds(c, cam, f, 0);

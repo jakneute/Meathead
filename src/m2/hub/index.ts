@@ -16,7 +16,8 @@ import { getCheats } from '../cheats';
 import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
 import { stopWeapons } from '../weapons';
 import { pollM2, pressed } from '../input';
-import { drawHubBackdrop, drawHubBack, drawHubFront, drawHubLampGlow } from './draw';
+import { drawHubBackdrop, drawHubBack, drawHubFront, drawHubLampGlow, HUB_HORIZON } from './draw';
+import { drawNotedSunFlare } from '../sunFlare';
 import { todLight } from '../timeOfDay';
 import { HUB, HUB_CIRC, slotX } from './geometry';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
@@ -123,11 +124,12 @@ export const hubLayout: StageLayout = {
     return hub.map !== null ? { ...NO_CONTROLS } : controls;
   },
   // (from the inside: he's walking round the inside of the ring, the far side of it facing him)
-  cylinder: () => ({ radius: HUB.radius, inside: { horizon: 330 } }),
+  cylinder: () => ({ radius: HUB.radius, inside: { horizon: HUB_HORIZON } }),
   drawBackdrop: (ctx, state) => { drawHubBackdrop(ctx, state); return true; },
   // (out in the open: the time of day's light over it (timeOfDay.ts), the lamps glowing through it after dark)
   lighting: () => todLight(),
-  drawHud: (ctx, state) => drawHubLampGlow(ctx, state, HUB.radius, 330),
+  // (the lamps' glow; the lens's ghosts off the sun: sunFlare.ts)
+  drawHud: (ctx, state) => { drawHubLampGlow(ctx, state, HUB.radius, HUB_HORIZON); drawNotedSunFlare(ctx); },
   drawBack: (ctx, state) => drawHubBack(ctx, state),
   drawFront: (ctx, state) => { drawHubFront(ctx, state); const hub = getHub(state); if (hub) drawGrab(ctx, state, hub.grab); },
 };

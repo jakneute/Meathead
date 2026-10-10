@@ -17,6 +17,7 @@ import { mix } from '../m1/game/render/backdrops/core';
 import { bandedGradient } from '../m1/game/render/pixelArt';
 import type { Light, SceneLight } from '../m1/game/render/lighting';
 import { landsCleared } from './store';
+import { noteSun } from './sunFlare';
 
 type Ctx = CanvasRenderingContext2D;
 type RGB = [number, number, number];
@@ -268,10 +269,13 @@ export const lampGlow = (tod = timeOfDay()) => tod.lamps;
 // ---------------------------------------------------------------------------------------------------------------
 // A whole sky, for a scene that's only got a plain one (a crude first pass): banded, its sun (or the moon and stars)
 
-/** The sun as the hour has it: stepped rings of glow, a banded disc (low and big and orange toward sundown). */
+/** The sun as the hour has it: stepped rings of glow, a banded disc (low and big and orange toward sundown). Screen
+ * space (it notes itself for the lens's glare: sunFlare.ts). */
 export const drawSun = (c: Ctx, x: number, y: number, r = 22, tod = timeOfDay()) => {
   const up = Math.max(0, Math.min(1, (tod.sunH + 0.12) / 0.2));
   if (up <= 0.02) return;
+  // (its glare, behind its disc; noted for the lens's ghosts over the lot later this frame: sunFlare.ts)
+  noteSun(c, x, y, 1, 1, 1, tod);
   const big = r * (1 + 0.25 * Math.max(0, 0.5 - tod.sunH));
   const [gr, gg, gb] = rgb(tod.sunGlow);
   c.save();

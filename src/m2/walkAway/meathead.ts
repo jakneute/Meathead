@@ -87,6 +87,8 @@ const leg = (c: Ctx, side: number, step: number, bob: number, p: Pose) => {
   if (side > 0) box(c, bx + bw - 1, by, 1, bh - 2, p.rim);
 };
 
+let turnLayer: HTMLCanvasElement | null = null;
+
 /** The weapon with his hands on it: drawn in its frame, the grips found, his forearms to them, his fists over it. */
 const handsAndToy = (c: Ctx, p: Pose, bob: number, grip: [[number, number], [number, number]], drawWeapon: (c: Ctx, t: number) => void, R: string[]) => {
   const cs = Math.cos(p.turn);
@@ -112,9 +114,20 @@ const handsAndToy = (c: Ctx, p: Pose, bob: number, grip: [[number, number], [num
   }
   // The toy
   c.save(); c.translate(p.wx, p.wy + bob); c.rotate(p.rot); c.scale(sx * TOY, TOY);
-  drawWeapon(c, p.t);
-  // (turned: its far side's in its own shade)
-  if (cs < 0) { c.globalCompositeOperation = 'source-atop'; c.globalAlpha = 0.22; c.fillStyle = INK; c.fillRect(-40, -30, 80, 60); }
+  if (cs >= 0 || typeof document === 'undefined') drawWeapon(c, p.t);
+  else {
+    // (turned: its far side's in its own shade. Shaded on a layer of its own, the toy alone: shading it where it's
+    // drawn would darken all that's under the box round it, him and the scene)
+    const m = c.getTransform(), cw = c.canvas.width, ch = c.canvas.height;
+    if (!turnLayer) turnLayer = document.createElement('canvas');
+    if (turnLayer.width !== cw || turnLayer.height !== ch) { turnLayer.width = cw; turnLayer.height = ch; }
+    const g = turnLayer.getContext('2d')!;
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.clearRect(0, 0, cw, ch);
+    g.setTransform(m); g.imageSmoothingEnabled = c.imageSmoothingEnabled;
+    drawWeapon(g, p.t);
+    g.globalCompositeOperation = 'source-atop'; g.globalAlpha = 0.22; g.fillStyle = INK; g.fillRect(-40, -30, 80, 60);
+    c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(turnLayer, 0, 0);
+  }
   c.restore();
   // Fists, over it
   for (const h of [a, b]) {

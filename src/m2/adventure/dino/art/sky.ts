@@ -10,6 +10,7 @@ import type { GameState } from '../../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../../m1/constants';
 import { GY } from '../../geometry';
 import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, hourMix } from '../../../timeOfDay';
+import { noteSun } from '../../../sunFlare';
 import { type Ctx, box, mix, hash, checker, bandedGradient, steppedGlow, pixelBlob, PIX } from './kit';
 import { pixelRidge } from '../../../../m1/game/render/pixelArt';
 
@@ -60,6 +61,8 @@ export const drawDinoBackdrop = (c: Ctx, state: GameState) => {
   const cam = state.camera.x, camY = state.camera.y, f = state.frame || 0;
   const tod = timeOfDay();
   put(c, 'dsky', 0, 0, W, H, paintSky);
+  // (the sun's glare, over its disc and under the clouds, the volcano in front of it; the lens's ghosts: sunFlare.ts)
+  { const s = sunAt(620, 70, HZ, tod); noteSun(c, s.x, s.y); }
   drawStars(c, 0, 0, W, HZ, f, cam * 0.02);
   drawMoon(c, 150, 92);
   clouds(c, cam, f, 0);

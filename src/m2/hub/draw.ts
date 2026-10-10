@@ -14,11 +14,14 @@ import { LANDS, SPOTS, HUB_SLOTS, type Land } from './lands';
 import { HUB, HUB_CIRC, slotX } from './geometry';
 import { drawCrowd } from './crowd';
 import { timeOfDay, skyRamp, skyTint, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, lampGlow } from '../timeOfDay';
+import { noteSun, drawSunGlare } from '../sunFlare';
 
 type Ctx = CanvasRenderingContext2D;
 const box = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
 /** Bands top to bottom through the colors. */
 const bands = (ctx: Ctx, x: number, y: number, w: number, h: number, cs: string[]) => { const bh = h / cs.length; cs.forEach((c, i) => box(ctx, x, y + i * bh, w, bh + 1, c)); };
+/** The horizon the roundabout's wall wraps round (index.ts's cylinder). */
+export const HUB_HORIZON = 330;
 const SKY = ['#4C7BE0', '#5A88E6', '#6995EB', '#7AA3EF', '#8DB1F2', '#A1BFF4', '#B7CDF4', '#CEDBF2', '#E6E3E6', '#F6E7D2'];
 
 // ---------------------------------------------------------------------------
@@ -55,6 +58,14 @@ const drawHubFar = (ctx: Ctx, state: GameState) => {
     ctx.save(); ctx.globalAlpha = sun.up;
     for (const [r, c] of [[46, '#F8E4B0'], [38, '#FBEFC6'], [30, '#FFF7DC'], [24, '#FFFDF2']] as const) { ctx.fillStyle = sunTint(c, tod); ctx.beginPath(); ctx.arc(x, sun.y, r * (1 + Math.max(0, 0.4 - tod.sunH) * 0.4), 0, Math.PI * 2); ctx.fill(); }
     ctx.restore();
+    // (its glare, drawn on the wall with it; noted for the lens's ghosts where the wall's wrap puts it on screen (as
+    // drawHubLampGlow works it out): sunFlare.ts)
+    const a = (x - state.camera.x - CANVAS_WIDTH / 2) / HUB.radius;
+    if (Math.abs(a) < 1.2) {
+      const sx = CANVAS_WIDTH / 2 + HUB.radius * Math.tan(a), sy = HUB_HORIZON + (sun.y - top - HUB_HORIZON) / Math.cos(a);
+      drawSunGlare(ctx, x, sun.y, 1, { hud: false, screen: [sx, sy] }, tod);
+      noteSun(null, sx, sy);
+    }
   });
   // Clouds drifting (flat-bottomed puffs, lit on top: by the hour)
   const cloud = [cloudTint('#E8EEF8', tod), cloudTint('#FFFFFF', tod), cloudTint('#D3DCEB', tod)];
