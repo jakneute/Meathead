@@ -53,9 +53,12 @@ export const DOORS: Record<SpookyId, { start: { x: number; y: number }; end: { x
   town: { start: { x: SECTIONS.town.x0 + 200, y: GY }, end: { x: SECTIONS.town.x1 - 250, y: GY - 600 } },
   castle: { start: { x: SECTIONS.castle.x0 + 200, y: GY }, end: { x: SECTIONS.castle.x1 - 250, y: GY } },
   dungeon: { start: { x: SECTIONS.dungeon.x0 + 200, y: GY }, end: { x: SECTIONS.dungeon.x1 - 250, y: GY } },
-  mist: { start: { x: SECTIONS.mist.x0 + 200, y: GY }, end: { x: SECTIONS.mist.x1 - 250, y: GY - 1500 } },
-  tower: { start: { x: SECTIONS.tower.x0 + 200, y: GY }, end: { x: SECTIONS.tower.x1 - 250, y: GY - 2400 } },
-  hell: { start: { x: SECTIONS.hell.x0 + 200, y: GY }, end: { x: SECTIONS.hell.x1 - 250, y: GY } },
+  // (mist: back from the loading bay, he's put at the top of the hallway, by its LOADING BAY door: mist/index.ts)
+  mist: { start: { x: SECTIONS.mist.x0 + 200, y: GY }, end: { x: SECTIONS.mist.x0 + 4950, y: GY - 2400 } },
+  // (tower: back up out of hell, he's put on the tower's ground floor by the hole the car made: tower/layout.ts)
+  tower: { start: { x: SECTIONS.tower.x0 + 200, y: GY }, end: { x: SECTIONS.tower.x0 + 2530, y: GY } },
+  // (hell: dropped in over the pit from the top of the clock tower, falling; back down from the control room by the geyser vent: see hell/layout.ts)
+  hell: { start: { x: SECTIONS.hell.x0 + 560, y: GY - 1500 }, end: { x: SECTIONS.hell.x0 + 10350, y: GY } },
   control: { start: { x: SECTIONS.control.x0 + 200, y: GY }, end: { x: SECTIONS.control.x1 - 250, y: GY } },
   ballroom: { start: { x: SECTIONS.ballroom.x0 + 200, y: GY }, end: { x: SECTIONS.ballroom.x1 - 250, y: GY } },
 };
