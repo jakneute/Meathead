@@ -1,6 +1,6 @@
 import { Player, WeaponType } from '../../../types';
 import { drawFilthShield } from './filthShield';
-import { drawLadderBackArm, drawLadderLegs, drawLadderGunArm } from './ladder';
+import { drawLadderBackArm, drawLadderLegs, drawLadderClimb } from './ladder';
 import { drawRemains } from './remains';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
@@ -215,6 +215,15 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const squash = p.squash || 0;
   ctx.scale(1 + squash * 0.25 - airStretch * 0.5, 1 - squash * 0.25 + airStretch);
 
+  // On a ladder, climbing or sliding down it: seen from behind, facing into it (render/player/ladder.ts)
+  if (ladder && ladder.mode !== 'hang') {
+    const g = p.gut;
+    drawLadderClimb(ctx, ladder, animFrame, { nude: g?.stage === 3, shat: !!g && (g.stage === 2 || (g.stage === 3 && !g.washed)) },
+      c => { if (!isUnarmed && !outOfRocks(p, currentWeapon)) drawHeldWeapon(c, currentWeapon, 0, 0, 0, animFrame); });
+    finishBody();
+    ctx.restore();
+    return;
+  }
   if (p.isSliding && !p.headless) {
     drawSlideTackle(ctx, animFrame, currentWeapon, isUnarmed || outOfRocks(p, currentWeapon));
     finishBody();
@@ -364,7 +373,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // ==========================================
   ctx.save();
   if (ladder) {
-    drawLadderBackArm(ctx, ladder, animFrame);
+    drawLadderBackArm(ctx, ladder);
     if (vineArm) { ctx.save(); ctx.translate(VINE_SHOULDER.x, VINE_SHOULDER.y); ctx.rotate(-bodyRot); ctx.translate(-VINE_SHOULDER.x, -VINE_SHOULDER.y); vineArm(ctx, animFrame, 14, -45, true); ctx.restore(); }
   } else if (vine) {
     // Up over his head, the fist round the vine (climbing: hand over hand, the arm hauling him up to it and reaching
@@ -1001,10 +1010,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // LAYER 6: LEAD ARM (Main Arm & Weapon)
   // ==========================================
   ctx.save();
-  if (ladder && ladder.mode !== 'hang') {
-    // On a ladder, climbing or sliding: the fist on a rung, the gun still in it, pointed up
-    drawLadderGunArm(ctx, ladder, animFrame, c => { if (!isUnarmed && !outOfRocks(p, currentWeapon)) drawHeldWeapon(c, currentWeapon, 0, 0, 0, animFrame); });
-  } else if (surf) {
+  if (surf) {
     // Surfing: lead arm out in front, up a bit, throwing a shaka (thumb and little finger out)
     // (from the shoulder at the side of his chest, crouched as he is: the arm goes out and up past his face, not over it)
     ctx.fillStyle = skinTone;

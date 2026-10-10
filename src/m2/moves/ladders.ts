@@ -1,11 +1,13 @@
 // Ladders: Meathead 2's, any stage's (Spooky Land's new move). Worked like a climbing vine (adventure/jungle/vines.ts),
 // with its own rules:
 //
-//   Up, by one (stood at its foot, or in the air across it): he takes hold. Up/down climbs it, a rung at a time (the
-//   pace surges and eases with each rung, his hands and feet going on the rungs). Climbing up past the top of one that
-//   comes up to a ledge (`ledge`, or a floor whose top is level with the ladder's top, found) puts him up on it; stood
-//   at the top, holding down a moment takes hold again, to go back down. Down at the foot of it steps off. Jump lets
-//   go: straight down, or with left/right held, a little hop off that way.
+//   Mega Man's ladders. Up, overlapping one (stood at its foot, or in the air across it): he takes hold, snapped to
+//   its middle. Up/down climbs it at a steady pace (his hands and feet on the rungs; stopped, he holds the frame he's
+//   on). Climbing up past the top of one that comes up to a ledge (`ledge`, or a floor whose top is level with the
+//   ladder's top, found) he climbs over onto it (a few frames, crouched over the lip) and stands at the ladder; stood
+//   at the top, down takes him back over onto it the same way. Down at the foot of it steps off. Jump lets go:
+//   straight down, or with left/right held, a little hop off that way. Climbing, he's seen from behind; shooting,
+//   he turns out side-on (and stays so a moment after the last shot).
 //
 //   He can shoot from one: whatever fires from a vine fires from a ladder (he's hanging there one-handed, as far as the
 //   weapons know: p.vine, mode 'hang'), left/right turning him to shoot either way. Holding fire, he stops climbing
@@ -61,11 +63,13 @@ export const RUNG = 14;
 /** Half its width (the rails' middles). */
 const HALF = 14;
 /** Climbing: the pace (on average, px a frame), the rush up, the slide down. */
-const CLIMB = 2.3, RUSH = 9, SLIDE = 11;
+const CLIMB = 2.2, RUSH = 9, SLIDE = 11;
 /** How near its middle his has to be to take hold of it (on its foot or in the air; stood at its top). */
-const REACH = 20, REACH_TOP = 30;
+const REACH = 24, REACH_TOP = 24;
 /** Stood at the top: how long down's held before he takes hold (not every duck). */
-const DOWN_HOLD = 8;
+const DOWN_HOLD = 3;
+/** Climbing over the top onto the ledge (or back over it onto the ladder): frames. */
+const MOUNT = 10;
 /** His feet's highest on it: hands at the top rung (and with a ledge there, as high as they go before he's up on it). */
 const TOP_FEET = 74, OFF_FEET = 56;
 
@@ -80,12 +84,16 @@ interface Hold {
   hurtWas: number;
   /** The one that's rattling (a shoulder off it), and how long for. */
   rattle: number; rattleOn: number;
+  /** Turned out side-on to shoot: till this runs out after the last shot (otherwise he's on it from behind). */
+  shotT: number;
+  /** Climbing over the top: up onto the ledge (1) or down off it onto the ladder (-1), frames into it. */
+  mount: { dir: 1 | -1; t: number } | null;
 }
 
 const holds = new WeakMap<GameState, Hold>();
 const holdOf = (state: GameState): Hold => {
   let h = holds.get(state);
-  if (!h) { h = { defs: null, on: -1, up: 0, zip: 0, held: 0, last: -1, cd: 0, jumpLatch: false, specialLatch: false, downLatch: false, downT: 0, hurtWas: 0, rattle: 0, rattleOn: -1 }; holds.set(state, h); }
+  if (!h) { h = { defs: null, on: -1, up: 0, zip: 0, held: 0, last: -1, cd: 0, jumpLatch: false, specialLatch: false, downLatch: false, downT: 0, hurtWas: 0, rattle: 0, rattleOn: -1, shotT: 0, mount: null }; holds.set(state, h); }
   return h;
 };
 
@@ -108,6 +116,9 @@ const topOf = (state: GameState, d: LadderDef): { x: number; y: number } | undef
   return undefined;
 };
 
+/** Where he's stood on top: right at the ladder, if there's floor there (otherwise its ledge point). */
+const standAt = (state: GameState, d: LadderDef, top: { x: number; y: number }) => ({ x: floorAt(state, d.x, top.y, 2) ? d.x : top.x, y: top.y });
+
 const place = (state: GameState, d: LadderDef, up: number) => {
   const p = state.player;
   p.pos.x = d.x - p.width / 2; p.pos.y = d.bottom - up - p.height;
@@ -124,7 +135,8 @@ const grab = (state: GameState, h: Hold, defs: LadderDef[], i: number, up: numbe
   h.jumpLatch = !!c.jump; h.specialLatch = !!(c.special || c.charge);
   h.hurtWas = p.hurtTimer ?? 0;
   place(state, d, h.up);
-  pose(state, h, 'hang');
+  h.shotT = 0;
+  pose(state, h, 'rest');
 };
 
 /** Off it: `hop` a jump off (that way, if one's held), otherwise dropped off; `knocked` (hurt, dead): left to whatever did it. */
@@ -132,18 +144,19 @@ const letGo = (state: GameState, h: Hold, c: Controls, hop: boolean, knocked = f
   const p = state.player, dir = (c.right ? 1 : 0) - (c.left ? 1 : 0);
   p.carried = false; p.vine = undefined; p.ladder = undefined;
   if (h.zip) { p.isUppercutting = false; p.isDivekicking = false; }
-  h.last = h.on; h.on = -1; h.zip = 0; h.held = 0; h.cd = 24;
+  h.last = h.on; h.on = -1; h.zip = 0; h.held = 0; h.cd = 24; h.mount = null;
   if (knocked) return;
   p.vel.x = hop ? dir * PLAYER_MOVE_SPEED : 0;
   p.vel.y = hop && dir ? -6 : 0;
   h.jumpLatch = !!c.jump;
 };
 
-const pose = (state: GameState, h: Hold, mode: 'hang' | 'climb' | 'rush' | 'slide') => {
+const pose = (state: GameState, h: Hold, mode: 'rest' | 'hang' | 'climb' | 'rush' | 'slide' | 'mount', k = 0) => {
   const p = state.player;
   p.vine = { mode: 'hang', th: 0, om: 0 };
   const d = h.defs![h.on], ledge = !!(d.ledge || topOf(state, d));
-  p.ladder = { mode, up: h.up, rung: RUNG, reach: d.bottom - h.up - (d.top - (ledge ? 12 : 6)), shove: h.rattle > 0 && h.rattleOn === h.on ? h.rattle / 14 : 0 };
+  const feet = p.pos.y + p.height;
+  p.ladder = { mode, k, up: h.up, rung: RUNG, lip: feet - d.top, reach: feet - (d.top - (ledge ? 12 : 6)), shove: h.rattle > 0 && h.rattleOn === h.on ? h.rattle / 14 : 0 };
 };
 
 /** Nothing but the trigger (and the weapon switch) passed on. */
@@ -167,6 +180,33 @@ export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls)
   if (h.on >= 0 && (p.hurtTimer ?? 0) > h.hurtWas) { letGo(state, h, c, false, true); return { ...c, jump: false, special: false, charge: false }; }
   if (h.on >= 0 && p.dropVine) { p.dropVine = false; letGo(state, h, c, false); return hands(c); }
 
+  // ---- Climbing over the top: up onto the ledge, or down off it onto the ladder (nothing else meanwhile)
+  if (h.on >= 0 && h.mount) {
+    const d = defs[h.on], top = topOf(state, d), m = h.mount;
+    if (!top) { h.mount = null; return hands(c); }
+    const to = standAt(state, d, top), hi = d.bottom - feetMin(d, top);
+    m.t++;
+    const u = Math.min(1, m.t / MOUNT), k = m.dir > 0 ? u : 1 - u, e = k * k * (3 - 2 * k);
+    // (his feet from the top of the ladder to the top of the ledge, at the ladder; or back)
+    const feet = (d.bottom - hi) + (to.y - (d.bottom - hi)) * e, x = d.x + (to.x - d.x) * e;
+    p.pos.x = x - p.width / 2; p.pos.y = feet - p.height; p.vel.x = 0; p.vel.y = 0; p.isGrounded = false;
+    if (u >= 1) {
+      if (m.dir > 0) {
+        letGo(state, h, c, false, true);
+        p.pos.x = to.x - p.width / 2; p.pos.y = to.y - p.height; p.isGrounded = true;
+        h.jumpLatch = !!c.jump; h.specialLatch = !!(c.special || c.charge); h.downLatch = !!c.down; h.downT = 0;
+        return hands(c);
+      }
+      h.mount = null; h.up = hi; place(state, d, hi);
+      pose(state, h, 'rest');
+      h.hurtWas = p.hurtTimer ?? 0;
+      return hands(c);
+    }
+    pose(state, h, 'mount', k);
+    h.hurtWas = p.hurtTimer ?? 0;
+    return hands(c);
+  }
+
   // ---- Not on one: taking hold of one
   if (h.on < 0) {
     const out: Controls = { ...c, jump: c.jump && !h.jumpLatch };
@@ -183,10 +223,13 @@ export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls)
         return hands(c);
       }
       // Stood at its top, down held a moment: back down it
-      if (h.downT >= DOWN_HOLD && (dx < REACH_TOP || (top && Math.abs(cx - top.x) < 14)) && p.isGrounded && Math.abs(feet - (top?.y ?? d.top)) < 6) {
+      if (top && h.downT >= DOWN_HOLD && (dx < REACH_TOP || Math.abs(cx - top.x) < 14) && p.isGrounded && Math.abs(feet - top.y) < 6) {
         const up = d.bottom - feetMin(d, top);
         if (blocked(state, box(state, d.x, d.bottom - up))) continue;
-        grab(state, h, defs, i, up, c); h.downLatch = true;
+        // (back over the top onto it: the climb over, the other way, from where he's stood)
+        const sx = cx, sy = feet;
+        grab(state, h, defs, i, up, c); h.downLatch = true; h.mount = { dir: -1, t: 0 };
+        p.pos.x = sx - p.width / 2; p.pos.y = sy - p.height; pose(state, h, 'mount', 1);
         return hands(c);
       }
     }
@@ -218,21 +261,23 @@ export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls)
   if (h.held === 1 && !c.down) h.held = 0;
   // Holding fire: stopped to shoot (up/down aim the weapon, for the ones that aim)
   const firing = !!(c.shoot || c.secondary);
+  if (firing || h.rattle > 0) h.shotT = 24; else if (h.shotT > 0) h.shotT--;
   const up0 = h.up;
   if (h.zip === -1) h.up += RUSH;
   else if (h.zip === 1) h.up -= SLIDE;
   else if (!firing && c.up !== c.down) {
-    // (a rung at a time: quick through the middle of the step, slow onto the rung)
-    const s = Math.sin((h.up / RUNG) * Math.PI);
-    h.up += (c.up ? 1 : -1) * CLIMB * (0.35 + 1.3 * s * s);
+    // (steady, like Mega Man's)
+    h.up += (c.up ? 1 : -1) * CLIMB;
   }
   // Up past the top: onto the ledge (not off the end of a rush, or the up still held after one)
   if (h.up >= hi) {
     h.up = hi;
-    if (top && c.up && h.zip === 0 && h.held === 0) {
-      letGo(state, h, c, false, true);
-      p.pos.x = top.x - p.width / 2; p.pos.y = top.y - p.height - 1; p.vel.x = 0; p.vel.y = 0;
-      h.jumpLatch = !!c.jump; h.specialLatch = !!(c.special || c.charge); h.downLatch = !!c.down; h.downT = 0;
+    if (top && c.up && !firing && h.zip === 0 && h.held === 0) {
+      // (over the top, onto the ledge: the climb over)
+      h.mount = { dir: 1, t: 0 };
+      place(state, d, hi); p.vel.x = 0; p.vel.y = 0; p.isGrounded = false;
+      pose(state, h, 'mount', 0);
+      h.hurtWas = p.hurtTimer ?? 0;
       return hands(c);
     }
     if (h.zip === -1) { h.zip = 0; h.held = -1; }
@@ -242,7 +287,7 @@ export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls)
     h.up = 0;
     const ground = !!floorAt(state, d.x, d.bottom);
     if ((h.zip === 1 && ground) || (h.zip === 0 && h.held === 0 && c.down && !firing)) {
-      letGo(state, h, c, false); place(state, d, 0); p.pos.y -= 1;
+      letGo(state, h, c, false); place(state, d, 0); p.isGrounded = true;
       h.specialLatch = !!(c.special || c.charge);
       return hands(c);
     }
@@ -255,7 +300,7 @@ export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls)
   if (p.isUppercutting) p.uppercutTimer = 2;
   place(state, d, h.up);
   p.vel.x = 0; p.vel.y = up0 - h.up; p.isGrounded = false;
-  pose(state, h, h.zip === -1 ? 'rush' : h.zip === 1 ? 'slide' : h.up !== up0 ? 'climb' : 'hang');
+  pose(state, h, h.zip === -1 ? 'rush' : h.zip === 1 ? 'slide' : h.up !== up0 ? 'climb' : h.shotT > 0 ? 'hang' : 'rest');
   h.hurtWas = p.hurtTimer ?? 0;
   const aim = firing ? { up: c.up, down: c.down } : { up: false, down: false };
   return { ...c, left: false, right: false, jump: false, special: false, charge: false, ...aim };

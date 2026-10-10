@@ -1,15 +1,17 @@
 // His poses on a ladder (Meathead 2's ladders: src/m2/moves/ladders.ts; Player.ladder). Drawn in his local frame
-// (feet at 0, facing +x), into drawPlayer's vine poses (he's p.vine too, hanging, upright): the far arm, the legs, and,
-// climbing or sliding, the gun arm (turned out to shoot, it's the vine's own level gun arm).
+// (feet at 0, facing +x; the ladder runs up the middle of him, its rails at ±14).
 //
-//   Climbing (and the rush up): hand over hand, the two hands and the two feet each on a rung (where the rungs are,
-//   from how far up it he is), a hand and the opposite foot moving together, each one held on its rung while he goes
-//   up past it, then let go and reached up two rungs; the gun stays in his fist, pointed up along the ladder.
-//   Hanging (turned out to shoot): the far hand on a rung over his head, a foot on a rung, the other knee up on the
-//   next. Sliding down: both hands up on the rails, legs straight down together, the rails smoking in his hands.
+//   Climbing (and the rush up), holding on still (the last frame held), climbing over the top, and the slide down:
+//   seen from behind, facing into the ladder, the classic way (the back
+//   of his head, his back, the belt and the seat of his pants from behind: clean, shitty or bare). Hand over hand, each
+//   hand and foot on a real rung (where the rungs are, from how far up it he is), a hand and the opposite foot moving
+//   together, each held on its rung while he goes up past it, then let go and reached up two rungs; the gun stays in
+//   one fist, up along the rail. The slide: both hands up on the rails, smoking, the boots out on the rails.
+//   Hanging (turned out to shoot): side-on, drawn in drawPlayer's vine pose: the far hand on a rung over his head (here),
+//   a foot on a rung and the near knee up on the next (here), the gun arm out level (the vine's).
 
 import type { Player } from '../../../types';
-import { drawArmTo, drawLeg } from './body';
+import { drawArmTo, drawLeg, drawPantLeg, pantsColor, pantsShadow, skinTone, skinShadow, skinHighlight, beltColor, bootColor } from './body';
 
 type Ctx = CanvasRenderingContext2D;
 type Ladder = NonNullable<Player['ladder']>;
@@ -38,6 +40,9 @@ const rungNear = (l: Ladder, y: number) => {
   return Math.max(-l.reach + 3, o + Math.round((y - o) / R) * R);
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// Hanging, turned out to shoot (side-on: the rest of him is drawPlayer's vine pose)
+
 /** A leg from the hip to the foot on (fx, fy) (the ankle; the boot's sole on the rung under it), the knee forward. */
 const legTo = (ctx: Ctx, hipX: number, fx: number, rungY: number, back: boolean) => {
   const hip: [number, number] = [hipX, -22], L1 = 11, L2 = 10.5;
@@ -52,55 +57,198 @@ const legTo = (ctx: Ctx, hipX: number, fx: number, rungY: number, back: boolean)
   drawLeg(ctx, hip, knee, [fx, fy], 0, back);
 };
 
-/** The far arm: its hand on a rung over his head (climbing: hand over hand; sliding: on the rail, smoking). */
-export const drawLadderBackArm = (ctx: Ctx, l: Ladder, frame: number) => {
-  const sh: [number, number] = [-9, -46];
-  let fist: [number, number];
-  if (l.mode === 'slide') fist = [-2, Math.max(-l.reach + 3, -90)];
-  else if (l.mode === 'hang') fist = [-2, rungNear(l, -88)];
-  else { const h = limb(l, 7, 0); fist = [-5 - h.reach * 4, h.y]; }
-  const el: [number, number] = [(sh[0] + fist[0]) / 2 - 6, (sh[1] + fist[1]) / 2 + 3];
-  drawArmTo(ctx, sh, el, fist, true, 5.5);
-  if (l.mode === 'slide') smoke(ctx, fist[0], fist[1], frame);
+/** Hanging: the far arm up, its hand on a rung over his head. */
+export const drawLadderBackArm = (ctx: Ctx, l: Ladder) => {
+  const sh: [number, number] = [-9, -46], fist: [number, number] = [-2, rungNear(l, -88)];
+  drawArmTo(ctx, sh, [(sh[0] + fist[0]) / 2 - 6, (sh[1] + fist[1]) / 2 + 3], fist, true, 5.5);
 };
 
-/** The legs: on the rungs (climbing, stepping up in turn; hanging, one knee up), or straight down together, sliding. */
+/** Hanging: stood on a rung, the near knee up on the next one (if it's not too high: otherwise on the same one). */
 export const drawLadderLegs = (ctx: Ctx, l: Ladder) => {
-  if (l.mode === 'slide') {
-    // (straight down, together, the boots turned out onto the rails)
-    drawLeg(ctx, [-4, -22], [-3, -11], [-3, -3], 0.25, true);
-    drawLeg(ctx, [5, -22], [5, -11], [5, -3], -0.2, false);
-    return;
-  }
-  if (l.mode === 'hang') {
-    // (stood on a rung, the near knee up on the next one, if it's not too high: otherwise on the same one)
-    const r = rungNear(l, -3), r2 = r - l.rung >= -20 ? r - l.rung : r;
-    legTo(ctx, -4, -4, r, true);
-    legTo(ctx, 5, 6, r2, false);
-    return;
-  }
-  // (the far foot with the near hand, the near foot with the far hand; his legs are short, so a step's not a whole
-  // rung's climb: each foot stepped up from his feet to a knee's height, in time with his hands)
-  const span = 2 * HOLD * l.rung, step = (y: number) => -15 + (y + l.rung) * (15 / span);
-  const back = limb(l, 1, 1), near = limb(l, 1, 0);
-  legTo(ctx, -4, -5 + back.reach * 3, step(back.y), true);
-  legTo(ctx, 5, 7 + near.reach * 3, step(near.y), false);
+  const r = rungNear(l, -3), r2 = r - l.rung >= -20 ? r - l.rung : r;
+  legTo(ctx, -4, -4, r, true);
+  legTo(ctx, 5, 6, r2, false);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Climbing and sliding: from behind
+
+/** What his pants are like: blown off him (`nude`), and shitty (the seat, or with them gone, the backs of his legs). */
+export interface LadderPants { nude: boolean; shat: boolean }
+
+const PALE = '#F3D0AC', PALE_SHADE = '#D9A97C', STAIN = 'rgba(92, 58, 22, 0.8)', STAIN_DARK = 'rgba(64, 38, 12, 0.85)';
+const HAIR = '#18181B', HAIR_LIT = '#3F3F46';
+
+/** A limb segment, a to b, `w` wide: a pant leg (or bare leg) along it. */
+const seg = (ctx: Ctx, ax: number, ay: number, bx: number, by: number, w: number, color: string) => {
+  const len = Math.hypot(bx - ax, by - ay);
+  ctx.save(); ctx.translate(ax, ay); ctx.rotate(Math.atan2(by - ay, bx - ax) - Math.PI / 2);
+  drawPantLeg(ctx, -w / 2, 0, w, len + 1, color);
+  ctx.restore();
 };
 
 /**
- * The gun arm, climbing or sliding: its fist up on a rung (or the rail) with the gun still in it, pointed up the
- * ladder (`weapon` draws it as it's drawn in his hand stood up, at the origin, the barrel along +x).
+ * A leg from behind: hip at (hx, -22), the ankle at (fx, fy). The higher the foot, the more the knee's bent (toward the
+ * ladder, away from us: the thigh foreshortened, the calf under it); the boot from behind, its sole showing when it's
+ * up off its rung.
  */
-export const drawLadderGunArm = (ctx: Ctx, l: Ladder, frame: number, weapon: (c: Ctx) => void) => {
-  const sh: [number, number] = [14, -45];
-  let fist: [number, number];
-  if (l.mode === 'slide') fist = [9, Math.max(-l.reach + 3, -88)];
-  else { const h = limb(l, 7, 1); fist = [12 + h.reach * 4, h.y]; }
-  // (the gun up past his fist, the fist round its grip)
-  ctx.save(); ctx.translate(fist[0], fist[1]); ctx.rotate(-Math.PI / 2 + 0.12); ctx.translate(-1, -4); weapon(ctx); ctx.restore();
-  const el: [number, number] = [(sh[0] + fist[0]) / 2 + 6, (sh[1] + fist[1]) / 2 + 3];
-  drawArmTo(ctx, sh, el, fist, false, 5.5);
-  if (l.mode === 'slide') smoke(ctx, fist[0], fist[1], frame);
+const backLeg = (ctx: Ctx, side: number, fx: number, fy: number, pants: LadderPants, lifted: number) => {
+  const hx = side * 6, hy = -22;
+  const kx = (hx + fx) / 2 + side * 1.5, ky = Math.min((hy + fy) / 2 + 2, fy - 6);
+  const col = side < 0 ? pantsShadow : pantsColor;
+  seg(ctx, kx, ky, fx, fy, 9, col);
+  ctx.fillStyle = col; ctx.beginPath(); ctx.arc(kx, ky, 4.8, 0, Math.PI * 2); ctx.fill();
+  seg(ctx, hx, hy, kx, ky, 11, col);
+  // (the crease behind the knee)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'; ctx.fillRect(kx - 4, ky - 0.5, 8, 1);
+  if (pants.shat) {
+    // (run down the back of it, the inside)
+    ctx.fillStyle = STAIN; ctx.fillRect(hx - side * 3.5 - 1, hy + 2, 2.5, Math.max(4, ky - hy + 2));
+  }
+  // The boot from behind: the shaft, the heel; the sole tipped up at us when it's lifted
+  ctx.fillStyle = bootColor; ctx.beginPath(); ctx.roundRect(fx - 5.5, fy - 4, 11, 8, 2); ctx.fill();
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(fx - 4.5, fy - 3.5, 9, 1);
+  ctx.fillStyle = '#27272A'; ctx.fillRect(fx - 4, fy + 1, 8, 2);
+  if (lifted > 0.15) {
+    const sh = 1 + Math.round(lifted * 3);
+    ctx.fillStyle = '#52525B'; ctx.fillRect(fx - 5.5, fy + 4, 11, sh);
+    ctx.fillStyle = '#18181B'; for (let k = 0; k < sh; k += 2) ctx.fillRect(fx - 4.5, fy + 4 + k, 9, 1);
+  }
+};
+
+/** His seat and the belt from behind: the back pockets, the seam; shitty; or bare (white as the rest of him isn't), and the lot hanging down. */
+const seat = (ctx: Ctx, pants: LadderPants, frame: number, sway: number) => {
+  const top = -27;
+  if (pants.nude) {
+    // (the gap between his thighs, dark; the cheeks, the crack)
+    ctx.fillStyle = '#2A160A'; ctx.fillRect(-2, -20, 4, 6);
+    ctx.fillStyle = PALE;
+    ctx.beginPath(); ctx.ellipse(-5.5, -21.5, 6.5, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(5.5, -21.5, 6.5, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = PALE_SHADE; ctx.fillRect(-11, -16.5, 9, 1); ctx.fillRect(2, -16.5, 9, 1);
+    ctx.fillStyle = '#8A5A3A'; ctx.fillRect(-0.5, -26, 1, 9);
+    // (the tan line round his waist)
+    ctx.fillStyle = PALE; ctx.fillRect(-12, top, 24, 3);
+    // (between his legs, from behind: swinging as he climbs)
+    const sx = sway * 1.8;
+    ctx.fillStyle = '#7A4626'; ctx.beginPath(); ctx.ellipse(sx - 1.6, -13.5, 2.4, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(sx + 1.8, -13, 2.4, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#4A2812'; ctx.fillRect(sx - 0.3, -15.5, 0.8, 4);
+    if (pants.shat) {
+      ctx.fillStyle = STAIN; ctx.beginPath(); ctx.ellipse(0, -18.5, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    return;
+  }
+  // (the seat of his jeans: each cheek lit a little, the seam down the middle, a back pocket on each)
+  ctx.fillStyle = pantsColor; ctx.beginPath(); ctx.roundRect(-12.5, top, 25, 12, [0, 0, 5, 5]); ctx.fill();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.08)'; ctx.beginPath(); ctx.ellipse(-6, -22, 4.5, 3.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(6, -22, 4.5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'; ctx.fillRect(-0.6, top + 2, 1.2, 10); ctx.fillRect(-12, -15.5, 24, 1);
+  for (const px of [-6.5, 6.5]) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; ctx.beginPath(); ctx.moveTo(px - 4, -23.5); ctx.lineTo(px + 4, -23.5); ctx.lineTo(px + 3.5, -18.5); ctx.lineTo(px, -17); ctx.lineTo(px - 3.5, -18.5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#CA8A04'; ctx.fillRect(px - 3, -22, 6, 0.7);
+  }
+  // (the ring a can of dip's worn into the one pocket)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(6.5, -20.5, 2, 0, Math.PI * 2); ctx.stroke();
+  if (pants.shat) {
+    // (the seat soaked through, dark in the middle, running)
+    ctx.fillStyle = STAIN; ctx.beginPath(); ctx.ellipse(0, -19, 8, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = STAIN_DARK; ctx.beginPath(); ctx.ellipse(0, -18, 4.5, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(200, 160, 100, 0.35)'; ctx.fillRect(-3, -21, 3, 0.8);
+    ctx.fillStyle = STAIN; ctx.fillRect(-2.5, -15, 2, 3 + ((frame >> 4) % 3));
+  }
+  // The belt, wide at the back: the strap, studs, stitching
+  ctx.fillStyle = beltColor; ctx.fillRect(-13, top, 26, 6);
+  ctx.fillStyle = '#451A03'; ctx.fillRect(-13, top + 5, 26, 1);
+  ctx.fillStyle = '#D97706'; for (let x = -12; x < 12; x += 2.5) { ctx.fillRect(x, top + 0.8, 1.3, 0.6); ctx.fillRect(x, top + 4.2, 1.3, 0.6); }
+  ctx.fillStyle = '#E5E7EB'; for (const x of [-8, -3, 2, 7]) ctx.fillRect(x, top + 2.2, 1.5, 1.5);
+};
+
+/** His back: the lats flared out, the shoulder blades (riding up with whichever arm's up), the spine, the traps. */
+const back = (ctx: Ctx, lift: number) => {
+  const top = -50;
+  ctx.fillStyle = skinTone;
+  ctx.beginPath(); ctx.moveTo(-15, top + 1); ctx.lineTo(15, top + 1); ctx.lineTo(17, top + 9); ctx.lineTo(13, -27); ctx.lineTo(-13, -27); ctx.lineTo(-17, top + 9); ctx.closePath(); ctx.fill();
+  // (the far side of him in shadow, the lats' edges)
+  ctx.fillStyle = 'rgba(150, 90, 35, 0.3)'; ctx.fillRect(-15, top + 2, 4, 22);
+  ctx.fillStyle = skinShadow; ctx.fillRect(-16, top + 9, 2, 7); ctx.fillRect(14, top + 9, 2, 7);
+  // (the spine, the ridge of muscle each side of it)
+  ctx.fillStyle = skinShadow; ctx.fillRect(-0.6, top + 4, 1.2, 21);
+  ctx.fillStyle = skinHighlight; ctx.fillRect(-3.5, -36, 2, 8); ctx.fillRect(1.5, -36, 2, 8);
+  // (the shoulder blades, each up with its arm)
+  for (const side of [-1, 1]) {
+    const up = (side < 0 ? lift : -lift) * 1.5;
+    ctx.fillStyle = skinHighlight; ctx.beginPath(); ctx.ellipse(side * 7, top + 8 - up, 4.5, 3.5, side * 0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skinShadow; ctx.fillRect(side * 7 - 4, top + 12 - up, 8, 1);
+  }
+  // (the traps, up to his neck)
+  ctx.fillStyle = skinTone; ctx.beginPath(); ctx.moveTo(-13, top + 2); ctx.lineTo(-5, top - 6); ctx.lineTo(5, top - 6); ctx.lineTo(13, top + 2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = skinShadow; ctx.fillRect(-6, top + 2, 12, 0.9);
+  // (sweat)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; ctx.fillRect(4, -40, 1, 1.5); ctx.fillRect(-9, -34, 1, 1);
+};
+
+/** The back of his head: the flat-top, the back cropped short, the ears, the thick neck. */
+const backOfHead = (ctx: Ctx, hy: number) => {
+  ctx.fillStyle = skinTone; ctx.fillRect(-6, hy + 4, 12, 7);
+  ctx.fillStyle = skinShadow; ctx.fillRect(-6, hy + 9, 12, 1); ctx.fillRect(-0.5, hy + 5, 1, 5);
+  ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.roundRect(-12, hy - 7, 3.5, 7, 1.5); ctx.roundRect(8.5, hy - 7, 3.5, 7, 1.5); ctx.fill();
+  ctx.fillStyle = skinTone; ctx.beginPath(); ctx.roundRect(-10, hy - 12, 20, 18, [4, 4, 4, 4]); ctx.fill();
+  // (cropped short up the back: stubble going up into the flat-top)
+  ctx.fillStyle = 'rgba(24, 24, 27, 0.4)'; ctx.fillRect(-10, hy - 12, 20, 6);
+  ctx.fillStyle = 'rgba(24, 24, 27, 0.18)'; ctx.fillRect(-10, hy - 6, 20, 5);
+  // (lit from above: the back of his skull, the bulge of it)
+  ctx.fillStyle = skinHighlight; ctx.fillRect(-5, hy - 1, 7, 1.2);
+  ctx.fillStyle = HAIR; ctx.fillRect(-10, hy - 16, 20, 5); ctx.fillRect(-11, hy - 14, 22, 4);
+  ctx.fillStyle = HAIR_LIT; ctx.fillRect(-8, hy - 15.5, 15, 1);
+  ctx.fillStyle = '#52525B'; for (let i = 0; i < 6; i++) ctx.fillRect(-8 + i * 3, hy - 16.8, 1, 1.3);
+  // (the crease at the base of his skull)
+  ctx.fillStyle = skinShadow; ctx.fillRect(-5, hy + 5, 10, 1);
+};
+
+/**
+ * Climbing or sliding down a ladder, seen from behind. `weapon` draws what's in his hand as it's drawn held stood up
+ * (at the origin, the barrel along +x): up along the rail in his +x fist.
+ */
+export const drawLadderClimb = (ctx: Ctx, l: Ladder, frame: number, pants: LadderPants, weapon: (c: Ctx) => void) => {
+  const slide = l.mode === 'slide', mount = l.mode === 'mount';
+  // Climbing over the top: crouched over it (squashed down, most of the way through), both hands on the lip, a knee
+  // up onto it, his head down between his shoulders
+  const bend = mount ? Math.sin(Math.PI * Math.min(1, (l.k ?? 0) * 1.15)) : 0, sq = 1 - 0.38 * bend;
+  if (mount) { ctx.save(); ctx.scale(1, sq); }
+  const lipY = Math.max(-95, Math.min(-30, -l.lip / sq - 2));
+  // (the hands and feet: on their rungs, by the cycle, held where they were when he stops; sliding, up on the rails
+  // and the boots out on them)
+  const hA = slide ? { y: Math.max(-l.reach + 3, -88), reach: 0 } : mount ? { y: lipY, reach: 0 } : limb(l, 7, 0);
+  const hB = slide ? { y: Math.max(-l.reach + 3, -88), reach: 0 } : mount ? { y: lipY, reach: 0 } : limb(l, 7, 1);
+  const span = 2 * HOLD * l.rung, step = (y: number) => -15 + (y + l.rung) * (15 / span) - 3.5;
+  const still = slide || mount;
+  const fA = still ? { y: 0, reach: 0 } : limb(l, 1, 1), fB = still ? { y: 0, reach: 0 } : limb(l, 1, 0);
+  const fAy = slide || mount ? -3.5 : step(fA.y), fBy = slide ? -3.5 : mount ? -15 : step(fB.y);
+  // (his hips shift toward the leg that's down, his back rises with the arm that's up)
+  const lift = still ? 0 : Math.max(-1, Math.min(1, (hB.y - hA.y) / 16));
+  const sway = still ? 0 : Math.sin((l.up / l.rung) * Math.PI);
+  // Legs (the -x one in shadow), the seat and belt over their tops
+  backLeg(ctx, -1, slide ? -9 : -6, fAy, pants, still ? 0 : Math.max(0, (-fAy - 4) / 11));
+  backLeg(ctx, 1, slide ? 9 : 6, fBy, pants, slide ? 0 : mount ? 0.8 : Math.max(0, (-fBy - 4) / 11));
+  seat(ctx, pants, frame, sway);
+  // (bent over the top: his head down under the line of his shoulders, behind his back)
+  if (mount) backOfHead(ctx, -55 + 9 * bend);
+  back(ctx, lift);
+  // Arms: up to the rungs (or down on the lip), the elbows out; the gun up along the rail in the +x fist
+  const arm = (side: number, h: { y: number; reach: number }, lit: boolean) => {
+    const sh: [number, number] = [side * 14, -47];
+    const fist: [number, number] = [side * 13 + side * h.reach * 3, h.y];
+    const el: [number, number] = [(sh[0] + fist[0]) / 2 + side * 7, (sh[1] + fist[1]) / 2 + 2];
+    drawArmTo(ctx, sh, el, fist, !lit, 5.5);
+    return fist;
+  };
+  const fa = arm(-1, hA, false);
+  ctx.save(); ctx.translate(13 + hB.reach * 3, hB.y); ctx.rotate(-Math.PI / 2); ctx.translate(-1, -4); weapon(ctx); ctx.restore();
+  const fb = arm(1, hB, true);
+  // (his head between his arms, over them: they're out beside it)
+  if (!mount) backOfHead(ctx, -55);
+  if (slide) { smoke(ctx, fa[0], fa[1], frame); smoke(ctx, fb[0], fb[1], frame + 7); }
+  if (mount) ctx.restore();
 };
 
 /** Hands on the rails going down fast: smoke off them. */
