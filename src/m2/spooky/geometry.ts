@@ -50,8 +50,8 @@ export const SECTION_ORDER: SpookyId[] = ['town', 'castle', 'dungeon', 'tower', 
  *  into each one from the one before it (start), and coming back into it from the one after it (end). Feet (x, y). */
 export const DOORS: Record<SpookyId, { start: { x: number; y: number }; end: { x: number; y: number } }> = {
   town: { start: { x: SECTIONS.town.x0 + 200, y: GY }, end: { x: SECTIONS.town.x1 - 250, y: GY - 600 } },
-  // (castle: back up the dungeon stairs, he's put by the arch at the end of the gallery)
-  castle: { start: { x: SECTIONS.castle.x0 + 200, y: GY }, end: { x: SECTIONS.castle.x1 - 250, y: GY } },
+  // (castle: back up the dungeon stairs, he's put by the arch at the end of the gallery, up on the attic floor)
+  castle: { start: { x: SECTIONS.castle.x0 + 200, y: GY }, end: { x: SECTIONS.castle.x1 - 250, y: GY - 1000 } },
   // (dungeon: in at the top of its stairway, 1000 up: dungeon/stairs.ts)
   dungeon: { start: { x: SECTIONS.dungeon.x0 + 150, y: GY - 1000 }, end: { x: SECTIONS.dungeon.x1 - 250, y: GY } },
   // (tower: back up out of hell, he's put on the tower's ground floor by the hole the car made: tower/layout.ts)

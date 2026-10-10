@@ -11,7 +11,7 @@ import { box, wallSign, groundBox, ledgeBox, doorway } from '../section';
 import { GY } from '../geometry';
 import { drawHorn, paSaying } from './pa';
 import {
-  x0, x1, ROOMS, CEIL, LEDGES, STOVES, STOVE_TOP, BURNERS, stovePhase, FIRE_H, STOVE_CYCLE, STOVE_FIRE, BED, CHAND_W, BOOKCASES, BOOK_EVERY, BOOK_TELL,
+  x0, x1, ROOMS, CEIL, ceilOf, DY, dyAt, LEDGES, STOVES, STOVE_TOP, BURNERS, stovePhase, FIRE_H, STOVE_CYCLE, STOVE_FIRE, BED, CHAND_W, BOOKCASES, BOOK_EVERY, BOOK_TELL,
   TRAIN, WARDROBES, HORNS, BALLPIT, type Castle, type LedgeLook,
 } from './layout';
 
@@ -29,6 +29,7 @@ const LOOKS: Record<LedgeLook, [string, string]> = {
 // The rooms
 
 const drawRoomWalls = (c: Ctx, r: (typeof ROOMS)[number]) => {
+  const CEIL = ceilOf(r.id);
   // (the wallpaper all the way up, a dado rail, the wainscot under it, the crown molding way up top)
   box(c, r.a, CEIL, r.b - r.a, GY - CEIL, r.wall);
   for (let x = r.a + 40; x < r.b; x += 80) box(c, x, CEIL + 40, 6, GY - CEIL - 200, r.trim);
@@ -159,6 +160,7 @@ const drawStove = (c: Ctx, x: number, w: number, i: number, t: number, f: number
 };
 /** The burners' flames (over everything behind: drawn in front of him). */
 export const drawStoveFire = (c: Ctx, state: GameState, cs: Castle) => {
+  c.save(); c.translate(0, DY.kitchen);
   const f = state.frame;
   STOVES.forEach(([x], i) => {
     if (!seen(state, x, x + 300) || stovePhase(cs.stoveT, i) !== 'fire') return;
@@ -172,6 +174,7 @@ export const drawStoveFire = (c: Ctx, state: GameState, cs: Castle) => {
       }
     }
   });
+  c.restore();
 };
 
 const drawBed = (c: Ctx) => {
@@ -207,10 +210,27 @@ const drawTrain = (c: Ctx, x: number, dir: number, f: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The whole of it
 
+/** The castle, a room at a time, each on its own floor: drawn in the room's own coordinates (its floor at GY), clipped
+ *  to it, moved up or down to where it is. */
 export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
-  const f = state.frame;
   for (const r of ROOMS) {
-    if (!seen(state, r.a, r.b)) continue;
+    if (!seen(state, r.a - 150, r.b + 150)) continue;
+    c.save();
+    c.beginPath(); c.rect(r.a, -100000, r.b - r.a, 200000); c.clip();
+    c.translate(0, DY[r.id]);
+    drawRoom(c, state, cs, r);
+    c.restore();
+  }
+  // (the dining room's rotten floorboards at its far end, broken through: the way down to the kitchen)
+  if (seen(state, ROOMS[1].b - 120, ROOMS[1].b + 20)) {
+    const x = ROOMS[1].b;
+    for (let k = 0; k < 5; k++) { c.save(); c.translate(x - 20 - k * 14, GY + 6 + k * 3); c.rotate(0.5 + k * 0.2); box(c, 0, 0, 40, 8, '#5A3420'); c.restore(); }
+    wallSign(c, x - 120, GY - 120, 'SERVANTS ONLY: MIND THE FLOOR', '#3F3F46', '#E4E4E7');
+  }
+};
+const drawRoom = (c: Ctx, state: GameState, cs: Castle, only: (typeof ROOMS)[number]) => {
+  const f = state.frame;
+  for (const r of [only]) {
     drawRoomWalls(c, r);
     // (the windows, way up: how big the place is)
     for (const wx of WINDOWS[r.id]) gothicWindow(c, r.a + wx, 70, 300);
@@ -227,7 +247,8 @@ export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
         for (let k = 0; k < 9; k++) { const cx = r.a + 330 + k * 135; box(c, cx, GY - 130, 30, 6, '#3A2216'); box(c, cx + 24, GY - 190, 6, 130, '#3A2216'); }
         break;
       case 'study':
-        bookcase(c, r.a + 120, 220, 520, 0); bookcase(c, r.a + 700, 260, 600, 1); bookcase(c, r.a + 1350, 220, 520, 2);
+        // (three stories of shelves, floor to ceiling)
+        bookcase(c, r.a + 40, 220, 1180, 0); bookcase(c, r.a + 700, 300, 1180, 1); bookcase(c, r.a + 1380, 260, 1180, 2);
         box(c, r.a + 980, GY - 90, 160, 8, '#3A2216'); box(c, r.a + 990, GY - 82, 10, 82, '#3A2216'); box(c, r.a + 1120, GY - 82, 10, 82, '#3A2216');
         box(c, r.a + 1020, GY - 104, 50, 14, '#FEF3C7'); // (the open tome)
         fireplace(c, r.a + 560, f);
@@ -331,14 +352,15 @@ export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
   const talking = !!paSaying(state);
   for (const [hx, hy] of HORNS) if (seen(state, hx - 30, hx + 30)) drawHorn(c, hx, hy, talking, f);
   // The floor
-  groundBox(c, x0 - 200, x1 + 200, GY, '#4A1418', '#B45353');
-  for (const r of ROOMS) if (seen(state, r.a, r.b)) box(c, r.a + 80, GY + 6, r.b - r.a - 160, 30, '#6B1A22');
+  groundBox(c, only.a - 10, only.b + 10, GY, '#4A1418', '#B45353');
+  box(c, only.a + 80, GY + 6, only.b - only.a - 160, 30, '#6B1A22');
 };
 
 /** The ball pit: a pit of plastic balls (in front of him: he's in up to his thighs), its padded rim, its sign. */
 export const drawBallPit = (c: Ctx, state: GameState) => {
   const { a, b } = BALLPIT;
   if (!seen(state, a - 40, b + 40)) return;
+  c.save(); c.translate(0, DY.nursery);
   const cols = ['#EF4444', '#3B82F6', '#FACC15', '#22C55E', '#A855F7', '#F97316'];
   box(c, a, GY + 8, b - a, 60, '#1E1B4B');
   for (let row = 0; row < 4; row++) for (let x = a + 4 + (row % 2) * 7; x < b - 6; x += 14) {
@@ -347,12 +369,13 @@ export const drawBallPit = (c: Ctx, state: GameState) => {
   }
   box(c, a - 10, GY - 4, 12, 70, '#DB2777'); box(c, b - 2, GY - 4, 12, 70, '#DB2777');
   box(c, a - 10, GY - 4, 12, 3, '#F9A8D4'); box(c, b - 2, GY - 4, 12, 3, '#F9A8D4');
+  c.restore();
 };
 
 /** The books in the air (over everything: they're coming at him). */
 export const drawBooks = (c: Ctx, cs: Castle) => {
   for (const b of cs.books) {
-    c.save(); c.translate(b.x, b.y); c.rotate(b.rot);
+    c.save(); c.translate(b.x, b.y + DY.study); c.rotate(b.rot);
     box(c, -9, -6, 18, 12, b.col); box(c, -9, -6, 18, 2, '#FEF3C7'); box(c, -9, -6, 3, 12, '#1A0A04');
     c.restore();
   }
@@ -362,8 +385,8 @@ export const drawBooks = (c: Ctx, cs: Castle) => {
 export const castleLighting = (state: GameState, cs: Castle): SceneLight => {
   const lights: Light[] = [];
   const near = (x: number) => x > state.camera.x - 300 && x < state.camera.x + CANVAS_WIDTH + 300;
-  for (const ch of cs.chand) if (near(ch.x) && ch.state !== 'down') lights.push({ x: ch.x, y: ch.y - 10, r: 260, a: 0.8, color: 'rgba(253, 186, 116, 0.10)' });
-  for (const r of ROOMS) for (let x = r.a + 150; x < r.b; x += 420) if (near(x)) lights.push({ x, y: GY - 260, r: 230, a: 0.6, color: 'rgba(253, 186, 116, 0.06)' });
-  STOVES.forEach(([x, w], i) => { if (near(x) && stovePhase(cs.stoveT, i) === 'fire') lights.push({ x: x + w / 2, y: STOVE_TOP - 60, r: 260, a: 0.9, color: 'rgba(251, 146, 60, 0.18)' }); });
+  for (const ch of cs.chand) if (near(ch.x) && ch.state !== 'down') lights.push({ x: ch.x, y: ch.y - 10 + dyAt(ch.x), r: 260, a: 0.8, color: 'rgba(253, 186, 116, 0.10)' });
+  for (const r of ROOMS) for (let x = r.a + 150; x < r.b; x += 420) if (near(x)) lights.push({ x, y: GY - 260 + DY[r.id], r: 230, a: 0.6, color: 'rgba(253, 186, 116, 0.06)' });
+  STOVES.forEach(([x, w], i) => { if (near(x) && stovePhase(cs.stoveT, i) === 'fire') lights.push({ x: x + w / 2, y: STOVE_TOP - 60 + dyAt(x), r: 260, a: 0.9, color: 'rgba(251, 146, 60, 0.18)' }); });
   return { dark: 0.42, shade: [26, 6, 14], lights };
 };

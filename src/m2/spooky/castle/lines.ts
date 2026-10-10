@@ -142,7 +142,7 @@ const STORY_FULL: Record<Exclude<RoomId, 'foyer'>, ByPants> = {
  *  the story's best beat; then its punchline (the room's threat, as often as not). */
 const STORY_HEAD: Record<Exclude<RoomId, 'foyer'>, string> = {
   dining: 'THE DINING ROOM. A FEAST FOR FORTY, EIGHTEEN EIGHTY-SEVEN.',
-  study: 'THE STUDY. DOCTOR ABERNATHY OPENED THE FORBIDDEN TOME.',
+  study: 'THE LIBRARY. DOCTOR ABERNATHY OPENED THE FORBIDDEN TOME.',
   kitchen: "THE KITCHEN. THE COOK MISTOOK THE COUNT'S MOTHER-IN-LAV FOR A HAM.",
   bedroom: 'THE MASTER BEDROOM. LADY MORTIMER VENT TO BED ONE VINTER.',
   nursery: "THE NURSERY. LITTLE VILHELM'S FAVORITE TOY VAS A LIT CANDLE.",
