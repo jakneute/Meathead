@@ -24,12 +24,15 @@ let bytes = 0;
  * sweeping through scales frame by frame never fills the cache with ones it'll never use again). */
 const asked = new Set<string>();
 const MAX = 400;
+/** Each picture's newest stamp, whatever scale it was painted at: while the scale's sweeping (a zoom), that one's put
+ *  down scaled (smoothed) rather than the whole thing painted afresh every frame (slow, and the dithering crawls). */
+const latest = new Map<string, { s: Stamp; a: number; d: number }>();
 
 /** Drops every stamp when the stage changes: none of the old ones will be wanted. */
 let stampStage: string | null | undefined;
 export const stampsForStage = (stageId: string | null | undefined) => {
   if (stageId === stampStage) return;
-  stampStage = stageId; stamps.clear(); asked.clear(); bytes = 0;
+  stampStage = stageId; stamps.clear(); asked.clear(); latest.clear(); bytes = 0;
 };
 
 const q = (n: number) => Math.round(n * 4096) / 4096;
@@ -49,7 +52,19 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
   let s = stamps.get(id);
   if (s) { stamps.delete(id); stamps.set(id, s); }
   else {
-    if (!asked.has(id)) { if (asked.size > MAX) asked.clear(); asked.add(id); paint(ctx); return; }
+    if (!asked.has(id)) {
+      if (asked.size > MAX) asked.clear(); asked.add(id);
+      // (a new scale: the one it was last painted at, scaled to this, if it's near enough; painted fresh next time)
+      const l = latest.get(key);
+      if (l && Math.sign(l.a) === Math.sign(a) && Math.sign(l.d) === Math.sign(d) && Math.abs(a / l.a - 1) < 0.35) {
+        const ka = a / l.a, kd = d / l.d;
+        ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true;
+        ctx.drawImage(l.s.c, m.e + l.s.L * ka, m.f + l.s.T * kd, l.s.c.width * ka, l.s.c.height * kd);
+        ctx.restore(); Object.assign(ctx, l.s.after);
+        return;
+      }
+      paint(ctx); return;
+    }
     // (the box in device pixels, from whole pixels: the art lands in the stamp on the same pixel grid it's shown on)
     const L = Math.floor(Math.min(a * x, a * (x + w))) - 1, T = Math.floor(Math.min(d * y, d * (y + h))) - 1;
     const R = Math.ceil(Math.max(a * x, a * (x + w))) + 1, B = Math.ceil(Math.max(d * y, d * (y + h))) + 1;
@@ -65,8 +80,11 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
     for (const [oldId, old] of stamps) {
       if (bytes <= BUDGET || oldId === id) break;
       stamps.delete(oldId); bytes -= old.c.width * old.c.height * 4;
+      const ok = oldId.slice(0, oldId.lastIndexOf('@'));
+      if (latest.get(ok)?.s === old) latest.delete(ok);
     }
   }
+  latest.set(key, { s, a, d });
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   // (painted on whole device pixels; put down where the art itself would've gone, between pixels when the camera is:
