@@ -152,6 +152,8 @@ const spawnDrop = (kind: number) => {
 };
 const bleed = (ctx: FrameContext, e: Enemy, near: number, mouth: { x: number; y: number }) => {
   const { state, fx } = ctx;
+  // (nothing out of the dead: nothing in the bag for it)
+  if (e.health <= 0 || e.isBlownAway) return;
   // (a fresh go at him: the first gulp comes quicker)
   if (bleedFrom !== e || state.frame - bleedAt > 2) { bleedFrom = e; bleedT = BLEED.gulp >> 1; bleedBank = 0; }
   bleedAt = state.frame;
