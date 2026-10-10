@@ -7,15 +7,17 @@
 // the clearing (no way back into the temple: its side's a wall). Caught by the roof, he goes in through the hole,
 // behind its broken front, and a big dust cloud puffs up out of it.
 //
-// Crude on purpose (the first pass): boxes and words.
+// The look: art.ts (the final pass); the layout: layout.ts.
 
-import { drawTodSky, farTint } from '../../timeOfDay';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { Section, Said } from '../section';
-import { lay, speak, meatheadSays, teleport, box, label, saidOver,  hands, getAdv, sectionState } from '../section';
+import { lay, speak, meatheadSays, teleport, saidOver, hands, getAdv, sectionState } from '../section';
 import { SECTIONS, GY } from '../geometry';
+import { x0, x1, BASE_L, BASE_R, TIER_H, TIER_IN, RY, ROOF_L, ROOF_R, HOLE_X, HOLE_W, TILE, ZOOM_TO, ZOOM_X, ZOOM_Y, TILES, SPLAT_X, EXIT_X, GUESTS, SPEAKER_F, SPEAKER_M } from './layout';
+import { drawRoofBackdrop, drawTempleBody, drawLine, drawDust, drawPoof, drawCart, drawChute, CHUNK_COLORS, TORCHES } from './art';
+export { HOLE_X } from './layout';
 import { setUi } from '../../store';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -31,45 +33,12 @@ import {
   type Dressed, ARTIE_LANDED, MEATHEAD_LANDED, ARTIE_CHUTE, GUEST_GASP, GUEST2_HIM, MEATHEAD_TO_LINE, GUEST_AFTER, HURT_ROOF, DEATH_ROOF,
 } from './lines';
 
-const { x0, x1 } = SECTIONS.roof;
-
 registerHurtLines('roof_collapse', HURT_ROOF, DEATH_ROOF);
 
 const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 /** First time through (a return trip will differ: the temple on fire, say). One flag per set piece. */
 const firstVisit = (_state: GameState) => true;
-
-// ---------------------------------------------------------------------------------------------------------------
-// The temple: a stepped pyramid, four tiers; its roof (the top of the top tier) is what he's on
-
-const BASE_L = x0 + 200, BASE_R = x0 + 1600, TIER_H = 140, TIER_IN = 110;
-const RY = GY - 4 * TIER_H;
-const ROOF_L = BASE_L + 3 * TIER_IN, ROOF_R = BASE_R - 3 * TIER_IN;
-/** Where he comes up through it (the cart's ramp puts him under here). */
-export const HOLE_X = x0 + 620;
-const HOLE_W = 80;
-const TILE = 20;
-/** The view pulled out: how far, about where (to the middle of the screen). */
-const ZOOM_TO = 0.38, ZOOM_X = x0 + 1190, ZOOM_Y = GY - 290;
-const TILES = Math.round((ROOF_R - ROOF_L) / TILE);
-/** The ride's line, outside, on the ground to the right (he lands at the head of it). */
-const LINE_L = BASE_R + 110, LINE_R = LINE_L + 400;
-/** Where he splats, at the foot of the temple's right side; and where the way on is (past the line). */
-const SPLAT_X = BASE_R + 50, EXIT_X = x1 - 150;
-const GUESTS = Array.from({ length: 11 }, (_, i) => {
-  const r = (n: number) => { const s = Math.sin((i + 1) * 91.7 + n * 13.3) * 43758.5; return s - Math.floor(s); };
-  return {
-    x: LINE_L + 10 + i * 36 + r(1) * 8,
-    woman: r(2) < 0.5,
-    skin: ['#8D5524', '#C68642', '#E0AC69', '#F1C27D', '#FFDBAC', '#5C3A21'][Math.floor(r(3) * 6)],
-    shirt: ['#2563EB', '#DC2626', '#16A34A', '#F59E0B', '#9333EA', '#0EA5E9', '#F472B6'][Math.floor(r(4) * 7)],
-    hair: ['#1C1917', '#78350F', '#FDE68A', '#A8A29E', '#B45309'][Math.floor(r(5) * 5)],
-    h: 54 + r(6) * 16, wide: 14 + r(7) * 8,
-  };
-});
-/** Which of them say things: a woman, a man. */
-const SPEAKER_F = GUESTS.findIndex(g => g.woman), SPEAKER_M = GUESTS.findIndex(g => !g.woman);
 
 /** Off the edge: the hops down the steps (the landing spots: each tier's ledge, then the ground), frames a hop. */
 const HOPS = [
@@ -141,7 +110,7 @@ const crumble = (state: GameState, r: Roof, i: number) => {
   t.gone = true;
   if (t.b) { state.blocks = state.blocks.filter(b => b !== t.b); t.b = null; }
   const x = ROOF_L + i * TILE;
-  for (let k = 0; k < 3; k++) state.particles.push({ pos: { x: x + Math.random() * TILE, y: RY + Math.random() * 10 }, vel: { x: (Math.random() - 0.5) * 2, y: Math.random() * 2 }, life: 40, color: ['#A8A29E', '#78716C', '#D6D3D1'][k], size: 4 + Math.random() * 6 });
+  for (let k = 0; k < 3; k++) state.particles.push({ pos: { x: x + Math.random() * TILE, y: RY + Math.random() * 10 }, vel: { x: (Math.random() - 0.5) * 2, y: Math.random() * 2 }, life: 40, color: CHUNK_COLORS[Math.floor(Math.random() * CHUNK_COLORS.length)], size: 4 + Math.random() * 6 });
   if (Math.random() < 0.4) r.dust.push({ x: x + TILE / 2, y: RY, vx: (Math.random() - 0.5) * 0.6, vy: -0.6 - Math.random() * 0.6, r: 14 + Math.random() * 14, life: 90 });
   if (Math.random() < 0.25) playSound('crack', 0.5, Math.random() * 6 - 3);
 };
@@ -181,7 +150,7 @@ const arrive = (ctx: FrameContext, r: Roof): Controls => {
   // The blowout
   if (t === 20) {
     playSound('crash', 1); playSound('boom', 0.8); shakeScreen(state, 24, 12);
-    for (let i = 0; i < 40; i++) state.particles.push({ pos: { x: HOLE_X + (Math.random() - 0.5) * HOLE_W, y: RY }, vel: { x: (Math.random() - 0.5) * 10, y: -4 - Math.random() * 10 }, life: 50 + Math.random() * 30, color: ['#A8A29E', '#78716C', '#D6D3D1', '#57534E'][i % 4], size: 3 + Math.random() * 8 });
+    for (let i = 0; i < 40; i++) state.particles.push({ pos: { x: HOLE_X + (Math.random() - 0.5) * HOLE_W, y: RY }, vel: { x: (Math.random() - 0.5) * 10, y: -4 - Math.random() * 10 }, life: 50 + Math.random() * 30, color: CHUNK_COLORS[i % CHUNK_COLORS.length], size: 3 + Math.random() * 8 });
     for (let i = 0; i < 8; i++) r.dust.push({ x: HOLE_X + (Math.random() - 0.5) * 80, y: RY - 10, vx: (Math.random() - 0.5) * 1.5, vy: -1 - Math.random(), r: 20 + Math.random() * 20, life: 120 });
     r.emptyCart.on = true;
   }
@@ -377,7 +346,7 @@ const zoomOut = (ctx: FrameContext, r: Roof): Controls => {
   // Chunks off the top, dust coming up out of it
   if (r.step < 9 && t % 9 === 0) {
     const x = ROOF_L + Math.random() * (ROOF_R - ROOF_L);
-    state.particles.push({ pos: { x, y: RY + 10 }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 3 }, life: 70, color: ['#A8A29E', '#78716C', '#57534E'][t % 3], size: 6 + Math.random() * 10 });
+    state.particles.push({ pos: { x, y: RY + 10 }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 3 }, life: 70, color: CHUNK_COLORS[t % CHUNK_COLORS.length], size: 6 + Math.random() * 10 });
     r.dust.push({ x, y: RY - 10, vx: (Math.random() - 0.5) * 0.8, vy: -0.8 - Math.random() * 0.6, r: 24 + Math.random() * 24, life: 140 });
     if (t % 27 === 0) { playSound('crash', 0.5, -8 + Math.random() * 4); shakeScreen(state, 8, 3); }
   }
@@ -509,13 +478,9 @@ export const roof: Section = {
   },
   // (up on the roof, the temple's tiers under him in view)
   cameraRow: (state) => (state.player.pos.y + state.player.height < RY + 60 && !getRoof(state).tumbled ? 380 : undefined),
-  drawBackdrop: (c, state) => {
-    // (the sky, as the hour has it: timeOfDay.ts)
-    drawTodSky(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#3B82F6', '#60A5FA', '#93C5FD', '#BAE6FD'], { sun: [640, 80], moon: [470, 70], horizon: 380, t: state.frame, scroll: state.camera.x * 0.05 });
-    const off = (state.camera.x * 0.2) % 200;
-    for (let i = -1; i < 6; i++) box(c, i * 200 - off, 380 - ((i * 53) % 70), 160, 300, farTint('#3F6212', 0.7));
-    return true;
-  },
+  drawBackdrop: (c, state) => { drawRoofBackdrop(c, state); return true; },
+  // (the tiki torches by the entrance, at night)
+  lamps: () => TORCHES.map(x => ({ x, y: GY - 112, r: 150, a: 0.9, color: '#FFB060' })),
   outdoors: () => 1,
   drawBack: (c, state) => drawTemple(c, state),
   drawFront: (c, state) => drawRoofFront(c, state),
@@ -540,135 +505,18 @@ export const roof: Section = {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude)
-
-const STONE = '#A8A29E', STONE_DK = '#78716C', STONE_LT = '#D6D3D1';
-
-const drawGuest = (c: CanvasRenderingContext2D, g: typeof GUESTS[number], f: number, horror: boolean, i: number) => {
-  const x = g.x, y = GY, h = g.h, w = g.wide;
-  const shake = horror ? Math.sin(f * 0.6 + i) * 1.2 : 0;
-  // legs (or a skirt), body, head, hair; arms down, or up to the face in horror
-  if (g.woman && i % 2 === 0) box(c, x - w / 2, y - h * 0.45, w, h * 0.3, g.shirt);
-  box(c, x - w / 2 + 2, y - h * 0.4, 4, h * 0.4, '#1E3A8A'); box(c, x + w / 2 - 6, y - h * 0.4, 4, h * 0.4, '#1E3A8A');
-  box(c, x - w / 2 + shake, y - h * 0.78, w, h * 0.42, g.shirt);
-  const hy = y - h + shake;
-  box(c, x - 6 + shake, hy, 12, 13, g.skin);
-  box(c, x - 7 + shake, hy - 3, 14, 5, g.hair);
-  if (g.woman) box(c, x - 8 + shake, hy, 3, 16, g.hair), box(c, x + 5 + shake, hy, 3, 16, g.hair);
-  if (horror) {
-    box(c, x - w / 2 - 4 + shake, hy + 4, 4, h * 0.36, g.skin); box(c, x + w / 2 + shake, hy + 4, 4, h * 0.36, g.skin);
-    box(c, x - 2 + shake, hy + 8, 4, 4, '#1C1917');
-  } else box(c, x - 2, hy + 9, 4, 1, '#1C1917');
-};
-
-/** The temple itself (the ground round it, its tiers, its roof): drawn again over him once he's gone in the hole. */
-const drawTempleBody = (c: CanvasRenderingContext2D, r: Roof, f: number) => {
-  // The ground outside
-  box(c, x0 - 600, GY, x1 - x0 + 1200, 1400, '#4D7C0F'); box(c, x0, GY, x1 - x0, 4, '#84CC16');
-  // The temple: four tiers, stepped (all of it background: dimmed, but for the roof he's on)
-  for (let k = 0; k < 4; k++) {
-    const l = BASE_L + k * TIER_IN, rr = BASE_R - k * TIER_IN, top = GY - (k + 1) * TIER_H;
-    box(c, l, top, rr - l, TIER_H, k % 2 ? '#857B70' : '#7A7066');
-    for (let y = top + 20; y < top + TIER_H; y += 28) box(c, l, y, rr - l, 2, '#615850');
-    if (k < 3) box(c, rr - TIER_IN, top, TIER_IN, 3, '#8F857A');
-  }
-  // (the ride's entrance, at the bottom, where the line goes in)
-  box(c, BASE_R - 120, GY - 110, 80, 110, '#1C1917'); label(c, 'ENTRANCE', BASE_R - 80, GY - 118, '#FDE68A', 6);
-  // The roof: what's left of it (lit along its top: it's to stand on), the shaking bits, the hole into the dark
-  box(c, ROOF_L, RY, ROOF_R - ROOF_L, 40, '#1C1917');
-  r.tiles.forEach((t, i) => {
-    if (t.gone) return;
-    const x = ROOF_L + i * TILE, j = t.shake ? Math.round(Math.sin(f * 1.7 + i) * 1.5) : 0;
-    box(c, x + j, RY, TILE, 40, i % 2 ? STONE : '#9E958C'); box(c, x + j, RY, TILE, 4, STONE_LT);
-    if (t.shake) box(c, x + 6, RY + 6, 2, 22, STONE_DK);
-  });
-  // (caved in: broken edges round the top tier, rubble down its sides; it's still standing)
-  if (r.caved) {
-    for (let i = 0; i < 8; i++) box(c, ROOF_L + 30 + i * 85, RY + 30 + ((i * 17) % 22), 22, 12, STONE_DK);
-    for (let i = 0; i < 6; i++) box(c, BASE_L + 40 + i * 230, GY - 18 - ((i * 13) % 10), 26, 18, STONE);
-  }
-};
+// Drawing (art.ts)
 
 const drawTemple = (c: CanvasRenderingContext2D, state: GameState) => {
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
-  if (v.x > x1 || v.x + v.w < x0) return;
-  const r = getRoof(state), f = state.frame;
-  drawTempleBody(c, r, f);
-  // The ride's line: the posts and ropes, the sign at its tail, the people in it
-  box(c, LINE_R + 56, GY - 120, 6, 120, '#57534E'); box(c, LINE_R, GY - 150, 120, 34, '#1C1917');
-  label(c, 'WAIT FROM HERE:', LINE_R + 60, GY - 136, '#FDE68A', 6); label(c, '95 MIN', LINE_R + 60, GY - 124, '#FDE68A', 7);
-  for (let x = LINE_L; x <= LINE_R; x += 80) box(c, x, GY - 34, 4, 34, '#A16207');
-  c.strokeStyle = '#B91C1C'; c.lineWidth = 2; c.beginPath(); c.moveTo(LINE_L, GY - 30); c.lineTo(LINE_R, GY - 30); c.stroke();
-  GUESTS.forEach((g, i) => drawGuest(c, g, f, r.horror || r.caved, i));
-  // (the way on: past the tail of the line)
-  box(c, EXIT_X - 3, GY - 90, 6, 90, '#57534E'); box(c, EXIT_X - 50, GY - 112, 100, 26, '#14532D');
-  label(c, 'JUNGLE TRAIL >', EXIT_X, GY - 96, '#FDE68A', 6);
+  if (v.x > x1 + 600 || v.x + v.w < x0 - 600) return;
+  const r = getRoof(state);
+  drawTempleBody(c, state, r);
+  // The ride's line (going back in switchbacks), its signs, the way on
+  drawLine(c, state, r, r.said?.text ? (r.saidBy === 'f' ? SPEAKER_F : r.saidBy === 'm' ? SPEAKER_M : -1) : -1);
   // The dust coming up out of it
-  for (const d of r.dust) { c.fillStyle = `rgba(214,211,209,${Math.min(0.6, d.life / 120)})`; c.beginPath(); c.arc(d.x, d.y, d.r, 0, Math.PI * 2); c.fill(); }
+  drawDust(c, r);
   r.dust = r.dust.filter(d => { d.x += d.vx; d.y += d.vy; d.r += 0.25; return --d.life > 0; });
-};
-
-/** Down the hole and dead: a big cartoon cloud of dust mushrooming up out of it, over the roof. */
-const drawPoof = (c: CanvasRenderingContext2D, r: Roof) => {
-  const t = r.poof, k = Math.min(1, t / 50), fade = t < 160 ? 1 : Math.max(0, 1 - (t - 160) / 80);
-  if (fade <= 0) return;
-  const x = r.poofX, base = RY + 10, rise = 30 + 75 * (1 - (1 - k) * (1 - k));
-  const puffs: [number, number, number][] = [
-    [0, 0, 1.25], [-0.75, 0.15, 0.9], [0.75, 0.15, 0.9], [-0.4, -0.45, 0.95], [0.45, -0.45, 0.95], [0, -0.8, 1.05],
-    [-1.05, 0.55, 0.6], [1.05, 0.55, 0.6], [0, 0.6, 0.85],
-  ];
-  const R = 20 + 24 * k;
-  c.save();
-  c.globalAlpha = fade;
-  // (the stalk of it, up out of the hole)
-  c.fillStyle = '#A8A29E'; c.fillRect(x - R * 0.45, base - rise * 0.6, R * 0.9, rise * 0.6 + 6);
-  for (const [layer, col] of [[1.12, '#57534E'], [1, '#D6D3D1']] as const) {
-    c.fillStyle = col;
-    for (const [dx, dy, s] of puffs) {
-      const wob = Math.sin(t * 0.15 + dx * 5) * 2;
-      c.beginPath(); c.arc(x + dx * R * 1.3 + wob, base - rise + dy * R, R * s * layer, 0, Math.PI * 2); c.fill();
-    }
-  }
-  // (lit on top, a few chunks still coming down out of it)
-  c.fillStyle = '#F5F5F4';
-  for (const [dx, dy, s] of puffs) if (dy < 0.2) { c.beginPath(); c.arc(x + dx * R * 1.3 - R * 0.25, base - rise + dy * R - R * 0.3, R * s * 0.35, 0, Math.PI * 2); c.fill(); }
-  c.fillStyle = '#78716C';
-  for (let i = 0; i < 6; i++) { const a = i * 1.7; c.fillRect(Math.round(x + Math.cos(a) * R * 1.8), Math.round(base - rise + Math.sin(a) * R + (t % 40) * 1.5), 6, 5); }
-  c.restore();
-};
-
-/** Artie's parachute (from the gift shop: a souvenir, and it shows): popping open over him, swaying, its lines down to
- * his fists (up over his head: the 'dodge' pose's, 88 over his feet). */
-const drawChute = (c: CanvasRenderingContext2D, x: number, feetY: number, t: number, f: number) => {
-  const open = Math.min(1, 0.25 + t / 10), sway = Math.sin(t * 0.05) * 0.12;
-  c.save(); c.translate(x, feetY - 88); c.rotate(sway);
-  const W = 68 * open, TOP = -96 - 10 * open, RIM = -62;
-  // the lines, from the rim down to his fists
-  c.strokeStyle = '#E7E5E4'; c.lineWidth = 1; c.beginPath();
-  for (const k of [-1, -0.45, 0.45, 1]) { c.moveTo(k * W, RIM); c.lineTo(k < 0 ? -4.5 : 4.5, 0); }
-  c.stroke();
-  // the canopy: loud panels, alternating, a cheap nylon shine
-  const PANELS = ['#F472B6', '#FDE047', '#22D3EE', '#FDE047', '#F472B6', '#FDE047', '#22D3EE', '#FDE047'];
-  for (let i = 0; i < PANELS.length; i++) {
-    const a0 = Math.PI + (i / PANELS.length) * Math.PI, a1 = Math.PI + ((i + 1) / PANELS.length) * Math.PI;
-    c.fillStyle = PANELS[i]; c.beginPath(); c.moveTo(0, RIM);
-    c.ellipse(0, RIM, W, RIM - TOP, 0, a0, a1); c.closePath(); c.fill();
-  }
-  c.fillStyle = 'rgba(255,255,255,0.25)'; c.beginPath(); c.ellipse(-W * 0.3, RIM - (RIM - TOP) * 0.6, W * 0.35, (RIM - TOP) * 0.18, -0.3, 0, Math.PI * 2); c.fill();
-  // (scalloped rim)
-  c.fillStyle = '#BE185D';
-  for (let k = -W; k < W - 1; k += W / 4) { c.beginPath(); c.ellipse(k + W / 8, RIM, W / 8, 3, 0, 0, Math.PI); c.fill(); }
-  // what's printed on it, once it's open: I (heart) ADVENTURE LAND, and the price tag still on it
-  if (open >= 1) {
-    label(c, 'I', -6, RIM - 21, '#1E1B4B', 7);
-    c.fillStyle = '#DC2626'; c.beginPath(); c.arc(3.5, RIM - 27, 2.6, Math.PI, 0); c.arc(8.7, RIM - 27, 2.6, Math.PI, 0); c.lineTo(6.1, RIM - 21); c.closePath(); c.fill();
-    label(c, 'ADVENTURE LAND', 0, RIM - 10, '#1E1B4B', 6);
-    const ty = RIM + 10 + Math.sin(f * 0.2) * 1.5;
-    c.beginPath(); c.moveTo(W * 0.8, RIM + 1); c.lineTo(W * 0.8 + 3, ty); c.stroke();
-    box(c, W * 0.8 - 2, ty, 20, 9, '#FAFAF9');
-    label(c, '$9.99', W * 0.8 + 8, ty + 7, '#DC2626', 4);
-  }
-  c.restore();
 };
 
 const drawRoofFront = (c: CanvasRenderingContext2D, state: GameState) => {
@@ -676,11 +524,11 @@ const drawRoofFront = (c: CanvasRenderingContext2D, state: GameState) => {
   // Gone in the hole: the temple's front back over him (he's behind it, falling)
   if (r.inHole) {
     c.save(); c.beginPath(); c.rect(BASE_L - 10, RY + 16, BASE_R - BASE_L + 20, GY + 1400 - RY); c.rect(x0 - 600, GY, x1 - x0 + 1200, 1400); c.clip();
-    drawTempleBody(c, r, f);
+    drawTempleBody(c, state, r);
     c.restore();
   }
   if (r.poof) {
-    drawPoof(c, r); r.poof++;
+    drawPoof(c, r.poof, r.poofX); r.poof++;
     // (what's left of him, down there in the dark, stays down there: nothing of it out over the sides of the temple)
     if (state.particles.some(q => q.pos.y > RY + 16)) state.particles = state.particles.filter(q => q.pos.y <= RY + 16);
   }
@@ -691,7 +539,7 @@ const drawRoofFront = (c: CanvasRenderingContext2D, state: GameState) => {
     drawSafariArtie(c, a.x, a.y, 1, f, a.chute ? 'dodge' : a.falling ? 'run' : !a.landed ? 'hurt' : r.saidBy === 'artie' ? 'angry' : 'hurt');
   }
   const ec = r.emptyCart;
-  if (ec.on) { box(c, ec.x - 36, ec.y - 36, 72, 26, '#57534E'); box(c, ec.x - 36, ec.y - 36, 72, 4, '#D6D3D1'); }
+  if (ec.on) drawCart(c, ec.x, ec.y, ec.vy, f);
   // What's being said, over whoever's saying it
   if (r.said?.text) {
     const who = r.saidBy === 'artie' ? { x: a.x, y: a.y - (a.chute ? 212 : 100) } : r.saidBy === 'f' ? { x: GUESTS[SPEAKER_F].x, y: GY - 90 } : r.saidBy === 'm' ? { x: GUESTS[SPEAKER_M].x, y: GY - 90 } : null;

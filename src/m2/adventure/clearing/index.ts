@@ -5,7 +5,7 @@
 // Then the fight (fight.ts: his bushes, his hidden-ball game, his mating whistle and its stampede, stampede.ts). The
 // fence goes up behind him for it and comes down after. Beaten, back to the hub.
 //
-// Crude on purpose (the first pass): boxes and words.
+// The look: art.ts (the strip's own things) and orbit.ts (round the temple, past the strip).
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -14,7 +14,8 @@ import type { Section, Said } from '../section';
 import type { EnemyKind } from '../../../m1/types';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { GUIDE_KIND } from '../guides';
-import { lay, solid, speak, meatheadSays, box, label, saidOver, hands, sectionState } from '../section';
+import { lay, solid, speak, meatheadSays, saidOver, hands, sectionState } from '../section';
+import { drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawBlind, drawBlindFront, drawFence, CAMPFIRE } from './art';
 import { GY } from '../geometry';
 import { goTo, setUi, markLandCleared, noteBossKill } from '../../store';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -317,6 +318,8 @@ export const clearing: Section = {
   // The path's a loop round the temple: the strip bent round as it curves, the temple and the rest past it (orbit.ts)
   cylinder: () => ({ radius: ORBIT_WRAP }),
   outdoors: () => 1,
+  // (the junior guides' campfire, at night)
+  lamps: () => [{ x: CAMPFIRE.x, y: CAMPFIRE.y, r: 140, a: 0.9, color: '#FFB060' }],
   drawBackdrop: (c, state) => { drawOrbitBackdrop(c, state, getClearing(state).templeHit); return true; },
   drawBack: (c, state) => drawClearing(c, state),
   drawFront: (c, state) => {
@@ -324,7 +327,8 @@ export const clearing: Section = {
     // Artie, up in his blind (till the fight)
     if (cl.fight === 'wait' && (cl.trees[5].a > 0.5 || !cl.domino)) {
       drawSafariArtie(c, BLIND_X, BLIND_Y, -1, state.frame, cl.said?.text ? 'talk' : 'angry', ROOF_SCUFFS);
-      box(c, BLIND_X - 22, BLIND_Y - 30, 44, 4, '#57534E');
+      // (the hide's netting across his legs)
+      drawBlindFront(c);
     }
     if (cl.said?.text && cl.fight === 'wait') saidOver(c, cl.said.text, Math.min(TEMPLE_X - 130, BLIND_X), BLIND_Y - 100, '#FDE68A');
     if (cl.f && cl.fight !== 'wait') drawFightFront(c, state, cl.f);
@@ -347,44 +351,28 @@ export const clearing: Section = {
 const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
   if (v.x > x1 || v.x + v.w < x0) return;
-  const cl = getClearing(state);
+  const cl = getClearing(state), f = state.frame;
+  const vis = (a: number, b: number) => b > v.x - 200 && a < v.x + v.w + 200;
   // The ground: the path (the near side of the loop: its far side's out past the temple, orbit.ts), on past both ends
   // (the strip's drawn wider than the screen, to bend round)
-  box(c, x0 - 1200, GY, x1 - x0 + 2400, 400, '#8A6E4B'); box(c, x0 - 1200, GY, x1 - x0 + 2400, 4, '#A88A5E');
-  for (let x = x0 - 1200; x < x1 + 1200; x += 46) box(c, x + ((x / 46) % 3) * 9, GY + 14 + ((x / 23) % 2) * 10, 10, 3, '#6E5638');
+  drawPath(c, Math.max(x0 - 1200, v.x - 400), Math.min(x1 + 1200, v.x + v.w + 400));
+  // The junior guides' camp, back off the path
+  if (vis(x0 + 180, x0 + 700)) drawCamp(c, f);
   // The rock (a guide up on it): its top lit, it's something to stand on
-  box(c, ROCK.x, GY - ROCK.h, ROCK.w, ROCK.h, '#78716C'); box(c, ROCK.x, GY - ROCK.h, ROCK.w, 3, '#D6D3D1'); box(c, ROCK.x + 6, GY - ROCK.h + 14, ROCK.w - 20, 3, '#57534E');
-  // A sign before it
-  box(c, x0 + 940, GY - 70, 4, 70, '#57534E'); box(c, x0 + 890, GY - 94, 104, 26, '#1C1917');
-  label(c, 'HUNTING AREA', x0 + 942, GY - 77, '#FCA5A5', 6);
+  if (vis(ROCK.x, ROCK.x + ROCK.w)) drawRock(c, ROCK.x, ROCK.w, ROCK.h);
+  // The first-aid stop (the big health and ammo on its crate), the sign before the hunting area
+  if (vis(PICKUP_X - 100, PICKUP_X + 100)) drawAidStop(c, state.pickups.some(p => p.id.startsWith('clearing-')));
+  if (vis(x0 + 870, x0 + 1010)) drawHuntSign(c, x0 + 942);
   // The temple's wing, where it crosses the path (the rest of it's out past the strip, orbit.ts), knocked about where
   // the tree hit it, still standing. Nothing lit along its top: it's not something to get up on
-  box(c, TEMPLE_X, GY - 220, 900, 220, '#7A7066'); box(c, TEMPLE_X, GY - 220, 6, 220, '#5E554C');
-  for (let y = GY - 186; y < GY; y += 34) box(c, TEMPLE_X, y, 900, 2, '#615850');
-  box(c, TEMPLE_X + 40, GY - 300, 900, 80, '#6F665C');
-  if (cl.templeHit) {
-    box(c, TEMPLE_X, GY - 250, 40, 56, '#3F3A35'); box(c, TEMPLE_X + 10, GY - 196, 6, 50, '#3F3A35');
-    for (let i = 0; i < 5; i++) box(c, TEMPLE_X - 40 + i * 14, GY - 14 - (i % 2) * 6, 18, 14, '#A8A29E');
-  }
-  // Artie's blind: up on its stilts, a camouflage net round it
-  box(c, BLIND_X - 40, BLIND_Y, 6, GY - BLIND_Y, '#5B3A1C'); box(c, BLIND_X + 34, BLIND_Y, 6, GY - BLIND_Y, '#5B3A1C');
-  box(c, BLIND_X - 46, BLIND_Y - 4, 92, 8, '#6B4423');
-  // (hidden in the leaves, till the trees go)
-  if (cl.fight === 'wait' && cl.domino && cl.trees[5].a <= 0.5) { c.fillStyle = '#15803D'; c.beginPath(); c.arc(BLIND_X, BLIND_Y - 40, 56, 0, Math.PI * 2); c.fill(); }
-  // The trees: standing, falling; down, gone (not drawn at all: a log lying there would read as something to stand on)
-  cl.trees.forEach((t, i) => {
-    if (t.done) return;
-    const x = TREE_X[i];
-    c.save(); c.translate(x, GY); c.rotate(t.a);
-    box(c, -14, -TREE_H, 28, TREE_H, '#5B3A1C');
-    c.fillStyle = '#15803D';
-    c.beginPath(); c.arc(0, -TREE_H, 60, 0, Math.PI * 2); c.arc(-40, -TREE_H + 30, 40, 0, Math.PI * 2); c.arc(40, -TREE_H + 30, 40, 0, Math.PI * 2); c.fill();
-    c.restore();
-  });
+  if (vis(TEMPLE_X - 60, TEMPLE_X + 940)) drawWing(c, cl.templeHit);
+  // Artie's blind: up on its stilts (hidden in the leaves, till the trees go)
+  if (vis(BLIND_X - 80, BLIND_X + 80)) drawBlind(c, cl.fight === 'wait' && cl.domino && cl.trees[5].a <= 0.5, f);
+  // The trees still standing, or going over; down, gone (not drawn at all: a log lying there would read as something
+  // to stand on)
+  cl.trees.forEach((t, i) => { if (!t.done && vis(TREE_X[i] - 100, TREE_X[i] + TREE_H + 100)) drawTree(c, TREE_X[i], t.a, i, f, false); });
   // The fight: the bushes
   if (cl.f && cl.fight !== 'wait') drawFightBack(c, state, cl.f);
   // The fence behind him for the fight
-  if (cl.fence) for (let y = GY - 400; y < GY; y += 20) box(c, ARENA_L - 30, y, 30, 18, y % 40 ? '#A3A35A' : '#848440');
-  // The big health and ammo: lit up, so they're seen
-  if (cl.fight === 'wait' && state.pickups.some(p => p.id.startsWith('clearing-'))) label(c, 'STOCK UP', PICKUP_X, GY - 50, '#FDE68A', 7);
+  if (cl.fence) drawFence(c, GY - 420);
 };

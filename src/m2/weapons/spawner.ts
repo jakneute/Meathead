@@ -18,6 +18,7 @@ import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
 import { isHumanoidKind } from '../../m1/game/render/enemies';
 import { CANVAS_WIDTH } from '../../m1/constants';
+import { stamp } from '../../m1/game/render/stamp';
 import { drawEnemyAt, grabHolding } from '../moves/grab';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
@@ -576,7 +577,7 @@ const skeleton = (e: Enemy): Bone[] => {
 /** Bone (or a robot's steel): set per bone as it's drawn. */
 let BONE = '#EFE7D2', BONE_LO = '#C9BC9C';
 const BONE_WHITE = BONE, BONE_WHITE_LO = BONE_LO, STEEL = '#A1A1AA', STEEL_LO = '#52525B';
-const BLOOD = 'rgba(127, 29, 29, 0.9)', GORE = '#991B1B';
+const BLOOD = 'rgba(127, 29, 29, 0.9)';
 
 const circle = (c: Ctx, x: number, y: number, r: number) => { c.beginPath(); c.arc(x, y, Math.max(0.5, r), 0, Math.PI * 2); c.fill(); };
 
@@ -673,36 +674,74 @@ const drawBone = (c: Ctx, b: Bone) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-/** One of them: a fat little body on four skinny legs, a big head, its eyes (one, two or three), a mouth full of teeth. */
+/**
+ * One of them: a fat little body on four skinny legs, a big head, its eyes (one, two or three), a mouth full of teeth,
+ * a feeler with a bulb on it. Painted at twice the old grid (the same size on screen): each part in a four-step ramp
+ * of its skin with an ink line round it, a glint. Its frames: a four-step scurry (the body bobbing, legs going two and
+ * two), stretched leaping up and falling, squashed landing on what it's latched to, chomping (two), sputtering out
+ * (grayed, sagging). Each frame painted once (a stamp), put down where it is.
+ */
+const ALIEN_INK = '#0B0B0F';
+const paintAlien = (c: Ctx, skin: { hi: string; mid: string; lo: string; line: string }, eyes: 1 | 2 | 3, pose: string, step: number, open: boolean, gore: boolean) => {
+  const px = (x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
+  const deep = skin.line, lo = skin.lo, mid = skin.mid, hi = skin.hi;
+  // legs: running (two and two, the near pair lighter), latched on (splayed, clinging), in the air (tucked back)
+  const legL = (x: number, y: number, dx: number, dy: number, near: boolean) => {
+    px(Math.min(x, x + dx) - 1, Math.min(y, y + dy) - 1, Math.abs(dx) + 3, Math.abs(dy) + 3, ALIEN_INK);
+    px(Math.min(x, x + dx), Math.min(y, y + dy), Math.abs(dx) + 1, Math.abs(dy) + 1, near ? lo : deep);
+  };
+  if (pose === 'latched') { legL(-12, -12, -3, 0, false); legL(-12, -6, -3, 1, true); legL(6, -16, 2, -3, false); legL(-2, -2, 0, 3, true); }
+  else if (pose === 'up' || pose === 'down') { legL(-12, -8, -4, 1, false); legL(-10, -4, -4, 1, true); legL(2, -4, 3, 1, false); legL(6, -6, 3, 1, true); }
+  else {
+    const s = [0, 2, 0, -2][step], t = [2, 0, -2, 0][step];
+    legL(-8 + s, -4, 0, 4, false); legL(-4 - s, -4, 0, 4, true); legL(2 + t, -4, 0, 4, false); legL(6 - t, -4, 0, 4, true);
+  }
+  // the body: ink, then its ramp top to bottom, a glint, a few spots
+  const bob = pose === 'run' && step % 2 ? -1 : 0;
+  px(-11, -15 + bob, 19, 12, ALIEN_INK);
+  px(-10, -14 + bob, 17, 10, mid); px(-9, -14 + bob, 15, 2, hi); px(-10, -8 + bob, 17, 3, lo); px(-10, -6 + bob, 17, 1, deep);
+  px(-7, -13 + bob, 3, 1, '#FFFFFF');
+  px(-4, -10 + bob, 2, 2, lo); px(1, -12 + bob, 2, 2, lo); px(-8, -9 + bob, 1, 1, lo);
+  // a stub of a tail
+  px(-14, -12 + bob, 4, 3, ALIEN_INK); px(-13, -11 + bob, 3, 1, mid);
+  // the head, out front, too big for it
+  const chomp = pose === 'latched' && !open ? 1 : 0;
+  const hy = -24 + bob + chomp;
+  px(-1, hy - 1, 16, 16, ALIEN_INK);
+  px(0, hy, 14, 14, mid); px(1, hy, 12, 3, hi); px(0, hy + 3, 2, 8, hi); px(0, hy + 11, 14, 3, lo); px(12, hy + 3, 2, 8, lo);
+  px(2, hy + 1, 3, 1, '#FFFFFF');
+  // a feeler, a glowing bulb on it (swaying with the step)
+  const fx = 3 + (pose === 'run' ? (step < 2 ? -1 : 1) : pose === 'up' ? -2 : 0);
+  px(fx, hy - 6, 2, 6, ALIEN_INK); px(fx, hy - 5, 1, 5, lo);
+  px(fx - 2, hy - 10, 5, 5, ALIEN_INK); px(fx - 1, hy - 9, 3, 3, hi); px(fx - 1, hy - 9, 1, 1, '#FFFFFF');
+  // eyes: black, a red glow in them, a glint
+  const eye = (x: number, y: number, w: number) => { px(x - 1, y - 1, w + 2, w + 2, ALIEN_INK); px(x, y, w, w, '#7F1D1D'); px(x + w - 1, y + w - 1, 1, 1, '#EF4444'); px(x, y, 1, 1, '#FFFFFF'); };
+  if (eyes === 1) eye(6, hy + 2, 4);
+  else if (eyes === 2) { eye(4, hy + 2, 3); eye(9, hy + 2, 3); }
+  else { eye(3, hy + 2, 2); eye(8, hy + 2, 2); eye(6, hy + 6, 2); }
+  // (a brow, mean)
+  px(3, hy + 1, 9, 1, lo);
+  // the mouth: chomping when it's on somebody, open in the air; teeth top and bottom
+  if (open) {
+    px(5, hy + 8, 9, 6, ALIEN_INK); px(6, hy + 9, 7, 4, '#450A0A'); px(7, hy + 11, 4, 2, '#9F1239');
+    for (const tx of [6, 8, 10, 12]) px(tx, hy + 9, 1, 2, '#FFFFFF');
+    for (const tx of [7, 9, 11]) px(tx, hy + 12, 1, 1, '#FFFFFF');
+    if (gore) { px(8, hy + 10, 3, 2, '#991B1B'); px(10, hy + 14, 1, 2, '#991B1B'); }
+  } else { px(5, hy + 9, 9, 2, ALIEN_INK); for (const tx of [6, 8, 10, 12]) px(tx, hy + 9, 1, 1, '#FFFFFF'); }
+};
 const drawAlien = (c: Ctx, a: Alien, f: number) => {
   const k = SKINS[a.skin];
   const dying = a.life < DYING;
   if (dying && a.life % 6 < 2) return;
-  c.save(); c.translate(Math.round(a.x), Math.round(a.y)); c.scale(a.face * 1.4, 1.4);
-  const px = (x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
-  const skin = dying ? { hi: '#D6D3D1', mid: '#A8A29E', lo: '#78716C', line: '#292524' } : k;
-  // legs: running (two and two), latched on (splayed, clinging), in the air (tucked back)
-  const step = Math.floor(f / 3 + a.seed * 7) % 2;
-  if (a.on || a.onBait) { px(-6, -6, 2, 1, skin.line); px(-6, -3, 2, 1, skin.line); px(4, -8, 1, 2, skin.line); px(-1, -1, 1, 2, skin.line); }
-  else if (!a.ground) { px(-6, -4, 3, 1, skin.line); px(-5, -2, 3, 1, skin.line); px(1, -2, 2, 1, skin.line); px(3, -3, 2, 1, skin.line); }
-  else { const r = Math.abs(a.vx) > 0.4 ? step : 0; px(-4 + r, -2, 1, 2, skin.line); px(-2 - r, -2, 1, 2, skin.line); px(1 + r, -2, 1, 2, skin.line); px(3 - r, -2, 1, 2, skin.line); }
-  // the body
-  px(-5, -7, 9, 6, skin.line); px(-4, -6, 7, 4, skin.mid); px(-3, -6, 5, 1, skin.hi); px(-4, -3, 7, 1, skin.lo);
-  // the head, out front, too big for it
-  const bob = a.on || a.onBait ? (Math.floor(a.chomp / 3) % 2) : 0;
-  const hy = -12 + bob;
-  px(0, hy, 7, 7, skin.line); px(1, hy + 1, 5, 5, skin.mid); px(1, hy + 1, 5, 1, skin.hi); px(1, hy + 5, 5, 1, skin.lo);
-  // a feeler
-  px(1, hy - 2, 1, 2, skin.line); px(1, hy - 3, 1, 1, skin.hi);
-  // eyes
-  const eye = (x: number, y: number, w: number) => { px(x, y, w, w, '#0B0B0F'); px(x, y, 1, 1, '#FFFFFF'); };
-  if (a.eyes === 1) eye(3, hy + 1, 2);
-  else if (a.eyes === 2) { eye(2, hy + 1, 1); eye(5, hy + 1, 1); }
-  else { eye(2, hy + 1, 1); eye(4, hy + 1, 1); eye(3, hy + 3, 1); }
-  // the mouth: chomping when it's on somebody
-  const open = a.on || a.onBait ? Math.floor(a.chomp / 3) % 2 === 0 : !a.ground;
-  if (open) { px(3, hy + 4, 4, 3, '#450A0A'); px(3, hy + 4, 1, 1, '#FFFFFF'); px(5, hy + 4, 1, 1, '#FFFFFF'); px(4, hy + 6, 1, 1, '#FFFFFF'); if (a.on) px(4, hy + 5, 2, 1, GORE); }
-  else { px(3, hy + 4, 4, 1, '#450A0A'); px(4, hy + 4, 1, 1, '#FFFFFF'); }
+  const latched = !!(a.on || a.onBait);
+  const pose = latched ? 'latched' : !a.ground ? (a.vy < 0 ? 'up' : 'down') : 'run';
+  const step = pose === 'run' && Math.abs(a.vx) > 0.4 ? Math.floor(f / 3 + a.seed * 7) % 4 : 0;
+  const open = latched ? Math.floor(a.chomp / 3) % 2 === 0 : !a.ground;
+  const skin = dying ? { hi: '#E7E5E4', mid: '#A8A29E', lo: '#78716C', line: '#44403C' } : k;
+  // (stretched going up, a little squashed coming down; sagging as it sputters out)
+  const sy = pose === 'up' ? 1.14 : pose === 'down' ? 0.94 : dying ? 0.86 : 1, sx = 2 - sy;
+  c.save(); c.translate(Math.round(a.x), Math.round(a.y)); c.scale(a.face * 0.7 * sx, 0.7 * sy);
+  stamp(c, `alien:${dying ? 'd' : a.skin}:${a.eyes}:${pose}:${step}:${open ? 1 : 0}:${a.on ? 1 : 0}`, -18, -38, 36, 40, g => paintAlien(g, skin, a.eyes, pose, step, open, !!a.on));
   c.restore();
 };
 

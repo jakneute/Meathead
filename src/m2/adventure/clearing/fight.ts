@@ -55,6 +55,7 @@ import { type Eaten, startEaten, updateEaten, landEaten, collapse, drawEatenStan
 import { drawSafariArtie, ROOF_SCUFFS, type ArtiePose } from '../river/artie';
 import { box, label, saidOver, hands, speak, voice, meatheadSays } from '../section';
 import { GY } from '../geometry';
+import { drawBushArt, drawVine } from './art';
 import { ARENA_L, ARENA_R, ARENA_MID, BLIND_X, BLIND_Y, BUSH_X, BUSH_W, BUSH_H } from './arena';
 import { type Animal, type Beast, BEASTS, makeStampede, updateStampede, stampedeOver, nearestTo, clearStampede, drawStampede, drawWarnings } from './stampede';
 import * as L from './lines';
@@ -916,41 +917,10 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   f.bushes.forEach(b => drawBush(c, state, b, false));
 };
 
-const LEAF = [[-46, -22, 22], [-22, -40, 26], [6, -46, 27], [32, -36, 24], [48, -18, 20], [-30, -12, 22], [20, -14, 24], [-4, -24, 24]] as const;
 const drawBush = (c: Ctx, state: GameState, b: Bush, fringe: boolean) => {
   const k = b.gone ? 0 : Math.max(0, b.hp / BUSH_HP);
-  const sx = b.shake > 0 ? Math.sin(state.frame * 1.7) * Math.min(6, b.shake * 0.5) : 0;
-  c.save(); c.translate(Math.round(b.x + sx), GY);
-  if (fringe) {
-    // (the front of it, over whoever's in it: the leaves along the bottom)
-    c.fillStyle = '#166534';
-    for (const [x, y, r] of [[-44, -10, 20], [-16, -16, 22], [14, -16, 22], [42, -10, 20]] as const) { if (k * 4 < 0.5) break; c.beginPath(); c.arc(x, y, r * (0.6 + k * 0.4), 0, Math.PI * 2); c.fill(); }
-    c.restore();
-    return;
-  }
-  // twigs (more of them showing the more it's eaten)
-  c.strokeStyle = '#4A3520'; c.lineWidth = 3;
-  for (const [x, a] of [[-30, -0.5], [-8, -0.15], [12, 0.2], [34, 0.55]] as const) { c.beginPath(); c.moveTo(x * 0.4, 0); c.lineTo(x + Math.sin(a) * 30, -38 - Math.abs(x) * 0.2); c.stroke(); }
-  if (b.gone) {
-    // (eaten to the stalks: a few leaves lying about)
-    c.fillStyle = '#365314';
-    for (let i = 0; i < 5; i++) c.fillRect(-44 + i * 20, -3, 8, 3);
-    c.restore();
-    return;
-  }
-  const n = Math.max(1, Math.ceil(LEAF.length * k));
-  LEAF.forEach(([x, y, r], i) => {
-    if (i >= n) return;
-    c.fillStyle = '#14532D'; c.beginPath(); c.arc(x, y, r + 2, 0, Math.PI * 2); c.fill();
-  });
-  LEAF.forEach(([x, y, r], i) => {
-    if (i >= n) return;
-    c.fillStyle = i % 2 ? '#15803D' : '#166534'; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#22C55E'; c.fillRect(x - r * 0.4, y - r * 0.6, 4, 2);
-  });
-  // (bitten: holes in it)
-  if (k < 1) { c.fillStyle = 'rgba(56, 189, 248, 0.35)'; for (let i = 0; i < Math.round((1 - k) * 6); i++) { c.beginPath(); c.arc(-40 + ((i * 37) % 80), -14 - ((i * 23) % 30), 6 + (i % 3) * 2, 0, Math.PI * 2); c.fill(); } }
-  c.restore();
+  const sx = b.shake > 0 ? Math.round(Math.sin(state.frame * 1.7) * Math.min(6, b.shake * 0.5)) : 0;
+  drawBushArt(c, b.x + sx, k, b.gone, fringe);
 };
 
 /** World space, over everything: the bush he's in over his legs, him when he's not an enemy, the herd, the darts, the
@@ -988,18 +958,16 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   // (chewed: thinner where they've been at it, the more the thinner)
   if (f.mode === 'dodge') {
     const k = f.vineHp / VINE_HP, ny = f.y - 86 - VINE_UP * 0.55;
-    c.strokeStyle = '#3F6212'; c.lineWidth = 4; c.beginPath(); c.moveTo(f.x, state.camera.y - 20); c.lineTo(f.x, ny - 7); c.moveTo(f.x, ny + 7); c.lineTo(f.x, f.y - 86); c.stroke();
-    c.lineWidth = Math.max(1, 4 * k); c.beginPath(); c.moveTo(f.x, ny - 8); c.lineTo(f.x, ny + 8); c.stroke();
-    if (k < 1) { c.strokeStyle = '#A3E635'; c.lineWidth = 1; for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(f.x, ny); c.lineTo(f.x + sd * (3 + (1 - k) * 6), ny + sd * 3); c.stroke(); } }
+    drawVine(c, f.x, state.camera.y - 20, f.y - 86, ny, k);
   }
   // (snapped: the end of it coming down after him)
-  if (f.snap) { const t = f.snap.t, fall = t * t * 0.25; c.strokeStyle = '#3F6212'; c.lineWidth = 3; c.beginPath(); c.moveTo(f.snap.x, f.snap.y - VINE_UP * 0.55 + fall); c.lineTo(f.snap.x + Math.sin(t * 0.3) * 6, f.snap.y + fall); c.stroke(); }
+  if (f.snap) { const t = f.snap.t, fall = t * t * 0.25; c.save(); c.translate(f.snap.x, f.snap.y + fall); c.rotate(Math.sin(t * 0.3) * 0.2); drawVine(c, 0, -VINE_UP * 0.55, 0, -999, 1); c.restore(); }
   // Stars round his head
   if (f.mode === 'stunned') for (let i = 0; i < 3; i++) { const a = fr * 0.12 + (i * Math.PI * 2) / 3; star(c, f.x + Math.cos(a) * 18, f.y - 62 + Math.sin(a) * 5, '#FDE047'); }
   // Notes, the whistle
-  if (f.mode === 'whistle') for (let i = 0; i < 3; i++) { const t = (fr + i * 13) % 40; label(c, '♪', f.x + f.facing * (18 + t * 0.6), f.y - 80 - t, '#F472B6', 10); }
+  if (f.mode === 'whistle') for (let i = 0; i < 3; i++) { const t = (fr + i * 13) % 40; note(c, f.x + f.facing * (18 + t * 0.6), f.y - 80 - t + Math.sin(t * 0.3) * 3); }
   // Agitated: a word over him
-  if (f.agitated && isOut(f) && f.mode !== 'dead' && Math.floor(fr / 8) % 2 === 0) label(c, '!!', f.x, f.y - 110, '#F87171', 10);
+  if (f.agitated && isOut(f) && f.mode !== 'dead' && Math.floor(fr / 8) % 2 === 0) for (const dx of [-5, 5]) { box(c, f.x + dx - 3, f.y - 128, 6, 14, '#1A0B06'); box(c, f.x + dx - 2, f.y - 127, 4, 9, '#F87171'); box(c, f.x + dx - 3, f.y - 112, 6, 6, '#1A0B06'); box(c, f.x + dx - 2, f.y - 111, 4, 4, '#F87171'); }
   const p = state.player;
   // The herd and its warnings
   drawStampede(c, state, f.herd);
@@ -1010,7 +978,10 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   if (f.poison > 0 && p.health > 0 && !p.hidden) {
     const hx = p.pos.x + p.width / 2;
     for (let i = 0; i < 3; i++) { const t = (fr + i * 11) % 34; c.fillStyle = `rgba(132, 204, 22, ${(1 - t / 34).toFixed(2)})`; c.beginPath(); c.arc(hx - 8 + i * 8, p.pos.y - 6 - t * 0.7, 3 + t * 0.08, 0, Math.PI * 2); c.fill(); }
-    label(c, 'POISONED', hx, p.pos.y - 34, '#A3E635', 6);
+    // (a little green skull over him, bobbing)
+    const sy = p.pos.y - 30 + Math.round(Math.sin(fr * 0.15) * 2);
+    box(c, hx - 6, sy - 6, 12, 11, '#1A0B06'); box(c, hx - 5, sy - 5, 10, 7, '#A3E635'); box(c, hx - 3, sy + 2, 6, 2, '#A3E635');
+    box(c, hx - 3, sy - 3, 2, 2, '#1A0B06'); box(c, hx + 1, sy - 3, 2, 2, '#1A0B06'); box(c, hx - 1, sy + 2, 1, 2, '#1A0B06'); box(c, hx + 1, sy + 2, 1, 2, '#1A0B06'); box(c, hx - 4, sy - 5, 3, 1, '#D9F99D');
   }
   // Up his vine to stay, the blowgun up (one-handed, the other on the vine), aimed down at him
   if (aiming(f)) {
@@ -1031,6 +1002,13 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     saidOver(c, f.said, sx, Math.max(state.camera.y + 130, sy), '#FDE68A');
   }
   if (f.puke && state.deathScene) drawPuke(c, state, f);
+};
+
+/** A music note (the whistle's), pixel-drawn: an ink edge, a pink head and stem, a flag. */
+const note = (c: Ctx, x: number, y: number) => {
+  x = Math.round(x); y = Math.round(y);
+  box(c, x - 5, y - 1, 8, 7, '#1A0B06'); box(c, x + 1, y - 14, 3, 15, '#1A0B06'); box(c, x + 2, y - 15, 6, 5, '#1A0B06');
+  box(c, x - 4, y, 6, 5, '#F472B6'); box(c, x + 2, y - 13, 1, 14, '#F472B6'); box(c, x + 3, y - 14, 4, 3, '#F472B6'); box(c, x - 3, y + 1, 2, 1, '#FBCFE8');
 };
 
 const star = (c: Ctx, x: number, y: number, col: string) => {

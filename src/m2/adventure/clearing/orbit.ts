@@ -11,13 +11,18 @@
 //
 // The loop's angle is world x over its radius, so the near side of it moves with the strip (1:1 where it meets it).
 //
-// Crude (the first pass): flat-shaded boxes, lit from one side (so the faces change as they turn).
+// The look (the final pass): the temple's faces in the roof's sandy stone, each face's shade stepped from the stone's
+// ramp by how it's turned to the light; block courses and staggered joints in perspective (dark joint, lit lip), a lit
+// cornice, moss along the foot, carved glyph panels, vines; the stairs with lit treads. Trees with stepped crowns,
+// the hills with lit crests, clouds going round with the loop.
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { x0, TEMPLE_X } from './arena';
-import { timeOfDay, skyRamp, farTint, sunAt, drawSun, drawStars, drawMoon } from '../../timeOfDay';
+import { timeOfDay, skyRamp, farTint, sunAt, drawSun, drawStars, drawMoon, cloudTint } from '../../timeOfDay';
+import { pixelBlob } from '../../intro/art/kit';
+import { STONE as SR, MOSS } from '../roof/stone';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -80,9 +85,14 @@ interface BoxOpts {
   /** The top edge broken (the roof caved in): its notches. */
   broken?: boolean;
 }
+/** A face's stone, stepped from the ramp by how lit it is (0.62 .. 1.02). */
+const stoneAt = (lit: number, off = 0) => SR[Math.max(0, Math.min(SR.length - 1, Math.round(1 + ((lit - 0.62) / 0.4) * 4) + off))];
+const seg = (c: Ctx, p: { x: number; y: number }, q: { x: number; y: number }, col: string, w = 1) => { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.stroke(); };
 const drawBox = (c: Ctx, v: View, corners: Pt[], y0: number, y1: number, o: BoxOpts) => {
   const cam = camPos(v);
   const mid = { x: corners.reduce((s, p) => s + p.x, 0) / 4, z: corners.reduce((s, p) => s + p.z, 0) / 4 };
+  const stone = o.col === STONE || o.col === STONE_WING || o.col === SHRINE;
+  const tone = o.col === STONE ? 0 : -1;
   for (let i = 0; i < 4; i++) {
     const a = corners[i], b = corners[(i + 1) % 4];
     const m = { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 };
@@ -93,20 +103,36 @@ const drawBox = (c: Ctx, v: View, corners: Pt[], y0: number, y1: number, o: BoxO
     const top = (t: number) => (o.broken && t > 0.25 && t < 0.75 ? y1 - 26 - 18 * Math.sin(t * 40 + i) ** 2 : y1);
     const pts: { x: number; y: number }[] = [proj(v, a.x, y0, a.z), proj(v, b.x, y0, b.z)];
     for (let t = 1; t >= 0; t -= 0.125) pts.push(proj(v, a.x + (b.x - a.x) * t, top(t), a.z + (b.z - a.z) * t));
-    poly(c, pts, shade(o.col, lit));
-    // (a course of stone, or two)
-    c.strokeStyle = shade(o.col, lit * 0.78); c.lineWidth = 1;
-    for (let y = y0 + 34; y < y1 - 8; y += 34) {
-      const p = proj(v, a.x, y, a.z), q = proj(v, b.x, y, b.z);
-      c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.stroke();
+    const face = stone ? stoneAt(lit, tone) : shade(o.col, lit);
+    poly(c, pts, face);
+    const P = (t: number, y: number) => proj(v, a.x + (b.x - a.x) * t, y, a.z + (b.z - a.z) * t);
+    const dk = stone ? stoneAt(lit, tone - 2) : shade(o.col, lit * 0.7), lt = stone ? stoneAt(lit, tone + 1) : shade(o.col, lit * 1.15);
+    // (moss along the foot)
+    poly(c, [P(0, y0), P(1, y0), P(1, y0 + 9), P(0, y0 + 9)], MOSS[1]);
+    // (the courses: a dark joint, a lit lip under it; the blocks' joints staggered course to course)
+    const len = Math.hypot(b.x - a.x, b.z - a.z), nj = Math.max(2, Math.round(len / 64));
+    for (let y = y0 + 17, row = 0; y < y1 - 6; y += 17, row++) {
+      seg(c, P(0, y), P(1, y), dk); seg(c, P(0, y - 1.5), P(1, y - 1.5), lt);
+      const yb = Math.min(y + 17, y1 - 2);
+      for (let j = 0; j < nj; j++) { const t = (j + (row % 2 ? 0.5 : 0.1)) / nj; if (t < 0.98) seg(c, P(t, y), P(t, yb), dk); }
     }
+    // (the cornice: lit along the top edge, its shadow under it)
+    if (!o.broken) { poly(c, [P(0, y1 - 6), P(1, y1 - 6), P(1, y1), P(0, y1)], stone ? stoneAt(lit, tone + 2) : lt); seg(c, P(0, y1 - 7), P(1, y1 - 7), dk); }
+    // (glyph panels, carved in, and a vine or two down it)
+    if (y1 - y0 >= 60) for (let j = 1; j < nj; j += 2) {
+      const t = j / nj, w2 = 0.35 / nj, yy = (y0 + y1) / 2;
+      poly(c, [P(t - w2, yy - 10), P(t + w2, yy - 10), P(t + w2, yy + 10), P(t - w2, yy + 10)], dk);
+      poly(c, [P(t - w2 * 0.6, yy - 6), P(t + w2 * 0.6, yy - 6), P(t + w2 * 0.6, yy + 6), P(t - w2 * 0.6, yy + 6)], face);
+      seg(c, P(t - w2, yy + 10), P(t + w2, yy + 10), lt);
+    }
+    for (let j = 0; j < 3; j++) { const t = ((j * 0.37 + i * 0.21) % 0.9) + 0.05, hgt = (y1 - y0) * (0.3 + ((j + i) % 3) * 0.2); seg(c, P(t, y1 - 4), P(t + 0.004, y1 - hgt), MOSS[2], 2); }
     if (o.onFace) {
-      const len = Math.hypot(b.x - a.x, b.z - a.z), ux = (b.x - a.x) / len, uz = (b.z - a.z) / len;
+      const ux = (b.x - a.x) / len, uz = (b.z - a.z) / len;
       o.onFace(c, v, i, (along, y, out = 0) => proj(v, a.x + ux * along + nx * out, y, a.z + uz * along + nz * out));
     }
   }
   // Its top, if it's below the eye
-  if (HC > y1 && !o.broken) poly(c, corners.map(p => proj(v, p.x, y1, p.z)), shade(o.col, 1.12));
+  if (HC > y1 && !o.broken) poly(c, corners.map(p => proj(v, p.x, y1, p.z)), stone ? stoneAt(1, tone + 1) : shade(o.col, 1.12));
 };
 /** The temple's footprint at this half-size (its middle out at TD, toward the loop's open side). */
 const square = (a: number): Pt[] => [{ x: -a, z: -a - TD }, { x: a, z: -a - TD }, { x: a, z: a - TD }, { x: -a, z: a - TD }];
@@ -119,7 +145,7 @@ const wingBox = (u0: number, u1: number, w: number): Pt[] => {
 
 // ---------------------------------------------------------------------------------------------------------------
 
-const STONE = '#8C8378', STONE_WING = '#81786D', SHRINE = '#7C6F62';
+const STONE = SR[4], STONE_WING = SR[3], SHRINE = SR[2];
 const TIERS = 5, TIER_H = 70, BASE = 300, INSET = 45;
 const SHRINE_A = 90, SHRINE_H = 90;
 
@@ -133,9 +159,11 @@ const drawTemple = (c: Ctx, v: View) => {
       onFace: (c2, _v, face, at) => {
         if (face !== 2) return;
         const s0 = a - 55, s1 = a + 55;
-        poly(c2, [at(s0, y0), at(s1, y0), at(s1, y1), at(s0, y1)], '#6B6259');
-        c2.strokeStyle = '#A39A8F'; c2.lineWidth = 1;
-        for (let y = y0 + 10; y < y1; y += 12) { const l = at(s0, y), r = at(s1, y); c2.beginPath(); c2.moveTo(l.x, l.y); c2.lineTo(r.x, r.y); c2.stroke(); }
+        poly(c2, [at(s0 - 8, y0), at(s0, y0), at(s0, y1), at(s0 - 8, y1)], SR[2]);
+        poly(c2, [at(s1, y0), at(s1 + 8, y0), at(s1 + 8, y1), at(s1, y1)], SR[2]);
+        poly(c2, [at(s0, y0), at(s1, y0), at(s1, y1), at(s0, y1)], SR[3]);
+        // (each step: its lit tread, the riser's shadow under it)
+        for (let y = y0 + 10; y < y1; y += 10) { const l = at(s0, y), r = at(s1, y), l2 = at(s0, y - 3), r2 = at(s1, y - 3); poly(c2, [l2, r2, r, l], SR[5]); seg(c2, l, r, SR[1]); }
       },
     });
   }
@@ -175,16 +203,27 @@ const drawWing = (c: Ctx, v: View, hit: boolean) => {
   drawBox(c, v, wingBox(WING_U0, PR - 160, WING_W - 40), 220, 300, { col: STONE_WING });
 };
 
-/** A jungle tree (a scaled sprite: as big as it is near, dimmer further back). */
+/** A jungle tree (a scaled sprite: as big as it is near, dimmer further back): a two-tone trunk, a crown in steps. */
+const LEAVES = ['#0F3A1C', '#16552A', '#22703A', '#3A8C44', '#62AE52'];
+const LOBES: [number, number, number][] = [[0, 0, 1], [-0.7, 0.45, 0.7], [0.7, 0.45, 0.7], [-0.3, -0.35, 0.6], [0.4, -0.25, 0.55]];
 const drawTree = (c: Ctx, v: View, px: number, pz: number, i: number) => {
   const b = proj(v, px, 0, pz);
   const h = 300 + ((i * 37) % 120), t = proj(v, px, h, pz);
   const dim = Math.max(0.5, Math.min(1, 1.3 - b.z / 3000));
-  c.fillStyle = shade('#4A3826', dim); c.fillRect(Math.round(b.x - 9 * b.k), Math.round(t.y), Math.max(1, Math.round(18 * b.k)), Math.round(b.y - t.y));
-  c.fillStyle = shade(i % 3 ? '#166534' : '#14532D', dim);
+  const tw = Math.max(2, Math.round(18 * b.k));
+  c.fillStyle = shade('#4A3826', dim); c.fillRect(Math.round(b.x - tw / 2), Math.round(t.y), tw, Math.round(b.y - t.y));
+  c.fillStyle = shade('#6E5438', dim); c.fillRect(Math.round(b.x - tw / 2), Math.round(t.y), Math.max(1, Math.round(tw / 3)), Math.round(b.y - t.y));
   const r = 70 * b.k;
-  c.beginPath(); c.arc(t.x, t.y, r, 0, Math.PI * 2); c.arc(t.x - r * 0.7, t.y + r * 0.45, r * 0.7, 0, Math.PI * 2); c.arc(t.x + r * 0.7, t.y + r * 0.45, r * 0.7, 0, Math.PI * 2); c.fill();
-  c.fillStyle = shade('#22A04B', dim); c.fillRect(Math.round(t.x - r * 0.5), Math.round(t.y - r * 0.8), Math.round(r * 0.6), Math.max(1, Math.round(r * 0.2)));
+  // (shadow, body, lit, highlight: each lobe in steps, lit from the upper left)
+  const lobes = (col: string, ox: number, oy: number, k: number) => {
+    c.fillStyle = shade(col, dim); c.beginPath();
+    for (const [dx, dy, s] of LOBES) { const cx = t.x + dx * r + ox * r, cy = t.y + dy * r + oy * r; c.moveTo(cx + r * s * k, cy); c.arc(cx, cy, r * s * k, 0, Math.PI * 2); }
+    c.fill();
+  };
+  lobes(LEAVES[0], 0.04, 0.08, 1.05);
+  lobes(LEAVES[i % 3 ? 2 : 1], 0, 0, 0.92);
+  lobes(LEAVES[3], -0.2, -0.22, 0.5);
+  if (r > 12) { c.fillStyle = shade(LEAVES[4], dim); for (const [dx, dy, s] of LOBES) c.fillRect(Math.round(t.x + dx * r - r * s * 0.45), Math.round(t.y + dy * r - r * s * 0.5), Math.max(2, Math.round(r * s * 0.25)), Math.max(2, Math.round(r * 0.08))); }
 };
 /** The jungle round the loop (outside it: the loop's middle is open, the temple in full view), fixed in the world. */
 const TREES: { x: number; z: number }[] = (() => {
@@ -195,7 +234,7 @@ const TREES: { x: number; z: number }[] = (() => {
 })();
 
 /** A bumpy band round the loop at radius r (the jungle's canopy, the hills): its far side, as one shape. */
-const band = (c: Ctx, v: View, r: number, height: (a: number) => number, col: string, nearest: number) => {
+const band = (c: Ctx, v: View, r: number, height: (a: number) => number, col: string, nearest: number, crest?: string) => {
   const tops: { x: number; y: number }[] = [], bases: { x: number; y: number }[] = [];
   for (let k = 0; k < 720; k++) {
     const a = (k / 720) * Math.PI * 2, p = polar(r, a);
@@ -204,10 +243,14 @@ const band = (c: Ctx, v: View, r: number, height: (a: number) => number, col: st
   }
   const order = tops.map((_, i) => i).sort((i, j) => tops[i].x - tops[j].x);
   if (order.length < 2) return;
-  c.fillStyle = col; c.beginPath();
-  order.forEach((i, n) => (n ? c.lineTo(tops[i].x, tops[i].y) : c.moveTo(tops[i].x, tops[i].y)));
-  for (let n = order.length - 1; n >= 0; n--) c.lineTo(bases[order[n]].x, bases[order[n]].y + 3);
-  c.closePath(); c.fill();
+  // (lit along its crest: the shape in a lighter step, then itself a little lower over it)
+  const layer = (dy: number, cl: string) => {
+    c.fillStyle = cl; c.beginPath();
+    order.forEach((i, n) => (n ? c.lineTo(tops[i].x, tops[i].y + dy) : c.moveTo(tops[i].x, tops[i].y + dy)));
+    for (let n = order.length - 1; n >= 0; n--) c.lineTo(bases[order[n]].x, bases[order[n]].y + 3);
+    c.closePath(); c.fill();
+  };
+  if (crest) { layer(0, crest); layer(4, col); } else layer(0, col);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -279,11 +322,18 @@ export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean) 
   drawMoon(c, sk, Math.max(40, top - 300), 18, tod);
   { const s = sunAt(sk + 300, top - 240, top, tod); drawSun(c, s.x, s.y, 22, tod); }
   // The hills, far off (they slide by the other way, fastest); a nearer ridge
-  band(c, v, 4200, a => 700 + 260 * Math.sin(3 * a) + 140 * Math.sin(7 * a + 1) + 60 * Math.sin(17 * a + 2), farTint('#6E9C96', 1, tod), 600);
-  band(c, v, 3000, a => 380 + 120 * Math.sin(5 * a + 2) + 70 * Math.sin(13 * a), farTint('#4A7A5E', 0.7, tod), 600);
+  // (clouds, going round with the loop, slowly drifting)
+  const cc = [cloudTint('#B9C6DA', tod), cloudTint('#E6ECF4', tod), cloudTint('#FFFFFF', tod)];
+  for (let i = 0; i < 5; i++) {
+    const cx = ((((-v.phi * 900 + i * 380 + state.frame * 0.05) % 1900) + 1900) % 1900) - 300, cy = 50 + ((i * 53) % 120);
+    if (cy > top - 40) continue;
+    for (const [dx, dy, rw, rh, k] of [[0, 6, 40, 10, 0], [-22, 0, 22, 12, 1], [12, -4, 26, 16, 1], [30, 4, 18, 9, 1], [4, -8, 16, 9, 2]] as const) pixelBlob(c, cx + dx * 1.4, cy + dy * 1.4, rw * 1.4, rh * 1.4, cc[k]);
+  }
+  band(c, v, 4200, a => 700 + 260 * Math.sin(3 * a) + 140 * Math.sin(7 * a + 1) + 60 * Math.sin(17 * a + 2), farTint('#6E9C96', 1, tod), 600, farTint('#94BEB6', 1, tod));
+  band(c, v, 3000, a => 380 + 120 * Math.sin(5 * a + 2) + 70 * Math.sin(13 * a), farTint('#4A7A5E', 0.7, tod), 600, farTint('#6A9A6E', 0.7, tod));
   drawFloor(c, v);
   // The jungle's canopy round the loop (its far side)
-  band(c, v, PR + 520, a => 330 + 60 * Math.sin(9 * a) + 40 * Math.sin(23 * a + 1), '#1B5E2E', DC - 150);
+  band(c, v, PR + 520, a => 330 + 60 * Math.sin(9 * a) + 40 * Math.sin(23 * a + 1), '#1B5E2E', DC - 150, '#2E7A3A');
   // The trees round about and the temple, back to front (the near side of the loop is the play strip's)
   const items: { z: number; draw: () => void }[] = [];
   TREES.forEach((p, i) => { const z = depth(v, p.x, p.z); if (z > F + 420) items.push({ z, draw: () => drawTree(c, v, p.x, p.z, i) }); });
