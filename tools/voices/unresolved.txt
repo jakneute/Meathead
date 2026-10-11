@@ -42,6 +42,7 @@ m2/adventure/section.ts:135 voice: voice(voiceId)
 m2/walkAway/artie.ts:378 voice: x
 m2/walkAway/artie.ts:383 voice: x
 m2/walkAway/artie.ts:384 voice: Math.round(sx - c.measureText('LAND').width / 2)
+m2/walkAway/donnie.ts:42 voice: l
 m2/spooky/castle/pa.ts:72 voice: voice(PA)
 m2/spooky/hell/satan.ts:109 voice: SATAN_CORE
 m2/spooky/hell/satan.ts:112 voice: pick(dressedPool(state))
