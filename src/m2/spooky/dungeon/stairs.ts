@@ -9,7 +9,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GroundRun } from '../../../m1/game/core/terrain';
 import type { Light } from '../../../m1/game/render/lighting';
-import { box, wallSign, meatheadSays } from '../section';
+import { meatheadSays } from '../section';
+import { INK, box, checker, plaque, rockFill, blockFill, stoneLedge, torch, STONE, IRON } from './paint';
 import { SECTIONS, GY } from '../geometry';
 import { spawnStaff } from '../castle/staff';
 import { paStory, paBusy, byPants, pick } from '../castle/pa';
@@ -77,36 +78,57 @@ export const stairsLighting = (state: GameState) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// Drawing (the final pass: paint.ts). The dark itself is the lighting's (stairsLighting); every tread's nosing is lit
+// so the way down still reads in it.
 
 const seen = (state: GameState, a: number, b: number) => b > state.camera.x - 100 && a < state.camera.x + 900;
-export const drawStairs = (c: CanvasRenderingContext2D, state: GameState) => {
-  if (!seen(state, S, CELLS)) return;
-  const f = state.frame;
-  // The rock it's cut through, and the tunnel down it (stone blocks)
-  box(c, S, STAIR_TOP - HEAD - 200, CELLS - S, GY - STAIR_TOP + HEAD + 600, '#0A0807');
-  c.fillStyle = '#26221F'; c.beginPath(); c.moveTo(PTS[0][0], PTS[0][1] - HEAD);
+const tunnel = (c: CanvasRenderingContext2D) => {
+  c.beginPath(); c.moveTo(PTS[0][0], PTS[0][1] - HEAD);
   for (const [x, y] of PTS) c.lineTo(x, y - HEAD);
   for (let i = PTS.length - 1; i >= 0; i--) c.lineTo(PTS[i][0], PTS[i][1]);
-  c.closePath(); c.fill();
-  for (let x = S; x < CELLS; x += 80) if (seen(state, x, x + 80)) { const fl = floorAt(x + 40); for (let y = fl - HEAD + 20; y < fl - 30; y += 44) box(c, x + ((y / 44) % 2 ? 0 : 20), y, 72, 38, '#2E2925'); }
-  // The steps: the flights in steps (each one's tread lit), the landings flat (lit along the top), the rock under them
+  c.closePath();
+};
+export const drawStairs = (c: CanvasRenderingContext2D, state: GameState) => {
+  if (!seen(state, S, CELLS)) return;
+  const f = state.frame, a = Math.max(S, state.camera.x - 40), b = Math.min(CELLS, state.camera.x + 900);
+  const top = STAIR_TOP - HEAD - 200, bot = GY + 400;
+  // The rock it's cut through
+  c.fillStyle = rockFill(c); c.fillRect(a, top, b - a, bot - top);
+  // The tunnel down it: dressed stone, darker toward its roof; its roof's edge in shadow
+  c.save(); tunnel(c); c.clip();
+  c.fillStyle = blockFill(c, 'stairs', '#322C27'); c.fillRect(a, top, b - a, bot - top);
+  c.restore();
+  c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(PTS[0][0], PTS[0][1] - HEAD); for (const [x, y] of PTS) c.lineTo(x, y - HEAD); c.stroke();
+  c.strokeStyle = STONE[0]; c.lineWidth = 2; c.beginPath(); c.moveTo(PTS[0][0], PTS[0][1] - HEAD + 5); for (const [x, y] of PTS) c.lineTo(x, y - HEAD + 5); c.stroke();
+  // The steps: each tread's nosing lit (somewhere to put his feet), its riser in shade; the landings flat, lit along
+  // the top; worn hollows in the middle of each
   for (let i = 1; i < PTS.length; i++) {
     const [ax, ay] = PTS[i - 1], [bx, by] = PTS[i];
     if (!seen(state, ax, bx)) continue;
-    if (ay === by) { box(c, ax, ay, bx - ax, 60, '#3A3430'); box(c, ax, ay, bx - ax, 4, '#A8A29E'); continue; }
-    const n = Math.round((bx - ax) / 25);
-    for (let k = 0; k < n; k++) { const x = ax + (bx - ax) * k / n, y = ay + (by - ay) * (k + 0.5) / n; box(c, x, y, (bx - ax) / n + 1, 60, '#3A3430'); box(c, x, y, (bx - ax) / n + 1, 3, '#A8A29E'); }
+    if (ay === by) { stoneLedge(c, ax, ay, bx - ax, '#57504A'); box(c, ax, ay + 16, bx - ax, 44, STONE[0]); continue; }
+    const n = Math.round((bx - ax) / 25), sw = (bx - ax) / n;
+    for (let k = 0; k < n; k++) {
+      const x = Math.round(ax + sw * k), y = Math.round(ay + (by - ay) * (k + 0.5) / n), w = Math.round(sw) + 1;
+      box(c, x, y, w, 60, STONE[1]); box(c, x + w - 3, y, 3, 60, STONE[0]);
+      box(c, x, y, w, 2, STONE[4]); box(c, x, y + 2, w, 2, STONE[3]); checker(c, x, y + 4, w, 2, STONE[2]);
+      box(c, x + 6, y + 1, w - 12, 1, STONE[2]);
+    }
   }
-  // The sconces: lit ones, and the burnt-out ones (a wisp of smoke off them)
+  // (a skull on the second landing, for the look of it)
+  { const x = S + 1110, y = STAIR_TOP + 500; if (seen(state, x - 20, x + 20)) { box(c, x - 1, y - 13, 16, 13, INK); box(c, x, y - 12, 14, 12, '#C8C2B4'); box(c, x, y - 12, 4, 12, '#E2DDD0'); box(c, x + 3, y - 8, 3, 3, INK); box(c, x + 8, y - 8, 3, 3, INK); box(c, x + 4, y - 3, 6, 2, INK); } }
+  // The sconces: lit ones (torches), and the burnt-out ones (a wisp of smoke off them)
   SCONCES.forEach((x, i) => {
     if (!seen(state, x - 20, x + 20)) return;
-    const y = floorAt(x) - 170;
-    box(c, x - 8, y + 16, 16, 4, '#57534E'); box(c, x - 2, y + 4, 4, 14, '#57534E');
-    if (descended || i < LIT) { box(c, x - 6, y - 12 - ((f + x) % 7 < 3 ? 2 : 0), 12, 16, '#F97316'); box(c, x - 3, y - 6, 6, 8, '#FDE047'); }
-    else { box(c, x - 3, y - 2, 6, 6, '#1C1917'); if ((f + i * 20) % 60 < 30) box(c, x - 1, y - 12 - ((f + i * 20) % 30) * 0.4, 2, 6, '#57534E'); }
+    const y = floorAt(x) - 166;
+    if (descended || i < LIT) torch(c, x, y, f);
+    else {
+      box(c, x - 6, y, 12, 6, INK); box(c, x - 5, y + 1, 10, 4, IRON[2]); box(c, x - 3, y + 2, 6, 24, INK); box(c, x - 2, y + 2, 4, 22, '#2A1A10');
+      box(c, x - 3, y - 4, 6, 6, '#1C1917'); box(c, x - 2, y - 4, 2, 2, '#3A2A20');
+      if ((f + i * 20) % 60 < 30) box(c, x - 1 + (((f + i * 20) >> 3) % 2), y - 12 - ((f + i * 20) % 30) * 0.4, 2, 4, '#4A4440');
+    }
   });
   // Eyes in the dark (blinking)
-  if (!descended) EYES.forEach(([x, y], i) => { if ((f + i * 53) % 170 < 160) { box(c, x - 6, y, 4, 3, '#FDE047'); box(c, x + 3, y, 4, 3, '#FDE047'); } });
-  wallSign(c, S + 120, STAIR_TOP - 200, 'TO THE DUNGEON', '#27272A', '#FCA5A5');
-  if (descended) wallSign(c, S + 340, STAIR_TOP - 190, 'SORRY ABOUT THE DARK. - MGMT', '#3F3F46', '#E4E4E7');
+  if (!descended) EYES.forEach(([x, y], i) => { if ((f + i * 53) % 170 < 160) { box(c, x - 6, y, 4, 3, '#FDE047'); box(c, x + 3, y, 4, 3, '#FDE047'); box(c, x - 5, y + 1, 1, 1, INK); box(c, x + 4, y + 1, 1, 1, INK); } });
+  plaque(c, S + 120, STAIR_TOP - 200, 'TO THE DUNGEON');
+  if (descended) plaque(c, S + 340, STAIR_TOP - 170, 'SORRY ABOUT THE DARK. - MGMT', '#3F3F46', '#E4E4E7');
 };

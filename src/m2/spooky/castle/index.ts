@@ -32,7 +32,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { registerHurtLines } from '../../kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
-import { box } from '../section';
+import { bandedGradient } from '../../intro/art/kit';
 import { hazardVictims, hazardKill, hazardHit, setHazardZones, type Zone } from '../../hazardHit';
 import { spookyState } from '../section';
 import { spawnStaff, STAFF } from './staff';
@@ -290,7 +290,7 @@ export const castle: SpookySection = {
     { const p = state.player, cx = p.pos.x + p.width / 2; if (cx > BALLPIT.a && cx < BALLPIT.b && p.pos.y + p.height > GY + DY.nursery + 8) { p.vel.x *= 0.8; if (Math.abs(p.vel.x) > 0.5 && state.frame % 6 === 0) { state.particles.push({ pos: { x: cx, y: GY + DY.nursery }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 2 }, life: 30, color: ['#EF4444', '#3B82F6', '#FACC15', '#22C55E'][state.frame % 4], size: 5, grav: 0.3 }); playSound('clink', 0.2, 8); } } }
     return controls;
   },
-  drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#140608'); return true; },
+  drawBackdrop: (c) => { bandedGradient(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#050102', '#0A0304', '#100506'], 8); return true; },
   drawBack: (c, state) => { drawCastleBack(c, state, castleOf(state)); drawLadders(c, state, LADDERS); },
   cameraRow: (state) => (onLadder(state) ? 470 : undefined),
   drawFront: (c, state) => {

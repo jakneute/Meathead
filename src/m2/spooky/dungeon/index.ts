@@ -16,7 +16,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Block } from '../../../m1/types';
 import type { SpookySection } from '../section';
-import { layOwn, endWalls, endExits, runExits, solid, ledge, wallSign, doorway, groundBox, ledgeBox, box, meatheadSays, getSpooky, spookyState } from '../section';
+import { layOwn, endWalls, endExits, runExits, solid, ledge, meatheadSays, getSpooky, spookyState } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { setUi } from '../../store';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
@@ -26,7 +26,9 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { registerHurtLines } from '../../kinds';
 import { spawnStaff } from '../castle/staff';
 import { hazardVictims, hazardKill, setHazardZones } from '../../hazardHit';
-import { paStory, paQuip, paBusy, byPants, pick, drawHorn, drawPaWords, paSaying } from '../castle/pa';
+import { paStory, paQuip, paBusy, byPants, pick, drawPaWords, paSaying } from '../castle/pa';
+import { drawPaHorn } from '../castle/horn';
+import { INK, box, pole, rampOf, checker, hazeBands, bandedGradient, hash, put, plaque, blockFill, plateFill, spikeDown, torch, chain, stoneLedge, flagFloor, paintCell, paintRack, paintMaiden, paintCrate, STONE, IRON, STEEL, BLOOD } from './paint';
 import { skewer, skewerRise, SKEWERED } from './death';
 import * as L from './lines';
 import { CELLS, STAIR_TOP, stairRuns, buildStairs, runStairs, drawStairs, stairsLighting, resetStairs, initStairs } from './stairs';
@@ -222,85 +224,156 @@ const run = (ctx: FrameContext, dg: Dungeon) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude)
+// Drawing (the final pass: peak SNES; paint.ts)
 
 const seen = (state: GameState, a: number, b: number) => b > state.camera.x - 100 && a < state.camera.x + CANVAS_WIDTH + 100;
+/** The walls are painted in tiles this wide (stamped), from the foot of the stairs. */
+const DTW = 400;
+/** The chamber's buttresses (room x). */
+const BUTTRESS = (x: number) => (x - RA - 120) % 240 === 0;
+
+/** One tile of the dungeon's wall (its origin at (tx, GY)): dressed stone, damp, mossy; the chamber's darker, stained,
+ *  scratched with tallies; a vault of shadow up under the roof. */
+const paintDungeonWall = (g: CanvasRenderingContext2D, tx: number) => {
+  const top = CEIL_TOP - GY;
+  for (const [a, b, col] of [[tx, Math.min(tx + DTW, RA), '#4A443E'], [Math.max(tx, RA), Math.min(tx + DTW, RB), '#3A3634'], [Math.max(tx, RB), tx + DTW, '#4A443E']] as const) {
+    if (b <= a) continue;
+    g.fillStyle = blockFill(g, col, col); g.fillRect(a - tx, top, b - a, -top);
+  }
+  // (damp running down it, moss in the joints, a crack or two)
+  for (let k = 0; k < 6; k++) {
+    const s = hash(tx * 0.013 + k * 3.7), x = Math.floor(s * (DTW - 30));
+    if (s < 0.5) { for (let j = 0; j < 5; j++) checker(g, x + j * 2, -420 + Math.floor(hash(tx + k) * 200), 4, 60 + j * 20, 'rgba(10, 14, 12, 0.35)'); }
+    else box(g, x, -80 - Math.floor(hash(k + tx * 0.7) * 300), 22, 4, s < 0.75 ? '#2E3A22' : '#1E2618');
+  }
+  for (let k = 0; k < 2; k++) {
+    const x = 40 + Math.floor(hash(tx * 0.02 + k * 9.1) * 300), y = -500 + Math.floor(hash(tx * 0.031 + k) * 340);
+    g.fillStyle = STONE[0]; for (let j = 0; j < 6; j++) g.fillRect(x + j * 4 + (j % 2) * 2, y + j * 6, 2, 7);
+  }
+  // (an iron ring in the wall, now and then)
+  if (hash(tx * 0.007) > 0.5) { const x = 120 + Math.floor(hash(tx) * 160); box(g, x - 1, -181, 14, 14, INK); box(g, x, -180, 12, 12, IRON[2]); box(g, x + 3, -177, 6, 6, '#1A1614'); box(g, x, -180, 12, 2, IRON[4]); }
+  // The chamber's own: its buttresses, the tallies scratched by whoever was in there before, a smear of old blood low down
+  for (let x = Math.ceil((tx - RA - 120) / 240) * 240 + RA + 120; x < tx + DTW && x < RB; x += 240) if (x > RA && BUTTRESS(x)) {
+    const lx = x - tx;
+    box(g, lx - 15, top, 30, -top, INK); pole(g, lx - 14, top, 28, -top, '#4A4440');
+    box(g, lx - 20, -40, 40, 40, INK); box(g, lx - 19, -39, 38, 39, STONE[2]); box(g, lx - 19, -39, 38, 3, STONE[3]);
+  }
+  if (tx + DTW > RA && tx < RB) {
+    for (let k = 0; k < 3; k++) {
+      const x = Math.max(RA, tx) - tx + 30 + k * 120;
+      if (x > DTW - 40 || x + tx > RB - 40) continue;
+      const y = -140 - Math.floor(hash(tx + k) * 60);
+      for (let j = 0; j < 4; j++) box(g, x + j * 5, y, 2, 20, '#5E5650');
+      box(g, x - 2, y + 8, 22, 2, '#5E5650');
+      if (hash(tx * 3 + k) > 0.5) for (let j = 0; j < 3; j++) box(g, x + 30 + j * 5, y, 2, 20, '#5E5650');
+    }
+    const bx = Math.max(RA, tx) - tx + 60;
+    if (bx < DTW - 60) for (let j = 0; j < 7; j++) { const h = 10 + Math.floor(hash(tx + j * 3.3) * 36); box(g, bx + j * 5, -92 + (j % 3) * 4, 3, h, j % 2 ? BLOOD[0] : BLOOD[1]); box(g, bx + j * 5, -92 + (j % 3) * 4 + h, 3, 3, BLOOD[0]); }
+  }
+  // (the vault up under the roof: dark, in bands)
+  hazeBands(g, 0, top, DTW, 360, '#060504', 0.85, 0, 6);
+  hazeBands(g, 0, -60, DTW, 60, '#060504', 0, 0.35, 3);
+};
 
 const drawDungeon = (c: CanvasRenderingContext2D, state: GameState, dg: Dungeon) => {
   const f = state.frame;
-  // Stone walls, block by block
-  box(c, CELLS, CEIL_TOP, x1 - CELLS, GY - CEIL_TOP, '#26221F');
-  for (let y = CEIL_TOP; y < GY; y += 40) for (let x = CELLS + ((y / 40) % 2 ? 0 : 40); x < x1; x += 80) if (seen(state, x, x + 80)) box(c, x, y, 76, 36, (x + y) % 3 ? '#2E2925' : '#332D28');
+  // The walls (stamped)
+  for (let i = 0, tx = CELLS; tx < x1; i++, tx += DTW) if (seen(state, tx, tx + DTW)) put(c, `dWall:${i}`, tx, GY, 0, CEIL_TOP - GY, Math.min(DTW, x1 + 200 - tx), GY - CEIL_TOP, g => paintDungeonWall(g, tx));
   // The cells: bars, chains, the rack, the iron maiden (dimmed back)
   if (seen(state, x0, RA)) {
-    for (let k = 0; k < 3; k++) { const cx = X(300 + k * 340); box(c, cx, GY - 260, 220, 260, '#151210'); for (let b = 0; b < 9; b++) box(c, cx + 8 + b * 24, GY - 260, 5, 260, '#4A4440'); box(c, cx, GY - 266, 220, 8, '#57524C'); }
-    // (the rack: a wooden frame, a roller at each end with its crank, the ropes and the cuffs; a skeleton prop on it)
-    { const rx = X(1180); box(c, rx, GY - 62, 170, 14, '#5A3A20'); for (const lx of [rx + 4, rx + 152]) box(c, lx, GY - 48, 14, 48, '#4A2A16');
-      for (const ex of [rx - 6, rx + 162]) { box(c, ex, GY - 70, 14, 30, '#3A2416'); box(c, ex + 4, GY - 86, 4, 18, '#71717A'); box(c, ex - 4, GY - 88, 12, 4, '#71717A'); }
-      box(c, rx + 30, GY - 70, 110, 6, '#E7E2D6'); box(c, rx + 22, GY - 74, 14, 12, '#E7E2D6'); box(c, rx + 25, GY - 71, 3, 3, '#1A0A04'); box(c, rx + 30, GY - 71, 3, 3, '#1A0A04');
-      box(c, rx + 8, GY - 67, 22, 2, '#A8A29E'); box(c, rx + 140, GY - 67, 22, 2, '#A8A29E'); }
-    // (the iron maiden: a coffin stood on end with a face on its lid, the lid hung open, the spikes inside)
-    { const mx = X(578); c.fillStyle = '#1A1A1E'; c.beginPath(); c.moveTo(mx - 34, GY); c.lineTo(mx - 40, GY - 140); c.lineTo(mx - 24, GY - 210); c.lineTo(mx + 24, GY - 210); c.lineTo(mx + 40, GY - 140); c.lineTo(mx + 34, GY); c.closePath(); c.fill();
-      c.fillStyle = '#52525B'; c.beginPath(); c.moveTo(mx - 28, GY - 4); c.lineTo(mx - 34, GY - 140); c.lineTo(mx - 20, GY - 204); c.lineTo(mx + 20, GY - 204); c.lineTo(mx + 34, GY - 140); c.lineTo(mx + 28, GY - 4); c.closePath(); c.fill();
-      box(c, mx - 10, GY - 190, 20, 26, '#A1A1AA'); box(c, mx - 6, GY - 182, 4, 3, '#1A1A1E'); box(c, mx + 2, GY - 182, 4, 3, '#1A1A1E'); box(c, mx - 4, GY - 172, 8, 2, '#1A1A1E');
-      box(c, mx + 36, GY - 200, 50, 196, '#3F3F46'); for (let k = 0; k < 7; k++) box(c, mx + 40, GY - 186 + k * 26, 14, 3, '#D4D4D8'); }
+    for (let k = 0; k < 3; k++) { const cx = X(300 + k * 340); if (seen(state, cx - 20, cx + 240)) put(c, `dCell:${k}`, cx, GY, -14, -284, 250, 286, g => paintCell(g, k)); }
+    put(c, 'dRack', X(1180), GY, -12, -96, 196, 98, paintRack);
+    put(c, 'dMaiden', X(560), GY, -44, -214, 136, 216, paintMaiden);
     // (shackles on the wall, a pair at a time)
-    for (const sx of [X(560), X(1460 - 400)]) for (const d of [0, 40]) { box(c, sx + d, GY - 320, 3, 60, '#57534E'); box(c, sx + d - 5, GY - 262, 13, 8, '#71717A'); }
-    for (const [x, y, w] of CLEDGES) { box(c, x + 10, CEIL_TOP + 40, 3, y - CEIL_TOP - 40, '#57534E'); box(c, x + w - 13, CEIL_TOP + 40, 3, y - CEIL_TOP - 40, '#57534E'); ledgeBox(c, x, y, w, '#3A2A1A', '#C08A5A'); }
-    wallSign(c, X(560), GY - 330, 'THE DUNGEON', '#27272A', '#FCA5A5');
+    for (const sx of [X(540), X(1060)]) for (const d of [0, 40]) { chain(c, sx + d, GY - 330, GY - 262); box(c, sx + d - 6, GY - 263, 15, 10, INK); box(c, sx + d - 5, GY - 262, 13, 8, IRON[2]); box(c, sx + d - 2, GY - 259, 7, 4, '#1A1614'); }
+    for (const [x, y, w] of CLEDGES) { chain(c, x + 10, CEIL_TOP + 40, y); chain(c, x + w - 13, CEIL_TOP + 40, y); stoneLedge(c, x, y, w); }
+    plaque(c, X(560), GY - 350, 'THE DUNGEON');
   }
   // The chamber
   if (seen(state, RA - 100, RB + 100)) {
-    box(c, RA, CEIL_TOP, RB - RA, GY - CEIL_TOP, '#1C1816');
-    for (let x = RA + 60; x < RB; x += 120) box(c, x, GY - 420, 8, 420, '#2A2420');
-    wallSign(c, RA + 640, GY - 420, 'THE CHAMBER OF THE DESCENDING CEILING', '#3A0A0A', '#FCA5A5');
-    for (const [x, y, w] of RLEDGES) ledgeBox(c, x, y, w, '#3A3A3A', '#C9C9C9');
-    // (the lever, over the crate at the far end)
-    box(c, LEVER_B.x - 14, LEVER_B.y - 10, 28, 30, '#3F3F46');
+    plaque(c, RA + 640, GY - 420, 'THE CHAMBER OF THE DESCENDING CEILING', '#3A0A0A', '#FCA5A5', '#6A2A2A');
+    for (const [x, y, w] of RLEDGES) stoneLedge(c, x, y, w, '#5E5A56');
+    // (the lever: an iron plate on the wall, hazard-striped round its slot; the lever in it, its red knob)
+    put(c, 'dLeverPlate', LEVER_B.x, LEVER_B.y, -22, -20, 44, 46, g => {
+      box(g, -19, -15, 38, 38, INK);
+      for (let k = 0; k < 9; k++) box(g, -18 + k * 4, -14, 4, 36, k % 2 ? '#1A1A1A' : '#CA8A04');
+      box(g, -14, -10, 28, 28, IRON[2]); box(g, -14, -10, 28, 2, IRON[4]); box(g, -14, -10, 2, 28, IRON[3]); box(g, 12, -10, 2, 28, IRON[0]);
+      box(g, -4, -6, 8, 20, '#0A0808');
+      for (const [rx, ry] of [[-12, -8], [9, -8], [-12, 14], [9, 14]]) { box(g, rx, ry, 3, 3, IRON[4]); box(g, rx + 1, ry + 1, 2, 2, IRON[0]); }
+    });
     // (his hands on its handle are his own: drawn with him, Player.leverPull)
     { c.save(); c.translate(LEVER_B.x, LEVER_B.y + 4); c.rotate(leverAng(dg));
-      box(c, -3, -34, 6, 34, '#A1A1AA'); box(c, -7, -42, 14, 12, '#B91C1C');
+      box(c, -4, -35, 8, 36, INK); box(c, -3, -34, 6, 34, STEEL[2]); box(c, -3, -34, 2, 34, STEEL[4]); box(c, 2, -34, 1, 34, STEEL[0]);
+      box(c, -8, -44, 16, 14, INK); box(c, -7, -43, 14, 12, '#B91C1C'); box(c, -7, -43, 14, 3, '#F87171'); box(c, -5, -40, 3, 3, '#FECACA'); box(c, 3, -36, 4, 5, '#7F1D1D');
+      box(c, -5, -3, 10, 8, INK); box(c, -4, -2, 8, 6, IRON[3]);
       c.restore(); }
-    if (dg.room === 'down' && !dg.levB && (f >> 4) % 2) wallSign(c, LEVER_B.x, LEVER_B.y - 60, 'DOOR RELEASE', '#14532D', '#BBF7D0');
-    // (the crates: wooden, banded, lit along the top)
-    for (const [x, w, h] of CRATES) { box(c, x - 2, GY - h - 2, w + 4, h + 2, '#120A06'); box(c, x, GY - h, w, h, '#6B4423'); box(c, x + 4, GY - h + 4, w - 8, h - 8, '#7A5030'); box(c, x, GY - h + h / 2 - 3, w, 6, '#4A2C16'); box(c, x, GY - h, w, 4, '#C08A5A'); }
-    // (over the exit door, its lamp: red, then green)
-    box(c, RB - 17, GY - DOOR_H - 60, 18, 18, dg.levB || dg.room === 'jammed' ? '#22C55E' : '#DC2626');
-    // (the doors: iron, down shut, or up)
-    const door = (x: number, k: number) => { const h = DOOR_H * (1 - k); box(c, x, GY - DOOR_H - 30, 24, 30, '#18181B'); if (h > 0) { box(c, x, GY - h, 24, h, '#52525B'); for (let y = GY - h + 10; y < GY; y += 30) box(c, x, y, 24, 4, '#3F3F46'); } };
+    if (dg.room === 'down' && !dg.levB && (f >> 4) % 2) {
+      plaque(c, LEVER_B.x, LEVER_B.y - 66, 'DOOR RELEASE', '#14532D', '#BBF7D0', '#3A7A4A');
+      // (an arrow down at it)
+      for (let k = 0; k < 4; k++) box(c, LEVER_B.x - 7 + k * 2, LEVER_B.y - 50 + k * 2, 14 - k * 4, 2, '#BBF7D0');
+    }
+    // (the crate, up on it to the lever)
+    for (const [x, w, h] of CRATES) put(c, `dCrate:${w}:${h}`, x, GY, -4, -h - 4, w + 8, h + 6, g => paintCrate(g, w, h));
+    // (over the exit door, its lamp in its cage: red, then green)
+    { const go = dg.levB || dg.room === 'jammed', L = rampOf(go ? '#22C55E' : '#DC2626'), lx = RB - 19, ly = GY - DOOR_H - 64;
+      box(c, lx - 1, ly - 1, 24, 24, INK); box(c, lx, ly, 22, 22, L[2]); box(c, lx, ly, 22, 4, L[4]); box(c, lx + 2, ly + 4, 6, 6, L[3]); box(c, lx, ly + 18, 22, 4, L[0]);
+      for (const gx of [lx + 7, lx + 14]) box(c, gx, ly, 2, 22, INK); box(c, lx, ly + 10, 22, 2, INK); }
+    // (the doors: iron slabs, banded and riveted, in their housings; down shut, or up)
+    const door = (x: number, k: number) => {
+      const h = DOOR_H * (1 - k);
+      box(c, x - 7, GY - DOOR_H - 36, 38, 38, INK); box(c, x - 6, GY - DOOR_H - 35, 36, 36, STONE[1]); box(c, x - 6, GY - DOOR_H - 35, 36, 3, STONE[3]); box(c, x - 2, GY - DOOR_H - 8, 28, 8, '#0A0808');
+      if (h <= 0) return;
+      box(c, x - 1, GY - h - 1, 26, h + 1, INK);
+      box(c, x, GY - h, 24, h, IRON[2]); box(c, x, GY - h, 4, h, IRON[3]); box(c, x + 20, GY - h, 4, h, IRON[0]);
+      for (let y = GY - 12; y > GY - h; y -= 30) { box(c, x, y, 24, 5, IRON[1]); box(c, x, y, 24, 1, IRON[4]); box(c, x + 4, y + 2, 2, 2, IRON[4]); box(c, x + 18, y + 2, 2, 2, IRON[4]); }
+      box(c, x, GY - h, 24, 3, IRON[4]);
+    };
     const shut = dg.room === 'armed' || dg.room === 'down';
     door(RA - 12, shut ? 0 : 1);
     door(RB - 12, dg.room === 'down' ? dg.door : dg.room === 'armed' ? 0 : 1);
-    // The ceiling: the slab, its chains up into the dark, the spikes along its underside
-    // The ceiling, section by section: the slab, its chains up into the dark, the spikes along its underside (the fast
-    // middle one hazard-striped)
+    // The ceiling, section by section: one solid iron-bound block of it from the chamber's roof down to its spikes (no
+    // gap, nothing over it), the chains it hangs off, the spikes along its underside (the fast middle one
+    // hazard-striped); its blocks go down with it
     const dead = state.meatheadDeath?.kind === SKEWERED && state.deathScene ? skewerRise(state.deathScene.t) : 0;
+    const bloody = dg.room === 'escaped' || dg.room === 'jammed' || state.meatheadDeath?.kind === SKEWERED;
     SECTS.forEach((q, i) => {
-      const tip = (dg.room === 'down' ? dg.tips[i] : dg.tip) - dead, slab = tip - 30;
-      // (one solid iron-bound block of it, from the chamber's roof down to its spikes: nothing over it, no gap)
-      box(c, q.a, CEIL_TOP, q.b - q.a, slab - CEIL_TOP, '#3A3633');
-      for (let y = slab - 40; y > CEIL_TOP; y -= 80) box(c, q.a, y, q.b - q.a, 8, '#57534E');
-      for (let x = q.a + 40; x < q.b; x += 120) box(c, x, CEIL_TOP, 6, slab - CEIL_TOP, '#2A2725');
-      box(c, q.a, slab - 8, q.b - q.a, 8, '#292524');
-      if (i === 1) for (let x = q.a; x < q.b; x += 40) box(c, x, slab - 46, 20, 20, '#CA8A04');
-      box(c, q.b - 2, slab - 60, 4, 60, '#1C1917');
-      if (i < SECTS.length - 1) { const t2 = (dg.room === 'down' ? Math.min(dg.tips[i], dg.tips[i + 1]) : dg.tip) - dead - 90; box(c, q.b - 10, CEIL_TOP, 20, t2 - CEIL_TOP, '#3A3430'); box(c, q.b - 10, CEIL_TOP, 4, t2 - CEIL_TOP, '#57524C'); }
-      c.fillStyle = '#A8A29E'; c.beginPath();
-      for (let x = q.a + 6; x < q.b - 10; x += 24) { c.moveTo(x, slab); c.lineTo(x + 12, slab); c.lineTo(x + 6, tip); }
-      c.fill();
-      c.fillStyle = '#E7E5E4'; for (let x = q.a + 6; x < q.b - 10; x += 24) c.fillRect(x + 2, slab, 2, 14);
-      if (dg.room === 'escaped' || dg.room === 'jammed' || state.meatheadDeath?.kind === SKEWERED) { c.fillStyle = '#7F1D1D'; for (let x = q.a + 6; x < q.b - 10; x += 48) c.fillRect(x + 5, tip - 8, 3, 8); }
+      if (!seen(state, q.a, q.b)) return;
+      const tip = (dg.room === 'down' ? dg.tips[i] : dg.tip) - dead, slab = Math.round(tip - 30), w = q.b - q.a;
+      c.save(); c.translate(q.a, slab);
+      c.fillStyle = plateFill(c); c.fillRect(0, CEIL_TOP - slab, w, slab - CEIL_TOP);
+      box(c, 0, CEIL_TOP - slab, 3, slab - CEIL_TOP, INK); box(c, w - 3, CEIL_TOP - slab, 3, slab - CEIL_TOP, INK);
+      // (its iron bands across, riveted, and the straps down it)
+      for (let y = -40; y > CEIL_TOP - slab; y -= 80) { box(c, 0, y, w, 8, INK); box(c, 0, y + 1, w, 6, IRON[2]); box(c, 0, y + 1, w, 1, IRON[4]); for (let r = 12; r < w; r += 40) box(c, r, y + 3, 2, 2, IRON[4]); }
+      for (let x = 40; x < w; x += 120) { box(c, x - 1, CEIL_TOP - slab, 8, slab - CEIL_TOP, INK); box(c, x, CEIL_TOP - slab, 6, slab - CEIL_TOP, IRON[1]); box(c, x, CEIL_TOP - slab, 1, slab - CEIL_TOP, IRON[3]); }
+      // (the underside: a thick iron plate the spikes are set in)
+      box(c, 0, -14, w, 14, INK); box(c, 0, -13, w, 12, IRON[1]); box(c, 0, -13, w, 2, IRON[3]); box(c, 0, -3, w, 2, IRON[0]);
+      if (i === 1) { box(c, 0, -46, w, 24, INK); for (let x = 0; x < w; x += 20) for (let y = 0; y < 22; y += 2) box(c, x + ((y >> 1) % 10) * 2, -45 + y, 10, 2, '#CA8A04'); box(c, 0, -45, w, 1, '#FDE047'); }
+      c.restore();
+      if (i < SECTS.length - 1) { const t2 = (dg.room === 'down' ? Math.min(dg.tips[i], dg.tips[i + 1]) : dg.tip) - dead - 90; box(c, q.b - 11, CEIL_TOP, 22, t2 - CEIL_TOP, INK); pole(c, q.b - 10, CEIL_TOP, 20, t2 - CEIL_TOP, '#4A4440'); }
+      chain(c, q.a + w * 0.25, CEIL_TOP - 200, CEIL_TOP); chain(c, q.a + w * 0.75, CEIL_TOP - 200, CEIL_TOP);
+      for (let x = q.a + 6; x < q.b - 10; x += 24) {
+        spikeDown(c, x, slab, 12, tip);
+        if (bloody && (x - q.a) % 48 === 6) { box(c, x + 5, tip - 10, 3, 9, BLOOD[2]); box(c, x + 5, tip - 14, 2, 4, BLOOD[1]); }
+      }
     });
   }
-  // The corridor on, the emergency exit
+  // The corridor on, up the steps to the emergency exit
   if (seen(state, RB, x1)) {
-    doorway(c, x1 - 90, GY, 'TO THE LOADING BAY', '#57534E', '#0A0A0A'); for (let k = 0; k < 6; k++) box(c, x1 - 120 + k * 10, GY - 20 - k * 18, 70, 6, '#3F3A36');
+    put(c, 'dExit', x1 - 90, GY, -140, -200, 240, 202, g => {
+      for (let k = 0; k < 6; k++) { box(g, -30 + k * 10, -20 - k * 18, 70, 7, INK); box(g, -29 + k * 10, -19 - k * 18, 68, 5, STONE[2]); box(g, -29 + k * 10, -19 - k * 18, 68, 2, STONE[3]); }
+      box(g, -46, -150, 92, 150, INK); box(g, -44, -148, 88, 148, STONE[2]); box(g, -44, -148, 88, 3, STONE[3]);
+      box(g, -32, -136, 64, 136, '#0A0908'); bandedGradient(g, -32, -136, 64, 136, ['#060504', '#0E0C0A', '#141210'], 4);
+      // (a modern convenience: the lit EMERGENCY EXIT box over it)
+      box(g, -40, -176, 80, 18, INK); box(g, -39, -175, 78, 16, '#0E3A1A'); box(g, -39, -175, 78, 2, '#1E5A2A');
+    });
+    if (seen(state, x1 - 140, x1)) { c.save(); c.font = '6px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#062010'; c.fillText('EMERGENCY', x1 - 89, GY - 163); c.fillStyle = '#4ADE80'; c.fillText('EMERGENCY', x1 - 90, GY - 164); c.restore(); c.textAlign = 'left'; }
+    plaque(c, x1 - 90, GY - 200, 'TO THE LOADING BAY', '#27272A', '#FCD34D');
   }
   // Torches
-  for (let x = CELLS + 200; x < x1; x += 400) if (seen(state, x - 20, x + 20) && (x < RA || x > RB)) { box(c, x - 3, GY - 300, 6, 24, '#57534E'); box(c, x - 6, GY - 316 - ((f + x) % 7 < 3 ? 2 : 0), 12, 16, '#F97316'); box(c, x - 3, GY - 310, 6, 8, '#FDE047'); }
+  for (let x = CELLS + 200; x < x1; x += 400) if (seen(state, x - 20, x + 20) && (x < RA || x > RB)) torch(c, x, GY - 300, f);
   const talking = !!paSaying(state);
-  for (const [hx, hy] of HORNS) if (seen(state, hx - 30, hx + 30)) drawHorn(c, hx, hy, talking, f);
-  groundBox(c, CELLS, x1 + 200, GY, '#3F3A36', '#A8A29E');
+  for (const [hx, hy] of HORNS) if (seen(state, hx - 30, hx + 60)) drawPaHorn(c, hx, hy, talking, f);
+  if (seen(state, CELLS, x1 + 200)) flagFloor(c, Math.max(CELLS, state.camera.x - 40), Math.min(x1 + 200, state.camera.x + CANVAS_WIDTH + 40));
 };
 
 export const dungeon: SpookySection = {
@@ -351,7 +424,7 @@ export const dungeon: SpookySection = {
     leverPose(ctx.state, dg);
     return runRopes(ctx, controls);
   },
-  drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#0C0A09'); return true; },
+  drawBackdrop: (c) => { bandedGradient(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#050403', '#0C0A09', '#120E0C'], 8); return true; },
   drawBack: (c, state) => { drawStairs(c, state); drawDungeon(c, state, dungeonOf(state)); drawRopeWalk(c, state); },
   cameraRow: (state) => ropeRow(state),
   drawFront: (c, state) => { if (getSpooky(state)?.section === 'dungeon') drawPaWords(c, state, HORNS); },

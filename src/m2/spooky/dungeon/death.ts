@@ -9,6 +9,7 @@ import { drawBloodPool } from '../../../m1/game/render/spatter';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { PARTICLE_PALETTES } from '../../../m1/constants';
+import { spikeDown, BLOOD } from './paint';
 
 export const SKEWERED = 'own:skewered' as const;
 export const SKEWER_FRAMES = 160, SKEWER_LIFT = 42;
@@ -59,7 +60,7 @@ registerDeathDraw(SKEWERED, (ctx, state, d, weapon, t) => {
   // The spikes through the top of him (three of them, in to the shoulders), red where they went in
   for (const dx of [-12, 0, 12]) {
     const x = d.x + dx + Math.sin(sway) * 20, len = dx === 0 ? 26 : 18;
-    ctx.fillStyle = '#A1A1AA'; ctx.beginPath(); ctx.moveTo(x - 4, head - 30); ctx.lineTo(x + 4, head - 30); ctx.lineTo(x, head + len); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#991B1B'; ctx.beginPath(); ctx.moveTo(x - 2, head + len - 12); ctx.lineTo(x + 2, head + len - 12); ctx.lineTo(x, head + len); ctx.closePath(); ctx.fill();
+    spikeDown(ctx, x - 4, head - 30, 8, head + len);
+    ctx.fillStyle = BLOOD[2]; ctx.beginPath(); ctx.moveTo(x - 2, head + len - 12); ctx.lineTo(x + 2, head + len - 12); ctx.lineTo(x, head + len); ctx.closePath(); ctx.fill();
   }
 });

@@ -11,6 +11,7 @@ import { drawBloodPool } from '../../../m1/game/render/spatter';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { PARTICLE_PALETTES } from '../../../m1/constants';
+import { spikeUp, BLOOD } from './paint';
 
 type Ctx = CanvasRenderingContext2D;
 export const PINCUSHION = 'own:pincushion' as const, DEEPFRIED = 'own:deepfried' as const;
@@ -50,9 +51,9 @@ registerDeathDraw(PINCUSHION, (c, state, d, weapon, t, f) => {
   // The spikes through him: up out of his chest, his shoulder, his butt; red where they came out
   for (const [dx, h] of [[-22, 30], [-4, 38], [16, 32]] as const) {
     const x = d.x + dx * d.facing, top = lieY - h + slide * 0.3;
-    c.fillStyle = '#A8A29E'; c.beginPath(); c.moveTo(x - 5, bed); c.lineTo(x + 5, bed); c.lineTo(x, top); c.closePath(); c.fill();
-    c.fillStyle = '#991B1B'; c.beginPath(); c.moveTo(x - 2, top + 14); c.lineTo(x + 2, top + 14); c.lineTo(x, top); c.closePath(); c.fill();
-    c.fillStyle = '#7F1D1D'; c.fillRect(x - 1, top + 14, 2, Math.min(20, t * 0.3));
+    spikeUp(c, x - 5, bed, 10, top);
+    c.fillStyle = BLOOD[2]; c.beginPath(); c.moveTo(x - 2, top + 14); c.lineTo(x + 2, top + 14); c.lineTo(x, top); c.closePath(); c.fill();
+    c.fillStyle = BLOOD[1]; c.fillRect(x - 1, top + 14, 2, Math.min(20, t * 0.3)); c.fillStyle = BLOOD[3]; c.fillRect(x - 1, top + 2, 1, 6);
   }
 });
 
