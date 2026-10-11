@@ -32,6 +32,7 @@ import { buildDemon, updateDemon, drawDemon, drawDemonSaid, drawDemonHud, drawFi
 import { startFinale, startVent, runFinale, finaleZoom, drawSatan, drawGeyser, drawFinaleHud } from './satan';
 import { drawHellBackdrop, drawHellWorld, drawLake } from './art';
 import { MH_LANDED, MH_BODIES, MH_LAVA } from './lines';
+import { startFreefall, stepFreefall, landFreefall, drawFallDark, FREEFALL_LAND } from '../freefall';
 
 /** The pit's camera: held at most this far in, till he's this far along. */
 const PIT_CAM = 190, PIT_HOLD = 880;
@@ -107,15 +108,29 @@ export const hell: SpookySection = {
     // Down the shaft (either one): the fall's not his (a cutscene: no HUD, no controls, nothing hurts him) till he's
     // down and the landing's done (hard: a crunch, a shake, the dust; his bit about it, and about the bodies). Nothing's
     // dropping on him as he lands either: the next car's a while off, and warns as ever.
-    if (!h.landed && !h.falling && cx > SHAFT_L && cx < SHAFT_R && feet < GY - 600) { h.falling = true; h.car = null; h.carIn = Math.max(h.carIn, 900); }
+    if (!h.landed && !h.falling && cx > SHAFT_L && cx < SHAFT_R && feet < GY - 600) {
+      h.falling = true; h.car = null; h.carIn = Math.max(h.carIn, 900);
+      // (in the dark at the top of the shaft, if he's not falling his undignified way already: he is now)
+      startFreefall(p, '');
+    }
     if (h.falling || h.landBeat > 0) {
       p.inCutscene = true; p.invincibilityTimer = Math.max(p.invincibilityTimer, 30); p.vel.x = 0;
       p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false;
-      if (h.landBeat > 0 && --h.landBeat === 0) p.inCutscene = false;
+      if (h.falling) {
+        // (turned round for the landing as the floor comes up; the camera on him as it was down the chute, easing over
+        // to the pit's view on the way down)
+        stepFreefall(p, Math.max(0, GY - feet));
+        const r = hell.cameraX!(state)!, want = Math.max(r.min, Math.min(r.max, cx - CANVAS_WIDTH / 2));
+        state.cameraOverride = { x: state.camera.x + (want - state.camera.x) * 0.4, y: p.pos.y - 260 };
+      } else stepFreefall(p, null);
+      if (h.landBeat > 0 && --h.landBeat === 0) { p.inCutscene = false; p.freefall = undefined; }
     }
     if (h.falling && p.isGrounded && feet > GY - 140) {
-      h.falling = false; h.landed = true; h.landBeat = LAND_BEAT;
+      h.falling = false; h.landed = true; h.landBeat = p.freefall ? FREEFALL_LAND : LAND_BEAT;
+      landFreefall(p);
+      state.cameraOverride = null;
       playSound('land', 1); playSound('thud', 1, -8); playSound('splat', 0.7, -4); shakeScreen(state, 14, 6);
+      if (p.freefall?.style === 'ball') playSound('boing', 0.7, -6);
       for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: cx, y: GY - 2 }, vel: { x: (Math.random() - 0.5) * 10, y: -1 - Math.random() * 4 }, life: 30, color: i % 2 ? '#78350F' : '#7F1D1D', size: 4 + Math.random() * 5, grav: 0.3 });
       meatheadSays(state, pick(MH_LANDED), true);
       meatheadSays(state, pick(MH_BODIES), true);
@@ -155,6 +170,8 @@ export const hell: SpookySection = {
     drawFireWall(c, state);
     drawGeyser(c, state);
     drawDemon(c, state);
+    // (the top of the shaft, dark: where he comes in out of the tower's chute, in the dark both sides of the cut)
+    drawFallDark(c, state, GY - 650, GY - 1150, x0 - 600, SHAFT_R + RIGHT_ROCK_W + 600);
   },
   drawFront: (c, state) => {
     drawHazardsFront(c, state);

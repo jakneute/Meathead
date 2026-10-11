@@ -2,6 +2,7 @@ import { Player, WeaponType } from '../../../types';
 import { drawFilthShield } from './filthShield';
 import { drawLadderBackArm, drawLadderLegs, drawLadderClimb, drawOverheadPull } from './ladder';
 import { drawRemains } from './remains';
+import { drawFreefall } from './freefall';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD, vineGrip, vineLean, VINE_SHOULDER } from '../../combat/muzzle';
@@ -222,6 +223,16 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     drawOverheadPull(ctx, { ...lp, gx: (lp.gx - anchorX) * p.facing, gy: lp.gy - anchorY, ang: p.facing > 0 ? lp.ang : Math.PI - lp.ang, lean: lp.lean * p.facing },
       animFrame, { nude: g?.stage === 3, shat: !!g && (g.stage === 2 || (g.stage === 3 && !g.washed)) });
     finishBody();
+    ctx.restore();
+    return;
+  }
+  // A long fall out of his hands, and the landing at the bottom: undignified, its own pose (render/player/freefall.ts)
+  if (p.freefall && hurtT < 0 && !p.headless && p.health > 0) {
+    const g = p.gut;
+    const shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    drawFreefall(ctx, p.freefall, animFrame, { nude: g?.stage === 3, shat }, p.facing);
+    finishBody();
+    if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
     ctx.restore();
     return;
   }

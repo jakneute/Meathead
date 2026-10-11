@@ -252,6 +252,12 @@ export interface Player extends Entity {
    *  hauling (sunk, braced, straining); `jolt` 0..1 the bump of it hitting its stop; `lean` -1..1 which way it's going.
    *  Whatever sets it clears it (and respawn does). */
   leverPull?: { gx: number; gy: number; ang: number; hold: number; load: number; jolt: number; lean: number };
+  /** A long fall out of his hands (Meathead 2: the clock tower's drop into hell), its own undignified pose (render/
+   *  player/freefall.ts): `style` 'flail' (windmilling, kicking, tumbling head over heels) or 'ball' (a spinning
+   *  cannonball tuck); `t` frames into it; `rot` how far he's turned over (radians, about his middle); `goal` the turn
+   *  he's easing to for the landing; `land` frames into the landing (0 in the air): splatted, then peeling himself up.
+   *  Whatever sets it clears it (and respawn does). */
+  freefall?: { style: 'flail' | 'ball'; t: number; rot: number; goal?: number; land: number };
   /** Something he's doing takes him off the vine he's on (Meathead 2: the mallet's smash down, from one): let go of it. */
   dropVine?: boolean;
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */

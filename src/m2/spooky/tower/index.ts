@@ -42,7 +42,8 @@ import { makeKindEnemy, kindDef } from '../../../m1/game/enemies/kinds';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
-import { silenceAll } from '../../../m1/game/platform/speech';
+import { silenceAll, isTalking } from '../../../m1/game/platform/speech';
+import { startFreefall, stepFreefall, drawFallDark } from '../freefall';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { talk, stepTalk, pick, type Talk } from '../../adventure/queue/talk';
@@ -99,9 +100,11 @@ interface Tower {
   /** The town's staff held unseeing behind a beam. */
   blinded: Set<Enemy>;
   /** Diving down a shaft into hell (the cinematic): which shaft's middle. */
-  dive?: { x: number };
+  dive?: { x: number; vx: number };
   /** After the crash: out of his hands, he walks to the shaft's edge and jumps in (frames in). */
   auto?: number;
+  /** ...how long nobody's been talking (he goes once he's had his say, and a beat after), and when he set off. */
+  autoQuiet?: number; autoGo?: number;
   /** The car whose riders are saying something. */
   riderCar?: Car;
   /** He's seen a car go first thing in the tower (one sent up the shaft as he comes in). */
@@ -307,7 +310,17 @@ const endCrash = (state: GameState, t: Tower, skipped: boolean) => {
   kept.crashed = true;
   t.talk.q.length = 0;
   meatheadSays(state, pick(MEATHEAD_CRASH));
-  t.auto = 0;
+  t.auto = 0; t.autoQuiet = 0; t.autoGo = undefined;
+};
+
+/** Over he goes: what he hollers (said for sure: it waits for nobody, nobody's talking by now, and nothing else starts
+ *  over it), and the fall's pose to go with it (a cannonball for CANNONBALL), from the jump on. */
+const leap = (state: GameState, t: Tower) => {
+  if (t.jumped) return;
+  t.jumped = true;
+  const line = pick(MEATHEAD_JUMP);
+  meatheadSays(state, line, true);
+  startFreefall(state.player, line);
 };
 
 /** After the crash, up top: out of his hands, a beat, then over to the edge of the nearer shaft and in (the dive takes
@@ -317,13 +330,18 @@ const runAuto = (state: GameState, t: Tower): Controls => {
   p.inCutscene = true;
   const n = ++t.auto!;
   const out = { ...hands() } as Controls;
-  if (n < 50) return out;
+  // (he's had his say first, whatever it was, and a beat after it, before he sets off: never waiting past 12 s)
+  const saying = isTalking() || (state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity);
+  t.autoQuiet = saying ? 0 : (t.autoQuiet ?? 0) + 1;
+  if (t.autoGo === undefined) { if ((n < 50 || t.autoQuiet < 24) && n < 720) return out; t.autoGo = n; }
   // (stuck somehow: straight into the middle of the nearer shaft)
-  if (n > 360) { p.pos.x = (cx < SHX ? SHU : SHD) - p.width / 2; p.vel.x = 0; return out; }
+  if (n - t.autoGo > 310) { p.pos.x = (cx < SHX ? SHU : SHD) - p.width / 2; p.vel.x = 0; return out; }
   const dir = cx < SH0 ? 1 : cx > SH1 ? -1 : 0;
   if (dir > 0) out.right = true; else if (dir < 0) out.left = true;
   const edge = dir > 0 ? SH0 - cx : dir < 0 ? cx - SH1 : 0;
   if (dir === 0 || (edge < 70 && p.isGrounded)) out.jump = p.isGrounded;
+  // (the jump: the holler starts as he goes)
+  if (out.jump) leap(state, t);
   return out;
 };
 
@@ -555,12 +573,13 @@ export const tower: SpookySection = {
       if (cp >= 45 || kept.crashed) {
         kept.crashed = true; afterCrash(state, t, true); t.leftTop = cp >= 46;
         // (back up top after it: straight over and in again)
-        if (feet < TOP + 40) t.auto = 0;
+        if (feet < TOP + 40) { t.auto = 0; t.autoQuiet = 0; t.autoGo = undefined; }
       }
     }
     where.feet = feet; where.crashed = t.crashed; where.live = true;
     t.age++;
-    stepTalk(state, t.talk);
+    // (nobody else starts anything while he's going over and down: his holler's heard)
+  if (t.auto === undefined && !t.dive) stepTalk(state, t.talk);
     // (the sway's spring)
     t.swayV += -t.sway * 0.02; t.swayV *= 0.95; t.sway += t.swayV;
     // The ride runs whatever he's doing (held at the top for the clock room's drop, while that's to come)
@@ -622,21 +641,26 @@ export const tower: SpookySection = {
     // (nothing under him from here to hell: that's the dive. His hands off it, straight down the middle of the shaft,
     // nothing hurts him (cars held at the top meanwhile), the camera after him past the floors, the foot and the bay)
     if (dropping && !t.dive && inColumn(state) && floorTopAt(state.blocks, cx, feet, 0) === null) {
-      t.dive = { x: cx < SHX ? SHU : SHD };
-      if (!t.jumped) { t.jumped = true; meatheadSays(state, pick(MEATHEAD_JUMP), false); }
+      t.dive = { x: cx < SHX ? SHU : SHD, vx: p.vel.x };
+      leap(state, t);
     }
     if (t.dive) {
       p.inCutscene = true; p.invincibilityTimer = Math.max(p.invincibilityTimer, 30);
-      p.vel.x = 0; p.pos.x += (t.dive.x - p.width / 2 - p.pos.x) * 0.2;
+      // (eased over to the middle of the shaft, on from however he went in: a damped spring, no snap)
+      const d = t.dive;
+      d.vx += (d.x - cx) * 0.01; d.vx *= 0.86;
+      p.vel.x = 0; p.pos.x += d.vx;
       t.ride.held = true;
     }
+    // (the fall's pose: on round; down on something short of hell (off the pose), back on his feet)
+    if (p.freefall) { if (p.isGrounded && p.freefall.t > 4 && !t.dive) p.freefall = undefined; else stepFreefall(p, null); }
     if (dropping) {
-      if (!t.jumped && feet > GY + 20) { t.jumped = true; meatheadSays(state, pick(MEATHEAD_JUMP), false); }
+      if (!t.jumped && feet > GY + 20) { t.jumped = true; meatheadSays(state, pick(MEATHEAD_JUMP), true); }
       t.fallCam = true;
       state.cameraOverride = { x: camX(cx), y: p.pos.y - 260 };
     } else if (t.fallCam) { t.fallCam = false; state.cameraOverride = null; }
     // (the camera pulled out going through the foot of the tower: the bay there through the door, the line still boarding)
-    const pullTo = t.crashed && feet > GY - 200 && feet < B1 + 600 && cx > CH0 - 100 && cx < CH1 + 100 ? 1 : 0;
+    const pullTo = t.crashed && feet > GY - 200 && feet < B1 + 300 && cx > CH0 - 100 && cx < CH1 + 100 ? 1 : 0;
     t.pull += (pullTo - t.pull) * 0.08;
     if (t.crashed && chute && feet > HELL_AT) {
       const vy = p.vel.y;
@@ -644,8 +668,13 @@ export const tower: SpookySection = {
       const down = (t.dive?.x ?? cx) >= SHX;
       t.fallCam = false; state.cameraOverride = null; t.jumped = false; t.pull = 0; t.dive = undefined;
       p.inCutscene = false; p.invincibilityTimer = Math.max(p.invincibilityTimer, 150);
+      // (the camera just where it was on him: it's all dark down here, both sides of the cut, so it's one long fall)
+      const camDx = state.camera.x - p.pos.x, camDy = state.camera.y - p.pos.y;
       teleport(state, down ? HELL_SECOND_X : DOORS.hell.start.x, DOORS.hell.start.y);
       p.vel.y = Math.max(8, vy);
+      state.camera.x = p.pos.x + camDx; state.camera.y = p.pos.y + camDy;
+      // (the tower's people, left behind up there, off the screen all at once: not knocked out of the world for it)
+      for (const e of state.enemies) if (e.pos.x > TX0 - 400 && e.pos.x < TX1 + 400) e.seen = false;
       return hands();
     }
     if (t.auto !== undefined && !t.dive) return runAuto(state, t);
@@ -675,6 +704,8 @@ export const tower: SpookySection = {
     const t = towerOf(state);
     drawTowerBack(c, state, { rot: t.rot, ride: t.ride, broken: brokenOf(t), beamHp: t.beamHp, crashed: t.crashed, nets: t.nets, grate: t.grate, b1: t.b1, opTalking: !!t.opSaid, lamp: lampOn(t.ride, t.crashed) });
     drawLadders(c, state, t.crashed ? LADDERS_DOWN : LADDERS_UP);
+    // (the chute going on down into the dark, to hell: black by the bottom, where it cuts to hell's shaft)
+    if (t.crashed) drawFallDark(c, state, HELL_AT - 820, HELL_AT - 430, TX0 - WALL - 600, TX1 + 600);
   },
   drawFront: (c, state) => {
     const t = towerOf(state);
