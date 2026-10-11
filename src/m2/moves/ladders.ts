@@ -309,11 +309,16 @@ export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls)
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-const IRON = { ink: '#141018', dark: '#3A2E2A', mid: '#6B5646', lit: '#9C8468', hi: '#D8C29A' };
+// (bright brass: it has to stand out against dark wood, stone and wallpaper alike: a ladder is a way up, so it reads)
+const IRON = { ink: '#120C04', dark: '#6A4814', mid: '#B07A1E', lit: '#E6B444', hi: '#FFF0B8' };
 
 /** The ladder, still: two rails, rungs, and (where it meets a ledge) the rails run up past the lip, the lip lit. */
 const paint = (g: CanvasRenderingContext2D, d: LadderDef, ledge: boolean) => {
   const L = d.x - HALF, R = d.x + HALF, top = d.top - (ledge ? 0 : 6), h = d.bottom - top;
+  // (its shadow on the wall behind, a little down and right: stood off it, not painted on it)
+  g.fillStyle = 'rgba(0, 0, 0, 0.45)';
+  for (const x of [L, R]) g.fillRect(x - 1, top + 3, 6, h - 3);
+  for (let y = d.bottom - RUNG; y > top + 3; y -= RUNG) g.fillRect(L + 2, y + 1, HALF * 2, 4);
   // (the rungs first, behind the rails: dark under, lit along the top)
   for (let y = d.bottom - RUNG; y > top + 3; y -= RUNG) {
     g.fillStyle = IRON.ink; g.fillRect(L, y - 2, HALF * 2, 5);
