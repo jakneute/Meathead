@@ -288,7 +288,8 @@ const afterCrash = (state: GameState, t: Tower, quiet: boolean) => {
   t.crashed = true;
   // (a car being unloaded in the ride's hell as its floor goes: down the hole with the rest)
   for (const c of t.ride.cars) if (c.phase === 'unload' || c.phase === 'return') { c.phase = 'drop'; c.real = true; c.vy = 2; c.t = 0; if (!c.riders.length) c.riders = []; }
-  state.enemies = state.enemies.filter(e => !(e.kind?.startsWith('m2:') && isFoe(e) && e.health > 0));
+  // (the tower's own staff only: hell's and everybody else's further along are left be)
+  state.enemies = state.enemies.filter(e => !(e.kind?.startsWith('m2:') && isFoe(e) && e.health > 0 && e.pos.x + e.width / 2 >= x0 && e.pos.x + e.width / 2 <= x1));
   spawnAll(state, DESCENT_FOES, true, 200);
   addPickups(state, true);
 };
