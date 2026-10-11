@@ -50,6 +50,8 @@ import { inputDevice, padFamily } from '../../../m1/game/platform/device';
 import { drawPadFace } from '../../../m1/game/render/padGlyph';
 import { DRAIN, drawHusk } from './husk';
 import { ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X } from './arena';
+import { discoBall } from './art';
+import { INK, checker, pixelBlob } from '../control/paint';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -785,38 +787,50 @@ const runBeat = (f: Fight) => {
   });
 };
 
-/** The circle in the floor: a ring of fire, the light up out of it, him in the light (horns, eyes). World space. */
+/** The circle in the floor: a ring of fire, the light up out of it (stepped columns), him in the light (horns, eyes).
+ *  World space. */
 const drawCircle = (c: Ctx, k: number, fr: number) => {
   if (k <= 0) return;
-  const x = CIRCLE_X, rx = 110 * k, ry = 16 * k;
-  // (the light up out of it: stepped columns)
-  for (let i = 3; i >= 1; i--) { c.fillStyle = `rgba(220, 38, 38, ${(0.07 * (4 - i) * k).toFixed(3)})`; c.fillRect(Math.round(x - rx * (0.4 + i * 0.2)), GY - 420, Math.round(rx * 2 * (0.4 + i * 0.2)), 420); }
-  // (him, in it: the horns, the eyes, enormous and faint)
+  const x = CIRCLE_X, rx = 110 * k, ry = 16 * k, cy = GY - 4;
+  // (the light up out of it: stepped columns, a dither down each edge)
+  for (let i = 3; i >= 1; i--) {
+    const w = Math.round(rx * 2 * (0.4 + i * 0.2)), l = Math.round(x - w / 2), a = 0.07 * (4 - i) * k;
+    c.fillStyle = `rgba(220, 38, 38, ${a.toFixed(3)})`; c.fillRect(l + 2, GY - 420, w - 4, 420);
+    checker(c, l, GY - 420, 2, 420, `rgba(220, 38, 38, ${a.toFixed(3)})`); checker(c, l + w - 2, GY - 420, 2, 420, `rgba(220, 38, 38, ${a.toFixed(3)})`, 1);
+  }
+  // (him, in it: the head, the horns, the eyes, enormous and faint)
   if (k > 0.5) {
     const a = (k - 0.5) * 2 * (0.7 + 0.3 * Math.sin(fr * 0.05));
-    c.fillStyle = `rgba(20, 0, 0, ${(0.55 * a).toFixed(2)})`;
+    c.fillStyle = `rgba(20, 0, 0, ${(0.5 * a).toFixed(2)})`;
     c.beginPath(); c.ellipse(x, GY - 250, 90, 110, 0, 0, Math.PI * 2); c.fill();
-    for (const s of [-1, 1]) { c.beginPath(); c.moveTo(x + s * 50, GY - 320); c.quadraticCurveTo(x + s * 110, GY - 380, x + s * 80, GY - 420); c.quadraticCurveTo(x + s * 80, GY - 360, x + s * 30, GY - 330); c.closePath(); c.fill(); }
-    c.fillStyle = `rgba(253, 224, 71, ${(0.9 * a).toFixed(2)})`;
-    for (const s of [-1, 1]) { c.beginPath(); c.ellipse(x + s * 34, GY - 270, 16, 6, s * 0.25, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = `rgba(40, 0, 0, ${(0.6 * a).toFixed(2)})`;
+    for (const s of [-1, 1]) { c.beginPath(); c.moveTo(x + s * 50, GY - 320); c.lineTo(x + s * 96, GY - 368); c.lineTo(x + s * 84, GY - 420); c.lineTo(x + s * 74, GY - 372); c.lineTo(x + s * 30, GY - 334); c.closePath(); c.fill(); }
+    for (const s of [-1, 1]) {
+      c.fillStyle = `rgba(180, 83, 9, ${(0.8 * a).toFixed(2)})`; c.fillRect(Math.round(x + s * 34 - 16), GY - 276, 32, 12);
+      c.fillStyle = `rgba(253, 224, 71, ${(0.9 * a).toFixed(2)})`; c.fillRect(Math.round(x + s * 34 - 12), GY - 274, 24, 8);
+      c.fillStyle = `rgba(20, 0, 0, ${(0.9 * a).toFixed(2)})`; c.fillRect(Math.round(x + s * 34 - 2), GY - 274, 4, 8);
+    }
   }
-  // (the ring: the hole, the fire round its edge)
-  c.fillStyle = '#0A0000'; c.beginPath(); c.ellipse(x, GY, rx, ry, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(x, GY, rx * 0.8, ry * 0.7, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#DC2626'; c.beginPath(); c.ellipse(x, GY, rx * 0.5, ry * 0.45, 0, 0, Math.PI * 2); c.fill();
-  for (let i = 0; i < 14; i++) {
-    const a = (i / 14) * Math.PI * 2, fx = x + Math.cos(a) * rx, fy = GY + Math.sin(a) * ry, h = (10 + 8 * Math.sin(fr * 0.4 + i * 1.7)) * k;
-    box(c, fx - 3, fy - h, 6, h, i % 2 ? '#F97316' : '#FDE047');
+  // (the ring: the hole, in steps down to the fire in it; flames round its edge, inked)
+  const ring = (kx: number, ky: number, col: string) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, cy, rx * kx, ry * ky, 0, 0, Math.PI * 2); c.fill(); };
+  ring(1.04, 1.12, INK); ring(1, 1, '#0A0000'); ring(0.8, 0.7, '#450A0A'); ring(0.62, 0.52, '#7F1D1D'); ring(0.45, 0.38, '#DC2626'); ring(0.25, 0.2, '#F97316');
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2, fx = Math.round(x + Math.cos(a) * rx), fy = Math.round(cy + Math.sin(a) * ry), h = Math.round((12 + 9 * Math.sin(fr * 0.4 + i * 1.7)) * k);
+    if (h < 3) continue;
+    box(c, fx - 4, fy - h - 1, 8, h + 2, INK);
+    box(c, fx - 3, fy - h, 6, h, i % 2 ? '#DC2626' : '#F97316');
+    box(c, fx - 1, fy - Math.round(h * 0.7), 3, Math.round(h * 0.7), '#FDE047');
   }
 };
 
 /** World space, behind him: the circle, the blood on the floor, the husks, the wig once it's off. */
 export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
-  // (the pools of it: dark, a wet highlight, spreading as more lands)
+  // (the pools of it: dark round the edge, a wet highlight, spreading as more lands)
   for (const sp of f.splats) {
-    c.fillStyle = '#450A0A'; c.beginPath(); c.ellipse(sp.x, GY + 1, sp.w / 2 + 1, 4, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(sp.x, GY + 1, sp.w / 2, 3, 0, 0, Math.PI * 2); c.fill();
-    box(c, sp.x - sp.w * 0.2, GY - 1, Math.max(2, sp.w * 0.25), 1, '#DC2626');
+    pixelBlob(c, sp.x, GY, sp.w / 2 + 2, 4, '#2A0505');
+    pixelBlob(c, sp.x, GY, sp.w / 2, 3, '#6B0F0F');
+    box(c, sp.x - sp.w * 0.25, GY - 2, Math.max(2, sp.w * 0.3), 2, '#991B1B');
+    box(c, sp.x - sp.w * 0.2, GY - 2, Math.max(2, sp.w * 0.12), 1, '#EF4444');
   }
   drawCircle(c, f.circle, state.frame);
   for (const g of f.guests) if (g.state === 'husk') drawHusk(c, g.x, GY, g.facing, 0.85, 1);
@@ -834,7 +848,9 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
       const k = Math.min(1, g.t / SUCK_T);
       c.rotate(-0.3); c.scale(1 - 0.45 * k, 1 - 0.1 * k);
       drawPerson(c, { seed: g.seed, outfit: 'guest', f: fr, pose: 'fly', mood: 'shocked' });
-      c.fillStyle = `rgba(120, 104, 80, ${(0.7 * k).toFixed(2)})`; c.fillRect(-16, -82, 32, 82);
+      // (the gray coming over them, in steps: dithered, then solid)
+      if (k > 0.15) checker(c, -16, -82, 32, 82, 'rgba(120, 104, 80, 0.85)');
+      if (k > 0.55) checker(c, -16, -82, 32, 82, 'rgba(120, 104, 80, 0.85)', 1);
     } else if (g.state === 'fall') { c.rotate(1.2); drawHusk(c, 0, 0, 1, 0.85, 1.4); }
     else drawPerson(c, { seed: g.seed, outfit: 'guest', f: fr * 2, pose: 'walk', mood: 'scared' });
     c.restore();
@@ -917,9 +933,7 @@ const drawDeath = (c: Ctx, f: Fight, fr: number) => {
       const by = lt < 90 ? 60 + (GY - 60 - 40) * k * k : GY - 40 - Math.max(0, Math.sin(((lt - 90) / 20) * Math.PI)) * 30 * (lt < 110 ? 1 : 0) + (lt >= 110 ? 26 : 0);
       const roll = Math.sign(ARENA_MID - rx) || 1, bx = lt < 110 ? rx : rx + roll * Math.min(140, (lt - 110) * 2);
       const by2 = lt >= 110 ? GY - 14 : by;
-      c.fillStyle = '#1A0B06'; c.beginPath(); c.arc(bx, by2, 15, 0, Math.PI * 2); c.fill();
-      c.fillStyle = '#A1A1AA'; c.beginPath(); c.arc(bx, by2, 14, 0, Math.PI * 2); c.fill();
-      for (let i = 0; i < 12; i++) box(c, bx - 12 + (i % 4) * 6, by2 - 10 + Math.floor(i / 4) * 6, 4, 4, (i + Math.floor(fr / 6)) % 3 ? '#E4E4E7' : '#FFFFFF');
+      discoBall(c, bx, by2, 14, fr);
     }
     // (the last one out of him)
     if (lt > 150 && lt < 260) { const s = (lt - 150) / 110; c.fillStyle = `rgba(163, 190, 60, ${(0.5 * (1 - s)).toFixed(2)})`; c.beginPath(); c.arc(d.x - d.facing * 30, GY - 40 - s * 30, 6 + s * 20, 0, Math.PI * 2); c.fill(); }

@@ -17,8 +17,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { SpookySection, Said } from '../section';
-import { layOwn, endWalls, endExits, runExits, wallSign, groundBox, box, hands, speak, meatheadSays, saidOver, spookyState } from '../section';
-import { SECTIONS, GY } from '../geometry';
+import { layOwn, endWalls, endExits, runExits, box, hands, speak, meatheadSays, saidOver, spookyState } from '../section';
+import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
 import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
@@ -26,25 +26,20 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { isLandCleared } from '../../store';
-import { drawDonnie, drawLooseWig, drawLooseFangs, DONNIE_H, type DonniePose, type DonnieLook } from '../../cast/donnie';
+import { drawDonnie, DONNIE_H, type DonniePose, type DonnieLook } from '../../cast/donnie';
 import { drawBars, Lines } from './cine';
 import { tickStaff, drawGlobes, drawStaffSaid, resetStaff } from './staff';
 import { type Shop, makeShop, setShopGeo, buildShop, startChase, shopAftermath, tickShop, shopDonnieOut, shopDonnieGone, drawShop, drawShopFront } from './shop';
 import { type Doors, makeDoors, buildDoors, doorsDown, lockDoors, tickDoors, forgetDoors, doorsKicked, drawDoors, drawDoorsFront, drawDoorsHud } from './doors';
 import { forgetFightIntro } from '../ballroom/fight';
 import * as L from './lines';
+import { x0, x1, HOLE_X, DESK_X, RACK_X, ROOM_DOOR, SHOP_X, BALL_DOOR, PICKUP_X, MIC_X } from './geo';
+import { drawRoom as paintRoom, drawPartition, roomLighting } from './room';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
 const dressed = (state: GameState): L.Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
-const { x0, x1 } = SECTIONS.control;
-/** Where he comes up through the floor (DOORS.control.start), Donnie's desk, the coat rack, the door out. */
-const HOLE_X = x0 + 200, DESK_X = x0 + 520, RACK_X = x0 + 650, ROOM_DOOR = x0 + 730;
-/** The gift shop, from the room's door to the ballroom's doors (the big health and ammo just before them). */
-const SHOP_X = x0 + 790, BALL_DOOR = x1 - 70, PICKUP_X = x1 - 300;
-/** Where Donnie stands at the mic. */
-const MIC_X = x0 + 470;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The state
@@ -243,7 +238,8 @@ export const control: SpookySection = {
   // (the reveal: the room, held still, all of it in the picture)
   cameraX: (state) => (ctl(state).reveal === 'on' ? { min: x0, max: x0 } : undefined),
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#0C0A10'); return true; },
-  drawBack: (c, state) => { drawRoom(c, state); drawShop(c, state, ctl(state).shop); drawDoors(c, ctl(state).doors, state.frame); },
+  lighting: (state) => roomLighting(state, ctl(state).burst),
+  drawBack: (c, state) => { drawRoom(c, state); drawShop(c, state, ctl(state).shop); drawPartition(c, state); drawDoors(c, ctl(state).doors, state); },
   drawFront: (c, state) => {
     const cs = ctl(state), f = state.frame;
     // Donnie: in the reveal; running ahead in the chase
@@ -270,68 +266,9 @@ export const control: SpookySection = {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The control room, drawn (crude, but each thing reads as itself)
-
-const INK = '#1A0B06';
-const ol = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { box(c, x - 1, y - 1, w + 2, h + 2, INK); box(c, x, y, w, h, col); };
-
-/** One of the monitors: what its camera sees (crude little scenes: the town, the castle, the clock tower, hell...). */
-const monitor = (c: Ctx, mx: number, my: number, i: number, f: number, dead: boolean) => {
-  ol(c, mx - 4, my - 4, 100, 72, '#18181B');
-  if (dead) { box(c, mx, my, 92, 62, '#27272A'); for (let k = 0; k < 40; k++) box(c, mx + ((k * 37 + f * 13) % 90), my + ((k * 23 + f * 7) % 60), 3, 2, k % 2 ? '#A1A1AA' : '#52525B'); return; }
-  const sky = ['#1E1B4B', '#1C1917', '#312E81', '#450A0A', '#3B0764', '#14532D'][i];
-  box(c, mx, my, 92, 62, sky);
-  if (i === 0) { for (let k = 0; k < 4; k++) { box(c, mx + 6 + k * 22, my + 34, 16, 20, '#57534E'); c.fillStyle = '#292524'; c.beginPath(); c.moveTo(mx + 4 + k * 22, my + 34); c.lineTo(mx + 14 + k * 22, my + 24); c.lineTo(mx + 24 + k * 22, my + 34); c.closePath(); c.fill(); box(c, mx + 11 + k * 22, my + 40, 4, 4, '#FDE68A'); } }
-  if (i === 1) { box(c, mx + 20, my + 20, 52, 36, '#44403C'); for (let k = 0; k < 4; k++) box(c, mx + 20 + k * 14, my + 14, 8, 8, '#44403C'); box(c, mx + 42, my + 40, 8, 16, '#0C0A09'); }
-  if (i === 2) { box(c, mx + 36, my + 8, 20, 50, '#292524'); c.fillStyle = '#FDE68A'; c.beginPath(); c.arc(mx + 46, my + 18, 6, 0, Math.PI * 2); c.fill(); box(c, mx + 45, my + 14, 2, 5, INK); }
-  if (i === 3) { for (let k = 0; k < 6; k++) { const h = 14 + ((k * 7 + Math.floor(f / 6)) % 5) * 4; box(c, mx + 4 + k * 15, my + 62 - h, 10, h, k % 2 ? '#F97316' : '#DC2626'); } }
-  if (i === 4) { c.fillStyle = '#A1A1AA'; c.beginPath(); c.arc(mx + 46, my + 18, 7, 0, Math.PI * 2); c.fill(); for (let k = 0; k < 6; k++) box(c, mx + 10 + k * 14, my + 50, 10, 6, (k + Math.floor(f / 20)) % 2 ? '#F472B6' : '#60A5FA'); }
-  if (i === 5) { for (let k = 0; k < 5; k++) box(c, mx + 8 + k * 17, my + 30, 10, 26, '#DC2626'); box(c, mx + 70, my + 36, 14, 20, '#EF4444'); }
-  // (the scanline, the REC dot)
-  box(c, mx, my + ((f * 2) % 62), 92, 1, 'rgba(255,255,255,0.12)');
-  if (Math.floor(f / 30) % 2) box(c, mx + 82, my + 4, 5, 5, '#EF4444');
-};
+// The control room, drawn (room.ts): what's still on the desk and the rack, the floor gone up or not
 
 const drawRoom = (c: Ctx, state: GameState) => {
-  const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
-  if (v.x > SHOP_X + 100 || v.x + v.w < x0 - 200) return;
-  const cs = ctl(state), f = state.frame;
-  // The walls: cinderblock, painted dark; the ceiling's duct and a bare bulb
-  box(c, x0 - 200, GY - 900, SHOP_X - x0 + 200, 900, '#1C1A22');
-  for (let y = GY - 440; y < GY; y += 20) for (let x = x0 - 200 + ((y / 20) % 2) * 20; x < SHOP_X; x += 40) box(c, x, y, 38, 1, '#16141B');
-  box(c, x0 - 200, GY - 440, SHOP_X - x0 + 200, 18, '#3F3F46'); box(c, x0 - 200, GY - 424, SHOP_X - x0 + 200, 3, '#52525B');
-  box(c, x0 + 300, GY - 422, 2, 30, '#52525B'); c.fillStyle = Math.floor(f / 90) % 7 === 0 ? '#FEF9C3' : '#FDE68A'; c.beginPath(); c.arc(x0 + 301, GY - 386, 7, 0, Math.PI * 2); c.fill();
-  // The wall of monitors (the hell one's static once the floor's gone; all of them once the land's done)
-  const done = isLandCleared('spooky');
-  for (let i = 0; i < 6; i++) monitor(c, x0 + 300 + (i % 3) * 110, GY - 330 + Math.floor(i / 3) * 80, i, f, done || (cs.burst && i === 3));
-  wallSign(c, x0 + 410, GY - 370, 'PARK OPERATIONS', '#27272A', '#FDE047');
-  wallSign(c, x0 + 170, GY - 300, 'DAYS WITHOUT AN INCIDENT: 0', '#1C1917', '#F87171');
-  // The console: buttons and sliders, the gooseneck mic stand, a sandwich, the cup the fangs live in, the foam head the
-  // wig lives on; the coat rack and the cape
-  ol(c, DESK_X - 70, GY - 74, 200, 74, '#3F3F46'); box(c, DESK_X - 70, GY - 78, 200, 4, '#A1A1AA');
-  for (let i = 0; i < 8; i++) { ol(c, DESK_X - 60 + i * 18, GY - 66, 10, 6, ['#DC2626', '#22C55E', '#FDE047', '#3B82F6'][(i + Math.floor(f / 20)) % 4]); box(c, DESK_X - 58 + i * 18, GY - 50, 4, 16, '#18181B'); box(c, DESK_X - 59 + i * 18, GY - 46 + ((i * 5) % 10), 6, 3, '#A1A1AA'); }
-  box(c, DESK_X - 22, GY - 108, 3, 30, '#52525B'); ol(c, DESK_X - 26, GY - 116, 10, 10, '#71717A');
-  ol(c, DESK_X + 20, GY - 86, 26, 8, '#D6A86A'); box(c, DESK_X + 22, GY - 84, 22, 2, '#65A30D');
-  const tk = took(cs);
-  ol(c, DESK_X + 66, GY - 92, 12, 14, '#E5E7EB'); box(c, DESK_X + 68, GY - 90, 8, 3, '#DC2626');
-  if (!tk.fangs) drawLooseFangs(c, DESK_X + 72, GY - 94, 0.2);
-  c.fillStyle = INK; c.beginPath(); c.ellipse(DESK_X + 106, GY - 94, 11, 14, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#F5F5F4'; c.beginPath(); c.ellipse(DESK_X + 106, GY - 94, 10, 13, 0, 0, Math.PI * 2); c.fill();
-  box(c, DESK_X + 102, GY - 82, 8, 4, '#E7E5E4');
-  if (!tk.wig) drawLooseWig(c, DESK_X + 106, GY - 100, f, 1, -0.1);
-  box(c, RACK_X - 2, GY - 170, 4, 170, '#78350F'); box(c, RACK_X - 16, GY - 4, 32, 4, '#78350F'); box(c, RACK_X - 14, GY - 168, 28, 3, '#78350F'); box(c, RACK_X - 15, GY - 172, 3, 8, '#78350F'); box(c, RACK_X + 12, GY - 172, 3, 8, '#78350F');
-  if (!tk.cape) { c.fillStyle = INK; c.beginPath(); c.moveTo(RACK_X - 12, GY - 166); c.lineTo(RACK_X + 12, GY - 166); c.lineTo(RACK_X + 22, GY - 50); c.lineTo(RACK_X - 22, GY - 50); c.closePath(); c.fill(); c.fillStyle = '#18181B'; c.beginPath(); c.moveTo(RACK_X - 10, GY - 164); c.lineTo(RACK_X + 10, GY - 164); c.lineTo(RACK_X + 20, GY - 52); c.lineTo(RACK_X - 20, GY - 52); c.closePath(); c.fill(); box(c, RACK_X - 18, GY - 58, 6, 6, '#B91C1C'); }
-  // The floor: tiles; the hole he came up through (glowing), or the manhole lid before
-  groundBox(c, x0 - 200, SHOP_X, GY, '#3F3F46', '#A1A1AA');
-  for (let x = x0 - 200; x < SHOP_X; x += 40) box(c, x, GY + 4, 1, 40, '#27272A');
-  if (cs.burst) {
-    c.fillStyle = '#0A0505'; c.beginPath(); c.ellipse(HOLE_X, GY + 2, 34, 6, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = 'rgba(249, 115, 22, ' + (0.35 + 0.15 * Math.sin(f * 0.1)).toFixed(2) + ')'; c.beginPath(); c.ellipse(HOLE_X, GY + 1, 26, 3.5, 0, 0, Math.PI * 2); c.fill();
-    for (let i = 0; i < 5; i++) box(c, HOLE_X - 40 + i * 18, GY - 3 - (i % 2) * 2, 8, 3, '#57534E');
-  } else { c.fillStyle = '#52525B'; c.beginPath(); c.ellipse(HOLE_X, GY + 2, 30, 5, 0, 0, Math.PI * 2); c.fill(); box(c, HOLE_X - 20, GY, 40, 1, '#71717A'); }
-  // The door between (flung open), the partition over it
-  box(c, ROOM_DOOR + 30, GY - 440, SHOP_X - ROOM_DOOR - 30, 300, '#27272A');
-  ol(c, ROOM_DOOR - 40, GY - 150, 80, 150, '#57534E'); box(c, ROOM_DOOR - 32, GY - 142, 64, 142, '#0B0B0D');
-  ol(c, ROOM_DOOR + 32, GY - 142, 10, 142, '#78350F'); box(c, ROOM_DOOR + 33, GY - 80, 3, 6, '#FDE047');
-  wallSign(c, ROOM_DOOR, GY - 170, 'STAFF ONLY', '#7F1D1D', '#FEF2F2');
+  const cs = ctl(state);
+  paintRoom(c, state, { burst: cs.burst, took: took(cs), done: isLandCleared('spooky') });
 };

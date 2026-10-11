@@ -36,6 +36,8 @@ export const drawHusk = (c: Ctx, x: number, y: number, facing: number, w = 1, cr
   c.fillStyle = hide; c.beginPath(); c.ellipse(0, -7 * k - 2, 24.5, 6 * k + 2.5, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = dark; for (let i = 0; i < 5; i++) c.fillRect(-14 + i * 6, -9 * k - 2, 1, 6 * k + 2);
   c.fillStyle = lit; c.fillRect(-18, -11 * k - 2, 20, 1.5);
+  // (stepped: a dither of the lit color along its top, the dark one along its belly)
+  for (let i = 0; i < 18; i += 2) { c.fillStyle = lit; c.fillRect(-16 + i, -10 * k - 1 + (i % 4 ? 1 : 0), 1, 1); c.fillStyle = dark; c.fillRect(-18 + i, -3 + (i % 4 ? 1 : 0), 1, 1); }
   // (the head: a skull with skin on, sunk eyes, the mouth open)
   c.fillStyle = ink; c.beginPath(); c.arc(25, -9 * k - 2, 8, 0, Math.PI * 2); c.fill();
   c.fillStyle = hide; c.beginPath(); c.arc(25, -9 * k - 2, 7, 0, Math.PI * 2); c.fill();
