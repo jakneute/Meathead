@@ -1,0 +1,168 @@
+// Space Land: the stage. Built the way Spooky Land is (spooky/index.ts): its sections (see geometry.ts) each in a
+// folder of their own, each a SpaceSection (space/section.ts, Adventure Land's Section with Space Land's ids and its
+// own hooks: flight); this runs whichever one he's in, keeps the camera to it, and puts him back at the right
+// checkpoint after dying.
+//
+// The first pass is a crude one on purpose (prototype boxes and words, to get the feel of it before the real look).
+//
+// Shared file (see OWNERSHIP.md): section owners may only append minimally, and must re-read it before editing.
+
+import type { StageLayout } from '../../m1/game/stages/index';
+import type { GameState } from '../../m1/game/core/state';
+import type { Enemy } from '../../m1/types';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
+import { NO_CONTROLS } from '../../m1/game/platform/input';
+import { todLight } from '../timeOfDay';
+import { drawNotedSunFlare } from '../sunFlare';
+import { setUi, isLeaving, arrived, carryGut, takeGut, takeStartCheckpoint } from '../store';
+import { stopWeapons } from '../weapons';
+import { createGrab, updateGrab, drawGrab, type Grab } from '../moves/grab';
+import { takePortalArrival, startPortalArrival, tickPortalArrival, drawPortalArrival, type PortalArrival } from '../portalArrival';
+import { SECTIONS, SECTION_ORDER, type SpaceId } from './geometry';
+import { getSpace, type Space, type SpaceSection } from './section';
+import { square } from './square';
+import { atom } from './atom';
+import { ride } from './ride';
+import { drag } from './drag';
+import { needle } from './needle';
+import { orbit } from './orbit';
+import { crater } from './crater';
+import { queen } from './queen';
+export { SPACE_VOICE_LINES } from './voices';
+
+export const SPACE_STAGE = 'M2 Space Land';
+
+const ALL: Record<SpaceId, SpaceSection> = { square, atom, ride, drag, needle, orbit, crater, queen };
+const sectionAt = (x: number): SpaceSection => {
+  for (const id of SECTION_ORDER) { const s = ALL[id]; if (x >= s.x0 && x < s.x1) return s; }
+  // (between sections, or off the end of one: the nearest)
+  let best = ALL.square, bestD = Infinity;
+  for (const id of SECTION_ORDER) { const s = ALL[id], d = x < s.x0 ? s.x0 - x : x - s.x1; if (d < bestD) { bestD = d; best = s; } }
+  return best;
+};
+const current = (state: GameState) => ALL[getSpace(state)?.section ?? 'square'];
+/** Every checkpoint in the stage, in order (the checkpoint-skip cheat lists them all). */
+export const SPACE_CHECKPOINTS = SECTION_ORDER.flatMap(id => ALL[id].checkpoints).sort((a, b) => a.cp - b.cp);
+
+interface SpaceState extends Space {
+  grab: Grab;
+  /** Just (re)started at a checkpoint: frames left of the grace, and who's being held off for it. */
+  grace: number; held: Set<Enemy>;
+  /** The section the camera was last put into. */
+  lastSec?: string;
+  /** In through the hub's portal: the land opening on him (portalArrival.ts). */
+  arrive?: PortalArrival;
+}
+/** Starting again at a checkpoint, whatever's near it holds off a moment. */
+const GRACE = 120, GRACE_RANGE = 650;
+let devStarted = false;
+
+export const spaceLayout: StageLayout = {
+  left: SECTIONS.square.x0 - 200,
+  startX: SECTIONS.square.x0 + 150,
+  verticalCamera: true,
+  startsStanding: true,
+  build: (state) => {
+    arrived(); stopWeapons();
+    { const g = takeGut(); if (g) state.player.gut = g; }
+    const sp: SpaceState = { section: 'square', s: {}, flight: null, grab: createGrab(state), grace: GRACE, held: new Set(), arrive: takePortalArrival() ? startPortalArrival() : undefined };
+    state.stage = sp;
+    // (on foot to start with, whatever he was at when he died: flight's put back on by its section)
+    state.player.noSpecials = false; setUi({ noSwitch: false });
+    for (const id of SECTION_ORDER) ALL[id].build(state);
+    // (the checkpoint-skip cheat: where he picked to start, the first time in)
+    { const pick = takeStartCheckpoint(); if (pick !== null) state.checkpoint = pick; }
+    // (in dev, ?space=<checkpoint> starts there, the first time)
+    if (import.meta.env.DEV && !devStarted) { devStarted = true; const q = new URLSearchParams(location.search).get('space'); if (q) state.checkpoint = +q; }
+    const cp = SPACE_CHECKPOINTS.find(c => c.cp === state.checkpoint) ?? SPACE_CHECKPOINTS[0];
+    sp.section = sectionAt(cp.x).id;
+    // (a boss's checkpoint: back for another go at him, nobody else about)
+    if (cp.clear) {
+      const [l, r] = cp.clear;
+      state.enemies = state.enemies.filter(e => { const ex = e.pos.x + e.width / 2; return ex < cp.x - l || ex > cp.x + r; });
+    }
+    const p = state.player;
+    p.pos.x = cp.x - p.width / 2; p.pos.y = cp.y - p.height; p.vel.x = 0; p.vel.y = 0;
+    state.camera.x = cp.x - CANVAS_WIDTH / 2;
+    return { x: cp.x, y: cp.y };
+  },
+  update: (ctx, controls) => {
+    const { state } = ctx;
+    const sp = getSpace(state) as SpaceState | null;
+    if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
+    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
+    if (!sp) return controls;
+    const p = state.player;
+    // (just back at a checkpoint: anything near holds off a moment, then it's itself again)
+    if (sp.grace > 0) {
+      sp.grace--;
+      for (const e of state.enemies) {
+        if (e.type === 'boss' || e.health <= 0 || e.isBlownAway) continue;
+        if (sp.grace > 0 && Math.abs(e.pos.x + e.width / 2 - (p.pos.x + p.width / 2)) < GRACE_RANGE && (e.pauseTimer ?? 0) <= 2) { e.puppet = true; e.pauseTimer = 2; e.vel.x = 0; sp.held.add(e); }
+      }
+      if (sp.grace === 0) { for (const e of sp.held) e.puppet = false; sp.held.clear(); }
+    }
+    // Which section he's in (the one his middle's in), and the camera kept to it
+    const sec = sectionAt(p.pos.x + p.width / 2);
+    sp.section = sec.id;
+    const lim = sec.cameraX?.(state) ?? { min: sec.x0, max: sec.x1 - CANVAS_WIDTH };
+    state.cameraMinX = lim.min; state.cameraMaxX = lim.max;
+    // (into a section (or back at a checkpoint): the camera's put right on him there, no gliding in from somewhere else)
+    if (sp.lastSec !== sec.id) { sp.lastSec = sec.id; state.camera.x = Math.max(lim.min, Math.min(lim.max, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2)); }
+    // (passing a checkpoint: it's his)
+    for (const c of sec.checkpoints) if (c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
+    setUi({ near: null, map: null, nearExit: false, upPrompt: null });
+    // (free flight (the orbit's shooter: section.ts's Flight): the ray gun only, no switching, while it's on; the flying
+    // itself is the section's)
+    const fl = sec.flight?.(state) ?? null;
+    if (!!fl !== !!sp.flight) { p.noSpecials = !!fl; setUi({ noSwitch: !!fl }); }
+    sp.flight = fl;
+    // (in through the portal: not his till the land's opened on him)
+    const arriving = !!sp.arrive && tickPortalArrival(state, sp.arrive, sec.cameraRow?.(state) ?? 550);
+    if (sp.arrive && !arriving) sp.arrive = undefined;
+    if (arriving) controls = { ...NO_CONTROLS };
+    let out = sec.update ? sec.update(ctx, controls) : controls;
+    out = updateGrab(ctx, sp.grab, out);
+    if (arriving) out = { ...NO_CONTROLS };
+    // (a cutscene in any section: no HUD; the HUD's look: Space Land's, everywhere in it for now)
+    setUi({ introCutscene: !!p.inCutscene, zone: 'space' });
+    return out;
+  },
+  waterBodyAt: (state, x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null,
+  drawBackdrop: (c, state) => {
+    const sec = current(state);
+    if (sec.drawBackdrop?.(c, state)) return true;
+    c.fillStyle = '#0B0B1E'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    return true;
+  },
+  drawBack: (c, state) => {
+    // (the ones either side too, so walking from one into the next there's no gap)
+    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawBack?.(c, state); }
+  },
+  drawFront: (c, state) => {
+    // (a grab's in the play plane: anything the sections draw in front of him (a near
+    // pillar, a ride car's front) goes in front of it too)
+    const sp = getSpace(state) as SpaceState | null;
+    if (sp) drawGrab(c, state, sp.grab);
+    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawFront?.(c, state); }
+  },
+  drawHud: (c, state) => {
+    const sec = current(state);
+    drawNotedSunFlare(c, sec.outdoors?.(state) ?? 0, sec.cylinder ? undefined : state);
+    sec.drawHud?.(c, state);
+    const sp = getSpace(state) as SpaceState | null;
+    if (sp?.arrive) drawPortalArrival(c, state, sp.arrive);
+  },
+  zoom: (state) => current(state).zoom?.(state) ?? null,
+  holdTick: (ctx) => current(ctx.state).holdTick?.(ctx) ?? false,
+  // (a section's own lighting if it has one; else outdoors, the time of day's (timeOfDay.ts); indoors, none)
+  lighting: (state) => {
+    const sec = current(state);
+    if (sec.lighting) return sec.lighting(state);
+    const out = sec.outdoors?.(state) ?? 0;
+    return out > 0 ? todLight(sec.lamps?.(state) ?? [], out) : null;
+  },
+  cameraRow: (state) => current(state).cameraRow?.(state),
+  cylinder: (state) => current(state).cylinder?.(state) ?? null,
+  worldTilt: (state) => current(state).worldTilt?.(state) ?? null,
+};

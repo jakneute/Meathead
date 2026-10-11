@@ -21,9 +21,10 @@ import { lowRes, canvas, drawGround, skyOf, spriteOf, fogAt, vignetteOf, wobble,
 import { drawMeatheadFront, type Pose } from './walkAway/meathead';
 import { SAFARI_ARTIE } from './walkAway/artie';
 import { DONNIE_DRACULA } from './walkAway/donnie';
+import { SPACE_QUEEN } from './walkAway/spaceQueen';
 
 /** The bosses that have a walk-away (add each boss's SceneDef here). */
-export const WALK_AWAY_SCENES = { 'safari-artie': SAFARI_ARTIE, 'donnie-dracula': DONNIE_DRACULA } satisfies Record<string, SceneDef>;
+export const WALK_AWAY_SCENES = { 'safari-artie': SAFARI_ARTIE, 'donnie-dracula': DONNIE_DRACULA, 'space-queen': SPACE_QUEEN } satisfies Record<string, SceneDef>;
 export type WalkAwayBoss = keyof typeof WALK_AWAY_SCENES;
 
 export interface WalkAwayOpts {

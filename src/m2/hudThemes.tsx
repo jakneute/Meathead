@@ -10,7 +10,7 @@ import type { HudSkin } from '../m1/components/HUD';
 export type Zone =
   | 'garage' | 'security' | 'america' | 'ticket' | 'hub' | 'staff'
   | 'jungle' | 'queue' | 'boat' | 'underwater' | 'dino' | 'temple' | 'cart' | 'roof' | 'clearing'
-  | 'spooky';
+  | 'spooky' | 'space';
 
 /** How the pause menu looks. */
 export interface PauseSkin {
@@ -395,6 +395,26 @@ export const THEMES: Record<Zone, Theme> = {
       well: { background: 'rgba(26,11,46,0.6)', border: '1px solid #5B21B6' },
       slot: 'rgba(26,11,46,0.92)', slotOn: 'rgba(134,239,172,0.8)',
       button: 'linear-gradient(180deg, #5B21B6, #2E1065)', buttonEdge: '#1A0B2E',
+    },
+  },
+  // Space Land (the first pass: one look for all of it): a 1962 control panel, chrome and periwinkle
+  space: {
+    hud: {
+      panel: { background: 'linear-gradient(180deg, rgba(49,46,129,0.96), rgba(30,27,75,0.96))', border: '2px solid #A5B4FC', boxShadow: PIXEL_SHADOW },
+      deco: <>{edge('#F472B6', 4)}{tag('T-MINUS', { background: '#A5B4FC', color: '#1E1B4B' })}</>,
+      label: '#E0E7FF', value: '#FFFFFF', name: '#A5B4FC',
+      track: { background: '#1E1B4B', borderColor: '#4338CA' },
+      slot: { background: 'rgba(30,27,75,0.6)', borderColor: '#A5B4FC' },
+    },
+    pause: {
+      title: 'PAUSED', sub: 'THE FUTURE IS ON HOLD',
+      titleStyle: { color: '#A5B4FC', textShadow: '3px 3px 0 #312E81, 5px 5px 0 #000' },
+      frame: { background: 'linear-gradient(180deg, #312E81, #1E1B4B)', border: '4px solid #A5B4FC', boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9)' },
+      stripe: 'repeating-linear-gradient(135deg, #A5B4FC 0 8px, #F472B6 8px 16px)',
+      accent: '#A5B4FC', text: '#E0E7FF', muted: '#C7D2FE',
+      well: { background: 'rgba(30,27,75,0.6)', border: '1px solid #4338CA' },
+      slot: 'rgba(30,27,75,0.92)', slotOn: 'rgba(165,180,252,0.8)',
+      button: 'linear-gradient(180deg, #4338CA, #312E81)', buttonEdge: '#1E1B4B',
     },
   },
 };
