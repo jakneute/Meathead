@@ -16,7 +16,7 @@
 //   THE SPEW    ...hangs in the air and sprays the blood back out at Meathead like a machine gun: a stream of it, aimed,
 //               the aim dragging after him (keep moving, jump it).
 //
-// Hurting him: most things barely do now (SHARE of the usual, a short breather after each hit). His weakness is the
+// Hurting him: most things barely do now (SHARE of the usual, and a boss's usual breather after each hit). His weakness is the
 // SOUVENIR LAUNCHER, and only one souvenir in its bag: CHRIST THE REDEEMER. That one stuns him (down out of the air,
 // smoking, on his backside: the window) and takes a big chunk off. The rest of the bag hits him like anything else
 // (SHARE). And any time one of the lesser souvenirs could finish him (at his health now, counting the ones already in
@@ -60,11 +60,12 @@ const pick = pickLine;
 
 /** His health (Meathead 1's bosses'), and the enemy's (never runs out: the hits are taken off ours). */
 const HP = 666, BIG = 100000;
-/** Most weapons: this share of their usual damage gets through (at least 1), and a short breather after each hit. */
-const SHARE = 0.35, IFRAMES = Math.round(ENEMY_HIT_COOLDOWN / 5);
-/** The launcher's other souvenirs (it hits hard, and fast, and they bounce back for more): a smaller share, a longer
- *  breather (the Redeemer's the point of it, not the rest of the bag). */
-const SOUV_SHARE = 0.15, SOUV_IFRAMES = 30;
+/** Most weapons: this share of their usual damage gets through (at least 1); after each hit, a boss's breather (the
+ *  standard one, as every boss has it: blinking, nothing lands). */
+const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
+/** The launcher's other souvenirs (it hits hard, and they bounce back for more): a smaller share (the Redeemer's the
+ *  point of it, not the rest of the bag); the same breather. */
+const SOUV_SHARE = 0.15, SOUV_IFRAMES = ENEMY_HIT_COOLDOWN;
 /** The Redeemer: what it takes off him, how long he's down for. */
 const REDEEMER_DMG = 90, REDEEMER_STUN = 120;
 /** After one's put him down, he's wise to it a while: another in that time is just a souvenir (unless it'd finish him). */
@@ -588,10 +589,10 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // (a charge move landing on him: knocked back, and whatever he'd got hold of (a guest) let go)
   if (melee && dealt > 0 && f.mode !== 'dead' && f.mode !== 'drain' && f.mode !== 'stunned' && state.enemies.includes(e)) stagger(state, f);
   if (f.mode === 'dead' || dealt <= 0 || !state.enemies.includes(e)) return;
-  // The Redeemer: down he goes, and it hurts (no breather can stop it)
+  // The Redeemer: down he goes, and it hurts (in his breather, it's not landed: it bounces about, it'll be back)
   // (once per go: it bounces about and hits him again, but it's the first one that puts him down; down already, it's
   // just another souvenir till he's back up)
-  if (sv?.id === 'redeemer' && ((f.mode !== 'stunned' && f.total >= f.redeemAt) || f.hp <= REDEEMER_DMG)) {
+  if (sv?.id === 'redeemer' && f.iframes <= 0 && ((f.mode !== 'stunned' && f.total >= f.redeemAt) || f.hp <= REDEEMER_DMG)) {
     f.redeemAt = f.total + REDEEMER_STUN + REDEEMER_GRACE;
     f.hp -= REDEEMER_DMG; f.flash = 16; f.iframes = IFRAMES;
     playSound('ding', 1, 6); playSound('crack', 0.8, -4); shakeScreen(state, 10, 5);
@@ -704,6 +705,8 @@ const sync = (state: GameState, f: Fight) => {
   const e = f.e;
   e.pos.x = f.x - e.width / 2; e.pos.y = f.y - e.height - 2;
   e.vel.x = 0; e.vel.y = 0; e.facing = f.facing; e.initialY = e.pos.y;
+  // (his breather, the engine's too: in it, shots and moves go by him as they do any boss's)
+  e.hitCooldown = f.iframes;
   e.pauseTimer = 0; e.frozenTimer = 0; e.isTased = false; e.sludgeTimer = 0; e.returnHome = false;
 };
 
