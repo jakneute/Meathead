@@ -30,11 +30,11 @@ import { drawDonnie, DONNIE_H, type DonniePose, type DonnieLook } from '../../ca
 import { drawBars, Lines } from './cine';
 import { tickStaff, drawGlobes, drawStaffSaid, resetStaff } from './staff';
 import { type Shop, makeShop, setShopGeo, buildShop, startChase, shopAftermath, tickShop, shopDonnieOut, shopDonnieGone, drawShop, drawShopFront } from './shop';
-import { type Doors, makeDoors, buildDoors, doorsDown, lockDoors, tickDoors, forgetDoors, doorsKicked, drawDoors, drawDoorsFront, drawDoorsHud } from './doors';
+import { type Doors, makeDoors, buildDoors, doorsDown, lockDoors, tickDoors, forgetDoors, doorsKicked, drawDoors, drawDoorsFront, drawDoorsTrim, drawDoorsHud } from './doors';
 import { forgetFightIntro } from '../ballroom/fight';
 import * as L from './lines';
 import { x0, x1, HOLE_X, DESK_X, RACK_X, ROOM_DOOR, SHOP_X, BALL_DOOR, PICKUP_X, MIC_X } from './geo';
-import { drawRoom as paintRoom, drawPartition, roomLighting } from './room';
+import { drawRoom as paintRoom, drawPartition, drawPartitionFront, roomLighting } from './room';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -229,7 +229,7 @@ export const control: SpookySection = {
     if (cs.reveal === 'on') return reveal(ctx, cs);
     tickShop(ctx, cs.shop);
     // (Donnie through the ballroom's doors: they're locked behind him; up to them, the boot)
-    if (cs.shop.d && shopDonnieGone(cs.shop)) lockDoors(cs.doors);
+    if (cs.shop.d && shopDonnieGone(cs.shop)) lockDoors(state, cs.doors);
     { const out = tickDoors(ctx, cs.doors); if (out) return out; }
     // (through the ballroom's doors: Donnie's in there already, if he wasn't)
     if (runExits(state, endExits('control'))) shopDonnieOut(cs.shop);
@@ -242,6 +242,9 @@ export const control: SpookySection = {
   drawBack: (c, state) => { drawRoom(c, state); drawShop(c, state, ctl(state).shop); drawPartition(c, state); drawDoors(c, ctl(state).doors, state); },
   drawFront: (c, state) => {
     const cs = ctl(state), f = state.frame;
+    // (the doorways' near jambs, over him and the staff; under Donnie and the words)
+    drawPartitionFront(c, state);
+    drawDoorsTrim(c, cs.doors, state);
     // Donnie: in the reveal; running ahead in the chase
     if (cs.reveal === 'on') {
       const { pose, look } = dressLook(cs);

@@ -13,10 +13,12 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { timeOfDay, hourMix, skyAt } from '../../timeOfDay';
 import { drawLooseWig, drawLooseFangs } from '../../cast/donnie';
+import { type Passage, passageBack, passageSide, passageFront, passageLintel } from './passage';
+import { rockWall } from './shopArt';
 import { x0, HOLE_X, DESK_X, RACK_X, ROOM_DOOR, SHOP_X, PART_L, PART_R } from './geo';
 import {
   INK, box, text, slab, pole, ball, rampOf, dark, lite, mix, checker, hazeBands, stamp, hash,
-  WALL_D, CEIL, eyeOf, inDepth, at, quad, seg, shade, inked, wallRun, wallSide, ceiling, tileFloor, frontFloor, plaque,
+  WALL_D, CEIL, eyeOf, inDepth, at, quad, seg, shade, inked, wallRun, ceiling, tileFloor, frontFloor, plaque,
   type Eye,
 } from './paint';
 
@@ -444,46 +446,64 @@ export const drawRoom = (c: Ctx, state: GameState, look: RoomLook) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The wall between the room and the shop: a solid block, front to back, the staff door through it
+// The wall between the room and the shop: a thick block, front to back, the staff door's passage through it
+// (passage.ts): over his head its lintel (STAFF ONLY); through it, its back wall (the booth's painted block giving
+// way to the shop's fiberglass rock at the threshold, the steel door swung back against the block), the booth's
+// tiles giving way to the shop's carpet; its near jambs sliding past in front of him.
 
-const DOOR_W = 68, DOOR_H = 148;
-const paintPartition = (g: Ctx) => {
-  const top = CEIL - 300;
-  paintBlock(g, PART_L, PART_R - PART_L, top, GY - 120, PAINT, 11);
-  paintBlock(g, PART_L, PART_R - PART_L, GY - 120, GY - 12, LOWER, 12);
-  slab(g, PART_L, GY - 126, PART_R - PART_L, 6, '#6B5A44', { ink: false, edge: 2 });
-  box(g, PART_L, GY - 12, PART_R - PART_L, 12, '#221E1B');
-  hazeBands(g, PART_L, CEIL, PART_R - PART_L, 170, '#0C0A10', 0.6, 0, 6);
-  // (the doorway: through it, the shop's red; the frame round it)
-  const L = ROOM_DOOR - DOOR_W / 2, T = GY - DOOR_H;
-  box(g, L, T, DOOR_W, DOOR_H, '#2A0606');
-  box(g, L, T + 70, DOOR_W, DOOR_H - 70, '#4A0E0A'); checker(g, L, T + 68, DOOR_W, 4, '#4A0E0A');
-  box(g, L, GY - 30, DOOR_W, 30, '#6B1410'); checker(g, L, GY - 32, DOOR_W, 2, '#6B1410');
-  // (the painted flames of the shop's wall beyond, through the door)
-  for (let k = 0; k < 3; k++) { const fx = L + 6 + k * 22, h = 34 + (k % 2) * 14; inked(g, () => { g.moveTo(fx, GY); g.lineTo(fx + 8, GY - h); g.lineTo(fx + 12, GY - h * 0.5); g.lineTo(fx + 20, GY); g.closePath(); }, '#9A3412', 0); }
-  slab(g, L - 8, T - 8, 8, DOOR_H + 8, '#6B7280', { edge: 2 }); slab(g, L + DOOR_W, T - 8, 8, DOOR_H + 8, '#6B7280', { edge: 2 }); slab(g, L - 8, T - 8, DOOR_W + 16, 8, '#6B7280', { edge: 2 });
-  // (the door: swung open toward us, off its hinges on the right; kick plate, push bar)
-  inked(g, () => { g.moveTo(L + DOOR_W + 8, T); g.lineTo(L + DOOR_W + 30, T - 6); g.lineTo(L + DOOR_W + 30, GY + 6); g.lineTo(L + DOOR_W + 8, GY); g.closePath(); }, '#7C6F64', 2);
-  box(g, L + DOOR_W + 12, T + 2, 14, DOOR_H - 4, '#8C7F72'); box(g, L + DOOR_W + 26, T - 2, 3, DOOR_H + 4, '#5C5148');
-  box(g, L + DOOR_W + 12, GY - 30, 16, 26, '#A8A29E'); box(g, L + DOOR_W + 14, T + 70, 12, 4, '#FDE047');
-  // (STAFF ONLY over it; a badge reader beside it, its light red)
-  plaque(g, ROOM_DOOR, T - 26, 'STAFF ONLY', '#7F1D1D', '#FEF2F2');
-  slab(g, L - 26, GY - 92, 12, 18, '#27272A', { edge: 2 }); box(g, L - 23, GY - 88, 6, 3, '#EF4444');
+export const STAFF: Passage = { A: PART_L, B: PART_R, H: GY - 156, top: CEIL - 300, dp: 0.935, near: 1.09, split: ROOM_DOOR + 34 };
+
+const paintStaffRear = (g: Ctx) => {
+  const { A, B, H, split } = STAFF;
+  // (the booth's side: its block, the rail, the base; the door swung back flat against it)
+  paintBlock(g, A, split - A, H, GY - 120, PAINT, 21);
+  paintBlock(g, A, split - A, GY - 120, GY - 12, LOWER, 22);
+  slab(g, A, GY - 126, split - A, 6, '#6B5A44', { ink: false, edge: 2 });
+  box(g, A, GY - 12, split - A, 12, '#221E1B');
+  box(g, A, H, split - A, GY - H, 'rgba(8, 12, 24, 0.22)');
+  slab(g, A + 8, GY - 148, 64, 148, '#7C6F64', { edge: 3 });
+  box(g, A + 14, GY - 30, 52, 24, '#A8A29E'); box(g, A + 14, GY - 30, 52, 2, '#D6D3D1');
+  slab(g, A + 12, GY - 80, 48, 6, '#C9A227', { edge: 1 });
+  box(g, A + 64, GY - 110, 4, 8, '#5C5148'); box(g, A + 64, GY - 40, 4, 8, '#5C5148');
+  // (the badge reader by the threshold, its light red; a strip of yellow-and-black tape up the corner)
+  slab(g, split - 22, GY - 96, 12, 18, '#27272A', { edge: 2 }); box(g, split - 19, GY - 92, 6, 3, '#EF4444');
+  for (let y = H; y < GY; y += 8) { box(g, split - 4, y, 4, 4, '#EAB308'); box(g, split - 4, y + 4, 4, 4, '#18181B'); }
+  // (the shop's side: the rock, lit red)
+  rockWall(g, split, B, H, GY, 7);
+  box(g, split, H, B - split, GY - H, 'rgba(70, 6, 6, 0.18)');
+  box(g, A, H, B - A, 6, 'rgba(0, 0, 0, 0.35)');
+};
+
+const paintStaffLintel = (g: Ctx) => {
+  const { A, B, H, top } = STAFF;
+  paintBlock(g, A, B - A, top, H, PAINT, 11);
+  hazeBands(g, A, CEIL, B - A, 170, '#0C0A10', 0.6, 0, 6);
+  // (the steel header over the opening, STAFF ONLY on the block over it)
+  slab(g, A, H - 10, B - A, 10, '#6B7280', { edge: 2 });
+  for (let x = A + 10; x < B - 4; x += 24) box(g, x, H - 6, 2, 2, '#3F3F46');
+  plaque(g, (A + B) / 2 - 10, H - 34, 'STAFF ONLY', '#7F1D1D', '#FEF2F2');
 };
 
 /** The wall between's sides, going back (each drawn before what stands at his plane on its side of it). */
 export const drawPartitionSide = (c: Ctx, state: GameState, side: -1 | 1) => {
   const eye = eyeOf(state);
-  if (side < 0) wallSide(c, eye, PART_L, -1, CEIL - 300, PAINT, true);
-  else wallSide(c, eye, PART_R, 1, CEIL - 300, '#5B1414', true);
+  if (side < 0) passageSide(c, eye, PART_L, -1, STAFF, PAINT);
+  else passageSide(c, eye, PART_R, 1, STAFF, '#5B1414');
 };
 
-/** World space, after the shop: the wall between (covers the seam where the two back walls meet). */
+/** World space, after the shop: the passage through the wall between, its lintel. */
 export const drawPartition = (c: Ctx, state: GameState) => {
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
   if (v.x > PART_R + 200 || v.x + v.w < PART_L - 200) return;
-  stamp(c, 'ctl-partition', PART_L, CEIL - 300, PART_R - PART_L + 34, GY - CEIL + 310, paintPartition);
-  box(c, PART_L - 1, CEIL - 300, 2, GY - CEIL + 300, INK); box(c, PART_R - 1, CEIL - 300, 2, GY - CEIL + 300, INK);
+  passageBack(c, eyeOf(state), STAFF, 'ctl-staff-rear', paintStaffRear, '#8E8878', '#741A1A', '#2A2A2E');
+  passageLintel(c, STAFF, 'ctl-staff-lintel', paintStaffLintel);
+  box(c, PART_L - 1, STAFF.top, 2, STAFF.H - STAFF.top, INK); box(c, PART_R - 1, STAFF.top, 2, STAFF.H - STAFF.top, INK);
+};
+/** World space, in front of everything: the passage's near jambs and lintel edge. */
+export const drawPartitionFront = (c: Ctx, state: GameState) => {
+  const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
+  if (v.x > PART_R + 300 || v.x + v.w < PART_L - 300) return;
+  passageFront(c, eyeOf(state), STAFF, '#3A3F48');
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -493,20 +513,21 @@ export const roomLighting = (state: GameState, burst: boolean): SceneLight => {
   const eye = eyeOf(state), f = state.frame, cam = state.camera.x;
   const lights: Light[] = [];
   const near = (x: number) => x > cam - 400 && x < cam + CANVAS_WIDTH + 400;
-  if (cam < SHOP_X + 200) {
+  // (the booth's light and the shop's, crossing over as he goes through the staff door: no jump at the threshold)
+  const k = Math.max(0, Math.min(1, (eye.x - (STAFF.split - 300)) / 600));
+  if (k < 1) {
     if (Math.floor(f / 90) % 7 !== 0) lights.push({ x: x0 + 300, y: GY - 382, r: 300, a: 0.7, cone: 200, color: 'rgba(253, 230, 160, 0.07)' });
     const [bx, by] = at(eye, (BANK_L + BANK_R) / 2, BANK_TOP + 110, WALL_D);
     lights.push({ x: bx, y: by, r: 260, a: 0.75, color: 'rgba(147, 197, 253, 0.08)' });
     if (burst) lights.push({ x: HOLE_X, y: GY - 10, r: 120 + (Math.floor(f / 14) % 3) * 6, a: 0.7, color: 'rgba(249, 115, 22, 0.12)' });
-    lights.push({ x: ROOM_DOOR, y: GY - 70, r: 110, a: 0.5, color: 'rgba(220, 38, 38, 0.08)' });
-    return { dark: 0.3, shade: [10, 12, 22], lights };
   }
   // (the shop: the rope lights' red along the top, the painted lava's orange low down)
-  for (let x = Math.floor((cam - 300) / 320) * 320 + 160; x < cam + CANVAS_WIDTH + 300; x += 320) if (near(x)) {
+  for (let x = Math.floor((Math.max(cam, SHOP_X) - 300) / 320) * 320 + 160; x < cam + CANVAS_WIDTH + 300; x += 320) if (near(x) && x > SHOP_X) {
     lights.push({ x, y: GY - 60, r: 200, a: 0.6, color: 'rgba(234, 88, 12, 0.07)' });
     lights.push({ x: x + 160, y: GY - 330, r: 240, a: 0.6, cone: 220, color: 'rgba(254, 215, 170, 0.05)' });
   }
-  return { dark: 0.26, shade: [34, 6, 6], lights };
+  const mixN = (a: number, b: number) => Math.round(a + (b - a) * k);
+  return { dark: 0.3 + (0.26 - 0.3) * k, shade: [mixN(10, 34), mixN(12, 6), mixN(22, 6)], lights };
 };
 
 void lite; void dark;

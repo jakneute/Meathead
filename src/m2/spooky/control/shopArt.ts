@@ -25,6 +25,20 @@ const rock = (g: Ctx, cx: number, cy: number, rw: number, rh: number, col: strin
   path(0.42, -rw * 0.32, -rh * 0.38); g.fillStyle = mix(col, r[3], 0.55); g.fill();
 };
 
+/** A stretch of the fiberglass rock (x0..x1, top..bottom): the gaps dark, lumps in rows, a seam at its left, the
+ *  painted lava along its foot. For the passages' walls. */
+export const rockWall = (g: Ctx, x0: number, x1: number, top: number, bottom: number, seed: number) => {
+  g.save(); g.beginPath(); g.rect(x0, top, x1 - x0, bottom - top); g.clip();
+  box(g, x0, top, x1 - x0, bottom - top, '#2A0806');
+  for (let row = 0; row * 44 < bottom - top + 40; row++) for (let k = -1; k * 56 < x1 - x0 + 60; k++) {
+    const s = seed * 31 + row * 13 + k * 7;
+    rock(g, x0 + k * 56 + (row % 2) * 28 + (hash(s) - 0.5) * 12, top + 18 + row * 44, 27 + hash(s * 2.1) * 8, 20 + hash(s * 3.7) * 5, mix(ROCK, hash(s * 5.3) < 0.5 ? '#3A0A08' : '#7A2A18', 0.25), s);
+  }
+  box(g, x0, top, 2, bottom - top, '#140302'); box(g, x0 + 2, top, 1, bottom - top, '#7A2A18');
+  for (let i = 0; i < 4; i++) box(g, x0, bottom - 24 + i * 6, x1 - x0, 7, LAVA[i]);
+  g.restore();
+};
+
 /** A plywood flame standing on the floor (feet at x, y): red round orange round yellow, inked; flat as a board. */
 const flameFlat = (g: Ctx, x: number, y: number, h: number, w: number, seed: number) => {
   const tongue = (k: number) => {

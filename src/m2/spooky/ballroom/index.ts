@@ -14,7 +14,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import type { SpookySection } from '../section';
 import { layOwn, endWalls, endExits, runExits, box, ledge, spookyState } from '../section';
-import { drawBallroomArt, ballroomLighting } from './art';
+import { drawBallroomArt, drawBallroomFront, ballroomLighting } from './art';
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
@@ -102,7 +102,7 @@ export const ballroom: SpookySection = {
     const b = ballOf(state);
     if (b.f) drawFightBack(c, state, b.f);
   },
-  drawFront: (c, state) => { const b = ballOf(state); if (b.f && b.fight !== 'wait') drawFightFront(c, state, b.f); },
+  drawFront: (c, state) => { drawBallroomFront(c, state); const b = ballOf(state); if (b.f && b.fight !== 'wait') drawFightFront(c, state, b.f); },
   drawHud: (c, state) => {
     const b = ballOf(state);
     if (b.f && introOn(b.f)) { drawBars(c, Math.min(1, introSkipT(b.f) / 20)); if (introSkipT(b.f) > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH); }

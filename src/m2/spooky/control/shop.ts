@@ -217,6 +217,13 @@ const tickDonnie = (state: GameState, sh: Shop) => {
     if (d.throwT >= (s.what === 'globes' ? 58 : 30)) { d.spot++; d.mode = 'run'; }
     return;
   }
+  // (Meathead's got to the ballroom's doors (they stand open) before him: he bolts for them, past everything, and
+  // through: they slam behind him before Meathead's through)
+  if (px > G.BALL_DOOR - 400) {
+    d.mode = 'run'; d.facing = 1; d.x = Math.max(d.x, G.BALL_DOOR - 650) + RUN * 2.6;
+    if (d.x >= G.BALL_DOOR) { d.mode = 'gone'; playSound('slam', 0.9); shakeScreen(state, 4, 3); }
+    return;
+  }
   // At his next spot: wait (looking back) till Meathead's near enough to see it
   if (spot && d.x >= at(spot.rel)) {
     d.x = at(spot.rel);
@@ -292,7 +299,7 @@ export const drawShop = (c: Ctx, state: GameState, sh: Shop) => {
   drawShopRoom(c, state, eye, L0, R0);
   drawPartitionSide(c, state, 1);
   // The section signs, hung from the ceiling on chains
-  for (const [rel, words] of [[250, 'APPAREL OF THE DAMNED'], [850, 'CHECKOUT'], [1900, 'SOUVENIR HALL'], [2780, 'PHOTO WITH SATAN'], [3300, 'CLEARANCE: EVERYTHING MUST BURN'], [3950, 'BALLROOM THIS WAY']] as const) {
+  for (const [rel, words] of [[250, 'APPAREL OF THE DAMNED'], [850, 'CHECKOUT'], [1900, 'SOUVENIR HALL'], [2780, 'PHOTO WITH SATAN'], [3300, 'CLEARANCE: EVERYTHING MUST BURN'], [3870, 'BALLROOM THIS WAY']] as const) {
     const x = at(rel);
     if (vis(x - 180, x + 180)) hangingSign(c, x, words);
   }

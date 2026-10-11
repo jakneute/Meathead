@@ -15,6 +15,8 @@ import {
   INK, box, text, slab, pole, ball, rampOf, mix, checker, hazeBands, stamp, hash, pixelBlob,
   WALL_D, CEIL, eyeOf, inDepth, at, quad, seg, inked, standTop, wallRun, ceiling, plaque, type Eye, type P,
 } from '../control/paint';
+import { type Passage, passageBack, passageSide, passageFront, passageLintel } from '../control/passage';
+import { rockWall } from '../control/shopArt';
 import { x0, ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X, CHANDELIERS, RISER } from './arena';
 
 type Ctx = CanvasRenderingContext2D;
@@ -172,7 +174,7 @@ const paintChandelier = (g: Ctx, x: number, top: number, w: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The room's ends, going back: the foyer's arch in the left, the kitchen's swing doors in the right
+// The stage's end, going back: the kitchen's swing doors in it (the left end's the way in: a passage, below)
 
 const endWall = (c: Ctx, eye: Eye, X: number, side: -1 | 1, f: number) => {
   if (side < 0 ? eye.x >= X : eye.x <= X) return;
@@ -255,10 +257,10 @@ export const drawBallroomArt = (c: Ctx, state: GameState, look: BallLook) => {
     }
   }
   // The ends going back (in the fight's view, both show a strip of themselves): the arch, the kitchen's doors
-  endWall(c, eye, END_L, 1, f);
+  passageSide(c, eye, END_L, 1, ENTRY, '#2E1065', false);
   endWall(c, eye, END_R, -1, f);
-  // The way in: the far left wall's face, the doorway he kicked in, its doors flat on the floor inside it
-  if (vis(L, END_L)) stamp(c, 'ball-entry', L, CEIL - 300, END_L - L, GY - CEIL + 302, paintEntry);
+  // The way in: the passage through the far left wall, the doors he kicked in flat on its floor
+  if (vis(L, END_L + 100)) drawEntry(c, eye);
   // The stage's wall at the far right: the proscenium, the curtain
   if (vis(END_R, R)) stamp(c, 'ball-stage', END_R, CEIL - 300, R - END_R, GY - CEIL + 302, paintStage);
   if (!vis(ARENA_L - 100, ARENA_R + 100)) return;
@@ -300,22 +302,52 @@ export const discoBall = (c: Ctx, x: number, y: number, r: number, f: number, ro
   }
 };
 
-const paintEntry = (g: Ctx) => {
-  const L = x0 - 260, top = CEIL - 300;
-  // (the left end wall's face: flock, the rail, the dark up top)
-  box(g, L, top, END_L - L, GY - top, FLOCK);
-  for (let y = CEIL + 14; y < GY - 120; y += 30) for (let x = L + 12; x < END_L; x += 50) box(g, x, y, 4, 10, '#4C1D95');
-  box(g, L, GY - 112, END_L - L, 112, '#2E1065'); slab(g, L, GY - 118, END_L - L, 8, GOLD, { edge: 2, ink: false });
-  hazeBands(g, L, CEIL, END_L - L, 170, '#0A0310', 0.65, 0, 6);
-  box(g, END_L - 2, top, 2, GY - top, INK);
-  // (the doorway: the shop's red beyond, the frame, a hinge hanging, splinters; the doors flat on the floor inside)
+// The way in, at the far left: the end wall's doorway done as a passage through it (control/passage.ts), the way the
+// shop's end has it: over his head its lintel; through it, its back wall (the shop's rock giving way to the flock at
+// the doors' frame), the shop's carpet giving way to the foyer's parquet; the doors he kicked in flat on its floor;
+// its near jambs sliding past in front of him.
+const ENTRY: Passage = { A: x0 - 260, B: END_L, H: GY - 204, top: CEIL - 300, dp: 0.935, near: 1.09, split: DOOR_X };
+
+const paintEntryRear = (g: Ctx) => {
+  const { A, B, H, split } = ENTRY;
+  rockWall(g, A, split, H, GY, 5);
+  box(g, A, H, split - A, GY - H, 'rgba(70, 6, 6, 0.18)');
+  box(g, split, H, B - split, GY - H, FLOCK);
+  for (let y = H + 10; y < GY - 112; y += 24) for (let x = split + 8 + ((y / 24) % 2) * 12; x < B; x += 24) { box(g, x, y, 4, 6, '#4C1D95'); box(g, x - 2, y + 2, 8, 2, '#4C1D95'); }
+  box(g, split, GY - 112, B - split, 112, '#2E1065'); box(g, split, GY - 116, B - split, 4, '#6B4A14');
+  box(g, A, H, B - A, 6, 'rgba(0, 0, 0, 0.35)');
+};
+const paintEntryLintel = (g: Ctx) => {
+  const { A, B, H, top } = ENTRY;
+  box(g, A, top, B - A, H - top, FLOCK);
+  for (let y = CEIL + 14; y < H - 20; y += 30) for (let x = A + 12; x < B; x += 50) box(g, x, y, 4, 10, '#4C1D95');
+  hazeBands(g, A, CEIL, B - A, 170, '#0A0310', 0.65, 0, 6);
+  slab(g, A, H - 14, B - A, 14, GOLD, { edge: 2 });
+  for (let x = A + 6; x < B; x += 10) box(g, x, H - 6, 5, 4, '#854D0E');
+};
+/** The doors' frame, a step back in the passage: a hinge hanging off it, splinters. */
+const paintEntryFrame = (g: Ctx) => {
   const D = DOOR_X;
-  box(g, D - 61, GY - 181, 122, 181, INK); slab(g, D - 60, GY - 180, 120, 180, '#A16207', { edge: 3, ink: false });
-  box(g, D - 52, GY - 172, 104, 172, '#2A0606'); box(g, D - 52, GY - 80, 104, 80, '#3A0A08'); checker(g, D - 52, GY - 82, 104, 2, '#3A0A08');
-  box(g, D - 50, GY - 12, 70, 12, INK); box(g, D - 49, GY - 11, 68, 10, '#581C87'); box(g, D - 49, GY - 11, 68, 2, '#7E3AF2');
-  box(g, D + 10, GY - 8, 76, 8, INK); box(g, D + 11, GY - 7, 74, 6, '#6B21A8'); box(g, D + 11, GY - 7, 74, 1, '#7E3AF2'); box(g, D + 40, GY - 6, 6, 4, '#EAB308');
-  box(g, D - 56, GY - 150, 6, 10, '#71717A');
-  for (let i = 0; i < 4; i++) { box(g, D + 50 - i * 4, GY - 160 + i * 30, 8, 3, INK); box(g, D + 51 - i * 4, GY - 159 + i * 30, 6, 1, GOLD); }
+  slab(g, D - 74, GY - 186, 10, 186, GOLD, { edge: 2 }); slab(g, D + 64, GY - 186, 10, 186, GOLD, { edge: 2 }); slab(g, D - 74, GY - 188, 148, 12, '#EAB308', { edge: 2 });
+  box(g, D - 64, GY - 150, 6, 10, '#71717A'); box(g, D - 64, GY - 60, 6, 10, '#71717A');
+  for (let i = 0; i < 4; i++) { box(g, D + 58 - i * 3, GY - 160 + i * 30, 8, 3, INK); box(g, D + 59 - i * 3, GY - 159 + i * 30, 6, 1, GOLD); }
+};
+
+const drawEntry = (c: Ctx, eye: Eye) => {
+  passageBack(c, eye, ENTRY, 'ball-entry-rear', paintEntryRear, '#741A1A', '#8A4A1C', '#2E1065');
+  inDepth(c, eye, 0.965, () => stamp(c, 'ball-entry-frame', DOOR_X - 78, GY - 192, 156, 194, paintEntryFrame));
+  // (the doors he kicked in, flat on the floor)
+  const D = DOOR_X;
+  box(c, D - 50, GY - 12, 70, 12, INK); box(c, D - 49, GY - 11, 68, 10, '#581C87'); box(c, D - 49, GY - 11, 68, 2, '#7E3AF2');
+  box(c, D + 10, GY - 8, 76, 8, INK); box(c, D + 11, GY - 7, 74, 6, '#6B21A8'); box(c, D + 11, GY - 7, 74, 1, '#7E3AF2'); box(c, D + 40, GY - 6, 6, 4, '#EAB308');
+  passageLintel(c, ENTRY, 'ball-entry-lintel', paintEntryLintel);
+  box(c, END_L - 1, ENTRY.top, 2, ENTRY.H - ENTRY.top, INK);
+};
+/** World space, in front of everything: the way in's near jambs and lintel edge (off screen in the fight's view). */
+export const drawBallroomFront = (c: Ctx, state: GameState) => {
+  const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
+  if (v.x > END_L + 300) return;
+  passageFront(c, eyeOf(state), ENTRY, '#7A5A10');
 };
 
 const paintStage = (g: Ctx) => {
