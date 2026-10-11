@@ -2,9 +2,11 @@
 // `cartBoarded`), and off it goes down the actual dangerous track: gaps to jump (jump: the cart and him with it),
 // low beams to duck under (down), and he can nudge it on a bit or hold it back a bit (right / left). It rolls out of the
 // station slowly, past a guest scanner that reads him as UNFRIENDLY and throws the switch at the fork (FRIENDLY GUESTS
-// straight on, UNFRIENDLY GUESTS up the hill: there to be seen), then gets going up the hill. Halfway, Safari Artie
-// comes up behind him in a cart of his own (the first time: `chase`): too slow and he rams him. Shooting him back
-// slows him. At the end (a cutscene: THE END OF THE LINE) the track curves up and goes straight up, and the two of
+// straight on, UNFRIENDLY GUESTS up the hill: there to be seen), then gets going up the hill. Then the ride's own
+// tricks, from the guests' side and set to real (tricks.ts: the idols' darts, the Serpent of Doom, the rolling boulder
+// over the set, and the big one out of its doors behind him), taught one at a time. Halfway, Safari Artie comes up
+// behind him in a cart of his own (the first time: `chase`): too slow and he rams him; and from there the tricks come
+// all mixed up, and get Artie too. Shooting him back slows him. At the end (a cutscene: THE END OF THE LINE) the track curves up and goes straight up, and the two of
 // them fly off the top of it, on up through the temple's roof.
 //
 // The mine itself is painted in art.ts.
@@ -34,8 +36,12 @@ import { drawRideCart, SEAT_DX, JAGUAR_EXPRESS, TOUR_CART, type CartLook } from 
 import { drawSafariArtie } from '../river/artie';
 import {
   type Dressed, MEATHEAD_UNFRIENDLY, MEATHEAD_ARTIE_AGAIN, ARTIE_CHASE_START, ARTIE_TAUNT, ARTIE_BUMP, ARTIE_SHOT, ARTIE_RAMP,
+  ARTIE_TRAPPED, ARTIE_GLOATS, MEATHEAD_SEES_DARTS, MEATHEAD_SEES_SNAKE, MEATHEAD_SEES_LOB, MEATHEAD_SEES_CHASE,
   HURT_BEAM, DEATH_BEAM, HURT_ARTIE, DEATH_ARTIE, HURT_PIT, DEATH_PIT,
 } from './lines';
+import { type Tricks, type Rider, newTricks, runTricks } from './tricks';
+import { drawTrickFront } from './trickArt';
+import { eyeOf } from '../temple/art';
 
 
 registerHurtLines('cart_beam', HURT_BEAM, DEATH_BEAM);
@@ -75,18 +81,27 @@ export interface Cart {
   beamsHit: Set<number>;
   jumpWas: boolean;
   t: number;
+  /** How far ahead of him the camera looks (riding). */
+  lead: number;
   scanned: boolean; scanT: number;
   /** The end of the line: how long in, him, and the fade out (on to the roof). */
   outT: number; me: Flier | null; fade: number;
   /** Safari Artie, after him in a cart (first time through). */
   chase: boolean;
-  artie: { on: boolean; x: number; v: number; said: Said | null; next: number; bumpT: number; shotSaid: number; end: Flier | null };
+  artie: {
+    on: boolean; x: number; v: number; said: Said | null; next: number; bumpT: number; shotSaid: number; end: Flier | null;
+    /** (one of the ride's tricks has just had him: not again for a moment) */
+    trapT: number;
+  };
+  /** The ride's tricks (tricks.ts): reset and loaded again every go. */
+  tricks: Tricks;
 }
 const getCart = (state: GameState) => sectionState<Cart>(state, 'cart', () => ({
   mode: 'off', x: X + 150, y: GY, railY: GY, vy: 0, speed: 0, air: false, beamsHit: new Set(), jumpWas: false,
-  t: 0, scanned: false, scanT: 0, outT: 0, me: null, fade: 0,
+  t: 0, lead: 150, scanned: false, scanT: 0, outT: 0, me: null, fade: 0,
   chase: firstVisit(state),
-  artie: { on: false, x: 0, v: 0, said: null, next: 0, bumpT: 0, shotSaid: 0, end: null },
+  artie: { on: false, x: 0, v: 0, said: null, next: 0, bumpT: 0, shotSaid: 0, end: null, trapT: 0 },
+  tricks: newTricks(),
 }));
 
 const artieSays = (cart: Cart, text: string) => {
@@ -108,6 +123,11 @@ const board = (state: GameState, cart: Cart) => {
   // it's not reading him again, the switch is over)
   if (at > SCANNER_X) cart.scanned = true;
   else if (state.stageMemo[SCANNED]) { cart.scanned = true; cart.scanT = 400; }
+  // (back past where Artie came up behind him: he's already after him, right there behind)
+  if (cart.chase && at > CHASE_X) {
+    const a = cart.artie;
+    a.on = true; a.x = at - 640; a.v = 6; a.next = 300; a.bumpT = 90;
+  }
   p.carried = true;
 };
 
@@ -182,6 +202,12 @@ const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
   if (slow && cart.x + cart.speed >= SLOW_TO) playSound('grind', 0.6, -4);
   // Safari Artie, after him
   if (cart.chase) artieChase(ctx, cart);
+  // The ride's tricks, at him (and at Artie, behind him)
+  const a = cart.artie;
+  if (a.trapT > 0) a.trapT--;
+  const out = runTricks(ctx, cart.tricks, { x: cart.x, y: cart.y, air: cart.air, ride: true, t: cart.t }, riderOf(state, cart), kind => firstSight(state, kind));
+  if (out.shoved) cart.speed += 4;
+  if (out.hurt && a.on && cart.x - a.x < 900 && Math.random() < 0.5) artieSays(cart, pick(ARTIE_GLOATS[dressed(state)]));
   place(state, cart);
   // (on his feet in it, for ducking: the engine's crouch wants him on the ground)
   p.isGrounded = !cart.air;
@@ -229,6 +255,29 @@ const artieChase = (ctx: FrameContext, cart: Cart) => {
     if (state.frame - a.shotSaid > 400) { a.shotSaid = state.frame; artieSays(cart, pick(ARTIE_SHOT[dressed(state)])); }
   }
   if (--a.next <= 0) { a.next = 420 + Math.floor(Math.random() * 200); artieSays(cart, pick(ARTIE_TAUNT[dressed(state)])); }
+};
+
+/** Artie, to the ride's tricks: knocked back (the cart and him), and it's Meathead's fault. */
+const riderOf = (state: GameState, cart: Cart): Rider => {
+  const a = cart.artie;
+  return {
+    on: a.on && cart.mode === 'ride', x: a.x,
+    hit: () => {
+      if (a.trapT > 0) return;
+      a.trapT = 50; a.v = Math.max(2, a.v - 4); a.bumpT = 70;
+      playSound('punch', 0.7, 4); playSound('clang', 0.6, 2);
+      if (Math.random() < 0.7) artieSays(cart, pick(ARTIE_TRAPPED[dressed(state)]));
+    },
+  };
+};
+
+/** The first of each of the ride's tricks this go at the land: he's seen them all from behind, and says so (once). */
+const SEES = { dart: MEATHEAD_SEES_DARTS, snake: MEATHEAD_SEES_SNAKE, lob: MEATHEAD_SEES_LOB, chase: MEATHEAD_SEES_CHASE };
+const firstSight = (state: GameState, kind: keyof typeof SEES) => {
+  const key = `m2:cartSaw:${kind}`;
+  if (state.stageMemo[key]) return;
+  state.stageMemo[key] = 'yes';
+  meatheadSays(state, pick(SEES[kind]));
 };
 
 /** Up the curve, then straight up and out (on to the roof). */
@@ -331,7 +380,7 @@ const outro = (ctx: FrameContext, cart: Cart): Controls => {
   p.isGrounded = false;
   // The camera: on the two of them, the ramp in view, going up with them
   const k = Math.max(0, Math.min(1, (me.s - PATH_FLAT) / PATH_ARC));
-  const camX = X + 11150 + k * 190;
+  const camX = RAMP_X - 550 + k * 190;
   const meY = riderY(me), aY = a ? riderY(a) : meY;
   const base = RAMP_Y - SINK - 420;
   const camY = Math.min(base, (meY + aY) / 2 - 330, meY - 160);
@@ -356,8 +405,11 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   // with: the one he's holding, out and pointed the way it's going)
   p.noSpecials = true; setUi({ noSwitch: true });
   // (the camera ahead of him; rolling out past the scanner, held on it and the fork a moment)
+  // (the big one after him: the camera eases back to take it in behind him, then ahead again)
+  const big = c.tricks.boulders.find(b => b.big && b.mode !== 'fall' && c.x - b.x < 1100);
+  c.lead += ((big ? 0 : 150) - c.lead) * 0.04;
   state.cameraLeadX = c.mode !== 'ride' ? 0
-    : c.x < SLOW_TO + 400 ? Math.max(Math.min(c.x - 160, FORK_CAM_X), c.x - 250) - (c.x - CANVAS_WIDTH / 2) : 150;
+    : c.x < SLOW_TO + 400 ? Math.max(Math.min(c.x - 160, FORK_CAM_X), c.x - 250) - (c.x - CANVAS_WIDTH / 2) : c.lead;
   if (c.mode === 'ride') return ride(ctx, c, controls);
   return outro(ctx, c);
 };
@@ -367,6 +419,8 @@ export const cart: Section = {
   checkpoints: [
     { name: 'THE MINE CART', cp: 50, x: X + 150, y: GY },
     { name: 'THE UNFRIENDLY TRACK', cp: 51, x: X + 5000, y: GY - 260 },
+    { name: 'THE TOUR CART', cp: 52, x: X + 11560, y: GY - 220 },
+    { name: 'THE LAST STRETCH', cp: 53, x: X + 17450, y: GY - 120 },
   ],
   build: (state) => {
     // (the cave's floor, way down under the track: the gaps go down to it)
@@ -388,7 +442,7 @@ export const cart: Section = {
   cameraRow: () => 420,
   drawBackdrop: (c, state) => { drawCartBackdrop(c, state); return true; },
   drawBack: (c, state) => { drawCartTrack(c, state, getCart(state)); drawCarts(c, state, true); },
-  drawFront: (c, state) => { drawCarts(c, state); drawCartFront(c, state); },
+  drawFront: (c, state) => { drawCarts(c, state); drawTrickFront(c, eyeOf(state), state, getCart(state).tricks); drawCartFront(c, state); },
   lighting: (state) => cartLighting(state, getCart(state)),
   drawHud: (c, state) => {
     const cart = getCart(state);

@@ -23,12 +23,12 @@ export const SECTIONS = {
   dino: { x0: AX + 32000, x1: AX + 44000 },
   /** Inside the temple ride, backstage: the traps and the smoke and mirrors; the loading station. */
   temple: { x0: AX + 46000, x1: AX + 52000 },
-  /** The mine cart, the unfriendly track, Safari Artie after him. */
-  cart: { x0: AX + 54000, x1: AX + 66000 },
+  /** The mine cart, the unfriendly track (the ride's tricks, from the guests' side, set to real), Safari Artie after him. */
+  cart: { x0: AX + 54000, x1: AX + 78000 },
   /** Up through the temple's roof: it's coming down; slide off down its left side. */
-  roof: { x0: AX + 68000, x1: AX + 70500 },
+  roof: { x0: AX + 80000, x1: AX + 82500 },
   /** The jungle clearing: the boss door, the trees going down like dominoes, Safari Artie. */
-  clearing: { x0: AX + 72000, x1: AX + 76000 },
+  clearing: { x0: AX + 84000, x1: AX + 88000 },
 } as const;
 export type SectionId = keyof typeof SECTIONS;
 export const SECTION_ORDER: SectionId[] = ['jungle', 'queue', 'river', 'dino', 'temple', 'cart', 'roof', 'clearing'];

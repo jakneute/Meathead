@@ -5,7 +5,8 @@
 // the dark, ties seen from above, two rails going back), the gaps where it's just gone (splintered, a red lantern
 // either side, nothing under), the low beams (timber sets across the track, striped), the station's rock shelf and
 // its portal, the guest scanner (a gantry, its eyes, its readout), the fork (the switch stand, the signs, the friendly
-// track curving off into IT'S A FRIENDLY WORLD), and the ramp at the end, straight up into the temple's floor.
+// track curving off into IT'S A FRIENDLY WORLD), and the ramp at the end, straight up into the temple's floor. The
+// ride's tricks along it (the idols, the serpents' rocks, the catapults' walls, the big one's doors) are trickArt.ts.
 //
 // Depth is the temple's (temple/art.ts: inDepth). Indoors (underground): no time of day, its own lighting
 // (cartLighting); but the daylight through the cracks at the top of the ramp is the hour's.
@@ -22,6 +23,7 @@ import {
   X, x1, RUNS, RAMP_X, RAMP_R, RAMP_Y, RAIL_TOP, BEAMS, SCANNER_X, FORK_X, BEAM_CLEAR, trackY, artieTrackY,
 } from './layout';
 import type { Cart } from './index';
+import { drawTrickSets, drawTrickActors, trickLights } from './trickArt';
 
 type Ctx = CanvasRenderingContext2D;
 type Pt = [number, number];
@@ -643,6 +645,7 @@ export const drawCartTrack = (c: Ctx, state: GameState, cart: Cart) => {
   if (L < X + 200) drawPortal(c, eye);
   drawFriendly(c, eye, f, L, R);
   if (R > SCANNER_X - 200 && L < FORK_X + 600) { drawScanner(c, eye, state, cart); drawFork(c, eye, cart); }
+  drawTrickSets(c, eye, state, cart.tricks);
   drawTrack(c, eye, L, R);
   // (the first gap and the first beam, signed: to teach)
   inDepth(c, eye, 0.94, () => {
@@ -651,6 +654,7 @@ export const drawCartTrack = (c: Ctx, state: GameState, cart: Cart) => {
     if (L < X + 600 && R > X + 200) postSign(c, X + 470, GY, 60, 170, 'KEEP SEATED', '#14532D', '#BBF7D0', 6);
   });
   for (const b of BEAMS) if (b > L - 60 && b < R + 60) drawBeam(c, eye, b, f);
+  drawTrickActors(c, eye, state, cart.tricks);
   // (the ramp's overhead (the temple's floor from under) starts 700 short of it)
   if (R > RAMP_X - 720) drawRamp(c, eye, f);
   // (and the dark coming up out of the depths under it all)
@@ -712,6 +716,7 @@ export const cartLighting = (state: GameState, cart: Cart): SceneLight => {
     lights.push({ x: cart.x, y: cart.y - 50, r: 170, a: 0.6 });
     if (cart.mode === 'ride') lights.push({ x: cart.x + 170, y: cart.y - 40, r: 150, a: 0.55, color: 'rgba(255, 244, 200, 0.08)' });
   }
+  lights.push(...trickLights(state, eye, cart.tricks));
   if (cart.artie.on) lights.push({ x: cart.artie.x, y: artieTrackY(cart.artie.x) - 50, r: 140, a: 0.5 });
   return { dark: 0.55, shade: [4, 6, 14], lights, rim: 0.5 };
 };
