@@ -107,7 +107,7 @@ export const spookyLayout: StageLayout = {
     if (sp.lastSec !== sec.id) { sp.lastSec = sec.id; state.camera.x = Math.max(lim.min, Math.min(lim.max, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2)); }
     // (passing a checkpoint: it's his)
     for (const c of sec.checkpoints) if (c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
-    setUi({ near: null, map: null, nearExit: false });
+    setUi({ near: null, map: null, nearExit: false, upPrompt: null });
     // (in through the portal: not his till the land's opened on him)
     const arriving = !!sp.arrive && tickPortalArrival(state, sp.arrive, sec.cameraRow?.(state) ?? 550);
     if (sp.arrive && !arriving) sp.arrive = undefined;

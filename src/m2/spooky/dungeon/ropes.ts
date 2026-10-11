@@ -11,20 +11,20 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { GroundRun } from '../../../m1/game/core/terrain';
-import { solid, box, wallSign, teleport } from '../section';
+import { solid, box, wallSign } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { registerHurtLines } from '../../kinds';
-import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { updateVines, drawVines, onVine, newVineStore, VINE_ROW, type VineDef, type VineOpts, type VineStore } from '../../adventure/jungle/vines';
 import { spawnStaff } from '../castle/staff';
+import { hazardVictims, hazardKill, setHazardZones } from '../../hazardHit';
 import * as L from './lines';
+import { pitDeath } from './pitDeaths';
 
 registerHurtLines('spooky_spikepit', L.HURT_SPIKEPIT, L.DEATH_SPIKEPIT);
 registerHurtLines('spooky_vat', L.HURT_VAT, L.DEATH_VAT);
-registerDeathKind('spooky_vat', 'boiled');
 
 /** (from the foot of the dungeon stairs, past the 2000-wide ceiling chamber) */
 const X = (dx: number) => SECTIONS.dungeon.x0 + 1950 + 800 + dx;
@@ -37,7 +37,7 @@ export const PITS: { a: number; b: number; depth: number; kind: 'ditch' | 'spike
   { a: X(3900), b: X(4380), depth: 70, kind: 'vat' },
 ];
 const BEAM = GY - 440, LEN = 300;
-export const ROPES: VineDef[] = [X(2900), X(3270), X(3465), X(3660), X(4030), X(4255)].map(x => ({ x, y: BEAM, len: LEN, kind: 'swing' as const }));
+export const ROPES: VineDef[] = [X(2900), X(3270), X(3465), X(3660), X(3990), X(4140), X(4290)].map(x => ({ x, y: BEAM, len: LEN, kind: 'swing' as const }));
 
 // (the ropes' swings and his hold: the dungeon's own, a fresh lot each time the stage is built)
 const STORES = new WeakMap<object, VineStore>();
@@ -65,19 +65,30 @@ export const buildRopes = (state: GameState) => {
 export const runRopes = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   const out = updateVines(ctx, ROPES, controls, ROPE_OPTS);
-  // Into a pit: the ditch, climb out; the spikes and the vat, hurt, and back up at the edge he came from
+  // Into a pit: the ditch, climb out; the spikes, HOT FOOT's kin: hurt, and popped up and out toward the nearer edge
+  // (never left bouncing about on them); the vat of lard: that's it, deep fried
   const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   for (const pit of PITS) {
     if (cx < pit.a || cx > pit.b || pit.kind === 'ditch' || p.health <= 0) continue;
     const surface = GY + (pit.kind === 'vat' ? 30 : pit.depth - 6);
     if (feet < surface) continue;
-    const back = cx - pit.a < pit.b - cx ? pit.a - 40 : pit.b + 40;
-    if (pit.kind === 'spikes') { playSound('crunch', 1, -4); playSound('splat', 0.7, -2); hurtPlayer(ctx, 20, 'spooky_spikepit', { x: 0, y: -4 }); }
-    else { playSound('splash', 1, -6); playSound('ignite', 0.6, -6); hurtPlayer(ctx, 26, 'spooky_vat', { x: 0, y: -4 }); }
+    pitDeath.floor = pit.kind === 'vat' ? surface : GY + pit.depth;
+    const bank = cx - pit.a < pit.b - cx ? -1 : 1, out = bank * Math.min(6, 2.5 + Math.min(cx - pit.a, pit.b - cx) / 40);
+    if (pit.kind === 'spikes') {
+      if (p.invincibilityTimer <= 0) { playSound('crunch', 1, -4); playSound('splat', 0.7, -2); hurtPlayer(ctx, 20, 'spooky_spikepit', { x: out, y: -14 }); if (p.health > 0) ctx.fx.spawnDamageNumber({ x: cx - 30, y: p.pos.y - 20 }, 'POINTY!', true, '#FCA5A5'); }
+      if (p.health > 0) { p.vel.y = -14; if (p.pushbackTimer > 0 || Math.sign(p.vel.x) !== bank) p.vel.x = out; p.isGrounded = false; p.isCharging = false; p.isSliding = false; }
+    } else { playSound('splash', 1, -6); playSound('ignite', 0.6, -6); hurtPlayer(ctx, 9999, 'spooky_vat'); }
     for (let k = 0; k < 12; k++) state.particles.push({ pos: { x: cx, y: surface }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 4 }, life: 30, color: pit.kind === 'vat' ? '#FBBF24' : '#B91C1C', size: 3 + Math.random() * 3, grav: 0.3 });
     shakeScreen(state, 6, 3);
-    if (p.health > 0) teleport(state, back, GY);
   }
+  // Whoever else ends up in one (knocked in off the edge): the spikes or the lard has them. And they keep out of them
+  for (const e of hazardVictims(state, { flyers: false })) {
+    const ex = e.pos.x + e.width / 2, pit = PITS.find(q => q.kind !== 'ditch' && ex > q.a && ex < q.b);
+    if (!pit || e.pos.y + e.height < GY + (pit.kind === 'vat' ? 30 : pit.depth - 6)) continue;
+    if (pit.kind === 'spikes') hazardKill(ctx, e, ex, 'SKEWERED!', { fling: { x: 0, y: -4 }, sound: 'splat' });
+    else { ctx.fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'cooked'); playSound('ignite', 0.8, -4); ctx.fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 30 }, 'DEEP FRIED!', true, '#FBBF24'); }
+  }
+  setHazardZones(state, 'dungeon-pits', PITS.filter(q => q.kind !== 'ditch').map(q => ({ x0: q.a, x1: q.b, y0: GY - 10, y1: GY + q.depth + 40, ground: true })));
   return out;
 };
 

@@ -358,6 +358,12 @@ const App2: React.FC = () => {
             <Prompt pad={['DPAD_UP']} kb={['W']} label={nearLand ? `MAP: ${nearLand.name}` : ui.nearExit ? 'BACK TO THE HUB' : ui.nearAmerica ? 'BACK TO AMERICA USA' : 'STAFF ONLY: THE STAFF ROOM'} />
           </div>
         )}
+        {/* What up does here, in a land (a lever to pull) */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.upPrompt && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
+            <Prompt pad={['DPAD_UP']} kb={['W']} label={ui.upPrompt} />
+          </div>
+        )}
         {/* The intro: what the panel in the corner's teaching, where he is; what up does at the ticket window; the ticket */}
         {status === GameStatus.PLAYING && stage === INTRO_STAGE && !ui.introCutscene && ui.introTip && (
           <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 max-w-[420px] px-3 py-2 text-[8px] leading-[1.6] text-zinc-100 bg-black/70 border-2 border-zinc-600">

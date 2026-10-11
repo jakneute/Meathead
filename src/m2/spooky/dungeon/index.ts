@@ -18,12 +18,14 @@ import type { Block } from '../../../m1/types';
 import type { SpookySection } from '../section';
 import { layOwn, endWalls, endExits, runExits, solid, ledge, wallSign, doorway, groundBox, ledgeBox, box, meatheadSays, getSpooky, spookyState } from '../section';
 import { SECTIONS, GY } from '../geometry';
+import { setUi } from '../../store';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { registerHurtLines } from '../../kinds';
 import { spawnStaff } from '../castle/staff';
+import { hazardVictims, hazardKill, setHazardZones } from '../../hazardHit';
 import { paStory, paQuip, paBusy, byPants, pick, drawHorn, drawPaWords, paSaying } from '../castle/pa';
 import { skewer, skewerRise, SKEWERED } from './death';
 import * as L from './lines';
@@ -36,19 +38,28 @@ const { x0, x1 } = SECTIONS.dungeon;
 /** (the cells and everything after them: from the foot of the stairs) */
 const X = (dx: number) => CELLS + dx;
 /** The chamber: its walls (the doors in them), the ceiling's spikes at the top (their tips), how fast it comes down. */
-const RA = X(1400), RB = X(3400), TIP0 = GY - 470, CEIL_WAIT = 60, JAM = GY - 210;
+const RA = X(1400), RB = X(3400), TIP0 = GY - 470, CEIL_WAIT = 30;
+/** Down for good: the spikes driven into the floor (the chamber's a solid block of it after; no way back through). */
+const CRUSHED = GY + 30;
 /** The ceiling comes down in three sections, each at its own pace (px a frame): the first steady, the middle one fast
- *  (hazard-striped: over the pit), the last steady. Both levers pulled, every one of them twice as fast. */
-const SECTS = [{ a: RA, b: RA + 700, v: 0.7 }, { a: RA + 700, b: RA + 1400, v: 1.0 }, { a: RA + 1400, b: RB, v: 0.6 }];
+ *  (hazard-striped: over the pit), the last slower. The lever pulled, every one of them faster still. Solid above the
+ *  spikes (each a block down to its spikes, side by side: no squeezing up between them, no getting on top). */
+const SECTS = [{ a: RA, b: RA + 700, v: 1.0 }, { a: RA + 700, b: RA + 1400, v: 1.3 }, { a: RA + 1400, b: RB, v: 0.8 }];
 /** The crate in the last section: up on it to the second lever (over it, on the wall). x, w, h. */
 const CRATES: [number, number, number][] = [[RA + 1540, 90, 70]];
 const LEVER_B = { x: RA + 1585, y: GY - 130 };
 /** Pulled, the lever lets the door go and the counterweight with it: the ceiling lurches and comes down faster (a quick
  *  pull gets him out with room to stand; a slow one, ducking or sliding the last of it; too slow, skewered). */
-const FAST = 1.5, LURCH = 6;
-/** Its two ledges up to the lever, and the lever. */
+const FAST = 1.2, LURCH = 6;
+/** Before the pull, the sections never come down past these (the first two over his head stood up; the last over his
+ *  head stood on the crate): the pressure's on, but the lever's never out of reach and nothing kills him for being
+ *  slow to it. */
+const CAP = [GY - 70, GY - 70, GY - 70 - 64 - 20];
+/** The pull: how long it takes (frames: he's at it, out of his hands), and how much time to spare a clean dash to the
+ *  door gets after it (frames: the ceiling's set going at whatever pace makes it so, however long he took). */
+const PULL = 30, SPARE = 42;
+/** Two ledges by the way in (somewhere up out of the way of the first section, a while). */
 const RLEDGES: [number, number, number][] = [[RA + 130, GY - 120, 140], [RA + 310, GY - 240, 150]];
-const LEVER = { x: RA + 385, y: GY - 300 };
 /** The cells' ledges (chains hung off the wall), and who's in them. */
 const CLEDGES: [number, number, number][] = [[X(560), GY - 140, 170], [X(860), GY - 230, 170]];
 const CAST: ['igor' | 'skeleton' | 'knight' | 'bride' | 'bat', number, number][] = [
@@ -61,12 +72,12 @@ interface Dungeon {
   init: boolean;
   room: 'idle' | 'armed' | 'down' | 'escaped' | 'jammed';
   t: number; tip: number; vy: number; tips: number[];
-  levA: boolean; levB: boolean; lever: boolean; leverT: number; door: number;
-  entry: Block | null; exit: Block | null;
+  levB: boolean; lever: boolean; leverT: number; door: number; pulling: number; v3: number;
+  entry: Block | null; exit: Block | null; slabs: Block[];
   toldIn: boolean; taunted: boolean;
 }
 const dungeonOf = (state: GameState) => spookyState<Dungeon>(state, 'dungeon', () => ({
-  init: false, room: 'idle', t: 0, tip: TIP0, vy: 0, tips: SECTS.map(() => TIP0), levA: false, levB: false, lever: false, leverT: 0, door: 0, entry: null, exit: null, toldIn: false, taunted: false,
+  init: false, room: 'idle', t: 0, tip: TIP0, vy: 0, tips: SECTS.map(() => TIP0), levB: false, lever: false, leverT: 0, door: 0, pulling: 0, v3: 0, entry: null, exit: null, slabs: [], toldIn: false, taunted: false,
 }));
 /** Heard the dungeon's story already (kept across his deaths; fresh from the start of the land). */
 let toldDungeon = false;
@@ -75,22 +86,30 @@ const pBoxTop = (state: GameState) => { const p = state.player; return p.pos.y +
 const inRoom = (state: GameState) => { const p = state.player, cx = p.pos.x + p.width / 2; return cx > RA && cx < RB; };
 const DOOR_H = 300;
 /** The spikes' tips over x (its section's; outside the chamber, the lot together). */
+let upHeld = false;
+/** Stood on the crate, under the lever. */
+const atLever = (cx: number, feet: number) => Math.abs(cx - LEVER_B.x) < 55 && Math.abs(feet - (GY - CRATES[0][2])) < 4;
 const tipAt = (dg: Dungeon, x: number) => { if (dg.room !== 'down') return dg.tip; const i = SECTS.findIndex(q => x >= q.a && x < q.b); return i < 0 ? dg.tip : dg.tips[i]; };
 const pull = (state: GameState, dg: Dungeon, x: number) => {
   playSound('clang', 1, -4); playSound('rumble', 0.9, -2); playSound('crash', 0.6, -10);
   // (each lever pulled: the ceiling lurches down, sparks off the chains)
   dg.tips = dg.tips.map(t => t + LURCH); shakeScreen(state, 10, 5);
   for (let k = 0; k < 14; k++) state.particles.push({ pos: { x, y: GY - 260 }, vel: { x: (Math.random() - 0.5) * 6, y: Math.random() * 3 }, life: 24, color: '#FDE047', size: 2 });
-  dg.lever = dg.levA && dg.levB;
-  if (!paBusy(state)) meatheadSays(state, pick(dg.lever ? L.MH_LEVER : L.MH_LEVER_ONE));
+  dg.lever = dg.levB;
+  if (!paBusy(state)) meatheadSays(state, pick(L.MH_LEVER));
 };
 const openDoor = (b: Block | null) => { if (b) b.y = -99999; };
 const shutDoor = (b: Block | null) => { if (b) b.y = GY - DOOR_H; };
 
+/** The ceiling's blocks: solid from the roof down to each section's spikes. */
+const setSlabs = (dg: Dungeon) => dg.slabs.forEach((b, i) => { const tip = dg.room === 'down' ? dg.tips[i] : dg.tip; b.y = CEIL_TOP - 60; b.h = Math.max(1, tip - 30 - b.y); });
 const run = (ctx: FrameContext, dg: Dungeon) => {
+  setSlabs(dg);
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
   // The story, in through the dungeon door
   runStairs(ctx);
+  // (the chamber, while its ceiling's coming down: nobody goes in there of their own accord)
+  setHazardZones(state, 'dungeon-ceiling', dg.room === 'armed' || dg.room === 'down' ? [{ x0: RA, x1: RB, y0: CEIL_TOP, y1: GY }] : []);
   // The story (at the foot of the stairs, in the cells)
   if (!toldDungeon && cx > X(200) && p.isGrounded) { toldDungeon = true; paStory(state, byPants(state, L.PA_DUNGEON), pick(L.MH_DUNGEON)); }
   switch (dg.room) {
@@ -110,18 +129,24 @@ const run = (ctx: FrameContext, dg: Dungeon) => {
       break;
     case 'down': {
       dg.t++;
-      // (both pulled: a beat for him to get down off the crates, then the counterweights take it)
+      // (pulled: the counterweight takes it, the last section at the pace that makes it a close thing; before, each
+      // section no lower than its cap)
       if (dg.lever) dg.leverT++;
-      const k = dg.lever && dg.leverT > 36 ? FAST : 1;
-      SECTS.forEach((q, i) => { dg.tips[i] += q.v * k; if (dg.t % (i === 1 ? 3 : 5) === 0) state.particles.push({ pos: { x: q.a + Math.random() * (q.b - q.a), y: dg.tips[i] - 20 }, vel: { x: 0, y: 1.5 }, life: 60, color: '#A8A29E', size: 2, grav: 0.05 }); });
+      SECTS.forEach((q, i) => { dg.tips[i] = dg.lever ? dg.tips[i] + (i === 2 ? dg.v3 : q.v * FAST) : Math.min(CAP[i], dg.tips[i] + q.v); if (dg.t % (i === 1 ? 3 : 5) === 0) state.particles.push({ pos: { x: q.a + Math.random() * (q.b - q.a), y: dg.tips[i] - 20 }, vel: { x: 0, y: 1.5 }, life: 60, color: '#A8A29E', size: 2, grav: 0.05 }); });
       dg.tip = Math.max(...dg.tips);
       if (dg.t % 20 === 0) { playSound('grind', 0.35, -10); shakeScreen(state, 2, 1); }
       if (dg.t === 200 && !dg.taunted) { dg.taunted = true; paQuip(state, byPants(state, L.PA_CEILING)[1 + Math.floor(Math.random() * 2)]); }
-      // The levers: the first up on the wall over the second ledge, the second over the crates; on the thing under
-      // each, he yanks it. Both, and the door goes up.
-      const feet0 = p.pos.y + p.height, top = RLEDGES[1], cr = CRATES[0];
-      if (!dg.levA && p.isGrounded && Math.abs(feet0 - top[1]) < 3 && cx > top[0] + 30 && cx < top[0] + top[2]) { dg.levA = true; pull(state, dg, LEVER.x); }
-      if (!dg.levB && p.isGrounded && Math.abs(feet0 - (GY - cr[2])) < 3 && cx > cr[0] && cx < cr[0] + cr[1]) { dg.levB = true; pull(state, dg, LEVER_B.x); }
+      // The lever, on the wall over the crate at the far end: stood up on the crate under it, up and he takes hold of
+      // it, and hauls it down (a moment, out of his hands); let go, the door's going up, and so's the pace of the
+      // ceiling: set so a clean dash to the door makes it with a little to spare, however long he took to get here
+      const feet0 = p.pos.y + p.height, at = !dg.levB && dg.pulling === 0 && p.isGrounded && atLever(cx, feet0);
+      setUi({ upPrompt: at ? 'PULL THE LEVER' : null });
+      if (at && upHeld) { dg.pulling = 1; playSound('clang', 0.5, 4); }
+      if (dg.pulling > 0 && ++dg.pulling > PULL) {
+        dg.pulling = 0; dg.levB = true; pull(state, dg, LEVER_B.x);
+        const dash = (RB + 30 - cx) / 4.2 + 10, room = (GY - 64) - (dg.tips[2] + LURCH);
+        dg.v3 = Math.max(0.5, room / (dash + SPARE));
+      }
       if (dg.lever && dg.door < 1) { dg.door = Math.min(1, dg.door + 1 / 60); if (dg.door >= 1) openDoor(dg.exit); }
       // The spikes on him (his section's): hurt, and shoved down under them; all the way down, skewered
       const tip = tipAt(dg, cx);
@@ -137,7 +162,7 @@ const run = (ctx: FrameContext, dg: Dungeon) => {
         }
       }
       // (and anybody else under there)
-      for (const e of state.enemies) if (e.health > 0 && e.pos.x + e.width > RA && e.pos.x < RB && e.pos.y < tipAt(dg, e.pos.x + e.width / 2) && !e.isBlownAway) { e.health = 0; e.isBlownAway = true; ctx.fx.spawnDeathShower({ x: e.pos.x + e.width / 2, y: e.pos.y + 10 }, 0, 3); playSound('splat', 1, -4); }
+      for (const e of hazardVictims(state)) if (e.pos.x + e.width > RA && e.pos.x < RB && e.pos.y < tipAt(dg, e.pos.x + e.width / 2)) hazardKill(ctx, e, e.pos.x + e.width / 2, 'SKEWERED!', { fling: { x: 0, y: 4 }, sound: 'splat' });
       // Out the far door: it slams down behind him
       if (dg.lever && cx > RB + 30) {
         dg.room = 'escaped'; dg.t = 0; dg.vy = 0;
@@ -146,14 +171,12 @@ const run = (ctx: FrameContext, dg: Dungeon) => {
       break;
     }
     case 'escaped':
-      // (down it comes, all the way, BOOM; then it creaks back up and jams, low)
+      // (down it comes behind him, all the way into the floor, BOOM; and it stays there: no way back through)
       dg.t++;
-      if (dg.vy >= 0 && dg.tip < GY - 6) { dg.vy += 1.2; dg.tip = Math.min(GY - 6, dg.tip + dg.vy); if (dg.tip >= GY - 6) { playSound('crash', 1, -10); playSound('boom', 0.6, -8); shakeScreen(state, 16, 8); dg.vy = -1; } }
-      else if (dg.tip > JAM) { dg.tip -= 1.4; if (dg.tip <= JAM) { dg.tip = JAM; dg.room = 'jammed'; openDoor(dg.entry); playSound('clang', 0.9, -6); } }
+      dg.vy += 1.2; dg.tip = Math.min(CRUSHED, dg.tip + dg.vy);
+      if (dg.tip >= CRUSHED) { dg.room = 'jammed'; playSound('crash', 1, -10); playSound('boom', 0.6, -8); shakeScreen(state, 16, 8); for (let k = 0; k < 24; k++) state.particles.push({ pos: { x: RB - 40 - Math.random() * 300, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 50, color: '#A8A29E', size: 4 + Math.random() * 4 }); }
       break;
     case 'jammed':
-      // (stuck: a spark off the chain now and then)
-      if (state.frame % 50 === 0 && Math.abs(cx - (RA + RB) / 2) < 900) for (let k = 0; k < 5; k++) state.particles.push({ pos: { x: RA + 40, y: CEIL_TOP + 120 }, vel: { x: Math.random() * 3, y: Math.random() * 2 }, life: 18, color: '#FDE047', size: 2 });
       break;
   }
 };
@@ -192,19 +215,19 @@ const drawDungeon = (c: CanvasRenderingContext2D, state: GameState, dg: Dungeon)
     for (let x = RA + 60; x < RB; x += 120) box(c, x, GY - 420, 8, 420, '#2A2420');
     wallSign(c, RA + 640, GY - 420, 'THE CHAMBER OF THE DESCENDING CEILING', '#3A0A0A', '#FCA5A5');
     for (const [x, y, w] of RLEDGES) ledgeBox(c, x, y, w, '#3A3A3A', '#C9C9C9');
-    // (the lever: up, or yanked down)
-    box(c, LEVER.x - 14, LEVER.y - 10, 28, 30, '#3F3F46');
-    c.save(); c.translate(LEVER.x, LEVER.y + 4); c.rotate(dg.lever || dg.room === 'escaped' || dg.room === 'jammed' ? 0.9 : -0.9);
-    box(c, -3, -34, 6, 34, '#A1A1AA'); box(c, -7, -42, 14, 12, '#B91C1C'); c.restore();
-    // (the second lever, over the crates)
+    // (the lever, over the crate at the far end)
     box(c, LEVER_B.x - 14, LEVER_B.y - 10, 28, 30, '#3F3F46');
-    c.save(); c.translate(LEVER_B.x, LEVER_B.y + 4); c.rotate(dg.levB || dg.room === 'escaped' || dg.room === 'jammed' ? 0.9 : -0.9);
-    box(c, -3, -34, 6, 34, '#A1A1AA'); box(c, -7, -42, 14, 12, '#B91C1C'); c.restore();
-    if (dg.room === 'down' && (f >> 4) % 2) { if (!dg.levA) wallSign(c, LEVER.x, LEVER.y - 60, 'DOOR RELEASE 1', '#14532D', '#BBF7D0'); if (!dg.levB) wallSign(c, LEVER_B.x, LEVER_B.y - 60, 'DOOR RELEASE 2', '#14532D', '#BBF7D0'); }
+    { const k = dg.levB || dg.room === 'escaped' || dg.room === 'jammed' ? 1 : dg.pulling > 0 ? Math.min(1, (dg.pulling / PULL) ** 1.6) : 0;
+      c.save(); c.translate(LEVER_B.x, LEVER_B.y + 4); c.rotate(-0.9 + 1.8 * k + (dg.pulling > 0 ? Math.sin(f * 1.3) * 0.04 : 0));
+      box(c, -3, -34, 6, 34, '#A1A1AA'); box(c, -7, -42, 14, 12, '#B91C1C');
+      // (his two fists round the handle, hauling on it)
+      if (dg.pulling > 0) { box(c, -9, -46, 8, 10, '#D9A877'); box(c, 1, -46, 8, 10, '#D9A877'); box(c, -9, -46, 18, 2, '#1A0B06'); }
+      c.restore(); }
+    if (dg.room === 'down' && !dg.levB && (f >> 4) % 2) wallSign(c, LEVER_B.x, LEVER_B.y - 60, 'DOOR RELEASE', '#14532D', '#BBF7D0');
     // (the crates: wooden, banded, lit along the top)
     for (const [x, w, h] of CRATES) { box(c, x - 2, GY - h - 2, w + 4, h + 2, '#120A06'); box(c, x, GY - h, w, h, '#6B4423'); box(c, x + 4, GY - h + 4, w - 8, h - 8, '#7A5030'); box(c, x, GY - h + h / 2 - 3, w, 6, '#4A2C16'); box(c, x, GY - h, w, 4, '#C08A5A'); }
-    // (over the exit door, a lamp for each lever: red, then green)
-    for (const [k, on] of [[0, dg.levA], [1, dg.levB]] as const) box(c, RB - 30 + k * 26, GY - DOOR_H - 60, 18, 18, on || dg.room === 'jammed' ? '#22C55E' : '#DC2626');
+    // (over the exit door, its lamp: red, then green)
+    box(c, RB - 17, GY - DOOR_H - 60, 18, 18, dg.levB || dg.room === 'jammed' ? '#22C55E' : '#DC2626');
     // (the doors: iron, down shut, or up)
     const door = (x: number, k: number) => { const h = DOOR_H * (1 - k); box(c, x, GY - DOOR_H - 30, 24, 30, '#18181B'); if (h > 0) { box(c, x, GY - h, 24, h, '#52525B'); for (let y = GY - h + 10; y < GY; y += 30) box(c, x, y, 24, 4, '#3F3F46'); } };
     const shut = dg.room === 'armed' || dg.room === 'down';
@@ -216,10 +239,14 @@ const drawDungeon = (c: CanvasRenderingContext2D, state: GameState, dg: Dungeon)
     const dead = state.meatheadDeath?.kind === SKEWERED && state.deathScene ? skewerRise(state.deathScene.t) : 0;
     SECTS.forEach((q, i) => {
       const tip = (dg.room === 'down' ? dg.tips[i] : dg.tip) - dead, slab = tip - 30;
-      for (const cx of [q.a + 120, q.b - 120]) box(c, cx, CEIL_TOP, 6, slab - 60 - CEIL_TOP, '#57534E');
-      box(c, q.a, slab - 60, q.b - q.a, 60, '#44403C'); box(c, q.a, slab - 60, q.b - q.a, 6, '#57534E'); box(c, q.a, slab - 8, q.b - q.a, 8, '#292524');
+      // (one solid iron-bound block of it, from the chamber's roof down to its spikes: nothing over it, no gap)
+      box(c, q.a, CEIL_TOP, q.b - q.a, slab - CEIL_TOP, '#3A3633');
+      for (let y = slab - 40; y > CEIL_TOP; y -= 80) box(c, q.a, y, q.b - q.a, 8, '#57534E');
+      for (let x = q.a + 40; x < q.b; x += 120) box(c, x, CEIL_TOP, 6, slab - CEIL_TOP, '#2A2725');
+      box(c, q.a, slab - 8, q.b - q.a, 8, '#292524');
       if (i === 1) for (let x = q.a; x < q.b; x += 40) box(c, x, slab - 46, 20, 20, '#CA8A04');
       box(c, q.b - 2, slab - 60, 4, 60, '#1C1917');
+      if (i < SECTS.length - 1) { const t2 = (dg.room === 'down' ? Math.min(dg.tips[i], dg.tips[i + 1]) : dg.tip) - dead - 90; box(c, q.b - 10, CEIL_TOP, 20, t2 - CEIL_TOP, '#3A3430'); box(c, q.b - 10, CEIL_TOP, 4, t2 - CEIL_TOP, '#57524C'); }
       c.fillStyle = '#A8A29E'; c.beginPath();
       for (let x = q.a + 6; x < q.b - 10; x += 24) { c.moveTo(x, slab); c.lineTo(x + 12, slab); c.lineTo(x + 6, tip); }
       c.fill();
@@ -257,22 +284,26 @@ export const dungeon: SpookySection = {
     solid(state, CELLS, CEIL_TOP - 60, x1 - CELLS + 200, 60, { hidden: true, tag: 'dungeon-ceiling' });
     for (const [x, y, w] of [...CLEDGES, ...RLEDGES]) ledge(state, x, y, w, { hidden: true, tag: 'dungeon-ledge' });
     for (const [x, w, h] of CRATES) solid(state, x, GY - h, w, h, { hidden: true, tag: 'dungeon-crate' });
-    // (a bat in the first section, one over the crates)
-    spawnStaff(state, 'bat', RA + 480, GY - 250, 81); spawnStaff(state, 'bat', RA + 1720, GY - 280, 82);
+    // (a bat at the chamber's door, one past its far door: nobody starts out in there, under that ceiling)
+    spawnStaff(state, 'bat', RA - 300, GY - 250, 81); spawnStaff(state, 'bat', RB + 320, GY - 280, 82);
     const dg = dungeonOf(state);
     dg.entry = solid(state, RA - 12, -99999, 24, DOOR_H, { hidden: true, tag: 'dungeon-door' });
     dg.exit = solid(state, RB - 12, -99999, 24, DOOR_H, { hidden: true, tag: 'dungeon-door' });
+    dg.slabs = SECTS.map(q => solid(state, q.a, CEIL_TOP - 60, q.b - q.a, TIP0 - 30 - (CEIL_TOP - 60), { hidden: true, tag: 'dungeon-ceiling-slab' }));
     for (const [kind, x, y] of CAST) spawnStaff(state, kind, x, y, 40 + Math.round(x) % 7);
   },
   update: (ctx, controls) => {
     const dg = dungeonOf(ctx.state);
+    upHeld = !!controls.up;
+    // (at the lever, hauling it down: his hands are full)
+    if (dg.pulling > 0) { const p = ctx.state.player; p.vel.x = 0; p.facing = 1; run(ctx, dg); return { ...controls, left: false, right: false, up: false, down: false, jump: false, special: false, charge: false, shoot: false }; }
     if (!dg.init) {
       // (the checkpoint's only known once the stage is built: past the chamber before, it's down and jammed, the doors
       // open; started at it, the story's been told)
       dg.init = true;
       initStairs(ctx.state);
       if (ctx.state.checkpoint >= 22) toldDungeon = true;
-      if (ctx.state.checkpoint >= 23) { dg.room = 'jammed'; dg.tip = JAM; dg.levA = dg.levB = dg.lever = true; dg.door = 1; }
+      if (ctx.state.checkpoint >= 23) { dg.room = 'jammed'; dg.tip = CRUSHED; dg.levB = dg.lever = true; dg.door = 1; }
     }
     // (the way on: the emergency exit; the way back: up the stairs, out at the top into the castle)
     if (runExits(ctx.state, endExits('dungeon'))) return controls;
@@ -289,7 +320,7 @@ export const dungeon: SpookySection = {
     const lights = [];
     for (let x = CELLS + 200; x < x1; x += 400) if (x > state.camera.x - 300 && x < state.camera.x + CANVAS_WIDTH + 300 && (x < RA || x > RB)) lights.push({ x, y: GY - 300, r: 240, a: 0.8, color: 'rgba(249, 115, 22, 0.10)' });
     if (RB > state.camera.x - 200 && RA < state.camera.x + CANVAS_WIDTH + 200) lights.push(...state.enemies.filter(e => e.health > 0 && e.pos.x > RA - 100 && e.pos.x < RB + 100).map(e => ({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2, r: 70, a: 0.55, color: 'rgba(248, 113, 113, 0.12)' })));
-    if (RB > state.camera.x - 200 && RA < state.camera.x + CANVAS_WIDTH + 200) lights.push({ x: LEVER.x, y: LEVER.y, r: 200, a: 0.7, color: 'rgba(220, 38, 38, 0.10)' }, { x: LEVER_B.x, y: LEVER_B.y, r: 200, a: 0.7, color: 'rgba(220, 38, 38, 0.10)' }, { x: RA + 500, y: GY - 120, r: 520, a: 0.5 }, { x: RA + 1500, y: GY - 120, r: 520, a: 0.5 });
+    if (RB > state.camera.x - 200 && RA < state.camera.x + CANVAS_WIDTH + 200) lights.push({ x: LEVER_B.x, y: LEVER_B.y, r: 200, a: 0.7, color: 'rgba(220, 38, 38, 0.10)' }, { x: RA + 500, y: GY - 120, r: 520, a: 0.5 }, { x: RA + 1500, y: GY - 120, r: 520, a: 0.5 });
     return { dark: 0.55, shade: [18, 10, 8] as [number, number, number], lights };
   },
 };
