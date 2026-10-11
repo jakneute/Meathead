@@ -43,7 +43,7 @@ import { INK, checker, mix, LAVA, blob, thick, inked, flashed } from './paint';
 import { hellOf } from './state';
 import { HELL_KINDS } from './kinds';
 import {
-  DEMON_NAME, DEMON_INTRO, DEMON_CHATTER, DEMON_HIT, DEMON_HURT, MH_DEMON, HURT_FORK, DEATH_FORK, HURT_QUAKE, DEATH_QUAKE,
+  DEMON_NAME, MH_TRIP_HINT, DEMON_INTRO, DEMON_CHATTER, DEMON_HIT, DEMON_HURT, MH_DEMON, HURT_FORK, DEATH_FORK, HURT_QUAKE, DEATH_QUAKE,
   HURT_BELLY, DEATH_BELLY, HURT_BOUNCE_FIRE, DEATH_BOUNCE_FIRE, HURT_AIRBODY, DEATH_AIRBODY, type Dressed, type ByPants,
 } from './lines';
 
@@ -69,6 +69,10 @@ const WALL_H = 4000, ROOF_H = 760;
 const TRIP_FRAMES = 80, TRIP_COOLDOWN = 300;
 /** On his back, tripped: everything hurts him this much more (the window's the payoff). */
 const TRIP_MULT = 2.5;
+/** Meathead's hints about the legs: the first this far into the fight, then every so often (frames); none once he's
+ *  tripped him (ever: this visit, any go at him). */
+const HINT_FIRST = 900, HINT_EVERY = 1200;
+let trippedEver = false, hintN = 0, hintAt = -1e9, fightT = 0;
 /** Bumping into him while he's up in the air on a jump (anything but a stomp on top). */
 const AIR_BODY_DMG = 16;
 const AIRBODY = 'm2:demon_airbody';
@@ -250,7 +254,7 @@ const demonTouch = (ctx: FrameContext, e: Enemy): boolean => {
     recoilOff(ctx, RECOIL_MASS);
     // (a slide into his tiny legs: over he goes, a moment's free hits; then he's wise to it a while, and hops it)
     if (state.frame >= d.tripOk && d.st !== 'air' && d.st !== 'tripped' && d.st !== 'hop') {
-      d.st = 'tripped'; d.t = 0; d.vx = 0; d.tripOk = state.frame + TRIP_FRAMES + TRIP_COOLDOWN;
+      d.st = 'tripped'; d.t = 0; d.vx = 0; d.tripOk = state.frame + TRIP_FRAMES + TRIP_COOLDOWN; trippedEver = true;
       playSound('thud', 1, -10); playSound('bellow', 0.9, -6); shakeScreen(state, 10, 5);
       ctx.fx.spawnDamageNumber({ x: d.x - 30, y: d.y - H - 20 }, 'TRIPPED!', true, '#FDE047');
     } else if (d.st === 'walk' || d.st === 'land' || d.st === 'stuck') {
@@ -394,6 +398,14 @@ export const updateDemon = (ctx: FrameContext) => {
     if (d.fight !== 'on' && d.fight !== 'wait') return;
   }
   if (d.fight === 'beaten') { d.t++; return; }
+  // (a while at him and the legs never taken out: Meathead thinks out loud about them, plainer each time)
+  if (d.fight === 'on') {
+    fightT++;
+    if (!trippedEver && fightT > HINT_FIRST && f - hintAt > HINT_EVERY && p.health > 0) {
+      hintAt = f;
+      meatheadSays(state, MH_TRIP_HINT[Math.min(hintN++, MH_TRIP_HINT.length - 1)], false);
+    }
+  } else fightT = 0;
   if (d.fight === 'wait') {
     d.t++;
     // (at his lunch: a bite every so often)

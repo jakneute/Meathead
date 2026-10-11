@@ -138,9 +138,17 @@ export const SATAN_PARTING: ByPants = {
   nude: ['AND PUT SOMETHING ON. EVEN I HAVE LIMITS.', 'I HAVE SEEN EVERY SIN THERE IS. COVER THAT ONE.'],
 };
 
+/** Meathead, a while into the demon fight without having tripped him yet: thinking out loud, plainer each time (said in
+ *  order; never once he's tripped him). */
+export const MH_TRIP_HINT = [
+  "WHAT IS HOLDING THAT GUY UP? THOSE LEGS ARE TINY.",
+  "ALL GUT, NO ANKLES. ONE GOOD KICK DOWN THERE AND HE'S GOING OVER.",
+  "BIG GUY, LITTLE LEGS. SLIDE INTO 'EM. TAKE OUT THE LEGS.",
+];
+
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...MH_LANDED, ...MH_BODIES, ...MH_LAVA, ...MH_CAR, ...MH_DEMON, ...MH_LEAVES, ...MH_SATAN, ...MH_LAUNCH,
+    ...MH_LANDED, ...MH_BODIES, ...MH_LAVA, ...MH_CAR, ...MH_DEMON, ...MH_TRIP_HINT, ...MH_LEAVES, ...MH_SATAN, ...MH_LAUNCH,
     ...HURT_LAVA, ...HURT_JET, ...HURT_CAR, ...HURT_IMP, ...HURT_IMP_FIRE, ...HURT_HOUND, ...HURT_BAT, ...HURT_GOAT, ...HURT_HORNS,
     ...HURT_FORK, ...HURT_QUAKE, ...HURT_BELLY, ...HURT_BOUNCE_FIRE, ...HURT_AIRBODY,
   ],
