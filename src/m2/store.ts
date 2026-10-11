@@ -25,6 +25,8 @@ export interface M2Ui {
   zone?: import('./hudThemes').Zone;
   /** Stuck with the weapon he's got (the mine cart): no switching, by any button, wheel or the pause menu. */
   noSwitch?: boolean;
+  /** Not his to play right now (a cutscene, the victory walk, a grab or a lever under way, dying): no weapon wheel, no switching. */
+  locked?: boolean;
   /** What up does right here, if anything (a lever to pull...): its prompt (a land's own; reset each frame). */
   upPrompt?: string | null;
 }

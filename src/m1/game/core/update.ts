@@ -485,6 +485,10 @@ const dripStuckGore = (state: FrameContext['state']) => {
  * him holds off till it's over. The regular enemies stop where they are and don't shoot (birds included), what they'd
  * already fired fizzles as it starts, and nothing touches him meanwhile. (Mid-bosses and bosses run their own scenes.)
  */
+/** Something outside the game (Meathead 2's UI) told of the state each frame, after the stage has had its go. */
+let frameHook: ((state: FrameContext["state"]) => void) | null = null;
+export const setFrameHook = (f: ((state: FrameContext["state"]) => void) | null) => { frameHook = f; };
+
 const holdOffForCutscene = (ctx: FrameContext) => {
   const { state } = ctx;
   const p = state.player;
@@ -555,6 +559,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   if (layout && (!state.arenaLocked || layout.runsInArena)) controls = layout.update(ctx, controls);
   callCheckpoint(ctx);
   holdOffForCutscene(ctx);
+  frameHook?.(state);
 
   updateBarfStream(state);
   updateTsunami(ctx);
