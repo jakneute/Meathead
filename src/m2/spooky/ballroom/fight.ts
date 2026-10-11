@@ -16,7 +16,7 @@
 //   THE SPEW    ...hangs in the air and sprays the blood back out at Meathead like a machine gun: a stream of it, aimed,
 //               the aim dragging after him (keep moving, jump it).
 //
-// Hurting him: everything but the souvenirs at full damage, as Artie (SHARE), and a boss's usual breather after each hit). His weakness is the
+// Hurting him: everything but the souvenirs at full damage, as Artie (SHARE), and a boss's usual breather after each hit. His weakness is the
 // SOUVENIR LAUNCHER, and only one souvenir in its bag: CHRIST THE REDEEMER. That one stuns him (down out of the air,
 // smoking, on his backside: the window) and takes a big chunk off. The rest of the bag hits him like anything else
 // (SHARE). And any time one of the lesser souvenirs could finish him (at his health now, counting the ones already in
