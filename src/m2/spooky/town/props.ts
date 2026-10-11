@@ -260,7 +260,7 @@ const paintCrypt = (g: Ctx, cx: number, base: number, w: number, h: number) => {
   for (const px of [x0 + 8, x0 + w - 26]) { box(g, px - 1, top + 6, 20, h - 6, INK); box(g, px, top + 6, 18, h - 6, S[4]); box(g, px, top + 6, 5, h - 6, S[5]); box(g, px + 13, top + 6, 5, h - 6, S[2]); box(g, px - 3, top + 6, 24, 5, S[5]); box(g, px - 3, base - 6, 24, 6, S[3]); }
   box(g, x0, base - 4, w, 4, S[2]);
 };
-const paintGag = (g: Ctx, i: number) => {
+export const paintGag = (g: Ctx, i: number) => {
   switch (i) {
     case 0: { // the gate in: stone pillars capped with urns, the iron arch and its bars, its sign
       const x = X(250);
@@ -343,26 +343,26 @@ const paintGag = (g: Ctx, i: number) => {
       box(g, x + 64, GY - 104, 22, 14, INK); box(g, x + 65, GY - 103, 20, 12, '#16A34A'); box(g, x + 67, GY - 101, 8, 2, '#BBF7D0');
       g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(x + 88, GY - 70); g.quadraticCurveTo(x + 112, GY - 50, x + 104, GY - 26); g.stroke();
       g.strokeStyle = '#27272A'; g.lineWidth = 2; g.stroke();
-      ironPost(g, x + 75, GY - 150, GY - 110, 5);
-      board(g, x + 75, GY - 150, 'HORSE & BUGGY EV CHARGING', '#14532D', '#BBF7D0', 6);
+      ironPost(g, x + 62, GY - 190, GY - 110, 5);
+      board(g, x + 62, GY - 190, 'HORSE & BUGGY EV CHARGING', '#14532D', '#BBF7D0', 6);
       break;
     }
     case 6: { // the castle sign at the foot of the stairs, and the stair lift (out of order)
       const x = X(STAIRS.a0 - 130);
-      for (const px of [x - 122, x + 108]) { box(g, px - 1, GY - 191, 16, 191, INK); box(g, px, GY - 190, 14, 190, OAK[2]); box(g, px, GY - 190, 4, 190, OAK[4]); box(g, px + 11, GY - 190, 3, 190, OAK[1]); }
+      for (const px of [x - 122, x + 108]) { box(g, px - 1, GY - 231, 16, 231, INK); box(g, px, GY - 230, 14, 230, OAK[2]); box(g, px, GY - 230, 4, 230, OAK[4]); box(g, px + 11, GY - 230, 3, 230, OAK[1]); }
       const R = ['#2A0606', '#450A0A', '#5E1010', '#7F1D1D', '#991B1B'];
-      box(g, x - 143, GY - 239, 286, 66, INK); box(g, x - 141, GY - 237, 282, 62, R[1]);
-      box(g, x - 141, GY - 237, 282, 3, R[3]); box(g, x - 141, GY - 179, 282, 4, R[0]); box(g, x - 136, GY - 232, 272, 1, R[0]);
-      for (const sx of [x - 136, x + 130]) { box(g, sx, GY - 210, 4, 4, INK); box(g, sx, GY - 210, 2, 2, '#A8A29E'); }
-      words(g, "DRACULA'S", x - 6, GY - 212, '#FECACA', 8, R[0]); words(g, 'OTHER CASTLE', x - 6, GY - 194, '#FECACA', 8, R[0]);
-      poly(g, [[x + 112, GY - 216], [x + 128, GY - 206], [x + 112, GY - 196]], INK); poly(g, [[x + 113, GY - 214], [x + 126, GY - 206], [x + 113, GY - 198]], '#FECACA');
+      box(g, x - 143, GY - 279, 286, 66, INK); box(g, x - 141, GY - 277, 282, 62, R[1]);
+      box(g, x - 141, GY - 277, 282, 3, R[3]); box(g, x - 141, GY - 219, 282, 4, R[0]); box(g, x - 136, GY - 272, 272, 1, R[0]);
+      for (const sx of [x - 136, x + 130]) { box(g, sx, GY - 250, 4, 4, INK); box(g, sx, GY - 250, 2, 2, '#A8A29E'); }
+      words(g, "DRACULA'S", x - 6, GY - 252, '#FECACA', 8, R[0]); words(g, 'OTHER CASTLE', x - 6, GY - 234, '#FECACA', 8, R[0]);
+      poly(g, [[x + 112, GY - 256], [x + 128, GY - 246], [x + 112, GY - 236]], INK); poly(g, [[x + 113, GY - 254], [x + 126, GY - 246], [x + 113, GY - 238]], '#FECACA');
       const sx = X(STAIRS.a0 + 30);
       box(g, sx - 15, GY - 47, 32, 10, INK); box(g, sx - 14, GY - 46, 30, 8, '#1D4ED8'); box(g, sx - 14, GY - 46, 30, 2, '#60A5FA');
       box(g, sx - 15, GY - 77, 10, 32, INK); box(g, sx - 14, GY - 76, 8, 30, '#1D4ED8'); box(g, sx - 14, GY - 76, 2, 30, '#60A5FA');
       box(g, sx - 7, GY - 38, 8, 38, INK); box(g, sx - 6, GY - 38, 6, 38, '#52525B');
       box(g, sx + 4, GY - 64, 14, 3, '#A1A1AA');
-      ironPost(g, sx + 39, GY - 100, GY, 5);
-      board(g, sx + 39, GY - 100, 'STAIR LIFT OUT OF ORDER', '#1C1917', '#FDE68A', 6);
+      ironPost(g, sx + 60, GY - 100, GY, 5);
+      board(g, sx + 60, GY - 100, 'STAIR LIFT OUT OF ORDER', '#1C1917', '#FDE68A', 6);
       break;
     }
     case 7: { // the landing: a bench, and the sign
@@ -404,7 +404,7 @@ const drawGags = (c: Ctx, v: View) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The gas lamps (two of them with something modern on them)
 
-const paintLamp = (g: Ctx, lit: boolean, sign: string) => {
+export const paintLamp = (g: Ctx, lit: boolean, sign: string) => {
   // (the post: iron, fluted, on a stepped base, a crossbar for the lamplighter's ladder)
   box(g, -10, -10, 20, 10, INK); box(g, -9, -9, 18, 9, IRON[2]); box(g, -9, -9, 18, 2, IRON[4]);
   box(g, -6, -18, 12, 9, INK); box(g, -5, -17, 10, 8, IRON[3]); box(g, -5, -17, 3, 8, IRON[4]);

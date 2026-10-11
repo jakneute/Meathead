@@ -426,8 +426,8 @@ const drawTrain = (c: Ctx, state: GameState, v: View) => {
     if (withSkull) skull(x - w / 2 - 12, GY - h);
   };
   // (clear of where the train docks at each station: it'd cover them)
-  lowSign(X(TRAIN.a) - 290, 'BOTTOMLESS PIT. NO, REALLY.', '#450A0A', '#FECACA', 7, true);
-  lowSign(X(TRAIN.a) - 75, 'PLEASE STAY ON THE TRAIN', '#1C1917', '#FDE68A', 6, false, 28);
+  lowSign(X(TRAIN.a) - 275, 'BOTTOMLESS PIT. NO, REALLY.', '#450A0A', '#FECACA', 7, true);
+  lowSign(X(TRAIN.a) - 175, 'PLEASE STAY ON THE TRAIN', '#1C1917', '#FDE68A', 6, false, 28);
   // (the far side's crowded with the station and the drop tower: this one up on a tall post over the far lip, clear of
   // the train when it's in)
   lowSign(b + 95, 'DROP TIME: ETERNITY', '#450A0A', '#FECACA', 7, true, 150);
@@ -509,9 +509,9 @@ const drawDrop = (c: Ctx, state: GameState, v: View) => {
   for (let i = 0; i < 4; i++) { box(c, rx + 8 + i * 25, ringY + 4, 12, 4, '#450A0A'); box(c, rx + 10 + i * 25, ringY + 14, 4, 10, '#1E3A8A'); box(c, rx + 10 + i * 25, ringY + 22, 5, 3, '#F5F5F4'); }
   box(c, rx, ringY - 1, DROP.w, 3, LIP[2]); box(c, rx, ringY - 1, DROP.w, 1, LIP[3]);
   // (the sign: taller than the ride, and under the balconies (nothing to stand on over it))
-  ironPost(c, x + 94, GY - 166, GY, 8); ironPost(c, x + 194, GY - 166, GY, 8);
-  board(c, x + 144, GY - 168, 'MINI DROP OF DOOM', '#7F1D1D', '#FECACA');
-  board(c, x + 144, GY - 144, 'HEIGHT: 6 FT', '#1E1036', '#E9D5FF', 7);
+  ironPost(c, x + 94, GY - 158, GY, 8); ironPost(c, x + 194, GY - 158, GY, 8);
+  board(c, x + 144, GY - 160, 'MINI DROP OF DOOM', '#7F1D1D', '#FECACA');
+  board(c, x + 144, GY - 136, 'HEIGHT: 6 FT', '#1E1036', '#E9D5FF', 7);
 };
 
 // The skeleton pony -----------------------------------------------------------------------------------------------
@@ -546,8 +546,8 @@ const drawPony = (c: Ctx, state: GameState, v: View) => {
   box(c, -16, -52, 34, 3, '#FCA5A5'); box(c, -16, -52, 34, 1, '#FEE2E2');
   beam(c, -32, -40, -46, -20 + Math.sin(f * 0.2) * 4, 3, B[1], B[3]);
   c.restore();
-  signPost(c, x - 140, GY, 100, 'SKELETON PONY', '#3B0764', '#F5D0FE');
-  board(c, x - 140, GY - 76, '25 CENTS - RIDE AT OWN RISK', '#1C1917', '#FDE68A', 6);
+  signPost(c, x - 140, GY, 90, 'SKELETON PONY', '#3B0764', '#F5D0FE');
+  board(c, x - 140, GY - 66, '25 CENTS - RIDE AT OWN RISK', '#1C1917', '#FDE68A', 6);
 };
 
 /** The rides that aren't on top of everything (all of them are behind him). */

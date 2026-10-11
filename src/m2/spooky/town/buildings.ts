@@ -22,15 +22,17 @@ interface Shop {
   rx: number; w: number; h: number; wall: string; sign: string; goods: Goods;
   /** The ground it stands on (height), a bay window up a floor, a mansard roof instead of the gable. */
   base: number; bay?: boolean; mansard?: boolean;
+  /** Where its board goes (its middle, in the front's own coordinates) and its size, if not over the shopfront. */
+  signAt?: [number, number]; signSize?: number;
 }
 /** The shops (the walk-away's street has the same ones: walkAway/donnie.ts). */
 export const SHOPS: Shop[] = [
-  { rx: 300, w: 230, h: 210, wall: '#523A52', sign: 'COFFIN CAFE - OAT MILK EXTRA', goods: 'cafe', base: 0 },
-  { rx: 680, w: 440, h: 290, wall: '#4A3A5E', sign: 'APOTHECARY - NOW WITH DRIVE-THRU', goods: 'bottles', base: PLAZA.h, bay: true },
+  { rx: 400, w: 150, h: 210, wall: '#523A52', sign: 'COFFIN CAFE - OAT MILK', goods: 'cafe', base: 0, signSize: 6 },
+  { rx: 680, w: 440, h: 290, wall: '#4A3A5E', sign: 'APOTHECARY - NOW WITH DRIVE-THRU', goods: 'bottles', base: PLAZA.h, bay: true, signAt: [340, -150], signSize: 6 },
   { rx: 1160, w: 260, h: 220, wall: '#3E3550', sign: 'GHOST TOURS - BOOK ONLINE', goods: 'gifts', base: PLAZA.h, mansard: true },
   { rx: 1760, w: 380, h: 270, wall: '#3E3550', sign: 'POTION SHOPPE - TAP TO PAY', goods: 'potions', base: 0 },
   { rx: 3050, w: 340, h: 220, wall: '#523A52', sign: 'CANDLES (BATTERY OPERATED)', goods: 'candles', base: 0, bay: true },
-  { rx: 5100, w: 300, h: 225, wall: '#3A3A58', sign: 'FORTUNES TOLD - CARDS ACCEPTED', goods: 'crystal', base: 0, mansard: true },
+  { rx: 5100, w: 300, h: 225, wall: '#3A3A58', sign: 'FORTUNES TOLD - CARDS ACCEPTED', goods: 'crystal', base: 0, mansard: true, signAt: [120, -110], signSize: 6 },
   { rx: 7200, w: 720, h: 300, wall: '#4C3448', sign: 'YE OLDE SMOOTHIE BAR', goods: 'smoothie', base: 0 },
   { rx: 8150, w: 280, h: 215, wall: '#4A3A5E', sign: 'CURSED GIFTS & SUNSCREEN', goods: 'gifts', base: 0, bay: true },
 ];
@@ -75,8 +77,8 @@ const goods = (g: Ctx, kind: Goods, x: number, y: number, w: number, h: number, 
   box(g, x + 2, y + 2, 2, h * 0.5, 'rgba(255,255,255,0.18)'); box(g, x + 5, y + 2, 1, h * 0.3, 'rgba(255,255,255,0.12)');
 };
 
-/** A shop's front, painted flat in its own coordinates: its foot at (0, 0), x across 0..w. */
-const paintFront = (g: Ctx, s: Shop, i: number) => {
+/** A shop's front, painted flat in its own coordinates: its foot at (0, 0), x across 0..w (the walk screens paint it too: walkAway/spookyTown.ts). */
+export const paintFront = (g: Ctx, s: Shop, i: number) => {
   const { w, h } = s, R = rampFor(s.wall), trim = rampFor('#6A587E'), glass = glassOf();
   const top = -h, gh = gableOf(s), seed = i * 31 + 7;
   // A chimney behind the roof
@@ -159,7 +161,7 @@ const paintFront = (g: Ctx, s: Shop, i: number) => {
   box(g, dx + door - 8, -30, 3, 3, BRASS[4]);
   box(g, dx - 6, -2, door + 12, 4, INK); box(g, dx - 5, -2, door + 10, 2, STONE[5]);
   // (its board, over the shopfront: the town's)
-  board(g, w / 2, sf - 14, s.sign, '#1E1036', '#E9D5FF', s.sign.length > 26 ? 7 : 8);
+  board(g, s.signAt?.[0] ?? w / 2, s.signAt?.[1] ?? sf - 14, s.sign, '#1E1036', '#E9D5FF', s.signSize ?? (s.sign.length > 26 ? 7 : 8));
   // (the plinth; a cobweb in a corner; a satellite dish, a wifi aerial: the modern conveniences)
   box(g, 0, -6, w, 6, R[0]); box(g, 0, -6, w, 1, R[2]);
   g.strokeStyle = '#B8B4C8'; g.lineWidth = 1;
@@ -280,13 +282,13 @@ const paintCastle = (g: Ctx) => {
   }
   // (arrow slits, pointed windows (lit red after dark, dim), ivy creeping up)
   for (let row = 0; row < 3; row++) for (let wx = CL + 70; wx < CR - 80; wx += 130) {
-    if (row === 2 && wx > CR - 300) continue;
+    if (row === 2 && wx > CR - 420) continue;
     gothicWindow(g, wx, top + 50 + row * 130, 28, 60, S, glow ? ['#2A0A0A', '#5A1414', '#7A2018', '#9A3A22'] : ['#0E0A16', '#1A1428', '#2A2238', '#3A3050']);
   }
   for (let k = 0; k < 3; k++) { const ix = CL + 30 + k * 200; for (let y = CB - 10; y > CB - 200 - k * 60; y -= 3) { const s = Math.sin(y * 0.08 + k) * 6; box(g, ix + s, y, 3, 3, (y >> 2) % 3 ? '#1E3A1E' : '#2E5A26'); if (y % 15 === 0) box(g, ix + s + 3, y, 4, 2, '#3E7A2E'); } }
   // The signs: DRACULA'S OTHER CASTLE, the rules under it
-  board(g, x1 - 160, CB - 236, "DRACULA'S OTHER CASTLE", '#450A0A', '#FECACA');
-  board(g, x1 - 160, CB - 206, 'NO FLASH PHOTOGRAPHY - NO STROLLERS', '#1E1036', '#E9D5FF', 6);
+  board(g, x1 - 160, CB - 282, "DRACULA'S OTHER CASTLE", '#450A0A', '#FECACA');
+  board(g, x1 - 160, CB - 254, 'NO FLASH PHOTOGRAPHY - NO STROLLERS', '#1E1036', '#E9D5FF', 6);
   // The door: big, arched, its stone surround, oak planks studded with iron, open a crack (black in the gap)
   const dl = x1 - 132, dr = x1 - 28, dt = CB - 170;
   poly(g, [[dl - 12, CB], [dl - 12, dt], [(dl + dr) / 2, dt - 44], [dr + 12, dt], [dr + 12, CB]], INK);

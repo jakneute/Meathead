@@ -147,7 +147,7 @@ export const LADDERS: [number, number, number, string, number][] = [
 
 /** The gas lamps (lit after dark): [x, height of what it stands on]. */
 export const LAMPS: [number, number][] = [
-  [470, 0], [1500, 0], [3000, 0], [4205, RAMP.h], [5750, 0], [6880, 0], [8300, 0], [9250, 0], [10560, STAIRS.mid], [11500, STAIRS.top],
+  [60, 0], [1500, 0], [3000, 0], [4205, RAMP.h], [5555, 0], [7080, 0], [8100, 0], [9250, 0], [10560, STAIRS.mid], [11500, STAIRS.top],
 ];
 
 export const CHECKPOINTS = [

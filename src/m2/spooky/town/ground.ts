@@ -18,7 +18,7 @@ export const FAR = 0.62;
 /** How far back the stairs go (their balustrade along the far side). */
 export const STAIR_D = 0.8;
 /** How far toward him the street under his feet comes. */
-const BAND = 160;
+const BAND = 300;
 /** Deep (the bottom of everything that goes all the way down: and nothing does). */
 const DEEP = GY + 1400;
 
@@ -384,6 +384,8 @@ export const drawPlayPlane = (c: Ctx, v: View) => {
       stamp(c, `tn-floor-${tod.key}-${a}-${i}`, x, GY - 2, w, BAND + 2, g => paintFloor(g, x, w));
     }
   }
+  // (and under the band, however far down the camera looks: the street's darkest, never the sky)
+  for (const [a, b] of FLOOR) if (b > v.v0 && a < v.v1 && v.bot > GY + BAND) box(c, Math.max(a, v.v0), GY + BAND - 1, Math.min(b, v.v1) - Math.max(a, v.v0), v.bot - GY - BAND + 1, farTint(COBBLE[0], 0.15, tod));
   bendFloor(c, v.eye, GY, GY, GY + BAND, FLOOR[0][0], FLOOR[FLOOR.length - 1][1]);
   // The moat's lips, hung under the street's edge
   nearBank(c, v, MA, 1);
