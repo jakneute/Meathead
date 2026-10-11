@@ -104,7 +104,7 @@ const SPRAY_N = 2, SPRAY_CONE = 0.13, DROP_HIT = 5;
 /** The stream comes in bursts: this many frames on, this many off. */
 const BURST_ON = 18, BURST_OFF = 12;
 /** Satan's nags, Donnie's taunts: every so often (frames). */
-const NAG_EVERY = 900, TAUNT_EVERY = 520;
+const NAG_EVERY = 1300, TAUNT_EVERY = 800;
 /** At least this long between one of Satan and Donnie's beats and the next (frames). */
 const BEAT_GAP = 360;
 /** How long he spends admiring himself as the fight starts (frames): one loop-the-loop. */
@@ -376,7 +376,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
     case 'aim':
       // (the tell: hanging there, wings wide, eyes flaring, a screech)
       faceHim(state, f); f.vx *= 0.8; f.vy *= 0.8; f.x += f.vx; f.y += f.vy;
-      if (f.t === 1) { playSound('screams', 0.35, 10); if (Math.random() < 0.6) bark(f, L.DONNIE_DIVE); }
+      if (f.t === 1) { playSound('screams', 0.35, 10); if (Math.random() < 0.4) bark(f, L.DONNIE_DIVE); }
       {
         // (the marker: on him (his feet), till it locks)
         const m = pmid(state), p = state.player;
@@ -502,7 +502,7 @@ const grab = (state: GameState, f: Fight, controls: Controls) => {
   f.y = GY - 4; f.vx = 0; f.vy = 0;
   faceHim(state, f);
   playSound('punch', 0.8); playSound('crunch', 0.6, 4); shakeScreen(state, 6, 3);
-  if (Math.random() < 0.7) bark(f, L.DONNIE_DRAIN);
+  if (Math.random() < 0.5) bark(f, L.DONNIE_DRAIN);
 };
 const KEYS: (keyof Controls)[] = ['jump', 'shoot', 'special', 'left', 'right', 'up', 'down', 'secondary', 'charge'];
 const drain = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
@@ -544,7 +544,7 @@ const guests = (ctx: FrameContext, f: Fight) => {
     f.guests.push(g);
     playSound('screams', 0.4, 6);
     const text = pick(L.GUEST_SCREAM);
-    if (quiet(f)) say(text, voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2'), 'casual', {
+    if (quiet(f) && Math.random() < 0.5) say(text, voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2'), 'casual', {
       always: true,
       onShow: spoken => { g.said = text; if (!spoken) setTimeout(() => { if (g.said === text) g.said = null; }, 1800); },
       onHide: () => { if (g.said === text) g.said = null; },
@@ -645,7 +645,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: f.x, y: f.y - 50 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
   playSound('gunhit', 0.5, 2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - 90 }, Math.max(1, Math.round(dmg)), false);
-  if (f.hp > 0 && Math.random() < 0.18) bark(f, L.DONNIE_HURT);
+  if (f.hp > 0 && Math.random() < 0.12) bark(f, L.DONNIE_HURT);
 };
 
 /** A charge move: knocked back off him, the guest dropped (they run for it), back up into the air. */

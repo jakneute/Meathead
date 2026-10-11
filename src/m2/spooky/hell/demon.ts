@@ -197,7 +197,7 @@ const strike = (ctx: FrameContext, d: Demon, dmg: number, source: string, kx: nu
   d.hit = true;
   hurtPlayer(ctx, dmg, source, { x: kx, y: ky });
   playSound('crunch', 1, -6); shakeScreen(ctx.state, 10, 5);
-  if (p.health > 0 && Math.random() < 0.6) demonSays(ctx.state, d, DEMON_HIT, true);
+  if (p.health > 0 && Math.random() < 0.45) demonSays(ctx.state, d, DEMON_HIT, true);
 };
 
 /** A spurt of him (he bleeds, black-red, hot) where a hit's gone in. */
@@ -433,7 +433,7 @@ export const updateDemon = (ctx: FrameContext) => {
   }
   think(ctx, d);
   // (grumbling, now and then)
-  if (f > d.talkAt && p.health > 0) d.talkAt = f + (demonSays(state, d, DEMON_CHATTER, false) ? 600 + Math.random() * 300 : 90);
+  if (f > d.talkAt && p.health > 0) d.talkAt = f + (demonSays(state, d, DEMON_CHATTER, false) ? 900 + Math.random() * 400 : 90);
   place(d);
 };
 

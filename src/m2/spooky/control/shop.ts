@@ -236,7 +236,7 @@ const tickDonnie = (state: GameState, sh: Shop) => {
   if (spot && d.x > at(spot.rel)) d.x = at(spot.rel);
   // (over his shoulder, now and then: one voice at a time)
   if (state.frame >= d.barkAt && d.x < G.BALL_DOOR - 500 && !sh.said && !staffTalking()) {
-    d.barkAt = state.frame + 330 + Math.floor(Math.random() * 200);
+    d.barkAt = state.frame + 480 + Math.floor(Math.random() * 240);
     bark(state, sh, L.DONNIE_CHASE);
   }
   // (at the ballroom's doors: his piece, waiting for him there; then in)
