@@ -42,6 +42,7 @@ import { btn, pressed, pollM2 } from '../input';
 import { grabCallout, type GrabCallout } from './callouts';
 import { m2Kill } from './killLines';
 import { m2Grab, m2Kind } from '../kinds';
+import { drawingHeld, type HeldHow } from '../held';
 import { isMachineKind } from '../../m1/game/enemies/kinds';
 import { markMachineGore } from '../../m1/game/enemies/machineGore';
 import { hurtPlayer } from '../../m1/game/bosses/shared';
@@ -1038,7 +1039,8 @@ export const grabbing = (g: Grab) => g.phase !== 'idle';
 
 /** An enemy drawn somewhere else than where it stands: its feet at (x, y), turned by `angle` about them. */
 /** `face`: which way he faces before he's turned (a person's drawn facing whoever's watching, so he's mirrored to it). */
-export const drawEnemyAt = (ctx: Ctx, e: Enemy, state: GameState, x: number, y: number, angle: number, face: 1 | -1) => {
+/** `how`: how he's holding it (the drawers that can pose it for that do: see held.ts). */
+export const drawEnemyAt = (ctx: Ctx, e: Enemy, state: GameState, x: number, y: number, angle: number, face: 1 | -1, how?: HeldHow) => {
   const pos = e.pos, facing = e.facing;
   ctx.save();
   ctx.translate(x, y); ctx.rotate(angle);
@@ -1047,7 +1049,7 @@ export const drawEnemyAt = (ctx: Ctx, e: Enemy, state: GameState, x: number, y: 
   // (a person, not behind a shield, turns to face Meathead whatever, a charger the way he's running: drawn here, at the
   // origin, that's one way or the other, so he's mirrored if it's not the way wanted)
   if (kindFacing(e, state) !== face) ctx.scale(-1, 1);
-  try { drawKindEnemy(ctx, e, state); } finally { e.pos = pos; e.facing = facing; ctx.restore(); }
+  try { drawingHeld(e, how, () => drawKindEnemy(ctx, e, state)); } finally { e.pos = pos; e.facing = facing; ctx.restore(); }
 };
 
 /**
@@ -1056,9 +1058,9 @@ export const drawEnemyAt = (ctx: Ctx, e: Enemy, state: GameState, x: number, y: 
  */
 const drawPinned = (ctx: Ctx, e: Enemy, state: GameState, x: number, groundY: number, dir: 1 | -1, jolt: number, squirm: number) => {
   const face = (-dir) as 1 | -1;
-  if (isHumanoidKind(e.kind)) drawEnemyAt(ctx, e, state, x - dir * e.height * 0.45, groundY - 5 + jolt * 2, dir * (Math.PI / 2 + jolt * 0.12) + squirm, face);
+  if (isHumanoidKind(e.kind)) drawEnemyAt(ctx, e, state, x - dir * e.height * 0.45, groundY - 5 + jolt * 2, dir * (Math.PI / 2 + jolt * 0.12) + squirm, face, 'pinned');
   // (upside down: feet up at the top of where he lies, his back on the floor)
-  else drawEnemyAt(ctx, e, state, x + dir * 6, groundY - e.height - 2 + jolt * 2, Math.PI + squirm, face);
+  else drawEnemyAt(ctx, e, state, x + dir * 6, groundY - e.height - 2 + jolt * 2, Math.PI + squirm, face, 'pinned');
 };
 
 /**
@@ -1075,7 +1077,7 @@ const drawHeldByNeck = (ctx: Ctx, e: Enemy, state: GameState, hx: number, hy: nu
   ctx.save();
   ctx.translate(hx, hy);
   ctx.rotate((person ? 0 : -face * Math.PI / 2) + swing);
-  drawEnemyAt(ctx, e, state, -neck.x, -neck.y, 0, face);
+  drawEnemyAt(ctx, e, state, -neck.x, -neck.y, 0, face, 'neck');
   ctx.restore();
 };
 
@@ -1380,7 +1382,7 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       if (g.held) {
         const wiggle = Math.sin(f * 0.9) * 0.25;
         const hx = x + g.dir * (arm.x * Math.cos(-0.1) + 2), hy = y - 24 + arm.y + 6;
-        drawEnemyAt(ctx, g.held, state, hx, hy + g.held.height / 2, wiggle, (-g.dir) as 1 | -1);
+        drawEnemyAt(ctx, g.held, state, hx, hy + g.held.height / 2, wiggle, (-g.dir) as 1 | -1, 'pitch');
         if (g.phase === 'critter') aimArrows(ctx, hx, hy + g.held.height / 2, g, f, g.t >= CRITTER_SETTLE);
       }
       return;

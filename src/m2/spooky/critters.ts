@@ -6,7 +6,10 @@
 
 import type { Enemy } from '../../m1/types';
 import { stamp } from '../../m1/game/render/stamp';
-import { INK, dk, lt, part, partTop, flat, px, dither, limb, ball, moodOf, type Mood } from './costume';
+import { INK, dk, lt, part, partTop, flat, px, dither, limb, ball, moodOf, reaction, type Mood } from './costume';
+
+/** Held, flung or a body: it struggles (the frames it has for going flat out). */
+const struggling = (e: Enemy) => { const r = reaction(e); return !!r && r.pose !== 'limp' && r.pose !== 'stun'; };
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -53,7 +56,7 @@ const paintBat = (g: Ctx, fr: number, swoop: boolean, md: Mood) => {
   px(g, -3, -3, 2, 2, '#1E1418'); px(g, 1, -3, 2, 2, '#1E1418');
 };
 export const drawBatArt = (c: Ctx, e: Enemy, f: number, size = 1) => {
-  const md = moodOf(e), swoop = e.aiState === 'swoop' || e.aiState === 'dive';
+  const md = moodOf(e), swoop = !struggling(e) && (e.aiState === 'swoop' || e.aiState === 'dive');
   const fr = Math.floor((f + (e.initialX ?? e.homeX ?? 0)) / 4) % 4;
   c.save(); if (size !== 1) c.scale(size, size);
   put(c, `bat-${swoop ? 's' : fr}-${md}`, [-36, -30, 72, 34], g => paintBat(g, fr, swoop, md));
@@ -94,8 +97,8 @@ const paintCrow = (g: Ctx, pose: 'sit' | 'caw' | 'fly', fr: number, md: Mood) =>
 };
 export const drawCrowArt = (c: Ctx, e: Enemy, f: number) => {
   const md = moodOf(e);
-  const sat = e.aiState === 'idle' || e.aiState === 'caw' || !e.aiState;
-  const pose = e.aiState === 'caw' ? 'caw' : sat ? 'sit' : 'fly';
+  const sat = !struggling(e) && (e.aiState === 'idle' || e.aiState === 'caw' || !e.aiState);
+  const pose = sat && e.aiState === 'caw' ? 'caw' : sat ? 'sit' : 'fly';
   const fr = pose === 'fly' ? Math.floor(f / 3) % 4 : 0;
   // (perched: a bob of the head now and then, a step up and down)
   const bob = pose === 'sit' && Math.floor((f + (e.initialX ?? 0)) / 30) % 3 === 0 ? -1 : 0;
@@ -129,8 +132,8 @@ const paintRat = (g: Ctx, fr: number, rush: boolean, md: Mood) => {
   if (md === 'dead') tongue(g, hx + 8, -3);
 };
 export const drawRatArt = (c: Ctx, e: Enemy, f: number) => {
-  const md = moodOf(e), rush = e.aiState === 'rush';
-  const fr = Math.abs(e.vel.x) > 0.3 ? Math.floor(f / (rush ? 2 : 4)) % 4 : 0;
+  const md = moodOf(e), wild = struggling(e), rush = e.aiState === 'rush' || wild;
+  const fr = Math.abs(e.vel.x) > 0.3 || wild ? Math.floor(f / (rush ? 2 : 4)) % 4 : 0;
   put(c, `rat-${rush ? 1 : 0}-${fr}-${md}`, [-36, -18, 72, 20], g => paintRat(g, fr, rush, md));
 };
 
@@ -173,7 +176,7 @@ const paintCat = (g: Ctx, pose: 'walk' | 'hiss' | 'pounce', fr: number, md: Mood
 };
 export const drawCatArt = (c: Ctx, e: Enemy, f: number) => {
   const md = moodOf(e);
-  const pose = e.aiState === 'hiss' ? 'hiss' : e.aiState === 'pounce' ? 'pounce' : 'walk';
+  const pose = struggling(e) || e.aiState === 'pounce' ? 'pounce' : e.aiState === 'hiss' ? 'hiss' : 'walk';
   const fr = pose === 'walk' && Math.abs(e.vel.x) > 0.3 ? Math.floor(f / 5) % 4 : 0;
   // (hissing: a shiver)
   const shake = pose === 'hiss' && f % 4 < 2 ? 1 : 0;
@@ -202,7 +205,7 @@ const paintCuckoo = (g: Ctx, spring: boolean, fr: number, md: Mood) => {
   px(g, -6, -8, 8, 1, dk(WOOD, 0.25)); ball(g, -2, -11, 1, '#C9A227', 0.5);
 };
 export const drawCuckooArt = (c: Ctx, e: Enemy, f: number) => {
-  const md = moodOf(e), flying = e.aiState === 'dart' || e.aiState === 'back';
+  const md = moodOf(e), flying = e.aiState === 'dart' || e.aiState === 'back' || struggling(e);
   const fr = flying ? Math.floor(f / 3) % 4 : 2;
   put(c, `cuckoo-${flying ? 0 : 1}-${fr}-${md}`, [-40, -24, 62, 26], g => paintCuckoo(g, !flying, fr, md));
 };

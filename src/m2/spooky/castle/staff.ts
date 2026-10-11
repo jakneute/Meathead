@@ -23,7 +23,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { BOTTLE_GRAVITY } from '../../../m1/constants';
 import { lookOf } from '../../adventure/temple/people';
-import { INK, moodOf, type Pose } from '../costume';
+import { INK, moodOf, reaction, type Pose } from '../costume';
 import { drawBatArt } from '../critters';
 import { drawSkeletonCostume, drawKnightCostume, drawIgorCostume, drawWitchCostume, drawBrideCostume, drawBatsuitCostume, drawMummyCostume } from '../wardrobe';
 
@@ -306,7 +306,7 @@ const poseOf = (e: Enemy): Pose => {
   if (s === 'bash' || s === 'swing' || s === 'thrust' || s === 'slam' || s === 'rush' || s === 'dive') return 'strike';
   return Math.abs(e.vel.x) > 0.3 ? 'walk' : 'stand';
 };
-const wear = (e: Enemy, f: number, woman?: boolean) => ({ seed: seedOf(e), f, pose: poseOf(e), md: moodOf(e), woman });
+const wear = (e: Enemy, f: number, woman?: boolean) => ({ seed: seedOf(e), f, woman, ...(reaction(e) ?? { pose: poseOf(e), md: moodOf(e) }) });
 
 /** The bat suit's rig: the wire up from his back to the trolley (off the top of the screen). */
 const drawWire = (c: Ctx) => { c.fillStyle = INK; c.fillRect(-1.5, -900, 3, 848); c.fillStyle = '#A1A1AA'; c.fillRect(-0.5, -900, 1, 848); };
@@ -354,7 +354,7 @@ registerM2Kind({
   draw: (c, e, f) => {
     const onWire = !snapped(e) && e.health > 0 && (e.aiState === 'idle' || e.aiState === 'dive' || e.aiState === 'climb' || !e.aiState);
     if (onWire) drawWire(c);
-    drawBatsuitCostume(c, { seed: seedOf(e), f, pose: e.aiState === 'dive' ? 'strike' : onWire ? 'fly' : 'walk', md: moodOf(e) });
+    drawBatsuitCostume(c, { seed: seedOf(e), f, ...(reaction(e) ?? { pose: e.aiState === 'dive' ? 'strike' : onWire ? 'fly' : 'walk', md: moodOf(e) }) });
   },
 });
 registerM2Kind({

@@ -12,6 +12,7 @@
 
 import type { Enemy } from '../../m1/types';
 import { stamp } from '../../m1/game/render/stamp';
+import { heldHow } from '../held';
 import { lookOf, type Look } from '../adventure/temple/people';
 import { eyes as kitEyes, mouth as kitMouth, type EyeStyle, type MouthStyle } from '../cast/kit';
 
@@ -99,9 +100,28 @@ export const ball = (g: Ctx, x: number, y: number, r: number, col: string, line 
 // ---------------------------------------------------------------------------------------------------------------
 // The person underneath
 
-export type Pose = 'stand' | 'walk' | 'tell' | 'strike' | 'after' | 'fly';
+export type Pose = 'stand' | 'walk' | 'tell' | 'strike' | 'after' | 'fly'
+  /** Taken hold of, knocked about: pinned on the back (guarding the face, kicking), held up by the neck (clawing at
+   *  his hands, legs going), flung (arms and legs everywhere), dazed (arms hanging), a body (limp). */
+  | 'pinned' | 'shaken' | 'thrown' | 'stun' | 'limp';
 export type Mood = 'ok' | 'hurt' | 'dead';
 export const moodOf = (e: Enemy): Mood => (e.health <= 0 ? 'dead' : (e.hitFlash ?? 0) > 0 ? 'hurt' : 'ok');
+const HELD: readonly Pose[] = ['pinned', 'shaken', 'thrown', 'stun', 'limp'];
+export const isHeldPose = (p: Pose) => HELD.includes(p);
+
+/**
+ * How it's being knocked about, if it is (the pose for it, and the face): in Meathead's grab (held.ts), flung loose,
+ * knocked back and dazed by a hit or a charge, blown away, or a body (the death drawing's stand-in has no id).
+ */
+export const reaction = (e: Enemy): { pose: Pose; md: Mood } | null => {
+  const how = heldHow(e);
+  const md = moodOf(e);
+  if (how) return { pose: how === 'pinned' ? 'pinned' : how === 'neck' ? 'shaken' : 'thrown', md: md === 'ok' ? 'hurt' : md };
+  if (!e.id) return { pose: Math.abs(e.vel.x) > 0.01 ? 'thrown' : 'limp', md: 'dead' };
+  if (e.aiState === 'loose' || e.isBlownAway || e.meleeFlung || e.uppercutFlung) return { pose: 'thrown', md: md === 'ok' ? 'hurt' : md };
+  if ((e.pauseTimer ?? 0) > 4 && !e.puppet) return { pose: Math.abs(e.vel.y) > 0.6 || Math.abs(e.vel.x) > 2 ? 'thrown' : 'stun', md: md === 'ok' ? 'hurt' : md };
+  return null;
+};
 
 export interface Body {
   L: Look; seed: number;
@@ -114,6 +134,8 @@ export interface Body {
   feet: [number, number]; lift: [number, number];
   /** Leaning in (the shoulders this far forward of the hips). */
   lean: number;
+  /** Knocked about (a held pose): the face shows it. */
+  held: Pose | null;
 }
 
 /** Who's in there, and how they're stood: the walk's in six frames (`fr`). */
@@ -129,6 +151,10 @@ export const bodyOf = (seed: number, pose: Pose, fr: number, woman?: boolean): B
   } else if (pose === 'stand') bob = fr % 2 ? -1 : 0;
   else if (pose === 'tell') { feet = [-5, 4]; bob = 1; }
   else if (pose === 'strike') { feet = [-8, 8]; bob = 2; }
+  else if (pose === 'pinned') { const k = fr % 2; feet = [k ? 1 : -5, k ? 0 : 7]; lift = [k ? 6 : 1, k ? 1 : 7]; }
+  else if (pose === 'shaken') { const k = fr % 2; feet = [k ? -5 : 0, k ? 4 : -1]; lift = [k ? 4 : 0, k ? 0 : 5]; }
+  else if (pose === 'thrown') { const k = fr % 2; feet = [-9, 9]; lift = [4 + k * 3, 7 - k * 3]; }
+  else if (pose === 'stun' || pose === 'limp') { feet = [-2, 2]; }
   const hipY = -31 - tall + bob, shY = -55 - tall * 2 + bob;
   return {
     L, seed,
@@ -136,7 +162,24 @@ export const bodyOf = (seed: number, pose: Pose, fr: number, woman?: boolean): B
     legW: heavy ? 8.5 : L.woman ? 6.5 : 7.5, armW: heavy ? 7 : L.woman ? 5.5 : 6,
     hipY, shY, hx: 1, hy: shY - 11, rx: heavy ? 9.2 : 8.6, ry: 9.6,
     feet, lift, lean: pose === 'strike' ? 3 : pose === 'tell' ? -1 : 0,
+    held: isHeldPose(pose) ? pose : null,
   };
+};
+
+/**
+ * Where the hands go knocked about (far, near), or null if it's not: up guarding the face pinned (one shoving at him
+ * now and then), clawing at his grip round the neck, flung out flailing, hanging dazed or dead.
+ */
+export const flailHands = (B: Body, fr: number): [[number, number], [number, number]] | null => {
+  const k = fr % 2, w = [0, 4, 0, -4][fr % 4];
+  switch (B.held) {
+    case 'pinned': return fr % 4 === 3 ? [[B.hx - 3, B.hy + 7], [B.w / 2 + 12, B.shY - 8]] : [[B.hx - 3, B.hy + 7 - k * 2], [B.hx + 9, B.hy + 3 + k * 2]];
+    case 'shaken': return [[B.hx - 4, B.hy + 9 + k * 2], [B.hx + 7, B.hy + 11 - k * 2]];
+    case 'thrown': return [[-B.w / 2 - 11, B.shY - 12 + w], [B.w / 2 + 11, B.shY - 14 - w]];
+    case 'stun': return [[-B.w / 2 - 3, -30 + k], [B.w / 2 + 4, -31 - k]];
+    case 'limp': return [[-B.w / 2 - 6, -27], [B.w / 2 + 7, -27]];
+    default: return null;
+  }
 };
 
 export type Shoe = 'shoe' | 'boot' | 'pointy' | 'sandal' | 'paw' | 'platform' | 'sneaker';
@@ -193,10 +236,12 @@ export const arm = (g: Ctx, B: Body, side: -1 | 1, hx: number, hy: number, o: Ar
   const w = o.w ?? B.armW;
   const sx = side * (B.w / 2 - 3) + B.lean, sy = B.shY + 3;
   const mx = (sx + hx) / 2, my = (sy + hy) / 2, dx = hx - sx, dy = hy - sy, d = Math.hypot(dx, dy) || 1;
-  // (the elbow: out from the line, down and back)
-  const bend = Math.max(0, 15 - d * 0.35) * (o.elbow ?? 1);
-  let nx = -dy / d, ny = dx / d; if (ny < 0) { nx = -nx; ny = -ny; }
-  const ex = mx + nx * bend - 1, ey = my + ny * bend;
+  // (the elbow: out from the shoulder-to-hand line, a bit, to the outside of the body (the far arm's to the back, the
+  // near arm's to the front) and down. Which of the two ways off the line that is depends on which arm it is: picking
+  // it by the line's own slope alone bent a hanging far arm's elbow in across the body and a near one's the other way)
+  const bend = Math.max(0, 10 - d * 0.3) * (o.elbow ?? 1);
+  let nx = -dy / d, ny = dx / d; if (side * nx * 0.7 + ny < 0) { nx = -nx; ny = -ny; }
+  const ex = mx + nx * bend, ey = my + ny * bend;
   const len = o.len ?? 1;
   limb(g, sx, sy, ex, ey, w, len > 0 ? o.sleeve : o.hand);
   limb(g, ex, ey, hx, hy, w - 0.5, len >= 1 ? o.sleeve : o.hand);
@@ -222,7 +267,8 @@ export interface FaceOpts { skin: string; eyes?: EyeStyle; mouth?: MouthStyle; m
 export const faceOn = (g: Ctx, B: Body, o: FaceOpts) => {
   const { hx, hy } = B;
   const md = o.md ?? 'ok';
-  const es: EyeStyle = md === 'dead' ? 'dead' : md === 'hurt' || o.blink ? 'closed' : o.eyes ?? 'open';
+  const shock = B.held && B.held !== 'limp' && md === 'hurt';
+  const es: EyeStyle = md === 'dead' ? 'dead' : shock ? (B.held === 'stun' ? 'tired' : 'wide') : md === 'hurt' || o.blink ? 'closed' : o.eyes ?? 'open';
   if (!o.skipEyes) kitEyes(g, hx + 2.5, hy - 1, 3.6, es, 100, o.look ?? 0.6, 2.2, dk(o.skin, 0.12));
   if (o.brows && es !== 'angry' && md === 'ok') { px(g, hx - 2.5, hy - 5.5, 3.5, 1.2, o.brows); px(g, hx + 4.5, hy - 5.5, 3.5, 1.2, o.brows); }
   if (o.nose !== false) part(g, () => g.ellipse(hx + 6, hy + 2.5, 2, 1.6, 0, 0, Math.PI * 2), o.noseCol ?? dk(o.skin, 0.08), hx + 4, hy + 1, 4, 3.2, 1);
@@ -263,7 +309,8 @@ export interface Frame { seed: number; pose: Pose; fr: number; md: Mood; t: numb
 /** The walk's frame (six), the idle's (two), a tell's progress (`t`, 0..1, in quarters). */
 export const frameOf = (seed: number, f: number, pose: Pose, md: Mood, t = 0, woman?: boolean, v = ''): Frame => ({
   seed, pose, md, woman, v,
-  fr: pose === 'walk' ? Math.floor((f + seed) / 6) % 6 : pose === 'fly' ? Math.floor((f + seed) / 5) % 4 : pose === 'stand' ? Math.floor((f + seed) / 45) % 2 : 0,
+  fr: pose === 'walk' ? Math.floor((f + seed) / 6) % 6 : pose === 'fly' ? Math.floor((f + seed) / 5) % 4 : pose === 'stand' ? Math.floor((f + seed) / 45) % 2
+    : pose === 'limp' ? 0 : pose === 'stun' ? Math.floor((f + seed) / 12) % 2 : isHeldPose(pose) ? Math.floor((f + seed) / 4) % 4 : 0,
   t: Math.round(Math.max(0, Math.min(1, t)) * 4) / 4,
   blink: md === 'ok' && (f + seed * 7) % 173 < 6,
 });

@@ -8,7 +8,7 @@
 
 import {
   type Pose, type Mood, type Body, type Frame, INK, dk, lt, mix, part, partTop, flat, px, dither, limb, ball,
-  bodyOf, legs, torso, arm, headShape, faceOn, whiskers, glasses, hairTop, hairBack, frameOf, putFrame, pickOf,
+  isHeldPose, bodyOf, flailHands, legs, torso, arm, headShape, faceOn, whiskers, glasses, hairTop, hairBack, frameOf, putFrame, pickOf,
 } from './costume';
 
 type Ctx = CanvasRenderingContext2D;
@@ -93,12 +93,14 @@ const paintShop = (g: Ctx, F: Frame, kind: 'clerk' | 'hawker') => {
     far = [-B.w / 2 - 1 - sw, -33];
     near = F.pose === 'tell' ? (F.t < 0.75 ? [B.w / 2 - 3, -82] : [B.w / 2 + 14, -60]) : [B.w / 2 + 1 + sw, -33];
   }
+  const fl = flailHands(B, F.fr);
+  if (fl) [far, near] = fl;
   legs(g, B, { col: L.pants, shoe: 'sneaker', shoeCol: '#27272A' });
   arm(g, B, -1, far[0], far[1], sl);
   vest(g, B, torso(g, B, L.shirt));
   ownHead(g, B, F, angry(F.pose) ? 'angry' : 'open', F.pose === 'strike' ? 'teeth' : F.pose === 'tell' ? 'grin' : 'frown');
   horns(g, B);
-  if (kind === 'clerk') {
+  if (fl) { /* (dropped it, whatever it was) */ } else if (kind === 'clerk') {
     const a = F.pose === 'tell' ? -0.3 : F.pose === 'strike' ? 0 : -0.12;
     pitchfork(g, near[0] - 6, near[1] + 1, a, '#B91C1C', 48);
   } else if (F.pose === 'tell' && F.t < 0.75) globe(g, near[0], near[1] - 7, 0);
@@ -135,7 +137,7 @@ const paintGhost = (g: Ctx, F: Frame) => {
   g.scale(0.92, 0.92);
   const sheet = pickOf(F.seed, 1, SHEETS);
   legs(g, B, { col: L.pants, shoe: 'sneaker', shoeCol: L.shirt });
-  const boo = F.pose === 'tell' || F.pose === 'strike';
+  const boo = F.pose === 'tell' || F.pose === 'strike' || (!!B.held && B.held !== 'limp' && B.held !== 'stun');
   const hw = B.w / 2 + 8, ln = F.pose === 'strike' ? 5 : 0, sway = [0, 1, 0, -1, 0, 1][F.fr];
   const { hx, hy } = B;
   const path = () => {
@@ -188,7 +190,10 @@ const paintWolf = (g: Ctx, F: Frame) => {
   legs(g, B, { col: fur, shoe: 'paw', shoeCol: dk(fur, 0.1) });
   g.save(); if (run) { g.translate(0, -30); g.rotate(0.3); g.translate(0, 30); }
   const furArm = { sleeve: fur, hand: dk(fur, 0.15), claw: true, w: B.armW + 1.5 };
-  arm(g, B, -1, howl ? -B.w / 2 - 4 : run ? B.w / 2 + 10 : -B.w / 2 - 1, howl ? B.shY - 24 : run ? -50 : -33, furArm);
+  const fl = flailHands(B, F.fr);
+  const wf: [number, number] = fl ? fl[0] : [howl ? -B.w / 2 - 4 : run ? B.w / 2 + 10 : -B.w / 2 - 1, howl ? B.shY - 24 : run ? -50 : -33];
+  const wn: [number, number] = fl ? fl[1] : [howl ? B.w / 2 + 4 : run ? B.w / 2 + 18 : F.pose === 'walk' ? B.w / 2 + 14 : B.w / 2 + 3, howl ? B.shY - 26 : run ? -46 : F.pose === 'walk' ? -42 : -34];
+  arm(g, B, -1, wf[0], wf[1], furArm);
   const tp = torso(g, B, fur);
   g.save(); g.beginPath(); tp(); g.clip();
   part(g, () => g.ellipse(3, (B.shY + B.hipY) / 2 + 2, B.w / 2 - 4, 10, 0, 0, Math.PI * 2), belly, 3 - B.w / 2, B.shY, B.w - 8, 24, 0);
@@ -215,7 +220,7 @@ const paintWolf = (g: Ctx, F: Frame) => {
   for (let x = hx + 4; x < hx + 18; x += 3.5) flat(g, () => { g.moveTo(x, hy - 2.5); g.lineTo(x + 1.2, hy + 0.5); g.lineTo(x + 2.4, hy - 2.5); g.closePath(); }, '#F5F5F4', 0.6);
   ball(g, hx + 5, hy - 9, 1.6, '#FDE047', 0.6); px(g, hx + 5, hy - 9.5, 1, 1, INK);
   g.restore();
-  arm(g, B, 1, howl ? B.w / 2 + 4 : run ? B.w / 2 + 18 : B.w / 2 + 14, howl ? B.shY - 26 : run ? -46 : -42, furArm);
+  arm(g, B, 1, wn[0], wn[1], furArm);
   g.restore();
 };
 export const drawWolfCostume = (c: Ctx, w: Wear) => {
@@ -238,7 +243,10 @@ const paintMonster = (g: Ctx, F: Frame) => {
   });
   const raise = F.pose === 'tell', smash = F.pose === 'strike';
   const jk = { sleeve: jacket, hand: L.skin, len: 0.8, w: B.armW };
-  const fists: [number, number][] = raise ? [[B.hx - 4, B.hy - 26], [B.hx + 6, B.hy - 28]] : smash ? [[B.w / 2 + 14, -40], [B.w / 2 + 22, -36]] : [[-B.w / 2 - 2, -32], [B.w / 2 + 2, -34]];
+  const sway = F.pose === 'stand' ? F.fr : 0, fl = flailHands(B, F.fr), bob = [0, 1, 2, 1, 0, -1][F.fr % 6];
+  // (idle: arms hanging heavy at his sides; walking: the monster's arms out in front, raised at the shoulder)
+  const fists: [number, number][] = fl ? fl : raise ? [[B.hx - 4, B.hy - 26], [B.hx + 6, B.hy - 28]] : smash ? [[B.w / 2 + 14, -40], [B.w / 2 + 22, -36]]
+    : F.pose === 'walk' ? [[B.w / 2 + 16, B.shY + 5 + bob], [B.w / 2 + 22, B.shY + 7 - bob]] : [[-B.w / 2 - 1 + sway, -30], [B.w / 2 + 1 - sway, -31]];
   arm(g, B, -1, fists[0][0], fists[0][1], jk);
   torso(g, B, jacket, B.shY - 2);
   // (square shoulder pads, the lapels, two buttons that don't match, a patch)
@@ -293,14 +301,15 @@ const paintWitch = (g: Ctx, F: Frame) => {
   const robe = pickOf(F.seed, 5, ROBES), cackle = F.pose === 'tell';
   legs(g, B, { col: '#1A1A1A', stripe: '#8B5CF6', shoe: 'pointy', shoeCol: '#141218' });
   const sl = { sleeve: robe, hand: L.skin };
-  arm(g, B, -1, -B.w / 2 - 2, -36, sl);
+  const fl = flailHands(B, F.fr);
+  arm(g, B, -1, fl ? fl[0][0] : -B.w / 2 - 1, fl ? fl[0][1] : -32, sl);
   // (the robe: to the shins, ragged at the hem)
   const hw = B.hipW / 2 + 7;
   part(g, () => { g.moveTo(-B.w / 2, B.shY + 3); g.quadraticCurveTo(-B.w / 2, B.shY, -B.w / 2 + 4, B.shY); g.lineTo(B.w / 2 - 4, B.shY); g.quadraticCurveTo(B.w / 2, B.shY, B.w / 2, B.shY + 3); g.lineTo(hw, -12); for (let i = 0; i <= 6; i++) g.lineTo(hw - (i * hw * 2) / 6, -12 + (i % 2 ? -5 : 0)); g.closePath(); }, robe, -hw, B.shY, hw * 2, -B.shY - 8);
   px(g, -B.hipW / 2, B.hipY - 1, B.hipW, 2.5, '#5B3A1E');
   part(g, () => g.rect(-1, B.hipY - 2, 4, 4), '#CA8A04', -1, B.hipY - 2, 4, 4, 0.8);
   witchHead(g, B, F, cackle);
-  const hand: [number, number] = cackle ? [B.w / 2 - 2, B.shY - 18] : [B.w / 2 + 2, -36];
+  const hand: [number, number] = fl ? fl[1] : cackle ? [B.w / 2 - 2, B.shY - 18] : [B.w / 2 + 1, -32];
   arm(g, B, 1, hand[0], hand[1], sl);
   if (cackle) potion(g, hand[0] + 1, hand[1] - 9);
 };
@@ -337,6 +346,8 @@ const paintBroomWitch = (g: Ctx, F: Frame) => {
   if (cackle) potion(g, hand[0] + 1, hand[1] - 9);
 };
 export const drawBroomWitch = (c: Ctx, w: Wear) => {
+  // (knocked off it, or held: the same witch on her feet, the broom gone)
+  if (isHeldPose(w.pose)) { drawWitchCostume(c, w); return; }
   const F = frameOf(w.seed, w.f, w.pose, w.md, 0, w.woman, 'wb');
   F.fr = Math.floor((w.f + w.seed) / 20) % 2;
   putFrame(c, 'witch', F, [-58, -96, 108, 100], g => paintBroomWitch(g, F));
@@ -354,10 +365,11 @@ const paintSkeleton = (g: Ctx, F: Frame, prop: 'tomb' | 'lid', up: boolean) => {
   const B = bodyOf(F.seed, F.pose, F.fr), L = B.L;
   legs(g, B, { col: SUIT, shoe: 'boot', shoeCol: '#0E0D12', detail: (gg, h, k, f, near) => { if (near || true) { boneLine(gg, h[0], h[1] + 2, k[0], k[1] - 1, near ? 2.2 : 1.8); boneLine(gg, k[0], k[1] + 2, f[0], f[1] - 3, near ? 2 : 1.6); } } });
   // (the shield down: set aside, behind)
-  if (!up && prop === 'tomb') tombstone(g, -B.w / 2 - 34, 0, false);
-  const throwing = !up && prop === 'tomb';
-  const far: [number, number] = up ? [B.w / 2 + 2, -46] : [-B.w / 2 - 2, -34];
-  const near: [number, number] = throwing ? (F.t < 0.5 ? [B.w / 2 - 3, B.shY - 20] : [B.w / 2 + 14, -60]) : up ? [B.w / 2 + 6, -44] : [B.w / 2 + 3, -36];
+  if (!up && prop === 'tomb' && !B.held) tombstone(g, -B.w / 2 - 34, 0, false);
+  const fl = flailHands(B, F.fr);
+  const throwing = !up && prop === 'tomb' && !fl;
+  const far: [number, number] = fl ? fl[0] : up ? [B.w / 2 + 2, -46] : [-B.w / 2 - 2, -34];
+  const near: [number, number] = fl ? fl[1] : throwing ? (F.t < 0.5 ? [B.w / 2 - 3, B.shY - 20] : [B.w / 2 + 14, -60]) : up ? [B.w / 2 + 6, -44] : [B.w / 2 + 3, -36];
   const a1 = arm(g, B, -1, far[0], far[1], { sleeve: SUIT, hand: L.skin });
   boneLine(g, a1.sx, a1.sy, a1.ex, a1.ey, 1.6);
   torso(g, B, SUIT);
@@ -382,8 +394,8 @@ const paintSkeleton = (g: Ctx, F: Frame, prop: 'tomb' | 'lid', up: boolean) => {
   const a2 = arm(g, B, 1, near[0], near[1], { sleeve: SUIT, hand: L.skin });
   boneLine(g, a2.sx, a2.sy, a2.ex, a2.ey, 1.6);
   if (throwing && F.t < 0.5) { g.save(); g.translate(near[0], near[1] - 4); g.rotate(-0.4); bone(g); g.restore(); }
-  if (up) { if (prop === 'tomb') tombstone(g, B.w / 2 - 2, 0, true); else coffinLid(g, F.pose === 'strike' ? 22 : 13, -68, true); }
-  if (!up && prop === 'lid') coffinLid(g, 14, -42, false);
+  if (up && !fl) { if (prop === 'tomb') tombstone(g, B.w / 2 - 2, 0, true); else coffinLid(g, F.pose === 'strike' ? 22 : 13, -68, true); }
+  if (!up && prop === 'lid' && !fl) coffinLid(g, 14, -42, false);
 };
 /** The foam tombstone (the town skeleton's shield): RIP on it, moss at the foot, cracked. */
 const tombstone = (g: Ctx, x: number, y: number, held: boolean) => {
@@ -439,8 +451,9 @@ const paintPumpkin = (g: Ctx, F: Frame) => {
   const shirt = pickOf(F.seed, 6, PLAIDS), denim = '#2F4F8F';
   legs(g, B, { col: denim, shoe: 'boot', shoeCol: '#4A3020' });
   const heave = F.pose === 'tell';
-  const far: [number, number] = heave ? [B.hx - 12, -106] : [-B.w / 2 - 3, -33];
-  const near: [number, number] = heave ? [B.hx + 14, -106] : [B.w / 2 + 3, -33];
+  const fl = flailHands(B, F.fr);
+  const far: [number, number] = fl ? fl[0] : heave ? [B.hx - 12, -106] : [-B.w / 2 - 3, -33];
+  const near: [number, number] = fl ? fl[1] : heave ? [B.hx + 14, -106] : [B.w / 2 + 3, -33];
   const sl = { sleeve: shirt, hand: L.skin };
   arm(g, B, -1, far[0], far[1], sl);
   const tp = torso(g, B, shirt);
@@ -486,8 +499,9 @@ const paintKnight = (g: Ctx, F: Frame) => {
   const B = bodyOf(F.seed, F.pose, F.fr), L = B.L;
   legs(g, B, { col: FOIL, shoe: 'boot', shoeCol: '#6B7280', detail: (gg, _h, k) => ball(gg, k[0], k[1], 3, FOIL, 1) });
   const wind = F.pose === 'tell', swing = F.pose === 'strike';
-  const near: [number, number] = wind ? [B.w / 2 - 4, B.shY - 14] : swing ? [B.w / 2 + 14, -48] : [B.w / 2 + 3, -38];
-  const far: [number, number] = wind ? [B.w / 2 - 8, B.shY - 10] : swing ? [B.w / 2 + 8, -47] : [-B.w / 2 - 2, -34];
+  const fl = flailHands(B, F.fr);
+  const near: [number, number] = fl ? fl[1] : wind ? [B.w / 2 - 4, B.shY - 14] : swing ? [B.w / 2 + 14, -48] : [B.w / 2 + 3, -38];
+  const far: [number, number] = fl ? fl[0] : wind ? [B.w / 2 - 8, B.shY - 10] : swing ? [B.w / 2 + 8, -47] : [-B.w / 2 - 2, -34];
   const ar = { sleeve: FOIL, hand: L.skin };
   arm(g, B, -1, far[0], far[1], ar);
   const tp = torso(g, B, FOIL);
@@ -515,6 +529,7 @@ const paintKnight = (g: Ctx, F: Frame) => {
   // (the sword: shouldered walking; raised back winding up; out level swinging)
   const a = wind ? -2.3 : swing ? 0.05 : -1.15;
   g.save(); g.translate(near[0], near[1]); g.rotate(a);
+  if (fl) g.scale(0.001, 0.001); // (dropped it)
   part(g, () => { g.moveTo(4, -2); g.lineTo(42, -2); g.lineTo(47, 0); g.lineTo(42, 2); g.lineTo(4, 2); g.closePath(); }, '#D4D8DE', 4, -2, 43, 4, 1);
   px(g, 6, -1, 34, 0.8, '#FFFFFF'); px(g, 6, 0.6, 34, 0.6, '#8E96A3');
   part(g, () => g.rect(2, -6, 3, 12), '#C99A2E', 2, -6, 3, 12, 1);
@@ -540,7 +555,9 @@ const paintIgor = (g: Ctx, F: Frame, kit: 'chef' | 'farm') => {
   legs(g, B, { col: robe, shoe: 'sandal', shoeCol: '#5B3A1E', bareBelow: true });
   const wind = F.pose === 'tell', thrust = F.pose === 'strike';
   const out = thrust ? 18 : wind ? -14 : 0;
-  const far: [number, number] = [B.w / 2 - 2 + out, -36], near: [number, number] = [B.w / 2 + 8 + out, -38];
+  const fl = flailHands(B, F.fr);
+  // (the haft held low, at the hip, both hands on it well down from that low head: jabbed up and out from there)
+  const far: [number, number] = fl ? fl[0] : [B.w / 2 + 1 + out, -32], near: [number, number] = fl ? fl[1] : [B.w / 2 + 11 + out, -33];
   const sl = { sleeve: robe, hand: L.skin, len: 0.8 };
   arm(g, B, -1, far[0], far[1], sl);
   // (the robe to the knees, its ragged hem; the rope belt; the hump)
@@ -567,7 +584,7 @@ const paintIgor = (g: Ctx, F: Frame, kit: 'chef' | 'farm') => {
     partTop(g, () => { g.moveTo(hx - 7, hy - B.ry - 4); g.quadraticCurveTo(hx - 13, hy - B.ry - 14, hx - 3, hy - B.ry - 16); g.quadraticCurveTo(hx + 1, hy - B.ry - 22, hx + 6, hy - B.ry - 15); g.quadraticCurveTo(hx + 14, hy - B.ry - 13, hx + 8, hy - B.ry - 4); g.closePath(); }, '#F8FAFC', hx - 13, hy - B.ry - 22, 27, 18);
   }
   // (the fork: drawn back for the windup, a glint on it; jabbed out for the thrust)
-  if (kit === 'farm') pitchfork(g, near[0] - 2, near[1] + 1, 0, '#8A5A2B', 58, 3);
+  if (fl) { /* (dropped it) */ } else if (kit === 'farm') pitchfork(g, near[0] - 2, near[1] + 1, 0, '#8A5A2B', 58, 3);
   else {
     g.save(); g.translate(near[0] - 2, near[1] + 1);
     limb(g, -14, 0, 18, 0, 3, '#7C4A1E');
@@ -602,8 +619,9 @@ const paintBride = (g: Ctx, F: Frame, kit: 'rush' | 'toss') => {
   // (the wig: long, black, down past the shoulders)
   part(g, () => { g.moveTo(hx - 7, hy - 9); g.quadraticCurveTo(hx - 15, hy, hx - 13, B.shY + 18); g.lineTo(hx - 3, B.shY + 14); g.quadraticCurveTo(hx - 6, hy + 4, hx - 1, hy - 4); g.closePath(); }, '#16121C', hx - 15, hy - 9, 14, 40, 1);
   const sl = { sleeve: gown, hand: L.skin };
-  const far: [number, number] = rush ? [B.w / 2 + 12, -52] : hiss ? [-B.w / 2 - 9, B.shY - 6] : [-B.w / 2 - 1, -36];
-  const near: [number, number] = rush ? [B.w / 2 + 17, -48] : hiss ? [B.w / 2 + 10, B.shY - 8] : toss ? (F.t < 0.75 ? [-4, B.shY - 22] : [B.w / 2 + 10, B.shY - 14]) : kit === 'toss' ? [B.w / 2 + 6, -42] : [B.w / 2 + 2, -35];
+  const fl = flailHands(B, F.fr);
+  const far: [number, number] = fl ? fl[0] : rush ? [B.w / 2 + 12, -52] : hiss ? [-B.w / 2 - 9, B.shY - 6] : [-B.w / 2 - 1, -36];
+  const near: [number, number] = fl ? fl[1] : rush ? [B.w / 2 + 17, -48] : hiss ? [B.w / 2 + 10, B.shY - 8] : toss ? (F.t < 0.75 ? [-4, B.shY - 22] : [B.w / 2 + 10, B.shY - 14]) : kit === 'toss' ? [B.w / 2 + 6, -42] : [B.w / 2 + 2, -35];
   arm(g, B, -1, far[0], far[1], sl);
   // (the skirt, a bell to the floor, its hem in tatters; grime at the hem)
   const hw = B.hipW / 2 + 12, sway = [0, 1, 0, -1, 0, 1][F.fr];
@@ -626,7 +644,7 @@ const paintBride = (g: Ctx, F: Frame, kit: 'rush' | 'toss') => {
   part(g, () => { g.moveTo(hx - 9, hy - 1); g.quadraticCurveTo(hx - 8, hy - 12, hx + 1, hy - 11.5); g.quadraticCurveTo(hx + 9.5, hy - 11, hx + 9.5, hy - 3); g.quadraticCurveTo(hx + 3, hy - 8, hx - 5, hy + 2); g.closePath(); }, '#16121C', hx - 9, hy - 12, 19, 14, 1);
   // (the comb that holds the veil: white flowers)
   for (const [x, y] of [[hx - 5, hy - 10], [hx - 1, hy - 12], [hx - 8, hy - 7]] as const) ball(g, x, y, 1.8, '#F5F5F4', 0.7);
-  if (toss) { g.save(); g.translate(near[0], near[1] - 2); g.rotate(-0.5 + F.t); bouquet(g); g.restore(); }
+  if (fl) { /* (the bouquet's gone) */ } else if (toss) { g.save(); g.translate(near[0], near[1] - 2); g.rotate(-0.5 + F.t); bouquet(g); g.restore(); }
   else if (kit === 'toss') { g.save(); g.translate(near[0] + 2, near[1] - 3); g.rotate(0.3); bouquet(g); g.restore(); }
   arm(g, B, 1, near[0], near[1], sl);
   if (rush || hiss) for (const [x, y] of [far, near]) for (let k = -1; k <= 1; k++) px(g, x + 2, y + k * 2 - 0.5, 3, 1, '#4C0519');
@@ -641,9 +659,10 @@ export const drawBrideCostume = (c: Ctx, w: Wear, kit: 'rush' | 'toss') => {
 
 const RUBBER = '#2E2638';
 const paintBatsuit = (g: Ctx, F: Frame) => {
-  const B = bodyOf(F.seed, 'stand', 0), L = B.L;
+  const held = isHeldPose(F.pose);
+  const B = bodyOf(F.seed, held ? F.pose : 'stand', F.fr), L = B.L;
   const dive = F.pose === 'strike';
-  B.feet = [-3, 2]; B.lift = [2, 0];
+  if (!held) { B.feet = [-3, 2]; B.lift = [2, 0]; }
   legs(g, B, { col: RUBBER, shoe: 'boot', shoeCol: '#18141E' });
   const flap = dive ? 0 : [-12, -4, 6, -4][F.fr];
   // (the wings: membrane from the arm out to the hand and back to the body, scalloped, the struts)
@@ -696,8 +715,10 @@ const paintMummy = (g: Ctx, F: Frame, scale: number) => {
   B.w = 30; B.hipW = 29; B.legW = 9; B.armW = 7.5; B.rx = 9.4;
   legs(g, B, { col: TP, shoe: 'boot', shoeCol: TP, detail: (gg, h, k, f) => { gg.save(); gg.strokeStyle = dk(TP, 0.26); gg.lineWidth = 1; for (let t = 0.15; t < 1; t += 0.22) { const x = h[0] + (f[0] - h[0]) * t, y = h[1] + (f[1] - h[1]) * t; gg.beginPath(); gg.moveTo(x - 4, y - 1); gg.lineTo(x + 4, y + 1); gg.stroke(); } void k; gg.restore(); } });
   const up = F.pose === 'tell', down = F.pose === 'strike';
-  const far: [number, number] = up ? [-4, B.shY - 30] : down ? [B.w / 2 + 16, -30] : [B.w / 2 + 14, -50];
-  const near: [number, number] = up ? [8, B.shY - 32] : down ? [B.w / 2 + 24, -26] : [B.w / 2 + 20, -46];
+  const fl = flailHands(B, F.fr), walk = F.pose === 'walk', sway = F.pose === 'stand' ? F.fr : 0, bob = [0, 1, 2, 1, 0, -1][F.fr % 6];
+  // (idle: arms hanging stiff at its sides; shambling: the mummy's arms out in front, raised at the shoulder)
+  const far: [number, number] = fl ? fl[0] : up ? [-4, B.shY - 30] : down ? [B.w / 2 + 16, -30] : walk ? [B.w / 2 + 16, B.shY + 5 + bob] : [-B.w / 2 - 1 + sway, -30];
+  const near: [number, number] = fl ? fl[1] : up ? [8, B.shY - 32] : down ? [B.w / 2 + 24, -26] : walk ? [B.w / 2 + 22, B.shY + 7 - bob] : [B.w / 2 + 1 - sway, -31];
   const sl = { sleeve: TP, hand: TP, w: B.armW };
   const a1 = arm(g, B, -1, far[0], far[1], { ...sl, sleeve: dk(TP, 0.1), hand: dk(TP, 0.1) });
   void a1;

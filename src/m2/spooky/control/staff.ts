@@ -17,7 +17,7 @@ import { hazardVictims, hazardHit } from '../../hazardHit';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { lookOf } from '../../adventure/temple/people';
-import { moodOf, type Pose } from '../costume';
+import { moodOf, reaction, type Pose } from '../costume';
 import { drawShopStaff, drawMascotCostume, globe } from '../wardrobe';
 import { voice, saidOver } from '../section';
 import { GY } from '../geometry';
@@ -208,14 +208,14 @@ registerM2Kind({
   pointy: { source: PITCHFORK, label: 'FORKED!' },
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -64, r: 9 },
-  draw: (c, e, f) => drawShopStaff(c, 'clerk', { seed: seedOf(e), f, pose: e.aiState === 'jab' && (e.aiTimer ?? 0) >= 10 ? 'stand' : posed(e), md: moodOf(e) }),
+  draw: (c, e, f) => drawShopStaff(c, 'clerk', { seed: seedOf(e), f, ...(reaction(e) ?? { pose: e.aiState === 'jab' && (e.aiTimer ?? 0) >= 10 ? 'stand' : posed(e), md: moodOf(e) }) }),
 });
 
 registerM2Kind({
   kind: HAWKER, stats: { w: 38, h: 66, hp: 70, contact: 6, mass: 200 }, ai: hawkerAI, humanoid: true, grab: 'body',
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -64, r: 9 },
-  draw: (c, e, f) => drawShopStaff(c, 'hawker', { seed: seedOf(e), f, pose: posed(e), md: moodOf(e), t: (e.aiTimer ?? 0) / 24 }),
+  draw: (c, e, f) => drawShopStaff(c, 'hawker', { seed: seedOf(e), f, ...(reaction(e) ?? { pose: posed(e), md: moodOf(e) }), t: (e.aiTimer ?? 0) / 24 }),
 });
 
 registerM2Kind({

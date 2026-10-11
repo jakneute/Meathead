@@ -23,7 +23,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { lookOf } from '../../adventure/temple/people';
-import { moodOf, type Pose } from '../costume';
+import { moodOf, reaction, type Pose, type Mood } from '../costume';
 import { drawIgorCostume, drawMummyCostume, drawBrideCostume, bouquet } from '../wardrobe';
 import { drawCuckooArt, drawRingerArt } from '../critters';
 import { inDanger, clearView } from './hazards';
@@ -263,12 +263,14 @@ const ringerAI = (ctx: FrameContext, e: Enemy): boolean => {
 // Drawing: the costumes (wardrobe.ts, the same igor, mummy and bride as the castle's), the clock's figures (critters.ts)
 
 const moving = (e: Enemy): Pose => (Math.abs(e.vel.x) > 0.2 ? 'walk' : 'stand');
+/** Its pose and face: knocked about (held, flung, dazed, a body) if it is, otherwise what it's doing. */
+const as = (e: Enemy, pose: Pose): { pose: Pose; md: Mood } => reaction(e) ?? { pose, md: moodOf(e) };
 const drawIgor = (c: Ctx, e: Enemy, f: number) =>
-  drawIgorCostume(c, { seed: seedOf(e), f, md: moodOf(e), pose: e.aiState === 'windup' ? 'tell' : e.aiState === 'thrust' ? 'strike' : moving(e) }, 'farm');
+  drawIgorCostume(c, { seed: seedOf(e), f, ...as(e, e.aiState === 'windup' ? 'tell' : e.aiState === 'thrust' ? 'strike' : moving(e)) }, 'farm');
 const drawMummy = (c: Ctx, e: Enemy, f: number) =>
-  drawMummyCostume(c, { seed: seedOf(e), f, md: moodOf(e), pose: e.aiState === 'raise' ? 'tell' : e.aiState === 'swipe' ? 'strike' : moving(e) }, 1.14);
+  drawMummyCostume(c, { seed: seedOf(e), f, ...as(e, e.aiState === 'raise' ? 'tell' : e.aiState === 'swipe' ? 'strike' : moving(e)) }, 1.14);
 const drawBride = (c: Ctx, e: Enemy, f: number) =>
-  drawBrideCostume(c, { seed: seedOf(e), f, md: moodOf(e), pose: e.aiState === 'windup' ? 'tell' : 'stand', t: Math.min(1, (e.aiTimer || 0) / 26) }, 'toss');
+  drawBrideCostume(c, { seed: seedOf(e), f, ...as(e, e.aiState === 'windup' ? 'tell' : 'stand'), t: Math.min(1, (e.aiTimer || 0) / 26) }, 'toss');
 const drawCuckoo = (c: Ctx, e: Enemy, f: number) => drawCuckooArt(c, e, f);
 const drawRinger = (c: Ctx, e: Enemy, f: number) => drawRingerArt(c, e, f);
 
