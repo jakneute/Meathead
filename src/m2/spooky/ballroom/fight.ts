@@ -16,7 +16,7 @@
 //   THE SPEW    ...hangs in the air and sprays the blood back out at Meathead like a machine gun: a stream of it, aimed,
 //               the aim dragging after him (keep moving, jump it).
 //
-// Hurting him: everything but the souvenirs at full damage, as Artie (SHARE), and a boss's usual breather after each hit. His weakness is the
+// Hurting him: anything but his weakness barely does (SHARE: every land boss's way), and a boss's usual breather after each hit. His weakness is the
 // SOUVENIR LAUNCHER, and only one souvenir in its bag: CHRIST THE REDEEMER. That one stuns him (down out of the air,
 // smoking, on his backside: the window) and takes a big chunk off. The rest of the bag hits him like anything else
 // (SHARE). And any time one of the lesser souvenirs could finish him (at his health now, counting the ones already in
@@ -62,9 +62,9 @@ const pick = pickLine;
 
 /** His health (Meathead 1's bosses'), and the enemy's (never runs out: the hits are taken off ours). */
 const HP = 666, BIG = 100000;
-/** Most weapons: what of their usual damage gets through (all of it, as Artie; at least 1); after each hit, a boss's breather (the
+/** Most weapons: what of their usual damage gets through (a land boss shrugs off what isn't his weakness; at least 1); after each hit, a boss's breather (the
  *  standard one, as every boss has it: blinking, nothing lands). */
-const SHARE = 1, IFRAMES = ENEMY_HIT_COOLDOWN;
+const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
 /** The launcher's other souvenirs (it hits hard, and they bounce back for more): a smaller share (the Redeemer's the
  *  point of it, not the rest of the bag); the same breather. */
 const SOUV_SHARE = 0.15, SOUV_IFRAMES = ENEMY_HIT_COOLDOWN;

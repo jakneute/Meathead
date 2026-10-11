@@ -88,6 +88,8 @@ const SPIT_EVERY = [0, 170, 140, 110], SPIT_AIM = 24;
 const TRAMPLE_DMG = 150;
 /** The litter's bites, on him: only this share of each (one of them's nothing to him; it's what they do to him). */
 const NIBBLE_SHARE = 0.2;
+/** Anything but his weakness (the spawner): this share of its usual damage gets through (every land boss's way). */
+const SHARE = 0.35;
 /** His vine: how much chewing it takes (it's the same vine each time he goes up, till it's chewed through). */
 const VINE_HP = 30;
 /** Hanging off it: how much vine there is above his hands (what they can get at). */
@@ -877,7 +879,9 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // breather or not. Flying at him on a lunge, nothing stops him: it's to be got out of the way of)
   const knockable = melee && (inBush(f) || f.mode === 'coil');
   if (f.iframes <= 0) {
-    f.hp -= hit; f.iframes = IFRAMES; f.flash = 10;
+    // (his weakness's own shots in full; anything else, a land boss shrugs most of it off)
+    const weak = !melee && state.player.currentWeapon === 'SPAWNER';
+    f.hp -= Math.max(1, hit * (weak ? 1 : SHARE)); f.iframes = IFRAMES; f.flash = 10;
     if (f.hp <= 0) { f.byWeakness = aliensOn(e) > 0; return; }
   }
   if (knockable) knock(ctx, f, true);
