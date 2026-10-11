@@ -21,13 +21,13 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
-import { box, label } from '../section';
+import { box, text, slab, pole, ball, bandedGradient, stamp } from '../../intro/art/kit';
 import { drawPerson } from '../../adventure/temple/people';
 import { GY } from '../geometry';
 import { DOCK_X, BOOTH_X, SHU, SHD, B1, CH0, HELL_AT, CAR_TOP, CAR_W, CAR_H, SEATS } from './layout';
 
 type Ctx = CanvasRenderingContext2D;
-const INK = '#0C0A09';
+const INK = '#1A0B06', BRASS = '#B8862E';
 
 export type CarPhase = 'under' | 'lift' | 'board' | 'roll' | 'wait' | 'rise' | 'top' | 'cross' | 'hold' | 'drop' | 'unload' | 'return' | 'plunge';
 export interface Rider { seed: number; woman: boolean; boardAt: number }
@@ -219,21 +219,45 @@ export const drawWalkers = (c: Ctx, car: Car, frame: number) => {
   });
 };
 
-/** The car (world space; its floor at its y, its middle at its x), with whoever's sat in it: gripping going up, arms
- *  up coming down; the gate (open or shut), the lap bars. */
+/** The car's shell behind the riders (its middle at the origin, its floor at 0): the back wall in red velvet panels,
+ *  the brass posts, the crown on top with its floor dial (B, HELL). Stamped. */
+const paintShell = (g: Ctx) => {
+  const l = -CAR_W / 2, top = -CAR_H;
+  box(g, l - 2, top - 2, CAR_W + 4, CAR_H + 4, INK);
+  bandedGradient(g, l, top, CAR_W, CAR_H, ['#2A0A0E', '#4A1218', '#3A0E12'], 5);
+  for (let x = l + 8; x < l + CAR_W - 8; x += 36) { box(g, x, top + 10, 28, CAR_H - 30, '#5A161C'); box(g, x, top + 10, 28, 2, '#7A2228'); box(g, x, top + 10, 2, CAR_H - 30, '#6A1C22'); box(g, x + 26, top + 10, 2, CAR_H - 30, '#2A080C'); }
+  box(g, l, top + CAR_H - 22, CAR_W, 2, '#C8962E');
+  // (the crown: a brass cornice, an arch, the floor dial)
+  slab(g, l - 8, top - 16, CAR_W + 16, 18, BRASS, { edge: 2 });
+  for (let x = l - 4; x < l + CAR_W + 4; x += 12) box(g, x, top - 8, 6, 4, '#7A5414');
+  g.fillStyle = INK; g.beginPath(); g.arc(0, top - 16, 27, Math.PI, 0); g.fill();
+  g.fillStyle = '#9A6C1E'; g.beginPath(); g.arc(0, top - 16, 25, Math.PI, 0); g.fill();
+  g.fillStyle = '#F2E6C4'; g.beginPath(); g.arc(0, top - 16, 19, Math.PI, 0); g.fill();
+  text(g, 'B', -11, top - 21, '#1A0B06', 6, 'center', null); text(g, 'HELL', 7, top - 25, '#9A1414', 5, 'center', null);
+  ball(g, 0, top - 44, 4, BRASS);
+  for (const x of [l - 8, l + CAR_W + 4]) ball(g, x + 2, top - 18, 3, BRASS);
+};
+/** Its front frame (over the riders): the posts, the sill. Stamped. */
+const paintFrame = (g: Ctx) => {
+  const l = -CAR_W / 2, top = -CAR_H;
+  pole(g, l - 6, top, 6, CAR_H, BRASS); pole(g, l + CAR_W, top, 6, CAR_H, BRASS);
+  slab(g, l - 8, -6, CAR_W + 16, 12, BRASS, { edge: 2 });
+  for (let x = l; x < l + CAR_W; x += 20) box(g, x, -2, 10, 3, '#6A4610');
+};
+
+/** The car (world space; its floor at its y, its middle at its x), with whoever's in it: gripping going up, arms up
+ *  coming down; the gate (a brass scissor gate, open or shut), the lap bar. */
 export const drawCar = (c: Ctx, car: Car, frame: number) => {
   const x = Math.round(car.x), y = Math.round(car.y), l = x - CAR_W / 2, top = y - CAR_H;
   const falling = car.phase === 'drop' || car.phase === 'plunge';
   const tense = car.phase === 'rise' || car.phase === 'hold' || car.phase === 'wait';
-  // (a blur coming down: streaks up off it)
-  if (falling && car.vy > 9) { c.fillStyle = 'rgba(253,230,138,0.35)'; for (let i = 0; i < 6; i++) c.fillRect(l + 10 + i * 26, top - 30 - car.vy * 5, 3, car.vy * 5); }
+  // (coming down fast: speed lines up off it, crisp)
+  if (falling && car.vy > 9) for (let i = 0; i < 6; i++) { const h = car.vy * 4 + (i % 3) * 16; box(c, l + 10 + i * 26, top - 22 - h, 2, h, i % 2 ? '#5A5A70' : '#8A8AA0'); }
   // (the cable up out of it, in the shaft)
-  if (tense) box(c, x - 2, top - 3000, 4, 3000, '#27272A');
-  // the cage: an old brass elevator car (the ride's look), its back wall, the riders, its gate in front of them
-  box(c, l - 1, top - 1, CAR_W + 2, CAR_H + 2, INK); box(c, l, top, CAR_W, CAR_H, '#1C1917');
-  box(c, l - 6, top - 14, CAR_W + 12, 16, '#B45309'); box(c, l - 6, top - 14, CAR_W + 12, 3, '#FBBF24');
-  box(c, l + CAR_W / 2 - 22, top - 34, 44, 20, '#7F1D1D'); label(c, 'B', x - 10, top - 20, '#FDE68A', 8); label(c, 'HELL', x + 10, top - 20, '#FCA5A5', 6);
-  box(c, l - 6, y - 4, CAR_W + 12, 10, '#B45309');
+  if (tense) { box(c, x - 3, top - 3000, 6, 2956, INK); box(c, x - 2, top - 3000, 2, 2956, '#5A5A64'); }
+  c.save(); c.translate(x, y);
+  stamp(c, 'tw-car-shell', -CAR_W / 2 - 12, -CAR_H - 50, CAR_W + 24, CAR_H + 52, paintShell);
+  c.restore();
   car.riders.forEach((rd, i) => {
     if (riderAt(car, i).state !== 'in') return;
     c.save();
@@ -242,13 +266,24 @@ export const drawCar = (c: Ctx, car: Car, frame: number) => {
     drawPerson(c, { seed: rd.seed, woman: rd.woman, outfit: 'guest', f: frame + i * 7, pose: falling ? 'fly' : 'stand', mood: falling ? (car.real ? 'shocked' : 'happy') : tense ? 'scared' : 'happy' });
     c.restore();
   });
-  // the lap bar (down over the riders' laps, or up out of the way), the gate (slid shut, or open, bunched at the side)
+  // the lap bar (down over the riders' laps, or up out of the way)
   const bars = barsOf(car), gate = gateOf(car);
-  box(c, l, y - 34 - (1 - bars) * 40, CAR_W, 6, '#92400E');
-  const gw = CAR_W * gate;
-  for (let gx = l + 4; gx < l + Math.max(14, gw); gx += Math.max(3, 12 * gate)) box(c, gx, top + 40, 3, CAR_H - 44, '#D97706');
-  box(c, l, top + 40, CAR_W, 4, '#FBBF24');
-  box(c, l - 6, top, 6, CAR_H, '#92400E'); box(c, l + CAR_W, top, 6, CAR_H, '#92400E');
+  const by = y - 34 - (1 - bars) * 40;
+  box(c, l, by - 1, CAR_W, 8, INK); box(c, l, by, CAR_W, 6, '#7A1A1A'); box(c, l, by, CAR_W, 2, '#B8343A');
+  // the gate: a scissor gate slid shut across the front, or bunched up at the side
+  const gw = Math.max(12, CAR_W * gate), gy = top + 40, gh = CAR_H - 46;
+  const cells = Math.max(1, Math.round(gw / 14)), cw = gw / cells;
+  c.strokeStyle = INK; c.lineWidth = 3; c.beginPath();
+  for (let k = 0; k < cells; k++) { const gx = l + k * cw; c.moveTo(gx, gy); c.lineTo(gx + cw, gy + gh); c.moveTo(gx + cw, gy); c.lineTo(gx, gy + gh); }
+  c.stroke();
+  c.strokeStyle = '#D8A040'; c.lineWidth = 1; c.beginPath();
+  for (let k = 0; k < cells; k++) { const gx = l + k * cw; c.moveTo(gx, gy); c.lineTo(gx + cw, gy + gh); c.moveTo(gx + cw, gy); c.lineTo(gx, gy + gh); }
+  c.stroke();
+  for (let k = 0; k <= cells; k++) box(c, l + k * cw - 1, gy, 3, gh, '#9A6C1E');
+  box(c, l, gy - 2, gw, 4, INK); box(c, l, gy - 1, gw, 2, '#E8B84A');
+  c.save(); c.translate(x, y);
+  stamp(c, 'tw-car-frame', -CAR_W / 2 - 12, -CAR_H - 4, CAR_W + 24, CAR_H + 14, paintFrame);
+  c.restore();
 };
 
 export { LIFT_FOOT };

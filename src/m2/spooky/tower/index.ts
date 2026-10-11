@@ -699,7 +699,7 @@ export const tower: SpookySection = {
     // (about a point under the middle of the screen: it sways as well as tips)
     return { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT / 2 + 260, angle };
   },
-  drawBackdrop: (c) => { drawTowerBackdrop(c); return true; },
+  drawBackdrop: (c, state) => { drawTowerBackdrop(c, state); return true; },
   drawBack: (c, state) => {
     const t = towerOf(state);
     drawTowerBack(c, state, { rot: t.rot, ride: t.ride, broken: brokenOf(t), beamHp: t.beamHp, crashed: t.crashed, nets: t.nets, grate: t.grate, b1: t.b1, opTalking: !!t.opSaid, lamp: lampOn(t.ride, t.crashed) });

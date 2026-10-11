@@ -13,6 +13,7 @@ import { registerHurtLines } from '../../kinds';
 import { isMidBoss } from '../../../m1/game/combat/midBoss';
 import type { Enemy } from '../../../m1/types';
 import { box } from '../section';
+import { ball, rampOf } from '../../intro/art/kit';
 import { setHazardZones } from '../../hazardHit';
 import { GEARS, PENDULUMS, TX0, TX1, F, U, STORY, SLAB, STORIES, ROOF, BLADE_U, type GearDef, type PendDef } from './layout';
 import { HURT_GEAR, DEATH_GEAR, HURT_PENDULUM, DEATH_PENDULUM, HURT_DEBRIS, DEATH_DEBRIS, HURT_CAR, DEATH_CAR } from './lines';
@@ -106,22 +107,32 @@ const runGears = (ctx: FrameContext, crashed: boolean) => {
     return;
   }
 };
-/** A gear: the teeth (outlined), the rim, the spokes, the hub. */
-export const drawGear = (c: Ctx, x: number, y: number, r: number, a: number, col = '#A16207', hub = '#57534E') => {
-  c.save(); c.translate(Math.round(x), Math.round(y)); c.rotate(a);
+/** A gear: the teeth (outlined, lit at the tips), the rim stepped round (lit upper left, whatever way it's turned),
+ *  the web sunk between the spokes, lightening holes, the hub. */
+export const drawGear = (c: Ctx, x: number, y: number, r: number, a: number, col = '#B07E22', hub = '#5A5A62') => {
+  const rp = rampOf(col);
+  x = Math.round(x); y = Math.round(y);
+  c.save(); c.translate(x, y); c.rotate(a);
   const n = Math.max(8, Math.round(r / 4));
   c.fillStyle = INK;
   for (let i = 0; i < n; i++) { c.save(); c.rotate((i / n) * Math.PI * 2); c.fillRect(-5, -r - 1, 10, 12); c.restore(); }
   c.beginPath(); c.arc(0, 0, r - 5, 0, Math.PI * 2); c.fill();
-  c.fillStyle = col;
-  for (let i = 0; i < n; i++) { c.save(); c.rotate((i / n) * Math.PI * 2); c.fillRect(-4, -r, 8, 10); c.restore(); }
-  c.beginPath(); c.arc(0, 0, r - 6, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#1C1917'; c.beginPath(); c.arc(0, 0, r - 13, 0, Math.PI * 2); c.fill();
-  c.fillStyle = col;
-  for (let i = 0; i < 4; i++) { c.save(); c.rotate((i / 4) * Math.PI * 2); c.fillRect(-3, -r + 10, 6, r - 10); c.restore(); }
-  c.fillStyle = hub; c.beginPath(); c.arc(0, 0, r * 0.3, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#FDE68A'; c.fillRect(-r + 7, -2, 5, 3);
+  for (let i = 0; i < n; i++) { c.save(); c.rotate((i / n) * Math.PI * 2); c.fillStyle = rp[2]; c.fillRect(-4, -r, 8, 10); c.fillStyle = rp[4]; c.fillRect(-4, -r, 8, 2); c.restore(); }
   c.restore();
+  // (the rim: rings, lit from the upper left: not turned with it)
+  c.save(); c.translate(x, y);
+  c.fillStyle = rp[1]; c.beginPath(); c.arc(0, 0, r - 6, 0, Math.PI * 2); c.fill();
+  c.fillStyle = rp[2]; c.beginPath(); c.arc(-1, -1, r - 7, 0, Math.PI * 2); c.fill();
+  c.fillStyle = rp[3]; c.beginPath(); c.arc(0, 0, r - 7, Math.PI * 0.95, Math.PI * 1.55); c.arc(0, 0, r - 10, Math.PI * 1.55, Math.PI * 0.95, true); c.fill();
+  c.fillStyle = '#1A140C'; c.beginPath(); c.arc(0, 0, r - 13, 0, Math.PI * 2); c.fill();
+  c.restore();
+  // (the spokes, turning; their lit edge)
+  c.save(); c.translate(x, y); c.rotate(a);
+  for (let i = 0; i < 4; i++) { c.save(); c.rotate((i / 4) * Math.PI * 2); c.fillStyle = INK; c.fillRect(-4, -r + 11, 8, r - 11); c.fillStyle = rp[2]; c.fillRect(-3, -r + 12, 6, r - 12); c.fillStyle = rp[3]; c.fillRect(-3, -r + 12, 2, r - 12); c.restore(); }
+  c.fillStyle = rp[0]; c.fillRect(-r + 9, -1, 4, 2);
+  c.restore();
+  ball(c, x, y, Math.max(3, r * 0.3), hub);
+  box(c, x - 1, y - 1, 2, 2, INK);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -174,32 +185,56 @@ const runPendulums = (ctx: FrameContext, crashed: boolean) => {
     }
   }
 };
+const BLADE = ['#2A2A32', '#4A4A54', '#6E6E7A', '#9A9AA6', '#D8D8E2', '#FFFFFF'];
 const drawBlade = (c: Ctx, cy: number) => {
-  // a big crescent, the sharp edge down; inked, a lit edge
-  c.fillStyle = INK; c.beginPath(); c.arc(0, cy, 37, 0.1, Math.PI - 0.1); c.closePath(); c.fill();
-  c.fillStyle = '#52525B'; c.beginPath(); c.arc(0, cy, 34, 0.15, Math.PI - 0.15); c.closePath(); c.fill();
-  c.fillStyle = '#E4E4E7'; c.beginPath(); c.arc(0, cy, 34, 0.25, Math.PI - 0.25); c.arc(0, cy, 28, Math.PI - 0.25, 0.25, true); c.closePath(); c.fill();
-  box(c, -7, cy - 6, 14, 12, '#3F3F46'); box(c, -7, cy - 6, 14, 2, '#71717A');
+  // a big crescent, the sharp edge down: inked, stepped from the dark back to the bright honed edge; a rust spot, a bolt
+  const cres = (r: number, a0: number, a1: number) => { c.beginPath(); c.arc(0, cy, r, a0, a1); c.closePath(); };
+  c.fillStyle = INK; cres(37, 0.08, Math.PI - 0.08); c.fill();
+  c.fillStyle = BLADE[1]; cres(35, 0.12, Math.PI - 0.12); c.fill();
+  c.fillStyle = BLADE[2]; c.beginPath(); c.arc(0, cy, 35, 0.2, Math.PI - 0.2); c.arc(0, cy, 20, Math.PI - 0.2, 0.2, true); c.closePath(); c.fill();
+  c.fillStyle = BLADE[3]; c.beginPath(); c.arc(0, cy, 35, 0.25, Math.PI - 0.25); c.arc(0, cy, 29, Math.PI - 0.25, 0.25, true); c.closePath(); c.fill();
+  c.fillStyle = BLADE[4]; c.beginPath(); c.arc(0, cy, 35, 0.3, Math.PI - 0.3); c.arc(0, cy, 32, Math.PI - 0.3, 0.3, true); c.closePath(); c.fill();
+  // (the glint along the edge, the back's shadow)
+  box(c, -14, cy + 31, 8, 2, BLADE[5]);
+  box(c, -26, cy + 6, 52, 2, BLADE[0]);
+  box(c, 10, cy + 14, 4, 3, '#7A3A1A');
+  box(c, -8, cy - 7, 16, 14, INK); box(c, -7, cy - 6, 14, 12, '#3A3A42'); box(c, -7, cy - 6, 14, 2, '#7A7A86'); box(c, -2, cy - 2, 4, 4, '#9A9AA6');
+};
+/** The rod: iron, stepped across (it turns with the swing). */
+const drawRod = (c: Ctx, len: number) => {
+  box(c, -5, 0, 10, len, INK);
+  box(c, -4, 0, 2, len, '#9A948A'); box(c, -2, 0, 3, len, '#78716C'); box(c, 1, 0, 3, len, '#57534E');
+  for (let y = 40; y < len - 30; y += 70) { box(c, -6, y, 12, 6, INK); box(c, -5, y + 1, 10, 4, '#5A5A62'); box(c, -5, y + 1, 10, 1, '#9A9AA6'); }
 };
 export const drawPendulum = (c: Ctx, p: PendDef, frame: number, crashed: boolean) => {
   // the pivot (its bracket on the ceiling)
-  box(c, p.x - 14, p.y - 2, 28, 12, INK); box(c, p.x - 12, p.y, 24, 8, '#57534E');
+  box(c, p.x - 15, p.y - 3, 30, 14, INK); box(c, p.x - 14, p.y - 2, 28, 12, '#4A4A52'); box(c, p.x - 14, p.y - 2, 28, 2, '#8A8A96');
+  box(c, p.x - 2, p.y + 2, 4, 4, '#9A9AA6');
   const b = pendAt(p, frame, crashed);
   if (!b) {
     // (snapped: a stub of rod off the bracket; the rest down in the floor, the blade stuck up out of it)
-    box(c, p.x - 3, p.y + 8, 6, 40, '#78716C');
+    c.save(); c.translate(p.x, p.y + 8); drawRod(c, 40); c.restore();
+    box(c, p.x - 5, p.y + 46, 10, 4, '#9A948A');
     c.save(); c.translate(U(BLADE_U), F(2) + 10); c.rotate(Math.PI + 0.25);
     drawBlade(c, 0);
-    box(c, -3, 30, 6, 130, '#78716C');
+    c.save(); c.translate(0, 30); drawRod(c, 130); c.restore();
     c.restore();
     return;
   }
-  if ('still' in b) { box(c, b.x - 2, p.y, 4, b.y - p.y - 20, '#52525B'); for (let y = p.y; y < b.y - 20; y += 10) box(c, b.x - 3, y, 6, 4, '#71717A'); }
-  // (a smear behind the blade at speed)
-  const prev = pendAt(p, frame - 3, crashed)!;
-  if (!('still' in b)) c.globalAlpha = 0.18; else c.globalAlpha = 0; c.fillStyle = '#E4E4E7'; c.beginPath(); c.arc(prev.x, prev.y, 30, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+  if ('still' in b) {
+    // (tied back up out of the way: a rope round it to a cleat on the ceiling)
+    c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(b.x, b.y - 20); c.lineTo(b.x - 2, p.y); c.stroke();
+    c.strokeStyle = '#B8A27A'; c.lineWidth = 1; c.beginPath(); c.moveTo(b.x, b.y - 20); c.lineTo(b.x - 2, p.y); c.stroke();
+  } else {
+    // (its afterimages at speed: two ghost blades back along the swing, crisp, not a blur)
+    const speed = Math.abs(b.a - pendAt(p, frame - 3, crashed)!.a);
+    if (speed > 0.06) for (const [k, al] of [[6, 0.12], [3, 0.22]] as [number, number][]) {
+      const q = pendAt(p, frame - k, crashed)!;
+      c.save(); c.globalAlpha = al; c.translate(p.x, p.y); c.rotate(-q.a); drawBlade(c, p.len - 14); c.restore();
+    }
+  }
   c.save(); c.translate(p.x, p.y); c.rotate(-b.a);
-  box(c, -4, 0, 8, p.len - 10, INK); box(c, -3, 0, 6, p.len - 10, '#78716C'); box(c, -1, 0, 2, p.len - 10, '#A8A29E');
+  drawRod(c, p.len - 10);
   drawBlade(c, p.len - 14);
   c.restore();
 };
@@ -255,14 +290,15 @@ const runDebris = (ctx: FrameContext, list: Debris[], broken: number) => {
 };
 export const drawDebris = (c: Ctx, list: Debris[]) => {
   for (const d of list) {
-    // (its shadow on the floor, growing as it comes)
-    const k = d.tell > 0 ? 1 - d.tell / TELL : 1;
-    c.fillStyle = `rgba(0,0,0,${0.25 + 0.3 * k})`; c.beginPath(); c.ellipse(d.x, d.floor - 1, 6 + 10 * k, 3 + 1.5 * k, 0, 0, Math.PI * 2); c.fill();
-    if (d.tell > 0) { box(c, d.x - 8, d.y - 4, 16, 3, INK); continue; }
+    // (its shadow on the floor, growing as it comes: stepped)
+    const k = d.tell > 0 ? 1 - d.tell / TELL : 1, w = Math.round(6 + 10 * k);
+    box(c, d.x - w, d.floor - 3, w * 2, 3, 'rgba(0, 0, 0, 0.3)');
+    box(c, d.x - w * 0.6, d.floor - 3, w * 1.2, 3, `rgba(0, 0, 0, ${(0.2 + 0.3 * k).toFixed(2)})`);
+    if (d.tell > 0) { box(c, d.x - 9, d.y - 5, 18, 5, INK); box(c, d.x - 8, d.y - 4, 16, 3, '#57534E'); box(c, d.x - 8 + (d.tell % 4), d.y - 1, 2, 2, '#A8A29E'); continue; }
     c.save(); c.translate(Math.round(d.x), Math.round(d.y)); c.rotate(d.rot);
-    if (d.kind === 0) { box(c, -10, -6, 20, 12, INK); box(c, -9, -5, 18, 10, '#9A3412'); box(c, -9, -5, 18, 2, '#C2410C'); }
-    else if (d.kind === 1) { box(c, -5, -9, 10, 18, INK); box(c, -4, -8, 8, 16, '#52525B'); box(c, -7, -8, 14, 4, '#71717A'); }
-    else { box(c, -2, -16, 4, 32, INK); box(c, -5, -18, 10, 6, INK); box(c, -1, -14, 2, 26, '#CA8A04'); }
+    if (d.kind === 0) { box(c, -11, -7, 22, 14, INK); box(c, -10, -6, 20, 12, '#8A3412'); box(c, -10, -6, 20, 3, '#C2501A'); box(c, -10, -6, 3, 12, '#B0441A'); box(c, -10, 3, 20, 3, '#5A200C'); box(c, -2, -2, 4, 2, '#5A200C'); }
+    else if (d.kind === 1) { box(c, -6, -10, 12, 20, INK); box(c, -5, -9, 10, 18, '#52525B'); box(c, -5, -9, 3, 18, '#8A8A96'); box(c, -8, -10, 16, 5, INK); box(c, -7, -9, 14, 3, '#71717A'); box(c, -7, -9, 14, 1, '#B8B8C4'); }
+    else { box(c, -3, -17, 6, 34, INK); box(c, -6, -19, 12, 7, INK); box(c, -2, -15, 4, 28, '#8A6418'); box(c, -2, -15, 1, 28, '#E8B84A'); box(c, -5, -18, 10, 5, '#B8862E'); }
     c.restore();
   }
 };
