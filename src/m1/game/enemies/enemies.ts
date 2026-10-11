@@ -116,7 +116,7 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
     // (killed against it: gone, unless he's a body sliding down it now)
     // (a jetpack man coming in through his window, or going out of it, passes through the wall there)
     const throughWindow = e.kind === 'jetagent' && (e.aiState === 'enter' || e.aiState === 'flee');
-    if (!throughWindow && slamIntoWalls(ctx, e, shoveSpeed)) return !!e.isBlownAway;
+    if (!throughWindow && slamIntoWalls(ctx, e, shoveSpeed, xWas)) return !!e.isBlownAway;
     if (!e.isOiled && isBeingShoved(e) && (!e.enemyCollisionCooldown || e.enemyCollisionCooldown <= 0)) {
       resolveShoveCollision(ctx, e, enemies);
     }
@@ -1413,21 +1413,27 @@ const thawBurst = (ctx: FrameContext, e: Enemy, dir: number, at: { x: number; y:
 };
 
 /** Knocked into a wall: damage scales with speed (hugely if frozen). Returns true if it died. */
-const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
+const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number, xWas = e.pos.x - speed): boolean => {
   const { state, fx } = ctx;
   if ((e.pauseTimer || 0) <= 0 && Math.abs(speed) < 1) return false;
   // Only walls hit side-on: a ceiling it was launched up into isn't one (it would get
   // teleported to the end of the ceiling block). Where it was before this move tells which.
-  const prevMidX = e.pos.x + e.width / 2 - speed;
-  const wall = state.blocks.find(b => (b.type === 'wall' || (b.type === 'door' && state.doorState !== 'opening' && state.doorState !== 'open' && state.doorState !== 'closing'))
-    && rectsOverlap(boundsOf(e), b) && !(prevMidX > b.x && prevMidX < b.x + b.w)
+  const prevMidX = xWas + e.width / 2;
+  // (swept: the whole stretch it moved this frame, so a hard shove can't carry it clean through a thin or short wall,
+  // or so far into one its middle's past the wall's and it's put out the far side)
+  const sx0 = Math.min(xWas, e.pos.x), sx1 = Math.max(xWas, e.pos.x) + e.width;
+  const sweep = { x: sx0, y: e.pos.y, w: sx1 - sx0, h: e.height };
+  const wall = state.blocks.filter(b => (b.type === 'wall' || (b.type === 'door' && state.doorState !== 'opening' && state.doorState !== 'open' && state.doorState !== 'closing'))
+    && rectsOverlap(sweep, b) && !(prevMidX > b.x && prevMidX < b.x + b.w)
     // (one it's stood on top of, or coming down onto, is its floor, not a wall: a rock step, a wall's top)
-    && b.y < e.pos.y + e.height - 8 - Math.max(0, e.vel.y));
+    && b.y < e.pos.y + e.height - 8 - Math.max(0, e.vel.y))
+    // (the first one it came to)
+    .sort((a, b) => (e.pos.x >= xWas ? a.x - b.x : (b.x + b.w) - (a.x + a.w)))[0];
   if (!wall) return false;
 
-  // (the side of it it's on: by where its middle is, not which way it's going; one just catching the edge of a wall
-  // it's dropping away from isn't put through to the far side of it)
-  const dir = e.pos.x + e.width / 2 < wall.x + wall.w / 2 ? 1 : -1;
+  // (the side of it it's on: by where its middle was before this move, not where the shove's put it; one just catching
+  // the edge of a wall it's dropping away from isn't put through to the far side of it)
+  const dir = prevMidX < wall.x + wall.w / 2 ? 1 : -1;
   e.pos.x = dir > 0 ? wall.x - e.width : wall.x + wall.w;
   e.vel.x = 0;
   // Only a shove (or a blast) slams it into the wall; walking into one under its own steam it just stops there
