@@ -111,7 +111,7 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
       if (state.blocks.some(b => b.type !== 'pit' && b.type !== 'platform' && !b.oneWay && !b.grating && rectsOverlap(box, b))) {
         const fx0 = p.vel.x > 0 ? p.pos.x + p.width : p.pos.x, fy0 = p.pos.y + p.height / 2;
         for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: fx0, y: fy0 }, vel: { x: -Math.sign(p.vel.x || 1) * Math.random() * 2.5, y: (Math.random() - 0.5) * 3 }, life: 10 + Math.random() * 10, color: i % 3 ? '#FF6FD8' : '#FFFFFF', size: 2 + Math.random() * 2 });
-        fx.playGunSound('click');
+        fx.playGunSound('rayFizzle');
         return false;
       }
     }

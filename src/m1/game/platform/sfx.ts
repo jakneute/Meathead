@@ -229,6 +229,12 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.35, vary: 1, gap: 40,
     make: () => render(0.05, t => (Math.sin(TAU * 3200 * t) * 0.6 + rnd() * 0.4) * ex(t, 120) + (t > 0.018 && t < 0.024 ? rnd() * 0.5 : 0)),
   },
+  rayFizzle: {
+    // The ray gun's bolt dying on a wall: a soft electric sizzle (a buzz sagging down, crackle on it) and it's gone,
+    // no bright ring (a ping off a wall reads as the game saying no)
+    gain: 0.3, vary: 1.5, gap: 60,
+    make: () => { const bp = bandpass(), lp = lowpass(), sp = crackle(0.25); let ph = 0; return render(0.2, t => { ph += (240 * ex(t, 9) + 70) / SFX_SR; const buzz = Math.sign(Math.sin(TAU * ph)) * 0.35 + Math.sin(TAU * ph * 2) * 0.2; return lp(buzz, 1400) * Math.min(1, t / 0.004) * ex(t, 16) + bp(rnd(), 2600, 0.6) * ex(t, 22) * 0.6 + sp() * ex(t, 14) * 0.35; }); },
+  },
   // ---- Dry fire: fire pressed with nothing left in it (combat/dryFire.ts), one apiece ----
   dry_lmg: {
     // The bolt slamming home on nothing (clack-clack), and one spent casing bouncing away on the floor (tink, tink, tik)

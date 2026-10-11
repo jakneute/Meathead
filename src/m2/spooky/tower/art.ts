@@ -292,7 +292,7 @@ const drawUnder = (c: Ctx, f: number, look: TowerLook, v: { y0: number; y1: numb
   box(c, -21, -81, 42, 82, INK); box(c, -20, -80, 40, 80, '#B91C1C'); box(c, -14, -70, 6, 6, '#FDE047'); box(c, 8, -70, 6, 6, '#FDE047'); box(c, -10, -52, 20, 4, INK);
   c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(-20, -80); c.lineTo(-26, -100); c.lineTo(-10, -80); c.moveTo(20, -80); c.lineTo(26, -100); c.lineTo(10, -80); c.fill();
   c.restore();
-  wallSign(c, CH1 - 90, GY + 110, 'HELL (FACSIMILE)', '#7F1D1D', '#FDE68A');
+  wallSign(c, CH1 - 90, GY + 110, 'FAKE HELL', '#7F1D1D', '#FDE68A');
   wallSign(c, CH0 + 160, GY + 70, '< GIFT SHOP', '#14532D', '#BBF7D0');
   // its floor (a lit lip): whole, or broken through in the middle
   const floor = (a: number, b: number) => { box(c, a, B1, b - a, 30, '#3F0D0D'); box(c, a, B1, b - a, 4, '#F87171'); };
