@@ -24,8 +24,10 @@ export interface Hell {
   landBeat: number;
   demon: Demon | null;
   fin: Finale | null;
+  /** How far the camera's held to the demon's pit (0..1: eased in as the walls go up, out as they come down). */
+  camLock: number;
 }
 
 export const hellOf = (state: GameState) => spookyState<Hell>(state, 'hell', () => ({
-  shots: [], crumbles: [], carIn: 900, car: null, piled: [], falling: false, landed: false, landBeat: 0, lavaSaid: false, carSaid: false, demon: null, fin: null,
+  shots: [], crumbles: [], carIn: 900, car: null, piled: [], falling: false, landed: false, landBeat: 0, lavaSaid: false, carSaid: false, demon: null, fin: null, camLock: 0,
 }));

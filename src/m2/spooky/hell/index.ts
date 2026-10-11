@@ -28,9 +28,10 @@ import {
 import { hellOf } from './state';
 import { HELL_KINDS } from './kinds';
 import { buildHazards, updateHazards, drawLava, drawHazards, drawHazardsFront } from './hazards';
-import { buildDemon, updateDemon, drawDemon, drawDemonSaid, drawDemonHud, drawFireWall, demonOf, DONE_CP } from './demon';
+import { demonCamLock, buildDemon, updateDemon, drawDemon, drawDemonSaid, drawDemonHud, drawFireWall, demonOf, DONE_CP } from './demon';
 import { startFinale, startVent, runFinale, finaleZoom, drawSatan, drawGeyser, drawFinaleHud } from './satan';
 import { drawHellBackdrop, drawHellWorld, drawLake } from './art';
+import { drawGatesBack, drawGatesFront } from './gates';
 import { MH_LANDED, MH_BODIES, MH_LAVA } from './lines';
 import { startFreefall, stepFreefall, landFreefall, drawFallDark, FREEFALL_LAND } from '../freefall';
 
@@ -38,6 +39,8 @@ import { startFreefall, stepFreefall, landFreefall, drawFallDark, FREEFALL_LAND 
 const PIT_CAM = 190, PIT_HOLD = 880;
 /** The landing beat after the fall down the shaft (frames) before he's his own again. */
 const LAND_BEAT = 42;
+/** The demon's pit's camera hold, the last it was (to ease out of once the walls are down). */
+let lastLock: { min: number; max: number } | null = null;
 const pick = pickLine;
 
 /** Who's where: [kind, x, the floor under it (or, flying, how high)]. Each kind on its own first, where its type
@@ -102,6 +105,8 @@ export const hell: SpookySection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, h = hellOf(state);
     // The cutscene after the demon (and the vent's geyser): it has the controls
+    // (the camera held to the demon's pit while it's shut: eased in, eased out)
+    h.camLock = Math.max(0, Math.min(1, h.camLock + (demonCamLock(state) ? 0.04 : -0.04)));
     const fin = runFinale(ctx);
     if (fin) return fin;
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
@@ -155,7 +160,19 @@ export const hell: SpookySection = {
   // camera takes up following him again, smoothly)
   cameraX: (state) => {
     const cx = state.player.pos.x + state.player.width / 2;
-    return { min: x0, max: Math.max(x0 + PIT_CAM, Math.min(x1 - CANVAS_WIDTH, x0 + PIT_CAM + 2 * (cx - (x0 + PIT_HOLD)))) };
+    const free = { min: x0, max: Math.max(x0 + PIT_CAM, Math.min(x1 - CANVAS_WIDTH, x0 + PIT_CAM + 2 * (cx - (x0 + PIT_HOLD)))) };
+    // (shut in the demon's pit: held between its walls, eased (smoothstep) in and out)
+    const k = hellOf(state).camLock, now = demonCamLock(state);
+    if (now) lastLock = now;
+    const lock = now ?? lastLock;
+    if (k <= 0 || !lock) return free;
+    const e = k * k * (3 - 2 * k), cam = state.camera.x;
+    // (going in: the bounds closing on the camera from where it is; coming out: opening back up)
+    const lim = now
+      ? { min: Math.min(cam + (lock.min - cam) * e, lock.min), max: Math.max(cam + (lock.max - cam) * e, lock.max) }
+      : { min: lock.min - (1 - e) * 3000, max: lock.max + (1 - e) * 3000 };
+    const min = Math.max(free.min, lim.min), max = Math.min(free.max, lim.max);
+    return max >= min ? { min, max } : free;
   },
   zoom: (state) => finaleZoom(state),
   drawBackdrop: (c, state) => { drawHellBackdrop(c, state); return true; },
@@ -164,6 +181,7 @@ export const hell: SpookySection = {
     drawLake(c, state, 'shore');
     drawSatan(c, state);
     drawLake(c, state, 'surface');
+    drawGatesBack(c, state);
     drawHellWorld(c, state, { extraWreck: state.checkpoint >= DONE_CP, beaten: !d || d.fight !== 'wait' && d.fight !== 'on' });
     drawLava(c, state);
     drawHazards(c, state);
@@ -174,6 +192,7 @@ export const hell: SpookySection = {
     drawFallDark(c, state, GY - 650, GY - 1150, x0 - 600, SHAFT_R + RIGHT_ROCK_W + 600);
   },
   drawFront: (c, state) => {
+    drawGatesFront(c, state);
     drawHazardsFront(c, state);
     drawDemonSaid(c, state);
   },

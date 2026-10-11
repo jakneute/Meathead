@@ -41,6 +41,7 @@ import { ARENA_IN, ARENA_OUT, DEMON_HOME } from './layout';
 import { hazeBands } from '../../../m1/game/render/pixelArt';
 import { INK, checker, mix, LAVA, blob, thick, inked, flashed } from './paint';
 import { hellOf } from './state';
+import { HELL_KINDS } from './kinds';
 import {
   DEMON_NAME, DEMON_INTRO, DEMON_CHATTER, DEMON_HIT, DEMON_HURT, MH_DEMON, HURT_FORK, DEATH_FORK, HURT_QUAKE, DEATH_QUAKE,
   HURT_BELLY, DEATH_BELLY, HURT_BOUNCE_FIRE, DEATH_BOUNCE_FIRE, HURT_AIRBODY, DEATH_AIRBODY, type Dressed, type ByPants,
@@ -286,6 +287,38 @@ const startFight = (state: GameState, d: Demon) => {
   d.talkAt = state.frame + 900;
 };
 
+/** The pit taking hold as the walls go up: any of hell's wildlife that followed him in (between the walls) goes off
+ *  like a balloon full of meat on the spot; anything caught across a wall is put out the far side of it. */
+const WILD = new Set<string>(Object.values(HELL_KINDS));
+const purgeArena = (ctx: FrameContext, d: Demon) => {
+  const { state, fx } = ctx, L = BACK_X + WALL_W, R = ARENA_OUT;
+  let popped = 0;
+  for (const e of [...state.enemies]) {
+    if (e === d.e || e.health <= 0 || e.isBlownAway || e.type === 'boss' || !WILD.has(e.kind ?? '')) continue;
+    const a = e.pos.x, b = e.pos.x + e.width, m = (a + b) / 2;
+    if (m > L && m < R) {
+      const at = { x: m, y: e.pos.y + e.height / 2 };
+      e.health = 0;
+      state.enemies = state.enemies.filter(o => o !== e);
+      fx.spawnDeathShower(at, 0, 2.2);
+      fx.spawnExplosion(at, '#F97316', 10, 0, 30); fx.spawnExplosion(at, '#FDE047', 6, 0, 24);
+      fx.spawnDamageNumber({ x: at.x - 20, y: at.y - 30 }, 'POP!', true, '#FCA5A5');
+      popped++;
+    } else if (b > BACK_X - 14 && a < L + 14) e.pos.x = m < BACK_X + WALL_W / 2 ? BACK_X - 16 - e.width : L + 16;
+    else if (b > R - 14 && a < R + 30 + 14) e.pos.x = R + 30 + 16;
+  }
+  if (popped) { playSound('splat', 1, -4); playSound('boom', 0.8, -6); shakeScreen(state, 10, 5); }
+};
+
+/** While the pit's shut (the walls up): the camera's held between them (its left edge on the way in's wall, its right
+ *  on the far one: the outsides never on screen). Null when it's open. */
+export const demonCamLock = (state: GameState) => {
+  const d = demonOf(state);
+  if (!d || d.fight !== 'on') return null;
+  const min = BACK_X + WALL_W / 2, max = ARENA_OUT + 15 - CANVAS_WIDTH;
+  return max >= min ? { min, max } : { min: (min + max) / 2, max: (min + max) / 2 };
+};
+
 /** Beaten (satan.ts takes it from here): he plops down, the fork dropped, stuck in the floor; the fire wall's out. */
 const beaten = (ctx: FrameContext, d: Demon) => {
   d.fight = 'beaten'; d.st = 'beaten'; d.t = 0; d.vx = 0; d.hp = 0; d.flash = 0;
@@ -357,7 +390,7 @@ export const updateDemon = (ctx: FrameContext) => {
     d.t++;
     // (at his lunch: a bite every so often)
     if (d.t % 140 === 60 && Math.abs(d.x - p.pos.x) < 900) playSound('crunch', 0.5, -10);
-    if (p.health > 0 && p.pos.x + p.width / 2 > ARENA_IN + 150 && p.pos.x < ARENA_OUT) startFight(state, d);
+    if (p.health > 0 && p.pos.x + p.width / 2 > ARENA_IN + 150 && p.pos.x < ARENA_OUT) { startFight(state, d); purgeArena(ctx, d); }
     place(d);
     return;
   }
@@ -616,8 +649,6 @@ const drawBody = (c: Ctx, d: Demon, f: number) => {
     inked(c, [[-28 + dx, -142 + squat], [-58 + dx, -172 + squat + flap], [-64 + dx, -156 + squat + flap], [-52 + dx, -152 + squat + flap * 0.5], [-50 + dx, -138 + squat], [-38 + dx, -132 + squat]], S[1 - sh + 1]);
     c.strokeStyle = S[4]; c.lineWidth = 2; c.beginPath(); c.moveTo(-30 + dx, -140 + squat); c.lineTo(-56 + dx, -168 + squat + flap); c.stroke();
   }
-  // (the back arm, hanging off behind the gut)
-  if (!sat) thick(c, -34, -128 + squat, -58, -84 + squat, 18, S);
   // (legs: stubby, goat-kneed, cloven hooves; sat, out in front of him)
   if (!sat) {
     for (const [lx, w, dark0] of [[-28 + walk, 1, 1], [26 - walk, -1, 0]] as [number, number, number][]) {
@@ -725,15 +756,36 @@ export const drawDemon = (c: Ctx, state: GameState) => {
   }
 };
 
-/** His fork arm: shoulder, the elbow bent down and out of the way of his face, the fist. */
-const arm = (c: Ctx, sx: number, sy: number, hx: number, hy: number, S: readonly string[]) => {
-  const L = Math.hypot(hx - sx, hy - sy) || 1, mx = (sx + hx) / 2, my = (sy + hy) / 2;
-  let px = -(hy - sy) / L, py = (hx - sx) / L;
-  if (py < 0 || (Math.abs(py) < 0.2 && px < 0)) { px = -px; py = -py; }
-  const bend = Math.max(8, 34 - L * 0.12), ex = mx + px * bend + 6, ey = my + py * bend;
-  thick(c, sx, sy, ex, ey, 20, S); blob(c, sx + 2, sy + 4, 14, 13, S, false);
-  thick(c, ex, ey, hx, hy, 16, S); blob(c, ex, ey, 10, 10, S, false);
-  blob(c, hx, hy, 10, 9, S, false);
+/** How far down he's sunk on his haunches (the windups, the landing, sat down). */
+const squatOf = (d: Demon) => {
+  const st = d.st, t = d.t;
+  return st === 'crouch' ? Math.min(1, t / 12) * 22 : st === 'sweepWind' || st === 'sweep' ? 14 : st === 'land' ? Math.max(0, 18 - t) : st === 'stagger' || st === 'tripped' || st === 'beaten' || st === 'sink' ? 30 : 0;
+};
+/** His arms' bones: upper arm, forearm. */
+const UPPER = 40, FORE = 38;
+/** Where the elbow goes reaching from the shoulder S to the hand H (two bones): always bent the natural way, down and
+ *  out from the body, never back on itself. The hand's kept within reach. */
+const elbowFor = (sx: number, sy: number, hx: number, hy: number) => {
+  const d = Math.max(Math.abs(UPPER - FORE) + 1, Math.min(UPPER + FORE - 1, Math.hypot(hx - sx, hy - sy)));
+  const base = Math.atan2(hy - sy, hx - sx), a = Math.acos(Math.max(-1, Math.min(1, (UPPER * UPPER + d * d - FORE * FORE) / (2 * UPPER * d))));
+  const e1 = [sx + Math.cos(base + a) * UPPER, sy + Math.sin(base + a) * UPPER], e2 = [sx + Math.cos(base - a) * UPPER, sy + Math.sin(base - a) * UPPER];
+  // (the one out from his side and down: an elbow sticks out from a fat man, it doesn't fold in over his gut)
+  const out = sx >= 4 ? 1 : -1, score = (e: number[]) => (e[0] - sx) * out + (e[1] - sy) * 0.6;
+  return score(e1) >= score(e2) ? e1 : e2;
+};
+/** A hand brought within reach of the shoulder (along the way to where it was going). */
+const reach = (sx: number, sy: number, hx: number, hy: number): [number, number] => {
+  const d = Math.hypot(hx - sx, hy - sy), m = UPPER + FORE - 2;
+  return d <= m ? [hx, hy] : [sx + (hx - sx) * m / d, sy + (hy - sy) * m / d];
+};
+/** An arm: the shoulder, the elbow (see elbowFor), the fist; `far`: the one behind, a shade darker. */
+const arm = (c: Ctx, sx: number, sy: number, hx: number, hy: number, S: readonly string[], far = false) => {
+  const R = far ? S.map(x => mix(x, INK, 0.18)) : S;
+  const [ex, ey] = elbowFor(sx, sy, hx, hy);
+  blob(c, sx, sy + 4, 15, 14, R, false);
+  thick(c, sx, sy, ex, ey, 20, R); blob(c, ex, ey, 10, 10, R, false);
+  thick(c, ex, ey, hx, hy, 16, R);
+  blob(c, hx, hy, 10, 9, R, false);
 };
 
 const drawBodyAndFork = (c: Ctx, d: Demon, f: number, st: St, t: number) => {
@@ -760,15 +812,24 @@ const drawBodyAndFork = (c: Ctx, d: Demon, f: number, st: St, t: number) => {
     case 'beaten': case 'sink': hx = 0; hy = -9999; break;
   }
   const showFork = hy > -9000;
+  // The grip: his near hand where the fork's held (brought within reach of his shoulder: the fork goes with it), the
+  // far hand further down the shaft if he can get it there (a two-handed hold), otherwise resting on his gut
+  const sq = squatOf(d), nearSh: [number, number] = [42, -122 + sq], farSh: [number, number] = [-38, -126 + sq];
+  if (showFork && st !== 'lounge') [hx, hy] = reach(nearSh[0], nearSh[1], hx, hy);
+  const gx = hx - Math.cos(ang) * 46, gy = hy - Math.sin(ang) * 46;
+  const twoHands = showFork && st !== 'lounge' && st !== 'stagger' && st !== 'tripped' && Math.hypot(gx - farSh[0], gy - farSh[1]) <= UPPER + FORE - 4;
   if (showFork && behind) fork(c, hx, hy, ang, glint, hot);
   const r = drawBody(c, d, f);
   if (showFork && !behind) fork(c, hx, hy, ang, glint, hot);
-  // (his arm, to the fork; at his lunch, the soul in his fist)
   if (st === 'lounge') {
-    arm(c, 30, -124, 64, -118, r.S);
+    // (at his lunch: the far hand on his gut, the soul in the near fist)
+    arm(c, farSh[0], farSh[1], -4, -96, r.S, true);
+    arm(c, nearSh[0], nearSh[1], 66, -118, r.S);
     soul(c, 76, -126, 1, f);
   } else if (showFork) {
-    arm(c, 30, -126 + r.squat, hx, hy, r.S);
+    if (twoHands) arm(c, farSh[0], farSh[1], gx, gy, r.S, true);
+    else arm(c, farSh[0], farSh[1], -6, -84 + sq, r.S, true);
+    arm(c, nearSh[0], nearSh[1], hx, hy, r.S);
   } else {
     // (beaten: arms folded over the gut, sulking)
     thick(c, -30, -126 + r.squat, 36, -116 + r.squat, 16, r.S);

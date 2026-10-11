@@ -199,10 +199,8 @@ const paintCar = (g: Ctx, standable: boolean) => {
   inkPoly(g, [[14, -100], [48, -92], [44, 0], [14, -6]], STEEL[1], 2);
   poly(g, [[16, -97], [24, -95], [21, -8], [16, -8]], STEEL[2]);
   box(g, 30, -60, 6, 3, INK);
-  // (the lap bar, bent; somebody's arm still over it)
+  // (the lap bar, bent)
   box(g, -11, -53, 28, 7, INK); box(g, -10, -52, 26, 5, GOLD[2]); box(g, -10, -52, 26, 1, GOLD[4]);
-  box(g, -1, -61, 24, 9, INK); box(g, 0, -60, 22, 7, '#9333EA'); box(g, 0, -60, 22, 2, '#B865F5');
-  box(g, 20, -61, 9, 9, INK); box(g, 21, -60, 7, 7, '#F1C27D');
   // (the plate over the doors)
   box(g, -51, -117, 102, 14, INK); box(g, -50, -116, 100, 12, '#18181B'); box(g, -50, -116, 100, 1, '#3A3A42');
   g.font = '6px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = GOLD[4]; g.fillText('ELEVATOR TO HELL', 0, -107); g.textAlign = 'left';

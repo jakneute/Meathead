@@ -20,8 +20,9 @@ import {
   REFILL_X, ARENA_IN, VENT_X, LAVA_DROP, CAGES, BONES,
 } from './layout';
 import { drawWreckedCar } from './hazards';
+import { GUESTS, corpse, bloodPool, splat } from './riders';
 import { hellOf } from './state';
-import { type Ctx, INK, box, checker, mix, hash, PIX, dark, lite, stamp, BASALT, LAVA, BONE, IRON, LIP, poly, inkPoly, lip, basalt, hellSign, sn } from './paint';
+import { type Ctx, INK, box, checker, mix, hash, PIX, dark, stamp, BASALT, LAVA, BONE, IRON, LIP, poly, inkPoly, lip, basalt, hellSign, sn } from './paint';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The cavern (screen space): painted once into half-res tiles (640 x 300, shown 2x), blitted with parallax
@@ -145,93 +146,33 @@ export const drawHellBackdrop = (c: Ctx, state: GameState) => {
 void TW;
 
 // ---------------------------------------------------------------------------------------------------------------
-// The pit's wreck: the riders, in bits (a theme park's own: the ride's souvenir shirts on them)
-
-const SKIN = ['#F1C27D', '#8D5524', '#C68642', '#FFDBAC', '#5C3A1E'];
-const HAIR = ['#2C1B10', '#E6C36A', '#7C2D12', '#18181B', '#A8A29E'];
-const CLOTH = ['#1D4ED8', '#15803D', '#9333EA', '#DB2777', '#CA8A04'];
-const BLOOD = ['#2E0404', '#5B0A0A', '#7F1111', '#9E1B1B', '#C03030'];
-
-/** A slab in steps with an ink line (a sleeve, a shin): lit top, shaded bottom. */
-const piece = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => {
-  box(c, x - 1, y - 1, w + 2, h + 2, INK);
-  box(c, x, y, w, h, col);
-  box(c, x, y, w, Math.max(1, Math.round(h * 0.3)), lite(col, 0.2));
-  box(c, x, y + h - Math.max(1, Math.round(h * 0.3)), w, Math.max(1, Math.round(h * 0.3)), dark(col, 0.25));
-  checker(c, x, y + Math.round(h * 0.3), w, 1, lite(col, 0.2));
-};
-/** The torn end: meat, the bone in it. */
-const stump = (c: Ctx, x: number, y: number, h: number) => {
-  box(c, x - 4, y - h - 1, 9, h + 2, INK);
-  box(c, x - 3, y - h, 7, h, BLOOD[3]); box(c, x - 3, y - h, 2, h, BLOOD[4]); box(c, x + 2, y - h, 2, h, BLOOD[2]);
-  box(c, x - 1, y - h + 3, 3, h - 6, BONE[4]); box(c, x + 1, y - h + 3, 1, h - 6, BONE[2]);
-};
-const leg = (c: Ctx, x: number, y: number, s: number, i: number) => {
-  const x2 = s > 0 ? x : x - 56;
-  piece(c, x2, y - 13, 56, 13, CLOTH[i % 5]);
-  // (the shoe)
-  const sx = s > 0 ? x + 56 : x - 74;
-  piece(c, sx, y - 15, 18, 15, '#D8D8D8'); box(c, sx, y - 4, 18, 4, '#8A8A8A'); box(c, sx + 2, y - 12, 10, 1, '#F8F8F8');
-  stump(c, x, y, 13);
-};
-const arm = (c: Ctx, x: number, y: number, s: number, i: number) => {
-  const x2 = s > 0 ? x : x - 40;
-  piece(c, x2, y - 10, 40, 10, CLOTH[(i + 2) % 5]);
-  const hx = s > 0 ? x + 40 : x - 54, sk = SKIN[i % 5];
-  piece(c, hx, y - 10, 14, 10, sk);
-  box(c, s > 0 ? hx + 12 : hx - 4, y - 8, 6, 4, sk); box(c, s > 0 ? hx + 12 : hx - 4, y - 9, 6, 1, INK);
-  stump(c, x, y, 10);
-};
-const head = (c: Ctx, x: number, y: number, i: number) => {
-  const sk = SKIN[i % 5];
-  box(c, x - 15, y - 33, 30, 33, INK);
-  box(c, x - 14, y - 28, 28, 28, sk); box(c, x - 14, y - 28, 4, 28, lite(sk, 0.15)); box(c, x + 9, y - 28, 5, 28, dark(sk, 0.2));
-  box(c, x - 14, y - 32, 28, 9, HAIR[i % 5]); box(c, x - 14, y - 32, 28, 2, lite(HAIR[i % 5], 0.25));
-  // (dead: crossed out, the tongue out)
-  for (const ex of [x - 7, x + 5]) { box(c, ex - 2, y - 19, 2, 2, INK); box(c, ex + 2, y - 19, 2, 2, INK); box(c, ex, y - 17, 2, 2, INK); box(c, ex - 2, y - 15, 2, 2, INK); box(c, ex + 2, y - 15, 2, 2, INK); }
-  box(c, x - 6, y - 9, 12, 4, '#3A0808'); box(c, x - 2, y - 7, 5, 5, '#E87A90');
-  box(c, x - 12, y - 3, 24, 3, BLOOD[3]); box(c, x - 17, y - 1, 34, 2, BLOOD[2]);
-};
-/** A pool of blood on the floor: flat, in bands, a few drops off it. */
-const pool = (c: Ctx, x: number, w: number) => {
-  poly(c, [[x - w, GY + 2], [x - w * 0.8, GY - 2], [x + w * 0.7, GY - 2], [x + w, GY + 2]], BLOOD[1]);
-  box(c, x - w * 0.6, GY - 2, w * 1.1, 2, BLOOD[2]);
-  box(c, x - w * 0.4, GY - 2, w * 0.4, 1, BLOOD[4]);
-  for (let k = 0; k < 4; k++) box(c, x - w + ((k * 53) % (w * 2)), GY - 4 - (k % 2) * 2, 4, 2, BLOOD[2]);
-};
-/** A rider hanging half out of a car's doors, the ride's souvenir shirt on him (at x, his chest's top at y). */
-const rider = (c: Ctx, x: number, y: number, i: number) => {
-  piece(c, x, y, 36, 32, CLOTH[i % 5]);
-  const sk = SKIN[i % 5];
-  piece(c, x + 36, y + 4, 24, 24, sk); box(c, x + 34, y - 1, 27, 8, INK); box(c, x + 35, y, 25, 6, HAIR[i % 5]);
-  box(c, x + 46, y + 12, 2, 2, INK); box(c, x + 50, y + 12, 2, 2, INK); box(c, x + 48, y + 14, 2, 2, INK); box(c, x + 46, y + 16, 2, 2, INK); box(c, x + 50, y + 16, 2, 2, INK);
-  box(c, x + 50, y + 22, 8, 3, '#3A0808'); box(c, x + 54, y + 24, 3, 4, '#E87A90');
-  box(c, x + 2, y + 34, 30, 34, BLOOD[2]); box(c, x + 4, y + 34, 6, 30, BLOOD[3]); box(c, x + 24, y + 34, 8, 36, BLOOD[1]);
-  c.font = '5px "Press Start 2P"'; c.fillStyle = INK; c.fillText('I RODE', x + 2, y + 15); c.fillText('IT!', x + 9, y + 23);
-  c.fillStyle = '#FDE68A'; c.fillText('I RODE', x + 1, y + 14); c.fillText('IT!', x + 8, y + 22);
-};
+// The pit's wreck: the riders (riders.ts), where they landed
 
 /** The two wrecked elevators at the bottom of the pit (both shafts' cars came down when the tower went: one on its
- *  side against the other), and both cars' riders, in bits, all over. */
+ *  side against the other), and their riders all round them. */
 const drawWreck = (c: Ctx, state: GameState, extra: boolean) => {
-  const f = state.frame, W = WRECK_X, B = WRECK_B_X;
-  // (the floor's share: the blood, under it all; spatter up the shaft wall)
+  const f = state.frame, W = WRECK_X, B = WRECK_B_X, G = GUESTS;
+  // (the floor's share: the blood, under it all; splats up the shaft wall)
   c.save(); c.translate(W, 0);
-  stamp(c, 'hell-pit-floor', -440, GY - 200, 1240, 212, g => {
+  stamp(c, 'hell-pit-floor2', -440, GY - 200, 1240, 212, g => {
     g.translate(-W, 0);
-    pool(g, B, 110); pool(g, W, 150); pool(g, W + 260, 70); pool(g, W + 400, 40); pool(g, W + 320, 50); pool(g, W + 560, 60);
-    for (let k = 0; k < 9; k++) { const sx = W - 120 + k * 31, sy = GY - 170 - ((k * 37) % 70); box(g, sx, sy, 6 + (k % 3) * 4, 4 + (k % 2) * 4, BLOOD[1]); box(g, sx + 2, sy + 4, 2, 6 + (k % 3) * 3, BLOOD[1]); }
+    bloodPool(g, B - 60, 40, GY); bloodPool(g, W + 6, 46, GY); bloodPool(g, W + 214, 36, GY); bloodPool(g, W + 330, 44, GY);
+    bloodPool(g, W + 460, 38, GY); bloodPool(g, W + 630, 42, GY); bloodPool(g, W + 540, 14, GY);
+    for (let k = 0; k < 7; k++) splat(g, W - 130 + k * 37, GY - 150 - ((k * 37) % 70), 5 + (k % 3) * 2);
   });
   c.restore();
-  // (the other car, on its side, its riders' share)
+  // (the other car, on its side; the one half out of it, over its edge)
   drawWreckedCar(c, B + 63, GY - 58, -Math.PI / 2, f);
   c.save(); c.translate(B, 0);
-  stamp(c, 'hell-pit-b', -100, GY - 160, 200, 162, g => {
+  stamp(c, 'hell-pit-b2', -110, GY - 160, 220, 162, g => {
     g.translate(-B, 0);
     box(g, B - 63, GY - 113, 126, 2, LIP[0]); box(g, B - 63, GY - 111, 126, 2, LIP[1]);
-    rider(g, B - 20, GY - 150, 3);
-    head(g, B + 40, GY - 112, 0); arm(g, B - 60, GY - 112, -1, 1);
-    leg(g, B - 80, GY, -1, 4); arm(g, B + 20, GY, -1, 2);
+    splat(g, B - 62, GY - 70, 8);
+    corpse(g, G[0], {
+      head: [B - 74, GY - 74], face: -1, neck: [B - 68, GY - 88], hip: [B - 50, GY - 120],
+      arms: [[[B - 68, GY - 92], [B - 78, GY - 66], [B - 76, GY - 44]], [[B - 64, GY - 90], [B - 56, GY - 64], [B - 64, GY - 40]]],
+      legs: [[[B - 50, GY - 120], [B - 30, GY - 126], [B - 12, GY - 120]], [[B - 50, GY - 118], [B - 30, GY - 122], [B - 10, GY - 136]]],
+    });
   });
   c.restore();
   // (the cable down the shaft, snapped, swinging a little: stepped strands)
@@ -239,26 +180,46 @@ const drawWreck = (c: Ctx, state: GameState, extra: boolean) => {
   for (const [col, w] of [[INK, 4], [IRON[3], 2]] as [string, number][]) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(W + 10, SHAFT_TOP); c.quadraticCurveTo(W + 10 + sw, GY - 600, W - 10, GY - 140); c.stroke(); }
   if (extra) drawWreckedCar(c, W + 250, GY, 0.2, f);
   drawWreckedCar(c, W, GY, 0, f, true);
-  // (one hanging half out of its doors; the bits)
+  // (the rest of them: one folded over the lap bar, butt up; the others where they were thrown)
   c.save(); c.translate(W, 0);
-  stamp(c, 'hell-pit-bits', -40, GY - 80, 760, 82, g => {
+  stamp(c, 'hell-pit-riders', -60, GY - 90, 800, 92, g => {
     g.translate(-W, 0);
-    rider(g, W + 56, GY - 70, 0);
-    leg(g, W + 420, GY, -1, 0); leg(g, W + 200, GY, -1, 1); leg(g, W + 330, GY, 1, 2);
-    arm(g, W + 560, GY, -1, 3); arm(g, W + 150, GY, 1, 4); arm(g, W + 470, GY, -1, 0);
-    head(g, W + 300, GY, 1); head(g, W + 650, GY, 2); head(g, W + 240, GY, 3); head(g, W + 520, GY, 4);
-    // (a ribcage)
-    const rx = W + 600;
-    box(g, rx - 1, GY - 6, 58, 6, INK); box(g, rx, GY - 5, 56, 4, BONE[3]);
-    for (let i = 0; i < 6; i++) { box(g, rx + 3 + i * 9, GY - 25, 6, 21, INK); box(g, rx + 4 + i * 9, GY - 24, 4, 20, BONE[3]); box(g, rx + 4 + i * 9, GY - 24, 1, 20, BONE[4]); }
-    box(g, rx - 1, GY - 26, 58, 6, INK); box(g, rx, GY - 25, 56, 4, BONE[3]); box(g, rx, GY - 25, 56, 1, BONE[4]);
-    // (guts, in a loop)
-    for (const [col, w] of [[INK, 8], ['#9D174D', 6], ['#DB5A8E', 2]] as [string, number][]) {
-      g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(W + 90, GY - 3); g.bezierCurveTo(W + 110, GY - 40, W + 150, GY + 6, W + 170, GY - 20); g.stroke();
-    }
-    // (the ride's photo strip, and a hat)
-    piece(g, W + 380, GY - 5, 18, 4, '#F4F4F4');
-    piece(g, W + 470, GY - 14, 24, 9, '#232327'); piece(g, W + 464, GY - 5, 36, 4, '#232327');
+    // (over the lap bar)
+    corpse(g, G[3], {
+      head: [W + 12, GY - 18], face: 1, neck: [W + 8, GY - 30], hip: [W - 6, GY - 62],
+      arms: [[[W + 6, GY - 32], [W + 14, GY - 16], [W + 6, GY - 6]], [[W + 10, GY - 30], [W + 22, GY - 18], [W + 20, GY - 6]]],
+      legs: [[[W - 6, GY - 62], [W - 22, GY - 52], [W - 26, GY - 30]], [[W - 6, GY - 60], [W - 20, GY - 48], [W - 20, GY - 26]]],
+    });
+    // (face down, butt up)
+    corpse(g, G[1], {
+      head: [W + 234, GY - 7], face: 1, down: true, neck: [W + 222, GY - 10], hip: [W + 200, GY - 24],
+      arms: [[[W + 220, GY - 11], [W + 212, GY - 4], [W + 200, GY - 3]], [[W + 220, GY - 10], [W + 230, GY - 3], [W + 244, GY - 3]]],
+      legs: [[[W + 200, GY - 24], [W + 192, GY - 4], [W + 172, GY - 4]], [[W + 200, GY - 22], [W + 198, GY - 3], [W + 178, GY - 3]]],
+    });
+    // (on her back, an arm up crooked, a leg the wrong way, the churro still in her fist)
+    corpse(g, G[4], {
+      head: [W + 290, GY - 9], face: -1, neck: [W + 300, GY - 9], hip: [W + 340, GY - 9],
+      arms: [[[W + 302, GY - 11], [W + 294, GY - 26], [W + 310, GY - 36]], [[W + 304, GY - 8], [W + 318, GY - 4], [W + 322, GY - 18]]],
+      legs: [[[W + 340, GY - 10], [W + 356, GY - 26], [W + 352, GY - 5]], [[W + 340, GY - 8], [W + 362, GY - 6], [W + 372, GY - 24]]],
+    });
+    // (on her side, her legs going the wrong way, the souvenir cup spilled)
+    corpse(g, G[2], {
+      head: [W + 482, GY - 8], face: 1, neck: [W + 470, GY - 9], hip: [W + 436, GY - 9],
+      arms: [[[W + 468, GY - 11], [W + 478, GY - 22], [W + 490, GY - 14]], [[W + 468, GY - 8], [W + 484, GY - 4], [W + 496, GY - 6]]],
+      legs: [[[W + 436, GY - 10], [W + 420, GY - 22], [W + 432, GY - 36]], [[W + 436, GY - 8], [W + 418, GY - 6], [W + 402, GY - 4]]],
+    });
+    // (face down, spread out flat, one arm and one leg bent back on themselves)
+    corpse(g, G[5], {
+      head: [W + 590, GY - 7], face: -1, down: true, neck: [W + 602, GY - 7], hip: [W + 640, GY - 7],
+      arms: [[[W + 602, GY - 8], [W + 590, GY - 18], [W + 576, GY - 12]], [[W + 604, GY - 6], [W + 614, GY - 3], [W + 620, GY - 16]]],
+      legs: [[[W + 640, GY - 8], [W + 660, GY - 7], [W + 682, GY - 5]], [[W + 640, GY - 6], [W + 656, GY - 4], [W + 662, GY - 20]]],
+    });
+    // (what came off them: a lone sneaker, a cap, the ride's photo strip)
+    g.save(); g.translate(W + 150, GY - 4); g.rotate(-0.4);
+    box(g, -1, -4, 12, 8, INK); box(g, 0, -3, 10, 6, '#D8D8D8'); box(g, 0, -3, 10, 1, '#F4F4F4'); box(g, 0, 2, 10, 1, '#8A8A8A');
+    g.restore();
+    box(g, W + 380, GY - 5, 20, 5, INK); box(g, W + 381, GY - 4, 18, 3, '#E8E8E8'); for (let i = 0; i < 3; i++) box(g, W + 382 + i * 6, GY - 4, 4, 2, '#5A6A8A');
+    box(g, W + 540, GY - 6, 16, 6, INK); box(g, W + 541, GY - 5, 14, 4, '#9A1B1B'); box(g, W + 553, GY - 3, 8, 2, '#7A1414');
   });
   c.restore();
 };
