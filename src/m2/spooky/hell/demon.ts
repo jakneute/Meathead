@@ -67,6 +67,8 @@ const STOMP_LAUNCH = 21;
 const WALL_H = 4000, ROOF_H = 760;
 /** Tripped by a slide: down this long (free hits), then this long before a slide can trip him again (he hops it). */
 const TRIP_FRAMES = 80, TRIP_COOLDOWN = 300;
+/** On his back, tripped: everything hurts him this much more (the window's the payoff). */
+const TRIP_MULT = 2.5;
 /** Bumping into him while he's up in the air on a jump (anything but a stomp on top). */
 const AIR_BODY_DMG = 16;
 const AIRBODY = 'm2:demon_airbody';
@@ -217,8 +219,9 @@ const demonTouch = (ctx: FrameContext, e: Enemy): boolean => {
   if (dk) p.diveKickHitIds.push(e.id);
   const pc = p.pos.x + p.width / 2, dir = Math.sign(d.x - pc) || 1;
   const at = { x: d.x - dir * W * 0.4, y: dk ? d.y - H + 10 : up ? d.y - H * 0.6 : d.y - H * 0.45 };
+  const onBack = d.st === 'tripped';
   hurt(ctx, d, dmg);
-  ctx.fx.spawnDamageNumber({ x: at.x - 10, y: at.y - 20 }, dmg, up || dk);
+  ctx.fx.spawnDamageNumber({ x: at.x - 10, y: at.y - 20 }, onBack ? Math.round(dmg * TRIP_MULT) : dmg, up || dk || onBack);
   ctx.fx.playGunSound(dk ? 'stomp' : 'punch');
   spurt(state, at.x, at.y, up ? 16 : 8, -dir);
   if (d.fight !== 'on') return true;
@@ -261,6 +264,7 @@ const demonTouch = (ctx: FrameContext, e: Enemy): boolean => {
 /** Damage into him: his health, the flash, the stagger (enough at a go and he sits down), beaten. */
 const hurt = (ctx: FrameContext, d: Demon, dmg: number) => {
   const { state } = ctx, f = state.frame;
+  if (d.st === 'tripped') dmg *= TRIP_MULT;
   d.hp -= dmg; d.flash = 6;
   if (f - d.hurtAt > 240) d.hurtSince = 0;
   d.hurtSince += dmg; d.hurtAt = f;
