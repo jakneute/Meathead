@@ -73,9 +73,16 @@ const REDEEMER_DMG = 90, REDEEMER_STUN = 120;
 /** After one's put him down, he's wise to it a while: another in that time is just a souvenir (unless it'd finish him). */
 const REDEEMER_GRACE = 300;
 /** Hovering about between goes (frames, by phase); how high (feet above the floor). */
-const HOVER_T = [0, 150, 115, 90], HOVER_UP = 160;
+const HOVER_T = [0, 120, 95, 75], HOVER_UP = 160;
+/** Now and then, hovering, he swoops down low across the floor (in the line of fire) for a while: every this often,
+ *  for this long (frames), down to this far off the floor. */
+const SWOOP_EVERY = 300, SWOOP_T = 110, SWOOP_UP = 34;
+/** His poise: knocked off what he's doing by a charge move at most this often (frames); his sucking a guest, always. */
+const POISE_T = 240;
+/** After his hover, the spew instead of the grab this often (it's his whether or not he's had a drink). */
+const SPEW_CHANCE = 0.4;
 /** Winded (down on the floor, catching his breath: the window), after a swoop that missed and after the spew (by phase). */
-const WINDED_T = [0, 80, 65, 50];
+const WINDED_T = [0, 65, 52, 42];
 /** The grab: the tell, the swoop's length, how far past him it carries on. */
 const AIM_T = [0, 46, 38, 32], DIVE_T = [0, 50, 44, 38], DIVE_PAST = 240;
 // (only on the way down and at the bottom: once he's pulling back up past the mark, he can't get hold of anybody)
@@ -116,7 +123,9 @@ registerHurtLines(BLOOD, L.HURT_BLOOD, L.DEATH_BLOOD);
 type Intro = 'plead' | 'reply' | 'open' | 'bestow' | 'rise' | 'powered' | 'soul' | 'panic' | 'mh' | 'close';
 export type Mode = 'intro' | 'hover' | 'aim' | 'dive' | 'drain' | 'rise' | 'hunt' | 'suck' | 'spew' | 'winded' | 'flinch' | 'stunned' | 'dead';
 
-interface Guest { x: number; dir: 1 | -1; seed: number; state: 'run' | 'held' | 'fall' | 'husk'; y: number; vy: number; t: number; said: string | null; facing: 1 | -1 }
+interface Guest { x: number; dir: 1 | -1; seed: number; state: 'run' | 'held' | 'fall' | 'husk'; y: number; vy: number; t: number; said: string | null; facing: 1 | -1;
+  /** Got away from him once (he was knocked off them): he won't go after that one again. */
+  spared?: boolean }
 interface Drop { x: number; y: number; vx: number; vy: number; r: number }
 interface Splat { x: number; w: number; t: number }
 export interface KillCam { t: number; acc: number; z: number; out: boolean }
@@ -141,6 +150,8 @@ export interface Fight {
   stunT: number; side: 1 | -1;
   /** When the Redeemer can put him down again (frames, by f.total). */
   redeemAt: number;
+  /** When a hit last knocked him off what he was doing (he won't be knocked about again for a while: his poise). */
+  staggerAt: number;
   /** The wrong souvenirs: how many have hit him, when Meathead last had a think about it out loud. */
   wrongN: number; hintAt: number;
   said: string | null; satanSaid: string | null; nagT: number; tauntT: number;
@@ -234,7 +245,7 @@ export const startFight = (state: GameState): Fight => {
   const f: Fight = {
     hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, total: 0, x: CORNER_X, y: GY, vx: 0, vy: 0, facing: -1,
     intro: 'plead', introT: 0, skipT: 0, admireT: 0, circle: 0, powered: false, dive: null, mark: null, held: null,
-    guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0, wrongN: 0, hintAt: -99999,
+    guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0, staggerAt: -99999, wrongN: 0, hintAt: -99999,
     said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove,
     death: null, deathSaid: 0, cam: null, wigOff: null, e,
     beat: null, beatOn: false, beatEnd: -9999, beatsDone: new Set(), guestKills: 0,
@@ -336,6 +347,14 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       // (about over the floor, off to one side of him, bobbing; showing off; Satan on at him about the soul)
       const px = pmid(state).x;
       let hx = Math.max(ARENA_L + 90, Math.min(ARENA_R - 90, px + f.side * 210)), hy = GY - HOVER_UP + Math.sin(f.total * 0.05) * 14;
+      // (now and then a swoop: down low, across the floor past him and up the other side; he's in the line of fire)
+      const sw = f.total % SWOOP_EVERY;
+      if (f.admireT <= 0 && sw < SWOOP_T) {
+        const k = Math.sin((sw / SWOOP_T) * Math.PI);
+        hy = GY - HOVER_UP + (HOVER_UP - SWOOP_UP) * k;
+        hx = Math.max(ARENA_L + 90, Math.min(ARENA_R - 90, px - f.side * 260 + f.side * 520 * (sw / SWOOP_T)));
+        if (sw === 1) playSound('whoosh', 0.7, -2);
+      }
       // (the first moments: showing himself off, a big loop in the air, not after him yet)
       if (f.admireT > 0) { const a = (1 - f.admireT / ADMIRE_T) * Math.PI * 2; hx = f.x + Math.sin(a) * 40; hy = GY - HOVER_UP - (1 - Math.cos(a)) * 70; f.admireT--; if (f.admireT % 40 === 0) playSound('whoosh', 0.5, 8); }
       f.vx = (f.vx + (hx - f.x) * 0.012) * 0.9; f.vy = (f.vy + (hy - f.y) * 0.02) * 0.88;
@@ -344,9 +363,14 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       if (f.admireT <= 0 && ++f.tauntT >= TAUNT_EVERY) { f.tauntT = Math.floor(Math.random() * 120); bark(f, L.DONNIE_TAUNT); }
       if (++f.nagT >= NAG_EVERY) { f.nagT = Math.floor(Math.random() * 200); queueBeat(f, 'nag', L.SATAN_NAG, L.DONNIE_SHOWOFF, false, true); }
       // (a guest in the room: he can't help himself)
-      const prey = f.guests.find(g => g.state === 'run' && g.x > ARENA_L + 40 && g.x < ARENA_R - 40);
+      const prey = f.guests.find(g => g.state === 'run' && !g.spared && g.x > ARENA_L + 40 && g.x < ARENA_R - 40);
       if (prey && f.t > 30 && f.admireT <= 0) { f.prey = prey; to(f, 'hunt'); bark(f, L.DONNIE_SNATCH); playSound('whoosh', 0.8, -4); break; }
-      if (f.t >= HOVER_T[ph] && f.admireT <= 0) { to(f, 'aim'); f.side = f.side > 0 ? -1 : 1; }
+      if (f.t >= HOVER_T[ph] && f.admireT <= 0 && f.total % SWOOP_EVERY >= SWOOP_T) {
+        f.side = f.side > 0 ? -1 : 1;
+        // (the grab, or the spew: he's got blood in him to spit whether or not he's just had a drink)
+        if (Math.random() < SPEW_CHANCE) { to(f, 'spew'); f.aimX = pmid(state).x; f.aimY = pmid(state).y; bark(f, L.DONNIE_SPEW); }
+        else to(f, 'aim');
+      }
       break;
     }
     case 'aim':
@@ -589,7 +613,12 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   f.moveSeen = e.hitByMove;
   const sv = f.souvenir; f.souvenir = null;
   // (a charge move landing on him: knocked back, and whatever he'd got hold of (a guest) let go)
-  if (melee && dealt > 0 && f.mode !== 'dead' && f.mode !== 'drain' && f.mode !== 'stunned' && state.enemies.includes(e)) stagger(state, f);
+  // (his poise: a charge move only knocks him off what he's doing every so often; off a guest, always)
+  if (melee && dealt > 0 && f.mode !== 'dead' && f.mode !== 'drain' && f.mode !== 'stunned' && state.enemies.includes(e)) {
+    if (f.prey || f.total - f.staggerAt >= POISE_T) stagger(state, f);
+    // (a dive kick that doesn't knock him about: he slides out from under it, away across the room)
+    else if (state.player.isDivekicking) dodge(state, f);
+  }
   if (f.mode === 'dead' || dealt <= 0 || !state.enemies.includes(e)) return;
   // The Redeemer: down he goes, and it hurts (in his breather, it's not landed: it bounces about, it'll be back)
   // (once per go: it bounces about and hits him again, but it's the first one that puts him down; down already, it's
@@ -622,12 +651,23 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
 /** A charge move: knocked back off him, the guest dropped (they run for it), back up into the air. */
 const stagger = (state: GameState, f: Fight) => {
   const dir = pmid(state).x < f.x ? 1 : -1;
-  if (f.prey) { f.prey.state = 'run'; f.prey.y = GY; f.prey = null; bark(f, L.DONNIE_HURT); }
+  // (the guest he had, or was after, gets away; and he won't go after that one again)
+  if (f.prey) { f.prey.state = 'run'; f.prey.y = GY; f.prey.spared = true; f.prey = null; bark(f, L.DONNIE_HURT); }
+  f.staggerAt = f.total;
   f.dive = null; f.mark = null;
   f.vx = dir * 7; f.vy = -4;
   to(f, 'rise');
   playSound('punch', 0.9, -2); shakeScreen(state, 5, 3);
   for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: f.x, y: f.y - 50 }, vel: { x: dir * (1 + Math.random() * 3), y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#B91C1C' : '#18181B', size: 2 + Math.random() * 3, grav: 0.3 });
+};
+
+/** Stomped on with his poise up: out from under it, a quick slide away and up (he's not a trampoline). */
+const dodge = (state: GameState, f: Fight) => {
+  const dir = pmid(state).x < f.x ? 1 : -1;
+  f.vx = dir * 11; f.vy = -6;
+  if (f.mode === 'hover') f.t = 0;
+  playSound('whoosh', 0.8, 4);
+  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x, y: f.y - 30 }, vel: { x: -dir * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 2 }, life: 18, color: 'rgba(24, 24, 27, 0.7)', size: 4 + Math.random() * 3 });
 };
 
 /** The Redeemer got him: whatever he was at, dropped (Meathead let go, the guest let go: they run), and down. */
@@ -933,7 +973,8 @@ const drawDeath = (c: Ctx, f: Fight, fr: number) => {
       const by = lt < 90 ? 60 + (GY - 60 - 40) * k * k : GY - 40 - Math.max(0, Math.sin(((lt - 90) / 20) * Math.PI)) * 30 * (lt < 110 ? 1 : 0) + (lt >= 110 ? 26 : 0);
       const roll = Math.sign(ARENA_MID - rx) || 1, bx = lt < 110 ? rx : rx + roll * Math.min(140, (lt - 110) * 2);
       const by2 = lt >= 110 ? GY - 14 : by;
-      discoBall(c, bx, by2, 14, fr);
+      // (rolling: turned by how far it's gone, the way a ball turns)
+      discoBall(c, bx, by2, 14, fr, (bx - rx) / 14);
     }
     // (the last one out of him)
     if (lt > 150 && lt < 260) { const s = (lt - 150) / 110; c.fillStyle = `rgba(163, 190, 60, ${(0.5 * (1 - s)).toFixed(2)})`; c.beginPath(); c.arc(d.x - d.facing * 30, GY - 40 - s * 30, 6 + s * 20, 0, Math.PI * 2); c.fill(); }

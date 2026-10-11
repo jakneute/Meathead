@@ -287,13 +287,16 @@ export const drawBallroomArt = (c: Ctx, state: GameState, look: BallLook) => {
 };
 
 /** The disco ball: banded silver, its facets in a grid, some catching the light (they go round). */
-export const discoBall = (c: Ctx, x: number, y: number, r: number, f: number) => {
+export const discoBall = (c: Ctx, x: number, y: number, r: number, f: number, rot = 0) => {
   ball(c, x, y, r, '#A1A1AA');
+  // (its facets turned by `rot` (rolling: it turns as it goes), the light on them staying where it is)
+  const cs = Math.cos(rot), sn = Math.sin(rot);
   for (let j = -2; j <= 2; j++) for (let i = -2; i <= 2; i++) {
-    const fx = x + i * r * 0.36, fy = y + j * r * 0.36;
-    if ((fx - x) ** 2 + (fy - y) ** 2 > (r * 0.86) ** 2) continue;
-    box(c, fx - 2, fy - 2, 3, 3, (i + j * 3 + Math.floor(f / 5)) % 4 ? '#D4D4D8' : '#FFFFFF');
-    box(c, fx + 1, fy - 2, 1, 4, '#71717A');
+    const ox = i * r * 0.36, oy = j * r * 0.36;
+    if (ox * ox + oy * oy > (r * 0.86) ** 2) continue;
+    const fx = x + ox * cs - oy * sn, fy = y + ox * sn + oy * cs;
+    box(c, Math.round(fx) - 2, Math.round(fy) - 2, 3, 3, (i + j * 3 + Math.floor(f / 5)) % 4 ? '#D4D4D8' : '#FFFFFF');
+    box(c, Math.round(fx + cs * 2.5) - 1, Math.round(fy + sn * 2.5) - 1, 1, 1, '#71717A');
   }
 };
 
