@@ -45,7 +45,7 @@ m2/walkAway/artie.ts:384 voice: Math.round(sx - c.measureText('LAND').width / 2)
 m2/spooky/castle/pa.ts:72 voice: voice(PA)
 m2/spooky/hell/satan.ts:111 voice: SATAN_CORE
 m2/spooky/hell/satan.ts:114 voice: pick(dressedPool(state))
-m2/spooky/hell/demon.ts:136 voice: voice('m2.demon')
+m2/spooky/hell/demon.ts:140 voice: voice('m2.demon')
 m2/spooky/control/staff.ts:55 voice: voice(woman ? 'm2.spooky.clerkf' : 'm2.spooky.clerk')
 m2/spooky/control/index.ts:79 voice: pick(lines[dressed(state)])
 m2/spooky/control/shop.ts:245 voice: true

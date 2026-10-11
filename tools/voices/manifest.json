@@ -18921,6 +18921,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ALL GUT, NO ANKLES. ONE GOOD KICK DOWN THERE AND HE'S GOING OVER.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "ALL THESE DRUGS AND NO CREATINE? AMATEURS.",
   "from": "INTRO_QUOTES"
  },
@@ -19323,6 +19328,11 @@
   "voice": "meathead",
   "text": "BIG GREEN TARGET. BIG GUNS. DUH.",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BIG GUY, LITTLE LEGS. SLIDE INTO 'EM. TAKE OUT THE LEGS.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -30703,6 +30713,11 @@
   "voice": "meathead",
   "text": "WHAT GOES UP...",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT IS HOLDING THAT GUY UP? THOSE LEGS ARE TINY.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
