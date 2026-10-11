@@ -146,9 +146,10 @@ export const hell: SpookySection = {
     updateHazards(ctx, h);
     // The demon; beaten, the cutscene
     const d = demonOf(state);
-    const wasOn = d?.fight === 'on';
     updateDemon(ctx);
-    if (wasOn && d?.fight === 'beaten') { startFinale(state); return runFinale(ctx) ?? controls; }
+    // (beaten, however it happened: in his own update, or by a hit the engine landed after it last frame; the cutscene
+    // takes over from there, whatever else is about (the regular ones hold off for it))
+    if (d?.fight === 'beaten') { startFinale(state); return runFinale(ctx) ?? controls; }
     // The ways out: the stairs up (to the top of the clock tower), the vent (up to the control room, once he's beaten)
     if (p.health > 0 && p.isGrounded && feet > GY - 4) {
       // (walking on to it, rightward: going back the other way, he walks over it)
