@@ -490,7 +490,7 @@ const runRideClimb = (state: GameState, t: Tower) => {
   for (const car of t.ride.cars) {
     if (car.phase !== 'rise' || car.saidUp || Math.abs(car.y - 60 - (p.pos.y + p.height / 2)) > 160) continue;
     car.saidUp = true;
-    if (!t.talk.busy && !t.talk.q.length && Math.random() < 0.7) t.talk.q.push({ voice: Math.random() < 0.5 ? 'm2.guest' : 'm2.guest2', text: pick(RIDER_RISE), set: s => { t.riderSaid = s; t.riderCar = car; } });
+    if (!t.talk.busy && !t.talk.q.length && Math.random() < 0.5) t.talk.q.push({ voice: Math.random() < 0.5 ? 'm2.guest' : 'm2.guest2', text: pick(RIDER_RISE), set: s => { t.riderSaid = s; t.riderCar = car; } });
   }
 };
 
@@ -586,11 +586,11 @@ export const tower: SpookySection = {
     t.ride.held = (!t.crashed && !t.crash && brokenOf(t) >= BEAMS.length - 1) || !!t.dive;
     runRide(state, t.ride, t.crashed || !!t.crash, {
       loading: () => {
-        if (cx < TX0 && !t.talk.busy && !t.talk.q.length && state.frame - t.spielAt > 1500 && t.asked) { t.spielAt = state.frame; opSays(t, pick(OPERATOR_SPIEL)); }
+        if (cx < TX0 && !t.talk.busy && !t.talk.q.length && state.frame - t.spielAt > 2400 && t.asked) { t.spielAt = state.frame; opSays(t, pick(OPERATOR_SPIEL)); }
       },
       dropped: (car: Car) => {
         const nearCar = Math.abs(cx - car.x) < 900 && Math.abs(p.pos.y - car.y) < 700;
-        if (nearCar && !car.crash && !t.talk.busy && !t.talk.q.length && Math.random() < 0.6) t.talk.q.push({ voice: Math.random() < 0.5 ? 'm2.guest' : 'm2.guest2', text: pick(car.real ? RIDER_REAL : RIDER_DROP), set: s => { t.riderSaid = s; t.riderCar = car; } });
+        if (nearCar && !car.crash && !t.talk.busy && !t.talk.q.length && Math.random() < 0.45) t.talk.q.push({ voice: Math.random() < 0.5 ? 'm2.guest' : 'm2.guest2', text: pick(car.real ? RIDER_REAL : RIDER_DROP), set: s => { t.riderSaid = s; t.riderCar = car; } });
         if (car.real && !car.crash && cx < TX0 && !t.talk.busy && !t.talk.q.length) opSays(t, pick(OPERATOR_NEXT));
       },
       passing: (car: Car, from: number, to: number) => {
@@ -629,7 +629,7 @@ export const tower: SpookySection = {
     if (!t.signSaid && k === 0 && Math.abs(cx - BEAMS[0].x) < 240 && t.beamHp[0] > 0) { t.signSaid = true; t.talk.q.push({ voice: 'meathead', text: MEATHEAD_BEAM_SIGN[0] }); }
     if (!t.mainSaid && k === STORIES && t.beamHp[BEAMS.length - 1] > 0) { t.mainSaid = true; t.talk.q.push({ voice: 'meathead', text: pick(MEATHEAD_MAIN) }); }
     const broken = brokenOf(t);
-    if (broken >= 3 && !t.crashed && k >= 0 && state.frame - t.wobbleAt > 1800 && !t.talk.busy && !t.talk.q.length) {
+    if (broken >= 3 && !t.crashed && k >= 0 && state.frame - t.wobbleAt > 2700 && !t.talk.busy && !t.talk.q.length) {
       t.wobbleAt = state.frame;
       t.talk.q.push({ voice: 'meathead', text: MEATHEAD_WOBBLE[t.wobbleN++ % MEATHEAD_WOBBLE.length] });
     }

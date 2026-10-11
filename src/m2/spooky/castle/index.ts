@@ -100,7 +100,7 @@ const runTour = (state: GameState, cs: Castle) => {
   // (now and then, as he kills off the cast: a quip, if the PA's quiet)
   const liveNow = state.enemies.filter(e => isStaff.has(e.kind ?? '') && e.health > 0 && !e.isBlownAway && e.pos.x > x0 && e.pos.x < x1).length;
   const fighting = state.enemies.some(e => isStaff.has(e.kind ?? '') && e.health > 0 && !e.isBlownAway && Math.abs(e.pos.x - p.pos.x) < 500);
-  if (cs.kills > liveNow && heard.has('foyer') && !fighting && state.frame - cs.quipAt > 1800 && !paBusy(state) && Math.random() < 0.5) {
+  if (cs.kills > liveNow && heard.has('foyer') && !fighting && state.frame - cs.quipAt > 2700 && !paBusy(state) && Math.random() < 0.5) {
     if (paQuip(state, pick(byPants(state, L.PA_KILL)))) cs.quipAt = state.frame;
   }
   cs.kills = liveNow;

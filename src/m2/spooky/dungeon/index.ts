@@ -175,7 +175,7 @@ const run = (ctx: FrameContext, dg: Dungeon) => {
       SECTS.forEach((q, i) => { dg.tips[i] = dg.lever ? dg.tips[i] + (i === 2 ? dg.v3 : q.v * FAST) : Math.min(CAP[i], dg.tips[i] + q.v); if (dg.t % (i === 1 ? 3 : 5) === 0) state.particles.push({ pos: { x: q.a + Math.random() * (q.b - q.a), y: dg.tips[i] - 20 }, vel: { x: 0, y: 1.5 }, life: 60, color: '#A8A29E', size: 2, grav: 0.05 }); });
       dg.tip = Math.max(...dg.tips);
       if (dg.t % 20 === 0) { playSound('grind', 0.35, -10); shakeScreen(state, 2, 1); }
-      if (dg.t === 200 && !dg.taunted) { dg.taunted = true; paQuip(state, byPants(state, L.PA_CEILING)[1 + Math.floor(Math.random() * 2)]); }
+      if (dg.t === 200 && !dg.taunted) { dg.taunted = true; paQuip(state, pick(byPants(state, L.PA_CEILING).slice(1))); }
       // The lever, on the wall over the crate at the far end: stood up on the crate under it, up and he takes hold of
       // it, and hauls it down (a moment, out of his hands); let go, the door's going up, and so's the pace of the
       // ceiling: set so a clean dash to the door makes it with a little to spare, however long he took to get here
