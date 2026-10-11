@@ -52,16 +52,20 @@ const onScreen = (state: GameState, e: Pt, d: Doorway) => {
 /** A side face of the wall (the plane x = sx), from y0 to y1, going back from depth d1 to d0: in bands, darker going
  *  back; its courses running back to the eye. */
 const sideFace = (c: Ctx, e: Pt, sx: number, y0: number, y1: number, d0: number, d1: number) => {
+  // (how wide it is on screen: seen edge-on it narrows to nothing, its lines with it)
+  const wide = Math.abs(sx - e[0]) * (d1 - d0);
+  if (wide < 0.5) return;
   const n = 4;
   for (let i = 0; i < n; i++) {
     const a = d1 - (d1 - d0) * i / n, b = d1 - (d1 - d0) * (i + 1) / n;
     quad(c, mix(S[1], S[0], i / (n - 1)), at(e, sx, y0, a), at(e, sx, y0, b), at(e, sx, y1, b), at(e, sx, y1, a));
   }
+  if (wide < 3) return;
   c.strokeStyle = S[0]; c.lineWidth = 1; c.beginPath();
   for (let y = Math.ceil(y0 / 32) * 32; y < y1; y += 32) { const p = at(e, sx, y, d1), q = at(e, sx, y, d0); c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); }
   c.stroke();
   // (where it meets the back wall: a dark corner)
-  seg(c, at(e, sx, y0, d0), at(e, sx, y1, d0), INK, 2);
+  seg(c, at(e, sx, y0, d0), at(e, sx, y1, d0), INK, Math.min(2, wide / 3));
 };
 /** A face square-on to him, d deep (the stone's courses scale with it). */
 const flatFace = (c: Ctx, e: Pt, x0: number, y0: number, x1_: number, y1: number, d: number, dark: boolean) => {
@@ -128,16 +132,19 @@ export const drawDoorwaysFront = (c: Ctx, state: GameState) => {
   const e = eyeOf(state);
   for (const d of DOORWAYS) {
     if (d.end || !onScreen(state, e, d)) continue;
-    // (a slim pillar at the wall's corner nearest the eye)
-    const corner = e[0] < d.cx ? d.cx - HW : d.cx + HW, xa = corner - (e[0] < d.cx ? 0 : 16), xb = xa + 16, cut = at(e, xa, d.top, 1)[1] - 16;
+    // (a slim pillar at each of the wall's corners; each one's side face narrowing to nothing as the eye comes level
+    // with it and opening out on its other side past it: both always drawn, nothing switching over)
+    const cut = at(e, d.cx, d.top, 1)[1] - 16;
     c.save(); c.beginPath(); c.rect(state.camera.x - 100, d.roof - 2000, CANVAS_WIDTH + 200, cut - (d.roof - 2000)); c.clip();
-    const side = e[0] < xa ? xa : e[0] > xb ? xb : null;
-    if (side !== null) quad(c, '#140A0C', at(e, side, d.roof, 1), at(e, side, d.roof, DN), at(e, side, d.top - 16, DN), at(e, side, d.top - 16, 1));
-    const [ax, ay] = at(e, xa, d.roof, DN), [bx, by] = at(e, xb, d.top - 16, DN);
-    box(c, ax - 1, ay, bx - ax + 2, by - ay, INK); box(c, ax, ay, bx - ax, by - ay, '#1A0E10');
-    // (a rim of candlelight down its edge toward the eye, a scalloped velvet drape hung off its foot)
-    box(c, side === xb ? bx - 3 : ax, ay, 3, by - ay, '#4A3030');
-    box(c, ax - 3, by - 12, bx - ax + 6, 12, INK); box(c, ax - 2, by - 11, bx - ax + 4, 10, '#24161A'); box(c, ax - 2, by - 11, bx - ax + 4, 1, '#4A3030');
+    for (const xa of [d.cx - HW, d.cx + HW - 16]) {
+      const xb = xa + 16, side = e[0] < xa ? xa : e[0] > xb ? xb : null;
+      if (side !== null) quad(c, '#140A0C', at(e, side, d.roof, 1), at(e, side, d.roof, DN), at(e, side, d.top - 16, DN), at(e, side, d.top - 16, 1));
+      const [ax, ay] = at(e, xa, d.roof, DN), [bx, by] = at(e, xb, d.top - 16, DN);
+      box(c, ax - 1, ay, bx - ax + 2, by - ay, INK); box(c, ax, ay, bx - ax, by - ay, '#1A0E10');
+      // (a rim of candlelight down the edge facing the room it stands in; a dark cap at its foot)
+      box(c, xa < d.cx ? ax : bx - 3, ay, 3, by - ay, '#4A3030');
+      box(c, ax - 3, by - 12, bx - ax + 6, 12, INK); box(c, ax - 2, by - 11, bx - ax + 4, 10, '#24161A'); box(c, ax - 2, by - 11, bx - ax + 4, 1, '#4A3030');
+    }
     c.restore();
   }
 };
