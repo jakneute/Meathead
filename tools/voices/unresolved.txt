@@ -24,33 +24,33 @@ m2/intro/index.ts:698 voice: line
 m2/adventure/queue/talk.ts:33 voice: l.text
 m2/adventure/river/index.ts:444 voice: fromBag(rv, 'gkill', GUESTS_KILL)
 m2/adventure/river/index.ts:450 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
-m2/adventure/dino/rex.ts:147 voice: voice('m2.rex')
 m2/adventure/dino/index.ts:141 voice: pick(MAINT_OBLIVIOUS)
+m2/adventure/dino/rex.ts:147 voice: voice('m2.rex')
 m2/adventure/temple/index.ts:166 voice: text
 m2/adventure/temple/index.ts:213 voice: g.woman ? 'm2.guest' : 'm2.guest2'
 m2/adventure/temple/index.ts:222 voice: 'm2.guest'
 m2/adventure/temple/index.ts:222 voice: 'm2.guest2'
 m2/adventure/temple/index.ts:228 voice: 'm2.operator'
 m2/adventure/temple/index.ts:228 voice: 'm2.operator2'
-m2/adventure/cart/index.ts:95 voice: text
-m2/adventure/cart/index.ts:201 voice: pick(ARTIE_CHASE_START[dressed(state)])
+m2/adventure/cart/index.ts:110 voice: text
+m2/adventure/cart/index.ts:227 voice: pick(ARTIE_CHASE_START[dressed(state)])
 m2/adventure/roof/index.ts:114 voice: text
 m2/adventure/clearing/index.ts:174 voice: text
-m2/adventure/clearing/fight.ts:290 voice: voice('m2.safari')
-m2/adventure/clearing/fight.ts:296 voice: pick(lines[pants()])
+m2/adventure/clearing/fight.ts:292 voice: voice('m2.safari')
+m2/adventure/clearing/fight.ts:298 voice: pick(lines[pants()])
 m2/adventure/section.ts:135 voice: voice(voiceId)
 m2/walkAway/artie.ts:378 voice: x
 m2/walkAway/artie.ts:383 voice: x
 m2/walkAway/artie.ts:384 voice: Math.round(sx - c.measureText('LAND').width / 2)
 m2/spooky/castle/pa.ts:72 voice: voice(PA)
-m2/spooky/hell/demon.ts:134 voice: voice('m2.demon')
 m2/spooky/hell/satan.ts:111 voice: SATAN_CORE
 m2/spooky/hell/satan.ts:114 voice: pick(dressedPool(state))
+m2/spooky/hell/demon.ts:136 voice: voice('m2.demon')
 m2/spooky/control/staff.ts:55 voice: voice(woman ? 'm2.spooky.clerkf' : 'm2.spooky.clerk')
-m2/spooky/control/doors.ts:74 voice: pick(L.DONNIE_LOCKED[dressed(state)])
 m2/spooky/control/index.ts:79 voice: pick(lines[dressed(state)])
 m2/spooky/control/shop.ts:245 voice: true
 m2/spooky/control/shop.ts:252 voice: voice('m2.donnie')
+m2/spooky/control/doors.ts:75 voice: pick(L.DONNIE_LOCKED[dressed(state)])
 m2/spooky/ballroom/fight.ts:222 voice: voice('m2.donnie')
 m2/spooky/ballroom/fight.ts:232 voice: pick(lines[pants()])
 m2/spooky/ballroom/fight.ts:547 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
@@ -78,12 +78,12 @@ m1/game/core/effects.ts:261 call: forGender(line, gender)
 m1/game/core/effects.ts:258 call: getHurtLines(hurtSource)
 m1/game/core/effects.ts:258 call: killLine(category, victim)
 m1/game/core/update.ts:224 name: undefined
-m1/game/core/update.ts:617 name: undefined
-m1/game/core/update.ts:617 call: pluckDeathMessage(state)
-m1/game/core/update.ts:617 call: animalDeathMessage(state)
-m1/game/core/update.ts:617 call: layout?.deathMessage?.(ctx)
-m1/game/core/update.ts:617 call: deathByCause(state)
-m1/game/core/update.ts:617 call: deathFallback(state, ctx.stageId, fell)
+m1/game/core/update.ts:622 name: undefined
+m1/game/core/update.ts:622 call: pluckDeathMessage(state)
+m1/game/core/update.ts:622 call: animalDeathMessage(state)
+m1/game/core/update.ts:622 call: layout?.deathMessage?.(ctx)
+m1/game/core/update.ts:622 call: deathByCause(state)
+m1/game/core/update.ts:622 call: deathFallback(state, ctx.stageId, fell)
 m1/game/player/player.ts:84 call: message()
 m1/game/stages/artie/ski.ts:446 call: skiDeathMessage(state, ski)
 m1/game/stages/artie/ski.ts:446 name: DEATH_LINES

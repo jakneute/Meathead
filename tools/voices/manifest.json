@@ -5526,6 +5526,11 @@
  },
  {
   "voice": "death",
+  "text": "BITTEN BY A PROP",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "BITTEN BY SOMETHING THAT SHOULDN'T EXIST",
   "from": "content/deaths"
  },
@@ -5608,6 +5613,11 @@
   "voice": "death",
   "text": "BOTTLED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BOULDERED",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -6191,6 +6201,11 @@
  },
  {
   "voice": "death",
+  "text": "DONE IN BY A LEAF BLOWER",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "DONE IN BY TINFOIL",
   "from": "content/deaths"
  },
@@ -6461,6 +6476,11 @@
  },
  {
   "voice": "death",
+  "text": "FACE FIRST INTO A PUPPET",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "FAILED THE TRIAL",
   "from": "content/deaths"
  },
@@ -6593,6 +6613,11 @@
   "voice": "death",
   "text": "FLATTENED BY THE COMMUNITY",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FLATTENED BY THE FINALE",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -7102,6 +7127,16 @@
  {
   "voice": "death",
   "text": "INDIANA BONED",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "INDIANA BONED AGAIN",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "INSURANCE SAID FOAM",
   "from": "ADVENTURE"
  },
  {
@@ -7826,6 +7861,11 @@
  },
  {
   "voice": "death",
+  "text": "OUTRUN BY A ROCK",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "OVERDOSED",
   "from": "content/deaths"
  },
@@ -7998,6 +8038,11 @@
   "voice": "death",
   "text": "POINTY HAT, POINTY END",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "POISON DARTS (REAL)",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -8206,6 +8251,11 @@
  },
  {
   "voice": "death",
+  "text": "ROCKED OFF THE RAILS",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "ROCKETEERED",
   "from": "content/deaths"
  },
@@ -8373,6 +8423,11 @@
   "voice": "death",
   "text": "SEISMIC",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "SERPENT OF DOOM (REAL DOOM)",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -9293,6 +9348,11 @@
   "voice": "death",
   "text": "THE HURRICANE THREW A PIANO",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE IDOL'S CURSE",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -12816,17 +12876,17 @@
  },
  {
   "voice": "m2.donnie.pa",
-  "text": "SURVIVE MY HUMBLE HOME AND YOU VILL BE GRANTED AN AUDIENCE. FLASH PHOTOGRAPHY IS PUNISHABLE BY DEATH.",
+  "text": "SURVIVE MY HUMBLE HOME AND YOU VILL BE GRANTED AN AUDIENCE. IN MY GRAND BALLROOM. I VILL BE UPVIND.",
   "from": "SPOOKY"
  },
  {
   "voice": "m2.donnie.pa",
-  "text": "SURVIVE MY HUMBLE HOME AND YOU VILL BE GRANTED AN AUDIENCE. I VILL BE UPVIND.",
+  "text": "SURVIVE MY HUMBLE HOME AND YOU VILL BE GRANTED AN AUDIENCE. IN MY GRAND BALLROOM. THE BALLROOM REQUIRES PANTS.",
   "from": "SPOOKY"
  },
  {
   "voice": "m2.donnie.pa",
-  "text": "SURVIVE MY HUMBLE HOME AND YOU VILL BE GRANTED AN AUDIENCE. THE AUDIENCE REQUIRES PANTS.",
+  "text": "SURVIVE MY HUMBLE HOME AND YOU VILL BE GRANTED AN AUDIENCE. IN MY GRAND BALLROOM. VE ALSO DO VEDDINGS.",
   "from": "SPOOKY"
  },
  {
@@ -15741,6 +15801,46 @@
  },
  {
   "voice": "m2.safari",
+  "text": "HA! COVER UP! ...NO! NOT WITH YOUR HANDS! KEEP THEM ON THE BAR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HA! DID THAT KNOCK SOMETHING ELSE LOOSE?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HA! EVEN THE RIDE WANTS YOU OFF IT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HA! KEEP YOUR HEAD DOWN, GENIUS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HA! RIGHT IN THE— OH GOD, I LOOKED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HA! THE RIDE CAN'T SMELL! IT'S GOT NO IDEA HOW LUCKY IT IS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HA! THE RIDE HATES YOU TOO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HA! THE RIDE'S GOT A DRESS CODE TOO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "HE DIDN'T EVEN TIP.",
   "from": "ADVENTURE"
  },
@@ -16027,6 +16127,16 @@
  {
   "voice": "m2.safari",
   "text": "I'M ON MY BREAK! YOU'RE RUINING MY BREAK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M PUTTING THAT ON YOUR TAB! AND THE CART CLEANING! AND MY NOSE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M PUTTING THAT ON YOUR TAB! WHICH YOU CAN'T PAY! YOU DON'T EVEN HAVE POCKETS!",
   "from": "ADVENTURE"
  },
  {
@@ -16581,6 +16691,16 @@
  },
  {
   "voice": "m2.safari",
+  "text": "OW! AND THAT'S NOT EVEN THE WORST THING I'VE SEEN TODAY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OW! I'M PUTTING THAT ON YOUR TAB!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "OW! NO FAIR! I WAS DISTRACTED! YOU KNOW WHAT I WAS DISTRACTED BY!",
   "from": "ADVENTURE"
  },
@@ -16592,6 +16712,11 @@
  {
   "voice": "m2.safari",
   "text": "OW! NO FAIR! YOU PICKED THE RIGHT BUSH! AND YOU STUNK UP THE OTHER FOUR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OW! THAT ONE CAME RIGHT THROUGH YOUR STINK CLOUD! IT'S CONTAMINATED!",
   "from": "ADVENTURE"
  },
  {
@@ -16887,6 +17012,16 @@
  {
   "voice": "m2.safari",
   "text": "THAT'S FOR THE BOAT! AND FOR THE BENCH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT'S THE MOST FUN I'VE HAD ON THIS RIDE IN YEARS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT'S YOUR FAULT TOO! EVERYTHING TODAY IS YOUR FAULT!",
   "from": "ADVENTURE"
  },
  {
@@ -17326,6 +17461,21 @@
  },
  {
   "voice": "m2.safari",
+  "text": "WHO TURNED THE SHOW ON?! I'M ON MY BREAK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WHO TURNED THE SHOW ON?! IT'S FINE! IT'S STILL BETTER THAN THE SMELL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "WHO TURNED THE SHOW ON?! THE SHOW'S ALREADY ON! IT'S YOUR BUTT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "WHOA, WHOA. SIR, DID YOU COME THROUGH THE BACK? ...WHAT IS THAT SMELL? YOU KNOW WHAT, I DON'T CARE. WELCOME ABOARD THE JUNGLE CRUISE!",
   "from": "ADVENTURE"
  },
@@ -17367,6 +17517,21 @@
  {
   "voice": "m2.safari",
   "text": "YOU KNOW WHAT THE WORST PART OF THIS JOB IS? THE SUNBURN. AND YOU'RE ABOUT TO FIND OUT WHERE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU SET THAT OFF ON PURPOSE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU SET THAT OFF ON PURPOSE! AND IT STILL SMELLED BETTER THAN YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU SET THAT OFF ON PURPOSE! YOU AND YOUR BARE BUTT!",
   "from": "ADVENTURE"
  },
  {
@@ -18176,6 +18341,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A DART! IN MY FACE THIS TIME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "A DESK DRAWER REVOLVER! WHAT KIND OF OFFICE IS THIS?!",
   "from": "HAZARD_HURT"
  },
@@ -18498,6 +18668,11 @@
   "voice": "meathead",
   "text": "A RIVET! TO THE SKULL!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A ROCK! IN THE CART! WITH ME!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -19162,6 +19337,11 @@
  {
   "voice": "meathead",
   "text": "BIG TEETH! BIG TEETH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "BIGGER! WHY IS THIS ONE BIGGER?!",
   "from": "ADVENTURE"
  },
  {
@@ -21386,6 +21566,16 @@
  },
  {
   "voice": "meathead",
+  "text": "GO FASTER, YOU STUPID CART!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "GO GO GO GO GO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "GO PUT OUT A FIRE, HOSE BOY!",
   "from": "HAZARD_HURT"
  },
@@ -23076,6 +23266,16 @@
  },
  {
   "voice": "meathead",
+  "text": "I KNOW THERE'S A GUY BACK THERE WITH A LEAF BLOWER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I KNOW YOU'RE BACK THERE WITH A CATAPULT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "I LIFT THINGS UP AND PUT THEM DOWN. HARD.",
   "from": "M2_KILL_LINES"
  },
@@ -23153,6 +23353,11 @@
   "voice": "meathead",
   "text": "I SAID MATCH HIM! CHARGE FOR CHARGE! SLIDE FOR SLIDE! UGH!",
   "from": "m1/game/stages/victor/doorman.ts:540"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SAW YOUR BUCKET OF DARTS, PAL!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -23701,6 +23906,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'VE SEEN YOUR AIR TANK, SNAKE! YOU DON'T SCARE ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "I'VE STOOD IN ALL OF IT. NO.",
   "from": "OSCAR_LINES"
  },
@@ -23811,6 +24021,11 @@
  },
  {
   "voice": "meathead",
+  "text": "INSURANCE SAID FOAM! INSURANCE SAID FOAM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "INTERNAL COMBUSTION FAILURE",
   "from": "VULGARITIES"
  },
@@ -23901,6 +24116,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT BIT MY FACE! A PUPPET BIT MY FACE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "IT BIT MY HEAD!",
   "from": "ADVENTURE"
  },
@@ -23922,6 +24142,11 @@
  {
   "voice": "meathead",
   "text": "IT CAN RUN?! WHY CAN IT RUN?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT CAUGHT ME! IT CAUGHT ME!",
   "from": "ADVENTURE"
  },
  {
@@ -23993,6 +24218,11 @@
   "voice": "meathead",
   "text": "IT SAID DO NOT SWIM! I WASN'T SWIMMING!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT SAYS SERPENT OF DOOM ON YOUR BUTT! I READ IT!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -24746,6 +24976,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY BACK! IT FLATTENED MY BACK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "MY BLOOD IS LITERALLY FREEZING, FUCK YOU!",
   "from": "HURT"
  },
@@ -24903,6 +25138,11 @@
   "voice": "meathead",
   "text": "MY KNEES AREN'T MEANT FOR THIS VIBRATION!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY KNEES! MY CART! MY KNEES!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -25781,6 +26021,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OH, COME ON! THAT ONE WASN'T BACKSTAGE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "OH, COME ON.",
   "from": "m1/game/stages/hector/boat.ts:61"
  },
@@ -25803,6 +26048,11 @@
   "voice": "meathead",
   "text": "OH, GREAT. WEATHER.",
   "from": "m1/game/stages/hector/beach.ts:110"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH, IT'S YOU. THE PUPPET.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -26146,6 +26396,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! RIGHT IN THE NECK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! THAT MOP'S BEEN IN THE TOILETS!",
   "from": "HAZARD_HURT"
  },
@@ -26388,6 +26643,11 @@
   "voice": "meathead",
   "text": "POI TO THE FACE! MY EYEBROWS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "POISON?! IS IT POISON?! IT SAYS POISON!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -28586,6 +28846,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT ROCK HAD A RUNNING START!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT ROCKET SPLATTERED PETROLEUM ON MY PECS!",
   "from": "HURT"
  },
@@ -28848,6 +29113,11 @@
   "voice": "meathead",
   "text": "THAT'S NOT DANCING! THAT'S ASSAULT!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S NOT FOAM EITHER!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -29256,6 +29526,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE LEAFMASTER! I KNOW IT'S YOU BACK THERE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "THE LITTLE RED GUY BIT MY ANKLE!",
   "from": "SPOOKY"
  },
@@ -29458,6 +29733,11 @@
   "voice": "meathead",
   "text": "THE SKELETON BASHED ME WITH HIS TOMBSTONE!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE SNAKE AGAIN! FROM THE FRONT THIS TIME!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -30073,6 +30353,11 @@
   "voice": "meathead",
   "text": "TSUNAMI OF PAIN",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWELVE HUNDRED PSI! I FELT ALL TWELVE HUNDRED!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
