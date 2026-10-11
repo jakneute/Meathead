@@ -99,6 +99,8 @@ const NAG_EVERY = 900, TAUNT_EVERY = 520;
 const BEAT_GAP = 360;
 /** How long he spends admiring himself as the fight starts (frames): one loop-the-loop. */
 const ADMIRE_T = 120;
+/** At least this long between Meathead's hints about the souvenirs (frames). */
+const HINT_GAP = 600;
 
 /** Sources of hurt (each with its lines and its death screen). */
 const BLOOD = 'm2:donnie_blood';
@@ -136,6 +138,8 @@ export interface Fight {
   stunT: number; side: 1 | -1;
   /** When the Redeemer can put him down again (frames, by f.total). */
   redeemAt: number;
+  /** The wrong souvenirs: how many have hit him, when Meathead last had a think about it out loud. */
+  wrongN: number; hintAt: number;
   said: string | null; satanSaid: string | null; nagT: number; tauntT: number;
   /** What a souvenir did to him this frame (the launcher tells us: its hit hook). */
   souvenir: { id: string } | null;
@@ -227,7 +231,7 @@ export const startFight = (state: GameState): Fight => {
   const f: Fight = {
     hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, total: 0, x: CORNER_X, y: GY, vx: 0, vy: 0, facing: -1,
     intro: 'plead', introT: 0, skipT: 0, admireT: 0, circle: 0, powered: false, dive: null, mark: null, held: null,
-    guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0,
+    guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0, wrongN: 0, hintAt: -99999,
     said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove,
     death: null, deathSaid: 0, cam: null, wigOff: null, e,
     beat: null, beatOn: false, beatEnd: -9999, beatsDone: new Set(), guestKills: 0,
@@ -602,6 +606,9 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   let dmg = Math.max(1, dealt * (sv ? SOUV_SHARE : SHARE));
   // (a lesser souvenir never finishes him: a souvenir kill on him is the Redeemer's, always)
   if (sv && f.hp - dmg <= 0) dmg = Math.max(0, f.hp - 1);
+  // (a souvenir that isn't the one: Meathead thinking out loud that something in the bag must work; the first time,
+  // then every few, never too often; not once the Redeemer's found him)
+  if (sv && sv.id !== 'redeemer' && f.redeemAt === 0 && (++f.wrongN === 1 || f.wrongN % 3 === 0) && f.total - f.hintAt > HINT_GAP) { f.hintAt = f.total; meatheadSays(state, pick(L.MEATHEAD_SOUVENIR_HINT), false); }
   f.hp -= dmg; f.iframes = sv ? SOUV_IFRAMES : IFRAMES; f.flash = 8;
   for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: f.x, y: f.y - 50 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
   playSound('gunhit', 0.5, 2);
