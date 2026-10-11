@@ -184,6 +184,24 @@ const solidAt = (state: GameState, x: number) => {
   return state.blocks.find(b => !b.oneWay && b.type !== 'pit' && x < b.x + b.w && x + p.width > b.x && p.pos.y + 4 < b.y + b.h && p.pos.y + p.height - 4 > b.y);
 };
 const walled = (state: GameState, x: number) => !!solidAt(state, x);
+/** The nearest solid thing between his front and the point `to` (world x), at his height: a wall, a column, a beam.
+ *  Nothing reaches, grabs or lunges through one. */
+const wallBetween = (state: GameState, to: number) => {
+  const p = state.player, mid = p.pos.x + p.width / 2;
+  const a = Math.min(mid, to), b = Math.max(mid, to);
+  let best: { x: number; w: number } | null = null, bestD = Infinity;
+  for (const k of state.blocks) {
+    if (k.oneWay || k.type === 'pit' || k.x >= b || k.x + k.w <= a) continue;
+    if (!(p.pos.y + 4 < k.y + k.h && p.pos.y + p.height - 4 > k.y)) continue;
+    // (one he's already standing in doesn't count: that's the floor's business)
+    if (k.x < mid && k.x + k.w > mid) continue;
+    const d = to > mid ? k.x - mid : mid - (k.x + k.w);
+    if (d < bestD) { bestD = d; best = k; }
+  }
+  return best;
+};
+/** Can he get at this one without anything solid in between? */
+const clearTo = (state: GameState, e: Enemy) => !wallBetween(state, e.pos.x + e.width / 2);
 /** Puts him at x, or as near it as he'll go without being inside anything solid (backed out the way he came). */
 const placeAt = (state: GameState, x: number, from: number) => {
   const p = state.player;
@@ -261,6 +279,7 @@ const inReach = (state: GameState, dir: number, reach: number, any = false) => {
     // (anybody from right up against him, even a little behind his middle, out to the reach)
     const behind = dir > 0 ? mid - 16 - (e.pos.x + e.width) : e.pos.x - (mid + 16);
     if (near > reach || behind > 0) continue;
+    if (!clearTo(state, e)) continue;
     if (Math.abs(near) < bestD) { bestD = Math.abs(near); best = e; }
   }
   return best;
@@ -284,7 +303,7 @@ const lungeHits = (state: GameState, dir: number) => {
     const near = dir > 0 ? e.pos.x : e.pos.x + e.width;
     const ahead = dir > 0 ? e.pos.x + e.width > mid : e.pos.x < mid;
     const inSpan = (near >= a && near <= b) || (ahead && e.pos.x < b && e.pos.x + e.width > a);
-    if (!inSpan) continue;
+    if (!inSpan || !clearTo(state, e)) continue;
     const d = Math.abs(near - front);
     if (d < bestD) { bestD = d; best = e; }
   }
@@ -617,7 +636,12 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         if (tooBigAnimal(hit)) tooBig(state, hit);
         return hold();
       }
-      if (!hit) { const nx = p.pos.x + g.dir * LUNGE_SPEED; if (!walled(state, nx)) p.pos.x = nx; }
+      if (!hit) {
+        // (the step swept, not jumped: a thin column at this speed would otherwise be stepped clean over)
+        const nx = p.pos.x + g.dir * LUNGE_SPEED, w = wallBetween(state, g.dir > 0 ? nx + p.width : nx);
+        if (w) { p.pos.x = g.dir > 0 ? w.x - p.width : w.x + w.w; g.phase = 'whiff'; g.t = 0; playSound('thud', 0.8, -4); shakeScreen(state, 4, 3); return hold(); }
+        if (!walled(state, nx)) p.pos.x = nx;
+      }
       else placeAt(state, g.dir > 0 ? hit.pos.x - p.width + 6 : hit.pos.x + hit.width - 6, p.pos.x);
       const e = hit ?? inReach(state, g.dir, LUNGE_REACH);
       if (e && isCritter(e)) return grabCritter(ctx, g, e, hold);
