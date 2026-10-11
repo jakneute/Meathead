@@ -166,7 +166,7 @@ const chatter = (state: GameState, r: Rex) => {
   const lv = wornDown(r);
   const pool = Math.random() < 0.35 ? (lv >= 2 ? REX_SEES_BROKEN : REX_SEES_WHOLE)[dressed(state)] : REX_CHATTER[lv];
   // (somebody's talking: it tries again in a bit)
-  r.talkAt = state.frame + (rexSays(state, r, pool, false) ? 480 + Math.random() * 360 : 75);
+  r.talkAt = state.frame + (rexSays(state, r, pool, false) ? 720 + Math.random() * 480 : 75);
 };
 
 // ---------------------------------------------------------------------------------------------------------------

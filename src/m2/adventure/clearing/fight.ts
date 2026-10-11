@@ -372,7 +372,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
     case 'hidden': {
       if (luring(f)) {
         f.lureT++;
-        if (f.lureT % 70 === 20) bark(f, L.ARTIE_LURE);
+        if (f.lureT % 150 === 30) bark(f, L.ARTIE_LURE);
         // (he's there: got him)
         const b = f.bushes[f.bush], cx = px(state);
         if (f.t > 40 && Math.abs(cx - b.x) < BUSH_W / 2 + 12 && state.player.pos.y + state.player.height > GY - 110) { to(f, 'rise'); break; }
@@ -526,7 +526,7 @@ const shuffle = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   const m = f.moves[f.moveI];
   if (!m) { to(f, 'rise'); return; }
-  if (f.moveI === 0 && f.t === 1 && state.frame >= f.nextCups) { bark(f, L.ARTIE_CUPS); f.nextCups = state.frame + 400; }
+  if (f.moveI === 0 && f.t === 1 && state.frame >= f.nextCups) { bark(f, L.ARTIE_CUPS); f.nextCups = state.frame + 600; }
   const tx = f.bushes[m.to].x;
   if (f.t === 1) { f.bushes[f.bush].shake = 12; playSound(m.how === 'dive' ? 'whoosh' : 'step_dirt', 0.5, m.how === 'dive' ? 4 : 0); }
   if (f.t <= m.d) {

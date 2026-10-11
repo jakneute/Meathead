@@ -254,7 +254,7 @@ const artieChase = (ctx: FrameContext, cart: Cart) => {
     for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: pr.pos.x, y: pr.pos.y }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 3 }, life: 14, color: '#FDE047', size: 2 });
     if (state.frame - a.shotSaid > 400) { a.shotSaid = state.frame; artieSays(cart, pick(ARTIE_SHOT[dressed(state)])); }
   }
-  if (--a.next <= 0) { a.next = 420 + Math.floor(Math.random() * 200); artieSays(cart, pick(ARTIE_TAUNT[dressed(state)])); }
+  if (--a.next <= 0) { a.next = 600 + Math.floor(Math.random() * 300); artieSays(cart, pick(ARTIE_TAUNT[dressed(state)])); }
 };
 
 /** Artie, to the ride's tricks: knocked back (the cart and him), and it's Meathead's fault. */

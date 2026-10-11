@@ -55,6 +55,8 @@ const DROWN_EVERY = 45, DROWN_DAMAGE = 7;
 const EARSHOT = 760;
 /** How much of the tour he gets through on the way (the rest he does stuck). */
 const TOUR_RIDE = 4;
+/** Frames of quiet between Artie's lines once the boat's stuck (and after he's lost his guest). */
+const STUCK_GAP = 100;
 
 export type BoatPhase = 'moored' | 'ride' | 'stalled' | 'jumped';
 export interface Bubble { x: number; y: number; r: number; vy: number }
@@ -88,19 +90,8 @@ export const getRiver = (state: GameState) => sectionState<River>(state, 'river'
   stain: { red: 0, redTo: 0, brown: 0, brownTo: 0, clouds: [], bled: new WeakSet(), recent: new Map(), shatIn: false },
 }));
 
-/** A line from a pool, never the same one twice running (and round all of them before any comes again). */
-const fromBag = (rv: River, key: string, pool: readonly string[]) => {
-  let bag = rv.bags[key];
-  if (!bag?.length) {
-    bag = pool.map((_, i) => i).sort(() => Math.random() - 0.5);
-    const last = rv.bags[`${key}:last`]?.[0];
-    if (bag.length > 1 && bag[bag.length - 1] === last) bag.unshift(bag.pop()!);
-    rv.bags[key] = bag;
-  }
-  const i = bag.pop()!;
-  rv.bags[`${key}:last`] = [i];
-  return pool[i];
-};
+/** A line from a pool (pickLine: nothing said again inside its cooldown; all of them recent, the longest ago). */
+const fromBag = (_rv: River, _key: string, pool: readonly string[]) => pick(pool);
 /**
  * A line of Artie's: worded for the state of Meathead's pants when it's said, not when it's queued (a blowout can
  * come any time). Each way's wording is settled the first time it's asked for (so a line from a bag stays put).
@@ -255,6 +246,8 @@ const updateBoat = (state: GameState, rv: River) => {
   // Stuck: he never shuts up (the radio, the life story, round and round; Meathead's at the end of his rope)
   if (b.phase === 'stalled' && near && !t.q.length && !t.busy) {
     b.n++;
+    // (a breather between them: he's not in a hurry, he's got nowhere to be)
+    t.gap = Math.max(t.gap, STUCK_GAP);
     if (b.n % 4 === 0) t.q.push(artieFrom(state, rv, 'radio', ARTIE_RADIO, true));
     else if (b.tour < ARTIE_TOUR.clean.length) t.q.push(tour(state, rv, b.tour++));
     else t.q.push(artieFrom(state, rv, 'stuck', ARTIE_STUCK));
@@ -268,11 +261,12 @@ const updateBoat = (state: GameState, rv: River) => {
     // (off it, he's off it: Artie's not having him back aboard, there's no climbing back on)
     if (wasRiding && b.block) { const blk = b.block; state.blocks = state.blocks.filter(o => o !== blk); }
     if (wasRiding) t.q.push(mh(pick(MEATHEAD_JUMP)));
-    if (wasRiding) t.q.push(artieFrom(state, rv, 'jumped', ARTIE_JUMPED), artieFrom(state, rv, 'jumped', ARTIE_JUMPED));
+    if (wasRiding) t.q.push(artieFrom(state, rv, 'jumped', ARTIE_JUMPED));
   }
   if (b.phase === 'jumped' && b.rode && near && !t.q.length && !t.busy && p.swimming) {
     b.n++;
-    t.q.push(b.n % 3 === 0 ? artieFrom(state, rv, 'radio', ARTIE_RADIO, true) : artieFrom(state, rv, 'alone', ARTIE_ALONE));
+    t.gap = Math.max(t.gap, STUCK_GAP);
+    t.q.push(artieFrom(state, rv, 'alone', ARTIE_ALONE));
   }
   // The boat moves (him with it, stood on it)
   if (b.v > 0) {
@@ -445,7 +439,7 @@ const updateGallery = (state: GameState, rv: River) => {
   rv.tankDead = dead;
   if (!inTank) return;
   if (--rv.guestNext <= 0 && !rv.talk.q.length && !rv.talk.busy) {
-    rv.guestNext = 160 + Math.floor(Math.random() * 120);
+    rv.guestNext = 260 + Math.floor(Math.random() * 160);
     const d = dressed(state);
     say(nearest, fromBag(rv, `gsee:${d}`, GUESTS_SEE[d]));
   }
