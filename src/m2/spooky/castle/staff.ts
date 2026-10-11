@@ -190,8 +190,9 @@ const batsuitAI = (ctx: FrameContext, e: Enemy): boolean => {
   const homeX = e.homeX ?? e.pos.x, homeY = e.homeY ?? e.pos.y;
   e.aiTimer = (e.aiTimer || 0) + 1;
   const m = mid(e), p = mid(state.player);
-  // (grabbed and lived: the wire's snapped. Down he comes, and he's a man in a bat suit on foot from then on)
-  if (e.wasGrabbed) return grounded(state, e);
+  // (grabbed, or hit by a charge move, and lived: the wire's snapped. Down he comes, and he's a man in a bat suit on foot
+  // from then on)
+  if (snapped(e)) return grounded(state, e);
   switch (e.aiState) {
     default: {
       const t = (state.frame + homeX) * 0.02;
@@ -221,6 +222,8 @@ const batsuitAI = (ctx: FrameContext, e: Enemy): boolean => {
   return true;
 };
 
+/** His wire's gone: he's been grabbed, or a charge move's landed on him (a shoulder charge, slide, uppercut, dive kick). */
+const snapped = (e: Enemy) => !!e.wasGrabbed || e.hitByMove !== undefined;
 /** The bat suit off his wire: falls, lands, then waddles at him flapping the rubber wings (it's all he's got). */
 const grounded = (state: GameState, e: Enemy): boolean => {
   const m = mid(e), p = mid(state.player);
@@ -347,9 +350,9 @@ registerM2Kind({
   kind: STAFF.batsuit, stats: { w: 44, h: 66, hp: 80, contact: 10, mass: 160, air: true }, ai: batsuitAI, humanoid: true, grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
   gender: e => human(e), head: { x: 1, y: -67, r: 9 },
-  // (the wire only while he's flying on it: not once he's been grabbed (snapped), not as a corpse or flung about)
+  // (the wire only while he's flying on it: not once it's snapped (grabbed, or a charge move), not as a corpse or flung)
   draw: (c, e, f) => {
-    const onWire = !e.wasGrabbed && e.health > 0 && (e.aiState === 'idle' || e.aiState === 'dive' || e.aiState === 'climb' || !e.aiState);
+    const onWire = !snapped(e) && e.health > 0 && (e.aiState === 'idle' || e.aiState === 'dive' || e.aiState === 'climb' || !e.aiState);
     if (onWire) drawWire(c);
     drawBatsuitCostume(c, { seed: seedOf(e), f, pose: e.aiState === 'dive' ? 'strike' : onWire ? 'fly' : 'walk', md: moodOf(e) });
   },

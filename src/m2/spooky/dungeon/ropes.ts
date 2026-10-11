@@ -59,6 +59,8 @@ export const floorRuns = (x0: number, x1: number): GroundRun[] => {
 export const buildRopes = (state: GameState) => {
   // (each pit's bottom: the ditch's floor, the spike bed, the vat's bottom under the lard)
   for (const p of PITS) solid(state, p.a, GY + p.depth, p.b - p.a, 200, { hidden: true, tag: 'dungeon-pit' });
+  // (the passage's roof: the ropes' beam is the top of it, from the chamber's far door to the exit; nobody's going over)
+  solid(state, X(2600), BEAM - 400, SECTIONS.dungeon.x1 + 200 - X(2600), 400, { hidden: true, tag: 'dungeon-roof' });
   // (over the vat: the bat suit on his wire, a couple of bats)
   spawnStaff(state, 'batsuit', X(4140), GY - 250, 61);
   spawnStaff(state, 'bat', X(3500), GY - 330, 62); spawnStaff(state, 'bat', X(4300), GY - 300, 63);
