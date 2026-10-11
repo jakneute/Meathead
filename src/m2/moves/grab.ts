@@ -55,7 +55,7 @@ type Ctx = CanvasRenderingContext2D;
 /** Like a fighting game's grab: once it's going, he's committed. The beatdown's windup is a real one (a quarter second,
  * coiled down low: seen coming, and a hit in it knocks him out of it, it being so strong); the shakedown's is nearly
  * instant, and nothing stops it. */
-const WINDUP = 15, LUNGE = 4, LUNGE_SPEED = 21, WHIFF = 22, REACH = 6;
+const WINDUP = 15, LUNGE = 7, LUNGE_SPEED = 21, WHIFF = 22, REACH = 6;
 /** How far ahead of him, as he lunges, he can still get hold of somebody. */
 const LUNGE_REACH = 20;
 /**
