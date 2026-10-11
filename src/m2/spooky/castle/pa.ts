@@ -7,7 +7,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { meatheadSays, saidOver, voice, type Said } from '../section';
-import { say, isTalking } from '../../../m1/game/platform/speech';
+import { say, isTalking, pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { PA, type Dressed, type ByPants } from './lines';
 import { box } from '../section';
@@ -34,7 +34,7 @@ const paOf = (state: GameState): Pa => {
 };
 
 export const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
-export const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+export const pick = pickLine;
 /** His pool for how Meathead is right now. */
 export const byPants = (state: GameState, r: ByPants) => r[dressed(state)];
 

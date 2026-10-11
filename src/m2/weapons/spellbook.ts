@@ -17,7 +17,7 @@ import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { setBuffs } from '../../m1/game/core/buffs';
-import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
+import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
@@ -304,12 +304,12 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
       // First the pose: the book held up, flexing, the power going into him
       posing = POSE;
       playSound('spell', 1, -8);
-      meatheadSays(state, BULK_LINES[Math.floor(Math.random() * BULK_LINES.length)]);
+      meatheadSays(state, pickLine(BULK_LINES));
     } else if (posing <= 0) {
       // (it won't: a click, and he says why, a while apart)
       playSound('click', 0.7, -4);
       const why = bulkLeft > 0 ? 'already' : bulkCool > 0 ? 'cooldown' : !mana ? 'mana' : 'air';
-      if (state.frame - bulkFailSaidAt > 150) { bulkFailSaidAt = state.frame; const pool = BULK_FAIL_LINES[why]; meatheadSays(state, pool[Math.floor(Math.random() * pool.length)]); }
+      if (state.frame - bulkFailSaidAt > 150) { bulkFailSaidAt = state.frame; const pool = BULK_FAIL_LINES[why]; meatheadSays(state, pickLine(pool)); }
     }
   }
   syncArmor();

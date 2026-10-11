@@ -34,7 +34,7 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy, EnemyKind } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
-import { say, silenceAll, cutVoice } from '../../../m1/game/platform/speech';
+import { say, silenceAll, cutVoice, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -53,7 +53,7 @@ import { ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X } from './arena';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The numbers (tune here)

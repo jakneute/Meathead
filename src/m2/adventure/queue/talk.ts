@@ -1,6 +1,7 @@
 // A line at a time: whoever's next says theirs once the last one's done (and a beat after), so nobody talks over
 // anybody. Shared by the queue and the river (Artie's monologue runs through one of these).
 
+import { pickLine } from '../../../m1/game/platform/speech';
 import type { GameState } from '../../../m1/game/core/state';
 import { speak, meatheadSays } from '../section';
 
@@ -31,4 +32,4 @@ export const stepTalk = (state: GameState, t: Talk, beat = 24) => {
   if (l.voice === 'meathead') meatheadSays(state, l.text, true, done);
   else speak(l.voice, l.text, s => l.set?.(s ? s.text : null), true, done);
 };
-export const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+export const pick = pickLine;

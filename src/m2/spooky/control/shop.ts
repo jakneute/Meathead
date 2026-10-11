@@ -23,7 +23,7 @@ import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
-import { say } from '../../../m1/game/platform/speech';
+import { say, pickLine } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -35,7 +35,7 @@ import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardH
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 const dressed = (state: GameState): L.Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
 /** Where the shop runs (set by the section: index.ts). */

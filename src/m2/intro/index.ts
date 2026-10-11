@@ -26,7 +26,7 @@ import { drawSecurity, isWomanGuard } from '../cast/security';
 /** A guard's voice: hers or his. */
 const guardVoice = (e: Enemy) => (isWomanGuard(e) ? GUARD_F_VOICE : GUARD_VOICE);
 import { playSound, audioRunning, getAudioContext } from '../../m1/game/platform/audio';
-import { say, MEATHEAD_VOICE, silenceAll } from '../../m1/game/platform/speech';
+import { say, MEATHEAD_VOICE, silenceAll, pickLine } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
 import { shakeScreen } from '../../m1/game/core/state';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../m1/game/platform/skip';
@@ -45,7 +45,7 @@ import { X0, R, CEIL_Y, UPPER, floorY, GARAGE_END, CHECK_END, STAIRS_END, USA_ST
 
 export const INTRO_STAGE = 'M2 America USA';
 
-const pick = <T,>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
 /** Somebody in line: who they are (the cast), their place in it (lower first), what they're up to. */

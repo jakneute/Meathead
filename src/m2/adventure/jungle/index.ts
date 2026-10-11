@@ -1,6 +1,7 @@
 // THE JUNGLE: section 1 of Adventure Land. A real jungle, real animals (animals.ts), vines to swing on and climb
 // (vines.ts), laid out in layout.ts; walked out of at the far end into the Jungle Cruise's queue.
 
+import { pickLine } from '../../../m1/game/platform/speech';
 import type { EnemyKind } from '../../../m1/types';
 import type { Section } from '../section';
 import { lay, ledge, teleport, meatheadSays } from '../section';
@@ -14,7 +15,7 @@ import { drawJungleBackdrop, drawJungleBack, drawJungleFront, jungleLamps } from
 import { ARRIVE, GORGE, LEAVING } from './lines';
 
 const { x0, x1 } = SECTIONS.jungle;
-const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
+const pick = pickLine;
 
 export const jungle: Section = {
   id: 'jungle', x0, x1,

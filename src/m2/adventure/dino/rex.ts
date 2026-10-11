@@ -35,7 +35,7 @@ import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
 import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { topBand, CANVAS_WIDTH, enemyMeleeDamage, ENEMY_HIT_COOLDOWN, POWER_CELLS, BOUNCE_FRAMES } from '../../../m1/constants';
 import { getAdv, solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
-import { say, cutVoice } from '../../../m1/game/platform/speech';
+import { say, cutVoice, pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { GY } from '../geometry';
 import { plate, servo } from './art/robots';
@@ -48,7 +48,7 @@ import {
 } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 
 export const REX_KIND = 'm2:rex';
 export const REX_NAME = 'TYRANNOSAURUS WRECKS';

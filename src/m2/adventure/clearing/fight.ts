@@ -47,7 +47,7 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy, EnemyKind, WeaponType } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
-import { say } from '../../../m1/game/platform/speech';
+import { say, pickLine } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { hurtTaken } from '../../../m1/game/core/resist';
@@ -69,7 +69,7 @@ import { type Animal, type Beast, BEASTS, makeStampede, updateStampede, stampede
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The numbers

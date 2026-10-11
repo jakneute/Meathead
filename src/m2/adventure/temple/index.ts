@@ -27,7 +27,7 @@ import { hazardVictims, hazardHit, boxHits, setHazardZones, type Zone } from '..
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound, stopSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
-import { silenceAll } from '../../../m1/game/platform/speech';
+import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { CANVAS_WIDTH, KICK_POSE_FRAMES } from '../../../m1/constants';
@@ -49,7 +49,7 @@ registerHurtLines('temple_boulder', HURT_BOULDER, DEATH_BOULDER);
 registerHurtLines('temple_dart', HURT_DART, DEATH_DART);
 registerHurtLines('temple_snake', HURT_SNAKE, DEATH_SNAKE);
 
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
 // ---------------------------------------------------------------------------------------------------------------

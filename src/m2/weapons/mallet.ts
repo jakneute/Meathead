@@ -32,7 +32,7 @@ import { drawPoseSprite, drawPoseHead, drawEnemyAt, grabBusy } from '../moves/gr
 import { btn, keyHeld } from '../input';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
-import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
+import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { DUCK_LINES } from '../lines/weaponLines';
 import { shieldTakesBlow, clang } from './shield';
 
@@ -183,7 +183,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   // (ducking: nothing, and he says why, a while apart)
   if (mode === 'idle' && pl.isDucking && (xPress || (tap && yFree))) {
     playSound('click', 0.6, -6);
-    if (state.frame - duckSaidAt > 180) { duckSaidAt = state.frame; meatheadSays(state, DUCK_LINES[Math.floor(Math.random() * DUCK_LINES.length)]); }
+    if (state.frame - duckSaidAt > 180) { duckSaidAt = state.frame; meatheadSays(state, pickLine(DUCK_LINES)); }
     return;
   }
   // (a grab on: the mallet's put away for it, whatever it was doing)

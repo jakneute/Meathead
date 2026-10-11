@@ -25,7 +25,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import type { EnemyKind } from '../../../m1/types';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
-import { silenceAll } from '../../../m1/game/platform/speech';
+import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../m1/constants';
 import { DINO_KINDS } from './kinds';
@@ -37,7 +37,7 @@ import { MEATHEAD_LANDED, MEATHEAD_RED_EYES, MAINT_OBLIVIOUS, DINO_FRIENDLY, MEA
 
 import { x0, x1, D, PEN_WALL, DRAIN_Y, PADDOCK_IN, PADDOCK_OUT, PADDOCK_TOP, LAST_FENCE, TEMPLE_ZOOM_OUT, TEMPLE_DOOR_X, LEDGES, SOLIDS } from './layout';
 export { TEMPLE_DOOR_X, DINO_BACK_DOOR_X } from './layout';
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The layout: layout.ts

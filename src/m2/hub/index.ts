@@ -9,7 +9,7 @@ import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
 import { playMenuOk, playMenuBack } from '../../m1/game/platform/audio';
 import { GROUND_Y } from '../../m1/constants';
 import { LANDS, SPOTS, STAFF_SLOT, AMERICA_SLOT, HUB_SLOTS, landAt } from './lands';
-import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
+import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
 import { AMERICA_DENY } from '../lines/hubLines';
 import { getCheats } from '../cheats';
@@ -119,7 +119,7 @@ export const hubLayout: StageLayout = {
     if (grabbing(hub.grab)) near = null;
     if (nearAmerica && near === null && controls.up && !hub.upWas && !grabbing(hub.grab)) {
       const pool = AMERICA_DENY[isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean'];
-      const text = pool[Math.floor(Math.random() * pool.length)];
+      const text = pickLine(pool);
       const shown = say(text, MEATHEAD_VOICE, 'casual', {
         always: true,
         onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; },

@@ -12,7 +12,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { playSound } from '../../../m1/game/platform/audio';
-import { say } from '../../../m1/game/platform/speech';
+import { say, pickLine } from '../../../m1/game/platform/speech';
 import { hazardVictims, hazardHit } from '../../hazardHit';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -22,7 +22,7 @@ import { GY } from '../geometry';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 const seedOf = (e: Enemy) => Math.abs(Math.round(e.homeX || 0)) * 7 + (e.variant ?? 0) * 31 + 5;
 const mid = (o: { pos: { x: number; y: number }; width: number; height: number }) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
 

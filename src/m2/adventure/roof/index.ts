@@ -21,7 +21,7 @@ export { HOLE_X } from './layout';
 import { setUi } from '../../store';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
-import { silenceAll } from '../../../m1/game/platform/speech';
+import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -35,7 +35,7 @@ import {
 
 registerHurtLines('roof_collapse', HURT_ROOF, DEATH_ROOF);
 
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 /** First time through (a return trip will differ: the temple on fire, say). One flag per set piece. */
 const firstVisit = (_state: GameState) => true;

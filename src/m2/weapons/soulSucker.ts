@@ -24,7 +24,7 @@ import { drawEnemyAt } from '../moves/grab';
 import { KIND_TOP_REACH } from '../../m1/game/render/enemies';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
-import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
+import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES } from '../lines/weaponLines';
 import { isRobot } from '../kinds';
 
@@ -187,7 +187,7 @@ const fire = (ctx: FrameContext) => {
   // A full bag: it won't pull (the motor chokes, a puff of red out the intake); empty some of it first (secondary fire)
   if (gore >= SPRAY * MAX_SPRAYS) {
     // (and he says so: once a go, a while apart)
-    if (state.frame - suckingAt > 30 && state.frame - fullSaidAt > FULL_LINE_GAP) { fullSaidAt = state.frame; meatheadSays(state, FULL_BAG_LINES[Math.floor(Math.random() * FULL_BAG_LINES.length)]); }
+    if (state.frame - suckingAt > 30 && state.frame - fullSaidAt > FULL_LINE_GAP) { fullSaidAt = state.frame; meatheadSays(state, pickLine(FULL_BAG_LINES)); }
     suckingAt = state.frame - 2;
     pl.shootCooldown = 18;
     playSound('click', 0.8, -6);
@@ -317,7 +317,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
     const mouth = muzzlePoint(pl, 'SOUL_SUCKER');
     playSound('dry_gore');
     for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: mouth.x, y: mouth.y + 2 }, vel: { x: pl.facing * (0.3 + Math.random()), y: 0.5 + Math.random() }, life: 30, color: i ? '#991B1B' : 'rgba(200, 200, 200, 0.5)', size: i ? 2 : 4 });
-    if (state.frame - emptySaidAt > EMPTY_LINE_GAP && Math.random() < EMPTY_LINE_CHANCE) { emptySaidAt = state.frame; meatheadSays(state, EMPTY_BAG_LINES[Math.floor(Math.random() * EMPTY_BAG_LINES.length)]); }
+    if (state.frame - emptySaidAt > EMPTY_LINE_GAP && Math.random() < EMPTY_LINE_CHANCE) { emptySaidAt = state.frame; meatheadSays(state, pickLine(EMPTY_BAG_LINES)); }
   }
   if (sprayLeft > 0) {
     sprayLeft--;

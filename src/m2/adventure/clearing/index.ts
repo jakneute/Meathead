@@ -21,7 +21,7 @@ import { drawTentFlap, drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, 
 import { GY } from '../geometry';
 import { goTo, setUi, markLandCleared, noteBossKill } from '../../store';
 import { playSound } from '../../../m1/game/platform/audio';
-import { silenceAll } from '../../../m1/game/platform/speech';
+import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -37,7 +37,7 @@ import { type Fight, startFight as beginFight, updateFight, fightOver, endFight,
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 /** First time through (a return trip will differ). One flag per set piece. */
 const firstVisit = (_state: GameState) => true;

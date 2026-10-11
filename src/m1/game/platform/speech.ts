@@ -59,6 +59,20 @@ export const pickFreshLine = (lines: readonly string[]): string | null => {
   return fresh.length ? fresh[Math.floor(Math.random() * fresh.length)] : null;
 };
 
+/**
+ * One of these, for saying: a line not said in the last 45 seconds if there is one; if every one's been said lately,
+ * the one said longest ago (a scripted line still has to be said). A pool of anything but lines: one at random.
+ */
+export const pickLine = <T,>(pool: readonly T[]): T => {
+  if (!pool.length || typeof pool[0] !== 'string') return pool[Math.floor(Math.random() * pool.length)];
+  const now = Date.now(), lines = pool as unknown as readonly string[];
+  const fresh = lines.filter(l => isFresh(l, now));
+  if (fresh.length) return fresh[Math.floor(Math.random() * fresh.length)] as unknown as T;
+  let best = lines[0];
+  for (const l of lines) if ((lastSaidAt.get(l) ?? -Infinity) < (lastSaidAt.get(best) ?? -Infinity)) best = l;
+  return best as unknown as T;
+};
+
 /** Picks a random line that hasn't been said recently and marks it as said. Null if none are available. */
 export const takeFreshLine = (lines: readonly string[]): string | null => {
   const line = pickFreshLine(lines);

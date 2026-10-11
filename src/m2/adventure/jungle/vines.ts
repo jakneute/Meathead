@@ -16,6 +16,7 @@
 //
 //   He can shoot the whole time he's on one (left/right turns him). Hurt on one, he's knocked off it.
 
+import { pickLine } from '../../../m1/game/platform/speech';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -102,7 +103,7 @@ const grab = (state: GameState, defs: VineDef[], h: Hold, i: number, s: number, 
   h.jumpLatch = !!c.jump; h.specialLatch = !!(c.special || c.charge);
   h.hurtWas = p.hurtTimer ?? 0;
   const j = storeOf(state);
-  if (!j.said.vine) { j.said.vine = true; const lines = active?.firstLines ?? FIRST_VINE; if (lines.length) meatheadSays(state, lines[Math.floor(Math.random() * lines.length)], false); }
+  if (!j.said.vine) { j.said.vine = true; const lines = active?.firstLines ?? FIRST_VINE; if (lines.length) meatheadSays(state, pickLine(lines), false); }
 };
 
 /** Lets go: `jump` a jump off it (a kick upward, and the way he's holding), otherwise just dropping off it. */

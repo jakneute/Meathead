@@ -10,6 +10,7 @@
 //
 // Laid out in layout.ts, drawn in art.ts. Outdoors: the time of day's light (gloomy as it likes, but by the hour).
 
+import { pickLine } from '../../../m1/game/platform/speech';
 import type { EnemyKind } from '../../../m1/types';
 import type { SpookySection } from '../section';
 import { layOwn, ledge, solid, endWalls, endExits, runExits, meatheadSays } from '../section';
@@ -29,7 +30,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 const { x0, x1 } = SECTIONS.town;
 /** The town's ladders (layout.ts), as the ladders want them: each up to the ledge it's for, stepped off onto it. */
 const TOWN_LADDERS: LadderDef[] = LADDERS.map(([rx, bottom, top, , offX]) => ({ x: X(rx), top: Y(top), bottom: Y(bottom), ledge: { x: X(rx + offX), y: Y(top) } }));
-const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
+const pick = pickLine;
 
 export const town: SpookySection = {
   id: 'town', x0, x1,

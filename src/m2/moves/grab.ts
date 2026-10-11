@@ -21,6 +21,7 @@
 // pitched; the big ones and the bosses can't be got hold of (the lunge stops dead against them, the hands close on air).
 // Swimming, or hanging off a vine, it's only the one-handed kind (no floor to slam anybody into).
 
+import { pickLine } from '../../m1/game/platform/speech';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { shakeScreen } from '../../m1/game/core/state';
@@ -241,7 +242,7 @@ const tooBig = (state: GameState, e: Enemy) => {
     : isMachineKind(e.kind) || !!m2Kind(e.kind)?.robot ? GRAB_IMMUNE_LINES.machine
     : enemyGender(e) === 'n' ? TOO_BIG_LINES : GRAB_IMMUNE_LINES.person;
   const pool = own.length && Math.random() < 0.7 ? own : general;
-  meatheadSays(state, pool[Math.floor(Math.random() * pool.length)], false);
+  meatheadSays(state, pickLine(pool), false);
 };
 
 /** The nearest one he could get his hands on, in front of him, within `reach` of his front (`any`: whether he could or not). */

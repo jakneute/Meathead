@@ -21,7 +21,7 @@ import { layOwn, endWalls, endExits, runExits, wallSign, groundBox, box, hands, 
 import { SECTIONS, GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
-import { silenceAll } from '../../../m1/game/platform/speech';
+import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -35,7 +35,7 @@ import { forgetFightIntro } from '../ballroom/fight';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 const dressed = (state: GameState): L.Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
 const { x0, x1 } = SECTIONS.control;

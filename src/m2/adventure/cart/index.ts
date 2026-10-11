@@ -22,7 +22,7 @@ import {
 } from './layout';
 import { drawCartBackdrop, drawCartTrack, drawCartFront, cartLighting } from './art';
 import { setUi } from '../../store';
-import { silenceAll } from '../../../m1/game/platform/speech';
+import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -42,7 +42,7 @@ registerHurtLines('cart_beam', HURT_BEAM, DEATH_BEAM);
 registerHurtLines('cart_artie', HURT_ARTIE, DEATH_ARTIE);
 registerHurtLines('cart_pit', HURT_PIT, DEATH_PIT);
 
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 /** First time through (return trips will differ: no Artie, say). One flag per set piece. */
 const firstVisit = (_state: GameState) => true;
