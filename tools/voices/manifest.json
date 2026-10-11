@@ -24036,8 +24036,18 @@
  },
  {
   "voice": "meathead",
+  "text": "IT WEIGHS MORE THAN THE BELL!",
+  "from": "TOO_BIG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "IT WENT FOR MY EYES!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S A GIANT WIND-UP TOY! I CAN'T LIFT THAT!",
+  "from": "TOO_BIG_LINES"
  },
  {
   "voice": "meathead",
@@ -27646,6 +27656,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOLID BRASS! NOTHING TO GRAB BUT THE KEY!",
+  "from": "TOO_BIG_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SOLIDIFIED SHIT",
   "from": "VULGARITIES"
  },
@@ -31078,6 +31093,11 @@
   "voice": "meathead",
   "text": "YOU DON'T GET ON THAT LIST BY BEING NICE.",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU DON'T PICK UP A TOY SOLDIER THAT SIZE!",
+  "from": "TOO_BIG_LINES"
  },
  {
   "voice": "meathead",
