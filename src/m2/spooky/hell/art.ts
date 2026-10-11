@@ -178,7 +178,7 @@ const drawWreck = (c: Ctx, state: GameState, extra: boolean) => {
   // (the cable down the shaft, snapped, swinging a little: stepped strands)
   const sw = Math.round(Math.sin(f * 0.02) * 12);
   for (const [col, w] of [[INK, 4], [IRON[3], 2]] as [string, number][]) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(W + 10, SHAFT_TOP); c.quadraticCurveTo(W + 10 + sw, GY - 600, W - 10, GY - 140); c.stroke(); }
-  if (extra) drawWreckedCar(c, W + 250, GY, 0.2, f);
+  void extra; // (the last car down: hazards.ts draws it, once it's down)
   drawWreckedCar(c, W, GY, 0, f, true);
   // (the rest of them: one folded over the lap bar, butt up; the others where they were thrown)
   c.save(); c.translate(W, 0);

@@ -13,11 +13,16 @@ export interface Crumble { b: Block; x: number; y: number; w: number; shake: num
 /** A car coming down the shaft: where, how far it's fallen (its bottom), the warning before it drops. */
 export interface Car { x: number; y: number; vy: number; warn: number }
 
+/** Something thrown out of the last car's crash, flying to where it comes to rest (FLUNG in riders.ts). */
+export interface Fly { i: number; x0: number; y0: number; x1: number; t: number }
+
 export interface Hell {
   shots: Fireball[];
   crumbles: Crumble[];
   /** The shaft: frames till the next car, the one coming down, and how many more have piled up since he got here. */
   carIn: number; car: Car | null; piled: number[];
+  /** The last car down (there's only the one): where it lies, once it's come down; what's flying out of it. */
+  thirdX: number | null; flying: Fly[];
   /** Coming down the pit: falling hard (for the landing), landed already, said his bit about the lava, the car. */
   falling: boolean; landed: boolean; lavaSaid: boolean; carSaid: boolean;
   /** Landed from the shaft: frames of the landing beat left (still not his till it's done). */
@@ -29,5 +34,5 @@ export interface Hell {
 }
 
 export const hellOf = (state: GameState) => spookyState<Hell>(state, 'hell', () => ({
-  shots: [], crumbles: [], carIn: 900, car: null, piled: [], falling: false, landed: false, landBeat: 0, lavaSaid: false, carSaid: false, demon: null, fin: null, camLock: 0,
+  shots: [], crumbles: [], carIn: 900, car: null, piled: [], thirdX: null, flying: [], falling: false, landed: false, landBeat: 0, lavaSaid: false, carSaid: false, demon: null, fin: null, camLock: 0,
 }));

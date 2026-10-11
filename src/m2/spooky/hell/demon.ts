@@ -323,6 +323,9 @@ export const demonCamLock = (state: GameState) => {
 /** Beaten (satan.ts takes it from here): he plops down, the fork dropped, stuck in the floor; the fire wall's out. */
 const beaten = (ctx: FrameContext, d: Demon) => {
   d.fight = 'beaten'; d.st = 'beaten'; d.t = 0; d.vx = 0; d.hp = 0; d.flash = 0;
+  // (from the killing blow on, his: nothing gets a hit in on him before the scene's started (it holds everybody off then),
+  // however the blow landed (in his own update, or the engine's, later in the frame than the hold-off))
+  { const p = ctx.state.player; p.inCutscene = true; p.invincibilityTimer = Math.max(p.invincibilityTimer, 30); }
   d.forkAt = d.x + d.facing * 80;
   if (d.e) { const i = ctx.state.enemies.indexOf(d.e); if (i >= 0) ctx.state.enemies.splice(i, 1); d.e = null; }
   if (d.lock) d.lock.x = -1e7;
@@ -636,7 +639,7 @@ const drawBody = (c: Ctx, d: Demon, f: number) => {
   const st = d.st, t = d.t, fl = d.flash > 0;
   const squat = st === 'crouch' ? Math.min(1, t / 12) * 22 : st === 'sweepWind' || st === 'sweep' ? 14 : st === 'land' ? Math.max(0, 18 - t) : st === 'stagger' || st === 'tripped' || st === 'beaten' || st === 'sink' ? 30 : 0;
   const breathe = Math.round(Math.sin(f * 0.08) * 2), wobble = st === 'crouch' ? Math.round(Math.sin(t * 0.9) * 4) : 0;
-  const walk = st === 'walk' && Math.abs(d.vx) > 0.1 ? Math.round(Math.sin(f * 0.2) * 5) : 0;
+  const walk = st === 'walk' && Math.abs(d.vx) > 0.1 ? Math.round(Math.sin(f * 0.2) * 5) : st === 'tripped' && t > 10 && t < 64 ? Math.round(Math.sin(t * 0.9) * 9) : 0;
   const S = flashed(SKIN, fl), G = flashed(GUT, fl), sat = st === 'beaten' || st === 'sink';
   // (the tail: thick, curling up behind him, the spade on the end)
   const tw = Math.round(Math.sin(f * 0.1) * 8);
@@ -694,7 +697,7 @@ const drawBody = (c: Ctx, d: Demon, f: number) => {
   for (const [x, y, w, col] of [[-6, 68, 8, '#9E1B1B'], [12, 76, 6, '#7CCBDA'], [4, 86, 4, '#9E1B1B'], [-10, 70, 4, '#B4644E']] as [number, number, number, string][]) box(c, x, hy + y, w, w - 2, col);
   // (the face: the brow, bored eyes with the lids half down, a fat nose, the mouth, the goatee)
   box(c, -8, hy + 10, 30, 4, S[0]);
-  const lid = st === 'stagger' || st === 'beaten' || st === 'tripped' ? 4 : st.endsWith('Wind') || st === 'crouch' ? 1 : 3;
+  const lid = st === 'tripped' ? (t < 64 ? 0 : 4) : st === 'stagger' || st === 'beaten' ? 4 : st.endsWith('Wind') || st === 'crouch' ? 1 : 3;
   for (const ex of [4, 19]) {
     c.fillStyle = INK; c.beginPath(); c.ellipse(ex, hy + 18, 5, 4.5, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#F6D860'; c.beginPath(); c.ellipse(ex, hy + 18, 4, 3.5, 0, 0, Math.PI * 2); c.fill();
@@ -704,7 +707,7 @@ const drawBody = (c: Ctx, d: Demon, f: number) => {
   blob(c, 12, hy + 28, 7, 5, S, false, 1);
   box(c, 9, hy + 29, 2, 2, INK); box(c, 14, hy + 29, 2, 2, INK);
   const talking = !!d.said || st === 'lounge';
-  const open = talking && Math.floor(f / 6) % 2 ? 6 : 2;
+  const open = st === 'tripped' && t < 64 ? 7 + (Math.floor(t / 5) % 2) * 3 : talking && Math.floor(f / 6) % 2 ? 6 : 2;
   box(c, 3, hy + 35, 20, open + 2, INK); box(c, 4, hy + 36, 18, open, '#3A0808');
   if (open > 2) box(c, 8, hy + 38, 8, 3, '#C04050');
   box(c, 2, hy + 34, 3, 2, S[0]); box(c, 21, hy + 34, 3, 2, S[0]);
@@ -735,12 +738,17 @@ export const drawDemon = (c: Ctx, state: GameState) => {
     c.fillStyle = `rgba(253, 224, 71, ${(a + 0.2).toFixed(3)})`; c.fillRect(z.x, GY - 4, z.w, 4);
     checker(c, z.x, GY - 8, z.w, 4, a > 0.35 ? '#FDE047' : '#F97316');
   }
+  if (st === 'tripped') {
+    tripDust(c, d.x, t);
+    const tf = tripFork(t);
+    if (tf) { c.save(); c.translate(Math.round(d.x), Math.round(d.y)); c.scale(d.facing, 1); fork(c, tf.x, tf.y, tf.ang, false, 0); c.restore(); }
+  }
   c.save();
   if (st === 'sink') { c.beginPath(); c.rect(d.x - 200, d.y - 400, 400, 400); c.clip(); c.translate(0, d.sink * 200); }
   c.translate(Math.round(d.x), Math.round(d.y));
   c.scale(d.facing, 1);
   // (tripped: over on his back, his little legs kicking at the air)
-  if (st === 'tripped') { const k = Math.min(1, t / 8) * (t > TRIP_FRAMES - 10 ? (TRIP_FRAMES - t) / 10 : 1); c.translate(-20 * k, -6 * k); c.rotate(-1.35 * k + Math.sin(t * 0.6) * 0.04 * k); }
+  if (st === 'tripped') tripPose(c, t);
   drawBodyAndFork(c, d, f, st, t);
   c.restore();
   if (st === 'sink') {
@@ -789,6 +797,41 @@ const arm = (c: Ctx, sx: number, sy: number, hx: number, hy: number, S: readonly
   blob(c, hx, hy, 10, 9, R, false);
 };
 
+/** The trip, by frame (TRIP_FRAMES long, the free hits all of it): his legs swept out and over he goes, up off the
+ *  floor a beat, down on his back with a thud (the gut squashing and bouncing), there he wiggles, legs going; then a
+ *  roll to his side and a heave back up. Turned about his feet (local, facing right). */
+const tripPose = (c: Ctx, t: number) => {
+  const T = TRIP_FRAMES, ease = (k: number) => k * k * (3 - 2 * k);
+  let rot = -1.5, lift = 0, sy = 1;
+  if (t < 9) { const k = t / 9; rot = -1.5 * k * k; lift = -Math.sin(Math.PI * k) * 26; }
+  else if (t < 16) { const k = (t - 9) / 7; sy = 1 - Math.sin(Math.PI * k) * 0.12 * (1 - k * 0.5); lift = Math.sin(Math.PI * k) * 3; }
+  else if (t < T - 20) rot = -1.5 + Math.sin(t * 0.6) * 0.05;
+  else if (t < T - 9) { const k = ease((t - (T - 20)) / 11); rot = -1.5 + 0.95 * k; lift = -Math.sin(Math.PI * k) * 6; }
+  else { const k = ease((t - (T - 9)) / 9); rot = -0.55 * (1 - k); }
+  // (kept lying on the floor, his gut over where he stood: turned about his feet, then lifted back up onto it)
+  const over = -rot / 1.5;
+  c.translate(57 * over, -60 * over + lift); c.scale(1, sy); c.rotate(rot);
+};
+/** His fork, knocked flying when he goes over, landing flat beside him, clattering; grabbed back at the end (local:
+ *  facing right, his feet at 0, unrotated). Null once he's got hold of it again. */
+const tripFork = (t: number): { x: number; y: number; ang: number } | null => {
+  if (t >= TRIP_FRAMES - 6) return null;
+  if (t < 14) { const k = t / 14; return { x: 46 + 40 * k, y: -96 + 90 * k - Math.sin(Math.PI * k) * 70, ang: -1.35 + (1.38 + Math.PI * 2) * k }; }
+  const bounce = t < 22 ? Math.abs(Math.sin((t - 14) * 0.8)) * 4 : 0;
+  return { x: 86 - (t > TRIP_FRAMES - 16 ? (t - (TRIP_FRAMES - 16)) * 6 : 0), y: -5 - bounce, ang: 0.03 };
+};
+/** The dust off his landing: puffs rolling out either side, thinning (stepped, flat). */
+const tripDust = (c: Ctx, x: number, t: number) => {
+  if (t < 9 || t > 34) return;
+  const k = (t - 9) / 25;
+  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) {
+    const px = x + s * (50 + k * 90 + i * 22), r = 10 + k * 10 - i * 2, py = GY - 6 - i * 3;
+    c.fillStyle = k < 0.5 ? '#6E5848' : '#4A3A30'; c.globalAlpha = 0.75 * (1 - k);
+    c.beginPath(); c.arc(Math.round(px), Math.round(py), Math.max(2, r), 0, Math.PI * 2); c.fill();
+  }
+  c.globalAlpha = 1;
+};
+
 const drawBodyAndFork = (c: Ctx, d: Demon, f: number, st: St, t: number) => {
   const mad = d.hp < HP * 0.4 ? 0.75 : 1;
   // Where the fork is: his hand, which way it points, glinting, how hot its tines are
@@ -806,7 +849,8 @@ const drawBodyAndFork = (c: Ctx, d: Demon, f: number, st: St, t: number) => {
     case 'crouch': hx = 40; hy = -70; ang = -1.2; break;
     case 'air': hx = 44; hy = -120; ang = -0.9; break;
     case 'land': hx = 50; hy = -60; ang = 0.5; break;
-    case 'stagger': case 'tripped': hx = 30; hy = -40; ang = 0.9; break;
+    case 'stagger': hx = 30; hy = -40; ang = 0.9; break;
+    case 'tripped': if (t >= TRIP_FRAMES - 6) { hx = 30; hy = -40; ang = 0.9; } else { hx = 0; hy = -9999; } break;
     case 'hop': hx = 44; hy = -120; ang = -0.9; break;
     case 'swatWind': { const k = Math.min(1, t / SWAT_WIND); hx = 20 - k * 30; hy = -150 - k * 20; ang = -1.35 - k * 1.2; glint = t % 6 < 3; hot = k; break; }
     case 'swat': { const k = Math.min(1, t / 5); hx = -10 + k * 30; hy = -170; ang = -2.55 + k * 2.2; hot = 1; break; }
@@ -831,6 +875,11 @@ const drawBodyAndFork = (c: Ctx, d: Demon, f: number, st: St, t: number) => {
     if (twoHands) arm(c, farSh[0], farSh[1], gx, gy, r.S, true);
     else arm(c, farSh[0], farSh[1], -6, -84 + sq, r.S, true);
     arm(c, nearSh[0], nearSh[1], hx, hy, r.S);
+  } else if (st === 'tripped') {
+    // (tripped: on his back, arms flailing at the air (pushing at the floor, getting up))
+    const up = t >= TRIP_FRAMES - 20, w = up ? 0.3 : 1;
+    arm(c, farSh[0], farSh[1], 34 + Math.cos(t * 0.9) * 14 * w, -178 + Math.sin(t * 1.1) * 10 * w + (up ? 40 : 0), r.S, true);
+    arm(c, nearSh[0], nearSh[1], 82 + Math.sin(t * 0.8) * 14 * w, -150 + Math.cos(t * 0.7) * 12 * w + (up ? 50 : 0), r.S);
   } else {
     // (beaten: arms folded over the gut, sulking)
     thick(c, -30, -126 + r.squat, 36, -116 + r.squat, 16, r.S);

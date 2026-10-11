@@ -19,7 +19,8 @@ import { ledge, meatheadSays } from '../section';
 import { hazeBands } from '../../../m1/game/render/pixelArt';
 import { type Ctx as PCtx, INK, box, checker, mix, stamp, BASALT, LAVA as LV, LIP, poly, inkPoly, lip } from './paint';
 import { GY } from '../geometry';
-import { POOLS, LAVA_DROP, CRUMBLES, JETS, SHAFT_L, SHAFT_R } from './layout';
+import { POOLS, LAVA_DROP, CRUMBLES, JETS, SHAFT_R, WRECK_X } from './layout';
+import { LAST_CAR, FLUNG, screamer, paintFlung, paintUnderCar, paintCarArm } from './riders';
 import { hellOf, type Hell } from './state';
 import { hazardVictims, hazardKill, hazardHit, setHazardZones, boxHits, type Zone } from '../../hazardHit';
 import { overLava, IMP_FIRE } from './kinds';
@@ -132,13 +133,33 @@ const burst = (state: GameState, x: number, y: number) => {
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 18, color: i % 2 ? '#F97316' : '#FDE047', size: 2 + Math.random() * 3 });
 };
 
-/** The cars still coming down the shaft while he's in the pit: a shadow and a creak, then the crash. */
+/** The last car down the shaft (the one more after the two that came down with the tower: three in all): where it
+ *  lies once it's down, kept across his deaths (state.stageMemo); started past the pit, it's down already. */
+const THIRD_MEMO = 'm2:hell-third-car';
+/** Where it comes down (near him, but onto the pile by the wrecks, nowhere he has to be). */
+const THIRD_MIN = WRECK_X + 170, THIRD_MAX = WRECK_X + 330, THIRD_DEFAULT = WRECK_X + 250;
+/** How long what's flung out of it is in the air (frames). */
+const FLY_T = 42;
+export const thirdCarX = (state: GameState, h: Hell) => {
+  if (h.thirdX === null) {
+    const m = state.stageMemo[THIRD_MEMO];
+    if (m) h.thirdX = +m;
+    else if (state.checkpoint >= 51) h.thirdX = THIRD_DEFAULT;
+  }
+  return h.thirdX;
+};
+
+/** The last car coming down the shaft while he's in the pit: a shadow, dust and a grind first, then the crash (its
+ *  riders screaming all the way down; on impact, the gore, two of them flung out, a tee and a hat flying). */
 const updateCars = (ctx: FrameContext, h: Hell) => {
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
+  // (what's flying out of the crash)
+  h.flying = h.flying.filter(fl => ++fl.t < FLY_T);
+  if (thirdCarX(state, h) !== null && !h.car) return;
   const inPit = cx < SHAFT_R + 300 && p.health > 0 && !p.inCutscene;
   if (!h.car) {
     if (inPit && --h.carIn <= 0) {
-      h.car = { x: Math.max(SHAFT_L + 420, Math.min(SHAFT_R - 90, cx + (Math.random() - 0.5) * 160)), y: GY - 1400, vy: 0, warn: 90 };
+      h.car = { x: Math.max(THIRD_MIN, Math.min(THIRD_MAX, cx + (Math.random() - 0.5) * 160)), y: GY - 1400, vy: 0, warn: 90 };
       playSound('grind', 0.6, -10);
     }
     return;
@@ -156,8 +177,12 @@ const updateCars = (ctx: FrameContext, h: Hell) => {
   if (car.y < GY) return;
   // The crash
   car.y = GY;
-  playSound('crash', 1, -6); playSound('clang', 0.9, -8); playSound('splat', 0.8, -4); shakeScreen(state, 22, 9);
+  playSound('crash', 1, -6); playSound('clang', 0.9, -8); playSound('splat', 1, -4); playSound('splat', 0.8, 2); shakeScreen(state, 22, 9);
   for (let i = 0; i < 30; i++) state.particles.push({ pos: { x: car.x + (Math.random() - 0.5) * CAR_W, y: GY - Math.random() * 60 }, vel: { x: (Math.random() - 0.5) * 12, y: -3 - Math.random() * 8 }, life: 40 + Math.random() * 30, color: i % 3 === 0 ? '#71717A' : i % 3 === 1 ? '#991B1B' : '#7F1D1D', size: 3 + Math.random() * 5, grav: 0.4, chunk: i % 3 === 0 });
+  // (its riders: a burst of them)
+  ctx.fx.spawnDeathShower({ x: car.x, y: GY - 40 }, 0, 2.4);
+  for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: car.x + (Math.random() - 0.5) * CAR_W * 1.2, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 16, y: -1 - Math.random() * 4 }, life: 50, color: i % 2 ? '#9E1B1B' : '#5B0A0A', size: 3 + Math.random() * 4, grav: 0.35 });
+  h.flying = FLUNG.map((F, i) => ({ i, x0: car.x, y0: GY - 40, x1: car.x + F.dx, t: 0 }));
   const feet = p.pos.y + p.height;
   // (whoever's under it: flat)
   for (const e of hazardVictims(state)) if (Math.abs(e.pos.x + e.width / 2 - car.x) < CAR_W / 2 + 10 && e.pos.y + e.height > GY - CAR_H - 10) hazardKill(ctx, e, car.x, 'FLATTENED!', { fling: { x: Math.sign(e.pos.x + e.width / 2 - car.x || 1) * 6, y: -4 }, sound: 'splat' });
@@ -165,9 +190,9 @@ const updateCars = (ctx: FrameContext, h: Hell) => {
   if (p.health > 0 && Math.abs(cx - car.x) < CAR_W / 2 + 16 && feet > GY - CAR_H - 10 && !p.inCutscene) {
     hurtPlayer(ctx, CAR_DMG, CAR, { x: (Math.sign(cx - car.x) || 1) * 9, y: -8 });
   } else if (p.health > 0 && !h.carSaid) { h.carSaid = true; meatheadSays(state, pick(MH_CAR), false); }
-  h.piled.push(car.x);
-  if (h.piled.length > 4) h.piled.shift();
-  h.car = null; h.carIn = 1100 + Math.random() * 500;
+  // (it lies there now, for good: the last one)
+  h.thirdX = Math.round(car.x); state.stageMemo[THIRD_MEMO] = String(h.thirdX);
+  h.car = null;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -348,8 +373,24 @@ export const drawHazards = (c: Ctx, state: GameState) => {
       }
     }
   }
-  // Wrecks piled up from the cars that have come down since
-  h.piled.forEach((x, i) => drawWreckedCar(c, x, GY, (i % 2 ? 0.12 : -0.1), f));
+  // The last car, down: on the pile, what's left of its riders under it and hanging out of it; the two flung clear,
+  // the tee, the hat (once they've landed)
+  const tx = thirdCarX(state, h);
+  if (tx !== null && !h.car && near(state, tx, 300)) {
+    c.save(); c.translate(tx, GY);
+    stamp(c, 'hell-third-under', -160, -60, 320, 64, paintUnderCar);
+    c.restore();
+    drawWreckedCar(c, tx, GY, 0.08, f);
+    c.save(); c.translate(tx, GY); c.rotate(0.08);
+    paintCarArm(c);
+    c.restore();
+    FLUNG.forEach((F, i) => {
+      if (h.flying.some(fl => fl.i === i)) return;
+      c.save(); c.translate(Math.round(tx + F.dx), GY);
+      stamp(c, `hell-flung-${i}`, -70, -50, 140, 54, g => paintFlung(g, i));
+      c.restore();
+    });
+  }
 };
 
 /** Over everything: the fireballs, the car coming down (and its shadow). */
@@ -365,6 +406,13 @@ export const drawHazardsFront = (c: Ctx, state: GameState) => {
     c.fillStyle = LV[5]; c.beginPath(); c.arc(x - 1, y - 1, 4, 0, Math.PI * 2); c.fill();
     c.fillStyle = LV[7]; c.beginPath(); c.arc(x - 2, y - 2, 2, 0, Math.PI * 2); c.fill();
   }
+  // (what's flying out of the crash: tumbling, coming down where it'll lie)
+  for (const fl of h.flying) {
+    const k = fl.t / FLY_T, x = fl.x0 + (fl.x1 - fl.x0) * k, y = fl.y0 + (GY - fl.y0) * k - Math.sin(k * Math.PI) * 120;
+    c.save(); c.translate(Math.round(x), Math.round(y)); c.rotate((1 - k) * (fl.x1 > fl.x0 ? 1 : -1) * 9);
+    paintFlung(c, fl.i);
+    c.restore();
+  }
   const car = h.car;
   if (car) {
     // (the shadow on the floor, darker and wider the nearer it is: in steps)
@@ -373,7 +421,13 @@ export const drawHazardsFront = (c: Ctx, state: GameState) => {
     c.fillStyle = `rgba(0, 0, 0, ${(k * 0.5).toFixed(2)})`;
     c.fillRect(Math.round(car.x - rw), GY - 4, Math.round(rw * 2), 6);
     c.fillRect(Math.round(car.x - rw * 0.7), GY - 5, Math.round(rw * 1.4), 8);
-    if (car.warn <= 0) drawWreckedCar(c, car.x, car.y, 0, state.frame);
+    if (car.warn <= 0) {
+      drawWreckedCar(c, car.x, car.y, 0, state.frame);
+      // (its riders in the doorway, screaming, hands up)
+      c.save(); c.translate(Math.round(car.x), Math.round(car.y));
+      LAST_CAR.forEach((G, i) => screamer(c, G, -24 + i * 24, -70 + (i % 2) * 6, state.frame + i * 3));
+      c.restore();
+    }
   }
 };
 

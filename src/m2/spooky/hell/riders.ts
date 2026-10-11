@@ -187,3 +187,81 @@ export const splat = (g: Ctx, x: number, y: number, s: number) => {
 };
 
 void S; void lt;
+
+// ---------------------------------------------------------------------------------------------------------------
+// The last car down: its riders (screaming all the way), and what's left of them under it
+
+/** Who was in the last car. */
+export const LAST_CAR: Guest[] = [
+  { skin: '#A86B3C', hair: '#1A1210', hairStyle: 'long', woman: true, build: 1.2, tee: '#0E7490', teeText: true, pants: '#2B3A67', shorts: false, shoe: '#F4F4F4', horns: true },
+  { skin: '#F6D2B0', hair: '#C2410C', hairStyle: 'curly', woman: false, build: 0.95, tee: '#EA580C', teeText: true, pants: '#C8B48A', shorts: true, shoe: '#1F2937', cap: '#15803D', shades: true },
+  { skin: '#4A2C18', hair: '#0C0808', hairStyle: 'short', woman: false, build: 1.35, tee: '#B91C1C', teeText: true, pants: '#3B4A5A', shorts: true, shoe: '#E8E8E8', fanny: '#CA8A04' },
+];
+
+/** A rider's head in the car's window, screaming (local to the car: its feet at 0, 0), both hands up. */
+export const screamer = (g: Ctx, G: Guest, x: number, y: number, f: number) => {
+  const skin = G.skin, hair = G.hair, jig = (f >> 2) & 1;
+  // (the hands up, waving)
+  for (const s of [-1, 1]) { limb(g, x + s * 6, y + 10, x + s * 12, y - 10 - jig * 2, 4, skin); ball(g, x + s * 12, y - 12 - jig * 2, 2.6, skin, 1); }
+  if (G.hairStyle === 'long') flat(g, () => g.ellipse(x, y + 3, 8, 9, 0, 0, Math.PI * 2), hair, 1);
+  part(g, () => g.ellipse(x, y, 7, 7.5, 0, 0, Math.PI * 2), skin, x - 7, y - 7.5, 14, 15, 1.2);
+  if (G.hairStyle === 'curly') for (let i = 0; i < 5; i++) ball(g, x - 6 + i * 3, y - 6 - (i % 2), 2.4, hair, 0.8);
+  else if (G.hairStyle !== 'bald') flat(g, () => g.ellipse(x, y - 4, 7.5, 4, 0, Math.PI, 0), hair, 1);
+  // (eyes popping, the mouth a big O)
+  for (const ex of [x - 3, x + 3]) { flat(g, () => g.arc(ex, y - 1, 2, 0, Math.PI * 2), '#FFFFFF', 0.8); px(g, ex - 0.5, y - 1.5, 1, 1, INK); }
+  flat(g, () => g.ellipse(x, y + 4, 2.4, 3 + jig, 0, 0, Math.PI * 2), '#3A0808', 0.8);
+  if (G.horns) for (const k of [-1, 1]) flat(g, () => { g.moveTo(x + k * 3 - 2, y - 6); g.lineTo(x + k * 5, y - 12); g.lineTo(x + k * 3 + 2, y - 6); g.closePath(); }, '#DC2626', 1);
+  if (G.cap) partTop(g, () => g.ellipse(x, y - 4, 8, 4.5, 0, Math.PI, 0), G.cap, x - 8, y - 9, 16, 5, 1);
+};
+
+/** Where what flies out of the crash comes to rest, from the car's middle: two of them, the tee, the hat. */
+export const FLUNG: { dx: number; kind: 'body' | 'tee' | 'hat'; g: number }[] = [
+  { dx: -96, kind: 'body', g: 1 }, { dx: 104, kind: 'body', g: 2 }, { dx: -150, kind: 'tee', g: 0 }, { dx: 160, kind: 'hat', g: 1 },
+];
+
+/** One of the flung, lying where they came down (local: their middle at 0, the floor at 0). */
+export const paintFlung = (g: Ctx, which: number) => {
+  const F = FLUNG[which], G = LAST_CAR[F.g];
+  if (F.kind === 'body') {
+    const s = F.dx < 0 ? -1 : 1;
+    bloodPool(g, 0, 26, 0);
+    corpse(g, G, {
+      head: [s * 26, -7], face: s as 1 | -1, neck: [s * 16, -8], hip: [-s * 14, -9],
+      arms: [[[s * 14, -10], [s * 6, -22], [s * 18, -30]], [[s * 16, -7], [s * 30, -3], [s * 40, -12]]],
+      legs: [[[-s * 14, -10], [-s * 28, -24], [-s * 34, -6]], [[-s * 14, -8], [-s * 32, -5], [-s * 46, -16]]],
+    });
+  } else if (F.kind === 'tee') {
+    // (an I RODE IT! tee, empty, in a heap)
+    part(g, () => { g.moveTo(-14, 0); g.lineTo(-16, -8); g.lineTo(-8, -12); g.lineTo(8, -12); g.lineTo(16, -6); g.lineTo(12, 0); g.closePath(); }, dim(G.tee), -16, -12, 32, 12, 1);
+    px(g, -6, -9, 12, 4, dim('#18181B')); px(g, -5, -8, 10, 1, '#FDE68A'); px(g, -5, -6, 6, 1, '#FDE68A');
+    px(g, 4, -4, 6, 3, BLOOD[3]);
+  } else {
+    // (the souvenir horns on their headband, upside down)
+    g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.arc(0, -6, 7, 0.1, Math.PI - 0.1); g.stroke();
+    for (const k of [-1, 1]) flat(g, () => { g.moveTo(k * 4 - 2, 0); g.lineTo(k * 6, 6 - 4); g.lineTo(k * 4 + 2, 0); g.closePath(); }, dim('#DC2626'), 1);
+    partTop(g, () => g.ellipse(0, -3, 8, 3, 0, 0, Math.PI * 2), dim(LAST_CAR[1].cap ?? '#15803D'), -8, -6, 16, 6, 1);
+  }
+};
+
+/** Under the last car (local: the car's middle at 0, the floor at 0): a pair of legs sticking out from under each side,
+ *  shoes up; an arm hanging out of the window; the blood spreading out from under it. */
+export const paintUnderCar = (g: Ctx) => {
+  bloodPool(g, -10, 90, 0); bloodPool(g, 40, 50, -1);
+  const legsOut = (G: Guest, s: number, x0: number) => {
+    for (const k of [0, 1]) {
+      const y = -4 - k * 5, x1 = x0 + s * (30 + k * 4);
+      limb(g, x0, y, x1, y + 1, 6, G.shorts ? dim(G.skin) : dim(G.pants));
+      g.save(); g.translate(x1, y); g.rotate(s > 0 ? -1.4 : Math.PI + 1.4);
+      part(g, () => g.roundRect(-2, -3.5, 10, 7, 2.5), dim(G.shoe), -2, -3.5, 10, 7, 1);
+      g.restore();
+    }
+  };
+  legsOut(LAST_CAR[0], -1, -52); legsOut(LAST_CAR[2], 1, 52);
+  splat(g, -60, -20, 6); splat(g, 58, -40, 5);
+};
+/** The arm out of the last car's window (local to the car, drawn over it). */
+export const paintCarArm = (g: Ctx) => {
+  const G = LAST_CAR[1];
+  limb(g, 20, -70, 34, -46, 4.5, dim(G.tee)); limb(g, 34, -46, 40, -24, 4, dim(G.skin)); ball(g, 40, -21, 2.8, dim(G.skin), 1);
+  px(g, 39, -18, 2, 10, BLOOD[3]);
+};
