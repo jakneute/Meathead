@@ -77,7 +77,11 @@ const WINDED_T = [0, 80, 65, 50];
 const AIM_T = [0, 46, 38, 32], DIVE_T = [0, 50, 44, 38], DIVE_PAST = 240;
 // (only on the way down and at the bottom: once he's pulling back up past the mark, he can't get hold of anybody)
 /** The grab's target is locked this long before he goes (the marker stops following him: move off it). */
-const LOCK_T = 16;
+const LOCK_T = 10;
+/** ...but the swoop still bends after him on the way down: this far a frame (by phase), till this far through it. */
+const HOME = [0, 3.4, 4.4, 5.4], HOME_TILL = 0.5;
+/** How close his claws have to come (px, either way, across and up and down). */
+const CLAW_X = 42, CLAW_Y = 50;
 /** Held: a drain every so often (his damage, Donnie's heal), let go after this long at most, or this many presses. */
 const DRAIN_EVERY = 18, DRAIN_DMG = 5, DRAIN_HEAL = 5, DRAIN_MAX = 150, ESCAPE_PRESSES = 9;
 /** The guests: how often one runs through (by phase), how fast; sucking one dry, how long and what it heals. */
@@ -123,7 +127,7 @@ export interface Fight {
   /** The circle in the floor (0 shut, 1 open), and him changed. */
   circle: number; powered: boolean;
   /** The swoop: its curve (from, the bottom of it at him, on past), how long. */
-  dive: { ax: number; ay: number; cx: number; cy: number; bx: number; by: number; d: number } | null;
+  dive: { ax: number; ay: number; cx: number; cy: number; bx: number; by: number; d: number; tx: number; ty: number } | null;
   /** Where the swoop's going to bottom out (shown on the floor through the tell): following him, then locked. */
   mark: { x: number; y: number; locked: boolean } | null;
   held: { t: number; presses: number; was: Controls } | null;
@@ -352,19 +356,26 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
         const mk = f.mark!, tx = mk.x, ty = Math.min(GY, mk.y - 30 + 45);
         const bx = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, tx + f.facing * DIVE_PAST)), by = GY - HOVER_UP;
         // (a curve from him, through him at the bottom, back up the far side)
-        f.dive = { ax: f.x, ay: f.y, cx: 2 * tx - (f.x + bx) / 2, cy: 2 * ty - (f.y + by) / 2, bx, by, d: DIVE_T[ph] };
+        f.dive = { ax: f.x, ay: f.y, cx: 2 * tx - (f.x + bx) / 2, cy: 2 * ty - (f.y + by) / 2, bx, by, d: DIVE_T[ph], tx, ty };
         to(f, 'dive'); playSound('whoosh', 1, -4); f.mark = null;
       }
       break;
     case 'dive': {
       const d = f.dive!, s = Math.min(1, f.t / d.d), u = 1 - s;
+      // (homing: the bottom of the swoop dragged after him, so a little step aside isn't enough; jump it, or run)
+      if (s < HOME_TILL) {
+        const pm = pmid(state).x;
+        d.tx += Math.max(-HOME[ph], Math.min(HOME[ph], pm - d.tx));
+        d.bx = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, d.tx + (d.tx >= d.ax ? 1 : -1) * DIVE_PAST));
+        d.cx = 2 * d.tx - (d.ax + d.bx) / 2;
+      }
       const nx = u * u * d.ax + 2 * u * s * d.cx + s * s * d.bx, ny = u * u * d.ay + 2 * u * s * d.cy + s * s * d.by;
       f.vx = nx - f.x; f.vy = ny - f.y; f.x = nx; f.y = Math.min(GY, ny);
       if (Math.abs(f.vx) > 0.3) f.facing = f.vx < 0 ? -1 : 1;
       if (state.frame % 2 === 0) state.particles.push({ pos: { x: f.x, y: f.y - 50 }, vel: { x: -f.vx * 0.2, y: -f.vy * 0.2 }, life: 14, color: 'rgba(127, 29, 29, 0.6)', size: 6 });
       // (his claws on him: got him)
       const m = pmid(state), p = state.player;
-      if (s < 0.62 && canHurtHim(state) && p.invincibilityTimer <= 0 && Math.abs(m.x - f.x) < 34 && Math.abs(m.y - (f.y - 46)) < 46) { grab(state, f, controls); break; }
+      if (s < 0.62 && canHurtHim(state) && p.invincibilityTimer <= 0 && Math.abs(m.x - f.x) < CLAW_X && Math.abs(m.y - (f.y - 46)) < CLAW_Y) { grab(state, f, controls); break; }
       if (s >= 1) { f.dive = null; to(f, 'winded'); }
       break;
     }
