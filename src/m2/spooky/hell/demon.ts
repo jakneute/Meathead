@@ -32,7 +32,7 @@ import { say, cutVoice, pickLine } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
 import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
-import { ENEMY_HIT_COOLDOWN, POWER_CELLS, BOUNCE_FRAMES } from '../../../m1/constants';
+import { POWER_CELLS, BOUNCE_FRAMES } from '../../../m1/constants';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import { solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
@@ -207,11 +207,12 @@ const demonTouch = (ctx: FrameContext, e: Enemy): boolean => {
   if (!(p.isCharging || p.isUppercutting || p.isDivekicking) || p.health <= 0) return true;
   if (p.isUppercutting && p.uppercutHitIds.includes(e.id)) return true;
   if (p.isDivekicking && p.diveKickHitIds.includes(e.id)) return true;
-  if (e.hitByMove === p.moveId && (e.hitCooldown ?? 0) > 0) return true;
+  // (a sub-boss has no breather: only the same move can't land twice)
+  if (e.hitByMove === p.moveId) return true;
   if (!rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return true;
   const up = !!p.isUppercutting, dk = !!p.isDivekicking, slide = !up && !dk && !!p.isSliding;
   const dmg = up ? MELEE.uppercut : dk ? MELEE.divekick : slide ? MELEE.slide : MELEE.charge;
-  e.hitByMove = p.moveId; e.hitCooldown = ENEMY_HIT_COOLDOWN;
+  e.hitByMove = p.moveId; e.hitCooldown = 0;
   if (up) p.uppercutHitIds.push(e.id);
   if (dk) p.diveKickHitIds.push(e.id);
   const pc = p.pos.x + p.width / 2, dir = Math.sign(d.x - pc) || 1;

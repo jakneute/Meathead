@@ -33,7 +33,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { getAttackHitbox, recoilOff } from '../../../m1/game/player/player';
 import { rectsOverlap, boundsOf } from '../../../m1/game/core/utils';
-import { topBand, CANVAS_WIDTH, enemyMeleeDamage, ENEMY_HIT_COOLDOWN, POWER_CELLS, BOUNCE_FRAMES } from '../../../m1/constants';
+import { topBand, CANVAS_WIDTH, enemyMeleeDamage, POWER_CELLS, BOUNCE_FRAMES } from '../../../m1/constants';
 import { getAdv, solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
 import { say, cutVoice, pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -350,7 +350,7 @@ const shock = (ctx: FrameContext, r: Rex, e: Enemy) => {
   // (away from it: a dive kick off the rex as a whole, out the side of it he's come down on)
   const dir = (dk ? Math.sign(pc.x - r.x) : Math.sign(pc.x - c.x)) || -r.facing;
   endMove(p);
-  e.hitByMove = p.moveId; e.hitCooldown = 20;
+  e.hitByMove = p.moveId; e.hitCooldown = 0;
   r.shockGrace = state.frame + SHOCK_GRACE;
   const kb = { x: dir * (dk ? SHOCK_KB_DK.x : SHOCK_KB.x), y: dk ? SHOCK_KB_DK.y : SHOCK_KB.y };
   if (p.invincibilityTimer <= 0) hurtPlayer(ctx, SHOCK_DMG, 'm2:rex_shock', kb, SHOCK_LOCK);
@@ -395,7 +395,8 @@ const partTouch = (ctx: FrameContext, e: Enemy): boolean => {
   if (!(p.isCharging || p.isUppercutting || p.isDivekicking) || p.health <= 0) return true;
   if (p.isUppercutting && p.uppercutHitIds.includes(e.id)) return true;
   if (p.isDivekicking && p.diveKickHitIds.includes(e.id)) return true;
-  if (e.hitByMove === p.moveId && (e.hitCooldown ?? 0) > 0) return true;
+  // (a sub-boss has no breather: only the same move can't land twice)
+  if (e.hitByMove === p.moveId) return true;
   if (!rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return true;
   if (part.live) {
     // (just shocked off it: no second go, nothing in it either way; the move's over and he's off it)
@@ -403,7 +404,7 @@ const partTouch = (ctx: FrameContext, e: Enemy): boolean => {
       const dir = Math.sign(p.pos.x + p.width / 2 - r.x) || -r.facing;
       endMove(p);
       p.vel = { x: dir * SHOCK_KB.x, y: Math.min(p.vel.y, SHOCK_KB.y) }; p.lockTimer = Math.max(p.lockTimer, 12); p.recoiling = true;
-      e.hitByMove = p.moveId; e.hitCooldown = 20;
+      e.hitByMove = p.moveId; e.hitCooldown = 0;
       return true;
     }
     shock(ctx, r, e);
@@ -412,7 +413,7 @@ const partTouch = (ctx: FrameContext, e: Enemy): boolean => {
   // It lands
   const dk = !!p.isDivekicking, up = !!p.isUppercutting;
   const slidLegs = part.id === 'legs' && p.isCharging && p.isSliding;
-  e.hitByMove = p.moveId; e.hitCooldown = ENEMY_HIT_COOLDOWN;
+  e.hitByMove = p.moveId; e.hitCooldown = 0;
   if (up) p.uppercutHitIds.push(e.id);
   if (dk) p.diveKickHitIds.push(e.id);
   const c = centerOf(boundsOf(e));
