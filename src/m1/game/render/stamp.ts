@@ -36,6 +36,34 @@ export const stampsForStage = (stageId: string | null | undefined) => {
 };
 
 const q = (n: number) => Math.round(n * 4096) / 4096;
+/** How far (as a log of the ratio, ~±30%) a sweeping scale may get from the stamp it's scaled from before it's painted afresh. */
+const SWEEP = 0.26;
+
+/**
+ * Paints `paint` into the stamp `g` (L, T its device box; cw × ch its size) at scale a, d. At a scale that isn't a
+ * whole number of device pixels to the art's pixel (art pushed back in depth, a zoom), filled cells don't end on whole
+ * pixels: where two meet, both half-cover the pixel between and the backdrop shows through, a seam down every column
+ * (and it crawls as the scale changes). So it's painted at the next whole scale up, where every cell lands on whole
+ * pixels, and brought down to this one, smoothed: no seams, the edges soft just as the live art's are.
+ */
+const paintClean = (g: Ctx, ctx: Ctx, a: number, d: number, L: number, T: number, cw: number, ch: number, paint: (g: Ctx) => void): Leaves => {
+  const A = Math.abs(a), S = Math.max(1, Math.ceil(A - 1e-3)), k = S / A;
+  Object.assign(g, leaves(ctx)); g.imageSmoothingEnabled = ctx.imageSmoothingEnabled;
+  if (Math.abs(A - Math.round(A)) < 1e-3 || k > 4 || cw * ch * k * k > 4096 * 4096) {
+    g.setTransform(a, 0, 0, d, -L, -T); paint(g); return leaves(g);
+  }
+  // (the big one's own origin on a whole pixel, so the art's cells land on whole pixels there)
+  const oL = Math.round(L * k), oT = Math.round(T * k);
+  const big = document.createElement('canvas'); big.width = Math.ceil(cw * k) + 1; big.height = Math.ceil(ch * k) + 1;
+  const bg = big.getContext('2d')!;
+  Object.assign(bg, leaves(ctx)); bg.imageSmoothingEnabled = ctx.imageSmoothingEnabled;
+  bg.setTransform(a * k, 0, 0, d * k, -oL, -oT);
+  paint(bg);
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(big, oL / k - L, oT / k - T, big.width / k, big.height / k);
+  g.imageSmoothingEnabled = ctx.imageSmoothingEnabled;
+  return leaves(bg);
+};
 
 /**
  * Puts down the art `paint` draws (in the current coordinates, inside the box x, y, w, h), from a stamp of it.
@@ -52,29 +80,30 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
   let s = stamps.get(id);
   if (s) { stamps.delete(id); stamps.set(id, s); }
   else {
+    const l = latest.get(key);
+    const near = !!l && Math.sign(l.a) === Math.sign(a) && Math.sign(l.d) === Math.sign(d);
     if (!asked.has(id)) {
       if (asked.size > MAX) asked.clear(); asked.add(id);
-      // (a new scale: the one it was last painted at, scaled to this, if it's near enough; painted fresh next time)
-      const l = latest.get(key);
-      if (l && Math.sign(l.a) === Math.sign(a) && Math.sign(l.d) === Math.sign(d) && Math.abs(a / l.a - 1) < 0.35) {
-        const ka = a / l.a, kd = d / l.d;
+      // (a new scale (a zoom sweeping through them): the one it was last painted at, scaled to this, if it's near
+      // enough. Too far off, it's painted at this scale right now and that's the one scaled from here on: never live
+      // paint mid-sweep (its column seams shift every frame, and it pops against the scaled ones either side))
+      if (near && Math.abs(Math.log(a / l!.a)) < SWEEP) {
+        const ka = a / l!.a, kd = d / l!.d;
         ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true;
-        ctx.drawImage(l.s.c, m.e + l.s.L * ka, m.f + l.s.T * kd, l.s.c.width * ka, l.s.c.height * kd);
-        ctx.restore(); Object.assign(ctx, l.s.after);
+        ctx.drawImage(l!.s.c, m.e + l!.s.L * ka, m.f + l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
+        ctx.restore(); Object.assign(ctx, l!.s.after);
         return;
       }
-      paint(ctx); return;
+      if (!l) { paint(ctx); return; }
     }
     // (the box in device pixels, from whole pixels: the art lands in the stamp on the same pixel grid it's shown on)
     const L = Math.floor(Math.min(a * x, a * (x + w))) - 1, T = Math.floor(Math.min(d * y, d * (y + h))) - 1;
     const R = Math.ceil(Math.max(a * x, a * (x + w))) + 1, B = Math.ceil(Math.max(d * y, d * (y + h))) + 1;
     const c = document.createElement('canvas'); c.width = Math.max(1, R - L); c.height = Math.max(1, B - T);
     const g = c.getContext('2d')!;
-    g.setTransform(a, 0, 0, d, -L, -T);
     // (it starts from the drawing state the live art would've, and leaves the one it would've)
-    Object.assign(g, leaves(ctx)); g.imageSmoothingEnabled = ctx.imageSmoothingEnabled;
-    paint(g);
-    s = { c, L, T, after: leaves(g) };
+    const after = paintClean(g, ctx, a, d, L, T, c.width, c.height, paint);
+    s = { c, L, T, after };
     stamps.set(id, s);
     bytes += c.width * c.height * 4;
     for (const [oldId, old] of stamps) {
