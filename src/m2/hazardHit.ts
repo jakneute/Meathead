@@ -48,7 +48,7 @@ export const beforeAI = (state: GameState, e: Enemy) => {
   const cx = e.pos.x + e.width / 2;
   e.pos.x = cx - z.x0 < z.x1 - cx ? z.x0 - e.width - 4 : z.x1 + 4;
   if (e.homeX !== undefined) e.homeX = e.pos.x;
-  if (import.meta.env.DEV) console.warn(`[hazards] ${e.kind} started in a hazard's way: moved to ${Math.round(e.pos.x)}`);
+  if (import.meta.env?.DEV) console.warn(`[hazards] ${e.kind} started in a hazard's way: moved to ${Math.round(e.pos.x)}`);
 };
 export const afterAI = (state: GameState, e: Enemy, beforeX: number, beforeY: number, movedItself: boolean) => {
   if (e.health <= 0 || e.isBlownAway || e.type === 'boss') return;
@@ -100,7 +100,7 @@ export const hazardKill = (ctx: FrameContext, e: Enemy, fromX: number, call: str
   fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 30 }, call, true, opts.color ?? '#FCA5A5');
   playSound(opts.sound ?? 'crunch', 0.9, -4);
   state.player.killSatisfactionTimer = 60;
-  if (import.meta.env.DEV) (state as unknown as { hazardKill?: string }).hazardKill = `${call} ${e.kind} ${state.frame}`;
+  if (import.meta.env?.DEV) (state as unknown as { hazardKill?: string }).hazardKill = `${call} ${e.kind} ${state.frame}`;
 };
 /**
  * Hurt by a hazard but maybe not done in: `dmg` off it (a little one: dead outright), knocked away from `fromX` and
@@ -118,4 +118,4 @@ export const hazardHit = (ctx: FrameContext, e: Enemy, dmg: number, fromX: numbe
 };
 
 // (dev: the spawn check reads the live zones)
-if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __hazardZones?: unknown }).__hazardZones = hazardZones;
+if (import.meta.env?.DEV && typeof window !== 'undefined') (window as unknown as { __hazardZones?: unknown }).__hazardZones = hazardZones;

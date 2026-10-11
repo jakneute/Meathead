@@ -5326,6 +5326,11 @@
  },
  {
   "voice": "death",
+  "text": "AIRBALLED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "ALL YOU CAN EAT",
   "from": "ADVENTURE"
  },
@@ -5427,6 +5432,11 @@
  {
   "voice": "death",
   "text": "BATTERED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "BATTERED AND FRIED",
   "from": "SPOOKY"
  },
  {
@@ -6806,6 +6816,11 @@
  },
  {
   "voice": "death",
+  "text": "GUT CHECK FAILED",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "GUTTED LIKE A TROUT",
   "from": "ADVENTURE"
  },
@@ -6948,6 +6963,11 @@
   "voice": "death",
   "text": "HIT WITH A FORTY",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HOLEY MEATHEAD",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8826,6 +8846,11 @@
  },
  {
   "voice": "death",
+  "text": "SPIKE KEBAB",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "SPIT ROASTED",
   "from": "content/deaths"
  },
@@ -9018,6 +9043,11 @@
   "voice": "death",
   "text": "SWATTED LIKE A FLY",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "SWATTED OUT OF THE AIR BY A GUT",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -12056,6 +12086,21 @@
  },
  {
   "voice": "m2.donnie",
+  "text": "OH. OH WOW. LOOK AT ME! I'M FLOATING! ABOVE IT ALL! WELL ABOVE IT ALL! THIS IS THE BEST DAY OF MY LIFE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OH. OH WOW. LOOK AT ME! I'M FLOATING! I'M ACTUALLY FLOATING! THIS IS THE BEST DAY OF MY LIFE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "OH. OH WOW. LOOK AT ME! I'M FLOATING! UP HERE YOU CAN'T EVEN SMELL HIM! THIS IS THE BEST DAY OF MY LIFE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
   "text": "OKAY, OKAY, YOU WIN! TAKE THE CAPE! TAKE THE TEETH! I'LL GIVE YOU MY EMPLOYEE DISCOUNT! TWELVE PERCENT!",
   "from": "SPOOKY"
  },
@@ -12356,6 +12401,21 @@
  },
  {
   "voice": "m2.donnie",
+  "text": "THE FANGS ARE REAL! AND I DON'T HAVE TO GET CLOSE TO USE THEM! I LOVE THEM!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THE FANGS ARE REAL! I CAN SEE MY REFLECTION IN THEM! NOT YOURS! THANK GOD! I LOVE THEM!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "THE FANGS ARE REAL! TOUCH THEM! NO, DON'T TOUCH THEM! THEY'RE MINE! I LOVE THEM!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
   "text": "THE SOUL'S HIS PROBLEM! THE KILLING'S MINE! AND I'M GOOD AT IT! I JUST FOUND OUT!",
   "from": "SPOOKY"
  },
@@ -12472,6 +12532,21 @@
  {
   "voice": "m2.donnie",
   "text": "WHA... HOW DID YOU GET IN HERE?! THIS IS AN EMPLOYEE AREA! THERE IS A SIGN!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WINGS! REAL WINGS! BIG ENOUGH TO COVER MY EYES! I LOVE THEM!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WINGS! REAL WINGS! THEY FLAP! AND EVERY FLAP BLOWS IT BACK AT YOU! I LOVE THEM!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "WINGS! REAL WINGS! THEY FLAP! I CAN FEEL THEM FLAP! OH, I LOVE THEM!",
   "from": "SPOOKY"
  },
  {
@@ -12851,17 +12926,17 @@
  },
  {
   "voice": "m2.donnie.pa",
-  "text": "THE DOORS ARE LOCKED. THERE ARE TVO LEVERS. ONE UP HIGH, ONE FAR AVAY. NOT THAT I AM HELPING.",
+  "text": "THE DOORS ARE LOCKED. THE LEVER IS AT THE FAR END, UP ON A CRATE. NO, VAIT, DO NOT CLIMB. I CAN SEE EVERYTHING VHEN YOU CLIMB.",
   "from": "SPOOKY"
  },
  {
   "voice": "m2.donnie.pa",
-  "text": "THE DOORS ARE LOCKED. TVO LEVERS OPEN THEM. THE SMELL, HOVEVER, STAYS DOWN HERE. VITH YOU. ALVAYS.",
+  "text": "THE DOORS ARE LOCKED. THE LEVER IS AT THE FAR END. NOT THAT I AM HELPING.",
   "from": "SPOOKY"
  },
  {
   "voice": "m2.donnie.pa",
-  "text": "THE DOORS ARE LOCKED. TVO LEVERS. ONE YOU MUST CLIMB TO. NO, VAIT, DO NOT CLIMB. I CAN SEE EVERYTHING VHEN YOU CLIMB.",
+  "text": "THE DOORS ARE LOCKED. THE LEVER IS AT THE FAR END. THE SMELL, HOVEVER, STAYS DOWN HERE. VITH YOU. ALVAYS.",
   "from": "SPOOKY"
  },
  {
@@ -18146,6 +18221,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A BOTTOMLESS PIT. IN A KIDDIE RIDE. FOR TODDLERS. WHO DESIGNED THIS PARK, SATAN?",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "A BOULDER TO THE DOME?! MY TRAPS ARE SOLID ROCK, ERNIE!",
   "from": "HAZARD_HURT"
  },
@@ -18693,6 +18773,11 @@
   "voice": "meathead",
   "text": "AAAAAAAAAAAAAAAAAAAAAAAA",
   "from": "m1/game/stages/tommy/escape.ts:235"
+ },
+ {
+  "voice": "meathead",
+  "text": "AAAAAAAAAAAAAAAAAaaaaaaaaaaaa...",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -19283,6 +19368,11 @@
   "voice": "meathead",
   "text": "BOTTLE SERVICE. THAT'S A CRIME, RIGHT? IT SHOULD BE.",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOTTOMLESS PIT, NO, REALLY. I BELIEVE YOU. I'M TAKING THE BABY TRAIN.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -21731,6 +21821,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE BODY-CHECKED ME IN MID-AIR!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE BOINGED ME INTO THE FIRE!",
   "from": "SPOOKY"
  },
@@ -22448,6 +22543,11 @@
   "voice": "meathead",
   "text": "hipster",
   "from": "m1/game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIS GUT HIT ME LIKE A WRECKING BALL!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24201,6 +24301,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S RAINING FAT DEVIL!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S RAINING LIZARDS! WHAT THE FUCK, FLORIDA?",
   "from": "HAZARD_HURT"
  },
@@ -25496,6 +25601,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOOOOOOOOOOOOOOOooooooooo...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "NOPE.",
   "from": "ADVENTURE"
  },
@@ -25892,11 +26002,6 @@
  {
   "voice": "meathead",
   "text": "ONE CASTLE BETWEEN ME AND THE ELEVATOR TO HELL. I'VE GONE THROUGH WORSE FOR LESS.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "ONE DOWN! WHERE'S THE OTHER ONE?!",
   "from": "SPOOKY"
  },
  {
@@ -30058,11 +30163,6 @@
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
   "from": "m1/game/core/update.ts:228"
- },
- {
-  "voice": "meathead",
-  "text": "TWO LEVERS?! WHO DESIGNED THIS?!",
-  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
