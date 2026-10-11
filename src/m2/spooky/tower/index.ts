@@ -33,7 +33,10 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy, EnemyKind } from '../../../m1/types';
 import type { SpookySection } from '../section';
 import { layOwn, solid, ledge, endWalls, runExits, teleport, hands, meatheadSays, saidOver, spookyState } from '../section';
-import { DOORS, GY } from '../geometry';
+import { DOORS, GY, SECTIONS } from '../geometry';
+import { floorTopAt } from '../../../m1/game/core/terrain';
+/** Down the DOWN shaft, he lands in hell's pit here (hell's agent: anywhere hell.x0+500..880 at its start's height). */
+const HELL_SECOND_X = SECTIONS.hell.x0 + 820;
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { makeKindEnemy, kindDef } from '../../../m1/game/enemies/kinds';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
@@ -46,10 +49,10 @@ import { talk, stepTalk, pick, type Talk } from '../../adventure/queue/talk';
 import { updateLadders, drawLadders, type LadderDef } from '../../moves/ladders';
 import { TK, updateThrown, drawThrown, thrown } from './kinds';
 import { runHazards, drawDebris, storyOf, canHurt, cover, clearView, worksKill, type Debris } from './hazards';
-import { newRide, runRide, lampOn, shaftCar, loadedCar, type Ride, type Car } from './ride';
+import { newRide, runRide, lampOn, upCar, loadedCar, type Ride, type Car } from './ride';
 import { drawTowerBackdrop, drawTowerBack } from './art';
 import {
-  x0, x1, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, TX0, TX1, U, WALL, SH0, SH1, SHM, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
+  x0, x1, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, TX0, TX1, U, WALL, SH0, SH1, SHM, SHX, SHU, SHD, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
   HELL_AT, LEDGES, CHUTE_LEDGES, BEAMS, beamTop, WHOLE, WRECK, JAMS, pieceY, floorAt, CUCKOOS, FOES, DESCENT_FOES, SECURITY, PICKUPS, CAR_TOP,
   LIFT, liftY, ROTTEN, TORN_NET, LADDER_SPOTS, type TowerFoe, type FoeAt, type Piece,
 } from './layout';
@@ -95,6 +98,8 @@ interface Tower {
   rot: number[];
   /** The town's staff held unseeing behind a beam. */
   blinded: Set<Enemy>;
+  /** Diving down a shaft into hell (the cinematic): which shaft's middle. */
+  dive?: { x: number };
   /** The car whose riders are saying something. */
   riderCar?: Car;
   /** He's seen a car go first thing in the tower (one sent up the shaft as he comes in). */
@@ -109,6 +114,10 @@ const towerOf = (state: GameState) => spookyState<Tower>(state, 'tower', () => (
 }));
 const brokenOf = (t: Tower) => t.beamHp.filter(h => h <= 0).length;
 
+/** What's been wrecked in the tower, kept through his deaths (the stage, and every section's state, is built anew on
+ *  each): the beams he's broken, the rotten boards gone, the crash. Cleared only when he starts again from before the
+ *  tower (a new run through it). */
+const kept = { beams: BEAMS.map(() => false), rot: [false, false, false, false], crashed: false };
 /** Beams already out, starting again from a checkpoint (they're in order up the tower: one per floor). */
 const beamsBefore = (cp: number) => (cp >= 45 ? BEAMS.length : cp >= 44 ? 6 : cp >= 43 ? 4 : cp >= 42 ? 2 : 0);
 
@@ -124,7 +133,7 @@ const CPS: SpookySection['checkpoints'] = [
   { name: 'THE CLOCK ROOM', cp: 44, x: U(205), y: TOP },
   { name: 'THE WAY DOWN', cp: 45, x: U(300), y: TOP },
   { name: 'HALFWAY DOWN', cp: 46, x: U(400), y: F(2) },
-  { name: 'BACK AT THE BASE', cp: 47, x: U(940), y: GY },
+  { name: 'BACK AT THE BASE', cp: 47, x: U(1100), y: GY },
 ];
 const where = { feet: Infinity, crashed: false, live: false };
 const passable = (c: SpookySection['checkpoints'][number]) => where.feet <= c.y + 12 && where.feet > c.y - STORY + 40 && (c.cp < 45 || where.crashed);
@@ -206,6 +215,7 @@ const runBeams = (ctx: FrameContext, t: Tower) => {
     if (p.isCharging) { p.isCharging = false; p.isSliding = false; p.chargeTimer = 0; p.vel.x = -dir * 4; }
     if (p.isDivekicking) { p.isDivekicking = false; p.vel.y = -8; p.vel.x = -dir * 3; }
     if (t.beamHp[i] > 0) return;
+    kept.beams[i] = true;
     // Out: the block's gone, the tower lurches
     state.blocks = state.blocks.filter(k => k.tag !== BEAM(i));
     playSound('crash', 1, -6); playSound('rumble', 0.8);
@@ -229,9 +239,12 @@ const startCrash = (state: GameState, t: Tower) => {
   t.swayV += 0.02;
   // (the cable goes: the car, wherever it is in the shaft; or (a white flash over it) the one waiting at the top)
   const r = t.ride;
-  let c = shaftCar(r);
-  if (!c) { c = loadedCar(r, 'drop', SHM, CAR_TOP); r.cars.push(c); }
-  c.phase = 'drop'; c.t = 0; c.real = true; c.crash = true; c.vy = Math.max(c.vy, 2); c.x = SHM;
+  // (both shafts' cars go together, side by side from the top: the one creeping up, the one about to drop)
+  let up = r.cars.find(c => c.phase === 'rise' || c.phase === 'top');
+  let down = r.cars.find(c => c.phase === 'cross' || c.phase === 'hold' || (c.phase === 'drop' && !c.real));
+  if (!up) { up = loadedCar(r, 'drop', SHU, CAR_TOP); r.cars.push(up); }
+  if (!down) { down = loadedCar(r, 'drop', SHD, CAR_TOP); r.cars.push(down); }
+  for (const [c, x] of [[up, SHU], [down, SHD]] as [Car, number][]) { c.phase = 'drop'; c.t = 0; c.real = true; c.crash = true; c.vy = 2; c.x = x; c.y = CAR_TOP; }
   r.held = false;
   for (const e of state.enemies) { e.puppet = true; e.pauseTimer = 2; }
 };
@@ -240,7 +253,7 @@ const startCrash = (state: GameState, t: Tower) => {
 const wreckFloor = (state: GameState, t: Tower, k: number, quiet = false) => {
   if (t.wrecked[k]) return;
   t.wrecked[k] = true; t.nets[k] = false;
-  state.blocks = state.blocks.filter(b => b.tag !== NET(k) && b.tag !== WHOLE_TAG(k) && !(k === ROTTEN.k && b.tag?.startsWith('tw-rot')));
+  state.blocks = state.blocks.filter(b => !b.tag?.startsWith(NET(k)) && b.tag !== WHOLE_TAG(k) && !(k === ROTTEN.k && b.tag?.startsWith('tw-rot')));
   if (k === ROTTEN.k) t.rot.fill(0);
   for (const p of WRECK[k]) layPiece(state, k, p, `tw-wreck-${k}`);
   if (JAMS.includes(k)) solid(state, SH0, F(k), SH1 - SH0, SLAB, { tag: `tw-jam-${k}`, hidden: true });
@@ -269,6 +282,8 @@ const afterCrash = (state: GameState, t: Tower, quiet: boolean) => {
   for (let k = 1; k <= STORIES; k++) wreckFloor(state, t, k, quiet);
   breakGrate(state, t, quiet); breakB1(state, t, quiet);
   t.crashed = true;
+  // (a car being unloaded in the ride's hell as its floor goes: down the hole with the rest)
+  for (const c of t.ride.cars) if (c.phase === 'unload' || c.phase === 'return') { c.phase = 'drop'; c.real = true; c.vy = 2; c.t = 0; if (!c.riders.length) c.riders = []; }
   state.enemies = state.enemies.filter(e => !(e.kind?.startsWith('m2:') && isFoe(e) && e.health > 0));
   spawnAll(state, DESCENT_FOES, true, 200);
   addPickups(state, true);
@@ -284,6 +299,7 @@ const endCrash = (state: GameState, t: Tower, skipped: boolean) => {
   if (skipped) { state.camera.x = camX(p.pos.x + p.width / 2); state.camera.y = p.pos.y + p.height - 470; }
   for (const e of state.enemies) e.puppet = false;
   if (state.checkpoint < 45) state.checkpoint = 45;
+  kept.crashed = true;
   t.talk.q.length = 0;
   meatheadSays(state, pick(MEATHEAD_CRASH));
 };
@@ -330,23 +346,16 @@ const runLift = (state: GameState) => {
 };
 const runRotten = (state: GameState, t: Tower) => {
   if (t.crashed) return;
-  const p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height, y = F(ROTTEN.k);
+  const p = state.player, feet = p.pos.y + p.height, y = F(ROTTEN.k);
   ROTTEN.boards.forEach(([a, b], i) => {
     const tag = `tw-rot-${i}`;
-    if (t.rot[i] < 0) {
-      // (gone: back after a while, when he's not where it goes)
-      if (++t.rot[i] >= 0) {
-        if (cx > U(a) - 30 && cx < U(b) + 30 && Math.abs(feet - y) < 70) { t.rot[i] = -20; return; }
-        solid(state, U(a), y, b - a, SLAB, { tag, hidden: true });
-        t.rot[i] = 0;
-      }
-      return;
-    }
+    // (gone: gone for good; the climb's still there by the shaft's net and the ledges over it)
+    if (t.rot[i] < 0) return;
     const on = p.isGrounded && Math.abs(feet - y) < 3 && p.pos.x + p.width > U(a) + 4 && p.pos.x < U(b) - 4;
     if (t.rot[i] === 0 && on) { t.rot[i] = 1; playSound('crack', 0.6, 8); }
     else if (t.rot[i] > 0 && ++t.rot[i] > 28) {
       state.blocks = state.blocks.filter(k => k.tag !== tag);
-      t.rot[i] = -300;
+      t.rot[i] = -1; kept.rot[i] = true;
       playSound('crack', 0.9, -2); playSound('crumble', 0.7);
       for (let j = 0; j < 12; j++) state.particles.push({ pos: { x: U(a) + Math.random() * (b - a), y: y + 6 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 3 }, life: 50, color: j % 2 ? '#5B3A1A' : '#3F2812', size: 4 + Math.random() * 5, grav: 0.3, chunk: true });
     }
@@ -383,6 +392,8 @@ const runBay = (state: GameState, t: Tower) => {
 // The way down: the cars still coming down the shaft (what comes off them hits whoever's in it), the lines
 
 const inColumn = (state: GameState) => { const cx = state.player.pos.x + state.player.width / 2; return cx > SH0 - 8 && cx < SH1 + 8; };
+/** In the shaft a car's in (the UP one or the DOWN one). */
+const inCarColumn = (state: GameState, car: Car) => Math.abs(state.player.pos.x + state.player.width / 2 - car.x) < 84;
 const runDescent = (ctx: FrameContext, t: Tower) => {
   const { state } = ctx, p = state.player, feet = p.pos.y + p.height;
   const k = storyOf(state);
@@ -401,9 +412,9 @@ const runCarPast = (ctx: FrameContext, t: Tower, car: Car, k: number, feet: numb
   if (car && car.real && !car.crash && car.phase === 'drop') {
     const passing = car.y > p.pos.y && car.y - 150 < feet;
     if (passing && Math.abs(car.y - feet) < 40) playSound('whoosh', 0.8, -8);
-    if (passing && !car.hit && inColumn(state) && canHurt(state)) {
+    if (passing && !car.hit && inCarColumn(state, car) && canHurt(state)) {
       car.hit = true;
-      const dir = p.pos.x + p.width / 2 < SHM ? -1 : 1;
+      const dir = p.pos.x + p.width / 2 < car.x ? -1 : 1;
       hurtPlayer(ctx, 10, 'tower_car', { x: dir * 8, y: -5 });
       playSound('thud', 0.9); playSound('crash', 0.5, 6);
       for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + 10 }, vel: { x: (Math.random() - 0.5) * 8, y: -3 - Math.random() * 3 }, life: 40, color: ['#7F1D1D', '#FBBF24', '#1D4ED8', '#F5F5F4'][i % 4], size: 3 + Math.random() * 3, grav: 0.3, chunk: true });
@@ -413,7 +424,7 @@ const runCarPast = (ctx: FrameContext, t: Tower, car: Car, k: number, feet: numb
   if (car && car.real && !car.crash && car.phase === 'drop') for (const e of state.enemies) {
     if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.kind?.endsWith('cuckoo')) continue;
     const ex = e.pos.x + e.width / 2;
-    if (ex > SH0 && ex < SH1 && car.y > e.pos.y && car.y - 150 < e.pos.y + e.height) worksKill(ctx, e, SHM, 'NEXT!');
+    if (Math.abs(ex - car.x) < 80 && car.y > e.pos.y && car.y - 150 < e.pos.y + e.height) worksKill(ctx, e, car.x, 'NEXT!');
   }
 };
 const descentLines = (state: GameState, t: Tower, k: number, feet: number) => {
@@ -433,7 +444,7 @@ const runRideClimb = (state: GameState, t: Tower) => {
   if (!t.firstCar) {
     t.firstCar = true;
     // (one already on its way up, above where he can see from the foot: it'll drop a few seconds in)
-    if (!shaftCar(t.ride)) t.ride.cars.push(loadedCar(t.ride, 'rise', SHM, Math.max(CAR_TOP + 100, F(Math.min(STORIES, k + 4)))));
+    if (!upCar(t.ride)) t.ride.cars.push(loadedCar(t.ride, 'rise', SHU, Math.max(CAR_TOP + 100, F(Math.min(STORIES, k + 4)))));
   }
   for (const car of t.ride.cars) {
     if (car.phase !== 'rise' || car.saidUp || Math.abs(car.y - 60 - (p.pos.y + p.height / 2)) > 160) continue;
@@ -482,7 +493,8 @@ export const tower: SpookySection = {
     solid(state, TX0, ROOF - 40, TX1 - TX0, 40);
     for (let k = 1; k <= STORIES; k++) {
       for (const p of WHOLE[k]) layPiece(state, k, p, WHOLE_TAG(k));
-      if (k !== TORN_NET) solid(state, SH0, F(k), SH1 - SH0, SLAB, { tag: NET(k) });
+      solid(state, SH0, F(k), SHX - SH0, SLAB, { tag: `${NET(k)}-up` });
+      if (k !== TORN_NET) solid(state, SHX, F(k), SH1 - SHX, SLAB, { tag: `${NET(k)}-down` });
     }
     t.nets[TORN_NET] = false;
     ROTTEN.boards.forEach(([a, b], i) => solid(state, U(a), F(ROTTEN.k), b - a, SLAB, { tag: `tw-rot-${i}` }));
@@ -510,9 +522,14 @@ export const tower: SpookySection = {
     // a floor, its beam's out; on the way down, or back from hell, it's all wrecked)
     if (!t.inited) {
       t.inited = true;
-      const before = beamsBefore(state.checkpoint);
-      BEAMS.forEach((_, i) => { if (i < before) { t.beamHp[i] = 0; state.blocks = state.blocks.filter(b => b.tag !== BEAM(i)); } });
-      if (state.checkpoint >= 45) { afterCrash(state, t, true); t.leftTop = state.checkpoint >= 46; }
+      const cp = state.checkpoint;
+      // (a new run through the tower: nothing's broken yet; otherwise, as he left it, and at least as a run would have
+      // left it by this checkpoint)
+      if (cp < 40) { kept.beams.fill(false); kept.rot.fill(false); kept.crashed = false; }
+      const before = beamsBefore(cp);
+      BEAMS.forEach((_, i) => { if (i < before || kept.beams[i]) { kept.beams[i] = true; t.beamHp[i] = 0; state.blocks = state.blocks.filter(b => b.tag !== BEAM(i)); } });
+      ROTTEN.boards.forEach((_, i) => { if (kept.rot[i]) { t.rot[i] = -1; state.blocks = state.blocks.filter(b => b.tag !== `tw-rot-${i}`); } });
+      if (cp >= 45 || kept.crashed) { kept.crashed = true; afterCrash(state, t, true); t.leftTop = cp >= 46; }
     }
     where.feet = feet; where.crashed = t.crashed; where.live = true;
     t.age++;
@@ -520,7 +537,7 @@ export const tower: SpookySection = {
     // (the sway's spring)
     t.swayV += -t.sway * 0.02; t.swayV *= 0.95; t.sway += t.swayV;
     // The ride runs whatever he's doing (held at the top for the clock room's drop, while that's to come)
-    t.ride.held = !t.crashed && !t.crash && brokenOf(t) >= BEAMS.length - 1;
+    t.ride.held = (!t.crashed && !t.crash && brokenOf(t) >= BEAMS.length - 1) || !!t.dive;
     runRide(state, t.ride, t.crashed || !!t.crash, {
       loading: () => {
         if (cx < TX0 && !t.talk.busy && !t.talk.q.length && state.frame - t.spielAt > 1500 && t.asked) { t.spielAt = state.frame; opSays(t, pick(OPERATOR_SPIEL)); }
@@ -574,6 +591,17 @@ export const tower: SpookySection = {
     // Down the shaft (or the hole under the foot, or the chute), once it's open: the camera after him down it
     const chute = feet > GY + 20 && cx > CH0 && cx < CH1;
     const dropping = t.crashed && (inColumn(state) || chute) && !p.isGrounded && p.vel.y > 2;
+    // (nothing under him from here to hell: that's the dive. His hands off it, straight down the middle of the shaft,
+    // nothing hurts him (cars held at the top meanwhile), the camera after him past the floors, the foot and the bay)
+    if (dropping && !t.dive && inColumn(state) && floorTopAt(state.blocks, cx, feet, 0) === null) {
+      t.dive = { x: cx < SHX ? SHU : SHD };
+      if (!t.jumped) { t.jumped = true; meatheadSays(state, pick(MEATHEAD_JUMP), false); }
+    }
+    if (t.dive) {
+      p.inCutscene = true; p.invincibilityTimer = Math.max(p.invincibilityTimer, 30);
+      p.vel.x = 0; p.pos.x += (t.dive.x - p.width / 2 - p.pos.x) * 0.2;
+      t.ride.held = true;
+    }
     if (dropping) {
       if (!t.jumped && feet > GY + 20) { t.jumped = true; meatheadSays(state, pick(MEATHEAD_JUMP), false); }
       t.fallCam = true;
@@ -584,12 +612,15 @@ export const tower: SpookySection = {
     t.pull += (pullTo - t.pull) * 0.08;
     if (t.crashed && chute && feet > HELL_AT) {
       const vy = p.vel.y;
-      t.fallCam = false; state.cameraOverride = null; t.jumped = false; t.pull = 0;
-      teleport(state, DOORS.hell.start.x, DOORS.hell.start.y);
+      // (out the bottom into hell's pit: down the UP shaft at its start, down the DOWN shaft a little along from it)
+      const down = (t.dive?.x ?? cx) >= SHX;
+      t.fallCam = false; state.cameraOverride = null; t.jumped = false; t.pull = 0; t.dive = undefined;
+      p.inCutscene = false; p.invincibilityTimer = Math.max(p.invincibilityTimer, 150);
+      teleport(state, down ? HELL_SECOND_X : DOORS.hell.start.x, DOORS.hell.start.y);
       p.vel.y = Math.max(8, vy);
-      return controls;
+      return hands();
     }
-    return controls;
+    return t.dive ? hands() : controls;
   },
   cameraX: () => ({ min: x0, max: TX1 + 60 - CANVAS_WIDTH }),
   cameraRow: (state) => (inTower(state) > 0.5 ? 470 : undefined),

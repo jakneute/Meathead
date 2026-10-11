@@ -9,12 +9,12 @@ import { box, label, postSign, wallSign, doorway, groundBox, ledgeBox } from '..
 import { drawPerson } from '../../adventure/temple/people';
 import {
   x0, ENTRY_DOOR_X, WAIT_SIGN_X, HOW_BOARD_X, QUEUE_X0, QUEUE_X1, BOOTH_X, PLATFORM_X0, PLATFORM_X1, STAFF_DOOR_X, BAY_TOP,
-  TX0, TX1, W, U, WALL, SH0, SH1, SHM, DOOR_H, F, STORIES, SLAB, TOP, ROOF, B1, CH0, CH1, HELL_AT, LEDGES, CHUTE_LEDGES, BEAMS, beamTop, PENDULUMS,
+  TX0, TX1, W, U, WALL, SH0, SH1, SHM, SHX, DOCK_X, CAR_W, DOOR_H, F, STORIES, SLAB, TOP, ROOF, B1, CH0, CH1, HELL_AT, LEDGES, CHUTE_LEDGES, BEAMS, beamTop, PENDULUMS,
   CUCKOOS, GALLERY, WHOLE, WRECK, JAMS, upRight, LIFT, liftY, ROTTEN, TORN_NET, type Piece,
 } from './layout';
 import { GY } from '../geometry';
 import { gearAt, gearsNow, drawGear, drawPendulum } from './hazards';
-import { drawCar, type Ride } from './ride';
+import { drawCar, drawWalkers, readyLight, type Ride } from './ride';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -95,7 +95,12 @@ const drawBay = (c: Ctx, state: GameState, look: TowerLook) => {
   box(c, PLATFORM_X0, GY - 22, TX0 - PLATFORM_X0, 22, '#292524'); box(c, PLATFORM_X0, GY - 22, TX0 - PLATFORM_X0, 3, '#57534E');
   box(c, PLATFORM_X0, GY - 30, TX0 - PLATFORM_X0, 4, '#52525B');
   // the car, at the platform or rolling off it (behind the gate)
-  for (const car of look.ride.cars) if ((car.phase === 'board' || car.phase === 'roll') && car.x < TX0 + 100) drawCar(c, car, f);
+  for (const car of look.ride.cars) {
+    if (car.phase === 'lift') {
+      // (up through the hatch in the floor: nothing of it below the floor's line)
+      c.save(); c.beginPath(); c.rect(car.x - CAR_W, GY - 400, CAR_W * 2, 400); c.clip(); drawCar(c, car, f); c.restore();
+    } else if ((car.phase === 'board' || car.phase === 'roll') && car.x < TX0 + 100) { drawCar(c, car, f); drawWalkers(c, car, f); }
+  }
   // the gate (a turnstile, a chain), and the rail along the front of the platform
   box(c, PLATFORM_X0 - 10, GY - 60, 8, 60, '#A1A1AA'); box(c, PLATFORM_X0 - 30, GY - 56, 30, 6, '#D4D4D8');
   box(c, PLATFORM_X0, GY - 50, PLATFORM_X1 - PLATFORM_X0, 4, '#D97706');
@@ -114,11 +119,21 @@ const drawBay = (c: Ctx, state: GameState, look: TowerLook) => {
   box(c, bx - 40, GY - 130, 80, 3, 'rgba(255,255,255,0.25)');
   box(c, bx - 50, GY - 70, 100, 8, '#44403C');
   label(c, 'OPERATOR', bx, GY - 30, '#FDE68A', 6);
+  // (his light: red while they're getting in; green, gate shut, bars down: go)
+  { const go = readyLight(look.ride); if (go) { c.fillStyle = 'rgba(74,222,128,0.25)'; c.beginPath(); c.arc(bx + 36, GY - 172, 16, 0, Math.PI * 2); c.fill(); }
+    box(c, bx + 29, GY - 179, 14, 14, '#0C0A09'); box(c, bx + 31, GY - 177, 10, 10, go ? '#4ADE80' : '#B91C1C'); }
   // the staff door
   box(c, STAFF_DOOR_X - 34, GY - 130, 68, 130, '#44403C'); box(c, STAFF_DOOR_X - 28, GY - 124, 56, 124, '#1C1917');
   wallSign(c, STAFF_DOOR_X, GY - 150, 'CAST MEMBERS ONLY', '#1C1917', '#FDE68A');
   // the floor (a lit lip: stand on it)
   groundBox(c, x0 - 300, TX0, GY, '#292524', '#A8A29E');
+  {
+    const open = look.ride.cars.some(k => k.phase === 'lift' || (k.phase === 'under' && k.t > 120));
+    const hx = DOCK_X - CAR_W / 2 - 8, hw = CAR_W + 16;
+    box(c, hx - 2, GY - 1, hw + 4, 8, '#0C0A09');
+    if (open) { box(c, hx, GY, hw, 6, '#000000'); box(c, hx - 18, GY - 30, 16, 30, '#57534E'); box(c, hx + hw + 2, GY - 30, 16, 30, '#57534E'); }
+    else { box(c, hx, GY, hw / 2 - 1, 5, '#52525B'); box(c, hx + hw / 2 + 1, GY, hw / 2 - 1, 5, '#52525B'); box(c, hx, GY, hw, 1, '#A1A1AA'); }
+  }
   // after: the line's no shorter (a sign hung on the marquee, hand-lettered)
   if (look.crashed) { box(c, mx - 90, GY - 380, 180, 22, '#FEF3C7'); label(c, 'NOW EVEN LONGER!', mx, GY - 365, '#7F1D1D', 7); }
 };
@@ -190,7 +205,7 @@ const drawShaftLamps = (c: Ctx, k: number, on: boolean, f: number) => {
 
 const drawClockFace = (c: Ctx, f: number, crashed: boolean) => {
   // the clock face from behind: a big frosted disc, the numerals backward, the hands' shafts, light through it
-  const cx = U(760), cy = ROOF + 230, r = 170;
+  const cx = U(920), cy = ROOF + 230, r = 170;
   c.fillStyle = INK; c.beginPath(); c.arc(cx, cy, r + 14, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#FDE68A'; c.globalAlpha = 0.35; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
   const nums = ['IIX', 'I', 'II', 'III', 'VI', 'V', 'IV', 'IIV', 'IIIV', 'XI', 'X', 'IX'];
@@ -315,8 +330,8 @@ export const drawTowerBack = (c: Ctx, state: GameState, look: TowerLook) => {
     for (let k = 0; k < STORIES; k++) {
       const fy = F(k);
       if (fy < v.y0 || fy - 380 > v.y1) continue;
-      drawSlit(c, U(upRight(k) ? 160 : 840), fy - 230);
-      drawLamp(c, U(upRight(k) ? 480 - 160 : 680), fy - 300, f + k * 37);
+      drawSlit(c, U(upRight(k) ? 160 : 1000), fy - 230);
+      drawLamp(c, U(upRight(k) ? 320 : 840), fy - 300, f + k * 37);
     }
   }
   // the clock room: the clock face from behind, the bell up over its gallery, the winch the car's cable came off
@@ -339,16 +354,27 @@ export const drawTowerBack = (c: Ctx, state: GameState, look: TowerLook) => {
     const sy0 = Math.max(ROOF, v.y0), sy1 = Math.min(GY + 30, v.y1);
     if (sy1 > sy0) {
       box(c, SH0, sy0, SH1 - SH0, sy1 - sy0, '#0C0A0F');
-      box(c, SH0 + 10, sy0, 5, sy1 - sy0, '#52525B'); box(c, SH1 - 15, sy0, 5, sy1 - sy0, '#52525B');
-      for (let y = Math.ceil(sy0 / 90) * 90; y < sy1; y += 90) {
-        c.strokeStyle = '#27272A'; c.lineWidth = 3; c.beginPath(); c.moveTo(SH0, y); c.lineTo(SH1, y + 90); c.moveTo(SH1, y); c.lineTo(SH0, y + 90); c.stroke();
+      // (two shafts, UP and DOWN, side by side: the lattice of each, its rails, the steel between them)
+      for (const [a, b] of [[SH0, SHX], [SHX, SH1]]) {
+        box(c, a + 10, sy0, 5, sy1 - sy0, '#52525B'); box(c, b - 15, sy0, 5, sy1 - sy0, '#52525B');
+        for (let y = Math.ceil(sy0 / 90) * 90; y < sy1; y += 90) {
+          c.strokeStyle = '#27272A'; c.lineWidth = 3; c.beginPath(); c.moveTo(a, y); c.lineTo(b, y + 90); c.moveTo(b, y); c.lineTo(a, y + 90); c.stroke();
+        }
       }
+      box(c, SHX - 4, sy0, 8, sy1 - sy0, '#3F3F46'); box(c, SHX - 4, sy0, 2, sy1 - sy0, '#71717A');
+      for (let y = Math.ceil(sy0 / 380) * 380; y < sy1; y += 380) label(c, 'UP', SH0 + 30, y + 40, '#71717A', 7), label(c, 'DOWN', SH1 - 36, y + 40, '#71717A', 7);
     }
   }
   // the car in the shaft (behind everything of the tower's own)
-  for (const car of look.ride.cars) if (!((car.phase === 'board' || car.phase === 'roll') && car.x < TX0 + 100)) {
-    c.save(); c.beginPath(); c.rect(TX0, ROOF - 50, W + 200, HELL_AT - ROOF + 1000); c.clip();
+  for (const car of look.ride.cars) {
+    if (car.phase === 'under' || car.phase === 'lift' || ((car.phase === 'board' || car.phase === 'roll') && car.x < TX0 + 100)) continue;
+    c.save(); c.beginPath();
+    // (unloading, and off along its track: in the ride's hell, into the tunnel in its far wall)
+    if (car.phase === 'unload' || car.phase === 'return') c.rect(CH0, GY + 30, CH1 - CH0, B1 - GY + 10);
+    else c.rect(TX0, ROOF - 50, W + 200, HELL_AT - ROOF + 1000);
+    c.clip();
     drawCar(c, car, f);
+    if (car.phase === 'unload') { c.beginPath(); c.rect(CH0 + 26, GY + 30, CH1 - CH0, B1 - GY + 10); c.clip(); drawWalkers(c, car, f); }
     c.restore();
   }
   // the cuckoo clocks (their birds are the enemies), the gears
@@ -366,16 +392,17 @@ export const drawTowerBack = (c: Ctx, state: GameState, look: TowerLook) => {
     if (y < v.y0 - 80 || y > v.y1 + 80) continue;
     for (const p of (look.crashed ? WRECK : WHOLE)[k]) drawPiece(c, k, p, p[3] !== p[2]);
     if (look.nets[k]) drawNet(c, y);
-    if (!look.crashed && k === TORN_NET) { c.strokeStyle = 'rgba(214,211,209,0.6)'; c.lineWidth = 1; for (const x0 of [SH0 + 2, SH1 - 26]) for (let i = 0; i < 5; i++) { c.beginPath(); c.moveTo(x0 + i * 5, y + 2); c.lineTo(x0 + i * 4 + 2, y + 30 + (i % 3) * 12); c.stroke(); } box(c, SH0 - 6, y - 4, 8, 10, '#57534E'); box(c, SH1 - 2, y - 4, 8, 10, '#57534E'); }
+    if (!look.crashed && k === TORN_NET) { box(c, SH0, y, SHX - SH0, 4, '#D6D3D1'); c.strokeStyle = 'rgba(214,211,209,0.55)'; c.lineWidth = 1; for (let x = SH0; x < SHX; x += 16) { c.beginPath(); c.moveTo(x, y + 4); c.lineTo(x + 8, y + 18); c.lineTo(x + 16, y + 4); c.stroke(); } }
+    if (!look.crashed && k === TORN_NET) { c.strokeStyle = 'rgba(214,211,209,0.6)'; c.lineWidth = 1; for (const x0 of [SHX + 2, SH1 - 26]) for (let i = 0; i < 5; i++) { c.beginPath(); c.moveTo(x0 + i * 5, y + 2); c.lineTo(x0 + i * 4 + 2, y + 30 + (i % 3) * 12); c.stroke(); } box(c, SH0 - 6, y - 4, 8, 10, '#57534E'); box(c, SH1 - 2, y - 4, 8, 10, '#57534E'); }
     if (look.crashed && JAMS.includes(k)) drawJam(c, k);
     // (floor 4, caved in: the broken planks hanging off the edge)
     if (look.crashed && k === 4) for (let i = 0; i < 5; i++) { c.save(); c.translate(U(330), y + 6); c.rotate(1.1 + i * 0.12); box(c, 0, -3, 46 + i * 9, 6, INK); box(c, 1, -2, 44 + i * 9, 4, PLANK); c.restore(); }
     if (look.crashed && k <= 5) drawShaftLamps(c, k, look.lamp, f);
     // (the floor's number, on the wall at the way in)
-    wallSign(c, U(upRight(k) ? 140 : 860), y - 300, PLAQUES[k], '#1C1917', '#E7E5E4');
+    wallSign(c, U(upRight(k) ? 140 : 1020), y - 300, PLAQUES[k], '#1C1917', '#E7E5E4');
   }
   if (v.y1 > GY - 40 && v.y0 < GY + 60) {
-    drawPiece(c, 0, [-WALL, 420, 0, 0], false); drawPiece(c, 0, [580, W + WALL, 0, 0], false);
+    drawPiece(c, 0, [-WALL, 420, 0, 0], false); drawPiece(c, 0, [740, W + WALL, 0, 0], false);
     if (look.grate) {
       box(c, SH0, GY, SH1 - SH0, 20, '#3F3F46'); box(c, SH0, GY, SH1 - SH0, 4, '#A1A1AA');
       for (let x = SH0 + 8; x < SH1; x += 14) box(c, x, GY + 4, 6, 16, 'rgba(220,38,38,0.6)');
