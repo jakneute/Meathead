@@ -246,6 +246,12 @@ export interface Player extends Entity {
    * slide down it. `up`: how far his feet are up it from its foot; `rung`: the rungs' spacing (his hands and feet go on
    * them); `reach`: how far up from his feet the rails go (his hands go no higher); `lip`: how far up from his feet the top is; `k`: 'mount' (climbing over the top), 0 on the ladder .. 1 stood on the ledge; `shove`: 0..1, his shoulder bounced off it (the charge he can't do on one). */
   ladder?: { mode: 'rest' | 'hang' | 'climb' | 'rush' | 'slide' | 'mount'; up: number; rung: number; reach: number; lip: number; k?: number; shove?: number };
+  /** Hauling on something over his head with both hands (Meathead 2's dungeon lever), seen from behind (render/player/
+   *  ladder.ts, drawOverheadPull): his fists on the grip (`gx`, `gy`, world) either side of it along `ang` (the
+   *  handle's crossbar, radians); `hold` 0..1 his hands from down at his sides up onto it; `load` 0..1 how hard he's
+   *  hauling (sunk, braced, straining); `jolt` 0..1 the bump of it hitting its stop; `lean` -1..1 which way it's going.
+   *  Whatever sets it clears it (and respawn does). */
+  leverPull?: { gx: number; gy: number; ang: number; hold: number; load: number; jolt: number; lean: number };
   /** Something he's doing takes him off the vine he's on (Meathead 2: the mallet's smash down, from one): let go of it. */
   dropVine?: boolean;
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */

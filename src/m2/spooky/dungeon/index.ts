@@ -47,7 +47,7 @@ const CRUSHED = GY + 30;
 const SECTS = [{ a: RA, b: RA + 700, v: 1.0 }, { a: RA + 700, b: RA + 1400, v: 1.3 }, { a: RA + 1400, b: RB, v: 0.8 }];
 /** The crate in the last section: up on it to the second lever (over it, on the wall). x, w, h. */
 const CRATES: [number, number, number][] = [[RA + 1540, 90, 70]];
-const LEVER_B = { x: RA + 1585, y: GY - 130 };
+const LEVER_B = { x: RA + 1585, y: GY - 120 };
 /** Pulled, the lever lets the door go and the counterweight with it: the ceiling lurches and comes down faster (a quick
  *  pull gets him out with room to stand; a slow one, ducking or sliding the last of it; too slow, skewered). */
 const FAST = 1.2, LURCH = 6;
@@ -57,7 +57,22 @@ const FAST = 1.2, LURCH = 6;
 const CAP = [GY - 70, GY - 70, GY - 70 - 64 - 20];
 /** The pull: how long it takes (frames: he's at it, out of his hands), and how much time to spare a clean dash to the
  *  door gets after it (frames: the ceiling's set going at whatever pace makes it so, however long he took). */
-const PULL = 30, SPARE = 42;
+const PULL = 36, SPARE = 42;
+/** The lever's swing (radians, about its pivot): up at the start (a touch to the left), hauled down to the right, near
+ *  past level; the grip on its handle (from the pivot, up it), and where he stands to haul on it (his middle, from the pivot). */
+const LEV0 = -0.2, LEV1 = 2.0, GRIP = 39, STAND = 12;
+/** The pull's beats (of it, 0..1): reaching up and taking hold (the lever not moving yet), the haul (heavy to start,
+ *  coming faster), down against its stop with a jolt at BOTTOM. */
+const REACH = 0.2, BOTTOM = 0.85;
+/** How far down the lever is (0..1), and how far it's knocked back up off its stop, `t` through the pull. */
+const leverK = (t: number) => t <= REACH ? 0 : t >= BOTTOM ? 1 : ((t - REACH) / (BOTTOM - REACH)) ** 1.7;
+/** The lever's angle, as it's drawn: down (pulled, or the room done), or partway through the pull (shaking as he strains). */
+const leverAng = (dg: Dungeon) => {
+  if (dg.levB || dg.room === 'escaped' || dg.room === 'jammed') return LEV1;
+  if (dg.pulling <= 0) return LEV0;
+  const t = dg.pulling / PULL, j = t > BOTTOM ? (t - BOTTOM) / (1 - BOTTOM) : 0;
+  return LEV0 + (LEV1 - LEV0) * leverK(t) + (t > REACH && t < BOTTOM ? Math.sin(dg.pulling * 1.3) * 0.03 : 0) - Math.sin(Math.PI * j) * 0.12 * (1 - j);
+};
 /** Two ledges by the way in (somewhere up out of the way of the first section, a while). */
 const RLEDGES: [number, number, number][] = [[RA + 130, GY - 120, 140], [RA + 310, GY - 240, 150]];
 /** The cells' ledges (chains hung off the wall), and who's in them. */
@@ -90,6 +105,28 @@ let upHeld = false;
 /** Stood on the crate, under the lever. */
 const atLever = (cx: number, feet: number) => Math.abs(cx - LEVER_B.x) < 55 && Math.abs(feet - (GY - CRATES[0][2])) < 4;
 const tipAt = (dg: Dungeon, x: number) => { if (dg.room !== 'down') return dg.tip; const i = SECTS.findIndex(q => x >= q.a && x < q.b); return i < 0 ? dg.tip : dg.tips[i]; };
+/**
+ * His pose at the lever (Player.leverPull): reaching up and taking hold of the handle, hauling it down (sinking,
+ * braced, straining), the jolt as it hits its stop, then letting go of it (a moment after, unless he's off first). His
+ * hands go on the handle wherever it is; hurt or dead, he's let go of it.
+ */
+const leverPose = (state: GameState, dg: Dungeon) => {
+  const p = state.player;
+  const a = leverAng(dg), gx = LEVER_B.x + Math.sin(a) * GRIP, gy = LEVER_B.y + 4 - Math.cos(a) * GRIP;
+  if (dg.pulling > 0) {
+    const t = dg.pulling / PULL, r = Math.min(1, t / REACH), j = t > BOTTOM ? (t - BOTTOM) / (1 - BOTTOM) : 0;
+    // (stepped under it as he reaches up)
+    const cx = p.pos.x + p.width / 2;
+    p.pos.x += (LEVER_B.x + STAND - cx) * 0.35;
+    p.leverPull = { gx, gy, ang: a, hold: r * r * (3 - 2 * r), load: t <= REACH ? 0 : t >= BOTTOM ? 1 : Math.min(1, (t - REACH) / (BOTTOM - REACH) * 1.6), jolt: j > 0 ? Math.sin(Math.PI * Math.min(1, j * 1.4)) : 0, lean: 1 };
+    return;
+  }
+  const lp = p.leverPull;
+  if (!lp) return;
+  // (letting go: his hands come down off it, he straightens up; moving off, jumping or hurt, it's over now)
+  if (p.health <= 0 || p.pushbackTimer > 0 || !p.isGrounded || Math.abs(p.vel.x) > 0.5 || lp.hold <= 0) { p.leverPull = undefined; return; }
+  lp.gx = gx; lp.gy = gy; lp.ang = a; lp.hold = Math.max(0, lp.hold - 1 / 10); lp.load *= 0.75; lp.jolt = 0;
+};
 const pull = (state: GameState, dg: Dungeon, x: number) => {
   playSound('clang', 1, -4); playSound('rumble', 0.9, -2); playSound('crash', 0.6, -10);
   // (each lever pulled: the ceiling lurches down, sparks off the chains)
@@ -220,11 +257,9 @@ const drawDungeon = (c: CanvasRenderingContext2D, state: GameState, dg: Dungeon)
     for (const [x, y, w] of RLEDGES) ledgeBox(c, x, y, w, '#3A3A3A', '#C9C9C9');
     // (the lever, over the crate at the far end)
     box(c, LEVER_B.x - 14, LEVER_B.y - 10, 28, 30, '#3F3F46');
-    { const k = dg.levB || dg.room === 'escaped' || dg.room === 'jammed' ? 1 : dg.pulling > 0 ? Math.min(1, (dg.pulling / PULL) ** 1.6) : 0;
-      c.save(); c.translate(LEVER_B.x, LEVER_B.y + 4); c.rotate(-0.9 + 1.8 * k + (dg.pulling > 0 ? Math.sin(f * 1.3) * 0.04 : 0));
+    // (his hands on its handle are his own: drawn with him, Player.leverPull)
+    { c.save(); c.translate(LEVER_B.x, LEVER_B.y + 4); c.rotate(leverAng(dg));
       box(c, -3, -34, 6, 34, '#A1A1AA'); box(c, -7, -42, 14, 12, '#B91C1C');
-      // (his two fists round the handle, hauling on it)
-      if (dg.pulling > 0) { box(c, -9, -46, 8, 10, '#D9A877'); box(c, 1, -46, 8, 10, '#D9A877'); box(c, -9, -46, 18, 2, '#1A0B06'); }
       c.restore(); }
     if (dg.room === 'down' && !dg.levB && (f >> 4) % 2) wallSign(c, LEVER_B.x, LEVER_B.y - 60, 'DOOR RELEASE', '#14532D', '#BBF7D0');
     // (the crates: wooden, banded, lit along the top)
@@ -299,7 +334,9 @@ export const dungeon: SpookySection = {
     const dg = dungeonOf(ctx.state);
     upHeld = !!controls.up;
     // (at the lever, hauling it down: his hands are full)
-    if (dg.pulling > 0) { const p = ctx.state.player; p.vel.x = 0; p.facing = 1; run(ctx, dg); return { ...controls, left: false, right: false, up: false, down: false, jump: false, special: false, charge: false, shoot: false }; }
+    // (hurt or killed hauling on it, he's let go of it: it springs back up)
+    { const p = ctx.state.player; if (dg.pulling > 0 && (p.health <= 0 || p.pushbackTimer > 0 || (p.hurtFormTimer ?? 0) > 0)) { dg.pulling = 0; p.leverPull = undefined; } }
+    if (dg.pulling > 0) { const p = ctx.state.player; p.vel.x = 0; p.facing = 1; run(ctx, dg); leverPose(ctx.state, dg); return { ...controls, left: false, right: false, up: false, down: false, jump: false, special: false, charge: false, shoot: false }; }
     if (!dg.init) {
       // (the checkpoint's only known once the stage is built: past the chamber before, it's down and jammed, the doors
       // open; started at it, the story's been told)
@@ -309,8 +346,9 @@ export const dungeon: SpookySection = {
       if (ctx.state.checkpoint >= 23) { dg.room = 'jammed'; dg.tip = CRUSHED; dg.levB = dg.lever = true; dg.door = 1; }
     }
     // (the way on: the emergency exit; the way back: up the stairs, out at the top into the castle)
-    if (runExits(ctx.state, endExits('dungeon'))) return controls;
+    if (runExits(ctx.state, endExits('dungeon'))) { ctx.state.player.leverPull = undefined; return controls; }
     run(ctx, dg);
+    leverPose(ctx.state, dg);
     return runRopes(ctx, controls);
   },
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#0C0A09'); return true; },

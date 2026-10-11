@@ -92,9 +92,8 @@ const seg = (ctx: Ctx, ax: number, ay: number, bx: number, by: number, w: number
  * ladder, away from us: the thigh foreshortened, the calf under it); the boot from behind, its sole showing when it's
  * up off its rung.
  */
-const backLeg = (ctx: Ctx, side: number, fx: number, fy: number, pants: LadderPants, lifted: number) => {
-  const hx = side * 6, hy = -22;
-  const kx = (hx + fx) / 2 + side * 1.5, ky = Math.min((hy + fy) / 2 + 2, fy - 6);
+const backLeg = (ctx: Ctx, side: number, fx: number, fy: number, pants: LadderPants, lifted: number, hx = side * 6, hy = -22, kneeOut = 0) => {
+  const kx = (hx + fx) / 2 + side * (1.5 + kneeOut), ky = Math.min((hy + fy) / 2 + 2, fy - 6);
   const col = side < 0 ? pantsShadow : pantsColor;
   seg(ctx, kx, ky, fx, fy, 9, col);
   ctx.fillStyle = col; ctx.beginPath(); ctx.arc(kx, ky, 4.8, 0, Math.PI * 2); ctx.fill();
@@ -259,6 +258,67 @@ export const drawLadderClimb = (ctx: Ctx, l: Ladder, frame: number, pants: Ladde
   if (!mount) backOfHead(ctx, -55);
   if (slide) { smoke(ctx, fa[0], fa[1], frame); smoke(ctx, fb[0], fb[1], frame + 7); }
   if (mount) ctx.restore();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Hauling on something over his head with both hands (Player.leverPull): from behind, facing into the wall it's on
+
+export type OverheadPull = NonNullable<Player['leverPull']>;
+
+/** An arm from the shoulder to the fist, the elbow bent (out to its side, and down) as far as the arm's too long for the reach. */
+const reachArm = (ctx: Ctx, side: number, sh: [number, number], fist: [number, number], lit: boolean) => {
+  const dx = fist[0] - sh[0], dy = fist[1] - sh[1], d = Math.hypot(dx, dy) || 1, ARM = 15;
+  const out = Math.sqrt(Math.max(0, ARM * ARM - (d / 2) * (d / 2)));
+  // (the perpendicular that points out his side of him)
+  let nx = -dy / d, ny = dx / d;
+  if (nx * side < 0) { nx = -nx; ny = -ny; }
+  // (bent a lot, it's mostly forward, toward the wall, away from us: the elbow down more than out)
+  const el: [number, number] = [(sh[0] + fist[0]) / 2 + nx * out * 0.45, (sh[1] + fist[1]) / 2 + ny * out * 0.45 + out * 0.55 + 1];
+  drawArmTo(ctx, sh, el, fist, !lit, 5.5);
+};
+
+/**
+ * Hauling on a lever (or anything) over his head, seen from behind (the ladder's back view: the back of his head, his
+ * back, the seat of his pants, clean, shitty or bare). In his local frame: `l.gx`, `l.gy` the grip, from his feet.
+ * Reaching up for it (up on his toes), taking hold, the haul (sunk down, the knees out, the one foot stepped out
+ * and braced, the hips swung out away from the way it's going and his back leant into it, shaking with the strain),
+ * the jolt as it hits its stop, letting go of it (his hands back down at his sides). His weapon's put away.
+ */
+export const drawOverheadPull = (ctx: Ctx, l: OverheadPull, frame: number, pants: LadderPants) => {
+  const { hold, load, jolt } = l, lean = l.lean;
+  // (the strain: a shake, on whole pixels, while he's hauling, not once it's down)
+  const shake = load > 0.25 && jolt === 0 && hold > 0.9 ? ((frame >> 1) % 2 ? 0.7 : -0.7) * load : 0;
+  // (up on his toes reaching; sunk down under the load; knocked down a little more by the jolt)
+  const sink = Math.round(-3 * hold * (1 - load) + 12 * load + 3 * jolt);
+  const hipX = -lean * load * 4 + shake, tilt = lean * load * 0.14 - lean * jolt * 0.05;
+  // Legs: the one away from the pull stepped out wide and braced, the other under him; the knees out as he sinks
+  const toes = Math.max(0, hold * (1 - load) - 0.3);
+  backLeg(ctx, -1, -7 - 6 * load * (lean >= 0 ? 1 : 0.3), -3.5, pants, toes, hipX - 6, -22 + sink, 3 * load);
+  backLeg(ctx, 1, 7 + 6 * load * (lean < 0 ? 1 : 0.3), -3.5, pants, toes, hipX + 6, -22 + sink, 3 * load);
+  // The rest of him: down with his hips, leant over about them
+  ctx.save();
+  ctx.translate(hipX, sink); ctx.translate(0, -24); ctx.rotate(tilt); ctx.translate(0, 24);
+  seat(ctx, pants, frame, shake * 1.5 + jolt * 1.5);
+  // (where the grip is, in this frame: back out of the sink and the lean)
+  const gx0 = l.gx - hipX, gy0 = l.gy - sink + 24, c = Math.cos(-tilt), s = Math.sin(-tilt);
+  const gx = gx0 * c - gy0 * s, gy = gx0 * s + gy0 * c - 24;
+  // (his fists either side of the grip along the handle: the one on his side of it each)
+  const ux = Math.cos(l.ang) * 5, uy = Math.sin(l.ang) * 5;
+  const a: [number, number] = [gx - ux, gy - uy], b: [number, number] = [gx + ux, gy + uy];
+  const [left, right] = a[0] - a[1] * 0.05 <= b[0] - b[1] * 0.05 ? [a, b] : [b, a];
+  // (from down at his sides, up onto it)
+  const e = hold * hold * (3 - 2 * hold);
+  const fist = (side: number, on: [number, number]): [number, number] => [side * 17 + (on[0] - side * 17) * e, -21 + (on[1] + 21) * e];
+  // (the arm reaching across him, the far side of him from us: behind his back)
+  const fl = fist(-1, left), fr = fist(1, right), across = (side: number, f: [number, number]) => f[0] * side < 4;
+  if (across(-1, fl)) reachArm(ctx, -1, [-14, -47], fl, false);
+  if (across(1, fr)) reachArm(ctx, 1, [14, -47], fr, true);
+  back(ctx, lean * load * 0.8);
+  if (!across(-1, fl)) reachArm(ctx, -1, [-14, -47], fl, false);
+  if (!across(1, fr)) reachArm(ctx, 1, [14, -47], fr, true);
+  // (his head between his arms, sunk down between his shoulders with the effort)
+  backOfHead(ctx, -55 + Math.round(load * 2));
+  ctx.restore();
 };
 
 /** Hands on the rails going down fast: smoke off them. */

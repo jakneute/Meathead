@@ -1,6 +1,6 @@
 import { Player, WeaponType } from '../../../types';
 import { drawFilthShield } from './filthShield';
-import { drawLadderBackArm, drawLadderLegs, drawLadderClimb } from './ladder';
+import { drawLadderBackArm, drawLadderLegs, drawLadderClimb, drawOverheadPull } from './ladder';
 import { drawRemains } from './remains';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
@@ -215,6 +215,16 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const squash = p.squash || 0;
   ctx.scale(1 + squash * 0.25 - airStretch * 0.5, 1 - squash * 0.25 + airStretch);
 
+  // Hauling on a lever over his head with both hands: seen from behind, his fists on its grip, the weapon put away
+  // (render/player/ladder.ts)
+  if (p.leverPull && hurtT < 0 && !p.headless && p.health > 0) {
+    const lp = p.leverPull, g = p.gut;
+    drawOverheadPull(ctx, { ...lp, gx: (lp.gx - anchorX) * p.facing, gy: lp.gy - anchorY, ang: p.facing > 0 ? lp.ang : Math.PI - lp.ang, lean: lp.lean * p.facing },
+      animFrame, { nude: g?.stage === 3, shat: !!g && (g.stage === 2 || (g.stage === 3 && !g.washed)) });
+    finishBody();
+    ctx.restore();
+    return;
+  }
   // On a ladder, climbing or sliding down it: seen from behind, facing into it (render/player/ladder.ts)
   if (ladder && ladder.mode !== 'hang') {
     const g = p.gut;
