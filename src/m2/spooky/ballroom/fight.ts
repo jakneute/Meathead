@@ -93,6 +93,8 @@ const BURST_ON = 18, BURST_OFF = 12;
 const NAG_EVERY = 900, TAUNT_EVERY = 520;
 /** At least this long between one of Satan and Donnie's beats and the next (frames). */
 const BEAT_GAP = 360;
+/** How long he spends admiring himself as the fight starts (frames): one loop-the-loop. */
+const ADMIRE_T = 120;
 
 /** Sources of hurt (each with its lines and its death screen). */
 const BLOOD = 'm2:donnie_blood';
@@ -116,6 +118,8 @@ export interface Fight {
   /** Where he is (his middle, his feet), how he's moving, which way he faces. */
   x: number; y: number; vx: number; vy: number; facing: 1 | -1;
   intro: Intro; introT: number; skipT: number;
+  /** The fight's first moments: him admiring his new self (frames left). */
+  admireT: number;
   /** The circle in the floor (0 shut, 1 open), and him changed. */
   circle: number; powered: boolean;
   /** The swoop: its curve (from, the bottom of it at him, on past), how long. */
@@ -218,7 +222,7 @@ export const startFight = (state: GameState): Fight => {
   e.facing = -1; e.seen = true;
   const f: Fight = {
     hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, total: 0, x: CORNER_X, y: GY, vx: 0, vy: 0, facing: -1,
-    intro: 'plead', introT: 0, skipT: 0, circle: 0, powered: false, dive: null, mark: null, held: null,
+    intro: 'plead', introT: 0, skipT: 0, admireT: 0, circle: 0, powered: false, dive: null, mark: null, held: null,
     guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0,
     said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove,
     death: null, deathSaid: 0, cam: null, wigOff: null, e,
@@ -226,7 +230,7 @@ export const startFight = (state: GameState): Fight => {
   };
   live = f;
   // (a retry: he's up and waiting already, powered, no cutscene)
-  if (introSeen) { f.x = ARENA_MID + 140; f.y = GY - HOVER_UP; beginFight(state, f); bark(f, L.DONNIE_TAUNT); return f; }
+  if (introSeen) { f.x = ARENA_MID + 140; f.y = GY - HOVER_UP; beginFight(state, f); return f; }
   state.player.inCutscene = true;
   line(f, 'donnie', L.DONNIE_PLEAD, () => { f.intro = 'open'; f.introT = 0; });
   return f;
@@ -277,8 +281,11 @@ const beginFight = (state: GameState, f: Fight) => {
   f.said = null; f.satanSaid = null;
   f.powered = true; f.circle = 0;
   if (f.y > GY - HOVER_UP + 20) { f.y = GY - HOVER_UP; f.x = ARENA_MID + 140; }
-  to(f, 'hover'); f.nagT = NAG_EVERY - 300; f.tauntT = 120; f.guestT = 0;
+  to(f, 'hover'); f.nagT = NAG_EVERY - 300; f.tauntT = 0; f.guestT = 0;
   state.player.inCutscene = false;
+  // (and straight away, smitten with himself: a loop-the-loop and a gush about it)
+  f.admireT = ADMIRE_T; playSound('whoosh', 0.8, 6);
+  line(f, 'donnie', L.DONNIE_ENAMORED);
   state.enemies.push(f.e);
 };
 
@@ -317,16 +324,18 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
     case 'hover': {
       // (about over the floor, off to one side of him, bobbing; showing off; Satan on at him about the soul)
       const px = pmid(state).x;
-      const hx = Math.max(ARENA_L + 90, Math.min(ARENA_R - 90, px + f.side * 210)), hy = GY - HOVER_UP + Math.sin(f.total * 0.05) * 14;
+      let hx = Math.max(ARENA_L + 90, Math.min(ARENA_R - 90, px + f.side * 210)), hy = GY - HOVER_UP + Math.sin(f.total * 0.05) * 14;
+      // (the first moments: showing himself off, a big loop in the air, not after him yet)
+      if (f.admireT > 0) { const a = (1 - f.admireT / ADMIRE_T) * Math.PI * 2; hx = f.x + Math.sin(a) * 40; hy = GY - HOVER_UP - (1 - Math.cos(a)) * 70; f.admireT--; if (f.admireT % 40 === 0) playSound('whoosh', 0.5, 8); }
       f.vx = (f.vx + (hx - f.x) * 0.012) * 0.9; f.vy = (f.vy + (hy - f.y) * 0.02) * 0.88;
       f.x += f.vx; f.y += f.vy;
       faceHim(state, f);
-      if (++f.tauntT >= TAUNT_EVERY) { f.tauntT = Math.floor(Math.random() * 120); bark(f, L.DONNIE_TAUNT); }
+      if (f.admireT <= 0 && ++f.tauntT >= TAUNT_EVERY) { f.tauntT = Math.floor(Math.random() * 120); bark(f, L.DONNIE_TAUNT); }
       if (++f.nagT >= NAG_EVERY) { f.nagT = Math.floor(Math.random() * 200); queueBeat(f, 'nag', L.SATAN_NAG, L.DONNIE_SHOWOFF, false, true); }
       // (a guest in the room: he can't help himself)
       const prey = f.guests.find(g => g.state === 'run' && g.x > ARENA_L + 40 && g.x < ARENA_R - 40);
-      if (prey && f.t > 30) { f.prey = prey; to(f, 'hunt'); bark(f, L.DONNIE_SNATCH); playSound('whoosh', 0.8, -4); break; }
-      if (f.t >= HOVER_T[ph]) { to(f, 'aim'); f.side = f.side > 0 ? -1 : 1; }
+      if (prey && f.t > 30 && f.admireT <= 0) { f.prey = prey; to(f, 'hunt'); bark(f, L.DONNIE_SNATCH); playSound('whoosh', 0.8, -4); break; }
+      if (f.t >= HOVER_T[ph] && f.admireT <= 0) { to(f, 'aim'); f.side = f.side > 0 ? -1 : 1; }
       break;
     }
     case 'aim':
