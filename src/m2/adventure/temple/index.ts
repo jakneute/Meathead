@@ -23,6 +23,7 @@ import type { Section } from '../section';
 import { lay, solid, ledge, teleport, hands, speak, meatheadSays, getAdv, sectionState } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
+import { hazardVictims, hazardHit, boxHits, setHazardZones, type Zone } from '../../hazardHit';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound, stopSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
@@ -67,6 +68,10 @@ const canHurt = (state: GameState) => state.player.invincibilityTimer <= 0 && st
 // ---------------------------------------------------------------------------------------------------------------
 // The tricks
 
+/** What the tricks have in the air (or rolling), a stride ahead of each: nobody steps into them (temple-wide). */
+const zones: Zone[] = [];
+/** Who each boulder's already bowled over (once each). */
+const hitBy = new WeakMap<object, Set<object>>();
 const runCatapult = (ctx: FrameContext, tp: Temple) => {
   const { state } = ctx, p = state.player, px = p.pos.x + p.width / 2;
   if (crewed(state, 1) && px > T + 250 && px < CATAPULT_X + 300 && --tp.catapultT <= 0) {
@@ -84,6 +89,12 @@ const runCatapult = (ctx: FrameContext, tp: Temple) => {
     if (canHurt(state) && hits(pBox(state), b.x - b.r, b.y - b.r, b.r * 2, b.r * 2)) {
       hurtPlayer(ctx, 14, 'temple_boulder', { x: -5, y: -5 });
     }
+    // (a warrior in its way: bowled over; a little one, flat)
+    for (const e of hazardVictims(state)) if (boxHits(e, b.x - b.r, b.y - b.r, b.r * 2, b.r * 2) && !hitBy.get(b)?.has(e)) {
+      (hitBy.get(b) ?? hitBy.set(b, new Set()).get(b)!).add(e);
+      hazardHit(ctx, e, 60, b.x + 40, 'BOWLED OVER!', { knock: 10 });
+    }
+    zones.push({ x0: b.x - b.r - (b.rolling ? 90 : 20), x1: b.x + b.r + 10, y0: b.y - b.r, y1: b.rolling ? GY : b.y + b.r + 60 });
     // (into the back of the flats at the near end: it smashes)
     if (b.x < T + 230 || b.t > 500) {
       for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: b.x, y: b.y }, vel: { x: (Math.random() - 0.3) * 5, y: -2 - Math.random() * 4 }, life: 40, color: i % 2 ? '#78716C' : '#A8A29E', size: 3 + Math.random() * 4, grav: 0.3, chunk: true });
@@ -109,6 +120,9 @@ const runDarts = (ctx: FrameContext, tp: Temple) => {
   tp.darts = tp.darts.filter(d => {
     d.x -= DART_SPEED;
     if (canHurt(state) && hits(pBox(state), d.x, d.y - 2, 18, 4)) { hurtPlayer(ctx, 8, 'temple_dart', { x: -3, y: -2 }); return false; }
+    const e = hazardVictims(state).find(o => boxHits(o, d.x, d.y - 2, 18, 4));
+    if (e) { hazardHit(ctx, e, 25, d.x + 30, 'DARTED!', { knock: 3 }); playSound('dart', 0.5, 4); return false; }
+    zones.push({ x0: d.x - 70, x1: d.x + 18, y0: d.y - 2, y1: d.y + 2 });
     return d.x > T + 1750;
   });
 };
@@ -120,8 +134,11 @@ const runSnake = (ctx: FrameContext, tp: Temple) => {
   const s = snakeOut(tp.snakeT);
   if (tp.snakeT % SNAKE_CYCLE === SNAKE_WIND) playSound('whoosh', 0.9, -6);
   if (tp.snakeT % SNAKE_CYCLE === 4) playSound('snort', 0.5, 10);
+  // (its reach, out from the wall: nobody stands about in that)
+  zones.push({ x0: SNAKE_WALL - SNAKE_REACH - 30, x1: SNAKE_WALL, y0: SNAKE_Y - 30, y1: SNAKE_Y + 30 });
   if (s.k > 0.3) {
     const hx = SNAKE_WALL - s.k * SNAKE_REACH;
+    for (const e of hazardVictims(state)) if (boxHits(e, hx - 30, SNAKE_Y - 30, 70, 60)) hazardHit(ctx, e, 40, hx + 40, 'BITTEN!', { knock: 8 });
     if (canHurt(state) && hits(pBox(state), hx - 30, SNAKE_Y - 30, 70, 60)) hurtPlayer(ctx, 12, 'temple_snake', { x: -6, y: -4 });
   }
 };
@@ -239,7 +256,7 @@ export const temple: Section = {
     for (const [x, top, w] of SOLIDS) solid(state, x, top, w, GY - top);
     for (const [x, y, w] of LEDGES) ledge(state, x, y, w);
     for (let i = n0; i < state.blocks.length; i++) state.blocks[i].hidden = true;
-    ACTORS.forEach((x, i) => { const e = makeKindEnemy('m2:actor' as EnemyKind, x, GY); e.variant = i; state.enemies.push(e); });
+    ACTORS.forEach(([x, y], i) => { const e = makeKindEnemy('m2:actor' as EnemyKind, x, y); e.variant = i; state.enemies.push(e); });
     for (const [post, x, face] of POSTS) {
       const e: Enemy = makeKindEnemy('m2:stagehand' as EnemyKind, x, GY);
       e.variant = post; e.facing = face; e.homeX = e.pos.x;
@@ -254,9 +271,11 @@ export const temple: Section = {
     const cx = p.pos.x + p.width / 2;
     // Back out through the back door (kicked in: it stays open)
     if (cx < T + 70 && controls.left) { teleport(state, DINO_BACK_DOOR_X, GY); p.facing = -1; return controls; }
+    zones.length = 0;
     runCatapult(ctx, tp);
     runDarts(ctx, tp);
     runSnake(ctx, tp);
+    setHazardZones(state, 'temple', zones);
     runFog(state, tp);
     // The station: the first time, the scene; after, the cart's straight there to get in
     if (p.isGrounded && cx > SCENE_AT) {

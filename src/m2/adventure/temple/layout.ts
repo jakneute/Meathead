@@ -32,7 +32,9 @@ export const SOLIDS: [number, number, number][] = [
   [T - 60, GY - 700, 70], [DART_WALL, DART_TOP, 40], [SNAKE_WALL, SNAKE_TOP, 50],
   [END_WALL, GY - 700, 200],
 ];
-export const ACTORS = [T + 1050, T + 2050, T + 2400, T + 3300, T + 4500];
+/** The warriors: [x, the floor under them]. None out in the boulders' or the darts' run: up on the scaffold over the
+ *  boulders, between the two runs, up on the dart wall's ledge (over the darts). */
+export const ACTORS: [number, number][] = [[T + 1010, GY - 200], [T + 1650, GY], [T + 2600, GY - 110], [T + 3300, GY], [T + 4500, GY]];
 
 // ---------------------------------------------------------------------------------------------------------------
 // Its state

@@ -34,7 +34,7 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy, EnemyKind } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
-import { say, silenceAll } from '../../../m1/game/platform/speech';
+import { say, silenceAll, cutVoice } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -506,6 +506,18 @@ const guests = (ctx: FrameContext, f: Fight) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The blood (the spew): drops flying at him, a splat where they land
 
+/** A guest caught in the spew: burst open, a shower of it, gone (their scream cut off). */
+const hosed = (ctx: FrameContext, f: Fight, g: Guest, dir: number) => {
+  const { state, fx } = ctx;
+  f.guests = f.guests.filter(q => q !== g);
+  if (g.said) { cutVoice('m2.guest'); g.said = null; }
+  fx.spawnDeathShower({ x: g.x, y: GY - 40 }, dir, 2.5);
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: g.x, y: GY - 30 - Math.random() * 30 }, vel: { x: dir * Math.random() * 6 + (Math.random() - 0.5) * 3, y: -2 - Math.random() * 6 }, life: 50, color: ['#7F1D1D', '#B91C1C', '#F9A8D4', '#FDE68A'][i % 4], size: 3 + Math.random() * 4, grav: 0.35, chunk: i % 3 === 0 });
+  f.splats.push({ x: g.x, w: 40, t: state.frame });
+  fx.spawnDamageNumber({ x: g.x - 30, y: GY - 100 }, 'HOSED DOWN!', true, '#FCA5A5');
+  playSound('splat', 1, -4); playSound('crunch', 0.6, 2); shakeScreen(state, 5, 3);
+};
+
 const updateDrops = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player;
   f.drops = f.drops.filter(d => {
@@ -520,6 +532,9 @@ const updateDrops = (ctx: FrameContext, f: Fight) => {
       return false;
     }
     if (d.x < ARENA_L - 40 || d.x > ARENA_R + 40) return false;
+    // (a guest running through the stream of it: hosed down, burst open where they stand; not the one he's after)
+    const g = f.guests.find(q => q.state === 'run' && q !== f.prey && Math.abs(d.x - q.x) < 14 && d.y > GY - 70 && d.y < GY);
+    if (g) { hosed(ctx, f, g, Math.sign(d.vx) || 1); return false; }
     const top = p.pos.y + (p.isDucking || p.isSliding ? 28 : 0);
     if (canHurtHim(state) && p.invincibilityTimer <= 0 && f.mode !== 'drain' && d.x > p.pos.x - DROP_HIT && d.x < p.pos.x + p.width + DROP_HIT && d.y > top - DROP_HIT && d.y < p.pos.y + p.height) {
       hurtPlayer(ctx, BLOOD_DMG, BLOOD, { x: Math.sign(d.vx) * 2, y: -2 }, 6);

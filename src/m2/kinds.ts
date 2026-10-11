@@ -11,6 +11,7 @@ import { registerKindDrawer, KIND_HEAD } from '../m1/game/render/enemies';
 import { BOSS_DIALOGUE } from '../m1/content/dialogue';
 import { DEATH_LINES } from '../m1/content/deaths';
 import { registerMidBossKind } from '../m1/game/combat/midBoss';
+import { beforeAI, afterAI } from './hazardHit';
 
 export interface M2Kind {
   kind: `m2:${string}`;
@@ -52,12 +53,21 @@ export interface M2Kind {
   midBoss?: boolean;
   /** Its own say over him touching it (his moves landing on it): see KindDef's `touch`. */
   touch?: (ctx: FrameContext, e: Enemy) => boolean;
+  /** Part of the set where it's put (a cuckoo in its clock): not kept out of the stage's hazards (hazardHit.ts). */
+  fixture?: boolean;
 }
 
 const defs = new Map<string, M2Kind>();
 export const registerM2Kind = (d: M2Kind) => {
   defs.set(d.kind, d);
-  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: d.ai, make: d.make, machine: d.robot, humanoid: d.humanoid, solid: d.solid ?? !d.stats.air, pointy: d.pointy, spiky: d.spiky, touch: d.touch });
+  // (its AI kept out of the stage's hazards: it doesn't walk into one, or start out in one; see hazardHit.ts)
+  const ai = d.ai, guarded = ai && !d.midBoss && !d.fixture ? (ctx: FrameContext, e: Enemy) => {
+    beforeAI(ctx.state, e);
+    const bx = e.pos.x, by = e.pos.y, moved = ai(ctx, e);
+    afterAI(ctx.state, e, bx, by, moved);
+    return moved;
+  } : ai;
+  registerKind(d.kind as EnemyKind, { stats: d.stats, ai: guarded, make: d.make, machine: d.robot, humanoid: d.humanoid, solid: d.solid ?? !d.stats.air, pointy: d.pointy, spiky: d.spiky, touch: d.touch });
   registerKindDrawer(d.kind as EnemyKind, d.draw);
   if (d.midBoss) registerMidBossKind(d.kind);
   if (d.head) (KIND_HEAD as Record<string, { x: number; y: number; r: number }>)[d.kind] = d.head;

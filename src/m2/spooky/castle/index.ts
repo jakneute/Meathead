@@ -33,6 +33,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { registerHurtLines } from '../../kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { box } from '../section';
+import { hazardVictims, hazardKill, hazardHit, setHazardZones, type Zone } from '../../hazardHit';
 import { spookyState } from '../section';
 import { spawnStaff, STAFF } from './staff';
 import { paStory, paQuip, paBusy, pick, byPants, drawPaWords } from './pa';
@@ -75,6 +76,10 @@ const pBox = (state: GameState) => {
 const hits = (b: { x: number; y: number; w: number; h: number }, x: number, y: number, w: number, h: number) => x < b.x + b.w && x + w > b.x && y < b.y + b.h && y + h > b.y;
 const canHurt = (state: GameState) => state.player.invincibilityTimer <= 0 && state.player.health > 0 && !state.player.inCutscene;
 const isStaff = new Set<string>(Object.values(STAFF));
+/** One of the cast's box, in the coordinates of the room it's in (as pBox). */
+const eBox = (e: { pos: { x: number; y: number }; width: number; height: number }) => ({ x: e.pos.x, y: e.pos.y - dyAt(e.pos.x + e.width / 2), w: e.width, h: e.height });
+/** A box in room coordinates, as a danger zone (world). */
+const world = (x: number, y: number, w: number, h: number): Zone => { const d = dyAt(x + w / 2); return { x0: x, x1: x + w, y0: y + d, y1: y + h + d }; };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The tour: the greeting, each room's story, the quips
@@ -102,10 +107,12 @@ const runTour = (state: GameState, cs: Castle) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The set pieces
 
-const runChandeliers = (ctx: FrameContext, cs: Castle) => {
+const runChandeliers = (ctx: FrameContext, cs: Castle, zones: Zone[]) => {
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
   for (const ch of cs.chand) {
     ch.t++;
+    // (shaking loose or coming down: the cast keep out from under it)
+    if (ch.state === 'tell' || ch.state === 'fall') zones.push(world(ch.x - CHAND_W / 2, ch.y, CHAND_W, GY - ch.y));
     if (ch.state === 'hang' && Math.abs(cx - ch.x) < 150 && p.pos.y - dyAt(cx) > CHAND_Y) { ch.state = 'tell'; ch.t = 0; playSound('crack', 0.6, -6); playSound('clink', 0.5, -4); }
     else if (ch.state === 'tell') {
       if (ch.t % 6 === 0) state.particles.push({ pos: { x: ch.x + (Math.random() - 0.5) * 40, y: CEIL + 40 }, vel: { x: 0, y: 2 }, life: 60, color: '#A8A29E', size: 3 });
@@ -117,10 +124,8 @@ const runChandeliers = (ctx: FrameContext, cs: Castle) => {
       const bottom = ch.y + 34;
       if (canHurt(state) && hits(pBox(state), ch.x - CHAND_W / 2, ch.y, CHAND_W, 34)) hurtPlayer(ctx, 18, 'spooky_chandelier', { x: Math.sign(cx - ch.x || 1) * 5, y: -4 });
       // (and on whoever of the cast is under it: flat)
-      for (const e of state.enemies) if (e.health > 0 && !e.isBlownAway && hits({ x: e.pos.x, y: e.pos.y - dyAt(e.pos.x), w: e.width, h: e.height }, ch.x - CHAND_W / 2, ch.y, CHAND_W, 34)) {
-        e.health = 0; e.isBlownAway = true; e.vel = { x: Math.sign(e.pos.x - ch.x || 1) * 4, y: -3 };
-        ctx.fx.spawnDeathShower({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 }, 0, 3);
-        playSound('splat', 1, -4);
+      for (const e of hazardVictims(state)) if (hits(eBox(e), ch.x - CHAND_W / 2, ch.y, CHAND_W, 34)) {
+        hazardKill(ctx, e, ch.x, 'FLATTENED!', { fling: { x: Math.sign(e.pos.x - ch.x || 1) * 4, y: -3 }, sound: 'splat' });
       }
       if (bottom >= floor) {
         ch.y = floor; ch.state = 'down';
@@ -152,12 +157,15 @@ const runBooks = (ctx: FrameContext, cs: Castle) => {
   cs.books = cs.books.filter(b => {
     b.t++; b.x += b.vx; b.y += b.vy; b.vy += 0.04; b.rot += 0.35 * Math.sign(b.vx || 1);
     if (canHurt(state) && hits(pBox(state), b.x - 9, b.y - 6, 18, 12)) { hurtPlayer(ctx, 8, 'spooky_books', { x: Math.sign(b.vx) * 4, y: -3 }); return false; }
+    // (one of the cast in its way: the book's theirs)
+    const e = hazardVictims(state).find(o => hits(eBox(o), b.x - 9, b.y - 6, 18, 12));
+    if (e) { hazardHit(ctx, e, 12, b.x - b.vx * 4, 'BOOKED!', { knock: 4 }); playSound('thud', 0.6, 4); return false; }
     if (b.y > GY - 4 || b.t > 140) { for (let k = 0; k < 4; k++) state.particles.push({ pos: { x: b.x, y: Math.min(b.y, GY - 4) + DY.study }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 30, color: '#FEF3C7', size: 3, grav: 0.2 }); return false; }
     return true;
   });
 };
 
-const runStoves = (ctx: FrameContext, cs: Castle) => {
+const runStoves = (ctx: FrameContext, cs: Castle, zones: Zone[]) => {
   const { state } = ctx;
   const p = state.player, cx = p.pos.x + p.width / 2;
   if (Math.abs(cx - STOVES[0][0]) < 1400) cs.stoveT++;
@@ -165,6 +173,12 @@ const runStoves = (ctx: FrameContext, cs: Castle) => {
     const ph = stovePhase(cs.stoveT, i);
     const k = (cs.stoveT + i * 100) % STOVE_CYCLE;
     if (k === STOVE_CYCLE - STOVE_FIRE && Math.abs(cx - x) < 900) { playSound('ignite', 0.8, -4); playSound('flame', 0.4, -6); }
+    // (the burners: the cast keep off them, flaring or not; up in the flames, cooked)
+    for (const [bx, bw] of BURNERS) zones.push(world(x + bx, STOVE_TOP - FIRE_H, bw, FIRE_H));
+    if (ph === 'fire') for (const e of hazardVictims(state)) {
+      const burner = BURNERS.find(([bx, bw]) => hits(eBox(e), x + bx, STOVE_TOP - FIRE_H, bw, FIRE_H));
+      if (burner) { hazardHit(ctx, e, 40, x + burner[0] + burner[1] / 2, 'SEARED!', { color: '#FDBA74' }); playSound('ignite', 0.6, -2); }
+    }
     if (ph !== 'fire' || !canHurt(state)) return;
     for (const [bx, bw] of BURNERS) if (hits(pBox(state), x + bx, STOVE_TOP - FIRE_H, bw, FIRE_H)) { hurtPlayer(ctx, 12, 'spooky_stove', { x: cx < x + bx + bw / 2 ? -5 : 5, y: -7 }); return; }
   });
@@ -188,14 +202,20 @@ const runBed = (ctx: FrameContext, cs: Castle) => {
   });
 };
 
-const runTrain = (ctx: FrameContext, cs: Castle) => {
+const runTrain = (ctx: FrameContext, cs: Castle, zones: Zone[]) => {
   const { state } = ctx, tr = cs.train, p = state.player, cx = p.pos.x + p.width / 2;
+  // (its track: nobody stands about on it)
+  zones.push(world(TRAIN.a, GY - TRAIN.h, TRAIN.b + TRAIN.w - TRAIN.a, TRAIN.h));
   if (Math.abs(cx - (TRAIN.a + TRAIN.b) / 2) > 1400) return;
   tr.x += tr.dir * TRAIN.speed;
   if (tr.x > TRAIN.b) { tr.x = TRAIN.b; tr.dir = -1; playSound('ding', 0.4, 6); }
   if (tr.x < TRAIN.a) { tr.x = TRAIN.a; tr.dir = 1; playSound('ding', 0.4, 6); }
   if (++tr.bell % 50 === 0 && Math.abs(cx - tr.x) < 600) playSound('ding', 0.25, 12);
   if (canHurt(state) && hits(pBox(state), tr.x, GY - TRAIN.h, TRAIN.w, TRAIN.h)) hurtPlayer(ctx, 14, 'spooky_train', { x: tr.dir * 7, y: -6 });
+  // (whoever's knocked onto the track: run down)
+  for (const e of hazardVictims(state)) if (hits(eBox(e), tr.x, GY - TRAIN.h, TRAIN.w, TRAIN.h) && e.pos.y + e.height - dyAt(e.pos.x) > GY - TRAIN.h - 6) {
+    if (hazardHit(ctx, e, 45, tr.x + TRAIN.w / 2 - tr.dir * 40, 'ROADKILL!', { knock: 10 })) playSound('ding', 0.5, 6);
+  }
 };
 
 export const castle: SpookySection = {
@@ -249,11 +269,13 @@ export const castle: SpookySection = {
     // (out the front door to the stairs; on through the arch at the end of the gallery, down the stairs to the dungeon)
     if (runExits(state, endExits('castle'))) return controls;
     runTour(state, cs);
-    runChandeliers(ctx, cs);
+    const zones: Zone[] = [];
+    runChandeliers(ctx, cs, zones);
     runBooks(ctx, cs);
-    runStoves(ctx, cs);
+    runStoves(ctx, cs, zones);
     runBed(ctx, cs);
-    runTrain(ctx, cs);
+    runTrain(ctx, cs, zones);
+    setHazardZones(state, 'castle', zones);
     // (wading the ball pit: slow going, the balls flying)
     { const p = state.player, cx = p.pos.x + p.width / 2; if (cx > BALLPIT.a && cx < BALLPIT.b && p.pos.y + p.height > GY + DY.nursery + 8) { p.vel.x *= 0.8; if (Math.abs(p.vel.x) > 0.5 && state.frame % 6 === 0) { state.particles.push({ pos: { x: cx, y: GY + DY.nursery }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 2 }, life: 30, color: ['#EF4444', '#3B82F6', '#FACC15', '#22C55E'][state.frame % 4], size: 5, grav: 0.3 }); playSound('clink', 0.2, 8); } } }
     return controls;

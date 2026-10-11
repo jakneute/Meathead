@@ -13,6 +13,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { Section, Said } from '../section';
 import type { EnemyKind } from '../../../m1/types';
+import { hazardZones } from '../../hazardHit';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { GUIDE_KIND } from '../guides';
 import { lay, solid, speak, meatheadSays, saidOver, hands, sectionState } from '../section';
@@ -92,6 +93,8 @@ const guidesOut = (state: GameState, cl: Clearing) => {
   if (cl.call !== 'sent' || cl.out >= GUIDE_SPOTS().length) return;
   cl.callT++;
   if (cl.callT < 20 + cl.out * 34) return;
+  // (not out into the path of a stampede: he waits till it's by)
+  if (hazardZones(state).some(z => TENT_X + 30 > z.x0 && TENT_X - 30 < z.x1 && GY > z.y0)) return;
   // (every one of them out of the tent's flap, on the ground there: none out of thin air, none off out of bounds)
   const px = state.player.pos.x + state.player.width / 2;
   const e = makeKindEnemy(GUIDE_KIND as EnemyKind, TENT_X, GY);

@@ -16,6 +16,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { Enemy } from '../../../m1/types';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { groundBlocks, type GroundRun } from '../../../m1/game/core/terrain';
+import { hazardVictims, hazardKill, setHazardZones } from '../../hazardHit';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -308,8 +309,16 @@ const updateSwim = (ctx: FrameContext, rv: River) => {
 };
 
 /** The drain's pull, then it has him: out the other end, over the raptor pen. */
-const updateDrain = (state: GameState, rv: River) => {
-  const p = state.player, cx = p.pos.x + p.width / 2, rx = cx - x0;
+const updateDrain = (ctx: FrameContext, rv: River) => {
+  const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2, rx = cx - x0;
+  // (the river's own get pulled in too, if they're knocked in there: down it, minced; they keep out of it themselves)
+  setHazardZones(state, 'river-drain', [{ x0: R(PIPE.x1) - 40, x1: R(PIPE.x2) + 200, y0: PIPE.top - 60, y1: 1200 }]);
+  for (const e of hazardVictims(state)) {
+    const ex = e.pos.x + e.width / 2 - x0;
+    if (ex < PIPE.x1 || e.pos.y + e.height < PIPE.top - 60) continue;
+    e.pos.x += 2 + (ex - PIPE.x1) / (PIPE.x2 - PIPE.x1) * 4; e.pos.y += (PIPE.top + 30 - e.pos.y) * 0.04;
+    if (ex > SUCK_AT) hazardKill(ctx, e, e.pos.x - 40, 'DOWN THE DRAIN!', { fling: { x: 14, y: 0 }, sound: 'splat' });
+  }
   if (rv.suck > 0) {
     rv.suck++;
     p.carried = true; p.inCutscene = true;
@@ -435,7 +444,7 @@ export const river: Section = {
     updateSwim(ctx, rv);
     updateBoat(state, rv);
     updateGallery(state, rv);
-    updateDrain(state, rv);
+    updateDrain(ctx, rv);
     updateStain(ctx, rv);
     // Saying things the once each, swimming past them
     if (p.swimming) for (const [x, k] of CALLOUTS) if (rx > x && !rv.said.has(k)) { rv.said.add(k); if (rv.talk.q.length < 2) rv.talk.q.push(mh(MEATHEAD_UNDER[k])); }

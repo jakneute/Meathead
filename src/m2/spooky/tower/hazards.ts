@@ -13,6 +13,7 @@ import { registerHurtLines } from '../../kinds';
 import { isMidBoss } from '../../../m1/game/combat/midBoss';
 import type { Enemy } from '../../../m1/types';
 import { box } from '../section';
+import { setHazardZones } from '../../hazardHit';
 import { GEARS, PENDULUMS, TX0, TX1, F, U, STORY, SLAB, STORIES, ROOF, BLADE_U, type GearDef, type PendDef } from './layout';
 import { HURT_GEAR, DEATH_GEAR, HURT_PENDULUM, DEATH_PENDULUM, HURT_DEBRIS, DEATH_DEBRIS, HURT_CAR, DEATH_CAR } from './lines';
 
@@ -86,6 +87,13 @@ export const gearAt = (g: GearDef, frame: number) => {
 export const gearsNow = (crashed: boolean) => GEARS.filter(g => !(crashed && g.wholeOnly));
 const runGears = (ctx: FrameContext, crashed: boolean) => {
   const { state } = ctx;
+  // (anybody knocked into one: ground up; and they keep clear of them)
+  const vs = victims(state);
+  for (const g of gearsNow(crashed)) {
+    const at = gearAt(g, state.frame), reach = g.roll ? g.roll : 0;
+    dangerZones.push({ x0: g.x - g.r, x1: g.x + reach + g.r, y0: g.y - g.r, y1: g.y + g.r });
+    for (const e of vs) if (Math.abs(e.pos.x - at.x) < 140 && eTouches(e, at.x, at.y, g.r - 3)) worksHit(ctx, e, 60, at.x, 'GROUND UP!');
+  }
   if (!canHurt(state)) return;
   const pcx = state.player.pos.x + state.player.width / 2;
   for (const g of gearsNow(crashed)) {
@@ -260,7 +268,8 @@ export const drawDebris = (c: Ctx, list: Debris[]) => {
 };
 
 export const runHazards = (ctx: FrameContext, debris: Debris[], broken: number, crashed: boolean) => {
-  runGears(ctx, crashed);
   runPendulums(ctx, crashed);
+  runGears(ctx, crashed);
   runDebris(ctx, debris, broken);
+  setHazardZones(ctx.state, 'tower', dangerZones);
 };

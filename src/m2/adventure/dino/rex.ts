@@ -26,6 +26,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
+import { hazardVictims, hazardHit, setHazardZones } from '../../hazardHit';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import type { EnemyKind } from '../../../m1/types';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -712,6 +713,18 @@ const think = (ctx: FrameContext, r: Rex) => {
       playSound('stomp', big ? 0.9 : 0.75, big ? -6 : -10); shakeScreen(state, big ? 6 : 5, big ? 4 : 3);
       // (limping on wrecked legs: a scrape and sparks on every other step)
       if (!legs) { const b = worldBox(r, 'legs'); sparks(state, b.x + b.w / 2, GY - 6, 5); }
+    }
+  }
+  // Anything else of the park's in its way (a raptor knocked in over the fence): stepped on, or run down
+  const legBox = worldBox(r, 'legs'), bodyBox = worldBox(r, 'body');
+  setHazardZones(state, 'rex', [legBox, bodyBox].map(b => ({ x0: b.x - 30, x1: b.x + b.w + 30, y0: b.y, y1: b.y + b.h })));
+  if (Math.abs(r.vx) > 0.1) {
+    const mine = new Set(PARTS.map(id => r.parts[id].e));
+    const run = r.st === 'sprint' || r.st === 'ram';
+    for (const e of hazardVictims(state, { not: o => mine.has(o) })) {
+      if (!rectsOverlap(boundsOf(e), legBox) && !rectsOverlap(boundsOf(e), bodyBox)) continue;
+      hazardHit(ctx, e, run ? 999 : 70, r.x, run ? 'RUN DOWN!' : 'STOMPED!', { knock: 12 });
+      playSound('crunch', 0.9, -6);
     }
   }
   // Just walking into it: stepped on

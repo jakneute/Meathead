@@ -25,6 +25,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
+import { hazardVictims, boxHits, setHazardZones } from '../../hazardHit';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
 import { say, cutVoice } from '../../../m1/game/platform/speech';
@@ -323,7 +324,14 @@ export const updateDemon = (ctx: FrameContext) => {
     place(d);
     return;
   }
-  // (the fire walls: touch one and it burns)
+  // (the fire walls: touch one and it burns; anybody else too, and they keep back from them)
+  const walls = [d.back, d.lock].filter(w => w && w.x > -1e6) as { x: number; w: number }[];
+  setHazardZones(state, 'hell-firewalls', walls.map(w => ({ x0: w.x - 12, x1: w.x + w.w + 12, y0: GY - 300, y1: GY })));
+  for (const w of walls) for (const e of hazardVictims(state, { not: o => o === d.e })) if (boxHits(e, w.x - 12, GY - 300, w.w + 24, 300)) {
+    ctx.fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'cooked');
+    ctx.fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 30 }, 'TORCHED!', true, '#FDBA74');
+    playSound('ignite', 0.8, -4);
+  }
   for (const w of [d.back, d.lock]) {
     if (!w || w.x < -1e6 || p.health <= 0 || p.invincibilityTimer > 0) continue;
     const hb = hurtbox(state);

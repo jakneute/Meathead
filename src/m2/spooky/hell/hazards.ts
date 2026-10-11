@@ -18,6 +18,7 @@ import { ledge, meatheadSays, box } from '../section';
 import { GY } from '../geometry';
 import { POOLS, LAVA_DROP, CRUMBLES, JETS, SHAFT_L, SHAFT_R } from './layout';
 import { hellOf, type Hell } from './state';
+import { hazardVictims, hazardKill, hazardHit, setHazardZones, boxHits, type Zone } from '../../hazardHit';
 import { overLava, IMP_FIRE } from './kinds';
 import { HURT_LAVA, DEATH_LAVA, HURT_JET, DEATH_JET, HURT_CAR, DEATH_CAR, MH_CAR } from './lines';
 
@@ -47,6 +48,11 @@ const jetPhase = (f: number, off: number) => (f + off) % CYCLE;
 
 export const updateHazards = (ctx: FrameContext, h: Hell) => {
   const { state } = ctx, p = state.player, f = state.frame;
+  // (where it's dangerous: the lava (to what walks), the jets' columns, a car's landing spot)
+  const zones: Zone[] = POOLS.map(([a, b]) => ({ x0: a, x1: b, y0: GY - 10, y1: GY + LAVA_DROP + 60, ground: true }));
+  for (const [x, base] of JETS) zones.push({ x0: x - 22, x1: x + 22, y0: base - 16 - JET_H, y1: base });
+  if (h.car) zones.push({ x0: h.car.x - CAR_W / 2 - 16, x1: h.car.x + CAR_W / 2 + 16, y0: GY - 1400, y1: GY });
+  setHazardZones(state, 'hell', zones);
   const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   const alive = p.health > 0 && state.deathTimer <= 0;
   // The lava: HOT FOOT, straight back up out of it (killed in it: he goes under, see the 'lava' death)
@@ -83,6 +89,8 @@ export const updateHazards = (ctx: FrameContext, h: Hell) => {
         for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: c.x + Math.random() * c.w, y: c.y + Math.random() * 12 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 40, color: i % 2 ? '#44403C' : '#292524', size: 4 + Math.random() * 5, grav: 0.35, chunk: true });
       }
     } else if (p.isGrounded && Math.abs(feet - c.y) < 4 && cx > c.x - 4 && cx < c.x + c.w + 4) { c.shake = 1; playSound('crack', 0.6, 4); }
+    // (one of them stood on it: it gives under them too)
+    else if (hazardVictims(state, { flyers: false }).some(e => Math.abs(e.pos.y + e.height - c.y) < 4 && Math.abs(e.vel.y) < 0.5 && e.pos.x + e.width / 2 > c.x && e.pos.x + e.width / 2 < c.x + c.w)) { c.shake = 1; if (near(state, c.x)) playSound('crack', 0.6, 4); }
   }
   // The fire jets
   for (const [x, base, off] of JETS) {
@@ -91,6 +99,10 @@ export const updateHazards = (ctx: FrameContext, h: Hell) => {
     if (ph === WARN) playSound('rumble', 0.25, 6);
     if (ph > WARN && ph < BLAST && ph % 6 === 0) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 16, y: base - 4 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1.2 - Math.random() }, life: 30, color: 'rgba(87, 83, 78, 0.6)', size: 5 + Math.random() * 4 });
     if (ph === BLAST) { playSound('flame', 0.7); playSound('ignite', 0.6, -4); }
+    // (anybody else in it: torched)
+    if (ph >= BLAST) for (const e of hazardVictims(state)) if (boxHits(e, x - 18, base - 16 - JET_H, 36, JET_H + 16)) {
+      if (hazardHit(ctx, e, 45, x, 'TORCHED!', { color: '#FDBA74', knock: 7 })) playSound('ignite', 0.7, -2);
+    }
     if (ph >= BLAST && alive && p.invincibilityTimer <= 0 && rectsOverlap(hurtbox(state), { x: x - 18, y: base - 16 - JET_H, w: 36, h: JET_H + 16 })) {
       const dir = Math.sign(cx - x) || -p.facing;
       hurtPlayer(ctx, JET_DMG, JET, { x: dir * 7, y: -9 });
@@ -144,6 +156,8 @@ const updateCars = (ctx: FrameContext, h: Hell) => {
   playSound('crash', 1, -6); playSound('clang', 0.9, -8); playSound('splat', 0.8, -4); shakeScreen(state, 22, 9);
   for (let i = 0; i < 30; i++) state.particles.push({ pos: { x: car.x + (Math.random() - 0.5) * CAR_W, y: GY - Math.random() * 60 }, vel: { x: (Math.random() - 0.5) * 12, y: -3 - Math.random() * 8 }, life: 40 + Math.random() * 30, color: i % 3 === 0 ? '#71717A' : i % 3 === 1 ? '#991B1B' : '#7F1D1D', size: 3 + Math.random() * 5, grav: 0.4, chunk: i % 3 === 0 });
   const feet = p.pos.y + p.height;
+  // (whoever's under it: flat)
+  for (const e of hazardVictims(state)) if (Math.abs(e.pos.x + e.width / 2 - car.x) < CAR_W / 2 + 10 && e.pos.y + e.height > GY - CAR_H - 10) hazardKill(ctx, e, car.x, 'FLATTENED!', { fling: { x: Math.sign(e.pos.x + e.width / 2 - car.x || 1) * 6, y: -4 }, sound: 'splat' });
   if (p.health > 0 && Math.abs(cx - car.x) < CAR_W / 2 + 16 && feet > GY - CAR_H - 10 && p.invincibilityTimer <= 0) {
     hurtPlayer(ctx, CAR_DMG, CAR, { x: (Math.sign(cx - car.x) || 1) * 9, y: -8 });
   } else if (p.health > 0 && !h.carSaid) { h.carSaid = true; meatheadSays(state, pick(MH_CAR), false); }

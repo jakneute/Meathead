@@ -31,6 +31,7 @@ import { registerHurtLines } from '../../kinds';
 import { drawDonnie, DONNIE_H } from '../../cast/donnie';
 import { voice } from '../section';
 import { CLERK, HAWKER, MASCOT, throwGlobe, staffTalking, setStaffHush } from './staff';
+import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardHit';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -146,10 +147,16 @@ const smash = (state: GameState, x: number, y: number, cols: string[]) => {
   playSound('crash', 0.8, 0); playSound('crunch', 0.6, 4); shakeScreen(state, 5, 3);
   for (let i = 0; i < 16; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.3) * 6, y: -2 - Math.random() * 5 }, life: 40, color: cols[i % cols.length], size: 3 + Math.random() * 4, grav: 0.35 });
 };
-const tickRacks = (state: GameState, sh: Shop) => {
-  const p = state.player;
+const tickRacks = (ctx: FrameContext, sh: Shop) => {
+  const { state } = ctx, p = state.player;
+  // (where the ones he'll tip come down: the staff keep out from under them)
+  setHazardZones(state, 'shop-racks', sh.racks.filter(r => r.tip && !(r.down && r.fall >= 1)).map(r => ({ x0: r.x - RACK_W - 6, x1: r.x - 6, y0: GY - RACK_H - 40, y1: GY })));
   for (const r of sh.racks) {
-    if (r.down && r.fall < 1) { r.fall = Math.min(1, r.fall + 0.09); if (r.fall >= 1) { playSound('thud', 0.8, -2); shakeScreen(state, 3, 2); } }
+    if (r.down && r.fall < 1) {
+      r.fall = Math.min(1, r.fall + 0.09); if (r.fall >= 1) { playSound('thud', 0.8, -2); shakeScreen(state, 3, 2); }
+      // (coming down on one of the staff: flat under it)
+      if (r.fall > 0.5) for (const e of hazardVictims(state, { flyers: false })) if (boxHits(e, r.x - RACK_W - 6, GY - RACK_H, RACK_W, RACK_H)) hazardHit(ctx, e, 60, r.x - 6, 'FLATTENED!', { knock: 6 });
+    }
     // (charged into: through it, in bits)
     const b = r.block;
     if (b && charging(state) && p.pos.x + p.width > b.x - 8 && p.pos.x < b.x + b.w + 8 && p.pos.y + p.height > b.y - 4) {
@@ -173,6 +180,9 @@ const tickBarrels = (ctx: FrameContext, sh: Shop) => {
     // (into one of the tipped racks: it bursts on it)
     const hit = sh.racks.find(r => r.block && right > r.block.x && left < r.block.x + r.block.w);
     if (hit || b.x < G.SHOP_X + 20) { b.dead = 1; smash(state, b.x, GY - 16, ['#78350F', '#991B1B', '#D4D4D8']); continue; }
+    // (one of the staff in its way: bowled over, and the pitchforks all over the floor)
+    const e = hazardVictims(state, { flyers: false }).find(o => boxHits(o, left, GY - BARREL_R * 2, BARREL_R * 2, BARREL_R * 2));
+    if (e) { hazardHit(ctx, e, 45, b.x - Math.sign(b.vx) * 30, 'BOWLED OVER!', { knock: 9 }); b.dead = 1; smash(state, b.x, GY - 16, ['#78350F', '#991B1B', '#D4D4D8']); continue; }
     const over = p.pos.x + p.width > left && p.pos.x < right && p.pos.y + p.height > GY - BARREL_R * 2 + 4;
     if (!over || p.health <= 0 || state.deathTimer > 0) continue;
     if (charging(state)) { b.dead = 1; smash(state, b.x, GY - 16, ['#78350F', '#991B1B', '#D4D4D8']); continue; }
@@ -255,7 +265,7 @@ const tickBooth = (state: GameState, sh: Shop) => {
 export const tickShop = (ctx: FrameContext, sh: Shop) => {
   const { state } = ctx, p = state.player, px = p.pos.x + p.width / 2;
   tickDonnie(state, sh);
-  tickRacks(state, sh);
+  tickRacks(ctx, sh);
   tickBarrels(ctx, sh);
   tickBooth(state, sh);
   // (the merchandise: his say on it, each the once, as he goes by; one voice at a time)

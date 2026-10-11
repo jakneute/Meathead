@@ -394,7 +394,7 @@ registerM2Kind({
   head: { x: 0, y: -60, r: 8 }, draw: (c, e, f) => drawBride(c, e, f),
 });
 registerM2Kind({
-  kind: TK.cuckoo, stats: { w: 26, h: 20, hp: 25, contact: 8, mass: 20, air: true }, ai: cuckooAI, gender: 'n', grab: 'critter',
+  kind: TK.cuckoo, stats: { w: 26, h: 20, hp: 25, contact: 8, mass: 20, air: true }, ai: cuckooAI, gender: 'n', grab: 'critter', fixture: true,
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
   head: { x: 6, y: -14, r: 5 }, draw: (c, e, f) => drawCuckoo(c, e, f),
 });

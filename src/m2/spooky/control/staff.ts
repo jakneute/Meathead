@@ -13,6 +13,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { playSound } from '../../../m1/game/platform/audio';
 import { say } from '../../../m1/game/platform/speech';
+import { hazardVictims, hazardHit } from '../../hazardHit';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { drawPerson, lookOf } from '../../adventure/temple/people';
@@ -63,7 +64,7 @@ export const drawStaffSaid = (c: Ctx, state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The snow globes (the hawkers'): lobbed, smashing on whatever they hit
 
-interface Globe { x: number; y: number; vx: number; vy: number; spin: number }
+interface Globe { x: number; y: number; vx: number; vy: number; spin: number; t?: number }
 let globes: Globe[] = [];
 export const resetStaff = () => { globes = []; said.clear(); };
 
@@ -90,6 +91,10 @@ export const tickStaff = (ctx: FrameContext) => {
       hurtPlayer(ctx, 9, GLOBE, { x: Math.sign(gl.vx) * 3, y: -3 }, 10);
       smash(); return false;
     }
+    // (one of the staff in the way of it, once it's well out of the thrower's hand: theirs)
+    gl.t = (gl.t ?? 0) + 1;
+    const e = gl.t > 10 ? hazardVictims(state).find(o => gl.x > o.pos.x - 4 && gl.x < o.pos.x + o.width + 4 && gl.y > o.pos.y && gl.y < o.pos.y + o.height) : undefined;
+    if (e) { hazardHit(ctx, e, 15, gl.x - gl.vx * 4, 'GLOBED!', { knock: 4 }); smash(); return false; }
     if (gl.y >= GY - 4) { smash(); return false; }
     return true;
   });

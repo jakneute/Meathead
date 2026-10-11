@@ -14,6 +14,7 @@ import type { Block } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { hazardVictims, hazardKill, boxHits, setHazardZones, type Zone } from '../../hazardHit';
 import { trample } from '../../weapons/spawner';
 import { pixelBlob, stamp } from '../../intro/art/kit';
 import { GY } from '../geometry';
@@ -69,6 +70,8 @@ const overlaps = (r: { x: number; y: number; w: number; h: number }, x: number, 
  */
 export const updateStampede = (ctx: FrameContext, herd: Animal[], artieX: number | null, atArtie: (a: Animal) => void, holdPlayer: boolean) => {
   const { state } = ctx, p = state.player;
+  const zones: Zone[] = [];
+  setHazardZones(state, 'stampede', zones);
   for (const a of herd) {
     if (a.done) continue;
     const b = BEASTS[a.kind];
@@ -85,6 +88,12 @@ export const updateStampede = (ctx: FrameContext, herd: Animal[], artieX: number
     if (a.t % 4 === 0) state.particles.push({ pos: { x: a.dir > 0 ? a.x + 10 : a.x + b.w - 10, y: GY - 4 }, vel: { x: -a.dir * (1 + Math.random() * 2), y: -0.5 - Math.random() * 1.5 }, life: 26, color: Math.random() < 0.5 ? 'rgba(168, 140, 100, 0.7)' : 'rgba(120, 100, 70, 0.6)', size: 4 + Math.random() * 6 });
     // Squashing whatever's under it
     trample(state, a.x, GY - b.h, b.w, b.h + 6);
+    // (and whoever's in its way: his own guides too)
+    const body0 = bodyOf(a);
+    if (!a.tame) {
+      for (const e of hazardVictims(state)) if (boxHits(e, body0.x, body0.y, body0.w, body0.h)) hazardKill(ctx, e, a.x + b.w / 2 - a.dir * 60, 'TRAMPLED!', { fling: { x: a.dir * 12, y: -12 }, sound: 'splat' });
+      zones.push({ x0: body0.x - (a.dir < 0 ? 160 : 0), x1: body0.x + body0.w + (a.dir > 0 ? 160 : 0), y0: body0.y, y1: GY });
+    }
     // Into him
     const body = bodyOf(a);
     if (!a.tame && !holdPlayer && p.health > 0 && state.deathTimer <= 0 && p.invincibilityTimer <= 0 && overlaps(body, p.pos.x, p.pos.y, p.width, p.height)) {

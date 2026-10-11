@@ -193,8 +193,8 @@ export const FOES: FoeAt[] = [
   ['igor', 720, 'floor', 1],
   // floor 2: the mummy, past the beam, on the way to the climb (slow, takes a beating)
   ['mummy', 690, 'floor', 2],
-  // floor 3: the bell ringer on the long half (the hammer), an igor at the climb
-  ['ringer', 760, 'floor', 3],
+  // floor 3: the bell ringer on the long half (the hammer: past the gear in the floor, not on it), an igor at the climb
+  ['ringer', 860, 'floor', 3],
   ['igor', 330, 'floor', 3],
   // floor 4: an igor at the beam, a wolfman across the shaft (he comes when the beam's out), a bride up the climb
   ['igor', 350, 'floor', 4],
