@@ -4,6 +4,7 @@
     { "in": "THE A LINE", "say": "THE AY LINE" },
     { "in": "MY RESUME", "say": "MY REZ OO MAY" },
     { "in": "HE READ", "say": "HE RED" },
+    { "in": "ABERNATHY READ", "say": "ABERNATHY RED" },
     { "in": "DONE READ", "say": "DONE RED" },
     { "in": "I READ THAT", "say": "I RED THAT" },
     { "in": "SHITPANTS", "say": "SHIT PANTS" },
