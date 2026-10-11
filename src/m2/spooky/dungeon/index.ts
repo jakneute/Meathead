@@ -28,6 +28,7 @@ import { spawnStaff } from '../castle/staff';
 import { hazardVictims, hazardKill, setHazardZones } from '../../hazardHit';
 import { paStory, paQuip, paBusy, byPants, pick, drawPaWords, paSaying } from '../castle/pa';
 import { drawPaHorn } from '../castle/horn';
+import { GORE, splat, guestOf, flatGuest, skeleton, selfieStick } from './remains';
 import { INK, box, pole, rampOf, checker, hazeBands, bandedGradient, hash, put, plaque, blockFill, plateFill, spikeDown, torch, chain, stoneLedge, flagFloor, paintCell, paintRack, paintMaiden, paintCrate, STONE, IRON, STEEL, BLOOD } from './paint';
 import { skewer, skewerRise, SKEWERED } from './death';
 import * as L from './lines';
@@ -82,7 +83,7 @@ const CLEDGES: [number, number, number][] = [[X(560), GY - 140, 170], [X(860), G
 const CAST: ['igor' | 'skeleton' | 'knight' | 'bride' | 'bat', number, number][] = [
   ['igor', X(720), GY], ['skeleton', X(980), GY], ['bride', X(1060), GY], ['bat', X(700), GY - 330], ['bat', X(1000), GY - 360],
 ];
-const HORNS: [number, number][] = [[SECTIONS.dungeon.x0 + 420, STAIR_TOP - 60], [SECTIONS.dungeon.x0 + 1250, STAIR_TOP + 320], [X(420), GY - 350], [X(1060), GY - 350], [RA + 900, GY - 340], [RA + 1700, GY - 340], [X(3600), GY - 350]];
+const HORNS: [number, number][] = [[SECTIONS.dungeon.x0 + 420, STAIR_TOP - 60], [SECTIONS.dungeon.x0 + 1250, STAIR_TOP + 320], [X(420), GY - 350], [X(1060), GY - 350], [RA - 120, GY - 340], [RB + 60, GY - 340], [X(3600), GY - 350]];
 const CEIL_TOP = GY - 900;
 
 interface Dungeon {
@@ -250,6 +251,12 @@ const paintDungeonWall = (g: CanvasRenderingContext2D, tx: number) => {
     const x = 40 + Math.floor(hash(tx * 0.02 + k * 9.1) * 300), y = -500 + Math.floor(hash(tx * 0.031 + k) * 340);
     g.fillStyle = STONE[0]; for (let j = 0; j < 6; j++) g.fillRect(x + j * 4 + (j % 2) * 2, y + j * 6, 2, 7);
   }
+  // (gore up the walls, where the guests met the staff; smears dragged along low down)
+  if (tx + DTW <= RA || tx >= RB) for (let k = 0; k < 2; k++) {
+    const s = hash(tx * 0.017 + k * 5.3);
+    if (s < 0.6) splat(g, 40 + Math.floor(s * 300), -60 - Math.floor(hash(tx + k * 9) * 200), 18 + Math.floor(s * 20), 12, tx + k);
+    else { box(g, 20 + Math.floor(s * 200), -14, 120, 3, GORE[1]); box(g, 30 + Math.floor(s * 200), -11, 90, 2, GORE[0]); }
+  }
   // (an iron ring in the wall, now and then)
   if (hash(tx * 0.007) > 0.5) { const x = 120 + Math.floor(hash(tx) * 160); box(g, x - 1, -181, 14, 14, INK); box(g, x, -180, 12, 12, IRON[2]); box(g, x + 3, -177, 6, 6, '#1A1614'); box(g, x, -180, 12, 2, IRON[4]); }
   // The chamber's own: its buttresses, the tallies scratched by whoever was in there before, a smear of old blood low down
@@ -293,6 +300,9 @@ const drawDungeon = (c: CanvasRenderingContext2D, state: GameState, dg: Dungeon)
   if (seen(state, RA - 100, RB + 100)) {
     plaque(c, RA + 640, GY - 420, 'THE CHAMBER OF THE DESCENDING CEILING', '#3A0A0A', '#FCA5A5', '#6A2A2A');
     for (const [x, y, w] of RLEDGES) stoneLedge(c, x, y, w, '#5E5A56');
+    // (the ones the ceiling got before him: flattened under its old marks; a skeleton by the far door, selfie stick and all)
+    put(c, 'dFlat', RA + 520, GY, -60, -16, 200, 20, g => flatGuest(g, 0, 0, guestOf(64)));
+    put(c, 'dFlatSk', RA + 1760, GY, -20, -40, 120, 42, g => { skeleton(g, 0, 0, true); selfieStick(g, 64, -4, 30); splat(g, 30, -1, 60, 3, 9); });
     // (the lever: an iron plate on the wall, hazard-striped round its slot; the lever in it, its red knob)
     put(c, 'dLeverPlate', LEVER_B.x, LEVER_B.y, -22, -20, 44, 46, g => {
       box(g, -19, -15, 38, 38, INK);
@@ -429,12 +439,19 @@ export const dungeon: SpookySection = {
   cameraRow: (state) => ropeRow(state),
   drawFront: (c, state) => { if (getSpooky(state)?.section === 'dungeon') drawPaWords(c, state, HORNS); },
   lighting: (state) => {
-    // (on the stairs: their own dark, deeper the further down)
-    if (state.player.pos.x < CELLS - 60) return stairsLighting(state);
+    // (on the stairs: their own dark, deeper the further down; off the foot of them, that dark lifting gently into the
+    // dungeon's own over the next stretch (never a jump: from whatever the stairs' foot is, to the cells' light))
+    const px = state.player.pos.x + state.player.width / 2;
+    if (px < CELLS - 60) return stairsLighting(state);
+    const u0 = Math.max(0, Math.min(1, (px - (CELLS - 60)) / 1100)), u = u0 * u0 * (3 - 2 * u0);
+    const foot = u < 1 ? stairsLighting(state, CELLS - 60) : null;
     const lights = [];
     for (let x = CELLS + 200; x < x1; x += 400) if (x > state.camera.x - 300 && x < state.camera.x + CANVAS_WIDTH + 300 && (x < RA || x > RB)) lights.push({ x, y: GY - 300, r: 240, a: 0.8, color: 'rgba(249, 115, 22, 0.10)' });
     if (RB > state.camera.x - 200 && RA < state.camera.x + CANVAS_WIDTH + 200) lights.push(...state.enemies.filter(e => e.health > 0 && e.pos.x > RA - 100 && e.pos.x < RB + 100).map(e => ({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2, r: 70, a: 0.55, color: 'rgba(248, 113, 113, 0.12)' })));
     if (RB > state.camera.x - 200 && RA < state.camera.x + CANVAS_WIDTH + 200) lights.push({ x: LEVER_B.x, y: LEVER_B.y, r: 200, a: 0.7, color: 'rgba(220, 38, 38, 0.10)' }, { x: RA + 500, y: GY - 120, r: 520, a: 0.5 }, { x: RA + 1500, y: GY - 120, r: 520, a: 0.5 });
-    return { dark: 0.55, shade: [18, 10, 8] as [number, number, number], lights };
+    if (!foot) return { dark: 0.55, shade: [18, 10, 8] as [number, number, number], lights };
+    for (const l of lights) l.a *= u;
+    for (const l of foot.lights) l.a *= 1 - u;
+    return { dark: foot.dark + (0.55 - foot.dark) * u, shade: [18, 10, 8] as [number, number, number], lights: [...foot.lights, ...lights] };
   },
 };

@@ -38,6 +38,8 @@ import { spookyState } from '../section';
 import { spawnStaff, STAFF } from './staff';
 import { paStory, paQuip, paBusy, pick, byPants, drawPaWords } from './pa';
 import { drawCastleBack, drawBooks, drawStoveFire, drawBallPit, castleLighting } from './art';
+import { drawDoorwaysFront } from './doorways';
+import { runBalls, drawBalls, resetBalls } from './balls';
 import {
   x0, x1, ROOMS, roomAt, CEIL, LEDGES, STOVES, STOVE_TOP, BURNERS, stovePhase, FIRE_H, STOVE_CYCLE, STOVE_FIRE, BED, BOUNCE, CHANDELIERS, CHAND_Y, CHAND_W, CHAND_TELL,
   BOOKCASES, BOOK_EVERY, BOOK_TELL, TRAIN, WARDROBES, HORNS_WORLD, CAST, PICKUPS, BALLPIT, DY, dyAt, ceilOf, LADDER_DEFS, type Castle,
@@ -234,6 +236,7 @@ export const castle: SpookySection = {
     { name: 'THE PORTRAIT GALLERY', cp: 14, x: ROOMS[6].a + 60, y: GY + DY.gallery },
   ],
   build: (state) => {
+    resetBalls();
     // (back at the start of the land: the tour's all fresh)
     if (state.checkpoint < 10) heard.clear();
     // (cut short by his dying: told again)
@@ -287,7 +290,9 @@ export const castle: SpookySection = {
     runTrain(ctx, cs, zones);
     setHazardZones(state, 'castle', zones);
     // (wading the ball pit: slow going, the balls flying)
-    { const p = state.player, cx = p.pos.x + p.width / 2; if (cx > BALLPIT.a && cx < BALLPIT.b && p.pos.y + p.height > GY + DY.nursery + 8) { p.vel.x *= 0.8; if (Math.abs(p.vel.x) > 0.5 && state.frame % 6 === 0) { state.particles.push({ pos: { x: cx, y: GY + DY.nursery }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 2 }, life: 30, color: ['#EF4444', '#3B82F6', '#FACC15', '#22C55E'][state.frame % 4], size: 5, grav: 0.3 }); playSound('clink', 0.2, 8); } } }
+    { const p = state.player, cx = p.pos.x + p.width / 2; if (cx > BALLPIT.a && cx < BALLPIT.b && p.pos.y + p.height > GY + DY.nursery + 8) { p.vel.x *= 0.8; if (Math.abs(p.vel.x) > 0.5 && state.frame % 6 === 0) playSound('clink', 0.2, 8); } }
+    // (and any chaos in it: the balls go flying)
+    runBalls(state);
     return controls;
   },
   drawBackdrop: (c) => { bandedGradient(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#050102', '#0A0304', '#100506'], 8); return true; },
@@ -297,7 +302,9 @@ export const castle: SpookySection = {
     const cs = castleOf(state);
     drawStoveFire(c, state, cs);
     drawBallPit(c, state);
+    drawBalls(c);
     drawBooks(c, cs);
+    drawDoorwaysFront(c, state);
     if (getSpooky(state)?.section === 'castle') drawPaWords(c, state, HORNS_WORLD);
   },
   lighting: (state) => castleLighting(state, castleOf(state)),

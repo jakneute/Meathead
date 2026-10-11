@@ -15,8 +15,10 @@ import {
 import { GY } from '../geometry';
 import { paSaying } from './pa';
 import { drawPaHorn } from './horn';
+import { timeOfDay, skyAt } from '../../timeOfDay';
+import { drawDoorways, DOORWAYS } from './doorways';
 import {
-  x0, x1, ROOMS, CEIL, ceilOf, DY, dyAt, LEDGES, STOVES, STOVE_TOP, BURNERS, stovePhase, FIRE_H, STOVE_CYCLE, STOVE_FIRE, BED, CHAND_W, BOOKCASES, BOOK_TELL,
+  x0, ROOMS, CEIL, ceilOf, DY, dyAt, LEDGES, STOVES, STOVE_TOP, BURNERS, stovePhase, FIRE_H, STOVE_CYCLE, STOVE_FIRE, BED, CHAND_W, BOOKCASES, BOOK_TELL,
   TRAIN, WARDROBES, HORNS, BALLPIT, type Castle, type LedgeLook,
 } from './layout';
 
@@ -213,23 +215,26 @@ const drawFloor = (c: Ctx, state: GameState, r: Room) => {
 
 /** A tall gothic window: its stone surround, the leaded glass (moonlight, a drift of cloud), the sill; the heavy
  *  curtains either side, tied back, the pelmet over. (x: the glass's left; bot: its sill.) */
-const gothicWindow = (c: Ctx, id: RoomId, x: number, bot: number, w = 70, h = 300) => put(c, `cWin:${id}:${w}:${h}`, x, bot, -56, -h - w / 2 - 30, w + 112, h + w / 2 + 80, g => {
+const gothicWindow = (c: Ctx, id: RoomId, x: number, bot: number, w = 70, h = 300) => { const tod = timeOfDay(); put(c, `cWin:${id}:${w}:${h}:${tod.key}`, x, bot, -56, -h - w / 2 - 30, w + 112, h + w / 2 + 80, g => {
   const top = -h, S = rampOf('#4A4048'), D = rampOf(LOOK[id].drape);
   const arch = (inset: number) => { g.beginPath(); g.moveTo(-inset, 0); g.lineTo(-inset, top); for (let k = 0; k <= 8; k++) { const a = Math.PI + (k / 8) * Math.PI; g.lineTo(w / 2 + Math.cos(a) * (w / 2 + inset), top + Math.sin(a) * (w / 2 + inset)); } g.lineTo(w + inset, 0); g.closePath(); };
   // (the stone surround)
   g.fillStyle = INK; arch(14); g.fill(); g.fillStyle = S[1]; arch(12); g.fill(); g.fillStyle = S[2]; arch(8); g.fill();
   g.fillStyle = S[3]; g.fillRect(-8, top, 3, h); g.fillStyle = S[0]; g.fillRect(w + 5, top, 3, h);
-  // (the glass: night sky, banded; a drift of cloud; stars)
+  // (the glass: the sky outside at this hour (old glass: a little dim), banded; a drift of cloud; stars at night)
   g.save(); arch(0); g.clip();
-  bandedGradient(g, 0, top - w / 2, w, h + w / 2, ['#0A1226', '#13234A', '#1E3A66', '#2A4E7E'], 8);
-  pixelBlob(g, w * 0.6, top + 90, 30, 6, '#3A5A86'); pixelBlob(g, w * 0.2, top + 170, 26, 5, '#34507A');
-  for (let k = 0; k < 6; k++) box(g, Math.floor(hash(k + w) * w), top - w / 2 + 10 + Math.floor(hash(k * 3 + h) * 120), 2, 2, '#C8D8F0');
+  const sky = [0.1, 0.35, 0.6, 0.85].map(v => mix(skyAt(v, tod), '#101828', 0.3));
+  bandedGradient(g, 0, top - w / 2, w, h + w / 2, sky, 8);
+  const cl = mix(tod.cloud, '#101828', 0.35);
+  pixelBlob(g, w * 0.6, top + 90, 30, 6, cl); pixelBlob(g, w * 0.2, top + 170, 26, 5, mix(cl, sky[2], 0.4));
+  const stars = Math.round(6 * tod.stars);
+  for (let k = 0; k < stars; k++) box(g, Math.floor(hash(k + w) * w), top - w / 2 + 10 + Math.floor(hash(k * 3 + h) * 120), 2, 2, '#C8D8F0');
   // (the leading: diamonds)
   g.strokeStyle = '#0E0C12'; g.lineWidth = 1.5; g.beginPath();
   for (let k = -h; k < w + h; k += 18) { g.moveTo(k, 0); g.lineTo(k + h + w, -h - w); g.moveTo(k, 0); g.lineTo(k - h - w, -h - w); }
   g.stroke();
   // (moonlight catching a few panes)
-  for (let k = 0; k < 5; k++) checker(g, 6 + k * 10, top + 20 + k * 40, 8, 24, '#4A6E9E');
+  for (let k = 0; k < 5; k++) checker(g, 6 + k * 10, top + 20 + k * 40, 8, 24, mix(sky[2], '#FFFFFF', 0.18));
   g.restore();
   // (the mullion and the transoms: stone)
   box(g, w / 2 - 4, top - w / 2, 8, h + w / 2, INK); box(g, w / 2 - 3, top - w / 2, 6, h + w / 2, S[2]); box(g, w / 2 - 3, top - w / 2, 2, h + w / 2, S[3]);
@@ -253,7 +258,7 @@ const gothicWindow = (c: Ctx, id: RoomId, x: number, bot: number, w = 70, h = 30
   box(g, -57, py - 1, pw + 2, 22, INK); box(g, -56, py, pw, 20, D[2]); box(g, -56, py, pw, 3, D[3]); box(g, -56, py + 16, pw, 4, D[0]);
   for (let k = -56; k < w + 56; k += 16) { box(g, k + 2, py + 20, 12, 4, D[1]); box(g, k + 4, py + 24, 8, 2, D[1]); box(g, k + 2, py + 20, 12, 1, GILT[3]); }
   box(g, -56, py + 4, pw, 2, GILT[3]);
-});
+}); };
 
 /** A fireplace, big as a garage: the cut-stone surround, the mantel, the firebox (its fire drawn live). Feet at GY. */
 const paintFireplace = (g: Ctx) => {
@@ -329,26 +334,6 @@ const SCONCES: Record<RoomId, number[]> = {
 };
 const SCONCE_Y = GY - 270;
 
-/** The arch through to the next room: rusticated stone jambs, a round arch with its keystone, the dark through it. */
-const paintArch = (g: Ctx) => {
-  const S = rampOf('#4E4446');
-  // (the dark through it)
-  g.fillStyle = INK; g.beginPath(); g.moveTo(-92, 0); g.lineTo(-92, -380); g.arc(0, -380, 92, Math.PI, 0); g.lineTo(92, 0); g.closePath(); g.fill();
-  g.save(); g.clip(); bandedGradient(g, -92, -472, 184, 472, ['#020102', '#0A0406', '#140A0C'], 6); g.restore();
-  // (the jambs: big blocks, lit top and left)
-  for (const jx of [-124, 90]) for (let y = -470, row = 0; y < 0; y += 34, row++) {
-    const w = row % 2 ? 34 : 40, x = jx === -124 ? jx + (row % 2 ? 6 : 0) : jx;
-    box(g, x - 1, y - 1, w + 2, 36, INK); box(g, x, y, w, 34, S[2]); box(g, x, y, w, 2, S[3]); box(g, x, y, 2, 34, S[3]); box(g, x, y + 31, w, 3, S[0]); box(g, x + w - 2, y, 2, 34, S[1]);
-  }
-  // (the voussoirs round the arch: a ring of stone, its joints running to the middle; the keystone)
-  const ring = (r: number, w: number, col: string) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.arc(0, -380, r, Math.PI, 0); g.stroke(); };
-  ring(109, 36, INK); ring(109, 32, S[2]); ring(124, 2, S[3]); ring(96, 4, S[1]); ring(93, 2, INK);
-  g.strokeStyle = INK; g.lineWidth = 2; g.beginPath();
-  for (let k = 1; k < 9; k++) { const a = Math.PI + (k / 9) * Math.PI; g.moveTo(Math.cos(a) * 92, -380 + Math.sin(a) * 92); g.lineTo(Math.cos(a) * 126, -380 + Math.sin(a) * 126); }
-  g.stroke();
-  box(g, -14, -514, 28, 34, INK); box(g, -13, -513, 26, 32, S[3]); box(g, -13, -513, 26, 3, S[4]); box(g, -6, -500, 12, 8, S[1]);
-};
-
 /** A suit of armor on its plinth, halberd in its fist (scenery: dimmed back). Feet at its origin. */
 const paintArmor = (g: Ctx) => {
   const St = rampOf(dimc('#8A90A0', 0.3)), P = rampOf(dimc('#4A3A34', 0.2)), Rd = rampOf(dimc('#9A1A1A', 0.25));
@@ -414,28 +399,35 @@ const paintPortrait = (g: Ctx, w: number, h: number, i: number, eyes: boolean) =
 const portrait = (c: Ctx, x: number, y: number, w: number, h: number, i: number, eyes: boolean) => put(c, `cPortrait:${i % 6}:${w}:${h}:${eyes}`, x, y, -10, -10, w + 20, h + 20, g => paintPortrait(g, w, h, i, eyes));
 
 /** A floor-to-ceiling bookcase (scenery: its shelves dark, no lips: not to stand on). */
+const SHELF_WOOD = rampOf(dimc('#3A2414', 0.15));
+const BOOK_COLS = ['#5A1414', '#14285A', '#143A20', '#5A3A10', '#3A1460', '#7A5A10', '#2A2A2A', '#5A2A3A'].map(c => dimc(c, 0.2));
+/** One shelf's books, x0..x1 (every height and width, a lean now and then, a gap), standing on the board at y + 34; the
+ *  board under them, x0 - 8..x1 + 12. */
+const bookRow = (g: Ctx, x0: number, x1: number, y: number, seed: number) => {
+  const Wd = SHELF_WOOD;
+  for (let bx = x0, k = seed; bx < x1; k++) {
+    const s = hash(k * 1.37), bw = 6 + Math.floor(s * 7), bh = 22 + Math.floor(hash(k * 2.1) * 12), R = rampOf(BOOK_COLS[k % BOOK_COLS.length]);
+    if (s > 0.94) { bx += 14; continue; }
+    if (s > 0.88 && bx + 26 < x1) {
+      g.save(); g.translate(bx, y + 34); g.rotate(-0.35); box(g, 0, -bh, bw, bh, R[2]); box(g, 0, -bh, 1, bh, R[3]); g.restore(); bx += 18; continue;
+    }
+    box(g, bx, y + 34 - bh, bw, bh, R[2]); box(g, bx, y + 34 - bh, 1, bh, R[3]); box(g, bx + bw - 1, y + 34 - bh, 1, bh, R[0]);
+    if (s < 0.5) { box(g, bx, y + 38 - bh, bw, 2, GILT[1]); box(g, bx, y + 30 - 6, bw, 2, GILT[1]); }
+    bx += bw + 1;
+  }
+  // (the shelf board: dark, its front edge only a shade up)
+  box(g, x0 - 8, y + 34, x1 - x0 + 20, 6, Wd[1]); box(g, x0 - 8, y + 34, x1 - x0 + 20, 1, Wd[2]); box(g, x0 - 8, y + 40, x1 - x0 + 20, 2, INK);
+};
+/** The library's cases are all this tall (floor to ceiling); their shelves every 44 from the top, here (from FOOT). */
+const CASE_H = 1180;
+const shelfYs = (): number[] => { const out: number[] = []; for (let y = -CASE_H + 30; y < -20; y += 44) out.push(y); return out; };
 const paintBookcase = (g: Ctx, w: number, h: number, i: number) => {
-  const Wd = rampOf(dimc('#3A2414', 0.15));
+  const Wd = SHELF_WOOD;
   box(g, -1, -h - 1, w + 2, h + 1, INK);
   box(g, 0, -h, w, h, Wd[0]);
   pole(g, 0, -h, 10, h, Wd[2]); pole(g, w - 10, -h, 10, h, Wd[2]);
   box(g, 0, -h, w, 18, Wd[2]); box(g, 0, -h, w, 3, Wd[3]); box(g, 0, -h + 15, w, 3, Wd[0]);
-  const cols = ['#5A1414', '#14285A', '#143A20', '#5A3A10', '#3A1460', '#7A5A10', '#2A2A2A', '#5A2A3A'].map(c => dimc(c, 0.2));
-  for (let y = -h + 30, row = 0; y < -20; y += 44, row++) {
-    // (the books, every height and width, a lean now and then, a gap)
-    for (let bx = 12, k = i * 31 + row * 7; bx < w - 16; k++) {
-      const s = hash(k * 1.37), bw = 6 + Math.floor(s * 7), bh = 22 + Math.floor(hash(k * 2.1) * 12), col = cols[k % cols.length], R = rampOf(col);
-      if (s > 0.94) { bx += 14; continue; }
-      if (s > 0.88 && bx + 26 < w - 16) {
-        g.save(); g.translate(bx, y + 34); g.rotate(-0.35); box(g, 0, -bh, bw, bh, R[2]); box(g, 0, -bh, 1, bh, R[3]); g.restore(); bx += 18; continue;
-      }
-      box(g, bx, y + 34 - bh, bw, bh, R[2]); box(g, bx, y + 34 - bh, 1, bh, R[3]); box(g, bx + bw - 1, y + 34 - bh, 1, bh, R[0]);
-      if (s < 0.5) { box(g, bx, y + 38 - bh, bw, 2, GILT[1]); box(g, bx, y + 30 - 6, bw, 2, GILT[1]); }
-      bx += bw + 1;
-    }
-    // (the shelf board: dark, its front edge only a shade up)
-    box(g, 4, y + 34, w - 8, 6, Wd[1]); box(g, 4, y + 34, w - 8, 1, Wd[2]); box(g, 4, y + 40, w - 8, 2, INK);
-  }
+  for (let y = -h + 30, row = 0; y < -20; y += 44, row++) bookRow(g, 12, w - 16, y, i * 31 + row * 7);
   box(g, 0, -20, w, 20, Wd[1]); box(g, 0, -20, w, 2, Wd[2]);
 };
 const bookcase = (c: Ctx, x: number, w: number, h: number, i: number) => put(c, `cBooks:${w}:${h}:${i}`, x, FOOT, -2, -h - 2, w + 4, h + 4, g => paintBookcase(g, w, h, i));
@@ -697,7 +689,7 @@ const drawRoomThings = (c: Ctx, state: GameState, r: Room) => {
       for (let k = 0; k < 9; k++) put(c, 'cChair', a + 330 + k * 135, GY - 30, -4, -168, 40, 130, paintChair);
       break;
     case 'study':
-      bookcase(c, a + 140, 200, 1180, 0); bookcase(c, a + 700, 300, 1180, 1); bookcase(c, a + 1380, 260, 1180, 2);
+      bookcase(c, a + 72, 268, CASE_H, 0); bookcase(c, a + 700, 300, CASE_H, 1); bookcase(c, a + 1380, 380, CASE_H, 2);
       fireplace(c, a + 560, f);
       // (the reading table, the open tome on it; dimmed)
       put(c, 'cReadTable', a + 980, GY, -4, -120, 170, 122, g => {
@@ -710,7 +702,7 @@ const drawRoomThings = (c: Ctx, state: GameState, r: Room) => {
       break;
     case 'kitchen':
       for (let k = 0; k < 6; k++) put(c, `cHam:${k % 3}`, a + 200 + k * 260, CEIL + 38, -16, -2, 34, 480, g => paintHams(g, k % 3));
-      put(c, 'cChop', a + 40, GY, -4, -108, 100, 110, paintChopBlock);
+      put(c, 'cChop', a + 160, GY, -4, -108, 100, 110, paintChopBlock);
       break;
     case 'bedroom':
       portrait(c, a + 1300, GY - 680, 150, 190, 4, true); eyesFollow(c, state, a + 1375, GY - 680 + 65);
@@ -849,24 +841,31 @@ const drawLedge = (c: Ctx, state: GameState, x: number, y: number, w: number, lo
 /** The castle, a room at a time, each on its own floor: drawn in the room's own coordinates (its floor at GY), clipped
  *  to it, moved up or down to where it is. */
 export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
-  for (const r of ROOMS) {
-    if (!seen(state, r.a - 150, r.b + 150)) continue;
-    c.save();
-    c.beginPath(); c.rect(r.a, -100000, r.b - r.a, 200000); c.clip();
-    c.translate(0, DY[r.id]);
-    drawRoom(c, state, cs, r);
-    c.restore();
-  }
+  const each = (paint: (r: Room) => void) => {
+    for (const r of ROOMS) {
+      if (!seen(state, r.a - 150, r.b + 150)) continue;
+      c.save();
+      c.beginPath(); c.rect(r.a, -100000, r.b - r.a, 200000); c.clip();
+      c.translate(0, DY[r.id]);
+      paint(r);
+      c.restore();
+    }
+  };
+  // The rooms' walls and floors, then the doorways through the walls between them, then what's nearer
+  each(r => drawRoomBack(c, state, r));
+  drawDoorways(c, state);
+  each(r => drawRoomFront(c, state, cs, r));
   // (the dining room's rotten floorboards at its far end, broken through: the way down to the kitchen)
   if (seen(state, ROOMS[1].b - 120, ROOMS[1].b + 20)) {
     const x = ROOMS[1].b, P = rampOf('#5A3420');
     for (let k = 0; k < 5; k++) { c.save(); c.translate(x - 20 - k * 14, GY + 6 + k * 3); c.rotate(0.5 + k * 0.2); box(c, -1, -1, 42, 10, INK); box(c, 0, 0, 40, 8, P[2]); box(c, 0, 0, 40, 2, P[3]); box(c, 34, 0, 6, 8, P[1]); c.restore(); }
-    plaque(c, x - 120, GY - 120, 'SERVANTS ONLY: MIND THE FLOOR', '#3F3F46', '#E4E4E7', '#6B6F78');
+    // (on the wall over the fireplace, clear of the doorway)
+    plaque(c, x - 200, GY - 330, 'SERVANTS ONLY: MIND THE FLOOR', '#3F3F46', '#E4E4E7', '#6B6F78');
   }
   // The castle's front door (the way back out to the stairs)
   if (seen(state, x0, x0 + 200)) {
     const shut = cs.doorShut > 0;
-    put(c, `cFrontDoor:${shut}`, x0 + 60, GY, -60, -200, 120, 202, g => {
+    put(c, `cFrontDoor:${shut}:${shut ? '' : timeOfDay().key}`, x0 + 60, GY, -60, -200, 120, 202, g => {
       const Wd = rampOf('#4A2814'), S = rampOf('#4E4446');
       g.fillStyle = INK; g.beginPath(); g.moveTo(-56, 0); g.lineTo(-56, -150); g.arc(0, -150, 56, Math.PI, 0); g.lineTo(56, 0); g.closePath(); g.fill();
       g.fillStyle = S[2]; g.beginPath(); g.moveTo(-52, 0); g.lineTo(-52, -150); g.arc(0, -150, 52, Math.PI, 0); g.lineTo(52, 0); g.closePath(); g.fill();
@@ -876,7 +875,7 @@ export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
         for (const sy of [-150, -60]) { box(g, -42, sy, 84, 8, INK); box(g, -42, sy + 1, 84, 6, IRON[2]); box(g, -42, sy + 1, 84, 1, IRON[4]); }
         box(g, -1, -200, 2, 200, INK); for (const hx of [-12, 8]) { box(g, hx, -96, 4, 18, INK); box(g, hx, -95, 3, 16, GILT[3]); }
       } else {
-        bandedGradient(g, -42, -200, 84, 200, ['#0A1226', '#13234A', '#1A2E52'], 5);
+        bandedGradient(g, -42, -200, 84, 200, [skyAt(0.3), skyAt(0.6), skyAt(0.9)], 5);
         box(g, -42, -26, 84, 26, '#0E0C14');
       }
       g.restore();
@@ -884,36 +883,27 @@ export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
     // (a modern convenience: a lit EXIT box over it, code says so)
     put(c, 'cExitBox', x0 + 60, GY - 228, -24, -10, 48, 20, g => { box(g, -22, -8, 44, 16, INK); box(g, -21, -7, 42, 14, '#0E3A1A'); text(g, 'EXIT', 0, 4, '#4ADE80', 8, 'center', '#062010'); });
   }
-  // The arch at the end of the gallery: stone steps going down into the dark, TO THE DUNGEON over it
-  if (seen(state, x1 - 300, x1)) {
-    c.save(); c.translate(0, DY.gallery);
-    put(c, 'cDungeonArch', x1 - 95, GY, -110, -260, 220, 262, g => {
-      const S = rampOf('#3E3836');
-      g.fillStyle = INK; g.beginPath(); g.moveTo(-96, 0); g.lineTo(-96, -170); g.arc(0, -170, 96, Math.PI, 0); g.lineTo(96, 0); g.closePath(); g.fill();
-      for (let y = -260, row = 0; y < 0; y += 26, row++) for (let bx = -96 - (row % 2) * 16; bx < 96; bx += 32) { const xa = Math.max(-96, bx), xb = Math.min(96, bx + 30); box(g, xa, y, xb - xa, 24, S[2]); box(g, xa, y, xb - xa, 2, S[3]); }
-      g.fillStyle = '#030202'; g.beginPath(); g.moveTo(-76, 0); g.lineTo(-76, -170); g.arc(0, -170, 76, Math.PI, 0); g.lineTo(76, 0); g.closePath(); g.fill();
-      // (the steps, down and away, lit less and less)
-      for (let k = 0; k < 6; k++) { const w = 150 - k * 22; box(g, -75, -40 + k * 8, w, 6, mix(S[3], '#030202', k / 6)); box(g, -75, -34 + k * 8, w, 2, mix(S[0], '#030202', k / 6)); }
-    });
-    plaque(c, x1 - 95, GY - 290, 'TO THE DUNGEON', '#27272A', '#FCA5A5', '#5A5A62');
-    c.restore();
-  }
+  // TO THE DUNGEON, on the gallery's wall by the doorway at its end (doorways.ts: the stairs down through it)
+  for (const d of DOORWAYS) if (d.end && seen(state, d.cx - 80, d.cx + 80)) plaque(c, d.cx, d.top - 70, 'TO THE DUNGEON', '#27272A', '#FCA5A5', '#5A5A62');
 };
 
-const drawRoom = (c: Ctx, state: GameState, cs: Castle, r: Room) => {
-  const f = state.frame, inRoom = (x: number) => x > r.a - 260 && x < r.b + 260;
+/** A room's back half: its walls, its floor going back, its windows and things on the walls. */
+const drawRoomBack = (c: Ctx, state: GameState, r: Room) => {
+  const f = state.frame;
   // (over the ceiling: the dark of the roof void, its beams)
   { const top = ceilOf(r.id), a = Math.max(r.a, state.camera.x - 40), b = Math.min(r.b, state.camera.x + CANVAS_WIDTH + 40);
     if (b > a) { box(c, a, top - 700, b - a, 700, '#080304'); for (let x = Math.floor(a / 160) * 160; x < b; x += 160) { box(c, x, top - 700, 20, 700, '#140A08'); box(c, x, top - 700, 3, 700, '#1E100C'); } box(c, a, top - 24, b - a, 24, '#140A08'); box(c, a, top - 24, b - a, 2, '#24140E'); } }
   drawRoomWalls(c, state, r);
   drawFloor(c, state, r);
-  // (the arches through to the rooms either side: each room paints its half; on the same floor, they make one arch)
-  for (const ax of [r.a, r.b]) if (ax !== x0 && ax !== x1 && seen(state, ax - 140, ax + 140)) put(c, 'cArch', ax, GY, -130, -520, 260, 522, paintArch);
   // (the windows: how big the place is)
   for (const [wx, sill] of WINDOWS[r.id]) if (seen(state, r.a + wx - 60, r.a + wx + 130)) gothicWindow(c, r.id, r.a + wx, GY - sill);
   for (const sx of SCONCES[r.id]) if (seen(state, r.a + sx - 20, r.a + sx + 20)) sconce(c, r.a + sx, SCONCE_Y, f);
   drawRoomThings(c, state, r);
   plaque(c, r.a + 300, GY - 330, r.name);
+};
+/** A room's nearer half: what he stands on, the set pieces, the PA's horns (after the doorways). */
+const drawRoomFront = (c: Ctx, state: GameState, cs: Castle, r: Room) => {
+  const f = state.frame, inRoom = (x: number) => x > r.a - 260 && x < r.b + 260;
   // What he can stand on
   for (const [x, y, w, look] of LEDGES) if (inRoom(x) && seen(state, x, x + w)) drawLedge(c, state, x, y, w, look);
   // The set pieces
@@ -925,22 +915,17 @@ const drawRoom = (c: Ctx, state: GameState, cs: Castle, r: Room) => {
   if (r.id === 'study') BOOKCASES.forEach(([x, y], i) => {
     if (!seen(state, x - 100, x + 100)) return;
     const t = cs.shelfT[i], tell = t > 0 && t < BOOK_TELL, rattle = tell ? Math.round(Math.sin(f * 2.3) * 2) : 0;
-    // (on the floor, a case down to it; up the stories, a cabinet hung on the wall on iron brackets)
-    const low = Math.min(GY - y, 40);
-    put(c, `cPolt:${low}`, x + rattle, y, -44, -128, 88, low + 162, g => {
-      const Wd = rampOf('#3A2414'), cols = ['#7F1D1D', '#1E3A8A', '#14532D', '#78350F', '#4C1D95'];
-      box(g, -41, -121, 82, low + 121, INK); box(g, -40, -120, 80, low + 120, Wd[0]);
-      pole(g, -40, -120, 8, low + 120, Wd[2]); pole(g, 32, -120, 8, low + 120, Wd[2]);
-      if (low < GY - y) for (const bx of [-30, 22]) { box(g, bx - 1, low, 10, 30, INK); box(g, bx, low, 8, 28, IRON[2]); box(g, bx, low, 2, 28, IRON[3]); }
-      box(g, -44, -126, 88, 10, INK); box(g, -43, -125, 86, 8, Wd[2]); box(g, -43, -125, 86, 2, Wd[3]);
-      for (let k = 0; k < 3; k++) {
-        for (let b = 0; b < 6; b++) { const R = rampOf(cols[(b + k) % cols.length]); box(g, -30 + b * 11, -112 + k * 40, 9, 24, INK); box(g, -29 + b * 11, -111 + k * 40, 7, 22, R[2]); box(g, -29 + b * 11, -111 + k * 40, 2, 22, R[3]); box(g, -29 + b * 11, -104 + k * 40, 7, 2, GILT[2]); }
-        box(g, -34, -88 + k * 40, 68, 4, Wd[1]);
-      }
-      for (let yy = 0; yy < low - 10; yy += 44) box(g, -34, yy + 4, 68, 4, Wd[1]);
+    // (a stretch of shelves of one of the library's own cases, the same wood and books: nothing to see till its tell)
+    const rows = shelfYs().filter(ry => FOOT + ry + 34 > y - 140 && FOOT + ry + 34 < y + 30);
+    put(c, `cPolt:${i}`, x + rattle, FOOT, -40, rows[0] - 2, 80, rows[rows.length - 1] - rows[0] + 46, g => {
+      for (const [k, ry] of rows.entries()) { box(g, -36, ry, 72, 34, SHELF_WOOD[0]); bookRow(g, -32, 28, ry, 977 + i * 31 + k * 7); }
     });
-    // (the tell: the books shudder out of their rows, a ghostly green round them)
-    if (tell) for (let k = 0; k < 3; k++) { const jx = x + rattle - 30 + ((f * 7 + k * 23) % 60); box(c, jx - 1, y - 112 + k * 40, 9, 2, '#86EFAC'); box(c, jx + 2 + (f % 3), y - 116 + k * 40, 7, 26, k % 2 ? '#1E3A8A' : '#7F1D1D'); }
+    // (the tell: the whole stretch shudders, the books jut out of their rows, a ghostly green round them)
+    if (tell) for (const [k, ry] of rows.entries()) {
+      const yy = FOOT + ry, jx = x + rattle - 30 + ((f * 7 + k * 23) % 54);
+      box(c, x + rattle - 38, yy - 2, 76, 2, (f >> 1) % 2 ? '#86EFAC' : '#4ADE80'); box(c, x + rattle - 38, yy + 34, 76, 2, '#86EFAC');
+      box(c, jx - 1, yy + 6, 9, 30, INK); box(c, jx, yy + 7, 7, 28, k % 2 ? '#2D51B0' : '#B91C1C'); box(c, jx, yy + 7, 2, 28, '#86EFAC');
+    }
   });
   if (r.id === 'dining') for (const ch of cs.chand) if (seen(state, ch.x - 60, ch.x + 60)) {
     if (ch.state === 'down') drawWreck(c, ch.x, ch.y);
@@ -999,7 +984,8 @@ export const castleLighting = (state: GameState, cs: Castle): SceneLight => {
   const near = (x: number) => x > state.camera.x - 300 && x < state.camera.x + CANVAS_WIDTH + 300;
   for (const ch of cs.chand) if (near(ch.x) && ch.state !== 'down') lights.push({ x: ch.x, y: ch.y - 10 + dyAt(ch.x), r: 260, a: 0.8, color: 'rgba(253, 186, 116, 0.10)' });
   for (const r of ROOMS) for (const sx of SCONCES[r.id]) { const x = r.a + sx; if (near(x)) lights.push({ x, y: SCONCE_Y - 20 + DY[r.id], r: 230, a: 0.6, color: 'rgba(253, 186, 116, 0.06)' }); }
-  for (const r of ROOMS) for (const [wx, sill] of WINDOWS[r.id]) { const x = r.a + wx + 35; if (near(x)) lights.push({ x, y: GY - sill - 150 + DY[r.id], r: 200, a: 0.35, color: 'rgba(120, 160, 220, 0.06)' }); }
+  for (const r of ROOMS) for (const [wx, sill] of WINDOWS[r.id]) { const x = r.a + wx + 35; if (near(x)) lights.push({ x, y: GY - sill - 150 + DY[r.id], r: 200, a: 0.35 + 0.25 * (1 - timeOfDay().stars), color: 'rgba(120, 160, 220, 0.06)' }); }
+  for (const d of DOORWAYS) if (near(d.cx)) lights.push({ x: d.cx, y: d.bottom - 120, r: 150, a: 0.4, color: 'rgba(253, 186, 116, 0.06)' });
   STOVES.forEach(([x, w], i) => { if (near(x) && stovePhase(cs.stoveT, i) === 'fire') lights.push({ x: x + w / 2, y: STOVE_TOP - 60 + dyAt(x), r: 260, a: 0.9, color: 'rgba(251, 146, 60, 0.18)' }); });
   return { dark: 0.42, shade: [26, 6, 14], lights };
 };

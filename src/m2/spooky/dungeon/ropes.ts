@@ -12,8 +12,9 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { GroundRun } from '../../../m1/game/core/terrain';
 import { solid } from '../section';
-import { INK, box, checker, hazeBands, bandedGradient, plaque, spikeUp, STONE, IRON, WOOD, BLOOD } from './paint';
-import { pixelBlob } from '../../intro/art/kit';
+import { INK, box, checker, hazeBands, bandedGradient, plaque, spikeUp, put, blockFill, chain, STONE, IRON, WOOD } from './paint';
+import { pixelBlob, text } from '../../intro/art/kit';
+import { GORE, splat, drips, guestOf, impaledGuest, skeleton, earHat, souvenirCup, selfieStick, parkMap, ticket } from './remains';
 import { SECTIONS, GY } from '../geometry';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -99,42 +100,90 @@ export const runRopes = (ctx: FrameContext, controls: Controls): Controls => {
 // ---------------------------------------------------------------------------------------------------------------
 
 const seen = (state: GameState, a: number, b: number) => b > state.camera.x - 100 && a < state.camera.x + 900;
+
+/** One pit, still (stamped): its back wall going on down into it (stone, chains, hooks, a crude painted warning,
+ *  blood), its stone sides, and what's in it: the ditch's dirt; the spike bed and the guests on it; the vat's walls
+ *  above the lard. Origin at (p.a, GY). */
+const paintPit = (g: CanvasRenderingContext2D, p: (typeof PITS)[number], i: number) => {
+  const w = p.b - p.a, d = p.depth;
+  g.fillStyle = blockFill(g, 'pit', '#38322C'); g.fillRect(0, 0, w, d + 200);
+  hazeBands(g, 0, 0, w, d + 60, '#060504', 0.15, 0.7, 5);
+  // (chains hung down into it, a meat hook on one; blood run down the stone)
+  for (let x = 24; x < w - 20; x += 96) { chain(g, x, 0, 30 + (x % 3) * 12); }
+  if (w > 200) { const hx = 70; box(g, hx - 1, 40, 3, 10, IRON[3]); g.strokeStyle = IRON[3]; g.lineWidth = 2; g.beginPath(); g.arc(hx + 4, 52, 5, Math.PI, Math.PI * 0.2, true); g.stroke(); }
+  drips(g, 6, 0, w - 12, Math.max(3, Math.floor(w / 40)), 40, i * 17);
+  for (let k = 0; k < Math.floor(w / 120) + 1; k++) splat(g, 30 + ((k * 137 + i * 53) % Math.max(1, w - 60)), 26 + (k % 2) * 18, 16, 10, k + i);
+  // (the crude warning, slapped on in paint)
+  const words = p.kind === 'vat' ? 'NO SWIMMING' : p.kind === 'spikes' ? (w > 300 ? 'MIND THE GAP' : 'MIND') : 'OOPS';
+  text(g, words, w / 2, p.kind === 'vat' ? 22 : 30, '#B8B0A0', 6, 'center', '#1A0E0A');
+  // (its stone sides, lit at the lip)
+  for (const [x, s] of [[-6, 1], [w, -1]] as const) { box(g, x, 0, 6, d + 200, STONE[1]); box(g, s > 0 ? x + 4 : x, 0, 2, d + 200, INK); box(g, x, 0, 6, 4, STONE[4]); }
+  if (p.kind === 'ditch') {
+    // (the ditch's floor: dirt, somewhere to stand, lit along its top; a dropped map, a ticket)
+    box(g, 0, d, w, 2, '#B8A88A'); box(g, 0, d + 2, w, 2, '#8A7A5E'); checker(g, 0, d + 4, w, 2, '#8A7A5E');
+    box(g, 0, d + 6, w, 194, '#3A3024');
+    for (let k = 0; k < 6; k++) box(g, 10 + ((k * 41) % (w - 20)), d + 10 + (k % 3) * 6, 6, 2, '#5A4A36');
+    parkMap(g, w * 0.3, d); ticket(g, w * 0.7, d);
+  }
+  if (p.kind === 'spikes') {
+    // (the spike bed: points all the way across, no flat to it; the blood pooled between them; who fell in)
+    const bed = d;
+    box(g, 0, bed - 6, w, 206, '#1A1210'); box(g, 0, bed - 6, w, 6, GORE[1]); checker(g, 0, bed - 10, w, 4, GORE[1]);
+    // (what fell to the bottom between the spikes: bones, a cup, a hat)
+    if (w > 300) { souvenirCup(g, w * 0.32, bed - 2, true); earHat(g, w * 0.9, bed - 4, 0); } else earHat(g, w * 0.75, bed - 4, 1);
+    for (let x = 2; x < w - 12; x += 16) spikeUp(g, x, bed, 14, bed - 34 - (x % 48 === 2 ? 4 : 0));
+    for (let x = 9; x < w - 14; x += 32) { box(g, x, bed - 30, 3, 14, GORE[2]); box(g, x, bed - 16, 2, 14, GORE[1]); box(g, x - 1, bed - 33, 4, 3, GORE[3]); }
+    // (and who's up on them: run through, sagged over the tips)
+    if (w > 300) {
+      skeleton(g, w * 0.06, bed - 30, true);
+      impaledGuest(g, w * 0.42, bed - 26, guestOf(31 + i), [14, 30, 52]);
+      impaledGuest(g, w * 0.7, bed - 28, guestOf(47 + i), [10, 40]);
+      selfieStick(g, w * 0.6, bed - 32, 30);
+    } else skeleton(g, w * 0.2, bed - 30, false);
+  }
+  if (p.kind === 'vat') {
+    // (the vat's inside wall above the lard: scorched, splashed)
+    hazeBands(g, 0, 0, w, 34, '#1A0A04', 0.2, 0.6, 3);
+  }
+};
+/** What floats in the lard (bones, a skull, an ears hat): live, it bobs. */
+const flotsam = (c: CanvasRenderingContext2D, p: (typeof PITS)[number], f: number) => {
+  const w = p.b - p.a;
+  for (const [k, u] of [[0, 0.18], [1, 0.45], [2, 0.7], [3, 0.88]] as const) {
+    const x = p.a + w * u, y = GY + 30 + Math.round(Math.sin(f * 0.06 + k * 2) * 1.5);
+    if (k === 0) { box(c, x - 1, y - 7, 14, 9, INK); box(c, x, y - 6, 12, 7, '#C8B898'); box(c, x + 2, y - 4, 3, 3, INK); box(c, x + 7, y - 4, 3, 3, INK); }
+    else if (k === 2) earHat(c, x, y - 1, 0);
+    else { box(c, x - 1, y - 4, 22, 5, INK); box(c, x, y - 3, 20, 3, '#C8B898'); box(c, x - 2, y - 5, 4, 6, '#C8B898'); box(c, x + 18, y - 5, 4, 6, '#C8B898'); }
+  }
+};
+
 export const drawRopeWalk = (c: CanvasRenderingContext2D, state: GameState) => {
   const f = state.frame;
   if (!seen(state, X(1800), X(4400))) return;
-  // The beam the ropes hang off, the length of it: an oak beam, iron-strapped, on iron brackets into the wall
+  // The roof over the rope walk (solid: nobody's going over): masonry down to the beam line, a molding along its foot
+  if (seen(state, X(2600), SECTIONS.dungeon.x1 + 200)) {
+    const a = Math.max(X(2600), state.camera.x - 40), b = Math.min(SECTIONS.dungeon.x1 + 200, state.camera.x + 900), top = BEAM - 1200;
+    c.save(); c.translate(0, BEAM); c.fillStyle = blockFill(c, 'roof', '#3E3832'); c.fillRect(a, top - BEAM, b - a, 1200 - 22); c.restore();
+    hazeBands(c, a, top, b - a, 1100, '#060504', 0.8, 0.1, 6);
+    box(c, a, BEAM - 40, b - a, 18, INK); box(c, a, BEAM - 39, b - a, 16, STONE[2]); box(c, a, BEAM - 39, b - a, 2, STONE[3]); box(c, a, BEAM - 25, b - a, 2, STONE[0]);
+    for (let x = Math.floor(a / 40) * 40; x < b; x += 40) box(c, x, BEAM - 35, 6, 8, STONE[1]);
+    // (its end, at the chamber's far door: a corbel down to the wall)
+    if (seen(state, X(2600) - 40, X(2600) + 60)) { box(c, X(2600) - 1, BEAM - 60, 30, 62, INK); box(c, X(2600), BEAM - 60, 28, 60, STONE[2]); box(c, X(2600), BEAM - 60, 3, 60, STONE[3]); }
+  }
+  // The beam the ropes hang off, the length of it: an oak beam, iron-strapped, on iron brackets up into the roof
   if (seen(state, X(2760), X(4400))) {
     const a = Math.max(X(2760), state.camera.x - 40), b = Math.min(X(4400), state.camera.x + 900);
     box(c, a, BEAM - 23, b - a, 20, INK); box(c, a, BEAM - 22, b - a, 18, WOOD[2]); box(c, a, BEAM - 22, b - a, 3, WOOD[3]); box(c, a, BEAM - 8, b - a, 4, WOOD[0]);
     for (let x = Math.floor(a / 24) * 24; x < b; x += 24) box(c, x, BEAM - 17, 8, 1, WOOD[1]);
     for (let x = X(2780); x < X(4400); x += 320) if (seen(state, x - 10, x + 30)) {
-      box(c, x - 1, BEAM - 61, 12, 64, INK); box(c, x, BEAM - 60, 10, 62, IRON[2]); box(c, x, BEAM - 60, 2, 62, IRON[4]);
       box(c, x - 6, BEAM - 25, 22, 24, INK); box(c, x - 5, BEAM - 24, 20, 22, IRON[1]); box(c, x - 5, BEAM - 24, 20, 2, IRON[3]); box(c, x - 1, BEAM - 16, 3, 3, IRON[4]); box(c, x + 8, BEAM - 16, 3, 3, IRON[4]);
     }
   }
-  plaque(c, X(3460), BEAM - 60, 'THE ROPE WALK: HOLD ON', '#27272A', '#FCD34D');
-  for (const p of PITS) {
-    if (!seen(state, p.a, p.b)) continue;
+  plaque(c, X(3085), BEAM + 40, 'THE ROPE WALK: HOLD ON', '#27272A', '#FCD34D');
+  PITS.forEach((p, i) => {
+    if (!seen(state, p.a - 20, p.b + 20)) return;
     const w = p.b - p.a;
-    // (the pit: black, its stone sides lit at the lip)
-    box(c, p.a, GY, w, p.depth + 200, '#070605');
-    for (const [x, s] of [[p.a - 6, 1], [p.b, -1]] as const) { box(c, x, GY, 6, p.depth + 200, STONE[1]); box(c, s > 0 ? x + 4 : x, GY, 2, p.depth + 200, INK); box(c, x, GY, 6, 4, STONE[4]); }
-    hazeBands(c, p.a, GY, w, p.depth, '#000000', 0.1, 0.6, 4);
-    if (p.kind === 'ditch') {
-      // (the ditch's floor: dirt, somewhere to stand, lit along its top)
-      box(c, p.a, GY + p.depth, w, 2, '#B8A88A'); box(c, p.a, GY + p.depth + 2, w, 2, '#8A7A5E'); checker(c, p.a, GY + p.depth + 4, w, 2, '#8A7A5E');
-      box(c, p.a, GY + p.depth + 6, w, 40, '#3A3024');
-      for (let k = 0; k < 6; k++) box(c, p.a + 10 + ((k * 41) % (w - 20)), GY + p.depth + 10 + (k % 3) * 6, 6, 2, '#5A4A36');
-    }
-    if (p.kind === 'spikes') {
-      // (the spike bed: points all the way across, no flat to it; blood down some; an old skeleton prop across them)
-      const bed = GY + p.depth;
-      box(c, p.a, bed - 6, w, 206, '#1A1210');
-      box(c, p.a + w * 0.6 - 2, bed - 48, 54, 12, INK); box(c, p.a + w * 0.6, bed - 46, 50, 8, '#DAD5C8'); for (let r = 0; r < 5; r++) box(c, p.a + w * 0.6 + 8 + r * 8, bed - 50, 2, 14, '#B8B2A4');
-      box(c, p.a + w * 0.6 - 13, bed - 53, 16, 14, INK); box(c, p.a + w * 0.6 - 12, bed - 52, 14, 12, '#DAD5C8'); box(c, p.a + w * 0.6 - 9, bed - 48, 3, 3, INK); box(c, p.a + w * 0.6 - 4, bed - 48, 3, 3, INK);
-      for (let x = p.a + 2; x < p.b - 12; x += 16) spikeUp(c, x, bed, 14, bed - 34 - ((x - p.a) % 48 === 2 ? 4 : 0));
-      for (let x = p.a + 9; x < p.b - 14; x += 48) { box(c, x, bed - 32, 3, 12, BLOOD[2]); box(c, x, bed - 22, 2, 14, BLOOD[1]); }
-    }
+    put(c, `dPit:${i}`, p.a, GY, -8, -4, w + 16, p.depth + 206, g => paintPit(g, p, i));
     if (p.kind === 'vat') {
       // (the lard: boiling, banded orange to gold at the top, bubbles breaking; a little steam off it (dim))
       const L = ['#5A1E06', '#8A3A0C', '#B85A14', '#D8862A', '#F0B44A'];
@@ -147,11 +196,12 @@ export const drawRopeWalk = (c: CanvasRenderingContext2D, state: GameState) => {
         if (ph < 20) { const by = GY + 26 - ph * 0.4, r = 3 + (ph >> 3); box(c, bx - r, by - r + 1, r * 2, r * 2 - 2, L[1]); box(c, bx - r + 1, by - r, r * 2 - 2, r * 2, L[1]); box(c, bx - r + 1, by - r + 1, r * 2 - 2, r * 2 - 2, L[3]); box(c, bx - r + 1, by - r + 1, 2, 2, '#FDE68A'); }
         else if (ph < 24) { box(c, bx - 6, GY + 28, 3, 2, L[4]); box(c, bx + 3, GY + 27, 3, 2, L[4]); box(c, bx - 1, GY + 25, 2, 2, L[4]); }
       }
+      flotsam(c, p, f);
       for (let k = 0; k < 3; k++) { const t = (f * 0.6 + k * 40) % 120, sx = p.a + 60 + k * ((w - 120) / 2) + Math.sin((f + k * 30) * 0.05) * 6; pixelBlob(c, sx, GY + 10 - t, 10 + t * 0.12, 5 + t * 0.05, t < 80 ? '#3A3430' : '#262220'); }
       // (the vat's rim: iron, riveted, flush with the floor)
-      for (const [x, s] of [[p.a - 10, 1], [p.b, -1]] as const) { box(c, x, GY, 10, 34, INK); box(c, x + 1, GY, 8, 33, IRON[2]); box(c, x + 1, GY, 8, 2, IRON[4]); box(c, x + 3, GY + 4, 2, 2, IRON[4]); box(c, x + 3, GY + 18, 2, 2, IRON[4]); void s; }
+      for (const x of [p.a - 10, p.b]) { box(c, x, GY, 10, 34, INK); box(c, x + 1, GY, 8, 33, IRON[2]); box(c, x + 1, GY, 8, 2, IRON[4]); box(c, x + 3, GY + 4, 2, 2, IRON[4]); box(c, x + 3, GY + 18, 2, 2, IRON[4]); }
       plaque(c, (p.a + p.b) / 2, GY - 120, 'HOT LARD: DO NOT SWIM', '#7C2D12', '#FED7AA', '#A8501A');
     }
-  }
+  });
   drawVines(c, state, ROPES, ROPE_OPTS);
 };

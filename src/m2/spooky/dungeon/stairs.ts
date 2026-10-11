@@ -53,6 +53,8 @@ export const buildStairs = (state: GameState) => {
 
 export const runStairs = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
+  // (lit for the way back up once he's well into the dungeon, out of sight of them: the dark there never jumps)
+  if (cx >= CELLS + 1200) descended = true;
   if (cx < S || cx > CELLS + 100) return;
   // The PA's narration (two lines: at the top, and halfway down)
   if (told === 0 && cx > S + 260) { told = 1; paStory(state, [byPants(state, L.PA_STAIRS)[0]]); }
@@ -60,14 +62,14 @@ export const runStairs = (ctx: FrameContext) => {
   // Meathead, in the dark (one at a time, when the PA's quiet)
   if (saidDark === 0 && cx > S + 1250 && !paBusy(state)) { saidDark = 1; meatheadSays(state, pick(L.MH_DARK)); }
   if (saidDark === 1 && cx > S + 1700 && !paBusy(state)) { saidDark = 2; meatheadSays(state, pick(L.MH_EYES)); }
-  if (cx >= CELLS) descended = true;
 };
 
 /** How dark it is where he is (0 the top, 1 the bottom), going down the first time. */
 const depth = (state: GameState) => { const p = state.player, cx = p.pos.x + p.width / 2; return Math.max(0, Math.min(1, (cx - S) / (CELLS - S))); };
 
-export const stairsLighting = (state: GameState) => {
-  const p = state.player, k = descended ? 0.2 : depth(state), lights: Light[] = [];
+/** The stairs' dark (as if he were at `at`, if given: the dungeon fades out of the foot of them). */
+export const stairsLighting = (state: GameState, at?: number) => {
+  const p = state.player, k = descended ? 0.2 : at !== undefined ? Math.max(0, Math.min(1, (at - S) / (CELLS - S))) : depth(state), lights: Light[] = [];
   SCONCES.forEach((x, i) => { if (descended || i < LIT) lights.push({ x, y: floorAt(x) - 170, r: 230, a: 0.85, color: 'rgba(249, 115, 22, 0.10)' }); });
   // (right round him: smaller the deeper he goes)
   lights.push({ x: p.pos.x + p.width / 2, y: p.pos.y + 30, r: 190 - 70 * k, a: 0.7 });
@@ -130,5 +132,5 @@ export const drawStairs = (c: CanvasRenderingContext2D, state: GameState) => {
   // Eyes in the dark (blinking)
   if (!descended) EYES.forEach(([x, y], i) => { if ((f + i * 53) % 170 < 160) { box(c, x - 6, y, 4, 3, '#FDE047'); box(c, x + 3, y, 4, 3, '#FDE047'); box(c, x - 5, y + 1, 1, 1, INK); box(c, x + 4, y + 1, 1, 1, INK); } });
   plaque(c, S + 120, STAIR_TOP - 200, 'TO THE DUNGEON');
-  if (descended) plaque(c, S + 340, STAIR_TOP - 170, 'SORRY ABOUT THE DARK. - MGMT', '#3F3F46', '#E4E4E7');
+  if (descended) plaque(c, S + 250, STAIR_TOP - 130, 'SORRY ABOUT THE DARK. - MGMT', '#3F3F46', '#E4E4E7');
 };
