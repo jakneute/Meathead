@@ -158,14 +158,35 @@ const drawTower = (c: Ctx, state: GameState, tx: number, base: number, ts: numbe
   const hand = (a: number, len: number, w: number) => { for (let s = 0; s <= len; s += 2) R(Math.sin(a) * s - w / 2, T + 114 - Math.cos(a) * s - w / 2, w, w, '#1E1036'); };
   hand(t, 18, 3); hand(t / 12, 12, 4);
   R(-2, T + 112, 4, 4, '#7F1D1D');
-  // The ride's sign, bolted to the front of it, lit red (dim: no glare); its letters' bulbs
+  // The ride's sign: a marquee bolted to the front of it, inside its width (clear of the track): devil horns on its top
+  // corners, a border of bulbs chasing round it, TO HELL big under ELEVATOR (lit, dim: no glare)
   const glow = 0.6 + 0.4 * Math.max(tod.lamps, (Math.floor(f / 20) % 6 ? 1 : 0.4));
-  R(-60, T + 154, 120, 48, INK); R(-58, T + 156, 116, 44, '#2A0A0A');
-  R(-55, T + 159, 110, 38, mix('#4A0E0E', '#991B1B', glow)); R(-55, T + 159, 110, 3, mix('#5A1414', '#B91C1C', glow));
+  const SL = -45, SR = 45, ST = T + 152, SB = T + 206;
+  // (the horns)
+  P([[SL + 2, ST + 1], [SL - 3, ST - 12], [SL + 11, ST + 1]], INK); P([[SL + 4, ST], [SL - 1, ST - 9], [SL + 9, ST]], '#B91C1C');
+  P([[SR - 2, ST + 1], [SR + 3, ST - 12], [SR - 11, ST + 1]], INK); P([[SR - 4, ST], [SR + 1, ST - 9], [SR - 9, ST]], '#B91C1C');
+  // (the board: inked, a dark frame, the red panel banded lit at its top, dark at its foot)
+  R(SL - 2, ST - 2, SR - SL + 4, SB - ST + 4, INK);
+  R(SL, ST, SR - SL, SB - ST, '#1A0606');
+  R(SL + 4, ST + 4, SR - SL - 8, SB - ST - 8, mix('#3A0A0A', '#7F1D1D', glow));
+  R(SL + 4, ST + 4, SR - SL - 8, 4, mix('#5A1010', '#B91C1C', glow));
+  R(SL + 4, SB - 9, SR - SL - 8, 5, mix('#2A0606', '#5A1010', glow));
+  // (the bulbs round it, chasing: every third lit)
+  const chase = Math.floor(f / 6);
+  let n = 0;
+  const bulb = (x: number, y: number) => { const on = (n++ + chase) % 3 === 0; R(x - 1, y - 1, 2, 2, on ? mix('#C8A050', '#FDE68A', glow) : '#4A2A10'); };
+  for (let x = SL + 2; x <= SR - 2; x += 6) bulb(x, ST + 2);
+  for (let y = ST + 8; y <= SB - 2; y += 6) bulb(SR - 2, y);
+  for (let x = SR - 8; x >= SL + 2; x -= 6) bulb(x, SB - 2);
+  for (let y = SB - 8; y >= ST + 8; y -= 6) bulb(SL + 2, y);
   c.save(); c.translate(Math.round(tx), Math.round(base)); c.scale(ts, ts);
-  c.font = '8px "Press Start 2P"'; c.textAlign = 'center';
-  c.fillStyle = '#3A0808'; c.fillText('ELEVATOR', 1, T + 176); c.fillText('TO HELL', 1, T + 191);
-  c.fillStyle = mix('#C88A8A', '#FECACA', glow); c.fillText('ELEVATOR', 0, T + 175); c.fillText('TO HELL', 0, T + 190);
+  c.textAlign = 'center';
+  c.font = '6px "Press Start 2P"';
+  c.fillStyle = INK; c.fillText('ELEVATOR', 1, T + 170);
+  c.fillStyle = mix('#C8A050', '#FDE68A', glow); c.fillText('ELEVATOR', 0, T + 169);
+  c.font = '11px "Press Start 2P"';
+  c.fillStyle = INK; c.fillText('TO HELL', 1, T + 191); c.fillText('TO HELL', 0, T + 192);
+  c.fillStyle = mix('#D8B0B0', '#FFF1F1', glow); c.fillText('TO HELL', 0, T + 190);
   c.textAlign = 'left'; c.restore();
   // The track up its right side (its rungs), and the car: up slow, a moment at the top, then the drop
   R(50, T + 78, 10, -T - 78, INK); R(51, T + 80, 8, -T - 80, '#18121F'); R(51, T + 80, 2, -T - 80, '#2E2440');

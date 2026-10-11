@@ -426,9 +426,11 @@ const drawTrain = (c: Ctx, state: GameState, v: View) => {
     if (withSkull) skull(x - w / 2 - 12, GY - h);
   };
   // (clear of where the train docks at each station: it'd cover them)
-  lowSign(a - 320, 'BOTTOMLESS PIT. NO, REALLY.', '#450A0A', '#FECACA', 7, true);
+  lowSign(X(TRAIN.a) - 290, 'BOTTOMLESS PIT. NO, REALLY.', '#450A0A', '#FECACA', 7, true);
   lowSign(X(TRAIN.a) - 75, 'PLEASE STAY ON THE TRAIN', '#1C1917', '#FDE68A', 6, false, 28);
-  lowSign(X(TRAIN.b) + TRAIN.len + 80, 'DROP TIME: ETERNITY', '#450A0A', '#FECACA', 7, true);
+  // (the far side's crowded with the station and the drop tower: this one up on a tall post over the far lip, clear of
+  // the train when it's in)
+  lowSign(b + 95, 'DROP TIME: ETERNITY', '#450A0A', '#FECACA', 7, true, 150);
   // (the cheap rope barriers, along both lips behind the track: two brass stanchions, the rope sagging, its DANGER tag)
   for (const [ex, s] of [[a, -1], [b, 1]] as const) {
     const r0 = ex + s * 4, r1 = ex + s * 70;
