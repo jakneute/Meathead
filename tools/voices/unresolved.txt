@@ -52,9 +52,9 @@ m2/spooky/control/index.ts:84 voice: pick(lines[dressed(state)])
 m2/spooky/control/shop.ts:235 voice: true
 m2/spooky/control/shop.ts:242 voice: voice('m2.donnie')
 m2/spooky/control/doors.ts:66 voice: pick(L.DONNIE_LOCKED[dressed(state)])
-m2/spooky/ballroom/fight.ts:204 voice: voice('m2.donnie')
-m2/spooky/ballroom/fight.ts:214 voice: pick(lines[pants()])
-m2/spooky/ballroom/fight.ts:516 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
+m2/spooky/ballroom/fight.ts:208 voice: voice('m2.donnie')
+m2/spooky/ballroom/fight.ts:218 voice: pick(lines[pants()])
+m2/spooky/ballroom/fight.ts:520 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
 m1/App.tsx:241 voice: getBossVoice(selectedStage)
 m1/App.tsx:468 name: undefined
 m1/App.tsx:469 expr: null

@@ -19831,6 +19831,11 @@
  },
  {
   "voice": "meathead",
+  "text": "COME ON, BAG. GIVE ME SOMETHING HOLY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "COME OUT FROM BEHIND THAT THING AND FIGHT!",
   "from": "HAZARD_HURT"
  },
@@ -21878,6 +21883,11 @@
   "voice": "meathead",
   "text": "HE JUST DUCKS. CLOSER. GET CLOSER.",
   "from": "m1/game/stages/dale/town.ts:574"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE JUST SHRUGGED THAT OFF. THERE MUST BE SOMETHING IN THIS BAG HE HATES.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -24473,6 +24483,11 @@
   "voice": "meathead",
   "text": "LITTLE DRAGON DOWN!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LITTLE EIFFEL TOWER, NOTHING. LITTLE PYRAMID, NOTHING. THERE MUST BE SOMETHING IN HERE THAT WORKS.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -29551,6 +29566,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THERE'S GOTTA BE SOMETHING IN HERE THAT WORKS ON A VAMPIRE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "THERE'S MORE?! WHERE IS IT ALL COMING FROM?!",
   "from": "M2_GUT_LINES"
  },
@@ -30368,6 +30388,11 @@
   "voice": "meathead",
   "text": "WHAT ARE THEY FEEDING THIS GUY?! I WANT SOME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT DO VAMPIRES HATE? GARLIC? CROSSES? I'VE GOT A WHOLE BAG OF JUNK HERE. ONE OF THESE HAS TO DO IT.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
