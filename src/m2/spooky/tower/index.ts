@@ -53,7 +53,7 @@ import { newRide, runRide, lampOn, upCar, loadedCar, type Ride, type Car } from 
 import { drawTowerBackdrop, drawTowerBack } from './art';
 import {
   x0, x1, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, TX0, TX1, U, WALL, SH0, SH1, SHM, SHX, SHU, SHD, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
-  HELL_AT, LEDGES, CHUTE_LEDGES, BEAMS, beamTop, WHOLE, WRECK, JAMS, pieceY, floorAt, CUCKOOS, FOES, DESCENT_FOES, SECURITY, PICKUPS, CAR_TOP,
+  HELL_AT, LEDGES, SHELF, CHUTE_LEDGES, BEAMS, beamTop, WHOLE, WRECK, JAMS, pieceY, floorAt, CUCKOOS, FOES, DESCENT_FOES, SECURITY, PICKUPS, CAR_TOP,
   LIFT, liftY, ROTTEN, TORN_NET, LADDER_SPOTS, type TowerFoe, type FoeAt, type Piece,
 } from './layout';
 import {
@@ -100,6 +100,8 @@ interface Tower {
   blinded: Set<Enemy>;
   /** Diving down a shaft into hell (the cinematic): which shaft's middle. */
   dive?: { x: number };
+  /** After the crash: out of his hands, he walks to the shaft's edge and jumps in (frames in). */
+  auto?: number;
   /** The car whose riders are saying something. */
   riderCar?: Car;
   /** He's seen a car go first thing in the tower (one sent up the shaft as he comes in). */
@@ -281,6 +283,8 @@ const breakB1 = (state: GameState, t: Tower, quiet = false) => {
 const afterCrash = (state: GameState, t: Tower, quiet: boolean) => {
   for (let k = 1; k <= STORIES; k++) wreckFloor(state, t, k, quiet);
   breakGrate(state, t, quiet); breakB1(state, t, quiet);
+  // (the shelf out over the UP shaft goes with the rest: nothing between the top and hell)
+  state.blocks = state.blocks.filter(b => !(b.x === SHELF[0] && b.y === SHELF[1]));
   t.crashed = true;
   // (a car being unloaded in the ride's hell as its floor goes: down the hole with the rest)
   for (const c of t.ride.cars) if (c.phase === 'unload' || c.phase === 'return') { c.phase = 'drop'; c.real = true; c.vy = 2; c.t = 0; if (!c.riders.length) c.riders = []; }
@@ -302,6 +306,24 @@ const endCrash = (state: GameState, t: Tower, skipped: boolean) => {
   kept.crashed = true;
   t.talk.q.length = 0;
   meatheadSays(state, pick(MEATHEAD_CRASH));
+  t.auto = 0;
+};
+
+/** After the crash, up top: out of his hands, a beat, then over to the edge of the nearer shaft and in (the dive takes
+ *  it from there). */
+const runAuto = (state: GameState, t: Tower): Controls => {
+  const p = state.player, cx = p.pos.x + p.width / 2;
+  p.inCutscene = true;
+  const n = ++t.auto!;
+  const out = { ...hands() } as Controls;
+  if (n < 50) return out;
+  // (stuck somehow: straight into the middle of the nearer shaft)
+  if (n > 360) { p.pos.x = (cx < SHX ? SHU : SHD) - p.width / 2; p.vel.x = 0; return out; }
+  const dir = cx < SH0 ? 1 : cx > SH1 ? -1 : 0;
+  if (dir > 0) out.right = true; else if (dir < 0) out.left = true;
+  const edge = dir > 0 ? SH0 - cx : dir < 0 ? cx - SH1 : 0;
+  if (dir === 0 || (edge < 70 && p.isGrounded)) out.jump = p.isGrounded;
+  return out;
 };
 
 const camX = (x: number) => Math.max(TX0 - WALL, Math.min(TX1 + 60 - CANVAS_WIDTH, x - CANVAS_WIDTH / 2));
@@ -529,7 +551,11 @@ export const tower: SpookySection = {
       const before = beamsBefore(cp);
       BEAMS.forEach((_, i) => { if (i < before || kept.beams[i]) { kept.beams[i] = true; t.beamHp[i] = 0; state.blocks = state.blocks.filter(b => b.tag !== BEAM(i)); } });
       ROTTEN.boards.forEach((_, i) => { if (kept.rot[i]) { t.rot[i] = -1; state.blocks = state.blocks.filter(b => b.tag !== `tw-rot-${i}`); } });
-      if (cp >= 45 || kept.crashed) { kept.crashed = true; afterCrash(state, t, true); t.leftTop = cp >= 46; }
+      if (cp >= 45 || kept.crashed) {
+        kept.crashed = true; afterCrash(state, t, true); t.leftTop = cp >= 46;
+        // (back up top after it: straight over and in again)
+        if (feet < TOP + 40) t.auto = 0;
+      }
     }
     where.feet = feet; where.crashed = t.crashed; where.live = true;
     t.age++;
@@ -556,6 +582,7 @@ export const tower: SpookySection = {
     });
     t.ride.cars = t.ride.cars.filter(c => !(c.crash && c.y > HELL_AT + 500));
     if (t.crash) return runCrash(ctx, t);
+    if (t.auto !== undefined && t.dive) t.auto = undefined;
     // The way back to the hallway
     runExits(state, [{ x0: x0 - 40, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.dungeon.end }]);
     runBay(state, t);
@@ -620,6 +647,7 @@ export const tower: SpookySection = {
       p.vel.y = Math.max(8, vy);
       return hands();
     }
+    if (t.auto !== undefined && !t.dive) return runAuto(state, t);
     return t.dive ? hands() : controls;
   },
   cameraX: () => ({ min: x0, max: TX1 + 60 - CANVAS_WIDTH }),

@@ -93,8 +93,9 @@ export const liftY = (frame: number) => LIFT.bottom + (LIFT.top - LIFT.bottom) *
 export const ROTTEN = { k: 5, boards: [[150, 215], [215, 280], [280, 350], [350, 420]] as [number, number][] };
 /** Floor 4's net's torn out: a gap over the shaft (jump it; miss it and it's floor 3 again). */
 export const TORN_NET = 4;
-/** The shaft jammed with wreckage at these floors, after (the car's torn-off roof, girders across): stand on them. */
-export const JAMS = [1, 2, 5];
+/** The shaft jammed with wreckage at these floors, after: none (the user's call: after the crash it's a straight drop,
+ *  top to hell, both shafts). */
+export const JAMS: number[] = [];
 /** A slab piece's floor height at u (world y). */
 export const pieceY = (k: number, p: Piece, u: number) => F(k) + p[2] + (p[3] - p[2]) * Math.max(0, Math.min(1, (u - p[0]) / (p[1] - p[0])));
 /** Where to stand an enemy on floor k at u (the slab's top there, wrecked or whole). */
@@ -116,8 +117,9 @@ for (let k = 0; k < STORIES; k++) {
   if (upRight(k)) LEDGES.push([U(750), f - 105, 120], [U(920), f - 200, 140], [U(1035), f - 290, 120]);
   else LEDGES.push([U(290), f - 105, 120], [U(100), f - 200, 140], [U(5), f - 290, 120]);
 }
-// floor 1: a shelf out over the shaft (a long jump from the middle ledge: ammo on it)
-LEDGES.push([U(440), F(1) - 240, 120]);
+// floor 1: a shelf out over the shaft (a long jump from the middle ledge: ammo on it); gone in the crash (SHELF)
+export const SHELF: [number, number, number] = [U(440), F(1) - 240, 120];
+LEDGES.push(SHELF);
 // the clock room: up to the bell's gallery, and a ledge over the way in
 export const GALLERY: [number, number, number] = [U(860), TOP - 230, 290];
 LEDGES.push([U(760), TOP - 115, 100], GALLERY, [U(40), TOP - 150, 200]);
