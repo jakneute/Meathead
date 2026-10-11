@@ -242,10 +242,7 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo', boolean][]
   [500, F(1) - 240, 'small_ammo', false],
   // floor 2: right under the pendulum's swing
   [320, F(2), 'small_health', false],
-  // floor 4: on the ledge left of the shaft, across from the climb (after: the way through the floors, not the shaft)
-  [375, F(4), 'small_health', true],
-  // the chute: on a shelf
-  [800, GY + 760, 'small_health', true],
+  // (none after the crash: from then on it's straight down a shaft, out of his hands, nothing within reach)
 ];
 
 /** The car: how high it goes (its floor, at the top: in the clock room), where it hangs. */
