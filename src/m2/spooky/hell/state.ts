@@ -20,10 +20,12 @@ export interface Hell {
   carIn: number; car: Car | null; piled: number[];
   /** Coming down the pit: falling hard (for the landing), landed already, said his bit about the lava, the car. */
   falling: boolean; landed: boolean; lavaSaid: boolean; carSaid: boolean;
+  /** Landed from the shaft: frames of the landing beat left (still not his till it's done). */
+  landBeat: number;
   demon: Demon | null;
   fin: Finale | null;
 }
 
 export const hellOf = (state: GameState) => spookyState<Hell>(state, 'hell', () => ({
-  shots: [], crumbles: [], carIn: 900, car: null, piled: [], falling: false, landed: false, lavaSaid: false, carSaid: false, demon: null, fin: null,
+  shots: [], crumbles: [], carIn: 900, car: null, piled: [], falling: false, landed: false, landBeat: 0, lavaSaid: false, carSaid: false, demon: null, fin: null,
 }));

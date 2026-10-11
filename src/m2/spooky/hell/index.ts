@@ -9,19 +9,20 @@
 // No costumed park staff here: it's the real thing. Laid out in layout.ts; drawn in art.ts (crude first pass).
 //
 // The way back: from the control room he comes back down by the vent (DOORS.hell.end); back through the pit (the
-// demon's gone, his fork's still stuck in the floor, the wreck's piled higher), and up the STAIRS in the pit's rock to
-// the top of the clock tower (DOORS.tower.end).
+// demon's gone, his fork's still stuck in the floor, the wreck's piled higher), and that's as far back as hell goes:
+// there's no way up out of the pit (hell's one way, on).
 
+import { pickLine } from '../../../m1/game/platform/speech';
 import type { SpookySection } from '../section';
 import type { EnemyKind } from '../../../m1/types';
-import { layOwn, solid, ledge, endWalls, teleport, meatheadSays } from '../section';
-import { DOORS, GY } from '../geometry';
+import { layOwn, solid, ledge, endWalls, meatheadSays, hands } from '../section';
+import { GY } from '../geometry';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import {
-  x0, x1, D, SHAFT_L, SHAFT_R, SHAFT_TOP, LEFT_ROCK_BOTTOM, RIGHT_ROCK_BOTTOM, RIGHT_ROCK_W, STAIRS_X, POOLS, LAVA_DROP, ROCKS, LEDGES,
+  x0, x1, D, SHAFT_L, SHAFT_R, SHAFT_TOP, LEFT_ROCK_BOTTOM, RIGHT_ROCK_BOTTOM, RIGHT_ROCK_W, POOLS, LAVA_DROP, ROCKS, LEDGES,
   REFILL_X, VENT_X, WRECK_X, CAB_W, CAB_H, PICKUPS, WRECK_B_X, CAB_B_W, CAB_B_H,
 } from './layout';
 import { hellOf } from './state';
@@ -34,7 +35,9 @@ import { MH_LANDED, MH_BODIES, MH_LAVA } from './lines';
 
 /** The pit's camera: held at most this far in, till he's this far along. */
 const PIT_CAM = 190, PIT_HOLD = 880;
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+/** The landing beat after the fall down the shaft (frames) before he's his own again. */
+const LAND_BEAT = 42;
+const pick = pickLine;
 
 /** Who's where: [kind, x, the floor under it (or, flying, how high)]. Each kind on its own first, where its type
  *  works (the thrower up on a rock, the rushers on a long run, the flyers over the lava), then mixed. */
@@ -101,17 +104,24 @@ export const hell: SpookySection = {
     const fin = runFinale(ctx);
     if (fin) return fin;
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
-    // Down the shaft: the landing (hard: a crunch, a shake; his bit about it, and about the bodies)
-    // (coming down either shaft: nothing's dropping on him as he lands; the next car's a while off, and warns as ever)
-    if (!h.landed && cx < SHAFT_R && p.vel.y > 14) { if (!h.falling) { h.car = null; h.carIn = Math.max(h.carIn, 900); } h.falling = true; }
-    if (h.falling && p.isGrounded) {
-      h.falling = false; h.landed = true;
+    // Down the shaft (either one): the fall's not his (a cutscene: no HUD, no controls, nothing hurts him) till he's
+    // down and the landing's done (hard: a crunch, a shake, the dust; his bit about it, and about the bodies). Nothing's
+    // dropping on him as he lands either: the next car's a while off, and warns as ever.
+    if (!h.landed && !h.falling && cx > SHAFT_L && cx < SHAFT_R && feet < GY - 600) { h.falling = true; h.car = null; h.carIn = Math.max(h.carIn, 900); }
+    if (h.falling || h.landBeat > 0) {
+      p.inCutscene = true; p.invincibilityTimer = Math.max(p.invincibilityTimer, 30); p.vel.x = 0;
+      p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false;
+      if (h.landBeat > 0 && --h.landBeat === 0) p.inCutscene = false;
+    }
+    if (h.falling && p.isGrounded && feet > GY - 140) {
+      h.falling = false; h.landed = true; h.landBeat = LAND_BEAT;
       playSound('land', 1); playSound('thud', 1, -8); playSound('splat', 0.7, -4); shakeScreen(state, 14, 6);
       for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: cx, y: GY - 2 }, vel: { x: (Math.random() - 0.5) * 10, y: -1 - Math.random() * 4 }, life: 30, color: i % 2 ? '#78350F' : '#7F1D1D', size: 4 + Math.random() * 5, grav: 0.3 });
       meatheadSays(state, pick(MH_LANDED), true);
       meatheadSays(state, pick(MH_BODIES), true);
     }
     // (the first lava: he's got something to say about it)
+    if (h.falling || h.landBeat > 0) return hands();
     if (!h.lavaSaid && cx > POOLS[0][0] - 380 && cx < POOLS[0][0]) { h.lavaSaid = true; meatheadSays(state, pick(MH_LAVA), false); }
     updateHazards(ctx, h);
     // The demon; beaten, the cutscene
@@ -121,7 +131,6 @@ export const hell: SpookySection = {
     if (wasOn && d?.fight === 'beaten') { startFinale(state); return runFinale(ctx) ?? controls; }
     // The ways out: the stairs up (to the top of the clock tower), the vent (up to the control room, once he's beaten)
     if (p.health > 0 && p.isGrounded && feet > GY - 4) {
-      if (cx < STAIRS_X + 40) { teleport(state, DOORS.tower.end.x, DOORS.tower.end.y); p.facing = -1; return controls; }
       // (walking on to it, rightward: going back the other way, he walks over it)
       if ((!d || d.fight === 'gone') && Math.abs(cx - VENT_X) < 30 && p.vel.x > 0.5) { startVent(state); return runFinale(ctx) ?? controls; }
     }
@@ -131,7 +140,7 @@ export const hell: SpookySection = {
   // camera takes up following him again, smoothly)
   cameraX: (state) => {
     const cx = state.player.pos.x + state.player.width / 2;
-    return { min: x0, max: Math.max(x0 + PIT_CAM, Math.min(x1 - CANVAS_WIDTH, x0 + PIT_CAM + (cx - (x0 + PIT_HOLD)))) };
+    return { min: x0, max: Math.max(x0 + PIT_CAM, Math.min(x1 - CANVAS_WIDTH, x0 + PIT_CAM + 2 * (cx - (x0 + PIT_HOLD)))) };
   },
   zoom: (state) => finaleZoom(state),
   drawBackdrop: (c, state) => { drawHellBackdrop(c, state); return true; },

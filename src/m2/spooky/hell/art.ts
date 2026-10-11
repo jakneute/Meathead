@@ -10,7 +10,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { box, postSign, wallSign } from '../section';
 import { GY } from '../geometry';
 import {
-  x0, x1, SHAFT_L, SHAFT_R, SHAFT_TOP, LEFT_ROCK_BOTTOM, RIGHT_ROCK_BOTTOM, RIGHT_ROCK_W, WRECK_X, WRECK_B_X, STAIRS_X, POOLS, ROCKS, LEDGES,
+  x0, x1, SHAFT_L, SHAFT_R, SHAFT_TOP, LEFT_ROCK_BOTTOM, RIGHT_ROCK_BOTTOM, RIGHT_ROCK_W, WRECK_X, WRECK_B_X, POOLS, ROCKS, LEDGES,
   REFILL_X, ARENA_IN, VENT_X, LAVA_DROP, CAGES, BONES,
 } from './layout';
 import { drawWreckedCar } from './hazards';
@@ -193,15 +193,12 @@ export const drawHellWorld = (c: Ctx, state: GameState, o: { extraWreck: boolean
       box(c, a, SHAFT_TOP, b - a, bot - SHAFT_TOP, '#170804');
       box(c, a === SHAFT_R ? a : b - 10, SHAFT_TOP, 10, bot - SHAFT_TOP, '#3B1408');
       // (its underside: jagged, dark)
-      c.fillStyle = '#170804'; c.beginPath(); c.moveTo(a, bot);
-      for (let x = a; x <= b; x += 24) c.lineTo(x + 12, bot + 8 + hash(x) * 14);
-      c.lineTo(b, bot); c.fill();
+      if (bot < GY) { c.fillStyle = '#170804'; c.beginPath(); c.moveTo(a, bot);
+        for (let x = a; x <= b; x += 24) c.lineTo(x + 12, bot + 8 + hash(x) * 14);
+        c.lineTo(b, bot); c.fill();
+      }
       for (let y = SHAFT_TOP + 60; y < bot - 40; y += 120) box(c, a + 20 + hash(y + a) * (b - a - 60), y, 30, 4, '#2A0F06');
     }
-    // (the stairs back up: a doorway in the rock, steps going up into it, its sign on the rock over it)
-    box(c, x0 - 10, LEFT_ROCK_BOTTOM, STAIRS_X + 60 - x0, GY - LEFT_ROCK_BOTTOM, '#060202');
-    for (let i = 0; i < 6; i++) { box(c, x0 + i * 14, GY - 12 - i * 26, 60, 6, '#57534E'); box(c, x0 + i * 14, GY - 12 - i * 26, 60, 2, '#A8A29E'); }
-    wallSign(c, STAIRS_X + 20, LEFT_ROCK_BOTTOM - 26, 'STAIRS UP', '#3F3F46', '#FDE68A');
   }
   // The floor, all but the pools
   let from = x0 - 200;

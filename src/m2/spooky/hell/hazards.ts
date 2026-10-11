@@ -3,6 +3,7 @@
 // rhythm to learn), the imps' fireballs, and the elevator cars still coming down the shaft into the pit (a shadow and
 // a creak first). Plus anything that isn't flying that ends up in the lava: cooked.
 
+import { pickLine } from '../../../m1/game/platform/speech';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Rect } from '../../../m1/types';
@@ -23,7 +24,7 @@ import { overLava, IMP_FIRE } from './kinds';
 import { HURT_LAVA, DEATH_LAVA, HURT_JET, DEATH_JET, HURT_CAR, DEATH_CAR, MH_CAR } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
-const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
+const pick = pickLine;
 
 export const LAVA = 'm2:hell_lava', JET = 'm2:hell_jet', CAR = 'm2:hell_car';
 const LAVA_DMG = 16, LAVA_LAUNCH = 13, JET_DMG = 18, FIREBALL_DMG = 12, CAR_DMG = 30;

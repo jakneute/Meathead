@@ -5,7 +5,7 @@
 //   the pit       D+0..1300     he lands at the bottom of the shaft from the top of the clock tower. The wrecked car
 //                               (stand on its roof: up from there to a ledge on the shaft wall, ammo on it) and its
 //                               riders in bits all over. The ride's still boarding: now and then another car comes down
-//                               the shaft (a shadow and a creak first). The STAIRS UP back to the tower in the left rock.
+//                               the shaft (a shadow and a creak first). No way back up: hell's one way, on.
 //   the bone yard D+1300..2400  a rest, then the imp: one on a low rock (a thrower, up off the floor), then one higher
 //                               (ammo on its rock for getting up there).
 //   the hound run D+2400..3400  a long flat run for the rushers: one hound, then two; a rock step in the middle of it to
@@ -31,7 +31,7 @@ export const SHAFT_L = D + 150, SHAFT_R = D + 950, SHAFT_TOP = GY - 2600;
 /** Where he comes in from the top of the clock tower (feet, in the air over the pit). */
 export const DROP_IN = { x: D + 560, y: GY - 1500 };
 /** The rock over the pit's ways out: low over the tunnel up (left), and the overhang he walks out under (right). */
-export const LEFT_ROCK_BOTTOM = GY - 190, RIGHT_ROCK_BOTTOM = GY - 260, RIGHT_ROCK_W = 320;
+export const LEFT_ROCK_BOTTOM = GY, RIGHT_ROCK_BOTTOM = GY - 260, RIGHT_ROCK_W = 320;
 /** The wrecked car (its middle), and the way back up to the clock tower (walk into it). */
 export const WRECK_X = D + 400;
 /** The wreck's cab (solid: stand on its roof), and the ledge on the shaft wall up from it. */
@@ -41,7 +41,6 @@ export const CAB_W = 112, CAB_H = 124;
 export const WRECK_B_X = D + 270, CAB_B_W = 126, CAB_B_H = 112;
 /** Where he can come down the shafts (anywhere in here's clear of both wrecks, both in view). */
 export const LANDING = { x0: D + 500, x1: D + 900 };
-export const STAIRS_X = D + 70;
 
 /** Lava pools: [from, to] (the lava's a little under the ground). */
 export const LAVA_DROP = 40;
