@@ -88,7 +88,7 @@ const DRAIN_EVERY = 18, DRAIN_DMG = 5, DRAIN_HEAL = 5, DRAIN_MAX = 150, ESCAPE_P
 const GUEST_EVERY = [0, 640, 520, 420], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 3;
 /** The spew: the aim first, then the stream (by phase), a drop every so often, how hard, how fast; how fast his aim
  *  can follow Meathead (px a frame: about his walk, so standing still or walking straight away gets you hosed). */
-const SPEW_AIM = 34, SPEW_T = [0, 99, 120, 144], SPEW_EVERY = 3, BLOOD_DMG = 3, BLOOD_SPEED = 8.5, AIM_FOLLOW = 3.2;
+const SPEW_AIM = 34, SPEW_T = [0, 99, 120, 144], SPEW_EVERY = 3, BLOOD_DMG = 18, BLOOD_SPEED = 8.5, AIM_FOLLOW = 3.2;
 /** The spray: drops a go, how wide the cone (radians either side of the aim), how big a drop's hit is (px about it). */
 const SPRAY_N = 2, SPRAY_CONE = 0.13, DROP_HIT = 5;
 /** The stream comes in bursts: this many frames on, this many off. */
