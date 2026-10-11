@@ -5,7 +5,7 @@
 //            walks at him, winds up, jabs.
 //   HAWKER   behind the merchandise, keeping his distance: lobs I SURVIVED HELL snow globes at him in an arc.
 //   MASCOT   the bruiser: slow, heavy, a lot of health; winds up (arms up, the foam head wobbling) and belly-bumps.
-// Men and women, every look, by seed (temple/people.ts drawPerson). First pass: crude, but each a person.
+// Men and women, every look, by seed (the one person drawer: costume.ts).
 
 import type { Enemy } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -16,7 +16,9 @@ import { say, pickLine } from '../../../m1/game/platform/speech';
 import { hazardVictims, hazardHit } from '../../hazardHit';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
-import { drawPerson, lookOf } from '../../adventure/temple/people';
+import { lookOf } from '../../adventure/temple/people';
+import { moodOf, type Pose } from '../costume';
+import { drawShopStaff, drawMascotCostume, globe } from '../wardrobe';
 import { voice, saidOver } from '../section';
 import { GY } from '../geometry';
 import * as L from './lines';
@@ -103,17 +105,7 @@ export const drawGlobes = (c: Ctx) => {
   for (const gl of globes) drawGlobe(c, gl.x, gl.y, gl.spin);
 };
 /** An I SURVIVED HELL snow globe: a black base, the dome, orange glitter in it. */
-const drawGlobe = (c: Ctx, x: number, y: number, spin: number) => {
-  c.save(); c.translate(Math.round(x), Math.round(y)); c.rotate(spin);
-  c.fillStyle = '#1A0B06'; c.fillRect(-6, 2, 12, 5);
-  c.fillStyle = '#7F1D1D'; c.fillRect(-5, 3, 10, 3);
-  c.fillStyle = '#1A0B06'; c.beginPath(); c.arc(0, -2, 6.5, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#BAE6FD'; c.beginPath(); c.arc(0, -2, 5.5, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#DC2626'; c.fillRect(-2, -3, 4, 5);
-  c.fillStyle = '#F97316'; for (let i = 0; i < 5; i++) c.fillRect(-4 + ((i * 3.3) % 8), -6 + ((i * 2.1) % 6), 1, 1);
-  c.fillStyle = '#FFFFFF'; c.fillRect(-3, -6, 2, 2);
-  c.restore();
-};
+const drawGlobe = (c: Ctx, x: number, y: number, spin: number) => globe(c, x, y, spin);
 
 // ---------------------------------------------------------------------------------------------------------------
 // The AI: up to him along the floor (no hopping: the shop's flat), and their own go at him
@@ -206,64 +198,24 @@ const mascotAI = (ctx: FrameContext, e: Enemy): boolean => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The look (crude)
+// The look: their own clothes under the shop's red vest and devil horns (wardrobe.ts, on the one person drawer every
+// costumed enemy in Spooky Land is: costume.ts)
 
-/** The headband: two red plastic horns on a black band, a little crooked. */
-const horns = (c: Ctx, y: number) => {
-  c.fillStyle = '#18181B'; c.fillRect(-8, y + 1, 18, 2);
-  for (const hx of [-4, 5]) {
-    c.fillStyle = '#1A0B06'; c.beginPath(); c.moveTo(hx - 3, y + 2); c.quadraticCurveTo(hx - 2, y - 6, hx + 2, y - 9); c.quadraticCurveTo(hx, y - 3, hx + 3, y + 2); c.closePath(); c.fill();
-    c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(hx - 2, y + 1.5); c.quadraticCurveTo(hx - 1.4, y - 5, hx + 1.6, y - 7.4); c.quadraticCurveTo(hx, y - 3, hx + 2, y + 1.5); c.closePath(); c.fill();
-    c.fillStyle = '#FCA5A5'; c.fillRect(hx - 1.2, y - 2, 1, 2);
-  }
-};
-/** The vest over their shirt: red, a name tag on it. */
-const vest = (c: Ctx, heavy: boolean) => {
-  const w = heavy ? 26 : 20;
-  c.fillStyle = '#1A0B06'; c.fillRect(-w / 2 + 1, -56, w - 2, 26);
-  c.fillStyle = '#B91C1C'; c.fillRect(-w / 2 + 2, -55, w - 4, 24);
-  c.fillStyle = '#7F1D1D'; c.fillRect(-1, -55, 2, 24);
-  c.fillStyle = '#F8FAFC'; c.fillRect(2, -50, 6, 4); c.fillStyle = '#1A0B06'; c.fillRect(3, -48.5, 4, 1);
-};
-/** A souvenir pitchfork: plastic-handled, but the tines are real enough. */
-const pitchfork = (c: Ctx, e: Enemy) => {
-  const a = e.aiState === 'windup' ? -0.35 : e.aiState === 'jab' ? 0 : -0.15;
-  const out = e.aiState === 'jab' && (e.aiTimer ?? 0) < 10 ? 10 : e.aiState === 'windup' ? -6 : 0;
-  c.save(); c.translate(6 + out, -44); c.rotate(a);
-  c.fillStyle = '#1A0B06'; c.fillRect(-10, -2, 44, 4);
-  c.fillStyle = '#991B1B'; c.fillRect(-9, -1, 42, 2);
-  c.fillStyle = '#1A0B06'; c.fillRect(33, -6, 3, 12);
-  for (const ty of [-6, -1, 4]) { c.fillStyle = '#1A0B06'; c.fillRect(34, ty - 0.5, 10, 3); c.fillStyle = '#D4D4D8'; c.fillRect(35, ty, 9, 2); }
-  c.restore();
-};
+const posed = (e: Enemy): Pose => (e.aiState === 'windup' ? 'tell' : e.aiState === 'jab' || e.aiState === 'bump' ? 'strike' : Math.abs(e.vel.x) > 0.3 ? 'walk' : 'stand');
 
 registerM2Kind({
   kind: CLERK, stats: { w: 38, h: 66, hp: 90, contact: 9, mass: 200 }, ai: clerkAI, humanoid: true, grab: 'body',
   pointy: { source: PITCHFORK, label: 'FORKED!' },
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -64, r: 9 },
-  draw: (c, e, f) => {
-    const pose = e.aiState === 'jab' ? 'thrust' : Math.abs(e.vel.x) > 0.3 ? 'walk' : 'stand';
-    const look = drawPerson(c, { seed: seedOf(e), outfit: 'guest', f, pose, mood: 'angry' });
-    vest(c, look.heavy);
-    horns(c, -78);
-    pitchfork(c, e);
-  },
+  draw: (c, e, f) => drawShopStaff(c, 'clerk', { seed: seedOf(e), f, pose: e.aiState === 'jab' && (e.aiTimer ?? 0) >= 10 ? 'stand' : posed(e), md: moodOf(e) }),
 });
 
 registerM2Kind({
   kind: HAWKER, stats: { w: 38, h: 66, hp: 70, contact: 6, mass: 200 }, ai: hawkerAI, humanoid: true, grab: 'body',
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -64, r: 9 },
-  draw: (c, e, f) => {
-    const windup = e.aiState === 'windup';
-    const look = drawPerson(c, { seed: seedOf(e), outfit: 'guest', f, pose: windup ? 'fly' : Math.abs(e.vel.x) > 0.3 ? 'walk' : 'stand', mood: 'angry' });
-    vest(c, look.heavy);
-    horns(c, -78);
-    // (the next globe, in hand, up over his head in the windup; a crate of them at his feet otherwise)
-    if (windup && (e.aiTimer ?? 0) < 18) drawGlobe(c, 14, -74, 0);
-    else { c.fillStyle = '#1A0B06'; c.fillRect(-26, -16, 18, 16); c.fillStyle = '#A16207'; c.fillRect(-25, -15, 16, 14); c.fillStyle = '#BAE6FD'; c.fillRect(-22, -18, 4, 3); c.fillRect(-16, -18, 4, 3); }
-  },
+  draw: (c, e, f) => drawShopStaff(c, 'hawker', { seed: seedOf(e), f, pose: posed(e), md: moodOf(e), t: (e.aiTimer ?? 0) / 24 }),
 });
 
 registerM2Kind({
@@ -275,38 +227,4 @@ registerM2Kind({
 
 /** LIL' LUCIFER: a fat red foam devil (a big round body, a foam head with a fixed grin and googly eyes, a tail, felt
  *  horns), somebody's face looking out of the mouth hole, sweating. */
-const drawMascot = (c: Ctx, e: Enemy, f: number) => {
-  const wind = e.aiState === 'windup', bump = e.aiState === 'bump';
-  const step = Math.abs(e.vel.x) > 0.2 ? Math.sin(f * 0.2) * 3 : 0;
-  const lean = bump ? 0.25 : wind ? -0.15 : 0;
-  const L = lookOf(seedOf(e));
-  c.save();
-  // (the legs: stubby, foam feet)
-  for (const s of [-1, 1]) { c.fillStyle = '#1A0B06'; c.fillRect(s * 11 - 7 + s * step, -18, 14, 18); c.fillStyle = '#B91C1C'; c.fillRect(s * 11 - 6 + s * step, -17, 12, 13); c.fillStyle = '#18181B'; c.fillRect(s * 11 - 8 + s * step, -5, 17, 5); }
-  c.rotate(lean);
-  // (the tail, behind)
-  c.strokeStyle = '#1A0B06'; c.lineWidth = 5; c.beginPath(); c.moveTo(-24, -30); c.quadraticCurveTo(-42, -26, -38, -46); c.stroke();
-  c.strokeStyle = '#DC2626'; c.lineWidth = 3; c.stroke();
-  c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(-38, -46); c.lineTo(-44, -54); c.lineTo(-33, -50); c.closePath(); c.fill();
-  // (the body: a big red ball, a lighter belly)
-  c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(0, -40, 30, 26, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#DC2626'; c.beginPath(); c.ellipse(0, -40, 28.5, 24.5, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#B91C1C'; c.beginPath(); c.ellipse(8, -36, 18, 18, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#FCA5A5'; c.beginPath(); c.ellipse(6, -36, 14, 14, 0, 0, Math.PI * 2); c.fill();
-  // (the arms: up for the windup, out for the bump)
-  const ay = wind ? -74 : bump ? -44 : -36, ax = wind ? 20 : bump ? 34 : 28;
-  for (const s of [-1, 1]) { c.strokeStyle = '#1A0B06'; c.lineWidth = 10; c.beginPath(); c.moveTo(s * 22, -50); c.lineTo(s < 0 ? -ax : ax, ay); c.stroke(); c.strokeStyle = '#DC2626'; c.lineWidth = 8; c.stroke(); c.fillStyle = '#18181B'; c.beginPath(); c.arc(s < 0 ? -ax : ax, ay, 5, 0, Math.PI * 2); c.fill(); }
-  // (the foam head, wobbling; the grin; the googly eyes; the mouth hole with a real face in it)
-  const wob = Math.sin(f * (wind ? 0.8 : 0.15)) * (wind ? 0.15 : 0.04);
-  c.save(); c.translate(2, -72); c.rotate(wob);
-  c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(0, 0, 19, 17, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#EF4444'; c.beginPath(); c.ellipse(0, 0, 17.5, 15.5, 0, 0, Math.PI * 2); c.fill();
-  for (const hx of [-10, 10]) { c.fillStyle = '#1A0B06'; c.beginPath(); c.moveTo(hx - 5, -11); c.lineTo(hx + (hx < 0 ? -4 : 4), -24); c.lineTo(hx + 5, -11); c.closePath(); c.fill(); c.fillStyle = '#FDE68A'; c.beginPath(); c.moveTo(hx - 3.5, -11); c.lineTo(hx + (hx < 0 ? -3.5 : 3.5), -21.5); c.lineTo(hx + 3.5, -11); c.closePath(); c.fill(); }
-  for (const [ex, k] of [[-6, 0], [8, 1]] as const) { c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(ex, -5, 5, 0, Math.PI * 2); c.fill(); c.strokeStyle = '#1A0B06'; c.lineWidth = 1; c.stroke(); c.fillStyle = '#000'; c.beginPath(); c.arc(ex + Math.sin(f * 0.3 + k * 2) * 2.4, -5 + Math.cos(f * 0.27 + k) * 2.4, 2, 0, Math.PI * 2); c.fill(); }
-  c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(2, 6, 10, 6, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = L.skin; c.beginPath(); c.ellipse(2, 6.5, 7.5, 4.5, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#1A0B06'; c.fillRect(-1, 5, 2, 1.4); c.fillRect(4, 5, 2, 1.4); c.fillRect(0, 8.6, 5, 1);
-  c.fillStyle = '#7DD3FC'; c.fillRect(7, 3 + ((f % 30) / 30) * 6, 1, 2);
-  c.restore();
-  c.restore();
-};
+const drawMascot = (c: Ctx, e: Enemy, f: number) => drawMascotCostume(c, { seed: seedOf(e), f, pose: posed(e), md: moodOf(e) });

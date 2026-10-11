@@ -11,7 +11,7 @@
 //   batsuit   FLYER:   a rubber bat suit on a stunt rig (the wire up to a trolley on the ceiling): hangs, swoops.
 //   mummy     TANK:    a big one, wrapped in toilet paper; slow, takes a beating, and hits like a truck.
 //   bat       (wildlife: the real thing) flits about, swoops, bites.
-// Feet at the origin, facing right; crude on purpose (the prototype pass).
+// Feet at the origin, facing right.
 
 import type { Enemy, EnemyKind } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -23,7 +23,11 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { BOTTLE_GRAVITY } from '../../../m1/constants';
 import { lookOf } from '../../adventure/temple/people';
-import { type Ctx, INK, dk, lt, rect, dot, head, eyes, mouth, arm } from '../../cast/kit';
+import { INK, moodOf, type Pose } from '../costume';
+import { drawBatArt } from '../critters';
+import { drawSkeletonCostume, drawKnightCostume, drawIgorCostume, drawWitchCostume, drawBrideCostume, drawBatsuitCostume, drawMummyCostume } from '../wardrobe';
+
+type Ctx = CanvasRenderingContext2D;
 import * as L from './lines';
 
 export type Costume = 'skeleton' | 'knight' | 'igor' | 'witch' | 'bride' | 'batsuit' | 'mummy';
@@ -269,139 +273,19 @@ const batAI = (ctx: FrameContext, e: Enemy): boolean => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing them (crude: boxes and the cast kit's faces)
+// Drawing them: the costumes (wardrobe.ts) on the one person drawer (costume.ts), the same characters as the town's
+// and the tower's
 
-type Pose = 'stand' | 'walk' | 'wind' | 'strike' | 'fly';
 const poseOf = (e: Enemy): Pose => {
   const s = e.aiState;
-  if (s === 'wind' || s === 'hiss') return 'wind';
+  if (s === 'wind' || s === 'hiss') return 'tell';
   if (s === 'bash' || s === 'swing' || s === 'thrust' || s === 'slam' || s === 'rush' || s === 'dive') return 'strike';
   return Math.abs(e.vel.x) > 0.3 ? 'walk' : 'stand';
 };
-
-/** One of the cast, in costume, at the origin facing right. `woman` forces it either way. */
-export const drawStaff = (c: Ctx, costume: Costume, seed: number, f: number, pose: Pose, woman?: boolean) => {
-  const Lk = lookOf(seed, woman);
-  const stride = pose === 'walk' ? Math.sin(f * 0.25 + seed) * 4 : 0;
-  const heavy = Lk.heavy || costume === 'mummy';
-  const w = heavy ? 30 : Lk.woman ? 21 : 24, hip = heavy ? 28 : 21;
-  // The costume's colors: [legs, body, sleeves]
-  const C: Record<Costume, [string, string, string]> = {
-    skeleton: ['#18181B', '#18181B', '#18181B'], knight: ['#9CA3AF', '#B91C1C', '#9CA3AF'], igor: ['#57534E', '#78350F', '#78350F'],
-    witch: ['#18181B', '#1F1F2E', '#1F1F2E'], bride: ['#F1F5F9', '#F1F5F9', '#F1F5F9'], batsuit: ['#27272A', '#3F3F46', '#27272A'], mummy: ['#E7E2CF', '#E7E2CF', '#E7E2CF'],
-  };
-  const [legC, bodyC, armC] = C[costume];
-  // the face: their own skin, or the paint
-  const face = costume === 'skeleton' ? '#F5F5F4' : costume === 'witch' ? '#86C98A' : costume === 'bride' ? lt(Lk.skin, 0.55) : costume === 'mummy' ? '#E7E2CF' : Lk.skin;
-  const hunch = costume === 'igor' ? 7 : 0;
-  c.save();
-  // Legs (a long gown or dress over them: the bride, the witch)
-  if (costume === 'bride' || costume === 'witch') {
-    rect(c, -hip / 2 - 4, -32, hip + 8, 30, bodyC, 3);
-    for (const s of [-1, 1]) dot(c, s * 5 - 3 + s * stride * 0.4, -4, 8, 4, INK);
-  } else for (const s of [-1, 1]) {
-    const x = s * 4.5 + s * stride * 0.5 - 3.5;
-    rect(c, x, -30, 7, 27, s < 0 ? dk(legC, 0.15) : legC, 1.5);
-    if (costume === 'skeleton') dot(c, x + 2, -27, 3, 22, '#E7E5E4');
-    if (costume === 'mummy') for (let k = 0; k < 4; k++) dot(c, x, -26 + k * 6, 7, 1, '#B8B19A');
-    dot(c, x - 1, -4, 10, 4, costume === 'knight' ? '#6B7280' : costume === 'batsuit' ? '#18181B' : '#27272A');
-  }
-  // The far arm
-  const far: [number, number] = pose === 'strike' ? [w / 2 + 6, -48] : pose === 'wind' ? [-w / 2 - 6, -60] : [-w / 2 + 2, -32];
-  arm(c, -w / 2 + 3 + hunch, -52, far[0] + hunch, far[1], armC, costume === 'mummy' ? '#E7E2CF' : costume === 'skeleton' ? '#F5F5F4' : Lk.skin, 1, 6);
-  // The body
-  c.save(); c.translate(hunch, 0);
-  rect(c, -w / 2, -56, w, 28, bodyC, 4);
-  c.restore();
-  if (costume === 'skeleton') for (let k = 0; k < 3; k++) dot(c, -w / 2 + 5, -51 + k * 7, w - 10, 2, '#E7E5E4');
-  if (costume === 'knight') { dot(c, -6, -54, 12, 24, '#7F1D1D'); dot(c, -3, -48, 6, 5, '#FDE68A'); dot(c, -5, -47, 10, 2, '#FDE68A'); }
-  if (costume === 'mummy') for (let k = 0; k < 5; k++) dot(c, -w / 2 + 1, -54 + k * 5 + (k % 2), w - 2, 1, '#B8B19A');
-  if (costume === 'igor') rect(c, -w / 2 - 4, -62, 16, 14, '#78350F', 7); // (the hump)
-  if (costume === 'bride') { dot(c, -w / 2, -40, w, 2, '#CBD5E1'); dot(c, -3, -56, 6, 4, '#FDA4AF'); }
-  // The head
-  const hy = -67 + (costume === 'igor' ? 6 : 0), hx = 1 + hunch;
-  if (costume === 'bride' || (costume === 'witch' && Lk.long)) rect(c, hx - 11, hy - 8, 9, 30, '#111827', 3);
-  head(c, hx, hy, 8.5, 9.5, face, costume !== 'knight');
-  if (costume === 'knight') {
-    // (the bucket helm, its slit, the spikes up top)
-    rect(c, hx - 10, hy - 11, 20, 22, '#A1A1AA', 3); dot(c, hx - 2, hy - 2, 12, 3, INK); dot(c, hx - 9, hy - 9, 3, 18, '#D4D4D8');
-    for (const sx of [-6, 0, 6]) { c.fillStyle = '#E5E7EB'; c.beginPath(); c.moveTo(hx + sx - 3, hy - 11); c.lineTo(hx + sx, hy - 24); c.lineTo(hx + sx + 3, hy - 11); c.closePath(); c.fill(); c.strokeStyle = INK; c.lineWidth = 1; c.stroke(); }
-  } else if (costume === 'skeleton') {
-    // (the skull paint: black sockets, the nose hole, a row of teeth)
-    dot(c, hx - 2, hy - 4, 4, 4, INK); dot(c, hx + 4, hy - 4, 4, 4, INK); dot(c, hx + 3, hy + 1, 2, 2, INK);
-    for (let k = 0; k < 4; k++) dot(c, hx - 1 + k * 2.5, hy + 5, 1, 3, INK);
-    dot(c, hx - 9, hy - 9, 18, 3, '#18181B'); // (the hood's edge)
-  } else if (costume === 'batsuit') {
-    rect(c, hx - 10, hy - 10, 20, 14, '#27272A', 4);
-    // (round floppy ears on the hood, a cheap mascot costume's: a bat, nothing more heroic than that)
-    for (const s of [-1, 1]) { c.fillStyle = '#27272A'; c.beginPath(); c.ellipse(hx + s * 8, hy - 11, 5.5, 6.5, s * 0.5, 0, Math.PI * 2); c.fill(); c.strokeStyle = INK; c.lineWidth = 1.2; c.stroke(); c.fillStyle = '#9F7A8A'; c.beginPath(); c.ellipse(hx + s * 8, hy - 11, 2.5, 3.5, s * 0.5, 0, Math.PI * 2); c.fill(); }
-    eyes(c, hx + 2.5, hy - 1, 3.4, 'angry', f, 0.6, 2, '#27272A'); mouth(c, hx + 4, hy + 6, 5, 'teeth', f);
-  } else if (costume === 'mummy') {
-    for (let k = 0; k < 4; k++) dot(c, hx - 8, hy - 7 + k * 4.5, 16, 1, '#B8B19A');
-    dot(c, hx, hy - 2, 9, 3, INK); dot(c, hx + 2, hy - 1.5, 2, 2, '#FDE047'); dot(c, hx + 6, hy - 1.5, 2, 2, '#FDE047');
-  } else {
-    eyes(c, hx + 1.5, hy - 1, 3.6, pose === 'wind' || pose === 'strike' ? 'angry' : 'open', f, 0.6, 2.2, dk(face, 0.1));
-    mouth(c, hx + 3, hy + 6, 5, costume === 'bride' ? 'teeth' : pose === 'strike' ? 'grin' : 'frown', f);
-    if (costume === 'bride' || costume === 'igor') { dot(c, hx + 1, hy + 6, 1.5, 3, '#FFFFFF'); dot(c, hx + 4, hy + 6, 1.5, 3, '#FFFFFF'); }
-    if (costume === 'bride') dot(c, hx + 1, hy + 4.8, 5, 1.2, '#B91C1C');
-    if (!Lk.woman && costume === 'igor') dot(c, hx - 3, hy - 6, 10, 2, Lk.hair);
-  }
-  // Hats
-  if (costume === 'witch') {
-    rect(c, hx - 15, hy - 10, 30, 4, '#111827', 1);
-    c.fillStyle = '#111827'; c.beginPath(); c.moveTo(hx - 9, hy - 9); c.lineTo(hx - 4, hy - 32); c.lineTo(hx + 9, hy - 9); c.closePath(); c.fill(); c.strokeStyle = INK; c.stroke();
-    dot(c, hx - 8, hy - 13, 16, 2, '#7C3AED');
-  }
-  if (costume === 'igor') { rect(c, hx - 8, hy - 20, 16, 12, '#F8FAFC', 5); rect(c, hx - 9, hy - 10, 18, 4, '#E2E8F0', 1); }
-  if (costume === 'bride') rect(c, hx - 9, hy - 13, 18, 6, '#111827', 3);
-  // The near arm, and what it holds
-  const hand: [number, number] = pose === 'strike' ? [w / 2 + 14, -48] : pose === 'wind' ? [w / 2 - 6, -66] : [w / 2 + 2, -34];
-  if (costume === 'batsuit') {
-    // (the wings: rubber, on the arms, out wide flying)
-    const up = pose === 'fly' || pose === 'strike' ? Math.sin(f * 0.3) * 10 : 0;
-    for (const s of [-1, 1]) { c.fillStyle = s < 0 ? '#18181B' : '#27272A'; c.beginPath(); c.moveTo(0, -52); c.lineTo(s * 42, -62 - up); c.lineTo(s * 34, -40 - up * 0.5); c.lineTo(s * 22, -44); c.lineTo(s * 12, -34); c.closePath(); c.fill(); c.strokeStyle = INK; c.lineWidth = 1.2; c.stroke(); }
-  }
-  arm(c, w / 2 - 3 + hunch, -52, hand[0] + hunch, hand[1], armC, costume === 'mummy' ? '#E7E2CF' : costume === 'skeleton' ? '#F5F5F4' : Lk.skin, 1, 6);
-  const [hx2, hy2] = [hand[0] + hunch, hand[1]];
-  if (costume === 'knight') {
-    // (the sword: raised over his head winding up, out level swinging)
-    c.save(); c.translate(hx2, hy2); c.rotate(pose === 'wind' ? -2.2 : pose === 'strike' ? 0.1 : -1.2);
-    dot(c, 0, -2, 40, 4, '#D4D4D8'); dot(c, 0, -2, 40, 1, '#F8FAFC'); dot(c, -6, -5, 3, 10, '#78350F'); dot(c, -12, -1.5, 8, 3, '#78350F');
-    c.restore();
-  }
-  if (costume === 'igor') {
-    // (the roasting fork, out in front: two long tines)
-    const out = pose === 'strike' ? 14 : pose === 'wind' ? -8 : 4;
-    dot(c, hx2 - 14, hy2 - 1, 44 + out, 3, '#78350F');
-    dot(c, hx2 + 28 + out, hy2 - 6, 4, 13, '#9CA3AF');
-    dot(c, hx2 + 30 + out, hy2 - 6, 16, 2, '#D4D4D8'); dot(c, hx2 + 30 + out, hy2 + 5, 16, 2, '#D4D4D8');
-  }
-  if (costume === 'witch' && pose === 'wind') { rect(c, hx2 - 4, hy2 - 14, 9, 12, '#22C55E', 2); dot(c, hx2 - 1, hy2 - 18, 3, 4, '#78350F'); }
-  c.restore();
-  return Lk;
-};
-
-/** The coffin lid, in front of a skeleton (`up` or down at its side). */
-const drawLid = (c: Ctx, up: boolean, pose: Pose) => {
-  const x = pose === 'strike' ? 24 : 15, y = up ? -66 : -40;
-  c.save(); c.translate(x, y); if (!up) c.rotate(0.5);
-  c.fillStyle = INK; c.beginPath(); c.moveTo(-1, 0); c.lineTo(9, 0); c.lineTo(12, 18); c.lineTo(9, 62); c.lineTo(-1, 62); c.lineTo(-4, 18); c.closePath(); c.fill();
-  c.fillStyle = '#7C4A2D'; c.beginPath(); c.moveTo(0, 2); c.lineTo(8, 2); c.lineTo(10, 18); c.lineTo(8, 60); c.lineTo(0, 60); c.lineTo(-2, 18); c.closePath(); c.fill();
-  dot(c, 0, 4, 2, 54, '#9A6440'); dot(c, 2, 16, 4, 14, '#C9A227');
-  c.restore();
-};
+const wear = (e: Enemy, f: number, woman?: boolean) => ({ seed: seedOf(e), f, pose: poseOf(e), md: moodOf(e), woman });
 
 /** The bat suit's rig: the wire up from his back to the trolley (off the top of the screen). */
-const drawWire = (c: Ctx) => { dot(c, -1, -900, 2, 850, '#A1A1AA'); dot(c, -4, -56, 8, 6, '#52525B'); };
-
-const drawBat = (c: Ctx, f: number, seed: number) => {
-  const flap = Math.sin(f * 0.6 + seed) * 7;
-  c.fillStyle = INK;
-  for (const s of [-1, 1]) { c.beginPath(); c.moveTo(0, -10); c.lineTo(s * 16, -16 - flap); c.lineTo(s * 13, -8); c.lineTo(s * 7, -9); c.closePath(); c.fill(); }
-  c.fillStyle = '#3F2A2A'; c.beginPath(); c.ellipse(0, -9, 5, 6, 0, 0, Math.PI * 2); c.fill();
-  dot(c, -3, -16, 2, 4, '#3F2A2A'); dot(c, 1, -16, 2, 4, '#3F2A2A');
-  dot(c, -2, -11, 1.5, 1.5, '#FCA5A5'); dot(c, 1, -11, 1.5, 1.5, '#FCA5A5');
-};
+const drawWire = (c: Ctx) => { c.fillStyle = INK; c.fillRect(-1.5, -900, 3, 848); c.fillStyle = '#A1A1AA'; c.fillRect(-0.5, -900, 1, 848); };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Registered
@@ -413,57 +297,47 @@ registerM2Kind({
   kind: STAFF.skeleton, stats: { w: 42, h: 68, hp: 150, contact: 8, mass: 230 }, ai: skeletonAI, humanoid: true,
   make: b => ({ ...b, enemyType: 'shield', isShieldActive: true }),
   gender: e => human(e), head: { x: 1, y: -67, r: 9 },
-  draw: (c, e, f) => { const pose = poseOf(e); drawStaff(c, 'skeleton', seedOf(e), f, pose); drawLid(c, e.isShieldActive !== false, pose); },
+  draw: (c, e, f) => drawSkeletonCostume(c, wear(e, f), 'lid', e.isShieldActive !== false),
 });
 registerM2Kind({
   kind: STAFF.knight, stats: { w: 42, h: 70, hp: 210, contact: 9, mass: 300 }, ai: knightAI, humanoid: true,
   spiky: { source: `${STAFF.knight}_spikes`, label: 'SPIKED!' },
   gender: e => human(e), head: { x: 1, y: -67, r: 10 },
-  draw: (c, e, f) => drawStaff(c, 'knight', seedOf(e), f, poseOf(e)),
+  draw: (c, e, f) => drawKnightCostume(c, wear(e, f)),
 });
 registerM2Kind({
   kind: STAFF.igor, stats: { w: 40, h: 62, hp: 120, contact: 9, mass: 200 }, ai: igorAI, humanoid: true,
   pointy: { source: `${STAFF.igor}_fork`, label: 'FORKED!' },
   gender: e => human(e), head: { x: 8, y: -61, r: 9 },
-  draw: (c, e, f) => drawStaff(c, 'igor', seedOf(e), f, poseOf(e)),
+  draw: (c, e, f) => drawIgorCostume(c, wear(e, f), 'chef'),
 });
 registerM2Kind({
   kind: STAFF.witch, stats: { w: 38, h: 66, hp: 90, contact: 7, mass: 170 }, ai: witchAI, humanoid: true,
   gender: e => human(e), head: { x: 1, y: -67, r: 9 },
-  draw: (c, e, f) => drawStaff(c, 'witch', seedOf(e), f, poseOf(e)),
+  draw: (c, e, f) => drawWitchCostume(c, wear(e, f)),
 });
 registerM2Kind({
   kind: STAFF.bride, stats: { w: 38, h: 66, hp: 100, contact: 12, mass: 170 }, ai: brideAI, humanoid: true,
   gender: e => human(e, brideWoman(e)), head: { x: 1, y: -67, r: 9 },
-  draw: (c, e, f) => {
-    const pose = poseOf(e);
-    // (rushing: leaning into it, arms out for his neck)
-    if (pose === 'strike') c.rotate(0.18);
-    drawStaff(c, 'bride', seedOf(e), f, pose, brideWoman(e));
-  },
+  // (rushing: leaning into it, arms out for his neck)
+  draw: (c, e, f) => drawBrideCostume(c, wear(e, f, brideWoman(e)), 'rush'),
 });
 registerM2Kind({
   kind: STAFF.batsuit, stats: { w: 44, h: 66, hp: 80, contact: 10, mass: 160, air: true }, ai: batsuitAI, humanoid: true, grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
   gender: e => human(e), head: { x: 1, y: -67, r: 9 },
-  draw: (c, e, f) => { drawWire(c); drawStaff(c, 'batsuit', seedOf(e), f, e.aiState === 'dive' ? 'strike' : 'fly'); },
+  draw: (c, e, f) => { drawWire(c); drawBatsuitCostume(c, { seed: seedOf(e), f, pose: e.aiState === 'dive' ? 'strike' : 'fly', md: moodOf(e) }); },
 });
 registerM2Kind({
   kind: STAFF.mummy, stats: { w: 50, h: 74, hp: 420, contact: 12, mass: 520 }, ai: mummyAI, humanoid: true, grab: 'none',
   gender: e => human(e), head: { x: 1, y: -67, r: 10 },
-  draw: (c, e, f) => {
-    c.save(); c.scale(1.12, 1.1);
-    drawStaff(c, 'mummy', seedOf(e), f, poseOf(e));
-    // (a strip of it come loose, trailing)
-    c.fillStyle = '#E7E2CF'; c.fillRect(-18, -40 + Math.sin(f * 0.1) * 2, 6, 26);
-    c.restore();
-  },
+  draw: (c, e, f) => drawMummyCostume(c, wear(e, f), 1.1),
 });
 registerM2Kind({
   kind: STAFF.bat, stats: { w: 26, h: 18, hp: 20, contact: 6, mass: 15, air: true }, ai: batAI, gender: 'n', grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
   head: { x: 0, y: -10, r: 5 },
-  draw: (c, e, f) => drawBat(c, f, seedOf(e)),
+  draw: (c, e, f) => drawBatArt(c, e, f, 0.9),
 });
 
 registerHurtLines(STAFF.skeleton, L.HURT_SKELETON, L.DEATH_SKELETON);
