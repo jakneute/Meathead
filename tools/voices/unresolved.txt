@@ -22,8 +22,8 @@ m2/intro/index.ts:612 voice: pick(GUEST_HURRY[dressed(state)])
 m2/intro/index.ts:646 voice: pick(TICKET_LADY[sc.kind])
 m2/intro/index.ts:698 voice: line
 m2/adventure/queue/talk.ts:33 voice: l.text
-m2/adventure/river/index.ts:444 voice: fromBag(rv, 'gkill', GUESTS_KILL)
-m2/adventure/river/index.ts:450 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
+m2/adventure/river/index.ts:438 voice: fromBag(rv, 'gkill', GUESTS_KILL)
+m2/adventure/river/index.ts:444 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
 m2/adventure/dino/index.ts:141 voice: pick(MAINT_OBLIVIOUS)
 m2/adventure/dino/rex.ts:147 voice: voice('m2.rex')
 m2/adventure/temple/index.ts:166 voice: text
@@ -48,9 +48,9 @@ m2/spooky/hell/satan.ts:114 voice: pick(dressedPool(state))
 m2/spooky/hell/demon.ts:140 voice: voice('m2.demon')
 m2/spooky/control/staff.ts:55 voice: voice(woman ? 'm2.spooky.clerkf' : 'm2.spooky.clerk')
 m2/spooky/control/index.ts:79 voice: pick(lines[dressed(state)])
+m2/spooky/control/doors.ts:75 voice: pick(L.DONNIE_LOCKED[dressed(state)])
 m2/spooky/control/shop.ts:245 voice: true
 m2/spooky/control/shop.ts:252 voice: voice('m2.donnie')
-m2/spooky/control/doors.ts:75 voice: pick(L.DONNIE_LOCKED[dressed(state)])
 m2/spooky/ballroom/fight.ts:222 voice: voice('m2.donnie')
 m2/spooky/ballroom/fight.ts:232 voice: pick(lines[pants()])
 m2/spooky/ballroom/fight.ts:547 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
