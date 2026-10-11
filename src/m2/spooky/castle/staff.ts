@@ -358,7 +358,7 @@ registerM2Kind({
   },
 });
 registerM2Kind({
-  kind: STAFF.mummy, stats: { w: 50, h: 74, hp: 420, contact: 12, mass: 520 }, ai: mummyAI, humanoid: true, grab: 'none',
+  kind: STAFF.mummy, stats: { w: 50, h: 74, hp: 420, contact: 12, mass: 520 }, ai: mummyAI, humanoid: true, grab: 'body',
   gender: e => human(e), head: { x: 1, y: -67, r: 10 },
   draw: (c, e, f) => drawMummyCostume(c, wear(e, f), 1.1),
 });
