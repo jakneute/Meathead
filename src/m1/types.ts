@@ -358,6 +358,8 @@ export interface Enemy extends Entity {
   swimBox?: { x1: number; x2: number; y1: number; y2: number };
   /** Which of Meathead's moves last hit it (see Player.moveId). */
   hitByMove?: number;
+  /** Been in Meathead 2's grab (taken hold of at least once): what was holding it up (a stunt wire) is snapped. */
+  wasGrabbed?: boolean;
   /** A gator's meal: the goon it's gone after in the water (by id). */
   prey?: string;
   /** The frame the flamethrower last hurt it (a mid-boss is hurt once a frame, however many flames are on it). */

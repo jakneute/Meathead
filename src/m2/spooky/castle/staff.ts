@@ -190,6 +190,8 @@ const batsuitAI = (ctx: FrameContext, e: Enemy): boolean => {
   const homeX = e.homeX ?? e.pos.x, homeY = e.homeY ?? e.pos.y;
   e.aiTimer = (e.aiTimer || 0) + 1;
   const m = mid(e), p = mid(state.player);
+  // (grabbed and lived: the wire's snapped. Down he comes, and he's a man in a bat suit on foot from then on)
+  if (e.wasGrabbed) return grounded(state, e);
   switch (e.aiState) {
     default: {
       const t = (state.frame + homeX) * 0.02;
@@ -216,6 +218,25 @@ const batsuitAI = (ctx: FrameContext, e: Enemy): boolean => {
   const floor = floorTopAt(state.blocks, m.x, e.pos.y + e.height, 0);
   e.pos.x += e.vel.x; e.pos.y += e.vel.y;
   if (floor !== null && e.pos.y + e.height > floor) { e.pos.y = floor - e.height; if (e.aiState === 'dive') go(e, 'climb'); }
+  return true;
+};
+
+/** The bat suit off his wire: falls, lands, then waddles at him flapping the rubber wings (it's all he's got). */
+const grounded = (state: GameState, e: Enemy): boolean => {
+  const m = mid(e), p = mid(state.player);
+  if (e.aiState !== 'fall' && e.aiState !== 'walk') { e.enemyType = undefined; e.vel.x *= 0.3; go(e, 'fall'); }
+  const floor = floorTopAt(state.blocks, m.x, e.pos.y + e.height, 0);
+  const onFloor = floor !== null && e.pos.y + e.height >= floor - 1;
+  if (!onFloor) { e.vel.y = Math.min(14, e.vel.y + 0.6); }
+  else {
+    if (e.aiState === 'fall') { go(e, 'walk'); playSound('thud', 0.6, -2); }
+    e.vel.y = 0;
+    const dx = p.x - m.x;
+    e.facing = (dx < 0 ? -1 : 1) as 1 | -1;
+    e.vel.x = live(state) && Math.abs(dx) > 20 ? Math.sign(dx) * 1.3 : 0;
+  }
+  e.pos.x += e.vel.x; e.pos.y += e.vel.y;
+  if (floor !== null && e.pos.y + e.height > floor) e.pos.y = floor - e.height;
   return true;
 };
 
@@ -326,7 +347,12 @@ registerM2Kind({
   kind: STAFF.batsuit, stats: { w: 44, h: 66, hp: 80, contact: 10, mass: 160, air: true }, ai: batsuitAI, humanoid: true, grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
   gender: e => human(e), head: { x: 1, y: -67, r: 9 },
-  draw: (c, e, f) => { drawWire(c); drawBatsuitCostume(c, { seed: seedOf(e), f, pose: e.aiState === 'dive' ? 'strike' : 'fly', md: moodOf(e) }); },
+  // (the wire only while he's flying on it: not once he's been grabbed (snapped), not as a corpse or flung about)
+  draw: (c, e, f) => {
+    const onWire = !e.wasGrabbed && e.health > 0 && (e.aiState === 'idle' || e.aiState === 'dive' || e.aiState === 'climb' || !e.aiState);
+    if (onWire) drawWire(c);
+    drawBatsuitCostume(c, { seed: seedOf(e), f, pose: e.aiState === 'dive' ? 'strike' : onWire ? 'fly' : 'walk', md: moodOf(e) });
+  },
 });
 registerM2Kind({
   kind: STAFF.mummy, stats: { w: 50, h: 74, hp: 420, contact: 12, mass: 520 }, ai: mummyAI, humanoid: true, grab: 'none',

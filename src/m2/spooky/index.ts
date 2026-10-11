@@ -131,9 +131,11 @@ export const spookyLayout: StageLayout = {
     for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawBack?.(c, state); }
   },
   drawFront: (c, state) => {
-    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawFront?.(c, state); }
+    // (a grab's in the play plane: anything the sections draw in front of him (the ball pit he's waist deep in, a near
+    // pillar) goes in front of it too)
     const sp = getSpooky(state) as SpookyState | null;
     if (sp) drawGrab(c, state, sp.grab);
+    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawFront?.(c, state); }
   },
   drawHud: (c, state) => {
     const sec = current(state);

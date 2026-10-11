@@ -291,7 +291,7 @@ const lungeHits = (state: GameState, dir: number) => {
   return best;
 };
 
-const take = (state: GameState, e: Enemy) => { state.enemies = state.enemies.filter(o => o !== e); };
+const take = (state: GameState, e: Enemy) => { e.wasGrabbed = true; state.enemies = state.enemies.filter(o => o !== e); };
 
 /**
  * While he's busy with one, nobody else crowds in on him or stands on him. Anyone who runs at him (to hit him, to
