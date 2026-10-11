@@ -52,7 +52,7 @@ import { TOO_BIG_LINES, TOO_BIG_BY_KIND, GRAB_IMMUNE_LINES } from '../lines/weap
 type Ctx = CanvasRenderingContext2D;
 
 // The beatdown
-/** Like a fighting game's grab: once it's going, he's committed. The beatdown's windup is a real one (half a second,
+/** Like a fighting game's grab: once it's going, he's committed. The beatdown's windup is a real one (a quarter second,
  * coiled down low: seen coming, and a hit in it knocks him out of it, it being so strong); the shakedown's is nearly
  * instant, and nothing stops it. */
 const WINDUP = 15, LUNGE = 4, LUNGE_SPEED = 21, WHIFF = 22, REACH = 6;
