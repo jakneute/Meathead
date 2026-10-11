@@ -15,7 +15,9 @@ import { floorTopAt } from '../../../m1/game/core/terrain';
 import { registerHurtLines } from '../../kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { CANVAS_WIDTH } from '../../../m1/constants';
-import { ledge, meatheadSays, box } from '../section';
+import { ledge, meatheadSays } from '../section';
+import { hazeBands } from '../../../m1/game/render/pixelArt';
+import { type Ctx as PCtx, INK, box, checker, mix, stamp, BASALT, LAVA as LV, LIP, poly, inkPoly, lip } from './paint';
 import { GY } from '../geometry';
 import { POOLS, LAVA_DROP, CRUMBLES, JETS, SHAFT_L, SHAFT_R } from './layout';
 import { hellOf, type Hell } from './state';
@@ -23,7 +25,7 @@ import { hazardVictims, hazardKill, hazardHit, setHazardZones, boxHits, type Zon
 import { overLava, IMP_FIRE } from './kinds';
 import { HURT_LAVA, DEATH_LAVA, HURT_JET, DEATH_JET, HURT_CAR, DEATH_CAR, MH_CAR } from './lines';
 
-type Ctx = CanvasRenderingContext2D;
+type Ctx = PCtx;
 const pick = pickLine;
 
 export const LAVA = 'm2:hell_lava', JET = 'm2:hell_jet', CAR = 'm2:hell_car';
@@ -168,98 +170,183 @@ const updateCars = (ctx: FrameContext, h: Hell) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude: boxes), world space
+// Drawing, world space (SNES: stepped ramps, dither, ink; the lava bright and plainly deadly, its light on things
+// round it dim)
+
+const CARP = ['#3A0606', '#5E0C0C', '#841414', '#A82020', '#C83A30'];
+const GOLD = ['#5A3A06', '#8A6010', '#B8881C', '#DDB040', '#F6DC80'];
+const STEEL = ['#2A2A30', '#4A4A54', '#6E6E7A', '#9696A2', '#C2C2CC'];
+
+/** The car itself, unrotated, its feet at (0, 0) (painted once into a stamp, turned inside it). */
+const paintCar = (g: Ctx, standable: boolean) => {
+  // (the outline; the cab; its roof caved in on one side)
+  box(g, -58, -126, 116, 126, INK);
+  box(g, -56, -124, 112, 122, CARP[2]);
+  box(g, -56, -124, 18, 122, CARP[3]); checker(g, -38, -124, 2, 122, CARP[3]);
+  box(g, 40, -124, 16, 122, CARP[1]); checker(g, 38, -124, 2, 122, CARP[1], 1);
+  box(g, -56, -10, 112, 8, CARP[0]);
+  // (gold pilasters up its corners, a cornice along the top)
+  for (const px of [-56, 50]) { box(g, px, -118, 6, 112, GOLD[2]); box(g, px, -118, 2, 112, GOLD[4]); box(g, px + 4, -118, 2, 112, GOLD[1]); }
+  box(g, -56, -124, 112, 6, GOLD[2]); box(g, -56, -124, 112, 2, GOLD[4]); box(g, -56, -120, 112, 2, GOLD[1]);
+  inkPoly(g, [[12, -126], [58, -126], [58, -90], [32, -106]], CARP[0], 2);
+  box(g, 30, -112, 18, 2, CARP[1]);
+  // (inside, dark; the back wall's plush; the doors burst out, one hanging)
+  box(g, -42, -102, 84, 98, INK);
+  box(g, -40, -100, 80, 94, '#160606');
+  box(g, -36, -96, 72, 40, '#2E0A0E'); for (let x = -34; x < 36; x += 8) box(g, x, -96, 2, 40, '#3E1016');
+  box(g, -40, -100, 30, 94, STEEL[2]); box(g, -40, -100, 4, 94, STEEL[3]); box(g, -38, -98, 1, 90, STEEL[4]); box(g, -14, -100, 4, 94, STEEL[1]);
+  checker(g, -36, -100, 2, 94, STEEL[3]);
+  inkPoly(g, [[14, -100], [48, -92], [44, 0], [14, -6]], STEEL[1], 2);
+  poly(g, [[16, -97], [24, -95], [21, -8], [16, -8]], STEEL[2]);
+  box(g, 30, -60, 6, 3, INK);
+  // (the lap bar, bent; somebody's arm still over it)
+  box(g, -11, -53, 28, 7, INK); box(g, -10, -52, 26, 5, GOLD[2]); box(g, -10, -52, 26, 1, GOLD[4]);
+  box(g, -1, -61, 24, 9, INK); box(g, 0, -60, 22, 7, '#9333EA'); box(g, 0, -60, 22, 2, '#B865F5');
+  box(g, 20, -61, 9, 9, INK); box(g, 21, -60, 7, 7, '#F1C27D');
+  // (the plate over the doors)
+  box(g, -51, -117, 102, 14, INK); box(g, -50, -116, 100, 12, '#18181B'); box(g, -50, -116, 100, 1, '#3A3A42');
+  g.font = '6px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = GOLD[4]; g.fillText('ELEVATOR TO HELL', 0, -107); g.textAlign = 'left';
+  // (the floor dial on top: gold, its needle stuck on the H)
+  box(g, -9, -139, 18, 14, INK); box(g, -8, -138, 16, 12, GOLD[2]); box(g, -8, -138, 16, 2, GOLD[4]); box(g, -5, -135, 10, 8, '#18181B');
+  // (dents and scratches)
+  for (const [x, y, w] of [[-30, -20, 14], [-48, -60, 8], [30, -30, 10]]) { box(g, x, y, w, 2, INK); box(g, x + 2, y + 2, w - 4, 1, CARP[4]); }
+  // (blood down its front)
+  box(g, -30, -8, 40, 8, '#7F1111'); box(g, -24, -40, 5, 34, '#9E1B1B'); box(g, -24, -40, 2, 34, '#C03030'); box(g, 4, -30, 4, 24, '#7F1111');
+  // (stood on: its roof's lit lip)
+  if (standable) { box(g, -56, -126, 112, 2, LIP[0]); box(g, -56, -124, 112, 2, LIP[1]); }
+};
 
 /** A wrecked elevator car (the ride's: an elevator cab, red and gold, ELEVATOR TO HELL on a plate over its doors),
  *  crumpled, its doors burst, at (x, the ground), tipped `tilt`. */
 export const drawWreckedCar = (c: Ctx, x: number, y: number, tilt: number, f: number, standable = false) => {
-  c.save(); c.translate(x, y); c.rotate(tilt);
-  box(c, -58, -126, 116, 126, '#0C0303');
-  // (the cab, its roof caved in on one side)
-  box(c, -56, -124, 112, 124, '#7F1D1D'); box(c, -56, -124, 112, 5, '#B91C1C'); box(c, -56, -6, 112, 6, '#450A0A');
-  c.fillStyle = '#450A0A'; c.beginPath(); c.moveTo(10, -124); c.lineTo(56, -124); c.lineTo(56, -92); c.lineTo(30, -108); c.closePath(); c.fill();
-  box(c, -56, -116, 4, 110, '#CA8A04'); box(c, 52, -116, 4, 110, '#CA8A04');
-  // (inside, dark; the doors burst out, one hanging)
-  box(c, -40, -100, 80, 94, '#0C0A09');
-  box(c, -40, -100, 30, 94, '#71717A'); box(c, -38, -98, 2, 90, '#A1A1AA');
-  c.fillStyle = '#52525B'; c.beginPath(); c.moveTo(14, -100); c.lineTo(48, -92); c.lineTo(44, 0); c.lineTo(14, -6); c.closePath(); c.fill();
-  // (the lap bar, bent; somebody's arm still over it)
-  box(c, -10, -52, 26, 5, '#CA8A04'); box(c, 0, -60, 22, 7, '#9333EA'); box(c, 20, -60, 7, 7, '#F1C27D');
-  // (the plate over the doors; the floor-number dial stuck on the H)
-  box(c, -50, -122, 100, 14, '#18181B');
-  c.font = '6px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#FDE68A'; c.fillText('ELEVATOR TO HELL', 0, -112); c.textAlign = 'left';
-  box(c, -8, -138, 16, 14, '#CA8A04'); box(c, -5, -135, 10, 8, '#18181B');
+  c.save(); c.translate(Math.round(x), Math.round(y));
+  stamp(c, `hell-car-${tilt.toFixed(3)}-${standable}`, -160, -160, 320, 320, g => { g.rotate(tilt); paintCar(g, standable); });
+  // (the dial's H, blinking)
+  c.rotate(tilt);
   c.font = '6px "Press Start 2P"'; c.fillStyle = f % 60 < 30 ? '#EF4444' : '#7F1D1D'; c.fillText('H', -3, -128);
-  // (blood down its front)
-  box(c, -30, -8, 40, 8, '#991B1B'); box(c, -24, -40, 5, 34, '#991B1B'); box(c, 4, -30, 4, 24, '#7F1D1D');
-  // (stood on: its roof's lit lip)
-  if (standable) { box(c, -56, -124, 112, 3, '#FB923C'); }
   c.restore();
 };
 
-/** The lava pools: a glow up off them, a crust drifting on them, bubbles popping (no lip: not something to stand on). */
+/** The lava pools: sunk in their trench (its back wall lit by it), banded, the swell moving along it, crust drifting,
+ *  bubbles popping; a faint heat over it (no lip anywhere: nothing to stand on). */
 export const drawLava = (c: Ctx, state: GameState) => {
   const f = state.frame;
-  for (const [a, b] of POOLS) {
-    if (b < state.camera.x - 100 || a > state.camera.x + CANVAS_WIDTH + 100) continue;
+  for (const [pa, pb] of POOLS) {
+    if (pb < state.camera.x - 100 || pa > state.camera.x + CANVAS_WIDTH + 100) continue;
+    const a = Math.max(pa, state.camera.x - 100), b = Math.min(pb, state.camera.x + CANVAS_WIDTH + 100), w = b - a;
     const top = GY + LAVA_DROP;
-    // (the glow, up off it, over the banks' walls)
-    c.fillStyle = 'rgba(249, 115, 22, 0.16)'; c.fillRect(a, top - 40, b - a, 40);
-    c.fillStyle = 'rgba(249, 115, 22, 0.12)'; c.fillRect(a, top - 70, b - a, 30);
-    box(c, a, top, b - a, 400, '#7C2D12');
-    box(c, a, top + 10, b - a, 14, '#C2410C');
-    box(c, a, top, b - a, 10, '#F97316');
-    box(c, a, top, b - a, 3, '#FDE047');
-    // (crust: dark plates drifting on it)
-    for (let i = 0; i < Math.floor((b - a) / 90); i++) {
-      const px = a + ((i * 97 + f * 0.25 * (i % 2 ? 1 : -1)) % (b - a - 40) + (b - a - 40)) % (b - a - 40);
-      box(c, px, top + 1, 26 + (i % 3) * 8, 4, '#3B1408'); box(c, px + 4, top, 14, 2, '#57260A');
+    // (the trench's back wall: dark up top, the lava's light on it lower down, in steps)
+    const wall: [number, string][] = [[GY, mix(BASALT[2], '#160605', 0.3)], [GY + 12, mix(BASALT[3], LV[2], 0.2)], [GY + 24, mix(BASALT[3], LV[3], 0.35)], [GY + 32, mix(BASALT[4], LV[3], 0.5)]];
+    wall.forEach(([y, col], i) => { box(c, a, y, w, top - y, col); if (i) checker(c, a, y - 2, w, 2, col); });
+    for (let x = a - (a % 40) + 18; x < b; x += 40) box(c, x, GY + 4, 2, top - GY - 6, mix(BASALT[2], '#160605', 0.2));
+    // (the heat over it: faint bands)
+    hazeBands(c, a, top - 26, w, 26, LV[4], 0, 0.14, 4);
+    // (the lava: in bands, white-hot at the top down to the dark red)
+    const lb: [number, string][] = [[0, LV[6]], [3, LV[5]], [7, LV[4]], [13, LV[3]], [24, LV[2]], [44, LV[1]]];
+    lb.forEach(([dy, col], i) => { box(c, a, top + dy, w, 400 - dy, col); if (i) checker(c, a, top + dy - 2, w, 2, col); });
+    // (the swell: bright crests running along the surface)
+    for (let x = a - (a % 16); x < b; x += 16) {
+      const k = Math.sin(x * 0.045 + f * 0.06);
+      if (k > 0.35) box(c, Math.max(a, x), top - 2, 10, 2, LV[7]);
+      else if (k < -0.6) box(c, Math.max(a, x), top, 12, 2, LV[4]);
     }
+    // (crust: dark plates drifting on it, glowing at their cracks)
+    const n = Math.floor((pb - pa) / 90);
+    for (let i = 0; i < n; i++) {
+      const span = pb - pa - 40, px = Math.round(pa + ((i * 97 + f * 0.25 * (i % 2 ? 1 : -1)) % span + span) % span), pw = 26 + (i % 3) * 8;
+      if (px + pw < a || px > b) continue;
+      box(c, px - 1, top - 1, pw + 2, 6, LV[0]); box(c, px, top, pw, 4, '#2E0E06'); box(c, px + 2, top, pw - 6, 1, '#4E1C0A');
+      box(c, px + Math.round(pw * 0.4), top, 2, 4, LV[5]);
+    }
+    // (bubbles, swelling and popping)
     for (let i = 0; i < 3; i++) {
-      const bx = a + 20 + ((i * 137 + Math.floor(f / 40) * 59) % Math.max(1, b - a - 40)), ph = (f + i * 13) % 40;
-      if (ph < 20) { c.fillStyle = '#FDE047'; c.beginPath(); c.arc(bx, top + 2, 2 + ph * 0.3, Math.PI, 0); c.fill(); }
-      else if (ph < 24) box(c, bx - 1, top - 6 - (ph - 20) * 3, 3, 3, '#FB923C');
+      const bx = Math.round(pa + 20 + ((i * 137 + Math.floor(f / 40) * 59) % Math.max(1, pb - pa - 40))), ph = (f + i * 13) % 40;
+      if (bx < a || bx > b) continue;
+      if (ph < 18) { const r = 2 + Math.floor(ph / 4) * 2; box(c, bx - r, top - r + 1, r * 2, r, LV[5]); box(c, bx - r + 2, top - r + 1, r * 2 - 4, 2, LV[7]); }
+      else if (ph < 26) { box(c, bx - 4, top - 4 - (ph - 18) * 2, 2, 2, LV[6]); box(c, bx + 3, top - 6 - (ph - 18) * 2, 2, 2, LV[5]); }
     }
-    // (the banks: rock walls down into it, outlined)
-    box(c, a - 6, GY, 6, LAVA_DROP + 4, '#170804'); box(c, b, GY, 6, LAVA_DROP + 4, '#170804');
+    // (the banks: the floor's cut edge going down into it, inked, lit at the foot)
+    for (const [ex, s] of [[pa, -1], [pb, 1]] as [number, number][]) {
+      if (ex < a - 10 || ex > b + 10) continue;
+      const x = s < 0 ? ex - 8 : ex;
+      box(c, x, GY, 8, LAVA_DROP + 4, BASALT[3]); box(c, x, GY + LAVA_DROP - 10, 8, 10, mix(BASALT[4], LV[3], 0.5));
+      box(c, s < 0 ? ex - 2 : ex, GY, 2, LAVA_DROP + 4, INK);
+    }
   }
 };
 
+/** A crumbling rock, w wide (local, its top left at 0, 0): paler, cracked right through, bits hanging off it. */
+const paintCrumble = (g: Ctx, w: number) => {
+  const r = ['#2A1A14', '#3E2820', '#56392C', '#6E4C3A', '#8C664E', '#AE8664'];
+  const pts: [number, number][] = [[0, 0], [w, 0], [w + 1, 14], [w - 6, 20], [w / 2 + 8, 26], [w / 2, 34], [w / 2 - 10, 26], [6, 20], [-1, 14]];
+  g.save(); poly(g, pts, r[3]); g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip();
+  box(g, 0, 0, w, 6, r[4]); checker(g, 0, 6, w, 2, r[4]);
+  box(g, 0, 16, w, 20, r[2]); checker(g, 0, 14, w, 2, r[2]);
+  box(g, w * 0.62, 4, w, 30, r[2]); checker(g, w * 0.62 - 2, 4, 2, 30, r[2]);
+  // (pocked)
+  for (let i = 0; i < w / 10; i++) box(g, 4 + ((i * 37) % (w - 8)), 8 + ((i * 13) % 14), 2, 2, r[1]);
+  g.restore();
+  g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.stroke();
+  // (cracks right through it, the lip broken where they come out)
+  g.lineWidth = 2;
+  for (const [cx, d] of [[0.3, 1], [0.72, -1]] as [number, number][]) {
+    g.beginPath(); g.moveTo(w * cx, 0); g.lineTo(w * cx + d * 5, 9); g.lineTo(w * cx - d * 2, 16); g.lineTo(w * cx + d * 4, 26); g.stroke();
+  }
+  lip(g, 0, 0, w);
+  for (const cx of [0.3, 0.72]) box(g, w * cx - 1, 0, 3, 4, INK);
+  // (a bit hanging off by a thread)
+  box(g, w * 0.2 - 1, 21, 8, 7, INK); box(g, w * 0.2, 22, 6, 5, r[3]); box(g, w * 0.2, 22, 6, 1, r[4]);
+};
+
+const JET_FIRE = [LV[2], LV[3], LV[5], LV[6], LV[7]];
+
 export const drawHazards = (c: Ctx, state: GameState) => {
   const h = hellOf(state), f = state.frame;
-  // The crumbling rocks: paler, cracked right through, outlined; shaking (and shedding) when he's on them
+  // The crumbling rocks: paler, cracked right through; shaking (and shedding) when he's on them, the lip flashing
   for (const r of h.crumbles) {
     if (r.gone > 0 || !near(state, r.x)) continue;
-    const sh = r.shake > 0 ? Math.sin(r.shake * 1.9) * 2 : 0, x = r.x + sh, y = r.y, w = r.w;
-    box(c, x - 2, y - 1, w + 4, 20, '#0C0303');
-    box(c, x, y, w, 18, '#6B4A3A'); box(c, x + w * 0.6, y + 4, w * 0.4, 14, '#55392C');
-    c.fillStyle = '#0C0303'; c.beginPath(); c.moveTo(x + 4, y + 18); c.lineTo(x + w / 2, y + 34); c.lineTo(x + w - 4, y + 18); c.fill();
-    c.fillStyle = '#55392C'; c.beginPath(); c.moveTo(x + 8, y + 18); c.lineTo(x + w / 2, y + 30); c.lineTo(x + w - 8, y + 18); c.fill();
-    box(c, x, y, w, 3, r.shake > 0 && r.shake % 8 < 4 ? '#FDE047' : '#FDBA74');
-    c.strokeStyle = '#0C0303'; c.lineWidth = 2;
-    c.beginPath(); c.moveTo(x + w * 0.3, y + 3); c.lineTo(x + w * 0.42, y + 12); c.lineTo(x + w * 0.36, y + 22); c.stroke();
-    c.beginPath(); c.moveTo(x + w * 0.72, y + 3); c.lineTo(x + w * 0.62, y + 15); c.stroke();
+    const sh = r.shake > 0 ? Math.round(Math.sin(r.shake * 1.9) * 2) : 0, x = Math.round(r.x + sh), y = Math.round(r.y);
+    c.save(); c.translate(x, y);
+    stamp(c, `hell-crumble-${r.w}`, -4, -2, r.w + 8, 40, g => paintCrumble(g, r.w));
+    c.restore();
+    if (r.shake > 0 && r.shake % 8 < 4) { box(c, x, y, r.w, 2, LV[7]); box(c, x, y + 2, r.w, 2, LV[6]); }
   }
-  // The fire jets: a little chimney of rock with a glowing throat; its warning (the glow building, smoke, sparks
-  // spitting out of it), then the column of fire, tongues licking off the top of it
+  // The fire jets: a chimney of rock with a glowing throat; its warning (the throat going white, sparks spitting out
+  // of it), then the column of fire, tongues licking off the top of it
   for (const [x, base, off] of JETS) {
     if (!near(state, x)) continue;
     const ph = jetPhase(f, off);
-    c.fillStyle = '#0C0303'; c.beginPath(); c.moveTo(x - 24, base); c.lineTo(x - 12, base - 18); c.lineTo(x + 12, base - 18); c.lineTo(x + 24, base); c.fill();
-    c.fillStyle = '#3B1408'; c.beginPath(); c.moveTo(x - 21, base); c.lineTo(x - 10, base - 16); c.lineTo(x + 10, base - 16); c.lineTo(x + 21, base); c.fill();
-    box(c, x - 8, base - 17, 16, 4, ph > WARN ? '#FDE047' : ph > WARN - 20 ? '#F97316' : '#7C2D12');
+    c.save(); c.translate(x, base);
+    stamp(c, 'hell-jet', -28, -22, 56, 24, g => {
+      inkPoly(g, [[-24, 0], [-12, -18], [12, -18], [24, 0]], BASALT[3], 2);
+      poly(g, [[-21, -1], [-11, -16], [-6, -16], [-12, -1]], BASALT[5]);
+      poly(g, [[12, -1], [8, -16], [11, -16], [21, -1]], BASALT[1]);
+      box(g, -12, -19, 24, 3, INK);
+    });
+    c.restore();
+    const throat = ph > WARN ? (ph % 4 < 2 ? LV[7] : LV[6]) : ph > WARN - 20 ? LV[4] : LV[1];
+    box(c, x - 8, base - 18, 16, 3, throat); box(c, x - 5, base - 18, 10, 1, ph > WARN ? '#FFFFFF' : throat);
     if (ph > WARN && ph < BLAST) {
       const k = (ph - WARN) / (BLAST - WARN);
-      c.fillStyle = `rgba(249, 115, 22, ${0.15 + k * 0.4})`; c.beginPath(); c.ellipse(x, base - 18, 14 + k * 12, 6 + k * 6, 0, 0, Math.PI * 2); c.fill();
-      if (ph % 6 < 3) { box(c, x - 2 + Math.sin(ph) * 6, base - 26 - k * 30, 4, 4, '#FDE047'); box(c, x + 3 - Math.sin(ph) * 5, base - 22 - k * 20, 3, 3, '#FB923C'); }
+      // (the heat building over it: a short stepped plume, then sparks)
+      for (let i = 0; i < 3; i++) box(c, x - 6 + i * 2, base - 22 - i * 4 - Math.round(k * 6), 12 - i * 4, 4, JET_FIRE[1 + i]);
+      if (ph % 6 < 3) { box(c, Math.round(x - 2 + Math.sin(ph) * 6), Math.round(base - 26 - k * 30), 3, 3, LV[7]); box(c, Math.round(x + 3 - Math.sin(ph) * 5), Math.round(base - 22 - k * 20), 2, 2, LV[5]); }
     }
     if (ph >= BLAST) {
       const k = Math.min(1, (ph - BLAST) / 5) * (ph > CYCLE - 8 ? (CYCLE - ph) / 8 : 1), hgt = JET_H * k, top = base - 16 - hgt;
-      for (let i = 0; i < 5; i++) {
-        const w = 36 - i * 6, wob = Math.sin(f * 0.8 + i) * 3;
-        box(c, x - w / 2 + wob, top + i * 6, w, hgt - i * 6, ['#B91C1C', '#EA580C', '#F97316', '#FDBA74', '#FEF9C3'][i]);
+      // (the column: in rows, each layer's edge licking in and out, white-hot at its heart)
+      for (let i = 0; i < JET_FIRE.length; i++) {
+        const ww = 36 - i * 7;
+        for (let y = top + i * 5; y < base - 16; y += 6) {
+          const wob = Math.round(Math.sin(f * 0.8 + y * 0.12 + i) * 2.5);
+          box(c, Math.round(x - ww / 2 + wob), Math.round(y), ww, 6, JET_FIRE[i]);
+        }
       }
-      for (let i = 0; i < 3; i++) { const tx = x - 12 + i * 12 + Math.sin(f * 0.9 + i * 2) * 4, th = 14 + Math.sin(f * 0.7 + i) * 8; c.fillStyle = i === 1 ? '#FDE047' : '#F97316'; c.beginPath(); c.moveTo(tx - 6, top + 4); c.lineTo(tx, top - th); c.lineTo(tx + 6, top + 4); c.fill(); }
+      for (let i = 0; i < 3; i++) {
+        const tx = Math.round(x - 12 + i * 12 + Math.sin(f * 0.9 + i * 2) * 4), th = 14 + Math.round(Math.sin(f * 0.7 + i) * 8);
+        c.fillStyle = i === 1 ? LV[6] : LV[4]; c.beginPath(); c.moveTo(tx - 6, top + 6); c.lineTo(tx, top - th); c.lineTo(tx + 6, top + 6); c.fill();
+        c.fillStyle = LV[7]; c.beginPath(); c.moveTo(tx - 2, top + 6); c.lineTo(tx, top - th * 0.4); c.lineTo(tx + 2, top + 6); c.fill();
+      }
     }
   }
   // Wrecks piled up from the cars that have come down since
@@ -268,17 +355,25 @@ export const drawHazards = (c: Ctx, state: GameState) => {
 
 /** Over everything: the fireballs, the car coming down (and its shadow). */
 export const drawHazardsFront = (c: Ctx, state: GameState) => {
-  const h = hellOf(state);
+  const h = hellOf(state), f = state.frame;
   for (const s of h.shots) {
-    c.fillStyle = 'rgba(249, 115, 22, 0.35)'; c.beginPath(); c.arc(s.x, s.y, 10, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#F97316'; c.beginPath(); c.arc(s.x, s.y, 6, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FEF08A'; c.beginPath(); c.arc(s.x, s.y, 3, 0, Math.PI * 2); c.fill();
+    const x = Math.round(s.x), y = Math.round(s.y), fl = (f >> 1) & 1;
+    // (a stepped ball of fire, its tail streaming back off it)
+    const bx = -Math.sign(s.vx || 1);
+    box(c, x + bx * 8 - 2, y - 2 - fl, 4, 4, LV[4]); box(c, x + bx * 13 - 1, y - 1 + fl, 3, 3, LV[3]);
+    c.fillStyle = INK; c.beginPath(); c.arc(x, y, 7, 0, Math.PI * 2); c.fill();
+    c.fillStyle = LV[3]; c.beginPath(); c.arc(x, y, 6, 0, Math.PI * 2); c.fill();
+    c.fillStyle = LV[5]; c.beginPath(); c.arc(x - 1, y - 1, 4, 0, Math.PI * 2); c.fill();
+    c.fillStyle = LV[7]; c.beginPath(); c.arc(x - 2, y - 2, 2, 0, Math.PI * 2); c.fill();
   }
   const car = h.car;
   if (car) {
-    // (the shadow on the floor, darker and wider the nearer it is)
+    // (the shadow on the floor, darker and wider the nearer it is: in steps)
     const k = car.warn > 0 ? 0.3 + (1 - car.warn / 90) * 0.3 : 0.6 + Math.min(0.4, car.vy / 80);
-    c.fillStyle = `rgba(0, 0, 0, ${k})`; c.beginPath(); c.ellipse(car.x, GY - 2, CAR_W / 2 * (0.5 + k * 0.6), 6, 0, 0, Math.PI * 2); c.fill();
+    const rw = CAR_W / 2 * (0.5 + k * 0.6);
+    c.fillStyle = `rgba(0, 0, 0, ${(k * 0.5).toFixed(2)})`;
+    c.fillRect(Math.round(car.x - rw), GY - 4, Math.round(rw * 2), 6);
+    c.fillRect(Math.round(car.x - rw * 0.7), GY - 5, Math.round(rw * 1.4), 8);
     if (car.warn <= 0) drawWreckedCar(c, car.x, car.y, 0, state.frame);
   }
 };

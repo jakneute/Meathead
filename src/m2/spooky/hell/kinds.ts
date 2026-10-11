@@ -6,7 +6,7 @@
 //   goat:  a pointy bruiser. A big horned hell goat: plods at him; level with him, it lowers its horns, paws and
 //          charges a short way. Horns out front: shoulder charging it head-on runs him onto them.
 // Taught one at a time along the way (see layout.ts), then mixed. Anything (not flying) that ends up in the lava cooks.
-// Crude first-pass art (boxes): drawn at the origin (feet), facing right; the engine turns them.
+// Drawn (creatures.ts) at the origin (feet), facing right; the engine turns them.
 
 import type { Enemy } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -17,7 +17,7 @@ import { floorTopAt } from '../../../m1/game/core/terrain';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { GY } from '../geometry';
-import { box } from '../section';
+import { drawImpArt, drawHoundArt, drawBatArt, drawGoatArt } from './creatures';
 import { POOLS } from './layout';
 import { hellOf } from './state';
 import {
@@ -25,7 +25,6 @@ import {
   HURT_HORNS, DEATH_HORNS,
 } from './lines';
 
-type Ctx = CanvasRenderingContext2D;
 export const HELL_KINDS = { imp: 'm2:imp', hound: 'm2:hellhound', bat: 'm2:firebat', goat: 'm2:hellgoat' } as const;
 export const IMP_FIRE = 'm2:imp_fire';
 
@@ -193,111 +192,16 @@ const goatAI = (ctx: FrameContext, e: Enemy): boolean => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude: boxes; the engine's turned it to face the way it's going)
+// Drawn in creatures.ts (the jungle animals' finish: stamped frames, stepped ramps, ink)
 
-const glowEye = (c: Ctx, x: number, y: number, f: number) => { box(c, x, y, 3, 3, f % 30 < 2 ? '#7F1D1D' : '#FDE047'); };
-const flames = (c: Ctx, x: number, y: number, w: number, h: number, f: number, seed = 0) => {
-  for (let i = 0; i < w; i += 5) {
-    const t = Math.sin(f * 0.5 + i * 0.9 + seed) * 0.5 + 0.5, fh = h * (0.5 + t * 0.6);
-    box(c, x + i, y - fh, 5, fh, i % 10 ? '#F97316' : '#EF4444');
-    box(c, x + i + 1, y - fh * 0.55, 3, fh * 0.55, '#FDE047');
-  }
-};
-
-/** A box with an outline round it (the crude look still reads against the dark). */
-const ob = (c: Ctx, x: number, y: number, w: number, h: number, col: string, rim = '#0C0303') => { box(c, x - 1, y - 1, w + 2, h + 2, rim); box(c, x, y, w, h, col); };
-
-const drawImp = (c: Ctx, e: Enemy, f: number) => {
-  const hop = grounded(e) ? 0 : -2, wind = e.aiState === 'wind';
-  const flap = Math.floor(f / 5) % 2 ? 4 : 0;
-  // (bat wings behind it, the tail with its arrowhead, legs, a pot belly, a big head, horns, a grin)
-  c.fillStyle = '#0C0303';
-  for (const s of [-1, 1]) { c.beginPath(); c.moveTo(s * 4, -30 + hop); c.lineTo(s * 22, -40 + hop + flap); c.lineTo(s * 16, -24 + hop + flap * 0.5); c.closePath(); c.fill(); }
-  c.fillStyle = '#450A0A';
-  for (const s of [-1, 1]) { c.beginPath(); c.moveTo(s * 5, -29 + hop); c.lineTo(s * 20, -38 + hop + flap); c.lineTo(s * 15, -25 + hop + flap * 0.5); c.closePath(); c.fill(); }
-  ob(c, -18, -14 + hop, 10, 3, '#991B1B'); c.fillStyle = '#991B1B'; c.beginPath(); c.moveTo(-24, -12 + hop); c.lineTo(-18, -18 + hop); c.lineTo(-18, -8 + hop); c.fill();
-  ob(c, -7, -10, 5, 10, '#991B1B'); ob(c, 3, -10, 5, 10, '#991B1B');
-  ob(c, -10, -28 + hop, 20, 19, '#DC2626'); box(c, -6, -22 + hop, 12, 10, '#F87171');
-  ob(c, -10, -44 + hop, 20, 17, '#DC2626'); box(c, -10, -44 + hop, 20, 3, '#F87171');
-  box(c, -9, -50 + hop, 4, 6, '#FEF3C7'); box(c, 5, -50 + hop, 4, 6, '#FEF3C7');
-  glowEye(c, 2, -39 + hop, f); glowEye(c, -5, -39 + hop, f);
-  box(c, -4, -32 + hop, 12, 3, '#450A0A'); box(c, -2, -32 + hop, 2, 2, '#FFFFFF'); box(c, 4, -32 + hop, 2, 2, '#FFFFFF');
-  // (the fireball in its fist, growing over its head: the tell)
-  if (wind) {
-    const r = 3 + Math.min(1, (e.aiTimer || 0) / 26) * 6;
-    c.fillStyle = 'rgba(249, 115, 22, 0.45)'; c.beginPath(); c.arc(10, -54 + hop, r + 5, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FDE047'; c.beginPath(); c.arc(10, -54 + hop, r, 0, Math.PI * 2); c.fill();
-    ob(c, 7, -48 + hop, 5, 22, '#DC2626');
-  } else ob(c, 9, -24 + hop, 8, 4, '#DC2626');
-};
-
-const drawHound = (c: Ctx, e: Enemy, f: number) => {
-  const run = Math.abs(e.vel.x) > 0.5, st = run ? Math.sin(f * 0.5) * 6 : 0, crouch = e.aiState === 'crouch' ? 6 : 0;
-  const RIM = '#7C2D12';
-  // (legs, a lean black body, ribs showing, the burning mane and tail, a long head, its jaws)
-  ob(c, -24 + st, -16, 6, 16, '#18181B', RIM); ob(c, -14 - st, -16, 6, 16, '#27272A', RIM);
-  ob(c, 12 - st, -16, 6, 16, '#18181B', RIM); ob(c, 20 + st, -16, 6, 16, '#27272A', RIM);
-  ob(c, -28, -36 + crouch, 56, 22, '#1C1917', RIM); box(c, -28, -36 + crouch, 56, 3, '#44403C');
-  for (let i = 0; i < 6; i++) box(c, -22 + i * 8, -26 + crouch, 3, 6, '#57534E');
-  flames(c, -10, -34 + crouch, 32, 16, f);
-  flames(c, -38, -28 + crouch, 12, 14, f, 3);
-  ob(c, 22, -46 + crouch, 22, 20, '#1C1917', RIM); ob(c, 40, -38 + crouch, 14, 10, '#1C1917', RIM);
-  ob(c, 24, -54 + crouch, 6, 9, '#0C0A09', RIM); ob(c, 33, -54 + crouch, 5, 8, '#0C0A09', RIM);
-  glowEye(c, 34, -42 + crouch, f);
-  const open = e.aiState === 'pounce' || e.aiState === 'crouch' ? 6 : 1;
-  box(c, 40, -29 + crouch, 14, open, '#B91C1C');
-  for (let i = 0; i < 3; i++) box(c, 42 + i * 4, -29 + crouch, 2, 3, '#FFFFFF');
-  if (e.aiState === 'crouch' || e.aiState === 'pounce') box(c, 46, -24 + crouch + open, 2, 4, '#E5E5E5');
-};
-
-const drawBat = (c: Ctx, e: Enemy, f: number) => {
-  const up = e.aiState === 'tell' ? -12 : e.aiState === 'dive' ? 8 : (Math.floor(f / 4) % 2 ? -8 : 6);
-  // (the wings: burning, wide, bright against the dark)
-  for (const s of [-1, 1]) {
-    c.fillStyle = '#7F1D1D';
-    c.beginPath(); c.moveTo(s * 6, -16); c.lineTo(s * 30, -18 + up); c.lineTo(s * 24, -8 + up * 0.5); c.lineTo(s * 14, -10); c.closePath(); c.fill();
-    c.fillStyle = '#EA580C';
-    c.beginPath(); c.moveTo(s * 10, -15); c.lineTo(s * 28, -17 + up); c.lineTo(s * 20, -11 + up * 0.5); c.closePath(); c.fill();
-    box(c, s * 30 - 3, -22 + up, 6, 5, f % 6 < 3 ? '#FDE047' : '#F97316');
-    box(c, s * 24 - 2, -12 + up * 0.5, 4, 4, f % 6 < 3 ? '#F97316' : '#FDE047');
-  }
-  box(c, -7, -21, 14, 14, '#1C1917');
-  box(c, -6, -26, 4, 5, '#1C1917'); box(c, 2, -26, 4, 5, '#1C1917');
-  glowEye(c, 1, -18, f); box(c, 0, -11, 6, 2, '#FFFFFF');
-};
-
-const drawGoat = (c: Ctx, e: Enemy, f: number) => {
-  const walk = Math.abs(e.vel.x) > 0.3 ? Math.sin(f * (e.aiState === 'charge' ? 0.6 : 0.25)) * 5 : 0;
-  const low = e.aiState === 'paw' || e.aiState === 'charge' ? 10 : 0;
-  // (four legs, black hooves; a shaggy body; the tail; the head down for the charge, the horns out front: the pointy end)
-  for (const [x, s] of [[-26, 1], [-14, -1], [14, 1], [24, -1]] as const) { ob(c, x + walk * s, -22, 7, 22, '#3B0F0F'); box(c, x + walk * s, -4, 7, 4, '#0C0A09'); }
-  ob(c, -32, -54, 64, 34, '#5B1A12'); box(c, -32, -54, 64, 4, '#7C2D12');
-  for (let i = 0; i < 5; i++) box(c, -28 + i * 12, -24, 6, 5, '#5B1A12');
-  ob(c, -38, -52, 7, 14, '#3B0F0F');
-  const hy = -64 + low;
-  ob(c, 22, hy, 22, 22, '#5B1A12'); ob(c, 40, hy + 12, 12, 10, '#3B0F0F');
-  box(c, 26, hy + 22, 8, 9, '#292524');
-  c.fillStyle = '#0C0303';
-  c.beginPath(); c.moveTo(24, hy + 1); c.lineTo(66, hy - 6 + low * 0.8); c.lineTo(30, hy + 11); c.closePath(); c.fill();
-  c.fillStyle = '#E7E5E4';
-  c.beginPath(); c.moveTo(26, hy + 2); c.lineTo(62, hy - 4 + low * 0.8); c.lineTo(30, hy + 9); c.closePath(); c.fill();
-  c.fillStyle = '#A8A29E';
-  c.beginPath(); c.moveTo(30, hy + 8); c.lineTo(58, hy + 6 + low * 0.6); c.lineTo(32, hy + 14); c.closePath(); c.fill();
-  // (the paw: snorting, a glint on the horn tips)
-  if (e.aiState === 'paw' && f % 10 < 5) { box(c, 58, hy - 6 + low * 0.8, 4, 4, '#FFFFFF'); box(c, 46, hy + 14, 6, 3, '#E5E5E5'); }
-  glowEye(c, 34, hy + 6, f);
-};
-
-// ---------------------------------------------------------------------------------------------------------------
-
-registerM2Kind({ kind: 'm2:imp', stats: { w: 26, h: 42, hp: 45, contact: 8, mass: 60 }, ai: impAI, draw: drawImp, head: { x: 0, y: -34, r: 8 }, gender: 'n', grab: 'critter' });
-registerM2Kind({ kind: 'm2:hellhound', stats: { w: 60, h: 44, hp: 100, contact: 12, mass: 150 }, ai: houndAI, draw: drawHound, head: { x: 32, y: -36, r: 9 }, gender: 'n', grab: 'body' });
+registerM2Kind({ kind: 'm2:imp', stats: { w: 26, h: 42, hp: 45, contact: 8, mass: 60 }, ai: impAI, draw: drawImpArt, head: { x: 0, y: -34, r: 8 }, gender: 'n', grab: 'critter' });
+registerM2Kind({ kind: 'm2:hellhound', stats: { w: 60, h: 44, hp: 100, contact: 12, mass: 150 }, ai: houndAI, draw: drawHoundArt, head: { x: 32, y: -36, r: 9 }, gender: 'n', grab: 'body' });
 registerM2Kind({
-  kind: 'm2:firebat', stats: { w: 34, h: 22, hp: 30, contact: 9, mass: 30, air: true }, ai: batAI, draw: drawBat, head: { x: 0, y: -12, r: 6 }, gender: 'n', grab: 'critter',
+  kind: 'm2:firebat', stats: { w: 34, h: 22, hp: 30, contact: 9, mass: 30, air: true }, ai: batAI, draw: drawBatArt, head: { x: 0, y: -12, r: 6 }, gender: 'n', grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
 });
 registerM2Kind({
-  kind: 'm2:hellgoat', stats: { w: 68, h: 64, hp: 220, contact: 14, mass: 420 }, ai: goatAI, draw: drawGoat, head: { x: 32, y: -54, r: 10 }, gender: 'n', grab: 'none',
+  kind: 'm2:hellgoat', stats: { w: 68, h: 64, hp: 220, contact: 14, mass: 420 }, ai: goatAI, draw: drawGoatArt, head: { x: 32, y: -54, r: 10 }, gender: 'n', grab: 'none',
   pointy: { source: 'm2:hellgoat_horns', label: 'HORNED!', damage: 16 },
 });
 

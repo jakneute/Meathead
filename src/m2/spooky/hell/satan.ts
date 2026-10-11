@@ -20,6 +20,7 @@ import { hands, teleport, meatheadSays, speak, saidOver, box, type Said } from '
 import { DOORS, GY } from '../geometry';
 import { ARENA_MID, VENT_X } from './layout';
 import { hellOf } from './state';
+import { INK, checker, mix, stamp, LAVA, blob, thick, inked, path } from './paint';
 import { demonOf, demonSays, sinkDemon, tickSink, settleDemon } from './demon';
 import { DEMON_BEATEN, MH_LEAVES, MH_SATAN, MH_LAUNCH, SATAN_CORE, SATAN_PARTING } from './lines';
 
@@ -148,61 +149,160 @@ export const finaleZoom = (state: GameState) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude, but big), world space
+// Drawing, world space: Satan, a big SNES boss sprite (painted once into a stamp; what moves, live over it: the crown
+// of fire behind his head, his mouth). Up out of the lake: great bat wings behind him, the shoulders and chest of a
+// wrestler, arms folded; a long gaunt face, horns curling up and out, slicked-back hair to a widow's peak, the brows,
+// burning eyes, a pointed beard. Lit from below by the lava (the hot light along the undersides of everything).
+
+const RED = ['#220303', '#420606', '#640C0A', '#861612', '#A6261C', '#C4422E'];
+const HORNS = ['#0A0808', '#1A1414', '#2C2424', '#443838', '#5E5050'];
+const HAIR = ['#060404', '#141010', '#241C1C'];
+const WING = ['#160404', '#260808', '#3A0E0C', '#521612'];
+/** The lava's light from under him on a color. */
+const under = (c: string, k = 0.4) => mix(c, '#F07A30', k);
+
+/** The still part of him (local: x 0 his middle, y 0 the top of his horns' reach; 640 tall), painted once. */
+const paintSatan = (g: Ctx) => {
+  // The wings: spread behind his shoulders, finger bones out to their claws, the membranes scalloped between
+  for (const s of [-1, 1]) {
+    const sx = s * 150, sy = 300;
+    const tips: [number, number][] = [[s * 330, 70], [s * 360, 190], [s * 340, 320], [s * 290, 420]];
+    const edge: [number, number][] = [[sx, sy - 20], [s * 250, 40], ...tips.flatMap(([tx, ty], i): [number, number][] => [[tx, ty], [s * (300 - i * 12), ty + 50]]), [s * 200, 470]];
+    inked(g, edge, WING[1], 3);
+    g.save(); path(g, edge); g.clip();
+    for (const [tx, ty] of tips) { g.fillStyle = WING[2]; g.beginPath(); g.moveTo(sx, sy - 10); g.lineTo(tx, ty); g.lineTo(tx - s * 30, ty + 50); g.closePath(); g.fill(); }
+    checker(g, s < 0 ? -380 : 0, 0, 380, 500, WING[0], 0);
+    g.restore();
+    // (the arm of the wing, and its fingers)
+    thick(g, sx, sy - 20, s * 250, 40, 14, WING);
+    for (const [tx, ty] of tips) thick(g, s * 250, 40, tx, ty, 6, WING);
+    for (const [tx, ty] of tips) { box(g, tx - 3, ty - 3, 6, 6, INK); box(g, tx - 2, ty - 2, 4, 4, HORNS[4]); }
+    inked(g, [[s * 248, 34], [s * 262, 8], [s * 256, 40]], HORNS[3]);
+  }
+  // The shoulders and chest: a wrestler's; the collarbones, the pecs, the gut's top ridges (lit from under)
+  inked(g, [[-300, 640], [-280, 360], [-230, 300], [-120, 270], [120, 270], [230, 300], [280, 360], [300, 640]], RED[2], 3);
+  for (const s of [-1, 1]) blob(g, s * 212, 350, 80, 60, RED);
+  blob(g, -68, 404, 86, 48, RED); blob(g, 68, 404, 86, 48, RED);
+  for (const s of [-1, 1]) {
+    box(g, Math.min(s * 40, s * 130), 292, 90, 4, RED[1]); box(g, Math.min(s * 40, s * 130), 296, 90, 2, RED[4]);
+  }
+  for (let i = 0; i < 3; i++) for (const s of [-1, 1]) blob(g, s * 30, 500 + i * 46, 26, 20, RED, true, 2);
+  box(g, -3, 300, 6, 340, RED[0]);
+  // The arms, folded across him: the near forearm over the far, the fists, the claws
+  thick(g, -250, 380, -180, 520, 70, RED); thick(g, 250, 380, 180, 520, 70, RED);
+  blob(g, -40, 488, 170, 34, RED); thick(g, -200, 492, 120, 486, 58, RED);
+  blob(g, 140, 484, 34, 30, RED);
+  for (let i = 0; i < 3; i++) { inked(g, [[166, 466 + i * 16], [184, 470 + i * 16], [172, 478 + i * 16]], HORNS[3]); }
+  blob(g, 40, 534, 170, 30, RED); thick(g, 200, 540, -120, 532, 52, RED);
+  blob(g, -136, 528, 30, 28, RED);
+  for (let i = 0; i < 3; i++) { inked(g, [[-160, 512 + i * 14], [-178, 516 + i * 14], [-166, 524 + i * 14]], HORNS[3]); }
+  // The neck
+  inked(g, [[-56, 300], [-48, 240], [48, 240], [56, 300]], RED[2], 3);
+  box(g, -46, 250, 92, 40, RED[1]); box(g, -46, 244, 20, 50, RED[3]);
+  for (const s of [-1, 1]) { g.strokeStyle = RED[0]; g.lineWidth = 4; g.beginPath(); g.moveTo(s * 30, 248); g.lineTo(s * 50, 300); g.stroke(); }
+  // The head: long, gaunt; the ears; the horns; the hair
+  for (const s of [-1, 1]) inked(g, [[s * 70, 130], [s * 118, 96], [s * 92, 150], [s * 74, 176]], s < 0 ? RED[2] : RED[3], 3);
+  for (const s of [-1, 1]) {
+    const hp: [number, number][] = [[s * 40, 84], [s * 90, 56], [s * 140, 20], [s * 150, -30], [s * 128, -70], [s * 134, -24], [s * 116, 18], [s * 80, 56], [s * 60, 96]];
+    inked(g, hp, HORNS[2], 3);
+    g.save(); path(g, hp); g.clip();
+    box(g, s < 0 ? -160 : 100, -80, 60, 60, HORNS[3]);
+    for (let i = 0; i < 6; i++) box(g, s * (70 + i * 13) - 6, 70 - i * 22, 14, 3, HORNS[0]);
+    box(g, s < 0 ? -160 : 120, -80, 40, 200, HORNS[1]);
+    g.restore();
+    box(g, s * 128 - 2, -66, 4, 6, HORNS[4]);
+  }
+  // (the face)
+  const face: [number, number][] = [[-76, 90], [-60, 50], [0, 34], [60, 50], [76, 90], [74, 170], [50, 230], [0, 262], [-50, 230], [-74, 170]];
+  inked(g, face, RED[3], 3);
+  g.save(); path(g, face); g.clip();
+  box(g, -80, 30, 160, 240, RED[3]);
+  box(g, -80, 30, 44, 240, RED[4]); checker(g, -36, 30, 4, 240, RED[4]);
+  box(g, 44, 30, 40, 240, RED[2]); checker(g, 40, 30, 4, 240, RED[2], 1);
+  // (the cheekbones' hollows, stepped)
+  for (const s of [-1, 1]) { g.fillStyle = RED[1]; g.beginPath(); g.moveTo(s * 70, 150); g.lineTo(s * 40, 176); g.lineTo(s * 56, 222); g.lineTo(s * 74, 186); g.closePath(); g.fill(); }
+  // (lit from under: the jaw and chin's undersides hot)
+  box(g, -60, 236, 120, 30, under(RED[3], 0.3));
+  g.restore();
+  // (the hair: slicked back off a widow's peak)
+  inked(g, [[-80, 96], [-70, 44], [-30, 22], [0, 18], [30, 22], [70, 44], [80, 96], [62, 64], [24, 52], [0, 82], [-24, 52], [-62, 64]], HAIR[1], 3);
+  for (let i = 0; i < 5; i++) box(g, -50 + i * 22, 30 + (i % 2) * 4, 12, 2, HAIR[2]);
+  // (the brows, down hard; the eyes' sockets; the nose)
+  for (const s of [-1, 1]) {
+    inked(g, [[s * 8, 118], [s * 64, 96], [s * 70, 108], [s * 14, 128]], HAIR[1], 2);
+    g.fillStyle = RED[1]; g.beginPath(); g.moveTo(s * 14, 128); g.lineTo(s * 60, 112); g.lineTo(s * 58, 148); g.lineTo(s * 18, 146); g.closePath(); g.fill();
+  }
+  inked(g, [[-8, 128], [8, 128], [16, 186], [0, 194], [-16, 186]], RED[3], 2);
+  box(g, -12, 182, 8, 4, RED[0]); box(g, 4, 182, 8, 4, RED[0]); box(g, -6, 140, 4, 40, RED[4]);
+  // (the mustache, curled up at the ends; the pointed beard)
+  inked(g, [[-6, 198], [-56, 200], [-70, 184], [-58, 194], [-20, 190], [0, 196], [20, 190], [58, 194], [70, 184], [56, 200], [6, 198]], HAIR[1], 2);
+  inked(g, [[-30, 236], [30, 236], [6, 320], [0, 336], [-6, 320]], HAIR[1], 2);
+  box(g, -20, 242, 4, 40, HAIR[2]);
+};
 
 /** Satan, up out of the lava lake behind the pit (drawn before the pit's floor: it's in front of him). */
 export const drawSatan = (c: Ctx, state: GameState) => {
   const fin = hellOf(state).fin;
   if (!fin?.full || fin.rise <= 0) return;
   const f = state.frame, k = fin.rise * fin.rise * (3 - 2 * fin.rise);
-  const base = GY + 40, top = base - SATAN_H * k, x = SATAN_X;
+  const base = GY + 40, top = Math.round(base - SATAN_H * k), x = SATAN_X;
   const talking = !!fin.said;
-  c.save();
-  // (the crown of fire behind his head)
-  for (let i = 0; i < 9; i++) {
-    const a = -Math.PI / 2 + (i - 4) * 0.28, r = 170 + Math.sin(f * 0.2 + i) * 14;
-    c.fillStyle = i % 2 ? '#F97316' : '#DC2626';
-    c.beginPath(); c.moveTo(x, top + 150); c.lineTo(x + Math.cos(a - 0.1) * r, top + 150 + Math.sin(a - 0.1) * r); c.lineTo(x + Math.cos(a + 0.1) * r, top + 150 + Math.sin(a + 0.1) * r); c.fill();
+  // (the crown of fire behind his head: stepped tongues, dim (it's behind him; no glare))
+  const cy = top + 150;
+  for (let i = 0; i < 11; i++) {
+    const a = -Math.PI / 2 + (i - 5) * 0.24, r = 180 + Math.round(Math.sin(f * 0.2 + i) * 14) + (i % 2) * 30;
+    for (const [col, kk, ww] of [[LAVA[1], 1, 0.11], [LAVA[2], 0.82, 0.08], [LAVA[3], 0.6, 0.05]] as [string, number, number][]) {
+      c.fillStyle = col; c.beginPath(); c.moveTo(x + Math.cos(a - ww * 2) * 60, cy + Math.sin(a - ww * 2) * 60);
+      c.lineTo(x + Math.cos(a) * r * kk, cy + Math.sin(a) * r * kk); c.lineTo(x + Math.cos(a + ww * 2) * 60, cy + Math.sin(a + ww * 2) * 60); c.fill();
+    }
   }
-  // (shoulders, chest, arms folded)
-  c.fillStyle = '#5B0A0A'; c.beginPath(); c.moveTo(x - 300, base); c.lineTo(x - 260, top + 300); c.lineTo(x - 120, top + 250); c.lineTo(x + 120, top + 250); c.lineTo(x + 260, top + 300); c.lineTo(x + 300, base); c.fill();
-  box(c, x - 120, top + 260, 240, 20, '#7F1D1D');
-  box(c, x - 4, top + 290, 8, 200, '#3B0505');
-  box(c, x - 200, top + 420, 400, 70, '#7F1D1D'); box(c, x - 200, top + 420, 400, 8, '#991B1B');
-  // (the head: long, gaunt, horns curling up and out, a pointed beard, the eyes)
-  box(c, x - 80, top + 70, 160, 200, '#7F1D1D'); box(c, x - 80, top + 70, 160, 10, '#991B1B');
-  box(c, x - 90, top + 120, 20, 70, '#5B0A0A'); box(c, x + 70, top + 120, 20, 70, '#5B0A0A');
-  c.fillStyle = '#1C1917';
-  c.beginPath(); c.moveTo(x - 60, top + 80); c.quadraticCurveTo(x - 160, top + 40, x - 130, top - 60); c.lineTo(x - 110, top + 30); c.lineTo(x - 30, top + 74); c.fill();
-  c.beginPath(); c.moveTo(x + 60, top + 80); c.quadraticCurveTo(x + 160, top + 40, x + 130, top - 60); c.lineTo(x + 110, top + 30); c.lineTo(x + 30, top + 74); c.fill();
-  // (brow down, the eyes burning)
-  box(c, x - 64, top + 118, 128, 14, '#450A0A');
+  c.save(); c.translate(x, top + 0);
+  stamp(c, 'hell-satan', -400, -90, 800, 740, paintSatan);
+  // The eyes: burning (hot yellow, slit; no glow round them)
   for (const s of [-1, 1]) {
-    c.fillStyle = 'rgba(253, 224, 71, 0.3)'; c.beginPath(); c.arc(x + s * 34, top + 140, 18, 0, Math.PI * 2); c.fill();
-    box(c, x + s * 34 - 12, top + 134, 24, 10, '#FDE047'); box(c, x + s * 34 - 4, top + 136, 8, 6, '#FFFFFF');
+    const ex = s * 36, ey = 132;
+    c.fillStyle = INK; c.beginPath(); c.moveTo(ex - 18, ey + 2); c.lineTo(ex + s * 4, ey - 9); c.lineTo(ex + 18, ey - 2); c.lineTo(ex - s * 2, ey + 8); c.closePath(); c.fill();
+    c.fillStyle = LAVA[6]; c.beginPath(); c.moveTo(ex - 14, ey + 1); c.lineTo(ex + s * 4, ey - 6); c.lineTo(ex + 14, ey - 1); c.lineTo(ex - s * 2, ey + 5); c.closePath(); c.fill();
+    box(c, ex - 6, ey - 3, 10, 4, LAVA[7]); box(c, ex - 1, ey - 6, 3, 11, INK);
   }
-  // (the mouth: a grin, moving when he speaks; teeth)
-  const open = talking ? 6 + Math.abs(Math.sin(f * 0.35)) * 14 : 4;
-  box(c, x - 46, top + 196, 92, open, '#1C0303');
-  for (let i = 0; i < 7; i++) box(c, x - 40 + i * 12, top + 196, 6, 5, '#FEF3C7');
-  c.fillStyle = '#1C1917'; c.beginPath(); c.moveTo(x - 30, top + 212 + open); c.lineTo(x + 30, top + 212 + open); c.lineTo(x, top + 290 + open); c.fill();
+  // The mouth: a grin under the mustache, moving when he speaks; the teeth, a forked tongue
+  const open = talking ? 6 + Math.round(Math.abs(Math.sin(f * 0.35)) * 14) : 4;
+  box(c, -48, 203, 96, open + 6, INK);
+  box(c, -46, 205, 92, open + 2, '#1C0303');
+  for (let i = 0; i < 7; i++) { box(c, -40 + i * 12, 205, 8, 6, '#F2E6C8'); box(c, -40 + i * 12, 209, 8, 2, '#C8B890'); }
+  for (const s of [-1, 1]) { c.fillStyle = '#F2E6C8'; c.beginPath(); c.moveTo(s * 34, 205); c.lineTo(s * 30, 217); c.lineTo(s * 26, 205); c.fill(); }
+  if (open > 10) { box(c, -12, 205 + open - 4, 24, 6, '#9E2A3A'); box(c, -8, 205 + open - 4, 6, 2, '#C8505E'); }
   c.restore();
 };
 
-/** The geyser (a column of lava up from the floor), and the vent it comes out of (a sign by it). */
+const GEYSER = [LAVA[2], LAVA[3], LAVA[5], LAVA[6], LAVA[7]];
+
+/** The geyser (a column of lava up from the floor: in bands, its edges churning, blobs flung off it), and the floor
+ *  going hot and cracking under him first. */
 export const drawGeyser = (c: Ctx, state: GameState) => {
   const fin = hellOf(state).fin, f = state.frame;
   if (fin && fin.step === 'glow') {
-    const k = Math.min(1, fin.t / 40);
-    c.fillStyle = `rgba(253, 224, 71, ${0.3 + 0.4 * k})`; c.beginPath(); c.ellipse(fin.gx, GY - 1, 30 + k * 30, 5, 0, 0, Math.PI * 2); c.fill();
-    c.strokeStyle = '#FDE047'; c.lineWidth = 2;
-    for (let i = 0; i < 4; i++) { c.beginPath(); c.moveTo(fin.gx, GY); c.lineTo(fin.gx + Math.cos(i * 1.6) * 40 * k, GY - 1); c.stroke(); }
+    const k = Math.min(1, fin.t / 40), gx = Math.round(fin.gx);
+    // (the floor going hot: stepped, the cracks running out from it)
+    for (const [r, col] of [[1, LAVA[2]], [0.66, LAVA[4]], [0.33, LAVA[6]]] as [number, string][]) box(c, Math.round(gx - (30 + k * 30) * r), GY - 2, Math.round((60 + k * 60) * r), 3, col);
+    for (let i = 0; i < 4; i++) {
+      const a = i * 1.6, len = Math.round(40 * k);
+      for (let s = 4; s < len; s += 4) box(c, Math.round(gx + Math.cos(a) * s), GY - 1 + ((s >> 2) % 2), 3, 2, s < len * 0.5 ? LAVA[6] : LAVA[4]);
+    }
   }
   if (fin && (fin.step === 'launch' || fin.step === 'fade') && fin.geyser > 0) {
-    const top = state.camera.y - 400, w = 70;
-    for (let i = 0; i < 4; i++) {
-      const ww = w - i * 14, wob = Math.sin(f * 0.6 + i) * 4;
-      box(c, fin.gx - ww / 2 + wob, top, ww, GY - top, ['#B91C1C', '#EA580C', '#F97316', '#FEF08A'][i]);
+    const top = Math.floor((state.camera.y - 400) / 6) * 6, w = 70, gx = Math.round(fin.gx);
+    for (let i = 0; i < GEYSER.length; i++) {
+      const ww = w - i * 12;
+      for (let y = top; y < GY; y += 6) {
+        const wob = Math.round(Math.sin(f * 0.6 + y * 0.05 + i) * 4);
+        box(c, gx - Math.round(ww / 2) + wob, y, ww, 6, GEYSER[i]);
+      }
+    }
+    // (blobs flung off its sides)
+    for (let i = 0; i < 6; i++) {
+      const ph = (f * 4 + i * 53) % 200, s = i % 2 ? 1 : -1, bx = gx + s * (36 + ph * 0.3), by = GY - 40 - ph * 2;
+      box(c, Math.round(bx) - 4, Math.round(by) - 4, 8, 8, INK); box(c, Math.round(bx) - 3, Math.round(by) - 3, 6, 6, LAVA[5]); box(c, Math.round(bx) - 2, Math.round(by) - 2, 2, 2, LAVA[7]);
     }
   }
 };

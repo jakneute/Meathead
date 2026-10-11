@@ -38,6 +38,8 @@ import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import { solid, box, label, saidOver, meatheadSays, voice, type Said } from '../section';
 import { GY } from '../geometry';
 import { ARENA_IN, ARENA_OUT, DEMON_HOME } from './layout';
+import { hazeBands } from '../../../m1/game/render/pixelArt';
+import { INK, checker, mix, LAVA, blob, thick, inked, flashed } from './paint';
 import { hellOf } from './state';
 import {
   DEMON_NAME, DEMON_INTRO, DEMON_CHATTER, DEMON_HIT, DEMON_HURT, MH_DEMON, HURT_FORK, DEATH_FORK, HURT_QUAKE, DEATH_QUAKE,
@@ -549,120 +551,189 @@ export const tickSink = (state: GameState, d: Demon) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude: boxes and blobs), world space, behind Meathead
+// Drawing, world space, behind Meathead: a big SNES boss sprite (every part a stepped ramp lit from the upper left,
+// dithered between the steps, inked; the lava's light along his underside). Big, fat, a napkin tucked in under his
+// chins (he was at his lunch), bored half-shut eyes, tiny wings no use to anybody.
 
-const RED = '#B91C1C', RED_D = '#7F1D1D', RED_L = '#DC2626', BELLY_C = '#F2A08A', BONE = '#E7E5E4', IRON = '#3F3F46';
+const SKIN = ['#2E0604', '#560C08', '#7E1610', '#A2241A', '#C23E28', '#DE6646'];
+const GUT = ['#5E2418', '#8A4030', '#B4644E', '#D2866C', '#EAAA8E'];
+const HORNC = ['#4A3E30', '#7A6A54', '#A89678', '#D0C0A0', '#F0E4C8'];
+const HOOF = ['#0C0806', '#1C1410', '#2E241E', '#463A30'];
+const NAPKIN = ['#8E8478', '#BCB2A4', '#DDD6CA', '#F4F0E8'];
+const FORK_C = ['#0E0C0C', '#1E1A1A', '#36302E', '#56504C'];
+const STEELT = ['#5A5A62', '#8A8A94', '#B4B4BE', '#E4E4EC'];
+const HOTT = ['#9A2A0A', '#E06010', '#F8A830', '#FFF0A0'];
 
-/** The fork, from his hand at (hx, hy) pointing `ang` (radians; 0 forward): its shaft, its three tines (hot: glowing). */
+/** The fork, from his hand at (hx, hy) pointing `ang` (radians; 0 forward): the iron shaft, the crossbar, the three
+ *  barbed tines (hot: glowing up through orange to white), a glint at the tips when he's about to use it. */
 const fork = (c: Ctx, hx: number, hy: number, ang: number, glint: boolean, hot: number) => {
-  c.save(); c.translate(hx, hy); c.rotate(ang);
-  box(c, -50, -3, 220, 6, '#1C1917'); box(c, -50, -2, 220, 2, '#57534E');
-  box(c, 166, -16, 6, 32, IRON);
-  const tine = hot > 0 ? (hot > 0.6 ? '#FDE047' : '#FB923C') : '#A1A1AA';
-  for (const y of [-16, -1, 13]) { box(c, 170, y, 30, 4, tine); c.fillStyle = tine; c.beginPath(); c.moveTo(200, y - 1); c.lineTo(208, y + 2); c.lineTo(200, y + 5); c.fill(); }
-  if (glint) { box(c, 196, -20, 3, 44, '#FFFFFF'); box(c, 186, 0, 24, 3, '#FFFFFF'); }
+  c.save(); c.translate(Math.round(hx), Math.round(hy)); c.rotate(ang);
+  box(c, -52, -4, 224, 8, INK);
+  box(c, -50, -3, 220, 6, FORK_C[1]); box(c, -50, -3, 220, 2, FORK_C[3]); box(c, -50, 2, 220, 1, FORK_C[0]);
+  for (let x = -40; x < 160; x += 30) box(c, x, -3, 2, 6, FORK_C[2]);
+  box(c, -56, -6, 8, 12, INK); box(c, -55, -5, 6, 10, FORK_C[2]);
+  const t = hot > 0 ? (hot > 0.6 ? [HOTT[2], HOTT[3], '#FFFFFF'] : [HOTT[0], HOTT[1], HOTT[2]]) : [STEELT[0], STEELT[1], STEELT[3]];
+  box(c, 164, -19, 10, 38, INK); box(c, 165, -18, 8, 36, FORK_C[2]); box(c, 165, -18, 3, 36, FORK_C[3]);
+  for (const y of [-17, -1, 13]) {
+    box(c, 172, y - 1, 30, 6, INK);
+    box(c, 172, y, 28, 4, t[0]); box(c, 172, y, 28, 2, t[1]); box(c, 174, y, 20, 1, t[2]);
+    c.fillStyle = INK; c.beginPath(); c.moveTo(199, y - 2); c.lineTo(211, y + 2); c.lineTo(199, y + 6); c.fill();
+    c.fillStyle = t[1]; c.beginPath(); c.moveTo(200, y); c.lineTo(207, y + 2); c.lineTo(200, y + 4); c.fill();
+    // (the barb)
+    c.fillStyle = INK; c.beginPath(); c.moveTo(192, y + 4); c.lineTo(188, y + 9); c.lineTo(186, y + 4); c.fill();
+  }
+  if (glint) { box(c, 203, -24, 3, 50, '#FFFFFF'); box(c, 190, 0, 28, 3, '#FFFFFF'); box(c, 199, -6, 11, 13, '#FFFFFF'); }
   c.restore();
 };
 
+/** A soul (lunch): a little pale wisp of somebody, a face on it, scared stiff. */
+const soul = (c: Ctx, x: number, y: number, s: number, f: number) => {
+  const r = ['#3E8FA0', '#7CCBDA', '#B4EEF6', '#E8FCFF'];
+  const w = Math.round(9 * s), h = Math.round(11 * s), tail = Math.round(Math.sin(f * 0.2) * 3);
+  c.fillStyle = INK; c.beginPath(); c.ellipse(x, y, w + 1, h + 1, 0, Math.PI, 0); c.lineTo(x + w + 1, y + h * 0.6); c.lineTo(x + tail, y + h * 1.4); c.lineTo(x - w - 1, y + h * 0.6); c.closePath(); c.fill();
+  c.fillStyle = r[1]; c.beginPath(); c.ellipse(x, y, w, h, 0, Math.PI, 0); c.lineTo(x + w, y + h * 0.55); c.lineTo(x + tail, y + h * 1.3); c.lineTo(x - w, y + h * 0.55); c.closePath(); c.fill();
+  c.fillStyle = r[2]; c.beginPath(); c.ellipse(x - w * 0.25, y - h * 0.2, w * 0.6, h * 0.6, 0, 0, Math.PI * 2); c.fill();
+  box(c, x - w * 0.5, y - h * 0.6, 2, 2, r[3]);
+  box(c, x - 3 * s, y - 2 * s, Math.max(1, 2 * s), Math.max(1, 2 * s), '#0E3A48'); box(c, x + 1 * s, y - 2 * s, Math.max(1, 2 * s), Math.max(1, 2 * s), '#0E3A48');
+  box(c, x - 1 * s, y + 2 * s, Math.max(1, 2 * s), Math.max(2, 3 * s), '#0E3A48');
+};
+
 const drawBody = (c: Ctx, d: Demon, f: number) => {
-  const st = d.st, t = d.t;
+  const st = d.st, t = d.t, fl = d.flash > 0;
   const squat = st === 'crouch' ? Math.min(1, t / 12) * 22 : st === 'sweepWind' || st === 'sweep' ? 14 : st === 'land' ? Math.max(0, 18 - t) : st === 'stagger' || st === 'tripped' || st === 'beaten' || st === 'sink' ? 30 : 0;
-  const breathe = Math.sin(f * 0.08) * 2, wobble = st === 'crouch' ? Math.sin(t * 0.9) * 4 : 0;
-  const walk = st === 'walk' && Math.abs(d.vx) > 0.1 ? Math.sin(f * 0.2) * 5 : 0;
-  const flash = d.flash > 0;
-  const col = flash ? '#FECACA' : RED;
-  // (tail, the tiny useless wings)
-  c.strokeStyle = RED_D; c.lineWidth = 4; c.beginPath(); c.moveTo(-50, -50 + squat); c.quadraticCurveTo(-95, -40, -90, -90 + Math.sin(f * 0.1) * 8); c.stroke();
-  c.fillStyle = RED_D; c.beginPath(); c.moveTo(-90, -98 + Math.sin(f * 0.1) * 8); c.lineTo(-82, -86 + Math.sin(f * 0.1) * 8); c.lineTo(-98, -84 + Math.sin(f * 0.1) * 8); c.fill();
-  const flap = Math.floor(f / 12) % 2 ? -4 : 0;
-  c.fillStyle = '#450A0A';
-  c.beginPath(); c.moveTo(-30, -140 + squat); c.lineTo(-62, -168 + squat + flap); c.lineTo(-48, -134 + squat); c.fill();
-  // (legs: stubby, goat-kneed, hooves)
-  if (st !== 'beaten' && st !== 'sink') {
-    box(c, -40 + walk, -36, 26, 36 - squat * 0.3, RED_D); box(c, 14 - walk, -36, 26, 36 - squat * 0.3, RED_D);
-    box(c, -42 + walk, -8, 30, 8, '#1C1917'); box(c, 12 - walk, -8, 30, 8, '#1C1917');
-  } else {
-    // (sat down, legs out in front)
-    box(c, -10, -22, 70, 20, RED_D); box(c, 56, -28, 12, 26, '#1C1917');
+  const breathe = Math.round(Math.sin(f * 0.08) * 2), wobble = st === 'crouch' ? Math.round(Math.sin(t * 0.9) * 4) : 0;
+  const walk = st === 'walk' && Math.abs(d.vx) > 0.1 ? Math.round(Math.sin(f * 0.2) * 5) : 0;
+  const S = flashed(SKIN, fl), G = flashed(GUT, fl), sat = st === 'beaten' || st === 'sink';
+  // (the tail: thick, curling up behind him, the spade on the end)
+  const tw = Math.round(Math.sin(f * 0.1) * 8);
+  c.lineCap = 'round';
+  for (const [col, w] of [[INK, 10], [S[1], 6], [S[2], 2]] as [string, number][]) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(-50, -46 + squat); c.quadraticCurveTo(-100, -38, -92, -88 + tw); c.stroke(); }
+  c.lineCap = 'butt';
+  inked(c, [[-92, -106 + tw], [-80, -88 + tw], [-92, -92 + tw], [-104, -86 + tw]], S[2]);
+  // (the tiny useless wings, flapping away)
+  const flap = Math.floor(f / 10) % 2 ? -6 : 0;
+  for (const [dx, sh] of [[-6, 1], [0, 0]] as [number, number][]) {
+    inked(c, [[-28 + dx, -142 + squat], [-58 + dx, -172 + squat + flap], [-64 + dx, -156 + squat + flap], [-52 + dx, -152 + squat + flap * 0.5], [-50 + dx, -138 + squat], [-38 + dx, -132 + squat]], S[1 - sh + 1]);
+    c.strokeStyle = S[4]; c.lineWidth = 2; c.beginPath(); c.moveTo(-30 + dx, -140 + squat); c.lineTo(-56 + dx, -168 + squat + flap); c.stroke();
   }
-  // (the gut: huge, banded, the pale belly, the button)
+  // (the back arm, hanging off behind the gut)
+  if (!sat) thick(c, -34, -128 + squat, -58, -84 + squat, 18, S);
+  // (legs: stubby, goat-kneed, cloven hooves; sat, out in front of him)
+  if (!sat) {
+    for (const [lx, w, dark0] of [[-28 + walk, 1, 1], [26 - walk, -1, 0]] as [number, number, number][]) {
+      const R = dark0 ? S.map(cc => mix(cc, INK, 0.2)) : S;
+      blob(c, lx, -36 + squat * 0.4, 20, 16, R, false);
+      thick(c, lx - 4 * w, -22 + squat * 0.3, lx + 2, -8, 14, R);
+      inked(c, [[lx - 12, 0], [lx - 10, -12], [lx + 12, -12], [lx + 14, 0]], HOOF[2]);
+      box(c, lx - 10, -12, 22, 3, HOOF[3]); box(c, lx, -10, 2, 10, INK);
+    }
+  } else {
+    blob(c, 30, -16, 38, 14, S, false);
+    inked(c, [[58, 0], [56, -26], [72, -26], [74, 0]], HOOF[2]); box(c, 64, -24, 2, 24, INK);
+  }
+  // (the gut: huge, in steps; the pale belly over it; its folds; the button; a few hairs)
   const by = -88 + squat;
-  c.fillStyle = col; c.beginPath(); c.ellipse(4, by, 66 + wobble, 58 + breathe, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = flash ? '#FECACA' : RED_D; c.beginPath(); c.ellipse(4, by + 30, 58 + wobble, 22, 0, 0, Math.PI); c.fill();
-  c.fillStyle = flash ? '#FFF1F2' : BELLY_C; c.beginPath(); c.ellipse(16, by + 6, 42 + wobble, 40 + breathe, 0, 0, Math.PI * 2); c.fill();
-  box(c, 20, by + 12, 5, 4, '#7F1D1D');
-  // (the hair on it, a few)
-  for (const [x, y] of [[0, -14], [26, -20], [34, 2], [6, 20]]) box(c, 16 + x, by + y, 2, 5, '#7F1D1D');
-  // (shoulders and the head: small for him, two chins, horns; bored eyes, lids half down)
+  blob(c, 4, by, 66 + wobble, 58 + breathe, S);
+  blob(c, 16, by + 6, 44 + wobble, 42 + breathe, G, false);
+  c.strokeStyle = G[0]; c.lineWidth = 2;
+  c.beginPath(); c.ellipse(16, by + 34 + breathe, 30 + wobble, 10, 0, 0.15 * Math.PI, 0.85 * Math.PI); c.stroke();
+  c.beginPath(); c.ellipse(-30, by + 10, 18, 26, 0, -0.5 * Math.PI, 0.3 * Math.PI); c.stroke();
+  box(c, 20, by + 12, 6, 6, INK); box(c, 21, by + 13, 4, 2, G[0]);
+  for (const [x, y] of [[0, -14], [26, -20], [34, 2], [6, 20], [-12, 6]]) { box(c, 16 + x, by + y, 2, 5, S[0]); box(c, 18 + x, by + y - 2, 2, 3, S[0]); }
+  // (shoulders, and the head: small for him; jowls, two chins, stubby horns, pointed ears)
   const hy = -170 + squat;
-  c.fillStyle = col; c.beginPath(); c.ellipse(4, -136 + squat, 50, 20, 0, 0, Math.PI * 2); c.fill();
-  box(c, -16, hy, 44, 40, col); box(c, -16, hy, 44, 4, RED_L);
-  box(c, -12, hy + 36, 40, 10, col); box(c, -6, hy + 44, 30, 6, RED_D);
-  c.fillStyle = BONE;
-  c.beginPath(); c.moveTo(-12, hy + 2); c.lineTo(-20, hy - 16); c.lineTo(-4, hy); c.fill();
-  c.beginPath(); c.moveTo(18, hy + 2); c.lineTo(26, hy - 16); c.lineTo(10, hy); c.fill();
-  const lid = st === 'stagger' || st === 'beaten' ? 3 : st.endsWith('Wind') || st === 'crouch' ? 2 : 5;
-  box(c, 6, hy + 12, 9, 7, '#FEF9C3'); box(c, 19, hy + 12, 8, 7, '#FEF9C3');
-  box(c, 11, hy + 15, 3, 3, '#000000'); box(c, 24, hy + 15, 3, 3, '#000000');
-  box(c, 5, hy + 11, 11, lid, RED_D); box(c, 18, hy + 11, 10, lid, RED_D);
-  // (the mouth: a bored frown; open, talking or whining or eating)
+  blob(c, 4, -136 + squat, 50, 20, S, false);
+  for (const s of [-1, 1]) inked(c, [[6 + s * 18, hy + 14], [6 + s * 34, hy + 6], [6 + s * 22, hy + 26]], s < 0 ? S[1] : S[3]);
+  // (horns: curling up and out, ringed)
+  for (const s of [-1, 1]) {
+    const bx = 6 + s * 10;
+    inked(c, [[bx - 6, hy + 6], [bx + s * 6 - 6, hy - 6], [bx + s * 16, hy - 20], [bx + s * 12, hy - 6], [bx + 6, hy + 6]], HORNC[s < 0 ? 1 : 2]);
+    box(c, bx + s * 6 - 3, hy - 6, 6, 2, HORNC[0]); box(c, bx + s * 10 - 2, hy - 12, 5, 2, HORNC[0]);
+    box(c, bx - 2, hy, 2, 4, HORNC[4]);
+  }
+  blob(c, 6, hy + 22, 24, 24, S, false);
+  blob(c, 6, hy + 44, 26, 10, S, false);
+  blob(c, 6, hy + 54, 22, 7, S, false);
+  // (the napkin, tucked in under his chins: lunch on it)
+  inked(c, [[-14, hy + 54], [30, hy + 54], [38, hy + 66], [8, hy + 104], [-22, hy + 66]], NAPKIN[2]);
+  box(c, -12, hy + 56, 40, 4, NAPKIN[3]); checker(c, -10, hy + 60, 36, 2, NAPKIN[3]);
+  c.fillStyle = NAPKIN[1]; c.beginPath(); c.moveTo(30, hy + 62); c.lineTo(36, hy + 66); c.lineTo(8, hy + 102); c.lineTo(14, hy + 84); c.closePath(); c.fill();
+  for (const s2 of [-1, 1]) inked(c, [[8 + s2 * 22, hy + 52], [8 + s2 * 32, hy + 46], [8 + s2 * 30, hy + 58]], NAPKIN[2], 1.5);
+  for (const [x, y, w, col] of [[-6, 68, 8, '#9E1B1B'], [12, 76, 6, '#7CCBDA'], [4, 86, 4, '#9E1B1B'], [-10, 70, 4, '#B4644E']] as [number, number, number, string][]) box(c, x, hy + y, w, w - 2, col);
+  // (the face: the brow, bored eyes with the lids half down, a fat nose, the mouth, the goatee)
+  box(c, -8, hy + 10, 30, 4, S[0]);
+  const lid = st === 'stagger' || st === 'beaten' || st === 'tripped' ? 4 : st.endsWith('Wind') || st === 'crouch' ? 1 : 3;
+  for (const ex of [4, 19]) {
+    c.fillStyle = INK; c.beginPath(); c.ellipse(ex, hy + 18, 5, 4.5, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#F6D860'; c.beginPath(); c.ellipse(ex, hy + 18, 4, 3.5, 0, 0, Math.PI * 2); c.fill();
+    box(c, ex + 1, hy + 16, 2, 4, INK);
+    box(c, ex - 5, hy + 13, 10, lid + 1, S[2]); box(c, ex - 5, hy + 13 + lid, 10, 1, INK);
+  }
+  blob(c, 12, hy + 28, 7, 5, S, false, 1);
+  box(c, 9, hy + 29, 2, 2, INK); box(c, 14, hy + 29, 2, 2, INK);
   const talking = !!d.said || st === 'lounge';
   const open = talking && Math.floor(f / 6) % 2 ? 6 : 2;
-  box(c, 10, hy + 26, 16, open, '#450A0A');
-  box(c, 8, hy + 25, 3, 2, RED_D); box(c, 25, hy + 25, 3, 2, RED_D);
-  // (a goatee, of course)
-  box(c, 14, hy + 32 + open, 8, 8, '#1C1917');
-  return { squat, hy };
+  box(c, 3, hy + 35, 20, open + 2, INK); box(c, 4, hy + 36, 18, open, '#3A0808');
+  if (open > 2) box(c, 8, hy + 38, 8, 3, '#C04050');
+  box(c, 2, hy + 34, 3, 2, S[0]); box(c, 21, hy + 34, 3, 2, S[0]);
+  box(c, 9, hy + 38 + open, 10, 9, INK); box(c, 10, hy + 38 + open, 8, 8, '#1C1210'); box(c, 10, hy + 38 + open, 2, 6, '#3A2E28');
+  return { squat, hy, S };
 };
 
 export const drawDemon = (c: Ctx, state: GameState) => {
   const d = demonOf(state);
   if (!d) return;
   const f = state.frame;
-  // (the fork he dropped, stuck in the floor: still there on the way back)
-  if (d.forkAt !== null) {
-    // (handle up, tines in the floor, leaning)
-    fork(c, d.forkAt, GY - 190, Math.PI / 2 - 0.2, false, 0);
-  }
+  // (the fork he dropped, stuck in the floor: still there on the way back; handle up, tines in, leaning)
+  if (d.forkAt !== null) fork(c, d.forkAt, GY - 190, Math.PI / 2 - 0.2, false, 0);
   if (d.fight === 'gone') return;
   if (d.x < state.camera.x - 400 || d.x > state.camera.x + CANVAS_WIDTH + 400) return;
   const st = d.st, t = d.t;
-  // (his shadow where he'll come down)
-  if (st === 'air') { const k = Math.max(0.2, 1 - (GY - d.y) / 500); c.fillStyle = `rgba(0, 0, 0, ${0.5 * k})`; c.beginPath(); c.ellipse(d.jumpTo, GY - 2, 70 * k + 10, 7, 0, 0, Math.PI * 2); c.fill(); }
-  // (the slam's zone, glowing on the floor and up off it: get out of it)
+  // (his shadow where he'll come down: in steps, darker as he comes)
+  if (st === 'air') {
+    const k = Math.max(0.2, 1 - (GY - d.y) / 500), rw = Math.round(70 * k + 10);
+    c.fillStyle = `rgba(0, 0, 0, ${(0.3 * k).toFixed(2)})`;
+    c.fillRect(Math.round(d.jumpTo - rw), GY - 4, rw * 2, 6); c.fillRect(Math.round(d.jumpTo - rw * 0.7), GY - 6, Math.round(rw * 1.4), 8);
+  }
+  // (the slam's zone, glowing on the floor and up off it in bands: get out of it)
   if (st === 'slamWind') {
     const a = 0.2 + 0.25 * (Math.sin(t * 0.5) * 0.5 + 0.5);
     const z = ahead(d, SLAM_NEAR, SLAM_FAR, 230, 0);
-    c.fillStyle = `rgba(239, 68, 68, ${a * 0.35})`; c.fillRect(z.x, z.y, z.w, z.h);
-    c.fillStyle = `rgba(253, 224, 71, ${a + 0.2})`; c.fillRect(z.x, GY - 4, z.w, 4);
+    for (let i = 0; i < 4; i++) { c.fillStyle = `rgba(239, 68, 68, ${(a * (0.12 + i * 0.08)).toFixed(3)})`; c.fillRect(z.x, z.y + i * z.h / 4, z.w, z.h / 4); }
+    c.fillStyle = `rgba(253, 224, 71, ${(a + 0.2).toFixed(3)})`; c.fillRect(z.x, GY - 4, z.w, 4);
+    checker(c, z.x, GY - 8, z.w, 4, a > 0.35 ? '#FDE047' : '#F97316');
   }
-  // (sinking away: clipped at the floor, lava round him)
   c.save();
-  if (st === 'sink') {
-    c.beginPath(); c.rect(d.x - 200, d.y - 400, 400, 400); c.clip();
-    c.translate(0, d.sink * 200);
-  }
+  if (st === 'sink') { c.beginPath(); c.rect(d.x - 200, d.y - 400, 400, 400); c.clip(); c.translate(0, d.sink * 200); }
   c.translate(Math.round(d.x), Math.round(d.y));
   c.scale(d.facing, 1);
   // (tripped: over on his back, his little legs kicking at the air)
   if (st === 'tripped') { const k = Math.min(1, t / 8) * (t > TRIP_FRAMES - 10 ? (TRIP_FRAMES - t) / 10 : 1); c.translate(-20 * k, -6 * k); c.rotate(-1.35 * k + Math.sin(t * 0.6) * 0.04 * k); }
-  // The fork behind him (the windups that hold it back), then him, then the fork in front
-  const { squat } = drawBodyAndFork(c, d, f, st, t);
-  void squat;
+  drawBodyAndFork(c, d, f, st, t);
   c.restore();
   if (st === 'sink') {
-    const r = 80 + Math.sin(f * 0.2) * 6;
-    c.fillStyle = '#F97316'; c.beginPath(); c.ellipse(d.x, GY, r, 8, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FDE047'; c.beginPath(); c.ellipse(d.x, GY - 1, r * 0.6, 4, 0, 0, Math.PI * 2); c.fill();
+    const r = 80 + Math.round(Math.sin(f * 0.2) * 6);
+    c.fillStyle = INK; c.beginPath(); c.ellipse(d.x, GY, r + 2, 10, 0, 0, Math.PI * 2); c.fill();
+    for (const [k, col] of [[1, LAVA[3]], [0.8, LAVA[4]], [0.55, LAVA[6]], [0.25, LAVA[7]]] as [number, string][]) { c.fillStyle = col; c.beginPath(); c.ellipse(d.x, GY - 1, r * k, 8 * k, 0, 0, Math.PI * 2); c.fill(); }
   }
-  // At his lunch: the soul in his fist, the wisps drifting over to him
+  // At his lunch: the souls drifting over to him (he's got one in his fist already)
   if (st === 'lounge') {
     for (let i = 0; i < 3; i++) {
       const k = ((f + i * 50) % 150) / 150, sx = d.x + 260 * (1 - k) * (i % 2 ? 1 : -1) * 0.7, sy = GY - 40 - k * 120 - Math.sin(k * 6 + i) * 20;
-      c.fillStyle = `rgba(165, 243, 252, ${0.3 + 0.4 * (1 - k)})`; c.beginPath(); c.arc(sx, sy, 6, 0, Math.PI * 2); c.fill();
-      box(c, sx - 1, sy - 2, 2, 2, '#0E7490'); box(c, sx + 2, sy - 2, 2, 2, '#0E7490');
+      soul(c, Math.round(sx), Math.round(sy), 0.7, f + i * 9);
     }
   }
+};
+
+/** His fork arm: shoulder, the elbow bent down and out of the way of his face, the fist. */
+const arm = (c: Ctx, sx: number, sy: number, hx: number, hy: number, S: readonly string[]) => {
+  const L = Math.hypot(hx - sx, hy - sy) || 1, mx = (sx + hx) / 2, my = (sy + hy) / 2;
+  let px = -(hy - sy) / L, py = (hx - sx) / L;
+  if (py < 0 || (Math.abs(py) < 0.2 && px < 0)) { px = -px; py = -py; }
+  const bend = Math.max(8, 34 - L * 0.12), ex = mx + px * bend + 6, ey = my + py * bend;
+  thick(c, sx, sy, ex, ey, 20, S); blob(c, sx + 2, sy + 4, 14, 13, S, false);
+  thick(c, ex, ey, hx, hy, 16, S); blob(c, ex, ey, 10, 10, S, false);
+  blob(c, hx, hy, 10, 9, S, false);
 };
 
 const drawBodyAndFork = (c: Ctx, d: Demon, f: number, st: St, t: number) => {
@@ -694,17 +765,15 @@ const drawBodyAndFork = (c: Ctx, d: Demon, f: number, st: St, t: number) => {
   if (showFork && !behind) fork(c, hx, hy, ang, glint, hot);
   // (his arm, to the fork; at his lunch, the soul in his fist)
   if (st === 'lounge') {
-    box(c, 30, -120, 40, 14, RED);
-    c.fillStyle = '#A5F3FC'; c.beginPath(); c.ellipse(78, -118, 12, 8, 0, 0, Math.PI * 2); c.fill();
-    box(c, 74, -122, 2, 2, '#0E7490'); box(c, 80, -122, 2, 2, '#0E7490'); box(c, 76, -116, 4, 2, '#0E7490');
+    arm(c, 30, -124, 64, -118, r.S);
+    soul(c, 76, -126, 1, f);
   } else if (showFork) {
-    c.strokeStyle = d.flash > 0 ? '#FECACA' : RED; c.lineWidth = 13; c.beginPath(); c.moveTo(24, -130 + r.squat); c.lineTo(hx, hy); c.stroke();
-    box(c, hx - 7, hy - 7, 14, 14, RED_D);
+    arm(c, 30, -126 + r.squat, hx, hy, r.S);
   } else {
-    // (beaten: arms folded, sulking)
-    box(c, -24, -120 + r.squat, 64, 14, RED);
+    // (beaten: arms folded over the gut, sulking)
+    thick(c, -30, -126 + r.squat, 36, -116 + r.squat, 16, r.S);
+    blob(c, 38, -116 + r.squat, 8, 8, r.S, false);
   }
-  return r;
 };
 
 /** What he's saying, over his head (only while he's saying it). */
@@ -714,27 +783,34 @@ export const drawDemonSaid = (c: Ctx, state: GameState) => {
   saidOver(c, d.said.text, d.x, d.y - H - 50 + d.sink * 200, '#FCA5A5', 230);
 };
 
-/** The walls of fire across his pit's two ways out (the way in only once he's roused), while he's at it. */
+const WALL_FIRE = [LAVA[1], LAVA[2], LAVA[3], LAVA[4], LAVA[5], LAVA[6], LAVA[7]];
+
+/** The walls of fire across his pit's two ways out (the way in only once he's roused), while he's at it: up out of
+ *  the top of the frame (there's no getting over them), in rows, each layer licking in and out, white-hot at the core. */
 export const drawFireWall = (c: Ctx, state: GameState) => {
   const d = demonOf(state), f = state.frame;
   if (!d) return;
-  // (up out of the top of the frame: there's no getting over them)
-  const top = state.camera.y - 40;
+  const top = Math.floor((state.camera.y - 40) / 6) * 6;
   for (const w of [d.back, d.lock]) {
     if (!w || w.x < -1e6) continue;
-    const x = w.x;
+    const x = w.x + w.w / 2;
     if (x < state.camera.x - 100 || x > state.camera.x + CANVAS_WIDTH + 100) continue;
-    c.fillStyle = 'rgba(249, 115, 22, 0.18)'; c.fillRect(x - 30, top, w.w + 60, GY - top);
-    const cols = ['#7F1D1D', '#B91C1C', '#DC2626', '#EA580C', '#F97316', '#FB923C', '#FDBA74', '#FEF3C7'];
-    for (let i = 0; i < 8; i++) {
-      const ww = 34 - i * 3, wob = Math.sin(f * 0.5 + i * 2) * 3;
-      box(c, x + w.w / 2 - ww / 2 + wob, top, ww, GY - top, cols[i]);
+    // (its light on the floor either side: a faint band, no glare)
+    hazeBands(c, x - 60, GY - 30, 120, 30, LAVA[4], 0, 0.16, 3);
+    for (let i = 0; i < WALL_FIRE.length; i++) {
+      const ww = 44 - i * 6;
+      for (let y = top; y < GY; y += 6) {
+        const wob = Math.round(Math.sin(f * 0.45 + y * 0.07 + i * 1.7) * (4 - i * 0.4));
+        box(c, Math.round(x - ww / 2 + wob), y, ww, 6, WALL_FIRE[i]);
+      }
     }
     // (tongues licking up it, rising)
-    for (let k = 0; k < 6; k++) {
-      const ty = GY - ((f * 3 + k * 97) % Math.max(1, GY - top)), tx = x + w.w / 2 + Math.sin(f * 0.3 + k) * 10;
-      c.fillStyle = k % 2 ? '#FDE047' : '#FFFFFF'; c.beginPath(); c.moveTo(tx - 4, ty + 10); c.lineTo(tx, ty - 14); c.lineTo(tx + 4, ty + 10); c.fill();
+    for (let k = 0; k < 7; k++) {
+      const ty = GY - ((f * 3 + k * 97) % Math.max(1, GY - top)), tx = Math.round(x + Math.sin(f * 0.3 + k) * 14);
+      c.fillStyle = k % 2 ? LAVA[6] : LAVA[7]; c.beginPath(); c.moveTo(tx - 4, ty + 10); c.lineTo(tx, ty - 14); c.lineTo(tx + 4, ty + 10); c.fill();
     }
+    // (its foot: the floor burning)
+    for (let i = 0; i < 4; i++) box(c, Math.round(x - 30 + i * 16 + Math.sin(f * 0.6 + i) * 3), GY - 6 - ((f + i * 3) % 4), 10, 6, LAVA[5 + (i % 2)]);
   }
 };
 
