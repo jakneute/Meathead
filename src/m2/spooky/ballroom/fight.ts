@@ -73,23 +73,23 @@ const REDEEMER_DMG = 90, REDEEMER_STUN = 120;
 /** After one's put him down, he's wise to it a while: another in that time is just a souvenir (unless it'd finish him). */
 const REDEEMER_GRACE = 300;
 /** Hovering about between goes (frames, by phase); how high (feet above the floor). */
-const HOVER_T = [0, 120, 95, 75], HOVER_UP = 160;
+const HOVER_T = [0, 140, 110, 88], HOVER_UP = 160;
 /** Now and then, hovering, he swoops down low across the floor (in the line of fire) for a while: every this often,
  *  for this long (frames), down to this far off the floor. */
 const SWOOP_EVERY = 300, SWOOP_T = 110, SWOOP_UP = 34;
 /** His poise: knocked off what he's doing by a charge move at most this often (frames); his sucking a guest, always. */
-const POISE_T = 240;
+const POISE_T = 170;
 /** After his hover, the spew instead of the grab this often (it's his whether or not he's had a drink). */
-const SPEW_CHANCE = 0.4;
+const SPEW_CHANCE = 0.3;
 /** Winded (down on the floor, catching his breath: the window), after a swoop that missed and after the spew (by phase). */
-const WINDED_T = [0, 65, 52, 42];
+const WINDED_T = [0, 78, 62, 50];
 /** The grab: the tell, the swoop's length, how far past him it carries on. */
 const AIM_T = [0, 46, 38, 32], DIVE_T = [0, 50, 44, 38], DIVE_PAST = 240;
 // (only on the way down and at the bottom: once he's pulling back up past the mark, he can't get hold of anybody)
 /** The grab's target is locked this long before he goes (the marker stops following him: move off it). */
 const LOCK_T = 10;
 /** ...but the swoop still bends after him on the way down: this far a frame (by phase), till this far through it. */
-const HOME = [0, 3.4, 4.4, 5.4], HOME_TILL = 0.5;
+const HOME = [0, 2.6, 3.4, 4.2], HOME_TILL = 0.45;
 /** How close his claws have to come (px, either way, across and up and down). */
 const CLAW_X = 42, CLAW_Y = 50;
 /** Held: a drain every so often (his damage, Donnie's heal), let go after this long at most, or this many presses. */
@@ -98,7 +98,7 @@ const DRAIN_EVERY = 18, DRAIN_DMG = 5, DRAIN_HEAL = 5, DRAIN_MAX = 150, ESCAPE_P
 const GUEST_EVERY = [0, 640, 520, 420], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 3;
 /** The spew: the aim first, then the stream (by phase), a drop every so often, how hard, how fast; how fast his aim
  *  can follow Meathead (px a frame: about his walk, so standing still or walking straight away gets you hosed). */
-const SPEW_AIM = 34, SPEW_T = [0, 99, 120, 144], SPEW_EVERY = 3, BLOOD_DMG = 18, BLOOD_SPEED = 8.5, AIM_FOLLOW = 3.2;
+const SPEW_AIM = 34, SPEW_T = [0, 99, 120, 144], SPEW_EVERY = 3, BLOOD_DMG = 14, BLOOD_SPEED = 8.5, AIM_FOLLOW = 3.2;
 /** The spray: drops a go, how wide the cone (radians either side of the aim), how big a drop's hit is (px about it). */
 const SPRAY_N = 2, SPRAY_CONE = 0.13, DROP_HIT = 5;
 /** The stream comes in bursts: this many frames on, this many off. */
@@ -664,7 +664,7 @@ const stagger = (state: GameState, f: Fight) => {
 /** Stomped on with his poise up: out from under it, a quick slide away and up (he's not a trampoline). */
 const dodge = (state: GameState, f: Fight) => {
   const dir = pmid(state).x < f.x ? 1 : -1;
-  f.vx = dir * 11; f.vy = -6;
+  f.vx = dir * 8; f.vy = -5;
   if (f.mode === 'hover') f.t = 0;
   playSound('whoosh', 0.8, 4);
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x, y: f.y - 30 }, vel: { x: -dir * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 2 }, life: 18, color: 'rgba(24, 24, 27, 0.7)', size: 4 + Math.random() * 3 });
