@@ -165,7 +165,7 @@ const drawScene = (c: Ctx, w: WalkAway) => {
   for (const { d, p } of items) {
     if (!p) {
       // (the haze over the fires rippling, everything behind him)
-      wobble(c, 0, HOR - 46, LW, 52, t, 1);
+      if (def.ripple !== false) wobble(c, 0, HOR - 46, LW, 52, t, 1);
       for (const [x, y, ww, hh] of heat) wobble(c, x, y, ww, hh, t, 1.5);
       heated = true;
       const pose = poseAt(w);

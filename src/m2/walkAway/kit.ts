@@ -67,6 +67,9 @@ export interface SceneDef {
   rim: string;
   /** Embers in the air (colors, cycled), if anything's burning. */
   embers?: string[];
+  /** The heat haze rippling across the whole far distance behind him (default on); false: straight (back() can ripple
+   *  just its own fires). */
+  ripple?: boolean;
 }
 
 /**
