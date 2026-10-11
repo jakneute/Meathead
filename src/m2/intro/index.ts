@@ -447,7 +447,7 @@ const security = (ctx: FrameContext, intro: Intro) => {
         remarked.add(e); intro.welcomed = true;
         intro.bark = { e, said: { text: '' } };
         speak(guardVoice(e), first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }, false, undefined, first);
-        intro.barkNext = state.frame + 360;
+        intro.barkNext = state.frame + 540;
       }
       continue;
     }
@@ -471,7 +471,7 @@ const security = (ctx: FrameContext, intro: Intro) => {
     const onScreen = state.enemies.filter(e => e.kind === 'parksec' && e.health > 0 && !e.isBlownAway && e.pos.x > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH);
     const e = onScreen[Math.floor(Math.random() * onScreen.length)];
     if (e) { intro.bark = { e, said: { text: '' } }; speak(guardVoice(e), pick(GUARD_BARK[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }); }
-    intro.barkNext = state.frame + 480 + Math.floor(Math.random() * 300);
+    intro.barkNext = state.frame + 720 + Math.floor(Math.random() * 420);
   }
   if (intro.bark && (intro.bark.e.health <= 0 || intro.bark.e.isBlownAway)) intro.bark = null;
 };
@@ -507,7 +507,7 @@ const frontGuest = (state: GameState, intro: Intro) => {
 };
 
 /** How long the window takes over each person (it's real time: he waits); how often somebody new turns up behind him. */
-const SERVE = 270, ARRIVE = 420, HURRY_AFTER = 240, HURRY_EVERY = 400;
+const SERVE = 270, ARRIVE = 420, HURRY_AFTER = 240, HURRY_EVERY = 600;
 /** The longest the line gets (him in it, or not): past this, nobody else joins it till it's moved up. */
 const LINE_MAX = 12;
 const line = (ctx: FrameContext, intro: Intro) => {
@@ -555,7 +555,7 @@ const line = (ctx: FrameContext, intro: Intro) => {
       if (++intro.serveT >= SERVE) {
         intro.serveT = 0;
         guests.get(e)!.state = 'served';
-        if (Math.random() < 0.6) speak(TICKET_VOICE, pick(TICKET_NEXT), s => { intro.lady.said = s; });
+        if (Math.random() < 0.3) speak(TICKET_VOICE, pick(TICKET_NEXT), s => { intro.lady.said = s; });
         playSound('click', 0.4, 6);
       }
     }
@@ -600,7 +600,7 @@ const line = (ctx: FrameContext, intro: Intro) => {
         const g = guests.get(e)!;
         (g.reacted ??= []).push(k);
         speak(g.voice, pick((now ? GUEST_REACT_NOW : GUEST_REACT)[k]), s => { g.line = s?.text; }, now);
-        intro.reactNext = state.frame + 300 + Math.floor(Math.random() * 240);
+        intro.reactNext = state.frame + 480 + Math.floor(Math.random() * 360);
       } else if (!now) intro.reactNext = state.frame + 60;
     }
   }
@@ -692,7 +692,7 @@ const talk = (ctx: FrameContext, intro: Intro) => {
   const px = state.player.pos.x + state.player.width / 2;
   if (intro.lady.ko > 0) intro.lady.ko++;
   if (px > R(USA_START) && state.frame > intro.pa.next && !intro.scene) {
-    intro.pa.next = state.frame + 1500 + Math.floor(Math.random() * 600);
+    intro.pa.next = state.frame + 2100 + Math.floor(Math.random() * 900);
     // (never the same thing twice in the one life: once it's said them all, it's said its piece)
     const fresh = PA_LINES.filter(l => !intro.pa.heard.includes(l));
     if (fresh.length) { const line = pick(fresh); speak(PA_VOICE, line, s => { intro.pa.said = s; if (s && !intro.pa.heard.includes(line)) intro.pa.heard.push(line); }); }

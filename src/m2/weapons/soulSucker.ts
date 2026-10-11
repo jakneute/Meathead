@@ -103,7 +103,7 @@ const runAway = (state: GameState, e: Enemy, away: number) => {
 };
 
 let suckingAt = -10, fullSaidAt = -9999;
-const FULL_LINE_GAP = 240;
+const FULL_LINE_GAP = 360;
 /** His line, up while it's said (and not at all if it can't be said now). */
 const meatheadSays = (state: GameState, text: string) => {
   say(text, MEATHEAD_VOICE, 'casual', {
@@ -295,7 +295,7 @@ const SPRAY_FRAMES = 100, GLOB_EVERY = 1, GLOB_DMG = 13, GLOB_SPEED = 15, GLOB_S
 const FAN_UP = 1.0, FAN_DOWN = 0.9, FAN_SHARE = 0.48;
 let sprayLeft = 0, secondaryWas = false, emptySaidAt = -9999;
 /** How often he says the bag's empty (when he does: about one try in three). */
-const EMPTY_LINE_GAP = 300, EMPTY_LINE_CHANCE = 0.35;
+const EMPTY_LINE_GAP = 420, EMPTY_LINE_CHANCE = 0.25;
 
 /** Sucking: hurt, he takes it, but he's not knocked about or off the trigger (armor: core/resist). */
 let armored = false;

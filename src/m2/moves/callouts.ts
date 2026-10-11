@@ -4,10 +4,10 @@
 import { KILL_CALLOUTS, type KillCallout } from '../../m1/content/dialogue';
 
 export const GRAB_CALLOUTS = {
-  beatdown: { lines: ['GROUND AND POUNDED!', 'TAPPED OUT!', 'REFEREE STOPPAGE!', 'BEATEN SENSELESS!', 'NO MERCY RULE!'], color: '#DC2626' },
+  beatdown: { lines: ['GROUND AND POUNDED!', 'TAPPED OUT!', 'REFEREE STOPPAGE!', 'BEATEN SENSELESS!', 'NO MERCY!'], color: '#DC2626' },
   slam: { lines: ['SLAMMED!', 'POWERBOMBED!', 'PILE DRIVEN!', 'BODY SLAMMED!'], color: '#F97316' },
-  thrown: { lines: ['TOSSED!', 'AIRMAILED!', 'SHAKEN AND THROWN!', 'NO REFUNDS!'], color: '#FDE68A' },
-  launched: { lines: ['LAUNCHED!', 'SKY HIGH!', 'AIR TIME!', 'WHAT GOES UP!'], color: '#7DD3FC' },
+  thrown: { lines: ['TOSSED!', 'AIRMAILED!', 'YEETED!', 'NO REFUNDS!'], color: '#FDE68A' },
+  launched: { lines: ['LAUNCHED!', 'SKY HIGH!', 'AIR TIME!', 'GRAVITY WINS!'], color: '#7DD3FC' },
   suplex: { lines: ['SUPLEXED!', 'GERMAN SUPLEX!', 'BRIDGED!', 'SPIKED!'], color: '#C084FC' },
   // (and not a grab's: the souvenir launcher's junk)
   souvenir: { lines: ['SOUVENIRED!', 'GIFT SHOPPED!', 'TOURIST TRAPPED!', 'BON VOYAGE!'], color: '#F472B6' },
@@ -23,10 +23,10 @@ export const GRAB_CALLOUTS = {
   // (the otherworldly spawner's: eaten down to the bone)
   alien: { lines: ['EATEN ALIVE!', 'PICKED CLEAN!', 'DEVOURED!', 'GNAWED!', 'DE-FLESHED!'], color: '#84CC16' },
   // (the crossbow of plagues': puked to death)
-  plague: { lines: ['PUKED TO DEATH!', 'BARFED ON!', 'CHUNDERED!', 'SPEWED!', 'HURLED!'], color: '#A3B320' },
-  mallet: { lines: ['BONKED!', 'FLATTENED!', 'TWINKLED!', 'SQUASHED!', 'CARTOONED!'], color: '#F472B6' },
+  plague: { lines: ['PUKED TO DEATH!', 'BARFED ON!', 'UPCHUCKED!', 'SPEWED!', 'HURLED!'], color: '#A3B320' },
+  mallet: { lines: ['BONKED!', 'FLATTENED!', 'TWINKLED!', 'SQUASHED!', 'WHACKED!'], color: '#F472B6' },
   // (the spellbook of the damned's)
-  spell: { lines: ['SMITED!', 'HEXED!', 'STRUCK DOWN!', 'CURSED!', 'ELEMENTAL!'], color: '#C084FC' },
+  spell: { lines: ['SMITED!', 'HEXED!', 'STRUCK DOWN!', 'CURSED!', 'FRIED!'], color: '#C084FC' },
   gorespray: { lines: ['HOSED DOWN!', 'GORE SHOWER!', 'SPLATTERED!', 'RETURN TO SENDER!'], color: '#DC2626' },
 } as const;
 

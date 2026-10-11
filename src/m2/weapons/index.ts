@@ -23,26 +23,26 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   GUN: {
     name: 'RAY GUN', from: "THE ALIEN'S LEFTOVERS",
     controls: [{ pad: ['X'], mouse: 'left', label: 'FIRE' }],
-    description: "Scrapped together from a dead alien's spaceship, a roll of duct tape and zero instructions. Never runs dry, never misses where you point it, and whoever eats a bolt gets vaporized down to his shoes. Somebody's mom is getting a pair of sneakers in the mail.",
+    description: "Duct-taped together out of a dead alien's spaceship. Never runs dry. Whoever eats a bolt gets vaporized down to his shoes. Somebody's mom is getting sneakers in the mail.",
   },
   FLINTLOCK: {
     name: 'LASER-GUIDED FLINTLOCK', from: 'FRONTIER LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: LOCK ON' }, { pad: ['X'], mouse: 'left', label: 'LET GO WHEN IT CLICKS: FIRE' }],
-    description: "1700s firepower, 2000s laser pointer. Hold fire and the dot finds the nearest head in front of you, on the ground or in the air. You can walk, you can jump, you can't turn around. When the hammer clacks, let go: every head in a straight line comes clean off, and it bounces off one wall, floor or ceiling looking for one more. Yeehaw.",
+    description: "1700s gun, 2000s laser pointer. Hold fire and the dot finds a head. You can't turn around. When it clicks, let go: every head in a line comes off, plus one more off a wall. Yeehaw.",
   },
   SPELLBOOK: {
     name: 'SPELLBOOK OF THE DAMNED', from: 'FANTASY LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'ELEMENTAL STORM (2-4 MANA)' }, { pad: ['Y'], kb: ['F'], label: 'BULK UP (10 MANA)' }],
-    description: "Some wizard's diary, now with more murder. Fire drops a meteor, a comet and a lightning bolt out of the sky onto up to three assholes: burned, frozen solid, cooked in place. BULK UP makes you bigger, faster, and sends whoever you touch into orbit. Try grabbing somebody like that. Runs on mana. Ammo pickups refill it. Don't ask, it's magic.",
+    description: "Some wizard's diary, now with murder. Fire drops a meteor, a comet and a lightning bolt on up to three assholes. BULK UP makes you huge and punts whoever you touch into orbit. Runs on mana. Ammo refills it. Don't ask.",
   },
   STUNT_CAR: {
     name: 'CLAPPERBOARD', from: 'HOLLYWOOD LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'ACTION!' }],
-    description: "Snap it and yell ACTION. A stunt driver in a sports car comes flying in off a ramp nobody can see, sails right over your head and nose-dives into whoever's in front of you. Big fireball, no retakes, and the stuntman gets launched through the windshield into whatever's next. He doesn't get up. Somebody call his agent.",
+    description: "Snap it and yell ACTION. A stuntman in a sports car flies over your head and nose-dives into whoever's in front of you. Big fireball. He goes through the windshield into the next guy. He doesn't get up.",
   },
   MALLET: {
     name: 'MALLET OF PAIN', from: 'CARTOON LAND',
-    description: "A cartoon mallet that hits like a real one. Swing it sideways and they leave the zip code, uppercut them into orbit, smash them flat as a pancake, or spin like a cartoon devil and bonk everybody in the room. No ammo, it just wears out, and ammo pickups patch it up anyway. Physics optional.",
+    description: "A cartoon mallet that hits like a real one. Knock them out of the zip code, into orbit or flat as a pancake, or spin and bonk the whole room. No ammo: it wears out. Ammo pickups fix it. Physics optional.",
     controls: [
       { pad: ['X'], mouse: 'left', label: 'SWING (2)' },
       { pad: ['X'], mouse: 'left', label: 'HOLD, STANDING: TORNADO (1 A HIT)' },
@@ -54,22 +54,22 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   SPAWNER: {
     name: 'OTHERWORLDLY SPAWNER', from: 'SPACE LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'FIRE' }],
-    description: "Nobody knows how it makes them. Nobody wants to know. Pull the trigger and it squirts out a litter of slimy little space goblins that run down anybody in sight, leap like fleas to pull birds out of the sky, latch on and chew. One of them's a nuisance. Thirty of them's a skeleton. They don't live long, but neither does whoever they're eating.",
+    description: "Nobody knows how it makes them. Don't ask. It squirts out slimy little space goblins that run people down, yank birds out of the sky and chew. One's a nuisance. Thirty's a skeleton.",
   },
   CROSSBOW: {
     name: 'CROSSBOW OF PLAGUES', from: 'ADVENTURE LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: RAPID FIRE' }, { pad: ['DPAD_UP', 'X'], kb: ['W'], mouse: 'left', join: '+', label: 'AIM UP' }, { pad: ['DPAD_DOWN', 'X'], kb: ['S'], mouse: 'left', join: '+', label: 'IN THE AIR: AIM DOWN (OVER SHIELDS)' }],
-    description: "A jungle crossbow and a bucket of darts dipped in something the tour guide warned us about. The darts barely scratch. Keep sticking a guy and his stomach gives up: he starts projectile vomiting on whoever's closest, and whoever gets it in the face is next. The big ones take more darts. Nobody around to hit? He aims for the sky. Gravity takes it from there.",
+    description: "Darts dipped in something the tour guide warned us about. Keep sticking a guy and he projectile vomits on whoever's closest. Then they're next. The big ones take more darts.",
   },
   SOUL_SUCKER: {
     name: 'SOUL SUCKER', from: 'SPOOKY LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: SUCK' }, { pad: ['Y'], kb: ['F'], label: 'GORE SPRAY' }],
-    description: "A haunted shop vac with a meat grinder where the dust bag should be. Hold fire to suck on everybody in front of you, harder the closer they are. Watch the bar over their heads: when it's gone, so are they, feet first into the grinder. Too big to fit? It drinks the blood right out of them instead. Then hit secondary fire and hose their buddies down with them. Waste not, want not.",
+    description: "A haunted shop vac with a meat grinder for a bag. Hold fire and suck them in feet first. Too big to fit? It drinks the blood out instead. Then hose their buddies down with them. Waste not.",
   },
   SOUVENIR: {
     name: 'SOUVENIR LAUNCHER', from: 'FOREIGN LANDS',
     controls: [{ pad: ['X'], mouse: 'left', label: 'FIRE' }, { pad: ['DPAD_UP', 'X'], kb: ['W'], mouse: 'left', join: '+', label: 'LOB: ON THEIR HEAD, OVER ANY SHIELD' }],
-    description: "A bag of gift-shop crap taped to a drainpipe. Every shot is a surprise: a little Eiffel Tower pinballs off every wall and face in the room, an Easter Island head drops like a cinder block and flattens whatever it lands on. Whoever lives through it sees stars. Made in a country you can't pronounce, killing people in one you can.",
+    description: "Gift shop crap taped to a drainpipe. Every shot's a surprise: an Eiffel Tower that pinballs off every wall and face, an Easter Island head that flattens whoever it lands on. Made in a country you can't pronounce.",
   },
 };
 

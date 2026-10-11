@@ -212,7 +212,7 @@ const wrap = (s: string, n: number) => {
 const blurbOf = (def: SceneDef) => {
   if (def.blurb) return def.blurb.slice(0, 2);
   const info = def.weapon ? M2_WEAPON_INFO[def.weapon] : undefined;
-  if (!info) return ['WHATEVER IT IS, IT WAS HIS. NOW IT IS YOURS.'];
+  if (!info) return ['IT WAS HIS. NOW IT IS YOURS.'];
   const lines = wrap(info.description.toUpperCase(), 72);
   if (lines.length > 2) lines[1] = lines[1].replace(/\s*\S*$/, '') + '...';
   return lines.slice(0, 2);

@@ -224,7 +224,7 @@ const soulSucker = (c: Ctx, t: number) => {
 export const DONNIE_DRACULA: SceneDef = {
   land: 'SPOOKY LAND',
   weapon: 'SOUL_SUCKER',
-  blurb: ['HOLD TO SUCK THEM IN AND GRIND THEM UP. TOO BIG? IT BLEEDS THEM DRY.', "THE BAG FILLS WITH GORE. SPRAY IT BACK OUT ALL OVER WHOEVER'S NEXT."],
+  blurb: ['SUCK THEM IN AND GRIND THEM UP. TOO BIG? IT DRINKS THEM DRY.', 'THEN HOSE THEIR BUDDIES DOWN WITH WHAT YOU GOT.'],
   sky: ['#0E0A1E', '#1A1230', '#261A40', '#33224E', '#3E2A58', '#4A3262', '#563A6C'],
   haze: '#2A2240',
   ground, back, props,

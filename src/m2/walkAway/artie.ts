@@ -513,7 +513,7 @@ const crossbow = (c: Ctx, t: number) => {
 export const SAFARI_ARTIE: SceneDef = {
   land: 'ADVENTURE LAND',
   weapon: 'CROSSBOW',
-  blurb: ["DARTS DIPPED IN SOMETHING NASTY. KEEP STICKING A GUY AND HE STARTS", "PROJECTILE VOMITING ON WHOEVER'S CLOSEST. THEN THEY'RE NEXT."],
+  blurb: ["STICK A GUY ENOUGH AND HE PUKES ON WHOEVER'S CLOSEST.", 'THEN THAT GUY PUKES ON THE NEXT GUY. IT NEVER ENDS.'],
   sky: ['#160C2E', '#2E1650', '#541C5C', '#8E2A57', '#C8463F', '#EE7E3A', '#F7AE5A'],
   haze: '#C27650',
   ground, back, props,
