@@ -238,7 +238,7 @@ export const control: SpookySection = {
   // (the reveal: the room, held still, all of it in the picture)
   cameraX: (state) => (ctl(state).reveal === 'on' ? { min: x0, max: x0 } : undefined),
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#0C0A10'); return true; },
-  lighting: (state) => roomLighting(state, ctl(state).burst),
+  lighting: (state) => { const cs = ctl(state), d = cs.doors; return roomLighting(state, cs.burst, d.state === 'open' || d.state === 'down' || d.broken ? d.x : null); },
   drawBack: (c, state) => { drawRoom(c, state); drawShop(c, state, ctl(state).shop); drawPartition(c, state); drawDoors(c, ctl(state).doors, state); },
   drawFront: (c, state) => {
     const cs = ctl(state), f = state.frame;

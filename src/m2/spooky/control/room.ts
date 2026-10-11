@@ -509,7 +509,8 @@ export const drawPartitionFront = (c: Ctx, state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The light: dim; the bulb, the monitors' blue, the hole's lava once it's open, the shop's red through the door
 
-export const roomLighting = (state: GameState, burst: boolean): SceneLight => {
+/** `door`: where the ballroom's doors are, if they're open (its purple light comes through them onto the shop's floor). */
+export const roomLighting = (state: GameState, burst: boolean, door: number | null = null): SceneLight => {
   const eye = eyeOf(state), f = state.frame, cam = state.camera.x;
   const lights: Light[] = [];
   const near = (x: number) => x > cam - 400 && x < cam + CANVAS_WIDTH + 400;
@@ -527,6 +528,7 @@ export const roomLighting = (state: GameState, burst: boolean): SceneLight => {
     lights.push({ x: x + 160, y: GY - 330, r: 240, a: 0.6, cone: 220, color: 'rgba(254, 215, 170, 0.05)' });
   }
   const mixN = (a: number, b: number) => Math.round(a + (b - a) * k);
+  if (door !== null && near(door)) lights.push({ x: door - 20, y: GY - 70, r: 150, a: 0.6, color: 'rgba(167, 139, 250, 0.09)' });
   return { dark: 0.3 + (0.26 - 0.3) * k, shade: [mixN(10, 34), mixN(12, 6), mixN(22, 6)], lights };
 };
 

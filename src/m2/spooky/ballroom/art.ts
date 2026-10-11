@@ -17,6 +17,7 @@ import {
 } from '../control/paint';
 import { type Passage, passageBack, passageSide, passageFront, passageLintel } from '../control/passage';
 import { rockWall } from '../control/shopArt';
+import { drawBallDoors } from '../control/ballDoors';
 import { x0, ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X, CHANDELIERS, RISER } from './arena';
 
 type Ctx = CanvasRenderingContext2D;
@@ -306,7 +307,8 @@ export const discoBall = (c: Ctx, x: number, y: number, r: number, f: number, ro
 // shop's end has it: over his head its lintel; through it, its back wall (the shop's rock giving way to the flock at
 // the doors' frame), the shop's carpet giving way to the foyer's parquet; the doors he kicked in flat on its floor;
 // its near jambs sliding past in front of him.
-const ENTRY: Passage = { A: x0 - 260, B: END_L, H: GY - 204, top: CEIL - 300, dp: 0.935, near: 1.09, split: DOOR_X };
+// (its threshold's at the far side of the doors' frame: through the frame, the shop)
+const ENTRY: Passage = { A: x0 - 260, B: END_L, H: GY - 204, top: CEIL - 300, dp: 0.935, near: 1.09, split: DOOR_X + 64 };
 
 const paintEntryRear = (g: Ctx) => {
   const { A, B, H, split } = ENTRY;
@@ -325,21 +327,10 @@ const paintEntryLintel = (g: Ctx) => {
   slab(g, A, H - 14, B - A, 14, GOLD, { edge: 2 });
   for (let x = A + 6; x < B; x += 10) box(g, x, H - 6, 5, 4, '#854D0E');
 };
-/** The doors' frame, a step back in the passage: a hinge hanging off it, splinters. */
-const paintEntryFrame = (g: Ctx) => {
-  const D = DOOR_X;
-  slab(g, D - 74, GY - 186, 10, 186, GOLD, { edge: 2 }); slab(g, D + 64, GY - 186, 10, 186, GOLD, { edge: 2 }); slab(g, D - 74, GY - 188, 148, 12, '#EAB308', { edge: 2 });
-  box(g, D - 64, GY - 150, 6, 10, '#71717A'); box(g, D - 64, GY - 60, 6, 10, '#71717A');
-  for (let i = 0; i < 4; i++) { box(g, D + 58 - i * 3, GY - 160 + i * 30, 8, 3, INK); box(g, D + 59 - i * 3, GY - 159 + i * 30, 6, 1, GOLD); }
-};
-
 const drawEntry = (c: Ctx, eye: Eye) => {
   passageBack(c, eye, ENTRY, 'ball-entry-rear', paintEntryRear, '#741A1A', '#8A4A1C', '#2E1065');
-  inDepth(c, eye, 0.965, () => stamp(c, 'ball-entry-frame', DOOR_X - 78, GY - 192, 156, 194, paintEntryFrame));
-  // (the doors he kicked in, flat on the floor)
-  const D = DOOR_X;
-  box(c, D - 50, GY - 12, 70, 12, INK); box(c, D - 49, GY - 11, 68, 10, '#581C87'); box(c, D - 49, GY - 11, 68, 2, '#7E3AF2');
-  box(c, D + 10, GY - 8, 76, 8, INK); box(c, D + 11, GY - 7, 74, 6, '#6B21A8'); box(c, D + 11, GY - 7, 74, 1, '#7E3AF2'); box(c, D + 40, GY - 6, 6, 4, '#EAB308');
+  // (the doors he kicked in: torn off, flat on the floor this side of their frame)
+  drawBallDoors(c, eye, DOOR_X, { kind: 'down' });
   passageLintel(c, ENTRY, 'ball-entry-lintel', paintEntryLintel);
   box(c, END_L - 1, ENTRY.top, 2, ENTRY.H - ENTRY.top, INK);
 };
@@ -366,6 +357,8 @@ export const ballroomLighting = (state: GameState, circle: number): SceneLight =
   for (const ch of CHANDELIERS) lights.push({ x: ch.x + ch.w / 2, y: GY - ch.h - 10, r: 230, a: 0.75, color: 'rgba(253, 224, 160, 0.07)' });
   lights.push({ x: ARENA_MID, y: GY - 366, r: 120, a: 0.5 });
   if (circle > 0) lights.push({ x: CIRCLE_X, y: GY - 40, r: 160 + 120 * circle, a: 0.8 * circle, color: `rgba(220, 38, 38, ${(0.12 * circle).toFixed(3)})` });
+  // (the shop's red through the doorway he kicked in)
+  lights.push({ x: DOOR_X + 20, y: GY - 70, r: 140, a: 0.55, color: 'rgba(220, 38, 38, 0.08)' });
   return { dark: 0.3, shade: [18, 4, 30], lights };
 };
 
