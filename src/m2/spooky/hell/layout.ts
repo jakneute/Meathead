@@ -36,6 +36,11 @@ export const LEFT_ROCK_BOTTOM = GY - 190, RIGHT_ROCK_BOTTOM = GY - 260, RIGHT_RO
 export const WRECK_X = D + 400;
 /** The wreck's cab (solid: stand on its roof), and the ledge on the shaft wall up from it. */
 export const CAB_W = 112, CAB_H = 124;
+/** The other shaft's car (both came down when the tower went): on its side, against the first (solid: a step up onto
+ *  the first's roof). Its middle, its size lying down. */
+export const WRECK_B_X = D + 270, CAB_B_W = 126, CAB_B_H = 112;
+/** Where he can come down the shafts (anywhere in here's clear of both wrecks, both in view). */
+export const LANDING = { x0: D + 500, x1: D + 900 };
 export const STAIRS_X = D + 70;
 
 /** Lava pools: [from, to] (the lava's a little under the ground). */

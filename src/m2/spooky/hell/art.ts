@@ -10,7 +10,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { box, postSign, wallSign } from '../section';
 import { GY } from '../geometry';
 import {
-  x0, x1, SHAFT_L, SHAFT_R, SHAFT_TOP, LEFT_ROCK_BOTTOM, RIGHT_ROCK_BOTTOM, RIGHT_ROCK_W, WRECK_X, STAIRS_X, POOLS, ROCKS, LEDGES,
+  x0, x1, SHAFT_L, SHAFT_R, SHAFT_TOP, LEFT_ROCK_BOTTOM, RIGHT_ROCK_BOTTOM, RIGHT_ROCK_W, WRECK_X, WRECK_B_X, STAIRS_X, POOLS, ROCKS, LEDGES,
   REFILL_X, ARENA_IN, VENT_X, LAVA_DROP, CAGES, BONES,
 } from './layout';
 import { drawWreckedCar } from './hazards';
@@ -81,32 +81,45 @@ const pool = (c: Ctx, x: number, w: number) => {
   for (let k = 0; k < 4; k++) box(c, x - w + ((k * 53) % (w * 2)), GY - 4 - (k % 2) * 3, 4, 3, '#991B1B');
 };
 
-/** The wrecked elevator at the bottom of the pit, and its riders, in bits, all over. */
+/** A rider hanging half out of a car's doors, the ride's souvenir shirt on him (at x, his chest's top at y). */
+const rider = (c: Ctx, x: number, y: number, i: number) => {
+  box(c, x - 2, y - 2, 40, 36, INK); box(c, x, y, 36, 32, CLOTH[i % 5]);
+  box(c, x + 36, y + 4, 24, 24, SKIN[i % 5]); box(c, x + 34, y, 26, 7, HAIR[i % 5]);
+  box(c, x + 48, y + 14, 4, 3, '#000000'); box(c, x + 50, y + 22, 8, 3, '#450A0A');
+  box(c, x + 2, y + 34, 30, 36, '#991B1B');
+  c.font = '5px "Press Start 2P"'; c.fillStyle = '#FDE68A'; c.fillText('I RODE', x + 1, y + 14); c.fillText('IT!', x + 8, y + 22);
+};
+
+/** The two wrecked elevators at the bottom of the pit (both shafts' cars came down when the tower went: one on its
+ *  side against the other), and both cars' riders, in bits, all over. */
 const drawWreck = (c: Ctx, state: GameState, extra: boolean) => {
-  const f = state.frame, W = WRECK_X;
-  pool(c, W, 150); pool(c, W + 260, 70); pool(c, W + 400, 40); pool(c, W - 170, 40); pool(c, W + 560, 60);
+  const f = state.frame, W = WRECK_X, B = WRECK_B_X;
+  // (the other car, on its side, its riders' share)
+  pool(c, B, 110);
+  drawWreckedCar(c, B + 63, GY - 58, -Math.PI / 2, f);
+  box(c, B - 63, GY - 113, 126, 3, '#FB923C');
+  rider(c, B - 20, GY - 150, 3);
+  head(c, B + 40, GY - 112, 0); arm(c, B - 60, GY - 112, -1, 1);
+  leg(c, B - 80, GY, -1, 4); arm(c, B + 20, GY, -1, 2);
+  pool(c, W, 150); pool(c, W + 260, 70); pool(c, W + 400, 40); pool(c, W + 320, 50); pool(c, W + 560, 60);
   for (let k = 0; k < 9; k++) box(c, W - 120 + k * 31, GY - 170 - ((k * 37) % 70), 6 + (k % 3) * 4, 4 + (k % 2) * 6, '#5B0A0A');
   // (the cable down the shaft, snapped, swinging a little)
   c.strokeStyle = '#3F3F46'; c.lineWidth = 3; c.beginPath(); c.moveTo(W + 10, SHAFT_TOP); c.quadraticCurveTo(W + 10 + Math.sin(f * 0.02) * 12, GY - 600, W - 10, GY - 140); c.stroke();
   if (extra) drawWreckedCar(c, W + 250, GY, 0.2, f);
   drawWreckedCar(c, W, GY, 0, f, true);
   // (one hanging half out of its doors, the ride's souvenir shirt on him)
-  box(c, W + 54, GY - 72, 40, 36, INK); box(c, W + 56, GY - 70, 36, 32, '#1D4ED8');
-  box(c, W + 92, GY - 66, 24, 24, '#C68642'); box(c, W + 90, GY - 70, 26, 7, '#2C1B10');
-  box(c, W + 104, GY - 56, 4, 3, '#000000'); box(c, W + 106, GY - 48, 8, 3, '#450A0A');
-  box(c, W + 58, GY - 36, 30, 36, '#991B1B');
-  c.font = '5px "Press Start 2P"'; c.fillStyle = '#FDE68A'; c.fillText('I RODE', W + 57, GY - 56); c.fillText('IT!', W + 64, GY - 48);
+  rider(c, W + 56, GY - 70, 0);
   // (the bits)
-  leg(c, W - 150, GY, -1, 0); leg(c, W + 200, GY, -1, 1); leg(c, W + 330, GY, 1, 2);
-  arm(c, W - 80, GY, -1, 3); arm(c, W + 150, GY, 1, 4); arm(c, W + 470, GY, -1, 0);
-  head(c, W - 205, GY, 1); head(c, W + 240, GY, 3); head(c, W + 520, GY, 4);
+  leg(c, W + 420, GY, -1, 0); leg(c, W + 200, GY, -1, 1); leg(c, W + 330, GY, 1, 2);
+  arm(c, W + 560, GY, -1, 3); arm(c, W + 150, GY, 1, 4); arm(c, W + 470, GY, -1, 0);
+  head(c, W + 300, GY, 1); head(c, W + 650, GY, 2); head(c, W + 240, GY, 3); head(c, W + 520, GY, 4);
   // (a ribcage, guts in a loop)
   box(c, W + 600, GY - 5, 56, 5, '#E7E5E4'); for (let i = 0; i < 6; i++) box(c, W + 604 + i * 9, GY - 24, 4, 20, '#E7E5E4');
   box(c, W + 600, GY - 24, 56, 4, '#E7E5E4');
   c.strokeStyle = '#BE185D'; c.lineWidth = 6; c.beginPath(); c.moveTo(W + 90, GY - 2); c.bezierCurveTo(W + 110, GY - 40, W + 150, GY + 6, W + 170, GY - 20); c.stroke();
   c.strokeStyle = '#F472B6'; c.lineWidth = 2; c.stroke();
   // (a photo strip from the ride, and a hat)
-  box(c, W + 380, GY - 4, 18, 4, '#FFFFFF'); box(c, W - 110, GY - 14, 24, 14, '#18181B'); box(c, W - 116, GY - 5, 36, 5, '#18181B');
+  box(c, W + 380, GY - 4, 18, 4, '#FFFFFF'); box(c, W + 470, GY - 14, 24, 14, '#18181B'); box(c, W + 464, GY - 5, 36, 5, '#18181B');
 };
 
 // ---------------------------------------------------------------------------------------------------------------

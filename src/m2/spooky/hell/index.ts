@@ -16,12 +16,13 @@ import type { SpookySection } from '../section';
 import type { EnemyKind } from '../../../m1/types';
 import { layOwn, solid, ledge, endWalls, teleport, meatheadSays } from '../section';
 import { DOORS, GY } from '../geometry';
+import { CANVAS_WIDTH } from '../../../m1/constants';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import {
   x0, x1, D, SHAFT_L, SHAFT_R, SHAFT_TOP, LEFT_ROCK_BOTTOM, RIGHT_ROCK_BOTTOM, RIGHT_ROCK_W, STAIRS_X, POOLS, LAVA_DROP, ROCKS, LEDGES,
-  REFILL_X, VENT_X, WRECK_X, CAB_W, CAB_H, PICKUPS,
+  REFILL_X, VENT_X, WRECK_X, CAB_W, CAB_H, PICKUPS, WRECK_B_X, CAB_B_W, CAB_B_H,
 } from './layout';
 import { hellOf } from './state';
 import { HELL_KINDS } from './kinds';
@@ -31,6 +32,8 @@ import { startFinale, startVent, runFinale, finaleZoom, drawSatan, drawGeyser, d
 import { drawHellBackdrop, drawHellWorld, drawLake } from './art';
 import { MH_LANDED, MH_BODIES, MH_LAVA } from './lines';
 
+/** The pit's camera: held at most this far in, till he's this far along. */
+const PIT_CAM = 190, PIT_HOLD = 880;
 const pick = <T>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
 
 /** Who's where: [kind, x, the floor under it (or, flying, how high)]. Each kind on its own first, where its type
@@ -74,6 +77,7 @@ export const hell: SpookySection = {
     for (const [x, y, w] of LEDGES) ledge(state, x, y, w, { hidden: true, tag: 'hell' });
     // (the wreck's cab: stand on its roof)
     solid(state, WRECK_X - CAB_W / 2, GY - CAB_H, CAB_W, CAB_H, { hidden: true, tag: 'hell-cab' });
+    solid(state, WRECK_B_X - CAB_B_W / 2, GY - CAB_B_H, CAB_B_W, CAB_B_H, { hidden: true, tag: 'hell-cab' });
     endWalls(state, 'hell');
     const h = hellOf(state);
     buildHazards(state, h);
@@ -98,7 +102,8 @@ export const hell: SpookySection = {
     if (fin) return fin;
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     // Down the shaft: the landing (hard: a crunch, a shake; his bit about it, and about the bodies)
-    if (!h.landed && cx < SHAFT_R && p.vel.y > 14) h.falling = true;
+    // (coming down either shaft: nothing's dropping on him as he lands; the next car's a while off, and warns as ever)
+    if (!h.landed && cx < SHAFT_R && p.vel.y > 14) { if (!h.falling) { h.car = null; h.carIn = Math.max(h.carIn, 900); } h.falling = true; }
     if (h.falling && p.isGrounded) {
       h.falling = false; h.landed = true;
       playSound('land', 1); playSound('thud', 1, -8); playSound('splat', 0.7, -4); shakeScreen(state, 14, 6);
@@ -121,6 +126,12 @@ export const hell: SpookySection = {
       if ((!d || d.fight === 'gone') && Math.abs(cx - VENT_X) < 30 && p.vel.x > 0.5) { startVent(state); return runFinale(ctx) ?? controls; }
     }
     return controls;
+  },
+  // (in the pit: held back so both wrecks stay in view, wherever down either shaft he lands; walking on out of it, the
+  // camera takes up following him again, smoothly)
+  cameraX: (state) => {
+    const cx = state.player.pos.x + state.player.width / 2;
+    return { min: x0, max: Math.max(x0 + PIT_CAM, Math.min(x1 - CANVAS_WIDTH, x0 + PIT_CAM + (cx - (x0 + PIT_HOLD)))) };
   },
   zoom: (state) => finaleZoom(state),
   drawBackdrop: (c, state) => { drawHellBackdrop(c, state); return true; },

@@ -135,7 +135,7 @@ const updateCars = (ctx: FrameContext, h: Hell) => {
   const inPit = cx < SHAFT_R + 300 && p.health > 0 && !p.inCutscene;
   if (!h.car) {
     if (inPit && --h.carIn <= 0) {
-      h.car = { x: Math.max(SHAFT_L + 400, Math.min(SHAFT_R - 90, cx + (Math.random() - 0.5) * 160)), y: GY - 1400, vy: 0, warn: 90 };
+      h.car = { x: Math.max(SHAFT_L + 420, Math.min(SHAFT_R - 90, cx + (Math.random() - 0.5) * 160)), y: GY - 1400, vy: 0, warn: 90 };
       playSound('grind', 0.6, -10);
     }
     return;
