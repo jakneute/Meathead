@@ -17,7 +17,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawPerson } from '../../adventure/temple/people';
 import {
-  INK, box, text, slab, pole, ball, sign, rampOf, checker, bandedGradient, hazeBands, steppedGlow, stamp, hash, tilePattern,
+  INK, box, text, slab, pole, ball, sign, rampOf, checker, mix, bandedGradient, hazeBands, steppedGlow, stamp, hash, tilePattern,
 } from '../../intro/art/kit';
 import {
   x0, ENTRY_DOOR_X, WAIT_SIGN_X, HOW_BOARD_X, QUEUE_X0, QUEUE_X1, BOOTH_X, PLATFORM_X0, PLATFORM_X1, STAFF_DOOR_X, BAY_TOP,
@@ -25,6 +25,7 @@ import {
   CUCKOOS, GALLERY, WHOLE, WRECK, JAMS, upRight, LIFT, liftY, ROTTEN, TORN_NET, SHELF, type Piece,
 } from './layout';
 import { GY } from '../geometry';
+import { drawTodSky, timeOfDay, hourMix, skyAt, skyRamp, type TimeOfDay } from '../../timeOfDay';
 import { gearAt, gearsNow, drawGear, drawPendulum } from './hazards';
 import { drawCar, drawWalkers, readyLight, type Ride } from './ride';
 
@@ -127,18 +128,21 @@ const rockFill = (c: Ctx) => tilePattern(c, 'tw-rock', 160, 96, g => {
 // ---------------------------------------------------------------------------------------------------------------
 // The backdrop (screen): the night past the walls, what of it the sway shows; far off and down, the park's lights
 
+/** The sky out the windows and past the walls: the town's own gloomy palette, pulled to the hour (timeOfDay). */
+const SKY = ['#34304E', '#423C5E', '#544A6C', '#685A78', '#7E6C82', '#94808A'];
+
 export const drawTowerBackdrop = (c: Ctx, state?: GameState) => {
-  bandedGradient(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#05040C', '#0B0A1C', '#16132C', '#1E1830'], 10);
-  for (let i = 0; i < 40; i++) { const x = Math.floor(hash(i * 5.3) * CANVAS_WIDTH), y = Math.floor(hash(i * 7.1) * CANVAS_HEIGHT * 0.8); box(c, x, y, i % 5 ? 1 : 2, i % 5 ? 1 : 2, i % 3 ? '#5A5A7A' : '#B8B8D8'); }
-  // (far off and below: the park's rooftops, its lights; further down the higher he goes)
+  const tod = timeOfDay();
+  drawTodSky(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, SKY, { bands: 12, horizon: CANVAS_HEIGHT - 40, moon: [CANVAS_WIDTH - 150, 90], sun: [CANVAS_WIDTH - 170, 120] });
+  // (far off and below: the park's rooftops, its lights after dark; further down the higher he goes)
   const cy = state ? state.camera.y : 0;
   const base = Math.round(CANVAS_HEIGHT - 60 - Math.min(0, cy) * 0.06);
   if (base < CANVAS_HEIGHT + 40) {
-    c.fillStyle = '#0A0812';
+    c.fillStyle = mix(hourMix('#3A3450', '#2E2038', '#0A0812', tod), skyAt(0.9, tod), 0.25);
     c.beginPath(); c.moveTo(0, CANVAS_HEIGHT);
     for (let x = 0; x <= CANVAS_WIDTH; x += 20) { const h = hash(Math.floor(x / 20) * 1.3); c.lineTo(x, base - h * 34 - (h > 0.85 ? 30 : 0)); c.lineTo(x + 20, base - h * 34 - (h > 0.85 ? 30 : 0)); }
     c.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT); c.closePath(); c.fill();
-    for (let i = 0; i < 26; i++) { const x = Math.floor(hash(i * 9.7) * CANVAS_WIDTH), y = base - 4 + Math.floor(hash(i * 2.9) * 40); box(c, x, y, 2, 2, i % 4 ? '#7A5A2A' : '#5A3A6A'); }
+    if (tod.lamps > 0.2) for (let i = 0; i < Math.round(26 * tod.lamps); i++) { const x = Math.floor(hash(i * 9.7) * CANVAS_WIDTH), y = base - 4 + Math.floor(hash(i * 2.9) * 40); box(c, x, y, 2, 2, i % 4 ? '#7A5A2A' : '#5A3A6A'); }
   }
 };
 
@@ -438,16 +442,17 @@ const drawBay = (c: Ctx, state: GameState, look: TowerLook, eye: Eye, v: View) =
 const PLAQUES = ['FLOOR 1', 'FLOOR 2', 'FLOOR 3', 'FLOOR 4', 'FLOOR 5', 'FLOOR 6', 'CLOCK ROOM'];
 
 /** A lancet window in the back wall (its middle at the origin): the night out it, leaded panes, a stone surround. */
-const paintWindow = (g: Ctx, moon: boolean) => {
+const paintWindow = (g: Ctx, moon: boolean, tod: TimeOfDay) => {
   const arch = (w: number, top: number, bottom: number) => { g.beginPath(); g.moveTo(-w / 2, bottom); g.lineTo(-w / 2, top + w / 2); g.arc(0, top + w / 2, w / 2, Math.PI, 0); g.lineTo(w / 2, bottom); g.closePath(); };
   g.fillStyle = INK; arch(52, -58, 52); g.fill();
   g.fillStyle = STONE[3]; arch(48, -56, 50); g.fill();
   g.fillStyle = STONE[4]; arch(48, -56, 50); g.save(); g.clip(); box(g, -24, -56, 6, 106, STONE[4]); box(g, 18, -56, 6, 106, STONE[1]); g.restore();
   g.fillStyle = STONE[1]; arch(36, -48, 44); g.fill();
   g.save(); g.fillStyle = '#000'; arch(30, -44, 44); g.clip();
-  bandedGradient(g, -16, -44, 32, 88, ['#06081A', '#0E1430', '#1A2248'], 6);
-  if (moon) { ball(g, 4, -20, 7, '#D8D8C0', false); box(g, 0, -26, 4, 2, '#F2F2DC'); }
-  box(g, -9, -8, 1, 1, '#E0E7FF'); box(g, 7, 12, 1, 1, '#A8B0D0'); box(g, -5, 24, 1, 1, '#E0E7FF');
+  // (the sky out it, as the hour has it: a little dimmed by the old glass)
+  bandedGradient(g, -16, -44, 32, 88, skyRamp(SKY.slice(0, 4), tod, 0.1, 0.6).map(col => mix(col, '#101020', 0.18)), 6);
+  if (moon && tod.moon > 0.5) { ball(g, 4, -20, 7, '#D8D8C0', false); box(g, 0, -26, 4, 2, '#F2F2DC'); }
+  if (tod.stars > 0.3) { box(g, -9, -8, 1, 1, '#E0E7FF'); box(g, 7, 12, 1, 1, '#A8B0D0'); box(g, -5, 24, 1, 1, '#E0E7FF'); }
   // (the leading: diamonds)
   g.strokeStyle = '#141018'; g.lineWidth = 1; g.beginPath();
   for (let k = -60; k < 60; k += 10) { g.moveTo(-16, k); g.lineTo(16, k + 32); g.moveTo(16, k); g.lineTo(-16, k + 32); }
@@ -473,6 +478,7 @@ const drawSconce = (c: Ctx, x: number, y: number, f: number) => {
 /** The back wall (WALL_D back): the stone, darker up under each ceiling and down by each floor; the windows, the
  *  sconces, the floors' numbers; the clock face, way up. */
 const drawBackWall = (c: Ctx, eye: Eye, v: View, f: number, crashed: boolean) => {
+  const tod = timeOfDay();
   inDepth(c, eye, WALL_D, () => {
     const w = viewAt(v, eye, WALL_D);
     const y0 = Math.max(ROOF, w.y0), y1 = Math.min(GY, w.y1);
@@ -486,7 +492,7 @@ const drawBackWall = (c: Ctx, eye: Eye, v: View, f: number, crashed: boolean) =>
       hazeBands(c, TX0, fy - 30, W, 30, '#08060A', 0, 0.4, 3);
       if (k === STORIES) continue;
       c.save(); c.translate(U(upRight(k) ? 160 : 1000), fy - 230);
-      stamp(c, `tw-window-${k === 4 ? 1 : 0}`, -30, -62, 60, 120, g => paintWindow(g, k === 4));
+      stamp(c, `tw-window-${k === 4 ? 1 : 0}-${tod.key}`, -30, -62, 60, 120, g => paintWindow(g, k === 4, tod));
       c.restore();
       drawSconce(c, U(upRight(k) ? 320 : 840), fy - 300, f + k * 37);
     }
@@ -666,10 +672,12 @@ const drawClockFace = (c: Ctx, f: number, crashed: boolean) => {
   c.fillStyle = INK; c.beginPath(); c.arc(cx, cy, r + 16, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#3A3640'; c.beginPath(); c.arc(cx, cy, r + 14, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#4A4552'; c.beginPath(); c.arc(cx - 2, cy - 2, r + 10, Math.PI * 0.9, Math.PI * 1.6); c.lineTo(cx, cy); c.fill();
-  const glass = ['#4E4128', '#5E4E2E', '#6E5A34', '#7E683A', '#8C7442'];
+  // (lit through from outside: bright by day, a dim glow by night)
+  const tod = timeOfDay();
+  const glass = [['#8A7A58', '#4E4128'], ['#A08C64', '#5E4E2E'], ['#B49E70', '#6E5A34'], ['#C6AE7A', '#7E683A'], ['#D4BC84', '#8C7442']].map(([d, n]) => hourMix(d, mix(d, n, 0.5), n, tod));
   glass.forEach((col, i) => { c.fillStyle = col; c.beginPath(); c.arc(cx, cy, r * (1 - i * 0.18), 0, Math.PI * 2); c.fill(); });
   // (the frost: a stipple)
-  for (let i = 0; i < 90; i++) { const a = hash(i * 1.7) * Math.PI * 2, d = Math.sqrt(hash(i * 2.9)) * (r - 6); box(c, Math.round(cx + Math.cos(a) * d), Math.round(cy + Math.sin(a) * d), 2, 2, i % 2 ? '#9A8250' : '#4E4128'); }
+  for (let i = 0; i < 90; i++) { const a = hash(i * 1.7) * Math.PI * 2, d = Math.sqrt(hash(i * 2.9)) * (r - 6); box(c, Math.round(cx + Math.cos(a) * d), Math.round(cy + Math.sin(a) * d), 2, 2, i % 2 ? glass[4] : glass[0]); }
   const nums = ['IIX', 'I', 'II', 'III', 'VI', 'V', 'IV', 'IIV', 'IIIV', 'XI', 'X', 'IX'];
   nums.forEach((n, i) => { const a = (i / 12) * Math.PI * 2 - Math.PI / 2; c.save(); c.translate(cx - Math.cos(a) * (r - 26), cy + Math.sin(a) * (r - 26)); c.scale(-1, 1); text(c, n, 0, 4, '#2A2010', 10, 'center', null); c.restore(); });
   // (the iron: the rings, the spokes)
@@ -686,8 +694,8 @@ const drawClockFace = (c: Ctx, f: number, crashed: boolean) => {
   slab(c, cx - 16, cy - 16, 32, 32, '#4A4552', { edge: 2 });
   ball(c, cx, cy, 7, '#8A6A2A');
   if (crashed) {
-    c.fillStyle = '#0A0C1E'; c.beginPath(); c.moveTo(cx - 40, cy - 10); c.lineTo(cx - 70, cy + 60); c.lineTo(cx - 10, cy + 70); c.closePath(); c.fill();
-    box(c, cx - 40, cy + 40, 1, 1, '#E0E7FF');
+    c.fillStyle = skyAt(0.3, tod); c.beginPath(); c.moveTo(cx - 40, cy - 10); c.lineTo(cx - 70, cy + 60); c.lineTo(cx - 10, cy + 70); c.closePath(); c.fill();
+    if (tod.stars > 0.3) box(c, cx - 40, cy + 40, 1, 1, '#E0E7FF');
     c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(cx - 150, cy - 60); c.lineTo(cx - 40, cy - 10); c.lineTo(cx + 10, cy + 40); c.lineTo(cx + 120, cy + 100); c.moveTo(cx - 40, cy - 10); c.lineTo(cx - 20, cy - 120); c.stroke();
     c.strokeStyle = '#A89868'; c.lineWidth = 1; c.beginPath(); c.moveTo(cx - 150, cy - 62); c.lineTo(cx - 40, cy - 12); c.lineTo(cx + 10, cy + 38); c.stroke();
   }

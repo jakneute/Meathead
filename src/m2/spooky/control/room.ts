@@ -11,6 +11,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { SceneLight, Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { GY } from '../geometry';
+import { timeOfDay, hourMix, skyAt } from '../../timeOfDay';
 import { drawLooseWig, drawLooseFangs } from '../../cast/donnie';
 import { x0, HOLE_X, DESK_X, RACK_X, ROOM_DOOR, SHOP_X, PART_L, PART_R } from './geo';
 import {
@@ -124,26 +125,33 @@ const feed = (c: Ctx, i: number, f: number, dead: boolean) => {
     box(c, mx, my, SCR_W, SCR_H, '#2A2A2E');
     for (let k = 0; k < 46; k++) box(c, mx + ((k * 37 + f * 13) % (SCR_W - 2)), my + ((k * 23 + f * 7) % (SCR_H - 2)), 2, 2, k % 3 ? '#9CA3AF' : '#52525B');
   } else {
-    const sky = [['#1E1B4B', '#312E81'], ['#1C1917', '#2A2522'], ['#1E1B4B', '#3730A3'], ['#450A0A', '#7F1D1D'], ['#2E1065', '#4C1D95'], ['#3B0A0A', '#5B1414']][i];
+    // (the outdoor feeds (the town, the castle, the tower) under the hour's sky; the indoor ones their own light)
+    const tod = timeOfDay(), out = i <= 2, lit = !out || tod.lamps > 0.3;
+    const outSky = (top: boolean) => mix(skyAt(top ? 0.2 : 0.75, tod), '#20283A', 0.3);
+    const sky = out ? [outSky(true), outSky(false)] : [['#450A0A', '#7F1D1D'], ['#2E1065', '#4C1D95'], ['#3B0A0A', '#5B1414']][i - 3];
     box(c, mx, my, SCR_W, SCR_H, sky[1]); box(c, mx, my, SCR_W, 20, sky[0]); checker(c, mx, my + 20, SCR_W, 2, sky[0]);
+    if (out && tod.stars > 0.3) for (let k = 0; k < 5; k++) box(c, mx + 6 + k * 19, my + 4 + (k % 3) * 5, 1, 1, '#C8CCE0');
+    /** A building's stone or wood on an outdoor feed: lighter by day. */
+    const day = (col: string) => (out ? hourMix(lite(col, 0.3), lite(col, 0.1), col, tod) : col);
+    const win = lit ? '#FDE68A' : day('#3A3440');
     if (i === 0) {
       // (the town square: gabled fronts, their windows lit)
-      box(c, mx, my + 52, SCR_W, 10, '#292524');
+      box(c, mx, my + 52, SCR_W, 10, day('#292524'));
       for (let k = 0; k < 4; k++) {
         const hx = mx + 4 + k * 22;
-        box(c, hx, my + 32, 18, 20, k % 2 ? '#57534E' : '#4A4440'); box(c, hx, my + 32, 1, 20, '#78716C');
-        c.fillStyle = '#1C1917'; c.beginPath(); c.moveTo(hx - 2, my + 33); c.lineTo(hx + 9, my + 22); c.lineTo(hx + 20, my + 33); c.closePath(); c.fill();
-        box(c, hx + 6, my + 38, 5, 6, (k + Math.floor(f / 50)) % 3 ? '#FDE68A' : '#A16207');
+        box(c, hx, my + 32, 18, 20, day(k % 2 ? '#57534E' : '#4A4440')); box(c, hx, my + 32, 1, 20, day('#78716C'));
+        c.fillStyle = day('#1C1917'); c.beginPath(); c.moveTo(hx - 2, my + 33); c.lineTo(hx + 9, my + 22); c.lineTo(hx + 20, my + 33); c.closePath(); c.fill();
+        box(c, hx + 6, my + 38, 5, 6, lit ? ((k + Math.floor(f / 50)) % 3 ? '#FDE68A' : '#A16207') : win);
       }
     } else if (i === 1) {
       // (the castle's front: battlements, the door)
-      box(c, mx + 18, my + 22, 56, 40, '#44403C'); box(c, mx + 18, my + 22, 56, 2, '#57534E');
-      for (let k = 0; k < 4; k++) box(c, mx + 18 + k * 16, my + 16, 9, 7, '#44403C');
-      box(c, mx + 40, my + 42, 12, 20, '#0C0A09'); box(c, mx + 24, my + 30, 5, 7, '#FDE68A'); box(c, mx + 63, my + 30, 5, 7, '#FDE68A');
+      box(c, mx + 18, my + 22, 56, 40, day('#44403C')); box(c, mx + 18, my + 22, 56, 2, day('#57534E'));
+      for (let k = 0; k < 4; k++) box(c, mx + 18 + k * 16, my + 16, 9, 7, day('#44403C'));
+      box(c, mx + 40, my + 42, 12, 20, '#0C0A09'); box(c, mx + 24, my + 30, 5, 7, win); box(c, mx + 63, my + 30, 5, 7, win);
     } else if (i === 2) {
       // (the clock tower, its face lit)
-      box(c, mx + 36, my + 6, 20, 56, '#292524'); box(c, mx + 36, my + 6, 2, 56, '#3F3A36');
-      ball(c, mx + 46, my + 18, 6, '#FDE68A', false); box(c, mx + 45, my + 13, 2, 6, INK); box(c, mx + 45, my + 18, 4, 1, INK);
+      box(c, mx + 36, my + 6, 20, 56, day('#292524')); box(c, mx + 36, my + 6, 2, 56, day('#3F3A36'));
+      ball(c, mx + 46, my + 18, 6, lit ? '#FDE68A' : '#E8DCC0', false); box(c, mx + 45, my + 13, 2, 6, INK); box(c, mx + 45, my + 18, 4, 1, INK);
     } else if (i === 3) {
       // (the elevator shaft's camera: the fire at the bottom, flickering)
       for (let k = 0; k < 6; k++) { const h = 14 + ((k * 7 + Math.floor(f / 6)) % 5) * 4; box(c, mx + 4 + k * 15, my + SCR_H - h, 10, h, k % 2 ? '#F97316' : '#DC2626'); box(c, mx + 6 + k * 15, my + SCR_H - h + 4, 6, h - 4, '#FDE047'); }
