@@ -55,7 +55,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind, type MeatheadDeath } from '../../../m1/game/player/deathAnim';
 import { body as drawMeatheadBody } from '../../../m1/game/render/player/deathAnim';
 import { stabLean, STAB_WOUND } from '../../../m1/game/render/player/player';
-import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { aliensOn, brushOff, popAliensIn, setSpawnerBaits, takeBites, type SpawnerBait } from '../../weapons/spawner';
 import { grabCallout } from '../../moves/callouts';
@@ -88,7 +88,8 @@ const SPIT_EVERY = [0, 170, 140, 110], SPIT_AIM = 24;
 const TRAMPLE_DMG = 150;
 /** The litter's bites, on him: only this share of each (one of them's nothing to him; it's what they do to him). */
 const NIBBLE_SHARE = 0.2;
-/** Anything but his weakness (the spawner): this share of its usual damage gets through (every land boss's way). */
+/** A special weapon that isn't his weakness (the spawner): this share of its usual damage gets through (every land boss's
+ *  way; the ray gun and his moves in full). */
 const SHARE = 0.35;
 /** His vine: how much chewing it takes (it's the same vine each time he goes up, till it's chewed through). */
 const VINE_HP = 30;
@@ -880,8 +881,13 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const knockable = melee && (inBush(f) || f.mode === 'coil');
   if (f.iframes <= 0) {
     // (his weakness's own shots in full; anything else, a land boss shrugs most of it off)
-    const weak = !melee && state.player.currentWeapon === 'SPAWNER';
-    f.hp -= Math.max(1, hit * (weak ? 1 : SHARE)); f.iframes = IFRAMES; f.flash = 10;
+    // (the ray gun and his own moves in full; any other special weapon a land boss mostly shrugs off)
+    // (the ray gun and his moves, Meathead 1's way: a shot 25, the charge and slide 35, the uppercut and dive kick 50;
+    // his weakness's own shots in full; any other special weapon, a fraction)
+    const p = state.player;
+    const dmg = melee ? (p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE)
+      : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : p.currentWeapon === 'SPAWNER' ? hit : Math.max(1, hit * SHARE);
+    f.hp -= dmg; f.iframes = IFRAMES; f.flash = 10;
     if (f.hp <= 0) { f.byWeakness = aliensOn(e) > 0; return; }
   }
   if (knockable) knock(ctx, f, true);

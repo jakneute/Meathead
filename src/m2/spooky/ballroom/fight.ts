@@ -16,7 +16,8 @@
 //   THE SPEW    ...hangs in the air and sprays the blood back out at Meathead like a machine gun: a stream of it, aimed,
 //               the aim dragging after him (keep moving, jump it).
 //
-// Hurting him: anything but his weakness barely does (SHARE: every land boss's way), and a boss's usual breather after each hit. His weakness is the
+// Hurting him: the ray gun and his moves in full; any other special weapon but the weakness barely does (SHARE: every land
+// boss's way); and a boss's usual breather after each hit. His weakness is the
 // SOUVENIR LAUNCHER, and only one souvenir in its bag: CHRIST THE REDEEMER. That one stuns him (down out of the air,
 // smoking, on his backside: the window) and takes a big chunk off. The rest of the bag hits him like anything else
 // (SHARE). And any time one of the lesser souvenirs could finish him (at his health now, counting the ones already in
@@ -39,7 +40,7 @@ import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip'
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { setSouvenirPick, setSouvenirHit, souvenirMaxHit } from '../../weapons/souvenir';
 import { drawPerson, lookOf } from '../../adventure/temple/people';
@@ -635,7 +636,9 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     return;
   }
   if (f.iframes > 0) return;
-  let dmg = Math.max(1, dealt * (sv ? SOUV_SHARE : SHARE));
+  // (the ray gun and his own moves in full; any other special weapon a land boss mostly shrugs off; the lesser souvenirs
+  // least of all)
+  let dmg = sv ? Math.max(1, dealt * SOUV_SHARE) : plainHit(state, melee) ?? Math.max(1, dealt * SHARE);
   // (a lesser souvenir never finishes him: a souvenir kill on him is the Redeemer's, always)
   if (sv && f.hp - dmg <= 0) dmg = Math.max(0, f.hp - 1);
   // (a souvenir that isn't the one: Meathead thinking out loud that something in the bag must work; the first time,
@@ -646,6 +649,14 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   playSound('gunhit', 0.5, 2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - 90 }, Math.max(1, Math.round(dmg)), false);
   if (f.hp > 0 && Math.random() < 0.12) bark(f, L.DONNIE_HURT);
+};
+
+/** The ray gun and his own moves: what they do to any boss, Meathead 1's way (a shot 25; the charge and slide 35; the
+ *  uppercut and dive kick 50). Null: a special weapon. */
+const plainHit = (state: GameState, melee: boolean): number | null => {
+  const p = state.player;
+  if (melee) return p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE;
+  return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
 };
 
 /** A charge move: knocked back off him, the guest dropped (they run for it), back up into the air. */
