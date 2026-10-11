@@ -166,6 +166,9 @@ const run = (ctx: FrameContext, dg: Dungeon) => {
       // Out the far door: it slams down behind him
       if (dg.lever && cx > RB + 30) {
         dg.room = 'escaped'; dg.t = 0; dg.vy = 0;
+        // (out: it's past, for good. Dying from here, he's back out past it (it's down, jammed: no way back through it
+        // to its door), not at its door)
+        state.checkpoint = Math.max(state.checkpoint, 23);
         paStory(state, [pick(byPants(state, L.PA_ESCAPED))], pick(L.MH_ESCAPED));
       }
       break;

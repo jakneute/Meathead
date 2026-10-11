@@ -63,6 +63,8 @@ export interface Cloud { x: number; y: number; r: number; a: number; vx: number;
 /** The river's state of it: how red and how brown the whole of it's got (0 to 1, seeping toward the `To`s), the clouds. */
 export interface Stain { red: number; redTo: number; brown: number; brownTo: number; clouds: Cloud[]; bled: WeakSet<object>; recent: Map<object, { x: number; y: number; at: number }>; shatIn: boolean }
 export interface River {
+  /** Set up for where he's starting (the checkpoint's only known once the stage is built: the first frame does it). */
+  init?: boolean;
   talk: Talk;
   /** He's been in the water this visit (the first time in, the piranhas keep off a moment). */
   wetYet?: boolean;
@@ -173,6 +175,31 @@ const build = (state: GameState) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 // The boat ride
+
+/** Where the boat ride ended up, kept across his deaths (state.stageMemo): out of gas, or him gone over the side. */
+interface BoatMemo { x: number; phase: 'stalled' | 'jumped' }
+const MEMO = 'm2:riverBoat';
+const memoOf = (state: GameState): BoatMemo | null => { try { return JSON.parse(state.stageMemo[MEMO] ?? 'null'); } catch { return null; } };
+/** The ride's been and gone (out of gas, or him over the side after it): remembered, so dying doesn't send him round
+ *  it again from the dock. */
+const noteBoat = (state: GameState, rv: River) => {
+  const b = rv.boat;
+  if (!b.rode || (b.phase !== 'stalled' && b.phase !== 'jumped')) return;
+  const m = memoOf(state);
+  if (m?.phase === b.phase && Math.abs(m.x - b.x) < 1) return;
+  state.stageMemo[MEMO] = JSON.stringify({ x: Math.round(b.x), phase: b.phase });
+};
+/** Back from dying after the ride (or started further on than the dock, under the river): the boat's where it gave
+ *  out, Artie in it, stuck; no welcome aboard, no tour again. */
+const restoreBoat = (state: GameState, rv: River) => {
+  const b = rv.boat;
+  const m = memoOf(state) ?? (state.checkpoint >= 21 ? { x: R(BOAT.stop), phase: 'jumped' as const } : null);
+  if (!m || !b.block) return;
+  b.x = m.x; b.block.x = b.x; b.v = 0; b.smoke = 0; b.onFor = 0;
+  b.rode = true; b.phase = m.phase; b.tour = Math.max(b.tour, TOUR_RIDE);
+  // (off it, he's off it: no climbing back aboard)
+  if (m.phase === 'jumped') { const blk = b.block; state.blocks = state.blocks.filter(o => o !== blk); }
+};
 
 const onBoat = (state: GameState, rv: River) => {
   const p = state.player, b = rv.boat;
@@ -438,11 +465,13 @@ export const river: Section = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player;
     const rv = getRiver(state);
+    if (!rv.init) { rv.init = true; restoreBoat(state, rv); }
     const rx = p.pos.x + p.width / 2 - x0;
     // (back off the dock the way he came: the queue's end)
     if (rx < 40 && !p.swimming) { teleport(state, SECTIONS.queue.x1 - 220, GY); p.facing = -1; return controls; }
     updateSwim(ctx, rv);
     updateBoat(state, rv);
+    noteBoat(state, rv);
     updateGallery(state, rv);
     updateDrain(ctx, rv);
     updateStain(ctx, rv);

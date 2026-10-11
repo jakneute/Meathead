@@ -199,8 +199,6 @@ const centerOf = (b: Rect) => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
 /** The rex and its paddock: `x` where it stands, the paddock's fences (`inX`, `outX`) and their top. */
 export const buildRex = (state: GameState, o: { x: number; inX: number; outX: number; top: number }) => {
   const s = getAdv(state)!.s as Record<string, unknown>;
-  // (past the temple fence already: it's scrap, long since)
-  if (state.checkpoint >= 33) { s.rex = { fight: 'gone' } as Rex; return; }
   const parts = {} as Record<PartId, Part>;
   for (const id of PARTS) parts[id] = { id, hp: PART_HP[id], max: PART_HP[id], meter: 0, live: false, lastHit: -999, flash: 0, broken: false, e: null };
   const r: Rex = {
@@ -223,6 +221,24 @@ export const buildRex = (state: GameState, o: { x: number; inX: number; outX: nu
   });
   s.rex = r;
   placeParts(r);
+  // (killed already, this go at the land (back from dying since), or started past the temple fence: it's scrap)
+  if (state.checkpoint >= 33 || state.stageMemo[REX_MEMO]) retire(state, r);
+};
+
+/** Killed: where it went down (state.stageMemo, kept across his deaths: it stays dead). */
+const REX_MEMO = 'm2:rexDead';
+/** Down for good: lying where it died (in its paddock, if it's not known where), its head off beside it, in its oil;
+ *  the far fence open, nothing of it left to hit. */
+const retire = (state: GameState, r: Rex) => {
+  let m: { x?: number; f?: 1 | -1 } = {};
+  try { m = JSON.parse(state.stageMemo[REX_MEMO] ?? '{}'); } catch { /* (as it stood) */ }
+  if (m.x !== undefined) r.x = m.x;
+  if (m.f) r.facing = m.f;
+  r.fight = 'dead'; r.st = 'dead'; r.t = 0; r.vx = 0; r.dieT = 400; r.fall = 1; r.oil = 1; r.said = null;
+  r.head = { x: Math.max(r.inX + 60, Math.min(r.outX - 40, r.x + r.facing * 170)), y: GY - 60, vx: 0, vy: 0, rot: 0 };
+  for (const id of PARTS) { const e = r.parts[id].e; if (e) state.enemies = state.enemies.filter(o => o !== e); r.parts[id].e = null; }
+  if (r.lock) r.lock.x = -1e7;
+  if (r.back) r.back.x = -1e7;
 };
 
 const placeParts = (r: Rex) => {
@@ -455,6 +471,7 @@ const die = (ctx: FrameContext, r: Rex) => {
   if (r.back) r.back.x = -1e7;
   // (whatever it was going on about, cut off: its last words)
   cutVoice('m2.rex'); r.said = null;
+  ctx.state.stageMemo[REX_MEMO] = JSON.stringify({ x: Math.round(r.x), f: r.facing });
   rexSays(ctx.state, r, REX_DYING[dressed(ctx.state)], true);
   const c = centerOf(worldBox(r, 'body'));
   ctx.fx.spawnDamageNumber({ x: c.x - 40, y: c.y - 80 }, 'EXTINCT!', true, '#FDE047');
@@ -480,6 +497,8 @@ export const updateRex = (ctx: FrameContext) => {
   const { state } = ctx;
   const r = rexOf(state);
   if (!r || r.fight === 'gone') return;
+  // (started past the temple fence: the checkpoint's only known once the stage is built, so it's put down here)
+  if (r.fight === 'wait' && state.checkpoint >= 33) retire(state, r);
   const p = state.player;
   // What's come out of each part since last frame
   for (const id of PARTS) {

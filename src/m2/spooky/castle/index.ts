@@ -107,6 +107,10 @@ const runTour = (state: GameState, cs: Castle) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The set pieces
 
+/** The chandeliers that have come down, by index (state.stageMemo: kept across his deaths). */
+const CHAND_MEMO = 'm2:castleChandeliers';
+/** What a chandelier comes down on: the table, or the floor. */
+const chandFloor = (x: number) => (x > LEDGES[3][0] && x < LEDGES[3][0] + LEDGES[3][2] ? LEDGES[3][1] : GY);
 const runChandeliers = (ctx: FrameContext, cs: Castle, zones: Zone[]) => {
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
   for (const ch of cs.chand) {
@@ -120,7 +124,7 @@ const runChandeliers = (ctx: FrameContext, cs: Castle, zones: Zone[]) => {
     } else if (ch.state === 'fall') {
       ch.vy += 0.9; ch.y += ch.vy;
       // (it comes down on the table, or the floor)
-      const floor = ch.x > LEDGES[3][0] && ch.x < LEDGES[3][0] + LEDGES[3][2] ? LEDGES[3][1] : GY;
+      const floor = chandFloor(ch.x);
       const bottom = ch.y + 34;
       if (canHurt(state) && hits(pBox(state), ch.x - CHAND_W / 2, ch.y, CHAND_W, 34)) hurtPlayer(ctx, 18, 'spooky_chandelier', { x: Math.sign(cx - ch.x || 1) * 5, y: -4 });
       // (and on whoever of the cast is under it: flat)
@@ -129,6 +133,8 @@ const runChandeliers = (ctx: FrameContext, cs: Castle, zones: Zone[]) => {
       }
       if (bottom >= floor) {
         ch.y = floor; ch.state = 'down';
+        // (and it stays down: dying doesn't hang it back up)
+        state.stageMemo[CHAND_MEMO] = [...new Set([...(state.stageMemo[CHAND_MEMO] ?? '').split(',').filter(Boolean), String(cs.chand.indexOf(ch))])].join(',');
         playSound('glass', 1, -4); playSound('crash', 0.9, -6); shakeScreen(state, 10, 5);
         for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: ch.x + (Math.random() - 0.5) * 60, y: floor - 10 }, vel: { x: (Math.random() - 0.5) * 8, y: -2 - Math.random() * 5 }, life: 40, color: i % 3 ? '#E0F2FE' : '#FACC15', size: 2 + Math.random() * 3, grav: 0.35 });
       }
@@ -254,7 +260,9 @@ export const castle: SpookySection = {
     CAST.forEach(([kind, x, y], i) => spawnStaff(state, kind, x, y + dyAt(x), i));
     for (const [x, y, type] of PICKUPS) state.pickups.push({ id: `castle-${x}`, pos: { x: x - 10, y: y + dyAt(x) - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
     const cs = castleOf(state);
-    cs.chand = CHANDELIERS.map(x => ({ x, y: CHAND_Y, vy: 0, state: 'hang', t: 0 }));
+    // (the ones down already, this go at the land: still down)
+    const down = new Set((state.stageMemo[CHAND_MEMO] ?? '').split(',').filter(Boolean).map(Number));
+    cs.chand = CHANDELIERS.map((x, i): Castle['chand'][number] => (down.has(i) ? { x, y: chandFloor(x), vy: 0, state: 'down', t: 0 } : { x, y: CHAND_Y, vy: 0, state: 'hang', t: 0 }));
   },
   update: (ctx, controls0) => {
     const { state } = ctx;
@@ -265,6 +273,8 @@ export const castle: SpookySection = {
       cs.init = true;
       const from = state.checkpoint >= 20 ? Infinity : castle.checkpoints.find(c => c.cp === state.checkpoint)?.x ?? -Infinity;
       for (const r of ROOMS) if (r.b <= from) heard.add(r.id);
+      // (greeted already: the front door slammed shut behind him then, and it's shut)
+      if (heard.has('foyer')) cs.doorShut = 1;
     }
     // (out the front door to the stairs; on through the arch at the end of the gallery, down the stairs to the dungeon)
     if (runExits(state, endExits('castle'))) return controls;

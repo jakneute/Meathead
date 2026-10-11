@@ -202,6 +202,11 @@ export const control: SpookySection = {
     { name: 'DONNIE DRACULA', cp: 62, x: BALL_DOOR - 230, y: GY, clear: [700, 300] },
   ],
   build: (state) => {
+    // (coming at it fresh, from before it: the reveal plays when he gets here, the doors are up, Donnie's intro's to
+    // come. Done here, not on the first frame: a fresh start (the checkpoint-skip cheat, a new go at the land) builds
+    // at checkpoint 0 whatever checkpoint it then starts at, so nothing from a go before carries over into it; back
+    // from dying, it's built at the checkpoint he's got to)
+    if (state.checkpoint < 60) { revealSeen = false; forgetDoors(); forgetFightIntro(); }
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'tile' }]);
     endWalls(state, 'control');
     resetStaff();
@@ -213,8 +218,6 @@ export const control: SpookySection = {
     tickStaff(ctx);
     if (!cs.init) {
       cs.init = true;
-      // (coming at it fresh, from before it: the reveal plays when he gets here. The checkpoint's only known by now)
-      if (state.checkpoint < 60) { revealSeen = false; forgetDoors(); forgetFightIntro(); }
       if (isLandCleared('spooky')) { cs.reveal = 'done'; cs.burst = true; shopAftermath(state, cs.shop); doorsDown(state, cs.doors); }
       else if (state.checkpoint >= 62 || doorsKicked()) {
         // (back outside the ballroom: Donnie's in there, the doors are down)

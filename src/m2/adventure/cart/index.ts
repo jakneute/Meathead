@@ -95,6 +95,8 @@ const artieSays = (cart: Cart, text: string) => {
   speak('m2.safari', text, s => { cart.artie.said = s; });
 };
 
+/** The scanner's read him and thrown the switch (state.stageMemo: kept across his deaths). */
+const SCANNED = 'm2:cartScanned';
 /** Puts him in it, where he is (from the temple's loading station, or back at a checkpoint). */
 const board = (state: GameState, cart: Cart) => {
   const p = state.player;
@@ -102,8 +104,10 @@ const board = (state: GameState, cart: Cart) => {
   let at = Math.max(X + 150, Math.min(OUTRO_X - 200, p.pos.x + p.width / 2));
   if (trackY(at) === null) at = (RUNS.find(r => r[0] > at) ?? RUNS[0])[0] + 20;
   cart.mode = 'ride'; cart.x = at; cart.y = trackY(at) ?? GY; cart.railY = cart.y; cart.vy = 0; cart.speed = 0; cart.air = false;
-  // (past the scanner already: it's done its job)
+  // (past the scanner already: it's done its job; or it has already, this go at the land (back from dying since):
+  // it's not reading him again, the switch is over)
   if (at > SCANNER_X) cart.scanned = true;
+  else if (state.stageMemo[SCANNED]) { cart.scanned = true; cart.scanT = 400; }
   p.carried = true;
 };
 
@@ -166,7 +170,7 @@ const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
   }
   // The scanner: he's UNFRIENDLY (whatever he's wearing), and the switch goes over
   if (!cart.scanned && cart.x > SCANNER_X - 40) {
-    cart.scanned = true; cart.scanT = 1;
+    cart.scanned = true; cart.scanT = 1; state.stageMemo[SCANNED] = 'yes';
     playSound('alarm', 0.6); playSound('beep', 0.8);
   }
   if (cart.scanT > 0) {
