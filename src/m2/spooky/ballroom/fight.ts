@@ -12,7 +12,7 @@
 //               till he mashes his way loose (any button, fast) or Donnie's had his fill. Killed by it: drained to a
 //               husk (husk.ts).
 //   A GUEST     Every so often a panicked park guest runs across the ballroom. Donnie goes for them (it's what he does
-//               whenever one's there): snatches them up, sucks them dry (a husk drops), heals a lot, and then...
+//               whenever one's there): snatches them up, sucks them dry (a husk drops), a little health back each gulp (a charge into him stops it), and then...
 //   THE SPEW    ...hangs in the air and sprays the blood back out at Meathead like a machine gun: a stream of it, aimed,
 //               the aim dragging after him (keep moving, jump it).
 //
@@ -85,7 +85,7 @@ const CLAW_X = 42, CLAW_Y = 50;
 /** Held: a drain every so often (his damage, Donnie's heal), let go after this long at most, or this many presses. */
 const DRAIN_EVERY = 18, DRAIN_DMG = 5, DRAIN_HEAL = 5, DRAIN_MAX = 150, ESCAPE_PRESSES = 9;
 /** The guests: how often one runs through (by phase), how fast; sucking one dry, how long and what it heals. */
-const GUEST_EVERY = [0, 640, 520, 420], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 20;
+const GUEST_EVERY = [0, 640, 520, 420], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 3;
 /** The spew: the aim first, then the stream (by phase), a drop every so often, how hard, how fast; how fast his aim
  *  can follow Meathead (px a frame: about his walk, so standing still or walking straight away gets you hosed). */
 const SPEW_AIM = 34, SPEW_T = [0, 99, 120, 144], SPEW_EVERY = 3, BLOOD_DMG = 3, BLOOD_SPEED = 8.5, AIM_FOLLOW = 3.2;
@@ -406,10 +406,15 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       const g = f.prey!;
       f.y += (GY - 40 - f.y) * 0.08;
       g.t++;
+      // (a little back with every gulp, while it lasts: a charge into him knocks the guest loose and stops it)
+      if (f.t % 14 === 0 && f.hp > 0) {
+        f.hp = Math.min(HP, f.hp + GUEST_HEAL);
+        for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 30, y: f.y - 60 - Math.random() * 30 }, vel: { x: 0, y: -1.2 }, life: 24, color: '#DC2626', size: 3 });
+      }
       if (f.t % 14 === 0) { playSound('suck', 0.5, 2); state.particles.push({ pos: { x: f.x + f.facing * 14, y: f.y - 70 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 }, life: 20, color: '#B91C1C', size: 3, grav: 0.3 }); }
       if (f.t >= SUCK_T) {
         g.state = 'fall'; g.vy = -1; g.y = f.y - 30; g.facing = f.facing;
-        f.hp = Math.min(HP, f.hp + GUEST_HEAL); f.prey = null;
+        f.prey = null;
         if (++f.guestKills === 1 || f.guestKills === 3) queueBeat(f, 'guest' + f.guestKills, L.SATAN_GUEST, L.DONNIE_GUEST, false);
         playSound('crumble', 0.8);
         to(f, 'spew'); f.aimX = pmid(state).x; f.aimY = pmid(state).y;
