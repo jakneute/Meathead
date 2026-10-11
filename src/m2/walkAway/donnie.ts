@@ -96,11 +96,12 @@ const back = (c: Ctx, t: number, sway: number) => {
   // The town either side: gabled rooftops, chimneys, a lit window or two (far, dim)
   const roofs = H('#3A3448', '#24182E', '#100C1A'), lit = H('#8A8098', LAMP, LAMP);
   const town = (x0: number, x1: number, seed: number) => {
-    for (let x = x0; x < x1; x += 22) {
-      const k = hash(x * 0.37 + seed), hgt = 18 + Math.round(k * 22);
+    // (each house's look keyed to which house it is, not where it's drawn: the sway moves them, it mustn't reshape them)
+    for (let i = 0, x = x0; x < x1; i++, x += 22) {
+      const k = hash(i * 0.37 + seed * 11), hgt = 18 + Math.round(k * 22);
       c.fillStyle = roofs; c.beginPath(); c.moveTo(x, HOR); c.lineTo(x, HOR - hgt); c.lineTo(x + 11, HOR - hgt - 12); c.lineTo(x + 22, HOR - hgt); c.lineTo(x + 22, HOR); c.closePath(); c.fill();
       if (k > 0.5) box(c, x + 15, HOR - hgt - 14, 3, 8, roofs);
-      if (k > 0.35) box(c, x + 8, HOR - hgt + 6, 4, 5, (Math.floor(t / 90 + x) % 7) ? lit : roofs);
+      if (k > 0.35) box(c, x + 8, HOR - hgt + 6, 4, 5, (Math.floor(t / 90 + i * 3) % 7) ? lit : roofs);
     }
   };
   town(-10 + sway * 0.3, 270, 1); town(350 + sway * 0.3, LW + 20, 2);
