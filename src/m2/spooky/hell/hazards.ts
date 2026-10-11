@@ -29,7 +29,7 @@ type Ctx = PCtx;
 const pick = pickLine;
 
 export const LAVA = 'm2:hell_lava', JET = 'm2:hell_jet', CAR = 'm2:hell_car';
-const LAVA_DMG = 16, LAVA_LAUNCH = 13, JET_DMG = 18, FIREBALL_DMG = 12, CAR_DMG = 30;
+const LAVA_DMG = 16, LAVA_LAUNCH = 13, JET_DMG = 18, FIREBALL_DMG = 12, CAR_DMG = 9999;
 /** A jet's cycle: quiet, then the warning (WARN..BLAST), then the fire (BLAST..CYCLE). */
 const CYCLE = 160, WARN = 70, BLAST = 112, JET_H = 150;
 /** A crumbling rock: shaking this long before it goes; back this long after. */
@@ -161,7 +161,8 @@ const updateCars = (ctx: FrameContext, h: Hell) => {
   const feet = p.pos.y + p.height;
   // (whoever's under it: flat)
   for (const e of hazardVictims(state)) if (Math.abs(e.pos.x + e.width / 2 - car.x) < CAR_W / 2 + 10 && e.pos.y + e.height > GY - CAR_H - 10) hazardKill(ctx, e, car.x, 'FLATTENED!', { fling: { x: Math.sign(e.pos.x + e.width / 2 - car.x || 1) * 6, y: -4 }, sound: 'splat' });
-  if (p.health > 0 && Math.abs(cx - car.x) < CAR_W / 2 + 16 && feet > GY - CAR_H - 10 && p.invincibilityTimer <= 0) {
+  // (a ton of elevator: under it, he's flat, whatever. Blinking from a hit or not; only a cutscene's hold spares him)
+  if (p.health > 0 && Math.abs(cx - car.x) < CAR_W / 2 + 16 && feet > GY - CAR_H - 10 && !p.inCutscene) {
     hurtPlayer(ctx, CAR_DMG, CAR, { x: (Math.sign(cx - car.x) || 1) * 9, y: -8 });
   } else if (p.health > 0 && !h.carSaid) { h.carSaid = true; meatheadSays(state, pick(MH_CAR), false); }
   h.piled.push(car.x);
