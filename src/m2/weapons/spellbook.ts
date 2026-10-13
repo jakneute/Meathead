@@ -31,6 +31,10 @@ type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
 const CAST_COOLDOWN = 80, REACH = 680, CAST_POSE = 32;
+/** The wind-up: this long reading it out, the runes building, before the storm comes (he's stood there for it). */
+const WINDUP = 40;
+/** The storm still to come (the wind-up's frames left), and the cast to finish when it's done. */
+let winding = 0;
 const METEOR = { dmg: 80, edge: 25, radius: 95, burn: 240, burnDmg: 0.4 };
 const COMET = { dmg: 45, freeze: 320 };
 /** The lightning: a strike this often, this hard, for this long (three seconds: about 180 in all, a shooter's dead, a
@@ -38,8 +42,8 @@ const COMET = { dmg: 45, freeze: 320 };
 const BOLT = { every: 14, dmg: 15, maxFrames: 186 };
 /** What each costs in mana: the storm's meteor and comet a point each, its lightning two more (when there's anybody for
  *  it); bulking up a lot more. */
-const MANA = { meteor: 1, comet: 1, lightning: 2 };
-const BULK = { mana: 10, frames: 720, cooldown: 480, speed: 1.6, size: 1.3, knock: 2.2 };
+const MANA = { meteor: 3, comet: 3, lightning: 5 };
+const BULK = { mana: 24, frames: 720, cooldown: 480, speed: 1.6, size: 1.3, knock: 2.2 };
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
 const mid = (e: Enemy) => ({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 });
@@ -122,9 +126,19 @@ const hurt = (ctx: FrameContext, e: Enemy, dmg: number, how: 'charred' | 'fried'
   return false;
 };
 
-/** Read the storm out: on the nearest three about (fewer, and they get more of it), one of each. */
+/** Fire: the mana spent, and the reading starts: the storm itself comes at the end of the wind-up (unleash). */
 const fire = (ctx: FrameContext) => {
   const { state, cheats } = ctx;
+  const pl = state.player;
+  if (!cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK = Math.max(0, pl.weaponAmmo.SPELLBOOK - (MANA.meteor + MANA.comet + MANA.lightning));
+  pl.shootCooldown = CAST_COOLDOWN + WINDUP;
+  winding = WINDUP; casting = WINDUP + CAST_POSE;
+  playSound('spell', 0.5, -6);
+};
+
+/** Read the storm out: on the nearest three about (fewer, and they get more of it), one of each. */
+const unleash = (ctx: FrameContext) => {
+  const { state } = ctx;
   const pl = state.player;
   const px = pl.pos.x + pl.width / 2, py = pl.pos.y + pl.height / 2;
   const onScreen = (e: Enemy) => e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH;
@@ -141,9 +155,6 @@ const fire = (ctx: FrameContext) => {
     bolt.rift = openRift(at.x, at.y, 0.8, BOLT.maxFrames + 12, () => (bolts.includes(bolt) ? mid(bolt.e) : null));
     bolts.push(bolt);
   }
-  pl.shootCooldown = CAST_COOLDOWN;
-  if (!cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK = Math.max(0, pl.weaponAmmo.SPELLBOOK - (MANA.meteor + MANA.comet + (z ? MANA.lightning : 0)));
-  casting = CAST_POSE;
   playSound('spell');
 };
 
@@ -281,7 +292,8 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
   if (casting > 0) {
     // (reading it out: struck in the pose a moment, standing his ground; hurt, he takes it, but nothing knocks him out
     // of it (armor: core/resist); only dying does)
-    if (state.deathTimer > 0) { casting = 0; pl.hidden = false; }
+    if (state.deathTimer > 0) { casting = 0; winding = 0; pl.hidden = false; }
+    else if (winding > 0 && --winding === 0) unleash(ctx);
     else { casting--; pl.vel.x = 0; pl.pushbackTimer = 0; pl.lockTimer = Math.max(pl.lockTimer, 2); pl.hidden = casting > 0 && !pl.vine; }
   }
   if (flash > 0) flash--;
@@ -374,7 +386,7 @@ export const holdPoseForTests = (cast: number, bulk = 0) => { casting = cast; po
 /** For tests: where the rifts are, and whether any's in something solid or off the screen. */
 export const riftsForTests = (state: GameState) => rifts.map(r => `${Math.round(r.x - state.camera.x)},${Math.round(r.y - state.camera.y)}${inSolid(state, r.x, r.y, r.size) ? ':IN-WALL' : ''}`);
 
-export const stopSpellbook = () => { posing = 0; casting = 0; syncArmor(); bolts = []; burning.clear(); casting = 0; rings = []; flash = 0; rifts = []; pending = []; bulkLeft = 0; setBuffs({ speed: 1, size: 1, knock: 1 }); publish(); };
+export const stopSpellbook = () => { posing = 0; casting = 0; winding = 0; syncArmor(); bolts = []; burning.clear(); casting = 0; rings = []; flash = 0; rifts = []; pending = []; bulkLeft = 0; setBuffs({ speed: 1, size: 1, knock: 1 }); publish(); };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing

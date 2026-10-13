@@ -37,6 +37,26 @@ const DART = { cooldown: 7, speed: 17, dmg: 2, sick: 1, gravity: 0.05, up: 0.55,
 /** A dart in a boss or a mid-boss: what's on it does nothing to him (no tolerance, no puking), but it hits harder: a
  *  machine gun. 14 a dart, a dart every 7 frames: ~120 a second, about the ray gun's 125 (25 every 12). */
 const BOSS_DART_DMG = 14;
+/** Through a shield: this share of a dart's scratch and its dose gets to him (it takes that many more). */
+const SHIELD_THROUGH = 0.35;
+/** Up or down held: the bow looks for somebody to lock on to (up: up in the air; down: on the ground), out in front,
+ *  on the screen, this far off at most. */
+const LOCK_REACH = 560;
+let locked: Enemy | null = null;
+const airborne = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || (e.vel.y !== 0 && Math.abs(e.vel.y) > 0.5);
+const lockOn = (state: GameState, up: boolean): Enemy | null => {
+  const pl = state.player, f = pl.facing, mx = pl.pos.x + pl.width / 2;
+  let best: Enemy | null = null, bestD = Infinity;
+  for (const e of state.enemies) {
+    if (!alive(e) || isMidBoss(e)) continue;
+    const dx = (e.pos.x + e.width / 2 - mx) * f;
+    if (dx < 10 || dx > LOCK_REACH || e.pos.x + e.width < state.camera.x || e.pos.x > state.camera.x + CANVAS_WIDTH) continue;
+    if (airborne(e) !== up) continue;
+    const d = Math.hypot(dx, e.pos.y + e.height / 2 - (pl.pos.y + pl.height / 2));
+    if (d < bestD) { bestD = d; best = e; }
+  }
+  return best;
+};
 /** Where its tip is from the grip (as the engine's muzzle has it); how far it's tilted up right now (up held: it
  *  swings up, let go: back down level). */
 const TIP = { x: 27, y: -4 };
@@ -116,11 +136,17 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean }, muzzle: { x: number
   const pl = state.player;
   const dir = pl.facing;
   void input;
-  const a = aim + (Math.random() - 0.5) * 0.04;
+  let a = aim + (Math.random() - 0.5) * 0.04;
   // (off the tip, wherever it's pointing: turned about the grip)
   const grip = { x: muzzle.x - dir * TIP.x, y: muzzle.y - TIP.y };
   const tx = TIP.x * Math.cos(aim) - TIP.y * Math.sin(aim), ty = TIP.x * Math.sin(aim) + TIP.y * Math.cos(aim);
   const from = { x: grip.x + dir * tx, y: grip.y + ty };
+  // (locked on: straight at the middle of him, a touch high for the dart's drop)
+  if (locked && alive(locked) && state.enemies.includes(locked)) {
+    const dx = (locked.pos.x + locked.width / 2 - from.x) * dir, t = Math.max(1, Math.abs(dx) / DART.speed);
+    const dy = locked.pos.y + locked.height / 2 - from.y - 0.5 * DART.gravity * t * t;
+    a = Math.atan2(dy, Math.max(1, dx));
+  }
   state.projectiles.push({
     id: `dart-${state.frame}-${Math.random()}`, pos: { x: from.x - 5, y: from.y - 1.5 }, vel: { x: dir * Math.cos(a) * DART.speed, y: Math.sin(a) * DART.speed },
     width: 10, height: 3, health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'CROSSBOW', customData: { kind: 'dart', down: aim > DART.down * 0.5 } satisfies Part,
@@ -131,7 +157,7 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean }, muzzle: { x: number
 };
 
 /** A dart in him: a scratch, and the stuff on it working on him. */
-const darted = (ctx: FrameContext, e: Enemy, p: Projectile) => {
+const darted = (ctx: FrameContext, e: Enemy, p: Projectile, through = 1) => {
   const { state } = ctx;
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
   stuck.push({ e, x: Math.max(0.1, Math.min(0.9, (cx - e.pos.x) / e.width)), y: Math.max(0.1, Math.min(0.9, (cy - e.pos.y) / e.height)), a: Math.atan2(p.vel.y, p.vel.x), t: 0 });
@@ -139,11 +165,11 @@ const darted = (ctx: FrameContext, e: Enemy, p: Projectile) => {
   for (let i = 0; i < 2; i++) puff(state, { pos: { x: cx, y: cy }, vel: { x: -Math.sign(p.vel.x) * Math.random() * 2, y: -Math.random() * 2 }, life: 12, color: i ? '#B91C1C' : '#84CC16', size: 1.5 });
   playSound('click', 0.4, 10);
   if (isMidBoss(e)) { hurt(ctx, e, BOSS_DART_DMG); e.hitFlash = 2; ctx.fx.spawnDamageNumber(e.pos, BOSS_DART_DMG); return; }
-  hurt(ctx, e, DART.dmg);
+  hurt(ctx, e, DART.dmg * through);
   if (!alive(e)) return;
   const s = sickOf(e); tracked.add(e);
   s.lastHit = state.frame;
-  if (s.t < 0 && state.frame >= s.immuneUntil) { s.tol -= DART.sick; if (s.tol <= 0) getSick(state, e, s); }
+  if (s.t < 0 && state.frame >= s.immuneUntil) { s.tol -= DART.sick * through; if (s.tol <= 0) getSick(state, e, s); }
 };
 
 /** Hurt by it (a dart, the puke, a puddle of it): dead of any of it, it's the plague that got him: puked to death. */
@@ -370,8 +396,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     for (const e of state.enemies) {
       if (!alive(e)) continue;
       if (p.pos.x > e.pos.x + e.width || p.pos.x + p.width < e.pos.x || p.pos.y > e.pos.y + e.height || p.pos.y + p.height < e.pos.y) continue;
-      // (into his shield: it sticks in that, and that's all)
-      if (shieldStops(e, p) && !(partOf(p) as { down?: boolean }).down) { clang(state, e, p.pos.y + 1.5); stuck.push({ e, x: p.vel.x > 0 ? 0.08 : 0.92, y: Math.max(0.1, Math.min(0.9, (p.pos.y + 1.5 - e.pos.y) / e.height)), a: Math.atan2(p.vel.y, p.vel.x), t: 0 }); return false; }
+      // (into his shield: it goes through it, but only so much of what's on it gets to him: it takes more of them)
+      if (shieldStops(e, p) && !(partOf(p) as { down?: boolean }).down) { clang(state, e, p.pos.y + 1.5); darted(ctx, e, p, SHIELD_THROUGH); return false; }
       darted(ctx, e, p);
       return false;
     }
@@ -544,7 +570,14 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
   // (up: tilted up; down, up in the air: tilted down, at their heads from above; never on a vine)
   const pl = state.player;
   // (hanging off a vine: straight out level, always; up and down are for climbing it)
-  const want = !equipped ? 0 : input.moveUp && !pl.isDucking ? -DART.up : input.moveDown && !pl.isGrounded ? DART.down : 0;
+  // (down only aims (and locks) up in the air; on the ground it's the crouch, a straight shot as ever)
+  const up = equipped && input.moveUp && !pl.isDucking, down = equipped && input.moveDown && !pl.isGrounded;
+  locked = !pl.vine && (up || down) ? lockOn(state, up) : null;
+  let want = !equipped ? 0 : up ? -DART.up : down && !pl.isGrounded ? DART.down : 0;
+  if (locked) {
+    const dx = (locked.pos.x + locked.width / 2 - (pl.pos.x + pl.width / 2)) * pl.facing, dy = locked.pos.y + locked.height / 2 - (pl.pos.y + pl.height * 0.4);
+    want = Math.max(-1.2, Math.min(1.2, Math.atan2(dy, Math.max(1, dx))));
+  }
   aim = pl.vine ? 0 : aim + (want - aim) * 0.35;
   globs = 0;
   for (const q of state.projectiles) if (q.custom === 'CROSSBOW' && partOf(q).kind === 'puke') globs++;
@@ -637,6 +670,12 @@ const drawBolt = (c: Ctx, x: number, y: number, a: number, sd: number) => {
 
 const drawOverlay = (c: Ctx, state: GameState) => {
   const f = state.frame;
+  // The lock: brackets round him, closing in and out
+  if (locked && alive(locked) && state.enemies.includes(locked)) {
+    const e = locked, k = 4 + Math.round(Math.sin(f * 0.3) * 2), x0 = Math.round(e.pos.x) - k, y0 = Math.round(e.pos.y) - k, x1 = Math.round(e.pos.x + e.width) + k, y1 = Math.round(e.pos.y + e.height) + k;
+    c.fillStyle = '#84CC16';
+    for (const [x, y, sx, sy] of [[x0, y0, 1, 1], [x1, y0, -1, 1], [x0, y1, 1, -1], [x1, y1, -1, -1]] as const) { c.fillRect(sx > 0 ? x : x - 8, y - (sy > 0 ? 0 : 2), 8, 2); c.fillRect(x - (sx > 0 ? 0 : 2), sy > 0 ? y : y - 8, 2, 8); }
+  }
   // Puddles of it
   // (lying along whatever they're on, like Meathead 1's sludge, in puke; up on a ledge, soaking through and hanging off
   // the underside of it in drips: the drops that let go are real ones, falling, see drip)
