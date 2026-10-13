@@ -1216,7 +1216,8 @@ const airArc = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   // (in the water, or somehow going on forever: let go of him, alive)
   if (p.swimming || g.t > A.ARC_MAX_FRAMES) { letGo(state, g); return { ...NO_CONTROLS }; }
   const back = g.dir > 0 ? controls.left : controls.right, fwd = g.dir > 0 ? controls.right : controls.left;
-  g.arc = back ? 'back' : fwd ? 'fwd' : 'down';
+  // (a flip or a dive, once it's picked, is it: no changing his mind mid-air; from the plain piledriver he can still pick one)
+  if (g.arc !== 'back' && g.arc !== 'fwd') g.arc = back ? 'back' : fwd ? 'fwd' : 'down';
   const tvx = g.arc === 'back' ? -g.dir * A.ARC_BACK_VX : g.arc === 'fwd' ? g.dir * A.ARC_FWD_VX : g.dir * A.ARC_DOWN_VX;
   g.avx += (tvx - g.avx) * A.ARC_STEER;
   const tang = g.dir * (g.arc === 'back' ? -A.BACK_ANGLE : g.arc === 'fwd' ? A.FWD_ANGLE : A.DOWN_ANGLE);

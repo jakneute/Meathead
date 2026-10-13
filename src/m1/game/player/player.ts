@@ -815,6 +815,11 @@ const spawnDust = (state: GameState, x: number, y: number, count: number, dir: n
   }
 };
 
+/** Meathead 2's rule: a hit doesn't knock him out of an uppercut (he takes the damage and keeps going up). */
+let uppercutArmor = false;
+export const setUppercutArmor = (on: boolean) => { uppercutArmor = on; };
+export const uppercutArmored = (p: Player) => uppercutArmor && !!p.isUppercutting;
+
 /** Which special move the player is in the middle of, if any. */
 export const getSpecialForm = (p: Player): Player['hurtForm'] =>
   p.isSliding ? 'slide' : p.isCharging ? 'charge' : p.isUppercutting ? 'uppercut' : p.isDivekicking ? 'divekick' : null;

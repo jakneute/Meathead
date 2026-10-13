@@ -7,6 +7,7 @@ import { GameStatus, WeaponType } from '../m1/types';
 import { setGutBlowout, setGutLines, setGutDeathLines } from '../m1/game/player/gut';
 import { setFootstepVolume } from '../m1/game/player/footsteps';
 import { setHurtScale } from '../m1/game/core/resist';
+import { setUppercutArmor } from '../m1/game/player/player';
 import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage } from '../m1/constants';
@@ -111,6 +112,8 @@ setFootstepVolume(2.4);
 Object.assign(enemyMeleeDamage, { charge: 14, slide: 14, uppercut: 45, divekick: 45 });
 // (everything hits him a good deal softer than in Meathead 1; and enemies hardly ever drop anything, and only small)
 setHurtScale(0.65);
+// (Meathead 2: a hit doesn't knock him out of an uppercut)
+setUppercutArmor(true);
 setDropTable({ health: 0.06, ammo: 0.05 });
 registerWeapons();
 
@@ -396,14 +399,14 @@ const App2: React.FC = () => {
                   <span className="text-zinc-400"><ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" size={12} /> <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" size={12} /></span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <ChordPrompt pad={['Y', 'X']} join="+" kb={['T']} label="SHAKEDOWN" />
-                  <span className="text-green-400">SHAKES AMMO OUT OF THEM.</span>
-                  <span className="text-zinc-400">HOLD A DIRECTION TO THROW.</span>
-                </div>
-                <div className="flex flex-col gap-1">
                   <ChordPrompt pad={['DPAD_UP', 'Y', 'B']} join="+" kb={['W', 'R']} label="AIR GRAB" />
                   <span className="text-green-400">LEAP, GRAB, SLAM. IT HEALS.</span>
                   <span className="text-zinc-400">BACK: FLIP. FORWARD: DIVE.</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <ChordPrompt pad={['Y', 'X']} join="+" kb={['T']} label="SHAKEDOWN" />
+                  <span className="text-green-400">SHAKES AMMO OUT OF THEM.</span>
+                  <span className="text-zinc-400">HOLD A DIRECTION TO THROW.</span>
                 </div>
               </div>
               <span className="text-yellow-300">SET OFF THE METAL DETECTOR TO CALL OUT GUARDS TO PRACTICE ON. JUMP IT TO SNEAK PAST.</span>
