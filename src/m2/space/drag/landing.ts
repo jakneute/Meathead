@@ -33,7 +33,9 @@ interface Body { x: number; y: number; vx: number; vy: number; rot: number; vr: 
 interface Landing { t: number; px: number; py: number; pvx: number; pvy: number; landedAt: number; said: boolean; done: boolean; car: Body; riders: Body[]; smearTo: number }
 const LANDINGS = new WeakMap<object, Landing>();
 export const landingOf = (state: GameState) => LANDINGS.get(state.stage as object) ?? null;
-export const hasLanded = (state: GameState) => !!state.stageMemo[LANDED_MEMO];
+// (the ride's own launch cutscene (ride/index.ts: out through the atom's shell, the smear down the drag) counts: no second
+// landing on top of it, just its smear and wreck here after)
+export const hasLanded = (state: GameState) => !!state.stageMemo[LANDED_MEMO] || !!state.stageMemo['m2:rideLaunched'];
 
 /** The ride's ram: him (and the sled in front) on out of the atom and down onto the drag. */
 export const launchOntoDrag = (state: GameState) => {

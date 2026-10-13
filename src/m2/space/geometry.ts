@@ -28,11 +28,11 @@ export const SECTIONS = {
   /** Inside the giant atom: the backstage of the dark ride, stagehands, space obstacles; cutting the line. */
   atom: { x0: SPX + 13000, x1: SPX + 20500 },
   /** The hijacked train ride: the 1990 PA, the obstacles, the power breaker reveal, the brake crash, the launch. */
-  ride: { x0: SPX + 23500, x1: SPX + 37500 },
+  ride: { x0: SPX + 23500, x1: SPX + 39500 },
   /** Back out on the main drag: outdoor platforming up to Space Needle 2. */
   drag: { x0: SPX + 40500, x1: SPX + 48000 },
   /** Space Needle 2: up into actual space; the slow-spinning cylinder, the suit, the window. */
-  needle: { x0: SPX + 51000, x1: SPX + 55000 },
+  needle: { x0: SPX + 51000, x1: SPX + 56300 },
   /** The space shooter (free flight, ray gun only, rapid fire) and the UFO sub-boss; the abduction; the crash. */
   orbit: { x0: SPX + 58000, x1: SPX + 78000 },
   /** The impact site (dead aliens, escaping ones), then the space haunted house. */
@@ -48,10 +48,13 @@ export const SECTION_ORDER: SpaceId[] = ['square', 'atom', 'ride', 'drag', 'need
 export const DOORS: Record<SpaceId, { start: { x: number; y: number }; end: { x: number; y: number } }> = {
   square: { start: { x: SECTIONS.square.x0 + 200, y: GY }, end: { x: SECTIONS.square.x1 - 250, y: GY } },
   atom: { start: { x: SECTIONS.atom.x0 + 200, y: GY }, end: { x: SECTIONS.atom.x1 - 250, y: GY } },
-  ride: { start: { x: SECTIONS.ride.x0 + 200, y: GY }, end: { x: SECTIONS.ride.x1 - 250, y: GY } },
+  // (ride: one-way; back in from the drag, he's put at the atom's load platform, the sled waiting there)
+  ride: { start: { x: SECTIONS.ride.x0 + 200, y: GY }, end: { x: SECTIONS.atom.x0 + 6960, y: GY } },
   drag: { start: { x: SECTIONS.drag.x0 + 200, y: GY }, end: { x: SECTIONS.drag.x1 - 250, y: GY } },
-  needle: { start: { x: SECTIONS.needle.x0 + 200, y: GY }, end: { x: SECTIONS.needle.x1 - 250, y: GY } },
-  orbit: { start: { x: SECTIONS.orbit.x0 + 200, y: GY }, end: { x: SECTIONS.orbit.x1 - 250, y: GY } },
+  needle: { start: { x: SECTIONS.needle.x0 + 200, y: GY }, end: { x: SECTIONS.needle.x0 + 4880, y: GY } },
+  // (the orbit: in flight, way up over its ground (orbit/geo.ts: CY + 330). Coming back from the crater, there's no
+  // flying back up into space: he's put at the foot of Space Needle 2, the needle's own way back in)
+  orbit: { start: { x: SECTIONS.orbit.x0 + 250, y: GY - 2620 }, end: { x: SECTIONS.needle.x0 + 4880, y: GY } },
   crater: { start: { x: SECTIONS.crater.x0 + 200, y: GY }, end: { x: SECTIONS.crater.x1 - 250, y: GY } },
   queen: { start: { x: SECTIONS.queen.x0 + 200, y: GY }, end: { x: SECTIONS.queen.x1 - 250, y: GY } },
 };

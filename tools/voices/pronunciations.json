@@ -60,6 +60,11 @@
     { "in": "OW", "say": "OUW", "word": true },
     { "in": "AC/DC", "say": "A-C, D-C" },
     { "in": "EW", "say": "EEW", "word": true },
-    { "in": "EVEL KNIEVEL", "say": "EEVIL KUH-NEEVIL" }
+    { "in": "EVEL KNIEVEL", "say": "EEVIL KUH-NEEVIL" },
+    { "in": "PROGRESSCO", "say": "PROGRESS-CO", "word": true },
+    { "in": "ROBO-BUTLER", "say": "ROBO BUTLER" },
+    { "in": "XENOSCARE", "say": "ZEENO-SCARE" },
+    { "in": "XENOMORPHS", "say": "ZEENO-MORPHS" },
+    { "in": "BZZT", "say": "BZZZT", "word": true }
   ]
 }
