@@ -25,7 +25,7 @@ import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, sil
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from './utils';
 import { deathByCause, deathFallback, pluckDeathMessage, animalDeathMessage } from './deathCause';
-import { killPlayer, DEATH_SCREEN_FRAMES, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt, uppercutArmored } from '../player/player';
+import { killPlayer, DEATH_SCREEN_FRAMES, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from '../player/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from '../bosses/hazards';
 import { updateVictorFurniture } from '../stages/victor/furniture';
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from '../combat/statusEffects';
@@ -613,7 +613,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   // Hurt mid-special: cancel the move and play its recovery animation
   if (player.health < healthBeforeHits && player.health > 0) {
     const form = getSpecialForm(player) || formBeforeHits;
-    if (form && !uppercutArmored(player)) interruptSpecialWithHurt(ctx, form);
+    if (form) interruptSpecialWithHurt(ctx, form);
   }
   // Fell out of the world (down a pit): relative to the camera, which doesn't follow falls
   if ((player.health <= 0 || player.pos.y > state.camera.y + 1000) && state.deathTimer <= 0) {

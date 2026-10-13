@@ -7,7 +7,6 @@ import { GameStatus, WeaponType } from '../m1/types';
 import { setGutBlowout, setGutLines, setGutDeathLines } from '../m1/game/player/gut';
 import { setFootstepVolume } from '../m1/game/player/footsteps';
 import { setHurtScale } from '../m1/game/core/resist';
-import { setUppercutArmor } from '../m1/game/player/player';
 import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage } from '../m1/constants';
@@ -112,8 +111,6 @@ setFootstepVolume(2.4);
 Object.assign(enemyMeleeDamage, { charge: 14, slide: 14, uppercut: 45, divekick: 45 });
 // (everything hits him a good deal softer than in Meathead 1; and enemies hardly ever drop anything, and only small)
 setHurtScale(0.65);
-// (Meathead 2: a hit doesn't knock him out of an uppercut)
-setUppercutArmor(true);
 setDropTable({ health: 0.06, ammo: 0.05 });
 registerWeapons();
 
