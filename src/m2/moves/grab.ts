@@ -681,9 +681,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     }
 
     case 'awind':
-      // Coiled for it (hanging, in the air): a hit knocks him out of it, and he's straight back in his own hands
+      // Coiled for it (hanging, in the air): he takes a hit and goes anyway (no knocking him out of this one)
       p.power = 0;
-      if (p.health < g.windHp) { if (!p.isGrounded) g.airSpent = true; g.diveOk = true; end(state, g); playSound('thud', 0.5, 4); return { ...controls, special: false, charge: false }; }
       if (g.t >= A.WINDUP) {
         // Launched: a little forward, a lot up, hands out
         g.phase = 'alunge'; g.t = 0; g.avx = g.dir * A.LAUNCH_VX;
