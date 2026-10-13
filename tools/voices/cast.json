@@ -90,5 +90,22 @@
   "m2.donnie.pa": { "voice": [["bm_george", 0.55], ["am_santa", 0.45]], "speed": 0.88, "rate": 0.94, "gain": 1.1, "fx": "radio_mild" },
   "m2.donnie": { "voice": [["am_eric", 0.6], ["am_puck", 0.4]], "speed": 1.18, "rate": 1.06 },
   "m2.spooky.clerk": { "voice": "am_liam", "speed": 1.12, "rate": 1.02 },
-  "m2.spooky.clerkf": { "voice": "af_sarah", "speed": 1.12, "rate": 1.02 }
+  "m2.spooky.clerkf": { "voice": "af_sarah", "speed": 1.12, "rate": 1.02 },
+  "m2.space.needle": { "voice": "af_sky", "speed": 0.94, "rate": 1.0, "gain": 1.05, "fx": "radio_mild" },
+  "m2.space.futurepa": { "voice": "am_michael", "speed": 1.12, "rate": 1.04, "fx": "radio" },
+  "m2.space.guard": { "voice": "am_adam", "speed": 1.15, "rate": 1.02 },
+  "m2.space.guardf": { "voice": "af_nicole", "speed": 1.15, "rate": 1.02 },
+  "m2.space.zpilot": { "voice": [["am_onyx", 0.6], ["bm_lewis", 0.4]], "speed": 1.05, "rate": 0.86, "gain": 1.1, "fx": "radio_mild" },
+  "m2.space.zpilotf": { "voice": [["af_nicole", 0.6], ["af_bella", 0.4]], "speed": 1.05, "rate": 0.86, "gain": 1.1, "fx": "radio_mild" },
+  "m2.space.saucer": { "voice": [["af_sarah", 0.6], ["af_nicole", 0.4]], "speed": 1.0, "rate": 0.88, "gain": 1.15, "fx": "radio" },
+  "m2.space.raygun": { "voice": "af_kore", "speed": 0.9, "rate": 1.14, "gain": 1.05, "fx": "radio_mild" },
+  "m2.space.ridepa": { "voice": [["am_michael", 0.5], ["am_puck", 0.5]], "speed": 1.04, "rate": 1.03, "gain": 1.1, "fx": "radio_mild" },
+  "m2.space.hand": { "voice": "am_liam", "speed": 1.15, "rate": 1.0 },
+  "m2.space.handf": { "voice": "af_heart", "speed": 1.15, "rate": 1.02 },
+  "m2.space.op": { "voice": "af_bella", "speed": 1.1, "rate": 1.04 },
+  "m2.space.alien": { "voice": [["bm_lewis", 0.55], ["am_onyx", 0.45]], "speed": 1.02, "rate": 0.86, "gain": 1.1 },
+  "m2.space.alienf": { "voice": [["af_nicole", 0.55], ["af_bella", 0.45]], "speed": 1.02, "rate": 0.88, "gain": 1.1 },
+  "m2.space.xeno": { "voice": [["am_michael", 0.6], ["bm_george", 0.4]], "speed": 0.9, "rate": 0.92, "gain": 1.1, "fx": "radio_mild" },
+  "m2.space.boo": { "voice": "am_puck", "speed": 0.95, "rate": 0.9, "gain": 1.15, "fx": "radio" },
+  "m2.space.queen": { "voice": [["af_sarah", 0.5], ["am_onyx", 0.5]], "speed": 0.82, "rate": 0.78, "gain": 1.25, "fx": "radio" }
 }
