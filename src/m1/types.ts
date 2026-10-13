@@ -207,6 +207,12 @@ export interface Player extends Entity {
   bike?: boolean;
   /** In a hazmat suit (drawn yellow, hooded). */
   suit?: boolean;
+  /** In a space suit (Meathead 2's Space Needle 2): white over his body, a fishbowl helmet over his head (his face
+   *  showing through it). The suit counts as a clean pair of pants (his gut's put back to clean when it goes on): he
+   *  can shit it (drawn stained) and blow it out (gut stage 3: naked, just the helmet left on him). `before`: his pants
+   *  as they were before it went on, for putting back when it comes off (space/needle's takeOffSuit). Whatever sets it
+   *  clears it (and respawn does). */
+  spaceSuit?: { before?: Player['gut'] };
   /** Black with soot from a blast (frames left: it wears off). */
   sootTimer?: number;
   /** His head's gone (the sniper): frames since. The body stays up on the death screen, and goes over. */

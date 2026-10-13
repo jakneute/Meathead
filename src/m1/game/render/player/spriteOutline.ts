@@ -89,7 +89,8 @@ export const glowLayer = (ctx: CanvasRenderingContext2D): CanvasRenderingContext
  * `under`: drawn into the world first, under the character, given its dark silhouette (the outline's, before anything
  * else goes on it) and the rect it's drawn in about the feet (a shadow of whatever pose it's in, for nothing extra).
  */
-export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number, tint?: string, under?: (sil: { img: CanvasImageSource; x: number; y: number; w: number; h: number }) => void) => {
+/** `bare`: the tint left off within this far of his eyes (his face, through a space helmet's glass). */
+export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number, tint?: string, under?: (sil: { img: CanvasImageSource; x: number; y: number; w: number; h: number }) => void, bare?: number) => {
   if (!body || !out) return;
   const o = out.getContext('2d')!;
   o.setTransform(1, 0, 0, 1, 0, 0);
@@ -113,7 +114,10 @@ export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number,
   if (tint) {
     // (the body tinted on its own canvas, then over the outline)
     const b = body.getContext('2d')!;
-    b.save(); b.setTransform(1, 0, 0, 1, 0, 0); b.globalCompositeOperation = 'source-atop'; b.fillStyle = tint; b.fillRect(0, 0, body.width, body.height); b.restore();
+    b.save(); b.setTransform(1, 0, 0, 1, 0, 0); b.globalCompositeOperation = 'source-atop'; b.fillStyle = tint;
+    if (bare && eyes) { b.beginPath(); b.rect(0, 0, body.width, body.height); b.arc(eyes.x, eyes.y, bare * res, 0, Math.PI * 2); b.fill('evenodd'); }
+    else b.fillRect(0, 0, body.width, body.height);
+    b.restore();
   }
   o.drawImage(body, 0, 0);
   world.drawImage(out, x - ORIGIN_X, y - ORIGIN_Y, W, H);

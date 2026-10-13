@@ -44,6 +44,8 @@ export const SOOT_FRAMES = 420;
 const SOOT_FADE = 120;
 /** In a hazmat suit (Tommy's sewer): yellow over all of him, a hood's dark visor over his face. */
 const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
+/** In a space suit (Meathead 2's Space Needle 2): white over all of him but his face, the fishbowl helmet over that. */
+const SPACE_SUIT_TINT = 'rgba(241, 245, 249, 0.8)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
 /** Held on the knife (Player.stabbed, its stabs): how far he's doubled over (his lean about his feet) and sagged down;
@@ -176,6 +178,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.scale(seatedBack ? 1 : p.facing, 1);
   // (headless: stood there a beat, then over backward, onto the ground)
   if (p.headless) { const k = Math.min(1, Math.max(0, (p.headless - 25) / 30)); ctx.translate(0, -k * k * 12); ctx.rotate(-k * k * 1.5); }
+  // (in a space suit: the suit on him, unless it's been blown off him (just the helmet left, naked))
+  const suitOn = !!p.spaceSuit && p.gut?.stage !== 3;
   const finishBody = () => {
     ctx.restore();
     ctx = world;
@@ -184,7 +188,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // (in the water, up against a wall or a pipe: whatever he's holding out stops at it, it doesn't poke through)
     const walls = p.swimming ? state.blocks.filter(b => b.type !== 'pit' && !b.oneWay && b.y < anchorY - 4 && b.y + b.h > p.pos.y - 60 && b.x < anchorX + 100 && b.x + b.w > anchorX - 100) : [];
     if (walls.length) { world.save(); world.beginPath(); world.rect(anchorX - 220, anchorY - 320, 440, 420); for (const b of walls) world.rect(b.x, b.y, b.w, b.h); world.clip('evenodd'); }
-    if (sprite) endSprite(world, anchorX, anchorY, p.suit ? SUIT_TINT : soot > 0 ? `rgba(24, 20, 18, ${0.9 * soot})` : undefined, throwShadow ? sil => drawPlayerShadow(world, p, state, anchorX, anchorY, sil) : undefined);
+    if (sprite) endSprite(world, anchorX, anchorY, suitOn ? SPACE_SUIT_TINT : p.suit ? SUIT_TINT : soot > 0 ? `rgba(24, 20, 18, ${0.9 * soot})` : undefined, throwShadow ? sil => drawPlayerShadow(world, p, state, anchorX, anchorY, sil) : undefined, suitOn ? 10 : undefined);
+    // (a shat space suit: the stain over the suit's white, where his jeans' would be)
+    if (suitOn && p.gut?.stage === 2 && !p.swimming) { world.save(); world.translate(anchorX, anchorY); world.scale(p.facing, 1); drawShitPants(world, isDucking ? -16 : -26, isDucking ? 10 : 20); world.restore(); }
     if (walls.length) world.restore();
     const eye = eyesAt(anchorX, anchorY);
     if (soot > 0 && !p.suit) {
@@ -201,6 +207,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       }
       world.globalAlpha = 1;
     }
+    if (p.spaceSuit && eye) drawSpaceHelmet(world, eye.x, eye.y, eye.angle, p.facing);
     if (p.suit && eye) {
       // The hood's visor, right over his eyes (whichever way he's facing, however he's posed: swimming, ducked, mid-move)
       world.save(); world.translate(eye.x, eye.y); world.rotate(eye.angle);
@@ -1688,4 +1695,25 @@ const shrugK = (p: Player, frame: number) => {
   if (t < 0 || t >= SHRUG_FRAMES) return 0;
   const k = Math.min(1, t / 6, (SHRUG_FRAMES - t) / 10);
   return k * k * (3 - 2 * k);
+};
+
+/** A space suit's fishbowl helmet over his head (Player.spaceSuit), its middle by his eyes (x, y), tilted with his head
+ *  (`angle`): the glass (a tint, a band of glare across it, a glint), the chrome collar ring at his neck. World space. */
+const drawSpaceHelmet = (c: CanvasRenderingContext2D, x: number, y: number, angle: number, facing: number) => {
+  c.save(); c.translate(x, y); c.rotate(angle); c.scale(facing < 0 ? -1 : 1, 1);
+  const cx = -2, cy = -3, r = 17;
+  // (the collar: a chrome ring round his neck, banded, inked)
+  c.fillStyle = '#1A0B06'; c.fillRect(cx - 14, cy + 13, 28, 8);
+  c.fillStyle = '#94A3B8'; c.fillRect(cx - 13, cy + 14, 26, 6);
+  c.fillStyle = '#E2E8F0'; c.fillRect(cx - 13, cy + 14, 26, 2);
+  c.fillStyle = '#475569'; c.fillRect(cx - 13, cy + 19, 26, 1);
+  // (the glass: a faint blue over his head, darker round its rim)
+  c.fillStyle = 'rgba(186, 230, 253, 0.16)'; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = 'rgba(14, 116, 144, 0.55)'; c.lineWidth = 2; c.beginPath(); c.arc(cx, cy, r - 1, 0, Math.PI * 2); c.stroke();
+  c.strokeStyle = '#1A0B06'; c.lineWidth = 1; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.stroke();
+  // (the glare: a band of light round its upper front, and a glint)
+  c.strokeStyle = 'rgba(255, 255, 255, 0.55)'; c.lineWidth = 2.5; c.beginPath(); c.arc(cx, cy, r - 4, -2.5, -1.5); c.stroke();
+  c.fillStyle = 'rgba(255, 255, 255, 0.9)'; c.fillRect(cx + 7, cy - 11, 3, 3);
+  c.fillStyle = 'rgba(255, 255, 255, 0.35)'; c.fillRect(cx - 12, cy + 4, 2, 5);
+  c.restore();
 };
