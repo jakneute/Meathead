@@ -52,6 +52,60 @@ import { TOO_BIG_LINES, TOO_BIG_BY_KIND, GRAB_IMMUNE_LINES } from '../lines/weap
 
 type Ctx = CanvasRenderingContext2D;
 
+// ---------------------------------------------------------------------------------------------------------------------
+// AIR GRAB TUNING: up + Y + B on a pad, W + R on the keyboard. Every number the air grab uses is here.
+// (speeds are px per frame, times are frames at 60 a second, angles radians; the engine's gravity is about 0.61 a frame
+// on top of the arc's own, and a normal jump goes up at 7)
+// ---------------------------------------------------------------------------------------------------------------------
+export const AIR_GRAB = {
+  /** Wind-up before the launch (a hit in it knocks him out of it, like the beatdown's). */
+  WINDUP: 15,
+  /** Started in the air: the fastest he sinks through the wind-up (he hangs there, coiled). */
+  WINDUP_MAX_FALL: 1.5,
+  /** The launch: a little forward, a lot up. */
+  LAUNCH_VX: 3.5,
+  LAUNCH_VY: 14,
+  /** The longest the hands are out on the way up (it's over sooner once he's started falling). */
+  LUNGE_FRAMES: 20,
+  /** How far the hands reach: ahead of his front, over his head, under his feet (that's what gets ground enemies). */
+  REACH_FRONT: 30, REACH_UP: 24, REACH_DOWN: 28,
+  /** Caught one: the little hop up together before it all comes down (up speed). */
+  ARC_POP: 5,
+  /** The arc's own pull down, each frame (on top of the engine's gravity), and the fastest they fall. */
+  ARC_GRAV: 0.45, ARC_MAX_FALL: 20,
+  /** Sideways speed of each arc: back held (backflip), forward held (dive), nothing held (piledriver). */
+  ARC_BACK_VX: 6, ARC_FWD_VX: 9, ARC_DOWN_VX: 0.5,
+  /** How fast the sideways speed follows the stick (0..1, a share of the gap each frame). */
+  ARC_STEER: 0.2,
+  /** Where each arc turns them to (headfirst straight down is PI; the dive stays well short of upside down). */
+  BACK_ANGLE: Math.PI, FWD_ANGLE: 1.15, DOWN_ANGLE: Math.PI,
+  /** How fast they turn toward it (radians a frame). */
+  SPIN: 0.24,
+  /** Going at least this fast into a wall or ceiling, the impact happens there (slower, they just stop against it). */
+  SPLAT_SPEED: 3,
+  /** How far ahead of him the wall check looks (the one he's holding is out in front). */
+  WALL_LEAD: 16,
+  /** Longest an arc can last before he just lets go (a safety net, shouldn't come up). */
+  ARC_MAX_FRAMES: 150,
+  /** Impact damage: this share of their max health, times how fast they hit (from MIN_K up to 1 at ARC_MAX_FALL), plus FLAT. */
+  DAMAGE_SHARE: 0.6, DAMAGE_FLAT: 10, MIN_K: 0.55,
+  /** The same speed factor for a wall or ceiling splat (there's no fall to measure). */
+  SPLAT_K: 0.8,
+  /** Health back for Meathead on every impact, flat. */
+  HEAL: 12,
+  /** A survivor bounces off it this fast (away, up), and is dazed this long. */
+  BOUNCE_VX: 5, BOUNCE_VY: 7, DAZE: 80,
+  /** Meathead's own bounce up off a floor impact, and the frames till he's his own again. */
+  SELF_BOUNCE: -7, LAND_FRAMES: 12,
+  /** Screen shake on impact: frames, strength. */
+  SHAKE_T: 16, SHAKE_POW: 9,
+  /** The one he's got, in his arms through the arc: feet this far ahead of and up from his (facing right, unturned). */
+  HOLD_X: 26, HOLD_Y: -16,
+  /** What they turn about, up from his feet (his middle). */
+  PIVOT: 34,
+};
+const A = AIR_GRAB;
+
 // The beatdown
 /** Like a fighting game's grab: once it's going, he's committed. The beatdown's windup is a real one (a quarter second,
  * coiled down low: seen coming, and a hit in it knocks him out of it, it being so strong); the shakedown's is nearly
@@ -116,7 +170,11 @@ const grabbedHurts = (ctx: FrameContext, e: Enemy) => {
   hurtPlayer(ctx, h.dmg, e.kind!, { x: 0, y: 0 }, 0);
 };
 
-type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop' | 'critter' | 'pitch' | 'smash';
+type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop' | 'critter' | 'pitch' | 'smash'
+  // (the air grab: wound up, launched with hands out, the arc down with one in his arms, the impact)
+  | 'awind' | 'alunge' | 'aarc' | 'aland';
+/** The air grab's arc: back held (a backflip), forward held (a dive), nothing (a piledriver straight down). */
+type Arc = 'back' | 'fwd' | 'down';
 /** Which throw: on the way he's facing, back (a suplex), straight up, or slammed down. */
 type Toss = 'forward' | 'back' | 'up' | 'down';
 
@@ -140,7 +198,17 @@ export interface Grab {
   /** B or X pressed without Y: held back a moment in case Y comes with it (pressed together, near enough). */
   pend: { k: 'b' | 'x'; t: number } | null;
   /** A grab asked for while he couldn't (mid-charge, knocked back): kept a few frames and started the moment he can. */
-  queued: { want: 'beat' | 'shake'; t: number } | null;
+  queued: { want: 'beat' | 'shake' | 'air'; t: number } | null;
+  /** Air grab used: no charge moves (charge, slide, uppercut, dive kick) till he's back on the ground. */
+  airLock: boolean;
+  /** ...except the dive kick, after one that caught nobody. */
+  diveOk: boolean;
+  /** The air grab's arc: which way it's steered, how far he's turned, how fast they're going, where it hit. */
+  arc: Arc;
+  ang: number;
+  avx: number;
+  avy: number;
+  hitAt: { x: number; y: number } | null;
   /** His health as the beatdown's windup began (less, and it's off). */
   windHp: number;
   /** His knockback last frame, and how long what's left of it is from bumping into somebody (a grab beats that). */
@@ -173,6 +241,7 @@ export interface Grab {
 
 export const createGrab = (state: GameState): Grab => ({
   phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, airSpent: false,
+  airLock: false, diveOk: false, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -319,7 +388,7 @@ const take = (state: GameState, e: Enemy) => { e.wasGrabbed = true; state.enemie
  * before they come at him again. Whatever's just standing about up against him is moved back out to its own side.
  */
 const CLEAR_GAP = 18, REGROUP = 50;
-const PRE_GRAB = new Set<Phase>(['windup', 'lunge', 'reach', 'whiff', 'miss']);
+const PRE_GRAB = new Set<Phase>(['windup', 'lunge', 'reach', 'whiff', 'miss', 'awind', 'alunge']);
 const keepClear = (state: GameState, g: Grab) => {
   const p = state.player, cx = centerX(state), half = p.width / 2 + CLEAR_GAP;
   for (const e of state.enemies) {
@@ -514,7 +583,7 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   // (armor, fighting-game style: through a grab, and for a moment after, with whoever he's just put down still at his
   // feet, anything that hits him hurts him, but nothing knocks him about or out of what he's doing)
   // (not in the beatdown's windup: that's open, a hit knocks him out of it, back as it would)
-  if (g.phase !== 'idle' && g.phase !== 'windup') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
+  if (g.phase !== 'idle' && g.phase !== 'windup' && g.phase !== 'awind') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
   setArmor(g.clearT > 0);
   // (going for a critter, holding one, pitching one: the little things right by him don't hurt just for touching him,
   // or snatching one up would cost a bite most times; back to themselves once it's over)
@@ -581,14 +650,27 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       const touching = pb > 0 && g.bumpT > 0;
       if (p.isGrounded || handsOnly(state)) g.airSpent = false;
       const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.noSpecials && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
-      if (want) g.queued = { want, t: 0 };
+      // (up held with the beatdown's buttons: the air grab instead)
+      let wantNow: 'beat' | 'shake' | 'air' | null = want;
+      if (want === 'beat' && controls.up && !handsOnly(state)) wantNow = 'air';
+      if (wantNow) g.queued = { want: wantNow, t: 0 };
       else if (g.queued && ++g.queued.t > GRAB_BUFFER) g.queued = null;
+      // (an air grab's been used: no charge moves till he's down again)
+      if (g.airLock && (p.isGrounded || handsOnly(state))) g.airLock = false;
+      // (whiffed it: the dive kick's still there on the way down, down + B; nothing else)
+      if (g.airLock) out = g.diveOk && out.down && !p.isGrounded ? { ...out, charge: false } : { ...out, special: false, charge: false };
       if (!g.queued || !free) return out;
-      want = g.queued.want; g.queued = null;
+      const go = g.queued.want; g.queued = null;
       if (touching) { p.pushbackTimer = 0; p.vel.x = 0; }
       if (y) g.yChord = true;
       g.dir = p.facing; g.t = 0;
-      if (want === 'beat') {
+      if (go === 'air') {
+        // Engaged: whatever power he had's gone, and no charge moves till he lands
+        g.phase = 'awind'; g.windHp = p.health; g.airLock = true; g.diveOk = false; p.power = 0; p.powerLocked = true; g.hitAt = null;
+        playSound('snort', 0.9, -8);
+        return airHold(state);
+      }
+      if (go === 'beat') {
         g.phase = 'windup'; g.windHp = p.health;
         playSound('snort', 0.8, -4);
         return hold();
@@ -597,6 +679,57 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       playSound('whoosh', 0.6, 3);
       return hold();
     }
+
+    case 'awind':
+      // Coiled for it (hanging, in the air): a hit knocks him out of it, and he's straight back in his own hands
+      p.power = 0;
+      if (p.health < g.windHp) { if (!p.isGrounded) g.airSpent = true; g.diveOk = true; end(state, g); playSound('thud', 0.5, 4); return { ...controls, special: false, charge: false }; }
+      if (g.t >= A.WINDUP) {
+        // Launched: a little forward, a lot up, hands out
+        g.phase = 'alunge'; g.t = 0; g.avx = g.dir * A.LAUNCH_VX;
+        p.vel.y = -A.LAUNCH_VY; p.isGrounded = false; p.jumpHoldTimer = 0;
+        playSound('whoosh', 1, -4); playSound('jump', 0.9, -3);
+        return airHold(state, false);
+      }
+      return airHold(state);
+
+    case 'alunge': {
+      p.power = 0; p.vel.x = 0; p.jumpHoldTimer = 0;
+      // (forward, never through a wall)
+      const nx = p.pos.x + g.avx, w = wallBetween(state, g.avx > 0 ? nx + p.width : nx);
+      if (w) { p.pos.x = g.avx > 0 ? w.x - p.width : w.x + w.w; g.avx = 0; } else if (!walled(state, nx)) p.pos.x = nx;
+      const hit = airReach(state, g.dir);
+      if (hit && !canGrab(state, hit)) {
+        // (a boss, something far too big: the hands close on nothing, and down he comes)
+        playSound('thud', 0.8, -4); shakeScreen(state, 4, 3);
+        if (tooBigAnimal(hit) || hit.type === 'boss' || isMidBoss(hit)) tooBig(state, hit);
+        g.airSpent = true; g.diveOk = true; p.vel.y = Math.max(p.vel.y, 0); end(state, g);
+        return { ...NO_CONTROLS };
+      }
+      if (hit) {
+        // Got him: a hop up together, then the arc down
+        g.phase = 'aarc'; g.t = 0; g.held = hit; take(state, hit); g.fall = 0; g.ang = 0; g.arc = 'down';
+        g.avy = Math.min(p.vel.y, -A.ARC_POP);
+        hit.facing = (-g.dir) as 1 | -1;
+        playSound('punch', 1, -4); playSound('slam', 0.6, 4); shakeScreen(state, 6, 4);
+        grabbedHurts(ctx, hit);
+        return airArc(ctx, g, controls);
+      }
+      // Nobody: it's over once he's on the way down (falling as normal, no charge moves till he lands)
+      if (g.t >= A.LUNGE_FRAMES || (g.t > 3 && (p.vel.y >= 0 || p.isGrounded))) {
+        g.airSpent = !p.isGrounded; g.diveOk = true; end(state, g); playSound('whoosh', 0.5, 6);
+        return { ...NO_CONTROLS };
+      }
+      return { ...NO_CONTROLS };
+    }
+
+    case 'aarc':
+      return airArc(ctx, g, controls);
+
+    case 'aland':
+      p.vel.x = 0;
+      if (g.t >= A.LAND_FRAMES) end(state, g);
+      return { ...NO_CONTROLS };
 
     case 'reach': {
       // Hands out for his throat: committed (whatever hits him, he takes it, and keeps coming); anybody who comes into
@@ -1030,6 +1163,146 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
   fly(g, e, how, false, g.toss === 'forward' ? BOOTED_IMPACT : 1);
 };
 
+// ---------------------------------------------------------------------------
+// The air grab
+// ---------------------------------------------------------------------------
+
+/** Held still for the wind-up: no walking, and in the air hanging there (sinking slowly at most). */
+const airHold = (state: GameState, hang = true): Controls => {
+  const p = state.player;
+  p.vel.x = 0; p.jumpHoldTimer = 0;
+  if (hang && !p.isGrounded) p.vel.y = Math.min(p.vel.y, A.WINDUP_MAX_FALL);
+  return { ...NO_CONTROLS };
+};
+
+/** The first body his hands reach on the way up: in front of his middle, from over his head to under his feet. */
+const airReach = (state: GameState, dir: number) => {
+  const p = state.player, mid = centerX(state);
+  const front = dir > 0 ? p.pos.x + p.width : p.pos.x;
+  const a = Math.min(mid, front + dir * A.REACH_FRONT), b = Math.max(mid, front + dir * A.REACH_FRONT);
+  const top = p.pos.y - A.REACH_UP, bottom = feetY(state) + A.REACH_DOWN;
+  let best: Enemy | null = null, bestD = Infinity;
+  for (const e of state.enemies) {
+    if (e.health <= 0 || e.isBlownAway || e.innocent) continue;
+    if (e.pos.x > b || e.pos.x + e.width < a || e.pos.y > bottom || e.pos.y + e.height < top) continue;
+    if (!clearTo(state, e)) continue;
+    const d = Math.abs(e.pos.x + e.width / 2 - mid) + Math.abs(e.pos.y + e.height / 2 - (p.pos.y + p.height / 2)) * 0.5;
+    if (d < bestD) { bestD = d; best = e; }
+  }
+  return best;
+};
+
+/** Where the one he's got is through the arc: his feet in the world, and its middle. */
+const arcHold = (state: GameState, g: Grab, e: Enemy) => {
+  const x = centerX(state), y = feetY(state), a = g.ang * g.dir;
+  const dx = A.HOLD_X, dy = A.HOLD_Y + A.PIVOT, c = Math.cos(a), s = Math.sin(a);
+  const lx = dx * c - dy * s, ly = dx * s + dy * c - A.PIVOT;
+  const feet = { x: x + g.dir * lx, y: y + ly };
+  const mid = { x: feet.x + Math.sin(g.ang) * e.height / 2, y: feet.y - Math.cos(g.ang) * e.height / 2 };
+  return { feet, mid };
+};
+
+/** The underside of anything solid he'd go up into this frame. */
+const ceilingOver = (state: GameState, vy: number) => {
+  const p = state.player;
+  return state.blocks.find(b => !b.oneWay && b.type !== 'pit' && b.type !== 'door'
+    && p.pos.x + 4 < b.x + b.w && p.pos.x + p.width - 4 > b.x && b.y + b.h <= p.pos.y + 2 && b.y + b.h > p.pos.y + vy) ?? null;
+};
+
+/** The arc down together: steered back (a backflip), forward (a dive) or not at all (a piledriver), till something stops it. */
+const airArc = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
+  const { state } = ctx, p = state.player;
+  p.power = 0; p.vel.x = 0; p.jumpHoldTimer = 0;
+  // (in the water, or somehow going on forever: let go of him, alive)
+  if (p.swimming || g.t > A.ARC_MAX_FRAMES) { letGo(state, g); return { ...NO_CONTROLS }; }
+  const back = g.dir > 0 ? controls.left : controls.right, fwd = g.dir > 0 ? controls.right : controls.left;
+  g.arc = back ? 'back' : fwd ? 'fwd' : 'down';
+  const tvx = g.arc === 'back' ? -g.dir * A.ARC_BACK_VX : g.arc === 'fwd' ? g.dir * A.ARC_FWD_VX : g.dir * A.ARC_DOWN_VX;
+  g.avx += (tvx - g.avx) * A.ARC_STEER;
+  const tang = g.dir * (g.arc === 'back' ? -A.BACK_ANGLE : g.arc === 'fwd' ? A.FWD_ANGLE : A.DOWN_ANGLE);
+  g.ang += Math.max(-A.SPIN, Math.min(A.SPIN, tang - g.ang));
+  // Down on the floor (coming down): the impact
+  if (p.isGrounded && g.t > 1 && g.avy >= 0) return airImpact(ctx, g, 'floor');
+  g.avy = Math.min(A.ARC_MAX_FALL, g.avy + A.ARC_GRAV);
+  g.fall = Math.max(g.fall, g.avy);
+  // Up into a ceiling, hard: there
+  if (g.avy < 0) {
+    const c = ceilingOver(state, g.avy);
+    if (c) { if (-g.avy >= A.SPLAT_SPEED) return airImpact(ctx, g, 'ceiling', c); g.avy = 0; }
+  }
+  // Sideways into a wall, hard: there
+  if (Math.abs(g.avx) > 0.2) {
+    const s = Math.sign(g.avx), nx = p.pos.x + g.avx;
+    const w = wallBetween(state, s > 0 ? nx + p.width + A.WALL_LEAD : nx - A.WALL_LEAD);
+    if (w && (s > 0 ? w.x - (nx + p.width) : nx - (w.x + w.w)) < A.WALL_LEAD) {
+      if (Math.abs(g.avx) >= A.SPLAT_SPEED) return airImpact(ctx, g, 'wall', w);
+      g.avx = 0;
+    } else if (!walled(state, nx)) p.pos.x = nx;
+  }
+  p.vel.y = g.avy;
+  return { ...NO_CONTROLS };
+};
+
+/**
+ * Driven in: big damage (not always a kill), health back for Meathead, the screen jumping, blood (or scrap). Dead, he
+ * goes like the rest of the grabs' kills, line and callout; alive, he bounces off it dazed, into whoever's there.
+ */
+const airImpact = (ctx: FrameContext, g: Grab, where: 'floor' | 'wall' | 'ceiling', block?: { x: number; y?: number; w: number; h?: number }): Controls => {
+  const { state, fx } = ctx, p = state.player, e = g.held!;
+  const { mid } = arcHold(state, g, e);
+  const how: GrabCallout = g.arc === 'back' ? 'backdrop' : g.arc === 'fwd' ? 'spear' : 'piledriver';
+  const s = Math.sign(g.avx) || g.dir;
+  // (where he ends up: on the floor under where he was, against the wall, under the ceiling)
+  let at: { x: number; y: number };
+  if (where === 'floor') {
+    e.pos = { x: mid.x - e.width / 2, y: feetY(state) - e.height };
+    at = { x: mid.x, y: feetY(state) - 4 };
+  } else if (where === 'wall') {
+    const b = block!;
+    e.pos = { x: s > 0 ? b.x - e.width : b.x + b.w, y: Math.min(mid.y - e.height / 2, feetY(state) - e.height) };
+    at = { x: s > 0 ? b.x : b.x + b.w, y: e.pos.y + e.height / 2 };
+  } else {
+    const b = block as { x: number; y: number; w: number; h: number };
+    e.pos = { x: mid.x - e.width / 2, y: b.y + b.h };
+    at = { x: mid.x, y: b.y + b.h + 4 };
+  }
+  e.rotation = 0;
+  g.held = null; g.hitAt = at;
+  release(state, e);
+  const k = where === 'floor' ? Math.max(A.MIN_K, Math.min(1, g.fall / A.ARC_MAX_FALL)) : A.SPLAT_K;
+  const dmg = Math.round((e.maxHealth * A.DAMAGE_SHARE * k + A.DAMAGE_FLAT) * buffs.knock);
+  e.health -= dmg;
+  p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + A.HEAL); g.hp = p.health;
+  fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${A.HEAL} HP`, true, '#4ADE80');
+  // (blood, or scrap off a machine)
+  const scrap = isMachineKind(e.kind) || !!m2Kind(e.kind)?.robot;
+  if (scrap) markMachineGore(state, at.x - 80, at.y - 80, 160, 120, 30);
+  playSound('slam'); playSound('crunch', 1.1, -5); playSound('splat', 1, -2);
+  shakeScreen(state, A.SHAKE_T, A.SHAKE_POW);
+  fx.spawnExplosion(at, scrap ? '#57534E' : '#8B0000', 16, 0, 10);
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { ...at }, vel: { x: (Math.random() - 0.5) * 9, y: -1 - Math.random() * 4 }, life: 26, color: i % 2 ? (scrap ? '#78716C' : '#8B0000') : '#A8A29E', size: 2 + Math.random() * 3 });
+  const away = where === 'wall' ? -s : Math.sign(e.pos.x + e.width / 2 - centerX(state)) || g.dir;
+  if (e.health <= 0) {
+    if (where === 'wall') { e.vel.x = 0; impactKill(ctx, e, 'wallsplat', -s); fx.speakVulgarity(m2Kill('airgrab_kill')); }
+    else if (where === 'ceiling') { e.health = 0; e.vel = { x: 0, y: 0 }; ceilingSplat(ctx, e, e.pos.y); fx.speakVulgarity(m2Kill('airgrab_kill')); }
+    else { fx.blowAwayEnemy(e, { x: away * A.BOUNCE_VX, y: -A.BOUNCE_VY }, m2Kill('airgrab_kill'), away); e.meleeFlung = true; fx.spawnKillCallout(e, grabCallout(how)); }
+    p.killSatisfactionTimer = 60;
+  } else {
+    fx.spawnDamageNumber(e.pos, dmg, true);
+    e.vel = { x: away * A.BOUNCE_VX, y: where === 'ceiling' ? 2 : -A.BOUNCE_VY };
+    e.pauseTimer = Math.max(e.pauseTimer || 0, A.DAZE);
+    e.chargedAt = state.frame;
+    // (bounced off it into whoever's there: mass times speed, like any thrown body)
+    fly(g, e, how, true);
+  }
+  // (and the floor shakes under whoever's stood about where they went in)
+  if (where === 'floor') slamShock(ctx, e, at.x, feetY(state));
+  p.vel = { x: 0, y: where === 'floor' ? A.SELF_BOUNCE : Math.max(0, p.vel.y) };
+  if (where === 'floor') p.isGrounded = false;
+  g.phase = 'aland'; g.t = 0;
+  return { ...NO_CONTROLS };
+};
+
 /** Busy with a grab (the player's drawn by drawGrab, not the usual way)? */
 export const grabbing = (g: Grab) => g.phase !== 'idle';
 
@@ -1339,6 +1612,34 @@ const tossPose = (c: Ctx, f: number, key: TossKey, toss: Toss) => {
   c.restore();
 };
 
+/** The air grab's launch: springing up and forward, the front knee driven up, both hands up and out for him (`k` how far in). */
+const airLungePose = (c: Ctx, f: number, k: number) => {
+  drawLeg(c, [-5, -24], [-9, -10], [-15, 2], 0.9, true);
+  drawLeg(c, [5, -24], [15, -22], [12, -8], 0.5, false);
+  c.save(); c.translate(0, -24); c.rotate(0.22 + k * 0.1);
+  drawArmTo(c, [-8, -22], [8, -36], [20, -48 - k * 4], true, 5);
+  drawTorsoFromHips(c);
+  head(c, 5, -37, -0.3, 'roar', f);
+  drawArmTo(c, [11, -22], [25, -33], [33, -44 - k * 4], false, 6);
+  c.restore();
+};
+
+/**
+ * The air grab's hold through the arc: both arms locked round him, out in front. `ext` 0: knees tucked up (the
+ * backflip, the piledriver); 1: legs out straight behind (the dive).
+ */
+const hugPose = (c: Ctx, f: number, ext: number) => {
+  const l = (a: number, b: number) => a + (b - a) * ext;
+  drawLeg(c, [-5, -24], [l(8, -14), l(-16, -20)], [l(-6, -34), l(-6, -16)], l(0.6, 1.4), true);
+  drawLeg(c, [5, -24], [l(18, -6), l(-14, -24)], [l(6, -28), l(-2, -26)], l(0.6, 1.4), false);
+  c.save(); c.translate(0, -24); c.rotate(l(0.12, 0.45));
+  drawArmTo(c, [-8, -22], [10, -12], [24, -18], true, 5);
+  drawTorsoFromHips(c);
+  head(c, 4, -36, l(0.15, 0.35), 'roar', f);
+  drawArmTo(c, [11, -22], [24, -10], [30, -22], false, 6);
+  c.restore();
+};
+
 /** Draws whatever grab's on, in place of him (world space, over everything). */
 export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
   if (g.phase === 'idle') return;
@@ -1346,6 +1647,39 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
   p.hidden = true;
   const x = centerX(state), y = feetY(state);
   switch (g.phase) {
+    case 'awind': {
+      // Coiled (hanging there, in the air), shaking with it, steam off him, and the warning
+      const k = g.t / A.WINDUP;
+      sprite(ctx, x + (f % 2 ? 1 : -1) * k * 1.5, y, g.dir, c => coilPose(c, f, k));
+      if (f % 4 === 0) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 30, y: p.pos.y - 10 }, vel: { x: 0, y: -1.5 }, life: 20, color: 'rgba(240, 240, 240, 0.5)', size: 3 });
+      if (k > 0.6 && f % 6 < 3) { ctx.fillStyle = '#FDE047'; ctx.font = '12px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('!', x, p.pos.y - 34); ctx.textAlign = 'left'; }
+      return;
+    }
+    case 'alunge': {
+      // Springing up at him: streaks of air off under him
+      for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(255, 255, 255, ${(0.5 - i * 0.1).toFixed(2)})`; ctx.fillRect(x - 22 + i * 14 - g.dir * 6, y + 6 + ((f * 7 + i * 13) % 30), 2, 16); }
+      sprite(ctx, x, y, g.dir, c => airLungePose(c, f, Math.min(1, g.t / 4)));
+      return;
+    }
+    case 'aarc': {
+      // In his arms, turned over with him: the one he's got first, then him over it (his arms round it)
+      const e = g.held;
+      for (let i = 0; i < 5; i++) { const sx = x - 30 + i * 15, sy = y - 90 - ((f * 9 + i * 23) % 60); ctx.fillStyle = 'rgba(255, 255, 255, 0.45)'; ctx.fillRect(sx, sy, 2, 18 + (i % 2) * 8); }
+      if (e) { const { feet } = arcHold(state, g, e); drawEnemyAt(ctx, e, state, feet.x, feet.y, g.ang, (-g.dir) as 1 | -1, isCritter(e) ? 'pitch' : 'neck'); }
+      const a = g.ang * g.dir, ext = g.arc === 'fwd' ? 1 : 0;
+      sprite(ctx, x, y, g.dir, c => { c.translate(0, -A.PIVOT); c.rotate(a); c.translate(0, A.PIVOT); hugPose(c, f, ext); });
+      return;
+    }
+    case 'aland': {
+      // Back off it, crouched, and the burst where they went in
+      asPose(ctx, state, { isDucking: p.isGrounded, facing: g.dir });
+      if (g.hitAt && g.t < 6) {
+        const { x: bx, y: by } = g.hitAt;
+        ctx.fillStyle = '#FFFFFF'; for (let i = 0; i < 12; i++) { const an = i * Math.PI / 6; ctx.fillRect(Math.round(bx + Math.cos(an) * 20) - 2, Math.round(by + Math.sin(an) * 12) - 2, 4, 4); }
+        ctx.fillStyle = '#FDE047'; ctx.fillRect(bx - 6, by - 6, 12, 12);
+      }
+      return;
+    }
     case 'windup': {
       // Coiled down, shaking with it, steam coming off him
       const k = g.t / WINDUP;

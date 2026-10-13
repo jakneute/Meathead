@@ -9,6 +9,10 @@ export const GRAB_CALLOUTS = {
   thrown: { lines: ['TOSSED!', 'AIRMAILED!', 'YEETED!', 'NO REFUNDS!'], color: '#FDE68A' },
   launched: { lines: ['LAUNCHED!', 'SKY HIGH!', 'AIR TIME!', 'GRAVITY WINS!'], color: '#7DD3FC' },
   suplex: { lines: ['SUPLEXED!', 'GERMAN SUPLEX!', 'BRIDGED!', 'SPIKED!'], color: '#C084FC' },
+  // (the air grab's, by which way the arc went: straight down, backflipped, dived)
+  piledriver: { lines: ['PILEDRIVEN!', 'TOMBSTONED!', 'HEAD FIRST!', 'NECK CHECKED!', 'SPIKED!'], color: '#FB7185' },
+  backdrop: { lines: ['BACKDROPPED!', 'BACKFLIPPED!', 'FLIPPED OFF!', 'ASS OVER TEAKETTLE!'], color: '#A5B4FC' },
+  spear: { lines: ['SPEARED!', 'FACE PLANTED!', 'BULLDOGGED!', 'DDT!', 'LAWN DARTED!'], color: '#FBBF24' },
   // (and not a grab's: the souvenir launcher's junk)
   souvenir: { lines: ['SOUVENIRED!', 'GIFT SHOPPED!', 'TOURIST TRAPPED!', 'BON VOYAGE!'], color: '#F472B6' },
   // (the soul sucker's: into the grinder, and back out the other end)

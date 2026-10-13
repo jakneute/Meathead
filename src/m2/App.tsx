@@ -380,7 +380,8 @@ const App2: React.FC = () => {
         )}
         {/* The intro: what the panel in the corner's teaching, where he is; what up does at the ticket window; the ticket */}
         {status === GameStatus.PLAYING && stage === INTRO_STAGE && !ui.introCutscene && ui.introTip && (
-          <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 max-w-[420px] px-3 py-2 text-[8px] leading-[1.6] text-zinc-100 bg-black/70 border-2 border-zinc-600">
+          // (the grabs' sheet goes wide, three moves side by side, under the HUD: not a tall column)
+          <div className={`absolute z-20 flex flex-col gap-2 px-3 py-2 text-[8px] leading-[1.6] text-zinc-100 bg-black/70 border-2 border-zinc-600 ${ui.introTip === 'grabs' ? 'left-3 right-3 top-[124px]' : 'right-3 top-3 max-w-[420px]'}`}>
             {ui.introTip === 'postal' && <>
               <span className="text-sky-300">PARK SECURITY LEAVES YOU ALONE IF YOU LEAVE EVERYBODY ALONE.</span>
               <span className="text-zinc-400">HIT ANYBODY (OR SET OFF THE METAL DETECTOR) AND THE WHOLE PARK COMES AT YOU.</span>
@@ -388,13 +389,24 @@ const App2: React.FC = () => {
               <span className="text-zinc-500">SKIP THE INTRO FROM THE PAUSE MENU.</span>
             </>}
             {ui.introTip === 'grabs' && <>
-              <ChordPrompt pad={['Y', 'B']} join="+" kb={['R']} label="BEATDOWN (LUNGE)" />
-              <span className="text-green-400 pl-1">EVERY PUNCH HEALS YOU. FINISHING THEM HEALS A LOT.</span>
-              <span className="text-zinc-400 pl-1">ON THEM: <ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" /> · <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" /></span>
-              <ChordPrompt pad={['Y', 'X']} join="+" kb={['T']} label="SHAKEDOWN (GRAB)" />
-              <span className="text-green-400 pl-1">SHAKES AMMO OUT OF THEM, ONCE YOU'VE GOT WEAPONS THAT TAKE IT.</span>
-              <span className="text-zinc-400 pl-1">AT THE END, HOLD A DIRECTION TO THROW (DOWN: SLAM). INTO A WALL: SPLAT.</span>
-              <span className="text-yellow-300 pl-1">SET OFF THE METAL DETECTOR TO CALL OUT GUARDS TO PRACTICE ON. JUMP IT TO SNEAK PAST.</span>
+              <div className="grid grid-cols-3 gap-x-4 gap-y-1">
+                <div className="flex flex-col gap-1">
+                  <ChordPrompt pad={['Y', 'B']} join="+" kb={['R']} label="BEATDOWN" />
+                  <span className="text-green-400">PUNCHES HEAL YOU.</span>
+                  <span className="text-zinc-400"><ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" size={12} /> <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" size={12} /></span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <ChordPrompt pad={['Y', 'X']} join="+" kb={['T']} label="SHAKEDOWN" />
+                  <span className="text-green-400">SHAKES AMMO OUT OF THEM.</span>
+                  <span className="text-zinc-400">HOLD A DIRECTION TO THROW.</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <ChordPrompt pad={['DPAD_UP', 'Y', 'B']} join="+" kb={['W', 'R']} label="AIR GRAB" />
+                  <span className="text-green-400">LEAP, GRAB, SLAM. IT HEALS.</span>
+                  <span className="text-zinc-400">BACK: FLIP. FORWARD: DIVE.</span>
+                </div>
+              </div>
+              <span className="text-yellow-300">SET OFF THE METAL DETECTOR TO CALL OUT GUARDS TO PRACTICE ON. JUMP IT TO SNEAK PAST.</span>
             </>}
             {ui.introTip === 'line' && <>
               <span className="text-sky-300">WAIT YOUR TURN AT THE WINDOW. OR PLOW THROUGH THEM.</span>
