@@ -201,7 +201,7 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'SOUL_SUCKER': 600,
   // (Meathead 2's laser-guided flintlock: balls and powder)
   'FLINTLOCK': 24,
-  // (Meathead 2's spellbook of the damned: its mana (a storm 11, bulking up 24)
+  // (Meathead 2's spellbook of the damned: its mana (a storm 11, bulking up 24))
   'SPELLBOOK': 100,
   // (Meathead 2's clapperboard: takes)
   'STUNT_CAR': 6,
