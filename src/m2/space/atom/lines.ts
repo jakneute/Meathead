@@ -94,6 +94,6 @@ export const VOICE_LINES: Record<string, string[]> = {
   'm2.space.hand': [...all(HAND_COWERS), ...all(CAST_BARKS)],
   'm2.space.handf': [...all(HAND_COWERS), ...all(CAST_BARKS)],
   'm2.guest': [...all(QUEUE_BARKS), ...all(GUEST_THROWN), GUEST_FLEES],
-  'm2.guest2': [...all(QUEUE_BARKS), ...all(GUEST_THROWN)],
+  'm2.guest2': [...all(QUEUE_BARKS), ...all(GUEST_THROWN), GUEST_FLEES],
   'm2.space.op': [...each(OP_GREET), ...each(OP_PROTEST), OP_DONT, OP_AFTER],
 };
