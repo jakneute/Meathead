@@ -9,7 +9,8 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawTodSky } from '../../timeOfDay';
-import { INK, box, text, mix, hash } from '../../intro/art/kit';
+import { INK, box, mix, hash, sign, slab, rampOf, bandedGradient, hazeBands, steppedGlow, bendFloor } from '../../intro/art/kit';
+import { cyl, sphere } from '../atom/snes';
 import { lookOf } from '../../adventure/temple/people';
 
 type Ctx = CanvasRenderingContext2D;
@@ -47,45 +48,71 @@ const littleSled = (c: Ctx, x: number, y: number, rot: number, stripe: string, w
   c.restore();
 };
 
-/** The giant atom: the nucleus (a ball of balls) up on stilts, the three rings round it; the hole in its top, once burst. */
+/** The giant atom: the nucleus (a ball of balls) up on stilts, the three rings round it (chaser bulbs along them); the
+ *  hole in its top, once burst. Stepped, inked; a haze along its foot. */
 const drawAtom = (c: Ctx, t: number) => {
   const [cx, cy] = [210, 250];
-  for (const sx of [-80, 0, 80]) box(c, cx + sx - 6, cy + 60, 12, STREET - cy - 60, '#94A3B8');
-  // (the rings: the back half behind it)
-  c.lineWidth = 9; c.strokeStyle = '#64748B';
-  for (const a of [0, 1.05, -1.05]) { c.beginPath(); c.ellipse(cx, cy, 190, 54, a, Math.PI, Math.PI * 2); c.stroke(); }
+  // (the stilts, braced)
+  for (const sx of [-80, 0, 80]) cyl(c, cx + sx - 7, cy + 60, 14, STREET - cy - 60, '#94A3B8', 'y');
+  for (const [a, b] of [[-80, 0], [0, 80]]) for (const [lw, col] of [[4, INK], [2, '#64748B']] as const) { c.lineWidth = lw; c.strokeStyle = col; c.beginPath(); c.moveTo(cx + a, cy + 90); c.lineTo(cx + b, STREET - 20); c.moveTo(cx + b, cy + 90); c.lineTo(cx + a, STREET - 20); c.stroke(); }
+  const ring = (front: boolean) => {
+    for (const a of [0, 1.05, -1.05]) for (const [lw, col] of (front ? [[12, INK], [9, '#94A3B8'], [5, '#CBD5E1'], [2, '#F8FAFC']] : [[12, INK], [9, '#334155'], [5, '#475569'], [2, '#64748B']]) as [number, string][]) {
+      c.lineWidth = lw; c.strokeStyle = col; c.beginPath(); c.ellipse(cx, cy, 190, 54, a, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2); c.stroke();
+    }
+    // (the chaser bulbs along each ring)
+    for (const [ri, a] of [0, 1.05, -1.05].entries()) for (let k = 0; k < 14; k++) {
+      const th = (front ? 0 : Math.PI) + (k + 0.5) / 14 * Math.PI, ex = Math.cos(th) * 190, ey = Math.sin(th) * 54;
+      const x = cx + ex * Math.cos(a) - ey * Math.sin(a), y = cy + ex * Math.sin(a) + ey * Math.cos(a), on = (k + ri + (t >> 2)) % 3 === 0;
+      box(c, x - 1, y - 1, 3, 3, on ? '#FEF9C3' : front ? '#64748B' : '#334155');
+    }
+  };
+  ring(false);
   // (the nucleus)
-  for (const [dx, dy, r, col] of [[-40, 20, 58, '#B91C1C'], [40, 20, 58, '#1D4ED8'], [0, -30, 62, '#DC2626'], [-30, -10, 50, '#2563EB'], [30, -20, 54, '#B91C1C']] as const) {
-    c.fillStyle = INK; c.beginPath(); c.arc(cx + dx, cy + dy, r + 2, 0, Math.PI * 2); c.fill();
-    c.fillStyle = col; c.beginPath(); c.arc(cx + dx, cy + dy, r, 0, Math.PI * 2); c.fill();
-    c.fillStyle = mix(col, '#FFFFFF', 0.35); c.beginPath(); c.arc(cx + dx - r * 0.35, cy + dy - r * 0.35, r * 0.3, 0, Math.PI * 2); c.fill();
-  }
+  for (const [dx, dy, r, col] of [[-40, 20, 58, '#B91C1C'], [40, 20, 58, '#1D4ED8'], [0, -30, 62, '#DC2626'], [-30, -10, 50, '#2563EB'], [30, -20, 54, '#B91C1C']] as const) sphere(c, cx + dx, cy + dy, r, col);
   // (the hole they come out of, and its panels flying)
   if (t > 4) {
+    c.fillStyle = INK; c.beginPath(); c.ellipse(HOLE[0], HOLE[1] + 30, 37, 21, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#020617'; c.beginPath(); c.ellipse(HOLE[0], HOLE[1] + 30, 34, 18, 0, 0, Math.PI * 2); c.fill();
+    for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; box(c, HOLE[0] + Math.cos(a) * 34 - 3, HOLE[1] + 30 + Math.sin(a) * 18 - 3, 6, 6, k % 2 ? '#7F1D1D' : '#B91C1C'); }
     for (let k = 0; k < 10; k++) {
       const u = (t - 4) * (0.9 + hash(k) * 0.6);
       const px = HOLE[0] + (hash(k * 3) - 0.4) * u * 3, py = HOLE[1] + 30 - u * (3 + hash(k * 7) * 3) + 0.04 * u * u;
-      if (py < H) box(c, px, py, 8, 5, k % 2 ? '#DC2626' : '#2563EB');
+      if (py < H) { const col = k % 2 ? '#DC2626' : '#2563EB'; box(c, px - 1, py - 1, 10, 7, INK); box(c, px, py, 8, 5, col); box(c, px, py, 8, 2, mix(col, '#FFFFFF', 0.35)); }
     }
-    if (t < 40) for (let k = 0; k < 8; k++) { c.fillStyle = `rgba(253, 224, 71, ${0.6 * (1 - t / 40)})`; c.beginPath(); c.arc(HOLE[0] + (hash(k) - 0.5) * 60, HOLE[1] + 20 - hash(k * 2) * 30, 10 + t * 0.6, 0, Math.PI * 2); c.fill(); }
+    if (t < 40) steppedGlow(c, HOLE[0], HOLE[1] + 20, 30 + t * 1.6, '#FDE047', 0.7 * (1 - t / 40), 0.05, 5);
   }
-  // (the rings' front half, over it)
-  c.lineWidth = 9; c.strokeStyle = '#CBD5E1';
-  for (const a of [0, 1.05, -1.05]) { c.beginPath(); c.ellipse(cx, cy, 190, 54, a, 0, Math.PI); c.stroke(); }
-  text(c, 'THE GIANT ATOM', cx, STREET - 70, '#F8FAFC', 8);
+  ring(true);
+  sign(c, cx - 70, STREET - 84, 140, 22, '#1E3A8A', 'THE GIANT ATOM', '#F8FAFC', 7);
 };
 
-/** The main drag (googie fronts, the pavement). */
+/** The main drag (googie fronts, their sides in perspective toward the middle of the screen; the pavement, bent). */
+const EYE = W / 2;
 const drawDrag = (c: Ctx) => {
-  for (let k = 0; k < 5; k++) {
-    const x = 380 + k * 90, h = 70 + (k % 3) * 30;
-    box(c, x, STREET - h, 80, h, ['#F472B6', '#2DD4BF', '#FBBF24', '#A78BFA', '#60A5FA'][k]);
-    box(c, x + 8, STREET - h + 12, 64, 20, '#E0F2FE');
-    c.fillStyle = '#F8FAFC'; c.beginPath(); c.moveTo(x - 8, STREET - h); c.lineTo(x + 40, STREET - h - 18); c.lineTo(x + 88, STREET - h); c.closePath(); c.fill();
+  const fronts = [0, 1, 2, 3, 4].map(k => ({ x: 380 + k * 90, h: 70 + (k % 3) * 30, col: ['#F472B6', '#2DD4BF', '#FBBF24', '#A78BFA', '#60A5FA'][k] }));
+  // (their sides first, all of them: every front stands in front of every side)
+  for (const b of fronts) {
+    const near = b.x + 40 < EYE ? b.x + 80 : b.x, sw = Math.round(Math.abs(near - EYE) * 0.12), d = near < EYE ? 1 : -1;
+    if (sw < 2) continue;
+    const top = STREET - b.h, r = rampOf(b.col);
+    c.fillStyle = INK; c.beginPath(); c.moveTo(near, top - 1); c.lineTo(near + d * sw, top + sw * 0.3 - 1); c.lineTo(near + d * sw, STREET); c.lineTo(near, STREET); c.closePath(); c.fill();
+    c.fillStyle = r[1]; c.beginPath(); c.moveTo(near, top + 1); c.lineTo(near + d * (sw - 1), top + sw * 0.3 + 1); c.lineTo(near + d * (sw - 1), STREET); c.lineTo(near, STREET); c.closePath(); c.fill();
   }
-  box(c, 0, STREET, W, H - STREET, '#475569'); box(c, 0, STREET, W, 4, '#CBD5E1');
-  for (let x = 20; x < W; x += 80) box(c, x, STREET + 50, 40, 4, '#FACC15');
+  for (const b of fronts) {
+    const top = STREET - b.h;
+    slab(c, b.x, top, 80, b.h, b.col);
+    box(c, b.x + 8, top + 12, 64, 22, INK); bandedGradient(c, b.x + 9, top + 13, 62, 20, ['#F0F9FF', '#BAE6FD', '#7DD3FC'], 3);
+    box(c, b.x + 30, STREET - 30, 20, 30, INK); box(c, b.x + 31, STREET - 29, 18, 29, '#0F172A');
+    // (the googie roof: a boomerang, banded)
+    c.save(); c.beginPath(); c.moveTo(b.x - 10, top + 1); c.lineTo(b.x + 40, top - 20); c.lineTo(b.x + 90, top + 1); c.closePath(); c.fillStyle = INK; c.fill(); c.clip();
+    bandedGradient(c, b.x - 10, top - 20, 100, 22, ['#FFFFFF', '#E2E8F0', '#94A3B8'], 3);
+    c.restore();
+  }
+  hazeBands(c, 0, STREET - 40, W, 40, '#E0F2FE', 0, 0.16, 4);
+  // (the pavement: banded, the curb, the lane's dashes; bent toward the eye)
+  bandedGradient(c, 0, STREET, W, H - STREET, ['#64748B', '#475569', '#334155'], 6);
+  box(c, 0, STREET, W, 4, '#CBD5E1'); box(c, 0, STREET + 4, W, 2, '#94A3B8');
+  for (let x = 20; x < W; x += 80) { box(c, x, STREET + 50, 40, 4, '#FACC15'); box(c, x, STREET + 50, 40, 1, '#FEF08A'); }
+  bendFloor(c, { x: EYE }, STREET, STREET + 6, H);
 };
 
 /** The whole outside shot, `t` frames in (0..OUT_END). */

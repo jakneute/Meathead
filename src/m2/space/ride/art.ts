@@ -1,11 +1,13 @@
-// The ride, painted (crude first pass): two looks of the one room, and the light between them (`k`: 0 the show, in
-// the dark; 1 the work lights on, everything as it is).
-//   the show       outer space and the future: a starfield all round, neon planets, the narrated scenes of 2010 by the
-//                  track, the chain lift's blue strobes, the props (a satellite, Robo-Butler, the laser emitters, the
-//                  cardboard Martians, the asteroid) dressed to look like the real thing in the dark
+// The ride, painted (the SNES pass): two looks of the one room, and the light between them (`k`: 0 the show, in the
+// dark; 1 the work lights on, everything as it is).
+//   the show       outer space and the future: the dome in banded violet, its painted nebulae, a starfield in three
+//                  depths, blacklit planets (stamped), the narrated scenes of 2010 by the track, the chain lift (its
+//                  chain crawling, its blue strobes), the props (a satellite in gold foil, Robo-Butler, the laser
+//                  emitters, the cardboard Martians, the asteroid) dressed to look like the real thing in the dark
 //   the warehouse  the same room with the lights on: corrugated walls, steel trusses, fluorescent tubes, pallet racks;
 //                  the stars are Christmas lights on black tarp, the planets painted beach balls on strings, the scenes
-//                  plywood cutouts on braces, a porta-potty, a guy's lunch. The show's props, plainly props
+//                  plywood cutouts on braces, a porta-potty, a guy's lunch. The show's props, plainly props (stamped
+//                  in tiles, knocked back so nothing back there reads as somewhere to be)
 //   the circuit    the load station at both ends (the same platform, the same line, the empty sleds parked): from the
 //                  start, the track's last leg seen coming down into it (the brake run up top, STATION AHEAD, a sled
 //                  easing down); at the end, ridden: the brake run, the brake box, the siren, the drop
@@ -16,10 +18,11 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Player } from '../../../m1/types';
 import type { SceneLight, Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { INK, box, text, mix, hash, sign } from '../../intro/art/kit';
+import { INK, box, text, mix, hash, sign, slab, rampOf, lite, dark, stamp, checker, bandedGradient, hazeBands, pixelBlob, tilePattern, star } from '../../intro/art/kit';
 import { GY } from '../geometry';
-import { drawTableau, TABLEAUS, tinySled, meteor, OP_SEED } from '../atom/art';
+import { drawTableau, TABLEAUS, tinySled, meteor, OP_SEED, planet, CARPET } from '../atom/art';
 import { drawAtomPerson } from '../atom/people';
+import { cyl, sphere, neonText, neonBar, lamp, truss, rivets, hazard, screenGlass, stencil } from '../atom/snes';
 import {
   R, RUNS, GAPS, OBS, CUES, CUE_XS, TABLEAU_XS, LIFT_X0, LIFT_X1, BREAKER_X, STATION_X0, STATION_X1, FINS_X0, FINS_X1, BRAKE_X,
   CREST_X, FRONT_AT, STATION_ROOF, WORKERS, STATION_FOLK, trackY, railLine, type Ob, type Verb,
@@ -46,18 +49,31 @@ export const drawRideBackdrop = (c: Ctx, state: GameState, look: RideLook) => {
   const W = CANVAS_WIDTH, H = CANVAS_HEIGHT, f = state.frame, cam = state.camera.x, cy = state.camera.y;
   const k = look.k;
   if (k < 1) {
-    c.fillStyle = '#03020A'; c.fillRect(0, 0, W, H);
-    for (let i = 0; i < 180; i++) {
-      const sx = ((i * 211.7 - cam * 0.1) % W + W) % W, sy = (((i * 97.3 - cy * 0.1) % H) + H) % H;
-      const tw = (f + i * 13) % 80 < 5;
-      box(c, sx, sy, tw ? 3 : 2, tw ? 3 : 2, i % 6 ? '#94A3B8' : '#F8FAFC');
+    bandedGradient(c, 0, 0, W, H, ['#04030C', '#0A0620', '#120A2C', '#0C0722', '#04030C'], 18);
+    // (the dome's painted nebulae, way back)
+    for (let j = -1; j < 3; j++) {
+      const base = Math.floor(cam * 0.05 / 800) + j, nx = base * 800 - cam * 0.05 + 200 + hash(base * 2.1) * 300, ny = 160 + hash(base * 4.3) * 220 - cy * 0.03;
+      c.globalAlpha = 0.12; pixelBlob(c, nx, ny, 210, 80, ['#7E22CE', '#0E7490', '#BE185D'][((base % 3) + 3) % 3], 4);
+      c.globalAlpha = 0.1; pixelBlob(c, nx + 60, ny - 14, 120, 44, ['#C026D3', '#06B6D4', '#F472B6'][((base % 3) + 3) % 3], 4);
+      c.globalAlpha = 1;
     }
+    // (the stars, in three depths)
+    for (let i = 0; i < 190; i++) {
+      const depth = i % 3, sp = [0.05, 0.1, 0.16][depth];
+      const sx = ((i * 211.7 - cam * sp) % W + W) % W, sy = (((i * 97.3 - cy * sp) % H) + H) % H;
+      if (depth === 0) box(c, sx, sy, 1, 1, '#475569');
+      else if (depth === 1) box(c, sx, sy, 2, 2, i % 6 ? '#94A3B8' : '#C4B5FD');
+      else {
+        const tw = (f + i * 13) % 80 < 6;
+        box(c, sx, sy, 2, 2, '#F8FAFC');
+        if (tw || i % 13 === 0) { box(c, sx - 2, sy, 6, 2, tw ? '#E0E7FF' : '#475569'); box(c, sx, sy - 2, 2, 6, tw ? '#E0E7FF' : '#475569'); box(c, sx, sy, 2, 2, '#FFFFFF'); }
+      }
+    }
+    // (the planets: blacklit, but held back (the track's what has to read))
     for (let j = -1; j < 3; j++) {
       const base = Math.floor(cam * 0.2 / 700) + j, px = base * 700 - cam * 0.2 + 200 + hash(base) * 250, py = 140 + hash(base * 3) * 180 - cy * 0.05;
       const col = ['#DB2777', '#2563EB', '#16A34A', '#F59E0B'][((base % 4) + 4) % 4], r = 36 + hash(base * 7) * 40;
-      c.fillStyle = mix(col, '#03020A', 0.62); c.beginPath(); c.arc(px, py, r, 0, Math.PI * 2); c.fill();
-      c.fillStyle = mix(col, '#03020A', 0.45); c.beginPath(); c.arc(px - r * 0.3, py - r * 0.3, r * 0.4, 0, Math.PI * 2); c.fill();
-      if (hash(base * 5) > 0.4) { c.strokeStyle = mix(col, '#03020A', 0.4); c.lineWidth = 3; c.beginPath(); c.ellipse(px, py, r * 1.7, r * 0.35, -0.2, 0, Math.PI * 2); c.stroke(); }
+      planet(c, px, py, r, mix(col, '#03020A', 0.45), hash(base * 5) > 0.4);
     }
     // (other sleds going round, way off)
     c.save(); c.globalAlpha = 0.35;
@@ -72,34 +88,74 @@ export const drawRideBackdrop = (c: Ctx, state: GameState, look: RideLook) => {
   return true;
 };
 
+/** The warehouse's corrugated steel, as a fill (a ridge lit, its valley shaded). */
+const corrugated = (c: Ctx) => tilePattern(c, 'ride-corrugated', 24, 8, g => {
+  const cols = ['#C3C8CF', '#AEB4BC', '#9CA3AF', '#9CA3AF', '#8B929C', '#7B828C'];
+  cols.forEach((col, i) => { g.fillStyle = col; g.fillRect(i * 4, 0, 4, 8); });
+});
+/** One stretch of the warehouse's racks (pallet racking, its boxes; the porta-potty; the sign), stamped, from 0 for 900. */
+const racks = (g: Ctx) => {
+  for (let r = 0; r < 3; r++) {
+    const by = 380 + r * 70;
+    for (let b = 0; b < 4; b++) {
+      const bx = 30 + b * 72, h = 30 + ((b * 7 + r * 3) % 3) * 5, col = ['#B45309', '#A16207', '#92400E'][(b + r) % 3];
+      slab(g, bx, by - h, 60, h, col);
+      box(g, bx + 26, by - h, 8, h, mix(col, '#FEF3C7', 0.35));
+      if ((b + r) % 2) stencil(g, 'THIS END UP', bx + 30, by - h / 2 + 3, '#451A03', col, 5);
+    }
+    cyl(g, 20, by, 300, 7, '#EA580C');
+  }
+  for (const ux of [20, 314]) { box(g, ux - 1, 330, 8, 280, INK); box(g, ux, 330, 6, 280, '#1D4ED8'); box(g, ux, 330, 2, 280, '#60A5FA'); for (let y = 340; y < 600; y += 14) box(g, ux + 2, y, 2, 4, '#1E3A8A'); }
+  // (the porta-potty: its roof, its vents, its door, JOHNNY)
+  slab(g, 420, 400, 60, 120, '#2563EB');
+  box(g, 416, 392, 68, 10, INK); box(g, 417, 393, 66, 8, '#93C5FD'); box(g, 417, 393, 66, 2, '#DBEAFE');
+  for (let v = 0; v < 4; v++) box(g, 434 + v * 8, 410, 4, 10, '#1E3A8A');
+  box(g, 428, 426, 44, 88, '#1D4ED8'); box(g, 428, 426, 2, 88, '#3B82F6');
+  box(g, 464, 466, 4, 10, '#F8FAFC'); box(g, 444, 438, 14, 6, '#DC2626'); text(g, 'JOHNNY', 450, 456, '#F8FAFC', 5);
+  sign(g, 540, 300, 230, 22, '#F8FAFC', 'EMPLOYEES MUST WASH HANDS', '#B91C1C', 6);
+  // (a guy's lunch, on a crate: a cooler, a thermos, a sandwich)
+  slab(g, 600, 470, 70, 50, '#A16207');
+  slab(g, 606, 446, 34, 24, '#DC2626'); box(g, 606, 446, 34, 6, '#F8FAFC');
+  cyl(g, 646, 440, 10, 30, '#16A34A', 'y');
+  box(g, 616, 466, 22, 6, '#FDE68A'); box(g, 616, 468, 22, 2, '#84CC16');
+};
+/** One stretch of the tarp and its Christmas lights (the stars), a beach ball planet on its string, stamped, 0..700. */
+const tarp = (g: Ctx) => {
+  slab(g, 60, 130, 420, 220, '#111827');
+  for (let s = 0; s < 6; s++) box(g, 80 + s * 70, 136, 2, 210, '#1F2937');
+  for (let j = 0; j < 7; j++) { box(g, 64 + j * 68, 132, 4, 4, '#9CA3AF'); }
+  for (let j = 0; j < 34; j++) { const x = 70 + hash(j * 1.7) * 400, y = 140 + hash(j * 3.3) * 200; box(g, x - 1, y - 1, 5, 5, INK); box(g, x, y, 3, 3, ['#FDE047', '#F87171', '#4ADE80', '#60A5FA'][j % 4]); }
+  // (the beach ball, on its string, with a hula hoop for a ring)
+  box(g, 560, 40, 1, 144, '#E5E7EB');
+  g.lineWidth = 4; g.strokeStyle = INK; g.beginPath(); g.ellipse(560, 210, 44, 9, -0.15, Math.PI, Math.PI * 2); g.stroke();
+  g.lineWidth = 2; g.strokeStyle = '#A3E635'; g.stroke();
+  sphere(g, 560, 210, 26, '#F472B6');
+  g.save(); g.beginPath(); g.arc(560, 210, 26, 0, Math.PI * 2); g.clip();
+  box(g, 534, 204, 52, 8, '#FDE047'); box(g, 552, 184, 8, 52, '#60A5FA'); box(g, 534, 204, 52, 2, '#FEF9C3');
+  g.restore();
+  g.lineWidth = 4; g.strokeStyle = INK; g.beginPath(); g.ellipse(560, 210, 44, 9, -0.15, 0, Math.PI); g.stroke();
+  g.lineWidth = 2; g.strokeStyle = '#A3E635'; g.stroke();
+};
 /** The warehouse, seen with the lights on (screen space: its far wall, slow). */
 const drawWarehouseBack = (c: Ctx, cam: number, cy: number) => {
   const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
-  c.fillStyle = '#9CA3AF'; c.fillRect(0, 0, W, H);
   const off = -((cam * 0.3) % 24);
-  for (let x = off; x < W; x += 24) { box(c, x, 0, 3, H, '#8B929C'); box(c, x + 3, 0, 1, H, '#B4BAC2'); }
+  c.save(); c.translate(Math.round(off), 0); c.fillStyle = corrugated(c); c.fillRect(-24, 0, W + 48, H); c.restore();
+  hazeBands(c, 0, 0, W, 150, '#374151', 0.55, 0, 5);
+  // (the roof trusses, the fluorescent fixtures under them)
   const toff = -((cam * 0.35) % 260);
   for (let x = toff - 260; x < W + 260; x += 260) {
-    box(c, x, 40 - cy * 0.03, 260, 8, '#52525B');
-    c.strokeStyle = '#52525B'; c.lineWidth = 3; c.beginPath(); c.moveTo(x, 48); c.lineTo(x + 130, 90); c.lineTo(x + 260, 48); c.stroke();
-    box(c, x + 70, 96, 120, 6, '#F8FAFC'); box(c, x + 70, 102, 120, 2, '#CBD5E1');
+    const y = Math.round(36 - cy * 0.03);
+    truss(c, x, y, 260, 22, '#52525B');
+    box(c, x + 70, y + 54, 120, 8, INK); box(c, x + 71, y + 55, 118, 6, '#D4D4D8');
+    neonBar(c, x + 74, y + 62, 112, 3, '#F8FAFC', true);
+    box(c, x + 78, y + 22, 1, 32, '#3F3F46'); box(c, x + 182, y + 22, 1, 32, '#3F3F46');
   }
   const poff = -((cam * 0.2) % 700);
-  for (let x = poff - 700; x < W + 700; x += 700) {
-    box(c, x + 60, 130, 420, 220, '#111827');
-    for (let j = 0; j < 30; j++) box(c, x + 70 + hash(j + x * 0.001) * 400, 140 + hash(j * 3.3) * 200, 3, 3, ['#FDE047', '#F87171', '#4ADE80', '#60A5FA'][j % 4]);
-    c.strokeStyle = '#E5E7EB'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 560, 40); c.lineTo(x + 560, 190); c.stroke();
-    c.fillStyle = '#F472B6'; c.beginPath(); c.arc(x + 560, 210, 26, 0, Math.PI * 2); c.fill();
-    box(c, x + 534, 206, 52, 6, '#FDE047'); box(c, x + 552, 186, 6, 46, '#60A5FA');
-  }
+  for (let x = poff - 700; x < W + 700; x += 700) { c.save(); c.translate(Math.round(x), 0); stamp(c, 'ride-tarp', 50, 30, 560, 330, tarp); c.restore(); }
   const roff = -((cam * 0.3) % 900);
-  for (let x = roff - 900; x < W + 900; x += 900) {
-    for (let r = 0; r < 3; r++) { box(c, x + 20, 380 + r * 70, 300, 6, '#EA580C'); for (let b = 0; b < 4; b++) box(c, x + 30 + b * 72, 386 + r * 70 - 40, 60, 40, '#A16207'); }
-    box(c, x + 20, 340, 6, 260, '#1E3A8A'); box(c, x + 314, 340, 6, 260, '#1E3A8A');
-    box(c, x + 420, 400, 60, 120, '#2563EB'); box(c, x + 424, 404, 52, 10, '#93C5FD'); text(c, 'JOHNNY', x + 450, 440, '#F8FAFC', 5);
-    sign(c, x + 540, 300, 230, 22, '#F8FAFC', 'EMPLOYEES MUST WASH HANDS', '#B91C1C', 6);
-  }
-  box(c, 0, H - 20, W, 20, '#57534E');
+  for (let x = roff - 900; x < W + 900; x += 900) { c.save(); c.translate(Math.round(x), 0); stamp(c, 'ride-racks', 10, 290, 780, 320, racks); c.restore(); }
+  box(c, 0, H - 20, W, 20, '#57534E'); box(c, 0, H - 20, W, 2, '#78716C');
   // (all of it knocked back: set dressing, not anything on the track)
   c.fillStyle = 'rgba(55, 60, 72, 0.42)'; c.fillRect(0, 0, W, H);
 };
@@ -115,14 +171,18 @@ const cueSign = (c: Ctx, x: number, verb: Verb, live: boolean, f: number) => {
   const rail = trackY(x);
   if (rail === null) return;
   const cy = rail - CUE_UP, col = CUE_COL[verb], S = CUE_S;
-  // the post, down to the rail
-  box(c, x - 4, cy + S, 8, rail - cy - S, INK); box(c, x - 2, cy + S, 4, rail - cy - S, '#52525B');
+  // the post, down to the rail (a steel tube, its foot plate)
+  cyl(c, x - 4, cy + S, 8, rail - cy - S, '#52525B', 'y');
+  box(c, x - 9, rail - 4, 18, 4, INK); box(c, x - 8, rail - 3, 16, 2, '#71717A');
   // the glow (stepped bands, pulsing in four steps while it's live)
   const pulse = live ? [0.5, 0.75, 1, 0.75][(f >> 3) % 4] : 0;
   if (live) for (let b = 3; b >= 1; b--) { c.globalAlpha = (0.16 + 0.1 * (3 - b)) * pulse; box(c, x - S - b * 9, cy - S - b * 9, (S + b * 9) * 2, (S + b * 9) * 2, col); }
   c.globalAlpha = 1;
-  // the housing
-  box(c, x - S - 4, cy - S - 4, S * 2 + 8, S * 2 + 8, INK);
+  // the housing: an inked steel frame, beveled, the face dark glass
+  const fr = rampOf('#52525B');
+  box(c, x - S - 5, cy - S - 5, S * 2 + 10, S * 2 + 10, INK);
+  box(c, x - S - 4, cy - S - 4, S * 2 + 8, S * 2 + 8, fr[2]); box(c, x - S - 4, cy - S - 4, S * 2 + 8, 1, fr[4]); box(c, x - S - 4, cy - S - 4, 1, S * 2 + 8, fr[3]);
+  box(c, x - S - 4, cy + S + 3, S * 2 + 8, 1, fr[0]); box(c, x + S + 3, cy - S - 4, 1, S * 2 + 8, fr[1]);
   box(c, x - S, cy - S, S * 2, S * 2, live ? '#0B1120' : '#18181B');
   box(c, x - S, cy - S, S * 2, 3, live ? mix(col, '#FFFFFF', 0.3) : '#3F3F46');
   const fg = live ? (pulse > 0.9 ? mix(col, '#FFFFFF', 0.45) : col) : mix(col, '#18181B', 0.72);
@@ -138,8 +198,10 @@ const cueSign = (c: Ctx, x: number, verb: Verb, live: boolean, f: number) => {
     c.beginPath();
     c.moveTo(x, cy + d * (S - 4)); c.lineTo(x - S + 5, cy + d * 2); c.lineTo(x - 9, cy + d * 2); c.lineTo(x - 9, cy - d * (S - 5));
     c.lineTo(x + 9, cy - d * (S - 5)); c.lineTo(x + 9, cy + d * 2); c.lineTo(x + S - 5, cy + d * 2); c.closePath(); c.fill();
-    if (live) { c.fillStyle = mix(fg, '#FFFFFF', 0.5); c.fillRect(x - 3, cy - d * (S - 7) - (d > 0 ? 0 : 0), 6, 4); }
+    if (live) { c.fillStyle = mix(fg, '#FFFFFF', 0.5); c.fillRect(x - 3, cy - d * (S - 7), 6, 4); }
   }
+  // (the glass's glint)
+  box(c, x - S + 3, cy - S + 5, 6, 2, live ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.12)');
 };
 /** The lane lit on the rail from x0 to x1 (chevrons along its top: where it'll get you). */
 const laneMark = (c: Ctx, x0: number, x1: number, col: string, on: boolean) => {
@@ -147,20 +209,20 @@ const laneMark = (c: Ctx, x0: number, x1: number, col: string, on: boolean) => {
     const y = trackY(x);
     if (y === null) continue;
     box(c, x, y - 4, 8, 5, INK); box(c, x + 1, y - 3, 6, 3, on ? col : mix(col, '#1C1917', 0.55));
+    if (on) box(c, x + 1, y - 3, 6, 1, lite(col, 0.5));
   }
 };
-/** A wall to duck under: from y down to its bottom edge (y + h), hazard-striped, inked, the bottom edge bright. */
-const hazardWall = (c: Ctx, x: number, y: number, w: number, h: number, dark = '#1C1917', bright = '#FACC15') => {
+/** A wall to duck under: from y down to its bottom edge (y + h), hazard-striped between its steel edges, inked, the
+ *  bottom edge bright. */
+const hazardWall = (c: Ctx, x: number, y: number, w: number, h: number, dk = '#1C1917', bright = '#FACC15') => {
   box(c, x - 3, y, w + 6, h + 3, INK);
-  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
-  box(c, x, y, w, h, dark);
-  c.fillStyle = bright;
-  for (let yy = y + h - 30; yy > y - w; yy -= 36) { c.beginPath(); c.moveTo(x, yy); c.lineTo(x + w, yy - w * 0.6); c.lineTo(x + w, yy - w * 0.6 + 14); c.lineTo(x, yy + 14); c.closePath(); c.fill(); }
-  c.restore();
-  box(c, x, y + h - 6, w, 6, '#FFFFFF');
+  hazard(c, x, y, w, h, bright, dk, 14);
+  // (its edges: steel channel, lit on the left)
+  box(c, x, y, 3, h, lite(bright, 0.4)); box(c, x + w - 3, y, 3, h, dark(dk, 0.2));
+  box(c, x, y + h - 6, w, 6, '#FFFFFF'); box(c, x, y + h - 2, w, 2, '#E5E7EB');
 };
 
-/** The rail, from its run's ends; its supports down out of sight; at a gap, a buffer on each end, lit. */
+/** The rail, from its run's ends; its supports down out of sight; its ties; at a gap, a buffer on each end, lit. */
 const drawTrack = (c: Ctx, k: number, cam: number, f: number) => {
   const lit = k > 0.5;
   for (let i = 0; i < RUNS.length; i++) {
@@ -168,11 +230,21 @@ const drawTrack = (c: Ctx, k: number, cam: number, f: number) => {
     if (b < cam - 100 || a > cam + CANVAS_WIDTH + 100) continue;
     for (let x = Math.ceil(a / 140) * 140; x < b; x += 140) {
       const y = ya + ((x - a) / (b - a)) * (yb - ya);
-      box(c, x - 4, y, 8, 900, lit ? '#6B7280' : '#111827');
+      cyl(c, x - 4, y + 4, 8, 900, lit ? '#6B7280' : '#1E293B', 'y');
     }
+    // (the ties under the rail)
+    for (let x = Math.ceil(Math.max(a, cam - 100) / 20) * 20; x < Math.min(b, cam + CANVAS_WIDTH + 100); x += 20) { const y = ya + ((x - a) / (b - a)) * (yb - ya); box(c, x - 2, y + 4, 5, 6, lit ? '#52525B' : '#111827'); }
     c.strokeStyle = INK; c.lineWidth = 10; c.beginPath(); c.moveTo(a, ya + 3); c.lineTo(b, yb + 3); c.stroke();
-    c.strokeStyle = lit ? '#A1A1AA' : '#475569'; c.lineWidth = 6; c.beginPath(); c.moveTo(a, ya + 2); c.lineTo(b, yb + 2); c.stroke();
-    c.strokeStyle = lit ? '#E5E7EB' : '#94A3B8'; c.lineWidth = 2; c.beginPath(); c.moveTo(a, ya); c.lineTo(b, yb); c.stroke();
+    c.strokeStyle = lit ? '#71717A' : '#334155'; c.lineWidth = 6; c.beginPath(); c.moveTo(a, ya + 3); c.lineTo(b, yb + 3); c.stroke();
+    c.strokeStyle = lit ? '#A1A1AA' : '#475569'; c.lineWidth = 3; c.beginPath(); c.moveTo(a, ya + 1); c.lineTo(b, yb + 1); c.stroke();
+    c.strokeStyle = lit ? '#F4F4F5' : '#A5B4FC'; c.lineWidth = 1; c.beginPath(); c.moveTo(a, ya - 0.5); c.lineTo(b, yb - 0.5); c.stroke();
+  }
+  // (the lift's chain, crawling up the middle of it)
+  if (LIFT_X1 > cam - 100 && LIFT_X0 < cam + CANVAS_WIDTH + 100) {
+    const ya = trackY(LIFT_X0) ?? GY, yb = trackY(LIFT_X1 - 1) ?? GY;
+    c.lineWidth = 3; c.strokeStyle = INK; c.beginPath(); c.moveTo(LIFT_X0, ya + 5); c.lineTo(LIFT_X1, yb + 5); c.stroke();
+    c.setLineDash([4, 3]); c.lineDashOffset = -f * 1.3; c.lineWidth = 2; c.strokeStyle = lit ? '#A1A1AA' : '#64748B'; c.stroke();
+    c.setLineDash([]); c.lineDashOffset = 0;
   }
   for (const [a, b] of GAPS) {
     if (b < cam - 200 || a > cam + CANVAS_WIDTH + 200) continue;
@@ -181,8 +253,8 @@ const drawTrack = (c: Ctx, k: number, cam: number, f: number) => {
     for (const [x, y, on] of [[a - 7, ya, flash], [b + 7, yb, !flash]] as const) {
       // (a striped buffer on the rail's end, its red lamp)
       box(c, x - 7, y - 16, 14, 16, INK);
-      for (let j = 0; j < 2; j++) box(c, x - 5, y - 14 + j * 7, 10, 6, j % 2 ? '#F8FAFC' : '#DC2626');
-      box(c, x - 5, y - 26, 10, 10, INK); box(c, x - 3, y - 24, 6, 6, on ? '#FCA5A5' : '#B91C1C');
+      for (let j = 0; j < 2; j++) { box(c, x - 5, y - 14 + j * 7, 10, 6, j % 2 ? '#F8FAFC' : '#DC2626'); box(c, x - 5, y - 14 + j * 7, 10, 1, j % 2 ? '#FFFFFF' : '#F87171'); }
+      lamp(c, x, y - 21, 4, '#EF4444', on, 3);
     }
     // (the hole itself: the rail's ends hanging off their last supports, a drop to nothing)
     if (a < R + 6000) sign(c, a - 150, ya - 64, 110, 16, '#FDE047', 'FUTURE: TBD', '#1C1917', 5);
@@ -191,6 +263,45 @@ const drawTrack = (c: Ctx, k: number, cam: number, f: number) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 // The obstacles
+
+/** A satellite: a gold-foil body, two solar wings (their cells, a glint), a dish on top. Bottom edge at `bot`. */
+const satellite = (c: Ctx, x: number, bot: number, lit: boolean) => {
+  // (the wings)
+  for (const sd of [-1, 1]) {
+    const px = sd < 0 ? x - 78 : x + 24;
+    box(c, px, bot - 38, 54, 30, INK);
+    box(c, px + 2, bot - 36, 50, 26, '#1E3A8A');
+    for (let q = 0; q < 4; q++) for (let r = 0; r < 2; r++) { box(c, px + 3 + q * 12, bot - 35 + r * 13, 11, 12, r ? '#1D4ED8' : '#2563EB'); box(c, px + 3 + q * 12, bot - 35 + r * 13, 11, 1, '#60A5FA'); }
+    box(c, px + 4, bot - 34, 14, 2, '#DBEAFE');
+    box(c, sd < 0 ? x - 24 : x + 18, bot - 26, 6, 4, '#A1A1AA');
+  }
+  // (the body: crinkled gold foil)
+  slab(c, x - 22, bot - 48, 44, 48, '#CA8A04');
+  checker(c, x - 18, bot - 44, 36, 40, '#FDE047');
+  box(c, x - 18, bot - 26, 36, 2, '#A16207'); box(c, x - 4, bot - 44, 2, 40, '#A16207');
+  // (the dish on top)
+  box(c, x - 2, bot - 58, 4, 10, '#A1A1AA');
+  c.fillStyle = INK; c.beginPath(); c.ellipse(x, bot - 60, 16, 6, 0, Math.PI, 0); c.fill();
+  c.fillStyle = '#F1F5F9'; c.beginPath(); c.ellipse(x, bot - 60, 14, 4.5, 0, Math.PI, 0); c.fill();
+  box(c, x - 1, bot - 70, 2, 8, '#E2E8F0');
+  if (lit) text(c, 'FOAM? NO', x, bot - 76, '#1C1917', 5, 'center', null);
+};
+/** Robo-Butler: a can on a post, its head, its eyes (flashing: the tell), a beacon. */
+const robot = (c: Ctx, bx: number, rail: number, tell: boolean, f: number, lit: boolean) => {
+  const flash = (f >> 3) % 2 === 0;
+  cyl(c, bx - 18, rail - 110, 36, 110, '#CBD5E1', 'y');
+  for (let y = rail - 96; y < rail - 10; y += 28) { box(c, bx - 18, y, 36, 2, '#64748B'); box(c, bx - 18, y + 2, 36, 1, '#F1F5F9'); }
+  box(c, bx - 10, rail - 70, 20, 14, INK); box(c, bx - 9, rail - 69, 18, 12, '#334155');
+  for (let k = 0; k < 3; k++) box(c, bx - 7 + k * 6, rail - 66, 3, 6, ((f >> 4) + k) % 3 === 0 ? '#4ADE80' : '#14532D');
+  slab(c, bx - 16, rail - 142, 32, 32, '#E2E8F0');
+  box(c, bx - 12, rail - 134, 24, 10, INK);
+  const eye = tell ? (flash ? '#EF4444' : '#FCA5A5') : '#475569';
+  lamp(c, bx - 6, rail - 129, 3, eye, tell, tell ? 2 : 0); lamp(c, bx + 6, rail - 129, 3, eye, tell, tell ? 2 : 0);
+  box(c, bx - 6, rail - 117, 12, 2, '#64748B');
+  box(c, bx - 2, rail - 150, 4, 8, INK);
+  lamp(c, bx, rail - 154, 5, tell && flash ? '#FDE047' : '#B45309', tell && flash, 3);
+  text(c, 'ROBO-BUTLER', bx, rail - 166, lit ? '#1C1917' : '#94A3B8', 5, 'center', null);
+};
 
 /** One obstacle, in the back layer (its beams and its bands go in front: drawObFront). */
 const drawOb = (c: Ctx, o: Ob, i: number, look: RideLook, f: number) => {
@@ -202,15 +313,13 @@ const drawOb = (c: Ctx, o: Ob, i: number, look: RideLook, f: number) => {
       // hung off a striped rig: a wall from the ceiling down to its bottom edge
       hazardWall(c, x - hw, bot - 600, hw * 2, 600);
       if (i === 9) {
-        // (a space station's module: a big drum, portholes)
-        box(c, x - 60, bot - 54, 120, 54, INK); box(c, x - 57, bot - 51, 114, 48, '#CBD5E1'); box(c, x - 57, bot - 51, 114, 8, '#F1F5F9'); box(c, x - 57, bot - 12, 114, 9, '#94A3B8');
-        for (let q = 0; q < 4; q++) { box(c, x - 46 + q * 28, bot - 38, 14, 14, INK); box(c, x - 44 + q * 28, bot - 36, 10, 10, (f >> 4) % 4 === q ? '#FDE047' : '#1E3A8A'); }
-        text(c, 'SPACE STATION LIBERTY', x, bot - 58, lit ? '#1C1917' : '#94A3B8', 5, 'center', null);
-      } else {
-        box(c, x - 22, bot - 46, 44, 46, INK); box(c, x - 19, bot - 43, 38, 40, '#F1F5F9'); box(c, x - 19, bot - 43, 38, 6, '#FFFFFF');
-        for (const sd of [-1, 1]) { const px = sd < 0 ? x - 76 : x + 22; box(c, px, bot - 36, 54, 26, INK); box(c, px + 2, bot - 34, 50, 22, '#2563EB'); for (let q = 1; q < 4; q++) box(c, px + 2 + q * 12, bot - 34, 2, 22, '#93C5FD'); }
-        if (lit) text(c, 'FOAM? NO', x, bot - 52, '#1C1917', 5, 'center', null);
-      }
+        // (a space station's module: a big drum, portholes, its name)
+        cyl(c, x - 60, bot - 54, 120, 54, '#CBD5E1');
+        for (let p = -50; p < 60; p += 30) { box(c, x + p, bot - 54, 1, 54, '#94A3B8'); box(c, x + p + 1, bot - 54, 1, 54, '#F8FAFC'); }
+        for (let q = 0; q < 4; q++) lamp(c, x - 39 + q * 28, bot - 31, 5, (f >> 4) % 4 === q ? '#FDE047' : '#3B82F6', (f >> 4) % 4 === q, 2);
+        rivets(c, x - 56, x + 56, bot - 50, '#CBD5E1', 8); rivets(c, x - 56, x + 56, bot - 8, '#CBD5E1', 8);
+        text(c, 'SPACE STATION LIBERTY', x, bot - 60, lit ? '#1C1917' : '#94A3B8', 5, 'center', null);
+      } else satellite(c, x, bot, lit);
       box(c, x - hw, bot - 3, hw * 2, 3, '#FDE047');
       break;
     }
@@ -228,75 +337,84 @@ const drawOb = (c: Ctx, o: Ob, i: number, look: RideLook, f: number) => {
       const rk = trayReach(d), bx = x - 130, tell = d < 900;
       robot(c, bx, rail, tell, f, lit);
       const cx = bx + 60 + rk * (x - bx - 60);
-      c.strokeStyle = INK; c.lineWidth = 8; c.beginPath(); c.moveTo(bx + 14, rail - 90); c.lineTo(cx, rail - 140); c.stroke();
-      c.strokeStyle = '#94A3B8'; c.lineWidth = 4; c.beginPath(); c.moveTo(bx + 14, rail - 90); c.lineTo(cx, rail - 140); c.stroke();
+      for (const [lw, cl] of [[9, INK], [5, '#94A3B8'], [1, '#E2E8F0']] as const) { c.strokeStyle = cl; c.lineWidth = lw; c.beginPath(); c.moveTo(bx + 14, rail - 90 - (lw === 1 ? 2 : 0)); c.lineTo(cx, rail - 140 - (lw === 1 ? 2 : 0)); c.stroke(); }
       hazardWall(c, cx - hw, bot - 600, hw * 2, 600 - 54, '#7F1D1D', '#FCA5A5');
-      box(c, cx - 34, bot - 130, 68, 62, INK); box(c, cx - 31, bot - 127, 62, 56, '#FEF3C7');
-      text(c, 'MENU', cx, bot - 112, '#7F1D1D', 6, 'center', null);
-      for (let q = 0; q < 3; q++) text(c, 'PILL', cx, bot - 98 + q * 9, '#1C1917', 5, 'center', null);
-      box(c, cx - hw - 4, bot - 58, hw * 2 + 8, 58, INK); box(c, cx - hw - 1, bot - 55, hw * 2 + 2, 52, '#E5E7EB'); box(c, cx - hw - 1, bot - 55, hw * 2 + 2, 5, '#FFFFFF');
-      for (let j = 0; j < 4; j++) box(c, cx - 30 + j * 16, bot - 40, 10, 10, ['#F472B6', '#FDE047', '#4ADE80', '#60A5FA'][j]);
+      slab(c, cx - 34, bot - 130, 68, 62, '#FEF3C7');
+      box(c, cx - 30, bot - 126, 60, 10, '#7F1D1D');
+      text(c, 'MENU', cx, bot - 118, '#FEF3C7', 6, 'center', null);
+      for (let q = 0; q < 3; q++) { text(c, 'PILL', cx - 6, bot - 102 + q * 9, '#1C1917', 5, 'center', null); text(c, '$9', cx + 20, bot - 102 + q * 9, '#7F1D1D', 5, 'center', null); }
+      slab(c, cx - hw - 4, bot - 58, hw * 2 + 8, 58, '#E5E7EB');
+      for (let j = 0; j < 4; j++) { box(c, cx - 31 + j * 16, bot - 41, 12, 12, INK); box(c, cx - 30 + j * 16, bot - 40, 10, 10, ['#F472B6', '#FDE047', '#4ADE80', '#60A5FA'][j]); box(c, cx - 30 + j * 16, bot - 40, 4, 3, '#FFFFFF'); }
       box(c, cx - hw - 1, bot - 3, hw * 2 + 2, 3, '#FDE047');
       break;
     }
     case 'trolley': {
       // Robo-Butler's meal trolley, shoved out onto the rail: a low hurdle sat on it
       robot(c, x - 130, rail, d < 900, f, lit);
-      c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(x - 116, rail - 80); c.lineTo(x - hw, rail - HURDLE + 4); c.stroke();
+      for (const [lw, cl] of [[7, INK], [3, '#94A3B8']] as const) { c.strokeStyle = cl; c.lineWidth = lw; c.beginPath(); c.moveTo(x - 116, rail - 80); c.lineTo(x - hw, rail - HURDLE + 4); c.stroke(); }
       box(c, x - hw - 3, rail - HURDLE - 3, hw * 2 + 6, HURDLE + 3, INK);
-      box(c, x - hw, rail - HURDLE, hw * 2, 8, '#F8FAFC'); box(c, x - hw, rail - HURDLE + 8, hw * 2, HURDLE - 14, '#475569');
+      box(c, x - hw, rail - HURDLE, hw * 2, 8, '#F8FAFC'); box(c, x - hw, rail - HURDLE, hw * 2, 2, '#FFFFFF'); box(c, x - hw, rail - HURDLE + 6, hw * 2, 2, '#CBD5E1');
+      box(c, x - hw, rail - HURDLE + 8, hw * 2, HURDLE - 14, '#475569'); box(c, x - hw, rail - HURDLE + 8, 2, HURDLE - 14, '#64748B');
       for (let j = 0; j < 6; j++) box(c, x - hw + 2 + j * 7, rail - HURDLE + 9, 4, 4, j % 2 ? INK : '#FACC15');
-      for (const wx of [x - hw + 6, x + hw - 6]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, rail - 4, 5, 0, Math.PI * 2); c.fill(); }
-      for (let j = 0; j < 3; j++) { c.fillStyle = ['#F472B6', '#FDE047', '#4ADE80'][j]; c.beginPath(); c.arc(x - 12 + j * 12, rail - HURDLE - 5, 4, 0, Math.PI * 2); c.fill(); }
+      for (const wx of [x - hw + 6, x + hw - 6]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, rail - 4, 5, 0, Math.PI * 2); c.fill(); box(c, wx - 1, rail - 6, 2, 2, '#A1A1AA'); }
+      for (let j = 0; j < 3; j++) sphere(c, x - 12 + j * 12, rail - HURDLE - 5, 4, ['#F472B6', '#FDE047', '#4ADE80'][j]);
       break;
     }
     case 'wire': {
       // a laser tripwire's emitter, bolted across the rail (its beam's in front)
-      box(c, x - hw - 3, rail - 12, hw * 2 + 6, 12, INK); box(c, x - hw, rail - 10, hw * 2, 8, lit ? '#71717A' : '#166534');
-      box(c, x - hw - 3, rail - HURDLE - 6, 8, HURDLE + 6, INK); box(c, x + hw - 5, rail - HURDLE - 6, 8, HURDLE + 6, INK);
-      box(c, x - hw - 1, rail - HURDLE - 4, 4, 4, '#4ADE80'); box(c, x + hw - 3, rail - HURDLE - 4, 4, 4, '#4ADE80');
+      slab(c, x - hw - 3, rail - 12, hw * 2 + 6, 12, lit ? '#71717A' : '#166534');
+      cyl(c, x - hw - 3, rail - HURDLE - 6, 8, HURDLE + 6, '#3F3F46', 'y'); cyl(c, x + hw - 5, rail - HURDLE - 6, 8, HURDLE + 6, '#3F3F46', 'y');
+      lamp(c, x - hw + 1, rail - HURDLE - 2, 2.5, '#4ADE80', !lit, 0); lamp(c, x + hw - 1, rail - HURDLE - 2, 2.5, '#4ADE80', !lit, 0);
       break;
     }
     case 'pallet': {
       // the forklift, beside the track before it, its forks out across the rail with the pallet on them
       const fx = x - 170;
-      box(c, fx, rail - 110, 100, 90, INK); box(c, fx + 2, rail - 108, 96, 86, '#F59E0B'); box(c, fx + 2, rail - 108, 96, 6, '#FCD34D');
-      box(c, fx + 14, rail - 170, 6, 70, '#3F3F46'); box(c, fx + 90, rail - 170, 6, 70, '#3F3F46'); box(c, fx + 14, rail - 172, 82, 6, '#3F3F46');
-      box(c, fx + 48, rail - 186, 14, 14, INK); box(c, fx + 50, rail - 184, 10, 10, (f >> 3) % 2 ? '#FDE047' : '#F97316');
-      box(c, fx + 98, rail - 160, 8, 150, '#27272A');
-      for (const wx of [fx + 20, fx + 76]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, rail - 14, 14, 0, Math.PI * 2); c.fill(); }
+      cyl(c, fx + 14, rail - 172, 6, 74, '#3F3F46', 'y'); cyl(c, fx + 90, rail - 172, 6, 74, '#3F3F46', 'y'); box(c, fx + 14, rail - 174, 82, 6, INK); box(c, fx + 15, rail - 173, 80, 4, '#52525B');
+      slab(c, fx, rail - 110, 100, 90, '#F59E0B');
+      box(c, fx + 10, rail - 100, 40, 40, INK); box(c, fx + 12, rail - 98, 36, 36, '#78350F');
+      stencil(c, 'NO RIDERS', fx + 72, rail - 40, '#451A03', '#F59E0B', 5);
+      lamp(c, fx + 55, rail - 180, 6, (f >> 3) % 2 ? '#FDE047' : '#F97316', true, 2);
+      cyl(c, fx + 98, rail - 160, 8, 150, '#27272A', 'y');
+      for (const wx of [fx + 20, fx + 76]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, rail - 14, 14, 0, Math.PI * 2); c.fill(); c.fillStyle = '#3F3F46'; c.beginPath(); c.arc(wx, rail - 14, 10, 0, Math.PI * 2); c.fill(); c.fillStyle = '#A1A1AA'; c.beginPath(); c.arc(wx - 1, rail - 15, 5, 0, Math.PI * 2); c.fill(); }
       c.save(); c.translate(fx + 52, rail - 22); drawAtomPerson(c, 'worker', { seed: 2207, f, pose: 'stand', md: 'ok' }); c.restore();
       // (it's off the track, behind: knocked back; only its forks come out onto the rail)
       c.fillStyle = 'rgba(30, 32, 40, 0.38)'; c.fillRect(fx - 4, rail - 190, 114, 190);
-      box(c, fx + 104, rail - 6, x + hw - fx - 104, 4, '#3F3F46');
+      box(c, fx + 104, rail - 7, x + hw - fx - 104, 5, INK); box(c, fx + 104, rail - 6, x + hw - fx - 104, 2, '#71717A');
       box(c, x - hw, rail - HURDLE, hw * 2, HURDLE - 6, INK);
-      for (let j = 0; j < 2; j++) { box(c, x - hw + 2 + j * 22, rail - HURDLE + 2, 20, HURDLE - 10, '#A16207'); box(c, x - hw + 2 + j * 22, rail - HURDLE + 2, 20, 3, '#FBBF24'); }
+      for (let j = 0; j < 2; j++) { slab(c, x - hw + 2 + j * 22, rail - HURDLE + 2, 20, HURDLE - 10, '#A16207', { ink: false }); box(c, x - hw + 2 + j * 22, rail - HURDLE + 2, 20, 3, '#FBBF24'); }
       break;
     }
     case 'martian': {
-      // a cardboard Martian, life size and then some, on a plywood stand on the rail
-      const sh = hurt ? '#FFFFFF' : null;
-      box(c, x - 26, rail - 14, 52, 14, INK); box(c, x - 24, rail - 12, 48, 10, '#A16207');
-      box(c, x + 14, rail - 120, 6, 108, '#78350F');
+      // a cardboard Martian, life size and then some, on a plywood stand on the rail (printed shading: it's a photo)
+      const sh = hurt ? '#FFFFFF' : null, g = rampOf('#22C55E');
+      box(c, x - 26, rail - 14, 52, 14, INK); box(c, x - 24, rail - 12, 48, 10, '#A16207'); box(c, x - 24, rail - 12, 48, 2, '#CA8A04');
+      box(c, x + 14, rail - 120, 6, 108, '#78350F'); box(c, x + 14, rail - 120, 2, 108, '#A16207');
       c.fillStyle = INK; c.beginPath(); c.ellipse(x, rail - 150, 34, 50, 0, 0, Math.PI * 2); c.fill();
       box(c, x - 24, rail - 112, 48, 100, INK);
-      c.fillStyle = sh ?? '#22C55E'; c.beginPath(); c.ellipse(x, rail - 150, 31, 47, 0, 0, Math.PI * 2); c.fill();
-      box(c, x - 21, rail - 110, 42, 96, sh ?? '#16A34A'); box(c, x - 21, rail - 110, 8, 96, sh ?? '#4ADE80');
-      for (const sd of [-1, 1]) { box(c, x + sd * 12 - 7, rail - 162, 14, 18, INK); box(c, x + sd * 12 - 5, rail - 160, 10, 14, '#F8FAFC'); box(c, x + sd * 12 - 2, rail - 156, 5, 7, INK); }
-      box(c, x - 10, rail - 128, 20, 5, INK);
-      for (const sd of [-1, 1]) { box(c, x + sd * 14 - 2, rail - 216, 4, 22, INK); c.fillStyle = '#F43F5E'; c.beginPath(); c.arc(x + sd * 14, rail - 218, 5, 0, Math.PI * 2); c.fill(); }
-      box(c, x - 40, rail - 104, 18, 8, '#16A34A'); box(c, x + 22, rail - 104, 18, 8, '#16A34A');
+      if (sh) { c.fillStyle = sh; c.beginPath(); c.ellipse(x, rail - 150, 31, 47, 0, 0, Math.PI * 2); c.fill(); box(c, x - 21, rail - 110, 42, 96, sh); }
+      else {
+        c.save(); c.beginPath(); c.ellipse(x, rail - 150, 31, 47, 0, 0, Math.PI * 2); c.clip();
+        box(c, x - 32, rail - 198, 64, 96, g[1]); box(c, x - 28, rail - 196, 50, 90, g[2]); box(c, x - 24, rail - 192, 30, 40, g[3]); checker(c, x + 22, rail - 196, 4, 90, g[1]);
+        box(c, x - 20, rail - 186, 10, 10, g[4]);
+        c.restore();
+        box(c, x - 21, rail - 110, 42, 96, g[1]); box(c, x - 21, rail - 110, 30, 96, g[2]); box(c, x - 21, rail - 110, 8, 96, g[3]); checker(c, x + 9, rail - 110, 2, 96, g[2]);
+      }
+      for (const sd of [-1, 1]) { box(c, x + sd * 12 - 7, rail - 162, 14, 18, INK); box(c, x + sd * 12 - 5, rail - 160, 10, 14, '#F8FAFC'); box(c, x + sd * 12 - 2, rail - 156, 5, 7, INK); box(c, x + sd * 12 - 4, rail - 159, 2, 2, '#FFFFFF'); }
+      box(c, x - 10, rail - 128, 20, 5, INK); box(c, x - 8, rail - 127, 4, 3, '#F8FAFC'); box(c, x + 4, rail - 127, 4, 3, '#F8FAFC');
+      for (const sd of [-1, 1]) { box(c, x + sd * 14 - 2, rail - 216, 4, 22, INK); sphere(c, x + sd * 14, rail - 218, 5, '#F43F5E'); }
+      box(c, x - 41, rail - 105, 20, 10, INK); box(c, x - 40, rail - 104, 18, 8, g[2]); box(c, x + 21, rail - 105, 20, 10, INK); box(c, x + 22, rail - 104, 18, 8, g[2]);
       text(c, 'ZORG', x, rail - 70, '#F8FAFC', 6, 'center', INK);
-      // (the corner of the cardboard: it's flat)
-      box(c, x + 20, rail - 30, 4, 18, '#D6D3D1');
+      // (the corner of the cardboard: it's flat; its raw edge)
+      box(c, x + 20, rail - 30, 4, 18, '#D6D3D1'); box(c, x + 22, rail - 112, 2, 100, '#A8A29E');
       break;
     }
     case 'rock': {
       // the asteroid prop, on its cable from the ceiling: lowered onto the track as he comes
       const h = rockHeight(d), cy = rail - h - ROCK_R;
       box(c, x - 2, rail - 900, 4, 900 - h - ROCK_R * 2 + 4, INK); box(c, x - 1, rail - 900, 2, 900 - h - ROCK_R * 2 + 4, '#CBD5E1');
-      c.fillStyle = INK; c.beginPath(); c.arc(x, cy, ROCK_R + 4, 0, Math.PI * 2); c.fill();
-      if (hurt) { c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(x, cy, ROCK_R + 2, 0, Math.PI * 2); c.fill(); }
+      box(c, x - 6, cy - ROCK_R - 6, 12, 8, INK); box(c, x - 5, cy - ROCK_R - 5, 10, 6, '#71717A');
+      if (hurt) { c.fillStyle = INK; c.beginPath(); c.arc(x, cy, ROCK_R + 4, 0, Math.PI * 2); c.fill(); c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(x, cy, ROCK_R + 2, 0, Math.PI * 2); c.fill(); }
       else meteor(c, x, cy, ROCK_R + 2, 3, lit);
       if (look.tricks.hp[i] < o.hp) { c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(x - 30, cy - 10); c.lineTo(x - 6, cy + 4); c.lineTo(x + 4, cy - 18); c.lineTo(x + 28, cy + 10); c.stroke(); }
       if (h === 0) { box(c, x - ROCK_R, rail - 4, ROCK_R * 2, 4, '#7C2D12'); }
@@ -304,46 +422,53 @@ const drawOb = (c: Ctx, o: Ob, i: number, look: RideLook, f: number) => {
     }
     case 'crates': {
       // snack cases stacked on a pallet on the rail, up past where any jump gets him
-      box(c, x - hw - 4, rail - 10, hw * 2 + 8, 10, INK); box(c, x - hw - 2, rail - 8, hw * 2 + 4, 6, '#A16207');
+      box(c, x - hw - 4, rail - 10, hw * 2 + 8, 10, INK); box(c, x - hw - 2, rail - 8, hw * 2 + 4, 6, '#A16207'); box(c, x - hw - 2, rail - 8, hw * 2 + 4, 1, '#CA8A04');
       for (let r = 0; r < 4; r++) for (let q = 0; q < 2; q++) {
-        const bx = x - hw + q * hw, by = rail - 10 - (r + 1) * 50;
-        box(c, bx, by, hw, 50, INK); box(c, bx + 2, by + 2, hw - 4, 46, hurt ? '#FFFFFF' : r % 2 === q ? '#B45309' : '#A16207'); box(c, bx + 2, by + 2, hw - 4, 4, '#FBBF24');
-        text(c, 'SPACE', bx + hw / 2, by + 22, '#FDE047', 5, 'center', null); text(c, 'SNACKS', bx + hw / 2, by + 32, '#FDE047', 5, 'center', null);
+        const bx = x - hw + q * hw, by = rail - 10 - (r + 1) * 50, col = r % 2 === q ? '#B45309' : '#A16207';
+        if (hurt) { box(c, bx, by, hw, 50, INK); box(c, bx + 2, by + 2, hw - 4, 46, '#FFFFFF'); continue; }
+        slab(c, bx, by, hw, 50, col);
+        box(c, bx + hw / 2 - 3, by + 2, 6, 46, mix(col, '#FEF3C7', 0.3));
+        text(c, 'SPACE', bx + hw / 2, by + 22, '#FDE047', 5, 'center', INK); text(c, 'SNACKS', bx + hw / 2, by + 32, '#FDE047', 5, 'center', INK);
       }
       if (look.tricks.hp[i] < o.hp) { c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(x - 20, rail - 200); c.lineTo(x, rail - 150); c.lineTo(x - 10, rail - 90); c.stroke(); }
       break;
     }
   }
 };
-/** Robo-Butler: a can on a post, its head, its eyes (flashing: the tell), a beacon. */
-const robot = (c: Ctx, bx: number, rail: number, tell: boolean, f: number, lit: boolean) => {
-  const flash = (f >> 3) % 2 === 0;
-  box(c, bx - 20, rail - 112, 40, 112, INK); box(c, bx - 17, rail - 109, 34, 106, '#CBD5E1'); box(c, bx - 17, rail - 109, 8, 106, '#F1F5F9');
-  box(c, bx - 16, rail - 142, 32, 32, INK); box(c, bx - 13, rail - 139, 26, 26, '#E2E8F0');
-  const eye = tell ? (flash ? '#EF4444' : '#FCA5A5') : '#475569';
-  box(c, bx - 9, rail - 131, 7, 7, eye); box(c, bx + 3, rail - 131, 7, 7, eye);
-  box(c, bx - 6, rail - 154, 12, 12, INK); box(c, bx - 4, rail - 152, 8, 8, tell && flash ? '#FDE047' : '#7C2D12');
-  text(c, 'ROBO-BUTLER', bx, rail - 162, lit ? '#1C1917' : '#94A3B8', 5, 'center', null);
-};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The circuit: the load station (both ends), the track's last leg coming down into it
 
-/** The load station, from x0 to x1 (the same at both ends): its wall, the sponsor's TVs, the empty sleds parked on
- *  their siding. The end's adds the line and the operator (drawStation). */
-const stationShell = (c: Ctx, sx0: number, sx1: number, f: number, roofGone: boolean) => {
-  const y = GY;
-  box(c, sx0, STATION_ROOF - 300, sx1 - sx0, 300, roofGone ? '#020617' : '#1E3A8A');
-  box(c, sx0, STATION_ROOF, sx1 - sx0, y - STATION_ROOF, '#1E3A8A');
-  for (let x = sx0; x < sx1; x += 48) box(c, x, STATION_ROOF, 2, y - STATION_ROOF, '#1D3580');
-  box(c, sx0, y, sx1 - sx0, 600, '#1C1B22'); box(c, sx0, y, sx1 - sx0, 3, '#52525B');
-  box(c, sx0, STATION_ROOF, sx1 - sx0, 6, '#93C5FD');
-  for (let j = 0; j * 200 + 60 < sx1 - sx0 - 100; j++) { const tx = sx0 + 60 + j * 200; box(c, tx, y - 210, 100, 70, INK); box(c, tx + 4, y - 206, 92, 62, (f + j * 40) % 240 < 120 ? '#0EA5E9' : '#F472B6'); text(c, 'PROGRESSCO', tx + 50, y - 168, '#0F172A', 6, 'center', null); }
+/** The load station, from x0 to x1 (the same at both ends): its wall (navy in bands, chrome fins, the cove neon), the
+ *  sponsor's TVs, its carpet. The end's adds the line and the operator (drawStation). */
+const stationShell = (c: Ctx, sx0: number, sx1: number, f: number, roofGone: boolean, avoid: [number, number] = [0, 0]) => {
+  const y = GY, w = sx1 - sx0;
+  stamp(c, `ride-station-${sx0}-${roofGone ? 1 : 0}`, sx0 - 2, STATION_ROOF - 302, w + 4, y - STATION_ROOF + 304, g => {
+    if (roofGone) box(g, sx0, STATION_ROOF - 300, w, 300, '#020617');
+    else { bandedGradient(g, sx0, STATION_ROOF - 300, w, 300, ['#0B1236', '#111A45', '#0B1236'], 5); for (let x = sx0 + 30; x < sx1; x += 120) truss(g, x, STATION_ROOF - 300, 18, 300, '#1E293B', true); }
+    bandedGradient(g, sx0, STATION_ROOF, w, y - STATION_ROOF, ['#172554', '#1E3A8A', '#1E40AF', '#1E3A8A'], 8);
+    for (let x = sx0 + 40; x < sx1; x += 150) { box(g, x - 1, STATION_ROOF + 20, 10, y - STATION_ROOF - 80, INK); box(g, x, STATION_ROOF + 20, 8, y - STATION_ROOF - 80, '#94A3B8'); box(g, x, STATION_ROOF + 20, 2, y - STATION_ROOF - 80, '#E2E8F0'); box(g, x + 6, STATION_ROOF + 20, 2, y - STATION_ROOF - 80, '#475569'); }
+    for (let i = 0; i < w / 90; i++) star(g, sx0 + 50 + i * 90 + hash(i + sx0) * 30, STATION_ROOF + 60 + hash(i * 3.7 + sx0) * 120, 5, '#3B82F6');
+    box(g, sx0, y - 60, w, 60, '#172554'); box(g, sx0, y - 60, w, 3, '#60A5FA');
+    box(g, sx0, STATION_ROOF, w, 6, '#93C5FD'); box(g, sx0, STATION_ROOF + 6, w, 2, '#1E3A8A');
+  });
+  neonBar(c, sx0, STATION_ROOF + 10, w, 3, '#67E8F9', true);
+  c.fillStyle = CARPET(c); c.fillRect(sx0, y, w, 600);
+  hazeBands(c, sx0, y, w, 40, '#0B0820', 0.5, 0, 4);
+  box(c, sx0, y, w, 2, '#7A7A88');
+  for (let j = 0; j * 200 + 60 < w - 100; j++) {
+    const tx = sx0 + 60 + j * 200, ad = (f + j * 40) % 240 < 120;
+    // (none behind the SPARES sign: it's read)
+    if (tx + 106 > avoid[0] && tx - 6 < avoid[1]) continue;
+    box(c, tx + 46, y - 268, 8, 6, '#334155');
+    screenGlass(c, tx, y - 262, 100, 50, ad ? '#0EA5E9' : '#F472B6', f + j * 9);
+    text(c, ad ? 'PROGRESSCO' : "WE'RE ON IT", tx + 50, y - 234, '#0F172A', 6, 'center', null);
+  }
 };
 /** The empty sleds, parked nose to tail on the siding at the back of the station (dimmed: they're behind). */
 const parkedSleds = (c: Ctx, x: number, f: number) => {
   const y = GY - 96;
-  box(c, x - 110, y, 380, 6, INK); box(c, x - 108, y + 1, 376, 3, '#475569');
+  box(c, x - 110, y, 380, 6, INK); box(c, x - 108, y + 1, 376, 3, '#475569'); box(c, x - 108, y + 1, 376, 1, '#94A3B8');
   sign(c, x - 100, y - 104, 70, 14, '#334155', 'SPARES', '#CBD5E1', 5);
   c.save(); c.translate(x, y); c.scale(0.7, 0.7);
   for (let j = 0; j < 2; j++) { drawSled(c, j * 220, 0, f, EMPTY_SLED, true, 0, true); drawSled(c, j * 220, 0, f, EMPTY_SLED, false, 0, true); }
@@ -359,16 +484,18 @@ const drawReturnLeg = (c: Ctx, f: number) => {
   const ay = RETURN_TOP, bx = RETURN_X0, ax = RETURN_X1, foot = RETURN_FOOT;
   const leg = (x: number) => (x >= bx ? ay : ay + ((bx - x) / (bx - foot)) * (GY - 30 - ay));
   // supports, the rail
-  for (let x = foot + 60; x < ax; x += 210) box(c, x - 3, leg(x), 6, GY - 40 - leg(x), '#1E293B');
+  for (let x = foot + 60; x < ax; x += 210) cyl(c, x - 3, leg(x) + 2, 6, GY - 42 - leg(x), '#1E293B', 'y');
   c.strokeStyle = '#0F172A'; c.lineWidth = 9; c.beginPath(); c.moveTo(ax, ay + 2); c.lineTo(bx, ay + 2); c.lineTo(foot, GY - 28); c.stroke();
-  c.strokeStyle = '#64748B'; c.lineWidth = 4; c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, ay); c.lineTo(foot, GY - 30); c.stroke();
+  c.strokeStyle = '#475569'; c.lineWidth = 4; c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, ay); c.lineTo(foot, GY - 30); c.stroke();
+  c.strokeStyle = '#94A3B8'; c.lineWidth = 1; c.beginPath(); c.moveTo(ax, ay - 2); c.lineTo(bx, ay - 2); c.lineTo(foot, GY - 32); c.stroke();
   // (the lamps down it: amber, the brake zone's)
-  for (let x = foot + 80; x < bx; x += 70) { box(c, x - 3, leg(x) - 14, 6, 6, (f >> 4) % 2 ? '#F59E0B' : '#78350F'); }
+  for (let x = foot + 80; x < bx; x += 70) lamp(c, x, leg(x) - 12, 3, '#F59E0B', (f >> 4) % 2 === 1, 2);
   // the brake fins along the top, the brake box beside them
-  for (let x = bx + 40; x < bx + 300; x += 26) box(c, x - 2, ay - 12, 4, 12, '#64748B');
-  box(c, bx + 320, ay - 70, 34, 60, '#7F1D1D'); box(c, bx + 326, ay - 62, 22, 10, (f >> 4) % 2 ? '#22C55E' : '#14532D');
+  for (let x = bx + 40; x < bx + 300; x += 26) { box(c, x - 2, ay - 12, 5, 12, INK); box(c, x - 1, ay - 11, 3, 11, '#64748B'); }
+  slab(c, bx + 320, ay - 70, 34, 60, '#7F1D1D');
+  lamp(c, bx + 337, ay - 56, 4, '#22C55E', (f >> 4) % 2 === 1, 2);
   // the signs: STATION AHEAD on a gantry over the crest, BRAKE ZONE by the fins
-  box(c, bx + 420, ay - 64, 6, 64, '#334155'); sign(c, bx + 360, ay - 84, 140, 20, '#1E3A8A', 'STATION AHEAD', '#BAE6FD', 6);
+  cyl(c, bx + 420, ay - 64, 6, 64, '#334155', 'y'); sign(c, bx + 360, ay - 84, 140, 20, '#1E3A8A', 'STATION AHEAD', '#BAE6FD', 6);
   sign(c, bx + 110, ay - 58, 130, 16, '#A16207', 'BRAKE ZONE 3 MPH', '#FEF3C7', 5);
   // a sled, round every so often (going the other way: it's the far side of the loop): along the top, a crawl
   // through the brakes (sparks), and an easy roll down into the station
@@ -390,26 +517,28 @@ const drawReturnLeg = (c: Ctx, f: number) => {
  *  the crest (STATION AHEAD, BRAKE ZONE: BRAKE FAILURE, once he's done the box); the red lamps down the drop. */
 const drawBrakeRun = (c: Ctx, look: RideLook, f: number) => {
   const rail = trackY(BRAKE_X) ?? GY, failed = look.boxT > 0, flash = (f >> 3) % 2 === 0;
-  // the attendant's booth, behind the track
-  box(c, BRAKE_X - 120, rail - 130, 96, 130, INK); box(c, BRAKE_X - 117, rail - 127, 90, 124, '#0F766E'); box(c, BRAKE_X - 108, rail - 112, 72, 34, '#BAE6FD');
+  // the attendant's booth, behind the track: teal, its window, its little roof
+  slab(c, BRAKE_X - 120, rail - 130, 96, 130, '#0F766E');
+  box(c, BRAKE_X - 126, rail - 138, 108, 10, INK); box(c, BRAKE_X - 125, rail - 137, 106, 8, '#E5E7EB'); box(c, BRAKE_X - 125, rail - 137, 106, 2, '#FFFFFF');
+  box(c, BRAKE_X - 110, rail - 114, 76, 38, INK); bandedGradient(c, BRAKE_X - 108, rail - 112, 72, 34, ['#E0F2FE', '#BAE6FD', '#7DD3FC'], 3);
   c.save(); c.translate(BRAKE_X - 72, rail - 40); drawAtomPerson(c, 'op', { seed: 6610, f, pose: failed ? 'after' : 'stand', md: 'ok' }); c.restore();
-  box(c, BRAKE_X - 117, rail - 46, 90, 46, '#115E59');
+  box(c, BRAKE_X - 117, rail - 46, 90, 46, '#115E59'); box(c, BRAKE_X - 117, rail - 46, 90, 2, '#2DD4BF');
   sign(c, BRAKE_X - 150, rail - 160, 150, 20, '#FDE047', 'BRAKE RUN: 3 MPH', '#1C1917', 6);
   // the fins along the rail (till they're torn off)
-  if (!failed) for (let x = FINS_X0; x < FINS_X1; x += 26) { const y = trackY(x) ?? rail; box(c, x - 3, y - 16, 6, 16, INK); box(c, x - 2, y - 15, 4, 14, '#A1A1AA'); box(c, x - 2, y - 15, 4, 2, '#F4F4F5'); }
+  if (!failed) for (let x = FINS_X0; x < FINS_X1; x += 26) { const y = trackY(x) ?? rail; box(c, x - 3, y - 16, 6, 16, INK); box(c, x - 2, y - 15, 4, 14, '#A1A1AA'); box(c, x - 2, y - 15, 1, 14, '#E4E4E7'); box(c, x - 2, y - 15, 4, 2, '#F4F4F5'); }
   else for (let x = FINS_X0; x < FINS_X1; x += 26) { const y = trackY(x) ?? rail; box(c, x - 3, y - 4, 6, 4, '#52525B'); if ((f + x) % 11 < 2) box(c, x - 1, y - 8, 2, 2, '#FDE047'); }
   // the brake box, in a narrow hazard-striped alcove right on the rail, a work lamp on it: plain as day (blasted: its door
   // off, its guts sparking)
   const bx = BRAKE_BOX_X, by = trackY(bx) ?? rail;
-  for (const jx of [bx - 50, bx + 36]) { box(c, jx - 2, by - 190, 16, 190, INK); box(c, jx, by - 188, 12, 188, '#3F3F46'); for (let yy = by - 180; yy < by - 8; yy += 22) box(c, jx, yy, 12, 9, '#EAB308'); }
-  box(c, bx - 52, by - 200, 104, 14, INK); box(c, bx - 50, by - 198, 100, 10, '#52525B');
-  box(c, bx - 6, by - 186, 12, 8, '#FEF3C7');
+  for (const jx of [bx - 50, bx + 36]) { box(c, jx - 2, by - 190, 16, 190, INK); hazard(c, jx, by - 188, 12, 188, '#EAB308', '#3F3F46', 8); }
+  box(c, bx - 52, by - 200, 104, 14, INK); box(c, bx - 50, by - 198, 100, 10, '#52525B'); box(c, bx - 50, by - 198, 100, 2, '#A1A1AA');
+  lamp(c, bx, by - 182, 4, '#FEF3C7', true, 3);
   box(c, bx - 4, by - 20, 8, 20, '#27272A');
   if (!failed) {
-    box(c, bx - 24, by - 104, 48, 86, INK); box(c, bx - 21, by - 101, 42, 80, '#991B1B'); box(c, bx - 21, by - 101, 42, 5, '#DC2626');
+    slab(c, bx - 24, by - 104, 48, 86, '#991B1B');
     text(c, 'BRAKE', bx, by - 84, '#FEF3C7', 5, 'center', null); text(c, 'CONTROL', bx, by - 76, '#FEF3C7', 5, 'center', null);
-    box(c, bx - 14, by - 66, 12, 12, INK); box(c, bx - 12, by - 64, 8, 8, '#22C55E'); box(c, bx + 2, by - 66, 12, 12, INK); box(c, bx + 4, by - 64, 8, 8, '#14532D');
-    box(c, bx - 16, by - 46, 32, 16, '#27272A'); text(c, 'OK', bx, by - 34, '#4ADE80', 5, 'center', null);
+    lamp(c, bx - 8, by - 60, 4, '#22C55E', true, 0); lamp(c, bx + 8, by - 60, 4, '#22C55E', false, 0);
+    box(c, bx - 16, by - 46, 32, 16, INK); box(c, bx - 15, by - 45, 30, 14, '#27272A'); text(c, 'OK', bx, by - 34, '#4ADE80', 5, 'center', null);
   } else {
     box(c, bx - 24, by - 64, 48, 46, INK); box(c, bx - 21, by - 61, 42, 40, '#1F2937');
     for (let j = 0; j < 4; j++) box(c, bx - 16 + j * 9, by - 58 + (j % 2) * 6, 3, 30, ['#EF4444', '#FDE047', '#3B82F6', '#22C55E'][j]);
@@ -417,15 +546,15 @@ const drawBrakeRun = (c: Ctx, look: RideLook, f: number) => {
   }
   // the gantry over the crest
   const gy = (trackY(CREST_X) ?? rail) - 250;
-  box(c, CREST_X - 150, gy, 8, 250, INK); box(c, CREST_X + 150, gy, 8, 250, INK); box(c, CREST_X - 150, gy - 8, 308, 10, INK);
+  truss(c, CREST_X - 154, gy, 14, 250, '#3F3F46', true); truss(c, CREST_X + 146, gy, 14, 250, '#3F3F46', true); truss(c, CREST_X - 156, gy - 14, 318, 16, '#52525B');
   sign(c, CREST_X - 110, gy + 6, 220, 24, '#1E3A8A', 'STATION AHEAD', '#BAE6FD', 8);
   if (!failed) sign(c, CREST_X - 90, gy + 38, 180, 20, '#A16207', 'BRAKE ZONE 3 MPH', '#FEF3C7', 6);
   else sign(c, CREST_X - 100, gy + 38, 200, 24, flash ? '#DC2626' : '#7F1D1D', 'BRAKE FAILURE', '#FFFFFF', 8);
   // the red lamps down the drop (lit, the brakes gone)
   for (let x = CREST_X + 40; x < STATION_X0; x += 70) {
     const y = trackY(x) ?? GY;
-    box(c, x - 1, y - 60, 3, 54, '#27272A'); box(c, x - 5, y - 70, 10, 10, INK);
-    box(c, x - 3, y - 68, 6, 6, failed ? ((f >> 2) + x / 70) % 2 < 1 ? '#EF4444' : '#7F1D1D' : '#451A03');
+    box(c, x - 1, y - 60, 3, 54, '#27272A');
+    lamp(c, x, y - 64, 5, '#EF4444', failed && ((f >> 2) + x / 70) % 2 < 1, 3);
   }
 };
 
@@ -434,9 +563,13 @@ const drawStation = (c: Ctx, state: GameState, look: RideLook) => {
   const f = state.frame, cam = state.camera.x;
   if (cam + CANVAS_WIDTH < STATION_X0 - 200) return;
   const y = GY;
-  stationShell(c, STATION_X0 - 60, STATION_X1 + 200, f, look.frontGone);
-  if (look.frontGone) for (let j = 0; j < 8; j++) box(c, FRONT_AT - 120 + j * 30, STATION_ROOF - 20 + (j % 3) * 8, 26, 10, '#1E3A8A');
-  sign(c, STATION_X0 + 120, STATION_ROOF + 30, 420, 30, '#0F172A', 'VOYAGE TO 2010  -  PRESENTED BY PROGRESSCO', '#67E8F9', 8);
+  stationShell(c, STATION_X0 - 60, STATION_X1 + 200, f, look.frontGone, [STATION_X0 + 196, STATION_X0 + 274]);
+  if (look.frontGone) for (let j = 0; j < 8; j++) { box(c, FRONT_AT - 121 + j * 30, STATION_ROOF - 21 + (j % 3) * 8, 28, 12, INK); box(c, FRONT_AT - 120 + j * 30, STATION_ROOF - 20 + (j % 3) * 8, 26, 10, '#1E3A8A'); box(c, FRONT_AT - 120 + j * 30, STATION_ROOF - 20 + (j % 3) * 8, 26, 2, '#60A5FA'); }
+  stamp(c, 'ride-station-sign', STATION_X0 + 116, STATION_ROOF + 26, 428, 38, g => {
+    box(g, STATION_X0 + 120, STATION_ROOF + 30, 420, 30, INK); box(g, STATION_X0 + 122, STATION_ROOF + 32, 416, 26, '#9CA3AF'); box(g, STATION_X0 + 122, STATION_ROOF + 32, 416, 1, '#F3F4F6');
+    bandedGradient(g, STATION_X0 + 125, STATION_ROOF + 35, 410, 20, ['#0F172A', '#020617'], 3);
+    neonText(g, 'VOYAGE TO 2010  -  PRESENTED BY PROGRESSCO', STATION_X0 + 330, STATION_ROOF + 49, '#67E8F9', 8);
+  });
   parkedSleds(c, STATION_X0 + 300, f);
   // (the line, behind its rail: the same people, still waiting; wide-eyed once it's coming, the nearest splattered)
   const coming = look.crashing && look.boxT > 0;
@@ -444,23 +577,25 @@ const drawStation = (c: Ctx, state: GameState, look: RideLook) => {
     const qx = STATION_X0 + 20 + j * 34, seed = 4001 + j * 337;
     c.save(); c.translate(qx, y - 20 - (j % 2) * 14); drawAtomPerson(c, 'guest', { seed, f, pose: coming ? 'after' : 'stand', md: 'ok' }); c.restore();
   }
-  box(c, STATION_X0, y - 64, 560, 4, '#CBD5E1');
-  box(c, STATION_X0 + 560, y - 4, STATION_X1 - STATION_X0 - 560, 4, '#FACC15');
+  box(c, STATION_X0, y - 65, 560, 6, INK); box(c, STATION_X0, y - 64, 560, 4, '#94A3B8'); box(c, STATION_X0, y - 64, 560, 1, '#F8FAFC');
+  box(c, STATION_X0 + 560, y - 4, STATION_X1 - STATION_X0 - 560, 4, '#FACC15'); box(c, STATION_X0 + 560, y - 4, STATION_X1 - STATION_X0 - 560, 1, '#FEF9C3');
   // (what's left on the platform of whoever was on the track)
   look.flat.forEach(i => { const x = STATION_FOLK[i].x + 10; box(c, x, y - 3, 90, 4, '#7F1D1D'); box(c, x + 20, y - 4, 40, 3, '#B91C1C'); box(c, x + 10, y - 60 - (i % 3) * 10, 6, 14, '#991B1B'); });
   // (the operator at her console)
   c.save(); c.translate(STATION_X0 + 600, y); drawAtomPerson(c, 'op', { seed: OP_SEED, f, pose: look.frontGone || coming ? 'after' : 'stand', md: 'ok' }); c.restore();
-  box(c, STATION_X0 + 630, y - 70, 60, 70, INK); box(c, STATION_X0 + 632, y - 68, 56, 66, '#0F766E');
+  slab(c, STATION_X0 + 630, y - 70, 60, 70, '#0F766E'); box(c, STATION_X0 + 634, y - 66, 52, 4, '#5EEAD4');
+  c.save(); c.beginPath(); c.rect(STATION_X0 + 648, y - 90, 24, 18); c.clip(); sphere(c, STATION_X0 + 660, y - 72, 8, '#22C55E'); c.restore();
 };
 
 /** The start: the station he's just left (behind him), the empty sleds; the track's last leg coming down into it. */
 const drawStart = (c: Ctx, state: GameState) => {
   const f = state.frame;
-  stationShell(c, R - 700, R + 40, f, false);
+  stationShell(c, R - 700, R + 40, f, false, [R - 624, R - 546]);
   parkedSleds(c, R - 520, f);
   sign(c, R - 600, STATION_ROOF + 30, 360, 26, '#0F172A', 'VOYAGE TO 2010  -  PRESENTED BY PROGRESSCO', '#67E8F9', 7);
-  // (the tunnel mouth out of it, into the dark)
+  // (the tunnel mouth out of it, into the dark: its neon frame)
   box(c, R + 30, STATION_ROOF, 20, GY - STATION_ROOF, INK);
+  neonBar(c, R + 36, STATION_ROOF + 12, 6, GY - STATION_ROOF - 12, '#F0ABFC', true);
   drawReturnLeg(c, f);
 };
 
@@ -468,17 +603,23 @@ export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
   const f = state.frame, cam = state.camera.x, k = look.k, lit = k > 0.5;
   const on = (x0: number, x1: number) => x1 > cam - 150 && x0 < cam + CANVAS_WIDTH + 150;
   if (on(R - 700, R + 1100)) drawStart(c, state);
-  // The scenes of 2010, by the track (act 1): lit, they're plywood on braces
+  // The scenes of 2010, by the track (act 1), held back in the dark; lit, they're plywood on braces
   TABLEAU_XS.forEach((sx, i) => {
     const y = (trackY(sx) ?? GY) - 40;
     if (!on(sx - 50, sx + 300)) return;
-    c.save(); c.globalAlpha = 0.5; drawTableau(c, TABLEAUS[i], sx, y, f); c.restore();
-    if (lit) { for (let b = 0; b < 3; b++) { c.strokeStyle = '#A16207'; c.lineWidth = 4; c.beginPath(); c.moveTo(sx + 30 + b * 90, y - 100); c.lineTo(sx + 60 + b * 90, y + 30); c.stroke(); } text(c, 'PROPERTY OF PROGRESSCO', sx + 120, y + 14, '#78350F', 5, 'center', null); }
+    drawTableau(c, TABLEAUS[i], sx, y, f);
+    c.fillStyle = lit ? 'rgba(55, 60, 72, 0.4)' : 'rgba(3, 2, 10, 0.5)'; c.fillRect(sx - 34, y - 196, 310, 210);
+    if (lit) {
+      for (let b = 0; b < 3; b++) for (const [lw, cl] of [[6, INK], [4, '#A16207'], [1, '#CA8A04']] as const) { c.strokeStyle = cl; c.lineWidth = lw; c.beginPath(); c.moveTo(sx + 30 + b * 90, y - 100); c.lineTo(sx + 60 + b * 90, y + 30); c.stroke(); }
+      text(c, 'PROPERTY OF PROGRESSCO', sx + 120, y + 14, '#78350F', 5, 'center', null);
+    }
   });
-  // The lift: the chain up the middle, blue strobes along it
+  // The lift: its blue strobes on posts along it, climbing
   if (on(LIFT_X0, LIFT_X1)) for (let x = LIFT_X0 + 40; x < LIFT_X1; x += 80) {
     const y = trackY(x) ?? GY;
-    box(c, x - 4, y - 200, 8, 8, lit ? '#9CA3AF' : (Math.floor(f / 6) - x / 80) % 8 < 1 ? '#93C5FD' : '#1E3A8A');
+    box(c, x - 1, y - 194, 3, 190, lit ? '#52525B' : '#1E293B');
+    const strobe = !lit && (Math.floor(f / 6) - x / 80) % 8 < 1;
+    lamp(c, x, y - 200, 5, lit ? '#9CA3AF' : '#60A5FA', strobe, 4);
   }
   drawTrack(c, k, cam, f);
   // The obstacles (the show's: not there with the power off on a second go), and their lanes lit on the rail
@@ -500,13 +641,17 @@ export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
     const rail = trackY(BREAKER_X) ?? GY, gone = look.breakerT > 0, bx = BREAKER_X;
     // a narrow service doorway the track squeezes through (its jambs barely clear of the sled, hazard-striped), and the
     // main breaker panel hung right across it at the rider's height: the sled's nose goes through it
-    for (const jx of [bx - 110, bx + 96]) { box(c, jx - 2, rail - 260, 18, 260, INK); box(c, jx, rail - 258, 14, 258, '#3F3F46'); for (let yy = rail - 250; yy < rail - 10; yy += 24) box(c, jx, yy, 14, 10, '#EAB308'); }
-    box(c, bx - 112, rail - 270, 226, 16, INK); box(c, bx - 110, rail - 268, 222, 12, '#52525B');
+    for (const jx of [bx - 110, bx + 96]) { box(c, jx - 2, rail - 260, 18, 260, INK); hazard(c, jx, rail - 258, 14, 258, '#EAB308', '#3F3F46', 10); box(c, jx, rail - 258, 2, 258, '#71717A'); }
+    truss(c, bx - 112, rail - 272, 226, 16, '#52525B');
     sign(c, bx - 70, rail - 250, 140, 22, '#FDE047', 'MAIN BREAKER', '#1C1917', 6);
     if (!gone) {
-      box(c, bx - 2, rail - 226, 4, 100, '#71717A');
-      box(c, bx - 40, rail - 128, 80, 88, INK); box(c, bx - 38, rail - 126, 76, 84, '#9CA3AF'); box(c, bx - 38, rail - 126, 76, 4, '#E5E7EB');
-      box(c, bx - 6, rail - 112, 14, 36, '#27272A'); box(c, bx - 10, rail - 120, 22, 10, '#DC2626'); text(c, 'DO NOT TOUCH', bx, rail - 56, '#7F1D1D', 5, 'center', null);
+      box(c, bx - 3, rail - 226, 6, 100, INK); box(c, bx - 2, rail - 226, 4, 100, '#71717A'); box(c, bx - 2, rail - 226, 1, 100, '#A1A1AA');
+      slab(c, bx - 40, rail - 128, 80, 88, '#9CA3AF');
+      for (let v = 0; v < 3; v++) box(c, bx - 32, rail - 116 + v * 6, 18, 2, '#6B7280');
+      box(c, bx - 7, rail - 113, 16, 38, INK); box(c, bx - 6, rail - 112, 14, 36, '#27272A');
+      slab(c, bx - 11, rail - 122, 24, 12, '#DC2626');
+      lamp(c, bx + 26, rail - 112, 3, '#EF4444', (f >> 3) % 2 === 0, 2);
+      text(c, 'DO NOT TOUCH', bx, rail - 56, '#7F1D1D', 5, 'center', null);
     } else {
       box(c, bx - 2, rail - 226, 4, 60, '#71717A');
       box(c, bx - 14, rail - 170, 20, 12, '#52525B');
@@ -529,12 +674,14 @@ export const drawRideFront = (c: Ctx, state: GameState, look: RideLook) => {
       // (square to the track: slanted with it up the hill; its bottom edge well up off the rail, plainly over him ducked)
       c.save(); c.translate(o.x, rail); c.rotate(slopeAt(o.x) ?? 0);
       const top = -BEAM_CLEAR - 54, bot = -BEAM_CLEAR;
+      c.globalAlpha = 0.18; box(c, -hw - 8, top - 6, hw * 2 + 16, bot - top + 12, '#22C55E'); c.globalAlpha = 1;
       box(c, -hw, top - 1, hw * 2, bot - top + 2, INK);
       box(c, -hw + 2, top + 1, hw * 2 - 4, bot - top - 2, 'rgba(34, 197, 94, 0.6)');
-      for (let yy = top + 4; yy < bot - 2; yy += 8) box(c, -hw + 2, yy + ((f >> 2) % 2), hw * 2 - 4, 2, '#DCFCE7');
+      for (let yy = top + 4; yy < bot - 2; yy += 8) { box(c, -hw + 2, yy + ((f >> 2) % 2), hw * 2 - 4, 2, '#DCFCE7'); box(c, -hw + 2, yy + 2 + ((f >> 2) % 2), hw * 2 - 4, 1, '#4ADE80'); }
       box(c, -hw, bot - 3, hw * 2, 3, '#FDE047');
       c.restore();
     } else if (o.kind === 'wire') {
+      c.globalAlpha = 0.16; box(c, o.x - hw - 6, rail - HURDLE - 6, hw * 2 + 12, HURDLE + 2, '#22C55E'); c.globalAlpha = 1;
       box(c, o.x - hw, rail - HURDLE, hw * 2, HURDLE - 10, 'rgba(34, 197, 94, 0.55)');
       for (let yy = rail - HURDLE + 2; yy < rail - 10; yy += 5) box(c, o.x - hw, yy, hw * 2, 2, (f >> 2) % 2 ? '#DCFCE7' : '#86EFAC');
     }
@@ -543,17 +690,19 @@ export const drawRideFront = (c: Ctx, state: GameState, look: RideLook) => {
 
 /** The space blaster's bolts, the flash at his gun, what's been blasted to bits. */
 export const drawBlaster = (c: Ctx, state: GameState, tr: Tricks, p: Player) => {
-  for (const b of tr.bits) { c.save(); c.translate(b.x, b.y); c.rotate(b.rot); box(c, -b.w / 2 - 1, -b.h / 2 - 1, b.w + 2, b.h + 2, INK); box(c, -b.w / 2, -b.h / 2, b.w, b.h, b.col); c.restore(); }
+  for (const b of tr.bits) { c.save(); c.translate(b.x, b.y); c.rotate(b.rot); box(c, -b.w / 2 - 1, -b.h / 2 - 1, b.w + 2, b.h + 2, INK); box(c, -b.w / 2, -b.h / 2, b.w, b.h, b.col); box(c, -b.w / 2, -b.h / 2, b.w, 1, lite(b.col, 0.4)); c.restore(); }
   for (const b of tr.bolts) {
     // (a green bolt: a long streak, a hot core, a stepped glow; along the way it was fired)
     c.save(); c.translate(b.x, b.y); c.rotate(b.ang);
-    c.globalAlpha = 0.25; box(c, -40, -7, 64, 14, '#22C55E');
-    c.globalAlpha = 0.5; box(c, -30, -4, 54, 8, '#4ADE80');
+    c.globalAlpha = 0.18; box(c, -48, -9, 76, 18, '#22C55E');
+    c.globalAlpha = 0.3; box(c, -40, -7, 64, 14, '#22C55E');
+    c.globalAlpha = 0.55; box(c, -30, -4, 54, 8, '#4ADE80');
     c.globalAlpha = 1; box(c, -22, -2, 46, 4, '#BBF7D0'); box(c, 6, -1, 18, 2, '#FFFFFF');
     c.restore();
   }
   if (tr.flash > 0 && p.cartSeat) {
     const mx = p.pos.x + p.width + 4, my = p.pos.y + 30, r = 4 + tr.flash * 2;
+    c.globalAlpha = 0.25; box(c, mx - r * 1.6, my - r * 1.6, r * 3.2, r * 3.2, '#86EFAC');
     c.globalAlpha = 0.5; box(c, mx - r, my - r, r * 2, r * 2, '#86EFAC'); c.globalAlpha = 1;
     box(c, mx - r / 2, my - r / 2, r, r, '#F0FDF4');
   }
@@ -564,29 +713,33 @@ export const drawBlaster = (c: Ctx, state: GameState, tr: Tricks, p: Player) => 
 // The lighting
 
 export const rideLighting = (state: GameState, look: RideLook): SceneLight => {
-  const cam = state.camera.x, lights: Light[] = [];
+  const cam = state.camera.x, f = state.frame, lights: Light[] = [];
   const near = (x: number) => x > cam - 300 && x < cam + CANVAS_WIDTH + 300;
-  const dark = 0.62 * (1 - look.k);
+  const dk = 0.62 * (1 - look.k);
   if (look.k < 1) {
     const spot = (x: number, up: number, r = 170, col = 'rgba(255, 247, 214, 0.12)', a = 0.95) => { if (near(x)) lights.push({ x, y: (trackY(x) ?? railLine(x)) - up, r, a, color: col }); };
     // (every obstacle has its own light: the dark's the show's, not something to hide them in)
-    OBS.forEach((o, i) => { if (obLive(state, look.tricks, i)) spot(o.x, o.verb === 'duck' ? 80 : 60, 190); if (o.kind === 'beam' && obLive(state, look.tricks, i)) spot(o.x, 85, 130, 'rgba(74, 222, 128, 0.2)'); });
+    OBS.forEach((o, i) => { if (obLive(state, look.tricks, i)) spot(o.x, o.verb === 'duck' ? 80 : 60, 190); if (o.kind === 'beam' && obLive(state, look.tricks, i)) spot(o.x, 85, 140, 'rgba(74, 222, 128, 0.24)'); if (o.kind === 'wire' && obLive(state, look.tricks, i)) spot(o.x, 14, 90, 'rgba(74, 222, 128, 0.2)'); });
     // (the cues: lit up in their own color, full while they're live)
-    const tint: Record<Verb, string> = { jump: 'rgba(34, 211, 238, 0.22)', duck: 'rgba(251, 191, 36, 0.22)', blast: 'rgba(244, 63, 94, 0.22)' };
-    CUES.forEach((q, i) => { const live = cueLive(state, look.tricks, i, look.sledX); spot(CUE_XS[i], CUE_UP, live ? 120 : 70, tint[q.verb], live ? 1 : 0.6); });
-    for (const [a, b] of GAPS) { spot(a - 10, 40, 150, 'rgba(239, 68, 68, 0.16)'); spot(b + 10, 40, 150, 'rgba(239, 68, 68, 0.16)'); }
-    for (const x of TABLEAU_XS) if (near(x + 100)) lights.push({ x: x + 120, y: (trackY(x + 100) ?? GY) - 120, r: 260, a: 0.8, color: 'rgba(244, 114, 182, 0.1)' });
+    const tint: Record<Verb, string> = { jump: 'rgba(34, 211, 238, 0.24)', duck: 'rgba(251, 191, 36, 0.24)', blast: 'rgba(244, 63, 94, 0.24)' };
+    CUES.forEach((q, i) => { const live = cueLive(state, look.tricks, i, look.sledX); spot(CUE_XS[i], CUE_UP, live ? 130 : 70, tint[q.verb], live ? 1 : 0.6); });
+    for (const [a, b] of GAPS) { spot(a - 10, 40, 150, 'rgba(239, 68, 68, 0.18)'); spot(b + 10, 40, 150, 'rgba(239, 68, 68, 0.18)'); }
+    for (const x of TABLEAU_XS) if (near(x + 100)) lights.push({ x: x + 120, y: (trackY(x + 100) ?? GY) - 120, r: 260, a: 0.8, color: 'rgba(244, 114, 182, 0.12)' });
     for (const [x] of WORKERS) spot(x, 40, 120);
-    if (near(BREAKER_X)) lights.push({ x: BREAKER_X, y: (trackY(BREAKER_X) ?? GY) - 100, r: 90, a: 0.6, color: 'rgba(239, 68, 68, 0.15)' });
+    // (the lift's strobes, as they fire)
+    for (let x = LIFT_X0 + 40; x < LIFT_X1; x += 80) if (near(x) && (Math.floor(f / 6) - x / 80) % 8 < 1) lights.push({ x, y: (trackY(x) ?? GY) - 200, r: 150, a: 0.9, color: 'rgba(96, 165, 250, 0.24)' });
+    if (near(BREAKER_X)) lights.push({ x: BREAKER_X, y: (trackY(BREAKER_X) ?? GY) - 100, r: 100, a: 0.7, color: 'rgba(239, 68, 68, 0.18)' });
     if (near(BRAKE_BOX_X)) lights.push({ x: BRAKE_BOX_X, y: (trackY(BRAKE_BOX_X) ?? GY) - 120, r: 110, a: 0.8, color: 'rgba(254, 243, 199, 0.18)' });
-    if (near(R)) for (let x = R - 600; x < R + 100; x += 200) lights.push({ x, y: GY - 300, r: 420, a: 0.85, cone: 200, color: 'rgba(224, 242, 254, 0.08)' });
+    if (near(R)) { for (let x = R - 600; x < R + 100; x += 200) lights.push({ x, y: GY - 300, r: 420, a: 0.85, cone: 200, color: 'rgba(224, 242, 254, 0.08)' }); lights.push({ x: R + 40, y: GY - 150, r: 150, a: 0.7, color: 'rgba(240, 171, 252, 0.14)' }); }
     // (the track's last leg, seen from the start: its signs and its brake zone lit, so it reads)
     if (near(RETURN_X0)) for (const [x, up, r] of [[RETURN_X0 + 430, 70, 150], [RETURN_X0 + 175, 50, 150], [RETURN_X0 + 337, 40, 90], [RETURN_X0 - 120, 0, 160]] as const) lights.push({ x, y: RETURN_TOP - up + (x < RETURN_X0 ? 150 : 0), r, a: 0.9, color: 'rgba(253, 230, 138, 0.1)' });
   }
+  if (look.boxT > 0) for (let x = CREST_X + 40; x < STATION_X0; x += 70) if (near(x) && ((f >> 2) + x / 70) % 2 < 1) lights.push({ x, y: (trackY(x) ?? GY) - 64, r: 110, a: 0.8, color: 'rgba(239, 68, 68, 0.2)' });
   for (const b of look.tricks.bolts) lights.push({ x: b.x, y: b.y, r: 90, a: 0.8, color: 'rgba(74, 222, 128, 0.25)' });
-  if (near(STATION_X0) || near(STATION_X1)) for (let x = STATION_X0; x < STATION_X1 + 200; x += 200) lights.push({ x, y: GY - 300, r: 480, a: 0.9, cone: 200, color: 'rgba(224, 242, 254, 0.08)' });
+  if (near(STATION_X0) || near(STATION_X1)) for (let x = STATION_X0; x < STATION_X1 + 200; x += 200) { lights.push({ x, y: GY - 300, r: 480, a: 0.9, cone: 200, color: 'rgba(224, 242, 254, 0.08)' }); lights.push({ x, y: STATION_ROOF + 12, r: 130, a: 0.6, color: 'rgba(103, 232, 249, 0.1)' }); }
   // (the sled's headlamp, and enough round him that he's never lost)
   lights.push({ x: look.sledX, y: look.sledY - 50, r: 180, a: 0.6 });
   lights.push({ x: look.sledX + 180, y: look.sledY - 40, r: 160, a: 0.55, color: 'rgba(224, 242, 254, 0.08)' });
-  return { dark, shade: [4, 3, 16], lights, rim: 0.5 };
+  if (look.k < 0.5) lights.push({ x: look.sledX, y: look.sledY - 16, r: 90, a: 0.5, color: 'rgba(103, 232, 249, 0.1)' });
+  return { dark: dk, shade: [4, 3, 16], lights, rim: 0.5 };
 };
