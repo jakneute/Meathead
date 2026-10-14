@@ -209,6 +209,8 @@ export interface Hunter {
   torn: number;
   /** Frames till she's next seen going by in the foreground (between her real goes, to keep him sweating). */
   fgNext: number;
+  /** On her way to a way out (a vent, a duct) to leave by. */
+  leaving: boolean;
 }
 export const makeHunter = (state: GameState): Hunter => {
   const cx = state.player.pos.x + state.player.width / 2;
@@ -217,7 +219,7 @@ export const makeHunter = (state: GameState): Hunter => {
     entry: 'vent', huntOnDrop: false, leap: null,
     next: 360, out: 0, lastSeen: -9999, lastX: cx,
     opened: cx > B + 620, finale: false, fake: null, rattle: null, fg: null,
-    noise: 0, hid: -1, hidT: 0, torn: -1, fgNext: 420, heart: 0, passedClose: false,
+    noise: 0, hid: -1, hidT: 0, torn: -1, fgNext: 420, leaving: false, heart: 0, passedClose: false,
     saidDark: cx > B + 400, saidSpot: cx > B + 700, saidGun: false, hideSaidAt: -99999,
     door: state.stageMemo[DOOR_MEMO] ? 'in' : 'shut', doorT: 0, block: null,
     wasGrounded: true, lastVy: 0, lastShoot: false, lastJump: false, lastMove: false, warned: false, freeMove: false,
@@ -344,6 +346,7 @@ const hearHim = (state: GameState, h: Hunter, controls: Controls) => {
 /** The ambush: how far in front of him she comes down, how long she screeches (his window to hide) before she's on him. */
 const AMBUSH_AHEAD = 230, AMBUSH_T = 60;
 const ambush = (state: GameState, h: Hunter) => {
+  h.leaving = false;
   const cx = pmid(state), dir = (state.player.facing || 1) as 1 | -1, lv = plevel(state);
   h.lvl = lv === 1 && catwalkAt(cx) ? 1 : 0;
   h.x = cx + dir * AMBUSH_AHEAD; h.x = clampLvl(h, h.x);
@@ -509,11 +512,14 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       return;
     case 'prowl': {
       const tgt = h.path[h.leg];
-      if (!tgt || h.out > 900) { leave(h); return; }
-      const dx = tgt.x - h.x;
+      if (!tgt || (h.out > 900 && !h.leaving)) { leave(h); return; }
+      // (her way kept to her level: at its end (the stairs, the wall), she's there; she turns, she doesn't walk into it)
+      const dx = clampLvl(h, tgt.x) - h.x;
       if (Math.abs(dx) > 4) { h.dir = dx < 0 ? -1 : 1; h.x += h.dir * Math.min(Math.abs(dx), h.speed); h.sniff = 0; }
       else if ((h.sniff += 1) >= (tgt.stop ?? 0)) {
         h.leg++; h.sniff = 0;
+        // (at the way out she was heading for: up it)
+        if (h.leaving && h.leg >= h.path.length) { h.leaving = false; to(h, 'climb'); h.entry = h.lvl === 0 && !VENTS.includes(Math.round(h.x)) && DUCTS.some(d => Math.abs(d - h.x) < 40) ? 'duct' : 'vent'; return; }
         // (the end of her way: now and then she doubles back a stretch before she goes)
         if (h.leg >= h.path.length && Math.random() < 0.3 && h.out < 600) h.path.push({ x: clampLvl(h, h.x - h.dir * rnd(250, 450)), stop: rnd(30, 90) });
       } else if (h.sniff % 30 === 0) { h.dir = (-h.dir) as 1 | -1; playSound('snort', 0.4 + vol(state, h.x, 0.3), -10); }
@@ -536,7 +542,8 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       break;
     case 'search': {
       const tgt = h.path[0];
-      if (tgt && Math.abs(tgt.x - h.x) > 4) { h.dir = tgt.x < h.x ? -1 : 1; h.x += h.dir * h.speed; }
+      const sx = tgt ? clampLvl(h, tgt.x) : h.x;
+      if (tgt && Math.abs(sx - h.x) > 4) { h.dir = sx < h.x ? -1 : 1; h.x += h.dir * Math.min(h.speed, Math.abs(sx - h.x)); }
       else if (h.t % 30 === 0) { h.dir = (-h.dir) as 1 | -1; playSound('snort', 0.5, -10); }
       h.x = clampLvl(h, h.x); h.y = levelY(h.lvl, h.x);
       steps(state, h, 26);
@@ -578,7 +585,14 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
 };
 
 /** Off she goes, back up a vent (or into a duct). */
-const leave = (h: Hunter) => { to(h, 'climb'); h.entry = h.lvl === 0 && catwalkAt(h.x) ? 'duct' : 'vent'; };
+/** Off she goes: to the nearest way out on her level (a vent over her, a duct in the back wall), walking, and up or in
+ *  there; never just gone where there's no way out (the stairs, the end walls). */
+const leave = (h: Hunter) => {
+  const ways = h.lvl === 1 ? VENTS.filter(v => catwalkAt(v) && Math.abs(clampLvl(h, v) - v) < 2) : [...DUCTS, ...VENTS.filter(v => !catwalkAt(v))];
+  const way = ways.length ? ways.reduce((a, v) => (Math.abs(v - h.x) < Math.abs(a - h.x) ? v : a)) : h.x;
+  if (Math.abs(way - h.x) > 30 && !h.leaving) { h.leaving = true; h.path = [{ x: way }]; h.leg = 0; h.sniff = 0; to(h, 'prowl'); h.speed = Math.max(h.speed, 2); return; }
+  h.leaving = false; to(h, 'climb'); h.entry = h.lvl === 0 && DUCTS.some(d => Math.abs(d - h.x) < 40) ? 'duct' : 'vent';
+};
 
 /** She sees him: on her level, in front of her and near enough (or right on her), not hidden. */
 const sees = (state: GameState, h: Hunter) => {
@@ -594,6 +608,7 @@ const senses = (state: GameState, h: Hunter) => {
   return Math.abs(pmid(state) - h.x) < 150 && (Math.abs(p.vel.x) > 0.5 || h.noise > 8);
 };
 const spotted = (state: GameState, h: Hunter) => {
+  h.leaving = false;
   to(h, 'hunt'); h.lastSeen = state.frame;
   playSound('roar', 0.9, -6); shakeScreen(state, 4, 2);
   meatheadSays(state, pick(L.MH_SEEN), false);
