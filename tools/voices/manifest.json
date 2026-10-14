@@ -19231,6 +19231,11 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "IF IT HAS WIRES, WE CAN WORK IT. SHE HAS LOTS OF WIRES.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "INVADE YOUR PLANET?! NOT IF IT SMELLS LIKE YOU!",
   "from": "SPACE"
  },
@@ -19267,6 +19272,11 @@
  {
   "voice": "m2.space.alien",
   "text": "IT'S THE 'LADIES' GUY! NOBODY WANTED TO SEE THAT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "LITTLE ONES FIRST. THEN THE QUEEN.",
   "from": "SPACE"
  },
  {
@@ -19591,6 +19601,11 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "THIS IS JUST PRACTICE. WAIT TILL WE DRIVE THE BIG ONE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "THIS RIDE SAYS WE ABDUCT NAKED HUMANS. NOBODY WANTS YOU.",
   "from": "SPACE"
  },
@@ -19856,6 +19871,11 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "IF IT HAS WIRES, WE CAN WORK IT. SHE HAS LOTS OF WIRES.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "INVADE YOUR PLANET?! NOT IF IT SMELLS LIKE YOU!",
   "from": "SPACE"
  },
@@ -19877,6 +19897,11 @@
  {
   "voice": "m2.space.alienf",
   "text": "IT'S THE 'LADIES' GUY! NOBODY WANTED TO SEE THAT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "LITTLE ONES FIRST. THEN THE QUEEN.",
   "from": "SPACE"
  },
  {
@@ -20032,6 +20057,11 @@
  {
   "voice": "m2.space.alienf",
   "text": "THIS IS A FAMILY RIDE! YOU'RE MURDERING IN IT WITH NO PANTS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "THIS IS JUST PRACTICE. WAIT TILL WE DRIVE THE BIG ONE.",
   "from": "SPACE"
  },
  {
@@ -35223,6 +35253,11 @@
   "voice": "meathead",
   "text": "THEY'RE CLEAN. I'D RUIN THEM. NO.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE DRIVING THE PROPS. THERE'D BETTER NOT BE A BIG ONE.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
