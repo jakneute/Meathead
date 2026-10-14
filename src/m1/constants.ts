@@ -17,6 +17,8 @@ export const CANVAS_HEIGHT = 600;
  * topBand() for a bar along the top.
  */
 export const HUD_CLEAR_X = 310, HUD_CLEAR_Y = 104;
+/** The mouse wheel switching weapons: no second switch within this long of the last (a flick of the wheel is several notches). */
+export const WHEEL_COOLDOWN_MS = 150;
 /** The stretch along the top of the screen that's clear of the main HUD (for a bar, a counter, a banner). */
 export const topBand = () => ({ x1: HUD_CLEAR_X + 10, x2: CANVAS_WIDTH - 20, mid: (HUD_CLEAR_X + 10 + CANVAS_WIDTH - 20) / 2 });
 /** The game canvas has this many real pixels per game pixel, so text and lines stay crisp when the window is scaled up. */

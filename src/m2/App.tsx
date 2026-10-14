@@ -9,7 +9,7 @@ import { setFootstepVolume } from '../m1/game/player/footsteps';
 import { setHurtScale } from '../m1/game/core/resist';
 import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
-import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage } from '../m1/constants';
+import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage, WHEEL_COOLDOWN_MS } from '../m1/constants';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../m1/game/platform/gamepad';
 import { hasRightStick } from '../m1/game/platform/device';
 import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
@@ -232,7 +232,15 @@ const App2: React.FC = () => {
   useEffect(() => {
     const cycle = (d: number) => { if (!noSwitching()) setWeapon(w => arsenal()[(arsenal().indexOf(w) + d + arsenal().length) % arsenal().length]); };
     const playing = () => live.current.status === GameStatus.PLAYING, paused = () => live.current.status === GameStatus.PAUSED;
-    const onWheel = (e: WheelEvent) => { if ((playing() || paused()) && !(paused() && cheatPanelOpen())) cycle(e.deltaY > 0 ? 1 : -1); };
+    // (the mouse wheel: one weapon a notch, and a short cooldown after each, so a flick doesn't spin past three of them)
+    let wheelAt = 0;
+    const onWheel = (e: WheelEvent) => {
+      if (!(playing() || paused()) || (paused() && cheatPanelOpen()) || Math.abs(e.deltaY) < 1) return;
+      const now = performance.now();
+      if (now - wheelAt < WHEEL_COOLDOWN_MS) return;
+      wheelAt = now;
+      cycle(e.deltaY > 0 ? 1 : -1);
+    };
     const onKey = (e: KeyboardEvent) => {
       // (the first key lets the sound out: the browser holds it back till then)
       getAudioContext();

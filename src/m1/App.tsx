@@ -27,7 +27,7 @@ import { setScreenMusic, setMusicPaused, musicEnabled, setMusicEnabled } from '.
 import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
-import { INITIAL_PLAYER_HEALTH, maxAmmo, POWER_CELLS, createFullAmmo, FINALE_STAGE, WALK_ON_STAGE } from './constants';
+import { INITIAL_PLAYER_HEALTH, maxAmmo, POWER_CELLS, createFullAmmo, FINALE_STAGE, WALK_ON_STAGE, WHEEL_COOLDOWN_MS } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS, STAGES_SET_0, STAGES_SET_1 } from './content/roster';
 import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES, BOSS_SHAT_LINES } from './content/dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
@@ -757,11 +757,17 @@ const App: React.FC = () => {
         confirmSelection();
       }
     };
+    // (the mouse wheel: one weapon a notch, and a short cooldown after each, so a flick doesn't spin past three of them)
+    let wheelAt = 0;
     const onWheel = (e: WheelEvent) => {
       const { status, cycleWeapon, pauseDossier } = inputRef.current;
       // (the pause menu's file is up: the wheel's scrolling that)
       if (status === GameStatus.PAUSED && pauseDossier) return;
-      if (status === GameStatus.PLAYING || status === GameStatus.PAUSED) cycleWeapon(e.deltaY > 0 ? 1 : -1);
+      if (status !== GameStatus.PLAYING && status !== GameStatus.PAUSED) return;
+      const now = performance.now();
+      if (Math.abs(e.deltaY) < 1 || now - wheelAt < WHEEL_COOLDOWN_MS) return;
+      wheelAt = now;
+      cycleWeapon(e.deltaY > 0 ? 1 : -1);
     };
     // Right click is the menu "back" button, same as B on a controller (in-game it's the special)
     // Unpausing waits for the release, or the still-held button would fire a special on the first frame
