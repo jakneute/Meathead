@@ -7,9 +7,10 @@
 import { R, STAIRS_END, USA_START, USA_END, DISTRICTS, DISTRICT_W } from '../geometry';
 import { GROUND_Y } from '../../../m1/constants';
 import {
-  type Ctx, INK, RED, WHITE, BLUE, FLAG_RED, FLAG_WHITE, FLAG_BLUE, box, text, shinyStar, flag, bunting, sign, dim, eagle,
+  type Ctx, INK, RED, WHITE, BLUE, FLAG_RED, FLAG_WHITE, FLAG_BLUE, box, shinyStar, flag, bunting, sign, dim, eagle,
   slab, pole, ball, rampOf, dark, lite, mix, hash, checker, bandedGradient, hazeBands, pixelBlob, tilePattern, stamp,
 } from './kit';
+import { type Look, signAt, signText, federal, gilt, tube, marker, print } from './letters';
 
 const GY = GROUND_Y;
 type Id = 'nola' | 'nash' | 'chi' | 'sea' | 'bos';
@@ -26,7 +27,8 @@ const poly = (g: Ctx, pts: Pt[], col: string) => { g.fillStyle = col; g.beginPat
 const disc = (g: Ctx, x: number, y: number, r: number, col: string) => { g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); };
 const oval = (g: Ctx, x: number, y: number, rx: number, ry: number, col: string, rot = 0) => { g.fillStyle = col; g.beginPath(); g.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2); g.fill(); };
 const inkRect = (g: Ctx, x: number, y: number, w: number, h: number) => { g.strokeStyle = INK; g.lineWidth = 2; g.strokeRect(x + 1, y + 1, w - 2, h - 2); };
-const tiny = (g: Ctx, s: string, x: number, y: number, col: string, size = 6, shadow: string | null = INK) => text(g, s, x, y, col, size, 'center', shadow);
+/** Small words on a sign, a plate, a label: the way in's government enamel (or a look of their own). */
+const tiny = (g: Ctx, s: string, x: number, y: number, col: string, size = 6, shadow: string | null = INK, look?: Look) => signAt(g, s, x, y, size, look ?? federal(size, col, shadow ?? undefined));
 /** A window's shape: a rectangle, or one with a round head. */
 const pane = (g: Ctx, x: number, y: number, w: number, h: number, arched = false) => {
   g.beginPath();
@@ -313,7 +315,7 @@ const door = (g: Ctx, x: number, y: number, w: number, h: number, b: Bldg) => {
   box(g, x - 4, y - 4, w + 8, h + 4, tr[1]); box(g, x - 4, y - 4, w + 8, 2, tr[3]); box(g, x - 4, y - 4, 2, h + 4, tr[3]);
   // the transom, the number in gold leaf
   glassIn(g, x, y, w, 12, 0, b.curtain, false, false);
-  tiny(g, '1776', x + w / 2, y + 10, '#E8C25A', 6, '#5C4210');
+  tiny(g, '1776', x + w / 2, y + 10, '#E8C25A', 6, '#5C4210', gilt(6, '#5C4210'));
   box(g, x, y + 12, w, 2, tr[2]);
   // the door: its glass, the OPEN card hung in it, panels, a brass kick plate, the handle
   const dy = y + 14, dh = h - 14;
@@ -424,7 +426,7 @@ const stock = (g: Ctx, id: Id, k: number, x: number, y: number, w: number, h: nu
       const cols = ['#7A4A22', '#B91C1C', '#E7E2D6', '#1E3A8A', '#5C3A1E', '#C08A3E', '#14532D', '#7A4A22'];
       for (let i = 0; i < 8; i++) bootShape(g, x + 6 + i * 20, y + 12, cols[i], i === 3);
       for (let i = 0; i < 7; i++) bootShape(g, x + 14 + i * 22, y + h - 24, cols[(i + 3) % 8], i === 5);
-      box(g, x + 136, y + 20, 22, 8, '#F8F4E8'); box(g, x + 136, y + 20, 22, 1, '#FFFFFF'); tiny(g, '$1776', x + 147, y + 27, '#B91C1C', 5, null);
+      box(g, x + 131, y + 19, 32, 9, '#F8F4E8'); box(g, x + 131, y + 19, 32, 1, '#FFFFFF'); signText(g, '$1776', x + 147, y + 27, print(5, '#B91C1C'));
       break;
     }
     case 'chi0': {
@@ -532,7 +534,7 @@ const storefront = (g: Ctx, id: Id, k: number, bx: number, b: Bldg) => {
   const [name, face, ink] = b.shop, tr = rampOf(b.trim);
   box(g, bx, SY - 18, BW, 8, INK); box(g, bx, SY - 17, BW, 6, dim(b.trim)); box(g, bx, SY - 17, BW, 1, lite(dim(b.trim), 0.2));
   slab(g, bx + 4, SY - 8, BW - 8, 46, dark(b.trim, 0.45));
-  sign(g, bx + 20, SY, BW - 40, 30, face, name, ink, 9);
+  sign(g, bx + 20, SY, BW - 40, 30, face, name, ink, 9, INK, federal({ sx: 1, sy: 2 }, ink, mix(face, INK, 0.45)));
   for (const px of [bx + 4, bx + BW - 18]) {
     slab(g, px, SY + 38, 14, GY - SY - 38, b.trim);
     box(g, px - 2, SY + 38, 18, 5, INK); box(g, px - 1, SY + 39, 16, 3, tr[3]);
@@ -545,7 +547,7 @@ const storefront = (g: Ctx, id: Id, k: number, bx: number, b: Bldg) => {
   g.save(); g.beginPath(); g.rect(wx, wy, ww, wh); g.clip();
   bandedGradient(g, wx, wy, ww, wh, ['#3D4E6E', '#2A3550', '#1E2538', '#171B29'], 4);
   stock(g, id, k, wx, wy, ww, wh);
-  tiny(g, b.glass, wx + ww / 2, wy + 9, '#E8C25A', 6, '#5C4210');
+  tiny(g, b.glass, wx + ww / 2, wy + 9, '#E8C25A', 6, '#5C4210', gilt(6, '#5C4210'));
   glints(g, wx, wy, ww, wh);
   g.restore();
   const ky = wy + wh + 5;
@@ -682,11 +684,11 @@ const marketSign = (g: Ctx, bx: number, top: number) => {
   for (const px of [x0 + 4, x0 + 110, x0 + 214]) strut(g, px, ly - 16, top);
   strut(g, cx - 1, cy + 16, ly - 16);
   for (const py of [ly - 16, ly + 4]) { box(g, x0 - 9, py - 1, 238, 5, INK); box(g, x0 - 8, py, 236, 3, s[2]); box(g, x0 - 8, py, 236, 1, s[3]); }
-  g.font = '12px "Press Start 2P"'; g.textAlign = 'left';
-  for (let i = 0; i < WORD.length; i++) { g.fillStyle = INK; g.fillText(WORD[i], x0 + i * 13 + 1, ly + 1); g.fillStyle = '#5A1612'; g.fillText(WORD[i], x0 + i * 13, ly); }
+  // (the neon's glass, dark: lit live, seaLive)
+  for (let i = 0; i < WORD.length; i++) signText(g, WORD[i], x0 + i * 13 + 1, ly + 2, tube({ sx: 2, sy: 2 }, '#5A1612', false), 'left');
   disc(g, cx, cy, 20, INK); disc(g, cx, cy, 19, '#2F6B3A'); disc(g, cx - 1, cy - 1, 17, '#3F8A4A'); disc(g, cx, cy, 15, INK); disc(g, cx, cy, 14, '#E7E2D2'); disc(g, cx - 1, cy - 1, 12, '#F4F1E6');
   for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6, r = i % 3 ? 11 : 10; box(g, Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r), i % 3 ? 1 : 2, i % 3 ? 1 : 2, INK); }
-  box(g, cx + 25, cy - 7, 98, 14, INK); box(g, cx + 26, cy - 6, 96, 12, '#F4F1E6'); box(g, cx + 26, cy + 4, 96, 2, '#D8D2C2');
+  box(g, cx + 21, cy - 7, 106, 14, INK); box(g, cx + 22, cy - 6, 104, 12, '#F4F1E6'); box(g, cx + 22, cy + 4, 104, 2, '#D8D2C2');
   tiny(g, '(LEGALLY DISTINCT)', cx + 74, cy + 3, '#7F1D1D', 5, null);
   strut(g, cx + 72, cy + 7, ly - 16);
   g.textAlign = 'left';
@@ -701,9 +703,7 @@ const nashNeonFrames = (g: Ctx, k: number, bx: number, top: number) => {
     box(g, lx - 6, ly + 8, 6, 3, INK); box(g, lx - 6, ly + 108, 6, 3, INK);
     slab(g, lx, ly, 22, 122, '#2A1A2E');
     for (let y = ly + 4; y < ly + 120; y += 8) { box(g, lx + 3, y, 2, 2, '#4A3A30'); box(g, lx + 17, y, 2, 2, '#4A3A30'); }
-    g.font = '8px "Press Start 2P"'; g.textAlign = 'center';
-    LIVE.forEach((ch, i) => { if (ch) { g.fillStyle = '#4A2A2A'; g.fillText(ch, lx + 11, ly + 20 + i * 11); } });
-    g.textAlign = 'left';
+    LIVE.forEach((ch, i) => { if (ch) signText(g, ch, lx + 11, ly + 20 + i * 11, tube(8, '#4A2A2A', false)); });
   } else {
     const [x, y] = BOOTS(bx, top);
     strut(g, x + 8, y + 46, top); strut(g, x + 48, y + 46, top);
@@ -756,13 +756,10 @@ const nashLive = (c: Ctx, x: number, f: number) => {
     if ((i + (f >> 2)) % 3 === 0) { box(c, bx2 - 1, y - 1, 4, 4, 'rgba(255, 236, 150, 0.35)'); box(c, bx2, y, 2, 2, '#FFF3B0'); }
   }
   const spelled = (f >> 3) % 9, flick = hash(f >> 2) < 0.05;
-  c.font = '8px "Press Start 2P"'; c.textAlign = 'center';
   LIVE.forEach((ch, j) => {
     if (!ch || (j < 4 && flick) || (j > 4 && j - 4 > spelled)) return;
-    c.fillStyle = 'rgba(255, 210, 90, 0.35)'; c.fillText(ch, lx + 10, ly + 20 + j * 11); c.fillText(ch, lx + 12, ly + 20 + j * 11);
-    c.fillStyle = '#FFE66B'; c.fillText(ch, lx + 11, ly + 20 + j * 11);
+    signText(c, ch, lx + 11, ly + 20 + j * 11, tube(8, '#FFE66B', true, '#2A1A2E'));
   });
-  c.textAlign = 'left';
 };
 
 const seaLive = (c: Ctx, x: number, f: number) => {
@@ -775,12 +772,9 @@ const seaLive = (c: Ctx, x: number, f: number) => {
   c.lineCap = 'butt'; box(c, cx - 1, cy - 1, 2, 2, '#B91C1C');
   // (the neon: one letter on the blink now and then)
   const dead = hash(f >> 3) < 0.3 ? (f >> 5) % WORD.length : -1;
-  c.font = '12px "Press Start 2P"'; c.textAlign = 'left';
   for (let i = 0; i < WORD.length; i++) {
     const ch = WORD[i]; if (i === dead || ch === ' ') continue;
-    const px = x0 + i * 13;
-    c.fillStyle = 'rgba(255, 80, 64, 0.28)'; c.fillText(ch, px - 1, ly); c.fillText(ch, px + 1, ly); c.fillText(ch, px, ly - 1); c.fillText(ch, px, ly + 1);
-    c.fillStyle = '#FF4A3D'; c.fillText(ch, px, ly);
+    signText(c, ch, x0 + i * 13 + 1, ly + 2, tube({ sx: 2, sy: 2 }, '#FF4A3D', true, '#1A0A0A'), 'left');
   }
   // (the fish going across the market's window)
   const b1 = bldgX(x, 1), wx = b1 + 30, wy = SY + 70, ww = 170, wh = 58;
@@ -944,10 +938,7 @@ const friezeArt = () => {
   for (let x = 4; x < FRIEZE_W - 4; x += 8) { box(g, x, 12, 5, 6, mr[2]); box(g, x, 12, 1, 6, mr[3]); box(g, x, 17, 5, 1, mr[0]); }
   slab(g, 0, 18, FRIEZE_W, 34, FLAG_BLUE[1]);
   g.strokeStyle = GOLD; g.lineWidth = 2; g.strokeRect(6, 23, FRIEZE_W - 12, 24);
-  g.font = '12px "Press Start 2P"'; g.textAlign = 'center';
-  g.fillStyle = '#3A2A08'; g.fillText('AMERICA USA', FRIEZE_W / 2 + 2, 42);
-  g.fillStyle = '#B8862E'; g.fillText('AMERICA USA', FRIEZE_W / 2, 41);
-  g.save(); g.beginPath(); g.rect(0, 28, FRIEZE_W, 7); g.clip(); g.fillStyle = '#F4C430'; g.fillText('AMERICA USA', FRIEZE_W / 2, 41); g.restore();
+  signAt(g, 'AMERICA USA', FRIEZE_W / 2, 41, 12, { ...gilt({ sx: 2, sy: 2 }, '#3A2A08'), drop: 2 });
   for (const sx of [24, FRIEZE_W - 24]) shinyStar(g, sx, 35, 6, '#FDE047');
   slab(g, 0, 52, FRIEZE_W, 14, MARBLE); box(g, 4, 58, FRIEZE_W - 8, 1, mr[1]);
   g.textAlign = 'left';
@@ -1186,9 +1177,9 @@ const paintCart = (g: Ctx, x: number, words: string, col: string, kind: 'fries' 
   const mx0 = x - 92;
   castShadow(g, mx0, GY - 46, 36, 46);
   box(g, mx0 + 4, GY - 12, 3, 12, '#5C3A1E'); box(g, mx0 + 29, GY - 12, 3, 12, '#5C3A1E');
-  box(g, mx0, GY - 46, 36, 36, INK); box(g, mx0 + 1, GY - 45, 34, 34, '#7A4A22'); box(g, mx0 + 3, GY - 43, 30, 30, '#1F2A24'); box(g, mx0 + 3, GY - 43, 30, 1, '#3A4A40');
-  tiny(g, 'MENU', mx0 + 18, GY - 35, '#FDE047', 5, null);
-  tiny(g, 'REG $6', mx0 + 18, GY - 26, '#E7E5E4', 5, null); tiny(g, 'USA $9', mx0 + 18, GY - 18, '#F4A6A6', 5, null);
+  box(g, mx0 - 3, GY - 46, 42, 36, INK); box(g, mx0 - 2, GY - 45, 40, 34, '#7A4A22'); box(g, mx0, GY - 43, 36, 30, '#1F2A24'); box(g, mx0, GY - 43, 36, 1, '#3A4A40');
+  tiny(g, 'MENU', mx0 + 18, GY - 35, '#FDE047', 5, null, marker(5, '#FDE047', 1));
+  tiny(g, 'REG $6', mx0 + 18, GY - 26, '#E7E5E4', 5, null, marker(5, '#E7E5E4', 2)); tiny(g, 'USA $9', mx0 + 18, GY - 18, '#F4A6A6', 5, null, marker(5, '#F4A6A6', 3));
   pole(g, x - 2, GY - 104, 4, 38, '#9CA3AF');
   // (the umbrella, under the shop's sign and dim: panels in turn, shaded to the right, a scalloped edge)
   const uy = GY - 104, n = 8, ry = 18;
@@ -1226,7 +1217,7 @@ const paintCart = (g: Ctx, x: number, words: string, col: string, kind: 'fries' 
   // (the cart: its body, a band of stars, the name, a steel counter, the handle, the wheels)
   slab(g, x - 50, GY - 66, 100, 44, col);
   box(g, x - 48, GY - 34, 96, 6, '#F1EFEA'); for (let i = 0; i < 8; i++) shinyStar(g, x - 42 + i * 12, GY - 31, 2.5, FLAG_BLUE[2]);
-  sign(g, x - 44, GY - 58, 88, 14, WHITE, words, col, 6);
+  sign(g, x - 48, GY - 58, 96, 14, WHITE, words, col, 6);
   box(g, x - 55, GY - 70, 110, 6, INK); box(g, x - 54, GY - 69, 108, 4, '#B8BCC4'); box(g, x - 54, GY - 69, 108, 1, '#F1F3F6');
   box(g, x + 50, GY - 62, 12, 3, INK); box(g, x + 59, GY - 64, 3, 10, INK);
   for (const wx of [x - 32, x + 32]) {

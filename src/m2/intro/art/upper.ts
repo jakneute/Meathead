@@ -10,8 +10,9 @@ import { X0, R, CEIL_Y, UPPER, STAIRS_END, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DE
 import { GROUND_Y, CANVAS_HEIGHT } from '../../../m1/constants';
 import {
   type Ctx, INK, RED, WHITE, BLUE, box, text, flag, sign, slab, pole, ball, shinyStar, star, eagle, bunting,
-  rampOf, lite, dim, hash, checker, bandedGradient, steppedGlow, pixelBlob, tilePattern, brickPattern, stamp,
+  rampOf, lite, dim, mix, hash, checker, bandedGradient, steppedGlow, pixelBlob, tilePattern, brickPattern, stamp,
 } from './kit';
+import { signAt, signText, stencil, led, marker, federal, flag as flagType, print } from './letters';
 
 /** How far down the floors fill (past the bottom of the screen, so nothing behind ever shows under them). */
 const BOTTOM = CANVAS_HEIGHT + 120;
@@ -106,7 +107,7 @@ const pillar = (g: Ctx, x: number, k: number) => {
   const py = y0 + 70;
   box(g, x, py, w, 26, '#E8E4DA'); box(g, x, py, w, 2, '#FFFFFF'); box(g, x + w - 10, py, 10, 26, '#C4C0B6'); checker(g, x + w - 12, py, 2, 26, '#C4C0B6');
   box(g, x, py + 3, w, 3, '#1E3A8A'); box(g, x, py + 20, w, 3, '#B91C1C');
-  text(g, `3-${'ABCDEFGH'[k % 8]}`, x + w / 2 - 2, py + 17, '#1E3A8A', 7, 'center', null);
+  signAt(g, `3-${'ABCDEFGH'[k % 8]}`, x + w / 2 - 2, py + 17, 7, stencil(7, '#1E3A8A'));
   // (the foot: yellow and black, scuffed by every bumper in the state)
   hazard(g, x, UPPER - 44, w, 44);
   box(g, x, UPPER - 44, 6, 44, 'rgba(255, 255, 255, 0.14)'); box(g, x + w - 10, UPPER - 44, 10, 44, 'rgba(0, 0, 0, 0.28)');
@@ -128,10 +129,10 @@ const stairDoor = (g: Ctx, x: number) => {
   box(g, x + 10, y + 56, 44, 6, INK); box(g, x + 11, y + 57, 42, 4, '#C8CCD2'); box(g, x + 11, y + 57, 42, 1, '#FFFFFF'); box(g, x + 11, y + 60, 42, 1, '#7A808A');
   box(g, x + 8, y + 86, 48, 16, '#8A9098'); box(g, x + 8, y + 86, 48, 1, '#C8CCD2'); checker(g, x + 8, y + 88, 48, 14, '#7A808A');
   box(g, x + 10, y + 8, 20, 4, '#2A2E34'); box(g, x + 10, y + 8, 20, 1, '#6A707A');
-  text(g, 'STAIR B', x + 32, y - 4, '#E8B400', 6, 'center', '#141418');
+  signAt(g, 'STAIR B', x + 32, y - 4, 6, { ...stencil(6, '#E8B400'), shadow: '#141418' });
   // (EXIT, lit)
   box(g, x + 13, y - 32, 38, 16, INK); box(g, x + 14, y - 31, 36, 14, '#2A0A08'); box(g, x + 14, y - 31, 36, 1, '#5A1A14');
-  text(g, 'EXIT', x + 32, y - 20, '#FF5A48', 6, 'center', '#6A0E0A');
+  signAt(g, 'EXIT', x + 32, y - 20, 6, led(6, '#FF5A48', '#2A0A08'));
 };
 
 const elevator = (g: Ctx, x: number) => {
@@ -144,18 +145,18 @@ const elevator = (g: Ctx, x: number) => {
     glint(g, lx + 2, y + 10, y + 70, 4, 'rgba(255, 255, 255, 0.28)');
   }
   box(g, x + 37, y + 6, 2, 94, INK);
-  box(g, x + 22, y - 16, 32, 12, INK); box(g, x + 23, y - 15, 30, 10, '#1A1008'); text(g, '3', x + 38, y - 6, '#F59E0B', 6, 'center', null);
+  box(g, x + 22, y - 16, 32, 12, INK); box(g, x + 23, y - 15, 30, 10, '#1A1008'); signAt(g, '3', x + 38, y - 6, 6, led(6, '#F59E0B', '#1A1008'));
   slab(g, x + 82, y + 40, 12, 26, '#8A9098'); ball(g, x + 88, y + 48, 2, '#E8E4DA'); ball(g, x + 88, y + 58, 2, '#E8E4DA');
   // (taped across it)
-  box(g, x + 4, y + 30, 68, 26, INK); box(g, x + 5, y + 31, 66, 24, '#F4F0E4'); box(g, x + 5, y + 51, 66, 4, '#DCD6C6');
-  text(g, 'OUT OF ORDER', x + 38, y + 41, '#B91C1C', 5, 'center', null); text(g, 'SINCE 1776', x + 38, y + 50, '#1A1A1E', 5, 'center', null);
-  box(g, x + 2, y + 29, 8, 4, 'rgba(230, 220, 170, 0.8)'); box(g, x + 66, y + 29, 8, 4, 'rgba(230, 220, 170, 0.8)');
+  box(g, x + 1, y + 30, 74, 26, INK); box(g, x + 2, y + 31, 72, 24, '#F4F0E4'); box(g, x + 2, y + 51, 72, 4, '#DCD6C6');
+  signAt(g, 'OUT OF ORDER', x + 38, y + 41, 5, marker(5, '#B91C1C', 1)); signAt(g, 'SINCE 1776', x + 38, y + 50, 5, marker(5, '#1A1A1E', 2));
+  box(g, x - 1, y + 29, 8, 4, 'rgba(230, 220, 170, 0.8)'); box(g, x + 69, y + 29, 8, 4, 'rgba(230, 220, 170, 0.8)');
 };
 
 /** A sign hung off the ceiling on two rods. */
 const hungSign = (g: Ctx, x: number, y: number, w: number, h: number, face: string, words: string, ink: string, size = 8) => {
   for (const rx of [x + 14, x + w - 18]) { pole(g, rx, CEIL_Y - 2, 4, y - CEIL_Y - 2, '#8A9098'); box(g, rx - 3, CEIL_Y - 2, 10, 3, INK); box(g, rx - 2, CEIL_Y - 2, 8, 2, '#6A6E76'); }
-  sign(g, x, y, w, h, face, words, ink, size);
+  sign(g, x, y, w, h, face, words, ink, size, INK, federal({ sx: 1, sy: 2 }, ink, mix(face, INK, 0.45)));
 };
 
 const paintGarage = (g: Ctx, a: number, b: number) => {
@@ -197,7 +198,7 @@ const paintGarage = (g: Ctx, a: number, b: number) => {
   const gy = CEIL_Y - 16;
   box(g, a, gy, W, 16, '#4E4E57'); box(g, a, gy, W, 2, '#26262C'); box(g, a, gy + 2, W, 3, '#6E6E78'); checker(g, a, gy + 5, W, 2, '#6E6E78');
   box(g, a, gy + 12, W, 4, '#30303A'); checker(g, a, gy + 10, W, 2, '#30303A'); box(g, a, CEIL_Y - 1, W, 1, INK);
-  for (let x = Math.floor((a - 200) / 640) * 640 + 200; x < b + 100; x += 640) text(g, 'CLEARANCE 6 FT 8 IN', x, gy + 11, '#E8B400', 5, 'center', '#22222A');
+  for (let x = Math.floor((a - 200) / 640) * 640 + 200; x < b + 100; x += 640) signAt(g, 'CLEARANCE 6 FT 8 IN', x, gy + 11, 5, { ...stencil(5, '#E8B400'), shadow: '#22222A' });
 
   // The back wall: board-formed concrete, its pours and form ties, water stains down from the ceiling, the level's stripe
   bandedGradient(g, a, CEIL_Y, W, UPPER - CEIL_Y, ['#1E1E24', '#32323A', '#42424B', '#4A4A53', '#46464F', '#383840'], 12);
@@ -214,13 +215,13 @@ const paintGarage = (g: Ctx, a: number, b: number) => {
   box(g, a, sy, W, 12, '#22408E'); box(g, a, sy, W, 2, '#3456A8'); box(g, a, sy + 10, W, 2, '#18306E');
   box(g, a, sy + 13, W, 3, '#D4D4CE'); box(g, a, sy + 17, W, 6, '#A81E1E'); box(g, a, sy + 17, W, 1, '#C8302A');
   for (let x = Math.floor(a / 36) * 36; x < b; x += 36) if (hash(x * 0.31) < 0.3) checker(g, x, sy, 10, 23, '#44444C');
-  for (let x = Math.floor((a - 320) / 640) * 640 + 320; x < b + 60; x += 640) text(g, 'LEVEL 3', x, sy - 8, '#8A909C', 8, 'center', '#24242A');
+  for (let x = Math.floor((a - 320) / 640) * 640 + 320; x < b + 60; x += 640) signAt(g, 'LEVEL 3', x, sy - 8, 8, { ...stencil({ sx: 2, sy: 2 }, '#8A909C', '#4A4A53', x), shadow: '#24242A' });
   checker(g, a, UPPER - 24, W, 8, 'rgba(0, 0, 0, 0.2)'); box(g, a, UPPER - 16, W, 16, 'rgba(0, 0, 0, 0.26)'); checker(g, a, UPPER - 6, W, 6, 'rgba(0, 0, 0, 0.2)', 1);
 
   for (const vx of VENTS) if (near(vx, vx + 80)) vent(g, vx, CEIL_Y + 44);
   if (near(X0 - 250, X0 - 170)) stairDoor(g, X0 - 244);
   if (near(X0 - 150, X0 - 40)) elevator(g, X0 - 150);
-  if (near(X0 - 380, X0 - 300)) text(g, '<- NO EXIT. THERE IS ONLY FORWARD.', X0 - 340, UPPER - 136, '#C8CCD2', 5, 'left', '#24242A');
+  if (near(X0 - 380, X0 - 300)) signAt(g, '<- NO EXIT. THERE IS ONLY FORWARD.', X0 - 340, UPPER - 136, 5, { ...stencil(5, '#C8CCD2'), shadow: '#24242A' }, 'left');
   PILLARS.forEach((px, k) => { if (near(px - 20, px + 60)) pillar(g, px, k); });
 
   // The signs (hung, or on the wall)
@@ -233,10 +234,10 @@ const paintGarage = (g: Ctx, a: number, b: number) => {
     const kx = R(728);
     checker(g, kx + 40, UPPER - 74, 8, 74, 'rgba(0, 0, 0, 0.3)');
     slab(g, kx, UPPER - 78, 40, 78, '#2D4F8E');
-    slab(g, kx + 6, UPPER - 70, 28, 18, '#1A2A3A'); box(g, kx + 8, UPPER - 68, 24, 6, '#5ADA8A'); text(g, '$45.00', kx + 20, UPPER - 63, '#0A3A1A', 5, 'center', null);
+    slab(g, kx + 1, UPPER - 72, 38, 20, '#1A2A3A'); box(g, kx + 3, UPPER - 69, 34, 9, '#5ADA8A'); signText(g, '$45.00', kx + 20, UPPER - 61, print(5, '#0A3A1A'));
     box(g, kx + 8, UPPER - 46, 10, 3, INK); box(g, kx + 22, UPPER - 46, 10, 3, INK);
     for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) box(g, kx + 9 + j * 6, UPPER - 38 + i * 5, 4, 3, '#C8CCD2');
-    box(g, kx + 6, UPPER - 16, 28, 6, '#141820'); text(g, 'PAY HERE', kx + 20, UPPER - 82, WHITE, 5, 'center', INK);
+    box(g, kx + 6, UPPER - 16, 28, 6, '#141820'); signAt(g, 'PAY HERE', kx + 20, UPPER - 82, 5, federal(5, WHITE, INK));
   }
 
   // The way out: daylight pouring in at the far end, in steps, and the mouth's last column catching it
@@ -355,7 +356,7 @@ const truck = (g: Ctx) => {
   box(g, -24, -16, 10, 4, INK); box(g, -23, -15, 8, 2, '#D8DCE2');
   // (the bumper stickers: a little flag, USA #1)
   box(g, -2, -34, 18, 11, INK); for (let i = 0; i < 5; i++) box(g, -1, -33 + i * 2, 16, 1, i % 2 ? '#F1EFEA' : '#C81E1E'); box(g, -1, -33, 7, 5, '#1E3A8A'); box(g, 1, -32, 1, 1, '#FFFFFF'); box(g, 3, -31, 1, 1, '#FFFFFF');
-  box(g, 18, -34, 40, 11, INK); box(g, 19, -33, 38, 9, '#F4F2EC'); text(g, 'USA #1', 38, -25, '#B91C1C', 5, 'center', null);
+  box(g, 18, -34, 40, 11, INK); box(g, 19, -33, 38, 9, '#F4F2EC'); signText(g, 'USA #1', 38, -25, print(5, '#B91C1C'));
   // (the antenna, a little flag on it)
   box(g, 172, -134, 1, 34, '#9AA0AA'); box(g, 173, -134, 11, 7, INK); box(g, 174, -133, 9, 5, '#C81E1E'); box(g, 174, -131, 9, 1, '#F1EFEA'); box(g, 174, -133, 4, 3, '#1E3A8A');
   // (the fender flares, the big wheels with chrome, a star on each hub)
@@ -492,7 +493,7 @@ const billboard = (g: Ctx, x: number, y: number, t1: string, t2: string, col: st
   box(g, x, y, 220, 8, '#C02020'); box(g, x, y, 220, 2, '#E4483A'); box(g, x, y + 6, 220, 2, '#8E1414');
   box(g, x, y + 88, 220, 8, '#1E3A8A'); box(g, x, y + 88, 220, 2, '#2D51B0'); box(g, x, y + 94, 220, 2, '#14205C');
   shinyStar(g, x + 20, y + 30, 9, WHITE); shinyStar(g, x + 200, y + 30, 9, WHITE);
-  text(g, t1, x + 110, y + 42, WHITE, 10); text(g, t2, x + 110, y + 68, '#FEF9C3', 6);
+  signAt(g, t1, x + 110, y + 42, 10, flagType({ sx: 2, sy: 2 }, '#0B1236', '#0B1236')); signAt(g, t2, x + 110, y + 68, 6, federal(6, '#FEF9C3', INK));
   // (the paper: sheet seams, the sun on it, a corner peeling)
   for (let sx = x + 55; sx < x + 220; sx += 55) box(g, sx, y + 8, 1, 80, 'rgba(0, 0, 0, 0.12)');
   glint(g, x + 10, y + 8, y + 88, 10, 'rgba(255, 255, 255, 0.08)'); glint(g, x + 130, y + 8, y + 88, 6, 'rgba(255, 255, 255, 0.07)');
@@ -579,7 +580,7 @@ const paintCheck = (g: Ctx) => {
   }
   // (the signs: SECURITY CHECKPOINT on the ridge, ALL BAGS hung inside)
   for (const px of [A + 230, A + 490]) pole(g, px, UPPER - 236, 5, 26, '#8A9098');
-  sign(g, A + 200, UPPER - 260, 320, 26, BLUE, 'SECURITY CHECKPOINT', WHITE, 9);
+  sign(g, A + 200, UPPER - 260, 320, 26, BLUE, 'SECURITY CHECKPOINT', WHITE, 9, INK, flagType({ sx: 2, sy: 2 }, '#0B1236'));
   shinyStar(g, A + 214, UPPER - 247, 6, '#F1EFEA'); shinyStar(g, A + 506, UPPER - 247, 6, '#F1EFEA');
   for (const px of [A + 220, A + 500]) box(g, px, EAVE + 24, 1, UPPER - 150 - EAVE - 28, '#6A707A');
   sign(g, A + 190, UPPER - 150, 340, 20, '#FEF3C7', 'ALL BAGS SUBJECT TO PATRIOTISM', '#7F1D1D', 7);
@@ -610,7 +611,7 @@ const paintCheck = (g: Ctx) => {
   slab(g, xr + 30, UPPER - 92, 92, 48, '#C8CCD2');
   box(g, xr + 30, UPPER - 72, 92, 6, '#1E3A8A'); box(g, xr + 30, UPPER - 66, 92, 2, '#B91C1C');
   box(g, xr + 34, UPPER - 62, 22, 16, '#14141A'); for (let i = 0; i < 5; i++) box(g, xr + 35 + i * 4, UPPER - 62, 3, 16, i % 2 ? '#3A3A44' : '#2A2A32');
-  text(g, 'X-RAY', xr + 92, UPPER - 79, '#1E3A8A', 6, 'center', null);
+  signAt(g, 'X-RAY', xr + 92, UPPER - 79, 6, federal(6, '#1E3A8A'));
   box(g, xr + 104, UPPER - 62, 12, 8, INK); box(g, xr + 105, UPPER - 61, 10, 6, '#E8B400'); box(g, xr + 109, UPPER - 59, 2, 2, INK);
   pole(g, xr + 140, UPPER - 96, 4, 50, '#7A808A');
   box(g, xr + 124, UPPER - 122, 40, 30, INK); box(g, xr + 125, UPPER - 121, 38, 28, '#3A3F46'); box(g, xr + 128, UPPER - 118, 32, 22, '#14306A');
@@ -654,7 +655,7 @@ const paintCheck = (g: Ctx) => {
   for (let y = UPPER - 94; y < UPPER - 70; y += 3) box(g, ox + 58, y, 44, 1, '#7A766C');
   checker(g, ox + 74, UPPER - 66, 4, 52, 'rgba(40, 30, 20, 0.3)');
   box(g, ox + 50, UPPER - 56, 64, 26, INK); box(g, ox + 51, UPPER - 55, 62, 24, '#F4F2EC'); box(g, ox + 51, UPPER - 55, 62, 5, '#B91C1C');
-  text(g, 'GUARDS', ox + 82, UPPER - 42, '#1A1A1E', 5, 'center', null); text(g, 'ONLY', ox + 82, UPPER - 34, '#1A1A1E', 5, 'center', null);
+  signAt(g, 'GUARDS', ox + 82, UPPER - 42, 5, print(5, '#1A1A1E')); signAt(g, 'ONLY', ox + 82, UPPER - 34, 5, print(5, '#1A1A1E'));
 
   // The metal detector's arch (its light is live)
   const dx = R(DETECTOR_X) - 40;
@@ -664,7 +665,7 @@ const paintCheck = (g: Ctx) => {
     for (let k = 0; k < 6; k++) { box(g, ux + 3, UPPER - 98 + k * 14, 4, 6, '#203020'); box(g, ux + 3, UPPER - 98 + k * 14, 4, 1, '#3A5A3A'); }
   }
   slab(g, dx - 4, UPPER - 122, 88, 14, '#9AA0AA');
-  text(g, 'FREEDOM-SCAN', dx + 40, UPPER - 112, '#1E3A8A', 5, 'center', null);
+  signAt(g, 'FREEDOM-SCAN', dx + 40, UPPER - 112, 5, federal(5, '#1E3A8A'));
   box(g, dx + 30, UPPER - 126, 20, 4, INK); box(g, dx + 31, UPPER - 125, 18, 3, '#3A3F46');
   for (const rx of [dx + 4, dx + 72]) pole(g, rx, UPPER - 136, 4, 15, '#8A9098');
   sign(g, dx - 20, UPPER - 150, 120, 16, '#FEF3C7', 'WALK THROUGH', '#7F1D1D', 6);
@@ -809,7 +810,7 @@ const slabGarage = (g: Ctx, a: number, b: number) => {
     box(g, x, y + 16, 28, 4, ac); g.fillStyle = ac; g.beginPath(); g.moveTo(x + 28, y + 10); g.lineTo(x + 40, y + 18); g.lineTo(x + 28, y + 26); g.closePath(); g.fill();
     checker(g, x, y + 10, 40, 16, '#64646E', 1);
   }
-  text(g, 'EXIT', GX1 - 380, y + 24, '#D8D8DC', 8, 'center', null); checker(g, GX1 - 400, y + 14, 40, 12, '#64646E');
+  signAt(g, 'EXIT', GX1 - 380, y + 24, 8, stencil({ sx: 2, sy: 2 }, '#D8D8DC')); checker(g, GX1 - 400, y + 14, 40, 12, '#64646E');
   // (oil stains, tire marks)
   for (let x = Math.floor(a / 70) * 70; x < b + 40; x += 70) {
     const h = hash(x * 0.11);

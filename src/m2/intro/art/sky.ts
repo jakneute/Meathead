@@ -10,10 +10,11 @@ import type { GameState } from '../../../m1/game/core/state';
 import { R, CHECK_END } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import {
-  type Ctx, INK, WHITE, BLUE, box, text, sign, star, pole, mix, rampOf, dim, hash, checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, PIX,
+  type Ctx, INK, WHITE, BLUE, box, sign, star, pole, mix, rampOf, dim, hash, checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, PIX,
 } from './kit';
 import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, drawStars, drawMoon } from '../../timeOfDay';
 import { noteSun } from '../../sunFlare';
+import { signText, signAt, signW, federal } from './letters';
 
 const W = CANVAS_WIDTH, HT = CANVAS_HEIGHT;
 
@@ -181,7 +182,8 @@ const clouds = (c: Ctx, cam: number, f: number, tier: number) => {
 // ---------------------------------------------------------------------------------------------------------------------
 
 const BANNER = 'HAPPY LAND: NOW WITH MORE LAND';
-const BANNER_W = BANNER.length * 8 + 20, BANNER_H = 18;
+const BANNER_LOOK = federal({ sx: 1, sy: 2 }, '#B91C1C', '#C8C4BE');
+const BANNER_W = signW(BANNER, BANNER_LOOK) + 20, BANNER_H = 18;
 
 const paintPlane = (g: Ctx) => {
   // (a little high-wing prop plane, facing right: ink edge, white body in steps, a red cheat line, blue tail)
@@ -203,7 +205,7 @@ const paintBanner = (g: Ctx) => {
   box(g, 1, 1, BANNER_W - 2, BANNER_H - 2, '#F1EFEA');
   box(g, 1, 1, BANNER_W - 2, 2, '#FFFFFF'); box(g, 1, BANNER_H - 4, BANNER_W - 2, 2, '#C8C4BE');
   box(g, 1, 3, 4, BANNER_H - 6, '#B91C1C'); box(g, BANNER_W - 5, 3, 4, BANNER_H - 6, '#1E3A8A');
-  text(g, BANNER, BANNER_W / 2, BANNER_H / 2 + 4, '#B91C1C', 8, 'center', '#C8C4BE');
+  signText(g, BANNER, BANNER_W / 2, BANNER_H / 2 + 7, BANNER_LOOK);
 };
 
 const bannerPlane = (c: Ctx, f: number) => {
@@ -248,7 +250,7 @@ const paintBlimp = (g: Ctx) => {
   box(g, cx - rx, cy - 5, rx * 2, 11, '#B91C1C'); box(g, cx - rx, cy - 5, rx * 2, 2, '#D93A2E'); box(g, cx - rx, cy + 4, rx * 2, 2, '#8E1414');
   for (let i = 0; i < 4; i++) box(g, cx + rx - 10 - i * 3, cy - ry, 1, ry * 2, env[1]);
   g.restore();
-  text(g, 'HAPPY LAND', cx - 4, cy + 4, '#FFFFFF', 8, 'center', '#5C0A0A');
+  signAt(g, 'HAPPY LAND', cx - 4, cy + 4, 8, federal(8, '#FFFFFF', '#5C0A0A'));
   // (the gondola under it, its windows)
   box(g, cx - 12, cy + ry - 1, 24, 7, INK); box(g, cx - 11, cy + ry - 1, 22, 5, '#B8C1D2'); box(g, cx - 11, cy + ry - 1, 22, 1, '#EEF1F6');
   for (let i = 0; i < 4; i++) box(g, cx - 9 + i * 5, cy + ry + 1, 3, 2, '#28406E');
@@ -513,8 +515,8 @@ const parkingLot = (c: Ctx, cam: number, f: number) => {
         held_(c, `m2pole${r}`, x - pw, ptop, pw * 2, y - ptop + 2, g => paintPole(g, r, pw, y - ptop));
         if (s > 0.7) {
           // (the sign as wide as the lot's name, centered on its pole)
-          const name = lotName(n, r), nw = name.length * 5 + 8;
-          held_(c, `m2sign:${name}`, x - nw / 2 - 5, y - 50 * s - 5, nw + 10, 22, g => sign(g, 5, 5, nw, 12, BLUE, name, WHITE, 5), true);
+          const name = lotName(n, r), nw = signW(name, federal(5, WHITE)) + 8;
+          held_(c, `m2sign:${name}`, x - nw / 2 - 5, y - 50 * s - 5, nw + 10, 22, g => sign(g, 5, 5, nw, 12, BLUE, name, WHITE, 5, INK, federal(5, WHITE)), true);
         }
       }
     }

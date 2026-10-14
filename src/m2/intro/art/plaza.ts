@@ -7,10 +7,11 @@ import type { GameState } from '../../../m1/game/core/state';
 import { R, USA_END, FRONT_X, WINDOW_X, TURN_X, GATE_X, END_X, QUEUE_START } from '../geometry';
 import { GROUND_Y, CANVAS_WIDTH } from '../../../m1/constants';
 import {
-  type Ctx, INK, RED, WHITE, BLUE, FLAG_RED, FLAG_WHITE, FLAG_BLUE, box, text, star, flag, bunting, sign, dim, slab, pole,
+  type Ctx, INK, RED, WHITE, BLUE, FLAG_RED, FLAG_WHITE, FLAG_BLUE, box, star, flag, bunting, sign, dim, slab, pole,
   ball, shinyStar, checker, hazeBands, steppedGlow, pixelBlob, stamp, mix, hash, snap, PIX,
 } from './kit';
 import { getIntro } from '../index';
+import { signAt, extruded, federal, gilt, print } from './letters';
 
 const G = GROUND_Y;
 /** The gate's middle, the booth building's left end, her window's left edge, where she stands. */
@@ -54,18 +55,8 @@ const bulb = (c: Ctx, x: number, y: number, on: boolean) => {
   }
 };
 /** Big letters standing out of the sign: an ink edge, a red extrusion down and right, a gold face lit across its top. */
-const bigText = (c: Ctx, s: string, x: number, y: number, size: number, depth: number) => {
-  c.font = `${size}px "Press Start 2P"`; c.textAlign = 'center';
-  c.fillStyle = INK;
-  for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [-2, -2], [2, -2], [-2, 2]]) c.fillText(s, x + dx, y + dy);
-  for (let k = depth + 2; k > depth; k--) c.fillText(s, x + k, y + k);
-  for (let k = depth; k >= 1; k--) { c.fillStyle = k > depth / 2 ? FLAG_RED[0] : FLAG_RED[1]; c.fillText(s, x + k, y + k); }
-  c.fillStyle = GOLD[2]; c.fillText(s, x, y);
-  c.save(); c.beginPath(); c.rect(x - 400, y - size - 2, 800, Math.round(size * 0.5) + 2); c.clip(); c.fillStyle = GOLD[3]; c.fillText(s, x, y); c.restore();
-  c.save(); c.beginPath(); c.rect(x - 400, y - size - 2, 800, 4); c.clip(); c.fillStyle = GOLD[4]; c.fillText(s, x, y); c.restore();
-  c.save(); c.beginPath(); c.rect(x - 400, y - 3, 800, 4); c.clip(); c.fillStyle = GOLD[1]; c.fillText(s, x, y); c.restore();
-  c.textAlign = 'left';
-};
+const bigText = (c: Ctx, s: string, x: number, y: number, size: number, depth: number) =>
+  extruded(c, s, x, y, size, depth, size >= 16 ? { sx: 3, sy: 3 } : { sx: 2, sy: 2 }, [FLAG_RED[0], FLAG_RED[1]], INK);
 
 // ---------------------------------------------------------------------------------------------------------------
 // The ticket plaza and the gate
@@ -303,7 +294,7 @@ const gate = (c: Ctx) => {
   }
   // (NOW 40% HAPPIER, riding the band letter by letter)
   const motto = 'NOW 40% HAPPIER', lw = 6;
-  for (let i = 0; i < motto.length; i++) { const x = GX - (motto.length * lw) / 2 + i * lw + lw / 2; text(c, motto[i], x, snap(arcY(x)) + 37, CREAM[4], 6, 'center', PINK[0]); }
+  for (let i = 0; i < motto.length; i++) { const x = GX - (motto.length * lw) / 2 + i * lw + lw / 2; signAt(c, motto[i], x, snap(arcY(x)) + 37, 6, federal(6, CREAM[4], PINK[0])); }
   // (scallops hung under the arch)
   for (let x = GX - 110; x <= GX + 110; x += 14) {
     const y = snap(arcY(x)) + 59;
@@ -424,7 +415,7 @@ const booth = (c: Ctx) => {
       for (let y = G - 140; y < G - 94; y += 4) { box(c, wx, y, 60, 4, '#D8C9A8'); box(c, wx, y, 60, 1, '#EFE4C8'); box(c, wx, y + 3, 60, 1, '#A8987A'); }
       box(c, wx, G - 94, 60, 3, '#6A4A2A'); ball(c, wx + 30, G - 89, 2, BRASS[2]);
       c.strokeStyle = BRASS[2]; c.lineWidth = 1; c.beginPath(); c.moveTo(wx + 14, G - 138); c.lineTo(wx + 20, G - 120); c.moveTo(wx + 46, G - 138); c.lineTo(wx + 40, G - 120); c.stroke();
-      sign(c, wx + 8, G - 120, 44, 14, '#FEF3C7', 'CLOSED', RED, 6, INK);
+      sign(c, wx + 4, G - 120, 52, 14, '#FEF3C7', 'CLOSED', RED, 6, INK);
       grille(c, wx);
       // (the glass over it, a glint across)
       c.save(); c.beginPath(); c.rect(wx, G - 140, 60, 70); c.clip();
@@ -453,11 +444,11 @@ const booth = (c: Ctx) => {
     box(c, wx, G - 188, 60, 28, INK); box(c, wx + 1, G - 187, 58, 26, GOLD[2]); box(c, wx + 1, G - 187, 58, 1, GOLD[4]); box(c, wx + 1, G - 187, 1, 26, GOLD[3]);
     box(c, wx + 1, G - 162, 58, 1, GOLD[0]); box(c, wx + 58, G - 187, 1, 26, GOLD[1]);
     slab(c, wx + 3, G - 185, 54, 22, '#FEF3C7', { edge: 2, ink: false }); box(c, wx + 3, G - 185, 54, 1, INK);
-    text(c, a, wx + 30, G - 176, '#7F1D1D', 6, 'center', null);
-    text(c, b, wx + 31, G - 165, FLAG_BLUE[2], 8, 'center', '#D8C8A0');
+    signAt(c, a, wx + 30, G - 176, 6, federal(6, '#7F1D1D'));
+    signAt(c, b, wx + 31, G - 165, 8, federal(8, FLAG_BLUE[2], '#D8C8A0'));
   });
   for (const px of [BX + 90, BX + 170]) shinyStar(c, px, G - 174, 6, GOLD[3]);
-  text(c, "*YOU'RE NOT GETTING THE SECOND DAY.", BX + 130, G - 149, '#FDE68A', 5, 'center', INK);
+  signAt(c, "*YOU'RE NOT GETTING THE SECOND DAY.", BX + 130, G - 149, 5, federal(5, '#FDE68A', INK));
   // (the cornice: gold, dentils)
   slab(c, BX - 6, top, 272, 6, GOLD[2], { edge: 2 });
   for (let x = BX - 2; x < BX + 264; x += 6) box(c, x, top + 6, 3, 2, GOLD[0]);
@@ -806,7 +797,7 @@ const topiary = (c: Ctx) => {
   c.restore();
   box(c, x + 4, G - 140, 3, 3, INK); box(c, x + 4, G - 140, 1, 1, '#E8F0D0');
   box(c, x + 2, G - 144, 7, 1, HEDGE[0]);
-  sign(c, x - 40, G - 38, 80, 10, '#FEF3C7', 'EAGLE (A SHRUB)', '#14532D', 5, GOLD[2]);
+  sign(c, x - 45, G - 38, 90, 10, '#FEF3C7', 'EAGLE (A SHRUB)', '#14532D', 5, GOLD[2]);
 };
 
 /** An urn of red, white and blue petunias. */
@@ -844,8 +835,8 @@ const mapBoard = (c: Ctx) => {
   ellipse(c, hx, hy, 13, 10, INK); ellipse(c, hx, hy, 12, 9, PINK[2]); shinyStar(c, hx, hy, 7, GOLD[3]);
   c.strokeStyle = '#C8A870'; c.lineWidth = 2; c.beginPath(); c.moveTo(hx, hy); c.lineTo(hx, top + h - 18); c.stroke();
   ball(c, hx, top + h - 18, 3, '#DC2626');
-  text(c, 'YOU ARE HERE (BROKE)', hx, top + h - 4, '#7F1D1D', 5, 'center', null);
-  sign(c, x + 22, top - 22, w - 44, 12, FLAG_BLUE[2], 'HAPPY LAND MAP', '#FDE047', 6, GOLD[2]);
+  signAt(c, 'YOU ARE HERE (BROKE)', hx, top + h - 4, 5, print(5, '#7F1D1D'));
+  sign(c, x + 22, top - 22, w - 44, 12, FLAG_BLUE[2], 'HAPPY LAND MAP', '#FDE047', 6, GOLD[2], gilt(6, FLAG_BLUE[0]));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
