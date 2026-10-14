@@ -243,9 +243,11 @@ const mine = (ctx: FrameContext, e: Enemy) => {
   // (only set off by him in play: not him carried up into the saucer, hidden in it, or in the crash's cutscene)
   const live = state.player.health > 0 && !state.player.hidden && !state.player.inCutscene;
   if (P.armedT === undefined && live && Math.hypot(pm.x - m.x, pm.y - m.y) < MINE_REACH) { P.armedT = MINE_FUSE; playSound('beep', 0.6, 8); }
-  if (P.armedT !== undefined) {
-    if (P.armedT % 6 === 0 && live) playSound('beep', 0.3, 12);
-    if (--P.armedT <= 0) mineBlows(ctx, e);
+  // (the fuse: beeping down to the bang, once; never left running (a fuse past zero beeped on forever, all through the
+  // rest of the land, off where nobody could see it): spent, it's gone either way)
+  if (P.armedT !== undefined && P.armedT > 0) {
+    if (P.armedT % 6 === 0 && live && m.x > camX(state) - 50 && m.x < camX(state) + 850) playSound('beep', 0.3, 12);
+    if (--P.armedT <= 0) { mineBlows(ctx, e); e.health = 0; }
   }
   if (m.x < camX(state) - 200) P.gone = true;
   return true;
