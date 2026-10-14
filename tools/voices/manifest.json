@@ -15536,6 +15536,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "I'LL WAIT FOR THE NEXT ONE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "I'M CALLING MY LAWYER!",
   "from": "INTRO"
  },

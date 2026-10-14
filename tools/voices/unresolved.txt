@@ -80,10 +80,10 @@ m2/space/crater/house.ts:88 voice: pick(L.XENO_TELEPORT)
 m2/space/crater/house.ts:127 voice: pick(L.BOO)
 m2/space/crater/house.ts:131 voice: pick(L.XENO_ARRIVED)
 m2/space/queen/show.ts:111 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
-m2/space/queen/fight.ts:222 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:228 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:235 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
-m2/space/queen/fight.ts:380 voice: pick(L.BOOTH_RAY[dressed(state)])
+m2/space/queen/fight.ts:223 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:229 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:236 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
+m2/space/queen/fight.ts:381 voice: pick(L.BOOTH_RAY[dressed(state)])
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice
 m1/game/bosses/alien.ts:90 voice: text
