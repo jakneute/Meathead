@@ -168,9 +168,9 @@ const tickTrams = (ctx: FrameContext, h: House) => {
   for (const tr of h.trams) {
     const near = cx > tr.a - 900 && cx < tr.b + 900;
     tr.t++;
+    // (the track's no place for them to stand, ever: nobody starts on it or wanders onto it between cars; knocked on, it's theirs)
+    zones.push({ x0: (tr.mode === 'run' ? Math.max(tr.a, tr.x) : tr.a) - 30, x1: tr.b + 30, y0: GY - TRAM_H, y1: GY, ground: true });
     if (tr.mode === 'wait') { if (near && tr.t >= WAIT) { tr.mode = 'warn'; tr.t = 0; } continue; }
-    // (the track's no place to stand from the bell on)
-    zones.push({ x0: Math.max(tr.a, tr.x) - 30, x1: tr.b + 30, y0: GY - TRAM_H, y1: GY, ground: true });
     if (tr.mode === 'warn') {
       if (tr.t % 20 === 1 && near) playSound('ding', 0.6, 8);
       if (tr.t >= WARN) { tr.mode = 'run'; tr.t = 0; tr.x = tr.a - 160; if (near) playSound('engine', 0.5, 2); }
