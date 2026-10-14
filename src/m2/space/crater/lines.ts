@@ -107,6 +107,27 @@ export const HOUSE_BARK: ByPants = {
     'NOT EVERY ALIEN WANTS YOUR PLANET! NOBODY WANTS WHAT YOU GOT!',
   ],
 };
+/** The corridor aft to the hold: they've seen what he did on the way in, and what a callous prick he is about it. */
+export const CALLOUS: ByPants = {
+  clean: [
+    "YOU WALKED RIGHT PAST MY WIFE'S HEAD! DIDN'T EVEN SLOW DOWN!",
+    'YOU KILLED MY WHOLE SHIFT AND NEVER LEARNED ONE NAME!',
+    "THIS IS A FAMILY RIDE AND YOU'RE MURDERING IN IT! SICK FUCK!",
+    "WE'RE INVADERS AND EVEN WE SAY SORRY FIRST! SOMETIMES!",
+  ],
+  shitty: [
+    "YOU STEPPED OVER MY WIFE'S HEAD! IN THOSE PANTS! SHE SMELLED IT!",
+    'YOU KILLED MY WHOLE SHIFT AND SHIT ON THE CRIME SCENE!',
+    'MURDER IS ONE THING! DOING IT IN LOADED PANTS IS ANOTHER!',
+    "WE'RE INVADERS AND EVEN WE WIPE AFTER! SOMETIMES!",
+  ],
+  nude: [
+    "YOU WALKED PAST MY WIFE'S HEAD WITH YOUR DICK OUT! HER EYES WERE OPEN!",
+    'YOU KILLED MY WHOLE SHIFT NAKED! THEY DIED LOOKING AT YOUR ASS!',
+    "THIS IS A FAMILY RIDE! YOU'RE MURDERING IN IT WITH NO PANTS!",
+    "WE'RE INVADERS AND EVEN WE WEAR A BELT! A BELT, ASSHOLE!",
+  ],
+};
 /** An operator (a mind-control headset on) taking one of the animatronics over: the irony's lost on him. */
 export const HIJACK = [
   "OKAY. BUT THAT ONE'S JUSTIFIED.",
@@ -176,8 +197,8 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...MH_HIJACK, ...HURT_GRUNT, ...HURT_LASER, ...HURT_BRUTE, ...HURT_SPIKES, ...HURT_CRAWLER, ...HURT_TRAM, ...HURT_PROP, ...HURT_SPARK,
   ],
   death: [...DEATH_GRUNT, ...DEATH_LASER, ...DEATH_BRUTE, ...DEATH_SPIKES, ...DEATH_CRAWLER, ...DEATH_TRAM, ...DEATH_PROP, ...DEATH_SPARK],
-  'm2.space.alien': [...all(CRASH_BARK), ...all(FLEE), ...all(HOUSE_BARK), ...GRIPE, ...HIJACK],
-  'm2.space.alienf': [...all(CRASH_BARK), ...all(FLEE), ...all(HOUSE_BARK), ...GRIPE, ...HIJACK],
+  'm2.space.alien': [...all(CRASH_BARK), ...all(FLEE), ...all(HOUSE_BARK), ...all(CALLOUS), ...GRIPE, ...HIJACK],
+  'm2.space.alienf': [...all(CRASH_BARK), ...all(FLEE), ...all(HOUSE_BARK), ...all(CALLOUS), ...GRIPE, ...HIJACK],
   'm2.space.xeno': [...XENO_WELCOME, ...XENO_TELEPORT, ...XENO_ARRIVED],
   'm2.space.boo': [...BOO],
 };

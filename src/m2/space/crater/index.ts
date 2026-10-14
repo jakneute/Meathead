@@ -6,7 +6,8 @@
 // and in he goes after them: the boarding queue, the teleporter pre-show (the BOO), then the ship (the bridge, the
 // specimen bay, the engine room), where cheap animatronics jump out and go BOO while the real ones fight him, griping
 // that the ride makes aliens look like violent invaders (they are violent invaders). Further in, their operators (in
-// mind-control headsets) take the animatronics over and set them on him: kill the operator, and it's a prop again.
+// mind-control headsets) take the animatronics over and set them on him: kill the operator, and it's a prop again. In
+// the corridor aft to the hold the props are only props; the ones there tell him what a callous prick he is.
 // On to the queen section's start (the hold: the showpiece).
 //
 // Laid out in layout.ts; the aliens (kinds.ts, drawn in aliens.ts); the ride's machinery (house.ts: the pre-show, the
@@ -60,8 +61,8 @@ const ENEMIES: [string, number, number, number][] = [
   // (THE ENGINE ROOM: everything at once)
   [GRUNT, CRATES[0][0] + CRATES[0][1] / 2, GY - CRATES[0][2], 1081], [CRAWLER, D + 10700, GY, 79], [BRUTE, D + 10960, GY, 83], [GRUNT, CRATES[1][0] + CRATES[1][1] / 2, GY - CRATES[1][2], 1085],
   [CRAWLER, D + 11260, GY, 89], [GRUNT, D + 11420, GY, 91], [BRUTE, D + 11960, GY, 95],
-  // (the corridor aft to the hold)
-  [GRUNT, D + 12220, GY, 1097],
+  // (the corridor aft to the hold: no operator here; they've seen what he did on the way, and say so)
+  [GRUNT, D + 12220, GY, 97],
 ];
 /** What's lying about (small: lean drops): [x, y (feet), type]. */
 const PICKUPS: [number, number, PickupType][] = [[PYLON.x + 60, PYLON.y, 'small_health'], [CATWALKS[1][0] + 40, CATWALKS[1][1], 'small_ammo'], [CRATES[2][0] + 45, GY - CRATES[2][2], 'small_health']];
@@ -108,7 +109,7 @@ export const crater: SpaceSection = {
       state.enemies.push(e);
     }
     state.pickups.push(...PICKUPS.map(([x, y, type], i) => ({ id: `crater-${i}`, pos: { x: x - 10, y: y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 })));
-    setBarkPlace(e => (e.pos.x > HOUSE_DOOR ? 'house' : 'crash'));
+    setBarkPlace(e => (e.pos.x > HALLS.exit.l ? 'aft' : e.pos.x > HOUSE_DOOR ? 'house' : 'crash'));
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, cr = craterOf(state), cx = p.pos.x + p.width / 2;
@@ -163,6 +164,6 @@ const LAMPS = [
   { x: D + 3600, y: GY - 60, r: 140, a: 0.7, color: 'rgba(249, 115, 22, 0.1)' },
   { x: D + 2300, y: GY - 156, r: 130, a: 0.6, color: 'rgba(249, 168, 212, 0.08)' },
   { x: D + 4880, y: GY - 156, r: 130, a: 0.6, color: 'rgba(249, 168, 212, 0.08)' },
-  { x: HOUSE_DOOR - 180, y: GY - 560, r: 200, a: 0.6, color: 'rgba(74, 222, 128, 0.08)' },
+  { x: HOUSE_DOOR - 180, y: GY - 395, r: 200, a: 0.6, color: 'rgba(74, 222, 128, 0.08)' },
 ];
 void floorAt;

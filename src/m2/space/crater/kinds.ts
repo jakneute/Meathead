@@ -54,8 +54,11 @@ const isWoman = (e: Enemy) => e.kind !== BRUTE && seedOf(e) % 4 === 1;
 const said = new Map<Enemy, string>();
 let game: GameState | null = null;
 /** Which pool they bark from: out at the impact site (the ship), or in the haunted house (the ride). */
-let where: (e: Enemy) => 'crash' | 'house' = () => 'crash';
-export const setBarkPlace = (f: (e: Enemy) => 'crash' | 'house') => { where = f; };
+let where: (e: Enemy) => BarkPlace = () => 'crash';
+/** Out at the impact site (the ship); in the haunted house (the ride); the corridor aft to the hold (what he's done). */
+export type BarkPlace = 'crash' | 'house' | 'aft';
+export const setBarkPlace = (f: (e: Enemy) => BarkPlace) => { where = f; };
+export const barkPlace = (e: Enemy) => where(e);
 export const aliensTalking = () => { for (const [e, t] of said) if (t && e.health > 0) return true; return false; };
 /** One of them says something (if nobody else is). */
 /** Quiet, all of them (his line's being said: the crash's arrival). */
@@ -71,7 +74,7 @@ export const alienSays = (e: Enemy, text: string) => {
 };
 const bark = (e: Enemy) => {
   if (!game) return;
-  const pool = e.kind === FLEER ? L.FLEE : where(e) === 'house' ? L.HOUSE_BARK : L.CRASH_BARK;
+  const w = where(e), pool = e.kind === FLEER ? L.FLEE : w === 'aft' ? L.CALLOUS : w === 'house' ? L.HOUSE_BARK : L.CRASH_BARK;
   const text = freshBark(pool[dressed(game)]);
   if (text) alienSays(e, text);
 };

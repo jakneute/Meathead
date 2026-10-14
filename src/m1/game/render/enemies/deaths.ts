@@ -171,20 +171,22 @@ const drawVaporized = (ctx: Ctx, d: EnemyDeath, frame: number, state: GameState)
     const flick = t < VAPOR_HOLD ? (frame % 2 ? 0.75 : 0.5) : 0.35;
     ctx.save();
     if (fall) ctx.translate(0, fall);
-    drawBodyMasked(ctx, d, state, {}, g => {
+    // (all gone: nothing of it drawn, not a stray cell of an arm or a gun left hanging)
+    if (k < 1) drawBodyMasked(ctx, d, state, {}, g => {
       // (lit up in the beam: its green over all of it, flickering white while it's held)
       g.fillStyle = t < VAPOR_HOLD && frame % 3 === 0 ? `rgba(255, 255, 255, ${flick})` : `rgba(255, 140, 228, ${flick})`;
       g.fillRect(x - w, y - h, w * 3, h * 3);
       if (k <= 0) return;
-      // Eaten away: every cell the ragged edge has passed goes; the cells just ahead of it white-hot
-      const x0 = x - 12, x1 = x + w + 12;
+      // Eaten away: every cell the ragged edge has passed goes; the cells just ahead of it white-hot. Across all the
+      // mask holds (an arm, a gun, antennae out past the hit box go with the edge as it gets to that side, not left behind)
+      const pad = Math.max(w, h) * 0.8 + 16, x0 = x - 12, x1 = x + w + 12, span = x1 - x0;
       const hot: [number, number][] = [];
       g.globalCompositeOperation = 'destination-out';
       g.fillStyle = '#000';
-      for (let cy = y - 24; cy < shoesFrom; cy += VCELL) {
-        for (let cxx = x0; cxx < x1; cxx += VCELL) {
-          const along = dir > 0 ? cxx - x0 : x1 - cxx;
-          const edge = (x1 - x0) * k + (hash(seed + cxx * 0.37 + cy * 1.31) - 0.5) * VRAG;
+      for (let cy = y - pad; cy < shoesFrom; cy += VCELL) {
+        for (let cxx = x - pad; cxx < x + w + pad; cxx += VCELL) {
+          const along = Math.min(span - VCELL * 3, dir > 0 ? cxx - x0 : x1 - cxx);
+          const edge = (span + VRAG) * k + (hash(seed + cxx * 0.37 + cy * 1.31) - 0.5) * VRAG;
           if (along < edge) g.fillRect(cxx, cy, VCELL, VCELL);
           else if (along < edge + VCELL * 2) hot.push([cxx, cy]);
         }

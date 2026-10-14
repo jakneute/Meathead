@@ -18,7 +18,7 @@ import { drawTodSky, farTint } from '../../timeOfDay';
 import { box, label } from '../section';
 import { GY } from '../geometry';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
-import { drawCorpse, slimePool, drawAlienRaw, type CorpseKind } from './aliens';
+import { drawCorpse, slimePool, drawRag, type CorpseKind } from './aliens';
 import {
   D, x0, x1, BOWL, WRECK_X, CART, PYLON, CHUNK_X, FACADE_X, HOUSE_DOOR, MOUTH_X, QUEUE_END, PRESHOW, HALLS, CATWALKS, CRATES, CEIL, TRAMS,
 } from './layout';
@@ -119,6 +119,9 @@ const drawWreck = (c: Ctx, state: GameState) => {
     g.fillStyle = '#18181B'; g.fillRect(90, -20, 70, 26);
     for (let i = 0; i < 6; i++) limb(g, 96 + i * 10, -16, 100 + i * 9 + (i % 2) * 6, 10 + (i % 3) * 6, 2, ['#EF4444', '#22C55E', '#3B82F6', '#FDE047'][i % 4]);
     ink(g, () => { g.moveTo(90, -20); g.lineTo(140, -48); g.lineTo(162, -20); g.closePath(); }, HULL_D);
+    // (ZRB-2 on the hull, whatever it said: theirs. On the upper hull past the torn plates, along its tilt: down at the
+    // rim's lights the one impaled on the antenna stood over it)
+    g.fillStyle = '#4B5563'; g.font = '10px "Press Start 2P"'; g.fillText('ZRB-2', 168, -18);
     // (the dome: cracked, a hole punched through it, the dark inside)
     ink(g, () => g.ellipse(-20, -40, 84, 60, 0, Math.PI, 0), 'rgba(147, 197, 253, 0.55)', 2);
     g.fillStyle = 'rgba(15, 23, 42, 0.75)'; g.beginPath(); g.ellipse(10, -46, 30, 22, 0.3, 0, Math.PI * 2); g.fill();
@@ -128,13 +131,14 @@ const drawWreck = (c: Ctx, state: GameState) => {
     // (a bent antenna off the top, and one of them on it (impaled: drawn after, standing))
     // (the hatch hanging open underneath, one of them hanging out of it upside down)
     ink(g, () => g.roundRect(-170, 14, 60, 34, 4), '#27272A');
-    g.save(); g.translate(-140, 48); g.rotate(Math.PI); g.scale(0.8, 0.8); g.beginPath(); g.rect(-60, -40, 120, 140); g.clip(); g.translate(0, 90); drawAlienRaw(g, { seed: 41, gun: true }, 'dead'); g.restore();
+    g.save(); g.translate(-140, 0); g.scale(0.8, 0.8);
+    drawRag(g, { seed: 41, gun: true }, { sh: [2, 96], hip: [0, 52], gut: 1, armB: [[-12, 110], [-16, 136]], armF: [[14, 112], [18, 138]], head: { at: [4, 116], a: Math.PI, flip: true, tongue: true } });
+    g.fillStyle = ALIEN.slime; g.fillRect(16, 146, 2, 8); g.fillRect(4, 132, 2, 10);
+    g.restore();
     g.restore();
     // (under the rim: a pair of three-toed feet sticking out, toes up)
     for (const fx of [cx + 210, cx + 232]) { ink(g, () => g.roundRect(fx, floor - 14, 9, 14, 3), ALIEN.hide[5]); for (let t = 0; t < 3; t++) { g.fillStyle = INK; g.fillRect(fx + t * 3, floor - 17, 2, 3); } }
     slimePool(g, cx + 222, floor, 40);
-    // (YT-7 on the hull: whatever it said, it's theirs)
-    g.fillStyle = '#4B5563'; g.font = '10px "Press Start 2P"'; g.fillText('ZRB-2', cx - 230, cy + 6);
   });
   // Live: the lights flickering, the smoke, the fire in the torn plates
   const f = state.frame;
@@ -180,6 +184,12 @@ const drawCorpses = (c: Ctx, state: GameState) => {
   for (const [x, kind, seed] of CORPSES) {
     if (!shown(state, x - 160, x + 160)) continue;
     c.save(); c.translate(x, floorAt(x)); drawCorpse(c, kind, seed); c.restore();
+    // (the seat's still smoking: a thin wisp up off it, in grey steps)
+    if (kind === 'seat') for (let i = 0; i < 4; i++) {
+      const k = ((state.frame * 0.5 + i * 30) % 120) / 120, sx = x - 20 + Math.sin(k * 5 + i) * 6 + k * 18, sy = floorAt(x) - 90 - k * 90, r = 4 + k * 10;
+      c.fillStyle = k < 0.5 ? 'rgba(87, 83, 78, 0.45)' : 'rgba(120, 113, 108, 0.25)';
+      c.beginPath(); c.ellipse(Math.round(sx), Math.round(sy), Math.round(r), Math.round(r * 0.8), 0, 0, Math.PI * 2); c.fill();
+    }
   }
 };
 
@@ -268,7 +278,7 @@ const drawFacade = (c: Ctx, state: GameState) => {
     g.fillStyle = '#A1A1AA'; g.fillRect(cx + 100, GY - 250, 40, 9); g.fillRect(cx + 115, GY - 262, 9, 34);
     ink(g, () => g.rect(bl + 30, GY - 300, 26, 34), '#18181B'); g.fillStyle = '#3F3F46'; g.beginPath(); g.arc(bl + 43, GY - 283, 9, 0, Math.PI * 2); g.fill();
     // (portholes, a couple lit green)
-    for (let i = 0; i < 3; i++) { ink(g, () => g.arc(cx - 90 + i * 70, GY - 330 + i * 12, 14, 0, Math.PI * 2), i === 1 ? '#4ADE80' : '#1C1917', 3); }
+    for (let i = 0; i < 3; i++) { ink(g, () => g.arc(cx - 90 + i * 70, GY - 312 + i * 12, 14, 0, Math.PI * 2), i === 1 ? '#4ADE80' : '#1C1917', 3); }
     // (the stencil)
     g.fillStyle = '#44403C'; g.font = '10px "Press Start 2P"'; g.fillText('M.S. COINCIDENCE', cx - 100, GY - 250);
     // (the boarding hatch: a dark oval, the ramp down out of it, its rails)
@@ -278,9 +288,10 @@ const drawFacade = (c: Ctx, state: GameState) => {
     // (the fog machine's fog rolling down the ramp, painted on: blacklight purple)
     g.fillStyle = 'rgba(167, 139, 250, 0.3)'; g.beginPath(); g.ellipse(cx, GY - 6, 110, 10, 0, 0, Math.PI * 2); g.fill();
     // (the cheap green on top, waving: a statue)
-    // (the sign under the name: LEGALLY DISTINCT)
-    ink(g, () => g.roundRect(cx - 120, GY - 520, 240, 30, 4), '#18181B', 2);
-    g.fillStyle = '#FDE047'; g.font = '7px "Press Start 2P"'; g.fillText('A LEGALLY DISTINCT DERELICT', cx - 108, GY - 501);
+    // (the sign under the name: LEGALLY DISTINCT. Both down on the hull's face: up over its top they were off the top of
+    // the screen, under the HUD)
+    ink(g, () => g.roundRect(cx - 120, GY - 370, 240, 24, 4), '#18181B', 2);
+    g.fillStyle = '#FDE047'; g.font = '7px "Press Start 2P"'; g.fillText('A LEGALLY DISTINCT DERELICT', cx - 108, GY - 354);
     // (the height sign: YOU MUST BE THIS TALL TO BE ABDUCTED)
     const hx = bl - 100;
     limb(g, hx, GY, hx, GY - 110, 4, '#E5E7EB');
@@ -294,7 +305,7 @@ const drawFacade = (c: Ctx, state: GameState) => {
   // (the neon over it, live: the letters stepping on, one tube dead, flickering)
   const word = 'XENOSCARE!', n = word.length, on = Math.floor(f / 6) % (n + 12);
   c.font = '22px "Press Start 2P"'; c.textAlign = 'left';
-  const w = c.measureText(word).width, sx = cx - w / 2, sy = GY - 548;
+  const w = c.measureText(word).width, sx = cx - w / 2, sy = GY - 384;
   box(c, sx - 14, sy - 30, w + 28, 40, '#0F0420');
   for (let i = 0; i < n; i++) {
     const lit = i <= on && !(i === 4 && f % 50 < 8);
@@ -464,8 +475,9 @@ const drawShows = (c: Ctx, state: GameState) => {
       g.fillStyle = '#1E3A8A'; g.fillRect(fx - 9, GY - 126, 7, 30); g.fillRect(fx + 2, GY - 126, 7, 30);
       // (the eggs: leathery, split at the top, in a crate; its sign)
       for (let i = 0; i < 4; i++) { ink(g, () => g.ellipse(l + 250 + i * 34, GY - 24, 14, 22, 0, 0, Math.PI * 2), '#57534E', 1.5); g.fillStyle = '#292524'; g.fillRect(l + 244 + i * 34, GY - 46, 12, 4); }
-      ink(g, () => g.roundRect(l + 200, GY - 120, 220, 40, 4), '#FDE047', 2);
-      g.fillStyle = INK; g.font = '6px "Press Start 2P"'; g.fillText('DO NOT TOUCH THE EGGS', l + 210, GY - 102); g.fillText('(LEGALLY DISTINCT EGGS)', l + 206, GY - 90);
+      // (down off the catwalk's underside: its floor sat on the sign's top line)
+      ink(g, () => g.roundRect(l + 200, GY - 106, 220, 40, 4), '#FDE047', 2);
+      g.fillStyle = INK; g.font = '6px "Press Start 2P"'; g.fillText('DO NOT TOUCH THE EGGS', l + 210, GY - 88); g.fillText('(LEGALLY DISTINCT EGGS)', l + 206, GY - 76);
       g.fillStyle = '#FFFFFF'; g.font = '10px "Press Start 2P"'; g.fillText('SPECIMEN BAY', l + 500, GY - 320);
     });
     const tx = l + 720, cy = GY - 120 - (Math.sin(f * 0.02) * 0.5 + 0.5) * 120;

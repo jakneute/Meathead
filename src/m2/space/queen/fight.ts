@@ -4,29 +4,38 @@
 //                 place. Down she drops out of the ceiling, silent (a screech). He grabs the fire extinguisher off the
 //                 wall (his say), hoses her down: foam all over her. Nothing: she shakes it off. His say; so he throws
 //                 the thing at her head. BONK. Her first words, out of her speaker: NOW ENTERING LESS FATAL MODE. His say
-//                 back. Up in the DJ booth, the real ones: ACTIVATE IMPREGNATOR RAY! (a robot giving birth: don't ask);
-//                 the beam into her. His say. On.
-//   HER SIDE      she holds one side of the hall (left or right), facing in, swaying.
+//                 back. Up in the DJ booth, the real ones explain (their study of humans: the mating ritual happens at
+//                 the disco; this is a disco; so she breeds): ACTIVATE IMPREGNATOR RAY! The beam into her. His say. On.
+//                 The hall's extra wide (the camera follows him in it); held on him, the booth and her for this.
+//   HER SIDE      she holds one side of the hall (left or right: far apart), facing in, swaying. First thing, she
+//                 leaps to the far one.
 //   BIRTHS        every so often she turns her back on him (the tell: round she goes, a push, a grunt) and out of her
 //                 rear it comes: a sac, splat on the floor, and out of that one of her offspring (kin.ts: a BITER, a
 //                 SPITTER or a CHARGER). So many at once, at most.
 //   THE LEAP      every so often (and straight after she's had her head bonked) she crouches (the tell: down, a
-//                 screech), leaps across the hall to the other side, and on the way barfs "acid" (motor oil) down on the
-//                 floor: it burns, and it leaves slicks (Meathead 1's oil: he slides on them).
+//                 screech), leaps across the hall to the other side in a big arc, and all along it barfs "acid" (motor
+//                 oil) down on the floor: it burns, and it leaves slicks (Meathead 1's oil: he slides on them). She
+//                 lands in a pool of it, hot, glowing: keep out.
+//   THE BOOTH     from half way down her, the operators chip in: a spotlight dropped on him out of the rig (its spot
+//                 marked red on the floor and a whistle first). Lower she gets, the more of hers at once, the quicker
+//                 they come, the more she leaps.
 //   THE FLAIL     him in close too long (her reach, about a second and a half): a twitch and a spark (the tell), then all
 //                 four arms going at once, a wide heavy hit that knocks him back. Backing off resets it.
 //   HURTING HER   a main boss's rules: 666, the 60-frame breather after each hit; the ray gun and his moves Meathead 1's
 //                 way (a shot 25; charge and slide 35; uppercut and dive kick 50); any other special weapon 35%. Her
 //                 weakness is the MALLET (in full). And:
 //                   - one of her own (or anybody) thrown into her: it's destroyed, and she's hurt;
-//                   - one of her own BATTED back into her with the mallet: more again, she's stunned a moment, and every
-//                     one of her offspring in the hall is destroyed with it;
+//                   - one of her own BATTED back into her with the mallet: the big one (not a finisher: eight-odd of them
+//                     and the chip in between), she's stunned a moment, and every one of her offspring in the hall is
+//                     destroyed with it;
 //                   - her head bonked with the mallet, straight on (him up level with it): stunned, a modest chunk, and
-//                     once she's over it she's off to the other side.
+//                     once she's over it she's off to the other side;
+//                   - the mallet's plain swings: a modest knock, the breather after each like anything else.
 //                 No instant kills.
 //   HER DEATH     her circuits going: sparks, her head drops, her crest bends, a gush of green hydraulic fluid, her
-//                 recording slurring out of her; the feedback up the link pops the operators' heads up in the DJ booth
-//                 (green all over its glass); her offspring drop dead where they stand. His say. Over.
+//                 recording slurring out of her; her offspring drop dead where they stand. Then the operators, Saturday-
+//                 morning villains: fists shaking at him through the glass, stomping, CURSES, WE'LL SEE YOU AGAIN,
+//                 MEATHEAD!, and out the booth's back door in a cloud of dust. His say. Over. (After: the booth empty.)
 //
 // A retry (killed in it, back at the checkpoint inside the door): no cutscene; she's in the hall, on, and it's on.
 
@@ -46,11 +55,13 @@ import { ENEMY_HIT_COOLDOWN, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DA
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { takeBites } from '../../weapons/spawner';
 import { setHazardZones } from '../../hazardHit';
-import { ink } from '../../../m1/game/render/npc/kit';
+import { ink, limb } from '../../../m1/game/render/npc/kit';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { hands, speak, meatheadSays, saidOver, box, label, voice } from '../section';
 import { GY } from '../geometry';
-import { DISCO_L as ARENA_L, DISCO_R as ARENA_R, DISCO_QX as QUEEN_X, DJ as BOOTH, EXTINGUISHER_X } from './geo';
+import { DISCO_L as ARENA_L, DISCO_R as ARENA_R, DISCO_SIDES, DJ as BOOTH, EXTINGUISHER_X } from './geo';
+import type { BoothOps } from './lowerArt';
+import type { Light } from '../../../m1/game/render/lighting';
 import { drawQueen, queenHead, type QueenPose } from './art';
 import { BITER, SPITTER, CHARGER, isKin, kinAge, spawnKin, destroyKin, tickKin, drawKinShots, drawSac, resetKin } from './kin';
 import * as L from './lines';
@@ -67,26 +78,34 @@ const HP = 666, BIG = 100000;
 /** Any special weapon that isn't her weakness (the mallet): this share gets through; after each hit, the breather. */
 const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
 /** Her two sides (where she stands: her feet's middle). */
-const SIDE_X = { [-1]: ARENA_L + 200, [1]: QUEEN_X } as Record<-1 | 1, number>;
+const SIDE_X = { [-1]: DISCO_SIDES.l, [1]: DISCO_SIDES.r } as Record<-1 | 1, number>;
+/** Where she drops in for the cutscene (on screen with him, the extinguisher and the booth); the camera then. */
+const INTRO_X = ARENA_L + 780, INTRO_CAM = ARENA_L + 80;
 /** Births: how often (by phase), at most this many of hers about at once; the tell (turning round), the push. */
-const BIRTH_EVERY = [0, 300, 220], KIN_CAP = [0, 3, 4], TURN_T = 26, PUSH_T = 34;
+const BIRTH_EVERY = [0, 240, 170, 120], KIN_CAP = [0, 3, 5, 7], TURN_T = 26, PUSH_T = 34;
 /** Which kind comes out (by phase): the chances of a biter, a spitter (the rest chargers). */
-const KIN_ODDS = [[0, 0, 0], [0.55, 0.3], [0.4, 0.35]];
+const KIN_ODDS = [[0, 0, 0], [0.55, 0.3], [0.4, 0.35], [0.35, 0.35]];
 /** The leap: how often (by phase); the crouch (the tell), the air, the landing; how high; the oil it barfs. */
-const LEAP_EVERY = [0, 760, 560], CROUCH_T = 34, AIR_T = 54, LAND_T = 22, LEAP_UP = 250, OIL_DMG = 12;
+const LEAP_EVERY = [0, 720, 520, 360], CROUCH_T = 34, AIR_T = 84, LAND_T = 22, LEAP_UP = 330, OIL_DMG = 12;
 /** The flail: in this close this long and it's coming; the tell; the hit (how wide, how hard, how far he goes). */
 const FLAIL_REACH = 190, FLAIL_LINGER = 90, FLAIL_TELL = 20, FLAIL_T = 26, FLAIL_WIDE = 230, FLAIL_DMG = 28;
 /** Thrown into her: what it does; batted back with the mallet: what that does, and how long she's stunned. */
-const THROWN_DMG = 60, BATTED_DMG = 140, BATTED_STUN = 90;
+const THROWN_DMG = 45, BATTED_DMG = 72, BATTED_STUN = 90;
 /** Her head bonked with the mallet: the extra, the stun. */
-const HEAD_EXTRA = 30, HEAD_STUN = 70;
+const HEAD_EXTRA = 8, HEAD_STUN = 70;
+/** The mallet's plain swing on her: a modest knock (the breather after it, like anything). */
+const MALLET_HIT = 16;
+/** The booth's spotlight: how often (by phase; 0 none), the tell (its spot on the floor), the fall, how wide, how hard. */
+const DROP_EVERY = [0, 0, 620, 420], DROP_TELL = 54, DROP_FALL = 14, DROP_R = 36, DROP_DMG = 16;
 /** The oil slicks: how long one lasts (frames). */
 const SLICK_LIFE = 1100;
 /** How often she says something at him (frames). */
 const TAUNT_EVERY = 900;
 
-const OIL = 'm2:sp_queen_oil', FLAIL = 'm2:sp_queen_flail', POOL = 'm2:sp_queen_pool';
+const OIL = 'm2:sp_queen_oil', FLAIL = 'm2:sp_queen_flail', POOL = 'm2:sp_queen_pool', CAN = 'm2:sp_queen_can';
 registerHurtLines(OIL, L.HURT_OIL, L.DEATH_OIL);
+registerHurtLines(CAN, L.HURT_CAN, L.DEATH_CAN);
+registerDeathKind(CAN, 'flattened');
 registerDeathKind(OIL, 'burnt');
 registerDeathKind(POOL, 'boiled');
 /** The flail's and the pool's lines go by the state of him: set each frame (registerHurtLines just files them). */
@@ -96,7 +115,7 @@ const fileLines = (state: GameState) => {
   registerHurtLines(POOL, [...L.HURT_POOL[d]], [...L.DEATH_POOL[d]]);
 };
 /** The pool of hot oil she lands in after a leap: how wide; what it does to him. Up till her next birth. */
-const POOL_R = 170, POOL_DMG = 22;
+const POOL_R = 190, POOL_DMG = 22;
 
 /** Kept across his deaths: the disco's cutscene's been (a retry skips it). */
 const INTRO_MEMO = 'm2:space:discoIntro';
@@ -104,7 +123,7 @@ const INTRO_MEMO = 'm2:space:discoIntro';
 // ---------------------------------------------------------------------------------------------------------------
 // The state
 
-type Step = 'lights' | 'drop' | 'grab' | 'spray' | 'shake' | 'throw' | 'bonk' | 'mode' | 'ray' | 'beam' | 'react';
+type Step = 'lights' | 'drop' | 'grab' | 'spray' | 'shake' | 'throw' | 'bonk' | 'mode' | 'study' | 'ray' | 'beam' | 'react';
 export type Mode = 'wait' | 'intro' | 'idle' | 'birth' | 'leap' | 'flail' | 'stun' | 'dead';
 interface Drop { x: number; y: number; vx: number; vy: number }
 interface Sac { x: number; y: number; vx: number; vy: number; t: number; kind: string; landed: number }
@@ -127,8 +146,12 @@ export interface Fight {
   tauntT: number; saidBirth: number;
   /** A throw or a bat landed on her lately (the engine's own share of the same hit isn't counted on top). */
   eventAt: number;
-  /** The operators in the booth: alive, or popped. */
-  operators: boolean;
+  /** The operators in the booth: at it; losing it after her; running out the back; gone. */
+  ops: BoothOps;
+  /** The booth's spotlight: its spot (x), how far through (the tell, then falling); when the next. */
+  can: { x: number; t: number } | null; canT: number;
+  /** Where she leapt from. */
+  leapFrom: number;
   deathT: number; deathSaid: number; byWeakness: boolean;
   e: Enemy | null;
 }
@@ -136,14 +159,14 @@ export const makeFight = (state: GameState): Fight => {
   const seen = !!state.stageMemo[INTRO_MEMO];
   return {
     mode: 'wait', t: 0, total: 0, hp: HP, iframes: 0, flash: 0, moveSeen: undefined,
-    side: 1, x: SIDE_X[1], y: 0, facing: -1, ext: 0, ph: null,
+    side: 1, x: seen ? SIDE_X[1] : INTRO_X, y: 0, facing: -1, ext: 0, ph: null,
     step: 'lights', stepT: 0, skipT: 0, token: 0,
     glass: !seen, booth: 1, beam: 0, alive: 1,
     lights: seen ? 1 : 0, down: seen ? 1 : 0, foam: 0, ext2: seen ? 'gone' : 'wall', ex: { x: EXTINGUISHER_X, y: GY - 90, vx: 0, vy: 0, r: 0 },
     said: null, boothSaid: null,
     birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, pool: null,
     drops: [], sacs: [], slicks: [], tauntT: 0, saidBirth: -9999, eventAt: -99,
-    operators: true, deathT: 0, deathSaid: 0, byWeakness: false, e: null,
+    ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], deathT: 0, deathSaid: 0, byWeakness: false, e: null,
   };
 };
 
@@ -152,7 +175,11 @@ export const makeFight = (state: GameState): Fight => {
 
 const QUEEN_KIND = 'm2:sp_queen' as const;
 /** The disco's cutscene's lights (0..1), for the hall's own drawing and lighting. */
-export const discoLights = (f: Fight) => f.lights;
+export const discoLights = (f: Fight) => (f.can && f.can.t < DROP_TELL && f.can.t % 8 < 4 ? f.lights * 0.4 : f.lights);
+/** The booth's two, for the hall's drawing. */
+export const boothOps = (f: Fight) => f.ops;
+/** The camera held for the cutscene (null: following him). */
+export const introCamX = (f: Fight) => (f.mode === 'intro' ? INTRO_CAM : null);
 registerM2Kind({
   kind: QUEEN_KIND,
   stats: { w: 110, h: 240, hp: BIG, contact: 0, mass: 900, air: true },
@@ -172,6 +199,11 @@ const queenSays = (state: GameState, f: Fight, lines: L.ByPants, onDone?: () => 
   speak('m2.space.queen', pick(lines[dressed(state)]), s => { if (tok === f.token) f.said = s?.text ?? null; }, true, () => { if (tok === f.token) onDone?.(); });
 };
 const quiet = (f: Fight) => !f.said && !f.boothSaid;
+/** The booth says one of these, and then (its line done) whatever's next. */
+const boothSays = (state: GameState, f: Fight, lines: L.ByPants, onDone?: () => void) => {
+  const tok = f.token;
+  speak('m2.space.alien', pick(lines[dressed(state)]), x => { if (tok === f.token) f.boothSaid = x?.text ?? null; }, true, () => { if (tok === f.token) onDone?.(); });
+};
 const bark = (state: GameState, f: Fight, lines: L.ByPants, who: 'queen' | 'booth' = 'queen') => {
   if (!quiet(f)) return;
   const text = pick(lines[dressed(state)]);
@@ -201,7 +233,9 @@ const begin = (state: GameState, f: Fight) => {
   f.token++;
   to(f, 'idle'); f.glass = false; f.booth = 1; f.beam = 0; f.alive = 1; f.said = null; f.boothSaid = null;
   f.lights = 1; f.down = 1; f.foam = 0; f.ext2 = 'gone';
-  f.birthT = 120; f.leapT = 0;
+  f.birthT = 120; f.leapT = 0; f.canT = 0;
+  // (out of the cutscene she's mid-hall: first thing, she's off to the far end)
+  if (Math.abs(f.x - SIDE_X[1]) > 40) { f.side = -1; f.forceLeap = true; }
   state.stageMemo[INTRO_MEMO] = '1';
   state.player.inCutscene = false; state.player.kickPose = 0;
   const e = makeKindEnemy(QUEEN_KIND as EnemyKind, f.x, GY);
@@ -222,7 +256,7 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
     p.vel.x = 0;
     begin(state, f); return hands();
   }
-  const t = f.stepT, cx = p.pos.x + p.width / 2, head = queenHead(QUEEN_X, -1, 0);
+  const t = f.stepT, cx = p.pos.x + p.width / 2, head = queenHead(f.x, -1, 0);
   f.lights = Math.min(1, f.lights + 0.03);
   if (f.ext2 === 'held') { f.ex.x = cx + p.facing * 22; f.ex.y = p.pos.y + 34; }
   switch (f.step) {
@@ -257,7 +291,7 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
       break;
     case 'shake':
       // (nothing: she shakes it all off, like a dog)
-      if (t % 6 === 0) { playSound('whoosh', 0.4, 6); for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: QUEEN_X + (Math.random() - 0.5) * 80, y: GY - 120 - Math.random() * 160 }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 4 }, life: 34, color: '#F8FAFC', size: 4 + Math.random() * 4, grav: 0.3 }); }
+      if (t % 6 === 0) { playSound('whoosh', 0.4, 6); for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 80, y: GY - 120 - Math.random() * 160 }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 4 }, life: 34, color: '#F8FAFC', size: 4 + Math.random() * 4, grav: 0.3 }); }
       f.foam = Math.max(0, f.foam - 0.025);
       if (t === 40) meatheadSays(state, pick(L.MH_FOAM_FAIL), true, tokened(f, () => go(f, 'throw')));
       break;
@@ -266,7 +300,7 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
       if (t === 1) { meatheadSays(state, pick(L.MH_THROW), false); }
       if (t === 20) {
         f.ext2 = 'air';
-        const T = 34;
+        const T = Math.max(34, Math.round(Math.abs(head.x - f.ex.x) / 10));
         f.ex.vx = (head.x - f.ex.x) / T; f.ex.vy = (head.y - f.ex.y) / T - 0.5 * 0.35 * T;
         playSound('whoosh', 0.9, -2);
       }
@@ -283,10 +317,15 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
     case 'bonk':
       // (a twitch, the sparks; then her first words)
       if (t % 5 === 0) playSound('click', 0.6, 8 - (t % 20));
-      if (t === 40) { go(f, 'mode'); queenSays(state, f, L.QUEEN_LESS_FATAL, tokened(f, () => meatheadSays(state, pick(L.MH_LESS_FATAL[dressed(state)]), true, tokened(f, () => go(f, 'ray'))))); }
+      if (t === 40) { go(f, 'mode'); queenSays(state, f, L.QUEEN_LESS_FATAL, tokened(f, () => meatheadSays(state, pick(L.MH_LESS_FATAL[dressed(state)]), true, tokened(f, () => go(f, 'study'))))); }
       break;
     case 'mode':
-      if (t > 1500) go(f, 'ray');
+      if (t > 1500) go(f, 'study');
+      break;
+    case 'study':
+      // (up in the booth: their study of humans (the mating's done at the disco; this is a disco), then the plan)
+      if (t === 1) boothSays(state, f, L.BOOTH_STUDY, () => boothSays(state, f, L.BOOTH_RITUAL, () => go(f, 'ray')));
+      if (t > 1800) go(f, 'ray');
       break;
     case 'ray':
       // (up in the DJ booth: ACTIVATE IMPREGNATOR RAY; the beam into her belly; his say; on)
@@ -309,7 +348,7 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
 // ---------------------------------------------------------------------------------------------------------------
 // Each frame
 
-const phase = (f: Fight) => (f.hp > HP / 2 ? 1 : 2);
+const phase = (f: Fight) => (f.hp > (HP * 2) / 3 ? 1 : f.hp > HP / 3 ? 2 : 3);
 const to = (f: Fight, m: Mode) => { f.mode = m; f.t = 0; f.ph = null; };
 const pmid = (state: GameState) => ({ x: state.player.pos.x + state.player.width / 2, y: state.player.pos.y + state.player.height / 2 });
 const canHurt = (state: GameState) => state.player.health > 0 && state.deathTimer <= 0 && state.player.invincibilityTimer <= 0;
@@ -355,7 +394,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
           playSound('fart', 1, -6); playSound('splat', 0.8, -4); shakeScreen(state, 4, 2);
           for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: f.x + dir * 60, y: GY - 90 }, vel: { x: dir * (1 + Math.random() * 4), y: -1 - Math.random() * 3 }, life: 30, color: i % 2 ? ALIEN.slime : '#0A0A0A', size: 2 + Math.random() * 3, grav: 0.3 });
           if (state.frame - f.saidBirth > 900) { f.saidBirth = state.frame; meatheadSays(state, pick(L.MH_BIRTH), false); }
-          else if (Math.random() < 0.4) bark(state, f, L.BOOTH_BIRTH, 'booth');
+          else if (Math.random() < 0.5) bark(state, f, L.BOOTH_BIRTH, 'booth');
           f.ph = 'after'; f.t = 0;
           // (and the pool round her goes, as they come)
           if (f.pool) f.pool.going = true;
@@ -390,6 +429,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   tickSacs(state, f);
   tickOil(ctx, f);
   tickPool(ctx, f);
+  if (f.mode !== 'dead') tickCan(ctx, f, ph);
   sync(f);
   return controls;
 };
@@ -398,14 +438,14 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
 // The leap, the oil
 
 const startLeap = (state: GameState, f: Fight) => {
-  to(f, 'leap'); f.ph = 'crouch'; f.leapT = 0; f.forceLeap = false;
+  to(f, 'leap'); f.ph = 'crouch'; f.leapT = 0; f.forceLeap = false; f.leapFrom = f.x;
   f.facing = (-f.side) as 1 | -1;
   playSound('screams', 0.6, -8);
   if (Math.random() < 0.6) bark(state, f, L.QUEEN_LEAP);
 };
 const leaping = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
-  const from = SIDE_X[f.side], dest = SIDE_X[(-f.side) as -1 | 1];
+  const from = f.leapFrom, dest = SIDE_X[(-f.side) as -1 | 1];
   if (f.ph === 'crouch') { if (f.t >= CROUCH_T) { f.ph = 'air'; f.t = 0; playSound('whoosh', 1, -8); playSound('engine', 0.6, 6); } return; }
   if (f.ph === 'air') {
     const k = f.t / AIR_T;
@@ -413,7 +453,7 @@ const leaping = (ctx: FrameContext, f: Fight) => {
     // (the barf: motor oil down out of her mouth on the way over)
     if (f.t > 6 && f.t < AIR_T - 6 && f.t % 2 === 0) {
       const h = queenHead(f.x, f.facing, 0);
-      f.drops.push({ x: h.x + f.facing * 20, y: GY - f.y - 230, vx: f.facing * (1 + Math.random() * 2), vy: 1 + Math.random() * 2 });
+      f.drops.push({ x: h.x + f.facing * 20, y: GY - f.y - 230, vx: f.facing * (0.5 + Math.random() * 2.5) + (dest - from) / AIR_T * 0.4, vy: 1 + Math.random() * 2 });
       if (f.t % 6 === 0) playSound('gush', 0.6, -2);
     }
     if (f.t >= AIR_T) {
@@ -427,6 +467,29 @@ const leaping = (ctx: FrameContext, f: Fight) => {
   }
   if (f.t >= LAND_T) to(f, 'idle');
 };
+/** The booth's spotlight: now and then (half way down her on), its spot marked on the floor under him (red, flashing,
+ *  a whistle), then down it comes out of the rig: anything under it gets it (his, hers). */
+const tickCan = (ctx: FrameContext, f: Fight, ph: number) => {
+  const { state } = ctx, p = state.player;
+  if (!f.can) {
+    if (!DROP_EVERY[ph] || f.ops.mode !== 'on' || ++f.canT < DROP_EVERY[ph]) return;
+    f.canT = Math.floor(Math.random() * 120);
+    f.can = { x: Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, pmid(state).x)), t: 0 };
+    playSound('alarm', 0.4, 8);
+    if (Math.random() < 0.5) bark(state, f, L.BOOTH_DROP, 'booth');
+    return;
+  }
+  const c = f.can; c.t++;
+  if (c.t < DROP_TELL && c.t % 10 === 0) playSound('beep', 0.3, 6 - c.t / 10);
+  if (c.t === DROP_TELL + DROP_FALL) {
+    playSound('glass', 1, -6); playSound('crash', 0.8, -2); shakeScreen(state, 8, 4);
+    for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: c.x, y: GY - 8 }, vel: { x: (Math.random() - 0.5) * 8, y: -2 - Math.random() * 4 }, life: 40, color: ['#E2E8F0', '#FDE047', '#52525B'][i % 3], size: 2 + Math.random() * 3, grav: 0.35 });
+    if (canHurt(state) && Math.abs(pmid(state).x - c.x) < DROP_R && p.pos.y + p.height > GY - 120) hurtPlayer(ctx, DROP_DMG, CAN, { x: pmid(state).x < c.x ? -6 : 6, y: -5 }, 16);
+    for (const k of kinAbout(state)) if (Math.abs(k.pos.x + k.width / 2 - c.x) < DROP_R) destroyKin(ctx, k);
+  }
+  if (c.t > DROP_TELL + DROP_FALL + 40) f.can = null;
+};
+
 const tickOil = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player;
   f.drops = f.drops.filter(d => {
@@ -466,7 +529,7 @@ const tickPool = (ctx: FrameContext, f: Fight) => {
   const cx = pmid(state).x;
   if (canHurt(state) && Math.abs(cx - pl.x) < r - 6 && p.pos.y + p.height > GY - 16) {
     const away = cx < pl.x ? -1 : 1;
-    hurtPlayer(ctx, POOL_DMG, POOL, { x: away * 11, y: -9 }, 18); playSound('splat', 0.8, -4);
+    hurtPlayer(ctx, POOL_DMG, POOL, { x: away * 11, y: -9 }, 18); playSound('splat', 0.8, -4); playSound('oil', 1, -6); playSound('rayFizzle', 0.6, 4);
     for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: cx, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 3 }, life: 20, color: i % 2 ? '#0A0A0A' : '#5B3A12', size: 2 + Math.random() * 3, grav: 0.3 });
   }
 };
@@ -508,7 +571,7 @@ const thrownInto = (ctx: FrameContext, f: Fight) => {
     f.eventAt = f.total;
     if (batted) {
       // (her own, batted back into her: the big one; she's stunned, and the lot of them go)
-      f.hp -= BATTED_DMG; f.flash = 16;
+      f.hp -= BATTED_DMG; f.flash = 16; f.iframes = IFRAMES;
       for (const k of kinAbout(state)) destroyKin(ctx, k);
       if (state.enemies.includes(e)) destroyKin(ctx, e);
       f.sacs = [];
@@ -545,7 +608,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (hit <= 0.5 || f.iframes > 0) return;
   const mallet = !melee && p.currentWeapon === 'MALLET';
   const dmg = melee ? (p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE)
-    : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : mallet ? hit : Math.max(1, hit * SHARE);
+    : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : mallet ? Math.min(hit, MALLET_HIT) : Math.max(1, hit * SHARE);
   f.hp -= dmg; f.iframes = IFRAMES; f.flash = 8;
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: e.pos.y + 60 + Math.random() * 100 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 16, color: i % 2 ? '#FDE047' : ALIEN.slime, size: 2 + Math.random() * 2, grav: 0.3 });
   playSound('clang', 0.5, 4);
@@ -564,7 +627,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
 const stun = (state: GameState, f: Fight, t: number) => {
   to(f, 'stun'); f.stunT = t; f.linger = 0;
   playSound('rayFizzle', 0.8, -6); shakeScreen(state, 6, 3);
-  bark(state, f, L.QUEEN_STUN);
+  if (Math.random() < 0.5) bark(state, f, L.QUEEN_STUN); else bark(state, f, L.BOOTH_MATING, 'booth');
 };
 
 /** The enemy, where she is. */
@@ -599,10 +662,21 @@ const dying = (ctx: FrameContext, f: Fight) => {
   if (t % 5 === 0 && t < 200) state.particles.push({ pos: queenHead(f.x, f.facing, f.ext), vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 16, color: Math.random() < 0.5 ? '#FDE047' : '#FFFFFF', size: 2 + Math.random() * 2, grav: 0.3 });
   if (t > 30 && t < 120 && t % 2 === 0) state.particles.push({ pos: { x: f.x, y: GY - 180 }, vel: { x: f.facing * (2 + Math.random() * 4), y: -3 - Math.random() * 3 }, life: 40, color: [ALIEN.slime, ALIEN.slimeDark, ALIEN.slimeLight][t % 3], size: 3 + Math.random() * 3, grav: 0.35 });
   if (t === 30) playSound('gush', 1, -6);
-  if (t === 90 && f.operators) { f.operators = false; playSound('splat', 1, -2); playSound('boom', 0.5, 6); shakeScreen(state, 6, 3); for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: BOOTH.x + 50 + (i % 2) * 100, y: BOOTH.y + BOOTH.h - 30 }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 3 }, life: 30, color: [ALIEN.slime, ALIEN.slimeDark, ALIEN.gum][i % 3], size: 2 + Math.random() * 3, grav: 0.3 }); }
   if (t === 140) { playSound('thud', 1, -8); shakeScreen(state, 10, 5); }
-  if (f.deathSaid === 1 && t > 160) { f.deathSaid = 2; meatheadSays(state, pick(L.MH_WON[dressed(state)]), true, tokened(f, () => { f.deathSaid = 3; })); }
-  if (t > 1500) f.deathSaid = 3;
+  // (her last words done: the booth's two lose it (fists, stomping, CURSES), WE'LL SEE YOU AGAIN, out the back; then
+  // him)
+  const o = f.ops;
+  if (o.mode !== 'on') o.t++;
+  if (o.mode === 'mad' && o.t % 8 === 0) playSound('thud', 0.4, 6);
+  if (f.deathSaid === 1 && t > 160) {
+    f.deathSaid = 2; o.mode = 'mad'; o.t = 0;
+    boothSays(state, f, L.BOOTH_CURSES, () => boothSays(state, f, L.BOOTH_EXIT, () => { o.mode = 'run'; o.t = 0; playSound('whoosh', 0.8, 2); playSound('slam', 0.6, 4); }));
+  }
+  if (o.mode === 'run' && o.t === 50) {
+    o.mode = 'gone'; o.t = 0;
+    meatheadSays(state, pick(L.MH_OPS_GONE[dressed(state)]), true, tokened(f, () => { f.deathSaid = 3; }));
+  }
+  if (t > 2400) f.deathSaid = 3;
 };
 
 export const fightOver = (f: Fight) => f.mode === 'dead' && f.deathSaid >= 3 && f.deathT > 220;
@@ -623,22 +697,62 @@ const poseOf = (f: Fight): QueenPose => {
   return 'idle';
 };
 
+/** The pool of hot motor oil round her after a leap: drawn over the floor and everything on it (the blood, the gore,
+ *  his feet), so it can't be missed: black, a hard bright edge, a rainbow sheen sliding over it in bands, bubbles
+ *  coming up and popping, fumes and a heat shimmer off it, and it glows (poolLights). World. */
+export const drawPool = (c: Ctx, state: GameState, f: Fight) => {
+  const pl = f.pool;
+  if (!pl || pl.k <= 0) return;
+  const r = POOL_R * pl.k, fr = state.frame, h = 18 * pl.k;
+  // (the heat shimmer over it: thin wavy pale bands going up)
+  for (let i = 0; i < 5; i++) {
+    const u = ((fr * 0.015 + i * 0.2) % 1), y = GY - h - 10 - u * 90;
+    c.fillStyle = `rgba(255, 237, 213, ${(0.08 * (1 - u) * pl.k).toFixed(3)})`;
+    for (let x = -r * 0.8; x < r * 0.8; x += 8) c.fillRect(Math.round(pl.x + x), Math.round(y + Math.sin(x * 0.08 + fr * 0.2) * 3), 8, 2);
+  }
+  // (the body of it: a hard bright rim, black over everything)
+  c.fillStyle = '#FB923C'; c.beginPath(); c.ellipse(pl.x, GY, r + 6, h + 5, 0, Math.PI, 0); c.fill(); c.fillRect(pl.x - r - 6, GY - 1, r * 2 + 12, 6);
+  c.fillStyle = '#050302'; c.beginPath(); c.ellipse(pl.x, GY, r + 3, h + 2, 0, Math.PI, 0); c.fill(); c.fillRect(pl.x - r - 3, GY - 1, r * 2 + 6, 5);
+  c.fillStyle = '#1A0F06'; c.beginPath(); c.ellipse(pl.x, GY, r * 0.94, h * 0.8, 0, Math.PI, 0); c.fill();
+  // (the rainbow sheen: stepped bands sliding across it, clipped to it)
+  c.save(); c.beginPath(); c.ellipse(pl.x, GY, r * 0.94, h * 0.8, 0, Math.PI, 0); c.clip();
+  const bands = ['#7C3AED', '#2563EB', '#14B8A6', '#84CC16', '#FACC15', '#F97316', '#EC4899'];
+  for (let i = 0; i < bands.length; i++) {
+    const x = pl.x - r + (((fr * 1.2 + i * 18) % (r * 2 + 120)) - 60);
+    c.fillStyle = bands[i]; c.globalAlpha = 0.55;
+    c.beginPath(); c.moveTo(x, GY); c.lineTo(x + 14, GY); c.lineTo(x + 34, GY - h); c.lineTo(x + 20, GY - h); c.closePath(); c.fill();
+  }
+  c.globalAlpha = 1;
+  c.restore();
+  box(c, Math.round(pl.x - r * 0.5), Math.round(GY - h * 0.7), Math.round(r * 0.4), 2, 'rgba(255, 255, 255, 0.5)');
+  // (bubbles up through it, swelling, popping in a ring)
+  for (let i = 0; i < 8; i++) {
+    const u = ((fr * 0.04 + i * 0.29) % 1), bx = pl.x - r * 0.8 + ((i * 61) % 100) / 100 * r * 1.6, by = GY - h * 0.5;
+    if (u < 0.8) { const br = 2 + u * 7; c.fillStyle = '#0A0603'; c.beginPath(); c.arc(bx, by - br * 0.5, br, Math.PI, 0); c.fill(); c.strokeStyle = 'rgba(253, 186, 116, 0.8)'; c.lineWidth = 1.5; c.beginPath(); c.arc(bx, by - br * 0.5, br, Math.PI, 0); c.stroke(); box(c, bx - br * 0.4, by - br * 1.2, 2, 2, '#F0ABFC'); }
+    else { const k = (u - 0.8) / 0.2; for (let q = 0; q < 6; q++) { const a = q * Math.PI / 3; box(c, bx + Math.cos(a) * (6 + k * 10) - 1, by - 6 - Math.abs(Math.sin(a)) * (4 + k * 8) - 1, 2, 2, '#FDBA74'); } }
+  }
+  // (the fumes off it: sick green-gray puffs, rising, fading in steps)
+  for (let i = 0; i < 6; i++) {
+    const u = ((fr * 0.012 + i * 0.17) % 1), a = u < 0.33 ? 0.35 : u < 0.66 ? 0.22 : 0.1;
+    c.fillStyle = `rgba(163, 190, 140, ${(a * pl.k).toFixed(2)})`;
+    c.beginPath(); c.ellipse(Math.round(pl.x - r * 0.6 + i * r * 0.24 + Math.sin(u * 6 + i) * 8), Math.round(GY - h - 10 - u * 120), 8 + u * 16, 6 + u * 10, 0, 0, Math.PI * 2); c.fill();
+  }
+  // (a warning glow on its rim, pulsing)
+  if (fr % 20 < 10) { c.strokeStyle = 'rgba(251, 146, 60, 0.9)'; c.lineWidth = 2; c.beginPath(); c.ellipse(pl.x, GY, r + 7, h + 6, 0, Math.PI, 0); c.stroke(); }
+};
+/** Its glow (the lighting pass): orange, hot. */
+export const poolLights = (f: Fight): Light[] => {
+  const pl = f.pool;
+  if (!pl || pl.k <= 0) return [];
+  return [{ x: pl.x, y: GY - 20, r: POOL_R * pl.k * 1.5, a: 0.9 * pl.k, color: 'rgba(251, 146, 60, 0.22)' }, { x: pl.x, y: GY - 60, r: POOL_R * pl.k, a: 0.5 * pl.k, color: 'rgba(236, 72, 153, 0.1)' }];
+};
+
 export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
   // (the oil slicks on the floor: glossy black, a sheen)
   for (const s of f.slicks) {
     const a = Math.min(1, (SLICK_LIFE - s.t) / 120);
     c.fillStyle = `rgba(5, 3, 2, ${(0.9 * a).toFixed(2)})`; c.fillRect(Math.round(s.x1), GY - 3, Math.round(s.x2 - s.x1), 5);
     c.fillStyle = `rgba(167, 139, 250, ${(0.35 * a).toFixed(2)})`; c.fillRect(Math.round(s.x1 + 6 + (state.frame % 40)), GY - 3, 10, 1);
-  }
-  // (the pool: a wide bubbling mound of hot black-brown oil round her feet, a rainbow sheen sliding over it)
-  if (f.pool && f.pool.k > 0) {
-    const pl = f.pool, r = POOL_R * pl.k, fr = state.frame;
-    c.fillStyle = '#0A0603'; c.beginPath(); c.ellipse(pl.x, GY, r + 4, 16 * pl.k + 3, 0, Math.PI, 0); c.fill(); c.fillRect(pl.x - r - 4, GY - 1, r * 2 + 8, 5);
-    c.fillStyle = '#2A1A0B'; c.beginPath(); c.ellipse(pl.x, GY, r, 14 * pl.k, 0, Math.PI, 0); c.fill();
-    c.fillStyle = '#4A2E12'; c.beginPath(); c.ellipse(pl.x - r * 0.2, GY - 4 * pl.k, r * 0.6, 6 * pl.k, 0, Math.PI, 0); c.fill();
-    for (const [col, off] of [['rgba(167, 139, 250, 0.55)', 0], ['rgba(45, 212, 191, 0.5)', 14], ['rgba(250, 204, 21, 0.45)', 28]] as const) { const sx = pl.x - r * 0.7 + ((fr * 0.8 + off * 5) % (r * 1.4)); c.fillStyle = col; c.fillRect(Math.round(sx), Math.round(GY - 10 * pl.k), 18, 2); }
-    for (let i = 0; i < 6; i++) { const u = ((fr * 0.05 + i * 0.37) % 1), bx = pl.x - r * 0.8 + (i * 61 % 100) / 100 * r * 1.6, by = GY - 8 * pl.k - u * 14, br = 2 + (1 - u) * 4; c.strokeStyle = `rgba(120, 90, 50, ${(0.9 * (1 - u)).toFixed(2)})`; c.lineWidth = 1.5; c.beginPath(); c.arc(bx, by, br, 0, Math.PI * 2); c.stroke(); }
-    for (let i = 0; i < 4; i++) { const u = ((fr * 0.02 + i * 0.25) % 1); c.fillStyle = `rgba(160, 140, 120, ${(0.25 * (1 - u)).toFixed(2)})`; c.fillRect(Math.round(pl.x - r * 0.5 + i * r * 0.33), Math.round(GY - 20 - u * 50), 8 + u * 10, 6 + u * 6); }
   }
   for (const s of f.sacs) drawSac(c, s.x, s.y, state.frame, s.landed > 10 ? Math.min(1, (s.landed - 10) / 16) : 0);
   if (f.down > 0) {
@@ -662,6 +776,24 @@ export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
   // (the motor oil in the air)
   for (const d of f.drops) { box(c, d.x - 4, d.y - 5, 8, 10, '#0A0A0A'); box(c, d.x - 2, d.y - 4, 2, 3, '#7C6A3A'); }
   drawKinShots(c);
+  // (the booth's spotlight: its spot marked on the floor, flashing; then down out of the rig)
+  if (f.can) {
+    const cn = f.can;
+    if (cn.t < DROP_TELL + DROP_FALL) {
+      const k = Math.min(1, cn.t / 12), red = cn.t % 8 < 4 ? '#EF4444' : '#7F1D1D';
+      c.strokeStyle = red; c.lineWidth = 3; c.beginPath(); c.ellipse(cn.x, GY - 2, DROP_R * k, 6 * k, 0, 0, Math.PI * 2); c.stroke();
+      box(c, cn.x - 2, GY - 8, 4, 6, red);
+      if (cn.t >= DROP_TELL) {
+        const y = GY - 560 + ((cn.t - DROP_TELL) / DROP_FALL) * 540;
+        limb(c, cn.x, GY - 600, cn.x, y - 30, 2, '#52525B');
+        ink(c, () => c.roundRect(cn.x - 18, y - 34, 36, 30, 4), '#27272A', 1.5);
+        box(c, cn.x - 14, y - 6, 28, 6, '#FDE047'); box(c, cn.x - 18, y - 34, 36, 3, '#71717A');
+      }
+    } else {
+      // (smashed on the floor)
+      box(c, cn.x - 22, GY - 10, 44, 10, '#27272A'); box(c, cn.x - 16, GY - 12, 10, 4, '#FDE047'); box(c, cn.x + 6, GY - 8, 12, 3, '#E2E8F0');
+    }
+  }
   // (the extinguisher: on the wall, in his hands, in the air at her)
   if (f.ext2 !== 'gone') { c.save(); c.translate(f.ex.x, f.ext2 === 'wall' ? GY - 110 : f.ex.y); c.rotate(f.ex.r); ink(c, () => c.roundRect(-7, -18, 14, 34, 4), '#DC2626'); box(c, -4, -24, 8, 6, '#18181B'); box(c, 2, -22, 10, 3, '#18181B'); box(c, -5, -6, 10, 6, '#F8FAFC'); c.restore(); }
 };

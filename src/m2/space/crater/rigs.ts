@@ -14,6 +14,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { Enemy } from '../../../m1/types';
 import type { Light } from '../../../m1/game/render/lighting';
 import { playSound } from '../../../m1/game/platform/audio';
+import { isShat, isNude } from '../../../m1/game/player/gut';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
@@ -24,12 +25,13 @@ import { speak, meatheadSays, saidOver, box, label } from '../section';
 import { ink, limb } from '../../../m1/game/render/npc/kit';
 import { GY } from '../geometry';
 import { drawCheapGreen, shown } from './art';
-import { alienSays, freshBark, GRUNT, BRUTE, isOperator, setOperating } from './kinds';
+import { alienSays, freshBark, barkPlace, GRUNT, BRUTE, isOperator, setOperating } from './kinds';
 import { RIGS, CEIL, type RigKind } from './layout';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
+const dressed = (state: GameState): L.Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
 const POP = 8, HOLD = 74, BACK = 26;
 /** Taken over: the seize (the beam, the twitching), its swipe (the tell, the lunge out, held, back), its sparks. */
@@ -165,7 +167,8 @@ const pop = (state: GameState, r: Rig) => {
     if (r.mode !== 'gag') return;
     // (one of the real ones nearby, sore about it; or, now and then, him)
     const near = state.enemies.find(e => (e.kind === GRUNT || e.kind === BRUTE) && e.health > 0 && Math.abs(e.pos.x - r.x) < 520);
-    const gripe = near && Math.random() < 0.75 ? freshBark(L.GRIPE) : null;
+    // (aft of the engine room: not the ride they're sore about any more, it's him)
+    const gripe = near && Math.random() < 0.75 ? (barkPlace(near) === 'aft' ? freshBark(L.CALLOUS[dressed(state)]) : freshBark(L.GRIPE)) : null;
     if (near && gripe) alienSays(near, gripe);
     else if (Math.random() < 0.35) meatheadSays(state, pick(L.MH_JUMPSCARE), false);
   });

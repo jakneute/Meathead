@@ -3,12 +3,13 @@
 //   THE HOLD          the antechamber (the hold's checkpoint) and the showpiece room: one screen (the camera's held on
 //                     it once it's on), her glass and her stage at the right, the control booth up in the left wall.
 //                     She's taken over; she smashes the floor and down he goes (a hole there after: the way down again).
-//   THE BASEMENT      the attraction's maintenance tunnels, in the dark: pipes, ride machinery, cast-member lockers, the
-//                     animatronic graveyard. She hunts him through it (basement.ts). Stairs up at its left end (back
-//                     up to the hold).
-//   THE SPACE DISCO   GALACTIC GROOVE: its door at the basement's end (he kicks it in: the chase is over), the dance
-//                     hall (one screen; the big refill and the boss's checkpoint inside the door): the extinguisher
-//                     cutscene, then the (placeholder) boss.
+//   THE BASEMENT      the attraction's maintenance tunnels, deep under the hold (from under her floor on east), in the
+//                     dark: two levels (the floor, the catwalks over it: ladders up, drop down), pipes, ride machinery,
+//                     cast-member lockers, the animatronic graveyard. She stalks him through it (basement.ts). Stairs up
+//                     at its left end (back up to the hold); at its east end a long flight of stairs up toward the park.
+//   THE SPACE DISCO   GALACTIC GROOVE: its door at the top of the stairs (he kicks it in: the chase is over), the dance
+//                     hall (extra wide; the big refill and the boss's checkpoint inside the door): the extinguisher
+//                     cutscene, then the boss.
 
 import { SECTIONS, GY } from '../geometry';
 
@@ -27,22 +28,32 @@ export const BOOTH = { x: ARENA_L + 40, y: GY - 400, w: 240, h: 90 };
 /** The hole she smashed in the floor (after: walk into it and down he goes again). */
 export const HOLE = { a: GLASS_X - 150, b: GLASS_X - 10 };
 
-/** The basement: its ends; the stairs up at its left end. */
-export const BASE_L = x0 + 2200, BASE_R = x0 + 8000;
+/** The basement: under the showpiece room and on east, deep (the fall through her floor's a long one): its floor, its
+ *  catwalks' level, its ceiling (the underside of the hold's floor slab). Two levels, the whole height on one screen. */
+export const BASE_L = x0 + 800;
+export const BF = GY + 560, CATWALK_Y = BF - 250, CEIL_B = GY + 24;
+/** The stairs up at its left end (back up to the hold); where he lands, falling in (under the hole). */
 export const STAIRS_X = BASE_L + 60;
-/** Where he lands, falling in. */
-export const LAND_X = BASE_L + 260;
+export const LAND_X = (HOLE.a + HOLE.b) / 2;
+/** Its east end: the foot of the long flight of stairs up out of it, toward the park (the floor's level at the top). */
+export const STAIRS_A = x0 + 6500, STAIRS_B = x0 + 7300;
+export const BASE_R = STAIRS_A;
+/** The stairs' height at x (the floor's y: BF at their foot, GY at their top). */
+export const stairsY = (x: number) => (x <= STAIRS_A ? BF : x >= STAIRS_B ? GY : BF + ((x - STAIRS_A) / (STAIRS_B - STAIRS_A)) * (GY - BF));
 
-/** The disco: its door (the end of the basement: he kicks it in), the dance hall (one screen): the big refill and the
- *  boss's checkpoint just inside the door. */
-export const DOOR_X = BASE_R;
-export const DISCO_L = DOOR_X + 40, DISCO_R = DISCO_L + 800;
+/** The disco: its door at the top of the stairs (he kicks it in: the chase is over), the dance hall (extra wide: the
+ *  camera follows him in it); the big refill and the boss's checkpoint just inside the door, well clear of where she
+ *  lands. */
+export const DOOR_X = STAIRS_B + 160;
+export const DISCO_L = DOOR_X + 40, DISCO_R = DISCO_L + 1880;
 export const REFILL_X = DISCO_L + 70;
 /** Walking this far into the hall (back for another go), it's on. */
-export const DISCO_TRIGGER = DISCO_L + 220;
-/** Where she stands in the hall (her feet's middle), the fire extinguisher on the wall, the DJ booth (the operators). */
-export const DISCO_QX = DISCO_R - 200;
-export const EXTINGUISHER_X = DISCO_L + 330;
-export const DJ = { x: DISCO_L + 420, y: GY - 340, w: 200, h: 80 };
+export const DISCO_TRIGGER = DISCO_L + 260;
+/** Her two sides in the hall (her feet's middle): the left well in from the door, the right at the far end. */
+export const DISCO_SIDES = { l: DISCO_L + 620, r: DISCO_R - 220 };
+/** Where she first stands (the right); the fire extinguisher on the wall; the DJ booth (the operators: on screen with the cutscene). */
+export const DISCO_QX = DISCO_SIDES.r;
+export const EXTINGUISHER_X = DISCO_L + 420;
+export const DJ = { x: DISCO_L + 500, y: GY - 340, w: 200, h: 80 };
 /** The mirror ball. */
-export const BALL = { x: DISCO_L + 250, y: GY - 400 };
+export const BALL = { x: DISCO_L + 1250, y: GY - 400 };

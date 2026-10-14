@@ -38,6 +38,10 @@ export interface QueenDraw {
   stride?: number;
   /** Foam on her (the extinguisher: 0..1). */
   foam?: number;
+  /** Her outer jaws open this far (0..1), whatever the pose (the kill's slow opening). */
+  jaw?: number;
+  /** Her inner jaws out this far (0..1.6), whatever the pose (0: kept in; the kill draws its own strike). */
+  inner?: number;
 }
 
 // The queen's materials: black latex going blue-gray where the light catches it, the egg sac's pale membrane, the
@@ -140,7 +144,7 @@ export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
   ink(c, () => { c.moveTo(-14, -8); c.quadraticCurveTo(8, -30, 56, -10); c.quadraticCurveTo(70, 0, 60, 10); c.lineTo(-10, 14); c.closePath(); }, LATEX, 2);
   c.strokeStyle = LATEX_G; c.lineWidth = 2; c.beginPath(); c.moveTo(-6, -12); c.quadraticCurveTo(18, -24, 50, -10); c.stroke();
   // (the lips drawn back off the silver teeth; the lower jaw dropping)
-  const jaw = pose === 'roar' || pose === 'grab' ? 16 : pose === 'spit' ? 14 : pose === 'tell' ? 8 : pose === 'hurt' ? 10 : pose === 'birth' ? 4 : 0;
+  const jaw = q.jaw !== undefined ? Math.round(q.jaw * 20) : pose === 'roar' || pose === 'grab' ? 16 : pose === 'spit' ? 14 : pose === 'tell' ? 8 : pose === 'hurt' ? 10 : pose === 'birth' ? 4 : 0;
   box(c, 14, 6, 46, 4, '#D1D5DB');
   for (let i = 0; i < 8; i++) box(c, 16 + i * 5, 4, 3, 5, '#F3F4F6');
   ink(c, () => c.roundRect(10, 10 + jaw, 48, 9, 3), LATEX_M);
@@ -148,7 +152,7 @@ export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
   if (jaw > 0) {
     box(c, 14, 10, 42, jaw, '#1C0610');
     // (the inner jaws: three of them, one inside the next, out on their rods: one too many; out on a roar or the spit)
-    const out = pose === 'grab' ? Math.min(1.6, (t % 24) / 5) : pose === 'roar' || pose === 'spit' ? Math.min(1, (t % 40) / 10) : 0.3;
+    const out = q.inner !== undefined ? q.inner : pose === 'grab' ? Math.min(1.6, (t % 24) / 5) : pose === 'roar' || pose === 'spit' ? Math.min(1, (t % 40) / 10) : 0.3;
     for (let j = 0; j < 3; j++) {
       const jx = 22 + out * (14 + j * 12), jy = 10 + jaw / 2 - 3, w = 12 - j * 3;
       limb(c, 20, jy + 3, jx, jy + 3, 5 - j, '#4B5563');
