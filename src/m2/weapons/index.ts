@@ -52,7 +52,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     note: 'STANDING OR IN THE AIR. NOT WHILE DUCKING. WEARS ONLY WHEN IT HITS.',
   },
   SPAWNER: {
-    name: 'OTHERWORLDLY SPAWNER', from: 'SPACE LAND',
+    name: 'OTHERWORLDLY SPAWNER', from: 'FUTURE LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'FIRE' }],
     description: "Nobody knows how it makes them. Don't ask. It squirts out slimy little space goblins that run people down, yank birds out of the sky and chew. One's a nuisance. Thirty's a skeleton.",
   },

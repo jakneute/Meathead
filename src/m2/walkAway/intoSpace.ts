@@ -57,7 +57,7 @@ const props = (): Prop[] => {
 };
 
 export const INTO_SPACE: PortalDef = {
-  land: 'SPACE LAND',
+  land: 'FUTURE LAND',
   lines: ['THE FUTURE, AS IMAGINED IN 1962. STILL LOADING.', 'FIRST STOP: FUTURELAND SQUARE.'],
   haze: '#A5B4FC',
   ground, back, props,

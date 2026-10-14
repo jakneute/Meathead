@@ -44,7 +44,7 @@ const spawner = (c: Ctx) => {
 };
 
 export const SPACE_QUEEN: SceneDef = {
-  land: 'SPACE LAND',
+  land: 'FUTURE LAND',
   weapon: 'SPAWNER',
   sky: ['#1E1B4B', '#312E81', '#3730A3', '#4338CA', '#6366F1', '#818CF8', '#A5B4FC'],
   haze: '#6366F1',
