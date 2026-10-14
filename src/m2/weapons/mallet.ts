@@ -21,6 +21,7 @@ import type { Enemy } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { shakeScreen } from '../../m1/game/core/state';
+import { groundLineAt } from '../../m1/game/core/terrain';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
@@ -54,6 +55,8 @@ const TORNADO = { after: 50, max: 300, every: 9, radius: 76, dmg: 30, knock: 17,
  *  ground more again, the pancake smash most; the tornado a point every round it bonks somebody. */
 const WEAR = { swing: 2, launch: 3, head: 2, pound: 4, pancake: 6 };
 let spinHits = 0;
+/** Frames the tornado's been off the ground (a slope's step): it only stops him once that's more than a moment. */
+let offT = 0;
 /** Y held this long (on the ground) is the windup, not a tap. */
 const Y_HOLD = 14;
 
@@ -225,7 +228,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       if (!input.shoot || !footed) { mode = 'idle'; break; }
       if (t % 3 === 0 && ground) state.particles.push({ pos: { x: px + (Math.random() - 0.5) * 40, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -0.5 - Math.random() * 1.5 }, life: 16, color: 'rgba(214, 211, 209, 0.55)', size: 3 + Math.random() * 4 });
       if (t % 12 === 0) playSound('whoosh', 0.5 + t / 60, -4 + t / 6);
-      if (xHeld >= TORNADO.after) start('tornado', pl);
+      if (xHeld >= TORNADO.after) { start('tornado', pl); offT = 0; }
       break;
     case 'launch': {
       pl.vel.x *= 0.6;
@@ -304,6 +307,12 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       // time, or it's worn out, or he's off the ground) and he stops, dizzy a moment
       pl.jumpBufferTimer = 0;
       pl.vel.x = Math.max(-TORNADO.speed, Math.min(TORNADO.speed, pl.vel.x));
+      // (down a slope: kept on it, not skipping off it a step at a time; a frame or two off it doesn't stop him either)
+      if (!ground && !hang && pl.vel.y >= 0) {
+        const g = groundLineAt(state.groundRuns, px), feet = pl.pos.y + pl.height;
+        if (g >= feet && g - feet <= 14) { pl.pos.y = g - pl.height; pl.vel.y = 0; pl.isGrounded = true; }
+      }
+      offT = pl.isGrounded || hang ? 0 : offT + 1;
       if (t % 18 === 0) playSound('whirl');
       // (on a vine: spinning round on it, one-handed, the mallet out at arm's length)
       if (hang) pl.facing = Math.cos(t * 0.45) >= 0 ? dir : (-dir as 1 | -1);
@@ -330,7 +339,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         // (worn by what it hits, a bit a go round, never by spinning at nothing)
         if (hits.length && ++spinHits % TORNADO.wear === 0) wearOut(ctx);
       }
-      if (!input.shoot || t >= TORNADO.max || !durable(ctx) || !footed) { mode = 'land'; t = 0; pl.facing = dir; playSound('boing', 0.8, -6); }
+      if (!input.shoot || t >= TORNADO.max || !durable(ctx) || offT > 6) { mode = 'land'; t = 0; pl.facing = dir; playSound('boing', 0.8, -6); }
       break;
     }
   }
@@ -444,7 +453,8 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     }
   } else if (mode !== 'idle' && pl.currentWeapon === 'MALLET') {
     const x = pl.pos.x + pl.width / 2, y = pl.pos.y + pl.height, air = !pl.isGrounded;
-    if (mode === 'tornado') drawTornado(c, x, y, f);
+    // (on a slope: the funnel's foot down on the ground under the middle of him)
+    if (mode === 'tornado') drawTornado(c, x, y + (pl.stance ? (pl.stance.l + pl.stance.r) / 2 : 0), f);
     else {
       let a = 0, lean = 0, crouch = 0;
       let phi: number | null = null;
