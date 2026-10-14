@@ -11,9 +11,10 @@ import { timeOfDay, farTint, hourMix, skyAt } from '../../timeOfDay';
 import { sign, ball, steppedGlow, pixelBlob, bendFloor } from '../../intro/art/kit';
 import { SECTIONS, GY } from '../geometry';
 import {
-  type Ctx, type Eye, INK, rampOf, box, checker, PIX, hash, mix, text, tilePattern,
+  type Ctx, type Eye, INK, rampOf, box, checker, PIX, hash, mix, tilePattern,
   P, quad, seg, atDepth, depthChunk, bamboo, logPost, thatchRoof, fringe, drawJungleBackdrop, PLANK, STRAW,
 } from '../queue/depth';
+import { signAt, carved, plank, enamel } from '../letters';
 import { drawLaunch } from './boat';
 import { WS, DOCK, BOAT, FALLS, roofAt, PIPE } from './course';
 
@@ -77,11 +78,12 @@ const bankSign = (g: Ctx, x: number, w: number, h: number, face: string, frame: 
   const top = WS - 22 - high - h, pr = rampOf('#7A5A3A');
   for (const px of [x - w / 2 + 8, x + w / 2 - 12]) { box(g, px - 1, top + h - 4, 6, high + 6, INK); box(g, px, top + h - 4, 4, high + 6, pr[2]); box(g, px, top + h - 4, 1, high + 6, pr[3]); }
   sign(g, x - w / 2, top, w, h, face, '', '#000', 5, frame);
-  lines.forEach(([s, col, size], i) => text(g, s, x, top + 3 + (h - 3) * ((i + 0.78) / lines.length), col, size, 'center', null));
+  const wood = face === '#D8B878';
+  lines.forEach(([s, col, size], i) => signAt(g, s, x, top + 3 + (h - 3) * ((i + 0.78) / lines.length), size, wood ? carved(size, col, '#F8E8C0', x + i) : plank(size, col, undefined, undefined, x + i)));
 };
 /** The tour's signs along the bank (relative x). */
 const BANK_SIGNS: { x: number; paint: (g: Ctx, x: number) => void }[] = [
-  { x: 640, paint: (g, x) => bankSign(g, x, 120, 34, '#D8B878', '#6A3A1A', [['YOU ARE NOW', '#5A1A0A', 5], ['ENTERING THE JUNGLE', '#5A1A0A', 5]]) },
+  { x: 640, paint: (g, x) => bankSign(g, x, 128, 34, '#D8B878', '#6A3A1A', [['YOU ARE NOW', '#5A1A0A', 5], ['ENTERING THE JUNGLE', '#5A1A0A', 5]]) },
   { x: 1560, paint: (g, x) => bankSign(g, x, 96, 30, '#F4F0E0', '#2A5A3A', [['NO SWIMMING', '#A8221A', 5], ['(PIRANHAS)', '#2A3A2A', 5]]) },
   { x: 2270, paint: (g, x) => {
     // (a road sign: a yellow diamond on a pole, a hippo on it)
@@ -90,7 +92,7 @@ const BANK_SIGNS: { x: number; paint: (g: Ctx, x: number) => void }[] = [
     g.fillStyle = INK; g.beginPath(); g.moveTo(x, top - 2); g.lineTo(x + 24, top + 22); g.lineTo(x, top + 46); g.lineTo(x - 24, top + 22); g.closePath(); g.fill();
     g.fillStyle = '#F4C820'; g.beginPath(); g.moveTo(x, top + 1); g.lineTo(x + 21, top + 22); g.lineTo(x, top + 43); g.lineTo(x - 21, top + 22); g.closePath(); g.fill();
     box(g, x - 10, top + 18, 18, 8, '#1A1A1A'); box(g, x + 4, top + 14, 8, 7, '#1A1A1A'); box(g, x - 8, top + 26, 3, 4, '#1A1A1A'); box(g, x + 3, top + 26, 3, 4, '#1A1A1A');
-    box(g, x - 31, top + 49, 62, 13, INK); box(g, x - 30, top + 50, 60, 11, '#F4C820'); text(g, 'HIPPO XING', x, top + 59, '#1A1A1A', 5, 'center', null);
+    box(g, x - 35, top + 49, 70, 13, INK); box(g, x - 34, top + 50, 68, 11, '#F4C820'); signAt(g, 'HIPPO XING', x, top + 59, 5, enamel(5, '#1A1A1A'));
   } },
   { x: BOAT.stop + 140, paint: (g, x) => bankSign(g, x, 104, 34, '#D8B878', '#6A3A1A', [['LAST GAS', '#5A1A0A', 6], ['400 MILES BACK', '#5A1A0A', 5]]) },
   { x: FALLS.x - 190, paint: (g, x) => bankSign(g, x, 132, 38, '#2E4A2A', '#6A4A2A', [['THE BACKSIDE', '#F0D890', 6], ['OF WATER  >>', '#F0D890', 6]], 46) },
@@ -306,7 +308,7 @@ const gorilla = (c: Ctx, x: number, f: number, i: number) => {
 const placard = (c: Ctx, x: number, name: string, y = WS - 24) => {
   box(c, x - 2, y - 26, 4, 26, INK); box(c, x - 1, y - 26, 2, 26, '#8A6A40');
   sign(c, x - 24, y - 42, 48, 16, '#E8DCB8', '', '#000', 5, '#5A3A1A');
-  text(c, name, x, y - 31, '#3A1A08', 5, 'center', null);
+  signAt(c, name, x, y - 31, 5, carved(5, '#3A1A08', '#F8F0D8', x));
 };
 const drawShow = (c: Ctx, state: GameState, eye: Eye) => {
   const f = state.frame;
@@ -363,10 +365,10 @@ const drawDock = (c: Ctx, state: GameState, eye: Eye) => {
   for (const x of [R(-140), R(350)]) logPost(c, x - 8, GY - 232, GY, 16);
   box(c, R(130), GY - 222, 1, 18, '#8A7048'); box(c, R(250), GY - 222, 1, 18, '#8A7048');
   sign(c, R(112), GY - 206, 156, 28, '#D8B878', '', '#000', 8, '#6A3A1A');
-  text(c, 'JUNGLE CRUISE', R(190), GY - 188, '#6A1A0A', 8, 'center', '#F0D8A0');
+  signAt(c, 'JUNGLE CRUISE', R(190), GY - 188, 8, carved({ sx: 1, sy: 2 }, '#5A1A0A', '#F0D8A0', 3));
   // (BOARDING, a bell on a bracket, a life ring on a post at the edge)
   sign(c, R(150), GY - 168, 80, 14, '#2E4A2A', '', '#000', 5, '#6A4A2A');
-  text(c, 'BOARDING', R(190), GY - 157, '#F0D890', 5, 'center', null);
+  signAt(c, 'BOARDING', R(190), GY - 157, 5, plank(5, '#F0D890', undefined, undefined, 8));
   {
     const bx = R(350) + 10, by = GY - 150, swing = Math.round(Math.sin(f * 0.04) * 1);
     box(c, bx - 10, by - 4, 14, 3, '#3A3A3A');

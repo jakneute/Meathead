@@ -8,6 +8,7 @@ import { GROUND_Y } from '../../../m1/constants';
 import { mix, ramp } from '../../../m1/game/render/backdrops/core';
 import { checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, tilePattern, brickPattern, PIX } from '../../../m1/game/render/pixelArt';
 import { stamp as stampOnce } from '../../../m1/game/render/stamp';
+import { type Look, signText, signH, fit, plate } from '../../signLetters';
 
 export { mix, ramp, checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, tilePattern, brickPattern, PIX };
 
@@ -151,7 +152,7 @@ export const bunting = (c: Ctx, x0: number, x1: number, y: number, sag = 26) => 
  * strip along its top, a shaded one along its bottom, dithered between), bolts at the corners, the words with a drop
  * shadow.
  */
-export const sign = (c: Ctx, x: number, y: number, w: number, h: number, face: string, words: string, ink: string, size = 8, frame = INK) => {
+export const sign = (c: Ctx, x: number, y: number, w: number, h: number, face: string, words: string, ink: string, size = 8, frame = INK, look?: Look) => {
   x = Math.round(x); y = Math.round(y); w = Math.round(w); h = Math.round(h);
   box(c, x - 4, y - 4, w + 8, h + 8, INK);
   const fr = frame === INK ? '#3A3F48' : frame, fp = rampOf(fr);
@@ -166,7 +167,9 @@ export const sign = (c: Ctx, x: number, y: number, w: number, h: number, face: s
   box(c, x, y, w, 1, fc[4]);
   if (h >= 14 && w >= 40) for (const [bx, by] of [[x + 3, y + 3], [x + w - 5, y + 3], [x + 3, y + h - 5], [x + w - 5, y + h - 5]]) { box(c, bx, by, 2, 2, fp[0]); box(c, bx, by, 1, 1, fp[4]); }
   const sh = mix(face, INK, 0.45);
-  text(c, words, x + w / 2, y + h / 2 + size / 2 - 1, ink, size, 'center', sh);
+  if (!words) return;
+  const L = fit(words, look ?? plate(size, ink, sh), h >= 14 && w >= 40 ? w - 12 : w - 2);
+  signText(c, words, x + w / 2, Math.round(y + h / 2 + signH(L) / 2), L);
 };
 
 /** A bald eagle, wings spread (a statue's, a sign's): feathers in steps, a white head, a gold beak, talons. */

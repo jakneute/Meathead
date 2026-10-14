@@ -12,8 +12,9 @@ import { GY } from '../../geometry';
 import { drawDimmed } from '../../queue/crowd';
 import { drawPerson, lookOf, type Pose } from '../../temple/people';
 import { blob, rect, dot, INK as KINK } from '../../../cast/kit';
-import { type Ctx, type Eye, INK, box, text, sign, slab, pole, stamp, checker, P, eyeOf, viewOf } from './kit';
+import { type Ctx, type Eye, INK, box, sign, slab, pole, stamp, checker, P, eyeOf, viewOf } from './kit';
 import { D } from '../layout';
+import { signAt, enamel, print, dino } from '../../letters';
 import { GUESTS, GALLERY, BLEACHERS, guestsFled, guestMood, type DinoGuest } from '../guests';
 
 const atD = (c: Ctx, eye: Eye, d: number, paint: () => void) => {
@@ -160,8 +161,8 @@ const bleacherFront = (c: Ctx, bx: number) => {
   stamp(c, `dzoo-bleachf-${bx}`, bx - 4, rows[0] - 2, w + 8, GY - rows[0] + 2, g => {
     // (the banner along its front: the show, and where you get wet)
     box(g, bx, rows[0] + 4, w, GY - rows[0] - 4, '#2563EB'); box(g, bx, rows[0] + 4, w, 2, '#60A5FA'); checker(g, bx, GY - 3, w, 2, '#1E40AF');
-    text(g, 'T. REX FEEDING SHOW  2:00 & 5:00', bx + w / 2, GY - 9, '#FDE047', 5, 'center', '#1E3A8A');
-    text(g, 'SPLASH ZONE', bx + w / 2, GY - 2, '#F8FAFC', 5, 'center', '#1E3A8A');
+    signAt(g, 'T. REX FEEDING SHOW  2:00 & 5:00', bx + w / 2, GY - 9, 5, enamel(5, '#FDE047', '#1E3A8A'));
+    signAt(g, 'SPLASH ZONE', bx + w / 2, GY - 2, 5, enamel(5, '#F8FAFC', '#1E3A8A'));
   });
 };
 
@@ -231,9 +232,9 @@ const parkSign = (c: Ctx) => {
   stamp(c, 'dzoo-parksign', x - 6, GY - 84, w + 12, 84, g => {
     slab(g, x + 10, GY - 20, w - 20, 20, '#7A7262');
     sign(g, x, GY - 76, w, 50, '#7C2D12', '', '#000', 6, '#4A3A2A');
-    text(g, 'PRE-HYSTERIC PARK', x + w / 2, GY - 60, '#FDE047', 7, 'center', '#3A1A0A');
-    text(g, 'ALL DINOSAURS 100%', x + w / 2, GY - 46, '#F8FAFC', 5, 'center', null);
-    text(g, 'ANIMATRONIC', x + w / 2, GY - 37, '#F8FAFC', 5, 'center', null);
+    signAt(g, 'PRE-HYSTERIC PARK', x + w / 2, GY - 60, 7, dino({ sx: 1, sy: 2 }, ['#FFF6C0', '#FDE047', '#F2B21E', '#D07A1A'], '#3A1A0A', '#3A1A0A'));
+    signAt(g, 'ALL DINOSAURS 100%', x + w / 2, GY - 46, 5, enamel(5, '#F8FAFC'));
+    signAt(g, 'ANIMATRONIC', x + w / 2, GY - 37, 5, enamel(5, '#F8FAFC'));
   });
 };
 /** The plaza's board: today's shows. */
@@ -242,9 +243,9 @@ const showsBoard = (c: Ctx) => {
   stamp(c, 'dzoo-shows', x - 6, GY - 130, w + 12, 130, g => {
     for (const px of [x + 14, x + w - 18]) { box(g, px, GY - 60, 4, 60, '#3A3A3A'); box(g, px, GY - 60, 1, 60, '#5A5A5A'); }
     sign(g, x, GY - 124, w, 66, '#F8FAFC', '', '#000', 6, '#14532D');
-    text(g, "TODAY'S SHOWS", x + w / 2, GY - 112, '#14532D', 6, 'center', null);
+    signAt(g, "TODAY'S SHOWS", x + w / 2, GY - 112, 6, enamel(6, '#14532D'));
     const rowsT: [string, string][] = [['RAPTOR ROUNDUP', '11 & 3'], ['TRIKE STAMPEDE', '12:30'], ['KABOOMA ERUPTS', 'HOURLY'], ['T. REX FEEDING', '2 & 5']];
-    rowsT.forEach(([a, b], i) => { text(g, a, x + 6, GY - 99 + i * 10, '#1A0B06', 5, 'left', null); text(g, b, x + w - 6, GY - 99 + i * 10, '#B91C1C', 5, 'right', null); });
+    rowsT.forEach(([a, b], i) => { signAt(g, a, x + 6, GY - 99 + i * 10, 5, print(5, '#1A0B06'), 'left'); signAt(g, b, x + w - 6, GY - 99 + i * 10, 5, print(5, '#B91C1C'), 'right'); });
   });
 };
 /** By the way out of the paddock. */
@@ -253,17 +254,17 @@ const tapSign = (c: Ctx) => {
   stamp(c, 'dzoo-tap', x - 6, GY - 70, w + 12, 70, g => {
     box(g, x + w / 2 - 2, GY - 30, 4, 30, '#3A3A3A');
     sign(g, x, GY - 64, w, 34, '#FDE047', '', '#000', 6);
-    text(g, 'PLEASE DO NOT TAP', x + w / 2, GY - 52, '#1A0B06', 5, 'center', null);
-    text(g, 'ON THE DINOSAURS', x + w / 2, GY - 43, '#1A0B06', 5, 'center', null);
-    text(g, '$2,000,000 EACH', x + w / 2, GY - 34, '#B91C1C', 5, 'center', null);
+    signAt(g, 'PLEASE DO NOT TAP', x + w / 2, GY - 52, 5, enamel(5, '#1A0B06'));
+    signAt(g, 'ON THE DINOSAURS', x + w / 2, GY - 43, 5, enamel(5, '#1A0B06'));
+    signAt(g, '$2,000,000 EACH', x + w / 2, GY - 34, 5, enamel(5, '#B91C1C'));
   });
 };
 /** Hung on the meadow's back rail. */
 const feedSign = (c: Ctx, x: number) => {
   stamp(c, `dzoo-feed-${x}`, x - 6, GY - 70, 88, 34, g => {
     sign(g, x, GY - 64, 76, 24, '#F8FAFC', '', '#000', 5, '#B91C1C');
-    text(g, 'ANIMATRONIC', x + 38, GY - 54, '#B91C1C', 5, 'center', null);
-    text(g, 'DO NOT FEED', x + 38, GY - 45, '#1A0B06', 5, 'center', null);
+    signAt(g, 'ANIMATRONIC', x + 38, GY - 54, 5, enamel(5, '#B91C1C'));
+    signAt(g, 'DO NOT FEED', x + 38, GY - 45, 5, enamel(5, '#1A0B06'));
   });
 };
 /** A PA pole: two horn speakers up top, a junction box, the conduit down it. */

@@ -46,6 +46,7 @@ import {
   HURT_REX_SHOCK, DEATH_REX_SHOCK, MEATHEAD_REX_INTRO, REX_INTRO, REX_CHATTER, REX_SEES_WHOLE, REX_SEES_BROKEN, REX_WRECKED,
   REX_LIVE, REX_BIT, REX_CRASHED, REX_DYING, type Dressed,
 } from './lines';
+import { signAt, enamel, stencil } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -907,8 +908,7 @@ const lockGate = (c: Ctx, x: number, f: number, l1: string, l2: string, side: nu
   const sx = side > 0 ? x + 26 : x - 114, sy = GY - 470;
   c.fillStyle = '#3A3A3A'; c.fillRect(side > 0 ? x + 20 : x - 8, sy + 8, 8, 3); c.fillRect(side > 0 ? x + 20 : x - 8, sy + 28, 8, 3);
   c.fillStyle = INK; c.fillRect(sx - 2, sy - 2, 94, 40); c.fillStyle = '#B91C1C'; c.fillRect(sx, sy, 90, 36); c.fillStyle = '#DC2626'; c.fillRect(sx, sy, 90, 4); c.fillStyle = '#7F1D1D'; c.fillRect(sx, sy + 32, 90, 4);
-  c.font = '6px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#3A0A0A'; c.fillText(l1, sx + 46, sy + 15); c.fillText(l2, sx + 46, sy + 27);
-  c.fillStyle = '#FFFFFF'; c.fillText(l1, sx + 45, sy + 14); c.fillText(l2, sx + 45, sy + 26); c.textAlign = 'left';
+  signAt(c, l1, sx + 45, sy + 14, 6, enamel(6, '#FFFFFF', '#3A0A0A')); signAt(c, l2, sx + 45, sy + 26, 6, enamel(6, '#FFFFFF', '#3A0A0A'));
 };
 
 /** Lying dead: how far down its belly comes (the body's bottom edge: 5 off the ground). */
@@ -978,7 +978,7 @@ const drawBody = (c: Ctx, r: Rex, f: number) => {
     // (its hide's stripes, the pale belly, its number stenciled on the flank)
     for (let x = -56; x < 40; x += 18) { c.fillStyle = 'rgba(30, 24, 18, 0.35)'; c.beginPath(); c.moveTo(x, by + 2); c.lineTo(x + 8, by + 2); c.lineTo(x + 2, by + 30); c.closePath(); c.fill(); }
     c.fillStyle = 'rgba(200, 180, 140, 0.35)'; c.fillRect(-60, by + 64, 116, 10);
-    c.fillStyle = 'rgba(230, 220, 200, 0.6)'; c.font = '6px "Press Start 2P"'; if (c.getTransform().a < 0) { c.save(); c.scale(-1, 1); c.fillText('REX-01', 52 - 36, by + 56); c.restore(); } else c.fillText('REX-01', -52, by + 56);
+    const tag = stencil(6, 'rgba(230, 220, 200, 0.6)'); if (c.getTransform().a < 0) { c.save(); c.scale(-1, 1); signAt(c, 'REX-01', 52 - 36, by + 56, 6, tag, 'left'); c.restore(); } else signAt(c, 'REX-01', -52, by + 56, 6, tag, 'left');
   });
   c.fillStyle = P.body.broken ? '#3F3A35' : REX_HI; c.fillRect(-60, by + 6, 90, 4);
   for (const x of [-40, -10, 22]) { c.strokeStyle = REX_LO; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, by + 4); c.lineTo(x, by + 80); c.stroke(); c.strokeStyle = REX_HI; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 1.5, by + 4); c.lineTo(x + 1.5, by + 80); c.stroke(); }

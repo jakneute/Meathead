@@ -25,6 +25,7 @@ import {
   x1, T, CATAPULT_X, DART_WALL, DART_TOP, SNAKE_WALL, SNAKE_TOP, SNAKE_Y, SNAKE_REACH, STATION_X, CART_X, BOOTH_X, END_WALL,
   GHOST_X, FOG_X, LEDGES, type Temple, crewed, DART_TELL, dartY, SNAKE_CYCLE, snakeOut, GUESTS, SEAT,
 } from './layout';
+import { signAt, signText, plank, enamel, stencil, print, led } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 export interface Eye { x: number; y: number }
@@ -142,17 +143,17 @@ const paintWallTile = (g: Ctx, x: number, i: number) => {
     // a fuse panel, a conduit down to it
     box(g, x + 200, GY - 532, 4, 230, '#3A3A3E');
     slab(g, x + 170, GY - 300, 70, 100, '#5B6068', { edge: 4 });
-    box(g, x + 178, GY - 290, 54, 6, '#E8C130'); text(g, 'DANGER', x + 205, GY - 260, '#E8C130', 6);
-    text(g, '480V', x + 205, GY - 248, '#D8D4CC', 6);
+    box(g, x + 178, GY - 290, 54, 6, '#E8C130'); signAt(g, 'DANGER', x + 205, GY - 260, 6, enamel(6, '#E8C130', INK));
+    signAt(g, '480V', x + 205, GY - 248, 6, enamel(6, '#D8D4CC', INK));
   } else if (h < 0.6) {
     // stenciled big on the block: which stage this is
-    text(g, 'STAGE 3', x + 256, GY - 380, '#2A221C', 24, 'center', null);
-    text(g, 'NO SMOKING ON THE FLOOR', x + 256, GY - 350, '#2A221C', 8, 'center', null);
+    signAt(g, 'STAGE 3', x + 256, GY - 380, 24, stencil(24, '#2A221C', '#5A5048', i));
+    signAt(g, 'NO SMOKING ON THE FLOOR', x + 256, GY - 350, 8, stencil({ sx: 2, sy: 2 }, '#2A221C', '#5A5048', i + 1));
   } else {
     // a big roll-up door, shut
     slab(g, x + 120, GY - 330, 240, 330, '#3A3E44', { edge: 4 });
     for (let y = GY - 320; y < GY; y += 10) box(g, x + 124, y, 232, 2, '#2A2D32');
-    sign(g, x + 190, GY - 360, 100, 14, '#B91C1C', 'KEEP CLEAR', '#F8FAFC', 6);
+    sign(g, x + 190, GY - 360, 100, 14, '#B91C1C', 'KEEP CLEAR', '#F8FAFC', 6, INK, stencil(6, '#F8FAFC'));
   }
 };
 
@@ -339,10 +340,10 @@ const paintPanel = (g: Ctx, p: { x: number; w: number; kind: number }, i: number
   slab(g, x + 10, GY - 200, w - 20, 10, WOOD, { edge: 2 });
   slab(g, x + 10, GY - 22, w - 20, 10, WOOD, { edge: 2 });
   // (and what's written on the back of it)
-  text(g, 'THIS SIDE BACK', x + w / 2, GY - 150, '#3E372C', 8, 'center', null);
-  text(g, '^  ^  ^', x + w / 2, GY - 136, '#3E372C', 8, 'center', null);
-  text(g, ['PANEL 7B', 'JAGUAR HEAD (L)', 'COLUMN SET 2', 'STEP WALL 4', 'SHRINE TOP'][kind], x + w / 2, GY - 110, '#2E2820', 6, 'center', null);
-  if (i % 3 === 1) { box(g, x + 30, GY - 90, 56, 26, '#E7E2D2'); text(g, 'WET', x + 58, GY - 79, '#B91C1C', 6, 'center', null); text(g, 'PAINT', x + 58, GY - 70, '#B91C1C', 6, 'center', null); }
+  signAt(g, 'THIS SIDE BACK', x + w / 2, GY - 150, 8, stencil(8, '#3E372C'));
+  signAt(g, '^  ^  ^', x + w / 2, GY - 136, 8, stencil(8, '#3E372C'));
+  signAt(g, ['PANEL 7B', 'JAGUAR HEAD (L)', 'COLUMN SET 2', 'STEP WALL 4', 'SHRINE TOP'][kind], x + w / 2, GY - 110, 6, plank(6, '#2E2820', undefined, undefined, kind));
+  if (i % 3 === 1) { box(g, x + 30, GY - 90, 56, 26, '#E7E2D2'); signAt(g, 'WET', x + 58, GY - 79, 6, print(6, '#B91C1C')); signAt(g, 'PAINT', x + 58, GY - 70, 6, print(6, '#B91C1C')); }
   g.restore();
 };
 
@@ -411,9 +412,9 @@ const paintProp = (g: Ctx, p: Prop) => {
         for (const cx of [x + dx + 2, x + dx + w - 8]) for (const cy of [y + 2, y + h - 8]) { box(g, cx, cy, 6, 6, '#9CA3AF'); box(g, cx, cy, 3, 3, '#D1D5DB'); }
         box(g, x + dx + w / 2 - 8, y + h / 2 - 2, 16, 4, '#6B7280');
       }
-      text(g, 'JAGUAR FX', x + 45, GY - 26, '#E8C130', 6, 'center', null);
-      text(g, 'FRAGILE', x + 129, GY - 16, '#D8D4CC', 6, 'center', null);
-      text(g, 'FOG', x + 45, GY - 86, '#D8D4CC', 6, 'center', null);
+      signAt(g, 'JAGUAR FX', x + 45, GY - 26, 6, stencil(6, '#E8C130'));
+      signAt(g, 'FRAGILE', x + 129, GY - 16, 6, stencil(6, '#D8D4CC'));
+      signAt(g, 'FOG', x + 45, GY - 86, 6, stencil(6, '#D8D4CC'));
       break;
     }
     case 'rack': {
@@ -429,7 +430,7 @@ const paintProp = (g: Ctx, p: Prop) => {
       for (const wx of [x + 4, x + 116]) ball(g, wx, GY - 5, 4, '#3A3A3E');
       box(g, x - 30, GY - 200, 3, 200, '#8B5A2B'); box(g, x - 32, GY - 212, 7, 14, '#D1D5DB');
       box(g, x - 20, GY - 190, 3, 190, '#8B5A2B'); box(g, x - 22, GY - 202, 7, 14, '#D1D5DB');
-      sign(g, x + 14, GY - 190, 96, 14, '#F1EFEA', 'WARRIORS', '#1A0B06', 6, '#6B7280');
+      sign(g, x + 14, GY - 190, 96, 14, '#F1EFEA', 'WARRIORS', '#1A0B06', 6, '#6B7280', stencil(6, '#1A0B06'));
       break;
     }
     case 'board': {
@@ -437,16 +438,16 @@ const paintProp = (g: Ctx, p: Prop) => {
       g.strokeStyle = WOOD; g.lineWidth = 4; g.beginPath(); g.moveTo(x + 20, GY); g.lineTo(x + 50, GY - 170); g.lineTo(x + 80, GY); g.stroke();
       slab(g, x - 10, GY - 160, 120, 90, '#1F3A2C', { edge: 4 });
       box(g, x - 10, GY - 160, 120, 4, WOOD);
-      text(g, 'DAYS WITHOUT', x + 50, GY - 140, '#E7E5E4', 6, 'center', null);
-      text(g, 'AN INCIDENT', x + 50, GY - 130, '#E7E5E4', 6, 'center', null);
-      text(g, '0', x + 50, GY - 98, '#F8FAFC', 16, 'center', null);
-      text(g, '(BEST: 2)', x + 50, GY - 80, '#9CA3AF', 6, 'center', null);
+      signAt(g, 'DAYS WITHOUT', x + 50, GY - 140, 6, plank(6, '#E7E5E4', undefined, undefined, 1));
+      signAt(g, 'AN INCIDENT', x + 50, GY - 130, 6, plank(6, '#E7E5E4', undefined, undefined, 2));
+      signAt(g, '0', x + 50, GY - 98, 16, plank(16, '#F8FAFC', undefined, undefined, 3));
+      signAt(g, '(BEST: 2)', x + 50, GY - 80, 6, plank(6, '#9CA3AF', undefined, undefined, 4));
       break;
     }
     case 'ladder': {
       for (const lx of [x, x + 34]) { box(g, lx, GY - 260, 5, 260, INK); box(g, lx + 1, GY - 260, 3, 260, '#C2A23C'); box(g, lx + 1, GY - 260, 1, 260, '#E8D27A'); }
       for (let y = GY - 240; y < GY; y += 26) { box(g, x + 4, y, 30, 4, '#A88A2C'); box(g, x + 4, y, 30, 1, '#E8D27A'); }
-      box(g, x - 16, GY - 122, 72, 12, '#E8C130'); text(g, 'NOT A STEP', x + 20, GY - 113, INK, 6, 'center', null);
+      box(g, x - 16, GY - 122, 72, 12, '#E8C130'); signAt(g, 'NOT A STEP', x + 20, GY - 113, 6, stencil(6, INK));
       break;
     }
     case 'cooler': {
@@ -456,7 +457,7 @@ const paintProp = (g: Ctx, p: Prop) => {
       box(g, x + 8, GY - 60, 8, 6, '#3B82F6'); box(g, x + 28, GY - 60, 8, 6, '#DC2626');
       // and a mop bucket, the mop in it
       slab(g, x + 60, GY - 34, 40, 34, '#E8C130', { edge: 2 }); box(g, x + 78, GY - 130, 3, 100, '#B08A58');
-      text(g, 'CAUTION', x + 80, GY - 14, INK, 6, 'center', null);
+      signAt(g, 'CAUTION', x + 80, GY - 14, 6, print(6, INK));
       break;
     }
     case 'cable': {
@@ -470,9 +471,9 @@ const paintProp = (g: Ctx, p: Prop) => {
     case 'title': {
       // (hung from the truss on chains, way up: the crew's own sign)
       // (its chains, up out of sight, are drawn over the stamp: drawProps)
-      sign(g, x - 10, GY - 470, 280, 28, '#5A1A0C', 'TEMPLE OF THE JAGUAR', '#F2C14E', 10, '#7A5224');
-      sign(g, x + 10, GY - 424, 240, 30, '#E7E2D2', 'CAST AND CREW ONLY', '#1A0B06', 7, '#6B7280');
-      text(g, 'NO FLASH PHOTOGRAPHY OF THE MAGIC', x + 130, GY - 400, '#B91C1C', 6, 'center', null);
+      sign(g, x - 10, GY - 470, 280, 28, '#5A1A0C', 'TEMPLE OF THE JAGUAR', '#F2C14E', 10, '#7A5224', plank({ sx: 2, sy: 2 }, '#F2C14E', undefined, '#2A0A04', 5));
+      sign(g, x + 10, GY - 424, 240, 30, '#E7E2D2', 'CAST AND CREW ONLY', '#1A0B06', 7, '#6B7280', enamel({ sx: 1, sy: 2 }, '#1A0B06'));
+      signAt(g, 'NO FLASH PHOTOGRAPHY OF THE MAGIC', x + 130, GY - 400, 6, print(6, '#B91C1C'));
       for (const cx of [x + 30, x + 230]) for (let y = GY - 438; y < GY - 428; y += 4) box(g, cx, y, 2, 3, '#4A4A4E');
       break;
     }
@@ -487,7 +488,7 @@ const paintProp = (g: Ctx, p: Prop) => {
       box(g, x + 110, GY - 110, 52, 110, '#1A120C');
       slab(g, x + 118, GY - 100, 30, 100, '#B91C1C', { edge: 2 }); box(g, x + 122, GY - 94, 22, 40, '#7DD3FC'); box(g, x + 122, GY - 94, 22, 3, '#E0F2FE');
       g.fillStyle = dark(PLY, 0.1); g.beginPath(); g.moveTo(x + 110, GY - 110); g.lineTo(x + 92, GY - 104); g.lineTo(x + 92, GY + 2); g.lineTo(x + 110, GY); g.closePath(); g.fill();
-      sign(g, x + 104, GY - 136, 64, 12, '#F1EFEA', 'BREAK ROOM', '#1A0B06', 6, '#6B7280');
+      sign(g, x + 104, GY - 136, 64, 12, '#F1EFEA', 'BREAK ROOM', '#1A0B06', 6, '#6B7280', enamel(6, '#1A0B06'));
       break;
     }
   }
@@ -596,8 +597,8 @@ const drawBackDoor = (c: Ctx, eye: Eye, f: number) => {
     box(c, dx, GY - 146, 6, 4, '#3A3E44');
     const glow = f % 180 < 2 ? '#14532D' : '#22C55E';
     slab(c, dx + 4, GY - 150, 56, 22, '#1A1A1A', { edge: 2 });
-    text(c, 'EXIT', dx + 32, GY - 135, glow, 8, 'center', '#052E16');
-    sign(c, dx + 2, GY - 124, 68, 8, '#F1EFEA', 'DINO PARK', '#1A0B06', 6, '#6B7280');
+    signAt(c, 'EXIT', dx + 32, GY - 135, 8, led(8, glow, '#1A1A1A'));
+    sign(c, dx + 2, GY - 124, 68, 8, '#F1EFEA', 'DINO PARK', '#1A0B06', 6, '#6B7280', enamel(6, '#1A0B06'));
   });
 };
 
@@ -646,11 +647,11 @@ const drawCatapult = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
     if (i < 5) ball(c, bx, by, 12, ['#8A8178', '#7A736A', '#968C80'][i % 3]);
   }
   slab(c, X + 112, GY - 96, 80, 34, '#E7E2D2', { edge: 2 });
-  text(c, 'BOULDERS', X + 152, GY - 82, '#1A0B06', 6, 'center', null);
-  text(c, '(REAL)', X + 152, GY - 72, '#B91C1C', 6, 'center', null);
+  signAt(c, 'BOULDERS', X + 152, GY - 82, 6, print(6, '#1A0B06'));
+  signAt(c, '(REAL)', X + 152, GY - 72, 6, print(6, '#B91C1C'));
   box(c, X + 116, GY - 62, 72, 9, TAPE_W); text(c, 'INSURANCE SAID FOAM', X + 152, GY - 55, '#1E3A8A', 4, 'center', null);
   // (stenciled on the frame's back upright: what it is)
-  inDepth(c, eye, 0.95, () => sign(c, X - 70, GY - 230, 140, 16, '#2A2A2E', 'THE ROLLING BOULDER', '#E8C130', 6, '#4A4E56'));
+  inDepth(c, eye, 0.95, () => sign(c, X - 70, GY - 230, 140, 16, '#2A2A2E', 'THE ROLLING BOULDER', '#E8C130', 6, '#4A4E56', stencil(6, '#E8C130')));
   inDepth(c, eye, 0.95, () => { box(c, X - 60, GY - 210, 2, 116, '#3A3A3E'); box(c, X + 58, GY - 210, 2, 176, '#3A3A3E'); });
 };
 
@@ -704,7 +705,7 @@ const drawGhost = (c: Ctx, eye: Eye, f: number) => {
     slab(g, bx, GY - 190, 120, 190, '#0E0B0D', { edge: 2 });
     for (let k = 0; k < 9; k++) box(g, bx + 6 + k * 13, GY - 186, 4, 186, k % 2 ? '#17121A' : '#0A080B');
     slab(g, bx - 6, GY - 204, 132, 16, '#2A2A2E', { edge: 2 });
-    text(g, "PEPPER'S GHOST", bx + 60, GY - 193, '#E8C130', 6, 'center', null);
+    signAt(g, "PEPPER'S GHOST", bx + 60, GY - 193, 6, enamel(6, '#E8C130'));
   }));
   // (his spot: on when he's doing his bit)
   const on = (f % 120) < 60;
@@ -726,10 +727,10 @@ const drawGhost = (c: Ctx, eye: Eye, f: number) => {
   if (on) { c.globalAlpha = 0.18; c.translate(22, -10); c.scale(0.8, 0.8); drawPerson(c, { seed: 909, outfit: 'stage', f, pose: 'fly', mood: 'bored' }); c.globalAlpha = 1; }
   c.restore();
   // (and the note taped to the frame)
-  box(c, GHOST_X + 6, GY - 92, 40, 26, '#F1EFEA'); box(c, GHOST_X + 18, GY - 95, 16, 4, TAPE_Y);
-  text(c, 'DO NOT', GHOST_X + 26, GY - 82, '#B91C1C', 4, 'center', null);
-  text(c, 'LEAN ON', GHOST_X + 26, GY - 75, '#B91C1C', 4, 'center', null);
-  text(c, 'GLASS', GHOST_X + 26, GY - 68, '#B91C1C', 4, 'center', null);
+  box(c, GHOST_X + 3, GY - 92, 46, 26, '#F1EFEA'); box(c, GHOST_X + 18, GY - 95, 16, 4, TAPE_Y);
+  signText(c, 'DO NOT', GHOST_X + 26, GY - 83, print(4, '#B91C1C'));
+  signText(c, 'LEAN ON', GHOST_X + 26, GY - 75, print(4, '#B91C1C'));
+  signText(c, 'GLASS', GHOST_X + 26, GY - 67, print(4, '#B91C1C'));
   // the base of the stand
   box(c, GHOST_X - 20, GY - 4, 60, 4, '#3A3E44');
 };
@@ -930,9 +931,9 @@ const drawWaitSign = (c: Ctx, eye: Eye, f: number) => {
   inDepth(c, eye, FAR_D, () => {
     const y = GY - FAR_RISE, sx = QX0 + 230;
     box(c, sx + 30, y - 90, 3, 90, '#3A3A3E'); box(c, sx + 190, y - 90, 3, 90, '#3A3A3E');
-    sign(c, sx, y - 150, 220, 30, '#1A1A1A', 'WAIT FROM THIS POINT', '#F2C14E', 8, '#4A4E56');
+    sign(c, sx, y - 150, 220, 30, '#1A1A1A', 'WAIT FROM THIS POINT', '#F2C14E', 8, '#4A4E56', enamel({ sx: 1, sy: 2 }, '#F2C14E'));
     slab(c, sx + 40, y - 112, 140, 26, '#0A0A0C', { edge: 2 });
-    text(c, '240 MINUTES', sx + 110, y - 94, f % 90 < 80 ? '#F87171' : '#7F1D1D', 8, 'center', null);
+    signAt(c, '240 MINUTES', sx + 110, y - 94, 8, led(8, f % 90 < 80 ? '#F87171' : '#7F1D1D', '#0A0A0C'));
   });
 };
 
@@ -970,8 +971,8 @@ const drawStation = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
     for (const cx of [bx + 20, bx + 560]) chain(c, cx, CHAIN_TOP, by, '#4A4A4E');
     slab(c, bx, by, 600, 40, '#5A1A0C', { edge: 2 });
     for (let k = 0; k < 600; k += 20) box(c, bx + k, by + 36, 10, 4, '#E8B400');
-    text(c, 'JAGUAR EXPRESS', bx + 300, by + 16, '#F2C14E', 10, 'center', INK);
-    text(c, 'KEEP HANDS, ARMS AND EXPECTATIONS INSIDE THE CART AT ALL TIMES', bx + 300, by + 30, '#F1EFEA', 6, 'center', INK);
+    signAt(c, 'JAGUAR EXPRESS', bx + 300, by + 16, 10, plank({ sx: 2, sy: 2 }, '#F2C14E', undefined, INK, 6));
+    signAt(c, 'KEEP HANDS, ARMS AND EXPECTATIONS INSIDE THE CART AT ALL TIMES', bx + 300, by + 30, 6, enamel(6, '#F1EFEA', INK));
   });
   // the platform's edge (yellow, of course), the track along it: ties, two rails going back, on into the tunnel
   const tx0 = STATION_X + 560, tx1 = END_WALL + 4;
@@ -1000,8 +1001,8 @@ const drawStation = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
     slab(g, END_WALL, GY - 700, 200, 700, '#2E2824', { edge: 4 });
     for (let y = GY - 700; y < GY; y += 16) box(g, END_WALL + 2, y, 196, 1, '#221D1A');
     // (painted on the wall, up over the tunnel: an arrow, which way they go)
-    sign(g, END_WALL + 20, GY - 250, 160, 22, '#14532D', 'FRIENDLY TRACK', '#BBF7D0', 7, '#4A4E56');
-    box(g, END_WALL + 40, GY - 222, 120, 9, TAPE_W); text(g, '(MOSTLY)', END_WALL + 100, GY - 215, '#B91C1C', 6, 'center', null);
+    sign(g, END_WALL + 20, GY - 250, 160, 22, '#14532D', 'FRIENDLY TRACK', '#BBF7D0', 7, '#4A4E56', plank(7, '#BBF7D0', undefined, '#052E16', 7));
+    box(g, END_WALL + 40, GY - 222, 120, 9, TAPE_W); signAt(g, '(MOSTLY)', END_WALL + 100, GY - 215, 6, plank(6, '#B91C1C', undefined, undefined, 8));
   }, { key: 'tpl-end-wall', lip: false, part: 'front' });
   // (the beacon over the tunnel, stuck out from the wall)
   const bc = at(eye, END_WALL - 6, GY - 150, 0.965);
@@ -1018,7 +1019,7 @@ const drawStation = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
     box(g, BOOTH_X + 8, GY - 116, 154, 54, '#0E1A24');
   }, { key: 'tpl-booth', lip: false, at: BOOTH_D });
   inDepth(c, eye, BOOTH_D, () => {
-    text(c, 'OPERATORS', BOOTH_X + 85, GY - 130, '#F2C14E', 6, 'center', INK);
+    signAt(c, 'OPERATORS', BOOTH_X + 85, GY - 130, 6, enamel(6, '#F2C14E', INK));
     c.save(); c.beginPath(); c.rect(BOOTH_X + 8, GY - 116, 154, 54); c.clip();
     box(c, BOOTH_X + 8, GY - 116, 154, 54, '#2A3A44');
     for (const [i, seed, woman] of [[0, 818, false], [1, 1331, true]] as const) {
@@ -1045,9 +1046,9 @@ const drawStation = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
   // the wait-time sign at the line's entrance, on its post
   pole(c, STATION_X + 70, GY - 150, 6, 150, '#5A5E66');
   sign(c, STATION_X + 10, GY - 196, 126, 46, '#1A1A1A', '', '#F2C14E', 6, '#6B4A2C');
-  text(c, 'WAIT TIME', STATION_X + 73, GY - 180, '#F2C14E', 6, 'center', INK);
-  text(c, 'FROM HERE', STATION_X + 73, GY - 170, '#F2C14E', 6, 'center', INK);
-  text(c, '240 MIN', STATION_X + 73, GY - 156, f % 120 < 100 ? '#F87171' : '#7F1D1D', 8, 'center', INK);
+  signAt(c, 'WAIT TIME', STATION_X + 73, GY - 180, 6, enamel(6, '#F2C14E', INK));
+  signAt(c, 'FROM HERE', STATION_X + 73, GY - 170, 6, enamel(6, '#F2C14E', INK));
+  signAt(c, '240 MIN', STATION_X + 73, GY - 156, 8, led(8, f % 120 < 100 ? '#F87171' : '#7F1D1D', '#1A1A1A'));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1067,7 +1068,7 @@ export const drawTempleBack = (c: Ctx, state: GameState, tp: Temple) => {
     // (exit signs on it, lit)
     for (let i = Math.floor(s0 / 1100); i * 1100 < s1; i++) {
       const x = i * 1100 + 300;
-      slab(c, x, GY - 260, 50, 20, '#141414', { edge: 2 }); text(c, 'EXIT', x + 25, GY - 246, '#22C55E', 8, 'center', '#052E16');
+      slab(c, x, GY - 260, 50, 20, '#141414', { edge: 2 }); signAt(c, 'EXIT', x + 25, GY - 246, 8, led(8, '#22C55E', '#141414'));
     }
   });
   drawFloor(c, eye, L, R);

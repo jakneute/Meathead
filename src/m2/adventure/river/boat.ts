@@ -3,7 +3,8 @@
 // striped awning on poles with a scalloped valance, benches, the skipper's wheel up front, an outboard on the back.
 // Its left end at x, its deck at `deck` (what's stood on: the lit gunwale), `w` long; the bow's the right end.
 
-import { type Ctx, INK, rampOf, box, checker, PIX, dark, lite, text, bamboo } from '../queue/depth';
+import { type Ctx, INK, rampOf, box, checker, PIX, dark, lite, bamboo } from '../queue/depth';
+import { signAt, plank } from '../letters';
 import { timeOfDay } from '../../timeOfDay';
 
 const HULL = '#E8E2D2', BOOT = '#2F6A3A', RED = '#A8322A', TEAK = '#9A6A3A', STRIPE_A = '#2F7A44', STRIPE_B = '#EDE4C8';
@@ -73,8 +74,8 @@ export const drawLaunch = (c: Ctx, x: number, d: number, f: number, opts: { w?: 
   box(c, x - 10, d - 1, w + 28, 5, INK); box(c, x - 9, d, w + 26, 3, tr[2]); box(c, x - 9, d, w + 26, 1, tr[4]);
   // Her name on the bow, her number on the stern
   if (opts.name !== false) {
-    text(c, 'AFRICAN QUEASY', x + w - 66, d + 15, '#1F3A26', 5, 'center', null);
-    text(c, 'No.7', x + 22, d + 15, '#1F3A26', 5, 'center', null);
+    signAt(c, 'AFRICAN QUEASY', x + w - 66, d + 15, 5, plank(5, '#1F3A26', undefined, undefined, 2));
+    signAt(c, 'NO.7', x + 22, d + 15, 5, plank(5, '#1F3A26', undefined, undefined, 3));
   }
   // Life rings, hung on the side
   for (const rx of [x + 46, x + 106]) {

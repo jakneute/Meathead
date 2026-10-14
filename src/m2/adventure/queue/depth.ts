@@ -8,6 +8,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { pixelRidge, screenRidge } from '../../../m1/game/render/pixelArt';
 import { drawTodSky, farTint, timeOfDay } from '../../timeOfDay';
 import { type Ctx, INK, rampOf, box, checker, hazeBands, PIX, hash, mix, dark, lite, stamp, tilePattern, text } from '../../intro/art/kit';
+import { signAt, stencil as stencilLook } from '../letters';
 
 export { INK, rampOf, box, checker, hazeBands, PIX, hash, mix, dark, lite, stamp, tilePattern, text };
 export type { Ctx };
@@ -166,9 +167,7 @@ export const fringe = (c: Ctx, x0: number, x1: number, y: number, h = 14, col = 
 };
 
 /** Stenciled words (on a crate, a drum, a wall): no shadow, a little worn. */
-export const stencil = (c: Ctx, s: string, x: number, y: number, col: string, size = 6) => {
-  text(c, s, x, y, col, size, 'center', null);
-};
+export const stencil = (c: Ctx, s: string, x: number, y: number, col: string, size = 6) => signAt(c, s, x, y, size, stencilLook(size, col));
 
 /**
  * A box in the world (a crate, a dumpster, an AC unit, a fence post): its front at depth 1 (x..x+w, top..GY-ish

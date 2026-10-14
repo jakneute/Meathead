@@ -6,6 +6,7 @@
 import type { GameState } from '../../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../../m1/constants';
 import { type Ctx, INK, box, checker, mix, rampOf, hash, PIX } from '../../../intro/art/kit';
+import { signAt, signW, carved as carvedLook, enamel } from '../../letters';
 
 export { type Ctx, INK, box, checker, mix, rampOf, hash, PIX };
 
@@ -379,18 +380,16 @@ export const bamboo = (c: Ctx, x: number, y: number, len: number, w: number, acr
   }
 };
 
-/** Words carved into wood: cut in dark, the lower lip of each cut catching the light. */
-export const carved = (c: Ctx, s: string, x: number, y: number, size: number, cut = '#2A1A0C', lip = '#E8C890') => {
-  c.font = `${size}px "Press Start 2P"`; c.textAlign = 'center';
-  c.fillStyle = lip; c.fillText(s, x + 1, y + 1);
-  c.fillStyle = cut; c.fillText(s, x, y);
-  c.textAlign = 'left';
-};
-/** Words painted on: a drop shadow under them. */
-export const painted = (c: Ctx, s: string, x: number, y: number, size: number, col: string, shadow: string | null = INK) => {
-  c.font = `${size}px "Press Start 2P"`; c.textAlign = 'center';
-  if (shadow) { c.fillStyle = shadow; c.fillText(s, x + 1, y + 1); }
-  c.fillStyle = col; c.fillText(s, x, y);
-  c.textAlign = 'left';
-};
+/** The cell a carving at a stock size is cut in (the big boards in big chunky cuts, the rest tall and narrow). */
+const carveCell = (size: number) => (size >= 10 ? { sx: 2, sy: 2 } : size >= 8 ? { sx: 1, sy: 2 } : { sx: 1, sy: 1 });
+/** Words carved into wood: cut in dark, the lower lip of each cut catching the light, by hand (the land's letters). */
+export const carved = (c: Ctx, s: string, x: number, y: number, size: number, cut = '#2A1A0C', lip = '#E8C890') =>
+  signAt(c, s, x, y, size, carvedLook(carveCell(size), cut, lip, s.length));
+/** How wide a carving sets. */
+export const carvedW = (s: string, size: number) => signW(s, carvedLook(carveCell(size)));
+/** Words painted on (a plate, a placard): crisp enamel, a drop shadow under them. */
+export const painted = (c: Ctx, s: string, x: number, y: number, size: number, col: string, shadow: string | null = INK) =>
+  signAt(c, s, x, y, size, enamel(size, col, shadow ?? undefined));
+/** How wide painted words set. */
+export const paintedW = (s: string, size: number) => signW(s, enamel(size, '#000000'));
 export const textW = (c: Ctx, s: string, size: number) => { c.font = `${size}px "Press Start 2P"`; return c.measureText(s).width; };

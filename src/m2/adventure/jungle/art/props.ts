@@ -10,8 +10,9 @@ import { timeOfDay, skyRamp, skyAt, farTint } from '../../../timeOfDay';
 import { stamp, bandedGradient, steppedGlow } from '../../../intro/art/kit';
 import { SIGNS, X, Y, type SignStyle } from '../layout';
 import { atDepth } from './ground';
+import { signAt, routed as routedLook } from '../../letters';
 import { doorLamp } from './trees';
-import { type Ctx, type View, INK, box, mix, hash, poly, clump, fern, leaf, plank, post, lashing, bamboo, carved, painted, textW, LEAF, MOSS, ROCK, BARK } from './paint';
+import { type Ctx, type View, INK, box, mix, hash, poly, clump, fern, leaf, plank, post, lashing, bamboo, carved, carvedW, painted, paintedW, LEAF, MOSS, ROCK, BARK } from './paint';
 
 const GY = GROUND_Y;
 const WOOD = '#7A5634';
@@ -22,7 +23,7 @@ const WOOD = '#7A5634';
 /** A board of planks with words carved in it, on two log posts (lashed on), standing on the ground at foot. */
 const woodSign = (g: Ctx, x: number, foot: number, a: string, b: string, sa = 8, sb = 7, seed = 0, icon?: (x: number, y: number) => void) => {
   const iw = icon ? 26 : 0;
-  const w = Math.round(Math.max(textW(g, a, sa), textW(g, b, sb)) + 26 + iw), h1 = sa + 12, h2 = sb + 11;
+  const w = Math.round(Math.max(carvedW(a, sa), carvedW(b, sb)) + 26 + iw), h1 = sa + 12, h2 = sb + 11;
   const top = foot - 86, l = x - w / 2;
   post(g, l + 10, top - 6, foot, 8); post(g, l + w - 18, top - 6, foot, 8);
   plank(g, l, top, w, h1, WOOD, seed + 1);
@@ -62,7 +63,7 @@ const peels = (g: Ctx, x: number, y: number) => {
 
 /** The safety sign: steel post, the jungle growing up it; DANGER, the words, rust. */
 const warnSign = (g: Ctx, x: number, foot: number, a: string, b: string) => {
-  const w = Math.round(Math.max(textW(g, a, 7), textW(g, b, 6)) + 20), h = 54, top = foot - 116, l = x - w / 2;
+  const w = Math.round(Math.max(paintedW(a, 7), paintedW(b, 6)) + 20), h = 54, top = foot - 116, l = x - w / 2;
   box(g, x - 4, top, 8, foot - top, INK); box(g, x - 3, top, 6, foot - top, '#6B7280'); box(g, x - 3, top, 2, foot - top, '#A8B0BC'); box(g, x + 2, top, 1, foot - top, '#3A3F48');
   box(g, l - 2, top - 2, w + 4, h + 4, INK);
   box(g, l, top, w, h, '#F1EFEA');
@@ -81,14 +82,14 @@ const warnSign = (g: Ctx, x: number, foot: number, a: string, b: string) => {
 
 /** The brown scenic sign (routed letters, a binoculars mark), on two square posts. */
 const scenicSign = (g: Ctx, x: number, foot: number, a: string, b: string, up: boolean) => {
-  const w = Math.round(Math.max(textW(g, a, 7), textW(g, b, 6)) + 52), h = 40, top = foot - 92, l = x - w / 2;
+  const w = Math.round(Math.max(paintedW(a, 7), paintedW(b, 6)) + 52), h = 40, top = foot - 92, l = x - w / 2;
   for (const px of [l + 12, l + w - 20]) { box(g, px - 1, top, 10, foot - top, INK); box(g, px, top, 8, foot - top, '#5A3A20'); box(g, px, top, 2, foot - top, '#7A5634'); }
   poly(g, [[l - 2, top + 4], [l + 4, top - 2], [l + w - 4, top - 2], [l + w + 2, top + 4], [l + w + 2, top + h + 2], [l - 2, top + h + 2]], INK);
   poly(g, [[l, top + 4], [l + 4, top], [l + w - 4, top], [l + w, top + 4], [l + w, top + h], [l, top + h]], '#5E3A1E');
   box(g, l + 3, top + 3, w - 6, 1, '#E8D8B0'); box(g, l + 3, top + h - 4, w - 6, 1, '#E8D8B0');
   box(g, l + 4, top + 1, w - 8, 1, '#8A5E36');
   // (routed: the cut's shadow over its top edge, cream in it)
-  const routed = (s: string, cx: number, y: number, size: number) => { painted(g, s, cx, y - 1, size, '#2E1A0C', null); painted(g, s, cx, y, size, '#F2E6C4', null); };
+  const routed = (s: string, cx: number, y: number, size: number) => signAt(g, s, cx, y, size, routedLook(size));
   routed(a, x + 12, top + 18, 7); routed(b, x + 12, top + 32, 6);
   // (the binoculars mark)
   const bx = l + 18, by = top + h / 2;
@@ -117,10 +118,10 @@ const jaguarSign = (g: Ctx, x: number, foot: number, a: string, b: string) => {
   g.beginPath(); g.moveTo(x - 12, cy + 1); g.quadraticCurveTo(x - 20, cy - 6, x - 18, cy - 12); g.stroke();
   for (const [lx, dx] of [[-8, -6], [-4, -2], [6, 6], [10, 9]]) { g.beginPath(); g.moveTo(x + lx, cy + 4); g.lineTo(x + lx + dx * 0.6, cy + 12); g.stroke(); }
   // (the plaques)
-  const pw = Math.round(textW(g, a, 6) + 12), py = cy + r + 8;
+  const pw = Math.round(paintedW(a, 6) + 12), py = cy + r + 8;
   box(g, x - pw / 2 - 2, py - 2, pw + 4, 16, INK); box(g, x - pw / 2, py, pw, 12, '#F2C21E'); box(g, x - pw / 2, py, pw, 1, '#FDE68A');
   painted(g, a, x, py + 9, 6, '#141414', null);
-  const qw = Math.round(textW(g, b, 6) + 12), qy = py + 18;
+  const qw = Math.round(paintedW(b, 6) + 12), qy = py + 18;
   box(g, x - qw / 2 - 2, qy - 2, qw + 4, 16, INK); box(g, x - qw / 2, qy, qw, 12, '#F1EFEA'); box(g, x - qw / 2, qy, qw, 1, '#FFFFFF');
   painted(g, b, x, qy + 9, 6, '#141414', null);
   // (and something's had a go at it)
@@ -132,9 +133,9 @@ const jaguarSign = (g: Ctx, x: number, foot: number, a: string, b: string) => {
 const legalSign = (g: Ctx, x: number, foot: number, a: string, b: string) => {
   woodSign(g, x, foot - 20, a, '', 8, 6, 31);
   // (the posts carry on down to the ground)
-  const w = Math.round(textW(g, a, 8) + 26), l = x - w / 2;
+  const w = Math.round(carvedW(a, 8) + 26), l = x - w / 2;
   post(g, l + 10, foot - 22, foot, 8); post(g, l + w - 18, foot - 22, foot, 8);
-  const pw = Math.round(textW(g, b, 6) + 12), py = foot - 52;
+  const pw = Math.round(paintedW(b, 6) + 12), py = foot - 52;
   box(g, x - pw / 2 - 2, py - 2, pw + 4, 26, INK); box(g, x - pw / 2, py, pw, 22, '#F1EFEA'); box(g, x - pw / 2, py, pw, 1, '#FFFFFF');
   painted(g, b, x, py + 9, 6, '#1E293B', null);
   for (let k = 0; k < 3; k++) box(g, x - pw / 2 + 6, py + 13 + k * 3, pw - 12 - (k === 2 ? 30 : 0), 1, '#9CA3AF');
@@ -155,7 +156,7 @@ export const gateSign = (g: Ctx, x: number, foot: number, a: string, b: string) 
   }
   for (let k = -134; k < 134; k += 4) box(g, x + k, top + 6, 2, 3 + ((k * 7) & 3), '#6E5424');
   // (the board hung on ropes)
-  const w = Math.round(textW(g, a, 10) + 40), l = x - w / 2, by = top + 20;
+  const w = Math.round(carvedW(a, 10) + 32), l = x - w / 2, by = top + 20;
   for (const rx of [l + 14, l + w - 14]) { box(g, rx, top + 6, 2, 16, '#C8A86A'); box(g, rx + 1, top + 6, 1, 16, '#7A6236'); }
   plank(g, l, by, w, 22, '#8A6038', 41);
   plank(g, l + 10, by + 23, w - 20, 16, '#6E4C2C', 42);
@@ -181,7 +182,7 @@ const exitArch = (g: Ctx, x: number, foot: number, a: string, b: string) => {
   }
   for (let k = l - 26; k < r + 36; k += 4) box(g, k, top + 6, 2, 4 + ((k * 7) % 6), '#8A6E2E');
   // (the board, hung under the beam)
-  const w = Math.round(textW(g, a, 10) + 36), bl = x - w / 2;
+  const w = Math.round(carvedW(a, 10) + 16), bl = x - w / 2;
   for (const rx of [bl + 12, bl + w - 12]) box(g, rx, top + 14, 2, 10, '#C8A86A');
   plank(g, bl, top + 22, w, 24, '#8A6038', 51);
   carved(g, a, x, top + 39, 10);
@@ -193,7 +194,7 @@ const exitArch = (g: Ctx, x: number, foot: number, a: string, b: string) => {
   for (let i = 0; i < 4; i++) { g.fillStyle = '#C81E1E'; g.beginPath(); g.moveTo(bl + w + 18, top + 40); g.arc(bl + w + 18, top + 40, 11, i * Math.PI / 2, i * Math.PI / 2 + 0.6); g.fill(); }
   g.fillStyle = mix(BARK[2], '#000000', 0.2); g.beginPath(); g.arc(bl + w + 18, top + 40, 5, 0, Math.PI * 2); g.fill();
   // (the arrow sign, on its own post: this way)
-  const ax = r + 70, ay = foot - 74, aw = Math.round(textW(g, b, 7) + 26);
+  const ax = r + 70, ay = foot - 74, aw = Math.round(carvedW(b, 7) + 26);
   post(g, ax + aw / 2 - 4, ay, foot, 8);
   poly(g, [[ax - 2, ay - 2], [ax + aw - 2, ay - 2], [ax + aw + 12, ay + 9], [ax + aw - 2, ay + 20], [ax - 2, ay + 20]], INK);
   poly(g, [[ax, ay], [ax + aw - 2, ay], [ax + aw + 9, ay + 9], [ax + aw - 2, ay + 18], [ax, ay + 18]], '#8A6038');

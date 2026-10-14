@@ -18,12 +18,13 @@ import { GY } from '../geometry';
 import { isNude, isShat } from '../../../m1/game/player/gut';
 import { skyAt } from '../../timeOfDay';
 import { eyeOf, inDepth, at, spanAt, floorAt, type Eye } from '../temple/art';
-import { INK, box, text, slab, pole, ball, sign, rampOf, dark, lite, mix, checker, bandedGradient, hazeBands, steppedGlow, stamp, hash } from '../../intro/art/kit';
+import { INK, box, slab, pole, ball, sign, rampOf, dark, lite, mix, checker, bandedGradient, hazeBands, steppedGlow, stamp, hash } from '../../intro/art/kit';
 import {
   X, x1, RUNS, RAMP_X, RAMP_R, RAMP_Y, RAIL_TOP, BEAMS, SCANNER_X, FORK_X, BEAM_CLEAR, trackY, artieTrackY,
 } from './layout';
 import type { Cart } from './index';
 import { drawTrickSets, drawTrickActors, trickLights } from './trickArt';
+import { signAt, plank, enamel, led, dino } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 type Pt = [number, number];
@@ -268,7 +269,7 @@ const drawPortal = (c: Ctx, eye: Eye) => {
     box(g, px, GY - 200, 220, 200, '#06060A');
     for (const [x0, w] of [[px - 22, 22], [px + 220, 22]]) { slab(g, x0, GY - 210, w, 210, TIMBER, { edge: 2 }); }
     slab(g, px - 30, GY - 232, 280, 26, TIMBER, { edge: 4 });
-    sign(g, px + 20, GY - 256, 180, 16, '#5A1A0C', 'LOADING STATION', '#F2C14E', 6, '#7A5224');
+    sign(g, px + 20, GY - 256, 180, 16, '#5A1A0C', 'LOADING STATION', '#F2C14E', 6, '#7A5224', plank(6, '#F2C14E', undefined, '#2A0A04', 2));
     // (the bit of the station you can see back in there: a lamp, the platform's yellow edge)
     box(g, px + 30, GY - 6, 160, 3, '#8A7020'); box(g, px + 90, GY - 150, 4, 30, '#2A2A2E'); box(g, px + 86, GY - 120, 12, 6, '#FCD34D');
   }));
@@ -371,7 +372,7 @@ const drawFriendly = (c: Ctx, eye: Eye, f: number, L: number, R: number) => {
       box(g, ax + 60, GY - 110, 180, 110, '#1E1B4B');
       g.fillStyle = '#1E1B4B'; g.beginPath(); g.arc(ax + 150, GY - 110, 90, Math.PI, 0); g.fill();
       for (const tx of [ax - 20, ax + 290]) { slab(g, tx, GY - 260, 30, 260, '#FDE68A', { edge: 2 }); ball(g, tx + 15, GY - 268, 12, '#F472B6'); }
-      sign(g, ax + 20, GY - 290, 260, 26, '#FDF2F8', "IT'S A FRIENDLY WORLD", '#BE185D', 8, '#F472B6');
+      sign(g, ax + 20, GY - 290, 260, 26, '#FDF2F8', "IT'S A FRIENDLY WORLD", '#BE185D', 8, '#F472B6', dino({ sx: 2, sy: 2 }, ['#F9A8D4', '#EC4899', '#BE185D', '#9D174D'], '#500724', '#F9A8D4'));
     });
     // (the light inside, going round the colors)
     const col = ['#F472B6', '#60A5FA', '#FDE047', '#4ADE80'][Math.floor(f / 40) % 4];
@@ -461,14 +462,14 @@ const drawScanner = (c: Ctx, eye: Eye, state: GameState, cart: Cart) => {
     if (scanning) {
       const flash = Math.floor(cart.scanT / 8) % 2 === 0;
       const what = isNude(state) ? 'UNFRIENDLY (NO PANTS)' : isShat(state) ? 'UNFRIENDLY (SOILED)' : 'UNFRIENDLY';
-      if (cart.scanT < 30) text(c, 'SCANNING' + '.'.repeat(1 + Math.floor(cart.scanT / 8) % 3), S, GY - 260, '#FCD34D', 8, 'center', null);
+      if (cart.scanT < 30) signAt(c, 'SCANNING' + '.'.repeat(1 + Math.floor(cart.scanT / 8) % 3), S, GY - 260, 8, led({ sx: 1, sy: 2 }, '#FCD34D', '#0A0A0C'));
       else {
-        text(c, 'GUEST STATUS:', S, GY - 270, '#E5E7EB', 8, 'center', null);
-        text(c, what, S, GY - 250, flash ? '#F87171' : '#B91C1C', 8, 'center', null);
+        signAt(c, 'GUEST STATUS:', S, GY - 270, 8, led({ sx: 1, sy: 2 }, '#E5E7EB', '#0A0A0C'));
+        signAt(c, what, S, GY - 250, 8, led({ sx: 1, sy: 2 }, flash ? '#F87171' : '#B91C1C', '#0A0A0C'));
       }
     } else {
       const msg = ['PLEASE REMAIN SEATED', 'SMILE!', 'HAVE A FRIENDLY DAY'][Math.floor(f / 150) % 3];
-      text(c, msg, S, GY - 262, '#4ADE80', 7, 'center', null);
+      signAt(c, msg, S, GY - 262, 7, led({ sx: 1, sy: 2 }, '#4ADE80', '#0A0A0C'));
     }
     for (const bx of [S - 120, S + 110]) box(c, bx, GY - 230, 6, 30, '#3A3E44');
   });
@@ -477,7 +478,7 @@ const drawScanner = (c: Ctx, eye: Eye, state: GameState, cart: Cart) => {
   const a = at(eye, S - 72, hy, 0.93), b = at(eye, S + 72, hy, 0.93);
   if (eye.y < hy) quad(c, '#6A7078', [S - 72, hy], [S + 72, hy], b, a);
   slab(c, S - 72, hy, 144, 26, '#4A4E56', { edge: 2 });
-  text(c, 'GUEST SCANNER', S, hy + 16, '#A5F3FC', 6, 'center', INK);
+  signAt(c, 'GUEST SCANNER', S, hy + 16, 6, enamel(6, '#A5F3FC', INK));
   for (let k = 0; k < 3; k++) {
     const ex = S - 40 + k * 40;
     box(c, ex - 6, hy + 26, 12, 6, INK);
@@ -608,8 +609,8 @@ const drawRamp = (c: Ctx, eye: Eye, f: number) => {
   // (the sign, bolted to the tower on brackets: it's the end)
   const sy = RAMP_Y - 250;
   box(c, tx - 12, sy + 6, 14, 4, '#3A3E44'); box(c, tx - 12, sy + 40, 14, 4, '#3A3E44');
-  sign(c, tx - 150, sy, 140, 24, '#7F1D1D', 'END OF LINE', '#FEE2E2', 8, '#3A3E44');
-  sign(c, tx - 150, sy + 34, 140, 16, '#F1EFEA', 'NO RIDERS PAST THIS POINT', '#7F1D1D', 4, '#3A3E44');
+  sign(c, tx - 156, sy, 146, 24, '#7F1D1D', 'END OF LINE', '#FEE2E2', 8, '#3A3E44', enamel({ sx: 1, sy: 2 }, '#FEE2E2'));
+  sign(c, tx - 156, sy + 34, 146, 16, '#F1EFEA', 'NO RIDERS PAST THIS POINT', '#7F1D1D', 4, '#3A3E44', enamel(4, '#7F1D1D'));
   // (and up top: the temple's floor from under, its joists, the day through its cracks)
   const ceil = RAIL_TOP - 160;
   const L = RAMP_X - 700, R = RAMP_X + RAMP_R + 700;

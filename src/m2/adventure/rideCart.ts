@@ -4,7 +4,8 @@
 // (in front of them: they're sat down in it). `x` is the middle of it, `y` the rail it's on; whoever rides it sits
 // SEAT_DX from the middle, back against the back of it, feet RIDE_SINK above the rail.
 
-import { INK, box, text, rampOf, lite, dark, checker } from '../intro/art/kit';
+import { INK, box, rampOf, lite, dark, checker } from '../intro/art/kit';
+import { signAt, signW, stone } from './letters';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -56,10 +57,10 @@ export const drawRideCart = (c: Ctx, x: number, y: number, f: number, look: Cart
   box(c, HALF + 2, -40, 6, 7, INK); box(c, HALF + 3, -39, 4, 5, f % 60 < 56 ? '#FFF4C8' : '#C9A160');
   // the name, on a brass plate riveted to the side
   if (look.name) {
-    const w = look.name.length * 5 + 8;
+    const L = stone(5, '#2A1A08', lite(look.trim, 0.5)), w = signW(look.name, L) + 8;
     c.save(); c.scale(dir, 1);
     box(c, -w / 2 - 1, -32, w + 2, 12, INK); box(c, -w / 2, -31, w, 10, dark(look.trim, 0.1)); box(c, -w / 2, -31, w, 2, lite(look.trim, 0.35)); box(c, -w / 2, -23, w, 2, dark(look.trim, 0.4));
-    text(c, look.name, 0, -23, '#2A1A08', 5, 'center', lite(look.trim, 0.5));
+    signAt(c, look.name, 0, -23, 5, L);
     c.restore();
   }
   // the wheels: flanged, spoked, turning; the axle boxes over them

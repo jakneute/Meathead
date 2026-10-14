@@ -14,6 +14,7 @@ import {
 import { mix } from '../../m1/game/render/backdrops/core';
 import { timeOfDay, hourMix, sunAt, drawStars, drawMoon } from '../timeOfDay';
 import { noteSun } from '../sunFlare';
+import { signText, signW, signH, print } from '../adventure/letters';
 
 const STONE = rampOf('#8A7766');
 const MOSS = ['#2E3A14', '#3F5219', '#56701F'];
@@ -368,27 +369,27 @@ const paintChute = (g: Ctx, w: number, h: number) => {
 const chuteWords = (c: Ctx, sx: number, sy: number, s: number) => {
   const fs = Math.round(s * 0.24);
   if (fs >= 4) {
-    c.font = `${fs}px "Press Start 2P"`; c.textAlign = 'left';
-    // (I, a heart, ADVENTURE; LAND under it: blue on the canopy, the heart red, pixel drawn)
-    const w1 = c.measureText('I').width, w2 = c.measureText('ADVENTURE').width, gap = fs * 0.5;
-    const total = w1 + gap + fs + gap + w2;
+    // (I, a heart, ADVENTURE; LAND under it: blue on the canopy, the heart red, pixel drawn; printed in the park's
+    // letters, a cell per pixel or a few at size)
+    const u = Math.max(1, Math.round(fs / 7)), L = print({ sx: u, sy: u }, '#1E3A8A', '#F1EFEA'), lh = 7 * u;
+    const w1 = signW('I', L), w2 = signW('ADVENTURE', L), gap = Math.round(lh * 0.5);
+    const total = w1 + gap + lh + gap + w2;
     let x = Math.round(sx - total / 2);
     const y = Math.round(sy - s * 0.95);
-    const say = (str: string, px: number, py: number) => { c.fillStyle = '#F1EFEA'; c.fillText(str, px + 1, py + 1); c.fillStyle = '#1E3A8A'; c.fillText(str, px, py); };
-    say('I', x, y); x += w1 + gap;
-    const u = fs / 7;
+    signText(c, 'I', x, y, L, 'left'); x += w1 + gap;
     c.fillStyle = '#B91C1C';
-    for (const [hx, hy, hw] of [[1, 0, 2], [4, 0, 2], [0, 1, 7], [0, 2, 7], [1, 3, 5], [2, 4, 3], [3, 5, 1]] as const) c.fillRect(Math.round(x + hx * u), Math.round(y - fs + 1 + hy * u), Math.ceil(hw * u), Math.ceil(u));
-    x += fs + gap;
-    say('ADVENTURE', x, y);
-    say('LAND', Math.round(sx - c.measureText('LAND').width / 2), y + fs + 2);
+    for (const [hx, hy, hw] of [[1, 0, 2], [4, 0, 2], [0, 1, 7], [0, 2, 7], [1, 3, 5], [2, 4, 3], [3, 5, 1]] as const) c.fillRect(x + hx * u, y - lh + hy * u, hw * u, u);
+    x += lh + gap;
+    signText(c, 'ADVENTURE', x, y, L, 'left');
+    signText(c, 'LAND', sx, y + lh + 2, L);
   }
   // (the tag, still on it, on its string)
   const tx = sx + s * 1.5, ty = sy - s * 0.55;
   c.strokeStyle = '#E7E5E4'; c.lineWidth = 1; c.beginPath(); c.moveTo(tx, ty - s * 0.25); c.lineTo(tx + 1, ty); c.stroke();
   const tw = Math.max(4, s * 0.55), th = Math.max(2, s * 0.24);
   box(c, tx - 1, ty - 1, tw + 2, th + 2, INK); box(c, tx, ty, tw, th, '#FEF3C7');
-  if (s * 0.12 >= 3) { c.font = `${Math.round(s * 0.12)}px "Press Start 2P"`; c.fillStyle = '#B91C1C'; c.fillText('$9.99', tx + 1, ty + th - 1); }
+  const tag = print({ sx: Math.max(1, Math.floor(th / 9)), sy: Math.max(1, Math.floor(th / 9)) }, '#B91C1C');
+  if (signW('$9.99', tag) <= tw - 2 && signH(tag) <= th - 2) signText(c, '$9.99', tx + tw / 2, ty + th - 1, tag);
 };
 
 /** A vulture: stood on something, picking at it (live: its head goes down and up). */

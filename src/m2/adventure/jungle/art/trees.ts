@@ -9,6 +9,7 @@ import { stamp } from '../../../intro/art/kit';
 import { BRANCHES, VINES, BOA_BRANCHES, X, Y } from '../layout';
 import { RUNS, FAR, atDepth } from './ground';
 import { type Ctx, type View, INK, box, mix, hash, bark, roots, limb, clump, leaf, plank, lashing, LEAF, BARK, MOSS } from './paint';
+import { signText, print } from '../../letters';
 
 const GY = GROUND_Y;
 const SEG = 128;
@@ -131,8 +132,8 @@ const door = (c: Ctx, t: Tree, f: number) => {
     box(g, dx + 8, dy + 50, 6, 3, '#8A949E'); box(g, dx + 26, dy + 28, 4, 2, '#8A949E');
     // (the handle, a plaque, a keypad)
     box(g, dx + 30, dy + 44, 5, 3, INK); box(g, dx + 30, dy + 44, 4, 2, '#C0C4CC');
-    box(g, dx + 4, dy + 22, 30, 12, INK); box(g, dx + 5, dy + 23, 28, 10, '#E8E4D8'); box(g, dx + 5, dy + 23, 28, 1, '#FFFFFF');
-    g.font = '4px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#1E3A8A'; g.fillText('CAST', dx + 19, dy + 28); g.fillText('ONLY', dx + 19, dy + 33); g.textAlign = 'left';
+    box(g, dx + 4, dy + 19, 30, 21, INK); box(g, dx + 5, dy + 20, 28, 19, '#E8E4D8'); box(g, dx + 5, dy + 20, 28, 1, '#FFFFFF');
+    signText(g, 'CAST', dx + 19, dy + 28, print(1, '#1E3A8A')); signText(g, 'ONLY', dx + 19, dy + 37, print(1, '#1E3A8A'));
     box(g, dx + 44, dy + 36, 10, 14, INK); box(g, dx + 45, dy + 37, 8, 12, '#3A3F48');
     for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) box(g, dx + 46 + j * 4, dy + 41 + i * 3, 2, 2, '#9CA3AF');
     // (the lamp over it: a caged bulb)

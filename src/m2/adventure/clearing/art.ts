@@ -11,11 +11,12 @@
 //   The fight: the bamboo fence behind him, the five bushes (lush, leaf on leaf, thinning as they're chewed down to
 //     twigs), his vine (twisted, leafy, chewed thin where they've been at it).
 
-import { INK, box, checker, mix, hash, pixelBlob, pole, text, stamp, dim } from '../../intro/art/kit';
+import { INK, box, checker, mix, hash, pixelBlob, pole, stamp, dim } from '../../intro/art/kit';
 import { STONE, MOSS, PLY, SHELL, DARK, stoneWall, vineDown, plaque, glyph } from '../roof/stone';
 import { crown } from '../roof/art';
 import { GY } from '../geometry';
 import { x0, TREE_H, TEMPLE_X, ARENA_L, PICKUP_X, BUSH_W, BUSH_H } from './arena';
+import { signAt, plank, stencil } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 const r1 = (a: number, b = 0) => hash(a * 12.9898 + b * 78.233);
@@ -68,7 +69,7 @@ export const drawCamp = (c: Ctx, f: number) => {
     const bx = CAMP + 200;
     pole(g, bx - 30, GY - 70, 4, 52, d('#8B6A3E')); pole(g, bx + 26, GY - 70, 4, 52, d('#8B6A3E'));
     box(g, bx - 36, GY - 92, 72, 44, INK); box(g, bx - 34, GY - 90, 68, 40, d('#2F3A2E'));
-    for (const [i, t] of ['1. SALUTE', '2. WHISTLE', '3. STAB'].entries()) text(g, t, bx - 30, GY - 78 + i * 11, d('#E5E7EB'), 5, 'left', null);
+    for (const [i, t] of ['1. SALUTE', '2. WHISTLE', '3. STAB'].entries()) signAt(g, t, bx - 30, GY - 78 + i * 11, 5, plank(5, d('#E5E7EB'), undefined, undefined, i), 'left');
     // (logs round the fire to sit on)
     for (const lx of [CAMP + 118, CAMP + 176]) { box(g, lx, GY - 30, 26, 10, d(BARK[2])); box(g, lx, GY - 30, 26, 2, d(BARK[4])); box(g, lx + 22, GY - 30, 4, 10, d(BARK[3])); }
   });
@@ -153,7 +154,7 @@ export const drawAidStop = (c: Ctx, stocked: boolean) => {
     box(g, x - 60, GY - 44, 100, 44, INK); box(g, x - 58, GY - 42, 96, 42, '#9A7444');
     for (let k = 0; k < 4; k++) { box(g, x - 58, GY - 42 + k * 11, 96, 1, '#6E5030'); box(g, x - 58, GY - 41 + k * 11, 96, 1, '#BE9660'); }
     box(g, x - 58, GY - 42, 4, 42, '#BE9660'); box(g, x + 34, GY - 42, 4, 42, '#6E5030');
-    text(g, stocked ? 'PROPERTY OF S.A.' : 'EMPTY. SORRY.', x - 10, GY - 12, '#3A2410', 5, 'center', null);
+    signAt(g, stocked ? 'PROPERTY OF S.A.' : 'EMPTY. SORRY.', x - 10, GY - 12, 5, stencil(5, '#3A2410'));
   });
 };
 

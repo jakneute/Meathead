@@ -13,7 +13,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { SECTIONS } from '../geometry';
 import { timeOfDay, type TimeOfDay } from '../../timeOfDay';
-import { box, ramp, rampOf, mix, dark, lite, checker, steppedGlow, stamp, hash, text, sign, INK, PIX } from '../../intro/art/kit';
+import { box, ramp, rampOf, mix, dark, lite, checker, steppedGlow, stamp, hash, sign, INK, PIX } from '../../intro/art/kit';
+import { signAt, stencil, dino, enamel, graffiti as graffitiLook } from '../letters';
 import type { River } from './index';
 import { WS, CEIL, DOCK, FALLS, TUNNEL, POCKETS, POCKET_TOP, TANK, PIPE, BED, bedAt, roofAt, PROPS, VENTS, EELS, eelMouth, EEL_HOLE } from './course';
 
@@ -238,14 +239,15 @@ const paintCulvertChunk = (g: Ctx, i: number, u0: number, top: number, bot: numb
   if (i % 2 === 0) {
     const w = words[(i >> 1) % words.length];
     const graffiti = w === 'DAVE WAS HERE' || w === 'ARTIE IS AN ASSHOLE';
-    text(g, w, u0 + 160, top + 50, graffiti ? fogged('#E0607A', 0.3) : fogged('#D9C27A', 0.35), graffiti ? 7 : 8, 'center', fogged(INK, 0.4));
+    if (graffiti) signAt(g, w, u0 + 160, top + 50, 7, graffitiLook({ sx: 1, sy: 2 }, fogged('#E0607A', 0.3), i));
+    else signAt(g, w, u0 + 160, top + 50, 8, { ...stencil({ sx: 2, sy: 2 }, fogged('#D9C27A', 0.35), fogged('#5A6460', 0.4), i), shadow: fogged(INK, 0.4) });
   }
   // (a depth gauge painted on, in feet, on every third)
   if (i % 3 === 1) {
     const gx = u0 + 250;
     box(g, gx, top + 76, 14, 150, fogged('#E8E2C8', 0.4));
-    for (let k = 0; k < 6; k++) { box(g, gx, top + 80 + k * 24, 14, 2, fogged(INK, 0.3)); text(g, `${2 + k * 2}`, gx + 24, top + 86 + k * 24, fogged('#E8E2C8', 0.4), 6, 'left', null); }
-    text(g, 'FT', gx + 7, top + 72, fogged('#E8E2C8', 0.4), 6, 'center', null);
+    for (let k = 0; k < 6; k++) { box(g, gx, top + 80 + k * 24, 14, 2, fogged(INK, 0.3)); signAt(g, `${2 + k * 2}`, gx + 24, top + 86 + k * 24, 6, stencil(6, fogged('#E8E2C8', 0.4)), 'left'); }
+    signAt(g, 'FT', gx + 7, top + 72, 6, stencil(6, fogged('#E8E2C8', 0.4)));
   }
 };
 
@@ -299,7 +301,7 @@ const paintPortal = (g: Ctx, uS: number, top: number, bot: number, zl: Zone, zr:
     for (let y = top + 24; y < bot; y += 56) { box(g, uS + 8, y, 28, 2, M[1]); box(g, uS + 8, y + 2, 28, 1, M[4]); }
     // (dithered into the vault's wall on its right: the shade steps across)
     checker(g, uS + 44, top, 8, bot - top, M[2]);
-    text(g, 'END CULVERT 3', uS + 22, top + 48, fogged('#D9C27A', 0.4), 5, 'center', null);
+    signAt(g, 'END CULVERT 3', uS + 22, top + 48, 5, stencil(5, fogged('#D9C27A', 0.4)));
   } else {
     const C = CONC.map(c => fogged(c, 0.45));
     box(g, uS - 20, top, 40, bot - top, C[3]); box(g, uS - 20, top, 4, bot - top, C[4]); box(g, uS + 16, top, 4, bot - top, C[1]);
@@ -329,8 +331,8 @@ const paintStoreChunk = (g: Ctx, i: number, u0: number, top: number, bot: number
   }
   box(g, u0, top + 150, CHUNK, bot - top - 150, F('#264A28'));
   // (the title, painted across the top of the backdrop: in two chunks)
-  if (i % 5 === 0) text(g, 'DINO-SAFARI', u0 + CHUNK / 2, top + 34, F('#F2D04A'), 14, 'center', F('#5A2A10'));
-  if (i % 5 === 0) text(g, 'EST. 1979', u0 + CHUNK / 2, top + 50, F('#F2D04A'), 7, 'center', F('#5A2A10'));
+  if (i % 5 === 0) signAt(g, 'DINO-SAFARI', u0 + CHUNK / 2, top + 34, 14, dino(14, [F('#FFF2B0'), F('#F2D04A'), F('#E8A41E'), F('#B8641A')], F('#5A2A10'), F('#2A1406')));
+  if (i % 5 === 0) signAt(g, 'EST. 1979', u0 + CHUNK / 2, top + 52, 7, enamel(7, F('#F2D04A'), F('#5A2A10')));
   // (where it's peeled: bare concrete in a ragged patch, the edge curling)
   if (hash(i * 31) > 0.4) {
     const px = u0 + 40 + hash(i * 17) * 200, py = top + 60 + hash(i * 23) * 80;
@@ -713,7 +715,7 @@ const paintPocket = (g: Ctx, p: { x: number; w: number }, n: number) => {
   for (let x = a + 40; x < b - 40; x += 10) box(g, x, top - 4, 4, 6, '#3A3A38');
   // (the sign: mounted, bolted on)
   sign(g, a + 30, top + 26, b - a - 60, 26, '#E8C030', 'CONFINED SPACE', '#1A1408', 7);
-  text(g, `MAINT. ACCESS ${n}`, (a + b) / 2, top + 66, '#B8C0BC', 6, 'center', INK);
+  signAt(g, `MAINT. ACCESS ${n}`, (a + b) / 2, top + 66, 6, { ...stencil(6, '#B8C0BC'), shadow: INK });
   // (a pipe along the wall, a valve wheel)
   box(g, a + 14, top + 90, b - a - 28, 6, '#5A4A3A'); box(g, a + 14, top + 90, b - a - 28, 1, '#8A7A6A');
   g.strokeStyle = '#B83A2A'; g.lineWidth = 2; g.beginPath(); g.arc(b - 50, top + 93, 8, 0, Math.PI * 2); g.stroke();
@@ -766,8 +768,8 @@ const paintTankEnd = (g: Ctx) => {
   // (hazard stripes round the intake's mouth, the warning stenciled over it)
   for (let k = 0; k < 8; k++) box(g, a + k * 8, bottom - 12, 8, 12, k % 2 ? '#1A1A14' : '#E8C030');
   for (let y = bottom - 120; y < bottom - 12; y += 8) box(g, a, y, 8, 8, ((y - bottom) / 8) % 2 ? '#1A1A14' : '#E8C030');
-  sign(g, a + 70, bottom - 130, 220, 40, '#C02020', 'DANGER: INTAKE', '#F8F0E0', 10);
-  text(g, 'STORM DRAIN  KEEP CLEAR', a + 180, bottom - 66, '#E8C030', 8, 'center', INK);
+  sign(g, a + 70, bottom - 130, 220, 40, '#C02020', 'DANGER: INTAKE', '#F8F0E0', 10, INK, enamel({ sx: 2, sy: 2 }, '#F8F0E0', '#5C0A0A'));
+  signAt(g, 'STORM DRAIN  KEEP CLEAR', a + 180, bottom - 66, 8, { ...stencil({ sx: 1, sy: 2 }, '#E8C030'), shadow: INK });
 };
 
 /** The bed, a chunk of it: the lit lip along the top (stood on), sand or silt over the floor under it, stones in it. */

@@ -17,11 +17,12 @@ import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { inDepth, at, type Eye } from '../temple/art';
 import { drawPerson } from '../temple/people';
-import { INK, box, text, slab, rampOf, dark, lite, checker, steppedGlow, stamp, hash } from '../../intro/art/kit';
+import { INK, box, slab, rampOf, dark, lite, checker, steppedGlow, stamp, hash } from '../../intro/art/kit';
 import { IDOLS, SNAKES, LOBS, CHASE_DOORS, trackY, artieTrackY } from './layout';
 import {
   type Tricks, type Boulder, IDOL_TELL, dartRise, DART_LEN, snakeAt, snakeDepth, SNAKE_D0, SNAKE_LOW, SNAKE_HIGH, LOB_FROM,
 } from './tricks';
+import { signAt, gilt, stone } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 type Pt = [number, number];
@@ -140,7 +141,7 @@ const drawIdol = (c: Ctx, eye: Eye, state: GameState, x: number, high: boolean, 
     if (just) for (let k = 0; k < 4; k++) box(c, x - 46 - k * 6 - (t - IDOL_TELL) * 2, my - 6 + (k % 2) * 6 - k, 5, 4, `rgba(220, 210, 190, ${0.5 - k * 0.1})`);
     // (its name, on a plaque on the column)
     slab(c, x - 18, colTop + 22, 46, 18, '#5A1A0C', { edge: 2 });
-    text(c, high ? 'BEHOLD' : 'BEWARE', x + 5, colTop + 34, '#F2C14E', 5, 'center', null);
+    signAt(c, high ? 'BEHOLD' : 'BEWARE', x + 5, colTop + 34, 5, gilt(5));
   });
 };
 
@@ -177,7 +178,7 @@ const drawSnakeRock = (c: Ctx, eye: Eye, state: GameState, sx: number, t: number
       g.strokeStyle = r[4]; g.lineWidth = 2; g.beginPath(); g.ellipse(sx, hy, 50, 44, 0, Math.PI * 1.05, Math.PI * 1.7); g.stroke();
       // (the plaque over it)
       slab(g, sx - 70, top + 24, 140, 22, '#14301A', { edge: 2 });
-      text(g, 'SERPENT OF DOOM', sx, top + 40, '#BBF7D0', 6, 'center', INK);
+      signAt(g, 'SERPENT OF DOOM', sx, top + 40, 6, stone(6, '#BBF7D0', '#05140A'));
     });
     // (back in its hole: its eyes, dim; rearing (the tell), lit and swaying, the hiss's breath)
     if (s.k <= 0.02) {
@@ -277,8 +278,8 @@ const drawCatapultWall = (c: Ctx, eye: Eye, state: GameState, lx: number, t: num
       for (let k = 0; k < 6; k++) { const jx = x0 + 18 + k * 62; box(g, jx, top + 36, 40, 22, r[3]); box(g, jx + 2, top + 38, 36, 18, r[2]); box(g, jx + 30, top + 40, 6, 6, INK); box(g, jx + 4, top + 50, 28, 4, r[1]); }
       // (the sign: the ride's own, cut into the stone, a falling rock on it)
       slab(g, x0 + w / 2 - 80, top + 80, 160, 48, '#E8C130', { edge: 4 });
-      text(g, 'BEWARE OF', x0 + w / 2, top + 97, INK, 7, 'center', null);
-      text(g, 'FALLING ROCKS', x0 + w / 2, top + 112, INK, 7, 'center', null);
+      signAt(g, 'BEWARE OF', x0 + w / 2, top + 97, 7, stone(7, INK, '#FFF0A0'));
+      signAt(g, 'FALLING ROCKS', x0 + w / 2, top + 112, 7, stone(7, INK, '#FFF0A0'));
       box(g, x0 + 4, top + 140, w - 8, 3, MOSS);
     });
   });
@@ -324,7 +325,7 @@ const drawChaseWall = (c: Ctx, eye: Eye, state: GameState, t: number) => {
       g.restore();
       // (the lintel and its carving: what it is, in the ride's lettering)
       slab(g, x - 130, dTop - 52, 260, 40, '#5A1A0C', { edge: 4 });
-      text(g, 'THE ROLLING BOULDER', x, dTop - 27, '#F2C14E', 8, 'center', INK);
+      signAt(g, 'THE ROLLING BOULDER', x, dTop - 27, 8, gilt({ sx: 2, sy: 2 }, INK));
       slab(g, x - DOOR_W - 10, dTop - 12, DOOR_W * 2 + 20, 12, lite(ROCK_FACE, 0.1), { edge: 2 });
     });
   });

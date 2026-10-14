@@ -14,10 +14,11 @@ import { SECTIONS, GY } from '../geometry';
 import { drawGuest, guestAt, drawGuestsDimmed, type Guest } from './crowd';
 import { drawLaunch } from '../river/boat';
 import {
-  type Ctx, type Eye, INK, rampOf, box, checker, hash, mix, dark, lite, stamp, tilePattern, text,
+  type Ctx, type Eye, INK, rampOf, box, checker, hash, mix, dark, lite, stamp, tilePattern,
   eyeOf, P, quad, seg, atDepth, bamboo, bambooRail, lash, logPost, logBeam, thatchRoof, fringe, stencil, box3d, drawJungleBackdrop,
   BAMBOO, PLANK, STRAW,
 } from './depth';
+import { signAt, carved, plank, enamel, print, stencil as stencilLook } from '../letters';
 
 const { x0, x1 } = SECTIONS.queue;
 const R = (x: number) => x0 + x;
@@ -161,7 +162,7 @@ const drawFarWall = (c: Ctx, eye: Eye, f: number) => {
     box(g, dx - 6, GY - 140, DOOR.w + 12, 4, '#5A4430');
     // (a sign over it, painted on the wall: the line goes on)
     box(g, dx - 20, GY - 172, DOOR.w + 40, 22, '#1A120A'); box(g, dx - 18, GY - 170, DOOR.w + 36, 18, '#C8A050');
-    text(g, 'QUEUE', dx + DOOR.w / 2, GY - 157, '#3A1A08', 8, 'center', null);
+    signAt(g, 'QUEUE', dx + DOOR.w / 2, GY - 157, 8, plank({ sx: 1, sy: 2 }, '#3A1A08', '#C8A050'));
   });
   // (lanterns along it, lit as the day goes)
   const lamps = timeOfDay().lamps;
@@ -192,8 +193,8 @@ const hungSigns = (c: Ctx, eye: Eye, f: number) => {
     box(c, sx - 34, EAVE_Y + 4, 1, 22, '#8A7048'); box(c, sx + 34, EAVE_Y + 4, 1, 22, '#8A7048');
     stamp(c, `q-hung-${x}`, sx - sw / 2 - 6 + sway, sy - 6, sw + 12, 40, g => {
       sign(g, sx - sw / 2 + sway, sy, sw, 26, '#2E4A2A', '', '#000', 5, '#6A4A2A');
-      text(g, a, sx + sway, sy + 10, '#E8D8A0', 5, 'center', '#122012');
-      text(g, b, sx + sway, sy + 21, '#F4C040', 6, 'center', '#122012');
+      signAt(g, a, sx + sway, sy + 10, 5, plank(5, '#E8D8A0', '#2E4A2A', '#122012', x));
+      signAt(g, b, sx + sway, sy + 21, 6, plank(6, '#F4C040', '#2E4A2A', '#122012', x + 1));
     });
   }
   c.restore();
@@ -258,7 +259,7 @@ const arch = (c: Ctx, f: number) => {
     // (the carved board up on the beam: JUNGLE CRUISE, a skull's grin either end for the adventure of it)
     const bx = a + 16, bw = b - a - 32;
     sign(g, bx, GY - 344, bw, 34, '#D8B878', '', '#000', 8, '#6A3A1A');
-    text(g, 'JUNGLE CRUISE', (a + b) / 2, GY - 323, '#6A1A0A', 10, 'center', '#F0D8A0');
+    signAt(g, 'JUNGLE CRUISE', (a + b) / 2, GY - 323, 10, carved({ sx: 2, sy: 2 }, '#5A1A0A', '#F0D8A0', 3));
     for (const sx of [bx + 10, bx + bw - 10]) { ball(g, sx, GY - 328, 5, '#EDE4C8'); box(g, sx - 3, GY - 330, 2, 2, INK); box(g, sx + 1, GY - 330, 2, 2, INK); box(g, sx - 2, GY - 325, 4, 1, INK); }
     // (the chains the board hangs on)
     for (const cx of [a + 40, b - 40]) for (let y = GY - 282; y < GY - 240; y += 5) { box(g, cx - 1, y, 3, 4, '#5A5A60'); box(g, cx, y + 1, 1, 2, '#9A9AA0'); }
@@ -267,14 +268,14 @@ const arch = (c: Ctx, f: number) => {
   const bx = R(42), by = GY - 240, bw = 196, bh = 76;
   stamp(c, 'q-waitboard', bx - 6, by - 6, bw + 12, bh + 12, g => {
     sign(g, bx, by, bw, bh, '#244A2C', '', '#000', 6, '#6A4A2A');
-    text(g, 'WAIT TIMES', bx + bw / 2, by + 11, '#F0D890', 6, 'center', '#0E1E10');
+    signAt(g, 'WAIT TIMES', bx + bw / 2, by + 11, 6, plank(6, '#F0D890', '#244A2C', '#0E1E10', 2));
     const rows: [string, string][] = [['STANDBY', '180'], ['FAST PASS', '175'], ['EXTRA FAST PASS', '185']];
     rows.forEach(([n, v], i) => {
       const y = by + 18 + i * 18;
       box(g, bx + 6, y, bw - 12, 15, '#1A3220');
-      text(g, n, bx + 10, y + 11, i === 2 ? '#F8A0C8' : '#E8E0C0', 5, 'left', '#0A140C');
-      for (let k = 0; k < 3; k++) { const tx = bx + bw - 66 + k * 13; box(g, tx, y + 1, 11, 13, '#0A0A0A'); box(g, tx, y + 7, 11, 1, '#2A2A2A'); text(g, v[k], tx + 6, y + 11, '#F8E070', 7, 'center', null); }
-      text(g, 'MIN', bx + bw - 14, y + 11, '#E8E0C0', 5, 'center', '#0A140C');
+      signAt(g, n, bx + 10, y + 11, 5, enamel(5, i === 2 ? '#F8A0C8' : '#E8E0C0', '#0A140C'), 'left');
+      for (let k = 0; k < 3; k++) { const tx = bx + bw - 66 + k * 13; box(g, tx, y + 1, 11, 13, '#0A0A0A'); box(g, tx, y + 7, 11, 1, '#2A2A2A'); signAt(g, v[k], tx + 6, y + 11, 7, print(7, '#F8E070')); }
+      signAt(g, 'MIN', bx + bw - 14, y + 11, 5, enamel(5, '#E8E0C0', '#0A140C'));
     });
   });
   // (now and then a number flaps over: the extra fast pass going up a minute that never shows)
@@ -310,10 +311,10 @@ const staffGate = (c: Ctx, eye: Eye, F: QueueSpots['fence']) => {
     g.strokeStyle = INK; g.lineWidth = 2; g.strokeRect(x + 1, top + 1, F.w - 2, F.h - 2);
   } }, lite('#2A6A60', 0.3));
   // (the sign on it: hung off its front, a little wider than it)
-  stamp(c, 'q-gate-sign', x - 30, GY - 118, F.w + 60, 40, g => {
-    sign(g, x - 24, GY - 112, F.w + 48, 28, '#F4F0E0', '', '#000', 5, '#5A5A60');
-    text(g, 'CAST MEMBERS', x + F.w / 2, GY - 101, '#A8221A', 5, 'center', null);
-    text(g, 'ONLY', x + F.w / 2, GY - 90, '#A8221A', 5, 'center', null);
+  stamp(c, 'q-gate-sign', x - 36, GY - 118, F.w + 72, 40, g => {
+    sign(g, x - 30, GY - 112, F.w + 60, 28, '#F4F0E0', '', '#000', 5, '#5A5A60');
+    signAt(g, 'CAST MEMBERS', x + F.w / 2, GY - 101, 5, enamel(5, '#A8221A'));
+    signAt(g, 'ONLY', x + F.w / 2, GY - 90, 5, enamel(5, '#A8221A'));
   });
 };
 
@@ -324,7 +325,7 @@ const dumpster = (c: Ctx, eye: Eye, D: QueueSpots['dumpster'], f: number) => {
     const r = rampOf('#2F6A3A');
     box(g, x, top, D.w, D.h - 6, r[2]); box(g, x, top, D.w, 6, r[3]);
     for (let k = 12; k < D.w; k += 18) { box(g, x + k, top + 8, 3, D.h - 18, r[1]); box(g, x + k + 3, top + 8, 1, D.h - 18, r[3]); }
-    box(g, x + 6, top + 18, D.w - 12, 12, '#E8E0C8'); text(g, 'HAPPYLAND WASTE', x + D.w / 2, top + 28, '#2A3A2A', 5, 'center', null);
+    box(g, x + 3, top + 18, D.w - 6, 12, '#E8E0C8'); signAt(g, 'HAPPYLAND WASTE', x + D.w / 2, top + 28, 5, print(5, '#2A3A2A'));
     for (let k = 0; k < 6; k++) box(g, x + 4 + k * 15, top + D.h - 14, 6, 3, '#6A4A2A');
     g.strokeStyle = INK; g.lineWidth = 2; g.strokeRect(x + 1, top + 1, D.w - 2, D.h - 8);
   } }, '#3A7A4A');
@@ -381,7 +382,7 @@ const poleSign = (c: Ctx, key: string, x: number, w: number, h: number, face: st
   stamp(c, key, x - w / 2 - 6, top - 6, w + 12, high + h + 8, g => {
     box(g, x - 3, top + h, 6, high, INK); box(g, x - 2, top + h, 4, high, '#8A8E96'); box(g, x - 2, top + h, 1, high, '#C8CCD2');
     sign(g, x - w / 2, top, w, h, face, '', '#000', 5, frame);
-    lines.forEach(([s, col, size], i) => text(g, s, x, top + 4 + (h - 4) * ((i + 0.75) / lines.length), col, size, 'center', null));
+    lines.forEach(([s, col, size], i) => signAt(g, s, x, top + 4 + (h - 4) * ((i + 0.75) / lines.length), size, size >= 10 ? plank(size, col, undefined, undefined, i) : enamel(size, col)));
   });
 };
 
@@ -399,7 +400,7 @@ const alleyBits = (c: Ctx, eye: Eye, f: number) => {
     c.fillStyle = INK; c.beginPath(); c.moveTo(sx - 21, GY); c.lineTo(sx - 9, GY - 56); c.lineTo(sx + 9, GY - 56); c.lineTo(sx + 21, GY); c.closePath(); c.fill();
     c.fillStyle = '#F4C820'; c.beginPath(); c.moveTo(sx - 19, GY - 1); c.lineTo(sx - 8, GY - 54); c.lineTo(sx + 8, GY - 54); c.lineTo(sx + 19, GY - 1); c.closePath(); c.fill();
     box(c, sx - 8, GY - 54, 16, 3, '#F8E070');
-    text(c, 'WET', sx, GY - 26, '#1A1A1A', 5, 'center', null); text(c, 'FLOOR', sx, GY - 16, '#1A1A1A', 5, 'center', null);
+    signAt(c, 'WET', sx, GY - 26, 5, print(5, '#1A1A1A')); signAt(c, 'FLOOR', sx, GY - 12, 5, print(5, '#1A1A1A'));
   }
   // DAYS WITHOUT AN INCIDENT: a whiteboard on a post, the number wiped and redone in marker
   poleSign(c, 'q-incident', R(1400), 76, 44, '#F4F4F0', '#4A4A50', [['DAYS WITHOUT', '#2A2A3A', 5], ['AN INCIDENT', '#2A2A3A', 5], ['0', '#C81818', 10]], 60);
@@ -409,15 +410,15 @@ const linkSigns = (c: Ctx, eye: Eye) => {
   atDepth(c, eye, LINK_S);
   stamp(c, 'q-xfp1', R(960) - 4, GY - 132, 120, 44, g => {
     box(g, R(960), GY - 128, 112, 36, '#F4F0F4'); box(g, R(960), GY - 128, 112, 4, '#E070A8'); g.strokeStyle = INK; g.lineWidth = 2; g.strokeRect(R(960), GY - 128, 112, 36);
-    text(g, 'EXTRA FAST PASS', R(1016), GY - 112, '#C0186A', 5, 'center', null);
-    text(g, 'THIS WAY >>', R(1016), GY - 100, '#3A2A3A', 5, 'center', null);
+    signAt(g, 'EXTRA FAST PASS', R(1016), GY - 112, 5, print(5, '#C0186A'));
+    signAt(g, 'THIS WAY >>', R(1016), GY - 100, 5, print(5, '#3A2A3A'));
     for (const zx of [R(964), R(1066)]) { box(g, zx, GY - 132, 2, 8, '#1A1A1A'); box(g, zx, GY - 96, 2, 8, '#1A1A1A'); }
   });
   stamp(c, 'q-xfp2', R(1250) - 4, GY - 120, 92, 36, g => {
     // (cardboard, in marker)
     box(g, R(1250), GY - 116, 84, 28, '#C8A070'); box(g, R(1250), GY - 116, 84, 2, '#D8B484'); g.strokeStyle = '#6A4A2A'; g.lineWidth = 1; g.strokeRect(R(1250) + 0.5, GY - 115.5, 83, 27);
-    text(g, 'X-FAST PASS', R(1292), GY - 104, '#1A1A1A', 5, 'center', null);
-    text(g, '-->', R(1292), GY - 94, '#1A1A1A', 5, 'center', null);
+    signAt(g, 'X-FAST PASS', R(1292), GY - 104, 5, plank(5, '#1A1A1A', undefined, undefined, 5));
+    signAt(g, '-->', R(1292), GY - 94, 5, plank(5, '#1A1A1A', undefined, undefined, 6));
     box(g, R(1254), GY - 120, 2, 6, '#1A1A1A'); box(g, R(1328), GY - 120, 2, 6, '#1A1A1A');
   });
   c.restore();
@@ -451,7 +452,7 @@ const dock = (c: Ctx, eye: Eye, f: number) => {
   // (PLEASE WAIT HERE, painted on the boards: lying down on them)
   {
     const [px, py] = P(eye, R(1600), GY, 0.9);
-    c.save(); c.translate(px, py); c.scale(0.9, 0.32); text(c, 'PLEASE WAIT HERE', 0, 0, '#F0C020', 8, 'center', null); c.restore();
+    c.save(); c.translate(px, py); c.scale(0.9, 0.32); signAt(c, 'PLEASE WAIT HERE', 0, 0, 8, stencilLook({ sx: 1, sy: 2 }, '#F0C020')); c.restore();
     const [lx, ly] = P(eye, R(1530), GY, 0.94), [rx] = P(eye, R(1680), GY, 0.94);
     box(c, lx, ly, rx - lx, 2, '#F0C020');
   }
@@ -465,7 +466,7 @@ const dock = (c: Ctx, eye: Eye, f: number) => {
   fringe(c, R(1470), R(1910), GY - 234, 16);
   // LOADING DOCK, hung off the eave on ropes
   box(c, R(1610), GY - 222, 1, 16, '#8A7048'); box(c, R(1730), GY - 222, 1, 16, '#8A7048');
-  stamp(c, 'q-loading', R(1590), GY - 212, 164, 36, g => sign(g, R(1596), GY - 206, 152, 24, '#D8B878', 'LOADING DOCK', '#5A1A0A', 7, '#6A3A1A'));
+  stamp(c, 'q-loading', R(1590), GY - 212, 164, 36, g => sign(g, R(1596), GY - 206, 152, 24, '#D8B878', 'LOADING DOCK', '#5A1A0A', 7, '#6A3A1A', carved({ sx: 1, sy: 2 }, '#5A1A0A', '#F8E8C0', 4)));
   // (the gate at the front of the line: a bamboo bar, BOARD HERE)
   bamboo(c, R(1540) - 4, GY - 56, GY, 8); bambooRail(c, R(1540), R(1600), GY - 48, 5);
   // The operator's podium: a microphone, a clipboard, a little sign
@@ -475,12 +476,12 @@ const dock = (c: Ctx, eye: Eye, f: number) => {
       const r = rampOf('#7A4A2A');
       box(g, px - 18, GY - 64, 36, 64, INK); box(g, px - 17, GY - 63, 34, 62, r[2]); box(g, px - 17, GY - 63, 34, 4, r[3]); box(g, px - 17, GY - 63, 4, 62, r[3]); box(g, px + 13, GY - 63, 4, 62, r[1]);
       box(g, px - 20, GY - 68, 40, 6, INK); box(g, px - 19, GY - 67, 38, 4, r[3]);
-      box(g, px - 16, GY - 50, 32, 14, '#E8E0C0'); text(g, 'BOAT 7', px, GY - 40, '#5A1A0A', 5, 'center', null);
+      box(g, px - 17, GY - 50, 34, 14, '#E8E0C0'); signAt(g, 'BOAT 7', px, GY - 40, 5, { ...print(5, '#5A1A0A'), space: 2 });
       box(g, px + 8, GY - 88, 2, 22, '#2A2A2A'); ball(g, px + 9, GY - 89, 3, '#3A3A3A');
     });
   }
   // KEEP HANDS AND FEET INSIDE THE BOAT, on a post at the edge
-  poleSign(c, 'q-hands', R(1852), 100, 32, '#F4F0E0', '#2A5A3A', [['KEEP HANDS & FEET', '#2A3A2A', 5], ['INSIDE THE BOAT', '#2A3A2A', 5]], 54);
+  poleSign(c, 'q-hands', R(1852), 108, 32, '#F4F0E0', '#2A5A3A', [['KEEP HANDS & FEET', '#2A3A2A', 5], ['INSIDE THE BOAT', '#2A3A2A', 5]], 54);
   // The water at the dock's end, and the boat waiting in it
   {
     const wtop = GY + 38;

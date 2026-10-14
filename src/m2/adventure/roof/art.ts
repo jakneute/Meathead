@@ -26,6 +26,7 @@ import {
 } from './layout';
 import { GY } from '../geometry';
 import { sunBehind } from '../../sunFlare';
+import { signAt, stencil, stone, routed, print } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -282,7 +283,7 @@ const fronts = (g: Ctx, caved: boolean) => {
     if (k >= 2) for (let x = l + 70; x < r - 60; x += 210) { box(g, x - 18, t + 50, 36, 30, STONE[3]); box(g, x - 18, t + 50, 36, 2, STONE[5]); box(g, x - 18, t + 78, 36, 2, STONE[1]); glyph(g, x, t + 66, STONE[3]); }
     // (a stenciled panel number on a seam, the odd bolt-on patch)
     const sx = l + 192 - (Math.round((11 + k * 7) * 37) % 192);
-    text(g, `PANEL ${k + 1}-${'ABCD'[k]}`, sx + 26, t + TIER_H - 12, mix(STONE[2], STONE[4], 0.4), 5, 'center', null);
+    signAt(g, `PANEL ${k + 1}-${'ABCD'[k]}`, sx + 26, t + TIER_H - 12, 5, stencil(5, mix(STONE[2], STONE[4], 0.4)));
     // (vines off its edge)
     for (let i = 0; i < 4; i++) { const vx = l + 40 + r1(i, k) * (r - l - 80); vineDown(g, vx, t + 8, 30 + r1(i, k + 3) * (TIER_H - 30), i + k); }
   }
@@ -293,7 +294,7 @@ const fronts = (g: Ctx, caved: boolean) => {
   box(g, dx, dy, DOOR_W, DOOR_H, DARK);
   bandedGradient(g, dx, dy, DOOR_W, 40, ['#3A2A18', '#22180E', DARK], 4);
   for (let k = 0; k < 6; k++) { const fx = dx + 4 + k * 13; g.fillStyle = '#EDE6D2'; g.beginPath(); g.moveTo(fx, dy); g.lineTo(fx + 10, dy); g.lineTo(fx + 5, dy + 12 + (k % 2) * 4); g.fill(); box(g, fx, dy, 3, 2, '#FFFFFF'); }
-  plaque(g, dx + DOOR_W / 2, dy - 18, DOOR_W + 20, 18, STONE[3], ['ENTRANCE'], STONE[0], 7);
+  plaque(g, dx + DOOR_W / 2, dy - 18, DOOR_W + 20, 18, STONE[3], ['ENTRANCE'], STONE[0], 7, stone(7, STONE[0], STONE[5], MOSS[2]));
   // (the queue's little steps up into it)
   for (let k = 0; k < 2; k++) { box(g, dx - 8 + k * 4, GY - 8 + k * 4, DOOR_W + 16 - k * 8, 4, STONE[4 - k]); box(g, dx - 8 + k * 4, GY - 8 + k * 4, DOOR_W + 16 - k * 8, 1, STONE[6]); }
   // A sign bolted to the stone: the ride's rules (a joke at the end)
@@ -310,7 +311,7 @@ const fronts = (g: Ctx, caved: boolean) => {
   const px = ROOF_L + 120, py = RY + 34;
   box(g, px, py, 64, 50, PLY[1]); for (let k = 0; k < 64; k += 8) box(g, px + k, py, 1, 50, PLY[0]);
   box(g, px + 20, py, 6, 50, PLY[2]); box(g, px, py, 64, 2, SHELL); box(g, px, py + 48, 64, 2, PLY[0]);
-  text(g, 'MADE IN', px + 32, py + 22, PLY[3], 5, 'center', null); text(g, 'OHIO', px + 32, py + 32, PLY[3], 5, 'center', null);
+  signAt(g, 'MADE IN', px + 32, py + 22, 5, stencil(5, PLY[3])); signAt(g, 'OHIO', px + 32, py + 32, 5, stencil(5, PLY[3]));
   // (rubble down on the treads and at the foot)
   for (let i = 0; i < 26; i++) {
     const k = i % 3, onRight = i % 2, tx = onRight ? tierR(k + 1) + 6 + r1(i) * (TIER_IN - 20) : tierL(k) + 6 + r1(i) * (TIER_IN - 20);
@@ -503,7 +504,7 @@ export const drawLine = (c: Ctx, state: GameState, r: RoofLook, saying: number) 
     g.fillStyle = '#7A5230'; g.beginPath(); g.moveTo(-52, -12); g.lineTo(43, -12); g.lineTo(61, 0); g.lineTo(43, 12); g.lineTo(-52, 12); g.closePath(); g.fill();
     box(g, -52, -12, 95, 2, '#A07A4A'); box(g, -52, 9, 95, 3, '#4A3018');
     for (const yy of [-6, 3]) box(g, -50, yy, 90, 1, '#5E3E20');
-    text(g, 'JUNGLE TRAIL', -2, 3, '#FDE68A', 6, 'center', '#3A2410');
+    signAt(g, 'JUNGLE TRAIL', -2, 3, 6, routed(6, '#FDE68A', '#3A2410'));
   });
   c.restore();
 };
@@ -590,9 +591,9 @@ export const drawChute = (c: Ctx, x: number, feetY: number, t: number, f: number
   for (let k = -Wd; k < Wd - 1; k += Wd / 4) { c.fillStyle = INK; c.beginPath(); c.ellipse(k + Wd / 8, RIM, Wd / 8 + 1, 4, 0, 0, Math.PI); c.fill(); c.fillStyle = '#BE185D'; c.beginPath(); c.ellipse(k + Wd / 8, RIM, Wd / 8, 3, 0, 0, Math.PI); c.fill(); }
   // what's printed on it, once it's open: I (heart) ADVENTURE LAND, and the price tag still on it
   if (open >= 1) {
-    text(c, 'I', -6, RIM - 21, '#1E1B4B', 7, 'center', null);
+    signAt(c, 'I', -6, RIM - 21, 7, print(7, '#1E1B4B'));
     c.fillStyle = '#DC2626'; c.beginPath(); c.arc(3.5, RIM - 27, 2.6, Math.PI, 0); c.arc(8.7, RIM - 27, 2.6, Math.PI, 0); c.lineTo(6.1, RIM - 21); c.closePath(); c.fill();
-    text(c, 'ADVENTURE LAND', 0, RIM - 10, '#1E1B4B', 6, 'center', null);
+    signAt(c, 'ADVENTURE LAND', 0, RIM - 10, 6, print(6, '#1E1B4B'));
     const ty = RIM + 10 + Math.sin(f * 0.2) * 1.5;
     c.strokeStyle = '#E7E5E4'; c.beginPath(); c.moveTo(Wd * 0.8, RIM + 1); c.lineTo(Wd * 0.8 + 3, ty); c.stroke();
     box(c, Wd * 0.8 - 3, ty - 1, 22, 11, INK); box(c, Wd * 0.8 - 2, ty, 20, 9, '#FAFAF9');

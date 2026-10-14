@@ -4,7 +4,8 @@
 // Still art is stamped; anything that moves (a nodding head, a swinging tag, a blinking eye) is drawn live over it.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { box, mix, rampOf, checker, stamp, hash, text, sign, pole, ball, INK } from '../../intro/art/kit';
+import { box, mix, rampOf, checker, stamp, hash, sign, pole, ball, INK } from '../../intro/art/kit';
+import { signAt, plank, enamel, print, stone } from '../letters';
 import { PROPS, DINOS, bedAt, CEIL, type Prop } from './course';
 import { R, viewOf, onScreen, waterAt, zoneAt, type Ctx, type V } from './under';
 
@@ -61,8 +62,8 @@ const paintBoat = (c: Ctx, x: number, y: number, w: number, h: number) => {
   for (let k = 0; k < 4; k++) { const px = x + 40 + k * 56; c.fillStyle = INK; c.beginPath(); c.arc(px, y + 30, 8, 0, Math.PI * 2); c.fill(); c.fillStyle = '#0A2830'; c.beginPath(); c.arc(px, y + 30, 6, 0, Math.PI * 2); c.fill(); box(c, px - 3, y + 26, 2, 2, '#4A8090'); }
   checker(c, x - 6, y + h + 4, w + 16, 26, '#2E4A1E'); box(c, x - 6, y + h + 14, w + 16, 16, '#2A3A1A');
   c.restore();
-  text(c, 'JUNGLE CRUISE', x + w * 0.5, y + 48, '#F2D04A', 6, 'center', '#5A1A08');
-  text(c, '3', x + w - 26, y + 34, '#F2D04A', 10, 'center', '#5A1A08');
+  signAt(c, 'JUNGLE CRUISE', x + w * 0.5, y + 48, 6, plank(6, '#F2D04A', undefined, '#5A1A08', 1));
+  signAt(c, '3', x + w - 26, y + 34, 10, plank(10, '#F2D04A', undefined, '#5A1A08', 2));
   // (its canopy's posts, snapped; the striped canopy's rags off one)
   pole(c, x + 10, y - 58, 4, 58, '#A8A29E'); pole(c, x + w - 16, y - 26, 4, 26, '#A8A29E');
   for (let k = 0; k < 5; k++) { box(c, x + 14, y - 58 + k * 9, 16 - k * 2, 9, k % 2 ? '#E8E0D0' : '#B02020'); }
@@ -100,8 +101,8 @@ const paintLog = (c: Ctx, x: number, y: number, w: number, h: number) => {
   box(c, x + 24, y + 5, w - 50, 7, r[0]); box(c, x + 24, y + 12, w - 50, 1, r[3]);
   for (const kx of [0.25, 0.7]) { c.fillStyle = r[0]; c.beginPath(); c.ellipse(x + w * kx, y + h * 0.7, 6, 4, 0, 0, Math.PI * 2); c.fill(); }
   c.restore();
-  text(c, 'SPLASH!', x + w * 0.5, y + h - 2, '#F8E0A0', 7, 'center', '#3A1A08');
-  text(c, 'LOG 12', x + w - 30, y + h + 12, '#F8E0A0', 5, 'center', '#3A1A08');
+  signAt(c, 'SPLASH!', x + w * 0.5, y + h - 2, 7, plank(7, '#F8E0A0', undefined, '#3A1A08', 3));
+  signAt(c, 'LOG 12', x + w - 30, y + h + 12, 5, plank(5, '#F8E0A0', undefined, '#3A1A08', 4));
   lipOn(c, x + 6, y, w - 16, '#E8C078');
 };
 
@@ -111,13 +112,13 @@ const paintBooth = (c: Ctx, x: number, y: number, w: number, h: number) => {
   for (let k = 0; k < w; k += 15) { c.fillStyle = (k / 15) % 2 ? '#F0E8D8' : '#C02828'; c.beginPath(); c.moveTo(x + k, y + 12); c.lineTo(x + k + 15, y + 12); c.arc(x + k + 7.5, y + 12, 7.5, 0, Math.PI); c.fill(); }
   const body = (g: Ctx) => g.rect(x + 4, y + 20, w - 8, h + 10);
   shade(c, body, rampOf('#1A8AA0'));
-  sign(c, x + 12, y + 24, w - 24, 14, '#F2D04A', 'TICKETS', '#5A1A08', 6);
+  sign(c, x + 12, y + 24, w - 24, 14, '#F2D04A', 'TICKETS', '#5A1A08', 6, INK, plank(6, '#5A1A08', undefined, '#C8A030', 5));
   box(c, x + 16, y + 44, w - 32, 34, INK); box(c, x + 18, y + 46, w - 36, 30, '#0A3040');
   box(c, x + 20, y + 48, 10, 26, '#2A6070');
-  box(c, x + 26, y + 54, w - 52, 14, '#F0E8D8'); text(c, 'CLOSED', x + w / 2, y + 64, '#B02020', 5, 'center', null);
+  box(c, x + 26, y + 54, w - 52, 14, '#F0E8D8'); signAt(c, 'CLOSED', x + w / 2, y + 64, 5, print(5, '#B02020'));
   box(c, x + 12, y + 80, w - 24, 2, INK); box(c, x + 12, y + 78, w - 24, 2, '#E0E0D0');
-  text(c, 'ADULTS $4.50', x + w / 2, y + 96, '#F8F0E0', 5, 'center', INK);
-  text(c, 'KIDS $2.25', x + w / 2, y + 106, '#F8F0E0', 5, 'center', INK);
+  signAt(c, 'ADULTS $4.50', x + w / 2, y + 96, 5, plank(5, '#F8F0E0', undefined, INK, 6));
+  signAt(c, 'KIDS $2.25', x + w / 2, y + 106, 5, plank(5, '#F8F0E0', undefined, INK, 7));
   lipOn(c, x, y, w, '#F08080');
 };
 
@@ -170,9 +171,9 @@ const paintBarricade = (c: Ctx, v: V) => {
   for (let k = 8; k < 136; k += 16) box(c, x - 4 + k, bed - 66, 8, 12, fog('#F0EAE0', 7100, 0.3, v));
   box(c, x - 4, bed - 66, 136, 1, fog('#FFFFFF', 7100, 0.3, v)); box(c, x - 4, bed - 54, 136, 2, fog(INK, 7100, 0.2, v));
   sign(c, x, bed - 110, 130, 38, fog('#E8E0C8', 7100, 0.25, v), '', INK, 6, fog('#5A5A5A', 7100, 0.3, v));
-  text(c, 'CLOSED FOR', x + 65, bed - 96, fog('#A01818', 7100, 0.2, v), 7, 'center', null);
-  text(c, 'REFURBISHMENT', x + 65, bed - 86, fog('#A01818', 7100, 0.2, v), 6, 'center', null);
-  text(c, 'BACK SOON! 1994', x + 65, bed - 77, fog('#3A3A3A', 7100, 0.2, v), 5, 'center', null);
+  signAt(c, 'CLOSED FOR', x + 65, bed - 96, 7, enamel(7, fog('#A01818', 7100, 0.2, v)));
+  signAt(c, 'REFURBISHMENT', x + 65, bed - 86, 6, enamel(6, fog('#A01818', 7100, 0.2, v)));
+  signAt(c, 'BACK SOON! 1994', x + 65, bed - 77, 5, print(5, fog('#3A3A3A', 7100, 0.2, v)));
   // (the wire it's tied on with)
   box(c, x + 20, bed - 72, 1, 6, fog('#8A8A8A', 7100, 0.3, v)); box(c, x + 110, bed - 72, 1, 6, fog('#8A8A8A', 7100, 0.3, v));
 };
@@ -183,7 +184,7 @@ const paintBumper = (c: Ctx, v: V) => {
   shade(c, g => { g.roundRect(-40, -20, 80, 30, 10); }, fogRamp('#2A6AD0', 5830, 0.35, v));
   box(c, -44, 6, 88, 8, fog('#2A2A2A', 5830, 0.35, v));
   pole(c, 20, -70, 3, 50, fog('#A0A0A0', 5830, 0.35, v), false);
-  text(c, '7', -4, 2, fog('#F2D04A', 5830, 0.3, v), 12, 'center', fog(INK, 5830, 0.3, v));
+  signAt(c, '7', -4, 2, 12, enamel(12, fog('#F2D04A', 5830, 0.3, v), fog(INK, 5830, 0.3, v)));
   c.restore();
 };
 
@@ -192,9 +193,9 @@ const paintHeight = (c: Ctx, v: V) => {
   c.save(); c.translate(x, bed); c.rotate(0.18);
   pole(c, -3, -150, 6, 150, fog('#8A8A8A', 6640, 0.35, v), false);
   sign(c, -2, -150, 70, 44, fog('#F2D04A', 6640, 0.3, v), '', INK, 6, fog('#3A3F48', 6640, 0.35, v));
-  text(c, 'YOU MUST BE', 33, -136, fog('#3A1A08', 6640, 0.25, v), 5, 'center', null);
-  text(c, 'THIS TALL', 33, -126, fog('#3A1A08', 6640, 0.25, v), 5, 'center', null);
-  text(c, 'TO DROWN', 33, -116, fog('#A01818', 6640, 0.25, v), 5, 'center', null);
+  signAt(c, 'YOU MUST BE', 33, -136, 5, print(5, fog('#3A1A08', 6640, 0.25, v)));
+  signAt(c, 'THIS TALL', 33, -126, 5, print(5, fog('#3A1A08', 6640, 0.25, v)));
+  signAt(c, 'TO DROWN', 33, -116, 5, print(5, fog('#A01818', 6640, 0.25, v)));
   // (the cartoon monkey's arm out to the line)
   box(c, 2, -104, 60, 4, fog('#7A4A1E', 6640, 0.3, v)); box(c, 60, -106, 8, 8, fog('#E8C090', 6640, 0.3, v));
   c.restore();
@@ -246,7 +247,7 @@ const ram = (c: Ctx, x: number, y: number, x2: number, y2: number, steel: string
 const plinth = (c: Ctx, x: number, w: number, label: string, steel: string[]) => {
   box(c, x - w / 2, -14, w, 14, INK); box(c, x - w / 2 + 1, -13, w - 2, 12, steel[1]); box(c, x - w / 2 + 1, -13, w - 2, 2, steel[3]);
   for (let k = x - w / 2 + 6; k < x + w / 2 - 4; k += 12) box(c, k, -9, 2, 2, steel[4]);
-  box(c, x - 22, -12, 44, 9, steel[3]); text(c, label, x, -5, steel[0], 5, 'center', null);
+  box(c, x - 22, -13, 44, 11, steel[3]); signAt(c, label, x, -5, 5, stone(5, steel[0], steel[4]));
 };
 
 const paintDinoBody = (c: Ctx, look: DinoLook, v: V, wx: number) => {
@@ -385,8 +386,8 @@ export const drawDinos = (c: Ctx, state: GameState) => {
       const sw = Math.sin(v.f * 0.03) * 0.25, tx = 52 + Math.sin(sw) * 18, ty = -90 + Math.cos(sw) * 18;
       c.strokeStyle = '#E8E0D0'; c.lineWidth = 1; c.beginPath(); c.moveTo(52, -90); c.lineTo(tx, ty); c.stroke();
       c.save(); c.translate(tx, ty); c.rotate(sw);
-      box(c, -14, 0, 30, 14, INK); box(c, -13, 1, 28, 12, '#F4EEDC'); box(c, -13, 1, 28, 2, '#FFFFFF'); box(c, -12, 3, 2, 2, INK);
-      text(c, '$49.99', 2, 11, '#B02020', 5, 'center', null);
+      box(c, -18, 0, 38, 14, INK); box(c, -17, 1, 36, 12, '#F4EEDC'); box(c, -17, 1, 36, 2, '#FFFFFF'); box(c, -16, 3, 2, 2, INK);
+      signAt(c, '$49.99', 2, 11, 5, print(5, '#B02020'));
       c.restore();
     }
     c.restore();

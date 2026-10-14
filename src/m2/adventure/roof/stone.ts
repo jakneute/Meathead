@@ -4,7 +4,11 @@
 // block in a stepped ramp (lit along its top and left, shadowed along its bottom and right), dark mortar, moss dithered
 // into the joints low down, the odd chip and crack, carved glyph blocks here and there.
 
-import { INK, box, checker, mix, hash, text, stamp } from '../../intro/art/kit';
+import { INK, box, checker, mix, hash, stamp } from '../../intro/art/kit';
+import { type Look, signAt, carved, routed } from '../letters';
+
+/** A color's lightness, roughly (0..255). */
+const lum = (hex: string) => { const n = parseInt(hex.slice(1, 7), 16); return ((n >> 16) & 255) * 0.3 + ((n >> 8) & 255) * 0.59 + (n & 255) * 0.11; };
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -96,7 +100,7 @@ export const vineDown = (g: Ctx, x: number, y: number, len: number, seed: number
 };
 
 /** A sign on a post or bolted to something: a board with a frame and words (diegetic: it's on something). */
-export const plaque = (g: Ctx, cx: number, cy: number, w: number, h: number, face: string, words: string[], ink: string, size = 6) => {
+export const plaque = (g: Ctx, cx: number, cy: number, w: number, h: number, face: string, words: string[], ink: string, size = 6, look?: Look) => {
   stamp(g, `plq:${face}:${words.join('|')}:${w}x${h}:${size}`, cx - w / 2 - 4, cy - h / 2 - 4, w + 8, h + 8, s => {
     const x = Math.round(cx - w / 2), y = Math.round(cy - h / 2);
     box(s, x - 3, y - 3, w + 6, h + 6, INK);
@@ -105,6 +109,8 @@ export const plaque = (g: Ctx, cx: number, cy: number, w: number, h: number, fac
     box(s, x, y, w, 2, mix(face, '#FFFFFF', 0.3)); box(s, x, y + h - 2, w, 2, mix(face, INK, 0.3));
     checker(s, x, y + 2, w, 2, mix(face, '#FFFFFF', 0.3));
     const lh = size + 4, top = cy - ((words.length - 1) * lh) / 2 + size / 2 - 1;
-    words.forEach((t, i) => text(s, t, cx, top + i * lh, ink, size, 'center', mix(face, INK, 0.5)));
+    // (the words: given a look, or cut in (dark words on a light board) or routed and filled (light on a dark one))
+    const L = look ?? (lum(ink) < lum(face) ? carved(size, ink, mix(face, '#FFFFFF', 0.45), words.length) : routed(size, ink, mix(face, INK, 0.5)));
+    words.forEach((t, i) => signAt(s, t, cx, top + i * lh, size, L));
   });
 };

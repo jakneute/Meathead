@@ -7,7 +7,8 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { box, mix, rampOf, checker, stamp, hash, text, sign, pole, steppedGlow, hazeBands, INK } from '../../intro/art/kit';
+import { box, mix, rampOf, checker, stamp, hash, sign, pole, steppedGlow, hazeBands, INK } from '../../intro/art/kit';
+import { signAt, plank, enamel, print, stone, stencil, led, dino } from '../letters';
 import { drawGuestsDimmed } from '../queue/crowd';
 import type { River } from './index';
 import { WS, TANK, PIPE, GALLERY } from './course';
@@ -100,15 +101,15 @@ const paintRoomWall = (g: Ctx, i: number, u0: number, top: number, bot: number) 
     g.fillStyle = 'rgba(255, 230, 170, 0.08)'; g.beginPath(); g.moveTo(x + w / 2 - 10, y - 10); g.lineTo(x + w / 2 + 10, y - 10); g.lineTo(x + w + 10, y + h + 6); g.lineTo(x - 10, y + h + 6); g.fill();
     box(g, x - 3, y - 3, w + 6, h + 6, '#05070C'); box(g, x - 2, y - 2, w + 4, h + 4, '#3A3420');
     box(g, x, y, w, h, '#D8D0B8'); box(g, x, y, w, 10, '#2A4A6A');
-    text(g, title, x + w / 2, y + 8, '#F2E8C8', 5, 'center', null);
-    lines.forEach((l, k) => text(g, l, x + w / 2, y + 20 + k * 9, '#2A2418', 5, 'center', null));
+    signAt(g, title, x + w / 2, y + 8, 5, print(5, '#F2E8C8'));
+    lines.forEach((l, k) => signAt(g, l, x + w / 2, y + 20 + k * 9, 5, print(5, '#2A2418')));
   };
   if (kind === 0) {
     placard(u0 + 60, top + 120, 180, 70, 'PLESIOSAURUS', ['"NESSIE"', 'LATE CRETACEOUS', 'ANIMATRONIC, 1987']);
   } else if (kind === 1) {
     // (the EXIT: lit red, glowing on the wall round it)
     steppedGlow(g, u0 + 70, top + 70, 34, '#FF3020', 0.18, 0.02, 4);
-    box(g, u0 + 44, top + 62, 52, 18, '#2A0A0A'); text(g, 'EXIT', u0 + 70, top + 75, '#FF5040', 8, 'center', null);
+    box(g, u0 + 44, top + 62, 52, 18, '#2A0A0A'); signAt(g, 'EXIT', u0 + 70, top + 75, 8, led(8, '#FF5040', '#2A0A0A'));
     // (the doorway under it, dark, a sliver of the corridor's light)
     box(g, u0 + 40, bot - 150, 60, 150, '#04060A'); box(g, u0 + 40, bot - 150, 60, 3, WALL[3]); box(g, u0 + 96, bot - 140, 4, 140, '#1A2030');
     placard(u0 + 150, top + 130, 120, 54, 'DID YOU KNOW?', ['PLESIOSAURS WERE', 'NOT DINOSAURS.', 'NEITHER IS THIS.']);
@@ -116,7 +117,7 @@ const paintRoomWall = (g: Ctx, i: number, u0: number, top: number, bot: number) 
     placard(u0 + 50, top + 120, 200, 40, 'PLEASE DO NOT', ['TAP ON THE GLASS']);
     // (the drinking fountain, taped up)
     box(g, u0 + 210, bot - 70, 40, 30, '#8A9098'); box(g, u0 + 210, bot - 70, 40, 3, '#C0C8D0'); box(g, u0 + 222, bot - 40, 16, 40, '#5A6068');
-    box(g, u0 + 206, bot - 62, 48, 10, '#E8E0B0'); text(g, 'OUT OF ORDER', u0 + 230, bot - 55, '#2A2418', 4, 'center', null);
+    box(g, u0 + 194, bot - 63, 72, 11, '#E8E0B0'); box(g, u0 + 192, bot - 62, 5, 3, '#D8D4C8'); box(g, u0 + 263, bot - 62, 5, 3, '#D8D4C8'); signAt(g, 'OUT OF ORDER', u0 + 230, bot - 55, 4, plank(4, '#2A2418', undefined, undefined, 9));
   } else if (kind === 3) {
     // (the gift shop's doorway, lit warm, an arrow over it)
     box(g, u0 + 100, bot - 160, 90, 160, '#3A2A10'); box(g, u0 + 104, bot - 156, 82, 156, '#6A4A18');
@@ -127,12 +128,12 @@ const paintRoomWall = (g: Ctx, i: number, u0: number, top: number, bot: number) 
     placard(u0 + 40, top + 110, 220, 80, 'MOSASAURUS', ['ARRIVING SPRING 1995!', 'BIGGER! TOOTHIER!', 'PLEASE PARDON OUR DUST']);
   } else {
     // (a fire extinguisher's cabinet, a trash can)
-    box(g, u0 + 60, top + 160, 34, 52, '#7A1010'); box(g, u0 + 64, top + 164, 26, 44, '#B83030'); box(g, u0 + 70, top + 170, 14, 32, '#E04040'); text(g, 'FIRE', u0 + 77, top + 156, '#E0D0C0', 4, 'center', null);
+    box(g, u0 + 60, top + 160, 34, 52, '#7A1010'); box(g, u0 + 64, top + 164, 26, 44, '#B83030'); box(g, u0 + 70, top + 170, 14, 32, '#E04040'); signAt(g, 'FIRE', u0 + 77, top + 156, 4, print(4, '#E0D0C0'));
     box(g, u0 + 200, bot - 46, 30, 46, '#2A3A2A'); box(g, u0 + 196, bot - 50, 38, 6, '#3A4A3A');
     placard(u0 + 130, top + 100, 110, 40, 'FEEDINGS', ['11AM  2PM  4PM']);
   }
   // (the exhibit's own title, painted along the top of the wall, every so far)
-  if (i % 3 === 1) text(g, 'SEA MONSTERS OF THE MESOZOIC', u0 + CHUNK / 2, top + 40, '#5A86B8', 7, 'center', '#06080E');
+  if (i % 3 === 1) signAt(g, 'SEA MONSTERS OF THE MESOZOIC', u0 + CHUNK / 2, top + 40, 7, enamel({ sx: 1, sy: 2 }, '#5A86B8', '#06080E'));
 };
 
 /** The room through the window: its back wall, the ceiling running back, the carpet, the guests, the tank's light on it. */
@@ -213,7 +214,7 @@ const drawGlass = (c: Ctx, rv: River, v: V) => {
   box(c, WIN.x2, WIN.top - 14, 14, h + 30, F[1]); box(c, WIN.x2, WIN.top, 2, h, INK);
   for (let x = WIN.x1 - 8; x < WIN.x2 + 8; x += 40) { box(c, x, WIN.top - 9, 3, 3, F[4]); box(c, x, WIN.sill + 6, 3, 3, F[4]); }
   // (the maker's plate on the sill)
-  box(c, WIN.x1 + 40, WIN.sill + 3, 92, 10, '#8A8058'); text(c, 'PANEL A  12 IN. ACRYLIC', WIN.x1 + 86, WIN.sill + 11, '#2A2418', 4, 'center', null);
+  box(c, WIN.x1 + 20, WIN.sill + 3, 132, 11, '#8A8058'); signAt(c, 'PANEL A  12 IN. ACRYLIC', WIN.x1 + 86, WIN.sill + 11, 4, stone(4, '#2A2418', '#B8AE80'));
 };
 
 /** Faux rock heaped along the foot of the window (low, rounded: nothing to stand on). */
@@ -266,17 +267,17 @@ export const drawTank = (c: Ctx, state: GameState, rv: River) => {
     const bx = (T1 + T2) / 2 - 170;
     if (onScreen(v, bx, bx + 340)) {
       box(c, bx + 30, HALL_CEIL, 1, 50, '#8A8A8A'); box(c, bx + 310, HALL_CEIL, 1, 50, '#8A8A8A');
-      sign(c, bx, HALL_CEIL + 50, 340, 34, '#1E3A8A', 'SEA MONSTERS OF THE MESOZOIC', '#FDE047', 10, '#C8A040');
+      sign(c, bx, HALL_CEIL + 50, 340, 34, '#1E3A8A', 'SEA MONSTERS OF THE MESOZOIC', '#FDE047', 10, '#C8A040', dino({ sx: 2, sy: 2 }, ['#FFF8C8', '#FDE047', '#F2B81E', '#C88A10'], '#0B1236', '#0B1236'));
     }
     if (onScreen(v, T1 + 100, T1 + 340)) {
       sign(c, T1 + 110, WS - 74, 220, 30, '#F0E8D8', '', INK, 6);
-      text(c, 'NO SWIMMING IN THE EXHIBIT', T1 + 220, WS - 61, '#B02020', 6, 'center', null);
-      text(c, 'VIOLATORS WILL BE EATEN', T1 + 220, WS - 51, '#2A2418', 5, 'center', null);
+      signAt(c, 'NO SWIMMING IN THE EXHIBIT', T1 + 220, WS - 61, 6, enamel(6, '#B02020'));
+      signAt(c, 'VIOLATORS WILL BE EATEN', T1 + 220, WS - 51, 5, print(5, '#2A2418'));
     }
     if (onScreen(v, T2 - 300, T2 - 60)) {
       sign(c, T2 - 290, WS - 74, 200, 30, '#F0E8D8', '', INK, 6);
-      text(c, 'FEEDINGS 11AM 2PM 4PM', T2 - 190, WS - 61, '#1E3A8A', 5, 'center', null);
-      text(c, 'SWIMMERS COUNT', T2 - 190, WS - 51, '#B02020', 5, 'center', null);
+      signAt(c, 'FEEDINGS 11AM 2PM 4PM', T2 - 190, WS - 61, 5, enamel(5, '#1E3A8A'));
+      signAt(c, 'SWIMMERS COUNT', T2 - 190, WS - 51, 5, print(5, '#B02020'));
     }
   }
   // Under: the room through the window, the glass, the frame, the rocks along its foot
@@ -307,7 +308,7 @@ const paintPlesioBody = (g: Ctx) => {
   // (its seams, the hatch on its back, the stencil)
   for (const sx of [-30, 10, 44]) for (let s = -24; s < 20; s += 2) box(g, sx + Math.round(s * 0.1), s, 1, 2, PL[0]);
   box(g, -12, -24, 26, 6, STEEL[1]); box(g, -12, -24, 26, 1, STEEL[3]); for (const bx of [-10, 10]) box(g, bx, -22, 2, 2, STEEL[4]);
-  text(g, 'UNIT 1', -14, 4, PL[0], 5, 'center', null);
+  signAt(g, 'UNIT 1', -14, 4, 5, stencil(5, PL[0]));
 };
 const paintPlesioHead = (g: Ctx) => {
   shade(g, gg => { gg.moveTo(-6, -8); gg.quadraticCurveTo(10, -16, 30, -6); gg.lineTo(30, 4); gg.lineTo(-6, 6); gg.closePath(); }, PL);

@@ -21,13 +21,14 @@ import { GY } from '../../geometry';
 import { sunBehind } from '../../../sunFlare';
 import { drawPerson } from '../../temple/people';
 import {
-  type Ctx, type Eye, type Pt, INK, box, text, sign, slab, pole, ball, rampOf, dark, lite, mix, hash, checker, steppedGlow, pixelBlob, stamp,
+  type Ctx, type Eye, type Pt, INK, box, sign, slab, pole, ball, rampOf, dark, lite, mix, hash, checker, steppedGlow, pixelBlob, stamp,
   P, groundAt, FAR, quad, seg, rgba, prism, chunked, speckle, hazard, lipOn, eyeOf, viewOf, bendFloor, PIX,
 } from './kit';
 import {
   x0, x1, D, PEN_WALL, DRAIN_Y, FENCE_X, FENCE_TOP, BOOTH, PADDOCK_IN, PADDOCK_OUT, PADDOCK_TOP, LAST_FENCE, LAST_FENCE_TOP,
   TEMPLE_L, TEMPLE_R, TIERS, TIER_H, TEMPLE_DOOR_X, LEDGES,
 } from '../layout';
+import { signAt, carved, routed, plank, enamel, stencil, print, dino } from '../../letters';
 
 /** What the park's art needs to know of its state. */
 export interface DinoLook { hostile: boolean; doorKicked: boolean; kick: number; switching: boolean }
@@ -208,9 +209,9 @@ const penBackWall = (c: Ctx, state: GameState) => {
     for (let x = Math.floor(a / 14) * 14; x < b; x += 14) { g.strokeStyle = '#C8CCD2'; g.lineWidth = 1; g.beginPath(); g.arc(x + 7, top - 15, 7, 0, Math.PI * 2); g.stroke(); }
     // (painted on it, stenciled big)
     g.save(); g.beginPath(); g.rect(a, top, w, GY - top); g.clip();
-    text(g, 'VELOCIRAPTOR', D + 460, GY - 200, '#C8A21E', 16, 'center', '#5A5040');
-    text(g, 'ENCLOSURE  B', D + 460, GY - 176, '#C8A21E', 16, 'center', '#5A5040');
-    text(g, 'IN CASE OF ESCAPE DIAL 0', D + 460, GY - 150, '#E8E4DA', 7, 'center', '#5A5040');
+    signAt(g, 'VELOCIRAPTOR', D + 460, GY - 200, 16, { ...stencil(16, '#C8A21E', '#8A8478', 1), shadow: '#5A5040' });
+    signAt(g, 'ENCLOSURE  B', D + 460, GY - 176, 16, { ...stencil(16, '#C8A21E', '#8A8478', 2), shadow: '#5A5040' });
+    signAt(g, 'IN CASE OF ESCAPE DIAL 0', D + 460, GY - 150, 7, { ...stencil(7, '#E8E4DA'), shadow: '#5A5040' });
     g.restore();
   });
 };
@@ -283,9 +284,9 @@ const paddockBack = (c: Ctx, state: GameState, eye: Eye, f: number) => {
       if (x >= PADDOCK_OUT - 100) continue;
       const sx = x + 60;
       sign(g, sx, top + 170, 120, 40, '#F2D024', '', '#000000', 6);
-      text(g, 'WARNING', sx + 60, top + 184, '#B91C1C', 8, 'center', null);
-      text(g, 'HIGH VOLTAGE', sx + 60, top + 196, '#1A0B06', 6, 'center', null);
-      text(g, '(MOSTLY)', sx + 60, top + 205, '#1A0B06', 5, 'center', null);
+      signAt(g, 'WARNING', sx + 60, top + 184, 8, enamel(8, '#B91C1C'));
+      signAt(g, 'HIGH VOLTAGE', sx + 60, top + 196, 6, enamel(6, '#1A0B06'));
+      signAt(g, '(MOSTLY)', sx + 60, top + 205, 5, print(5, '#1A0B06'));
     }
   });
   // (the top rail crackling now and then)
@@ -384,7 +385,7 @@ const platform = (c: Ctx, state: GameState, eye: Eye, x: number, y: number, w: n
     const hx = x + w / 2, sw = Math.sin(f * 0.04 + x) * 4;
     seg(c, [hx, y + T], [hx + sw, y + T + 26], '#3A3A3A', 2);
     c.strokeStyle = '#9AA4AE'; c.lineWidth = 2; c.beginPath(); c.arc(hx + sw, y + T + 32, 5, -Math.PI * 0.2, Math.PI * 1.1); c.stroke();
-    stamp(c, `dfeed-plate-${x}`, x + 6, y + T + 2, 46, 14, g => sign(g, x + 10, y + T + 5, 38, 8, '#E8E4DA', `FEED ${x === D + 620 ? 1 : 2}`, '#1A0B06', 5));
+    stamp(c, `dfeed-plate-${x}`, x + 6, y + T + 2, 46, 14, g => sign(g, x + 10, y + T + 5, 38, 8, '#E8E4DA', `FEED ${x === D + 620 ? 1 : 2}`, '#1A0B06', 5, INK, stencil(5, '#1A0B06')));
   } else if (kind === 'deck') {
     // (the viewing deck: a rail along its back, coin binoculars on a post, a plaque)
     stamp(c, 'dview-deck', x, y - 40, w, 40, g => {
@@ -394,7 +395,7 @@ const platform = (c: Ctx, state: GameState, eye: Eye, x: number, y: number, w: n
       slab(g, x + w - 50, y - 36, 24, 12, '#2E5A3A'); box(g, x + w - 52, y - 34, 6, 8, '#1A2A1E'); box(g, x + w - 30, y - 34, 6, 8, '#1A2A1E');
       box(g, x + w - 44, y - 33, 4, 4, '#9AD0F0');
     });
-    stamp(c, 'dview-plaque', x + 8, y + T + 2, 104, 16, g => sign(g, x + 14, y + T + 5, 92, 9, '#2E5A3A', 'VIEWING DECK', '#F2E8C8', 5, '#5A3E22'));
+    stamp(c, 'dview-plaque', x + 8, y + T + 2, 104, 16, g => sign(g, x + 14, y + T + 5, 92, 9, '#2E5A3A', 'VIEWING DECK', '#F2E8C8', 5, '#5A3E22', routed(5, '#F2E8C8', '#122A18')));
   } else if (kind === 'board') {
     // (rope rails: posts, the rope sagging between)
     stamp(c, `dboard-rail-${x}`, x, y - 30, w, 30, g => {
@@ -446,12 +447,12 @@ const penFence = (c: Ctx, state: GameState, eye: Eye, f: number, look: DinoLook)
     // (the brackets they hang off)
     box(g, x + 18, top + 40, 10, 3, '#3A3A3A'); box(g, x + 18, top + 100, 10, 3, '#3A3A3A');
     sign(g, x + 32, top + 36, 112, 42, '#F2D024', '', INK, 6);
-    text(g, 'DANGER', x + 88, top + 50, '#B91C1C', 8, 'center', null);
-    text(g, '10,000 VOLTS', x + 88, top + 62, INK, 6, 'center', null);
-    text(g, '(DECORATIVE)', x + 88, top + 72, INK, 5, 'center', null);
+    signAt(g, 'DANGER', x + 88, top + 50, 8, enamel(8, '#B91C1C'));
+    signAt(g, '10,000 VOLTS', x + 88, top + 62, 6, enamel(6, INK));
+    signAt(g, '(DECORATIVE)', x + 88, top + 72, 5, print(5, INK));
     sign(g, x + 32, top + 92, 112, 34, '#F8FAFC', '', INK, 6, '#B91C1C');
-    text(g, 'DO NOT FEED', x + 88, top + 106, '#B91C1C', 6, 'center', null);
-    text(g, 'THE RAPTORS', x + 88, top + 116, '#B91C1C', 6, 'center', null);
+    signAt(g, 'DO NOT FEED', x + 88, top + 106, 6, enamel(6, '#B91C1C'));
+    signAt(g, 'THE RAPTORS', x + 88, top + 116, 6, enamel(6, '#B91C1C'));
   });
   // (a spark crawling along a wire now and then: more often, hostile)
   const period = look.hostile ? 50 : 140;
@@ -489,8 +490,8 @@ const booth = (c: Ctx, state: GameState, eye: Eye, f: number, look: DinoLook) =>
     box(g, win.x - 6, win.y + win.h + 3, win.w + 12, 4, '#A89E86');
     const dx = x + w - 56;
     slab(g, dx, GY - 92, 40, 92, '#5A6E7E'); box(g, dx + 6, GY - 84, 28, 20, '#3A4A58'); box(g, dx + 30, GY - 50, 5, 5, '#E8C040');
-    sign(g, dx + 4, GY - 58, 32, 12, '#F8FAFC', 'STAFF', '#B91C1C', 5);
-    sign(g, x + 22, top + 6, 90, 10, '#1E3A8A', 'MAINTENANCE', '#F8FAFC', 5, '#3A3F48');
+    sign(g, dx + 4, GY - 58, 32, 12, '#F8FAFC', 'STAFF', '#B91C1C', 5, INK, enamel(5, '#B91C1C'));
+    sign(g, x + 22, top + 6, 90, 10, '#1E3A8A', 'MAINTENANCE', '#F8FAFC', 5, '#3A3F48', enamel(5, '#F8FAFC'));
     // (a clipboard on a nail, and a fire extinguisher)
     box(g, win.x + win.w + 12, win.y + 2, 12, 16, '#8A6A3A'); box(g, win.x + win.w + 13, win.y + 5, 10, 12, '#F4F4F0'); for (let k = 0; k < 4; k++) box(g, win.x + win.w + 14, win.y + 7 + k * 3, 7, 1, '#8A8A8A');
     box(g, x + 6, GY - 40, 9, 28, INK); box(g, x + 7, GY - 39, 7, 26, '#C81E1E'); box(g, x + 7, GY - 39, 2, 26, '#E85050');
@@ -523,8 +524,8 @@ const meadowSign = (c: Ctx, state: GameState, eye: Eye) => {
   // (a carved wooden sign on two log posts, standing on the meadow's back edge; hay bales by it)
   atDepth(c, eye, 0.86, () => stamp(c, 'dmeadow-sign', D + 1920, GY - 150, 240, 150, g => {
     for (const px of [D + 1940, D + 2100]) pole(g, px, GY - 130, 10, 130, '#6A4A2A');
-    sign(g, D + 1930, GY - 140, 190, 30, '#8A5A2A', 'TRICERATOPS MEADOW', '#F2DC9A', 8, '#5A3A1A');
-    sign(g, D + 1950, GY - 98, 150, 16, '#E8DCB8', 'PLEASE STAY ON THE BOARDWALK', '#5A3A1A', 5, '#5A3A1A');
+    sign(g, D + 1930, GY - 140, 190, 30, '#8A5A2A', 'TRICERATOPS MEADOW', '#F2DC9A', 8, '#5A3A1A', routed({ sx: 1, sy: 2 }, '#F2DC9A', '#3A2410'));
+    sign(g, D + 1937, GY - 98, 176, 16, '#E8DCB8', 'PLEASE STAY ON THE BOARDWALK', '#5A3A1A', 5, '#5A3A1A', carved(5, '#5A3A1A', '#FFF4DC'));
     for (const [hx, hy] of [[D + 1925, GY - 26], [D + 2080, GY - 26], [D + 2100, GY - 50]] as const) {
       slab(g, hx, hy, 44, 26, '#D8B860', { ink: true }); for (let k = 0; k < 5; k++) box(g, hx + 4 + k * 8, hy + 4, 2, 18, '#B8963A'); box(g, hx + 2, hy + 12, 40, 2, '#8A6A2A');
     }
@@ -581,10 +582,10 @@ const volcano = (c: Ctx, state: GameState, eye: Eye, f: number) => {
   // The sign at its foot: carved, on posts, tiki-ish; the plaque under it
   stamp(c, 'dkabooma-sign', D + 2360, GY - 190, 200, 190, g => {
     for (const px of [D + 2380, D + 2520]) { pole(g, px, GY - 160, 12, 160, '#5A3A1E'); for (let y = GY - 150; y < GY; y += 22) box(g, px, y, 12, 2, '#3E2810'); }
-    sign(g, D + 2370, GY - 182, 170, 30, '#5A3A1A', 'MOUNT KABOOMA', '#FF9A2A', 9, '#3E2810');
+    sign(g, D + 2370, GY - 182, 170, 30, '#5A3A1A', 'MOUNT KABOOMA', '#FF9A2A', 9, '#3E2810', plank({ sx: 2, sy: 2 }, '#FF9A2A', undefined, '#1E1006', 7));
     sign(g, D + 2392, GY - 140, 126, 22, '#E8DCB8', '', '#5A3A1A', 5, '#3E2810');
-    text(g, '(NOT A REAL', D + 2455, GY - 130, '#5A3A1A', 5, 'center', null);
-    text(g, 'VOLCANO)', D + 2455, GY - 122, '#5A3A1A', 5, 'center', null);
+    signAt(g, '(NOT A REAL', D + 2455, GY - 130, 5, print(5, '#5A3A1A'));
+    signAt(g, 'VOLCANO)', D + 2455, GY - 122, 5, print(5, '#5A3A1A'));
   });
   void state;
 };
@@ -606,7 +607,7 @@ const paintCone = (g: Ctx) => {
   const hx = D + 3660, hy = GY - 400;
   slab(g, hx, hy, 46, 56, '#5A5048'); box(g, hx + 4, hy + 4, 38, 48, '#4A423A'); box(g, hx + 34, hy + 26, 6, 6, '#C8C0B0');
   for (let k = 0; k < 4; k++) box(g, hx + 8, hy + 10 + k * 10, 26, 2, '#3A322A');
-  text(g, 'AUTHORIZED', hx + 23, hy - 10, '#E8E0D0', 5, 'center', INK); text(g, 'PERSONNEL ONLY', hx + 23, hy - 3, '#E8E0D0', 5, 'center', INK);
+  signAt(g, 'AUTHORIZED', hx + 23, hy - 12, 5, { ...stencil(5, '#E8E0D0'), shadow: INK }); signAt(g, 'PERSONNEL ONLY', hx + 23, hy - 3, 5, { ...stencil(5, '#E8E0D0'), shadow: INK });
   // (charred streaks, painted on, a patch where the paint's flaked showing white fiberglass)
   for (let i = 0; i < 6; i++) { const x = VX0 + 200 + i * 200; box(g, x, coneTop(x) + 30, 10, 80, 'rgba(30, 20, 14, 0.25)'); }
   box(g, D + 2900, GY - 360, 30, 14, '#E8E0D2'); box(g, D + 2904, GY - 356, 22, 6, '#D8CEBE');
@@ -639,8 +640,8 @@ const giftShop = (c: Ctx, state: GameState, eye: Eye, f: number) => {
     stamp(c, 'dshop-billboard', x + 20, top - 120, w - 40, 120, g => {
       for (const px of [x + 60, x + w - 70]) { box(g, px, top - 40, 6, 40, '#3A3A3A'); box(g, px + 30, top - 40, 6, 40, '#3A3A3A'); }
       sign(g, x + 30, top - 110, w - 60, 70, '#1E5A3A', '', '#000', 8, '#5A3A1A');
-      text(g, 'DINO-MITE', x + w / 2 + 30, top - 82, '#FFD23A', 14, 'center', '#3A1A0A');
-      text(g, 'GIFTS', x + w / 2 + 30, top - 58, '#FFFFFF', 10, 'center', '#3A1A0A');
+      signAt(g, 'DINO-MITE', x + w / 2 + 30, top - 82, 14, dino(14, ['#FFF2B0', '#FFD23A', '#F2A41E', '#C8641A'], '#3A1A0A', '#0E2A1A'));
+      signAt(g, 'GIFTS', x + w / 2 + 30, top - 58, 10, dino({ sx: 2, sy: 2 }, ['#FFFFFF', '#F4F0E8', '#D8D4CC', '#B8B2A6'], '#3A1A0A', '#0E2A1A'));
       // (the cartoon raptor, grinning, and its dynamite)
       const rx = x + 70, ry = top - 60;
       g.fillStyle = INK; g.beginPath(); g.ellipse(rx, ry - 6, 22, 16, 0, 0, Math.PI * 2); g.fill();
@@ -678,12 +679,12 @@ const giftShop = (c: Ctx, state: GameState, eye: Eye, f: number) => {
       box(g, wx, GY - 34, 124, 4, '#8A6A3A');
       g.fillStyle = 'rgba(220, 240, 255, 0.22)'; g.beginPath(); g.moveTo(wx + 10, GY - 31); g.lineTo(wx + 26, GY - 31); g.lineTo(wx + 60, GY - 109); g.lineTo(wx + 44, GY - 109); g.closePath(); g.fill();
     }
-    sign(g, x + 34, GY - 104, 104, 12, '#F8FAFC', 'T-SHIRTS 2 FOR $40', '#B91C1C', 5);
-    sign(g, x + 262, GY - 104, 104, 12, '#FFE040', 'EVERYTHING MUST GO', '#B91C1C', 5);
+    sign(g, x + 30, GY - 104, 112, 12, '#F8FAFC', 'T-SHIRTS 2 FOR $40', '#B91C1C', 5, INK, plank(5, '#B91C1C', undefined, undefined, 1));
+    sign(g, x + 258, GY - 104, 112, 12, '#FFE040', 'EVERYTHING MUST GO', '#B91C1C', 5, INK, plank(5, '#B91C1C', undefined, undefined, 2));
     const dx = x + 170;
     slab(g, dx, GY - 104, 64, 104, '#7A4A22'); box(g, dx + 6, GY - 98, 52, 54, '#3A5A6A'); box(g, dx + 31, GY - 98, 2, 54, '#7A4A22');
     box(g, dx + 50, GY - 40, 6, 6, '#E8C040');
-    sign(g, dx + 14, GY - 34, 36, 10, '#F8FAFC', 'OPEN', '#15803D', 5);
+    sign(g, dx + 14, GY - 34, 36, 10, '#F8FAFC', 'OPEN', '#15803D', 5, INK, enamel(5, '#15803D'));
   });
   void state;
 };
@@ -714,9 +715,9 @@ const monorail = (c: Ctx, state: GameState, eye: Eye) => {
   stamp(c, 'dmono-sign', sx - 6, MONO.y + 40, 152, 66, g => {
     box(g, sx + 50, MONO.y + 44, 40, 4, '#3A3A3A');
     sign(g, sx, MONO.y + 50, 140, 50, '#F8FAFC', '', INK, 6, '#B91C1C');
-    text(g, 'MONORAIL', sx + 70, MONO.y + 64, '#1E3A8A', 8, 'center', null);
-    text(g, 'CLOSED FOR REPAIRS', sx + 70, MONO.y + 78, '#B91C1C', 6, 'center', null);
-    text(g, 'SINCE 1997', sx + 70, MONO.y + 90, '#1A0B06', 6, 'center', null);
+    signAt(g, 'MONORAIL', sx + 70, MONO.y + 64, 8, enamel({ sx: 1, sy: 2 }, '#1E3A8A'));
+    signAt(g, 'CLOSED FOR REPAIRS', sx + 70, MONO.y + 78, 6, enamel(6, '#B91C1C'));
+    signAt(g, 'SINCE 1997', sx + 70, MONO.y + 90, 6, enamel(6, '#1A0B06'));
   });
 };
 
@@ -790,12 +791,12 @@ const gateFront = (c: Ctx, eye: Eye, gx: number, f: number) => {
     stamp(c, `dpad-front-${gx}`, gx - 124, GY - 480, 268, 480, g => {
       pillarFace(g, gx - 10);
       sign(g, gx - 120, GY - 430, 260, 46, '#5A3A1A', '', '#000', 8, '#3E2810');
-      text(g, words, gx + 10, GY - 408, '#F2C23A', words.length > 14 ? 10 : 12, 'center', '#2A1A0A');
-      text(g, line2, gx + 10, GY - 392, '#E8DCB8', 6, 'center', '#2A1A0A');
+      signAt(g, words, gx + 10, GY - 408, 12, dino({ sx: 2, sy: 2 }, ['#FFF2B0', '#F2C23A', '#E09A1E', '#B8641A'], '#2A1A0A', '#140A04'));
+      signAt(g, line2, gx + 10, GY - 392, 6, carved(6, '#E8DCB8', '#2A1A0A'));
       for (const px of [gx - 50, gx + 70]) box(g, px, GY - 380, 2, 10, '#3A3A3A');
       sign(g, gx - 80, GY - 370, 180, sub2 ? 24 : 14, '#E8DCB8', '', '#5A1A0A', 6, '#3E2810');
-      text(g, sub1, gx + 10, GY - 360, '#5A1A0A', 6, 'center', null);
-      if (sub2) text(g, sub2, gx + 10, GY - 350, '#5A1A0A', 6, 'center', null);
+      signAt(g, sub1, gx + 10, GY - 360, 6, carved(6, '#5A1A0A', '#FFF4DC'));
+      if (sub2) signAt(g, sub2, gx + 10, GY - 350, 6, carved(6, '#5A1A0A', '#FFF4DC'));
     });
     torch(c, gx + 10, GY - 478, f);
   });
@@ -888,9 +889,9 @@ const lastFence = (c: Ctx, state: GameState, eye: Eye) => {
     // (STAFF ONLY, wired to the post, on the path's side, under the top)
     box(g, x - 6, top + 22, 8, 2, '#3A3A3A'); box(g, x - 6, top + 52, 8, 2, '#3A3A3A');
     sign(g, x - 112, top + 16, 104, 42, '#B91C1C', '', '#000', 6, '#3A3F48');
-    text(g, 'STAFF ONLY', x - 60, top + 32, '#F8FAFC', 7, 'center', '#5A0A0A');
-    text(g, 'BEYOND THIS', x - 60, top + 44, '#F8FAFC', 6, 'center', '#5A0A0A');
-    text(g, 'POINT', x - 60, top + 53, '#F8FAFC', 6, 'center', '#5A0A0A');
+    signAt(g, 'STAFF ONLY', x - 60, top + 32, 7, enamel(7, '#F8FAFC', '#5A0A0A'));
+    signAt(g, 'BEYOND THIS', x - 60, top + 44, 6, enamel(6, '#F8FAFC', '#5A0A0A'));
+    signAt(g, 'POINT', x - 60, top + 53, 6, enamel(6, '#F8FAFC', '#5A0A0A'));
   });
   void state;
 };
@@ -919,10 +920,13 @@ const temple = (c: Ctx, state: GameState, eye: Eye, f: number, look: DinoLook) =
     box(c, dx, GY - 90, 50, 90, '#0C0A09');
     steppedGlow(c, dx + 25, GY - 60, 34, '#FFD890', 0.22, 0.03, 4);
     box(c, dx + 4, GY - 4, 42, 4, 'rgba(255, 216, 144, 0.25)');
-  } else stamp(c, 'dtemple-door', dx - 4, GY - 96, 58, 96, g => {
+  } else stamp(c, 'dtemple-door', dx - 6, GY - 96, 62, 96, g => {
     slab(g, dx, GY - 90, 50, 90, '#6A4A2A'); box(g, dx + 6, GY - 84, 38, 36, '#5A3E22'); box(g, dx + 6, GY - 42, 38, 36, '#5A3E22');
     box(g, dx + 40, GY - 50, 6, 6, '#D8B040');
-    text(g, 'EMPLOYEES', dx + 25, GY - 70, '#F2E2B0', 5, 'center', INK); text(g, 'ONLY', dx + 25, GY - 61, '#F2E2B0', 5, 'center', INK);
+    // (EMPLOYEES ONLY on a plate screwed to the door, a touch wider than it)
+    box(g, dx - 4, GY - 80, 58, 22, INK); box(g, dx - 3, GY - 79, 56, 20, '#2A2A2E'); box(g, dx - 3, GY - 79, 56, 1, '#5A5A62');
+    for (const sx of [dx - 1, dx + 50]) { box(g, sx, GY - 77, 1, 1, '#A8A8B0'); box(g, sx, GY - 62, 1, 1, '#A8A8B0'); }
+    signAt(g, 'EMPLOYEES', dx + 25, GY - 70, 5, enamel(5, '#F2E2B0')); signAt(g, 'ONLY', dx + 25, GY - 61, 5, enamel(5, '#F2E2B0'));
   });
   if (look.kick > 22) { c.save(); const k = look.kick - 22; c.translate(dx + 25 + k * 6, GY - 45 - k * 2 + k * k * 0.2); c.rotate(k * 0.25); slab(c, -25, -45, 50, 90, '#6A4A2A'); c.restore(); }
   // (a lamp over the door, a bulb in a cage, moths round it after dark)
@@ -946,8 +950,8 @@ const paintTemple = (g: Ctx, a: number, b: number) => {
     }
     for (let sx = t.a + 160; sx < t.b; sx += 160) { box(g, sx, t.y + 6, 2, TIER_H - 16, r[0]); box(g, sx + 2, t.y + 6, 1, TIER_H - 16, r[3]); for (let y = t.y + 14; y < t.y + TIER_H - 10; y += 20) box(g, sx - 3, y, 2, 2, '#C8C0B0'); }
     // (stenciled on, here and there: what the crew needs to know)
-    if (i === 1) text(g, 'THIS SIDE AWAY FROM GUESTS', (t.a + t.b) / 2, t.y + 82, '#E8E0D0', 6, 'center', INK);
-    if (i === 3) text(g, 'PANEL 4-C  DO NOT LEAN ON', t.a + 300, t.y + 82, '#E8E0D0', 5, 'center', INK);
+    if (i === 1) signAt(g, 'THIS SIDE AWAY FROM GUESTS', (t.a + t.b) / 2, t.y + 82, 6, { ...stencil(6, '#E8E0D0'), shadow: INK });
+    if (i === 3) signAt(g, 'PANEL 4-C  DO NOT LEAN ON', t.a + 300, t.y + 82, 5, { ...stencil(5, '#E8E0D0'), shadow: INK });
   }
   const top = GY - TIERS * TIER_H, sx0 = TEMPLE_L + TIERS * inset, sx1 = TEMPLE_R - TIERS * inset, mid = (sx0 + sx1) / 2;
   // The shrine on top: a facade, its back braced with two-by-fours and sandbags, a spotlight rig
@@ -959,7 +963,7 @@ const paintTemple = (g: Ctx, a: number, b: number) => {
   for (let k = 0; k < 4; k++) slab(g, sx0 + 50 + k * 26, top - 14, 24, 14, '#C8B080');
   slab(g, sx0 + 20, top - 168, sx1 - sx0 - 40, 20, '#968660');
   // (THIS SIDE UP, upside down: somebody hung a panel wrong)
-  g.save(); g.translate(mid, top - 110); g.rotate(Math.PI); text(g, 'THIS SIDE UP', 0, 0, '#3A2A1A', 6, 'center', null); g.restore();
+  g.save(); g.translate(mid, top - 110); g.rotate(Math.PI); signAt(g, 'THIS SIDE UP', 0, 0, 6, stencil(6, '#3A2A1A')); g.restore();
   pole(g, mid + 60, top - 220, 4, 70, '#3A3A3A'); slab(g, mid + 52, top - 230, 22, 14, '#2A2A2A'); box(g, mid + 56, top - 226, 14, 6, '#E8E0C0');
   // A ladder up its back, tier by tier; a cable run; AC units on a tier; a breaker box; the smokers' bench by the door
   for (let i = 0; i < TIERS; i++) { const t = tier(i), lx = t.a + 120; box(g, lx, t.y, 3, TIER_H, '#5A5A5A'); box(g, lx + 18, t.y, 3, TIER_H, '#5A5A5A'); for (let y = t.y + 6; y < t.y + TIER_H; y += 12) box(g, lx, y, 21, 2, '#7A7A7A'); }
@@ -971,13 +975,13 @@ const paintTemple = (g: Ctx, a: number, b: number) => {
     g.fillStyle = '#3A3E42'; g.beginPath(); g.arc(x + 66, t.y - 23, 9, 0, Math.PI * 2); g.fill();
   }
   const t0 = tier(0);
-  slab(g, TEMPLE_DOOR_X + 80, GY - 70, 40, 52, '#7A8288'); box(g, TEMPLE_DOOR_X + 84, GY - 64, 32, 6, '#E8C040'); text(g, 'DANGER', TEMPLE_DOOR_X + 100, GY - 46, '#E8E0D0', 5, 'center', INK);
+  slab(g, TEMPLE_DOOR_X + 80, GY - 70, 40, 52, '#7A8288'); box(g, TEMPLE_DOOR_X + 84, GY - 64, 32, 6, '#E8C040'); signAt(g, 'DANGER', TEMPLE_DOOR_X + 100, GY - 46, 5, { ...stencil(5, '#E8E0D0'), shadow: INK });
   const bx = TEMPLE_DOOR_X - 150;
   slab(g, bx, GY - 22, 70, 6, '#6A4A2A'); box(g, bx + 6, GY - 16, 4, 16, '#3A3A3A'); box(g, bx + 60, GY - 16, 4, 16, '#3A3A3A');
   slab(g, bx + 80, GY - 24, 18, 24, '#8A8A8A'); for (let k = 0; k < 5; k++) box(g, bx + 82 + k * 3, GY - 28 - (k % 2) * 2, 2, 5, '#F4F0E8');
   pole(g, bx - 20, GY - 90, 4, 90, '#5A5A5A');
   sign(g, bx - 46, GY - 104, 56, 22, '#F8FAFC', '', INK, 5, '#3A3F48');
-  text(g, 'SMOKING', bx - 18, GY - 95, '#1A0B06', 5, 'center', null); text(g, 'AREA', bx - 18, GY - 87, '#1A0B06', 5, 'center', null);
+  signAt(g, 'SMOKING', bx - 18, GY - 95, 5, enamel(5, '#1A0B06')); signAt(g, 'AREA', bx - 18, GY - 87, 5, enamel(5, '#1A0B06'));
   void t0;
 };
 

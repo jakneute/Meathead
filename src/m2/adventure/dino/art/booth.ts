@@ -10,6 +10,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../../m1/constants';
 import { skyTint, farTint } from '../../../timeOfDay';
 import { drawPerson } from '../../temple/people';
 import { type Ctx, INK, box, text, sign, slab, pole, ball, rampOf, checker, steppedGlow, stamp, bandedGradient } from './kit';
+import { signAt, signText, enamel, print, led } from '../../letters';
 
 export const PIP = { w: 340, h: 220 };
 const CUT_SCALE = CANVAS_WIDTH / PIP.w;
@@ -147,22 +148,22 @@ const paintRoom = (g: Ctx) => {
   box(g, 10, 114, 104, 6, '#A8A29E');
   // The board: DAYS WITHOUT INCIDENT, number cards hung on hooks
   sign(g, 128, 8, 116, 30, '#F8FAFC', '', INK, 6, '#1E3A8A');
-  text(g, 'DAYS WITHOUT', 186, 18, '#1E3A8A', 5, 'center', null);
-  text(g, 'AN INCIDENT', 186, 25, '#1E3A8A', 5, 'center', null);
-  for (let i = 0; i < 4; i++) { box(g, 162 + i * 13, 27, 11, 9, INK); box(g, 163 + i * 13, 28, 9, 7, '#FFFFFF'); text(g, '4380'[i], 167 + i * 13, 35, '#B91C1C', 5, 'center', null); }
+  signAt(g, 'DAYS WITHOUT', 186, 18, 5, enamel(5, '#1E3A8A'));
+  signAt(g, 'AN INCIDENT', 186, 25, 5, enamel(5, '#1E3A8A'));
+  for (let i = 0; i < 4; i++) { box(g, 162 + i * 13, 27, 11, 9, INK); box(g, 163 + i * 13, 28, 9, 7, '#FFFFFF'); signText(g, '4380'[i], 167 + i * 13, 35, print(5, '#B91C1C')); }
   // (a calendar, still on 1997)
-  slab(g, 258, 6, 26, 30, '#F8FAFC'); box(g, 258, 6, 26, 8, '#B91C1C'); text(g, '1997', 271, 13, '#FFFFFF', 4, 'center', null);
+  slab(g, 258, 6, 26, 30, '#F8FAFC'); box(g, 258, 6, 26, 8, '#B91C1C'); signText(g, '1997', 271, 14, print(4, '#FFFFFF'));
   for (let r = 0; r < 3; r++) for (let q = 0; q < 4; q++) box(g, 261 + q * 6, 17 + r * 6, 4, 4, '#D4D4D8');
   // The console: the DINOSAUR MODE panel, its labels, its buttons and screens (the switch and lamps are live)
   slab(g, 172, 56, 146, 104, '#52525B');
   slab(g, 180, 62, 130, 92, '#71717A');
-  sign(g, 196, 66, 98, 12, '#18181B', 'DINOSAUR MODE', '#FDE047', 6);
-  text(g, 'FRIENDLY', 212, 148, '#4ADE80', 5, 'center', INK);
-  text(g, 'HOSTILE', 280, 148, '#F87171', 5, 'center', INK);
+  sign(g, 196, 66, 98, 12, '#18181B', 'DINOSAUR MODE', '#FDE047', 6, INK, led(6, '#FDE047', '#18181B'));
+  signAt(g, 'FRIENDLY', 212, 148, 5, enamel(5, '#4ADE80', INK));
+  signAt(g, 'HOSTILE', 280, 148, 5, enamel(5, '#F87171', INK));
   for (let i = 0; i < 5; i++) { box(g, 186 + i * 5, 86, 3, 3, ['#4ADE80', '#FDE047', '#4ADE80', '#60A5FA', '#4ADE80'][i]); }
   box(g, 270, 84, 34, 22, INK); box(g, 271, 85, 32, 20, '#0F2A1A'); for (let r = 0; r < 4; r++) box(g, 273, 88 + r * 4, 10 + ((r * 7) % 16), 1, '#4ADE80');
   // (a sticky note on it, in pen: DON'T TOUCH)
-  box(g, 186, 94, 26, 18, '#FDE68A'); text(g, "DON'T", 199, 102, '#1E3A8A', 4, 'center', null); text(g, 'TOUCH', 199, 109, '#1E3A8A', 4, 'center', null);
+  box(g, 183, 94, 32, 18, '#FDE68A'); signText(g, "DON'T", 199, 103, print(4, '#1E3A8A')); signText(g, 'TOUCH', 199, 111, print(4, '#1E3A8A'));
   // The desk under it, a coffee maker, a mug, a mini fridge (a magnet: a T. rex)
   slab(g, 160, 156, 170, 12, '#8A6A44');
   slab(g, 300, 120, 20, 36, '#27272A'); box(g, 304, 140, 12, 12, '#7F1D1D'); box(g, 304, 140, 12, 3, '#B45309');
