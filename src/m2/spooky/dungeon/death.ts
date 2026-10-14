@@ -1,6 +1,7 @@
-// Skewered (the dungeon's spiked ceiling): it comes down on him, the spikes go in through the top of him (crumpled
-// under it if it's come all the way down), a spurt; then the ceiling grinds back up, and him with it, hung off the
-// spikes by his head, his legs kicking and then not, a dribble off his boots; one boot drops off. Undignified.
+// Skewered (the dungeon's spiked ceiling): it comes down on him, the spikes go in through the top of him, crushing him
+// down under it, a spurt; then the ceiling grinds back up, and his head goes with it, stuck on the spikes, torn off at
+// the neck: the rest of him left crumpled on the floor, the stump pumping, a leg kicking and then not; the head up
+// there, dribbling. Undignified.
 
 import type { MeatheadDeath } from '../../../m1/game/player/deathAnim';
 import { registerDeathAnim, registerDeathKind } from '../../../m1/game/player/deathAnim';
@@ -29,38 +30,53 @@ registerDeathAnim(SKEWERED, {
     if (t === 1) d.floor = skewer.tip;
     if (t < 14) for (let k = 0; k < 3; k++) P.push({ pos: { x: d.x + (Math.random() - 0.5) * 30, y: (d.floor ?? d.y) + 10 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 3 }, life: 40, color: GORE[(t + k) % GORE.length], size: 3 + Math.random() * 4, grav: 0.35 });
     if (t === SKEWER_LIFT) playSound('rumble', 0.8, -6);
-    // (hung off the spikes going up: a dribble off him)
-    if (t > SKEWER_LIFT && t % 3 === 0) {
-      const feet = hungFeet(d, t);
-      P.push({ pos: { x: d.x + (Math.random() - 0.5) * 10, y: feet }, vel: { x: 0, y: 2 }, life: 50, color: GORE[t % GORE.length], size: 2 + Math.random() * 2, grav: 0.3 });
+    // (the head torn off going up: a pop, then the stump on the floor pumping, and the head up there dribbling)
+    if (t === SKEWER_LIFT + 4) { playSound('gorespray', 1); playSound('crunch', 0.8, 4); }
+    if (t > SKEWER_LIFT + 4) {
+      const nk = neckY(d), pump = Math.max(0, 1 - (t - SKEWER_LIFT) / 90);
+      if (t % 2 === 0 && Math.random() < 0.3 + pump) P.push({ pos: { x: d.x + (Math.random() - 0.5) * 6, y: nk }, vel: { x: (Math.random() - 0.5) * 2.5, y: -2 - Math.random() * 5 * pump }, life: 40, color: GORE[t % GORE.length], size: 2 + Math.random() * 3, grav: 0.35 });
+      if (t % 4 === 0) P.push({ pos: { x: d.x + (Math.random() - 0.5) * 8, y: nk - skewerRise(t) + 2 }, vel: { x: 0, y: 1.5 }, life: 60, color: GORE[t % GORE.length], size: 2 + Math.random() * 2, grav: 0.3 });
     }
-    if (t === 104) { playSound('thud', 0.6, 4); P.push({ pos: { x: d.x - d.facing * 6, y: hungFeet(d, t) }, vel: { x: -d.facing * 0.5, y: 0 }, life: 200, color: '#3B2416', size: 9, grav: 0.4, chunk: true } as never); }
   },
 });
-/** (hung) His feet, t frames in: under his head on the spikes, going up with them. */
-const hungFeet = (d: MeatheadDeath, t: number) => (d.floor ?? d.y - 64) - skewerRise(t) + 64 * stretch(d, t);
-/** How squashed he is (1 his full height): crumpled under the spikes, then let down to hang at full length. */
+/** How squashed he is (1 his full height): crumpled under the spikes (and he stays that way, on the floor). */
 const crush = (d: MeatheadDeath) => Math.max(0.35, Math.min(1, (d.y - (d.floor ?? d.y - 64)) / 64));
-const stretch = (d: MeatheadDeath, t: number) => { const c = crush(d); return t < SKEWER_LIFT ? c : c + (1 - c) * Math.min(1, (t - SKEWER_LIFT) / 14); };
+/** Where his neck is, crumpled: the line his head's torn off at (the top this much of his height). */
+const NECK = 0.27;
+const neckY = (d: MeatheadDeath) => d.y - 64 * crush(d) * (1 - NECK);
 
 registerDeathDraw(SKEWERED, (ctx, state, d, weapon, t) => {
-  const tip = d.floor ?? d.y - 64, rise = skewerRise(t), s = stretch(d, t);
-  const head = tip - rise, feet = head + 64 * s;
-  // (the pool where he was)
-  drawBloodPool(ctx, Math.round(d.x), Math.round(d.y) + 1, Math.round(10 + Math.min(30, t * 0.4)), 913);
+  const c = crush(d), rise = skewerRise(t), torn = t > SKEWER_LIFT + 4, nk = neckY(d);
+  // (the pool where he was, spreading as the stump pumps)
+  drawBloodPool(ctx, Math.round(d.x), Math.round(d.y) + 1, Math.round(10 + Math.min(44, t * 0.5)), 913);
+  // Him, crumpled under it (squashed down onto his feet); his head part of him till it goes, then going up with the
+  // spikes, the rest left there
+  const kick = torn && t < SKEWER_LIFT + 60 && ((t >> 2) & 1);
+  const draw = () => body(ctx, state, d, weapon, { isGrounded: true, vel: { x: kick ? 3 : 0, y: 0 }, deathFace: t < 10 ? 'scream' : t < 50 ? 'agony' : 'dead' });
+  const squash = () => { ctx.translate(d.x, d.y); ctx.scale(1 + (1 - c) * 0.5, c); ctx.translate(-d.x, -d.y); };
+  // (the body: below the neck once it's torn, all of it before)
   ctx.save();
-  // (hanging: a sway, legs kicking a moment, then still)
-  const sway = t > SKEWER_LIFT ? Math.sin((t - SKEWER_LIFT) * 0.12) * 0.12 * Math.max(0.2, 1 - (t - SKEWER_LIFT) / 120) : 0;
-  ctx.translate(d.x, head); ctx.rotate(sway); ctx.translate(-d.x, -head);
-  ctx.translate(0, feet - d.y);
-  ctx.translate(d.x, d.y); ctx.scale(1 + (1 - s) * 0.5, s); ctx.translate(-d.x, -d.y);
-  const kick = t > SKEWER_LIFT && t < SKEWER_LIFT + 50 && ((t >> 2) & 1);
-  body(ctx, state, d, weapon, { isGrounded: !(t > SKEWER_LIFT), vel: { x: kick ? 3 : 0, y: t > SKEWER_LIFT ? 2 : 0 }, deathFace: t < 10 ? 'scream' : t < 70 ? 'agony' : 'dead' });
+  if (torn) { ctx.beginPath(); ctx.rect(d.x - 80, nk, 160, 200); ctx.clip(); }
+  squash(); draw();
   ctx.restore();
-  // The spikes through the top of him (three of them, in to the shoulders), red where they went in
+  // (the stump: a ragged red ring at the neck)
+  if (torn) { ctx.fillStyle = BLOOD[1]; ctx.beginPath(); ctx.ellipse(d.x, nk + 1, 9, 3, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = BLOOD[3]; ctx.fillRect(d.x - 4, nk, 8, 1); }
+  // (the head, up on the spikes: torn off at the neck, a ragged stringy edge under it, a sway as it goes)
+  if (torn) {
+    const sway = Math.sin((t - SKEWER_LIFT) * 0.12) * 0.1 * Math.max(0.2, 1 - (t - SKEWER_LIFT) / 120);
+    ctx.save();
+    ctx.translate(0, -rise);
+    ctx.translate(d.x, nk); ctx.rotate(sway); ctx.translate(-d.x, -nk);
+    ctx.beginPath(); ctx.rect(d.x - 80, nk - 200, 160, 200); ctx.clip();
+    squash(); draw();
+    ctx.restore();
+    ctx.fillStyle = BLOOD[2]; for (let k = -2; k <= 2; k++) ctx.fillRect(d.x + k * 4 - 1, nk - rise, 3, 3 + ((k + 7) * 5 + (t >> 3)) % 5);
+  }
+  // The spikes through the top of him (three of them, in to the jaw), red where they went in
+  const top = d.y - 64 * c - rise;
   for (const dx of [-12, 0, 12]) {
-    const x = d.x + dx + Math.sin(sway) * 20, len = dx === 0 ? 26 : 18;
-    spikeDown(ctx, x - 4, head - 30, 8, head + len);
-    ctx.fillStyle = BLOOD[2]; ctx.beginPath(); ctx.moveTo(x - 2, head + len - 12); ctx.lineTo(x + 2, head + len - 12); ctx.lineTo(x, head + len); ctx.closePath(); ctx.fill();
+    const x = d.x + dx, len = dx === 0 ? 20 : 13;
+    spikeDown(ctx, x - 4, top - 30, 8, top + len);
+    ctx.fillStyle = BLOOD[2]; ctx.beginPath(); ctx.moveTo(x - 2, top + len - 12); ctx.lineTo(x + 2, top + len - 12); ctx.lineTo(x, top + len); ctx.closePath(); ctx.fill();
   }
 });

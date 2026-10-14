@@ -142,7 +142,11 @@ const openDoor = (b: Block | null) => { if (b) b.y = -99999; };
 const shutDoor = (b: Block | null) => { if (b) b.y = GY - DOOR_H; };
 
 /** The ceiling's blocks: solid from the roof down to each section's spikes. */
-const setSlabs = (dg: Dungeon) => dg.slabs.forEach((b, i) => { const tip = dg.room === 'down' ? dg.tips[i] : dg.tip; b.y = CEIL_TOP - 60; b.h = Math.max(1, tip - 30 - b.y); });
+/** The ceiling's solid block stops this far over its spikes' tips (the spikes' length and then some: it's never down
+ *  in him before the spikes have done him, so he's never shoved out from under it); the spikes this far into him (his
+ *  top: ducked or not, there's no more room) and he's done. */
+const SLAB_GAP = 60, CRUSH_IN = 50;
+const setSlabs = (dg: Dungeon) => dg.slabs.forEach((b, i) => { const tip = dg.room === 'down' ? dg.tips[i] : dg.tip; b.y = CEIL_TOP - 60; b.h = Math.max(1, tip - SLAB_GAP - b.y); });
 const run = (ctx: FrameContext, dg: Dungeon) => {
   setSlabs(dg);
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
@@ -188,13 +192,15 @@ const run = (ctx: FrameContext, dg: Dungeon) => {
         dg.v3 = Math.max(0.5, room / (dash + SPARE));
       }
       if (dg.lever && dg.door < 1) { dg.door = Math.min(1, dg.door + 1 / 60); if (dg.door >= 1) openDoor(dg.exit); }
-      // The spikes on him (his section's): hurt, and shoved down under them; all the way down, skewered
-      const tip = tipAt(dg, cx);
+      // The spikes on him (the lowest of the sections he's under, straddling two of them): hurt, and shoved down under
+      // them; down far enough that the ceiling itself would be in him, skewered (never shoved out sideways by it)
+      const tip = Math.max(tipAt(dg, p.pos.x + 2), tipAt(dg, cx), tipAt(dg, p.pos.x + p.width - 2));
       skewer.tip = tip;
       if (inRoom(state) && p.health > 0) {
         const top0 = pBoxTop(state), feet = p.pos.y + p.height;
-        // (all the way down, or down on him where he's stood up on something: no room left for him)
-        if (tip >= GY - 30 || (p.isGrounded && feet < GY - 10 && tip > feet - 24)) hurtPlayer(ctx, 9999, 'spooky_ceiling');
+        // (all the way down; down on him where he's stood up on something; or the block over the spikes into him: no
+        // room left for him)
+        if (tip >= GY - 30 || (p.isGrounded && feet < GY - 10 && tip > feet - 24) || tip > p.pos.y + CRUSH_IN) hurtPlayer(ctx, 9999, 'spooky_ceiling');
         else if (top0 < tip) {
           // (the spikes in the top of his head: it hurts (duck under them!); up in the air, he's knocked down off them)
           if (p.invincibilityTimer <= 0) hurtPlayer(ctx, 12, 'spooky_ceiling', { x: 0, y: 3 });
@@ -410,7 +416,7 @@ export const dungeon: SpookySection = {
     const dg = dungeonOf(state);
     dg.entry = solid(state, RA - 12, -99999, 24, DOOR_H, { hidden: true, tag: 'dungeon-door' });
     dg.exit = solid(state, RB - 12, -99999, 24, DOOR_H, { hidden: true, tag: 'dungeon-door' });
-    dg.slabs = SECTS.map(q => solid(state, q.a, CEIL_TOP - 60, q.b - q.a, TIP0 - 30 - (CEIL_TOP - 60), { hidden: true, tag: 'dungeon-ceiling-slab' }));
+    dg.slabs = SECTS.map(q => solid(state, q.a, CEIL_TOP - 60, q.b - q.a, TIP0 - SLAB_GAP - (CEIL_TOP - 60), { hidden: true, tag: 'dungeon-ceiling-slab' }));
     for (const [kind, x, y] of CAST) spawnStaff(state, kind, x, y, 40 + Math.round(x) % 7);
   },
   update: (ctx, controls) => {
