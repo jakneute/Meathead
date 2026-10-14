@@ -11,6 +11,8 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { timeOfDay, farTint, skyAt, hourMix } from '../../timeOfDay';
 import { box, checker, mix, hash, rampOf, stamp, bandedGradient, hazeBands, pixelBlob, steppedGlow, PIX } from '../../intro/art/kit';
 import { at, atDepth, poly } from '../../spooky/town/paint';
+import { lettering, letterSize, type Letter } from './lettering';
+export type { Letter } from './lettering';
 
 export { box, checker, mix, hash, rampOf, stamp, bandedGradient, hazeBands, pixelBlob, steppedGlow, PIX, at, atDepth, poly, hourMix, timeOfDay, farTint, skyAt };
 export type Ctx = CanvasRenderingContext2D;
@@ -101,8 +103,10 @@ export const words = (c: Ctx, s: string, x: number, y: number, col: string, size
  * a bevel, screws; the words with a drop shadow. Its middle at (x, y); returns its width. `neon`: a row of bulbs round
  * it (lit after dark).
  */
-export const board = (g: Ctx, x: number, y: number, text: string, bg: string, ink: string, size = 8, pad = 8, neon = false) => {
-  const w = Math.round(textW(g, text, size) + pad * 2), h = Math.round(size + pad * 1.5);
+export const board = (g: Ctx, x: number, y: number, text: string, bg: string, ink: string, size = 8, pad = 8, neon = false, font?: Letter) => {
+  // (more than one line ('\n'): one board round the lot, the lines stacked. `font`: the park's own lettering)
+  const lines = text.split('\n');
+  const [w, h] = boardSize(g, text, size, pad, font), lh = font ? letterSize('A', font)[1] + 1 : size + 4;
   const x0 = Math.round(x - w / 2), y0 = Math.round(y - h / 2);
   const r = ramp6(bg);
   // (the chrome frame round it)
@@ -122,8 +126,23 @@ export const board = (g: Ctx, x: number, y: number, text: string, bg: string, in
     const on = lit();
     for (let bx = x0 + 2; bx < x0 + w - 1; bx += 8) for (const by of [y0 - 3, y0 + h + 1]) { box(g, bx, by, 2, 2, on ? '#FFF3B0' : '#C8A848'); if (on) box(g, bx, by, 1, 1, '#FFFFFF'); }
   }
-  words(g, text, x, y0 + h / 2 + size / 2, ink, size, r[1]);
+  if (font) lines.forEach((l, i) => lettering(g, l, x, y0 + h / 2 + (i - (lines.length - 1) / 2) * lh, font, ink, r[3]));
+  else lines.forEach((l, i) => words(g, l, x, y0 + h / 2 + size / 2 + (i - (lines.length - 1) / 2) * lh, ink, size, r[1]));
   return w;
+};
+
+/** A board's size ([w, h], its chrome frame not counted): what board() would draw for the same words. */
+export const boardSize = (g: Ctx, text: string, size = 8, pad = 8, font?: Letter): [number, number] => {
+  const lines = text.split('\n');
+  if (font) { const sz = lines.map(l => letterSize(l, font)); return [Math.max(...sz.map(z => z[0])) + pad * 2, sz[0][1] * lines.length + (lines.length - 1) + Math.round(pad * 0.75) * 2]; }
+  return [Math.round(Math.max(...lines.map(l => textW(g, l, size))) + pad * 2), Math.round(size + pad * 1.5 + (lines.length - 1) * (size + 4))];
+};
+/** Split words onto two lines near their middle (at a sentence's end if there's one near it). */
+export const twoLines = (s: string) => {
+  const mid = s.length / 2;
+  let best = -1, score = 1e9;
+  for (let i = 0; i < s.length; i++) if (s[i] === ' ') { const k = Math.abs(i - mid) - (/[.!?:,]/.test(s[i - 1]) ? 6 : 0); if (k < score) { score = k; best = i; } }
+  return best < 0 ? s : s.slice(0, best) + '\n' + s.slice(best + 1);
 };
 
 /** A chrome pole from `top` down to `foot` (`w` wide): round, stepped across, inked, a collar at the foot. */

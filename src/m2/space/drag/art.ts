@@ -37,14 +37,14 @@ export const drawDragBackdrop = (c: Ctx, state: GameState) => {
 };
 
 const SHOPS: Shop[] = [
-  { x: X(60), w: 320, h: 180, wall: '#EDE9FE', trim: '#8B5CF6', roof: 'boomerang', name: 'VOYAGE TO 2010: EXIT', sub: 'PLEASE EXIT THROUGH THE GIFT SHOP' },
-  { x: X(6080), w: 230, h: 150, wall: '#FCE7F3', trim: '#0EA5E9', roof: 'dome', name: 'ROBO-DENTIST', sub: 'NO HUMANS INVOLVED. NO REFUNDS.' },
-  { x: X(3620), w: 300, h: 170, wall: '#ECFEFF', trim: '#F97316', roof: 'fin', name: 'CAR OF TOMORROW SHOWROOM', sub: 'FLYING CARS: COMING SOON SINCE 1958' },
-  { x: X(4000), w: 280, h: 160, wall: '#FEF3C7', trim: '#DB2777', roof: 'saucer', name: 'PNEUMATIC MAIL', sub: 'YOUR LETTER, SHOT THROUGH A TUBE' },
-  { x: X(4700), w: 220, h: 260, wall: '#CCFBF1', trim: '#F472B6', roof: 'flat', name: 'MOTEL OF THE FUTURE', sub: 'HOURLY RATES', signDrop: 24 },
-  { x: X(5000), w: 200, h: 240, wall: '#E0E7FF', trim: '#22C55E', roof: 'flat', name: 'ATOMIC DRY CLEANERS', sub: 'WE GET THE GLOW OUT', signDrop: 24 },
-  { x: X(5300), w: 200, h: 260, wall: '#FFE4E6', trim: '#6366F1', roof: 'flat', name: 'MOON TAN', sub: 'TAN LIKE AN ASTRONAUT. BURN LIKE ONE.', signDrop: 24 },
-  { x: X(6820), w: 260, h: 160, wall: '#F1F5F9', trim: '#E11D48', roof: 'boomerang', name: 'NEEDLE GIFTS', sub: 'I WENT TO SPACE AND ALL I GOT WAS THIS SHIRT' },
+  { x: X(60), w: 320, h: 180, wall: '#EDE9FE', trim: '#8B5CF6', roof: 'boomerang', font: 'chrome', name: 'VOYAGE TO 2010: EXIT', sub: 'PLEASE EXIT THROUGH THE GIFT SHOP' },
+  { x: X(6080), w: 230, h: 150, wall: '#FCE7F3', trim: '#0EA5E9', roof: 'dome', font: 'neon', nameBg: '#1E0B2E', nameInk: '#7DF9FF', name: 'ROBO-DENTIST', sub: 'NO HUMANS INVOLVED. NO REFUNDS.' },
+  { x: X(3620), w: 300, h: 170, wall: '#ECFEFF', trim: '#F97316', roof: 'fin', font: 'chrome', name: 'CAR OF TOMORROW SHOWROOM', sub: 'FLYING CARS: COMING SOON SINCE 1958' },
+  { x: X(4000), w: 280, h: 160, wall: '#FEF3C7', trim: '#DB2777', roof: 'saucer', font: 'enamel', nameBg: '#1E3A8A', nameInk: '#FDE68A', name: 'PNEUMATIC MAIL', sub: 'YOUR LETTER, SHOT THROUGH A TUBE' },
+  { x: X(4700), w: 220, h: 260, wall: '#CCFBF1', trim: '#F472B6', roof: 'flat', font: 'neon', nameBg: '#1E0B2E', nameInk: '#FF6AD5', name: 'MOTEL OF THE FUTURE', sub: 'HOURLY RATES', signDrop: 24 },
+  { x: X(5000), w: 200, h: 240, wall: '#E0E7FF', trim: '#22C55E', roof: 'flat', font: 'enamel', nameBg: '#F8FAFC', nameInk: '#15803D', name: 'ATOMIC DRY CLEANERS', sub: 'WE GET THE GLOW OUT', signDrop: 24 },
+  { x: X(5300), w: 200, h: 260, wall: '#FFE4E6', trim: '#6366F1', roof: 'flat', font: 'marquee', nameBg: '#4C1D95', name: 'MOON TAN', sub: 'TAN LIKE AN ASTRONAUT. BURN LIKE ONE.', signDrop: 24 },
+  { x: X(6820), w: 260, h: 160, wall: '#F1F5F9', trim: '#E11D48', roof: 'boomerang', font: 'marquee', nameBg: '#9F1239', name: 'NEEDLE GIFTS', sub: 'I WENT TO SPACE AND ALL I GOT WAS THIS SHIRT' },
 ];
 
 const GROUND: Ground = {
@@ -60,10 +60,10 @@ const BLOCKS: Block[] = [
 ];
 
 const signs = (c: Ctx, state: GameState) => {
-  drawBigSign(c, state, 'd-trench', X(T1.a - 150), 120, 'FUTURELAND UNDERGROUND', 'OPEN TRENCH. CAST MEMBERS ONLY.');
-  drawBigSign(c, state, 'd-lagoon', X(1880), 150, 'THE LAGOON OF TOMORROW', 'DRAINED 1971. SUBMARINES ON THE BOTTOM.', undefined, undefined, true);
-  drawBigSign(c, state, 'd-mover', X(4300), 290, 'THE PEOPLE MOVER (EXPRESS RETURN)', 'WALK FASTER, CITIZEN!', undefined, undefined, true);
-  drawBigSign(c, state, 'd-plaza', X(5850), 150, 'SPACE NEEDLE 2', 'TO SPACE AND BEYOND! FIVE MILES UP!');
+  drawBigSign(c, state, 'd-trench', X(T1.a - 150), 120, 'FUTURELAND UNDERGROUND', 'OPEN TRENCH. CAST MEMBERS ONLY.', '#FACC15', '#18181B', false, 'enamel2');
+  drawBigSign(c, state, 'd-lagoon', X(1880), 150, 'THE LAGOON OF TOMORROW', 'DRAINED 1971. SUBMARINES ON THE BOTTOM.', '#0C1E3A', '#5EEAD4', true, 'neon2');
+  drawBigSign(c, state, 'd-mover', X(4300), 290, 'THE PEOPLE MOVER (EXPRESS RETURN)', 'WALK FASTER, CITIZEN!', undefined, undefined, true, 'chrome2');
+  drawBigSign(c, state, 'd-plaza', X(5850), 150, 'SPACE NEEDLE 2', 'TO SPACE AND BEYOND! FIVE MILES UP!', '#7F1D1D', undefined, false, 'marquee');
 };
 
 const ledges = (c: Ctx, state: GameState) => {
@@ -85,7 +85,7 @@ const ledges = (c: Ctx, state: GameState) => {
         for (let k = 6; k < w - 4; k += 12) box(g, k, 5, 4, 2, TEAL[3]);
         box(g, 0, -28, w, 4, INK); box(g, 0, -27, w, 2, CHROME[4]); for (let k = 0; k <= w; k += 24) { box(g, k - 1, -27, 3, 27, INK); box(g, k, -27, 1, 27, CHROME[4]); }
         // (its name on the fascia under the floor: up over the railing it was cut off, and whoever stood there covered it)
-        if (what === 'balcony') board(g, w / 2, 26, 'OBSERVATION BALCONY', '#0F172A', '#7DD3FC', 6, 5);
+        if (what === 'balcony') board(g, w / 2, 26, 'OBSERVATION BALCONY', '#0F172A', '#7DD3FC', 6, 4, false, 'small');
       }
     });
   }
@@ -120,8 +120,8 @@ const paintBase = (g: Ctx) => {
   for (let k = 0; k < 6; k++) box(g, -24 + k * 9, -128, 6, 4, k === 0 ? (on ? '#FFE070' : '#F59E0B') : '#3A3A48');
   box(g, 50, -98, 16, 26, INK); box(g, 51, -97, 14, 24, CHROME[3]); g.fillStyle = on ? '#FDE047' : '#F59E0B'; g.beginPath(); g.moveTo(58, -93); g.lineTo(54, -85); g.lineTo(62, -85); g.fill();
   ball(g, 58, -79, 2, '#EF4444');
-  board(g, 0, -172, 'LIFT TO SPACE', '#0F172A', '#FDE047', 10, 8, true);
-  board(g, 0, -134, 'ALL ABOARD! 5 MILES UP. NO REFUNDS IN ORBIT.', '#FFFFFF', '#BE123C', 6, 4);
+  board(g, 0, -174, 'ELEVATOR TO SPACE', '#0F172A', '#FDE047', 10, 8, true, 'chrome2');
+  board(g, 0, -134, 'ALL ABOARD! 5 MILES UP. NO REFUNDS IN ORBIT.', '#FFFFFF', '#BE123C', 6, 3, false, 'small');
   void checker; void mix;
 };
 const base = (c: Ctx, state: GameState) => {

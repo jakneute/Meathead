@@ -109,7 +109,7 @@ export const drag: SpaceSection = {
   drawBackdrop: (c, state) => drawDragBackdrop(c, state),
   drawBack: (c, state) => {
     const dr = mine(state);
-    drawDragBack(c, state, () => { if (dr) { drawTrack(c, state, dr.gear.monos[0], TRACK_LEGS.map(X)); drawGearBack(c, state, dr.gear); } drawLanding(c, state); });
+    drawDragBack(c, state, () => { if (dr) { drawTrack(c, state, dr.gear.monos[0], TRACK_LEGS.map(X), [[X(T1.a), X(T1.b)], [X(T2.a), X(T2.b)]]); drawGearBack(c, state, dr.gear); } drawLanding(c, state); });
     drawDragSpeakers(c, state, !!outOf(state).pa);
   },
   drawFront: (c, state) => {

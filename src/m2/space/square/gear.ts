@@ -23,7 +23,9 @@ import { pushEnemy } from '../../../m1/game/combat/knockback';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { setHazardZones, hazardVictims, hazardHit, hazardKill, boxHits, type Zone } from '../../hazardHit';
 import { box, label } from '../section';
-import { INK, at, poly, checker, mix, pixelBlob, steppedGlow, viewOf, CHROME, RUBBER, COPPER, CONCRETE, PINK, LIP } from './paint';
+import { GY } from '../geometry';
+import { lettering } from './lettering';
+import { INK, at, poly, checker, mix, pixelBlob, steppedGlow, viewOf, lit, board, CHROME, RUBBER, COPPER, CONCRETE, PINK, LIP } from './paint';
 
 type Ctx = CanvasRenderingContext2D;
 const AWAY = 1e6;
@@ -361,107 +363,221 @@ export const drawGearFront = (c: Ctx, state: GameState, g: Gear) => {
   }
 };
 
+// The monorail's art, around the same rideable surfaces (the roof at m.y - MONO_H, the beam's top at m.y): the beam
+// deep under its top, the trains' skirts straddling it, the stations bigger than the trains.
+const BEAM = 30, BEAM_D = 0.92, SKIRT = 14, ST_H = 56, PYL_D = 0.95;
+const darken = (col: string, k: number) => mix(col, '#000000', Math.max(0, Math.min(1, k)));
+
 const drawTrain = (c: Ctx, m: Mono) => {
-  const top = m.y - MONO_H, x = m.x, L = m.len, H = MONO_H - 10;
-  c.save(); c.beginPath(); c.rect(m.a, top - 20, m.b - m.a, MONO_H + 40); c.clip();
-  // The body: a long white capsule, banded top to bottom (lit roof, shaded belly), a pink stripe, a bubble nose
-  c.fillStyle = INK; c.beginPath(); c.roundRect(x - 2, top - 2, L + 4, H + 4, [10, 30, 6, 6]); c.fill();
-  const bands = ['#FFFFFF', '#F4F6FA', '#E4EAF4', '#C8D0DE', '#A0AABE'];
-  c.save(); c.beginPath(); c.roundRect(x, top, L, H, [8, 28, 4, 4]); c.clip();
-  for (let i = 0; i < 5; i++) box(c, x, top + (i * H) / 5, L, H / 5 + 1, bands[i]);
-  checker(c, x, top + H * 0.4 - 1, L, 2, bands[2], 0, 2); checker(c, x, top + H * 0.8 - 1, L, 2, bands[4], 0, 2);
-  box(c, x, top + H - 18, L, 7, PINK[3]); box(c, x, top + H - 18, L, 2, PINK[5]); box(c, x, top + H - 13, L, 2, PINK[1]);
-  // (the windows, riders in them: heads, a hand up)
-  for (let wx = x + 18; wx < x + L - 56; wx += 34) {
-    box(c, wx - 1, top + 11, 26, 18, INK); box(c, wx, top + 12, 24, 16, '#0EA5E9'); box(c, wx, top + 12, 24, 5, '#7DD3FC'); box(c, wx + 2, top + 13, 5, 3, '#E0F2FE');
-    const k = Math.abs(Math.floor((wx - x) / 34)) % 4;
-    const skin = ['#B07850', '#6E4426', '#E4C0A8', '#C8946A'][k];
-    c.fillStyle = skin; c.beginPath(); c.arc(wx + 15, top + 22, 4, 0, Math.PI * 2); c.fill(); box(c, wx + 11, top + 25, 8, 3, ['#E8659E', '#22BCAC', '#F0C840', '#9470C4'][k]);
-    if (k === 1) box(c, wx + 19, top + 14, 2, 6, skin);
+  const top = m.y - MONO_H, bot = m.y + SKIRT, x = m.x, L = m.len, H = bot - top;
+  c.save(); c.beginPath(); c.rect(m.a, top - 24, m.b - m.a, H + 60); c.clip();
+  // The body: a long white capsule, banded top to bottom (lit roof, shaded belly), dithered between bands
+  c.fillStyle = INK; c.beginPath(); c.roundRect(x - 2, top - 2, L + 4, H + 4, [12, 38, 8, 8]); c.fill();
+  const bands = ['#FFFFFF', '#F4F6FA', '#E4EAF4', '#CDD4E2', '#AEB8CC', '#8792AA'];
+  c.save(); c.beginPath(); c.roundRect(x, top, L, H, [10, 36, 6, 6]); c.clip();
+  const bh = [0, 10, 26, 40, 54, 64, H];
+  for (let i = 0; i < 6; i++) box(c, x, top + bh[i], L, bh[i + 1] - bh[i], bands[i]);
+  for (let i = 1; i < 6; i++) checker(c, x, top + bh[i] - 2, L, 2, bands[i], 0, 2);
+  // (the stripe: pink, lit and shaded, EXPRESS along it; a teal pinstripe under)
+  box(c, x, top + 38, L, 11, PINK[3]); box(c, x, top + 38, L, 2, PINK[5]); box(c, x, top + 47, L, 2, PINK[1]);
+  box(c, x, top + 51, L, 2, '#14B8A6'); box(c, x, top + 51, L, 1, '#5EEAD4');
+  // (the windows, riders in them: heads, a hand up; a door every third bay)
+  for (let wx = x + 20, n = 0; wx < x + L - 66; wx += 38, n++) {
+    if (n % 3 === 2) {
+      box(c, wx + 2, top + 8, 1, H - 22, bands[4]); box(c, wx + 26, top + 8, 1, H - 22, bands[4]); box(c, wx + 3, top + 8, 1, H - 22, '#FFFFFF');
+      box(c, wx + 6, top + 12, 18, 20, INK); box(c, wx + 7, top + 13, 16, 18, '#0369A1'); box(c, wx + 7, top + 13, 16, 5, '#38BDF8');
+      continue;
+    }
+    box(c, wx - 1, top + 10, 30, 22, INK); box(c, wx, top + 11, 28, 20, '#0369A1'); box(c, wx, top + 11, 28, 7, '#0EA5E9'); box(c, wx, top + 11, 28, 2, '#7DD3FC'); box(c, wx + 2, top + 12, 6, 3, '#E0F2FE');
+    const k = Math.abs(Math.floor((wx - x) / 38)) % 4;
+    const skin = ['#B07850', '#6E4426', '#E4C0A8', '#C8946A'][k], shirt = ['#E8659E', '#22BCAC', '#F0C840', '#9470C4'][k];
+    c.fillStyle = mix(skin, INK, 0.25); c.beginPath(); c.arc(wx + 17, top + 22, 5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = skin; c.beginPath(); c.arc(wx + 16, top + 21, 4, 0, Math.PI * 2); c.fill();
+    box(c, wx + 11, top + 26, 12, 5, shirt); box(c, wx + 11, top + 26, 12, 1, mix(shirt, '#FFFFFF', 0.4));
+    if (k === 1) box(c, wx + 22, top + 13, 3, 8, skin);
+    box(c, wx, top + 29, 28, 2, 'rgba(0,0,0,0.25)');
   }
+  // (the skirt down over the beam: brushed chrome, the wheels' housings, bolts)
+  box(c, x, m.y - 4, L, SKIRT + 4, CHROME[3]); box(c, x, m.y - 4, L, 2, CHROME[5]); box(c, x, bot - 4, L, 4, CHROME[1]); checker(c, x, bot - 6, L, 2, CHROME[1], 0, 2);
+  for (let k = x + 22; k < x + L - 30; k += 46) { box(c, k - 1, m.y, 22, 10, INK); box(c, k, m.y + 1, 20, 8, '#1E2230'); box(c, k + 2, m.y + 4, 16, 3, CHROME[1]); box(c, k + 24, m.y + 2, 2, 2, CHROME[6]); }
   c.restore();
-  // (the bubble nose: glass, a glint; the headlight)
-  c.fillStyle = INK; c.beginPath(); c.ellipse(x + L - 26, top + 20, 18, 13, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#0EA5E9'; c.beginPath(); c.ellipse(x + L - 26, top + 20, 16, 11, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#7DD3FC'; c.beginPath(); c.ellipse(x + L - 30, top + 16, 10, 5, 0, 0, Math.PI * 2); c.fill();
-  box(c, x + L - 34, top + 13, 4, 2, '#FFFFFF');
-  ballAt(c, x + L - 6, top + MONO_H - 24, 4, '#FDE68A');
-  steppedGlow(c, x + L + 4, top + MONO_H - 24, 26, '#FDE68A', 0.3, 0.03, 3);
-  // (the roof: its lip lit (stand on it), a fin, the bogie skirt over the beam)
-  box(c, x + 8, top, L - 40, 2, LIP[3]);
-  poly(c, [[x + 6, top + 2], [x + 20, top - 12], [x + 34, top + 2]], INK); poly(c, [[x + 9, top + 1], [x + 20, top - 9], [x + 31, top + 1]], PINK[3]);
-  box(c, x + 10, m.y - 12, L - 30, 10, INK); box(c, x + 11, m.y - 11, L - 32, 8, CHROME[2]); box(c, x + 11, m.y - 11, L - 32, 2, CHROME[4]);
-  for (let k = x + 20; k < x + L - 30; k += 30) box(c, k, m.y - 8, 6, 4, CHROME[1]);
-  c.font = '7px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = PINK[1]; c.fillText('EXPRESS', x + L / 2 - 10, top + MONO_H - 32); c.textAlign = 'left';
+  lettering(c, 'EXPRESS', x + L / 2 - 8, top + 43, 'small', '#FFFFFF', PINK[3]);
+  // (the bubble nose: glass in steps, the driver, a glint; the headlight; the tail light)
+  c.fillStyle = INK; c.beginPath(); c.ellipse(x + L - 30, top + 22, 23, 16, 0, 0, Math.PI * 2); c.fill();
+  for (const [r, col, d] of [[1, '#075985', 0], [0.86, '#0369A1', -1], [0.66, '#0EA5E9', -3], [0.4, '#7DD3FC', -6]] as const) { c.fillStyle = col; c.beginPath(); c.ellipse(x + L - 30 + d, top + 22 + d, 21 * r, 14 * r, 0, 0, Math.PI * 2); c.fill(); }
+  c.fillStyle = '#C8946A'; c.beginPath(); c.arc(x + L - 34, top + 26, 4, 0, Math.PI * 2); c.fill(); box(c, x + L - 38, top + 21, 8, 2, '#1E293B');
+  box(c, x + L - 40, top + 13, 5, 2, '#FFFFFF'); box(c, x + L - 42, top + 16, 2, 2, '#FFFFFF');
+  ballAt(c, x + L - 8, top + 44, 5, '#FDE68A');
+  steppedGlow(c, x + L + 4, top + 44, 30, '#FDE68A', 0.3, 0.03, 3);
+  ballAt(c, x + 5, top + 44, 3, '#EF4444');
+  // (the roof: its lip lit (stand on it), vents flush along it, the fin at the back)
+  box(c, x + 8, top, L - 44, 2, LIP[3]); box(c, x + 8, top + 2, L - 44, 1, LIP[2]);
+  for (let k = x + 60; k < x + L - 70; k += 60) { box(c, k, top + 4, 14, 3, bands[3]); box(c, k, top + 4, 14, 1, bands[4]); }
+  poly(c, [[x + 6, top + 3], [x + 24, top - 16], [x + 30, top - 16], [x + 46, top + 3]], INK);
+  poly(c, [[x + 9, top + 2], [x + 25, top - 13], [x + 29, top - 13], [x + 43, top + 2]], PINK[3]);
+  poly(c, [[x + 9, top + 2], [x + 25, top - 13], [x + 27, top - 13], [x + 15, top + 2]], PINK[5]);
+  poly(c, [[x + 35, top + 2], [x + 29, top - 13], [x + 29, top - 9], [x + 43, top + 2]], PINK[1]);
   c.restore();
 };
 
-/** A box's side going back (the sheds'): in steps darker back, inked at its far edge. */
+/** A box's side going back (the stations'): in steps darker back, inked at its far edge. */
 const sideBackG = (c: Ctx, eye: { x: number; y: number }, e: number, top: number, bottom: number, d: number, R: string[]) => {
   for (let i = 0; i < 3; i++) { const a = 1 - ((1 - d) * i) / 3, b = 1 - ((1 - d) * (i + 1)) / 3; poly(c, [at(eye, e, top, a), at(eye, e, top, b), at(eye, e, bottom, b), at(eye, e, bottom, a)], R[2 - i]); }
   const [x1, t1] = at(eye, e, top, d), [, b1] = at(eye, e, bottom, d);
   c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(e, top); c.lineTo(x1, t1); c.lineTo(x1, b1); c.stroke();
 };
 
-const drawSheds = (c: Ctx, state: GameState, m: Mono, eye: { x: number; y: number }) => {
-  const top = m.y - MONO_H - 34;
-  for (const [x0, x1, first] of [[m.a - 180, m.a, true], [m.b, m.b + 180, false]] as const) {
-    if (!inView(state, x0 - 40, x1 + 40)) continue;
-    // The shed: a googie box (its side going back), a boomerang roof, a porthole, the dark mouth the trains run in and
-    // out of, its name
-    const W2 = ['#5A6680', '#8A96B0', '#C4CCDC', '#E8EEF6', '#FFFFFF'];
-    if (eye.x > x1 + 1) sideBackG(c, eye, x1, top, m.y + 6, 0.92, W2);
-    else if (eye.x < x0 - 1) sideBackG(c, eye, x0, top, m.y + 6, 0.92, W2);
-    box(c, x0, top, x1 - x0, m.y - top + 6, INK);
-    box(c, x0 + 2, top + 2, x1 - x0 - 4, m.y - top + 2, W2[3]);
-    box(c, x0 + 2, top + 2, 4, m.y - top + 2, W2[4]); box(c, x1 - 8, top + 2, 6, m.y - top + 2, W2[2]); checker(c, x1 - 12, top + 2, 4, m.y - top + 2, W2[2], 0, 2);
-    box(c, x0 + 2, m.y - 10, x1 - x0 - 4, 12, W2[1]); box(c, x0 + 2, m.y - 10, x1 - x0 - 4, 2, W2[2]);
-    // (the mouth: dark, at the track's end of it)
-    const mx = first ? x1 - 60 : x0 + 2;
-    box(c, mx, m.y - MONO_H - 4, 58, MONO_H + 4, '#0A0A14'); box(c, mx, m.y - MONO_H - 4, 58, 3, INK);
-    box(c, mx + (first ? 0 : 54), m.y - MONO_H - 4, 4, MONO_H + 4, W2[1]);
-    // (a porthole)
-    const ph = first ? x0 + 40 : x1 - 40;
-    c.fillStyle = INK; c.beginPath(); c.arc(ph, top + 52, 13, 0, Math.PI * 2); c.fill(); c.fillStyle = CHROME[4]; c.beginPath(); c.arc(ph, top + 52, 12, 0, Math.PI * 2); c.fill(); c.fillStyle = '#0EA5E9'; c.beginPath(); c.arc(ph, top + 52, 9, 0, Math.PI * 2); c.fill(); box(c, ph - 5, top + 46, 4, 3, '#E0F2FE');
-    // (the roof: a boomerang, pink, lit along its top)
-    const mid = (x0 + x1) / 2;
-    poly(c, [[x0 - 22, top + 8], [mid, top - 24], [x1 + 22, top + 8], [mid, top - 8]], INK);
-    poly(c, [[x0 - 19, top + 6], [mid, top - 21], [x1 + 19, top + 6], [mid, top - 9]], PINK[3]);
-    poly(c, [[x0 - 19, top + 6], [mid, top - 9], [x1 + 19, top + 6], [mid, top - 5]], PINK[1]);
-    poly(c, [[x0 - 19, top + 6], [mid, top - 21], [mid, top - 18], [x0 - 15, top + 5]], PINK[5]);
-    c.font = '8px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = W2[4]; c.fillText('MONORAIL', mid + 1, top + 27); c.fillStyle = '#0F172A'; c.fillText('MONORAIL', mid, top + 26); c.textAlign = 'left';
+/**
+ * A concrete pylon (the track's, the stations'): a column, square in plan, its side going back toward the eye; a
+ * flared capital up under the beam, chrome bearings on it; down at `foot` a footing on the walk and its shadow, or (in a
+ * hole) on down into the dark to the hole's floor, darker the deeper.
+ */
+const pylon = (c: Ctx, eye: { x: number; y: number }, x: number, yTop: number, foot: number, inHole: boolean, hw = 13) => {
+  const capH = 20, cw = hw + 17, C = CONCRETE, s = eye.x > x ? 1 : -1;
+  const bot = inHole ? foot + 340 : foot;
+  const dk = (col: string, y: number) => (inHole ? darken(col, (y - foot - 20) / 300) : col);
+  // (its side going back, the capital's flared side over it)
+  if (Math.abs(eye.x - x) > hw + 1) {
+    const e = x + s * hw;
+    for (let y = yTop + capH; y < bot; y += 40) {
+      const y2 = Math.min(bot, y + 40);
+      for (let i = 0; i < 2; i++) { const a = 1 - ((1 - PYL_D) * i) / 2, b = 1 - ((1 - PYL_D) * (i + 1)) / 2; poly(c, [at(eye, e, y, a), at(eye, e, y, b), at(eye, e, y2 + 1, b), at(eye, e, y2 + 1, a)], dk(C[2 - i], y)); }
+    }
+    poly(c, [[x + s * cw, yTop], [e, yTop + capH], at(eye, e, yTop + capH, PYL_D), at(eye, x + s * cw, yTop, PYL_D)], C[1]);
+    const [fx, fy] = at(eye, e, yTop + capH, PYL_D), [, by] = at(eye, e, bot, PYL_D);
+    c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(fx, fy); c.lineTo(fx, by); c.stroke();
   }
-  // (the signal at the first shed: green, then red as the next one comes; how long to go)
-  if (inView(state, m.a - 180, m.a + 40)) {
+  // (the column's face: lit down its left, shaded down its right, the form-tie rows, a rust streak under the capital)
+  for (let y = yTop + capH; y < bot; y += 40) {
+    const h = Math.min(40, bot - y);
+    box(c, x - hw - 1, y, hw * 2 + 2, h, INK);
+    box(c, x - hw, y, hw * 2, h, dk(C[3], y));
+    box(c, x - hw, y, 4, h, dk(C[4], y)); box(c, x - hw + 4, y, 1, h, dk(C[5], y));
+    box(c, x + hw - 6, y, 6, h, dk(C[2], y)); checker(c, x + hw - 9, y, 3, h, dk(C[2], y), 0, 2);
+    box(c, x - hw, y, hw * 2, 1, dk(C[2], y));
+    for (const bx of [x - hw + 6, x + hw - 9]) box(c, bx, y + 20, 2, 2, dk(C[1], y));
+  }
+  checker(c, x - hw + 6, yTop + capH, 4, 30, C[2], 0, 2); box(c, x + 2, yTop + capH, 2, 22, '#8A6A4A');
+  // (the capital: a flared block up under the beam, lit along its top; the bearings on it)
+  poly(c, [[x - cw - 1, yTop - 1], [x + cw + 1, yTop - 1], [x + hw + 1, yTop + capH], [x - hw - 1, yTop + capH]], INK);
+  poly(c, [[x - cw, yTop], [x + cw, yTop], [x + hw, yTop + capH - 1], [x - hw, yTop + capH - 1]], C[3]);
+  poly(c, [[x - cw, yTop], [x - cw + 5, yTop], [x - hw + 3, yTop + capH - 1], [x - hw, yTop + capH - 1]], C[4]);
+  poly(c, [[x + cw - 6, yTop], [x + cw, yTop], [x + hw, yTop + capH - 1], [x + hw - 5, yTop + capH - 1]], C[2]);
+  box(c, x - cw, yTop, cw * 2, 2, C[5]);
+  for (const bx of [x - cw + 6, x + cw - 16]) { box(c, bx - 1, yTop - 4, 12, 5, INK); box(c, bx, yTop - 3, 10, 3, CHROME[4]); box(c, bx, yTop - 3, 10, 1, CHROME[6]); }
+  if (inHole) return;
+  // (its footing on the walk, its side going back too; its shadow)
+  c.fillStyle = 'rgba(16, 10, 30, 0.3)'; c.beginPath(); c.ellipse(x + s * 6, foot + 1, hw + 26, 4, 0, 0, Math.PI * 2); c.fill();
+  const pw = hw + 8;
+  if (Math.abs(eye.x - x) > pw + 1) poly(c, [[x + s * pw, foot - 12], at(eye, x + s * pw, foot - 12, PYL_D), at(eye, x + s * pw, foot, PYL_D), [x + s * pw, foot]], C[1]);
+  box(c, x - pw - 1, foot - 13, pw * 2 + 2, 13, INK); box(c, x - pw, foot - 12, pw * 2, 12, C[3]); box(c, x - pw, foot - 12, pw * 2, 2, C[5]); box(c, x + pw - 5, foot - 12, 5, 12, C[2]);
+  checker(c, x - pw, foot - 4, pw * 2, 4, C[2], 0, 2);
+};
+
+/** The stations at the track's ends: a googie box up on pylons, its side going back, a gabled roof sitting on it (thick,
+ *  its eaves out past the walls with their shadow under them, its own side going back), windows with folk waiting, the
+ *  dark mouth the trains run in and out of, MONORAIL in its gable; the signal on a bracket off the first one. */
+const drawSheds = (c: Ctx, state: GameState, m: Mono, eye: { x: number; y: number }) => {
+  const top = m.y - MONO_H - ST_H, floor = m.y + BEAM, rTop = top - 40;
+  const W2 = ['#5A6680', '#8A96B0', '#C4CCDC', '#E8EEF6', '#FFFFFF'];
+  const P = ['#5A0E2A', PINK[1], PINK[2], PINK[3], PINK[4], PINK[5]];
+  for (const [x0, x1, first] of [[m.a - 180, m.a, true], [m.b, m.b + 180, false]] as const) {
+    if (!inView(state, x0 - 60, x1 + 60)) continue;
+    const mid = (x0 + x1) / 2, xl = x0 - 18, xr = x1 + 18, eave = top + 2, D = 0.88;
+    // The body's side going back (on the eye's side), then the roof's: its slope, its fascia's end, the soffit under it
+    const s = eye.x > x1 ? 1 : eye.x < x0 ? -1 : 0;
+    if (s) {
+      sideBackG(c, eye, s > 0 ? x1 : x0, top, floor, D, W2);
+      const e = s > 0 ? xr : xl, below = eye.y > eave + 8;
+      poly(c, [[e, eave + 8], [mid, rTop], at(eye, mid, rTop, D), at(eye, e, eave + 8, D)], below ? P[1] : P[3]);
+      poly(c, [[e, eave], [e, eave + 8], at(eye, e, eave + 8, D), at(eye, e, eave, D)], CHROME[2]);
+      if (below) poly(c, [[xl, eave + 8], [xr, eave + 8], at(eye, xr, eave + 8, D), at(eye, xl, eave + 8, D)], P[0]);
+      const [rx, ry] = at(eye, mid, rTop, D), [ex, ey] = at(eye, e, eave + 8, D);
+      c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(mid, rTop); c.lineTo(rx, ry); c.lineTo(ex, ey); c.stroke();
+    }
+    // The body: inked, stepped (lit left, shaded right)
+    box(c, x0 - 1, top - 1, x1 - x0 + 2, floor - top + 2, INK);
+    box(c, x0, top, x1 - x0, floor - top, W2[3]);
+    box(c, x0, top, 4, floor - top, W2[4]); box(c, x0 + 4, top, 2, floor - top, mix(W2[3], W2[4], 0.5));
+    box(c, x1 - 8, top, 8, floor - top, W2[2]); checker(c, x1 - 12, top, 4, floor - top, W2[2], 0, 2);
+    // (the eaves' shadow down the wall's top)
+    box(c, x0, top, x1 - x0, 9, W2[1]); checker(c, x0, top + 9, x1 - x0, 2, W2[1], 0, 2);
+    // (the window band: chrome-framed, folk waiting in it)
+    const wa = first ? x0 + 12 : x0 + 86, wb = first ? x1 - 86 : x1 - 12;
+    box(c, wa - 3, top + 14, wb - wa + 6, 30, INK); box(c, wa - 2, top + 15, wb - wa + 4, 28, CHROME[4]); box(c, wa - 2, top + 15, wb - wa + 4, 1, CHROME[6]);
+    box(c, wa, top + 17, wb - wa, 24, '#0369A1'); box(c, wa, top + 17, wb - wa, 8, '#0EA5E9'); checker(c, wa, top + 25, wb - wa, 2, '#0EA5E9', 0, 2);
+    for (let k = 0, px = wa + 10; px < wb - 8; px += 17, k++) { c.fillStyle = ['#C8946A', '#6E4426', '#E4C0A8', '#B07850'][k % 4]; c.beginPath(); c.arc(px, top + 31, 3.5, 0, Math.PI * 2); c.fill(); box(c, px - 5, top + 35, 10, 6, ['#9470C4', '#F0C840', '#22BCAC', '#E8659E'][k % 4]); }
+    for (let px = wa + 30; px < wb - 4; px += 30) box(c, px, top + 17, 2, 24, CHROME[3]);
+    c.fillStyle = 'rgba(255,255,255,0.2)'; c.beginPath(); c.moveTo(wa + 8, top + 41); c.lineTo(wa + 16, top + 41); c.lineTo(wa + 30, top + 17); c.lineTo(wa + 22, top + 17); c.fill();
+    // (the trim band, pink, studded, under the windows; the floor slab: the beam run in, chrome)
+    box(c, x0, top + 48, x1 - x0, 6, P[3]); box(c, x0, top + 48, x1 - x0, 1, P[5]); box(c, x0, top + 53, x1 - x0, 1, P[1]);
+    for (let k = x0 + 6; k < x1 - 4; k += 14) box(c, k, top + 50, 2, 2, P[5]);
+    box(c, x0 - 1, m.y - 2, x1 - x0 + 2, BEAM + 3, INK); box(c, x0, m.y, x1 - x0, BEAM, CHROME[3]); box(c, x0, m.y, x1 - x0, 2, CHROME[5]); box(c, x0, m.y + 10, x1 - x0, 4, CHROME[4]); box(c, x0, floor - 8, x1 - x0, 8, CHROME[2]); box(c, x0, floor - 2, x1 - x0, 2, CHROME[1]);
+    // (the mouth at the track's end of it: dark, banded back into the dark; its chrome jamb; the hazard header)
+    const mw = 76, mx = first ? x1 - mw : x0, mt = m.y - MONO_H - 6, mb = m.y + SKIRT;
+    box(c, mx, mt, mw, mb - mt, '#05050C');
+    for (let i = 0; i < 3; i++) box(c, first ? mx + i * 6 : mx + mw - 20, mt + 6 + i * 4, 20 - i * 6, mb - mt - 6 - i * 8, ['#0E0E1A', '#16162A', '#20203A'][i]);
+    box(c, mx, mt - 10, mw, 7, INK); box(c, mx, mt - 9, mw, 5, '#FACC15');
+    for (let k = 0; k < mw; k += 8) poly(c, [[mx + k, mt - 4], [mx + k + 4, mt - 9], [mx + k + 7, mt - 9], [mx + k + 3, mt - 4]], INK);
+    const jx = first ? mx - 4 : mx + mw;
+    box(c, jx - 1, mt - 10, 6, mb - mt + 10, INK); box(c, jx, mt - 10, 4, mb - mt + 10, CHROME[3]); box(c, jx, mt - 10, 1, mb - mt + 10, CHROME[5]);
+    // (a porthole by the mouth's other side)
+    const ph = first ? x0 + 40 : x1 - 40;
+    c.fillStyle = INK; c.beginPath(); c.arc(ph, m.y - 30, 14, 0, Math.PI * 2); c.fill(); c.fillStyle = CHROME[4]; c.beginPath(); c.arc(ph, m.y - 30, 13, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#0369A1'; c.beginPath(); c.arc(ph, m.y - 30, 10, 0, Math.PI * 2); c.fill(); c.fillStyle = '#0EA5E9'; c.beginPath(); c.arc(ph - 2, m.y - 32, 7, 0, Math.PI * 2); c.fill(); box(c, ph - 6, m.y - 37, 4, 3, '#E0F2FE');
+    // The roof: a gable sitting on the walls (its fascia over the wall's top: no gap), thick, eaves out past the walls
+    poly(c, [[xl - 1, eave + 1], [mid, rTop - 2], [xr + 1, eave + 1]], INK);
+    c.save(); c.beginPath(); c.moveTo(xl, eave); c.lineTo(mid, rTop); c.lineTo(xr, eave); c.closePath(); c.clip();
+    const rb = [P[2], P[3], P[3], P[4]], rh = (eave - rTop) / 4;
+    for (let i = 0; i < 4; i++) box(c, xl, eave - (i + 1) * rh, xr - xl, rh + 1, rb[i]);
+    for (let i = 1; i < 4; i++) checker(c, xl, eave - i * rh - 1, xr - xl, 2, rb[i], 0, 2);
+    c.restore();
+    // (the slopes' edges: lit up the left, shaded down the right; the ridge cap, a gold ball)
+    c.lineCap = 'butt'; c.lineWidth = 3;
+    c.strokeStyle = P[5]; c.beginPath(); c.moveTo(xl + 3, eave - 1); c.lineTo(mid, rTop + 2); c.stroke();
+    c.strokeStyle = P[1]; c.beginPath(); c.moveTo(mid, rTop + 2); c.lineTo(xr - 3, eave - 1); c.stroke();
+    ballAt(c, mid, rTop - 4, 4, '#F0C840');
+    // (the fascia: a chrome band along the eave, lit along its top, shaded under; bulbs along it)
+    box(c, xl - 1, eave - 1, xr - xl + 2, 10, INK); box(c, xl, eave, xr - xl, 8, CHROME[3]); box(c, xl, eave, xr - xl, 2, CHROME[5]); box(c, xl, eave + 6, xr - xl, 2, CHROME[1]);
+    for (let k = xl + 6; k < xr - 4; k += 12) box(c, k, eave + 3, 2, 2, lit() ? '#FFF3B0' : '#C8A848');
+    board(c, mid, eave - 13, 'MONORAIL', '#0F172A', '#7DD3FC', 7, 4, false, 'chrome');
+  }
+  // (the signal at the first station, on a bracket off its corner: green, then red as the next one comes; how long to go)
+  if (inView(state, m.a - 180, m.a + 60)) {
     const wait = m.out ? 0 : Math.ceil((m.period - m.t) / 60);
-    const red = m.out || m.t > m.period - 70;
-    box(c, m.a + 3, top - 5, 32, 42, INK); box(c, m.a + 4, top - 4, 30, 40, '#0F172A'); box(c, m.a + 4, top - 4, 30, 2, '#334155');
-    ballAt(c, m.a + 19, top + 6, 5, red ? '#EF4444' : '#3F3F46');
-    ballAt(c, m.a + 19, top + 20, 5, !red ? '#22C55E' : '#3F3F46');
-    steppedGlow(c, m.a + 19, red ? top + 6 : top + 20, 14, red ? '#EF4444' : '#22C55E', 0.3, 0.04, 3);
-    label(c, m.out ? 'NOW' : `${wait}`, m.a + 19, top + 34, '#FDE047', 6);
+    const red = m.out || m.t > m.period - 70, sy = m.y - MONO_H - 52;
+    box(c, m.a - 1, sy + 13, 10, 6, INK); box(c, m.a, sy + 14, 8, 4, CHROME[4]);
+    box(c, m.a + 7, sy - 1, 32, 44, INK); box(c, m.a + 8, sy, 30, 42, '#0F172A'); box(c, m.a + 8, sy, 30, 2, '#334155'); box(c, m.a + 36, sy, 2, 42, '#020617');
+    ballAt(c, m.a + 23, sy + 10, 5, red ? '#EF4444' : '#3F3F46');
+    ballAt(c, m.a + 23, sy + 24, 5, !red ? '#22C55E' : '#3F3F46');
+    steppedGlow(c, m.a + 23, red ? sy + 10 : sy + 24, 14, red ? '#EF4444' : '#22C55E', 0.3, 0.04, 3);
+    label(c, m.out ? 'NOW' : `${wait}`, m.a + 23, sy + 38, '#FDE047', 6);
   }
 };
 
-/** The track's beam (world): drawn behind (the trains run on it, he walks it): its top going back (lit at its front
- *  lip: stand on it), its face banded, rivets; the pylons under it (concrete, T-capped); the sheds' stilts. */
-export const drawTrack = (c: Ctx, state: GameState, m: Mono, legs: number[]) => {
-  if (!inView(state, m.a - 220, m.b + 220)) return;
+/** The track's beam (world): drawn behind (the trains run on it, he walks it): the pylons under it (concrete, standing
+ *  on the walk or down in the holes, their sides going back), the stations' pylons; its top going back (lit at its
+ *  front lip: stand on it), its underside when he's under it, its deep face banded, the joints. `holes`: [a, b] spans
+ *  with no walk under them (the pylons there go on down). */
+export const drawTrack = (c: Ctx, state: GameState, m: Mono, legs: number[], holes: [number, number][] = []) => {
+  if (!inView(state, m.a - 240, m.b + 240)) return;
   const eye = viewOf(state).eye, L = Math.max(m.a, state.camera.x - 140), R = Math.min(m.b, state.camera.x + CANVAS_WIDTH + 140);
-  for (const x0 of [m.a - 180, m.b]) for (const sx of [x0 + 20, x0 + 154]) { box(c, sx - 1, m.y + 6, 10, 900, INK); box(c, sx, m.y + 6, 8, 900, CHROME[2]); box(c, sx, m.y + 6, 2, 900, CHROME[4]); }
-  for (const x of legs) {
-    if (!inView(state, x - 30, x + 30)) continue;
-    box(c, x - 10, m.y + 18, 20, 900, INK); box(c, x - 9, m.y + 18, 18, 900, CONCRETE[3]); box(c, x - 9, m.y + 18, 4, 900, CONCRETE[4]); box(c, x + 4, m.y + 18, 5, 900, CONCRETE[2]); checker(c, x + 1, m.y + 18, 3, 900, CONCRETE[2], 0, 2);
-    poly(c, [[x - 28, m.y + 15], [x + 28, m.y + 15], [x + 12, m.y + 30], [x - 12, m.y + 30]], INK);
-    poly(c, [[x - 26, m.y + 16], [x + 26, m.y + 16], [x + 11, m.y + 29], [x - 11, m.y + 29]], CONCRETE[3]);
-    box(c, x - 26, m.y + 16, 52, 2, CONCRETE[5]);
+  for (const x0 of [m.a - 180, m.b]) if (inView(state, x0 - 60, x0 + 240)) for (const sx of [x0 + 36, x0 + 144]) pylon(c, eye, sx, m.y + BEAM, GY, false, 11);
+  for (const x of legs) if (inView(state, x - 60, x + 60)) pylon(c, eye, x, m.y + BEAM, GY, holes.some(([a, b]) => x > a && x < b));
+  if (R > L) {
+    if (eye.y > m.y + BEAM) flatBack(c, eye, L, R, m.y + BEAM, 1, BEAM_D, CHROME[1]);
+    flatBack(c, eye, L, R, m.y, 1, BEAM_D, CHROME[2]); flatBack(c, eye, L, R, m.y, 1, 0.97, CHROME[3]);
   }
-  if (R > L) { flatBack(c, eye, L, R, m.y, 1, 0.94, CHROME[2]); flatBack(c, eye, L, R, m.y, 1, 0.975, CHROME[3]); }
-  box(c, m.a, m.y - 2, m.b - m.a, 20, INK);
-  box(c, m.a, m.y, m.b - m.a, 16, CHROME[3]);
-  box(c, m.a, m.y + 4, m.b - m.a, 4, CHROME[4]);
-  box(c, m.a, m.y + 11, m.b - m.a, 5, CHROME[2]);
+  box(c, m.a, m.y - 2, m.b - m.a, BEAM + 3, INK);
+  box(c, m.a, m.y, m.b - m.a, BEAM, CHROME[3]);
+  box(c, m.a, m.y + 5, m.b - m.a, 5, CHROME[4]); box(c, m.a, m.y + 5, m.b - m.a, 1, CHROME[5]);
+  box(c, m.a, m.y + 14, m.b - m.a, 2, CHROME[2]);
+  box(c, m.a, m.y + 19, m.b - m.a, BEAM - 19, CHROME[2]); checker(c, m.a, m.y + 17, m.b - m.a, 2, CHROME[2], 0, 2);
+  box(c, m.a, m.y + BEAM - 3, m.b - m.a, 3, CHROME[1]);
   box(c, m.a, m.y, m.b - m.a, 2, LIP[2]); box(c, m.a, m.y, m.b - m.a, 1, LIP[3]);
-  for (let x = Math.ceil(L / 40) * 40; x < R; x += 40) { box(c, x, m.y + 6, 2, 2, CHROME[1]); box(c, x, m.y + 12, 1, 4, CHROME[1]); }
-  box(c, m.a, m.y + 16, m.b - m.a, 2, INK);
+  for (let x = Math.ceil(L / 40) * 40; x < R; x += 40) {
+    if (x % 160 === 0) { box(c, x, m.y + 3, 1, BEAM - 4, INK); box(c, x + 1, m.y + 3, 1, BEAM - 4, CHROME[5]); box(c, x - 6, m.y + 20, 14, 6, CHROME[1]); box(c, x - 5, m.y + 21, 12, 1, CHROME[4]); }
+    else { box(c, x, m.y + 8, 2, 2, CHROME[1]); box(c, x, m.y + 22, 2, 2, CHROME[1]); }
+  }
+  box(c, m.a, m.y + BEAM, m.b - m.a, 1, INK);
 };

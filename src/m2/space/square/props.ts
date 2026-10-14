@@ -4,7 +4,7 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { GY } from '../geometry';
-import { type Ctx, INK, box, checker, mix, poly, still, inView, board, chromePole, starburst, ball, slab, ramp6, lit, steppedGlow, timeOfDay, CHROME, PINK, TEAL, LIP } from './paint';
+import { type Ctx, type Letter, INK, box, checker, mix, poly, still, inView, board, boardSize, chromePole, starburst, ball, slab, ramp6, lit, steppedGlow, timeOfDay, CHROME, CONCRETE, PINK, TEAL, LIP } from './paint';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The lamps
@@ -58,16 +58,76 @@ export const drawSpeaker = (c: Ctx, x: number, y: number, h: number, talking: bo
 // ---------------------------------------------------------------------------------------------------------------
 // The big signs up on posts
 
-/** A big sign: two chrome posts (or one pylon), the main board (bulbs round it), the joke on a smaller one under it. */
-export const paintBigSign = (g: Ctx, h: number, a: string, b: string, bg = '#0F172A', ink = '#FDE047', pylon = false) => {
-  if (pylon) { chromePole(g, 0, -h + 10, 0, 10); for (let y = -h + 40; y < -10; y += 40) { box(g, -7, y, 14, 4, INK); box(g, -6, y + 1, 12, 2, PINK[4]); } }
-  else for (const px of [-147, 147]) chromePole(g, px, -h + 10, 0, 6);
-  board(g, 0, -h, a, bg, ink, 9, 8, true);
-  board(g, 0, -h + 26, b, '#FFFFFF', '#0F766E', 6, 5);
+/** A chrome rail (a sign's frame) across from x0 to x1 at y, `t` thick: inked, lit along its top, shaded under. */
+const rail = (g: Ctx, x0: number, x1: number, y: number, t = 5) => {
+  box(g, x0, y - 1, x1 - x0, t + 2, INK);
+  box(g, x0, y, x1 - x0, t, CHROME[3]); box(g, x0, y, x1 - x0, 1, CHROME[5]); box(g, x0, y + t - 1, x1 - x0, 1, CHROME[1]);
+  for (let x = x0 + 10; x < x1 - 6; x += 28) box(g, x, y + 2, 2, 1, CHROME[1]);
 };
-export const drawBigSign = (c: Ctx, state: GameState, key: string, x: number, h: number, a: string, b: string, bg?: string, ink?: string, pylon = false) => {
-  if (!inView(state, x - 240, x + 240)) return;
-  still(c, `spc-sign-${key}`, x, GY, -240, -h - 44, 480, h + 46, g => paintBigSign(g, h, a, b, bg, ink, pylon));
+/** A clamp where a rail meets a post (a collar round the post, two bolts). */
+const clamp = (g: Ctx, x: number, y: number, t = 5) => {
+  box(g, x - 6, y - 3, 12, t + 6, INK); box(g, x - 5, y - 2, 10, t + 4, CHROME[2]); box(g, x - 5, y - 2, 10, 1, CHROME[5]);
+  box(g, x - 3, y, 2, 2, CHROME[5]); box(g, x + 1, y + t - 2, 2, 2, CHROME[5]);
+};
+/** A hanger: a short chrome strap from a rail (at y0) down to a board (at y1), bolted at both ends. */
+const hanger = (g: Ctx, x: number, y0: number, y1: number) => {
+  box(g, x - 2, y0, 4, y1 - y0, INK); box(g, x - 1, y0, 2, y1 - y0, CHROME[4]); box(g, x - 1, y0, 1, y1 - y0, CHROME[6]);
+  box(g, x - 2, y1 - 1, 4, 2, CHROME[1]);
+};
+/** Where a post meets the street: a footing plate bolted down, its shadow on the walk. */
+const footing = (g: Ctx, x: number, w: number) => {
+  g.fillStyle = 'rgba(16, 10, 30, 0.3)'; g.beginPath(); g.ellipse(x + 3, 0, w + 6, 2.5, 0, 0, Math.PI * 2); g.fill();
+  box(g, x - w / 2 - 2, -4, w + 4, 4, INK); box(g, x - w / 2 - 1, -3, w + 2, 3, CONCRETE[3]); box(g, x - w / 2 - 1, -3, w + 2, 1, CONCRETE[5]);
+  for (const bx of [x - w / 2 + 1, x + w / 2 - 3]) box(g, bx, -2, 2, 1, CONCRETE[1]);
+};
+
+/**
+ * A big sign: the main board (bulbs round it), the joke on a smaller one hung under it; held up properly. Two chrome
+ * posts (outside both boards) with rails across between them: one over the main board (it hangs from it on straps),
+ * one under it (the main board sits on it, the joke hangs from it). Or (`pylon`) one fat pylon up behind the middle,
+ * an arm across under the main board on braces, the main board on the arm and up against the pylon, the joke hung
+ * from the arm. Whatever the words' widths, every board's bolted to something and every post stands on a footing.
+ */
+export const paintBigSign = (g: Ctx, h: number, a: string, b: string, bg = '#0F172A', ink = '#FDE047', pylon = false, font: Letter = 'chrome2') => {
+  const [wa, ha] = boardSize(g, a, 9, 8, font), [wb, hb] = boardSize(g, b, 6, 5, 'small');
+  const aBot = -h + Math.ceil(ha / 2) + 3, aTop = -h - Math.floor(ha / 2) - 3;
+  const midY = aBot + 2, subTop = midY + 9, subY = subTop + 3 + Math.round(hb / 2);
+  const half = Math.max(wa, wb) / 2 + 3;
+  if (pylon) {
+    // (the pylon: fiberglass in chrome rings, up behind the main board, a starburst finial over it)
+    footing(g, 0, 26);
+    chromePole(g, 0, aTop - 8, 0, 14);
+    for (let y = aBot + 40; y < -14; y += 40) { box(g, -9, y, 18, 5, INK); box(g, -8, y + 1, 16, 3, PINK[3]); box(g, -8, y + 1, 16, 1, PINK[5]); }
+    starburst(g, 0, aTop - 12, 9);
+    // (the arm across under the main board, wide as the wider board; a brace up to each end from the pylon)
+    const arm = Math.max(wa / 2 + 3, wb / 2 + 3);
+    for (const sd of [-1, 1]) {
+      g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(sd * 6, midY + 46); g.lineTo(sd * (arm - 8), midY + 4); g.stroke();
+      g.strokeStyle = CHROME[sd < 0 ? 4 : 2]; g.lineWidth = 3; g.stroke();
+    }
+    rail(g, -arm - 4, arm + 4, midY, 6);
+    clamp(g, 0, midY, 6);
+    for (const sd of [-1, 1]) clamp(g, sd * (arm - 8), midY, 6);
+    board(g, 0, -h, a, bg, ink, 9, 8, true, font);
+    for (const sd of [-1, 1]) hanger(g, sd * Math.min(wb / 2 - 10, arm - 12), midY + 6, subTop + 1);
+    board(g, 0, subY, b, '#FFFFFF', '#0F766E', 6, 5, false, 'small');
+    return;
+  }
+  const px = Math.round(half + 9), topY = aTop - 10;
+  // (the posts, outside both boards, on their footings, ball finials)
+  for (const sd of [-1, 1]) { footing(g, sd * px, 14); chromePole(g, sd * px, topY - 6, 0, 7); ball(g, sd * px, topY - 8, 5, '#F0C840'); }
+  // (the rails across, clamped to the posts)
+  rail(g, -px, px, topY, 5); rail(g, -px, px, midY, 5);
+  for (const sd of [-1, 1]) { clamp(g, sd * px, topY, 5); clamp(g, sd * px, midY, 5); }
+  // (the main board: hung from the top rail on straps, sitting on the middle one; the joke hung under the middle one)
+  for (const sd of [-1, 1]) hanger(g, sd * Math.max(8, wa / 2 - 14), topY + 5, aTop + 1);
+  board(g, 0, -h, a, bg, ink, 9, 8, true, font);
+  for (const sd of [-1, 1]) hanger(g, sd * Math.max(8, wb / 2 - 12), midY + 5, subTop + 1);
+  board(g, 0, subY, b, '#FFFFFF', '#0F766E', 6, 5, false, 'small');
+};
+export const drawBigSign = (c: Ctx, state: GameState, key: string, x: number, h: number, a: string, b: string, bg?: string, ink?: string, pylon = false, font: Letter = 'chrome2') => {
+  if (!inView(state, x - 260, x + 260)) return;
+  still(c, `spc-sign3-${key}`, x, GY, -260, -h - 50, 520, h + 54, g => paintBigSign(g, h, a, b, bg, ink, pylon, font));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -98,8 +158,8 @@ export const paintGate = (g: Ctx) => {
   g.strokeStyle = P[5]; g.lineWidth = 2; g.beginPath(); g.moveTo(-238, -246); g.quadraticCurveTo(0, -328, 238, -246); g.stroke();
   for (let k = 0.04; k < 1; k += 0.048) { const u = k, x = -230 + 460 * u, y = (1 - u) * (1 - u) * -247 + 2 * (1 - u) * u * -330 + u * u * -247; box(g, x - 1, y + 1, 3, 3, on ? '#FFF3B0' : '#F4D060'); }
   starburst(g, 0, -306, 26);
-  board(g, 0, -252, 'FUTURELAND', '#0F172A', '#5EEAD4', 14, 10, true);
-  board(g, 0, -212, 'THE WORLD OF TOMORROW! (SINCE 1962)', '#FFFFFF', '#BE185D', 7, 6);
+  board(g, 0, -252, 'FUTURELAND', '#0F172A', '#5EEAD4', 14, 8, true, 'chrome2');
+  board(g, 0, -212, 'THE WORLD OF TOMORROW! (SINCE 1962)', '#FFFFFF', '#BE185D', 7, 5, false, 'small');
 };
 
 // ---------------------------------------------------------------------------------------------------------------

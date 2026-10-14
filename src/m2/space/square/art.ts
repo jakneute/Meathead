@@ -12,6 +12,7 @@ import { CANVAS_WIDTH } from '../../../m1/constants';
 import { SECTIONS, GY } from '../geometry';
 import { X, Y, PIT, WALL, DOORS_X, SOLIDS, LEDGES, LAMPS, SPEAKERS } from './layout';
 import { type Ctx, INK, box, checker, mix, poly, still, inView, viewOf, board, slab, ramp6, lit, chromePole, starburst, ball, bandedGradient, CHROME, PINK, TEAL, ORANGE, LIP, glassOf, timeOfDay } from './paint';
+import { lettering } from './lettering';
 import { drawSky, drawClouds, drawBlimp, drawFarSkyline, drawGiantAtom, drawNeedle, horizonY } from './sky';
 import { drawGoingBack, drawPlayPlane, drawPitDressing, type Ground } from './ground';
 import { type Shop, type Block, drawSides, drawShopFront, shopBlocks } from './buildings';
@@ -45,14 +46,14 @@ export const drawSquareBackdrop = (c: Ctx2, state: GameState) => {
 // The shops along the back, and the gags
 
 const SHOPS: Shop[] = [
-  { x: X(560), w: 300, h: 170, wall: '#FBCFE8', trim: '#14B8A6', roof: 'boomerang', name: "ATOMIC ANNIE'S GIFT SHOPPE", sub: 'SOUVENIR URANIUM: NOT REAL (PROBABLY)' },
-  { x: X(1460), w: 230, h: 150, wall: '#CCFBF1', trim: '#F472B6', roof: 'flat', name: "TOMORROW'S RESTROOMS", sub: 'OUT OF ORDER SINCE 1987' },
-  { x: X(2960), w: 216, h: 180, wall: '#FEF3C7', trim: '#0EA5E9', roof: 'saucer', name: 'THE PHONE OF THE FUTURE', sub: 'SEE WHO YOU CALL! 25 CENTS. NO DIAL TONE.' },
-  { x: X(3200), w: 300, h: 200, wall: '#E0E7FF', trim: '#F97316', roof: 'fin', name: 'SATELLITE BURGER', sub: 'NOW WITH REAL MEAT FLAVOR' },
-  { x: X(4100), w: 330, h: 190, wall: '#E2E8F0', trim: '#8B5CF6', roof: 'dome', name: 'HALL OF ROBOT BUTLERS', sub: 'CLOSED AFTER THE INCIDENT' },
-  { x: X(5560), w: 260, h: 200, wall: '#FCE7F3', trim: '#22C55E', roof: 'boomerang', name: 'ROCKET POPS', sub: '$11. NO REFUNDS IN SPACE.' },
-  { x: X(8020), w: 280, h: 170, wall: '#DCFCE7', trim: '#DB2777', roof: 'fin', name: 'SPACE AGE SMOKE SHOP', sub: 'ATOMIC CIGARETTES: NOW 30% LESS GLOWING' },
-  { x: X(8760), w: 280, h: 180, wall: '#FEF9C3', trim: '#6366F1', roof: 'saucer', name: 'THE KITCHEN OF 2000', sub: 'MEAL PILLS IN EVERY FLAVOR OF BEIGE' },
+  { x: X(560), w: 300, h: 170, wall: '#FBCFE8', trim: '#14B8A6', roof: 'boomerang', font: 'enamel', name: "ATOMIC ANNIE'S GIFT SHOPPE", sub: 'SOUVENIR URANIUM: NOT REAL (PROBABLY)' },
+  { x: X(1460), w: 230, h: 150, wall: '#CCFBF1', trim: '#F472B6', roof: 'flat', font: 'chrome', name: "TOMORROW'S RESTROOMS", sub: 'OUT OF ORDER SINCE 1987' },
+  { x: X(2960), w: 216, h: 180, wall: '#FEF3C7', trim: '#0EA5E9', roof: 'saucer', font: 'neon', nameBg: '#1E0B2E', nameInk: '#7DF9FF', name: 'THE PHONE OF THE FUTURE', sub: 'SEE WHO YOU CALL! 25 CENTS. NO DIAL TONE.' },
+  { x: X(3200), w: 300, h: 200, wall: '#E0E7FF', trim: '#F97316', roof: 'fin', font: 'neon', nameBg: '#1E0B2E', nameInk: '#FDBA74', name: 'SATELLITE BURGER', sub: 'NOW WITH REAL MEAT FLAVOR' },
+  { x: X(4100), w: 330, h: 190, wall: '#E2E8F0', trim: '#8B5CF6', roof: 'dome', font: 'chrome', name: 'HALL OF ROBOT BUTLERS', sub: 'CLOSED AFTER THE INCIDENT' },
+  { x: X(5560), w: 260, h: 200, wall: '#FCE7F3', trim: '#22C55E', roof: 'boomerang', font: 'marquee', nameBg: '#991B1B', name: 'ROCKET POPS', sub: '$11. NO REFUNDS IN SPACE.' },
+  { x: X(8020), w: 280, h: 170, wall: '#DCFCE7', trim: '#DB2777', roof: 'fin', font: 'enamel', nameBg: '#14532D', nameInk: '#FEF08A', name: 'SPACE AGE SMOKE SHOP', sub: 'ATOMIC CIGARETTES: NOW 30% LESS GLOWING' },
+  { x: X(8760), w: 280, h: 180, wall: '#FEF9C3', trim: '#6366F1', roof: 'saucer', font: 'chrome', name: 'THE KITCHEN OF 2000', sub: 'MEAL PILLS IN EVERY FLAVOR OF BEIGE' },
 ];
 
 const GROUND: Ground = { id: 'sq', floor: [[x0 - 200, X(PIT.a)], [X(PIT.b), x1 + 200]], pits: [{ a: X(PIT.a), b: X(PIT.b), kind: 'site' }] };
@@ -74,14 +75,14 @@ const gate = (c: Ctx2, state: GameState) => {
 };
 
 const gags = (c: Ctx2, state: GameState) => {
-  drawBigSign(c, state, 'mover', X(2140), 150, 'THE PEOPLE MOVER', "TOMORROW'S SIDEWALK, TODAY!");
-  drawBigSign(c, state, 'mover2', X(2670), 150, 'THE PEOPLE MOVER (RETURN)', 'PLEASE WALK BRISKLY');
-  drawBigSign(c, state, 'zap', X(3820), 140, 'THE ELECTRIC SIDEWALK', 'SAFE AS MILK! DO NOT STAND ON IT WHEN IT BUZZES.');
-  drawBigSign(c, state, 'zap2', X(9100), 280, 'THE ELECTRIC SIDEWALK', 'NOW TWICE AS ELECTRIC!', undefined, undefined, true);
-  drawBigSign(c, state, 'pad', X(4880), 150, 'FEEL THE THRUST!', 'PHOTO OP. STAND ON THE GRILLE. SMILE.');
-  drawBigSign(c, state, 'pit', X(6440), 120, 'FUTURE SITE OF TOMORROW', 'COMING 1964');
-  drawBigSign(c, state, 'queue', X(9440), 120, 'LINE STARTS HERE', '90 MINUTES FROM THIS POINT');
-  drawBigSign(c, state, 'plaza', X(8440), 200, 'THE ATOM PLAZA', 'THE FUTURE IS SPLITTING!', undefined, undefined, true);
+  drawBigSign(c, state, 'mover', X(2140), 150, 'THE PEOPLE MOVER', "TOMORROW'S SIDEWALK, TODAY!", undefined, undefined, false, 'chrome2');
+  drawBigSign(c, state, 'mover2', X(2670), 150, 'THE PEOPLE MOVER (RETURN)', 'PLEASE WALK BRISKLY', undefined, undefined, false, 'chrome2');
+  drawBigSign(c, state, 'zap', X(3820), 140, 'THE ELECTRIC SIDEWALK', 'SAFE AS MILK! DO NOT STAND ON IT WHEN IT BUZZES.', '#1E0B2E', '#7DF9FF', false, 'neon2');
+  drawBigSign(c, state, 'zap2', X(9100), 280, 'THE ELECTRIC SIDEWALK', 'NOW TWICE AS ELECTRIC!', '#1E0B2E', '#FF6AD5', true, 'neon2');
+  drawBigSign(c, state, 'pad', X(4880), 150, 'FEEL THE THRUST!', 'PHOTO OP. STAND ON THE GRILLE. SMILE.', '#7F1D1D', undefined, false, 'marquee');
+  drawBigSign(c, state, 'pit', X(6350), 120, 'FUTURE SITE OF TOMORROW', 'COMING 1964', '#F8FAFC', '#1D4ED8', false, 'enamel2');
+  drawBigSign(c, state, 'queue', X(9440), 120, 'LINE STARTS HERE', '90 MINUTES FROM THIS POINT', '#4C1D95', undefined, false, 'marquee');
+  drawBigSign(c, state, 'plaza', X(8440), 200, 'THE ATOM PLAZA', 'THE FUTURE IS SPLITTING!', undefined, undefined, true, 'chrome2');
 };
 
 /** The wall across the street (too tall to jump), a mural of tomorrow on it: a family in a flying car waving, over a
@@ -106,7 +107,7 @@ const paintWall = (g: Ctx2) => {
   g.fillStyle = 'rgba(200,236,255,0.45)'; g.beginPath(); g.ellipse(cx, cy - 6, 34, 12, 0, Math.PI, 0); g.fill();
   for (let k = 0; k < 3; k++) box(g, 2, cy + k * 6, 20, 2, '#F8FAFC');
   // (the words, painted on in the mural's own hand)
-  for (const [s, y] of [['THE WALL', 160], ['OF', 174], ['TOMORROW', 188]] as const) { g.font = '8px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#F8FAFC'; g.fillText(s, w / 2 + 1, -h + y + 1); g.fillStyle = '#0F172A'; g.fillText(s, w / 2, -h + y); g.textAlign = 'left'; }
+  for (const [s, y] of [['THE WALL', 168], ['OF', 186], ['TOMORROW', 204]] as const) lettering(g, s, w / 2, -h + y, 'enamel', '#F8FAFC', '#1E3A8A');
   // (grime up its foot, the coping on top: lit, he stands on it)
   checker(g, 0, -24, w, 8, R[1], 0, 2); box(g, 0, -16, w, 16, R[1]);
   box(g, -3, -h - 4, w + 6, 9, INK); box(g, -2, -h - 3, w + 4, 7, CHROME[4]); box(g, -2, -h - 3, w + 4, 2, LIP[3]); box(g, -2, -h + 3, w + 4, 1, CHROME[1]);
@@ -135,7 +136,7 @@ const things = (c: Ctx2, state: GameState) => {
         for (let k = 0; k < 4; k++) { g.fillStyle = TEAL[1 + k]; g.beginPath(); g.ellipse(w / 2 - k * 6, 6 - k * 2, w / 2 + 3 - k * 14, 12 - k * 2.5, 0, 0, Math.PI * 2); g.fill(); }
         box(g, 0, -1, w, 4, LIP[2]); box(g, 0, -1, w, 1, LIP[3]);
         starburst(g, w / 2, -14, 10, '#F97316');
-        board(g, w / 2, 32, 'SPACE FOOD STICKS', '#0F172A', '#FDBA74', 6, 5);
+        board(g, w / 2, 32, 'SPACE FOOD STICKS', '#0F172A', '#FDBA74', 6, 3, false, 'small');
       } else if (what === 'steps' || what === 'deck') {
         // (a landing on chrome stilts: a lit lip, a railing along the back)
         chromePole(g, 8, 12, h, 8); chromePole(g, w - 8, 12, h, 8);
@@ -143,7 +144,7 @@ const things = (c: Ctx2, state: GameState) => {
         box(g, 0, 0, w, 3, LIP[2]); box(g, 0, 0, w, 1, LIP[3]);
         for (let k = 6; k < w - 4; k += 12) box(g, k, 5, 4, 2, PINK[3]);
         box(g, 0, -28, w, 4, INK); box(g, 0, -27, w, 2, CHROME[4]); for (let k = 0; k <= w; k += 24) { box(g, k - 1, -27, 3, 27, INK); box(g, k, -27, 1, 27, CHROME[4]); }
-        if (what === 'deck') board(g, w / 2, 26, 'SATELLITE VIEWING DECK', '#0F172A', '#7DD3FC', 6, 5);
+        if (what === 'deck') board(g, w / 2, 26, 'SATELLITE VIEWING DECK', '#0F172A', '#7DD3FC', 6, 4, false, 'small');
       } else {
         // (the awning: orange and white stripes, its front edge a lit chrome tube (stand on it), its brackets)
         box(g, -2, -2, w + 4, 16, INK);
@@ -169,6 +170,14 @@ const paintDoors = (g: Ctx2) => {
   box(g, -342, -222, 604, 222, INK);
   slab(g, -340, -220, 600, 220, R);
   box(g, -340, -220, 600, 10, V[3]); box(g, -340, -220, 600, 2, V[5]);
+  // (the gable under the roof's plate, glazed, mullioned: the roof sits on it, no gap; the eaves' shadow under it)
+  poly(g, [[-288, -221], [-40, -248], [208, -221]], INK);
+  poly(g, [[-284, -221], [-40, -245], [204, -221]], glass[1]);
+  g.save(); g.beginPath(); g.moveTo(-284, -221); g.lineTo(-40, -245); g.lineTo(204, -221); g.closePath(); g.clip();
+  box(g, -284, -246, 488, 12, glass[2]); checker(g, -284, -235, 488, 2, glass[2], 0, 2);
+  for (let x = -270; x < 204; x += 18) { box(g, x - 1, -248, 3, 28, INK); box(g, x, -248, 1, 28, CHROME[4]); }
+  g.restore();
+  box(g, -340, -210, 600, 4, 'rgba(20, 12, 36, 0.3)'); checker(g, -340, -206, 600, 2, 'rgba(20, 12, 36, 0.3)', 0, 2);
   // (the windows: tall, banded, lit warm after dark)
   for (let k = -320; k < 250; k += 70) {
     if (k > -110 && k < 70) continue;
@@ -185,7 +194,7 @@ const paintDoors = (g: Ctx2) => {
     box(g, dx + (s < 0 ? 50 : 4), -76, 4, 20, CHROME[1]);
   }
   poly(g, [[-80, -150], [80, -150], [70, -138], [-70, -138]], INK); poly(g, [[-78, -149], [78, -149], [69, -140], [-69, -140]], PINK[3]);
-  board(g, 0, -168, 'ENTER THE ATOM', '#0F172A', '#F0ABFC', 9, 7, true);
+  board(g, 0, -170, 'ENTER THE ATOM', '#1E0B2E', '#F0ABFC', 9, 7, true, 'neon2');
   starburst(g, 200, -150, 14, '#F0ABFC'); starburst(g, -280, -150, 14, '#F0ABFC');
   void TEAL;
 };

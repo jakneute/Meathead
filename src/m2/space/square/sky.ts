@@ -9,7 +9,8 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawTodSky, timeOfDay, farTint, skyAt, cloudTint, hourMix, type TimeOfDay } from '../../timeOfDay';
-import { type Ctx, INK, box, checker, mix, hash, stamp, hazeBands, pixelBlob, steppedGlow, words, bandedGradient, CHROME, ramp6 } from './paint';
+import { lettering, letterSize, type Letter } from './lettering';
+import { type Ctx, INK, box, checker, mix, hash, stamp, hazeBands, pixelBlob, steppedGlow, bandedGradient, CHROME, ramp6 } from './paint';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 const TW = 1024;
@@ -81,6 +82,8 @@ const paintFar = (g: Ctx, tod: TimeOfDay, h: number, k: number, seed: number) =>
       box(g, cx - 8, f - rh + 30, 4, rh - 44, lt);
       g.fillStyle = sh; for (const s of [-1, 1]) { g.beginPath(); g.moveTo(cx + s * 8, f - 40); g.lineTo(cx + s * 18, f - 4); g.lineTo(cx + s * 8, f - 14); g.fill(); }
       box(g, cx - 2, f - rh + 4, 4, 4, bulb);
+      // (its launch pad under it: a stand it sits on, the gantry's arm across to it)
+      box(g, cx - 22, f - 6, 46, 6, sh); box(g, cx - 22, f - 6, 46, 1, lt); box(g, cx - 4, f - 14, 8, 8, sh); box(g, cx + 8, f - rh + 40, 5, 2, sh);
     } else if (kind === 3) {
       // (the ORBITRON: a hub up on a post, its arms out, a rocket car on the end of each)
       const ph = 70 + hash(i) * 30;
@@ -101,6 +104,7 @@ const paintFar = (g: Ctx, tod: TimeOfDay, h: number, k: number, seed: number) =>
       const ph = 30 + hash(i) * 30;
       box(g, x + 4, f - ph, w - 8, ph, body); box(g, x + 4, f - ph, 3, ph, lt); box(g, x + w - 8, f - ph, 4, ph, sh);
       g.fillStyle = sh; g.beginPath(); g.moveTo(x, f - ph); for (let z = 0; z <= 4; z++) g.lineTo(x + (z * w) / 4, f - ph - (z % 2 ? 14 : 0)); g.lineTo(x + w, f - ph + 4); g.lineTo(x, f - ph + 4); g.fill();
+      box(g, x + 1, f - ph + 4, w - 2, 3, lt); box(g, x + 4, f - ph + 7, w - 8, 2, sh);
       for (let wx = x + 12; wx < x + w - 14; wx += 12) box(g, wx, f - ph + 10, 6, 8, tod.lamps > 0.3 ? '#E8C070' : sh);
     }
     x += w + 10 + hash(i * 5.7) * 40;
@@ -255,11 +259,11 @@ export const drawGiantAtom = (c: Ctx, x: number, y: number, s: number, t: number
   for (let k = 0; k < 3; k++) tube(k, true);
   // Its name on a plate up on the ball (dark: the near rings cross it; up there, clear of the signs down in the square)
   if (s > 0.6) {
-    const size = s > 1.2 ? 10 : 8, ly = Math.round(y - R * 0.5 + size / 2);
-    c.font = `${size}px "Press Start 2P"`;
-    const w = c.measureText('THE GIANT ATOM').width + 14;
-    box(c, x - w / 2 - 2, ly - size - 7, w + 4, size + 12, INK); box(c, x - w / 2, ly - size - 5, w, size + 8, T('#3B0764')); box(c, x - w / 2, ly - size - 5, w, 1, T('#7A3AAE'));
-    words(c, 'THE GIANT ATOM', x, ly, night > 0.3 ? '#F0ABFC' : '#FFFFFF', size, INK);
+    // (a plate bolted to the ball, the name on it in neon tubes)
+    const f: Letter = s > 1.2 ? 'neon2' : 'neon', [lw, lh] = letterSize('THE GIANT ATOM', f), py = Math.round(y - R * 0.5), plate = T('#2A0650');
+    box(c, x - lw / 2 - 6, py - lh / 2 - 4, lw + 12, lh + 8, INK); box(c, x - lw / 2 - 4, py - lh / 2 - 2, lw + 8, lh + 4, plate); box(c, x - lw / 2 - 4, py - lh / 2 - 2, lw + 8, 1, T('#7A3AAE'));
+    for (const bx of [x - lw / 2 - 3, x + lw / 2 + 1]) { box(c, bx, py - 1, 2, 2, T(CHROME[1])); box(c, bx, py - 1, 1, 1, T(CHROME[5])); }
+    lettering(c, 'THE GIANT ATOM', x, py, f, night > 0.3 ? '#F0ABFC' : '#F5D0FE', plate);
   }
 };
 
@@ -326,6 +330,6 @@ export const drawNeedle = (c: Ctx, x: number, gy: number, s: number, t: number, 
   // (beacons up it, blinking)
   if ((t >> 4) % 2) for (const by of [deck1 - 540 * s, deck1 - 1000 * s, deck1 - 1400 * s]) if (by > -10) box(c, x - px, by - 12 * s, px * 2, px * 2, night > 0.2 ? '#FF4A5A' : '#FF8A9A');
   // (the sign on the first deck)
-  if (s > 0.5) words(c, 'SPACE NEEDLE 2', x, deck1 + 30 * s, '#FFFFFF', s > 1 ? 10 : 8, INK);
+  if (s > 0.5) lettering(c, 'SPACE NEEDLE 2', x, Math.round(deck1 + 24 * s), s > 1 ? 'chrome2' : 'chrome', '#FFFFFF', '#000000');
   void ramp6;
 };

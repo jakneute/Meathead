@@ -36,9 +36,29 @@ const paintRow = (g: Ctx) => {
     const R = [mix(col, '#000000', 0.32), mix(col, '#000000', 0.16), col, mix(col, '#FFFFFF', 0.18)];
     box(g, x, -h, w, h, R[2]); box(g, x, -h, 3, h, R[3]); box(g, x + w - 5, -h, 5, h, R[1]); checker(g, x + w - 9, -h, 4, h, R[1], 0, 2);
     box(g, x, -h, w, 3, R[3]);
-    if (i % 3 === 0) { g.fillStyle = R[1]; g.beginPath(); g.moveTo(x - 4, -h); for (let z = 0; z <= 6; z++) g.lineTo(x + (z * w) / 6, -h - (z % 2 ? 18 : 0)); g.lineTo(x + w + 4, -h); g.fill(); }
-    else if (i % 3 === 1) { g.fillStyle = R[1]; g.beginPath(); g.arc(x + w / 2, -h, w * 0.3, Math.PI, 0); g.fill(); g.fillStyle = R[3]; g.beginPath(); g.arc(x + w / 2 - w * 0.08, -h - w * 0.08, w * 0.1, 0, Math.PI * 2); g.fill(); }
-    else { g.fillStyle = R[1]; g.beginPath(); g.moveTo(x + w - 40, -h); g.lineTo(x + w - 18, -h - 60); g.lineTo(x + w - 10, -h); g.fill(); box(g, x + w - 20, -h - 62, 4, 4, bulb); }
+    // (the roof, on a cornice along the wall's top with its shadow under: a folded plate (zigzag, thick, lit along its
+    // ridges), a dome on a drum, or a fin set in a shoe; each sitting on the wall)
+    const top = -h - 5;
+    if (i % 3 === 0) {
+      const n = 6, peaks: [number, number][] = [];
+      for (let z = 0; z <= n; z++) peaks.push([x - 6 + (z * (w + 12)) / n, top - (z % 2 ? 18 : 0)]);
+      g.fillStyle = R[0]; g.beginPath(); g.moveTo(x - 6, top + 1); peaks.forEach(([px, py]) => g.lineTo(px, py - 1)); g.lineTo(x + w + 6, top + 1); g.fill();
+      g.fillStyle = R[1]; g.beginPath(); g.moveTo(x - 6, top); peaks.forEach(([px, py]) => g.lineTo(px, py)); g.lineTo(x + w + 6, top); g.fill();
+      for (let z = 0; z < n; z += 2) { const [ax, ay] = peaks[z], [bx, by] = peaks[z + 1]; g.fillStyle = R[3]; g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.lineTo(bx, by + 3); g.lineTo(ax, ay + 2); g.fill(); }
+    } else if (i % 3 === 1) {
+      const r = w * 0.3, cx = x + w / 2;
+      box(g, cx - r - 3, top - 5, r * 2 + 6, 5, R[0]); box(g, cx - r - 3, top - 5, r * 2 + 6, 1, R[3]);
+      g.fillStyle = R[1]; g.beginPath(); g.arc(cx, top - 5, r, Math.PI, 0); g.fill();
+      g.fillStyle = R[2]; g.beginPath(); g.arc(cx - r * 0.08, top - 5 - r * 0.04, r * 0.8, Math.PI, 0); g.fill();
+      g.fillStyle = R[3]; g.beginPath(); g.arc(cx - r * 0.3, top - 5 - r * 0.45, r * 0.18, 0, Math.PI * 2); g.fill();
+    } else {
+      g.fillStyle = R[0]; g.beginPath(); g.moveTo(x + w - 42, top); g.lineTo(x + w - 18, top - 60); g.lineTo(x + w - 8, top); g.fill();
+      g.fillStyle = R[1]; g.beginPath(); g.moveTo(x + w - 40, top); g.lineTo(x + w - 18, top - 57); g.lineTo(x + w - 12, top); g.fill();
+      g.fillStyle = R[3]; g.beginPath(); g.moveTo(x + w - 40, top); g.lineTo(x + w - 18, top - 57); g.lineTo(x + w - 34, top); g.fill();
+      box(g, x + w - 46, top - 3, 42, 3, R[0]); box(g, x + w - 20, top - 62, 4, 4, bulb);
+    }
+    box(g, x - 6, top, w + 12, 6, R[1]); box(g, x - 6, top, w + 12, 1, R[3]); box(g, x - 6, top + 5, w + 12, 1, R[0]);
+    box(g, x, top + 6, w, 3, R[0]); checker(g, x, top + 9, w, 2, R[0], 0, 2);
     // (a row of porthole windows, a band of trim, bulbs along the eaves)
     for (let wx = x + 14; wx < x + w - 16; wx += 22) { g.fillStyle = R[0]; g.beginPath(); g.arc(wx + 5, -h + 30, 5, 0, Math.PI * 2); g.fill(); if (tod.lamps > 0.3 && hash(wx) > 0.4) { g.fillStyle = '#E8B060'; g.beginPath(); g.arc(wx + 5, -h + 30, 3, 0, Math.PI * 2); g.fill(); } }
     box(g, x, -h + 46, w, 5, R[1]);
@@ -60,13 +80,13 @@ const paintRow = (g: Ctx) => {
     if (i % 2) {
       // (an atomic palm: a ringed trunk curving up, fronds like a starburst)
       const th = 120 + hash(i) * 40;
-      for (let y = 0; y < th; y += 6) box(g, x + Math.sin(y * 0.02) * 10 - 4, -40 - y, 8, 6, D(y % 12 ? '#8A6A4A' : '#6A4E34'));
+      box(g, x - 4, -40, 8, 8, D('#6A4E34')); for (let y = 0; y < th; y += 6) box(g, x + Math.sin(y * 0.02) * 10 - 4, -40 - y, 8, 6, D(y % 12 ? '#8A6A4A' : '#6A4E34'));
       const tx = x + Math.sin(th * 0.02) * 10, ty = -40 - th;
       for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; g.strokeStyle = D(k % 2 ? '#2E8A4A' : '#4EB060'); g.lineWidth = 5; g.beginPath(); g.moveTo(tx, ty); g.quadraticCurveTo(tx + Math.cos(a) * 26, ty + Math.sin(a) * 14 - 10, tx + Math.cos(a) * 44, ty + Math.sin(a) * 22 + 6); g.stroke(); }
       g.fillStyle = D('#F0D060'); g.beginPath(); g.arc(tx, ty, 5, 0, Math.PI * 2); g.fill();
     } else {
       // (a lollipop topiary: a ball of clipped hedge on a stick)
-      box(g, x - 2, -100, 4, 60, D('#6A4E34'));
+      box(g, x - 2, -100, 4, 68, D('#6A4E34'));
       pixelBlob(g, x, -110, 22, 22, D('#2E7A4A')); pixelBlob(g, x - 6, -118, 10, 10, D('#5EB86A'));
     }
   }

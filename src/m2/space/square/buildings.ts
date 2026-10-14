@@ -6,14 +6,14 @@
 // topBack), the farthest first, then the fronts over them.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { type Ctx, type View, INK, box, checker, mix, hash, poly, still, inView, board, slab, starburst, ball, chromePole, glassOf, lit, ramp6, sideBack, topBack, CHROME, PINK, TEAL } from './paint';
+import { type Ctx, type View, type Letter, INK, box, checker, mix, hash, poly, still, inView, at, board, boardSize, twoLines, slab, starburst, ball, chromePole, glassOf, lit, ramp6, sideBack, topBack, CHROME, PINK, TEAL } from './paint';
 
-export interface Shop { x: number; w: number; h: number; wall: string; trim: string; roof: 'boomerang' | 'dome' | 'fin' | 'flat' | 'saucer'; name: string; sub?: string; nameBg?: string; nameInk?: string; signDrop?: number }
+export interface Shop { x: number; w: number; h: number; wall: string; trim: string; roof: 'boomerang' | 'dome' | 'fin' | 'flat' | 'saucer'; font?: Letter; name: string; sub?: string; nameBg?: string; nameInk?: string; signDrop?: number }
 /** How far back the shops' sides go. */
 export const SIDE_D = 0.88;
 
 /** Something box-shaped at the play plane whose side and top go back: x0..x1, from `top` down to `bottom`. */
-export interface Block { x0: number; x1: number; top: number; bottom: number; col: string; d?: number; noTop?: boolean }
+export interface Block { x0: number; x1: number; top: number; bottom: number; col: string; d?: number; noTop?: boolean; roof?: Shop['roof']; trim?: string }
 
 /** The sides (and tops) of the blocks on screen going back, the farthest from the eye first. Draw before their fronts. */
 export const drawSides = (c: Ctx, v: View, blocks: Block[]) => {
@@ -24,6 +24,7 @@ export const drawSides = (c: Ctx, v: View, blocks: Block[]) => {
     const sd = v.eye.x > b.x1 ? 1 : v.eye.x < b.x0 ? -1 : 0;
     if (!b.noTop) topBack(c, v.eye, b.x0, b.x1, b.top, d, R);
     if (sd) sideBack(c, v.eye, sd > 0 ? b.x1 : b.x0, sd as 1 | -1, b.top, b.bottom, d, R);
+    roofSide(c, v.eye, b, sd as 1 | -1 | 0, d);
   }
 };
 
@@ -139,49 +140,135 @@ const GOODS: [RegExp, Goods][] = [
 const goodsFor = (name: string): Goods => GOODS.find(([re]) => re.test(name))?.[1] ?? GOODS[0][1];
 
 // ---------------------------------------------------------------------------------------------------------------
+// The roofs (googie: each one sitting on its walls, a cornice along the wall's top with the eaves out past it and their
+// shadow down the wall; then what's up on it)
+
+/** How far a roof's eaves come out past the walls, the cornice's depth, the boomerang's sizes. */
+const EAVE = 8, CORN = 10, BOOM = { out: 26, peak: 0.35, rise: 46, plate: 10 } as const;
+
+/** The cornice along the wall's top (its top at -h - CORN + 4), the eaves out past the walls, the shadow under. */
+const cornice = (g: Ctx, w: number, h: number, T: string[]) => {
+  const y = -h - CORN + 4;
+  // (the eaves' shadow down the wall's top: banded, dithered off)
+  box(g, 0, -h + 4, w, 5, 'rgba(20, 12, 36, 0.32)'); checker(g, 0, -h + 9, w, 2, 'rgba(20, 12, 36, 0.32)', 0, 2);
+  box(g, -EAVE - 1, y - 1, w + EAVE * 2 + 2, CORN + 2, INK);
+  box(g, -EAVE, y, w + EAVE * 2, CORN, T[3]);
+  box(g, -EAVE, y, w + EAVE * 2, 2, T[5]); box(g, -EAVE, y + 2, w + EAVE * 2, 1, T[4]);
+  box(g, -EAVE, y + CORN - 3, w + EAVE * 2, 3, T[1]); checker(g, -EAVE, y + CORN - 5, w + EAVE * 2, 2, T[1], 0, 2);
+  box(g, -EAVE, y, 2, CORN, T[4]); box(g, w + EAVE - 3, y, 3, CORN, T[2]);
+  for (let x = 4 - EAVE; x < w + EAVE - 4; x += 16) box(g, x, y + 4, 3, 2, T[2]);
+  return y;
+};
+
+/** A shop's roof, over its wall (drawn after the wall: the cornice laps its top). */
+const paintRoof = (g: Ctx, sh: Shop, T: string[], glass: string[]) => {
+  const { w, h } = sh;
+  if (sh.roof === 'flat') {
+    // (a parapet: a coping lit along its top, its face banded, the shadow under it)
+    box(g, 0, -h + 2, w, 4, 'rgba(20, 12, 36, 0.3)'); checker(g, 0, -h + 6, w, 2, 'rgba(20, 12, 36, 0.3)', 0, 2);
+    box(g, -8, -h - 10, w + 16, 12, INK); box(g, -7, -h - 9, w + 14, 10, T[3]); box(g, -7, -h - 9, w + 14, 2, T[5]); box(g, -7, -h - 1, w + 14, 2, T[1]);
+    box(g, -7, -h - 9, 2, 10, T[4]); box(g, w + 4, -h - 9, 3, 10, T[2]);
+    return;
+  }
+  const top = sh.roof === 'boomerang' ? -h : cornice(g, w, h, T);
+  if (sh.roof === 'boomerang') {
+    // (a folded plate: a thick slab swept up to a point off-center, its eaves out past the walls; the gable under it
+    // glazed, mullioned, the hour in its glass; it all sits on the cornice)
+    const L = -BOOM.out, R = w + BOOM.out, px = Math.round(w * BOOM.peak), ey = -h - CORN + 4, py = ey - BOOM.rise, t = BOOM.plate;
+    const under = (x: number) => (x < px ? ey + ((py + t) - ey) * ((x - L) / (px - L)) : ey + ((py + t) - ey) * ((R - x) / (R - px)));
+    // the glazed gable, from the cornice up to the plate's underside
+    poly(g, [[0, ey], [0, under(0)], [px, py + t], [w, under(w)], [w, ey]], INK);
+    poly(g, [[1, ey], [1, under(1) + 1], [px, py + t + 1], [w - 1, under(w - 1) + 1], [w - 1, ey]], glass[1]);
+    g.save(); g.beginPath(); g.moveTo(1, ey); g.lineTo(1, under(1)); g.lineTo(px, py + t); g.lineTo(w - 1, under(w - 1)); g.lineTo(w - 1, ey); g.closePath(); g.clip();
+    box(g, 0, py, w, ey - py - 14, glass[2]); checker(g, 0, ey - 16, w, 2, glass[2], 0, 2);
+    g.fillStyle = 'rgba(255,255,255,0.18)'; g.beginPath(); g.moveTo(px - 30, ey); g.lineTo(px - 18, ey); g.lineTo(px + 10, py); g.lineTo(px - 2, py); g.fill();
+    for (let x = 14; x < w; x += 16) { box(g, x - 1, py, 3, ey - py, INK); box(g, x, py, 1, ey - py, CHROME[4]); }
+    box(g, 0, ey - 18, w, 2, CHROME[3]);
+    g.restore();
+    // the plate: inked, its face in the trim's ramp, lit along the top edge, shaded along the underside; its cut ends
+    poly(g, [[L - 2, ey + 2], [L - 2, ey - t - 1], [px, py - 2], [R + 2, ey - t - 1], [R + 2, ey + 2], [px, py + t + 2]], INK);
+    poly(g, [[L, ey], [L, ey - t + 1], [px, py], [R, ey - t + 1], [R, ey], [px, py + t]], T[3]);
+    poly(g, [[L, ey - t + 1], [px, py], [px, py + 3], [L, ey - t + 4]], T[5]);
+    poly(g, [[px, py], [R, ey - t + 1], [R, ey - t + 3], [px, py + 2]], T[4]);
+    poly(g, [[L, ey - 2], [px, py + t - 2], [R, ey - 2], [R, ey], [px, py + t], [L, ey]], T[1]);
+    box(g, L, ey - t + 1, 3, t - 1, T[4]); box(g, R - 3, ey - t + 1, 3, t - 1, T[2]);
+    for (let k = 0.12; k < 1; k += 0.14) box(g, L + (px - L) * k - 1, ey - t + 1 + (py - (ey - t + 1)) * k + 4, 2, 2, lit() ? '#FFF3B0' : T[2]);
+    for (let k = 0.12; k < 1; k += 0.14) box(g, px + (R - px) * k - 1, py + ((ey - t + 1) - py) * k + 4, 2, 2, lit() ? '#FFF3B0' : T[2]);
+    // the cornice it sits on (over the gable's foot, under the plate's ends)
+    box(g, 0, -h + 4, w, 5, 'rgba(20, 12, 36, 0.32)'); checker(g, 0, -h + 9, w, 2, 'rgba(20, 12, 36, 0.32)', 0, 2);
+    box(g, -1, ey - 1, w + 2, CORN + 2, INK); box(g, 0, ey, w, CORN, CHROME[3]); box(g, 0, ey, w, 2, CHROME[5]); box(g, 0, ey + CORN - 3, w, 3, CHROME[1]);
+  } else if (sh.roof === 'dome') {
+    // (a dome on a drum: the drum a chrome band, portholes round it; the dome in stepped shells, ribbed, a glint, a
+    // little spire with a ball on it)
+    const r = w / 2 - 14, cx = w / 2, dy = top - 10;
+    box(g, cx - r - 4, dy - 1, r * 2 + 8, 11, INK); box(g, cx - r - 3, dy, r * 2 + 6, 10, CHROME[3]); box(g, cx - r - 3, dy, r * 2 + 6, 2, CHROME[5]); box(g, cx - r - 3, dy + 7, r * 2 + 6, 3, CHROME[1]);
+    for (let k = -3; k <= 3; k++) { const ox = cx + k * r * 0.26; box(g, ox - 2, dy + 3, 4, 4, INK); box(g, ox - 1, dy + 4, 2, 2, lit() ? '#FFE8A0' : glass[3]); }
+    g.fillStyle = INK; g.beginPath(); g.arc(cx, dy, r + 2, Math.PI, 0); g.fill();
+    for (let k = 0; k < 5; k++) { g.fillStyle = T[1 + Math.min(4, k)]; g.beginPath(); g.ellipse(cx - k * r * 0.07, dy - k * r * 0.04, r * (1 - k * 0.17), r * (1 - k * 0.15), 0, Math.PI, 0); g.fill(); }
+    g.save(); g.beginPath(); g.arc(cx, dy, r, Math.PI, 0); g.clip();
+    for (let k = 1; k < 5; k++) checker(g, cx - r, dy - r * (1 - k * 0.15) - 1, r * 2, 2, T[k], 0, 2);
+    g.strokeStyle = T[1]; g.lineWidth = 1; for (let k = 1; k < 6; k++) { const a = Math.PI + (k * Math.PI) / 6; g.beginPath(); g.moveTo(cx, dy - r); g.quadraticCurveTo(cx + Math.cos(a) * r * 0.7, dy + Math.sin(a) * r * 0.9, cx + Math.cos(a) * r, dy); g.stroke(); }
+    g.restore();
+    box(g, cx - r * 0.45, dy - r * 0.7, 6, 3, T[5]);
+    chromePole(g, cx, dy - r - 22, dy - r + 3, 3);
+    ball(g, cx, dy - r - 24, 4, '#F0C840');
+  } else if (sh.roof === 'fin') {
+    // (a fin up the right end: a thick blade set in a chrome shoe on the cornice, its edge lit, its face shaded across,
+    // a starburst on its tip)
+    const f0 = w - 56, f1 = w - 6, tx = w - 22, ty = top - 100;
+    poly(g, [[f0 - 2, top + 1], [tx - 1, ty - 3], [tx + 3, ty - 2], [f1 + 2, top + 1]], INK);
+    poly(g, [[f0, top], [tx, ty], [f1, top]], T[3]);
+    poly(g, [[f0, top], [tx, ty], [tx - 4, top]], T[4]); poly(g, [[f0, top], [tx, ty], [f0 + 6, top]], T[5]);
+    poly(g, [[tx, ty], [f1, top], [f1 - 6, top]], T[1]); poly(g, [[tx, ty], [f1 - 6, top], [f1 - 12, top]], T[2]);
+    for (let k = 1; k < 5; k++) box(g, f0 + (tx - f0) * (k / 5) + 6, top + (ty - top) * (k / 5) + 8, 2, 2, lit() ? '#FFF3B0' : T[5]);
+    box(g, f0 - 4, top - 5, f1 - f0 + 8, 6, INK); box(g, f0 - 3, top - 4, f1 - f0 + 6, 4, CHROME[3]); box(g, f0 - 3, top - 4, f1 - f0 + 6, 1, CHROME[5]);
+    starburst(g, tx, ty - 6, 13);
+  } else if (sh.roof === 'saucer') {
+    // (a saucer up on a stalk over the roof, the stalk's shoe bolted down on the cornice; its rim of bulbs; its dome)
+    const sy = top - 46;
+    box(g, w / 2 - 12, top - 5, 24, 6, INK); box(g, w / 2 - 11, top - 4, 22, 4, CHROME[3]); box(g, w / 2 - 11, top - 4, 22, 1, CHROME[5]);
+    chromePole(g, w / 2, sy, top - 4, 8);
+    g.fillStyle = INK; g.beginPath(); g.ellipse(w / 2, sy, w / 2 - 6, 17, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = T[1]; g.beginPath(); g.ellipse(w / 2, sy, w / 2 - 8, 15, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = T[2]; g.beginPath(); g.ellipse(w / 2, sy - 2, w / 2 - 9, 11, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = T[3]; g.beginPath(); g.ellipse(w / 2, sy - 4, w / 2 - 12, 9, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = T[4]; g.beginPath(); g.ellipse(w / 2 - 10, sy - 7, w / 4, 4, 0, 0, Math.PI * 2); g.fill();
+    box(g, w / 2 - (w / 2 - 8), sy, (w / 2 - 8) * 2, 2, T[1]);
+    for (let k = -4; k <= 4; k++) box(g, w / 2 + (k * (w / 2 - 16)) / 4.5 - 1, sy + 3, 3, 3, lit() ? '#FFF3B0' : T[5]);
+    g.fillStyle = INK; g.beginPath(); g.arc(w / 2, sy - 10, 13, Math.PI, 0); g.fill();
+    g.fillStyle = glass[2]; g.beginPath(); g.arc(w / 2, sy - 10, 11, Math.PI, 0); g.fill();
+    g.fillStyle = glass[4]; g.beginPath(); g.arc(w / 2 - 3, sy - 13, 6, Math.PI, 0); g.fill(); box(g, w / 2 - 6, sy - 17, 3, 2, '#FFFFFF');
+  }
+};
+
+/** A roof's side going back (with the wall's: drawSides), from the play plane at the wall's end x = e: the cornice's
+ *  end, the boomerang's plate (its slope, its cut end). */
+const roofSide = (c: Ctx, eye: { x: number; y: number }, b: Block, side: 1 | -1 | 0, d: number) => {
+  if (!b.roof || b.roof === 'flat') return;
+  const T = ramp6(b.trim ?? b.col), w = b.x1 - b.x0, h = b.bottom - b.top, ey = b.top - CORN + 4;
+  const q = (pts: [number, number][], col: string) => poly(c, [...pts, ...pts.slice().reverse().map(([x, y]) => at(eye, x, y, d))], col);
+  if (b.roof === 'boomerang') {
+    if (!side) return;
+    const e = side > 0 ? b.x1 + BOOM.out : b.x0 - BOOM.out, px = b.x0 + Math.round(w * BOOM.peak), py = ey - BOOM.rise, t = BOOM.plate;
+    if (eye.y < py) q([[e, ey - t + 1], [px, py]], T[4]);
+    else q([[e, ey], [px, py + t]], T[1]);
+    q([[e, ey - t + 1], [e, ey]], T[2]);
+    const [ax, ay] = at(eye, e, ey - t + 1, d), [bx, by] = at(eye, px, py, d), [cx2, cy2] = at(eye, e, ey, d);
+    c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(bx, by); c.lineTo(ax, ay); c.lineTo(cx2, cy2); c.stroke();
+    void h;
+    return;
+  }
+  if (side) q([[side > 0 ? b.x1 + EAVE : b.x0 - EAVE, ey], [side > 0 ? b.x1 + EAVE : b.x0 - EAVE, ey + CORN]], T[2]);
+  if (eye.y > ey + CORN) q([[b.x0 - EAVE, ey + CORN], [b.x1 + EAVE, ey + CORN]], T[0]);
+  else if (eye.y < ey) q([[b.x0 - EAVE, ey], [b.x1 + EAVE, ey]], T[4]);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // A shop's front
 
 /** A shop's front, painted flat in its own coordinates: its foot at (0, 0), x across 0..w. */
 export const paintShopFront = (g: Ctx, sh: Shop) => {
   const { w, h } = sh, R = ramp6(sh.wall), T = ramp6(sh.trim), glass = glassOf(), seed = sh.name.length * 13 + w;
-  // The roof (behind the boards: they're drawn last)
-  if (sh.roof === 'boomerang') {
-    // (a boomerang: two wings up to a point off-center, its underside shaded, its edge lit)
-    const px0 = w * 0.35;
-    poly(g, [[-32, -h + 6], [px0, -h - 42], [w + 32, -h + 6], [px0, -h - 22]], INK);
-    poly(g, [[-28, -h + 3], [px0, -h - 38], [w + 28, -h + 3], [px0, -h - 24]], T[3]);
-    poly(g, [[-28, -h + 3], [px0, -h - 24], [w + 28, -h + 3], [px0, -h - 18]], T[1]);
-    poly(g, [[-28, -h + 3], [px0, -h - 38], [px0, -h - 34], [-22, -h + 1]], T[5]);
-    for (let k = 0.15; k < 1; k += 0.17) box(g, -28 + (px0 + 28) * k, -h + 3 - 41 * k, 2, 2, lit() ? '#FFF3B0' : T[4]);
-  } else if (sh.roof === 'dome') {
-    // (a dome: stepped bands, ribs, a glint, a little spire)
-    const r = w / 2 - 8, cx = w / 2;
-    g.fillStyle = INK; g.beginPath(); g.arc(cx, -h, r + 2, Math.PI, 0); g.fill();
-    for (let k = 0; k < 4; k++) { g.fillStyle = T[1 + k]; g.beginPath(); g.arc(cx - k * r * 0.08, -h, r * (1 - k * 0.2), Math.PI, 0); g.fill(); }
-    g.strokeStyle = T[1]; g.lineWidth = 1; for (let k = 1; k < 6; k++) { const a = Math.PI + (k * Math.PI) / 6; g.beginPath(); g.moveTo(cx, -h - r); g.quadraticCurveTo(cx + Math.cos(a) * r * 0.7, -h + Math.sin(a) * r * 0.9, cx + Math.cos(a) * r, -h); g.stroke(); }
-    box(g, cx - r * 0.45, -h - r * 0.7, 6, 3, T[5]);
-    chromePole(g, cx, -h - r - 22, -h - r + 2, 3);
-    ball(g, cx, -h - r - 24, 4, '#F0C840');
-  } else if (sh.roof === 'fin') {
-    // (a fin up the right end, a starburst on its tip)
-    poly(g, [[w - 52, -h], [w - 20, -h - 104], [w - 4, -h]], INK);
-    poly(g, [[w - 48, -h], [w - 21, -h - 98], [w - 8, -h]], T[3]);
-    poly(g, [[w - 48, -h], [w - 21, -h - 98], [w - 30, -h]], T[4]);
-    poly(g, [[w - 21, -h - 98], [w - 8, -h], [w - 14, -h]], T[1]);
-    starburst(g, w - 20, -h - 106, 13);
-  } else if (sh.roof === 'saucer') {
-    // (a saucer up on a stalk over the roof, its rim of bulbs)
-    chromePole(g, w / 2, -h - 42, -h, 8);
-    g.fillStyle = INK; g.beginPath(); g.ellipse(w / 2, -h - 44, w / 2 - 8, 16, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = T[1]; g.beginPath(); g.ellipse(w / 2, -h - 44, w / 2 - 10, 14, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = T[3]; g.beginPath(); g.ellipse(w / 2, -h - 47, w / 2 - 12, 10, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = T[4]; g.beginPath(); g.ellipse(w / 2 - 10, -h - 50, w / 4, 4, 0, 0, Math.PI * 2); g.fill();
-    for (let k = -4; k <= 4; k++) box(g, w / 2 + k * (w / 2 - 16) / 4.5 - 1, -h - 42, 3, 3, lit() ? '#FFF3B0' : T[5]);
-    g.fillStyle = INK; g.beginPath(); g.arc(w / 2, -h - 54, 12, Math.PI, 0); g.fill(); g.fillStyle = '#BFE6FF'; g.beginPath(); g.arc(w / 2, -h - 54, 10, Math.PI, 0); g.fill(); box(g, w / 2 - 6, -h - 60, 3, 2, '#FFFFFF');
-  } else {
-    // (a parapet: a coping lit along its top, its face banded)
-    box(g, -8, -h - 10, w + 16, 12, INK); box(g, -7, -h - 9, w + 14, 10, T[3]); box(g, -7, -h - 9, w + 14, 2, T[5]); box(g, -7, -h - 1, w + 14, 2, T[1]);
-  }
   // The wall: stucco, stepped; louvers up its top (the googie sunshade) if there's room
   box(g, -2, -h - 2, w + 4, h + 2, INK);
   slab(g, 0, -h, w, h, R);
@@ -189,6 +276,8 @@ export const paintShopFront = (g: Ctx, sh: Shop) => {
   // (the trim band, lit along its top; a row of studs)
   box(g, 0, -h + 22, w, 9, INK); box(g, 0, -h + 23, w, 7, T[3]); box(g, 0, -h + 23, w, 2, T[5]); box(g, 0, -h + 29, w, 1, T[1]);
   for (let x = 6; x < w - 4; x += 14) box(g, x, -h + 25, 2, 2, T[5]);
+  // The roof, on the wall (behind the boards: they're drawn last)
+  paintRoof(g, sh, T, glass);
   // The display window: a chrome frame, the glass by the hour (the sky in it, or lit warm), what they sell, glints
   const wx = 16, wy = -h + 44, ww = w - 90, wh = h - 60;
   box(g, wx - 3, wy - 3, ww + 6, wh + 6, INK); box(g, wx - 2, wy - 2, ww + 4, wh + 4, CHROME[4]); box(g, wx - 2, wy - 2, ww + 4, 1, CHROME[6]);
@@ -216,8 +305,16 @@ export const paintShopFront = (g: Ctx, sh: Shop) => {
   // The boards: the name up top, the joke under it (`signDrop`: brought down off the roofline, where a roof he stands
   // on has its lit lip over them)
   const dy = sh.signDrop ?? 0;
-  board(g, w / 2, -h + 12 + dy, sh.name, sh.nameBg ?? '#0F172A', sh.nameInk ?? '#FDE047', 8, 8, true);
-  if (sh.sub) board(g, (w - 70) / 2 + 12, -h + 50 + dy, sh.sub, '#FFFFFF', '#BE185D', 6, 5);
+  // (its name in its own lettering; too wide for the wall in it, the next style that fits)
+  const font = ([sh.font ?? 'chrome', 'chrome', 'small'] as Letter[]).find(f => boardSize(g, sh.name, 8, 8, f)[0] + 6 <= w - 4) ?? 'small';
+  board(g, w / 2, -h + 12 + dy, sh.name, sh.nameBg ?? '#0F172A', sh.nameInk ?? '#FDE047', 8, 8, true, font);
+  if (sh.sub) {
+    // (screwed to the wall: never wider than it, or hanging off its end over nothing; too long, it goes on two lines)
+    let sub = sh.sub, [bw] = boardSize(g, sub, 6, 5, 'small');
+    if (bw + 6 > w - 12) { sub = twoLines(sub); [bw] = boardSize(g, sub, 6, 5, 'small'); }
+    const half = bw / 2 + 3, cx = Math.max(6 + half, Math.min(w - 6 - half, (w - 70) / 2 + 12));
+    board(g, Math.round(cx), -h + 50 + dy + (sub.includes('\n') ? 5 : 0), sub, '#FFFFFF', '#BE185D', 6, 5, false, 'small');
+  }
   void mix;
 };
 
@@ -228,4 +325,4 @@ export const drawShopFront = (c: Ctx, state: GameState, sh: Shop, y: number) => 
 };
 /** The shops' blocks; their roofs' tops going back only where he can stand on them (`flatTops`: those with a roof
  *  ledge), the rest left without (a top lit like a ledge would read as one). */
-export const shopBlocks = (shops: Shop[], gy: number, flatTops = false): Block[] => shops.map(s => ({ x0: s.x, x1: s.x + s.w, top: gy - s.h, bottom: gy, col: s.wall, noTop: !(flatTops && s.roof === 'flat') }));
+export const shopBlocks = (shops: Shop[], gy: number, flatTops = false): Block[] => shops.map(s => ({ x0: s.x, x1: s.x + s.w, top: gy - s.h, bottom: gy, col: s.wall, noTop: !(flatTops && s.roof === 'flat'), roof: s.roof, trim: s.trim }));
