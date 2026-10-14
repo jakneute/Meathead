@@ -47,7 +47,7 @@ export const drawSquareBackdrop = (c: Ctx2, state: GameState) => {
 const SHOPS: Shop[] = [
   { x: X(560), w: 300, h: 170, wall: '#FBCFE8', trim: '#14B8A6', roof: 'boomerang', name: "ATOMIC ANNIE'S GIFT SHOPPE", sub: 'SOUVENIR URANIUM: NOT REAL (PROBABLY)' },
   { x: X(1460), w: 230, h: 150, wall: '#CCFBF1', trim: '#F472B6', roof: 'flat', name: "TOMORROW'S RESTROOMS", sub: 'OUT OF ORDER SINCE 1987' },
-  { x: X(2880), w: 260, h: 180, wall: '#FEF3C7', trim: '#0EA5E9', roof: 'saucer', name: 'THE PHONE OF THE FUTURE', sub: 'SEE WHO YOU CALL! 25 CENTS. NO DIAL TONE.' },
+  { x: X(2960), w: 216, h: 180, wall: '#FEF3C7', trim: '#0EA5E9', roof: 'saucer', name: 'THE PHONE OF THE FUTURE', sub: 'SEE WHO YOU CALL! 25 CENTS. NO DIAL TONE.' },
   { x: X(3200), w: 300, h: 200, wall: '#E0E7FF', trim: '#F97316', roof: 'fin', name: 'SATELLITE BURGER', sub: 'NOW WITH REAL MEAT FLAVOR' },
   { x: X(4100), w: 330, h: 190, wall: '#E2E8F0', trim: '#8B5CF6', roof: 'dome', name: 'HALL OF ROBOT BUTLERS', sub: 'CLOSED AFTER THE INCIDENT' },
   { x: X(5560), w: 260, h: 200, wall: '#FCE7F3', trim: '#22C55E', roof: 'boomerang', name: 'ROCKET POPS', sub: '$11. NO REFUNDS IN SPACE.' },
