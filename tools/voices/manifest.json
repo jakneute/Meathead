@@ -25906,6 +25906,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GRAB ONE OF HER BRATS. THROW IT AT HER. NOT AT MY PANTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "GRACKLE CRACKLE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -31771,6 +31776,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RETURN TO SENDER. GRAB ONE AND SEND IT BACK.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "RHINO! RIGHT IN THE TAINT!",
   "from": "ADVENTURE"
  },
@@ -32328,6 +32338,16 @@
   "voice": "meathead",
   "text": "SHE'S OUT!",
   "from": "FOR_A_WOMAN"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE'S TOUGH. HER KIDS AREN'T. THROW ONE AT MOMMY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE'S TOUGH. HER KIDS AREN'T. THROW ONE AT MOMMY. I'M ALREADY NAKED.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -35468,6 +35488,11 @@
   "voice": "meathead",
   "text": "THOSE HORNS ARE WIDER THAN MY LATS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THOSE LITTLE SHITS ARE HERS. CHUCK ONE BACK AT HER.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
