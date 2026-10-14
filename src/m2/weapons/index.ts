@@ -58,7 +58,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   },
   CROSSBOW: {
     name: 'CROSSBOW OF PLAGUES', from: 'ADVENTURE LAND',
-    controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: RAPID FIRE' }, { pad: ['DPAD_UP', 'X'], kb: ['W'], mouse: 'left', join: '+', label: 'AIM UP' }, { pad: ['DPAD_DOWN', 'X'], kb: ['S'], mouse: 'left', join: '+', label: 'IN THE AIR: AIM DOWN (OVER SHIELDS)' }],
+    controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: RAPID FIRE' }, { pad: ['DPAD_UP', 'X'], kb: ['W'], mouse: 'left', join: '+', label: 'AIM UP' }, { pad: ['DPAD_DOWN', 'X'], kb: ['S'], mouse: 'left', join: '+', label: 'IN THE AIR: AIM DOWN' }],
     description: "Darts dipped in something the tour guide warned us about. Keep sticking a guy and he projectile vomits on whoever's closest. Then they're next. The big ones take more darts.",
   },
   SOUL_SUCKER: {
