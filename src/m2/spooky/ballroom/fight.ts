@@ -29,6 +29,7 @@
 // his powers go out and he drops out of the air in a belly flop, his trousers down round his ankles, rear up in his
 // bat boxers, and the disco ball comes down on it. Satan takes his soul either way.
 
+import { paintSatan, drawSatanFace } from '../hell/satanArt';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -155,6 +156,8 @@ export interface Fight {
   staggerAt: number;
   /** The wrong souvenirs: how many have hit him, when Meathead last had a think about it out loud. */
   wrongN: number; hintAt: number;
+  /** He's knocked a guest loose off him with a charge (so he knows): no more hints about it. */
+  knockedLoose: boolean;
   said: string | null; satanSaid: string | null; nagT: number; tauntT: number;
   /** What a souvenir did to him this frame (the launcher tells us: its hit hook). */
   souvenir: { id: string } | null;
@@ -246,7 +249,7 @@ export const startFight = (state: GameState): Fight => {
   const f: Fight = {
     hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, total: 0, x: CORNER_X, y: GY, vx: 0, vy: 0, facing: -1,
     intro: 'plead', introT: 0, skipT: 0, admireT: 0, circle: 0, powered: false, dive: null, mark: null, held: null,
-    guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0, staggerAt: -99999, wrongN: 0, hintAt: -99999,
+    guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0, staggerAt: -99999, wrongN: 0, hintAt: -99999, knockedLoose: false,
     said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove,
     death: null, deathSaid: 0, cam: null, wigOff: null, e,
     beat: null, beatOn: false, beatEnd: -9999, beatsDone: new Set(), guestKills: 0,
@@ -437,6 +440,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       // (up off the floor with them, the fangs in, them going gray and thin; a husk drops)
       const g = f.prey!;
       f.y += (GY - 40 - f.y) * 0.08;
+      // (him, a beat in, till he's done it once: knock him off them)
+      if (f.t === 24 && !f.knockedLoose && f.total - f.hintAt > HINT_GAP) { f.hintAt = f.total; meatheadSays(state, pick(L.MEATHEAD_CHARGE_HINT), false); }
       g.t++;
       // (a little back with every gulp, while it lasts: a charge into him knocks the guest loose and stops it)
       if (f.t % 14 === 0 && f.hp > 0) {
@@ -663,7 +668,7 @@ const plainHit = (state: GameState, melee: boolean): number | null => {
 const stagger = (state: GameState, f: Fight) => {
   const dir = pmid(state).x < f.x ? 1 : -1;
   // (the guest he had, or was after, gets away; and he won't go after that one again)
-  if (f.prey) { f.prey.state = 'run'; f.prey.y = GY; f.prey.spared = true; f.prey = null; bark(f, L.DONNIE_HURT); }
+  if (f.prey) { f.prey.state = 'run'; f.prey.y = GY; f.prey.spared = true; f.prey = null; f.knockedLoose = true; bark(f, L.DONNIE_HURT); }
   f.staggerAt = f.total;
   f.dive = null; f.mark = null;
   f.vx = dir * 7; f.vy = -4;
@@ -840,6 +845,21 @@ const runBeat = (f: Fight) => {
 
 /** The circle in the floor: a ring of fire, the light up out of it (stepped columns), him in the light (horns, eyes).
  *  World space. */
+/** Satan's painting from hell, darkened and reddened (a shadow of him in the light up out of the floor), once. */
+const SATAN_SCALE = 0.58;
+let shade: HTMLCanvasElement | null = null;
+const satanShade = () => {
+  if (shade) return shade;
+  shade = document.createElement('canvas'); shade.width = 880; shade.height = 740;
+  const g = shade.getContext('2d')!;
+  g.translate(440, 90); paintSatan(g); g.setTransform(1, 0, 0, 1, 0, 0);
+  g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(40, 0, 0, 0.55)'; g.fillRect(0, 0, 880, 740);
+  // (fading out down to nothing where he comes up out of the floor)
+  g.globalCompositeOperation = 'destination-out';
+  const fade = g.createLinearGradient(0, 380, 0, 740); fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(1, 'rgba(0,0,0,1)');
+  g.fillStyle = fade; g.fillRect(0, 380, 880, 360);
+  return shade;
+};
 const drawCircle = (c: Ctx, k: number, fr: number) => {
   if (k <= 0) return;
   const x = CIRCLE_X, rx = 110 * k, ry = 16 * k, cy = GY - 4;
@@ -849,18 +869,18 @@ const drawCircle = (c: Ctx, k: number, fr: number) => {
     c.fillStyle = `rgba(220, 38, 38, ${a.toFixed(3)})`; c.fillRect(l + 2, GY - 420, w - 4, 420);
     checker(c, l, GY - 420, 2, 420, `rgba(220, 38, 38, ${a.toFixed(3)})`); checker(c, l + w - 2, GY - 420, 2, 420, `rgba(220, 38, 38, ${a.toFixed(3)})`, 1);
   }
-  // (him, in it: the head, the horns, the eyes, enormous and faint)
+  // (him, in it: Satan as he is down in hell (his own painting), enormous and faint in the light, darkened to a shadow of
+  // himself, the eyes burning through)
   if (k > 0.5) {
     const a = (k - 0.5) * 2 * (0.7 + 0.3 * Math.sin(fr * 0.05));
-    c.fillStyle = `rgba(20, 0, 0, ${(0.5 * a).toFixed(2)})`;
-    c.beginPath(); c.ellipse(x, GY - 250, 90, 110, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = `rgba(40, 0, 0, ${(0.6 * a).toFixed(2)})`;
-    for (const s of [-1, 1]) { c.beginPath(); c.moveTo(x + s * 50, GY - 320); c.lineTo(x + s * 96, GY - 368); c.lineTo(x + s * 84, GY - 420); c.lineTo(x + s * 74, GY - 372); c.lineTo(x + s * 30, GY - 334); c.closePath(); c.fill(); }
-    for (const s of [-1, 1]) {
-      c.fillStyle = `rgba(180, 83, 9, ${(0.8 * a).toFixed(2)})`; c.fillRect(Math.round(x + s * 34 - 16), GY - 276, 32, 12);
-      c.fillStyle = `rgba(253, 224, 71, ${(0.9 * a).toFixed(2)})`; c.fillRect(Math.round(x + s * 34 - 12), GY - 274, 24, 8);
-      c.fillStyle = `rgba(20, 0, 0, ${(0.9 * a).toFixed(2)})`; c.fillRect(Math.round(x + s * 34 - 2), GY - 274, 4, 8);
-    }
+    const img = satanShade(), S = SATAN_SCALE, top = GY - 440 + Math.sin(fr * 0.03) * 4;
+    c.save();
+    c.beginPath(); c.rect(x - 300, GY - 460, 600, 450); c.clip();
+    c.globalAlpha = Math.min(1, a * 0.85);
+    c.drawImage(img, Math.round(x - 440 * S), Math.round(top - 90 * S), Math.round(880 * S), Math.round(740 * S));
+    c.globalAlpha = Math.min(1, a);
+    c.translate(x, top); c.scale(S, S); drawSatanFace(c, fr, false);
+    c.restore();
   }
   // (the ring: the hole, in steps down to the fire in it; flames round its edge, inked)
   const ring = (kx: number, ky: number, col: string) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, cy, rx * kx, ry * ky, 0, 0, Math.PI * 2); c.fill(); };

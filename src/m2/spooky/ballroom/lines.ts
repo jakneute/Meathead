@@ -194,6 +194,13 @@ export const SATAN_CLAIM: ByPants = {
 };
 /** Meathead, when a souvenir out of the launcher bounces off Donnie without much to show for it: something in that
  *  bag has to work on a vampire (it's the little Christ the Redeemer; he doesn't say so). */
+/** Meathead, Donnie drinking a guest (healing off them), till he's knocked one loose with a charge: the hint. */
+export const MEATHEAD_CHARGE_HINT = [
+  "HE'S HEALING OFF THAT GUY. RAM HIM!",
+  'GET OFF HIM, YOU LEECH! I SHOULD TACKLE YOU OFF!',
+  "HE'S DRINKING HIS HEALTH BACK. KNOCK HIM OFF THAT GUY!",
+  'A RUNNING HIT. THAT GETS A FAT BAT OFF A NECK.',
+];
 export const MEATHEAD_SOUVENIR_HINT = [
   "THERE'S GOTTA BE SOMETHING IN THIS BAG THAT WORKS ON A VAMPIRE.",
   'HE SHRUGGED THAT OFF. WHAT DO VAMPIRES HATE?',
@@ -216,7 +223,7 @@ export const HURT_BLOOD = ["HE SPIT SOMEBODY ELSE'S BLOOD AT ME!", "IT'S IN MY M
 export const DEATH_BLOOD = ['HOSED DOWN', 'DROWNED IN SECONDHAND BLOOD', 'SPRAYED'];
 
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...MEATHEAD_WON, ...MEATHEAD_WON_WEAK, ...MEATHEAD_SOUVENIR_HINT, ...HURT_DRAIN, ...HURT_BLOOD],
+  meathead: [...MEATHEAD_WON, ...MEATHEAD_WON_WEAK, ...MEATHEAD_SOUVENIR_HINT, ...MEATHEAD_CHARGE_HINT, ...HURT_DRAIN, ...HURT_BLOOD],
   death: [...DEATH_DRAIN, ...DEATH_BLOOD],
   'm2.donnie': [
     ...[DONNIE_PLEAD, DONNIE_ENAMORED, DONNIE_SHOWOFF, DONNIE_SATAN_PANIC, DONNIE_GUEST, DONNIE_STUN, DONNIE_LOW, DONNIE_DIVE, DONNIE_DRAIN, DONNIE_ESCAPED, DONNIE_SNATCH, DONNIE_SPEW, DONNIE_HURT, DONNIE_REDEEMER, DONNIE_TAUNT, DONNIE_DIES, DONNIE_BURNS].flatMap(all),
