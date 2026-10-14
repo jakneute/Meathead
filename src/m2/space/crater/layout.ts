@@ -52,8 +52,8 @@ export const CATWALKS: [number, number, number][] = [
 export const CRATES: [number, number, number][] = [[D + 10560, 90, 74], [D + 11080, 110, 92], [D + 11500, 90, 74]];
 /** The animatronics' rigs: where, what kind of pop. */
 export type RigKind = 'floor' | 'ceiling' | 'wall' | 'crate';
-/** `hijack`: one the real ones would take over (an operator posted near it). None are now: the props are just the gag,
- *  BOO and back, never hostile; the real ones do the fighting. */
+/** `hijack`: one the real ones take over (an operator posted near it: see index.ts). Through the house the props are just
+ *  the gag, BOO and back; only at the end, in the corridor aft to the hold, right before her, do they take them over. */
 export const RIGS: { x: number; kind: RigKind; hijack?: boolean }[] = [
   { x: D + 5900, kind: 'crate' },
   { x: D + 7880, kind: 'ceiling' },
@@ -62,7 +62,8 @@ export const RIGS: { x: number; kind: RigKind; hijack?: boolean }[] = [
   { x: D + 9900, kind: 'crate' },
   { x: D + 10740, kind: 'ceiling' },
   { x: D + 11300, kind: 'wall' },
-  { x: D + 12050, kind: 'floor' },
+  { x: D + 12050, kind: 'floor', hijack: true },
+  { x: D + 12360, kind: 'ceiling', hijack: true },
 ];
 /** The ceiling's underside, indoors. */
 export const CEIL = GY - 440;

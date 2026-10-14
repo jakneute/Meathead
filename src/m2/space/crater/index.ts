@@ -61,8 +61,9 @@ const ENEMIES: [string, number, number, number][] = [
   // (THE ENGINE ROOM: everything at once)
   [GRUNT, CRATES[0][0] + CRATES[0][1] / 2, GY - CRATES[0][2], 1081], [CRAWLER, D + 10700, GY, 79], [BRUTE, D + 10960, GY, 83], [GRUNT, CRATES[1][0] + CRATES[1][1] / 2, GY - CRATES[1][2], 1085],
   [CRAWLER, D + 11260, GY, 89], [GRUNT, D + 11420, GY, 91], [BRUTE, D + 11960, GY, 95],
-  // (the corridor aft to the hold: no operator here; they've seen what he did on the way, and say so)
-  [GRUNT, D + 12220, GY, 97],
+  // (the corridor aft to the hold: the operators (headsets on), there to take the props over, right before her; and
+  // they've seen what he did on the way, and say so)
+  [GRUNT, D + 12220, GY, 1097], [GRUNT, D + 12440, GY, 1099],
 ];
 /** What's lying about (small: lean drops): [x, y (feet), type]. */
 const PICKUPS: [number, number, PickupType][] = [[PYLON.x + 60, PYLON.y, 'small_health'], [CATWALKS[1][0] + 40, CATWALKS[1][1], 'small_ammo'], [CRATES[2][0] + 45, GY - CRATES[2][2], 'small_health']];
