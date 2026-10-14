@@ -581,6 +581,8 @@ const startLeap = (state: GameState, h: Hunter, then: Mode) => {
 };
 
 /** After him: on his level, flat out; up or down after him; lost him (hidden, unseen), searching; gone, off. */
+/** Her top speed after him (px a frame). */
+const HUNT_TOP = 15.5;
 const hunting = (ctx: FrameContext, h: Hunter) => {
   const { state } = ctx, cx = pmid(state);
   if (h.hid >= 0 && h.hidT >= 0) { to(h, 'search'); h.path = [{ x: clampLvl(h, cx), stop: 140 }]; h.speed = 2; return; }
@@ -588,7 +590,9 @@ const hunting = (ctx: FrameContext, h: Hunter) => {
   const same = Math.abs(pfeet(state) - h.y) < 70;
   if (same || sees(state, h)) { h.lastSeen = state.frame; h.lastX = cx; }
   h.dir = cx < h.x ? -1 : 1;
-  const fast = h.finale ? 3.9 : 4.1;
+  // (seen, he's as good as dead: she gets up to speed in half a second, then outruns him, charging or not (his charge is
+  // 14 a frame); only the run up the stairs to the door is a chase he can win)
+  const fast = h.finale ? 3.9 : Math.min(HUNT_TOP, 5 + h.t * 0.35);
   if (!same && lv >= 0 && lv !== h.lvl && Math.abs(cx - h.x) < 260 && (lv === 0 || catwalkAt(cx))) { startLeap(state, h, 'hunt'); return; }
   const want = clampLvl(h, cx);
   if (Math.abs(want - h.x) > 3) h.x += Math.sign(want - h.x) * Math.min(fast, Math.abs(want - h.x));
