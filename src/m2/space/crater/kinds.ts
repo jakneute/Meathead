@@ -72,7 +72,18 @@ export const alienSays = (e: Enemy, text: string) => {
 const bark = (e: Enemy) => {
   if (!game) return;
   const pool = e.kind === FLEER ? L.FLEE : where(e) === 'house' ? L.HOUSE_BARK : L.CRASH_BARK;
-  alienSays(e, pick(pool[dressed(game)]));
+  const text = freshBark(pool[dressed(game)]);
+  if (text) alienSays(e, text);
+};
+/** What they've said this life: no alien says the same thing twice in one life (out of new things to say, they just
+ *  don't say anything). */
+let barked = new Set<string>();
+export const freshBark = (pool: readonly string[]) => {
+  const left = pool.filter(t => !barked.has(t));
+  if (!left.length) return null;
+  const t = pick(left);
+  barked.add(t);
+  return t;
 };
 /** Their words over their heads (world space, from the section's drawFront). */
 export const drawAlienSaid = (c: Ctx, state: GameState) => {
@@ -84,7 +95,7 @@ export const drawAlienSaid = (c: Ctx, state: GameState) => {
 
 interface Bolt { x: number; y: number; vx: number; t: number; from: Enemy }
 let bolts: Bolt[] = [];
-export const resetAliens = () => { bolts = []; said.clear(); hush = false; };
+export const resetAliens = () => { bolts = []; said.clear(); hush = false; barked = new Set(); };
 const BOLT_SPEED = 7.5, BOLT_DMG = 12, BOLT_LIFE = 140;
 
 const fire = (state: GameState, e: Enemy) => {

@@ -24,7 +24,7 @@ import { speak, meatheadSays, saidOver, box, label } from '../section';
 import { ink, limb } from '../../../m1/game/render/npc/kit';
 import { GY } from '../geometry';
 import { drawCheapGreen, shown } from './art';
-import { alienSays, GRUNT, BRUTE, isOperator, setOperating } from './kinds';
+import { alienSays, freshBark, GRUNT, BRUTE, isOperator, setOperating } from './kinds';
 import { RIGS, CEIL, type RigKind } from './layout';
 import * as L from './lines';
 
@@ -165,7 +165,8 @@ const pop = (state: GameState, r: Rig) => {
     if (r.mode !== 'gag') return;
     // (one of the real ones nearby, sore about it; or, now and then, him)
     const near = state.enemies.find(e => (e.kind === GRUNT || e.kind === BRUTE) && e.health > 0 && Math.abs(e.pos.x - r.x) < 520);
-    if (near && Math.random() < 0.75) alienSays(near, pick(L.GRIPE));
+    const gripe = near && Math.random() < 0.75 ? freshBark(L.GRIPE) : null;
+    if (near && gripe) alienSays(near, gripe);
     else if (Math.random() < 0.35) meatheadSays(state, pick(L.MH_JUMPSCARE), false);
   });
 };
