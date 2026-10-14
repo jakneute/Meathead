@@ -107,7 +107,9 @@ const DOOR_H = 300;
 let upHeld = false;
 /** Stood on the crate, under the lever. */
 const atLever = (cx: number, feet: number) => Math.abs(cx - LEVER_B.x) < 55 && Math.abs(feet - (GY - CRATES[0][2])) < 4;
-const tipAt = (dg: Dungeon, x: number) => { if (dg.room !== 'down') return dg.tip; const i = SECTS.findIndex(q => x >= q.a && x < q.b); return i < 0 ? dg.tip : dg.tips[i]; };
+/** (past either end of the chamber, the end section's: not the lowest of the lot, which a section the far side of the room
+ *  can be, and he'd be skewered by it stepping out the door) */
+const tipAt = (dg: Dungeon, x: number) => { if (dg.room !== 'down') return dg.tip; const cx = Math.max(RA, Math.min(RB - 1, x)); const i = SECTS.findIndex(q => cx >= q.a && cx < q.b); return i < 0 ? dg.tip : dg.tips[i]; };
 /**
  * His pose at the lever (Player.leverPull): reaching up and taking hold of the handle, hauling it down (sinking,
  * braced, straining), the jolt as it hits its stop, then letting go of it (a moment after, unless he's off first). His
