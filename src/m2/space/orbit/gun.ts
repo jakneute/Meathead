@@ -25,10 +25,10 @@ import { GUN_UPGRADE, MH_BEAM } from './lines';
 type Ctx = CanvasRenderingContext2D;
 
 /** Where (camera offset into the section) each level comes in; the beam's once the screen's stopped for the saucer. */
-export const LEVEL_AT = [0, 3200, 6800, 10400, 14000, ARENA_CAM - X0];
+export const LEVEL_AT = [0, 2000, 4200, 6400, 8800, ARENA_CAM - X0];
 export const MAX_LEVEL = 5;
 /** How far out the radiation first gets into it (the plain ray gun till then, at its own rate). */
-export const RAPID_AT = 1400;
+export const RAPID_AT = 800;
 export const levelAt = (off: number) => { let l = 0; for (let i = 0; i < LEVEL_AT.length; i++) if (off >= LEVEL_AT[i]) l = i; return l; };
 /** Frames between bolts, by level. */
 const COOLDOWN = [4, 3, 3, 3, 3, 3];
