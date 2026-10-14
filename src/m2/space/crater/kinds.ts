@@ -129,14 +129,17 @@ export const tickAliens = (ctx: FrameContext) => {
   });
   greenBlood(state);
 };
+/** The bolts, live (for the lighting: each one its own light, so they glow in the dark of the house). */
+export const liveBolts = () => bolts;
 export const drawBolts = (c: Ctx, f: number) => {
-  const Lz = ALIEN.laser;
   for (const b of bolts) {
-    const len = 22, x = Math.round(b.x - Math.sign(b.vx) * len), w = len;
-    const l = Math.min(x, x + Math.sign(b.vx) * w);
-    c.fillStyle = Lz[2]; c.fillRect(l, Math.round(b.y) - 3, w, 6);
-    c.fillStyle = Lz[4]; c.fillRect(l + 2, Math.round(b.y) - 2, w - 4, 4);
-    c.fillStyle = f % 4 < 2 ? Lz[6] : Lz[5]; c.fillRect(l + 4, Math.round(b.y) - 1, w - 8, 2);
+    // (a hot pink streak, inked, a white core, a pulsing halo: plain against the house's dark)
+    const len = 34, d = Math.sign(b.vx), y = Math.round(b.y), head = Math.round(b.x), l = Math.min(head, head - d * len);
+    c.fillStyle = 'rgba(244, 114, 182, 0.35)'; c.fillRect(l - 4, y - 8, len + 8, 16);
+    c.fillStyle = '#1A0B14'; c.fillRect(l - 1, y - 5, len + 2, 10);
+    c.fillStyle = '#EC4899'; c.fillRect(l, y - 4, len, 8);
+    c.fillStyle = '#F9A8D4'; c.fillRect(l + 2, y - 2, len - 4, 4);
+    c.fillStyle = f % 4 < 2 ? '#FFFFFF' : '#FDF2F8'; c.fillRect(d > 0 ? head - 14 : head + 2, y - 1, 12, 2);
   }
 };
 

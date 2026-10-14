@@ -29,6 +29,7 @@ import { GY } from '../geometry';
 import { drawCheapGreen, shown } from './art';
 import { type Rig, makeRigs, tickRigs, drawRigs, drawRigSaid, rigLights } from './rigs';
 import { PRESHOW, TRAMS, CEIL, HOUSE_DOOR, HALLS } from './layout';
+import { liveBolts } from './kinds';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -257,6 +258,8 @@ export const houseLighting = (state: GameState, h: House): SceneLight | null => 
   if (x < HOUSE_DOOR - 60) return null;
   const lights: Light[] = [];
   const add = (lx: number, ly: number, r: number, a: number, color?: string) => { if (shown(state, lx - r, lx + r)) lights.push({ x: lx, y: ly, r, a, color }); };
+  // (the soldiers' bolts: each its own pink light)
+  for (const b of liveBolts()) add(b.x, b.y, 70, 0.9, 'rgba(244, 114, 182, 0.35)');
   // (the shows' lights)
   for (let i = 0; i < 4; i++) add(HOUSE_DOOR + 190 + i * 220, GY - 230, 150, 0.6, 'rgba(250, 204, 21, 0.05)');
   add(PRESHOW.tube, GY - 200, 220, 0.7, 'rgba(56, 189, 248, 0.07)');
