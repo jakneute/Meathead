@@ -265,6 +265,6 @@ export const drawFloat = (c: Ctx, state: GameState, t: number) => {
   });
   const steady = smoothstep(0, 90, u);
   const rot = (1 - steady) * (CLOSE * 0.16 + u * 0.05) % (Math.PI * 2) * (1 - steady) + Math.sin(u * 0.03) * 0.08;
-  drawPuppet(c, state, { x: 400, y: 300 + Math.sin(u * 0.025) * 8, rot, s: 2.1, face: u < 40 ? 'shock' : undefined, suit: true });
+  drawPuppet(c, state, { x: 400, y: 300 + Math.sin(u * 0.025) * 8, rot, s: 2.1, face: 'shock', suit: true });
   flash(c, t, CLOSE);
 };
