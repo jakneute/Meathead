@@ -54,12 +54,13 @@ const load = (pa: Pa, id: string) => {
   pa.left = [...st.lines]; pa.reply = st.reply ? pickLine(st.reply) : null;
 };
 
-/** A story (by id: lines.ts PA), once a go. Something going: it waits its turn (only the newest waits). */
-export const paStory = (state: GameState, id: string) => {
+/** A story (by id: lines.ts PA), once a go. Something going: it waits its turn (only the newest waits). `now`: it
+ *  cuts in after the line being said (the rest of that story, and its say back, dropped). */
+export const paStory = (state: GameState, id: string, now = false) => {
   const pa = paOf(state);
   if (pa.done.has(id)) return;
   pa.done.add(id);
-  if (pa.busy) { pa.next = id; return; }
+  if (pa.busy) { pa.next = id; if (now) { pa.left = []; pa.reply = null; } return; }
   load(pa, id);
   sayNext(pa);
 };

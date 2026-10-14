@@ -1,16 +1,17 @@
-// The ride's tricks, from the sled (laid out in layout.ts; painted in art.ts). The show's (Robo-Butler, the laser
-// curtains, the rockets, the meteors lowered onto the track) only while the show's got power: once the MAIN BREAKER's
-// gone, they're dead. The warehouse's (the forklift's pallet, the ladder, the meteor on the hand hoist, the workers)
-// whatever. Each one, set off as the sled comes (once a go, reset every life), hits whoever's in the way: him, and
-// anybody else (hazardHit.ts). And the sled itself: anybody on the track ahead of it is run over.
-//   satellite  hung low over the track (duck)
-//   butler     the tray out across the track: the eyes light (the tell), out it swings, holds, back (rim-high: jump;
-//              head-high: duck)
-//   laser      a curtain of beams across the track: full (on and off: time it, on a bit or held back), or a band at head
-//              height (duck) or at the rim (jump)
-//   meteor     lowered onto the track ahead (it rattles first): sat there a moment, then hauled up. Jump it, or time it
-//   rocket     hung nose-up over the track, its exhaust down across it on a cycle (sputtering first): time it
-//   forklift   its pallet across the track, rim-high (jump)
+// The ride's obstacles, from the sled (laid out in layout.ts; painted in art.ts), and the sled's own SPACE BLASTER.
+// The show's (Robo-Butler, the lasers, the Martian cutouts, the asteroid) only while the show's got power: once the
+// MAIN BREAKER's gone, they're dead. The warehouse's (the forklift's pallet, the snack cases) and the hung ones
+// whatever. Every one's set by where the sled is (none on a timer: at the ride's fixed speed, what's cued is what
+// he gets), and hits whoever's in the way: him, and anybody else (hazardHit.ts). And the sled itself: anybody on the
+// track ahead of it is run over.
+//
+// How he's tested against them is measured up from the rail (rail-relative: a slope's the same as the flat):
+//   duck   a wall from CLEAR up: his head sat up's over it, ducked it's under
+//   jump   a hurdle up to HURDLE: the sled's wheels have to be over it all the way across
+//   blast  a big thing stood on the rail (taller than any jump): blasted to bits before he's there, or it's in his face
+//
+// The space blaster: a green bolt out of his gun, sat in the sled (fire). Not his gun's: no ammo, the same for all of
+// them. 25 a bolt (the ray gun's); it hurts anybody it hits too.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -19,10 +20,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hazardVictims, hazardHit, hazardKill, boxHits, setHazardZones, type Zone } from '../../hazardHit';
 import { registerHurtLines } from '../../kinds';
-import {
-  SATELLITES, BUTLERS, LASERS, LASER_CYCLE, LASER_ON, LASER_TELL, METEORS, ROCKETS, ROCKET_CYCLE, ROCKET_ON, ROCKET_TELL,
-  FORKLIFT_X, trackY, lightsOn,
-} from './layout';
+import { OBS, CUES, CUE_XS, type Ob, trackY, railLine, lightsOn } from './layout';
 import * as L from './lines';
 
 registerHurtLines('ride_satellite', L.HURT_SATELLITE, L.DEATH_SATELLITE);
@@ -30,155 +28,175 @@ registerHurtLines('ride_butler', L.HURT_BUTLER, L.DEATH_BUTLER);
 registerHurtLines('ride_pit', L.HURT_PIT, L.DEATH_PIT);
 registerHurtLines('ride_laser', L.HURT_LASER, L.DEATH_LASER);
 registerHurtLines('ride_meteor', L.HURT_METEOR, L.DEATH_METEOR);
-registerHurtLines('ride_rocket', L.HURT_ROCKET, L.DEATH_ROCKET);
 registerHurtLines('ride_forklift', L.HURT_FORKLIFT, L.DEATH_FORKLIFT);
+registerHurtLines('ride_martian', L.HURT_MARTIAN, L.DEATH_MARTIAN);
+registerHurtLines('ride_crates', L.HURT_CRATES, L.DEATH_CRATES);
 
 // ---------------------------------------------------------------------------------------------------------------
-// Timing and shape
+// Shape (all measured up from the rail)
 
-/** How far over the rail a satellite's bottom is (his head sat up's over that; ducked, under). */
-export const SAT_CLEAR = 66;
-/** Robo-Butler: cued with the sled this far off; the tell, the swing out, held out, back. Its tray's band over the
- *  rail (rim-high: the sled's rim; head-high: his head sat up). */
-export const BUTLER_CUE = 640, BUTLER_TELL = 40, BUTLER_OUT = 10, BUTLER_HOLD = 60, BUTLER_BACK = 24;
-export const trayBand = (high: boolean): [number, number] => (high ? [106, 64] : [56, 30]);
-export const butlerReach = (t: number) => {
-  if (t <= BUTLER_TELL) return 0;
-  let u = t - BUTLER_TELL;
-  if (u < BUTLER_OUT) return u / BUTLER_OUT;
-  u -= BUTLER_OUT;
-  if (u < BUTLER_HOLD) return 1;
-  u -= BUTLER_HOLD;
-  return Math.max(0, 1 - u / BUTLER_BACK);
-};
-/** A laser curtain's band over the rail (top, bottom). */
-export const laserBand = (kind: 'full' | 'high' | 'low'): [number, number] => (kind === 'full' ? [210, 0] : kind === 'high' ? [112, 62] : [52, 20]);
-/** A full curtain, on or off, and the tell before it comes on. Bands are always on. */
-export const laserAt = (kind: 'full' | 'high' | 'low', frame: number, phase: number) => {
-  if (kind !== 'full') return { on: true, tell: 0 };
-  const c = (frame + phase) % LASER_CYCLE, off = LASER_CYCLE - LASER_ON;
-  return c >= off ? { on: true, tell: 0 } : { on: false, tell: c >= off - LASER_TELL ? (c - off + LASER_TELL) / LASER_TELL : 0 };
-};
-export const rocketAt = (frame: number, phase: number) => {
-  const c = (frame + phase) % ROCKET_CYCLE, off = ROCKET_CYCLE - ROCKET_ON;
-  return c >= off ? { on: true, tell: 0 } : { on: false, tell: c >= off - ROCKET_TELL ? (c - off + ROCKET_TELL) / ROCKET_TELL : 0 };
-};
-export const ROCKET_TOP = 270, EXHAUST_W = 70;
-/** A meteor: cued this far off; the rattle, the drop, sat, hauled up; how high it hangs, its size. */
-export const MET_CUE = 620, MET_TELL = 30, MET_DROP = 10, MET_SIT = 80, MET_UP = 50, MET_HANG = 300, MET_R = 26;
-export const meteorAt = (t: number) => {
-  if (t <= 0) return { h: MET_HANG, falling: false, down: false, tell: 0 };
-  if (t < MET_TELL) return { h: MET_HANG, falling: false, down: false, tell: t / MET_TELL };
-  let u = t - MET_TELL;
-  if (u < MET_DROP) return { h: MET_HANG * (1 - (u / MET_DROP) ** 2), falling: true, down: false, tell: 0 };
-  u -= MET_DROP;
-  if (u < MET_SIT) return { h: 0, falling: false, down: true, tell: 0 };
-  u -= MET_SIT;
-  return { h: Math.min(MET_HANG, MET_HANG * (u / MET_UP)), falling: false, down: false, tell: 0 };
-};
-/** The forklift's pallet over the rail (top, bottom) and how wide. */
-export const PALLET: [number, number] = [52, 20];
+/** A duck-under's bottom edge (his head sat up's at 78, ducked 48). */
+export const CLEAR = 58;
+/** A hurdle's top. */
+export const HURDLE = 26;
+/** How tall a blast-it thing is (over anything he can jump: the jump's top is about 170). */
+export const BIG = 220;
+/** Half the width of each, along the track. */
+export const halfW = (o: Ob) => (o.kind === 'rock' ? 46 : o.kind === 'sat' ? 30 : o.kind === 'tray' ? 40 : o.verb === 'jump' ? 22 : 32);
 
-export interface Tricks { butler: number[]; meteor: number[]; smashed: Set<number>; hit: Set<string> }
-export const newTricks = (): Tricks => ({ butler: BUTLERS.map(() => 0), meteor: METEORS.map(() => 0), smashed: new Set(), hit: new Set() });
-export interface SledView { x: number; y: number; air: boolean; t: number }
+/** The sled's jump: up, and the pull down (about 63 frames in the air, 170 up at the top). */
+export const JUMP_V = 11, JUMP_G = 0.35;
+/** His box over the rail: his feet sat in it; his head sat up, ducked. The sled's wheels, from its middle. */
+const FEET = 14, HEAD_UP = 64, HEAD_DOWN = 34, SEAT_X = 26, WHEELS: [number, number] = [-50, 46];
+
+/** Robo-Butler's tray: how far out (0 tucked in, 1 across the track), by how far off the sled is. */
+export const trayReach = (d: number) => (d > -140 ? Math.max(0, Math.min(1, (620 - d) / 60)) : Math.max(0, 1 - (-140 - d) / 80));
+/** The asteroid: how high it hangs over the rail (lowered onto the track as the sled comes), by how far off. */
+export const ROCK_HANG = 330, ROCK_R = 46;
+export const rockHeight = (d: number) => (d > 610 ? ROCK_HANG : d > 560 ? ROCK_HANG * ((d - 560) / 50) ** 2 : 0);
+
+export interface Bolt { x: number; y: number; vx: number; life: number }
+export interface Bit { x: number; y: number; vx: number; vy: number; rot: number; col: string; w: number; h: number }
+export interface Tricks {
+  /** What's left of each blast-it one; which are in bits. */
+  hp: number[]; broken: Set<number>;
+  /** (once a pass: what's hit him) */
+  hit: Set<string>;
+  /** (the asteroid's come down: its thud's been) */
+  landed: Set<number>;
+  bolts: Bolt[]; cool: number; flash: number; bits: Bit[];
+  /** Frames since each one was blasted (its bits), the hits it's taken (a flash). */
+  hurtT: number[];
+}
+export const newTricks = (): Tricks => ({ hp: OBS.map(o => o.hp), broken: new Set(), hit: new Set(), landed: new Set(), bolts: [], cool: 0, flash: 0, bits: [], hurtT: OBS.map(() => 0) });
+export interface SledView { x: number; y: number; air: boolean; t: number; ducked: boolean; speed: number }
+
+/** Is it there, this go (the show's are dead once the breaker's gone; the blasted are in bits)? */
+export const obLive = (state: GameState, tr: Tricks, i: number) => !tr.broken.has(i) && (!OBS[i].show || !lightsOn(state));
+/** Is a cue's arrow lit: what it's about still to come, and near. */
+export const cueLive = (state: GameState, tr: Tricks, i: number, sledX: number) => {
+  const q = CUES[i];
+  if (q.ob >= 0 && !obLive(state, tr, q.ob)) return false;
+  return sledX < q.x + 20 && sledX > CUE_XS[i] - 900;
+};
 
 type Box = { x: number; y: number; w: number; h: number };
-const overlap = (a: Box, b: Box) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-const pBox = (state: GameState): Box => {
-  const p = state.player, low = p.isDucking ? 28 : 0;
-  return { x: p.pos.x + 4, y: p.pos.y + low, w: p.width - 8, h: p.height - low };
-};
-const tub = (s: SledView): Box => ({ x: s.x - 70, y: s.y - 44, w: 160, h: 40 });
 const canHurt = (state: GameState) => state.player.invincibilityTimer <= 0 && state.player.health > 0 && !state.player.inCutscene;
+
+const burst = (state: GameState, tr: Tricks, x: number, y: number, cols: string[], n: number, big = 1) => {
+  for (let k = 0; k < n; k++) tr.bits.push({ x: x + (Math.random() - 0.5) * 40 * big, y: y - Math.random() * 80 * big, vx: 1 + Math.random() * 8, vy: -3 - Math.random() * 7, rot: Math.random() * 6, col: cols[k % cols.length], w: 6 + Math.random() * 14 * big, h: 4 + Math.random() * 8 * big });
+  for (let k = 0; k < 10; k++) state.particles.push({ pos: { x, y: y - 40 }, vel: { x: (Math.random() - 0.3) * 8, y: -Math.random() * 6 }, life: 22, color: k % 2 ? '#BBF7D0' : '#FDE047', size: 2 + Math.random() * 2 });
+};
+const COLS: Record<string, string[]> = { martian: ['#4ADE80', '#A16207', '#D6D3D1', '#166534'], rock: ['#78350F', '#A8A29E', '#F97316', '#57534E'], crates: ['#A16207', '#FDE047', '#DC2626', '#D6D3D1'] };
+
+/** Blasts it to bits (a bolt's finished it, or he's gone through it). */
+const smash = (state: GameState, tr: Tricks, i: number) => {
+  const o = OBS[i], rail = trackY(o.x) ?? railLine(o.x);
+  tr.broken.add(i);
+  burst(state, tr, o.x, rail, COLS[o.kind] ?? COLS.crates, 18, o.kind === 'martian' ? 0.8 : 1.2);
+  playSound('crash', 0.9, o.kind === 'martian' ? 6 : -4); playSound((o.kind === 'martian' ? 'crack' : 'crumble'), 0.8);
+  shakeScreen(state, 6, 3);
+};
+
+/** Fires the space blaster (from his gun: `mx`, `my`), if it's ready. */
+export const fireBlaster = (tr: Tricks, mx: number, my: number, speed: number) => {
+  if (tr.cool > 0) return false;
+  tr.cool = 12; tr.flash = 5;
+  tr.bolts.push({ x: mx, y: my, vx: speed + 16, life: 30 });
+  playSound('raygun', 0.55, -7);
+  return true;
+};
 
 /** `first(kind)`: the first of that kind this go (he's got something to say, the first time). */
 export const runTricks = (ctx: FrameContext, tr: Tricks, s: SledView, first: (kind: string) => void) => {
-  const { state } = ctx, f = state.frame;
+  const { state } = ctx, p = state.player;
   const zones: Zone[] = [];
-  const me = pBox(state), body = tub(s);
-  const show = !lightsOn(state);
-  const cue = s.t > 60;
-  const near = (x: number, r = 900) => Math.abs(x - s.x) < r;
-  /** Whoever's in a box: him (`mine`: his box or the sled's), anybody else. A once-a-pass key for him. */
-  const hit = (key: string, box: Box, mine: Box, dmg: number, source: string, call: string) => {
-    if (canHurt(state) && !tr.hit.has(key) && overlap(mine, box)) {
-      tr.hit.add(key); hurtPlayer(ctx, dmg, source); shakeScreen(state, 8, 4); playSound('punch', 0.9);
-    }
-    for (const e of hazardVictims(state)) if (boxHits(e, box.x, box.y, box.w, box.h)) hazardHit(ctx, e, 60, box.x + box.w, call, { knock: 9 });
+  const lift = railLine(s.x) - s.y;
+  const me = { x0: s.x + SEAT_X - 16, x1: s.x + SEAT_X + 16, top: lift + FEET + (s.ducked ? HEAD_DOWN : HEAD_UP) };
+  const tub = { x0: s.x + WHEELS[0], x1: s.x + WHEELS[1], bot: lift };
+  if (tr.cool > 0) tr.cool--;
+  if (tr.flash > 0) tr.flash--;
+  for (const [i, q] of CUES.entries()) if (s.x > CUE_XS[i] - 260 && s.x < q.x && cueLive(state, tr, i, s.x)) first(q.ob >= 0 ? OBS[q.ob].kind : 'gap');
+  const hurt = (key: string, dmg: number, source: string) => {
+    if (!canHurt(state) || tr.hit.has(key)) return;
+    tr.hit.add(key); hurtPlayer(ctx, dmg, source); shakeScreen(state, 8, 4); playSound('punch', 0.9);
   };
-  // Satellites (and the ladder): ducked under, or it's his face
-  SATELLITES.forEach((x, i) => {
-    const rail = trackY(x) ?? s.y;
-    if (s.x > x - 420 && s.x < x - 280) first('satellite');
-    hit(`sat${i}`, { x: x - 30, y: rail - 400, w: 60, h: 400 - SAT_CLEAR }, me, 14, 'ride_satellite', 'BEANED!');
-  });
-  // Robo-Butler
-  if (show) BUTLERS.forEach((b, i) => {
-    if (tr.butler[i] === 0) { if (cue && s.x > b.x - BUTLER_CUE && s.x < b.x) { tr.butler[i] = 1; playSound('ding', 0.6, 8); } return; }
-    const t = ++tr.butler[i];
-    if (t === BUTLER_TELL) { playSound('whoosh', 0.8, 4); first('butler'); }
-    const k = butlerReach(t), rail = trackY(b.x) ?? s.y, [top, bot] = trayBand(b.high);
-    if (k > 0.7) {
-      const box = { x: b.x - 40, y: rail - top, w: 80, h: top - bot };
-      hit(`butler${i}`, box, b.high ? me : body, 14, 'ride_butler', 'SERVED!');
+  /** Anybody else in it. */
+  const others = (box: Box, call: string) => { for (const e of hazardVictims(state)) if (boxHits(e, box.x, box.y, box.w, box.h)) hazardHit(ctx, e, 60, box.x + box.w, call, { knock: 9 }); };
+  OBS.forEach((o, i) => {
+    if (!obLive(state, tr, i)) return;
+    if (Math.abs(o.x - s.x) > 1100) return;
+    const rail = trackY(o.x) ?? railLine(o.x), hw = halfW(o), d = o.x - s.x;
+    if (tr.hurtT[i] > 0) tr.hurtT[i]--;
+    const across = (x0: number, x1: number) => x0 < o.x + hw && x1 > o.x - hw;
+    if (o.verb === 'duck') {
+      if (o.kind === 'tray' && trayReach(d) < 0.7) return;
+      if (across(me.x0, me.x1) && me.top > CLEAR) hurt(`${i}`, 14, o.kind === 'sat' ? 'ride_satellite' : o.kind === 'tray' ? 'ride_butler' : 'ride_laser');
+      const box = { x: o.x - hw, y: rail - 600, w: hw * 2, h: 600 - CLEAR };
+      others(box, o.kind === 'beam' ? 'LASERED!' : 'BEANED!');
       zones.push({ x0: box.x, x1: box.x + box.w, y0: box.y, y1: box.y + box.h });
-    }
-  });
-  // The laser curtains
-  if (show) LASERS.forEach((l, i) => {
-    if (!near(l.x, 1000)) return;
-    const st = laserAt(l.kind, f, l.phase), rail = trackY(l.x) ?? s.y, [top, bot] = laserBand(l.kind);
-    if (st.tell > 0 && st.tell < 0.05) playSound('beep', 0.4, 10);
-    if (!st.on) return;
-    if (Math.abs(s.x - l.x) < 500 && s.x < l.x) first('laser');
-    const box = { x: l.x - 6, y: rail - top, w: 12, h: top - bot };
-    hit(`laser${i}-${Math.floor((f + l.phase) / LASER_CYCLE)}`, box, l.kind === 'low' ? body : me, 12, 'ride_laser', 'LASERED!');
-    zones.push({ x0: box.x - 20, x1: box.x + box.w + 20, y0: box.y, y1: box.y + box.h });
-  });
-  // The rockets' exhaust
-  if (show) ROCKETS.forEach((r, i) => {
-    if (!near(r.x, 1000)) return;
-    const st = rocketAt(f, r.phase), rail = trackY(r.x) ?? s.y;
-    if (st.tell > 0 && Math.random() < 0.5) state.particles.push({ pos: { x: r.x + (Math.random() - 0.5) * 20, y: rail - ROCKET_TOP + 4 }, vel: { x: (Math.random() - 0.5) * 2, y: 2 + Math.random() * 2 }, life: 16, color: Math.random() < 0.5 ? '#FDE047' : '#FB923C', size: 2 });
-    if (!st.on) return;
-    if ((f + r.phase) % ROCKET_CYCLE === ROCKET_CYCLE - ROCKET_ON) { playSound('flame', 1, -10); playSound('rumble', 0.7, 2); first('rocket'); }
-    const box = { x: r.x - EXHAUST_W / 2, y: rail - ROCKET_TOP, w: EXHAUST_W, h: ROCKET_TOP };
-    hit(`rocket${i}-${Math.floor((f + r.phase) / ROCKET_CYCLE)}`, box, me, 14, 'ride_rocket', 'TORCHED!');
-    zones.push({ x0: box.x - 30, x1: box.x + box.w + 30, y0: box.y, y1: box.y + box.h });
-  });
-  // The meteors: lowered onto the track (the last: the warehouse's, on a hand hoist, dropped whatever)
-  METEORS.forEach((x, i) => {
-    if (tr.smashed.has(i) || (!show && i < 3)) return;
-    if (tr.meteor[i] === 0) { if (cue && s.x > x - MET_CUE && s.x < x - 150) { tr.meteor[i] = 1; playSound('clink', 0.5, 4); first('meteor'); } return; }
-    const t = ++tr.meteor[i], m = meteorAt(t), rail = trackY(x) ?? s.y;
-    if (t === MET_TELL + MET_DROP) { playSound('thud', 1, -10); playSound('crumble', 0.4); shakeScreen(state, 6, 3); }
-    const box = { x: x - MET_R, y: rail - m.h - MET_R * 2, w: MET_R * 2, h: MET_R * 2 };
-    if (m.falling) hit(`metfall${i}`, box, me, 18, 'ride_meteor', 'METEORED!');
-    if (m.down || m.h < 50) {
-      // (sat on the track: into it, and it's in bits; over it, fine)
-      if (overlap(body, box)) {
-        tr.smashed.add(i);
-        if (canHurt(state)) hurtPlayer(ctx, 16, 'ride_meteor');
-        shakeScreen(state, 10, 5); playSound('crash', 0.9, -4); playSound('crumble', 0.8);
-        for (let k = 0; k < 14; k++) state.particles.push({ pos: { x, y: rail - MET_R }, vel: { x: 2 + Math.random() * 6, y: -2 - Math.random() * 5 }, life: 40, color: ['#7C2D12', '#A8A29E', '#F97316'][k % 3], size: 3 + Math.random() * 4, grav: 0.3, chunk: true });
+    } else if (o.verb === 'jump') {
+      if (across(tub.x0, tub.x1) && tub.bot < HURDLE - 4) hurt(`${i}`, 14, o.kind === 'trolley' ? 'ride_butler' : o.kind === 'wire' ? 'ride_laser' : 'ride_forklift');
+      const box = { x: o.x - hw, y: rail - HURDLE, w: hw * 2, h: HURDLE };
+      others(box, o.kind === 'wire' ? 'LASERED!' : 'TRIPPED!');
+      zones.push({ x0: box.x, x1: box.x + box.w, y0: box.y, y1: box.y + box.h });
+    } else {
+      // (the asteroid: lowered onto the track as he comes; till it's down, it's not in his way)
+      if (o.kind === 'rock') {
+        const h = rockHeight(d);
+        if (h === 0 && !tr.landed.has(i)) { tr.landed.add(i); playSound('thud', 1, -10); playSound('crumble', 0.5); shakeScreen(state, 6, 3); }
+        if (h > ROCK_R) return;
       }
-      for (const e of hazardVictims(state)) if (boxHits(e, box.x, box.y, box.w, box.h)) hazardHit(ctx, e, 120, x, 'METEORED!', { knock: 8 });
+      const box = { x: o.x - hw, y: rail - BIG, w: hw * 2, h: BIG };
+      if (across(Math.min(me.x0, tub.x0), Math.max(me.x1, tub.x1)) && tub.bot < BIG) {
+        // (straight through it: it's in bits, and so's his face)
+        smash(state, tr, i);
+        if (canHurt(state)) { hurtPlayer(ctx, 18, o.kind === 'rock' ? 'ride_meteor' : o.kind === 'martian' ? 'ride_martian' : 'ride_crates'); shakeScreen(state, 10, 5); }
+        return;
+      }
+      others(box, o.kind === 'rock' ? 'METEORED!' : 'FLATTENED!');
+      zones.push({ x0: box.x - 20, x1: box.x + box.w + 20, y0: box.y, y1: box.y + box.h });
     }
-    if (m.tell > 0 || m.falling || m.down) zones.push({ x0: box.x - 20, x1: box.x + box.w + 20, y0: rail - MET_HANG - 60, y1: rail });
   });
-  // The forklift's pallet
-  {
-    const rail = trackY(FORKLIFT_X) ?? s.y;
-    if (near(FORKLIFT_X, 700) && s.x < FORKLIFT_X - 400) first('forklift');
-    if (near(FORKLIFT_X, 500) && f % 70 === 0) playSound('horn', 0.4, 6);
-    hit('forklift', { x: FORKLIFT_X - 44, y: rail - PALLET[0], w: 88, h: PALLET[0] - PALLET[1] }, body, 16, 'ride_forklift', 'FORKLIFTED!');
+  // The space blaster's bolts: into the first thing in their way (a blast-it one, or anybody)
+  for (const b of tr.bolts) {
+    b.x += b.vx; b.life--;
+    for (const [i, o] of OBS.entries()) {
+      if (o.verb !== 'blast' || !obLive(state, tr, i)) continue;
+      if (o.kind === 'rock' && rockHeight(o.x - s.x) > ROCK_R) continue;
+      const rail = trackY(o.x) ?? railLine(o.x), hw = halfW(o);
+      if (b.x + 20 > o.x - hw && b.x - b.vx < o.x + hw && b.y > rail - BIG && b.y < rail + 4) {
+        b.life = 0; tr.hp[i] -= 25; tr.hurtT[i] = 8;
+        playSound('gunhit', 0.7, 4);
+        for (let k = 0; k < 6; k++) state.particles.push({ pos: { x: o.x - hw, y: b.y }, vel: { x: -Math.random() * 3, y: (Math.random() - 0.5) * 4 }, life: 12, color: k % 2 ? '#4ADE80' : '#F0FDF4', size: 2 });
+        if (tr.hp[i] <= 0) smash(state, tr, i);
+        break;
+      }
+    }
+    if (b.life <= 0) continue;
+    for (const e of hazardVictims(state, { innocents: true })) if (boxHits(e, b.x - 4, b.y - 3, 28, 6)) { hazardHit(ctx, e, 25, b.x - 30, 'BLASTED!', { knock: 7 }); b.life = 0; break; }
+    // (into the rail where it climbs: fizzled)
+    const ry = trackY(b.x + 10);
+    if (b.life > 0 && ry !== null && b.y > ry - 2) { b.life = 0; for (let k = 0; k < 5; k++) state.particles.push({ pos: { x: b.x, y: b.y }, vel: { x: -Math.random() * 2, y: -Math.random() * 3 }, life: 10, color: '#86EFAC', size: 2 }); }
   }
+  tr.bolts = tr.bolts.filter(b => b.life > 0);
+  for (const b of tr.bits) { b.vy += 0.4; b.x += b.vx; b.y += b.vy; b.rot += 0.2; }
+  tr.bits = tr.bits.filter(b => b.y < s.y + 700).slice(-80);
   // The sled itself: anybody on the track in front of it, run down
-  for (const e of hazardVictims(state)) {
+  for (const e of hazardVictims(state, { innocents: true })) {
     if (!boxHits(e, s.x + 20, s.y - 60, 80, 56)) continue;
     hazardKill(ctx, e, s.x - 40, 'RUN OVER!', { fling: { x: 9, y: -12 } });
     playSound('splat', 0.9); shakeScreen(state, 6, 3);
   }
   setHazardZones(state, 'ride', zones);
+  void p;
+};
+
+/** The bolts and the bits, once he's out of the riding (the brake run's scene): just moved on. */
+export const settleTricks = (tr: Tricks) => {
+  for (const b of tr.bolts) { b.x += b.vx; b.life--; }
+  tr.bolts = tr.bolts.filter(b => b.life > 0);
+  for (const b of tr.bits) { b.vy += 0.4; b.x += b.vx; b.y += b.vy; b.rot += 0.2; }
+  if (tr.cool > 0) tr.cool--;
+  if (tr.flash > 0) tr.flash--;
 };

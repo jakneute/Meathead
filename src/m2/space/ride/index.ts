@@ -1,22 +1,23 @@
 // THE RIDE: section 3 of Space Land (owner: the atom agent). The hijacked star sled on the Voyage to 2010 (like
-// Adventure Land's mine cart, not the same): jump (the sled and him in it), duck, on a bit (right) or held back (left).
+// Adventure Land's mine cart, not the same): the ride sets the pace; he jumps (the sled and him in it), ducks, and
+// fires the sled's own SPACE BLASTER (a green bolt from his gun: no ammo, not his gun's; tricks.ts).
 // The ride's PA (pa.ts: a cheesy upbeat 1990 corporate narrator, never updated) tells him what 2010 will bring, all of it
-// wrong. ACT 1, the dark ride, slow: the scenes of 2010; satellites hung low, Robo-Butler's tray, the track not built
-// yet. The chain lift up into the dome. ACT 2, space, fast: laser curtains (time them, or duck or jump the bands), meteors
-// lowered onto the track, a rocket's exhaust, the drops and the gaps. Then the MAIN BREAKER: the sled smashes it, and
-// the work lights bang on bank by bank (the sled crawls through it: it's all in view). It's a warehouse. ACT 3, the
-// warehouse version, the show dead and the PA still going: workers on the track (run them down), the forklift's
-// pallet, the ladder, the meteor on a hand hoist. THE BRAKE RUN (a scene from here): through the brake controls, no
-// brakes, back into the station he left from, into the back of the sled in front, loading: up through the station's
-// roof, out through the atom's shell (the outside shot: launch.ts), over the main drag. They're a smear. He's fine: on
-// to the drag (DOORS.drag.start).
+// wrong, and teaches the blaster ("USE YOUR ONBOARD SPACE BLASTER") before the first cardboard Martian. ACT 1, the dark
+// ride, slow. The chain lift up into the dome. ACT 2, space, fast. Then the MAIN BREAKER: the sled smashes it, and the
+// work lights bang on bank by bank (the sled crawls through it: it's all in view). It's a warehouse. ACT 3, the
+// warehouse version, the show dead and the PA still going. THE BRAKE RUN (a scene from here): the brake fins grab the
+// sled, it grinds to a crawl, he blasts the brake box. The fins rip off, the siren, BRAKE FAILURE, and the sled goes
+// over the crest and down the last drop impossibly fast, into the load station he left from (the track's a circuit:
+// the drop's seen from the start), flattening everybody on the track, into the back of the sled in front, loading: up
+// through the station's roof, out through the atom's shell (the outside shot: launch.ts), over the main drag. They're a
+// smear. He's fine: on to the drag (DOORS.drag.start).
 //
 // Kept across his deaths and on fresh starts (state.stageMemo): the breaker (layout.ts BREAKER_MEMO: from checkpoint 23
 // on it's gone), the launch (LAUNCHED_MEMO: the drag draws the smear). One-way: coming back in from the drag puts him at
 // the atom's load platform (DOORS.ride.end), the sled waiting; a second ride is the warehouse version all the way, the
 // show and the PA dead.
 //
-// ~16000 px of track: about 70 s of riding plus the reveal, ~45 s of scenes (the brake run, the launch). Checkpoints 20-23.
+// ~16000 px of track: about 70 s of riding plus the reveal, ~10 s of scenes (the brake run, the launch). Checkpoints 20-23.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -26,54 +27,67 @@ import type { SpaceSection } from '../section';
 import { lay, hands, speak, meatheadSays, saidOver, sectionState, teleport, type Said } from '../section';
 import { GY, DOORS } from '../geometry';
 import { setUi } from '../../store';
-import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
+import { silenceAll, pickLine, isTalking } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { CANVAS_WIDTH } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { ATOM, homeFacing } from '../atom/kinds';
-import { drawAtomPerson } from '../atom/people';
+import { drawAtomPerson, type Outfit } from '../atom/people';
+import { box } from '../../intro/art/kit';
 import {
-  x0, x1, R, RUNS, BREAKER_X, ACT3_X, BRAKE_AT, BRAKE_X, FRONT_AT, STATION_ROOF, WORKERS, PA_CUES, speedAt, trackY, slopeAt,
-  BREAKER_MEMO, LAUNCHED_MEMO, lightsOn,
+  x0, x1, R, RUNS, GAPS, OBS, PA_CUES, BREAKER_X, ACT3_X, BRAKE_AT, FINS_X0, FINS_X1, BRAKE_X, CREST_X, FRONT_AT,
+  STATION_ROOF, WORKERS, STATION_FOLK, speedAt, trackY, slopeAt, BREAKER_MEMO, LAUNCHED_MEMO, lightsOn,
 } from './layout';
-import { type Tricks, newTricks, runTricks } from './tricks';
+import { type Tricks, newTricks, runTricks, settleTricks, fireBlaster, JUMP_V, JUMP_G } from './tricks';
 import { paStory, paSaying, paHush } from './pa';
 import { drawSled, seatedIn, HIS_SLED, FRONT_SLED, SEATS, SLED_SINK } from './sled';
-import { drawRideBackdrop, drawRideBack, drawRideFront, drawPallet, rideLighting, type RideLook } from './art';
+import { drawRideBackdrop, drawRideBack, drawRideFront, rideLighting, drawBlaster, BRAKE_BOX_X, type RideLook } from './art';
 import { drawLaunchOutside, OUT_END, OUT_SPLAT, OUT_LAND_ME } from './launch';
 import * as L from './lines';
 
 const SINK = SLED_SINK;
 /** (where his feet sit in it, from the sled's middle: the front seat) */
 const SEAT = SEATS[0];
+/** The runaway's top speed down the last drop (px a frame), and how much it gains a frame on it. */
+const RUNAWAY = 26, RUNAWAY_GAIN = 1.1;
+/** A jump pressed this many frames before he's back on the rail still goes; and off the end of the rail, this long. */
+const JUMP_BUFFER = 8, COYOTE = 6;
 
-interface Flyer { x: number; y: number; vx: number; vy: number; rot: number; seed: number }
+
+interface Flyer { x: number; y: number; vx: number; vy: number; rot: number; seed: number; outfit: Outfit }
 interface Sled {
   mode: 'off' | 'ride' | 'reveal' | 'crash' | 'up' | 'out' | 'gone';
   x: number; y: number; railY: number; vy: number; speed: number; air: boolean; jumpWas: boolean; t: number; lead: number;
+  /** (a jump pressed early, frames left; frames since it went off the end of the rail) */
+  jumpBuf: number; offRail: number; ducked: boolean;
   tricks: Tricks;
-  /** The work lights (0 the show, 1 on), frames since the breaker went; the brake booth, frames since. */
-  k: number; breakerT: number; brakeT: number;
+  /** The work lights (0 the show, 1 on), frames since the breaker went; the brake run: frames since the fins grabbed,
+   *  since the brake box went (the fins off, the siren). */
+  k: number; breakerT: number; brakeT: number; boxT: number; boxShot: boolean;
   /** The PA's on (not on a second ride: the power's out). */
-  paLive: boolean; cued: Set<string>; yelled: boolean;
+  paLive: boolean; cued: Set<string>; yelled: boolean; braked: boolean;
   /** The scene: frames into it; the sled in front (gone through the roof); who's flying up through it. */
   sceneT: number; frontGone: boolean; fliers: Flyer[]; front: { x: number; y: number; rot: number; vy: number } | null;
+  /** The station's people: who's been hit (flying, in `fliers`); a beat held on each hit. */
+  flat: Set<number>; hold: number;
   said: Said | null; saidX: number; saidY: number;
   /** Frames since the scene started (all of it: the skip's offered from SKIP_AFTER on). */
   skipT: number;
 }
 const fresh = (state: GameState): Sled => ({
-  mode: 'off', x: R + 150, y: GY, railY: GY, vy: 0, speed: 0, air: false, jumpWas: false, t: 0, lead: 150, tricks: newTricks(),
-  k: lightsOn(state) ? 1 : 0, breakerT: lightsOn(state) ? 999 : 0, brakeT: 0, paLive: !state.stageMemo[LAUNCHED_MEMO], cued: new Set(), yelled: false,
-  sceneT: 0, frontGone: false, fliers: [], front: null, said: null, saidX: 0, saidY: 0, skipT: 0,
+  mode: 'off', x: R + 150, y: GY, railY: GY, vy: 0, speed: 0, air: false, jumpWas: false, t: 0, lead: 150,
+  jumpBuf: 0, offRail: 0, ducked: false, tricks: newTricks(),
+  k: lightsOn(state) ? 1 : 0, breakerT: lightsOn(state) ? 999 : 0, brakeT: 0, boxT: 0, boxShot: false,
+  paLive: !state.stageMemo[LAUNCHED_MEMO], cued: new Set(), yelled: false, braked: false,
+  sceneT: 0, frontGone: false, fliers: [], front: null, flat: new Set(), hold: 0, said: null, saidX: 0, saidY: 0, skipT: 0,
 });
 const sledOf = (state: GameState) => sectionState<Sled, 'ride'>(state, 'ride', () => fresh(state));
 const look = (state: GameState): RideLook => {
   const s = sledOf(state);
-  return { k: s.k, tricks: s.tricks, breakerT: s.breakerT, brakeT: s.brakeT, sledX: s.x, sledY: s.y, frontGone: s.frontGone };
+  return { k: s.k, tricks: s.tricks, breakerT: s.breakerT, brakeT: s.brakeT, boxT: s.boxT, sledX: s.x, sledY: s.y, speed: s.speed, frontGone: s.frontGone, flat: s.flat, crashing: s.mode === 'crash' || s.mode === 'up' };
 };
 
 /** Into it, where he is (the atom's handed him over, or back at a checkpoint). */
@@ -92,15 +106,25 @@ const place = (state: GameState, s: Sled) => {
   p.pos.x = s.x + SEAT * Math.cos(rot) - p.width / 2; p.pos.y = s.y + SEAT * Math.sin(rot) - SINK - p.height;
   p.vel.x = 0; p.vel.y = 0;
 };
+/** (each obstacle kind's first-time line: the kinds that share one) */
+const SEES_OF: Record<string, string> = { sat: 'satellite', tray: 'butler', trolley: 'butler', beam: 'laser', wire: 'laser', pallet: 'forklift', rock: 'rock', crates: 'crates' };
 const firstSight = (state: GameState, kind: string) => {
-  const key = `m2:rideSaw:${kind}`;
-  if (state.stageMemo[key] || !L.SEES[kind]) return;
+  const k = SEES_OF[kind];
+  if (!k || !L.SEES[k]) return;
+  const key = `m2:rideSaw:${k}`;
+  if (state.stageMemo[key]) return;
   state.stageMemo[key] = 'yes';
-  meatheadSays(state, pickLine(L.SEES[kind]));
+  // (the cardboard Martian's line waits on the PA's lesson: it's said after, not over it)
+  meatheadSays(state, pickLine(L.SEES[k]));
 };
 const sayAt = (s: Sled, voiceId: string, text: string, x: number, y: number) => {
   s.saidX = x; s.saidY = y;
   speak(voiceId, text, v => { s.said = v; }, true);
+};
+/** The space blaster, out of his gun (sat in the sled; ducked, lower). */
+const blast = (state: GameState, s: Sled) => {
+  const p = state.player;
+  fireBlaster(s.tricks, p.pos.x + p.width + 4, p.pos.y + (s.ducked ? 40 : 30), s.speed);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -113,8 +137,8 @@ const riding = (ctx: FrameContext, s: Sled, controls: Controls): Controls => {
   const want = reveal ? 1.3 : speedAt(s.x);
   s.speed += (Math.min(want, s.t / 6) - s.speed) * (reveal ? 0.08 : 0.06);
   s.x += s.speed;
-  // The PA's stories, as it gets to each
-  if (s.paLive) for (const [id, x] of PA_CUES) if (!s.cued.has(id) && s.x >= x) { s.cued.add(id); paStory(state, id); }
+  // The PA's stories, as it gets to each (the blaster's lesson cuts in: it has to be said before the first Martian)
+  if (s.paLive) for (const [id, x] of PA_CUES) if (!s.cued.has(id) && s.x >= x) { s.cued.add(id); paStory(state, id, id === 'blaster'); }
   // The breaker: smashed, and the lights come up, bank by bank
   if (s.breakerT === 0 && s.x >= BREAKER_X - 30) {
     s.breakerT = 1; s.mode = 'reveal'; state.stageMemo[BREAKER_MEMO] = 'yes';
@@ -130,20 +154,27 @@ const riding = (ctx: FrameContext, s: Sled, controls: Controls): Controls => {
   }
   // (a worker, the lights up and the sled still coming)
   if (!s.yelled && s.x > ACT3_X + 50 && s.k >= 1) { s.yelled = true; sayAt(s, 'm2.space.hand', pickLine(L.WORKER_YELLS), WORKERS[2][0], (trackY(WORKERS[2][0]) ?? GY) - 90); }
+  // (the brake run's attendant, him coming far too fast)
+  if (!s.braked && s.x > BRAKE_AT - 520) { s.braked = true; sayAt(s, 'm2.space.hand', L.BRAKE_YELL, BRAKE_X - 10, (trackY(BRAKE_X) ?? GY) - 170); }
   // The brake run: from here, a scene
   if (s.x >= BRAKE_AT) { startCrash(state, s); return hands(); }
-  // Jump: the sled and him in it (not on the lift's chain, not crawling through the reveal)
+  // Jump: the sled and him in it (not crawling through the reveal). Pressed a moment early, it goes as he lands; a
+  // moment late, off the end of the rail, it still goes
   const jumpNow = !!controls.jump;
-  if (jumpNow && !s.jumpWas && !s.air && !reveal) { s.vy = -10.5; s.air = true; playSound('jump', 0.7); playSound('clang', 0.3, 10); }
+  if (jumpNow && !s.jumpWas) s.jumpBuf = JUMP_BUFFER;
+  else if (s.jumpBuf > 0) s.jumpBuf--;
   s.jumpWas = jumpNow;
+  const canJump = !reveal && (!s.air || s.offRail > 0 && s.offRail <= COYOTE);
+  if (s.jumpBuf > 0 && canJump) { s.jumpBuf = 0; s.offRail = 0; s.vy = -JUMP_V; s.air = true; playSound('jump', 0.7); playSound('clang', 0.3, 10); }
   const ty = trackY(s.x);
   if (s.air) {
-    s.vy += 0.5; s.y += s.vy;
-    if (ty !== null && s.vy >= 0 && s.y >= ty && s.y - s.vy <= ty + 16) { s.y = ty; s.vy = 0; s.air = false; playSound('land', 0.8); playSound('clang', 0.5, -2); shakeScreen(state, 4, 2); }
+    if (s.offRail > 0) s.offRail++;
+    s.vy += JUMP_G; s.y += s.vy;
+    if (ty !== null && s.vy >= 0 && s.y >= ty && s.y - s.vy <= ty + 16) { s.y = ty; s.vy = 0; s.air = false; s.offRail = 0; playSound('land', 0.8); playSound('clang', 0.5, -2); shakeScreen(state, 4, 2); }
   } else if (ty === null) {
     const r = [...RUNS].reverse().find(q => q[1] < s.x);
     s.vy = r ? ((r[3] - r[2]) / (r[1] - r[0])) * s.speed : 0;
-    s.air = true;
+    s.air = true; s.offRail = 1;
   } else s.y = ty;
   if (!s.air) s.railY = s.y;
   // Down a gap: that's him
@@ -151,9 +182,12 @@ const riding = (ctx: FrameContext, s: Sled, controls: Controls): Controls => {
     hurtPlayer(ctx, 9999, 'ride_pit');
     if (p.health <= 0) { p.carried = false; s.mode = 'off'; return controls; }
     const next = RUNS.find(r => r[0] > s.x) ?? RUNS[RUNS.length - 1];
-    s.x = next[0] + 20; s.y = s.railY = trackY(s.x) ?? GY; s.vy = 0; s.air = false;
+    s.x = next[0] + 20; s.y = s.railY = trackY(s.x) ?? GY; s.vy = 0; s.air = false; s.offRail = 0;
   }
-  runTricks(ctx, s.tricks, { x: s.x, y: s.y, air: s.air, t: s.t }, kind => firstSight(state, kind));
+  // Ducked (down held, on the rail); the blaster (fire)
+  s.ducked = !!controls.down && !s.air;
+  if (controls.shoot && !reveal) blast(state, s);
+  runTricks(ctx, s.tricks, { x: s.x, y: s.y, air: s.air, t: s.t, ducked: s.ducked, speed: s.speed }, kind => firstSight(state, kind));
   place(state, s);
   p.isGrounded = !s.air;
   state.cameraRestY = s.y - SINK - 400;
@@ -162,12 +196,11 @@ const riding = (ctx: FrameContext, s: Sled, controls: Controls): Controls => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// THE BRAKE RUN, THE RAM, THE LAUNCH (a scene: skip it all, or none of it)
+// THE BRAKE RUN, THE DROP, THE STATION, THE RAM, THE LAUNCH (a scene: skip it all, or none of it)
 
 const startCrash = (state: GameState, s: Sled) => {
-  s.mode = 'crash'; s.sceneT = 0;
+  s.mode = 'crash'; s.sceneT = 0; s.ducked = false;
   state.player.inCutscene = true; state.player.isDucking = false;
-  sayAt(s, 'm2.space.hand', L.BRAKE_YELL, BRAKE_X + 40, (trackY(BRAKE_X) ?? GY) - 140);
 };
 const toDrag = (state: GameState, s: Sled, skipped: boolean) => {
   const p = state.player;
@@ -182,44 +215,82 @@ const toDrag = (state: GameState, s: Sled, skipped: boolean) => {
   p.facing = 1;
   meatheadSays(state, pickLine(L.MEATHEAD_LANDS));
 };
+const BLOOD = ['#B91C1C', '#7F1D1D', '#DC2626'];
+const gore = (state: GameState, x: number, y: number, n: number, push = 6) => {
+  for (let i = 0; i < n; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 20, y: y + (Math.random() - 0.5) * 30 }, vel: { x: push * (0.3 + Math.random()), y: -2 - Math.random() * 8 }, life: 40 + Math.random() * 30, color: BLOOD[i % 3], size: 2 + Math.random() * 4, grav: 0.35 });
+};
 
 const scene = (ctx: FrameContext, s: Sled): Controls => {
-  const { state } = ctx, p = state.player;
+  const { state } = ctx, p = state.player, tr = s.tricks;
   s.sceneT++; s.skipT++;
   p.inCutscene = true;
   if (s.skipT > SKIP_AFTER) offerSkip();
   if (s.skipT > SKIP_AFTER && takeSkip()) { toDrag(state, s, true); return hands(); }
+  settleTricks(tr);
+  for (const fl of s.fliers) { fl.vy += 0.5; fl.x += fl.vx; fl.y += fl.vy; fl.rot += 0.28; if (state.frame % 2 === 0) gore(state, fl.x, fl.y - 30, 1, 0.5); }
   if (s.mode === 'crash') {
-    // Through the booth, no brakes, faster and faster into the station
-    s.speed = Math.min(12, s.speed + (s.brakeT ? 0.12 : 0));
+    // (a beat held on each one he hits)
+    if (s.hold > 0) { s.hold--; place(state, s); return hands(); }
+    if (!s.boxT && s.x >= FINS_X0 - 30) {
+      // The brake fins grab: a fountain of sparks off the sled's belly, the grind, down to a crawl
+      if (!s.brakeT) { s.brakeT = 1; playSound('grind', 1, -6); playSound('clang', 0.8, -8); shakeScreen(state, 8, 4); meatheadSays(state, L.MEATHEAD_BRAKE); }
+      s.speed = Math.max(0.9, s.speed - 0.17);
+      if (state.frame % 9 === 0) playSound('grind', 0.6, -4 + Math.random() * 4);
+      for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: s.x - 40 + Math.random() * 80, y: s.y - 4 }, vel: { x: -2 - Math.random() * 5, y: -1 - Math.random() * 5 }, life: 14 + Math.random() * 10, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 2, grav: 0.25 });
+      // He's had enough of that: the space blaster into the brake box
+      if (!s.boxShot && s.brakeT > 34) { s.boxShot = true; blast(state, s); }
+      if (s.boxShot && !s.boxT && tr.bolts.every(b => b.x < BRAKE_BOX_X - 20)) {
+        // (the bolt's in it)
+        s.boxT = 1; tr.bolts = [];
+        playSound('boom', 1, -6); playSound('glass', 1); playSound('crash', 1, -10); shakeScreen(state, 16, 8);
+        const rail = trackY(BRAKE_BOX_X) ?? GY;
+        for (let i = 0; i < 30; i++) state.particles.push({ pos: { x: BRAKE_BOX_X, y: rail - 70 }, vel: { x: (Math.random() - 0.3) * 10, y: -2 - Math.random() * 8 }, life: 30 + Math.random() * 20, color: ['#FDE047', '#FFFFFF', '#F97316', '#BAE6FD'][i % 4], size: 2 + Math.random() * 3, grav: 0.3 });
+        for (let i = 0; i < 10; i++) tr.bits.push({ x: BRAKE_BOX_X + (Math.random() - 0.5) * 40, y: rail - 70, vx: (Math.random() - 0.2) * 9, vy: -4 - Math.random() * 7, rot: Math.random() * 6, col: ['#991B1B', '#52525B', '#FDE047', '#BAE6FD'][i % 4], w: 8 + Math.random() * 12, h: 5 + Math.random() * 8 });
+        // the fins, ripped up off the rail all along the run
+        for (let x = FINS_X0; x < FINS_X1; x += 26) { const ry = trackY(x) ?? GY; tr.bits.push({ x, y: ry - 10, vx: -1 + Math.random() * 6, vy: -6 - Math.random() * 8, rot: Math.random() * 3, col: '#A1A1AA', w: 6, h: 18 }); }
+        if (s.paLive) paStory(state, 'brakefail', true);
+      }
+    } else if (s.boxT) {
+      // No brakes: off it goes, over the crest and down the last drop, faster and faster
+      s.speed = Math.min(RUNAWAY, s.speed + (s.x > CREST_X ? RUNAWAY_GAIN : 0.22));
+      if (s.boxT % 50 === 1) playSound('siren', 0.7);
+      if (s.x > CREST_X && s.speed > 12) shakeScreen(state, 4, 2);
+      if (s.x > CREST_X && state.frame % 3 === 0) playSound('rumble', 0.5, 4);
+    }
+    if (s.boxT) s.boxT++;
+    if (s.brakeT) s.brakeT++;
     s.x += s.speed;
     s.y = trackY(s.x) ?? s.y;
-    if (!s.brakeT && s.x >= BRAKE_X - 50) {
-      s.brakeT = 1; playSound('crash', 1, -4); playSound('glass', 0.9); playSound('grind', 0.8, -4); shakeScreen(state, 12, 6);
-      for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: BRAKE_X, y: s.y - 60 }, vel: { x: 3 + Math.random() * 7, y: -2 - Math.random() * 6 }, life: 40, color: ['#0F766E', '#BAE6FD', '#FDE047'][i % 3], size: 2 + Math.random() * 3, grav: 0.3, chunk: true });
-      meatheadSays(state, L.MEATHEAD_BRAKE);
-    }
-    if (s.brakeT) s.brakeT++;
-    if (s.x >= FRONT_AT - 700 && !s.cued.has('scream')) { s.cued.add('scream'); sayAt(s, 'm2.guest2', L.FRONT_SCREAM, FRONT_AT, GY - 100); }
+    // Everybody on the track in the station: flattened (the beat held, the blood)
+    STATION_FOLK.forEach((v, i) => {
+      if (s.flat.has(i) || s.x + 80 < v.x) return;
+      s.flat.add(i); s.hold = 3;
+      s.fliers.push({ x: v.x, y: GY, vx: 7 + Math.random() * 6, vy: -12 - Math.random() * 8, rot: 0, seed: v.seed, outfit: v.outfit });
+      gore(state, v.x, GY - 50, 34, 8);
+      playSound('splat', 1, -4 + i); playSound('crunch', 0.9); playSound('gorespray', 0.7); if (i === 0 || i === 2) playSound('screams', 0.8);
+      shakeScreen(state, 10, 5);
+    });
+    if (s.x >= FRONT_AT - 900 && !s.cued.has('scream') && !isTalking()) { s.cued.add('scream'); sayAt(s, 'm2.guest2', L.FRONT_SCREAM, FRONT_AT, GY - 100); }
     // THE RAM
     if (s.x >= FRONT_AT - 150) {
       s.mode = 'up'; s.sceneT = 0;
       playSound('crash', 1, -10); playSound('boom', 0.8, -8); playSound('splat', 0.6); shakeScreen(state, 18, 8);
       meatheadSays(state, L.MEATHEAD_RAM, false);
       s.front = { x: FRONT_AT, y: GY, rot: 0, vy: -16 };
-      s.fliers = [{ x: FRONT_AT + SEATS[0], y: GY - 40, vx: 6, vy: -19, rot: 0, seed: 8811 }, { x: FRONT_AT + SEATS[1], y: GY - 40, vx: 5, vy: -18, rot: 0, seed: 9922 }];
+      s.fliers.push({ x: FRONT_AT + SEATS[0], y: GY - 40, vx: 6, vy: -19, rot: 0, seed: 8811, outfit: 'guest' }, { x: FRONT_AT + SEATS[1], y: GY - 40, vx: 5, vy: -18, rot: 0, seed: 9922, outfit: 'guest' });
       s.vy = -15; p.cartSeat = false;
     }
     place(state, s);
-    state.cameraLeadX = 120;
+    // (the camera: well ahead of it, down the drop with it)
+    state.cameraOverride = { x: s.x - 130, y: Math.min(GY - 430, s.y - 330) };
     return hands();
   }
   if (s.mode === 'up') {
     // Up through the station's roof, all of them
     s.vy += 0.25; s.y += s.vy; s.x += 4;
-    for (const f of s.fliers) { f.vy += 0.25; f.x += f.vx; f.y += f.vy; f.rot += 0.3; }
     if (s.front) { s.front.vy += 0.25; s.front.y += s.front.vy; s.front.x += 5; s.front.rot += 0.12; }
-    if (!s.frontGone && s.fliers[0].y < STATION_ROOF) { s.frontGone = true; playSound('crash', 1, -12); playSound('crumble', 0.8); shakeScreen(state, 10, 5); }
+    const top = s.fliers[s.fliers.length - 2];
+    if (!s.frontGone && top && top.y < STATION_ROOF) { s.frontGone = true; playSound('crash', 1, -12); playSound('crumble', 0.8); shakeScreen(state, 10, 5); }
     p.pos.x = s.x + SEAT - p.width / 2; p.pos.y = s.y - SINK - p.height - Math.min(40, s.sceneT * 2); p.spriteRot = (p.spriteRot ?? 0) + 0.25;
     state.cameraOverride = { x: FRONT_AT - 420, y: Math.min(GY - 450, s.y - 300) };
     if (s.sceneT > 60) { s.mode = 'out'; s.sceneT = 0; p.hidden = true; }
@@ -261,14 +332,37 @@ const drawSleds = (c: CanvasRenderingContext2D, state: GameState, back: boolean)
     const fr = s.front ?? { x: FRONT_AT, y: GY, rot: 0 };
     if (s.mode !== 'out') {
       drawSled(c, fr.x, fr.y, f, FRONT_SLED, back, fr.rot, lit);
-      if (!back && !s.fliers.length) for (const [i, seed] of [[0, 8811], [1, 9922]] as const) seatedIn(c, FRONT_AT + SEATS[i], GY, g => drawAtomPerson(g, 'guest', { seed, f, pose: 'after', md: 'ok', talk: s.said?.text === L.FRONT_SCREAM }));
+      if (!back && !s.front) for (const [i, seed] of [[0, 8811], [1, 9922]] as const) seatedIn(c, FRONT_AT + SEATS[i], GY, g => drawAtomPerson(g, 'guest', { seed, f, pose: 'after', md: 'ok', talk: s.said?.text === L.FRONT_SCREAM }));
       if (!back) drawSled(c, fr.x, fr.y, f, FRONT_SLED, false, fr.rot, lit);
     }
   }
-  if (!back) for (const fl of s.fliers) { c.save(); c.translate(fl.x, fl.y); c.rotate(fl.rot); drawAtomPerson(c, 'guest', { seed: fl.seed, f, pose: 'thrown', md: 'hurt' }); c.restore(); }
+  if (back) {
+    // (the station's people, on the track: wide-eyed once it's coming)
+    if (cam + CANVAS_WIDTH > STATION_FOLK[0].x - 100) STATION_FOLK.forEach((v, i) => {
+      if (s.flat.has(i)) return;
+      const seen = s.boxT > 0;
+      c.save(); c.translate(v.x, GY); if (i % 2) c.scale(-1, 1);
+      drawAtomPerson(c, v.outfit, { seed: v.seed, f, pose: seen ? 'after' : 'stand', md: 'ok' });
+      c.restore();
+      if (v.paddle) { box(c, v.x - 30, GY - 70, 4, 40, '#1C1917'); box(c, v.x - 40, GY - 92, 24, 24, '#1C1917'); box(c, v.x - 38, GY - 90, 20, 20, '#FACC15'); }
+    });
+  }
+  if (!back) for (const fl of s.fliers) { c.save(); c.translate(fl.x, fl.y); c.rotate(fl.rot); drawAtomPerson(c, fl.outfit, { seed: fl.seed, f, pose: 'thrown', md: 'hurt' }); c.restore(); }
   if (s.mode === 'off' || s.mode === 'gone' || s.mode === 'out') return;
   const rot = s.mode === 'up' ? -0.4 - s.sceneT * 0.05 : s.air ? Math.max(-0.3, Math.min(0.3, s.vy * 0.03)) : slopeAt(s.x) ?? 0;
   drawSled(c, s.x, s.y, f, HIS_SLED, back, rot, lit);
+};
+
+/** (the runaway: speed lines across the screen, thicker the faster) */
+const drawSpeedLines = (c: CanvasRenderingContext2D, state: GameState, speed: number) => {
+  if (speed < 9) return;
+  const k = Math.min(1, (speed - 9) / 14), f = state.frame;
+  c.save(); c.globalAlpha = 0.25 + k * 0.4;
+  for (let i = 0; i < 26; i++) {
+    const y = ((i * 97 + f * 13) % CANVAS_HEIGHT), len = 60 + ((i * 53) % 140) * (0.5 + k), x = ((i * 211 - f * (speed * 3)) % (CANVAS_WIDTH + 300) + CANVAS_WIDTH + 300) % (CANVAS_WIDTH + 300) - 150;
+    box(c, x, y, len, i % 3 ? 2 : 3, i % 4 ? '#F8FAFC' : '#FDE047');
+  }
+  c.restore();
 };
 
 export const ride: SpaceSection = {
@@ -277,7 +371,7 @@ export const ride: SpaceSection = {
     { name: 'THE VOYAGE TO 2010', cp: 20, x: R + 150, y: GY },
     { name: 'THE LIFT', cp: 21, x: R + 6100, y: GY - 10 },
     { name: 'DEEP SPACE', cp: 22, x: R + 10600, y: GY - 620 },
-    { name: 'THE WAREHOUSE', cp: 23, x: R + 13400, y: GY - 270 },
+    { name: 'THE WAREHOUSE', cp: 23, x: R + 13400, y: GY - 330 },
   ],
   build: (state) => {
     // (the track's own ground, under the workers on it; the gaps go down to nothing)
@@ -288,7 +382,6 @@ export const ride: SpaceSection = {
     if (state.checkpoint >= 23) state.stageMemo[BREAKER_MEMO] = 'yes';
     if (state.checkpoint >= 30) state.stageMemo[LAUNCHED_MEMO] = 'yes';
     WORKERS.forEach(([x, v], i) => {
-      // (the warehouse's: not there on the show's first go till it's the warehouse... they're always there, in the dark too)
       const e = makeKindEnemy(ATOM.worker as EnemyKind, x, trackY(x) ?? GY);
       e.variant = v; e.homeX = e.pos.x + i; e.facing = -1; homeFacing.set(e, i % 2 ? 1 : -1);
       state.enemies.push(e);
@@ -299,8 +392,9 @@ export const ride: SpaceSection = {
     const p = ctx.state.player, s = sledOf(ctx.state);
     setUi({ introCutscene: !!p.inCutscene });
     p.cartSeat = p.carried && p.health > 0 && (s.mode === 'ride' || s.mode === 'reveal' || s.mode === 'crash');
-    if ((s.mode === 'ride' || s.mode === 'reveal') && p.carried) p.spriteRot = s.air ? 0 : slopeAt(s.x) ?? 0;
+    if ((s.mode === 'ride' || s.mode === 'reveal' || s.mode === 'crash') && p.carried) p.spriteRot = s.air ? 0 : slopeAt(s.x) ?? 0;
     else if (s.mode !== 'up') p.spriteRot = 0;
+    // (his own gun's not fired, sat in it: the blaster's the sled's, handled in riding)
     if (p.cartSeat) return { ...out, shoot: false, secondary: false };
     return out;
   },
@@ -308,8 +402,9 @@ export const ride: SpaceSection = {
   drawBackdrop: (c, state) => drawRideBackdrop(c, state, look(state)),
   drawBack: (c, state) => { drawRideBack(c, state, look(state)); drawSleds(c, state, true); },
   drawFront: (c, state) => {
-    drawSleds(c, state, false); drawPallet(c, state); drawRideFront(c, state, look(state));
+    drawSleds(c, state, false); drawRideFront(c, state, look(state));
     const s = sledOf(state);
+    drawBlaster(c, state, s.tricks, state.player);
     // (the PA's words, over the speaker in his headrest; the others', over them)
     const pa = paSaying(state);
     if (pa && s.mode !== 'out' && s.mode !== 'gone') saidOver(c, pa.text, s.x + SEAT - 22, s.y - 168, '#A5F3FC', 300);
@@ -318,7 +413,28 @@ export const ride: SpaceSection = {
   lighting: (state) => rideLighting(state, look(state)),
   drawHud: (c, state) => {
     const s = sledOf(state);
+    if (s.mode === 'crash') drawSpeedLines(c, state, s.speed);
     if (s.mode === 'out') drawLaunchOutside(c, state, s.sceneT);
     if ((s.mode === 'crash' || s.mode === 'up' || s.mode === 'out') && s.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
   },
 };
+
+// (dev: the bot in the headless checks reads the layout, and what it should press)
+if (import.meta.env?.DEV && typeof window !== 'undefined') {
+  (window as unknown as { __ride: unknown }).__ride = {
+    R, OBS, GAPS, PA_CUES, trackY, speedAt,
+    /** What a player who reads every cue right presses, now. */
+    botWants: (s: Sled) => {
+      const want = { duck: false, jump: false, blast: false, gap: false };
+      for (const o of OBS) {
+        const d = o.x - s.x;
+        if (o.verb === 'duck' && d > -60 && d < 140) want.duck = true;
+        if (o.verb === 'jump' && d > 110 && d < 110 + s.speed * 6) want.jump = true;
+        if (o.verb === 'blast' && d > 0 && d < 520 && !s.tricks.broken.has(OBS.indexOf(o))) want.blast = (s.t >> 1) % 2 === 0;
+      }
+      for (const [a] of GAPS) { const d = a - s.x; if (d > 0 && d < 40 + s.speed * 3) want.jump = want.gap = true; }
+      if (want.jump) want.duck = false;
+      return want;
+    },
+  };
+}
