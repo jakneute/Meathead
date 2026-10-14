@@ -25,7 +25,7 @@ import { hazardVictims, hazardHit, inHazard } from '../../hazardHit';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { voice, saidOver } from '../section';
-import { drawAlien, drawCrawler, ALIEN_MUZZLE, type AlienPose } from './aliens';
+import { drawAlien, drawCrawler, ALIEN_MUZZLE, type AlienPose, type CrawlPose } from './aliens';
 import { MOUTH_X } from './layout';
 import { floorAt } from './paint';
 import { GY } from '../geometry';
@@ -402,11 +402,23 @@ registerM2Kind({
   draw: (c, e, f) => drawAlien(c, { seed: seedOf(e), spikes: true }, poseOf(e), f, 1.3),
 });
 
+/** The crawler's pose: dead, flinching, the heave (going up, then coming down the far side), the lunge, the crawl. */
+const crawlPose = (e: Enemy): CrawlPose => {
+  if (e.health <= 0) return 'dead';
+  if ((e.hitFlash ?? 0) > 0 || (e.pauseTimer ?? 0) > 2) return 'hurt';
+  switch (e.aiState) {
+    case 'lunge': return 'lunge';
+    case 'heave': return e.vel.y < 0 ? 'heave' : 'over';
+    case 'crawl': return 'crawl';
+    default: return 'idle';
+  }
+};
+
 registerM2Kind({
   kind: CRAWLER, stats: { w: 50, h: 30, hp: 35, contact: 7, mass: 60 }, ai: crawlerAI, humanoid: false, grab: 'critter',
   gender: e => (isWoman(e) ? 'f' : 'm'),
   head: { x: 22, y: -26, r: 8 },
-  draw: (c, e, f) => drawCrawler(c, seedOf(e), f, e.aiState === 'lunge' || e.aiState === 'heave', e.health <= 0),
+  draw: (c, e, f) => drawCrawler(c, seedOf(e), crawlPose(e), e.aiState === 'crawl' ? (e.aiTimer ?? 0) : f, isWoman(e)),
 });
 
 registerM2Kind({

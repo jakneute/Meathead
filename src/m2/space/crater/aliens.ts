@@ -12,7 +12,6 @@
 import { stamp } from '../../../m1/game/render/stamp';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { INK, ink, limb, dark, lite } from '../../../m1/game/render/npc/kit';
-import { mix } from '../../../m1/game/render/backdrops/core';
 import { checker } from '../../../m1/game/render/pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
@@ -232,39 +231,6 @@ const paintAlien = (g: Ctx, look: AlienLook, pose: AlienPose, fq: number) => {
 
 /** Where an aiming soldier's muzzle is (from his feet, facing right, at scale 1). */
 export const ALIEN_MUZZLE = { x: 64, y: -76 };
-
-// ---------------------------------------------------------------------------------------------------------------
-// The crawler: the top half of one (the crash took the rest), dragging itself along on its arms, its guts trailing
-
-export const drawCrawler = (c: Ctx, seed: number, f: number, lunge: boolean, dead: boolean) => {
-  const fq = dead ? 0 : lunge ? 9 : Math.floor(f / 5) % 4;
-  stamp(c, `sp-crawler-${seed % 97}-${fq}-${dead ? 1 : 0}`, -60, -50, 110, 54, g => {
-    const hide = hideOf(seed), hideD = dark(hide, 0.3);
-    const reach = fq === 9 ? 14 : [0, 6, 10, 4][fq];
-    // (the guts trailing out behind, a slick of green)
-    g.fillStyle = mix(ALIEN.slimeDark, '#000000', 0.2); g.fillRect(-58, -3, 40, 3);
-    limb(g, -20, -10, -36, -6, 6, ALIEN.gum);
-    limb(g, -36, -6, -50, -4, 5, ALIEN.gumLight);
-    ink(g, () => g.ellipse(-52, -4, 4, 3, 0, 0, Math.PI * 2), ALIEN.gumDark);
-    // (the torso, flat to the floor, ragged at the waist)
-    ink(g, () => g.ellipse(-2, -16, 24, 14, -0.1, 0, Math.PI * 2), hide, 1.2);
-    g.fillStyle = BELLY; g.fillRect(-10, -6, 22, 4);
-    g.fillStyle = ALIEN.gum; for (let i = 0; i < 4; i++) g.fillRect(-26 + i * 2, -22 + i * 4, 3, 3);
-    // (the arms, hauling: one reaching out ahead, the other planted)
-    slimb(g, 12, -22, 26 + reach, -10, 10, hideD);
-    ink(g, () => g.ellipse(28 + reach, -6, 7, 5, 0, 0, Math.PI * 2), hideD);
-    slimb(g, 6, -18, 16 - reach * 0.5, -4, 10, hide);
-    ink(g, () => g.ellipse(18 - reach * 0.5, -4, 7, 5, 0, 0, Math.PI * 2), hide);
-    // (the head, up off the floor: the jaw, the pegs, the eyes)
-    const hx = 22, hy = -30 - (fq === 9 ? 4 : 0);
-    ink(g, () => g.roundRect(hx - 10, hy - 4, 22, 12, 3), hide);
-    ink(g, () => g.ellipse(hx - 4, hy - 8, 6, 5, 0, 0, Math.PI * 2), hide);
-    g.fillStyle = ALIEN.mouth; g.fillRect(hx - 5, hy + 2, 15, fq === 9 ? 5 : 2);
-    for (let t = 0; t < 4; t++) { g.fillStyle = ALIEN.teeth[3]; g.fillRect(hx - 4 + t * 4, hy, 2, 3); }
-    if (dead) { g.fillStyle = INK; g.fillRect(hx - 7, hy - 4, 2, 2); g.fillRect(hx - 2, hy - 4, 2, 2); }
-    else { g.fillStyle = ALIEN.eyeRim; g.fillRect(hx - 8, hy - 5, 8, 3); g.fillStyle = ALIEN.sclera; g.fillRect(hx - 7, hy - 5, 2, 2); g.fillRect(hx - 3, hy - 5, 2, 2); }
-  });
-};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The dead, posed (the impact site's set dressing): stamped once each. Not the standing figure turned over (that hung
@@ -597,4 +563,268 @@ export const drawCorpse = (c: Ctx, kind: CorpseKind, seed: number) => {
 /** The figure without the stamp (inside another stamp's paint). */
 export const drawAlienRaw = (g: Ctx, look: AlienLook, pose: AlienPose, scale = 1) => {
   g.save(); g.scale(scale, scale); paintAlien(g, look, pose, 0); g.restore();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The crawler: the top half of one (the crash took the rest), dragging itself along on its arms, its guts trailing.
+// Drawn as the soldiers are (the same head, the same Popeye arms and two-fingered hands, the barrel of a chest in its
+// stepped bands, lit from the upper left, the seams dithered), just flat to the floor and cut off at the waist.
+
+/** What it's doing: lying there breathing (hasn't seen him), hauling itself along, snapping at him, heaving up over
+ *  something (`heave` going up, `over` coming down the far side), flinching, dead. */
+export type CrawlPose = 'idle' | 'crawl' | 'lunge' | 'heave' | 'over' | 'hurt' | 'dead';
+
+/** Two-bone arm from the shoulder s to the hand h (upper u long, forearm l long): the elbow up and back, as a man's
+ *  is pulling himself along the floor. */
+const elbowOf = (s: P, h: P, u: number, l: number): P => {
+  const dx = h[0] - s[0], dy = h[1] - s[1], d0 = Math.hypot(dx, dy) || 1, d = Math.min(d0, u + l - 0.01);
+  const ux = dx / d0, uy = dy / d0;
+  const a = (u * u - l * l + d * d) / (2 * d), k = Math.sqrt(Math.max(0, u * u - a * a));
+  let px = -uy, py = ux;
+  if (-py - 0.3 * px < py + 0.3 * px) { px = -px; py = -py; }
+  return [s[0] + ux * a + px * k, s[1] + uy * a + py * k];
+};
+
+/** A crawler's arm, inked and banded as the soldiers' are: the Popeye forearm, the fat hand, the claws dug in. */
+const crawlArm = (g: Ctx, s: P, h: P, col: string, planted: boolean) => {
+  const e = elbowOf(s, h, 15, 17);
+  slimb(g, s[0], s[1], e[0], e[1], 10, col);
+  slimb(g, e[0], e[1], h[0], h[1], 13, col);
+  // (the forearm's bulge lit, a vein over it)
+  g.fillStyle = lite(col, 0.32); g.fillRect(Math.round(e[0] + (h[0] - e[0]) * 0.3) - 2, Math.round(e[1] + (h[1] - e[1]) * 0.3) - 5, 5, 2);
+  g.fillStyle = ALIEN.vein; g.fillRect(Math.round(e[0] + (h[0] - e[0]) * 0.55), Math.round(e[1] + (h[1] - e[1]) * 0.55) - 3, 1, 4);
+  const a = planted ? 0.35 : ang(e, h);
+  ink(g, () => g.ellipse(h[0], h[1], 7.5, 6, a, 0, Math.PI * 2), col);
+  g.fillStyle = lite(col, 0.28); g.fillRect(Math.round(h[0]) - 4, Math.round(h[1]) - 5, 4, 2);
+  g.fillStyle = dark(col, 0.3); g.fillRect(Math.round(h[0]) - 3, Math.round(h[1]) + 3, 7, 1);
+  // (the two claws: hooked into the floor when it's planted, out ahead when it's reaching)
+  g.fillStyle = ALIEN.claw[1];
+  if (planted) {
+    g.fillRect(Math.round(h[0]) + 5, Math.round(h[1]) + 2, 3, 3); g.fillRect(Math.round(h[0]) + 1, Math.round(h[1]) + 4, 3, 2);
+    g.fillStyle = ALIEN.claw[3]; g.fillRect(Math.round(h[0]) + 5, Math.round(h[1]) + 2, 1, 1);
+  } else {
+    for (const o of [0, 0.75]) g.fillRect(Math.round(h[0] + Math.cos(a + o) * 7) - 1, Math.round(h[1] + Math.sin(a + o) * 7) - 1, 3, 3);
+    g.fillStyle = ALIEN.claw[3]; g.fillRect(Math.round(h[0] + Math.cos(a) * 7) - 1, Math.round(h[1] + Math.sin(a) * 7) - 1, 1, 1);
+  }
+};
+
+/** A live head (the soldier's, in its bands), its jaw's middle at the origin facing right. `open` how far the jaw
+ *  hangs (0..1); `eyes` open, squeezed shut, or X'd out; `drip` steps the slime off the chin. */
+const liveHead = (g: Ctx, hide: string, seed: number, open: number, eyes: 'open' | 'shut' | 'x', woman: boolean, drip: number, tongue = false) => {
+  const hideD = dark(hide, 0.3), hideL = lite(hide, 0.2), hideDD = dark(hide, 0.5);
+  const o2 = Math.round(open * 2), o4 = Math.round(open * 4), o6 = Math.round(open * 5);
+  // (a woman's crest: the fleshy fin off the back of the cranium)
+  if (woman) {
+    ink(g, () => { g.moveTo(-10, -14); g.quadraticCurveTo(-22, -20, -24, -6); g.quadraticCurveTo(-16, -10, -9, -8); g.closePath(); }, '#9D3C78');
+    g.fillStyle = '#C86AA0'; g.fillRect(-19, -16, 6, 1); g.fillStyle = '#6E2453'; g.fillRect(-20, -9, 6, 1);
+  }
+  // (the tiny cranium perched on the back of the jaw: lit top left, a band of shade under, the seams dithered)
+  ink(g, () => g.ellipse(-4, -11, 8, 6.5, 0, 0, Math.PI * 2), hide);
+  g.save(); g.beginPath(); g.ellipse(-4, -11, 7.4, 5.9, 0, 0, Math.PI * 2); g.clip();
+  g.fillStyle = hideL; g.fillRect(-12, -18, 9, 4);
+  checker(g, -3, -18, 2, 4, hideL); checker(g, -12, -14, 9, 1, hideL);
+  g.fillStyle = hideD; g.fillRect(-12, -8, 16, 4); checker(g, -12, -10, 16, 2, hideD);
+  g.fillStyle = lite(hide, 0.42); g.fillRect(-9, -16, 3, 1);
+  g.restore();
+  // (the jaw like a block: lit along its top, its underside in two dark steps, dithered between)
+  ink(g, () => g.roundRect(-13, -6 + o2, 28, 15, 3), hide, 1.2);
+  g.save(); g.beginPath(); g.roundRect(-12.4, -5.4 + o2, 26.8, 13.8, 2.5); g.clip();
+  g.fillStyle = hideL; g.fillRect(-13, -6 + o2, 28, 3); checker(g, -13, -3 + o2, 28, 1, hideL);
+  g.fillStyle = hideD; g.fillRect(-13, 4 + o2, 28, 6); checker(g, -13, 2 + o2, 28, 2, hideD);
+  g.fillStyle = hideDD; g.fillRect(9, -6 + o2, 6, 16);
+  g.restore();
+  // (the under-bite: the pale chin out past the top lip, ramped)
+  ink(g, () => g.roundRect(-9, 2 + o4, 24, 8, 2), BELLY);
+  g.fillStyle = lite(BELLY, 0.3); g.fillRect(-7, 3 + o4, 14, 1);
+  g.fillStyle = ALIEN.belly[3]; g.fillRect(-8, 7 + o4, 22, 2); checker(g, -8, 6 + o4, 22, 1, ALIEN.belly[3]);
+  // (the brow: a ridge over the eyes, lit along its top)
+  g.fillStyle = hideDD; g.fillRect(-11, -8, 15, 3);
+  g.fillStyle = hideL; g.fillRect(-11, -9, 13, 1);
+  for (const ex of [-8, -2]) {
+    g.fillStyle = ALIEN.eyeRim; g.fillRect(ex, -6, 4, 3);
+    if (eyes === 'x') { g.fillStyle = INK; g.fillRect(ex, -6, 1, 1); g.fillRect(ex + 2, -6, 1, 1); g.fillRect(ex + 1, -5, 1, 1); g.fillRect(ex, -4, 1, 1); g.fillRect(ex + 2, -4, 1, 1); }
+    else if (eyes === 'shut') { g.fillStyle = INK; g.fillRect(ex, -5, 4, 1); g.fillRect(ex + 1, -6, 2, 1); }
+    else {
+      g.fillStyle = ALIEN.scleraShade; g.fillRect(ex + 1, -5, 3, 1);
+      g.fillStyle = ALIEN.sclera; g.fillRect(ex + 1, -6, 3, 1); g.fillRect(ex + 1, -5, 1, 1);
+      g.fillStyle = ALIEN.pupil; g.fillRect(ex + 2, -5, 1, 1);
+      g.fillStyle = ALIEN.glint; g.fillRect(ex + 1, -6, 1, 1);
+    }
+    if (woman && eyes !== 'x') { g.fillStyle = INK; g.fillRect(ex, -8, 1, 2); g.fillRect(ex + 3, -8, 1, 2); }
+  }
+  // (the nostrils)
+  g.fillStyle = INK; g.fillRect(7, -3, 1, 2); g.fillRect(9, -3, 1, 2);
+  // (the mouth: a slot, or hanging open on the gums (the tongue out, dead))
+  if (open > 0.1) {
+    g.fillStyle = ALIEN.mouth; g.fillRect(-6, 0, 19, 1 + o6);
+    g.fillStyle = ALIEN.gumDark; g.fillRect(-6, 0, 19, 1);
+    g.fillStyle = ALIEN.gum; g.fillRect(-4, o6 - 1, 15, 2);
+    if (tongue) { ink(g, () => g.ellipse(13, o6 + 3, 5, 2.5, 0.4, 0, Math.PI * 2), ALIEN.gumLight); g.fillStyle = ALIEN.gum; g.fillRect(11, o6 + 3, 4, 1); }
+  } else { g.fillStyle = ALIEN.mouth; g.fillRect(-6, 1, 19, 2); }
+  // (the yellow pegs, up over the top lip; brown at the roots)
+  const gap = Math.abs(seed >> 2) % 5, ty = -1 + o6;
+  for (let t = 0; t < 5; t++) {
+    if (t === gap && seed % 3 === 0) continue;
+    g.fillStyle = ALIEN.teeth[3]; g.fillRect(-5 + t * 4, ty + (t % 2), 2, 4 - (t % 2));
+    g.fillStyle = ALIEN.teeth[4]; g.fillRect(-5 + t * 4, ty + (t % 2), 1, 1);
+    g.fillStyle = ALIEN.teeth[1]; g.fillRect(-5 + t * 4, ty + 3, 2, 1);
+  }
+  // (wet: the glints, a string of slime off the chin, stepping down)
+  g.fillStyle = ALIEN.slimeLight; g.fillRect(-7, -16, 3, 1); g.fillRect(-11, -4 + o2, 2, 1);
+  g.fillStyle = ALIEN.slime; g.fillRect(9, 10 + o4, 1, 1 + (drip % 4)); g.fillRect(9, 12 + o4 + (drip % 4), 1, 1);
+};
+
+/** The crawler, its belly (the floor) at (0, 0), facing right. `t` steps its animation (the crawl's own timer while it
+ *  crawls, so its pulls land with the AI's lurches; otherwise the frame count). */
+export const drawCrawler = (c: Ctx, seed: number, pose: CrawlPose, t: number, woman = false) => {
+  // (the crawl in 20 steps (two pulls, one an arm each), idling in 4, the rest held)
+  const fq = pose === 'crawl' ? Math.floor((((t % 80) + 80) % 80) / 4) : pose === 'idle' ? Math.floor(t / 10) % 4 : 0;
+  stamp(c, `sp-crawler-${seed % 97}-${woman ? 1 : 0}-${pose}-${fq}`, -68, -66, 126, 72, g => paintCrawler(g, seed, pose, fq, woman));
+};
+
+const paintCrawler = (g: Ctx, seed: number, pose: CrawlPose, fq: number, woman: boolean) => {
+  const hide = hideOf(seed), hideD = dark(hide, 0.3);
+  const lerp = (a: number, b: number, u: number) => a + (b - a) * u;
+  // --- Where everything goes, by pose: the shoulders and the hips (the torso's line: trunk() tilts it to match),
+  //     the hands, the head (its jaw's middle off the shoulders, its turn), the jaw, the guts' loose end ---
+  let sh: P = [4, -15], hip: P = [-14, -13], flat = 0.62;
+  let handF: P = [16, -5], handB: P = [10, -5], plantF = true, plantB = true;
+  let head: P = [14, -11], hr = 0, open = 0, eyes: 'open' | 'shut' | 'x' = 'open', tongue = false;
+  let gutEnd: P = [-56, -3], sag = 3, wave = 0;
+  switch (pose) {
+    case 'crawl': {
+      // (80 frames round: the near arm pulls in the first 20 (the AI's lurch), the far arm reaches out in the next 20
+      // (its slow), pulls in the third, the near one reaches in the fourth. Pulling, the hand stays planted and slides
+      // back under it as it hauls itself up onto it, the chest stretched out and lifted; reaching, it bunches up, the
+      // head comes up to look, the jaw snaps)
+      const tt = fq * 4, ph = tt % 40, u = (ph % 20) / 20, pulling = ph < 20;
+      const arm = (i: number): [P, boolean] => {
+        const rel = (((tt - i * 40) % 80) + 80) % 80, fwd = i === 0 ? 38 : 33, back = i === 0 ? 14 : 9;
+        if (rel < 20) return [[lerp(fwd, back, rel / 20), -5], true];
+        if (rel >= 60) { const r = (rel - 60) / 20; return [[lerp(back, fwd, r), -5 - Math.sin(Math.PI * r) * 8], false]; }
+        return [[back, -5], true];
+      };
+      [handF, plantF] = arm(0); [handB, plantB] = arm(1);
+      const s = pulling ? Math.sin(Math.PI * u) : 0, b = pulling ? 0 : Math.sin(Math.PI * u);
+      sh = [4 + 3 * s - b, -15 - 2 * s]; flat = 0.62 - 0.05 * s + 0.05 * b;
+      head = [14 + s, -11 - 2 * b]; hr = -0.08 * b + 0.05 * s;
+      open = !pulling && u > 0.3 && u < 0.7 ? 0.7 : 0;
+      wave = tt / 40; gutEnd = [-56 + Math.round(Math.sin(wave * Math.PI * 2) * 3), -3]; sag = 3 + s * 2;
+      break;
+    }
+    case 'idle': {
+      // (lying there in its slick, breathing, the jaw working; a blink)
+      const br = fq === 1 || fq === 2 ? 1 : 0;
+      sh = [4, -15 - br]; flat = 0.62 + br * 0.04; handF = [18, -5]; handB = [11, -5];
+      head = [14, -10 - br]; hr = 0.06; open = fq === 2 ? 0.3 : 0; eyes = fq === 3 ? 'shut' : 'open';
+      wave = fq / 4;
+      break;
+    }
+    case 'lunge': {
+      // (thrown at his ankles off both arms: stretched out flat at him, both hands out, the jaw wide)
+      sh = [10, -21]; hip = [-14, -13]; flat = 0.56; handF = [42, -18]; handB = [36, -23]; plantF = plantB = false;
+      head = [16, -12]; hr = -0.12; open = 1;
+      gutEnd = [-52, -14]; sag = 6; wave = 0.25;
+      break;
+    }
+    case 'heave': {
+      // (pushing up off both arms, locked straight under it, nose up, straining; the guts swinging under)
+      sh = [6, -30]; hip = [-12, -12]; flat = 0.6; handF = [14, -2]; handB = [7, -2];
+      head = [12, -13]; hr = -0.3; open = 0.6; eyes = 'shut';
+      gutEnd = [-30, -1]; sag = 8; wave = 0.5;
+      break;
+    }
+    case 'over': {
+      // (over the top and coming down the far side: level, the arms out ahead to catch it, the guts streaming behind)
+      sh = [6, -22]; hip = [-14, -20]; flat = 0.6; handF = [32, -6]; handB = [26, -9]; plantF = plantB = false;
+      head = [14, -10]; hr = 0.12; open = 0.4;
+      gutEnd = [-50, -10]; sag = 10; wave = 0.75;
+      break;
+    }
+    case 'hurt': {
+      // (the flinch: reared back off the floor, the head thrown back, the eyes squeezed, the arms flung up)
+      sh = [1, -22]; hip = [-14, -13]; flat = 0.64; handF = [22, -36]; handB = [14, -40]; plantF = plantB = false;
+      head = [12, -12]; hr = -0.4; open = 0.9; eyes = 'shut';
+      gutEnd = [-54, -4]; sag = 5;
+      break;
+    }
+    case 'dead': {
+      // (flat out, the arms flopped either way, the head down on its cheek, the tongue on the floor)
+      sh = [4, -11]; hip = [-14, -10]; flat = 0.5; handF = [30, -5]; handB = [-6, -4];
+      head = [16, -6]; hr = 0.35; open = 1; eyes = 'x'; tongue = true;
+      gutEnd = [-56, -3]; sag = 0;
+      break;
+    }
+  }
+  const dir = ang(sh, hip), cosd = Math.cos(dir), sind = Math.sin(dir);
+  const len = Math.hypot(hip[0] - sh[0], hip[1] - sh[1]), ry = 21 * flat;
+  const tail: P = [hip[0] + cosd * 12, hip[1] + sind * 12];
+  const airborne = pose === 'heave' || pose === 'over' || pose === 'lunge';
+
+  // --- The floor under it: its shadow, the slick it leaves (dithered off at the end), a glint running along it ---
+  if (!airborne) {
+    contact(g, sh[0] - 6, 56);
+    g.fillStyle = ALIEN.slimeDark; g.fillRect(-62, -2, 46, 2);
+    g.fillStyle = ALIEN.slime; g.fillRect(-54, -3, 34, 1);
+    checker(g, -66, -3, 12, 3, ALIEN.slimeDark, 0);
+    g.fillStyle = ALIEN.slimeLight; g.fillRect(-42 + (fq % 4) * 3, -3, 2, 1);
+  }
+
+  // --- The far arm (behind it, in shade) ---
+  crawlArm(g, [sh[0] - 3, sh[1] - 6], handB, hideD, plantB);
+
+  // --- The guts: out of the torn end, trailing (or swinging, or streaming), a ripple down them, bulging every so often ---
+  {
+    const n = 10, pts: P[] = [];
+    for (let i = 0; i <= n; i++) {
+      const u = i / n, w = Math.sin((u * 2 - wave) * Math.PI * 2) * 1.5 * u;
+      const y = tail[1] + 4 + (gutEnd[1] - tail[1] - 4) * u + Math.sin(u * Math.PI) * sag + w;
+      pts.push([tail[0] + 2 + (gutEnd[0] - tail[0] - 2) * u, Math.min(-3, y)]);
+    }
+    for (let i = 0; i < n; i++) limb(g, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], 5, i % 2 ? ALIEN.gum : ALIEN.gumLight);
+    g.fillStyle = lite(ALIEN.gumLight, 0.3);
+    for (let i = 0; i < n; i++) g.fillRect(Math.round(pts[i][0]), Math.round(pts[i][1]) - 2, 2, 1);
+    for (let i = 3; i < n; i += 3) {
+      ink(g, () => g.ellipse(pts[i][0], pts[i][1], 4.5, 3.5, 0, 0, Math.PI * 2), ALIEN.gumLight);
+      g.fillStyle = ALIEN.gum; g.fillRect(Math.round(pts[i][0]) - 2, Math.round(pts[i][1]) + 1, 5, 1);
+      g.fillStyle = '#F4C4D4'; g.fillRect(Math.round(pts[i][0]) - 2, Math.round(pts[i][1]) - 2, 2, 1);
+    }
+    ink(g, () => g.ellipse(pts[n][0], pts[n][1], 4, 3, 0, 0, Math.PI * 2), ALIEN.gumDark);
+    g.fillStyle = ALIEN.gum; g.fillRect(Math.round(pts[n][0]) - 2, Math.round(pts[n][1]) - 2, 2, 1);
+  }
+
+  // --- The torso: the soldier's barrel, flat to the floor, in its bands (trunk()), the gut against the floor ---
+  trunk(g, sh, hip, 1, hide, flat, true, seed);
+  // (the spine's knobs along its back: a ripple running down them, front to back, as it hauls)
+  for (let i = 0; i < 4; i++) {
+    const u = 0.15 + i * 0.22, bx = sh[0] + cosd * len * u, by = sh[1] + sind * len * u;
+    // (the torso's up side: square off its line, toward up)
+    let nx = sind, ny = -cosd;
+    if (ny > 0) { nx = -nx; ny = -ny; }
+    const up = ry * 0.92 + Math.round(Math.sin((wave - u) * Math.PI * 2) * 1.2);
+    const kx = Math.round(bx + nx * up), ky = Math.round(by + ny * up);
+    ink(g, () => g.ellipse(kx, ky, 3, 2, dir, 0, Math.PI * 2), hideD);
+    g.fillStyle = lite(hide, 0.3); g.fillRect(kx - 1, ky - 1, 2, 1);
+  }
+  // (the torn waist: ragged meat, the stub of spine, the slime off it)
+  g.save(); g.translate(tail[0], tail[1]); g.scale(0.8, 0.8); tornEnd(g, [0, 0], dir); g.restore();
+  g.fillStyle = ALIEN.slime;
+  if (!airborne) g.fillRect(Math.round(tail[0]) - 2, Math.round(tail[1]) + 8, 2, 3 + (fq % 3));
+  else { g.fillRect(Math.round(tail[0]) - 3, Math.round(tail[1]) + 12, 2, 2); g.fillRect(Math.round(tail[0]) + 1, Math.round(tail[1]) + 16, 1, 2); }
+
+  // --- The neck (wider than the head), the traps humped up behind it ---
+  const hx = sh[0] + head[0], hy = sh[1] + head[1];
+  slimb(g, sh[0] - 4, sh[1] - 2, hx - 5, hy + 3, 18, hide);
+  ink(g, () => g.ellipse(sh[0] - 6, sh[1] - 7, 9, 6, dir + Math.PI, 0, Math.PI * 2), hide);
+  g.fillStyle = lite(hide, 0.2); g.fillRect(Math.round(sh[0]) - 11, Math.round(sh[1]) - 11, 8, 2);
+  g.fillStyle = ALIEN.vein; for (let v = 0; v < 3; v++) g.fillRect(Math.round(sh[0]) + v * 3 - 2, Math.round(sh[1]) - 6 + (v % 2), 1, 3);
+  g.fillStyle = ALIEN.slimeLight; g.fillRect(Math.round(sh[0]) - 8, Math.round(sh[1]) - 12, 3, 1);
+
+  // --- The head (the soldier's, a touch smaller) ---
+  g.save(); g.translate(hx, hy); g.rotate(hr); g.scale(0.9, 0.9);
+  liveHead(g, hide, seed, open, eyes, woman, fq, tongue);
+  g.restore();
+
+  // --- The near arm (in front) ---
+  crawlArm(g, [sh[0] + 3, sh[1] - 3], handF, hide, plantF);
 };
