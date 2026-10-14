@@ -135,8 +135,8 @@ const blast = (state: GameState, s: Sled) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Riding
 
-/** The sled's wheels from its middle (front, middle, back), and how far into a run one can be and still be caught on it. */
-const WHEELS = [40, 0, -44], SNAP_IN = 44;
+/** The sled's front wheel and its middle (the back trails: never caught on what it's leaving), and how far into a run one can be and still be caught on it. */
+const WHEELS = [40, 0], SNAP_IN = 44;
 const riding = (ctx: FrameContext, s: Sled, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   s.t++;
@@ -183,6 +183,9 @@ const riding = (ctx: FrameContext, s: Sled, controls: Controls): Controls => {
       const wx = s.x + dx, wy = trackY(wx);
       if (wy === null || s.y < wy - 1 || s.y > wy + SNAP_IN || s.y - s.vy > wy + SNAP_IN) continue;
       const r = runAt(wx)!;
+      // (only a run ahead it's coming down onto: never the one it's just gone off the end of, or it'd catch on that
+      // over and over going off a cliff)
+      if (dx !== 0 && r[0] <= s.x) continue;
       s.x = Math.max(r[0] + 1, Math.min(r[1] - 1, s.x));
       s.y = trackY(s.x) ?? wy; s.vy = 0; s.air = false; s.offRail = 0;
       playSound('land', 0.8); playSound('clang', 0.5, -2); shakeScreen(state, 4, 2);

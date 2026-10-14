@@ -136,8 +136,8 @@ const place = (state: GameState, cart: Cart) => {
   p.vel.x = 0; p.vel.y = 0;
 };
 
-/** The cart's wheels from its middle (front, middle, back), and how far into a run one can be and still be caught on it. */
-const CART_WHEELS = [44, 0, -44], CART_SNAP_IN = 40;
+/** The cart's front wheel and its middle (the back trails: never caught on what it's leaving), and how far into a run one can be and still be caught on it. */
+const CART_WHEELS = [44, 0], CART_SNAP_IN = 40;
 const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   cart.t++;
@@ -165,6 +165,9 @@ const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
       const wx = cart.x + dx, wy = trackY(wx);
       if (wy === null || cart.y < wy - 1 || cart.y > wy + CART_SNAP_IN || cart.y - cart.vy > wy + CART_SNAP_IN) continue;
       const r = runAt(wx)!;
+      // (only a run ahead it's coming down onto: never the one it's just gone off the end of, or it'd catch on that
+      // over and over going off a cliff)
+      if (dx !== 0 && r[0] <= cart.x) continue;
       cart.x = Math.max(r[0] + 1, Math.min(r[1] - 1, cart.x));
       cart.y = trackY(cart.x) ?? wy; cart.vy = 0; cart.air = false; playSound('land', 0.8); playSound('clang', 0.5, -4); shakeScreen(state, 4, 2);
       break;
