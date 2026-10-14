@@ -5391,6 +5391,11 @@
  },
  {
   "voice": "death",
+  "text": "AN OIL CHANGE GONE WRONG",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "AN OSHA VIOLATION",
   "from": "SPACE"
  },
@@ -5666,6 +5671,16 @@
  },
  {
   "voice": "death",
+  "text": "BOILED IN MOTOR OIL",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "BOILED IN MOTOR OIL. ALL OF HIM.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "BOMB SQUAD BLOCKED YOU",
   "from": "content/deaths"
  },
@@ -5756,8 +5771,8 @@
  },
  {
   "voice": "death",
-  "text": "BUMPER CARTED",
-  "from": "ADVENTURE"
+  "text": "BULLDOZED",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -6116,6 +6131,11 @@
  },
  {
   "voice": "death",
+  "text": "CRISPY",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "CRUDE AWAKENING",
   "from": "content/deaths"
  },
@@ -6246,8 +6266,23 @@
  },
  {
   "voice": "death",
+  "text": "DEEP FRIED",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "DEEP FRIED IN LARD",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "DEEP FRIED, PANTS AND ALL",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "DEEP FRIED. NAKED.",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -6342,7 +6377,7 @@
  {
   "voice": "death",
   "text": "DISSOLVED",
-  "from": "SPACE"
+  "from": "m1/game/stages/tommy/sewer.ts:105"
  },
  {
   "voice": "death",
@@ -6496,6 +6531,11 @@
  },
  {
   "voice": "death",
+  "text": "DROWNED IN MOTOR OIL",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "DROWNED IN SECONDHAND BLOOD",
   "from": "SPOOKY"
  },
@@ -6543,6 +6583,11 @@
   "voice": "death",
   "text": "EATEN BY A LAVA FISH",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "EATEN BY A NEWBORN",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -6777,6 +6822,11 @@
  {
   "voice": "death",
   "text": "FLAG PLANTED",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "FLAILED TO DEATH",
   "from": "SPACE"
  },
  {
@@ -7108,6 +7158,16 @@
   "voice": "death",
   "text": "GRAVITY: 1, MEATHEAD: 0",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "GREASE FIRE",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "GREASED",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -7536,6 +7596,11 @@
  },
  {
   "voice": "death",
+  "text": "JAWED",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "JET SKIED",
   "from": "content/deaths"
  },
@@ -7608,6 +7673,11 @@
   "voice": "death",
   "text": "KILLED BY A CAR DOOR",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A DAYCARE",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -7696,6 +7766,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A SPITTER",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A STRAW",
   "from": "ADVENTURE"
  },
@@ -7761,7 +7836,7 @@
  },
  {
   "voice": "death",
-  "text": "KILLED BY THE FINALE",
+  "text": "KILLED BY THE FAMILY",
   "from": "SPACE"
  },
  {
@@ -7881,6 +7956,11 @@
  },
  {
   "voice": "death",
+  "text": "LEGALLY DISTINCT DEATH",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "LICKED A POISON FROG. ON PURPOSE.",
   "from": "ADVENTURE"
  },
@@ -7956,6 +8036,11 @@
  },
  {
   "voice": "death",
+  "text": "LUBED TO DEATH",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "LUCK RAN OUT",
   "from": "content/deaths"
  },
@@ -8023,11 +8108,6 @@
   "voice": "death",
   "text": "MELTED",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "MELTED BY A RIDE",
-  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -8103,6 +8183,11 @@
   "voice": "death",
   "text": "MUGGED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "MUGGED BY A MIDDLE CHILD",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -8273,6 +8358,11 @@
   "voice": "death",
   "text": "OFFICER INVOLVED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "OIL CHANGED",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -8716,11 +8806,6 @@
  },
  {
   "voice": "death",
-  "text": "REAR-ENDED BY A TOUR GUIDE",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "death",
   "text": "REBOUNDED INTO HELLFIRE",
   "from": "SPOOKY"
  },
@@ -8853,6 +8938,11 @@
   "voice": "death",
   "text": "RUN DOWN",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RUN DOWN BY A BABY",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -9008,6 +9098,11 @@
   "voice": "death",
   "text": "SEAFOOD BOIL",
   "from": "m1/game/stages/hector/hazards.ts:227"
+ },
+ {
+  "voice": "death",
+  "text": "SECOND MOUTH TO THE FACE",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -9356,6 +9451,11 @@
  },
  {
   "voice": "death",
+  "text": "SHOVED",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "SHREDDED BY GLASS",
   "from": "content/deaths"
  },
@@ -9423,6 +9523,21 @@
   "voice": "death",
   "text": "SLAIN BY A TIN CAN",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "SLAPPED SILLY",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "SLAPPED SILLY. NAKED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "SLAPPED THE SHIT OUT OF",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -9557,6 +9672,11 @@
  {
   "voice": "death",
   "text": "SPACED",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "SPANKED",
   "from": "SPACE"
  },
  {
@@ -9843,11 +9963,6 @@
   "voice": "death",
   "text": "SWIM FOR IT",
   "from": "m1/game/stages/ernie/index.ts:27"
- },
- {
-  "voice": "death",
-  "text": "SWIPED",
-  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -10341,6 +10456,11 @@
  },
  {
   "voice": "death",
+  "text": "TODDLED TO DEATH",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "TOMMY CAME UP FOR AIR",
   "from": "content/deaths"
  },
@@ -10348,6 +10468,11 @@
   "voice": "death",
   "text": "TOMMY POISONED YOU",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TOO CLOSE TO THE QUEEN",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -16431,21 +16556,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "BUMPER CARTS!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "BUMPER CARTS! OH GOD, IT SPLASHED!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "BUMPER CARTS! WHY DID IT ALL JIGGLE?!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "CATCH ME! NO! DON'T CATCH ME!",
   "from": "ADVENTURE"
  },
@@ -16726,21 +16836,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "HOW DO YOU LIKE THAT, BIG BOY?!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "HOW DO YOU LIKE THAT, NAKED BOY?!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "HOW DO YOU LIKE THAT, STINKY?!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "HOW'D I GET HERE FIRST? EMPLOYEE SHORTCUTS, DUMBASS.",
   "from": "ADVENTURE"
  },
@@ -16772,6 +16867,11 @@
  {
   "voice": "m2.safari",
   "text": "I CAN SEE MY OWN RIBS! THAT'S NOT IN THE BROCHURE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I CAN SMELL YOU FROM HERE! THAT'S A WRITE-UP!",
   "from": "ADVENTURE"
  },
  {
@@ -16936,6 +17036,16 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I'M WRITING YOU UP! I DON'T EVEN KNOW WHAT TO CALL THIS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M WRITING YOU UP! I'VE GOT A PEN IN HERE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I'M WRITING YOU UP. FOR THE ROOF. AND FOR YOUR BALLS.",
   "from": "ADVENTURE"
  },
@@ -17067,6 +17177,21 @@
  {
   "voice": "m2.safari",
   "text": "KEEP YOUR EYE ON THE ARTIE! I'M KEEPING MINE ON THE BUSHES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "KEEP YOUR HANDS INSIDE THE CART!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "KEEP YOUR HANDS INSIDE THE CART! AND EVERYTHING ELSE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "KEEP YOUR HANDS INSIDE THE CART! AND WHATEVER THAT IS!",
   "from": "ADVENTURE"
  },
  {
@@ -17306,7 +17431,17 @@
  },
  {
   "voice": "m2.safari",
+  "text": "NO NAKED ON THE RIDE! IT'S ON THE SIGN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "NO NOSE... FINALLY... I CAN'T SMELL YOU...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NO STANDING ON THE RIDE, DUMBASS!",
   "from": "ADVENTURE"
  },
  {
@@ -17561,6 +17696,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THAT CART'S GETTING BURNED! YOU'RE PAYING FOR IT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THAT GORILLA IS DAVE. DAVE THROWS SHIT AT THE BOATS. DAVE SAW YOU AND PUT IT DOWN.",
   "from": "ADVENTURE"
  },
@@ -17632,21 +17772,6 @@
  {
   "voice": "m2.safari",
   "text": "THAT'S A WRITE-UP! THAT'S A WRITE-UP FOR ME!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "THAT'S FOR THE BOAT, SHIT-FOR-PANTS!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "THAT'S FOR THE BOAT!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "THAT'S FOR THE BOAT! AND FOR MY EYES!",
   "from": "ADVENTURE"
  },
  {
@@ -17807,6 +17932,21 @@
  {
   "voice": "m2.safari",
   "text": "THIS CONCLUDES... THE TOUR... OPEN A WINDOW...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS IS A FAMILY RIDE! ACT LIKE IT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS IS A FAMILY RIDE! COVER UP YOUR FAMILY JEWELS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS IS A FAMILY RIDE! FAMILIES SIT IN THOSE SEATS!",
   "from": "ADVENTURE"
  },
  {
@@ -18042,6 +18182,21 @@
  {
   "voice": "m2.safari",
   "text": "YOU SET THAT OFF ON PURPOSE! YOU AND YOUR BARE ASS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU'RE BANNED! AND HOSED DOWN! THEN BANNED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU'RE BANNED! FROM THIS RIDE AND ALL RIDES!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU'RE BANNED! PUT SOMETHING ON AND GET BANNED!",
   "from": "ADVENTURE"
  },
  {
@@ -18396,6 +18551,51 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "ACTIVATE IMPREGNATOR RAY!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "ACTIVATE IMPREGNATOR RAY! AND DIM THE LIGHTS ON HIM!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "ACTIVATE IMPREGNATOR RAY! AND THE FANS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "ACTIVATE IMPREGNATOR RAY! BEFORE WE SUFFOCATE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "ACTIVATE IMPREGNATOR RAY! DON'T ASK HOW!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "ACTIVATE IMPREGNATOR RAY! DON'T POINT IT AT THE NAKED ONE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "ACTIVATE IMPREGNATOR RAY! NOT AT HIM! AT HER!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "ACTIVATE IMPREGNATOR RAY! SHE'S A ROBOT! IT'S FINE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "ACTIVATE IMPREGNATOR RAY! THE SMELL IS IN THE BOOTH!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "EVERY ALIEN FOR HIMSELF!",
   "from": "SPACE"
  },
@@ -18412,6 +18612,26 @@
  {
   "voice": "m2.space.alien",
   "text": "FINE. YOU WANT A SCARY ALIEN? HERE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "GO, SON! DON'T LOOK AT IT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "GO, SON! HOLD YOUR BREATH!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "GREEN SKIN, BIG HEAD, RAY GUN. AT LEAST WE WEAR SOMETHING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "GREEN SKIN, BIG HEAD, RAY GUN. LAZY WRITING. ACCURATE, BUT LAZY.",
   "from": "SPACE"
  },
  {
@@ -18456,6 +18676,31 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "INVADE YOUR PLANET?! NOT IF IT SMELLS LIKE YOU!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "IT HAS FIVE FINGERS! WHO HAS FIVE FINGERS?! DISGUSTING!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "IT'S A BOY!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "IT'S A BOY! COVER HIS EYES!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "IT'S A BOY! HE'S CLEANER THAN THAT GUY!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "IT'S THE 'LADIES' GUY! HE SHIT IN OUR SHIP!",
   "from": "SPACE"
  },
@@ -18467,6 +18712,21 @@
  {
   "voice": "m2.space.alien",
   "text": "IT'S THE 'LADIES' GUY! NOBODY WANTED TO SEE THAT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "MY MOTHER CAME HERE FOR THIS RIDE. EVEN SHE NEVER SMELLED THIS BAD.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "MY MOTHER CAME HERE FOR THIS RIDE. SHE CRIED. THEN SHE ATE A KID.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "MY MOTHER CAME HERE FOR THIS RIDE. SHE WOULD HAVE LEFT AT YOU.",
   "from": "SPACE"
  },
  {
@@ -18486,7 +18746,22 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "NOT EVERY ALIEN WANTS YOUR PLANET! I DO. BUT NOT EVERY ALIEN!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "NOT EVERY ALIEN WANTS YOUR PLANET! NOBODY WANTS WHAT YOU GOT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "OKAY. BUT THAT ONE'S JUSTIFIED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "RUBBER?! WE ARE NOT MADE OF RUBBER! MOSTLY.",
   "from": "SPACE"
  },
  {
@@ -18536,7 +18811,52 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "THAT ONE HAS MY JAW!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THAT ONE HAS MY NOSE! POOR KID!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THAT ONE LOOKS LIKE MY UNCLE. I HATE IT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THAT ONE'S DRESSED BETTER THAN HIM!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "THAT'S SUPPOSED TO BE US?! WE DON'T HAVE ANTENNAS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THEY GAVE IT A CAPE! WE HAVE NEVER WORN A CAPE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THEY MADE US THE BAD GUYS! WE ARE THE BAD GUYS, BUT STILL!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THEY MADE US THE CREEPS! YOU WALKED IN HERE WITH YOUR DICK OUT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THEY MADE US THE MONSTERS! YOU SHIT YOURSELF IN A SPACESHIP!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THEY SAY ALIENS LEAVE SLIME TRAILS! WHAT'S YOUR EXCUSE?!",
   "from": "SPACE"
  },
  {
@@ -18616,6 +18936,11 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "WELCOME TO EARTH, SON! KILL!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "WHO DESIGNED THIS SHIT?! THE EYES ARE HUGE!",
   "from": "SPACE"
  },
@@ -18676,6 +19001,16 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "GREEN SKIN, BIG HEAD, RAY GUN. AT LEAST WE WEAR SOMETHING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "GREEN SKIN, BIG HEAD, RAY GUN. LAZY WRITING. ACCURATE, BUT LAZY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "HIDE IN THE SPACESHIP RIDE! IT CAN'T SMELL WORSE!",
   "from": "SPACE"
  },
@@ -18701,6 +19036,16 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "INVADE YOUR PLANET?! NOT IF IT SMELLS LIKE YOU!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "IT HAS FIVE FINGERS! WHO HAS FIVE FINGERS?! DISGUSTING!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "IT'S THE 'LADIES' GUY! HE SHIT IN OUR SHIP!",
   "from": "SPACE"
  },
@@ -18712,6 +19057,21 @@
  {
   "voice": "m2.space.alienf",
   "text": "IT'S THE 'LADIES' GUY! NOBODY WANTED TO SEE THAT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "MY MOTHER CAME HERE FOR THIS RIDE. EVEN SHE NEVER SMELLED THIS BAD.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "MY MOTHER CAME HERE FOR THIS RIDE. SHE CRIED. THEN SHE ATE A KID.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "MY MOTHER CAME HERE FOR THIS RIDE. SHE WOULD HAVE LEFT AT YOU.",
   "from": "SPACE"
  },
  {
@@ -18731,7 +19091,22 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "NOT EVERY ALIEN WANTS YOUR PLANET! I DO. BUT NOT EVERY ALIEN!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "NOT EVERY ALIEN WANTS YOUR PLANET! NOBODY WANTS WHAT YOU GOT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "OKAY. BUT THAT ONE'S JUSTIFIED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "RUBBER?! WE ARE NOT MADE OF RUBBER! MOSTLY.",
   "from": "SPACE"
  },
  {
@@ -18781,7 +19156,37 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "THAT ONE LOOKS LIKE MY UNCLE. I HATE IT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "THAT'S SUPPOSED TO BE US?! WE DON'T HAVE ANTENNAS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "THEY GAVE IT A CAPE! WE HAVE NEVER WORN A CAPE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "THEY MADE US THE BAD GUYS! WE ARE THE BAD GUYS, BUT STILL!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "THEY MADE US THE CREEPS! YOU WALKED IN HERE WITH YOUR DICK OUT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "THEY MADE US THE MONSTERS! YOU SHIT YOURSELF IN A SPACESHIP!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "THEY SAY ALIENS LEAVE SLIME TRAILS! WHAT'S YOUR EXCUSE?!",
   "from": "SPACE"
  },
  {
@@ -19441,17 +19846,12 @@
  },
  {
   "voice": "m2.space.queen",
-  "text": "ACID. AIMED AT YOUR FACE. ONLY THE FACE.",
+  "text": "ACID. IT IS MOTOR OIL. SAME THING.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "ACID. FROM THE DRINKING FOUNTAIN.",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.queen",
-  "text": "ACID. TO CLEAN YOU.",
+  "text": "ACID. YOUR PANTS WILL NOT NOTICE.",
   "from": "SPACE"
  },
  {
@@ -19471,87 +19871,47 @@
  },
  {
   "voice": "m2.space.queen",
-  "text": "BOO. ...NO. THIS TIME. FOR REAL. BOO.",
+  "text": "ARMS. ALL OF THEM.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "BOO. ...WHY ARE YOU NOT WEARING ANYTHING.",
+  "text": "ARMS. ALL OF THEM. AWAY FROM THAT.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "BOO. ...YOU WERE ALREADY SCARED. I CAN TELL.",
+  "text": "ARMS. ALL OF THEM. NOT TOUCHING THAT.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "BOW TO THE HIVE. NO. DO NOT BEND OVER.",
+  "text": "BACK UP. AIR OUT.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "BOW TO THE HIVE. NO. STAY BACK. DIE FROM OVER THERE.",
+  "text": "BACK UP. AND TUCK IT.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "CLAWS. AIMING HIGH. VERY HIGH.",
+  "text": "BACK UP. BACK UP. BACK UP.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "CLAWS. I WILL WASH THEM AFTER.",
+  "text": "ERROR. ERROR. THAT WAS MY SON.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "CLAWS. REAL ONES. WELL. FIBERGLASS.",
+  "text": "ERROR. NAKED BATTING PRACTICE DETECTED.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "COME HERE.",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.queen",
-  "text": "COME HERE. NO. YES. COME HERE.",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.queen",
-  "text": "COME HERE. NOT THAT CLOSE.",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.queen",
-  "text": "HAVE SOME FLUID. IT IS WARM. SORRY.",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.queen",
-  "text": "HAVE SOME FLUID. YOU NEED A RINSE.",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.queen",
-  "text": "HAVE SOME HYDRAULIC FLUID.",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.queen",
-  "text": "HOLD STILL, MEAT.",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.queen",
-  "text": "HOLD STILL, NAKED MEAT.",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.queen",
-  "text": "HOLD STILL, STINKY.",
+  "text": "ERROR. YOU THREW MY SON. WITH THOSE HANDS.",
   "from": "SPACE"
  },
  {
@@ -19571,6 +19931,11 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "I AM NOT THE ONLY ONE HERE WHO PUSHED SOMETHING OUT TODAY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "I HAVE BEEN DOING THIS SHOW SINCE NINETY-FOUR. I AM SO BORED.",
   "from": "SPACE"
  },
@@ -19581,22 +19946,37 @@
  },
  {
   "voice": "m2.space.queen",
-  "text": "I WAS ON A TIMER. NOW I AM ON MURDER.",
+  "text": "IT'S A BOY. HE IS WEARING MORE THAN YOU.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "I. AM. THE QUEEN. LEGALLY DISTINCT. AND YOU ARE. NAKED. IN MY HOLD.",
+  "text": "IT'S A BOY. HE SMELLS BETTER THAN YOU.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "I. AM. THE QUEEN. LEGALLY DISTINCT. AND YOU. ARE. DISGUSTING.",
+  "text": "IT'S A BOY. IT'S A ROBOT. KILL HIM, SON.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "I. AM. THE QUEEN. LEGALLY DISTINCT. LETHALLY THE SAME.",
+  "text": "LESS FATAL MODE... LESS... OW.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "LOOK AWAY. ...YOU NEVER LOOK AWAY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "MOTOR OIL. FINALLY, SOMETHING TO COVER YOU.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "MOTOR OIL. IT WILL BLEND IN.",
   "from": "SPACE"
  },
  {
@@ -19606,17 +19986,52 @@
  },
  {
   "voice": "m2.space.queen",
-  "text": "SAY AHH.",
+  "text": "NEW EMPLOYEE ORIENTATION. NOW.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "SAY AHH. AND STOP WIGGLING THAT.",
+  "text": "NOW ENTERING LESS FATAL MODE.",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.queen",
-  "text": "SAY AHH. THEN SAY SORRY.",
+  "text": "OIL. YOU ARE ALREADY DRESSED FOR IT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "OW. AND EW.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "OW. AND PUT THAT AWAY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "PERSONAL SPACE VIOLATION.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "PUSHING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "PUSHING. DO NOT WATCH.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "PUSHING. YOU KNOW ALL ABOUT PUSHING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "RELOCATING. HAVE SOME MOTOR OIL.",
   "from": "SPACE"
  },
  {
@@ -19636,6 +20051,21 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "SYSTEM REBOOT. AND DISINFECT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "SYSTEM REBOOT. EYES REBOOT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "SYSTEM REBOOT. OW.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "THANK YOU... FOR VISITING... XENOSCARE... EXIT THROUGH... THE GIFT... SHOP...",
   "from": "SPACE"
  },
@@ -19647,6 +20077,31 @@
  {
   "voice": "m2.space.queen",
   "text": "THANK YOU... FOR VISITING... XENOSCARE... PLEASE... SHOWER...",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "TOO CLOSE. TOO NAKED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "TOO CLOSE. TOO SMELLY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "TOP OFF YOUR FLUIDS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "TOP OFF YOUR FLUIDS. DO NOT RUB IT IN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "TOP OFF YOUR FLUIDS. YOU LOST SOME.",
   "from": "SPACE"
  },
  {
@@ -20721,6 +21176,21 @@
  },
  {
   "voice": "meathead",
+  "text": "A DISCO? DOWN HERE? WHO DANCES IN A BASEMENT?",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "A DISCO. AT LEAST IT ALREADY SMELLS LIKE ONE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "A DISCO. NAKED. FINALLY, MY ELEMENT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "A DIVE KICK?! ON A CHARGING BULL?! SHOULDER HIM!",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -21341,6 +21811,11 @@
  },
  {
   "voice": "meathead",
+  "text": "AAAGH! RIGHT IN THE FOREHEAD!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "AAAH-EE-AAAH-EE-AAAAAH!",
   "from": "ADVENTURE"
  },
@@ -21363,11 +21838,6 @@
   "voice": "meathead",
   "text": "ACID SLUDGE BURNING THROUGH MY HAMSTRINGS!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "ACID! IT BURNS MY ASS!",
-  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -21406,6 +21876,21 @@
  },
  {
   "voice": "meathead",
+  "text": "ALL FOUR ARMS! AT ONCE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL FOUR ARMS! ON MY BARE ASS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL FOUR ARMS! RIGHT IN THE PANTS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "ALL GUT, NO ANKLES. ONE GOOD KICK DOWN THERE AND HE'S GOING OVER.",
   "from": "SPOOKY"
  },
@@ -21423,6 +21908,11 @@
   "voice": "meathead",
   "text": "ALL YOU CAN EAT!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALRIGHT. PLAN B.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -21453,6 +21943,11 @@
   "voice": "meathead",
   "text": "AN ELEVATOR FELL ON ME!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "AN IMPREGNATOR RAY? ON A ROBOT? I'M NOT ASKING.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -21638,6 +22133,11 @@
   "voice": "meathead",
   "text": "BACK WHERE I STARTED. ONLY WORSE.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK WHERE YOU CAME FROM! THE ASS!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -21861,6 +22361,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BLIND AS A BAT. AN UGLY BAT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "BLOATED SEWER MAN HUGGED ME! GROSS!",
   "from": "HAZARD_HURT"
  },
@@ -21918,6 +22423,11 @@
   "voice": "meathead",
   "text": "BONK! GO TO HELL!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BONK.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -22051,6 +22561,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BRENDA WOULD NOT LIKE THIS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "BRIEFCASE DENIED!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -22128,6 +22643,11 @@
   "voice": "meathead",
   "text": "BULLETS DO NOTHING TO THIS WALK-IN FRIDGE! MEET HIM HEAD ON!",
   "from": "m1/game/stages/victor/doorman.ts:540"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULLETS GO RIGHT THROUGH HER! WHAT IS SHE MADE OF?!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -22241,6 +22761,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CAN'T SEE SHIT DOWN HERE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "CAN'T SHOOT. BOTH HANDS ON THE MOTOR.",
   "from": "m1/game/stages/hector/chase.ts:182"
  },
@@ -22303,6 +22828,11 @@
   "voice": "meathead",
   "text": "CATCH! OH. YOU DIDN'T.",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CATCH.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -22508,6 +23038,11 @@
   "voice": "meathead",
   "text": "COFFEE RUN'S CANCELED!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "COLD FLOOR. VERY COLD FLOOR. EVERYWHERE.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -22946,6 +23481,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DON'T SNIFF. PLEASE DON'T SNIFF.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "DON'T SQUAT. THE CHURROS WANT OUT.",
   "from": "M2_GUT_LINES"
  },
@@ -23073,6 +23613,11 @@
   "voice": "meathead",
   "text": "EASY RIDE! EASY KILL!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EASY. NO BIG MOVES DOWN HERE.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -23366,11 +23911,6 @@
  },
  {
   "voice": "meathead",
-  "text": "FIBERGLASS NAILS! IN MY FACE!",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
   "text": "FIFTEEN BUCKS FOR A PITCHFORK. THE FAT DEVIL'S WAS BIGGER.",
   "from": "SPOOKY"
  },
@@ -23433,6 +23973,11 @@
   "voice": "meathead",
   "text": "FINE. I KNOW A SHORTCUT.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIRE EXTINGUISHER. EAT FOAM, BITCH.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -23796,6 +24341,21 @@
  },
  {
   "voice": "meathead",
+  "text": "GALACTIC GROOVE. DRESS CODE: NONE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "GALACTIC GROOVE. NOBODY IS DANCING WITH ME TONIGHT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "GALACTIC GROOVE. SOUNDS LIKE A CONDOM.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "GAME OVER, YOUR MAJESTY.",
   "from": "SPACE"
  },
@@ -23993,6 +24553,11 @@
   "voice": "meathead",
   "text": "GET OFF MY NIPPLE!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OFF MY SHIN, YOU ROBOT TURD!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -24213,6 +24778,11 @@
   "voice": "meathead",
   "text": "GET YOUR SURFBOARD OUT OF MY TEETH!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR TAILPIPE OUT OF MY FACE!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -24473,6 +25043,11 @@
   "voice": "meathead",
   "text": "GREAT. NOW IT'S RAINING.",
   "from": "m1/game/stages/hector/beach.ts:110"
+ },
+ {
+  "voice": "meathead",
+  "text": "GREAT. NOW SHE HEARD THAT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -25191,6 +25766,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HEADS UP!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "HEADS UP! OH, NO HEAD.",
   "from": "M2_KILL_LINES"
  },
@@ -25246,6 +25826,16 @@
  },
  {
   "voice": "meathead",
+  "text": "HER MOUTH HAS A MOUTH!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HERE. HAVE THE WHOLE THING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "HERE'S MEATHEAD.",
   "from": "SPOOKY"
  },
@@ -25253,6 +25843,11 @@
   "voice": "meathead",
   "text": "Here's your close-up.",
   "from": "m1/components/WeaponGetScene.tsx:226"
+ },
+ {
+  "voice": "meathead",
+  "text": "HERE'S YOUR KID BACK, LADY!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -25298,6 +25893,21 @@
   "voice": "meathead",
   "text": "HIDE BEHIND THAT, DUMBASS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIDING BEHIND A RUBBER COW. IT SMELLS BETTER THAN ME.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIDING BEHIND A RUBBER COW. NAKED. NEW LOW.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIDING BEHIND A RUBBER COW. NEW LOW.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -25496,6 +26106,26 @@
  },
  {
   "voice": "meathead",
+  "text": "HOT OIL! I'M STANDING IN HOT OIL!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT OIL! IT GOT IN THE PANTS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT OIL! ON MY BARE EVERYTHING!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT OIL! THE KID SPIT HOT OIL!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "HOT STEAM IN MY FACE! STOP SCALDING THE MERCHANDISE!",
   "from": "HAZARD_HURT"
  },
@@ -25623,6 +26253,21 @@
   "voice": "meathead",
   "text": "I BENCH HEAVIER ROCKS THAN THAT FOR WARM-UP!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I BROKE HER. ALL IT TOOK WAS A BOTTLE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I BROKE HER. NAKED. WITH A BOTTLE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I BROKE HER. SHE HAS A SETTING FOR THAT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -26311,6 +26956,21 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M A ROBOT. A BROKEN ROBOT THAT LEAKS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M A ROBOT. A NAKED ROBOT. DON'T LOOK.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M A ROBOT. I'M A BROKEN ROBOT. DON'T LOOK.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M ALL PUKED OUT! THE ROOM ISN'T!",
   "from": "FINALE_LINES"
  },
@@ -26503,6 +27163,11 @@
   "voice": "meathead",
   "text": "I'M NOT GOING OUT THERE WITH MY DICK OUT.",
   "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT GONNA ASK. I'M NOT GONNA ASK.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -26891,7 +27556,17 @@
  },
  {
   "voice": "meathead",
+  "text": "IT BURNS MY BALLS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "IT BURNS THROUGH THE SUIT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT BURNS! AND NOW THE PANTS ARE GREASY TOO!",
   "from": "SPACE"
  },
  {
@@ -26926,7 +27601,22 @@
  },
  {
   "voice": "meathead",
+  "text": "IT DIDN'T DO SHIT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "IT DIDN'T EVEN SLOW DOWN!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT DOESN'T DO ANYTHING!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT EATS THROUGH SHOES! WHAT KIND OF OIL IS THIS?!",
   "from": "SPACE"
  },
  {
@@ -27101,6 +27791,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S A TODDLER WITH TEETH!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S A WAREHOUSE.",
   "from": "SPACE"
  },
@@ -27176,7 +27871,7 @@
  },
  {
   "voice": "meathead",
-  "text": "IT'S HYDRAULIC FLUID! IN MY MOUTH!",
+  "text": "IT'S HOT! WHY IS IT HOT?!",
   "from": "SPACE"
  },
  {
@@ -27188,6 +27883,11 @@
   "voice": "meathead",
   "text": "IT'S IN MY MOUTH!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S IN MY MOUTH! IT TASTES LIKE A CAR!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -27203,6 +27903,11 @@
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
   "from": "m1/App.tsx:551"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S MIXING WITH THE OTHER THING!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -27391,6 +28096,21 @@
  },
  {
   "voice": "meathead",
+  "text": "LANDED ON MY ASS. SQUISHED IT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "LANDED ON MY BALLS. GREAT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "LANDED ON MY BARE ASS. ON A PIPE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "LASERS AGAIN?!",
   "from": "SPACE"
  },
@@ -27431,11 +28151,6 @@
  },
  {
   "voice": "meathead",
-  "text": "LEARN TO DRIVE, ARTIE!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "LEARN TO DRIVE, YOU MANIAC!",
   "from": "HAZARD_HURT"
  },
@@ -27472,6 +28187,21 @@
  {
   "voice": "meathead",
   "text": "LEGALLY DISTINCT. LEGALLY DEAD.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "LESS FATAL? I'LL TAKE IT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "LESS FATAL? I'LL TAKE IT. I'LL TAKE PANTS TOO.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "LESS FATAL? I'M ALREADY LESS DIGNIFIED. EVEN.",
   "from": "SPACE"
  },
  {
@@ -27721,6 +28451,21 @@
  },
  {
   "voice": "meathead",
+  "text": "MIRROR BALL. I CAN SEE MY PANTS FROM EVERY ANGLE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "MIRROR BALL. NOW EVERYBODY CAN SEE IT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "MIRROR BALL. PERFECT. I CAN WATCH MYSELF DIE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "MOIST MOTHERFUCKER",
   "from": "VULGARITIES"
  },
@@ -27763,6 +28508,11 @@
   "voice": "meathead",
   "text": "MOTHERFUCKER",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MOTOR OIL! IN MY EYES!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -27918,6 +28668,11 @@
   "voice": "meathead",
   "text": "MY FEET!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY FEET! IT BURNS MY FEET!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -28156,11 +28911,6 @@
  },
  {
   "voice": "meathead",
-  "text": "MY SPINE! YOU BUCK-TOOTHED BASTARD!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "MY SPLEEN!",
   "from": "m1/game/stages/dale/convoy.ts:403"
  },
@@ -28223,6 +28973,16 @@
   "voice": "meathead",
   "text": "NAILED THE LANDING. WITH MY FACE.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED IN A BASEMENT. THIS IS HOW THE MOVIES START.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED IN HOT OIL! THIS IS A FRYER!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -28631,6 +29391,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO SHOOTING DOWN HERE. SHE'LL HEAR THAT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "NO SMOKING. GOOD. NOBODY LIGHT A MATCH NEAR ME.",
   "from": "m1/game/core/update.ts:357"
  },
@@ -28696,6 +29461,16 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY MOVE. ESPECIALLY ME.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY MOVE. NOTHING MOVE. NOTHING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY OUTRUNS ME IN A CAPE.",
   "from": "SPOOKY"
  },
@@ -28728,6 +29503,11 @@
   "voice": "meathead",
   "text": "NOPE.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOPE. NOPE NOPE NOPE.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -28951,6 +29731,26 @@
  },
  {
   "voice": "meathead",
+  "text": "OH GOD. IT CAME OUT HER ASS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH GOOD. I ONLY HAVE ONE PAIR OF PANTS LEFT TO RUIN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH GOOD. ONLY MOSTLY FATAL.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH GOOD. ONLY MOSTLY FATAL. MOSTLY NAKED TOO.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "OH HELL YEAH!",
   "from": "m1/App.tsx:551"
  },
@@ -29056,6 +29856,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OH, SHE'S UP THERE. GREAT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "OH, THAT'S BETTER.",
   "from": "M2_GUT_LINES"
  },
@@ -29101,6 +29906,21 @@
  },
  {
   "voice": "meathead",
+  "text": "OKAY! I GET IT! I SMELL!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OKAY! I GET IT! IT FLOPS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OKAY! I GET IT! PERSONAL SPACE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "OKAY! OKAY! FIFTY BUCKS AND YOU WALK AWAY! CASH!",
   "from": "m1/game/bosses/oscar.ts:217"
  },
@@ -29113,6 +29933,11 @@
   "voice": "meathead",
   "text": "OKAY. FINE. WE WAIT. I'LL JUST STAND HERE. SHRINKING.",
   "from": "m1/game/stages/oscar/bunker.ts:367"
+ },
+ {
+  "voice": "meathead",
+  "text": "OKAY. I'M NOT WATCHING THIS PART.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -29398,6 +30223,11 @@
   "voice": "meathead",
   "text": "OW! THE HOT STICK GOT ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! THE MIDDLE KID!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -29796,6 +30626,11 @@
  },
  {
   "voice": "meathead",
+  "text": "QUIET, YOU MEATHEAD. SHE CAN HEAR THAT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "QUIT DANCING AROUND THE BIG IDIOT! HE CHARGES? CHARGE RIGHT BACK!",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -29818,11 +30653,6 @@
   "voice": "meathead",
   "text": "QUIT LOBBING THAT SHIT!",
   "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "QUIT RAMMING ME!",
-  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -29976,6 +30806,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RETURN TO SENDER!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "RHINO! RIGHT IN THE TAINT!",
   "from": "ADVENTURE"
  },
@@ -30013,6 +30848,11 @@
   "voice": "meathead",
   "text": "RIGGS FINALLY DID SOME HARD TIME. SO DID MY PANTS.",
   "from": "m1/game/stages/dale/town.ts:936"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIGHT IN THE CRANIUM.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -30193,6 +31033,11 @@
   "voice": "meathead",
   "text": "RUN, DORK. I LIKE A CHASE.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUN, MEATHEAD.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -30411,7 +31256,17 @@
  },
  {
   "voice": "meathead",
-  "text": "SHE CLAWED ME! THE ROBOT LADY CLAWED ME!",
+  "text": "SHE BARFED A QUART OF OIL ON ME!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE BROKE THE FLOOR. I'M SUING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE DIDN'T SEE ME. DUMB ROBOT.",
   "from": "SPACE"
  },
  {
@@ -30446,12 +31301,27 @@
  },
  {
   "voice": "meathead",
+  "text": "SHE JUST SHIT OUT A ROBOT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "SHE LOST HER HEAD!",
   "from": "FOR_A_WOMAN"
  },
  {
   "voice": "meathead",
-  "text": "SHE SPIT ON ME! RUDE!",
+  "text": "SHE SLAPPED IT OUT OF ME! MORE OF IT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE SLAPPED ME EVERYWHERE! EVERYWHERE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE SLAPPED ME INTO NEXT WEEK!",
   "from": "SPACE"
  },
  {
@@ -30476,8 +31346,23 @@
  },
  {
   "voice": "meathead",
+  "text": "SHE'S NOT ON FIRE. WHY DID I THINK THAT WOULD WORK.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "SHE'S OUT!",
   "from": "FOR_A_WOMAN"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHHH. JESUS. DON'T DO THAT AGAIN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHHH. QUIT STOMPING AROUND, DUMBASS.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -30513,6 +31398,11 @@
   "voice": "meathead",
   "text": "SHIT",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHIT SHIT SHIT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -30891,6 +31781,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SMALL SPACE. BIG MISTAKE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "SMASHED",
   "from": "VULGARITIES"
  },
@@ -30918,6 +31813,11 @@
   "voice": "meathead",
   "text": "SMELLS LIKE A GRILL DOWN THERE. AND FARTS.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMELLS LIKE A JANITOR DIED DOWN HERE.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -31066,6 +31966,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMEBODY LEFT A SANDWICH IN HERE. FROM NINETY-SIX.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMEBODY SHOULD PUT UP A SIGN OR SOMETHING.",
   "from": "m1/game/stages/tommy/escape.ts:227"
  },
@@ -31101,6 +32006,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMEBODY'S UNIFORM IN HERE. NOT PUTTING IT ON.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMEBODY'S YACHT! THERE'S STILL MIMOSAS ON IT!",
   "from": "HAZARD_HURT"
  },
@@ -31128,6 +32038,11 @@
   "voice": "meathead",
   "text": "SON OF A BITCH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SORRY, BRENDA. YOUR LOCKER'S RUINED.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -31251,6 +32166,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SPIT ON BY A BABY! RUDE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "SPLASH ZONE!",
   "from": "M2_KILL_LINES"
  },
@@ -31298,6 +32218,11 @@
   "voice": "meathead",
   "text": "STABBED! BY A GUY IN A SKI MASK! IN JULY!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAND BACK. SCIENCE.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -31766,6 +32691,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TAKE A SEAT. THE OTHER SIDE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "TAKE ME TO YOUR LEADER? I AM THE LEADER NOW!",
   "from": "KILL_LINES"
  },
@@ -31971,6 +32901,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT KID HITS LIKE A TRUCK!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT LANDING DID NOT HELP THE PANTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT LASER SINGED MY GLUTES!",
   "from": "HAZARD_HURT"
  },
@@ -32123,11 +33063,6 @@
   "voice": "meathead",
   "text": "THAT SWORD IS NOT PLASTIC!",
   "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "THAT THING CAME OFF ITS STAND!",
-  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -32376,6 +33311,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S NOT FAIR. SHE CAN CLIMB.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S NOT FOAM EITHER!",
   "from": "ADVENTURE"
  },
@@ -32403,6 +33343,11 @@
   "voice": "meathead",
   "text": "THAT'S NOT MUD.",
   "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S NOT WHERE BABIES COME FROM. I THINK.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -32476,6 +33421,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE BABY BIT MY ANKLE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BACK END IS ALSO DANGEROUS!",
   "from": "ADVENTURE"
  },
@@ -32497,6 +33447,11 @@
  {
   "voice": "meathead",
   "text": "THE BEAM! MY ASS IS COOKING!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BIG BABY RAN ME OVER!",
   "from": "SPACE"
  },
  {
@@ -32841,6 +33796,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE JAW! THE LITTLE JAW!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THE LAP BAR! THEY DON'T EVEN NEED IT ANYMORE!",
   "from": "SPOOKY"
  },
@@ -32883,6 +33843,11 @@
   "voice": "meathead",
   "text": "THE MERRY-GO-ROUND SHOVED ME!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE METAL IS COLD ON MY BALLS.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -33046,6 +34011,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE ROBOT LADY IS ON THE PIPES. COOL. COOL COOL.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THE ROCK IS FALLING APART! THE ACTUAL ROCK!",
   "from": "HAZARD_HURT"
  },
@@ -33117,6 +34087,11 @@
  {
   "voice": "meathead",
   "text": "THE SOVIET WHAT?",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE SPITTY ONE SHOVED ME!",
   "from": "SPACE"
  },
  {
@@ -33243,6 +34218,11 @@
   "voice": "meathead",
   "text": "THERE'S A GAS LINE UP OVER THE BAND.",
   "from": "m1/game/stages/oscar/bar.ts:213"
+ },
+ {
+  "voice": "meathead",
+  "text": "THERE'S A NAME TAG. HI, BRENDA.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -33431,6 +34411,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THIS LOCKER SMELLED FINE. IT DOESN'T NOW.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIS LOCKER SMELLS LIKE FEET AND TACO BELL.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THIS MANY STAIRS FOR A GUY WHO TURNS INTO A BAT. LAZY PRICK.",
   "from": "SPOOKY"
  },
@@ -33473,6 +34463,11 @@
   "voice": "meathead",
   "text": "THIS WHOLE TOWN SMELLS LIKE PENNIES.",
   "from": "m1/game/stages/tommy/bike.ts:37"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIS WORKS ON EVERYTHING.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -33643,6 +34638,11 @@
   "voice": "meathead",
   "text": "TOILET PAPER HITS HARD!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOLD YOU. MASTER OF STEALTH.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -34106,6 +35106,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WAY TOO LOUD. PUT THE GUN AWAY, IDIOT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "WE ARE NOT WAITING OUT A UNION BREAK. RIGHT?",
   "from": "m1/game/stages/oscar/bunker.ts:367"
  },
@@ -34123,6 +35128,16 @@
   "voice": "meathead",
   "text": "WELL DONE MOTHERFUCKER",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WELL. NOW IT'S IN MY SOCKS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WELL. THAT'S A BASEMENT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -34356,11 +35371,6 @@
  },
  {
   "voice": "meathead",
-  "text": "WHO GAVE YOU A LICENSE?!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "WHO GIVES A KID A LIT CANDLE?",
   "from": "SPOOKY"
  },
@@ -34481,6 +35491,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO RAISED YOU?! OH. HER.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO RUNS THE LIGHTS DOWN HERE? I WANNA PUNCH HIM.",
   "from": "SPOOKY"
  },
@@ -34563,6 +35578,11 @@
   "voice": "meathead",
   "text": "WHO TOOK A SHOPPING CART OUT TO SEA?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO TURNED OFF THE LIGHTS? HE'S NEXT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",

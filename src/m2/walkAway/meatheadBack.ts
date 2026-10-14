@@ -135,6 +135,15 @@ export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
   // His shadow (stippled)
   c.fillStyle = stipple(c, '#000000'); c.beginPath(); c.ellipse(0, 0, 40, 6, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = 'rgba(0,0,0,0.35)'; c.beginPath(); c.ellipse(0, 0, 30, 4, 0, 0, Math.PI * 2); c.fill();
+  // His weapon, in his left fist, hanging down in front of his thigh, muzzle to the ground: in front of him, so behind
+  // him from here (drawn first: his leg, his arm and his fist over it; what sticks out past him showing). Where his fist
+  // comes to (arm(): its swing a third of his stride's, the other way)
+  if (p.weapon) {
+    const sw = Math.sin(step), swing = -sw * 0.35, fx = -(44 - swing * 1.5), fy = -64 + bob - swing * 4;
+    c.save(); c.translate(fx + 14, fy + 2); c.rotate(Math.PI / 2 - 0.12 + sw * 0.04); c.scale(WS, WS); c.translate(-5, -6);
+    p.weapon(c, p.t);
+    c.restore();
+  }
   // Legs: the one out in front of him first (it's further off)
   const hipY = -74 + bob;
   const ahead = Math.sin(step) > 0 ? 1 : -1;
@@ -147,6 +156,18 @@ export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
     const R = PALE;
     // (the gap between his thighs, under it: in the dark)
     poly(c, [[-4, hipY + 12], [4, hipY + 12], [5, hipY + 34], [-5, hipY + 34]], '#2A160A', null);
+    // Between his legs, from behind: the lot, hanging down in front of him (so under his cheeks: drawn before them, only
+    // the bottom of it peeking out between his thighs), swinging side to side with his stride (a beat behind it),
+    // bouncing on each footfall
+    const sw = Math.sin(step - 0.7) * 3.5, bo = Math.abs(Math.cos(step)) * 2;
+    const by = hipY + 18 + bo;
+    c.fillStyle = '#1C0E06'; c.beginPath(); c.ellipse(sw * 0.5, hipY + 17, 5, 3, 0, 0, Math.PI * 2); c.fill();
+    // (the tip of it, peeking out under them as they swing)
+    box(c, sw * 1.4 - 1, by + 6, 3, 4, S[2]); box(c, sw * 1.4 - 1, by + 9, 3, 1, '#C9806C');
+    lump(c, sw - 3, by, 5, 6, SACK); lump(c, sw + 3.5, by + 1, 5, 6, [SACK[0], SACK[1], SACK[2], SACK[2], SACK[3]]);
+    // (wrinkled; the odd hair)
+    for (let k = 0; k < 3; k++) box(c, sw - 5 + k * 3, by - 1 + k * 2, 3, 1, SACK[1]);
+    box(c, sw - 6, by - 6, 1, 2, INK); box(c, sw + 5, by - 5, 1, 2, INK); box(c, sw + 1, by + 6, 1, 2, INK);
     poly(c, seat, R[2]);
     for (const side of [-1, 1]) {
       const up = Math.max(0, -Math.sin(step) * side) * 2;
@@ -156,17 +177,6 @@ export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
     }
     // (the crack, deepening as it goes down)
     box(c, -1, hipY - 1, 1, 6, R[1]); box(c, -1, hipY + 5, 2, 12, R[0]); box(c, 0, hipY + 5, 1, 10, INK);
-    // Between his legs, from behind: the lot, hanging down, swinging side to side with his stride (a beat behind
-    // it), bouncing on each footfall
-    const sw = Math.sin(step - 0.7) * 3.5, bo = Math.abs(Math.cos(step)) * 2;
-    const by = hipY + 22 + bo;
-    c.fillStyle = '#1C0E06'; c.beginPath(); c.ellipse(sw * 0.5, hipY + 17, 5, 3, 0, 0, Math.PI * 2); c.fill();
-    // (the tip of it, peeking out under them as they swing)
-    box(c, sw * 1.4 - 1, by + 6, 3, 4, S[2]); box(c, sw * 1.4 - 1, by + 9, 3, 1, '#C9806C');
-    lump(c, sw - 3, by, 5, 6, SACK); lump(c, sw + 3.5, by + 1, 5, 6, [SACK[0], SACK[1], SACK[2], SACK[2], SACK[3]]);
-    // (wrinkled; the odd hair)
-    for (let k = 0; k < 3; k++) box(c, sw - 5 + k * 3, by - 1 + k * 2, 3, 1, SACK[1]);
-    box(c, sw - 6, by - 6, 1, 2, INK); box(c, sw + 5, by - 5, 1, 2, INK); box(c, sw + 1, by + 6, 1, 2, INK);
   } else {
     const R = JEANS;
     poly(c, seat, R[2]);
@@ -264,12 +274,6 @@ export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
   const sw = Math.sin(step);
   const [lx, ly] = arm(c, -1, p, ty, -sw * 0.35);
   const [rx, ry] = arm(c, 1, p, ty, sw);
-  // His weapon, in his left fist, hanging down by his thigh, muzzle to the ground (out a touch from his leg)
-  if (p.weapon) {
-    c.save(); c.translate(lx, ly + 1); c.rotate(Math.PI / 2 + 0.22 + sw * 0.04); c.scale(WS, WS); c.translate(-5, -6);
-    p.weapon(c, p.t);
-    c.restore();
-  }
   fist(c, lx, ly); fist(c, rx, ry);
   // The neck: a stump, the rolls at the bottom of his skull
   const hy = ty;

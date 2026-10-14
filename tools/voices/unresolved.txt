@@ -1,6 +1,6 @@
 m2/hub/index.ts:121 name: AMERICA_DENY
-m2/weapons/spellbook.ts:319 name: BULK_LINES
-m2/weapons/spellbook.ts:324 name: BULK_FAIL_LINES
+m2/weapons/spellbook.ts:318 name: BULK_LINES
+m2/weapons/spellbook.ts:323 name: BULK_FAIL_LINES
 m2/weapons/mallet.ts:186 name: DUCK_LINES
 m2/weapons/soulSucker.ts:190 name: FULL_BAG_LINES
 m2/weapons/soulSucker.ts:320 name: EMPTY_BAG_LINES
@@ -32,7 +32,7 @@ m2/adventure/temple/index.ts:222 voice: 'm2.guest'
 m2/adventure/temple/index.ts:222 voice: 'm2.guest2'
 m2/adventure/temple/index.ts:228 voice: 'm2.operator'
 m2/adventure/temple/index.ts:228 voice: 'm2.operator2'
-m2/adventure/cart/index.ts:110 voice: text
+m2/adventure/cart/index.ts:109 voice: text
 m2/adventure/cart/index.ts:227 voice: pick(ARTIE_CHASE_START[dressed(state)])
 m2/adventure/roof/index.ts:114 voice: text
 m2/adventure/clearing/index.ts:174 voice: text
@@ -67,20 +67,21 @@ m2/space/atom/hijack.ts:182 voice: 'op'
 m2/space/atom/hijack.ts:202 voice: 'op'
 m2/space/ride/pa.ts:44 voice: voice(PA_VOICE)
 m2/space/ride/index.ts:103 voice: true
-m2/space/needle/index.ts:95 voice: text
-m2/space/needle/index.ts:96 voice: text
+m2/space/needle/index.ts:97 voice: text
+m2/space/needle/index.ts:98 voice: text
 m2/space/orbit/hazards.ts:175 voice: voice(female ? 'm2.space.zpilotf' : 'm2.space.zpilot')
 m2/space/orbit/ufo.ts:61 voice: SAY
-m2/space/orbit/gun.ts:48 voice: SAY
-m2/space/crater/kinds.ts:63 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
+m2/space/orbit/gun.ts:51 voice: SAY
+m2/space/crater/kinds.ts:66 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
 m2/space/crater/house.ts:85 voice: pick(L.XENO_WELCOME)
 m2/space/crater/house.ts:87 voice: pick(L.XENO_TELEPORT)
 m2/space/crater/house.ts:126 voice: pick(L.BOO)
 m2/space/crater/house.ts:130 voice: pick(L.XENO_ARRIVED)
 m2/space/crater/rigs.ts:164 voice: pick(L.BOO)
-m2/space/queen/fight.ts:125 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:130 voice: voice('m2.space.queen')
-m2/space/queen/fight.ts:194 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
+m2/space/queen/show.ts:98 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
+m2/space/queen/fight.ts:172 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:180 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
+m2/space/queen/fight.ts:293 voice: pick(L.BOOTH_RAY[dressed(state)])
 m1/App.tsx:241 voice: getBossVoice(selectedStage)
 m1/App.tsx:468 name: undefined
 m1/App.tsx:469 expr: null
