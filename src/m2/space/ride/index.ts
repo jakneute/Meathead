@@ -137,18 +137,22 @@ const blast = (state: GameState, s: Sled) => {
 
 /** The sled's front wheel and its middle (the back trails: never caught on what it's leaving), and how far into a run one can be and still be caught on it. */
 const WHEELS = [40, 0], SNAP_IN = 44;
+/** The sled's nose ahead of its middle (where it meets the breaker); the beat held on each thing it wrecks (frames). */
+const BREAKER_REACH = 96, SMASH_HOLD = 18;
 const riding = (ctx: FrameContext, s: Sled, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   s.t++;
   const reveal = s.mode === 'reveal';
   const want = reveal ? 1.3 : speedAt(s.x);
   s.speed += (Math.min(want, s.t / 6) - s.speed) * (reveal ? 0.08 : 0.06);
-  s.x += s.speed;
+  // (a beat held on what it's just smashed through: the breaker)
+  if (s.hold > 0) { s.hold--; s.speed = Math.min(s.speed, 0.5); } else s.x += s.speed;
   // The PA's stories, as it gets to each (the blaster's lesson cuts in: it has to be said before the first Martian)
   if (s.paLive) for (const [id, x] of PA_CUES) if (!s.cued.has(id) && s.x >= x) { s.cued.add(id); paStory(state, id, id === 'blaster'); }
   // The breaker: smashed, and the lights come up, bank by bank
-  if (s.breakerT === 0 && s.x >= BREAKER_X - 30) {
-    s.breakerT = 1; s.mode = 'reveal'; state.stageMemo[BREAKER_MEMO] = 'yes';
+  // (the nose into it: it's hung right across the track, in a doorway barely wider than the sled: no missing it)
+  if (s.breakerT === 0 && s.x >= BREAKER_X - BREAKER_REACH) {
+    s.breakerT = 1; s.mode = 'reveal'; state.stageMemo[BREAKER_MEMO] = 'yes'; s.hold = SMASH_HOLD; s.speed = 0.4;
     playSound('crash', 1, -6); playSound('clang', 1, -10); playSound('ignite', 0.6, 8); shakeScreen(state, 12, 6);
     for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: BREAKER_X, y: s.y - 100 }, vel: { x: 2 + Math.random() * 6, y: -Math.random() * 6 }, life: 30, color: i % 2 ? '#FDE047' : '#E0F2FE', size: 2 });
   }
@@ -261,7 +265,7 @@ const scene = (ctx: FrameContext, s: Sled): Controls => {
       if (!s.boxShot && s.brakeT > 34) { s.boxShot = true; blast(state, s); }
       if (s.boxShot && !s.boxT && tr.bolts.every(b => b.x < BRAKE_BOX_X - 20)) {
         // (the bolt's in it)
-        s.boxT = 1; tr.bolts = [];
+        s.boxT = 1; tr.bolts = []; s.hold = SMASH_HOLD;
         playSound('boom', 1, -6); playSound('glass', 1); playSound('crash', 1, -10); shakeScreen(state, 16, 8);
         const rail = trackY(BRAKE_BOX_X) ?? GY;
         for (let i = 0; i < 30; i++) state.particles.push({ pos: { x: BRAKE_BOX_X, y: rail - 70 }, vel: { x: (Math.random() - 0.3) * 10, y: -2 - Math.random() * 8 }, life: 30 + Math.random() * 20, color: ['#FDE047', '#FFFFFF', '#F97316', '#BAE6FD'][i % 4], size: 2 + Math.random() * 3, grav: 0.3 });

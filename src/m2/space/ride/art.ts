@@ -398,8 +398,12 @@ const drawBrakeRun = (c: Ctx, look: RideLook, f: number) => {
   // the fins along the rail (till they're torn off)
   if (!failed) for (let x = FINS_X0; x < FINS_X1; x += 26) { const y = trackY(x) ?? rail; box(c, x - 3, y - 16, 6, 16, INK); box(c, x - 2, y - 15, 4, 14, '#A1A1AA'); box(c, x - 2, y - 15, 4, 2, '#F4F4F5'); }
   else for (let x = FINS_X0; x < FINS_X1; x += 26) { const y = trackY(x) ?? rail; box(c, x - 3, y - 4, 6, 4, '#52525B'); if ((f + x) % 11 < 2) box(c, x - 1, y - 8, 2, 2, '#FDE047'); }
-  // the brake box, beside the rail (blasted: its door off, its guts sparking)
+  // the brake box, in a narrow hazard-striped alcove right on the rail, a work lamp on it: plain as day (blasted: its door
+  // off, its guts sparking)
   const bx = BRAKE_BOX_X, by = trackY(bx) ?? rail;
+  for (const jx of [bx - 50, bx + 36]) { box(c, jx - 2, by - 190, 16, 190, INK); box(c, jx, by - 188, 12, 188, '#3F3F46'); for (let yy = by - 180; yy < by - 8; yy += 22) box(c, jx, yy, 12, 9, '#EAB308'); }
+  box(c, bx - 52, by - 200, 104, 14, INK); box(c, bx - 50, by - 198, 100, 10, '#52525B');
+  box(c, bx - 6, by - 186, 12, 8, '#FEF3C7');
   box(c, bx - 4, by - 20, 8, 20, '#27272A');
   if (!failed) {
     box(c, bx - 24, by - 104, 48, 86, INK); box(c, bx - 21, by - 101, 42, 80, '#991B1B'); box(c, bx - 21, by - 101, 42, 5, '#DC2626');
@@ -493,12 +497,22 @@ export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
   });
   // The MAIN BREAKER (till it's smashed: then its door hanging off, sparking)
   if (on(BREAKER_X - 100, BREAKER_X + 100)) {
-    const rail = trackY(BREAKER_X) ?? GY, gone = look.breakerT > 0;
-    box(c, BREAKER_X + 30, rail - 200, 10, 200, '#52525B');
-    box(c, BREAKER_X - 30, rail - 150, 70, 100, INK); box(c, BREAKER_X - 28, rail - 148, 66, 96, '#9CA3AF');
-    sign(c, BREAKER_X - 60, rail - 190, 130, 22, '#FDE047', 'MAIN BREAKER', '#1C1917', 6);
-    if (!gone) { box(c, BREAKER_X - 6, rail - 120, 14, 36, '#27272A'); box(c, BREAKER_X - 10, rail - 128, 22, 10, '#DC2626'); text(c, 'DO NOT TOUCH', BREAKER_X + 5, rail - 60, '#7F1D1D', 5, 'center', null); }
-    else { box(c, BREAKER_X - 28, rail - 148, 66, 96, '#1F2937'); if (f % 8 < 3) box(c, BREAKER_X - 10 + hash(f) * 30, rail - 130 + hash(f * 3) * 60, 4, 4, '#FDE047'); }
+    const rail = trackY(BREAKER_X) ?? GY, gone = look.breakerT > 0, bx = BREAKER_X;
+    // a narrow service doorway the track squeezes through (its jambs barely clear of the sled, hazard-striped), and the
+    // main breaker panel hung right across it at the rider's height: the sled's nose goes through it
+    for (const jx of [bx - 110, bx + 96]) { box(c, jx - 2, rail - 260, 18, 260, INK); box(c, jx, rail - 258, 14, 258, '#3F3F46'); for (let yy = rail - 250; yy < rail - 10; yy += 24) box(c, jx, yy, 14, 10, '#EAB308'); }
+    box(c, bx - 112, rail - 270, 226, 16, INK); box(c, bx - 110, rail - 268, 222, 12, '#52525B');
+    sign(c, bx - 70, rail - 250, 140, 22, '#FDE047', 'MAIN BREAKER', '#1C1917', 6);
+    if (!gone) {
+      box(c, bx - 2, rail - 226, 4, 100, '#71717A');
+      box(c, bx - 40, rail - 128, 80, 88, INK); box(c, bx - 38, rail - 126, 76, 84, '#9CA3AF'); box(c, bx - 38, rail - 126, 76, 4, '#E5E7EB');
+      box(c, bx - 6, rail - 112, 14, 36, '#27272A'); box(c, bx - 10, rail - 120, 22, 10, '#DC2626'); text(c, 'DO NOT TOUCH', bx, rail - 56, '#7F1D1D', 5, 'center', null);
+    } else {
+      box(c, bx - 2, rail - 226, 4, 60, '#71717A');
+      box(c, bx - 14, rail - 170, 20, 12, '#52525B');
+      for (let k = 0; k < 6; k++) box(c, bx - 30 + k * 12, rail - 160 + (k % 3) * 5, 3, 10 + (k % 2) * 8, ['#EF4444', '#FDE047', '#3B82F6'][k % 3]);
+      if (f % 8 < 3) box(c, bx - 10 + hash(f) * 30, rail - 165 + hash(f * 3) * 20, 4, 4, '#FDE047');
+    }
   }
   if (on(BRAKE_X - 300, STATION_X0 + 100)) drawBrakeRun(c, look, f);
   drawStation(c, state, look);
@@ -564,6 +578,7 @@ export const rideLighting = (state: GameState, look: RideLook): SceneLight => {
     for (const x of TABLEAU_XS) if (near(x + 100)) lights.push({ x: x + 120, y: (trackY(x + 100) ?? GY) - 120, r: 260, a: 0.8, color: 'rgba(244, 114, 182, 0.1)' });
     for (const [x] of WORKERS) spot(x, 40, 120);
     if (near(BREAKER_X)) lights.push({ x: BREAKER_X, y: (trackY(BREAKER_X) ?? GY) - 100, r: 90, a: 0.6, color: 'rgba(239, 68, 68, 0.15)' });
+    if (near(BRAKE_BOX_X)) lights.push({ x: BRAKE_BOX_X, y: (trackY(BRAKE_BOX_X) ?? GY) - 120, r: 110, a: 0.8, color: 'rgba(254, 243, 199, 0.18)' });
     if (near(R)) for (let x = R - 600; x < R + 100; x += 200) lights.push({ x, y: GY - 300, r: 420, a: 0.85, cone: 200, color: 'rgba(224, 242, 254, 0.08)' });
     // (the track's last leg, seen from the start: its signs and its brake zone lit, so it reads)
     if (near(RETURN_X0)) for (const [x, up, r] of [[RETURN_X0 + 430, 70, 150], [RETURN_X0 + 175, 50, 150], [RETURN_X0 + 337, 40, 90], [RETURN_X0 - 120, 0, 160]] as const) lights.push({ x, y: RETURN_TOP - up + (x < RETURN_X0 ? 150 : 0), r, a: 0.9, color: 'rgba(253, 230, 138, 0.1)' });
