@@ -307,7 +307,7 @@ const poseOf = (e: Enemy): AlienPose => {
 };
 
 registerM2Kind({
-  kind: GRUNT, stats: { w: 40, h: 86, hp: 90, contact: 10, mass: 220 }, ai: gruntAI, humanoid: true, grab: 'body',
+  kind: GRUNT, stats: { w: 40, h: 86, hp: 140, contact: 10, mass: 220 }, ai: gruntAI, humanoid: true, grab: 'body',
   gender: e => (isWoman(e) ? 'f' : 'm'),
   head: { x: 10, y: -96, r: 10 },
   draw: (c, e, f) => {
@@ -322,7 +322,7 @@ registerM2Kind({
 });
 
 registerM2Kind({
-  kind: BRUTE, stats: { w: 58, h: 118, hp: 260, contact: 16, mass: 480 }, ai: bruteAI, humanoid: true, grab: 'none',
+  kind: BRUTE, stats: { w: 58, h: 118, hp: 360, contact: 16, mass: 480 }, ai: bruteAI, humanoid: true, grab: 'none',
   spiky: { source: SPIKES, label: 'SPIKED!', damage: 18 },
   gender: 'm',
   head: { x: 14, y: -132, r: 12 },
@@ -330,7 +330,7 @@ registerM2Kind({
 });
 
 registerM2Kind({
-  kind: CRAWLER, stats: { w: 50, h: 30, hp: 25, contact: 7, mass: 60 }, ai: crawlerAI, humanoid: false, grab: 'critter',
+  kind: CRAWLER, stats: { w: 50, h: 30, hp: 35, contact: 7, mass: 60 }, ai: crawlerAI, humanoid: false, grab: 'critter',
   gender: e => (isWoman(e) ? 'f' : 'm'),
   head: { x: 22, y: -26, r: 8 },
   draw: (c, e, f) => drawCrawler(c, seedOf(e), f, e.aiState === 'lunge', e.health <= 0),

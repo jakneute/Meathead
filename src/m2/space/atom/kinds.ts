@@ -196,25 +196,25 @@ const human = (e: Enemy) => (isWoman(e) ? 'f' : 'm');
 const dress = (outfit: Outfit) => (c: Ctx, e: Enemy, f: number) => drawAtomPerson(c, outfit, wear(e, f));
 
 registerM2Kind({
-  kind: ATOM.hand, stats: { w: 36, h: 66, hp: 40, contact: 0, mass: 190 }, ai: handAI, humanoid: true,
+  kind: ATOM.hand, stats: { w: 36, h: 66, hp: 60, contact: 0, mass: 190 }, ai: handAI, humanoid: true,
   make: b => ({ ...b, harmless: true }), gender: human, head: { x: 1, y: -66, r: 9 }, draw: dress('hand'),
 });
 registerM2Kind({
-  kind: ATOM.worker, stats: { w: 36, h: 66, hp: 40, contact: 0, mass: 190 }, ai: workerAI, humanoid: true,
+  kind: ATOM.worker, stats: { w: 36, h: 66, hp: 60, contact: 0, mass: 190 }, ai: workerAI, humanoid: true,
   make: b => ({ ...b, harmless: true }), gender: human, head: { x: 1, y: -66, r: 9 },
   draw: (c, e, f) => drawAtomPerson(c, e.variant ? 'worker' : 'hand', wear(e, f)),
 });
 registerM2Kind({
-  kind: ATOM.rigger, stats: { w: 38, h: 66, hp: 80, contact: 6, mass: 200 }, ai: riggerAI, humanoid: true,
+  kind: ATOM.rigger, stats: { w: 38, h: 66, hp: 120, contact: 6, mass: 200 }, ai: riggerAI, humanoid: true,
   gender: human, head: { x: 1, y: -68, r: 10 }, draw: dress('rigger'),
 });
 registerM2Kind({
-  kind: ATOM.flag, stats: { w: 42, h: 68, hp: 120, contact: 8, mass: 230 }, ai: flagAI, humanoid: true,
+  kind: ATOM.flag, stats: { w: 42, h: 68, hp: 170, contact: 8, mass: 230 }, ai: flagAI, humanoid: true,
   pointy: { source: `${ATOM.flag}_pole`, label: 'PLANTED!' },
   gender: human, head: { x: 1, y: -67, r: 14 }, draw: dress('flag'),
 });
 registerM2Kind({
-  kind: ATOM.martian, stats: { w: 40, h: 66, hp: 110, contact: 9, mass: 200 }, ai: martianAI, humanoid: true,
+  kind: ATOM.martian, stats: { w: 40, h: 66, hp: 160, contact: 9, mass: 200 }, ai: martianAI, humanoid: true,
   spiky: { source: `${ATOM.martian}_spikes`, label: 'SPIKED!' },
   gender: human, head: { x: 1, y: -67, r: 9 }, draw: dress('martian'),
 });

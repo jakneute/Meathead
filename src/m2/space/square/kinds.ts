@@ -272,18 +272,18 @@ const flyer = (b: Enemy): Enemy => ({ ...b, enemyType: 'flyer', initialY: b.pos.
 const personGender = (e: Enemy) => (lookOf(seedOf(e)).woman ? 'f' : 'm') as 'm' | 'f';
 
 registerM2Kind({ kind: 'm2:space_rover', stats: { w: 34, h: 28, hp: 14, contact: 7, mass: 6 }, ai: rover, draw: (c, e, f) => drawRover(c, e, f), head: { x: 16, y: -22, r: 6 }, gender: 'n', grab: 'critter', robot: true });
-registerM2Kind({ kind: 'm2:space_cadet', stats: { w: 38, h: 70, hp: 60, contact: 7, mass: 180 }, ai: cadet, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 13 }, draw: (c, e, f) => drawCadet(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:space_cadet', stats: { w: 38, h: 70, hp: 90, contact: 7, mass: 180 }, ai: cadet, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 13 }, draw: (c, e, f) => drawCadet(c, e, f, seedOf(e)) });
 registerM2Kind({
-  kind: 'm2:space_guard', stats: { w: 46, h: 82, hp: 110, contact: 14, mass: 260 }, ai: guard, humanoid: true, gender: personGender, head: { x: 1, y: -78, r: 10 },
+  kind: 'm2:space_guard', stats: { w: 46, h: 82, hp: 160, contact: 14, mass: 260 }, ai: guard, humanoid: true, gender: personGender, head: { x: 1, y: -78, r: 10 },
   pointy: { source: 'm2:space_guard_baton', label: 'TASED!', damage: 14 },
   draw: (c, e, f) => drawGuard(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:space_robot', stats: { w: 50, h: 92, hp: 260, contact: 12, mass: 400 }, ai: robot, humanoid: true, gender: personGender, head: { x: 1, y: -84, r: 13 },
+  kind: 'm2:space_robot', stats: { w: 50, h: 92, hp: 340, contact: 12, mass: 400 }, ai: robot, humanoid: true, gender: personGender, head: { x: 1, y: -84, r: 13 },
   spiky: { source: 'm2:space_robot_antenna', label: 'ZAPPED!', damage: 12 },
   draw: (c, e, f) => drawRobot(c, e, f, seedOf(e)),
 });
-registerM2Kind({ kind: 'm2:space_jetpack', stats: { w: 42, h: 66, hp: 70, contact: 10, mass: 160, air: true }, ai: jetpack, make: flyer, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 9 }, draw: (c, e, f) => drawJetpack(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:space_jetpack', stats: { w: 42, h: 66, hp: 100, contact: 10, mass: 160, air: true }, ai: jetpack, make: flyer, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 9 }, draw: (c, e, f) => drawJetpack(c, e, f, seedOf(e)) });
 
 /** A guard's bark, over them (world space, after the enemies: drawFront). */
 export const drawBarks = (c: Ctx, state: GameState, saidOver: (c: Ctx, s: string, x: number, y: number, col?: string, wide?: number) => void) => {
