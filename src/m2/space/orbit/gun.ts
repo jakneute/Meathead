@@ -19,13 +19,14 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { hazardVictims, hazardHit } from '../../hazardHit';
 import { voice, saidOver, box, meatheadSays } from '../section';
 import { orbitOf } from './state';
-import { X0, ARENA_CAM, W } from './geo';
+import { X0, W } from './geo';
 import { GUN_UPGRADE, MH_BEAM } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
 
-/** Where (camera offset into the section) each level comes in; the beam's once the screen's stopped for the saucer. */
-export const LEVEL_AT = [0, 2000, 4200, 6400, 8800, ARENA_CAM - X0];
+/** Where (camera offset into the section) each level comes in, every couple of thousand px; the beam last, well before the
+ *  saucer (time to enjoy it on the way). */
+export const LEVEL_AT = [0, 2000, 4200, 6400, 8800, 11200];
 export const MAX_LEVEL = 5;
 /** How far out the radiation first gets into it (the plain ray gun till then, at its own rate). */
 export const RAPID_AT = 800;
