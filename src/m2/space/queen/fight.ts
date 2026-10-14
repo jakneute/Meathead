@@ -96,7 +96,8 @@ const LEAP_EVERY = [0, 720, 520, 360], CROUCH_T = 34, AIR_T = 84, LAND_T = 22, L
 /** The flail: in this close this long and it's coming; the tell; the hit (how wide, how hard, how far he goes). */
 const FLAIL_REACH = 190, FLAIL_LINGER = 90, FLAIL_TELL = 20, FLAIL_T = 26, FLAIL_WIDE = 230, FLAIL_DMG = 28;
 /** Thrown into her: what it does; batted back with the mallet: what that does, and how long she's stunned. */
-const THROWN_DMG = 45, BATTED_DMG = 72, BATTED_STUN = 90;
+/** (a throw into her is crowd control, a chip: only her own batted back with the mallet really hurts her) */
+const THROWN_DMG = 12, BATTED_DMG = 72, BATTED_STUN = 90;
 /** Her head bonked with the mallet: the extra, the stun. */
 const HEAD_EXTRA = 8, HEAD_STUN = 70;
 /** The mallet's plain swing on her: a modest knock (the breather after it, like anything). */
