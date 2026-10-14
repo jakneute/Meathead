@@ -223,6 +223,8 @@ export const queen: SpaceSection = {
     drawHides(c, state, h);
     drawDisco(c, state, { lights: cleared ? 1 : discoLights(f), ops: cleared ? null : boothOps(f), extinguisher: f.ext2 === 'wall' });
     drawDiscoDoor(c, state, h);
+    // (the shutter down in the same doorway, behind him)
+    drawShutter(c, state, queenOf(state).shutter);
     if (cleared && queenOf(state).fight === 'wait') drawQueen(c, DISCO_QX, -1, { pose: 'dead', t: state.frame, ext: 0, alive: 0, beat: 1, free: true });
     else if (queenOf(state).fight !== 'wait') drawQueenFight(c, state, f);
     drawHunter(c, state, h);
@@ -231,7 +233,6 @@ export const queen: SpaceSection = {
     const s = showOf(state), f = fightOf(state), q = queenOf(state);
     // (the hot oil pool over everything on the floor: blood, gore, his feet in it)
     if (q.fight === 'on') drawPool(c, state, f);
-    drawShutter(c, state, q.shutter);
     drawGlass(c, state, s.glass && !isLandCleared('space'));
     drawShowSaid(c, s);
     drawQueenSaid(c, f);

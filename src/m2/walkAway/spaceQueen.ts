@@ -4,7 +4,8 @@
 // (boomerang fins, neon rings, a lit globe each), fiberglass planters of alien plants, rocket-shaped trash cans. Far
 // off: the skyline of 1990's future (SPACE NEEDLE 2, the giant atom, the monorail with a train going over, the rocket
 // spinner), hazed at its foot. At the drag's end, the space disco he's just come out of: the saucer roof on its glass
-// drum, the boomerang pylon sign (GALACTIC GROOVE, its neon chasing, one letter gone), the door kicked in flat and the
+// drum, the pylon sign up off its roof (GALACTIC GROOVE, its neon chasing, one letter gone; up where the lamp posts
+// never cross it), the door kicked in flat and the
 // dance floor's colors spilling out of it, the searchlights off its roof sweeping the sky, smoke off the vents; beside
 // it XENOSCARE's fiberglass alien head (the haunted spaceship he came through), its eyes still lit green.
 // In the drag, the mess he's left: glitter, the mirror ball's tiles glinting, records, her acid oil in glowing puddles
@@ -15,6 +16,7 @@
 import { type Ctx, type Prop, type SceneDef, INK, HOR, F, CAM_H, VP_X, ME_X, box, hash, lump, poly, smoke, mix, stipple, rampOf } from './kit';
 import { timeOfDay, hourMix } from '../timeOfDay';
 import { spawner as drawSpawner } from './toys';
+import { glyphDots } from '../space/square/lettering';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The palette
@@ -170,12 +172,6 @@ const discoArt = () => {
   // (the doorway: dark, the door kicked in, flat on the floor in it)
   box(g, m - 7, foot - 18, 14, 18, INK); box(g, m - 6, foot - 17, 12, 17, '#0A0510');
   box(g, m - 9, foot - 2, 18, 2, '#7E22CE'); box(g, m - 9, foot - 2, 18, 1, '#C084FC');
-  // (the boomerang pylon sign at the left: a swept fin up, the sign board on it)
-  poly(g, [[m + 54, foot], [m + 48, foot], [m + 40, foot - 60], [m + 30, foot - 74], [m + 44, foot - 66], [m + 54, foot - 40]], PINK[2]);
-  poly(g, [[m + 51, foot - 2], [m + 49, foot - 2], [m + 42, foot - 58], [m + 36, foot - 68], [m + 44, foot - 62]], PINK[3], null);
-  box(g, m + 12, foot - 62, 62, 26, INK); box(g, m + 13, foot - 61, 60, 24, '#1E0B33'); box(g, m + 13, foot - 61, 60, 1, PURP[3]);
-  // (the starburst on top of it)
-  for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; g.strokeStyle = '#FDE047'; g.lineWidth = 1; g.beginPath(); g.moveTo(m + 30, foot - 72); g.lineTo(m + 30 + Math.cos(a) * 6, foot - 72 + Math.sin(a) * 6); g.stroke(); }
   // (XENOSCARE's sign's back is next door: a strip of chase bulbs down the drum's foot)
   for (let i = 0; i < 14; i++) box(g, m - 44 + i * 6.5, foot - 27, 2, 1, '#78350F');
   disco = { key, cv };
@@ -203,9 +199,41 @@ const xenoArt = () => {
   for (let i = 0; i < 8; i++) poly(g, [[34 + i * 4, 38 + Math.abs(i - 3.5) * 0.8], [36 + i * 4, 43], [38 + i * 4, 38 + Math.abs(i - 3.5) * 0.8]], '#D6D3D1', null);
   // (its sign over the mouth)
   box(g, 16, 25, 60, 11, INK); box(g, 17, 26, 58, 9, '#14532D');
-  g.font = '6px "Press Start 2P"'; g.fillStyle = '#86EFAC'; g.fillText('XENOSCARE', 19, 34);
+  dots(g, 'XENOSCARE', 46, 27, () => '#86EFAC', '#052E16');
   xeno = { key, cv };
   return cv;
+};
+
+/** The park's letters (square/lettering.ts's alphabet), a picture px a dot: `x` the middle, `y` the top; each letter its
+ *  color (null: not drawn), a `shadow` a px down and right. */
+const dots = (c: Ctx, text: string, x: number, y: number, col: (i: number) => string | null, shadow?: string) => {
+  const gl = [...text].map(ch => glyphDots(ch));
+  const w = gl.reduce((a, g) => a + g.w + 1, -1);
+  let lx = Math.round(x - w / 2);
+  gl.forEach((g, i) => {
+    const cl = col(i);
+    if (cl) for (const [cx, cy] of g.on) { if (shadow) box(c, lx + cx + 1, y + cy + 1, 1, 1, shadow); }
+    if (cl) for (const [cx, cy] of g.on) box(c, lx + cx, y + cy, 1, 1, cl);
+    lx += g.w + 1;
+  });
+};
+
+/** GALACTIC GROOVE's pylon sign, up off the saucer roof on its mast (its foot's middle at (x, roof's foot y)): up high
+ *  over the doorway, where the drag's lamp posts never pass in front of it. The board, bulbs round it, the neon chasing
+ *  (one letter out, the second O, flickering), a ball on the mast's top. */
+const pylonSign = (c: Ctx, t: number, x: number, gy: number) => {
+  const bw = 60, bh = 24, bx = Math.round(x - bw / 2), by = Math.round(gy - 89), roof = Math.round(gy - 40);
+  // (the mast: chrome, shaded round, braced to the roof)
+  box(c, x - 2, by + bh, 4, roof - by - bh, INK); box(c, x - 1, by + bh, 2, roof - by - bh, CHROME[2]); box(c, x - 1, by + bh, 1, roof - by - bh, CHROME[4]);
+  c.strokeStyle = CHROME[1]; c.lineWidth = 1; c.beginPath(); c.moveTo(x - 10, roof + 1); c.lineTo(x, by + bh + 6); c.lineTo(x + 10, roof + 1); c.stroke();
+  box(c, x - 1, by - 4, 2, 4, CHROME[2]); lump(c, x, by - 5, 2, 2, PINK);
+  // (the board: inked, purple, lit along its top, chase bulbs round its edge)
+  box(c, bx - 1, by - 1, bw + 2, bh + 2, INK); box(c, bx, by, bw, bh, '#1E0B33'); box(c, bx, by, bw, 1, PURP[3]); box(c, bx, by + bh - 1, bw, 1, '#0F0520');
+  for (let i = 0; i < 15; i++) { const on = (i + (t >> 3)) % 3 === 0; box(c, bx + 2 + i * 4, by + 1, 1, 1, on ? '#FDE047' : '#78350F'); box(c, bx + 2 + i * 4, by + bh - 2, 1, 1, (i + 1 + (t >> 3)) % 3 === 0 ? '#FDE047' : '#78350F'); }
+  // (the neon: GALACTIC pink over GROOVE cyan, chasing white; the second O dead now and then)
+  const chase = (base: string, k: number, dead?: number) => (i: number) => (dead === i && (t % 90 < 70 || t % 6 < 3) ? '#3F1D38' : (i + k + (t >> 3)) % 5 === 0 ? '#FFFFFF' : base);
+  dots(c, 'GALACTIC', x, by + 4, chase(NEON[0], 0), '#500724');
+  dots(c, 'GROOVE', x, by + 13, chase(NEON[1], 3, 3), '#083344');
 };
 
 const back = (c: Ctx, t: number, sway: number) => {
@@ -231,25 +259,12 @@ const back = (c: Ctx, t: number, sway: number) => {
   c.fillStyle = stipple(c, '#0A0510'); c.fillRect(gx - 6, gy - 17, 12, 15);
   // (the drum's chase bulbs, marching)
   for (let i = 0; i < 14; i++) if ((i + (t >> 3)) % 3 === 0) box(c, dx + DW / 2 - 44 + i * 6.5, gy - 27, 2, 1, '#FDE047');
-  // (the sign: GALACTIC GROOVE in neon, chasing; one letter out (the second O), flickering)
-  c.font = '7px "Press Start 2P"'; c.textBaseline = 'alphabetic';
-  const sxl = dx + DW / 2 + 14, line = (word: string, y: number, base: string) => {
-    for (let i = 0; i < word.length; i++) {
-      const dead = word === 'GROOVE' && i === 3 && (t % 90 < 70 || t % 6 < 3);
-      const lit = (i + (t >> 3)) % 5 === 0 ? '#FFFFFF' : base;
-      c.fillStyle = dead ? '#3F1D38' : lit; c.fillText(word[i], sxl + i * 7, y);
-    }
-  };
-  line('GALACTIC', dy + DH - 50, '#F472B6');
-  line('GROOVE', dy + DH - 40, '#22D3EE');
-  c.fillStyle = stipple(c, '#F472B6'); c.fillRect(sxl - 2, dy + DH - 60, 60, 1); c.fillRect(sxl - 2, dy + DH - 37, 60, 1);
-  // (the starburst's bulb blinking)
-  if (t % 30 < 15) box(c, dx + DW / 2 + 29, dy + 3, 3, 3, '#FEF9C3');
   // (smoke off its roof vents: thin, drifting off)
   smoke(c, dx + DW / 2 - 27, dy + 32, 1.6, t, 3, { n: 5, rise: 0.025, drift: 0.06, size: 0.5, col: ['#4A3E5A', '#5A4E6A', '#6A5E7A', '#7A6E8A'] });
   smoke(c, dx + DW / 2 + 29, dy + 32, 1.4, t, 8, { n: 4, rise: 0.02, drift: 0.08, size: 0.45, col: ['#4A3E5A', '#5A4E6A', '#6A5E7A'] });
   // (the glow round it after dark: stepped, the neon's pink)
   if (tod.lamps > 0.05) for (let r = 3; r >= 1; r--) { c.fillStyle = `rgba(244, 114, 182, ${(0.04 * tod.lamps * (4 - r)).toFixed(3)})`; c.beginPath(); c.ellipse(gx, gy - 24, 30 + r * 18, 16 + r * 10, 0, 0, Math.PI * 2); c.fill(); }
+  pylonSign(c, t, gx - 8, gy);
   void s;
 };
 
@@ -413,10 +428,10 @@ const props = (weakness: boolean): Prop[] => {
   // trash rockets)
   for (let k = -3; k < 10; k++) for (const side of [-1, 1]) {
     const z = k * LAMP_GAP + (side < 0 ? 0 : LAMP_GAP / 2);
-    out.push({ id: 'wq-lamp', x: ME_X + side * LAMP_X, z, w: 2.4, h: 6, ppm: 18, paint: paintLamp, live: liveLamp });
+    out.push({ id: 'wq-lamp', x: ME_X + side * LAMP_X, z, w: 2.4, h: 6, ppm: 18, paint: paintLamp, live: liveLamp, far: D_DISCO });
     const n = ((k * 2 + (side < 0 ? 0 : 1)) % 3 + 3) % 3;
-    if (n === 0) out.push({ id: 'wq-plant', x: ME_X + side * (LAMP_X + 0.6), z: z + LAMP_GAP / 2, w: 2.2, h: 1.6, ppm: 22, paint: paintPlanter });
-    else if (n === 1) out.push({ id: 'wq-trash', x: ME_X + side * (LAMP_X - 0.2), z: z + LAMP_GAP / 2, w: 1, h: 1.5, ppm: 22, paint: paintTrash });
+    if (n === 0) out.push({ id: 'wq-plant', x: ME_X + side * (LAMP_X + 0.6), z: z + LAMP_GAP / 2, w: 2.2, h: 1.6, ppm: 22, paint: paintPlanter, far: D_DISCO });
+    else if (n === 1) out.push({ id: 'wq-trash', x: ME_X + side * (LAMP_X - 0.2), z: z + LAMP_GAP / 2, w: 1, h: 1.5, ppm: 22, paint: paintTrash, far: D_DISCO });
   }
   // The mess down the path (litter that keeps coming: low things)
   for (let i = 0; i < 14; i++) {

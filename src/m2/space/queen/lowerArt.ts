@@ -18,7 +18,7 @@ import { BASE_L, STAIRS_X, DOOR_X, HOLE, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS
 import { CATWALKS, PIPES, PIPE_Y, VENTS, DUCTS, STRIPS } from './basement';
 import { SLABS, slabPose, drawSlab } from './show';
 import { type Ramp, CHROME, dith, tube, blob, hash } from './paint';
-import { label } from '../section';
+import { stencil, lightbox, print } from './letters';
 
 type Ctx = CanvasRenderingContext2D;
 const shown = (state: GameState, a: number, b: number) => { const v = state.view ?? { x: state.camera.x, w: CANVAS_WIDTH }; return b > v.x - 80 && a < v.x + v.w + 80; };
@@ -54,7 +54,8 @@ export const drawBasement = (c: Ctx, state: GameState, o: { fell: boolean; lande
       px(g, x, y, 40, BF - y, '#16161C'); px(g, x, y, 40, 10, '#2A2A33'); px(g, x, y, 40, 2, '#5A5A66'); px(g, x, y, 40, 1, '#8A8A96');
     }
     px(g, STAIRS_X - 52, BF - 252, 114, 44, '#020203'); px(g, STAIRS_X - 50, BF - 250, 110, 40, '#0B2A18'); px(g, STAIRS_X - 50, BF - 250, 110, 2, '#16A34A');
-    label(g, 'EXIT ^ THE HOLD', STAIRS_X + 5, BF - 226, '#4ADE80', 7);
+    for (const bx of [STAIRS_X - 40, STAIRS_X + 46]) { px(g, bx, BF - 262, 4, 12, '#020203'); px(g, bx + 1, BF - 262, 2, 12, '#52525B'); }
+    lightbox(g, 'EXIT ^ THE HOLD', STAIRS_X + 5, BF - 234, 1, '#4ADE80', '#DCFCE7', '#14532D');
   });
   // (the hole in the ceiling he came down through: its broken edges, the hold's light down it; the rubble under it)
   if (o.fell && shown(state, HOLE.a - 120, HOLE.b + 120)) {
@@ -72,7 +73,7 @@ export const drawBasement = (c: Ctx, state: GameState, o: { fell: boolean; lande
   }
   // (the graveyard: heaps of the broken animatronics, the old show's leftovers)
   if (shown(state, GRAVE.a, GRAVE.b)) stamp(c, 'sp-q-grave2', GRAVE.a, BF - 200, GRAVE.b - GRAVE.a, 204, g => {
-    label(g, 'PROP STORAGE - DO NOT FEED', GRAVE.a + 740, BF - 186, '#D4D4D8', 8);
+    stencil(g, 'PROP STORAGE - DO NOT FEED', GRAVE.a + 740, BF - 194, 2, '#9A9AA6', { seed: 5, spray: 'rgba(154, 154, 166, 0.35)' });
     for (let i = 0; i < 9; i++) {
       const x = GRAVE.a + 60 + i * 110 + hash(i) * 40, rot = (hash(i + 4) - 0.5) * 2.4;
       g.save(); g.translate(x, BF - 6); g.rotate(rot); g.globalAlpha = 0.8; drawCheapGreen(g, 0, 0, i * 9, 0.7, i % 3 ? 'limp' : 'boo'); g.restore();
@@ -86,7 +87,7 @@ export const drawBasement = (c: Ctx, state: GameState, o: { fell: boolean; lande
     px(g, GRAVE.a + 938, BF - 62, 84, 62, '#120A04'); px(g, GRAVE.a + 940, BF - 60, 80, 60, '#5A3A1A'); px(g, GRAVE.a + 940, BF - 60, 80, 3, '#8A5A2A');
     for (let k = 0; k < 4; k++) px(g, GRAVE.a + 940, BF - 48 + k * 14, 80, 1, '#3A2410');
     for (let k = 0; k < 3; k++) blob(g, GRAVE.a + 956 + k * 24, BF - 66, 10, 12, ['#052E16', '#15803D', '#22C55E', '#86EFAC', '#F0FFF4']);
-    label(g, 'EGGS - FRAGILE', GRAVE.a + 980, BF - 26, '#1A0E04', 5);
+    stencil(g, 'EGGS - FRAGILE', GRAVE.a + 980, BF - 31, 1, '#1A0E04', { seed: 9, spray: '', runs: false });
   });
   // (the catwalks: grating on struts, a rail, a kick plate; the lit top lip (stand on it))
   for (const [ca, cb] of CATWALKS) {
@@ -191,9 +192,9 @@ const paintTunnel = (g: Ctx, tx: number) => {
       px(g, x - 32, BF - 82, 64, 82, '#050507'); px(g, x - 30, BF - 80, 60, 80, STEEL[2]); px(g, x - 30, BF - 80, 60, 3, STEEL[4]); px(g, x + 22, BF - 77, 8, 77, STEEL[1]);
       for (let s = 0; s < 5; s++) px(g, x - 26, BF - 70 + s * 6, 20, 2, STEEL[0]);
       blob(g, x + 4, BF - 40, 20, 20, STEEL); blob(g, x + 4, BF - 40, 8, 8, CHROME);
-      px(g, x - 26, BF - 18, 22, 10, '#A16207'); px(g, x - 25, BF - 17, 20, 1, '#FACC15'); label(g, '!', x - 15, BF - 10, '#1A0E04', 6);
+      px(g, x - 26, BF - 18, 22, 10, '#A16207'); px(g, x - 25, BF - 17, 20, 1, '#FACC15'); print(g, '!', x - 15, BF - 16, 1, 1, '#1A0E04');
     }
-    if (kind === 2) label(g, ['CAST MEMBERS ONLY', 'B-LEVEL', 'NO RUNNING', 'XENOSCARE MAINT'][Math.floor(k / 6) % 4], x + 10, CATWALK_Y - 60, '#B4842A', 7);
+    if (kind === 2) stencil(g, ['CAST MEMBERS ONLY', 'B-LEVEL', 'NO RUNNING', 'XENOSCARE MAINT'][Math.floor(k / 6) % 4], x + 10, CATWALK_Y - 67, 1, '#B4842A', { seed: k, spray: 'rgba(180, 132, 42, 0.3)' });
     if (kind === 3) { g.fillStyle = 'rgba(100, 116, 139, 0.3)'; g.beginPath(); g.ellipse(x, BF + 3, 44, 3, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = dith(g, 'rgba(220, 60, 60, 0.4)'); g.fillRect(x - 20, BF + 2, 30, 2); }
     if (kind === 4) {
       // (a gauge on the copper line, its needle in the red)
@@ -214,10 +215,13 @@ const paintTunnel = (g: Ctx, tx: number) => {
  *  into the dark toward the park, the sign, the disco's light down it from the top. */
 const drawStairsUp = (c: Ctx, state: GameState) => {
   if (!shown(state, STAIRS_A - 100, DOOR_X + 100)) return;
-  stamp(c, 'sp-q-stairsup2', STAIRS_A - 60, GY - 300, DOOR_X - STAIRS_A + 160, BF - GY + 600, g => {
+  stamp(c, 'sp-q-stairsup3', STAIRS_A - 60, GY - 620, DOOR_X - STAIRS_A + 160, BF - GY + 920, g => {
     const n = 28, run = (STAIRS_B - STAIRS_A) / n, rise = (BF - GY) / n;
     // (the stairwell: its wall in block, darker going down)
-    g.fillStyle = brickPattern(g, 'sp-q-blk-s', 48, 24, ['#1F1A26', '#231D2B'], '#141019'); g.fillRect(STAIRS_A - 40, GY - 300, DOOR_X - STAIRS_A + 140, BF - GY + 300);
+    g.fillStyle = brickPattern(g, 'sp-q-blk-s', 48, 24, ['#1F1A26', '#231D2B'], '#141019'); g.fillRect(STAIRS_A - 40, GY - 600, DOOR_X - STAIRS_A + 140, BF - GY + 600);
+    // (up high the block darker into the dark, stepped; the ceiling slab over it all, its underside lit along the edge)
+    for (let k = 0; k < 4; k++) px(g, STAIRS_A - 40, GY - 600 + k * 60, DOOR_X - STAIRS_A + 140, 60, `rgba(0, 0, 0, ${(0.4 - k * 0.1).toFixed(2)})`);
+    px(g, STAIRS_A - 60, GY - 620, DOOR_X - STAIRS_A + 160, 20, '#0C0A10'); px(g, STAIRS_A - 60, GY - 602, DOOR_X - STAIRS_A + 160, 2, '#2A2A33');
     for (let k = 0; k < 6; k++) px(g, STAIRS_A - 40, GY + 200 + k * 60, STAIRS_B - STAIRS_A + 40, 60, `rgba(0, 0, 0, ${(0.1 + k * 0.08).toFixed(2)})`);
     // (the disco's color down the wall from the door: stepped bands, pink at the top fading out)
     for (let k = 0; k < 4; k++) { g.fillStyle = dith(g, `rgba(244, 114, 182, ${(0.12 - k * 0.025).toFixed(3)})`, 2, k % 2); g.fillRect(STAIRS_B - 200 - k * 120, GY - 300, DOOR_X - STAIRS_B + 300 + k * 120, 300 - k * 30); }
@@ -240,7 +244,9 @@ const drawStairsUp = (c: Ctx, state: GameState) => {
     // (the sign, up on the wall at the foot of it, clear of the rail)
     const sx = STAIRS_A + 20, sy = BF - 470;
     px(g, sx - 2, sy - 2, 204, 44, '#020203'); px(g, sx, sy, 200, 40, '#0B2A18'); px(g, sx, sy, 200, 2, '#16A34A');
-    label(g, 'PARK LEVEL ^', sx + 100, sy + 17, '#4ADE80', 7); label(g, 'GALACTIC GROOVE', sx + 100, sy + 31, '#86EFAC', 7);
+    for (const bx of [sx + 30, sx + 166]) { px(g, bx, sy - 12, 4, 12, '#020203'); px(g, bx + 1, sy - 12, 2, 12, '#52525B'); }
+    lightbox(g, 'PARK LEVEL ^', sx + 100, sy + 8, 1, '#4ADE80', '#DCFCE7', '#14532D');
+    lightbox(g, 'GALACTIC GROOVE', sx + 100, sy + 24, 1, '#86EFAC', '#F0FDF4', '#14532D');
   });
 };
 

@@ -12,7 +12,7 @@
 // crest bent, her fluid out). Drawn facing right from her middle on the floor (flipped to face left).
 
 import { GY } from '../geometry';
-import { label } from '../section';
+import { stencil } from './letters';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { type Ramp, LAT, GLOSS, SPEC, CHROME, STEELR, SACR, FOAMR, GUM, TOOTH, GREEN, dith, tube, hose, quad, blob, shapeShade, rings } from './paint';
 
@@ -139,7 +139,7 @@ const stand = (c: Ctx, q: QueenDraw, facing: 1 | -1) => {
   for (let i = 0; i < 30; i++) { c.fillStyle = i % 2 ? '#18181B' : '#FACC15'; c.beginPath(); c.moveTo(-90 + i * 6, -10); c.lineTo(-84 + i * 6, -10); c.lineTo(-87 + i * 6, -4); c.lineTo(-93 + i * 6, -4); c.closePath(); c.fill(); }
   px(c, -90, -4, 180, 2, STEELR[0]);
   for (let i = 0; i < 5; i++) { px(c, -80 + i * 38, -22, 4, 4, CHROME[1]); px(c, -80 + i * 38, -22, 2, 2, CHROME[4]); }
-  c.save(); c.scale(facing, 1); label(c, 'LD-1', -60 * facing, -28 + 2, '#D4D4D8', 5); c.restore();
+  c.save(); c.scale(facing, 1); stencil(c, 'LD-1', -60 * facing, -24, 1, '#D4D4D8', { seed: 2, spray: '', runs: false }); c.restore();
   // (the hydraulic arm: steel boom, a chrome ram along it, the pivots)
   tube(c, -30, -26, ext * 0.5 - 20, -62, 5, CHROME);
   tube(c, -20, -30, ext * 0.5 - 10, -70, 16, STEELR);

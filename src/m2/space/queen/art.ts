@@ -9,7 +9,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { stamp } from '../../../m1/game/render/stamp';
 import { bandedGradient } from '../../../m1/game/render/pixelArt';
-import { box, label } from '../section';
+import { box } from '../section';
+import { chrome, square, slime, print, engraved, stencil } from './letters';
 import { GY } from '../geometry';
 import { drawAlien } from '../crater/aliens';
 import { x0, ANTE_R, ARENA_L, ARENA_R, GLASS_X, QUEEN_X, BOOTH } from './geo';
@@ -57,16 +58,17 @@ const paintAnte = (g: Ctx) => {
   const sx = x0 + 120, sy = GY - 330;
   px(g, sx - 4, sy - 4, 308, 78, '#05020B'); px(g, sx - 2, sy - 2, 304, 74, '#8E8E99'); px(g, sx - 2, sy - 2, 304, 2, '#F4F4F5');
   px(g, sx, sy, 300, 70, '#12061E'); px(g, sx, sy, 300, 3, '#2A1240');
-  label(g, 'THE HOLD', sx + 150, sy + 30, '#FDE047', 10);
-  label(g, 'MEET THE QUEEN (LEGALLY DISTINCT)', sx + 150, sy + 52, '#C4B5FD', 7);
+  chrome(g, 'THE HOLD', sx + 150, sy + 10, 2, 4, { shadow: '#4C1D95', slant: 1 });
+  square(g, 'MEET THE QUEEN (LEGALLY DISTINCT)', sx + 150, sy + 51, 1, 1, ['#12061E', '#5B21B6', '#8B5CF6', '#C4B5FD', '#EDE9FE'], { spacing: 1 });
   px(g, sx + 140, sy - 30, 20, 8, '#27272A'); px(g, sx + 144, sy - 22, 12, 3, '#FEF3C7');
   // (a poster: NOW 40% MORE LEGALLY DISTINCT)
   const ppx = x0 + 500, ppy = GY - 300;
   px(g, ppx - 2, ppy - 2, 104, 144, '#05020B'); px(g, ppx, ppy, 100, 140, '#14532D'); px(g, ppx, ppy, 100, 3, '#22C55E');
   blob(g, ppx + 50, ppy + 56, 26, 30, ['#020403', '#0A1A10', '#14281A', '#2E4A36', '#6A8A72']);
   for (let k = 0; k < 5; k++) px(g, ppx + 34 + k * 7, ppy + 70, 3, 6, '#E5E7EB');
-  label(g, 'XENOSCARE', ppx + 50, ppy + 104, '#86EFAC', 7);
-  label(g, 'NOW 40% MORE', ppx + 50, ppy + 118, '#F0FDF4', 5); label(g, 'LEGALLY DISTINCT', ppx + 50, ppy + 128, '#F0FDF4', 5);
+  slime(g, 'XENOSCARE', ppx + 50, ppy + 94, 1, ['#020403', '#15803D', '#22C55E', '#86EFAC', '#F0FDF4'], 7);
+  print(g, 'NOW 40% MORE', ppx + 50, ppy + 113, 1, 1, ['#FFFFFF', '#DCFCE7'], { shadow: '#052E16' });
+  print(g, 'LEGALLY DISTINCT', ppx + 50, ppy + 123, 1, 1, ['#FFFFFF', '#DCFCE7'], { shadow: '#052E16' });
   // (the queue: chrome stanchions, red velvet ropes sagging between them)
   const posts = [x0 + 40, x0 + 160, x0 + 280, x0 + 400];
   for (let i = 0; i < posts.length - 1; i++) hose(g, quad(posts[i], GY - 70, (posts[i] + posts[i + 1]) / 2, GY - 44, posts[i + 1], GY - 70, 8), 5, ['#2A0505', '#7F1D1D', '#B91C1C', '#EF4444', '#FCA5A5']);
@@ -111,7 +113,7 @@ const paintRoom = (g: Ctx) => {
   px(g, ARENA_L + 326, GY - 548, 36, 5, '#9CA3AF');
   px(g, GLASS_X + 8, GY - 422, 304, 38, '#05020B'); px(g, GLASS_X + 10, GY - 420, 300, 34, '#7F1D1D'); px(g, GLASS_X + 10, GY - 420, 300, 3, '#B91C1C'); px(g, GLASS_X + 10, GY - 390, 300, 4, '#450A0A');
   for (const tx of [GLASS_X + 10, GLASS_X + 306]) { px(g, tx, GY - 386, 4, 10, '#7F1D1D'); }
-  label(g, 'THE HOLD - LEGALLY DISTINCT', GLASS_X + 160, GY - 398, '#FDE68A', 8);
+  print(g, 'THE HOLD - LEGALLY DISTINCT', GLASS_X + 160, GY - 410, 1, 2, ['#FEF3C7', '#FDE68A', '#FDE68A', '#D6A84A'], { shadow: '#450A0A', drop: 2 });
   // (the floor: dark, slick, its lip lit (stand on it); a reflection of the stage's footlights in it)
   px(g, l, GY, w, 4, '#18181B'); px(g, l, GY, w, 2, '#A78BFA'); px(g, l, GY + 2, w, 1, '#4C1D95');
   // (the stage: a raised lip of rock-look foam in front of her, shaded, cracked; the footlights)
@@ -123,15 +125,17 @@ const paintRoom = (g: Ctx) => {
   tube(g, GLASS_X - 126, GY - 66, GLASS_X - 126, GY, 6, WOOD);
   px(g, pl - 2, GY - 138, 224, 74, '#05020B'); px(g, pl, GY - 136, 220, 70, WOOD[2]); px(g, pl, GY - 136, 220, 3, WOOD[4]); px(g, pl + 214, GY - 133, 6, 67, WOOD[1]);
   px(g, pl + 6, GY - 130, 208, 58, '#7A5A12'); px(g, pl + 6, GY - 130, 208, 2, '#E8C060'); g.fillStyle = dith(g, '#5A400A'); g.fillRect(pl + 6, GY - 80, 208, 8);
-  label(g, 'THE QUEEN', pl + 110, GY - 114, '#FDE68A', 8); label(g, '(LEGALLY DISTINCT)', pl + 110, GY - 100, '#FDE68A', 8);
-  label(g, 'ANY RESEMBLANCE TO COPYRIGHTED', pl + 110, GY - 86, '#F5E6C0', 5); label(g, 'XENOMORPHS IS PURELY COINCIDENTAL', pl + 110, GY - 78, '#F5E6C0', 5);
+  engraved(g, 'THE QUEEN', pl + 110, GY - 127, 2, '#3A2606', '#E8C060');
+  engraved(g, '(LEGALLY DISTINCT)', pl + 110, GY - 110, 1, '#3A2606', '#E8C060');
+  engraved(g, 'ANY RESEMBLANCE TO COPYRIGHTED', pl + 110, GY - 99, 1, '#4A3208', '#D6B050');
+  engraved(g, 'XENOMORPHS IS PURELY COINCIDENTAL', pl + 110, GY - 90, 1, '#4A3208', '#D6B050');
   // (the booth: a steel box up in the wall at the left, its window, its sign)
   const bx = BOOTH.x - 14, by = BOOTH.y - 14, bw = BOOTH.w + 28, bh = BOOTH.h + 40;
   px(g, bx - 2, by - 2, bw + 4, bh + 4, '#05020B'); px(g, bx, by, bw, bh, STEELR[2]); px(g, bx, by, bw, 3, STEELR[4]); px(g, bx + bw - 8, by + 3, 8, bh - 3, STEELR[1]); px(g, bx, by + bh - 6, bw, 6, STEELR[1]);
   for (const [rx, ry] of [[bx + 4, by + 6], [bx + bw - 14, by + 6], [bx + 4, by + bh - 12], [bx + bw - 14, by + bh - 12]]) px(g, rx, ry, 3, 3, CHROME[3]);
   px(g, BOOTH.x - 2, BOOTH.y - 2, BOOTH.w + 4, BOOTH.h + 4, '#05050A');
   px(g, BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h, '#0A0A0A');
-  label(g, 'CONTROL - STAFF ONLY', BOOTH.x + BOOTH.w / 2, BOOTH.y + BOOTH.h + 18, '#FDE047', 6);
+  stencil(g, 'CONTROL - STAFF ONLY', BOOTH.x + BOOTH.w / 2, BOOTH.y + BOOTH.h + 12, 1, '#FDE047', { seed: 3, spray: 'rgba(253, 224, 71, 0.3)', runs: false });
   // (the dish on the booth's front, aimed at her: a chrome bowl on an arm, its feed horn)
   tube(g, BOOTH.x + BOOTH.w + 6, BOOTH.y + BOOTH.h + 4, BOOTH.x + BOOTH.w + 18, BOOTH.y + BOOTH.h - 8, 4, CHROME);
   g.save(); g.translate(BOOTH.x + BOOTH.w + 18, BOOTH.y + BOOTH.h - 8); g.rotate(-0.6);
@@ -201,7 +205,7 @@ export const drawGlass = (c: Ctx, state: GameState, up: boolean) => {
     for (const [ox, w, a] of [[30, 10, 0.35], [50, 4, 0.3], [180, 6, 0.18]] as const) { c.fillStyle = `rgba(255, 255, 255, ${a})`; c.beginPath(); c.moveTo(GLASS_X + ox + 30, GY - 320); c.lineTo(GLASS_X + ox + 30 + w, GY - 320); c.lineTo(GLASS_X + ox + w, GY - 160); c.lineTo(GLASS_X + ox, GY - 160); c.closePath(); c.fill(); }
     // (a smudge where people pressed their faces to it; the sign on it)
     c.fillStyle = 'rgba(255, 255, 255, 0.08)'; c.beginPath(); c.ellipse(GLASS_X + 110, GY - 150, 16, 12, 0, 0, Math.PI * 2); c.fill();
-    label(c, 'DO NOT TAP ON GLASS', GLASS_X + 160, GY - 40, 'rgba(254, 202, 202, 0.8)', 5);
+    print(c, 'DO NOT TAP ON GLASS', GLASS_X + 160, GY - 46, 1, 1, 'rgba(254, 202, 202, 0.85)', { shadow: 'rgba(69, 10, 10, 0.5)' });
   } else {
     // (the shards still in the frame)
     for (let i = 0; i < 5; i++) { c.fillStyle = 'rgba(186, 230, 253, 0.4)'; c.beginPath(); c.moveTo(GLASS_X + 8, GY - 320 + i * 60); c.lineTo(GLASS_X + 30 + (i % 2) * 20, GY - 300 + i * 60); c.lineTo(GLASS_X + 8, GY - 280 + i * 60); c.fill(); px(c, GLASS_X + 9, GY - 318 + i * 60, 2, 20, 'rgba(255, 255, 255, 0.6)'); }

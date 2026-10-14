@@ -179,7 +179,7 @@ const drawScene = (c: Ctx, w: WalkAway) => {
   for (const p of w.props) {
     // (litter comes round again: back in at the bottom edge of the picture, low things only, so it isn't seen to pop)
     const d = p.wrap ? ((((p.z + travel) % LOOP) + LOOP) % LOOP) + 2.1 : p.z + travel;
-    if (d > 0.6 && d < 400) items.push({ d, p });
+    if (d > 0.6 && d < (p.far ?? 400)) items.push({ d, p });
   }
   items.sort((a, b) => b.d - a.d);
   let heated = false;

@@ -48,12 +48,15 @@ import { registerDeathDraw, body } from '../../../m1/game/render/player/deathAni
 import { drawBloodPool } from '../../../m1/game/render/spatter';
 import { onLadder, type LadderDef } from '../../moves/ladders';
 import { setUi } from '../../store';
-import { hands, meatheadSays, box, label } from '../section';
+import { hands, meatheadSays, box } from '../section';
 import { ink, limb } from '../../../m1/game/render/npc/kit';
 import { stamp } from '../../../m1/game/render/stamp';
 import { GY } from '../geometry';
 import { BASE_L, BASE_R, DOOR_X, DISCO_L, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B, LAND_X, stairsY } from './geo';
 import { drawQueen } from './art';
+import { bandedGradient } from '../../../m1/game/render/pixelArt';
+import { type Ramp, dith } from './paint';
+import { neon, engraved, emboss, textW, stencil } from './letters';
 import { FELL_MEMO } from './show';
 import * as L from './lines';
 
@@ -902,8 +905,10 @@ export const drawHides = (c: Ctx, state: GameState, h: Hunter) => {
         g.fillStyle = '#7A8CA4'; g.fillRect(L + 20, T + 2, 2, 124);
         g.fillStyle = '#05070B'; g.fillRect(L, T + 4, 52, 1); g.fillRect(L, T + 122, 52, 2);
         for (let k = 0; k < 5; k++) { g.fillStyle = '#0B1220'; g.fillRect(s.x - 14, y - 116 + k * 6, 28, 3); g.fillStyle = '#6A7C94'; g.fillRect(s.x - 14, y - 113 + k * 6, 28, 1); }
-        g.fillStyle = '#05070B'; g.fillRect(s.x - 17, y - 71, 34, 12); g.fillStyle = '#E2E8F0'; g.fillRect(s.x - 16, y - 70, 32, 10); g.fillStyle = '#FFFFFF'; g.fillRect(s.x - 16, y - 70, 32, 1);
-        g.fillStyle = '#0F172A'; g.font = '5px "Press Start 2P"'; g.textAlign = 'center'; g.fillText(['BRENDA', 'GARY', 'SID', 'CHUCK', 'SUSAN', 'GLENN', 'LILLY', 'MATT', 'JJ'][i % 9], s.x, y - 62); g.textAlign = 'left';
+        // (the name: punched on label-maker tape, the letters raised white, stuck on a touch crooked)
+        const who = ['BRENDA', 'GARY', 'SID', 'CHUCK', 'SUSAN', 'GLENN', 'LILLY', 'MATT', 'JJ'][i % 9], tw = textW(who, 1, { gap: 1, space: 3 }) + 6;
+        g.fillStyle = '#05070B'; g.fillRect(Math.round(s.x - tw / 2) - 1, y - 86, tw + 2, 13); g.fillStyle = '#1E293B'; g.fillRect(Math.round(s.x - tw / 2), y - 85, tw, 11); g.fillStyle = '#334155'; g.fillRect(Math.round(s.x - tw / 2), y - 85, tw, 1);
+        emboss(g, who, s.x, y - 83, 1, '#F1F5F9', '#FFFFFF', '#05070B');
         g.fillStyle = '#05070B'; g.fillRect(s.x + 13, y - 65, 5, 14); g.fillStyle = '#A8B4C4'; g.fillRect(s.x + 14, y - 64, 3, 12); g.fillStyle = '#E2E8F0'; g.fillRect(s.x + 14, y - 64, 1, 12);
         // (a dent; a sticker (a smiley alien); a padlock that's not locked)
         g.fillStyle = '#2A3646'; g.fillRect(s.x - 18, y - 40, 8, 5); g.fillStyle = '#6A7C94'; g.fillRect(s.x - 18, y - 41, 8, 1);
@@ -926,7 +931,7 @@ export const drawHides = (c: Ctx, state: GameState, h: Hunter) => {
         for (let k = 0; k < 6; k++) { g.fillStyle = '#05050A'; g.fillRect(s.x - 22, y - 96 + k * 9, 44, 4); g.fillStyle = '#5E5E6C'; g.fillRect(s.x - 22, y - 92 + k * 9, 44, 1); }
         g.fillStyle = '#05050A'; g.fillRect(s.x + 26, y - 104, 3, 100);
         g.fillStyle = '#A16207'; g.fillRect(s.x - 18, y - 22, 36, 10); g.fillStyle = '#FACC15'; g.fillRect(s.x - 18, y - 22, 36, 1);
-        g.fillStyle = '#1A0E04'; g.font = '5px "Press Start 2P"'; g.textAlign = 'center'; g.fillText('AHU-2', s.x, y - 14); g.textAlign = 'left';
+        stencil(g, 'AHU-2', s.x, y - 20, 1, '#1A0E04', { seed: i, spray: '', runs: false });
       });
       if (inIt && state.frame % 90 > 4) { box(c, s.x - 7, y - 76, 3, 2, '#F8FAFC'); box(c, s.x + 4, y - 76, 3, 2, '#F8FAFC'); }
     } else {
@@ -961,60 +966,102 @@ export const drawHides = (c: Ctx, state: GameState, h: Hunter) => {
     else { box(c, r.x - 30 + j, CEIL_B - 2, 60, 9, '#020203'); for (let s = 0; s < 6; s++) box(c, r.x - 28 + j + s * 10, CEIL_B - 2, 3, 9, '#4B4B57'); }
   }
 };
-/** The disco's door (drawn over the hall's wall at its left end). World. */
+/** The disco's doorway: one doorway in one wall, the wall between the stairwell and the hall (drawn over both rooms'
+ *  back walls where they meet), seen the same from the stairs and from the dance floor. World. */
 export const drawDiscoDoor = (c: Ctx, state: GameState, h: Hunter) => drawDoor(c, state, h);
 
-/** GALACTIC GROOVE's door at the top of the stairs: chrome and purple, bulbs round it chasing, a star on it; kicked in,
- *  flat on the floor. */
+/** The doorway's measures: its opening (the leaves fill it), the wall's columns either side, the wall's top. */
+export const DOORWAY = { l: DOOR_X - 56, r: DOOR_X + 56, top: GY - 212, L: DOOR_X - 80, R: DOOR_X + 80, wall: GY - 600 };
+/** The sign on the header: GALACTIC GROOVE in neon on its raceway, and the brass plate under it (the glow passes keep
+ *  off it). */
+export const DOOR_SIGN = { x: DOOR_X - 66, y: GY - 346, w: 132, h: 68 };
+const D_PINK: Ramp = ['#1A0410', '#4A1A38', '#EC4899', '#F9A8D4', '#FFF1F7'];
+const D_CYAN: Ramp = ['#04161C', '#16404A', '#22D3EE', '#A5F3FC', '#F0FDFF'];
+
+/** The wall and its doorway, still: the wall's columns and the header over the door (the club's front: purple, banded
+ *  dark up high to lit at the door, ribbed), the chrome casing round the opening, the neon's raceway on its brackets,
+ *  the brass MEMBERS ONLY plate screwed on under it, the threshold. */
+const paintDoorway = (g: Ctx) => {
+  const D = DOORWAY, x = DOOR_X;
+  // (the wall: the rooms' edges inked; its face banded down to the door, stepped, a dithered seam every so often)
+  box(g, D.L - 2, D.wall, D.R - D.L + 4, GY - D.wall, '#05020B');
+  bandedGradient(g, D.L, D.wall, D.R - D.L, GY - D.wall, ['#0B0418', '#150826', '#200C38', '#2A0F48', '#3B1468', '#2A0F48'], 12);
+  for (let y = D.wall + 40; y < D.top - 20; y += 50) { g.fillStyle = dith(g, '#3B1468', 1, (y >> 1) % 2); g.fillRect(D.L, y, D.R - D.L, 2); }
+  // (the columns' edges: lit on the left, shaded on the right, the wall's ribs up them)
+  box(g, D.L, D.wall, 2, GY - D.wall, '#5B21B6'); box(g, D.L + 2, D.wall, 1, GY - D.wall, '#7C3AED');
+  box(g, D.R - 3, D.wall, 3, GY - D.wall, '#12061E');
+  for (const rx of [D.L + 6, D.R - 10]) { box(g, rx, D.wall + 8, 4, D.top - D.wall - 40, '#1C0A33'); box(g, rx, D.wall + 8, 1, D.top - D.wall - 40, '#4C1D95'); }
+  // (its foot: the baseboard, chrome, like the hall's)
+  box(g, D.L, GY - 8, D.R - D.L, 8, '#52525B'); box(g, D.L, GY - 8, D.R - D.L, 2, '#A1A1AA'); box(g, D.L, GY - 2, D.R - D.L, 2, '#27272A');
+  // (the opening: the casing round it, chrome banded round (lit outside, shaded into the opening))
+  box(g, D.l - 9, D.top - 9, D.r - D.l + 18, GY - D.top + 9, '#05020B');
+  const jamb = ['#3F3F46', '#8E8E99', '#D4D4D8', '#F4F4F5', '#A1A1AA', '#52525B', '#27272A', '#18181B'];
+  jamb.forEach((col, k) => { box(g, D.l - 8 + k, D.top - 8, 1, GY - D.top + 8, col); box(g, D.r + 7 - k, D.top - 8, 1, GY - D.top + 8, col); });
+  ['#F4F4F5', '#D4D4D8', '#A1A1AA', '#8E8E99', '#52525B', '#3F3F46', '#27272A', '#18181B'].forEach((col, k) => box(g, D.l - 8 + k, D.top - 8 + k, D.r - D.l + 16 - k * 2, 1, col));
+  box(g, D.l, D.top, D.r - D.l, GY - D.top, '#0A0510');
+  // (the threshold: a chrome strip, lit)
+  box(g, D.l, GY - 3, D.r - D.l, 3, '#71717A'); box(g, D.l, GY - 3, D.r - D.l, 1, '#E4E4E7');
+  // (the neon's raceway: a black box on two brackets bolted to the header, its screws)
+  const S = DOOR_SIGN;
+  for (const bx of [S.x + 16, S.x + S.w - 22]) { box(g, bx - 1, S.y - 10, 8, 12, '#05020B'); box(g, bx, S.y - 9, 6, 10, '#52525B'); box(g, bx, S.y - 9, 6, 1, '#A1A1AA'); box(g, bx + 2, S.y - 7, 2, 2, '#18181B'); }
+  box(g, S.x - 2, S.y - 2, S.w + 4, 48, '#05020B'); box(g, S.x, S.y, S.w, 44, '#12061E'); box(g, S.x, S.y, S.w, 2, '#3A2A4C'); box(g, S.x, S.y + 42, S.w, 2, '#0A0410');
+  for (const [rx, ry] of [[S.x + 3, S.y + 3], [S.x + S.w - 5, S.y + 3], [S.x + 3, S.y + 39], [S.x + S.w - 5, S.y + 39]]) { box(g, rx, ry, 2, 2, '#71717A'); box(g, rx, ry, 1, 1, '#D4D4D8'); }
+  // (the plate: brass, its edge bevelled, screwed on; the words cut in)
+  const pw = textW('MEMBERS ONLY', 1, { gap: 1, space: 3 }) + 16, plx = Math.round(x - pw / 2), ply = S.y + 54;
+  box(g, plx - 1, ply - 1, pw + 2, 15, '#1A0E04'); box(g, plx, ply, pw, 13, '#A07A22'); box(g, plx, ply, pw, 1, '#F0D27A'); box(g, plx, ply + 12, pw, 1, '#5A400A'); box(g, plx + pw - 1, ply + 1, 1, 11, '#6A4A10');
+  for (const sx of [plx + 2, plx + pw - 4]) { box(g, sx, ply + 5, 2, 2, '#5A400A'); box(g, sx, ply + 5, 1, 1, '#FFF1BE'); }
+  engraved(g, 'MEMBERS ONLY', x, ply + 3, 1, '#3A2606', '#E8C060');
+};
+
+/** GALACTIC GROOVE's doorway at the top of the stairs: its wall and casing (stamped), the bulbs round it chasing, the
+ *  neon on the header (lit, chasing), the double doors (tufted, portholes); kicked in, flat on the floor in it. */
 const drawDoor = (c: Ctx, state: GameState, h: Hunter) => {
-  if (DOOR_X < state.camera.x - 200 || DOOR_X > state.camera.x + CANVAS_WIDTH + 200) return;
+  const D = DOORWAY;
+  if (D.R < state.camera.x - 60 || D.L > state.camera.x + CANVAS_WIDTH + 60) return;
   const f = state.frame, x = DOOR_X;
-  // (the frame: chrome jambs banded round, a purple surround, its lit edge)
-  box(c, x - 72, GY - 222, 144, 222, '#05020B');
-  box(c, x - 70, GY - 220, 140, 220, '#3B0764'); box(c, x - 70, GY - 220, 140, 2, '#7C3AED'); box(c, x - 70, GY - 220, 3, 220, '#5B21B6');
-  for (const jx of [x - 62, x + 56]) { box(c, jx, GY - 212, 6, 212, '#52525B'); box(c, jx + 1, GY - 212, 2, 212, '#D4D4D8'); box(c, jx + 4, GY - 212, 2, 212, '#27272A'); }
-  box(c, x - 62, GY - 214, 124, 4, '#A1A1AA'); box(c, x - 62, GY - 214, 124, 1, '#F4F4F5');
-  box(c, x - 56, GY - 210, 112, 210, '#0A0510');
-  for (let i = 0; i < 18; i++) {
-    const a = i / 17, bx = i < 6 ? x - 66 : i < 12 ? x - 66 + (i - 6) * 26 : x + 62, by = i < 6 ? GY - a * 6 * 36 : i < 12 ? GY - 214 : GY - (17 - i) * 36;
-    box(c, bx, by, 6, 6, (i + Math.floor(f / 6)) % 3 === 0 ? '#FDE047' : '#78350F');
-  }
-  label(c, 'GALACTIC GROOVE', x, GY - 236, (Math.floor(f / 20) % 2 ? '#F472B6' : '#C084FC'), 8);
+  stamp(c, 'sp-q-doorway', D.L - 4, D.wall - 4, D.R - D.L + 8, GY - D.wall + 8, paintDoorway);
+  // (the bulbs round the casing, chasing: up the columns, across over the opening (under the plate))
+  const bulbs: [number, number][] = [];
+  for (let y = GY - 30; y > D.top - 14; y -= 30) bulbs.push([D.L + 3, y]);
+  for (let bx = D.l - 4; bx <= D.r - 2; bx += 22) bulbs.push([bx, D.top - 20]);
+  for (let y = D.top - 14; y < GY - 20; y += 30) bulbs.push([D.R - 9, y]);
+  bulbs.forEach(([bx, by], i) => { const on = (i + Math.floor(f / 6)) % 3 === 0; box(c, bx - 1, by - 1, 8, 8, '#05020B'); box(c, bx, by, 6, 6, on ? '#FDE047' : '#78350F'); if (on) box(c, bx + 1, by + 1, 2, 2, '#FFFBEB'); });
+  // (the neon on the header: GALACTIC in pink over GROOVE in cyan, chasing; a letter flaring now and then)
+  const S = DOOR_SIGN, chase = (k: number) => (i: number) => ((i + k + Math.floor(f / 8)) % 7 === 0 ? 2 : 1);
+  neon(c, 'GALACTIC', x, S.y + 5, 2, D_PINK, { slant: 0.5, lit: chase(0), clips: false });
+  neon(c, 'GROOVE', x, S.y + 25, 2, D_CYAN, { slant: 0.5, lit: chase(8), clips: false });
   // (kicked: the door goes over, off its hinges, falling away from us into the hall about its bottom edge, faster and
   // faster (seen face on: it shortens down to the floor), flat on the floor in the doorway)
   const fall = h.door === 'kicking' ? Math.max(0, Math.min(1, (h.doorT - 18) / DOOR_FALL)) : h.door === 'in' ? 1 : 0;
   if (fall > 0) {
+    // (the way through, behind it: the hall's colors at its foot, stepped up into the dark)
+    const col = f % 40 < 20 ? '244, 114, 182' : '125, 211, 252';
+    for (let k = 0; k < 4; k++) box(c, D.l, GY - 40 - k * 40, D.r - D.l, 40, `rgba(${col}, ${(0.2 - k * 0.045).toFixed(3)})`);
     const sy = Math.max(0.06, Math.cos(fall * fall * (Math.PI / 2)));
     c.save(); c.translate(x, GY); c.scale(1, sy); c.translate(-x, -GY);
-    ink(c, () => c.rect(x - 56, GY - 206, 112, 206), '#7E22CE', 2);
+    ink(c, () => c.rect(x - 54, GY - 206, 108, 206), '#7E22CE', 2);
     box(c, x - 50, GY - 200, 44, 194, '#A855F7'); box(c, x + 6, GY - 200, 44, 194, '#A855F7');
     box(c, x - 50, GY - 200, 100, 4, '#E9D5FF');
-    if (sy > 0.4) label(c, 'MEMBERS ONLY', x, GY - 120, '#FDE047', 6);
     c.restore();
-    // (lying there: its edge lit, the hall's lights through the empty doorway)
-    if (fall >= 1) { box(c, x - 58, GY - 13, 116, 3, '#C084FC'); box(c, x - 56, GY - 206, 112, 192, `rgba(${f % 40 < 20 ? '244, 114, 182' : '125, 211, 252'}, 0.18)`); }
+    if (fall >= 1) { box(c, x - 54, GY - 13, 108, 3, '#C084FC'); box(c, x - 54, GY - 10, 108, 7, '#7E22CE'); }
     return;
   }
-  if (h.door !== 'in') {
-    ink(c, () => c.rect(x - 56, GY - 206, 112, 206), '#7E22CE', 2);
-    box(c, x - 2, GY - 206, 4, 206, '#3B0764');
-    box(c, x - 50, GY - 200, 44, 194, '#A855F7'); box(c, x + 6, GY - 200, 44, 194, '#A855F7');
-    box(c, x - 50, GY - 200, 44, 4, '#E9D5FF'); box(c, x + 6, GY - 200, 44, 4, '#E9D5FF');
-    // (the doors' shading: dark toward their hinges, tufted panels, a porthole each with the hall's colors through it)
-    box(c, x - 50, GY - 196, 6, 190, '#7E22CE'); box(c, x + 44, GY - 196, 6, 190, '#7E22CE');
-    for (const dx of [x - 28, x + 28]) {
-      box(c, dx - 12, GY - 178, 24, 24, '#05020B');
-      box(c, dx - 10, GY - 176, 20, 20, ['#F472B6', '#22D3EE', '#FDE047', '#A78BFA'][(Math.floor(f / 15) + (dx > x ? 1 : 0)) % 4]);
-      box(c, dx - 10, GY - 176, 20, 20, 'rgba(10, 5, 16, 0.55)'); box(c, dx - 8, GY - 174, 6, 2, '#FFFFFF');
-      for (let r = 0; r < 4; r++) for (let k = 0; k < 2; k++) { box(c, dx - 16 + k * 18, GY - 130 + r * 26, 14, 22, '#9333EA'); box(c, dx - 16 + k * 18, GY - 130 + r * 26, 14, 2, '#C084FC'); box(c, dx - 10 + k * 18, GY - 120 + r * 26, 2, 2, '#581C87'); }
-      box(c, dx + (dx > x ? -20 : 16), GY - 112, 4, 18, '#D4D4D8');
-    }
-    label(c, 'MEMBERS ONLY', x, GY - 140, '#FDE047', 6);
-    if (f % 30 < 3) box(c, x - 50, GY - 200, 100, 194, 'rgba(255, 255, 255, 0.08)');
-  } else {
-    box(c, x + 10, GY - 8, 120, 8, '#7E22CE'); box(c, x + 14, GY - 10, 112, 3, '#C084FC');
-    box(c, x - 56, GY - 206, 112, 206, `rgba(${f % 40 < 20 ? '244, 114, 182' : '125, 211, 252'}, 0.18)`);
+  // (the double doors in the opening: purple vinyl, dark toward their hinges, tufted, a porthole each with the hall's
+  // colors through it, chrome push bars)
+  ink(c, () => c.rect(x - 54, GY - 206, 108, 206), '#7E22CE', 2);
+  box(c, x - 2, GY - 206, 4, 206, '#3B0764');
+  box(c, x - 50, GY - 200, 44, 194, '#A855F7'); box(c, x + 6, GY - 200, 44, 194, '#A855F7');
+  box(c, x - 50, GY - 200, 44, 4, '#E9D5FF'); box(c, x + 6, GY - 200, 44, 4, '#E9D5FF');
+  box(c, x - 50, GY - 196, 6, 190, '#7E22CE'); box(c, x + 44, GY - 196, 6, 190, '#7E22CE');
+  c.fillStyle = dith(c, '#7E22CE'); c.fillRect(x - 44, GY - 196, 4, 190); c.fillRect(x + 40, GY - 196, 4, 190);
+  for (const dx of [x - 28, x + 28]) {
+    box(c, dx - 12, GY - 178, 24, 24, '#05020B');
+    box(c, dx - 10, GY - 176, 20, 20, ['#F472B6', '#22D3EE', '#FDE047', '#A78BFA'][(Math.floor(f / 15) + (dx > x ? 1 : 0)) % 4]);
+    box(c, dx - 10, GY - 176, 20, 20, 'rgba(10, 5, 16, 0.55)'); box(c, dx - 8, GY - 174, 6, 2, '#FFFFFF');
+    for (let r = 0; r < 4; r++) for (let k = 0; k < 2; k++) { box(c, dx - 16 + k * 18, GY - 130 + r * 26, 14, 22, '#9333EA'); box(c, dx - 16 + k * 18, GY - 130 + r * 26, 14, 2, '#C084FC'); box(c, dx - 10 + k * 18, GY - 120 + r * 26, 2, 2, '#581C87'); }
+    box(c, dx + (dx > x ? -20 : 16), GY - 112, 4, 18, '#D4D4D8');
   }
+  if (f % 30 < 3) box(c, x - 50, GY - 200, 100, 194, 'rgba(255, 255, 255, 0.08)');
 };
 
 /** Screen space, over everything: the foreground pipes (parallax, near), and her silhouette crawling along them. */
@@ -1093,6 +1140,8 @@ export const hunterLighting = (state: GameState, h: Hunter): SceneLight | null =
   // (the stairs: the disco's light down them from the door)
   if (cx > STAIRS_A - 600) lights.push({ x: DOOR_X - 60, y: GY - 100, r: 340, a: 0.5, color: 'rgba(244, 114, 182, 0.1)' });
   if (Math.abs(DOOR_X - cx) < 900) lights.push({ x: DOOR_X, y: GY - 120, r: 200, a: 0.8, color: 'rgba(244, 114, 182, 0.12)' });
+  // (the neon over the door: its pink and cyan out over the header and down the stairwell's top)
+  if (Math.abs(DOOR_X - cx) < 1000) { lights.push({ x: DOOR_X - 20, y: DOOR_SIGN.y + 14, r: 170, a: 0.8, color: 'rgba(244, 114, 182, 0.16)' }); lights.push({ x: DOOR_X + 10, y: DOOR_SIGN.y + 34, r: 130, a: 0.6, color: 'rgba(34, 211, 238, 0.12)' }); }
   void BASE_R;
   return { dark: 0.94, shade: [2, 2, 8], lights, rim: 0.3 };
 };

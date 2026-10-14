@@ -16,11 +16,12 @@ import { CANVAS_WIDTH } from '../../../m1/constants';
 import { stamp } from '../../../m1/game/render/stamp';
 import { bandedGradient, tilePattern } from '../../../m1/game/render/pixelArt';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
-import { label } from '../section';
 import { GY } from '../geometry';
 import { drawAlien, type AlienPose } from '../crater/aliens';
 import { DOOR_X, DISCO_L, DISCO_R, DJ, BALL, EXTINGUISHER_X, REFILL_X } from './geo';
 import { type Ramp, CHROME, dith, tube, blob, hash } from './paint';
+import { neon, neonW, chrome, square, print } from './letters';
+import { DOORWAY, DOOR_SIGN } from './basement';
 
 type Ctx = CanvasRenderingContext2D;
 const W = DISCO_R - DISCO_L;
@@ -67,6 +68,15 @@ const spotAt = (k: number, f: number) => {
 const CANS = [0.08, 0.2, 0.33, 0.62, 0.76, 0.9].map((u, i) => ({ x: DISCO_L + u * W, col: [0, 2, 3, 1, 4, 2][i] }));
 const TRUSS_Y = GY - 528;
 const canHit = (k: number, f: number) => { const cn = CANS[k]; return cn.x + Math.sin(f * 0.015 + k * 1.9) * 260; };
+
+/** The big neon over the booth: its board (x, y, w, h), each word's middle. */
+const NEON_S = 3;
+const N_PINK: Ramp = ['#1A0410', '#3A1A30', '#EC4899', '#F9A8D4', '#FFF1F7'];
+const N_CYAN: Ramp = ['#04161C', '#14343C', '#22D3EE', '#A5F3FC', '#F0FDFF'];
+const NEON = (() => {
+  const wa = neonW('GALACTIC', NEON_S, 1), wr = neonW('GROOVE', NEON_S, 1), sp = 16, cx = DJ.x + DJ.w / 2, w = wa + sp + wr;
+  return { x: Math.round(cx - w / 2 - 22), y: GY - 474, w: Math.round(w + 44), h: 44, ga: cx - w / 2 + wa / 2, gr: cx + w / 2 - wr / 2 };
+})();
 
 // ---------------------------------------------------------------------------------------------------------------
 // The hall (stamped once)
@@ -163,8 +173,9 @@ const booth = (g: Ctx) => {
   for (let i = 0; i < 4; i++) { g.save(); g.beginPath(); g.ellipse(cx, DJ.y + DJ.h + 14, DJ.w / 2 + 38, 20, 0, 0, Math.PI * 2); g.clip(); px(g, cx - DJ.w / 2 - 40, DJ.y + DJ.h - 6 + i * 10, DJ.w + 80, 10, rim[i]); g.restore(); }
   px(g, cx - DJ.w / 2 - 20, DJ.y + DJ.h - 2, DJ.w + 40, 1, '#C4B5FD');
   // (its sign, on the rim's face: DJ ZORP)
-  px(g, cx - 44, DJ.y + DJ.h + 14, 88, 16, '#05020B'); px(g, cx - 43, DJ.y + DJ.h + 15, 86, 14, '#1E0B33');
-  label(g, 'DJ ZORP', cx, DJ.y + DJ.h + 26, '#F0ABFC', 8);
+  px(g, cx - 40, DJ.y + DJ.h + 11, 80, 22, '#05020B'); px(g, cx - 39, DJ.y + DJ.h + 12, 78, 20, '#1E0B33'); px(g, cx - 39, DJ.y + DJ.h + 12, 78, 1, '#5B21B6');
+  for (const sx of [cx - 37, cx + 35]) { px(g, sx, DJ.y + DJ.h + 20, 2, 2, '#71717A'); px(g, sx, DJ.y + DJ.h + 20, 1, 1, '#E4E4E7'); }
+  chrome(g, 'DJ ZORP', cx, DJ.y + DJ.h + 15, 1, 2, { shadow: '#6B21A8', glint: false });
 };
 
 const paintFixtures = (g: Ctx) => {
@@ -197,8 +208,10 @@ const paintFixtures = (g: Ctx) => {
       px(g, x, sy - h, 8, h, '#05020B'); px(g, x + 1, sy - h + 4, 6, h - 4, col); px(g, x + 3, sy - h, 2, 5, col); px(g, x + 1, sy - h + 6, 1, h - 8, '#FFFFFF');
     }
   }
-  px(g, bx + 44, GY - 272, 152, 18, '#05020B'); px(g, bx + 45, GY - 271, 150, 16, '#0F2A2A'); px(g, bx + 45, GY - 271, 150, 1, '#2DD4BF');
-  label(g, 'COSMIC COCKTAILS', bx + 120, GY - 259, '#5EEAD4', 7);
+  // (its sign over the back bar: a lit box on two rods up to the truss's hanger, the words in the park's marquee type)
+  for (const rx of [bx + 60, bx + 180]) { px(g, rx - 1, GY - 300, 3, 26, '#18181B'); px(g, rx, GY - 300, 1, 26, '#71717A'); }
+  px(g, bx + 44, GY - 276, 152, 22, '#05020B'); px(g, bx + 45, GY - 275, 150, 20, '#0F2A2A'); px(g, bx + 45, GY - 275, 150, 1, '#2DD4BF'); px(g, bx + 45, GY - 256, 150, 1, '#042F2E');
+  square(g, 'COSMIC COCKTAILS', bx + 120, GY - 272, 1, 2, ['#042F2E', '#0F766E', '#2DD4BF', '#5EEAD4', '#CCFBF1'], { spacing: 1 });
   g.fillStyle = '#05020B'; g.beginPath(); g.roundRect(bx - 4, GY - 94, 248, 94, 6); g.fill();
   g.fillStyle = tufted(g); g.fillRect(bx, GY - 82, 240, 78);
   px(g, bx, GY - 82, 240, 78, 'rgba(219, 39, 119, 0.35)');
@@ -214,11 +227,12 @@ const paintFixtures = (g: Ctx) => {
   const ex = EXTINGUISHER_X;
   px(g, ex - 22, GY - 152, 44, 74, '#05020B'); px(g, ex - 20, GY - 150, 40, 70, '#991B1B'); px(g, ex - 20, GY - 150, 40, 3, '#EF4444'); px(g, ex + 14, GY - 147, 6, 67, '#7F1D1D');
   px(g, ex - 16, GY - 144, 32, 58, '#1A0606'); px(g, ex - 14, GY - 142, 3, 40, 'rgba(255, 255, 255, 0.25)');
-  px(g, ex - 32, GY - 176, 64, 18, '#05020B'); px(g, ex - 31, GY - 175, 62, 16, '#7F1D1D');
-  label(g, 'IN CASE', ex, GY - 168, '#FECACA', 5); label(g, 'OF FIRE', ex, GY - 161, '#FECACA', 5);
+  px(g, ex - 30, GY - 178, 60, 21, '#05020B'); px(g, ex - 29, GY - 177, 58, 19, '#991B1B'); px(g, ex - 29, GY - 177, 58, 1, '#EF4444'); px(g, ex - 29, GY - 159, 58, 1, '#450A0A');
+  print(g, 'IN CASE', ex, GY - 175, 1, 1, ['#FFFFFF', '#FECACA'], { shadow: '#450A0A' });
+  print(g, 'OF FIRE', ex, GY - 167, 1, 1, ['#FFFFFF', '#FECACA'], { shadow: '#450A0A' });
   // (the refill's alcove by the door: a first-aid cabinet, white, its red cross)
   const rx = REFILL_X;
-  px(g, rx - 42, GY - 152, 84, 152, '#05020B'); px(g, rx - 40, GY - 150, 80, 150, '#1E1B4B'); px(g, rx - 40, GY - 150, 80, 3, '#4338CA');
+  px(g, rx - 32, GY - 152, 76, 152, '#05020B'); px(g, rx - 30, GY - 150, 72, 150, '#1E1B4B'); px(g, rx - 30, GY - 150, 72, 3, '#4338CA');
   px(g, rx - 18, GY - 134, 36, 36, '#05020B'); px(g, rx - 17, GY - 133, 34, 34, '#E7E5E4'); px(g, rx - 17, GY - 133, 34, 3, '#FFFFFF'); px(g, rx + 12, GY - 130, 5, 31, '#A8A29E');
   px(g, rx - 3, GY - 128, 6, 22, '#DC2626'); px(g, rx - 10, GY - 120, 20, 6, '#DC2626'); px(g, rx - 3, GY - 128, 2, 22, '#F87171');
 };
@@ -255,21 +269,16 @@ export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: Bo
     if (!s.front || !shown(state, s.x - 10, s.x + 10)) continue;
     px(c, s.x - 2, s.y - 2, 5, 5, k % 4 === 1 ? '#F0ABFC' : '#F8FAFC'); px(c, s.x - 4, s.y, 9, 1, '#E2E8F0'); px(c, s.x, s.y - 4, 1, 9, '#E2E8F0');
   }
-  // The neon: GALACTIC GROOVE on its sign board, the letters chasing (dark till the lights come up)
-  const word = 'GALACTIC GROOVE';
-  c.font = '18px "Press Start 2P"'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
-  const w = c.measureText(word).width, sx = DJ.x + DJ.w / 2 - w / 2, sy = GY - 440;
-  if (shown(state, sx - 30, sx + w + 30)) {
-    px(c, sx - 22, sy - 34, w + 44, 46, '#05020B'); px(c, sx - 20, sy - 32, w + 40, 42, '#12061E'); px(c, sx - 20, sy - 32, w + 40, 2, '#3A2A4C');
-    for (let i = 0; i < 24; i++) px(c, sx - 16 + i * ((w + 32) / 24), sy + 4, 3, 2, on && (i + (f >> 2)) % 4 === 0 ? '#FDE047' : '#3F2A12');
-    for (let i = 0; i < word.length; i++) {
-      const x = sx + c.measureText(word.slice(0, i)).width;
-      const base = i < 9 ? '#F472B6' : '#22D3EE', hot = i < 9 ? '#FBCFE8' : '#CFFAFE';
-      const lit = on && !((i + Math.floor(f / 5)) % 9 === 0 && f % 4 < 2);
-      c.fillStyle = '#000'; c.fillText(word[i], x + 2, sy + 2);
-      c.fillStyle = lit ? ((i + Math.floor(f / 5)) % 4 === 0 ? '#FDE047' : base) : '#3A2E44'; c.fillText(word[i], x, sy);
-      if (lit) { c.save(); c.beginPath(); c.rect(x, sy - 18, 18, 7); c.clip(); c.fillStyle = hot; c.fillText(word[i], x, sy); c.restore(); }
-    }
+  // The neon: GALACTIC GROOVE on its sign board (hung off the truss on two rods), bent glass, the letters chasing (dark
+  // glass till the lights come up)
+  if (shown(state, NEON.x - 30, NEON.x + NEON.w + 30)) {
+    const N = NEON;
+    for (const rx of [N.x + 24, N.x + N.w - 26]) { px(c, rx - 1, TRUSS_Y + 10, 4, N.y - TRUSS_Y - 10, '#05020B'); px(c, rx, TRUSS_Y + 10, 2, N.y - TRUSS_Y - 10, '#71717A'); px(c, rx, TRUSS_Y + 10, 1, N.y - TRUSS_Y - 10, '#D4D4D8'); }
+    px(c, N.x - 2, N.y - 2, N.w + 4, N.h + 4, '#05020B'); px(c, N.x, N.y, N.w, N.h, '#12061E'); px(c, N.x, N.y, N.w, 2, '#3A2A4C'); px(c, N.x, N.y + N.h - 2, N.w, 2, '#0A0410');
+    for (let i = 0; i < 24; i++) px(c, N.x + 6 + i * ((N.w - 12) / 24), N.y + N.h - 7, 3, 2, on && (i + (f >> 2)) % 4 === 0 ? '#FDE047' : '#3F2A12');
+    const lit = (k: number) => (i: number) => { const j = i + k; return !on || ((j + Math.floor(f / 5)) % 9 === 0 && f % 4 < 2) ? 0 : (j + Math.floor(f / 5)) % 4 === 0 ? 2 : 1; };
+    neon(c, 'GALACTIC', N.ga, N.y + 10, NEON_S, N_PINK, { slant: 1, lit: lit(0) });
+    neon(c, 'GROOVE', N.gr, N.y + 10, NEON_S, N_CYAN, { slant: 1, lit: lit(9) });
   }
   // The floor: light-up tiles, two rows, the patterns stepping on the beat; its lip lit (stand on it)
   for (let i = 0; i < TN; i++) {
@@ -355,20 +364,25 @@ export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: Bo
   void ALIEN; void o.extinguisher;
 };
 
-/** The shutter inside the disco's door: a heavy steel roll-down, slatted, hazard stripes along its foot (0 up, 1 down). World. */
+/** The shutter in the doorway (the same opening the doors were in): a heavy steel roll-down out of its housing up
+ *  under the casing's head, slatted, hazard stripes along its foot (0 up, 1 down). World, behind him. */
 export const drawShutter = (c: Ctx, state: GameState, k: number) => {
-  if (k <= 0 || !shown(state, DISCO_L - 60, DISCO_L + 20)) return;
-  const x = DISCO_L - 32, w = 36, top = GY - 212, h = Math.round(212 * k);
-  // (its housing: a steel box over the door)
-  px(c, x - 6, top - 18, w + 12, 18, '#05050A'); px(c, x - 5, top - 17, w + 10, 16, '#3F3F46'); px(c, x - 5, top - 17, w + 10, 2, '#A1A1AA'); px(c, x - 5, top - 4, w + 10, 2, '#27272A');
-  for (const bx of [x - 2, x + w - 2]) px(c, bx, top - 13, 3, 3, '#D4D4D8');
-  // (the slats: each rounded, lit along its top, shadowed under)
-  px(c, x - 1, top, w + 2, h, '#05050A');
-  for (let y = top; y < top + h - 10; y += 8) { px(c, x, y, w, 8, '#5A5A64'); px(c, x, y, w, 2, '#9A9AA6'); px(c, x, y + 6, w, 2, '#33333B'); px(c, x + w - 6, y + 2, 6, 4, '#45454E'); }
+  const D = DOORWAY;
+  if (k <= 0 || !shown(state, D.l - 20, D.r + 20)) return;
+  const x = D.l, w = D.r - D.l, top = D.top + 12, h = Math.round((GY - top) * k);
+  // (its housing: a steel drum box across the top of the opening, bolted)
+  px(c, x, D.top, w, 12, '#05050A'); px(c, x + 1, D.top + 1, w - 2, 10, '#3F3F46'); px(c, x + 1, D.top + 1, w - 2, 2, '#A1A1AA'); px(c, x + 1, D.top + 8, w - 2, 2, '#27272A');
+  for (const bx of [x + 4, x + w - 7]) px(c, bx, D.top + 4, 3, 3, '#D4D4D8');
+  // (the slats: each rounded, lit along its top, shadowed under; the guides either side)
+  px(c, x, top, w, h, '#05050A');
+  for (let y = top; y < top + h - 10; y += 8) { px(c, x + 2, y, w - 4, 8, '#5A5A64'); px(c, x + 2, y, w - 4, 2, '#9A9AA6'); px(c, x + 2, y + 6, w - 4, 2, '#33333B'); c.fillStyle = dith(c, '#45454E', 1, (y >> 3) % 2); c.fillRect(x + w - 16, y + 2, 12, 4); }
+  px(c, x, top, 2, h, '#27272A'); px(c, x + w - 2, top, 2, h, '#27272A');
   // (its foot: the bottom bar, the hazard stripes, a handle)
-  for (let i = 0; i < 6; i++) { c.fillStyle = i % 2 ? '#18181B' : '#FACC15'; c.beginPath(); c.moveTo(x + i * 6, top + h - 10); c.lineTo(x + i * 6 + 6, top + h - 10); c.lineTo(x + i * 6 + 2, top + h); c.lineTo(x + i * 6 - 4, top + h); c.closePath(); c.fill(); }
-  px(c, x, top + h - 11, w, 1, '#FEF08A');
-  px(c, x + w / 2 - 6, top + h - 16, 12, 4, '#18181B'); px(c, x + w / 2 - 5, top + h - 16, 10, 1, '#A1A1AA');
+  c.save(); c.beginPath(); c.rect(x + 2, top + h - 10, w - 4, 10); c.clip();
+  for (let i = -1; i < w / 6 + 1; i++) { c.fillStyle = i % 2 ? '#18181B' : '#FACC15'; c.beginPath(); c.moveTo(x + i * 6, top + h - 10); c.lineTo(x + i * 6 + 6, top + h - 10); c.lineTo(x + i * 6 + 2, top + h); c.lineTo(x + i * 6 - 4, top + h); c.closePath(); c.fill(); }
+  c.restore();
+  px(c, x + 2, top + h - 11, w - 4, 1, '#FEF08A');
+  px(c, x + w / 2 - 8, top + h - 16, 16, 4, '#18181B'); px(c, x + w / 2 - 7, top + h - 16, 14, 1, '#A1A1AA');
   px(c, x, top + h - 1, w, 1, '#0A0A0A');
 };
 
@@ -395,15 +409,17 @@ export const discoLighting = (state: GameState, lights: number): SceneLight => {
     // (the ball itself, catching it all)
     ls.push({ x: BALL.x, y: BALL.y, r: 150, a: 0.85 * l, color: 'rgba(226, 232, 240, 0.14)' });
     // (the neon: pink along GALACTIC, cyan along GROOVE)
-    const cx = DJ.x + DJ.w / 2;
-    ls.push({ x: cx - 120, y: GY - 450, r: 190, a: 0.75 * l, color: 'rgba(244, 114, 182, 0.2)' });
-    ls.push({ x: cx + 140, y: GY - 450, r: 170, a: 0.75 * l, color: 'rgba(34, 211, 238, 0.18)' });
+    ls.push({ x: NEON.ga, y: NEON.y + 20, r: 190, a: 0.75 * l, color: 'rgba(244, 114, 182, 0.2)' });
+    ls.push({ x: NEON.gr, y: NEON.y + 20, r: 170, a: 0.75 * l, color: 'rgba(34, 211, 238, 0.18)' });
     // (the bar's back bar)
     ls.push({ x: DISCO_R - 180, y: GY - 180, r: 200, a: 0.6 * l, color: 'rgba(94, 234, 212, 0.14)' });
   }
   // (the booth: their screens' green; the door's light; the refill's alcove (always: he must see it))
   ls.push({ x: DJ.x + DJ.w / 2, y: DJ.y + DJ.h / 2, r: 170, a: 0.75, color: 'rgba(74, 222, 128, 0.14)' });
   ls.push({ x: DOOR_X, y: GY - 100, r: 160, a: 0.6 });
+  // (the doorway's neon, over it on the header: always on)
+  ls.push({ x: DOOR_X - 20, y: DOOR_SIGN.y + 14, r: 160, a: 0.7, color: 'rgba(244, 114, 182, 0.16)' });
+  ls.push({ x: DOOR_X + 10, y: DOOR_SIGN.y + 34, r: 120, a: 0.5, color: 'rgba(34, 211, 238, 0.12)' });
   ls.push({ x: REFILL_X, y: GY - 100, r: 120, a: 0.6, color: 'rgba(255, 245, 230, 0.08)' });
   ls.push({ x: EXTINGUISHER_X, y: GY - 115, r: 70, a: 0.5, color: 'rgba(239, 68, 68, 0.14)' });
   ls.push({ x: state.player.pos.x + 20, y: state.player.pos.y + 30, r: 130, a: 0.5 });
@@ -417,6 +433,11 @@ export const discoGlow = (c: Ctx, state: GameState, lights: number) => {
   if (lights <= 0.5 || !shown(state, DISCO_L - 60, DISCO_R + 60)) return;
   const f = state.frame, l = Math.min(1, lights);
   c.save();
+  // (nothing drawn over the signs: the light in the air keeps off the neon's board and the doorway's sign)
+  const v = state.view ?? { x: state.camera.x, w: CANVAS_WIDTH };
+  c.beginPath(); c.rect(v.x - 400, GY - 1200, v.w + 800, 1600);
+  c.rect(NEON.x - 2, NEON.y - 2, NEON.w + 4, NEON.h + 4); c.rect(DOOR_SIGN.x - 4, DOOR_SIGN.y - 12, DOOR_SIGN.w + 8, DOOR_SIGN.h + 14);
+  c.clip('evenodd');
   c.globalCompositeOperation = 'lighter';
   // (the ball's rays: thin stippled lines out to each spot, faint)
   for (let k = 0; k < SPOTS; k++) {
@@ -439,12 +460,11 @@ export const discoGlow = (c: Ctx, state: GameState, lights: number) => {
   });
   // (the ball's own glow: stepped rings)
   for (let r = 3; r >= 1; r--) { c.fillStyle = `rgba(226, 232, 240, ${(0.05 * r * l).toFixed(3)})`; c.beginPath(); c.arc(BALL.x, BALL.y, 30 + (4 - r) * 16, 0, Math.PI * 2); c.fill(); }
-  // (the neon's bloom: a band of its color round the words, stepped)
-  const cx = DJ.x + DJ.w / 2, sy = GY - 446;
+  // (the neon's bloom: a band of its color round the board, stepped (the board itself kept clear))
   for (let s = 0; s < 3; s++) {
-    const pad = 10 + s * 12, a = [0.10, 0.06, 0.035][s] * l;
-    c.fillStyle = `rgba(244, 114, 182, ${a})`; c.beginPath(); c.roundRect(cx - 140 - pad, sy - 14 - pad * 0.6, 150 + pad, 22 + pad * 1.2, 8); c.fill();
-    c.fillStyle = `rgba(34, 211, 238, ${a})`; c.beginPath(); c.roundRect(cx + 26 - pad * 0.2, sy - 14 - pad * 0.6, 116 + pad, 22 + pad * 1.2, 8); c.fill();
+    const pad = 6 + s * 10, a = [0.10, 0.06, 0.035][s] * l, mid = (NEON.ga + NEON.gr) / 2;
+    c.fillStyle = `rgba(244, 114, 182, ${a})`; c.fillRect(NEON.x - pad, NEON.y - pad, mid - NEON.x + pad, NEON.h + pad * 2);
+    c.fillStyle = `rgba(34, 211, 238, ${a})`; c.fillRect(mid, NEON.y - pad, NEON.x + NEON.w - mid + pad, NEON.h + pad * 2);
   }
   // (the glow up off the floor: each lit tile's color rising in three stepped bands)
   const v0 = state.camera.x - 100, v1 = state.camera.x + CANVAS_WIDTH + 100;

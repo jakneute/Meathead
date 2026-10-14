@@ -40,6 +40,8 @@ export interface Prop {
   paint?: (g: Ctx, w: number, h: number) => void;
   live?: (c: Ctx, sx: number, sy: number, s: number, t: number) => void;
   heat?: number; wrap?: boolean;
+  /** Beyond this far off (m) it's gone behind the scenery at the far end (back()'s): not drawn. */
+  far?: number;
 }
 
 /** A boss's version of the screen. */
