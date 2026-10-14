@@ -8,6 +8,8 @@
     { "in": "DONE READ", "say": "DONE RED" },
     { "in": "I READ THAT", "say": "I RED THAT" },
     { "in": "SHITPANTS", "say": "SHIT PANTS" },
+    { "in": "FUTURELAND", "say": "FUTURE LAND" },
+    { "in": "DUMBASS", "say": "DUMM ASS" },
     { "in": "BONE APPETIT", "say": "BONE APPA TEET" },
     { "in": "ABRACA-DEAD", "say": "ABRA KA DEAD" },
     { "in": "CHOWDAH", "say": "CHOW DAH", "word": true },
