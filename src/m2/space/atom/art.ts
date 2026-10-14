@@ -374,7 +374,9 @@ export const drawPlatformSleds = (c: Ctx, state: GameState, hj: Hijack, back: bo
     }
   }
   const sx = SLED_X + hj.rolling;
-  drawSled(c, sx, GY, f, HIS_SLED, true);
+  // (in front of him (the front pass), only the seat backs of the seats guests are still sat in: his seat's back stays
+  // behind him, drawn in the back pass)
+  drawSled(c, sx, GY, f, HIS_SLED, true, 0, false, back ? [0, 1] : [hj.frontOut ? -1 : 0, hj.backOut ? -1 : 1].filter(i => i >= 0));
   if (!back) {
     // (the guests in it, till they're out)
     if (!hj.frontOut) seatedIn(c, sx + SEATS[0], GY, g => drawAtomPerson(g, 'guest', { seed: GUEST_SEEDS[0], f, pose: 'stand', md: 'ok', talk: hj.said?.who === 'g0' }));

@@ -2,7 +2,7 @@
 // track, the one in front at the end): a long low rocket on a bogie, single file (two seats: the front one, the back
 // one), its nose cone out front, fins at the back, a headrest behind each seat with the onboard speaker in it (the
 // ride's PA comes out of there). Drawn in two layers: `back` (the seat backs and headrests, behind whoever's sat in
-// it) and the body (in front of them). `x` is the middle of it, `y` the rail; facing right.
+// it; `seats`: which seats' backs, to draw just those sat in by someone drawn with them) and the body (in front of them). `x` is the middle of it, `y` the rail; facing right.
 
 import { INK, box, text, rampOf } from '../../intro/art/kit';
 
@@ -16,13 +16,13 @@ export const HIS_SLED: SledLook = { body: '#E5E7EB', stripe: '#DC2626', num: 7 }
 export const FRONT_SLED: SledLook = { body: '#E5E7EB', stripe: '#2563EB', num: 6 };
 
 /** The sled. `lit`: the work lights are on (it's a fiberglass tub with a stripe; in the dark it gleams). */
-export const drawSled = (c: Ctx, x: number, y: number, f: number, look: SledLook, back: boolean, rot = 0, lit = false) => {
+export const drawSled = (c: Ctx, x: number, y: number, f: number, look: SledLook, back: boolean, rot = 0, lit = false, seats: readonly number[] = [0, 1]) => {
   c.save(); c.translate(x, y); c.rotate(rot);
   const r = rampOf(look.body), s = rampOf(look.stripe);
   if (back) {
     // the seat backs, each with its headrest and the speaker grille in it
-    for (const sx of SEATS) {
-      const bx = sx - 22;
+    for (const i of seats) {
+      const bx = SEATS[i] - 22;
       box(c, bx - 1, -66, 12, 46, INK);
       box(c, bx, -65, 10, 44, '#1F2937'); box(c, bx, -65, 3, 44, '#374151');
       box(c, bx - 2, -80, 14, 16, INK); box(c, bx - 1, -79, 12, 14, '#111827');
