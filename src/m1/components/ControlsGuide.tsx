@@ -18,7 +18,7 @@ const dirs = () => {
 };
 const special = () => keysFor('special').map(keyLabel)[0];
 const withSpecial = (dir: string, extra: string, own: KeyAction) => [special() ? `${dir} + ${special()}${extra}` : '', keysFor(own).map(keyLabel).join(' / ')].filter(Boolean).join(' / ') || 'NONE';
-const swap = () => ['WHEEL / 1-9', ...keysFor('prevWeapon').map(keyLabel), ...keysFor('nextWeapon').map(keyLabel)].join(' / ');
+const swap = () => [...keysFor('prevWeapon').map(keyLabel), ...keysFor('nextWeapon').map(keyLabel), '1-9'].join(' / ');
 
 const BASICS: Row[] = [
   ['MOVE / CROUCH', dirs, 'L-STICK / D-PAD'],

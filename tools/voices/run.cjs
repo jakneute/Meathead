@@ -10,3 +10,5 @@ run(py, [path.join(here, 'generate.py'), ...process.argv.slice(2)]);
 // ...and Meathead 2's little pack, out of the big one (m2pack.ts)
 run(process.execPath, [path.join(here, '..', '..', 'node_modules', 'esbuild', 'bin', 'esbuild'), 'tools/voices/m2pack.ts', '--bundle', '--platform=node', '--format=cjs', '--outfile=tools/voices/.m2pack.cjs', '--log-level=error', '--loader:.bin=empty', '--loader:.png=dataurl']);
 run(process.execPath, [path.join(here, '.m2pack.cjs')]);
+// ...and Meathead 1's, the big one less Meathead 2's lines (m1pack.cjs)
+run(process.execPath, [path.join(here, 'm1pack.cjs')]);

@@ -3,7 +3,7 @@ import { Prompt, BindingIcon } from './ButtonIcons';
 import ControlsGuide from './ControlsGuide';
 import { useCursorSound } from './useCursorSound';
 import { getSettings, subscribeSettings, updateSettings, setFullscreen, DEFAULT_SETTINGS, type Settings } from '../game/settings';
-import { KEY_ACTIONS, KEY_SLOTS, bindKey, clearKey, isReservedKey, keyLabel, type KeyAction } from '../game/platform/keys';
+import { KEY_ACTIONS, KEY_SLOTS, bindKey, clearKey, isReservedKey, isWheelCode, wheelFits, keyLabel, type KeyAction } from '../game/platform/keys';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from '../game/platform/gamepad';
 import { playCursor, playMenuOk, playMenuBack } from '../game/platform/audio';
 import { recordedVoices, playClip, voicesHeld, type ClipHandle } from '../game/platform/voiceclips';
@@ -101,6 +101,7 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const action = KEY_ACTIONS[cursor]?.id;
     if (!action) return;
     setCapturing(false);
+    if (isWheelCode(code) && !wheelFits(action)) { tell('THE WHEEL ONLY CHANGES WEAPONS', true); playMenuBack(); return; }
     if (isReservedKey(code)) { tell(`${keyLabel(code)} CAN NOT BE USED: IT IS TAKEN`, true); playMenuBack(); return; }
     const { keys, from } = bindKey(settings.keys, action, slot, code);
     updateSettings({ keys });
@@ -187,6 +188,9 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       if (capRef.current) { e.preventDefault(); swallowClick.current = true; bindRef.current(`mouse${e.button}`); return; }
       if (e.button === 2) actRef.current('back');
     };
+    // (the wheel, while a slot's waiting: a notch up or down is what's bound)
+    const onWheel = (e: WheelEvent) => { if (!capRef.current || Math.abs(e.deltaY) < 1) return; e.preventDefault(); bindRef.current(e.deltaY > 0 ? 'wheeldown' : 'wheelup'); };
+    window.addEventListener('wheel', onWheel, { capture: true, passive: false });
     const onClick = (e: MouseEvent) => { if (swallowClick.current) { swallowClick.current = false; e.preventDefault(); e.stopPropagation(); } };
     // (the side buttons are buttons here, not the browser's back and forward)
     const onMouseUp = (e: MouseEvent) => { if (e.button === 3 || e.button === 4) e.preventDefault(); };
@@ -197,6 +201,7 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     window.addEventListener('click', onClick, true);
     window.addEventListener('contextmenu', noMenu);
     return () => {
+      window.removeEventListener('wheel', onWheel, true);
       window.removeEventListener('keydown', onKey, true);
       window.removeEventListener('mousedown', onMouseDown, true);
       window.removeEventListener('mouseup', onMouseUp, true);

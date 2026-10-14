@@ -23,7 +23,7 @@ import { WHITE_HOUSE_ID } from './content/whiteHouse';
 import TutorialHint from './components/TutorialHint';
 import { useCursorSound, useOpenCloseSound } from './components/useCursorSound';
 import { GYM_STAGE } from './game/stages/gym';
-import voicePackUrl from './generated/voices.bin?url';
+import voicePackUrl from './generated/voices-m1.bin?url';
 import { loadVoicePack } from './game/platform/voiceclips';
 
 // Everybody's recorded voice, loaded once (it comes inside the page: see tools/voices)
@@ -880,8 +880,12 @@ const App: React.FC = () => {
       if (status !== GameStatus.PLAYING && status !== GameStatus.PAUSED) return;
       const now = performance.now();
       if (Math.abs(e.deltaY) < 1 || now - wheelAt < WHEEL_COOLDOWN_MS) return;
+      // (whatever the notch is bound to: the weapon cycling, or nothing)
+      const code = e.deltaY > 0 ? 'wheeldown' : 'wheelup';
+      const d = keysFor('prevWeapon').includes(code) ? -1 : keysFor('nextWeapon').includes(code) ? 1 : 0;
+      if (!d) return;
       wheelAt = now;
-      cycleWeapon(e.deltaY > 0 ? 1 : -1);
+      cycleWeapon(d);
     };
     // The previous / next weapon buttons (keys or mouse buttons, wherever they've been bound), while playing
     const bumpWeapon = (code: string) => {

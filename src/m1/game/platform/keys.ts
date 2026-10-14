@@ -39,9 +39,13 @@ export const DEFAULT_KEYS: KeyBindings = {
   charge: ['shiftleft', 'shiftright'],
   uppercut: ['keye'],
   downSpecial: ['keyc'],
-  prevWeapon: [],
-  nextWeapon: [],
+  prevWeapon: ['wheelup'],
+  nextWeapon: ['wheeldown'],
 };
+
+/** The mouse wheel's two notches: bindable, but only to the weapon cycling (a notch is a tap, never held). */
+export const isWheelCode = (code: string) => code === 'wheelup' || code === 'wheeldown';
+export const wheelFits = (a: KeyAction) => a === 'prevWeapon' || a === 'nextWeapon';
 
 /**
  * Keys that can't be given to anything: Esc (pause, and back in every menu), the number keys (each picks its weapon),
@@ -73,10 +77,14 @@ export const sanitizeKeys = (raw: unknown): KeyBindings => {
     const list = Array.isArray(v) ? v.map(c => (typeof c === 'string' ? c.toLowerCase() : '')) : DEFAULT_KEYS[a.id];
     out[a.id] = Array.from({ length: KEY_SLOTS }, (_, i) => {
       const c = list[i] ?? '';
-      if (!validCode(c) || (c && used.has(c))) return '';
+      if (!validCode(c) || (c && used.has(c)) || (isWheelCode(c) && !wheelFits(a.id))) return '';
       if (c) used.add(c);
       return c;
     });
+  }
+  // (saved before the wheel could be bound: the weapon cycling's left empty, so it gets the wheel)
+  if (![...out.prevWeapon, ...out.nextWeapon].some(Boolean) && !Object.values(out).flat().some(isWheelCode)) {
+    out.prevWeapon[0] = 'wheelup'; out.nextWeapon[0] = 'wheeldown';
   }
   return out;
 };
@@ -97,7 +105,8 @@ export const bindKey = (k: KeyBindings, action: KeyAction, slot: number, code: s
   const old = out[action][slot];
   let from: KeyAction | undefined;
   for (const a of KEY_ACTIONS) out[a.id].forEach((c, i) => {
-    if (c === code && !(a.id === action && i === slot)) { out[a.id][i] = old; if (a.id !== action) from = a.id; }
+    // (the wheel can't be swapped onto something it doesn't fit: that one's just left empty)
+    if (c === code && !(a.id === action && i === slot)) { out[a.id][i] = isWheelCode(old) && !wheelFits(a.id) ? '' : old; if (a.id !== action) from = a.id; }
   });
   out[action][slot] = code;
   return { keys: out, from };
@@ -121,6 +130,8 @@ export const isMouseCode = (code: string) => /^mouse\d$/.test(code);
 /** What's printed on a key (for its keycap), or what a mouse button's called. */
 export const keyLabel = (code: string): string => {
   if (NAMED[code]) return NAMED[code];
+  if (code === 'wheelup') return 'WHEEL ▲';
+  if (code === 'wheeldown') return 'WHEEL ▼';
   if (isMouseCode(code)) return ['L-CLICK', 'M-CLICK', 'R-CLICK', 'MOUSE 4', 'MOUSE 5'][Number(code.slice(5))] ?? `MOUSE ${Number(code.slice(5)) + 1}`;
   if (/^key[a-z]$/.test(code)) return code.slice(3).toUpperCase();
   if (/^digit\d$/.test(code)) return code.slice(5);

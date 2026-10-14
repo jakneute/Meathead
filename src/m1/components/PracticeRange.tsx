@@ -5,6 +5,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE } from 
 import { getWeaponInfo, getWeaponDescription } from '../content/roster';
 import { createRange, stepRange, newRespawns } from '../game/range';
 import { KeyboardMouseState, readControls } from '../game/platform/input';
+import { keysFor } from '../game/platform/keys';
 import { drawWorld } from '../game/render/world';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
 import { WeaponArt } from './WeaponIcon';
@@ -38,7 +39,11 @@ const PracticeRange: React.FC<{ weapons: WeaponType[]; onLeave: () => void }> = 
       const slot = /^Digit([1-9])$/.exec(e.code);
       if (slot && Number(slot[1]) <= weapons.length) setWeapon(weapons[Number(slot[1]) - 1]);
     };
-    const onWheel = (e: WheelEvent) => cycleRef.current(e.deltaY > 0 ? 1 : -1);
+    const onWheel = (e: WheelEvent) => {
+      const code = e.deltaY > 0 ? 'wheeldown' : 'wheelup';
+      const d = keysFor('prevWeapon').includes(code) ? -1 : keysFor('nextWeapon').includes(code) ? 1 : 0;
+      if (d) cycleRef.current(d);
+    };
     window.addEventListener('keydown', onKey, true);
     window.addEventListener('wheel', onWheel);
     let raf = 0, lastStep = 0;
