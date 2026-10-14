@@ -207,6 +207,8 @@ export interface Hunter {
   cam: number;
   /** The hiding spot she tore open on him (seen getting in), -1 none: gutted, its door gone. */
   torn: number;
+  /** Frames till she's next seen going by in the foreground (between her real goes, to keep him sweating). */
+  fgNext: number;
 }
 export const makeHunter = (state: GameState): Hunter => {
   const cx = state.player.pos.x + state.player.width / 2;
@@ -215,7 +217,7 @@ export const makeHunter = (state: GameState): Hunter => {
     entry: 'vent', huntOnDrop: false, leap: null,
     next: 360, out: 0, lastSeen: -9999, lastX: cx,
     opened: cx > B + 620, finale: false, fake: null, rattle: null, fg: null,
-    noise: 0, hid: -1, hidT: 0, torn: -1, heart: 0, passedClose: false,
+    noise: 0, hid: -1, hidT: 0, torn: -1, fgNext: 420, heart: 0, passedClose: false,
     saidDark: cx > B + 400, saidSpot: cx > B + 700, saidGun: false, hideSaidAt: -99999,
     door: state.stageMemo[DOOR_MEMO] ? 'in' : 'shut', doorT: 0, block: null,
     wasGrounded: true, lastVy: 0, lastShoot: false, lastJump: false, lastMove: false, warned: false, freeMove: false,
@@ -374,6 +376,9 @@ const schedule = (state: GameState, h: Hunter) => {
     return;
   }
   h.next--;
+  // (and between times, every so often, her in the foreground: stalking along the near pipes, over him, on her way
+  // somewhere ahead of him; she's not done with him)
+  if (!h.fg && --h.fgNext <= 0) { h.fg = { t: 0, dir: Math.random() < 0.7 ? ((p.facing || 1) as 1 | -1) : ((-(p.facing || 1)) as 1 | -1) }; h.fgNext = rnd(360, 600); playSound('click', 0.4, -4); }
   // (his noise, with her away: out sooner, near it)
   if (h.noise > 60) h.next = Math.min(h.next, h.noise > 100 ? 20 : 90);
   if (h.next > 0) return;
@@ -536,7 +541,7 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
     case 'climb':
       if (h.t === 2) playSound('clang', vol(state, h.x, 0.5), -2);
       if (h.t >= 24) {
-        to(h, 'away'); h.next = h.finale ? 9999 : rnd(300, 620);
+        to(h, 'away'); h.next = h.finale ? 9999 : rnd(200, 380);
         if (h.passedClose && p.health > 0) meatheadSays(state, pick(L.MH_PASSED), false);
         h.passedClose = false;
       }

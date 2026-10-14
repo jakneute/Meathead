@@ -181,6 +181,12 @@ export const MH_OPS_GONE: ByPants = {
 /** Him: the ray; the births; batting one back into her; bonking her head. */
 export const MH_RAY = ["AN IMPREGNATOR RAY? ON A ROBOT? I'M NOT ASKING.", "I'M NOT GONNA ASK. I'M NOT GONNA ASK.", "OKAY. I'M NOT WATCHING THIS PART."];
 export const MH_BIRTH = ['SHE JUST SHIT OUT A ROBOT.', "THAT'S NOT WHERE BABIES COME FROM. I THINK.", 'OH GOD. IT CAME OUT HER ASS.'];
+/** Him, a while into it with nothing thrown into her: the hint. */
+export const MH_THROW_HINT: ByPants = {
+  clean: ['THOSE LITTLE SHITS ARE HERS. CHUCK ONE BACK AT HER.', "SHE'S TOUGH. HER KIDS AREN'T. THROW ONE AT MOMMY.", 'RETURN TO SENDER. GRAB ONE AND SEND IT BACK.'],
+  shitty: ['GRAB ONE OF HER BRATS. THROW IT AT HER. NOT AT MY PANTS.', "SHE'S TOUGH. HER KIDS AREN'T. THROW ONE AT MOMMY.", 'RETURN TO SENDER. GRAB ONE AND SEND IT BACK.'],
+  nude: ['THOSE LITTLE SHITS ARE HERS. CHUCK ONE BACK AT HER.', "SHE'S TOUGH. HER KIDS AREN'T. THROW ONE AT MOMMY. I'M ALREADY NAKED.", 'RETURN TO SENDER. GRAB ONE AND SEND IT BACK.'],
+};
 export const MH_BAT = ['RETURN TO SENDER!', 'BACK WHERE YOU CAME FROM! THE ASS!', "HERE'S YOUR KID BACK, LADY!"];
 export const MH_HEAD = ['BONK.', 'RIGHT IN THE CRANIUM.', 'TAKE A SEAT. THE OTHER SIDE.'];
 /** A meteor (the spellbook's storm) come down in her oil, and nothing: it's acid, and it won't burn. Once a life. The
@@ -263,7 +269,7 @@ export const DEATH_SPIT = ['SPAT TO DEATH', 'GREASED', 'KILLED BY A SPITTER'];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...all(MH_GLASS), ...all(MH_KICK), ...all(MH_FALL), ...MH_DARK, ...MH_SPOT, ...all(MH_HIDE), ...all(MH_HIDE_DARK), ...MH_PASSED, ...MH_SEEN, ...MH_WARN_SHOOT, ...MH_WARN_MOVE, ...MH_USELESS,
-    ...all(MH_DISCO), ...MH_EXTINGUISHER, ...MH_FOAM_FAIL, ...MH_THROW, ...all(MH_LESS_FATAL), ...MH_RAY, ...MH_BIRTH, ...MH_BAT, ...MH_HEAD, ...all(MH_CHEAP_OIL), ...all(MH_OPS_GONE), ...HURT_CAN,
+    ...all(MH_DISCO), ...MH_EXTINGUISHER, ...MH_FOAM_FAIL, ...MH_THROW, ...all(MH_LESS_FATAL), ...MH_RAY, ...MH_BIRTH, ...all(MH_THROW_HINT), ...MH_BAT, ...MH_HEAD, ...all(MH_CHEAP_OIL), ...all(MH_OPS_GONE), ...HURT_CAN,
     ...HURT_SPIT, ...HURT_JAW, ...HURT_OIL, ...all(HURT_FLAIL), ...all(HURT_POOL), ...HURT_BITER, ...HURT_SPITTER, ...HURT_CHARGER,
   ],
   death: [...DEATH_CAN, ...DEATH_SPIT, ...DEATH_JAW, ...DEATH_OIL, ...all(DEATH_FLAIL), ...all(DEATH_POOL), ...DEATH_BITER, ...DEATH_SPITTER, ...DEATH_CHARGER],

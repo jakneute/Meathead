@@ -165,6 +165,8 @@ export interface Fight {
   /** Frames into getting the extinguisher off the wall (the hop up for it). */
   grabT: number;
   tauntT: number; saidBirth: number;
+  /** When one of hers (or anybody) last went into her, thrown or batted; when he last hinted at it. */
+  throwAt: number; throwHintAt: number;
   /** A throw or a bat landed on her lately (the engine's own share of the same hit isn't counted on top). */
   eventAt: number;
   /** The operators in the booth: at it; losing it after her; running out the back; gone. */
@@ -186,7 +188,7 @@ export const makeFight = (state: GameState): Fight => {
     lights: seen ? 1 : 0, down: seen ? 1 : 0, foam: 0, ext2: seen ? 'gone' : 'wall', ex: { x: EXTINGUISHER_X, y: GY - 90, vx: 0, vy: 0, r: 0 },
     said: null, boothSaid: null,
     birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, pool: null,
-    drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, eventAt: -99,
+    drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, throwAt: -1, throwHintAt: -9999, eventAt: -99,
     ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], deathT: 0, deathSaid: 0, byWeakness: false, e: null,
   };
 };
@@ -412,6 +414,11 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   tickKin(ctx);
   fileLines(state);
   if (f.mode !== 'dead') { thrownInto(ctx, f); takeHits(ctx, f); }
+  // (a good while into it and nothing thrown into her: him, working it out out loud)
+  if (f.throwAt < 0) f.throwAt = f.total;
+  if (f.mode !== 'dead' && f.total - f.throwAt > THROW_HINT_AFTER && f.total - f.throwHintAt > THROW_HINT_GAP && kinAbout(state).length > 0) {
+    f.throwHintAt = f.total; meatheadSays(state, pick(L.MH_THROW_HINT[dressed(state)]), false);
+  }
   if (f.hp <= 0 && f.mode !== 'dead') die(ctx, f);
   const ph = phase(f), p = state.player, pm = pmid(state);
   const toward = (pm.x < f.x ? -1 : 1) as 1 | -1;
@@ -650,6 +657,8 @@ const tickSacs = (state: GameState, f: Fight) => {
 // Hits
 
 /** Anybody flung into her: thrown (the grab), batted (the mallet), knocked flying. Hers are destroyed on her. */
+/** Frames into the fight with nothing thrown into her before he hints at it, and between hints. */
+const THROW_HINT_AFTER = 1500, THROW_HINT_GAP = 1500;
 const thrownInto = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player;
   if (f.mode === 'leap' && f.ph === 'air') return;
@@ -662,7 +671,7 @@ const thrownInto = (ctx: FrameContext, f: Fight) => {
     const flung = thrown || e.isBlownAway || e.meleeFlung || ((e.pauseTimer ?? 0) > 0 && speed > 8);
     if (!flung || speed < 5 || (isKin(e) && kinAge(state, e) < 20 && !thrown && !e.isBlownAway)) continue;
     const batted = !thrown && p.currentWeapon === 'MALLET' && isKin(e);
-    f.eventAt = f.total;
+    f.eventAt = f.total; f.throwAt = f.total;
     if (batted) {
       // (her own, batted back into her: the big one; she's stunned, and the lot of them go)
       f.hp -= BATTED_DMG; f.flash = 16; f.iframes = IFRAMES;
