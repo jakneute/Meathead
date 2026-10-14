@@ -249,7 +249,7 @@ const drawCharger = (c: Ctx, e: Enemy, f: number) => {
 
 registerM2Kind({ kind: BITER, stats: { w: 30, h: 26, hp: 30, contact: 7, mass: 40 }, ai: biterAI, draw: drawBiter, robot: true, grab: 'critter', gender: 'm', head: { x: 10, y: -20, r: 7 } });
 registerM2Kind({ kind: SPITTER, stats: { w: 38, h: 58, hp: 80, contact: 6, mass: 140 }, ai: spitterAI, draw: drawSpitter, robot: true, grab: 'body', gender: 'm', head: { x: 4, y: -52, r: 9 } });
-registerM2Kind({ kind: CHARGER, stats: { w: 66, h: 64, hp: 170, contact: 16, mass: 420 }, ai: chargerAI, draw: drawCharger, robot: true, grab: 'none', gender: 'm', head: { x: 24, y: -40, r: 11 } });
+registerM2Kind({ kind: CHARGER, stats: { w: 66, h: 64, hp: 170, contact: 16, mass: 420 }, ai: chargerAI, draw: drawCharger, robot: true, grab: 'body', gender: 'm', head: { x: 24, y: -40, r: 11 } });
 
 /** A sac on its way out of her / lying there hatching. World. */
 export const drawSac = (c: Ctx, x: number, y: number, t: number, hatch: number) => {
