@@ -39,6 +39,8 @@ import { drawDeckView, drawAscent, prewarmSky, c01, hash } from './sky';
 import { DECOMP, VACUUM, setOutGuests, drawPuppet, drawDecompCam, drawFloat } from './death';
 import { putOnSuit, wearingHelmet, reapplySuit, SUIT_MEMO } from './suit';
 import * as L from './lines';
+import { drawPoseSprite, drawPoseHead } from '../../moves/grab';
+import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../../m1/game/render/player/body';
 export { takeOffSuit, wearingHelmet, putOnSuit } from './suit';
 
 const RODE_MEMO = 'm2:needle:rode', SEALED_MEMO = 'm2:needle:sealed';
@@ -180,8 +182,25 @@ const startSuit = (state: GameState, ns: Needle) => {
   const p = state.player;
   p.inCutscene = true; p.vel.x = 0; p.facing = p.pos.x + p.width / 2 < CASE_X ? 1 : -1;
 };
+/** Punching the case in: frames (the wind-up, the hit on PUNCH_HIT, held, back) he's in his punch, not himself. */
+const PUNCH_HIT = 6, PUNCH_END = 20;
+/** `k`: -1 drawn back (the fist by his ear, the shoulder turned away), 1 landed (the arm out straight through the glass,
+ *  his weight on the front foot). Facing right, feet at the origin. */
+const punchPose = (c: CanvasRenderingContext2D, f: number, k: number) => {
+  const out = Math.max(0, k), back = Math.max(0, -k), hipY = -18;
+  drawLeg(c, [-5, hipY], [-10 - back * 2, hipY + 9], [-15 - back * 2, -1], 1, true);
+  drawLeg(c, [5, hipY], [12 + out * 3, hipY + 9], [15 + out * 4, -1], 1, false);
+  c.save(); c.translate(out * 3 - back * 2, hipY); c.rotate(0.12 * out - 0.1 * back);
+  drawArmTo(c, [-8, -22], [-2 + 18 * out - 10 * back, -26 - 2 * back], [-6 + 40 * out - 8 * back, -34 - 6 * back + 2 * out], true, 7);
+  drawTorsoFromHips(c);
+  drawPoseHead(c, 6, -36, 0.05, 'roar', f);
+  drawArmTo(c, [11, -22], [17, -30], [15, -40], false, 6);
+  c.restore();
+};
 const suitScene = (state: GameState, ns: Needle) => {
   const t = ++ns.t, p = state.player;
+  // (in his punch: drawn by drawFront, not himself)
+  p.hidden = t < PUNCH_END;
   if (t === 6) {
     // (the case smashed: a backhand through the glass)
     playSound('glass', 1); playSound('punch', 0.8); playSound('alarm', 0.35, 4); shakeScreen(state, 6, 3);
@@ -460,6 +479,12 @@ export const needle: SpaceSection = {
   },
   drawFront: (c, state) => {
     const ns = st(state);
+    // (the punch into the case: back, the jab through the glass, held, back down)
+    if (ns.phase === 'suit' && ns.t < PUNCH_END) {
+      const p = state.player, t = ns.t;
+      const k = t < PUNCH_HIT - 2 ? -Math.min(1, t / (PUNCH_HIT - 2)) : t < PUNCH_HIT ? -1 + (t - PUNCH_HIT + 2) : t < PUNCH_HIT + 7 ? 1 : 1 - (t - PUNCH_HIT - 7) / (PUNCH_END - PUNCH_HIT - 7);
+      drawPoseSprite(c, p.pos.x + p.width / 2, p.pos.y + p.height, p.facing || 1, g => punchPose(g, state.frame, k));
+    }
     // (him, dragged out of the window: hanging onto the sill, then gone)
     if (ns.phase === 'blow') {
       const m = ns.mh;
