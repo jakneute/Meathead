@@ -32,7 +32,7 @@ import { drawBars } from '../../spooky/control/cine';
 import { GRUNT, BRUTE, CRAWLER, FLEER, seedAlien, tickAliens, sweepGone, drawBolts, drawAlienSaid, resetAliens, setBarkPlace, setOnFlee, setHush } from './kinds';
 import { resetRigs } from './rigs';
 import { drawImpactBackdrop, drawCraterBack, drawCraterFront, floorAt, SITE_LAMPS } from './art';
-import { type House, makeHouse, buildHouse, tickHouse, showOn, showSkipT, drawHouseBack, drawHouseProps, drawHouseFront, houseLighting, AFTER_PRESHOW_CP } from './house';
+import { type House, tramKeepOut, makeHouse, buildHouse, tickHouse, showOn, showSkipT, drawHouseBack, drawHouseProps, drawHouseFront, houseLighting, AFTER_PRESHOW_CP } from './house';
 import { D, BOWL, RIM, DOME, CART, PYLON, CATWALKS, CRATES, FACADE_X, HOUSE_DOOR, PRESHOW, HALLS, WRECK_X, TRAMS } from './layout';
 import * as L from './lines';
 
@@ -44,7 +44,10 @@ const craterOf = (state: GameState) => spaceState<Crater>(state, 'crater', () =>
 
 /** Who's where: [kind, x, the floor under it, its look's seed]. Out at the site, taught one at a time (the soldier up
  *  on the wreck's dome, then one on the flat; the crawlers; the brute alone; then mixed), the runners all through it.
- *  In XENOSCARE, mixed, more of them, up on the catwalks and the crates too. */
+ *  In XENOSCARE, mixed, more of them, up on the catwalks and the crates too. Never on a tram's floor (tramKeepOut: a
+ *  car takes all of it): the bridge's are at its far end, shooting across the track at him (the soldier) and waiting
+ *  for him to step off it (the brute); the engine room's are up on its crates (shooting down at him on the track) and
+ *  at its two ends, where the floor's theirs. */
 const ENEMIES: [string, number, number, number][] = [
   // (the impact site)
   [FLEER, D + 700, GY, 3], [GRUNT, DOME.x + 85, DOME.y, 11], [FLEER, D + 1640, GY + BOWL.deep, 7], [FLEER, D + 2480, GY, 13],
@@ -52,15 +55,19 @@ const ENEMIES: [string, number, number, number][] = [
   [BRUTE, D + 3940, GY, 29], [GRUNT, PYLON.x + 220, PYLON.y, 31], [CRAWLER, D + 4620, GY, 37], [FLEER, D + 4560, GY, 34], [GRUNT, D + 4760, GY, 41],
   // (the queue)
   [GRUNT, D + 5820, GY, 43], [GRUNT, D + 6120, GY, 46],
-  // (THE BRIDGE)
-  [GRUNT, D + 7420, GY, 47], [CRAWLER, D + 8020, GY, 53], [GRUNT, D + 8320, GY, 55], [BRUTE, D + 8880, GY, 59],
+  // (THE BRIDGE: the tram's the thing; from the far end, past the track)
+  [GRUNT, D + 9090, GY, 55], [BRUTE, D + 9360, GY, 59],
   // (THE SPECIMEN BAY: up on the gantries too; the operators (seeds from 1000: headsets on) are posted by the rigs
   // they'll take over)
-  [GRUNT, CATWALKS[0][0] + 130, CATWALKS[0][1], 1061], [CRAWLER, D + 9300, GY, 65], [GRUNT, CATWALKS[1][0] + 120, CATWALKS[1][1], 67],
-  [BRUTE, D + 9620, GY, 71], [GRUNT, CATWALKS[2][0] + 150, CATWALKS[2][1], 1073], [GRUNT, D + 10160, GY, 77],
-  // (THE ENGINE ROOM: everything at once)
-  [GRUNT, CRATES[0][0] + CRATES[0][1] / 2, GY - CRATES[0][2], 1081], [CRAWLER, D + 10700, GY, 79], [BRUTE, D + 10960, GY, 83], [GRUNT, CRATES[1][0] + CRATES[1][1] / 2, GY - CRATES[1][2], 1085],
-  [CRAWLER, D + 11260, GY, 89], [GRUNT, D + 11420, GY, 91], [BRUTE, D + 11960, GY, 95],
+  [GRUNT, CATWALKS[0][0] + 130, CATWALKS[0][1], 1061], [GRUNT, CATWALKS[1][0] + 120, CATWALKS[1][1], 67], [CRAWLER, D + 9560, GY, 65],
+  [CRAWLER, D + 9720, GY, 53], [GRUNT, CATWALKS[2][0] + 150, CATWALKS[2][1], 1073], [BRUTE, D + 9900, GY, 71],
+  // (the way into the engine room, before its track)
+  [GRUNT, D + 10030, GY, 77], [CRAWLER, D + 10100, GY, 79],
+  // (THE ENGINE ROOM: everything at once; up on its crates, out of the tram's way, shooting down at him on the track)
+  [GRUNT, CRATES[0][0] + CRATES[0][1] / 2, GY - CRATES[0][2], 1081], [GRUNT, CRATES[1][0] + CRATES[1][1] / 2, GY - CRATES[1][2], 1085],
+  [GRUNT, CRATES[2][0] + CRATES[2][1] / 2, GY - CRATES[2][2], 91],
+  // (past its track, waiting for him to get off it)
+  [CRAWLER, D + 12130, GY, 89], [BRUTE, D + 12320, GY, 95],
   // (the corridor aft to the hold: the operators (headsets on), there to take the props over, right before her; and
   // they've seen what he did on the way, and say so)
   [GRUNT, D + 12220, GY, 1097], [GRUNT, D + 12440, GY, 1099],
@@ -68,8 +75,6 @@ const ENEMIES: [string, number, number, number][] = [
 /** What's lying about (small: lean drops): [x, y (feet), type]. */
 const PICKUPS: [number, number, PickupType][] = [[PYLON.x + 60, PYLON.y, 'small_health'], [CATWALKS[1][0] + 40, CATWALKS[1][1], 'small_ammo'], [CRATES[2][0] + 45, GY - CRATES[2][2], 'small_health']];
 
-/** How far either side of a tram's track a car reaches (it comes out of the wall well before it, goes on past). */
-const TRAM_REACH = 230;
 let fresh = true;
 
 export const crater: SpaceSection = {
@@ -106,16 +111,15 @@ export const crater: SpaceSection = {
     buildHouse(state, cr.house);
     if (!fresh) cr.saidArrive = true;
     fresh = false;
-    // (nobody stood on a tram's track to start with, where a car would have them before he's even there: those posted
-    // on the floor along one start out past its nearer end, spaced out, facing in)
-    const offTrack = new Map<number, number>();
+    // (nobody stood on a tram's floor (ENEMIES is laid out clear of it); one that somehow is, moved off past its nearer
+    // end, so a car never has them before he's even there)
     for (const [k, x0, y, seed] of ENEMIES) {
       let x = x0;
-      const t = y === GY ? TRAMS.findIndex(([a, b]) => x > a - TRAM_REACH && x < b + TRAM_REACH) : -1;
+      const t = y === GY ? TRAMS.findIndex(([a, b]) => { const [k0, k1] = tramKeepOut(a, b); return x > k0 - 40 && x < k1 + 40; }) : -1;
       if (t >= 0) {
-        const [a, b] = TRAMS[t], end = x - a < b - x ? -1 : 1, n = offTrack.get(t * 2 + (end > 0 ? 1 : 0)) ?? 0;
-        offTrack.set(t * 2 + (end > 0 ? 1 : 0), n + 1);
-        x = end < 0 ? a - TRAM_REACH - 30 - n * 70 : b + TRAM_REACH + 30 + n * 70;
+        const [k0, k1] = tramKeepOut(...TRAMS[t]);
+        x = x - k0 < k1 - x ? k0 - 60 : k1 + 60;
+        if (import.meta.env?.DEV) console.warn(`[crater] ${k} posted on a tram's floor at ${x0}: moved to ${x}`);
       }
       const e = seedAlien(makeKindEnemy(k as EnemyKind, x, y), seed);
       e.facing = -1;

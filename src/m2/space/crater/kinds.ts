@@ -1,11 +1,13 @@
 // Zorblax's people, as Meathead 2 enemies (new kinds, all of them; drawn in aliens.ts). Taught one at a time across the
 // impact site, then mixed in XENOSCARE:
 //   SOLDIER  (m2:sp_grunt) the ray gun on his forearm, as Zorblax had: keeps his distance, raises the arm (the coil
-//            glowing up: the tell) and fires a pink bolt level at him. The bolts hit anybody in the way (friendly fire).
+//            glowing up: the tell) and fires a pink bolt at him (level; angled down at him off a perch, or up at him on
+//            one). The bolts hit anybody in the way (friendly fire). Posted up on something he stays up on it, unless
+//            Meathead's right under him where he can't get the angle: then he comes down after him.
 //   BRUTE    (m2:sp_brute) a head taller and twice as wide, a spiked battle helmet (spiky: dive kicking down onto it is
 //            his own foot through a spike); plods at him, raises both fists (the tell) and lunges a punch.
-//   CRAWLER  (m2:sp_crawler) the top half of one: the crash took the rest. Drags itself at him and snaps at his ankles.
-//            Small: a slide (or anything) finishes it.
+//   CRAWLER  (m2:sp_crawler) the top half of one: the crash took the rest. Drags itself at him and snaps at his ankles;
+//            something in its way, it heaves itself up and over. Small: a slide (or anything) finishes it.
 //   RUNNER   (m2:sp_fleer) one that got out alive, in a state (an arm off, his head on fire): sees him and runs for it,
 //            screaming, for the haunted house, and in. Harmless (they're the ones that escape); killable all the same.
 // They bleed green (Zorblax's slime: the engine's blood off them, turned).
@@ -19,12 +21,14 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { say, pickLine } from '../../../m1/game/platform/speech';
 import { isGoreColor } from '../../../m1/game/core/effects';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
-import { hazardVictims, hazardHit } from '../../hazardHit';
+import { hazardVictims, hazardHit, inHazard } from '../../hazardHit';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { voice, saidOver } from '../section';
 import { drawAlien, drawCrawler, ALIEN_MUZZLE, type AlienPose } from './aliens';
 import { MOUTH_X } from './layout';
+import { floorAt } from './paint';
+import { GY } from '../geometry';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -96,15 +100,23 @@ export const drawAlienSaid = (c: Ctx, state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The bolts (the soldiers'): level, fast, pink; hitting him, anybody else in the way, or a wall
 
-interface Bolt { x: number; y: number; vx: number; t: number; from: Enemy }
+interface Bolt { x: number; y: number; vx: number; vy: number; t: number; from: Enemy }
 let bolts: Bolt[] = [];
 export const resetAliens = () => { bolts = []; said.clear(); hush = false; barked = new Set(); };
 const BOLT_SPEED = 7.5, BOLT_DMG = 12, BOLT_LIFE = 140;
+/** How steep a soldier will angle a shot (rise over run): steeper than that, he can't get a line on him. */
+const BOLT_SLOPE = 0.95;
+/** Can a soldier get a line on him from here (level, or angled no steeper than BOLT_SLOPE)? */
+const lineOn = (dx: number, dy: number) => Math.abs(dy) < 120 || (Math.abs(dy) < 400 && Math.abs(dy) < Math.abs(dx) * BOLT_SLOPE);
 
 const fire = (state: GameState, e: Enemy) => {
   const f = e.facing ?? 1;
   const m = { x: mid(e).x + f * (ALIEN_MUZZLE.x - 6), y: e.pos.y + e.height + ALIEN_MUZZLE.y * (e.height / 90) };
-  bolts.push({ x: m.x, y: m.y, vx: f * BOLT_SPEED, t: 0, from: e });
+  // (level at him on his level, as ever (ducking still dodges it); him well above or below (off a perch, up at one):
+  // angled at him)
+  const t = mid(state.player), dy = t.y - m.y, dx = Math.max(24, Math.abs(t.x - m.x));
+  const vy = Math.abs(dy) > 36 ? Math.max(-BOLT_SPEED * BOLT_SLOPE, Math.min(BOLT_SPEED * BOLT_SLOPE, (dy / dx) * BOLT_SPEED)) : 0;
+  bolts.push({ x: m.x, y: m.y, vx: f * BOLT_SPEED, vy, t: 0, from: e });
   playSound('raygun', 0.5, 4);
 };
 
@@ -113,7 +125,7 @@ export const tickAliens = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player;
   game = state;
   bolts = bolts.filter(b => {
-    b.x += b.vx; b.t++;
+    b.x += b.vx; b.y += b.vy; b.t++;
     if (b.t > BOLT_LIFE) return false;
     const spark = () => { for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: b.x, y: b.y }, vel: { x: -Math.sign(b.vx) * Math.random() * 3, y: (Math.random() - 0.5) * 3 }, life: 14, color: i % 2 ? ALIEN.laser[4] : '#FFFFFF', size: 2 + Math.random() * 2 }); };
     const top = p.pos.y + (p.isDucking || p.isSliding ? 30 : 0);
@@ -124,7 +136,9 @@ export const tickAliens = (ctx: FrameContext) => {
     // (one of theirs in the way, once it's clear of the one who fired it)
     const e = b.t > 6 ? hazardVictims(state).find(o => o !== b.from && b.x > o.pos.x && b.x < o.pos.x + o.width && b.y > o.pos.y && b.y < o.pos.y + o.height) : undefined;
     if (e) { hazardHit(ctx, e, 30, b.x - b.vx * 3, 'FRIENDLY FIRE!', { color: ALIEN.laser[4], knock: 5 }); spark(); return false; }
-    if (state.blocks.some(k => k.type !== 'platform' && !k.oneWay && b.x > k.x && b.x < k.x + k.w && b.y > k.y && b.y < k.y + k.h)) { spark(); return false; }
+    // (a wall; the floor (one angled down that missed); not the perch it was fired off, on its way out)
+    if (b.t > 4 && state.blocks.some(k => k.type !== 'platform' && !k.oneWay && b.x > k.x && b.x < k.x + k.w && b.y > k.y && b.y < k.y + k.h)) { spark(); return false; }
+    if (b.vy && b.y > floorAt(b.x)) { spark(); return false; }
     return true;
   });
   greenBlood(state);
@@ -133,8 +147,20 @@ export const tickAliens = (ctx: FrameContext) => {
 export const liveBolts = () => bolts;
 export const drawBolts = (c: Ctx, f: number) => {
   for (const b of bolts) {
-    // (a hot pink streak, inked, a white core, a pulsing halo: plain against the house's dark)
-    const len = 34, d = Math.sign(b.vx), y = Math.round(b.y), head = Math.round(b.x), l = Math.min(head, head - d * len);
+    // (a hot pink streak, inked, a white core, a pulsing halo: plain against the house's dark; an angled one turned
+    // along its way)
+    const len = 34;
+    if (b.vy) {
+      c.save(); c.translate(Math.round(b.x), Math.round(b.y)); c.rotate(Math.atan2(b.vy, b.vx));
+      c.fillStyle = 'rgba(244, 114, 182, 0.35)'; c.fillRect(-len - 4, -8, len + 8, 16);
+      c.fillStyle = '#1A0B14'; c.fillRect(-len - 1, -5, len + 2, 10);
+      c.fillStyle = '#EC4899'; c.fillRect(-len, -4, len, 8);
+      c.fillStyle = '#F9A8D4'; c.fillRect(-len + 2, -2, len - 4, 4);
+      c.fillStyle = f % 4 < 2 ? '#FFFFFF' : '#FDF2F8'; c.fillRect(-14, -1, 12, 2);
+      c.restore();
+      continue;
+    }
+    const d = Math.sign(b.vx), y = Math.round(b.y), head = Math.round(b.x), l = Math.min(head, head - d * len);
     c.fillStyle = 'rgba(244, 114, 182, 0.35)'; c.fillRect(l - 4, y - 8, len + 8, 16);
     c.fillStyle = '#1A0B14'; c.fillRect(l - 1, y - 5, len + 2, 10);
     c.fillStyle = '#EC4899'; c.fillRect(l, y - 4, len, 8);
@@ -171,6 +197,12 @@ const sees = (state: GameState, e: Enemy, rx: number, ry: number) => {
 };
 const faceHim = (state: GameState, e: Enemy) => { e.facing = mid(state.player).x < mid(e).x ? -1 : 1; };
 const grounded = (e: Enemy) => Math.abs(e.vel.y) < 0.01;
+/** Soldiers that have come down off the perch they were posted on (on the floor for good); how long he's been right
+ *  under one that's still up there. */
+const down = new WeakSet<Enemy>();
+const under = new WeakMap<Enemy, number>();
+/** Posted up on something (a dome, a pylon, a catwalk, a crate) and still up there. */
+const perched = (e: Enemy) => e.homeY !== undefined && e.homeY + e.height < GY - 10 && !down.has(e);
 
 /** The operators (headsets on: their look's seed from 1000 up) working an animatronic this frame, each to its rig's x
  *  (rigs.ts sets it): they stand at it, working it, not shooting. */
@@ -192,11 +224,35 @@ const gruntAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'walk': {
       faceHim(state, e);
       const f = e.facing ?? 1;
+      const dy = mid(state.player).y - mid(e).y;
       // (his distance: backs off if he's close, comes on if he's far; up on something, he stays up on it)
       e.vel.x = adx < 180 ? -f * 1.5 : adx > 380 ? f * 1.5 : 0;
-      if (e.homeY !== undefined && e.homeY + e.height < 540 && Math.abs(e.pos.x - (e.homeX ?? e.pos.x)) > 40 && Math.sign(e.vel.x) === Math.sign(e.pos.x - (e.homeX ?? e.pos.x))) e.vel.x = 0;
-      if (e.aiTimer > 70 && adx < 600 && Math.abs(mid(state.player).y - mid(e).y) < 120) { e.aiState = 'aim'; e.aiTimer = 0; e.vel.x = 0; playSound('alienCharge', 0.35, 6); }
+      if (perched(e) && Math.abs(e.pos.x - (e.homeX ?? e.pos.x)) > 40 && Math.sign(e.vel.x) === Math.sign(e.pos.x - (e.homeX ?? e.pos.x))) e.vel.x = 0;
+      // (up there with him right under, too steep to get a shot at: a while of that and he comes down after him, off the
+      // end towards him; never down into a hazard's way (a tram's track), nor while he's in one himself)
+      const steep = perched(e) && dy > 60 && dy > adx * BOLT_SLOPE;
+      if (steep && state.player.isGrounded) {
+        const n = (under.get(e) ?? 0) + 1;
+        under.set(e, n);
+        const p = state.player, landX = p.pos.x + p.width / 2 - e.width / 2;
+        if (n > 50 && !inHazard(state, e, landX, floorAt(landX + e.width / 2) - e.height) && !inHazard(state, e, p.pos.x, p.pos.y + p.height - e.height)) {
+          e.aiState = 'drop'; e.aiTimer = 0; under.delete(e); e.aiX = Math.sign(mid(state.player).x - mid(e).x) || f;
+        }
+      } else under.delete(e);
+      if (e.aiState === 'walk' && e.aiTimer > 70 && adx < 600 && lineOn(adx, dy) && !steep) { e.aiState = 'aim'; e.aiTimer = 0; e.vel.x = 0; playSound('alienCharge', 0.35, 6); }
       if (!sees(state, e, 900, 400)) { e.aiState = 'idle'; e.aiTimer = 0; }
+      break;
+    }
+    case 'drop': {
+      // (off the end of his perch, the way he was from him (no turning about over his head); landed lower down, he's
+      // one of the floor's now)
+      const f: 1 | -1 = (e.aiX ?? e.facing ?? 1) < 0 ? -1 : 1, aheadX = e.pos.x + f * 24;
+      e.facing = f;
+      e.vel.x = f * 1.8;
+      // (still up there, and the floor he'd step down onto is in a hazard's way: he thinks better of it)
+      if (grounded(e) && e.pos.y <= (e.homeY ?? e.pos.y) + 20 && inHazard(state, e, aheadX, floorAt(aheadX + e.width / 2) - e.height)) { e.vel.x = 0; e.aiState = 'walk'; e.aiTimer = 0; break; }
+      if (grounded(e) && e.pos.y > (e.homeY ?? e.pos.y) + 20) { down.add(e); e.aiState = 'walk'; e.aiTimer = 40; }
+      else if (e.aiTimer > 150) { e.aiState = 'walk'; e.aiTimer = 0; }
       break;
     }
     case 'aim':
@@ -251,7 +307,21 @@ const crawlerAI = (ctx: FrameContext, e: Enemy): boolean => {
       faceHim(state, e);
       // (heaves itself along in pulls, not a steady walk)
       e.vel.x = Math.floor(e.aiTimer / 20) % 2 === 0 ? (e.facing ?? 1) * 1.4 : 0.2 * (e.facing ?? 1);
-      if (adx < 80 && grounded(e) && e.aiTimer > 30) { e.aiState = 'lunge'; e.aiTimer = 0; e.vel.x = (e.facing ?? 1) * 5; e.vel.y = -3.5; playSound('snort', 0.6, 6); }
+      if (adx < 80 && grounded(e) && e.aiTimer > 30) { e.aiState = 'lunge'; e.aiTimer = 0; e.vel.x = (e.facing ?? 1) * 5; e.vel.y = -3.5; playSound('snort', 0.6, 6); break; }
+      {
+        // (something in its way (a cart, a step up): pulling and getting nowhere a while, it heaves itself up and over;
+        // not over into a hazard's way)
+        const f = e.facing ?? 1, stuck = grounded(e) && Math.abs(e.pos.x - (e.aiX ?? e.pos.x)) < 0.3 && Math.abs(e.vel.x) > 1;
+        e.aiY = stuck ? (e.aiY ?? 0) + 1 : 0;
+        e.aiX = e.pos.x;
+        if ((e.aiY ?? 0) > 12 && adx > 60 && !inHazard(state, e, e.pos.x + f * 70, e.pos.y)) {
+          e.aiState = 'heave'; e.aiTimer = 0; e.aiY = 0; e.vel.y = -10; e.vel.x = f * 2.6; playSound('snort', 0.6, 2);
+        }
+      }
+      break;
+    case 'heave':
+      e.vel.x = (e.facing ?? 1) * 2.6;
+      if (grounded(e) && e.aiTimer > 6) { e.aiState = 'crawl'; e.aiTimer = 0; e.vel.x = 0; }
       break;
     case 'lunge':
       if (grounded(e) && e.aiTimer > 6) { e.aiState = 'crawl'; e.aiTimer = 0; e.vel.x = 0; }
@@ -336,7 +406,7 @@ registerM2Kind({
   kind: CRAWLER, stats: { w: 50, h: 30, hp: 35, contact: 7, mass: 60 }, ai: crawlerAI, humanoid: false, grab: 'critter',
   gender: e => (isWoman(e) ? 'f' : 'm'),
   head: { x: 22, y: -26, r: 8 },
-  draw: (c, e, f) => drawCrawler(c, seedOf(e), f, e.aiState === 'lunge', e.health <= 0),
+  draw: (c, e, f) => drawCrawler(c, seedOf(e), f, e.aiState === 'lunge' || e.aiState === 'heave', e.health <= 0),
 });
 
 registerM2Kind({

@@ -166,6 +166,9 @@ export const showSkipT = (h: House) => h.t;
 // The trams
 
 const TRAM_W = 180, TRAM_H = 66, TRAM_SPEED = 8.5, TRAM_DMG = 24, WAIT = 260, WARN = 84;
+/** The floor the aliens keep off for a tram's run (all the way a car goes: out of the wall before the track, on past
+ *  its end): [from, to] (world x). Nobody's posted in it (index.ts places them clear of it). */
+export const tramKeepOut = (a: number, b: number): [number, number] => [a - 160 - TRAM_W / 2 - 20, b + 200 + TRAM_W / 2 + 20];
 const tickTrams = (ctx: FrameContext, h: House) => {
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
   const zones: { x0: number; x1: number; y0: number; y1: number; ground: boolean }[] = [];
@@ -174,7 +177,8 @@ const tickTrams = (ctx: FrameContext, h: House) => {
     tr.t++;
     // (the track's no place for them to stand, ever: nobody starts on it or wanders onto it between cars; knocked on, it's theirs)
     // (all the way a car goes: out of the wall before the track, on past its end)
-    zones.push({ x0: (tr.mode === 'run' ? Math.max(tr.a - 160, tr.x) : tr.a - 160) - TRAM_W / 2 - 20, x1: tr.b + 200 + TRAM_W / 2 + 20, y0: GY - TRAM_H, y1: GY, ground: true });
+    const [k0, k1] = tramKeepOut(tr.a, tr.b);
+    zones.push({ x0: tr.mode === 'run' ? Math.max(k0, tr.x - TRAM_W / 2 - 20) : k0, x1: k1, y0: GY - TRAM_H, y1: GY, ground: true });
     if (tr.mode === 'wait') { if (near && tr.t >= WAIT) { tr.mode = 'warn'; tr.t = 0; } continue; }
     if (tr.mode === 'warn') {
       if (tr.t % 20 === 1 && near) playSound('ding', 0.6, 8);
