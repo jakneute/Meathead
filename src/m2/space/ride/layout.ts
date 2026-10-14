@@ -46,13 +46,13 @@ export const FRONT_AT = R + 15720;
 /** The station's roof (they go up through it). */
 export const STATION_ROOF = GY - 330;
 
-/** How fast it goes, by where (px a frame): left alone, on a bit (right), held back (left). */
-export const speedAt = (x: number, right: boolean, left: boolean) => {
-  if (x < R + 600) return right ? 3.4 : 2.6;
-  if (x < LIFT_X0) return right ? 5.6 : left ? 3.2 : 4.3;
+/** How fast it goes, by where (px a frame). The ride sets the pace: he can't hurry it or hold it back. */
+export const speedAt = (x: number) => {
+  if (x < R + 600) return 2.6;
+  if (x < LIFT_X0) return 4.3;
   if (x < LIFT_X1) return 2.6;
-  if (x < BREAKER_X) return right ? 9.6 : left ? 5.4 : 7.6;
-  return right ? 8.4 : left ? 4.8 : 6.6;
+  if (x < BREAKER_X) return 7.6;
+  return 6.6;
 };
 
 // ---------------------------------------------------------------------------------------------------------------

@@ -40,9 +40,8 @@ const COMET = { dmg: 45, freeze: 320 };
 /** The lightning: a strike this often, this hard, for this long (three seconds: about 180 in all, a shooter's dead, a
  * bouncer's still standing). */
 const BOLT = { every: 14, dmg: 15, maxFrames: 186 };
-/** What each costs in mana: the storm's meteor and comet a point each, its lightning two more (when there's anybody for
- *  it); bulking up a lot more. */
-const MANA = { meteor: 3, comet: 3, lightning: 5 };
+/** What each costs in mana: a storm 9 to 13, a roll each time (11 on average); bulking up a lot more. */
+const MANA = { storm: [9, 13] as const };
 const BULK = { mana: 24, frames: 720, cooldown: 480, speed: 1.6, size: 1.3, knock: 2.2 };
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
@@ -130,7 +129,7 @@ const hurt = (ctx: FrameContext, e: Enemy, dmg: number, how: 'charred' | 'fried'
 const fire = (ctx: FrameContext) => {
   const { state, cheats } = ctx;
   const pl = state.player;
-  if (!cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK = Math.max(0, pl.weaponAmmo.SPELLBOOK - (MANA.meteor + MANA.comet + MANA.lightning));
+  if (!cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK = Math.max(0, pl.weaponAmmo.SPELLBOOK - (MANA.storm[0] + Math.floor(Math.random() * (MANA.storm[1] - MANA.storm[0] + 1))));
   pl.shootCooldown = CAST_COOLDOWN + WINDUP;
   winding = WINDUP; casting = WINDUP + CAST_POSE;
   playSound('spell', 0.5, -6);

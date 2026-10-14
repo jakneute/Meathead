@@ -41,11 +41,11 @@ export const ARTIE_TAUNT: Record<Dressed, string[]> = {
     'THIS IS NOT WHAT I WANTED TO LOOK AT ON MY BREAK!',
   ],
 };
-/** ...when he rams him. */
-export const ARTIE_BUMP: Record<Dressed, string[]> = {
-  clean: ['BUMPER CARTS!', "THAT'S FOR THE BOAT!", 'HOW DO YOU LIKE THAT, BIG BOY?!'],
-  shitty: ['BUMPER CARTS! OH GOD, IT SPLASHED!', "THAT'S FOR THE BOAT, SHIT-FOR-PANTS!", 'HOW DO YOU LIKE THAT, STINKY?!'],
-  nude: ['BUMPER CARTS! WHY DID IT ALL JIGGLE?!', "THAT'S FOR THE BOAT! AND FOR MY EYES!", 'HOW DO YOU LIKE THAT, NAKED BOY?!'],
+/** ...riding his tail (his cart can't ram: the ride sets the pace), chewing him out. */
+export const ARTIE_CHIDE: Record<Dressed, string[]> = {
+  clean: ['KEEP YOUR HANDS INSIDE THE CART!', 'NO STANDING ON THE RIDE, DUMBASS!', "I'M WRITING YOU UP! I'VE GOT A PEN IN HERE!", 'THIS IS A FAMILY RIDE! ACT LIKE IT!', "YOU'RE BANNED! FROM THIS RIDE AND ALL RIDES!"],
+  shitty: ['KEEP YOUR HANDS INSIDE THE CART! AND WHATEVER THAT IS!', "THAT CART'S GETTING BURNED! YOU'RE PAYING FOR IT!", "I CAN SMELL YOU FROM HERE! THAT'S A WRITE-UP!", 'THIS IS A FAMILY RIDE! FAMILIES SIT IN THOSE SEATS!', "YOU'RE BANNED! AND HOSED DOWN! THEN BANNED!"],
+  nude: ['KEEP YOUR HANDS INSIDE THE CART! AND EVERYTHING ELSE!', "NO NAKED ON THE RIDE! IT'S ON THE SIGN!", "I'M WRITING YOU UP! I DON'T EVEN KNOW WHAT TO CALL THIS!", 'THIS IS A FAMILY RIDE! COVER UP YOUR FAMILY JEWELS!', "YOU'RE BANNED! PUT SOMETHING ON AND GET BANNED!"],
 };
 /** ...when he's shot at. */
 export const ARTIE_SHOT: Record<Dressed, string[]> = {
@@ -75,8 +75,6 @@ export const ARTIE_RAMP: Record<Dressed, string[]> = {
 /** What he says when these hurt him, and the death screen when they kill him. */
 export const HURT_BEAM = ['MY FACE!', 'WHO HANGS A BEAM THERE?!', 'WHY IS THERE ALWAYS A BEAM?!'];
 export const DEATH_BEAM = ['MIND YOUR HEAD', 'HEADBANGER'];
-export const HURT_ARTIE = ['QUIT RAMMING ME!', 'LEARN TO DRIVE, ARTIE!', 'WHO GAVE YOU A LICENSE?!', 'MY SPINE! YOU BUCK-TOOTHED BASTARD!'];
-export const DEATH_ARTIE = ['REAR-ENDED BY A TOUR GUIDE', 'BUMPER CARTED'];
 export const HURT_PIT = ['NO TRACK! NO TRACK!'];
 export const DEATH_PIT = ['OFF THE RAILS', 'THE UNFRIENDLY ROUTE'];
 export const HURT_CART_DART = ['IN MY FACE THIS TIME!', 'IT SAYS POISON! IS IT POISON?!', 'RIGHT IN THE NECK!'];
@@ -93,8 +91,8 @@ const all = (r: Record<Dressed, string[]>) => [...r.clean, ...r.shitty, ...r.nud
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...MEATHEAD_UNFRIENDLY, ...MEATHEAD_ARTIE_AGAIN, ...MEATHEAD_SEES_DARTS, ...MEATHEAD_SEES_SNAKE, ...MEATHEAD_SEES_LOB, ...MEATHEAD_SEES_CHASE,
-    ...HURT_BEAM, ...HURT_ARTIE, ...HURT_PIT, ...HURT_CART_DART, ...HURT_CART_SNAKE, ...HURT_CART_BOULDER, ...HURT_CART_CHASE,
+    ...HURT_BEAM, ...HURT_PIT, ...HURT_CART_DART, ...HURT_CART_SNAKE, ...HURT_CART_BOULDER, ...HURT_CART_CHASE,
   ],
-  death: [...DEATH_BEAM, ...DEATH_ARTIE, ...DEATH_PIT, ...DEATH_CART_DART, ...DEATH_CART_SNAKE, ...DEATH_CART_BOULDER, ...DEATH_CART_CHASE],
-  'm2.safari': [...all(ARTIE_CHASE_START), ...all(ARTIE_TAUNT), ...all(ARTIE_BUMP), ...all(ARTIE_SHOT), ...all(ARTIE_TRAPPED), ...all(ARTIE_GLOATS), ...all(ARTIE_RAMP)],
+  death: [...DEATH_BEAM, ...DEATH_PIT, ...DEATH_CART_DART, ...DEATH_CART_SNAKE, ...DEATH_CART_BOULDER, ...DEATH_CART_CHASE],
+  'm2.safari': [...all(ARTIE_CHASE_START), ...all(ARTIE_TAUNT), ...all(ARTIE_CHIDE), ...all(ARTIE_SHOT), ...all(ARTIE_TRAPPED), ...all(ARTIE_GLOATS), ...all(ARTIE_RAMP)],
 };

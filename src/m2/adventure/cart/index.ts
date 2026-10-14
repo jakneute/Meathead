@@ -1,11 +1,11 @@
 // THE MINE CART (Donkey Kong Country style). He's put in a cart at the loading station (the temple hands him over:
 // `cartBoarded`), and off it goes down the actual dangerous track: gaps to jump (jump: the cart and him with it),
-// low beams to duck under (down), and he can nudge it on a bit or hold it back a bit (right / left). It rolls out of the
+// low beams to duck under (down); it goes at its own pace (he can't hurry it or hold it back). It rolls out of the
 // station slowly, past a guest scanner that reads him as UNFRIENDLY and throws the switch at the fork (FRIENDLY GUESTS
 // straight on, UNFRIENDLY GUESTS up the hill: there to be seen), then gets going up the hill. Then the ride's own
 // tricks, from the guests' side and set to real (tricks.ts: the idols' darts, the Serpent of Doom, the rolling boulder
 // over the set, and the big one out of its doors behind him), taught one at a time. Halfway, Safari Artie comes up
-// behind him in a cart of his own (the first time: `chase`): too slow and he rams him; and from there the tricks come
+// behind him in a cart of his own (the first time: `chase`): right on his tail, chewing him out; and from there the tricks come
 // all mixed up, and get Artie too. Shooting him back slows him. At the end (a cutscene: THE END OF THE LINE) the track curves up and goes straight up, and the two of
 // them fly off the top of it, on up through the temple's roof.
 //
@@ -35,9 +35,9 @@ import { registerHurtLines } from '../../kinds';
 import { drawRideCart, SEAT_DX, JAGUAR_EXPRESS, TOUR_CART, type CartLook } from '../rideCart';
 import { drawSafariArtie } from '../river/artie';
 import {
-  type Dressed, MEATHEAD_UNFRIENDLY, MEATHEAD_ARTIE_AGAIN, ARTIE_CHASE_START, ARTIE_TAUNT, ARTIE_BUMP, ARTIE_SHOT, ARTIE_RAMP,
+  type Dressed, MEATHEAD_UNFRIENDLY, MEATHEAD_ARTIE_AGAIN, ARTIE_CHASE_START, ARTIE_TAUNT, ARTIE_CHIDE, ARTIE_SHOT, ARTIE_RAMP,
   ARTIE_TRAPPED, ARTIE_GLOATS, MEATHEAD_SEES_DARTS, MEATHEAD_SEES_SNAKE, MEATHEAD_SEES_LOB, MEATHEAD_SEES_CHASE,
-  HURT_BEAM, DEATH_BEAM, HURT_ARTIE, DEATH_ARTIE, HURT_PIT, DEATH_PIT,
+  HURT_BEAM, DEATH_BEAM, HURT_PIT, DEATH_PIT,
 } from './lines';
 import { type Tricks, type Rider, newTricks, runTricks } from './tricks';
 import { drawTrickFront } from './trickArt';
@@ -45,7 +45,6 @@ import { eyeOf } from '../temple/art';
 
 
 registerHurtLines('cart_beam', HURT_BEAM, DEATH_BEAM);
-registerHurtLines('cart_artie', HURT_ARTIE, DEATH_ARTIE);
 registerHurtLines('cart_pit', HURT_PIT, DEATH_PIT);
 
 const pick = pickLine;
@@ -89,7 +88,7 @@ export interface Cart {
   /** Safari Artie, after him in a cart (first time through). */
   chase: boolean;
   artie: {
-    on: boolean; x: number; v: number; said: Said | null; next: number; bumpT: number; shotSaid: number; end: Flier | null;
+    on: boolean; x: number; v: number; said: Said | null; next: number; bumpT: number; chideAt: number; shotSaid: number; end: Flier | null;
     /** (one of the ride's tricks has just had him: not again for a moment) */
     trapT: number;
   };
@@ -100,7 +99,7 @@ const getCart = (state: GameState) => sectionState<Cart>(state, 'cart', () => ({
   mode: 'off', x: X + 150, y: GY, railY: GY, vy: 0, speed: 0, air: false, beamsHit: new Set(), jumpWas: false,
   t: 0, lead: 150, scanned: false, scanT: 0, outT: 0, me: null, fade: 0,
   chase: firstVisit(state),
-  artie: { on: false, x: 0, v: 0, said: null, next: 0, bumpT: 0, shotSaid: 0, end: null, trapT: 0 },
+  artie: { on: false, x: 0, v: 0, said: null, next: 0, bumpT: 0, chideAt: 0, shotSaid: 0, end: null, trapT: 0 },
   tricks: newTricks(),
 }));
 
@@ -140,10 +139,9 @@ const place = (state: GameState, cart: Cart) => {
 const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   cart.t++;
-  // Speed: out of the station slowly (the scanner, the fork); then up to speed, up the hill. On a bit (right), held
-  // back a bit (left)
+  // Speed: out of the station slowly (the scanner, the fork); then up to speed, up the hill. The ride sets the pace
   const slow = cart.x < SLOW_TO;
-  const want = slow ? (controls.right ? 4.2 : 3.2) : controls.right ? 9.2 : controls.left ? 5 : 7;
+  const want = slow ? 3.2 : 7;
   const cap = Math.min(cart.t / 6, slow ? want : 3.2 + (cart.x - SLOW_TO) * 0.01);
   cart.speed += (Math.min(want, cap) - cart.speed) * 0.06;
   cart.x += cart.speed;
@@ -217,6 +215,8 @@ const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
   return { ...controls, left: false, right: false, jump: false, charge: false, special: false, secondary: controls.secondary };
 };
 
+/** How far behind him Artie rides once he's caught up. */
+const TAIL = 170;
 const artieChase = (ctx: FrameContext, cart: Cart) => {
   const { state } = ctx, a = cart.artie;
   if (!a.on) {
@@ -229,18 +229,15 @@ const artieChase = (ctx: FrameContext, cart: Cart) => {
   }
   if (cart.mode !== 'ride') { a.x += a.v; return; }
   const dist = cart.x - a.x;
-  // (a shade quicker than the cart left alone: keep it going, or he's on him; well back, he closes right up)
-  const target = dist > 320 ? cart.speed + 3 : 7.9;
+  // (well back, he closes right up; then he sits on his tail, the same pace: the ride sets it, his cart too, so he can't
+  // ram him. He just chews him out)
+  const target = dist > TAIL + 40 ? cart.speed + 3 : cart.speed + (dist - TAIL) * 0.05;
   a.v += (target - a.v) * (a.bumpT > 0 ? 0.01 : 0.05);
   if (a.bumpT > 0) a.bumpT--;
-  a.x += a.v;
-  // Rammed
-  if (cart.x - a.x < 78) {
-    a.x = cart.x - 78; a.v = 2.5; a.bumpT = 50;
-    playSound('crash', 0.8); playSound('clang', 1, -4); shakeScreen(state, 12, 6);
-    cart.speed += 2.5;
-    if (state.player.invincibilityTimer <= 0) hurtPlayer(ctx, 12, 'cart_artie');
-    if (Math.random() < 0.6) artieSays(cart, pick(ARTIE_BUMP[dressed(state)]));
+  a.x = Math.min(a.x + a.v, cart.x - 110);
+  if (dist < TAIL + 60 && state.frame - a.chideAt > 420) {
+    a.chideAt = state.frame;
+    artieSays(cart, pickLine(ARTIE_CHIDE[dressed(state)]));
   }
   // Shot at: it slows him down (and he's got something to say about it, now and then)
   const ay = artieTrackY(a.x);

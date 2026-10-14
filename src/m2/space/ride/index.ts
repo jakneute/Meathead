@@ -110,7 +110,7 @@ const riding = (ctx: FrameContext, s: Sled, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   s.t++;
   const reveal = s.mode === 'reveal';
-  const want = reveal ? 1.3 : speedAt(s.x, !!controls.right, !!controls.left);
+  const want = reveal ? 1.3 : speedAt(s.x);
   s.speed += (Math.min(want, s.t / 6) - s.speed) * (reveal ? 0.08 : 0.06);
   s.x += s.speed;
   // The PA's stories, as it gets to each

@@ -32,7 +32,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   },
   SPELLBOOK: {
     name: 'SPELLBOOK OF THE DAMNED', from: 'FANTASY LAND',
-    controls: [{ pad: ['X'], mouse: 'left', label: 'ELEMENTAL STORM (2-4 MANA)' }, { pad: ['Y'], kb: ['F'], label: 'BULK UP (10 MANA)' }],
+    controls: [{ pad: ['X'], mouse: 'left', label: 'ELEMENTAL STORM (9-13 MANA)' }, { pad: ['Y'], kb: ['F'], label: 'BULK UP (24 MANA)' }],
     description: "Some wizard's diary, now with murder. Fire drops a meteor, a comet and a lightning bolt on up to three assholes. BULK UP makes you huge and punts whoever you touch into orbit. Runs on mana. Ammo refills it. Don't ask.",
   },
   STUNT_CAR: {
