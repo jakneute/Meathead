@@ -1,39 +1,61 @@
-// What's in the garage: kept for this session only (in memory: a refresh or a new session starts it empty, while how
-// souvenirs work might still change; nothing's written to the browser). A boss's souvenirs
-// come one per difficulty cleared: the first clear of him (on any difficulty) takes one of his three home at random,
-// and clearing him on each difficulty not cleared before takes one of the ones that are left. Clearing him again on a
-// difficulty already done brings nothing new.
+// What's in the garage: the souvenirs he's taken home and which difficulties each boss has been cleared on. Held here
+// for the run that's going; the save file it belongs to (game/save/files.ts) is loaded into it and saved from it, and
+// a new game empties it. A boss's souvenirs come one per difficulty cleared: the first clear of him (on any
+// difficulty) takes one of his three home at random, and clearing him on each difficulty not cleared before takes one
+// of the ones that are left. Clearing him again on a difficulty already done brings nothing new.
 
 import { SOUVENIRS, Souvenir } from '../../content/garage';
 
 /** The difficulties a stage can be cleared on (hard and very hard are coming: normal's all there is so far). */
 export type Difficulty = 'normal' | 'hard' | 'veryhard';
+const DIFFICULTIES: Difficulty[] = ['normal', 'hard', 'veryhard'];
 
-const KEY = 'meathead-garage';
-const CLEARS_KEY = 'meathead-clears';
+/** The garage as a save file keeps it. */
+export interface GarageState {
+  /** The souvenirs he's got (their ids), in the order he took them home. */
+  souvenirs: string[];
+  /** Which difficulties each boss has been cleared on. */
+  clears: Record<string, Difficulty[]>;
+}
 
-// (this session's, in memory; and anything an earlier build left saved in the browser is cleared out, once)
-const memory = new Map<string, unknown>();
-try { if (typeof localStorage !== 'undefined') { localStorage.removeItem(KEY); localStorage.removeItem(CLEARS_KEY); } } catch { /* no storage */ }
-const read = <T,>(key: string, fallback: T): T => (memory.has(key) ? memory.get(key) as T : fallback);
-const write = (key: string, value: unknown) => { memory.set(key, value); };
+let owned: string[] = [];
+let cleared: Record<string, Difficulty[]> = {};
+
+/** Anything read back in (a save file), kept to what makes sense: souvenirs that exist, difficulties that do. */
+const clean = (s: unknown): GarageState => {
+  const o = (s && typeof s === 'object' ? s : {}) as Record<string, unknown>;
+  const souvenirs = Array.isArray(o.souvenirs) ? o.souvenirs.filter((id, i, all): id is string => typeof id === 'string' && SOUVENIRS.some(v => v.id === id) && all.indexOf(id) === i) : [];
+  const clears: Record<string, Difficulty[]> = {};
+  if (o.clears && typeof o.clears === 'object') {
+    for (const [boss, ds] of Object.entries(o.clears as Record<string, unknown>)) {
+      if (Array.isArray(ds)) clears[boss] = DIFFICULTIES.filter(d => ds.includes(d));
+    }
+  }
+  return { souvenirs, clears };
+};
+
+/** What's in it now (a copy). */
+export const garageState = (): GarageState => ({ souvenirs: [...owned], clears: Object.fromEntries(Object.entries(cleared).map(([k, v]) => [k, [...v]])) });
+/** A save file's garage (or, with nothing, an empty one: a new game). */
+export const setGarageState = (s?: unknown) => { const c = clean(s); owned = c.souvenirs; cleared = c.clears; };
+/** Cleans up a garage read back from a save file. */
+export const cleanGarageState = clean;
 
 /** The souvenirs he's got (their ids). */
-export const ownedSouvenirs = (): string[] => {
-  const ids = read<unknown>(KEY, []);
-  return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string' && SOUVENIRS.some(s => s.id === id)) : [];
-};
+export const ownedSouvenirs = (): string[] => [...owned];
 
 /** The souvenir of this boss's he took home most recently (its id), if he's got any. */
 export const lastSouvenirOf = (boss: string): string | null => {
-  const mine = ownedSouvenirs().filter(id => SOUVENIRS.find(s => s.id === id)?.boss === boss);
+  const mine = owned.filter(id => SOUVENIRS.find(s => s.id === id)?.boss === boss);
   return mine.length ? mine[mine.length - 1] : null;
 };
 
-/** Which difficulties each boss has been cleared on. */
-const clears = (): Record<string, Difficulty[]> => {
-  const c = read<unknown>(CLEARS_KEY, {});
-  return c && typeof c === 'object' ? c as Record<string, Difficulty[]> : {};
+/** Marks a boss cleared on a difficulty; true if it's the first time on that one. */
+const markCleared = (boss: string, difficulty: Difficulty) => {
+  const done = cleared[boss] ?? [];
+  if (done.includes(difficulty)) return false;
+  cleared = { ...cleared, [boss]: [...done, difficulty] };
+  return true;
 };
 
 /**
@@ -41,25 +63,22 @@ const clears = (): Record<string, Difficulty[]> => {
  * yet goes home (null if it's a difficulty he's already been cleared on, or there's none of his left).
  */
 export const takeSouvenir = (boss: string, difficulty: Difficulty = 'normal'): Souvenir | null => {
-  const all = clears();
-  const done = Array.isArray(all[boss]) ? all[boss] : [];
-  if (done.includes(difficulty)) return null;
-  write(CLEARS_KEY, { ...all, [boss]: [...done, difficulty] });
-  const owned = ownedSouvenirs();
+  if (!markCleared(boss, difficulty)) return null;
   const left = SOUVENIRS.filter(s => s.boss === boss && !owned.includes(s.id));
   if (!left.length) return null;
   const got = left[Math.floor(Math.random() * left.length)];
-  write(KEY, [...owned, got.id]);
+  owned = [...owned, got.id];
   return got;
 };
 
 /**
  * For the time being: a boss down takes all three of his souvenirs home at once (the ones he hasn't got), whatever the
- * difficulty. (The one-per-difficulty way above is how it'll go once hard and very hard are in.)
+ * difficulty (and the clear's put down, on normal, the only one there is so far). (The one-per-difficulty way above is
+ * how it'll go once hard and very hard are in.)
  */
-export const takeAllSouvenirs = (boss: string): Souvenir[] => {
-  const owned = ownedSouvenirs();
+export const takeAllSouvenirs = (boss: string, difficulty: Difficulty = 'normal'): Souvenir[] => {
+  markCleared(boss, difficulty);
   const got = SOUVENIRS.filter(s => s.boss === boss && !owned.includes(s.id));
-  if (got.length) write(KEY, [...owned, ...got.map(s => s.id)]);
+  if (got.length) owned = [...owned, ...got.map(s => s.id)];
   return got;
 };

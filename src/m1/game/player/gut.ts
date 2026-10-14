@@ -35,9 +35,11 @@ export const GUT_GRUMBLE = 7.5 * 60, GUT_ACCIDENT = 15 * 60;
 /** ...and between them, still down there: his warning to himself (he'd better get up). */
 const GUT_WARN = GUT_GRUMBLE + 3 * 60;
 
-/** Has he ever shit himself, for real (not the cheat), this session? (The D.C. file notices if he hasn't.) */
+/** Has he ever shit himself, for real (not the cheat), on this save file? (The D.C. file notices if he hasn't.) */
 let everShat = false;
 export const hasEverShat = () => everShat;
+/** A save file's say on it (loaded), or a new game's (no). */
+export const setEverShat = (v: boolean) => { everShat = v; };
 
 /** Has he shit himself (this attempt)? (Naked after doing it again, he still has: it's still all over him.) */
 export const isShat = (state: GameState) => { const g = state.player.gut; return !!g && (g.stage === 2 || (g.stage === 3 && !g.washed)); };

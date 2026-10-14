@@ -1,9 +1,10 @@
-// The options screen's settings: the volumes, the video, the keyboard's keys. Remembered (one key in localStorage),
-// put into effect the moment they change and when the game starts (loadSettings, from Meathead 1's App; Meathead 2
+// The options screen's settings: the volumes, the video, the keyboard's keys. Remembered (one blob, through save/storage:
+// localStorage in the browser; global, not per save file), put into effect the moment they change and when the game starts (loadSettings, from Meathead 1's App; Meathead 2
 // doesn't call it, and everything here defaults to how the game always was).
 
 import { setMixLevel } from './platform/mixer';
 import { DEFAULT_KEYS, sanitizeKeys, setKeyBindings, type KeyBindings } from './platform/keys';
+import { storage, readJson, writeJson } from './save/storage';
 
 export type Scaling = 'sharp' | 'stretch';
 export type ShakeLevel = 'heavy' | 'mild' | 'none';
@@ -65,7 +66,7 @@ const apply = () => {
   setKeyBindings(current.keys);
 };
 
-const save = () => { try { localStorage.setItem(STORE, JSON.stringify(current)); } catch { /* not remembered, then */ } };
+const save = () => { writeJson(STORE, current); };
 
 export const updateSettings = (patch: Partial<Settings>) => {
   current = { ...current, ...patch };
@@ -77,7 +78,8 @@ export const updateSettings = (patch: Partial<Settings>) => {
 /** Reads what's remembered and puts it into effect (once, as the game starts). */
 export const loadSettings = () => {
   let raw: Record<string, unknown> | null = null;
-  try { const s = localStorage.getItem(STORE); if (s) raw = JSON.parse(s); } catch { raw = null; }
+  const r = readJson(STORE);
+  if (r && typeof r === 'object') raw = r as Record<string, unknown>;
   if (raw && typeof raw === 'object') {
     current = {
       master: vol(raw.master, 100), music: vol(raw.music, 100), sfx: vol(raw.sfx, 100), voice: vol(raw.voice, 100),
@@ -89,8 +91,7 @@ export const loadSettings = () => {
     };
   } else {
     // (the music was switched off on the title screen, before there were options: it stays off)
-    let musicOff = false;
-    try { musicOff = localStorage.getItem(OLD_MUSIC) === 'off'; } catch { /* no storage */ }
+    const musicOff = storage().read(OLD_MUSIC) === 'off';
     current = { ...DEFAULT_SETTINGS, music: musicOff ? 0 : 100 };
   }
   apply();

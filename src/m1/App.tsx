@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useRef, useSyncExternalStore } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useSyncExternalStore } from 'react';
 import { hasRightStick } from './game/platform/device';
 import CheckpointPicker, { StartAt } from './components/CheckpointPicker';
 import Garage from './components/Garage';
-import { GARAGE_INDEX, WHITE_HOUSE_INDEX, TITLE_OPTIONS } from './components/Overlay';
+import { GARAGE_INDEX, WHITE_HOUSE_INDEX, titleOptions } from './components/Overlay';
 import OptionsScreen from './components/OptionsScreen';
+import FileSelect from './components/FileSelect';
+import { anyFile, latestSlot, readFile, deleteFile, playOnFile, saveProgress, closeFile, subscribeFiles, filesVersion, type Slot } from './game/save/files';
+import { setEverShat, hasEverShat } from './game/player/gut';
 import { loadSettings, getSettings, subscribeSettings } from './game/settings';
 import { keysFor } from './game/platform/keys';
-import { takeAllSouvenirs } from './game/garage/store';
+import { takeAllSouvenirs, garageState, setGarageState } from './game/garage/store';
 import type { Souvenir } from './content/garage';
 import HUD from './components/HUD';
 import Overlay, { CheatFlags } from './components/Overlay';
@@ -59,6 +62,13 @@ const UNPAUSABLE_SCREENS = [GameStatus.BOSS_TRANSITION, GameStatus.BOSS_INTRO, G
 
 /** The ending plays once this set of bosses is beaten (later sets will move it). */
 const ENDING_AFTER_RANK = 1;
+
+/** The guns earned on the set he's on with these dead (and any others a save file says he's got): never the cheat's. */
+const earnedWeapons = (rank: number, defeated: string[], extra: WeaponType[] = []): WeaponType[] => {
+  const fromBosses = defeated.map(s => BOSS_WEAPON_MAP[s]).filter(Boolean);
+  const base: WeaponType[] = rank === 0 ? ['GUN'] : WEAPONS_AFTER_SET_0;
+  return sortWeapons(Array.from(new Set([...base, ...fromBosses, ...extra.filter(w => w !== 'LMG')])));
+};
 
 /**
  * Stage select is a 2x2 grid with the garage under it: horizontal flips the column, vertical goes down the rows and on
@@ -147,6 +157,16 @@ const App: React.FC = () => {
   const [callOutro, setCallOutro] = useState(false);
   /** The options screen is up (from the title, or the pause menu: the game stays paused under it). */
   const [optionsOpen, setOptionsOpen] = useState(false);
+  /** NEW GAME's file select is up (over the title), and whether the game it starts has the intro. */
+  const [fileSelect, setFileSelect] = useState<{ intro: boolean } | null>(null);
+  /** He's killed the alien on this file (THE END seen). */
+  const [gameBeaten, setGameBeaten] = useState(false);
+  /** A save asked for (at a safe point): it's written once the state it's of is in (the effect below). */
+  const [saveAsked, setSaveAsked] = useState(0);
+  const requestSave = () => setSaveAsked(n => n + 1);
+  /** The title's menu: CONTINUE there while there's a file to continue. */
+  const filesV = useSyncExternalStore(subscribeFiles, filesVersion, filesVersion);
+  const options = useMemo(() => titleOptions(anyFile()), [filesV]);
   /**
    * The opening (START GAME + INTRO): its first half playing over the title ('opening'), then the gym, then its second
    * half ('playing') over the title again, fading off the stage select ('outro').
@@ -260,7 +280,7 @@ const App: React.FC = () => {
   // and closing (BACK): the pause menu, the are-you-sure, the dossier, the archive, a target unlocked, the garage, the
   // checkpoint picker. (Locking in and ENGAGE have their own.)
   const inMenu = status === GameStatus.START || status === GameStatus.STAGE_SELECT || status === GameStatus.PAUSED;
-  useCursorSound(selectedIndex, inMenu && intro === 'off' && !inGarage && !pickFor, `${status}|${showArchive}|${inGarage}`);
+  useCursorSound(selectedIndex, inMenu && intro === 'off' && !inGarage && !pickFor && !fileSelect, `${status}|${showArchive}|${inGarage}`);
   useCursorSound(confirmYes, confirmLeave, confirmLeave);
   useCursorSound(wheelAt, wheelAt !== null);
   useOpenCloseSound(status === GameStatus.PAUSED, status === GameStatus.PAUSED || status === GameStatus.PLAYING);
@@ -269,6 +289,28 @@ const App: React.FC = () => {
   useOpenCloseSound(optionsOpen);
   // (it only belongs to the screen it was opened on)
   useEffect(() => { if (status !== GameStatus.START && status !== GameStatus.PAUSED) setOptionsOpen(false); }, [status]);
+  useEffect(() => { if (status !== GameStatus.START) setFileSelect(null); }, [status]);
+  // (the title's menu changed under the cursor, CONTINUE come or gone: it stays on the same option)
+  const optionsWere = useRef(options);
+  useEffect(() => {
+    const was = optionsWere.current[selectedIndex]?.label;
+    optionsWere.current = options;
+    if (status !== GameStatus.START) return;
+    const i = options.findIndex(o => o.label === was);
+    setSelectedIndex(i >= 0 ? i : 0);
+  }, [options]);
+
+  // --- Save files --------------------------------------------------------------
+  // Saved at the safe points only: a boss down (handleBossDefeated), onto the map (from the title, a stage, the call),
+  // into the garage and back out. Never in the middle of a stage. (Nothing's written with no file in use: NO SAVE.)
+  useEffect(() => {
+    if (!saveAsked) return;
+    saveProgress({
+      rank: progressionRank, defeated: defeatedStages, killRecords, shatKills,
+      weapons: earnedWeapons(progressionRank, defeatedStages), garage: garageState(), everShat: hasEverShat(), beaten: gameBeaten,
+    });
+  }, [saveAsked]);
+  useEffect(() => { if (status === GameStatus.STAGE_SELECT && !deployingTo) requestSave(); }, [status, inGarage]);
   useOpenCloseSound(showDossier, status === GameStatus.STAGE_SELECT);
   useOpenCloseSound(showArchive, status === GameStatus.STAGE_SELECT);
   useOpenCloseSound(inGarage, status === GameStatus.STAGE_SELECT);
@@ -330,20 +372,65 @@ const App: React.FC = () => {
     }
   };
 
-  /** The "continue" action on the title, boss intro, weapon-gained and final victory screens. On the title, `withIntro`
-   * says which of its two options (by default, whichever's highlighted). */
-  const handleStart = (withIntro?: boolean) => {
+  /** One of the title's options picked: CONTINUE (the file played last), NEW GAME (the file select), OPTIONS. */
+  const pickTitle = (index: number) => {
+    const o = options[index];
+    if (!o || intro !== 'off' || fileSelect) return;
+    // (OPTIONS: up it comes, no waiting for the way in to unlock)
+    if (o.kind === 'options') { setOptionsOpen(true); return; }
+    if (Date.now() - screenShownAtRef.current < MIN_CONFIRM_DELAY_MS) return;
+    if (o.kind === 'continue') { const slot = latestSlot(); if (slot) loadFile(slot); return; }
+    playMenuOk();
+    setFileSelect({ intro: o.intro });
+  };
+
+  /**
+   * A new game: on a file (anything that was on it gone), or with NO SAVE (null). Everything starts empty (the set
+   * the dev cheat's put it on stays: see handleChangeRank), the garage too.
+   */
+  const startNewGame = (slot: Slot | null) => {
+    const withIntro = !!fileSelect?.intro;
+    if (slot !== null && readFile(slot)) deleteFile(slot);
+    playMenuOk();
+    setFileSelect(null);
+    setGarageState();
+    setEverShat(false);
+    setGameBeaten(false);
+    setKillRecords({}); setShatKills({});
+    playOnFile(slot);
+    setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
+    resetLoadout();
+    // (with the intro, it plays first and brings the stage select up itself at the end)
+    if (withIntro) setIntro('opening');
+    else setStatus(GameStatus.STAGE_SELECT);
+  };
+
+  /** Carrying on with a file: everything it's got put back, and onto the map (or, if it was saved on the fourth of the
+   * first set, the call that comes after, first). */
+  const loadFile = (slot: Slot) => {
+    const f = readFile(slot);
+    if (!f) return;
+    playMenuOk();
+    setFileSelect(null);
+    setGarageState(f.garage);
+    setEverShat(f.everShat);
+    setGameBeaten(f.beaten);
+    setProgressionRank(f.rank);
+    setDefeatedStages(f.defeated);
+    setKillRecords(f.killRecords); setShatKills(f.shatKills);
+    setAvailableWeapons(cheats.allWeapons ? ALL_WEAPONS : earnedWeapons(f.rank, f.defeated, f.weapons));
+    resetLoadout();
+    setSelectedStage(null);
+    setSelectedIndex(0);
+    setIsVictoryPhase(false);
+    playOnFile(slot, f.playTimeMs);
+    setStatus(f.rank === 0 && STAGES_SET_0.every(s => f.defeated.includes(s.id)) ? GameStatus.VICTORY : GameStatus.STAGE_SELECT);
+  };
+
+  /** The "continue" action on the boss intro, weapon-gained and final victory screens. */
+  const handleStart = () => {
     if (Date.now() - screenShownAtRef.current < MIN_CONFIRM_DELAY_MS) return;
     switch (status) {
-      case GameStatus.START:
-        if (intro !== 'off') break;
-        playMenuOk();
-        setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
-        resetLoadout();
-        // (with the intro, it plays first and brings the stage select up itself at the end)
-        if (withIntro ?? !!TITLE_OPTIONS[selectedIndex]?.intro) setIntro('opening');
-        else setStatus(GameStatus.STAGE_SELECT);
-        break;
       case GameStatus.BOSS_INTRO:
         setStatus(GameStatus.PLAYING);
         break;
@@ -382,6 +469,7 @@ const App: React.FC = () => {
       setKillRecords({}); setShatKills({});
       setSelectedIndex(0);
       setIsVictoryPhase(false);
+      closeFile();
       setStatus(GameStatus.START);
     }
   };
@@ -441,8 +529,11 @@ const App: React.FC = () => {
 
   /** After THE END: back to the title screen. */
   const handleEndingDone = () => {
+    // (the file's done with: it was saved, THE END seen, as the alien died; the title's NEW GAME starts from scratch)
+    closeFile();
     setEndingPart('ending');
     setEndingShat(false);
+    setProgressionRank(0);
     setDefeatedStages([]);
     setKillRecords({}); setShatKills({});
     setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
@@ -465,6 +556,8 @@ const App: React.FC = () => {
 
   const handleQuitToMenu = () => {
     pauseSpeech(false); silenceAll(); stopDeathAnnouncer();
+    // (the file keeps what it had at the last safe point: just the time played goes on it)
+    closeFile();
     setSelectedStage(null);
     setSelectedIndex(0);
     setIsVictoryPhase(false);
@@ -611,10 +704,10 @@ const App: React.FC = () => {
   /** Moves the menu cursor. Returns false if the input did nothing on this screen. */
   const moveSelection = (dx: number, dy: number): boolean => {
     if (intro !== 'off') return false;
-    // The title: START GAME (or START GAME + INTRO), then OPTIONS
+    // The title: CONTINUE (if there's a file), NEW GAME (or NEW GAME + INTRO), then OPTIONS
     if (status === GameStatus.START) {
       if (!dy) return false;
-      const n = TITLE_OPTIONS.length;
+      const n = options.length;
       setSelectedIndex(i => (i + (dy > 0 ? 1 : -1) + n) % n);
       return true;
     }
@@ -640,8 +733,7 @@ const App: React.FC = () => {
   const confirmSelection = () => {
     // (nothing while the call's still fading off the stage select)
     if (callOutro || intro !== 'off') return;
-    // (the title's OPTIONS: up it comes, no waiting for the way in to unlock)
-    if (status === GameStatus.START && TITLE_OPTIONS[selectedIndex]?.options) { setOptionsOpen(true); return; }
+    if (status === GameStatus.START) { pickTitle(selectedIndex); return; }
     if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
     else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(confirmYes); else if (!pauseDossier) activatePauseItem(selectedIndex); }
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
@@ -653,11 +745,7 @@ const App: React.FC = () => {
   // --- Cheats ----------------------------------------------------------------
 
   /** Weapons actually earned so far (used when turning the all-weapons cheat off). */
-  const getEarnedWeapons = (): WeaponType[] => {
-    const fromBosses = defeatedStages.map(s => BOSS_WEAPON_MAP[s]).filter(Boolean);
-    const base: WeaponType[] = progressionRank === 0 ? ['GUN'] : WEAPONS_AFTER_SET_0;
-    return sortWeapons(Array.from(new Set([...base, ...fromBosses])));
-  };
+  const getEarnedWeapons = (): WeaponType[] => earnedWeapons(progressionRank, defeatedStages);
 
   const handleToggleCheat = (flag: keyof CheatFlags) => {
     const enabled = !cheatFlags[flag];
@@ -706,6 +794,9 @@ const App: React.FC = () => {
       setEndingShat(!!shat);
       setEndingPart('epilogue');
       setStatus(GameStatus.ENDING);
+      // (THE END's next: the file has it seen, everything else as it was)
+      setGameBeaten(true);
+      requestSave();
       return;
     }
     setKillRecords(prev => ({ ...prev, [stageId]: corpseWeapon ?? null }));
@@ -717,6 +808,8 @@ const App: React.FC = () => {
     if (newWeapon) setAvailableWeapons(prev => prev.includes(newWeapon) ? prev : sortWeapons([...prev, newWeapon]));
     setDefeatedStages(prev => [...prev, stageId]);
     setStatus(GameStatus.BOSS_VICTORY_SPEECH);
+    // (his gun's earned, his souvenirs home: saved)
+    requestSave();
   };
 
   const handlePlayerUpdate = (h: number, p: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType, lockedTo?: WeaponType, cutscene?: boolean) => {
@@ -747,7 +840,7 @@ const App: React.FC = () => {
   // (in the garage, it's the garage's own input: the stage select's is off)
   // (the options screen too: it reads its own input, like the garage)
   const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene };
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen || !!fileSelect, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -931,7 +1024,8 @@ const App: React.FC = () => {
           currentWeapon={currentWeapon}
           weaponAmmo={weaponAmmo}
           onStart={() => handleStart()}
-          onStartGame={(withIntro) => handleStart(withIntro)}
+          titleOptions={options}
+          onTitlePick={pickTitle}
           onOpenOptions={() => setOptionsOpen(true)}
           onResume={handleResume}
           onBossSelect={askBossSelect}
@@ -970,6 +1064,7 @@ const App: React.FC = () => {
         )}
         {status === GameStatus.PLAYING && <TutorialHint lesson={lesson} />}
         {optionsOpen && (status === GameStatus.START || status === GameStatus.PAUSED) && <OptionsScreen onClose={() => setOptionsOpen(false)} />}
+        {fileSelect && status === GameStatus.START && <FileSelect onPick={(slot, how) => (how === 'continue' && slot !== null ? loadFile(slot) : startNewGame(slot))} onClose={() => setFileSelect(null)} />}
         {((status === GameStatus.VICTORY && (progressionRank === 0 || callPreview)) || callOutro) && (
           <RadioCutscene onHandoff={() => { setCallOutro(true); finishVictory(); }} onDone={() => setCallOutro(false)} />
         )}
