@@ -33,7 +33,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { guestAt, type Guest } from '../../adventure/queue/crowd';
-import { GY, NX0, NX1, LOBBY0, LIFT_X, LOBBY1, CAR0, CAR1, CAR_X, D0, D1, DECK_LIFT, RING_R, RING_C, DECK_HORIZON, DECK_ROW, CASE_X, SLOT, SLOTS, slotX, SPEAKER_Y } from './layout';
+import { GY, NX0, NX1, LOBBY0, LIFT_X, LOBBY1, CAR0, CAR1, CAR_X, D0, D1, DECK_LIFT, RING_R, RING_C, DECK_HORIZON, DECK_ROW, CASE_X, SLOT, SLOTS, slotX, SPEAKER_Y, WIN_TOP } from './layout';
 import { drawLobby, drawCar, drawDeck, drawSuitCase, drawEndGlass, drawLiftDoors } from './art';
 import { drawDeckView, drawAscent, prewarmSky, c01, hash } from './sky';
 import { DECOMP, VACUUM, setOutGuests, drawPuppet, drawDecompCam, drawFloat } from './death';
@@ -63,6 +63,8 @@ interface Needle {
   pa: Said | null;
   warned: boolean; upWas: boolean; deckIntro: boolean;
   smashT: number; crack: number; hitY: number;
+  /** Shot at, the window: the damage it's taken (WINDOW_HP and it goes). */
+  shot: number;
   glass: 'whole' | 'gone' | 'sealed';
   ride: { a: number; speed: number; climbed: number; topped: boolean };
   linesDone: boolean;
@@ -86,7 +88,7 @@ const make = (state: GameState): Needle => {
     phase: 'free', t: 0, tok: 0, pax, drift: 0,
     nextBored: 0, nextPa: 0, nextChat: 0, nextReact: 0, nextCase: 0,
     pa: null, warned: false, upWas: false, deckIntro: !!state.stageMemo[RODE_MEMO],
-    smashT: 0, crack: 0, hitY: GY - 40, glass: sealed ? 'sealed' : 'whole',
+    smashT: 0, crack: 0, shot: 0, hitY: GY - 40, glass: sealed ? 'sealed' : 'whole',
     ride: { a: 0, speed: 0, climbed: 0, topped: false }, linesDone: false, fadeTo: 'up', doors: null, fadeIn: 0,
     survive: false, mh: { x: 0, y: 0, rot: 0, vx: 0, cling: true, t: 0 },
   };
@@ -201,15 +203,17 @@ const suitScene = (state: GameState, ns: Needle) => {
   if (t >= 36) { ns.phase = 'free'; p.inCutscene = false; }
 };
 
-const startCrack = (state: GameState, ns: Needle) => {
+/** How much shooting the big window takes before it goes (a dozen or so ray gun shots). */
+const WINDOW_HP = 300;
+const startCrack = (state: GameState, ns: Needle, shot = false) => {
   const p = state.player;
-  ns.phase = 'crack'; ns.t = 0; ns.crack = 0; ns.hitY = p.pos.y + p.height * 0.35;
+  ns.phase = 'crack'; ns.t = 0; ns.crack = shot ? ns.crack : 0; if (!shot) ns.hitY = p.pos.y + p.height * 0.35;
   p.inCutscene = true;
   for (const x of ns.pax) { x.facing = 1; x.wait = 999; x.to = x.x; }
 };
 const crackScene = (ctx: FrameContext, ns: Needle) => {
   const { state } = ctx, t = ++ns.t;
-  ns.crack = c01(t / 26);
+  ns.crack = Math.max(ns.crack, c01(t / 26));
   if (t === 1) { playSound('crack', 1); shakeScreen(state, 6, 3); }
   if (t === 14) playSound('crack', 0.8, 4);
   if (t >= 34) startBlow(ctx, ns);
@@ -352,6 +356,17 @@ const free = (ctx: FrameContext, ns: Needle, controls: Controls): Controls => {
     if (up) { if (wearingHelmet(state)) { startFade(state, ns, 'orbit'); return hands(); } meatheadSays(state, pickLine(L.MH_AIRLOCK_NO), false); }
   }
   if (ns.glass === 'whole') {
+    // (shot at: each one chips it, the cracks spreading out from where they hit; enough of them and it goes, the same as a
+    // charge into it)
+    for (const q of state.projectiles) {
+      if (q.owner !== 'player' || q.health <= 0 || q.vel.x <= 0) continue;
+      if (q.pos.x + q.width + q.vel.x < D1 - 2 || q.pos.x > D1 + 20 || q.pos.y + q.height < WIN_TOP - 12 || q.pos.y > GY) continue;
+      q.health = 0;
+      ns.shot += q.damage || 25; ns.hitY = q.pos.y + q.height / 2; ns.crack = Math.min(0.45, (ns.shot / WINDOW_HP) * 0.45);
+      playSound('clink', 0.8, -4 + Math.random() * 6);
+      for (let k = 0; k < 6; k++) state.particles.push({ pos: { x: D1, y: ns.hitY }, vel: { x: -1 - Math.random() * 3, y: (Math.random() - 0.5) * 4 }, life: 22, color: k % 2 ? '#CFFAFE' : '#F8FAFC', size: 2, grav: 0.2, isGlass: true } as never);
+      if (ns.shot >= WINDOW_HP) { startCrack(state, ns, true); return hands(); }
+    }
     if (p.isCharging && p.facing === 1 && p.pos.x + p.width >= D1 - 10) { startCrack(state, ns); return hands(); }
     if (!ns.warned && cx > D1 - 90) { ns.warned = true; meatheadSays(state, pickLine(L.MH_WINDOW), false); }
   }
