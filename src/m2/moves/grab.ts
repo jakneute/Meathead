@@ -921,7 +921,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (g.t % 6 === 0) playSound('thud', 0.35, 6);
       // The ammo shaken out of him as he's shaken, a bit at a time, falling out the front of him (clear of Meathead, so
       // it's seen to drop before it's picked up) (the first time he's shaken: after that, he's empty)
-      if (g.t === 1 && !g.shaken.has(e)) { g.shaken.add(e); g.ammoLeft = SHAKE_AMMO; }
+      // (nothing in what gives nothing back: the queen's kin, say, like their beatdowns don't heal)
+      if (g.t === 1 && !g.shaken.has(e)) { g.shaken.add(e); g.ammoLeft = e.noHeal ? 0 : SHAKE_AMMO; }
       if (g.ammoLeft > 0 && g.t % SHAKE_DROP_EVERY === SHAKE_DROP_EVERY - 1) {
         const k = SHAKE_AMMO - g.ammoLeft--;
         state.pickups.push({ id: `shake-${state.frame}-${k}`, pos: { x: centerX(state) + g.dir * 46 - 10, y: p.pos.y + 20 }, vel: { x: g.dir * (1.5 + k * 1.2), y: -4 - k }, width: 20, height: 20, type: 'small_ammo', life: 600 });

@@ -485,7 +485,7 @@ export interface Enemy extends Entity {
   noCrowd?: boolean;
   /** A bystander: only Meathead can hurt it (his shots and moves, or something he knocked into it); nothing else does. */
   innocent?: boolean;
-  /** Beating it up gives him no health back (Meathead 2's grab: the queen's offspring, made to be farmed otherwise). */
+  /** (M2 grabs) Gives nothing back: beating it up heals him nothing, shaking it down drops no ammo (the queen's kin). */
   noHeal?: boolean;
   /** (M2 grabs) Thrown, or hit by somebody thrown: this much more it takes (unset: 1). */
   throwVuln?: number;
