@@ -205,6 +205,8 @@ export interface Hunter {
   warned: boolean; freeMove: boolean;
   /** The kill: the camera in on it (0..1). */
   cam: number;
+  /** The hiding spot she tore open on him (seen getting in), -1 none: gutted, its door gone. */
+  torn: number;
 }
 export const makeHunter = (state: GameState): Hunter => {
   const cx = state.player.pos.x + state.player.width / 2;
@@ -213,7 +215,7 @@ export const makeHunter = (state: GameState): Hunter => {
     entry: 'vent', huntOnDrop: false, leap: null,
     next: 360, out: 0, lastSeen: -9999, lastX: cx,
     opened: cx > B + 620, finale: false, fake: null, rattle: null, fg: null,
-    noise: 0, hid: -1, hidT: 0, heart: 0, passedClose: false,
+    noise: 0, hid: -1, hidT: 0, torn: -1, heart: 0, passedClose: false,
     saidDark: cx > B + 400, saidSpot: cx > B + 700, saidGun: false, hideSaidAt: -99999,
     door: state.stageMemo[DOOR_MEMO] ? 'in' : 'shut', doorT: 0, block: null,
     wasGrounded: true, lastVy: 0, lastShoot: false, lastJump: false, lastMove: false, warned: false, freeMove: false,
@@ -269,11 +271,16 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
     if (spot >= 0 && h.hid < 0) setUi({ upPrompt: 'HIDE' });
     if (spot >= 0 && controls.up && p.isGrounded && (h.hid >= 0 || !p.isCharging)) {
       if (h.hid < 0) {
+        // (did she see him get in? on her level and looking his way, or right on him: then she knows where he is)
+        const sawIt = inPlay(h) && h.mode !== 'leap' && h.mode !== 'crouch' && sees(state, h);
         h.hid = spot; h.hidT = 0;
         playSound('clink', 0.5, -6);
         if (state.frame - h.hideSaidAt > 900) { h.hideSaidAt = state.frame; meatheadSays(state, pick((HIDES[spot].kind === 'locker' ? L.MH_HIDE : L.MH_HIDE_DARK)[dressed(state)]), false); }
-        // (in, with her on him and close: she saw that)
-        if (h.mode === 'hunt' && Math.abs(h.x - cx) < 240 && Math.abs(h.y - pfeet(state)) < 60) h.hidT = -1;
+        // (in, with her on him and close, or with her watching: she saw that. He's fucked: she comes straight for it)
+        if (sawIt || (h.mode === 'hunt' && Math.abs(h.x - cx) < 240 && Math.abs(h.y - pfeet(state)) < 60)) {
+          h.hidT = -1;
+          if (h.mode !== 'hunt') spotted(state, h);
+        }
       }
       h.hidT = h.hidT < 0 ? h.hidT : h.hidT + 1;
       p.hidden = true; p.vel.x = 0; p.pos.x += (HIDES[spot].x - cx) * 0.4;
@@ -589,7 +596,14 @@ const hunting = (ctx: FrameContext, h: Hunter) => {
   else if (h.lvl === 1 && !same && lv === 0 && Math.abs(cx - h.x) > 40) { startLeap(state, h, 'hunt'); return; }
   h.y = levelY(h.lvl, h.x);
   steps(state, h, 12);
-  if (h.hid >= 0 && h.hidT < 0 && Math.abs(h.x - cx) < 60) { state.player.hidden = false; h.hid = -1; startKill(state, h); return; }
+  // (seen getting in: she tears it open, the door (the tarp) flung off, and him out of it by the head)
+  if (h.hid >= 0 && h.hidT < 0 && Math.abs(h.x - cx) < 60) {
+    const sp = HIDES[h.hid];
+    h.torn = h.hid; state.player.hidden = false; h.hid = -1;
+    playSound('crash', 1, -4); playSound('clang', 1, -8); playSound('roar', 0.9, -4); shakeScreen(state, 10, 5);
+    for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: sp.x + (Math.random() - 0.5) * 40, y: sp.y - 20 - Math.random() * 100 }, vel: { x: -h.dir * (2 + Math.random() * 7), y: -2 - Math.random() * 5 }, life: 50, color: sp.kind === 'dark' ? '#1E293B' : k % 3 ? '#475569' : '#94A3B8', size: 3 + Math.random() * 6, grav: 0.35 });
+    startKill(state, h); return;
+  }
   // (lost him: out of sight a good while, a way off; not on the stairs (she's on him to the door))
   if (!h.finale && state.frame - h.lastSeen > 200 && Math.abs(cx - h.x) > 500) { to(h, 'search'); h.path = [{ x: clampLvl(h, h.lastX), stop: 120 }]; h.speed = 2.2; }
 };
@@ -815,6 +829,15 @@ export const drawHides = (c: Ctx, state: GameState, h: Hunter) => {
     const s = HIDES[i], y = s.y;
     if (s.x < v - 100 || s.x > v + CANVAS_WIDTH + 100) continue;
     const inIt = h.hid === i;
+    // (torn open on him: the door (the tarp, the heap) ripped off and gone, the inside gutted, the hinges bent out)
+    if (h.torn === i) {
+      const top = s.kind === 'locker' ? y - 128 : s.kind === 'cabinet' ? y - 108 : y - 110, w = s.kind === 'dark' ? 80 : 56;
+      box(c, s.x - w / 2 - 2, top - 2, w + 4, y - top + 2, '#020203');
+      box(c, s.x - w / 2, top, w, y - top, '#0B0B10');
+      if (s.kind !== 'dark') { box(c, s.x - w / 2 - 2, top, 4, y - top, '#475569'); for (const hy of [top + 18, y - 30]) { box(c, s.x - w / 2 - 8, hy, 8, 3, '#94A3B8'); box(c, s.x - w / 2 - 12, hy - 4, 4, 4, '#94A3B8'); } }
+      for (let k = 0; k < 5; k++) box(c, s.x - w / 2 + 6 + k * (w / 5), y - 4 - (k % 2) * 3, 6, 4, k % 2 ? '#334155' : '#7F1D1D');
+      continue;
+    }
     if (s.kind === 'locker') {
       stamp(c, `sp-q-locker-${i}`, s.x - 30, y - 132, 60, 134, g => {
         ink(g, () => g.rect(s.x - 26, y - 128, 52, 128), '#475569', 2);
