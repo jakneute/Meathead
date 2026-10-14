@@ -80,8 +80,9 @@ let lobbySaid = false;
 const make = (state: GameState): Needle => {
   const sealed = !!state.stageMemo[SEALED_MEMO];
   const pax: Pax[] = [];
-  if (!sealed) for (let i = 0; i < 11; i++) {
-    const home = D0 + 330 + i * ((D1 - D0 - 600) / 10) + (hash(i + 3) - 0.5) * 80;
+  // (a ride that actually goes to space, and about as popular as any observation deck: a handful up here, spread out)
+  if (!sealed) for (let i = 0; i < 4; i++) {
+    const home = D0 + 380 + i * ((D1 - D0 - 700) / 3) + (hash(i + 3) - 0.5) * 120;
     pax.push({ g: guestAt(i + 3, home, GY, hash(i) < 0.5 ? 1 : -1, 0.92), x: home, home, facing: hash(i) < 0.5 ? 1 : -1, to: home, wait: 60 + Math.floor(hash(i + 7) * 300) });
   }
   return {
