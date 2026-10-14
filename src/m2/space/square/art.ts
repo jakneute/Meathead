@@ -1,35 +1,43 @@
-// The square, painted: the sky by the hour over a skyline of the future, the giant atom looming bigger the closer he
-// gets (and Space Needle 2 off to the right, going up out of sight), the shops along the back with their gags, the
-// gate, the street, the pit, the wall, the lamps and the PA's horns; the atom's doors at the end.
+// The square, painted (the final pass: peak SNES, fake 3D, one eye for the lot). The backdrop (sky.ts): the sky by the
+// hour, the clouds, the blimp, the far skyline of the future; Space Needle 2 far off to the right going up out of
+// sight, and the giant atom looming bigger the closer he gets. In the world, back to front: the walk going back, the
+// far row along it, the FUTURE SITE OF TOMORROW cut through it (ground.ts); the sides of everything box-shaped going
+// back; the shops (buildings.ts), the gate, the atom's doors; the walk under his feet, bent; then the furniture: the
+// wall of tomorrow, the rocket trash can, the planter, the kiosk, the station steps, the deck, the awning, the lamps,
+// the big signs (props.ts).
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH } from '../../../m1/constants';
-import { timeOfDay } from '../../timeOfDay';
-import { box, label } from '../section';
 import { SECTIONS, GY } from '../geometry';
-import { X, Y, PIT, WALL, DOORS_X, SOLIDS, LEDGES, LAMPS, SPEAKERS, TRACK, TRACK_LEGS, MONO, BELTS, PLATES, PADS } from './layout';
-import { INK, still, inView, drawSky, drawSkyline, drawGiantAtom, drawNeedle, drawStreet, drawPitEdge, drawLamp, drawSpeaker, board, drawShop, horizonY, type Shop } from './paint';
+import { X, Y, PIT, WALL, DOORS_X, SOLIDS, LEDGES, LAMPS, SPEAKERS } from './layout';
+import { type Ctx, INK, box, checker, mix, poly, still, inView, viewOf, board, slab, ramp6, lit, chromePole, starburst, ball, bandedGradient, CHROME, PINK, TEAL, ORANGE, LIP, glassOf, timeOfDay } from './paint';
+import { drawSky, drawClouds, drawBlimp, drawFarSkyline, drawGiantAtom, drawNeedle, horizonY } from './sky';
+import { drawGoingBack, drawPlayPlane, drawPitDressing, type Ground } from './ground';
+import { type Shop, type Block, drawSides, drawShopFront, shopBlocks } from './buildings';
+import { drawLamp, drawSpeaker, drawBigSign, paintGate, paintTrashCan, paintPlanter } from './props';
 
-type Ctx = CanvasRenderingContext2D;
+type Ctx2 = Ctx;
 const { x0, x1 } = SECTIONS.square;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The far off
 
-export const drawSquareBackdrop = (c: Ctx, state: GameState) => {
+export const drawSquareBackdrop = (c: Ctx2, state: GameState) => {
   drawSky(c, state);
   const t = state.frame, cam = state.camera.x + CANVAS_WIDTH / 2;
   const prog = Math.max(0, Math.min(1, (cam - x0) / (x1 - x0)));
   const hz = horizonY(state);
-  drawSkyline(c, state, 0.08, '#A5B4FC', 3);
+  drawClouds(c, state);
+  drawBlimp(c, state);
+  drawFarSkyline(c, state, 0.03, 0.45, 3);
   // Space Needle 2, far off to the right (it goes up out of sight)
   drawNeedle(c, 770 - (cam - x0) * 0.004, hz + 4, 0.26, t);
   // The giant atom: further along, nearer and bigger, till it's over everything at the doors
   const s = 0.42 + prog * prog * 1.25;
   const ax = 500 + (X(DOORS_X) - cam) * 0.014, ay = hz - 120 * s - 40;
   drawGiantAtom(c, ax, ay, s, t);
-  drawSkyline(c, state, 0.2, '#C4B5FD', 0);
+  drawFarSkyline(c, state, 0.08, 0.22, 7, 14);
   return true;
 };
 
@@ -47,161 +55,170 @@ const SHOPS: Shop[] = [
   { x: X(8760), w: 280, h: 180, wall: '#FEF9C3', trim: '#6366F1', roof: 'saucer', name: 'THE KITCHEN OF 2000', sub: 'MEAL PILLS IN EVERY FLAVOR OF BEIGE' },
 ];
 
-const gate = (c: Ctx, state: GameState) => {
-  const gx = X(330);
-  if (!inView(state, gx - 300, gx + 300)) return;
-  still(c, 'spc-gate', gx, GY, -260, -330, 520, 332, g => {
-    // (two pylons, a boomerang arch between them, the name on it, a starburst on top)
-    for (const s of [-1, 1]) { box(g, s * 200 - 14, -280, 28, 280, INK); box(g, s * 200 - 12, -280, 24, 280, '#F8FAFC'); box(g, s * 200 - 12, -280, 6, 280, '#FFFFFF'); box(g, s * 200 + 4, -280, 8, 280, '#CBD5E1'); }
-    g.fillStyle = INK; g.beginPath(); g.moveTo(-240, -250); g.quadraticCurveTo(0, -330, 240, -250); g.lineTo(240, -226); g.quadraticCurveTo(0, -300, -240, -226); g.closePath(); g.fill();
-    g.fillStyle = '#F472B6'; g.beginPath(); g.moveTo(-236, -247); g.quadraticCurveTo(0, -326, 236, -247); g.lineTo(236, -230); g.quadraticCurveTo(0, -304, -236, -230); g.closePath(); g.fill();
-    board(g, 0, -252, 'FUTURELAND', '#0F172A', '#5EEAD4', 14, 10);
-    board(g, 0, -212, 'THE WORLD OF TOMORROW! (SINCE 1962)', '#FFFFFF', '#BE185D', 7, 6);
-    g.strokeStyle = '#FDE047'; g.lineWidth = 3;
-    for (let k = 0; k < 12; k++) { const a = (k * Math.PI) / 6; g.beginPath(); g.moveTo(0, -300); g.lineTo(Math.cos(a) * 26, -300 + Math.sin(a) * 26); g.stroke(); }
-  });
+const GROUND: Ground = { id: 'sq', floor: [[x0 - 200, X(PIT.a)], [X(PIT.b), x1 + 200]], pits: [{ a: X(PIT.a), b: X(PIT.b), kind: 'site' }] };
+
+const GATE_X = X(330);
+/** Everything box-shaped whose sides go back. */
+const BLOCKS: Block[] = [
+  ...shopBlocks(SHOPS, GY),
+  { x0: GATE_X - 214, x1: GATE_X - 186, top: GY - 281, bottom: GY, col: '#F4F6FA', d: 0.95, noTop: true },
+  { x0: GATE_X + 186, x1: GATE_X + 214, top: GY - 281, bottom: GY, col: '#F4F6FA', d: 0.95, noTop: true },
+  { x0: X(DOORS_X) - 340, x1: X(DOORS_X) + 260, top: GY - 220, bottom: GY, col: '#DDD6FE', noTop: true },
+  { x0: X(WALL.x), x1: X(WALL.x + WALL.w), top: Y(WALL.h), bottom: GY, col: '#7DD3FC', d: 0.9 },
+  ...SOLIDS.filter(s => s[3] === 'planter').map(([rx, h, w]) => ({ x0: X(rx), x1: X(rx) + w, top: Y(h), bottom: GY, col: '#F59AC2', d: 0.93 })),
+];
+
+const gate = (c: Ctx2, state: GameState) => {
+  if (!inView(state, GATE_X - 300, GATE_X + 300)) return;
+  still(c, 'spc-gate', GATE_X, GY, -270, -345, 540, 347, paintGate);
 };
 
-/** The PEOPLE MOVER's sign over the belts, the ELECTRIC SIDEWALK's, the THRUST pad's, the monorail station's. */
-const gags = (c: Ctx, state: GameState) => {
-  // (`pylon`: up on one tall pole, where two posts would stand in front of a shop or a deck)
-  const big = (key: string, x: number, h: number, a: string, b: string, bg = '#0F172A', ink = '#FDE047', pylon = false) => {
-    if (!inView(state, x - 220, x + 220)) return;
-    still(c, `spc-sign-${key}`, x, GY, -220, -h - 40, 440, h + 42, g => {
-      if (pylon) { box(g, -5, -h + 10, 10, h - 10, '#475569'); box(g, -3, -h + 10, 3, h - 10, '#94A3B8'); }
-      else { box(g, -150, -h + 10, 6, h - 10, '#64748B'); box(g, 144, -h + 10, 6, h - 10, '#64748B'); }
-      board(g, 0, -h, a, bg, ink, 9, 8);
-      board(g, 0, -h + 26, b, '#FFFFFF', '#0F766E', 6, 5);
-    });
-  };
-  big('mover', X(2140), 150, 'THE PEOPLE MOVER', "TOMORROW'S SIDEWALK, TODAY!");
-  big('mover2', X(2670), 150, 'THE PEOPLE MOVER (RETURN)', 'PLEASE WALK BRISKLY');
-  big('zap', X(3820), 140, 'THE ELECTRIC SIDEWALK', 'SAFE AS MILK! DO NOT STAND ON IT WHEN IT BUZZES.');
-  big('zap2', X(9100), 280, 'THE ELECTRIC SIDEWALK', 'NOW TWICE AS ELECTRIC!', undefined, undefined, true);
-  big('pad', X(4880), 150, 'FEEL THE THRUST!', 'PHOTO OP. STAND ON THE GRILLE. SMILE.');
-  big('pit', X(6440), 120, 'FUTURE SITE OF TOMORROW', 'COMING 1964');
-  big('queue', X(9440), 120, 'LINE STARTS HERE', '90 MINUTES FROM THIS POINT');
-  big('plaza', X(8440), 200, 'THE ATOM PLAZA', 'THE FUTURE IS SPLITTING!', undefined, undefined, true);
+const gags = (c: Ctx2, state: GameState) => {
+  drawBigSign(c, state, 'mover', X(2140), 150, 'THE PEOPLE MOVER', "TOMORROW'S SIDEWALK, TODAY!");
+  drawBigSign(c, state, 'mover2', X(2670), 150, 'THE PEOPLE MOVER (RETURN)', 'PLEASE WALK BRISKLY');
+  drawBigSign(c, state, 'zap', X(3820), 140, 'THE ELECTRIC SIDEWALK', 'SAFE AS MILK! DO NOT STAND ON IT WHEN IT BUZZES.');
+  drawBigSign(c, state, 'zap2', X(9100), 280, 'THE ELECTRIC SIDEWALK', 'NOW TWICE AS ELECTRIC!', undefined, undefined, true);
+  drawBigSign(c, state, 'pad', X(4880), 150, 'FEEL THE THRUST!', 'PHOTO OP. STAND ON THE GRILLE. SMILE.');
+  drawBigSign(c, state, 'pit', X(6440), 120, 'FUTURE SITE OF TOMORROW', 'COMING 1964');
+  drawBigSign(c, state, 'queue', X(9440), 120, 'LINE STARTS HERE', '90 MINUTES FROM THIS POINT');
+  drawBigSign(c, state, 'plaza', X(8440), 200, 'THE ATOM PLAZA', 'THE FUTURE IS SPLITTING!', undefined, undefined, true);
 };
 
-/** The wall across the street, a painting of tomorrow on it: a family in a flying car, waving. Its top lit (stand on it). */
-const wall = (c: Ctx, state: GameState) => {
-  const wx = X(WALL.x);
-  if (!inView(state, wx - 60, wx + WALL.w + 60)) return;
-  still(c, 'spc-wall', wx, GY, -40, -WALL.h - 50, WALL.w + 80, WALL.h + 52, g => {
-    box(g, -2, -WALL.h - 2, WALL.w + 4, WALL.h + 2, INK);
-    box(g, 0, -WALL.h, WALL.w, WALL.h, '#7DD3FC');
-    box(g, 0, -WALL.h, WALL.w, 6, '#F8FAFC');
-    box(g, 0, -WALL.h + 6, WALL.w, 3, '#94A3B8');
-    // (the painting: a red flying car with fins, four smiling heads, speed lines, a sun)
-    g.fillStyle = '#FDE047'; g.beginPath(); g.arc(WALL.w - 22, -WALL.h + 40, 14, 0, Math.PI * 2); g.fill();
-    g.fillStyle = '#DC2626'; g.beginPath(); g.ellipse(WALL.w / 2, -WALL.h + 110, 40, 14, 0, 0, Math.PI * 2); g.fill();
-    g.beginPath(); g.moveTo(WALL.w / 2 - 40, -WALL.h + 108); g.lineTo(WALL.w / 2 - 50, -WALL.h + 90); g.lineTo(WALL.w / 2 - 28, -WALL.h + 104); g.fill();
-    for (let k = 0; k < 4; k++) { g.fillStyle = ['#F0C8A2', '#8A5A36', '#E4C0A8', '#55331C'][k]; g.beginPath(); g.arc(WALL.w / 2 - 22 + k * 14, -WALL.h + 94, 6, 0, Math.PI * 2); g.fill(); }
-    for (let k = 0; k < 3; k++) box(g, 4, -WALL.h + 104 + k * 6, 20, 2, '#F8FAFC');
-    label(g, 'THE WALL', WALL.w / 2, -WALL.h + 160, '#0F172A', 8);
-    label(g, 'OF', WALL.w / 2, -WALL.h + 174, '#0F172A', 8);
-    label(g, 'TOMORROW', WALL.w / 2, -WALL.h + 188, '#0F172A', 8);
-  });
+/** The wall across the street (too tall to jump), a mural of tomorrow on it: a family in a flying car waving, over a
+ *  city of domes, the sun; its top a chrome coping, lit (stand on it). */
+const paintWall = (g: Ctx2) => {
+  const w = WALL.w, h = WALL.h, R = ramp6('#7DD3FC');
+  box(g, -2, -h - 2, w + 4, h + 2, INK);
+  // (the mural's sky, banded; the sun; the city of domes)
+  bandedGradient(g, 0, -h + 8, w, 140, ['#2A6ED8', '#4A9AEA', '#86C8F2', '#FCE6B8'], 7, 2);
+  box(g, 0, -h + 148, w, h - 148, R[2]);
+  g.fillStyle = '#FDE047'; g.beginPath(); g.arc(w - 22, -h + 40, 14, 0, Math.PI * 2); g.fill(); g.fillStyle = '#FEF9C3'; g.beginPath(); g.arc(w - 25, -h + 37, 7, 0, Math.PI * 2); g.fill();
+  for (let k = 0; k < 4; k++) { g.fillStyle = ['#9470C4', '#22BCAC', '#E8659E', '#6E46A2'][k]; g.beginPath(); g.arc(12 + k * 26, -h + 148, 14 + (k % 2) * 6, Math.PI, 0); g.fill(); }
+  box(g, 60, -h + 100, 4, 48, '#6E46A2'); g.fillStyle = '#E8659E'; g.beginPath(); g.ellipse(62, -h + 100, 14, 4, 0, 0, Math.PI * 2); g.fill();
+  // (the flying car: red, fins, a bubble, four heads waving, speed lines behind)
+  const cx = w / 2, cy = -h + 104;
+  g.fillStyle = INK; g.beginPath(); g.ellipse(cx, cy + 6, 42, 15, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#DC2626'; g.beginPath(); g.ellipse(cx, cy + 6, 40, 13, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#F87171'; g.beginPath(); g.ellipse(cx - 4, cy + 2, 32, 6, 0, 0, Math.PI * 2); g.fill();
+  poly(g, [[cx - 40, cy + 4], [cx - 52, cy - 14], [cx - 28, cy + 2]], '#B91C1C');
+  for (let k = 0; k < 4; k++) { g.fillStyle = ['#F0C8A2', '#8A5A36', '#E4C0A8', '#55331C'][k]; g.beginPath(); g.arc(cx - 22 + k * 14, cy - 8, 6, 0, Math.PI * 2); g.fill(); box(g, cx - 24 + k * 14, cy - 8, 1, 1, INK); box(g, cx - 21 + k * 14, cy - 8, 1, 1, INK); }
+  box(g, cx + 22, cy - 22, 2, 10, '#F0C8A2');
+  g.fillStyle = 'rgba(200,236,255,0.45)'; g.beginPath(); g.ellipse(cx, cy - 6, 34, 12, 0, Math.PI, 0); g.fill();
+  for (let k = 0; k < 3; k++) box(g, 2, cy + k * 6, 20, 2, '#F8FAFC');
+  // (the words, painted on in the mural's own hand)
+  for (const [s, y] of [['THE WALL', 160], ['OF', 174], ['TOMORROW', 188]] as const) { g.font = '8px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = '#F8FAFC'; g.fillText(s, w / 2 + 1, -h + y + 1); g.fillStyle = '#0F172A'; g.fillText(s, w / 2, -h + y); g.textAlign = 'left'; }
+  // (grime up its foot, the coping on top: lit, he stands on it)
+  checker(g, 0, -24, w, 8, R[1], 0, 2); box(g, 0, -16, w, 16, R[1]);
+  box(g, -3, -h - 4, w + 6, 9, INK); box(g, -2, -h - 3, w + 4, 7, CHROME[4]); box(g, -2, -h - 3, w + 4, 2, LIP[3]); box(g, -2, -h + 3, w + 4, 1, CHROME[1]);
 };
 
-/** The solids (the rocket trash can, the planter) and the ledges (the kiosk dome, the station steps, the deck). */
-const things = (c: Ctx, state: GameState) => {
+/** The solids (the rocket trash can, the planter) and the ledges (the kiosk dome, the station steps, the deck, the
+ *  burger shop's awning). */
+const things = (c: Ctx2, state: GameState) => {
   for (const [rx, h, w, what] of SOLIDS) {
     const x = X(rx);
     if (what === 'wall' || !inView(state, x - 40, x + w + 40)) continue;
-    still(c, `spc-solid-${what}`, x, GY, -10, -h - 30, w + 20, h + 32, g => {
-      if (what === 'trashcan') {
-        // (a rocket, fins and all, FEED ME, EARTHLING on its side; its top lit)
-        box(g, -2, -h - 2, w + 4, h + 2, INK); box(g, 0, -h, w, h, '#F8FAFC'); box(g, 0, -h, w, 3, '#FFFFFF');
-        box(g, w - 8, -h, 8, h, '#CBD5E1');
-        g.fillStyle = INK; g.beginPath(); g.moveTo(-8, 0); g.lineTo(0, -24); g.lineTo(0, 0); g.fill(); g.beginPath(); g.moveTo(w + 8, 0); g.lineTo(w, -24); g.lineTo(w, 0); g.fill();
-        g.fillStyle = '#DC2626'; g.beginPath(); g.moveTo(-6, -1); g.lineTo(-1, -20); g.lineTo(-1, -1); g.fill(); g.beginPath(); g.moveTo(w + 6, -1); g.lineTo(w + 1, -20); g.lineTo(w + 1, -1); g.fill();
-        g.fillStyle = INK; g.beginPath(); g.arc(w / 2, -h + 22, 7, 0, Math.PI * 2); g.fill();
-        label(g, 'FEED', w / 2, -h + 44, '#DC2626', 5); label(g, 'ME', w / 2, -h + 52, '#DC2626', 5);
-      } else {
-        box(g, -2, -h - 2, w + 4, h + 2, INK); box(g, 0, -h, w, h, '#F9A8D4'); box(g, 0, -h, w, 4, '#FDF2F8');
-        for (let k = 0; k < 5; k++) { g.fillStyle = '#16A34A'; g.beginPath(); g.arc(8 + k * 16, -h - 4, 9, Math.PI, 0); g.fill(); }
-      }
-    });
+    still(c, `spc-solid-${what}`, x, GY, -14, -h - 34, w + 28, h + 36, g => (what === 'trashcan' ? paintTrashCan(g, w, h) : paintPlanter(g, w, h)));
   }
   for (const [rx, h, w, what] of LEDGES) {
     const x = X(rx), y = Y(h);
     if (!inView(state, x - 60, x + w + 60)) continue;
     still(c, `spc-ledge-${what}-${w}-${h}`, x, y, -60, -120, w + 120, h + 124, g => {
       if (what === 'kiosk') {
-        // (the SPACE FOOD STICKS kiosk: a round counter, its dome roof (stand on it: its lit rim))
-        box(g, 20, 0, w - 40, h, INK); box(g, 22, 2, w - 44, h - 2, '#FEF3C7'); box(g, 22, h - 40, w - 44, 40, '#F97316');
-        g.fillStyle = INK; g.beginPath(); g.ellipse(w / 2, 6, w / 2 + 6, 14, 0, 0, Math.PI * 2); g.fill();
-        g.fillStyle = '#14B8A6'; g.beginPath(); g.ellipse(w / 2, 6, w / 2 + 3, 11, 0, 0, Math.PI * 2); g.fill();
-        box(g, 0, -1, w, 4, '#CCFBF1');
-        board(g, w / 2, 34, 'SPACE FOOD STICKS', '#0F172A', '#FDBA74', 6, 5);
+        // (the SPACE FOOD STICKS kiosk: a round counter in stepped bands, its dome roof (stand on it: its lit rim))
+        const R = ramp6('#FEF3C7'), O = ramp6('#F97316');
+        box(g, 19, 0, w - 38, h, INK);
+        slab(g, 20, 2, w - 40, h - 2, R, false);
+        box(g, 20, h - 42, w - 40, 42, O[3]); box(g, 20, h - 42, w - 40, 2, O[5]); for (let k = 26; k < w - 24; k += 12) box(g, k, h - 38, 6, 36, O[2]);
+        box(g, 26, 22, w - 52, 40, INK); box(g, 27, 23, w - 54, 38, glassOf()[2]); for (let k = 0; k < 5; k++) { box(g, 32 + k * 18, 40, 12, 18, INK); box(g, 33 + k * 18, 41, 10, 16, ['#F97316', '#22C55E', '#E8659E', '#F0C840', '#9470C4'][k]); }
+        g.fillStyle = INK; g.beginPath(); g.ellipse(w / 2, 6, w / 2 + 6, 15, 0, 0, Math.PI * 2); g.fill();
+        for (let k = 0; k < 4; k++) { g.fillStyle = TEAL[1 + k]; g.beginPath(); g.ellipse(w / 2 - k * 6, 6 - k * 2, w / 2 + 3 - k * 14, 12 - k * 2.5, 0, 0, Math.PI * 2); g.fill(); }
+        box(g, 0, -1, w, 4, LIP[2]); box(g, 0, -1, w, 1, LIP[3]);
+        starburst(g, w / 2, -14, 10, '#F97316');
+        board(g, w / 2, 32, 'SPACE FOOD STICKS', '#0F172A', '#FDBA74', 6, 5);
       } else if (what === 'steps' || what === 'deck') {
-        // (a landing on its stilts: steel, a lit lip, a railing at the back)
-        box(g, 4, 10, 8, h, '#94A3B8'); box(g, w - 12, 10, 8, h, '#94A3B8');
-        box(g, -2, -2, w + 4, 16, INK); box(g, 0, 0, w, 12, '#CBD5E1'); box(g, 0, 0, w, 3, '#F8FAFC');
-        box(g, 0, -26, w, 3, '#64748B'); for (let k = 0; k <= w; k += 24) box(g, k, -26, 2, 26, '#64748B');
-        // (its name on the fascia under the floor: up over the railing, whoever's stood on the deck covered it)
+        // (a landing on chrome stilts: a lit lip, a railing along the back)
+        chromePole(g, 8, 12, h, 8); chromePole(g, w - 8, 12, h, 8);
+        box(g, -2, -2, w + 4, 16, INK); box(g, 0, 0, w, 12, CHROME[3]); box(g, 0, 8, w, 4, CHROME[2]);
+        box(g, 0, 0, w, 3, LIP[2]); box(g, 0, 0, w, 1, LIP[3]);
+        for (let k = 6; k < w - 4; k += 12) box(g, k, 5, 4, 2, PINK[3]);
+        box(g, 0, -28, w, 4, INK); box(g, 0, -27, w, 2, CHROME[4]); for (let k = 0; k <= w; k += 24) { box(g, k - 1, -27, 3, 27, INK); box(g, k, -27, 1, 27, CHROME[4]); }
         if (what === 'deck') board(g, w / 2, 26, 'SATELLITE VIEWING DECK', '#0F172A', '#7DD3FC', 6, 5);
       } else {
-        // (an awning: striped, its front edge lit)
-        box(g, -2, -2, w + 4, 14, INK);
-        for (let k = 0; k < w; k += 20) box(g, k, 0, 10, 10, '#F97316'), box(g, k + 10, 0, 10, 10, '#FFF7ED');
-        box(g, 0, 0, w, 3, '#FFFFFF');
+        // (the awning: orange and white stripes, its front edge a lit chrome tube (stand on it), its brackets)
+        box(g, -2, -2, w + 4, 16, INK);
+        for (let k = 0; k < w; k += 20) { box(g, k, 2, 10, 10, ORANGE[3]); box(g, k + 10, 2, 10, 10, '#FFF7ED'); box(g, k, 9, 10, 3, ORANGE[2]); box(g, k + 10, 9, 10, 3, '#E8D8C8'); }
+        for (let k = 0; k < w; k += 10) { g.fillStyle = (k / 10) % 2 ? '#FFF7ED' : ORANGE[3]; g.beginPath(); g.moveTo(k, 12); g.lineTo(k + 10, 12); g.lineTo(k + 5, 18); g.fill(); }
+        box(g, -1, -1, w + 2, 4, LIP[2]); box(g, -1, -1, w + 2, 1, LIP[3]);
+        for (const bx of [8, w - 10]) { g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(bx, 12); g.lineTo(bx + 2, 40); g.stroke(); g.strokeStyle = CHROME[4]; g.lineWidth = 1; g.stroke(); }
       }
     });
   }
 };
 
-/** The atom's doors at the end: a low googie pavilion, ENTER THE ATOM over the doors, the giant stalk behind it. */
-const doors = (c: Ctx, state: GameState) => {
+/** The atom's doors at the end: a googie pavilion (lilac stucco, a band of portholes lit after dark, a boomerang roof),
+ *  chrome doors with an atom on each, ENTER THE ATOM over them, queue rails out front. */
+const paintDoors = (g: Ctx2) => {
+  const on = lit(), R = ramp6('#DDD6FE'), V = ramp6('#8B5CF6'), glass = glassOf();
+  // (the roof: a boomerang over the lot)
+  poly(g, [[-362, -212], [-40, -302], [282, -212], [-40, -250]], INK);
+  poly(g, [[-356, -215], [-40, -297], [276, -215], [-40, -253]], V[3]);
+  poly(g, [[-356, -215], [-40, -253], [276, -215], [-40, -246]], V[1]);
+  poly(g, [[-356, -215], [-40, -297], [-40, -292], [-350, -216]], V[5]);
+  for (let k = 0.1; k < 1; k += 0.1) box(g, -356 + 316 * k - 1, -215 - 82 * k, 3, 3, on ? '#FFF3B0' : V[4]);
+  box(g, -342, -222, 604, 222, INK);
+  slab(g, -340, -220, 600, 220, R);
+  box(g, -340, -220, 600, 10, V[3]); box(g, -340, -220, 600, 2, V[5]);
+  // (the windows: tall, banded, lit warm after dark)
+  for (let k = -320; k < 250; k += 70) {
+    if (k > -110 && k < 70) continue;
+    box(g, k - 1, -191, 42, 122, INK); box(g, k, -190, 40, 120, glass[1]); box(g, k, -190, 40, 40, glass[2]); box(g, k, -190, 2, 120, glass[4]);
+    box(g, k + 19, -190, 2, 120, CHROME[3]); box(g, k - 3, -70, 46, 4, CHROME[4]);
+  }
+  // (the doors: a pair, chrome, an atom on each, a canopy over)
+  box(g, -64, -144, 128, 144, INK); box(g, -62, -142, 124, 142, CHROME[2]);
+  for (const s of [-1, 1]) {
+    const dx = s < 0 ? -60 : 2;
+    box(g, dx, -140, 58, 140, CHROME[4]); box(g, dx, -140, 4, 140, CHROME[6]); box(g, dx + 52, -140, 6, 140, CHROME[3]);
+    g.strokeStyle = V[2]; g.lineWidth = 2; for (let k = 0; k < 3; k++) { g.beginPath(); g.ellipse(dx + 29, -84, 17, 6, (k * Math.PI) / 3, 0, Math.PI * 2); g.stroke(); }
+    ball(g, dx + 29, -84, 4, '#E8659E');
+    box(g, dx + (s < 0 ? 50 : 4), -76, 4, 20, CHROME[1]);
+  }
+  poly(g, [[-80, -150], [80, -150], [70, -138], [-70, -138]], INK); poly(g, [[-78, -149], [78, -149], [69, -140], [-69, -140]], PINK[3]);
+  board(g, 0, -168, 'ENTER THE ATOM', '#0F172A', '#F0ABFC', 9, 7, true);
+  starburst(g, 200, -150, 14, '#F0ABFC'); starburst(g, -280, -150, 14, '#F0ABFC');
+  void TEAL;
+};
+const doors = (c: Ctx2, state: GameState) => {
   const dx = X(DOORS_X);
   if (!inView(state, dx - 400, dx + 300)) return;
-  const lit = timeOfDay().lamps > 0.3;
-  still(c, `spc-atomdoors-${lit ? 1 : 0}`, dx, GY, -360, -330, 620, 332, g => {
-    box(g, -340, -220, 600, 220, INK); box(g, -338, -218, 596, 218, '#EDE9FE');
-    box(g, -338, -218, 596, 10, '#A78BFA');
-    g.fillStyle = INK; g.beginPath(); g.moveTo(-360, -214); g.lineTo(-40, -300); g.lineTo(280, -214); g.lineTo(-40, -250); g.closePath(); g.fill();
-    g.fillStyle = '#8B5CF6'; g.beginPath(); g.moveTo(-354, -217); g.lineTo(-40, -295); g.lineTo(274, -217); g.lineTo(-40, -253); g.closePath(); g.fill();
-    for (let k = -320; k < 250; k += 70) { box(g, k, -190, 40, 120, INK); box(g, k + 2, -188, 36, 116, lit ? '#FDE68A' : '#4C1D95'); }
-    // (the doors: a pair, chrome, an atom on each)
-    box(g, -60, -140, 120, 140, INK); box(g, -58, -138, 56, 138, '#CBD5E1'); box(g, 2, -138, 56, 138, '#CBD5E1');
-    for (const s of [-30, 30]) { g.strokeStyle = '#7C3AED'; g.lineWidth = 2; for (let k = 0; k < 3; k++) { g.beginPath(); g.ellipse(s, -80, 16, 6, (k * Math.PI) / 3, 0, Math.PI * 2); g.stroke(); } }
-    board(g, 0, -162, 'ENTER THE ATOM', '#0F172A', '#F0ABFC', 9, 7);
-  });
+  still(c, 'spc-atomdoors', dx, GY, -370, -340, 640, 342, paintDoors);
 };
 
-/** The pit under the monorail: its two edges, the fence before it, the hard hats left lying there in 1963. */
-const pit = (c: Ctx, state: GameState) => {
-  if (!inView(state, X(PIT.a) - 100, X(PIT.b) + 100)) return;
-  drawPitEdge(c, X(PIT.a), GY, 1);
-  drawPitEdge(c, X(PIT.b), GY, -1);
-  // (the dark down there, the rebar sticking up far below)
-  box(c, X(PIT.a), GY, X(PIT.b) - X(PIT.a), 600, '#0B1020');
-  for (let x = X(PIT.a) + 30; x < X(PIT.b); x += 70) box(c, x, GY + 240, 3, 80, '#57534E');
-  for (const fx of [X(PIT.a) - 70, X(PIT.b) + 20]) for (let k = 0; k < 3; k++) { box(c, fx + k * 18, GY - 34, 3, 34, '#F97316'); box(c, fx - 2, GY - 30 + k * 0, 56, 4, '#F97316'); box(c, fx - 2, GY - 18, 56, 4, '#FFFFFF'); }
-};
-
-export const drawSquareBack = (c: Ctx, state: GameState) => {
-  for (const sh of SHOPS) drawShop(c, state, sh, GY);
+/** `mid`: what goes on the walk, in front of the shops but behind the furniture (the track, the gear). */
+export const drawSquareBack = (c: Ctx2, state: GameState, mid?: () => void) => {
+  const v = viewOf(state);
+  drawGoingBack(c, v, GROUND);
+  drawSides(c, v, BLOCKS);
+  for (const sh of SHOPS) drawShopFront(c, state, sh, GY);
   gate(c, state);
-  gags(c, state);
   doors(c, state);
-  for (const rx of LAMPS) if (inView(state, X(rx) - 40, X(rx) + 40)) drawLamp(c, X(rx), GY);
-  // (the street, in its runs; the pit between)
-  drawStreet(c, state, x0 - 200, X(PIT.a), GY);
-  drawStreet(c, state, X(PIT.b), x1 + 200, GY);
-  pit(c, state);
-  wall(c, state);
+  drawPlayPlane(c, v, GROUND);
+  drawPitDressing(c, v, GROUND);
+  mid?.();
+  if (inView(state, X(WALL.x) - 60, X(WALL.x + WALL.w) + 60)) still(c, 'spc-wall', X(WALL.x), GY, -10, -WALL.h - 10, WALL.w + 20, WALL.h + 12, paintWall);
   things(c, state);
-  void TRACK; void TRACK_LEGS; void MONO; void BELTS; void PLATES; void PADS;
+  gags(c, state);
+  for (const rx of LAMPS) if (inView(state, X(rx) - 50, X(rx) + 60)) drawLamp(c, X(rx), GY, state.frame);
+  void mix; void timeOfDay;
 };
 
-export const drawSpeakers = (c: Ctx, state: GameState, talking: boolean) => {
+export const drawSpeakers = (c: Ctx2, state: GameState, talking: boolean) => {
   for (const [rx, h] of SPEAKERS) if (inView(state, X(rx) - 40, X(rx) + 40)) drawSpeaker(c, X(rx), GY, h, talking, state.frame);
 };
 
 export const squareLamps = (): Light[] => [
-  ...LAMPS.map(rx => ({ x: X(rx) + 27, y: GY - 178, r: 150, a: 0.85, color: '#FFE9A8' })),
+  ...LAMPS.map(rx => ({ x: X(rx) + 28, y: GY - 180, r: 150, a: 0.85, color: '#FFE9A8' })),
   { x: X(DOORS_X), y: GY - 120, r: 260, a: 0.9, color: '#F0ABFC' },
 ];
+void ORANGE;

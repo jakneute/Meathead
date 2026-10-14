@@ -12,7 +12,7 @@
 
 import type { Enemy } from '../../../m1/types';
 import {
-  type Pose, type Mood, type Body, type Frame, INK, dk, lt, mix, part, partTop, flat, px, limb, ball,
+  type Pose, type Mood, type Body, type Frame, INK, dk, lt, mix, part, partTop, px, limb, ball, dither,
   bodyOf, flailHands, legs, torso, arm, headShape, faceOn, whiskers, glasses, hairTop, hairBack, frameOf, putFrame, pickOf,
   moodOf, reaction, isHeldPose,
 } from '../../spooky/costume';
@@ -56,17 +56,29 @@ const paintCadet = (g: Ctx, F: Frame) => {
   torso(g, B, suit);
   // (the belt, the lightning bolt on the chest)
   px(g, -B.hipW / 2, B.hipY - 2, B.hipW + 2, 3, '#27272A');
-  flat(g, () => { g.moveTo(1, B.shY + 4); g.lineTo(-4, B.shY + 13); g.lineTo(1, B.shY + 12); g.lineTo(-2, B.shY + 21); g.lineTo(6, B.shY + 9); g.lineTo(1, B.shY + 10); g.lineTo(4, B.shY + 4); g.closePath(); }, stripe, 0.8);
+  part(g, () => g.rect(-3, B.hipY - 3, 6, 5), '#FACC15', -3, B.hipY - 3, 6, 5, 0.7);
+  part(g, () => { g.moveTo(1, B.shY + 4); g.lineTo(-4, B.shY + 13); g.lineTo(1, B.shY + 12); g.lineTo(-2, B.shY + 21); g.lineTo(6, B.shY + 9); g.lineTo(1, B.shY + 10); g.lineTo(4, B.shY + 4); g.closePath(); }, stripe, -4, B.shY + 4, 10, 17, 0.8);
+  // (a zip down the front)
+  for (let y = B.shY + 3; y < B.hipY - 3; y += 3) px(g, 5, y, 1, 1, dk(suit, 0.3));
   // (the fins on the shoulders)
   for (const s of [-1, 1]) part(g, () => { const x = s * (B.w / 2 - 2); g.moveTo(x - 4, B.shY + 2); g.lineTo(x + s * 2, B.shY - 9); g.lineTo(x + 5 * s + 2, B.shY + 3); g.closePath(); }, stripe, s * (B.w / 2) - 6, B.shY - 9, 12, 12, 0.9);
   ownHead(g, B, F, angry(F.pose) ? 'angry' : 'open', F.pose === 'strike' ? 'teeth' : 'flat');
   // (the fishbowl: a glass ball round the head, a collar ring, the glint)
   const { hx, hy } = B, R = B.rx + 5.5;
-  g.fillStyle = 'rgba(186, 230, 253, 0.28)'; g.beginPath(); g.arc(hx, hy - 1, R, 0, Math.PI * 2); g.fill();
+  // (the glass: tinted, a deeper tint round its lower rim (dithered), the sky's glint up top, a second little one)
+  g.fillStyle = 'rgba(186, 230, 253, 0.26)'; g.beginPath(); g.arc(hx, hy - 1, R, 0, Math.PI * 2); g.fill();
+  g.save(); g.beginPath(); g.arc(hx, hy - 1, R, 0, Math.PI * 2); g.clip();
+  dither(g, hx - R, hy + R * 0.25, R * 2, R, 'rgba(125, 211, 252, 0.55)');
+  g.fillStyle = 'rgba(125, 211, 252, 0.3)'; g.beginPath(); g.arc(hx + R * 0.35, hy + R * 0.3, R * 0.7, 0, Math.PI * 2); g.fill();
+  g.restore();
   g.strokeStyle = INK; g.lineWidth = 1.4; g.beginPath(); g.arc(hx, hy - 1, R, 0, Math.PI * 2); g.stroke();
   g.strokeStyle = '#F0F9FF'; g.lineWidth = 1.6; g.beginPath(); g.arc(hx, hy - 1, R - 3, Math.PI * 1.1, Math.PI * 1.45); g.stroke();
-  px(g, hx - 5, hy - R + 4, 2, 2, '#FFFFFF');
+  g.strokeStyle = '#BAE6FD'; g.lineWidth = 1; g.beginPath(); g.arc(hx, hy - 1, R - 2, Math.PI * 0.15, Math.PI * 0.4); g.stroke();
+  px(g, hx - 5, hy - R + 4, 2, 2, '#FFFFFF'); px(g, hx + R * 0.5, hy - R * 0.4, 1, 1, '#FFFFFF');
+  // (the collar ring, a little antenna off it, its bulb)
   part(g, () => g.roundRect(hx - R + 2, hy + R - 6, R * 2 - 4, 5, 2), '#9CA3AF', hx - R + 2, hy + R - 6, R * 2 - 4, 5, 1);
+  limb(g, hx - R + 5, hy + R - 6, hx - R + 1, hy - R + 2, 1.2, '#71717A');
+  ball(g, hx - R + 1, hy - R + 1, 1.8, F.fr % 2 ? '#F87171' : '#FCA5A5', 0.6);
   arm(g, B, 1, near[0], near[1], { sleeve: suit, hand: '#F5F5F4' });
   if (!fl) toyGun(g, near[0] - 1, near[1] + 2, F.pose === 'tell' ? F.t : F.pose === 'strike' ? 1 : 0);
   void L;
@@ -105,7 +117,12 @@ const paintRobot = (g: Ctx, F: Frame) => {
   // (the box: the body, taped at the seams; the dials and a vent on the front)
   const top = B.shY - 4, bot = B.hipY + 6;
   part(g, () => g.rect(-19, top, 38, bot - top), card, -19, top, 38, bot - top, 1.4);
-  px(g, -19, top + (bot - top) / 2, 38, 3, '#D6C9A3');
+  px(g, -19, top + (bot - top) / 2, 38, 3, '#D6C9A3'); px(g, -19, top + (bot - top) / 2, 38, 1, '#EDE3C4');
+  // (more tape: down the corners, an X over a dent; ROBOT in marker, the spray paint gone thin at the foot)
+  px(g, -19, top, 3, bot - top, '#D6C9A3'); px(g, 16, top, 3, bot - top, '#C2B48C');
+  g.strokeStyle = '#D6C9A3'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(8, bot - 12); g.lineTo(15, bot - 4); g.moveTo(15, bot - 12); g.lineTo(8, bot - 4); g.stroke();
+  dither(g, -17, bot - 6, 32, 5, '#B8A880');
+  g.strokeStyle = '#1E3A8A'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(-14, bot - 9); g.lineTo(-12, bot - 13); g.lineTo(-10, bot - 9); g.moveTo(-8, bot - 13); g.lineTo(-8, bot - 9); g.lineTo(-6, bot - 9); g.stroke();
   for (let k = 0; k < 3; k++) ball(g, -9 + k * 9, top + 9, 3, ['#DC2626', '#FACC15', '#22C55E'][k], 0.8);
   for (let k = 0; k < 4; k++) px(g, -10, top + 18 + k * 3, 20, 1, dk(card, 0.4));
   part(g, () => g.rect(-12, top + 31, 24, 4), '#3F3F46', -12, top + 31, 24, 4, 0.8);
@@ -117,6 +134,9 @@ const paintRobot = (g: Ctx, F: Frame) => {
   faceOn(g, { ...B, hy: hy - 1 }, { skin: L.skin, eyes: angry(F.pose) ? 'angry' : 'tired', mouth: F.pose === 'strike' ? 'teeth' : 'flat', md: F.md, blink: F.blink });
   g.restore();
   g.strokeStyle = INK; g.lineWidth = 1.2; g.strokeRect(hx - 9, hy - 8, 18, 14);
+  // (the window's foil trim, a strip of tape across the top of the head)
+  g.strokeStyle = '#E5E7EB'; g.lineWidth = 1; g.strokeRect(hx - 10.5, hy - 9.5, 21, 17);
+  px(g, hx - 15, hy - 14, 30, 3, '#D6C9A3'); px(g, hx - 15, hy - 14, 30, 1, '#EDE3C4');
   // (the antenna: a spring, the live ball on top)
   g.strokeStyle = '#52525B'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(hx, hy - 14); for (let k = 0; k < 5; k++) g.lineTo(hx + (k % 2 ? 3 : -3), hy - 16 - k * 3); g.lineTo(hx, hy - 31); g.stroke();
   ball(g, hx, hy - 33, 4, '#FDE047', 1);
@@ -195,6 +215,8 @@ const paintJetpack = (g: Ctx, F: Frame) => {
   // (the jetpack, behind: two tanks, a fin)
   for (const k of [0, 1]) part(g, () => g.roundRect(-B.w / 2 - 10 + k * 7, B.shY - 4, 9, 30, 4), '#9CA3AF', -B.w / 2 - 10 + k * 7, B.shY - 4, 9, 30, 1.2);
   part(g, () => { g.moveTo(-B.w / 2 - 12, B.shY + 26); g.lineTo(-B.w / 2 - 16, B.shY + 34); g.lineTo(-B.w / 2 - 4, B.shY + 26); g.closePath(); }, '#DC2626', -B.w / 2 - 16, B.shY + 26, 12, 8, 1);
+  // (the tanks' bands and caps; the nozzles under them)
+  for (const k of [0, 1]) { const tx = -B.w / 2 - 10 + k * 7; px(g, tx + 1, B.shY + 6, 7, 2, '#DC2626'); px(g, tx + 1, B.shY + 18, 7, 2, '#DC2626'); ball(g, tx + 4.5, B.shY - 4, 2.5, '#E5E7EB', 0.7); part(g, () => { g.moveTo(tx + 1, B.shY + 26); g.lineTo(tx + 8, B.shY + 26); g.lineTo(tx + 9, B.shY + 30); g.lineTo(tx, B.shY + 30); g.closePath(); }, '#52525B', tx, B.shY + 26, 9, 4, 0.8); }
   // (legs dangling, toes down)
   if (!B.held) { B.feet = [-3, 4]; B.lift = [3 + (F.fr % 2), 1 + ((F.fr + 1) % 2)]; }
   legs(g, B, { col: suit, shoe: 'boot', shoeCol: '#F5F5F4' });
@@ -227,9 +249,12 @@ export const drawJetpack = (c: Ctx, e: Enemy, f: number, seed: number) => {
   putFrame(c, 'spc-jetpack', F, [-44, -100, 100, 104], g => paintJetpack(g, F));
   // (the thrust under it, live: flickering)
   if (e.health > 0 && !e.isBlownAway) {
+    // (the thrust: flickering, in stepped bands: an orange shell, yellow, a white core; a puff of smoke now and then)
     const fl = 10 + ((f >> 1) % 3) * 5;
-    c.fillStyle = '#FDE68A'; c.beginPath(); c.moveTo(-22, -40); c.lineTo(-16, -40 + fl + 8); c.lineTo(-10, -40); c.fill();
-    c.fillStyle = '#F97316'; c.beginPath(); c.moveTo(-20, -40); c.lineTo(-16, -40 + fl); c.lineTo(-12, -40); c.fill();
+    for (const [k, col] of [[1, '#EA580C'], [0.75, '#FB9440'], [0.5, '#FDE68A'], [0.25, '#FFFFFF']] as const) {
+      c.fillStyle = col; c.beginPath(); c.moveTo(-16 - 6 * k, -40); c.lineTo(-16, -40 + (fl + 8) * k + 2); c.lineTo(-16 + 6 * k, -40); c.fill();
+    }
+    if ((f >> 3) % 4 === 0) { c.fillStyle = 'rgba(203, 213, 225, 0.5)'; c.fillRect(-19, -40 + 24 + (f % 8), 6, 4); }
   }
 };
 
@@ -239,15 +264,20 @@ export const drawJetpack = (c: Ctx, e: Enemy, f: number, seed: number) => {
 const paintRover = (g: Ctx, fr: number, md: Mood, yap: boolean) => {
   const steel = '#CBD5E1';
   // (legs: four stiff struts, trotting)
-  for (const [x, k] of [[-10, 0], [-4, 1], [6, 1], [12, 0]] as const) limb(g, x, -10, x + ((fr + k) % 2 ? 2 : -2), -1, 2.6, '#64748B');
+  for (const [x, k] of [[-10, 0], [-4, 1], [6, 1], [12, 0]] as const) { const fx = x + ((fr + k) % 2 ? 2 : -2); limb(g, x, -10, fx, -1, 2.6, k ? '#475569' : '#64748B'); px(g, fx - 2, -2, 4, 2, '#27272A'); ball(g, x, -10, 1.6, '#94A3B8', 0.5); }
   // (the body: a chrome box, a tail aerial)
   part(g, () => g.roundRect(-15, -20, 30, 12, 3), steel, -15, -20, 30, 12, 1.2);
   px(g, -10, -15, 18, 1, dk(steel, 0.3));
+  // (its panel: rivets, a red decal stripe, grime dithered along its belly)
+  for (const rx of [-13, -6, 1, 8]) px(g, rx, -19, 1, 1, dk(steel, 0.45));
+  px(g, -12, -13, 10, 2, '#DC2626'); px(g, -12, -13, 10, 1, '#F87171');
+  dither(g, -14, -11, 28, 2, dk(steel, 0.35));
   g.strokeStyle = INK; g.lineWidth = 1.2; g.beginPath(); g.moveTo(-14, -18); g.lineTo(-20, -26 + (fr % 2) * 2); g.stroke();
   ball(g, -20, -27 + (fr % 2) * 2, 1.6, '#EF4444', 0.6);
   // (the head: a round bucket, antenna ears, the red eye, the mouth grille: open for a yap)
   part(g, () => g.roundRect(9, -28, 15, 13, 4), lt(steel, 0.1), 9, -28, 15, 13, 1.2);
   for (const x of [11, 19]) { g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.moveTo(x, -28); g.lineTo(x - 1, -33); g.stroke(); ball(g, x - 1, -34, 1.3, '#94A3B8', 0.5); }
+  if (md !== 'dead') { g.fillStyle = 'rgba(239, 68, 68, 0.25)'; g.beginPath(); g.arc(19, -23, 5, 0, Math.PI * 2); g.fill(); }
   ball(g, 19, -23, 2.3, md === 'dead' ? '#3F3F46' : '#EF4444', 0.8);
   px(g, 15, yap ? -18 : -17, 8, yap ? 3 : 1.4, INK);
   void mix;

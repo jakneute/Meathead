@@ -22,7 +22,7 @@ import { DOORS, GY } from '../geometry';
 import { drawSled, FRONT_SLED } from '../ride/sled';
 import { X, SMEAR, WRECK_X } from './layout';
 import { LANDED } from './lines';
-import { still, INK } from '../square/paint';
+import { still, INK, checker, pixelBlob } from '../square/paint';
 import { box } from '../section';
 
 type Ctx = CanvasRenderingContext2D;
@@ -137,26 +137,34 @@ const rider = (c: Ctx, b: Body, f: number) => {
  * ribbons, bits of them and theirs strewn down it (a sneaker, the fanny pack, a souvenir cup, some teeth, the shreds of
  * a FUTURELAND T-shirt), a heap at the end. Painted once, whole; revealed as far as it's got.
  */
+const BLOOD = ['#2A0606', '#4A0A0A', '#6E1010', '#991B1B', '#C02626', '#E04848', '#F8A0A0'];
 const paintSmear = (g: Ctx, w: number) => {
   const y = 0;
+  // (the streak: thicker toward the heap, in stepped reds, its edges dithered, wet shine along its top)
   for (let x = 0; x < w; x += 4) {
     const k = x / w, th = 6 + Math.sin(x * 0.07) * 3 + k * 10;
-    box(g, x, y - th + 3, 4, th, x % 12 < 4 ? '#7F1D1D' : '#991B1B');
-    if (x % 28 === 0) box(g, x + 2, y - th - 2, 6, 4, '#450A0A');
-    if (x % 20 === 8) box(g, x, y - 1, 10, 3, '#B91C1C');
+    box(g, x, y - th + 3, 4, th, x % 12 < 4 ? BLOOD[2] : BLOOD[3]);
+    box(g, x, y - th + 3, 4, 2, BLOOD[4]);
+    if (x % 16 === 4) box(g, x + 1, y - th + 3, 2, 1, BLOOD[6]);
+    if (x % 28 === 0) box(g, x + 2, y - th - 2, 6, 4, BLOOD[1]);
+    if (x % 20 === 8) box(g, x, y - 1, 10, 3, BLOOD[4]);
   }
-  // (spatter up the curb, and either side)
-  for (let i = 0; i < 40; i++) { const x = (i * 97) % w, yy = -((i * 37) % 26) - 4; box(g, x, yy, 2 + (i % 3), 2, i % 2 ? '#991B1B' : '#7F1D1D'); }
-  // (the heap at the end)
-  g.fillStyle = INK; g.beginPath(); g.ellipse(w - 30, y - 8, 36, 14, 0, Math.PI, 0); g.fill();
-  g.fillStyle = '#7F1D1D'; g.beginPath(); g.ellipse(w - 30, y - 7, 33, 12, 0, Math.PI, 0); g.fill();
-  g.fillStyle = '#B91C1C'; g.beginPath(); g.ellipse(w - 38, y - 12, 14, 6, 0, Math.PI, 0); g.fill();
-  // (the bits)
-  box(g, 60, y - 10, 14, 6, INK); box(g, 61, y - 9, 12, 4, '#F5F5F4'); box(g, 61, y - 6, 12, 1, '#9CA3AF');
-  box(g, 120, y - 12, 16, 9, INK); box(g, 121, y - 11, 14, 7, '#7C3AED'); box(g, 126, y - 9, 4, 3, '#D4D4D8');
+  checker(g, 0, y - 22, w, 6, BLOOD[2], 0, 2);
+  // (spatter up the curb and either side; drips running down)
+  for (let i = 0; i < 60; i++) { const x = (i * 97) % w, yy = -((i * 37) % 30) - 4; box(g, x, yy, 2 + (i % 3), 2, BLOOD[1 + (i % 4)]); if (i % 7 === 0) box(g, x + 1, yy + 2, 1, 4, BLOOD[2]); }
+  // (the heap at the end: stepped, glistening; a rib or two, a loop of something)
+  g.fillStyle = INK; g.beginPath(); g.ellipse(w - 30, y - 8, 37, 15, 0, Math.PI, 0); g.fill();
+  for (let k = 0; k < 4; k++) { g.fillStyle = BLOOD[2 + k]; g.beginPath(); g.ellipse(w - 30 - k * 3, y - 7 - k * 2, 33 - k * 7, 12 - k * 2.5, 0, Math.PI, 0); g.fill(); }
+  for (let k = 0; k < 3; k++) { box(g, w - 46 + k * 7, y - 16 - (k % 2) * 2, 2, 8, '#F4EAD0'); box(g, w - 46 + k * 7, y - 16 - (k % 2) * 2, 1, 2, '#FFFFFF'); }
+  g.strokeStyle = '#E8A0A8'; g.lineWidth = 3; g.beginPath(); g.arc(w - 18, y - 12, 6, Math.PI * 0.9, Math.PI * 2.2); g.stroke();
+  g.strokeStyle = '#C87080'; g.lineWidth = 1; g.stroke();
+  box(g, w - 40, y - 19, 3, 2, BLOOD[6]);
+  // (the bits: a sneaker, the fanny pack, a souvenir cup and its straw, some teeth, the shreds of a FUTURELAND T-shirt)
+  box(g, 60, y - 10, 14, 6, INK); box(g, 61, y - 9, 12, 4, '#F5F5F4'); box(g, 61, y - 6, 12, 1, '#9CA3AF'); box(g, 62, y - 9, 3, 1, '#E04848');
+  box(g, 120, y - 12, 16, 9, INK); box(g, 121, y - 11, 14, 7, '#7C3AED'); box(g, 121, y - 11, 14, 2, '#A78BFA'); box(g, 126, y - 9, 4, 3, '#D4D4D8');
   box(g, 175, y - 18, 10, 14, INK); box(g, 176, y - 17, 8, 12, '#F8FAFC'); box(g, 176, y - 13, 8, 3, '#DC2626'); box(g, 179, y - 21, 2, 6, '#F472B6');
-  for (let k = 0; k < 4; k++) box(g, 210 + k * 5, y - 6 - (k % 2), 3, 3, '#FEF9C3');
-  box(g, 240, y - 9, 22, 5, '#14B8A6'); box(g, 246, y - 8, 10, 2, '#F8FAFC');
+  for (let k = 0; k < 4; k++) { box(g, 210 + k * 5, y - 6 - (k % 2), 3, 3, '#FEF9C3'); box(g, 210 + k * 5, y - 6 - (k % 2), 1, 1, '#FFFFFF'); }
+  box(g, 240, y - 9, 22, 5, '#14B8A6'); box(g, 246, y - 8, 10, 2, '#F8FAFC'); box(g, 240, y - 9, 22, 1, '#5EEAD4');
 };
 
 export const drawLanding = (c: Ctx, state: GameState) => {
@@ -174,8 +182,10 @@ export const drawLanding = (c: Ctx, state: GameState) => {
     const wx = L ? L.car.x : X(WRECK_X);
     c.save(); c.translate(wx, GY + 6); c.rotate(0.18); drawSled(c, 0, 0, 0, FRONT_SLED, false, 0); c.restore();
     // (the crumple, the smoke)
-    box(c, wx + 50, GY - 34, 30, 24, '#3F3F46');
-    for (let i = 0; i < 3; i++) { const u = ((state.frame * 0.7 + i * 50) % 150) / 150; c.fillStyle = `rgba(82, 82, 91, ${0.45 * (1 - u)})`; c.beginPath(); c.arc(wx + 60 + Math.sin(state.frame * 0.04 + i) * 8, GY - 40 - u * 120, 8 + u * 20, 0, Math.PI * 2); c.fill(); }
+    box(c, wx + 49, GY - 35, 32, 26, INK); box(c, wx + 50, GY - 34, 30, 24, '#3F3F46'); box(c, wx + 50, GY - 34, 30, 3, '#71717A'); checker(c, wx + 50, GY - 24, 30, 14, '#27272A', 0, 2);
+    for (let i = 0; i < 4; i++) { const u = ((state.frame * 0.7 + i * 38) % 150) / 150, g2 = Math.round(60 + u * 50); pixelBlob(c, wx + 60 + Math.sin(state.frame * 0.04 + i) * 8, GY - 40 - u * 120, 8 + u * 20, 7 + u * 16, `rgba(${g2}, ${g2}, ${g2 + 8}, ${(0.55 * (1 - u)).toFixed(3)})`); }
+    // (a lick of fire in the crumple, now and then)
+    if ((state.frame >> 3) % 3) { const fl = (state.frame >> 1) % 3; box(c, wx + 56, GY - 40 - fl, 6, 8 + fl, '#EA580C'); box(c, wx + 58, GY - 38 - fl, 3, 6, '#FDE68A'); }
   }
   if (L) for (const r of L.riders) if (!r.down) rider(c, r, state.frame);
 };

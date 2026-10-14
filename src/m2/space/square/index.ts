@@ -110,9 +110,8 @@ export const square: SpaceSection = {
   drawBackdrop: (c, state) => drawSquareBackdrop(c, state),
   drawBack: (c, state) => {
     const sq = mine(state);
-    drawSquareBack(c, state);
+    drawSquareBack(c, state, () => { if (sq) { drawTrack(c, state, sq.gear.monos[0], TRACK_LEGS.map(X)); drawGearBack(c, state, sq.gear); } });
     drawSpeakers(c, state, !!outOf(state).pa);
-    if (sq) { drawTrack(c, state, sq.gear.monos[0], TRACK_LEGS.map(X)); drawGearBack(c, state, sq.gear); }
   },
   drawFront: (c, state) => {
     const sq = mine(state);

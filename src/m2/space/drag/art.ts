@@ -1,17 +1,21 @@
-// The main drag, painted: the sky by the hour; behind him (to the left) the giant atom with the hole he came out of,
-// smoking; ahead, bigger the further he gets, Space Needle 2 going up out of sight. The shops along the back, the
-// trench, the drained lagoon, the googie roofs, the needle's plaza and its lift.
+// The main drag, painted (the final pass: peak SNES, fake 3D, one eye for the lot; the square's kit). The backdrop:
+// the sky by the hour; behind him (to the left) the giant atom with the hole he came out of, smoking; ahead, bigger
+// the further he gets, Space Needle 2 going up out of sight. In the world, back to front: the walk going back, the far
+// row, the OPEN TRENCH and the DRAINED LAGOON cut through it; the shops' sides and fronts; the needle's base at the end
+// (its legs coming down into the plaza, the lift lobby round its core); the walk under him, bent; the googie roofs'
+// lips, the steps, the observation balcony; the big signs, the lamps.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH } from '../../../m1/constants';
-import { timeOfDay } from '../../timeOfDay';
-import { box } from '../section';
 import { SECTIONS, GY } from '../geometry';
-import { INK, still, inView, drawSky, drawSkyline, drawGiantAtom, drawNeedle, drawStreet, drawPitEdge, drawLamp, drawSpeaker, board, drawShop, horizonY, type Shop } from '../square/paint';
+import { type Ctx, INK, box, checker, poly, still, inView, viewOf, board, slab, ramp6, lit, chromePole, starburst, ball, glassOf, CHROME, PINK, TEAL, LIP, mix } from '../square/paint';
+import { drawSky, drawClouds, drawBlimp, drawFarSkyline, drawGiantAtom, drawNeedle, horizonY } from '../square/sky';
+import { drawGoingBack, drawPlayPlane, drawPitDressing, type Ground } from '../square/ground';
+import { type Shop, type Block, drawSides, drawShopFront, shopBlocks } from '../square/buildings';
+import { drawLamp, drawSpeaker, drawBigSign } from '../square/props';
 import { X, Y, T1, T2, LEDGES, LAMPS, SPEAKERS, LIFT_X } from './layout';
 
-type Ctx = CanvasRenderingContext2D;
 const { x0, x1 } = SECTIONS.drag;
 
 export const drawDragBackdrop = (c: Ctx, state: GameState) => {
@@ -19,14 +23,16 @@ export const drawDragBackdrop = (c: Ctx, state: GameState) => {
   const t = state.frame, cam = state.camera.x + CANVAS_WIDTH / 2;
   const prog = Math.max(0, Math.min(1, (cam - x0) / (x1 - x0)));
   const hz = horizonY(state);
-  drawSkyline(c, state, 0.08, '#A5B4FC', 11);
+  drawClouds(c, state);
+  drawBlimp(c, state);
+  drawFarSkyline(c, state, 0.03, 0.45, 11);
   // The giant atom, behind him now (receding off to the left), the hole in it smoking
   const as = 1.1 - prog * 0.6;
   drawGiantAtom(c, 120 - prog * 260, hz - 120 * as - 40, as, t, true);
   // Space Needle 2 ahead: up out of sight; over its own lift once that's on the screen
   const lift = X(LIFT_X) - state.camera.x;
   drawNeedle(c, Math.min(690, lift), hz + 6, 0.6 + prog * prog * 1.5, t);
-  drawSkyline(c, state, 0.2, '#C4B5FD', 5);
+  drawFarSkyline(c, state, 0.08, 0.22, 5, 14);
   return true;
 };
 
@@ -41,51 +47,43 @@ const SHOPS: Shop[] = [
   { x: X(6820), w: 260, h: 160, wall: '#F1F5F9', trim: '#E11D48', roof: 'boomerang', name: 'NEEDLE GIFTS', sub: 'I WENT TO SPACE AND ALL I GOT WAS THIS SHIRT' },
 ];
 
-const signs = (c: Ctx, state: GameState) => {
-  // (`pylon`: up on one pole, where two posts would stand in front of a shop or the monorail's shed)
-  const big = (key: string, x: number, h: number, a: string, b: string, pylon = false) => {
-    if (!inView(state, x - 220, x + 220)) return;
-    still(c, `spc-dsign-${key}`, x, GY, -220, -h - 40, 440, h + 42, g => {
-      if (pylon) { box(g, -5, -h + 10, 10, h - 10, '#475569'); box(g, -3, -h + 10, 3, h - 10, '#94A3B8'); }
-      else { box(g, -150, -h + 10, 6, h - 10, '#64748B'); box(g, 144, -h + 10, 6, h - 10, '#64748B'); }
-      board(g, 0, -h, a, '#0F172A', '#FDE047', 9, 8);
-      board(g, 0, -h + 26, b, '#FFFFFF', '#0F766E', 6, 5);
-    });
-  };
-  big('trench', X(T1.a - 150), 120, 'FUTURELAND UNDERGROUND', 'OPEN TRENCH. CAST MEMBERS ONLY.');
-  big('lagoon', X(1880), 150, 'THE LAGOON OF TOMORROW', 'DRAINED 1971. SUBMARINES ON THE BOTTOM.', true);
-  big('mover', X(4300), 290, 'THE PEOPLE MOVER (EXPRESS RETURN)', 'WALK FASTER, CITIZEN!', true);
-  big('plaza', X(5850), 150, 'SPACE NEEDLE 2', 'TO SPACE AND BEYOND! FIVE MILES UP!');
+const GROUND: Ground = {
+  id: 'dr',
+  floor: [[x0 - 200, X(T1.a)], [X(T1.b), X(T2.a)], [X(T2.b), x1 + 200]],
+  pits: [{ a: X(T1.a), b: X(T1.b), kind: 'trench' }, { a: X(T2.a), b: X(T2.b), kind: 'lagoon' }],
 };
 
-const pits = (c: Ctx, state: GameState) => {
-  for (const [a, b, deep] of [[T1.a, T1.b, false], [T2.a, T2.b, true]] as const) {
-    if (!inView(state, X(a) - 100, X(b) + 100)) continue;
-    box(c, X(a), GY, X(b) - X(a), 600, '#0B1020');
-    if (deep) {
-      // (the lagoon's bottom, far down: a submarine on its side, the tide line up the walls)
-      box(c, X(a), GY + 30, X(b) - X(a), 4, '#1E3A5F');
-      c.fillStyle = '#334155'; c.beginPath(); c.ellipse(X(a) + 500, GY + 330, 120, 26, 0.1, 0, Math.PI * 2); c.fill();
-      box(c, X(a) + 480, GY + 290, 30, 24, '#334155');
-    } else for (let x = X(a) + 40; x < X(b); x += 90) box(c, x, GY + 260, 4, 70, '#57534E');
-    drawPitEdge(c, X(a), GY, 1); drawPitEdge(c, X(b), GY, -1);
-    for (const fx of [X(a) - 66, X(b) + 12]) { box(c, fx, GY - 30, 56, 4, '#F97316'); box(c, fx, GY - 18, 56, 4, '#FFFFFF'); box(c, fx, GY - 34, 3, 34, '#F97316'); box(c, fx + 52, GY - 34, 3, 34, '#F97316'); }
-  }
+const LX = X(LIFT_X);
+const BLOCKS: Block[] = [
+  ...shopBlocks(SHOPS, GY, true),
+  { x0: LX - 140, x1: LX + 140, top: GY - 150, bottom: GY, col: '#FDA4AF', noTop: true },
+];
+
+const signs = (c: Ctx, state: GameState) => {
+  drawBigSign(c, state, 'd-trench', X(T1.a - 150), 120, 'FUTURELAND UNDERGROUND', 'OPEN TRENCH. CAST MEMBERS ONLY.');
+  drawBigSign(c, state, 'd-lagoon', X(1880), 150, 'THE LAGOON OF TOMORROW', 'DRAINED 1971. SUBMARINES ON THE BOTTOM.', undefined, undefined, true);
+  drawBigSign(c, state, 'd-mover', X(4300), 290, 'THE PEOPLE MOVER (EXPRESS RETURN)', 'WALK FASTER, CITIZEN!', undefined, undefined, true);
+  drawBigSign(c, state, 'd-plaza', X(5850), 150, 'SPACE NEEDLE 2', 'TO SPACE AND BEYOND! FIVE MILES UP!');
 };
 
 const ledges = (c: Ctx, state: GameState) => {
   for (const [rx, h, w, what] of LEDGES) {
     const x = X(rx), y = Y(h);
     if (!inView(state, x - 40, x + w + 40)) continue;
-    still(c, `spc-dledge-${what}-${w}-${h}`, x, y, -20, -40, w + 40, h + 44, g => {
+    still(c, `spc-dledge-${what}-${w}-${h}`, x, y, -40, -60, w + 80, h + 64, g => {
       if (what === 'roof') {
-        // (the roof's edge: a lit chrome lip to stand on, a starburst at the corner)
-        box(g, -6, -2, w + 12, 14, INK); box(g, -4, 0, w + 8, 10, '#E2E8F0'); box(g, -4, 0, w + 8, 3, '#FFFFFF');
-        g.strokeStyle = '#FDE047'; g.lineWidth = 2; for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4; g.beginPath(); g.moveTo(w - 10, -14); g.lineTo(w - 10 + Math.cos(a) * 9, -14 + Math.sin(a) * 9); g.stroke(); }
+        // (the roof's edge: a lit chrome coping to stand on, a starburst up at the corner)
+        box(g, -6, -2, w + 12, 14, INK); box(g, -4, 0, w + 8, 10, CHROME[3]); box(g, -4, 7, w + 8, 3, CHROME[2]);
+        box(g, -4, 0, w + 8, 3, LIP[2]); box(g, -4, 0, w + 8, 1, LIP[3]);
+        for (let k = 4; k < w; k += 16) box(g, k, 4, 6, 2, PINK[3]);
+        chromePole(g, w - 10, -22, 0, 3); starburst(g, w - 10, -26, 10);
       } else {
-        box(g, 4, 10, 8, h, '#94A3B8'); box(g, w - 12, 10, 8, h, '#94A3B8');
-        box(g, -2, -2, w + 4, 16, INK); box(g, 0, 0, w, 12, '#CBD5E1'); box(g, 0, 0, w, 3, '#F8FAFC');
-        box(g, 0, -26, w, 3, '#64748B'); for (let k = 0; k <= w; k += 24) box(g, k, -26, 2, 26, '#64748B');
+        // (a landing on chrome stilts: a lit lip, a railing along the back)
+        chromePole(g, 8, 12, h, 8); chromePole(g, w - 8, 12, h, 8);
+        box(g, -2, -2, w + 4, 16, INK); box(g, 0, 0, w, 12, CHROME[3]); box(g, 0, 8, w, 4, CHROME[2]);
+        box(g, 0, 0, w, 3, LIP[2]); box(g, 0, 0, w, 1, LIP[3]);
+        for (let k = 6; k < w - 4; k += 12) box(g, k, 5, 4, 2, TEAL[3]);
+        box(g, 0, -28, w, 4, INK); box(g, 0, -27, w, 2, CHROME[4]); for (let k = 0; k <= w; k += 24) { box(g, k - 1, -27, 3, 27, INK); box(g, k, -27, 1, 27, CHROME[4]); }
         // (its name on the fascia under the floor: up over the railing it was cut off, and whoever stood there covered it)
         if (what === 'balcony') board(g, w / 2, 26, 'OBSERVATION BALCONY', '#0F172A', '#7DD3FC', 6, 5);
       }
@@ -93,38 +91,56 @@ const ledges = (c: Ctx, state: GameState) => {
   }
 };
 
-/** The needle's base at the end: its three legs coming down into the plaza, the lift's doors in the core. */
+/** The needle's base at the end: its three legs (white enamel, lit down their left sides, riveted) coming down into
+ *  the plaza on their feet, the core, the lift lobby round its foot (pink, a band of trim, the lift's doors, the call
+ *  button), LIFT TO SPACE over the doors. */
+const paintBase = (g: Ctx) => {
+  const on = lit(), Lg = ramp6('#EEF2F8'), Pk = ramp6('#FDA4AF'), glass = glassOf();
+  for (const [fx, tx, k] of [[-320, -40, 2], [320, 40, 3], [-120, -10, 4]] as const) {
+    poly(g, [[fx - 23, 0], [tx - 13, -560], [tx + 13, -560], [fx + 23, 0]], INK);
+    poly(g, [[fx - 20, 0], [tx - 10, -560], [tx + 10, -560], [fx + 20, 0]], Lg[k]);
+    poly(g, [[fx - 20, 0], [tx - 10, -560], [tx - 4, -560], [fx - 8, 0]], Lg[k + 1] ?? Lg[5]);
+    poly(g, [[fx + 12, 0], [tx + 6, -560], [tx + 10, -560], [fx + 20, 0]], Lg[k - 1]);
+    for (let u = 0.08; u < 1; u += 0.08) { const x = fx + (tx - fx) * u, y = -560 * u; box(g, x - 1, y, 2, 2, Lg[1]); }
+    // (its foot: a chrome shoe bolted down)
+    box(g, fx - 30, -14, 60, 14, INK); box(g, fx - 29, -13, 58, 13, CHROME[3]); box(g, fx - 29, -13, 58, 2, CHROME[5]); for (const bx of [fx - 22, fx + 18]) box(g, bx, -9, 4, 4, CHROME[1]);
+  }
+  // (the core: banded, the lift's shaft)
+  box(g, -45, -560, 90, 560, INK);
+  slab(g, -44, -560, 88, 560, Lg, false);
+  for (let y = -540; y < -150; y += 40) box(g, -44, y, 88, 2, Lg[2]);
+  // (the lobby round its foot)
+  box(g, -142, -152, 284, 152, INK);
+  slab(g, -140, -150, 280, 150, Pk);
+  box(g, -140, -150, 280, 10, PINK[2]); box(g, -140, -150, 280, 2, PINK[4]);
+  for (const wx of [-128, 76]) { box(g, wx - 1, -121, 54, 72, INK); box(g, wx, -120, 52, 70, glass[1]); box(g, wx, -120, 52, 24, glass[2]); box(g, wx, -120, 2, 70, glass[4]); box(g, wx + 25, -120, 2, 70, CHROME[3]); }
+  // (the lift's doors: brushed chrome, a seam, the floor indicator over them)
+  box(g, -38, -122, 76, 122, INK); box(g, -35, -119, 34, 119, CHROME[4]); box(g, 1, -119, 34, 119, CHROME[4]);
+  box(g, -35, -119, 3, 119, CHROME[6]); box(g, 1, -119, 3, 119, CHROME[6]); box(g, -2, -119, 4, 119, INK);
+  for (let k = 0; k < 6; k++) box(g, -24 + k * 9, -128, 6, 4, k === 0 ? (on ? '#FFE070' : '#F59E0B') : '#3A3A48');
+  box(g, 50, -98, 16, 26, INK); box(g, 51, -97, 14, 24, CHROME[3]); g.fillStyle = on ? '#FDE047' : '#F59E0B'; g.beginPath(); g.moveTo(58, -93); g.lineTo(54, -85); g.lineTo(62, -85); g.fill();
+  ball(g, 58, -79, 2, '#EF4444');
+  board(g, 0, -172, 'LIFT TO SPACE', '#0F172A', '#FDE047', 10, 8, true);
+  board(g, 0, -134, 'ALL ABOARD! 5 MILES UP. NO REFUNDS IN ORBIT.', '#FFFFFF', '#BE123C', 6, 4);
+  void checker; void mix;
+};
 const base = (c: Ctx, state: GameState) => {
-  const lx = X(LIFT_X);
-  if (!inView(state, lx - 400, lx + 400)) return;
-  const lit = timeOfDay().lamps > 0.3;
-  still(c, `spc-needlebase-${lit ? 1 : 0}`, lx, GY, -380, -560, 760, 562, g => {
-    // (the legs, splayed out to their feet)
-    for (const [fx, tx, col] of [[-320, -40, '#CBD5E1'], [320, 40, '#F8FAFC'], [-120, -10, '#E2E8F0']] as const) {
-      g.fillStyle = INK; g.beginPath(); g.moveTo(fx - 22, 0); g.lineTo(tx - 12, -560); g.lineTo(tx + 12, -560); g.lineTo(fx + 22, 0); g.fill();
-      g.fillStyle = col; g.beginPath(); g.moveTo(fx - 18, 0); g.lineTo(tx - 9, -560); g.lineTo(tx + 9, -560); g.lineTo(fx + 18, 0); g.fill();
-    }
-    // (the core, the lift lobby round its foot)
-    box(g, -44, -560, 88, 560, INK); box(g, -40, -560, 80, 560, '#F1F5F9'); box(g, -40, -560, 12, 560, '#FFFFFF');
-    box(g, -140, -150, 280, 150, INK); box(g, -136, -146, 272, 146, '#FDA4AF');
-    box(g, -136, -146, 272, 10, '#E11D48');
-    box(g, -36, -120, 72, 120, INK); box(g, -33, -117, 32, 117, '#CBD5E1'); box(g, 1, -117, 32, 117, '#CBD5E1');
-    box(g, -2, -117, 4, 117, INK);
-    box(g, 50, -96, 14, 22, INK); g.fillStyle = lit ? '#FDE047' : '#F59E0B'; g.beginPath(); g.moveTo(57, -92); g.lineTo(53, -84); g.lineTo(61, -84); g.fill();
-    board(g, 0, -170, 'LIFT TO SPACE', '#0F172A', '#FDE047', 10, 8);
-    board(g, 0, -132, 'ALL ABOARD! 5 MILES UP. NO REFUNDS IN ORBIT.', '#FFFFFF', '#BE123C', 6, 4);
-  });
+  if (!inView(state, LX - 400, LX + 400)) return;
+  still(c, 'spc-needlebase', LX, GY, -380, -562, 760, 564, paintBase);
 };
 
-export const drawDragBack = (c: Ctx, state: GameState) => {
-  for (const sh of SHOPS) drawShop(c, state, sh, GY);
+/** `mid`: what goes on the walk, in front of the shops but behind the furniture (the track, the gear, the landing). */
+export const drawDragBack = (c: Ctx, state: GameState, mid?: () => void) => {
+  const v = viewOf(state);
+  drawGoingBack(c, v, GROUND);
+  drawSides(c, v, BLOCKS);
+  for (const sh of SHOPS) drawShopFront(c, state, sh, GY);
   base(c, state);
+  drawPlayPlane(c, v, GROUND);
+  drawPitDressing(c, v, GROUND);
+  mid?.();
   signs(c, state);
-  for (const rx of LAMPS) if (inView(state, X(rx) - 40, X(rx) + 40)) drawLamp(c, X(rx), GY);
-  drawStreet(c, state, x0 - 200, X(T1.a), GY);
-  drawStreet(c, state, X(T1.b), X(T2.a), GY);
-  drawStreet(c, state, X(T2.b), x1 + 200, GY);
-  pits(c, state);
+  for (const rx of LAMPS) if (inView(state, X(rx) - 50, X(rx) + 60)) drawLamp(c, X(rx), GY, state.frame);
   ledges(c, state);
 };
 
@@ -133,6 +149,6 @@ export const drawDragSpeakers = (c: Ctx, state: GameState, talking: boolean) => 
 };
 
 export const dragLamps = (): Light[] => [
-  ...LAMPS.map(rx => ({ x: X(rx) + 27, y: GY - 178, r: 150, a: 0.85, color: '#FFE9A8' })),
+  ...LAMPS.map(rx => ({ x: X(rx) + 28, y: GY - 180, r: 150, a: 0.85, color: '#FFE9A8' })),
   { x: X(LIFT_X), y: GY - 100, r: 260, a: 0.9, color: '#FDE68A' },
 ];
