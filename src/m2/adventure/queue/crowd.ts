@@ -28,7 +28,10 @@ export const drawGuest = (c: CanvasRenderingContext2D, g: Guest, f: number) => {
  */
 let layer: HTMLCanvasElement | null = null;
 export const drawGuestsDimmed = (c: CanvasRenderingContext2D, gs: Guest[], f: number, dim: number, tint = '0, 0, 0') => {
-  if (!gs.length) return;
+  if (gs.length) drawDimmed(c, dim, tint, l => { for (const g of gs) drawGuest(l, g, f); });
+};
+/** Whatever `paint` draws (in `c`'s space), onto one layer, darkened together by `dim` of `tint`, then put down in one go. */
+export const drawDimmed = (c: CanvasRenderingContext2D, dim: number, tint: string, paint: (l: CanvasRenderingContext2D) => void) => {
   const W = c.canvas.width, H = c.canvas.height;
   layer ??= document.createElement('canvas');
   if (layer.width !== W || layer.height !== H) { layer.width = W; layer.height = H; }
@@ -36,7 +39,7 @@ export const drawGuestsDimmed = (c: CanvasRenderingContext2D, gs: Guest[], f: nu
   l.setTransform(1, 0, 0, 1, 0, 0); l.clearRect(0, 0, W, H);
   l.imageSmoothingEnabled = c.imageSmoothingEnabled;
   l.setTransform(c.getTransform());
-  for (const g of gs) drawGuest(l, g, f);
+  paint(l);
   l.setTransform(1, 0, 0, 1, 0, 0);
   l.globalCompositeOperation = 'source-atop'; l.fillStyle = `rgba(${tint}, ${dim})`; l.fillRect(0, 0, W, H); l.globalCompositeOperation = 'source-over';
   c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(layer, 0, 0); c.restore();

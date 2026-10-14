@@ -53,18 +53,22 @@ const REGIONS: Region[] = [
 // ---------------------------------------------------------------------------------------------------------------
 // The whole of it
 
-export const drawDinoWorld = (c: Ctx, state: GameState, look: DinoLook, drawRex: () => void) => {
+export const drawDinoWorld = (c: Ctx, state: GameState, look: DinoLook, drawRex: () => void, zoo?: { far: () => void; near: () => void }) => {
   const eye = eyeOf(state), v = viewOf(state), f = state.frame || 0;
   const vis = (a: number, b: number) => b > v.x - 60 && a < v.x + v.w + 60;
   // (something pushed back to depth d is on screen where it's drawn, slid toward the eye: not where it stands)
   const visAt = (a: number, b: number, d: number) => vis(eye.x + (a - eye.x) * d, eye.x + (b - eye.x) * d);
   // The ground going back, and what stands along the back of it
   backGround(c, eye, v);
+  // (the park's guests well back, behind the meadow's rail and the paddock's fence: zoo.ts)
+  zoo?.far();
   if (visAt(D - 100, FENCE_X + 200, 0.7)) atDepth(c, eye, 0.7, () => penBackWall(c, state));
   if (visAt(D + 1000, D + 2500, 0.74)) atDepth(c, eye, 0.74, () => meadowRail(c, state));
   if (visAt(D + 3880, D + 5920, 0.76)) atDepth(c, eye, 0.76, () => plazaBack(c, state, f));
   if (visAt(PADDOCK_IN - 60, PADDOCK_OUT + 80, PAD_BACK)) atDepth(c, eye, PAD_BACK, () => paddockBack(c, state, eye, f));
   if (visAt(D + 8600, LAST_FENCE + 100, 0.72)) atDepth(c, eye, 0.72, () => jungleBack(c, state));
+  // (the rest of them, the gallery, their rails, the park's signs: zoo.ts)
+  zoo?.near();
   // The ground toward him (bent: the rows nearer, wider)
   floor(c, state, v);
   bendFloor(c, eye, GY, GY, GY + 170, v.x - 10, v.x + v.w + 10);

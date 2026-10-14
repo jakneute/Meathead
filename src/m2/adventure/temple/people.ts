@@ -11,7 +11,7 @@ const SHIRTS = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#A855F7', '#EC4899'
 const PANTS = ['#1E3A8A', '#57534E', '#A8A29E', '#0F172A', '#78350F'];
 
 export type Outfit = 'stage' | 'warrior' | 'guest' | 'maint' | 'operator' | 'guide';
-export type Pose = 'stand' | 'walk' | 'sit' | 'fly' | 'crank' | 'thrust';
+export type Pose = 'stand' | 'walk' | 'sit' | 'fly' | 'crank' | 'thrust' | 'photo' | 'cheer' | 'point' | 'hold';
 
 export interface Look { woman: boolean; skin: string; hair: string; heavy: boolean; face: number; bald: boolean; long: boolean; shirt: string; pants: string; kid: boolean }
 /** Who this one is, from the seed: the same every time. (`woman` forces it either way.) */
@@ -35,13 +35,17 @@ export const lookOf = (seed: number, woman?: boolean): Look => {
 export interface PersonOpts {
   seed: number; outfit: Outfit; f: number;
   pose?: Pose; woman?: boolean; talking?: boolean;
+  /** Who they are, partly overridden (a guest's sunburn, say). */
+  look?: Partial<Look>;
+  /** Shorts: bare from the knee down. */
+  shorts?: boolean;
   /** The state of them: their eyes and mouth. */
   mood?: 'bored' | 'angry' | 'scared' | 'happy' | 'shocked';
 }
 
 /** One of them, standing (or sat, or flying through the air) at the origin, facing right. */
 export const drawPerson = (c: Ctx, o: PersonOpts) => {
-  const L = lookOf(o.seed, o.woman);
+  const L = { ...lookOf(o.seed, o.woman), ...o.look };
   const f = o.f, pose = o.pose ?? 'stand';
   const sit = pose === 'sit';
   const stride = pose === 'walk' ? Math.sin(f * 0.25 + o.seed) * 4 : pose === 'fly' ? 6 : 0;
@@ -61,11 +65,14 @@ export const drawPerson = (c: Ctx, o: PersonOpts) => {
     }
     const x = s * 4.5 + s * stride * 0.5 - 3.5;
     const legCol = o.outfit === 'warrior' ? L.skin : s < 0 ? dk(bottom, 0.15) : bottom;
-    rect(c, x, -30, 7, 27, legCol, 1.5);
+    if (o.shorts) { rect(c, x + 0.5, -17, 6, 14, L.skin, 1.5); rect(c, x - 0.5, -30, 8, 14, legCol, 1.5); }
+    else rect(c, x, -30, 7, 27, legCol, 1.5);
     blob(c, () => c.roundRect(x - 1 + (s > 0 ? 1 : 0), -4.5, 10, 5, [2, 3, 1, 1]), o.outfit === 'warrior' ? '#92400E' : '#27272A', x - 1, x + 9);
   }
   // Far arm, body
-  const farHand = pose === 'crank' ? [w / 2 + 6, -40 + Math.sin(f * 0.2) * 6] : pose === 'fly' ? [-w / 2 - 10, -66] : sit ? [w / 2 + 2, -40] : [-w / 2, -32];
+  const wave = Math.sin(f * 0.3 + o.seed) * 3;
+  const farHand = pose === 'crank' ? [w / 2 + 6, -40 + Math.sin(f * 0.2) * 6] : pose === 'fly' ? [-w / 2 - 10, -66] : sit ? [w / 2 + 2, -40]
+    : pose === 'photo' ? [w / 2 + 3, -62] : pose === 'cheer' ? [-w / 2 - 5, -86 - wave] : pose === 'hold' ? [-w / 2 - 1, -74] : [-w / 2, -32];
   arm(c, -w / 2 + 3, -52, farHand[0], farHand[1], top, L.skin, o.outfit === 'warrior' ? 0 : 0.5, 6);
   torso(c, -30, -56, w, hipW + (L.heavy ? 4 : 0), top);
   if (o.outfit === 'warrior') {
@@ -105,7 +112,8 @@ export const drawPerson = (c: Ctx, o: PersonOpts) => {
     rect(c, -13, hy - 3, 28, 3, '#D6C7A1', 1); rect(c, -10, hy - 6, 22, 2, '#7C2D12', 0);
   }
   // Near arm
-  const hand = pose === 'crank' ? [w / 2 + 10, -42 - Math.sin(f * 0.2) * 6] : pose === 'thrust' ? [w / 2 + 16, -48] : pose === 'fly' ? [w / 2 + 10, -70] : sit ? [w / 2 + 6, -44] : [w / 2, -32];
+  const hand = pose === 'crank' ? [w / 2 + 10, -42 - Math.sin(f * 0.2) * 6] : pose === 'thrust' ? [w / 2 + 16, -48] : pose === 'fly' ? [w / 2 + 10, -70] : sit ? [w / 2 + 6, -44]
+    : pose === 'photo' ? [w / 2 + 7, -64] : pose === 'cheer' ? [w / 2 + 5, -88 + wave] : pose === 'point' ? [w / 2 + 18, -60] : pose === 'hold' ? [w / 2 + 2, -76] : [w / 2, -32];
   arm(c, w / 2 - 3, -52, hand[0], hand[1], top, L.skin, o.outfit === 'warrior' ? 0 : 0.5, 6);
   c.restore();
   return L;

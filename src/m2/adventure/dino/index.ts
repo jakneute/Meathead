@@ -33,6 +33,8 @@ import { buildRex, updateRex, drawRex, drawRexHud, drawRexSaid } from './rex';
 import { drawDinoBackdrop } from './art/sky';
 import { drawDinoWorld, dinoLamps } from './art/world';
 import { drawBoothCut } from './art/booth';
+import { drawZooFar, drawZooNear } from './art/zoo';
+import { updateGuests, drawGuestsSaid } from './guests';
 import { MEATHEAD_LANDED, MEATHEAD_RED_EYES, MAINT_OBLIVIOUS, DINO_FRIENDLY, MEATHEAD_DOOR } from './lines';
 
 import { x0, x1, D, PEN_WALL, DRAIN_Y, PADDOCK_IN, PADDOCK_OUT, PADDOCK_TOP, LAST_FENCE, TEMPLE_ZOOM_OUT, TEMPLE_DOOR_X, LEDGES, SOLIDS } from './layout';
@@ -191,6 +193,8 @@ export const dino: Section = {
     if (s.dinoArrival) { s.dinoArrival = false; if (!d.pebbleSeen) startPebble(state, d); }
     if (d.pebble) return runPebble(ctx, d);
     updateRex(ctx);
+    // (the park's guests: what they make of it, now and then)
+    updateGuests(state, { doorKicked: d.doorKicked, scene: p.inCutscene || d.kick > 0 });
     // (been through the temple's back door already, this life: it's open)
     if (state.checkpoint >= 40) d.doorKicked = true;
     // The temple's back door: kicked in, the first time; through it after that
@@ -237,12 +241,13 @@ export const dino: Section = {
   lamps: (state) => dinoLamps(state),
   drawBack: (c, state) => {
     const d = dinoOf(state);
-    drawDinoWorld(c, state, { hostile: d.hostile, doorKicked: d.doorKicked, kick: d.kick, switching: d.pebble?.clicked ?? false }, () => drawRex(c, state));
+    drawDinoWorld(c, state, { hostile: d.hostile, doorKicked: d.doorKicked, kick: d.kick, switching: d.pebble?.clicked ?? false }, () => drawRex(c, state), { far: () => drawZooFar(c, state), near: () => drawZooNear(c, state) });
   },
   drawFront: (c, state) => {
     const d = dinoOf(state);
     // (the T. rex's speaker: what it's saying, over its head)
     drawRexSaid(c, state);
+    drawGuestsSaid(c, state);
     if (d.pebble) { c.fillStyle = '#1A0B06'; c.fillRect(Math.round(d.pebble.x) - 3, Math.round(d.pebble.y) - 3, 7, 6); c.fillStyle = '#A8A29E'; c.fillRect(Math.round(d.pebble.x) - 2, Math.round(d.pebble.y) - 2, 5, 4); }
     // (friendly mode, before the switch: the speakers in their heads, doing the bit for the kids)
     if (d.pebble && !d.hostile) for (const e of state.enemies) if (e.kind === 'm2:raptor' && Math.abs(e.pos.x - state.player.pos.x) < 700) saidOver(c, DINO_FRIENDLY[(Math.floor(state.frame / 120) + Math.round(e.pos.x)) % 2], e.pos.x + e.width / 2, e.pos.y - 14, '#BFDBFE', 140);

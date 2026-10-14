@@ -208,9 +208,79 @@ export const REX_LINES = [
   ...Object.values(REX_WRECKED).flat(), ...REX_LIVE, ...allPants(REX_BIT), ...REX_CRASHED, ...allPants(REX_DYING),
 ];
 
+// ---------------------------------------------------------------------------------------------------------------
+// The park's guests (guests.ts), behind the rails, the glass, the paddock's fence: they think it's a show (the robots
+// going for a fat man, him killing them), then slowly they don't. Women and men both say these (m2.guest, m2.guest2).
+
+/** As he goes by, now and then: still a show to them, and then not. */
+export const GUEST_SEE: Record<'show' | 'doubt', ByPants> = {
+  show: {
+    clean: [
+      'LOOK, HONEY. THEY HIRED A FAT GUY TO GET EATEN.',
+      'IS HE THE ZOOKEEPER? HE LOOKS LIKE HE ATE THE ZOOKEEPER.',
+      'SIXTY BUCKS A TICKET, AND THE ACTOR IS A SLOB.',
+    ],
+    shitty: [
+      'THEY PUMP IN DINOSAUR SMELLS. THAT ONE IS COMING OUT OF HIS PANTS.',
+      'HE SHIT HIMSELF FOR THE ROLE. THAT IS METHOD.',
+      'IS THE SMELL PART OF THE SHOW? VERY REALISTIC.',
+    ],
+    nude: [
+      "KIDS, THAT'S A CAVEMAN. CAVEMEN DIDN'T HAVE PANTS.",
+      'I PAID FOR DINOSAURS, NOT HIS WIENER.',
+      'WHY IS THE CAVEMAN NAKED? THIS IS A FAMILY PARK.',
+    ],
+  },
+  doubt: {
+    clean: [
+      "I DON'T THINK HE WORKS HERE.",
+      "THAT GUY ISN'T ACTING. LOOK AT HIS FACE.",
+      "WHY ISN'T ANYBODY STOPPING THIS?",
+    ],
+    shitty: [
+      "HE'S NOT ACTING. YOU CAN'T FAKE THAT SMELL.",
+      'THEY SCARED THE SHIT OUT OF HIM. FOR REAL.',
+      'SOMEBODY CALL SECURITY. AND A JANITOR.',
+    ],
+    nude: [
+      "HE'S NOT A CAVEMAN, DIANE. HE'S JUST NAKED.",
+      "COVER THE KID'S EYES. NO, THE OTHER KID.",
+      "A NAKED MAN IS FIGHTING ROBOTS, AND NOBODY'S CALLING ANYBODY.",
+    ],
+  },
+};
+/** He's killed one of the robots (and it bled). */
+export const GUEST_KILL: Record<'show' | 'doubt', ByPants> = {
+  show: {
+    clean: ['WHOA! THE BLOOD LOOKS SO REAL!', 'BEST SHOW IN THE PARK! KILL ANOTHER ONE!'],
+    shitty: ['HE BEAT A DINOSAUR WITH A LOAD IN HIS PANTS! WHAT A PRO!', 'BLOOD AND SHIT. THEY THOUGHT OF EVERYTHING.'],
+    nude: ['THE NAKED GUY WINS! BEST SHOW EVER!', 'IT BLEEDS, AND HIS STUFF FLAPS! FIVE STARS!'],
+  },
+  doubt: {
+    clean: ['WHY DOES IT BLEED?!', "ROBOTS DON'T BLEED. TELL ME ROBOTS DON'T BLEED."],
+    shitty: ['WHY DOES IT BLEED?! WHY DOES HE LEAK?!', "THERE'S BLOOD AND SHIT ALL OVER. I'M CALLING MY LAWYER."],
+    nude: ['WHY DOES IT BLEED?! WHY IS HE NAKED?!', 'A NAKED MAN JUST MURDERED A ROBOT. I WANT A REFUND.'],
+  },
+};
+/** A robot's got its teeth (or its horns, its claws) into him. */
+export const GUEST_HURT: ByPants = {
+  clean: ['OHH! RIGHT IN THE GUT!', 'IT BIT HIM FOR REAL! DID YOU GET THAT?', "THAT'S A LAWSUIT."],
+  shitty: ['IT KNOCKED MORE SHIT OUT OF HIM!', 'IT BIT HIM AND SPIT. SMART DINOSAUR.', "OH GOD, HE'S LEAKING ON THE PATH."],
+  nude: ['IT BIT HIS BARE ASS!', 'OHH! RIGHT IN THE DANGLY BITS!', 'I CAN NEVER UNSEE HIM BOUNCE LIKE THAT.'],
+};
+/** The T. rex, a part of it wrecked, or the whole of it going down. */
+export const GUEST_REX: ByPants = {
+  clean: ['HE IS BREAKING THE T. REX! THAT THING COST TWO MILLION BUCKS!', "MY KID'S CRYING. BEST DAY EVER."],
+  shitty: ['HE IS TEARING UP THE T. REX WITH A LOAD IN HIS PANTS!', "THE BIG ONE CAN'T BEAT A GUY WHO SHIT HIMSELF?"],
+  nude: ["A NAKED GUY IS WRECKING THE T. REX! I'M FILMING!", "THE T. REX LOST TO A NAKED FAT MAN. WE'RE NEVER COMING BACK."],
+};
+const GUEST_LINES = [GUEST_SEE.show, GUEST_SEE.doubt, GUEST_KILL.show, GUEST_KILL.doubt, GUEST_HURT, GUEST_REX].flatMap(allPants);
+
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [...MEATHEAD_LANDED, ...MEATHEAD_RED_EYES, ...MEATHEAD_DOOR, ...HURT_RAPTOR, ...HURT_TRIKE, ...HURT_HORNS, ...HURT_PTERO, ...HURT_REX, ...MEATHEAD_REX_INTRO, ...HURT_REX_BITE, ...HURT_REX_SPRINT, ...HURT_REX_TAIL, ...HURT_REX_SHOCK],
   death: [...DEATH_RAPTOR, ...DEATH_TRIKE, ...DEATH_HORNS, ...DEATH_PTERO, ...DEATH_REX, ...DEATH_REX_BITE, ...DEATH_REX_SPRINT, ...DEATH_REX_TAIL, ...DEATH_REX_SHOCK],
   'm2.maint': [...MAINT_OBLIVIOUS],
   'm2.rex': REX_LINES,
+  'm2.guest': GUEST_LINES,
+  'm2.guest2': GUEST_LINES,
 };
