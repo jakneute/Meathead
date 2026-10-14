@@ -1285,9 +1285,10 @@ const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState) => {
   // (a sentence at a time)
   const line = sentenceShown(state.playerLastVulgarity);
   const half = ctx.measureText(line).width / 2 + 8;
-  // (the camera pulled back (a section's zoom): the words kept their full size, and on screen in the wider view)
+  // (the camera pulled back or pushed in (a section's zoom, a kill cam): the words kept their full size, and on screen
+  // in the view)
   const m = ctx.getTransform(), z = m.a / (ctx.canvas.width / CANVAS_WIDTH);
-  if (m.a > 0 && z < 0.99) {
+  if (m.a > 0 && Math.abs(z - 1) > 0.01) {
     const L = -m.e / m.a, R = (ctx.canvas.width - m.e) / m.a, h = half / z;
     const x = Math.max(L + h, Math.min(R - h, player.pos.x + player.width / 2));
     ctx.translate(x, player.pos.y - 20); ctx.scale(1 / z, 1 / z);

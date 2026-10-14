@@ -161,6 +161,17 @@ export const saidOver = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF
   // (kept whole on screen: slid in off the edges, down off the top and out from under the HUD; a speaker near an
   // edge, or a fixed camera framing them close to it, would cut the words off)
   const m = c.getTransform(), k = c.canvas.width / CANVAS_WIDTH;
+  // (a kill cam pushed in: the words kept their own size, not blown up with it)
+  const z = m.a / k;
+  if (m.a > 0 && m.d > 0 && z > 1.01) {
+    const L = -m.e / m.a, R = (c.canvas.width - m.e) / m.a, T = -m.f / m.d;
+    const half = (Math.max(...lines.map(l => c.measureText(l).width)) / 2 + 6) / z, up = ((lines.length - 1) * 11 + 9) / z;
+    x = Math.min(Math.max(x, L + half), R - half); y = Math.max(y, T + 6 / z + up);
+    c.save(); c.translate(x, y); c.scale(1 / z, 1 / z);
+    lines.forEach((l, i) => label(c, l, 0, -(lines.length - 1 - i) * 11, col, 7));
+    c.restore();
+    return;
+  }
   if (m.a > 0 && m.d > 0) {
     const half = Math.max(...lines.map(l => c.measureText(l).width)) / 2 + 6, top = y - (lines.length - 1) * 11 - 9;
     const L = -m.e / m.a, R = (c.canvas.width - m.e) / m.a, T = -m.f / m.d;
