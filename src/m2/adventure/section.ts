@@ -9,7 +9,7 @@ import type { WaterBody } from '../../m1/game/stages/index';
 import type { SceneLight, Light } from '../../m1/game/render/lighting';
 import type { Block } from '../../m1/types';
 import { groundBlocks, type GroundRun } from '../../m1/game/core/terrain';
-import { CANVAS_WIDTH, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../m1/constants';
 import { say, MEATHEAD_VOICE } from '../../m1/game/platform/speech';
 import type { SectionId } from './geometry';
 
@@ -160,7 +160,8 @@ export const saidOver = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF
   if (cur) lines.push(cur);
   // (kept whole on screen: slid in off the edges, down off the top and out from under the HUD; a speaker near an
   // edge, or a fixed camera framing them close to it, would cut the words off)
-  const m = c.getTransform(), k = c.canvas.width / CANVAS_WIDTH;
+  // (the render scale off the canvas's height: a cylinder's strip is wider than the screen, never taller)
+  const m = c.getTransform(), k = c.canvas.height / CANVAS_HEIGHT;
   // (a kill cam pushed in: the words kept their own size, not blown up with it)
   const z = m.a / k;
   if (m.a > 0 && m.d > 0 && z > 1.01) {

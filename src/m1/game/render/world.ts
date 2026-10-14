@@ -1287,7 +1287,9 @@ const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const half = ctx.measureText(line).width / 2 + 8;
   // (the camera pulled back or pushed in (a section's zoom, a kill cam): the words kept their full size, and on screen
   // in the view)
-  const m = ctx.getTransform(), z = m.a / (ctx.canvas.width / CANVAS_WIDTH);
+  // (the render scale off the canvas's height: a cylinder's strip (the world wrapped round) is wider than the screen,
+  // never taller, and isn't a zoom)
+  const m = ctx.getTransform(), z = m.a / (ctx.canvas.height / CANVAS_HEIGHT);
   if (m.a > 0 && Math.abs(z - 1) > 0.01) {
     const L = -m.e / m.a, R = (ctx.canvas.width - m.e) / m.a, h = half / z;
     const x = Math.max(L + h, Math.min(R - h, player.pos.x + player.width / 2));
