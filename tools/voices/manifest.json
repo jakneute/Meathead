@@ -6626,6 +6626,11 @@
  },
  {
   "voice": "death",
+  "text": "EATEN BY CHEAP OIL",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "EATEN LEG FIRST",
   "from": "content/deaths"
  },
@@ -7168,11 +7173,6 @@
   "voice": "death",
   "text": "GRAVITY: 1, MEATHEAD: 0",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "GREASE FIRE",
-  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -22376,6 +22376,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A METEOR. IN OIL. NOTHING. KNOCKOFF OIL.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "A MILLION DOLLARS! IN BABY WIPES! BY THE BARREL!",
   "from": "m1/game/bosses/oscar.ts:217"
  },
@@ -22508,6 +22513,11 @@
   "voice": "meathead",
   "text": "A ROCKET UNDER A MANHOLE COVER. STAND ON IT? HELL YES.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "A RUNNING HIT. THAT GETS A FAT BAT OFF A NECK.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -25371,6 +25381,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET OFF HIM, YOU LEECH! I SHOULD TACKLE YOU OFF!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "GET OFF ME, HUNCHY!",
   "from": "SPOOKY"
  },
@@ -26521,6 +26536,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S DRINKING HIS HEALTH BACK. KNOCK HIM OFF THAT GUY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S EATING A GUY LIKE A HOT DOG.",
   "from": "SPOOKY"
  },
@@ -26538,6 +26558,11 @@
   "voice": "meathead",
   "text": "HE'S GUTTING ME LIKE A FISH!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S HEALING OFF THAT GUY. RAM HIM!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -28501,6 +28526,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT EATS SHOES BUT IT WON'T BURN? BULLSHIT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "IT EATS THROUGH SHOES! WHAT KIND OF OIL IS THIS?!",
   "from": "SPACE"
  },
@@ -29721,6 +29751,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY PANTS WOULD BURN BETTER THAN THAT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "MY POCKET'S FULL OF NAPKINS.",
   "from": "SPACE"
  },
@@ -30171,6 +30206,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO FIRE. I'M THE HOTTEST THING IN HERE. NAKED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "NO FLASH PHOTOGRAPHY. NO KICKING. MISSED THAT ONE.",
   "from": "SPACE"
  },
@@ -30588,6 +30628,11 @@
   "voice": "meathead",
   "text": "NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...",
   "from": "m1/game/stages/oscar/bunker.ts:339"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING. ONLY THING IN HERE THAT BURNS IS MY ASS.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -36151,6 +36196,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHAT KIND OF CHEAP OIL DO THEY USE? IT DOESN'T EVEN BURN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "WHAT KIND OF FISH LIVES IN LAVA?!",
   "from": "HAZARD_HURT"
  },
@@ -36773,6 +36823,11 @@
   "voice": "meathead",
   "text": "WITCH SLAPPED!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "WON'T BURN. STILL EATS BARE FEET. GREAT OIL.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
