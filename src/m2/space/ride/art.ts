@@ -18,11 +18,11 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Player } from '../../../m1/types';
 import type { SceneLight, Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { INK, box, text, mix, hash, sign, slab, rampOf, lite, dark, stamp, checker, bandedGradient, hazeBands, pixelBlob, tilePattern, star } from '../../intro/art/kit';
+import { INK, box, mix, hash, sign, slab, rampOf, lite, dark, stamp, checker, bandedGradient, hazeBands, pixelBlob, tilePattern, star } from '../../intro/art/kit';
 import { GY } from '../geometry';
 import { drawTableau, TABLEAUS, tinySled, meteor, OP_SEED, planet, CARPET } from '../atom/art';
 import { drawAtomPerson } from '../atom/people';
-import { cyl, sphere, neonText, neonBar, lamp, truss, rivets, hazard, screenGlass, stencil } from '../atom/snes';
+import { cyl, sphere, neonBar, lamp, truss, rivets, hazard, screenGlass, stencil } from '../atom/snes';
 import {
   R, RUNS, GAPS, OBS, CUES, CUE_XS, TABLEAU_XS, LIFT_X0, LIFT_X1, BREAKER_X, STATION_X0, STATION_X1, FINS_X0, FINS_X1, BRAKE_X,
   CREST_X, FRONT_AT, STATION_ROOF, WORKERS, STATION_FOLK, trackY, railLine, type Ob, type Verb,
@@ -30,8 +30,77 @@ import {
 } from './layout';
 import { CLEAR, BEAM_CLEAR, HURDLE, halfW, trayReach, rockHeight, ROCK_R, obLive, cueLive, type Tricks } from './tricks';
 import { drawSled, FRONT_SLED, type SledLook } from './sled';
+import { lettering, letterSize } from '../square/lettering';
+import { SPUR_X0, SPUR_X1, drawSpurBack, drawSpurRail, drawSpurFront, spurLights } from './spur';
+import { plate, plateBoxAt, wallPlate, legs, cables, brackets } from '../atom/signs';
 
 type Ctx = CanvasRenderingContext2D;
+
+/** The ride building's floor, down under the track (out of sight below it nearly everywhere): every support, leg and
+ *  jamb goes down to a footing on it. */
+const FOOT_Y = GY + 380;
+/** A concrete footing (a pier cap, its anchor bolts), centered on x, on the floor. */
+const footing = (c: Ctx, x: number, w = 26, lit = false) => {
+  const col = lit ? ['#57534E', '#78716C', '#A8A29E'] : ['#0F172A', '#1E293B', '#334155'];
+  box(c, x - w / 2 - 1, FOOT_Y - 13, w + 2, 13, INK);
+  box(c, x - w / 2, FOOT_Y - 12, w, 12, col[1]); box(c, x - w / 2, FOOT_Y - 12, w, 2, col[2]); box(c, x - w / 2, FOOT_Y - 3, w, 3, col[0]);
+  box(c, x - 6, FOOT_Y - 15, 2, 3, col[2]); box(c, x + 4, FOOT_Y - 15, 2, 3, col[2]);
+};
+/** A steel column from `top` down to a footing on the floor. */
+const column = (c: Ctx, x: number, top: number, w: number, col: string, lit: boolean) => {
+  if (FOOT_Y - top <= 0) return;
+  cyl(c, x - w / 2, top, w, FOOT_Y - 12 - top, col, 'y');
+  footing(c, x, w + 16, lit);
+};
+/** A board stamped with its words, standing on legs down to `foot` (the girder, a deck, a roof). */
+const postedPlate = (c: Ctx, key: string, x: number, y: number, foot: number, text: string, font: Parameters<typeof plate>[5], face: string, ink: string, pad = 6) => {
+  const [x0, , x1, y1] = plateBoxAt(text, font, x, y, pad);
+  legs(c, [x0 + 12, x1 - 12], y1 - 4, foot, '#52525B', 5);
+  return plate(c, key, x, y, text, font, face, ink, pad);
+};
+/** Words stamped where they sit (a prop's label, a screen's): their middle at (x, y) (lines split on '\n'). */
+const label = (c: Ctx, key: string, x: number, y: number, text: string, font: Parameters<typeof lettering>[4], ink: string, bg: string, w = 160, h = 24) => {
+  const lines = text.split('\n'), lh = letterSize('A', font)[1] - 1;
+  c.save(); c.translate(Math.round(x), Math.round(y));
+  stamp(c, `ride-label-${key}`, -w / 2, -h / 2, w, h, g => lines.forEach((l, i) => lettering(g, l, 0, Math.round((i - (lines.length - 1) / 2) * lh), font, ink, bg, true)));
+  c.restore();
+};
+/** The PA's speaker poles along act 1 (none within reach of a cue's sign, a scene or a gap). */
+const PA_POLES = [700, 1500, 2150, 3350, 3950, 4650, 5650, 6050].map(x => R + x).filter(x =>
+  CUE_XS.every(q => Math.abs(q - x) > 70) && TABLEAU_XS.every(t => x < t - 70 || x > t + 300) && GAPS.every(([a, b]) => x < a - 160 || x > b + 30) && OBS.every(o => Math.abs(o.x - x) > 200) && trackY(x) !== null);
+/** What holds things up, behind the track (drawn before it: the rail goes over it): the trackside decks (steel plate on
+ *  legs down to the floor) the props beside the track stand on (Robo-Butler's, the forklift's, the brake attendant's
+ *  booth); the crest gantry's legs; the breaker doorway's and the brake box alcove's jambs, on down to the floor. */
+const drawSupports = (c: Ctx, cam: number, lit: boolean) => {
+  const on = (a: number, b: number) => b > cam - 100 && a < cam + CANVAS_WIDTH + 100;
+  if (on(CREST_X - 170, CREST_X + 170)) {
+    const gy = (trackY(CREST_X) ?? GY) - 250;
+    for (const lx of [CREST_X - 154, CREST_X + 146]) { truss(c, lx, gy, 14, FOOT_Y - 12 - gy, '#3F3F46', true); footing(c, lx + 7, 34, lit); }
+  }
+  if (on(BREAKER_X - 120, BREAKER_X + 120)) {
+    const rail = trackY(BREAKER_X) ?? GY;
+    for (const jx of [BREAKER_X - 110, BREAKER_X + 96]) { box(c, jx - 2, rail, 18, FOOT_Y - 12 - rail, INK); hazard(c, jx, rail, 14, FOOT_Y - 12 - rail, '#EAB308', '#3F3F46', 10); footing(c, jx + 7, 30, lit); }
+  }
+  if (on(BRAKE_BOX_X - 60, BRAKE_BOX_X + 60)) {
+    const by = trackY(BRAKE_BOX_X) ?? GY;
+    for (const jx of [BRAKE_BOX_X - 50, BRAKE_BOX_X + 36]) { box(c, jx - 2, by, 16, FOOT_Y - 12 - by, INK); hazard(c, jx, by, 12, FOOT_Y - 12 - by, '#EAB308', '#3F3F46', 8); footing(c, jx + 6, 28, lit); }
+  }
+  const decks: [number, number, number][] = [];
+  for (const o of OBS) {
+    if (o.kind === 'tray' || o.kind === 'trolley') decks.push([o.x - 164, o.x - 96, o.x]);
+    if (o.kind === 'pallet') decks.push([o.x - 182, o.x - 58, o.x]);
+  }
+  decks.push([BRAKE_X - 128, BRAKE_X - 16, BRAKE_X]);
+  for (const [d0, d1, ox] of decks) {
+    const dx = [d0, d1];
+    if (!on(d0, d1)) continue;
+    // (level with the feet of what's on it: they're drawn at the rail's height at the obstacle)
+    const y = trackY(ox) ?? railLine(ox);
+    column(c, dx[0] + 12, y + 8, 6, '#3F3F46', lit); column(c, dx[1] - 12, y + 8, 6, '#3F3F46', lit);
+    box(c, dx[0], y - 1, dx[1] - dx[0], 10, INK); box(c, dx[0] + 1, y, dx[1] - dx[0] - 2, 8, lit ? '#57534E' : '#1E293B'); box(c, dx[0] + 1, y, dx[1] - dx[0] - 2, 1, lit ? '#78716C' : '#334155');
+    for (let x = dx[0] + 6; x < dx[1] - 4; x += 8) box(c, x, y + 3, 4, 2, lit ? '#44403C' : '#111827');
+  }
+};
 
 /** What the painting needs to know of the ride. */
 export interface RideLook {
@@ -75,9 +144,48 @@ export const drawRideBackdrop = (c: Ctx, state: GameState, look: RideLook) => {
       const col = ['#DB2777', '#2563EB', '#16A34A', '#F59E0B'][((base % 4) + 4) % 4], r = 36 + hash(base * 7) * 40;
       planet(c, px, py, r, mix(col, '#03020A', 0.45), hash(base * 5) > 0.4);
     }
-    // (other sleds going round, way off)
-    c.save(); c.globalAlpha = 0.35;
-    for (let j = 0; j < 2; j++) { const sx = ((f * 1.6 + j * 900 - cam * 0.3) % 1800 + 1800) % 1800 - 300; tinySled(c, sx, 300 - j * 140, 4100 + j * 31, f, 0.4); }
+    // (the dome's own structure, way back in the dark: its ribs, its rings, the black paint just not hiding them)
+    const rk = 0.06, roff = -((cam * rk) % 240);
+    for (let x = roff - 240; x < W + 240; x += 240) {
+      for (let s = 0; s < 22; s++) { const yy = s * 18 - cy * 0.03, bow = Math.round(Math.sin(s / 22 * Math.PI) * 14); box(c, x + bow, yy, 2, 18, '#160E30'); }
+    }
+    for (const ry of [70, 190]) box(c, 0, Math.round(ry - cy * 0.03), W, 2, '#160E30');
+    // (the props hung in the dome on their wires (up into the dark): a rocket, a comet, a flying saucer)
+    const hk = 0.25, hoff = Math.floor(cam * hk / 1100);
+    for (let j = -1; j < 2; j++) {
+      const base = hoff + j, hx = base * 1100 - cam * hk + 300 + hash(base * 9.1) * 400, hy = 120 + hash(base * 1.3) * 90 - cy * 0.06, kind = ((base % 3) + 3) % 3;
+      if (hx < -160 || hx > W + 160) continue;
+      c.save(); c.globalAlpha = 0.75;
+      cables(c, [hx - 20, hx + 20], 0, hy - 10, '#1E1B3A');
+      if (kind === 0) {
+        // (the rocket: a silver body, red fins, portholes, a cardboard flame)
+        cyl(c, hx - 44, hy - 9, 80, 18, '#94A3B8');
+        c.fillStyle = INK; c.beginPath(); c.moveTo(hx + 36, hy - 10); c.lineTo(hx + 58, hy); c.lineTo(hx + 36, hy + 10); c.closePath(); c.fill();
+        c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(hx + 37, hy - 8); c.lineTo(hx + 54, hy); c.lineTo(hx + 37, hy + 8); c.closePath(); c.fill();
+        for (const sd of [-1, 1]) { box(c, hx - 46, hy + sd * 9 - (sd < 0 ? 10 : 0), 16, 10, INK); box(c, hx - 45, hy + sd * 9 - (sd < 0 ? 9 : 0), 14, 8, '#B91C1C'); }
+        for (let q = 0; q < 3; q++) lamp(c, hx - 18 + q * 16, hy - 1, 3, '#7DD3FC', false, 0);
+        for (let q = 0; q < 3; q++) box(c, hx - 60 - q * 6, hy - 4 + q * 3, 14 - q * 3, 3, ['#FDE047', '#F97316', '#B91C1C'][q]);
+      } else if (kind === 1) {
+        // (the comet: a lump with a stepped tail of tinsel)
+        for (let q = 0; q < 5; q++) box(c, hx + 10 + q * 18, hy - 6 + q, 20, 12 - q * 2, ['#E0F2FE', '#BAE6FD', '#7DD3FC', '#38BDF8', '#0369A1'][q]);
+        sphere(c, hx, hy, 11, '#CBD5E1');
+      } else {
+        // (the saucer: its dome, its rim of lamps)
+        c.fillStyle = INK; c.beginPath(); c.ellipse(hx, hy, 40, 11, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#64748B'; c.beginPath(); c.ellipse(hx, hy, 38, 9, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#94A3B8'; c.beginPath(); c.ellipse(hx, hy - 3, 34, 5, 0, 0, Math.PI * 2); c.fill();
+        c.save(); c.beginPath(); c.rect(hx - 20, hy - 26, 40, 22); c.clip(); sphere(c, hx, hy - 6, 16, '#22D3EE'); c.restore();
+        for (let q = 0; q < 6; q++) box(c, hx - 30 + q * 12, hy + 3, 3, 2, (q + (f >> 3)) % 3 === 0 ? '#FDE047' : '#475569');
+      }
+      c.restore();
+    }
+    // (another stretch of the ride's track, way off across the dome, on its own supports down into the dark: the other
+    // sleds going round on it)
+    const tk = 0.3, farY = (sx: number) => Math.round(330 + Math.sin((sx + cam * tk) * 0.004) * 36 - cy * 0.08);
+    c.save(); c.globalAlpha = 0.4;
+    for (let sx = -((cam * tk) % 120) - 120; sx < W + 120; sx += 120) { const yy = farY(sx); box(c, sx - 2, yy + 2, 4, H - yy, '#120C26'); }
+    for (let sx = -4; sx < W + 4; sx += 4) { const yy = farY(sx); box(c, sx, yy - 2, 4, 4, '#2A2050'); box(c, sx, yy - 2, 4, 1, '#4C3F80'); }
+    for (let j = 0; j < 2; j++) { const sx = ((f * 1.6 + j * 900 - cam * tk) % 1800 + 1800) % 1800 - 300; tinySled(c, sx, farY(sx) - 2, 4100 + j * 31, f, 0.4); }
     c.restore();
   }
   if (k > 0) {
@@ -111,8 +219,15 @@ const racks = (g: Ctx) => {
   box(g, 416, 392, 68, 10, INK); box(g, 417, 393, 66, 8, '#93C5FD'); box(g, 417, 393, 66, 2, '#DBEAFE');
   for (let v = 0; v < 4; v++) box(g, 434 + v * 8, 410, 4, 10, '#1E3A8A');
   box(g, 428, 426, 44, 88, '#1D4ED8'); box(g, 428, 426, 2, 88, '#3B82F6');
-  box(g, 464, 466, 4, 10, '#F8FAFC'); box(g, 444, 438, 14, 6, '#DC2626'); text(g, 'JOHNNY', 450, 456, '#F8FAFC', 5);
-  sign(g, 540, 300, 230, 22, '#F8FAFC', 'EMPLOYEES MUST WASH HANDS', '#B91C1C', 6);
+  box(g, 464, 466, 4, 10, '#F8FAFC'); box(g, 444, 438, 14, 6, '#DC2626'); lettering(g, 'JOHNNY', 450, 454, 'small', '#F8FAFC', '#1D4ED8');
+  // (screwed to the wall on its brackets)
+  brackets(g, 540, 770, 300); brackets(g, 540, 770, 318);
+  sign(g, 540, 298, 230, 26, '#F8FAFC', '', '#B91C1C');
+  lettering(g, 'EMPLOYEES MUST WASH HANDS', 655, 311, 'enamel', '#B91C1C', '#F8FAFC');
+  // (the time clock and its card rack, beside it; a fire extinguisher on its hook)
+  slab(g, 790, 330, 34, 44, '#D6D3D1'); box(g, 798, 338, 18, 12, '#1C1917'); box(g, 800, 340, 6, 3, '#F87171');
+  for (let r = 0; r < 4; r++) { box(g, 832, 326 + r * 12, 30, 10, INK); for (let q = 0; q < 4; q++) box(g, 834 + q * 7, 322 + r * 12, 4, 12, '#F5F5F4'); }
+  box(g, 806, 420, 4, 6, '#3F3F46'); cyl(g, 800, 426, 16, 40, '#DC2626', 'y'); box(g, 803, 418, 10, 8, INK);
   // (a guy's lunch, on a crate: a cooler, a thermos, a sandwich)
   slab(g, 600, 470, 70, 50, '#A16207');
   slab(g, 606, 446, 34, 24, '#DC2626'); box(g, 606, 446, 34, 6, '#F8FAFC');
@@ -142,19 +257,25 @@ const drawWarehouseBack = (c: Ctx, cam: number, cy: number) => {
   const off = -((cam * 0.3) % 24);
   c.save(); c.translate(Math.round(off), 0); c.fillStyle = corrugated(c); c.fillRect(-24, 0, W + 48, H); c.restore();
   hazeBands(c, 0, 0, W, 150, '#374151', 0.55, 0, 5);
-  // (the roof trusses, the fluorescent fixtures under them)
+  // (the tarp's hung on the wall: it goes with the wall, behind the trusses)
+  const poff = -((cam * 0.3) % 700);
+  for (let x = poff - 700; x < W + 700; x += 700) { c.save(); c.translate(Math.round(x), 0); stamp(c, 'ride-tarp', 50, 30, 560, 330, tarp); c.restore(); }
+  const roff = -((cam * 0.3) % 900);
+  for (let x = roff - 900; x < W + 900; x += 900) { c.save(); c.translate(Math.round(x), 0); stamp(c, 'ride-racks2', 10, 290, 870, 320, racks); c.restore(); }
+  // (the roof trusses, nearer: the fluorescent fixtures under them on their chains, the duct run hung under them on
+  // straps)
   const toff = -((cam * 0.35) % 260);
+  const y = Math.round(36 - cy * 0.03);
   for (let x = toff - 260; x < W + 260; x += 260) {
-    const y = Math.round(36 - cy * 0.03);
     truss(c, x, y, 260, 22, '#52525B');
     box(c, x + 70, y + 54, 120, 8, INK); box(c, x + 71, y + 55, 118, 6, '#D4D4D8');
     neonBar(c, x + 74, y + 62, 112, 3, '#F8FAFC', true);
     box(c, x + 78, y + 22, 1, 32, '#3F3F46'); box(c, x + 182, y + 22, 1, 32, '#3F3F46');
+    for (const sx of [x + 30, x + 226]) { box(c, sx - 1, y + 22, 4, 62, INK); box(c, sx, y + 22, 2, 62, '#71717A'); }
   }
-  const poff = -((cam * 0.2) % 700);
-  for (let x = poff - 700; x < W + 700; x += 700) { c.save(); c.translate(Math.round(x), 0); stamp(c, 'ride-tarp', 50, 30, 560, 330, tarp); c.restore(); }
-  const roff = -((cam * 0.3) % 900);
-  for (let x = roff - 900; x < W + 900; x += 900) { c.save(); c.translate(Math.round(x), 0); stamp(c, 'ride-racks', 10, 290, 780, 320, racks); c.restore(); }
+  // (the duct: galvanized, its seams, banded down its round)
+  cyl(c, -10, y + 82, W + 20, 20, '#A1A1AA');
+  for (let x = toff - 260; x < W + 130; x += 130) { box(c, x, y + 82, 3, 20, '#71717A'); box(c, x + 3, y + 82, 1, 20, '#E4E4E7'); }
   box(c, 0, H - 20, W, 20, '#57534E'); box(c, 0, H - 20, W, 2, '#78716C');
   // (all of it knocked back: set dressing, not anything on the track)
   c.fillStyle = 'rgba(55, 60, 72, 0.42)'; c.fillRect(0, 0, W, H);
@@ -225,20 +346,43 @@ const hazardWall = (c: Ctx, x: number, y: number, w: number, h: number, dk = '#1
 /** The rail, from its run's ends; its supports down out of sight; its ties; at a gap, a buffer on each end, lit. */
 const drawTrack = (c: Ctx, k: number, cam: number, f: number) => {
   const lit = k > 0.5;
+  const x0v = cam - 100, x1v = cam + CANVAS_WIDTH + 100;
+  // (at a gap in act 1: FUTURE: TBD, on legs stood on the girder (behind the rail: its feet under it, the lane lit over them))
+  for (const [a] of GAPS) if (a < R + 6000 && a > x0v - 100 && a < x1v + 100) { const ya = trackY(a) ?? GY; postedPlate(c, 'tbd', a - 96, ya - 58, ya + 12, 'FUTURE: TBD', 'stencil', '#FDE047', '#1C1917', 5); }
   for (let i = 0; i < RUNS.length; i++) {
     const [a, b, ya, yb] = RUNS[i];
-    if (b < cam - 100 || a > cam + CANVAS_WIDTH + 100) continue;
-    for (let x = Math.ceil(a / 140) * 140; x < b; x += 140) {
-      const y = ya + ((x - a) / (b - a)) * (yb - ya);
-      cyl(c, x - 4, y + 4, 8, 900, lit ? '#6B7280' : '#1E293B', 'y');
+    if (b < x0v || a > x1v) continue;
+    const yAt = (x: number) => ya + ((x - a) / (b - a)) * (yb - ya);
+    // (its columns, down to their footings on the floor, one at each end of the run (a gap's rail ends sit on one) and
+    // every 140 between; braced across in pairs)
+    const cols = [a + 18, b - 18];
+    for (let x = Math.ceil((a + 60) / 140) * 140; x < b - 60; x += 140) cols.push(x);
+    // (not in the stations: the rail's on their floor there)
+    const inStation = (x: number) => x < R + 60 || x > STATION_X0 - 60 || (x > SPUR_X0 + 10 && x < SPUR_X1);
+    for (const x of cols) if (x > x0v && x < x1v && !inStation(x)) column(c, x, yAt(x) + 22, 8, lit ? '#6B7280' : '#1E293B', lit);
+    for (const x of cols) if (x % 140 === 0 && x > x0v && x < x1v && x + 140 < b - 60 && !inStation(x) && !inStation(x + 140)) {
+      // (an X brace to the next column, a little way under the girder)
+      const t0 = yAt(x) + 60, t1 = yAt(x + 140) + 60;
+      c.strokeStyle = lit ? '#52525B' : '#141B2E'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(x, t0); c.lineTo(x + 140, t1 + 70); c.moveTo(x, t0 + 70); c.lineTo(x + 140, t1); c.stroke();
+    }
+    // (the girder under the rail: two chords and the web between, square to it (the old spur has none: it's shored))
+    for (const [g0, g1] of [[Math.max(a, x0v, R + 40), Math.min(b, x1v, SPUR_X0)], [Math.max(a, x0v, SPUR_X1), Math.min(b, x1v)]]) if (g1 > g0 + 12) {
+    c.strokeStyle = INK; c.lineWidth = 4;
+    c.beginPath(); c.moveTo(g0, yAt(g0) + 10); c.lineTo(g1, yAt(g1) + 10); c.moveTo(g0, yAt(g0) + 22); c.lineTo(g1, yAt(g1) + 22); c.stroke();
+    c.strokeStyle = lit ? '#71717A' : '#1E293B'; c.lineWidth = 2; c.stroke();
+    c.strokeStyle = lit ? '#52525B' : '#172033'; c.lineWidth = 2; c.beginPath();
+    for (let x = Math.ceil(g0 / 24) * 24; x + 12 <= g1; x += 24) { c.moveTo(x, yAt(x) + 11); c.lineTo(x + 12, yAt(x + 12) + 21); c.lineTo(x + 24 > g1 ? x + 12 : x + 24, yAt(Math.min(g1, x + 24)) + 11); }
+    c.stroke();
     }
     // (the ties under the rail)
-    for (let x = Math.ceil(Math.max(a, cam - 100) / 20) * 20; x < Math.min(b, cam + CANVAS_WIDTH + 100); x += 20) { const y = ya + ((x - a) / (b - a)) * (yb - ya); box(c, x - 2, y + 4, 5, 6, lit ? '#52525B' : '#111827'); }
+    for (let x = Math.ceil(Math.max(a, cam - 100) / 20) * 20; x < Math.min(b, cam + CANVAS_WIDTH + 100); x += 20) { if (x > SPUR_X0 && x < SPUR_X1) continue; const y = ya + ((x - a) / (b - a)) * (yb - ya); box(c, x - 2, y + 4, 5, 6, lit ? '#52525B' : '#111827'); }
     c.strokeStyle = INK; c.lineWidth = 10; c.beginPath(); c.moveTo(a, ya + 3); c.lineTo(b, yb + 3); c.stroke();
     c.strokeStyle = lit ? '#71717A' : '#334155'; c.lineWidth = 6; c.beginPath(); c.moveTo(a, ya + 3); c.lineTo(b, yb + 3); c.stroke();
     c.strokeStyle = lit ? '#A1A1AA' : '#475569'; c.lineWidth = 3; c.beginPath(); c.moveTo(a, ya + 1); c.lineTo(b, yb + 1); c.stroke();
     c.strokeStyle = lit ? '#F4F4F5' : '#A5B4FC'; c.lineWidth = 1; c.beginPath(); c.moveTo(a, ya - 0.5); c.lineTo(b, yb - 0.5); c.stroke();
   }
+  drawSpurRail(c, cam, lit);
   // (the lift's chain, crawling up the middle of it)
   if (LIFT_X1 > cam - 100 && LIFT_X0 < cam + CANVAS_WIDTH + 100) {
     const ya = trackY(LIFT_X0) ?? GY, yb = trackY(LIFT_X1 - 1) ?? GY;
@@ -257,7 +401,7 @@ const drawTrack = (c: Ctx, k: number, cam: number, f: number) => {
       lamp(c, x, y - 21, 4, '#EF4444', on, 3);
     }
     // (the hole itself: the rail's ends hanging off their last supports, a drop to nothing)
-    if (a < R + 6000) sign(c, a - 150, ya - 64, 110, 16, '#FDE047', 'FUTURE: TBD', '#1C1917', 5);
+
   }
 };
 
@@ -284,7 +428,8 @@ const satellite = (c: Ctx, x: number, bot: number, lit: boolean) => {
   c.fillStyle = INK; c.beginPath(); c.ellipse(x, bot - 60, 16, 6, 0, Math.PI, 0); c.fill();
   c.fillStyle = '#F1F5F9'; c.beginPath(); c.ellipse(x, bot - 60, 14, 4.5, 0, Math.PI, 0); c.fill();
   box(c, x - 1, bot - 70, 2, 8, '#E2E8F0');
-  if (lit) text(c, 'FOAM? NO', x, bot - 76, '#1C1917', 5, 'center', null);
+  // (lit: a shipping tag taped to the rig behind it, the joke on it)
+  if (lit) { box(c, x - 1, bot - 96, 2, 12, '#E5E7EB'); plate(c, 'foam', x, bot - 78, 'FOAM? NO', 'small', '#F5F5F4', '#1C1917', 3, true, '#A8A29E'); }
 };
 /** Robo-Butler: a can on a post, its head, its eyes (flashing: the tell), a beacon. */
 const robot = (c: Ctx, bx: number, rail: number, tell: boolean, f: number, lit: boolean) => {
@@ -300,7 +445,9 @@ const robot = (c: Ctx, bx: number, rail: number, tell: boolean, f: number, lit: 
   box(c, bx - 6, rail - 117, 12, 2, '#64748B');
   box(c, bx - 2, rail - 150, 4, 8, INK);
   lamp(c, bx, rail - 154, 5, tell && flash ? '#FDE047' : '#B45309', tell && flash, 3);
-  text(c, 'ROBO-BUTLER', bx, rail - 166, lit ? '#1C1917' : '#94A3B8', 5, 'center', null);
+  // (its name on a little board stood up on its head on two rods, off to the side (clear of what it swings out))
+  legs(c, [bx - 14, bx - 6], rail - 168, rail - 142, '#94A3B8', 3);
+  plate(c, `robo-${lit ? 1 : 0}`, bx - 22, rail - 176, 'ROBO-BUTLER', 'small', lit ? '#E2E8F0' : '#334155', lit ? '#1C1917' : '#CBD5E1', 3);
 };
 
 /** One obstacle, in the back layer (its beams and its bands go in front: drawObFront). */
@@ -311,14 +458,14 @@ const drawOb = (c: Ctx, o: Ob, i: number, look: RideLook, f: number) => {
   switch (o.kind) {
     case 'sat': {
       // hung off a striped rig: a wall from the ceiling down to its bottom edge
-      hazardWall(c, x - hw, bot - 600, hw * 2, 600);
+      hazardWall(c, x - hw, bot - 900, hw * 2, 900);
       if (i === 9) {
         // (a space station's module: a big drum, portholes, its name)
         cyl(c, x - 60, bot - 54, 120, 54, '#CBD5E1');
         for (let p = -50; p < 60; p += 30) { box(c, x + p, bot - 54, 1, 54, '#94A3B8'); box(c, x + p + 1, bot - 54, 1, 54, '#F8FAFC'); }
         for (let q = 0; q < 4; q++) lamp(c, x - 39 + q * 28, bot - 31, 5, (f >> 4) % 4 === q ? '#FDE047' : '#3B82F6', (f >> 4) % 4 === q, 2);
         rivets(c, x - 56, x + 56, bot - 50, '#CBD5E1', 8); rivets(c, x - 56, x + 56, bot - 8, '#CBD5E1', 8);
-        text(c, 'SPACE STATION LIBERTY', x, bot - 60, lit ? '#1C1917' : '#94A3B8', 5, 'center', null);
+        label(c, `liberty-${lit ? 1 : 0}`, x, bot - 45, 'LIBERTY', 'enamel', lit ? '#1E3A8A' : '#334155', '#CBD5E1', 90, 22);
       } else satellite(c, x, bot, lit);
       box(c, x - hw, bot - 3, hw * 2, 3, '#FDE047');
       break;
@@ -327,7 +474,7 @@ const drawOb = (c: Ctx, o: Ob, i: number, look: RideLook, f: number) => {
       // the emitter housing, a slab over the band, square to the track (slanted with it, up the hill): the band's in
       // front
       c.save(); c.translate(x, rail); c.rotate(slopeAt(x) ?? 0);
-      hazardWall(c, -hw, -BEAM_CLEAR - 54 - 420, hw * 2, 420, '#14532D', '#86EFAC');
+      hazardWall(c, -hw, -BEAM_CLEAR - 54 - 860, hw * 2, 860, '#14532D', '#86EFAC');
       c.restore();
       break;
     }
@@ -338,11 +485,11 @@ const drawOb = (c: Ctx, o: Ob, i: number, look: RideLook, f: number) => {
       robot(c, bx, rail, tell, f, lit);
       const cx = bx + 60 + rk * (x - bx - 60);
       for (const [lw, cl] of [[9, INK], [5, '#94A3B8'], [1, '#E2E8F0']] as const) { c.strokeStyle = cl; c.lineWidth = lw; c.beginPath(); c.moveTo(bx + 14, rail - 90 - (lw === 1 ? 2 : 0)); c.lineTo(cx, rail - 140 - (lw === 1 ? 2 : 0)); c.stroke(); }
-      hazardWall(c, cx - hw, bot - 600, hw * 2, 600 - 54, '#7F1D1D', '#FCA5A5');
+      hazardWall(c, cx - hw, bot - 900, hw * 2, 900 - 54, '#7F1D1D', '#FCA5A5');
       slab(c, cx - 34, bot - 130, 68, 62, '#FEF3C7');
       box(c, cx - 30, bot - 126, 60, 10, '#7F1D1D');
-      text(c, 'MENU', cx, bot - 118, '#FEF3C7', 6, 'center', null);
-      for (let q = 0; q < 3; q++) { text(c, 'PILL', cx - 6, bot - 102 + q * 9, '#1C1917', 5, 'center', null); text(c, '$9', cx + 20, bot - 102 + q * 9, '#7F1D1D', 5, 'center', null); }
+      label(c, 'menu', cx, bot - 121, 'MENU', 'small', '#FEF3C7', '#7F1D1D', 40, 12);
+      for (let q = 0; q < 3; q++) { label(c, 'pill', cx - 8, bot - 104 + q * 10, 'PILL', 'small', '#1C1917', '#FEF3C7', 30, 12); label(c, 'nine', cx + 19, bot - 104 + q * 10, '$9', 'small', '#7F1D1D', '#FEF3C7', 20, 12); }
       slab(c, cx - hw - 4, bot - 58, hw * 2 + 8, 58, '#E5E7EB');
       for (let j = 0; j < 4; j++) { box(c, cx - 31 + j * 16, bot - 41, 12, 12, INK); box(c, cx - 30 + j * 16, bot - 40, 10, 10, ['#F472B6', '#FDE047', '#4ADE80', '#60A5FA'][j]); box(c, cx - 30 + j * 16, bot - 40, 4, 3, '#FFFFFF'); }
       box(c, cx - hw - 1, bot - 3, hw * 2 + 2, 3, '#FDE047');
@@ -373,7 +520,7 @@ const drawOb = (c: Ctx, o: Ob, i: number, look: RideLook, f: number) => {
       cyl(c, fx + 14, rail - 172, 6, 74, '#3F3F46', 'y'); cyl(c, fx + 90, rail - 172, 6, 74, '#3F3F46', 'y'); box(c, fx + 14, rail - 174, 82, 6, INK); box(c, fx + 15, rail - 173, 80, 4, '#52525B');
       slab(c, fx, rail - 110, 100, 90, '#F59E0B');
       box(c, fx + 10, rail - 100, 40, 40, INK); box(c, fx + 12, rail - 98, 36, 36, '#78350F');
-      stencil(c, 'NO RIDERS', fx + 72, rail - 40, '#451A03', '#F59E0B', 5);
+      label(c, 'noriders', fx + 70, rail - 42, 'NO RIDERS', 'small', '#451A03', '#F59E0B', 60, 12);
       lamp(c, fx + 55, rail - 180, 6, (f >> 3) % 2 ? '#FDE047' : '#F97316', true, 2);
       cyl(c, fx + 98, rail - 160, 8, 150, '#27272A', 'y');
       for (const wx of [fx + 20, fx + 76]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, rail - 14, 14, 0, Math.PI * 2); c.fill(); c.fillStyle = '#3F3F46'; c.beginPath(); c.arc(wx, rail - 14, 10, 0, Math.PI * 2); c.fill(); c.fillStyle = '#A1A1AA'; c.beginPath(); c.arc(wx - 1, rail - 15, 5, 0, Math.PI * 2); c.fill(); }
@@ -404,7 +551,7 @@ const drawOb = (c: Ctx, o: Ob, i: number, look: RideLook, f: number) => {
       box(c, x - 10, rail - 128, 20, 5, INK); box(c, x - 8, rail - 127, 4, 3, '#F8FAFC'); box(c, x + 4, rail - 127, 4, 3, '#F8FAFC');
       for (const sd of [-1, 1]) { box(c, x + sd * 14 - 2, rail - 216, 4, 22, INK); sphere(c, x + sd * 14, rail - 218, 5, '#F43F5E'); }
       box(c, x - 41, rail - 105, 20, 10, INK); box(c, x - 40, rail - 104, 18, 8, g[2]); box(c, x + 21, rail - 105, 20, 10, INK); box(c, x + 22, rail - 104, 18, 8, g[2]);
-      text(c, 'ZORG', x, rail - 70, '#F8FAFC', 6, 'center', INK);
+      label(c, 'zorg', x, rail - 72, 'ZORG', 'enamel', '#F8FAFC', '#15803D', 50, 22);
       // (the corner of the cardboard: it's flat; its raw edge)
       box(c, x + 20, rail - 30, 4, 18, '#D6D3D1'); box(c, x + 22, rail - 112, 2, 100, '#A8A29E');
       break;
@@ -428,7 +575,7 @@ const drawOb = (c: Ctx, o: Ob, i: number, look: RideLook, f: number) => {
         if (hurt) { box(c, bx, by, hw, 50, INK); box(c, bx + 2, by + 2, hw - 4, 46, '#FFFFFF'); continue; }
         slab(c, bx, by, hw, 50, col);
         box(c, bx + hw / 2 - 3, by + 2, 6, 46, mix(col, '#FEF3C7', 0.3));
-        text(c, 'SPACE', bx + hw / 2, by + 22, '#FDE047', 5, 'center', INK); text(c, 'SNACKS', bx + hw / 2, by + 32, '#FDE047', 5, 'center', INK);
+        label(c, `snacks-${col}`, bx + hw / 2, by + 24, 'SPACE\nSNACKS', 'small', '#FDE047', col, 44, 24);
       }
       if (look.tricks.hp[i] < o.hp) { c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(x - 20, rail - 200); c.lineTo(x, rail - 150); c.lineTo(x - 10, rail - 90); c.stroke(); }
       break;
@@ -462,14 +609,14 @@ const stationShell = (c: Ctx, sx0: number, sx1: number, f: number, roofGone: boo
     if (tx + 106 > avoid[0] && tx - 6 < avoid[1]) continue;
     box(c, tx + 46, y - 268, 8, 6, '#334155');
     screenGlass(c, tx, y - 262, 100, 50, ad ? '#0EA5E9' : '#F472B6', f + j * 9);
-    text(c, ad ? 'PROGRESSCO' : "WE'RE ON IT", tx + 50, y - 234, '#0F172A', 6, 'center', null);
+    label(c, `tv-${ad ? 1 : 0}`, tx + 50, y - 238, ad ? 'PROGRESSCO' : "WE'RE ON IT", 'small', '#0F172A', ad ? '#0EA5E9' : '#F472B6', 92, 14);
   }
 };
 /** The empty sleds, parked nose to tail on the siding at the back of the station (dimmed: they're behind). */
 const parkedSleds = (c: Ctx, x: number, f: number) => {
   const y = GY - 96;
   box(c, x - 110, y, 380, 6, INK); box(c, x - 108, y + 1, 376, 3, '#475569'); box(c, x - 108, y + 1, 376, 1, '#94A3B8');
-  sign(c, x - 100, y - 104, 70, 14, '#334155', 'SPARES', '#CBD5E1', 5);
+  postedPlate(c, 'spares', x - 70, y - 100, y, 'SPARES', 'stencil', '#334155', '#CBD5E1', 5);
   c.save(); c.translate(x, y); c.scale(0.7, 0.7);
   for (let j = 0; j < 2; j++) { drawSled(c, j * 220, 0, f, EMPTY_SLED, true, 0, true); drawSled(c, j * 220, 0, f, EMPTY_SLED, false, 0, true); }
   c.restore();
@@ -484,7 +631,7 @@ const drawReturnLeg = (c: Ctx, f: number) => {
   const ay = RETURN_TOP, bx = RETURN_X0, ax = RETURN_X1, foot = RETURN_FOOT;
   const leg = (x: number) => (x >= bx ? ay : ay + ((bx - x) / (bx - foot)) * (GY - 30 - ay));
   // supports, the rail
-  for (let x = foot + 60; x < ax; x += 210) cyl(c, x - 3, leg(x) + 2, 6, GY - 42 - leg(x), '#1E293B', 'y');
+  for (let x = foot + 60; x < ax; x += 210) { cyl(c, x - 3, leg(x) + 2, 6, GY - 42 - leg(x), '#1E293B', 'y'); box(c, x - 8, GY - 44, 16, 5, INK); box(c, x - 7, GY - 43, 14, 3, '#1E293B'); }
   c.strokeStyle = '#0F172A'; c.lineWidth = 9; c.beginPath(); c.moveTo(ax, ay + 2); c.lineTo(bx, ay + 2); c.lineTo(foot, GY - 28); c.stroke();
   c.strokeStyle = '#475569'; c.lineWidth = 4; c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, ay); c.lineTo(foot, GY - 30); c.stroke();
   c.strokeStyle = '#94A3B8'; c.lineWidth = 1; c.beginPath(); c.moveTo(ax, ay - 2); c.lineTo(bx, ay - 2); c.lineTo(foot, GY - 32); c.stroke();
@@ -495,8 +642,8 @@ const drawReturnLeg = (c: Ctx, f: number) => {
   slab(c, bx + 320, ay - 70, 34, 60, '#7F1D1D');
   lamp(c, bx + 337, ay - 56, 4, '#22C55E', (f >> 4) % 2 === 1, 2);
   // the signs: STATION AHEAD on a gantry over the crest, BRAKE ZONE by the fins
-  cyl(c, bx + 420, ay - 64, 6, 64, '#334155', 'y'); sign(c, bx + 360, ay - 84, 140, 20, '#1E3A8A', 'STATION AHEAD', '#BAE6FD', 6);
-  sign(c, bx + 110, ay - 58, 130, 16, '#A16207', 'BRAKE ZONE 3 MPH', '#FEF3C7', 5);
+  postedPlate(c, 'ret-ahead', bx + 430, ay - 76, ay, 'STATION AHEAD', 'enamel', '#1E3A8A', '#BAE6FD', 4);
+  postedPlate(c, 'ret-brake', bx + 175, ay - 52, ay, 'BRAKE ZONE 3 MPH', 'small', '#A16207', '#FEF3C7', 4);
   // a sled, round every so often (going the other way: it's the far side of the loop): along the top, a crawl
   // through the brakes (sparks), and an easy roll down into the station
   const T = f % 600;
@@ -523,7 +670,7 @@ const drawBrakeRun = (c: Ctx, look: RideLook, f: number) => {
   box(c, BRAKE_X - 110, rail - 114, 76, 38, INK); bandedGradient(c, BRAKE_X - 108, rail - 112, 72, 34, ['#E0F2FE', '#BAE6FD', '#7DD3FC'], 3);
   c.save(); c.translate(BRAKE_X - 72, rail - 40); drawAtomPerson(c, 'op', { seed: 6610, f, pose: failed ? 'after' : 'stand', md: 'ok' }); c.restore();
   box(c, BRAKE_X - 117, rail - 46, 90, 46, '#115E59'); box(c, BRAKE_X - 117, rail - 46, 90, 2, '#2DD4BF');
-  sign(c, BRAKE_X - 150, rail - 160, 150, 20, '#FDE047', 'BRAKE RUN: 3 MPH', '#1C1917', 6);
+  postedPlate(c, 'brakerun', BRAKE_X - 72, rail - 160, rail - 138, 'BRAKE RUN: 3 MPH', 'enamel', '#FDE047', '#1C1917', 5);
   // the fins along the rail (till they're torn off)
   if (!failed) for (let x = FINS_X0; x < FINS_X1; x += 26) { const y = trackY(x) ?? rail; box(c, x - 3, y - 16, 6, 16, INK); box(c, x - 2, y - 15, 4, 14, '#A1A1AA'); box(c, x - 2, y - 15, 1, 14, '#E4E4E7'); box(c, x - 2, y - 15, 4, 2, '#F4F4F5'); }
   else for (let x = FINS_X0; x < FINS_X1; x += 26) { const y = trackY(x) ?? rail; box(c, x - 3, y - 4, 6, 4, '#52525B'); if ((f + x) % 11 < 2) box(c, x - 1, y - 8, 2, 2, '#FDE047'); }
@@ -536,9 +683,9 @@ const drawBrakeRun = (c: Ctx, look: RideLook, f: number) => {
   box(c, bx - 4, by - 20, 8, 20, '#27272A');
   if (!failed) {
     slab(c, bx - 24, by - 104, 48, 86, '#991B1B');
-    text(c, 'BRAKE', bx, by - 84, '#FEF3C7', 5, 'center', null); text(c, 'CONTROL', bx, by - 76, '#FEF3C7', 5, 'center', null);
+    label(c, 'brakectl', bx, by - 82, 'BRAKE\nCONTROL', 'small', '#FEF3C7', '#991B1B', 46, 22);
     lamp(c, bx - 8, by - 60, 4, '#22C55E', true, 0); lamp(c, bx + 8, by - 60, 4, '#22C55E', false, 0);
-    box(c, bx - 16, by - 46, 32, 16, INK); box(c, bx - 15, by - 45, 30, 14, '#27272A'); text(c, 'OK', bx, by - 34, '#4ADE80', 5, 'center', null);
+    box(c, bx - 16, by - 46, 32, 16, INK); box(c, bx - 15, by - 45, 30, 14, '#27272A'); label(c, 'ok', bx, by - 38, 'OK', 'small', '#4ADE80', '#27272A', 20, 12);
   } else {
     box(c, bx - 24, by - 64, 48, 46, INK); box(c, bx - 21, by - 61, 42, 40, '#1F2937');
     for (let j = 0; j < 4; j++) box(c, bx - 16 + j * 9, by - 58 + (j % 2) * 6, 3, 30, ['#EF4444', '#FDE047', '#3B82F6', '#22C55E'][j]);
@@ -546,10 +693,16 @@ const drawBrakeRun = (c: Ctx, look: RideLook, f: number) => {
   }
   // the gantry over the crest
   const gy = (trackY(CREST_X) ?? rail) - 250;
-  truss(c, CREST_X - 154, gy, 14, 250, '#3F3F46', true); truss(c, CREST_X + 146, gy, 14, 250, '#3F3F46', true); truss(c, CREST_X - 156, gy - 14, 318, 16, '#52525B');
-  sign(c, CREST_X - 110, gy + 6, 220, 24, '#1E3A8A', 'STATION AHEAD', '#BAE6FD', 8);
-  if (!failed) sign(c, CREST_X - 90, gy + 38, 180, 20, '#A16207', 'BRAKE ZONE 3 MPH', '#FEF3C7', 6);
-  else sign(c, CREST_X - 100, gy + 38, 200, 24, flash ? '#DC2626' : '#7F1D1D', 'BRAKE FAILURE', '#FFFFFF', 8);
+  // (its legs go down to the floor: drawn behind the track, drawSupports; the beam across their tops, the signs hung
+  // off it on cables, the second off the first)
+  truss(c, CREST_X - 156, gy - 14, 318, 16, '#52525B');
+  const [, a0, , a1] = plateBoxAt('STATION AHEAD', 'chrome2', CREST_X, gy + 24, 6);
+  cables(c, [CREST_X - 80, CREST_X + 76], gy + 2, a0 + 2, '#A1A1AA');
+  plate(c, 'gantry-ahead', CREST_X, gy + 24, 'STATION AHEAD', 'chrome2', '#1E3A8A', '#BAE6FD', 6);
+  const sub = failed ? 'BRAKE FAILURE' : 'BRAKE ZONE 3 MPH', [, b0] = plateBoxAt(sub, 'enamel', CREST_X, a1 + 22, 6);
+  cables(c, [CREST_X - 50, CREST_X + 46], a1 - 2, b0 + 2, '#A1A1AA');
+  if (!failed) plate(c, 'gantry-zone', CREST_X, a1 + 22, sub, 'enamel', '#A16207', '#FEF3C7', 6);
+  else plate(c, `gantry-fail-${flash ? 1 : 0}`, CREST_X, a1 + 22, sub, 'enamel', flash ? '#DC2626' : '#7F1D1D', '#FFFFFF', 6);
   // the red lamps down the drop (lit, the brakes gone)
   for (let x = CREST_X + 40; x < STATION_X0; x += 70) {
     const y = trackY(x) ?? GY;
@@ -568,7 +721,7 @@ const drawStation = (c: Ctx, state: GameState, look: RideLook) => {
   stamp(c, 'ride-station-sign', STATION_X0 + 116, STATION_ROOF + 26, 428, 38, g => {
     box(g, STATION_X0 + 120, STATION_ROOF + 30, 420, 30, INK); box(g, STATION_X0 + 122, STATION_ROOF + 32, 416, 26, '#9CA3AF'); box(g, STATION_X0 + 122, STATION_ROOF + 32, 416, 1, '#F3F4F6');
     bandedGradient(g, STATION_X0 + 125, STATION_ROOF + 35, 410, 20, ['#0F172A', '#020617'], 3);
-    neonText(g, 'VOYAGE TO 2010  -  PRESENTED BY PROGRESSCO', STATION_X0 + 330, STATION_ROOF + 49, '#67E8F9', 8);
+    lettering(g, 'VOYAGE TO 2010 - PRESENTED BY PROGRESSCO', STATION_X0 + 330, STATION_ROOF + 45, 'neon', '#67E8F9', '#0F172A', true);
   });
   parkedSleds(c, STATION_X0 + 300, f);
   // (the line, behind its rail: the same people, still waiting; wide-eyed once it's coming, the nearest splattered)
@@ -592,7 +745,7 @@ const drawStart = (c: Ctx, state: GameState) => {
   const f = state.frame;
   stationShell(c, R - 700, R + 40, f, false, [R - 624, R - 546]);
   parkedSleds(c, R - 520, f);
-  sign(c, R - 600, STATION_ROOF + 30, 360, 26, '#0F172A', 'VOYAGE TO 2010  -  PRESENTED BY PROGRESSCO', '#67E8F9', 7);
+  wallPlate(c, 'start-name', R - 420, STATION_ROOF + 46, 'VOYAGE TO 2010 - PRESENTED BY PROGRESSCO', 'neon', '#0F172A', '#67E8F9', 8);
   // (the tunnel mouth out of it, into the dark: its neon frame)
   box(c, R + 30, STATION_ROOF, 20, GY - STATION_ROOF, INK);
   neonBar(c, R + 36, STATION_ROOF + 12, 6, GY - STATION_ROOF - 12, '#F0ABFC', true);
@@ -607,17 +760,33 @@ export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
   TABLEAU_XS.forEach((sx, i) => {
     const y = (trackY(sx) ?? GY) - 40;
     if (!on(sx - 50, sx + 300)) return;
-    drawTableau(c, TABLEAUS[i], sx, y, f);
-    c.fillStyle = lit ? 'rgba(55, 60, 72, 0.4)' : 'rgba(3, 2, 10, 0.5)'; c.fillRect(sx - 34, y - 196, 310, 210);
-    if (lit) {
-      for (let b = 0; b < 3; b++) for (const [lw, cl] of [[6, INK], [4, '#A16207'], [1, '#CA8A04']] as const) { c.strokeStyle = cl; c.lineWidth = lw; c.beginPath(); c.moveTo(sx + 30 + b * 90, y - 100); c.lineTo(sx + 60 + b * 90, y + 30); c.stroke(); }
-      text(c, 'PROPERTY OF PROGRESSCO', sx + 120, y + 14, '#78350F', 5, 'center', null);
-    }
+    // (its stage up on scaffold legs, down to the floor, braced)
+    for (const lx of [sx - 24, sx + 120, sx + 264]) column(c, lx, y + 17, 6, lit ? '#57534E' : '#1A1530', lit);
+    c.strokeStyle = lit ? '#57534E' : '#1A1530'; c.lineWidth = 2; c.beginPath();
+    for (const [p, q] of [[sx - 24, sx + 120], [sx + 120, sx + 264]]) { c.moveTo(p, y + 20); c.lineTo(q, y + 160); c.moveTo(p, y + 160); c.lineTo(q, y + 20); }
+    c.stroke();
+    // (held back in the dark, all but its words; lit, it's plainly a set: braces behind, stenciled)
+    drawTableau(c, TABLEAUS[i], sx, y, f, lit ? 'rgba(55, 60, 72, 0.4)' : 'rgba(3, 2, 10, 0.5)');
+    if (lit) for (let b = 0; b < 3; b++) for (const [lw, cl] of [[6, INK], [4, '#A16207'], [1, '#CA8A04']] as const) { c.strokeStyle = cl; c.lineWidth = lw; c.beginPath(); c.moveTo(sx + 30 + b * 90, y - 100); c.lineTo(sx + 60 + b * 90, y); c.stroke(); }
+    if (lit) label(c, 'property', sx + 120, y + 10, 'PROPERTY OF PROGRESSCO', 'stencil', '#FDE68A', '#0B0B12', 200, 20);
   });
   // The lift: its blue strobes on posts along it, climbing
+  // (the PA's speakers along act 1: a horn on a pole stood on the girder, its cable; where it's clear of a cue's sign and
+  // a scene)
+  for (const sx of PA_POLES) if (on(sx - 30, sx + 30)) {
+    const y = trackY(sx) ?? railLine(sx), pc = lit ? '#52525B' : '#1E1B33';
+    box(c, sx - 2, y - 150, 4, 162, INK); box(c, sx - 1, y - 150, 2, 162, pc);
+    box(c, sx - 4, y - 160, 8, 12, INK); box(c, sx - 3, y - 159, 6, 10, lit ? '#71717A' : '#27243F');
+    c.fillStyle = INK; c.beginPath(); c.moveTo(sx + 3, y - 160); c.lineTo(sx + 22, y - 168); c.lineTo(sx + 22, y - 140); c.lineTo(sx + 3, y - 148); c.closePath(); c.fill();
+    c.fillStyle = lit ? '#A1A1AA' : '#3B3656'; c.beginPath(); c.moveTo(sx + 4, y - 158); c.lineTo(sx + 20, y - 165); c.lineTo(sx + 20, y - 143); c.lineTo(sx + 4, y - 150); c.closePath(); c.fill();
+    box(c, sx + 19, y - 165, 2, 22, lit ? '#D4D4D8' : '#4C4670');
+    box(c, sx + 2, y - 146, 1, 140, '#0B0B12');
+  }
+  drawSpurBack(c, cam, lit, f);
+  drawSupports(c, cam, lit);
   if (on(LIFT_X0, LIFT_X1)) for (let x = LIFT_X0 + 40; x < LIFT_X1; x += 80) {
     const y = trackY(x) ?? GY;
-    box(c, x - 1, y - 194, 3, 190, lit ? '#52525B' : '#1E293B');
+    box(c, x - 1, y - 194, 3, 204, lit ? '#52525B' : '#1E293B');
     const strobe = !lit && (Math.floor(f / 6) - x / 80) % 8 < 1;
     lamp(c, x, y - 200, 5, lit ? '#9CA3AF' : '#60A5FA', strobe, 4);
   }
@@ -628,6 +797,7 @@ export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
     drawOb(c, o, i, look, f);
     laneMark(c, o.x - halfW(o) - 4, o.x + halfW(o) + 4, CUE_COL[o.verb], (f >> 3) % 2 === 0);
   });
+  drawSpurFront(c, cam, lit, f);
   // The cues, a second ahead of each
   CUES.forEach((q, i) => {
     const x = CUE_XS[i];
@@ -643,7 +813,8 @@ export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
     // main breaker panel hung right across it at the rider's height: the sled's nose goes through it
     for (const jx of [bx - 110, bx + 96]) { box(c, jx - 2, rail - 260, 18, 260, INK); hazard(c, jx, rail - 258, 14, 258, '#EAB308', '#3F3F46', 10); box(c, jx, rail - 258, 2, 258, '#71717A'); }
     truss(c, bx - 112, rail - 272, 226, 16, '#52525B');
-    sign(c, bx - 70, rail - 250, 140, 22, '#FDE047', 'MAIN BREAKER', '#1C1917', 6);
+    cables(c, [bx - 50, bx + 46], rail - 256, rail - 248, '#A1A1AA');
+    plate(c, 'mainbreaker', bx, rail - 236, 'MAIN BREAKER', 'stencil', '#FDE047', '#1C1917', 6);
     if (!gone) {
       box(c, bx - 3, rail - 226, 6, 100, INK); box(c, bx - 2, rail - 226, 4, 100, '#71717A'); box(c, bx - 2, rail - 226, 1, 100, '#A1A1AA');
       slab(c, bx - 40, rail - 128, 80, 88, '#9CA3AF');
@@ -651,7 +822,7 @@ export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
       box(c, bx - 7, rail - 113, 16, 38, INK); box(c, bx - 6, rail - 112, 14, 36, '#27272A');
       slab(c, bx - 11, rail - 122, 24, 12, '#DC2626');
       lamp(c, bx + 26, rail - 112, 3, '#EF4444', (f >> 3) % 2 === 0, 2);
-      text(c, 'DO NOT TOUCH', bx, rail - 56, '#7F1D1D', 5, 'center', null);
+      label(c, 'donottouch', bx, rail - 58, 'DO NOT TOUCH', 'small', '#7F1D1D', '#9CA3AF', 80, 12);
     } else {
       box(c, bx - 2, rail - 226, 4, 60, '#71717A');
       box(c, bx - 14, rail - 170, 20, 12, '#52525B');
@@ -734,6 +905,7 @@ export const rideLighting = (state: GameState, look: RideLook): SceneLight => {
     // (the track's last leg, seen from the start: its signs and its brake zone lit, so it reads)
     if (near(RETURN_X0)) for (const [x, up, r] of [[RETURN_X0 + 430, 70, 150], [RETURN_X0 + 175, 50, 150], [RETURN_X0 + 337, 40, 90], [RETURN_X0 - 120, 0, 160]] as const) lights.push({ x, y: RETURN_TOP - up + (x < RETURN_X0 ? 150 : 0), r, a: 0.9, color: 'rgba(253, 230, 138, 0.1)' });
   }
+  spurLights(cam, look.k, lights);
   if (look.boxT > 0) for (let x = CREST_X + 40; x < STATION_X0; x += 70) if (near(x) && ((f >> 2) + x / 70) % 2 < 1) lights.push({ x, y: (trackY(x) ?? GY) - 64, r: 110, a: 0.8, color: 'rgba(239, 68, 68, 0.2)' });
   for (const b of look.tricks.bolts) lights.push({ x: b.x, y: b.y, r: 90, a: 0.8, color: 'rgba(74, 222, 128, 0.25)' });
   if (near(STATION_X0) || near(STATION_X1)) for (let x = STATION_X0; x < STATION_X1 + 200; x += 200) { lights.push({ x, y: GY - 300, r: 480, a: 0.9, cone: 200, color: 'rgba(224, 242, 254, 0.08)' }); lights.push({ x, y: STATION_ROOF + 12, r: 130, a: 0.6, color: 'rgba(103, 232, 249, 0.1)' }); }

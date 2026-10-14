@@ -30,7 +30,9 @@ import {
 import { crewed } from './rigs';
 import { drawAtomPerson } from './people';
 import { drawSled, seatedIn, HIS_SLED, FRONT_SLED, SEATS } from '../ride/sled';
-import { cyl, sphere, neonText, neonBar, lamp, truss, rivets, hazard, screenGlass, stencil } from './snes';
+import { cyl, sphere, neonBar, lamp, truss, rivets, hazard, screenGlass, stencil } from './snes';
+import { lettering, letterSize } from '../square/lettering';
+import { plate, plateSize, plateBoxAt, wallPlate, legs, cables, brackets, type Letter } from './signs';
 import type { Hijack } from './hijack';
 
 type Ctx = CanvasRenderingContext2D;
@@ -106,12 +108,13 @@ const tabStill = (g: Ctx, kind: Tab) => {
       box(g, 12, -44, 10, 28, INK); box(g, 13, -43, 8, 26, cr[1]); box(g, 110, -44, 10, 28, INK); box(g, 111, -43, 8, 26, cr[1]);
       box(g, 24, -16, 4, 10, '#FDE047'); box(g, 104, -16, 4, 10, '#FDE047');
       for (const [i, s] of [[0, 711], [1, 822], [2, 933]] as const) tinyRider(g, 36 + i * 30, -38, s, 1.2);
+      // (the set's walls are flats: their raw edge at the end, braced from behind)
+      flatEdge(g, 220, -120, -4);
       // (the lava lamp on its side table)
       box(g, 124, -30, 22, 4, INK); box(g, 125, -29, 20, 2, '#A16207'); box(g, 133, -26, 4, 20, '#78350F');
       g.fillStyle = INK; g.beginPath(); g.moveTo(129, -32); g.lineTo(141, -32); g.lineTo(138, -58); g.lineTo(132, -58); g.closePath(); g.fill();
       g.fillStyle = '#C026D3'; g.beginPath(); g.moveTo(130, -33); g.lineTo(140, -33); g.lineTo(137, -57); g.lineTo(133, -57); g.closePath(); g.fill();
       box(g, 133, -50, 4, 5, '#FDE047'); box(g, 134, -42, 3, 3, '#FDE047');
-      text(g, 'HOME, 2010', 110, -178, '#FBCFE8', 8);
       break;
     }
     case 'office': {
@@ -131,15 +134,19 @@ const tabStill = (g: Ctx, kind: Tab) => {
         box(g, dx + 22, -42, 34, 4, INK); box(g, dx + 23, -41, 32, 2, '#A8A29E');
       }
       tinyRider(g, 50, -38, 1404, 1.2); tinyRider(g, 186, -38, 1707, 1.2);
+      flatEdge(g, 240, -132, -8);
       // (his fax machine, on his belt)
       box(g, 40, -38, 12, 8, INK); box(g, 41, -37, 10, 6, '#A8A29E'); box(g, 43, -42, 6, 4, '#F8FAFC');
       // (the paper: all of it, stacked round the side)
       for (let i = 0; i < 11; i++) { const px = 222 + (i % 3) - 1; box(g, px - 1, -10 - (i + 1) * 7, 22, 8, INK); box(g, px, -9 - (i + 1) * 7, 20, 6, '#F8FAFC'); box(g, px, -4 - (i + 1) * 7, 20, 1, '#CBD5E1'); }
-      text(g, 'OFFICE, 2010: NO PAPER!', 120, -142, '#67E8F9', 8);
       break;
     }
     case 'cars': {
-      // traffic, 2010: a city of domed towers, a monorail through it
+      // traffic, 2010: a city of domed towers, a monorail through it, in front of a painted drop (the sky of 2010,
+      // banded, hung off the pipe, its hem weighted); the billboard's legs down to the deck
+      drop(g, 4, BATTEN_Y + 6, 232, -BATTEN_Y - 10, ['#1E1B4B', '#2E1065', '#4C1D95', '#6D28D9', '#7C3AED']);
+      for (let i = 0; i < 14; i++) box(g, 10 + hash(i * 5.3) * 220, -196 + hash(i * 2.9) * 70, 1, 1, '#E9D5FF');
+      legs(g, [52, 188], -176, 0, '#57534E', 6);
       for (let k = 0; k < 4; k++) {
         const dx = 20 + k * 52, h = 40 + k * 10;
         cyl(g, dx, -h, 40, h, ['#6D28D9', '#7C3AED', '#5B21B6', '#6D28D9'][k], 'y');
@@ -147,11 +154,14 @@ const tabStill = (g: Ctx, kind: Tab) => {
         dome(g, dx + 20, -h, 20, '#C4B5FD');
       }
       box(g, -4, -32, 248, 8, INK); box(g, -4, -31, 248, 3, '#E2E8F0'); box(g, -4, -28, 248, 3, '#94A3B8');
-      text(g, 'TRAFFIC? NOT IN 2010!', 120, -186, '#D8B4FE', 8);
       break;
     }
     case 'moon': {
-      // the moon base (theirs, and ours, bigger): domes on a gray moon, its craters, the Earth up over it, two flags
+      // the moon base (theirs, and ours, bigger): domes on a gray moon, its craters, the Earth up over it (on its line
+      // off the pipe), two flags; a black starfield drop behind
+      drop(g, 4, BATTEN_Y + 6, 232, -BATTEN_Y - 10, ['#020617', '#0B1022', '#111833', '#0B1022']);
+      for (let i = 0; i < 18; i++) box(g, 10 + hash(i * 3.1) * 220, -200 + hash(i * 7.3) * 150, i % 4 ? 1 : 2, i % 4 ? 1 : 2, i % 3 ? '#94A3B8' : '#F8FAFC');
+      cables(g, [210], BATTEN_Y + 3, -175, '#71717A');
       g.save(); g.beginPath(); g.ellipse(120, 0, 150, 40, 0, Math.PI, 0); g.closePath(); g.fillStyle = INK; g.fill(); g.clip();
       bandedGradient(g, -32, -42, 304, 44, ['#E2E8F0', '#94A3B8', '#64748B', '#334155'], 6);
       for (const [cx, cy, r] of [[40, -12, 10], [118, -24, 7], [206, -10, 12], [170, -30, 5]] as const) {
@@ -174,7 +184,6 @@ const tabStill = (g: Ctx, kind: Tab) => {
       box(g, 212, -132, 40, 26, INK); box(g, 213, -131, 38, 24, '#F8FAFC');
       for (let k = 0; k < 4; k++) box(g, 213, -129 + k * 6, 38, 3, '#DC2626');
       box(g, 213, -131, 16, 12, '#1D4ED8'); for (let k = 0; k < 4; k++) box(g, 215 + (k % 2) * 7, -129 + (k >> 1) * 5, 1, 1, '#FFFFFF');
-      text(g, 'THE MOON, 2010', 120, -150, '#E2E8F0', 8);
       break;
     }
   }
@@ -207,7 +216,7 @@ const tabLive = (c: Ctx, kind: Tab, f: number) => {
     case 'cars': {
       for (let k = 0; k < 3; k++) {
         const cx = Math.round(((f * (1 + k * 0.4) + k * 90) % 240)), cy = -150 + k * 28, col = ['#F43F5E', '#FACC15', '#22D3EE'][k], r = rampOf(col);
-        box(c, cx, cy - 212, 1, 200, '#64748B');
+        box(c, cx, BATTEN_Y + 3, 1, cy - 12 - BATTEN_Y - 3, '#64748B'); box(c, cx - 1, cy - 12, 3, 2, '#94A3B8');
         box(c, cx - 19, cy - 1, 38, 12, INK); box(c, cx - 18, cy, 36, 10, r[2]); box(c, cx - 18, cy, 36, 3, r[4]); box(c, cx - 18, cy + 7, 36, 3, r[0]);
         box(c, cx - 11, cy - 8, 22, 8, INK); box(c, cx - 10, cy - 7, 20, 7, '#BAE6FD'); box(c, cx - 8, cy - 6, 6, 2, '#F0F9FF');
         box(c, cx + 18, cy + 3, 2, 3, '#FEF3C7'); box(c, cx - 20, cy + 3, 2, 3, '#EF4444');
@@ -221,10 +230,140 @@ const tabLive = (c: Ctx, kind: Tab, f: number) => {
   }
 };
 
-export const drawTableau = (c: Ctx, kind: Tab, x: number, y: number, f: number) => {
+/** The pipe across the light trees' tops (what the words and the flying things hang off), the trees, the deck: in the
+ *  tableau's own space (the deck's top at 0). */
+const BATTEN_Y = -214, TREE_XS = [-20, 260] as const, DECK_X0 = -34, DECK_X1 = 274;
+/** Each set's gel (its lanterns' color). */
+const GEL: Record<Tab, string> = { home: '#F9A8D4', office: '#67E8F9', cars: '#C4B5FD', moon: '#E2E8F0' };
+/** A painted drop (a cloth backdrop): hung off the pipe by its ties, its bands, a pipe in its hem to weight it. */
+const drop = (g: Ctx, x: number, y: number, w: number, h: number, bands: string[]) => {
+  box(g, x - 1, y - 1, w + 2, h + 2, INK);
+  bandedGradient(g, x, y, w, h, bands, 6);
+  for (let i = 12; i < w; i += 24) checker(g, x + i, y, 2, h, mix(bands[0], INK, 0.3));
+  cyl(g, x - 2, y + h - 4, w + 4, 5, '#3F3F46');
+  for (let i = 8; i < w; i += 30) { box(g, x + i, y - 4, 2, 6, INK); box(g, x + i, y - 3, 1, 4, '#71717A'); }
+};
+/** A flat's raw edge (the set's wall seen end on): the plywood's edge, the 2x4 frame, the jack bracing it from behind. */
+const flatEdge = (g: Ctx, x: number, top: number, bot: number) => {
+  for (const [lw, cl] of [[5, INK], [3, LUMBER[1]], [1, LUMBER[3]]] as const) { g.lineWidth = lw; g.strokeStyle = cl; g.beginPath(); g.moveTo(x + 3, top + 10); g.lineTo(x + 18, -2); g.stroke(); }
+  pixelBlob(g, x + 18, -4, 6, 3, '#44403C');
+  box(g, x, top, 5, bot - top, INK); box(g, x, top + 1, 2, bot - top - 2, PLY[4]); box(g, x + 2, top + 1, 2, bot - top - 2, LUMBER[1]);
+};
+/** A lantern (a fresnel on its yoke, clamped to the tree): its body, its barn doors, its lens gelled, aimed `dir`. */
+const lantern = (g: Ctx, x: number, y: number, dir: 1 | -1, gel: string) => {
+  box(g, x - 2, y - 2, 4, 10, INK);
+  const bx = dir > 0 ? x + 2 : x - 16;
+  box(g, bx - 1, y - 6, 16, 14, INK); box(g, bx, y - 5, 14, 12, '#3F3F46'); box(g, bx, y - 5, 14, 2, '#71717A'); box(g, bx + 2, y - 8, 3, 3, '#27272A');
+  const lx = dir > 0 ? bx + 14 : bx - 3;
+  box(g, lx - 1, y - 7, 5, 16, INK); box(g, lx, y - 5, 3, 12, gel); box(g, lx, y - 5, 1, 4, '#FFFFFF');
+  box(g, lx + dir * 2, y - 10, 4, 3, '#27272A'); box(g, lx + dir * 2, y + 9, 4, 3, '#27272A');
+};
+/** The stage behind the set: the light trees on their sandbagged bases, the pipe across their tops. */
+const stageBack = (g: Ctx) => {
+  for (const tx of TREE_XS) {
+    cyl(g, tx - 3, BATTEN_Y, 6, -BATTEN_Y - 4, '#3F3F46', 'y');
+    box(g, tx - 14, -6, 28, 6, INK); box(g, tx - 13, -5, 26, 4, '#52525B'); box(g, tx - 13, -5, 26, 1, '#A1A1AA');
+    pixelBlob(g, tx + 7, -8, 6, 4, '#44403C'); box(g, tx + 3, -11, 6, 2, '#78716C');
+  }
+  cyl(g, TREE_XS[0] - 5, BATTEN_Y - 3, TREE_XS[1] - TREE_XS[0] + 10, 6, '#3F3F46');
+  for (const tx of TREE_XS) { box(g, tx - 5, BATTEN_Y - 5, 10, 10, INK); box(g, tx - 4, BATTEN_Y - 4, 8, 8, '#52525B'); }
+  // (the lanterns' cable, taped down the left tree)
+  box(g, TREE_XS[0] + 3, BATTEN_Y + 10, 2, -BATTEN_Y - 14, '#18181B');
+};
+/** In front of the set: the lanterns and their beams (gelled, two stepped bands, see-through), the deck's front (its
+ *  top dull, not lit: nothing to stand on; its black skirt in pleats; the spike tape along its edge). */
+const stageFront = (g: Ctx, kind: Tab) => {
+  const gel = GEL[kind];
+  for (const [tx, dir] of [[TREE_XS[0], 1], [TREE_XS[1], -1]] as const) for (const ly of [-160, -96]) {
+    const lx = tx + dir * 18, aim = 120, ay = -44;
+    for (const [spread, a] of [[44, 0.05], [22, 0.06]] as const) {
+      g.globalAlpha = a; g.fillStyle = gel; g.beginPath(); g.moveTo(lx, ly - 4); g.lineTo(aim, ay - spread); g.lineTo(aim, ay + spread); g.lineTo(lx, ly + 4); g.closePath(); g.fill();
+    }
+    g.globalAlpha = 1;
+    lantern(g, tx, ly, dir, gel);
+  }
+  box(g, DECK_X0, -1, DECK_X1 - DECK_X0, 4, INK); box(g, DECK_X0 + 1, 0, DECK_X1 - DECK_X0 - 2, 2, '#3F3F46');
+  box(g, DECK_X0, 3, DECK_X1 - DECK_X0, 14, '#0B0B12');
+  for (let x = DECK_X0 + 2; x < DECK_X1 - 2; x += 6) box(g, x, 3, 2, 14, '#18181F');
+  box(g, DECK_X0, 3, DECK_X1 - DECK_X0, 1, '#27272A');
+  for (let x = DECK_X0 + 20; x < DECK_X1 - 20; x += 60) box(g, x, 0, 6, 2, '#65A30D');
+};
+const plateBox = plateBoxAt;
+/** A board, painted straight in (inside a stamp already). */
+const signBoard = (g: Ctx, t: string, font: Letter, x: number, y: number, face: string, ink: string, pad: number) => {
+  const [w, h] = plateSize(t, font, pad), hw = Math.round(w / 2), hh = Math.round(h / 2);
+  sign(g, Math.round(x) - hw, Math.round(y) - hh, w, h, face, '', ink);
+  lettering(g, t, Math.round(x), Math.round(y), font, ink, face, true);
+};
+/** The set's words, physically there (lettered, held up by what's on the stage), over all of it (nothing covers them):
+ *    home    a cloth banner hung off the pipe on two straps
+ *    office  a projection: a pull-down screen hung off the pipe, the slide projector clamped to the right tree
+ *    cars    a billboard on legs standing on the deck, two gooseneck lamps over it
+ *    moon    a board hung off the pipe on two cables, in chrome */
+const tabCaption = (g: Ctx, kind: Tab) => {
+  switch (kind) {
+    case 'home': {
+      const cx = 110, cy = -190, [w] = letterSize('HOME, 2010', 'enamel'), bw = w + 18, bh = 24, x0 = Math.round(cx - bw / 2), top = cy - bh / 2;
+      cables(g, [x0 + 8, x0 + bw - 12], BATTEN_Y + 3, top + 2, '#A1A1AA', true);
+      // (the cloth: a hem along its top, its bottom cut in swallowtails)
+      const P = rampOf('#BE185D');
+      box(g, x0 - 1, top - 1, bw + 2, bh + 2, INK);
+      bandedGradient(g, x0, top, bw, bh, [P[3], P[2], P[2], P[1]], 4);
+      box(g, x0, top, bw, 3, P[4]); box(g, x0, top + 3, bw, 1, P[0]);
+      checker(g, x0, top + bh - 7, bw, 2, P[1]);
+      g.fillStyle = INK;
+      for (let i = 0; i < bw; i += 12) { g.beginPath(); g.moveTo(x0 + i, top + bh + 1); g.lineTo(x0 + i + 6, top + bh - 4); g.lineTo(x0 + i + 12, top + bh + 1); g.closePath(); g.fill(); }
+      lettering(g, 'HOME, 2010', cx, cy - 1, 'enamel', '#FDF2F8', P[2], true);
+      break;
+    }
+    case 'office': {
+      const x0 = 14, x1 = 226, top = -204, bot = -172;
+      // (the projector, clamped to the right tree; its beam out to the screen)
+      g.globalAlpha = 0.07; g.fillStyle = '#E0F2FE';
+      g.beginPath(); g.moveTo(236, -144); g.lineTo(x0, top); g.lineTo(x0, bot); g.lineTo(236, -138); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(236, -144); g.lineTo(x0 + 70, top + 4); g.lineTo(x0 + 70, bot - 4); g.lineTo(236, -138); g.closePath(); g.fill();
+      g.globalAlpha = 1;
+      box(g, 244, -134, 18, 4, INK); box(g, 245, -133, 16, 2, '#71717A');
+      box(g, 238, -148, 20, 14, INK); box(g, 239, -147, 18, 12, '#57534E'); box(g, 239, -147, 18, 2, '#A8A29E');
+      box(g, 235, -144, 4, 6, INK); box(g, 236, -143, 2, 4, '#E0F2FE');
+      g.strokeStyle = INK; g.lineWidth = 2; for (const rx of [244, 252]) { g.beginPath(); g.arc(rx, -153, 4, 0, Math.PI * 2); g.stroke(); }
+      // (the screen: its roller case hung off the pipe, the cloth, the bar in its hem)
+      cables(g, [x0 + 20, x1 - 20], BATTEN_Y + 3, top - 5, '#71717A');
+      cyl(g, x0 - 4, top - 7, x1 - x0 + 8, 6, '#D4D4D8');
+      box(g, x0 - 1, top, x1 - x0 + 2, bot - top + 1, INK);
+      bandedGradient(g, x0, top, x1 - x0, bot - top, ['#F1F5F9', '#E2E8F0', '#CBD5E1'], 4);
+      box(g, x0 - 2, bot - 1, x1 - x0 + 4, 4, INK); box(g, x0 - 1, bot, x1 - x0 + 2, 2, '#71717A');
+      lettering(g, 'OFFICE, 2010: NO PAPER!', (x0 + x1) / 2, (top + bot) / 2 - 1, 'neon', '#0E7490', '#E2E8F0', true);
+      break;
+    }
+    case 'cars': {
+      const [x0, y0, x1] = plateBox('TRAFFIC? NOT IN 2010!', 'enamel', 120, -188, 6);
+      for (const lx of [x0 + 30, x1 - 40]) {
+        box(g, lx - 1, y0 - 10, 3, 12, INK); box(g, lx, y0 - 9, 1, 10, '#A1A1AA');
+        box(g, lx - 1, y0 - 12, 10, 3, INK); box(g, lx, y0 - 11, 8, 1, '#A1A1AA');
+        box(g, lx + 6, y0 - 14, 9, 7, INK); box(g, lx + 7, y0 - 13, 7, 4, '#52525B'); box(g, lx + 7, y0 - 9, 7, 1, '#FEF9C3');
+      }
+      signBoard(g, 'TRAFFIC? NOT IN 2010!', 'enamel', 120, -188, '#FEF3C7', '#B91C1C', 6);
+      break;
+    }
+    case 'moon': {
+      const [x0, y0, x1] = plateBox('THE MOON, 2010', 'chrome', 112, -192, 6);
+      cables(g, [x0 + 12, x1 - 12], BATTEN_Y + 3, y0 + 2, '#A1A1AA');
+      signBoard(g, 'THE MOON, 2010', 'chrome', 112, -192, '#0F172A', '#E2E8F0', 6);
+      break;
+    }
+  }
+};
+
+/** A tableau: the set on its stage (stamped), what moves in it, the lanterns and the deck's front, then (`dim`: a wash
+ *  over the set, not its words) its words. Its deck's top at (x, y). */
+export const drawTableau = (c: Ctx, kind: Tab, x: number, y: number, f: number, dim?: string) => {
   c.save(); c.translate(Math.round(x), Math.round(y));
-  stamp(c, `atom-tab-${kind}`, -34, -196, 310, 210, g => tabStill(g, kind));
+  stamp(c, `atom-tab2-${kind}`, -52, -236, 344, 256, g => { stageBack(g); tabStill(g, kind); });
   tabLive(c, kind, f);
+  stamp(c, `atom-tabfront-${kind}`, -52, -200, 344, 220, g => stageFront(g, kind));
+  if (dim) { c.fillStyle = dim; c.fillRect(-52, -236, 344, 256); }
+  stamp(c, `atom-tabcap-${kind}`, -10, -226, 290, 100, g => tabCaption(g, kind));
   c.restore();
 };
 
@@ -294,7 +433,7 @@ export const drawRideBackdrop = (c: Ctx, state: GameState) => {
   GAPS.forEach(([gx, gw], i) => { const mid = gx + gw / 2 - cam; if (mid > -gw && mid < W + gw) inGaps.push({ i, mid }); });
   // (where the airlocks' ceiling crosses a gap, its scene's sat lower: its words came out under the ceiling)
   for (const g of inGaps) {
-    const [gx, gw] = GAPS[g.i], low = gx + gw > A + 3900 && gx < A + 4860 ? 52 : 0;
+    const [gx, gw] = GAPS[g.i], low = gx + gw > A + 3900 && gx < A + 4860 ? 84 : 0;
     drawTableau(c, GAP_SCENES[g.i % GAP_SCENES.length], g.mid - 120 - (g.mid - W / 2) * 0.1, ty - 24 + low, f);
   }
   // (a haze along their foot: it's a long way back)
@@ -311,14 +450,18 @@ export const drawRideBackdrop = (c: Ctx, state: GameState) => {
   // (the VOYAGE TO 2010 marquee, in neon on a chrome-framed board, bulbs chasing round it)
   // (in each gap, over its scene, like the scenes: never cut off by the flats; up clear of the scenes' own words, the
   // airlock sign and the meteor rig's beam)
+  // (hung off the dome's rigging on two cables, up out of sight)
   const flick = (f % 200) < 3;
   for (const g of inGaps) {
     const nx = Math.round(g.mid - 110 - (g.mid - W / 2) * 0.06);
+    cables(c, [nx + 24, nx + 196], 0, 95, '#475569');
     box(c, nx - 6, 94, 232, 42, INK);
     box(c, nx - 5, 95, 230, 40, '#9CA3AF'); box(c, nx - 5, 95, 230, 1, '#F3F4F6'); box(c, nx - 5, 134, 230, 1, '#4B5563');
     bandedGradient(c, nx - 2, 98, 224, 34, ['#1E1B4B', '#0F0A2A', '#05030F'], 4);
     for (let b = 0; b < 22; b++) { const on = (b + (f >> 3)) % 3 === 0; box(c, nx + b * 10, 96, 2, 2, on ? '#FEF3C7' : '#78350F'); box(c, nx + 218 - b * 10, 132, 2, 2, on ? '#FEF3C7' : '#78350F'); }
-    neonText(c, 'VOYAGE TO 2010', nx + 110, MARQUEE_Y, '#F0ABFC', 12, !flick);
+    c.save(); c.translate(nx + 110, MARQUEE_Y - 6);
+    stamp(c, `atom-marquee-${flick ? 0 : 1}`, -110, -16, 220, 32, gg => lettering(gg, 'VOYAGE TO 2010', 0, 0, 'neon2', '#F0ABFC', '#0F0A2A', !flick));
+    c.restore();
   }
   return true;
 };
@@ -366,7 +509,7 @@ const drawFlats = (c: Ctx, x: number, w: number) => {
       // (a stile up the seam)
       box(g, sx, FLAT_TOP, 8, H, LUMBER[2]); box(g, sx, FLAT_TOP, 2, H, LUMBER[4]); box(g, sx + 6, FLAT_TOP, 2, H, LUMBER[1]); checker(g, sx + 8, FLAT_TOP, 2, H, PLY[0]);
       // (the words on it, stenciled; gaffer tape, a note)
-      if (hash(x + k) > 0.45) stencil(g, STENCILS[Math.floor(hash(x * 3 + k) * STENCILS.length)], sx + 64, FLAT_TOP + 128, '#1F160C', base, 6);
+      if (hash(x + k) > 0.45) lettering(g, STENCILS[Math.floor(hash(x * 3 + k) * STENCILS.length)], sx + 64, FLAT_TOP + 124, 'stencil', '#1F160C', base);
       if (hash(sx * 1.7) > 0.6) { const ty = FLAT_TOP + 190 + hash(sx) * 80; box(g, sx + 30, ty, 22, 28, '#F5F5F4'); box(g, sx + 30, ty, 22, 2, '#FFFFFF'); for (let l = 0; l < 4; l++) box(g, sx + 33, ty + 6 + l * 5, 10 + hash(sx + l) * 6, 1, '#78716C'); box(g, sx + 36, ty - 3, 10, 5, '#3F3F46'); }
       if (hash(sx * 2.3) > 0.5) { box(g, sx + 80, FLAT_TOP + 300, 26, 5, '#3F3F46'); box(g, sx + 80, FLAT_TOP + 300, 26, 1, '#71717A'); }
     }
@@ -587,7 +730,10 @@ export const drawAtomBack = (c: Ctx, state: GameState, hj: Hijack) => {
     for (const [lw, cl, dy] of [[5, INK, 0], [3, '#B91C1C', 0], [1, '#F87171', -1]] as const) { c.lineWidth = lw; c.strokeStyle = cl; c.beginPath(); c.moveTo(gx + 11, GY - 74 + dy); c.quadraticCurveTo(mid, GY - 46 + dy, gx + gw - 11, GY - 74 + dy); c.stroke(); }
     // (its tag: in the middle, unless the air cannon stands there: then by the far stanchion, clear of it)
     const tag = mid > CANNON.x - 100 && mid < CANNON.x + 60 ? gx + gw - 50 : mid;
-    sign(c, tag - 34, GY - 56, 68, 14, '#FDE047', 'SHOW SIDE', '#1C1917', 5);
+    // (the tag hung on the rope by a ring each side)
+    const [t0, , t1] = plateBoxAt('SHOW SIDE', 'stencil', tag, GY - 44, 4);
+    for (const rx of [t0 + 8, t1 - 8]) { c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.arc(rx, GY - 57, 3, 0, Math.PI * 2); c.stroke(); }
+    plate(c, 'showside', tag, GY - 44, 'SHOW SIDE', 'stencil', '#FDE047', '#1C1917', 4);
   }
   // (the floor: black-painted concrete, gaffer-taped; the queue's carpet)
   drawFloor(c, cam, state.camera.y);
@@ -598,10 +744,14 @@ export const drawAtomBack = (c: Ctx, state: GameState, hj: Hijack) => {
     box(c, A + 32, GY - 130, 36, 26, INK); box(c, A + 34, GY - 128, 32, 22, '#0F172A'); box(c, A + 35, GY - 127, 8, 2, '#64748B');
     box(c, A + 18, GY - 72, 64, 8, INK); box(c, A + 19, GY - 71, 62, 6, '#D4D4D8'); box(c, A + 19, GY - 71, 62, 2, '#FFFFFF');
     box(c, A + 14, GY - 26, 72, 26, '#64748B'); box(c, A + 14, GY - 26, 72, 2, '#94A3B8');
-    sign(c, A + 4, GY - 186, 92, 22, '#FDE047', 'CAST ONLY', '#1C1917', 7);
-    // (the EXIT sign over it, lit)
-    box(c, A + 26, GY - 216, 48, 22, INK); box(c, A + 28, GY - 214, 44, 18, '#450A0A');
-    neonText(c, 'EXIT', A + 50, GY - 200, '#F87171', 8, true, false);
+    // (on the flats over the door, on brackets; the EXIT sign over that, lit, on its conduit up to the grid)
+    brackets(c, A + 6, A + 94, GY - 172);
+    plate(c, 'castonly', A + 50, GY - 176, 'CAST ONLY', 'enamel', '#FDE047', '#1C1917', 6);
+    box(c, A + 49, GY - 446, 3, 230, INK); box(c, A + 50, GY - 446, 1, 230, '#52525B');
+    box(c, A + 22, GY - 222, 56, 26, INK); box(c, A + 24, GY - 220, 52, 22, '#450A0A');
+    c.save(); c.translate(A + 50, GY - 209);
+    stamp(c, 'atom-exit', -28, -12, 56, 24, g => lettering(g, 'EXIT', 0, 0, 'neon', '#F87171', '#450A0A', true));
+    c.restore();
   }
   // The rigs' stands, back against the far wall (behind the catwalks: nothing hides a catwalk's lip): the thrusters'
   // gantry, the air cannon
@@ -623,14 +773,16 @@ export const drawAtomBack = (c: Ctx, state: GameState, hj: Hijack) => {
     c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(gx_, gy_, 9, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#FCA5A5'; c.beginPath(); c.moveTo(gx_, gy_); c.arc(gx_, gy_, 9, Math.PI * 1.7, Math.PI * 2.2); c.closePath(); c.fill();
     c.strokeStyle = '#DC2626'; c.lineWidth = 2; c.beginPath(); c.moveTo(gx_, gy_); c.lineTo(gx_ + Math.cos(ga) * 8, gy_ + Math.sin(ga) * 8); c.stroke();
-    text(c, 'DECOMPRESSION FX', CANNON.x - 15, GY - 210, '#CBD5E1', 6);
+    // (its name on a plate on two struts up off the barrel)
+    legs(c, [CANNON.x - 60, CANNON.x + 30], GY - 220, GY - 200, '#3F3F46', 4);
+    plate(c, 'decomp', CANNON.x - 15, GY - 226, 'DECOMPRESSION FX', 'stencil', '#334155', '#CBD5E1', 5);
   }
   // Catwalks (lit top lips: you can stand on them; the queue's rail is its own)
   for (const [x, y, w] of LEDGES) if (on(x, x + w) && !(x >= LINE_X0 && x < LINE_X1)) catwalk(c, x, y, w);
   for (const [x, top, w] of SOLIDS) if (on(x, x + w) && x !== ROCKET_BODY.x && x < TUNNEL_X) roadCase(c, x, top, w);
   // THE THRUSTERS
   if (on(A + 600, A + 2150)) {
-    sign(c, A + 620, GY - 330, 220, 24, '#FDE047', 'THRUSTER TEST: EARS!', '#1C1917', 7);
+    wallPlate(c, 'thruster', A + 730, GY - 318, 'THRUSTER TEST: EARS!', 'enamel', '#FDE047', '#1C1917');
     const t0 = THRUSTERS[0];
     // (the test stand: two saddles, the rocket lying on them, its nozzle toward the door)
     for (const sx of [ROCKET_BODY.x + 18, ROCKET_BODY.x + ROCKET_BODY.w - 44]) { box(c, sx - 1, GY - 14, 28, 14, INK); box(c, sx, GY - 13, 26, 13, '#52525B'); box(c, sx, GY - 13, 26, 2, '#A1A1AA'); box(c, sx + 10, GY - 13, 6, 13, '#3F3F46'); }
@@ -641,7 +793,9 @@ export const drawAtomBack = (c: Ctx, state: GameState, hj: Hijack) => {
   }
   // THE METEORS
   if (on(A + 2300, A + 3700)) {
-    sign(c, A + 2380, GY - 440, 250, 22, '#F97316', 'METEOR RIG: HARD HATS!', '#1C1917', 7);
+    // (the swings' truss, hung off the roof steel on rods, up out of sight; the sign on the flats over it)
+    wallPlate(c, 'meteor', A + 2505, GY - 434, 'METEOR RIG: HARD HATS!', 'enamel', '#F97316', '#1C1917');
+    for (const hx of [A + 2640, A + 3000, A + 3340]) { box(c, hx - 1, GY - 760, 4, 350, INK); box(c, hx, GY - 760, 2, 350, '#71717A'); }
     truss(c, A + 2420, GY - 414, 940, 18, '#57534E');
     for (const s of SWINGS) {
       const b = swingBall(s, f);
@@ -653,7 +807,10 @@ export const drawAtomBack = (c: Ctx, state: GameState, hj: Hijack) => {
     const tx0 = SHOWER.xs[0] - 40, tw = SHOWER.xs[2] - SHOWER.xs[0] + 80;
     truss(c, tx0, SHOWER.top - 72, tw, 18, '#57534E');
     box(c, tx0 + 10, SHOWER.top - 78, 30, 8, INK); box(c, tx0 + 11, SHOWER.top - 77, 28, 6, '#CA8A04');
-    text(c, 'METEOR SHOWER', SHOWER.x, SHOWER.top - 82, '#FDBA74', 6);
+    // (hung off the roof steel like the other; its name on a plate stood up on the truss)
+    for (const hx of [tx0 + 20, tx0 + tw - 20]) { box(c, hx - 1, GY - 760, 4, SHOWER.top - 72 - GY + 760, INK); box(c, hx, GY - 760, 2, SHOWER.top - 72 - GY + 760, '#71717A'); }
+    legs(c, [SHOWER.x - 40, SHOWER.x + 40], SHOWER.top - 96, SHOWER.top - 72, '#57534E', 4);
+    plate(c, 'shower', SHOWER.x, SHOWER.top - 100, 'METEOR SHOWER', 'enamel', '#7C2D12', '#FDBA74', 5);
     const winched = crewed(state, SHOWER.post);
     SHOWER.xs.forEach((x, k) => {
       const s = winched ? showerAt(k, f) : { y: SHOWER.top, tell: 0, falling: false, down: false };
@@ -669,7 +826,8 @@ export const drawAtomBack = (c: Ctx, state: GameState, hj: Hijack) => {
   }
   // THE AIRLOCKS
   if (on(A + 3750, A + 4900)) {
-    sign(c, A + 3800, GY - 400, 240, 22, '#E5E7EB', 'AIRLOCK FX: KEEP CLEAR', '#B91C1C', 7);
+    // (on the flats past the gap: over the gap it'd be hung on nothing)
+    wallPlate(c, 'airlock', A + 4300, GY - 400, 'AIRLOCK FX: KEEP CLEAR', 'enamel', '#E5E7EB', '#B91C1C');
     const locked = crewed(state, AIRLOCK_POST);
     // (the space station set's ceiling, the doors' housings: steel, riveted, its top in the dark)
     stamp(c, 'atom-airlock-ceiling', A + 3896, AIRLOCK_TOP - 74, 968, 78, g => {
@@ -679,7 +837,7 @@ export const drawAtomBack = (c: Ctx, state: GameState, hj: Hijack) => {
       rivets(g, A + 3906, A + 4854, AIRLOCK_TOP - 60, '#475569', 12); rivets(g, A + 3906, A + 4854, AIRLOCK_TOP - 12, '#475569', 12);
       hazard(g, A + 3900, AIRLOCK_TOP - 8, 960, 4, '#FACC15', '#1C1917', 6);
       box(g, A + 3900, AIRLOCK_TOP - 4, 960, 4, '#64748B');
-      stencil(g, 'SPACE STATION LIBERTY - DECK 2', A + 4185, AIRLOCK_TOP - 30, '#94A3B8', '#334155', 6);
+      lettering(g, 'SPACE STATION LIBERTY - DECK 2', A + 4185, AIRLOCK_TOP - 34, 'stencil', '#94A3B8', '#334155');
     });
     for (const d of AIRLOCKS) {
       const s = airlockAt(d, f, locked), bottom = AIRLOCK_TOP + (GY - AIRLOCK_TOP) * s.down;
@@ -703,7 +861,7 @@ export const drawAtomBack = (c: Ctx, state: GameState, hj: Hijack) => {
   }
   // THE LASER SHOW: the emitters (the fog machines are drawn with the fog)
   if (on(BLACKLIGHT.x0 - 100, BLACKLIGHT.x1 + 100)) {
-    sign(c, A + 5040, GY - 400, 330, 22, '#A855F7', 'CLASS IV LASERS: DON\'T LOOK WITH REMAINING EYE', '#F5F3FF', 6);
+    wallPlate(c, 'lasers', A + 5205, GY - 400, 'CLASS IV LASERS:\nDON\'T LOOK WITH REMAINING EYE', 'small', '#A855F7', '#F5F3FF');
     // (the floor one: a stand, its head)
     cyl(c, FLOOR_LASER.x, GY - 90, 14, 90, '#3F3F46', 'y');
     box(c, FLOOR_LASER.x - 12, GY - 4, 38, 4, '#27272A');
@@ -740,27 +898,29 @@ const drawQueueBack = (c: Ctx, state: GameState, hj: Hijack) => {
     for (let i = 0; i < 14; i++) star(g, x0 + 90 + i * 77 + hash(i) * 30, GY - 380 + hash(i * 3.7) * 140, 5, '#3B82F6');
     box(g, x0, GY - 60, w, 60, '#172554'); box(g, x0, GY - 60, w, 3, '#60A5FA');
     // (the switchback's rail posts, chrome, along the line)
-    for (let x = LINE_X0; x <= LINE_X1; x += 80) { cyl(g, x, GY - 52, 5, 52, '#94A3B8', 'y'); box(g, x - 3, GY - 3, 11, 3, '#475569'); }
+    for (let x = LINE_X0; x <= LINE_X1; x += 80) { cyl(g, x, GY - 68, 5, 68, '#94A3B8', 'y'); box(g, x - 3, GY - 3, 11, 3, '#475569'); }
   });
   neonBar(c, QUEUE_DOOR - 20, GY - 456, TUNNEL_X - QUEUE_DOOR + 260, 3, '#67E8F9', true);
   for (let k = 0; k < 5; k++) {
     const tx = LINE_X0 + 40 + k * 150, ad = (f + k * 40) % 240 < 120;
     box(c, tx + 46, GY - 372, 8, 30, '#334155');
     screenGlass(c, tx, GY - 340, 100, 70, ad ? '#0EA5E9' : '#F472B6', f + k * 9);
-    text(c, ad ? 'PROGRESSCO' : "WE'RE ON IT", tx + 50, GY - 300, '#0F172A', 6, 'center', null);
+    c.save(); c.translate(tx + 50, GY - 304);
+    stamp(c, `atom-tvwords-${ad ? 1 : 0}`, -46, -8, 92, 16, g => lettering(g, ad ? 'PROGRESSCO' : "WE'RE ON IT", 0, 0, 'small', '#0F172A', ad ? '#0EA5E9' : '#F472B6'));
+    c.restore();
     if (ad) { const a = f * 0.08 + k; c.strokeStyle = '#0F172A'; c.lineWidth = 1; for (let o = 0; o < 3; o++) { c.beginPath(); c.ellipse(tx + 50, GY - 318, 12, 4, a + o * 1.05, 0, Math.PI * 2); c.stroke(); } }
   }
   // (the big sign, in neon on its board)
   stamp(c, 'atom-queue-sign', LINE_X0 + 120, GY - 432, 440, 52, g => {
     box(g, LINE_X0 + 124, GY - 428, 432, 42, INK); box(g, LINE_X0 + 126, GY - 426, 428, 38, '#9CA3AF'); box(g, LINE_X0 + 126, GY - 426, 428, 1, '#F3F4F6');
     bandedGradient(g, LINE_X0 + 129, GY - 423, 422, 32, ['#0F172A', '#020617'], 3);
-    neonText(g, 'VOYAGE TO 2010  -  PRESENTED BY PROGRESSCO', LINE_X0 + 340, GY - 402, '#67E8F9', 8);
+    lettering(g, 'VOYAGE TO 2010 - PRESENTED BY PROGRESSCO', LINE_X0 + 340, GY - 407, 'neon', '#67E8F9', '#0F172A', true);
   });
-  sign(c, LINE_X0 + 20, GY - 220, 170, 20, '#FDE047', 'WAIT FROM HERE: 2 HRS', '#1C1917', 6);
-  // (the backstage door he came out of)
+  wallPlate(c, 'wait', LINE_X0 + 105, GY - 210, 'WAIT FROM HERE: 2 HRS', 'enamel', '#FDE047', '#1C1917');
+  // (the backstage door he came out of, CAST ONLY on a little plate over it)
   slab(c, QUEUE_DOOR - 12, GY - 154, 74, 154, '#27272A'); slab(c, QUEUE_DOOR - 6, GY - 146, 62, 146, '#3F3F46');
   box(c, QUEUE_DOOR - 2, GY - 76, 50, 6, '#A1A1AA'); box(c, QUEUE_DOOR - 2, GY - 76, 50, 2, '#E4E4E7');
-  text(c, 'CAST ONLY', QUEUE_DOOR + 25, GY - 160, '#FDE047', 5);
+  plate(c, 'castonly-q', QUEUE_DOOR + 25, GY - 166, 'CAST ONLY', 'small', '#27272A', '#FDE047', 4);
   // the people in line: the back row, the front row, behind the rail (the one he's thrown into them knocks a few down)
   for (const row of [0, 1] as const) {
     for (const q of QUEUE) {
@@ -773,8 +933,17 @@ const drawQueueBack = (c: Ctx, state: GameState, hj: Hijack) => {
       drawAtomPerson(c, 'guest', { seed: q.seed, f, pose: down ? 'limp' : 'stand', md: down ? 'hurt' : 'ok', talk: hj.barking === q.seed && near });
       c.restore();
     }
-    // (the switchback's rails: chrome tubes, between the rows and in front)
+    // (the switchback's rails: chrome tubes, between the rows)
     rail(c, LINE_X0 - 10, GY - 50 - (row ? 0 : 14), LINE_X1 - LINE_X0 + 20);
+  }
+  // (the front rail, in front of the line and behind him (he walks in front of it, this is the back layer), on its
+  // stanchions; a newel post at each end, every rail run into it)
+  rail(c, LINE_X0 - 10, GY - 34, LINE_X1 - LINE_X0 + 20);
+  for (let x = LINE_X0 + 150; x < LINE_X1 - 60; x += 160) { cyl(c, x - 2, GY - 30, 5, 30, '#94A3B8', 'y'); box(c, x - 5, GY - 3, 11, 3, '#475569'); }
+  for (const nx of [LINE_X0 - 18, LINE_X1 + 10]) {
+    cyl(c, nx, GY - 70, 9, 70, '#94A3B8', 'y');
+    sphere(c, nx + 4.5, GY - 73, 5, '#E2E8F0');
+    box(c, nx - 4, GY - 4, 17, 4, INK); box(c, nx - 3, GY - 3, 15, 2, '#64748B');
   }
   // (the merge gate: the rail's flat top cap there, polished brass, its lit lip: hop it)
   for (const [x, y, w] of LEDGES) if (x >= LINE_X0 && x < LINE_X1) {
@@ -793,7 +962,9 @@ const drawQueueBack = (c: Ctx, state: GameState, hj: Hijack) => {
   c.restore();
   lamp(c, CONSOLE_X - 15, GY - 57, 3, '#F87171', (f >> 4) % 2 === 0, 2);
   lamp(c, CONSOLE_X - 3, GY - 57, 3, '#FDE047', true, 0);
-  text(c, 'DISPATCH', CONSOLE_X, GY - 40, '#CCFBF1', 5, 'center', null);
+  c.save(); c.translate(CONSOLE_X, GY - 43);
+  stamp(c, 'atom-dispatch', -30, -6, 60, 12, g => lettering(g, 'DISPATCH', 0, 0, 'small', '#CCFBF1', '#0F766E'));
+  c.restore();
   box(c, CONSOLE_X - 22, GY - 30, 44, 2, '#115E59');
   // (the tunnel's mouth past the sled: its dark going in, the guide lights along the floor, the neon round it)
   stamp(c, 'atom-tunnel', TUNNEL_X - 16, GY - 330, 320, 330, g => {
@@ -807,7 +978,7 @@ const drawQueueBack = (c: Ctx, state: GameState, hj: Hijack) => {
   stamp(c, 'atom-tunnel-sign', TUNNEL_X - 130, GY - 368, 260, 40, g => {
     box(g, TUNNEL_X - 124, GY - 364, 248, 32, INK); box(g, TUNNEL_X - 122, GY - 362, 244, 28, '#9CA3AF'); box(g, TUNNEL_X - 122, GY - 362, 244, 1, '#F3F4F6');
     bandedGradient(g, TUNNEL_X - 119, GY - 359, 238, 22, ['#1E1B4B', '#05030F'], 3);
-    neonText(g, 'TO THE FUTURE  >>', TUNNEL_X, GY - 343, '#F0ABFC', 8);
+    lettering(g, 'TO THE FUTURE >>', TUNNEL_X, GY - 348, 'neon', '#F0ABFC', '#1E1B4B', true);
   });
   // (the operator, at her console, unless the scene's moving her)
   if (!hj.opHidden) {
@@ -939,8 +1110,6 @@ export const drawAtomFront = (c: Ctx, state: GameState, hj: Hijack) => {
     box(c, x, y, w, 2, `rgba(203, 213, 225, ${0.3 * cn.blow})`); box(c, x, y, 8, 2, `rgba(248, 250, 252, ${0.6 * cn.blow})`);
     if (k % 3 === 0) box(c, x + w + 6, y + 3, 2, 2, `rgba(161, 161, 170, ${0.7 * cn.blow})`);
   }
-  // (the queue's front rail: in front of the line, behind him)
-  if (on(LINE_X0, LINE_X1)) rail(c, LINE_X0 - 10, GY - 34, LINE_X1 - LINE_X0 + 20);
   // (the tunnel's strip curtain: black strips swaying in the mouth, the sled goes through them)
   if (on(TUNNEL_X, TUNNEL_X + 60)) for (let k = 0; k < 6; k++) {
     const sx = TUNNEL_X + 6 + k * 7 + Math.round(Math.sin(f * 0.04 + k) * 1);
