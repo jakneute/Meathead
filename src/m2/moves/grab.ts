@@ -101,6 +101,8 @@ export const AIR_GRAB = {
   SHAKE_T: 16, SHAKE_POW: 9,
   /** The one he's got, in his arms through the arc: feet this far ahead of and up from his (facing right, unturned). */
   HOLD_X: 26, HOLD_Y: -16,
+  /** Bailing out of the arc (jump): his kick off, back and up. */
+  BAIL_VX: 3, BAIL_VY: 8,
   /** What they turn about, up from his feet (his middle). */
   PIVOT: 34,
 };
@@ -203,6 +205,8 @@ export interface Grab {
   airLock: boolean;
   /** ...except the dive kick, after one that caught nobody. */
   diveOk: boolean;
+  /** Jump held last frame in the air grab's arc (a fresh press bails out of it). */
+  arcJump: boolean;
   /** The air grab's arc: which way it's steered, how far he's turned, how fast they're going, where it hit. */
   arc: Arc;
   ang: number;
@@ -241,7 +245,7 @@ export interface Grab {
 
 export const createGrab = (state: GameState): Grab => ({
   phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, airSpent: false,
-  airLock: false, diveOk: false, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null,
+  airLock: false, diveOk: false, arcJump: true, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -707,7 +711,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       }
       if (hit) {
         // Got him: a hop up together, then the arc down
-        g.phase = 'aarc'; g.t = 0; g.held = hit; take(state, hit); g.fall = 0; g.ang = 0; g.arc = 'down';
+        g.phase = 'aarc'; g.t = 0; g.held = hit; take(state, hit); g.fall = 0; g.ang = 0; g.arc = 'down'; g.arcJump = true;
         g.avy = Math.min(p.vel.y, -A.ARC_POP);
         hit.facing = (-g.dir) as 1 | -1;
         playSound('punch', 1, -4); playSound('slam', 0.6, 4); shakeScreen(state, 6, 4);
@@ -1214,6 +1218,23 @@ const airArc = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   p.power = 0; p.vel.x = 0; p.jumpHoldTimer = 0;
   // (in the water, or somehow going on forever: let go of him, alive)
   if (p.swimming || g.t > A.ARC_MAX_FRAMES) { letGo(state, g); return { ...NO_CONTROLS }; }
+  // (jump: bail out of it (heading somewhere bad): he lets go and kicks off; no slam, no heal; the one he had falls on
+  // his own, the way he was going, and the floor hurts him by how hard he hits it, like any thrown body)
+  const jumpNow = !!controls.jump, fresh = jumpNow && !g.arcJump;
+  g.arcJump = jumpNow;
+  if (fresh && g.held) {
+    const e = g.held, at = arcHold(state, g, e).feet;
+    e.pos = { x: at.x - e.width / 2, y: Math.min(at.y, feetY(state)) - e.height };
+    e.vel = { x: g.avx, y: Math.max(2, g.avy) };
+    e.rotation = 0;
+    g.held = null;
+    release(state, e);
+    fly(g, e, 'thrown');
+    end(state, g);
+    p.vel = { x: -g.dir * A.BAIL_VX, y: -A.BAIL_VY }; p.isGrounded = false;
+    playSound('whoosh', 0.8, 2);
+    return { ...controls, special: false, charge: false };
+  }
   const back = g.dir > 0 ? controls.left : controls.right, fwd = g.dir > 0 ? controls.right : controls.left;
   // (a flip or a dive, once it's picked, is it: no changing his mind mid-air; from the plain piledriver he can still pick one)
   if (g.arc !== 'back' && g.arc !== 'fwd') g.arc = back ? 'back' : fwd ? 'fwd' : 'down';
