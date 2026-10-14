@@ -55,6 +55,25 @@ export const boltV = (state: GameState, kind: string, x: number, y: number, vx: 
   state.projectiles.push(enemyProjectile(`zb-${state.frame}-${Math.random()}`, x - 7, y - 5, vx, vy, 14, 10, dmg, { sadBolt: true, shooterKind: kind, life: 420, bornAt: state.frame }));
 };
 
+/** Their bolts, made plain against the dark and the pink of his own: a fat orange-gold orb, inked, with a pulsing
+ *  ring round it and a short streak behind (drawn over the engine's own pink). */
+export const drawAlienBolts = (c: CanvasRenderingContext2D, state: GameState) => {
+  const f = state.frame;
+  for (const p of state.projectiles) {
+    if (p.owner !== 'enemy' || !p.sadBolt) continue;
+    const x = Math.round(p.pos.x + p.width / 2), y = Math.round(p.pos.y + p.height / 2);
+    const r = 8 + ((f >> 2) % 2), sp = Math.hypot(p.vel.x, p.vel.y) || 1, ux = -p.vel.x / sp, uy = -p.vel.y / sp;
+    // (the streak behind)
+    for (let i = 1; i <= 3; i++) { c.fillStyle = i === 1 ? '#F97316' : i === 2 ? '#C2410C' : '#7C2D12'; c.beginPath(); c.arc(x + ux * i * 7, y + uy * i * 7, r - i * 2, 0, Math.PI * 2); c.fill(); }
+    // (the ring: it pulses)
+    c.strokeStyle = (f >> 3) % 2 ? '#FDE047' : '#FFFFFF'; c.lineWidth = 2; c.beginPath(); c.arc(x, y, r + 5, 0, Math.PI * 2); c.stroke();
+    // (the orb, inked)
+    c.fillStyle = '#1A0B06'; c.beginPath(); c.arc(x, y, r + 1.5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#F59E0B'; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FEF08A'; c.beginPath(); c.arc(x - 2, y - 2, r * 0.5, 0, Math.PI * 2); c.fill();
+  }
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // Rocks and junk
 

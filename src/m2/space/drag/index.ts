@@ -16,7 +16,8 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { SpaceSection } from '../section';
-import { layOwn, ledge, endWalls, runExits, meatheadSays, saidOver } from '../section';
+import { layOwn, ledge, endWalls, runExits, meatheadSays, saidOver, teleport } from '../section';
+import { setUi } from '../../store';
 import { SECTIONS, DOORS, GY } from '../geometry';
 import { X, Y, GROUND, LEDGES, SAUCERS as SAUCER_DEFS, BELTS, PLATES, PADS, MONO, TRACK, TRACK_LEGS, ENEMIES, PICKUPS, CHECKPOINTS, T1, T2, LIFT_X, SPEAKERS, SMEAR } from './layout';
 import { makeGear, updateGear, drawGearBack, drawGearFront, drawTrack, type Gear } from '../square/gear';
@@ -38,6 +39,7 @@ interface Dr { gear: Gear; last: number }
 const DR = new WeakMap<object, Dr>();
 const mine = (state: GameState) => DR.get(state.stage as object);
 
+let liftUpWas = true;
 export const drag: SpaceSection = {
   id: 'drag', x0, x1,
   checkpoints: CHECKPOINTS,
@@ -94,10 +96,14 @@ export const drag: SpaceSection = {
       o.said.falling = true; meatheadSays(state, pick(FALL_SCREAM), false); playSound('whoosh', 0.8, -8);
     }
     // In at the lift (up the needle: its start); back off the left end (the atom's load platform: the ride's call)
-    runExits(state, [
-      { x0: X(LIFT_X) - 30, x1: X(LIFT_X) + 30, yTop: GY - 40, yBot: GY + 2, to: DOORS.needle.start },
-      { x0, x1: x0 + 50, yTop: GY - 40, yBot: GY + 2, to: DOORS.ride.end },
-    ]);
+    runExits(state, [{ x0, x1: x0 + 50, yTop: GY - 40, yBot: GY + 2, to: DOORS.ride.end }]);
+    // (the needle's doors: up, with its prompt, to go in)
+    const atLift = p.isGrounded && !p.inCutscene && Math.abs(p.pos.x + p.width / 2 - X(LIFT_X)) < 40;
+    if (atLift) {
+      setUi({ upPrompt: 'SPACE NEEDLE 2' });
+      if (controls.up && !liftUpWas) { liftUpWas = true; teleport(state, DOORS.needle.start.x, DOORS.needle.start.y); return controls; }
+    }
+    liftUpWas = !!controls.up;
     return controls;
   },
   drawBackdrop: (c, state) => drawDragBackdrop(c, state),

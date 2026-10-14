@@ -27,6 +27,8 @@ type Ctx = CanvasRenderingContext2D;
 /** Where (camera offset into the section) each level comes in; the beam's once the screen's stopped for the saucer. */
 export const LEVEL_AT = [0, 3200, 6800, 10400, 14000, ARENA_CAM - X0];
 export const MAX_LEVEL = 5;
+/** How far out the radiation first gets into it (the plain ray gun till then, at its own rate). */
+export const RAPID_AT = 1400;
 export const levelAt = (off: number) => { let l = 0; for (let i = 0; i < LEVEL_AT.length; i++) if (off >= LEVEL_AT[i]) l = i; return l; };
 /** Frames between bolts, by level. */
 const COOLDOWN = [4, 3, 3, 3, 3, 3];
@@ -74,7 +76,8 @@ export const updateGun = (ctx: FrameContext, controls: Controls): Controls => {
   o.beam = false;
   // (a bolt out since last frame (the engine's): its brothers with it)
   extraBolts(state, o.level);
-  p.shootCooldown = Math.min(p.shootCooldown, COOLDOWN[o.level]);
+  // (plain till the radiation's in it: the ground's own rate)
+  if (o.level > 0 || state.stageMemo['m2:orbit:rapid']) p.shootCooldown = Math.min(p.shootCooldown, COOLDOWN[o.level]);
   return controls;
 };
 

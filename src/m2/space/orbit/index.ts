@@ -27,11 +27,11 @@ import { putOnSuit, reapplySuit } from '../needle/suit';
 import { orbitOf, MEMO } from './state';
 import { X0, X1, CY, W, H, SCROLL, ARENA_CAM, FLY_Y, START_SX, FLY_SPEED, FLY_ACCEL, EDGE_L, EDGE_R, EDGE_T, EDGE_B, at } from './geo';
 import { drawSpace, drawNeedleTop } from './art';
-import { updateRocks, drawRocks, updateBooms, drawBooms, drawBarks } from './hazards';
+import { updateRocks, drawRocks, updateBooms, drawBooms, drawBarks, drawAlienBolts } from './hazards';
 import { pilotOf, mineBlows, K } from './kinds';
 import { runWaves, skipWavesTo } from './waves';
 import { startSaucer, updateSaucer, drawSaucerFront, drawSaucerHud, noteSaucerHp } from './ufo';
-import { updateGun, drawGun, levelAt, gunSays } from './gun';
+import { updateGun, drawGun, levelAt, gunSays, RAPID_AT } from './gun';
 import { MH_ARRIVE, MH_RAPID, GUN_UPGRADE } from './lines';
 
 /** Where the big refill is put out, before the end (a camera offset), and where (screen). */
@@ -118,8 +118,8 @@ export const orbit: SpaceSection = {
     fly(state, controls);
     // (a checkpoint's just been reached: the saucer's health as it stands is kept for it)
     if (state.checkpoint !== o.cpSeen) { o.cpSeen = state.checkpoint; noteSaucerHp(state); }
-    // The gun: space radiation (the first bolt: rapid, and the gun says why)
-    if (controls.shoot && !state.stageMemo[MEMO.rapid] && p.health > 0) {
+    // The gun: a plain ray gun at first; a way out, the space radiation gets into it: rapid, and the gun says why
+    if (o.scroll - X0 >= RAPID_AT && !state.stageMemo[MEMO.rapid] && p.health > 0) {
       state.stageMemo[MEMO.rapid] = '1';
       gunSays(state, GUN_UPGRADE[0]);
       meatheadSays(state, MH_RAPID[0], true);
@@ -159,6 +159,7 @@ export const orbit: SpaceSection = {
     drawRocks(c, state);
   },
   drawFront: (c, state) => {
+    drawAlienBolts(c, state);
     drawBooms(c, state);
     drawSaucerFront(c, state);
     drawGun(c, state);
