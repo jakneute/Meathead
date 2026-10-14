@@ -23,8 +23,9 @@ import { drawAtomPerson } from '../atom/people';
 import {
   R, RUNS, GAPS, OBS, CUES, CUE_XS, TABLEAU_XS, LIFT_X0, LIFT_X1, BREAKER_X, STATION_X0, STATION_X1, FINS_X0, FINS_X1, BRAKE_X,
   CREST_X, FRONT_AT, STATION_ROOF, WORKERS, STATION_FOLK, trackY, railLine, type Ob, type Verb,
+  slopeAt,
 } from './layout';
-import { CLEAR, HURDLE, halfW, trayReach, rockHeight, ROCK_R, obLive, cueLive, type Tricks } from './tricks';
+import { CLEAR, BEAM_CLEAR, HURDLE, halfW, trayReach, rockHeight, ROCK_R, obLive, cueLive, type Tricks } from './tricks';
 import { drawSled, FRONT_SLED, type SledLook } from './sled';
 
 type Ctx = CanvasRenderingContext2D;
@@ -214,8 +215,11 @@ const drawOb = (c: Ctx, o: Ob, i: number, look: RideLook, f: number) => {
       break;
     }
     case 'beam': {
-      // the emitter housing, a wall from the ceiling to the band (the band's in front)
-      hazardWall(c, x - hw, rail - 112 - 560, hw * 2, 560, '#14532D', '#86EFAC');
+      // the emitter housing, a slab over the band, square to the track (slanted with it, up the hill): the band's in
+      // front
+      c.save(); c.translate(x, rail); c.rotate(slopeAt(x) ?? 0);
+      hazardWall(c, -hw, -BEAM_CLEAR - 54 - 420, hw * 2, 420, '#14532D', '#86EFAC');
+      c.restore();
       break;
     }
     case 'tray': {
@@ -508,11 +512,14 @@ export const drawRideFront = (c: Ctx, state: GameState, look: RideLook) => {
     const rail = trackY(o.x) ?? GY, hw = halfW(o);
     if (o.kind === 'beam') {
       // (a slab of beams from the housing down to its bottom edge: a glowing band, inked, the beams bright in it)
-      const top = rail - 112, bot = rail - CLEAR;
-      box(c, o.x - hw, top - 1, hw * 2, bot - top + 2, INK);
-      box(c, o.x - hw + 2, top + 1, hw * 2 - 4, bot - top - 2, 'rgba(34, 197, 94, 0.6)');
-      for (let yy = top + 4; yy < bot - 2; yy += 8) box(c, o.x - hw + 2, yy + ((f >> 2) % 2), hw * 2 - 4, 2, '#DCFCE7');
-      box(c, o.x - hw, bot - 3, hw * 2, 3, '#FDE047');
+      // (square to the track: slanted with it up the hill; its bottom edge well up off the rail, plainly over him ducked)
+      c.save(); c.translate(o.x, rail); c.rotate(slopeAt(o.x) ?? 0);
+      const top = -BEAM_CLEAR - 54, bot = -BEAM_CLEAR;
+      box(c, -hw, top - 1, hw * 2, bot - top + 2, INK);
+      box(c, -hw + 2, top + 1, hw * 2 - 4, bot - top - 2, 'rgba(34, 197, 94, 0.6)');
+      for (let yy = top + 4; yy < bot - 2; yy += 8) box(c, -hw + 2, yy + ((f >> 2) % 2), hw * 2 - 4, 2, '#DCFCE7');
+      box(c, -hw, bot - 3, hw * 2, 3, '#FDE047');
+      c.restore();
     } else if (o.kind === 'wire') {
       box(c, o.x - hw, rail - HURDLE, hw * 2, HURDLE - 10, 'rgba(34, 197, 94, 0.55)');
       for (let yy = rail - HURDLE + 2; yy < rail - 10; yy += 5) box(c, o.x - hw, yy, hw * 2, 2, (f >> 2) % 2 ? '#DCFCE7' : '#86EFAC');
@@ -524,10 +531,12 @@ export const drawRideFront = (c: Ctx, state: GameState, look: RideLook) => {
 export const drawBlaster = (c: Ctx, state: GameState, tr: Tricks, p: Player) => {
   for (const b of tr.bits) { c.save(); c.translate(b.x, b.y); c.rotate(b.rot); box(c, -b.w / 2 - 1, -b.h / 2 - 1, b.w + 2, b.h + 2, INK); box(c, -b.w / 2, -b.h / 2, b.w, b.h, b.col); c.restore(); }
   for (const b of tr.bolts) {
-    // (a green bolt: a long streak, a hot core, a stepped glow)
-    c.globalAlpha = 0.25; box(c, b.x - 40, b.y - 7, 64, 14, '#22C55E');
-    c.globalAlpha = 0.5; box(c, b.x - 30, b.y - 4, 54, 8, '#4ADE80');
-    c.globalAlpha = 1; box(c, b.x - 22, b.y - 2, 46, 4, '#BBF7D0'); box(c, b.x + 6, b.y - 1, 18, 2, '#FFFFFF');
+    // (a green bolt: a long streak, a hot core, a stepped glow; along the way it was fired)
+    c.save(); c.translate(b.x, b.y); c.rotate(b.ang);
+    c.globalAlpha = 0.25; box(c, -40, -7, 64, 14, '#22C55E');
+    c.globalAlpha = 0.5; box(c, -30, -4, 54, 8, '#4ADE80');
+    c.globalAlpha = 1; box(c, -22, -2, 46, 4, '#BBF7D0'); box(c, 6, -1, 18, 2, '#FFFFFF');
+    c.restore();
   }
   if (tr.flash > 0 && p.cartSeat) {
     const mx = p.pos.x + p.width + 4, my = p.pos.y + 30, r = 4 + tr.flash * 2;

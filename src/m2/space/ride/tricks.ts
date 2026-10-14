@@ -37,6 +37,9 @@ registerHurtLines('ride_crates', L.HURT_CRATES, L.DEATH_CRATES);
 
 /** A duck-under's bottom edge (his head sat up's at 78, ducked 48). */
 export const CLEAR = 58;
+/** A laser band's bottom edge, higher than the rest (so it plainly clears him ducked: his head's at HEAD_DOWN + FEET,
+ *  48; sat up, 78, it gets him). */
+export const BEAM_CLEAR = 68;
 /** A hurdle's top. */
 export const HURDLE = 26;
 /** How tall a blast-it thing is (over anything he can jump: the jump's top is about 170). */
@@ -55,7 +58,7 @@ export const trayReach = (d: number) => (d > -140 ? Math.max(0, Math.min(1, (620
 export const ROCK_HANG = 330, ROCK_R = 46;
 export const rockHeight = (d: number) => (d > 610 ? ROCK_HANG : d > 560 ? ROCK_HANG * ((d - 560) / 50) ** 2 : 0);
 
-export interface Bolt { x: number; y: number; vx: number; life: number }
+export interface Bolt { x: number; y: number; vx: number; vy: number; ang: number; life: number }
 export interface Bit { x: number; y: number; vx: number; vy: number; rot: number; col: string; w: number; h: number }
 export interface Tricks {
   /** What's left of each blast-it one; which are in bits. */
@@ -99,10 +102,12 @@ const smash = (state: GameState, tr: Tricks, i: number) => {
 };
 
 /** Fires the space blaster (from his gun: `mx`, `my`), if it's ready. */
-export const fireBlaster = (tr: Tricks, mx: number, my: number, speed: number) => {
+/** Fired from (mx, my), the way the sled's pointed (`ang`: up a hill, up it; in the air, the way it's tipped). */
+export const fireBlaster = (tr: Tricks, mx: number, my: number, speed: number, ang = 0) => {
   if (tr.cool > 0) return false;
   tr.cool = 12; tr.flash = 5;
-  tr.bolts.push({ x: mx, y: my, vx: speed + 16, life: 30 });
+  const v = speed + 16;
+  tr.bolts.push({ x: mx, y: my, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, ang, life: 30 });
   playSound('raygun', 0.55, -7);
   return true;
 };
@@ -131,7 +136,7 @@ export const runTricks = (ctx: FrameContext, tr: Tricks, s: SledView, first: (ki
     const across = (x0: number, x1: number) => x0 < o.x + hw && x1 > o.x - hw;
     if (o.verb === 'duck') {
       if (o.kind === 'tray' && trayReach(d) < 0.7) return;
-      if (across(me.x0, me.x1) && me.top > CLEAR) hurt(`${i}`, 14, o.kind === 'sat' ? 'ride_satellite' : o.kind === 'tray' ? 'ride_butler' : 'ride_laser');
+      if (across(me.x0, me.x1) && me.top > (o.kind === 'beam' ? BEAM_CLEAR : CLEAR)) hurt(`${i}`, 14, o.kind === 'sat' ? 'ride_satellite' : o.kind === 'tray' ? 'ride_butler' : 'ride_laser');
       const box = { x: o.x - hw, y: rail - 600, w: hw * 2, h: 600 - CLEAR };
       others(box, o.kind === 'beam' ? 'LASERED!' : 'BEANED!');
       zones.push({ x0: box.x, x1: box.x + box.w, y0: box.y, y1: box.y + box.h });
@@ -160,7 +165,7 @@ export const runTricks = (ctx: FrameContext, tr: Tricks, s: SledView, first: (ki
   });
   // The space blaster's bolts: into the first thing in their way (a blast-it one, or anybody)
   for (const b of tr.bolts) {
-    b.x += b.vx; b.life--;
+    b.x += b.vx; b.y += b.vy; b.life--;
     for (const [i, o] of OBS.entries()) {
       if (o.verb !== 'blast' || !obLive(state, tr, i)) continue;
       if (o.kind === 'rock' && rockHeight(o.x - s.x) > ROCK_R) continue;
@@ -194,7 +199,7 @@ export const runTricks = (ctx: FrameContext, tr: Tricks, s: SledView, first: (ki
 
 /** The bolts and the bits, once he's out of the riding (the brake run's scene): just moved on. */
 export const settleTricks = (tr: Tricks) => {
-  for (const b of tr.bolts) { b.x += b.vx; b.life--; }
+  for (const b of tr.bolts) { b.x += b.vx; b.y += b.vy; b.life--; }
   tr.bolts = tr.bolts.filter(b => b.life > 0);
   for (const b of tr.bits) { b.vy += 0.4; b.x += b.vx; b.y += b.vy; b.rot += 0.2; }
   if (tr.cool > 0) tr.cool--;

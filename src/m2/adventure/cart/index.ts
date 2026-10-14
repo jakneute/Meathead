@@ -20,7 +20,7 @@ import { GY } from '../geometry';
 import { HOLE_X as ROOF_HOLE_X } from '../roof';
 import {
   x0, x1, X, RUNS, RAMP_X, RAMP_R, RAMP_Y, RAIL_TOP, BEAMS, SCANNER_X, CHASE_X, SLOW_TO, FORK_CAM_X, OUTRO_X, SINK,
-  trackY, slopeAt, artieTrackY,
+  trackY, runAt, slopeAt, artieTrackY,
 } from './layout';
 import { drawCartBackdrop, drawCartTrack, drawCartFront, cartLighting } from './art';
 import { setUi } from '../../store';
@@ -136,6 +136,8 @@ const place = (state: GameState, cart: Cart) => {
   p.vel.x = 0; p.vel.y = 0;
 };
 
+/** The cart's wheels from its middle (front, middle, back), and how far into a run one can be and still be caught on it. */
+const CART_WHEELS = [44, 0, -44], CART_SNAP_IN = 40;
 const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   cart.t++;
@@ -157,8 +159,15 @@ const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
   const ty = trackY(cart.x);
   if (cart.air) {
     cart.vy += 0.5; cart.y += cart.vy;
-    if (ty !== null && cart.vy >= 0 && cart.y >= ty && cart.y - cart.vy <= ty + 14) {
-      cart.y = ty; cart.vy = 0; cart.air = false; playSound('land', 0.8); playSound('clang', 0.5, -4); shakeScreen(state, 4, 2);
+    // (down onto the rail: any of its wheels touching a run, or even a little way into it (the front clipping the end
+    // of the next one), and it's on: snapped onto that run, never through it)
+    if (cart.vy >= 0) for (const dx of CART_WHEELS) {
+      const wx = cart.x + dx, wy = trackY(wx);
+      if (wy === null || cart.y < wy - 1 || cart.y > wy + CART_SNAP_IN || cart.y - cart.vy > wy + CART_SNAP_IN) continue;
+      const r = runAt(wx)!;
+      cart.x = Math.max(r[0] + 1, Math.min(r[1] - 1, cart.x));
+      cart.y = trackY(cart.x) ?? wy; cart.vy = 0; cart.air = false; playSound('land', 0.8); playSound('clang', 0.5, -4); shakeScreen(state, 4, 2);
+      break;
     }
   } else if (ty === null) {
     // Off the end of the rail: over the gap, falling (it carries on the way the rail was going)

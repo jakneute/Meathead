@@ -39,7 +39,7 @@ import { drawAtomPerson, type Outfit } from '../atom/people';
 import { box } from '../../intro/art/kit';
 import {
   x0, x1, R, RUNS, GAPS, OBS, PA_CUES, BREAKER_X, ACT3_X, BRAKE_AT, FINS_X0, FINS_X1, BRAKE_X, CREST_X, FRONT_AT,
-  STATION_ROOF, WORKERS, STATION_FOLK, speedAt, trackY, slopeAt, BREAKER_MEMO, LAUNCHED_MEMO, lightsOn,
+  STATION_ROOF, WORKERS, STATION_FOLK, speedAt, trackY, runAt, slopeAt, BREAKER_MEMO, LAUNCHED_MEMO, lightsOn,
 } from './layout';
 import { type Tricks, newTricks, runTricks, settleTricks, fireBlaster, JUMP_V, JUMP_G } from './tricks';
 import { paStory, paSaying, paHush } from './pa';
@@ -122,14 +122,21 @@ const sayAt = (s: Sled, voiceId: string, text: string, x: number, y: number) => 
   speak(voiceId, text, v => { s.said = v; }, true);
 };
 /** The space blaster, out of his gun (sat in the sled; ducked, lower). */
+/** How the sled's tipped: going up out of the station's roof, in the air (its nose with how it's flying), or along the rail. */
+const sledRot = (s: Sled) => s.mode === 'up' ? -0.4 - s.sceneT * 0.05 : s.air ? Math.max(-0.3, Math.min(0.3, s.vy * 0.03)) : slopeAt(s.x) ?? 0;
 const blast = (state: GameState, s: Sled) => {
   const p = state.player;
-  fireBlaster(s.tricks, p.pos.x + p.width + 4, p.pos.y + (s.ducked ? 40 : 30), s.speed);
+  // (out of his gun the way the sled's pointed: its tilt, up a hill or in the air, turning the muzzle and the shot)
+  const ang = sledRot(s), dx = p.pos.x + p.width + 4 - s.x, dy = p.pos.y + (s.ducked ? 40 : 30) - s.y;
+  const cs = Math.cos(ang), sn = Math.sin(ang);
+  fireBlaster(s.tricks, s.x + dx * cs - dy * sn, s.y + dx * sn + dy * cs, s.speed, ang);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Riding
 
+/** The sled's wheels from its middle (front, middle, back), and how far into a run one can be and still be caught on it. */
+const WHEELS = [40, 0, -44], SNAP_IN = 44;
 const riding = (ctx: FrameContext, s: Sled, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
   s.t++;
@@ -170,7 +177,17 @@ const riding = (ctx: FrameContext, s: Sled, controls: Controls): Controls => {
   if (s.air) {
     if (s.offRail > 0) s.offRail++;
     s.vy += JUMP_G; s.y += s.vy;
-    if (ty !== null && s.vy >= 0 && s.y >= ty && s.y - s.vy <= ty + 16) { s.y = ty; s.vy = 0; s.air = false; s.offRail = 0; playSound('land', 0.8); playSound('clang', 0.5, -2); shakeScreen(state, 4, 2); }
+    // (down onto the rail: any of its wheels (the front's, the middle, the back's) touching a run, or even a little
+    // way into it (the nose clipping the end of the next one), and it's on: snapped onto that run, never through it)
+    if (s.vy >= 0) for (const dx of WHEELS) {
+      const wx = s.x + dx, wy = trackY(wx);
+      if (wy === null || s.y < wy - 1 || s.y > wy + SNAP_IN || s.y - s.vy > wy + SNAP_IN) continue;
+      const r = runAt(wx)!;
+      s.x = Math.max(r[0] + 1, Math.min(r[1] - 1, s.x));
+      s.y = trackY(s.x) ?? wy; s.vy = 0; s.air = false; s.offRail = 0;
+      playSound('land', 0.8); playSound('clang', 0.5, -2); shakeScreen(state, 4, 2);
+      break;
+    }
   } else if (ty === null) {
     const r = [...RUNS].reverse().find(q => q[1] < s.x);
     s.vy = r ? ((r[3] - r[2]) / (r[1] - r[0])) * s.speed : 0;
@@ -349,7 +366,7 @@ const drawSleds = (c: CanvasRenderingContext2D, state: GameState, back: boolean)
   }
   if (!back) for (const fl of s.fliers) { c.save(); c.translate(fl.x, fl.y); c.rotate(fl.rot); drawAtomPerson(c, fl.outfit, { seed: fl.seed, f, pose: 'thrown', md: 'hurt' }); c.restore(); }
   if (s.mode === 'off' || s.mode === 'gone' || s.mode === 'out') return;
-  const rot = s.mode === 'up' ? -0.4 - s.sceneT * 0.05 : s.air ? Math.max(-0.3, Math.min(0.3, s.vy * 0.03)) : slopeAt(s.x) ?? 0;
+  const rot = sledRot(s);
   drawSled(c, s.x, s.y, f, HIS_SLED, back, rot, lit);
 };
 

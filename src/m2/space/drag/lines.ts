@@ -4,9 +4,12 @@
 
 /** Down on the main drag, on top of what's left of the riders of the sled in front (he's fine). */
 export const LANDED = [
-  "I'M FINE.",
   'SOFT LANDING. THANKS, GUYS.',
   'THEY BROKE MY FALL. AND EVERYTHING ELSE.',
+  "TEN OUT OF TEN. WOULDN'T RIDE AGAIN.",
+  'I WANT TO SPEAK TO WHOEVER BUILT THAT. THEN PUNCH HIM.',
+  "THAT'S THE FUTURE? IT SUCKS AND I LOVE IT.",
+  "I'M NOT PAYING FOR THE PHOTO.",
 ];
 /** Back past the smear later (once). */
 export const SMEAR_AGAIN = [
