@@ -191,8 +191,10 @@ const rigPlace = (r: Rig, k: number) => {
   const dx = r.lunge;
   switch (r.kind) {
     case 'floor': return { x: r.x + dx, y: GY + 150 - 150 * k, rot: 0, s: 1.15, clipY: GY as number | null };
-    case 'ceiling': return { x: r.x + dx, y: CEIL + 40 + 170 * k, rot: Math.PI, s: 1, clipY: null };
-    case 'wall': return { x: r.x - 30 + 60 * k + dx, y: GY - 20, rot: (1 - Math.min(1, k)) * -1.2, s: 1, clipY: null };
+    // (in, it's all the way back up in its slot, above the ceiling (clipped there): out of sight, not popped away)
+    case 'ceiling': return { x: r.x + dx, y: CEIL + 40 + 170 * k - (1 - Math.min(1, k)) * 340, rot: Math.PI, s: 1, clipY: null };
+    // (in, it's all the way back through its hatch, behind the bulkhead (clipped there))
+    case 'wall': return { x: r.x - 30 + 60 * k - (1 - Math.min(1, k)) * 220 + dx, y: GY - 20, rot: (1 - Math.min(1, k)) * -1.2, s: 1, clipY: null };
     case 'crate': return { x: r.x + dx, y: GY - 40 - 50 * Math.min(1.2, k), rot: 0, s: 0.9, clipY: Math.abs(dx) > 1 ? null : GY - 40 };
   }
 };
@@ -226,6 +228,9 @@ export const drawRigs = (c: Ctx, state: GameState, rigs: Rig[]) => {
     const pose = r.mode === 'limp' || r.mode === 'spent' ? 'limp' : r.mode === 'fight' ? 'claw' : 'boo';
     c.save();
     if (pl.clipY !== null) { c.beginPath(); c.rect(r.x - 300, -5000, 600, pl.clipY + 5000); c.clip(); }
+    // (the ceiling's below its slot only; the wall's out past its hatch only)
+    if (r.kind === 'ceiling') { c.beginPath(); c.rect(r.x - 400, CEIL, 800, 2000); c.clip(); }
+    if (r.kind === 'wall') { c.beginPath(); c.rect(r.x - 40, -5000, 800, 10000); c.clip(); }
     if (r.kind === 'ceiling') { limb(c, r.x, CEIL, pl.x, pl.y + 140, 4, '#71717A'); c.translate(pl.x, pl.y); c.rotate(pl.rot); drawCheapGreen(c, 0, -150, f, pl.s, pose, look); }
     else if (r.kind === 'wall') { limb(c, r.x - 40, GY - 120, pl.x, GY - 100, 5, '#71717A'); c.translate(pl.x, pl.y); c.rotate(pl.rot); drawCheapGreen(c, 0, 0, f, pl.s, pose, look); }
     else {
