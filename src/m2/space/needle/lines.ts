@@ -19,7 +19,7 @@ export const MH_LOBBY = [
   "NO LINE. THAT'S NEVER GOOD.",
   'IT GOES TO SPACE AND NOBODY CARES. SOUNDS RIGHT.',
 ];
-/** The lift's going up (the announcer, the doors shut). */
+/** The elevator's going up (the announcer, the doors shut). */
 export const PA_UP = [
   'WELCOME ABOARD SPACE NEEDLE TWO. THE TRIP TO SPACE TAKES NINE SECONDS. PLEASE DO NOT SCREAM.',
   'WELCOME TO SPACE NEEDLE TWO. YOUR EARS WILL POP. THEN THEY WILL STOP WORKING.',

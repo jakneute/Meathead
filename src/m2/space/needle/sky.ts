@@ -8,7 +8,7 @@
 // rate (nearer goes by faster: depth), the stars at theirs.
 //
 //   drawDeckView   out the deck's windows: `pan` is the bearing (world px round the ring) at the middle of the screen
-//   drawAscent     out the lift's glass going up: `a` 0 (the ground) .. 1 (space)
+//   drawAscent     out the elevator's glass going up: `a` 0 (the ground) .. 1 (space)
 //   drawOrbitBack  the shot from outside (the decompression): the stars, the sun, the Earth
 
 import type { GameState } from '../../../m1/game/core/state';
@@ -389,7 +389,7 @@ export const drawDeckView = (c: Ctx, state: GameState, pan: number, circ: number
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The way up: the park dropping away under the lift, the clouds coming down past
+// The way up: the park dropping away under the elevator, the clouds coming down past
 
 /** The park far below (screen px tall), painted once an hour: its rides and towers in stepped tones, the haze. */
 const PARK_H = 200;
@@ -403,6 +403,9 @@ const paintPark = (tod: TimeOfDay) => {
   for (let x = 0; x < W; x += PX) {
     const h = 30 + Math.sin(x * 0.011) * 10 + Math.sin(x * 0.031 + 2) * 6;
     R(x, B - h, PX, h, T('#5E6E9A', 1.6)); R(x, B - h, PX, PX, T('#8494C0', 1.6));
+    // (their lower slopes a step darker, the step dithered: every other column reaches a pixel up)
+    const k = Math.round(h * 0.5 / PX) * PX + ((x / PX) % 2 ? PX : 0);
+    R(x, B - k, PX, k, T('#506088', 1.6));
   }
   hazeBands(g, 0, B - 46, W, 46, tod.haze, 0.05, 0.6, 5, PX);
   // (the buildings: towers, a dome, the giant atom, Googie pylons; lit down their left, a darker right, inked tops)
@@ -428,7 +431,8 @@ const paintPark = (tod: TimeOfDay) => {
   for (const rot of [0.5, -0.5, 1.57]) { g.strokeStyle = T('#B8C4E4', 0.8); g.beginPath(); g.ellipse(ax, ay, 34, 10, rot, 0, Math.PI * 2); g.stroke(); }
   for (let j = -12; j < 12; j += PX) for (let i = -12; i < 12; i += PX) { if (i * i + j * j > 144) continue; R(ax + i, ay + j, PX, PX, T(i + j < -6 ? '#F4F6FC' : i + j < 6 ? '#C6D0EA' : '#8E9AC0', 0.8)); }
   // (the monorail's beam across, a train on it)
-  R(0, B - 22, W, 4, T('#DCE2F0', 0.9)); R(0, B - 18, W, 2, T('#6A7498', 0.9));
+  R(0, B - 22, W, 2, T('#F2F4FA', 0.9)); R(0, B - 20, W, 2, T('#BCC4DC', 0.9)); R(0, B - 18, W, 2, T('#6A7498', 0.9));
+  for (let x = 0; x < W; x += PX * 2) R(x, B - 20, PX, PX, T('#DCE2F0', 0.9));
   for (let x = 30; x < W; x += 70) R(x, B - 18, 4, 18, T('#7A84A8', 0.9));
   R(300, B - 30, 70, 8, T('#F2F4FA', 0.9)); R(300, B - 30, 70, 2, T('#FFFFFF', 0.9)); R(306, B - 28, 58, 2, T('#3C4A78', 0.9));
   // (the ground: the park's paths and lawns, banded to the bottom, under its own haze)
@@ -492,7 +496,7 @@ export const drawCloud = (c: Ctx, x: number, y: number, s: number, seed: number,
 };
 
 /**
- * Out of the lift's glass, going up: `a` how far up (0 the ground, 1 space), `speed` how fast it's going (0..1, the
+ * Out of the elevator's glass, going up: `a` how far up (0 the ground, 1 space), `speed` how fast it's going (0..1, the
  * shaft's girders and streaks). The sky as the hour has it, darkening to space; the park dropping away; the clouds
  * coming down past; then the stars and the Earth's curve. The shaft's girders whipping down past behind the car.
  */
@@ -529,7 +533,7 @@ export const drawAscent = (c: Ctx, state: GameState, a: number, speed: number, c
     c.fillRect(x, Math.round(y), PX, Math.round(len));
   }
 };
-/** The lift shaft's open frame round the car: two chrome masts, cross girders with a lattice, rivets. */
+/** The elevator shaft's open frame round the car: two chrome masts, cross girders with a lattice, rivets. */
 const MAST = ['#0F1626', '#1E293B', '#334155', '#4E5E78', '#7A8BA6', '#B4C2D6'];
 const drawShaft = (c: Ctx, climbed: number) => {
   const step = 150, off = (climbed % step + step) % step;
@@ -542,6 +546,16 @@ const drawShaft = (c: Ctx, climbed: number) => {
     c.fillStyle = MAST[1]; c.fillRect(0, Y + 8, W, 2);
     checker(c, 0, Y + 6, W, 2, MAST[1], 0, PX);
     for (let x = 6; x < W; x += 24) { c.fillStyle = MAST[5]; c.fillRect(x, Y + 4, 2, 2); }
+    // (the lattice out past the masts: cross braces between this girder and the next, stepped, inked; gussets at the masts)
+    for (const [x0, x1] of [[0, 110], [690, W]] as const) for (const [a, b] of [[x0, x1], [x1, x0]] as const) {
+      const n = Math.ceil((step - 14) / PX);
+      for (let i = 0; i < n; i++) {
+        const t = i / n, bx = Math.round((a + (b - a) * t) / PX) * PX, by = Y + 12 + i * PX;
+        c.fillStyle = MAST[0]; c.fillRect(bx - PX, by, PX * 3, PX);
+        c.fillStyle = a < b ? MAST[3] : MAST[2]; c.fillRect(bx, by, PX, PX);
+      }
+    }
+    for (const x of [120, 680]) { c.fillStyle = MAST[0]; c.fillRect(x - 18, Y - 4, 36, 18); c.fillStyle = MAST[3]; c.fillRect(x - 16, Y - 2, 32, 14); c.fillStyle = MAST[4]; c.fillRect(x - 16, Y - 2, 32, 2); c.fillStyle = MAST[5]; for (const dx of [-12, 10]) c.fillRect(x + dx, Y + 4, 2, 2); }
   }
   for (const x of [120, 680]) {
     const cols = [MAST[3], MAST[5], MAST[4], MAST[3], MAST[2], MAST[1], MAST[1], MAST[0]];

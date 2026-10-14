@@ -1,8 +1,8 @@
 // THE NEEDLE: section 5 of Space Land (owner: the needle agent). Space Needle 2: like the real thing, only it goes way,
 // way higher, into actual outer space. Meathead finds it boring: all it does is spin slowly.
 //
-//   the lobby   at its foot (in off the main drag; the way back out at its left end); the lift's doors: up.
-//   the ride    the glass lift up the stalk (a cutscene, skippable): the sky going by, the clouds coming down past,
+//   the lobby   at its foot (in off the main drag; the way back out at its left end); the elevator's doors: up.
+//   the ride    the glass elevator up the stalk (a cutscene, skippable): the sky going by, the clouds coming down past,
 //               the sky going black, the Earth's curve coming up; the announcer, him bored stiff. Ding: the deck.
 //   the deck    the observation deck: a ring with a start and an end (the engine's cylinder, seen from inside), turning
 //               slowly (the view going by in every window: the Earth, the stars, the moon), the passengers milling,
@@ -71,7 +71,7 @@ interface Needle {
   ride: { a: number; speed: number; climbed: number; topped: boolean };
   linesDone: boolean;
   fadeTo: 'ride' | 'top' | 'up' | 'down' | 'orbit';
-  /** The lift's doors opening somewhere (x), frames since; the car fading in from black (frames left). */
+  /** The elevator's doors opening somewhere (x), frames since; the car fading in from black (frames left). */
   doors: { x: number; t: number } | null; fadeIn: number;
   /** (out of the window) he lives through it; him, as he's dragged out (world). */
   survive: boolean;
@@ -108,10 +108,10 @@ const LOBBY_EXIT: Exit[] = [{ x0: LOBBY0, x1: LOBBY0 + 60, yTop: GY - 40, yBot: 
 // ---------------------------------------------------------------------------------------------------------------
 // The scenes
 
-/** Up from the lobby (the full ride, the first time): the lift's doors open behind him, a fade through black, and
+/** Up from the lobby (the full ride, the first time): the elevator's doors open behind him, a fade through black, and
  *  he's in the car. */
 const startRide = (state: GameState, ns: Needle) => { openDoors(ns, LIFT_X); startFade(state, ns, 'ride'); };
-/** In at the top: stood in the deck's lift doorway, the doors opening on him, a ding. (`first`: off the full ride;
+/** In at the top: stood in the deck's elevator doorway, the doors opening on him, a ding. (`first`: off the full ride;
  *  the announcer welcomes him to space, and the first time on the deck, what it is.) */
 const arriveDeck = (state: GameState, ns: Needle, first: boolean) => {
   const p = state.player;
@@ -141,7 +141,7 @@ const ride = (state: GameState, ns: Needle) => {
     if (takeSkip()) { ns.tok++; silenceAll(); state.playerVulgarityTimer = 0; ns.pa = null; r.topped = true; startFade(state, ns, 'top'); }
   }
 };
-/** Every way through the lift (or out the airlock): a fade through black, the move made while it's black (the camera
+/** Every way through the elevator (or out the airlock): a fade through black, the move made while it's black (the camera
  *  put straight onto him there: nothing in between ever shows), and the doors opening on him at the other end. */
 const startFade = (state: GameState, ns: Needle, to: Needle['fadeTo']) => {
   ns.phase = 'fade'; ns.t = 0; ns.fadeTo = to; state.player.inCutscene = true; state.player.vel.x = 0;
@@ -166,7 +166,7 @@ const fade = (state: GameState, ns: Needle) => {
   if (ns.fadeTo === 'ride' && t > FADE) { ns.phase = 'ride'; ns.t = 0; ns.fadeIn = FADE; playSound('ding', 0.7, 2); return; }
   if (t >= FADE * 2) { ns.phase = 'free'; p.inCutscene = false; }
 };
-/** The lift's doors at x opening (and shutting again after). */
+/** The elevator's doors at x opening (and shutting again after). */
 const openDoors = (ns: Needle, x: number) => { ns.doors = { x, t: 0 }; };
 /** The camera straight onto him where he is now, its limits and its row there: no gliding in from where it was. */
 const snapCam = (state: GameState) => {
@@ -312,7 +312,7 @@ const handOff = (state: GameState, ns: Needle) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The deck, free: the passengers milling, the chatter, the suit, the lift, the window
+// The deck, free: the passengers milling, the chatter, the suit, the elevator, the window
 
 const mill = (state: GameState, ns: Needle) => {
   for (const x of ns.pax) {
@@ -440,7 +440,7 @@ export const needle: SpaceSection = {
     return { min: D0 + 110 - CANVAS_WIDTH / 2, max: D1 - 130 - CANVAS_WIDTH / 2 };
   },
   cameraRow: (state) => { const r = regionOfCamOrPlayer(state); return r === 'lobby' ? 520 : r === 'car' ? 470 : DECK_ROW; },
-  // (the deck: wrapped round the ring, seen from inside it; the lobby and the lift flat)
+  // (the deck: wrapped round the ring, seen from inside it; the lobby and the elevator flat)
   cylinder: (state) => {
     if (regionOfCamOrPlayer(state) !== 'deck') return null;
     const cyl = { radius: RING_R, inside: { horizon: DECK_HORIZON } };
@@ -456,7 +456,7 @@ export const needle: SpaceSection = {
   drawBack: (c, state) => {
     const ns = st(state);
     drawLobby(c, state);
-    // (a lift's doors opening: the lobby's or the deck's)
+    // (an elevator's doors opening: the lobby's or the deck's)
     const doorsOpen = (d: { t: number }) => Math.min(c01(d.t / 14), c01((86 - d.t) / 18));
     if (ns.doors?.x === LIFT_X) drawLiftDoors(c, LIFT_X, 54, 170, doorsOpen(ns.doors));
     drawCar(c, state, altitude(ns));

@@ -8,12 +8,15 @@
 //   marquee  bulbs: every dot of the letter a bulb in its socket (lit after dark).
 //   small    the jokes' boards: the plain 5x7 painted on, a drop shadow.
 //   stencil  the work crews' spray paint: bold, each letter broken by a stencil's bridges, a dusting of overspray.
+//            (`stencil2`: twice the size)
+//
+// The alphabet's shared: Space Needle 2's own sign families (needle/letters.ts) set the same letterforms (`glyphDots`).
 
 import { box, mix } from '../../intro/art/kit';
 import { timeOfDay } from '../../timeOfDay';
 
 type Ctx = CanvasRenderingContext2D;
-export type Letter = 'chrome' | 'chrome2' | 'neon' | 'neon2' | 'enamel' | 'enamel2' | 'marquee' | 'small' | 'stencil';
+export type Letter = 'chrome' | 'chrome2' | 'neon' | 'neon2' | 'enamel' | 'enamel2' | 'marquee' | 'small' | 'stencil' | 'stencil2';
 
 const INK = '#140C1E';
 const G: Record<string, string> = {
@@ -36,6 +39,7 @@ const G: Record<string, string> = {
   '$': '00100011111010001110001011111000100', '%': '11000110010001000100010001001100011', '&': '01100100101010001000101011001001101',
   '/': '00001000100001000100010000100010000', ' ': '00000000000000000000000000000000000',
   '>': '10000010000010000010001000100010000', '<': '00001000100010001000001000001000001',
+  '¢': '00000001000111110100101000111100100',
 };
 /** A glyph's lit dots (col, row), trimmed to its inked columns (a space: 3 wide). */
 const glyph = (ch: string) => {
@@ -47,6 +51,9 @@ const glyph = (ch: string) => {
   const full = /[A-Z0-9$%&?]/.test(ch);
   return { on, c0: full ? 0 : c0, w: full ? 5 : c1 - c0 + 1 };
 };
+
+/** A glyph's lit dots (col from its first inked column, row) and its width in columns: the alphabet, for other setters. */
+export const glyphDots = (ch: string) => { const g = glyph(ch); return { on: g.on.map(([c, r]) => [c - g.c0, r] as [number, number]), w: g.w }; };
 
 /** (a glyph's row is a bar across its middle: inked either side of the middle column too) */
 const bar = (ch: string, r: number) => { const g = G[ch] ?? G['?']; return g[r * 5 + 1] === '1' && g[r * 5 + 2] === '1' && g[r * 5 + 3] === '1'; };
@@ -62,6 +69,7 @@ const SPEC: Record<Letter, Spec> = {
   marquee: { sx: 3, sy: 3, gap: 3, pad: 1, slant: 0, bold: 0 },
   small: { sx: 1, sy: 1, gap: 1, pad: 1, slant: 0, bold: 0 },
   stencil: { sx: 1, sy: 2, gap: 2, pad: 2, slant: 0, bold: 1 },
+  stencil2: { sx: 2, sy: 2, gap: 2, pad: 2, slant: 0, bold: 0 },
 };
 const advance = (ch: string, s: Spec) => { const g = glyph(ch); return (g.w + s.bold) * s.sx + s.gap; };
 
@@ -90,7 +98,7 @@ export const lettering = (g: Ctx, text: string, x: number, y: number, f: Letter,
     const gl = glyph(ch);
     for (const [c, r] of gl.on) {
       // (the stencil's bridges: the middle of each top, middle and bottom bar left out (bars only, never a stem))
-      const gap = f === 'stencil' && (r === 0 || r === 3 || r === 6) && bar(ch, r);
+      const gap = (f === 'stencil' || f === 'stencil2') && (r === 0 || r === 3 || r === 6) && bar(ch, r);
       const sh = s.slant ? Math.floor((6 - r) / s.slant) : 0;
       for (let b = 0; b <= s.bold; b++) if (!(gap && c + b === 2)) dots.push([cx + (c - gl.c0 + b) * s.sx + sh, y0 + r * s.sy, r]);
     }
@@ -120,7 +128,7 @@ export const lettering = (g: Ctx, text: string, x: number, y: number, f: Letter,
     // a socket and a bulb at each dot
     each(0, INK, 0, 0, 3, 3);
     dots.forEach(([px, py], i) => { box(g, px, py, 2, 2, on ? '#FFE070' : (i % 5 ? '#D8B050' : '#F0D070')); box(g, px, py, 1, 1, on ? '#FFFFFF' : '#FFF0B0'); });
-  } else if (f === 'stencil') {
+  } else if (f === 'stencil' || f === 'stencil2') {
     // (the overspray: a dusting of the paint round each stroke, every other dot; the paint, its edges dry and patchy)
     dots.forEach(([px, py], i) => { if (i % 2 === 0) box(g, px - 1 + (i % 3), py - 1, 1, 1, mix(ink, bg, 0.55)); if (i % 3 === 0) box(g, px + 1, py + s.sy, 1, 1, mix(ink, bg, 0.6)); });
     each(0, ink);
