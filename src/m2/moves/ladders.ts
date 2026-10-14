@@ -165,6 +165,8 @@ const hands = (c: Controls): Controls => ({ ...c, left: false, right: false, up:
 /** Him and the ladders: taking hold of one, on one, off one. Call it first in the section's update; returns what's left of the controls. */
 export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls): Controls => {
   const { state } = ctx, p = state.player, h = holdOf(state);
+  // (mid air grab: he flies on past them)
+  if (p.airGrab && !p.ladder) return c;
   if (h.cd > 0) h.cd--;
   if (h.rattle > 0) h.rattle--;
   if (h.jumpLatch && !c.jump) h.jumpLatch = false;

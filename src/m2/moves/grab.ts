@@ -608,6 +608,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const was = g.was;
   g.was = controls;
   g.hp = p.health;
+  // (mid air grab: nothing in the scenery takes hold of him (ladders, ropes, vines): see ladders.ts, vines.ts)
+  p.airGrab = g.phase === 'awind' || g.phase === 'alunge' || g.phase === 'aarc';
   const press = (k: keyof Controls) => !!controls[k] && !was[k];
   if (state.deathTimer > 0 || p.health <= 0) { if (g.phase !== 'idle') letGo(state, g); return controls; }
   g.t++;

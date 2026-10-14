@@ -212,6 +212,8 @@ export interface Player extends Entity {
    *  can shit it (drawn stained) and blow it out (gut stage 3: naked, just the helmet left on him). `before`: his pants
    *  as they were before it went on, for putting back when it comes off (space/needle's takeOffSuit). Whatever sets it
    *  clears it (and respawn does). */
+  /** In the middle of Meathead 2's air grab (the wind-up, the leap, the arc): ladders, ropes and vines don't take hold of him. */
+  airGrab?: boolean;
   spaceSuit?: { before?: Player['gut'] };
   /** Black with soot from a blast (frames left: it wears off). */
   sootTimer?: number;

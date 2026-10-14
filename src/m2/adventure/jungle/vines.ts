@@ -152,6 +152,8 @@ const ledgeNear = (state: GameState, hand: { x: number; y: number }): { x: numbe
 export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls, opts?: VineOpts): Controls => within(opts, () => updateVinesIn(ctx, defs, c));
 const updateVinesIn = (ctx: FrameContext, defs: VineDef[], c: Controls): Controls => {
   const { state } = ctx, p = state.player, j = storeOf(state), h = j.hold;
+  // (mid air grab: he flies on past them, ropes and vines alike)
+  if (p.airGrab && !h.on) return c;
   while (j.vines.length < defs.length) j.vines.push({ th: 0, om: 0 });
   const held = h.on;
   // The free ones swing themselves still (only the ones near enough to matter)
