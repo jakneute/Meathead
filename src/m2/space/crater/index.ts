@@ -24,10 +24,11 @@ import { SECTIONS, DOORS, GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { pickLine } from '../../../m1/game/platform/speech';
+import { NO_CONTROLS } from '../../../m1/game/platform/input';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
 import { todLight } from '../../timeOfDay';
 import { drawBars } from '../../spooky/control/cine';
-import { GRUNT, BRUTE, CRAWLER, FLEER, seedAlien, tickAliens, sweepGone, drawBolts, drawAlienSaid, resetAliens, setBarkPlace, setOnFlee } from './kinds';
+import { GRUNT, BRUTE, CRAWLER, FLEER, seedAlien, tickAliens, sweepGone, drawBolts, drawAlienSaid, resetAliens, setBarkPlace, setOnFlee, setHush } from './kinds';
 import { resetRigs } from './rigs';
 import { drawImpactBackdrop, drawCraterBack, drawCraterFront, floorAt } from './art';
 import { type House, makeHouse, buildHouse, tickHouse, showOn, showSkipT, drawHouseBack, drawHouseFront, houseLighting, AFTER_PRESHOW_CP } from './house';
@@ -37,7 +38,7 @@ import * as L from './lines';
 const { x0, x1 } = SECTIONS.crater;
 const pick = pickLine;
 
-interface Crater { house: House; saidArrive: boolean; saidRun: boolean; saidHouse: boolean }
+interface Crater { house: House; saidArrive: boolean; saidRun: boolean; saidHouse: boolean; arriveHold?: boolean }
 const craterOf = (state: GameState) => spaceState<Crater>(state, 'crater', () => ({ house: makeHouse(), saidArrive: false, saidRun: false, saidHouse: false }));
 
 /** Who's where: [kind, x, the floor under it, its look's seed]. Out at the site, taught one at a time (the soldier up
@@ -111,9 +112,17 @@ export const crater: SpaceSection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, cr = craterOf(state), cx = p.pos.x + p.width / 2;
+    // (just down out of the sky in the saucer's wreck (orbit/ufo.ts): his line first, queued after the gun's, said in
+    // full, him held still (no HUD) and nobody barking over it; then he's his)
+    if (state.stageMemo['m2:orbit:crashed'] === '1') {
+      state.stageMemo['m2:orbit:crashed'] = '2';
+      cr.saidArrive = true; cr.arriveHold = true; setHush(true);
+      meatheadSays(state, pick(L.MH_ARRIVE), true, () => { cr.arriveHold = false; setHush(false); p.inCutscene = false; });
+    }
     tickAliens(ctx);
     sweepGone(state);
     setOnFlee(() => { if (!cr.saidRun && cr.saidArrive) { cr.saidRun = true; meatheadSays(state, pick(L.MH_ESCAPEES), false); } });
+    if (cr.arriveHold) { p.inCutscene = true; p.invincibilityTimer = Math.max(p.invincibilityTimer, 2); p.vel.x = 0; return { ...NO_CONTROLS }; }
     const out = tickHouse(ctx, cr.house, controls);
     if (out) return out;
     // (his bits: walking out into it; up to the haunted house)

@@ -121,8 +121,8 @@ export const orbit: SpaceSection = {
     // The gun: a plain ray gun at first; a way out, the space radiation gets into it: rapid, and the gun says why
     if (o.scroll - X0 >= RAPID_AT && !state.stageMemo[MEMO.rapid] && p.health > 0) {
       state.stageMemo[MEMO.rapid] = '1';
-      gunSays(state, GUN_UPGRADE[0]);
-      meatheadSays(state, MH_RAPID[0], true);
+      // (his answer after it's done, not over it)
+      gunSays(state, GUN_UPGRADE[0], () => meatheadSays(state, MH_RAPID[0], true));
     }
     const out = updateGun(ctx, controls);
     if (!o.quiet) runWaves(ctx);

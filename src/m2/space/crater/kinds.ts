@@ -58,8 +58,11 @@ let where: (e: Enemy) => 'crash' | 'house' = () => 'crash';
 export const setBarkPlace = (f: (e: Enemy) => 'crash' | 'house') => { where = f; };
 export const aliensTalking = () => { for (const [e, t] of said) if (t && e.health > 0) return true; return false; };
 /** One of them says something (if nobody else is). */
+/** Quiet, all of them (his line's being said: the crash's arrival). */
+let hush = false;
+export const setHush = (on: boolean) => { hush = on; };
 export const alienSays = (e: Enemy, text: string) => {
-  if (!game || aliensTalking()) return;
+  if (!game || hush || aliensTalking()) return;
   say(text, voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien'), 'casual', {
     always: false,
     onShow: spoken => { said.set(e, text); if (!spoken) setTimeout(() => { if (said.get(e) === text) said.delete(e); }, Math.max(1600, text.length * 60)); },
@@ -81,7 +84,7 @@ export const drawAlienSaid = (c: Ctx, state: GameState) => {
 
 interface Bolt { x: number; y: number; vx: number; t: number; from: Enemy }
 let bolts: Bolt[] = [];
-export const resetAliens = () => { bolts = []; said.clear(); };
+export const resetAliens = () => { bolts = []; said.clear(); hush = false; };
 const BOLT_SPEED = 7.5, BOLT_DMG = 12, BOLT_LIFE = 140;
 
 const fire = (state: GameState, e: Enemy) => {

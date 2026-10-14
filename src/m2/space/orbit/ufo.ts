@@ -254,17 +254,17 @@ export const updateSaucer = (ctx: FrameContext, controls: Controls): Controls | 
       if (s.t > 55) { go(s, 'fall'); playSound('whoosh', 1, -14); }
       break;
     case 'fall':
-      s.zoom = Math.min(1, s.t / 170);
-      if (s.t % 30 === 0) playSound('rumble', 0.8, -8);
-      if (s.t > 170) s.white = Math.min(1, (s.t - 170) / 10);
-      if (s.t === 172) { playSound('boom', 1, -14); playSound('crash', 1, -6); shakeScreen(state, 30, 10); }
-      if (s.t > 185) { go(s, 'factory'); s.white = 1; }
+      // (the cutaway: FALL frames down; the ground comes up; the hit; a flash; black)
+      s.zoom = Math.min(1, s.t / FALL);
+      if (s.t % 30 === 0 && s.t < FALL) playSound('rumble', 0.8, -8);
+      if (s.t === FALL) { playSound('boom', 1, -14); playSound('crash', 1, -6); }
+      s.white = s.t >= FALL ? 1 : 0;
+      if (s.t >= FALL + FLASH) { go(s, 'factory'); s.white = 0; }
       break;
     case 'factory':
-      // (black, after the flash: the gun powering down, and the suit off him with it)
-      s.white = Math.max(0, 1 - s.t / 30);
-      if (s.t === 20) { takeOffSuit(state); gunSays(state, GUN_FACTORY, () => { s.done = true; }); playSound('rayFizzle', 0.8, -6); }
-      if ((s.done && s.t > 60) || s.t > 420) finish(state);
+      // (black, after the flash: the gun powering down, and the suit off him with it; a beat after it, then down)
+      if (s.t === 20) { takeOffSuit(state); gunSays(state, GUN_FACTORY, () => { s.done = true; s.mt = s.t; }); playSound('rayFizzle', 0.8, -6); }
+      if ((s.done && s.t - s.mt > 20) || s.t > 480) finish(state);
       break;
   }
   if (s.st === 'pissed' || s.st === 'beam' || s.st === 'inside') place(s);
@@ -365,44 +365,90 @@ export const drawSaucerHud = (c: Ctx, state: GameState) => {
     box(c, 0, 0, W, H, '#000000');
     const o = orbitOf(state);
     if (o.gun) gunWords(c, o.gun.text, W / 2, H / 2 + 10);
-    if (s.white > 0) { c.globalAlpha = s.white; box(c, 0, 0, W, H, '#FFFFFF'); c.globalAlpha = 1; }
   }
   if (s.total > SKIP_AFTER && s.st !== 'enter' && s.st !== 'fight') drawSkipPrompt(c, CANVAS_WIDTH);
 };
 
-/** The cutaway: the sky by the hour (it's back home it's going), the ground coming up, the wreck zoomed in on and
- *  growing, burning, with speed lines all round it; the flash. */
+/** The cutaway's length (frames) and the flash at the end of it. */
+const FALL = 170, FLASH = 6;
+const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
+const smooth = (k: number) => k * k * (3 - 2 * k);
+
+/**
+ * The cutaway, one shot: the camera going down with the burning wreck (it stays put in the middle), the sky by the
+ * hour (it's home it's going), clouds whipping up past, the ground (Futureland: the giant atom, Space Needle 2) coming
+ * up from under, faster and faster, growing; speed lines out from the wreck; its fire and smoke streaming up off it
+ * (it's going down). Everything by the cutaway's own clock, so nothing jumps from one frame to the next. The hit: the
+ * ground's at it, a white flash, black.
+ */
 const drawFall = (c: Ctx, state: GameState, s: Saucer) => {
-  const tod = timeOfDay(), z = s.zoom, f = state.frame;
-  const sky = tod.sky;
+  const t = Math.min(s.t, FALL), e = t / FALL;
+  if (s.white > 0) { box(c, 0, 0, W, H, '#FFFFFF'); return; }
+  // (where the wreck is: the middle, a little high; how big, easing up as it comes)
+  const sc = lerp(0.62, 0.95, smooth(e)), cx = W / 2 + Math.sin(t * 0.21) * 1.5, wy = 300 + Math.sin(t * 0.17) * 1.5;
+  const mid = { x: cx, y: wy - 45 * sc };
+  // The sky
+  const sky = timeOfDay().sky;
   for (let i = 0; i < 6; i++) box(c, 0, i * 100, W, 101, sky[i]);
-  // (the ground: Futureland from up high, coming up fast)
-  const gy = H - z * z * 300;
-  box(c, 0, gy, W, H - gy + 1, '#4D7C0F');
-  box(c, 0, gy, W, 6, '#65A30D');
-  const k = 0.3 + z * 1.6;
-  // (the giant atom and Space Needle 2 down there, getting bigger)
-  c.fillStyle = '#E2E8F0'; c.beginPath(); c.arc(W / 2 - 160 * k, gy + 10, 30 * k, Math.PI, 0); c.fill();
-  c.strokeStyle = '#94A3B8'; c.lineWidth = 3 * k; c.beginPath(); c.ellipse(W / 2 - 160 * k, gy - 10 * k, 50 * k, 16 * k, 0.5, 0, Math.PI * 2); c.stroke();
-  box(c, W / 2 + 150 * k, gy - 120 * k, 6 * k, 120 * k, '#CBD5E1'); box(c, W / 2 + 132 * k, gy - 126 * k, 42 * k, 8 * k, '#F1F5F9');
-  // (speed lines: out from the middle, streaming)
-  c.strokeStyle = 'rgba(255, 255, 255, 0.75)';
-  for (let i = 0; i < 44; i++) {
-    const a = i * 2.39996 + (i % 3) * 0.3, r0 = 70 + ((f * 9 + i * 53) % 340), len = 40 + (i % 5) * 18;
-    c.lineWidth = 1 + (i % 3);
-    c.beginPath(); c.moveTo(W / 2 + Math.cos(a) * r0, H / 2 + Math.sin(a) * r0); c.lineTo(W / 2 + Math.cos(a) * (r0 + len), H / 2 + Math.sin(a) * (r0 + len)); c.stroke();
+  // (clouds whipping up past, faster as it goes)
+  const dist = 5 * t + 9 * t * t / FALL;
+  for (let i = 0; i < 6; i++) {
+    const y = H + 120 - ((i * 170 + dist) % (H + 260)), x = (i * 263) % W;
+    c.globalAlpha = 0.75; c.fillStyle = '#FFFFFF';
+    c.beginPath(); c.ellipse(x, y, 90, 14 + (i % 3) * 4, 0, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.ellipse(x + 50, y - 8, 50, 12, 0, 0, Math.PI * 2); c.fill();
+    c.globalAlpha = 1;
   }
-  // (the wreck, burning, its fire streaming up off it)
-  const sc = 0.45 + z * 1.4;
-  for (let i = 0; i < 10; i++) {
-    const fx = W / 2 + Math.sin(i * 1.7 + f * 0.3) * 70 * sc, fy = H / 2 - 40 * sc - ((f * 6 + i * 23) % 120) * sc;
-    c.fillStyle = i % 2 ? '#F97316' : '#FDE047'; c.beginPath(); c.arc(fx, fy, (14 - (i % 4) * 2) * sc, 0, Math.PI * 2); c.fill();
+  // The ground: from under the screen up to the wreck, faster and faster; Futureland on it, growing
+  const gy = lerp(H + 90, wy + 4, Math.pow(e, 2.2)), k = lerp(0.35, 1.25, e * e);
+  // (a ground plane, not a wall: hazy and pale far off at its edge, darker and the fields bigger nearer; roads off to
+  // a point on the horizon)
+  const bands = ['#A3C27A', '#86AE55', '#6C9A3A', '#5A8A2C', '#4D7C0F'];
+  for (let i = 0; i < bands.length; i++) { const y0 = gy + (H + 40 - gy) * (i / bands.length) ** 2, y1 = gy + (H + 40 - gy) * ((i + 1) / bands.length) ** 2; box(c, 0, y0, W, y1 - y0 + 1, bands[i]); }
+  box(c, 0, gy - 2, W, 3, '#D9E8C4');
+  c.fillStyle = '#C8B48A';
+  for (const dx of [-0.9, -0.25, 0.4, 1.1]) {
+    c.beginPath(); c.moveTo(W / 2 + dx * 40, gy); c.lineTo(W / 2 + dx * 40 + 3, gy); c.lineTo(W / 2 + dx * 900 + 24, H + 300); c.lineTo(W / 2 + dx * 900 - 24, H + 300); c.closePath(); c.fill();
   }
-  c.save(); c.translate(W / 2 + Math.sin(f * 0.7) * 3, H / 2 + 30 * sc); c.scale(sc, sc); c.rotate(0.5 + Math.sin(f * 0.1) * 0.1);
-  drawSaucer(c, f, false, 1, 0);
+  // (the giant atom, left: a dome, its sphere, the rings round it)
+  const ax = W / 2 - 230 * k;
+  c.fillStyle = '#CBD5E1'; c.beginPath(); c.arc(ax, gy, 46 * k, Math.PI, 0); c.fill();
+  c.fillStyle = '#E2E8F0'; c.beginPath(); c.arc(ax, gy - 70 * k, 26 * k, 0, Math.PI * 2); c.fill();
+  box(c, ax - 3 * k, gy - 46 * k, 6 * k, 46 * k, '#94A3B8');
+  c.strokeStyle = '#64748B'; c.lineWidth = Math.max(1, 3 * k);
+  for (const r of [0.5, -0.5, 1.57]) { c.beginPath(); c.ellipse(ax, gy - 70 * k, 52 * k, 15 * k, r, 0, Math.PI * 2); c.stroke(); }
+  // (Space Needle 2, right: the shaft, the deck, the spire)
+  const nx = W / 2 + 230 * k;
+  box(c, nx - 5 * k, gy - 190 * k, 10 * k, 190 * k, '#CBD5E1');
+  c.fillStyle = '#F1F5F9'; c.beginPath(); c.ellipse(nx, gy - 190 * k, 34 * k, 9 * k, 0, 0, Math.PI * 2); c.fill();
+  box(c, nx - 1.5 * k, gy - 240 * k, 3 * k, 50 * k, '#E2E8F0');
+  // Speed lines: out from the wreck, streaming outward
+  c.strokeStyle = '#FFFFFF';
+  for (let i = 0; i < 36; i++) {
+    const a = i * 2.39996, r0 = 90 + ((t * 13 + i * 47) % 440), len = 24 + r0 * 0.3;
+    c.globalAlpha = Math.min(0.8, (r0 - 80) / 120) * 0.8;
+    c.lineWidth = 1 + (i % 2);
+    c.beginPath(); c.moveTo(mid.x + Math.cos(a) * r0, mid.y + Math.sin(a) * r0); c.lineTo(mid.x + Math.cos(a) * (r0 + len), mid.y + Math.sin(a) * (r0 + len)); c.stroke();
+  }
+  c.globalAlpha = 1;
+  // Its trail: smoke and fire streaming up off it (it's going down), the far end of it first
+  for (const smoke of [true, false]) {
+    for (let i = 0; i < 30; i++) {
+      const ph = ((t * 5 + i * 13.7) % 200) / 200;
+      if (smoke !== ph > 0.35) continue;
+      const x = mid.x - 10 * sc + Math.sin(i * 2.1 + ph * 3) * 18 * sc * (0.3 + ph), y = mid.y - 10 * sc - ph * 340;
+      const r = (10 + ph * 30) * sc;
+      c.globalAlpha = smoke ? 0.7 * (1 - ph) : 0.95;
+      c.fillStyle = smoke ? (ph < 0.6 ? '#52525B' : '#3F3F46') : ph < 0.12 ? '#FEF08A' : ph < 0.24 ? '#FDE047' : '#F97316';
+      c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+    }
+  }
+  // The wreck: tilted, rocking a little, scorched
+  c.save(); c.translate(cx, wy); c.scale(sc, sc); c.rotate(0.35 + Math.sin(t * 0.09) * 0.05);
+  drawSaucer(c, t, false, 1, 0);
   c.fillStyle = '#18181B'; c.fillRect(-60, -70, 40, 20); c.fillRect(30, -40, 50, 14);
+  c.fillStyle = '#F97316'; c.fillRect(-50, -66, 18, 10);
   c.restore();
-  if (s.white > 0) { c.globalAlpha = s.white; box(c, 0, 0, W, H, '#FFFFFF'); c.globalAlpha = 1; }
 };
 
 /** Starting again from its checkpoint, or the flight starting with it down already: nothing to do. */

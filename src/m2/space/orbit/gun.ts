@@ -43,15 +43,18 @@ export interface GunTalk { text: string }
 const SAY = voice('m2.space.raygun');
 
 /** The gun says something (waits its turn: nobody talks over anybody). */
-export const gunSays = (state: GameState, text: string, onDone?: () => void) => {
+export const gunSays = (state: GameState, text: string, then?: () => void) => {
   const o = orbitOf(state);
+  // (whatever comes after it, once: when it's over, however it ends)
+  let fired = false;
+  const onDone = () => { if (!fired) { fired = true; then?.(); } };
   const shown = say(text, SAY, 'queue', {
     always: true,
-    onShow: spoken => { o.gun = { text }; if (!spoken) setTimeout(() => { if (o.gun?.text === text) o.gun = null; onDone?.(); }, Math.max(1800, text.length * 70)); },
-    onHide: () => { if (o.gun?.text === text) o.gun = null; onDone?.(); },
-    onDropped: () => onDone?.(),
+    onShow: spoken => { o.gun = { text }; if (!spoken) setTimeout(() => { if (o.gun?.text === text) o.gun = null; onDone(); }, Math.max(1800, text.length * 70)); },
+    onHide: () => { if (o.gun?.text === text) o.gun = null; onDone(); },
+    onDropped: () => onDone(),
   });
-  if (!shown) onDone?.();
+  if (!shown) onDone();
 };
 
 /** Each frame flying: the level (and its announcement), the rate, the extra bolts, the beam. Returns the controls. */
@@ -61,7 +64,7 @@ export const updateGun = (ctx: FrameContext, controls: Controls): Controls => {
   if (lv > o.level) {
     o.level = lv;
     // (said once each, as it gets there; starting again past one, it's just there)
-    if (!o.levelSaid.includes(lv)) { o.levelSaid.push(lv); gunSays(state, GUN_UPGRADE[lv]); if (lv === MAX_LEVEL) meatheadSays(state, MH_BEAM, true); playSound('powerup', 0.8, lv); o.flashUp = 30; }
+    if (!o.levelSaid.includes(lv)) { o.levelSaid.push(lv); gunSays(state, GUN_UPGRADE[lv], lv === MAX_LEVEL ? () => meatheadSays(state, MH_BEAM, true) : undefined); playSound('powerup', 0.8, lv); o.flashUp = 30; }
   }
   if (o.flashUp > 0) o.flashUp--;
   // (the saucer's got him (or it's on its way to): no beam, no bolts)
