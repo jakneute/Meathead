@@ -489,3 +489,21 @@ const paintCar = (c: Ctx) => {
   // the glass's glare
   glare(c, CAR0 + 10, GY - 196, CAR1 - CAR0 - 20, 196);
 };
+
+/** A lift's doors opening (over its stamped shut ones), at x, its gap `hw` either side of the middle and `h` tall, `o`
+ *  how far open (0..1): the lit car inside, the two doors drawn back into the frame. */
+export const drawLiftDoors = (c: Ctx, x: number, hw: number, h: number, o: number) => {
+  if (o <= 0) return;
+  // the car inside: cream, lit from its ceiling, a handrail, the floor's lit lip
+  bands(c, x - hw, GY - h, hw * 2, h, [CREAM[4], CREAM[3], CREAM[3], CREAM[2], CREAM[1]]);
+  box(c, x - hw, GY - h, hw * 2, 3, '#FFFBEB');
+  box(c, x - hw, GY - 66, hw * 2, 3, dimc(CHROME[5]));
+  box(c, x - hw, GY - 3, hw * 2, 3, CHROME[5]);
+  // the doors, slid back
+  const w = hw * (1 - o);
+  if (w > 0.5) {
+    vbands(c, x - hw, GY - h, w, h, [CHROME[4], CHROME[5], CHROME[4], CHROME[3]]);
+    vbands(c, x + hw - w, GY - h, w, h, [CHROME[4], CHROME[3], CHROME[3], CHROME[2]]);
+    box(c, x - hw + w - 1, GY - h, 1, h, INK); box(c, x + hw - w, GY - h, 1, h, INK);
+  }
+};

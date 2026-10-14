@@ -34,7 +34,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { guestAt, type Guest } from '../../adventure/queue/crowd';
 import { GY, NX0, NX1, LOBBY0, LIFT_X, LOBBY1, CAR0, CAR1, CAR_X, D0, D1, DECK_LIFT, RING_R, RING_C, DECK_HORIZON, DECK_ROW, CASE_X, SLOT, SLOTS, slotX, SPEAKER_Y } from './layout';
-import { drawLobby, drawCar, drawDeck, drawSuitCase, drawEndGlass } from './art';
+import { drawLobby, drawCar, drawDeck, drawSuitCase, drawEndGlass, drawLiftDoors } from './art';
 import { drawDeckView, drawAscent, prewarmSky, c01, hash } from './sky';
 import { DECOMP, VACUUM, setOutGuests, drawPuppet, drawDecompCam, drawFloat } from './death';
 import { putOnSuit, wearingHelmet, reapplySuit, SUIT_MEMO } from './suit';
@@ -66,7 +66,9 @@ interface Needle {
   glass: 'whole' | 'gone' | 'sealed';
   ride: { a: number; speed: number; climbed: number; topped: boolean };
   linesDone: boolean;
-  fadeTo: 'up' | 'down' | 'orbit';
+  fadeTo: 'ride' | 'top' | 'up' | 'down' | 'orbit';
+  /** The lift's doors opening somewhere (x), frames since; the car fading in from black (frames left). */
+  doors: { x: number; t: number } | null; fadeIn: number;
   /** (out of the window) he lives through it; him, as he's dragged out (world). */
   survive: boolean;
   mh: { x: number; y: number; rot: number; vx: number; cling: boolean; t: number };
@@ -85,7 +87,7 @@ const make = (state: GameState): Needle => {
     nextBored: 0, nextPa: 0, nextChat: 0, nextReact: 0, nextCase: 0,
     pa: null, warned: false, upWas: false, deckIntro: !!state.stageMemo[RODE_MEMO],
     smashT: 0, crack: 0, hitY: GY - 40, glass: sealed ? 'sealed' : 'whole',
-    ride: { a: 0, speed: 0, climbed: 0, topped: false }, linesDone: false, fadeTo: 'up',
+    ride: { a: 0, speed: 0, climbed: 0, topped: false }, linesDone: false, fadeTo: 'up', doors: null, fadeIn: 0,
     survive: false, mh: { x: 0, y: 0, rot: 0, vx: 0, cling: true, t: 0 },
   };
 };
@@ -101,21 +103,24 @@ const LOBBY_EXIT: Exit[] = [{ x0: LOBBY0, x1: LOBBY0 + 60, yTop: GY - 40, yBot: 
 // ---------------------------------------------------------------------------------------------------------------
 // The scenes
 
-const startRide = (state: GameState, ns: Needle) => {
-  ns.phase = 'ride'; ns.t = 0; ns.tok++; ns.linesDone = false;
-  ns.ride = { a: 0, speed: 0, climbed: 0, topped: false };
+/** Up from the lobby (the full ride, the first time): the lift's doors open behind him, a fade through black, and
+ *  he's in the car. */
+const startRide = (state: GameState, ns: Needle) => { openDoors(ns, LIFT_X); startFade(state, ns, 'ride'); };
+/** In at the top: stood in the deck's lift doorway, the doors opening on him, a ding. (`first`: off the full ride;
+ *  the announcer welcomes him to space, and the first time on the deck, what it is.) */
+const arriveDeck = (state: GameState, ns: Needle, first: boolean) => {
   const p = state.player;
-  teleport(state, CAR_X, GY); p.facing = 1; p.inCutscene = true;
-  playSound('ding', 0.7, 2);
-};
-const arriveDeck = (state: GameState, ns: Needle) => {
-  const p = state.player;
-  ns.tok++; ns.phase = 'free'; ns.t = 0;
-  teleport(state, DECK_LIFT, GY); p.facing = 1; p.inCutscene = false;
+  ns.tok++;
+  teleport(state, DECK_LIFT, GY); p.facing = 1; snapCam(state);
+  openDoors(ns, DECK_LIFT);
   playSound('ding', 0.8, 4);
   state.stageMemo[RODE_MEMO] = '1';
   ns.nextBored = state.frame + 1500; ns.nextPa = state.frame + 1800; ns.nextChat = state.frame + 600;
-  if (!ns.deckIntro) { ns.deckIntro = true; paSays(ns, pickLine(L.PA_DECK), true, () => meatheadSays(state, pickLine(L.MH_DECK), true)); }
+  const intro = !ns.deckIntro;
+  ns.deckIntro = true;
+  const deck = () => { if (intro) paSays(ns, pickLine(L.PA_DECK), true, () => meatheadSays(state, pickLine(L.MH_DECK), true)); };
+  if (first) paSays(ns, pickLine(L.PA_SPACE), true, () => meatheadSays(state, pickLine(L.MH_SPACE), true, deck));
+  else deck();
 };
 const ride = (state: GameState, ns: Needle) => {
   const t = ++ns.t, r = ns.ride;
@@ -124,30 +129,47 @@ const ride = (state: GameState, ns: Needle) => {
   if (t === 1) playSound('rumble', 0.5, -6);
   if (t % 40 === 0 && r.speed > 0.3) { shakeScreen(state, 4, 1 + r.speed); playSound('whoosh', 0.2 + r.speed * 0.3, -8); }
   if (t === 24) paSays(ns, pickLine(L.PA_UP), true, guard(ns, () => meatheadSays(state, pickLine(L.MH_UP), true, guard(ns, () => { ns.linesDone = true; }))));
-  if (t >= ASCENT && ns.linesDone && !r.topped) {
-    r.topped = true;
-    paSays(ns, pickLine(L.PA_SPACE), true, guard(ns, () => meatheadSays(state, pickLine(L.MH_SPACE), true, guard(ns, () => arriveDeck(state, ns)))));
-  }
-  if (t > ASCENT + 1200) arriveDeck(state, ns);
+  // (at the top, and his say's done: through black to the deck's doors)
+  if (t >= ASCENT && (ns.linesDone || t > ASCENT + 900) && !r.topped) { r.topped = true; startFade(state, ns, 'top'); return; }
   if (t > SKIP_AFTER) {
     offerSkip();
-    if (takeSkip()) { silenceAll(); state.playerVulgarityTimer = 0; ns.pa = null; arriveDeck(state, ns); }
+    if (takeSkip()) { ns.tok++; silenceAll(); state.playerVulgarityTimer = 0; ns.pa = null; r.topped = true; startFade(state, ns, 'top'); }
   }
 };
-/** The quick way up or down (once he's seen the ride), or out the airlock: a fade through black. */
+/** Every way through the lift (or out the airlock): a fade through black, the move made while it's black (the camera
+ *  put straight onto him there: nothing in between ever shows), and the doors opening on him at the other end. */
 const startFade = (state: GameState, ns: Needle, to: Needle['fadeTo']) => {
-  ns.phase = 'fade'; ns.t = 0; ns.fadeTo = to; state.player.inCutscene = true;
-  playSound(to === 'orbit' ? 'whoosh' : 'ding', 0.6, 2);
+  ns.phase = 'fade'; ns.t = 0; ns.fadeTo = to; state.player.inCutscene = true; state.player.vel.x = 0;
+  if (to === 'orbit') playSound('whoosh', 0.6, 2);
 };
 const FADE = 24;
 const fade = (state: GameState, ns: Needle) => {
   const t = ++ns.t, p = state.player;
   if (t === FADE) {
-    if (ns.fadeTo === 'up') { arriveDeck(state, ns); ns.phase = 'fade'; ns.t = FADE; p.inCutscene = true; }
-    else if (ns.fadeTo === 'down') { teleport(state, LIFT_X, GY); p.facing = -1; playSound('ding', 0.8, 4); }
-    else { teleport(state, DOORS.orbit.start.x, DOORS.orbit.start.y); p.facing = 1; }
+    switch (ns.fadeTo) {
+      case 'ride':
+        ns.tok++; ns.linesDone = false; ns.ride = { a: 0, speed: 0, climbed: 0, topped: false };
+        teleport(state, CAR_X, GY); p.facing = 1; snapCam(state);
+        break;
+      case 'up': arriveDeck(state, ns, false); break;
+      case 'top': arriveDeck(state, ns, true); break;
+      case 'down': teleport(state, LIFT_X, GY); p.facing = -1; snapCam(state); openDoors(ns, LIFT_X); playSound('ding', 0.8, 4); break;
+      case 'orbit': teleport(state, DOORS.orbit.start.x, DOORS.orbit.start.y); p.facing = 1; break;
+    }
   }
+  // (on the ride, the car's own fade in is part of the ride)
+  if (ns.fadeTo === 'ride' && t > FADE) { ns.phase = 'ride'; ns.t = 0; ns.fadeIn = FADE; playSound('ding', 0.7, 2); return; }
   if (t >= FADE * 2) { ns.phase = 'free'; p.inCutscene = false; }
+};
+/** The lift's doors at x opening (and shutting again after). */
+const openDoors = (ns: Needle, x: number) => { ns.doors = { x, t: 0 }; };
+/** The camera straight onto him where he is now, its limits and its row there: no gliding in from where it was. */
+const snapCam = (state: GameState) => {
+  const lim = needle.cameraX!(state)!, row = needle.cameraRow!(state) ?? 550;
+  const p = state.player;
+  state.cameraMinX = lim.min; state.cameraMaxX = lim.max;
+  state.camera.x = Math.max(lim.min, Math.min(lim.max, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2));
+  state.camera.y = p.pos.y + p.height - row; state.cameraRestY = state.camera.y;
 };
 
 const startSuit = (state: GameState, ns: Needle) => {
@@ -307,17 +329,17 @@ const free = (ctx: FrameContext, ns: Needle, controls: Controls): Controls => {
     if (!lobbySaid && cx > LOBBY0 + 260) { lobbySaid = true; meatheadSays(state, pickLine(L.MH_LOBBY), false); }
     if (ground && Math.abs(cx - LIFT_X) < 50) {
       setUi({ upPrompt: 'RIDE UP' });
-      if (up) { if (state.stageMemo[RODE_MEMO]) startFade(state, ns, 'up'); else startRide(state, ns); return hands(); }
+      if (up) { if (state.stageMemo[RODE_MEMO]) { openDoors(ns, LIFT_X); startFade(state, ns, 'up'); } else startRide(state, ns); return hands(); }
     }
     return controls;
   }
-  if (region === 'car') { arriveDeck(state, ns); return hands(); }
+  if (region === 'car') { arriveDeck(state, ns, false); return hands(); }
   // the deck
   mill(state, ns);
   chatter(state, ns);
   if (ground && Math.abs(cx - DECK_LIFT) < 50) {
     setUi({ upPrompt: 'RIDE DOWN' });
-    if (up) { startFade(state, ns, 'down'); return hands(); }
+    if (up) { openDoors(ns, DECK_LIFT); startFade(state, ns, 'down'); return hands(); }
   }
   if (ground && Math.abs(cx - CASE_X) < 64) {
     if (!state.stageMemo[SUIT_MEMO]) {
@@ -339,8 +361,8 @@ const free = (ctx: FrameContext, ns: Needle, controls: Controls): Controls => {
 // ---------------------------------------------------------------------------------------------------------------
 // The section
 
-const deckIn = (state: GameState) => regionAt(state.camera.x + CANVAS_WIDTH / 2) === 'deck';
-const regionOfCam = (state: GameState) => regionAt(state.camera.x + CANVAS_WIDTH / 2);
+const deckIn = (state: GameState) => regionOfCamOrPlayer(state) === 'deck';
+const regionOfCam = (state: GameState): Region => regionOfCamOrPlayer(state);
 
 export const needle: SpaceSection = {
   id: 'needle', x0: NX0, x1: NX1,
@@ -363,6 +385,8 @@ export const needle: SpaceSection = {
   update: (ctx, controls) => {
     const { state } = ctx, ns = st(state);
     ns.drift += 0.3;
+    if (ns.doors && ++ns.doors.t > 90) ns.doors = null;
+    if (ns.fadeIn > 0) ns.fadeIn--;
     switch (ns.phase) {
       case 'free': return free(ctx, ns, controls);
       case 'ride': ride(state, ns); return hands();
@@ -397,9 +421,13 @@ export const needle: SpaceSection = {
   drawBack: (c, state) => {
     const ns = st(state);
     drawLobby(c, state);
+    // (a lift's doors opening: the lobby's or the deck's)
+    const doorsOpen = (d: { t: number }) => Math.min(c01(d.t / 14), c01((86 - d.t) / 18));
+    if (ns.doors?.x === LIFT_X) drawLiftDoors(c, LIFT_X, 54, 170, doorsOpen(ns.doors));
     drawCar(c, state, altitude(ns));
     if (!deckIn(state) && state.camera.x + CANVAS_WIDTH < D0 - 340) return;
     drawDeck(c, state);
+    if (ns.doors?.x === DECK_LIFT) drawLiftDoors(c, DECK_LIFT, 52, 160, doorsOpen(ns.doors));
     drawSuitCase(c, state, !!state.stageMemo[SUIT_MEMO] && !(ns.phase === 'suit' && ns.t < 7), ns.smashT);
     drawEndGlass(c, state, ns.glass, ns.crack, ns.hitY);
     for (const x of ns.pax) {
@@ -444,6 +472,7 @@ export const needle: SpaceSection = {
     }
     if (ns.phase === 'out' && ns.survive) { drawFloat(c, state, ns.t); if (ns.t > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH); }
     if (ns.phase === 'ride' && ns.t > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
+    if (ns.fadeIn > 0) { c.fillStyle = `rgba(0, 0, 0, ${c01(ns.fadeIn / FADE).toFixed(3)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
     if (ns.phase === 'fade') {
       const t = ns.t, a = t < FADE ? t / FADE : (FADE * 2 - t) / FADE;
       c.fillStyle = `rgba(0, 0, 0, ${c01(a).toFixed(3)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
