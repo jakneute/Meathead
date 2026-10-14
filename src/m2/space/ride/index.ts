@@ -246,7 +246,8 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   if (s.mode === 'off') board(state, s);
   p.noSpecials = true; setUi({ noSwitch: true });
   if (s.mode === 'crash' || s.mode === 'up' || s.mode === 'out') return scene(ctx, s);
-  s.lead += (150 - s.lead) * 0.04;
+  // (the faster it goes, the further ahead the camera looks: what is coming is on screen sooner)
+  s.lead += (150 + Math.max(0, s.speed - 4.3) * 24 - s.lead) * 0.04;
   state.cameraLeadX = s.lead;
   return riding(ctx, s, controls);
 };

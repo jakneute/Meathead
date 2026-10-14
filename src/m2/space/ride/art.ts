@@ -18,7 +18,7 @@ import { drawTableau, TABLEAUS, meteor, tinySled, OP_SEED } from '../atom/art';
 import { drawAtomPerson } from '../atom/people';
 import {
   R, RUNS, LIFT_X0, LIFT_X1, BREAKER_X, STATION_X0, STATION_X1, BRAKE_X, FRONT_AT, STATION_ROOF, SATELLITES, BUTLERS,
-  LASERS, METEORS, ROCKETS, FORKLIFT_X, PA_CUES, trackY,
+  LASERS, METEORS, ROCKETS, FORKLIFT_X, PA_CUES, WORKERS, trackY,
 } from './layout';
 import {
   SAT_CLEAR, butlerReach, trayBand, laserBand, laserAt, rocketAt, ROCKET_TOP, EXHAUST_W, meteorAt, MET_R, PALLET, type Tricks,
@@ -45,12 +45,14 @@ export const drawRideBackdrop = (c: Ctx, state: GameState, look: RideLook) => {
     for (let j = -1; j < 3; j++) {
       const base = Math.floor(cam * 0.2 / 700) + j, px = base * 700 - cam * 0.2 + 200 + hash(base) * 250, py = 140 + hash(base * 3) * 180 - cy * 0.05;
       const col = ['#DB2777', '#2563EB', '#16A34A', '#F59E0B'][((base % 4) + 4) % 4], r = 36 + hash(base * 7) * 40;
-      c.fillStyle = mix(col, '#03020A', 0.3); c.beginPath(); c.arc(px, py, r, 0, Math.PI * 2); c.fill();
-      c.fillStyle = mix(col, '#FFFFFF', 0.2); c.beginPath(); c.arc(px - r * 0.3, py - r * 0.3, r * 0.4, 0, Math.PI * 2); c.fill();
-      if (hash(base * 5) > 0.4) { c.strokeStyle = mix(col, '#FFFFFF', 0.4); c.lineWidth = 3; c.beginPath(); c.ellipse(px, py, r * 1.7, r * 0.35, -0.2, 0, Math.PI * 2); c.stroke(); }
+      c.fillStyle = mix(col, '#03020A', 0.62); c.beginPath(); c.arc(px, py, r, 0, Math.PI * 2); c.fill();
+      c.fillStyle = mix(col, '#03020A', 0.45); c.beginPath(); c.arc(px - r * 0.3, py - r * 0.3, r * 0.4, 0, Math.PI * 2); c.fill();
+      if (hash(base * 5) > 0.4) { c.strokeStyle = mix(col, '#03020A', 0.4); c.lineWidth = 3; c.beginPath(); c.ellipse(px, py, r * 1.7, r * 0.35, -0.2, 0, Math.PI * 2); c.stroke(); }
     }
     // (other sleds going round, way off)
-    for (let j = 0; j < 2; j++) { const sx = ((f * 1.6 + j * 900 - cam * 0.3) % 1800 + 1800) % 1800 - 300; tinySled(c, sx, 470 - j * 160, 4100 + j * 31, f, 0.4); }
+    c.save(); c.globalAlpha = 0.35;
+    for (let j = 0; j < 2; j++) { const sx = ((f * 1.6 + j * 900 - cam * 0.3) % 1800 + 1800) % 1800 - 300; tinySled(c, sx, 300 - j * 140, 4100 + j * 31, f, 0.4); }
+    c.restore();
   }
   if (k > 0) {
     c.save(); c.globalAlpha = Math.min(1, k);
@@ -92,11 +94,71 @@ const drawWarehouseBack = (c: Ctx, cam: number, cy: number, f: number) => {
     sign(c, x + 540, 300, 230, 22, '#F8FAFC', 'EMPLOYEES MUST WASH HANDS', '#B91C1C', 6);
   }
   box(c, 0, H - 20, W, 20, '#57534E');
+  // (all of it knocked back: set dressing, not anything on the track)
+  c.fillStyle = 'rgba(55, 60, 72, 0.42)'; c.fillRect(0, 0, W, H);
   void f;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The world: the track, the scenes, the props
+
+// ---------------------------------------------------------------------------------------------------------------
+// Readability: every obstacle shows itself well before it's there, and shows how it's beaten
+
+/** Every obstacle along the track (and every gap's edge), in order. */
+const OBSTACLE_XS = [...SATELLITES, ...BUTLERS.map(b => b.x), ...LASERS.map(l => l.x), ...METEORS, ...ROCKETS.map(r => r.x), FORKLIFT_X,
+  ...RUNS.filter((r, i) => RUNS[i + 1] && RUNS[i + 1][0] - r[1] > 20).map(r => r[1])].sort((a, b) => a - b);
+/** Where an obstacle's sign goes: well before it, but never back past the one before it (signs in the order they come). */
+const signX = (x: number) => {
+  let prev = -Infinity; for (const o of OBSTACLE_XS) { if (o >= x - 1) break; prev = o; }
+  const sx = Math.max(x - 380, prev + (prev === FORKLIFT_X ? 210 : 90));
+  return trackY(sx) === null ? (RUNS.find(r => r[0] > sx) ?? RUNS[0])[0] + 24 : sx;
+};
+/** (the frame the track's being drawn on: its lamps flash) */
+let frameNow = 0;
+/** A sign on a pole beside the track, well before what it's about: the word, an arrow, a lamp on top (flashing when
+ *  `live`). Its board's bright, inked hard; the arrow says which: up (jump), down (duck), stop (wait). */
+const warnSign = (c: Ctx, x: number, word: string, arrow: 'up' | 'down' | 'stop', live: boolean) => {
+  // (never over a gap: just past it, if that's where it'd go)
+  if (trackY(x) === null) x = (RUNS.find(r => r[0] > x) ?? RUNS[0])[0] + 24;
+  const rail = trackY(x);
+  if (rail === null) return;
+  const top = rail - 150, w = Math.max(64, word.length * 10 + 30), flash = live && (frameNow >> 3) % 2 === 0;
+  box(c, x - 4, top, 8, 150, INK); box(c, x - 2, top, 4, 150, '#71717A');
+  box(c, x - w / 2 - 3, top - 3, w + 6, 32, INK); box(c, x - w / 2, top, w, 26, flash ? '#FEF08A' : '#FACC15');
+  text(c, word, x + 8, top + 18, '#1C1917', 8, 'center', null);
+  const ax = x - w / 2 + 10, ay = top + 13;
+  c.fillStyle = INK; c.beginPath();
+  if (arrow === 'up') { c.moveTo(ax - 6, ay + 5); c.lineTo(ax, ay - 7); c.lineTo(ax + 6, ay + 5); }
+  else if (arrow === 'down') { c.moveTo(ax - 6, ay - 5); c.lineTo(ax, ay + 7); c.lineTo(ax + 6, ay - 5); }
+  else c.rect(ax - 5, ay - 5, 10, 10);
+  c.closePath(); c.fill();
+  box(c, x - 7, top - 15, 14, 12, INK); box(c, x - 5, top - 13, 10, 8, flash ? '#EF4444' : '#7F1D1D');
+};
+/** The lane lit on the rail from x0 to x1 (chevrons along its top: where it'll get you). */
+const laneMark = (c: Ctx, x0: number, x1: number, col: string, on: boolean) => {
+  for (let x = x0; x < x1; x += 12) {
+    const y = trackY(x);
+    if (y === null) continue;
+    box(c, x, y - 4, 8, 5, INK); box(c, x + 1, y - 3, 6, 3, on ? col : mix(col, '#1C1917', 0.55));
+  }
+};
+/** A striped barricade on the rail's end (a gap after it), its lamp. */
+const barricade = (c: Ctx, x: number, rail: number, flash: boolean) => {
+  box(c, x - 12, rail - 46, 24, 46, INK);
+  for (let j = 0; j < 4; j++) box(c, x - 9, rail - 43 + j * 10, 18, 9, j % 2 ? '#F8FAFC' : '#DC2626');
+  box(c, x - 8, rail - 60, 16, 14, INK); box(c, x - 6, rail - 58, 12, 10, flash ? '#FCA5A5' : '#B91C1C');
+};
+/** A wall to duck under: from y down to its bottom edge (y + h), hazard-striped, inked, the bottom edge bright. */
+const hazardWall = (c: Ctx, x: number, y: number, w: number, h: number, dark = '#1C1917', bright = '#FACC15') => {
+  box(c, x - 3, y, w + 6, h + 3, INK);
+  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+  box(c, x, y, w, h, dark);
+  c.fillStyle = bright;
+  for (let yy = y + h - 30; yy > y - w; yy -= 36) { c.beginPath(); c.moveTo(x, yy); c.lineTo(x + w, yy - w * 0.6); c.lineTo(x + w, yy - w * 0.6 + 14); c.lineTo(x, yy + 14); c.closePath(); c.fill(); }
+  c.restore();
+  box(c, x, y + h - 6, w, 6, '#FFFFFF');
+};
 
 /** The rail, from its run's ends; its supports down out of sight; the gaps' red ends. */
 const drawTrack = (c: Ctx, k: number, cam: number) => {
@@ -115,21 +177,27 @@ const drawTrack = (c: Ctx, k: number, cam: number) => {
     // (a gap after it: a red lamp at either side, a sign)
     const nx = RUNS[i + 1];
     if (nx && nx[0] - b > 20) {
-      box(c, b - 10, yb - 30, 8, 30, '#3F3F46'); box(c, b - 12, yb - 38, 12, 10, '#EF4444');
-      box(c, nx[0] + 2, nx[2] - 30, 8, 30, '#3F3F46'); box(c, nx[0], nx[2] - 38, 12, 10, '#EF4444');
-      if (b < R + 6000) sign(c, b - 70, yb - 100, 130, 18, '#FDE047', 'FUTURE: TBD', '#1C1917', 6);
+      // (the rail's end: a striped barricade on it, a lamp, the lane lit up to it; the far side's the same; a sign well
+      // before: JUMP)
+      const flash = (Math.floor(frameNow / 8) % 2) === 0;
+      laneMark(c, b - 260, b - 4, '#FACC15', true);
+      barricade(c, b - 6, yb, flash);
+      barricade(c, nx[0] + 6, nx[2], !flash);
+      warnSign(c, signX(b), 'JUMP', 'up', true);
+      if (b < R + 6000) sign(c, b - 150, yb - 150, 130, 18, '#FDE047', 'FUTURE: TBD', '#1C1917', 6);
     }
   }
 };
 
 export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
   const f = state.frame, cam = state.camera.x, k = look.k, lit = k > 0.5;
+  frameNow = f;
   const on = (x0: number, x1: number) => x1 > cam - 150 && x0 < cam + CANVAS_WIDTH + 150;
   // The scenes of 2010, by the track (act 1): lit, they're plywood on braces
   PA_CUES.slice(1, 5).forEach(([, x], i) => {
     const sx = x + 200, y = (trackY(sx) ?? GY) - 40;
     if (!on(sx - 50, sx + 300)) return;
-    drawTableau(c, TABLEAUS[i], sx, y, f);
+    c.save(); c.globalAlpha = 0.5; drawTableau(c, TABLEAUS[i], sx, y, f); c.restore();
     if (lit) { for (let b = 0; b < 3; b++) { c.strokeStyle = '#A16207'; c.lineWidth = 4; c.beginPath(); c.moveTo(sx + 30 + b * 90, y - 100); c.lineTo(sx + 60 + b * 90, y + 30); c.stroke(); } text(c, 'PROPERTY OF PROGRESSCO', sx + 120, y + 14, '#78350F', 5, 'center', null); }
   });
   // The lift: the chain up the middle, blue strobes along it
@@ -138,71 +206,126 @@ export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
     box(c, x - 4, y - 160, 8, 8, lit ? '#9CA3AF' : (Math.floor(f / 6) - x / 80) % 8 < 1 ? '#93C5FD' : '#1E3A8A');
   }
   drawTrack(c, k, cam);
-  // Satellites (the last: a ladder, a worker up it; the warehouse's)
+  const show = k < 1, flash = (f >> 3) % 2 === 0;
+  // Satellites (the last: a ladder, the warehouse's): hung off a striped rig, a wall down to the gap under it; the
+  // lane lit under it, DUCK on a sign well before
   SATELLITES.forEach((x, i) => {
-    if (!on(x - 60, x + 60)) return;
+    if (!on(x - 420, x + 80)) return;
     const rail = trackY(x) ?? GY, bot = rail - SAT_CLEAR;
-    // (what it hangs off: a solid rig, a wall down to the gap under it, its bottom edge striped: duck under it)
-    box(c, x - 30, bot - 520, 60, 520, INK); box(c, x - 28, bot - 518, 56, 516, lit ? '#71717A' : '#1E293B');
-    for (let yy = bot - 500; yy < bot - 20; yy += 40) { c.strokeStyle = lit ? '#52525B' : '#0F172A'; c.lineWidth = 3; c.beginPath(); c.moveTo(x - 26, yy); c.lineTo(x + 26, yy + 40); c.stroke(); }
-    for (let j = 0; j < 6; j++) box(c, x - 28 + j * 10, bot - 8, 5, 8, '#FACC15');
+    warnSign(c, signX(x), 'DUCK', 'down', true);
+    laneMark(c, x - 40, x + 40, '#F97316', flash);
+    if (!on(x - 80, x + 80)) return;
+    hazardWall(c, x - 32, bot - 560, 64, 560);
     if (i === SATELLITES.length - 1) {
-      box(c, x - 50, bot - 6, 100, 8, '#EAB308'); box(c, x - 52, bot - 200, 8, 200 + SAT_CLEAR, '#CA8A04'); box(c, x + 44, bot - 200, 8, 200 + SAT_CLEAR, '#CA8A04');
-      for (let r = 1; r < 6; r++) box(c, x - 48, bot - r * 34, 96, 4, '#EAB308');
+      box(c, x - 54, bot - 202, 12, 202 + SAT_CLEAR, INK); box(c, x + 42, bot - 202, 12, 202 + SAT_CLEAR, INK);
+      box(c, x - 52, bot - 200, 8, 200 + SAT_CLEAR, '#EAB308'); box(c, x + 44, bot - 200, 8, 200 + SAT_CLEAR, '#EAB308');
+      for (let r = 1; r < 6; r++) { box(c, x - 50, bot - r * 34 - 1, 100, 6, INK); box(c, x - 48, bot - r * 34, 96, 4, '#FDE047'); }
       return;
     }
-    box(c, x - 1, bot - 600, 2, 560, lit ? '#E5E7EB' : '#334155');
-    box(c, x - 18, bot - 40, 36, 40, INK); box(c, x - 16, bot - 38, 32, 36, lit ? '#D4D4D8' : '#94A3B8');
-    for (const s of [-1, 1]) { box(c, x + s * 18 + (s < 0 ? -50 : 0), bot - 30, 50, 20, INK); box(c, x + s * 18 + (s < 0 ? -48 : 2), bot - 28, 46, 16, lit ? '#3B82F6' : '#1D4ED8'); }
-    box(c, x - 26, bot - 4, 52, 4, '#FACC15');
-    if (lit) text(c, 'FOAM? NO', x, bot - 46, '#1C1917', 5, 'center', null);
+    // (the satellite itself, on the bottom of it: big, white, its panels out either side)
+    box(c, x - 22, bot - 46, 44, 46, INK); box(c, x - 19, bot - 43, 38, 40, '#F1F5F9'); box(c, x - 19, bot - 43, 38, 6, '#FFFFFF');
+    for (const sd of [-1, 1]) { const px = sd < 0 ? x - 76 : x + 22; box(c, px, bot - 36, 54, 26, INK); box(c, px + 2, bot - 34, 50, 22, '#2563EB'); for (let q = 1; q < 4; q++) box(c, px + 2 + q * 12, bot - 34, 2, 22, '#93C5FD'); }
+    if (lit) text(c, 'FOAM? NO', x, bot - 52, '#1C1917', 5, 'center', null);
   });
-  // Robo-Butler, beside the track
+  // Robo-Butler, beside the track: once cued its eyes and beacon flash, and out it swings across the track. Rim-high,
+  // a meal-pill trolley shoved out onto the rail (jump it); head-high, a big tray with its menu board on top, a wall up
+  // to the ceiling (duck)
   BUTLERS.forEach((b, i) => {
-    if (!on(b.x - 120, b.x + 120)) return;
-    const rail = trackY(b.x) ?? GY, rk = butlerReach(look.tricks.butler[i]), [top, bot] = trayBand(b.high);
-    const bx = b.x + 70;
-    box(c, bx - 18, rail - 110, 36, 110, INK); box(c, bx - 16, rail - 108, 32, 106, '#94A3B8'); box(c, bx - 16, rail - 108, 6, 106, '#CBD5E1');
-    box(c, bx - 14, rail - 138, 28, 26, INK); box(c, bx - 12, rail - 136, 24, 22, '#CBD5E1');
-    const eyes = look.tricks.butler[i] > 0 && !lit ? '#F87171' : '#475569';
-    box(c, bx - 8, rail - 130, 5, 5, eyes); box(c, bx + 3, rail - 130, 5, 5, eyes);
-    const tx = bx - 20 - rk * 90, ty = rail - (top + bot) / 2;
-    c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(bx - 10, rail - 80); c.lineTo(tx, ty); c.stroke();
-    c.strokeStyle = '#A1A1AA'; c.lineWidth = 3; c.beginPath(); c.moveTo(bx - 10, rail - 80); c.lineTo(tx, ty); c.stroke();
-    box(c, tx - 42, ty - 4, 84, 8, INK); box(c, tx - 40, ty - 3, 80, 6, '#E5E7EB');
-    for (let j = 0; j < 3; j++) box(c, tx - 20 + j * 14, ty - 9, 8, 6, ['#F472B6', '#FDE047', '#4ADE80'][j]);
-    text(c, 'ROBO-BUTLER', bx, rail - 144, lit ? '#1C1917' : '#CBD5E1', 5, 'center', null);
+    if (!on(b.x - 420, b.x + 180)) return;
+    const rail = trackY(b.x) ?? GY, t = look.tricks.butler[i], rk = butlerReach(t), [top, bot] = trayBand(b.high);
+    const tell = show && t > 0;
+    if (show) { warnSign(c, signX(b.x), b.high ? 'DUCK' : 'JUMP', b.high ? 'down' : 'up', tell); laneMark(c, b.x - 44, b.x + 44, '#F97316', tell && flash); }
+    if (!on(b.x - 180, b.x + 180)) return;
+    const bx = b.x + 150;
+    // (the robot: a can on a post, its head, the eyes; a beacon on top)
+    box(c, bx - 20, rail - 112, 40, 112, INK); box(c, bx - 17, rail - 109, 34, 106, '#CBD5E1'); box(c, bx - 17, rail - 109, 8, 106, '#F1F5F9');
+    box(c, bx - 16, rail - 142, 32, 32, INK); box(c, bx - 13, rail - 139, 26, 26, '#E2E8F0');
+    const eye = tell ? (flash ? '#EF4444' : '#FCA5A5') : '#475569';
+    box(c, bx - 9, rail - 131, 7, 7, eye); box(c, bx + 3, rail - 131, 7, 7, eye);
+    box(c, bx - 6, rail - 154, 12, 12, INK); box(c, bx - 4, rail - 152, 8, 8, tell && flash ? '#FDE047' : '#7C2D12');
+    text(c, 'ROBO-BUTLER', bx, rail - 162, lit ? '#1C1917' : '#94A3B8', 5, 'center', null);
+    // (what it holds out: tucked in by it, swung out across the track as it reaches)
+    const cx = bx - 66 + rk * (b.x - (bx - 66));
+    c.strokeStyle = INK; c.lineWidth = 8; c.beginPath(); c.moveTo(bx - 14, rail - 80); c.lineTo(cx + 34, rail - (top + bot) / 2); c.stroke();
+    c.strokeStyle = '#94A3B8'; c.lineWidth = 4; c.beginPath(); c.moveTo(bx - 14, rail - 80); c.lineTo(cx + 34, rail - (top + bot) / 2); c.stroke();
+    if (b.high) {
+      hazardWall(c, cx - 42, rail - top - 420, 84, 418, '#7F1D1D', '#FCA5A5');
+      box(c, cx - 36, rail - top - 120, 72, 70, INK); box(c, cx - 33, rail - top - 117, 66, 64, '#FEF3C7');
+      text(c, 'MENU', cx, rail - top - 100, '#7F1D1D', 6, 'center', null);
+      for (let q = 0; q < 3; q++) text(c, 'PILL', cx, rail - top - 84 + q * 10, '#1C1917', 5, 'center', null);
+      box(c, cx - 46, rail - top - 2, 92, top - bot + 4, INK); box(c, cx - 43, rail - top + 1, 86, top - bot - 2, '#E5E7EB'); box(c, cx - 43, rail - top + 1, 86, 5, '#FFFFFF');
+      for (let j = 0; j < 4; j++) box(c, cx - 30 + j * 16, rail - top + 12, 10, 10, ['#F472B6', '#FDE047', '#4ADE80', '#60A5FA'][j]);
+    } else {
+      // (the trolley: its top at the band, its frame down to its wheels on the rail: a hurdle sat on the track)
+      box(c, cx - 46, rail - top - 2, 92, top + 2, INK);
+      box(c, cx - 43, rail - top + 1, 86, top - bot - 2, '#E5E7EB'); box(c, cx - 43, rail - top + 1, 86, 5, '#FFFFFF');
+      box(c, cx - 43, rail - bot - 1, 86, bot - 2, '#475569');
+      box(c, cx - 40, rail - bot, 6, bot - 8, '#CBD5E1'); box(c, cx + 34, rail - bot, 6, bot - 8, '#CBD5E1'); box(c, cx - 40, rail - 14, 80, 5, '#CBD5E1');
+      for (const wx of [cx - 34, cx + 34]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, rail - 5, 6, 0, Math.PI * 2); c.fill(); }
+      for (let j = 0; j < 4; j++) box(c, cx - 30 + j * 16, rail - top - 10, 10, 10, ['#F472B6', '#FDE047', '#4ADE80', '#60A5FA'][j]);
+      for (let j = 0; j < 8; j++) box(c, cx - 43 + j * 11, rail - bot - 4, 6, 4, j % 2 ? INK : '#FACC15');
+    }
   });
-  // The laser emitters (the beams are drawn in front)
-  for (const l of LASERS) if (on(l.x - 40, l.x + 40)) {
-    const rail = trackY(l.x) ?? GY, [top] = laserBand(l.kind);
-    box(c, l.x - 6, rail - top - 30, 12, 26, INK); box(c, l.x - 5, rail - top - 29, 10, 24, lit ? '#71717A' : '#3F3F46');
-    box(c, l.x - 1, rail - top - 600, 2, 570, lit ? '#9CA3AF' : '#1E293B');
+  // The laser emitters (the beams are drawn in front): a head-high band hangs off a striped housing that's a wall up to
+  // the ceiling (duck); a rim-high one's emitter bar sits on the track (jump); a full curtain's frame stands over the
+  // track from the rail up (time it). The frame's sides glow so its lane reads even while it's off
+  for (const l of LASERS) if (on(l.x - 420, l.x + 60)) {
+    const rail = trackY(l.x) ?? GY, [top, bot] = laserBand(l.kind), st = laserAt(l.kind, f, l.phase);
+    if (show) {
+      warnSign(c, signX(l.x), l.kind === 'high' ? 'DUCK' : l.kind === 'low' ? 'JUMP' : 'WAIT', l.kind === 'high' ? 'down' : l.kind === 'low' ? 'up' : 'stop', l.kind !== 'full' || st.on || st.tell > 0);
+      laneMark(c, l.x - 30, l.x + 30, '#22C55E', l.kind !== 'full' ? flash : st.on || (st.tell > 0 && flash));
+    }
+    if (!on(l.x - 60, l.x + 60)) continue;
+    const body = lit ? '#71717A' : '#166534';
+    if (l.kind === 'high') hazardWall(c, l.x - 24, rail - top - 420, 48, 420, '#14532D', '#86EFAC');
+    else { box(c, l.x - 24, rail - top - 26, 48, 26, INK); box(c, l.x - 21, rail - top - 23, 42, 20, body); box(c, l.x - 3, rail - top - 420, 6, 394, '#1F2937'); }
+    if (l.kind === 'low') { box(c, l.x - 24, rail - bot - 2, 48, bot + 2, INK); box(c, l.x - 21, rail - bot + 1, 42, bot - 4, body); }
+    if (l.kind === 'full') { box(c, l.x - 24, rail - 8, 48, 8, INK); box(c, l.x - 21, rail - 6, 42, 4, body); }
+    box(c, l.x - 26, rail - top, 4, top - bot, INK); box(c, l.x + 22, rail - top, 4, top - bot, INK);
+    box(c, l.x - 25, rail - top, 2, top - bot, show ? '#4ADE80' : '#52525B'); box(c, l.x + 23, rail - top, 2, top - bot, show ? '#4ADE80' : '#52525B');
   }
-  // The rockets, hung nose-up over the track
-  for (const r of ROCKETS) if (on(r.x - 60, r.x + 60)) {
-    const rail = trackY(r.x) ?? GY, ny = rail - ROCKET_TOP;
+  // The rockets, hung nose-up over the track: the nozzle sputters (the tell), the lane under it flashes; while it's off
+  // the column it blasts down is marked out, dashed (time it)
+  for (const r of ROCKETS) if (on(r.x - 420, r.x + 80)) {
+    const rail = trackY(r.x) ?? GY, ny = rail - ROCKET_TOP, st = rocketAt(f, r.phase);
+    if (show) { warnSign(c, signX(r.x), 'WAIT', 'stop', st.on || st.tell > 0); laneMark(c, r.x - EXHAUST_W / 2, r.x + EXHAUST_W / 2, '#F97316', st.on || (st.tell > 0 && flash)); }
+    if (!on(r.x - 80, r.x + 80)) continue;
     box(c, r.x - 1, ny - 600, 2, 420, '#64748B');
-    box(c, r.x - 24, ny - 170, 48, 160, INK); box(c, r.x - 22, ny - 168, 44, 156, lit ? '#D4D4D8' : '#E5E7EB'); box(c, r.x - 22, ny - 168, 10, 156, '#F8FAFC');
-    c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(r.x - 24, ny - 170); c.lineTo(r.x, ny - 220); c.lineTo(r.x + 24, ny - 170); c.closePath(); c.fill();
-    box(c, r.x - 14, ny - 12, 28, 14, '#52525B');
-    for (const s of [-1, 1]) { c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(r.x + s * 22, ny - 60); c.lineTo(r.x + s * 44, ny); c.lineTo(r.x + s * 22, ny - 10); c.closePath(); c.fill(); }
+    box(c, r.x - 26, ny - 172, 52, 164, INK); box(c, r.x - 23, ny - 169, 46, 158, '#F1F5F9'); box(c, r.x - 23, ny - 169, 10, 158, '#FFFFFF');
+    c.fillStyle = INK; c.beginPath(); c.moveTo(r.x - 27, ny - 170); c.lineTo(r.x, ny - 226); c.lineTo(r.x + 27, ny - 170); c.closePath(); c.fill();
+    c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(r.x - 23, ny - 171); c.lineTo(r.x, ny - 220); c.lineTo(r.x + 23, ny - 171); c.closePath(); c.fill();
+    for (const sd of [-1, 1]) {
+      c.fillStyle = INK; c.beginPath(); c.moveTo(r.x + sd * 22, ny - 64); c.lineTo(r.x + sd * 48, ny + 2); c.lineTo(r.x + sd * 22, ny - 6); c.closePath(); c.fill();
+      c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(r.x + sd * 23, ny - 58); c.lineTo(r.x + sd * 43, ny - 2); c.lineTo(r.x + sd * 23, ny - 10); c.closePath(); c.fill();
+    }
+    box(c, r.x - 17, ny - 12, 34, 16, INK); box(c, r.x - 14, ny - 10, 28, 12, show && st.tell > 0 ? (flash ? '#FDE047' : '#F97316') : '#52525B');
+    if (show && !st.on) for (let yy = ny + 8; yy < rail - 6; yy += 16) {
+      const col = st.tell > 0 && flash ? '#FDBA74' : '#9A3412';
+      box(c, r.x - EXHAUST_W / 2, yy, 4, 8, col); box(c, r.x + EXHAUST_W / 2 - 4, yy, 4, 8, col);
+    }
     if (lit) text(c, 'NOT FOR FLIGHT', r.x, ny - 90, '#1C1917', 5, 'center', null);
   }
-  // The meteors (on their cables)
+  // The meteors, on their cables: inked hard and lit; a target on the rail where it'll come down (flashing as it's cued,
+  // lit while it's sat there), LOOK UP well before
   METEORS.forEach((x, i) => {
-    if (!on(x - 60, x + 60) || look.tricks.smashed.has(i)) return;
-    const rail = trackY(x) ?? GY, m = meteorAt(look.tricks.meteor[i]), cyy = rail - m.h - MET_R;
-    box(c, x - 1, rail - 700, 2, 700 - m.h - MET_R * 2 + 4, '#94A3B8');
+    if (!on(x - 420, x + 60) || look.tricks.smashed.has(i) || (!show && i < 3)) return;
+    const rail = trackY(x) ?? GY, t = look.tricks.meteor[i], m = meteorAt(t), cyy = rail - m.h - MET_R;
+    warnSign(c, signX(x), 'LOOK UP', 'up', t > 0);
+    laneMark(c, x - MET_R - 6, x + MET_R + 6, '#EF4444', m.tell > 0 || m.falling ? flash : m.down);
+    if (!on(x - 60, x + 60)) return;
+    box(c, x - 2, rail - 700, 4, 700 - m.h - MET_R * 2 + 4, INK); box(c, x - 1, rail - 700, 2, 700 - m.h - MET_R * 2 + 4, '#CBD5E1');
     if (i === METEORS.length - 1) { box(c, x - 20, rail - 720, 40, 30, '#CA8A04'); text(c, 'HAND HOIST', x, rail - 728, '#1C1917', 5, 'center', null); }
-    meteor(c, x + (m.tell ? Math.sin(f * 2) * 2 : 0), cyy, MET_R, i, lit);
-    if (m.tell || m.falling) box(c, x - MET_R, rail - 3, MET_R * 2, 3, '#EF4444');
+    c.fillStyle = INK; c.beginPath(); c.arc(x, cyy, MET_R + 4, 0, Math.PI * 2); c.fill();
+    meteor(c, x + (m.tell ? Math.sin(f * 2) * 2 : 0), cyy, MET_R + 2, i, lit);
   });
-  // The forklift, its pallet across the track
-  if (on(FORKLIFT_X - 150, FORKLIFT_X + 200)) {
+  // The forklift, its pallet across the track (the pallet itself is in front: drawPallet); its beacon going round
+  if (on(FORKLIFT_X - 420, FORKLIFT_X + 200)) {
     const rail = trackY(FORKLIFT_X) ?? GY;
+    warnSign(c, signX(FORKLIFT_X), 'JUMP', 'up', true);
+    laneMark(c, FORKLIFT_X - 46, FORKLIFT_X + 46, '#FACC15', flash);
     box(c, FORKLIFT_X + 40, rail - 110, 100, 90, INK); box(c, FORKLIFT_X + 42, rail - 108, 96, 86, '#F59E0B');
     box(c, FORKLIFT_X + 44, rail - 170, 6, 70, '#3F3F46'); box(c, FORKLIFT_X + 120, rail - 170, 6, 70, '#3F3F46'); box(c, FORKLIFT_X + 44, rail - 172, 82, 6, '#3F3F46');
+    box(c, FORKLIFT_X + 78, rail - 186, 14, 14, INK); box(c, FORKLIFT_X + 80, rail - 184, 10, 10, flash ? '#FDE047' : '#F97316');
     box(c, FORKLIFT_X + 36, rail - 160, 8, 150, '#27272A');
     for (const wx of [FORKLIFT_X + 64, FORKLIFT_X + 120]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, rail - 14, 14, 0, Math.PI * 2); c.fill(); }
     c.save(); c.translate(FORKLIFT_X + 88, rail - 22); drawAtomPerson(c, 'worker', { seed: 2207, f, pose: 'stand', md: 'ok' }); c.restore();
@@ -264,13 +387,22 @@ export const drawRideFront = (c: Ctx, state: GameState, look: RideLook) => {
   const on = (x: number) => x > cam - 100 && x < cam + CANVAS_WIDTH + 100;
   for (const l of LASERS) if (on(l.x)) {
     const rail = trackY(l.x) ?? GY, [top, bot] = laserBand(l.kind), st = laserAt(l.kind, f, l.phase);
-    if (st.on) for (let yy = rail - top + 4; yy < rail - bot; yy += 10) { box(c, l.x - 4, yy, 8, 3, 'rgba(34, 197, 94, 0.4)'); box(c, l.x - 1, yy, 2, 3, '#BBF7D0'); }
-    else if (st.tell > 0 && (f >> 1) % 2) for (let yy = rail - top + 4; yy < rail - bot; yy += 20) box(c, l.x - 1, yy, 2, 2, '#4ADE80');
+    if (st.on) {
+      // (a sheet of beams across its whole lane: a glowing slab, inked, the beams bright in it)
+      box(c, l.x - 22, rail - top - 1, 44, top - bot + 2, INK);
+      box(c, l.x - 20, rail - top + 1, 40, top - bot - 2, 'rgba(34, 197, 94, 0.55)');
+      for (let yy = rail - top + 4; yy < rail - bot - 2; yy += 8) box(c, l.x - 20, yy, 40, 2, '#DCFCE7');
+    } else if (st.tell > 0 && (f >> 2) % 2) {
+      // (coming on: its lane outlined, flashing)
+      c.strokeStyle = '#4ADE80'; c.lineWidth = 3; c.setLineDash([6, 6]); c.strokeRect(l.x - 20, rail - top + 1, 40, top - bot - 2); c.setLineDash([]);
+    }
   }
   for (const r of ROCKETS) if (on(r.x)) {
     const rail = trackY(r.x) ?? GY, st = rocketAt(f, r.phase);
     if (!st.on) continue;
     const wob = Math.sin(f * 1.3) * 4, top = rail - ROCKET_TOP;
+    box(c, r.x - EXHAUST_W / 2 - 3, top, EXHAUST_W + 6, rail - top, INK);
+    box(c, r.x - EXHAUST_W / 2, top, EXHAUST_W, rail - top, '#EA580C');
     c.fillStyle = '#F97316'; c.beginPath(); c.moveTo(r.x - EXHAUST_W / 2, top); c.lineTo(r.x + wob, rail); c.lineTo(r.x + EXHAUST_W / 2, top); c.closePath(); c.fill();
     box(c, r.x - EXHAUST_W, rail - 20, EXHAUST_W * 2, 20, '#F97316');
     c.fillStyle = '#FDE047'; c.beginPath(); c.moveTo(r.x - EXHAUST_W / 3, top); c.lineTo(r.x + wob, rail - 30); c.lineTo(r.x + EXHAUST_W / 3, top); c.closePath(); c.fill();
@@ -285,6 +417,9 @@ export const drawPallet = (c: Ctx, state: GameState) => {
   box(c, FORKLIFT_X - 46, rail - PALLET[1] - 4, 92, 6, '#3F3F46');
   box(c, FORKLIFT_X - 44, rail - PALLET[0], 88, PALLET[0] - PALLET[1] - 4, INK);
   for (let j = 0; j < 3; j++) { box(c, FORKLIFT_X - 42 + j * 29, rail - PALLET[0] + 2, 26, PALLET[0] - PALLET[1] - 8, '#A16207'); box(c, FORKLIFT_X - 42 + j * 29, rail - PALLET[0] + 2, 26, 3, '#FBBF24'); }
+  // (hazard tape along it, and the forks' legs down to the rail: it's sat on the track)
+  for (let j = 0; j < 11; j++) box(c, FORKLIFT_X - 44 + j * 8, rail - PALLET[1] - 10, 4, 4, j % 2 ? INK : '#FACC15');
+  box(c, FORKLIFT_X - 40, rail - PALLET[1], 6, PALLET[1], INK); box(c, FORKLIFT_X + 34, rail - PALLET[1], 6, PALLET[1], INK);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -299,6 +434,15 @@ export const rideLighting = (state: GameState, look: RideLook): SceneLight => {
     for (const l of LASERS) if (near(l.x) && laserAt(l.kind, f, l.phase).on) lights.push({ x: l.x, y: (trackY(l.x) ?? GY) - 60, r: 120, a: 0.8, color: 'rgba(74, 222, 128, 0.18)' });
     for (const r of ROCKETS) if (near(r.x) && rocketAt(f, r.phase).on) lights.push({ x: r.x, y: (trackY(r.x) ?? GY) - 60, r: 280, a: 1, color: 'rgba(251, 146, 60, 0.25)' });
     for (const [, x] of PA_CUES.slice(1, 5)) if (near(x + 300)) lights.push({ x: x + 320, y: (trackY(x + 300) ?? GY) - 120, r: 260, a: 0.8, color: 'rgba(244, 114, 182, 0.1)' });
+    // (every obstacle has its own light: the dark's the show's, not something to hide them in)
+    const spot = (x: number, up: number, r = 170, col = 'rgba(255, 247, 214, 0.12)') => { if (near(x)) lights.push({ x, y: (trackY(x) ?? GY) - up, r, a: 0.95, color: col }); };
+    for (const x of SATELLITES) { spot(x, 90, 190); spot(signX(x), 110, 110); }
+    for (const b of BUTLERS) { spot(b.x + 30, 80, 200); spot(signX(b.x), 110, 110); }
+    for (const l of LASERS) spot(signX(l.x), 110, 110);
+    for (const r of ROCKETS) { spot(r.x, 120, 200); spot(signX(r.x), 110, 110); }
+    for (const x of METEORS) { spot(x, 60, 170); spot(signX(x), 110, 110); }
+    for (let i = 0; i + 1 < RUNS.length; i++) if (RUNS[i + 1][0] - RUNS[i][1] > 20) { spot(RUNS[i][1] - 10, 40, 150, 'rgba(239, 68, 68, 0.16)'); spot(RUNS[i + 1][0] + 10, 40, 150, 'rgba(239, 68, 68, 0.16)'); spot(signX(RUNS[i][1]), 110, 110); }
+    for (const [x] of WORKERS) spot(x, 40, 120);
     if (near(BREAKER_X)) lights.push({ x: BREAKER_X, y: (trackY(BREAKER_X) ?? GY) - 100, r: 90, a: 0.6, color: 'rgba(239, 68, 68, 0.15)' });
     if (near(STATION_X0) || near(STATION_X1)) for (let x = STATION_X0; x < STATION_X1 + 200; x += 200) lights.push({ x, y: GY - 300, r: 480, a: 0.9, cone: 200, color: 'rgba(224, 242, 254, 0.08)' });
   }
