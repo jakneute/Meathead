@@ -487,6 +487,8 @@ export interface Enemy extends Entity {
   innocent?: boolean;
   /** Beating it up gives him no health back (Meathead 2's grab: the queen's offspring, made to be farmed otherwise). */
   noHeal?: boolean;
+  /** (M2 grabs) Thrown, or hit by somebody thrown: this much more it takes (unset: 1). */
+  throwVuln?: number;
   /** A mid-boss already took a hit from this tsunami wave (it's washed over once, not every frame). */
   tsunamiWave?: number;
   /** A boss in the middle of a weakness's pain (bossState 'pain'): which (Victor 'doused' or 'scalded', Hector

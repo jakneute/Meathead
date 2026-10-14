@@ -45,6 +45,8 @@ export const spawnKin = (state: GameState, kind: string, x: number, dir: 1 | -1)
   e.facing = dir; e.seen = true; e.aiState = 'go'; e.aiTimer = 0;
   // (beating one up gives him nothing back: the user's)
   e.noHeal = true;
+  // (cheap: a throw does them in quicker than most)
+  e.throwVuln = 1.6;
   born.set(e, state.frame);
   state.enemies.push(e);
   return e;

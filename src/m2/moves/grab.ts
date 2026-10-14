@@ -457,7 +457,7 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
       if (o.pos.x > e.pos.x + e.width || o.pos.x + o.width < e.pos.x || o.pos.y > e.pos.y + e.height || o.pos.y + o.height < e.pos.y) continue;
       fl.hit.add(o.id);
       // (by how heavy the body is and how fast it's going: a bouncer through a wolverine doesn't leave a wolverine)
-      const dmg = Math.round(Math.max(10, Math.min(160, speed * getEnemyMass(e) / 28)));
+      const dmg = Math.round(Math.max(10, Math.min(160, speed * getEnemyMass(e) / 28)) * (o.throwVuln ?? 1));
       o.health -= dmg;
       const dir = Math.sign(e.vel.x) || g.dir;
       fx.spawnDamageNumber(o.pos, dmg, dmg > 30);
@@ -560,6 +560,7 @@ const catchOnFloor = (state: GameState, e: Enemy) => {
 /** The one he's thrown, hurt by what he's hit; a hit that finishes him sends him on his way, the grab's kill. */
 const hurtThrown = (ctx: FrameContext, fl: { e: Enemy; how: GrabCallout }, dmg: number) => {
   const { fx } = ctx, e = fl.e;
+  dmg = Math.round(dmg * (e.throwVuln ?? 1));
   e.health -= dmg;
   if (e.health > 0) { fx.spawnDamageNumber(e.pos, dmg, dmg > 30); return; }
   fx.blowAwayEnemy(e, { x: e.vel.x * 0.6, y: Math.min(-4, e.vel.y) }, m2Kill('throw_kill'), Math.sign(e.vel.x) || 1);
