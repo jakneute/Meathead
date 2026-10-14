@@ -179,7 +179,8 @@ const tickTrams = (ctx: FrameContext, h: House) => {
       continue;
     }
     tr.x += TRAM_SPEED;
-    const l = tr.x - TRAM_W / 2, r = tr.x + TRAM_W / 2;
+    // (only the part of it that's out, where it can be seen: not the bit still in the tunnel behind the hatch)
+    const l = Math.max(tr.x - TRAM_W / 2, tr.a - 109), r = Math.min(tr.x + TRAM_W / 2, tr.b + 109);
     if (near && tr.t % 14 === 0) playSound('clink', 0.3, -4);
     // (him on the track: hit, flung on ahead of it)
     if (l < tr.b + 60 && r > tr.a - 60 && p.health > 0 && state.deathTimer <= 0 && p.invincibilityTimer <= 0
