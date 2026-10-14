@@ -1,199 +1,28 @@
-// The showpiece room and THE HIVE QUEEN, drawn (first pass: inked shapes in steps, readable as a boss).
-//
-// The queen: XENOSCARE's big finale animatronic, and a knockoff, plainly, of a certain movie monster's queen (the long
-// eyeless head under its fanned crest, the silver teeth, the inner jaws on rods (three here: one too many), the ribbed
-// black body, the dorsal pipes, the tail, the egg sac), so the signs insist she's LEGALLY DISTINCT. Every bit of her a
-// cheap machine: black latex gone gray at the shine, seams, glued ribs, torn spots showing the yellow foam, hydraulic
-// lines zip-tied down her back to the plinth, the hydraulic arm she's mounted on (she lunges on it), the sac on a
-// wheeled dolly on a hose. Mind-controlled, a green glow under her crest and in her mouth.
-//
-// Poses (all a fight might want): dormant, wake (twitching), idle, roar (the inner jaws out), tell (claws up), swipe
-// (lunged out on her arm), spit (jaws out, head forward), hurt, stunned (sagging, sparking), birth (the sac heaving, a
-// hatch in it open), dead (slumped, the crest bent). Drawn facing right from her plinth's middle on the floor; flipped
-// to face left in the room.
+// The showpiece room (THE HOLD), drawn (the SNES pass): the antechamber (a purple hall banded dark to light, the queue's
+// chrome stanchions and velvet ropes, the framed THE HOLD sign, a poster or two), and the room itself: a domed hive
+// (resin walls in hex cells, each lit along its top edge and shaded under, resin drips stepped down them, the hold's
+// ribs arching up), the control booth up in the left wall (the two operators at their consoles), the dish on it, her
+// stage (foam rock, footlights), the plaque, the banner; the glass in front of her; after the fall, her stand empty
+// and the hole. The queen herself: sprite.ts.
 
 import type { GameState } from '../../../m1/game/core/state';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
-import { ink, limb, dark, lite } from '../../../m1/game/render/npc/kit';
 import { stamp } from '../../../m1/game/render/stamp';
+import { bandedGradient } from '../../../m1/game/render/pixelArt';
 import { box, label } from '../section';
 import { GY } from '../geometry';
 import { drawAlien } from '../crater/aliens';
-import { x0, ANTE_R, ARENA_L, ARENA_R, GLASS_X, QUEEN_X, BOOTH, REFILL_X } from './geo';
+import { x0, ANTE_R, ARENA_L, ARENA_R, GLASS_X, QUEEN_X, BOOTH } from './geo';
+import { type Ramp, CHROME, STEELR, SACR, dith, tube, blob, hose, quad, shapeShade, hash } from './paint';
 
 type Ctx = CanvasRenderingContext2D;
 
-export type QueenPose = 'dormant' | 'wake' | 'idle' | 'roar' | 'tell' | 'swipe' | 'spit' | 'hurt' | 'stunned' | 'birth' | 'dead' | 'stalk' | 'grab';
-export interface QueenDraw {
-  pose: QueenPose; t: number;
-  /** How far out on her arm she's lunged (px, toward where she faces). */
-  ext: number;
-  /** Mind-controlled: her eyes lit (0..1). */
-  alive: number;
-  /** Damage showing (0..1): more chips, sparks, a hanging plate. */
-  beat: number;
-  /** Torn off her stand (the basement, the disco): on her own feet, no plinth, no sac, her lines hanging torn. */
-  free?: boolean;
-  /** Walking: how far through her stride (radians; free only). */
-  stride?: number;
-  /** Foam on her (the extinguisher: 0..1). */
-  foam?: number;
-  /** Her outer jaws open this far (0..1), whatever the pose (the kill's slow opening). */
-  jaw?: number;
-  /** Her inner jaws out this far (0..1.6), whatever the pose (0: kept in; the kill draws its own strike). */
-  inner?: number;
-}
+export { drawQueen, queenHead, QUEEN_H, type QueenPose, type QueenDraw } from './sprite';
 
-// The queen's materials: black latex going blue-gray where the light catches it, the egg sac's pale membrane, the
-// plinth's steel; the cheap underneath (yellow foam where the latex has torn).
-const LATEX = '#1F2028', LATEX_D = '#0E0F14', LATEX_M = '#343744', LATEX_L = '#6B7280', LATEX_G = '#A5B4C8';
-const SAC = '#C9C2A8', FOAM = '#E8C872';
-const STEEL = '#71717A', STEEL_D = '#3F3F46', STEEL_L = '#D4D4D8';
-/** How tall she stands (plinth to the crest's top). */
-export const QUEEN_H = 300;
-
-/** The queen at (x, the floor), facing `facing`. */
-export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
-  const { pose, t } = q;
-  const glow = q.alive > 0 && pose !== 'dead' ? `rgba(132, 255, 80, ${(0.45 + 0.5 * q.alive * (0.8 + 0.2 * Math.sin(t * 0.2))).toFixed(2)})` : null;
-  c.save(); c.translate(Math.round(x), GY); c.scale(facing, 1);
-  const ext = q.ext;
-  if (!q.free) {
-  // --- The plinth and the hydraulic arm she's on ---
-  ink(c, () => c.rect(-90, -26, 180, 26), STEEL_D, 2);
-  box(c, -90, -26, 180, 4, STEEL);
-  for (let i = 0; i < 5; i++) box(c, -80 + i * 38, -16, 6, 6, '#18181B');
-  c.save(); c.scale(facing, 1); label(c, 'LD-1', -60 * facing, -8, '#A1A1AA', 6); c.restore();
-  limb(c, -20, -30, ext * 0.5 - 10, -70, 16, STEEL);
-  limb(c, ext * 0.5 - 10, -70, ext, -96, 12, STEEL_L);
-  ink(c, () => c.arc(-20, -30, 10, 0, Math.PI * 2), STEEL_D);
-  // --- The egg sac, behind her on its dolly (it stays put: the arm carries her off it on a hose) ---
-  const heave = pose === 'birth' ? Math.sin(t * 0.3) * 8 : Math.sin(t * 0.04) * 2;
-  ink(c, () => c.rect(-250, -40, 130, 14), STEEL_D);
-  for (const wx of [-236, -140]) ink(c, () => c.arc(wx, -22, 10, 0, Math.PI * 2), '#18181B');
-  ink(c, () => c.ellipse(-185, -96, 92 + heave, 60 + heave * 0.6, -0.1, 0, Math.PI * 2), SAC, 2);
-  c.fillStyle = lite(SAC, 0.35); c.beginPath(); c.ellipse(-214, -124, 36, 16, -0.3, 0, Math.PI * 2); c.fill();
-  c.fillStyle = dark(SAC, 0.25); c.beginPath(); c.ellipse(-160, -66, 54, 20, -0.1, 0, Math.PI * 2); c.fill();
-  // (the eggs through it; the latex ribs over it; the seam it was cast in, glued)
-  for (let i = 0; i < 6; i++) { c.fillStyle = 'rgba(87, 83, 78, 0.45)'; c.beginPath(); c.ellipse(-236 + (i % 3) * 46, -116 + Math.floor(i / 3) * 40, 13, 17, 0, 0, Math.PI * 2); c.fill(); }
-  for (let i = 0; i < 6; i++) { c.strokeStyle = LATEX_M; c.lineWidth = 4; c.beginPath(); c.moveTo(-262 + i * 28, -148 + Math.abs(i - 2.5) * 6); c.quadraticCurveTo(-250 + i * 28, -96, -258 + i * 28, -44); c.stroke(); }
-  box(c, -186, -156, 2, 120, dark(SAC, 0.45));
-  if (pose === 'birth') { ink(c, () => c.ellipse(-104, -90, 16, 24, 0, 0, Math.PI * 2), '#1C0610'); box(c, -110, -100, 12, 4, ALIEN.slime); }
-  // (the hose from the sac to her: ribbed, sagging)
-  for (let i = 0; i < 8; i++) { const u = i / 7, hx = -110 + (ext - 30 + 110) * u, hy = -96 + Math.sin(u * Math.PI) * 18 - u * 30; ink(c, () => c.ellipse(hx, hy, 9, 11, 0, 0, Math.PI * 2), LATEX_M); }
-  }
-  // (on her own feet: down onto the floor; off it on her saddle)
-  c.translate(ext, q.free ? 36 : 0);
-  const stride = q.free ? q.stride ?? 0 : 0;
-  const sway = pose === 'idle' ? Math.sin(t * 0.05) * 3 : 0;
-  const twitch = pose === 'wake' || pose === 'stunned' ? (t % 6 < 3 ? 2 : -2) : 0;
-  const sag = pose === 'dead' ? 1 : pose === 'stunned' ? 0.4 : pose === 'dormant' ? 0.12 : 0;
-  const lean = pose === 'swipe' ? 0.24 : pose === 'spit' ? 0.14 : pose === 'roar' ? -0.14 : pose === 'hurt' ? -0.16 : pose === 'tell' ? -0.08 : pose === 'stalk' ? 0.42 : pose === 'grab' ? 0.18 : 0;
-  c.translate(sway + twitch, 0);
-  // --- The tail: out behind and round along the floor, segmented, a spade on the end (it swishes) ---
-  {
-    let px = -30, py = -110;
-    for (let i = 0; i < 14; i++) {
-      const u = i / 13, a = Math.PI * 0.85 - u * 1.6 + Math.sin(t * 0.06 + i * 0.4) * 0.1 * u;
-      const nx = px + Math.cos(a) * 18, ny = Math.min(-8, py + Math.sin(a) * 14 + 9);
-      limb(c, px, py, nx, ny, 14 - u * 9, i % 2 ? LATEX : LATEX_M);
-      px = nx; py = ny;
-    }
-    ink(c, () => { c.moveTo(px, py); c.lineTo(px - 22, py - 10); c.lineTo(px - 10, py + 4); c.closePath(); }, LATEX_M);
-  }
-  c.save(); c.translate(0, -110); c.rotate(lean + sag * 0.35); c.translate(0, 110);
-  // --- The legs: bent back the wrong way, on the arm's saddle ---
-  for (const s of [-1, 1]) {
-    const col = s < 0 ? LATEX_D : LATEX, w = Math.sin(stride + (s < 0 ? Math.PI : 0)) * 16, up = Math.max(0, Math.cos(stride + (s < 0 ? Math.PI : 0))) * 8;
-    limb(c, s * 14, -118, s * 10 - 24 + w * 0.5, -84, 18, col); limb(c, s * 10 - 24 + w * 0.5, -84, s * 14 + 6 + w, -56 - up, 12, col); limb(c, s * 14 + 6 + w, -56 - up, s * 14 - 6 + w, -38 - up, 10, col);
-    ink(c, () => c.roundRect(s * 14 - 18 + w, -44 - up, 30, 8, 3), col);
-  }
-  // --- The dorsal pipes off her back: four tubes up and back (latex, one bent where it's been leant on) ---
-  for (let i = 0; i < 4; i++) { const bx = -34 + i * 9, by = -200 + i * 10; limb(c, bx, by, bx - 34 - i * 4, by - 46 + i * 8 + (i === 2 ? 10 : 0), 8, LATEX_M); ink(c, () => c.arc(bx - 34 - i * 4, by - 46 + i * 8 + (i === 2 ? 10 : 0), 5, 0, Math.PI * 2), LATEX_D); }
-  // --- The hydraulic lines: red and blue, out of her back to the plinth, zip-tied ---
-  for (let i = 0; i < 3; i++) {
-    c.strokeStyle = ['#B91C1C', '#1D4ED8', '#CA8A04'][i]; c.lineWidth = 3; c.beginPath(); c.moveTo(-30, -180 + i * 8);
-    // (torn off her stand: the ends hanging, dripping)
-    if (q.free) { const sw = Math.sin(t * 0.08 + i) * 6; c.quadraticCurveTo(-60 + sw, -150, -56 + sw - i * 6, -100 + i * 10); c.stroke(); box(c, -58 + sw - i * 6, -100 + i * 10, 4, 4, '#A8A29E'); }
-    else { c.quadraticCurveTo(-70, -90, -30 - ext + i * 10, -30); c.stroke(); }
-  }
-  // --- The torso: narrow waist, ribbed chest, glossy ---
-  ink(c, () => { c.moveTo(-18, -110); c.lineTo(-38, -170); c.quadraticCurveTo(-30, -236, 18, -238); c.quadraticCurveTo(48, -210, 34, -168); c.lineTo(16, -110); c.closePath(); }, LATEX, 2);
-  for (let i = 0; i < 7; i++) { const y = -222 + i * 14; c.strokeStyle = LATEX_L; c.lineWidth = 2; c.beginPath(); c.moveTo(-28 + i, y); c.quadraticCurveTo(4, y + 8, 34 - i * 2, y - 2); c.stroke(); c.strokeStyle = LATEX_D; c.lineWidth = 1; c.beginPath(); c.moveTo(-28 + i, y + 3); c.quadraticCurveTo(4, y + 11, 34 - i * 2, y + 1); c.stroke(); }
-  box(c, -12, -232, 4, 20, LATEX_G);
-  // (the latex torn: the yellow foam showing; a seam down her side; a zip tie; more torn the more she's been hit)
-  box(c, 10, -150, 14, 8, FOAM);
-  box(c, -36, -200, 2, 80, LATEX_D);
-  if (q.beat > 0.4) { box(c, -20, -190, 18, 12, FOAM); ink(c, () => { c.moveTo(20, -180); c.lineTo(44, -176); c.lineTo(30, -150); c.closePath(); }, LATEX_M); }
-  if (q.beat > 0.7) { box(c, 22, -220, 12, 8, FOAM); box(c, -30, -132, 10, 10, FOAM); }
-  // --- The small arms, out of her chest ---
-  const smallUp = pose === 'tell' || pose === 'roar' ? -24 : 0;
-  limb(c, 18, -196, 40, -176 + smallUp, 6, LATEX_M); limb(c, 40, -176 + smallUp, 48, -190 + smallUp, 5, LATEX_M);
-  // --- The head: long, smooth, eyeless, swept back, a great crest fanned over it; the silver teeth; the jaws ---
-  const headDrop = sag * 60, hx = 30 + (pose === 'spit' ? 22 : pose === 'swipe' ? 12 : 0), hy = -256 + headDrop;
-  limb(c, 10, -228, hx - 6, hy + 8, 22, LATEX);
-  c.save(); c.translate(hx, hy); c.rotate(sag * 0.7 + (pose === 'roar' ? -0.25 : 0) + (pose === 'wake' ? Math.sin(t * 0.9) * 0.08 : 0));
-  // (the crest: a flat fan back over the head, ridged, its rim scalloped)
-  const crestBend = pose === 'dead' ? 0.25 : 0;
-  ink(c, () => { c.moveTo(-6, -2); c.quadraticCurveTo(-30, -70 - crestBend * 40, -110, -54 + crestBend * 40); c.quadraticCurveTo(-120, -24, -96, 4); c.quadraticCurveTo(-60, 10, -6, 6); c.closePath(); }, LATEX_M, 2);
-  for (let i = 0; i < 6; i++) { c.strokeStyle = LATEX_L; c.lineWidth = 2; c.beginPath(); c.moveTo(-10, -2); c.lineTo(-40 - i * 13, -54 + i * 8 + crestBend * 30); c.stroke(); }
-  for (let i = 0; i < 6; i++) ink(c, () => c.arc(-40 - i * 13, -56 + i * 9 + crestBend * 30, 4, 0, Math.PI * 2), LATEX_D);
-  // (the green from under the crest rim: their rig in her head)
-  if (glow) { c.strokeStyle = glow; c.lineWidth = 3; c.beginPath(); c.moveTo(-10, -4); c.quadraticCurveTo(-60, 4, -96, 2); c.stroke(); }
-  // (the head: a long smooth dome forward to the snout, eyeless; a gloss stripe)
-  ink(c, () => { c.moveTo(-14, -8); c.quadraticCurveTo(8, -30, 56, -10); c.quadraticCurveTo(70, 0, 60, 10); c.lineTo(-10, 14); c.closePath(); }, LATEX, 2);
-  c.strokeStyle = LATEX_G; c.lineWidth = 2; c.beginPath(); c.moveTo(-6, -12); c.quadraticCurveTo(18, -24, 50, -10); c.stroke();
-  // (the lips drawn back off the silver teeth; the lower jaw dropping)
-  const jaw = q.jaw !== undefined ? Math.round(q.jaw * 20) : pose === 'roar' || pose === 'grab' ? 16 : pose === 'spit' ? 14 : pose === 'tell' ? 8 : pose === 'hurt' ? 10 : pose === 'birth' ? 4 : 0;
-  box(c, 14, 6, 46, 4, '#D1D5DB');
-  for (let i = 0; i < 8; i++) box(c, 16 + i * 5, 4, 3, 5, '#F3F4F6');
-  ink(c, () => c.roundRect(10, 10 + jaw, 48, 9, 3), LATEX_M);
-  for (let i = 0; i < 8; i++) box(c, 14 + i * 5, 8 + jaw, 3, 4, '#F3F4F6');
-  if (jaw > 0) {
-    box(c, 14, 10, 42, jaw, '#1C0610');
-    // (the inner jaws: three of them, one inside the next, out on their rods: one too many; out on a roar or the spit)
-    const out = q.inner !== undefined ? q.inner : pose === 'grab' ? Math.min(1.6, (t % 24) / 5) : pose === 'roar' || pose === 'spit' ? Math.min(1, (t % 40) / 10) : 0.3;
-    for (let j = 0; j < 3; j++) {
-      const jx = 22 + out * (14 + j * 12), jy = 10 + jaw / 2 - 3, w = 12 - j * 3;
-      limb(c, 20, jy + 3, jx, jy + 3, 5 - j, '#4B5563');
-      ink(c, () => c.roundRect(jx, jy, w, 7 - j, 2), j % 2 ? '#9CA3AF' : '#6B7280');
-      box(c, jx + w - 2, jy + 1, 2, 2, '#F3F4F6');
-    }
-    if (glow) box(c, 18, 12, 6, jaw - 4, glow);
-  }
-  // (the drool: it leaks)
-  box(c, 50, 18 + jaw + (t % 24), 2, 5, '#D9F99D');
-  c.restore();
-  // --- The big arms: long, thin, many-jointed; long fingers, claws ---
-  const [ex, ey, hx2, hy2] =
-    pose === 'tell' || pose === 'roar' ? [50, -270, 30, -320] :
-    pose === 'stalk' ? [70, -170, 110, -120 + Math.sin(stride) * 8] :
-    pose === 'grab' ? [80, -230, 100, -250] :
-    pose === 'swipe' ? [76, -196, 140, -150] :
-    pose === 'spit' ? [46, -170, 56, -130] :
-    pose === 'hurt' ? [26, -232, 6, -266] :
-    pose === 'dead' || pose === 'stunned' || pose === 'dormant' ? [36, -160, 40, -110] :
-    [52, -176, 64, -134 + Math.sin(t * 0.08) * 6];
-  for (const k of [0, 1]) {
-    const ox = k ? -18 : 0, oy = k ? -8 : 0, col = k ? LATEX_D : LATEX;
-    limb(c, 22 + ox, -222 + oy, ex + ox, ey + oy, 9, col);
-    limb(c, ex + ox, ey + oy, hx2 + ox, hy2 + oy, 8, col);
-    ink(c, () => c.arc(ex + ox, ey + oy, 6, 0, Math.PI * 2), LATEX_M);
-    for (let i = 0; i < 4; i++) {
-      const a = (pose === 'swipe' ? -0.2 : pose === 'tell' || pose === 'roar' ? -1.4 : 1.0) + (i - 1.5) * 0.32;
-      limb(c, hx2 + ox, hy2 + oy, hx2 + ox + Math.cos(a) * 26, hy2 + oy + Math.sin(a) * 26, 3, LATEX_M);
-      box(c, hx2 + ox + Math.cos(a) * 28 - 1, hy2 + oy + Math.sin(a) * 28 - 1, 3, 3, '#D1D5DB');
-    }
-  }
-  if (pose === 'stunned' || pose === 'dead' || (q.beat > 0.5 && t % 50 < 4)) for (let i = 0; i < 4; i++) { const a = t * 0.7 + i * 1.6; box(c, 20 + Math.cos(a) * 30, -210 + Math.sin(a * 1.3) * 40, 3, 3, i % 2 ? '#FDE047' : '#FFFFFF'); }
-  // (the extinguisher's foam all over her, in clumps)
-  if (q.foam && q.foam > 0) for (let i = 0; i < Math.round(14 * q.foam); i++) { const fx = -30 + ((i * 37) % 90), fy = -280 + ((i * 53) % 220); c.fillStyle = i % 3 ? '#F8FAFC' : '#E2E8F0'; c.beginPath(); c.ellipse(fx, fy, 9 + (i % 3) * 3, 7, 0, 0, Math.PI * 2); c.fill(); }
-  c.restore();
-  c.restore();
-};
-
-/** Where her head is (the beam's mark), for her at (x, ext), facing. */
-export const queenHead = (x: number, facing: 1 | -1, ext: number) => ({ x: x + facing * (ext + 40), y: GY - 260 });
+const px = (c: Ctx, x: number, y: number, w: number, h: number, col: string | CanvasPattern) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+const RESIN: Ramp = ['#0A0410', '#1E0B2C', '#2E1242', '#43195C', '#6A2D84'];
+const BONE: Ramp = ['#05020A', '#1A0A26', '#2C1240', '#46205E', '#6E3A8C'];
+const WOOD: Ramp = ['#1A0A02', '#4A2208', '#78350F', '#A35A1C', '#D08A3A'];
 
 // ---------------------------------------------------------------------------------------------------------------
 // The room
@@ -213,63 +42,127 @@ export interface RoomDraw {
 
 const shown = (state: GameState, a: number, b: number) => { const v = state.view ?? { x: state.camera.x, w: 800 }; return b > v.x - 60 && a < v.x + v.w + 60; };
 
+const paintAnte = (g: Ctx) => {
+  const L = x0 - 200, W = ANTE_R - x0 + 230;
+  // (the hall: banded dark to purple, pilasters every so often, a wainscot of quilted vinyl, a gold rail)
+  bandedGradient(g, L, GY - 470, W, 470, ['#0A0414', '#1C0A33', '#2E1052', '#3B1468', '#2A0E4A'], 12);
+  for (let x = L + 40; x < L + W; x += 180) { px(g, x, GY - 440, 24, 440, '#1A0830'); px(g, x, GY - 440, 4, 440, '#4C1D95'); px(g, x + 20, GY - 440, 4, 440, '#0E041C'); }
+  px(g, L, GY - 470, W, 30, '#05020B'); px(g, L, GY - 442, W, 2, '#3B1468');
+  px(g, L, GY - 150, W, 150, '#22093C');
+  for (let x = L; x < L + W; x += 20) for (let y = GY - 146; y < GY - 6; y += 20) { px(g, x + 2, y + 2, 16, 16, '#2E0E50'); px(g, x + 2, y + 2, 16, 2, '#4A1A78'); px(g, x + 9, y + 9, 2, 2, '#14052A'); }
+  px(g, L, GY - 154, W, 4, '#5A3A0A'); px(g, L, GY - 154, W, 1, '#8A6A1A'); px(g, L, GY - 150, W, 1, '#2A1A04');
+  // (the floor's lip: the carpet, lit at its edge)
+  px(g, L, GY - 4, W, 4, '#4C1D95'); px(g, L, GY - 4, W, 1, '#A78BFA');
+  // (the sign: framed in chrome, lit from over it)
+  const sx = x0 + 120, sy = GY - 330;
+  px(g, sx - 4, sy - 4, 308, 78, '#05020B'); px(g, sx - 2, sy - 2, 304, 74, '#8E8E99'); px(g, sx - 2, sy - 2, 304, 2, '#F4F4F5');
+  px(g, sx, sy, 300, 70, '#12061E'); px(g, sx, sy, 300, 3, '#2A1240');
+  label(g, 'THE HOLD', sx + 150, sy + 30, '#FDE047', 10);
+  label(g, 'MEET THE QUEEN (LEGALLY DISTINCT)', sx + 150, sy + 52, '#C4B5FD', 7);
+  px(g, sx + 140, sy - 30, 20, 8, '#27272A'); px(g, sx + 144, sy - 22, 12, 3, '#FEF3C7');
+  // (a poster: NOW 40% MORE LEGALLY DISTINCT)
+  const ppx = x0 + 500, ppy = GY - 300;
+  px(g, ppx - 2, ppy - 2, 104, 144, '#05020B'); px(g, ppx, ppy, 100, 140, '#14532D'); px(g, ppx, ppy, 100, 3, '#22C55E');
+  blob(g, ppx + 50, ppy + 56, 26, 30, ['#020403', '#0A1A10', '#14281A', '#2E4A36', '#6A8A72']);
+  for (let k = 0; k < 5; k++) px(g, ppx + 34 + k * 7, ppy + 70, 3, 6, '#E5E7EB');
+  label(g, 'XENOSCARE', ppx + 50, ppy + 104, '#86EFAC', 7);
+  label(g, 'NOW 40% MORE', ppx + 50, ppy + 118, '#F0FDF4', 5); label(g, 'LEGALLY DISTINCT', ppx + 50, ppy + 128, '#F0FDF4', 5);
+  // (the queue: chrome stanchions, red velvet ropes sagging between them)
+  const posts = [x0 + 40, x0 + 160, x0 + 280, x0 + 400];
+  for (let i = 0; i < posts.length - 1; i++) hose(g, quad(posts[i], GY - 70, (posts[i] + posts[i + 1]) / 2, GY - 44, posts[i + 1], GY - 70, 8), 5, ['#2A0505', '#7F1D1D', '#B91C1C', '#EF4444', '#FCA5A5']);
+  for (const p of posts) { tube(g, p, GY - 74, p, GY - 8, 6, CHROME); blob(g, p, GY - 76, 5, 5, CHROME); g.fillStyle = '#18181B'; g.beginPath(); g.ellipse(p, GY - 4, 14, 4, 0, 0, Math.PI * 2); g.fill(); px(g, p - 12, GY - 6, 24, 2, '#A1A1AA'); }
+};
+
+const hexCell = (g: Ctx, cx: number, cy: number, r: number, k: number) => {
+  const pts: [number, number][] = [];
+  for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.9]); }
+  const path = (s: number, dx: number, dy: number) => { g.beginPath(); pts.forEach(([x, y], i) => { const X = cx + (x - cx) * s + dx, Y = cy + (y - cy) * s + dy; if (i) g.lineTo(X, Y); else g.moveTo(X, Y); }); g.closePath(); };
+  path(1, 0, 0); g.fillStyle = RESIN[0]; g.fill();
+  path(0.9, 0, 0); g.fillStyle = k ? RESIN[2] : RESIN[1]; g.fill();
+  path(0.78, -1.5, -2); g.fillStyle = dith(g, RESIN[3]); g.fill();
+  path(0.6, -2, -3); g.fillStyle = k ? RESIN[3] : RESIN[2]; g.fill();
+  path(0.3, 2, 2); g.fillStyle = RESIN[0]; g.fill();
+};
+
+const paintRoom = (g: Ctx) => {
+  const l = ARENA_L - 60, w = ARENA_R - ARENA_L + 360;
+  bandedGradient(g, l, GY - 600, w, 600, ['#06020A', '#12061C', '#1E0A2E', '#24103A', '#1A0A2A'], 12);
+  // (the honeycomb: hex cells in rows, each shaded in steps (a few lit stronger), dark in their middles)
+  for (let row = 0; row < 12; row++) for (let col = 0; col < 26; col++) {
+    const hx = l + col * 46 + (row % 2) * 23, hy = GY - 560 + row * 40;
+    hexCell(g, hx, hy, 21, (row + col) % 5 === 0 ? 1 : 0);
+  }
+  // (resin drips down the walls: stepped green, a bead at each end)
+  for (let i = 0; i < 18; i++) {
+    const dx = l + 20 + i * 64, dl = 80 + (i * 37) % 140;
+    px(g, dx, GY - 600, 7, dl, 'rgba(101, 163, 13, 0.25)'); px(g, dx + 1, GY - 600, 2, dl, 'rgba(190, 242, 100, 0.25)');
+    g.fillStyle = dith(g, 'rgba(132, 204, 22, 0.35)'); g.fillRect(dx - 2, GY - 600, 11, dl * 0.6);
+    blob(g, dx + 3, GY - 600 + dl, 4, 5, ['#1A2E05', '#3F6212', '#65A30D', '#A3E635', '#ECFCCB']);
+  }
+  // (the hold's ribs arching up the walls: bone-ish resin, shaded round)
+  for (let i = 0; i < 6; i++) {
+    const rx = l + 60 + i * 200;
+    hose(g, quad(rx, GY, rx - 30, GY - 420, rx + 60, GY - 560, 14), 16, BONE);
+    for (let k = 1; k < 6; k++) { const u = k / 6, bx = (1 - u) * (1 - u) * rx + 2 * u * (1 - u) * (rx - 30) + u * u * (rx + 60), by = (1 - u) * (1 - u) * GY + 2 * u * (1 - u) * (GY - 420) + u * u * (GY - 560); px(g, bx - 9, by, 18, 2, BONE[0]); }
+  }
+  // (a speaker in plain sight, gaffer-taped; the LEGALLY DISTINCT banner over her)
+  px(g, ARENA_L + 328, GY - 562, 32, 38, '#05020B'); px(g, ARENA_L + 330, GY - 560, 28, 34, '#27272A'); px(g, ARENA_L + 330, GY - 560, 28, 2, '#52525B');
+  blob(g, ARENA_L + 344, GY - 543, 9, 9, ['#05050A', '#2A2A33', '#3F3F4C', '#5A5A6A', '#8A8A9A']);
+  px(g, ARENA_L + 326, GY - 548, 36, 5, '#9CA3AF');
+  px(g, GLASS_X + 8, GY - 422, 304, 38, '#05020B'); px(g, GLASS_X + 10, GY - 420, 300, 34, '#7F1D1D'); px(g, GLASS_X + 10, GY - 420, 300, 3, '#B91C1C'); px(g, GLASS_X + 10, GY - 390, 300, 4, '#450A0A');
+  for (const tx of [GLASS_X + 10, GLASS_X + 306]) { px(g, tx, GY - 386, 4, 10, '#7F1D1D'); }
+  label(g, 'THE HOLD - LEGALLY DISTINCT', GLASS_X + 160, GY - 398, '#FDE68A', 8);
+  // (the floor: dark, slick, its lip lit (stand on it); a reflection of the stage's footlights in it)
+  px(g, l, GY, w, 4, '#18181B'); px(g, l, GY, w, 2, '#A78BFA'); px(g, l, GY + 2, w, 1, '#4C1D95');
+  // (the stage: a raised lip of rock-look foam in front of her, shaded, cracked; the footlights)
+  const st = () => { g.moveTo(GLASS_X - 20, GY); g.lineTo(GLASS_X - 20, GY - 14); g.quadraticCurveTo(GLASS_X + 40, GY - 22, GLASS_X + 160, GY - 18); g.quadraticCurveTo(ARENA_R + 100, GY - 24, ARENA_R + 300, GY - 18); g.lineTo(ARENA_R + 300, GY); g.closePath(); };
+  shapeShade(g, st, ['#0A0418', '#1E0A40', '#2E1065', '#4C1D95', '#7C3AED'], 0, -1.2, 2, GLASS_X + 200, GY - 8);
+  for (let i = 0; i < 8; i++) { const fx = GLASS_X + i * 40; px(g, fx - 1, GY - 17, 12, 7, '#05020B'); px(g, fx, GY - 16, 10, 5, '#A16207'); px(g, fx + 1, GY - 16, 8, 2, '#FDE047'); px(g, fx + 3, GY - 15, 3, 1, '#FFFFFF'); }
+  // (the plaque: wood, its brass face, on its post)
+  const pl = GLASS_X - 236;
+  tube(g, GLASS_X - 126, GY - 66, GLASS_X - 126, GY, 6, WOOD);
+  px(g, pl - 2, GY - 138, 224, 74, '#05020B'); px(g, pl, GY - 136, 220, 70, WOOD[2]); px(g, pl, GY - 136, 220, 3, WOOD[4]); px(g, pl + 214, GY - 133, 6, 67, WOOD[1]);
+  px(g, pl + 6, GY - 130, 208, 58, '#7A5A12'); px(g, pl + 6, GY - 130, 208, 2, '#E8C060'); g.fillStyle = dith(g, '#5A400A'); g.fillRect(pl + 6, GY - 80, 208, 8);
+  label(g, 'THE QUEEN', pl + 110, GY - 114, '#FDE68A', 8); label(g, '(LEGALLY DISTINCT)', pl + 110, GY - 100, '#FDE68A', 8);
+  label(g, 'ANY RESEMBLANCE TO COPYRIGHTED', pl + 110, GY - 86, '#F5E6C0', 5); label(g, 'XENOMORPHS IS PURELY COINCIDENTAL', pl + 110, GY - 78, '#F5E6C0', 5);
+  // (the booth: a steel box up in the wall at the left, its window, its sign)
+  const bx = BOOTH.x - 14, by = BOOTH.y - 14, bw = BOOTH.w + 28, bh = BOOTH.h + 40;
+  px(g, bx - 2, by - 2, bw + 4, bh + 4, '#05020B'); px(g, bx, by, bw, bh, STEELR[2]); px(g, bx, by, bw, 3, STEELR[4]); px(g, bx + bw - 8, by + 3, 8, bh - 3, STEELR[1]); px(g, bx, by + bh - 6, bw, 6, STEELR[1]);
+  for (const [rx, ry] of [[bx + 4, by + 6], [bx + bw - 14, by + 6], [bx + 4, by + bh - 12], [bx + bw - 14, by + bh - 12]]) px(g, rx, ry, 3, 3, CHROME[3]);
+  px(g, BOOTH.x - 2, BOOTH.y - 2, BOOTH.w + 4, BOOTH.h + 4, '#05050A');
+  px(g, BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h, '#0A0A0A');
+  label(g, 'CONTROL - STAFF ONLY', BOOTH.x + BOOTH.w / 2, BOOTH.y + BOOTH.h + 18, '#FDE047', 6);
+  // (the dish on the booth's front, aimed at her: a chrome bowl on an arm, its feed horn)
+  tube(g, BOOTH.x + BOOTH.w + 6, BOOTH.y + BOOTH.h + 4, BOOTH.x + BOOTH.w + 18, BOOTH.y + BOOTH.h - 8, 4, CHROME);
+  g.save(); g.translate(BOOTH.x + BOOTH.w + 18, BOOTH.y + BOOTH.h - 8); g.rotate(-0.6);
+  g.fillStyle = '#05050A'; g.beginPath(); g.ellipse(0, 0, 11, 19, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = CHROME[1]; g.beginPath(); g.ellipse(0, 0, 10, 18, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = CHROME[3]; g.beginPath(); g.ellipse(2, -2, 6, 13, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = CHROME[4]; g.fillRect(3, -10, 2, 6);
+  tube(g, 0, 0, 14, 0, 2, CHROME); blob(g, 15, 0, 2.5, 2.5, ['#1A2E05', '#4D7C0F', '#84CC16', '#D9F99D', '#FFFFFF']);
+  g.restore();
+};
+
 export const drawRoomBack = (c: Ctx, state: GameState, r: RoomDraw) => {
-  // The antechamber: a purple hall, the velvet rope, the sign, the refill's little alcove
-  if (shown(state, x0 - 200, ANTE_R)) stamp(c, 'sp-q-ante', x0 - 200, GY - 470, ANTE_R - x0 + 230, 474, g => {
-    for (let x = x0 - 200; x < ANTE_R + 30; x += 8) { g.fillStyle = Math.floor((x - x0) / 64) % 2 ? '#3B0764' : '#4C1D95'; g.fillRect(x, GY - 440, 8, 440); }
-    g.fillStyle = '#FDE047'; g.fillRect(x0 - 200, GY - 150, ANTE_R - x0 + 230, 2);
-    g.fillStyle = '#0A0510'; g.fillRect(x0 - 200, GY - 470, ANTE_R - x0 + 230, 30);
-    ink(g, () => g.roundRect(x0 + 120, GY - 330, 300, 70, 6), '#18181B', 2);
-    g.fillStyle = '#FDE047'; g.font = '10px "Press Start 2P"'; g.fillText('THE HOLD', x0 + 220, GY - 300);
-    g.fillStyle = '#C4B5FD'; g.font = '7px "Press Start 2P"'; g.fillText('MEET THE QUEEN (LEGALLY DISTINCT)', x0 + 136, GY - 280);
-    // (the refill's alcove: a first-aid cabinet, lit)
-    ink(g, () => g.rect(REFILL_X - 50, GY - 160, 100, 160), '#1E1B4B', 2);
-    g.fillStyle = '#F5F5F4'; g.fillRect(REFILL_X - 16, GY - 140, 32, 32); g.fillStyle = '#DC2626'; g.fillRect(REFILL_X - 4, GY - 136, 8, 24); g.fillRect(REFILL_X - 12, GY - 128, 24, 8);
-  });
+  // The antechamber: a purple hall, the queue's velvet ropes, the sign
+  if (shown(state, x0 - 200, ANTE_R)) stamp(c, 'sp-q-ante2', x0 - 200, GY - 470, ANTE_R - x0 + 230, 474, paintAnte);
   if (!shown(state, ARENA_L - 60, ARENA_R + 300)) return;
   // The showpiece room: a domed hive (resin walls, honeycomb), the stage at the right with her on it
-  stamp(c, 'sp-q-room', ARENA_L - 60, GY - 600, ARENA_R - ARENA_L + 360, 604, g => {
-    const l = ARENA_L - 60, w = ARENA_R - ARENA_L + 360;
-    g.fillStyle = '#1A0B24'; g.fillRect(l, GY - 600, w, 600);
-    // (the honeycomb: hex cells in rows)
-    for (let row = 0; row < 12; row++) for (let col = 0; col < 26; col++) {
-      const hx = l + col * 46 + (row % 2) * 23, hy = GY - 560 + row * 40;
-      g.fillStyle = (row + col) % 5 === 0 ? '#3B1250' : '#2A0E3A';
-      g.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; g.lineTo(hx + Math.cos(a) * 20, hy + Math.sin(a) * 18); } g.closePath(); g.fill();
-    }
-    // (resin drips down the walls)
-    for (let i = 0; i < 18; i++) { g.fillStyle = 'rgba(132, 204, 22, 0.25)'; g.fillRect(l + 20 + i * 64, GY - 600, 6, 80 + (i * 37) % 140); }
-    // (the hold's ribs up the walls, a bulkhead frame, a speaker in plain sight, the LEGALLY DISTINCT banner)
-    for (let i = 0; i < 6; i++) { const rx = l + 60 + i * 200; g.strokeStyle = '#0A0510'; g.lineWidth = 18; g.beginPath(); g.moveTo(rx, GY); g.quadraticCurveTo(rx - 30, GY - 420, rx + 60, GY - 560); g.stroke(); g.strokeStyle = '#3B1250'; g.lineWidth = 12; g.stroke(); }
-    ink(g, () => g.rect(ARENA_L + 330, GY - 560, 28, 34), '#18181B'); g.fillStyle = '#3F3F46'; g.beginPath(); g.arc(ARENA_L + 344, GY - 543, 9, 0, Math.PI * 2); g.fill();
-    ink(g, () => g.rect(GLASS_X + 10, GY - 420, 300, 34), '#7F1D1D', 2);
-    g.fillStyle = '#FDE68A'; g.font = '8px "Press Start 2P"'; g.fillText('THE HOLD - LEGALLY DISTINCT', GLASS_X + 22, GY - 398);
-    // (the floor: dark, slick, a lit lip)
-    g.fillStyle = '#18181B'; g.fillRect(l, GY, w, 4); g.fillStyle = '#A78BFA'; g.fillRect(l, GY, w, 3);
-    // (the stage: a raised lip of rock-look foam in front of her, footlights)
-    g.fillStyle = '#2E1065'; g.fillRect(GLASS_X - 20, GY - 18, ARENA_R - GLASS_X + 320, 18);
-    for (let i = 0; i < 8; i++) { g.fillStyle = '#FDE047'; g.fillRect(GLASS_X + i * 40, GY - 16, 10, 5); }
-    // (the plaque)
-    ink(g, () => g.roundRect(GLASS_X - 236, GY - 136, 220, 70, 4), '#78350F', 2);
-    g.fillStyle = '#FDE68A'; g.font = '8px "Press Start 2P"'; g.fillText('THE QUEEN', GLASS_X - 198, GY - 114); g.fillText('(LEGALLY DISTINCT)', GLASS_X - 228, GY - 100);
-    g.fillStyle = '#D6D3D1'; g.font = '5px "Press Start 2P"'; g.fillText('ANY RESEMBLANCE TO COPYRIGHTED', GLASS_X - 228, GY - 86); g.fillText('XENOMORPHS IS PURELY COINCIDENTAL', GLASS_X - 228, GY - 78);
-    limb(g, GLASS_X - 126, GY - 66, GLASS_X - 126, GY, 4, '#78350F');
-    // (the booth: a box up in the wall at the left, its window)
-    ink(g, () => g.rect(BOOTH.x - 14, BOOTH.y - 14, BOOTH.w + 28, BOOTH.h + 40), '#27272A', 2);
-    g.fillStyle = '#0A0A0A'; g.fillRect(BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h);
-    g.fillStyle = '#FDE047'; g.font = '6px "Press Start 2P"'; g.fillText('CONTROL - STAFF ONLY', BOOTH.x + 4, BOOTH.y + BOOTH.h + 16);
-    // (the dish on the booth's front, aimed at her)
-    ink(g, () => g.ellipse(BOOTH.x + BOOTH.w + 18, BOOTH.y + BOOTH.h - 8, 10, 18, -0.6, 0, Math.PI * 2), STEEL_L, 1.5);
-  });
+  stamp(c, 'sp-q-room2', ARENA_L - 60, GY - 600, ARENA_R - ARENA_L + 360, 604, paintRoom);
   // The booth's insides (lit, them at the controls), live
   if (r.booth > 0) {
-    c.fillStyle = `rgba(74, 222, 128, ${(0.25 * r.booth).toFixed(2)})`; c.fillRect(BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h);
     c.save(); c.beginPath(); c.rect(BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h); c.clip();
+    // (its back wall: panels, their screens' green, scrolling)
+    px(c, BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h, '#0C1810');
+    for (let i = 0; i < 6; i++) { px(c, BOOTH.x + 6 + i * 39, BOOTH.y + 6, 32, 22, '#052E16'); px(c, BOOTH.x + 8 + i * 39, BOOTH.y + 8 + ((state.frame >> 3) + i * 3) % 18, 28, 1, '#4ADE80'); px(c, BOOTH.x + 8 + i * 39, BOOTH.y + 8, 28, 1, '#14532D'); }
+    c.fillStyle = `rgba(74, 222, 128, ${(0.2 * r.booth).toFixed(2)})`; c.fillRect(BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h);
     if (r.operators) for (let i = 0; i < 2; i++) { c.save(); c.translate(BOOTH.x + 60 + i * 100, BOOTH.y + BOOTH.h + 50); drawAlien(c, { seed: 101 + i * 7, headset: true, woman: i === 1 }, 'operate', state.frame + i * 9, 0.95); c.restore(); }
-    else for (let i = 0; i < 2; i++) { const bx = BOOTH.x + 60 + i * 100; ink(c, () => c.roundRect(bx - 20, BOOTH.y + BOOTH.h - 34, 46, 40, 6), ALIEN.hide[5]); box(c, bx - 14, BOOTH.y + BOOTH.h - 40, 30, 8, ALIEN.gum); }
-    // (the console under the window)
-    box(c, BOOTH.x, BOOTH.y + BOOTH.h - 14, BOOTH.w, 14, '#3F3F46');
-    for (let i = 0; i < 12; i++) box(c, BOOTH.x + 8 + i * 18, BOOTH.y + BOOTH.h - 10, 6, 4, (state.frame + i * 7) % 30 < 15 ? '#EF4444' : '#22C55E');
+    else for (let i = 0; i < 2; i++) { const bx = BOOTH.x + 60 + i * 100; c.fillStyle = ALIEN.hide[5]; c.beginPath(); c.roundRect(bx - 20, BOOTH.y + BOOTH.h - 34, 46, 40, 6); c.fill(); box(c, bx - 14, BOOTH.y + BOOTH.h - 40, 30, 8, ALIEN.gum); }
+    // (the console under the window: its lamps blinking, a row of knobs)
+    px(c, BOOTH.x, BOOTH.y + BOOTH.h - 14, BOOTH.w, 14, '#3F3F46'); px(c, BOOTH.x, BOOTH.y + BOOTH.h - 14, BOOTH.w, 2, '#A1A1AA');
+    for (let i = 0; i < 12; i++) { const on = (state.frame + i * 7) % 30 < 15; px(c, BOOTH.x + 8 + i * 18, BOOTH.y + BOOTH.h - 10, 6, 4, on ? '#EF4444' : '#22C55E'); px(c, BOOTH.x + 8 + i * 18, BOOTH.y + BOOTH.h - 10, 2, 1, '#FFFFFF'); }
+    // (the glass: a sheen)
+    c.fillStyle = dith(c, 'rgba(255, 255, 255, 0.16)'); c.beginPath(); c.moveTo(BOOTH.x + 30, BOOTH.y); c.lineTo(BOOTH.x + 70, BOOTH.y); c.lineTo(BOOTH.x + 30, BOOTH.y + BOOTH.h); c.lineTo(BOOTH.x - 10, BOOTH.y + BOOTH.h); c.closePath(); c.fill();
     c.restore();
     if (r.splat) {
       // (the two of them popped: a green burst on the glass over where each sat, drips running down from it)
@@ -282,13 +175,14 @@ export const drawRoomBack = (c: Ctx, state: GameState, r: RoomDraw) => {
       }
     }
   }
-  // The mind-control beam: rings down from the dish to her head
+  // The mind-control beam: rings down from the dish to her head (stepped: an outer ring and a hot inner one)
   if (r.beam > 0) {
-    const sx = BOOTH.x + BOOTH.w + 18, sy = BOOTH.y + BOOTH.h - 8, n = 10;
+    const sx = BOOTH.x + BOOTH.w + 33, sy = BOOTH.y + BOOTH.h - 8, n = 10;
     for (let i = 0; i < n; i++) {
       const k = ((i / n) + state.frame * 0.03) % 1, x = sx + (r.head.x - sx) * k, y = sy + (r.head.y - sy) * k;
-      c.strokeStyle = `rgba(163, 230, 53, ${(0.8 * r.beam * (1 - k * 0.5)).toFixed(2)})`; c.lineWidth = 3;
+      c.strokeStyle = `rgba(101, 163, 13, ${(0.7 * r.beam * (1 - k * 0.5)).toFixed(2)})`; c.lineWidth = 4;
       c.beginPath(); c.ellipse(x, y, 8 + k * 14, 14 + k * 20, -0.6, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = `rgba(217, 249, 157, ${(0.85 * r.beam * (1 - k * 0.5)).toFixed(2)})`; c.lineWidth = 1.5; c.stroke();
     }
   }
 };
@@ -296,15 +190,22 @@ export const drawRoomBack = (c: Ctx, state: GameState, r: RoomDraw) => {
 /** In front of her: the glass panel (up), or its frame and the shards left in it (kicked in). */
 export const drawGlass = (c: Ctx, state: GameState, up: boolean) => {
   if (!shown(state, GLASS_X - 40, GLASS_X + 40)) return;
-  box(c, GLASS_X - 8, GY - 330, 16, 330, '#52525B'); box(c, GLASS_X - 8, GY - 330, 3, 330, '#A1A1AA');
-  box(c, GLASS_X - 8, GY - 340, 320, 12, '#52525B');
+  // (the frame: a chrome post, banded round; the header along the top)
+  px(c, GLASS_X - 9, GY - 331, 18, 331, '#05050A');
+  ['#3F3F46', '#71717A', '#C9CBD3', '#F4F4F5', '#8E8E99', '#52525B'].forEach((col, i) => px(c, GLASS_X - 8 + i * 2.67, GY - 330, 3, 330, col));
+  px(c, GLASS_X - 9, GY - 341, 322, 14, '#05050A'); px(c, GLASS_X - 8, GY - 340, 320, 12, '#71717A'); px(c, GLASS_X - 8, GY - 340, 320, 2, '#E4E4E7'); px(c, GLASS_X - 8, GY - 330, 320, 2, '#3F3F46');
   if (up) {
-    c.fillStyle = 'rgba(186, 230, 253, 0.16)'; c.fillRect(GLASS_X + 8, GY - 328, 300, 310);
-    c.fillStyle = 'rgba(255, 255, 255, 0.35)'; c.fillRect(GLASS_X + 30, GY - 300, 10, 140); c.fillRect(GLASS_X + 50, GY - 300, 4, 100);
+    c.fillStyle = 'rgba(186, 230, 253, 0.14)'; c.fillRect(GLASS_X + 8, GY - 328, 300, 310);
+    c.fillStyle = dith(c, 'rgba(224, 242, 254, 0.18)'); c.fillRect(GLASS_X + 8, GY - 328, 300, 310);
+    // (the shine: two slanted streaks, stepped)
+    for (const [ox, w, a] of [[30, 10, 0.35], [50, 4, 0.3], [180, 6, 0.18]] as const) { c.fillStyle = `rgba(255, 255, 255, ${a})`; c.beginPath(); c.moveTo(GLASS_X + ox + 30, GY - 320); c.lineTo(GLASS_X + ox + 30 + w, GY - 320); c.lineTo(GLASS_X + ox + w, GY - 160); c.lineTo(GLASS_X + ox, GY - 160); c.closePath(); c.fill(); }
+    // (a smudge where people pressed their faces to it; the sign on it)
+    c.fillStyle = 'rgba(255, 255, 255, 0.08)'; c.beginPath(); c.ellipse(GLASS_X + 110, GY - 150, 16, 12, 0, 0, Math.PI * 2); c.fill();
+    label(c, 'DO NOT TAP ON GLASS', GLASS_X + 160, GY - 40, 'rgba(254, 202, 202, 0.8)', 5);
   } else {
     // (the shards still in the frame)
-    for (let i = 0; i < 5; i++) { c.fillStyle = 'rgba(186, 230, 253, 0.4)'; c.beginPath(); c.moveTo(GLASS_X + 8, GY - 320 + i * 60); c.lineTo(GLASS_X + 30 + (i % 2) * 20, GY - 300 + i * 60); c.lineTo(GLASS_X + 8, GY - 280 + i * 60); c.fill(); }
-    for (let i = 0; i < 10; i++) box(c, GLASS_X - 120 + i * 26, GY - 3, 6, 3, 'rgba(224, 242, 254, 0.7)');
+    for (let i = 0; i < 5; i++) { c.fillStyle = 'rgba(186, 230, 253, 0.4)'; c.beginPath(); c.moveTo(GLASS_X + 8, GY - 320 + i * 60); c.lineTo(GLASS_X + 30 + (i % 2) * 20, GY - 300 + i * 60); c.lineTo(GLASS_X + 8, GY - 280 + i * 60); c.fill(); px(c, GLASS_X + 9, GY - 318 + i * 60, 2, 20, 'rgba(255, 255, 255, 0.6)'); }
+    for (let i = 0; i < 10; i++) { px(c, GLASS_X - 120 + i * 26, GY - 3, 6, 3, 'rgba(224, 242, 254, 0.7)'); px(c, GLASS_X - 120 + i * 26, GY - 3, 2, 1, '#FFFFFF'); }
   }
 };
 
@@ -312,6 +213,7 @@ export const drawGlass = (c: Ctx, state: GameState, up: boolean) => {
 export const roomLights = (r: RoomDraw, queenX: number) => [
   { x: queenX, y: GY - 200, r: 260, a: 0.85, color: 'rgba(167, 139, 250, 0.08)' },
   { x: ARENA_L + 260, y: GY - 120, r: 300, a: 0.55 },
+  { x: GLASS_X + 140, y: GY - 10, r: 150, a: 0.5, color: 'rgba(253, 224, 71, 0.1)' },
   ...(r.booth > 0 ? [{ x: BOOTH.x + BOOTH.w / 2, y: BOOTH.y + BOOTH.h / 2, r: 180, a: 0.7 * r.booth, color: 'rgba(74, 222, 128, 0.1)' }] : []),
   ...(r.beam > 0 ? [{ x: r.head.x, y: r.head.y, r: 160, a: 0.8 * r.beam, color: 'rgba(163, 230, 53, 0.14)' }] : []),
 ];
@@ -322,17 +224,24 @@ export { QUEEN_X };
 
 export const drawAfterFall = (c: Ctx, state: GameState, hole: { a: number; b: number }) => {
   if (!shown(state, hole.a - 100, ARENA_R + 300)) return;
-  stamp(c, 'sp-q-afterfall', hole.a - 20, GY - 260, ARENA_R + 280 - hole.a, 300, g => {
+  stamp(c, 'sp-q-afterfall2', hole.a - 20, GY - 260, ARENA_R + 280 - hole.a, 300, g => {
     // (the plinth, the arm bent over, the lines hanging off it torn; the sac, deflated a bit, on its dolly)
-    ink(g, () => g.rect(QUEEN_X - 90, GY - 26, 180, 26), STEEL_D, 2);
-    g.fillStyle = STEEL; g.fillRect(QUEEN_X - 90, GY - 26, 180, 4);
-    limb(g, QUEEN_X + 20, GY - 30, QUEEN_X - 10, GY - 70, 16, STEEL);
-    limb(g, QUEEN_X - 10, GY - 70, QUEEN_X - 60, GY - 60, 12, STEEL_L);
-    for (let i = 0; i < 3; i++) { g.strokeStyle = ['#B91C1C', '#1D4ED8', '#CA8A04'][i]; g.lineWidth = 3; g.beginPath(); g.moveTo(QUEEN_X - 60, GY - 60); g.quadraticCurveTo(QUEEN_X - 80 - i * 10, GY - 30, QUEEN_X - 90 - i * 14, GY - 6); g.stroke(); }
-    ink(g, () => g.ellipse(QUEEN_X + 185, GY - 80, 88, 48, -0.05, 0, Math.PI * 2), '#B8B19A', 2);
-    // (the hole: the floor gone, the edges broken, the dark down there)
-    g.fillStyle = '#020204'; g.fillRect(hole.a, GY - 2, hole.b - hole.a, 40);
-    for (let x = hole.a - 10; x < hole.b + 10; x += 12) { g.fillStyle = '#3F3F46'; g.fillRect(x, GY - 3 - ((x * 7) % 5), 10, 4); }
-    g.fillStyle = '#71717A'; g.fillRect(hole.a - 16, GY - 2, 14, 4); g.fillRect(hole.b + 2, GY - 2, 14, 4);
+    const Q = QUEEN_X;
+    px(g, Q - 92, GY - 28, 184, 28, STEELR[0]); px(g, Q - 90, GY - 26, 180, 24, STEELR[2]); px(g, Q - 90, GY - 26, 180, 3, STEELR[3]); px(g, Q - 90, GY - 26, 180, 1, STEELR[4]);
+    px(g, Q - 90, GY - 14, 180, 4, STEELR[1]);
+    for (let i = 0; i < 30; i++) { g.fillStyle = i % 2 ? '#18181B' : '#FACC15'; g.beginPath(); g.moveTo(Q - 90 + i * 6, GY - 10); g.lineTo(Q - 84 + i * 6, GY - 10); g.lineTo(Q - 87 + i * 6, GY - 4); g.lineTo(Q - 93 + i * 6, GY - 4); g.closePath(); g.fill(); }
+    tube(g, Q + 20, GY - 30, Q - 10, GY - 70, 16, STEELR);
+    tube(g, Q - 10, GY - 70, Q - 60, GY - 60, 12, CHROME);
+    blob(g, Q + 20, GY - 30, 11, 11, CHROME); blob(g, Q - 10, GY - 70, 8, 8, CHROME);
+    const lines: Ramp[] = [['#2A0505', '#7F1D1D', '#B91C1C', '#EF4444', '#FCA5A5'], ['#06122E', '#1E3A8A', '#1D4ED8', '#60A5FA', '#BFDBFE'], ['#2E1F02', '#854D0E', '#CA8A04', '#FACC15', '#FEF08A']];
+    for (let i = 0; i < 3; i++) hose(g, quad(Q - 60, GY - 60, Q - 80 - i * 10, GY - 30, Q - 90 - i * 14, GY - 6, 6), 3, lines[i]);
+    shapeShade(g, () => g.ellipse(Q + 185, GY - 80, 88, 48, -0.05, 0, Math.PI * 2), ['#2A2418', '#6E6650', '#A8A086', '#C8C0A4', '#E8E2CA'], -3, -3, 2, Q + 185, GY - 80);
+    for (let i = 0; i < 4; i++) { g.strokeStyle = '#4A4436'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(Q + 120 + i * 40, GY - 118 + Math.abs(i - 1.5) * 6); g.quadraticCurveTo(Q + 130 + i * 40, GY - 80, Q + 122 + i * 40, GY - 40); g.stroke(); }
+    // (the hole: the floor gone, the edges broken, the dark down there, rebar out of its edges)
+    px(g, hole.a, GY - 2, hole.b - hole.a, 40, '#020204');
+    for (let x = hole.a - 10; x < hole.b + 10; x += 12) { const d = (x * 7) % 5; px(g, x, GY - 3 - d, 10, 4, '#3F3F46'); px(g, x, GY - 3 - d, 10, 1, '#8A8A96'); }
+    px(g, hole.a - 16, GY - 2, 14, 4, '#71717A'); px(g, hole.b + 2, GY - 2, 14, 4, '#71717A');
+    for (const ex of [hole.a, hole.b]) for (let k = 0; k < 2; k++) tube(g, ex, GY + 2 + k * 6, ex + (ex === hole.a ? 14 : -14), GY + 8 + k * 6, 2, ['#1A0A04', '#5A2A10', '#7C2D12', '#B45309', '#F59E0B']);
+    void hash; void SACR;
   });
 };

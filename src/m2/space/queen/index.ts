@@ -35,8 +35,8 @@ import { updateLadders, drawLadders } from '../../moves/ladders';
 import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
 import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP } from './basement';
-import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, boothOps, introCamX, discoZoom } from './fight';
-import { drawBasement, drawDisco, discoLighting, drawShutter } from './lowerArt';
+import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom } from './fight';
+import { drawBasement, drawDisco, discoLighting, discoGlow, drawShutter } from './lowerArt';
 
 interface Queen {
   init: boolean;
@@ -201,7 +201,7 @@ export const queen: SpaceSection = {
       const dark = hunterLighting(state, hunterOf(state));
       if (dark && cx < DOOR_X + 10) return dark;
       const l = discoLighting(state, isLandCleared('space') ? 1 : discoLights(f));
-      if (queenOf(state).fight === 'on') l.lights.push(...poolLights(f), ...oilLights(f));
+      if (queenOf(state).fight === 'on') l.lights.push(...poolLights(f), ...oilLights(f), ...tellLights(f));
       return l;
     }
     const head = showHead(s);
@@ -238,6 +238,15 @@ export const queen: SpaceSection = {
   },
   drawHud: (c, state) => {
     const q = queenOf(state), s = showOf(state), f = fightOf(state), h = hunterOf(state);
+    // (the disco's light in the air, over the lit frame: the ball's rays, the cans' beams, the neon's bloom)
+    if (inLower(state) && !inBasement(state) && (doorIn(h) || doorKicking(h))) {
+      const z = queen.zoom?.(state) ?? null, cam = state.camera;
+      c.save();
+      if (z && z.scale !== 1) { c.translate(z.x + (z.shiftX ?? 0) - cam.x, z.y + (z.shiftY ?? 0) - cam.y); c.scale(z.scale, z.scale); c.translate(-z.x, -z.y); }
+      else c.translate(-cam.x, -cam.y);
+      discoGlow(c, state, isLandCleared('space') ? 1 : discoLights(f));
+      c.restore();
+    }
     drawHunterFront(c, state, h);
     if (showOn(s)) { drawBars(c, 1); if (showSkippable(s) && s.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH); }
     drawShowFade(c, s);

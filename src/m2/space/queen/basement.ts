@@ -893,33 +893,62 @@ export const drawHides = (c: Ctx, state: GameState, h: Hunter) => {
       continue;
     }
     if (s.kind === 'locker') {
-      stamp(c, `sp-q-locker-${i}`, s.x - 30, y - 132, 60, 134, g => {
-        ink(g, () => g.rect(s.x - 26, y - 128, 52, 128), '#475569', 2);
-        g.fillStyle = '#334155'; g.fillRect(s.x - 22, y - 124, 44, 120);
-        g.fillStyle = '#3F4E63'; g.fillRect(s.x - 22, y - 124, 6, 120);
-        for (let k = 0; k < 5; k++) { g.fillStyle = '#0F172A'; g.fillRect(s.x - 14, y - 116 + k * 6, 28, 3); }
-        g.fillStyle = '#E2E8F0'; g.fillRect(s.x - 16, y - 70, 32, 10); g.fillStyle = '#0F172A'; g.font = '5px "Press Start 2P"'; g.fillText(['BRENDA', 'GARY', 'SID', 'CHUCK', 'SUSAN', 'GLENN', 'LILLY', 'MATT', 'JJ'][i % 9], s.x - 14, y - 62);
-        g.fillStyle = '#94A3B8'; g.fillRect(s.x + 14, y - 64, 3, 12);
+      stamp(c, `sp-q-locker2-${i}`, s.x - 30, y - 132, 60, 134, g => {
+        // (a cast member's locker: steel, banded round in steps, its vents, a name plate, the handle; dented, a sticker)
+        const L = s.x - 26, T = y - 128;
+        g.fillStyle = '#05070B'; g.fillRect(L - 1, T - 1, 54, 130);
+        const bands = ['#2A3646', '#3A4A60', '#475A74', '#52677F', '#475A74', '#3A4A60', '#2E3B4D', '#232D3B'];
+        bands.forEach((col, k) => { g.fillStyle = col; g.fillRect(L + k * 6.5, T, 7, 128); });
+        g.fillStyle = '#7A8CA4'; g.fillRect(L + 20, T + 2, 2, 124);
+        g.fillStyle = '#05070B'; g.fillRect(L, T + 4, 52, 1); g.fillRect(L, T + 122, 52, 2);
+        for (let k = 0; k < 5; k++) { g.fillStyle = '#0B1220'; g.fillRect(s.x - 14, y - 116 + k * 6, 28, 3); g.fillStyle = '#6A7C94'; g.fillRect(s.x - 14, y - 113 + k * 6, 28, 1); }
+        g.fillStyle = '#05070B'; g.fillRect(s.x - 17, y - 71, 34, 12); g.fillStyle = '#E2E8F0'; g.fillRect(s.x - 16, y - 70, 32, 10); g.fillStyle = '#FFFFFF'; g.fillRect(s.x - 16, y - 70, 32, 1);
+        g.fillStyle = '#0F172A'; g.font = '5px "Press Start 2P"'; g.textAlign = 'center'; g.fillText(['BRENDA', 'GARY', 'SID', 'CHUCK', 'SUSAN', 'GLENN', 'LILLY', 'MATT', 'JJ'][i % 9], s.x, y - 62); g.textAlign = 'left';
+        g.fillStyle = '#05070B'; g.fillRect(s.x + 13, y - 65, 5, 14); g.fillStyle = '#A8B4C4'; g.fillRect(s.x + 14, y - 64, 3, 12); g.fillStyle = '#E2E8F0'; g.fillRect(s.x + 14, y - 64, 1, 12);
+        // (a dent; a sticker (a smiley alien); a padlock that's not locked)
+        g.fillStyle = '#2A3646'; g.fillRect(s.x - 18, y - 40, 8, 5); g.fillStyle = '#6A7C94'; g.fillRect(s.x - 18, y - 41, 8, 1);
+        g.fillStyle = '#16A34A'; g.fillRect(s.x - 4, y - 32, 10, 10); g.fillStyle = '#05070B'; g.fillRect(s.x - 2, y - 29, 2, 2); g.fillRect(s.x + 2, y - 29, 2, 2); g.fillRect(s.x - 1, y - 25, 4, 1);
+        g.fillStyle = '#CA8A04'; g.fillRect(s.x + 12, y - 48, 7, 6); g.fillStyle = '#FDE047'; g.fillRect(s.x + 12, y - 48, 7, 1);
       });
       if (inIt && state.frame % 90 > 4) { box(c, s.x - 8, y - 110, 4, 3, '#F8FAFC'); box(c, s.x + 4, y - 110, 4, 3, '#F8FAFC'); box(c, s.x - 7, y - 110, 2, 2, '#DC2626'); box(c, s.x + 5, y - 110, 2, 2, '#DC2626'); }
     } else if (s.kind === 'cabinet') {
       // (an air handler's cabinet up on the catwalk: its door hanging open a crack, the louvers, room for one idiot)
-      stamp(c, `sp-q-cab-${i}`, s.x - 34, y - 112, 68, 114, g => {
-        ink(g, () => g.rect(s.x - 30, y - 108, 60, 108), '#3F3F46', 2);
-        g.fillStyle = '#27272A'; g.fillRect(s.x - 26, y - 104, 52, 100);
-        g.fillStyle = '#52525B'; g.fillRect(s.x - 26, y - 104, 52, 3);
-        for (let k = 0; k < 6; k++) { g.fillStyle = '#0A0A0F'; g.fillRect(s.x - 20, y - 94 + k * 9, 40, 4); g.fillStyle = '#3F3F46'; g.fillRect(s.x - 20, y - 90 + k * 9, 40, 1); }
-        g.fillStyle = '#A16207'; g.font = '5px "Press Start 2P"'; g.fillText('AHU-2', s.x - 14, y - 10);
+      stamp(c, `sp-q-cab2-${i}`, s.x - 34, y - 112, 68, 114, g => {
+        // (an air handler's cabinet up on the catwalk: steel, shaded in steps, its door hanging open a crack, the
+        // louvers, a fan behind them, room for one idiot)
+        const L = s.x - 30, T = y - 108;
+        g.fillStyle = '#05050A'; g.fillRect(L - 1, T - 1, 62, 110);
+        g.fillStyle = '#3A3A44'; g.fillRect(L, T, 60, 108); g.fillStyle = '#4E4E5A'; g.fillRect(L, T, 44, 108); g.fillStyle = '#5E5E6C'; g.fillRect(L, T, 30, 108);
+        g.fillStyle = '#8A8A98'; g.fillRect(L, T, 60, 2); g.fillStyle = '#26262E'; g.fillRect(L + 54, T + 2, 6, 106);
+        g.fillStyle = '#0A0A0F'; g.fillRect(s.x - 22, y - 98, 44, 58);
+        g.fillStyle = '#1A1A22'; g.beginPath(); g.arc(s.x, y - 69, 18, 0, Math.PI * 2); g.fill();
+        g.strokeStyle = '#2E2E3A'; g.lineWidth = 3; for (let k = 0; k < 4; k++) { const an = k * Math.PI / 2 + 0.4; g.beginPath(); g.moveTo(s.x, y - 69); g.lineTo(s.x + Math.cos(an) * 16, y - 69 + Math.sin(an) * 16); g.stroke(); }
+        for (let k = 0; k < 6; k++) { g.fillStyle = '#05050A'; g.fillRect(s.x - 22, y - 96 + k * 9, 44, 4); g.fillStyle = '#5E5E6C'; g.fillRect(s.x - 22, y - 92 + k * 9, 44, 1); }
+        g.fillStyle = '#05050A'; g.fillRect(s.x + 26, y - 104, 3, 100);
+        g.fillStyle = '#A16207'; g.fillRect(s.x - 18, y - 22, 36, 10); g.fillStyle = '#FACC15'; g.fillRect(s.x - 18, y - 22, 36, 1);
+        g.fillStyle = '#1A0E04'; g.font = '5px "Press Start 2P"'; g.textAlign = 'center'; g.fillText('AHU-2', s.x, y - 14); g.textAlign = 'left';
       });
       if (inIt && state.frame % 90 > 4) { box(c, s.x - 7, y - 76, 3, 2, '#F8FAFC'); box(c, s.x + 4, y - 76, 3, 2, '#F8FAFC'); }
     } else {
       // (a dark corner: behind a heap of broken animatronics and a tarp)
-      stamp(c, `sp-q-dark-${i}`, s.x - 60, y - 120, 120, 122, g => {
-        g.fillStyle = '#0A0A0F'; g.fillRect(s.x - 40, y - 110, 80, 110);
-        ink(g, () => { g.moveTo(s.x - 56, y); g.quadraticCurveTo(s.x - 40, y - 120, s.x + 10, y - 112); g.quadraticCurveTo(s.x + 50, y - 100, s.x + 56, y); g.closePath(); }, '#1E293B', 2);
+      stamp(c, `sp-q-dark2-${i}`, s.x - 60, y - 120, 120, 122, g => {
+        // (a dark corner: behind a heap of broken animatronics and a tarp thrown over it, folds in steps)
+        g.fillStyle = '#030305'; g.fillRect(s.x - 40, y - 110, 80, 110);
+        const tarp = () => { g.moveTo(s.x - 56, y); g.quadraticCurveTo(s.x - 40, y - 120, s.x + 10, y - 112); g.quadraticCurveTo(s.x + 50, y - 100, s.x + 56, y); g.closePath(); };
+        g.fillStyle = '#05070B'; g.beginPath(); tarp(); g.fill();
+        g.save(); g.beginPath(); tarp(); g.clip();
+        g.fillStyle = '#16233A'; g.fillRect(s.x - 60, y - 120, 120, 122);
+        g.fillStyle = '#1E3050'; g.beginPath(); g.ellipse(s.x - 10, y - 80, 40, 34, -0.3, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#2A4268'; g.beginPath(); g.ellipse(s.x - 18, y - 92, 22, 14, -0.3, 0, Math.PI * 2); g.fill();
+        for (let k = 0; k < 4; k++) { g.strokeStyle = '#0B1424'; g.lineWidth = 2; g.beginPath(); g.moveTo(s.x - 30 + k * 18, y - 100 + k * 4); g.quadraticCurveTo(s.x - 26 + k * 20, y - 50, s.x - 34 + k * 22, y); g.stroke(); }
+        g.restore();
+        // (out from under it: a green alien's head, its eyes; a white arm, a hand)
+        g.fillStyle = '#052E16'; g.beginPath(); g.ellipse(s.x - 30, y - 30, 17, 19, 0.3, 0, Math.PI * 2); g.fill();
         g.fillStyle = '#15803D'; g.beginPath(); g.ellipse(s.x - 30, y - 30, 16, 18, 0.3, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#22C55E'; g.beginPath(); g.ellipse(s.x - 34, y - 36, 8, 8, 0.3, 0, Math.PI * 2); g.fill();
         g.fillStyle = '#0A0A0A'; g.beginPath(); g.ellipse(s.x - 36, y - 30, 5, 3, 0.5, 0, Math.PI * 2); g.ellipse(s.x - 24, y - 30, 5, 3, -0.5, 0, Math.PI * 2); g.fill();
-        g.fillStyle = '#F5F5F4'; g.fillRect(s.x + 20, y - 26, 24, 14); g.fillStyle = '#18181B'; g.fillRect(s.x + 26, y - 24, 8, 6);
+        g.fillStyle = '#FFFFFF'; g.fillRect(s.x - 37, y - 31, 1, 1); g.fillRect(s.x - 25, y - 31, 1, 1);
+        g.fillStyle = '#05070B'; g.fillRect(s.x + 19, y - 27, 26, 16); g.fillStyle = '#E7E5E4'; g.fillRect(s.x + 20, y - 26, 24, 14); g.fillStyle = '#FFFFFF'; g.fillRect(s.x + 20, y - 26, 24, 2); g.fillStyle = '#18181B'; g.fillRect(s.x + 26, y - 24, 8, 6);
       });
       if (inIt && state.frame % 90 > 4) { box(c, s.x - 4, y - 70, 3, 2, '#F8FAFC'); box(c, s.x + 5, y - 70, 3, 2, '#F8FAFC'); }
     }
@@ -940,8 +969,12 @@ export const drawDiscoDoor = (c: Ctx, state: GameState, h: Hunter) => drawDoor(c
 const drawDoor = (c: Ctx, state: GameState, h: Hunter) => {
   if (DOOR_X < state.camera.x - 200 || DOOR_X > state.camera.x + CANVAS_WIDTH + 200) return;
   const f = state.frame, x = DOOR_X;
-  box(c, x - 70, GY - 220, 140, 220, '#3B0764');
-  box(c, x - 60, GY - 210, 120, 210, '#0A0510');
+  // (the frame: chrome jambs banded round, a purple surround, its lit edge)
+  box(c, x - 72, GY - 222, 144, 222, '#05020B');
+  box(c, x - 70, GY - 220, 140, 220, '#3B0764'); box(c, x - 70, GY - 220, 140, 2, '#7C3AED'); box(c, x - 70, GY - 220, 3, 220, '#5B21B6');
+  for (const jx of [x - 62, x + 56]) { box(c, jx, GY - 212, 6, 212, '#52525B'); box(c, jx + 1, GY - 212, 2, 212, '#D4D4D8'); box(c, jx + 4, GY - 212, 2, 212, '#27272A'); }
+  box(c, x - 62, GY - 214, 124, 4, '#A1A1AA'); box(c, x - 62, GY - 214, 124, 1, '#F4F4F5');
+  box(c, x - 56, GY - 210, 112, 210, '#0A0510');
   for (let i = 0; i < 18; i++) {
     const a = i / 17, bx = i < 6 ? x - 66 : i < 12 ? x - 66 + (i - 6) * 26 : x + 62, by = i < 6 ? GY - a * 6 * 36 : i < 12 ? GY - 214 : GY - (17 - i) * 36;
     box(c, bx, by, 6, 6, (i + Math.floor(f / 6)) % 3 === 0 ? '#FDE047' : '#78350F');
@@ -967,7 +1000,16 @@ const drawDoor = (c: Ctx, state: GameState, h: Hunter) => {
     box(c, x - 2, GY - 206, 4, 206, '#3B0764');
     box(c, x - 50, GY - 200, 44, 194, '#A855F7'); box(c, x + 6, GY - 200, 44, 194, '#A855F7');
     box(c, x - 50, GY - 200, 44, 4, '#E9D5FF'); box(c, x + 6, GY - 200, 44, 4, '#E9D5FF');
-    label(c, 'MEMBERS ONLY', x, GY - 120, '#FDE047', 6);
+    // (the doors' shading: dark toward their hinges, tufted panels, a porthole each with the hall's colors through it)
+    box(c, x - 50, GY - 196, 6, 190, '#7E22CE'); box(c, x + 44, GY - 196, 6, 190, '#7E22CE');
+    for (const dx of [x - 28, x + 28]) {
+      box(c, dx - 12, GY - 178, 24, 24, '#05020B');
+      box(c, dx - 10, GY - 176, 20, 20, ['#F472B6', '#22D3EE', '#FDE047', '#A78BFA'][(Math.floor(f / 15) + (dx > x ? 1 : 0)) % 4]);
+      box(c, dx - 10, GY - 176, 20, 20, 'rgba(10, 5, 16, 0.55)'); box(c, dx - 8, GY - 174, 6, 2, '#FFFFFF');
+      for (let r = 0; r < 4; r++) for (let k = 0; k < 2; k++) { box(c, dx - 16 + k * 18, GY - 130 + r * 26, 14, 22, '#9333EA'); box(c, dx - 16 + k * 18, GY - 130 + r * 26, 14, 2, '#C084FC'); box(c, dx - 10 + k * 18, GY - 120 + r * 26, 2, 2, '#581C87'); }
+      box(c, dx + (dx > x ? -20 : 16), GY - 112, 4, 18, '#D4D4D8');
+    }
+    label(c, 'MEMBERS ONLY', x, GY - 140, '#FDE047', 6);
     if (f % 30 < 3) box(c, x - 50, GY - 200, 100, 194, 'rgba(255, 255, 255, 0.08)');
   } else {
     box(c, x + 10, GY - 8, 120, 8, '#7E22CE'); box(c, x + 14, GY - 10, 112, 3, '#C084FC');
@@ -984,13 +1026,23 @@ export const drawHunterFront = (c: Ctx, state: GameState, h: Hunter) => {
   if (state.camera.y < GY - 200) return;
   c.save(); c.beginPath(); c.rect(0, 0, Math.max(0, Math.min(CANVAS_WIDTH, STAIRS_A - 60 - cam)), CANVAS_HEIGHT); c.clip();
   const off = -((cam - B) * 1.35);
-  c.fillStyle = '#05050A'; c.fillRect(0, 36, CANVAS_WIDTH, 26); c.fillRect(0, 74, CANVAS_WIDTH, 14);
-  c.fillStyle = '#16161F'; c.fillRect(0, 36, CANVAS_WIDTH, 3); c.fillRect(0, 74, CANVAS_WIDTH, 2);
+  // (the pipes: near, out of focus, nearly black; shaded round in steps, a lit line along the top, the emergency
+  // strips' red caught along their undersides; their joints and brackets)
+  const run = (y: number, h: number) => {
+    c.fillStyle = '#030306'; c.fillRect(0, y, CANVAS_WIDTH, h);
+    c.fillStyle = '#0C0C14'; c.fillRect(0, y + 2, CANVAS_WIDTH, Math.max(1, h * 0.35));
+    c.fillStyle = '#1A1A26'; c.fillRect(0, y + 1, CANVAS_WIDTH, 2);
+    c.fillStyle = '#3A0E10'; c.fillRect(0, y + h - 2, CANVAS_WIDTH, 2);
+    for (let k = 0; k < 8; k++) { const jx = ((off * 1 + k * 160) % 1280 + 1280) % 1280 - 160; c.fillStyle = '#0A0A12'; c.fillRect(jx, y - 2, 10, h + 4); c.fillStyle = '#22222E'; c.fillRect(jx, y - 2, 10, 1); }
+  };
+  run(36, 26); run(74, 14);
   for (let k = 0; k < 12; k++) {
     const x = ((off + k * 700) % (12 * 700) + 12 * 700) % (12 * 700) - 200;
     if (x < -80 || x > CANVAS_WIDTH + 80) continue;
-    c.fillStyle = '#05050A'; c.fillRect(x, 36, 34, CANVAS_HEIGHT); c.fillStyle = '#16161F'; c.fillRect(x, 36, 3, CANVAS_HEIGHT);
-    c.fillStyle = '#0B0B12'; c.fillRect(x - 6, 120 + (k % 3) * 120, 46, 12);
+    c.fillStyle = '#030306'; c.fillRect(x, 36, 34, CANVAS_HEIGHT);
+    c.fillStyle = '#0C0C14'; c.fillRect(x + 4, 36, 10, CANVAS_HEIGHT); c.fillStyle = '#1A1A26'; c.fillRect(x + 3, 36, 2, CANVAS_HEIGHT);
+    c.fillStyle = '#3A0E10'; c.fillRect(x + 31, 36, 2, CANVAS_HEIGHT);
+    c.fillStyle = '#0B0B12'; c.fillRect(x - 6, 120 + (k % 3) * 120, 46, 12); c.fillStyle = '#20202C'; c.fillRect(x - 6, 120 + (k % 3) * 120, 46, 1);
   }
   if (h.fg) {
     const k = h.fg.t / 170, sx = h.fg.dir < 0 ? CANVAS_WIDTH + 260 - k * (CANVAS_WIDTH + 520) : -260 + k * (CANVAS_WIDTH + 520);

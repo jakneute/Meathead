@@ -17,7 +17,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { markMachineGore } from '../../../m1/game/enemies/machineGore';
-import { ink, limb } from '../../../m1/game/render/npc/kit';
+import { type Ramp, LAT, GLOSS, SPEC, CHROME, SACR, GUM, TOOTH, GREEN, dith, tube, blob, shapeShade } from './paint';
 import { box } from '../section';
 import { GY } from '../geometry';
 import * as L from './lines';
@@ -198,14 +198,26 @@ const chargerAI = (ctx: FrameContext, e: Enemy): boolean => {
 // ---------------------------------------------------------------------------------------------------------------
 // The look (chrome bodies, her black latex heads, the green of the ray in their eye slits)
 
-const CHROME = '#C0C4CC', CHROME_D = '#7A7F8A', LATEX = '#1F2028', LATEX_L = '#6B7280';
+const CHR: Ramp = ['#1F2128', '#5C626E', '#9AA0AC', '#D2D6DE', '#FFFFFF'];
+const CHRF: Ramp = ['#14161B', '#3F444E', '#6E7480', '#A6ACB8', '#DCE0E8'];
+const px = (c: Ctx, x: number, y: number, w: number, h: number, col: string | CanvasPattern) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), Math.max(1, Math.round(w)), Math.max(1, Math.round(h))); };
+/** Her kind's head, small: the long eyeless dome swept back (glossy, shaded in steps), the silver teeth, the green
+ *  slit of their rig. */
 const head = (c: Ctx, x: number, y: number, s: number, open: boolean) => {
-  // (the long eyeless dome swept back, the silver teeth, the green slit)
-  ink(c, () => { c.moveTo(x - 4 * s, y); c.quadraticCurveTo(x - 30 * s, y - 10 * s, x - 34 * s, y - 2 * s); c.quadraticCurveTo(x - 20 * s, y + 8 * s, x + 14 * s, y + 6 * s); c.quadraticCurveTo(x + 18 * s, y - 2 * s, x - 4 * s, y); c.closePath(); }, LATEX, 1.2);
-  c.strokeStyle = LATEX_L; c.lineWidth = 1; c.beginPath(); c.moveTo(x - 26 * s, y - 4 * s); c.quadraticCurveTo(x - 10 * s, y - 6 * s, x + 8 * s, y + 1 * s); c.stroke();
-  box(c, x - 2 * s, y + 5 * s, 14 * s, 2 * s, '#E5E7EB');
-  if (open) box(c, x, y + 7 * s, 12 * s, 3 * s, '#1C0610');
-  box(c, x - 10 * s, y + 1 * s, 6 * s, 2 * s, '#84FF50');
+  c.save(); c.translate(x, y); c.scale(s, s);
+  const dome = () => { c.moveTo(-4, 0); c.quadraticCurveTo(-30, -10, -34, -2); c.quadraticCurveTo(-20, 8, 14, 6); c.quadraticCurveTo(18, -2, -4, 0); c.closePath(); };
+  shapeShade(c, dome, LAT, 1, -1.4, 2, -10, 1);
+  // (its ridges back, the gloss, a glint)
+  for (let i = 0; i < 3; i++) px(c, -24 + i * 6, -4 + i, 4, 1, LAT[0]);
+  c.strokeStyle = GLOSS; c.lineWidth = 1.2; c.beginPath(); c.moveTo(-24, -5); c.quadraticCurveTo(-10, -6, 6, 0); c.stroke();
+  px(c, -6, -4, 2, 1, SPEC);
+  // (the teeth; the jaw open on the tell)
+  px(c, -2, 5, 15, 2, GUM[2]);
+  for (let i = 0; i < 5; i++) { px(c, -1 + i * 3, 6, 2, 3, TOOTH[2]); px(c, -1 + i * 3, 6, 1, 1, TOOTH[4]); }
+  if (open) { px(c, 0, 8, 12, 4, GUM[0]); for (let i = 0; i < 4; i++) px(c, 1 + i * 3, 11, 2, 2, TOOTH[3]); }
+  // (the slit: their rig's green)
+  px(c, -12, 0, 8, 3, GREEN[1]); px(c, -11, 1, 6, 1, GREEN[4]);
+  c.restore();
 };
 
 const drawBiter = (c: Ctx, e: Enemy, f: number) => {
@@ -214,23 +226,30 @@ const drawBiter = (c: Ctx, e: Enemy, f: number) => {
   if (e.aiState === 'lunge') { c.rotate(-0.25); c.scale(1.15, 0.92); }
   if (e.aiState === 'crouch' || e.aiState === 'lunge') f = 4;
   const step = Math.sin(f * 0.6) * 4;
-  for (let i = 0; i < 3; i++) limb(c, -10 + i * 9, -10, -12 + i * 9 + (i % 2 ? step : -step), 0, 3, CHROME_D);
-  ink(c, () => c.ellipse(0, -12, 14, 8, 0, 0, Math.PI * 2), CHROME, 1.2);
-  box(c, -8, -15, 10, 2, '#FFFFFF');
+  // (the far legs, the body: a chrome bug, banded, a rivet row; the near legs)
+  for (let i = 0; i < 3; i++) tube(c, -10 + i * 9, -10, -12 + i * 9 - (i % 2 ? step : -step), 0, 3, CHRF);
+  blob(c, 0, -12, 14, 8, CHR);
+  px(c, -12, -9, 24, 1, CHR[1]); for (let i = 0; i < 4; i++) px(c, -8 + i * 5, -7, 1, 1, CHR[0]);
+  for (let i = 0; i < 3; i++) { const fx = -10 + i * 9 + (i % 2 ? step : -step); tube(c, -8 + i * 9, -9, fx, 0, 3, CHR); px(c, fx - 1, -1, 3, 1, CHR[0]); }
   head(c, 10, -20, 0.6, f % 20 < 10);
 };
 const drawSpitter = (c: Ctx, e: Enemy, f: number) => {
   const tell = e.aiState === 'tell';
   const step = Math.abs(e.vel.x) > 0.3 ? Math.sin(f * 0.4) * 6 : 0;
-  limb(c, -6, -26, -8 + step, 0, 5, CHROME_D); limb(c, 6, -26, 8 - step, 0, 5, CHROME);
-  ink(c, () => c.roundRect(-14, -50, 28, 28, 6), CHROME, 1.2);
-  box(c, -10, -46, 6, 18, '#FFFFFF');
-  limb(c, 12, -42, 22, -30, 4, CHROME_D);
+  tube(c, -6, -26, -8 + step, 0, 5, CHRF); blob(c, -8 + step, -1, 4, 2, CHRF);
+  tube(c, 6, -26, 8 - step, 0, 5, CHR); blob(c, 8 - step, -1, 4, 2, CHR);
+  // (the body: a chrome canister, banded, a gauge on it)
+  shapeShade(c, () => c.roundRect(-14, -50, 28, 28, 6), CHR, -1.4, -1.6, 1.5, 0, -36);
+  px(c, -14, -40, 28, 1, CHR[1]); px(c, -14, -32, 28, 1, CHR[1]);
+  c.fillStyle = CHR[0]; c.beginPath(); c.arc(4, -36, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = '#FEF3C7'; c.beginPath(); c.arc(4, -36, 3, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = '#DC2626'; c.lineWidth = 1; c.beginPath(); c.moveTo(4, -36); c.lineTo(4 + Math.cos(f * 0.3) * 2.5, -38); c.stroke();
+  tube(c, 12, -42, 22, -30, 4, CHRF);
   c.save(); c.translate(4, -52); c.rotate(tell ? -0.5 : 0);
   head(c, 0, 0, 0.8, tell);
   // (the tailpipe mouth, glowing on the tell)
-  ink(c, () => c.roundRect(10, 2, 10, 6, 2), '#52525B');
-  if (tell) box(c, 18, 3, 3, 4, f % 4 < 2 ? '#F97316' : '#FDE047');
+  tube(c, 10, 5, 20, 5, 6, CHROME);
+  px(c, 18, 2, 3, 6, '#18181B');
+  if (tell) { px(c, 18, 3, 3, 4, f % 4 < 2 ? '#F97316' : '#FDE047'); c.fillStyle = 'rgba(253, 186, 116, 0.35)'; c.beginPath(); c.arc(21, 5, 6, 0, Math.PI * 2); c.fill(); }
   c.restore();
 };
 const drawCharger = (c: Ctx, e: Enemy, f: number) => {
@@ -239,14 +258,22 @@ const drawCharger = (c: Ctx, e: Enemy, f: number) => {
   const step = Math.abs(e.vel.x) > 0.3 ? Math.sin(f * (rush ? 0.8 : 0.3)) * 8 : 0;
   // (pawing: head down, the front foot raking back along the floor)
   if (paw) { c.translate(0, 4); c.rotate(0.08); }
-  for (const s of [-1, 1]) { const rake = paw && s > 0 ? Math.sin(f * 0.8) * 12 : 0; limb(c, s * 18, -24, s * 20 + step * s + rake, rake > 6 ? -4 : 0, 9, s < 0 ? CHROME_D : CHROME); }
-  ink(c, () => c.ellipse(-4, -36, 34, 22, 0, 0, Math.PI * 2), CHROME, 1.5);
-  box(c, -26, -48, 20, 4, '#FFFFFF');
-  for (let i = 0; i < 4; i++) box(c, -24 + i * 12, -22, 6, 4, '#3F3F46');
-  // (the battering-ram crest, out front, low)
-  ink(c, () => { c.moveTo(18, -52); c.quadraticCurveTo(48, -40, 44, -20); c.lineTo(20, -24); c.closePath(); }, LATEX, 1.5);
+  const leg = (s: number, r: Ramp) => { const rake = paw && s > 0 ? Math.sin(f * 0.8) * 12 : 0, fx = s * 20 + step * s + rake, fy = rake > 6 ? -4 : 0; tube(c, s * 18, -24, fx, fy, 10, r); blob(c, fx, fy - 2, 6, 3, r); blob(c, s * 18, -26, 5, 5, CHROME); };
+  leg(-1, CHRF);
+  // (the body: a hunched chrome hull, plated, its rivets, the vents along its side)
+  shapeShade(c, () => c.ellipse(-4, -36, 34, 22, 0, 0, Math.PI * 2), CHR, -2.4, -2.6, 2, -4, -36);
+  c.save(); c.beginPath(); c.ellipse(-4, -36, 34, 22, 0, 0, Math.PI * 2); c.clip();
+  for (let k = 0; k < 3; k++) { c.strokeStyle = CHR[1]; c.lineWidth = 1; c.beginPath(); c.ellipse(-14 + k * 10, -36, 20, 22, 0, -1.2, 1.2); c.stroke(); }
+  c.restore();
+  for (let i = 0; i < 4; i++) { px(c, -24 + i * 12, -22, 6, 4, '#18181B'); px(c, -24 + i * 12, -22, 6, 1, CHR[1]); }
+  for (let i = 0; i < 6; i++) px(c, -30 + i * 9, -48 + Math.abs(i - 2.5) * 1.5, 1, 1, CHR[4]);
+  leg(1, CHR);
+  // (the battering-ram crest, out front, low: latex, shaded, ridged, a chrome cap on its edge)
+  shapeShade(c, () => { c.moveTo(18, -52); c.quadraticCurveTo(48, -40, 44, -20); c.lineTo(20, -24); c.closePath(); }, LAT, 1.6, -1.6, 1.5, 32, -36);
+  for (let i = 0; i < 3; i++) px(c, 26 + i * 5, -46 + i * 6, 6, 1, LAT[4]);
+  c.strokeStyle = CHROME[3]; c.lineWidth = 2; c.beginPath(); c.moveTo(20, -52); c.quadraticCurveTo(48, -40, 44, -20); c.stroke();
   head(c, 24, -40, 0.9, rush);
-  if (e.aiState === 'paw' && f % 6 < 3) box(c, 30, -62, 6, 6, 'rgba(226, 232, 240, 0.7)');
+  if (paw && f % 6 < 3) { c.fillStyle = 'rgba(226, 232, 240, 0.7)'; c.beginPath(); c.ellipse(32, -60, 5, 4, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = dith(c, '#E2E8F0'); c.beginPath(); c.ellipse(38, -66, 6, 5, 0, 0, Math.PI * 2); c.fill(); }
 };
 
 registerM2Kind({ kind: BITER, stats: { w: 30, h: 26, hp: 30, contact: 7, mass: 40 }, ai: biterAI, draw: drawBiter, robot: true, grab: 'critter', gender: 'm', head: { x: 10, y: -20, r: 7 } });
@@ -256,8 +283,14 @@ registerM2Kind({ kind: CHARGER, stats: { w: 66, h: 64, hp: 170, contact: 16, mas
 /** A sac on its way out of her / lying there hatching. World. */
 export const drawSac = (c: Ctx, x: number, y: number, t: number, hatch: number) => {
   const k = 1 + Math.sin(t * 0.5) * 0.06;
-  ink(c, () => c.ellipse(x, y - 14, 20 * k, 15 / k, 0, 0, Math.PI * 2), '#C9C2A8', 1.5);
-  c.fillStyle = 'rgba(87, 83, 78, 0.5)'; c.beginPath(); c.ellipse(x + 3, y - 14, 10, 8, 0, 0, Math.PI * 2); c.fill();
-  box(c, x - 10, y - 26, 6, 3, '#F5F5F4');
-  if (hatch > 0) { box(c, x - 3, y - 30, 6, 30 * hatch, '#1C0610'); box(c, x - 14, y - 2, 28, 3, '#84CC16'); }
+  // (the slime it landed in)
+  c.fillStyle = '#4D7C0F'; c.beginPath(); c.ellipse(x, y - 1, 26, 3, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = dith(c, '#84CC16'); c.beginPath(); c.ellipse(x - 4, y - 2, 18, 2, 0, 0, Math.PI * 2); c.fill();
+  shapeShade(c, () => c.ellipse(x, y - 14, 20 * k, 15 / k, 0, 0, Math.PI * 2), SACR, -1.6, -1.8, 1.5, x, y - 14);
+  // (the thing in it, its shadow through the membrane; the veins)
+  c.fillStyle = dith(c, '#44403C'); c.beginPath(); c.ellipse(x + 3, y - 14, 11, 9, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = 'rgba(68, 64, 60, 0.45)'; c.beginPath(); c.ellipse(x + 3, y - 14, 9, 7, 0, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = '#7C3A3A'; c.lineWidth = 1; for (let i = 0; i < 3; i++) { c.beginPath(); c.moveTo(x - 14 + i * 10, y - 4); c.quadraticCurveTo(x - 10 + i * 8, y - 16, x - 12 + i * 10, y - 26); c.stroke(); }
+  px(c, x - 10, y - 26, 6, 2, SACR[4]); px(c, x - 11, y - 24, 2, 1, '#FFFFFF');
+  if (hatch > 0) { px(c, x - 4, y - 30, 8, 30 * hatch, '#0A0206'); px(c, x - 3, y - 30, 2, 30 * hatch, GUM[2]); px(c, x - 14, y - 2, 28, 3, '#84CC16'); px(c, x - 14, y - 2, 28, 1, '#D9F99D'); }
 };

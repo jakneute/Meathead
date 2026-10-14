@@ -830,8 +830,8 @@ const poseOf = (f: Fight): QueenPose => {
   if (f.mode === 'intro' || f.mode === 'wait') return f.step === 'drop' ? 'roar' : f.step === 'shake' ? 'hurt' : f.step === 'bonk' ? 'stunned' : f.step === 'mode' || f.step === 'beam' ? 'wake' : 'idle';
   if (f.flash > 0) return 'hurt';
   if (f.mode === 'birth') return f.ph === 'push' ? 'birth' : 'idle';
-  if (f.mode === 'flail') return f.ph === 'tell' ? 'wake' : f.t % 6 < 3 ? 'swipe' : 'tell';
-  if (f.mode === 'leap') return f.ph === 'crouch' ? 'stalk' : f.ph === 'air' ? 'spit' : 'stalk';
+  if (f.mode === 'flail') return f.ph === 'tell' ? 'wake' : 'flail';
+  if (f.mode === 'leap') return f.ph === 'crouch' ? 'stalk' : f.ph === 'air' ? 'leap' : 'stalk';
   if (f.mode === 'stun') return 'stunned';
   return 'idle';
 };
@@ -884,6 +884,14 @@ export const poolLights = (f: Fight): Light[] => {
   const pl = f.pool;
   if (!pl || pl.k <= 0) return [];
   return [{ x: pl.x, y: GY - 20, r: POOL_R * pl.k * 1.5, a: 0.9 * pl.k, color: 'rgba(163, 230, 53, 0.22)' }, { x: pl.x, y: GY - 60, r: POOL_R * pl.k, a: 0.5 * pl.k, color: 'rgba(251, 146, 60, 0.12)' }];
+};
+/** Her tells, lit so the hall's dark never hides them: the flail's reach on the floor (red), the booth's spotlight's
+ *  mark (red, flashing). */
+export const tellLights = (f: Fight): Light[] => {
+  const out: Light[] = [];
+  if (f.mode === 'flail' && f.ph === 'tell') out.push({ x: f.x, y: GY - 10, r: FLAIL_WIDE, a: 0.8, color: 'rgba(239, 68, 68, 0.22)' });
+  if (f.can && f.can.t < DROP_TELL + DROP_FALL) out.push({ x: f.can.x, y: GY - 10, r: 90, a: f.can.t % 8 < 4 ? 0.9 : 0.5, color: 'rgba(239, 68, 68, 0.25)' });
+  return out;
 };
 /** The glow off her oil: each drop in the air, each slick's sizzle (sick acid green). */
 export const oilLights = (f: Fight): Light[] => [
