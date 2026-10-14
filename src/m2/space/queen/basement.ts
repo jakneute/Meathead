@@ -721,6 +721,8 @@ export const startKick = (state: GameState, h: Hunter) => {
   if (h.hid >= 0) { h.hid = -1; p.hidden = false; }
   p.inCutscene = true;
 };
+/** Frames the kicked door takes to go over flat. */
+const DOOR_FALL = 16;
 const kick = (ctx: FrameContext, h: Hunter): Controls => {
   const { state } = ctx, p = state.player;
   h.doorT++;
@@ -737,8 +739,10 @@ const kick = (ctx: FrameContext, h: Hunter): Controls => {
     // (and she's done with: the chase is over)
     to(h, 'away'); h.next = 1e9; h.finale = true; h.fg = null; h.rattle = null; h.fake = null;
   }
+  // (the door down flat: a slam and a puff of dust off the floor)
+  if (t === 18 + DOOR_FALL) { playSound('slam', 1, -10); playSound('thud', 0.8, -8); shakeScreen(state, 8, 4); for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: DOOR_X + 60 + Math.random() * 200, y: GY - 4 }, vel: { x: (Math.random() - 0.3) * 4, y: -1 - Math.random() * 2 }, life: 40, color: 'rgba(214, 211, 209, 0.6)', size: 4 + Math.random() * 6 }); }
   if (t > 30 && pmid(state) < DISCO_L + 130) return { ...hands(), right: true } as Controls;
-  if (t > 30) { h.door = 'in'; p.inCutscene = false; p.kickPose = 0; }
+  if (t > 18 + DOOR_FALL) { h.door = 'in'; p.inCutscene = false; p.kickPose = 0; }
   return hands();
 };
 
@@ -893,6 +897,21 @@ const drawDoor = (c: Ctx, state: GameState, h: Hunter) => {
     box(c, bx, by, 6, 6, (i + Math.floor(f / 6)) % 3 === 0 ? '#FDE047' : '#78350F');
   }
   label(c, 'GALACTIC GROOVE', x, GY - 236, (Math.floor(f / 20) % 2 ? '#F472B6' : '#C084FC'), 8);
+  // (kicked: the door goes over, off its hinges, falling away from us into the hall about its bottom edge, faster and
+  // faster (seen face on: it shortens down to the floor), flat on the floor in the doorway)
+  const fall = h.door === 'kicking' ? Math.max(0, Math.min(1, (h.doorT - 18) / DOOR_FALL)) : h.door === 'in' ? 1 : 0;
+  if (fall > 0) {
+    const sy = Math.max(0.06, Math.cos(fall * fall * (Math.PI / 2)));
+    c.save(); c.translate(x, GY); c.scale(1, sy); c.translate(-x, -GY);
+    ink(c, () => c.rect(x - 56, GY - 206, 112, 206), '#7E22CE', 2);
+    box(c, x - 50, GY - 200, 44, 194, '#A855F7'); box(c, x + 6, GY - 200, 44, 194, '#A855F7');
+    box(c, x - 50, GY - 200, 100, 4, '#E9D5FF');
+    if (sy > 0.4) label(c, 'MEMBERS ONLY', x, GY - 120, '#FDE047', 6);
+    c.restore();
+    // (lying there: its edge lit, the hall's lights through the empty doorway)
+    if (fall >= 1) { box(c, x - 58, GY - 13, 116, 3, '#C084FC'); box(c, x - 56, GY - 206, 112, 192, `rgba(${f % 40 < 20 ? '244, 114, 182' : '125, 211, 252'}, 0.18)`); }
+    return;
+  }
   if (h.door !== 'in') {
     ink(c, () => c.rect(x - 56, GY - 206, 112, 206), '#7E22CE', 2);
     box(c, x - 2, GY - 206, 4, 206, '#3B0764');
