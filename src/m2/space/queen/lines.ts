@@ -183,6 +183,13 @@ export const MH_RAY = ["AN IMPREGNATOR RAY? ON A ROBOT? I'M NOT ASKING.", "I'M N
 export const MH_BIRTH = ['SHE JUST SHIT OUT A ROBOT.', "THAT'S NOT WHERE BABIES COME FROM. I THINK.", 'OH GOD. IT CAME OUT HER ASS.'];
 export const MH_BAT = ['RETURN TO SENDER!', 'BACK WHERE YOU CAME FROM! THE ASS!', "HERE'S YOUR KID BACK, LADY!"];
 export const MH_HEAD = ['BONK.', 'RIGHT IN THE CRANIUM.', 'TAKE A SEAT. THE OTHER SIDE.'];
+/** A meteor (the spellbook's storm) come down in her oil, and nothing: it's acid, and it won't burn. Once a life. The
+ *  user's line first, every way. */
+export const MH_CHEAP_OIL: ByPants = {
+  clean: ["WHAT KIND OF CHEAP OIL DO THEY USE? IT DOESN'T EVEN BURN.", 'A METEOR. IN OIL. NOTHING. KNOCKOFF OIL.', "IT EATS SHOES BUT IT WON'T BURN? BULLSHIT."],
+  shitty: ["WHAT KIND OF CHEAP OIL DO THEY USE? IT DOESN'T EVEN BURN.", 'MY PANTS WOULD BURN BETTER THAN THAT.', 'NOTHING. ONLY THING IN HERE THAT BURNS IS MY ASS.'],
+  nude: ["WHAT KIND OF CHEAP OIL DO THEY USE? IT DOESN'T EVEN BURN.", "NO FIRE. I'M THE HOTTEST THING IN HERE. NAKED.", "WON'T BURN. STILL EATS BARE FEET. GREAT OIL."],
+};
 
 /** Pushing one out (her back to him). */
 export const QUEEN_BIRTH: ByPants = {
@@ -237,7 +244,7 @@ export const HURT_POOL: ByPants = {
 };
 export const DEATH_POOL: ByPants = {
   clean: ['DEEP FRIED', 'BOILED IN MOTOR OIL', 'AN OIL CHANGE GONE WRONG'],
-  shitty: ['DEEP FRIED, PANTS AND ALL', 'BOILED IN MOTOR OIL', 'GREASE FIRE'],
+  shitty: ['DEEP FRIED, PANTS AND ALL', 'BOILED IN MOTOR OIL', 'EATEN BY CHEAP OIL'],
   nude: ['DEEP FRIED. NAKED.', 'BOILED IN MOTOR OIL. ALL OF HIM.', 'CRISPY'],
 };
 export const HURT_BITER = ['THE BABY BIT MY ANKLE!', 'GET OFF MY SHIN, YOU ROBOT TURD!', "IT'S A TODDLER WITH TEETH!"];
@@ -256,7 +263,7 @@ export const DEATH_SPIT = ['SPAT TO DEATH', 'GREASED', 'KILLED BY A SPITTER'];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...all(MH_GLASS), ...all(MH_KICK), ...all(MH_FALL), ...MH_DARK, ...MH_SPOT, ...all(MH_HIDE), ...all(MH_HIDE_DARK), ...MH_PASSED, ...MH_SEEN, ...MH_WARN_SHOOT, ...MH_WARN_MOVE, ...MH_USELESS,
-    ...all(MH_DISCO), ...MH_EXTINGUISHER, ...MH_FOAM_FAIL, ...MH_THROW, ...all(MH_LESS_FATAL), ...MH_RAY, ...MH_BIRTH, ...MH_BAT, ...MH_HEAD, ...all(MH_OPS_GONE), ...HURT_CAN,
+    ...all(MH_DISCO), ...MH_EXTINGUISHER, ...MH_FOAM_FAIL, ...MH_THROW, ...all(MH_LESS_FATAL), ...MH_RAY, ...MH_BIRTH, ...MH_BAT, ...MH_HEAD, ...all(MH_CHEAP_OIL), ...all(MH_OPS_GONE), ...HURT_CAN,
     ...HURT_SPIT, ...HURT_JAW, ...HURT_OIL, ...all(HURT_FLAIL), ...all(HURT_POOL), ...HURT_BITER, ...HURT_SPITTER, ...HURT_CHARGER,
   ],
   death: [...DEATH_CAN, ...DEATH_SPIT, ...DEATH_JAW, ...DEATH_OIL, ...all(DEATH_FLAIL), ...all(DEATH_POOL), ...DEATH_BITER, ...DEATH_SPITTER, ...DEATH_CHARGER],

@@ -70,8 +70,9 @@ export interface GameState {
   cameraLeadX?: number;
   /** A set piece only lets him use this weapon (the jet ski: the gun). */
   lockWeapon?: WeaponType;
-  /** Oil on the ground (Oscar's stage): a slick you slide about on, or tar that holds your feet. From x1 to x2 along the ground line. */
-  groundOil?: { x1: number; x2: number; kind: 'slick' | 'tar' }[];
+  /** Oil on the ground (Oscar's stage): a slick you slide about on, or tar that holds your feet. From x1 to x2 along the ground line;
+   *  `notKinds`: enemy kinds it doesn't take the feet out from under (Meathead 2's queen's kin, on her own oil). */
+  groundOil?: { x1: number; x2: number; kind: 'slick' | 'tar'; notKinds?: string[] }[];
   /** The weapons he's got right now (from the game's progress). */
   availableWeapons?: WeaponType[];
 

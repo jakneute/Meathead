@@ -51,7 +51,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
-import { ENEMY_HIT_COOLDOWN, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { ENEMY_HIT_COOLDOWN, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { takeBites } from '../../weapons/spawner';
 import { setHazardZones } from '../../hazardHit';
@@ -63,7 +63,9 @@ import { DISCO_L as ARENA_L, DISCO_R as ARENA_R, DISCO_SIDES, DJ as BOOTH, EXTIN
 import type { BoothOps } from './lowerArt';
 import type { Light } from '../../../m1/game/render/lighting';
 import { drawQueen, queenHead, type QueenPose } from './art';
-import { BITER, SPITTER, CHARGER, isKin, kinAge, spawnKin, destroyKin, tickKin, drawKinShots, drawSac, resetKin } from './kin';
+import { REACH_T, REACH_GRAB, WIND_T, THROW_FROM, SPRAY_AIM, sprayNozzle, shakeNozzle } from '../../../m1/game/render/player/extinguisher';
+import { onMeteorBlast } from '../../weapons/spellbook';
+import { BITER, SPITTER, CHARGER, KIN, isKin, kinAge, spawnKin, destroyKin, tickKin, drawKinShots, drawSac, resetKin } from './kin';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -81,8 +83,12 @@ const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
 const SIDE_X = { [-1]: DISCO_SIDES.l, [1]: DISCO_SIDES.r } as Record<-1 | 1, number>;
 /** Where she drops in for the cutscene (on screen with him, the extinguisher and the booth); the camera then. */
 const INTRO_X = ARENA_L + 780, INTRO_CAM = ARENA_L + 80;
-/** Births: how often (by phase), at most this many of hers about at once; the tell (turning round), the push. */
-const BIRTH_EVERY = [0, 240, 170, 120], KIN_CAP = [0, 3, 5, 7], TURN_T = 26, PUSH_T = 34;
+/** Births: how often (by phase), at most this many of hers about at once (a whole litter has to fit); the tell (turning
+ *  round), the push; one sac after another out of her, this far apart (frames). */
+const BIRTH_EVERY = [0, 240, 170, 120], KIN_CAP = [0, 5, 8, 10], TURN_T = 26, PUSH_T = 34, SAC_GAP = 9;
+/** How many to a litter: two at the start, rising with what she's lost, to five (the user's). */
+const LITTER_MIN = 2, LITTER_MAX = 5;
+const litterOf = (f: Fight) => Math.max(LITTER_MIN, Math.min(LITTER_MAX, LITTER_MIN + Math.floor((1 - f.hp / HP) * (LITTER_MAX - LITTER_MIN + 1))));
 /** Which kind comes out (by phase): the chances of a biter, a spitter (the rest chargers). */
 const KIN_ODDS = [[0, 0, 0], [0.55, 0.3], [0.4, 0.35], [0.35, 0.35]];
 /** The leap: how often (by phase); the crouch (the tell), the air, the landing; how high; the oil it barfs. */
@@ -99,6 +105,11 @@ const MALLET_HIT = 16;
 const DROP_EVERY = [0, 0, 620, 420], DROP_TELL = 54, DROP_FALL = 14, DROP_R = 36, DROP_DMG = 16;
 /** The oil slicks: how long one lasts (frames). */
 const SLICK_LIFE = 1100;
+/** The barf on a leap: in gushes, onto spaced spots along the floor between her two sides (marked from her crouch on),
+ *  safe gaps between: how many (by phase), how wide each, the drops in each, kept this far in from her two sides. */
+const BARF_N = [0, 3, 4, 4], BARF_W = 110, BARF_DROPS = 7, BARF_IN = 130;
+/** The drips off her all the time (frames between), the puddles she leaves stood about (how often, how long they last). */
+const DRIP_EVERY = 2, SPOT_EVERY = 50, SPOT_LIFE = 700;
 /** How often she says something at him (frames). */
 const TAUNT_EVERY = 900;
 
@@ -125,9 +136,13 @@ const INTRO_MEMO = 'm2:space:discoIntro';
 
 type Step = 'lights' | 'drop' | 'grab' | 'spray' | 'shake' | 'throw' | 'bonk' | 'mode' | 'study' | 'ray' | 'beam' | 'react';
 export type Mode = 'wait' | 'intro' | 'idle' | 'birth' | 'leap' | 'flail' | 'stun' | 'dead';
-interface Drop { x: number; y: number; vx: number; vy: number }
+interface Drop { x: number; y: number; vx: number; vy: number; tx: number }
 interface Sac { x: number; y: number; vx: number; vy: number; t: number; kind: string; landed: number }
 interface Slick { x1: number; x2: number; t: number }
+/** A spot the barf's coming down on: its middle; its gush let go; drops still in the air for it; landed. */
+interface Barf { x: number; let: boolean; due: number; landed: number }
+/** A puddle she's leaked, stood about (looks only). */
+interface Spot { x: number; r: number; t: number }
 
 export interface Fight {
   mode: Mode; t: number; total: number;
@@ -142,7 +157,13 @@ export interface Fight {
   birthT: number; leapT: number; linger: number; forceLeap: boolean; stunT: number;
   /** The pool round her (after a leap; gone with her next birth): where, how far up it is (0..1), going. */
   pool: { x: number; k: number; going: boolean } | null;
-  drops: Drop[]; sacs: Sac[]; slicks: Slick[];
+  drops: Drop[]; sacs: Sac[]; slicks: Slick[]; barf: Barf[]; spots: Spot[];
+  /** The rest of this litter still to come out of her (their kinds). */
+  litter: string[];
+  /** Meathead's said his say about the oil not burning (once a life). */
+  cheapSaid: boolean;
+  /** Frames into getting the extinguisher off the wall (the hop up for it). */
+  grabT: number;
   tauntT: number; saidBirth: number;
   /** A throw or a bat landed on her lately (the engine's own share of the same hit isn't counted on top). */
   eventAt: number;
@@ -165,7 +186,7 @@ export const makeFight = (state: GameState): Fight => {
     lights: seen ? 1 : 0, down: seen ? 1 : 0, foam: 0, ext2: seen ? 'gone' : 'wall', ex: { x: EXTINGUISHER_X, y: GY - 90, vx: 0, vy: 0, r: 0 },
     said: null, boothSaid: null,
     birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, pool: null,
-    drops: [], sacs: [], slicks: [], tauntT: 0, saidBirth: -9999, eventAt: -99,
+    drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, eventAt: -99,
     ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], deathT: 0, deathSaid: 0, byWeakness: false, e: null,
   };
 };
@@ -232,12 +253,12 @@ export const startFight = (state: GameState, f: Fight) => {
 const begin = (state: GameState, f: Fight) => {
   f.token++;
   to(f, 'idle'); f.glass = false; f.booth = 1; f.beam = 0; f.alive = 1; f.said = null; f.boothSaid = null;
-  f.lights = 1; f.down = 1; f.foam = 0; f.ext2 = 'gone';
+  f.lights = 1; f.down = 1; f.foam = 0; f.ext2 = 'gone'; f.cheapSaid = false;
   f.birthT = 120; f.leapT = 0; f.canT = 0;
   // (out of the cutscene she's mid-hall: first thing, she's off to the far end)
   if (Math.abs(f.x - SIDE_X[1]) > 40) { f.side = -1; f.forceLeap = true; }
   state.stageMemo[INTRO_MEMO] = '1';
-  state.player.inCutscene = false; state.player.kickPose = 0;
+  state.player.inCutscene = false; state.player.kickPose = 0; state.player.extinguisher = undefined;
   const e = makeKindEnemy(QUEEN_KIND as EnemyKind, f.x, GY);
   e.facing = f.facing; e.seen = true;
   f.e = e; f.moveSeen = e.hitByMove;
@@ -256,9 +277,13 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
     p.vel.x = 0;
     begin(state, f); return hands();
   }
-  const t = f.stepT, cx = p.pos.x + p.width / 2, head = queenHead(f.x, -1, 0);
+  const t = f.stepT, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height, head = queenHead(f.x, -1, 0);
   f.lights = Math.min(1, f.lights + 0.03);
-  if (f.ext2 === 'held') { f.ex.x = cx + p.facing * 22; f.ex.y = p.pos.y + 34; }
+  // (his pose with it (render/player/extinguisher.ts); a point of his (local, from his feet) out in the world)
+  const pose = (step: NonNullable<typeof p.extinguisher>['step'], pt: number) => { p.extinguisher = { step, t: pt }; };
+  const at = (lp: readonly [number, number]) => ({ x: cx + p.facing * lp[0], y: feet + lp[1] });
+  if (p.extinguisher && p.extinguisher.step !== 'reach') p.extinguisher.t++;
+  if (p.extinguisher?.step === 'throw' && p.extinguisher.t > 34) p.extinguisher = undefined;
   switch (f.step) {
     case 'lights':
       // (the hall coming up: the floor lighting, the ball turning; his say (the line's own callback moves it on))
@@ -275,31 +300,52 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
       if (t >= 60) go(f, 'grab');
       break;
     case 'grab':
-      // (over to the wall for the extinguisher)
-      if (Math.abs(cx - EXTINGUISHER_X) > 12 && t < 200) return { ...hands(), right: cx < EXTINGUISHER_X, left: cx > EXTINGUISHER_X } as Controls;
+      // (over to the wall for the extinguisher; a hop up for it in its cabinet, got it, down with it, in to his chest)
+      if (f.grabT === 0 && Math.abs(cx - EXTINGUISHER_X) > 12 && t < 200) return { ...hands(), right: cx < EXTINGUISHER_X, left: cx > EXTINGUISHER_X } as Controls;
       p.vel.x = 0; p.facing = 1;
-      if (f.ext2 === 'wall') { f.ext2 = 'held'; playSound('clink', 0.8, -4); meatheadSays(state, pick(L.MH_EXTINGUISHER), true, tokened(f, () => go(f, 'spray'))); }
+      if (f.grabT === 0) pose('reach', 0);
+      f.grabT++;
+      if (p.extinguisher?.step === 'reach') p.extinguisher.t = f.grabT;
+      if (f.grabT === 7) playSound('jump', 0.6, 4);
+      if (f.grabT === REACH_GRAB && f.ext2 === 'wall') { f.ext2 = 'held'; playSound('clink', 0.8, -4); }
+      if (f.grabT === 18) playSound('land', 0.8, -2);
+      if (f.grabT === REACH_T) { pose('hold', 0); meatheadSays(state, pick(L.MH_EXTINGUISHER), true, tokened(f, () => { go(f, 'spray'); pose('spray', 0); })); }
       break;
-    case 'spray':
-      // (the foam: a white stream out at her; it piles up on her)
-      if (t % 3 === 0) {
-        playSound('oil', 0.3, 8);
-        for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: f.ex.x + 18, y: f.ex.y - 4 }, vel: { x: 9 + Math.random() * 3, y: -2 + Math.random() * 2.5 }, life: 40, color: i % 2 ? '#F8FAFC' : '#E2E8F0', size: 4 + Math.random() * 4, grav: 0.08 });
+    case 'spray': {
+      // (braced, the hose on her: the foam a white cloud blasting out at her, the kick of it; it piles up on her; the
+      // last of it sputtering)
+      const tip = at(sprayNozzle(p.extinguisher ?? { step: 'spray', t })), out = t < 76, a = SPRAY_AIM;
+      f.ex.x = tip.x; f.ex.y = tip.y;
+      if (t > 6 && (out ? t % 2 === 0 : t % 5 === 0)) {
+        playSound(out ? 'oil' : 'squish', out ? 0.35 : 0.3, out ? 8 : 12);
+        for (let i = 0; i < (out ? 4 : 1); i++) {
+          const sp = (out ? 9 : 3) + Math.random() * 3, aa = a + (Math.random() - 0.5) * (out ? 0.22 : 0.6);
+          state.particles.push({ pos: { x: tip.x, y: tip.y }, vel: { x: Math.cos(aa) * sp * p.facing, y: Math.sin(aa) * sp }, life: out ? 44 : 20, color: i % 2 ? '#F8FAFC' : '#E2E8F0', size: 4 + Math.random() * 5, grav: out ? 0.06 : 0.25 });
+        }
+        // (the cloud billowing round the nozzle)
+        if (out) state.particles.push({ pos: { x: tip.x + p.facing * 8, y: tip.y }, vel: { x: p.facing * (0.6 + Math.random()), y: -0.4 - Math.random() * 0.5 }, life: 36, color: 'rgba(241, 245, 249, 0.55)', size: 10 + Math.random() * 8 });
       }
-      f.foam = Math.min(1, t / 80);
-      if (t >= 90) { go(f, 'shake'); playSound('gush', 0.5, 4); }
+      if (out && t % 12 === 0) shakeScreen(state, 1, 1);
+      f.foam = Math.min(1, t / 70);
+      if (t >= 90) { go(f, 'shake'); playSound('gush', 0.5, 4); pose('shake', 0); }
       break;
-    case 'shake':
-      // (nothing: she shakes it all off, like a dog)
+    }
+    case 'shake': {
+      // (nothing: she shakes it all off, like a dog; him, shaking his empty can at his face)
       if (t % 6 === 0) { playSound('whoosh', 0.4, 6); for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 80, y: GY - 120 - Math.random() * 160 }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 4 }, life: 34, color: '#F8FAFC', size: 4 + Math.random() * 4, grav: 0.3 }); }
+      if (t % 9 === 0) { playSound('clink', 0.3, 10); const tip = at(shakeNozzle(p.extinguisher ?? { step: 'shake', t })); state.particles.push({ pos: { x: tip.x, y: tip.y }, vel: { x: p.facing * 0.4, y: 0.5 }, life: 26, color: '#F8FAFC', size: 3, grav: 0.2 }); }
       f.foam = Math.max(0, f.foam - 0.025);
-      if (t === 40) meatheadSays(state, pick(L.MH_FOAM_FAIL), true, tokened(f, () => go(f, 'throw')));
+      if (t === 40) meatheadSays(state, pick(L.MH_FOAM_FAIL), true, tokened(f, () => { go(f, 'throw'); pose('wind', 0); }));
       break;
+    }
     case 'throw':
-      // (so he throws it at her head: up, over, end over end)
+      // (so he throws it at her head: wound up over his head, hurled overhand, end over end)
       if (t === 1) { meatheadSays(state, pick(L.MH_THROW), false); }
-      if (t === 20) {
+      if (t === WIND_T) {
         f.ext2 = 'air';
+        pose('throw', 0);
+        const from = at(THROW_FROM);
+        f.ex.x = from.x; f.ex.y = from.y; f.ex.r = 0;
         const T = Math.max(34, Math.round(Math.abs(head.x - f.ex.x) / 10));
         f.ex.vx = (head.x - f.ex.x) / T; f.ex.vy = (head.y - f.ex.y) / T - 0.5 * 0.35 * T;
         playSound('whoosh', 0.9, -2);
@@ -357,6 +403,7 @@ const kinAbout = (state: GameState) => state.enemies.filter(e => isKin(e) && e.h
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx;
   f.total++;
+  live = f;
   if (f.mode === 'intro') return intro(ctx, f);
   if (f.mode === 'wait') return controls;
   f.t++;
@@ -378,7 +425,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       f.facing = toward; f.ext *= 0.85;
       if (f.linger >= FLAIL_LINGER) { to(f, 'flail'); f.ph = 'tell'; playSound('click', 0.8, 10); break; }
       if (f.forceLeap || ++f.leapT >= LEAP_EVERY[ph]) { startLeap(state, f); break; }
-      if (++f.birthT >= BIRTH_EVERY[ph] && kinAbout(state).length + f.sacs.length < KIN_CAP[ph]) { f.birthT = 0; to(f, 'birth'); f.ph = 'turn'; playSound('snort', 0.7, -8); }
+      if (++f.birthT >= BIRTH_EVERY[ph] && kinAbout(state).length + f.sacs.length + litterOf(f) <= KIN_CAP[ph]) { f.birthT = 0; to(f, 'birth'); f.ph = 'turn'; playSound('snort', 0.7, -8); }
       break;
     case 'birth':
       // (round she turns, her back to him; a push; out it comes)
@@ -387,19 +434,31 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       else if (f.ph === 'push') {
         if (f.t % 8 === 0) { playSound('snort', 0.6, -12 + (f.t % 16) / 2); shakeScreen(state, 2, 1); }
         if (f.t >= PUSH_T) {
-          // (out of her rear, toward the middle of the hall: the sac)
-          const dir = (-f.facing) as 1 | -1, r = Math.random(), odds = KIN_ODDS[ph];
-          const kind = r < odds[0] ? BITER : r < odds[0] + odds[1] ? SPITTER : CHARGER;
-          f.sacs.push({ x: f.x + dir * 70, y: GY - 90, vx: dir * (3 + Math.random() * 2), vy: -3, t: 0, kind, landed: 0 });
-          playSound('fart', 1, -6); playSound('splat', 0.8, -4); shakeScreen(state, 4, 2);
-          for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: f.x + dir * 60, y: GY - 90 }, vel: { x: dir * (1 + Math.random() * 4), y: -1 - Math.random() * 3 }, life: 30, color: i % 2 ? ALIEN.slime : '#0A0A0A', size: 2 + Math.random() * 3, grav: 0.3 });
+          // (a litter: two at the start, more the lower she gets; no more than two chargers to one)
+          const odds = KIN_ODDS[ph], n = litterOf(f);
+          f.litter = [];
+          for (let i = 0; i < n; i++) {
+            const r = Math.random();
+            let kind = r < odds[0] ? BITER : r < odds[0] + odds[1] ? SPITTER : CHARGER;
+            if (kind === CHARGER && f.litter.filter(k => k === CHARGER).length >= 2) kind = BITER;
+            f.litter.push(kind);
+          }
           if (state.frame - f.saidBirth > 900) { f.saidBirth = state.frame; meatheadSays(state, pick(L.MH_BIRTH), false); }
           else if (Math.random() < 0.5) bark(state, f, L.BOOTH_BIRTH, 'booth');
           f.ph = 'after'; f.t = 0;
           // (and the pool round her goes, as they come)
           if (f.pool) f.pool.going = true;
         }
-      } else if (f.t >= 24) to(f, 'idle');
+      } else {
+        // (out of her rear, toward the middle of the hall: one sac after another, the first flung furthest)
+        if (f.litter.length && f.t % SAC_GAP === 0) {
+          const dir = (-f.facing) as 1 | -1, i = f.litter.length - 1, kind = f.litter.shift()!;
+          f.sacs.push({ x: f.x + dir * 70, y: GY - 90, vx: dir * (2.2 + i * 1.3 + Math.random() * 0.8), vy: -3 - Math.random(), t: 0, kind, landed: 0 });
+          playSound('fart', f.litter.length ? 0.7 : 1, -6 + f.litter.length); playSound('splat', 0.7, -4); shakeScreen(state, 4, 2);
+          for (let q = 0; q < 10; q++) state.particles.push({ pos: { x: f.x + dir * 60, y: GY - 90 }, vel: { x: dir * (1 + Math.random() * 4), y: -1 - Math.random() * 3 }, life: 30, color: q % 3 === 0 ? ALIEN.slime : q % 3 === 1 ? '#0A0604' : '#3F2A12', size: 2 + Math.random() * 3, grav: 0.3 });
+        }
+        if (!f.litter.length && f.t >= 24) to(f, 'idle');
+      }
       break;
     case 'flail': {
       // (the tell: a twitch, sparks; then all four arms at once, wide)
@@ -440,6 +499,12 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
 const startLeap = (state: GameState, f: Fight) => {
   to(f, 'leap'); f.ph = 'crouch'; f.leapT = 0; f.forceLeap = false; f.leapFrom = f.x;
   f.facing = (-f.side) as 1 | -1;
+  // (where the barf'll come down: spaced spots along the floor between her two sides, gaps between them to stand in;
+  // marked on the floor from now)
+  const dest = SIDE_X[(-f.side) as -1 | 1], lo = Math.min(f.x, dest) + BARF_IN, hi = Math.max(f.x, dest) - BARF_IN;
+  const n = BARF_N[phase(f)], gap = (hi - lo - n * BARF_W) / (n - 1), shift = (Math.random() - 0.5) * Math.min(60, gap * 0.4);
+  f.barf = [];
+  for (let i = 0; i < n; i++) f.barf.push({ x: lo + BARF_W / 2 + i * (BARF_W + gap) + shift, let: false, due: 0, landed: 0 });
   playSound('screams', 0.6, -8);
   if (Math.random() < 0.6) bark(state, f, L.QUEEN_LEAP);
 };
@@ -450,11 +515,17 @@ const leaping = (ctx: FrameContext, f: Fight) => {
   if (f.ph === 'air') {
     const k = f.t / AIR_T;
     f.x = from + (dest - from) * k; f.y = Math.sin(k * Math.PI) * LEAP_UP;
-    // (the barf: motor oil down out of her mouth on the way over)
-    if (f.t > 6 && f.t < AIR_T - 6 && f.t % 2 === 0) {
-      const h = queenHead(f.x, f.facing, 0);
-      f.drops.push({ x: h.x + f.facing * 20, y: GY - f.y - 230, vx: f.facing * (0.5 + Math.random() * 2.5) + (dest - from) / AIR_T * 0.4, vy: 1 + Math.random() * 2 });
-      if (f.t % 6 === 0) playSound('gush', 0.6, -2);
+    // (the barf: over each marked spot, a gush of it down out of her mouth onto that spot, a drop at a time, each
+    // aimed at its own place in the spot; nothing in the gaps)
+    const dir = Math.sign(dest - from) || 1;
+    for (const b of f.barf) {
+      if (!b.let && (f.x - b.x) * dir >= -60) { b.let = true; b.due = BARF_DROPS; playSound('retch', 0.8, -6); playSound('gush', 0.8, -4); }
+      if (b.due > 0 && f.t % 2 === 0) {
+        b.due--;
+        const h = queenHead(f.x, f.facing, 0), x0 = h.x + f.facing * 20, y0 = GY - f.y - 230, vy = 1;
+        const tx = b.x + (Math.random() - 0.5) * (BARF_W - 24), T = (-vy + Math.sqrt(vy * vy + 2 * 0.4 * Math.max(10, GY - y0))) / 0.4;
+        f.drops.push({ x: x0, y: y0, vx: (tx - x0) / T, vy, tx });
+      }
     }
     if (f.t >= AIR_T) {
       f.ph = 'land'; f.t = 0; f.x = dest; f.y = 0; f.side = (-f.side) as -1 | 1; playSound('thud', 1.2, -10); playSound('land', 1, -8); shakeScreen(state, 12, 6);
@@ -498,11 +569,16 @@ const tickOil = (ctx: FrameContext, f: Fight) => {
       hurtPlayer(ctx, OIL_DMG, OIL, { x: Math.sign(d.vx) * 3, y: -3 }, 10); playSound('splat', 0.6, 2); return false;
     }
     if (d.y >= GY - 2) {
-      // (a slick where it lands, joined to any next to it)
+      // (a slick where it lands, joined to any next to it; a splash, a sizzle, acid fumes)
       const near = f.slicks.find(s => d.x > s.x1 - 30 && d.x < s.x2 + 30);
-      if (near) { near.x1 = Math.min(near.x1, d.x - 20); near.x2 = Math.max(near.x2, d.x + 20); near.t = 0; }
-      else f.slicks.push({ x1: d.x - 24, x2: d.x + 24, t: 0 });
-      for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: d.x, y: GY - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 14, color: '#0A0A0A', size: 2 + Math.random() * 2, grav: 0.3 });
+      if (near) { near.x1 = Math.min(near.x1, d.x - 16); near.x2 = Math.max(near.x2, d.x + 16); near.t = 0; }
+      else f.slicks.push({ x1: d.x - 18, x2: d.x + 18, t: 0 });
+      for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: d.x, y: GY - 2 }, vel: { x: (Math.random() - 0.5) * 5, y: -1.5 - Math.random() * 3 }, life: 18, color: ['#0A0604', '#3F2A12', '#A3E635'][i % 3], size: 2 + Math.random() * 3, grav: 0.3 });
+      state.particles.push({ pos: { x: d.x, y: GY - 8 }, vel: { x: (Math.random() - 0.5) * 0.5, y: -0.9 }, life: 40, color: 'rgba(190, 242, 100, 0.3)', size: 8 + Math.random() * 6 });
+      if (Math.random() < 0.4) playSound('splat', 0.4, 4 + Math.random() * 4);
+      if (Math.random() < 0.3) playSound('rayFizzle', 0.25, 10);
+      const b = f.barf.find(q => Math.abs(q.x - d.tx) < BARF_W);
+      if (b) b.landed++;
       return false;
     }
     return d.x > ARENA_L - 40 && d.x < ARENA_R + 40;
@@ -511,7 +587,25 @@ const tickOil = (ctx: FrameContext, f: Fight) => {
   f.slicks = f.slicks.filter(s => s.t < SLICK_LIFE);
   // (the engine's oil: he slides on it)
   const others = (state.groundOil ?? []).filter(o => !(o as { queen?: boolean }).queen);
-  state.groundOil = [...others, ...f.slicks.map(s => ({ x1: Math.max(ARENA_L, s.x1), x2: Math.min(ARENA_R, s.x2), kind: 'slick' as const, queen: true }))];
+  state.groundOil = [...others, ...f.slicks.map(s => ({ x1: Math.max(ARENA_L, s.x1), x2: Math.min(ARENA_R, s.x2), kind: 'slick' as const, queen: true, notKinds: KIN_KINDS }))];
+  // (the marks come off the floor once her barf's all down)
+  if (f.mode !== 'leap' && f.barf.length && f.barf.every(b => b.let && b.due === 0) && !f.drops.length) f.barf = [];
+  leak(state, f);
+};
+const KIN_KINDS = [...KIN];
+
+/** She leaks all the time: drips off her joints, a trail of it in the air, puddles where she stands (looks only). */
+const leak = (state: GameState, f: Fight) => {
+  if (f.down < 1 || f.mode === 'intro' || f.mode === 'wait') return;
+  const dead = f.mode === 'dead';
+  if (state.frame % (dead ? DRIP_EVERY * 3 : DRIP_EVERY) === 0) {
+    const x = f.x + (Math.random() - 0.5) * 80, y = GY - f.y - 40 - Math.random() * 170;
+    state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 0.6, y: 0.5 }, life: 60, color: Math.random() < 0.2 ? '#A3E635' : Math.random() < 0.5 ? '#0A0604' : '#2A1A0A', size: 2 + Math.random() * 2.5, grav: 0.3 });
+  }
+  // (stood still, a puddle grows under her now and then; they dry up after a while)
+  if (f.y === 0 && !dead && state.frame % SPOT_EVERY === 0 && f.spots.length < 10) f.spots.push({ x: f.x + (Math.random() - 0.5) * 120, r: 14 + Math.random() * 16, t: 0 });
+  for (const s of f.spots) s.t++;
+  f.spots = f.spots.filter(s => s.t < SPOT_LIFE);
 };
 export const clearOil = (state: GameState) => { state.groundOil = (state.groundOil ?? []).filter(o => !(o as { queen?: boolean }).queen); };
 
@@ -574,7 +668,7 @@ const thrownInto = (ctx: FrameContext, f: Fight) => {
       f.hp -= BATTED_DMG; f.flash = 16; f.iframes = IFRAMES;
       for (const k of kinAbout(state)) destroyKin(ctx, k);
       if (state.enemies.includes(e)) destroyKin(ctx, e);
-      f.sacs = [];
+      f.sacs = []; f.litter = [];
       ctx.fx.spawnDamageNumber({ x: f.x - 20, y: GY - 260 }, BATTED_DMG, true);
       ctx.fx.spawnDamageNumber({ x: f.x - 60, y: GY - 300 }, 'RETURN TO SENDER!', true, '#FDE047');
       playSound('bonk', 1.2, -4); playSound('crash', 1, -2); shakeScreen(state, 16, 8);
@@ -646,7 +740,7 @@ const sync = (f: Fight) => {
 const die = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   f.token++;
-  to(f, 'dead'); f.deathT = 0; f.drops = []; f.sacs = []; f.y = 0; if (f.pool) f.pool.going = true;
+  to(f, 'dead'); f.deathT = 0; f.drops = []; f.sacs = []; f.litter = []; f.barf = []; f.y = 0; if (f.pool) f.pool.going = true;
   if (f.e) state.enemies = state.enemies.filter(o => o !== f.e);
   // (her offspring: dead where they stand, the lot)
   for (const k of kinAbout(state)) destroyKin(ctx, k);
@@ -679,8 +773,43 @@ const dying = (ctx: FrameContext, f: Fight) => {
   if (t > 2400) f.deathSaid = 3;
 };
 
+/** Her death and the booth's two running out on it: the camera pulled back (eased in by `k`, 0..1) to take in the
+ *  booth (and what they say over it), her and him; the booth's words kept clear below the HUD. */
+export const discoZoom = (state: GameState, f: Fight, k: number) => {
+  if (k <= 0) return null;
+  const e = k * k * (3 - 2 * k), px = pmid(state).x;
+  const x0 = Math.min(BOOTH.x - 40, f.x - 140, px - 50), x1 = Math.max(BOOTH.x + BOOTH.w + 40, f.x + 140, px + 50);
+  const y0 = BOOTH.y - 80, y1 = GY + 16;
+  const top = HUD_CLEAR_Y + 8, w = CANVAS_WIDTH - 40, h = CANVAS_HEIGHT - top - 12;
+  const sc = Math.min(1, w / (x1 - x0), h / (y1 - y0));
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  return { scale: 1 + (sc - 1) * e, x: cx, y: cy, shiftX: e * (state.camera.x + CANVAS_WIDTH / 2 - cx), shiftY: e * (state.camera.y + top + h / 2 - cy) };
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Her oil won't burn (it's acid, and it's cheap): a meteor from the spellbook's storm come down in it, it just splashes
+// and smokes; his say over that, once a life. (Nothing else lights it either: it's the engine's slick, which nothing
+// sets fire to.)
+
+/** The fight that's on (for the meteor's say). */
+let live: Fight | null = null;
+onMeteorBlast((ctx, at) => {
+  const f = live, { state } = ctx;
+  if (!f || f.mode === 'intro' || f.mode === 'wait' || f.mode === 'dead') return;
+  const pl = f.pool;
+  const inPool = !!pl && pl.k > 0.2 && Math.abs(at.x - pl.x) < POOL_R * pl.k + 20 && at.y > GY - 260;
+  const inSlick = at.y > GY - 110 && (f.slicks.some(s => at.x > s.x1 - 24 && at.x < s.x2 + 24) || f.spots.some(s => Math.abs(at.x - s.x) < s.r + 24));
+  if (!inPool && !inSlick) return;
+  // (a splash of black, a hiss, a sad puff of smoke: no fire)
+  playSound('rayFizzle', 0.9, -8); playSound('splat', 0.9, -6);
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: at.x + (Math.random() - 0.5) * 30, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -3 - Math.random() * 5 }, life: 34, color: i % 3 ? '#0A0604' : '#3F2A12', size: 3 + Math.random() * 4, grav: 0.35 });
+  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: at.x + (Math.random() - 0.5) * 40, y: GY - 10 }, vel: { x: (Math.random() - 0.5) * 0.8, y: -0.8 - Math.random() * 0.6 }, life: 70, color: 'rgba(120, 113, 108, 0.45)', size: 10 + Math.random() * 10 });
+  ctx.fx.spawnDamageNumber({ x: at.x - 20, y: GY - 60 }, 'PFFT', true, '#A8A29E');
+  if (!f.cheapSaid && state.player.health > 0 && state.deathTimer <= 0) { f.cheapSaid = true; meatheadSays(state, pick(L.MH_CHEAP_OIL[dressed(state)]), true); }
+});
+
 export const fightOver = (f: Fight) => f.mode === 'dead' && f.deathSaid >= 3 && f.deathT > 220;
-export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; f.drops = []; f.pool = null; setHazardZones(state, 'queen-pool', []); clearOil(state); };
+export const endFight = (state: GameState, f: Fight) => { live = null; state.player.inCutscene = false; state.player.extinguisher = undefined; f.drops = []; f.pool = null; setHazardZones(state, 'queen-pool', []); clearOil(state); };
 export const introOn = (f: Fight) => f.mode === 'intro';
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -711,7 +840,7 @@ export const drawPool = (c: Ctx, state: GameState, f: Fight) => {
     for (let x = -r * 0.8; x < r * 0.8; x += 8) c.fillRect(Math.round(pl.x + x), Math.round(y + Math.sin(x * 0.08 + fr * 0.2) * 3), 8, 2);
   }
   // (the body of it: a hard bright rim, black over everything)
-  c.fillStyle = '#FB923C'; c.beginPath(); c.ellipse(pl.x, GY, r + 6, h + 5, 0, Math.PI, 0); c.fill(); c.fillRect(pl.x - r - 6, GY - 1, r * 2 + 12, 6);
+  c.fillStyle = fr % 20 < 10 ? '#BEF264' : '#84CC16'; c.beginPath(); c.ellipse(pl.x, GY, r + 6, h + 5, 0, Math.PI, 0); c.fill(); c.fillRect(pl.x - r - 6, GY - 1, r * 2 + 12, 6);
   c.fillStyle = '#050302'; c.beginPath(); c.ellipse(pl.x, GY, r + 3, h + 2, 0, Math.PI, 0); c.fill(); c.fillRect(pl.x - r - 3, GY - 1, r * 2 + 6, 5);
   c.fillStyle = '#1A0F06'; c.beginPath(); c.ellipse(pl.x, GY, r * 0.94, h * 0.8, 0, Math.PI, 0); c.fill();
   // (the rainbow sheen: stepped bands sliding across it, clipped to it)
@@ -738,21 +867,78 @@ export const drawPool = (c: Ctx, state: GameState, f: Fight) => {
     c.beginPath(); c.ellipse(Math.round(pl.x - r * 0.6 + i * r * 0.24 + Math.sin(u * 6 + i) * 8), Math.round(GY - h - 10 - u * 120), 8 + u * 16, 6 + u * 10, 0, 0, Math.PI * 2); c.fill();
   }
   // (a warning glow on its rim, pulsing)
-  if (fr % 20 < 10) { c.strokeStyle = 'rgba(251, 146, 60, 0.9)'; c.lineWidth = 2; c.beginPath(); c.ellipse(pl.x, GY, r + 7, h + 6, 0, Math.PI, 0); c.stroke(); }
+  if (fr % 20 < 10) { c.strokeStyle = 'rgba(163, 230, 53, 0.9)'; c.lineWidth = 2; c.beginPath(); c.ellipse(pl.x, GY, r + 7, h + 6, 0, Math.PI, 0); c.stroke(); }
 };
 /** Its glow (the lighting pass): orange, hot. */
 export const poolLights = (f: Fight): Light[] => {
   const pl = f.pool;
   if (!pl || pl.k <= 0) return [];
-  return [{ x: pl.x, y: GY - 20, r: POOL_R * pl.k * 1.5, a: 0.9 * pl.k, color: 'rgba(251, 146, 60, 0.22)' }, { x: pl.x, y: GY - 60, r: POOL_R * pl.k, a: 0.5 * pl.k, color: 'rgba(236, 72, 153, 0.1)' }];
+  return [{ x: pl.x, y: GY - 20, r: POOL_R * pl.k * 1.5, a: 0.9 * pl.k, color: 'rgba(163, 230, 53, 0.22)' }, { x: pl.x, y: GY - 60, r: POOL_R * pl.k, a: 0.5 * pl.k, color: 'rgba(251, 146, 60, 0.12)' }];
+};
+/** The glow off her oil: each drop in the air, each slick's sizzle (sick acid green). */
+export const oilLights = (f: Fight): Light[] => [
+  ...f.drops.map(d => ({ x: d.x, y: d.y, r: 46, a: 0.7, color: 'rgba(163, 230, 53, 0.25)' })),
+  ...f.slicks.map(s => ({ x: (s.x1 + s.x2) / 2, y: GY - 6, r: (s.x2 - s.x1) / 2 + 30, a: 0.5 * Math.min(1, (SLICK_LIFE - s.t) / 120), color: 'rgba(163, 230, 53, 0.16)' })),
+  ...f.barf.filter(b => !b.let || b.due > 0).map(b => ({ x: b.x, y: GY - 4, r: BARF_W * 0.8, a: 0.5, color: 'rgba(190, 242, 100, 0.18)' })),
+];
+
+/** A glossy puddle of her oil on the floor (x, half-width; `a` how much of it's left): black-brown, a lit rim, the
+ *  rainbow sheen sliding along it, a hard glint, a sick green sizzle at its edge. */
+const puddle = (c: Ctx, x: number, r: number, a: number, fr: number, seed: number) => {
+  c.globalAlpha = a;
+  c.fillStyle = 'rgba(163, 230, 53, 0.55)'; c.beginPath(); c.ellipse(x, GY, r + 3, 5, 0, Math.PI, 0); c.fill(); c.fillRect(Math.round(x - r - 3), GY - 1, Math.round(r * 2 + 6), 3);
+  c.fillStyle = '#0A0604'; c.beginPath(); c.ellipse(x, GY, r, 4, 0, Math.PI, 0); c.fill(); c.fillRect(Math.round(x - r), GY - 1, Math.round(r * 2), 4);
+  c.fillStyle = '#2A1A0A'; c.fillRect(Math.round(x - r * 0.6), GY - 3, Math.round(r * 1.2), 1);
+  const u = ((fr * 0.6 + seed * 37) % (r * 2)) - r;
+  box(c, Math.round(x + u * 0.8), GY - 3, 4, 1, '#C084FC'); box(c, Math.round(x + u * 0.8) + 4, GY - 3, 4, 1, '#22D3EE'); box(c, Math.round(x + u * 0.8) + 8, GY - 3, 3, 1, '#FACC15');
+  box(c, Math.round(x - r * 0.4), GY - 4, 3, 1, '#FFFFFF');
+  // (the sizzle: a bubble up at its edge, popping)
+  const b = (fr + seed * 13) % 24;
+  if (b < 16) box(c, Math.round(x + ((seed * 7) % 2 ? r * 0.7 : -r * 0.7)) - 1, GY - 4 - (b >> 2), 3, 3, b < 12 ? '#BEF264' : '#ECFCCB');
+  c.globalAlpha = 1;
+};
+/** One of her drops of oil: a big glossy gob (stretched along where it's going), black-brown, a rainbow sheen, a hard
+ *  white glint, a sick acid-green rim and glow round it. */
+const gob = (c: Ctx, x: number, y: number, vx: number, vy: number, fr: number) => {
+  // (a teardrop: its fat round front the way it's going, the tail drawn out behind; a halo of acid green round it)
+  const sp = Math.hypot(vx, vy), tail = 14 + Math.min(14, sp * 0.8), r = 9;
+  c.fillStyle = `rgba(163, 230, 53, ${fr % 8 < 4 ? 0.3 : 0.18})`; c.beginPath(); c.arc(x, y, 18, 0, Math.PI * 2); c.fill();
+  c.save(); c.translate(x, y); c.rotate(Math.atan2(vy, vx));
+  const drop = (rr: number, tl: number) => { c.beginPath(); c.arc(0, 0, rr, -Math.PI / 2, Math.PI / 2); c.quadraticCurveTo(-tl * 0.5, rr * 0.9, -tl, 0); c.quadraticCurveTo(-tl * 0.5, -rr * 0.9, 0, -rr); c.fill(); };
+  c.fillStyle = '#A3E635'; drop(r + 1.5, tail + 2);
+  c.fillStyle = '#0A0604'; drop(r, tail);
+  c.fillStyle = '#3A2410'; c.beginPath(); c.arc(1, 2.5, r * 0.55, 0, Math.PI * 2); c.fill();
+  // (the sheen across its front, a hard glint)
+  c.fillStyle = '#C084FC'; c.fillRect(-2, -r + 2, 3, 2); c.fillStyle = '#22D3EE'; c.fillRect(1, -r + 2.5, 3, 2); c.fillStyle = '#FACC15'; c.fillRect(4, -r + 3.5, 2, 2);
+  c.fillStyle = '#FFFFFF'; c.fillRect(2, -4, 2, 2);
+  c.restore();
 };
 
 export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
-  // (the oil slicks on the floor: glossy black, a sheen)
+  const fr = state.frame;
+  // (the puddles she's leaked, stood about)
+  for (const s of f.spots) puddle(c, s.x, s.r * Math.min(1, s.t / 40), Math.min(1, (SPOT_LIFE - s.t) / 120), fr, s.x);
+  // (the oil slicks on the floor where her barf came down: glossy black puddles, sheen, a sizzle)
   for (const s of f.slicks) {
     const a = Math.min(1, (SLICK_LIFE - s.t) / 120);
-    c.fillStyle = `rgba(5, 3, 2, ${(0.9 * a).toFixed(2)})`; c.fillRect(Math.round(s.x1), GY - 3, Math.round(s.x2 - s.x1), 5);
-    c.fillStyle = `rgba(167, 139, 250, ${(0.35 * a).toFixed(2)})`; c.fillRect(Math.round(s.x1 + 6 + (state.frame % 40)), GY - 3, 10, 1);
+    puddle(c, (s.x1 + s.x2) / 2, (s.x2 - s.x1) / 2, a, fr, s.x1);
+  }
+  // (where it's coming down, marked from her crouch on: a sick green ring on the floor, flashing, a skull-ish blot in
+  // the middle; and under each drop on its way down, its shadow, growing as it comes)
+  for (const b of f.barf) {
+    if (b.let && b.due === 0 && b.landed >= BARF_DROPS) continue;
+    const on = fr % 10 < 5, hw = BARF_W / 2;
+    c.strokeStyle = on ? '#BEF264' : '#65A30D'; c.lineWidth = 3;
+    c.setLineDash([8, 6]); c.lineDashOffset = -fr * 0.5;
+    c.beginPath(); c.ellipse(b.x, GY - 2, hw, 7, 0, 0, Math.PI * 2); c.stroke();
+    c.setLineDash([]);
+    c.fillStyle = on ? 'rgba(190, 242, 100, 0.22)' : 'rgba(101, 163, 13, 0.14)'; c.beginPath(); c.ellipse(b.x, GY - 2, hw, 7, 0, 0, Math.PI * 2); c.fill();
+    // (the drips sign: three drops)
+    for (let i = -1; i <= 1; i++) { box(c, b.x + i * 12 - 2, GY - 22 - (i === 0 ? 6 : 0), 4, 6, on ? '#A3E635' : '#4D7C0F'); box(c, b.x + i * 12 - 1, GY - 24 - (i === 0 ? 6 : 0), 2, 2, on ? '#A3E635' : '#4D7C0F'); }
+  }
+  for (const d of f.drops) {
+    const k = Math.max(0, Math.min(1, 1 - (GY - d.y) / 500));
+    c.fillStyle = `rgba(0, 0, 0, ${(0.25 + 0.45 * k).toFixed(2)})`; c.beginPath(); c.ellipse(d.tx, GY - 1, 4 + 8 * k, 2 + 2 * k, 0, 0, Math.PI * 2); c.fill();
   }
   for (const s of f.sacs) drawSac(c, s.x, s.y, state.frame, s.landed > 10 ? Math.min(1, (s.landed - 10) / 16) : 0);
   if (f.down > 0) {
@@ -774,8 +960,8 @@ export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
     for (let i = 0; i < 9; i++) { const k = ((i / 9) + state.frame * 0.035) % 1; c.strokeStyle = `rgba(244, 114, 182, ${(0.85 * f.beam * (1 - k * 0.4)).toFixed(2)})`; c.lineWidth = 3; c.beginPath(); c.ellipse(sx + (tx - sx) * k, sy + (ty - sy) * k, 8 + k * 16, 12 + k * 20, 0.4, 0, Math.PI * 2); c.stroke(); }
   }
   // (the motor oil in the air)
-  for (const d of f.drops) { box(c, d.x - 4, d.y - 5, 8, 10, '#0A0A0A'); box(c, d.x - 2, d.y - 4, 2, 3, '#7C6A3A'); }
-  drawKinShots(c);
+  for (const d of f.drops) gob(c, d.x, d.y, d.vx, d.vy, fr);
+  drawKinShots(c, fr);
   // (the booth's spotlight: its spot marked on the floor, flashing; then down out of the rig)
   if (f.can) {
     const cn = f.can;
@@ -795,12 +981,20 @@ export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
     }
   }
   // (the extinguisher: on the wall, in his hands, in the air at her)
-  if (f.ext2 !== 'gone') { c.save(); c.translate(f.ex.x, f.ext2 === 'wall' ? GY - 110 : f.ex.y); c.rotate(f.ex.r); ink(c, () => c.roundRect(-7, -18, 14, 34, 4), '#DC2626'); box(c, -4, -24, 8, 6, '#18181B'); box(c, 2, -22, 10, 3, '#18181B'); box(c, -5, -6, 10, 6, '#F8FAFC'); c.restore(); }
+  if (f.ext2 === 'wall' || f.ext2 === 'air') { c.save(); c.translate(f.ext2 === 'wall' ? EXTINGUISHER_X : f.ex.x, f.ext2 === 'wall' ? GY - 110 : f.ex.y); c.rotate(f.ex.r); ink(c, () => c.roundRect(-7, -18, 14, 34, 4), '#DC2626'); box(c, -4, -24, 8, 6, '#18181B'); box(c, 2, -22, 10, 3, '#18181B'); box(c, -5, -6, 10, 6, '#F8FAFC'); c.restore(); }
 };
 /** Her words; theirs, up in the booth. */
 export const drawQueenSaid = (c: Ctx, f: Fight) => {
-  if (f.said) saidOver(c, f.said, f.x - f.facing * 20, GY - 330 - f.y, '#BEF264', 260);
-  if (f.boothSaid) saidOver(c, f.boothSaid, BOOTH.x + BOOTH.w / 2, BOOTH.y - 20, '#D9F99D', 260);
+  if (f.said) saidAt(c, f.said, f.x - f.facing * 20, GY - 330 - f.y, '#BEF264');
+  if (f.boothSaid) saidAt(c, f.boothSaid, BOOTH.x + BOOTH.w / 2, BOOTH.y - 20, '#D9F99D');
+};
+/** Said over a point, the words their full size even with the camera pulled back (her death: discoZoom). */
+const saidAt = (c: Ctx, text: string, x: number, y: number, col: string) => {
+  const z = c.getTransform().a / (c.canvas.width / CANVAS_WIDTH);
+  if (z >= 0.99) { saidOver(c, text, x, y, col, 260); return; }
+  c.save(); c.translate(x, y); c.scale(1 / z, 1 / z);
+  saidOver(c, text, 0, 0, col, 260);
+  c.restore();
 };
 /** Screen space: her bar, in the top band clear of the HUD. */
 export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; mid: number }, inCutscene: boolean) => {

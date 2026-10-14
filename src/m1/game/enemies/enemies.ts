@@ -665,7 +665,7 @@ const groundOilUnder = (state: GameState, e: Enemy): 'slick' | 'tar' | null => {
   const zones = state.groundOil;
   if (!zones || !zones.length) return null;
   const cx = e.pos.x + e.width / 2;
-  const z = zones.find(o => cx > o.x1 && cx < o.x2);
+  const z = zones.find(o => cx > o.x1 && cx < o.x2 && !(e.kind && o.notKinds?.includes(e.kind)));
   if (!z) return null;
   return Math.abs(e.pos.y + e.height - groundLineAt(state.groundRuns, cx)) <= 6 ? z.kind : null;
 };

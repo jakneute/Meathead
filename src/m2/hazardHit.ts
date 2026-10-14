@@ -23,10 +23,14 @@ export interface Zone { x0: number; x1: number; y0: number; y1: number; ground?:
 const zones = new Map<string, { at: number; list: Zone[] }>();
 /** This frame's danger zones for `owner` (replacing the last lot). */
 export const setHazardZones = (state: GameState, owner: string, list: Zone[]) => { zones.set(owner, { at: state.frame, list }); };
+/** Kinds an owner's zones don't keep out (it's theirs: the queen's kin walk through her pool). */
+const exempt = new Map<string, Set<string>>();
+export const exemptFromZones = (kind: string, owner: string) => { (exempt.get(kind) ?? exempt.set(kind, new Set()).get(kind)!).add(owner); };
 const live = (state: GameState, e?: Enemy) => {
   const out: Zone[] = [];
   const flies = e?.enemyType === 'flyer';
-  for (const z of zones.values()) if (Math.abs(state.frame - z.at) <= 3) for (const q of z.list) if (!(flies && q.ground)) out.push(q);
+  const free = e?.kind ? exempt.get(e.kind) : undefined;
+  for (const [owner, z] of zones) if (Math.abs(state.frame - z.at) <= 3 && !free?.has(owner)) for (const q of z.list) if (!(flies && q.ground)) out.push(q);
   return out;
 };
 /** Every live zone (dev: the spawn check). */

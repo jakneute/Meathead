@@ -3,6 +3,7 @@ import { drawFilthShield } from './filthShield';
 import { drawLadderBackArm, drawLadderLegs, drawLadderClimb, drawOverheadPull } from './ladder';
 import { drawRemains } from './remains';
 import { drawFreefall } from './freefall';
+import { drawExtinguisherPose } from './extinguisher';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD, vineGrip, vineLean, VINE_SHOULDER } from '../../combat/muzzle';
@@ -238,6 +239,16 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     const g = p.gut;
     const shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
     drawFreefall(ctx, p.freefall, animFrame, { nude: g?.stage === 3, shat }, p.facing);
+    finishBody();
+    if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
+    ctx.restore();
+    return;
+  }
+  // With a fire extinguisher (a cutscene's): its own poses, the can drawn with him (render/player/extinguisher.ts)
+  if (p.extinguisher && hurtT < 0 && !p.headless && p.health > 0) {
+    const g = p.gut;
+    const shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    drawExtinguisherPose(ctx, p.extinguisher, animFrame, { nude: g?.stage === 3, shat });
     finishBody();
     if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
     ctx.restore();

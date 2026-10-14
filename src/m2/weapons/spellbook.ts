@@ -206,9 +206,16 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
   return true;
 };
 
+/** Who wants to know where a meteor's gone up (a stage's own say over it: the space queen's oil, that won't burn). */
+const meteorHooks = new Set<(ctx: FrameContext, at: { x: number; y: number }) => void>();
+export const onMeteorBlast = (fn: (ctx: FrameContext, at: { x: number; y: number }) => void) => { meteorHooks.add(fn); };
+// (dev: the headless checks set one off by hand)
+if (import.meta.env?.DEV && typeof window !== 'undefined') (window as unknown as { __meteorHooks?: unknown }).__meteorHooks = meteorHooks;
+
 /** The meteor going up: a blast, everybody in it hurt by how near, and whoever lives through it left burning. */
 const meteorBlast = (ctx: FrameContext, at: { x: number; y: number }) => {
   const { state, fx } = ctx;
+  for (const h of meteorHooks) h(ctx, at);
   playSound('boom'); playSound('crash', 0.7, -6); shakeScreen(state, 22, 12);
   fx.spawnExplosion(at, '#F97316', 44, 0, 26); fx.spawnExplosion(at, '#FDE047', 28, 0, 18); fx.spawnExplosion(at, '#FFFFFF', 10, 0, 10); fx.spawnExplosion(at, '#57534E', 22, 0, 22);
   ring(at.x, at.y, METEOR.radius * 1.4, '253, 186, 116', 20); ring(at.x, at.y, METEOR.radius * 0.8, '255, 255, 255', 10);

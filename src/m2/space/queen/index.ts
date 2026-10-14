@@ -35,7 +35,7 @@ import { updateLadders, drawLadders } from '../../moves/ladders';
 import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
 import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP } from './basement';
-import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, boothOps, introCamX } from './fight';
+import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, boothOps, introCamX, discoZoom } from './fight';
 import { drawBasement, drawDisco, discoLighting, drawShutter } from './lowerArt';
 
 interface Queen {
@@ -47,9 +47,11 @@ interface Queen {
   holeBlock: Block | null;
   /** The disco's shutter behind him (0 up, 1 down), and which way it's going. */
   shutter: number; shutterTo: 0 | 1;
+  /** The camera pulled back for her death and the booth's two running out (0..1): in as she goes, out for the walk-away. */
+  deathCam: number;
   victory: Victory | null; walk: WalkAway | null;
 }
-const queenOf = (state: GameState) => spaceState<Queen>(state, 'queen', () => ({ init: false, fight: 'wait', wonAt: 0, show: null, h: null, f: null, glassBlock: null, holdGate: null, gate: null, holeBlock: null, shutter: 0, shutterTo: 0, victory: null, walk: null }));
+const queenOf = (state: GameState) => spaceState<Queen>(state, 'queen', () => ({ init: false, fight: 'wait', wonAt: 0, show: null, h: null, f: null, glassBlock: null, holdGate: null, gate: null, holeBlock: null, shutter: 0, shutterTo: 0, deathCam: 0, victory: null, walk: null }));
 const showOf = (state: GameState) => { const q = queenOf(state); return (q.show ??= makeShow(state)); };
 const hunterOf = (state: GameState) => { const q = queenOf(state); return (q.h ??= makeHunter(state)); };
 const fightOf = (state: GameState) => { const q = queenOf(state); return (q.f ??= makeFight(state)); };
@@ -105,6 +107,9 @@ export const queen: SpaceSection = {
     const cx = cxOf(state);
     // (the basement's ladders: first, before anything else reads the controls)
     if (inLower(state) && !p.inCutscene) controls = updateLadders(ctx, LADDERS, controls);
+    // (the camera pulled back for her death and the booth's two running out: in as she goes, held through the VICTORY,
+    // back in for the walk-away)
+    q.deathCam = (q.fight === 'on' && f.mode === 'dead') || (q.fight === 'won' && !q.walk) ? Math.min(1, q.deathCam + 1 / 50) : Math.max(0, q.deathCam - 1 / 40);
     // (the shutter, slamming down, or going back up)
     q.shutter = q.shutterTo ? Math.min(1, q.shutter + 0.08) : Math.max(0, q.shutter - 0.02);
     if (!q.init) {
@@ -188,7 +193,7 @@ export const queen: SpaceSection = {
   },
   // (the basement: its whole height on one screen, the camera held level on it; dropping into it, it follows him down)
   cameraRow: (state) => (inBasement(state) ? feetOf(state) - (GY - 6) : undefined),
-  zoom: (state) => hunterZoom(state, hunterOf(state)),
+  zoom: (state) => hunterZoom(state, hunterOf(state)) ?? discoZoom(state, fightOf(state), queenOf(state).deathCam),
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#07040E'); return true; },
   lighting: (state) => {
     const cx = cxOf(state), s = showOf(state), f = fightOf(state);
@@ -196,7 +201,7 @@ export const queen: SpaceSection = {
       const dark = hunterLighting(state, hunterOf(state));
       if (dark && cx < DOOR_X + 10) return dark;
       const l = discoLighting(state, isLandCleared('space') ? 1 : discoLights(f));
-      if (queenOf(state).fight === 'on') l.lights.push(...poolLights(f));
+      if (queenOf(state).fight === 'on') l.lights.push(...poolLights(f), ...oilLights(f));
       return l;
     }
     const head = showHead(s);

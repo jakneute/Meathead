@@ -266,6 +266,10 @@ export interface Player extends Entity {
    *  he's easing to for the landing; `land` frames into the landing (0 in the air): splatted, then peeling himself up.
    *  Whatever sets it clears it (and respawn does). */
   freefall?: { style: 'flail' | 'ball'; t: number; rot: number; goal?: number; land: number };
+  /** Posed with a fire extinguisher (Meathead 2's space disco cutscene; render/player/extinguisher.ts): getting it off
+   *  the wall, holding it, spraying it, shaking it out, winding up, throwing it; `t` frames into that. Whatever sets it
+   *  clears it (and respawn does). */
+  extinguisher?: { step: 'reach' | 'hold' | 'spray' | 'shake' | 'wind' | 'throw'; t: number };
   /** Something he's doing takes him off the vine he's on (Meathead 2: the mallet's smash down, from one): let go of it. */
   dropVine?: boolean;
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
