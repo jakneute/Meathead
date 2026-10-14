@@ -32,27 +32,29 @@ export const drawDragBackdrop = (c: Ctx, state: GameState) => {
 
 const SHOPS: Shop[] = [
   { x: X(60), w: 320, h: 180, wall: '#EDE9FE', trim: '#8B5CF6', roof: 'boomerang', name: 'VOYAGE TO 2010: EXIT', sub: 'PLEASE EXIT THROUGH THE GIFT SHOP' },
-  { x: X(1450), w: 230, h: 150, wall: '#FCE7F3', trim: '#0EA5E9', roof: 'dome', name: 'ROBO-DENTIST', sub: 'NO HUMANS INVOLVED. NO REFUNDS.' },
-  { x: X(3520), w: 300, h: 170, wall: '#ECFEFF', trim: '#F97316', roof: 'fin', name: 'CAR OF TOMORROW SHOWROOM', sub: 'FLYING CARS: COMING SOON SINCE 1958' },
+  { x: X(6080), w: 230, h: 150, wall: '#FCE7F3', trim: '#0EA5E9', roof: 'dome', name: 'ROBO-DENTIST', sub: 'NO HUMANS INVOLVED. NO REFUNDS.' },
+  { x: X(3620), w: 300, h: 170, wall: '#ECFEFF', trim: '#F97316', roof: 'fin', name: 'CAR OF TOMORROW SHOWROOM', sub: 'FLYING CARS: COMING SOON SINCE 1958' },
   { x: X(4000), w: 280, h: 160, wall: '#FEF3C7', trim: '#DB2777', roof: 'saucer', name: 'PNEUMATIC MAIL', sub: 'YOUR LETTER, SHOT THROUGH A TUBE' },
-  { x: X(4700), w: 220, h: 260, wall: '#CCFBF1', trim: '#F472B6', roof: 'flat', name: 'MOTEL OF THE FUTURE', sub: 'HOURLY RATES' },
-  { x: X(5000), w: 200, h: 240, wall: '#E0E7FF', trim: '#22C55E', roof: 'flat', name: 'ATOMIC DRY CLEANERS', sub: 'WE GET THE GLOW OUT' },
-  { x: X(5300), w: 200, h: 260, wall: '#FFE4E6', trim: '#6366F1', roof: 'flat', name: 'MOON TAN', sub: 'TAN LIKE AN ASTRONAUT. BURN LIKE ONE.' },
-  { x: X(6900), w: 260, h: 160, wall: '#F1F5F9', trim: '#E11D48', roof: 'boomerang', name: 'NEEDLE GIFTS', sub: 'I WENT TO SPACE AND ALL I GOT WAS THIS SHIRT' },
+  { x: X(4700), w: 220, h: 260, wall: '#CCFBF1', trim: '#F472B6', roof: 'flat', name: 'MOTEL OF THE FUTURE', sub: 'HOURLY RATES', signDrop: 24 },
+  { x: X(5000), w: 200, h: 240, wall: '#E0E7FF', trim: '#22C55E', roof: 'flat', name: 'ATOMIC DRY CLEANERS', sub: 'WE GET THE GLOW OUT', signDrop: 24 },
+  { x: X(5300), w: 200, h: 260, wall: '#FFE4E6', trim: '#6366F1', roof: 'flat', name: 'MOON TAN', sub: 'TAN LIKE AN ASTRONAUT. BURN LIKE ONE.', signDrop: 24 },
+  { x: X(6820), w: 260, h: 160, wall: '#F1F5F9', trim: '#E11D48', roof: 'boomerang', name: 'NEEDLE GIFTS', sub: 'I WENT TO SPACE AND ALL I GOT WAS THIS SHIRT' },
 ];
 
 const signs = (c: Ctx, state: GameState) => {
-  const big = (key: string, x: number, h: number, a: string, b: string) => {
+  // (`pylon`: up on one pole, where two posts would stand in front of a shop or the monorail's shed)
+  const big = (key: string, x: number, h: number, a: string, b: string, pylon = false) => {
     if (!inView(state, x - 220, x + 220)) return;
     still(c, `spc-dsign-${key}`, x, GY, -220, -h - 40, 440, h + 42, g => {
-      box(g, -150, -h + 10, 6, h - 10, '#64748B'); box(g, 144, -h + 10, 6, h - 10, '#64748B');
+      if (pylon) { box(g, -5, -h + 10, 10, h - 10, '#475569'); box(g, -3, -h + 10, 3, h - 10, '#94A3B8'); }
+      else { box(g, -150, -h + 10, 6, h - 10, '#64748B'); box(g, 144, -h + 10, 6, h - 10, '#64748B'); }
       board(g, 0, -h, a, '#0F172A', '#FDE047', 9, 8);
       board(g, 0, -h + 26, b, '#FFFFFF', '#0F766E', 6, 5);
     });
   };
   big('trench', X(T1.a - 150), 120, 'FUTURELAND UNDERGROUND', 'OPEN TRENCH. CAST MEMBERS ONLY.');
-  big('lagoon', X(1600), 150, 'THE LAGOON OF TOMORROW', 'DRAINED 1971. SUBMARINES ON THE BOTTOM.');
-  big('mover', X(3700), 140, 'THE PEOPLE MOVER (EXPRESS RETURN)', 'WALK FASTER, CITIZEN!');
+  big('lagoon', X(1880), 150, 'THE LAGOON OF TOMORROW', 'DRAINED 1971. SUBMARINES ON THE BOTTOM.', true);
+  big('mover', X(4300), 290, 'THE PEOPLE MOVER (EXPRESS RETURN)', 'WALK FASTER, CITIZEN!', true);
   big('plaza', X(5850), 150, 'SPACE NEEDLE 2', 'TO SPACE AND BEYOND! FIVE MILES UP!');
 };
 
@@ -84,7 +86,8 @@ const ledges = (c: Ctx, state: GameState) => {
         box(g, 4, 10, 8, h, '#94A3B8'); box(g, w - 12, 10, 8, h, '#94A3B8');
         box(g, -2, -2, w + 4, 16, INK); box(g, 0, 0, w, 12, '#CBD5E1'); box(g, 0, 0, w, 3, '#F8FAFC');
         box(g, 0, -26, w, 3, '#64748B'); for (let k = 0; k <= w; k += 24) box(g, k, -26, 2, 26, '#64748B');
-        if (what === 'balcony') board(g, w / 2, -40, 'OBSERVATION BALCONY', '#0F172A', '#7DD3FC', 6, 5);
+        // (its name on the fascia under the floor: up over the railing it was cut off, and whoever stood there covered it)
+        if (what === 'balcony') board(g, w / 2, 26, 'OBSERVATION BALCONY', '#0F172A', '#7DD3FC', 6, 5);
       }
     });
   }

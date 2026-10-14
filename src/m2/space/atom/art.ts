@@ -97,6 +97,9 @@ export const drawTableau = (c: Ctx, kind: typeof TABLEAUS[number], x: number, y:
   }
 };
 
+/** Which scene's through which gap (the sixth's the traffic: the air cannon stands in front of it, and the office's
+ *  PROFITS screen was behind the cannon). */
+const GAP_SCENES: typeof TABLEAUS[number][] = ['home', 'office', 'cars', 'moon', 'home', 'cars', 'moon'];
 /** Screen space: the dark ride, way back (through the gaps in the flats). */
 export const drawRideBackdrop = (c: Ctx, state: GameState) => {
   const W = CANVAS_WIDTH, H = CANVAS_HEIGHT, f = state.frame, cam = state.camera.x;
@@ -117,10 +120,15 @@ export const drawRideBackdrop = (c: Ctx, state: GameState) => {
     if (hash(base * 5) > 0.4) { c.strokeStyle = lite(col, 0.45); c.lineWidth = 3; c.beginPath(); c.ellipse(px, py, r * 1.7, r * 0.35, -0.2, 0, Math.PI * 2); c.stroke(); }
   }
   // (the tableaus, along the ride's track, and the track with the sleds going round)
+  // (one in each gap in the flats, held near its middle (drifting a little the far way: it's way back), so its words
+  // are never cut off by the flats either side of the gap)
   const tk = 0.4, ty = 420;
-  for (let k = -1; k < 3; k++) {
-    const base = Math.floor(cam * tk / 520) + k, tx = base * 520 - cam * tk + 60;
-    drawTableau(c, TABLEAUS[((base % 4) + 4) % 4], tx, ty - 24, f);
+  const inGaps: { i: number; mid: number }[] = [];
+  GAPS.forEach(([gx, gw], i) => { const mid = gx + gw / 2 - cam; if (mid > -gw && mid < W + gw) inGaps.push({ i, mid }); });
+  // (where the airlocks' ceiling crosses a gap, its scene's sat lower: its words came out under the ceiling)
+  for (const g of inGaps) {
+    const [gx, gw] = GAPS[g.i], low = gx + gw > A + 3900 && gx < A + 4860 ? 52 : 0;
+    drawTableau(c, GAP_SCENES[g.i % GAP_SCENES.length], g.mid - 120 - (g.mid - W / 2) * 0.1, ty - 24 + low, f);
   }
   box(c, 0, ty - 6, W, 4, '#1E293B'); box(c, 0, ty - 6, W, 1, '#475569');
   for (let k = 0; k < 12; k++) { const sx = ((k * 90 - cam * tk) % W + W) % W; box(c, sx, ty - 2, 4, 80, '#0F172A'); }
@@ -130,10 +138,14 @@ export const drawRideBackdrop = (c: Ctx, state: GameState) => {
     tinySled(c, sx, ty - 6, 3001 + k * 97, f, 0.5);
   }
   // (the VOYAGE TO 2010 sign, in neon, over it all)
-  const nx = ((620 - cam * 0.3) % 1400 + 1400) % 1400 - 200;
+  // (in each gap, over its scene, like the scenes: never cut off by the flats; up clear of the scenes' own words, the
+  // airlock sign and the meteor rig's beam)
   const flick = (f % 200) < 3;
-  box(c, nx - 4, 186, 228, 36, '#0B0B1E');
-  text(c, 'VOYAGE TO 2010', nx + 110, 210, flick ? '#3B0764' : '#F0ABFC', 12, 'center', '#701A75');
+  for (const g of inGaps) {
+    const nx = g.mid - 110 - (g.mid - W / 2) * 0.06;
+    box(c, nx - 4, 98, 228, 34, '#0B0B1E');
+    text(c, 'VOYAGE TO 2010', nx + 110, 121, flick ? '#3B0764' : '#F0ABFC', 12, 'center', '#701A75');
+  }
   // (the floor of it, down past the track: dark)
   box(c, 0, ty + 70, W, H - ty - 70, '#020108');
   return true;
@@ -157,7 +169,7 @@ const drawFlats = (c: Ctx, x: number, w: number) => {
       box(g, x + k, FLAT_TOP + 90, Math.min(120, w - k), 6, '#6B5440');
       box(g, x + k, GY - 130, Math.min(120, w - k), 6, '#6B5440');
       g.strokeStyle = '#4A3826'; g.lineWidth = 5; g.beginPath(); g.moveTo(x + k + 6, GY - 10); g.lineTo(x + k + Math.min(110, w - k), FLAT_TOP + 100); g.stroke();
-      if (hash(x + k) > 0.55) text(g, ['SET 4B', 'THIS SIDE UP', 'MOON 2', 'HOME OF 2010 (L)', 'DO NOT PAINT'][Math.floor(hash(x * 3 + k) * 5)], x + k + 60, FLAT_TOP + 60, '#2A2016', 6, 'center', null);
+      if (hash(x + k) > 0.55) text(g, ['SET 4B', 'THIS SIDE UP', 'MOON 2', 'HOME OF 2010 (L)', 'DO NOT PAINT'][Math.floor(hash(x * 3 + k) * 5)], x + k + 60, FLAT_TOP + 112, '#2A2016', 6, 'center', null);
     }
     box(g, x, FLAT_TOP, w, 4, PLY_DARK);
   });
@@ -484,6 +496,9 @@ export const atomLighting = (state: GameState): SceneLight => {
   for (const [post, x, feet] of POSTS) if (near(x)) lights.push({ x: x + 30, y: feet - 40, r: 110, a: crewed(state, post) ? 0.7 : 0.3, color: 'rgba(74, 222, 128, 0.08)' });
   // (the queue: lit for the guests)
   if (near(QUEUE_DOOR) || near(TUNNEL_X)) for (let x = LINE_X0; x < TUNNEL_X + 100; x += 200) lights.push({ x, y: GY - 400, r: 520, a: 0.9, cone: 220, color: 'rgba(224, 242, 254, 0.08)' });
+  // (the queue's signs lit up: up over the downlights, they were black on black)
+  if (near(LINE_X0 + 340)) lights.push({ x: LINE_X0 + 340, y: GY - 405, r: 300, a: 0.85, color: 'rgba(103, 232, 249, 0.08)' });
+  if (near(TUNNEL_X)) lights.push({ x: TUNNEL_X, y: GY - 348, r: 200, a: 0.85, color: 'rgba(240, 171, 252, 0.08)' });
   // (enough round him that he's never lost in it)
   const p = state.player;
   lights.push({ x: p.pos.x + p.width / 2, y: p.pos.y + 20, r: 200, a: 0.6 });

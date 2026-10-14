@@ -15,9 +15,11 @@ export const INK = '#1A0B06';
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 
 /** Still art at world (x, y): painted once (local coordinates, the box `bx, by, bw, bh` about (x, y)), then stamped. */
+/** (the font's in yet: what's painted before it's loaded is painted again once it is, not kept with a stand-in font) */
+const fontIn = () => (typeof document !== 'undefined' && document.fonts?.check('8px "Press Start 2P"') ? 'f' : 'n');
 export const still = (c: Ctx, key: string, x: number, y: number, bx: number, by: number, bw: number, bh: number, paint: (g: Ctx) => void) => {
   c.save(); c.translate(Math.round(x), Math.round(y));
-  stamp(c, key, bx, by, bw, bh, paint);
+  stamp(c, `${key}-${fontIn()}`, bx, by, bw, bh, paint);
   c.restore();
 };
 export const inView = (state: GameState, a: number, b: number, pad = 120) => b > state.camera.x - pad && a < state.camera.x + W + pad;
@@ -98,7 +100,14 @@ export const drawGiantAtom = (c: Ctx, x: number, y: number, s: number, t: number
   }
   for (let k = 0; k < 3; k++) ring(k, true);
   // (its name on a band round the middle)
-  if (s > 0.6) label(c, 'THE GIANT ATOM', x, y + R * 0.08 + 4, night > 0.3 ? '#F0ABFC' : '#FFFFFF', s > 1.2 ? 10 : 8);
+  // (on a dark plate, over the rings: the near rings and their lights cross the middle, and white on them didn't read)
+  if (s > 0.6) {
+    const size = s > 1.2 ? 10 : 8, ly = y + R * 0.08 + 4;
+    c.font = `${size}px "Press Start 2P"`;
+    const w = c.measureText('THE GIANT ATOM').width + 12;
+    box(c, x - w / 2 - 2, ly - size - 6, w + 4, size + 10, INK); box(c, x - w / 2, ly - size - 4, w, size + 6, farTint('#3B0764', 0.2));
+    label(c, 'THE GIANT ATOM', x, ly, night > 0.3 ? '#F0ABFC' : '#FFFFFF', size);
+  }
 };
 
 /**
@@ -189,7 +198,7 @@ export const board = (g: Ctx, x: number, y: number, text: string, bg: string, in
   return w;
 };
 
-export interface Shop { x: number; w: number; h: number; wall: string; trim: string; roof: 'boomerang' | 'dome' | 'fin' | 'flat' | 'saucer'; name: string; sub?: string; nameBg?: string; nameInk?: string }
+export interface Shop { x: number; w: number; h: number; wall: string; trim: string; roof: 'boomerang' | 'dome' | 'fin' | 'flat' | 'saucer'; name: string; sub?: string; nameBg?: string; nameInk?: string; signDrop?: number }
 /**
  * A shopfront along the back of the street: stucco, a band of trim, a big window (dark glass, a lit display), a door,
  * the roof (a boomerang, a dome, a fin, a saucer), its name up on a board, the gag under it. Painted once.
@@ -226,8 +235,10 @@ export const drawShop = (c: Ctx, state: GameState, sh: Shop, y: number) => {
       g.beginPath(); g.ellipse(w / 2, -h - 44, w / 2 - 10, 14, 0, 0, Math.PI * 2); g.fill();
       g.fillStyle = sh.trim; g.beginPath(); g.ellipse(w / 2, -h - 45, w / 2 - 13, 11, 0, 0, Math.PI * 2); g.fill();
     } else box(g, -8, -h - 8, w + 16, 10, sh.trim);
-    board(g, w / 2, -h + 12, sh.name, sh.nameBg ?? '#0F172A', sh.nameInk ?? '#FDE047', 8);
-    if (sh.sub) board(g, (w - 70) / 2 + 12, -h + 40 + 10, sh.sub, '#FFFFFF', '#BE185D', 6, 5);
+    // (`signDrop`: its boards brought down off the roofline, where a roof he stands on has its lit lip over them)
+    const dy = sh.signDrop ?? 0;
+    board(g, w / 2, -h + 12 + dy, sh.name, sh.nameBg ?? '#0F172A', sh.nameInk ?? '#FDE047', 8);
+    if (sh.sub) board(g, (w - 70) / 2 + 12, -h + 40 + 10 + dy, sh.sub, '#FFFFFF', '#BE185D', 6, 5);
   });
 };
 

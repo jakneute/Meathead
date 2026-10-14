@@ -92,8 +92,8 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
 ];
 
 /** The horn speakers (the PA): [x, height]. And the googie lamps (lit after dark). */
-export const SPEAKERS: [number, number][] = [[420, 190], [2200, 190], [4000, 190], [6000, 300], [8200, 190], [9500, 190]];
-export const LAMPS = [120, 1000, 1900, 2800, 3650, 4600, 5600, 7500, 8300, 9050, 9900];
+export const SPEAKERS: [number, number][] = [[470, 190], [2330, 190], [4000, 190], [6000, 300], [8318, 190], [9620, 190]];
+export const LAMPS = [120, 1000, 1900, 2800, 3650, 4600, 5470, 7500, 8545, 9235, 9965];
 
 export const CHECKPOINTS = [
   { name: 'FUTURELAND SQUARE', cp: 0, x: X(150), y: GY },

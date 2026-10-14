@@ -71,8 +71,8 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
   [5100, 240, 'small_health'],
   [6710, 280, 'small_ammo'],
 ];
-export const SPEAKERS: [number, number][] = [[800, 190], [3600, 190], [5800, 190]];
-export const LAMPS = [60, 760, 1550, 3300, 3900, 4500, 5750, 6450, 7000];
+export const SPEAKERS: [number, number][] = [[870, 190], [3600, 190], [6020, 190]];
+export const LAMPS = [60, 560, 1550, 3300, 3960, 4500, 5620, 6450, 7190];
 
 export const CHECKPOINTS = [
   { name: 'THE MAIN DRAG', cp: 30, x: X(700), y: GY },

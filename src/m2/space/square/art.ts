@@ -39,11 +39,11 @@ export const drawSquareBackdrop = (c: Ctx, state: GameState) => {
 const SHOPS: Shop[] = [
   { x: X(560), w: 300, h: 170, wall: '#FBCFE8', trim: '#14B8A6', roof: 'boomerang', name: "ATOMIC ANNIE'S GIFT SHOPPE", sub: 'SOUVENIR URANIUM: NOT REAL (PROBABLY)' },
   { x: X(1460), w: 230, h: 150, wall: '#CCFBF1', trim: '#F472B6', roof: 'flat', name: "TOMORROW'S RESTROOMS", sub: 'OUT OF ORDER SINCE 1987' },
-  { x: X(2560), w: 260, h: 180, wall: '#FEF3C7', trim: '#0EA5E9', roof: 'saucer', name: 'THE PHONE OF THE FUTURE', sub: 'SEE WHO YOU CALL! 25 CENTS. NO DIAL TONE.' },
-  { x: X(3200), w: 300, h: 160, wall: '#E0E7FF', trim: '#F97316', roof: 'fin', name: 'SATELLITE BURGER', sub: 'NOW WITH REAL MEAT FLAVOR' },
+  { x: X(2880), w: 260, h: 180, wall: '#FEF3C7', trim: '#0EA5E9', roof: 'saucer', name: 'THE PHONE OF THE FUTURE', sub: 'SEE WHO YOU CALL! 25 CENTS. NO DIAL TONE.' },
+  { x: X(3200), w: 300, h: 200, wall: '#E0E7FF', trim: '#F97316', roof: 'fin', name: 'SATELLITE BURGER', sub: 'NOW WITH REAL MEAT FLAVOR' },
   { x: X(4100), w: 330, h: 190, wall: '#E2E8F0', trim: '#8B5CF6', roof: 'dome', name: 'HALL OF ROBOT BUTLERS', sub: 'CLOSED AFTER THE INCIDENT' },
-  { x: X(5560), w: 260, h: 160, wall: '#FCE7F3', trim: '#22C55E', roof: 'boomerang', name: 'ROCKET POPS', sub: '$11. NO REFUNDS IN SPACE.' },
-  { x: X(7860), w: 280, h: 170, wall: '#DCFCE7', trim: '#DB2777', roof: 'fin', name: 'SPACE AGE SMOKE SHOP', sub: 'ATOMIC CIGARETTES: NOW 30% LESS GLOWING' },
+  { x: X(5560), w: 260, h: 200, wall: '#FCE7F3', trim: '#22C55E', roof: 'boomerang', name: 'ROCKET POPS', sub: '$11. NO REFUNDS IN SPACE.' },
+  { x: X(8020), w: 280, h: 170, wall: '#DCFCE7', trim: '#DB2777', roof: 'fin', name: 'SPACE AGE SMOKE SHOP', sub: 'ATOMIC CIGARETTES: NOW 30% LESS GLOWING' },
   { x: X(8760), w: 280, h: 180, wall: '#FEF9C3', trim: '#6366F1', roof: 'saucer', name: 'THE KITCHEN OF 2000', sub: 'MEAL PILLS IN EVERY FLAVOR OF BEIGE' },
 ];
 
@@ -64,10 +64,12 @@ const gate = (c: Ctx, state: GameState) => {
 
 /** The PEOPLE MOVER's sign over the belts, the ELECTRIC SIDEWALK's, the THRUST pad's, the monorail station's. */
 const gags = (c: Ctx, state: GameState) => {
-  const big = (key: string, x: number, h: number, a: string, b: string, bg = '#0F172A', ink = '#FDE047') => {
+  // (`pylon`: up on one tall pole, where two posts would stand in front of a shop or a deck)
+  const big = (key: string, x: number, h: number, a: string, b: string, bg = '#0F172A', ink = '#FDE047', pylon = false) => {
     if (!inView(state, x - 220, x + 220)) return;
     still(c, `spc-sign-${key}`, x, GY, -220, -h - 40, 440, h + 42, g => {
-      box(g, -150, -h + 10, 6, h - 10, '#64748B'); box(g, 144, -h + 10, 6, h - 10, '#64748B');
+      if (pylon) { box(g, -5, -h + 10, 10, h - 10, '#475569'); box(g, -3, -h + 10, 3, h - 10, '#94A3B8'); }
+      else { box(g, -150, -h + 10, 6, h - 10, '#64748B'); box(g, 144, -h + 10, 6, h - 10, '#64748B'); }
       board(g, 0, -h, a, bg, ink, 9, 8);
       board(g, 0, -h + 26, b, '#FFFFFF', '#0F766E', 6, 5);
     });
@@ -75,11 +77,11 @@ const gags = (c: Ctx, state: GameState) => {
   big('mover', X(2140), 150, 'THE PEOPLE MOVER', "TOMORROW'S SIDEWALK, TODAY!");
   big('mover2', X(2670), 150, 'THE PEOPLE MOVER (RETURN)', 'PLEASE WALK BRISKLY');
   big('zap', X(3820), 140, 'THE ELECTRIC SIDEWALK', 'SAFE AS MILK! DO NOT STAND ON IT WHEN IT BUZZES.');
-  big('zap2', X(9050), 140, 'THE ELECTRIC SIDEWALK', 'NOW TWICE AS ELECTRIC!');
+  big('zap2', X(9100), 280, 'THE ELECTRIC SIDEWALK', 'NOW TWICE AS ELECTRIC!', undefined, undefined, true);
   big('pad', X(4880), 150, 'FEEL THE THRUST!', 'PHOTO OP. STAND ON THE GRILLE. SMILE.');
   big('pit', X(6440), 120, 'FUTURE SITE OF TOMORROW', 'COMING 1964');
   big('queue', X(9440), 120, 'LINE STARTS HERE', '90 MINUTES FROM THIS POINT');
-  big('plaza', X(8150), 160, 'THE ATOM PLAZA', 'THE FUTURE IS SPLITTING!');
+  big('plaza', X(8440), 200, 'THE ATOM PLAZA', 'THE FUTURE IS SPLITTING!', undefined, undefined, true);
 };
 
 /** The wall across the street, a painting of tomorrow on it: a family in a flying car, waving. Its top lit (stand on it). */
@@ -139,7 +141,8 @@ const things = (c: Ctx, state: GameState) => {
         box(g, 4, 10, 8, h, '#94A3B8'); box(g, w - 12, 10, 8, h, '#94A3B8');
         box(g, -2, -2, w + 4, 16, INK); box(g, 0, 0, w, 12, '#CBD5E1'); box(g, 0, 0, w, 3, '#F8FAFC');
         box(g, 0, -26, w, 3, '#64748B'); for (let k = 0; k <= w; k += 24) box(g, k, -26, 2, 26, '#64748B');
-        if (what === 'deck') board(g, w / 2, -40, 'SATELLITE VIEWING DECK', '#0F172A', '#7DD3FC', 6, 5);
+        // (its name on the fascia under the floor: up over the railing, whoever's stood on the deck covered it)
+        if (what === 'deck') board(g, w / 2, 26, 'SATELLITE VIEWING DECK', '#0F172A', '#7DD3FC', 6, 5);
       } else {
         // (an awning: striped, its front edge lit)
         box(g, -2, -2, w + 4, 14, INK);

@@ -125,7 +125,8 @@ const paintSlot = (c: Ctx, kind: SlotKind) => {
     c.fillStyle = 'rgba(255, 251, 235, 0.22)'; c.beginPath(); c.moveTo(-20, WIN_TOP - 18); c.lineTo(20, WIN_TOP - 18); c.lineTo(70, GY); c.lineTo(-70, GY); c.closePath(); c.fill();
     c.restore();
     box(c, -16, WIN_TOP - 26, 32, 8, CHROME[5]); box(c, -12, WIN_TOP - 18, 24, 3, '#FFFBEB');
-    words(c, 'THE REAL THING', 0, WIN_TOP - 36, ORANGE[5], 7);
+    // (in the alcove's head, under its lamp: up over it, the PA's grille sat on the words)
+    words(c, 'THE REAL THING', 0, WIN_TOP + 12, ORANGE[1], 7, '#FFFBEB');
   } else if (kind === 'lift') {
     // the lift's portal: chrome round a starburst header, the doors shut, its arrows
     rr(c, -66, GY - 196, 132, 196, 10); c.fillStyle = INK; c.fill();
