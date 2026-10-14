@@ -211,9 +211,15 @@ const drawTrams = (c: Ctx, state: GameState, h: House) => {
       box(c, lx + 3, GY - 165, 14, 14, lit ? '#EF4444' : '#450A0A'); box(c, lx + 4, GY - 164, 5, 4, lit ? '#FECACA' : '#7F1D1D');
       if (lit) { box(c, lx - 4, GY - 160, 3, 4, '#F87171'); box(c, lx + 21, GY - 160, 3, 4, '#F87171'); }
     }
+    // (the airlock doors at each mouth: shut, then sliding up out of its way as a car comes, down again behind it)
+    const c01 = (v: number) => Math.max(0, Math.min(1, v));
+    const left = tr.x - TRAM_W / 2, right = tr.x + TRAM_W / 2;
+    const openA = tr.mode === 'warn' ? c01((tr.t - (WARN - 30)) / 24) : tr.mode === 'run' ? c01((tr.a - 10 - left) / 40) : 0;
+    const openB = tr.mode === 'run' ? Math.min(c01((right - (tr.b - 70)) / 40), c01((tr.b + 140 - left) / 40)) : 0;
+    hatchOpen(c, tr.a - 110, openA, f); hatchOpen(c, tr.b + 20, openB, f);
     if (tr.mode !== 'run') continue;
-    // (clipped to between the tunnels' mouths: it comes out of one and goes into the other)
-    c.save(); c.beginPath(); c.rect(tr.a - 20, GY - 200, tr.b - tr.a + 40, 210); c.clip();
+    // (clipped to between the airlocks' far sides: it comes out of the one, through its open hatch, and goes into the other)
+    c.save(); c.beginPath(); c.rect(tr.a - 109, GY - 200, tr.b - tr.a + 218, 210); c.clip();
     const l = Math.round(tr.x - TRAM_W / 2), top = GY - TRAM_H;
     // (a ride car, from a little above: a fat fiberglass tub (its inside, two rows of seats, their lap bars), its skirt
     // and wheels, the headlamp)
@@ -233,6 +239,20 @@ const drawTrams = (c: Ctx, state: GameState, h: House) => {
     label(c, 'XENOSCARE', tr.x, GY - 24, '#E9D5FF', 7);
     c.restore();
   }
+};
+/** A tram airlock's hatch (its opening's left at x: the hatch art's in ship.ts), its shutter slid up `open` of the way:
+ *  the tunnel dark behind, the shutter's striped foot where it's got to, a lamp turning while it moves. */
+const hatchOpen = (c: Ctx, x: number, open: number, f: number) => {
+  if (open <= 0.01) return;
+  const l = x + 1, w = 88, top = GY - 139, h = 139, up = Math.round(h * open), edge = GY - up;
+  c.save(); c.beginPath(); c.roundRect(l, top, w, h, [29, 29, 0, 0]); c.clip();
+  // (the tunnel behind: black, a strip light going back, the rails into it)
+  box(c, l, edge, w, up, '#05050A'); box(c, l + 8, edge + 6, w - 16, 2, '#1F1F2E');
+  for (const ry of [GY - 9, GY - 3]) box(c, l, ry, w, 2, '#3F3F46');
+  // (the shutter's foot, where it's got to)
+  box(c, l, edge - 6, w, 6, INK); for (let k = 0; k < w; k += 12) box(c, l + k, edge - 5, 6, 4, '#EAB308');
+  c.restore();
+  if (open < 0.98) { box(c, x + w / 2 - 4, top - 14, 8, 8, INK); box(c, x + w / 2 - 3, top - 13, 6, 6, (f >> 2) % 2 ? '#EF4444' : '#7F1D1D'); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
