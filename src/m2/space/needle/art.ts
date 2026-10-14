@@ -261,10 +261,11 @@ export const drawDeck = (c: Ctx, state: GameState) => {
 export const drawSuitCase = (c: Ctx, state: GameState, taken: boolean, smashT: number) => {
   const x = CASE_X;
   // the plinth, its plaque
-  rr(c, x - 50, GY - 46, 100, 46, 3); c.fillStyle = INK; c.fill();
-  bands(c, x - 49, GY - 45, 98, 45, [TEAL[5], TEAL[4], TEAL[3], TEAL[3], TEAL[2]]);
-  box(c, x - 49, GY - 45, 98, 2, TEAL[6]);
-  rr(c, x - 44, GY - 38, 88, 30, 2); c.fillStyle = '#B88A2E'; c.fill(); box(c, x - 44, GY - 38, 88, 2, '#E7C463');
+  // (wide enough for its plaque's words: 6 px a letter, the longest line 19 of them)
+  rr(c, x - 76, GY - 46, 152, 46, 3); c.fillStyle = INK; c.fill();
+  bands(c, x - 75, GY - 45, 150, 45, [TEAL[5], TEAL[4], TEAL[3], TEAL[3], TEAL[2]]);
+  box(c, x - 75, GY - 45, 150, 2, TEAL[6]);
+  rr(c, x - 66, GY - 38, 132, 30, 2); c.fillStyle = '#B88A2E'; c.fill(); box(c, x - 66, GY - 38, 132, 2, '#E7C463');
   words(c, 'REAL ASTRONAUT', x, GY - 27, WALNUT[1], 6, '#E7C463');
   words(c, 'SUIT. DO NOT TOUCH.', x, GY - 15, '#7F1D1D', 6, '#E7C463');
   // the mannequin, and the suit on it
