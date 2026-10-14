@@ -51,8 +51,16 @@ const lockOn = (state: GameState, up: boolean): Enemy | null => {
     if (!alive(e) || isMidBoss(e)) continue;
     const dx = (e.pos.x + e.width / 2 - mx) * f;
     if (dx < 10 || dx > LOCK_REACH || e.pos.x + e.width < state.camera.x || e.pos.x > state.camera.x + CANVAS_WIDTH) continue;
-    if (airborne(e) !== up) continue;
-    const d = Math.hypot(dx, e.pos.y + e.height / 2 - (pl.pos.y + pl.height / 2));
+    // (up: whoever's in the air, or stood up over him, on a floor he could jump up through, say; down: whoever's on the
+    // ground at his level or under him)
+    const over = e.pos.y + e.height < pl.pos.y + 12;
+    if ((airborne(e) || over) !== up) continue;
+    const ey = e.pos.y + e.height / 2, my = pl.pos.y + pl.height / 2;
+    // (and a clear shot at him: a floor the darts go up through's fine, a solid one isn't)
+    let clear = true;
+    for (let k = 1; k < 12 && clear; k++) { const u = k / 12; if (blockAt(state, mx + dx * f * u - 1, my + (ey - my) * u - 1, 2, 2)) clear = false; }
+    if (!clear) continue;
+    const d = Math.hypot(dx, ey - my);
     if (d < bestD) { bestD = d; best = e; }
   }
   return best;
