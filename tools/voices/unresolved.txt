@@ -68,13 +68,13 @@ m2/space/atom/hijack.ts:182 voice: 'op'
 m2/space/atom/hijack.ts:202 voice: 'op'
 m2/space/ride/pa.ts:44 voice: voice(PA_VOICE)
 m2/space/ride/index.ts:122 voice: true
-m2/space/needle/index.ts:100 voice: text
-m2/space/needle/index.ts:101 voice: text
-m2/space/orbit/hazards.ts:175 voice: voice(female ? 'm2.space.zpilotf' : 'm2.space.zpilot')
-m2/space/orbit/ufo.ts:61 voice: SAY
-m2/space/orbit/gun.ts:52 voice: SAY
+m2/space/needle/index.ts:102 voice: text
+m2/space/needle/index.ts:103 voice: text
+m2/space/orbit/gun.ts:53 voice: SAY
+m2/space/orbit/ufo.ts:64 voice: SAY
+m2/space/orbit/hazards.ts:190 voice: voice(female ? 'm2.space.zpilotf' : 'm2.space.zpilot')
 m2/space/crater/kinds.ts:69 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
-m2/space/crater/rigs.ts:166 voice: pick(L.BOO)
+m2/space/crater/rigs.ts:168 voice: pick(L.BOO)
 m2/space/crater/house.ts:86 voice: pick(L.XENO_WELCOME)
 m2/space/crater/house.ts:88 voice: pick(L.XENO_TELEPORT)
 m2/space/crater/house.ts:127 voice: pick(L.BOO)
