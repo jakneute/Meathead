@@ -10,7 +10,7 @@ import { drawBloodPool } from '../../../m1/game/render/spatter';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { PARTICLE_PALETTES } from '../../../m1/constants';
-import { spikeDown, BLOOD } from './paint';
+import { BLOOD } from './paint';
 
 export const SKEWERED = 'own:skewered' as const;
 export const SKEWER_FRAMES = 160, SKEWER_LIFT = 42;
@@ -40,7 +40,9 @@ registerDeathAnim(SKEWERED, {
   },
 });
 /** How squashed he is (1 his full height): crumpled under the spikes (and he stays that way, on the floor). */
-const crush = (d: MeatheadDeath) => Math.max(0.35, Math.min(1, (d.y - (d.floor ?? d.y - 64)) / 64));
+/** (his top this far up past the spikes' tips: they're in his head) */
+const SPIKED_IN = 16;
+const crush = (d: MeatheadDeath) => Math.max(0.35, Math.min(1, (d.y - (d.floor ?? d.y - 64) + SPIKED_IN) / 64));
 /** Where his neck is, crumpled: the line his head's torn off at (the top this much of his height). */
 const NECK = 0.27;
 const neckY = (d: MeatheadDeath) => d.y - 64 * crush(d) * (1 - NECK);
@@ -72,11 +74,8 @@ registerDeathDraw(SKEWERED, (ctx, state, d, weapon, t) => {
     ctx.restore();
     ctx.fillStyle = BLOOD[2]; for (let k = -2; k <= 2; k++) ctx.fillRect(d.x + k * 4 - 1, nk - rise, 3, 3 + ((k + 7) * 5 + (t >> 3)) % 5);
   }
-  // The spikes through the top of him (three of them, in to the jaw), red where they went in
-  const top = d.y - 64 * c - rise;
-  for (const dx of [-12, 0, 12]) {
-    const x = d.x + dx, len = dx === 0 ? 20 : 13;
-    spikeDown(ctx, x - 4, top - 30, 8, top + len);
-    ctx.fillStyle = BLOOD[2]; ctx.beginPath(); ctx.moveTo(x - 2, top + len - 12); ctx.lineTo(x + 2, top + len - 12); ctx.lineTo(x, top + len); ctx.closePath(); ctx.fill();
-  }
+  // (the ceiling's own spikes are in the top of his head: the blood running down off them over his face)
+  const tipY = (d.floor ?? d.y - 64) - rise;
+  ctx.fillStyle = BLOOD[2];
+  for (const dx of [-10, -2, 7]) ctx.fillRect(Math.round(d.x + dx), Math.round(tipY), 2, 4 + ((dx + 20 + (t >> 2)) % 7));
 });

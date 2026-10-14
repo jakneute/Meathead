@@ -172,6 +172,8 @@ const run = (ctx: FrameContext, dg: Dungeon) => {
       if (++dg.t > CEIL_WAIT) { dg.room = 'down'; dg.t = 0; playSound('rumble', 1, -8); shakeScreen(state, 5, 3); }
       break;
     case 'down': {
+      // (he's dead under it: it stops where it got him; his death takes it back up from there, his head on it)
+      if (state.player.health <= 0 || state.meatheadDeath) break;
       dg.t++;
       // (pulled: the counterweight takes it, the last section at the pace that makes it a close thing; before, each
       // section no lower than its cap)
@@ -195,7 +197,7 @@ const run = (ctx: FrameContext, dg: Dungeon) => {
       // The spikes on him (the lowest of the sections he's under, straddling two of them): hurt, and shoved down under
       // them; down far enough that the ceiling itself would be in him, skewered (never shoved out sideways by it)
       const tip = Math.max(tipAt(dg, p.pos.x + 2), tipAt(dg, cx), tipAt(dg, p.pos.x + p.width - 2));
-      skewer.tip = tip;
+      skewer.tip = tipAt(dg, cx);
       if (inRoom(state) && p.health > 0) {
         const top0 = pBoxTop(state), feet = p.pos.y + p.height;
         // (all the way down; down on him where he's stood up on something; or the block over the spikes into him: no
