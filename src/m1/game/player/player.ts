@@ -239,6 +239,8 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   player.currentWeapon = currentWeapon;
   // Mid shoulder charge, uppercut or divekick his hands are busy: no shooting (a slide tackle's fine, gun out front)
   if (armsBusy(player)) input = { ...input, shoot: false, shootPressed: false };
+  // (sat in a ride's car (a mine cart, a star sled: boarding, riding, and the rest): along for the ride, no gun)
+  if (player.cartSeat) input = { ...input, shoot: false, shootPressed: false, secondary: false };
   // (fire pressed with it empty: its own little failure; before anything fires, so the last shot doesn't count as one)
   updateDryFire(ctx, input);
   // Secondary fire: with the oil rocket launcher out, the flamethrower (if he's got it), so he can light what he's slicked
