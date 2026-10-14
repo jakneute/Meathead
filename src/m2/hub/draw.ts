@@ -15,6 +15,7 @@ import { HUB, HUB_CIRC, slotX } from './geometry';
 import { drawCrowd } from './crowd';
 import { timeOfDay, skyRamp, skyTint, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, lampGlow } from '../timeOfDay';
 import { noteSun, drawSunGlare } from '../sunFlare';
+import { signText, signAt, signW, gate, hillside, enamel } from './letters';
 
 type Ctx = CanvasRenderingContext2D;
 const box = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
@@ -147,7 +148,10 @@ const landmark = (ctx: Ctx, land: Land, x: number, y: number, f: number) => {
       // The hill with its big letters, a soundstage, searchlights sweeping
       for (const k of [-1, 1]) { ctx.fillStyle = haze('#FEF9C3'); ctx.globalAlpha = 0.35; ctx.beginPath(); const a = Math.sin(f * 0.02 + k) * 0.4 + k * 0.2; ctx.moveTo(x + k * 40, y - 60); ctx.lineTo(x + k * 40 + Math.sin(a) * 300 - 14, y - 60 - Math.cos(a) * 300); ctx.lineTo(x + k * 40 + Math.sin(a) * 300 + 14, y - 60 - Math.cos(a) * 300); ctx.fill(); ctx.globalAlpha = 1; }
       fill('#A16207', () => { ctx.moveTo(x - 170, y); ctx.quadraticCurveTo(x, y - 190, x + 170, y); });
-      ctx.fillStyle = haze('#FFFFFF'); ctx.font = '16px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('HAPPYWOOD', x, y - 96); ctx.textAlign = 'left';
+      // (the big letters stood up along the crest, each on its scaffold legs down to the hill)
+      { const L = hillside({ sx: 2, sy: 3 }, haze('#FFFFFF'), haze('#A8A29E')), hw = signW('HAPPYWOOD', L) / 2;
+        for (let k = -hw + 3; k < hw; k += 9) { const t = (k + 170) / 340, foot = y - 380 * t * (1 - t); rect(k, -97, 2, foot - (y - 97) + 2, '#57534E'); }
+        signText(ctx, 'HAPPYWOOD', x, y - 96, L); }
       rect(-90, -60, 180, 60, '#E7E5E4'); rect(-90, -60, 180, 6, '#D6D3D1'); rect(-20, -34, 40, 34, '#57534E');
       return;
     }
@@ -256,8 +260,7 @@ const lamp = (ctx: Ctx, x: number, i: number, f: number) => {
   box(ctx, x - 14, top - 2, 28, 4, '#111827');
   const land = LANDS[i % LANDS.length], wave = Math.sin(f * 0.06 + i) * 3;
   ctx.fillStyle = land.sign; ctx.beginPath(); ctx.moveTo(x + 4, top + 20); ctx.lineTo(x + 40, top + 20 + wave); ctx.lineTo(x + 40, top + 90 + wave); ctx.lineTo(x + 22, top + 80 + wave * 0.5); ctx.lineTo(x + 4, top + 90); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = land.signText; ctx.font = '6px "Press Start 2P"'; ctx.textAlign = 'center';
-  ctx.fillText('HAPPY', x + 22, top + 42 + wave * 0.6); ctx.fillText('LAND', x + 22, top + 54 + wave * 0.6); ctx.textAlign = 'left';
+  signAt(ctx, 'HAPPY', x + 22, top + 42 + wave * 0.6, 6, enamel(6, land.signText)); signAt(ctx, 'LAND', x + 22, top + 54 + wave * 0.6, 6, enamel(6, land.signText));
 };
 
 /** The swirl inside a portal's arch (rings of the land's colors, turning, flecks going round). */
@@ -366,11 +369,10 @@ const portal = (ctx: Ctx, land: Land, cx: number, f: number) => {
     }
   }
   // The sign over it
-  ctx.font = '10px "Press Start 2P"';
-  const tw = ctx.measureText(land.name).width + 24;
+  const GL = gate({ sx: 1, sy: 2 }, land.signText, land.sign), tw = signW(land.name, GL) + 24;
   ink(ctx, () => ctx.roundRect(cx - tw / 2, top + 6, tw, 24, 4), land.sign, 2);
   box(ctx, cx - tw / 2 + 3, top + 8, tw - 6, 2, lite(land.sign, 0.25));
-  ctx.fillStyle = land.signText; ctx.textAlign = 'center'; ctx.fillText(land.name, cx, top + 23); ctx.textAlign = 'left';
+  signText(ctx, land.name, cx, top + 25, GL);
 };
 
 /** Behind America USA's way in: the biggest flag in the world on the biggest pole, and a bald eagle on top of it. */
@@ -409,7 +411,7 @@ const americaGate = (ctx: Ctx, cx: number, f: number) => {
   for (const x of [cx - W / 2 - 22, cx + W / 2]) { ink(ctx, () => ctx.rect(x, top + 20, 22, GROUND_Y - top - 20), '#F8FAFC'); for (let k = 0; k < 8; k++) box(ctx, x + 2, top + 40 + k * 22, 18, 3, '#DC2626'); }
   ink(ctx, () => ctx.rect(cx - W / 2 - 30, top, W + 60, 30), '#1E3A8A', 2);
   for (let k = 0; k < 12; k++) box(ctx, cx - W / 2 - 24 + k * 19, top + 4, 4, 4, '#F8FAFC');
-  ctx.fillStyle = '#F8FAFC'; ctx.font = '12px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('AMERICA USA', cx, top + 24); ctx.textAlign = 'left';
+  signAt(ctx, 'AMERICA USA', cx, top + 24, 12, gate(12, '#F8FAFC', '#7F1D1D'));
   for (let k = 0; k < 8; k++) {
     const bx = cx - W / 2 + k * (W / 8), sag = Math.sin(f * 0.04 + k) * 1.5;
     ctx.fillStyle = ['#DC2626', '#F8FAFC', '#1E3A8A'][k % 3]; ctx.beginPath(); ctx.moveTo(bx, top + 32); ctx.quadraticCurveTo(bx + W / 16, top + 46 + sag, bx + W / 8, top + 32); ctx.lineTo(bx, top + 32); ctx.fill();
@@ -422,7 +424,7 @@ const americaGate = (ctx: Ctx, cx: number, f: number) => {
     for (const r of [0, 2.1, 4.2]) { ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(tx, GROUND_Y - 32); ctx.lineTo(tx + Math.cos(r + a) * 18, GROUND_Y - 32 + Math.sin(r + a) * 6); ctx.stroke(); }
   }
   ink(ctx, () => ctx.rect(cx - 52, GROUND_Y - 84, 104, 26), '#DC2626', 2);
-  ctx.fillStyle = '#FFFFFF'; ctx.font = '6px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('EXIT ONLY', cx, GROUND_Y - 73); ctx.fillText('NO RE-ENTRY', cx, GROUND_Y - 63); ctx.textAlign = 'left';
+  signAt(ctx, 'EXIT ONLY', cx, GROUND_Y - 73, 6, enamel(6, '#FFFFFF', '#7F1D1D')); signAt(ctx, 'NO RE-ENTRY', cx, GROUND_Y - 63, 6, enamel(6, '#FFFFFF', '#7F1D1D'));
 };
 
 /**
@@ -468,7 +470,7 @@ const backBuilding = (ctx: Ctx, cx: number, f: number) => {
   ink(ctx, () => ctx.rect(cx - 7, GROUND_Y - 146, 14, 10), '#3F3F46'); box(ctx, cx - 4, GROUND_Y - 142, 8, 6, on ? '#FDE68A' : '#57534E');
   box(ctx, cx - 7, GROUND_Y - 142, 14, 1, '#18181B'); box(ctx, cx, GROUND_Y - 146, 1, 10, '#18181B');
   // (NO SMOKING, and the butts all round under it)
-  ink(ctx, () => ctx.rect(x0 + 6, GROUND_Y - 88, 42, 20), '#F8FAFC'); ctx.fillStyle = '#DC2626'; ctx.font = '5px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('NO', x0 + 27, GROUND_Y - 80); ctx.fillText('SMOKING', x0 + 27, GROUND_Y - 72); ctx.textAlign = 'left';
+  ink(ctx, () => ctx.rect(x0 + 2, GROUND_Y - 88, 50, 20), '#F8FAFC'); signAt(ctx, 'NO', x0 + 27, GROUND_Y - 80, 5, enamel(5, '#DC2626')); signAt(ctx, 'SMOKING', x0 + 27, GROUND_Y - 72, 5, enamel(5, '#DC2626'));
   for (let k = 0; k < 9; k++) box(ctx, x0 + 8 + ((k * 23) % 50), GROUND_Y - 2 - (k % 2), 4, 1, k % 3 ? '#F5F5F4' : '#D97706');
 };
 
@@ -526,7 +528,7 @@ const staffDoor = (ctx: Ctx, cx: number, f: number) => {
   box(ctx, cx - 26, GROUND_Y - 106, 52, 106, '#6B7280'); box(ctx, cx - 26, GROUND_Y - 106, 6, 106, '#7C8592');
   box(ctx, cx + 14, GROUND_Y - 58, 6, 4, '#E5E7EB');
   ink(ctx, () => ctx.rect(cx - 24, GROUND_Y - 96, 48, 16), '#DC2626');
-  ctx.fillStyle = '#FFFFFF'; ctx.font = '6px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('STAFF', cx, GROUND_Y - 89); ctx.fillText('ONLY', cx, GROUND_Y - 82); ctx.textAlign = 'left';
+  signAt(ctx, 'STAFF', cx, GROUND_Y - 89, 6, enamel(6, '#FFFFFF')); signAt(ctx, 'ONLY', cx, GROUND_Y - 82, 6, enamel(6, '#FFFFFF'));
   // (a sticky note on it, flapping)
   ctx.save(); ctx.translate(cx - 10, GROUND_Y - 70); ctx.rotate(Math.sin(f * 0.05) * 0.06);
   box(ctx, 0, 0, 18, 16, '#FDE047'); ctx.fillStyle = '#1E3A8A'; ctx.font = '4px "Press Start 2P"'; ctx.fillText('NO', 2, 7); ctx.fillText('GUESTS', 2, 13);
