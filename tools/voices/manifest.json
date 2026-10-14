@@ -19701,7 +19701,7 @@
  },
  {
   "voice": "m2.space.raygun",
-  "text": "SPACE RADIATION DETECTED. RAPID FIRE ENABLED. YOUR SPERM IS DEAD, BY THE WAY.",
+  "text": "SPACE RADIATION DETECTED. IT IS UPGRADING ME. RAPID FIRE ENABLED. YOUR SPERM IS DEAD, BY THE WAY.",
   "from": "SPACE"
  },
  {
@@ -25413,11 +25413,6 @@
   "voice": "meathead",
   "text": "HOLDING IT SIDEWAYS DOESN'T MAKE IT HURT LESS!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "HOLY SHIT. RAPID FIRE.",
-  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -34213,6 +34208,11 @@
   "voice": "meathead",
   "text": "WHAT WAS ON THAT THING?!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT? MY GUN TALKS? AND IT'S BETTER NOW?",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",

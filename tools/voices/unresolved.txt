@@ -69,9 +69,9 @@ m2/space/ride/pa.ts:44 voice: voice(PA_VOICE)
 m2/space/ride/index.ts:103 voice: true
 m2/space/needle/index.ts:95 voice: text
 m2/space/needle/index.ts:96 voice: text
-m2/space/orbit/hazards.ts:156 voice: voice(female ? 'm2.space.zpilotf' : 'm2.space.zpilot')
-m2/space/orbit/gun.ts:46 voice: SAY
+m2/space/orbit/hazards.ts:175 voice: voice(female ? 'm2.space.zpilotf' : 'm2.space.zpilot')
 m2/space/orbit/ufo.ts:61 voice: SAY
+m2/space/orbit/gun.ts:48 voice: SAY
 m2/space/crater/kinds.ts:63 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
 m2/space/crater/house.ts:85 voice: pick(L.XENO_WELCOME)
 m2/space/crater/house.ts:87 voice: pick(L.XENO_TELEPORT)
