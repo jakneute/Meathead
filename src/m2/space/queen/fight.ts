@@ -85,7 +85,7 @@ const SIDE_X = { [-1]: DISCO_SIDES.l, [1]: DISCO_SIDES.r } as Record<-1 | 1, num
 const INTRO_X = ARENA_L + 780, INTRO_CAM = ARENA_L + 80;
 /** Births: how often (by phase), at most this many of hers about at once (a whole litter has to fit); the tell (turning
  *  round), the push; one sac after another out of her, this far apart (frames). */
-const BIRTH_EVERY = [0, 240, 170, 120], KIN_CAP = [0, 3, 5, 6], TURN_T = 26, PUSH_T = 34, SAC_GAP = 9;
+const BIRTH_EVERY = [0, 240, 170, 120], KIN_CAP = [0, 3, 5, 5], TURN_T = 26, PUSH_T = 34, SAC_GAP = 9;
 /** How many to a litter: one at the start, rising with what she's lost, to three (the user's: five got too hectic). */
 const LITTER_MIN = 1, LITTER_MAX = 3;
 const litterOf = (f: Fight) => Math.max(LITTER_MIN, Math.min(LITTER_MAX, LITTER_MIN + Math.floor((1 - f.hp / HP) * (LITTER_MAX - LITTER_MIN + 1))));
