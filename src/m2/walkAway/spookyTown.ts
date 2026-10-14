@@ -497,7 +497,7 @@ export const shopProp = (i: number, ppm: number, res: number, x: number, z: numb
 export const bladeProp = (s: Slot, side: number, ppm: number): Prop => {
   const label = s === 'atm' ? 'CRYPT-O ATM' : SHOPS[s].sign.split(/ - | \(| &/)[0];
   const col = s === 'atm' ? '#0C4A6E' : '#1E1036', ink = s === 'atm' ? '#BAE6FD' : '#E9D5FF';
-  const bw = Math.round((typeof document !== 'undefined' ? textW(canvas(1, 1).getContext('2d')!, label, 8) : label.length * 8) + 16);
+  const bw = Math.round(textW(null, label, 8) + 16);
   const W = bw + 24, H = 48;
   return worded({ x: 0, z: 0, w: W / ppm, h: H / ppm, ppm: Math.min(ppm, 24), paint: shrunk(W, H, g => {
     // (the bracket out of the wall, its scroll, the chains, the board)

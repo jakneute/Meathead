@@ -17,10 +17,11 @@ import { type Passage, passageBack, passageSide, passageFront, passageLintel } f
 import { rockWall } from './shopArt';
 import { x0, HOLE_X, DESK_X, RACK_X, ROOM_DOOR, SHOP_X, PART_L, PART_R } from './geo';
 import {
-  INK, box, text, slab, pole, ball, rampOf, dark, lite, mix, checker, hazeBands, stamp, hash,
+  INK, box, slab, pole, ball, rampOf, dark, lite, mix, checker, hazeBands, stamp, hash,
   WALL_D, CEIL, eyeOf, inDepth, at, quad, seg, shade, inked, wallRun, ceiling, tileFloor, frontFloor, plaque,
   type Eye,
 } from './paint';
+import { signAt, enamel, print } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -81,7 +82,7 @@ const paintWallTile = (g: Ctx, x: number, v: number) => {
   } else if (v === 3) {
     // (a fire extinguisher on its hook, its sign over it)
     shade(g, x + 180, GY - 230, 30, 14, '#B91C1C');
-    text(g, 'FIRE', x + 195, GY - 220, '#FEE2E2', 6, 'center', null);
+    signAt(g, 'FIRE', x + 195, GY - 220, 6, enamel(6, '#FEE2E2'));
     pole(g, x + 186, GY - 196, 14, 40, '#C42A22');
     box(g, x + 188, GY - 202, 10, 6, '#27272A'); box(g, x + 196, GY - 204, 10, 3, '#27272A');
     box(g, x + 186, GY - 180, 14, 6, '#E8E1D0');
@@ -110,7 +111,7 @@ const paintBank = (g: Ctx) => {
     box(g, sx - 4, sy - 4, SCR_W + 8, SCR_H + 8, '#3A362C'); box(g, sx - 3, sy - 3, SCR_W + 6, 1, '#7A715C'); box(g, sx - 3, sy - 3, 1, SCR_H + 6, '#7A715C');
     box(g, sx, sy + SCR_H + 8, 30, 3, '#8C836A');
     ball(g, sx + SCR_W - 18, sy + SCR_H + 10, 3, '#3A3A3E'); ball(g, sx + SCR_W - 6, sy + SCR_H + 10, 3, '#3A3A3E');
-    text(g, `CAM ${i + 1}`, sx + 2, sy + SCR_H + 13, '#3A362C', 6, 'left', null);
+    signAt(g, `CAM ${i + 1}`, sx + 2, sy + SCR_H + 13, 6, print(6, '#3A362C'), 'left');
   }
   // (cables down out of the back of the rack, bundled, to the floor behind the desk)
   g.strokeStyle = '#141416'; g.lineWidth = 3;
@@ -181,10 +182,10 @@ const paintBoards = (g: Ctx) => {
   const bx = x0 + 52, by = GY - 380;
   slab(g, bx, by, 170, 64, '#E8E3D6', { edge: 2 });
   box(g, bx + 4, by + 4, 162, 22, '#166534'); box(g, bx + 4, by + 4, 162, 2, '#22A04A');
-  text(g, 'DAYS WITHOUT', bx + 85, by + 14, '#F0FDF4', 7, 'center', '#0A3A1C');
-  text(g, 'AN INCIDENT', bx + 85, by + 24, '#F0FDF4', 7, 'center', '#0A3A1C');
+  signAt(g, 'DAYS WITHOUT', bx + 85, by + 14, 7, enamel(7, '#F0FDF4', '#0A3A1C'));
+  signAt(g, 'AN INCIDENT', bx + 85, by + 24, 7, enamel(7, '#F0FDF4', '#0A3A1C'));
   slab(g, bx + 66, by + 30, 38, 30, '#F8FAFC', { edge: 2 });
-  text(g, '0', bx + 86, by + 55, '#DC2626', 20, 'center', '#7F1D1D');
+  signAt(g, '0', bx + 86, by + 55, 20, enamel(20, '#DC2626', '#7F1D1D'));
   // (the old number, in the bin under it: a stack of cards)
   // (a poster: the kitten hanging off its branch)
   const px = x0 + 70, py = GY - 288;
@@ -197,12 +198,12 @@ const paintBoards = (g: Ctx) => {
   box(g, px + 27, py + 23, 2, 2, INK); box(g, px + 32, py + 23, 2, 2, INK);
   box(g, px + 26, py + 46, 3, 8, '#E89A3C'); box(g, px + 32, py + 46, 3, 8, '#E89A3C');
   box(g, px + 36, py + 30, 5, 2, '#C87A2A');
-  text(g, 'HANG IN', px + 32, py + 72, '#1E3A8A', 6, 'center', null);
-  text(g, 'THERE', px + 32, py + 80, '#1E3A8A', 6, 'center', null);
+  signAt(g, 'HANG IN', px + 32, py + 72, 6, print(6, '#1E3A8A'));
+  signAt(g, 'THERE', px + 32, py + 80, 6, print(6, '#1E3A8A'));
   // (the calendar: the month crossed off, day by day)
   const kx = x0 + 156, ky = GY - 286;
   slab(g, kx, ky, 54, 70, '#F8FAFC', { edge: 2 });
-  box(g, kx + 3, ky + 3, 48, 22, '#B45309'); text(g, 'OCT', kx + 27, ky + 18, '#FEF3C7', 8, 'center', '#78350F');
+  box(g, kx + 3, ky + 3, 48, 22, '#B45309'); signAt(g, 'OCT', kx + 27, ky + 18, 8, print({ sx: 2, sy: 2 }, '#FEF3C7', '#78350F'));
   for (let d = 0; d < 28; d++) {
     const cx = kx + 5 + (d % 7) * 7, cy = ky + 30 + Math.floor(d / 7) * 9;
     box(g, cx, cy, 5, 6, '#D6D3D1');
@@ -259,7 +260,7 @@ const paintConsole = (g: Ctx) => {
   // (vent slots, a kick plate scuffed bare, a strip of tape: DO NOT TOUCH, in marker)
   for (let i = 0; i < 6; i++) box(g, DESK_L + 20 + i * 8, DESK_TOP + 44, 4, 14, '#262B33');
   box(g, DESK_L + 6, GY - 8, DESK_W - 12, 8, '#22262C'); checker(g, DESK_L + 40, GY - 6, 40, 4, '#5B6470');
-  box(g, DESK_L + 100, DESK_TOP + 40, 70, 10, '#D9D4C2'); text(g, 'DO NOT TOUCH', DESK_L + 135, DESK_TOP + 48, '#1E3A8A', 6, 'center', null);
+  box(g, DESK_L + 96, DESK_TOP + 40, 78, 10, '#D9D4C2'); signAt(g, 'DO NOT TOUCH', DESK_L + 135, DESK_TOP + 48, 6, print(6, '#1E3A8A'));
   // (on top, left to right: the bucket of soda, a chip bag, the mic's base, the papers, the sandwich, the mug, the
   // foam head's stand)
   const T = DESK_TOP - 4;

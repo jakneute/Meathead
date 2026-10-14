@@ -25,6 +25,7 @@ import { hellOf, type Hell } from './state';
 import { hazardVictims, hazardKill, hazardHit, setHazardZones, boxHits, type Zone } from '../../hazardHit';
 import { overLava, IMP_FIRE } from './kinds';
 import { HURT_LAVA, DEATH_LAVA, HURT_JET, DEATH_JET, HURT_CAR, DEATH_CAR, MH_CAR } from './lines';
+import { signText, candle, print } from '../letters';
 
 type Ctx = PCtx;
 const pick = pickLine;
@@ -229,7 +230,7 @@ const paintCar = (g: Ctx, standable: boolean) => {
   box(g, -11, -53, 28, 7, INK); box(g, -10, -52, 26, 5, GOLD[2]); box(g, -10, -52, 26, 1, GOLD[4]);
   // (the plate over the doors)
   box(g, -51, -117, 102, 14, INK); box(g, -50, -116, 100, 12, '#18181B'); box(g, -50, -116, 100, 1, '#3A3A42');
-  g.font = '6px "Press Start 2P"'; g.textAlign = 'center'; g.fillStyle = GOLD[4]; g.fillText('ELEVATOR TO HELL', 0, -107); g.textAlign = 'left';
+  signText(g, 'ELEVATOR TO HELL', 0, -107, { ...candle(6, '#18181B', GOLD[4], false), serif: false, gap: 1 });
   // (the floor dial on top: gold, its needle stuck on the H)
   box(g, -9, -139, 18, 14, INK); box(g, -8, -138, 16, 12, GOLD[2]); box(g, -8, -138, 16, 2, GOLD[4]); box(g, -5, -135, 10, 8, '#18181B');
   // (dents and scratches)
@@ -247,7 +248,7 @@ export const drawWreckedCar = (c: Ctx, x: number, y: number, tilt: number, f: nu
   stamp(c, `hell-car-${tilt.toFixed(3)}-${standable}`, -160, -160, 320, 320, g => { g.rotate(tilt); paintCar(g, standable); });
   // (the dial's H, blinking)
   c.rotate(tilt);
-  c.font = '6px "Press Start 2P"'; c.fillStyle = f % 60 < 30 ? '#EF4444' : '#7F1D1D'; c.fillText('H', -3, -128);
+  signText(c, 'H', 0, -128, print(6, f % 60 < 30 ? '#EF4444' : '#7F1D1D'));
   c.restore();
 };
 

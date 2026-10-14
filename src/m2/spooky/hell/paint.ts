@@ -3,6 +3,7 @@
 // own banded surface, signs, and a few shapes everything down here is built from.
 
 import { type Ctx, INK, box, checker, mix, rampOf, hash, PIX, dark, lite, stamp, text } from '../../intro/art/kit';
+import { signText, signW, signH, brand } from '../letters';
 
 export { type Ctx, INK, box, checker, mix, rampOf, hash, PIX, dark, lite, stamp, text };
 
@@ -76,8 +77,8 @@ export const basalt = (c: Ctx, x: number, y: number, w: number, h: number, seed:
 
 /** A sign down here: a scorched board on two charred posts, its words burnt in, inked. Painted once (a stamp). */
 export const hellSign = (c: Ctx, x: number, feetY: number, words: string, board = '#4A1A10', ink = '#FCD58A', hung = false) => {
-  c.font = '8px "Press Start 2P"';
-  const w = Math.max(64, Math.ceil(c.measureText(words).width) + 20), h = 24, top = hung ? -h / 2 : -92;
+  // (hell's lettering: burned into the board, still hot)
+  const L = brand(8, board, ink), w = Math.max(64, Math.ceil(signW(words, L)) + 24), h = 24, top = hung ? -h / 2 : -92;
   c.save(); c.translate(Math.round(x), Math.round(feetY));
   stamp(c, `hell-sign-${words}-${board}-${hung}`, -w / 2 - 4, top - (hung ? 24 : 4), w + 8, hung ? 54 : 100, g => {
     const r = rampOf(board), post = BASALT[3];
@@ -95,7 +96,7 @@ export const hellSign = (c: Ctx, x: number, feetY: number, words: string, board 
     // (the grain, and a scorched corner)
     for (let i = 0; i < 3; i++) box(g, -w / 2 + 4 + hash(w + i) * (w - 30), top + 7 + i * 5, 20, 1, r[1]);
     box(g, w / 2 - 10, top, 10, 6, r[0]); checker(g, w / 2 - 16, top, 6, 6, r[0]);
-    text(g, words, 0, top + 16, ink, 8, 'center', INK);
+    signText(g, words, 0, top + h / 2 + signH(L) / 2, L);
   });
   c.restore();
 };

@@ -6,6 +6,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { INK as KIT_INK, box, checker, mix, rampOf, hash, PIX, stamp, bandedGradient, hazeBands, pixelBlob, steppedGlow } from '../../intro/art/kit';
+import { signAt, signText, signW, signH, haunt, type Look } from '../letters';
 
 export { box, checker, mix, rampOf, hash, PIX, stamp, bandedGradient, hazeBands, pixelBlob, steppedGlow };
 export type Ctx = CanvasRenderingContext2D;
@@ -104,13 +105,11 @@ export const flatFace = (c: Ctx, eye: { x: number; y: number }, x0: number, x1: 
 // ---------------------------------------------------------------------------------------------------------------
 // Words and boards
 
-/** Words, small, centered, the pixel font. */
-export const words = (c: Ctx, s: string, x: number, y: number, col: string, size = 8, shadow: string | null = null) => {
-  c.font = `${size}px "Press Start 2P"`; c.textAlign = 'center';
-  if (shadow) { c.fillStyle = shadow; c.fillText(s, Math.round(x) + 1, Math.round(y) + 1); }
-  c.fillStyle = col; c.fillText(s, Math.round(x), Math.round(y)); c.textAlign = 'left';
-};
-export const textW = (c: Ctx, s: string, size: number) => { c.font = `${size}px "Press Start 2P"`; return c.measureText(s).width; };
+/** Words, centered, painted on in the town's lettering (spooky/letters.ts: serifed, ramped; a look of its own if given). */
+export const words = (c: Ctx, s: string, x: number, y: number, col: string, size = 8, shadow: string | null = null, look?: Look) =>
+  signAt(c, s, x, y, size, look ?? { ...haunt(size, col), shadow: shadow ?? undefined });
+/** How wide a line of the town's lettering sets (the board's words at `size`). */
+export const textW = (_c: Ctx | null, s: string, size: number) => signW(s, haunt(size, '#000000'));
 
 /**
  * A town board (the shop sign, the warning): painted wood or enamel in its ramp, inked, a lit top edge and a shaded
@@ -118,7 +117,7 @@ export const textW = (c: Ctx, s: string, size: number) => { c.font = `${size}px 
  */
 export const board = (c: Ctx, x: number, y: number, s: string, col: string, ink: string, size = 8) => {
   const r = rampOf(col);
-  const w = Math.round(textW(c, s, size) + 16), h = size + 12;
+  const L = haunt(size, ink, col), w = Math.round(signW(s, L) + 16), h = signH(L) + 12;
   const x0 = Math.round(x - w / 2), y0 = Math.round(y - h / 2);
   box(c, x0 - 1, y0 - 1, w + 2, h + 2, INK);
   box(c, x0, y0, w, h, r[2]);
@@ -128,7 +127,7 @@ export const board = (c: Ctx, x: number, y: number, s: string, col: string, ink:
   // (the frame's inner line, the screws)
   box(c, x0 + 2, y0 + 2, w - 4, 1, r[1]); box(c, x0 + 2, y0 + h - 4, w - 4, 1, r[3]);
   for (const sx of [x0 + 3, x0 + w - 5]) { box(c, sx, y0 + h / 2 - 1, 2, 2, r[0]); box(c, sx, y0 + h / 2 - 1, 1, 1, r[4]); }
-  words(c, s, x, y0 + h / 2 + size / 2, ink, size, r[0]);
+  signText(c, s, x, Math.round(y0 + h / 2 + signH(L) / 2), L);
   return w;
 };
 

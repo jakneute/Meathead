@@ -33,9 +33,10 @@ import { voice } from '../section';
 import { CLERK, HAWKER, MASCOT, throwGlobe, staffTalking, setStaffHush } from './staff';
 import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardHit';
 import * as L from './lines';
-import { INK, box, text, slab, pole, ball, sign, rampOf, checker, stamp, eyeOf, at as at3, quad, inked, standTop, plaque, type Eye } from './paint';
+import { INK, box, slab, pole, ball, sign, rampOf, checker, stamp, eyeOf, at as at3, quad, inked, standTop, plaque, type Eye } from './paint';
 import { drawShopRoom, hangingSign } from './shopArt';
 import { drawPartitionSide } from './room';
+import { signAt, signW, print, led, brand, candle, haunt } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -342,12 +343,12 @@ const drawStand = (c: Ctx, eye: Eye, x: number, h: number, w: number, kind: Stan
       slab(g, x, top, w, h, '#1F1F24', { edge: 2 });
       for (let k = 0; k < 6; k++) flameDecal(g, x + 10 + k * 32, GY - 12, 22 + (k % 2) * 10, 22);
       box(g, x + 2, GY - 8, w - 4, 6, '#0E0E10');
-      box(g, x + 70, top + 14, 60, 12, '#FDE68A'); text(g, 'PAY HERE', x + 100, top + 23, '#7F1D1D', 6, 'center', null);
+      box(g, x + 70, top + 14, 60, 12, '#FDE68A'); signAt(g, 'PAY HERE', x + 100, top + 23, 6, print(6, '#7F1D1D'));
     }, '#B45309');
     // (on it: the register, the pile of I SURVIVED HELL bags, a tub of horns at the end)
     stamp(c, 'shop-register', x + 10, top - 40, 190, 40, g => {
       slab(g, x + 20, top - 26, 40, 26, '#3F3F46', { edge: 2 });
-      box(g, x + 24, top - 22, 32, 8, '#14532D'); text(g, '$666', x + 40, top - 15, '#4ADE80', 6, 'center', null);
+      box(g, x + 24, top - 22, 32, 8, '#14532D'); signAt(g, '$666', x + 40, top - 15, 6, led(6, '#4ADE80', '#14532D'));
       for (let i = 0; i < 6; i++) box(g, x + 25 + (i % 3) * 11, top - 11 + Math.floor(i / 3) * 5, 8, 3, '#A1A1AA');
       for (let i = 0; i < 3; i++) { slab(g, x + 116 + i * 9, top - 18 - i * 2, 20, 18 + i * 2, '#F1EFEA', { edge: 2 }); box(g, x + 120 + i * 9, top - 12 - i * 2, 12, 3, '#DC2626'); }
       slab(g, x + 156, top - 14, 30, 14, '#27272A', { edge: 2 });
@@ -420,7 +421,7 @@ const paintSamples = (g: Ctx) => {
   box(g, px - 50, GY - 4, 100, 2, '#F1EFEA');
   box(g, px - 44, GY - 4, 3, 4, '#3F3F46'); box(g, px + 41, GY - 4, 3, 4, '#3F3F46');
   pole(g, px - 92, GY - 76, 5, 76, '#57534E');
-  plaque(g, px - 90, GY - 88, 'FREE SAMPLES', '#450A0A', '#FDE68A');
+  plaque(g, px - 90, GY - 88, 'FREE SAMPLES', '#450A0A', '#FDE68A', 8, undefined, brand(8, '#450A0A', '#FDE68A'));
 };
 
 const drawBooth = (c: Ctx, eye: Eye, sh: Shop) => {
@@ -430,8 +431,8 @@ const drawBooth = (c: Ctx, eye: Eye, sh: Shop) => {
     slab(g, x - 55, top, 110, 150, '#2A1A3A', { edge: 4 });
     slab(g, x - 48, top + 12, 96, 30, '#18181B', { edge: 2 });
     for (let i = 0; i < 11; i++) { box(g, x - 46 + i * 9, top + 13, 3, 3, '#FDE047'); box(g, x - 46 + i * 9, top + 38, 3, 3, '#FDE047'); }
-    text(g, 'PHOTOS', x, top + 32, '#F9A8D4', 8, 'center', '#831843');
-    text(g, '4 FOR $5', x, top + 52, '#FDE047', 6, 'center', INK);
+    signAt(g, 'PHOTOS', x, top + 32, 8, candle(8, '#18181B', '#F9A8D4'));
+    signAt(g, '4 FOR $5', x, top + 52, 6, haunt(6, '#FDE047', '#000000'));
     box(g, x - 32, top + 56, 64, 94, '#0B0B0D');
     slab(g, x + 38, top + 84, 14, 12, '#3F3F46', { edge: 1 }); box(g, x + 40, top + 90, 10, 2, INK);
   }, '#A16207');
@@ -469,7 +470,7 @@ const paintSatan = (g: Ctx) => {
   box(g, sx - 12, GY - 98, 24, 4, INK); box(g, sx - 11, GY - 97, 22, 2, '#FDE047');
   box(g, sx - 4, GY - 92, 8, 6, '#18181B'); box(g, sx - 3, GY - 88, 6, 6, '#18181B');
   box(g, sx - 2, GY - 80, 4, 20, '#7F1D1D');
-  text(g, 'SAY CHEESE', sx, GY - 30, '#FDE68A', 6, 'center', INK);
+  signAt(g, 'SAY CHEESE', sx, GY - 30, 6, haunt(6, '#FDE68A', '#000000'));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -524,8 +525,8 @@ const drawRack = (c: Ctx, r: Rack) => {
       g.save(); g.translate(0, GY); paintRackBody(g, r.kind); g.restore();
       const t = RACK_TAG[r.kind];
       pole(g, 40, GY - 44, 3, 44, '#57534E');
-      g.font = '6px "Press Start 2P"'; const w = Math.ceil(g.measureText(t).width) + 10;
-      sign(g, 41 - w / 2, GY - 58, w, 14, '#FEF3C7', t, '#7F1D1D', 6);
+      const L = haunt(6, '#7F1D1D'), w = Math.ceil(signW(t, L)) + 10;
+      sign(g, 41 - w / 2, GY - 58, w, 14, '#FEF3C7', t, '#7F1D1D', 6, INK, L);
     });
     c.restore();
     return;

@@ -10,6 +10,7 @@ import { drawTodSky, timeOfDay, hourMix, farTint, skyAt, cloudTint, type TimeOfD
 import { SECTIONS } from '../geometry';
 import { STAIRS } from './layout';
 import { type Ctx, INK, box, mix, hash, poly, stamp, checker, hazeBands, pixelBlob, SLATE } from './paint';
+import { signText, candle, blood } from '../letters';
 
 const { x0 } = SECTIONS.town;
 const TW = 1024;
@@ -180,14 +181,10 @@ const drawTower = (c: Ctx, state: GameState, tx: number, base: number, ts: numbe
   for (let x = SR - 8; x >= SL + 2; x -= 6) bulb(x, SB - 2);
   for (let y = SB - 8; y >= ST + 8; y -= 6) bulb(SL + 2, y);
   c.save(); c.translate(Math.round(tx), Math.round(base)); c.scale(ts, ts);
-  c.textAlign = 'center';
-  c.font = '6px "Press Start 2P"';
-  c.fillStyle = INK; c.fillText('ELEVATOR', 1, T + 170);
-  c.fillStyle = mix('#C8A050', '#FDE68A', glow); c.fillText('ELEVATOR', 0, T + 169);
-  c.font = '11px "Press Start 2P"';
-  c.fillStyle = INK; c.fillText('TO HELL', 1, T + 191); c.fillText('TO HELL', 0, T + 192);
-  c.fillStyle = mix('#D8B0B0', '#FFF1F1', glow); c.fillText('TO HELL', 0, T + 190);
-  c.textAlign = 'left'; c.restore();
+  // (ELEVATOR in candlelit gilt, TO HELL big, bleeding)
+  signText(c, 'ELEVATOR', 0, T + 170, { ...candle(6, '#7F1D1D', mix('#C8A050', '#FDE68A', glow), false), shadow: INK });
+  signText(c, 'TO HELL', 0, T + 190, { ...blood({ sx: 2, sy: 2 }, mix('#D8B0B0', '#FFF1F1', glow), INK, 3), drip: { col: mix('#B07070', '#F8C8C8', glow), rate: 0.35, len: 5 } });
+  c.restore();
   // The track up its right side (its rungs), and the car: up slow, a moment at the top, then the drop
   R(50, T + 78, 10, -T - 78, INK); R(51, T + 80, 8, -T - 80, '#18121F'); R(51, T + 80, 2, -T - 80, '#2E2440');
   for (let y = T + 86; y < 0; y += 14) R(50, y, 10, 2, '#3F3550');

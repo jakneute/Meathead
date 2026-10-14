@@ -19,6 +19,7 @@ import { type Passage, passageBack, passageSide, passageFront, passageLintel } f
 import { rockWall } from '../control/shopArt';
 import { drawBallDoors } from '../control/ballDoors';
 import { x0, ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X, CHANDELIERS, RISER } from './arena';
+import { signAt, haunt, print, candle } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -112,7 +113,7 @@ const paintDJ = (g: Ctx) => {
   const x = DJ_X;
   // (the DJ's folding table, a banner on it; the decks; two speakers on stands)
   slab(g, x, GY - 52, 150, 52, '#18181B', { edge: 2 });
-  box(g, x + 14, GY - 46, 122, 20, '#7C3AED'); text(g, 'DJ VLAD', x + 75, GY - 32, '#FDE047', 8, 'center', '#3B0764');
+  box(g, x + 14, GY - 46, 122, 20, '#7C3AED'); signAt(g, 'DJ VLAD', x + 75, GY - 32, 8, haunt(8, '#FDE047', '#4C1D95'));
   slab(g, x + 12, GY - 62, 126, 10, '#3F3F46', { edge: 2 });
   for (const dx of [30, 104]) { inked(g, () => g.ellipse(x + dx, GY - 62, 14, 3, 0, 0, Math.PI * 2), '#27272A', 1); box(g, x + dx - 1, GY - 63, 2, 2, '#DC2626'); }
   slab(g, x + 56, GY - 78, 38, 16, '#52525B', { edge: 2 }); box(g, x + 60, GY - 75, 30, 9, '#60A5FA');
@@ -143,7 +144,7 @@ const paintRiser = (g: Ctx) => {
   standTop(g, x - 2, top, w + 4, '#57534E', '#FBBF24');
   const bx = x + w - 34;
   inked(g, () => g.ellipse(bx, top - 16, 16, 15, 0, 0, Math.PI * 2), '#F8FAFC', 2);
-  box(g, bx - 10, top - 20, 20, 7, '#7F1D1D'); text(g, 'BATS', bx, top - 14, '#F8FAFC', 6, 'center', null);
+  box(g, bx - 14, top - 22, 28, 10, '#7F1D1D'); signAt(g, 'BATS', bx, top - 14, 6, print(6, '#F8FAFC'));
   box(g, bx - 30, top - 26, 3, 26, '#A1A1AA'); inked(g, () => g.ellipse(bx - 28, top - 28, 10, 2, 0, 0, Math.PI * 2), '#EAB308', 1);
   slab(g, bx - 58, top - 20, 16, 20, '#B91C1C', { edge: 2 });
 };
@@ -219,7 +220,7 @@ export const drawBallroomArt = (c: Ctx, state: GameState, look: BallLook) => {
     stamp(c, 'ball-dj', DJ_X - 44, GY - 122, 240, 124, paintDJ);
     // (the banner over the floor, between the pilasters)
     c.fillStyle = 'rgba(10, 3, 18, 0.22)'; c.fillRect(BUF_X - 50, GY - 140, DJ_X + 250 - BUF_X, 140);
-    plaque(c, ARENA_MID, GY - 420, 'CONGRATULATIONS BRAD & TIFFANY', '#3B0764', '#F9A8D4', 8, GOLD);
+    plaque(c, ARENA_MID, GY - 420, 'CONGRATULATIONS BRAD & TIFFANY', '#3B0764', '#F9A8D4', 8, GOLD, candle(8, '#3B0764', '#F9A8D4', false));
   });
   // The floor: the parquet in the foyer, the light-up dance floor going back (its tiles going round their colors)
   {

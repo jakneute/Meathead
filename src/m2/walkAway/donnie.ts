@@ -13,6 +13,7 @@
 import { type Ctx, type Prop, type SceneDef, INK, HOR, F, CAM_H, VP_X, ME_X, SPEED, box, hash, lump, smoke, fire, project } from './kit';
 import { spriteOf, fogAt, wobble } from './screen';
 import { timeOfDay } from '../timeOfDay';
+import { signText, signW, print } from '../spooky/letters';
 import { STONE, LIP, COBBLE, LEFT_SIDE, RIGHT_SIDE, layoutOf, drawTownSky, drawTowerWrecked, drawStreetWalls, lampProp, lanternUp, bladeProp, cobbles, litter, TOWER_TOP } from './spookyTown';
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -176,7 +177,9 @@ const paintGlobe = (g: Ctx, w: number, h: number) => {
 const paintTag = (g: Ctx, w: number, h: number) => {
   // (HELLO MY NAME IS DONNIE, peeled off, on the cobbles)
   box(g, 0, 0, w, h, INK); box(g, 1, 1, w - 2, h - 2, '#FFFFFF'); box(g, 1, 1, w - 2, h * 0.35, '#DC2626');
-  if (h >= 8) { g.font = `${Math.max(4, Math.round(h * 0.4))}px "Press Start 2P"`; g.fillStyle = '#111827'; g.textAlign = 'center'; g.fillText('DONNIE', w / 2, h - 2); g.textAlign = 'left'; }
+  // (in marker, in the park's letters, as big as the white of it takes; too small to write on, left blank)
+  const k = Math.max(1, Math.floor((h * 0.65 - 3) / 7)), L = { ...print({ sx: k, sy: k }, '#111827'), wobble: k > 1 ? 1 : 0 };
+  if (signW('DONNIE', L) <= w - 4 && 7 * k <= h * 0.65 - 3) signText(g, 'DONNIE', w / 2, h - 2, L);
 };
 const paintAsh = (g: Ctx, w: number, h: number) => {
   g.fillStyle = INK; g.beginPath(); g.ellipse(w / 2, h, w / 2, h * 0.8, 0, Math.PI, 0); g.fill();

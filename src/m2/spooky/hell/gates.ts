@@ -10,7 +10,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { ARENA_IN, ARENA_OUT } from './layout';
-import { type Ctx, INK, box, checker, mix, hash, stamp, text, BASALT, BONE, IRON, LAVA, poly } from './paint';
+import { type Ctx, INK, box, checker, mix, hash, stamp, BASALT, BONE, IRON, LAVA, poly } from './paint';
+import { signAt, tomb } from '../letters';
 
 /** The gates: where each stands (the middle of the fire wall it frames), and its plaque. */
 const GATES: [number, string][] = [[ARENA_IN + 35, 'STAFF ONLY'], [ARENA_OUT + 15, 'NO REFUNDS']];
@@ -63,7 +64,7 @@ const paintBackGate = (g: Ctx, words: string) => {
   box(g, -24, ky + 47, 48, 2, INK);
   // (the plaque, carved, under it)
   box(g, -70, cy - r * 0.7 + 40, 140, 26, INK); box(g, -68, cy - r * 0.7 + 42, 136, 22, far(BASALT[3], 0.3));
-  text(g, words, 0, cy - r * 0.7 + 58, far('#E8B060', 0.3), 8, 'center', INK);
+  signAt(g, words, 0, cy - r * 0.7 + 58, 8, tomb({ sx: 2, sy: 2 }, far('#E8B060', 0.3), INK, far('#7C2D12', 0.3), 5));
 };
 
 /** The near jaws (local: x 0 the gate; y in world rows, drawn about the eye): fangs of rock down from the dark, a

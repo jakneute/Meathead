@@ -13,7 +13,8 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { GroundRun } from '../../../m1/game/core/terrain';
 import { solid } from '../section';
 import { INK, box, checker, hazeBands, bandedGradient, plaque, spikeUp, put, blockFill, chain, STONE, IRON, WOOD } from './paint';
-import { pixelBlob, text } from '../../intro/art/kit';
+import { pixelBlob } from '../../intro/art/kit';
+import { signAt, blood } from '../letters';
 import { GORE, splat, drips, guestOf, impaledGuest, skeleton, earHat, souvenirCup, selfieStick, parkMap, ticket } from './remains';
 import { SECTIONS, GY } from '../geometry';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
@@ -115,7 +116,7 @@ const paintPit = (g: CanvasRenderingContext2D, p: (typeof PITS)[number], i: numb
   for (let k = 0; k < Math.floor(w / 120) + 1; k++) splat(g, 30 + ((k * 137 + i * 53) % Math.max(1, w - 60)), 26 + (k % 2) * 18, 16, 10, k + i);
   // (the crude warning, slapped on in paint)
   const words = p.kind === 'vat' ? 'NO SWIMMING' : p.kind === 'spikes' ? (w > 300 ? 'MIND THE GAP' : 'MIND') : 'OOPS';
-  text(g, words, w / 2, p.kind === 'vat' ? 22 : 30, '#B8B0A0', 6, 'center', '#1A0E0A');
+  signAt(g, words, w / 2, p.kind === 'vat' ? 22 : 30, 6, { ...blood(6, '#B8B0A0', undefined, i), ink: undefined, shadow: '#1A0E0A', wobble: 1, drip: { col: '#9A9284', rate: 0.4, len: 5 } });
   // (its stone sides, lit at the lip)
   for (const [x, s] of [[-6, 1], [w, -1]] as const) { box(g, x, 0, 6, d + 200, STONE[1]); box(g, s > 0 ? x + 4 : x, 0, 2, d + 200, INK); box(g, x, 0, 6, 4, STONE[4]); }
   if (p.kind === 'ditch') {

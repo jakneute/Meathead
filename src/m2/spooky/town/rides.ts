@@ -27,6 +27,7 @@ import { townOf, type Rides } from './state';
 import { rideHit, rideVictims, eIn } from './rideHits';
 import { X, Y, CUPS, CAROUSEL, TRAIN, DROP, PONY, MOAT, STAIRS } from './layout';
 import { type View, viewOf, INK, box, checker, mix, poly, at, board, signPost, words, ironPost, OAK, IRON, BRASS, LIP } from './paint';
+import { print } from '../letters';
 
 
 type Ctx = CanvasRenderingContext2D;
@@ -436,8 +437,8 @@ const drawTrain = (c: Ctx, state: GameState, v: View) => {
     const r0 = ex + s * 4, r1 = ex + s * 70;
     for (const rx of [r0, r1]) { box(c, rx - 3, GY - 35, 6, 35, INK); box(c, rx - 2, GY - 34, 4, 34, BRASS[3]); box(c, rx - 2, GY - 34, 1, 34, BRASS[5]); ell(c, rx, GY - 36, 4, 3, BRASS[4], 1); box(c, rx - 5, GY - 3, 10, 3, BRASS[2]); }
     for (const [col, w] of [[INK, 5], ['#B91C1C', 3]] as const) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(r0, GY - 30); c.quadraticCurveTo((r0 + r1) / 2, GY - 14, r1, GY - 30); c.stroke(); }
-    box(c, (r0 + r1) / 2 - 17, GY - 23, 34, 12, INK); box(c, (r0 + r1) / 2 - 16, GY - 22, 32, 10, '#FDE047'); box(c, (r0 + r1) / 2 - 16, GY - 22, 32, 1, '#FEF9C3');
-    words(c, 'DANGER', (r0 + r1) / 2, GY - 14, INK, 5);
+    box(c, (r0 + r1) / 2 - 21, GY - 24, 42, 12, INK); box(c, (r0 + r1) / 2 - 20, GY - 23, 40, 10, '#FDE047'); box(c, (r0 + r1) / 2 - 20, GY - 23, 40, 1, '#FEF9C3');
+    words(c, 'DANGER', (r0 + r1) / 2, GY - 15, INK, 5, null, print(5, INK));
   }
   // (the stations: a yellow line to stand behind)
   for (const [sx, dir] of [[X(TRAIN.a), -1], [X(TRAIN.b) + TRAIN.len, 1]] as const) box(c, Math.min(sx, sx + dir * 18), GY - 1, 18, 3, '#FDE047');
@@ -522,7 +523,7 @@ const drawPony = (c: Ctx, state: GameState, v: View) => {
   // (the base: a round plinth (its top going back), the coin box)
   const ry = clamp((GY - v.eye.y) * 0.03, 2, 8);
   ell(c, x, GY - 8, 48, ry + 8, INK); ell(c, x, GY - 7, 46, ry + 6, IRON[2]); box(c, x - 46, GY - 16, 92, 10, IRON[3]); ell(c, x, GY - 16, 46, ry, IRON[4]); ell(c, x - 6, GY - 17, 30, Math.max(1, ry - 2), IRON[5]);
-  box(c, x - 71, GY - 51, 20, 36, INK); box(c, x - 70, GY - 50, 18, 34, '#B91C1C'); box(c, x - 70, GY - 50, 4, 34, '#DC2626'); box(c, x - 64, GY - 44, 6, 2, INK); box(c, x - 66, GY - 36, 10, 6, '#FDE047'); words(c, '25', x - 61, GY - 31, INK, 5);
+  box(c, x - 71, GY - 51, 20, 36, INK); box(c, x - 70, GY - 50, 18, 34, '#B91C1C'); box(c, x - 70, GY - 50, 4, 34, '#DC2626'); box(c, x - 64, GY - 44, 6, 2, INK); box(c, x - 68, GY - 38, 14, 9, '#FDE047'); words(c, '25', x - 61, GY - 31, INK, 5, null, print(5, INK));
   // A skeleton horse: rocking, rattling with him on it, rearing as it bucks
   const rattle = po.on > 0 ? (f % 4 < 2 ? 2 : -2) : 0;
   const rear = po.buck < 14 ? (14 - po.buck) / 14 : 0;

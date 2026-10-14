@@ -10,7 +10,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { SceneLight, Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import {
-  INK, box, text, slab, pole, sign, rampOf, mix, checker, bandedGradient, hazeBands, pixelBlob, tilePattern, brickPattern, stamp, hash,
+  INK, box, slab, pole, sign, rampOf, mix, checker, bandedGradient, hazeBands, pixelBlob, tilePattern, brickPattern, stamp, hash,
 } from '../../intro/art/kit';
 import { GY } from '../geometry';
 import { paSaying } from './pa';
@@ -21,6 +21,7 @@ import {
   x0, ROOMS, CEIL, ceilOf, DY, dyAt, LEDGES, STOVES, STOVE_TOP, BURNERS, stovePhase, FIRE_H, STOVE_CYCLE, STOVE_FIRE, BED, CHAND_W, BOOKCASES, BOOK_TELL,
   TRAIN, WARDROBES, HORNS, BALLPIT, type Castle, type LedgeLook,
 } from './layout';
+import { signAt, signW, gothic, enamel, led } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 type Room = (typeof ROOMS)[number];
@@ -40,9 +41,9 @@ const bits = (g: Ctx, rows: string[], x: number, y: number, col: string, px = 2)
 };
 /** A brass plaque on the wall, its words on it, centered at (x, y). */
 const plaque = (c: Ctx, x: number, y: number, words: string, face = '#4A0E0E', ink = '#FDE68A', frame = '#8A6A1E') => {
-  c.font = '8px "Press Start 2P"';
-  const w = Math.round(c.measureText(words).width) + 16;
-  sign(c, x - w / 2, y - 9, w, 18, face, words, ink, 8, frame);
+  // (the castle's own lettering: tall gothic capitals, serifed, inked)
+  const L = gothic(8, ink, mix(face, '#000000', 0.55)), w = Math.round(signW(words, L)) + 18;
+  sign(c, x - w / 2, y - 11, w, 22, face, words, ink, 8, frame, L);
 };
 
 /** The ramps: brass and gilt, iron, the dark wood, wax. */
@@ -644,7 +645,7 @@ const paintRockingHorse = (g: Ctx) => {
 const paintBlocks = (g: Ctx) => {
   const letters = ['B', 'O', 'O', '!', 'Z'], cols = ['#A01E1E', '#1E40AF', '#B8901A', '#157A3A', '#6A1E9E'];
   const at: [number, number][] = [[0, -30], [32, -30], [64, -30], [16, -60], [96, -30]];
-  at.forEach(([x, y], k) => { const R = rampOf(dimc(cols[k], 0.15)); slab(g, x, y, 30, 30, R[2], { edge: 4 }); text(g, letters[k], x + 15, y + 20, '#F1EFEA', 8, 'center', R[0]); });
+  at.forEach(([x, y], k) => { const R = rampOf(dimc(cols[k], 0.15)); slab(g, x, y, 30, 30, R[2], { edge: 4 }); signAt(g, letters[k], x + 15, y + 20, 8, enamel({ sx: 2, sy: 2 }, '#F1EFEA', R[0])); });
 };
 const paintCrib = (g: Ctx) => {
   const Wd = rampOf(dimc('#5A5A8A', 0.2));
@@ -881,7 +882,7 @@ export const drawCastleBack = (c: Ctx, state: GameState, cs: Castle) => {
       g.restore();
     });
     // (a modern convenience: a lit EXIT box over it, code says so)
-    put(c, 'cExitBox', x0 + 60, GY - 228, -24, -10, 48, 20, g => { box(g, -22, -8, 44, 16, INK); box(g, -21, -7, 42, 14, '#0E3A1A'); text(g, 'EXIT', 0, 4, '#4ADE80', 8, 'center', '#062010'); });
+    put(c, 'cExitBox', x0 + 60, GY - 228, -24, -10, 48, 20, g => { box(g, -22, -8, 44, 16, INK); box(g, -21, -7, 42, 14, '#0E3A1A'); signAt(g, 'EXIT', 0, 4, 8, led(8, '#4ADE80', '#0E3A1A')); });
   }
   // TO THE DUNGEON, on the gallery's wall by the doorway at its end (doorways.ts: the stairs down through it)
   for (const d of DOORWAYS) if (d.end && seen(state, d.cx - 80, d.cx + 80)) plaque(c, d.cx, d.top - 70, 'TO THE DUNGEON', '#27272A', '#FCA5A5', '#5A5A62');

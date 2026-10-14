@@ -34,6 +34,7 @@ import { skewer, skewerRise, SKEWERED } from './death';
 import * as L from './lines';
 import { CELLS, STAIR_TOP, stairRuns, buildStairs, runStairs, drawStairs, stairsLighting, resetStairs, initStairs } from './stairs';
 import { floorRuns, buildRopes, runRopes, drawRopeWalk, ropeRow } from './ropes';
+import { signAt, led } from '../letters';
 
 registerHurtLines('spooky_ceiling', L.HURT_CEILING, L.DEATH_CEILING);
 
@@ -387,7 +388,7 @@ const drawDungeon = (c: CanvasRenderingContext2D, state: GameState, dg: Dungeon)
       // (a modern convenience: the lit EMERGENCY EXIT box over it)
       box(g, -40, -176, 80, 18, INK); box(g, -39, -175, 78, 16, '#0E3A1A'); box(g, -39, -175, 78, 2, '#1E5A2A');
     });
-    if (seen(state, x1 - 140, x1)) { c.save(); c.font = '6px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#062010'; c.fillText('EMERGENCY', x1 - 89, GY - 163); c.fillStyle = '#4ADE80'; c.fillText('EMERGENCY', x1 - 90, GY - 164); c.restore(); c.textAlign = 'left'; }
+    if (seen(state, x1 - 140, x1)) signAt(c, 'EMERGENCY', x1 - 90, GY - 164, 6, led(6, '#4ADE80', '#0E3A1A'));
     plaque(c, x1 - 90, GY - 200, 'TO THE LOADING BAY', '#27272A', '#FCD34D');
   }
   // Torches

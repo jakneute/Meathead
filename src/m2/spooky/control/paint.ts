@@ -8,6 +8,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { INK, box, rampOf, checker, stamp, mix, sign } from '../../intro/art/kit';
+import { type Look, signW, signH, plate } from '../../signLetters';
 
 export {
   INK, box, text, slab, pole, ball, sign, rampOf, dark, lite, mix, checker, bandedGradient, steppedGlow, stamp, hash,
@@ -114,10 +115,10 @@ export const tileFloor = (c: Ctx, eye: Eye, L: number, R: number, size: number, 
 };
 
 /** A sign board sized to its words, its middle at (cx, cy). */
-export const plaque = (c: Ctx, cx: number, cy: number, words: string, face: string, ink: string, size = 8, frame?: string) => {
-  c.font = `${size}px "Press Start 2P"`;
-  const w = Math.ceil(c.measureText(words).width) + 14, h = size + 10;
-  sign(c, cx - w / 2, cy - h / 2, w, h, face, words, ink, size, frame);
+export const plaque = (c: Ctx, cx: number, cy: number, words: string, face: string, ink: string, size = 8, frame?: string, look?: Look) => {
+  // (the staff's plain enamel, unless it's given a look of its own)
+  const L = look ?? plate(size, ink, mix(face, INK, 0.45)), w = Math.ceil(signW(words, L)) + 16, h = Math.max(size, signH(L)) + 10;
+  sign(c, cx - w / 2, cy - h / 2, w, h, face, words, ink, size, frame, L);
 };
 
 /**

@@ -6,9 +6,10 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { GY } from '../geometry';
 import {
-  INK, box, text, slab, pole, ball, rampOf, mix, checker, hazeBands, hash,
+  INK, box, slab, pole, ball, rampOf, mix, checker, hazeBands, hash,
   WALL_D, CEIL, inDepth, spanAt, at, quad, seg, inked, wallRun, ceiling, backFloor, frontFloor, plaque, type Eye,
 } from './paint';
+import { signAt, print, haunt, candle } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -106,9 +107,9 @@ const paintShopTile = (g: Ctx, x: number, v: number) => {
     box(g, sx + 25, sy + 26, 4, 10, '#57534E'); box(g, sx + 47, sy + 26, 4, 10, '#57534E');
     box(g, sx + 32, sy + 36, 3, 3, INK); box(g, sx + 41, sy + 36, 3, 3, INK); box(g, sx + 33, sy + 46, 10, 2, '#9A5A40');
     box(g, sx + 22, sy + 30, 3, 14, '#27272A'); box(g, sx + 24, sy + 42, 8, 2, '#27272A');
-    box(g, sx + 6, sy + 68, 64, 22, '#F1EFEA');
-    text(g, 'EMPLOYEE', sx + 38, sy + 77, '#7F1D1D', 6, 'center', null);
-    text(g, 'OF THE MONTH', sx + 38, sy + 86, '#7F1D1D', 6, 'center', null);
+    box(g, sx + 3, sy + 68, 70, 22, '#F1EFEA');
+    signAt(g, 'EMPLOYEE', sx + 38, sy + 77, 6, print(6, '#7F1D1D'));
+    signAt(g, 'OF THE MONTH', sx + 38, sy + 86, 6, print(6, '#7F1D1D'));
   } else {
     // a poster: WISH YOU WERE HERE, a devil on a beach chair
     const sx = x + 110, sy = GY - 330;
@@ -117,8 +118,8 @@ const paintShopTile = (g: Ctx, x: number, v: number) => {
     inked(g, () => { g.ellipse(sx + 45, sy + 40, 9, 10, 0, 0, Math.PI * 2); }, '#DC2626', 2);
     box(g, sx + 37, sy + 26, 3, 7, '#DC2626'); box(g, sx + 50, sy + 26, 3, 7, '#DC2626');
     box(g, sx + 30, sy + 50, 30, 4, '#FDE68A'); box(g, sx + 32, sy + 54, 2, 10, '#78350F'); box(g, sx + 56, sy + 54, 2, 10, '#78350F');
-    text(g, 'WISH YOU', sx + 45, sy + 92, '#450A0A', 7, 'center', null);
-    text(g, 'WERE HERE', sx + 45, sy + 104, '#450A0A', 7, 'center', null);
+    signAt(g, 'WISH YOU', sx + 45, sy + 92, 7, haunt(7, '#450A0A'));
+    signAt(g, 'WERE HERE', sx + 45, sy + 104, 7, haunt(7, '#450A0A'));
   }
   // (the plywood flames along the foot of the wall: three, one with its brace showing)
   for (let k = 0; k < 3; k++) {
@@ -171,7 +172,7 @@ export const drawShopRoom = (c: Ctx, state: GameState, eye: Eye, L: number, R: n
 /** A section's sign, hung from the ceiling on two chains. */
 export const hangingSign = (c: Ctx, x: number, words: string) => {
   for (const dx of [-58, 56]) for (let y = CEIL; y < GY - 372; y += 6) { box(c, x + dx, y, 3, 4, INK); box(c, x + dx + 1, y + 1, 1, 2, '#A8A29E'); }
-  plaque(c, x, GY - 360, words, '#450A0A', '#FDE68A', 8, '#78350F');
+  plaque(c, x, GY - 360, words, '#450A0A', '#FDE68A', 8, '#78350F', candle(8, '#450A0A', '#FDE68A', false));
 };
 
 void pole; void ball;

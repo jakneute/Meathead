@@ -18,6 +18,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { drawBars } from './cine';
 import { INK, box, slab, pole, hazeBands, inked, plaque, eyeOf, CEIL } from './paint';
+import { candle } from '../letters';
 import { type Passage, passageBack, passageSide, passageFront, passageLintel } from './passage';
 import { rockWall } from './shopArt';
 import { drawBallDoors, type DoorLook } from './ballDoors';
@@ -149,7 +150,7 @@ const paintLintel = (g: Ctx, D: number) => {
   slab(g, L, P.H - 14, R - L, 14, '#CA8A04', { edge: 2 });
   for (let x = L + 6; x < R; x += 10) box(g, x, P.H - 6, 5, 4, '#854D0E');
   inked(g, () => { g.moveTo(D - 96, P.H - 14); g.quadraticCurveTo(D, P.H - 80, D + 96, P.H - 14); g.lineTo(D + 86, P.H - 14); g.quadraticCurveTo(D, P.H - 66, D - 86, P.H - 14); g.closePath(); }, '#CA8A04', 2);
-  plaque(g, D, P.H - 58, 'GRAND BALLROOM', '#3B0764', '#FDE047', 8, '#CA8A04');
+  plaque(g, D, P.H - 58, 'GRAND BALLROOM', '#3B0764', '#FDE047', 8, '#CA8A04', candle(8, '#3B0764', '#FDE047'));
   // (plastic bats either side of it, gold)
   for (const s of [-1, 1]) { const bx = D + s * 150, by = P.H - 50; inked(g, () => { g.moveTo(bx - 14, by); g.lineTo(bx - 6, by - 6); g.lineTo(bx, by - 2); g.lineTo(bx + 6, by - 6); g.lineTo(bx + 14, by); g.lineTo(bx + 6, by + 2); g.lineTo(bx, by + 6); g.lineTo(bx - 6, by + 2); g.closePath(); }, '#CA8A04', 2); }
 };

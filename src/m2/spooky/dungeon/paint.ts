@@ -5,6 +5,7 @@
 import { INK, box, pole, slab, rampOf, mix, checker, hazeBands, bandedGradient, brickPattern, tilePattern, stamp, hash, sign } from '../../intro/art/kit';
 import { GY } from '../geometry';
 import { guestOf, lyingGuest, rackedGuest, pinnedGuest, skeleton, splat, drips, severedHand, earHat, bucketOfBits, stroller, selfieStick, souvenirCup, ticket } from './remains';
+import { signW, tomb } from '../letters';
 
 export type Ctx = CanvasRenderingContext2D;
 export { INK, box, pole, slab, rampOf, mix, checker, hazeBands, bandedGradient, brickPattern, tilePattern, stamp, hash };
@@ -20,9 +21,9 @@ export const put = (c: Ctx, key: string, x: number, y: number, l: number, t: num
 
 /** A plaque on the wall, its words on it, centered at (x, y). */
 export const plaque = (c: Ctx, x: number, y: number, words: string, face = '#27272A', ink = '#FCA5A5', frame = '#5A5A62') => {
-  c.font = '8px "Press Start 2P"';
-  const w = Math.round(c.measureText(words).width) + 16;
-  sign(c, x - w / 2, y - 9, w, 18, face, words, ink, 8, frame);
+  // (the dungeon's lettering: cut in the stone plate and painted, chipped, moss in the cuts' feet)
+  const L = tomb({ sx: 1, sy: 2 }, ink, mix(face, '#000000', 0.6), '#3F5A1E', words.length), w = Math.round(signW(words, L)) + 18;
+  sign(c, x - w / 2, y - 11, w, 22, face, words, ink, 8, frame, L);
 };
 
 /** Dressed stone blocks (a fill, lined up with whatever's the origin when it's used): each block lit along its top and

@@ -17,7 +17,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawPerson } from '../../adventure/temple/people';
 import {
-  INK, box, text, slab, pole, ball, sign, rampOf, checker, mix, bandedGradient, hazeBands, steppedGlow, stamp, hash, tilePattern,
+  INK, box, slab, pole, ball, sign, rampOf, checker, mix, bandedGradient, hazeBands, steppedGlow, stamp, hash, tilePattern,
 } from '../../intro/art/kit';
 import {
   x0, ENTRY_DOOR_X, WAIT_SIGN_X, HOW_BOARD_X, QUEUE_X0, QUEUE_X1, BOOTH_X, PLATFORM_X0, PLATFORM_X1, STAFF_DOOR_X, BAY_TOP,
@@ -28,6 +28,7 @@ import { GY } from '../geometry';
 import { drawTodSky, timeOfDay, hourMix, skyAt, skyRamp, type TimeOfDay } from '../../timeOfDay';
 import { gearAt, gearsNow, drawGear, drawPendulum } from './hazards';
 import { drawCar, drawWalkers, readyLight, type Ride } from './ride';
+import { signAt, signText, signW, signH, iron, candle, haunt, gothic, enamel, stencil, print } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 type P = [number, number];
@@ -76,9 +77,9 @@ const viewAt = (v: View, eye: Eye, d: number): View => ({
 
 /** A plaque (a sign on a wall): its middle at (x, y). */
 const plaque = (c: Ctx, x: number, y: number, words: string, face: string, ink: string, size = 8) => {
-  c.font = `${size}px "Press Start 2P"`;
-  const w = Math.ceil(c.measureText(words).width) + 16, h = size + 10;
-  sign(c, x - w / 2, y - h / 2, w, h, face, words, ink, size);
+  // (the clock tower's lettering: wrought iron letters bolted on, serifed, rusting)
+  const L = iron(size, words.length), w = Math.ceil(signW(words, L)) + 18, h = signH(L) + 12;
+  sign(c, x - w / 2, y - h / 2, w, h, face, words, ink, size, INK, L);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -185,7 +186,7 @@ const paintHowBoard = (g: Ctx, hx: number, hy: number) => {
   for (let i = 0; i < 8; i++) box(g, hx - 210 + i * 54, hy - 8, 2, 2, '#D4A84A');
   box(g, hx - 210, hy - 2, 420, 188, '#16100C');
   bandedGradient(g, hx - 210, hy - 2, 420, 188, ['#1E1612', '#120C09'], 4);
-  text(g, 'HOW THE RIDE WORKS', hx, hy + 18, '#FDE68A', 10, 'center', '#5A2A08');
+  signAt(g, 'HOW THE RIDE WORKS', hx, hy + 18, 10, candle({ sx: 2, sy: 2 }, '#16100C'));
   const panels: [string, string][] = [['1. BOARD', 'THE CAR'], ['2. UP THE', 'CLOCK TOWER'], ['3. DROP TO', 'HELL!'], ['4. EXIT THRU', 'GIFT SHOP']];
   panels.forEach(([a, b], i) => {
     const px = hx - 200 + i * 100, py = hy + 30;
@@ -220,11 +221,11 @@ const paintHowBoard = (g: Ctx, hx: number, hy: number) => {
       slab(g, px + 14, py + 40, 64, 62, '#7F1D1D', { edge: 2 });
       box(g, px + 10, py + 34, 72, 8, '#FDE68A'); for (let k = 0; k < 6; k++) box(g, px + 12 + k * 12, py + 34, 6, 8, '#B91C1C');
       box(g, px + 22, py + 56, 18, 16, '#FDE68A'); box(g, px + 52, py + 56, 18, 16, '#FDE68A');
-      text(g, '$', px + 46, py + 96, '#4ADE80', 10, 'center', INK);
+      signAt(g, '$', px + 46, py + 96, 10, enamel({ sx: 2, sy: 2 }, '#4ADE80', INK));
     }
-    text(g, a, px + 46, hy + 156, '#E7E5E4', 6); text(g, b, px + 46, hy + 168, '#FCA5A5', 6);
+    signAt(g, a, px + 46, hy + 156, 6, haunt(6, '#E7E5E4', '#16100C')); signAt(g, b, px + 46, hy + 168, 6, haunt(6, '#FCA5A5', '#16100C'));
   });
-  text(g, 'RIDERS MUST BE THIS WICKED TO RIDE', hx, hy + 182, '#A8A29E', 6);
+  signAt(g, 'RIDERS MUST BE THIS WICKED TO RIDE', hx, hy + 182, 6, haunt(6, '#A8A29E', '#16100C'));
 };
 
 /** The back wall of the bay (BAY_D back): damask over dark panelling, a picture rail, the sconces, the board. */
@@ -340,7 +341,7 @@ const drawBay = (c: Ctx, state: GameState, look: TowerLook, eye: Eye, v: View) =
       const on = (f >> 4) % 2 === i % 2;
       for (const by of [GY - 437, GY - 389]) ball(c, mx - 158 + i * 21, by, 2.5, on ? '#FDE047' : '#5A3A10', false);
     }
-    text(c, 'ELEVATOR TO HELL', mx, GY - 405, '#FDE68A', 12, 'center', '#7A1A08');
+    signAt(c, 'ELEVATOR TO HELL', mx, GY - 405, 12, { ...candle({ sx: 2, sy: 2 }, '#2A0606', '#FDE68A', false), shadow: '#7A1A08' });
   }
   // the platform (a step up, at the back: not his to stand on), the track off it into the tower
   inDepth(c, eye, 0.95, () => {
@@ -433,7 +434,7 @@ const drawBay = (c: Ctx, state: GameState, look: TowerLook, eye: Eye, v: View) =
     for (let x = hx - 4; x < hx + hw + 4; x += 12) box(c, x, GY - 1, 6, 1, '#E8C130');
   }
   // after: the line's no shorter (a sign hung on the marquee, hand-lettered)
-  if (look.crashed) { slab(c, mx - 92, GY - 382, 184, 22, '#F4E8C8', { edge: 2 }); text(c, 'NOW EVEN LONGER!', mx, GY - 367, '#7F1D1D', 7, 'center', null); }
+  if (look.crashed) { slab(c, mx - 92, GY - 382, 184, 22, '#F4E8C8', { edge: 2 }); signAt(c, 'NOW EVEN LONGER!', mx, GY - 367, 7, { ...print(7, '#7F1D1D'), wobble: 1, seed: 4 }); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -621,7 +622,7 @@ const drawShaft = (c: Ctx, v: View, crashed: boolean) => {
   box(c, SHX - 5, sy0, 10, sy1 - sy0, INK); box(c, SHX - 4, sy0, 8, sy1 - sy0, '#3F3F48'); box(c, SHX - 4, sy0, 2, sy1 - sy0, '#7A7A86'); box(c, SHX - 1, sy0, 2, sy1 - sy0, '#2A2A32');
   for (let y = Math.ceil(sy0 / 40) * 40; y < sy1; y += 40) { box(c, SHX - 3, y, 2, 2, '#9A9AA6'); box(c, SHX + 1, y, 2, 2, '#9A9AA6'); }
   // (stenciled on the posts, every floor)
-  for (let k = 0; k <= STORIES; k++) { const y = F(k) - 190; if (y < sy0 - 20 || y > sy1 + 20) continue; text(c, 'UP', (SH0 + SHX) / 2, y, '#4A4A58', 8, 'center', null); text(c, 'DOWN', (SHX + SH1) / 2, y, '#4A4A58', 8, 'center', null); }
+  for (let k = 0; k <= STORIES; k++) { const y = F(k) - 190; if (y < sy0 - 20 || y > sy1 + 20) continue; signAt(c, 'UP', (SH0 + SHX) / 2, y, 8, stencil(8, '#4A4A58')); signAt(c, 'DOWN', (SHX + SH1) / 2, y, 8, stencil(8, '#4A4A58')); }
 };
 /** A safety net across the shaft (or a stretch of it): a lit rope along its top (stand on it: it holds. For now),
  *  the mesh sagging under. */
@@ -657,8 +658,8 @@ const drawShaftLamps = (c: Ctx, k: number, on: boolean, f: number) => {
     box(c, x + 1, y + 1, 8, 3, lit ? '#FCA5A5' : '#6A1414'); box(c, x + 2, y + 2, 2, 2, lit ? '#FFFFFF' : '#8A2020');
     box(c, x + 1, y + 10, 8, 3, lit ? '#B91C1C' : '#300606');
     // (its plate under it)
-    box(c, x - 7, y + 20, 24, 10, INK); box(c, x - 6, y + 21, 22, 8, '#E8C130');
-    text(c, 'DROP', x + 5, y + 28, '#1A0B06', 5, 'center', null);
+    box(c, x - 10, y + 20, 30, 10, INK); box(c, x - 9, y + 21, 28, 8, '#E8C130');
+    signText(c, 'DROP', x + 5, y + 28, stencil(5, '#1A0B06'));
   }
 };
 
@@ -679,7 +680,7 @@ const drawClockFace = (c: Ctx, f: number, crashed: boolean) => {
   // (the frost: a stipple)
   for (let i = 0; i < 90; i++) { const a = hash(i * 1.7) * Math.PI * 2, d = Math.sqrt(hash(i * 2.9)) * (r - 6); box(c, Math.round(cx + Math.cos(a) * d), Math.round(cy + Math.sin(a) * d), 2, 2, i % 2 ? glass[4] : glass[0]); }
   const nums = ['IIX', 'I', 'II', 'III', 'VI', 'V', 'IV', 'IIV', 'IIIV', 'XI', 'X', 'IX'];
-  nums.forEach((n, i) => { const a = (i / 12) * Math.PI * 2 - Math.PI / 2; c.save(); c.translate(cx - Math.cos(a) * (r - 26), cy + Math.sin(a) * (r - 26)); c.scale(-1, 1); text(c, n, 0, 4, '#2A2010', 10, 'center', null); c.restore(); });
+  nums.forEach((n, i) => { const a = (i / 12) * Math.PI * 2 - Math.PI / 2; c.save(); c.translate(cx - Math.cos(a) * (r - 26), cy + Math.sin(a) * (r - 26)); c.scale(-1, 1); signAt(c, n, 0, 4, 10, { ...gothic(10, '#2A2010'), ink: undefined }); c.restore(); });
   // (the iron: the rings, the spokes)
   c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.arc(cx, cy, r * 0.62, 0, Math.PI * 2); c.stroke();
   c.strokeStyle = '#3A3640'; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, r * 0.62, 0, Math.PI * 2); c.stroke();
@@ -744,8 +745,8 @@ const BEAM_COL = { wood: '#8A5A2E', steel: '#6A7484', main: '#8A3418' } as const
 const paintPlaque = (g: Ctx, b: (typeof BEAMS)[number], i: number, py: number) => {
   const w = b.w + 60;
   sign(g, b.x + b.w / 2 - w / 2, py - 14, w, 26, '#F2E6C4', '', '#7F1D1D', 6);
-  text(g, b.look === 'main' ? 'MAIN SUPPORT' : `BEAM ${i + 1} OF ${BEAMS.length}`, b.x + b.w / 2, py - 3, '#8A1A1A', 6, 'center', null);
-  text(g, i === 0 ? 'DO NOT RAM' : b.look === 'main' ? 'SERIOUSLY' : 'LOAD-BEARING', b.x + b.w / 2, py + 8, '#1C1917', 5, 'center', null);
+  signAt(g, b.look === 'main' ? 'MAIN SUPPORT' : `BEAM ${i + 1} OF ${BEAMS.length}`, b.x + b.w / 2, py - 3, 6, enamel(6, '#8A1A1A'));
+  signAt(g, i === 0 ? 'DO NOT RAM' : b.look === 'main' ? 'SERIOUSLY' : 'LOAD-BEARING', b.x + b.w / 2, py + 8, 5, print(5, '#1C1917'));
 };
 const drawBeam = (c: Ctx, i: number, hp: number) => {
   const b = BEAMS[i], top = beamTop(b), bot = F(b.k), h = bot - top;
@@ -1057,7 +1058,7 @@ export const drawTowerBack = (c: Ctx, state: GameState, look: TowerLook) => {
     slab(c, LIFT.x, ly, LIFT.w, 44, '#3A3A42', { edge: 4 });
     box(c, LIFT.x + 8, ly + 10, LIFT.w - 16, 26, '#26262C');
     for (let x = LIFT.x + 6; x < LIFT.x + LIFT.w - 4; x += 14) { box(c, x, ly + 6, 2, 2, '#8A8A96'); box(c, x, ly + 38, 2, 2, '#8A8A96'); }
-    text(c, '1 TON', cx, ly + 28, '#B8B8C4', 8, 'center', INK);
+    signAt(c, '1 TON', cx, ly + 28, 8, { ...stencil({ sx: 1, sy: 2 }, '#B8B8C4'), shadow: INK });
     box(c, LIFT.x, ly, LIFT.w, 2, LIP_HI); box(c, LIFT.x, ly + 2, LIFT.w, 2, LIP);
   }
   // floor 5's rotten boards (cracking: shaking; gone: a hole, broken ends)

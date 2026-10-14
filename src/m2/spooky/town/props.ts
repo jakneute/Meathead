@@ -11,6 +11,7 @@ import { GY } from '../geometry';
 import { X, Y, STAIRS, RAMP, LEDGES, SOLIDS, LAMPS } from './layout';
 import { SHOP_D } from './buildings';
 import { type Ctx, type View, INK, box, checker, mix, hash, poly, at, atDepth, stamp, board, words, ironPost, textW, steppedGlow, STONE, OAK, IRON, BRASS, LIP, SLATE } from './paint';
+import { blood, stencil, print, enamel } from '../letters';
 
 const fontIn = () => (typeof document !== 'undefined' && document.fonts?.check('8px "Press Start 2P"') ? 'f' : 'n');
 const seen = (v: View, a: number, b: number) => b > v.v0 - 200 && a < v.v1 + 200;
@@ -121,7 +122,7 @@ const paintSolid = (g: Ctx, i: number) => {
       for (let k = 0; k < 4; k++) { box(g, x, y + k * (h / 4), w, h / 4 - 1, OAK[4 - (k % 2)]); box(g, x, y + k * (h / 4), w, 1, OAK[5]); }
       bar2(g, x + 5, y + 5, x + w - 5, b - 5, 4); bar2(g, x + w - 5, y + 5, x + 5, b - 5, 4);
       box(g, x, y, 5, h, OAK[2]); box(g, x + w - 5, y, 5, h, OAK[1]);
-      words(g, 'FRAGILE', x + w / 2, y + h / 2 + 3, '#7F1D1D', 5);
+      words(g, 'FRAGILE', x + w / 2, y + h / 2 + 3, '#7F1D1D', 5, null, stencil(5, '#7F1D1D'));
       lip(g, x, y, w); break;
     }
     case 'vending': {
@@ -134,8 +135,8 @@ const paintSolid = (g: Ctx, i: number) => {
       box(g, x + 43, y + 21, 12, 24, INK); box(g, x + 44, y + 22, 10, 22, '#D4D4D8'); box(g, x + 48, y + 26, 2, 8, INK); box(g, x + 45, y + 36, 8, 2, '#22C55E');
       box(g, x + 7, b - 27, 46, 14, INK); box(g, x + 8, b - 26, 44, 12, '#09090B'); box(g, x + 8, b - 26, 44, 2, '#3F3F46');
       box(g, x + 3, y + 3, w - 6, 12, INK); box(g, x + 4, y + 4, w - 8, 10, '#FECACA'); box(g, x + 4, y + 4, w - 8, 2, '#FFFFFF');
-      words(g, 'BLOOD', x + w / 2, y + 13, '#7F1D1D', 6);
-      words(g, 'COLA', x + 46, y + 60, '#FECACA', 5);
+      words(g, 'BLOOD', x + w / 2, y + 13, '#7F1D1D', 6, null, { ...blood(6, '#991B1B'), ink: undefined, drip: { col: '#7F1D1D', rate: 0.4, len: 4 } });
+      words(g, 'COLA', x + 46, y + 60, '#FECACA', 5, null, print(5, '#FECACA'));
       lip(g, x, y, w); break;
     }
     case 'fountain': {
@@ -299,7 +300,7 @@ export const paintGag = (g: Ctx, i: number) => {
       box(g, x - 41, GY - 165, 82, 48, INK); box(g, x - 40, GY - 164, 80, 46, '#1D4ED8'); box(g, x - 40, GY - 164, 80, 2, '#3B82F6'); box(g, x - 38, GY - 162, 76, 1, '#F8FAFC'); box(g, x - 38, GY - 121, 76, 1, '#F8FAFC');
       g.strokeStyle = '#F8FAFC'; g.lineWidth = 3; g.beginPath(); g.arc(x - 20, GY - 132, 9, 0, Math.PI * 2); g.stroke();
       g.fillStyle = '#F8FAFC'; g.beginPath(); g.arc(x - 22, GY - 156, 3, 0, Math.PI * 2); g.fill(); box(g, x - 23, GY - 152, 3, 13, '#F8FAFC'); box(g, x - 23, GY - 141, 12, 3, '#F8FAFC');
-      words(g, 'CRYPT', x + 14, GY - 144, '#F8FAFC', 7); words(g, 'ACCESS', x + 14, GY - 132, '#F8FAFC', 7);
+      words(g, 'CRYPT', x + 14, GY - 144, '#F8FAFC', 7, null, enamel(7, '#F8FAFC')); words(g, 'ACCESS', x + 14, GY - 132, '#F8FAFC', 7, null, enamel(7, '#F8FAFC'));
       break;
     }
     case 3: { // up on the terrace: the crypt the ramp's for, and the phone-charging coffin
@@ -354,7 +355,7 @@ export const paintGag = (g: Ctx, i: number) => {
       box(g, x - 143, GY - 279, 286, 66, INK); box(g, x - 141, GY - 277, 282, 62, R[1]);
       box(g, x - 141, GY - 277, 282, 3, R[3]); box(g, x - 141, GY - 219, 282, 4, R[0]); box(g, x - 136, GY - 272, 272, 1, R[0]);
       for (const sx of [x - 136, x + 130]) { box(g, sx, GY - 250, 4, 4, INK); box(g, sx, GY - 250, 2, 2, '#A8A29E'); }
-      words(g, "DRACULA'S", x - 6, GY - 252, '#FECACA', 8, R[0]); words(g, 'OTHER CASTLE', x - 6, GY - 234, '#FECACA', 8, R[0]);
+      { const L = { ...blood({ sx: 1, sy: 2 }, '#FECACA', R[0], 7), drip: { col: '#F87171', tip: '#FEE2E2', rate: 0.35, len: 4 } }; words(g, "DRACULA'S", x - 6, GY - 254, '#FECACA', 8, null, L); words(g, 'OTHER CASTLE', x - 6, GY - 234, '#FECACA', 8, null, L); }
       poly(g, [[x + 112, GY - 256], [x + 128, GY - 246], [x + 112, GY - 236]], INK); poly(g, [[x + 113, GY - 254], [x + 126, GY - 246], [x + 113, GY - 238]], '#FECACA');
       const sx = X(STAIRS.a0 + 30);
       box(g, sx - 15, GY - 47, 32, 10, INK); box(g, sx - 14, GY - 46, 30, 8, '#1D4ED8'); box(g, sx - 14, GY - 46, 30, 2, '#60A5FA');

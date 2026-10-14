@@ -124,6 +124,21 @@ export const signW = (text: string, L: Look) => layout(text, L).w * (L.sx ?? 1) 
 /** How tall it sets (px). */
 export const signH = (L: Look) => 7 * (L.sy ?? 1);
 
+/** A checker of a color (every other pixel), as a pattern to fill with; kept per color. */
+const CHECKERS = new Map<string, CanvasPattern | null>();
+const checkerOf = (col: string): CanvasPattern | null => {
+  let p = CHECKERS.get(col);
+  if (p !== undefined) return p;
+  p = null;
+  if (typeof document !== 'undefined') {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 2;
+    const g = cv.getContext('2d');
+    if (g) { g.fillStyle = col; g.fillRect(0, 0, 1, 1); g.fillRect(1, 1, 1, 1); p = g.createPattern(cv, 'repeat'); }
+  }
+  CHECKERS.set(col, p);
+  return p;
+};
+
 const h01 = (n: number) => { const s = Math.sin(n * 91.7 + 13.1) * 43758.5453; return s - Math.floor(s); };
 
 /** Sets `text` in a look: x its anchor (`align`), y its baseline. */
@@ -158,7 +173,9 @@ export const signText = (c: Ctx, text: string, x: number, y: number, L: Look, al
   }
 
   if (L.glow) {
-    for (const k of cells) { const [X, Y] = at(k); for (let py = -2; py < sy + 2; py++) for (let px = -2; px < sx + 2; px++) if (((X + px + Y + py) & 1) === 0) rect(X + px, Y + py, 1, 1, L.glow); }
+    // (the outer step dithered (a checker of the glow, one fill a cell), the inner one solid)
+    const dit = checkerOf(L.glow);
+    if (dit) for (const k of cells) { const [X, Y] = at(k); c.fillStyle = dit; c.fillRect(X - 2, Y - 2, sx + 4, sy + 4); }
     for (const k of cells) { const [X, Y] = at(k); rect(X - 1, Y - 1, sx + 2, sy + 2, L.glow); }
   }
   if (L.shadow) {
@@ -188,12 +205,17 @@ export const signText = (c: Ctx, text: string, x: number, y: number, L: Look, al
   // the strokes, banded down their height (a dithered seam where a band starts, if the cells are tall enough)
   for (const k of cells) {
     const [X, Y] = at(k);
+    // (rows of one band in one fill)
+    let r0 = 0;
     for (let r = 0; r < sy; r++) {
       const row = k.y * sy + r, b = bandAt(row);
       if (L.dither && b > 0 && bandAt(row - 1) !== b && sx > 1) {
+        if (r > r0) rect(X, Y + r0, sx, r - r0, fills[bandAt(k.y * sy + r0)]);
         for (let px = 0; px < sx; px++) rect(X + px, Y + r, 1, 1, fills[((X + px + Y + r) & 1) ? b : b - 1]);
-      } else rect(X, Y + r, sx, 1, fills[b]);
+        r0 = r + 1;
+      } else if (r > r0 && bandAt(k.y * sy + r0) !== b) { rect(X, Y + r0, sx, r - r0, fills[bandAt(k.y * sy + r0)]); r0 = r; }
     }
+    if (r0 < sy) rect(X, Y + r0, sx, sy - r0, fills[bandAt(k.y * sy + r0)]);
   }
   if (L.serif) for (const k of ends) { const [X, Y] = at(k), down = has(k, 0, 1); rect(X - 1, down ? Y : Y + sy - 1, sx + 2, 1, fills[down ? bandAt(k.y * sy) : bandAt(k.y * sy + sy - 1)]); }
   for (const [X, Y, len] of drips) {
