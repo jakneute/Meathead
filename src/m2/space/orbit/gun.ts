@@ -19,6 +19,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { hazardVictims, hazardHit } from '../../hazardHit';
 import { voice, saidOver, box, meatheadSays } from '../section';
 import { orbitOf } from './state';
+import { steppedGlow, checker } from '../../../m1/game/render/pixelArt';
 import { X0, W } from './geo';
 import { GUN_UPGRADE, MH_BEAM } from './lines';
 
@@ -126,7 +127,8 @@ export const drawGun = (c: Ctx, state: GameState) => {
   const o = orbitOf(state), f = state.frame;
   if (o.beam) {
     const b = beamBox(state), h = BEAM_H + (f % 4) * 3;
-    box(c, b.x0, b.y - h / 2 - 10, b.x1 - b.x0, h + 20, 'rgba(244, 114, 182, 0.3)');
+    box(c, b.x0, b.y - h / 2 - 10, b.x1 - b.x0, h + 20, 'rgba(244, 114, 182, 0.22)');
+    checker(c, b.x0, b.y - h / 2 - 12, b.x1 - b.x0, 2, 'rgba(244, 114, 182, 0.55)', f % 2); checker(c, b.x0, b.y + h / 2 + 10, b.x1 - b.x0, 2, 'rgba(244, 114, 182, 0.55)', f % 2);
     box(c, b.x0, b.y - h / 2, b.x1 - b.x0, h, '#DB2777');
     box(c, b.x0, b.y - h / 3, b.x1 - b.x0, h * 0.66, '#F472B6');
     box(c, b.x0, b.y - h / 6, b.x1 - b.x0, h / 3, '#FBCFE8');
@@ -138,12 +140,21 @@ export const drawGun = (c: Ctx, state: GameState) => {
   for (const q of state.projectiles) {
     if (q.owner !== 'player' || !q.isRay || q.width < 26 || q.health <= 0) continue;
     const x = q.pos.x + q.width / 2, y = q.pos.y + q.height / 2;
-    c.globalAlpha = 0.45; c.fillStyle = '#F472B6'; c.beginPath(); c.arc(x, y, 15, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+    steppedGlow(c, x, y, 17, '#F472B6', 0.6, 0.12, 4);
+    c.fillStyle = '#DB2777'; c.beginPath(); c.arc(x, y, 10, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#FBCFE8'; c.beginPath(); c.arc(x, y, 8, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(x + 2, y - 1, 4, 0, Math.PI * 2); c.fill();
   }
   const p = state.player;
-  if (o.flashUp > 0 && o.flashUp % 6 < 3) { c.strokeStyle = '#F9A8D4'; c.lineWidth = 3; c.beginPath(); c.arc(p.pos.x + p.width / 2, p.pos.y + p.height / 2, 46 + (30 - o.flashUp), 0, Math.PI * 2); c.stroke(); }
+  // (powered up: rings of pink light going out off him, stepped, each with a darker ring under it; sparkles)
+  if (o.flashUp > 0) {
+    const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2, r = 46 + (30 - o.flashUp) * 1.4;
+    for (const [dr, col, lw] of [[0, '#9D174D', 5], [0, '#F472B6', 3], [-10, '#FBCFE8', 2]] as const) {
+      if (o.flashUp % 6 >= 3 && dr < 0) continue;
+      c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); c.arc(Math.round(cx), Math.round(cy), Math.max(4, r + dr), 0, Math.PI * 2); c.stroke();
+    }
+    for (let i = 0; i < 8; i++) { const a = i * 0.785 + o.flashUp * 0.1, d = r * 0.8; box(c, cx + Math.cos(a) * d - 2, cy + Math.sin(a) * d - 2, 4, 4, i % 2 ? '#FFFFFF' : '#F9A8D4'); }
+  }
   if (o.gun) gunWords(c, o.gun.text, p.pos.x + p.width / 2, p.pos.y - 30);
 };
 /** The gun's words, a little ray gun over them (so it's the gun talking, not him), kept whole on screen. */

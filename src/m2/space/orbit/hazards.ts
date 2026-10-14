@@ -153,13 +153,28 @@ export const updateBooms = (state: GameState) => {
   o.booms = o.booms.filter(b => b.t < (b.big ? 40 : 26));
 };
 export const drawBooms = (c: Ctx, state: GameState) => {
+  // (SNES-style: flat rings of fire stepping out from a white core, the outer ones going to smoke; puffs of it round
+  // the edge; as it dies the whole thing thins out in steps)
+  const disc = (x: number, y: number, r: number, col: string) => { if (r <= 0.5) return; c.fillStyle = col; c.beginPath(); c.arc(Math.round(x), Math.round(y), r, 0, Math.PI * 2); c.fill(); };
   for (const b of orbitOf(state).booms) {
     const n = b.t / (b.big ? 40 : 26), r = b.r * (0.4 + n * 0.8);
-    c.globalAlpha = Math.max(0, 1 - n);
-    c.fillStyle = '#F97316'; c.beginPath(); c.arc(b.x, b.y, r, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FDE047'; c.beginPath(); c.arc(b.x, b.y, r * 0.65, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(b.x, b.y, r * 0.3 * (1 - n), 0, Math.PI * 2); c.fill();
-    c.globalAlpha = 1;
+    const fire = 1 - n;
+    c.save();
+    // (dying, it thins out in steps, not a smooth fade)
+    c.globalAlpha = n < 0.55 ? 1 : n < 0.8 ? 0.62 : 0.3;
+    c.beginPath(); c.arc(b.x, b.y, r + 12, 0, Math.PI * 2); c.clip();
+    // (the smoke round the edge: puffs, darker as it goes)
+    for (let i = 0; i < 8; i++) {
+      const a = i * 0.785 + b.r * 0.1, d = r * (0.72 + 0.12 * Math.sin(i * 2.3));
+      disc(b.x + Math.cos(a) * d, b.y + Math.sin(a) * d, r * (0.32 + n * 0.12), n < 0.5 ? '#57534E' : '#3F3B38');
+    }
+    disc(b.x, b.y, r * 0.92, n < 0.45 ? '#B91C1C' : '#44403C');
+    disc(b.x, b.y, r * 0.8 * fire + r * 0.1, '#EA580C');
+    disc(b.x, b.y, r * 0.62 * fire, '#F97316');
+    disc(b.x, b.y, r * 0.46 * fire, '#FDE047');
+    disc(b.x, b.y, r * 0.28 * fire * fire, '#FEF9C3');
+    disc(b.x, b.y, r * 0.14 * fire * fire, '#FFFFFF');
+    c.restore();
   }
 };
 

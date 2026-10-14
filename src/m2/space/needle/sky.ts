@@ -13,7 +13,8 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { timeOfDay, skyRamp } from '../../timeOfDay';
+import { timeOfDay, skyRamp, farTint, type TimeOfDay } from '../../timeOfDay';
+import { bandedGradient, hazeBands, checker, steppedGlow } from '../../../m1/game/render/pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
 type RGB = [number, number, number];
@@ -89,7 +90,7 @@ const paintEarth = () => {
         col = stepped(OCEAN, c01(0.25 + (n - 0.3) * 1.1 + depth * 0.55), i, j);
       }
       // (cloud over it: swirls in bands)
-      const cl = cn - 0.55;
+      const cl = cn - 0.6;
       if (cl > 0 || (cl > -0.03 && (i + j) % 2 === 0)) col = stepped(CLOUD, c01(cl * 5 + 0.3), i, j);
       // (the haze, thick toward the limb)
       const hz = c01(1 - j / 20) ** 1.4;
@@ -144,7 +145,7 @@ const ensureEarth = () => { earth ??= paintEarth(); atmo ??= paintAtmo(); };
  * The Earth below, its limb's middle at screen y `L`, panned `pan` px (its nearest band; further ones less: depth).
  * The haze and atmosphere over its limb. `dim` darkens the lot (seen through tinted glass).
  */
-export const drawEarth = (c: Ctx, L: number, pan: number) => {
+export const drawEarth = (c: Ctx, L: number, pan: number, glint?: number) => {
   if (typeof document === 'undefined') return;
   ensureEarth();
   c.save();
@@ -163,6 +164,12 @@ export const drawEarth = (c: Ctx, L: number, pan: number) => {
   }
   // (and past the strip's bottom, the deepest band carried on down)
   c.fillStyle = OCEAN[0]; c.fillRect(0, EH * PX - 2, W, H);
+  // (the sun's glint off the sea under it: a squashed stepped glow, out near the limb)
+  if (glint !== undefined) {
+    c.save(); c.translate(Math.round(glint), 30); c.scale(1, 0.28);
+    steppedGlow(c, 0, 0, 150, '#FFF6D8', 0.42, 0.04, 5);
+    c.restore();
+  }
   c.restore();
   c.save(); c.imageSmoothingEnabled = false;
   c.drawImage(atmo!, 0, Math.round(L) - ATMO_UP * PX, W, atmo!.height * PX);
@@ -235,6 +242,67 @@ export const drawStars = (c: Ctx, pan: number, f: number, alpha = 1, panY = 0) =
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// Nebulae: two clouds of glowing gas (a magenta one, a teal one) in stepped ramps, their edges dithered, dark dust
+// lanes cut through them, a few young stars burning in the thick of them. Painted once into a wide tile (art px) that
+// wraps across; put down with a couple of drawImage calls, parallaxed very slowly (they're the furthest thing there is).
+
+const NW = 900, NH = 300;
+const NEB_A = ['#160A26', '#24103E', '#381656', '#521C6C', '#72247E', '#963088', '#BC4A92', '#E07AAE', '#FBB8D2'];
+const NEB_B = ['#06121F', '#0A2034', '#0E304A', '#124462', '#185C78', '#22788C', '#3A98A2', '#6CBCBC', '#B2E6DA'];
+let nebula: HTMLCanvasElement | null = null;
+const paintNebula = () => {
+  const c = canvas(NW, NH), g = c.getContext('2d')!, img = g.createImageData(NW, NH), d = img.data;
+  const P = 9;
+  for (let j = 0; j < NH; j++) {
+    // (the clouds sit in a band across the middle of the tile, thinning top and bottom)
+    const vy = j / NH, band = 1 - Math.abs(vy - 0.5 + Math.sin(vy * 7) * 0.04) * 1.9;
+    for (let i = 0; i < NW; i++) {
+      const u = (i / NW) * P;
+      const a = fbm(u, vy * 3.2, P, 5), b = fbm(u * 1.3 + 4.7, vy * 4 + 9.1, Math.round(P * 1.3), 4);
+      const lane = fbm(u * 2.2 + 11, vy * 7 + 2, Math.round(P * 2.2), 3);
+      // (where each cloud is thick: the magenta in long swirls, the teal in clumps under and over it)
+      const da = (a - 0.55) * 2.6 * band - Math.max(0, lane - 0.58) * 3.2;
+      const db = (b - 0.6) * 2.6 * (band * 0.8 + 0.2) - Math.max(0, lane - 0.6) * 2.4;
+      // (the teal's glow is under the magenta where they cross: the brighter wins)
+      const o = (j * NW + i) * 4;
+      const dith = (i + j) % 2;
+      // (a step under the cloud's edge: dithered in, so it fades out in a checker, never a hard line)
+      if (da < 0.02 && db < 0.02) { if (Math.max(da, db) > -0.04 && dith) { const col = rgb(da > db ? NEB_A[0] : NEB_B[0]); d[o] = col[0]; d[o + 1] = col[1]; d[o + 2] = col[2]; d[o + 3] = 200; } continue; }
+      let col: string;
+      // (dim gas, mostly: the ramps' bright ends only in the thick of it, so nothing that flies over it is lost in it)
+      if (da >= db) col = stepped(NEB_A, c01(da * 0.7), i, j);
+      else col = stepped(NEB_B, c01(db * 0.7), i, j);
+      // (the bright core where they're both thick)
+      if (da > 0.55 && db > 0.3) col = stepped(NEB_A, c01(da * 0.7 + 0.12), i, j);
+      const v = rgb(col);
+      d[o] = v[0]; d[o + 1] = v[1]; d[o + 2] = v[2]; d[o + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  // (young stars in the thick of it: bright, a cross of light on the biggest)
+  for (let k = 0; k < 40; k++) {
+    const x = Math.floor(hash(k * 13 + 5) * NW), y = Math.floor(NH * (0.25 + hash(k * 7 + 1) * 0.5));
+    const big = hash(k * 3 + 2) > 0.8;
+    g.fillStyle = big ? '#FFFFFF' : hash(k) > 0.5 ? '#FDE7F3' : '#D9F7F2';
+    g.fillRect(x, y, 1, 1);
+    if (big) { g.fillStyle = 'rgba(255, 220, 240, 0.55)'; g.fillRect(x - 2, y, 5, 1); g.fillRect(x, y - 2, 1, 5); }
+  }
+  return c;
+};
+/** The nebulae, `pan` screen px across (their own slow drift already put in: pass the camera's), at `alpha`, the
+ *  tile's middle at screen y `cy`. */
+export const drawNebula = (c: Ctx, pan: number, cy = H * 0.42, alpha = 1) => {
+  if (typeof document === 'undefined' || alpha <= 0) return;
+  nebula ??= paintNebula();
+  const tile = NW * PX;
+  const off = Math.round(-((((pan * 0.12) % tile) + tile) % tile) / PX) * PX;
+  c.save(); c.imageSmoothingEnabled = false; c.globalAlpha = alpha;
+  const y = Math.round((cy - NH) / PX) * PX;
+  for (let x = off; x < W; x += tile) c.drawImage(nebula, x, y, tile, NH * PX);
+  c.restore();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // The moon, the sun
 
 const MOON_R = 30;
@@ -298,9 +366,9 @@ export const drawSunDisc = (c: Ctx, x: number, y: number) => {
 
 /** Deep space, banded down toward the limb (the faintest blue over the Earth). */
 const SPACE = ['#020208', '#03030C', '#050512', '#070818', '#090B20', '#0C0F2A', '#101536'];
-const spaceBands = (c: Ctx, top: number, bottom: number, cols = SPACE) => {
-  const n = cols.length, bh = (bottom - top) / n;
-  for (let i = 0; i < n; i++) { c.fillStyle = cols[i]; c.fillRect(0, Math.floor(top + i * bh), W, Math.ceil(bh) + 1); }
+export const spaceBands = (c: Ctx, top: number, bottom: number, cols = SPACE) => {
+  // (HDMA-style: flat bands, each seam dithered)
+  bandedGradient(c, 0, top, W, bottom - top, cols, Math.max(2, cols.length * 2 - 1), PX);
 };
 /** The bearings round the ring (world px from the ring's start) the moon and the sun are at. */
 export const MOON_AT = 700, SUN_AT = 2200;
@@ -311,32 +379,118 @@ export const DECK_LIMB = 300;
  *  way round). */
 export const drawDeckView = (c: Ctx, state: GameState, pan: number, circ: number) => {
   spaceBands(c, 0, DECK_LIMB + 30);
+  drawNebula(c, pan, 170);
   drawStars(c, pan, state.frame);
   const at = (u: number) => W / 2 + ((((u - pan) % circ) + circ * 1.5) % circ) - circ / 2;
-  { const x = at(SUN_AT); if (x > -200 && x < W + 200) drawSunDisc(c, x, 150); }
+  const sx = at(SUN_AT), sunIn = sx > -200 && sx < W + 200;
+  if (sunIn) drawSunDisc(c, sx, 150);
   { const x = at(MOON_AT); if (x > -100 && x < W + 100) drawMoonDisc(c, x, 196); }
-  drawEarth(c, DECK_LIMB, pan);
+  drawEarth(c, DECK_LIMB, pan, sunIn ? sx : undefined);
 };
 
-/** The ground's skyline at the foot of the needle (the park, far below, going away), screen space. */
-const skyline = (c: Ctx, y: number, tod: ReturnType<typeof timeOfDay>) => {
-  if (y > H + 10) return;
-  const far = mixHex('#4C3F7A', tod.haze, 0.35), near = mixHex('#2E2552', tod.haze, 0.2);
-  for (let k = 0; k < 18; k++) {
-    const x = k * 50 - 20, h = 20 + hash(k + 4) * 50;
-    c.fillStyle = far; c.fillRect(x, Math.round(y - h), 40, h + 4);
-    if (k % 4 === 1) { c.fillRect(x + 16, Math.round(y - h - 30), 6, 30); c.beginPath(); c.arc(x + 19, y - h - 30, 9, 0, Math.PI * 2); c.fill(); }
+// ---------------------------------------------------------------------------------------------------------------
+// The way up: the park dropping away under the lift, the clouds coming down past
+
+/** The park far below (screen px tall), painted once an hour: its rides and towers in stepped tones, the haze. */
+const PARK_H = 200;
+let park: { key: string; c: HTMLCanvasElement } | null = null;
+const paintPark = (tod: TimeOfDay) => {
+  const c = canvas(W, PARK_H), g = c.getContext('2d')!;
+  const B = PARK_H - 40;
+  const R = (x: number, y: number, w: number, h: number, col: string) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+  const T = (col: string, k = 1) => farTint(col, k, tod);
+  // (the far hills, hazed; then the park on its flat)
+  for (let x = 0; x < W; x += PX) {
+    const h = 30 + Math.sin(x * 0.011) * 10 + Math.sin(x * 0.031 + 2) * 6;
+    R(x, B - h, PX, h, T('#5E6E9A', 1.6)); R(x, B - h, PX, PX, T('#8494C0', 1.6));
   }
-  c.fillStyle = near; c.fillRect(0, Math.round(y), W, H);
-  c.fillStyle = '#5B4E8C'; c.fillRect(0, Math.round(y), W, 2);
+  hazeBands(g, 0, B - 46, W, 46, tod.haze, 0.05, 0.6, 5, PX);
+  // (the buildings: towers, a dome, the giant atom, Googie pylons; lit down their left, a darker right, inked tops)
+  const tower = (x: number, w: number, h: number, col: string, k = 1) => {
+    const r = [T(col, k), T(mixHex(col, '#000000', 0.25), k), T(mixHex(col, '#FFFFFF', 0.3), k)];
+    R(x, B - h, w, h, r[0]); R(x + w * 0.62, B - h, w * 0.38, h, r[1]); R(x, B - h, PX, h, r[2]); R(x, B - h, w, PX, r[2]);
+    for (let wy = B - h + 6; wy < B - 6; wy += 8) for (let wx = x + 4; wx < x + w - 4; wx += 6) if (hash(wx * 3 + wy) > 0.4) R(wx, wy, 2, 2, T('#F8E7A8', k));
+  };
+  for (let k = 0; k < 16; k++) tower(k * 54 - 14 + hash(k) * 16, 22 + hash(k + 3) * 18, 24 + hash(k + 9) * 46, k % 3 ? '#7C88B4' : '#9A86B0', 1.2);
+  // (the geodesic ball: a sphere in steps, its facets dithered)
+  const bx = 150, by = B - 36, br = 30;
+  for (let j = -br; j < br; j += PX) for (let i = -br; i < br; i += PX) {
+    const rr = (i * i + j * j) / (br * br); if (rr > 1 || j > 26) continue;
+    const l = c01(0.65 - i / br * 0.4 - j / br * 0.5);
+    const tone = ['#5C6890', '#7E8CB4', '#A4B2D4', '#CED8EE', '#F0F4FC'][Math.min(4, Math.floor(l * 4 + (((i + j) / PX) & 1 ? 0.4 : 0)))];
+    R(bx + i, by + j, PX, PX, T(tone, 0.8));
+  }
+  for (let i = -br; i < br; i += 8) R(bx + i, by - Math.sqrt(Math.max(0, br * br - i * i)), 1, 2 * Math.sqrt(Math.max(0, br * br - i * i)), T('#5C6890', 0.8));
+  // (the giant atom: its ball on a stem, the rings round it)
+  const ax = 560, ay = B - 70;
+  R(ax - 3, ay, 6, 70, T('#8E9AC0', 0.8)); R(ax - 3, ay, 2, 70, T('#C6D0EA', 0.8));
+  g.lineWidth = 2;
+  for (const rot of [0.5, -0.5, 1.57]) { g.strokeStyle = T('#B8C4E4', 0.8); g.beginPath(); g.ellipse(ax, ay, 34, 10, rot, 0, Math.PI * 2); g.stroke(); }
+  for (let j = -12; j < 12; j += PX) for (let i = -12; i < 12; i += PX) { if (i * i + j * j > 144) continue; R(ax + i, ay + j, PX, PX, T(i + j < -6 ? '#F4F6FC' : i + j < 6 ? '#C6D0EA' : '#8E9AC0', 0.8)); }
+  // (the monorail's beam across, a train on it)
+  R(0, B - 22, W, 4, T('#DCE2F0', 0.9)); R(0, B - 18, W, 2, T('#6A7498', 0.9));
+  for (let x = 30; x < W; x += 70) R(x, B - 18, 4, 18, T('#7A84A8', 0.9));
+  R(300, B - 30, 70, 8, T('#F2F4FA', 0.9)); R(300, B - 30, 70, 2, T('#FFFFFF', 0.9)); R(306, B - 28, 58, 2, T('#3C4A78', 0.9));
+  // (the ground: the park's paths and lawns, banded to the bottom, under its own haze)
+  bandedGradient(g, 0, B, W, PARK_H - B, [T('#6A8A5A', 1.1), T('#557848', 1), T('#466A3C', 0.9)], 4, PX);
+  for (let x = 0; x < W; x += 46) R(x + hash(x) * 20, B + 4 + hash(x + 1) * 24, 18, 2, T('#D8CCA8', 1));
+  hazeBands(g, 0, B - 6, W, 18, tod.haze, 0.45, 0.05, 4, PX);
+  return c;
 };
-/** A cloud: flat-bottomed puffs, lit on top, a shadow band under. */
-const cloud = (c: Ctx, x: number, y: number, s: number, lit: string, mid: string, dark: string) => {
-  const puffs: [number, number][] = [[-40, 16], [-14, 26], [16, 22], [40, 14], [58, 9]];
-  c.fillStyle = dark; c.fillRect(Math.round(x - 52 * s), Math.round(y), Math.round(120 * s), Math.round(6 * s));
-  for (const [dx, r] of puffs) { c.fillStyle = mid; c.beginPath(); c.arc(x + dx * s, y, r * s, Math.PI, 0); c.fill(); }
-  for (const [dx, r] of puffs) { c.fillStyle = lit; c.beginPath(); c.arc(x + dx * s - 2 * s, y - 4 * s, r * s * 0.66, Math.PI, 0); c.fill(); }
+const skyline = (c: Ctx, y: number, tod: TimeOfDay) => {
+  if (y > H + PARK_H) return;
+  if (!park || park.key !== tod.key) park = { key: tod.key, c: paintPark(tod) };
+  c.save(); c.imageSmoothingEnabled = false;
+  const top = Math.round((y - (PARK_H - 40)) / PX) * PX;
+  c.drawImage(park.c, 0, top);
+  // (and under the painting, the ground carried on down)
+  if (top + PARK_H < H) { c.fillStyle = farTint('#466A3C', 0.9, tod); c.fillRect(0, top + PARK_H, W, H - top - PARK_H); }
+  c.restore();
 };
+
+/** A cumulus, painted once (art px): puffs on a flat base, lit from the upper left in four steps, its belly in shadow,
+ *  every edge broken up in a checker. */
+const CUMULUS = ['#7C8AA8', '#A6B4CC', '#CCD6E6', '#EEF2F8', '#FFFFFF'];
+const clouds = new Map<string, HTMLCanvasElement>();
+const paintCloud = (seed: number, tod: TimeOfDay) => {
+  const cw = 96, ch = 48, base = 42;
+  const c = canvas(cw, ch), g = c.getContext('2d')!;
+  const puffs: [number, number, number][] = [];
+  const n = 4 + Math.floor(hash(seed) * 3);
+  for (let k = 0; k < n; k++) {
+    const t = (k + 0.5) / n, r = 7 + Math.sin(t * Math.PI) * (10 + hash(seed + k) * 7);
+    puffs.push([10 + t * (cw - 20), base - r * 0.5, r]);
+  }
+  const ramp = CUMULUS.map(col => mixHex(col, tod.cloud, 0.45));
+  for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) {
+    if (j > base) continue;
+    // (the puff nearest the viewer here, the one whose top is highest: its slope gives the light)
+    let found = false, top = 0, nx = 0, ny = 0, edge = 1;
+    for (const [px, py, r] of puffs) {
+      const dx = i - px, dy = j - py, d = Math.hypot(dx, dy);
+      if (d >= r) continue;
+      if (!found || py - r < top) { found = true; top = py - r; nx = dx / r; ny = dy / r; }
+      edge = Math.min(edge, d / r);
+    }
+    if (!found) continue;
+    if (edge > 0.9 && (i + j) % 2) continue;
+    let l = 0.58 - nx * 0.3 - ny * 0.5;
+    if (j > base - 5) l -= 0.3; // (the flat belly in shadow)
+    g.fillStyle = stepped(ramp, c01(l), i, j);
+    g.fillRect(i, j, 1, 1);
+  }
+  return c;
+};
+export const drawCloud = (c: Ctx, x: number, y: number, s: number, seed: number, tod: TimeOfDay, alpha = 1) => {
+  const key = `${seed}|${tod.key}`;
+  let img = clouds.get(key);
+  if (!img) { img = paintCloud(seed, tod); clouds.set(key, img); }
+  const w = Math.round(img.width * PX * s / PX) * PX, h = Math.round(img.height * PX * s / PX) * PX;
+  c.save(); c.imageSmoothingEnabled = false; c.globalAlpha = alpha;
+  c.drawImage(img, Math.round((x - w / 2) / PX) * PX, Math.round((y - h) / PX) * PX, w, h);
+  c.restore();
+};
+
 /**
  * Out of the lift's glass, going up: `a` how far up (0 the ground, 1 space), `speed` how fast it's going (0..1, the
  * shaft's girders and streaks). The sky as the hour has it, darkening to space; the park dropping away; the clouds
@@ -348,33 +502,26 @@ export const drawAscent = (c: Ctx, state: GameState, a: number, speed: number, c
   const dark = smoothstep(0.32, 0.86, a);
   const cols = day.map((col, i) => mixHex(col, SPACE[Math.min(SPACE.length - 1, i)], dark));
   spaceBands(c, 0, H, cols);
+  drawNebula(c, 0, 200 - (1 - a) * 400, smoothstep(0.78, 1, a));
   drawStars(c, 0, state.frame, smoothstep(0.62, 0.95, a), -climbed * 0.02);
   if (a > 0.7) drawSunDisc(c, 640, 120 + (1 - a) * 300);
+  // (the high cirrus, far off: what's seen from the ground, dropping away slowly, gone into the dark)
+  const hi = 1 - smoothstep(0.35, 0.6, a);
+  if (hi > 0) for (let k = 0; k < 5; k++) drawCloud(c, (k * 211 + 60) % (W + 160) - 80, 70 + k * 34 + a * 900, 0.55 + hash(k + 20) * 0.3, 20 + k, tod, hi * 0.85);
   // (the park far below, dropping away)
   skyline(c, 470 + a * a * 5200, tod);
   // (the clouds, coming down past: a layer of them, then the deck of them far below)
-  const lit = mixHex('#FFFFFF', tod.cloud, 0.5), mid = mixHex('#DCE6F4', tod.cloud, 0.5), dk = mixHex('#A9B8D2', tod.cloud, 0.5);
   for (let k = 0; k < 9; k++) {
     const y = -200 + (a - 0.08 - k * 0.03) * 2600;
-    if (y < -60 || y > H + 60) continue;
-    cloud(c, (hash(k + 1) * 900 + k * 37) % 900 - 50, y, 0.9 + hash(k + 5) * 0.9, lit, mid, dk);
+    if (y < -60 || y > H + 90) continue;
+    drawCloud(c, (hash(k + 1) * 900 + k * 37) % 900 - 50, y + 20, 0.9 + hash(k + 5) * 0.9, k, tod);
   }
   // (the Earth's curve, coming up from below once he's out of the air)
   const rise = smoothstep(0.5, 1, a);
-  if (rise > 0) drawEarth(c, H + 40 - rise * (H + 40 - DECK_LIMB), climbed * 0.05);
+  if (rise > 0) drawEarth(c, H + 40 - rise * (H + 40 - DECK_LIMB), climbed * 0.05, a > 0.7 ? 640 : undefined);
   // (the shaft's girders, whipping down past behind him: speed lines with them when it's going fast)
   if (!shaft) return;
-  const step = 150, off = (climbed % step + step) % step;
-  for (let y = off - step; y < H; y += step) {
-    c.fillStyle = '#1E293B'; c.fillRect(0, Math.round(y), W, 10);
-    c.fillStyle = '#64748B'; c.fillRect(0, Math.round(y), W, 2);
-    c.fillStyle = '#0F172A'; c.fillRect(0, Math.round(y) + 8, W, 2);
-  }
-  for (const x of [120, 680]) {
-    c.fillStyle = '#1E293B'; c.fillRect(x - 10, 0, 20, H);
-    c.fillStyle = '#94A3B8'; c.fillRect(x - 10, 0, 3, H);
-    c.fillStyle = '#0F172A'; c.fillRect(x + 7, 0, 3, H);
-  }
+  drawShaft(c, climbed);
   if (speed > 0.35) for (let k = 0; k < 26; k++) {
     const x = Math.round(hash(k * 5) * W / PX) * PX, len = 60 + hash(k) * 160;
     const y = ((climbed * (0.6 + hash(k + 3) * 0.6) + k * 97) % (H + len)) - len;
@@ -382,18 +529,40 @@ export const drawAscent = (c: Ctx, state: GameState, a: number, speed: number, c
     c.fillRect(x, Math.round(y), PX, Math.round(len));
   }
 };
+/** The lift shaft's open frame round the car: two chrome masts, cross girders with a lattice, rivets. */
+const MAST = ['#0F1626', '#1E293B', '#334155', '#4E5E78', '#7A8BA6', '#B4C2D6'];
+const drawShaft = (c: Ctx, climbed: number) => {
+  const step = 150, off = (climbed % step + step) % step;
+  for (let y = off - step; y < H; y += step) {
+    const Y = Math.round(y / PX) * PX;
+    c.fillStyle = MAST[0]; c.fillRect(0, Y - 2, W, 14);
+    c.fillStyle = MAST[2]; c.fillRect(0, Y, W, 10);
+    c.fillStyle = MAST[4]; c.fillRect(0, Y, W, 2);
+    c.fillStyle = MAST[3]; c.fillRect(0, Y + 2, W, 2);
+    c.fillStyle = MAST[1]; c.fillRect(0, Y + 8, W, 2);
+    checker(c, 0, Y + 6, W, 2, MAST[1], 0, PX);
+    for (let x = 6; x < W; x += 24) { c.fillStyle = MAST[5]; c.fillRect(x, Y + 4, 2, 2); }
+  }
+  for (const x of [120, 680]) {
+    const cols = [MAST[3], MAST[5], MAST[4], MAST[3], MAST[2], MAST[1], MAST[1], MAST[0]];
+    for (let i = 0; i < cols.length; i++) { c.fillStyle = cols[i]; c.fillRect(x - 10 + Math.round(i * 20 / cols.length), 0, Math.ceil(20 / cols.length) + 1, H); }
+    c.fillStyle = MAST[0]; c.fillRect(x - 12, 0, 2, H); c.fillRect(x + 10, 0, 2, H);
+  }
+};
 
 /** The shot from outside: the stars, the sun, the Earth a long way down (its limb at screen y `L`). */
 export const drawOrbitBack = (c: Ctx, state: GameState, pan: number, L = 470) => {
   spaceBands(c, 0, L + 30);
+  drawNebula(c, pan * 2, L * 0.45);
   drawStars(c, pan, state.frame);
   drawSunDisc(c, 120, 110);
-  drawMoonDisc(c, 700, 90, 0.7);
-  drawEarth(c, L, pan * 0.6 + state.frame * 0.15);
+  // (the moon kept down out of the corner the skip prompt's in)
+  drawMoonDisc(c, 690, 175, 0.7);
+  drawEarth(c, L, pan * 0.6 + state.frame * 0.15, 140);
 };
 
 /** Paints everything up front (the stage's build), so the first look out isn't a hitch. */
 export const prewarmSky = () => {
   if (typeof document === 'undefined') return;
-  ensureEarth(); ensureStars(); moon ??= paintMoon(); sun ??= paintSun();
+  ensureEarth(); ensureStars(); moon ??= paintMoon(); sun ??= paintSun(); nebula ??= paintNebula();
 };

@@ -155,7 +155,7 @@ export const orbit: SpaceSection = {
   flight: (state) => (orbitOf(state).on ? { rapidFire: true } : null),
   drawBackdrop: (c, state) => { drawSpace(c, state.camera.x, state.frame); return true; },
   drawBack: (c, state) => {
-    if (state.camera.x < X0 + 600) drawNeedleTop(c, X0 + 70, FLY_Y - 40);
+    if (state.camera.x < X0 + 600) drawNeedleTop(c, X0 + 70, FLY_Y - 40, state.frame);
     drawRocks(c, state);
   },
   drawFront: (c, state) => {

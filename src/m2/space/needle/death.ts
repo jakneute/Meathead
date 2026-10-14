@@ -172,8 +172,12 @@ const jetOut = (c: Ctx, t: number, jet: number) => {
     const a = (t * 1.1 + k * 6.3) % 64, sp = 3.4 + hash(k) * 2.4;
     const x = HOLE.x + a * sp, y = HOLE.y + (hash(k + 5) - 0.5) * a * 1.4 - a * 0.25;
     const r = 3 + a * 0.22;
-    c.fillStyle = `rgba(241, 245, 249, ${(0.55 * (1 - a / 64) * jet).toFixed(3)})`;
+    // (the air's puffs thin out in steps, not a smooth fade; a lit cap on each)
+    const left = (1 - a / 64) * jet, q = left > 0.66 ? 0.5 : left > 0.33 ? 0.32 : 0.15;
+    c.fillStyle = `rgba(226, 232, 240, ${q})`;
     c.beginPath(); c.arc(Math.round(x), Math.round(y), r, 0, Math.PI * 2); c.fill();
+    c.fillStyle = `rgba(255, 255, 255, ${(q * 0.8).toFixed(2)})`;
+    c.beginPath(); c.arc(Math.round(x - r * 0.3), Math.round(y - r * 0.3), r * 0.5, 0, Math.PI * 2); c.fill();
   }
   // (the junk: brochures, a hot dog, somebody's hat, the gift cart's ice cream)
   const JUNK = ['#F8FAFC', '#D2551A', '#CDD6E2', '#7E22CE', '#FDE68A', '#16A34A'];

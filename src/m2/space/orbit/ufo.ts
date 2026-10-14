@@ -26,12 +26,15 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import type { EnemyKind } from '../../../m1/types';
-import { timeOfDay } from '../../timeOfDay';
+import { timeOfDay, farTint } from '../../timeOfDay';
+import { bandedGradient, hazeBands, checker } from '../../../m1/game/render/pixelArt';
+import { mix } from '../../../m1/game/render/backdrops/core';
+import { drawCloud, hash } from '../needle/sky';
 import { voice, meatheadSays, hands, teleport, box, label, saidOver } from '../section';
 import { DOORS } from '../geometry';
 import { K, spawn } from './kinds';
 import { bolt, boltV, blast } from './hazards';
-import { drawSaucer } from './art';
+import { drawSaucer, sphere, INK } from './art';
 import { orbitOf, MEMO, type Saucer } from './state';
 import { CY, W, H, X0, X1 } from './geo';
 import { SAUCER_INTRO, SAUCER_TAUNT, SAUCER_HURT, SAUCER_PISSED, MH_WHO, MH_LADIES, GUN_FACTORY, type ByPants } from './lines';
@@ -334,8 +337,12 @@ export const drawSaucerFront = (c: Ctx, state: GameState) => {
   if (s.st === 'beam' && s.open > 0) {
     // (the tractor beam: a cone of pale light down out of the hatch, over him, bands going up it)
     const top = s.y + HATCH_Y, bot = Math.max(top + 40, s.fromY + state.player.height + 20);
-    c.globalAlpha = 0.35 * s.open; c.fillStyle = '#FEF9C3';
-    c.beginPath(); c.moveTo(s.x - 22, top); c.lineTo(s.x + 22, top); c.lineTo(s.x + 70, bot); c.lineTo(s.x - 70, bot); c.closePath(); c.fill();
+    // (in steps: a wide faint cone, a brighter one inside it, its core; its edges dithered)
+    const cone = (k: number, col: string) => { c.fillStyle = col; c.beginPath(); c.moveTo(s.x - 22 * k, top); c.lineTo(s.x + 22 * k, top); c.lineTo(s.x + 70 * k, bot); c.lineTo(s.x - 70 * k, bot); c.closePath(); c.fill(); };
+    c.globalAlpha = s.open;
+    c.save(); c.beginPath(); c.moveTo(s.x - 26, top); c.lineTo(s.x + 26, top); c.lineTo(s.x + 80, bot); c.lineTo(s.x - 80, bot); c.closePath(); c.clip();
+    checker(c, s.x - 82, top, 164, bot - top, 'rgba(254, 249, 195, 0.35)', (f >> 2) % 2); c.restore();
+    cone(1, 'rgba(254, 249, 195, 0.22)'); cone(0.7, 'rgba(254, 249, 195, 0.2)'); cone(0.4, 'rgba(255, 255, 240, 0.22)');
     c.globalAlpha = 0.5 * s.open;
     for (let i = 0; i < 6; i++) { const k = ((f * 0.02 + i / 6) % 1), y = bot - (bot - top) * k, hw = 22 + 48 * (1 - k); box(c, s.x - hw, y, hw * 2, 2, '#FFFFFF'); }
     c.globalAlpha = 1;
@@ -388,41 +395,55 @@ const drawFall = (c: Ctx, state: GameState, s: Saucer) => {
   // (where the wreck is: the middle, a little high; how big, easing up as it comes)
   const sc = lerp(0.62, 0.95, smooth(e)), cx = W / 2 + Math.sin(t * 0.21) * 1.5, wy = 300 + Math.sin(t * 0.17) * 1.5;
   const mid = { x: cx, y: wy - 45 * sc };
-  // The sky
-  const sky = timeOfDay().sky;
-  for (let i = 0; i < 6; i++) box(c, 0, i * 100, W, 101, sky[i]);
-  // (clouds whipping up past, faster as it goes)
+  // The sky: the hour's, in dithered bands
+  const tod = timeOfDay();
+  bandedGradient(c, 0, 0, W, H, tod.sky, 14);
+  // (clouds whipping up past, faster as it goes: the far ones small and slow, the near ones big)
   const dist = 5 * t + 9 * t * t / FALL;
   for (let i = 0; i < 6; i++) {
-    const y = H + 120 - ((i * 170 + dist) % (H + 260)), x = (i * 263) % W;
-    c.globalAlpha = 0.75; c.fillStyle = '#FFFFFF';
-    c.beginPath(); c.ellipse(x, y, 90, 14 + (i % 3) * 4, 0, 0, Math.PI * 2); c.fill();
-    c.beginPath(); c.ellipse(x + 50, y - 8, 50, 12, 0, 0, Math.PI * 2); c.fill();
-    c.globalAlpha = 1;
+    const near = i % 2, y = H + 160 - ((i * 170 + dist * (near ? 1.3 : 0.8)) % (H + 320)), x = (i * 263) % W;
+    drawCloud(c, x, y, near ? 2.1 : 1.3, 40 + i, tod);
   }
   // The ground: from under the screen up to the wreck, faster and faster; Futureland on it, growing
   const gy = lerp(H + 90, wy + 4, Math.pow(e, 2.2)), k = lerp(0.35, 1.25, e * e);
-  // (a ground plane, not a wall: hazy and pale far off at its edge, darker and the fields bigger nearer; roads off to
-  // a point on the horizon)
-  const bands = ['#A3C27A', '#86AE55', '#6C9A3A', '#5A8A2C', '#4D7C0F'];
-  for (let i = 0; i < bands.length; i++) { const y0 = gy + (H + 40 - gy) * (i / bands.length) ** 2, y1 = gy + (H + 40 - gy) * ((i + 1) / bands.length) ** 2; box(c, 0, y0, W, y1 - y0 + 1, bands[i]); }
-  box(c, 0, gy - 2, W, 3, '#D9E8C4');
-  c.fillStyle = '#C8B48A';
+  // (a ground plane, not a wall: hazy and pale far off at its edge, darker and the fields bigger nearer, each step
+  // dithered into the next; roads off to a point on the horizon)
+  const bands = [farTint('#B4CC8A', 1.2, tod), farTint('#94B862', 1, tod), farTint('#78A246', 0.8, tod), farTint('#628E34', 0.6, tod), farTint('#517E22', 0.4, tod), farTint('#456E1A', 0.2, tod)];
+  const rowY = (i: number) => gy + (H + 40 - gy) * (i / bands.length) ** 2;
+  for (let i = 0; i < bands.length; i++) box(c, 0, rowY(i), W, rowY(i + 1) - rowY(i) + 1, bands[i]);
+  for (let i = 1; i < bands.length; i++) { checker(c, 0, Math.round(rowY(i) / 2) * 2 - 2, W, 2, bands[i], 0); checker(c, 0, Math.round(rowY(i) / 2) * 2, W, 2, bands[i - 1], 1); }
+  // (the fields: a patchwork of darker lots, spread out from the middle the nearer they are)
+  for (let i = 1; i < bands.length; i++) for (let j = -4; j <= 4; j++) {
+    if (hash(i * 9 + j) < 0.5) continue;
+    const y0 = rowY(i), y1 = rowY(i + 1), sp = 60 + (y1 - gy) * 1.4;
+    box(c, W / 2 + j * sp + 6, y0 + 2, sp * 0.55, Math.max(2, (y1 - y0) * 0.6), mix(bands[i], '#2E4A12', 0.25));
+  }
+  if (H + 40 - gy > 6) hazeBands(c, 0, gy - 2, W, Math.min(60, H + 40 - gy), tod.haze, 0.55, 0.0, 5);
+  box(c, 0, gy - 2, W, 2, mix('#E4EED4', tod.haze, 0.4));
+  c.fillStyle = farTint('#C8B48A', 0.5, tod);
   for (const dx of [-0.9, -0.25, 0.4, 1.1]) {
     c.beginPath(); c.moveTo(W / 2 + dx * 40, gy); c.lineTo(W / 2 + dx * 40 + 3, gy); c.lineTo(W / 2 + dx * 900 + 24, H + 300); c.lineTo(W / 2 + dx * 900 - 24, H + 300); c.closePath(); c.fill();
   }
-  // (the giant atom, left: a dome, its sphere, the rings round it)
+  // (the giant atom, left: a dome, its sphere, the rings round it; in steps, lit from the left)
   const ax = W / 2 - 230 * k;
-  c.fillStyle = '#CBD5E1'; c.beginPath(); c.arc(ax, gy, 46 * k, Math.PI, 0); c.fill();
-  c.fillStyle = '#E2E8F0'; c.beginPath(); c.arc(ax, gy - 70 * k, 26 * k, 0, Math.PI * 2); c.fill();
-  box(c, ax - 3 * k, gy - 46 * k, 6 * k, 46 * k, '#94A3B8');
-  c.strokeStyle = '#64748B'; c.lineWidth = Math.max(1, 3 * k);
-  for (const r of [0.5, -0.5, 1.57]) { c.beginPath(); c.ellipse(ax, gy - 70 * k, 52 * k, 15 * k, r, 0, Math.PI * 2); c.stroke(); }
+  const A = ['#5C6B84', '#7E8DA6', '#A4B2C8', '#CCD6E4', '#EEF2F8'].map(col => farTint(col, 0.4, tod));
+  c.fillStyle = INK; c.beginPath(); c.arc(ax, gy, 47 * k, Math.PI, 0); c.fill();
+  for (let i = 0; i < 4; i++) { c.fillStyle = A[i + 1]; c.beginPath(); c.arc(ax - i * 6 * k, gy, (46 - i * 9) * k, Math.PI, 0); c.fill(); }
+  box(c, ax - 4 * k, gy - 46 * k, 8 * k, 46 * k, INK); box(c, ax - 3 * k, gy - 46 * k, 6 * k, 46 * k, A[2]); box(c, ax - 3 * k, gy - 46 * k, 2 * k, 46 * k, A[4]);
+  c.lineWidth = Math.max(1, 4 * k);
+  for (const r of [0.5, -0.5, 1.57]) { c.strokeStyle = A[0]; c.beginPath(); c.ellipse(ax, gy - 70 * k, 52 * k, 15 * k, r, 0, Math.PI * 2); c.stroke(); }
+  c.lineWidth = Math.max(1, 2 * k);
+  for (const r of [0.5, -0.5, 1.57]) { c.strokeStyle = A[3]; c.beginPath(); c.ellipse(ax, gy - 71 * k, 52 * k, 15 * k, r, Math.PI, Math.PI * 2); c.stroke(); }
+  sphere(c, ax, gy - 70 * k, 26 * k, 26 * k, A);
   // (Space Needle 2, right: the shaft, the deck, the spire)
   const nx = W / 2 + 230 * k;
-  box(c, nx - 5 * k, gy - 190 * k, 10 * k, 190 * k, '#CBD5E1');
-  c.fillStyle = '#F1F5F9'; c.beginPath(); c.ellipse(nx, gy - 190 * k, 34 * k, 9 * k, 0, 0, Math.PI * 2); c.fill();
-  box(c, nx - 1.5 * k, gy - 240 * k, 3 * k, 50 * k, '#E2E8F0');
+  box(c, nx - 6 * k, gy - 190 * k, 12 * k, 190 * k, INK);
+  box(c, nx - 5 * k, gy - 190 * k, 10 * k, 190 * k, A[2]); box(c, nx - 5 * k, gy - 190 * k, 3 * k, 190 * k, A[4]); box(c, nx + 2 * k, gy - 190 * k, 3 * k, 190 * k, A[1]);
+  c.fillStyle = INK; c.beginPath(); c.ellipse(nx, gy - 190 * k, 36 * k, 11 * k, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = farTint('#126775', 0.4, tod); c.beginPath(); c.ellipse(nx, gy - 192 * k, 34 * k, 9 * k, 0, Math.PI, Math.PI * 2); c.fill();
+  c.fillStyle = A[3]; c.beginPath(); c.ellipse(nx, gy - 189 * k, 34 * k, 5 * k, 0, 0, Math.PI * 2); c.fill();
+  box(c, nx - 30 * k, gy - 190 * k, 60 * k, Math.max(1, 2 * k), farTint('#FDE68A', 0.3, tod));
+  box(c, nx - 1.5 * k, gy - 240 * k, 3 * k, 50 * k, A[3]);
   // Speed lines: out from the wreck, streaming outward
   c.strokeStyle = '#FFFFFF';
   for (let i = 0; i < 36; i++) {
@@ -439,16 +460,21 @@ const drawFall = (c: Ctx, state: GameState, s: Saucer) => {
       if (smoke !== ph > 0.35) continue;
       const x = mid.x - 10 * sc + Math.sin(i * 2.1 + ph * 3) * 18 * sc * (0.3 + ph), y = mid.y - 10 * sc - ph * 340;
       const r = (10 + ph * 30) * sc;
-      c.globalAlpha = smoke ? 0.7 * (1 - ph) : 0.95;
+      // (no smooth fade: the smoke thins out in steps)
+      c.globalAlpha = smoke ? (ph < 0.55 ? 0.8 : ph < 0.78 ? 0.5 : 0.25) : 1;
       c.fillStyle = smoke ? (ph < 0.6 ? '#52525B' : '#3F3F46') : ph < 0.12 ? '#FEF08A' : ph < 0.24 ? '#FDE047' : '#F97316';
       c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+      if (!smoke) { c.fillStyle = ph < 0.12 ? '#FFFFFF' : ph < 0.24 ? '#FEF9C3' : '#FDBA74'; c.beginPath(); c.arc(x - r * 0.25, y - r * 0.25, r * 0.5, 0, Math.PI * 2); c.fill(); }
     }
   }
   // The wreck: tilted, rocking a little, scorched
   c.save(); c.translate(cx, wy); c.scale(sc, sc); c.rotate(0.35 + Math.sin(t * 0.09) * 0.05);
   drawSaucer(c, t, false, 1, 0);
+  // (scorched, holed, burning in the holes)
+  checker(c, -90, -60, 90, 34, '#18181B', 0); checker(c, 20, -46, 80, 20, '#18181B', 1);
   c.fillStyle = '#18181B'; c.fillRect(-60, -70, 40, 20); c.fillRect(30, -40, 50, 14);
-  c.fillStyle = '#F97316'; c.fillRect(-50, -66, 18, 10);
+  c.fillStyle = '#B91C1C'; c.fillRect(-54, -68, 26, 14); c.fillStyle = '#F97316'; c.fillRect(-50, -66, 18, 10); c.fillStyle = '#FDE047'; c.fillRect(-46, -64, 8, 6);
+  c.fillStyle = '#F97316'; c.fillRect(40, -38, 20, 8); c.fillStyle = '#FDE047'; c.fillRect(44, -36, 8, 4);
   c.restore();
 };
 

@@ -9,7 +9,8 @@
 //                   big window at the end), the bulkhead at its start, the props, the suit's case, the end glass
 
 import type { GameState } from '../../../m1/game/core/state';
-import { stamp, checker, mix, type Ctx } from '../../intro/art/kit';
+import { stamp, checker, mix, tilePattern, bendFloor, type Ctx } from '../../intro/art/kit';
+import { CANVAS_WIDTH } from '../../../m1/constants';
 import { GY, LOBBY0, LIFT_X, LOBBY1, CAR0, CAR1, CAR_X, D0, D1, CEIL, CASE_X, SLOT, SLOTS, slotX, slotKind, WIN_HW, WIN_TOP, WIN_BOT, WIN_R, SPEAKER_Y, type SlotKind } from './layout';
 
 const INK = '#0A0F1A';
@@ -24,11 +25,14 @@ const box = (c: Ctx, x: number, y: number, w: number, h: number, col: string) =>
 const bands = (c: Ctx, x: number, y: number, w: number, h: number, cols: string[]) => {
   const n = cols.length, bh = h / n;
   for (let i = 0; i < n; i++) box(c, x, y + i * bh, w, Math.ceil(bh) + 1, cols[i]);
+  // (each seam dithered: a checker of the band under reaching up into the one over, where they're tall enough)
+  if (bh >= 8) for (let i = 1; i < n; i++) if (cols[i] !== cols[i - 1]) checker(c, Math.round(x), Math.round(y + i * bh) - 2, Math.round(w), 2, cols[i], 0);
 };
 /** Banded left to right (a column lit from the left). */
 const vbands = (c: Ctx, x: number, y: number, w: number, h: number, cols: string[]) => {
   const n = cols.length, bw = w / n;
   for (let i = 0; i < n; i++) box(c, x + i * bw, y, Math.ceil(bw) + 1, h, cols[i]);
+  if (bw >= 8) for (let i = 1; i < n; i++) if (cols[i] !== cols[i - 1]) checker(c, Math.round(x + i * bw) - 2, Math.round(y), 2, Math.round(h), cols[i], 0);
 };
 /** A chrome column, lit down its left, inked either side. */
 const column = (c: Ctx, x: number, y: number, w: number, h: number) => {
@@ -283,10 +287,15 @@ export const drawSuitCase = (c: Ctx, state: GameState, taken: boolean, smashT: n
   // the glass box over it (or what's left of it)
   const gx = x - 46, gy = GY - 196, gw = 92, gh = 150;
   if (!taken) {
-    c.fillStyle = 'rgba(165, 243, 252, 0.12)'; c.fillRect(gx, gy, gw, gh);
-    c.strokeStyle = '#CFFAFE'; c.lineWidth = 2; c.strokeRect(gx, gy, gw, gh);
-    c.fillStyle = 'rgba(255, 255, 255, 0.22)'; c.beginPath(); c.moveTo(gx + 8, gy); c.lineTo(gx + 28, gy); c.lineTo(gx + 8, gy + 50); c.lineTo(gx, gy + 50); c.closePath(); c.fill();
-    box(c, gx - 2, gy - 6, gw + 4, 6, CHROME[4]); box(c, gx - 2, gy - 6, gw + 4, 2, CHROME[6]);
+    // (the glass: a faint tint, its edges thick and bright where you see through more of it, two glare bands, a glint)
+    c.fillStyle = 'rgba(165, 243, 252, 0.1)'; c.fillRect(gx, gy, gw, gh);
+    checker(c, gx, gy, gw, gh, 'rgba(207, 250, 254, 0.08)', 0);
+    box(c, gx, gy, 3, gh, 'rgba(207, 250, 254, 0.55)'); box(c, gx + gw - 3, gy, 3, gh, 'rgba(14, 116, 144, 0.5)');
+    box(c, gx - 1, gy, 1, gh, INK); box(c, gx + gw, gy, 1, gh, INK);
+    c.fillStyle = 'rgba(255, 255, 255, 0.2)'; c.beginPath(); c.moveTo(gx + 8, gy); c.lineTo(gx + 30, gy); c.lineTo(gx + 8, gy + 56); c.lineTo(gx + 3, gy + 56); c.closePath(); c.fill();
+    c.fillStyle = 'rgba(255, 255, 255, 0.1)'; c.beginPath(); c.moveTo(gx + 40, gy); c.lineTo(gx + 48, gy); c.lineTo(gx + 20, gy + 70); c.lineTo(gx + 12, gy + 70); c.closePath(); c.fill();
+    box(c, gx + gw - 14, gy + 10, 6, 2, '#FFFFFF'); box(c, gx + gw - 12, gy + 8, 2, 6, '#FFFFFF');
+    box(c, gx - 3, gy - 7, gw + 6, 8, INK); bands(c, gx - 2, gy - 6, gw + 4, 6, [CHROME[6], CHROME[4], CHROME[2]]);
   } else {
     // (jagged: shards left in the frame top and bottom, the rest on the floor)
     box(c, gx - 2, gy - 6, gw + 4, 6, CHROME[4]);
@@ -299,35 +308,49 @@ export const drawSuitCase = (c: Ctx, state: GameState, taken: boolean, smashT: n
 };
 /** The suit itself, on its stand (feet at y): white, puffy, ringed at the joints, its pack, the gold-visored helmet. */
 export const drawSuitFigure = (c: Ctx, x: number, y: number, f: number) => {
-  const W1 = '#F1F5F9', W2 = '#CBD5E1', W3 = '#94A3B8';
-  c.strokeStyle = INK; c.lineWidth = 1;
+  const S = ['#4E5A6C', '#7C8AA0', '#A8B4C6', '#CCD5E1', '#E8EDF3', '#FFFFFF'];
+  /** A puffy limb or body part: inked, its middle tone, lit down its left, shaded down its right. */
+  const part = (px: number, py: number, w: number, h: number, r: number, base = 3) => {
+    rr(c, px - 1, py - 1, w + 2, h + 2, r + 1); c.fillStyle = INK; c.fill();
+    c.save(); rr(c, px, py, w, h, r); c.clip();
+    box(c, px, py, w, h, S[base]);
+    box(c, px, py, Math.max(2, w * 0.3), h, S[base + 1]); box(c, px + 1, py + 1, Math.max(1, w * 0.12), h - 2, S[Math.min(5, base + 2)]);
+    box(c, px + w * 0.72, py, w * 0.28, h, S[base - 1]); checker(c, px + w * 0.6, py, 2, h, S[base - 1], 0);
+    c.restore();
+  };
   // the pack behind
-  rr(c, x - 18, y - 76, 36, 40, 4); c.fillStyle = W3; c.fill(); c.stroke();
-  // legs, boots
+  part(x - 18, y - 76, 36, 40, 4, 2);
+  box(c, x - 14, y - 70, 6, 4, '#3B82F6'); box(c, x - 6, y - 70, 6, 4, '#DC2626');
+  // legs, their rings, the boots
   for (const s of [-1, 1]) {
-    rr(c, x + s * 7 - 6, y - 36, 12, 32, 4); c.fillStyle = W1; c.fill(); c.stroke();
-    box(c, x + s * 7 - 6, y - 20, 12, 2, W3);
-    rr(c, x + s * 7 - 8, y - 6, 16, 6, 2); c.fillStyle = W3; c.fill(); c.stroke();
+    part(x + s * 7 - 6, y - 36, 12, 32, 4);
+    box(c, x + s * 7 - 6, y - 22, 12, 2, S[1]); box(c, x + s * 7 - 6, y - 20, 12, 1, S[4]);
+    part(x + s * 7 - 8, y - 7, 16, 7, 2, 1);
   }
-  // the body, its panel, the patch
-  rr(c, x - 15, y - 72, 30, 40, 7); c.fillStyle = W1; c.fill(); c.stroke();
-  box(c, x - 15, y - 72, 7, 40, '#FFFFFF');
-  rr(c, x - 7, y - 60, 14, 10, 2); c.fillStyle = W2; c.fill(); c.stroke();
-  box(c, x - 5, y - 58, 3, 3, '#DC2626'); box(c, x + 1, y - 58, 3, 3, '#2563EB'); box(c, x - 2, y - 54, 4, 2, '#16A34A');
-  box(c, x + 6, y - 68, 6, 6, ORANGE[3]);
-  // arms, gloves
+  // the body, its control box, the patch
+  part(x - 15, y - 72, 30, 40, 7, 3);
+  rr(c, x - 8, y - 61, 16, 12, 2); c.fillStyle = INK; c.fill();
+  rr(c, x - 7, y - 60, 14, 10, 2); c.fillStyle = S[2]; c.fill(); box(c, x - 7, y - 60, 14, 2, S[4]);
+  box(c, x - 5, y - 57, 3, 3, '#DC2626'); box(c, x + 1, y - 57, 3, 3, '#2563EB'); box(c, x - 2, y - 53, 4, 2, '#16A34A');
+  box(c, x + 5, y - 69, 7, 7, INK); box(c, x + 6, y - 68, 5, 5, ORANGE[3]); box(c, x + 6, y - 68, 5, 1, ORANGE[5]);
+  // arms, their rings, gloves
   for (const s of [-1, 1]) {
-    rr(c, x + s * 19 - 5, y - 70, 10, 30, 4); c.fillStyle = W1; c.fill(); c.stroke();
-    box(c, x + s * 19 - 5, y - 54, 10, 2, W3);
-    rr(c, x + s * 19 - 5, y - 42, 10, 8, 3); c.fillStyle = W3; c.fill(); c.stroke();
+    part(x + s * 19 - 5, y - 70, 10, 30, 4);
+    box(c, x + s * 19 - 5, y - 54, 10, 2, S[1]);
+    part(x + s * 19 - 5, y - 42, 10, 8, 3, 1);
   }
-  // the helmet: the neck ring, the shell, the gold visor (a glint going across it)
-  box(c, x - 11, y - 76, 22, 5, W3);
-  c.fillStyle = W1; c.beginPath(); c.arc(x, y - 90, 15, 0, Math.PI * 2); c.fill(); c.stroke();
-  c.fillStyle = '#B7791F'; c.beginPath(); c.ellipse(x + 2, y - 90, 11, 9, 0, 0, Math.PI * 2); c.fill(); c.stroke();
-  c.fillStyle = '#F6E05E'; c.beginPath(); c.ellipse(x - 1, y - 93, 6, 3.5, -0.3, 0, Math.PI * 2); c.fill();
+  // the helmet: the neck ring, the shell in steps, the gold visor (banded, a glint going across it)
+  box(c, x - 12, y - 77, 24, 6, INK); box(c, x - 11, y - 76, 22, 4, S[2]); box(c, x - 11, y - 76, 22, 1, S[4]);
+  c.fillStyle = INK; c.beginPath(); c.arc(x, y - 90, 16, 0, Math.PI * 2); c.fill();
+  for (const [r, dx, col] of [[15, 0, S[2]], [13, -1.5, S[3]], [10, -3, S[4]], [5, -6, S[5]]] as const) { c.fillStyle = col; c.beginPath(); c.arc(x + dx, y - 90 + dx, r, 0, Math.PI * 2); c.fill(); }
+  c.fillStyle = INK; c.beginPath(); c.ellipse(x + 2, y - 90, 12, 10, 0, 0, Math.PI * 2); c.fill();
+  c.save(); c.beginPath(); c.ellipse(x + 2, y - 90, 11, 9, 0, 0, Math.PI * 2); c.clip();
+  for (const [yy, col] of [[-99, '#F6E05E'], [-95, '#E0B634'], [-91, '#B7791F'], [-87, '#8A5A12'], [-84, '#5E3C0A']] as const) box(c, x - 10, y + yy, 24, 5, col);
+  checker(c, x - 10, y - 92, 24, 2, '#B7791F', 0);
+  c.restore();
+  box(c, x - 4, y - 96, 5, 2, '#FFFBEB');
   const g = (f % 240) / 240;
-  if (g < 0.2) { c.fillStyle = 'rgba(255, 255, 255, 0.8)'; c.fillRect(x - 8 + g * 80, y - 96, 2, 10); }
+  if (g < 0.2) { c.fillStyle = 'rgba(255, 255, 255, 0.8)'; c.fillRect(x - 8 + g * 80, y - 98, 2, 12); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -386,74 +409,181 @@ export const drawEndGlass = (c: Ctx, state: GameState, mode: 'whole' | 'gone' | 
 // ---------------------------------------------------------------------------------------------------------------
 // The lobby, and the lift car
 
-/** The ticket hall at the needle's foot. */
+/** The ticket hall at the needle's foot: a 1960s space-age lobby gone a bit tired. From the top: the coffered ceiling and
+ *  its recessed lights, the clerestory (the sky through it), the cream upper wall papered in boomerangs, the chrome and
+ *  orange stripes, the fluted teal wainscot, the terrazzo floor (an atomic starburst inlaid in it). The exit at the
+ *  left, the ticket booth, the marquee, the posters, the queue's ropes, the lift. */
 const paintLobby = (c: Ctx) => {
   const L = LOBBY0, R = LOBBY1 + 40, w = R - L;
-  // the high window band (the sky through it: the backdrop), its mullions
-  bands(c, L, GY - 640, w, 160, [CHROME[1], CHROME[2], CHROME[2], CHROME[1]]);
-  for (let x = L + 140; x < R; x += 90) column(c, x, GY - 480, 10, 120);
-  box(c, L, GY - 364, w, 8, CHROME[4]); box(c, L, GY - 364, w, 2, CHROME[6]);
-  // the wall: cream above, teal below, a chrome stripe, the orange pinstripe
-  bands(c, L, GY - 356, w, 160, [CREAM[3], CREAM[3], CREAM[2], CREAM[2]]);
-  box(c, L, GY - 196, w, 6, CHROME[5]); box(c, L, GY - 190, w, 3, ORANGE[3]);
-  bands(c, L, GY - 187, w, 175, [TEAL[3], TEAL[3], TEAL[2], TEAL[2], TEAL[1]]);
-  bands(c, L, GY - 12, w, 12, [CHROME[3], CHROME[2], CHROME[1]]);
+  // the ceiling: dark coffers, chrome ribs, round recessed lights glowing down
+  bands(c, L, GY - 760, w, 270, [CHROME[0], '#141C28', CHROME[1], '#202C3C', CHROME[1]]);
+  for (let x = L + 30; x < R; x += 120) {
+    rr(c, x, GY - 620, 100, 112, 6); c.fillStyle = INK; c.fill();
+    rr(c, x + 2, GY - 618, 96, 108, 5); c.fillStyle = '#18202E'; c.fill();
+    box(c, x + 2, GY - 618, 96, 4, CHROME[2]); box(c, x + 2, GY - 618, 4, 108, CHROME[2]);
+    // (its lamp: a chrome can, the bulb's glow in steps)
+    c.fillStyle = INK; c.beginPath(); c.ellipse(x + 50, GY - 530, 20, 7, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FDE68A'; c.beginPath(); c.ellipse(x + 50, GY - 530, 17, 5, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FFFBEB'; c.beginPath(); c.ellipse(x + 48, GY - 531, 9, 2.5, 0, 0, Math.PI * 2); c.fill();
+  }
+  // (the fascia over the clerestory: chrome, lit along its bottom edge)
+  bands(c, L, GY - 496, w, 16, [CHROME[2], CHROME[3], CHROME[4], CHROME[5]]);
+  box(c, L, GY - 482, w, 2, CHROME[6]); box(c, L, GY - 480, w, 1, INK);
+  // the clerestory: the sky through it (the backdrop), its chrome mullions; the sill under it (dimmed: out of reach)
+  for (let x = L + 140; x < R; x += 90) column(c, x, GY - 480, 10, 118);
+  box(c, L, GY - 364, w, 8, dimc(CHROME[4])); box(c, L, GY - 364, w, 2, dimc(CHROME[6])); box(c, L, GY - 356, w, 1, INK);
+  // the upper wall: cream, papered in a faint pattern of boomerangs and four-point stars, darker toward its foot
+  bands(c, L, GY - 355, w, 159, [CREAM[3], CREAM[3], CREAM[2], CREAM[2], CREAM[1]]);
+  c.fillStyle = tilePattern(c, 'n2-boomerang', 64, 48, g => {
+    g.fillStyle = 'rgba(122, 104, 70, 0.22)';
+    g.beginPath(); g.moveTo(6, 30); g.quadraticCurveTo(16, 14, 28, 22); g.quadraticCurveTo(18, 22, 10, 34); g.closePath(); g.fill();
+    g.fillStyle = 'rgba(210, 85, 26, 0.18)';
+    for (const [sx, sy, sr] of [[46, 12, 5], [40, 38, 3]] as const) { g.beginPath(); for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, d = k % 2 ? sr * 0.3 : sr; g.lineTo(sx + Math.cos(a) * d, sy + Math.sin(a) * d); } g.closePath(); g.fill(); }
+  });
+  c.fillRect(L, GY - 355, w, 159);
+  // (the chrome stripe, the orange pinstripe)
+  bands(c, L, GY - 196, w, 6, [CHROME[6], CHROME[4]]); box(c, L, GY - 190, w, 3, ORANGE[3]); box(c, L, GY - 187, w, 1, ORANGE[1]);
+  // the wainscot: fluted teal panels, each rib lit down its left, shaded down its right; the kick plate
+  bands(c, L, GY - 186, w, 174, [TEAL[3], TEAL[3], TEAL[2], TEAL[2], TEAL[1]]);
+  for (let x = L + 4; x < R; x += 16) { box(c, x, GY - 180, 2, 166, TEAL[4]); box(c, x + 11, GY - 180, 2, 166, TEAL[1]); box(c, x + 13, GY - 180, 1, 166, INK); }
+  bands(c, L, GY - 14, w, 14, [CHROME[4], CHROME[3], CHROME[2], CHROME[1]]);
   ceilingAndFloorLobby(c, L, R);
-  // the doorway out (left): open, the light from outside
+  // the doorway out (left): open, the light from outside; its chrome jamb, the EXIT box over it
   c.save(); c.globalCompositeOperation = 'destination-out'; box(c, L, GY - 220, 90, 220, '#000'); c.restore();
   column(c, L + 90, GY - 230, 14, 230);
-  words(c, 'EXIT', L + 46, GY - 236, ORANGE[4], 8);
-  // the banner: the name, what it is
-  rr(c, L + 360, GY - 340, 380, 120, 8); c.fillStyle = INK; c.fill();
-  rr(c, L + 362, GY - 338, 376, 116, 7); c.fillStyle = TEAL[1]; c.fill();
-  burst(c, L + 400, GY - 300, 26, ORANGE[3]); burst(c, L + 400, GY - 300, 12, ORANGE[5]);
-  words(c, 'SPACE NEEDLE 2', L + 570, GY - 300, '#F8FAFC', 14, INK);
-  words(c, 'THE ONLY OBSERVATION DECK', L + 570, GY - 270, CREAM[4], 7);
-  words(c, 'IN ACTUAL OUTER SPACE', L + 570, GY - 256, CREAM[4], 7);
-  words(c, '541 TIMES TALLER THAN THE ORIGINAL', L + 570, GY - 234, ORANGE[4], 6);
-  // the ticket booth: round, chrome-topped, nobody in it
+  box(c, L, GY - 232, 104, 12, INK); bands(c, L, GY - 231, 103, 10, [CHROME[5], CHROME[4], CHROME[3]]);
+  rr(c, L + 18, GY - 262, 56, 22, 3); c.fillStyle = INK; c.fill();
+  rr(c, L + 20, GY - 260, 52, 18, 2); c.fillStyle = '#3B0A0A'; c.fill();
+  words(c, 'EXIT', L + 46, GY - 247, '#F87171', 8, '#1A0505');
+  // the marquee: the name, what it is, inside a ring of bulbs
+  const mx = L + 360, my = GY - 340, mw = 380, mh = 120;
+  rr(c, mx - 6, my - 6, mw + 12, mh + 12, 12); c.fillStyle = INK; c.fill();
+  rr(c, mx - 4, my - 4, mw + 8, mh + 8, 11); c.fillStyle = CHROME[4]; c.fill();
+  rr(c, mx - 4, my - 4, mw + 8, (mh + 8) / 2, 11); c.fillStyle = CHROME[5]; c.fill();
+  rr(c, mx + 4, my + 4, mw - 8, mh - 8, 6); c.fillStyle = INK; c.fill();
+  c.save(); rr(c, mx + 5, my + 5, mw - 10, mh - 10, 5); c.clip(); bands(c, mx + 5, my + 5, mw - 10, mh - 10, [TEAL[2], TEAL[1], TEAL[1], TEAL[0]]); c.restore();
+  for (let k = 0; k < 24; k++) { const bx = mx + 6 + k * ((mw - 12) / 23); for (const by of [my, my + mh]) { box(c, bx - 2, by - 2, 4, 4, '#FDE68A'); box(c, bx - 1, by - 2, 2, 1, '#FFFFFF'); } }
+  for (let k = 1; k < 6; k++) { const by = my + k * (mh / 6); for (const bx of [mx, mx + mw]) { box(c, bx - 2, by - 2, 4, 4, '#FDE68A'); box(c, bx - 1, by - 2, 2, 1, '#FFFFFF'); } }
+  burst(c, mx + 40, my + 40, 26, ORANGE[3]); burst(c, mx + 40, my + 40, 12, ORANGE[5]); burst(c, mx + 40, my + 40, 4, '#FFFFFF');
+  words(c, 'SPACE NEEDLE 2', mx + 210, my + 40, '#F8FAFC', 14, INK);
+  words(c, 'THE ONLY OBSERVATION DECK', mx + 210, my + 70, CREAM[4], 7);
+  words(c, 'IN ACTUAL OUTER SPACE', mx + 210, my + 84, CREAM[4], 7);
+  words(c, '541 TIMES TALLER THAN THE ORIGINAL', mx + 210, my + 106, ORANGE[4], 6);
+  // the ticket booth: round, chrome-capped, a boomerang sign on it, nobody in it
   const bx = L + 240;
-  rr(c, bx - 60, GY - 150, 120, 150, 30); c.fillStyle = INK; c.fill();
-  rr(c, bx - 58, GY - 148, 116, 148, 28); c.fillStyle = TEAL[4]; c.fill();
-  box(c, bx - 58, GY - 148, 116, 10, CHROME[5]);
-  rr(c, bx - 40, GY - 126, 80, 50, 6); c.fillStyle = '#0B1220'; c.fill();
-  c.fillStyle = 'rgba(255, 255, 255, 0.1)'; c.fillRect(bx - 36, GY - 122, 20, 42);
-  words(c, 'TICKETS', bx, GY - 160, ORANGE[4], 8);
-  rr(c, bx - 30, GY - 70, 60, 16, 2); c.fillStyle = CREAM[4]; c.fill();
-  words(c, 'BACK IN 5', bx, GY - 58, '#7F1D1D', 6, CREAM[4]);
+  rr(c, bx - 61, GY - 151, 122, 151, 31); c.fillStyle = INK; c.fill();
+  c.save(); rr(c, bx - 59, GY - 149, 118, 149, 29); c.clip();
+  vbands(c, bx - 59, GY - 149, 118, 149, [TEAL[5], TEAL[6], TEAL[5], TEAL[4], TEAL[4], TEAL[3], TEAL[2]]);
+  bands(c, bx - 59, GY - 149, 118, 12, [CHROME[6], CHROME[4]]);
+  box(c, bx - 59, GY - 30, 118, 4, ORANGE[3]); box(c, bx - 59, GY - 26, 118, 26, TEAL[2]);
+  c.restore();
+  rr(c, bx - 41, GY - 127, 82, 52, 6); c.fillStyle = INK; c.fill();
+  c.save(); rr(c, bx - 40, GY - 126, 80, 50, 6); c.clip(); bands(c, bx - 40, GY - 126, 80, 50, ['#1E2A44', '#16203A', '#101830', '#0B1220']);
+  c.fillStyle = 'rgba(255, 255, 255, 0.12)'; c.beginPath(); c.moveTo(bx - 34, GY - 126); c.lineTo(bx - 18, GY - 126); c.lineTo(bx - 40, GY - 86); c.lineTo(bx - 40, GY - 110); c.closePath(); c.fill(); c.restore();
+  box(c, bx - 44, GY - 76, 88, 5, CHROME[5]); box(c, bx - 44, GY - 71, 88, 1, INK);
+  rr(c, bx - 31, GY - 69, 62, 18, 2); c.fillStyle = INK; c.fill();
+  rr(c, bx - 30, GY - 68, 60, 16, 2); c.fillStyle = CREAM[4]; c.fill();
+  words(c, 'BACK IN 5', bx, GY - 57, '#7F1D1D', 6, CREAM[4]);
+  c.fillStyle = INK; c.beginPath(); c.moveTo(bx - 60, GY - 156); c.quadraticCurveTo(bx, GY - 196, bx + 66, GY - 172); c.lineTo(bx + 60, GY - 156); c.quadraticCurveTo(bx, GY - 176, bx - 56, GY - 150); c.closePath(); c.fill();
+  c.fillStyle = ORANGE[3]; c.beginPath(); c.moveTo(bx - 56, GY - 157); c.quadraticCurveTo(bx, GY - 193, bx + 62, GY - 171); c.lineTo(bx + 57, GY - 158); c.quadraticCurveTo(bx, GY - 178, bx - 53, GY - 153); c.closePath(); c.fill();
+  rr(c, bx - 38, GY - 196, 76, 20, 3); c.fillStyle = INK; c.fill();
+  rr(c, bx - 37, GY - 195, 74, 18, 3); c.fillStyle = TEAL[1]; c.fill();
+  words(c, 'TICKETS', bx, GY - 182, ORANGE[4], 8);
+  // the poster: the needle, a lot of reassurance
+  poster(c, L + 415, GY - 176, 112, 104, [['NOW 40%', '#FDE68A'], ['LESS', '#FDE68A'], ['DECOM-', '#F8FAFC'], ['PRESSION', '#F8FAFC']]);
+  // the height sign by the lift: a rocket on a stick, its hand out at the mark
+  heightSign(c, L + 805);
   // the lift's portal at the far end
   c.save(); c.translate(LIFT_X, 0); paintLiftPortal(c); c.restore();
-  // stanchions and the rope (an empty queue): dimmed
+  // stanchions and the rope (an empty queue): dimmed, chrome posts, a velvet rope sagging between
   for (let k = 0; k < 4; k++) {
     const x = L + 500 + k * 80;
-    box(c, x - 2, GY - 44, 4, 44, dimc(CHROME[5])); c.fillStyle = dimc(CHROME[5]); c.beginPath(); c.arc(x, GY - 46, 4, 0, Math.PI * 2); c.fill();
-    if (k < 3) { c.strokeStyle = dimc('#B91C1C'); c.lineWidth = 3; c.beginPath(); c.moveTo(x, GY - 42); c.quadraticCurveTo(x + 40, GY - 28, x + 80, GY - 42); c.stroke(); }
+    box(c, x - 13, GY - 4, 26, 4, dimc(CHROME[3])); box(c, x - 13, GY - 4, 26, 1, dimc(CHROME[5]));
+    box(c, x - 3, GY - 44, 6, 40, INK); box(c, x - 2, GY - 44, 2, 40, dimc(CHROME[6])); box(c, x, GY - 44, 2, 40, dimc(CHROME[3]));
+    c.fillStyle = INK; c.beginPath(); c.arc(x, GY - 47, 5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = dimc(CHROME[5]); c.beginPath(); c.arc(x, GY - 47, 4, 0, Math.PI * 2); c.fill();
+    if (k < 3) {
+      c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(x, GY - 42); c.quadraticCurveTo(x + 40, GY - 28, x + 80, GY - 42); c.stroke();
+      c.strokeStyle = dimc('#B91C1C'); c.lineWidth = 3; c.beginPath(); c.moveTo(x, GY - 42); c.quadraticCurveTo(x + 40, GY - 28, x + 80, GY - 42); c.stroke();
+      c.strokeStyle = dimc('#F87171'); c.lineWidth = 1; c.beginPath(); c.moveTo(x, GY - 43); c.quadraticCurveTo(x + 40, GY - 29, x + 80, GY - 43); c.stroke();
+    }
   }
+};
+/** A framed poster on the wall (its middle at x, its top at y): a chrome frame, a banded night-blue field, the needle
+ *  on it going up into a starburst, the words under. */
+const poster = (c: Ctx, x: number, y: number, w: number, h: number, lines: [string, string][]) => {
+  const L = x - w / 2;
+  rr(c, L - 3, y - 3, w + 6, h + 6, 3); c.fillStyle = INK; c.fill();
+  bands(c, L - 2, y - 2, w + 4, h + 4, [CHROME[5], CHROME[4], CHROME[3]]);
+  bands(c, L + 3, y + 3, w - 6, h - 6, ['#1A1F52', '#232C6E', '#2D3A86', '#3A4A9A']);
+  burst(c, x, y + 14, 10, ORANGE[4]); burst(c, x, y + 14, 4, '#FFFFFF');
+  box(c, x - 1, y + 18, 2, 22, CHROME[5]); c.fillStyle = TEAL[4]; c.beginPath(); c.ellipse(x, y + 26, 10, 3, 0, 0, Math.PI * 2); c.fill();
+  lines.forEach(([s, col], i) => words(c, s, x, y + 52 + i * 12, col, 6));
+};
+/** "YOU MUST BE THIS TALL TO GO TO SPACE": a board, a rocket on a stick at the mark, its little hand out. */
+const heightSign = (c: Ctx, x: number) => {
+  rr(c, x - 47, GY - 182, 94, 60, 4); c.fillStyle = INK; c.fill();
+  rr(c, x - 46, GY - 181, 92, 58, 3); c.fillStyle = CREAM[4]; c.fill();
+  box(c, x - 46, GY - 181, 92, 3, '#FFFFFF'); box(c, x - 46, GY - 126, 92, 3, CREAM[1]);
+  words(c, 'YOU MUST BE', x, GY - 167, TEAL[1], 6, CREAM[4]);
+  words(c, 'THIS TALL', x, GY - 155, TEAL[1], 6, CREAM[4]);
+  words(c, 'TO GO TO', x, GY - 143, TEAL[1], 6, CREAM[4]);
+  words(c, 'SPACE', x, GY - 131, ORANGE[1], 6, CREAM[4]);
+  // (the stick: ruled, under the board; the rocket at the top of it with its hand out over the mark)
+  box(c, x - 4, GY - 118, 8, 118, INK); box(c, x - 3, GY - 118, 3, 118, CREAM[4]); box(c, x, GY - 118, 3, 118, CREAM[2]);
+  for (let y = GY - 112; y < GY; y += 8) box(c, x - 3, y, (y / 8) % 2 ? 3 : 5, 1, WALNUT[2]);
+  c.fillStyle = INK; c.beginPath(); c.moveTo(x + 6, GY - 92); c.lineTo(x + 30, GY - 92); c.lineTo(x + 30, GY - 88); c.lineTo(x + 6, GY - 88); c.fill();
+  box(c, x + 7, GY - 91, 22, 2, ORANGE[3]);
+  box(c, x + 28, GY - 94, 4, 8, CREAM[4]);
 };
 const ceilingAndFloorLobby = (c: Ctx, L: number, R: number) => {
   const w = R - L;
-  box(c, L, GY, w, 3, '#F8FAFC'); bands(c, L, GY + 3, w, 24, [CREAM[3], CREAM[2], CREAM[2], CREAM[1]]);
-  for (let x = L; x < R; x += 7) { const k = (x * 13) % 17; box(c, x + (k % 5), GY + 8 + (k % 14), 2, 1, k % 3 ? ORANGE[3] : TEAL[4]); }
-  bands(c, L, GY + 27, w, 180, [CHROME[2], TEAL[2], TEAL[1], TEAL[0], '#03161B']);
+  // the terrazzo, a plane going toward the viewer: the lit lip, cream in steps (lighter far, a shade darker near), the
+  // joints of its slabs, the chips of stone in it, and the starburst inlaid in the middle (all of it bent in perspective
+  // by drawLobby)
+  box(c, L, GY, w, 3, '#F8FAFC');
+  const TERRAZZO = ['#E2DBC8', '#D6CEB8', '#CAC1A9', '#BDB39A', '#B0A58B', '#A3977C'];
+  box(c, L, GY + 3, w, 2, TERRAZZO[0]);
+  bands(c, L, GY + 5, w, 202, TERRAZZO.slice(1));
+  for (const y of [GY + 14, GY + 30, GY + 52, GY + 84, GY + 130]) { box(c, L, y, w, 1, '#857A62'); box(c, L, y + 1, w, 1, '#EEE8D8'); }
+  for (let x = L + 32; x < R; x += 64) { box(c, x, GY + 3, 1, 204, '#857A62'); box(c, x + 1, GY + 3, 1, 204, '#EEE8D8'); }
+  for (let x = L; x < R; x += 5) for (let k = 0; k < 4; k++) {
+    const h = ((x * 13 + k * 71) % 997) / 997, y = GY + 5 + Math.floor(h * 198);
+    box(c, x + (k * 3) % 5, y, 2, 1, k % 3 === 0 ? ORANGE[3] : k % 3 === 1 ? TEAL[4] : CREAM[0]);
+  }
+  // (the inlay: an atomic starburst, orange and teal, flattened on the floor)
+  const ix = L + 600, iy = GY + 22;
+  c.save(); c.translate(ix, iy); c.scale(1, 0.16);
+  burst(c, 0, 0, 120, INK); burst(c, 0, 0, 116, ORANGE[2]); burst(c, 0, 0, 80, TEAL[3]); burst(c, 0, 0, 44, ORANGE[4]);
+  c.fillStyle = INK; c.beginPath(); c.arc(0, 0, 18, 0, Math.PI * 2); c.fill(); c.fillStyle = CHROME[4]; c.beginPath(); c.arc(0, 0, 15, 0, Math.PI * 2); c.fill();
+  c.restore();
+  // the ceiling's top edge
   bands(c, L, GY - 760, w, 120, [CHROME[0], CHROME[1], CHROME[1], CHROME[2]]);
 };
 /** The lift's doors in the lobby (centered on 0): the portal, the doors, its sign, the call button. */
 const paintLiftPortal = (c: Ctx) => {
   rr(c, -70, GY - 210, 140, 210, 10); c.fillStyle = INK; c.fill();
-  rr(c, -68, GY - 208, 136, 208, 9); c.fillStyle = CHROME[4]; c.fill();
-  rr(c, -68, GY - 208, 136, 44, 9); c.fillStyle = CHROME[5]; c.fill();
+  c.save(); rr(c, -68, GY - 208, 136, 208, 9); c.clip();
+  vbands(c, -68, GY - 208, 136, 208, [CHROME[5], CHROME[6], CHROME[5], CHROME[4], CHROME[4], CHROME[3], CHROME[2]]);
+  bands(c, -68, GY - 208, 136, 40, [CHROME[6], CHROME[5], CHROME[5], CHROME[4]]);
+  c.restore();
+  box(c, -55, GY - 171, 110, 171, INK);
   vbands(c, -54, GY - 170, 54, 170, [CHROME[4], CHROME[5], CHROME[4], CHROME[3]]);
   vbands(c, 0, GY - 170, 54, 170, [CHROME[4], CHROME[3], CHROME[3], CHROME[2]]);
   box(c, -1, GY - 170, 2, 170, INK);
-  burst(c, 0, GY - 232, 24, ORANGE[3]); burst(c, 0, GY - 232, 12, ORANGE[5]); burst(c, 0, GY - 232, 5, '#FFFFFF');
+  // (the doors' etched starbursts)
+  for (const s of [-1, 1]) { burst(c, s * 27, GY - 100, 12, s < 0 ? CHROME[6] : CHROME[4]); burst(c, s * 27, GY - 100, 5, CHROME[2]); }
+  burst(c, 0, GY - 232, 26, INK); burst(c, 0, GY - 232, 24, ORANGE[3]); burst(c, 0, GY - 232, 12, ORANGE[5]); burst(c, 0, GY - 232, 5, '#FFFFFF');
   words(c, 'LIFT TO SPACE', 0, GY - 180, CHROME[1], 7, CHROME[6]);
-  box(c, 80, GY - 120, 14, 22, CHROME[1]); box(c, 83, GY - 116, 8, 8, ORANGE[4]);
+  box(c, 79, GY - 121, 16, 24, INK); box(c, 80, GY - 120, 14, 22, CHROME[2]); box(c, 83, GY - 116, 8, 8, ORANGE[4]); box(c, 84, GY - 116, 3, 2, '#FFFFFF');
   words(c, '62 MILES', 0, GY - 262, ORANGE[4], 7);
 };
 export const drawLobby = (c: Ctx, state: GameState) => {
   const v = state.view ?? { x: state.camera.x, w: 800 };
   if (v.x > LOBBY1 + 60 || v.x + v.w < LOBBY0 - 40) return;
   stamp(c, 'n2-lobby', LOBBY0, GY - 760, LOBBY1 + 40 - LOBBY0, 967, paintLobby);
+  // (the floor in perspective, from where the camera's looking: the joints and the inlay fan out toward him)
+  bendFloor(c, { x: state.camera.x + CANVAS_WIDTH / 2 }, GY + 3, GY + 3, GY + 207, LOBBY0, LOBBY1 + 40);
 };
 
 /** The lift car going up (centered on CAR_X): its floor and roof slabs, its chrome ribs, the guide rails outside it,
@@ -471,18 +601,37 @@ export const drawCar = (c: Ctx, state: GameState, alt: string) => {
 const paintCar = (c: Ctx) => {
   // the guide rails, up and down out of sight
   for (const x of [CAR0 - 70, CAR1 + 54]) { vbands(c, x, GY - 700, 16, 900, [CHROME[4], CHROME[5], CHROME[3], CHROME[2]]); box(c, x - 1, GY - 700, 1, 900, INK); box(c, x + 16, GY - 700, 1, 900, INK); }
-  // the roof: a dome, a lamp under it; the floor slab, the underside tapering to its clamp
-  c.fillStyle = INK; c.beginPath(); c.ellipse(CAR_X, GY - 214, (CAR1 - CAR0) / 2 + 4, 52, 0, Math.PI, 0); c.fill();
-  c.fillStyle = TEAL[3]; c.beginPath(); c.ellipse(CAR_X, GY - 214, (CAR1 - CAR0) / 2, 48, 0, Math.PI, 0); c.fill();
-  c.fillStyle = TEAL[5]; c.beginPath(); c.ellipse(CAR_X - 30, GY - 228, 70, 22, 0, Math.PI, 0); c.fill();
-  bands(c, CAR0 - 6, GY - 218, CAR1 - CAR0 + 12, 22, [CHROME[5], CHROME[4], CHROME[3], CHROME[1]]);
-  box(c, CAR_X - 24, GY - 196, 48, 4, '#FDE68A');
+  // the roof: a dome in teal steps (lit from the upper left, each step dithered into the next), chrome ribs over it, a
+  // beacon on top; the lamp under it
+  const hw = (CAR1 - CAR0) / 2;
+  c.fillStyle = INK; c.beginPath(); c.ellipse(CAR_X, GY - 214, hw + 4, 52, 0, Math.PI, 0); c.fill();
+  c.save(); c.beginPath(); c.ellipse(CAR_X, GY - 214, hw, 48, 0, Math.PI, 0); c.clip();
+  box(c, CAR0 - 10, GY - 270, hw * 2 + 20, 60, TEAL[2]);
+  const steps: [number, number, number, string][] = [[-6, -4, 0.92, TEAL[3]], [-16, -9, 0.74, TEAL[4]], [-30, -15, 0.52, TEAL[5]], [-44, -21, 0.3, TEAL[6]]];
+  for (const [dx, dy, k, col] of steps) {
+    c.save(); c.beginPath(); c.ellipse(CAR_X + dx, GY - 214 + dy, hw * k + 4, 48 * k + 3, 0, 0, Math.PI * 2); c.clip(); checker(c, CAR0 - 10, GY - 270, hw * 2 + 20, 60, col, 0); c.restore();
+    c.fillStyle = col; c.beginPath(); c.ellipse(CAR_X + dx, GY - 214 + dy, hw * k, 48 * k, 0, 0, Math.PI * 2); c.fill();
+  }
+  c.restore();
+  for (const k of [-0.6, 0.6]) { c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(CAR_X + k * hw, GY - 214); c.quadraticCurveTo(CAR_X + k * hw * 0.8, GY - 250, CAR_X + k * 20, GY - 262); c.stroke(); c.strokeStyle = CHROME[5]; c.lineWidth = 1; c.stroke(); }
+  box(c, CAR_X - 4, GY - 276, 8, 14, INK); box(c, CAR_X - 3, GY - 276, 6, 13, CHROME[4]); box(c, CAR_X - 3, GY - 276, 2, 13, CHROME[6]);
+  c.fillStyle = INK; c.beginPath(); c.arc(CAR_X, GY - 279, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = '#EF4444'; c.beginPath(); c.arc(CAR_X, GY - 279, 4, 0, Math.PI * 2); c.fill(); box(c, CAR_X - 2, GY - 282, 2, 2, '#FECACA');
+  bands(c, CAR0 - 6, GY - 218, CAR1 - CAR0 + 12, 22, [CHROME[6], CHROME[5], CHROME[4], CHROME[3], CHROME[1]]);
+  box(c, CAR0 - 6, GY - 218, CAR1 - CAR0 + 12, 1, INK); box(c, CAR0 - 6, GY - 196, CAR1 - CAR0 + 12, 1, INK);
+  box(c, CAR_X - 26, GY - 196, 52, 6, INK); box(c, CAR_X - 24, GY - 196, 48, 4, '#FDE68A'); box(c, CAR_X - 20, GY - 196, 24, 2, '#FFFBEB');
   rr(c, CAR_X + 60, GY - 194, 24, 8, 3); c.fillStyle = CHROME[2]; c.fill();
+  // the floor slab: its lit lip, banded chrome and an orange band, the underside tapering in teal steps to its clamp
   box(c, CAR0 - 6, GY, CAR1 - CAR0 + 12, 3, '#F8FAFC');
-  bands(c, CAR0 - 6, GY + 3, CAR1 - CAR0 + 12, 26, [CHROME[4], CHROME[3], CHROME[2], ORANGE[3], CHROME[1]]);
+  bands(c, CAR0 - 6, GY + 3, CAR1 - CAR0 + 12, 26, [CHROME[5], CHROME[4], CHROME[3], ORANGE[3], CHROME[1]]);
+  box(c, CAR0 - 6, GY + 18, CAR1 - CAR0 + 12, 1, ORANGE[5]);
   c.fillStyle = INK; c.beginPath(); c.moveTo(CAR0 - 6, GY + 29); c.lineTo(CAR1 + 6, GY + 29); c.lineTo(CAR_X + 50, GY + 90); c.lineTo(CAR_X - 50, GY + 90); c.closePath(); c.fill();
-  c.fillStyle = TEAL[2]; c.beginPath(); c.moveTo(CAR0 - 3, GY + 30); c.lineTo(CAR1 + 3, GY + 30); c.lineTo(CAR_X + 48, GY + 88); c.lineTo(CAR_X - 48, GY + 88); c.closePath(); c.fill();
-  box(c, CAR_X - 30, GY + 88, 60, 10, CHROME[3]);
+  c.save(); c.beginPath(); c.moveTo(CAR0 - 3, GY + 30); c.lineTo(CAR1 + 3, GY + 30); c.lineTo(CAR_X + 48, GY + 88); c.lineTo(CAR_X - 48, GY + 88); c.closePath(); c.clip();
+  vbands(c, CAR0 - 3, GY + 30, CAR1 - CAR0 + 6, 58, [TEAL[4], TEAL[3], TEAL[3], TEAL[2], TEAL[2], TEAL[1], TEAL[1], TEAL[0]]);
+  bands(c, CAR0 - 3, GY + 30, CAR1 - CAR0 + 6, 58, ['rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(3, 18, 22, 0.25)', 'rgba(3, 18, 22, 0.45)']);
+  c.restore();
+  // (the underside's emblem: the needle in a starburst)
+  burst(c, CAR_X, GY + 52, 14, ORANGE[3]); burst(c, CAR_X, GY + 52, 6, ORANGE[5]);
+  box(c, CAR_X - 31, GY + 88, 62, 12, INK); bands(c, CAR_X - 30, GY + 88, 60, 10, [CHROME[5], CHROME[3], CHROME[2]]);
   // the clamps out to the rails
   for (const [x0, x1] of [[CAR0 - 54, CAR0 - 6], [CAR1 + 6, CAR1 + 54]]) { bands(c, x0, GY - 40, x1 - x0, 14, [CHROME[5], CHROME[3], CHROME[1]]); bands(c, x0, GY - 200, x1 - x0, 14, [CHROME[5], CHROME[3], CHROME[1]]); }
   // the ribs, the glass's frame, the handrail (dimmed)
