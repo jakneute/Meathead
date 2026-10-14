@@ -106,8 +106,9 @@ export const hazardKill = (ctx: FrameContext, e: Enemy, fromX: number, call: str
  * Hurt by a hazard but maybe not done in: `dmg` off it (a little one: dead outright), knocked away from `fromX` and
  * dazed; done in, as above. Returns whether it died.
  */
-export const hazardHit = (ctx: FrameContext, e: Enemy, dmg: number, fromX: number, call: string, opts: { color?: string; knock?: number } = {}) => {
-  if (isSmall(e)) dmg = Math.max(dmg, e.health);
+export const hazardHit = (ctx: FrameContext, e: Enemy, dmg: number, fromX: number, call: string, opts: { color?: string; knock?: number; kill?: boolean } = {}) => {
+  // (small ones go in one; and a crusher (`kill`) kills anybody)
+  if (isSmall(e) || opts.kill) dmg = Math.max(dmg, e.health);
   e.health -= dmg; e.hitFlash = 8;
   if (e.health <= 0) { hazardKill(ctx, e, fromX, call, opts); return true; }
   const away = e.pos.x + e.width / 2 < fromX ? -1 : 1;

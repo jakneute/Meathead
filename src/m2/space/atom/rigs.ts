@@ -131,7 +131,7 @@ export const runRigs = (ctx: FrameContext, blocks: RigBlocks) => {
         p.pos.x = px < d.x + d.w / 2 ? d.x - p.width - 2 : d.x + d.w + 2;
         shakeScreen(state, 10, 5);
       }
-      for (const e of hazardVictims(state)) if (boxHits(e, box.x, box.y, box.w, box.h)) hazardHit(ctx, e, 300, e.pos.x + e.width / 2 < d.x + d.w / 2 ? d.x + d.w : d.x, 'SQUASHED!', { knock: 4 });
+      for (const e of hazardVictims(state)) if (boxHits(e, box.x, box.y, box.w, box.h)) hazardHit(ctx, e, 300, e.pos.x + e.width / 2 < d.x + d.w / 2 ? d.x + d.w : d.x, 'SQUASHED!', { knock: 4, kill: true });
     }
     if (s.down > 0.9 && s.down <= 1 && s.warn === 1 && !s.slamming && airlockAt(d, f - 1, locked).slamming) { playSound('slam', 1, -8); playSound('clang', 0.8, -12); shakeScreen(state, 8, 4); }
     if (s.warn > 0 || s.down > 0) zones.push({ x0: d.x - 12, x1: d.x + d.w + 12, y0: AIRLOCK_TOP, y1: GY });
