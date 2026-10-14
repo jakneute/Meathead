@@ -20,13 +20,45 @@ export interface Pose {
   /** The weapon: where its middle is (his frame), its tilt, how far round it's turned (0: side on, π: the other side). */
   wx: number; wy: number; rot: number; turn: number;
   /** His face: grinning, sniffing it, gagging; how green he's gone (0..1); his head tipped (picture px). */
-  face: 'grin' | 'smirk' | 'sniff' | 'gag' | 'chuckle';
+  face: 'grin' | 'smirk' | 'sniff' | 'gag' | 'chuckle' | 'blow' | 'dazed' | 'yell';
   green: number; headY: number;
   /** Pants blown off him (Meathead 2's gut): his legs his own; shitty pants: his jeans stained, the flies. */
   nude: boolean; shat: boolean;
   rim: string;
   t: number;
+  /** What he's doing with it (walkAway/acts.ts: each weapon its own business); left out: the toy turned over in both
+   *  hands at wx, wy (the crossbow's). */
+  hold?: Hold;
 }
+
+/** A point in his frame (picture px, his feet at the origin; the walk's bob is added when he's drawn). */
+export type Pt = [number, number];
+
+/**
+ * His hands and the toy, free: where the toy is and how it's turned, where each fist is (null: hanging at his side,
+ * swinging with his stride), where his elbows are (raised for a hand up at his face), and anything drawn round it.
+ * His left is the screen's right (he's facing us): the hand he holds things in.
+ */
+export interface Hold {
+  /** The toy: where its own origin goes (its grip, most of them), its tilt, its scale (sx < 0 flips it), and how it's drawn. */
+  wx: number; wy: number; rot: number; sx?: number; sy?: number;
+  draw: ((c: Ctx, t: number) => void) | null;
+  left: Pt | null; right: Pt | null;
+  elbowL?: Pt; elbowR?: Pt;
+  /** The toy behind his forearms (on his shoulder, down his back), not in his fists. */
+  under?: boolean;
+  /** His frame, after the toy, before his fists (a hose, a strap); and over everything (smoke, words, sparkle). */
+  mid?: (c: Ctx, ty: number) => void;
+  over?: (c: Ctx, ty: number) => void;
+}
+
+/** Where a fist hangs at his side mid-stride (`side` 1: his left, the screen's right). */
+export const hangFist = (side: number, step: number): Pt => {
+  const sw = Math.sin(step), swing = side < 0 ? sw : -sw * 0.35;
+  return [side * (45 + swing * 1.2), -64 + swing * 3];
+};
+/** Where the elbows sit with the arms down. */
+export const ELBOW_L: Pt = [47, -97], ELBOW_R: Pt = [-47, -97];
 
 /** Where things are on him this frame (his frame): his mouth (for the spit), his crotch (for the censor). */
 export interface Marks { mouth: [number, number]; crotch: [number, number, number, number] }
@@ -170,6 +202,40 @@ const swingingArms = (c: Ctx, p: Pose, ty: number, weapon: ((c: Ctx, t: number) 
   }
 };
 
+/** His arms and the toy as a Hold has them (walkAway/acts.ts). Everything shifted by the walk's bob (`ty`). */
+const holdingIt = (c: Ctx, p: Pose, h: Hold, ty: number, R: string[]) => {
+  const FORE = [R[0], R[0], R[1], R[2], R[3]];
+  const toy = () => {
+    if (!h.draw) return;
+    c.save(); c.translate(h.wx, h.wy + ty); c.rotate(h.rot); c.scale(h.sx ?? 1, h.sy ?? 1);
+    h.draw(c, p.t);
+    c.restore();
+  };
+  if (h.under) toy();
+  const fists: [number, number, number][] = [];
+  for (const side of [-1, 1]) {
+    const e = (side > 0 ? h.elbowL : h.elbowR) ?? (side > 0 ? ELBOW_L : ELBOW_R);
+    const f = (side > 0 ? h.left : h.right) ?? hangFist(side, p.step);
+    const ex = e[0], ey = e[1] + ty, fx = f[0], fy = f[1] + ty;
+    // (the forearm, elbow to fist; the wristband by the fist)
+    limb(c, ex, ey, 14, fx, fy - 4 * Math.sign(fy - ey || 1), 11, FORE, side > 0 ? p.rim : undefined);
+    lump(c, ex, ey, 6, 5, FORE);
+    const wx = ex + (fx - ex) * 0.8, wy = ey + (fy - ey) * 0.8;
+    c.fillStyle = INK; c.beginPath(); c.ellipse(wx, wy, 7, 4, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = BAND[2]; c.beginPath(); c.ellipse(wx, wy, 6, 3, 0, 0, Math.PI * 2); c.fill();
+    box(c, wx - 4, wy - 2, 5, 1, BAND[4]);
+    fists.push([fx, fy, side]);
+  }
+  if (!h.under) toy();
+  h.mid?.(c, ty);
+  // (the fists: knuckles toward us)
+  for (const [fx, fy] of fists) {
+    lump(c, fx, fy, 7, 7, R);
+    box(c, fx - 5, fy - 2, 10, 1, R[1]); box(c, fx - 4, fy + 1, 8, 1, R[1]); box(c, fx - 5, fy - 4, 2, 1, R[4]);
+  }
+  h.over?.(c, ty);
+};
+
 /** `walking`: arms hanging and swinging, `walking.weapon` in his left fist (in place of the toy held up in both). */
 export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [[number, number], [number, number]], drawWeapon: (c: Ctx, t: number) => void, walking?: { weapon: ((c: Ctx, t: number) => void) | null }): Marks => {
   c.save();
@@ -261,14 +327,16 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
   for (const side of [-1, 1]) {
     const r = side < 0 ? S : [S[0], S[1], S[2], S[2], S[3]];
     // (the upper arm, shoulder to elbow; the bicep bulging on its inside, the tricep's shade on its outside)
-    limb(c, side * 44, -132 + ty, 20, side * 47, -97 + ty, 14, r, side > 0 ? p.rim : undefined);
-    lump(c, side * 42, -113 + ty, 7, 10, r, false);
-    box(c, side * 42 - 3, -106 + ty, 6, 1, r[1]);
+    const [elx, ely] = (side > 0 ? p.hold?.elbowL : p.hold?.elbowR) ?? [side * 47, -97];
+    limb(c, side * 44, -132 + ty, 20, elx, ely + ty, 14, r, side > 0 ? p.rim : undefined);
+    const bx = side * 44 + (elx - side * 44) * 0.55 - side * 2, by = -132 + (ely + 132) * 0.55;
+    lump(c, bx, by + ty, 7, 10, r, false);
+    box(c, bx - 3, by + 7 + ty, 6, 1, r[1]);
     lump(c, side * 43, -131 + ty, 12, 10, r);
     box(c, side * 43 - 6, -124 + ty, 12, 1, r[1]);
-    if (side > 0) { c.strokeStyle = p.rim; c.lineWidth = 1; c.beginPath(); c.ellipse(side * 43, -131 + ty, 11, 10, 0, -Math.PI / 2.4, Math.PI / 2.4); c.stroke(); c.beginPath(); c.ellipse(45, -114 + ty, 9, 14, 0, -Math.PI / 3, Math.PI / 3); c.stroke(); }
+    if (side > 0) { c.strokeStyle = p.rim; c.lineWidth = 1; c.beginPath(); c.ellipse(side * 43, -131 + ty, 11, 10, 0, -Math.PI / 2.4, Math.PI / 2.4); c.stroke(); c.beginPath(); c.ellipse(bx + 3, by - 1 + ty, 9, 14, 0, -Math.PI / 3, Math.PI / 3); c.stroke(); }
     // (a vein down the bicep)
-    box(c, side * 47, -120 + ty, 1, 6, '#C2410C'); box(c, side * 46, -114 + ty, 1, 5, '#C2410C');
+    box(c, bx + side * 3.5, by - 7 + ty, 1, 6, '#C2410C'); box(c, bx + side * 2.5, by - 1 + ty, 1, 5, '#C2410C');
   }
   // The neck: a stump, the cords down it, his jaw's shadow over it
   const hy = ty + p.headY;
@@ -292,7 +360,7 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
   // The face
   const eyeY = -165 + hy, mouthY = -155 + hy;
   // (the brows: a scowl, always)
-  const browDrop = p.face === 'gag' ? 1 : 0;
+  const browDrop = p.face === 'gag' || p.face === 'dazed' ? 1 : 0;
   c.fillStyle = INK;
   c.beginPath(); c.moveTo(-11, eyeY - 4); c.lineTo(-2, eyeY - 1 + browDrop); c.lineTo(-2, eyeY + 1 + browDrop); c.lineTo(-11, eyeY - 2); c.fill();
   c.beginPath(); c.moveTo(11, eyeY - 4); c.lineTo(2, eyeY - 1 + browDrop); c.lineTo(2, eyeY + 1 + browDrop); c.lineTo(11, eyeY - 2); c.fill();
@@ -300,6 +368,10 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
     // (squeezed shut)
     box(c, -9, eyeY + 1, 2, 1, INK); box(c, -7, eyeY + 2, 2, 1, INK); box(c, -9, eyeY + 3, 2, 1, INK);
     box(c, 7, eyeY + 1, 2, 1, INK); box(c, 5, eyeY + 2, 2, 1, INK); box(c, 7, eyeY + 3, 2, 1, INK);
+  } else if (p.face === 'dazed') {
+    // (bonked: cross-eyed, the pupils in at his nose, one of them wandering)
+    for (const ex of [-7, 4]) { box(c, ex, eyeY, 4, 3, '#F5F5F4'); box(c, ex - 1, eyeY - 1, 6, 1, H[0]); }
+    box(c, -4, eyeY + 1, 1, 2, INK); box(c, 4 + (Math.floor(p.t / 8) % 2), eyeY + 1, 1, 2, INK);
   } else {
     // (looking down at it: heavy lids, the pupils low)
     for (const ex of [-7, 4]) { box(c, ex, eyeY + 1, 4, 2, '#F5F5F4'); box(c, ex + 1, eyeY + 2, 2, 1, INK); box(c, ex - 1, eyeY, 6, 1, H[0]); }
@@ -314,6 +386,16 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
     box(c, -2, mouthY - 1, 4, 3, INK); box(c, -1, mouthY, 2, 1, '#7F1D1D');
   } else if (p.face === 'sniff') {
     box(c, -4, mouthY, 8, 1, INK);
+  } else if (p.face === 'blow') {
+    // (lips pushed out in a little O, the cheeks puffed)
+    lump(c, -9, mouthY - 2, 3, 3, H, false); lump(c, 9, mouthY - 2, 3, 3, H, false);
+    box(c, -3, mouthY - 2, 6, 5, INK); box(c, -2, mouthY - 1, 4, 3, '#B45309'); box(c, -1, mouthY, 2, 1, INK);
+  } else if (p.face === 'yell') {
+    // (wide open, bellowing: the teeth, the tongue, the back of his throat)
+    box(c, -6, mouthY - 2, 13, 8, INK); box(c, -5, mouthY - 1, 11, 2, '#F5F5F4'); box(c, -4, mouthY + 1, 9, 3, '#7F1D1D'); box(c, -2, mouthY + 3, 5, 2, '#E11D48'); box(c, -5, mouthY + 5, 11, 1, '#F5F5F4');
+  } else if (p.face === 'dazed') {
+    // (a dopey grin, the tongue out the side)
+    box(c, -6, mouthY, 13, 2, INK); box(c, -5, mouthY + 1, 10, 1, '#F5F5F4'); box(c, 3, mouthY + 2, 3, 3, '#E11D48'); box(c, 4, mouthY + 2, 1, 2, '#FDA4AF');
   } else {
     // (a grin: crooked, up on his left; teeth; the chuckle opens it)
     const open = p.face === 'chuckle' ? 1 + (Math.floor(p.t / 5) % 2) : p.face === 'grin' ? 1 : 0;
@@ -325,6 +407,7 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
   // His forearms, the toy, his fists: last, in front of everything (his head too: up at his nose, it's in front of his
   // face; held at his chest, nothing's in its way)
   if (walking) swingingArms(c, p, ty, walking.weapon, S);
+  else if (p.hold) holdingIt(c, p, p.hold, ty, S);
   else handsAndToy(c, p, ty, grip, drawWeapon, S);
   c.restore();
   return { mouth: [x + 0, y + mouthY + 1], crotch: [x + crotch[0], y + crotch[1], crotch[2], crotch[3]] };

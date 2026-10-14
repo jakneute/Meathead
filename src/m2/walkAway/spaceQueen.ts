@@ -5,6 +5,7 @@
 
 import { type Ctx, type Prop, type SceneDef, HOR, box } from './kit';
 import { timeOfDay } from '../timeOfDay';
+import { spawner as drawSpawner } from './toys';
 
 const ground = (g: Ctx, w: number, h: number) => {
   box(g, 0, 0, w, h, '#475569');
@@ -34,14 +35,8 @@ const props = (): Prop[] => {
   return out;
 };
 
-/** The spawner, crude: a fleshy pod on a gun's grip. */
-const spawner = (c: Ctx) => {
-  box(c, -20, -8, 40, 16, '#1F1B24');
-  box(c, -19, -7, 38, 14, '#65A30D');
-  box(c, -19, -7, 38, 3, '#A3E635');
-  box(c, 18, -4, 10, 8, '#3F3F46');
-  box(c, -14, 6, 8, 12, '#3F3F46');
-};
+/** The spawner, side on, its middle at the origin (the bottom bar's icon; the walk itself is walkAway/acts.ts's). */
+const spawner = (c: Ctx, t: number) => { c.save(); c.translate(-18, 12); drawSpawner(c, t); c.restore(); };
 
 export const SPACE_QUEEN: SceneDef = {
   land: 'FUTURE LAND',

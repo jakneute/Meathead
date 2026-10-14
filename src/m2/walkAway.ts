@@ -9,6 +9,7 @@
 // stage plays it after its VICTORY (playWalkAway; tick it, draw it over everything in drawHud; onDone off A).
 
 import type { GameState } from '../m1/game/core/state';
+import type { WeaponType } from '../m1/types';
 import type { Controls } from '../m1/game/platform/input';
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../m1/constants';
 import { playSound } from '../m1/game/platform/audio';
@@ -19,6 +20,7 @@ import { M2_WEAPON_INFO } from './weapons/index';
 import { type Ctx, type Prop, type SceneDef, LW, LH, TOP, BOT, HOR, SPEED, STEP, FEET_Y, ME_D, VP_X, ME_X, project, stipple } from './walkAway/kit';
 import { lowRes, canvas, drawGround, skyOf, spriteOf, fogAt, vignetteOf, wobble, drawStink, drawTitle, blitPicture, font } from './walkAway/screen';
 import { drawMeatheadFront, type Pose } from './walkAway/meathead';
+import { ACTS, toyIcon, type ActFx } from './walkAway/acts';
 import { SAFARI_ARTIE } from './walkAway/artie';
 import { DONNIE_DRACULA } from './walkAway/donnie';
 import { SPACE_QUEEN } from './walkAway/spaceQueen';
@@ -33,11 +35,15 @@ export interface WalkAwayOpts {
   weakness?: boolean;
   /** A pressed: off it goes (to the hub). */
   onDone: () => void;
+  /** The toy he's walking off with, if not the boss's own (the dev preview's &weapon=). */
+  weapon?: WeaponType;
 }
 
 interface Bit { x: number; y: number; vx: number; vy: number; life: number; max: number; col: string; g: number }
 export interface WalkAway {
   def: SceneDef; boss: WalkAwayBoss; weakness: boolean; onDone: () => void;
+  /** What he's carrying (the boss's weapon, unless the preview says otherwise). */
+  weapon: WeaponType | null;
   t: number; done: boolean;
   /** A has to be let go of first (he may have been holding jump when the boss went down). */
   armed: boolean;
@@ -67,7 +73,7 @@ export const playWalkAway = (state: GameState | null, opts: WalkAwayOpts): WalkA
   const def = WALK_AWAY_SCENES[opts.boss];
   listenKeys(true);
   return {
-    def, boss: opts.boss, weakness: !!opts.weakness, onDone: opts.onDone, t: 0, done: false, armed: false,
+    def, boss: opts.boss, weakness: !!opts.weakness, weapon: opts.weapon ?? def.weapon, onDone: opts.onDone, t: 0, done: false, armed: false,
     nude: state ? isNude(state) : false, shat: state ? isShat(state) : false,
     props: def.props(!!opts.weakness), bits: [], embers: [], lastStep: 0, farted: 0,
   };
@@ -81,7 +87,14 @@ export const walkAwayDone = (w: WalkAway) => w.done;
 const CYCLE = 600;
 const ease = (k: number) => { const u = Math.max(0, Math.min(1, k)); return u * u * (3 - 2 * u); };
 
+/** His pose: the weapon's own act (walkAway/acts.ts), or the crossbow's (this: turned over, sniffed, gagged on). */
 const poseAt = (w: WalkAway): Pose => {
+  const act = w.weapon ? ACTS[w.weapon] : undefined;
+  if (act) {
+    const p: Pose = { step: (w.t * Math.PI) / STEP, t: w.t, wx: 0, wy: 0, rot: 0, turn: 0, face: 'grin', green: 0, headY: 0, nude: w.nude, shat: w.shat, rim: w.def.rim };
+    act.pose(w.t, p);
+    return p;
+  }
   const t = w.t, u = t % CYCLE;
   const step = (t * Math.PI) / STEP;
   // (turning it over: a half turn every 150 frames, 40 frames to do it)
@@ -112,9 +125,11 @@ export const tickWalkAway = (w: WalkAway, controls?: Controls | null, padA = fal
   // (his footsteps)
   const stepN = Math.floor((t + STEP / 2) / STEP);
   if (stepN !== w.lastStep) { w.lastStep = stepN; playSound('land', 0.18, -5 + (stepN % 2)); }
-  // (the sniff, the gag and the spit)
-  if (u === 255 || u === 272) playSound('whoosh', 0.12, 9);
-  if (u === 318) {
+  const act = w.weapon ? ACTS[w.weapon] : undefined;
+  if (act) act.tick?.(t, t % act.cycle, actFx(w));
+  // (the crossbow's: the sniff, the gag and the spit)
+  else if (u === 255 || u === 272) playSound('whoosh', 0.12, 9);
+  if (!act && u === 318) {
     playSound('barf', 0.35, 3);
     const [mx, my] = mouthAt(w);
     for (let i = 0; i < 14; i++) w.bits.push({ x: mx + 2, y: my, vx: 0.8 + Math.random() * 1.8, vy: -0.8 + Math.random() * 1.2, life: 0, max: 40 + Math.random() * 20, col: ['#A3B320', '#C5D33B', '#7C8A12'][i % 3], g: 0.12 });
@@ -134,6 +149,12 @@ export const tickWalkAway = (w: WalkAway, controls?: Controls | null, padA = fal
     w.onDone();
   }
 };
+
+/** What an act sets off: its sounds, its spatter (his frame to the picture's). */
+const actFx = (w: WalkAway): ActFx => ({
+  sound: (type, vol, pitch = 0) => playSound(type, vol, pitch),
+  bit: (x, y, vx, vy, col, g = 0.12, life = 40) => { w.bits.push({ x: LW / 2 + x, y: FEET_Y + y, vx, vy, life: 0, max: life, col, g }); },
+});
 
 /** Where his mouth is (the picture), this frame. */
 let lastMouth: [number, number] = [LW / 2, FEET_Y - 156];
@@ -210,15 +231,25 @@ const wrap = (s: string, n: number) => {
   if (line) out.push(line);
   return out;
 };
-const blurbOf = (def: SceneDef) => {
-  if (def.blurb) return def.blurb.slice(0, 2);
-  const info = def.weapon ? M2_WEAPON_INFO[def.weapon] : undefined;
+/** The blurb's room: two lines across the bar (24 px in from each side), 7 px characters at most (Press Start 2P is
+ *  monospaced: a character's as wide as the font's size). */
+const BLURB_CHARS = Math.floor((W - 48) / 7);
+/** What it does, in two lines: the scene's own, the weapon's walk-away blurb, or its whole description if that fits.
+ *  Never cut off: a description too long for two lines without a short blurb is a bug (the dev check warns). */
+export const blurbOf = (def: SceneDef, weapon: WeaponType | null = def.weapon) => {
+  if (def.blurb && weapon === def.weapon) return def.blurb.slice(0, 2);
+  const info = weapon ? M2_WEAPON_INFO[weapon] : undefined;
   if (!info) return ['IT WAS HIS. NOW IT IS YOURS.'];
-  const lines = wrap(info.description.toUpperCase(), 72);
-  if (lines.length > 2) lines[1] = lines[1].replace(/\s*\S*$/, '') + '...';
-  return lines.slice(0, 2);
+  for (const text of [info.description, info.blurb]) {
+    if (!text) continue;
+    const lines = wrap(text.toUpperCase(), BLURB_CHARS);
+    if (lines.length <= 2) return lines;
+  }
+  return wrap((info.blurb ?? info.description).toUpperCase(), BLURB_CHARS).slice(0, 2);
 };
-const nameOf = (def: SceneDef) => (def.weapon ? M2_WEAPON_INFO[def.weapon]?.name : undefined) ?? def.weaponName ?? 'NEW WEAPON';
+const nameOf = (w: WalkAway) => (w.weapon ? M2_WEAPON_INFO[w.weapon]?.name : undefined) ?? w.def.weaponName ?? 'NEW WEAPON';
+/** The toy's little picture by its name: the scene's own drawing of it, or the act's. */
+const iconOf = (w: WalkAway) => (w.weapon && w.weapon !== w.def.weapon ? toyIcon(w.weapon) : null) ?? w.def.drawWeapon;
 
 const drawBottom = (c: Ctx, w: WalkAway) => {
   const { def, t } = w;
@@ -229,11 +260,11 @@ const drawBottom = (c: Ctx, w: WalkAway) => {
   c.globalAlpha = k;
   c.textAlign = 'left'; c.textBaseline = 'alphabetic';
   // (the toy, small, beside its name)
-  c.save(); c.translate(48, y0 + 22); c.scale(0.75, 0.75); c.imageSmoothingEnabled = false; def.drawWeapon(c, t); c.restore();
+  c.save(); c.translate(48, y0 + 22); c.scale(0.75, 0.75); c.imageSmoothingEnabled = false; iconOf(w)(c, t); c.restore();
   c.font = font(8); c.fillStyle = '#A1A1AA'; c.fillText('NEW WEAPON', 84, y0 + 18);
-  c.font = font(10); c.fillStyle = '#000'; c.fillText(nameOf(def), 85, y0 + 33); c.fillStyle = '#FACC15'; c.fillText(nameOf(def), 84, y0 + 32);
+  c.font = font(10); c.fillStyle = '#000'; c.fillText(nameOf(w), 85, y0 + 33); c.fillStyle = '#FACC15'; c.fillText(nameOf(w), 84, y0 + 32);
   c.font = font(7); c.fillStyle = '#E4E4E7';
-  blurbOf(def).forEach((line, i) => c.fillText(line, 24, y0 + 52 + i * 12));
+  blurbOf(def, w.weapon).forEach((line, i) => c.fillText(line, 24, y0 + 52 + i * 12));
   c.fillStyle = '#7DD3FC'; c.fillText('HEAD TO THE EMPLOYEE BREAK ROOM TO TEST YOUR NEW TOY', 24, y0 + 90);
   c.restore();
   // PRESS [A] TO CONTINUE (bottom right; pulsing once it'll take it)
@@ -285,7 +316,8 @@ export const drawWalkAway = (c: Ctx, w: WalkAway) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Dev: ?walkaway=artie (or =donnie; &weak for his weakness death; &shat, &nude) plays it on its own over the page, again and again.
+// Dev: ?walkaway=artie (or =donnie, =queen; &weak for his weakness death; &shat, &nude; &weapon=MALLET for another
+// weapon's act on the boss's walk) plays it on its own over the page, again and again.
 
 export const devPreviewWalkAway = () => {
   if (typeof document === 'undefined') return;
@@ -298,7 +330,10 @@ export const devPreviewWalkAway = () => {
   window.addEventListener('keydown', e => { if (e.key === ' ') jumpDown = true; });
   window.addEventListener('keyup', e => { if (e.key === ' ') jumpDown = false; });
   const start = () => {
-    const w = playWalkAway(null, { boss: q.get('walkaway') === 'donnie' ? 'donnie-dracula' : 'safari-artie', weakness: q.has('weak'), onDone: () => setTimeout(() => { cur = start(); }, 400) });
+    const which = q.get('walkaway');
+    const boss: WalkAwayBoss = which === 'donnie' ? 'donnie-dracula' : which === 'queen' || which === 'space' ? 'space-queen' : 'safari-artie';
+    const weapon = (q.get('weapon')?.toUpperCase() || undefined) as WeaponType | undefined;
+    const w = playWalkAway(null, { boss, weapon: weapon && M2_WEAPON_INFO[weapon] ? weapon : undefined, weakness: q.has('weak'), onDone: () => setTimeout(() => { cur = start(); }, 400) });
     w.shat = q.has('shat'); w.nude = q.has('nude');
     return w;
   };

@@ -17,7 +17,11 @@ import type { PadKey } from '../../m1/components/ButtonIcons';
 
 /** One line of how it's worked, for the pause menu: the buttons (pad, keyboard, mouse; `join`: '+' together), and what they do. */
 export interface Control { pad: PadKey[]; kb?: string[]; mouse?: 'left' | 'right'; join?: '+' | '/'; label: string }
-export interface M2Weapon { name: string; from: string; description: string; controls: Control[]; /** A line under its controls (when it can't be used). */ note?: string }
+export interface M2Weapon {
+  name: string; from: string; description: string; controls: Control[];
+  /** A line under its controls (when it can't be used). */ note?: string;
+  /** The description cut down for the walk-away (two lines of ~107 characters at most), when the whole of it won't fit. */ blurb?: string;
+}
 
 export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   GUN: {
@@ -34,6 +38,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     name: 'SPELLBOOK OF THE DAMNED', from: 'FANTASY LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'ELEMENTAL STORM (9-13 MANA)' }, { pad: ['Y'], kb: ['F'], label: 'BULK UP (24 MANA)' }],
     description: "Some wizard's diary, now with murder. Fire drops a meteor, a comet and a lightning bolt on up to three assholes. BULK UP makes you huge and punts whoever you touch into orbit. Runs on mana. Ammo refills it. Don't ask.",
+    blurb: "Some wizard's diary, now with murder. Fire drops a meteor, a comet and lightning on up to three assholes. BULK UP makes you huge and punts whoever you touch into orbit. Don't ask.",
   },
   STUNT_CAR: {
     name: 'CLAPPERBOARD', from: 'HOLLYWOOD LAND',
