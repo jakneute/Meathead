@@ -879,7 +879,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         // (bulked up: a lot more in each one)
         const dmg = Math.round(PUNCH_DAMAGE * (bulked() ? BULK_PUNCH : 1));
         e.health -= dmg;
-        p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + PUNCH_HEAL); g.hp = p.health;
+        if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + PUNCH_HEAL); g.hp = p.health; }
         const hx = e.pos.x + e.width / 2 + g.dir * 14, hy = feetY(state) - 8;
         fx.spawnDamageNumber({ x: hx, y: hy - 30 }, dmg);
         aftershock(ctx, g, centerX(state), feetY(state), dmg);
@@ -890,12 +890,12 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         if (e.health <= 0 && bulked()) { g.phase = 'smash'; g.t = 0; g.punchT = 0; playSound('whoosh', 1.1, -6); return hold(); }
         if (e.health <= 0) {
           // Done: the rest of the health back, and him left lying there
-          p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health;
+          if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; }
           e.pos = { x: e.pos.x, y: feetY(state) - e.height };
           release(state, e);
           fx.blowAwayEnemy(e, { x: g.dir * 1.5, y: -2 }, m2Kill('beatdown_kill'), g.dir);
           fx.spawnKillCallout(e, grabCallout('beatdown'));
-          fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
+          if (!e.noHeal) fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
           playSound('crunch'); shakeScreen(state, 10, 6);
           g.held = null; g.phase = 'kill'; g.t = 0;
         }
@@ -961,7 +961,7 @@ const smashHim = (ctx: FrameContext, g: Grab, e: Enemy) => {
   if (scrap) markMachineGore(state, at.x - 80, at.y - 80, 160, 120, 40);
   g.held = null;
   e.health = 0; e.isBlownAway = true; e.pos = { x: at.x - e.width / 2, y: at.y - e.height / 2 };
-  p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health;
+  if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; }
   playSound('slam'); playSound('crunch', 1.2, -6); playSound('splat', 1.2, -4); playSound('boom', 0.5, -10);
   shakeScreen(state, 20, 10);
   for (let k = 0; k < 3; k++) fx.spawnDeathShower(at, (k - 1) * 0.8, 2.2, false, 80);
@@ -973,7 +973,7 @@ const smashHim = (ctx: FrameContext, g: Grab, e: Enemy) => {
       custom: 'SOUL_SUCKER', customData: { life: 70, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3, scrap },
     });
   }
-  fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
+  if (!e.noHeal) fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
   fx.spawnKillCallout(e, grabCallout('smash'));
   fx.speakVulgarity(m2Kill('beatdown_kill'));
   p.killSatisfactionTimer = 60;
@@ -1295,8 +1295,10 @@ const airImpact = (ctx: FrameContext, g: Grab, where: 'floor' | 'wall' | 'ceilin
   const k = where === 'floor' ? Math.max(A.MIN_K, Math.min(1, g.fall / A.ARC_MAX_FALL)) : A.SPLAT_K;
   const dmg = Math.round((e.maxHealth * A.DAMAGE_SHARE * k + A.DAMAGE_FLAT) * buffs.knock);
   e.health -= dmg;
-  p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + A.HEAL); g.hp = p.health;
-  fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${A.HEAL} HP`, true, '#4ADE80');
+  if (!e.noHeal) {
+    p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + A.HEAL); g.hp = p.health;
+    fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${A.HEAL} HP`, true, '#4ADE80');
+  }
   // (blood, or scrap off a machine)
   const scrap = isMachineKind(e.kind) || !!m2Kind(e.kind)?.robot;
   if (scrap) markMachineGore(state, at.x - 80, at.y - 80, 160, 120, 30);

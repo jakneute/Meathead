@@ -1,75 +1,121 @@
-// THE QUEEN: section 8 of Space Land, the boss (owner: the haunted-house agent). XENOSCARE's hold: the showpiece, THE
-// QUEEN (LEGALLY DISTINCT, the signs insist: a cheap knockoff animatronic of a certain movie monster's queen) behind
-// her glass. Meathead kicks the glass in; the real aliens up in the ride's control booth take her over with their
-// mind-control rig, and she's a real threat: the land's boss (fight.ts: the cutscene and a PLACEHOLDER fight; her art,
-// every pose, in art.ts).
+// THE QUEEN: section 8 of Space Land, the boss (owner: the haunted-house agent). Three parts, left to right (geo.ts):
 //
-// The antechamber first: the big health and ammo, the boss's checkpoint. Into the room, the way back shuts behind him
-// and the view's held on it. Beaten: VICTORY, the walk-away (walkAway/spaceQueen.ts), the hub; Space Land's cleared.
-// Revisits: once the land's cleared, she's slumped dead on her stand, the glass in, the booth's window green.
+//   THE HOLD      XENOSCARE's showpiece: THE QUEEN (LEGALLY DISTINCT, the signs insist: a cheap knockoff animatronic of
+//                 a certain movie monster's queen) behind her glass. He kicks it in; the real aliens up in the control
+//                 booth take her over; she smashes the floor and he goes through it (show.ts).
+//   THE BASEMENT  the dark under the ride; she hunts him through it, silent, one touch and he's dead; he hides in the
+//                 lockers (basement.ts). At its end the space disco's door, and he kicks it in.
+//   THE DISCO     GALACTIC GROOVE: the extinguisher, the bonk, NOW ENTERING LESS FATAL MODE; then the (placeholder)
+//                 boss (fight.ts). The big refill and the boss's checkpoint just inside the door.
 //
-// The way back: the left end (into the haunted spaceship). No way on (the end of the land).
+// Beaten: VICTORY, the walk-away (walkAway/spaceQueen.ts), the hub; Space Land's cleared. Revisits: the hold's stand
+// empty and its hole still there (in it, down he goes); the basement empty of her; the disco's door in, her dead on the
+// dance floor, the DJ booth's glass green.
+//
+// The ways: the left end, back into the haunted spaceship; the hole down (and the stairs up at the basement's left end).
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import type { SpaceSection } from '../section';
-import { layOwn, endWalls, endExits, runExits, spaceState, hands, box } from '../section';
+import { layOwn, endWalls, endExits, runExits, spaceState, hands, box, teleport } from '../section';
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
-import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
+import { goTo, markLandCleared, noteBossKill, isLandCleared, setUi } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { drawBars } from '../../spooky/control/cine';
-import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, REFILL_X, QUEEN_X, GLASS_X } from './geo';
-import { drawRoomBack, drawGlass, drawQueen, roomLights, queenHead } from './art';
-import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, introOn, drawQueenFight, drawQueenSaid, drawFightHud } from './fight';
+import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, QUEEN_X, HOLE, BASE_L, STAIRS_X, LAND_X, DOOR_X, DISCO_L, DISCO_R, DISCO_TRIGGER, DISCO_QX, REFILL_X } from './geo';
+import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
+import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, BASEMENT_CP } from './show';
+import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, GRAVEYARD_CP } from './basement';
+import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights } from './fight';
+import { drawBasement, drawDisco, discoLighting } from './lowerArt';
 
 interface Queen {
+  init: boolean;
   fight: 'wait' | 'on' | 'won'; wonAt: number;
-  f: Fight | null; gate: Block | null; glassBlock: Block | null;
+  show: Show | null; h: Hunter | null; f: Fight | null;
+  glassBlock: Block | null; holdGate: Block | null; gate: Block | null;
   victory: Victory | null; walk: WalkAway | null;
 }
-const queenOf = (state: GameState) => spaceState<Queen>(state, 'queen', () => ({ fight: 'wait', wonAt: 0, f: null, gate: null, glassBlock: null, victory: null, walk: null }));
+const queenOf = (state: GameState) => spaceState<Queen>(state, 'queen', () => ({ init: false, fight: 'wait', wonAt: 0, show: null, h: null, f: null, glassBlock: null, holdGate: null, gate: null, victory: null, walk: null }));
+const showOf = (state: GameState) => { const q = queenOf(state); return (q.show ??= makeShow(state)); };
+const hunterOf = (state: GameState) => { const q = queenOf(state); return (q.h ??= makeHunter(state)); };
 const fightOf = (state: GameState) => { const q = queenOf(state); return (q.f ??= makeFight(state)); };
+const cxOf = (state: GameState) => state.player.pos.x + state.player.width / 2;
+const inLower = (x: number) => x > BASE_L - 300;
 
 export const queen: SpaceSection = {
   id: 'queen', x0, x1,
   checkpoints: [
-    // (the antechamber, the refill beside him: back here for another go, nobody's about)
-    { name: 'THE QUEEN', cp: 70, x: x0 + 300, y: GY, clear: [400, 1700] },
+    { name: 'THE HOLD', cp: 70, x: x0 + 300, y: GY },
+    { name: 'THE BASEMENT', cp: BASEMENT_CP, x: LAND_X + 80, y: GY },
+    { name: 'THE ANIMATRONIC GRAVEYARD', cp: GRAVEYARD_CP, x: BASE_L + 2780, y: GY },
+    // (inside the disco's door, the refill beside him: back for another go, nobody about)
+    { name: 'GALACTIC GROOVE', cp: 73, x: REFILL_X + 70, y: GY, clear: [600, 900] },
   ],
   build: (state) => {
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'metal' }]);
     endWalls(state, 'queen');
-    // (the room's far wall)
-    state.blocks.push({ x: ARENA_R, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-far' } as Block);
-    // (her glass: a wall till it's kicked in)
+    state.player.carried = false;
     const q = queenOf(state);
-    if (!isLandCleared('space') && fightOf(state).glass) { q.glassBlock = { x: GLASS_X - 8, y: -4000, w: 16, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-glass' } as Block; state.blocks.push(q.glassBlock); }
-    // Before her door: the big health and the big ammo
+    // (the hold's far wall; the basement's left wall (the stairs); the disco's far wall)
+    state.blocks.push({ x: ARENA_R, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-far' } as Block);
+    state.blocks.push({ x: BASE_L - 50, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-base-l' } as Block);
+    state.blocks.push({ x: DISCO_R, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-disco-r' } as Block);
+    // (her glass: a wall till it's kicked in)
+    if (!isLandCleared('space') && !fell(state)) { q.glassBlock = { x: QUEEN_X - 158, y: -4000, w: 16, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-glass' } as Block; state.blocks.push(q.glassBlock); }
+    // (the disco's door, till it's kicked in)
+    buildHunter(state, hunterOf(state));
+    // In the disco, inside its door: the big health and the big ammo
     state.pickups.push(
       { id: 'queen-health', pos: { x: REFILL_X - 30, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
       { id: 'queen-ammo', pos: { x: REFILL_X + 10, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 },
     );
   },
   update: (ctx, controls) => {
-    const { state } = ctx, p = state.player, q = queenOf(state), f = fightOf(state);
-    if (q.glassBlock && !f.glass) { state.blocks = state.blocks.filter(b => b !== q.glassBlock); q.glassBlock = null; }
+    const { state } = ctx, p = state.player, q = queenOf(state), s = showOf(state), h = hunterOf(state), f = fightOf(state);
+    const cx = cxOf(state);
+    if (!q.init) {
+      q.init = true;
+      // (a fresh start at a checkpoint past the fall (it's set after the build): the floor's gone)
+      if (fell(state) && s.step === 'wait') { s.step = 'done'; s.glass = false; }
+      if (state.checkpoint >= 73) forceDoorIn(state, h);
+    }
+    if (q.glassBlock && !s.glass) { state.blocks = state.blocks.filter(b => b !== q.glassBlock); q.glassBlock = null; }
+    // The hold: the cutscene (into the basement)
+    { const out = tickShow(ctx, s); if (out) return out; }
+    if (s.step === 'wait' && !isLandCleared('space') && cx > TRIGGER_X && cx < ARENA_R && p.isGrounded && p.health > 0) {
+      q.holdGate = { x: ARENA_L - 30, y: -4000, w: 30, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-hold-gate' } as Block;
+      state.blocks.push(q.holdGate);
+      startShow(state, s);
+      return hands();
+    }
+    if (q.holdGate && s.step === 'done') { state.blocks = state.blocks.filter(b => b !== q.holdGate); q.holdGate = null; }
+    // (the hole, after: walk into it and down he goes; the stairs up out of the basement)
+    if (s.step === 'done' && cx > HOLE.a + 10 && cx < HOLE.b - 10 && p.isGrounded && p.pos.y + p.height > GY - 4) { teleport(state, LAND_X, GY - 300); return controls; }
+    if (cx < STAIRS_X + 30 && cx > BASE_L - 100) setUi({ upPrompt: 'UP THE STAIRS' });
+    if (cx < STAIRS_X + 30 && cx > BASE_L - 100 && controls.up && p.isGrounded) { teleport(state, ARENA_L + 80, GY); return controls; }
+    // The basement: her; the door
+    if (inLower(cx) && cx < DOOR_X + 60 || doorKicking(h)) {
+      if (!doorIn(h) && !doorKicking(h) && atDoor(state, h)) startKick(state, h);
+      const kicking = doorKicking(h);
+      const out = tickHunter(ctx, h, controls);
+      // (through the door: straight into the disco's cutscene)
+      if (kicking && doorIn(h) && q.fight === 'wait' && !isLandCleared('space')) beginDisco(state, q, f);
+      if (out) return out;
+    }
+    // The disco
     if (q.fight === 'wait') {
-      runExits(state, endExits('queen'));
-      if (!isLandCleared('space') && p.pos.x + p.width / 2 > TRIGGER_X && p.isGrounded && p.health > 0) {
-        q.fight = 'on';
-        q.gate = { x: ARENA_L - 30, y: -4000, w: 30, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-gate' } as Block;
-        state.blocks.push(q.gate);
-        startFight(state, f);
-      }
+      if (doorIn(h) && !isLandCleared('space') && cx > DISCO_TRIGGER && p.isGrounded && p.health > 0) beginDisco(state, q, f);
+      runExits(state, endExits('queen').filter(e => e.x0 < x0 + 100));
       return controls;
     }
     if (q.fight === 'on') {
       let out = updateFight(ctx, f, controls);
       if (introOn(f)) p.inCutscene = true;
-      const lo = ARENA_L, hi = ARENA_R - p.width;
+      const lo = DISCO_L, hi = DISCO_R - p.width;
       if (p.pos.x < lo) { p.pos.x = lo; if (p.vel.x < 0) p.vel.x = 0; }
       if (p.pos.x > hi) { p.pos.x = hi; if (p.vel.x > 0) p.vel.x = 0; }
       if (fightOver(f)) {
@@ -93,33 +139,61 @@ export const queen: SpaceSection = {
     if (q.walk) tickWalkAway(q.walk, controls);
     return hands();
   },
-  cameraX: (state) => (queenOf(state).fight !== 'wait' ? { min: ARENA_L, max: ARENA_L } : { min: x0, max: ARENA_R - CANVAS_WIDTH }),
+  cameraX: (state) => {
+    const q = queenOf(state), s = showOf(state), cx = cxOf(state);
+    if (inLower(cx)) return q.fight !== 'wait' ? { min: DISCO_L, max: DISCO_L } : { min: BASE_L - 220, max: DISCO_R - CANVAS_WIDTH };
+    return showOn(s) ? { min: ARENA_L, max: ARENA_L } : { min: x0, max: ARENA_R - CANVAS_WIDTH };
+  },
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#07040E'); return true; },
   lighting: (state) => {
-    const f = fightOf(state), cleared = isLandCleared('space');
-    const head = queenHead(QUEEN_X, -1, -f.ext);
+    const cx = cxOf(state), s = showOf(state), f = fightOf(state);
+    if (inLower(cx)) {
+      const dark = hunterLighting(state, hunterOf(state));
+      if (dark && cx < DOOR_X + 10) return dark;
+      return discoLighting(state, isLandCleared('space') ? 1 : discoLights(f));
+    }
+    const head = showHead(s);
     return { dark: 0.5, shade: [14, 6, 30], rim: 0.5, lights: [
-      ...roomLights({ glass: f.glass, booth: cleared ? 1 : f.booth, splat: false, operators: false, beam: f.beam, head }, QUEEN_X),
-      { x: REFILL_X, y: GY - 120, r: 160, a: 0.6 }, { x: x0 + 260, y: GY - 300, r: 260, a: 0.5 },
+      ...roomLights({ glass: s.glass, booth: s.step === 'done' ? 0 : s.booth, splat: false, operators: false, beam: s.beam, head }, QUEEN_X),
+      { x: x0 + 260, y: GY - 300, r: 260, a: 0.5 },
       { x: state.player.pos.x + 20, y: state.player.pos.y + 30, r: 130, a: 0.4 },
     ] };
   },
   drawBack: (c, state) => {
-    const f = fightOf(state), cleared = isLandCleared('space');
-    drawRoomBack(c, state, { glass: f.glass && !cleared, booth: cleared ? 1 : f.booth, splat: cleared || !f.operators, operators: !cleared && f.operators, beam: f.beam, head: queenHead(QUEEN_X, -1, -f.ext) });
-    if (cleared && queenOf(state).fight === 'wait') drawQueen(c, QUEEN_X, -1, { pose: 'dead', t: state.frame, ext: 0, alive: 0, beat: 1 });
-    else drawQueenFight(c, state, f);
+    const s = showOf(state), f = fightOf(state), h = hunterOf(state), cleared = isLandCleared('space');
+    // The hold
+    drawRoomBack(c, state, { glass: s.glass, booth: s.step === 'done' ? 0 : s.booth, splat: false, operators: s.step !== 'done', beam: s.beam, head: showHead(s) });
+    if (s.step === 'done') drawAfterFall(c, state, HOLE); else drawShowQueen(c, state, s);
+    // The basement, the disco
+    drawBasement(c, state);
+    drawHides(c, state, h);
+    drawDisco(c, state, { lights: cleared ? 1 : discoLights(f), operators: !cleared && f.operators, splat: cleared || !f.operators, extinguisher: f.ext2 === 'wall' });
+    if (cleared && queenOf(state).fight === 'wait') drawQueen(c, DISCO_QX, -1, { pose: 'dead', t: state.frame, ext: 0, alive: 0, beat: 1, free: true });
+    else if (queenOf(state).fight !== 'wait') drawQueenFight(c, state, f);
+    drawHunter(c, state, h);
   },
   drawFront: (c, state) => {
-    const f = fightOf(state);
-    drawGlass(c, state, f.glass && !isLandCleared('space'));
+    const s = showOf(state), f = fightOf(state);
+    drawGlass(c, state, s.glass && !isLandCleared('space'));
+    drawShowSaid(c, s);
     drawQueenSaid(c, f);
   },
   drawHud: (c, state) => {
-    const q = queenOf(state), f = fightOf(state);
+    const q = queenOf(state), s = showOf(state), f = fightOf(state), h = hunterOf(state);
+    drawHunterFront(c, state, h);
+    if (showOn(s)) { drawBars(c, 1); if (showSkippable(s) && s.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH); }
+    drawShowFade(c, s);
     if (introOn(f)) { drawBars(c, Math.min(1, f.skipT / 20)); if (f.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH); }
     if (q.fight === 'on') drawFightHud(c, f, topBand(), !!state.player.inCutscene);
     if (q.victory) drawVictory(c, q.victory);
     if (q.walk) drawWalkAway(c, q.walk);
   },
+};
+
+/** Into the disco: the hall's door shut behind him (a gate), the cutscene (or, a retry, straight in). */
+const beginDisco = (state: GameState, q: Queen, f: Fight) => {
+  q.fight = 'on';
+  q.gate = { x: DISCO_L - 30, y: -4000, w: 30, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-disco-gate' } as Block;
+  state.blocks.push(q.gate);
+  startFight(state, f);
 };

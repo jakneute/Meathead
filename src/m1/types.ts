@@ -481,6 +481,8 @@ export interface Enemy extends Entity {
   noCrowd?: boolean;
   /** A bystander: only Meathead can hurt it (his shots and moves, or something he knocked into it); nothing else does. */
   innocent?: boolean;
+  /** Beating it up gives him no health back (Meathead 2's grab: the queen's offspring, made to be farmed otherwise). */
+  noHeal?: boolean;
   /** A mid-boss already took a hit from this tsunami wave (it's washed over once, not every frame). */
   tsunamiWave?: number;
   /** A boss in the middle of a weakness's pain (bossState 'pain'): which (Victor 'doused' or 'scalded', Hector

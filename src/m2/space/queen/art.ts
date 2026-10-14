@@ -23,7 +23,7 @@ import { x0, ANTE_R, ARENA_L, ARENA_R, GLASS_X, QUEEN_X, BOOTH, REFILL_X } from 
 
 type Ctx = CanvasRenderingContext2D;
 
-export type QueenPose = 'dormant' | 'wake' | 'idle' | 'roar' | 'tell' | 'swipe' | 'spit' | 'hurt' | 'stunned' | 'birth' | 'dead';
+export type QueenPose = 'dormant' | 'wake' | 'idle' | 'roar' | 'tell' | 'swipe' | 'spit' | 'hurt' | 'stunned' | 'birth' | 'dead' | 'stalk' | 'grab';
 export interface QueenDraw {
   pose: QueenPose; t: number;
   /** How far out on her arm she's lunged (px, toward where she faces). */
@@ -32,6 +32,12 @@ export interface QueenDraw {
   alive: number;
   /** Damage showing (0..1): more chips, sparks, a hanging plate. */
   beat: number;
+  /** Torn off her stand (the basement, the disco): on her own feet, no plinth, no sac, her lines hanging torn. */
+  free?: boolean;
+  /** Walking: how far through her stride (radians; free only). */
+  stride?: number;
+  /** Foam on her (the extinguisher: 0..1). */
+  foam?: number;
 }
 
 // The queen's materials: black latex going blue-gray where the light catches it, the egg sac's pale membrane, the
@@ -47,12 +53,13 @@ export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
   const { pose, t } = q;
   const glow = q.alive > 0 && pose !== 'dead' ? `rgba(132, 255, 80, ${(0.45 + 0.5 * q.alive * (0.8 + 0.2 * Math.sin(t * 0.2))).toFixed(2)})` : null;
   c.save(); c.translate(Math.round(x), GY); c.scale(facing, 1);
+  const ext = q.ext;
+  if (!q.free) {
   // --- The plinth and the hydraulic arm she's on ---
   ink(c, () => c.rect(-90, -26, 180, 26), STEEL_D, 2);
   box(c, -90, -26, 180, 4, STEEL);
   for (let i = 0; i < 5; i++) box(c, -80 + i * 38, -16, 6, 6, '#18181B');
   c.save(); c.scale(facing, 1); label(c, 'LD-1', -60 * facing, -8, '#A1A1AA', 6); c.restore();
-  const ext = q.ext;
   limb(c, -20, -30, ext * 0.5 - 10, -70, 16, STEEL);
   limb(c, ext * 0.5 - 10, -70, ext, -96, 12, STEEL_L);
   ink(c, () => c.arc(-20, -30, 10, 0, Math.PI * 2), STEEL_D);
@@ -70,11 +77,14 @@ export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
   if (pose === 'birth') { ink(c, () => c.ellipse(-104, -90, 16, 24, 0, 0, Math.PI * 2), '#1C0610'); box(c, -110, -100, 12, 4, ALIEN.slime); }
   // (the hose from the sac to her: ribbed, sagging)
   for (let i = 0; i < 8; i++) { const u = i / 7, hx = -110 + (ext - 30 + 110) * u, hy = -96 + Math.sin(u * Math.PI) * 18 - u * 30; ink(c, () => c.ellipse(hx, hy, 9, 11, 0, 0, Math.PI * 2), LATEX_M); }
-  c.translate(ext, 0);
+  }
+  // (on her own feet: down onto the floor; off it on her saddle)
+  c.translate(ext, q.free ? 36 : 0);
+  const stride = q.free ? q.stride ?? 0 : 0;
   const sway = pose === 'idle' ? Math.sin(t * 0.05) * 3 : 0;
   const twitch = pose === 'wake' || pose === 'stunned' ? (t % 6 < 3 ? 2 : -2) : 0;
   const sag = pose === 'dead' ? 1 : pose === 'stunned' ? 0.4 : pose === 'dormant' ? 0.12 : 0;
-  const lean = pose === 'swipe' ? 0.24 : pose === 'spit' ? 0.14 : pose === 'roar' ? -0.14 : pose === 'hurt' ? -0.16 : pose === 'tell' ? -0.08 : 0;
+  const lean = pose === 'swipe' ? 0.24 : pose === 'spit' ? 0.14 : pose === 'roar' ? -0.14 : pose === 'hurt' ? -0.16 : pose === 'tell' ? -0.08 : pose === 'stalk' ? 0.42 : pose === 'grab' ? 0.18 : 0;
   c.translate(sway + twitch, 0);
   // --- The tail: out behind and round along the floor, segmented, a spade on the end (it swishes) ---
   {
@@ -90,14 +100,19 @@ export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
   c.save(); c.translate(0, -110); c.rotate(lean + sag * 0.35); c.translate(0, 110);
   // --- The legs: bent back the wrong way, on the arm's saddle ---
   for (const s of [-1, 1]) {
-    const col = s < 0 ? LATEX_D : LATEX;
-    limb(c, s * 14, -118, s * 10 - 24, -84, 18, col); limb(c, s * 10 - 24, -84, s * 14 + 6, -56, 12, col); limb(c, s * 14 + 6, -56, s * 14 - 6, -98 + 60, 10, col);
-    ink(c, () => c.roundRect(s * 14 - 18, -44, 30, 8, 3), col);
+    const col = s < 0 ? LATEX_D : LATEX, w = Math.sin(stride + (s < 0 ? Math.PI : 0)) * 16, up = Math.max(0, Math.cos(stride + (s < 0 ? Math.PI : 0))) * 8;
+    limb(c, s * 14, -118, s * 10 - 24 + w * 0.5, -84, 18, col); limb(c, s * 10 - 24 + w * 0.5, -84, s * 14 + 6 + w, -56 - up, 12, col); limb(c, s * 14 + 6 + w, -56 - up, s * 14 - 6 + w, -38 - up, 10, col);
+    ink(c, () => c.roundRect(s * 14 - 18 + w, -44 - up, 30, 8, 3), col);
   }
   // --- The dorsal pipes off her back: four tubes up and back (latex, one bent where it's been leant on) ---
   for (let i = 0; i < 4; i++) { const bx = -34 + i * 9, by = -200 + i * 10; limb(c, bx, by, bx - 34 - i * 4, by - 46 + i * 8 + (i === 2 ? 10 : 0), 8, LATEX_M); ink(c, () => c.arc(bx - 34 - i * 4, by - 46 + i * 8 + (i === 2 ? 10 : 0), 5, 0, Math.PI * 2), LATEX_D); }
   // --- The hydraulic lines: red and blue, out of her back to the plinth, zip-tied ---
-  for (let i = 0; i < 3; i++) { c.strokeStyle = ['#B91C1C', '#1D4ED8', '#CA8A04'][i]; c.lineWidth = 3; c.beginPath(); c.moveTo(-30, -180 + i * 8); c.quadraticCurveTo(-70, -90, -30 - ext + i * 10, -30); c.stroke(); }
+  for (let i = 0; i < 3; i++) {
+    c.strokeStyle = ['#B91C1C', '#1D4ED8', '#CA8A04'][i]; c.lineWidth = 3; c.beginPath(); c.moveTo(-30, -180 + i * 8);
+    // (torn off her stand: the ends hanging, dripping)
+    if (q.free) { const sw = Math.sin(t * 0.08 + i) * 6; c.quadraticCurveTo(-60 + sw, -150, -56 + sw - i * 6, -100 + i * 10); c.stroke(); box(c, -58 + sw - i * 6, -100 + i * 10, 4, 4, '#A8A29E'); }
+    else { c.quadraticCurveTo(-70, -90, -30 - ext + i * 10, -30); c.stroke(); }
+  }
   // --- The torso: narrow waist, ribbed chest, glossy ---
   ink(c, () => { c.moveTo(-18, -110); c.lineTo(-38, -170); c.quadraticCurveTo(-30, -236, 18, -238); c.quadraticCurveTo(48, -210, 34, -168); c.lineTo(16, -110); c.closePath(); }, LATEX, 2);
   for (let i = 0; i < 7; i++) { const y = -222 + i * 14; c.strokeStyle = LATEX_L; c.lineWidth = 2; c.beginPath(); c.moveTo(-28 + i, y); c.quadraticCurveTo(4, y + 8, 34 - i * 2, y - 2); c.stroke(); c.strokeStyle = LATEX_D; c.lineWidth = 1; c.beginPath(); c.moveTo(-28 + i, y + 3); c.quadraticCurveTo(4, y + 11, 34 - i * 2, y + 1); c.stroke(); }
@@ -125,7 +140,7 @@ export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
   ink(c, () => { c.moveTo(-14, -8); c.quadraticCurveTo(8, -30, 56, -10); c.quadraticCurveTo(70, 0, 60, 10); c.lineTo(-10, 14); c.closePath(); }, LATEX, 2);
   c.strokeStyle = LATEX_G; c.lineWidth = 2; c.beginPath(); c.moveTo(-6, -12); c.quadraticCurveTo(18, -24, 50, -10); c.stroke();
   // (the lips drawn back off the silver teeth; the lower jaw dropping)
-  const jaw = pose === 'roar' ? 16 : pose === 'spit' ? 14 : pose === 'tell' ? 8 : pose === 'hurt' ? 10 : pose === 'birth' ? 4 : 0;
+  const jaw = pose === 'roar' || pose === 'grab' ? 16 : pose === 'spit' ? 14 : pose === 'tell' ? 8 : pose === 'hurt' ? 10 : pose === 'birth' ? 4 : 0;
   box(c, 14, 6, 46, 4, '#D1D5DB');
   for (let i = 0; i < 8; i++) box(c, 16 + i * 5, 4, 3, 5, '#F3F4F6');
   ink(c, () => c.roundRect(10, 10 + jaw, 48, 9, 3), LATEX_M);
@@ -133,7 +148,7 @@ export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
   if (jaw > 0) {
     box(c, 14, 10, 42, jaw, '#1C0610');
     // (the inner jaws: three of them, one inside the next, out on their rods: one too many; out on a roar or the spit)
-    const out = pose === 'roar' || pose === 'spit' ? Math.min(1, (t % 40) / 10) : 0.3;
+    const out = pose === 'grab' ? Math.min(1.6, (t % 24) / 5) : pose === 'roar' || pose === 'spit' ? Math.min(1, (t % 40) / 10) : 0.3;
     for (let j = 0; j < 3; j++) {
       const jx = 22 + out * (14 + j * 12), jy = 10 + jaw / 2 - 3, w = 12 - j * 3;
       limb(c, 20, jy + 3, jx, jy + 3, 5 - j, '#4B5563');
@@ -148,6 +163,8 @@ export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
   // --- The big arms: long, thin, many-jointed; long fingers, claws ---
   const [ex, ey, hx2, hy2] =
     pose === 'tell' || pose === 'roar' ? [50, -270, 30, -320] :
+    pose === 'stalk' ? [70, -170, 110, -120 + Math.sin(stride) * 8] :
+    pose === 'grab' ? [80, -230, 100, -250] :
     pose === 'swipe' ? [76, -196, 140, -150] :
     pose === 'spit' ? [46, -170, 56, -130] :
     pose === 'hurt' ? [26, -232, 6, -266] :
@@ -165,6 +182,8 @@ export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
     }
   }
   if (pose === 'stunned' || pose === 'dead' || (q.beat > 0.5 && t % 50 < 4)) for (let i = 0; i < 4; i++) { const a = t * 0.7 + i * 1.6; box(c, 20 + Math.cos(a) * 30, -210 + Math.sin(a * 1.3) * 40, 3, 3, i % 2 ? '#FDE047' : '#FFFFFF'); }
+  // (the extinguisher's foam all over her, in clumps)
+  if (q.foam && q.foam > 0) for (let i = 0; i < Math.round(14 * q.foam); i++) { const fx = -30 + ((i * 37) % 90), fy = -280 + ((i * 53) % 220); c.fillStyle = i % 3 ? '#F8FAFC' : '#E2E8F0'; c.beginPath(); c.ellipse(fx, fy, 9 + (i % 3) * 3, 7, 0, 0, Math.PI * 2); c.fill(); }
   c.restore();
   c.restore();
 };
@@ -293,3 +312,23 @@ export const roomLights = (r: RoomDraw, queenX: number) => [
   ...(r.beam > 0 ? [{ x: r.head.x, y: r.head.y, r: 160, a: 0.8 * r.beam, color: 'rgba(163, 230, 53, 0.14)' }] : []),
 ];
 export { QUEEN_X };
+
+// ---------------------------------------------------------------------------------------------------------------
+// After she's gone through the floor: her stand empty (its torn lines hanging, the sac on its dolly), the hole
+
+export const drawAfterFall = (c: Ctx, state: GameState, hole: { a: number; b: number }) => {
+  if (!shown(state, hole.a - 100, ARENA_R + 300)) return;
+  stamp(c, 'sp-q-afterfall', hole.a - 20, GY - 260, ARENA_R + 280 - hole.a, 300, g => {
+    // (the plinth, the arm bent over, the lines hanging off it torn; the sac, deflated a bit, on its dolly)
+    ink(g, () => g.rect(QUEEN_X - 90, GY - 26, 180, 26), STEEL_D, 2);
+    g.fillStyle = STEEL; g.fillRect(QUEEN_X - 90, GY - 26, 180, 4);
+    limb(g, QUEEN_X + 20, GY - 30, QUEEN_X - 10, GY - 70, 16, STEEL);
+    limb(g, QUEEN_X - 10, GY - 70, QUEEN_X - 60, GY - 60, 12, STEEL_L);
+    for (let i = 0; i < 3; i++) { g.strokeStyle = ['#B91C1C', '#1D4ED8', '#CA8A04'][i]; g.lineWidth = 3; g.beginPath(); g.moveTo(QUEEN_X - 60, GY - 60); g.quadraticCurveTo(QUEEN_X - 80 - i * 10, GY - 30, QUEEN_X - 90 - i * 14, GY - 6); g.stroke(); }
+    ink(g, () => g.ellipse(QUEEN_X + 185, GY - 80, 88, 48, -0.05, 0, Math.PI * 2), '#B8B19A', 2);
+    // (the hole: the floor gone, the edges broken, the dark down there)
+    g.fillStyle = '#020204'; g.fillRect(hole.a, GY - 2, hole.b - hole.a, 40);
+    for (let x = hole.a - 10; x < hole.b + 10; x += 12) { g.fillStyle = '#3F3F46'; g.fillRect(x, GY - 3 - ((x * 7) % 5), 10, 4); }
+    g.fillStyle = '#71717A'; g.fillRect(hole.a - 16, GY - 2, 14, 4); g.fillRect(hole.b + 2, GY - 2, 14, 4);
+  });
+};
