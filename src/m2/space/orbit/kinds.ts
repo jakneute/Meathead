@@ -240,9 +240,11 @@ const mine = (ctx: FrameContext, e: Enemy) => {
   P.t++;
   e.pos.y = (e.homeY ?? e.pos.y) + Math.sin((P.t + (P.phase ?? 0)) * 0.04) * 8;
   const m = mid(e), pm = mid(state.player);
-  if (P.armedT === undefined && state.player.health > 0 && Math.hypot(pm.x - m.x, pm.y - m.y) < MINE_REACH) { P.armedT = MINE_FUSE; playSound('beep', 0.6, 8); }
+  // (only set off by him in play: not him carried up into the saucer, hidden in it, or in the crash's cutscene)
+  const live = state.player.health > 0 && !state.player.hidden && !state.player.inCutscene;
+  if (P.armedT === undefined && live && Math.hypot(pm.x - m.x, pm.y - m.y) < MINE_REACH) { P.armedT = MINE_FUSE; playSound('beep', 0.6, 8); }
   if (P.armedT !== undefined) {
-    if (P.armedT % 6 === 0) playSound('beep', 0.3, 12);
+    if (P.armedT % 6 === 0 && live) playSound('beep', 0.3, 12);
     if (--P.armedT <= 0) mineBlows(ctx, e);
   }
   if (m.x < camX(state) - 200) P.gone = true;

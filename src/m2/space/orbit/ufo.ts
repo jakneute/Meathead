@@ -33,7 +33,7 @@ import { K, spawn } from './kinds';
 import { bolt, boltV, blast } from './hazards';
 import { drawSaucer } from './art';
 import { orbitOf, MEMO, type Saucer } from './state';
-import { CY, W, H } from './geo';
+import { CY, W, H, X0, X1 } from './geo';
 import { SAUCER_INTRO, SAUCER_TAUNT, SAUCER_HURT, SAUCER_PISSED, MH_WHO, MH_LADIES, GUN_FACTORY, type ByPants } from './lines';
 import { SAUCER_SHARE, SAUCER_FLOOR, MAX_LEVEL, gunSays, gunWords } from './gun';
 import { takeOffSuit } from '../needle/suit';
@@ -285,7 +285,8 @@ const pissed = (state: GameState, s: Saucer) => {
   state.projectiles = state.projectiles.filter(q => q.owner !== 'enemy');
   const o = orbitOf(state);
   for (const e of o.tracked) if (e !== s.e && e.health > 0) { e.health = 0; e.isBlownAway = false; }
-  state.enemies = state.enemies.filter(e => e === s.e || !o.tracked.includes(e));
+  // (everything else out of the sky: tracked or not (the mines too: no fuse left beeping through the crash))
+  state.enemies = state.enemies.filter(e => e === s.e || e.pos.x < X0 || e.pos.x > X1);
   silenceAll();
   s.said = null;
   go(s, 'pissed'); s.total = 0;
