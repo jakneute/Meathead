@@ -17,6 +17,7 @@ import { shaded, layer } from '../../scenes/art/snes';
 import { bayer } from '../../scenes/art/raster';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE } from './course';
+import { shakeScale } from '../../settings';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -628,7 +629,7 @@ export const drawDumpster = (ctx: Ctx, d: Dumpster) => {
   ctx.save(); ctx.translate(0, top); ctx.scale(s, s);
   ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
   // (a shake on the landing and on the slam)
-  const shake = (t >= FALL_END && t < FALL_END + 10) || (t > SLAM && t < SLAM + 10) ? 2 : 0;
+  const shake = (t >= FALL_END && t < FALL_END + 10) || (t > SLAM && t < SLAM + 10) ? 2 * shakeScale() : 0;
   if (shake) ctx.translate((hash(t) - 0.5) * shake * 2, (hash(t * 3) - 0.5) * shake * 2);
   if (t < PRE) drawTumble(ctx, t);
   else if (t < CUT) drawFall(ctx, t - PRE);

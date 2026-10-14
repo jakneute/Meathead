@@ -10,6 +10,7 @@
 // steam, the fly, a glint, the skin) goes over it every frame, in pixels.
 
 import { Painter, painting, bayer, noise, hash2, rgbOf } from './art/raster';
+import { flashAlpha } from '../settings';
 
 type Ctx = CanvasRenderingContext2D;
 const FW = 384, FH = 216;
@@ -149,7 +150,7 @@ const blit = (ctx: Ctx, t: number) => {
   const j = t < 6 ? (t % 2 ? 2 : -2) * (6 - t) / 3 : 0;
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
   ctx.drawImage(buf!, Math.round(j * k), 0, W, H);
-  if (t < 2) { ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(0, 0, W, H); }
+  if (t < 2) { ctx.fillStyle = `rgba(255,255,255,${flashAlpha(0.6)})`; ctx.fillRect(0, 0, W, H); }
   ctx.restore();
 };
 

@@ -13,6 +13,7 @@ import { chunky, ditherFill } from '../render/fx/fireball';
 import { mix } from '../render/backdrops/core';
 import { GameState } from '../core/state';
 import { SEWER_NUKE, sewerNukeFrame } from './sewerNuke';
+import { shakeScale, flashAlpha } from '../settings';
 
 type Ctx = CanvasRenderingContext2D;
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -178,6 +179,8 @@ export const drawSewerNukeFlash = (ctx: Ctx, state: GameState) => {
 
 /** White over the screen, `a` of the way, in quarters: the half step between two of them as a checker of the next. */
 const steppedWhite = (ctx: Ctx, a: number) => {
+  // (reduce flashing: held down low)
+  a = flashAlpha(a);
   if (a <= 0) return;
   const lv = a * 4, base = Math.floor(lv) / 4;
   if (base > 0) { ctx.fillStyle = `rgba(255, 255, 250, ${base})`; ctx.fillRect(0, 0, W, H); }
@@ -203,7 +206,7 @@ export const drawSewerNukeOutside = (ctx: Ctx, state: GameState): boolean => {
   ctx.save();
   let sx = 0, sy = 0;
   if (state.screenShakeTimer > 0) {
-    const m = state.screenShakeMagnitude * 1.5;
+    const m = state.screenShakeMagnitude * 1.5 * shakeScale();
     sx = snap((hash(t) - 0.5) * m); sy = snap((hash(t + 99) - 0.5) * m);
   }
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);

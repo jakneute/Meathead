@@ -12,6 +12,8 @@ import { COURSE } from './course';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { INK, hash, lin, shape, speckle, blood, deadFace, flames } from '../../scenes/art/ink';
 import { drawBloodPool } from '../../render/spatter';
+import { shakeScale } from '../../settings';
+import { flashAlpha } from '../../settings';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -392,7 +394,7 @@ const stormSky = (ctx: Ctx, t: number, horizon: number) => {
   // (lightning: a bolt, and the flash with it)
   const cycle = t % 120;
   if (cycle < 6) {
-    ctx.fillStyle = `rgba(226, 232, 240, ${0.35 - cycle * 0.05})`; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = `rgba(226, 232, 240, ${flashAlpha(0.35 - cycle * 0.05, 0.1)})`; ctx.fillRect(0, 0, W, H);
     ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 1.4; ctx.beginPath();
     let x = 180 + hash(Math.floor(t / 120)) * 60, y = 0; ctx.moveTo(x, y);
     while (y < horizon) { x += (hash(x + y) - 0.5) * 14; y += 6 + hash(y) * 6; ctx.lineTo(x, y); }
@@ -660,7 +662,7 @@ export const drawBoarded = (ctx: Ctx, c: Chase) => {
   const s = CANVAS_WIDTH / W, top = (CANVAS_HEIGHT - H * s) / 2 - 20;
   ctx.save(); ctx.translate(0, top); ctx.scale(s, s);
   ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
-  const shake = (t < 12 || (t > BOARD_LEAP + 10 && t < BOARD_BEAT && (t - BOARD_LEAP) % BLOW < 2)) ? 3 : 0;
+  const shake = (t < 12 || (t > BOARD_LEAP + 10 && t < BOARD_BEAT && (t - BOARD_LEAP) % BLOW < 2)) ? 3 * shakeScale() : 0;
   if (shake) ctx.translate((hash(t) - 0.5) * shake * 2, (hash(t * 3) - 0.5) * shake * 2);
   if (t < BOARD_LEAP + 10) {
     // The cutter slamming in alongside, the spray going up between them; over the side they come, nightsticks up
@@ -793,7 +795,7 @@ export const drawCutterDemise = (ctx: Ctx, t: number, frame: number) => {
   } else {
     // SMASH: the pair of them in pieces, everything flung out, the crew among it
     const s = t - DEMISE_SMASH;
-    if (s < 10) { ctx.fillStyle = `rgba(255, 255, 255, ${0.6 - s * 0.06})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
+    if (s < 10) { ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha(0.6 - s * 0.06)})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
     const cx = 640, cy = 120;
     for (let i = 0; i < 26; i++) {
       const a = hash(i) * Math.PI * 2, sp = 3 + hash(i * 3) * 6;

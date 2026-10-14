@@ -1,4 +1,5 @@
 import { getActiveGamepad, getGamepadMovement, isButtonPressed, GP_BUTTONS } from './gamepad';
+import { keysFor, type KeyAction } from './keys';
 
 /** What the player is asking for this frame, from keyboard, mouse and gamepad combined. */
 export interface Controls {
@@ -46,12 +47,16 @@ export class KeyboardMouseState {
       this.keys[e.code.toLowerCase()] = true;
     };
     const onKeyUp = (e: KeyboardEvent) => { this.keys[e.key.toLowerCase()] = false; this.keys[e.code.toLowerCase()] = false; };
+    // (the mouse's buttons are held like keys too, 'mouse0' to 'mouse4', for whatever they've been bound to)
     const setButton = (e: MouseEvent, down: boolean) => {
       if (e.button === 0) this.mouseDown = down;
       else if (e.button === 2) this.rightMouseDown = down;
+      this.keys[`mouse${e.button}`] = down;
+      if (down) this.pressedAt[`mouse${e.button}`] = ++this.pressCount;
     };
     const onMouseDown = (e: MouseEvent) => { lastDevice = 'mouse'; setButton(e, true); };
-    const onMouseUp = (e: MouseEvent) => setButton(e, false);
+    // (the side buttons are game buttons, not the browser's back and forward)
+    const onMouseUp = (e: MouseEvent) => { setButton(e, false); if (e.button === 3 || e.button === 4) e.preventDefault(); };
     // Right click is a game button, not the browser's menu
     const onContextMenu = (e: MouseEvent) => e.preventDefault();
     // Buttons released outside the window (or while alt-tabbed) would otherwise stay held
@@ -73,8 +78,8 @@ export class KeyboardMouseState {
   }
 }
 
-/** Keys that fire, besides the left mouse button (Meathead 2 has none: the mouse fires). */
-let fireKeys = ['x', 'keyx', 'k', 'keyk'];
+/** Meathead 2 fires with the left mouse button alone: it sets this to [] (null: firing is wherever it's been bound). */
+let fireKeys: string[] | null = null;
 export const setFireKeys = (keys: string[]) => { fireKeys = keys; };
 
 export const readControls = (kb: KeyboardMouseState): Controls => {
@@ -92,29 +97,30 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
     if (padJump || padShoot || padFlame || padSpecial || Math.abs(padX) > 0.5 || Math.abs(padY) > 0.5) lastDevice = 'gamepad';
   }
 
-  const k = kb.isDown;
-  // One-key specials for keyboard players: E uppercuts (up + special), C is down + special
-  // (a dive kick in the air, a slide tackle on the ground). They're hotkeys: they override
-  // whatever up/down is held, so W + C still slides and S + E still uppercuts. With both
-  // held, the one pressed last wins.
-  let uppercutKey = k('e', 'keye');
-  let diveKey = k('c', 'keyc');
+  // (the keyboard's keys for each, wherever the options screen has put them: see keys.ts)
+  const k = (a: KeyAction) => kb.isDown(...keysFor(a));
+  // One-key specials for keyboard players: the uppercut key (E) is up + special, the slide / dive kick key (C) is
+  // down + special (a dive kick in the air, a slide tackle on the ground). They're hotkeys: they override whatever
+  // up/down is held, so up + C still slides and down + E still uppercuts. With both held, the one pressed last wins.
+  let uppercutKey = k('uppercut');
+  let diveKey = k('downSpecial');
   if (uppercutKey && diveKey) {
-    if (kb.lastPressed('keye') > kb.lastPressed('keyc')) diveKey = false;
+    const last = (a: KeyAction) => Math.max(0, ...keysFor(a).map(c => kb.lastPressed(c)));
+    if (last('uppercut') > last('downSpecial')) diveKey = false;
     else uppercutKey = false;
   }
-  const heldDown = k('s', 'arrowdown', 'keys') || padY > 0.3;
-  const heldUp = k('w', 'arrowup', 'keyw') || padY < -0.4;
+  const heldDown = k('down') || padY > 0.3;
+  const heldUp = k('up') || padY < -0.4;
   return {
-    left: k('a', 'arrowleft', 'keya') || padX < -0.3,
-    right: k('d', 'arrowright', 'keyd') || padX > 0.3,
+    left: k('left') || padX < -0.3,
+    right: k('right') || padX > 0.3,
     down: diveKey || (heldDown && !uppercutKey),
     up: uppercutKey || (heldUp && !diveKey),
-    jump: k(' ', 'space', 'z', 'keyz', 'j', 'keyj') || padJump,
-    special: kb.rightMouseDown || uppercutKey || diveKey || padSpecial,
-    charge: k('shift', 'shiftleft', 'shiftright'),
-    shoot: kb.mouseDown || padShoot || k(...fireKeys),
-    secondary: padFlame || k('f', 'keyf'),
+    jump: k('jump') || padJump,
+    special: uppercutKey || diveKey || k('special') || padSpecial,
+    charge: k('charge'),
+    shoot: padShoot || (fireKeys ? kb.mouseDown || kb.isDown(...fireKeys) : k('fire')),
+    secondary: padFlame || k('secondary'),
   };
 };
 

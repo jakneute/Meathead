@@ -20,6 +20,7 @@ import { ALIEN_VOICE } from '../../scenes/alienLook';
 import { getFinale, KillCam } from './state';
 import { VIEW_X, VIEW_Y, VIEW_W, VIEW_H } from './geometry';
 import { deathOf, spotFor, timeline, camOn, landAt, waveWall, howOf, ROCK, WAVE, OD, NUKE, AlienDeath } from '../../bosses/alienDeath';
+import { flashAlpha } from '../../settings';
 
 /** How long (real ticks) it holds on the close-up once it's all played out and said, before the cut. */
 const LINGER = 30;
@@ -278,5 +279,5 @@ export const drawKillCamHud = (ctx: CanvasRenderingContext2D, state: GameState) 
     ctx.restore();
   }
   // The flash it cuts in on
-  if (cam.t < 10) { ctx.fillStyle = `rgba(255, 255, 255, ${(1 - cam.t / 10).toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
+  if (cam.t < 10) { ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha(1 - cam.t / 10).toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
 };

@@ -25,6 +25,7 @@ import type { PersonSpec } from '../../render/npc/person';
 import { INK, ink, limb, shadedTop } from '../../render/npc/kit';
 import { drawCrate } from './draw';
 import { drawBloodPool } from '../../render/spatter';
+import { shakeScale } from '../../settings';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -655,7 +656,7 @@ const drawMeltScene = (ctx: Ctx, state: GameState, cv: Convoy) => {
   const firing = u >= MELT.FIRE && u < MELT.STOP;
   ctx.save();
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  if (firing) ctx.translate((hash(u) - 0.5) * 8, (hash(u + 1) - 0.5) * 8);
+  if (firing) ctx.translate((hash(u) - 0.5) * 8 * shakeScale(), (hash(u + 1) - 0.5) * 8 * shakeScale());
   ctx.scale(IN_SCALE, IN_SCALE);
   // The walls: ribbed aluminum, in the dark
   bandedGradient(ctx, 0, IN_ROOF, IN_W, IN_FLOOR - IN_ROOF, ['#27272A', '#222225', '#1D1D20', '#18181B'], 6);

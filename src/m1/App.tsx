@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import { hasRightStick } from './game/platform/device';
 import CheckpointPicker, { StartAt } from './components/CheckpointPicker';
 import Garage from './components/Garage';
-import { GARAGE_INDEX, WHITE_HOUSE_INDEX } from './components/Overlay';
+import { GARAGE_INDEX, WHITE_HOUSE_INDEX, TITLE_OPTIONS } from './components/Overlay';
+import OptionsScreen from './components/OptionsScreen';
+import { loadSettings, getSettings, subscribeSettings } from './game/settings';
+import { keysFor } from './game/platform/keys';
 import { takeAllSouvenirs } from './game/garage/store';
 import type { Souvenir } from './content/garage';
 import HUD from './components/HUD';
@@ -22,8 +25,10 @@ import { loadVoicePack } from './game/platform/voiceclips';
 
 // Everybody's recorded voice, loaded once (it comes inside the page: see tools/voices)
 loadVoicePack(voicePackUrl);
+// The options screen's settings, as they were left (the volumes, the video, the keys)
+loadSettings();
 import { canSkip, requestSkip } from './game/platform/skip';
-import { setScreenMusic, setMusicPaused, musicEnabled, setMusicEnabled } from './game/music';
+import { setScreenMusic, setMusicPaused } from './game/music';
 import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
@@ -69,15 +74,15 @@ const navigateStageGrid = (index: number, dx: number, dy: number, whiteHouse: bo
   return i;
 };
 
-/** Pause menu: a 3-wide weapon grid (indices 0..n-1) above a row of four buttons (RESUME, DOSSIER, BOSS SELECT, QUIT). */
+/** Pause menu: a 3-wide weapon grid (indices 0..n-1) above a row of five buttons (RESUME, DOSSIER, OPTIONS, BOSS SELECT, QUIT). */
 const navigatePauseMenu = (index: number, dx: number, dy: number, numWeapons: number) => {
-  // (the buttons line up with the grid's columns left to right: RESUME under the first, DOSSIER the second, BOSS SELECT
-  // and QUIT the third)
+  // (the buttons line up with the grid's columns left to right: RESUME under the first, DOSSIER the second, OPTIONS,
+  // BOSS SELECT and QUIT the third)
   const lastRow = Math.floor((numWeapons - 1) / 3);
   if (index >= numWeapons) {
     // The button row: left/right between buttons, up back into the arsenal (the bottom slot of the column above)
     if (dx < 0) return Math.max(numWeapons, index - 1);
-    if (dx > 0) return Math.min(numWeapons + 3, index + 1);
+    if (dx > 0) return Math.min(numWeapons + 4, index + 1);
     if (dy < 0) {
       const col = Math.min(index - numWeapons, 2);
       const slot = lastRow * 3 + col;
@@ -97,15 +102,24 @@ const navigatePauseMenu = (index: number, dx: number, dy: number, numWeapons: nu
   return index;
 };
 
-/** The whole 800x600 game (canvas and menus) is scaled up to fill the window, keeping its shape. */
+/**
+ * The whole 800x600 game (canvas and menus) is scaled up to fill the window, keeping its shape (the options screen's
+ * STRETCH), or by whole steps only, 1x, 2x, 3x, with a border around it, so every pixel's the same size (SHARP; a
+ * window too small for 1x still gets it shrunk to fit).
+ */
 const useFitToWindow = () => {
-  const fit = () => Math.max(0.5, Math.min(window.innerWidth / 808, window.innerHeight / 608));
+  const scaling = useSyncExternalStore(subscribeSettings, () => getSettings().scaling, () => getSettings().scaling);
+  const fit = () => {
+    const f = Math.max(0.5, Math.min(window.innerWidth / 808, window.innerHeight / 608));
+    return getSettings().scaling === 'sharp' && f >= 1 ? Math.floor(f) : f;
+  };
   const [scale, setScale] = useState(fit);
   useEffect(() => {
     const onResize = () => setScale(fit());
+    onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, []);
+  }, [scaling]);
   return scale;
 };
 
@@ -131,9 +145,8 @@ const App: React.FC = () => {
   const [callPreview, setCallPreview] = useState(false);
   /** The call handing off to the stage select (its title rising onto the heading, the call fading off it). */
   const [callOutro, setCallOutro] = useState(false);
-  /** The music switch on the title screen. */
-  const [musicOn, setMusicOn] = useState(musicEnabled());
-  const toggleMusic = () => { const on = !musicEnabled(); setMusicEnabled(on); setMusicOn(on); };
+  /** The options screen is up (from the title, or the pause menu: the game stays paused under it). */
+  const [optionsOpen, setOptionsOpen] = useState(false);
   /**
    * The opening (START GAME + INTRO): its first half playing over the title ('opening'), then the gym, then its second
    * half ('playing') over the title again, fading off the stage select ('outro').
@@ -253,6 +266,9 @@ const App: React.FC = () => {
   useOpenCloseSound(status === GameStatus.PAUSED, status === GameStatus.PAUSED || status === GameStatus.PLAYING);
   useOpenCloseSound(confirmLeave, status === GameStatus.PAUSED);
   useOpenCloseSound(pauseDossier, status === GameStatus.PAUSED);
+  useOpenCloseSound(optionsOpen);
+  // (it only belongs to the screen it was opened on)
+  useEffect(() => { if (status !== GameStatus.START && status !== GameStatus.PAUSED) setOptionsOpen(false); }, [status]);
   useOpenCloseSound(showDossier, status === GameStatus.STAGE_SELECT);
   useOpenCloseSound(showArchive, status === GameStatus.STAGE_SELECT);
   useOpenCloseSound(inGarage, status === GameStatus.STAGE_SELECT);
@@ -325,7 +341,7 @@ const App: React.FC = () => {
         setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
         resetLoadout();
         // (with the intro, it plays first and brings the stage select up itself at the end)
-        if (PUBLIC_BUILD || (withIntro ?? selectedIndex === 1)) setIntro('opening');
+        if (withIntro ?? !!TITLE_OPTIONS[selectedIndex]?.intro) setIntro('opening');
         else setStatus(GameStatus.STAGE_SELECT);
         break;
       case GameStatus.BOSS_INTRO:
@@ -585,8 +601,9 @@ const App: React.FC = () => {
     if (index < numWeapons) { selectWeaponByIndex(index); playMenuOk(); }
     else if (index === numWeapons) handleResume();
     else if (index === numWeapons + 1) setPauseDossier(true);
-    else if (index === numWeapons + 2) askBossSelect();
-    else if (index === numWeapons + 3) askQuit();
+    else if (index === numWeapons + 2) setOptionsOpen(true);
+    else if (index === numWeapons + 3) askBossSelect();
+    else if (index === numWeapons + 4) askQuit();
   };
 
   // --- Menu input (shared by keyboard and gamepad) ---------------------------
@@ -594,11 +611,11 @@ const App: React.FC = () => {
   /** Moves the menu cursor. Returns false if the input did nothing on this screen. */
   const moveSelection = (dx: number, dy: number): boolean => {
     if (intro !== 'off') return false;
-    // The title: START GAME, or START GAME + INTRO
+    // The title: START GAME (or START GAME + INTRO), then OPTIONS
     if (status === GameStatus.START) {
-      // (the public build has the one: START GAME, with the intro)
-      if (!dy || PUBLIC_BUILD) return false;
-      setSelectedIndex(i => (i + (dy > 0 ? 1 : -1) + 2) % 2);
+      if (!dy) return false;
+      const n = TITLE_OPTIONS.length;
+      setSelectedIndex(i => (i + (dy > 0 ? 1 : -1) + n) % n);
       return true;
     }
     if (status === GameStatus.STAGE_SELECT) {
@@ -623,6 +640,8 @@ const App: React.FC = () => {
   const confirmSelection = () => {
     // (nothing while the call's still fading off the stage select)
     if (callOutro || intro !== 'off') return;
+    // (the title's OPTIONS: up it comes, no waiting for the way in to unlock)
+    if (status === GameStatus.START && TITLE_OPTIONS[selectedIndex]?.options) { setOptionsOpen(true); return; }
     if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
     else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(confirmYes); else if (!pauseDossier) activatePauseItem(selectedIndex); }
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
@@ -726,8 +745,9 @@ const App: React.FC = () => {
   };
 
   // (in the garage, it's the garage's own input: the stage select's is off)
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene };
+  // (the options screen too: it reads its own input, like the garage)
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -741,12 +761,12 @@ const App: React.FC = () => {
         // Number keys pick a weapon straight from the arsenal
         const slot = /^Digit([1-9])$/.exec(e.code);
         if (slot) selectWeaponHotkey(Number(slot[1]) - 1);
+        // (and the previous / next weapon keys, if they've been given any: see the options screen)
+        else if (!e.repeat) bumpWeapon(e.code.toLowerCase());
         return;
       }
       // Stage select: X (or Tab) flips between the map and the boss dossier
       if (status === GameStatus.STAGE_SELECT && (key === 'tab' || key === 'x')) { e.preventDefault(); switchTab(e.shiftKey ? -1 : 1); return; }
-      // The title: M switches the music on and off
-      if (status === GameStatus.START && key === 'm' && !inputRef.current.introOn) { inputRef.current.toggleMusic(); return; }
       if (key === 'arrowup' || key === 'w') moveSelection(0, -1);
       else if (key === 'arrowdown' || key === 's') moveSelection(0, 1);
       else if (key === 'arrowleft' || key === 'a') moveSelection(-1, 0);
@@ -760,7 +780,8 @@ const App: React.FC = () => {
     // (the mouse wheel: one weapon a notch, and a short cooldown after each, so a flick doesn't spin past three of them)
     let wheelAt = 0;
     const onWheel = (e: WheelEvent) => {
-      const { status, cycleWeapon, pauseDossier } = inputRef.current;
+      const { status, cycleWeapon, pauseDossier, garage } = inputRef.current;
+      if (garage) return;
       // (the pause menu's file is up: the wheel's scrolling that)
       if (status === GameStatus.PAUSED && pauseDossier) return;
       if (status !== GameStatus.PLAYING && status !== GameStatus.PAUSED) return;
@@ -769,11 +790,20 @@ const App: React.FC = () => {
       wheelAt = now;
       cycleWeapon(e.deltaY > 0 ? 1 : -1);
     };
+    // The previous / next weapon buttons (keys or mouse buttons, wherever they've been bound), while playing
+    const bumpWeapon = (code: string) => {
+      const { status, cycleWeapon } = inputRef.current;
+      if (status !== GameStatus.PLAYING) return;
+      if (keysFor('prevWeapon').includes(code)) cycleWeapon(-1);
+      else if (keysFor('nextWeapon').includes(code)) cycleWeapon(1);
+    };
     // Right click is the menu "back" button, same as B on a controller (in-game it's the special)
     // Unpausing waits for the release, or the still-held button would fire a special on the first frame
     let rightPressedInPause = false;
     const onMouseDown = (e: MouseEvent) => {
-      if (e.button !== 2 || inputRef.current.garage) return;
+      if (inputRef.current.garage) return;
+      bumpWeapon('mouse' + e.button);
+      if (e.button !== 2) return;
       const { status, stageSelectBack } = inputRef.current;
       rightPressedInPause = status === GameStatus.PAUSED;
       if (status === GameStatus.STAGE_SELECT) stageSelectBack();
@@ -857,7 +887,6 @@ const App: React.FC = () => {
         if (justPressed('x') && status === GameStatus.STAGE_SELECT) switchTab(1);
         if (justPressed('lb') && status === GameStatus.STAGE_SELECT) switchTab(-1);
         if (justPressed('rb') && status === GameStatus.STAGE_SELECT) switchTab(1);
-        if (justPressed('x') && status === GameStatus.START && !inputRef.current.introOn) inputRef.current.toggleMusic();
         if (justPressed('b')) {
           if (status === GameStatus.PAUSED) handleResume();
           else if (status === GameStatus.STAGE_SELECT) stageSelectBack();
@@ -903,8 +932,7 @@ const App: React.FC = () => {
           weaponAmmo={weaponAmmo}
           onStart={() => handleStart()}
           onStartGame={(withIntro) => handleStart(withIntro)}
-          musicOn={musicOn}
-          onToggleMusic={toggleMusic}
+          onOpenOptions={() => setOptionsOpen(true)}
           onResume={handleResume}
           onBossSelect={askBossSelect}
           confirmLeave={confirmLeave}
@@ -941,6 +969,7 @@ const App: React.FC = () => {
           <IntroCutscene part="pitch" shat={gymShat} onHandoff={() => { setIntro('outro'); setSelectedIndex(0); setStatus(GameStatus.STAGE_SELECT); }} onDone={() => setIntro('off')} />
         )}
         {status === GameStatus.PLAYING && <TutorialHint lesson={lesson} />}
+        {optionsOpen && (status === GameStatus.START || status === GameStatus.PAUSED) && <OptionsScreen onClose={() => setOptionsOpen(false)} />}
         {((status === GameStatus.VICTORY && (progressionRank === 0 || callPreview)) || callOutro) && (
           <RadioCutscene onHandoff={() => { setCallOutro(true); finishVictory(); }} onDone={() => setCallOutro(false)} />
         )}

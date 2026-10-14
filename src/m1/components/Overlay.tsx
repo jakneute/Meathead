@@ -20,11 +20,11 @@ import { drawWhiteHouse, ART_W, ART_H } from '../game/scenes/ending';
 import { GARAGE_ID, SOUVENIRS } from '../content/garage';
 import { ownedSouvenirs } from '../game/garage/store';
 import TitleArt from './TitleArt';
-import ControlsGuide from './ControlsGuide';
 import { setSoundTest, ALL_CUES } from '../game/music';
 import { SFX_NAMES } from '../game/platform/sfx';
 import { recordedVoices, playClip } from '../game/platform/voiceclips';
 import { playSound } from '../game/platform/audio';
+import { getSettings, reduceFlashing } from '../game/settings';
 
 export interface CheatFlags {
   allWeapons: boolean;
@@ -51,9 +51,8 @@ interface OverlayProps {
   onStart: () => void;
   /** The title's two options: straight in, or the intro first. */
   onStartGame: (withIntro: boolean) => void;
-  /** The music switch on the title screen. */
-  musicOn?: boolean;
-  onToggleMusic?: () => void;
+  /** OPTIONS (on the title and in the pause menu): opens the options screen. */
+  onOpenOptions?: () => void;
   onResume: () => void;
   onBossSelect: () => void;
   onQuitToMenu: () => void;
@@ -213,39 +212,40 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
   </div>
 );
 
-// (the public build: just the one, and it's always got the intro)
-const TITLE_OPTIONS = PUBLIC_BUILD ? [{ label: 'START GAME', intro: true }] : [{ label: 'START GAME', intro: false }, { label: 'START GAME + INTRO', intro: true }];
+// (the public build: just the one way in, and it's always got the intro); then the options
+export const TITLE_OPTIONS: { label: string; intro: boolean; options?: boolean }[] = [
+  ...(PUBLIC_BUILD ? [{ label: 'START GAME', intro: true }] : [{ label: 'START GAME', intro: false }, { label: 'START GAME + INTRO', intro: true }]),
+  { label: 'OPTIONS', intro: false, options: true },
+];
 
-const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSelectIndex, selectedIndex, cheats, progressionRank, whiteHouseOpen, musicOn, onToggleMusic, introOn }) => (
+const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSelectIndex, selectedIndex, cheats, progressionRank, whiteHouseOpen, onOpenOptions, introOn }) => (
   <>
     {/* (the picture, the whole screen: the logo's in it, over his chest) */}
     <TitleArt shitty={!!cheats?.flags.shittyPants} paused={!!introOn} />
     <h1 className="sr-only">MEATHEAD</h1>
-    {cheats && <CheatPanel rank={progressionRank + (whiteHouseOpen ? 1 : 0)} cheats={cheats} musicOn={musicOn !== false} />}
+    {cheats && <CheatPanel rank={progressionRank + (whiteHouseOpen ? 1 : 0)} cheats={cheats} musicOn={getSettings().music > 0 && getSettings().master > 0} />}
     <div className="animate-in fade-in duration-700 relative w-full h-full flex flex-col items-center pt-[284px]">
       <div className="flex flex-col items-center gap-2 shrink-0">
         {TITLE_OPTIONS.map((o, i) => {
           const on = selectedIndex === i;
+          // (OPTIONS isn't held back with the way in: there's nothing to skip past by opening it)
+          const lockedOut = isInputLocked && !o.options;
           return (
-            <button key={o.label} disabled={isInputLocked} onClick={() => onStartGame(o.intro)} onMouseEnter={() => onSelectIndex(i)}
-              className={`relative w-[380px] px-10 ${TITLE_OPTIONS.length > 1 ? 'py-1.5' : 'py-2.5'} text-sm md:text-base whitespace-nowrap border-2 border-black font-black uppercase shrink-0 [text-shadow:2px_2px_0_#000] ${isInputLocked
+            <button key={o.label} disabled={lockedOut} onClick={() => (o.options ? onOpenOptions?.() : onStartGame(o.intro))} onMouseEnter={() => onSelectIndex(i)}
+              className={`relative w-[380px] px-10 ${TITLE_OPTIONS.length > 2 ? 'py-1.5' : 'py-2.5'} text-sm md:text-base whitespace-nowrap border-2 border-black font-black uppercase shrink-0 [text-shadow:2px_2px_0_#000] ${lockedOut
                 ? 'bg-zinc-700 text-zinc-400 shadow-[inset_0_2px_0_#71717a,inset_0_-4px_0_#27272a,4px_4px_0_#000] opacity-60 cursor-not-allowed'
                 : on ? 'bg-[#c81c10] text-[#fff6d8] shadow-[inset_0_2px_0_#fc7c5c,inset_0_-4px_0_#6c0c04,0_0_0_2px_#fcd850,0_0_0_4px_#000,6px_6px_0_4px_#000] active:translate-y-1 active:shadow-[inset_0_2px_0_#fc7c5c,inset_0_-2px_0_#6c0c04,0_0_0_2px_#fcd850,0_0_0_4px_#000]'
                 : 'bg-[#5c0a08] text-white/70 shadow-[inset_0_2px_0_#9c1a0a,inset_0_-4px_0_#2c0402,4px_4px_0_#000] hover:bg-[#8c1408]'}`}>
-              {on && !isInputLocked && <span className="absolute left-3 text-[#fcd850] animate-pulse">&#9654;</span>}
-              {on && !isInputLocked && <span className="absolute right-3 text-[#fcd850] animate-pulse">&#9664;</span>}
+              {on && !lockedOut && <span className="absolute left-3 text-[#fcd850] animate-pulse">&#9654;</span>}
+              {on && !lockedOut && <span className="absolute right-3 text-[#fcd850] animate-pulse">&#9664;</span>}
               {isInputLocked && i === 0 ? 'READYING PUMP...' : o.label}
             </button>
           );
         })}
       </div>
       <div className="mt-3 flex items-center gap-3 shrink-0">
-        <button onClick={onToggleMusic} className={`px-3 py-1 text-[8px] font-black tracking-wider border-2 shadow-[3px_3px_0_#000] ${musicOn ? 'text-[#fcd850] border-[#b06c0c] bg-black/80 hover:bg-[#2c1c04]' : 'text-zinc-500 border-zinc-700 bg-black/80 hover:text-zinc-300'}`}>
-          <span className="inline-flex items-center gap-2"><Prompt pad={['X']} kb={['M']} size={14} />{musicOn ? '♪ MUSIC: ON' : '♪ MUSIC: OFF'}</span>
-        </button>
-        {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="START" size={15} className="text-[7px] font-black text-white/85 tracking-wider [text-shadow:1px_1px_0_#000] animate-pulse" />}
+        {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label={TITLE_OPTIONS[selectedIndex]?.options ? 'OPEN' : 'START'} size={15} className="text-[7px] font-black text-white/85 tracking-wider [text-shadow:1px_1px_0_#000] animate-pulse" />}
       </div>
-      <ControlsGuide />
     </div>
   </>
 );
@@ -274,7 +274,7 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
   const selectedId = garageAt ? GARAGE_ID : whAt ? WHITE_HOUSE_ID : currentStages[selectedIndex]?.id || currentStages[0]?.id;
 
   return (
-    <div className={`w-full h-full flex flex-col items-center justify-start pt-2 pb-1 overflow-hidden select-none ${engaging ? 'mh-engage-shake' : 'animate-in slide-in-from-bottom-8 duration-500'}`}>
+    <div className={`w-full h-full flex flex-col items-center justify-start pt-2 pb-1 overflow-hidden select-none ${engaging ? (getSettings().shake === 'heavy' ? 'mh-engage-shake' : getSettings().shake === 'mild' ? 'mh-engage-shake-mild' : '') : 'animate-in slide-in-from-bottom-8 duration-500'}`}>
       <div className="flex flex-col items-center mb-2 shrink-0">
         <h2 data-set-title className={setTitleClass(whiteHouseOpen ? 'MISSION ACCOMPLISHED' : BOSS_SET_TITLES[setRank] || "THE FOUR ASSHOLES")}>
           {whiteHouseOpen ? 'MISSION ACCOMPLISHED' : BOSS_SET_TITLES[setRank] || "THE FOUR ASSHOLES"}
@@ -520,12 +520,14 @@ const EngageFlash: React.FC<{ bossId: string; shout?: string }> = ({ bossId, sho
       </div>
     </div>
   );
+  const calm = reduceFlashing();
   const hazard = (dir: 'l' | 'r') => (
     <div className={`h-[16px] w-[200%] ${dir === 'l' ? 'mh-marquee-l' : 'mh-marquee-r'}`}
       style={{ background: 'repeating-linear-gradient(-45deg, #FACC15 0 12px, #111 12px 24px)' }} />
   );
   return (
-    <div className="absolute inset-0 z-[60] overflow-hidden mh-engage-strobe">
+    // (reduce flashing: no strobe, the background just goes down to dark, and the words don't flicker)
+    <div className={`absolute inset-0 z-[60] overflow-hidden ${calm ? 'mh-engage-calm' : 'mh-engage-strobe'}`}>
       <style>{`
         @keyframes mh-strobe { 0%, 8% { background: #fff; } 9%, 25%, 41%, 57% { background: #7F1D1D; } 17%, 33%, 49% { background: #000; } 65%, 100% { background: rgba(10,0,0,0.94); } }
         .mh-engage-strobe { animation: mh-strobe 1.7s steps(1, end) forwards; }
@@ -544,13 +546,18 @@ const EngageFlash: React.FC<{ bossId: string; shout?: string }> = ({ bossId, sho
         .mh-blackout { animation: mh-blackout 1.7s linear forwards; }
         @keyframes mh-shake { 0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(4px, 4px); } }
         .mh-engage-shake { animation: mh-shake 0.09s linear infinite; }
+        @keyframes mh-shake-mild { 0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-2px, 1px); } 40% { transform: translate(2px, -2px); } 60% { transform: translate(-2px, -1px); } 80% { transform: translate(2px, 2px); } }
+        .mh-engage-shake-mild { animation: mh-shake-mild 0.09s linear infinite; }
+        @keyframes mh-strobe-calm { 0% { background: #7F1D1D; } 100% { background: rgba(10,0,0,0.94); } }
+        .mh-engage-calm { animation: mh-strobe-calm 1.1s ease-out forwards; }
+        .mh-slam-calm { animation: mh-slam 1.7s cubic-bezier(.2,.9,.3,1) forwards; color: #FDE047; }
       `}</style>
       <div className="absolute inset-x-0 top-0 overflow-hidden">{hazard('l')}</div>
       <div className="absolute inset-x-0 bottom-0 overflow-hidden">{hazard('r')}</div>
       <div className="absolute -inset-x-10 top-[74px] -rotate-3 mh-bands">{marquee('l', '#FACC15')}</div>
       <div className="absolute -inset-x-10 bottom-[74px] rotate-3 mh-bands">{marquee('r', '#EF4444')}</div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
-        <div className="mh-slam text-[48px] leading-[1.15] font-black italic text-center [text-shadow:4px_4px_0_#000,-2px_-2px_0_#000,0_0_24px_rgba(239,68,68,0.9)]">
+        <div className={`${calm ? 'mh-slam-calm' : 'mh-slam'} text-[48px] leading-[1.15] font-black italic text-center [text-shadow:4px_4px_0_#000,-2px_-2px_0_#000,0_0_24px_rgba(239,68,68,0.9)]`}>
           {shout ?? "LET'S FUCKIN' GO!!"}
         </div>
         <div className="overflow-hidden">
@@ -566,10 +573,10 @@ const EngageFlash: React.FC<{ bossId: string; shout?: string }> = ({ bossId, sho
 
 /**
  * Pause menu. `selectedIndex` walks the weapon grid first, then the three
- * buttons below it (RESUME, DOSSIER, BOSS SELECT, QUIT). DOSSIER brings up the file on the stage's boss (in the gym,
+ * buttons below it (RESUME, DOSSIER, OPTIONS, BOSS SELECT, QUIT). DOSSIER brings up the file on the stage's boss (in the gym,
  * the department's own file on him).
  */
-const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu, confirmLeave, leaveTo, confirmYes, onAnswerLeave, lockedWeapon, stageId, pauseDossier, onOpenPauseDossier, onClosePauseDossier }) => {
+const PauseMenu: React.FC<OverlayProps> = ({ onOpenOptions, availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu, confirmLeave, leaveTo, confirmYes, onAnswerLeave, lockedWeapon, stageId, pauseDossier, onOpenPauseDossier, onClosePauseDossier }) => {
   const isLocked = (w: WeaponType) => !!lockedWeapon && w !== lockedWeapon;
   const numWeapons = availableWeapons.length;
   const shown = selectedIndex < numWeapons ? availableWeapons[selectedIndex] : currentWeapon;
@@ -583,17 +590,17 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
     return (
       <button
         onClick={onClick}
-        className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${on ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+        className={`relative flex items-center gap-1.5 pl-5 pr-2.5 py-[7px] text-white text-[9px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${on ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
         style={{ background: face, borderBottom: `4px solid ${edge}`, boxShadow: on ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: on ? '2px solid #FACC15' : 'none' }}
       >
-        {on && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
-        <span className="w-4 text-center">{glyph}</span>{label}
+        {on && <span className="absolute left-1.5 text-yellow-300 animate-pulse">&#9654;</span>}
+        <span className="w-3 text-center">{glyph}</span>{label}
       </button>
     );
   };
 
   return (
-    <div className="animate-in fade-in zoom-in-95 duration-200 relative flex flex-col items-center w-[600px] px-6 pt-4 pb-3"
+    <div className="animate-in fade-in zoom-in-95 duration-200 relative flex flex-col items-center w-[680px] px-6 pt-4 pb-3"
       style={{
         background: 'linear-gradient(180deg, rgba(24,24,27,0.97) 0%, rgba(9,9,11,0.97) 100%)',
         border: '3px solid #FACC15',
@@ -631,8 +638,9 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
       <div className="flex gap-2 mt-4">
         {menuButton('RESUME', '▶', numWeapons, onResume, 'linear-gradient(180deg, #CA8A04, #A16207)', '#713F12')}
         {menuButton('DOSSIER', '▤', numWeapons + 1, () => onOpenPauseDossier?.(), 'linear-gradient(180deg, #A16207, #713F12)', '#422006')}
-        {menuButton('BOSS SELECT', '☰', numWeapons + 2, onBossSelect, 'linear-gradient(180deg, #B91C1C, #7F1D1D)', '#450A0A')}
-        {menuButton('QUIT', '✖', numWeapons + 3, onQuitToMenu, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B')}
+        {menuButton('OPTIONS', '⚙', numWeapons + 2, () => onOpenOptions?.(), 'linear-gradient(180deg, #3F6212, #365314)', '#1A2E05')}
+        {menuButton('BOSS SELECT', '☰', numWeapons + 3, onBossSelect, 'linear-gradient(180deg, #B91C1C, #7F1D1D)', '#450A0A')}
+        {menuButton('QUIT', '✖', numWeapons + 4, onQuitToMenu, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B')}
       </div>
       <div className="mt-3 flex items-center gap-4 text-[6px] text-zinc-500 tracking-wider">
         <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />

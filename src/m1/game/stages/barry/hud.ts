@@ -14,6 +14,7 @@ import { placeOf } from './course';
 import { drawBubble } from './script';
 import { drawCityBurning, drawFlames } from './draw';
 import { bandedGradient } from '../../render/pixelArt';
+import { flashAlpha } from '../../settings';
 
 type Ctx = CanvasRenderingContext2D;
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -40,7 +41,7 @@ export const drawBarryOverlays = (ctx: Ctx, state: GameState, rt: BarryRuntime) 
   const d = fadeAmount(rt);
   if (d > 0) { ctx.fillStyle = `rgba(0,0,0,${d})`; ctx.fillRect(0, 0, W, H); }
   if (rt.transit?.kind === 'elevator') drawElevatorRide(ctx, state, rt);
-  if (rt.power.white > 0 && !rt.surf) { ctx.fillStyle = `rgba(255,255,255,${rt.power.white})`; ctx.fillRect(0, 0, W, H); }
+  if (rt.power.white > 0 && !rt.surf) { ctx.fillStyle = `rgba(255,255,255,${flashAlpha(rt.power.white)})`; ctx.fillRect(0, 0, W, H); }
   if (rt.surf?.phase === 'air') drawSurf(ctx, state, rt);
 };
 
@@ -208,7 +209,7 @@ const drawSurf = (ctx: Ctx, state: GameState, rt: BarryRuntime) => {
   ctx.restore();
   if (s.t > 50 && s.t < 170) drawBubble(ctx, x, y - p.height - 40, "SURF'S UP, DUDES!", '#F8FAFC');
   // Out of the white
-  if (s.t < 40) { ctx.fillStyle = `rgba(255,255,255,${1 - s.t / 40})`; ctx.fillRect(0, 0, W, H); }
+  if (s.t < 40) { ctx.fillStyle = `rgba(255,255,255,${flashAlpha(1 - s.t / 40)})`; ctx.fillRect(0, 0, W, H); }
   // (and the cut to the street at the end)
   if (s.t > SURF_AIR - 12) { ctx.fillStyle = `rgba(0,0,0,${(s.t - (SURF_AIR - 12)) / 12})`; ctx.fillRect(0, 0, W, H); }
 };

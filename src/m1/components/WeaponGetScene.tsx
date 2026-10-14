@@ -6,7 +6,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE } from 
 import { BOSS_WEAPON_MAP, WEAPON_DESCRIPTIONS, getWeaponInfo } from '../content/roster';
 import { createRange, stepRange, newRespawns } from '../game/range';
 import { KeyboardMouseState, readControls } from '../game/platform/input';
-import { PadButton, KeyCap } from './ButtonIcons';
+import { PadButton } from './ButtonIcons';
 import { useInputDevice, usePadFamily } from './useInputDevice';
 import { drawWorld } from '../game/render/world';
 import { WeaponArt } from './WeaponIcon';
@@ -20,6 +20,7 @@ import { drawEggBack, drawEggFront, EGG_MS, EGG_PEE_MS, EGG_SHAKE_MS, EGG_TURN_M
 import { SHOTS, ShotWeapon, isShotWeapon, turnPose, drawBackClothed, drawShotArm, muzzleAt, ArmPose, HOLD } from '../game/scenes/weaponShot';
 import { drawLensFx, shotCam, warmLensFx, SHOT_SFX, FX_W, FX_H } from '../game/scenes/weaponShotFx';
 import type { SoundType } from '../types';
+import { shakeScale, flashAlpha, reduceFlashing } from '../game/settings';
 
 // After a boss: fade out of the victory lap into a black void, face to face with
 // Meathead in first person. He decks the camera; it goes down on its side. Then
@@ -314,7 +315,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
     live: liveT,
   } : undefined;
   const muzzle: [number, number] = shotW ? toScreen(muzzleAt(shotW, shotPose(shotW, PUNCH - 1, egg !== null)), pictureScaleNow, eggPull.ty, bodyRot) : [400, 300];
-  const shake = cam ? (cam.shake ? (Math.random() - 0.5) * cam.shake * 2 : 0) : t >= IMPACT && t < IMPACT + 250 ? (Math.random() - 0.5) * 24 : 0;
+  const shake = (cam ? (cam.shake ? (Math.random() - 0.5) * cam.shake * 2 : 0) : t >= IMPACT && t < IMPACT + 250 ? (Math.random() - 0.5) * 24 : 0) * shakeScale();
   const header = HEADER.slice(0, Math.max(0, Math.floor((t - HEADER_AT) / HEADER_MS)));
   const typed = t >= nameAt ? name.slice(0, Math.floor((t - nameAt) / NAME_MS) + 1) : '';
   const jolt = t >= nameAt && t < rangeAt - RANGE_DELAY + 120 && (t - nameAt) % NAME_MS < 45 ? (Math.random() - 0.5) * 8 : 0;
@@ -347,7 +348,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
             {cam && cam.roll > 0 && <div className="absolute left-0 right-0 bg-black" style={{ top: -cam.roll, height: 60 }} />}
           </div>
           {/* (a flash of current through it: the picture in negative) */}
-          {cam?.invert && <div className="absolute inset-0 bg-white pointer-events-none" style={{ mixBlendMode: 'difference' }} />}
+          {cam?.invert && !reduceFlashing() && <div className="absolute inset-0 bg-white pointer-events-none" style={{ mixBlendMode: 'difference' }} />}
 
           {/* The fist, coming straight at the lens */}
           {punching && (
@@ -373,7 +374,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
 
           {/* The lens took it: cracked glass that stays put while the camera falls */}
           {!shotW && t >= IMPACT && <LensCrack />}
-          {!shotW && <div className="absolute inset-0 bg-white pointer-events-none" style={{ opacity: flash }} />}
+          {!shotW && <div className="absolute inset-0 bg-white pointer-events-none" style={{ opacity: flashAlpha(flash) }} />}
         </div>
       )}
       {/* His line, up only while he's saying it */}
@@ -648,7 +649,7 @@ const FlameCallout = () => {
   return (
     <div className="mt-3 inline-flex items-center gap-3 px-3 py-2"
       style={{ background: 'rgba(0,0,0,0.6)', border: '2px solid #F97316', boxShadow: '3px 3px 0 #000' }}>
-      <div className="animate-pulse">{pad ? <PadButton label="Y" family={family} /> : <KeyCap label="F" />}</div>
+      <div className="animate-pulse">{pad ? <PadButton label="Y" family={family} /> : <Prompt kb={['@secondary']} size={36} />}</div>
       <div className="text-[8px] leading-[14px] text-white uppercase">
         <div className="text-orange-400">SECONDARY FIRE: A FLAMETHROWER, NO SWITCHING</div>
         <div className="text-white/80">SLICK 'EM WITH OIL. THEN LIGHT 'EM UP.</div>

@@ -5,6 +5,7 @@
 // all run through a common bus with a short room on it. A sound played again too soon after itself, or with too
 // many of itself still going, is dropped (so a machine gun doesn't turn into white noise).
 
+import { mixOut } from './mixer';
 export const SFX_SR = 32000;
 const TAU = Math.PI * 2;
 const rnd = () => Math.random() * 2 - 1;
@@ -601,12 +602,12 @@ const busFor = (c: AudioContext) => {
   const soft = c.createBiquadFilter(); soft.type = 'lowpass'; soft.frequency.value = 12000;
   // (a lot going off at once gets held in, rather than clipping)
   const limit = c.createDynamicsCompressor(); limit.threshold.value = -10; limit.ratio.value = 6; limit.attack.value = 0.003; limit.release.value = 0.2;
-  bus.connect(soft); soft.connect(limit); limit.connect(c.destination);
+  bus.connect(soft); soft.connect(limit); limit.connect(mixOut(c, 'sfx'));
   const send = c.createGain(); send.gain.value = 0.14;
   const room = c.createDelay(0.5); room.delayTime.value = 0.07;
   const fb = c.createGain(); fb.gain.value = 0.25;
   const dark = c.createBiquadFilter(); dark.type = 'lowpass'; dark.frequency.value = 3000;
-  limit.connect(send); send.connect(room); room.connect(dark); dark.connect(fb); fb.connect(room); dark.connect(c.destination);
+  limit.connect(send); send.connect(room); room.connect(dark); dark.connect(fb); fb.connect(room); dark.connect(mixOut(c, 'sfx'));
   return bus;
 };
 

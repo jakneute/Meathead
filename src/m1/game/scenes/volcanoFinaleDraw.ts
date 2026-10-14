@@ -14,6 +14,7 @@ import { inHead } from '../render/bosses/kit';
 import { VOLCANO_FINALE, VOLCANO_FINALE_MESSAGE } from './volcanoFinale';
 import { drawSpelledMessage } from './sewerNukeDraw';
 import { drawVolcano } from '../stages/victor/draw';
+import { shakeScale, flashAlpha } from '../settings';
 
 type Ctx = CanvasRenderingContext2D;
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -40,7 +41,7 @@ export const drawVolcanoFinaleOutside = (ctx: Ctx, state: GameState): boolean =>
   ctx.save();
   // Each impact jolts the "camera"; the second knocks it askew for good
   const shake = outside1 ? (t < VOLCANO_FINALE.ERUPT ? 1 + t / 20 : 8) : 6 + (sinceHit < 12 ? (12 - sinceHit) * 2 : 0);
-  ctx.translate((hash(t) - 0.5) * shake * 2, (hash(t + 50) - 0.5) * shake * 2);
+  ctx.translate((hash(t) - 0.5) * shake * 2 * shakeScale(), (hash(t + 50) - 0.5) * shake * 2 * shakeScale());
   if (hits >= 2) {
     const tilt = Math.min(1, sinceHit / 8) * -0.075;
     ctx.translate(CX, H / 2); ctx.rotate(tilt); ctx.scale(1.12, 1.12); ctx.translate(-CX, -H / 2);
@@ -59,7 +60,7 @@ export const drawVolcanoFinaleOutside = (ctx: Ctx, state: GameState): boolean =>
   const flash = outside1
     ? (t >= VOLCANO_FINALE.ERUPT ? clamp01(1 - (t - VOLCANO_FINALE.ERUPT) / 20) : 0)
     : Math.max(clamp01(1 - lt / 15), sinceHit < 8 ? 0.8 * (1 - sinceHit / 8) : 0);
-  if (flash > 0) { ctx.fillStyle = `rgba(255, 250, 235, ${flash})`; ctx.fillRect(0, 0, W, H); }
+  if (flash > 0) { ctx.fillStyle = `rgba(255, 250, 235, ${flashAlpha(flash)})`; ctx.fillRect(0, 0, W, H); }
   if (outside2 && t >= VOLCANO_FINALE.TEXT) drawSpelledMessage(ctx, VOLCANO_FINALE_MESSAGE, Math.floor((t - VOLCANO_FINALE.TEXT) / VOLCANO_FINALE.TEXT_RATE));
   return true;
 };

@@ -6,6 +6,7 @@
 // louder or quieter, through a radio, a respirator...), then the clips end to end (Ogg Opus). A clip's decoded when
 // it's first wanted; the last few dozen are kept.
 
+import { mixOut } from './mixer';
 import { getAudioContext } from './audio';
 
 interface VoiceSpec { rate: number; gain: number; fx: string }
@@ -73,7 +74,7 @@ const busFor = (ctx: AudioContext) => {
   const input = ctx.createGain(); input.gain.value = 1;
   const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 3; comp.attack.value = 0.005; comp.release.value = 0.15;
   const make = ctx.createGain(); make.gain.value = 1.25;
-  input.connect(comp); comp.connect(make); make.connect(ctx.destination);
+  input.connect(comp); comp.connect(make); make.connect(mixOut(ctx, 'voice'));
   bus = { ctx, input };
   return input;
 };

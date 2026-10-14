@@ -7,6 +7,7 @@ import { shaded, ball, box, bands, layer, RAMP } from './art/snes';
 import { paintWhiteHouse, paintFence, whFlag, WH_NIGHT } from './art/whiteHouse';
 import { painting, bayer, noise, hash2, Painter, FormOpts } from './art/raster';
 import { shatPants, shatFront, shatSide, shatCloseUp, shatClock, flies, stink } from './shatLook';
+import { shakeScale } from '../settings';
 
 export const ART_W = 256;
 export const ART_H = 144;
@@ -1477,7 +1478,7 @@ const drawHandgunUp = (ctx: Ctx, t: number) => {
  * the fire's colors: stubble, the tape's raw outline round his mouth, the long strand of hair whipping off him.
  */
 export const drawPunch = (ctx: Ctx, t: number, real = false) => {
-  const shake = t < 20 ? (t % 4 < 2 ? 3 : -3) : 0;
+  const shake = (t < 20 ? (t % 4 < 2 ? 3 : -3) : 0) * shakeScale();
   ctx.save();
   ctx.translate(shake, 0);
   // Radial burst

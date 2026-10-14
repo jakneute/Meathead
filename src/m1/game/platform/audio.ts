@@ -1,3 +1,4 @@
+import { mixOut } from './mixer';
 import { SoundType } from '../../types';
 import { playSfx, warmSfx, stopSfx } from './sfx';
 
@@ -37,7 +38,7 @@ export const playHornDrone = (seconds: number) => {
     gain.gain.setValueAtTime(0.09, t + seconds - 0.6);
     gain.gain.exponentialRampToValueAtTime(0.001, t + seconds);
     filter.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(mixOut(ctx, 'sfx'));
     for (const freq of [220, 277, 222]) {
       const osc = ctx.createOscillator();
       osc.type = 'sawtooth';
@@ -87,7 +88,7 @@ export const playSniperShot = () => {
       filter.frequency.exponentialRampToValueAtTime(to, t + at + len);
       const gain = ctx.createGain();
       gain.gain.setValueAtTime(level, t + at);
-      noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+      noise.connect(filter); filter.connect(gain); gain.connect(mixOut(ctx, 'sfx'));
       noise.start(t + at);
     };
     // The crack, the report, the echo
@@ -101,7 +102,7 @@ export const playSniperShot = () => {
     sub.frequency.exponentialRampToValueAtTime(30, t + 0.6);
     subGain.gain.setValueAtTime(0.6, t);
     subGain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
-    sub.connect(subGain); subGain.connect(ctx.destination);
+    sub.connect(subGain); subGain.connect(mixOut(ctx, 'sfx'));
     sub.start(); sub.stop(t + 0.7);
   } catch {
     // Audio is best-effort.
@@ -125,7 +126,7 @@ export const playLockInSound = () => {
       gain.gain.setValueAtTime(gainAmt, t + at);
       gain.gain.exponentialRampToValueAtTime(0.001, t + at + 0.12);
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(mixOut(ctx, 'sfx'));
       osc.start(t);
       osc.stop(t + at + 0.13);
     });
@@ -149,7 +150,7 @@ export const playEngageSound = () => {
     nGain.gain.setValueAtTime(0.35, t);
     nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
     noise.connect(nGain);
-    nGain.connect(ctx.destination);
+    nGain.connect(mixOut(ctx, 'sfx'));
     noise.start();
     // E5 power chord (root, fifth, octave), sliding up into place
     for (const freq of [82.4, 123.5, 164.8]) {
@@ -164,7 +165,7 @@ export const playEngageSound = () => {
         gain.gain.setValueAtTime(0.05, t + 0.7);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 1.3);
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(mixOut(ctx, 'sfx'));
         osc.start();
         osc.stop(t + 1.3);
       }
@@ -191,7 +192,7 @@ const noiseBurst = (ctx: AudioContext, dur: number, gainAmt: number, filterType:
   gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
   src.connect(filter);
   filter.connect(gain);
-  gain.connect(ctx.destination);
+  gain.connect(mixOut(ctx, 'sfx'));
   src.start();
 };
 
@@ -206,7 +207,7 @@ const thump = (ctx: AudioContext, from: number, to: number, dur: number, gainAmt
   gain.gain.setValueAtTime(gainAmt, t);
   gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
   osc.connect(gain);
-  gain.connect(ctx.destination);
+  gain.connect(mixOut(ctx, 'sfx'));
   osc.start();
   osc.stop(t + dur);
 };
@@ -249,14 +250,14 @@ export const openRadio = () => {
   const noise = ctx.createBufferSource(); noise.buffer = buf; noise.loop = true;
   const band = ctx.createBiquadFilter(); band.type = 'bandpass'; band.frequency.value = 2200; band.Q.value = 0.7;
   const hiss = ctx.createGain(); hiss.gain.setValueAtTime(0.012, t);
-  noise.connect(band); band.connect(hiss); hiss.connect(ctx.destination);
+  noise.connect(band); band.connect(hiss); hiss.connect(mixOut(ctx, 'sfx'));
   // The modulator: a throbbing low buzz
   const buzz = ctx.createOscillator(); buzz.type = 'sawtooth'; buzz.frequency.value = 62;
   const lfo = ctx.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 23;
   const lfoDepth = ctx.createGain(); lfoDepth.gain.value = 0.012;
   const buzzGain = ctx.createGain(); buzzGain.gain.setValueAtTime(0, t);
   lfo.connect(lfoDepth); lfoDepth.connect(buzzGain.gain);
-  buzz.connect(buzzGain); buzzGain.connect(ctx.destination);
+  buzz.connect(buzzGain); buzzGain.connect(mixOut(ctx, 'sfx'));
   noise.start(); buzz.start(); lfo.start();
   let open = true;
   return {
@@ -287,7 +288,7 @@ export const playSquelch = () => {
     const src = ctx.createBufferSource(); src.buffer = buf;
     const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1200;
     const g = ctx.createGain(); g.gain.value = 0.08;
-    src.connect(hp); hp.connect(g); g.connect(ctx.destination);
+    src.connect(hp); hp.connect(g); g.connect(mixOut(ctx, 'sfx'));
     src.start(t);
   } catch { /* no audio */ }
 };

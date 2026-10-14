@@ -6,6 +6,7 @@ import { drawSkyClouds, prepareSkyClouds, DEPLOY_CLOUD_SCROLL_END } from '../gam
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
 import { SKIP_AFTER_MS } from '../game/platform/skip';
 import SkipPrompt from './SkipPrompt';
+import { flashAlpha } from '../game/settings';
 
 /**
  * Target select to gameplay: the recon map goes fullscreen and the camera
@@ -183,7 +184,7 @@ const DeployTransition: React.FC<Props> = ({ stageId, currentStages, defeatedSta
       drawSkyClouds(octx, 800, 600, cover, DEPLOY_CLOUD_SCROLL_END * clamp01((u - 0.72) / 0.28), stageId);
       // Carry-over flash from the LET'S GO
       const flash = 1 - clamp01(u / 0.07);
-      if (flash > 0) { octx.fillStyle = `rgba(255,255,255,${flash})`; octx.fillRect(0, 0, 800, 600); }
+      if (flash > 0) { octx.fillStyle = `rgba(255,255,255,${flashAlpha(flash)})`; octx.fillRect(0, 0, 800, 600); }
     };
 
     const tick = (now: number) => {

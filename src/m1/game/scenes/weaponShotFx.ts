@@ -6,6 +6,7 @@
 import type { SoundType } from '../../types';
 import { INK, hash, flames } from './art/ink';
 import { rock, ShotWeapon } from './weaponShot';
+import { flashAlpha } from '../settings';
 
 type Ctx = CanvasRenderingContext2D;
 type Pt = [number, number];
@@ -353,7 +354,7 @@ const boulder = (ctx: Ctx, e: number, src: Pt, hit: number) => {
     cracks(ctx, [...legs, ...rings2], 5);
     rings(ctx, WEB_C[0], WEB_C[1], 46, ['rgba(255,255,255,0.35)', 'rgba(255,255,255,0.6)', 'rgba(226,232,240,0.85)']);
     cracks(ctx, starCrack(WEB_C[0], WEB_C[1], 60, 77), 3);
-    if (f < 90) { ctx.fillStyle = `rgba(255,255,255,${1 - f / 90})`; ctx.fillRect(0, 0, W, H); }
+    if (f < 90) { ctx.fillStyle = `rgba(255,255,255,${flashAlpha(1 - f / 90)})`; ctx.fillRect(0, 0, W, H); }
   }
   // The rock: thrown, coming at the lens end over end till it's all there is; then dropping away off it
   if (f < 260) {
@@ -411,7 +412,7 @@ const tsunami = (ctx: Ctx, e: number, src: Pt, hit: number) => {
     ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x - r * 0.5, y - r * 0.6, 4, 4);
   }
   // The splash on the glass: streaks running
-  if (f < 400) { ctx.fillStyle = `rgba(240,249,255,${0.7 * (1 - f / 400)})`; ctx.fillRect(0, 0, W, H); }
+  if (f < 400) { ctx.fillStyle = `rgba(240,249,255,${flashAlpha(0.7 * (1 - f / 400))})`; ctx.fillRect(0, 0, W, H); }
   // Then it shorts out: static fizzing up over it, till there's nothing
   if (f > 520) {
     const k = clamp01((f - 520) / 380), seed = Math.floor(f / 33);
@@ -577,7 +578,7 @@ const oilRocket = (ctx: Ctx, e: number, src: Pt, hit: number) => {
     const k = clamp01(blast / 500);
     rings(ctx, 400, 300, 200 + k * 700, ['#7F1D1D', '#B91C1C', '#EA580C', '#F59E0B', '#FDE047', '#FEF9C3', '#FFFFFF']);
     bigFlames(ctx, -40, H + 20, W + 80, 500 * (1 - k * 0.5), Math.floor(blast / 60));
-    if (blast < 110) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H); }
+    if (blast < 110) { ctx.fillStyle = `rgba(255,255,255,${flashAlpha(1)})`; ctx.fillRect(0, 0, W, H); }
     if (k > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(k - 0.6) / 0.4})`; ctx.fillRect(0, 0, W, H); }
   }
 };

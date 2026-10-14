@@ -5,6 +5,7 @@
 // one area to the next). Muffled (a low filter over everything) when the game's paused, or he's under water;
 // quieter (ducked) while anyone's talking.
 
+import { mixOut } from '../mixer';
 import { INSTRUMENTS, sampleFor } from './instruments';
 import { parseMML, NoteEvent } from './mml';
 
@@ -106,7 +107,7 @@ const ensureChain = (): AudioContext | null => {
   // (and trimmed back to where it sat before the room went in: the reverb's tail adds to it, and the music has to
   // sit where it always did under the voices and the guns)
   const trim = c.createGain(); trim.gain.value = 0.76;
-  comp.connect(trim); trim.connect(c.destination);
+  comp.connect(trim); trim.connect(mixOut(c, 'music'));
   filter.connect(comp);
   filter.connect(send); send.connect(delay); delay.connect(dark); dark.connect(fb); fb.connect(delay); dark.connect(comp);
   // The room: a reverb under it all (a short pre-delay, then a hall's worth of tail, its lows thinned so the bass

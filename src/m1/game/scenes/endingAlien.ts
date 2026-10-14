@@ -14,6 +14,7 @@ import { slab } from './art/props';
 import { INK, shape, speckle, hatch } from './art/ink';
 import { bead } from './grossUp';
 import { ALIEN, drawAlienFigure, alienMuzzle, laserBeam, AlienPose } from './alienLook';
+import { shakeScale } from '../settings';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -753,7 +754,7 @@ const finger = (ctx: Ctx, x0: number, y0: number, x1: number, y1: number, w: num
  */
 export const drawSkinSplit = (ctx: Ctx, t: number) => {
   ctx.save();
-  const shake = (t >= SPLIT_TEAR && t < SPLIT_TEAR + 10) || (t >= SPLIT_OPEN && t < SPLIT_OPEN + 8) ? (t % 4 < 2 ? 1.5 : -1.5) : 0;
+  const shake = ((t >= SPLIT_TEAR && t < SPLIT_TEAR + 10) || (t >= SPLIT_OPEN && t < SPLIT_OPEN + 8) ? (t % 4 < 2 ? 1.5 : -1.5) : 0) * shakeScale();
   ctx.translate(shake, 0);
   // (a slow push in)
   const z = 1 + Math.min(t, SPLIT_LEN) / SPLIT_LEN * 0.06;

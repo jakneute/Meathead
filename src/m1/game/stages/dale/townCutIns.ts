@@ -11,6 +11,7 @@
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { bandedGradient, checker } from '../../render/pixelArt';
 import { ramp } from '../../render/backdrops/core';
+import { flashAlpha } from '../../settings';
 
 type Ctx = CanvasRenderingContext2D;
 const LW = 400, LH = 300;
@@ -62,7 +63,7 @@ const finish = (g: Ctx, t: number) => {
 /** A cut-in's way in and out: a white frame as it cuts, a lurch, and a white frame out. */
 const cutFlash = (ctx: Ctx, t: number, len: number) => {
   const a = t < 3 ? 0.9 - t * 0.3 : t > len - 3 ? 0.9 - (len - t) * 0.3 : 0;
-  if (a > 0) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); ctx.restore(); }
+  if (a > 0) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = `rgba(255,255,255,${flashAlpha(a)})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); ctx.restore(); }
 };
 
 // ---------------------------------------------------------------------------

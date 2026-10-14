@@ -20,6 +20,7 @@ import { TOWER_FRAMES, SURF_FRAMES, FAMILY_FRAMES, CRUSH_FRAMES, MELT_FRAMES, LA
 import { SKIP_AFTER, drawSkipPrompt } from '../../platform/skip';
 import { drawStreetSky, drawWaterTower, CITY_SUIT, CITY_CREASE, CITY_VEST, CITY_BAND, CITY_BLUE, CITY_FILTER } from './streetDraw';
 import { saying, drawBubble } from './script';
+import { flashAlpha } from '../../settings';
 
 type Ctx = CanvasRenderingContext2D;
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -137,7 +138,7 @@ const drawLaunchScene = (ctx: Ctx, state: GameState, tt: number) => {
   // Him, after it, in his suit, arms up
   if (t >= 34) { const y = my - (t - 34) * 30; if (y > -100) { suitedMan(ctx, mx, y, 1.6, Math.sin(t) * 0.1); ctx.strokeStyle = 'rgba(250, 204, 21, 0.5)'; ctx.lineWidth = 3; for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(mx + i * 12, y + 10); ctx.lineTo(mx + i * 12, y + 90); ctx.stroke(); } } }
   ctx.restore();
-  if (t >= 8 && t < 12) { ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(0, 0, W, H); }
+  if (t >= 8 && t < 12) { ctx.fillStyle = `rgba(255,255,255,${flashAlpha(0.5)})`; ctx.fillRect(0, 0, W, H); }
   // (a moment of black in, and out: the cut)
   if (tt < 4) { ctx.fillStyle = `rgba(0,0,0,${1 - tt / 4})`; ctx.fillRect(0, 0, W, H); }
 };
@@ -316,7 +317,7 @@ const drawTowerScene = (ctx: Ctx, state: GameState, t: number) => {
     }
   }
   ctx.restore();
-  if ((t > COVER_HIT && t < COVER_HIT + 5) || (t > TOWER_DOWN && t < TOWER_DOWN + 8)) { ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(0, 0, W, H); }
+  if ((t > COVER_HIT && t < COVER_HIT + 5) || (t > TOWER_DOWN && t < TOWER_DOWN + 8)) { ctx.fillStyle = `rgba(255,255,255,${flashAlpha(0.6)})`; ctx.fillRect(0, 0, W, H); }
   // (out to white as the wave goes)
   if (t > TOWER_FRAMES - LAUNCH - 14) { ctx.fillStyle = `rgba(255,255,255,${(t - (TOWER_FRAMES - LAUNCH - 14)) / 14})`; ctx.fillRect(0, 0, W, H); }
   bubble(ctx, state, 'meathead', 260, 150);
@@ -431,7 +432,7 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
   ctx.save(); ctx.translate(rx, ry - 60); ctx.rotate(Math.sin(t * 0.2) * 0.2); shadedTop(ctx, () => ctx.roundRect(-44, -4, 88, 8, 3), '#FACC15', -44, -4, 88, 8, 1.2); ink(ctx, () => { ctx.arc(-44, 0, 5, 0, Math.PI * 2); }, '#FACC15', 1); ink(ctx, () => { ctx.arc(44, 0, 5, 0, Math.PI * 2); }, '#FACC15', 1); ctx.restore();
   // Spray off the front of it
   for (let i = 0; i < 8; i++) { const q = ((t * 4 + i * 9) % 30) / 30; ctx.fillStyle = `rgba(190, 242, 100, ${0.9 * (1 - q)})`; ctx.fillRect(rx + 30 + q * 80, ry - q * 40 + i * 3, 5, 5); }
-  if (t < 12) { ctx.fillStyle = `rgba(255,255,255,${1 - t / 12})`; ctx.fillRect(0, 0, W, H); }
+  if (t < 12) { ctx.fillStyle = `rgba(255,255,255,${flashAlpha(1 - t / 12)})`; ctx.fillRect(0, 0, W, H); }
   bubble(ctx, state, 'meathead', rx, ry - 110);
   void SURF_FRAMES;
 };
@@ -559,7 +560,7 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
     ctx.beginPath(); ctx.moveTo(W, 90); ctx.quadraticCurveTo(W - flood * 500, 200, W - flood * 900, H); ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
     ctx.fillRect(0, H - flood * 300, W, flood * 300);
     ctx.fillStyle = 'rgba(217, 249, 157, 0.6)'; for (let i = 0; i < 12; i++) { const x = (i * 71 + crushT * 5) % W; ctx.beginPath(); ctx.arc(x, H - flood * 300 + 4, 4, 0, Math.PI * 2); ctx.fill(); }
-    if (crushT < 8) { ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(0, 0, W, H); }
+    if (crushT < 8) { ctx.fillStyle = `rgba(255,255,255,${flashAlpha(0.5)})`; ctx.fillRect(0, 0, W, H); }
     // Close up on them: in it, the skin coming away (sizzling, smoking) from the top down to the bone
     if (crushT > 40) drawBurnCloseUp(ctx, f, crushT);
     const out = clamp01((crushT - (CRUSH_FRAMES - 40)) / 40);

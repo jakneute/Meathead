@@ -22,6 +22,7 @@ import { drawPerson } from '../../render/npc/person';
 import type { PersonSpec, Pose } from '../../render/npc/person';
 import { INK, ink, limb, shaded, shadedTop, dark, lite } from '../../render/npc/kit';
 import { drawSpatter } from '../../render/spatter';
+import { flashAlpha } from '../../settings';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -789,6 +790,6 @@ export const drawCellHud = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
     ctx.restore();
   }
   // A white flash on impact
-  if (tour.t >= IMPACT_AT && tour.t < IMPACT_AT + 16) { ctx.fillStyle = `rgba(255,255,255,${1 - (tour.t - IMPACT_AT) / 16})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
+  if (tour.t >= IMPACT_AT && tour.t < IMPACT_AT + 16) { ctx.fillStyle = `rgba(255,255,255,${flashAlpha(1 - (tour.t - IMPACT_AT) / 16)})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
   void state;
 };

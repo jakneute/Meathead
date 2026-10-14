@@ -20,6 +20,7 @@ import { drawBoatScene, drawBoatFront, drawTowerJunk, drawEyeArena, drawDaycare,
 import { drawEyeHud } from './eyeDraw';
 import { stamp } from '../../render/stamp';
 import { drawStormWall, stormFlash, stormBoltX } from './stormWall';
+import { flashAlpha } from '../../settings';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -152,7 +153,7 @@ const drawInsideStorm = (ctx: Ctx, state: GameState) => {
   // Lightning somewhere in the storm (the same flash lights the eye wall and everything on it: see stormWall)
   const flash = stormFlash(f);
   if (flash > 0) {
-    ctx.fillStyle = `rgba(210, 225, 255, ${(0.35 * flash).toFixed(3)})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.fillStyle = `rgba(210, 225, 255, ${flashAlpha(0.35 * flash, 0.08).toFixed(3)})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     const s = Math.floor(f / 200);
     ctx.strokeStyle = '#E0E7FF'; ctx.lineWidth = 2; ctx.beginPath();
     let x = stormBoltX(f), y = 0; ctx.moveTo(x, y);
@@ -344,7 +345,7 @@ export const drawHectorHud = (ctx: Ctx, state: GameState) => {
   drawNews(ctx, state, rt.news);
   // Whiteouts: the jump up to the Eye, and the storm dying
   const flash = Math.max(towerFlash(rt.tower), rt.clearT > 0 ? (rt.clearT < 40 ? rt.clearT / 40 : Math.max(0, 1 - (rt.clearT - 40) / 50)) : 0);
-  if (flash > 0) { ctx.fillStyle = `rgba(240, 245, 255, ${flash})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
+  if (flash > 0) { ctx.fillStyle = `rgba(240, 245, 255, ${flashAlpha(flash)})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
 };
 
 // ---------------------------------------------------------------------------

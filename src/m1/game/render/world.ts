@@ -53,6 +53,7 @@ import { drawBossDoor, drawLairFacade } from './bossDoors';
 import { drawTommyShaftBack } from './bosses/lairs/tommy';
 import { drawFrozenShell, drawOnFire, drawTasedFx, drawTaserBeam, isTasedNow, statusTint, tasedJitter } from './statusFx';
 import { stampsForStage } from './stamp';
+import { shakeScale, flashAlpha } from '../settings';
 
 export interface WorldView {
   status: GameStatus;
@@ -111,8 +112,9 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
   // World space (camera + screen shake; a paused frame holds still). shiftX widens the view to the left (the cylinder pass draws a wider strip)
   const worldPass = (wctx: CanvasRenderingContext2D, shiftX: number) => {
     wctx.save();
-    if (state.screenShakeTimer > 0 && status !== GameStatus.PAUSED) {
-      const m = state.screenShakeMagnitude * 2;
+    // (scaled by the options screen's SCREEN SHAKE)
+    if (state.screenShakeTimer > 0 && status !== GameStatus.PAUSED && shakeScale() > 0) {
+      const m = state.screenShakeMagnitude * 2 * shakeScale();
       wctx.translate((Math.random() - 0.5) * m, (Math.random() - 0.5) * m);
     }
     wctx.translate(-(state.camera.x - shiftX), -state.camera.y);
@@ -1520,7 +1522,7 @@ const drawBarryLighting = (ctx: CanvasRenderingContext2D, state: GameState, stag
       // Half-second electrified flash lighting up the room when he lands
       ctx.save();
       ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
-      const pulse = 0.22 + 0.12 * Math.sin(state.frame * 0.8);
+      const pulse = flashAlpha(0.22 + 0.12 * Math.sin(state.frame * 0.8), 0.1);
       ctx.fillStyle = `rgba(0, 229, 255, ${pulse})`;
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       ctx.restore();
@@ -1528,7 +1530,7 @@ const drawBarryLighting = (ctx: CanvasRenderingContext2D, state: GameState, stag
       // Light up the screen as lightning strikes persist
       ctx.save();
       ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha(0.25, 0.08)})`;
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       ctx.restore();
     }

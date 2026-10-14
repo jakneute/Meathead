@@ -2,6 +2,30 @@ import React from 'react';
 import { useInputDevice, usePadFamily } from './useInputDevice';
 import type { PadFamily } from '../game/platform/device';
 import { padIs360 } from '../game/platform/device';
+import { useSyncExternalStore } from 'react';
+import { subscribeKeys, keysVersion, primaryKey, keysFor, isKeyAction, keyLabel } from '../game/platform/keys';
+
+/**
+ * Key names for a prompt, with the game's own buttons as they're set now (the options screen can change them):
+ * '@jump' is jump's primary (its secondary if the primary's cleared), '@@jump' both of them; an action with nothing
+ * bound is left out. Anything else is shown as it is (the menus' keys, which don't change: ENTER, ESC, the arrows).
+ * What comes back are key codes for the game's ('mouse0' and so on for the mouse's buttons), plain names for the rest.
+ * Re-renders when the bindings change.
+ */
+export const useBoundKeys = (kb: string[]): { code?: string; name: string }[] => {
+  useSyncExternalStore(subscribeKeys, keysVersion, keysVersion);
+  return kb.flatMap(k => {
+    if (!k.startsWith('@')) return [{ name: k }];
+    const both = k.startsWith('@@'), a = k.slice(both ? 2 : 1);
+    if (!isKeyAction(a)) return [];
+    const codes = both ? keysFor(a) : [primaryKey(a)].filter((c): c is string => !!c);
+    return codes.map(code => ({ code, name: keyLabel(code) }));
+  });
+};
+
+/** One bound button: the mouse (its button lit) for a mouse button it can draw, a keycap for the rest. */
+export const BindingIcon: React.FC<{ code?: string; name: string; size?: number }> = ({ code, name, size = 14 }) =>
+  code === 'mouse0' ? <MouseIcon button="left" size={size} /> : code === 'mouse2' ? <MouseIcon button="right" size={size} /> : code === 'mouse1' ? <MouseIcon button="wheel" size={size} /> : <KeyCap label={name} size={size} />;
 
 // Button prompts, drawn as the buttons themselves, for whichever you're using right now: a controller's buttons if
 // the controller was the last thing touched, the keyboard's keys (and the mouse) if it was the keyboard or the mouse.
@@ -174,9 +198,10 @@ export const PadIcon: React.FC<{ k: PadKey; size?: number; family?: PadFamily }>
  */
 export const Prompt: React.FC<{ pad?: PadKey[]; kb?: string[]; mouse?: 'left' | 'right' | 'wheel'; label?: string; size?: number; className?: string }> = ({ pad = [], kb = [], mouse, label, size = 14, className = '' }) => {
   const device = useInputDevice(), family = usePadFamily();
+  const keys = useBoundKeys(kb);
   const icons = device === 'pad'
     ? pad.map(k => <PadIcon key={k} k={k} size={size} family={family} />)
-    : [...kb.map(k => <KeyCap key={k} label={k} size={size} />), ...(mouse ? [<MouseIcon key="m" button={mouse} size={size} />] : [])];
+    : [...keys.map((k, i) => <BindingIcon key={`${k.code ?? k.name}${i}`} code={k.code} name={k.name} size={size} />), ...(mouse ? [<MouseIcon key="m" button={mouse} size={size} />] : [])];
   if (!icons.length) return label ? <span className={className}>{label}</span> : null;
   return (
     <span className={`inline-flex items-center gap-[3px] align-middle ${className}`}>

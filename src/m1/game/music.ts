@@ -6,6 +6,7 @@
 import { GameStatus } from '../types';
 import type { GameState } from './core/state';
 import { getAudioContext } from './platform/audio';
+import { getSettings } from './settings';
 import { isTalking } from './platform/speech';
 import { play, stop, setMix, useContext, warmUp } from './platform/music/engine';
 import { SONGS } from './platform/music/songs';
@@ -32,17 +33,9 @@ let screenCue: Cue | null | undefined;
 /** The sound test (the cheat panel): whatever it's playing wins. */
 let testCue: Cue | null = null;
 let paused = false;
-/** Music on or off (the title screen's switch; remembered). */
-let enabled = (() => { try { return localStorage.getItem('meathead-music') !== 'off'; } catch { return true; } })();
-export const musicEnabled = () => enabled;
-export const setMusicEnabled = (on: boolean) => {
-  enabled = on;
-  try { localStorage.setItem('meathead-music', on ? 'on' : 'off'); } catch { /* not remembered, then */ }
-  last = '#';
-  // (the sound test goes quiet with it)
-  if (!on) testCue = null;
-  start();
-};
+/** Music on or off: off with its volume (or the master) all the way down (the options screen), so it isn't played to nobody. */
+const enabled = () => { const s = getSettings(); return s.music > 0 && s.master > 0; };
+export const musicEnabled = () => enabled();
 let fromGame: (() => { cue: Cue | null; muffled: boolean }) | null = null;
 let timer: ReturnType<typeof setInterval> | null = null;
 let last = '';
@@ -56,7 +49,7 @@ export const setGameMusic = (fn: () => { cue: Cue | null; muffled: boolean }) =>
 
 const apply = () => {
   const game = fromGame?.();
-  const cue = !enabled ? null : testCue ?? (screenCue !== undefined ? screenCue : game?.cue ?? null);
+  const cue = !enabled() ? null : testCue ?? (screenCue !== undefined ? screenCue : game?.cue ?? null);
   const key = cue ? `${cue.song}:${cue.arr ?? ''}` : '';
   if (key !== last) {
     last = key;
