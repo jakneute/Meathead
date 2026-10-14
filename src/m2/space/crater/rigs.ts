@@ -24,7 +24,7 @@ import { hazardVictims, hazardHit } from '../../hazardHit';
 import { speak, meatheadSays, saidOver, box } from '../section';
 import { INK, limb } from '../../../m1/game/render/npc/kit';
 import { paintCrate } from './ship';
-import { poly, line } from './paint';
+import { poly, line, stamp } from './paint';
 import { GY } from '../geometry';
 import { drawCheapGreen, shown } from './art';
 import { alienSays, freshBark, barkPlace, GRUNT, BRUTE, isOperator, setOperating } from './kinds';
@@ -242,18 +242,36 @@ const drawRigHousing = (c: Ctx, r: Rig, k: number) => {
     else { poly(c, [[hx, hy], [hx - 16, hy - 8], [hx - 16, hy + 108], [hx, hy + 100]], '#3F3F46'); line(c, [hx, hy], [hx - 16, hy - 8], '#A1A1AA'); }
   }
   if (r.kind === 'crate') {
-    paintCrate(c, r.x - 34, GY - 40, 68, 40, 'FRAGILE');
+    stamp(c, `xs-rigcrate-${r.x}`, r.x - 37, GY - 43, 74, 46, g => paintCrate(g, r.x - 34, GY - 40, 68, 40, 'FRAGILE'));
     if (open) { poly(c, [[r.x - 34, GY - 40], [r.x - 44, GY - 70], [r.x - 40, GY - 72], [r.x - 30, GY - 40]], '#8E5620'); box(c, r.x - 32, GY - 40, 64, 3, '#050308'); }
   }
 };
 
+/** Behind everybody: the rigs themselves (a trap door in the deck, a slot in the ceiling, a hatch in the bulkhead, a
+ *  crate), the operators' links. */
 export const drawRigs = (c: Ctx, state: GameState, rigs: Rig[]) => {
+  const f = state.frame;
+  for (const r of rigs) if (shown(state, r.x - 260, r.x + 260)) drawRigHousing(c, r, rigOut(r));
+  // (the operators' links: green rings from each headset to its rig)
+  for (const r of rigs) {
+    if ((r.mode !== 'seize' && r.mode !== 'fight') || !r.op) continue;
+    const sx = r.op.pos.x + r.op.width / 2 - 2, sy = r.op.pos.y - 28, b = rigBody(r), n = 8;
+    if (!shown(state, Math.min(sx, b.x), Math.max(sx, b.x))) continue;
+    for (let i = 0; i < n; i++) {
+      const k = ((i / n) + f * 0.04) % 1, x = sx + (b.x - sx) * k, y = sy + (b.y - 40 - sy) * k - Math.sin(k * Math.PI) * 40;
+      c.strokeStyle = `rgba(163, 230, 53, ${(0.75 * (1 - k * 0.4)).toFixed(2)})`; c.lineWidth = 2;
+      c.beginPath(); c.ellipse(x, y, 5 + k * 6, 9 + k * 8, 0, 0, Math.PI * 2); c.stroke();
+    }
+  }
+};
+
+/** In front of everything (the scenery, them, him: a jump scare's in your face): the animatronics out of their rigs,
+ *  the sparks they spit. Under the words. */
+export const drawRigsFront = (c: Ctx, state: GameState, rigs: Rig[]) => {
   const f = state.frame;
   for (const r of rigs) {
     if (!shown(state, r.x - 260, r.x + 260)) continue;
     const k = rigOut(r);
-    // (the rig itself: a trap door in the deck, a slot in the ceiling, a hatch in the bulkhead, a crate)
-    drawRigHousing(c, r, k);
     if (k <= 0.01) continue;
     const pl = rigPlace(r, k);
     const on = r.mode === 'seize' || r.mode === 'fight';
@@ -283,17 +301,6 @@ export const drawRigs = (c: Ctx, state: GameState, rigs: Rig[]) => {
       drawCheapGreen(c, pl.x, pl.y, f, pl.s, pose, look);
     }
     c.restore();
-  }
-  // (the operators' links: green rings from each headset to its rig)
-  for (const r of rigs) {
-    if ((r.mode !== 'seize' && r.mode !== 'fight') || !r.op) continue;
-    const sx = r.op.pos.x + r.op.width / 2 - 2, sy = r.op.pos.y - 28, b = rigBody(r), n = 8;
-    if (!shown(state, Math.min(sx, b.x), Math.max(sx, b.x))) continue;
-    for (let i = 0; i < n; i++) {
-      const k = ((i / n) + f * 0.04) % 1, x = sx + (b.x - sx) * k, y = sy + (b.y - 40 - sy) * k - Math.sin(k * Math.PI) * 40;
-      c.strokeStyle = `rgba(163, 230, 53, ${(0.75 * (1 - k * 0.4)).toFixed(2)})`; c.lineWidth = 2;
-      c.beginPath(); c.ellipse(x, y, 5 + k * 6, 9 + k * 8, 0, 0, Math.PI * 2); c.stroke();
-    }
   }
   // (the sparks it spits)
   for (const sp of sparks) { box(c, sp.x - 4, sp.y - 4, 8, 8, '#F59E0B'); box(c, sp.x - 2, sp.y - 2, 4, 4, f % 4 < 2 ? '#FFFFFF' : '#FDE047'); }

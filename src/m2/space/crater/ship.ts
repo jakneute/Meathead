@@ -12,9 +12,10 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { drawCheapGreen } from './green';
+import { lettering, letterSize, type Letter } from '../square/lettering';
 import { x1, HOUSE_DOOR, QUEUE_END, PRESHOW, HALLS, CATWALKS, CRATES, CEIL, TRAMS } from './layout';
 import {
-  type Ctx, INK, box, checker, mix, hash, stamp, bandedGradient, hazeBands, pixelBlob, poly, inked, line, words, textW, panel, post, orb,
+  type Ctx, INK, box, checker, mix, hash, stamp, bandedGradient, hazeBands, pixelBlob, poly, inked, line, panel, post, orb,
   pipeH, shown, STEEL, CARD, PINE, HAZ, CHROME, BONE, PINK,
 } from './paint';
 
@@ -37,10 +38,34 @@ const AREAS: Record<AreaId, { R: string[]; trim: string; deck: string[] }> = {
   engine: { R: ramp7('#6A3820'), trim: '#F97316', deck: ramp7('#3E2E26') },
   exit: { R: ramp7('#4A2860'), trim: '#C084FC', deck: ramp7('#30263A') },
 };
-const BOUNDS: [number, AreaId][] = [[HOUSE_DOOR, 'queue'], [QUEUE_END, 'preshow'], [PRESHOW.r, 'bridge'], [HALLS.bridge.r, 'specimen'], [HALLS.specimen.r, 'engine'], [HALLS.engine.r, 'exit']];
+
+/** The doorways between the rooms (each room's steel meets the next's in the middle of one): the opening (l to r: he
+ *  walks through it), its jambs' width, the plate on its header. Clear of the trams' airlocks (each hatch in its own
+ *  room: the bridge's and the engine room's way on are past their far hatches), the last one into the hold. */
+export interface Doorway { l: number; r: number; jw: number; plate: string }
+export const DOORWAYS: Doorway[] = [
+  { l: QUEUE_END - 16, r: QUEUE_END + 60, jw: 20, plate: 'TELEPORTER' },
+  { l: PRESHOW.r - 32, r: PRESHOW.r + 44, jw: 20, plate: 'BRIDGE' },
+  { l: HALLS.bridge.r + 62, r: HALLS.bridge.r + 122, jw: 16, plate: 'SPECIMEN BAY' },
+  { l: HALLS.specimen.r - 74, r: HALLS.specimen.r - 18, jw: 16, plate: 'ENGINE ROOM' },
+  { l: HALLS.engine.r + 50, r: HALLS.engine.r + 110, jw: 16, plate: 'AFT' },
+  { l: x1 - 80, r: x1, jw: 18, plate: 'THE HOLD' },
+];
+/** The doorways' headers come down to here (well over his head, and his jumps off the gantries). */
+export const DOOR_TOP = GY - 340;
+const mid = (d: Doorway) => (d.l + d.r) / 2;
+const BOUNDS: [number, AreaId][] = [[HOUSE_DOOR, 'queue'], [mid(DOORWAYS[0]), 'preshow'], [mid(DOORWAYS[1]), 'bridge'], [mid(DOORWAYS[2]), 'specimen'], [mid(DOORWAYS[3]), 'engine'], [mid(DOORWAYS[4]), 'exit']];
 export const areaAt = (x: number): AreaId => { let a: AreaId = 'queue'; for (const [bx, id] of BOUNDS) if (x >= bx) a = id; return a; };
-/** The bulkhead frames between the halls (where a tram's tunnel isn't). */
-const FRAMES = [QUEUE_END + 10, PRESHOW.r + 14, HALLS.specimen.r - 14];
+
+/** The first of the styles the words fit in, `w` wide. */
+const fit = (t: string, w: number, styles: Letter[]) => styles.find(st => letterSize(t, st)[0] <= w) ?? styles[styles.length - 1];
+/** A chain (a sign hung off the pipes on it): links, alternately face on and edge on, from y0 down to y1. */
+const chain = (g: Ctx, x: number, y0: number, y1: number) => {
+  for (let y = y0, k = 0; y < y1; y += 5, k++) {
+    if (k % 2) { box(g, x - 1, y, 3, 6, INK); box(g, x, y + 1, 1, 4, '#A1A1AA'); }
+    else { box(g, x - 2, y, 5, 6, INK); box(g, x - 1, y + 1, 3, 4, '#52525B'); box(g, x - 1, y + 1, 1, 1, '#D4D4D8'); box(g, x, y + 2, 1, 2, INK); }
+  }
+};
 
 const view = (state: GameState) => ({ x: state.view?.x ?? state.camera.x, w: state.view?.w ?? CANVAS_WIDTH });
 
@@ -161,34 +186,104 @@ const drawDepthLines = (c: Ctx, state: GameState) => {
   c.restore();
 };
 
-/** The bulkhead frames: their sides going back to the wall (over what's on it), their faces at the play plane (thick
- *  steel, a hazard band, a light over the opening). */
-const drawFrames = (c: Ctx, state: GameState) => {
-  const v = view(state), ex = v.x + v.w / 2;
-  // (the bulkhead frames between the halls: their sides going back to the wall)
-  for (const fx of FRAMES) {
-    if (fx < v.x - 200 || fx > v.x + v.w + 200) continue;
-    const id = areaAt(fx), R = AREAS[id].R, l = fx - 16, r = fx + 16;
-    const side = (e: number, s: 1 | -1) => {
-      if ((ex - e) * s <= 1) return;
-      poly(c, [[e, CEIL], atWall(ex, e, CEIL), atWall(ex, e, GY), [e, GY]], R[1]);
-      poly(c, [[e, CEIL], atWall(ex, e, CEIL), atWall(ex, e, CEIL + 30), [e, CEIL + 30]], R[0]);
-      line(c, atWall(ex, e, CEIL), atWall(ex, e, GY), INK);
-    };
-    side(r, 1); side(l, -1);
+/** The doorways between the rooms. Live, going back to the wall (the one eye): the passage on through it (dark, under
+ *  the header), the threshold's plate on the deck, the header's underside, the jambs' sides. Stamped, at the play
+ *  plane: the frame (two jambs, the header across them with the next room's plate and its lamps, the threshold's lit
+ *  lip), the door's leaves run back into the jambs' pockets (their striped edges showing). */
+const drawDoorways = (c: Ctx, state: GameState) => {
+  const v = view(state), ex = v.x + v.w / 2, eye = { x: ex, y: EY };
+  for (let i = 0; i < DOORWAYS.length; i++) {
+    const d = DOORWAYS[i], L = d.l - d.jw, R = d.r + d.jw;
+    if (!shown(state, Math.min(L, atWall(ex, L, GY)[0]) - 10, Math.max(R, atWall(ex, R, GY)[0]) + 10)) continue;
+    const near = AREAS[areaAt(L)], far = AREAS[areaAt(R)], hold = i === DOORWAYS.length - 1;
+    // (the passage on through it, at the wall: dark under the header, the next room's light at its foot)
+    const [pl, pt] = atWall(ex, d.l, DOOR_TOP), [pr] = atWall(ex, d.r, DOOR_TOP);
+    const pc = hold ? ['#05020A', '#0B0414', '#140822', '#1E0C32', '#2C1248', '#3B1A60'] : [STEEL[0], STEEL[0], far.R[0], far.R[0], far.R[1], far.R[1]];
+    bandedGradient(c, pl, pt, pr - pl, FOOT - pt, pc, 6);
+    box(c, pl, FOOT - 3, pr - pl, 3, mix(far.trim, INK, 0.6));
+    // (the threshold's plate going back: steel, a hazard stripe across it, lit at its near edge)
+    poly(c, [[d.l, GY], [d.r, GY], atWall(ex, d.r, GY), atWall(ex, d.l, GY)], STEEL[4]);
+    poly(c, [atWall(ex, d.l, GY, 0.97), atWall(ex, d.r, GY, 0.97), atWall(ex, d.r, GY, 0.95), atWall(ex, d.l, GY, 0.95)], HAZ[2]);
+    poly(c, [[d.l, GY], [d.r, GY], atWall(ex, d.r, GY, 0.99), atWall(ex, d.l, GY, 0.99)], STEEL[6]);
+    line(c, atWall(ex, d.l, GY), atWall(ex, d.r, GY), INK);
+    // (the header's underside going back, banded darker toward the wall)
+    flatBands(c, eye, L, R, DOOR_TOP, [far.R[2], far.R[1], far.R[0]]);
+    // (the jambs' sides: in the opening, from the header down; outside it, the whole height)
+    sideBands(c, eye, d.l, 1, DOOR_TOP, GY, [near.R[2], near.R[1]]);
+    sideBands(c, eye, d.r, -1, DOOR_TOP, GY, [far.R[2], far.R[1]]);
+    sideBands(c, eye, L, -1, CEIL, GY, [near.R[1], near.R[0]]);
+    sideBands(c, eye, R, 1, CEIL, GY, [far.R[1], far.R[0]]);
+    stamp(c, `xs-door-${i}`, L - 4, CEIL - 4, R - L + 8, GY - CEIL + 14, g => paintDoorway(g, d, near, far));
   }
-  for (const fx of FRAMES) {
-    if (!shown(state, fx - 30, fx + 30)) continue;
-    const id = areaAt(fx);
-    stamp(c, `xs-frame-${fx}`, fx - 20, CEIL - 4, 40, GY - CEIL + 6, g => {
-      const R = AREAS[id].R, l = fx - 16;
-      box(g, l - 1, CEIL - 2, 34, GY - CEIL + 2, INK);
-      box(g, l, CEIL, 32, GY - CEIL, R[3]); box(g, l, CEIL, 6, GY - CEIL, R[4]); box(g, l + 1, CEIL, 2, GY - CEIL, R[5]); box(g, l + 26, CEIL, 6, GY - CEIL, R[2]); checker(g, l + 24, CEIL, 2, GY - CEIL, R[2]);
-      for (let y = CEIL + 40; y < GY - 20; y += 60) { box(g, l + 3, y, 26, 1, R[1]); box(g, l + 3, y + 1, 26, 1, R[5]); box(g, l + 6, y + 6, 2, 2, R[6]); box(g, l + 24, y + 6, 2, 2, R[6]); }
-      for (let k = 0; k < 7; k++) poly(g, [[l, GY - 60 + k * 8], [l + 32, GY - 76 + k * 8], [l + 32, GY - 72 + k * 8], [l, GY - 56 + k * 8]], k % 2 ? HAZ[4] : INK);
-      box(g, l + 8, CEIL + 8, 16, 8, INK); box(g, l + 9, CEIL + 9, 14, 6, AREAS[id].trim); box(g, l + 9, CEIL + 9, 14, 2, '#FFFFFF');
-    });
+};
+/** A face going back from the play plane at x = e (seen from its side only), in bands near to far, inked at the wall. */
+const sideBands = (c: Ctx, eye: { x: number; y: number }, e: number, s: 1 | -1, top: number, bot: number, cols: string[]) => {
+  if ((eye.x - e) * s <= 1) return;
+  cols.forEach((col, k) => {
+    const d0 = 1 - ((1 - K) * k) / cols.length, d1 = 1 - ((1 - K) * (k + 1)) / cols.length;
+    poly(c, [atWall(eye.x, e, top, d0), atWall(eye.x, e, top, d1), atWall(eye.x, e, bot, d1), atWall(eye.x, e, bot, d0)], col);
+  });
+  line(c, atWall(eye.x, e, top), atWall(eye.x, e, bot), INK);
+};
+/** An underside going back from the play plane at height y (x from a to b), in bands near to far. */
+const flatBands = (c: Ctx, eye: { x: number; y: number }, a: number, b: number, y: number, cols: string[]) => {
+  cols.forEach((col, k) => {
+    const d0 = 1 - ((1 - K) * k) / cols.length, d1 = 1 - ((1 - K) * (k + 1)) / cols.length;
+    poly(c, [atWall(eye.x, a, y, d0), atWall(eye.x, b, y, d0), atWall(eye.x, b, y, d1), atWall(eye.x, a, y, d1)], col);
+  });
+  line(c, atWall(eye.x, a, y), atWall(eye.x, b, y), INK);
+};
+
+type Area = (typeof AREAS)[AreaId];
+const paintDoorway = (g: Ctx, d: Doorway, near: Area, far: Area) => {
+  const L = d.l - d.jw, R = d.r + d.jw, H = DOOR_TOP - CEIL;
+  // The jambs: banded steel up from the deck to the header, lit on the outside edge, shaded into the opening; seams
+  // and rivets; a hazard band at knee height; the leaf's striped edge in its pocket
+  for (const [x, A, s] of [[L, near, -1], [d.r, far, 1]] as const) {
+    const Rr = A.R, w = d.jw;
+    box(g, x - 1, DOOR_TOP, w + 2, GY - DOOR_TOP, INK);
+    box(g, x, DOOR_TOP, w, GY - DOOR_TOP, Rr[3]);
+    const lit = s < 0 ? x : x + w - 4, shade = s < 0 ? x + w - 4 : x;
+    box(g, lit, DOOR_TOP, 4, GY - DOOR_TOP, Rr[4]); box(g, s < 0 ? x + 1 : x + w - 2, DOOR_TOP, 1, GY - DOOR_TOP, Rr[5]);
+    box(g, shade, DOOR_TOP, 4, GY - DOOR_TOP, Rr[2]); checker(g, s < 0 ? shade - 2 : shade + 4, DOOR_TOP, 2, GY - DOOR_TOP, Rr[2]);
+    for (let y = DOOR_TOP + 30; y < GY - 20; y += 56) { box(g, x + 2, y, w - 4, 1, Rr[1]); box(g, x + 2, y + 1, w - 4, 1, Rr[5]); box(g, x + 4, y + 6, 2, 2, Rr[6]); box(g, x + w - 6, y + 6, 2, 2, Rr[6]); box(g, x + 5, y + 7, 1, 1, Rr[0]); box(g, x + w - 5, y + 7, 1, 1, Rr[0]); }
+    g.save(); g.beginPath(); g.rect(x, GY - 74, w, 30); g.clip();
+    for (let k = -2; k < 6; k++) poly(g, [[x, GY - 44 - k * 10], [x + w, GY - 54 - k * 10 - w * 0.4], [x + w, GY - 49 - k * 10 - w * 0.4], [x, GY - 39 - k * 10]], k % 2 ? HAZ[4] : INK);
+    g.restore();
+    box(g, x, GY - 75, w, 1, Rr[5]); box(g, x, GY - 44, w, 1, Rr[1]);
+    // (the leaf in its pocket: its edge, striped, a hand's width out of the jamb into the opening)
+    const ex2 = s < 0 ? x + w : x - 4;
+    box(g, ex2, DOOR_TOP + 4, 4, GY - DOOR_TOP - 4, INK);
+    for (let y = DOOR_TOP + 6; y < GY - 2; y += 8) box(g, ex2 + 1, y, 2, 4, HAZ[3]);
   }
+  // (a control box on the near jamb: its button lit)
+  const cb = L + 3;
+  box(g, cb - 1, GY - 140, d.jw - 4, 22, INK); box(g, cb, GY - 139, d.jw - 6, 20, STEEL[4]); box(g, cb, GY - 139, d.jw - 6, 1, STEEL[6]);
+  box(g, cb + (d.jw - 6) / 2 - 2, GY - 134, 4, 4, '#22C55E'); box(g, cb + (d.jw - 6) / 2 - 2, GY - 134, 2, 1, '#BBF7D0');
+  box(g, cb + 2, GY - 125, d.jw - 10, 2, INK);
+  // The header: across the jambs from the ceiling down, the room ahead's steel, banded, riveted, a hazard stripe along
+  // its foot, the plate (where you're going) with a caged lamp either side
+  const Rh = far.R;
+  box(g, L - 1, CEIL - 2, R - L + 2, H + 3, INK);
+  bandedGradient(g, L, CEIL, R - L, H, [Rh[2], Rh[3], Rh[3], Rh[4], Rh[3], Rh[2]], 4);
+  box(g, L, CEIL, R - L, 2, Rh[5]); box(g, L, CEIL + 2, 2, H - 2, Rh[4]); box(g, R - 2, CEIL + 2, 2, H - 2, Rh[1]);
+  for (let x = L + 6; x < R - 4; x += 12) { box(g, x, CEIL + 6, 2, 2, Rh[6]); box(g, x + 1, CEIL + 7, 1, 1, Rh[0]); }
+  g.save(); g.beginPath(); g.rect(L, DOOR_TOP - 12, R - L, 12); g.clip();
+  for (let x = L - 16; x < R; x += 16) poly(g, [[x, DOOR_TOP], [x + 8, DOOR_TOP - 12], [x + 16, DOOR_TOP - 12], [x + 8, DOOR_TOP]], HAZ[4]);
+  g.restore();
+  box(g, L, DOOR_TOP - 13, R - L, 1, INK); box(g, L, DOOR_TOP - 1, R - L, 1, INK);
+  const [tw] = letterSize(d.plate, 'small'), pw = tw + 10, px = Math.round((L + R) / 2 - pw / 2), py = CEIL + 30;
+  panel(g, px, py, pw, 17, '#18181B', false);
+  for (const sx of [px + 2, px + pw - 4]) { box(g, sx, py + 2, 2, 2, '#52525B'); box(g, sx, py + 2, 1, 1, '#A1A1AA'); }
+  lettering(g, d.plate, px + pw / 2, py + 8, 'small', far.trim, '#18181B');
+  for (const lx of [px - 12, px + pw + 4]) {
+    if (lx < L + 2 || lx + 8 > R - 2) continue;
+    box(g, lx - 1, py + 3, 10, 12, INK); box(g, lx, py + 4, 8, 10, mix(far.trim, '#FFFFFF', 0.2)); box(g, lx + 1, py + 5, 3, 3, '#FFFFFF');
+    for (let k = 1; k < 8; k += 3) box(g, lx + k, py + 4, 1, 10, INK);
+  }
+  // (the threshold's lit lip across the deck's edge, its plate's face under it)
+  box(g, L, GY, R - L, 2, '#F4F4F5'); box(g, L, GY + 2, R - L, 6, STEEL[5]); box(g, L, GY + 2, R - L, 1, STEEL[7]); box(g, L, GY + 8, R - L, 1, INK);
+  for (let x = L + 4; x < R - 2; x += 10) { box(g, x, GY + 4, 2, 2, STEEL[7]); box(g, x + 1, GY + 5, 1, 1, STEEL[2]); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -219,12 +314,15 @@ const paintFog = (g: Ctx, k: number) => {
 /** The bridge's consoles (their left ends), clear of the tram's airlock, the captain's chair and the wall rig's hatch. */
 const CONSOLES = [250, 410, 840, 1180].map(k => HALLS.bridge.l + k);
 
+/** A room's title board: the ride's lettering (dripping, in the room's color), the joke under it; hung off the pipes on
+ *  two chains. */
 const title = (g: Ctx, x: number, y: number, big: string, small: string, col: string, trim: string) => {
-  const w = Math.max(textW(g, big, 10), textW(g, small, 6)) + 28;
-  panel(g, x - w / 2, y - 18, w, 38, '#18181B');
-  box(g, x - w / 2 + 3, y - 15, w - 6, 1, trim);
-  words(g, big, x, y, col, 10, INK);
-  words(g, small, x, y + 13, trim, 6, INK);
+  const w = Math.max(letterSize(big, 'drip2')[0], letterSize(small, 'small')[0]) + 24, top = y - 24, h = 52, x0 = Math.round(x - w / 2);
+  for (const cx of [x0 + 14, x0 + w - 14]) chain(g, cx, CTOP + 28, top);
+  panel(g, x0, top, w, h, '#18181B');
+  box(g, x0 + 3, top + 3, w - 6, 1, trim); box(g, x0 + 3, top + h - 5, w - 6, 1, mix(trim, '#18181B', 0.5));
+  lettering(g, big, x, top + 16, 'drip2', col, '#18181B', true);
+  lettering(g, small, x, top + h - 11, 'small', '#E4E4E7', '#18181B');
 };
 
 const drawShows = (c: Ctx, state: GameState) => {
@@ -317,7 +415,7 @@ const paintQueue = (g: Ctx) => {
       g.fillStyle = '#52525B'; g.beginPath(); g.ellipse(px + 66, py + 38, 36, 8, -0.4, 0, Math.PI * 2); g.fill();
       g.fillStyle = '#3F3F46'; g.beginPath(); g.ellipse(px + 40, py + 70, 18, 26, 0, 0, Math.PI * 2); g.fill();
       for (let t = 0; t < 4; t++) { box(g, px + 22 + t * 6, py + 54, 3, 6, '#E5E7EB'); box(g, px + 22 + t * 6, py + 54, 3, 1, '#FFFFFF'); }
-      g.save(); g.translate(px + 64, py + 52); g.rotate(-0.3); g.strokeStyle = '#DC2626'; g.lineWidth = 2; g.strokeRect(-56, -9, 112, 18); g.fillStyle = '#DC2626'; g.font = '6px "Press Start 2P"'; g.fillText('LEGALLY DISTINCT', -50, 3); g.restore();
+      g.save(); g.translate(px + 64, py + 52); g.rotate(-0.3); g.strokeStyle = '#DC2626'; g.lineWidth = 2; g.strokeRect(-56, -9, 112, 18); lettering(g, 'LEGALLY DISTINCT', 0, 0, 'small', '#DC2626', '#3F3F46'); g.restore();
     } else {
       // (the green: a big head, the eyes, a menacing glow)
       g.fillStyle = INK; g.beginPath(); g.ellipse(px + 64, py + 50, 25, 29, 0, 0, Math.PI * 2); g.fill();
@@ -329,7 +427,9 @@ const paintQueue = (g: Ctx) => {
       if (i === 2) { line(g, [px + 90, py + 60], [px + 112, py + 30], INK, 4); line(g, [px + 90, py + 60], [px + 112, py + 30], CHROME[4], 2); orb(g, px + 113, py + 28, 4, ['#7F1D1D', '#DC2626', '#F87171', '#FECACA']); }
       if (i === 0) { orb(g, px + 22, py + 82, 14, ['#1E3A8A', '#2563EB', '#3B82F6', '#22C55E', '#86EFAC']); }
     }
-    words(g, l1, px + 65, py + 120, '#0A0A0A', 6); words(g, l2, px + 65, py + 136, '#0A0A0A', 6);
+    // (the title in the movie's dripping lettering, in its color; the tagline under it, printed)
+    lettering(g, l1, px + 65, py + 115, fit(l1, 124, ['drip', 'enamel', 'small']), col, '#FEF3C7', true);
+    lettering(g, l2, px + 65, py + 139, fit(l2, 124, ['enamel', 'small']), '#1C1917', '#FEF3C7');
     poly(g, [[px + 90, py], [px + 110, py], [px + 40, py + 150], [px + 20, py + 150]], 'rgba(255, 255, 255, 0.12)');
   });
   // (the stanchions: chrome, the velvet ropes swagged between)
@@ -338,18 +438,24 @@ const paintQueue = (g: Ctx) => {
     if (x + 90 < QUEUE_END - 40) for (const [dy, col, lw] of [[1, INK, 5], [0, '#991B1B', 3], [-1, '#EF4444', 1]] as const) { g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); g.moveTo(x, GY - 48 + dy); g.quadraticCurveTo(x + 45, GY - 30 + dy, x + 90, GY - 48 + dy); g.stroke(); }
   }
   // (the wait-time board)
-  panel(g, HOUSE_DOOR + 60, GY - 122, 154, 46, '#18181B');
-  words(g, 'WAIT FROM HERE', HOUSE_DOOR + 137, GY - 102, HAZ[5], 7, INK); words(g, '45 MINUTES', HOUSE_DOOR + 137, GY - 86, HAZ[5], 7, INK);
+  // (the wait-time board, on its two legs: neon)
+  for (const lx of [HOUSE_DOOR + 76, HOUSE_DOOR + 198]) post(g, lx, GY - 78, GY, 4, STEEL.slice(1));
+  panel(g, HOUSE_DOOR + 60, GY - 124, 154, 48, '#18181B');
+  lettering(g, 'WAIT FROM HERE', HOUSE_DOOR + 137, GY - 110, 'neon', HAZ[5], '#18181B', true);
+  lettering(g, '45 MINUTES', HOUSE_DOOR + 137, GY - 89, 'neon', HAZ[5], '#18181B', true);
   // (the safety-video monitor on its bracket (the picture's live))
   const mx = HOUSE_DOOR + 44, my = GY - 300;
   line(g, [mx + 40, CTOP + 30], [mx + 40, my], INK, 4); line(g, [mx + 40, CTOP + 30], [mx + 40, my], STEEL[4], 2);
   panel(g, mx, my, 80, 70, '#27272A', false); box(g, mx + 4, my + 4, 72, 62, INK);
-  words(g, 'SAFETY VIDEO', mx + 40, my + 84, '#A1A1AA', 6, INK);
+  // (its plate, screwed on under it)
+  panel(g, mx, my + 73, 80, 15, '#3F3F46', false);
+  for (const sx of [mx + 2, mx + 76]) box(g, sx, my + 79, 2, 2, '#A1A1AA');
+  lettering(g, 'SAFETY VIDEO', mx + 40, my + 80, 'small', '#E4E4E7', '#3F3F46');
   // (the cast members' door (its plate on it), a fire extinguisher)
   const dx = QUEUE_END - 150;
   panel(g, dx, GY - 140, 88, 140, '#3F3F46', false); box(g, dx + 6, GY - 134, 76, 128, '#27272A'); box(g, dx + 6, GY - 134, 2, 128, '#52525B'); orb(g, dx + 74, GY - 70, 3, CHROME);
   panel(g, dx + 4, GY - 130, 80, 26, '#1E3A8A');
-  words(g, 'CAST MEMBERS', dx + 44, GY - 119, '#E0E7FF', 6, INK); words(g, 'ONLY', dx + 44, GY - 109, '#E0E7FF', 6, INK);
+  lettering(g, 'CAST MEMBERS', dx + 44, GY - 122, 'small', '#E0E7FF', '#1E3A8A'); lettering(g, 'ONLY', dx + 44, GY - 112, 'small', '#E0E7FF', '#1E3A8A');
   inked(g, [[dx - 34, GY - 70], [dx - 22, GY - 70], [dx - 22, GY - 20], [dx - 34, GY - 20]], '#DC2626'); box(g, dx - 33, GY - 69, 3, 48, '#F87171'); box(g, dx - 32, GY - 78, 8, 8, INK);
 };
 
@@ -363,8 +469,10 @@ const paintPreshow = (g: Ctx) => {
   box(g, tx - 87, CEIL + 40, 2, GY - CEIL - 46, 'rgba(224, 242, 254, 0.4)'); box(g, tx + 85, CEIL + 40, 2, GY - CEIL - 46, 'rgba(224, 242, 254, 0.25)');
   ring(CEIL + 40); ring(GY - 6);
   // (its sign; the cheap: a garden hose for a power line, taped)
+  // (hung off the ceiling on two rods, clear of the tube's ring: neon)
+  for (const rx of [tx - 112, tx + 112]) { box(g, rx - 2, CEIL, 4, 66, INK); box(g, rx - 1, CEIL, 2, 64, CHROME[4]); box(g, rx - 1, CEIL, 1, 64, CHROME[6]); }
   panel(g, tx - 130, CEIL + 64, 260, 32, '#0F172A');
-  words(g, 'TELEPORTER BAY B', tx, CEIL + 86, '#38BDF8', 8, INK);
+  lettering(g, 'TELEPORTER BAY B', tx, CEIL + 80, 'neon2', '#38BDF8', '#0F172A', true);
   g.strokeStyle = INK; g.lineWidth = 6; g.beginPath(); g.moveTo(tx + 92, GY - 8); g.quadraticCurveTo(tx + 160, GY - 2, tx + 190, GY - 60); g.stroke();
   g.strokeStyle = '#15803D'; g.lineWidth = 4; g.stroke();
   box(g, tx + 160, GY - 30, 14, 6, '#A1A1AA');
@@ -427,7 +535,7 @@ const paintBridge = (g: Ctx) => {
   box(g, l + 652, GY - 108, 10, 106, '#B91C1C'); box(g, l + 653, GY - 108, 3, 106, '#EF4444'); box(g, l + 706, GY - 108, 12, 106, '#5F1414');
   for (let y = GY - 96; y < GY - 10; y += 16) box(g, l + 664, y, 42, 1, '#5F1414');
   box(g, l + 640, GY - 50, 90, 8, INK); box(g, l + 641, GY - 49, 88, 6, '#52525B'); box(g, l + 641, GY - 49, 88, 2, '#A1A1AA');
-  title(g, l + 270, GY - 304, 'THE BRIDGE', 'BRIDGE OF A LEGALLY DISTINCT SHIP', '#FFFFFF', '#5EEAD4');
+  title(g, l + 270, GY - 304, 'THE BRIDGE', 'BRIDGE OF A LEGALLY DISTINCT SHIP', '#5EEAD4', '#2DD4BF');
 };
 
 const paintSpecimen = (g: Ctx) => {
@@ -449,10 +557,12 @@ const paintSpecimen = (g: Ctx) => {
   box(g, fx - 5, GY - 185, 2, 2, INK); box(g, fx + 3, GY - 185, 2, 2, INK); box(g, fx - 2, GY - 180, 4, 4, INK);
   box(g, fx - 9, GY - 126, 7, 30, '#1E3A8A'); box(g, fx + 2, GY - 126, 7, 30, '#1E3A8A'); box(g, fx - 10, GY - 98, 9, 5, '#422006'); box(g, fx + 1, GY - 98, 9, 5, '#422006');
   // (the eggs: leathery, split at the top, in a crate; its sign)
-  inked(g, [[l + 226, GY], [l + 226, GY - 30], [l + 398, GY - 30], [l + 398, GY]], PINE[3]);
-  for (let k = 0; k < 3; k++) box(g, l + 228, GY - 26 + k * 9, 168, 2, PINE[2]);
+  inked(g, [[l + 226, GY], [l + 226, GY - 40], [l + 398, GY - 40], [l + 398, GY]], PINE[3]);
+  box(g, l + 227, GY - 39, 171, 2, PINE[2]); checker(g, l + 227, GY - 37, 171, 1, PINE[2]);
+  for (let k = 0; k < 4; k++) { box(g, l + 228, GY - 32 + k * 9, 168, 1, PINE[2]); checker(g, l + 228, GY - 31 + k * 9, 168, 1, PINE[4]); }
+  box(g, l + 227, GY - 36, 5, 36, PINE[4]); box(g, l + 392, GY - 36, 5, 36, PINE[2]);
   for (let i = 0; i < 4; i++) {
-    const ex = l + 252 + i * 40, ey = GY - 46;
+    const ex = l + 252 + i * 40, ey = GY - 56;
     g.fillStyle = INK; g.beginPath(); g.ellipse(ex, ey, 16, 24, 0, 0, Math.PI * 2); g.fill();
     g.fillStyle = '#44403C'; g.beginPath(); g.ellipse(ex, ey, 15, 23, 0, 0, Math.PI * 2); g.fill();
     g.fillStyle = '#57534E'; g.beginPath(); g.ellipse(ex - 3, ey - 3, 10, 17, 0, 0, Math.PI * 2); g.fill();
@@ -460,14 +570,12 @@ const paintSpecimen = (g: Ctx) => {
     for (let k = 0; k < 4; k++) box(g, ex - 12 + k * 7, ey - 6 + (k % 2) * 8, 1, 10, '#292524');
     poly(g, [[ex - 6, ey - 22], [ex, ey - 16], [ex + 6, ey - 22], [ex + 2, ey - 24], [ex, ey - 20], [ex - 2, ey - 24]], '#1C1917');
   }
-  // (its sign: down off the catwalk's underside)
-  // (its sign, on a post clear of the catwalk over them, pointing at them)
-  const sx = l + 128;
-  post(g, sx, GY - 70, GY, 4);
-  panel(g, sx - 78, GY - 108, 156, 42, HAZ[4]);
-  words(g, 'DO NOT TOUCH', sx, GY - 94, INK, 6); words(g, 'THE EGGS', sx, GY - 84, INK, 6); words(g, '(LEGALLY DISTINCT)', sx, GY - 72, INK, 6);
-  inked(g, [[sx + 82, GY - 92], [sx + 92, GY - 87], [sx + 82, GY - 82]], HAZ[4]);
-  title(g, l + 540, GY - 316, 'SPECIMEN BAY', 'SPECIMENS OF A LEGALLY DISTINCT PLANET', '#FFFFFF', '#86EFAC');
+  // (its sign: an enamel plate screwed to the crate's front, under them, clear of the gantry's legs and braces)
+  const sx = l + 318;
+  panel(g, sx - 68, GY - 29, 136, 24, HAZ[4]);
+  lettering(g, 'DO NOT TOUCH THE EGGS', sx, GY - 22, 'small', INK, HAZ[4]);
+  lettering(g, '(LEGALLY DISTINCT)', sx, GY - 12, 'small', '#7F1D1D', HAZ[4]);
+  title(g, l + 540, GY - 316, 'SPECIMEN BAY', 'SPECIMENS OF A LEGALLY DISTINCT PLANET', '#86EFAC', '#4ADE80');
 };
 
 const paintEngine = (g: Ctx) => {
@@ -487,12 +595,14 @@ const paintEngine = (g: Ctx) => {
       orb(g, vx, vy - w * 0.8, 7, ['#7F1D1D', '#B91C1C', '#EF4444', '#FCA5A5']); box(g, vx - 1, vy - w * 0.8, 2, w * 0.8, INK);
     }
   }
-  title(g, l + 200, GY - 316, 'ENGINE ROOM', 'REACTOR: FIBERGLASS. DO NOT LICK.', '#FFFFFF', '#FDBA74');
+  title(g, l + 200, GY - 316, 'ENGINE ROOM', 'REACTOR: FIBERGLASS. DO NOT LICK.', '#FDBA74', '#F97316');
   // (a breaker panel, its door hanging open, a cord off it along the floor)
   panel(g, l + 1180, GY - 260, 70, 110, '#3F3F46'); box(g, l + 1186, GY - 252, 58, 94, '#18181B');
   for (let k = 0; k < 6; k++) { box(g, l + 1192 + (k % 2) * 26, GY - 246 + Math.floor(k / 2) * 28, 18, 10, '#52525B'); box(g, l + 1192 + (k % 2) * 26 + (k === 3 ? 12 : 2), GY - 244 + Math.floor(k / 2) * 28, 4, 6, k === 3 ? '#EF4444' : '#A1A1AA'); }
-  words(g, 'DANGER', l + 1215, GY - 136, HAZ[5], 7, INK);
-  g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(l + 1215, GY - 150); g.quadraticCurveTo(l + 1230, GY - 6, l + 1320, GY - 4); g.stroke(); g.strokeStyle = '#EA580C'; g.lineWidth = 2; g.stroke();
+  // (its plate, screwed to the wall under it: stenciled)
+  panel(g, l + 1185, GY - 146, 60, 20, HAZ[4]);
+  lettering(g, 'DANGER', l + 1215, GY - 136, 'stencil', INK, HAZ[4]);
+  g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(l + 1247, GY - 150); g.quadraticCurveTo(l + 1252, GY - 6, l + 1320, GY - 4); g.stroke(); g.strokeStyle = '#EA580C'; g.lineWidth = 2; g.stroke();
 };
 
 const paintExit = (g: Ctx) => {
@@ -502,18 +612,19 @@ const paintExit = (g: Ctx) => {
     const x = l + 200 + i * 40, y = GY - 260 + (i % 3) * 30, rw = 30 + (i % 4) * 8;
     pixelBlob(g, x, y, rw + 2, 62, '#0A0510'); pixelBlob(g, x, y, rw, 60, '#1C1026'); pixelBlob(g, x - rw * 0.3, y - 20, rw * 0.4, 26, '#2E1C3E'); box(g, x - rw * 0.4, y - 40, 2, 6, '#9D7AB8');
   }
-  // (the signs, clear of it)
-  panel(g, l + 100, GY - 322, 320, 58, '#18181B');
-  box(g, l + 104, GY - 318, 312, 1, '#C084FC');
-  words(g, 'THE HOLD: THE QUEEN', l + 260, GY - 296, HAZ[5], 9, INK);
-  words(g, '(LEGALLY DISTINCT)', l + 260, GY - 279, '#D8B4FE', 6, INK);
-  for (let i = 0; i < 4; i++) { const ax = l + 160 + i * 140; inked(g, [[ax, GY - 204], [ax + 24, GY - 204], [ax + 24, GY - 212], [ax + 44, GY - 198], [ax + 24, GY - 184], [ax + 24, GY - 192], [ax, GY - 192]], PINK[4]); box(g, ax + 1, GY - 203, 22, 2, PINK[6]); }
-  panel(g, l + 120, GY - 174, 220, 24, '#18181B');
-  words(g, 'NO FLASH PHOTOGRAPHY', l + 230, GY - 158, '#C4B5FD', 7, INK);
+  // (the signs, clear of it and of the doorway in)
+  panel(g, l + 150, GY - 322, 320, 58, '#18181B');
+  box(g, l + 154, GY - 318, 312, 1, '#C084FC');
+  lettering(g, 'THE HOLD: THE QUEEN', l + 310, GY - 305, 'drip2', HAZ[5], '#18181B', true);
+  lettering(g, '(LEGALLY DISTINCT)', l + 310, GY - 278, 'small', '#D8B4FE', '#18181B');
+  for (let i = 0; i < 4; i++) { const ax = l + 140 + i * 110; inked(g, [[ax, GY - 204], [ax + 24, GY - 204], [ax + 24, GY - 212], [ax + 44, GY - 198], [ax + 24, GY - 184], [ax + 24, GY - 192], [ax, GY - 192]], PINK[4]); box(g, ax + 1, GY - 203, 22, 2, PINK[6]); }
+  panel(g, l + 150, GY - 250, 220, 24, '#18181B');
+  lettering(g, 'NO FLASH PHOTOGRAPHY', l + 260, GY - 238, 'enamel', '#C4B5FD', '#18181B');
   // (the real exit sign over a door, green: the one thing in here that works)
-  const ex = l + 40;
+  const ex = l + 300;
   panel(g, ex, GY - 150, 64, 150, '#3F3F46', false); box(g, ex + 6, GY - 144, 52, 138, '#1C1917'); box(g, ex + 8, GY - 80, 48, 4, '#52525B');
-  panel(g, ex + 6, GY - 176, 52, 20, '#14532D'); words(g, 'EXIT', ex + 32, GY - 162, '#86EFAC', 8, INK);
+  box(g, ex + 6, GY - 144, 2, 138, '#292524'); orb(g, ex + 50, GY - 72, 3, CHROME);
+  panel(g, ex + 6, GY - 176, 52, 20, '#14532D'); lettering(g, 'EXIT', ex + 32, GY - 166, 'neon', '#4ADE80', '#14532D', true);
 };
 
 /** A fiberglass cow (in the beam, legs dangling). World. */
@@ -583,7 +694,7 @@ export const paintCrate = (g: Ctx, x: number, top: number, w: number, h: number,
   box(g, x + 6, top + 6, w - 12, 1, INK);
   g.lineCap = 'round'; line(g, [x + 8, top + 8], [x + w - 8, top + h - 8], INK, 5); line(g, [x + 8, top + 8], [x + w - 8, top + h - 8], PINE[4], 3); line(g, [x + 8, top + 7], [x + w - 8, top + h - 9], PINE[5], 1); g.lineCap = 'butt';
   for (const [nx, ny] of [[x + 3, top + 3], [x + w - 4, top + 3], [x + 3, top + h - 4], [x + w - 4, top + h - 4]]) box(g, nx, ny, 1, 1, PINE[0]);
-  words(g, stencil, x + w / 2, top + h / 2 + 4, mix(INK, PINE[2], 0.3), 6);
+  lettering(g, stencil, x + w / 2, top + h / 2, 'stencil', mix(INK, PINE[2], 0.3), PINE[3]);
   box(g, x, top, w, 2, PINE[6]); box(g, x, top + 2, w, 1, PINE[5]);
 };
 
@@ -623,7 +734,7 @@ export const drawShipBack = (c: Ctx, state: GameState) => {
   drawWalls(c, state);
   drawDepthLines(c, state);
   drawShows(c, state);
-  drawFrames(c, state);
+  drawDoorways(c, state);
   drawTrack(c, state);
   drawStandables(c, state);
 };

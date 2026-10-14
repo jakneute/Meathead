@@ -32,7 +32,7 @@ import { drawBars } from '../../spooky/control/cine';
 import { GRUNT, BRUTE, CRAWLER, FLEER, seedAlien, tickAliens, sweepGone, drawBolts, drawAlienSaid, resetAliens, setBarkPlace, setOnFlee, setHush } from './kinds';
 import { resetRigs } from './rigs';
 import { drawImpactBackdrop, drawCraterBack, drawCraterFront, floorAt, SITE_LAMPS } from './art';
-import { type House, makeHouse, buildHouse, tickHouse, showOn, showSkipT, drawHouseBack, drawHouseFront, houseLighting, AFTER_PRESHOW_CP } from './house';
+import { type House, makeHouse, buildHouse, tickHouse, showOn, showSkipT, drawHouseBack, drawHouseProps, drawHouseFront, houseLighting, AFTER_PRESHOW_CP } from './house';
 import { D, BOWL, RIM, DOME, CART, PYLON, CATWALKS, CRATES, FACADE_X, HOUSE_DOOR, PRESHOW, HALLS, WRECK_X, TRAMS } from './layout';
 import * as L from './lines';
 
@@ -158,6 +158,8 @@ export const crater: SpaceSection = {
   },
   drawFront: (c, state) => {
     drawCraterFront(c, state);
+    // (the jump scares' props over everything, their bolts over those)
+    drawHouseProps(c, state, craterOf(state).house);
     drawBolts(c, state.frame);
     drawHouseFront(c, state, craterOf(state).house);
     drawAlienSaid(c, state);

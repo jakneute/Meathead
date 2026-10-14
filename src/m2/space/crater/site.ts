@@ -14,10 +14,11 @@ import { GY } from '../geometry';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { drawCorpse, slimePool, drawRag, type CorpseKind } from './aliens';
 import { drawCheapGreen } from './green';
+import { lettering, letterSize } from '../square/lettering';
 import { D, x0, BOWL, WRECK_X, CART, PYLON, CHUNK_X, HOUSE_DOOR, MOUTH_X, CEIL } from './layout';
 import {
   type Ctx, type View, INK, box, checker, mix, hash, stamp, hazeBands, pixelBlob, steppedGlow, bendFloor, viewOf, at, atDepth, poly, inked, line,
-  sideFace, flatFace, words, panel, board, post, orb, floorAt, shown, LAWN, DIRT, SCORCH, WALK, HULL, CHROME, PINK, TEAL, BONE, STEEL, HAZ,
+  sideFace, flatFace, panel, post, orb, floorAt, shown, LAWN, DIRT, SCORCH, WALK, HULL, CHROME, PINK, TEAL, BONE, STEEL, HAZ,
 } from './paint';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -473,7 +474,7 @@ const paintWreck = (g: Ctx) => {
   for (let i = 0; i < 7; i++) { g.lineCap = 'round'; line(g, [tx + 6 + i * 9, ty + 2], [tx + 8 + i * 9 + (i % 2) * 6, ty + 14 + (i % 3) * 6], INK, 3); line(g, [tx + 6 + i * 9, ty + 2], [tx + 8 + i * 9 + (i % 2) * 6, ty + 14 + (i % 3) * 6], ['#EF4444', '#22C55E', '#3B82F6', '#FDE047'][i % 4], 2); g.lineCap = 'butt'; }
   inked(g, [[tx - 2, ty], [tx + 30, ty - 34], [tx + 46, ty - 30], [tx + 26, ty]], HULL[4]);
   poly(g, [[tx + 2, ty - 1], [tx + 30, ty - 31], [tx + 36, ty - 30], [tx + 12, ty - 1]], HULL[6]);
-  words(g, 'ZRB-2', cx + 230, rimY - 18, HULL[2], 8, HULL[6]);
+  lettering(g, 'ZRB-2', cx + 230, rimY - 22, 'stencil', HULL[2], HULL[5]);
   // (the cabin: glass walls up from the deck to a flat chrome roof (stood on), cracked, a hole punched through; the
   // pilot still in there, slumped over the controls)
   const ca = cx - 80, cb = cx + 90, roofY = GY - 72, gl = cx - 110, gr = cx + 120;
@@ -607,7 +608,7 @@ const paintCart = (g: Ctx) => {
   box(g, x, GY - 8, w, 8, PINK[1]); checker(g, x, GY - 10, w, 2, PINK[1]);
   // (a dent where it came down on it)
   poly(g, [[x + 30, top], [x + 46, top + 10], [x + 62, top]], PINK[1]); line(g, [x + 30, top], [x + 46, top + 10], INK); line(g, [x + 46, top + 10], [x + 62, top], PINK[5]);
-  words(g, 'COSMIC', x + w / 2, top + 36, '#FFFFFF', 7, PINK[1]); words(g, 'CHURROS', x + w / 2, top + 46, '#FFFFFF', 7, PINK[1]);
+  lettering(g, 'COSMIC', x + w / 2, top + 31, 'small', '#FFFFFF', PINK[3]); lettering(g, 'CHURROS', x + w / 2, top + 41, 'small', '#FFFFFF', PINK[3]);
   box(g, x, top, w, 2, PINK[6]); box(g, x, top + 2, w, 1, PINK[5]);
   // (its wheels)
   for (const wx of [x + 18, r - 18]) orb(g, wx, GY - 3, 6, CHROME);
@@ -681,8 +682,8 @@ const paintPlazaSign = (g: Ctx) => {
   inked(g, [[D + 236, GY - 150], [D + 432, GY - 160], [D + 424, GY - 100], [D + 244, GY - 96]], '#1E1B4B', 1.5);
   poly(g, [[D + 238, GY - 149], [D + 430, GY - 159], [D + 429, GY - 154], [D + 238, GY - 144]], '#3730A3');
   poly(g, [[D + 245, GY - 100], [D + 423, GY - 104], [D + 424, GY - 100], [D + 244, GY - 97]], '#0C0A26');
-  words(g, 'TOMORROW PLAZA', D + 334, GY - 130, PINK[4], 8, INK);
-  words(g, 'PICNIC AREA', D + 334, GY - 112, '#A5B4FC', 8, INK);
+  lettering(g, 'TOMORROW PLAZA', D + 334, GY - 133, 'neon', PINK[4], '#1E1B4B');
+  lettering(g, 'PICNIC AREA', D + 334, GY - 113, 'enamel', '#A5B4FC', '#1E1B4B');
   const sx = D + 420, sy = GY - 164;
   for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4, l = k % 2 ? 7 : 12; line(g, [sx, sy], [sx + Math.cos(a) * l, sy + Math.sin(a) * l], INK, 3); line(g, [sx, sy], [sx + Math.cos(a) * l, sy + Math.sin(a) * l], HAZ[5], 1); }
   orb(g, sx, sy, 3, HAZ);
@@ -716,19 +717,20 @@ export const drawFacade = (c: Ctx, state: GameState) => {
     const k = ((f * 0.4 + i * 40) % 160) / 160, fx = Math.round(cx - 40 + i * 26 + k * 50), fy = GY - 10 - Math.round(Math.sin(k * Math.PI) * 4);
     c.save(); c.translate(fx, fy); stamp(c, `xc-fog-${i % 2}`, -60, -16, 120, 30, g => { pixelBlob(g, 0, 0, 56 - (i % 2) * 14, 10, 'rgba(167, 139, 250, 0.22)'); pixelBlob(g, -8, -3, 30, 5, 'rgba(221, 214, 254, 0.2)'); }); c.restore();
   }
-  // (the neon over it, live: the letters stepping on, one tube dead, flickering)
-  const word = 'XENOSCARE!', n = word.length, on = Math.floor(f / 6) % (n + 12);
-  c.font = '22px "Press Start 2P"'; c.textAlign = 'left';
-  const w = c.measureText(word).width, sx = Math.round(cx - w / 2), sy = GY - 384;
-  panel(c, sx - 16, sy - 32, w + 32, 44, '#2A0F48', true);
-  box(c, sx - 12, sy - 28, w + 24, 36, '#0F0420');
+  // (the neon over it, live: the letters stepping on, one tube dead, flickering; the park's neon, twice the size, each
+  // letter's tube stamped lit and dark)
+  const word = 'XENOSCARE!', n = word.length, on = Math.floor(f / 6) % (n + 12), S = 2;
+  const adv = [...word].map(ch => letterSize(ch, 'neon')[0] - 6);
+  const tw = (adv.reduce((a, b) => a + b, 0) - 2) * S, sx = Math.round(cx - tw / 2), sy = GY - 394;
+  panel(c, sx - 18, sy - 22, tw + 36, 44, '#2A0F48', true);
+  box(c, sx - 14, sy - 18, tw + 28, 36, '#0F0420');
+  let lx = sx;
   for (let i = 0; i < n; i++) {
-    const lit = i <= on && !(i === 4 && f % 50 < 8);
-    const x = sx + c.measureText(word.slice(0, i)).width, col = i % 2 ? PINK : ['#14532D', '#166534', '#16A34A', '#22C55E', '#4ADE80', '#86EFAC', '#DCFCE7'];
-    if (lit) { c.fillStyle = col[1]; c.fillText(word[i], x - 1, sy + 1); c.fillText(word[i], x + 1, sy - 1); }
-    c.fillStyle = INK; c.fillText(word[i], x + 2, sy + 2);
-    c.fillStyle = lit ? col[4] : '#3F3F46'; c.fillText(word[i], x, sy);
-    if (lit) { c.save(); c.beginPath(); c.rect(x, sy - 22, 30, 8); c.clip(); c.fillStyle = col[6]; c.fillText(word[i], x, sy); c.restore(); }
+    const lit = i <= on && !(i === 4 && f % 50 < 8), ch = word[i], [cw] = letterSize(ch, 'neon'), col = i % 2 ? PINK[4] : '#4ADE80';
+    c.save(); c.translate(lx + (cw / 2 - 3) * S, sy); c.scale(S, S);
+    stamp(c, `xc-neon-${i}-${lit ? 1 : 0}`, -cw / 2 - 4, -14, cw + 8, 28, g => lettering(g, ch, 0, 0, 'neon', lit ? col : '#3F3F46', '#0F0420', lit));
+    c.restore();
+    lx += adv[i] * S;
   }
 };
 
@@ -778,7 +780,7 @@ const paintFacade = (g: Ctx) => {
     if (i === 1) { box(g, px - 6, py - 2, 3, 6, '#14532D'); box(g, px - 2, py - 7, 4, 3, '#14532D'); }
   }
   // (the stencil, weathered)
-  words(g, 'M.S. COINCIDENCE', cx - 20, GY - 250, BONE[1], 10, BONE[5]);
+  lettering(g, 'M.S. COINCIDENCE', cx - 20, GY - 256, 'stencil2', BONE[1], BONE[4]);
   checker(g, cx - 96, GY - 262, 30, 14, BONE[4], 1);
   // (the boarding hatch: a dark oval, its rim stepped, the dark in there, the ramp down out of it, its rails)
   g.fillStyle = INK; g.beginPath(); g.ellipse(cx, GY - 110, 66, 102, 0, 0, Math.PI * 2); g.fill();
@@ -803,12 +805,12 @@ const paintFacade = (g: Ctx) => {
   for (const s of [-1, 1]) { line(g, [cx + s * 56, GY - 70], [cx + s * 88, GY - 26], INK, 4); line(g, [cx + s * 56, GY - 70], [cx + s * 88, GY - 26], CHROME[4], 2); post(g, cx + s * 88, GY - 26, GY, 3); }
   // (the sign under the name: LEGALLY DISTINCT)
   panel(g, cx - 122, GY - 372, 244, 26, '#18181B');
-  words(g, 'A LEGALLY DISTINCT DERELICT', cx, GY - 355, HAZ[5], 7, INK);
+  lettering(g, 'A LEGALLY DISTINCT DERELICT', cx, GY - 359, 'enamel', HAZ[5], '#18181B');
   // (the height sign: YOU MUST BE THIS TALL TO BE ABDUCTED)
   const hx = bl - 100;
   post(g, hx, GY - 112, GY, 5);
   panel(g, hx - 52, GY - 172, 104, 66, HAZ[4]);
-  for (const [s, y] of [['YOU MUST BE', -152], ['THIS TALL', -140], ['TO BE', -128], ['ABDUCTED', -116]] as const) words(g, s, hx, GY + y, INK, 6);
+  for (const [s, y] of [['YOU MUST BE', -152], ['THIS TALL', -140], ['TO BE', -128], ['ABDUCTED', -116]] as const) lettering(g, s, hx, GY + y - 3, 'small', INK, HAZ[4]);
   g.lineCap = 'round'; line(g, [hx + 2, GY - 100], [hx + 56, GY - 100], INK, 6); line(g, [hx + 2, GY - 100], [hx + 56, GY - 100], CHROME[4], 4); line(g, [hx + 2, GY - 101], [hx + 56, GY - 101], CHROME[6], 1); g.lineCap = 'butt';
   // (a little green hand at the end of the arm, pointing down at your head)
   orb(g, hx + 58, GY - 100, 5, ['#14532D', '#16A34A', '#4ADE80', '#86EFAC']);
@@ -844,6 +846,10 @@ export const drawSiteFront = (c: Ctx, state: GameState) => {
     // (the jambs)
     for (const jx of [x - 10, x + 22]) { box(g, jx - 1, GY - 160, 10, 160, INK); box(g, jx, GY - 160, 8, 160, STEEL[4]); box(g, jx, GY - 160, 2, 160, STEEL[6]); box(g, jx + 6, GY - 160, 2, 160, STEEL[2]); }
   });
-  const w = board(c, x + 10, GY - 184, 'QUEUE', '#1E1B4B', HAZ[5], 7);
-  void w;
+  // (its board, screwed to the lintel's face: enamel)
+  stamp(c, 'xc-queueboard', x - 40, GY - 200, 100, 34, g => {
+    const [tw] = letterSize('QUEUE', 'enamel'), w = tw + 16;
+    panel(g, Math.round(x + 10 - w / 2), GY - 196, w, 24, '#1E1B4B');
+    lettering(g, 'QUEUE', x + 10, GY - 184, 'enamel', HAZ[5], '#1E1B4B');
+  });
 };

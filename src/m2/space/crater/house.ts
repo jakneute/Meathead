@@ -23,11 +23,14 @@ import { registerHurtLines } from '../../kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { hazardVictims, hazardHit, setHazardZones } from '../../hazardHit';
-import { hands, speak, meatheadSays, saidOver, box, label } from '../section';
+import { hands, speak, meatheadSays, saidOver, box } from '../section';
 import { INK, limb } from '../../../m1/game/render/npc/kit';
 import { GY } from '../geometry';
 import { drawCheapGreen, shown } from './art';
-import { type Rig, makeRigs, tickRigs, drawRigs, drawRigSaid, rigLights } from './rigs';
+import { type Rig, makeRigs, tickRigs, drawRigs, drawRigsFront, drawRigSaid, rigLights } from './rigs';
+import { checker, orb, stamp } from './paint';
+import { DOORWAYS, DOOR_TOP } from './ship';
+import { lettering } from '../square/lettering';
 import { PRESHOW, TRAMS, CEIL, HOUSE_DOOR, HALLS } from './layout';
 import { liveBolts } from './kinds';
 import * as L from './lines';
@@ -201,6 +204,14 @@ const tickTrams = (ctx: FrameContext, h: House) => {
 };
 
 const PURPLE = ['#1E0B3A', '#2E1065', '#4C1D95', '#6D28D9', '#8B5CF6', '#A78BFA', '#DDD6FE'];
+const c01 = (v: number) => Math.max(0, Math.min(1, v));
+/** How far up each airlock's shutter is (0 shut, 1 up): from the bell's last beat as a car comes, down behind it. */
+const hatches = (tr: Tram) => {
+  const left = tr.x - TRAM_W / 2, right = tr.x + TRAM_W / 2;
+  const openA = tr.mode === 'warn' ? c01((tr.t - (WARN - 30)) / 24) : tr.mode === 'run' ? c01((tr.a - 10 - left) / 40) : 0;
+  const openB = tr.mode === 'run' ? Math.min(c01((right - (tr.b - 70)) / 40), c01((tr.b + 140 - left) / 40)) : 0;
+  return { openA, openB };
+};
 const drawTrams = (c: Ctx, state: GameState, h: House) => {
   const f = state.frame;
   for (const tr of h.trams) {
@@ -212,44 +223,91 @@ const drawTrams = (c: Ctx, state: GameState, h: House) => {
       box(c, lx + 3, GY - 165, 14, 14, lit ? '#EF4444' : '#450A0A'); box(c, lx + 4, GY - 164, 5, 4, lit ? '#FECACA' : '#7F1D1D');
       if (lit) { box(c, lx - 4, GY - 160, 3, 4, '#F87171'); box(c, lx + 21, GY - 160, 3, 4, '#F87171'); }
     }
-    // (the airlock doors at each mouth: shut, then sliding up out of its way as a car comes, down again behind it)
-    const c01 = (v: number) => Math.max(0, Math.min(1, v));
-    const left = tr.x - TRAM_W / 2, right = tr.x + TRAM_W / 2;
-    const openA = tr.mode === 'warn' ? c01((tr.t - (WARN - 30)) / 24) : tr.mode === 'run' ? c01((tr.a - 10 - left) / 40) : 0;
-    const openB = tr.mode === 'run' ? Math.min(c01((right - (tr.b - 70)) / 40), c01((tr.b + 140 - left) / 40)) : 0;
-    hatchOpen(c, tr.a - 110, openA, f); hatchOpen(c, tr.b + 20, openB, f);
+    // (the airlock doors at each mouth: shut, then sliding up out of its way as a car comes, down again behind it; in
+    // the one it's coming out of, its headlamp coming up the tunnel first)
+    const { openA, openB } = hatches(tr);
+    const coming = tr.mode === 'warn' ? c01(tr.t / WARN) : tr.mode === 'run' ? c01(1 - (tr.x - (tr.a - 160)) / 120) : 0;
+    hatchOpen(c, tr.a - 110, openA, f, coming); hatchOpen(c, tr.b + 20, openB, f, 0);
     if (tr.mode !== 'run') continue;
-    // (clipped to between the airlocks' far sides: it comes out of the one, through its open hatch, and goes into the other)
-    c.save(); c.beginPath(); c.rect(tr.a - 109, GY - 200, tr.b - tr.a + 218, 210); c.clip();
-    const l = Math.round(tr.x - TRAM_W / 2), top = GY - TRAM_H;
-    // (a ride car, from a little above: a fat fiberglass tub (its inside, two rows of seats, their lap bars), its skirt
-    // and wheels, the headlamp)
-    c.fillStyle = INK; c.beginPath(); c.roundRect(l - 1, top + 15, TRAM_W + 2, TRAM_H - 20, 15); c.fill();
-    c.save(); c.beginPath(); c.roundRect(l, top + 16, TRAM_W, TRAM_H - 22, 14); c.clip();
-    box(c, l, top + 16, TRAM_W, TRAM_H - 22, PURPLE[3]); box(c, l, top + 16, TRAM_W, 6, PURPLE[5]); box(c, l, top + 22, TRAM_W, 3, PURPLE[4]);
-    box(c, l, GY - 18, TRAM_W, 12, PURPLE[2]); box(c, l, GY - 12, TRAM_W, 6, PURPLE[1]); for (let x = l; x < l + TRAM_W; x += 4) box(c, x + ((x / 2) % 2), GY - 20, 2, 2, PURPLE[2]);
-    box(c, l, top + 16, 10, TRAM_H - 22, PURPLE[4]); box(c, l + TRAM_W - 10, top + 16, 10, TRAM_H - 22, PURPLE[2]);
-    c.restore();
-    box(c, l + 8, top + 18, TRAM_W - 16, 1, PURPLE[6]);
-    for (const sx of [l + 30, l + 100]) {
-      box(c, sx - 1, top - 5, 42, 28, INK); box(c, sx, top - 4, 40, 26, '#1E1B4B'); box(c, sx, top - 4, 40, 4, '#312E81'); box(c, sx + 2, top - 2, 10, 2, '#4338CA');
-      limb(c, sx - 2, top + 10, sx + 44, top + 10, 3, '#EAB308'); box(c, sx, top + 9, 40, 1, '#FEF08A');
+    // (seen only where it's out: between the airlocks, and in each open hatch below its shutter's foot)
+    const eA = GY - Math.round(139 * openA), eB = GY - Math.round(139 * openB);
+    c.save(); c.beginPath();
+    c.rect(tr.a - 21, GY - 220, tr.b - tr.a + 42, 230);
+    c.rect(tr.a - 109, eA, 88, GY - eA + 10);
+    c.rect(tr.b + 21, eB, 88, GY - eB + 10);
+    c.clip();
+    const l = Math.round(tr.x - TRAM_W / 2);
+    // (its headlamp's beam on ahead of it: stepped, warm, down onto the track)
+    const bx = l + TRAM_W + 4, by = GY - 40;
+    for (const [len, sp, a] of [[170, 34, 0.07], [120, 24, 0.09], [70, 14, 0.12]] as const) {
+      c.fillStyle = `rgba(254, 249, 195, ${a})`; c.beginPath(); c.moveTo(bx, by - 4); c.lineTo(bx + len, by - sp * 0.4); c.lineTo(bx + len, by + sp); c.lineTo(bx, by + 5); c.closePath(); c.fill();
     }
-    for (let i = 0; i < 4; i++) { const wx = l + 24 + i * 44; box(c, wx - 8, GY - 9, 16, 9, INK); box(c, wx - 7, GY - 8, 14, 7, '#27272A'); box(c, wx - 5, GY - 7, 4, 2, '#52525B'); box(c, wx - 1, GY - 6 + ((f + i * 3) % 4 < 2 ? 0 : 2), 2, 2, '#71717A'); }
-    box(c, l + TRAM_W - 10, GY - 42, 10, 10, INK); box(c, l + TRAM_W - 9, GY - 41, 8, 8, f % 10 < 5 ? '#FEF9C3' : '#FDE047'); box(c, l + TRAM_W - 8, GY - 40, 3, 3, '#FFFFFF');
-    label(c, 'XENOSCARE', tr.x, GY - 24, '#E9D5FF', 7);
+    for (const [w2, a] of [[70, 0.08], [44, 0.1], [22, 0.14]] as const) box(c, bx + 110 - w2, GY - 3, w2 * 2, 3, `rgba(254, 249, 195, ${a})`);
+    // (the car: stamped (its body, seats, lit portholes, its name in neon); the moving bits live)
+    c.save(); c.translate(l, GY); stamp(c, 'xs-tram-car', -6, -76, TRAM_W + 14, 78, paintTram); c.restore();
+    // (its wheels turning)
+    for (let i = 0; i < 4; i++) { const wx = l + 24 + i * 44; box(c, wx - 8, GY - 9, 16, 9, INK); box(c, wx - 7, GY - 8, 14, 7, '#27272A'); box(c, wx - 7, GY - 8, 14, 1, '#52525B'); box(c, wx - 1, GY - 6 + ((f + i * 3) % 4 < 2 ? 0 : 2), 2, 2, '#A1A1AA'); }
+    // (the running lights along its skirt, chasing; the headlamp, flickering a little; the tail lamp)
+    for (let k = 0; k < 11; k++) { const on = (Math.floor(f / 4) + k) % 4 === 0; box(c, l + 8 + k * 16, GY - 13, 4, 2, on ? '#F5D0FE' : PURPLE[4]); }
+    const hot = f % 10 < 5 ? '#FEF9C3' : '#FEF08A';
+    box(c, l + TRAM_W - 9, GY - 45, 8, 9, hot); box(c, l + TRAM_W - 8, GY - 44, 3, 3, '#FFFFFF');
+    box(c, l - 2, GY - 42, 4, 6, (f >> 3) % 2 ? '#EF4444' : '#B91C1C'); box(c, l - 2, GY - 42, 2, 2, '#FECACA');
     c.restore();
   }
 };
+/** A ride car (local: its left end at 0, the deck at 0): a fat fiberglass tub, banded light to dark down it and lit
+ *  along its lip; two rows of seats in it, their lap bars; a row of lit portholes along its side either side of its name
+ *  in neon; the headlamp's housing at its nose, the tail lamp's at its back. */
+const paintTram = (g: Ctx) => {
+  const W = TRAM_W, P = PURPLE;
+  // (the seats: tuck-and-roll backs, a lit top, the lap bars across)
+  for (const sx of [30, 100]) {
+    box(g, sx - 1, -72, 42, 30, INK);
+    box(g, sx, -71, 40, 28, '#1E1B4B'); box(g, sx, -71, 40, 3, '#4338CA'); box(g, sx, -68, 40, 3, '#312E81'); box(g, sx + 2, -70, 12, 1, '#818CF8');
+    for (let k = 1; k < 4; k++) box(g, sx + k * 10, -65, 1, 20, '#13113A');
+    limb(g, sx - 2, -57, sx + 44, -57, 3, '#CA8A04'); box(g, sx, -58, 40, 1, '#FEF08A');
+  }
+  // (the tub: inked, its bands down it, dithered where they meet)
+  g.fillStyle = INK; g.beginPath(); g.roundRect(-1, -52, W + 2, 48, 15); g.fill();
+  g.save(); g.beginPath(); g.roundRect(0, -51, W, 46, 14); g.clip();
+  const bands: [number, number, string][] = [[-51, 2, P[6]], [-49, 4, P[5]], [-45, 7, P[4]], [-38, 12, P[3]], [-26, 9, P[2]], [-17, 7, P[1]], [-10, 6, P[0]]];
+  bands.forEach(([y, hh, col], i) => { box(g, 0, y, W, hh, col); if (i) checker(g, 0, y, W, 1, bands[i - 1][2]); });
+  // (lit at its back end, shaded at its nose)
+  box(g, 0, -49, 6, 40, P[4]); checker(g, 6, -49, 2, 40, P[4]); box(g, W - 6, -49, 6, 40, P[2]); checker(g, W - 8, -49, 2, 40, P[2]);
+  g.restore();
+  box(g, 10, -50, W - 20, 1, '#F5F3FF');
+  // (the name: in a dark band, neon)
+  box(g, 47, -41, 86, 22, INK); box(g, 48, -40, 84, 20, '#14072A');
+  lettering(g, 'XENOSCARE', 90, -30, 'neon', '#E9D5FF', '#14072A', true);
+  // (the portholes, lit warm inside)
+  for (const px of [13, 27, 41, 139, 153, 167]) {
+    g.fillStyle = INK; g.beginPath(); g.arc(px, -33, 6, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#A1A1AA'; g.beginPath(); g.arc(px, -33, 5, 0, Math.PI * 2); g.fill();
+    orb(g, px, -33, 4, ['#92400E', '#D97706', '#FBBF24', '#FDE68A', '#FFFBEB'], false);
+  }
+  // (the headlamp's housing at the nose, chrome; the tail lamp's at the back; the bumper)
+  box(g, W - 11, -47, 12, 13, INK); box(g, W - 10, -46, 10, 11, '#71717A'); box(g, W - 10, -46, 10, 1, '#E4E4E7');
+  box(g, -4, -44, 6, 10, INK);
+  box(g, W - 3, -20, 7, 12, INK); box(g, W - 2, -19, 5, 10, '#A1A1AA'); box(g, W - 2, -19, 5, 2, '#F4F4F5');
+  // (the skirt under it, dark, where the running lights go)
+  box(g, 4, -15, W - 8, 6, INK); box(g, 5, -14, W - 10, 4, '#0B0418');
+};
 /** A tram airlock's hatch (its opening's left at x: the hatch art's in ship.ts), its shutter slid up `open` of the way:
- *  the tunnel dark behind, the shutter's striped foot where it's got to, a lamp turning while it moves. */
-const hatchOpen = (c: Ctx, x: number, open: number, f: number) => {
+ *  the slats riding up into the top, the tunnel dark behind (its ribs going back, the rails into it; `glow`: a car's
+ *  headlamp coming up it), the shutter's striped foot where it's got to, a lamp turning while it moves. */
+const hatchOpen = (c: Ctx, x: number, open: number, f: number, glow: number) => {
   if (open <= 0.01) return;
   const l = x + 1, w = 88, top = GY - 139, h = 139, up = Math.round(h * open), edge = GY - up;
   c.save(); c.beginPath(); c.roundRect(l, top, w, h, [29, 29, 0, 0]); c.clip();
-  // (the tunnel behind: black, a strip light going back, the rails into it)
-  box(c, l, edge, w, up, '#05050A'); box(c, l + 8, edge + 6, w - 16, 2, '#1F1F2E');
-  for (const ry of [GY - 9, GY - 3]) box(c, l, ry, w, 2, '#3F3F46');
+  // (the tunnel behind: dark, banded, its ribs going back, the rails into it)
+  const T = ['#020106', '#06040C', '#0B0814', '#110C1E'];
+  T.forEach((col, i) => box(c, l, edge + (up * i) / T.length, w, up / T.length + 1, col));
+  for (let k = 1; k <= 3; k++) { const ins = k * 9; box(c, l + ins, Math.max(edge, top + ins), 1, GY - Math.max(edge, top + ins), '#1C1830'); box(c, l + w - ins, Math.max(edge, top + ins), 1, GY - Math.max(edge, top + ins), '#1C1830'); if (top + ins > edge) box(c, l + ins, top + ins, w - ins * 2, 1, '#1C1830'); }
+  if (glow > 0.01) for (const [r, a] of [[30, 0.12], [18, 0.2], [8, 0.4]] as const) box(c, l + w / 2 - r, GY - 40 - r * 0.6, r * 2, r * 1.2, `rgba(254, 249, 195, ${(a * glow).toFixed(3)})`);
+  for (const ry of [GY - 9, GY - 3]) { box(c, l, ry, w, 2, '#3F3F46'); box(c, l, ry, w, 1, '#71717A'); }
+  // (the shutter: its slats riding up into the top, the rest of it)
+  for (let y = edge - 12, i = 0; y > top - 12; y -= 12, i++) { box(c, l, y, w, 11, i % 2 ? '#3F3F46' : '#52525B'); box(c, l, y, w, 1, '#A1A1AA'); box(c, l, y + 11, w, 1, INK); }
+  box(c, l, top, w, Math.max(0, edge - top), 'rgba(10, 8, 20, 0.35)');
   // (the shutter's foot, where it's got to)
   box(c, l, edge - 6, w, 6, INK); for (let k = 0; k < w; k += 12) box(c, l + k, edge - 5, 6, 4, '#EAB308');
   c.restore();
@@ -263,20 +321,24 @@ const hatchOpen = (c: Ctx, x: number, open: number, f: number) => {
 export const drawHouseBack = (c: Ctx, state: GameState, h: House) => {
   drawRigs(c, state, h.rigs);
   drawTrams(c, state, h);
-  // (the pre-show's way out: shut doors till the show's done)
-  if (h.exit && shown(state, PRESHOW.r - 60, PRESHOW.r)) {
-    // (two sliding leaves, steel, a hazard band across them, a red lamp over: shut)
-    const dx = PRESHOW.r - 34;
-    box(c, dx - 1, GY - 181, 36, 181, INK);
-    for (const [lx, w] of [[dx, 16], [dx + 18, 16]] as const) {
-      box(c, lx, GY - 180, w, 180, '#334155'); box(c, lx, GY - 180, 3, 180, '#64748B'); box(c, lx + w - 2, GY - 180, 2, 180, '#1E293B');
-      for (let y = GY - 160; y < GY - 10; y += 40) { box(c, lx + 3, y, w - 5, 1, '#1E293B'); box(c, lx + 3, y + 1, w - 5, 1, '#64748B'); }
-      for (let k = 0; k < 4; k++) box(c, lx, GY - 70 + k * 6, w, 3, k % 2 ? '#CE9A10' : INK);
+  // (the pre-show's way out: its doorway's leaves shut till the show's done)
+  const d = DOORWAYS[1];
+  if (h.exit && shown(state, d.l - 30, d.r + 30)) {
+    // (two sliding leaves, steel, ribbed, a hazard band across them, meeting in the middle; a red lamp on them: shut)
+    const w = (d.r - d.l) / 2, H = GY - DOOR_TOP;
+    box(c, d.l - 1, DOOR_TOP, d.r - d.l + 2, H, INK);
+    for (const [lx, s] of [[d.l, -1], [d.l + w, 1]] as const) {
+      box(c, lx, DOOR_TOP, w, H, '#334155'); box(c, lx, DOOR_TOP, 4, H, s < 0 ? '#64748B' : '#475569'); box(c, lx + w - 3, DOOR_TOP, 3, H, '#1E293B');
+      checker(c, lx + 4, DOOR_TOP, 2, H, '#475569');
+      for (let y = DOOR_TOP + 24; y < GY - 10; y += 36) { box(c, lx + 4, y, w - 8, 1, '#1E293B'); box(c, lx + 4, y + 1, w - 8, 1, '#64748B'); }
+      for (let k = 0; k < 5; k++) box(c, lx, GY - 76 + k * 7, w, 4, k % 2 ? '#CE9A10' : INK);
     }
-    box(c, dx + 16, GY - 180, 2, 180, '#0F172A');
-    box(c, dx + 11, GY - 192, 12, 10, INK); box(c, dx + 12, GY - 191, 10, 8, state.frame % 40 < 20 ? '#EF4444' : '#7F1D1D');
+    box(c, d.l + w - 1, DOOR_TOP, 2, H, '#0F172A');
+    box(c, d.l + w - 6, DOOR_TOP + 14, 12, 10, INK); box(c, d.l + w - 5, DOOR_TOP + 15, 10, 8, state.frame % 40 < 20 ? '#EF4444' : '#7F1D1D');
   }
 };
+/** World space, over the scenery, them and him: the rigs' animatronics popping out (the bolts go over these). */
+export const drawHouseProps = (c: Ctx, state: GameState, h: House) => drawRigsFront(c, state, h.rigs);
 /** World space, over him: the BOO in his face (the pre-show's), the words. */
 export const drawHouseFront = (c: Ctx, state: GameState, h: House) => {
   const f = state.frame;
@@ -312,7 +374,15 @@ export const houseLighting = (state: GameState, h: House): SceneLight | null => 
   // (a rig popping: a red spot on it)
   for (const l of rigLights(h.rigs)) add(l.x, l.y, l.r, l.a, l.color);
   // (a tram's headlamp)
-  for (const tr of h.trams) if (tr.mode === 'run') add(tr.x + 100, GY - 40, 160, 0.7, 'rgba(254, 249, 195, 0.08)');
+  // (a tram: its own glow (its portholes, its neon), its headlamp's beam on ahead of it; one coming, its headlamp up the
+  // tunnel in the hatch first)
+  for (const tr of h.trams) {
+    const out = (x: number) => x > tr.a - 120 && x < tr.b + 120;
+    if (tr.mode === 'run') {
+      if (out(tr.x)) add(tr.x, GY - 40, 170, 0.8, 'rgba(196, 181, 253, 0.07)');
+      for (const [dx, r, a] of [[TRAM_W / 2 + 50, 120, 0.85], [TRAM_W / 2 + 140, 100, 0.6]] as const) if (out(tr.x + dx)) add(tr.x + dx, GY - 34, r, a, 'rgba(254, 249, 195, 0.1)');
+    } else if (tr.mode === 'warn') add(tr.a - 65, GY - 50, 110, 0.6 * Math.min(1, tr.t / WARN), 'rgba(254, 249, 195, 0.08)');
+  }
   // (him: a little of his own, so he's never lost in it)
   lights.push({ x: state.player.pos.x + state.player.width / 2, y: state.player.pos.y + 30, r: 140, a: 0.4 });
   // The pre-show: down, the strobe, black, the red BOO

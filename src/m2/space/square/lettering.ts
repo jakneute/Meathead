@@ -9,6 +9,9 @@
 //   small    the jokes' boards: the plain 5x7 painted on, a drop shadow.
 //   stencil  the work crews' spray paint: bold, each letter broken by a stencil's bridges, a dusting of overspray.
 //            (`stencil2`: twice the size)
+//   drip     a haunted ride's: bold, inked round, the paint lit at the top and dark at the foot, running (drips off the
+//            letters' feet, a bead at the end of each: they hang below the line, so leave a little room under it).
+//            (`drip2`: twice the size)
 //
 // The alphabet's shared: Space Needle 2's own sign families (needle/letters.ts) set the same letterforms (`glyphDots`).
 
@@ -16,7 +19,7 @@ import { box, mix } from '../../intro/art/kit';
 import { timeOfDay } from '../../timeOfDay';
 
 type Ctx = CanvasRenderingContext2D;
-export type Letter = 'chrome' | 'chrome2' | 'neon' | 'neon2' | 'enamel' | 'enamel2' | 'marquee' | 'small' | 'stencil' | 'stencil2';
+export type Letter = 'chrome' | 'chrome2' | 'neon' | 'neon2' | 'enamel' | 'enamel2' | 'marquee' | 'small' | 'stencil' | 'stencil2' | 'drip' | 'drip2';
 
 const INK = '#140C1E';
 const G: Record<string, string> = {
@@ -70,6 +73,8 @@ const SPEC: Record<Letter, Spec> = {
   small: { sx: 1, sy: 1, gap: 1, pad: 1, slant: 0, bold: 0 },
   stencil: { sx: 1, sy: 2, gap: 2, pad: 2, slant: 0, bold: 1 },
   stencil2: { sx: 2, sy: 2, gap: 2, pad: 2, slant: 0, bold: 0 },
+  drip: { sx: 1, sy: 2, gap: 2, pad: 2, slant: 0, bold: 1 },
+  drip2: { sx: 2, sy: 2, gap: 2, pad: 2, slant: 0, bold: 1 },
 };
 const advance = (ch: string, s: Spec) => { const g = glyph(ch); return (g.w + s.bold) * s.sx + s.gap; };
 
@@ -133,6 +138,19 @@ export const lettering = (g: Ctx, text: string, x: number, y: number, f: Letter,
     dots.forEach(([px, py], i) => { if (i % 2 === 0) box(g, px - 1 + (i % 3), py - 1, 1, 1, mix(ink, bg, 0.55)); if (i % 3 === 0) box(g, px + 1, py + s.sy, 1, 1, mix(ink, bg, 0.6)); });
     each(0, ink);
     dots.forEach(([px, py], i) => { if (i % 4 === 1) box(g, px, py + 1, 1, 1, mix(ink, bg, 0.35)); });
+  } else if (f === 'drip' || f === 'drip2') {
+    // (the drips: off the foot of a stroke (nothing lit under it), one in a few, each its own length, a bead at its end)
+    const lit = new Set(dots.map(([px, py]) => `${px},${py}`));
+    const drips: [number, number, number][] = [];
+    dots.forEach(([px, py], i) => {
+      if (lit.has(`${px},${py + s.sy}`) || (i * 7 + px * 3 + py) % 5 > 1) return;
+      drips.push([px, py + s.sy, 2 + ((i * 11 + px * 5) % 4) * 2]);
+    });
+    const run = mix(ink, INK, 0.3);
+    each(1, INK, 1, 1); each(1, INK);
+    drips.forEach(([px, py, len]) => { box(g, px - 1, py, s.sx + 2, len + 1, INK); box(g, px - 1, py + len - 1, s.sx + 3, 4, INK); });
+    each(0, r => (r < 2 ? mix(ink, '#FFFFFF', 0.3) : r > 4 ? run : ink));
+    drips.forEach(([px, py, len]) => { box(g, px, py, s.sx, len, run); box(g, px, py + len, s.sx + 1, 2, run); box(g, px, py + len, 1, 1, mix(ink, '#FFFFFF', 0.3)); });
   } else {
     each(0, mix(bg, INK, 0.45), 1, 1);
     each(0, ink);
