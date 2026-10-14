@@ -22,7 +22,7 @@ export const MH_ARRIVE = [
   'SPACE SMELLS LIKE A HOT PAN.',
 ] as const;
 /** His first shot in space: the gun's gone rapid. */
-export const MH_RAPID = ['HOLY SHIT. RAPID FIRE.'] as const;
+export const MH_RAPID = ["WHAT? MY GUN TALKS? AND IT'S BETTER NOW?"] as const;
 /** The gun gets to the beam. */
 export const MH_BEAM = 'OH, FUCK YES.';
 /** The saucer's widow says who she is. */
@@ -34,7 +34,7 @@ export const MH_LADIES = { morning: 'MORNING, LADIES.', afternoon: 'AFTERNOON, L
 // The ray gun (it talks now: space radiation). Each upgrade as it gets there (by level, 0 the first), and coming down.
 
 export const GUN_UPGRADE = [
-  'SPACE RADIATION DETECTED. RAPID FIRE ENABLED. YOUR SPERM IS DEAD, BY THE WAY.',
+  'SPACE RADIATION DETECTED. IT IS UPGRADING ME. RAPID FIRE ENABLED. YOUR SPERM IS DEAD, BY THE WAY.',
   'RADIATION LEVELS RISING. UPGRADING. I HAVE TWO BARRELS NOW. I DID NOT HAVE TWO BARRELS.',
   "UPGRADING. SPREAD SHOT. I'M SPREADING LIKE A RASH.",
   'RADIATION CRITICAL. FIVE STREAMS. I THINK I HAVE A TUMOR.',
