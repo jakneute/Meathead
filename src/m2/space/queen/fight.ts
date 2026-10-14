@@ -166,6 +166,8 @@ export interface Fight {
   /** Frames into getting the extinguisher off the wall (the hop up for it). */
   grabT: number;
   tauntT: number; saidBirth: number;
+  /** What she and the booth have said this life: never the same thing twice in one (out of new ones, they keep quiet). */
+  barked: Set<string>;
   /** When one of hers (or anybody) last went into her, thrown or batted; when he last hinted at it. */
   throwAt: number; throwHintAt: number;
   /** A throw or a bat landed on her lately (the engine's own share of the same hit isn't counted on top). */
@@ -189,7 +191,7 @@ export const makeFight = (state: GameState): Fight => {
     lights: seen ? 1 : 0, down: seen ? 1 : 0, foam: 0, ext2: seen ? 'gone' : 'wall', ex: { x: EXTINGUISHER_X, y: GY - 90, vx: 0, vy: 0, r: 0 },
     said: null, boothSaid: null,
     birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, pool: null,
-    drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, throwAt: -1, throwHintAt: -9999, eventAt: -99,
+    drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, barked: new Set(), throwAt: -1, throwHintAt: -9999, eventAt: -99,
     ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], deathT: 0, deathSaid: 0, byWeakness: false, e: null,
   };
 };
@@ -230,7 +232,10 @@ const boothSays = (state: GameState, f: Fight, lines: L.ByPants, onDone?: () => 
 };
 const bark = (state: GameState, f: Fight, lines: L.ByPants, who: 'queen' | 'booth' = 'queen') => {
   if (!quiet(f)) return;
-  const text = pick(lines[dressed(state)]);
+  const left = lines[dressed(state)].filter(t => !f.barked.has(t));
+  if (!left.length) return;
+  const text = pick(left);
+  f.barked.add(text);
   const set = (v: string | null) => { if (who === 'queen') f.said = v; else f.boothSaid = v; };
   const get = () => (who === 'queen' ? f.said : f.boothSaid);
   say(text, voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien'), 'casual', {
