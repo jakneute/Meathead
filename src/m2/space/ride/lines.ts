@@ -8,7 +8,7 @@ export type Dressed = 'clean' | 'shitty' | 'nude';
 
 /** The PA's stories, by where along the ride they come (layout.ts: PA_CUES), and what Meathead says back (if anything). */
 export const PA: Record<string, { lines: string[]; reply?: string[] }> = {
-  welcome: { lines: ['WELCOME ABOARD VOYAGE TO 2010! PRESENTED BY PROGRESSCO.', 'PLEASE KEEP YOUR HANDS, ARMS AND OPINIONS INSIDE THE STAR SLED.'] },
+  welcome: { lines: ['WELCOME ABOARD VOYAGE TO 2010! PRESENTED BY PROGRESSCO.', 'PLEASE KEEP YOUR HANDS, ARMS AND OPINIONS INSIDE THE STAR SLED.'], reply: ['2010? DID THAT ALREADY HAPPEN? I FORGET.'] },
   // (it teaches the space blaster: cut in ahead of whatever's waiting, before the first Martian)
   blaster: { lines: ['STAR SLED RIDERS! MARTIANS ON THE TRACK! USE YOUR ONBOARD SPACE BLASTER!'], reply: ['THE RIDE HAS A GUN?!', 'FINALLY. A RIDE WITH A GUN.'] },
   home: { lines: ["IT'S 2010! DAD COMMUTES BY JETPACK. HE'S HOME BY TWO.", 'ROBO-BUTLER SERVES DINNER: THREE DELICIOUS MEAL PILLS!'], reply: ["I'D EAT THE BUTLER."] },
