@@ -16,7 +16,7 @@ import { saidOver } from '../section';
 import { GY } from '../geometry';
 import {
   A, x1, THRUSTERS, thrustAt, flameBox, ROCKET_BODY, SWINGS, swingBall, SHOWER, showerAt, AIRLOCKS, AIRLOCK_TOP, airlockAt,
-  AIRLOCK_POST, CANNON, cannonAt, FLOOR_LASER, floorLaserAt, SWEEP_LASER, sweepSpot, LASER_POST, FOG_XS, BLACKLIGHT,
+  AIRLOCK_POST, CANNON, cannonAt, FLOOR_LASER, floorLaserAt, SWEEP_LASER, sweepSpot, sweepState, LASER_POST, FOG_XS, BLACKLIGHT,
   QUEUE_DOOR, LINE_X0, LINE_X1, PLATFORM_X, CONSOLE_X, SLED_X, TUNNEL_X, QUEUE, LEDGES, SOLIDS, POSTS,
 } from './layout';
 import { crewed } from './rigs';
@@ -424,10 +424,16 @@ export const drawAtomFront = (c: Ctx, state: GameState, hj: Hijack) => {
     box(c, FLOOR_LASER.x - 8, y - 4, 8, 8, s.on || s.tell > 0 ? '#86EFAC' : '#14532D');
   }
   if (lit && on(SWEEP_LASER.x0 - 100, SWEEP_LASER.x + 50)) {
-    const sx = sweepSpot(f);
+    const sx = sweepSpot(f), sw = sweepState(f);
+    // (on the blink: dead, just the emitter's dull red eye; sputtering, a thin flicker of it, a tell; live, the beam)
+    if (!sw.live) {
+      if (sw.sputter) { c.strokeStyle = 'rgba(254, 202, 202, 0.55)'; c.lineWidth = 1; c.setLineDash([6, 10]); c.lineDashOffset = -f * 3; c.beginPath(); c.moveTo(SWEEP_LASER.x, SWEEP_LASER.y); c.lineTo(sx, GY); c.stroke(); c.setLineDash([]); }
+      box(c, SWEEP_LASER.x - 4, SWEEP_LASER.y - 2, 8, 4, sw.sputter ? '#FCA5A5' : '#7F1D1D');
+    } else {
     c.strokeStyle = 'rgba(239, 68, 68, 0.35)'; c.lineWidth = 6; c.beginPath(); c.moveTo(SWEEP_LASER.x, SWEEP_LASER.y); c.lineTo(sx, GY); c.stroke();
     c.strokeStyle = '#FECACA'; c.lineWidth = 2; c.beginPath(); c.moveTo(SWEEP_LASER.x, SWEEP_LASER.y); c.lineTo(sx, GY); c.stroke();
     box(c, sx - 10, GY - 3, 20, 3, '#FCA5A5');
+    }
   }
   // The fog (it's what the lasers show up in)
   if (on(BLACKLIGHT.x0 - 200, BLACKLIGHT.x1 + 200)) {
@@ -470,7 +476,7 @@ export const atomLighting = (state: GameState): SceneLight => {
     if (crewed(state, LASER_POST)) {
       const s = floorLaserAt(f, true);
       if (s.on) for (let x = FLOOR_LASER.from; x < FLOOR_LASER.x; x += 110) lights.push({ x, y: s.high ? FLOOR_LASER.high : FLOOR_LASER.low, r: 70, a: 0.8, color: 'rgba(74, 222, 128, 0.2)' });
-      lights.push({ x: sweepSpot(f), y: GY - 10, r: 80, a: 0.9, color: 'rgba(248, 113, 113, 0.25)' });
+      if (sweepState(f).live) lights.push({ x: sweepSpot(f), y: GY - 10, r: 80, a: 0.9, color: 'rgba(248, 113, 113, 0.25)' });
     }
   }
   for (const [post, x, feet] of POSTS) if (near(x)) lights.push({ x: x + 30, y: feet - 40, r: 110, a: crewed(state, post) ? 0.7 : 0.3, color: 'rgba(74, 222, 128, 0.08)' });

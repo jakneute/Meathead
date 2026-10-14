@@ -123,6 +123,16 @@ export const floorLaserAt = (frame: number, crewed: boolean) => {
 };
 /** The sweeping one: off the ceiling at (x, y), its spot on the floor sweeping from x0 to x1 and back. */
 export const SWEEP_LASER = { x: A + 5900, y: GY - 330, x0: A + 5520, x1: A + 5860, period: 220 };
+/** The sweeping laser's on the blink (a bad connection): in stretches of `seg` frames, live or dead by a roll (about half
+ *  live, never two dead in a row more than twice), sputtering (harmless, a tell) the last few frames before it comes back
+ *  on. `live`: it burns; `sputter`: it flickers, harmless. */
+const SWEEP_SEG = 40, SPUTTER = 16;
+const segRoll = (n: number) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const segLive = (n: number) => segRoll(n) < 0.5 || (segRoll(n - 1) >= 0.5 && segRoll(n - 2) >= 0.5);
+export const sweepState = (frame: number) => {
+  const n = Math.floor(frame / SWEEP_SEG), k = frame - n * SWEEP_SEG, live = segLive(n);
+  return { live, sputter: !live && segLive(n + 1) && k >= SWEEP_SEG - SPUTTER && (k >> 1) % 2 === 0 };
+};
 export const sweepSpot = (frame: number) => SWEEP_LASER.x0 + (SWEEP_LASER.x1 - SWEEP_LASER.x0) * (0.5 - 0.5 * Math.cos((frame / SWEEP_LASER.period) * Math.PI * 2));
 
 /** The fog machines (by the laser show) and the blacklight's stretch. */

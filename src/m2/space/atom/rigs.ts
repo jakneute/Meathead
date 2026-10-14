@@ -16,7 +16,7 @@ import { registerHurtLines } from '../../kinds';
 import { GY } from '../geometry';
 import {
   THRUSTERS, thrustAt, flameBox, SWINGS, swingBall, SHOWER, showerAt, AIRLOCKS, AIRLOCK_TOP, airlockAt, AIRLOCK_POST,
-  CANNON, cannonAt, FLOOR_LASER, floorLaserAt, SWEEP_LASER, sweepSpot, LASER_POST, deadPosts,
+  CANNON, cannonAt, FLOOR_LASER, floorLaserAt, SWEEP_LASER, sweepSpot, sweepState, LASER_POST, deadPosts,
 } from './layout';
 import { ATOM } from './kinds';
 import {
@@ -165,8 +165,12 @@ export const runRigs = (ctx: FrameContext, blocks: RigBlocks) => {
     }
     if (s.on || s.tell > 0) zones.push({ x0: L.from - 20, x1: L.x, y0: y - 6, y1: y + 6 });
   }
+  const sw = sweepState(f);
   if (lit && near(SWEEP_LASER.x, 1100)) {
     const sx = sweepSpot(f);
+    // (on the blink: dead, nobody's hurt; it sputters before it comes back on, then it's live)
+    if (!sw.live) { if (sw.sputter && f % 4 === 0) playSound('egun', 0.12, 20); zones.push({ x0: sx - 50, x1: sx + 50, y0: SWEEP_LASER.y, y1: GY }); }
+    else {
     // (down the beam, from the ceiling to the spot on the floor: whoever it passes through)
     for (let k = 0; k <= 14; k++) {
       const u = 0.45 + (k / 14) * 0.55, bx = SWEEP_LASER.x + (sx - SWEEP_LASER.x) * u, by = SWEEP_LASER.y + (GY - SWEEP_LASER.y) * u;
@@ -174,6 +178,7 @@ export const runRigs = (ctx: FrameContext, blocks: RigBlocks) => {
     }
     if (f % 30 === 0) playSound('egun', 0.2, 16);
     zones.push({ x0: sx - 50, x1: sx + 50, y0: SWEEP_LASER.y, y1: GY });
+    }
   }
 
   setHazardZones(state, 'atom', zones);
