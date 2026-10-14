@@ -142,7 +142,7 @@ const paintSlot = (c: Ctx, kind: SlotKind) => {
     for (const s of [-1, 1]) box(c, s * 26 - 4, GY - 96, 8, 30, CHROME[2]);
     burst(c, 0, GY - 214, 22, ORANGE[3]); burst(c, 0, GY - 214, 12, ORANGE[5]); burst(c, 0, GY - 214, 5, '#FFFFFF');
     box(c, 74, GY - 120, 14, 30, CHROME[1]); box(c, 77, GY - 116, 8, 8, ORANGE[4]); box(c, 77, GY - 104, 8, 8, '#3F3F46');
-    words(c, 'LIFT', 0, GY - 172, CHROME[1], 8, CHROME[6]);
+    words(c, 'ELEVATOR', 0, GY - 172, CHROME[1], 8, CHROME[6]);
     wallPlaque(c, 0, GY - 290, 'ALTITUDE', '62 MILES');
   }
   // the pilasters between the slots
@@ -574,7 +574,7 @@ const paintLiftPortal = (c: Ctx) => {
   // (the doors' etched starbursts)
   for (const s of [-1, 1]) { burst(c, s * 27, GY - 100, 12, s < 0 ? CHROME[6] : CHROME[4]); burst(c, s * 27, GY - 100, 5, CHROME[2]); }
   burst(c, 0, GY - 232, 26, INK); burst(c, 0, GY - 232, 24, ORANGE[3]); burst(c, 0, GY - 232, 12, ORANGE[5]); burst(c, 0, GY - 232, 5, '#FFFFFF');
-  words(c, 'LIFT TO SPACE', 0, GY - 180, CHROME[1], 7, CHROME[6]);
+  words(c, 'ELEVATOR TO SPACE', 0, GY - 180, CHROME[1], 7, CHROME[6]);
   box(c, 79, GY - 121, 16, 24, INK); box(c, 80, GY - 120, 14, 22, CHROME[2]); box(c, 83, GY - 116, 8, 8, ORANGE[4]); box(c, 84, GY - 116, 3, 2, '#FFFFFF');
   words(c, '62 MILES', 0, GY - 262, ORANGE[4], 7);
 };
