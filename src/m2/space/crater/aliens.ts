@@ -13,6 +13,7 @@ import { stamp } from '../../../m1/game/render/stamp';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { INK, ink, limb, dark, lite } from '../../../m1/game/render/npc/kit';
 import { mix } from '../../../m1/game/render/backdrops/core';
+import { checker } from '../../../m1/game/render/pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -37,6 +38,16 @@ export interface AlienLook {
 const TINTS = [ALIEN.hide[5], '#6E7F58', '#557E6C', '#62853F'];
 const hideOf = (seed: number) => TINTS[Math.abs(seed) % TINTS.length];
 const BELLY = ALIEN.belly[4];
+
+/** A limb with its shading (the final pass): inked, its shade down the underside, a lit line along the top (lit from
+ *  the upper left, as everything is). */
+const slimb = (g: Ctx, x1: number, y1: number, x2: number, y2: number, w: number, col: string) => {
+  limb(g, x1, y1, x2, y2, w, col);
+  g.lineCap = 'round';
+  g.strokeStyle = dark(col, 0.3); g.lineWidth = w * 0.42; g.beginPath(); g.moveTo(x1 + w * 0.2, y1 + w * 0.2); g.lineTo(x2 + w * 0.2, y2 + w * 0.2); g.stroke();
+  g.strokeStyle = lite(col, 0.24); g.lineWidth = Math.max(1, w * 0.2); g.beginPath(); g.moveTo(x1 - w * 0.2, y1 - w * 0.22); g.lineTo(x2 - w * 0.2, y2 - w * 0.22); g.stroke();
+  g.lineCap = 'butt';
+};
 
 /** The alien, feet at (0, 0), facing right. `f` a frame count (walk cycle, breathing). */
 export const drawAlien = (c: Ctx, look: AlienLook, pose: AlienPose, f: number, scale = 1) => {
@@ -75,8 +86,8 @@ const paintAlien = (g: Ctx, look: AlienLook, pose: AlienPose, fq: number) => {
   for (const s of [-1, 1] as const) {
     const sw = walk * 9 * s;
     const hx = s * 9, hy = -30, kx = s * 14 + sw * 0.6 + 2, ky = -16, fx = s * 11 + sw, fy = -4;
-    limb(g, hx, hy, kx, ky, 15, s < 0 ? hideD : hide);
-    limb(g, kx, ky, fx, fy, 12, s < 0 ? hideD : hide);
+    slimb(g, hx, hy, kx, ky, 15, s < 0 ? hideD : hide);
+    slimb(g, kx, ky, fx, fy, 12, s < 0 ? hideD : hide);
     ink(g, () => g.roundRect(fx - 8, -7, 18, 7, 2), s < 0 ? hideD : hide);
     for (let t = 0; t < 3; t++) { g.fillStyle = INK; g.fillRect(fx + 3 + t * 3, -3, 2, 2); }
   }
@@ -98,8 +109,8 @@ const paintAlien = (g: Ctx, look: AlienLook, pose: AlienPose, fq: number) => {
       pose === 'operate' ? [-6, -60, 14, -62 + Math.sin(ph * 2) * 3] :
       pose === 'talk' ? [-32, -56, -26, -40 + Math.sin(ph) * 6] :
       [-30, -52 - walk * 3, -30 - walk * 6, -28];
-    limb(g, -24, -74, ex, ey, 11, hideD);
-    limb(g, ex, ey, hx2, hy2, 15, hideD);
+    slimb(g, -24, -74, ex, ey, 11, hideD);
+    slimb(g, ex, ey, hx2, hy2, 15, hideD);
     ink(g, () => g.ellipse(hx2, hy2, 8, 7, 0, 0, Math.PI * 2), hideD);
     g.fillStyle = ALIEN.claw[1]; g.fillRect(hx2 - 5, hy2 + 4, 3, 3); g.fillRect(hx2 + 2, hy2 + 5, 3, 3);
   };
@@ -111,6 +122,9 @@ const paintAlien = (g: Ctx, look: AlienLook, pose: AlienPose, fq: number) => {
   g.save(); g.beginPath(); g.ellipse(-1, -58, 27, 22, 0, 0, Math.PI * 2); g.clip();
   g.fillStyle = hideL; g.fillRect(-28, -80, 16, 40);
   g.fillStyle = hideD; g.fillRect(14, -80, 16, 44);
+  checker(g, -12, -80, 2, 40, hideL); checker(g, 12, -80, 2, 44, hideD);
+  g.fillStyle = dark(hide, 0.45); g.fillRect(20, -70, 10, 30);
+  g.fillStyle = lite(hide, 0.4); g.fillRect(-22, -76, 7, 3); g.fillRect(-24, -73, 3, 6);
   g.restore();
   g.restore();
   ink(g, () => g.ellipse(3, -38, 20, 13, 0, 0, Math.PI * 2), BELLY, 1.2);
@@ -195,8 +209,8 @@ const paintAlien = (g: Ctx, look: AlienLook, pose: AlienPose, fq: number) => {
       pose === 'operate' ? [30, -58, 40, -60 - Math.sin(ph * 2) * 3] :
       pose === 'talk' ? [36, -60, 46, -48 - Math.sin(ph) * 6] :
       [32, -52 + walk * 3, 34 + walk * 6, -27];
-    limb(g, 24, -74, ex, ey, 12, hide);
-    limb(g, ex, ey, hx2, hy2, 16, hide);
+    slimb(g, 24, -74, ex, ey, 12, hide);
+    slimb(g, ex, ey, hx2, hy2, 16, hide);
     ink(g, () => g.ellipse(hx2, hy2, 8.5, 7.5, 0, 0, Math.PI * 2), hide);
     g.fillStyle = hideL; g.fillRect(ex - 2 + (hx2 - ex) * 0.3, ey - 6 + (hy2 - ey) * 0.3, 6, 2);
     g.fillStyle = ALIEN.claw[1];
@@ -237,9 +251,9 @@ export const drawCrawler = (c: Ctx, seed: number, f: number, lunge: boolean, dea
     g.fillStyle = BELLY; g.fillRect(-10, -6, 22, 4);
     g.fillStyle = ALIEN.gum; for (let i = 0; i < 4; i++) g.fillRect(-26 + i * 2, -22 + i * 4, 3, 3);
     // (the arms, hauling: one reaching out ahead, the other planted)
-    limb(g, 12, -22, 26 + reach, -10, 10, hideD);
+    slimb(g, 12, -22, 26 + reach, -10, 10, hideD);
     ink(g, () => g.ellipse(28 + reach, -6, 7, 5, 0, 0, Math.PI * 2), hideD);
-    limb(g, 6, -18, 16 - reach * 0.5, -4, 10, hide);
+    slimb(g, 6, -18, 16 - reach * 0.5, -4, 10, hide);
     ink(g, () => g.ellipse(18 - reach * 0.5, -4, 7, 5, 0, 0, Math.PI * 2), hide);
     // (the head, up off the floor: the jaw, the pegs, the eyes)
     const hx = 22, hy = -30 - (fq === 9 ? 4 : 0);
@@ -349,6 +363,8 @@ const trunk = (g: Ctx, a: P, b: P, gut: 1 | -1, hide: string, flat: number, bell
   g.fillStyle = hideL; g.fillRect(cx - ext, cy - ext, ext * 2, ext - ry * 0.45);
   g.fillStyle = hideD; g.fillRect(cx - ext, cy + ry * 0.35, ext * 2, ext);
   g.fillStyle = dark(hide, 0.5); g.fillRect(cx - ext, cy + ry * 0.7, ext * 2, ext);
+  checker(g, cx - ext, cy - ry * 0.45, ext * 2, 2, hideL); checker(g, cx - ext, cy + ry * 0.35 - 2, ext * 2, 2, hideD);
+  g.fillStyle = lite(hide, 0.42); g.fillRect(Math.round(cx - rx * 0.3), Math.round(cy - ry * 0.75), Math.round(rx * 0.35), 2);
   if (belly) {
     // (the pale gut, out on its side of the line)
     const nx = Math.cos(an - Math.PI / 2) * gut, ny = Math.sin(an - Math.PI / 2) * gut, bx = cx + nx * ry * 0.6, by = cy + ny * ry * 0.6;
@@ -388,10 +404,10 @@ const gutRope = (g: Ctx, a: P, b: P, sag: number) => {
 export const drawRag = (g: Ctx, look: AlienLook, r: Rag) => {
   const hide = hideOf(look.seed), hideD = dark(hide, 0.3);
   const flat = r.flat ?? 1;
-  if (r.legB) { limb(g, r.hip[0], r.hip[1], r.legB[0][0], r.legB[0][1], 15, hideD); limb(g, r.legB[0][0], r.legB[0][1], r.legB[1][0], r.legB[1][1], 12, hideD); foot(g, r.legB[0], r.legB[1], hideD); }
-  if (r.armB) { limb(g, r.sh[0], r.sh[1], r.armB[0][0], r.armB[0][1], 11, hideD); limb(g, r.armB[0][0], r.armB[0][1], r.armB[1][0], r.armB[1][1], 15, hideD); hand(g, r.armB[0], r.armB[1], hideD); }
+  if (r.legB) { slimb(g, r.hip[0], r.hip[1], r.legB[0][0], r.legB[0][1], 15, hideD); slimb(g, r.legB[0][0], r.legB[0][1], r.legB[1][0], r.legB[1][1], 12, hideD); foot(g, r.legB[0], r.legB[1], hideD); }
+  if (r.armB) { slimb(g, r.sh[0], r.sh[1], r.armB[0][0], r.armB[0][1], 11, hideD); slimb(g, r.armB[0][0], r.armB[0][1], r.armB[1][0], r.armB[1][1], 15, hideD); hand(g, r.armB[0], r.armB[1], hideD); }
   // (the neck, out to the head)
-  if (r.head) limb(g, r.sh[0], r.sh[1], r.head.at[0] + (r.sh[0] - r.head.at[0]) * 0.25, r.head.at[1] + (r.sh[1] - r.head.at[1]) * 0.25, 22, hide);
+  if (r.head) slimb(g, r.sh[0], r.sh[1], r.head.at[0] + (r.sh[0] - r.head.at[0]) * 0.25, r.head.at[1] + (r.sh[1] - r.head.at[1]) * 0.25, 22, hide);
   if (r.mid) { trunk(g, r.mid, r.hip, r.gut, hide, flat, true, look.seed); trunk(g, r.sh, r.mid, r.gut, hide, flat, false, look.seed + 1); }
   else trunk(g, r.sh, r.hip, r.gut, hide, flat, true, look.seed);
   if (r.torn) tornEnd(g, r.hip, ang(r.sh, r.hip));
@@ -400,9 +416,9 @@ export const drawRag = (g: Ctx, look: AlienLook, r: Rag) => {
     deadHead(g, hide, !!r.head.tongue, look.seed);
     g.restore();
   }
-  if (r.legF) { limb(g, r.hip[0], r.hip[1], r.legF[0][0], r.legF[0][1], 15, hide); limb(g, r.legF[0][0], r.legF[0][1], r.legF[1][0], r.legF[1][1], 12, hide); foot(g, r.legF[0], r.legF[1], hide); }
+  if (r.legF) { slimb(g, r.hip[0], r.hip[1], r.legF[0][0], r.legF[0][1], 15, hide); slimb(g, r.legF[0][0], r.legF[0][1], r.legF[1][0], r.legF[1][1], 12, hide); foot(g, r.legF[0], r.legF[1], hide); }
   if (r.armF) {
-    limb(g, r.sh[0], r.sh[1], r.armF[0][0], r.armF[0][1], 12, hide); limb(g, r.armF[0][0], r.armF[0][1], r.armF[1][0], r.armF[1][1], 16, hide); hand(g, r.armF[0], r.armF[1], hide);
+    slimb(g, r.sh[0], r.sh[1], r.armF[0][0], r.armF[0][1], 12, hide); slimb(g, r.armF[0][0], r.armF[0][1], r.armF[1][0], r.armF[1][1], 16, hide); hand(g, r.armF[0], r.armF[1], hide);
     // (the ray gun grafted on the forearm)
     if (look.gun) {
       const [e, h] = r.armF, a = ang(e, h), nx = Math.cos(a - Math.PI / 2) * 7, ny = Math.sin(a - Math.PI / 2) * 7;

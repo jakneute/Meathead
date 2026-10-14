@@ -24,7 +24,7 @@ import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { hazardVictims, hazardHit, setHazardZones } from '../../hazardHit';
 import { hands, speak, meatheadSays, saidOver, box, label } from '../section';
-import { ink, limb } from '../../../m1/game/render/npc/kit';
+import { INK, limb } from '../../../m1/game/render/npc/kit';
 import { GY } from '../geometry';
 import { drawCheapGreen, shown } from './art';
 import { type Rig, makeRigs, tickRigs, drawRigs, drawRigSaid, rigLights } from './rigs';
@@ -199,28 +199,38 @@ const tickTrams = (ctx: FrameContext, h: House) => {
   setHazardZones(state, 'xeno-trams', zones);
 };
 
+const PURPLE = ['#1E0B3A', '#2E1065', '#4C1D95', '#6D28D9', '#8B5CF6', '#A78BFA', '#DDD6FE'];
 const drawTrams = (c: Ctx, state: GameState, h: House) => {
   const f = state.frame;
   for (const tr of h.trams) {
     if (!shown(state, tr.a - 200, tr.b + 200)) continue;
-    // (the bell's light, at the tunnel mouth: red, blinking)
+    // (the bell's light, at each tunnel mouth: red, blinking; a grille for the bell)
     const lit = tr.mode === 'warn' && Math.floor(tr.t / 8) % 2 === 0;
-    box(c, tr.a - 80, GY - 168, 20, 20, '#18181B'); box(c, tr.a - 77, GY - 165, 14, 14, lit ? '#EF4444' : '#450A0A');
-    box(c, tr.b + 60, GY - 168, 20, 20, '#18181B'); box(c, tr.b + 63, GY - 165, 14, 14, lit ? '#EF4444' : '#450A0A');
+    for (const lx of [tr.a - 80, tr.b + 60]) {
+      box(c, lx - 1, GY - 169, 22, 22, INK); box(c, lx, GY - 168, 20, 20, '#27272A'); box(c, lx, GY - 168, 20, 2, '#52525B');
+      box(c, lx + 3, GY - 165, 14, 14, lit ? '#EF4444' : '#450A0A'); box(c, lx + 4, GY - 164, 5, 4, lit ? '#FECACA' : '#7F1D1D');
+      if (lit) { box(c, lx - 4, GY - 160, 3, 4, '#F87171'); box(c, lx + 21, GY - 160, 3, 4, '#F87171'); }
+    }
     if (tr.mode !== 'run') continue;
     // (clipped to between the tunnels' mouths: it comes out of one and goes into the other)
     c.save(); c.beginPath(); c.rect(tr.a - 20, GY - 200, tr.b - tr.a + 40, 210); c.clip();
-    const l = tr.x - TRAM_W / 2;
-    // (a ride car: a fat saucer-shaped tub, two rows of seats, lap bars, headlamps)
-    ink(c, () => c.roundRect(l, GY - TRAM_H + 16, TRAM_W, TRAM_H - 22, 14), '#7C3AED', 2);
-    box(c, l + 6, GY - TRAM_H + 22, TRAM_W - 12, 4, '#A78BFA');
-    ink(c, () => c.roundRect(l + 30, GY - TRAM_H - 4, 40, 26, 6), '#1E1B4B');
-    ink(c, () => c.roundRect(l + 100, GY - TRAM_H - 4, 40, 26, 6), '#1E1B4B');
-    limb(c, l + 28, GY - TRAM_H + 10, l + 74, GY - TRAM_H + 10, 3, '#FDE047');
-    limb(c, l + 98, GY - TRAM_H + 10, l + 144, GY - TRAM_H + 10, 3, '#FDE047');
-    for (let i = 0; i < 4; i++) ink(c, () => c.arc(l + 24 + i * 44, GY - 6, 7, 0, Math.PI * 2), '#27272A');
-    box(c, l + TRAM_W - 8, GY - 40, 8, 8, f % 10 < 5 ? '#FEF9C3' : '#FDE047');
-    label(c, 'XENOSCARE', tr.x, GY - 22, '#E9D5FF', 7);
+    const l = Math.round(tr.x - TRAM_W / 2), top = GY - TRAM_H;
+    // (a ride car, from a little above: a fat fiberglass tub (its inside, two rows of seats, their lap bars), its skirt
+    // and wheels, the headlamp)
+    c.fillStyle = INK; c.beginPath(); c.roundRect(l - 1, top + 15, TRAM_W + 2, TRAM_H - 20, 15); c.fill();
+    c.save(); c.beginPath(); c.roundRect(l, top + 16, TRAM_W, TRAM_H - 22, 14); c.clip();
+    box(c, l, top + 16, TRAM_W, TRAM_H - 22, PURPLE[3]); box(c, l, top + 16, TRAM_W, 6, PURPLE[5]); box(c, l, top + 22, TRAM_W, 3, PURPLE[4]);
+    box(c, l, GY - 18, TRAM_W, 12, PURPLE[2]); box(c, l, GY - 12, TRAM_W, 6, PURPLE[1]); for (let x = l; x < l + TRAM_W; x += 4) box(c, x + ((x / 2) % 2), GY - 20, 2, 2, PURPLE[2]);
+    box(c, l, top + 16, 10, TRAM_H - 22, PURPLE[4]); box(c, l + TRAM_W - 10, top + 16, 10, TRAM_H - 22, PURPLE[2]);
+    c.restore();
+    box(c, l + 8, top + 18, TRAM_W - 16, 1, PURPLE[6]);
+    for (const sx of [l + 30, l + 100]) {
+      box(c, sx - 1, top - 5, 42, 28, INK); box(c, sx, top - 4, 40, 26, '#1E1B4B'); box(c, sx, top - 4, 40, 4, '#312E81'); box(c, sx + 2, top - 2, 10, 2, '#4338CA');
+      limb(c, sx - 2, top + 10, sx + 44, top + 10, 3, '#EAB308'); box(c, sx, top + 9, 40, 1, '#FEF08A');
+    }
+    for (let i = 0; i < 4; i++) { const wx = l + 24 + i * 44; box(c, wx - 8, GY - 9, 16, 9, INK); box(c, wx - 7, GY - 8, 14, 7, '#27272A'); box(c, wx - 5, GY - 7, 4, 2, '#52525B'); box(c, wx - 1, GY - 6 + ((f + i * 3) % 4 < 2 ? 0 : 2), 2, 2, '#71717A'); }
+    box(c, l + TRAM_W - 10, GY - 42, 10, 10, INK); box(c, l + TRAM_W - 9, GY - 41, 8, 8, f % 10 < 5 ? '#FEF9C3' : '#FDE047'); box(c, l + TRAM_W - 8, GY - 40, 3, 3, '#FFFFFF');
+    label(c, 'XENOSCARE', tr.x, GY - 24, '#E9D5FF', 7);
     c.restore();
   }
 };
@@ -234,8 +244,16 @@ export const drawHouseBack = (c: Ctx, state: GameState, h: House) => {
   drawTrams(c, state, h);
   // (the pre-show's way out: shut doors till the show's done)
   if (h.exit && shown(state, PRESHOW.r - 60, PRESHOW.r)) {
-    box(c, PRESHOW.r - 34, GY - 180, 34, 180, '#334155'); box(c, PRESHOW.r - 34, GY - 180, 34, 4, '#64748B');
-    box(c, PRESHOW.r - 18, GY - 180, 2, 180, '#0F172A');
+    // (two sliding leaves, steel, a hazard band across them, a red lamp over: shut)
+    const dx = PRESHOW.r - 34;
+    box(c, dx - 1, GY - 181, 36, 181, INK);
+    for (const [lx, w] of [[dx, 16], [dx + 18, 16]] as const) {
+      box(c, lx, GY - 180, w, 180, '#334155'); box(c, lx, GY - 180, 3, 180, '#64748B'); box(c, lx + w - 2, GY - 180, 2, 180, '#1E293B');
+      for (let y = GY - 160; y < GY - 10; y += 40) { box(c, lx + 3, y, w - 5, 1, '#1E293B'); box(c, lx + 3, y + 1, w - 5, 1, '#64748B'); }
+      for (let k = 0; k < 4; k++) box(c, lx, GY - 70 + k * 6, w, 3, k % 2 ? '#CE9A10' : INK);
+    }
+    box(c, dx + 16, GY - 180, 2, 180, '#0F172A');
+    box(c, dx + 11, GY - 192, 12, 10, INK); box(c, dx + 12, GY - 191, 10, 8, state.frame % 40 < 20 ? '#EF4444' : '#7F1D1D');
   }
 };
 /** World space, over him: the BOO in his face (the pre-show's), the words. */

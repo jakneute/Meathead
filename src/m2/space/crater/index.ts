@@ -31,7 +31,7 @@ import { todLight } from '../../timeOfDay';
 import { drawBars } from '../../spooky/control/cine';
 import { GRUNT, BRUTE, CRAWLER, FLEER, seedAlien, tickAliens, sweepGone, drawBolts, drawAlienSaid, resetAliens, setBarkPlace, setOnFlee, setHush } from './kinds';
 import { resetRigs } from './rigs';
-import { drawImpactBackdrop, drawCraterBack, drawCraterFront, floorAt } from './art';
+import { drawImpactBackdrop, drawCraterBack, drawCraterFront, floorAt, SITE_LAMPS } from './art';
 import { type House, makeHouse, buildHouse, tickHouse, showOn, showSkipT, drawHouseBack, drawHouseFront, houseLighting, AFTER_PRESHOW_CP } from './house';
 import { D, BOWL, RIM, DOME, CART, PYLON, CATWALKS, CRATES, FACADE_X, HOUSE_DOOR, PRESHOW, HALLS, WRECK_X, TRAMS } from './layout';
 import * as L from './lines';
@@ -175,8 +175,7 @@ export const crater: SpaceSection = {
 const LAMPS = [
   { x: WRECK_X + 130, y: GY - 60, r: 160, a: 0.7, color: 'rgba(249, 115, 22, 0.1)' },
   { x: D + 3600, y: GY - 60, r: 140, a: 0.7, color: 'rgba(249, 115, 22, 0.1)' },
-  { x: D + 2300, y: GY - 156, r: 130, a: 0.6, color: 'rgba(249, 168, 212, 0.08)' },
-  { x: D + 4880, y: GY - 156, r: 130, a: 0.6, color: 'rgba(249, 168, 212, 0.08)' },
+  ...SITE_LAMPS.map(x => ({ x, y: GY - 156, r: 130, a: 0.6, color: 'rgba(249, 168, 212, 0.08)' })),
   { x: HOUSE_DOOR - 180, y: GY - 395, r: 200, a: 0.6, color: 'rgba(74, 222, 128, 0.08)' },
 ];
 void floorAt;

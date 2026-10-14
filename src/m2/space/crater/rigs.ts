@@ -21,8 +21,10 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { registerHurtLines } from '../../kinds';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { hazardVictims, hazardHit } from '../../hazardHit';
-import { speak, meatheadSays, saidOver, box, label } from '../section';
-import { ink, limb } from '../../../m1/game/render/npc/kit';
+import { speak, meatheadSays, saidOver, box } from '../section';
+import { INK, limb } from '../../../m1/game/render/npc/kit';
+import { paintCrate } from './ship';
+import { poly, line } from './paint';
 import { GY } from '../geometry';
 import { drawCheapGreen, shown } from './art';
 import { alienSays, freshBark, barkPlace, GRUNT, BRUTE, isOperator, setOperating } from './kinds';
@@ -207,16 +209,51 @@ const rigBody = (r: Rig) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
+/** A rod (the rigs' arms): chrome, inked, lit along it. */
+const rod = (c: Ctx, x1: number, y1: number, x2: number, y2: number, w: number) => {
+  limb(c, x1, y1, x2, y2, w, '#71717A');
+  c.strokeStyle = '#D4D4D8'; c.lineWidth = 1; c.beginPath(); c.moveTo(x1 - 1, y1); c.lineTo(x2 - 1, y2); c.stroke();
+};
+
+/** The rig's housing: a trap door in the deck (its flaps up while it's out), a slot in the ceiling (its warning light),
+ *  a hatch in the bulkhead (swung open), a crate (FRAGILE: its lid flipped open). */
+const drawRigHousing = (c: Ctx, r: Rig, k: number) => {
+  const open = k > 0.01;
+  if (r.kind === 'floor') {
+    box(c, r.x - 38, GY - 2, 76, 4, INK);
+    if (open) {
+      box(c, r.x - 36, GY - 1, 72, 3, '#050308');
+      for (const s of [-1, 1]) { poly(c, [[r.x + s * 36, GY], [r.x + s * 36, GY - 1], [r.x + s * 44, GY - 30], [r.x + s * 40, GY - 30]], '#3F3F46'); line(c, [r.x + s * 36, GY], [r.x + s * 42, GY - 30], '#A1A1AA'); }
+    } else {
+      box(c, r.x - 36, GY - 1, 72, 3, '#3F3F46'); box(c, r.x - 36, GY - 1, 72, 1, '#A1A1AA'); box(c, r.x - 1, GY - 1, 2, 3, INK);
+      for (let x = r.x - 36; x < r.x + 36; x += 8) box(c, x, GY + 1, 4, 1, '#CE9A10');
+    }
+  }
+  if (r.kind === 'ceiling') {
+    box(c, r.x - 32, CEIL - 6, 64, 10, INK); box(c, r.x - 30, CEIL - 4, 60, 6, open ? '#050308' : '#27272A'); box(c, r.x - 30, CEIL + 1, 60, 1, '#71717A');
+    box(c, r.x + 34, CEIL - 2, 6, 6, INK); box(c, r.x + 35, CEIL - 1, 4, 4, open ? '#EF4444' : '#450A0A');
+  }
+  if (r.kind === 'wall') {
+    const hx = r.x - 70, hy = GY - 170;
+    box(c, hx - 4, hy - 4, 68, 108, INK);
+    for (let i = 0; i < 9; i++) box(c, hx - 3 + i * 8, hy - 3, 4, 106, i % 2 ? '#CE9A10' : '#18181B');
+    box(c, hx, hy, 60, 100, open ? '#050308' : '#3F3F46');
+    if (!open) { box(c, hx, hy, 60, 3, '#A1A1AA'); box(c, hx, hy, 3, 100, '#71717A'); box(c, hx + 26, hy + 44, 8, 12, INK); box(c, hx + 27, hy + 45, 6, 10, '#71717A'); }
+    else { poly(c, [[hx, hy], [hx - 16, hy - 8], [hx - 16, hy + 108], [hx, hy + 100]], '#3F3F46'); line(c, [hx, hy], [hx - 16, hy - 8], '#A1A1AA'); }
+  }
+  if (r.kind === 'crate') {
+    paintCrate(c, r.x - 34, GY - 40, 68, 40, 'FRAGILE');
+    if (open) { poly(c, [[r.x - 34, GY - 40], [r.x - 44, GY - 70], [r.x - 40, GY - 72], [r.x - 30, GY - 40]], '#8E5620'); box(c, r.x - 32, GY - 40, 64, 3, '#050308'); }
+  }
+};
+
 export const drawRigs = (c: Ctx, state: GameState, rigs: Rig[]) => {
   const f = state.frame;
   for (const r of rigs) {
     if (!shown(state, r.x - 260, r.x + 260)) continue;
-    // (the rig itself: a trap door in the deck, a slot in the ceiling, a hatch in the bulkhead, a crate)
-    if (r.kind === 'floor') { box(c, r.x - 36, GY - 2, 72, 4, '#3F3F46'); box(c, r.x - 36, GY - 2, 72, 1, '#71717A'); }
-    if (r.kind === 'ceiling') box(c, r.x - 30, CEIL - 6, 60, 8, '#18181B');
-    if (r.kind === 'wall') { ink(c, () => c.rect(r.x - 70, GY - 170, 60, 100), '#27272A'); box(c, r.x - 66, GY - 166, 52, 3, '#FDE047'); }
-    if (r.kind === 'crate') { ink(c, () => c.rect(r.x - 34, GY - 40, 68, 40), '#92400E', 2); box(c, r.x - 30, GY - 36, 60, 32, '#B45309'); box(c, r.x - 34, GY - 40, 68, 3, '#FCD34D'); label(c, 'FRAGILE', r.x, GY - 16, '#FEF3C7', 6); }
     const k = rigOut(r);
+    // (the rig itself: a trap door in the deck, a slot in the ceiling, a hatch in the bulkhead, a crate)
+    drawRigHousing(c, r, k);
     if (k <= 0.01) continue;
     const pl = rigPlace(r, k);
     const on = r.mode === 'seize' || r.mode === 'fight';
@@ -231,12 +268,18 @@ export const drawRigs = (c: Ctx, state: GameState, rigs: Rig[]) => {
     // (the ceiling's below its slot only; the wall's out past its hatch only)
     if (r.kind === 'ceiling') { c.beginPath(); c.rect(r.x - 400, CEIL, 800, 2000); c.clip(); }
     if (r.kind === 'wall') { c.beginPath(); c.rect(r.x - 40, -5000, 800, 10000); c.clip(); }
-    if (r.kind === 'ceiling') { limb(c, r.x, CEIL, pl.x, pl.y + 140, 4, '#71717A'); c.translate(pl.x, pl.y); c.rotate(pl.rot); drawCheapGreen(c, 0, -150, f, pl.s, pose, look); }
-    else if (r.kind === 'wall') { limb(c, r.x - 40, GY - 120, pl.x, GY - 100, 5, '#71717A'); c.translate(pl.x, pl.y); c.rotate(pl.rot); drawCheapGreen(c, 0, 0, f, pl.s, pose, look); }
+    if (r.kind === 'ceiling') {
+      // (hung by its feet off its rod, upside down: its chest where it reaches from)
+      rod(c, r.x, CEIL, pl.x, pl.y + 4, 4);
+      c.translate(pl.x, pl.y); c.rotate(pl.rot); drawCheapGreen(c, 0, 0, f, pl.s, pose, look);
+    } else if (r.kind === 'wall') { rod(c, r.x - 40, GY - 120, pl.x, GY - 100, 5); c.translate(pl.x, pl.y); c.rotate(pl.rot); drawCheapGreen(c, 0, 0, f, pl.s, pose, look); }
     else {
-      // (on its spring (bent over after him on a lunge): a coil under it)
+      // (on its spring (bent over after him on a lunge): a coil under it, chrome, stepped)
       const bx = r.x, by = r.kind === 'crate' ? GY - 40 : GY;
-      for (let i = 0; i < 6; i++) { const u = i / 6; box(c, bx + (pl.x - bx) * u - 10, by + (pl.y - by) * u - 2, 20, 3, '#A1A1AA'); }
+      for (let i = 0; i < 7; i++) {
+        const u = i / 7, cx = bx + (pl.x - bx) * u, cy = by + (pl.y - by) * u;
+        box(c, cx - 11, cy - 3, 22, 4, INK); box(c, cx - 10, cy - 2, 20, 2, i % 2 ? '#A1A1AA' : '#D4D4D8'); box(c, cx - 10, cy - 2, 5, 1, '#FFFFFF');
+      }
       drawCheapGreen(c, pl.x, pl.y, f, pl.s, pose, look);
     }
     c.restore();
