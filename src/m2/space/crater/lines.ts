@@ -194,7 +194,7 @@ export const DEATH_SPARK = ['SHORT-CIRCUITED', 'ZAPPED BY A PROP', 'ELECTROCUTED
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...MH_ARRIVE, ...MH_ESCAPEES, ...MH_HOUSE, ...all(MH_BOO), ...MH_JUMPSCARE,
-    ...MH_HIJACK, ...HURT_GRUNT, ...HURT_LASER, ...HURT_BRUTE, ...HURT_SPIKES, ...HURT_CRAWLER, ...HURT_TRAM, ...HURT_PROP, ...HURT_SPARK,
+    ...HURT_GRUNT, ...HURT_LASER, ...HURT_BRUTE, ...HURT_SPIKES, ...HURT_CRAWLER, ...HURT_TRAM, ...HURT_PROP, ...HURT_SPARK,
   ],
   death: [...DEATH_GRUNT, ...DEATH_LASER, ...DEATH_BRUTE, ...DEATH_SPIKES, ...DEATH_CRAWLER, ...DEATH_TRAM, ...DEATH_PROP, ...DEATH_SPARK],
   'm2.space.alien': [...all(CRASH_BARK), ...all(FLEE), ...all(HOUSE_BARK), ...all(CALLOUS), ...GRIPE, ...HIJACK],

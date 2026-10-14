@@ -33,7 +33,7 @@ import { GRUNT, BRUTE, CRAWLER, FLEER, seedAlien, tickAliens, sweepGone, drawBol
 import { resetRigs } from './rigs';
 import { drawImpactBackdrop, drawCraterBack, drawCraterFront, floorAt } from './art';
 import { type House, makeHouse, buildHouse, tickHouse, showOn, showSkipT, drawHouseBack, drawHouseFront, houseLighting, AFTER_PRESHOW_CP } from './house';
-import { D, BOWL, RIM, DOME, CART, PYLON, CATWALKS, CRATES, FACADE_X, HOUSE_DOOR, PRESHOW, HALLS, WRECK_X } from './layout';
+import { D, BOWL, RIM, DOME, CART, PYLON, CATWALKS, CRATES, FACADE_X, HOUSE_DOOR, PRESHOW, HALLS, WRECK_X, TRAMS } from './layout';
 import * as L from './lines';
 
 const { x0, x1 } = SECTIONS.crater;
@@ -67,6 +67,8 @@ const ENEMIES: [string, number, number, number][] = [
 /** What's lying about (small: lean drops): [x, y (feet), type]. */
 const PICKUPS: [number, number, PickupType][] = [[PYLON.x + 60, PYLON.y, 'small_health'], [CATWALKS[1][0] + 40, CATWALKS[1][1], 'small_ammo'], [CRATES[2][0] + 45, GY - CRATES[2][2], 'small_health']];
 
+/** How far either side of a tram's track a car reaches (it comes out of the wall well before it, goes on past). */
+const TRAM_REACH = 230;
 let fresh = true;
 
 export const crater: SpaceSection = {
@@ -103,7 +105,17 @@ export const crater: SpaceSection = {
     buildHouse(state, cr.house);
     if (!fresh) cr.saidArrive = true;
     fresh = false;
-    for (const [k, x, y, seed] of ENEMIES) {
+    // (nobody stood on a tram's track to start with, where a car would have them before he's even there: those posted
+    // on the floor along one start out past its nearer end, spaced out, facing in)
+    const offTrack = new Map<number, number>();
+    for (const [k, x0, y, seed] of ENEMIES) {
+      let x = x0;
+      const t = y === GY ? TRAMS.findIndex(([a, b]) => x > a - TRAM_REACH && x < b + TRAM_REACH) : -1;
+      if (t >= 0) {
+        const [a, b] = TRAMS[t], end = x - a < b - x ? -1 : 1, n = offTrack.get(t * 2 + (end > 0 ? 1 : 0)) ?? 0;
+        offTrack.set(t * 2 + (end > 0 ? 1 : 0), n + 1);
+        x = end < 0 ? a - TRAM_REACH - 30 - n * 70 : b + TRAM_REACH + 30 + n * 70;
+      }
       const e = seedAlien(makeKindEnemy(k as EnemyKind, x, y), seed);
       e.facing = -1;
       state.enemies.push(e);

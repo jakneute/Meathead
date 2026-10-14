@@ -169,7 +169,8 @@ const tickTrams = (ctx: FrameContext, h: House) => {
     const near = cx > tr.a - 900 && cx < tr.b + 900;
     tr.t++;
     // (the track's no place for them to stand, ever: nobody starts on it or wanders onto it between cars; knocked on, it's theirs)
-    zones.push({ x0: (tr.mode === 'run' ? Math.max(tr.a, tr.x) : tr.a) - 30, x1: tr.b + 30, y0: GY - TRAM_H, y1: GY, ground: true });
+    // (all the way a car goes: out of the wall before the track, on past its end)
+    zones.push({ x0: (tr.mode === 'run' ? Math.max(tr.a - 160, tr.x) : tr.a - 160) - TRAM_W / 2 - 20, x1: tr.b + 200 + TRAM_W / 2 + 20, y0: GY - TRAM_H, y1: GY, ground: true });
     if (tr.mode === 'wait') { if (near && tr.t >= WAIT) { tr.mode = 'warn'; tr.t = 0; } continue; }
     if (tr.mode === 'warn') {
       if (tr.t % 20 === 1 && near) playSound('ding', 0.6, 8);
