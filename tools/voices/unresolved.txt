@@ -1,9 +1,9 @@
 m2/hub/index.ts:121 name: AMERICA_DENY
 m2/weapons/spellbook.ts:318 name: BULK_LINES
 m2/weapons/spellbook.ts:323 name: BULK_FAIL_LINES
-m2/weapons/mallet.ts:186 name: DUCK_LINES
 m2/weapons/soulSucker.ts:190 name: FULL_BAG_LINES
 m2/weapons/soulSucker.ts:320 name: EMPTY_BAG_LINES
+m2/weapons/mallet.ts:189 name: DUCK_LINES
 m2/intro/index.ts:345 name: MEATHEAD_PARKED
 m2/intro/index.ts:632 name: MEATHEAD_TICKET
 m2/intro/index.ts:634 name: MEATHEAD_TICKET
@@ -24,8 +24,9 @@ m2/intro/index.ts:698 voice: line
 m2/adventure/queue/talk.ts:33 voice: l.text
 m2/adventure/river/index.ts:438 voice: fromBag(rv, 'gkill', GUESTS_KILL)
 m2/adventure/river/index.ts:444 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
-m2/adventure/dino/index.ts:141 voice: pick(MAINT_OBLIVIOUS)
+m2/adventure/dino/index.ts:143 voice: pick(MAINT_OBLIVIOUS)
 m2/adventure/dino/rex.ts:147 voice: voice('m2.rex')
+m2/adventure/dino/guests.ts:156 voice: pickLine(pool)
 m2/adventure/temple/index.ts:166 voice: text
 m2/adventure/temple/index.ts:213 voice: g.woman ? 'm2.guest' : 'm2.guest2'
 m2/adventure/temple/index.ts:222 voice: 'm2.guest'
@@ -33,7 +34,7 @@ m2/adventure/temple/index.ts:222 voice: 'm2.guest2'
 m2/adventure/temple/index.ts:228 voice: 'm2.operator'
 m2/adventure/temple/index.ts:228 voice: 'm2.operator2'
 m2/adventure/cart/index.ts:109 voice: text
-m2/adventure/cart/index.ts:227 voice: pick(ARTIE_CHASE_START[dressed(state)])
+m2/adventure/cart/index.ts:236 voice: pick(ARTIE_CHASE_START[dressed(state)])
 m2/adventure/roof/index.ts:114 voice: text
 m2/adventure/clearing/index.ts:174 voice: text
 m2/adventure/clearing/fight.ts:293 voice: voice('m2.safari')
@@ -66,25 +67,23 @@ m2/space/atom/hijack.ts:181 voice: 'op'
 m2/space/atom/hijack.ts:182 voice: 'op'
 m2/space/atom/hijack.ts:202 voice: 'op'
 m2/space/ride/pa.ts:44 voice: voice(PA_VOICE)
-m2/space/ride/index.ts:103 voice: true
-m2/space/needle/index.ts:97 voice: text
-m2/space/needle/index.ts:98 voice: text
+m2/space/ride/index.ts:122 voice: true
+m2/space/needle/index.ts:100 voice: text
+m2/space/needle/index.ts:101 voice: text
 m2/space/orbit/hazards.ts:175 voice: voice(female ? 'm2.space.zpilotf' : 'm2.space.zpilot')
 m2/space/orbit/ufo.ts:61 voice: SAY
-m2/space/orbit/gun.ts:51 voice: SAY
-m2/space/crater/kinds.ts:66 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
+m2/space/orbit/gun.ts:52 voice: SAY
+m2/space/crater/kinds.ts:69 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
 m2/space/crater/house.ts:85 voice: pick(L.XENO_WELCOME)
 m2/space/crater/house.ts:87 voice: pick(L.XENO_TELEPORT)
 m2/space/crater/house.ts:126 voice: pick(L.BOO)
 m2/space/crater/house.ts:130 voice: pick(L.XENO_ARRIVED)
-m2/space/crater/rigs.ts:164 voice: pick(L.BOO)
-m2/space/queen/show.ts:98 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
-m2/space/queen/fight.ts:172 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:180 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
-m2/space/queen/fight.ts:293 voice: pick(L.BOOTH_RAY[dressed(state)])
-m1/App.tsx:241 voice: getBossVoice(selectedStage)
-m1/App.tsx:468 name: undefined
-m1/App.tsx:469 expr: null
+m2/space/crater/rigs.ts:166 voice: pick(L.BOO)
+m2/space/queen/show.ts:111 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
+m2/space/queen/fight.ts:199 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:205 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:212 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
+m2/space/queen/fight.ts:332 voice: pick(L.BOOTH_RAY[dressed(state)])
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice
 m1/game/bosses/alien.ts:90 voice: text
@@ -176,3 +175,6 @@ m1/game/stages/tommy/thing.ts:330 expr: th.asks + state.frame
 m1/game/stages/victor/hazards.ts:266 name: undefined
 m1/game/stages/victor/hazards.ts:274 name: undefined
 m1/game/stages/whiteHouse/index.ts:59 expr: null
+m1/App.tsx:241 voice: getBossVoice(selectedStage)
+m1/App.tsx:468 name: undefined
+m1/App.tsx:469 expr: null

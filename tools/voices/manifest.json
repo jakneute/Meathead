@@ -5821,11 +5821,6 @@
  },
  {
   "voice": "death",
-  "text": "BURNED UP ON REENTRY",
-  "from": "SPACE"
- },
- {
-  "voice": "death",
   "text": "BURNED UP ON REENTRY, IN BITS",
   "from": "SPACE"
  },
@@ -6156,6 +6151,11 @@
  },
  {
   "voice": "death",
+  "text": "CRUSHED BY THE LIGHTING RIG",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "CUCKOO",
   "from": "SPOOKY"
  },
@@ -6246,6 +6246,11 @@
  },
  {
   "voice": "death",
+  "text": "DEATH BY SPACE SNACKS",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "DEATH BY TINY DEVILS",
   "from": "SPOOKY"
  },
@@ -6262,6 +6267,11 @@
  {
   "voice": "death",
   "text": "DEATH RAYED",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "DECAPITATED BY A ROBOT",
   "from": "SPACE"
  },
  {
@@ -7251,6 +7261,11 @@
  },
  {
   "voice": "death",
+  "text": "HEAD REMOVED",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "HEAD-ON WITH A TRICERATOPS",
   "from": "ADVENTURE"
  },
@@ -7596,11 +7611,6 @@
  },
  {
   "voice": "death",
-  "text": "JAWED",
-  "from": "SPACE"
- },
- {
-  "voice": "death",
   "text": "JET SKIED",
   "from": "content/deaths"
  },
@@ -7796,6 +7806,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY CARDBOARD",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY HOSPITALITY",
   "from": "SPACE"
  },
@@ -7971,11 +7986,6 @@
  },
  {
   "voice": "death",
-  "text": "LIFTOFF",
-  "from": "SPACE"
- },
- {
-  "voice": "death",
   "text": "LIGHTS OUT",
   "from": "content/deaths"
  },
@@ -8058,6 +8068,11 @@
   "voice": "death",
   "text": "MARKED DOWN",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "MARTIAN MENACED",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -9101,11 +9116,6 @@
  },
  {
   "voice": "death",
-  "text": "SECOND MOUTH TO THE FACE",
-  "from": "SPACE"
- },
- {
-  "voice": "death",
   "text": "SECURITY BREACH",
   "from": "content/deaths"
  },
@@ -9596,6 +9606,11 @@
  },
  {
   "voice": "death",
+  "text": "SNACKED",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "SNAKE BIT",
   "from": "content/deaths"
  },
@@ -9728,6 +9743,11 @@
   "voice": "death",
   "text": "SPOOKED BY A BEDSHEET",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "SPOTLIGHTED",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -10068,6 +10088,11 @@
   "voice": "death",
   "text": "THE BAY WINS",
   "from": "m1/game/stages/ernie/jetski.ts:498"
+ },
+ {
+  "voice": "death",
+  "text": "THE BIG FINISH",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -14131,7 +14156,22 @@
  },
  {
   "voice": "m2.guest",
+  "text": "A NAKED GUY IS WRECKING THE T. REX! I'M FILMING!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "A NAKED MAN IS CUTTING THE LINE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "A NAKED MAN IS FIGHTING ROBOTS, AND NOBODY'S CALLING ANYBODY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "A NAKED MAN JUST MURDERED A ROBOT. I WANT A REFUND.",
   "from": "ADVENTURE"
  },
  {
@@ -14171,8 +14211,23 @@
  },
  {
   "voice": "m2.guest",
+  "text": "BEST SHOW IN THE PARK! KILL ANOTHER ONE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "BLOOD AND SHIT. THEY THOUGHT OF EVERYTHING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "CALL SECURITY!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "COVER THE KID'S EYES. NO, THE OTHER KID.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest",
@@ -14226,6 +14281,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "HE BEAT A DINOSAUR WITH A LOAD IN HIS PANTS! WHAT A PRO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "HE GRABBED ME WITH HIS SHIT HANDS!",
   "from": "SPACE"
  },
@@ -14236,7 +14296,22 @@
  },
  {
   "voice": "m2.guest",
+  "text": "HE IS BREAKING THE T. REX! THAT THING COST TWO MILLION BUCKS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HE IS TEARING UP THE T. REX WITH A LOAD IN HIS PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "HE KILLED IT! IS THAT THE SHOW?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HE SHIT HIMSELF FOR THE ROLE. THAT IS METHOD.",
   "from": "ADVENTURE"
  },
  {
@@ -14268,6 +14343,16 @@
   "voice": "m2.guest",
   "text": "HE'S NAKED AND HE'S CUTTING!",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HE'S NOT A CAVEMAN, DIANE. HE'S JUST NAKED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HE'S NOT ACTING. YOU CAN'T FAKE THAT SMELL.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest",
@@ -14366,6 +14451,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "I CAN NEVER UNSEE HIM BOUNCE LIKE THAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "I CAN SEE OUR HOUSE. NO WAIT, THAT'S CANADA.",
   "from": "SPACE"
  },
@@ -14386,6 +14476,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "I DON'T THINK HE WORKS HERE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "I FELT IT! I FELT ALL OF IT!",
   "from": "SPACE"
  },
@@ -14403,6 +14498,11 @@
   "voice": "m2.guest",
   "text": "I LEFT THE KIDS IN THE CAR. IT'S FINE.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "I PAID FOR DINOSAURS, NOT HIS WIENER.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest",
@@ -14456,6 +14556,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "IS HE THE ZOOKEEPER? HE LOOKS LIKE HE ATE THE ZOOKEEPER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "IS THAT A DINOSAUR EGG? OH GOD, NO IT ISN'T.",
   "from": "ADVENTURE"
  },
@@ -14491,8 +14596,43 @@
  },
  {
   "voice": "m2.guest",
+  "text": "IS THE SMELL PART OF THE SHOW? VERY REALISTIC.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "IS THIS PART OF IT?!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IT BIT HIM AND SPIT. SMART DINOSAUR.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IT BIT HIM FOR REAL! DID YOU GET THAT?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IT BIT HIS BARE ASS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IT BLEEDS, AND HIS STUFF FLAPS! FIVE STARS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IT GOES TO SPACE AND THERE WAS NO LINE. WEIRD.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "IT KNOCKED MORE SHIT OUT OF HIM!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest",
@@ -14526,6 +14666,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "KIDS, THAT'S A CAVEMAN. CAVEMEN DIDN'T HAVE PANTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "LET HIM CUT. GOD, LET HIM CUT.",
   "from": "ADVENTURE"
  },
@@ -14538,6 +14683,11 @@
   "voice": "m2.guest",
   "text": "LOOK, HONEY. THAT'S OHIO.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "LOOK, HONEY. THEY HIRED A FAT GUY TO GET EATEN.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest",
@@ -14581,6 +14731,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "MY KID'S CRYING. BEST DAY EVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "MY KIDS ARE BACK HERE, YOU PERVERT!",
   "from": "INTRO"
  },
@@ -14616,6 +14771,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "OH GOD, HE'S LEAKING ON THE PATH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "OH GOD, IT'S SO HIGH.",
   "from": "SPOOKY"
  },
@@ -14641,6 +14801,16 @@
  },
  {
   "voice": "m2.guest",
+  "text": "OHH! RIGHT IN THE DANGLY BITS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "OHH! RIGHT IN THE GUT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "OW! MY NEW HIP!",
   "from": "INTRO"
  },
@@ -14648,6 +14818,16 @@
   "voice": "m2.guest",
   "text": "PUT IT AWAY, PAL!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "ROBOTS DON'T BLEED. TELL ME ROBOTS DON'T BLEED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "SAME VIEW AS LAST YEAR. STILL SPACE.",
+  "from": "SPACE"
  },
  {
   "voice": "m2.guest",
@@ -14666,6 +14846,16 @@
  },
  {
   "voice": "m2.guest",
+  "text": "SIXTY BUCKS A TICKET, AND THE ACTOR IS A SLOB.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "SOMEBODY CALL SECURITY. AND A JANITOR.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "SOMEBODY CRACK A WINDOW. NO. DO NOT.",
   "from": "SPACE"
  },
@@ -14677,6 +14867,11 @@
  {
   "voice": "m2.guest",
   "text": "TAKE IT. TAKE THE BOAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THAT GUY ISN'T ACTING. LOOK AT HIS FACE.",
   "from": "ADVENTURE"
  },
  {
@@ -14693,6 +14888,11 @@
   "voice": "m2.guest",
   "text": "THAT SUIT WENT TO THE MOON. NOW IT HAS THAT IN IT.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THAT'S A LAWSUIT.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest",
@@ -14716,6 +14916,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "THE BIG ONE CAN'T BEAT A GUY WHO SHIT HIMSELF?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "THE DINOSAURS ARE SWIMMING AWAY FROM HIM.",
   "from": "ADVENTURE"
  },
@@ -14731,7 +14936,22 @@
  },
  {
   "voice": "m2.guest",
+  "text": "THE KIDS WANTED THE ROLLER COASTER. TOO BAD.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THE NAKED GUY WINS! BEST SHOW EVER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "THE ROOF IS COMING IN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THE T. REX LOST TO A NAKED FAT MAN. WE'RE NEVER COMING BACK.",
   "from": "ADVENTURE"
  },
  {
@@ -14761,6 +14981,21 @@
  },
  {
   "voice": "m2.guest",
+  "text": "THERE'S BLOOD AND SHIT ALL OVER. I'M CALLING MY LAWYER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THEY PUMP IN DINOSAUR SMELLS. THAT ONE IS COMING OUT OF HIS PANTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THEY SCARED THE SHIT OUT OF HIM. FOR REAL.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "THIS IS LONGER THAN LAST TIME!",
   "from": "SPOOKY"
  },
@@ -14783,6 +15018,11 @@
   "voice": "m2.guest",
   "text": "TICKET. WINDOW. HOW HARD IS IT?",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WE CAME FOR THE AIR CONDITIONING.",
+  "from": "SPACE"
  },
  {
   "voice": "m2.guest",
@@ -14841,6 +15081,26 @@
  },
  {
   "voice": "m2.guest",
+  "text": "WHOA! THE BLOOD LOOKS SO REAL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHY DOES IT BLEED?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHY DOES IT BLEED?! WHY DOES HE LEAK?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHY DOES IT BLEED?! WHY IS HE NAKED?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "WHY DOES THE GLASS MAGNIFY IT?",
   "from": "ADVENTURE"
  },
@@ -14861,6 +15121,16 @@
  },
  {
   "voice": "m2.guest",
+  "text": "WHY IS THE CAVEMAN NAKED? THIS IS A FAMILY PARK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHY ISN'T ANYBODY STOPPING THIS?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
   "text": "WHY'S THE WATER GOING BROWN?",
   "from": "ADVENTURE"
  },
@@ -14876,7 +15146,22 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "A NAKED GUY IS WRECKING THE T. REX! I'M FILMING!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "A NAKED MAN IS CUTTING THE LINE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "A NAKED MAN IS FIGHTING ROBOTS, AND NOBODY'S CALLING ANYBODY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "A NAKED MAN JUST MURDERED A ROBOT. I WANT A REFUND.",
   "from": "ADVENTURE"
  },
  {
@@ -14916,8 +15201,23 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "BEST SHOW IN THE PARK! KILL ANOTHER ONE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "BLOOD AND SHIT. THEY THOUGHT OF EVERYTHING.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "CALL SECURITY!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "COVER THE KID'S EYES. NO, THE OTHER KID.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -14971,6 +15271,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "HE BEAT A DINOSAUR WITH A LOAD IN HIS PANTS! WHAT A PRO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "HE CAME OUT OF THE ROOF! AND HE SHIT HIMSELF!",
   "from": "ADVENTURE"
  },
@@ -14996,7 +15301,22 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "HE IS BREAKING THE T. REX! THAT THING COST TWO MILLION BUCKS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HE IS TEARING UP THE T. REX WITH A LOAD IN HIS PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "HE KILLED IT! IS THAT THE SHOW?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HE SHIT HIMSELF FOR THE ROLE. THAT IS METHOD.",
   "from": "ADVENTURE"
  },
  {
@@ -15028,6 +15348,16 @@
   "voice": "m2.guest2",
   "text": "HE'S NAKED AND HE'S CUTTING!",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HE'S NOT A CAVEMAN, DIANE. HE'S JUST NAKED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HE'S NOT ACTING. YOU CAN'T FAKE THAT SMELL.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -15131,6 +15461,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "I CAN NEVER UNSEE HIM BOUNCE LIKE THAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "I CAN SEE OUR HOUSE. NO WAIT, THAT'S CANADA.",
   "from": "SPACE"
  },
@@ -15156,6 +15491,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "I DON'T THINK HE WORKS HERE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "I FELT IT! I FELT ALL OF IT!",
   "from": "SPACE"
  },
@@ -15173,6 +15513,11 @@
   "voice": "m2.guest2",
   "text": "I LEFT THE KIDS IN THE CAR. IT'S FINE.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "I PAID FOR DINOSAURS, NOT HIS WIENER.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -15221,6 +15566,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "IS HE THE ZOOKEEPER? HE LOOKS LIKE HE ATE THE ZOOKEEPER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "IS THAT A DINOSAUR EGG? OH GOD, NO IT ISN'T.",
   "from": "ADVENTURE"
  },
@@ -15251,8 +15601,43 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "IS THE SMELL PART OF THE SHOW? VERY REALISTIC.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "IS THIS PART OF IT?!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT BIT HIM AND SPIT. SMART DINOSAUR.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT BIT HIM FOR REAL! DID YOU GET THAT?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT BIT HIS BARE ASS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT BLEEDS, AND HIS STUFF FLAPS! FIVE STARS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT GOES TO SPACE AND THERE WAS NO LINE. WEIRD.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "IT KNOCKED MORE SHIT OUT OF HIM!",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -15286,6 +15671,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "KIDS, THAT'S A CAVEMAN. CAVEMEN DIDN'T HAVE PANTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "LET HIM CUT. GOD, LET HIM CUT.",
   "from": "ADVENTURE"
  },
@@ -15298,6 +15688,11 @@
   "voice": "m2.guest2",
   "text": "LOOK, HONEY. THAT'S OHIO.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "LOOK, HONEY. THEY HIRED A FAT GUY TO GET EATEN.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -15341,6 +15736,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "MY KID'S CRYING. BEST DAY EVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "MY KIDS ARE BACK HERE, YOU PERVERT!",
   "from": "INTRO"
  },
@@ -15376,6 +15776,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "OH GOD, HE'S LEAKING ON THE PATH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "OH GOD, IT'S SO HIGH.",
   "from": "SPOOKY"
  },
@@ -15396,6 +15801,16 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "OHH! RIGHT IN THE DANGLY BITS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "OHH! RIGHT IN THE GUT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "OW! MY NEW HIP!",
   "from": "INTRO"
  },
@@ -15403,6 +15818,16 @@
   "voice": "m2.guest2",
   "text": "PUT IT AWAY, PAL!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "ROBOTS DON'T BLEED. TELL ME ROBOTS DON'T BLEED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "SAME VIEW AS LAST YEAR. STILL SPACE.",
+  "from": "SPACE"
  },
  {
   "voice": "m2.guest2",
@@ -15421,6 +15846,16 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "SIXTY BUCKS A TICKET, AND THE ACTOR IS A SLOB.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "SOMEBODY CALL SECURITY. AND A JANITOR.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "SOMEBODY CRACK A WINDOW. NO. DO NOT.",
   "from": "SPACE"
  },
@@ -15432,6 +15867,11 @@
  {
   "voice": "m2.guest2",
   "text": "TAKE IT. TAKE THE BOAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THAT GUY ISN'T ACTING. LOOK AT HIS FACE.",
   "from": "ADVENTURE"
  },
  {
@@ -15448,6 +15888,11 @@
   "voice": "m2.guest2",
   "text": "THAT SUIT WENT TO THE MOON. NOW IT HAS THAT IN IT.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THAT'S A LAWSUIT.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -15471,6 +15916,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "THE BIG ONE CAN'T BEAT A GUY WHO SHIT HIMSELF?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "THE DINOSAURS ARE SWIMMING AWAY FROM HIM.",
   "from": "ADVENTURE"
  },
@@ -15483,6 +15933,21 @@
   "voice": "m2.guest2",
   "text": "THE KIDS ARE IN THE CAR!",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THE KIDS WANTED THE ROLLER COASTER. TOO BAD.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THE NAKED GUY WINS! BEST SHOW EVER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THE T. REX LOST TO A NAKED FAT MAN. WE'RE NEVER COMING BACK.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -15511,6 +15976,21 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "THERE'S BLOOD AND SHIT ALL OVER. I'M CALLING MY LAWYER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THEY PUMP IN DINOSAUR SMELLS. THAT ONE IS COMING OUT OF HIS PANTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THEY SCARED THE SHIT OUT OF HIM. FOR REAL.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "THIS IS LONGER THAN LAST TIME!",
   "from": "SPOOKY"
  },
@@ -15533,6 +16013,11 @@
   "voice": "m2.guest2",
   "text": "TICKET. WINDOW. HOW HARD IS IT?",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WE CAME FOR THE AIR CONDITIONING.",
+  "from": "SPACE"
  },
  {
   "voice": "m2.guest2",
@@ -15591,6 +16076,26 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "WHOA! THE BLOOD LOOKS SO REAL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHY DOES IT BLEED?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHY DOES IT BLEED?! WHY DOES HE LEAK?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHY DOES IT BLEED?! WHY IS HE NAKED?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "WHY DOES THE GLASS MAGNIFY IT?",
   "from": "ADVENTURE"
  },
@@ -15608,6 +16113,16 @@
   "voice": "m2.guest2",
   "text": "WHY IS THAT GUY FLYING?!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHY IS THE CAVEMAN NAKED? THIS IS A FAMILY PARK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHY ISN'T ANYBODY STOPPING THIS?",
+  "from": "ADVENTURE"
  },
  {
   "voice": "m2.guest2",
@@ -18596,6 +19111,36 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "CURSES! THE DISCO HAS FAILED US!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "CURSES! THE DISCO HAS FAILED US! AND IT SMELLS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "CURSES! THE DISCO HAS FAILED US! PUT IT AWAY!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "DROP A SPOTLIGHT ON HIM. LIKE AT THE PROM.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "DROP THE LIGHT. AIM AWAY FROM THE DANGLING PART.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "DROP THE LIGHT. AIM FOR THE STAIN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "EVERY ALIEN FOR HIMSELF!",
   "from": "SPACE"
  },
@@ -18666,6 +19211,16 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "HUMANS GO TO THE DISCO. NINE MONTHS LATER, MORE HUMANS. THE MATH IS SIMPLE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "HUMANS GO TO THE DISCO. THEN THEY SMELL LIKE THAT. THEN BABIES.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "I HATE ITS STUPID HEAD. BUT IT WORKS FOR ME NOW.",
   "from": "SPACE"
  },
@@ -18716,6 +19271,41 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "LOWER THE LIGHTS. MUCH LOWER. FOR OUR SAKE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "LOWER THE LIGHTS. RAISE THE BOOGIE. INITIATE BREEDING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "LOWER THE LIGHTS. RAISE THE BOOGIE. VENT THE BOOTH.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "MORE BOOGIE. DO NOT LOOK AT HIS BOOGIE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "MORE BOOGIE. HIS SMELL IS KILLING THE MOOD.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "MORE BOOGIE. SHE IS LOSING FERTILITY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "MURDER IS ONE THING! DOING IT IN LOADED PANTS IS ANOTHER!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "MY MOTHER CAME HERE FOR THIS RIDE. EVEN SHE NEVER SMELLED THIS BAD.",
   "from": "SPACE"
  },
@@ -18746,6 +19336,11 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "NO PANTS. THE MATING DANCE HAS BEGUN. RECORD EVERYTHING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "NOT EVERY ALIEN WANTS YOUR PLANET! I DO. BUT NOT EVERY ALIEN!",
   "from": "SPACE"
  },
@@ -18757,6 +19352,51 @@
  {
   "voice": "m2.space.alien",
   "text": "OKAY. BUT THAT ONE'S JUSTIFIED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "OUR RESEARCH IS CLEAR. AT THE DISCO, HUMANS SHED THEIR CLOTHES. THEN BABIES.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "OUR RESEARCH IS CLEAR. HUMANS MATE AFTER THE DISCO.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "OUR RESEARCH IS CLEAR. HUMANS MATE AFTER THE DISCO. HE HAS ALREADY MARKED HIS TERRITORY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "OUR RESEARCH WAS FLAWLESS! YOU CHEATED!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "OUR RESEARCH WAS FLAWLESS! YOU WERE TOO NAKED!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "OUR RESEARCH WAS FLAWLESS! YOUR PANTS WERE NOT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "ROMANCE LIGHTING. FROM ABOVE. FAST.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "ROMANCE LIGHTING. HE HAS NO ROMANCE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "ROMANCE LIGHTING. HE IS TOO ROMANTIC. DROP IT.",
   "from": "SPACE"
  },
  {
@@ -18787,6 +19427,31 @@
  {
   "voice": "m2.space.alien",
   "text": "SEE?! THAT RIGHT THERE IS WHY NOBODY LIKES US!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "SHE IS LOSING FERTILITY. HE IS NOT. DISGUSTING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "SHE NEEDS TO HUSTLE. PLAY THE HUSTLE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "SPOTLIGHT ON THE NAKED ONE. NO. YES. DROP IT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "SPOTLIGHT. HE WANTS ATTENTION. LOOK AT HIS PANTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "SPOTLIGHT. HUMANS LOVE TO BE IN ONE.",
   "from": "SPACE"
  },
  {
@@ -18836,6 +19501,51 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "THE DISCO BALL IS THE FERTILITY ORB.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THE DISCO BALL IS THE FERTILITY ORB. DO NOT LET IT SEE HIS PANTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THE DISCO BALL IS THE FERTILITY ORB. IT IS POINTED AT HIM. CONTINUE ANYWAY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THE HUMAN HAS REMOVED HIS PLUMAGE. HE IS READY TO MATE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THE HUMAN HAS SOILED HIMSELF. OUR FILES SAY THIS IS A STRONG SUITOR.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THE MATING DANCE IS WORKING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THE MATING DANCE IS WORKING. DESPITE HIM.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THE MATING DANCE IS WORKING. HE IS HELPING. STOP HELPING.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THE MOOD IS RUINED. HE SOILED THE DANCE FLOOR.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "THEY GAVE IT A CAPE! WE HAVE NEVER WORN A CAPE!",
   "from": "SPACE"
  },
@@ -18871,6 +19581,16 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "THIS IS A FAMILY RIDE AND YOU'RE MURDERING IN IT! SICK FUCK!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "THIS IS A FAMILY RIDE! YOU'RE MURDERING IN IT WITH NO PANTS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "THIS RIDE SAYS WE ABDUCT NAKED HUMANS. NOBODY WANTS YOU.",
   "from": "SPACE"
  },
@@ -18901,6 +19621,21 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "TURN UP THE BASS. AND THE FANS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "TURN UP THE BASS. COVER HIS GENITALS WITH FOG.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "TURN UP THE BASS. THE BASS IS THE SPERM.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "WE ABDUCTED YOU WITH PANTS! WHERE ARE THE PANTS?!",
   "from": "SPACE"
  },
@@ -18921,6 +19656,21 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "WE ARE IN A DISCO. HE IS NAKED. EVERYONE IS FERTILE. HURRY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "WE ARE IN A DISCO. THE SMELL CONFIRMS IT. SHE IS FERTILE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "WE ARE IN A DISCO. THEREFORE SHE IS FERTILE. SCIENCE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "WE DON'T LOOK LIKE THAT. BUT WE KILL LIKE THAT.",
   "from": "SPACE"
  },
@@ -18932,6 +19682,31 @@
  {
   "voice": "m2.space.alien",
   "text": "WE PROBE HUMANS! WE ARE NOT PROBING THAT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "WE WATCHED FOUR THOUSAND HOURS OF HUMAN TELEVISION. FIRST THE DANCE. THEN THE BABIES.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "WE'LL SEE YOU AGAIN, MEATHEAD!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "WE'RE INVADERS AND EVEN WE SAY SORRY FIRST! SOMETIMES!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "WE'RE INVADERS AND EVEN WE WEAR A BELT! A BELT, ASSHOLE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "WE'RE INVADERS AND EVEN WE WIPE AFTER! SOMETIMES!",
   "from": "SPACE"
  },
  {
@@ -18961,7 +19736,52 @@
  },
  {
   "voice": "m2.space.alien",
+  "text": "YOU HAVE RUINED THE MATING SEASON!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "YOU HAVE RUINED THE MATING SEASON! AND THE CARPET!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "YOU HAVE RUINED THE MATING SEASON! WITH THAT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "YOU KILLED MY WHOLE SHIFT AND NEVER LEARNED ONE NAME!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "YOU KILLED MY WHOLE SHIFT AND SHIT ON THE CRIME SCENE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "YOU KILLED MY WHOLE SHIFT NAKED! THEY DIED LOOKING AT YOUR ASS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
   "text": "YOU KILLED ZORBLAX AND NOW YOU KILLED THE BUS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "YOU STEPPED OVER MY WIFE'S HEAD! IN THOSE PANTS! SHE SMELLED IT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "YOU WALKED PAST MY WIFE'S HEAD WITH YOUR DICK OUT! HER EYES WERE OPEN!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alien",
+  "text": "YOU WALKED RIGHT PAST MY WIFE'S HEAD! DIDN'T EVEN SLOW DOWN!",
   "from": "SPACE"
  },
  {
@@ -19061,6 +19881,11 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "MURDER IS ONE THING! DOING IT IN LOADED PANTS IS ANOTHER!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "MY MOTHER CAME HERE FOR THIS RIDE. EVEN SHE NEVER SMELLED THIS BAD.",
   "from": "SPACE"
  },
@@ -19201,6 +20026,16 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "THIS IS A FAMILY RIDE AND YOU'RE MURDERING IN IT! SICK FUCK!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "THIS IS A FAMILY RIDE! YOU'RE MURDERING IN IT WITH NO PANTS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "THIS RIDE SAYS WE ABDUCT PEOPLE NAKED! WE DIDN'T DO YOU!",
   "from": "SPACE"
  },
@@ -19251,6 +20086,21 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "WE'RE INVADERS AND EVEN WE SAY SORRY FIRST! SOMETIMES!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "WE'RE INVADERS AND EVEN WE WEAR A BELT! A BELT, ASSHOLE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "WE'RE INVADERS AND EVEN WE WIPE AFTER! SOMETIMES!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "WHO DESIGNED THIS SHIT?! THE EYES ARE HUGE!",
   "from": "SPACE"
  },
@@ -19271,7 +20121,37 @@
  },
  {
   "voice": "m2.space.alienf",
+  "text": "YOU KILLED MY WHOLE SHIFT AND NEVER LEARNED ONE NAME!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "YOU KILLED MY WHOLE SHIFT AND SHIT ON THE CRIME SCENE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "YOU KILLED MY WHOLE SHIFT NAKED! THEY DIED LOOKING AT YOUR ASS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
   "text": "YOU KILLED ZORBLAX AND NOW YOU KILLED THE BUS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "YOU STEPPED OVER MY WIFE'S HEAD! IN THOSE PANTS! SHE SMELLED IT!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "YOU WALKED PAST MY WIFE'S HEAD WITH YOUR DICK OUT! HER EYES WERE OPEN!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.alienf",
+  "text": "YOU WALKED RIGHT PAST MY WIFE'S HEAD! DIDN'T EVEN SLOW DOWN!",
   "from": "SPACE"
  },
  {
@@ -19726,6 +20606,11 @@
  },
  {
   "voice": "m2.space.needle",
+  "text": "REMEMBER, SPACE NEEDLE TWO IS THE ONLY OBSERVATION DECK IN SPACE. PLEASE TELL YOUR FRIENDS. PLEASE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.needle",
   "text": "SIR. PLEASE GET YOUR BARE ASS OUT OF HISTORY.",
   "from": "SPACE"
  },
@@ -19756,6 +20641,11 @@
  },
  {
   "voice": "m2.space.needle",
+  "text": "SPACE NEEDLE TWO THANKS ALL FIVE OF YOU FOR RIDING TODAY. A NEW RECORD.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.needle",
   "text": "THE ASTRONAUT SUIT ON DISPLAY IS REAL. PLEASE STOP TRYING IT ON.",
   "from": "SPACE"
  },
@@ -19772,6 +20662,11 @@
  {
   "voice": "m2.space.needle",
   "text": "THE RESTROOMS ARE CLOSED. BECAUSE OF SPACE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.needle",
+  "text": "THE WAIT FOR SPACE NEEDLE TWO IS CURRENTLY ZERO MINUTES. IT IS ALWAYS ZERO MINUTES.",
   "from": "SPACE"
  },
  {
@@ -20171,17 +21066,17 @@
  },
  {
   "voice": "m2.space.ridepa",
-  "text": "ABOVE YOU, THE BIGGEST SPACE STATION EVER BUILT. BUILT ENTIRELY BY ROBOTS!",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.ridepa",
   "text": "AND ALL HUMAN KNOWLEDGE WILL FIT ON ONE LASER DISC!",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.ridepa",
   "text": "AND HERE, THE BREATHTAKING MAJESTY OF THE STARS!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.ridepa",
+  "text": "ATTENTION. BRAKE FAILURE. PLEASE REMAIN SEATED. PROGRESSCO IS NOT LIABLE.",
   "from": "SPACE"
  },
  {
@@ -20211,17 +21106,7 @@
  },
  {
   "voice": "m2.space.ridepa",
-  "text": "OUR FRIENDS IN THE SOVIET UNION HAVE A MOON BASE. OURS IS BIGGER!",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.ridepa",
   "text": "PLEASE KEEP YOUR HANDS, ARMS AND OPINIONS INSIDE THE STAR SLED.",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.ridepa",
-  "text": "PLEASE REMAIN SEATED UNTIL YOUR STAR SLED COMES TO A COMPLETE STOP.",
   "from": "SPACE"
  },
  {
@@ -20231,22 +21116,17 @@
  },
  {
   "voice": "m2.space.ridepa",
+  "text": "STAR SLED RIDERS! MARTIANS ON THE TRACK! USE YOUR ONBOARD SPACE BLASTER!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.ridepa",
   "text": "TEN, NINE... OH, LET'S JUST GO!",
   "from": "SPACE"
  },
  {
   "voice": "m2.space.ridepa",
-  "text": "THANK YOU FOR VOYAGING TO 2010! THE FUTURE IS CLOSER THAN YOU THINK!",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.ridepa",
   "text": "THANKS TO ROBOTS, NOBODY IN 2010 WILL EVER HAVE TO WORK AGAIN!",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.ridepa",
-  "text": "THE FIRST HOTEL ON MARS IS OPEN! CONTINENTAL BREAKFAST INCLUDED!",
   "from": "SPACE"
  },
  {
@@ -21426,6 +22306,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A LIGHT FELL ON MY HEAD!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "A LITTLE ARROW. ...POINTING AT WHAT?",
   "from": "m1/game/stages/tommy/escape.ts:221"
  },
@@ -21443,6 +22328,11 @@
   "voice": "meathead",
   "text": "A LOG! I GOT CHECKED BY A LOG!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A MARTIAN TO THE FACE!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -21808,11 +22698,6 @@
   "voice": "meathead",
   "text": "AAAAAAH!",
   "from": "m1/game/stages/dale/convoy.ts:403"
- },
- {
-  "voice": "meathead",
-  "text": "AAAGH! RIGHT IN THE FOREHEAD!",
-  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -22296,16 +23181,6 @@
  },
  {
   "voice": "meathead",
-  "text": "BEST RIDE IN THE PARK. FELT GREAT ON THE BALLS.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "BEST RIDE IN THE PARK. SECOND BEST SMELL.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
   "text": "BEST USE OF A MOTHER-IN-LAW I EVER HEARD.",
   "from": "SPOOKY"
  },
@@ -22443,21 +23318,6 @@
   "voice": "meathead",
   "text": "BOO YOURSELF!",
   "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "BOO, BITCH.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "BOO, BITCH. I WIN NAKED.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "BOO, BITCH. NOW WHERE ARE THE TOILETS.",
-  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -22788,6 +23648,11 @@
   "voice": "meathead",
   "text": "CAR DOOR? CORPSE DOOR!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CARDBOARD IN MY TEETH!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -23966,6 +24831,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FINALLY. A RIDE WITH A GUN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "FINALLY. A SOUVENIR.",
   "from": "SPACE"
  },
@@ -24352,21 +25222,6 @@
  {
   "voice": "meathead",
   "text": "GALACTIC GROOVE. SOUNDS LIKE A CONDOM.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "GAME OVER, YOUR MAJESTY.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "GAME OVER. AND I STILL NEED A BATHROOM.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "GAME OVER. SOMEBODY GET ME A ROBE.",
   "from": "SPACE"
  },
  {
@@ -25826,11 +26681,6 @@
  },
  {
   "voice": "meathead",
-  "text": "HER MOUTH HAS A MOUTH!",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
   "text": "HERE. HAVE THE WHOLE THING.",
   "from": "SPACE"
  },
@@ -26816,6 +27666,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I WANT TO SPEAK TO WHOEVER BUILT THAT. THEN PUNCH HIM.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "I WAXED THOSE! I WAXED THOSE FOR THE CEREMONY!",
   "from": "HAZARD_HURT"
  },
@@ -27016,11 +27871,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I'M FINE.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
   "text": "I'M GETTING CHARBROILED OVER HERE!",
   "from": "HAZARD_HURT"
  },
@@ -27167,6 +28017,11 @@
  {
   "voice": "meathead",
   "text": "I'M NOT GONNA ASK. I'M NOT GONNA ASK.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT PAYING FOR THE PHOTO.",
   "from": "SPACE"
  },
  {
@@ -27628,6 +28483,11 @@
   "voice": "meathead",
   "text": "IT FLATTENED MY BACK!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT GOES TO SPACE AND NOBODY CARES. SOUNDS RIGHT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -28186,11 +29046,6 @@
  },
  {
   "voice": "meathead",
-  "text": "LEGALLY DISTINCT. LEGALLY DEAD.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
   "text": "LESS FATAL? I'LL TAKE IT.",
   "from": "SPACE"
  },
@@ -28202,6 +29057,11 @@
  {
   "voice": "meathead",
   "text": "LESS FATAL? I'M ALREADY LESS DIGNIFIED. EVEN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "LET GO OF MY HEAD, YOU ROBOT BITCH!",
   "from": "SPACE"
  },
  {
@@ -28736,7 +29596,7 @@
  },
  {
   "voice": "meathead",
-  "text": "MY HAIR'S ON FIRE!",
+  "text": "MY HEAD! I NEED THAT!",
   "from": "SPACE"
  },
  {
@@ -29196,6 +30056,21 @@
  },
  {
   "voice": "meathead",
+  "text": "NICE RESEARCH, DUMBASSES.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE RESEARCH. RESEARCH A TOILET.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE RESEARCH. TAKE A PICTURE, NERDS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "NICE SHIELD! GREAT! DEAD!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -29313,6 +30188,11 @@
   "voice": "meathead",
   "text": "NO LEVERAGE DOWN HERE!",
   "from": "DUCK_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO LINE. THAT'S NEVER GOOD.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -29587,6 +30467,11 @@
  {
   "voice": "meathead",
   "text": "NOT THE GOOD KIND OF SUCKING!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT THE HEAD! NOT THE HEAD!",
   "from": "SPACE"
  },
  {
@@ -30216,6 +31101,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! THE DISCO HIT ME!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! THE HEELS! THE HEELS!",
   "from": "HAZARD_HURT"
  },
@@ -30756,11 +31646,6 @@
  },
  {
   "voice": "meathead",
-  "text": "REAL ROCKET! REAL FIRE!",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
   "text": "REAL TEETH! IN A KIDS RIDE!",
   "from": "ADVENTURE"
  },
@@ -31188,6 +32073,21 @@
   "voice": "meathead",
   "text": "SEE YOU NEVER, CROCODILE!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SEE YOU NEVER, NERDS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SEE YOU NEVER. I NEED A BATHROOM.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SEE YOU NEVER. SOMEBODY GET ME A ROBE.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -32101,6 +33001,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SPACE SNACKS IN MY FACE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "SPACE. IT'S DARK. GOOD JOB.",
   "from": "SPACE"
  },
@@ -32776,6 +33681,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TEN OUT OF TEN. WOULDN'T RIDE AGAIN.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "TENDERIZED!",
   "from": "M2_KILL_LINES"
  },
@@ -33023,11 +33933,6 @@
   "voice": "meathead",
   "text": "THAT ROCKET SPLATTERED PETROLEUM ON MY PECS!",
   "from": "HURT"
- },
- {
-  "voice": "meathead",
-  "text": "THAT ROCKET'S REAL TOO!",
-  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -33378,6 +34283,11 @@
   "voice": "meathead",
   "text": "THAT'S THE FATTEST DEVIL I EVER SAW.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S THE FUTURE? IT SUCKS AND I LOVE IT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -33796,11 +34706,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THE JAW! THE LITTLE JAW!",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
   "text": "THE LAP BAR! THEY DON'T EVEN NEED IT ANYMORE!",
   "from": "SPOOKY"
  },
@@ -33847,11 +34752,6 @@
  {
   "voice": "meathead",
   "text": "THE METAL IS COLD ON MY BALLS.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "THE METEORS AGAIN!",
   "from": "SPACE"
  },
  {
@@ -33986,6 +34886,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE RIDE HAS A GUN?!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THE RIDE HIT ME!",
   "from": "SPACE"
  },
@@ -34083,11 +34988,6 @@
   "voice": "meathead",
   "text": "THE SNAKE AGAIN!",
   "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "THE SOVIET WHAT?",
-  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -34271,6 +35171,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY DROPPED A SPOTLIGHT ON ME!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY KEEP SENDING 'EM DOWN!",
   "from": "SPOOKY"
  },
@@ -34318,6 +35223,11 @@
   "voice": "meathead",
   "text": "THEY'RE CLEAN. I'D RUIN THEM. NO.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE DROPPING ROCKS NOW?!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -35451,6 +36361,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO PARKS SNACKS ON A ROLLER COASTER?!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO PAYS FOR THIS SHIT?",
   "from": "SPACE"
  },
@@ -35523,6 +36438,11 @@
   "voice": "meathead",
   "text": "WHO SMASHES BOTTLES IN THE STREET?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO STACKS BOXES ON A TRACK?!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -35746,11 +36666,6 @@
  },
  {
   "voice": "meathead",
-  "text": "WHY IS EVERYTHING ON FIRE IN THE FUTURE?!",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
   "text": "WHY IS HE SO BOUNCY?!",
   "from": "SPOOKY"
  },
@@ -35883,6 +36798,21 @@
   "voice": "meathead",
   "text": "YEAH, OKAY. RUDE, THOUGH.",
   "from": "m1/game/stages/tommy/thing.ts:160"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEAH, RUN. NEVER SEEN A NAKED GUY WIN?",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEAH, RUN. TAKE YOUR DISCO WITH YOU.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEAH, RUN. THE SMELL WILL FIND YOU.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
