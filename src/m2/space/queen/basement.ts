@@ -169,7 +169,7 @@ export const layBasement = (state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The state
 
-type Mode = 'away' | 'tell' | 'drop' | 'prowl' | 'hunt' | 'search' | 'climb' | 'ceil' | 'crouch' | 'leap' | 'kill';
+type Mode = 'away' | 'tell' | 'drop' | 'prowl' | 'hunt' | 'search' | 'climb' | 'ceil' | 'crouch' | 'leap' | 'kill' | 'ambush';
 /** How she comes out: down a ceiling vent, out of a wall duct, or along the ceiling first. */
 type Entry = 'vent' | 'duct' | 'ceil';
 export interface Hunter {
@@ -320,6 +320,9 @@ const hearHim = (state: GameState, h: Hunter, controls: Controls) => {
     h.warned = true; h.freeMove = !shot;
     meatheadSays(state, pick(shot ? L.MH_WARN_SHOOT : L.MH_WARN_MOVE), false);
   } else {
+    // (loud past his one warning: she's on it, down out of the ceiling right in front of him, screeching; a moment to
+    // hide in (she's not looking yet), then she's on him)
+    if ((shot || (moveStart && !h.freeMove)) && h.opened && !h.finale && !['hunt', 'kill', 'ambush', 'leap', 'crouch'].includes(h.mode)) ambush(state, h);
     if (shot) {
       n += 45;
       if (inPlay(h) && !h.saidGun) { h.saidGun = true; meatheadSays(state, pick(L.MH_USELESS), false); }
@@ -336,6 +339,19 @@ const hearHim = (state: GameState, h: Hunter, controls: Controls) => {
     h.path = [{ x: clampLvl(h, pmid(state)), stop: 90 }, ...h.path.slice(h.leg)]; h.leg = 0; to(h, 'prowl'); h.speed = Math.max(h.speed, 2.6);
     playSound('screams', 0.3, -6);
   }
+};
+
+/** The ambush: how far in front of him she comes down, how long she screeches (his window to hide) before she's on him. */
+const AMBUSH_AHEAD = 230, AMBUSH_T = 60;
+const ambush = (state: GameState, h: Hunter) => {
+  const cx = pmid(state), dir = (state.player.facing || 1) as 1 | -1, lv = plevel(state);
+  h.lvl = lv === 1 && catwalkAt(cx) ? 1 : 0;
+  h.x = cx + dir * AMBUSH_AHEAD; h.x = clampLvl(h, h.x);
+  if (Math.abs(h.x - cx) < 120) { h.x = cx - dir * AMBUSH_AHEAD; h.x = clampLvl(h, h.x); }
+  h.y = levelY(h.lvl, h.x); h.dir = h.x > cx ? -1 : 1; h.entry = 'vent';
+  h.fg = null; h.rattle = null; h.fake = null; h.path = []; h.leg = 0;
+  to(h, 'ambush');
+  playSound('clang', 1, -6); playSound('screams', 0.9, -4); shakeScreen(state, 8, 4); dust(state, h.x, CEIL_B + 4, 10);
 };
 
 /** Her x kept on her level (a catwalk's ends; the basement's). */
@@ -509,6 +525,15 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       break;
     }
     case 'hunt': hunting(ctx, h); break;
+    case 'ambush':
+      // (down, rearing, screeching at him: not looking yet; then she's on him, or, hidden, she's lost him right there)
+      if (h.t === 14) { playSound('land', 0.9, -10); shakeScreen(state, 5, 3); dust(state, h.x, h.y - 4, 8); }
+      if (h.t % 20 === 15) playSound('screams', 0.5, -2);
+      if (h.t >= AMBUSH_T) {
+        if (h.hid >= 0) { to(h, 'search'); h.path = [{ x: clampLvl(h, cx), stop: 160 }]; h.speed = 1.8; }
+        else spotted(state, h);
+      }
+      break;
     case 'search': {
       const tgt = h.path[0];
       if (tgt && Math.abs(tgt.x - h.x) > 4) { h.dir = tgt.x < h.x ? -1 : 1; h.x += h.dir * h.speed; }
@@ -558,7 +583,7 @@ const leave = (h: Hunter) => { to(h, 'climb'); h.entry = h.lvl === 0 && catwalkA
 /** She sees him: on her level, in front of her and near enough (or right on her), not hidden. */
 const sees = (state: GameState, h: Hunter) => {
   const p = state.player, dx = pmid(state) - h.x;
-  if (h.hid >= 0 || p.health <= 0 || p.inCutscene) return false;
+  if (h.hid >= 0 || p.health <= 0 || p.inCutscene || h.mode === 'ambush') return false;
   if (Math.abs(pfeet(state) - h.y) > 70) return false;
   return Math.abs(dx) < 110 || (Math.abs(dx) < 380 && Math.sign(dx) === h.dir);
 };
@@ -772,10 +797,11 @@ export const drawHunter = (c: Ctx, state: GameState, h: Hunter) => {
   // (out of the vent (down from the ceiling) or the duct (out of the back wall, coming forward out of the dark))
   let dy = 0, alpha = 1;
   if (h.mode === 'drop') { if (h.entry === 'duct') alpha = Math.min(1, h.t / 18); else dy = -(h.y - CEIL_B) * Math.max(0, 1 - h.t / 16); }
+  if (h.mode === 'ambush') dy = -(h.y - CEIL_B) * Math.max(0, 1 - h.t / 14);
   if (h.mode === 'climb') { if (h.entry === 'duct') alpha = Math.max(0, 1 - h.t / 20); else dy = -(h.y - CEIL_B) * Math.min(1, h.t / 22); }
-  const crouch = h.mode === 'crouch' ? 0.82 : 1;
+  const crouch = h.mode === 'crouch' ? 0.82 : h.mode === 'ambush' && h.t >= 14 ? 0.9 + Math.sin(h.t * 0.6) * 0.03 : 1;
   const kill = h.mode === 'kill', kt = killT(state, h);
-  const pose = kill ? (kt < K_SNATCH ? 'swipe' : kt >= K_RIP + 14 && kt < K_TOSS ? 'roar' : 'grab') : h.mode === 'crouch' ? 'roar' : h.mode === 'leap' ? 'swipe' : h.mode === 'hunt' ? 'stalk' : h.mode === 'search' || (h.mode === 'prowl' && h.sniff > 0) ? 'idle' : 'stalk';
+  const pose = kill ? (kt < K_SNATCH ? 'swipe' : kt >= K_RIP + 14 && kt < K_TOSS ? 'roar' : 'grab') : h.mode === 'crouch' || h.mode === 'ambush' ? 'roar' : h.mode === 'leap' ? 'swipe' : h.mode === 'hunt' ? 'stalk' : h.mode === 'search' || (h.mode === 'prowl' && h.sniff > 0) ? 'idle' : 'stalk';
   const moving = h.mode === 'prowl' && h.sniff === 0 || h.mode === 'hunt' || h.mode === 'search';
   if (alpha < 1) c.globalAlpha = alpha;
   c.save(); c.translate(h.x, h.y + dy); c.scale(QS, QS * crouch); c.translate(-h.x, -GY);
