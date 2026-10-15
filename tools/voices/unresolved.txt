@@ -25,7 +25,7 @@ m2/adventure/queue/talk.ts:33 voice: l.text
 m2/adventure/river/index.ts:438 voice: fromBag(rv, 'gkill', GUESTS_KILL)
 m2/adventure/river/index.ts:444 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
 m2/adventure/dino/index.ts:143 voice: pick(MAINT_OBLIVIOUS)
-m2/adventure/dino/rex.ts:147 voice: voice('m2.rex')
+m2/adventure/dino/rex.ts:148 voice: voice('m2.rex')
 m2/adventure/dino/guests.ts:156 voice: pickLine(pool)
 m2/adventure/temple/index.ts:166 voice: text
 m2/adventure/temple/index.ts:213 voice: g.woman ? 'm2.guest' : 'm2.guest2'
@@ -40,18 +40,15 @@ m2/adventure/clearing/index.ts:174 voice: text
 m2/adventure/clearing/fight.ts:293 voice: voice('m2.safari')
 m2/adventure/clearing/fight.ts:299 voice: pick(lines[pants()])
 m2/adventure/section.ts:135 voice: voice(voiceId)
-m2/walkAway/artie.ts:378 voice: x
-m2/walkAway/artie.ts:383 voice: x
-m2/walkAway/artie.ts:384 voice: Math.round(sx - c.measureText('LAND').width / 2)
 m2/spooky/castle/pa.ts:72 voice: voice(PA)
 m2/spooky/hell/satan.ts:111 voice: SATAN_CORE
 m2/spooky/hell/satan.ts:114 voice: pick(dressedPool(state))
 m2/spooky/hell/demon.ts:140 voice: voice('m2.demon')
 m2/spooky/control/staff.ts:55 voice: voice(woman ? 'm2.spooky.clerkf' : 'm2.spooky.clerk')
 m2/spooky/control/index.ts:79 voice: pick(lines[dressed(state)])
-m2/spooky/control/doors.ts:75 voice: pick(L.DONNIE_LOCKED[dressed(state)])
-m2/spooky/control/shop.ts:245 voice: true
-m2/spooky/control/shop.ts:252 voice: voice('m2.donnie')
+m2/spooky/control/doors.ts:76 voice: pick(L.DONNIE_LOCKED[dressed(state)])
+m2/spooky/control/shop.ts:246 voice: true
+m2/spooky/control/shop.ts:253 voice: voice('m2.donnie')
 m2/spooky/ballroom/fight.ts:226 voice: voice('m2.donnie')
 m2/spooky/ballroom/fight.ts:236 voice: pick(lines[pants()])
 m2/spooky/ballroom/fight.ts:553 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
@@ -73,22 +70,49 @@ m2/space/needle/index.ts:103 voice: text
 m2/space/orbit/gun.ts:53 voice: SAY
 m2/space/orbit/ufo.ts:64 voice: SAY
 m2/space/orbit/hazards.ts:190 voice: voice(female ? 'm2.space.zpilotf' : 'm2.space.zpilot')
-m2/space/crater/kinds.ts:69 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
 m2/space/crater/rigs.ts:168 voice: pick(L.BOO)
-m2/space/crater/house.ts:86 voice: pick(L.XENO_WELCOME)
-m2/space/crater/house.ts:88 voice: pick(L.XENO_TELEPORT)
-m2/space/crater/house.ts:127 voice: pick(L.BOO)
-m2/space/crater/house.ts:131 voice: pick(L.XENO_ARRIVED)
+m2/space/crater/house.ts:89 voice: pick(L.XENO_WELCOME)
+m2/space/crater/house.ts:91 voice: pick(L.XENO_TELEPORT)
+m2/space/crater/house.ts:130 voice: pick(L.BOO)
+m2/space/crater/house.ts:134 voice: pick(L.XENO_ARRIVED)
+m2/space/crater/kinds.ts:73 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
 m2/space/queen/show.ts:111 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
 m2/space/queen/fight.ts:225 voice: pick(lines[dressed(state)])
 m2/space/queen/fight.ts:231 voice: pick(lines[dressed(state)])
 m2/space/queen/fight.ts:241 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
 m2/space/queen/fight.ts:386 voice: pick(L.BOOTH_RAY[dressed(state)])
+m2/hollywood/blvd/kinds.ts:59 voice: false
+m2/hollywood/blvd/index.ts:45 voice: line
+m2/hollywood/blvd/index.ts:92 voice: false
+m2/hollywood/coaster/kinds.ts:40 voice: false
+m2/hollywood/coaster/index.ts:75 voice: line
+m2/hollywood/coaster/index.ts:333 voice: false
+m2/hollywood/coaster/index.ts:370 voice: false
+m2/hollywood/coaster/index.ts:381 voice: true
+m2/hollywood/warehouse/kinds.ts:47 voice: false
+m2/hollywood/warehouse/kinds.ts:241 voice: false
+m2/hollywood/warehouse/cast.ts:109 voice: false
+m2/hollywood/warehouse/talk.ts:24 voice: line
+m2/hollywood/warehouse/talk.ts:30 voice: pickLine(byPants(state, pool))
+m2/hollywood/warehouse/talk.ts:36 voice: pickLine(byPants(state, pool))
+m2/hollywood/warehouse/talk.ts:42 voice: pickLine(pool)
+m2/hollywood/lot/index.ts:100 voice: false
+m2/hollywood/disaster/kinds.ts:41 voice: false
+m2/hollywood/disaster/show.ts:34 voice: line
+m2/hollywood/disaster/show.ts:75 voice: false
+m2/hollywood/disaster/real.ts:89 voice: s.line()
+m2/hollywood/disaster/index.ts:55 voice: line
+m2/hollywood/disaster/index.ts:74 voice: false
+m2/hollywood/disaster/index.ts:86 voice: line
+m2/hollywood/disaster/index.ts:170 voice: false
+m2/hollywood/disaster/index.ts:175 voice: false
+m2/hollywood/havoc/kinds.ts:45 voice: false
+m2/hollywood/havoc/index.ts:55 voice: line
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice
 m1/game/bosses/alien.ts:90 voice: text
 m1/game/bosses/alien.ts:231 voice: pickRandom(ALIEN_LINES.LASER)
-m1/game/bosses/oscar.ts:187 name: undefined
+m1/game/bosses/oscar.ts:188 name: undefined
 m1/game/bosses/shared.ts:177 voice: getBossVoice(bossId)
 m1/game/core/deathCause.ts:52 name: undefined
 m1/game/core/deathCause.ts:54 name: undefined
@@ -112,11 +136,11 @@ m1/game/core/update.ts:622 call: layout?.deathMessage?.(ctx)
 m1/game/core/update.ts:622 call: deathByCause(state)
 m1/game/core/update.ts:622 call: deathFallback(state, ctx.stageId, fell)
 m1/game/player/player.ts:84 call: message()
-m1/game/stages/artie/ski.ts:446 call: skiDeathMessage(state, ski)
-m1/game/stages/artie/ski.ts:446 name: DEATH_LINES
-m1/game/stages/artie/ski.ts:538 name: undefined
-m1/game/stages/artie/ski.ts:543 name: DEATH_LINES
-m1/game/stages/artie/ski.ts:545 call: deathByCause(state)
+m1/game/stages/artie/ski.ts:464 call: skiDeathMessage(state, ski)
+m1/game/stages/artie/ski.ts:464 name: DEATH_LINES
+m1/game/stages/artie/ski.ts:557 name: undefined
+m1/game/stages/artie/ski.ts:562 name: DEATH_LINES
+m1/game/stages/artie/ski.ts:564 call: deathByCause(state)
 m1/game/stages/barry/runtime.ts:422 name: undefined
 m1/game/stages/barry/runtime.ts:422 call: deathByCause(state)
 m1/game/stages/barry/runtime.ts:431 name: undefined
@@ -132,27 +156,27 @@ m1/game/stages/ernie/doorCrash.ts:105 voice: 'guide'
 m1/game/stages/ernie/doorCrash.ts:115 voice: 'hipster'
 m1/game/stages/ernie/doorCrash.ts:147 voice: 'meathead'
 m1/game/stages/ernie/index.ts:24 name: undefined
-m1/game/stages/ernie/jetski.ts:496 name: undefined
+m1/game/stages/ernie/jetski.ts:506 name: undefined
 m1/game/stages/ernie/quake.ts:347 name: undefined
-m1/game/stages/finale/killCam.ts:186 voice: ANNOUNCER_VOICE
-m1/game/stages/finale/killCam.ts:66 who: alien
-m1/game/stages/finale/killCam.ts:136 who: announcer
+m1/game/stages/finale/killCam.ts:187 voice: ANNOUNCER_VOICE
+m1/game/stages/finale/killCam.ts:67 who: alien
+m1/game/stages/finale/killCam.ts:137 who: announcer
 m1/game/stages/finale/runtime.ts:330 name: ALIEN_ID
 m1/game/stages/finale/runtime.ts:69 call: getFinale(state)
 m1/game/stages/gym/runtime.ts:376 name: undefined
 m1/game/stages/gym/runtime.ts:378 call: deathByCause(ctx.state)
 m1/game/stages/gym/script.ts:77 voice: VOICES[line.who]
-m1/game/stages/hector/chase.ts:477 call: deathByCause(state)
+m1/game/stages/hector/chase.ts:487 call: deathByCause(state)
 m1/game/stages/hector/daycare.ts:39 voice: voiceOf(who)
 m1/game/stages/hector/hazards.ts:445 name: undefined
 m1/game/stages/hector/hazards.ts:451 name: undefined
 m1/game/stages/oscar/bar.ts:186 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
-m1/game/stages/oscar/bunker.ts:376 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
 m1/game/stages/oscar/chase.ts:584 name: undefined
 m1/game/stages/oscar/runtime.ts:176 name: undefined
 m1/game/stages/oscar/runtime.ts:179 call: deathByCause(ctx.state)
 m1/game/stages/oscar/runtime.ts:182 call: chaseDeathMessage(rt.chase)
 m1/game/stages/oscar/script.ts:79 voice: VOICES[line.who]
+m1/game/stages/oscar/bunker.ts:405 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
 m1/game/stages/tommy/bike.ts:575 name: undefined
 m1/game/stages/tommy/escape.ts:305 name: undefined
 m1/game/stages/tommy/runtime.ts:186 name: undefined
@@ -175,6 +199,6 @@ m1/game/stages/tommy/thing.ts:330 expr: th.asks + state.frame
 m1/game/stages/victor/hazards.ts:266 name: undefined
 m1/game/stages/victor/hazards.ts:274 name: undefined
 m1/game/stages/whiteHouse/index.ts:59 expr: null
-m1/App.tsx:241 voice: getBossVoice(selectedStage)
-m1/App.tsx:468 name: undefined
-m1/App.tsx:469 expr: null
+m1/App.tsx:279 voice: getBossVoice(selectedStage)
+m1/App.tsx:617 name: undefined
+m1/App.tsx:618 expr: null
