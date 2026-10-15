@@ -5,18 +5,20 @@
 // billboard. Then THE FLOOD CLIMB: the water comes up the backlot and the only way is up, a staircase of three shafts as
 // the buildings round him are demolished (the hotel's scaffold, the crane over STAGE 14 and its wrecking ball, the
 // water tower's scaffold), ledges crumbling under him and behind him, chunks coming down. Up on the HAPPYWOOD sign's
-// ridge, THE TORNADO comes down behind him (it drinks the flood) and chases him down the hill road in the snow and on
-// along the foot of the hill: touch it and he dies. At each AVALANCHE ZONE, a shelter: in under it, the avalanche comes
-// down, buries the tornado (it falls back) and goes over him. Then everything at once (lava, wind, the quake, hail,
-// facades, the tornado still coming), a first aid station (the big health and ammo, before Stuntman Steve), and the
-// tornado surges, catches him and flings him (fling.ts: a cutscene, HUD hidden, SKIP >> for the lot) onto the stunt
-// stage. If it killed him before on this visit, he breaks the fourth wall on the way (lines.ts FOURTH_WALL).
+// ridge (the flood goes back down), THE BLIZZARD: down the hill road in the snow, and at each AVALANCHE ZONE a concrete
+// bunker: the hill rumbles, he gets in, and the avalanche (a wall of snow over the whole screen, far too tall to get
+// over) goes over it. Out in the open it buries him (half his health). Then at the foot of the hill THE TORNADO comes
+// down behind him and chases him on along the street to the end: touch it and he dies. It blows away everything it
+// comes to; lesser takes on everything else come at him on the way (snow slides to jump, narrow lava, puddles, gusts,
+// a few falling bits, hail). A first aid station (the big health and ammo, before Stuntman Steve), and the tornado
+// surges, catches him and flings him (fling.ts: a cutscene, HUD hidden, SKIP >> for the lot) onto the stunt stage. If
+// it killed him before on this visit, he breaks the fourth wall on the way (lines.ts FOURTH_WALL).
 //
-// layout.ts lays it out; hazards.ts the disasters; chase.ts the tornado, the shelters and the avalanches; fling.ts the
+// layout.ts lays it out; hazards.ts the disasters; chase.ts the bunkers, the avalanches and the tornado; fling.ts the
 // fling; kinds.ts its people (looters, the storm crew, Poppy the popcorn mascot); art.ts draws it; lines.ts what's said.
 //
-// ~19500 px of play (the climb counted by how long it plays), ~4 min. Checkpoints 50-59. Outdoors: the time of day's
-// light, the sky gone red.
+// ~22000 px of play (the climb counted by how long it plays), ~4.5 min. Checkpoints 50-59. Outdoors: the time of
+// day's light, the sky gone red.
 //
 // One-way set piece: the fling. Back from the stunt stage (DOORS.havoc.end, on the ground at the end) the tornado's
 // spent (FLUNG_MEMO): no chase, no flood (gone down), no wind, quake or hail; the lava crusted over, the facades down,
@@ -35,12 +37,12 @@ import { paSay } from '../blvd';
 import { LOOP, REAL } from '../disaster/lines';
 import {
   x0, x1, X, Y, R, GY, RUNS, BUILDINGS, ENEMIES, PICKUPS, CHECKPOINTS, WIRES, groundH, FLOOD_AT, CLIMB, SHAFTS, COVERS,
-  REFILL, WIND, QUAKE, HAIL, LAVA,
+  REFILL, WIND, QUAKE, HAIL, LAVA, CHASE_AT, TORNADO_FORM,
 } from './layout';
 import { hvOf, FLUNG_MEMO } from './state';
 import './kinds';
 import { buildHazards, updateHazards, updateLobs, spent } from './hazards';
-import { buildCovers, updateChase, startTornado, formTornado, coverRoof } from './chase';
+import { buildCovers, updateChase, startTornado, formTornado, coverRoof, tearUpTo } from './chase';
 import { startFling, updateFling, drawFlingHud, flinging } from './fling';
 import { drawHavocBackdrop, drawHavocBack, drawHavocFront, havocLamps } from './art';
 import * as L from './lines';
@@ -80,8 +82,10 @@ const settle = (state: GameState) => {
   else if (c === 54) Object.assign(hv.flood, { on: true, h: 220, wait: 70, wave: 120, drain: false });
   else if (c === 55) Object.assign(hv.flood, { on: true, h: 740, wait: 70, wave: 120, drain: false });
   if (c >= 53 && c <= 55) hv.said.flooded = true;
-  if (c === 56) { formTornado(state); hv.said.top = true; }
-  else if (c >= 57 && c <= 59 && cp) { startTornado(state, cp.x - 900, 100); hv.said.top = true; }
+  // (the hill: the flood's gone down; the chase: the tornado behind him, everything it's been past blown away)
+  if (c >= 56 && c <= 59) hv.said.top = true;
+  if (c === 58) { formTornado(state); hv.said.chase = true; tearUpTo(state, X(TORNADO_FORM)); }
+  else if (c === 59 && cp) { startTornado(state, cp.x - 900, 100); hv.said.chase = true; tearUpTo(state, cp.x - 900); }
 };
 
 export const havoc: HollywoodSection = {
@@ -123,16 +127,22 @@ export const havoc: HollywoodSection = {
       if (once(state, 'flood')) narrate(state, LOOP[4][0], () => meatheadSays(state, pick(L.GAG.flood), true));
       else meatheadSays(state, pick(L.GAG.flood), false);
     }
-    // Up on the ridge: the tornado comes down behind him, and drinks the flood
+    // Up on the ridge: the flood goes back down; the blizzard
     if (!done && alive && !hv.said.top && rx >= CLIMB.b && up > 1480) {
       hv.said.top = true;
-      formTornado(state);
       if (hv.flood.on) hv.flood.drain = true;
+      playSound('whoosh', 1, -16);
+      if (once(state, 'top')) meatheadSays(state, pick(L.GAG.top), true, () => narrate(state, REAL.blizzard));
+    }
+    // Down off the hill (the last avalanche gone by): the tornado comes down behind him
+    if (!done && alive && hv.said.top && !hv.said.chase && rx >= CHASE_AT && !hv.avalanches.some(a => a.phase === 'tell' || a.phase === 'run')) {
+      hv.said.chase = true;
+      formTornado(state);
       playSound('roar', 1, -18); playSound('whirl', 1, -10);
-      if (once(state, 'top')) meatheadSays(state, pick(L.GAG.top), true, () => narrate(state, L.NARR_HAVOC.tornado, () => meatheadSays(state, pick(L.GAG.tornado), true)));
+      if (once(state, 'chase')) narrate(state, L.NARR_HAVOC.tornado, () => meatheadSays(state, pick(L.GAG.tornado), true));
       else meatheadSays(state, pick(L.GAG.tornado), true);
     }
-    // The tornado, the shelters, the avalanches
+    // The bunkers and the avalanches, the tornado
     const ch = updateChase(ctx);
     if (ch.caught) { startFling(ctx); return updateFling(ctx) ?? controls; }
     // What's said (talk less: each beat once)
@@ -147,11 +157,11 @@ export const havoc: HollywoodSection = {
       if (rx > 3950 && once(state, 'pa-steve')) paSay(state, L.PA_STEVE_HAVOC[0]);
       if (ev.quake && rx < QUAKE[0][1] && once(state, 'quake')) narrate(state, LOOP[0][0], () => meatheadSays(state, pick(L.GAG.quake), true));
       if (rx > SHAFTS[1].a && rx < SHAFTS[1].b && up > 620 && once(state, 'ball')) meatheadSays(state, pick(L.GAG.ball), true);
-      if (hv.tornado.on && rx > COVERS[0].a - 560 && once(state, 'cover')) narrate(state, L.NARR_HAVOC.avalanche, () => meatheadSays(state, pick(L.GAG.coverSign), true));
-      if (ch.inCover && hv.tornado.on && oncePer(state, 'inCover')) meatheadSays(state, pick(L.GAG.inCover), false);
-      if (ch.smothered && (oncePer(state, 'smothered') || Math.random() < 0.3)) meatheadSays(state, pick(L.GAG.smothered), false);
-      if (rx > 12900 && once(state, 'pa-steve-2')) paSay(state, L.PA_STEVE_HAVOC[1]);
-      if (rx > 15400 && once(state, 'everything')) narrate(state, REAL.all, () => meatheadSays(state, pick(L.GAG.everything), true));
+      if (ch.avalancheTell && rx < COVERS[0].b + 100 && once(state, 'cover')) narrate(state, L.NARR_HAVOC.avalanche, () => meatheadSays(state, pick(L.GAG.coverSign), true));
+      if (ch.inCover && oncePer(state, 'inCover')) meatheadSays(state, pick(L.GAG.inCover), false);
+      if (ch.ripped && once(state, 'rip')) meatheadSays(state, pick(L.GAG.rip), true);
+      if (rx > 15800 && once(state, 'pa-steve-2')) paSay(state, L.PA_STEVE_HAVOC[1]);
+      if (rx > WIND[1][0] && once(state, 'everything')) narrate(state, REAL.all, () => meatheadSays(state, pick(L.GAG.everything), true));
       if (ev.hail && rx > HAIL[0][0] && once(state, 'hail')) narrate(state, L.NARR_HAVOC.hail);
       if (rx > REFILL - 220 && once(state, 'refill')) meatheadSays(state, pick(L.GAG.refill), false);
       if (ch.surge) { if (once(state, 'surge')) narrate(state, L.NARR_HAVOC.surge); meatheadSays(state, pick(L.GAG.surge), false); }

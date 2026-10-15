@@ -16,20 +16,23 @@
 //          (up to STAGE 14's roof), the crane over STAGE 14 (its wrecking ball swinging; a stunt wire up), the old water
 //          tower's scaffold (up to the hill's ridge). Some ledges crumble under him; what's below him comes down behind
 //          him; chunks of the buildings come down the shafts. CHECKPOINTS on STAGE 14's roof and the tower's.
-//   8200   CHECKPOINT. THE RIDGE, by the HAPPYWOOD sign's letters. The TORNADO comes down over the flood behind him (it
-//          drinks it: the water goes down) and comes after him: touch it and he's dead. Down the hill road and along
-//          the foot of the hill, the snow coming down; at each AVALANCHE ZONE a shelter (the fallen O, the snow shed,
-//          the fallen Steve billboard, the tour tram on its side, the bus stop): in under it, the avalanche comes down
-//          the hill, buries the tornado (it falls back, a lull) and goes over him. Out in the open, it buries him.
-//          The tornado throws what it's picked up ahead of him (the HAPPYWOOD letters, a cow, a porta-potty).
-//          CHECKPOINTS after the second and fourth shelters, and the fifth.
-//   15200  EVERYTHING AT ONCE: lava rivers, the wind, the quake, hail, facades falling, the tornado still coming.
-//   18800  A FIRST AID station (the big health and ammo, before the stunt stage). Past it the tornado surges: it catches
+//   8200   CHECKPOINT. THE RIDGE, by the HAPPYWOOD sign's letters (the flood goes back down). THE BLIZZARD: down the
+//          hill road in the snow, no tornado yet. At each AVALANCHE ZONE a concrete BUNKER (four of them, on the hill
+//          road's landings): the hill rumbles (the tell), he gets in, and the AVALANCHE comes down the hill behind him,
+//          a wall of snow over the whole screen, far too high to get over (taller than three uppercuts), and goes
+//          over the bunker. Out in the open, it buries him and drags him along (not dead: half his health). The
+//          bunkers are only on the hill. CHECKPOINT at the second bunker.
+//   14500  CHECKPOINT. THE CHASE: the TORNADO comes down behind him at the foot of the hill and comes after him:
+//          touch it and he's dead. It blows away everything it comes to (the facades, Steve's standees, the PA's
+//          poles, the people) and throws some of it ahead of him. Lesser takes on everything he's been through: low
+//          snow slides rolling along the street after him (jump them), narrow lava rivers, puddles (slow him), weaker
+//          gusts, a few falling bits, hail. CHECKPOINT on Main Street.
+//   21280  A FIRST AID station (the big health and ammo, before the stunt stage). Past it the tornado surges: it catches
 //          him and flings him (the cutscene) onto Stuntman Steve's stage.
 //
 // Revisits (the fling's been: the tornado's spent): no tornado, no flood, no wind, quake or hail; the lava crusted over
-// (walkable), every facade down, the snow banked up, the wrecking ball hanging still, the ledges solid. Walkable both
-// ways: the hill up and down, the shafts dropped down (or climbed), the street.
+// (walkable), every facade down, the chase's street blown bare, the snow banked up, the wrecking ball hanging still,
+// the ledges solid. Walkable both ways: the hill up and down, the shafts dropped down (or climbed), the street.
 
 import { SECTIONS, GY } from '../geometry';
 import type { StuntWire } from '../section';
@@ -50,18 +53,23 @@ export const RUNS: Run[] = [
   [1440, 2700, 0, 0],
   [3020, 3700, 0, 0],
   [4180, 8200, 0, 0],
-  // the hill: the ridge, down the hill road to its landings and on down to the foot of it
+  // the hill: the ridge, down the hill road to its landings (a bunker on each) and on down to the foot of it
   [8200, 8600, 1500, 1500],
-  [8600, 9400, 1500, 1200],
-  [9400, 9800, 1200, 1200],
-  [9800, 10350, 1200, 970],
-  [10470, 11000, 920, 700],
-  [11000, 11500, 700, 700],
-  [11500, 12700, 700, 0],
-  [12700, 14000, 0, 0],
-  [14160, 16200, 0, 0],
-  [16600, 17400, 0, 0],
-  [17540, 19700, 0, 0],
+  [8600, 9300, 1500, 1260],
+  [9300, 9800, 1260, 1260],
+  [9800, 10350, 1260, 1000],
+  [10470, 11000, 950, 780],
+  [11000, 11500, 780, 780],
+  [11500, 12300, 780, 500],
+  [12300, 12800, 500, 500],
+  [12800, 13500, 500, 200],
+  [13500, 14000, 200, 200],
+  [14000, 14400, 200, 0],
+  // the chase: the street on along the foot of the hill
+  [14400, 16500, 0, 0],
+  [16640, 18700, 0, 0],
+  [18880, 19900, 0, 0],
+  [20020, 22200, 0, 0],
 ];
 /** The ground's height at rx (null over a lava river). */
 export const groundH = (rx: number): number | null => {
@@ -74,10 +82,11 @@ export const LAVA: { a: number; b: number; hl: number; hr: number }[] = [
   { a: 1300, b: 1440, hl: 0, hr: 0 },
   { a: 2700, b: 3020, hl: 0, hr: 0 },
   { a: 3700, b: 4180, hl: 0, hr: 0 },
-  { a: 10350, b: 10470, hl: 970, hr: 920 },
-  { a: 14000, b: 14160, hl: 0, hr: 0 },
-  { a: 16200, b: 16600, hl: 0, hr: 0 },
-  { a: 17400, b: 17540, hl: 0, hr: 0 },
+  { a: 10350, b: 10470, hl: 1000, hr: 950 },
+  // (the chase's: narrow, a jump each)
+  { a: 16500, b: 16640, hl: 0, hr: 0 },
+  { a: 18700, b: 18880, hl: 0, hr: 0 },
+  { a: 19900, b: 20020, hl: 0, hr: 0 },
 ];
 /** How far down the lava is in its channel (under the lower bank), and the channel's floor. */
 export const LAVA_DOWN = 46, LAVA_FLOOR = 140;
@@ -117,24 +126,34 @@ export const LEDGES: [number, number, number, boolean][] = [
 export const BALL = { px: 7300, ph: 1270, len: 480, amp: 0.62, w: 0.028, r: 34 } as const;
 
 // ---------------------------------------------------------------------------------------------------------------
-// The tornado chase
+// The blizzard (down the hill) and the tornado chase (after it)
 
-/** Where the tornado comes down (over the flood, behind him), and where he has to get to for it (the ridge). */
-export const TORNADO_FORM = 7750, CHASE_AT = 8320;
-/** The shelters, where the avalanches come down: [rx from, to] (his middle in it, on its floor), what it is. */
-export const COVERS: { a: number; b: number; what: 'o' | 'shed' | 'billboard' | 'tram' | 'busstop' }[] = [
-  { a: 9530, b: 9690, what: 'o' },
-  { a: 11120, b: 11360, what: 'shed' },
-  { a: 13280, b: 13470, what: 'billboard' },
-  { a: 15020, b: 15230, what: 'tram' },
-  { a: 17080, b: 17280, what: 'busstop' },
+/** The downhill: from the ridge to the foot of the hill (the blizzard, the big avalanches, the bunkers). */
+export const DOWNHILL = { a: 8200, b: 14400 } as const;
+/** Where he has to get to for the tornado (past the foot of the hill), and where it comes down (behind him, on the
+ *  hill's last slope, in view). */
+export const CHASE_AT = 14500, TORNADO_FORM = 14150;
+/** The bunkers (the big avalanches' cover, on the hill only): [rx from, to] (his middle in it, on its floor), its name. */
+export const COVERS: { a: number; b: number; name: string }[] = [
+  { a: 9460, b: 9660, name: 'SKI PATROL' },
+  { a: 11140, b: 11340, name: 'AVALANCHE BUNKER' },
+  { a: 12460, b: 12660, name: 'SNOW SHED' },
+  { a: 13640, b: 13840, name: 'FALLOUT SHELTER' },
 ];
-/** A shelter's roof: its underside this far over its floor. */
+/** A bunker's roof: its underside this far over its floor. */
 export const ROOF = 104, ROOF_T = 20;
+/** The big avalanche: how tall its wall is over the ground (far over three uppercuts off a jump: ~145 + 3 x 289 =
+ *  ~1010 px), how long its body is, how fast it comes, how far ahead of a bunker the hill starts to rumble, how long
+ *  the rumble lasts (and what's left of it once he's in the bunker). */
+export const AV_H = 1500, AV_LEN = 1500, AV_V = 18, AV_REACH = 650, AV_TELL = 200, AV_TELL_IN = 45;
+/** The chase's snow slides: low enough to jump (a jump's ~145 px), how long, how fast, the gap between them (frames). */
+export const SLIDE_H = 62, SLIDE_LEN = 150, SLIDE_V = 11, SLIDE_GAP = 300;
+/** The chase's puddles (ankle-deep: they slow him): [rx from, to]. */
+export const PUDDLES: [number, number][] = [[15200, 15430], [17080, 17360], [20560, 20780]];
 /** The final stretch: past here the tornado surges and gets him. */
-export const SURGE_AT = 18960;
+export const SURGE_AT = 21460;
 /** The first aid station (the big refill). */
-export const REFILL = 18780;
+export const REFILL = 21280;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The street's set pieces
@@ -147,16 +166,27 @@ export const FALLS: [number, number, number, FallHow, string][] = [
   [2080, 260, 280, 'flat', 'CAFE DE PARIS'],
   [2656, 44, 340, 'bridge', 'LIGHT TOWER'],
   [5300, 320, 260, 'billboard', 'REVENGERS: RESEMBLE'],
-  [15700, 240, 300, 'flat', 'OLD LONDON'],
-  [17800, 260, 290, 'flat', 'MAIN STREET USA'],
+  [18200, 240, 300, 'flat', 'OLD LONDON'],
+  [20300, 260, 290, 'flat', 'MAIN STREET USA'],
 ];
 /** How close (rx) he gets before each comes down (it starts to go). */
 export const FALL_TRIGGER = 300;
 
-/** The wind's stretches, the quake's, the hail's: [rx from, to]. */
-export const WIND: [number, number][] = [[3150, 4500], [15300, 16800]];
-export const QUAKE: [number, number][] = [[4500, 6250], [16700, 18300]];
-export const HAIL: [number, number][] = [[16900, 18700]];
+/** The wind's stretches, the quake's, the hail's: [rx from, to]. (In the chase: lesser.) */
+export const WIND: [number, number][] = [[3150, 4500], [17600, 19300]];
+export const QUAKE: [number, number][] = [[4500, 6250], [19000, 20600]];
+export const HAIL: [number, number][] = [[19800, 21200]];
+
+/** The street's dead facades (scenery, behind; not the ones that come down): [rx, w, h, wall, name]. The chase's
+ *  (past the hill) are the tornado's to blow away. */
+export const DECOR: [number, number, number, string, string][] = [
+  [420, 260, 260, '#7C2D12', 'HAPPYWOOD BURGERS'], [960, 280, 300, '#3F3F46', 'BANK OF BURBANK'],
+  [2900, 200, 240, '#57534E', 'CHICAGO'], [3350, 300, 320, '#7F1D1D', 'GOTHAM-ISH'], [3900, 240, 260, '#44403C', 'DRY CLEANERS'],
+  [4400, 280, 300, '#334155', 'PRECINCT 13'], [4800, 300, 340, '#57534E', 'GRAND HOTEL'], [5750, 280, 280, '#7C2D12', 'SALOON'],
+  [14700, 300, 260, '#57534E', 'HILLS DRIVE INN'], [15550, 260, 300, '#334155', 'MOTEL'], [16050, 300, 280, '#44403C', 'DINER'],
+  [16900, 260, 260, '#7C2D12', 'GIFT SHOP'], [17550, 280, 300, '#3F3F46', 'BANK'], [19150, 280, 300, '#7F1D1D', 'THEATER'],
+  [20700, 260, 280, '#3F3F46', 'POST OFFICE'], [21500, 300, 320, '#57534E', 'CITY HALL'],
+];
 
 /** The stunt wires, in order (wires are matched by their place: keep it). */
 export const WIRES: StuntWire[] = [
@@ -164,8 +194,6 @@ export const WIRES: StuntWire[] = [
   { from: { x: X(3620), y: Y(0) - HANDS }, to: { x: X(4260), y: Y(0) }, rigY: Y(330) },
   // up the crane over STAGE 14 (shaft 2): from the first ledge up to the fourth
   { from: { x: X(7150), y: Y(615) - HANDS }, to: { x: X(7360), y: Y(885) }, rigY: Y(1000) },
-  // over LAVA RIVER 6, at the end (everything at once)
-  { from: { x: X(16120), y: Y(0) - HANDS }, to: { x: X(16690), y: Y(0) }, rigY: Y(330) },
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -182,27 +210,27 @@ export const ENEMIES: [HavocKind, number, number | null][] = [
   ['m2:hwh_crew', 5700, null], ['m2:hwh_poppy', 5950, null],
   // the climb (up on the ledges and roofs, above the water to start)
   ['m2:hwh_looter', 6470, 295], ['m2:hwh_crew', 7380, 520], ['m2:hwh_poppy', 7330, 885], ['m2:hwh_looter', 7730, 1315],
-  // the chase (light: it's about the running)
-  ['m2:hwh_crew', 8900, null], ['m2:hwh_poppy', 10650, null], ['m2:hwh_looter', 12100, null], ['m2:hwh_crew', 12950, null],
-  ['m2:hwh_looter', 14350, null], ['m2:hwh_poppy', 14700, null],
-  // everything at once
-  ['m2:hwh_looter', 15500, null], ['m2:hwh_crew', 16000, null], ['m2:hwh_poppy', 16900, null], ['m2:hwh_looter', 17650, null],
-  ['m2:hwh_crew', 18100, null], ['m2:hwh_poppy', 18450, null],
+  // the hill (between the bunkers: never in one)
+  ['m2:hwh_crew', 8900, null], ['m2:hwh_poppy', 10700, null], ['m2:hwh_looter', 12000, null], ['m2:hwh_crew', 13200, null],
+  // the chase (light: it's about the running; the tornado eats them too)
+  ['m2:hwh_looter', 15000, null], ['m2:hwh_poppy', 15900, null], ['m2:hwh_looter', 17450, null], ['m2:hwh_crew', 18050, null],
+  ['m2:hwh_poppy', 19500, null], ['m2:hwh_looter', 20250, null], ['m2:hwh_crew', 20950, null],
 ];
 
 export const PICKUPS: [number, number | null, 'small_health' | 'small_ammo' | 'large_health' | 'large_ammo'][] = [
   [2000, null, 'small_health'], [3100, null, 'small_ammo'], [4420, null, 'small_health'], [5600, null, 'small_ammo'],
   [7350, 885, 'small_health'], [7740, 1315, 'small_ammo'],
-  [11250, null, 'small_health'], [13380, null, 'small_ammo'], [15100, null, 'small_health'],
+  // (in the bunkers: something for getting in)
+  [11240, null, 'small_health'], [13740, null, 'small_ammo'], [17000, null, 'small_health'],
   // the first aid station, before Steve's stage
   [REFILL - 30, null, 'large_health'], [REFILL + 30, null, 'large_ammo'],
 ];
 
 /** PA horns (on poles): rx. Steve's fliers, posters, standees: [rx, kind]. */
-export const HORNS = [400, 2300, 4600, 6150, 12900, 15600, 17900];
+export const HORNS = [400, 2300, 4600, 6150, 14600, 17300, 19700];
 export const STEVES: [number, 'standee' | 'poster' | 'flier'][] = [
-  [620, 'standee'], [1500, 'poster'], [3300, 'flier'], [4700, 'poster'], [5850, 'standee'], [12800, 'poster'], [14500, 'standee'],
-  [16000, 'poster'], [18300, 'standee'], [19300, 'poster'],
+  [620, 'standee'], [1500, 'poster'], [3300, 'flier'], [4700, 'poster'], [5850, 'standee'], [14950, 'standee'], [16400, 'poster'],
+  [18550, 'poster'], [20500, 'standee'], [21850, 'poster'],
 ];
 
 /** The checkpoints (passed by x; the climb's are on the roofs, past the buildings' walls, so they're only reached up
@@ -215,7 +243,7 @@ export const CHECKPOINTS = [
   { name: 'STAGE 14\'S ROOF', cp: 54, x: X(7090), y: Y(520) },
   { name: 'THE WATER TOWER', cp: 55, x: X(7660), y: Y(1040) },
   { name: 'THE HAPPYWOOD SIGN', cp: 56, x: X(8260), y: Y(1500) },
-  { name: 'THE SNOW SHED', cp: 57, x: X(11420), y: Y(700) },
-  { name: 'THE TOUR TRAM', cp: 58, x: X(15300), y: GY },
-  { name: 'THE BUS STOP', cp: 59, x: X(17340), y: GY },
+  { name: 'THE AVALANCHE BUNKER', cp: 57, x: X(11420), y: Y(780) },
+  { name: 'THE FOOT OF THE HILL', cp: 58, x: X(CHASE_AT), y: GY },
+  { name: 'MAIN STREET', cp: 59, x: X(19050), y: GY },
 ];

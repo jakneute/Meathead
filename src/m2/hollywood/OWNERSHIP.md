@@ -32,7 +32,7 @@ estimated playtime.
 | warehouse | HWX+32500 .. HWX+45000 (12500) | 12500 + the Ensemble Cast | ~2.5 min + the fight |
 | lot | HWX+48000 .. HWX+57000 (9000) | 9000 | ~1.8 min |
 | disaster | HWX+60000 .. HWX+66000 (6000) | 6000 | ~1.2 min |
-| havoc | HWX+69000 .. HWX+88500 (19500) | 19500 (the flood climb counted by playtime) | ~4 min |
+| havoc | HWX+69000 .. HWX+91000 (22000) | 22000 (the flood climb counted by playtime) | ~4.5 min |
 | stunt | HWX+91500 .. HWX+94500 (3000) | 3000 (the arena) | the boss fight |
 | **total** | | **~76500** | **~15 min + cutscenes + two fights** |
 

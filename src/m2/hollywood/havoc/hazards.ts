@@ -9,10 +9,13 @@
 //                 thrown along the street at him (jump them); Steve's fliers blow past (harmless).
 //   THE QUAKE     the rumble (the tell: the shadows on the street where things will land), then the shake and bricks,
 //                 studio lights and chunks come down on the shadows.
-//   THE HAIL      the clatter (the tell), then a short burst: under a roof (the bus stop, the first aid tent) or hurt.
+//   THE HAIL      the clatter (the tell), then a short burst: under a roof (the first aid tent) or stung.
 //   THE FLOOD     rising up the climb (rubber-banded to him: never far behind, never right on him); in it, hurt and
 //                 bobbed up; under it too long, drowned. Chunks of the demolished buildings come down the shafts.
-//                 The tornado drinks it once he's up top (it drains).
+//                 It goes back down once he's up top (it drains).
+//   PUDDLES       the chase's little floods, ankle-deep on the street: they slow him (jump them).
+//   In the chase (past the hill) the wind's gusts are weaker and fewer, the quake drops less, the hail stings less:
+//   lesser takes, the tornado's the thing.
 //   THE BALL      the wrecking ball swinging across the crane's shaft.
 //   CRUMBLERS     some of the climb's ledges crumble once he's on them; what's well below him comes down behind him.
 
@@ -26,7 +29,7 @@ import { isLandCleared } from '../../store';
 import { solid, teleport } from '../section';
 import {
   X, Y, R, GY, groundH, LAVA, LAVA_DOWN, LAVA_FLOOR, FALLS, FALL_TRIGGER, WIND, QUAKE, HAIL, LEDGES, BALL, CLIMB, SHAFTS,
-  FLOOD_MAX, FLOOD_LOW,
+  FLOOD_MAX, FLOOD_LOW, DOWNHILL, PUDDLES,
 } from './layout';
 import { hvOf, FLUNG_MEMO, FALL_MEMO, type Hv } from './state';
 
@@ -138,13 +141,15 @@ export const updateHazards = (ctx: FrameContext): HazEvents => {
   }
 
   // ---- THE WIND
+  // (in the chase, past the hill, everything's a lesser take: the tornado's the thing)
+  const lesser = rx > DOWNHILL.b;
   const windy = !done && inAny(rx, WIND);
   const wt = f % 320, gust = windy && wt >= 210;
   if (windy && wt === 160) { playSound('whoosh', 0.5, -14); }
   if (windy && wt === 210) { playSound('whoosh', 1, -18); ev.gust = true; }
-  if (gust && live(state) && !p.carried) p.vel.x -= p.isGrounded ? 0.21 : 0.08;
+  if (gust && live(state) && !p.carried) p.vel.x -= (p.isGrounded ? 0.21 : 0.08) * (lesser ? 0.5 : 1);
   if (windy && wt >= 160 && f % 3 === 0) state.particles.push({ pos: { x: state.camera.x + 820, y: state.camera.y + 80 + Math.random() * 480 }, vel: { x: gust ? -16 : -8, y: (Math.random() - 0.5) }, life: 60, color: 'rgba(231, 229, 228, 0.5)', size: 2 });
-  if (gust && wt % 26 === 0) {
+  if (gust && wt % (lesser ? 52 : 26) === 0) {
     const kinds = ['can', 'sheet', 'door', 'flier'] as const, kind = kinds[Math.floor(f / 26) % 4];
     const sx = state.camera.x + 860;
     hv.blown.push({ x: sx, y: streetY(sx) - (kind === 'can' ? 16 : kind === 'flier' ? 60 + Math.random() * 140 : 34), vx: kind === 'flier' ? -11 : kind === 'can' ? -8 : -10, vy: 0, kind, rot: 0, hit: false });
@@ -169,7 +174,7 @@ export const updateHazards = (ctx: FrameContext): HazEvents => {
   if (shaky && qt === 330) {
     playSound('rumble', 0.8, -12);
     // (where things'll land: about him, ahead and behind; the shadows on the street from now)
-    for (const dx of [-170, 30, 220]) {
+    for (const dx of lesser ? [200 + Math.random() * 200, 480] : [-170, 30, 220]) {
       const x = cx + dx + (Math.random() - 0.5) * 60;
       hv.drops.push({ x, y: state.camera.y - 80, vy: 0, warn: 90, land: surfaceY(x), kind: (['brick', 'light', 'chunk'] as const)[Math.floor(Math.random() * 3)], rot: 0, done: 0 });
     }
@@ -239,8 +244,18 @@ export const updateHazards = (ctx: FrameContext): HazEvents => {
     if (ht >= 320 && ht % 9 === 0) playSound('clink', 0.25, 10 + (ht % 5));
     if (ht >= 320 && ht % 16 === 0) {
       const covered = state.blocks.some(b => !b.oneWay && b.type !== 'pit' && b.x < p.pos.x + p.width - 8 && b.x + b.w > p.pos.x + 8 && b.y + b.h <= p.pos.y + 2 && b.y + b.h > p.pos.y - 420);
-      if (canHurt(state) && !p.carried && !covered) hurtPlayer(ctx, 6, 'm2:hwh_hail', { x: 0, y: -3 }, 10);
+      if (canHurt(state) && !p.carried && !covered) hurtPlayer(ctx, 4, 'm2:hwh_hail', { x: 0, y: -3 }, 10);
       for (const e of hazardVictims(state)) if (Math.abs(e.pos.x - cx) < 700 && fresh(state, hv, e, 60)) hazardHit(ctx, e, 8, e.pos.x + e.width / 2, 'HAILED!', { knock: 2 });
+    }
+  }
+
+  // ---- THE PUDDLES (the chase's little floods: ankle-deep, they slow him; jump them)
+  for (const [a, b] of PUDDLES) {
+    if (!live(state) || p.carried || !p.isGrounded || rx < a || rx > b || Math.abs(feet - GY) > 4) continue;
+    p.vel.x *= 0.95;
+    if (Math.abs(p.vel.x) > 0.6 && f % 5 === 0) {
+      for (let k = 0; k < 3; k++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 20, y: GY - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -2 - Math.random() * 3 }, life: 22, color: 'rgba(148, 163, 184, 0.85)', size: 3, grav: 0.3 });
+      if (f % 15 === 0) playSound('splash', 0.25, 8);
     }
   }
 

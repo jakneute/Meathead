@@ -18,12 +18,12 @@ import { hillside } from '../../hub/letters';
 import { words, enamel, print, ledgeLip, sidewalk, facade, lamppost, guest, BACK, BACK_Y, inView } from '../blvd/paint';
 import { outOf } from '../blvd/state';
 import {
-  x0, X, Y, R, GY, RUNS, LAVA, LAVA_DOWN, LAVA_FLOOR, FALLS, LEDGES, BALL, BUILDINGS, SHAFTS, CLIMB, COVERS, ROOF,
-  REFILL, HORNS, STEVES, WIND,
+  x0, x1 as X1, X, Y, R, GY, RUNS, LAVA, LAVA_DOWN, LAVA_FLOOR, FALLS, LEDGES, BALL, BUILDINGS, SHAFTS, CLIMB, COVERS, ROOF,
+  REFILL, HORNS, STEVES, WIND, DECOR, DOWNHILL, PUDDLES, AV_LEN, AV_H, AV_TELL, SLIDE_H, SLIDE_LEN,
 } from './layout';
 import { hvOf, type Hv } from './state';
 import { spent, ballAt } from './hazards';
-import { tornadoBase, funnelHalf, FUNNEL_H, coverRoof } from './chase';
+import { tornadoBase, funnelHalf, FUNNEL_H, FORM_T, coverRoof, isTorn, guestAt, GUEST_BASES } from './chase';
 
 type Ctx = CanvasRenderingContext2D;
 const TAU = Math.PI * 2;
@@ -69,10 +69,18 @@ export const drawHavocBackdrop = (c: Ctx, state: GameState) => {
     }
   }
   // (the weather: ash all over; snow on the hill and after; hail at the end. Spent: a little ash, drifting)
-  const snow = rx > 8000, ash = rx < 9000 || rx > 15000;
+  const snow = rx > 8000, ash = rx < 9000 || rx > DOWNHILL.b + 200;
+  // (the blizzard, down the hill: the snow thick and driving, the far off whited out)
+  const bliz = !done && rx > DOWNHILL.a - 200 && rx < DOWNHILL.b + 200;
   const n = done ? 14 : 46;
   if (ash) { c.fillStyle = 'rgba(214, 211, 209, 0.75)'; for (let k = 0; k < n; k++) { const ax = ((k * 97 + f * (1 + k % 3) - cam.x * 0.3) % 820 + 820) % 820 - 10, ay = ((k * 151 + f * 1.2) % 620) - 10; c.fillRect(ax, ay, 2, 2); } }
-  if (snow && !done) { c.fillStyle = 'rgba(248, 250, 252, 0.9)'; for (let k = 0; k < 60; k++) { const sx = ((k * 131 + f * (2 + k % 3) - cam.x * 0.5) % 820 + 820) % 820 - 10, sy = ((k * 211 + f * (2 + k % 2)) % 620) - 10; c.fillRect(sx, sy, 3, 3); } }
+  if (bliz) { c.fillStyle = 'rgba(226, 232, 240, 0.35)'; c.fillRect(0, 0, W, H); }
+  if (snow && !done) {
+    const m = bliz ? 130 : 60, drift = bliz ? 5 : 2;
+    c.fillStyle = 'rgba(248, 250, 252, 0.9)';
+    for (let k = 0; k < m; k++) { const sx = ((k * 131 + f * (drift + k % 3) - cam.x * 0.5) % 820 + 820) % 820 - 10, sy = ((k * 211 + f * (2 + k % 2)) % 620) - 10; c.fillRect(sx, sy, 3, 3); }
+    if (bliz) { c.strokeStyle = 'rgba(248, 250, 252, 0.45)'; c.lineWidth = 1; c.beginPath(); for (let k = 0; k < 24; k++) { const sx = ((k * 173 + f * 9) % 860) - 30, sy = (k * 97 + f * 3) % 600; c.moveTo(sx, sy); c.lineTo(sx + 26, sy + 8); } c.stroke(); }
+  }
   // (lightning, now and then: the sky lit, a bolt)
   if (!done) {
     const lt = f % 260, cyc = Math.floor(f / 260);
@@ -90,14 +98,14 @@ export const drawHavocBackdrop = (c: Ctx, state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Behind him (world space)
 
-/** The street's dead facades (scenery, behind; not the ones that come down): [rx, w, h, wall, name]. */
-const DECOR: [number, number, number, string, string][] = [
-  [420, 260, 260, '#7C2D12', 'HAPPYWOOD BURGERS'], [960, 280, 300, '#3F3F46', 'BANK OF BURBANK'],
-  [2900, 200, 240, '#57534E', 'CHICAGO'], [3350, 300, 320, '#7F1D1D', 'GOTHAM-ISH'], [3900, 240, 260, '#44403C', 'DRY CLEANERS'],
-  [4400, 280, 300, '#334155', 'PRECINCT 13'], [4800, 300, 340, '#57534E', 'GRAND HOTEL'], [5750, 280, 280, '#7C2D12', 'SALOON'],
-  [12800, 300, 260, '#57534E', 'HILLS DRIVE INN'], [13700, 260, 300, '#334155', 'MOTEL'], [14300, 300, 280, '#44403C', 'DINER'],
-  [16100, 0, 0, '', ''], [16700, 280, 300, '#7F1D1D', 'THEATER'], [18300, 260, 280, '#3F3F46', 'POST OFFICE'], [19000, 300, 320, '#57534E', 'CITY HALL'],
-];
+/** What's left of a facade the tornado took: the stumps of its 2x4s, a sandbag. */
+const stump = (c: Ctx, x: number, w: number) => {
+  for (let sx = x + 12, k = 0; sx < x + w - 6; sx += 48, k++) {
+    const h = 14 + ((k * 37 + Math.floor(x)) % 4) * 9;
+    box(c, sx, BACK_Y - h, 6, h, '#78350F'); box(c, sx - 1, BACK_Y - h - 3, 8, 4, '#A16207');
+  }
+  box(c, x + w / 2 - 14, BACK_Y - 10, 28, 10, '#A8A29E');
+};
 
 const flames = (c: Ctx, x: number, y: number, w: number, f: number, k = 1) => {
   for (let j = 0; j < Math.max(1, Math.floor(w / 26)); j++) {
@@ -119,9 +127,9 @@ const standSign = (c: Ctx, x: number, feetY: number, lines: string[], board: str
 /** The hill (its run of ground from the ridge down to its foot): rock and dirt, the road, the snow on its top (lit:
  *  standable), the lava trench cut across it. */
 const hill = (c: Ctx, state: GameState, done: boolean) => {
-  const a = X(8200), b = X(12700);
+  const a = X(DOWNHILL.a), b = X(DOWNHILL.b);
   if (!inView(state, a - 200, b + 200)) return;
-  const hillRuns = RUNS.filter(r => r[0] >= 8200 && r[1] <= 12700);
+  const hillRuns = RUNS.filter(r => r[0] >= DOWNHILL.a && r[1] <= DOWNHILL.b);
   c.fillStyle = '#44403C'; c.beginPath(); c.moveTo(a, GY + 400);
   for (const [ra, rb, h1, h2] of hillRuns) { c.lineTo(X(ra), Y(h1)); c.lineTo(X(rb), Y(h2)); }
   c.lineTo(b, GY + 400); c.closePath(); c.fill();
@@ -135,8 +143,8 @@ const hill = (c: Ctx, state: GameState, done: boolean) => {
   }
   // (the flank under the ridge, over the climb)
   box(c, a - 4, Y(1500), 8, 1500, '#292524');
-  // (the HAPPYWOOD sign along the ridge, behind him: the big letters on their scaffold legs; the second O gone down
-  // the hill, the W off its legs (it's the first shelter's lid))
+  // (the HAPPYWOOD sign along the ridge, behind him: the big letters on their scaffold legs; the second O and the W
+  // gone down the hill)
   const L = hillside({ sx: 7, sy: 14 }, done ? '#D6D3D1' : '#F5F5F4', '#A8A29E');
   const word = 'HAPPYWOOD';
   for (let i = 0; i < word.length; i++) {
@@ -173,6 +181,8 @@ const lavaRiver = (c: Ctx, state: GameState, l: typeof LAVA[number], done: boole
 const drawFall = (c: Ctx, state: GameState, fl: Hv['falls'][number]) => {
   const [rx, w, h, how, name] = FALLS[fl.i], x = X(rx), f = state.frame;
   if (!inView(state, x - h - 60, x + w + h + 60)) return;
+  // (the tornado took it: only its stumps)
+  if (isTorn(state, 'fall', fl.i)) { stump(c, x, w); return; }
   const k = fl.phase === 'up' ? 0 : fl.phase === 'creak' ? Math.min(1, fl.t / 54) * 0.06 : fl.phase === 'falling' ? 0.06 + (fl.t / 22) * (Math.PI / 2 - 0.06) : Math.PI / 2;
   if (how === 'bridge') {
     // The light tower: a lattice of 2x4s, its lamps up top; tipping right about its foot onto the far bank
@@ -266,50 +276,35 @@ const climb = (c: Ctx, state: GameState, hv: Hv, done: boolean) => {
   });
 };
 
-/** The shelters: their lids (lit: standable), and what each is. */
-const shelter = (c: Ctx, state: GameState, k: number, done: boolean) => {
-  const cv = COVERS[k], r = coverRoof(k), a = X(cv.a), b = X(cv.b), floorY = r.y + 20 + ROOF;
+/** The bunkers (the hill's only): concrete, its inside dark behind him (a caged bulb, sandbags, its name stenciled on
+ *  the back wall), open both ends (he walks in and out), the slab roof with its hazard stripes along its face and its
+ *  lit top (stood on). The sign before it. */
+const bunker = (c: Ctx, state: GameState, k: number, done: boolean) => {
+  const cv = COVERS[k], r = coverRoof(k), a = X(cv.a), b = X(cv.b), under = r.y + r.h, floorY = under + ROOF, f = state.frame;
   if (!inView(state, a - 500, b + 100)) return;
   // (the sign before it)
-  if (!done) standSign(c, a - 360, Y(groundAtSign(cv.a - 360)), ['AVALANCHE ZONE', 'TAKE COVER >'], '#B91C1C', '#F8FAFC');
-  const legs = (col: string) => { box(c, r.x + 4, r.y + 20, 8, ROOF, col); box(c, r.x + r.w - 12, r.y + 20, 8, ROOF, col); };
-  switch (cv.what) {
-    case 'o':
-      // (the W off the HAPPYWOOD sign, down on two of its scaffold legs: a lid)
-      legs('#57534E');
-      box(c, r.x - 2, r.y - 2, r.w + 4, r.h + 4, '#000'); box(c, r.x, r.y, r.w, r.h, '#F5F5F4');
-      words(c, 'W', (a + b) / 2, r.y + 18, hillside({ sx: 3, sy: 2 }, '#D6D3D1', '#A8A29E'));
-      break;
-    case 'shed':
-      legs('#78716C');
-      box(c, r.x - 2, r.y - 2, r.w + 4, r.h + 20, '#000'); box(c, r.x, r.y, r.w, r.h + 16, '#A8A29E');
-      words(c, 'AVALANCHE SHED', (a + b) / 2, r.y + 26, enamel(10, '#1C1917'));
-      break;
-    case 'billboard':
-      // (Steve's billboard, down on its frame: a lean-to, his face upside down along its edge)
-      legs('#57534E');
-      box(c, r.x - 2, r.y - 2, r.w + 4, r.h + 16, '#000'); box(c, r.x, r.y, r.w, r.h + 12, '#FDE68A');
-      c.save(); c.translate((a + b) / 2, r.y + 10); c.rotate(Math.PI); words(c, 'STUNTMAN STEVE', 0, 4, print(1, '#7F1D1D')); c.restore();
-      break;
-    case 'tram':
-      // (a studio tour tram, on its side: its roof's the lid, its windows up at the sky)
-      legs('#18181B');
-      box(c, r.x - 2, r.y - 2, r.w + 4, r.h + 24, '#000'); box(c, r.x, r.y, r.w, r.h + 20, '#F8FAFC');
-      for (let x = r.x + 6; x < r.x + r.w - 20; x += 34) box(c, x, r.y + 6, 24, 10, '#1E293B');
-      words(c, 'STUDIO TOUR', (a + b) / 2, r.y + 34, print(1, '#B91C1C'));
-      break;
-    case 'busstop':
-      legs('#3F3F46');
-      box(c, r.x - 2, r.y - 2, r.w + 4, r.h + 4, '#000'); box(c, r.x, r.y, r.w, r.h, '#52525B');
-      box(c, r.x + 30, floorY - 26, r.w - 60, 8, '#78716C');
-      c.save(); c.translate(r.x + r.w - 50, floorY - 70); c.scale(0.6, 0.6); steveFlier(c, 0, 0, 'poster', 2); c.restore();
-      words(c, 'BUS', (a + b) / 2, r.y + 15, print(1, '#F8FAFC'));
-      break;
-  }
-  // (the lid's lit top: stood on)
-  box(c, r.x, r.y, r.w, 3, cv.what === 'o' || cv.what === 'shed' ? '#FFFFFF' : '#FDE68A');
-};
-const groundAtSign = (rx: number) => { for (const [a, b, h1, h2] of RUNS) if (rx >= a && rx <= b) return h1 + ((h2 - h1) * (rx - a)) / (b - a); return 0; };
+  if (!done) standSign(c, a - 360, Y(groundAtSign(cv.a - 360)), ['AVALANCHE ZONE', 'BUNKER AHEAD >'], '#B91C1C', '#F8FAFC');
+  // (the back wall and the dark inside)
+  box(c, r.x, under, r.w, ROOF, '#57534E');
+  box(c, r.x + 10, under, r.w - 20, ROOF, '#1C1917');
+  for (let y = under + 22; y < floorY - 4; y += 22) box(c, r.x + 10, y, r.w - 20, 2, '#292524');
+  words(c, cv.name, (a + b) / 2, under + 40, enamel(8, '#FACC15', '#000'));
+  // (the caged bulb, its glow)
+  const lit = done || f % 90 > 3;
+  if (lit) { c.fillStyle = 'rgba(253, 230, 138, 0.16)'; c.beginPath(); c.ellipse((a + b) / 2, under + 14, 70, 40, 0, 0, TAU); c.fill(); }
+  box(c, (a + b) / 2 - 1, under, 2, 8, '#18181B'); box(c, (a + b) / 2 - 5, under + 8, 10, 10, lit ? '#FEF3C7' : '#57534E');
+  c.strokeStyle = '#18181B'; c.lineWidth = 1; c.strokeRect((a + b) / 2 - 6, under + 7, 12, 12);
+  // (sandbags along the back)
+  for (let x = r.x + 14; x < r.x + r.w - 30; x += 28) { box(c, x, floorY - 14, 26, 14, '#A8A29E'); box(c, x + 2, floorY - 14, 22, 3, '#D6D3D1'); }
+  // (its corner posts, concrete)
+  box(c, r.x, under, 10, ROOF, '#78716C'); box(c, r.x + r.w - 10, under, 10, ROOF, '#78716C');
+  // (the slab: thick concrete, the hazard stripes along its face, its lit top: stood on)
+  box(c, r.x - 4, r.y - 4, r.w + 8, r.h + 6, '#000'); box(c, r.x - 2, r.y - 2, r.w + 4, r.h + 2, '#A8A29E');
+  c.save(); c.beginPath(); c.rect(r.x - 2, r.y + 6, r.w + 4, 10); c.clip();
+  for (let x = r.x - 12; x < r.x + r.w + 4; x += 16) { c.fillStyle = '#FACC15'; c.beginPath(); c.moveTo(x, r.y + 16); c.lineTo(x + 8, r.y + 16); c.lineTo(x + 18, r.y + 6); c.lineTo(x + 10, r.y + 6); c.fill(); }
+  c.restore();
+  box(c, r.x - 2, r.y - 2, r.w + 4, 3, '#FDE68A');
+};const groundAtSign = (rx: number) => { for (const [a, b, h1, h2] of RUNS) if (rx >= a && rx <= b) return h1 + ((h2 - h1) * (rx - a)) / (b - a); return 0; };
 
 export const drawHavocBack = (c: Ctx, state: GameState) => {
   const hv = hvOf(state), f = state.frame, done = spent(state);
@@ -327,22 +322,28 @@ export const drawHavocBack = (c: Ctx, state: GameState) => {
   }
   // The street (the flat runs)
   for (const [a, b, h1, h2] of RUNS) if (h1 === 0 && h2 === 0 && inView(state, X(a), X(b))) sidewalk(c, state, X(a), X(b), done ? '#78716C' : '#8B8580', '#57534E');
-  // (the facades behind: plywood, burning)
-  for (const [rx, w, h, wall, name] of DECOR) {
-    if (!w || !inView(state, X(rx), X(rx + w))) continue;
-    facade(c, X(rx), w, h, wall, name, enamel(10, '#FEF3C7', '#000'));
-    if (!done && (rx < 8000 || rx > 15000)) flames(c, X(rx) + 10, BACK_Y - h, w - 20, f);
-    if (rx > 12000) box(c, X(rx) - 6, BACK_Y - h - 8, w + 12, 8, '#F1F5F9');
+  // (the chase's puddles: ankle-deep water on the street, ripples)
+  for (const [a, b] of PUDDLES) {
+    if (!inView(state, X(a), X(b))) continue;
+    box(c, X(a), GY - 3, b - a, 6, 'rgba(71, 85, 105, 0.85)'); box(c, X(a) + 6, GY - 3, b - a - 12, 2, '#94A3B8');
+    for (let x = X(a) + 14; x < X(b) - 14; x += 34) box(c, x + ((f * 0.5 + x) % 10), GY - 1, 10, 1, '#CBD5E1');
   }
-  // (the PA's horns on their lampposts, Steve's fliers and standees)
-  HORNS.forEach((rx, i) => { if (inView(state, X(rx), X(rx))) lamppost(c, X(rx), BACK_Y + 10, true, i); });
-  for (const [rx, kind] of STEVES) if (inView(state, X(rx), X(rx))) steveFlier(c, X(rx), kind === 'standee' ? BACK_Y + 6 : BACK_Y - (kind === 'poster' ? 160 : 120), kind, rx % 3);
-  // (guests running for it, behind: back and forth along the back of the sidewalk)
-  if (!done) for (let k = 0; k < 8; k++) {
-    const span = 700, base = [300, 2200, 3800, 5200, 12900, 14500, 16200, 18000][k];
-    if (!inView(state, X(base), X(base + span))) continue;
-    const ph = (f * (1.6 + (k % 3) * 0.4) + k * 211) % (span * 2), dir = ph < span ? 1 : -1, gx = X(base) + (ph < span ? ph : span * 2 - ph);
-    guest(c, gx, BACK_Y + 4, 900 + k * 37, f, 'walk', dir as 1 | -1, 'scared');
+  // (the facades behind: plywood, burning; the chase's blown away once the tornado's been)
+  DECOR.forEach(([rx, w, h, wall, name], i) => {
+    if (!w || !inView(state, X(rx), X(rx + w))) return;
+    if (isTorn(state, 'facade', i)) { stump(c, X(rx), w); return; }
+    facade(c, X(rx), w, h, wall, name, enamel(10, '#FEF3C7', '#000'));
+    if (!done) flames(c, X(rx) + 10, BACK_Y - h, w - 20, f);
+    if (rx > DOWNHILL.b) box(c, X(rx) - 6, BACK_Y - h - 8, w + 12, 8, '#F1F5F9');
+  });
+  // (the PA's horns on their lampposts, Steve's fliers and standees: what the tornado hasn't taken)
+  HORNS.forEach((rx, i) => { if (inView(state, X(rx), X(rx))) { if (isTorn(state, 'horn', i)) box(c, X(rx) - 4, BACK_Y - 6, 8, 16, '#3F3F46'); else lamppost(c, X(rx), BACK_Y + 10, true, i); } });
+  STEVES.forEach(([rx, kind], i) => { if (inView(state, X(rx), X(rx)) && !isTorn(state, 'steve', i)) steveFlier(c, X(rx), kind === 'standee' ? BACK_Y + 6 : BACK_Y - (kind === 'poster' ? 160 : 120), kind, rx % 3); });
+  // (guests running for it, behind: back and forth along the back of the sidewalk; the tornado takes the chase's)
+  if (!done) for (let k = 0; k < GUEST_BASES.length; k++) {
+    if (hv.guestsGone[k] || !inView(state, X(GUEST_BASES[k]), X(GUEST_BASES[k] + 700))) continue;
+    const g = guestAt(k, f);
+    guest(c, g.x, BACK_Y + 4, 900 + k * 37, f, 'walk', g.dir, 'scared');
   }
   // The climb, the hill
   climb(c, state, hv, done);
@@ -351,7 +352,7 @@ export const drawHavocBack = (c: Ctx, state: GameState) => {
   for (const l of LAVA) lavaRiver(c, state, l, done);
   // The facades coming down; the shelters
   for (const fl of hv.falls) drawFall(c, state, fl);
-  COVERS.forEach((_, k) => shelter(c, state, k, done));
+  COVERS.forEach((_, k) => bunker(c, state, k, done));
   // (the snow the avalanches left, banked along the road)
   for (const [a, b] of hv.banks) {
     if (!inView(state, X(a), X(b))) continue;
@@ -360,7 +361,7 @@ export const drawHavocBack = (c: Ctx, state: GameState) => {
     }
   }
   // (spent: the snow banked all along the hill road and the foot of it)
-  if (done) for (let x = Math.max(X(8600), state.camera.x - 60); x < Math.min(X(17400), state.camera.x + 860); x += 46) {
+  if (done) for (let x = Math.max(X(8600), state.camera.x - 60); x < Math.min(X(DOWNHILL.b + 600), state.camera.x + 860); x += 46) {
     const g = groundAtSign(R(x)); c.fillStyle = '#E2E8F0'; c.beginPath(); c.ellipse(x, Y(g) + 2, 32, 9 + ((x / 46) % 3) * 3, 0, Math.PI, TAU); c.fill();
   }
   // The first aid station (its tent's roof: under it out of the hail; on it, standable)
@@ -372,7 +373,7 @@ export const drawHavocBack = (c: Ctx, state: GameState) => {
     words(c, 'FIRST AID', X(REFILL), t - 10, enamel(10, '#DC2626', '#000'));
   }
   // The way on (revisits: to the stunt stage) at the end
-  if (inView(state, X(19300), X(19500))) standSign(c, X(19380), GY, ['STUNTMAN STEVE\'S', 'STUPENDOUS STUNTERY >'], '#18181B', '#FACC15');
+  if (inView(state, X1 - 200, X1)) standSign(c, X1 - 120, GY, ['STUNTMAN STEVE\'S', 'STUPENDOUS STUNTERY >'], '#18181B', '#FACC15');
   // The wind's stretches: a windsock on a pole at their start (the tell's in it)
   for (const [a] of WIND) if (inView(state, X(a), X(a))) {
     const wt = f % 320, k = done ? 0.1 : wt >= 210 ? 1 : wt >= 160 ? 0.6 : 0.25;
@@ -407,9 +408,12 @@ const tornado = (c: Ctx, state: GameState, hv: Hv) => {
   const base = Y(tornadoBase(t.x));
   if (!inView(state, t.x - 300, t.x + 300)) return;
   const choke = t.choked < 110 ? 1 - t.choked / 110 : 0;
+  // (coming down: it reaches down out of the clouds first)
+  const form = Math.min(1, t.formT / FORM_T), reach = FUNNEL_H * (1 - form);
   const sway = (y: number) => Math.sin(f * 0.04 + y * 0.008) * (20 + (base - y) * 0.06);
   for (let y = base; y > base - FUNNEL_H; y -= 14) {
     const up = base - y, hw = funnelHalf(up) * (1 - choke * 0.55);
+    if (up < reach) continue;
     const band = Math.floor((up + f * 6) / 28) % 3;
     c.fillStyle = choke > 0.2 ? (band ? 'rgba(241, 245, 249, 0.55)' : 'rgba(203, 213, 225, 0.6)') : band === 0 ? 'rgba(87, 83, 78, 0.62)' : band === 1 ? 'rgba(120, 113, 108, 0.55)' : 'rgba(68, 64, 60, 0.6)';
     c.beginPath(); c.ellipse(t.x + sway(y), y, hw, 10, 0, 0, TAU); c.fill();
@@ -418,9 +422,11 @@ const tornado = (c: Ctx, state: GameState, hv: Hv) => {
   c.strokeStyle = choke > 0.2 ? 'rgba(255,255,255,0.6)' : 'rgba(231, 229, 228, 0.45)'; c.lineWidth = 2;
   for (let k = 0; k < 10; k++) {
     const y = base - ((k * 77 + f * 3) % FUNNEL_H), hw = funnelHalf(base - y) * (1 - choke * 0.55);
+    if (base - y < reach) continue;
     const ph = (f * 0.25 + k * 1.7) % TAU;
     c.beginPath(); c.ellipse(t.x + sway(y), y, hw * 0.9, 6, 0, ph, ph + 1.8); c.stroke();
   }
+  if (form < 1) return;
   // (its junk going round: more of it in the fling)
   const n = hv.fling.step === 'off' ? 6 : 12;
   const kinds = ['cow', 'letter', 'potty', 'standee', 'letter', 'cart'];
@@ -434,23 +440,82 @@ const tornado = (c: Ctx, state: GameState, hv: Hv) => {
   c.fillStyle = 'rgba(120, 113, 108, 0.5)'; c.beginPath(); c.ellipse(t.x, base - 6, 90 + Math.sin(f * 0.2) * 10, 16, 0, 0, TAU); c.fill();
 };
 
-/** The avalanche going: the snow coming down the hill behind him, a wall of it, on along the road. */
+/** The big avalanche (the downhill's): its tell (the white building up at the left of the screen, the warning), then
+ *  the wall of snow down the hill over the whole screen, taller than it, churning, its front a billow; the bunkers'
+ *  insides cut out of it (he's seen in there, safe). */
 const avalanches = (c: Ctx, state: GameState, hv: Hv) => {
-  const f = state.frame;
+  const f = state.frame, cam = state.camera;
   for (const av of hv.avalanches) {
-    if (av.phase !== 'run') continue;
-    const x1 = av.front, x0b = av.front - 460;
-    if (!inView(state, x0b, x1)) continue;
-    for (let x = Math.max(x0b, state.camera.x - 40); x < Math.min(x1, state.camera.x + 840); x += 12) {
-      const g = Y(groundAtSign(R(x))), k = (x - x0b) / 460, hgt = 60 + 110 * Math.sin(Math.PI * Math.min(1, k * 1.15));
-      box(c, x, g - hgt, 13, hgt + 6, k > 0.85 ? '#E2E8F0' : '#F8FAFC');
-      box(c, x, g - hgt, 13, 4, '#FFFFFF');
+    if (av.phase === 'tell') {
+      const k = Math.min(1, av.t / AV_TELL);
+      const w = 40 + k * 200;
+      const g = c.createLinearGradient(cam.x, 0, cam.x + w, 0);
+      g.addColorStop(0, `rgba(248, 250, 252, ${0.35 + k * 0.5})`); g.addColorStop(1, 'rgba(248, 250, 252, 0)');
+      c.fillStyle = g; c.fillRect(cam.x, cam.y, w, 600);
+      if (f % 16 < 10) words(c, 'AVALANCHE!', cam.x + 400, cam.y + 260, enamel(16, '#EF4444', '#000'));
+      continue;
     }
-    // (the spray off its front)
-    for (let k = 0; k < 10; k++) { c.fillStyle = 'rgba(248, 250, 252, 0.8)'; c.beginPath(); c.arc(x1 - 10 + ((k * 17 + f * 5) % 40), Y(groundAtSign(R(x1))) - 140 - ((k * 23) % 60), 10 + (k % 3) * 5, 0, TAU); c.fill(); }
+    if (av.phase !== 'run') continue;
+    const tail = av.front - AV_LEN;
+    const l = Math.max(tail, cam.x - 40), r = Math.min(av.front + 70, cam.x + 840);
+    if (r <= l) continue;
+    const top = Math.max(cam.y - 40, Y(groundAtSign(R(av.front))) - AV_H), bot = cam.y + 640;
+    // (the wall, less the bunkers' insides)
+    c.save();
+    c.beginPath(); c.rect(l, top, r - l, bot - top);
+    COVERS.forEach((_, k) => { const cr = coverRoof(k); if (cr.x < r && cr.x + cr.w > l) c.rect(cr.x + 10, cr.y + cr.h, cr.w - 20, ROOF); });
+    c.clip('evenodd');
+    c.fillStyle = '#F1F5F9'; c.fillRect(l, top, Math.min(av.front, r) - l, bot - top);
+    // (churning: bands rolling, gray shadows, snowballs tumbling)
+    for (let y = top - (f * 6) % 48; y < bot; y += 48) { c.fillStyle = 'rgba(203, 213, 225, 0.55)'; c.fillRect(l, y, Math.min(av.front, r) - l, 14); }
+    for (let k = 0; k < 26; k++) {
+      const bx = tail + ((k * 263 + f * 9) % AV_LEN), by = cam.y + ((k * 151 + f * (3 + k % 4)) % 640);
+      if (bx < l - 40 || bx > r) continue;
+      c.fillStyle = k % 3 ? '#FFFFFF' : '#CBD5E1'; c.beginPath(); c.arc(bx, by, 14 + (k % 4) * 8, 0, TAU); c.fill();
+      if (k % 7 === 0) { c.save(); c.translate(bx, by); c.rotate(f * 0.1 + k); box(c, -4, -18, 8, 36, '#78350F'); c.fillStyle = '#166534'; c.beginPath(); c.moveTo(0, -30); c.lineTo(16, 4); c.lineTo(-16, 4); c.fill(); c.restore(); }
+    }
+    // (its front: a billow of spray)
+    for (let k = 0; k < 18; k++) {
+      const y = cam.y - 20 + k * 38, bx = av.front + Math.sin(f * 0.3 + k) * 16 + ((k * 13) % 30);
+      c.fillStyle = 'rgba(248, 250, 252, 0.95)'; c.beginPath(); c.arc(bx, y, 34 + (k % 3) * 10, 0, TAU); c.fill();
+    }
+    c.restore();
   }
 };
 
+/** The chase's snow slides (low, rolling along the street after him): the warning at the left of the screen, then the
+ *  slide, a rolling wave of snow no higher than a jump. */
+const slides = (c: Ctx, state: GameState, hv: Hv) => {
+  const f = state.frame, cam = state.camera;
+  for (const s of hv.slides) {
+    if (s.warn > 0) {
+      if (f % 10 < 6) words(c, '!', cam.x + 40, Y(groundAtSign(R(cam.x + 40))) - 90, enamel(16, '#EF4444', '#000'));
+      continue;
+    }
+    const tail = s.x - SLIDE_LEN;
+    if (!inView(state, tail, s.x)) continue;
+    for (let x = tail; x < s.x; x += 10) {
+      const k = (x - tail) / SLIDE_LEN, hgt = SLIDE_H * Math.sin(Math.PI * Math.min(1, k * 0.9 + 0.1)) + Math.sin(f * 0.4 + x * 0.1) * 3;
+      const g = Y(groundAtSign(R(x)));
+      box(c, x, g - hgt, 11, hgt + 4, k > 0.8 ? '#E2E8F0' : '#F8FAFC'); box(c, x, g - hgt, 11, 3, '#FFFFFF');
+    }
+  }
+};
+
+/** What the tornado's torn loose, going round it and thrown out. */
+const debris = (c: Ctx, state: GameState, hv: Hv) => {
+  const f = state.frame;
+  for (const d of hv.debris) {
+    if (!inView(state, d.x - 40, d.x + 40)) continue;
+    c.save(); c.translate(d.x, d.y); c.rotate(d.rot);
+    if (d.guest) {
+      // (a guest, arms and legs out)
+      box(c, -6, -18, 12, 22, '#2563EB'); box(c, -5, -28, 10, 10, d.col); box(c, -16, -16, 10, 4, d.col); box(c, 6, -16, 10, 4, d.col);
+      box(c, -6, 4, 4, 14, '#1C1917'); box(c, 2, 4, 4, 14 + (f % 6), '#1C1917');
+    } else { box(c, -d.w / 2 - 1, -d.h / 2 - 1, d.w + 2, d.h + 2, '#000'); box(c, -d.w / 2, -d.h / 2, d.w, d.h, d.col); }
+    c.restore();
+  }
+};
 export const drawHavocFront = (c: Ctx, state: GameState) => {
   const hv = hvOf(state), f = state.frame, cam = state.camera;
   // The wrecking ball: its cable off the jib, the ball
@@ -506,9 +571,11 @@ export const drawHavocFront = (c: Ctx, state: GameState) => {
     }
     c.save(); c.translate(o.x, o.y - (o.landed ? 20 : 0)); if (!o.landed) c.rotate(o.rot); junk(c, o.kind, o.ch); c.restore();
   }
-  // The avalanches; the tornado
-  avalanches(c, state, hv);
+  // The tornado; what it's torn loose; the snow slides; the avalanche over everything
   tornado(c, state, hv);
+  debris(c, state, hv);
+  slides(c, state, hv);
+  avalanches(c, state, hv);
   // The flood: the water up the backlot, its surface, the foam; the wave rolling in as it starts
   const fd = hv.flood;
   if (fd.on || fd.h > -100) {

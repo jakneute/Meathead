@@ -6,7 +6,7 @@
 // Budget: the whole land plays about as long as Adventure Land (~76500 world px of sections, plus cutscenes and the
 // boss). Hollywood Land's shares (world px of play; rides and vertical parts counted by how long they take to play,
 // not their x width): blvd 11500, coaster 15000 (riding + three stops), warehouse 12500, lot 9000, disaster 6000,
-// havoc 19500 (incl. the flood climb, up in -y), stunt 3000 (the arena) = ~76500. See OWNERSHIP.md.
+// havoc 22000 (incl. the flood climb, up in -y), stunt 3000 (the arena) = ~79000. See OWNERSHIP.md.
 //
 // The gaps between sections are generous on purpose (3000 each): each section's owner can grow theirs to the right
 // (x1) without touching anybody else's. Vertical parts (havoc's flood climb) use y, not x: up is negative y from GY, as
@@ -35,7 +35,8 @@ export const SECTIONS = {
   /** DISASTER: THE RIDE: the lame room, the screen, the narrator's loop; the booth's lever (REAL DISASTERS). */
   disaster: { x0: HWX + 60000, x1: HWX + 66000 },
   /** Every disaster at once: wind, lava rivers, crumbling buildings, the flood climb, the tornado chase, the fling. */
-  havoc: { x0: HWX + 69000, x1: HWX + 88500 },
+  // (x1 widened into the gap: the blizzard downhill made longer, the tornado chase after it)
+  havoc: { x0: HWX + 69000, x1: HWX + 91000 },
   /** STUNTMAN STEVE'S STUPENDOUS STUNTERY: the stunt stage, the boss (the skeleton's stand-in for now). */
   stunt: { x0: HWX + 91500, x1: HWX + 94500 },
 } as const;

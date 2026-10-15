@@ -15,7 +15,7 @@ export { PA_VOICE, NARR };
 
 /** Out the hole into it (once). */
 export const ARRIVE = ['LAVA, SNOW AND FIRE. CALIFORNIA\'S FINALLY HONEST.', 'THE SKY\'S ON FIRE AND IT\'S SNOWING. PERFECT.'];
-export const GAG: Record<'lava' | 'facade' | 'bridge' | 'wind' | 'quake' | 'billboard' | 'flood' | 'ball' | 'top' | 'tornado' | 'coverSign' | 'inCover' | 'smothered' | 'everything' | 'refill' | 'surge', string[]> = {
+export const GAG: Record<'lava' | 'facade' | 'bridge' | 'wind' | 'quake' | 'billboard' | 'flood' | 'ball' | 'top' | 'tornado' | 'coverSign' | 'inCover' | 'rip' | 'everything' | 'refill' | 'surge', string[]> = {
   lava: ['LAVA. IN THE STREET. DON\'T STEP IN THE LAVA, DUMBASS.', 'A LAVA RIVER. ON A BACKLOT. SURE.'],
   facade: ['THE WHOLE STREET\'S FAKE. AND IT\'S FALLING ON ME.', 'THERE\'S NOTHING BEHIND IT. THERE NEVER WAS.'],
   bridge: ['THE LIGHT TOWER FELL OVER. NOW IT\'S A BRIDGE.', 'TWO-BY-FOUR BRIDGE. HOLLYWOOD QUALITY.'],
@@ -25,10 +25,10 @@ export const GAG: Record<'lava' | 'facade' | 'bridge' | 'wind' | 'quake' | 'bill
   flood: ['FLOOD! UP! GO UP!', 'THE WATER\'S COMING. CLIMB, FAT ASS!'],
   ball: ['A WRECKING BALL. THEY\'RE DEMOLISHING IT. WITH ME ON IT.', 'WHO RUNS A WRECKING BALL IN A FLOOD?'],
   top: ['THE HAPPYWOOD SIGN. UP CLOSE IT\'S PLYWOOD TOO.', 'MADE IT. TOP OF THE WORLD. NOW WHAT.'],
-  tornado: ['A TORNADO. IT DRANK THE FLOOD. RUN!', 'TORNADO! RUN, LEGS!'],
-  coverSign: ['AVALANCHE ZONE. IN HOLLYWOOD. SURE.', 'TAKE COVER. GET UNDER IT, DUMBASS.'],
-  inCover: ['IN HERE. COME ON, SNOW.', 'HIDE. LET THE SNOW EAT IT.'],
-  smothered: ['HA! THE SNOW ATE THE TORNADO!', 'BURIED IT! IT\'LL BE BACK. GO!'],
+  tornado: ['AND NOW A TORNADO. RUN!', 'TORNADO! RUN, LEGS!'],
+  coverSign: ['AVALANCHE ZONE. IN HOLLYWOOD. SURE.', 'A BUNKER. GET IN THE BUNKER, DUMBASS.'],
+  inCover: ['IN HERE. COME ON, SNOW.', 'HIDE. LET IT GO OVER.'],
+  rip: ['IT\'S EATING THE WHOLE STREET!', 'IT TOOK THE BUILDING. THE WHOLE BUILDING.'],
   everything: ['ALL OF IT AT ONCE. AGAIN.', 'LAVA, HAIL, WIND AND A TORNADO. PICK A DEATH.'],
   refill: ['FIRST AID. NOBODY\'S MANNING IT. MINE.', 'FREE BANDAIDS. THE END OF THE WORLD HAS PERKS.'],
   surge: ['IT\'S FASTER! IT\'S WAY FASTER!', 'NOPE. NOPE. NOPE.'],
@@ -49,7 +49,7 @@ export const NARR_HAVOC = {
   wind: 'HERE\'S SOME WIND.',
   lava: 'HERE\'S A LAVA RIVER. DON\'T TOUCH IT.',
   tornado: 'HERE\'S A TORNADO. IT\'S BEHIND YOU.',
-  avalanche: 'HERE\'S AN AVALANCHE. GET UNDER SOMETHING.',
+  avalanche: 'HERE\'S AN AVALANCHE. GET IN THE BUNKER.',
   hail: 'HERE\'S SOME HAIL.',
   surge: 'HERE\'S THE TORNADO AGAIN. IT GOT YOU.',
 };
@@ -137,7 +137,11 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:hwh_avalanche': {
     hurt: ['AVALANCHE! SNOW IN MY CRACK!', 'BURIED! I\'M A SNOWMAN!', 'FROZE MY NUTS OFF! ALMOST!'],
-    death: ['BURIED BY AN AVALANCHE IN LOS ANGELES', 'FOUND IN THE SPRING', 'SHOULDA TAKEN COVER'],
+    death: ['BURIED BY AN AVALANCHE IN LOS ANGELES', 'FOUND IN THE SPRING', 'SHOULDA GOT IN THE BUNKER'],
+  },
+  'm2:hwh_snowslide': {
+    hurt: ['SNOW IN MY SHORTS!', 'THE TORNADO\'S THROWING SNOW!', 'COLD! COLD BALLS!'],
+    death: ['RUN OVER BY A SNOWDRIFT', 'SNOWED UNDER'],
   },
   'm2:hwh_tornado': {
     hurt: ['THE TORNADO\'S GOT ME!', 'IT\'S SUCKING ME UP!'],

@@ -31,8 +31,17 @@ export interface Tornado {
   threwAt: number;
   /** The final surge (past SURGE_AT): it's coming fast and it gets him. */
   surge: boolean;
+  /** Frames since it came down (it reaches down out of the clouds first). */
+  formT: number;
 }
-export interface Avalanche { k: number; phase: 'idle' | 'wait' | 'tell' | 'run' | 'done'; t: number; front: number; from: number; to: number; hitHim: boolean }
+/** A bunker's avalanche (the downhill's): the rumble (the tell), then the wall of snow down the hill (front: world x
+ *  of its leading edge; its body AV_LEN behind that), then done. */
+export interface Avalanche { k: number; phase: 'idle' | 'tell' | 'run' | 'done'; t: number; front: number; from: number; to: number; hitHim: boolean }
+/** A snow slide (the chase's lesser avalanche): low, rolling along the street after him; its warning first. */
+export interface Slide { x: number; warn: number; hit: boolean }
+/** Something the tornado's torn loose (a board off a facade, a standee, a lamppost, a guest): round the funnel and up
+ *  (orbit frames), then thrown out. Looks only. */
+export interface Debris { x: number; y: number; vx: number; vy: number; rot: number; w: number; h: number; col: string; orbit: number; ang: number; r: number; t: number; guest: boolean }
 
 export type FlingStep = 'off' | 'caught' | 'spin' | 'flung' | 'cut' | 'done';
 export interface Fling { step: FlingStep; t: number; all: number; lineDone: boolean; fade: number; cx: number; cy: number; ang: number; r: number }
@@ -66,6 +75,12 @@ export interface Hv {
   banks: [number, number][];
   /** In the water (he hit it just now), for the splash's sound once. */
   wet: boolean;
+  /** The chase's snow slides, and when the last one came (frame). */
+  slides: Slide[];
+  slideAt: number;
+  /** What the tornado's torn loose; the guests at the back it's taken (by their slot). */
+  debris: Debris[];
+  guestsGone: boolean[];
 }
 
 const ALL = new WeakMap<object, Hv>();
@@ -77,10 +92,11 @@ export const hvOf = (state: GameState): Hv => {
       said: {}, narr: null, barkAt: -9999,
       flood: { on: false, h: -200, under: 0, drain: false, wait: 0, wave: 0 },
       falls: [], crumbs: [], drops: [], blown: [], thrown: [], lobs: [],
-      tornado: { on: false, x: 0, v: 0, ramp: 0, hold: 0, choked: 999, threwAt: 0, surge: false },
+      tornado: { on: false, x: 0, v: 0, ramp: 0, hold: 0, choked: 999, threwAt: 0, surge: false, formT: 999 },
       avalanches: [],
       fling: { step: 'off', t: 0, all: 0, lineDone: false, fade: 0, cx: 0, cy: 0, ang: 0, r: 0 },
       quakeSpots: [], hitAt: new WeakMap(), crusts: [], upLatch: true, banks: [], wet: false,
+      slides: [], slideAt: 0, debris: [], guestsGone: [],
     };
     ALL.set(k, o);
   }
@@ -91,6 +107,8 @@ export const hvOf = (state: GameState): Hv => {
 export const FLUNG_MEMO = 'hollywood-havoc-flung';
 /** A facade's down (kept across deaths: checkpoints restore the world as he left it). */
 export const FALL_MEMO = (i: number) => `hollywood-havoc-fall-${i}`;
+/** Something the tornado's blown away (a facade, a standee, a PA pole: by its key; kept across deaths). */
+export const TORN_MEMO = (key: string) => `hollywood-havoc-torn-${key}`;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Died to the tornado: kept here, not on the stage (state.stage is rebuilt every death), so it outlives the death;
