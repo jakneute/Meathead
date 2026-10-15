@@ -19,6 +19,7 @@ import { GameState, shakeScreen } from '../core/state';
 import { pickRandom, rectsOverlap, boundsOf } from '../core/utils';
 import { BossDef, BOSS_WALL_GAP, FLOOR_Y, CEILING_Y, speakAsBoss, hurtPlayer as hurtMeathead, midX } from './shared';
 import { say, isTalking, MEATHEAD_VOICE } from '../platform/speech';
+import { tsunamiCovers, douseFire } from './hazards';
 
 const OSCAR = 'Oily Oscar';
 const ARENA_RIGHT = OSCAR_ARENA_RIGHT; // his room is double-wide
@@ -508,6 +509,13 @@ export const updateOscarHazards = (ctx: FrameContext) => {
   const { player } = state;
   if (state.oilCells.length === 0) return;
 
+  // The wave over a burning strip puts it out (the oil's still there: it'll go up again if it's lit again), and the fire
+  // that was creeping along to the ones it covers doesn't get there
+  if (state.tsunamiActive) for (const c of state.oilCells) {
+    if ((c.burn <= 0 && c.igniteIn < 0) || !tsunamiCovers(state, flameRect(c))) continue;
+    if (c.burn > 0) douseFire(ctx, c.x, c.surface === 'ceiling' ? c.y + 30 : c.y + c.h, Math.max(c.w, 20));
+    c.burn = 0; c.igniteIn = -1; c.life = Math.max(c.life, 60);
+  }
   for (const c of state.oilCells) {
     if (c.igniteIn > 0 && --c.igniteIn === 0) ignite(state, c);
   }

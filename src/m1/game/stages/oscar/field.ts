@@ -14,6 +14,7 @@ import { playSound } from '../../platform/audio';
 import { COURSE, OilPatch, Jet, Geyser, Mover, pitAt } from './course';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { oiledIntoFire } from '../../combat/weapons';
+import { tsunamiCovers, douseFire } from '../../bosses/hazards';
 
 /** A patch of oil: burning (frames left of it), whether it's burned off, and (if it pools back) how long till it has;
  * whether it was him that lit it this time (his flamethrower), or a gas jet. */
@@ -139,6 +140,22 @@ export const updateField = (ctx: FrameContext, f: Field, held = false) => {
       o.hisFire = byHim;
       playSound('ignite');
       if (byHim) fx.spawnDamageNumber({ x: (o.x1 + o.x2) / 2 - 30, y: groundLineAt(state.groundRuns, o.x1) - 60 }, 'IT WENT UP!', true, '#F97316');
+    }
+  }
+  // The wave over a burning slick puts it out (the oil's still there, wet, unburned: it'll go up again), and a lit vent
+  // under it is just oil again
+  if (state.tsunamiActive) {
+    for (const o of f.oil) {
+      if (o.burn <= 0) continue;
+      const g = groundLineAt(state.groundRuns, (o.x1 + o.x2) / 2);
+      if (!tsunamiCovers(state, { x: o.x1, y: g - 30, w: o.x2 - o.x1, h: 30 })) continue;
+      o.burn = 0;
+      douseFire(ctx, o.x1, g, o.x2 - o.x1);
+    }
+    for (const g of f.geysers) {
+      if (!g.lit || !tsunamiCovers(state, { x: g.x - 26, y: g.y - 40, w: 52, h: 40 })) continue;
+      g.lit = false;
+      douseFire(ctx, g.x - 26, g.y, 52);
     }
   }
   // Oil that pools back once it's burned off

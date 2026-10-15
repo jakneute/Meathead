@@ -13,6 +13,7 @@ import { killPlayer, landPlayer } from '../player/player';
 import { isMidBoss, midBossDamage, JUNKIE_WAVE_RESIST } from '../combat/midBoss';
 import { inFinale } from '../combat/finaleBuffs';
 import { ROOM_TOP } from '../stages/finale/geometry';
+import { playSound } from '../platform/audio';
 
 /** The top of the wave, `dist` along from where it started: it rises full height and shrinks as it goes (lifted with
  * where he fired it from); the finale's is floor to ceiling, the full height of the room, and stays it all the way
@@ -23,6 +24,27 @@ export const tsunamiTop = (state: FrameContext['state'], dist: number) =>
 /** How far it runs, of its full run: all the way in a boss's arena and the finale, a good deal shorter out on a stage
  * (it shrinks into the floor over the shorter run, the same way). */
 const tsunamiSpan = (state: FrameContext['state']) => inFinale(state.stageId) || state.arenaLocked ? 1 : TSUNAMI_STAGE_RANGE;
+
+/** Is the wave over this box right now (it's going, it's reached it, and it's tall enough there to cover it)? */
+export const tsunamiCovers = (state: FrameContext['state'], r: { x: number; y: number; w: number; h: number }) => {
+  if (!state.tsunamiActive) return false;
+  const top = tsunamiTop(state, Math.abs(state.tsunamiX - state.tsunamiStartX));
+  return r.x < state.tsunamiX + 120 && r.x + r.w > state.tsunamiX - 120 && r.y + r.h > top && r.y < 600 + (state.tsunamiOffsetY || 0) + 60;
+};
+
+/** A fire the wave's just put out (w wide, its foot at x .. x + w, y): steam up off it all along, and the hiss (the
+ * splash, low; once in a little while however many go out together). */
+let lastHissAt = -999;
+export const douseFire = (ctx: FrameContext, x: number, y: number, w: number) => {
+  const { state, fx } = ctx;
+  for (let k = 0; k < Math.max(1, Math.round(w / 40)); k++) fx.spawnSteamExplosionParticles({ x: x + (k + 0.5) * Math.min(40, w), y: y - 10 }, 10);
+  if (Math.abs(state.frame - lastHissAt) > 12) {
+    lastHissAt = state.frame;
+    playSound('splash', 0.7, -9);
+    playSound('ignite', 0.35, -12);
+    fx.spawnDamageNumber({ x: x + w / 2 - 24, y: y - 50 }, 'HISSSS!', false, '#E0F7FA');
+  }
+};
 
 /** The player's tsunami sweeps across the screen, killing regular enemies outright. */
 export const updateTsunami = (ctx: FrameContext) => {
