@@ -1,9 +1,9 @@
 m2/hub/index.ts:121 name: AMERICA_DENY
-m2/weapons/spellbook.ts:325 name: BULK_LINES
-m2/weapons/spellbook.ts:330 name: BULK_FAIL_LINES
 m2/weapons/soulSucker.ts:190 name: FULL_BAG_LINES
 m2/weapons/soulSucker.ts:320 name: EMPTY_BAG_LINES
 m2/weapons/mallet.ts:189 name: DUCK_LINES
+m2/weapons/spellbook.ts:353 name: BULK_LINES
+m2/weapons/spellbook.ts:358 name: BULK_FAIL_LINES
 m2/intro/index.ts:345 name: MEATHEAD_PARKED
 m2/intro/index.ts:632 name: MEATHEAD_TICKET
 m2/intro/index.ts:634 name: MEATHEAD_TICKET
@@ -39,7 +39,7 @@ m2/adventure/roof/index.ts:114 voice: text
 m2/adventure/clearing/index.ts:174 voice: text
 m2/adventure/clearing/fight.ts:293 voice: voice('m2.safari')
 m2/adventure/clearing/fight.ts:299 voice: pick(lines[pants()])
-m2/adventure/section.ts:135 voice: voice(voiceId)
+m2/adventure/section.ts:137 voice: voice(voiceId)
 m2/spooky/castle/pa.ts:72 voice: voice(PA)
 m2/spooky/hell/satan.ts:111 voice: SATAN_CORE
 m2/spooky/hell/satan.ts:114 voice: pick(dressedPool(state))
@@ -54,7 +54,6 @@ m2/spooky/ballroom/fight.ts:236 voice: pick(lines[pants()])
 m2/spooky/ballroom/fight.ts:553 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
 m2/space/square/kinds.ts:170 voice: false
 m2/space/square/index.ts:43 voice: line
-m2/space/atom/kinds.ts:71 voice: false
 m2/space/atom/hijack.ts:60 voice: text
 m2/space/atom/hijack.ts:81 voice: pickLine(L.QUEUE_BARKS[dressed(state)])
 m2/space/atom/hijack.ts:157 voice: 'op'
@@ -63,51 +62,57 @@ m2/space/atom/hijack.ts:173 voice: 'g1'
 m2/space/atom/hijack.ts:181 voice: 'op'
 m2/space/atom/hijack.ts:182 voice: 'op'
 m2/space/atom/hijack.ts:202 voice: 'op'
+m2/space/atom/kinds.ts:71 voice: false
 m2/space/ride/pa.ts:44 voice: voice(PA_VOICE)
 m2/space/ride/index.ts:122 voice: true
 m2/space/needle/index.ts:102 voice: text
 m2/space/needle/index.ts:103 voice: text
-m2/space/orbit/gun.ts:53 voice: SAY
 m2/space/orbit/ufo.ts:64 voice: SAY
 m2/space/orbit/hazards.ts:190 voice: voice(female ? 'm2.space.zpilotf' : 'm2.space.zpilot')
-m2/space/crater/rigs.ts:168 voice: pick(L.BOO)
+m2/space/orbit/gun.ts:54 voice: SAY
 m2/space/crater/house.ts:89 voice: pick(L.XENO_WELCOME)
 m2/space/crater/house.ts:91 voice: pick(L.XENO_TELEPORT)
 m2/space/crater/house.ts:130 voice: pick(L.BOO)
 m2/space/crater/house.ts:134 voice: pick(L.XENO_ARRIVED)
+m2/space/crater/rigs.ts:167 voice: pick(L.BOO)
 m2/space/crater/kinds.ts:73 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
 m2/space/queen/show.ts:111 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
 m2/space/queen/fight.ts:225 voice: pick(lines[dressed(state)])
 m2/space/queen/fight.ts:231 voice: pick(lines[dressed(state)])
 m2/space/queen/fight.ts:241 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
 m2/space/queen/fight.ts:386 voice: pick(L.BOOTH_RAY[dressed(state)])
-m2/hollywood/blvd/kinds.ts:59 voice: false
-m2/hollywood/blvd/index.ts:45 voice: line
-m2/hollywood/blvd/index.ts:92 voice: false
+m2/hollywood/blvd/index.ts:46 voice: line
+m2/hollywood/blvd/index.ts:93 voice: false
+m2/hollywood/blvd/kinds.ts:63 voice: false
 m2/hollywood/coaster/kinds.ts:40 voice: false
-m2/hollywood/coaster/index.ts:75 voice: line
-m2/hollywood/coaster/index.ts:333 voice: false
-m2/hollywood/coaster/index.ts:370 voice: false
-m2/hollywood/coaster/index.ts:381 voice: true
+m2/hollywood/coaster/index.ts:83 voice: line
+m2/hollywood/coaster/index.ts:383 voice: false
+m2/hollywood/coaster/index.ts:422 voice: false
+m2/hollywood/coaster/index.ts:444 voice: true
+m2/hollywood/coaster/index.ts:112 name: SCRIPTS
+m2/hollywood/coaster/index.ts:515 call: coasterOf(state)
 m2/hollywood/warehouse/kinds.ts:47 voice: false
 m2/hollywood/warehouse/kinds.ts:241 voice: false
-m2/hollywood/warehouse/cast.ts:109 voice: false
-m2/hollywood/warehouse/talk.ts:24 voice: line
-m2/hollywood/warehouse/talk.ts:30 voice: pickLine(byPants(state, pool))
-m2/hollywood/warehouse/talk.ts:36 voice: pickLine(byPants(state, pool))
-m2/hollywood/warehouse/talk.ts:42 voice: pickLine(pool)
-m2/hollywood/lot/index.ts:100 voice: false
+m2/hollywood/warehouse/talk.ts:27 voice: line
+m2/hollywood/warehouse/talk.ts:33 voice: pickLine(byPants(state, pool))
+m2/hollywood/warehouse/talk.ts:39 voice: lineOf(state, pool)
+m2/hollywood/warehouse/talk.ts:45 voice: lineOf(state, pool)
+m2/hollywood/warehouse/talk.ts:51 voice: pickLine(pool)
+m2/hollywood/lot/index.ts:102 voice: false
 m2/hollywood/disaster/kinds.ts:41 voice: false
 m2/hollywood/disaster/show.ts:34 voice: line
 m2/hollywood/disaster/show.ts:75 voice: false
 m2/hollywood/disaster/real.ts:89 voice: s.line()
-m2/hollywood/disaster/index.ts:55 voice: line
-m2/hollywood/disaster/index.ts:74 voice: false
-m2/hollywood/disaster/index.ts:86 voice: line
-m2/hollywood/disaster/index.ts:170 voice: false
-m2/hollywood/disaster/index.ts:175 voice: false
+m2/hollywood/disaster/index.ts:56 voice: line
+m2/hollywood/disaster/index.ts:75 voice: false
+m2/hollywood/disaster/index.ts:87 voice: line
+m2/hollywood/disaster/index.ts:179 voice: false
+m2/hollywood/disaster/index.ts:184 voice: false
 m2/hollywood/havoc/kinds.ts:45 voice: false
-m2/hollywood/havoc/index.ts:55 voice: line
+m2/hollywood/havoc/index.ts:57 voice: line
+m2/hollywood/stunt/fight.ts:171 voice: text
+m2/hollywood/stunt/fight.ts:178 voice: voice(L.STEVE_VOICE)
+m2/hollywood/stunt/fight.ts:186 voice: pick(lines[pants()])
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice
 m1/game/bosses/alien.ts:90 voice: text

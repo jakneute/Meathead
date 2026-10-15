@@ -5266,6 +5266,11 @@
  },
  {
   "voice": "death",
+  "text": "A CAR JUMPED THROUGH A HULA HOOP AND LANDED ON HIM",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "A CHIMP TORE HIS FACE OFF",
   "from": "ADVENTURE"
  },
@@ -5726,6 +5731,11 @@
  },
  {
   "voice": "death",
+  "text": "BLOWN UP BY A STUNT CAR",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "BLOWN UP BY METH",
   "from": "content/deaths"
  },
@@ -5856,11 +5866,6 @@
  },
  {
   "voice": "death",
-  "text": "BULKED",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "BULL'S EYE",
   "from": "content/deaths"
  },
@@ -5903,6 +5908,11 @@
   "voice": "death",
   "text": "BURIED IN THE DUNGEON",
   "from": "m1/game/stages/ernie/quake.ts:343"
+ },
+ {
+  "voice": "death",
+  "text": "BURIED UNDER CELEBRITIES",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -6301,7 +6311,12 @@
  },
  {
   "voice": "death",
-  "text": "CRUSHED BY A FLYING HERO",
+  "text": "CRUSHED BY A FLYING CAR",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "CRUSHED BY A HERO LANDING",
   "from": "HOLLYWOOD"
  },
  {
@@ -6327,6 +6342,11 @@
  {
   "voice": "death",
   "text": "CRUSHED BY TORNADO JUNK",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "CRUSHED UNDER THE ENSEMBLE CAST",
   "from": "HOLLYWOOD"
  },
  {
@@ -6511,6 +6531,11 @@
  },
  {
   "voice": "death",
+  "text": "DIED IN THE PEE TANK",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "DIED IN THE SOUND MIX",
   "from": "HOLLYWOOD"
  },
@@ -6656,6 +6681,11 @@
  },
  {
   "voice": "death",
+  "text": "DOGPILED BY THE A-LIST",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "DOING HARD TIME",
   "from": "content/deaths"
  },
@@ -6736,6 +6766,11 @@
  },
  {
   "voice": "death",
+  "text": "DRIFTED INTO BY A STUNT DRIVER",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "DRIPPED ON",
   "from": "content/deaths"
  },
@@ -6798,6 +6833,11 @@
   "voice": "death",
   "text": "DROWNED IN THE JUNGLE CRUISE",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "DROWNED IN TOURIST PISS",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -7551,6 +7591,11 @@
  },
  {
   "voice": "death",
+  "text": "HE LOST A GAME OF CHICKEN",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "HE STUCK THE LANDING",
   "from": "SPOOKY"
  },
@@ -7733,6 +7778,11 @@
   "voice": "death",
   "text": "HIT BY THE TRAM",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "HIT HEAD-ON BY A STUNT CAR",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -7941,6 +7991,11 @@
  },
  {
   "voice": "death",
+  "text": "IT STUCK THE LANDING. ON HIM.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "IT TAKES AN UPPERCUT TO CLEAR IT",
   "from": "m1/game/stages/dale/town.ts:796"
  },
@@ -8132,11 +8187,6 @@
  {
   "voice": "death",
   "text": "KILLED BY A PRODUCTION ASSISTANT",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
-  "text": "KILLED BY A PROP",
   "from": "HOLLYWOOD"
  },
  {
@@ -8592,11 +8642,6 @@
  {
   "voice": "death",
   "text": "MELTED IN A LAVA RIVER ON A STUDIO BACKLOT",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
-  "text": "MERCHANDISED TO DEATH",
   "from": "HOLLYWOOD"
  },
  {
@@ -9436,6 +9481,11 @@
  },
  {
   "voice": "death",
+  "text": "RODE A STUNT CAR INTO A WALL",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "RODE INTO A PARKED CAR",
   "from": "content/deaths"
  },
@@ -9453,6 +9503,11 @@
   "voice": "death",
   "text": "ROLLED FLAT",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "ROOF RIDER. WALL WINNER.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -9533,6 +9588,11 @@
   "voice": "death",
   "text": "RUN OVER BY A RIDE",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "RUN OVER BY A SNOWDRIFT",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -10006,7 +10066,7 @@
  },
  {
   "voice": "death",
-  "text": "SHOULDA TAKEN COVER",
+  "text": "SHOULDA GOT IN THE BUNKER",
   "from": "HOLLYWOOD"
  },
  {
@@ -10028,6 +10088,11 @@
   "voice": "death",
   "text": "SHREDDED BY GLASS",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SIDESWIPED AT A STUNT SHOW",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -10126,6 +10191,11 @@
  },
  {
   "voice": "death",
+  "text": "SLAPPED TO DEATH BY A FIFTY-NINE-YEAR-OLD STUNTMAN",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "SLEEPING WITH THE CACTI",
   "from": "content/deaths"
  },
@@ -10163,11 +10233,6 @@
   "voice": "death",
   "text": "SLIPPED ON A WET FLOOR",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "SMASHED BY A GUY IN GREEN PAINT",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -10223,6 +10288,11 @@
   "voice": "death",
   "text": "SNOWED IN",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SNOWED UNDER",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -10486,11 +10556,6 @@
  },
  {
   "voice": "death",
-  "text": "STRUNG UP BY SPIDER-TEEN",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "STUCK A FORK IN HIM. HE WAS DONE.",
   "from": "SPOOKY"
  },
@@ -10508,6 +10573,11 @@
   "voice": "death",
   "text": "STUNTMAN HE IS NOT",
   "from": "m1/game/stages/oscar/chase.ts:585"
+ },
+ {
+  "voice": "death",
+  "text": "STUNTMAN STEVE'S ONLY KILL",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -11156,6 +11226,11 @@
  },
  {
   "voice": "death",
+  "text": "TOKYO DRIFTED",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "TOMMY CAME UP FOR AIR",
   "from": "content/deaths"
  },
@@ -11408,11 +11483,6 @@
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
   "from": "m1/game/combat/weapons.ts:877"
- },
- {
-  "voice": "death",
-  "text": "WEBBED",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -15841,7 +15911,7 @@
  },
  {
   "voice": "m2.guest",
-  "text": "THE REVENGERS! AND A NAKED GUY ON A TOILET!",
+  "text": "THE REVENGERS! AND A NAKED GUY!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17086,7 +17156,7 @@
  },
  {
   "voice": "m2.guest2",
-  "text": "THE REVENGERS! AND A NAKED GUY ON A TOILET!",
+  "text": "THE REVENGERS! AND A NAKED GUY!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17441,17 +17511,17 @@
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "AUNT-MAN! I GET SMALL! SOMETIMES!",
+  "text": "DOGPILE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "CAPTAIN AMERICANO! REVENGERS... RESEMBLE!",
+  "text": "DOGPILE! BREATHE THROUGH YOUR MOUTH!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "COMPUTER, SCAN FOR THE SHIT. OH. FOUND IT.",
+  "text": "DOGPILE! NOT THERE! NOT THERE!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17461,57 +17531,42 @@
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "DON'T LOOK DOWN! HERO POSE!",
+  "text": "DON'T LOOK DOWN! RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "DUDE! YOUR WHOLE THING IS OUT!",
+  "text": "GOT HIM!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "FOR THE FRANCHISE!",
+  "text": "GOT HIM! DON'T GRAB THAT!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "GET MY GOOD SIDE!",
+  "text": "GOT HIM! OH GOD, THE SMELL!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "HERO POSE!",
+  "text": "HERO LANDING!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "HEY. I'M NOT THE ONLY SMALL ONE HERE.",
+  "text": "HOLD HIM DOWN!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "HOLD YOUR BREATH! HERO POSE!",
+  "text": "HOLD YOUR NOSE AND RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "I AM IRONIC MAN. NO, REALLY.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "I CAN FLOAT THROUGH ANYTHING! IS MY WIRE HOOKED—",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "I CAN SMELL HIM FROM THE FORTIES.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "I GO THROUGH TRASH FOR A LIVING. THIS IS WORSE.",
+  "text": "I DO MY OWN STUNTS!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17521,17 +17576,22 @@
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "I WILL FLOAT ABOVE THE NUDITY! IS MY WIRE HOOKED—",
+  "text": "I PLAY A HERO. SO I AM ONE.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "I WILL FLOAT ABOVE THE SMELL! IS MY WIRE HOOKED—",
+  "text": "I PLAY A SUPER SOLDIER. PUT IT AWAY AND STAND DOWN, CITIZEN.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "I'M NAKED UNDER THE FUR TOO, BUDDY.",
+  "text": "I PLAY A SUPER SOLDIER. SO I AM ONE. STAND DOWN, CITIZEN.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.actor",
+  "text": "I PLAY A SUPER SOLDIER. SUPER SOLDIERS DO NOT SMELL THAT. STAND DOWN.",
   "from": "HOLLYWOOD"
  },
  {
@@ -17546,17 +17606,22 @@
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "I'M SHRINKING AWAY FROM THAT SMELL.",
+  "text": "I'VE SAVED THE WORLD ELEVEN TIMES. I CAN HANDLE ONE NAKED CIVILIAN.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.actor",
+  "text": "I'VE SAVED THE WORLD ELEVEN TIMES. I CAN HANDLE ONE SHITTY CIVILIAN.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.actor",
+  "text": "I'VE SAVED THE WORLD ELEVEN TIMES. ON SCREEN COUNTS. YOU'RE DONE.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
   "text": "IS HE A METHOD ACTOR?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "IT WORKED IN THE TRAILER!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17576,22 +17641,12 @@
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "LANGUAGE! AND PANTS!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "LOOK! UP IN THE SKY! IT'S SUPERBMAN!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
   "text": "MOMMY...",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "MY AGENT SAID NOTHING ABOUT POOP!",
+  "text": "MY AGENT SAID NOTHING ABOUT SHIT!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17606,52 +17661,7 @@
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "MY NOSE IS MY POWER. YOU'RE MY WEAKNESS.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
   "text": "MY OBITUARY... WILL MENTION... HIS DICK...",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "MY POWERS DON'T WORK AND HE SHIT HIMSELF!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "MY POWERS! SOMEBODY CALL VFX!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "MY SPIDER SENSE IS GAGGING!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "MY SUIT HAS A SUIT. WHERE'S YOURS?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "MY WIRE ISN'T HOOKED UP! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "MY WIRE! AND THE SMELL! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "MY WIRE! HIS BALLS! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "MY X-RAY VISION IS OFF. THANK GOD.",
   "from": "HOLLYWOOD"
  },
  {
@@ -17661,62 +17671,22 @@
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "NOT EVEN MY X-RAY VISION WANTS THAT.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "NOT INTO THE SHIT! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
   "text": "NOT LIKE THIS... IT SMELLS...",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "NOT ONTO THE NAKED GUY! AAAAH!",
+  "text": "PILE ON!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "NOTHING CAME OUT! NOTHING!",
+  "text": "REVENGERS: RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor",
-  "text": "ON YOUR LEFT, NAKED MAN! WAIT. MY WINGS—",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "ON YOUR LEFT, SHIT MAN! WAIT. MY WINGS—",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "ON YOUR LEFT! WAIT. MY WINGS ARE CARDBOARD—",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "PUT SOME METAL ON THAT, BUB.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "REVENGERS! RESEMBLE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "SOCKET! I'M A RACCOON! I'M ON MY KNEES!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "SPIDER-TEEN! I'M TWENTY-NINE!",
+  "text": "STAND DOWN, CIVILIAN!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17725,53 +17695,18 @@
   "from": "HOLLYWOOD"
  },
  {
-  "voice": "m2.hollywood.actor",
-  "text": "THAT'S CGI? SINCE WHEN?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "VFX! FIX MY POWERS! AND HIS JUNK!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "VFX! PAINT OUT HIS PANTS! AND GIVE ME POWERS!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "WHO RIGGED THIS?! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "WHY ISN'T IT WORKING?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor",
-  "text": "WOLVERINO. I'M THE BEST THERE IS, BUB.",
+  "voice": "m2.hollywood.actor2",
+  "text": "DOGPILE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "A NAKED GUY? THAT'S MY BIT!",
+  "text": "DOGPILE! BREATHE THROUGH YOUR MOUTH!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "BY MY FATHER'S BEARD, WHAT IS THAT SMELL?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "DEADPAN! MAXIMUM EFFORT! OR SOME EFFORT.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "DOCTOR STRANGLE. I'VE SEEN FOURTEEN MILLION OUTCOMES.",
+  "text": "DOGPILE! NOT THERE! NOT THERE!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17781,67 +17716,42 @@
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "DON'T LOOK DOWN! HERO POSE!",
+  "text": "DON'T LOOK DOWN! RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "DUDE. DID YOU SHIT? DUDE.",
+  "text": "GOT HIM!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "DUDE. NOT COOL. PUT IT IN A HOLSTER.",
+  "text": "GOT HIM! DON'T GRAB THAT!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "EVEN THE GODS WEAR PANTS!",
+  "text": "GOT HIM! OH GOD, THE SMELL!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "FOR THE FRANCHISE!",
+  "text": "HERO LANDING!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "FOURTEEN MILLION OUTCOMES. ALL OF THEM STINK.",
+  "text": "HOLD HIM DOWN!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "FOURTEEN MILLION OUTCOMES. YOU'RE NAKED IN ALL OF THEM.",
+  "text": "HOLD YOUR NOSE AND RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "GET MY GOOD SIDE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "HAWKGUY! THE ONE WITH THE BOW!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "HE SHIT HIMSELF. I CAN'T EVEN MAKE THAT JOKE.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "HERO POSE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "HOLD YOUR BREATH! HERO POSE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "I AM THUD! GOD OF THUNDER-ISH!",
+  "text": "I DO MY OWN STUNTS!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17851,37 +17761,7 @@
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "I NEVER MISS. I'D MISS THAT.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "I SAW EVERYTHING. AT SUPER SPEED.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "I'M AIMING ANYWHERE BUT THERE.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "I'M BATTMAN.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "I'M BATTMAN. WHAT'S THAT SMELL?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "I'M BATTMAN. YOU'RE NAKED.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "I'M FAST. NOT FAST ENOUGH FOR THAT SMELL.",
+  "text": "I PLAY A HERO. SO I AM ONE.",
   "from": "HOLLYWOOD"
  },
  {
@@ -17897,11 +17777,6 @@
  {
   "voice": "m2.hollywood.actor2",
   "text": "IS HE A METHOD ACTOR?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "IT WORKED IN THE TRAILER!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17926,12 +17801,7 @@
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "MY AGENT SAID NOTHING ABOUT POOP!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "MY ARM IS METAL. YOUR SHAME IS NOT.",
+  "text": "MY AGENT SAID NOTHING ABOUT SHIT!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17951,37 +17821,7 @@
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "MY POWERS DON'T WORK AND HE SHIT HIMSELF!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "MY POWERS! SOMEBODY CALL VFX!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "MY WIRE ISN'T HOOKED UP! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "MY WIRE! AND THE SMELL! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "MY WIRE! HIS BALLS! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
   "text": "MY... RESIDUALS...",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "NOT INTO THE SHIT! AAAAH!",
   "from": "HOLLYWOOD"
  },
  {
@@ -17991,32 +17831,17 @@
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "NOT ONTO THE NAKED GUY! AAAAH!",
+  "text": "PILE ON!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "NOTHING CAME OUT! NOTHING!",
+  "text": "REVENGERS: RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2",
-  "text": "QUICKSHILL! YOU DIDN'T SEE THAT COMING!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "READY TO COMPLY. NOT READY FOR THAT.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "REVENGERS! RESEMBLE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "STAR-LARD! YOU'VE PROBABLY HEARD OF ME.",
+  "text": "STAND DOWN, CIVILIAN!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18025,38 +17850,18 @@
   "from": "HOLLYWOOD"
  },
  {
-  "voice": "m2.hollywood.actor2",
-  "text": "THAT'S CGI? SINCE WHEN?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "THE WINTER SOLDER. I FIX PIPES. AND KILL.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "VFX! FIX MY POWERS! AND HIS JUNK!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "VFX! PAINT OUT HIS PANTS! AND GIVE ME POWERS!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "WHO RIGGED THIS?! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2",
-  "text": "WHY ISN'T IT WORKING?",
+  "voice": "m2.hollywood.actor2f",
+  "text": "DOGPILE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "CAPTAIN MARVELOUS. HIGHER. FURTHER. FASTER.",
+  "text": "DOGPILE! BREATHE THROUGH YOUR MOUTH!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.actor2f",
+  "text": "DOGPILE! NOT THERE! NOT THERE!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18066,47 +17871,42 @@
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "DON'T LOOK DOWN! HERO POSE!",
+  "text": "DON'T LOOK DOWN! RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "DRIZZLE! MISTRESS OF LIGHT RAIN!",
+  "text": "GOT HIM!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "FOR THE FRANCHISE!",
+  "text": "GOT HIM! DON'T GRAB THAT!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "GET MY GOOD SIDE!",
+  "text": "GOT HIM! OH GOD, THE SMELL!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "HERO POSE!",
+  "text": "HERO LANDING!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "HIGHER. FURTHER. AWAY FROM YOU.",
+  "text": "HOLD HIM DOWN!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "HIGHER. FURTHER. COVER THAT.",
+  "text": "HOLD YOUR NOSE AND RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "HOLD YOUR BREATH! HERO POSE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "I CAN BEND REALITY. NOT THAT SMELL.",
+  "text": "I DO MY OWN STUNTS!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18116,22 +17916,7 @@
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "I READ YOUR MIND. IT JUST SAYS POOP.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "I READ YOUR MIND. PUT IT AWAY.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "I'LL HEX YOU SOME PANTS.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "I'LL WASH THAT SMELL AWAY. LIGHTLY.",
+  "text": "I PLAY A HERO. SO I AM ONE.",
   "from": "HOLLYWOOD"
  },
  {
@@ -18151,22 +17936,7 @@
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "IT WORKED IN THE TRAILER!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "IT'S COLD IN HERE. FOR YOU, I MEAN.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
   "text": "IT'S... NOT... CGI...",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "JEAN BEIGE. I CAN READ YOUR MIND. IT'S EMPTY.",
   "from": "HOLLYWOOD"
  },
  {
@@ -18186,7 +17956,7 @@
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "MY AGENT SAID NOTHING ABOUT POOP!",
+  "text": "MY AGENT SAID NOTHING ABOUT SHIT!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18206,37 +17976,7 @@
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "MY POWERS DON'T WORK AND HE SHIT HIMSELF!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "MY POWERS! SOMEBODY CALL VFX!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "MY WIRE ISN'T HOOKED UP! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "MY WIRE! AND THE SMELL! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "MY WIRE! HIS BALLS! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
   "text": "MY... RESIDUALS...",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "NOT INTO THE SHIT! AAAAH!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18246,17 +17986,17 @@
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "NOT ONTO THE NAKED GUY! AAAAH!",
+  "text": "PILE ON!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "NOTHING CAME OUT! NOTHING!",
+  "text": "REVENGERS: RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actor2f",
-  "text": "REVENGERS! RESEMBLE!",
+  "text": "STAND DOWN, CIVILIAN!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18265,48 +18005,18 @@
   "from": "HOLLYWOOD"
  },
  {
-  "voice": "m2.hollywood.actor2f",
-  "text": "THAT'S CGI? SINCE WHEN?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "THE SCARLET WHICH. WHICH ONE? ME.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "VFX! FIX MY POWERS! AND HIS JUNK!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "VFX! PAINT OUT HIS PANTS! AND GIVE ME POWERS!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "WHO RIGGED THIS?! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actor2f",
-  "text": "WHY ISN'T IT WORKING?",
+  "voice": "m2.hollywood.actorbig",
+  "text": "DOGPILE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "BULK SEE TINY PENIS.",
+  "text": "DOGPILE! BREATHE THROUGH YOUR MOUTH!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "BULK SMELL. BULK NOT LIKE.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "BULK... SMASH! IS THIS MY MARK?",
+  "text": "DOGPILE! NOT THERE! NOT THERE!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18316,52 +18026,52 @@
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "DON'T LOOK DOWN! HERO POSE!",
+  "text": "DON'T LOOK DOWN! RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "FOR THE FRANCHISE!",
+  "text": "GOT HIM!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "GET MY GOOD SIDE!",
+  "text": "GOT HIM! DON'T GRAB THAT!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "HERO POSE!",
+  "text": "GOT HIM! OH GOD, THE SMELL!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "HOLD YOUR BREATH! HERO POSE!",
+  "text": "HERO LANDING!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "I AM DRAKS. I DO NOT UNDERSTAND METAPHORS.",
+  "text": "HOLD HIM DOWN!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "I AM GROAT.",
+  "text": "HOLD YOUR NOSE AND RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "I AM GROAT. YOU ARE NAKED.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "I AM... GAGGING.",
+  "text": "I DO MY OWN STUNTS!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
   "text": "I HAD A THREE-PICTURE DEAL...",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.actorbig",
+  "text": "I PLAY A HERO. SO I AM ONE.",
   "from": "HOLLYWOOD"
  },
  {
@@ -18377,11 +18087,6 @@
  {
   "voice": "m2.hollywood.actorbig",
   "text": "IS HE A METHOD ACTOR?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "IT WORKED IN THE TRAILER!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18406,7 +18111,7 @@
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "MY AGENT SAID NOTHING ABOUT POOP!",
+  "text": "MY AGENT SAID NOTHING ABOUT SHIT!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18426,37 +18131,7 @@
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "MY POWERS DON'T WORK AND HE SHIT HIMSELF!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "MY POWERS! SOMEBODY CALL VFX!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "MY WIRE ISN'T HOOKED UP! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "MY WIRE! AND THE SMELL! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "MY WIRE! HIS BALLS! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
   "text": "MY... RESIDUALS...",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "NOT INTO THE SHIT! AAAAH!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18466,17 +18141,17 @@
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "NOT ONTO THE NAKED GUY! AAAAH!",
+  "text": "PILE ON!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "NOTHING CAME OUT! NOTHING!",
+  "text": "REVENGERS: RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbig",
-  "text": "REVENGERS! RESEMBLE!",
+  "text": "STAND DOWN, CIVILIAN!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18485,38 +18160,18 @@
   "from": "HOLLYWOOD"
  },
  {
-  "voice": "m2.hollywood.actorbig",
-  "text": "THAT'S CGI? SINCE WHEN?",
+  "voice": "m2.hollywood.actorbigf",
+  "text": "DOGPILE!",
   "from": "HOLLYWOOD"
  },
  {
-  "voice": "m2.hollywood.actorbig",
-  "text": "VFX! FIX MY POWERS! AND HIS JUNK!",
+  "voice": "m2.hollywood.actorbigf",
+  "text": "DOGPILE! BREATHE THROUGH YOUR MOUTH!",
   "from": "HOLLYWOOD"
  },
  {
-  "voice": "m2.hollywood.actorbig",
-  "text": "VFX! PAINT OUT HIS PANTS! AND GIVE ME POWERS!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "WHO RIGGED THIS?! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "WHY ISN'T IT WORKING?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "YOU ARE NAKED. LIKE ME. BUT WORSE.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbig",
-  "text": "YOU HAVE SOILED YOURSELF. I ADMIRE THE HONESTY.",
+  "voice": "m2.hollywood.actorbigf",
+  "text": "DOGPILE! NOT THERE! NOT THERE!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18526,27 +18181,42 @@
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "DON'T LOOK DOWN! HERO POSE!",
+  "text": "DON'T LOOK DOWN! RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "FOR THE FRANCHISE!",
+  "text": "GOT HIM!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "GET MY GOOD SIDE!",
+  "text": "GOT HIM! DON'T GRAB THAT!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "HERO POSE!",
+  "text": "GOT HIM! OH GOD, THE SMELL!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "HOLD YOUR BREATH! HERO POSE!",
+  "text": "HERO LANDING!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.actorbigf",
+  "text": "HOLD HIM DOWN!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.actorbigf",
+  "text": "HOLD YOUR NOSE AND RESEMBLE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.actorbigf",
+  "text": "I DO MY OWN STUNTS!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18556,7 +18226,7 @@
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "I'LL SUE YOU FOR THAT SMELL.",
+  "text": "I PLAY A HERO. SO I AM ONE.",
   "from": "HOLLYWOOD"
  },
  {
@@ -18571,17 +18241,7 @@
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "INDECENT EXPOSURE. I'M A LAWYER.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
   "text": "IS HE A METHOD ACTOR?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "IT WORKED IN THE TRAILER!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18606,7 +18266,7 @@
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "MY AGENT SAID NOTHING ABOUT POOP!",
+  "text": "MY AGENT SAID NOTHING ABOUT SHIT!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18626,37 +18286,7 @@
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "MY POWERS DON'T WORK AND HE SHIT HIMSELF!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "MY POWERS! SOMEBODY CALL VFX!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "MY WIRE ISN'T HOOKED UP! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "MY WIRE! AND THE SMELL! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "MY WIRE! HIS BALLS! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
   "text": "MY... RESIDUALS...",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "NOT INTO THE SHIT! AAAAH!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18666,22 +18296,17 @@
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "NOT ONTO THE NAKED GUY! AAAAH!",
+  "text": "PILE ON!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "NOTHING CAME OUT! NOTHING!",
+  "text": "REVENGERS: RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorbigf",
-  "text": "REVENGERS! RESEMBLE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "SHE-BULK. ATTORNEY AT LAW. AND SMASH.",
+  "text": "STAND DOWN, CIVILIAN!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18690,33 +18315,18 @@
   "from": "HOLLYWOOD"
  },
  {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "THAT'S CGI? SINCE WHEN?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "VFX! FIX MY POWERS! AND HIS JUNK!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "VFX! PAINT OUT HIS PANTS! AND GIVE ME POWERS!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "WHO RIGGED THIS?! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorbigf",
-  "text": "WHY ISN'T IT WORKING?",
+  "voice": "m2.hollywood.actorf",
+  "text": "DOGPILE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "BLACK WINDOW. I DO MY OWN STUNTS. MOSTLY.",
+  "text": "DOGPILE! BREATHE THROUGH YOUR MOUTH!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.actorf",
+  "text": "DOGPILE! NOT THERE! NOT THERE!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18726,47 +18336,52 @@
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "DON'T LOOK DOWN! HERO POSE!",
+  "text": "DON'T LOOK DOWN! RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "EW! EW! I'M POSTING ALL OF THIS!",
+  "text": "GOT HIM!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "EW! I'M POSTING THIS!",
+  "text": "GOT HIM! DON'T GRAB THAT!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "FOR THE FRANCHISE!",
+  "text": "GOT HIM! OH GOD, THE SMELL!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "GAMMA-RAY. DEADLIEST WOMAN IN THE GALAXY.",
+  "text": "HERO LANDING!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "GET MY GOOD SIDE!",
+  "text": "HOLD HIM DOWN!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "HERO POSE!",
+  "text": "HOLD YOUR NOSE AND RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "HOLD YOUR BREATH! HERO POSE!",
+  "text": "I DO MY OWN STUNTS!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
   "text": "I HAD A THREE-PICTURE DEAL...",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.actorf",
+  "text": "I PLAY A HERO. SO I AM ONE.",
   "from": "HOLLYWOOD"
  },
  {
@@ -18781,22 +18396,7 @@
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "I'VE BEEN TORTURED. THIS IS WORSE.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "I'VE SEEN BIGGER ON A SPY.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
   "text": "IS HE A METHOD ACTOR?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "IT WORKED IN THE TRAILER!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18816,17 +18416,12 @@
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "MISS MARBLE! I'M PLAYING SIXTEEN! I'M THIRTY-ONE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
   "text": "MOMMY...",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "MY AGENT SAID NOTHING ABOUT POOP!",
+  "text": "MY AGENT SAID NOTHING ABOUT SHIT!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18846,52 +18441,7 @@
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "MY POWERS DON'T WORK AND HE SHIT HIMSELF!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "MY POWERS! SOMEBODY CALL VFX!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "MY SENSORS DETECT DISAPPOINTMENT.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "MY SENSORS DETECT SHIT.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "MY WIRE ISN'T HOOKED UP! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "MY WIRE! AND THE SMELL! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "MY WIRE! HIS BALLS! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
   "text": "MY... RESIDUALS...",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "NEBULOUS. I AM MOSTLY ROBOT. AND RESENTMENT.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "NOT INTO THE SHIT! AAAAH!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18901,22 +18451,17 @@
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "NOT ONTO THE NAKED GUY! AAAAH!",
+  "text": "PILE ON!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "NOTHING CAME OUT! NOTHING!",
+  "text": "REVENGERS: RESEMBLE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.actorf",
-  "text": "ON MY ISLAND WE HAD NO MEN. NOW I KNOW WHY.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "REVENGERS! RESEMBLE!",
+  "text": "STAND DOWN, CIVILIAN!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18925,128 +18470,23 @@
   "from": "HOLLYWOOD"
  },
  {
-  "voice": "m2.hollywood.actorf",
-  "text": "THAT'S CGI? SINCE WHEN?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "THE DEADLIEST WOMAN IN THE GALAXY IS NOT IMPRESSED.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "THE LASSO OF TRUTH SAYS: SMALL.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "VFX! FIX MY POWERS! AND HIS JUNK!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "VFX! PAINT OUT HIS PANTS! AND GIVE ME POWERS!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "WHERE I COME FROM WE BURN THINGS THAT SMELL LIKE YOU.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "WHO RIGGED THIS?! AAAAH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "WHY ISN'T IT WORKING?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.actorf",
-  "text": "WONDER WOMANISH! I FIGHT FOR LOVE! AND RESIDUALS!",
+  "voice": "m2.hollywood.ad",
+  "text": "ALL PRINCIPALS TO THE MAIN STAGE. PILE ON HIM. HOLD YOUR BREATH.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.ad",
-  "text": "ALL CREW! CODE BROWN ON STAGE ONE!",
+  "text": "ALL PRINCIPALS TO THE MAIN STAGE. PILE ON HIM. NOT THERE.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.ad",
-  "text": "ALL CREW! HE IS NAKED AND HE IS COMING!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "ALL CREW! THE SECRET IS OUT! KILL WHOEVER LET IT OUT!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "ALL PRINCIPALS TO SET. A NUDE MAN IS NEAR THE SCRIPT. NOBODY LOOK DOWN.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "ALL PRINCIPALS TO SET. PROTECT THE SCRIPT. HOLD YOUR BREATH.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "ALL PRINCIPALS TO SET. THE SCRIPT IS IN DANGER. HERO LANDINGS, PEOPLE.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "BACKUP PRINCIPALS, YOU ARE UP.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "CLOSED SET! AND SOMEBODY JUST SHIT ON IT!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "CLOSED SET! AND THERE IS A NAKED MAN ON IT!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "CLOSED SET! NO PHOTOS! NO PHONES! NO WALLS, APPARENTLY!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "CLOSED SET! THE PUBLIC CAN SEE HIS EVERYTHING!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "CLOSED SET! WHO BROUGHT THE SMELL?",
+  "text": "ALL PRINCIPALS TO THE MAIN STAGE. PILE ON HIM. PROTECT THE SCRIPT.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.ad",
   "text": "CODE RED! THE SCRIPT IS LOOSE! THE SCRIPT IS LOOSE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "CREW! GET THAT MAN OFF MY SET!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "CREW! GET THE SHITTY MAN OFF MY SET! USE GLOVES!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "CREW! TACKLE THE NAKED MAN! SOMEBODY! ANYBODY!",
   "from": "HOLLYWOOD"
  },
  {
@@ -19071,52 +18511,22 @@
  },
  {
   "voice": "m2.hollywood.ad",
-  "text": "MORE CAST TO SET. BREATHE THROUGH YOUR MOUTHS.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "MORE CAST TO SET. HE IS STILL NAKED. SORRY.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "MORE CAST. KEEP THE POSES TIGHT.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "NEXT PRINCIPALS TO SET. WE HAVE THIRTY OF YOU. USE THEM.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "NEXT PRINCIPALS. AVOID THE BROWN AREA.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "NEXT PRINCIPALS. EYES UP. EYES WAY UP.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
   "text": "NOBODY READ THOSE PAGES! YOU ARE ALL UNDER NDA! ALL OF YOU!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.ad",
-  "text": "PRINCIPAL CAST TO THE MAIN STAGE. ALL OF THEM. PROTECT THE SCRIPT.",
+  "text": "PRINCIPAL CAST TO SET. ALL OF YOU. SIT ON HIM.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.ad",
-  "text": "PRINCIPAL CAST TO THE MAIN STAGE. HE HAS SHIT HIMSELF. STAY UPWIND.",
+  "text": "PRINCIPAL CAST TO SET. SIT ON HIM. EYES UP.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.ad",
-  "text": "PRINCIPAL CAST TO THE MAIN STAGE. HE IS NAKED. DO NOT LOOK AT IT.",
+  "text": "PRINCIPAL CAST TO SET. SIT ON HIM. WEAR GLOVES.",
   "from": "HOLLYWOOD"
  },
  {
@@ -19137,11 +18547,6 @@
  {
   "voice": "m2.hollywood.ad",
   "text": "THAT'S FINE. WE SCANNED HIM IN 2019.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.ad",
-  "text": "THIS IS A CLOSED SET! WHO OPENED THE WALLS?",
   "from": "HOLLYWOOD"
  },
  {
@@ -19376,6 +18781,46 @@
  },
  {
   "voice": "m2.hollywood.director",
+  "text": "BRIBE HIM? BURY HIM? NOBODY WANTS TO TOUCH HIM. HMM.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "BRIBE HIM? BURY HIM? WE COULD BURY HIM. HE CAME DRESSED FOR IT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "CUT! A CIVILIAN! THROUGH MY FUCKING ROOF!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "CUT! A CIVILIAN! THROUGH MY ROOF! IN SHITTY PANTS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "CUT! A NAKED CIVILIAN! THROUGH MY FUCKING ROOF!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "CUT! CUT! WHO THE FUCK ARE YOU?",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "CUT! WHO IS THAT? AND WHERE ARE HIS PANTS?",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "CUT! WHO THE FUCK IS THAT? AND WHAT IS THAT SMELL?",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
   "text": "GET A WIDE SHOT. NO! NOT OF THAT!",
   "from": "HOLLYWOOD"
  },
@@ -19386,7 +18831,92 @@
  },
  {
   "voice": "m2.hollywood.director",
+  "text": "IT'S A SECRET SHOOT! IN HAPPY LAND! FOR TAXES! THIS IS AREA 51 SHIT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "IT'S A SECRET SHOOT. IN HAPPY LAND. FOR TAXES. AND NOW A NAKED MAN KNOWS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "IT'S A SECRET SHOOT. IN HAPPY LAND. FOR TAXES. AND NOW IT SMELLS LIKE SHIT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "KILL THEM ALL! THEY CANNOT KNOW!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "NOBODY CAN KNOW WE'RE HERE! AREA 51! AND YOU'RE NAKED IN AREA 51!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "NOBODY KNOWS WE'RE HERE! TAX REASONS! AREA 51 SHIT! YOUR SHIT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "OKAY. OKAY. WE PAY HIM OFF. OR WE KILL HIM. WHICH IS CHEAPER?",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "REVENGERS: END-OF-THE-WORLD'S-DAY! EVERYBODY KNOWS IT! NOBODY SHITS ON IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "REVENGERS: END-OF-THE-WORLD'S-DAY! EVERYBODY KNOWS IT! NOBODY'S DICK IS IN IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "REVENGERS: END-OF-THE-WORLD'S-DAY! THIRTY STARS! YOU KNOW THIS! EVERYBODY KNOWS THIS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "THIS IS REVENGERS: END-OF-THE-WORLD'S-DAY! THE BIGGEST TEAM-UP EVER! YOU'VE SEEN THE TRAILER!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "THIS IS REVENGERS: END-OF-THE-WORLD'S-DAY! YOU KNOW THIS! AND YOU SHIT ON IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "THIS IS REVENGERS: END-OF-THE-WORLD'S-DAY! YOU KNOW THIS! PUT IT AWAY!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "WE BRIBE HIM. HE HAS NO POCKETS. SO WE KILL HIM?",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "WE BRIBE HIM. OR WE KILL HIM. KILLING HIM SMELLS CHEAPER.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "WE COULD BRIBE HIM. OR BURY HIM. LEGAL, WHAT COSTS LESS?",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
   "text": "WE'RE NOT RATED R! ACTION ANYWAY!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.director",
+  "text": "WE'RE SHOOTING IT AT HAPPY LAND. FOR THE TAX WRITE-OFF. NOBODY CAN KNOW. NOBODY.",
   "from": "HOLLYWOOD"
  },
  {
@@ -19561,7 +19091,7 @@
  },
  {
   "voice": "m2.hollywood.disaster",
-  "text": "HERE'S AN AVALANCHE. GET UNDER SOMETHING.",
+  "text": "HERE'S AN AVALANCHE. GET IN THE BUNKER.",
   "from": "HOLLYWOOD"
  },
  {
@@ -19756,6 +19286,11 @@
  },
  {
   "voice": "m2.hollywood.exec",
+  "text": "ALL OF THEM DEAD. SURE. HAVE LEGAL SEND FLOWERS. THE CHEAP ONES.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.exec",
   "text": "NO. NO NO NO. NOT THE SCRIPT!",
   "from": "HOLLYWOOD"
  },
@@ -19767,11 +19302,6 @@
  {
   "voice": "m2.hollywood.exec",
   "text": "THE SCRIPT! WHO TOUCHED THE SCRIPT?!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.exec",
-  "text": "THIRTY DEAD. SURE. HAVE LEGAL SEND FLOWERS. THE CHEAP ONES.",
   "from": "HOLLYWOOD"
  },
  {
@@ -20526,6 +20056,26 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "A MAN FELL OUT OF THE SKY AND SHIT HIMSELF ON IMPACT! GIVE IT UP!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "A MAN JUST FELL OUT OF A TORNADO! GIVE IT UP!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "A NAKED MAN JUST FELL OUT OF A TORNADO! GIVE IT UP!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "AND THAT WAS STUNTMAN STEVE, FOLKS. HE MISSED THE MAT. NO REFUNDS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "ATTENTION, GUESTS. A MOMENT OF SILENCE FOR THE SCRIPT.",
   "from": "HOLLYWOOD"
  },
@@ -20656,6 +20206,11 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "FOLKS, THAT'S NOT A COSTUME. THAT'S ALL HIM.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "GUESTS WITH REVENGERS PAGES WILL BE ESCORTED TO A ROOM. THE CAST IS FINE. THE CAST IS CGI NOW.",
   "from": "HOLLYWOOD"
  },
@@ -20697,6 +20252,11 @@
  {
   "voice": "m2.hollywood.pa",
   "text": "IN A WORLD... WHERE THE REVENGERS SCRIPT GOT OUT... NOTHING ELSE MATTERS. NOT EVEN THE LAVA.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "LADIES AND GENTLEMEN... THE HUMAN LIGHTNING ROD! HOLD YOUR APPLAUSE. HE'S DEAD.",
   "from": "HOLLYWOOD"
  },
  {
@@ -20756,6 +20316,21 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE, FOLKS. ALL SHOWS ARE CANCELED. FOREVER.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE, FOLKS. KILLED BY A MAN WHO SHAT HIMSELF. NO REFUNDS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE, FOLKS. KILLED BY A NAKED MAN. NO REFUNDS. NO PHOTOS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "STUNTMAN STEVE! HE WAS IN A FILM! YOU CAN SEE HIS ELBOW FOR TWO FRAMES! SHOWS HOURLY!",
   "from": "HOLLYWOOD"
  },
@@ -20781,7 +20356,22 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "THAT'S NOT A SMOKE EFFECT, FOLKS. THAT'S HIS PANTS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "THE FAMILIES OF THE REVENGERS CAST HAVE BEEN SENT A COUPON. THE SCRIPT'S FAMILY IS INCONSOLABLE.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "THE HUMAN LIGHTNING ROD, FOLKS! THAT SMELL IS HIM. MOSTLY.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "THE HUMAN LIGHTNING ROD, FOLKS! THE NAKED MAN IS NOT PART OF THE SHOW.",
   "from": "HOLLYWOOD"
  },
  {
@@ -20812,6 +20402,11 @@
  {
   "voice": "m2.hollywood.pa",
   "text": "WELCOME TO THE HAPPYWOOD BACKLOT! WHERE THE MAGIC HAPPENED! ONCE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "WELL, FOLKS. THAT WASN'T IN THE SHOW. GIVE IT UP!",
   "from": "HOLLYWOOD"
  },
  {
@@ -21462,6 +21057,531 @@
  {
   "voice": "m2.hollywood.statuef",
   "text": "WHERE DID YOU EVEN KEEP THAT?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "A NAKED GUY FALLS OUT OF THE SKY AND GETS MY APPLAUSE?",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "A NAKED MAN THREW A CAR AT ME!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "ACTION!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "AIR MAIL!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "AT LEAST... I CAN'T SMELL YOU... ANYMORE...",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "BABY OIL AND A NAKED GUY! THIS LOOKS BAD!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "BABY OIL BEATS WHATEVER THAT IS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "BABY OIL, BABY! FORTY YEARS OF IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "BOYS! RUN HIM DOWN! AIM FOR THE... JUST AIM LOW!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "BOYS! RUN HIM DOWN! DON'T GET IT ON THE TIRES!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "BOYS! RUN HIM OFF MY STAGE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "DON'T HIT ME WITH... OW!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "DON'T RUB THAT ON ME!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "DON'T TOUCH ME! YOU'RE MOIST!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "DRAG ME! ANYWHERE! UPWIND!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "DRAG ME! I DON'T WANNA SEE IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "GET HIM AWAY FROM ME!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "GET HIM AWAY! IT'S SWINGING AT ME!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "GET HIM AWAY! THE SMELL!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "GET YOUR SHIT OFF MY SUIT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "GO! GO! GO!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "GREASED FOR STUNTS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HE SHIT HIMSELF ON THE LANDING AND THEY'RE CLAPPING?",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HE THREW A CAR AT ME! NAKED!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HE THREW A CAR! A BROWN CAR NOW!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HE'S CLOSE! I CAN TASTE IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HE'S NAKED AND I'M THE ONE GETTING ZAPPED?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HIT HIM! AIM LOW! HE'S GOT NO BELT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HIT HIM! HOSE THE BUMPER AFTER!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HIT IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I CAN'T FEEL MY NECK. THE BRACE IS HOLDING MY HEAD ON.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I DID THIS FOR CANNON! IN EIGHTY-SIX!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I FORGOT ABOUT THOSE.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I FORGOT ABOUT THOSE. AT LEAST IT BURNS THE SMELL OFF.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I FORGOT ABOUT THOSE. HOPE IT SINGED THAT THING.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I STILL GOT IT! FROM HERE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I'M A PROFESSIONAL! STOP!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I'M FRYING! IT STILL SMELLS BETTER THAN YOU!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I'M GONNA DIE SMELLING THAT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I'M NOT DYING WITH THAT THING LOOKING AT ME.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I'M THE LIGHTNING ROD? LOOK AT HIM!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I'M... A LIGHTNING... ROD...",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I'VE SEEN BIGGER ON A CRASH DUMMY!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "IT'S POLYESTER! IT'S ALL POLYESTER!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "JUMP IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "JUMP IT! LAND IN THE SMELL!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "JUMP IT! RIGHT ON THE NAKED PART!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "LADIES AND GENTLEMEN... THE STEVE SIDESTEP!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "LADIES AND GENTLEMEN... THE STEVE SIDESTEP! COVER THE KIDS' EYES!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "LADIES AND GENTLEMEN... THE STEVE SIDESTEP! HOLD YOUR NOSES!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "LAND ON HIM! FLATTEN THE WIENER!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "LAND ON HIM! SQUASH IT OUT OF HIM!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "LIGHTNING! AND THE SMELL! AT ONCE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "MY BACK!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "MY BACK! STOP LOOKING!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "MY BACK! THIS IS YOUR FAULT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "MY CAR! WITH HIS HANDPRINTS ON IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "MY FILLINGS! MY FILLINGS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "MY HIP!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "MY OWN CAR!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NAKED WRESTLING IS A DIFFERENT SHOW!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NO NO NO NO NO!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NO ONE SHOWS ME UP. I WAS IN A REAL HOLLYWOOD MOVIE. ONCE. FOR ABOUT 2 SECONDS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NOBODY HOLDS STEVE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NOT LIKE THIS. NOT DOWNWIND.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NOT LIKE THIS. NOT WITH HIS THING OUT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NOT THE FACE! THE FACE IS INSURED!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OKAY. OKAY. BIG FINISH. ANY MINUTE.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OW! AND EW!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OW! I'M FIFTY-NINE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OW! SOMETHING SLAPPED ME! I HOPE IT WAS A HAND!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "POSSE! FIRE 'EM UP! RUN HIM DOWN!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "POSSE! RUN HIM OFF MY STAGE! WINDOWS UP!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "POSSE! RUN THAT NAKED FREAK OFF MY STAGE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "PUT IT AWAY! PUT IT AWAY!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "PUT IT AWAY! THIS IS A FAMILY SHOW!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "RUN HIM OVER!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "RUN OVER THE NAKED GUY!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "RUN OVER THE SHITTY GUY!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "STAY OVER THERE! DOWNWIND!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "STAY OVER THERE! THAT'S YOUR MARK!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "STAY OVER THERE! WITH THAT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THAT'S A RENTAL!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THAT'S HOW YOU DRIFT, KID!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THAT'S MY APPLAUSE. MINE.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THAT'S MY GOOD KNEE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THE CHEAP SEATS CAN SMELL YOU!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THE DRAG STUNT! I STILL GOT IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THE LAST THING... I SEE... IS THAT...",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THE SUIT... WAS... A MISTAKE...",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THE ZIPPER! THE ZIPPER'S METAL!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THEY GAVE A STANDING OVATION TO A DIAPER.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THEY'RE CHEERING HIS DICK. HIS DICK!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THEY'RE CLAPPING. FOR HIM.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THROUGH THE HOOP! ON HIS HEAD!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "TOO CLOSE! I CAN SEE EVERYTHING!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "TOO CLOSE! TOO CLOSE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "TOW ME! AWAY FROM THAT THING!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "TOW ME! AWAY FROM THE SMELL!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "TOW ROPE! GET ME OUTTA HERE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "WHO TAUGHT HIM THAT?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "WHY DID I WEAR A CONDUCTIVE SUIT",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "YOU GOT IT ON MY SUIT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "YOU'RE LEAKING ON MY STAGE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "YOUR HANDS ARE BROWN! DON'T!",
   "from": "HOLLYWOOD"
  },
  {
@@ -27661,6 +27781,11 @@
  },
  {
   "voice": "meathead",
+  "text": "...I MEANT TO DO THAT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "...I'M OKAY!",
   "from": "m1/game/stages/barry/dumpster.ts:88"
  },
@@ -27861,12 +27986,22 @@
  },
  {
   "voice": "meathead",
+  "text": "A BUNKER. GET IN THE BUNKER, DUMBASS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "A BURRITO! IT EXPLODED!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
   "text": "A C-STAND TO THE HEAD!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "A CAR LANDED ON ME!",
   "from": "HOLLYWOOD"
  },
  {
@@ -27878,6 +28013,11 @@
   "voice": "meathead",
   "text": "A CAR! A WHOLE CAR! FROM THE SKY!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A CAR! FROM THE SKY!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -28061,11 +28201,6 @@
  },
  {
   "voice": "meathead",
-  "text": "A FOAM HAMMER IN MY EYE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "A FOAM SHIELD! IT HAS A BRICK IN IT!",
   "from": "HOLLYWOOD"
  },
@@ -28178,6 +28313,11 @@
   "voice": "meathead",
   "text": "A HAUNTED SPACESHIP? I'M THE SCARIEST THING IN THIS PARK.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "A HERO LANDING! ON MY HEAD!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -28621,11 +28761,6 @@
  },
  {
   "voice": "meathead",
-  "text": "A TORNADO. IT DRANK THE FLOOD. RUN!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "A TORNADO. ON LOW.",
   "from": "HOLLYWOOD"
  },
@@ -28861,6 +28996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ALL THIS OVER A MOVIE I NEVER HEARD OF.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.",
   "from": "m1/game/stages/oscar/bunker.ts:398"
  },
@@ -28928,6 +29068,11 @@
   "voice": "meathead",
   "text": "AND I'M FOLLOWING MY PROGRAM. TODAY IS ALIEN DAY. AND LAUNDRY DAY.",
   "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "AND NOW A TORNADO. RUN!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -29301,11 +29446,6 @@
  },
  {
   "voice": "meathead",
-  "text": "BELLY FLOP! FROM A SUPERHERO!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "BEST PART OF THE TOUR.",
   "from": "SPACE"
  },
@@ -29373,6 +29513,11 @@
   "voice": "meathead",
   "text": "BLACK GOLD! IN MY EYES! IN MY EARS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BLEAGH! IT'S WARM! WHY IS IT WARM?!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -29636,11 +29781,6 @@
  },
  {
   "voice": "meathead",
-  "text": "BULKED!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "BULL RUSHED BITCH",
   "from": "VULGARITIES"
  },
@@ -29681,7 +29821,7 @@
  },
  {
   "voice": "meathead",
-  "text": "BURIED IT! IT'LL BE BACK. GO!",
+  "text": "BUMPER TO THE BALLS!",
   "from": "HOLLYWOOD"
  },
  {
@@ -30098,6 +30238,11 @@
   "voice": "meathead",
   "text": "COLD SHOULDERED BITCH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "COLD! COLD BALLS!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -30656,6 +30801,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DRIFTED! RIGHT INTO ME!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "DRIVE-BY ON A JET SKI! THAT'S A NEW ONE!",
   "from": "HAZARD_HURT"
  },
@@ -31068,11 +31218,6 @@
   "voice": "meathead",
   "text": "FIFTEEN BUCKS FOR A PITCHFORK. THE FAT DEVIL'S WAS BIGGER.",
   "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "FIFTEEN DOWN. THE POSTER JUST GOT A LOT EMPTIER.",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -31506,6 +31651,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FUCK NORMAL. I'M PULLING THAT LEVER.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "FUCK OFF, RUBBER BOY.",
   "from": "SPACE"
  },
@@ -31721,6 +31871,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET ME OUT! IT'S CHUNKY!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "GET OFF HIM, YOU LEECH! I SHOULD TACKLE YOU OFF!",
   "from": "SPOOKY"
  },
@@ -31773,6 +31928,11 @@
   "voice": "meathead",
   "text": "GET OFF ME, YOU TOASTER WITH TEETH!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OFF ME!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -31952,6 +32112,11 @@
  {
   "voice": "meathead",
   "text": "GET YOUR CAPE OUT OF MY FACE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR CAPE OUT OF MY MOUTH!",
   "from": "HOLLYWOOD"
  },
  {
@@ -32431,11 +32596,6 @@
  },
  {
   "voice": "meathead",
-  "text": "HA! THE SNOW ATE THE TORNADO!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "HAIL! ON MY BALD SPOT!",
   "from": "HOLLYWOOD"
  },
@@ -32443,6 +32603,11 @@
   "voice": "meathead",
   "text": "HALF A CAR! WHERE'S THE OTHER HALF?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HALF DOWN. THE POSTER JUST GOT A LOT EMPTIER.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -32606,11 +32771,6 @@
  },
  {
   "voice": "meathead",
-  "text": "HE FELL ON ME!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "HE FORKED ME!",
   "from": "SPOOKY"
  },
@@ -32721,6 +32881,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE LANDED ON ME!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "HE LANDED ON ME! WITH HIS GUT!",
   "from": "SPOOKY"
  },
@@ -32828,6 +32993,11 @@
   "voice": "meathead",
   "text": "HE SIDESWIPED ME, THE FRINGE-JACKET FUCK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SLAPPED ME!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -33001,6 +33171,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S GREASED! HE'S GREASED UP!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S GUTTING ME LIKE A FISH!",
   "from": "ADVENTURE"
  },
@@ -33113,6 +33288,11 @@
   "voice": "meathead",
   "text": "HEAD OF STATE, MEET THE PODIUM.",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEAD-ON! I'M ON FIRE!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -33281,7 +33461,7 @@
  },
  {
   "voice": "meathead",
-  "text": "HIDE. LET THE SNOW EAT IT.",
+  "text": "HIDE. LET IT GO OVER.",
   "from": "HOLLYWOOD"
  },
  {
@@ -33361,13 +33541,13 @@
  },
  {
   "voice": "meathead",
-  "text": "HIS WIRE WASN'T HOOKED UP. I DIDN'T EVEN TOUCH HIM.",
-  "from": "HOLLYWOOD"
+  "text": "HIT BY A BABY TRAIN!",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
-  "text": "HIT BY A BABY TRAIN!",
-  "from": "SPOOKY"
+  "text": "HIT BY A CAR! AGAIN!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -33423,11 +33603,6 @@
   "voice": "meathead",
   "text": "HIT ME FROM A MOVING CAR! CHEAP SHOT!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "HIT WITH A PROP!",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -33816,6 +33991,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I CAN'T LIFT A CAR! NOT LIKE THIS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "I CAN'T LIFT A GIANT WIND-UP TOY!",
   "from": "TOO_BIG_LINES"
  },
@@ -34028,6 +34208,11 @@
   "voice": "meathead",
   "text": "I FEEL SO FLOATY... AND ROUND... AND... UH OH.",
   "from": "m1/game/stages/finale/killCam.ts:175"
+ },
+ {
+  "voice": "meathead",
+  "text": "I FELL IN THE PISS TANK!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -34381,6 +34566,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'D HAVE TO BULK UP FOR THAT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "I'D RATHER DROWN.",
   "from": "ADVENTURE"
  },
@@ -34676,6 +34866,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M NOT A JUNGLE GYM!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M NOT A POT ROAST, FAT ASS!",
   "from": "SPOOKY"
  },
@@ -34803,6 +34998,11 @@
   "voice": "meathead",
   "text": "I'M ON THE LIST, YOU BALD FUCK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M OUT! I'M OUT! SOMEBODY HOSE ME DOWN!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -35226,6 +35426,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT GOT IN MY MOUTH! IT TASTES LIKE THE TOUR!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "IT GOT MEEEE!",
   "from": "HOLLYWOOD"
  },
@@ -35336,6 +35541,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT TOOK THE BUILDING. THE WHOLE BUILDING.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "IT WAS IN MY BACK POCKET. BAD CALL.",
   "from": "INTRO"
  },
@@ -35436,6 +35646,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S A WHOLE CAR!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S ALL BOLTS! NOTHING TO GRAB!",
   "from": "TOO_BIG_LINES"
  },
@@ -35483,6 +35698,11 @@
   "voice": "meathead",
   "text": "IT'S CROWNING. STAND UP.",
   "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S EATING THE WHOLE STREET!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -35566,6 +35786,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S LOCKED. FINE. KILL FIRST, PULL AFTER.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
   "from": "m1/App.tsx:700"
  },
@@ -35641,11 +35866,6 @@
  },
  {
   "voice": "meathead",
-  "text": "IT'S RUBBER! IT STILL HURTS!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "IT'S SHIT! IT'S MONKEY SHIT!",
   "from": "ADVENTURE"
  },
@@ -35653,11 +35873,6 @@
   "voice": "meathead",
   "text": "IT'S SO SWEATY UNDER HERE!",
   "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "IT'S STICKY! WHY IS IT STICKY?",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -35996,6 +36211,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LIKE GRABBING A WET HOT DOG!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "LIKE IT NEVER HAPPENED.",
   "from": "M2_GUT_LINES"
  },
@@ -36241,6 +36461,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MISSED THE MAT, DUMBASS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "MOIST MOTHERFUCKER",
   "from": "VULGARITIES"
  },
@@ -36321,7 +36546,7 @@
  },
  {
   "voice": "meathead",
-  "text": "MOVIE STARS. I'VE NEVER KILLED A MOVIE STAR. TODAY I KILL THIRTY.",
+  "text": "MOVIE STARS. I'VE NEVER KILLED A MOVIE STAR. TODAY I KILL ALL OF THEM.",
   "from": "HOLLYWOOD"
  },
  {
@@ -36926,6 +37151,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NEVER HEARD OF IT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "NEVER LEAVE HOME WITHOUT A SOUVENIR.",
   "from": "SPOOKY"
  },
@@ -37058,11 +37288,6 @@
   "voice": "meathead",
   "text": "NICE PARKA. SHAME ABOUT THE GUY IN IT.",
   "from": "ENEMY_KILL_LINES"
- },
- {
-  "voice": "meathead",
-  "text": "NICE POWERS. DO THE ONE WHERE YOU DIE.",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -37426,8 +37651,18 @@
  },
  {
   "voice": "meathead",
+  "text": "NOPE! NOPE! NOT SWIMMING IN PISS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "NOPE.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOPE. IS IT A CARTOON?",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -37573,6 +37808,11 @@
   "voice": "meathead",
   "text": "NOT WITHOUT PANTS. NOT EVEN IN AMERICA.",
   "from": "HUB"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT YET. I GOT A LEVER TO YANK.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -37746,7 +37986,7 @@
  },
  {
   "voice": "meathead",
-  "text": "OH LOOK. THE AVENGERS. NO. THE KNOCKOFF ONES.",
+  "text": "OH LOOK. MORE PAJAMA PEOPLE.",
   "from": "HOLLYWOOD"
  },
  {
@@ -37946,6 +38186,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OKAY. KILLING MOVIE PEOPLE. FINE.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "OKAY. NO MORE GUN. TIME FOR SHOULDER.",
   "from": "m1/game/stages/gym/runtime.ts:310"
  },
@@ -38071,11 +38316,6 @@
  },
  {
   "voice": "meathead",
-  "text": "OOPS. YOUR SECRET'S OUT.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "OPEN THE CASE. PANTS DOWN. NO REGRETS.",
   "from": "HOLLYWOOD"
  },
@@ -38196,6 +38436,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! A WET SLAP!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! COSPLAY FUCKER!",
   "from": "HOLLYWOOD"
  },
@@ -38302,11 +38547,6 @@
  {
   "voice": "meathead",
   "text": "OW! THAT'S A POINTER, NOT A SWORD!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
-  "text": "OW! THAT'S NOT CGI!",
   "from": "HOLLYWOOD"
  },
  {
@@ -39041,6 +39281,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RIDE IT ON NORMAL? I'D RATHER SHIT MYSELF.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "RIDE OR DIE! YOU PICKED DIE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -39193,6 +39438,11 @@
   "voice": "meathead",
   "text": "ROCKSLIDE! ROCKSLIDE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RODE IT INTO THE WALL!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -39726,6 +39976,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOOT THE CARS? NAH. THE BOOK'S GOT A ROCK FOR EVERY CAR.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "SHOOTING AROUND THE SHIELD? COWARD!",
   "from": "HAZARD_HURT"
  },
@@ -39838,6 +40093,11 @@
   "voice": "meathead",
   "text": "SHOULD'VE STAYED ON THE DOLLAR BILL!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULDA GOT OFF!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -39968,11 +40228,6 @@
   "voice": "meathead",
   "text": "SIGNED FOR IT. WITH MY FOOT. LEFT A LITTLE SOMETHING EXTRA.",
   "from": "m1/game/core/update.ts:357"
- },
- {
-  "voice": "meathead",
-  "text": "SILLY STRING! IN MY EYES!",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -40223,6 +40478,11 @@
   "voice": "meathead",
   "text": "SNOW IN EVERY HOLE I HAVE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SNOW IN MY SHORTS!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -40791,6 +41051,11 @@
  },
  {
   "voice": "meathead",
+  "text": "STOP FLAILING, GRANDPA!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "STOP GREASING THE SQUAT RACK, YOU OILY PIG!",
   "from": "HURT"
  },
@@ -40951,6 +41216,11 @@
  },
  {
   "voice": "meathead",
+  "text": "STUCK IT. TEN OUT OF TEN.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "STUN STICK! RIGHT IN THE TITS!",
   "from": "SPACE"
  },
@@ -40962,6 +41232,11 @@
  {
   "voice": "meathead",
   "text": "STUNTMAN STEVE TESTED THIS RIDE? HE LOOKS LIKE HE TESTED THE TOILETS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "STUNTMAN STEVE. MEDIUM WELL.",
   "from": "HOLLYWOOD"
  },
  {
@@ -41061,11 +41336,6 @@
  },
  {
   "voice": "meathead",
-  "text": "SURPRISE. I'M IN YOUR MOVIE NOW.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "SWEPT BY THE BOUNCER! SWEPT!",
   "from": "HAZARD_HURT"
  },
@@ -41133,11 +41403,6 @@
   "voice": "meathead",
   "text": "TAKE A SEAT. THE OTHER SIDE.",
   "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "TAKE COVER. GET UNDER IT, DUMBASS.",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -41431,11 +41696,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THAT ONE KILLED HIMSELF. METHOD ACTING.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "THAT ONE WASN'T BACKSTAGE!",
   "from": "ADVENTURE"
  },
@@ -41533,6 +41793,11 @@
   "voice": "meathead",
   "text": "THAT SUIT SMELLS LIKE A WET DOG FART!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT SUIT'S ALL ZIPPERS AND RIVETS. BET IT CONDUCTS.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -41846,6 +42111,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S NOT HOW IT WORKS.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S NOT HOW TRACKS WORK! I LOVE IT!",
   "from": "HOLLYWOOD"
  },
@@ -41961,6 +42231,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE BACK END GOT ME!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BACK END IS ALSO DANGEROUS!",
   "from": "ADVENTURE"
  },
@@ -41988,11 +42263,6 @@
   "voice": "meathead",
   "text": "THE BIG BABY RAN ME OVER!",
   "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "THE BIG GREEN ONE! HE'S JUST A FAT GUY IN PAINT!",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -42032,6 +42302,11 @@
  {
   "voice": "meathead",
   "text": "THE BLIZZARD IS SIXTY-EIGHT DEGREES.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BOOK'S GOT LIGHTNING IN IT. HE'S GOT A METAL SUIT. HMM.",
   "from": "HOLLYWOOD"
  },
  {
@@ -42876,6 +43151,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE TORNADO'S THROWING SNOW!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "THE TOUR GUIDE HIT ME!",
   "from": "HOLLYWOOD"
  },
@@ -43036,6 +43316,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THERE'S A MOVIE STAR ON MY LEG!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "THERE'S A NAME TAG. HI, BRENDA.",
   "from": "SPACE"
  },
@@ -43057,11 +43342,6 @@
  {
   "voice": "meathead",
   "text": "THERE'S NOTHING BEHIND IT. THERE NEVER WAS.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
-  "text": "THERE'S NOTHING THERE, DUMBASS.",
   "from": "HOLLYWOOD"
  },
  {
@@ -43178,6 +43458,11 @@
   "voice": "meathead",
   "text": "THEY'RE CLEAN. I'D RUIN THEM. NO.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE CLIMBING ME!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -43441,6 +43726,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THROUGH THE HOOP AND ONTO MY HEAD!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "THROW ME A BONE! NOT LIKE THAT!",
   "from": "SPOOKY"
  },
@@ -43533,6 +43823,11 @@
   "voice": "meathead",
   "text": "TIP YOUR GUIDE.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "TIRE MARKS ON MY ASS!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -43666,6 +43961,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TOURIST PEE! IN MY EYES!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "TOXIC SPRAY IN MY PORES!",
   "from": "HAZARD_HURT"
  },
@@ -43778,6 +44078,11 @@
   "voice": "meathead",
   "text": "TWO MORE. MAYBE ONE. I LOST COUNT.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWO SECONDS OF FAME. ZERO SECONDS OF STEVE.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -44076,7 +44381,7 @@
  },
  {
   "voice": "meathead",
-  "text": "WEBBED BY A TWENTY-NINE-YEAR-OLD!",
+  "text": "WEAR COTTON, DUMBASS.",
   "from": "HOLLYWOOD"
  },
  {
@@ -44161,8 +44466,18 @@
  },
  {
   "voice": "meathead",
+  "text": "WHAT IS HE BASTED IN?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "WHAT IS HOLDING THAT GUY UP? THOSE LEGS ARE TINY.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT IS THIS, A PORNO?",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -44261,6 +44576,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHERE AM I? IS THIS THE GIFT SHOP?",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "WHERE ARE YOU GOING? I'M NOT DONE WITH YOU.",
   "from": "SPACE"
  },
@@ -44273,6 +44593,11 @@
   "voice": "meathead",
   "text": "WHERE DO YOU EVEN GRAB THAT?!",
   "from": "TOO_BIG_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHERE THE FUCK AM I NOW?",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -44453,6 +44778,11 @@
   "voice": "meathead",
   "text": "WHO PARKED IN THE BAY?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO PARKS IN A WALL?!",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -44861,6 +45191,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WON'T BUDGE. SOMEBODY'S STILL BREATHING.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "WON'T BURN. STILL EATS BARE FEET. GREAT OIL.",
   "from": "SPACE"
  },
@@ -45096,11 +45431,6 @@
  },
  {
   "voice": "meathead",
-  "text": "YOU KNOW THAT'S CGI, RIGHT?",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "YOU KNOW YOUR BROTHER DIED LIKE THIS.",
   "from": "ADVENTURE"
  },
@@ -45228,6 +45558,11 @@
   "voice": "meathead",
   "text": "YOU. YOU TALK TOO MUCH.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE A GUY IN PAJAMAS.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
