@@ -289,6 +289,8 @@ registerM2Kind({
 });
 registerM2Kind({
   kind: TK.bride, stats: { w: 38, h: 70, hp: 120, contact: 8, mass: 170 }, ai: brideAI, humanoid: true, gender: personGender,
+  // (she keeps to her ledge)
+  pathing: false,
   head: { x: 0, y: -60, r: 8 }, draw: (c, e, f) => drawBride(c, e, f),
 });
 registerM2Kind({

@@ -379,6 +379,8 @@ const poseOf = (e: Enemy): AlienPose => {
 
 registerM2Kind({
   kind: GRUNT, stats: { w: 40, h: 86, hp: 140, contact: 10, mass: 220 }, ai: gruntAI, humanoid: true, grab: 'body',
+  // (posted up, he stays up: his own coming down after him)
+  pathing: false,
   gender: e => (isWoman(e) ? 'f' : 'm'),
   head: { x: 10, y: -96, r: 10 },
   draw: (c, e, f) => {

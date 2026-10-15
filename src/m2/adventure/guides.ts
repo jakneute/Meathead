@@ -161,6 +161,8 @@ const drawStick = (c: CanvasRenderingContext2D, e: Enemy) => {
 
 registerM2Kind({
   kind: 'm2:guide', stats: { w: 38, h: 66, hp: 160, contact: 10, mass: 200 }, ai: guideAI, humanoid: true, grab: 'body',
+  // (his own way of getting to him: approach(), above)
+  pathing: false,
   // (the spikes on his helmet: don't dive kick him)
   spiky: { source: 'm2:guide_spikes', label: 'SPIKED!' },
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),

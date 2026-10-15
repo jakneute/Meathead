@@ -12,6 +12,7 @@ import { BOSS_DIALOGUE } from '../m1/content/dialogue';
 import { DEATH_LINES } from '../m1/content/deaths';
 import { registerMidBossKind } from '../m1/game/combat/midBoss';
 import { beforeAI, afterAI } from './hazardHit';
+import { pathAfterAI } from './pathing';
 
 export interface M2Kind {
   kind: `m2:${string}`;
@@ -55,15 +56,22 @@ export interface M2Kind {
   touch?: (ctx: FrameContext, e: Enemy) => boolean;
   /** Part of the set where it's put (a cuckoo in its clock): not kept out of the stage's hazards (hazardHit.ts). */
   fixture?: boolean;
+  /** Getting to him past what's in the way (pathing.ts: hops up onto things, up after him, down off edges after him).
+   *  Unset: on for the people that walk (humanoid, not flying, not a mid-boss or a fixture); false for one that gets
+   *  about its own way (its own hops, a vehicle, a perch it keeps), true for an animal that should. */
+  pathing?: boolean;
 }
 
 const defs = new Map<string, M2Kind>();
 export const registerM2Kind = (d: M2Kind) => {
   defs.set(d.kind, d);
-  // (its AI kept out of the stage's hazards: it doesn't walk into one, or start out in one; see hazardHit.ts)
+  // (its AI kept out of the stage's hazards: it doesn't walk into one, or start out in one; see hazardHit.ts. A walker
+  // gets to him past what's in the way: pathing.ts)
+  const paths = !d.stats.air && (d.pathing ?? !!d.humanoid);
   const ai = d.ai, guarded = ai && !d.midBoss && !d.fixture ? (ctx: FrameContext, e: Enemy) => {
     beforeAI(ctx.state, e);
     const bx = e.pos.x, by = e.pos.y, moved = ai(ctx, e);
+    if (paths && !moved) pathAfterAI(ctx, e);
     afterAI(ctx.state, e, bx, by, moved);
     return moved;
   } : ai;

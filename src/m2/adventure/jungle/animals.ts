@@ -278,7 +278,7 @@ const flyer = (b: Enemy): Enemy => ({ ...b, enemyType: 'flyer', initialY: b.pos.
 
 registerM2Kind({ kind: 'm2:monkey', stats: { w: 28, h: 36, hp: 14, contact: 6, mass: 25 }, ai: monkey, draw: drawMonkey, head: { x: 4, y: -27, r: 8 }, gender: 'n', grab: 'critter' });
 // (the chimp's on two legs, like a person: grabbed by the neck, pinned and shaken, keeling over, as people are)
-registerM2Kind({ kind: 'm2:chimp', stats: { w: 40, h: 54, hp: 80, contact: 14, mass: 70 }, ai: chimp, draw: drawChimp, head: { x: 11, y: -44, r: 10 }, gender: 'n', grab: 'body', humanoid: true });
+registerM2Kind({ kind: 'm2:chimp', stats: { w: 40, h: 54, hp: 80, contact: 14, mass: 70 }, ai: chimp, draw: drawChimp, head: { x: 11, y: -44, r: 10 }, gender: 'n', grab: 'body', humanoid: true, pathing: false });
 registerM2Kind({ kind: 'm2:jaguar', stats: { w: 72, h: 36, hp: 120, contact: 18, mass: 100 }, ai: jaguar, draw: drawJaguar, head: { x: 32, y: -28, r: 10 }, gender: 'n', grab: 'body' });
 registerM2Kind({ kind: 'm2:boa', stats: { w: 28, h: 20, hp: 35, contact: 12, mass: 60, air: true }, ai: boa, make: flyer, draw: drawBoa, head: { x: 4, y: -10, r: 9 }, gender: 'n', grab: 'critter' });
 registerM2Kind({ kind: 'm2:macaw', stats: { w: 30, h: 22, hp: 14, contact: 8, mass: 3, air: true }, ai: macaw, make: flyer, draw: drawMacaw, head: { x: 10, y: -15, r: 6 }, gender: 'n', grab: 'critter' });

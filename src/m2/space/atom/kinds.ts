@@ -206,6 +206,8 @@ registerM2Kind({
 });
 registerM2Kind({
   kind: ATOM.rigger, stats: { w: 38, h: 66, hp: 120, contact: 6, mass: 200 }, ai: riggerAI, humanoid: true,
+  // (he keeps to his catwalk)
+  pathing: false,
   gender: human, head: { x: 1, y: -68, r: 10 }, draw: dress('rigger'),
 });
 registerM2Kind({

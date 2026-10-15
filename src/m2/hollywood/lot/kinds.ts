@@ -155,7 +155,7 @@ const cowboy = (ctx: FrameContext, e: Enemy) => {
 const personGender = (e: Enemy) => (womanOf(e) ? 'f' : 'm') as 'm' | 'f';
 
 registerM2Kind({ kind: 'm2:hw_guide', stats: { w: 38, h: 72, hp: 90, contact: 6, mass: 180 }, ai: guide, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 10 }, draw: (c, e, f) => drawGuide(c, e, f, seedOf(e)) });
-registerM2Kind({ kind: 'm2:hw_cart', stats: { w: 84, h: 78, hp: 170, contact: 14, mass: 420 }, ai: cart, humanoid: true, gender: personGender, head: { x: -6, y: -72, r: 10 }, grab: 'none', draw: (c, e, f) => drawCart(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:hw_cart', stats: { w: 84, h: 78, hp: 170, contact: 14, mass: 420 }, ai: cart, humanoid: true, gender: personGender, head: { x: -6, y: -72, r: 10 }, grab: 'none', pathing: false, draw: (c, e, f) => drawCart(c, e, f, seedOf(e)) });
 registerM2Kind({
   kind: 'm2:hw_legionary', stats: { w: 42, h: 80, hp: 170, contact: 10, mass: 260 }, ai: legionary, humanoid: true, gender: personGender, head: { x: 1, y: -74, r: 10 },
   pointy: { source: 'm2:hw_legionary_spear', label: 'SKEWERED!', damage: 14 },
