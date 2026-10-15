@@ -276,6 +276,8 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
       break;
   }
   f.actT++;
+  // (the fight's begun this frame (the pan back's done): the camera's his again, not held here for good)
+  if (f.mode !== 'intro') return hands();
   state.cameraOverride = { x: f.camX, y: GY - CAM_ROW };
   state.camera.x = f.camX; state.camera.y = GY - CAM_ROW;
   return hands();
