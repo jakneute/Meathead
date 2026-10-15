@@ -26,6 +26,7 @@ import { SFX_NAMES } from '../game/platform/sfx';
 import { recordedVoices, playClip } from '../game/platform/voiceclips';
 import { playSound } from '../game/platform/audio';
 import { getSettings, reduceFlashing } from '../game/settings';
+import { activeSlot } from '../game/save/files';
 
 export interface CheatFlags {
   allWeapons: boolean;
@@ -690,7 +691,7 @@ const PauseMenu: React.FC<OverlayProps> = ({ onOpenOptions, availableWeapons, cu
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20 animate-in fade-in duration-150">
           <div className="flex flex-col items-center px-8 py-5" style={{ background: 'linear-gradient(180deg, #27272A, #09090B)', border: '3px solid #EF4444', boxShadow: '0 0 0 3px #000, 0 0 30px rgba(239,68,68,0.35)' }}>
             <div className="text-yellow-400 text-[15px] font-black italic tracking-widest mb-2" style={{ textShadow: '2px 2px 0 #7F1D1D' }}>ARE YOU SURE?</div>
-            <div className="text-zinc-300 text-[8px] font-black uppercase tracking-wider mb-4">{leaveTo === 'quit' ? "YOU'LL LOSE ALL YOUR PROGRESS: EVERY BOSS, EVERY WEAPON" : "YOU'LL LOSE YOUR PROGRESS ON THIS STAGE"}</div>
+            <div className="text-zinc-300 text-[8px] font-black uppercase tracking-wider mb-4">{leaveTo === 'quit' ? (activeSlot() ? "YOU'LL LOSE WHAT YOU'VE DONE SINCE THE LAST SAVE" : "NO SAVE FILE: YOU'LL LOSE EVERY BOSS, EVERY WEAPON") : "YOU'LL LOSE YOUR PROGRESS ON THIS STAGE"}</div>
             <div className="flex gap-4">
               {leaveAnswers(leaveTo).map(({ label, answer, face, edge }, i) => {
                 const on = confirmPick === i;
