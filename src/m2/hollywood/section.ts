@@ -162,7 +162,8 @@ export const ledgeBox = (c: Ctx, x: number, y: number, w: number, fill: string, 
 
 /**
  * STUNTMAN STEVE, foreshadowed (the user: "fliers everywhere advertising the show"): his flier, crude, its middle at
- * (x, y), world space (or screen space: it's only boxes). His face (the mullet, the mustache, the squint), his thumb
+ * (x, y), world space (or screen space: it's only boxes); all of it YELLOW, like his stunt suit (the user's). His face
+ * (the mullet, the aviators, the horseshoe mustache, the neck brace), his thumb
  * up, a car going past behind him, and the show's name; `kind` 'flier' a paper one stapled up (a wall, a pole: the
  * staples, a curled corner), 'poster' a big one in a frame, 'standee' a cutout on its own feet (y its feet then).
  * Every section puts some up (a plug on the PA too: the lines are each section's own).
@@ -173,14 +174,16 @@ export const steveFlier = (c: Ctx, x: number, y: number, kind: 'flier' | 'poster
   const left = Math.round(x - w / 2), top = Math.round(kind === 'standee' ? y - h - 70 : y - h / 2);
   if (kind === 'standee') {
     // (a cutout of him, life size: his body under the head card, two feet)
-    box(c, left + w / 2 - 14, top + h - 4, 28, 60, '#B91C1C'); box(c, left + w / 2 - 14, top + h - 4, 28, 3, '#EF4444');
-    box(c, left + w / 2 - 12, top + h + 56, 10, 14, '#1C1917'); box(c, left + w / 2 + 2, top + h + 56, 10, 14, '#1C1917');
+    // (in his yellow stunt suit, the red stripe down it; white stunt boots)
+    box(c, left + w / 2 - 14, top + h - 4, 28, 60, '#FACC15'); box(c, left + w / 2 - 14, top + h - 4, 28, 3, '#FEF08A'); box(c, left + w / 2 - 4, top + h - 4, 3, 60, '#DC2626');
+    box(c, left + w / 2 - 12, top + h + 56, 10, 14, '#F5F5F4'); box(c, left + w / 2 + 2, top + h + 56, 10, 14, '#F5F5F4');
     box(c, left + w / 2 + 12, top + h + 4, 16, 8, '#E7B48F'); box(c, left + w / 2 + 24, top + h - 4, 5, 10, '#E7B48F');
   }
-  const paper = ['#FEF3C7', '#FDE68A', '#FECACA'][seed % 3];
+  // (everything of his is YELLOW, like his suit: the paper, the poster's board)
+  const paper = ['#FACC15', '#FDE047', '#FEF08A'][seed % 3];
   box(c, left - 1, top - 1, w + 2, h + 2, '#000000');
-  box(c, left, top, w, h, kind === 'poster' ? '#18181B' : paper);
-  const inner = kind === 'poster' ? '#FACC15' : '#18181B';
+  box(c, left, top, w, h, kind === 'poster' ? '#FACC15' : paper);
+  const inner = '#18181B';
   // (the car, behind him: a red streak with speed lines)
   box(c, left + 4 * s, top + 34 * s, 24 * s, 7 * s, '#DC2626'); box(c, left + 8 * s, top + 31 * s, 12 * s, 4 * s, '#DC2626');
   for (let i = 0; i < 3; i++) box(c, left + 28 * s, top + (33 + i * 3) * s, 10 * s, 1 * s, inner);
@@ -188,8 +191,10 @@ export const steveFlier = (c: Ctx, x: number, y: number, kind: 'flier' | 'poster
   const fx = left + w / 2 - 8 * s, fy = top + 12 * s;
   box(c, fx - 2 * s, fy - 3 * s, 18 * s, 6 * s, '#92400E'); box(c, fx + 12 * s, fy, 5 * s, 18 * s, '#92400E');
   box(c, fx, fy, 14 * s, 16 * s, '#E7B48F');
-  box(c, fx + 2 * s, fy + 5 * s, 4 * s, 1 * s, '#1C1917'); box(c, fx + 8 * s, fy + 5 * s, 4 * s, 1 * s, '#1C1917');
-  box(c, fx + 2 * s, fy + 10 * s, 10 * s, 2 * s, '#78350F');
+  // (the cheap gold aviators, the horseshoe mustache, the neck brace)
+  box(c, fx + 1 * s, fy + 4 * s, 12 * s, 1 * s, '#CA8A04'); box(c, fx + 2 * s, fy + 5 * s, 4 * s, 2 * s, '#1C1917'); box(c, fx + 8 * s, fy + 5 * s, 4 * s, 2 * s, '#1C1917');
+  box(c, fx + 2 * s, fy + 10 * s, 10 * s, 2 * s, '#78350F'); box(c, fx + 2 * s, fy + 10 * s, 2 * s, 4 * s, '#78350F'); box(c, fx + 10 * s, fy + 10 * s, 2 * s, 4 * s, '#78350F');
+  box(c, fx - 1 * s, fy + 16 * s, 16 * s, 3 * s, '#F1F5F9');
   // (his thumb up)
   box(c, fx - 7 * s, fy + 8 * s, 5 * s, 6 * s, '#E7B48F'); box(c, fx - 6 * s, fy + 4 * s, 2 * s, 4 * s, '#E7B48F');
   // (the show's name, in the park's letters)

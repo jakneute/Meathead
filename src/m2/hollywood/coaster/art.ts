@@ -660,10 +660,10 @@ export const drawCoasterBack = (c: Ctx, state: GameState, co: Coaster) => {
   const bx = X(3200), by = Y(700);
   if (seen(state, bx - 200, bx + 200, by - 200, by + 200)) {
     box(c, bx - 4, by, 8, GY - by, '#52525B');
-    box(c, bx - 150, by - 120, 300, 124, '#000'); box(c, bx - 146, by - 116, 292, 116, '#FEF3C7');
+    box(c, bx - 150, by - 120, 300, 124, '#000'); box(c, bx - 146, by - 116, 292, 116, '#FACC15');
     steveFlier(c, bx - 100, by - 58, 'flier', 1);
     words(c, 'SAFETY TESTED BY', bx + 40, by - 76, print(1, '#18181B'));
-    words(c, 'STUNTMAN STEVE', bx + 40, by - 58, enamel({ sx: 1, sy: 2 }, '#B91C1C'));
+    words(c, 'STUNTMAN STEVE', bx + 40, by - 58, enamel({ sx: 1, sy: 2 }, '#18181B'));
     words(c, 'HE IS FINE', bx + 40, by - 38, print(1, '#7F1D1D'));
   }
 };

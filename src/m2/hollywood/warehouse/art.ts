@@ -310,10 +310,10 @@ const sets = (c: Ctx, state: GameState) => {
     box(c, X(5640), BACK_Y - 70, 50, 8, '#78350F'); box(c, X(5640), BACK_Y - 110, 50, 30, '#18181B'); words(c, 'DIRECTOR', X(5665), BACK_Y - 92, print(1, '#F8FAFC'));
     box(c, X(5644), BACK_Y - 64, 4, 64, '#78350F'); box(c, X(5682), BACK_Y - 64, 4, 64, '#78350F');
     box(c, X(5500), BACK_Y - 190, 110, 90, '#000'); box(c, X(5502), BACK_Y - 188, 106, 86, '#A16207');
-    box(c, X(5510), BACK_Y - 180, 40, 54, '#F8FAFC'); box(c, X(5560), BACK_Y - 178, 40, 50, '#FEF3C7');
+    box(c, X(5510), BACK_Y - 180, 40, 54, '#F8FAFC'); box(c, X(5560), BACK_Y - 178, 40, 50, '#FACC15');
     words(c, 'CALL SHEET', X(5530), BACK_Y - 168, print(1, '#18181B'));
-    words(c, 'STEVE', X(5580), BACK_Y - 116, print(1, '#7F1D1D'));
-    words(c, 'CALL ME', X(5580), BACK_Y - 106, print(1, '#7F1D1D'));
+    words(c, 'STEVE', X(5580), BACK_Y - 116, print(1, '#FACC15', '#000'));
+    words(c, 'CALL ME', X(5580), BACK_Y - 106, print(1, '#FACC15', '#000'));
     box(c, X(5503), BACK_Y - 102, 4, 102, '#57534E'); box(c, X(5603), BACK_Y - 102, 4, 102, '#57534E');
   }
   // SET 3: the mothership

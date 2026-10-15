@@ -373,7 +373,7 @@ export const drawHavocBack = (c: Ctx, state: GameState) => {
     words(c, 'FIRST AID', X(REFILL), t - 10, enamel(10, '#DC2626', '#000'));
   }
   // The way on (revisits: to the stunt stage) at the end
-  if (inView(state, X1 - 200, X1)) standSign(c, X1 - 120, GY, ['STUNTMAN STEVE\'S', 'STUPENDOUS STUNTERY >'], '#18181B', '#FACC15');
+  if (inView(state, X1 - 200, X1)) standSign(c, X1 - 120, GY, ['STUNTMAN STEVE\'S', 'STUPENDOUS STUNTERY >'], '#FACC15', '#18181B');
   // The wind's stretches: a windsock on a pole at their start (the tell's in it)
   for (const [a] of WIND) if (inView(state, X(a), X(a))) {
     const wt = f % 320, k = done ? 0.1 : wt >= 210 ? 1 : wt >= 160 ? 0.6 : 0.25;
@@ -385,7 +385,7 @@ export const drawHavocBack = (c: Ctx, state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // In front of him
 
-const JUNK_COL: Record<string, string> = { cow: '#F8FAFC', potty: '#1D4ED8', standee: '#B91C1C', cart: '#F8FAFC', letter: '#F5F5F4' };
+const JUNK_COL: Record<string, string> = { cow: '#F8FAFC', potty: '#1D4ED8', standee: '#FACC15', cart: '#F8FAFC', letter: '#F5F5F4' };
 /** A piece of the tornado's junk (its middle at 0, 0). */
 const junk = (c: Ctx, kind: string, ch: string) => {
   if (kind === 'letter') { words(c, ch || 'O', 0, 26, hillside({ sx: 7, sy: 8 }, '#F5F5F4', '#A8A29E')); return; }

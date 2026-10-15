@@ -56,6 +56,20 @@ const fallOf = (p: Projectile) => p.customData as Fall;
 
 /** Whoever's struck over and over, and when next. */
 let bolts: { e: Enemy; next: number; until: number; flash: number; path: { x: number; y: number }[]; rift: { x: number; y: number } | null }[] = [];
+
+/**
+ * A stage's own say over who the storm goes for (Hollywood Land's Stuntman Steve: the meteor for a red car, the comet
+ * for a blue one, the lightning for him, each only if there's one on the screen), or null for the usual (the nearest
+ * three). A null in it: none of that one this time.
+ */
+export interface StormPick { meteor: Enemy | null; comet: Enemy | null; bolt: Enemy | null }
+let stormPick: ((state: GameState, px: number, py: number) => StormPick | null) | null = null;
+export const setStormPick = (fn: typeof stormPick) => { stormPick = fn; };
+/** ...and over what the storm does to whoever it lands on: true, it's dealt with it (the spell's own hurt, burning and
+ *  freezing are skipped for that one). */
+export type StormEl = 'meteor' | 'comet' | 'bolt';
+let stormHit: ((ctx: FrameContext, e: Enemy, el: StormEl, dmg: number) => boolean) | null = null;
+export const setStormHit = (fn: typeof stormHit) => { stormHit = fn; };
 /** Whoever's burning, and how long for. */
 const burning = new Map<Enemy, number>();
 /** The cast itself (runes round him), frames left. */
@@ -140,6 +154,16 @@ const unleash = (ctx: FrameContext) => {
   const { state } = ctx;
   const pl = state.player;
   const px = pl.pos.x + pl.width / 2, py = pl.pos.y + pl.height / 2;
+  // (the stage's own pick, if it has one and there's anything in it)
+  const own = stormPick?.(state, px, py);
+  if (own && (own.meteor || own.comet || own.bolt)) {
+    const ahead = { x: px + pl.facing * 260, y: pl.pos.y + pl.height };
+    if (own.meteor) fall(state, 'meteor', own.meteor, ahead);
+    if (own.comet) fall(state, 'comet', own.comet, { x: ahead.x + pl.facing * 90, y: ahead.y });
+    if (own.bolt) strike(state, own.bolt);
+    playSound('spell');
+    return;
+  }
   const onScreen = (e: Enemy) => e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH;
   const targets = state.enemies.filter(e => alive(e) && onScreen(e) && Math.hypot(mid(e).x - px, mid(e).y - py) < REACH)
     .sort((a, b) => Math.hypot(mid(a).x - px, mid(a).y - py) - Math.hypot(mid(b).x - px, mid(b).y - py)).slice(0, 3);
@@ -148,13 +172,15 @@ const unleash = (ctx: FrameContext) => {
   fall(state, 'meteor', at(0), ahead);
   fall(state, 'comet', at(1), { x: ahead.x + pl.facing * 90, y: ahead.y });
   const z = at(2);
-  if (z) {
-    const bolt = { e: z, next: state.frame + RIFT_OPEN + 2, until: state.frame + BOLT.maxFrames, flash: 0, path: [] as { x: number; y: number }[], rift: null as Rift | null };
-    const at = riftSpot(state, { x: mid(z).x, y: state.camera.y + HUD_CLEAR_Y + 20 }, 0.8, mid(z));
-    bolt.rift = openRift(at.x, at.y, 0.8, BOLT.maxFrames + 12, () => (bolts.includes(bolt) ? mid(bolt.e) : null));
-    bolts.push(bolt);
-  }
+  if (z) strike(state, z);
   playSound('spell');
+};
+/** The lightning on him: a rift over him, and a strike out of it over and over for a few seconds. */
+const strike = (state: GameState, z: Enemy) => {
+  const bolt = { e: z, next: state.frame + RIFT_OPEN + 2, until: state.frame + BOLT.maxFrames, flash: 0, path: [] as { x: number; y: number }[], rift: null as Rift | null };
+  const at = riftSpot(state, { x: mid(z).x, y: state.camera.y + HUD_CLEAR_Y + 20 }, 0.8, mid(z));
+  bolt.rift = openRift(at.x, at.y, 0.8, BOLT.maxFrames + 12, () => (bolts.includes(bolt) ? mid(bolt.e) : null));
+  bolts.push(bolt);
 };
 
 /** A meteor or a comet, out of the sky over him (from off to one side), coming down on him. */
@@ -230,6 +256,7 @@ const meteorBlast = (ctx: FrameContext, at: { x: number; y: number }) => {
     const d = Math.hypot(mid(e).x - at.x, mid(e).y - at.y);
     if (d > METEOR.radius + e.width / 2) continue;
     const k = Math.max(0, 1 - d / (METEOR.radius + e.width / 2));
+    if (stormHit?.(ctx, e, 'meteor', METEOR.edge + (METEOR.dmg - METEOR.edge) * k)) continue;
     if (!hurt(ctx, e, METEOR.edge + (METEOR.dmg - METEOR.edge) * k, 'charred')) {
       burning.set(e, METEOR.burn);
       e.vel = { x: Math.sign(mid(e).x - at.x || 1) * 4 * k, y: -4 * k };
@@ -252,6 +279,7 @@ const cometHit = (ctx: FrameContext, at: { x: number; y: number }, hit: Enemy | 
     if (!alive(e)) continue;
     const near = e === hit || Math.hypot(mid(e).x - at.x, mid(e).y - at.y) < 34 + e.width / 2;
     if (!near) continue;
+    if (stormHit?.(ctx, e, 'comet', e === hit ? COMET.dmg : COMET.dmg * 0.5)) continue;
     if (!hurt(ctx, e, e === hit ? COMET.dmg : COMET.dmg * 0.5, 'pancaked') && !isMidBoss(e)) { e.frozeAt = state.frame; e.frozenTimer = COMET.freeze; }
   }
 };
@@ -380,8 +408,10 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
       scorch(state, hitAt.x, hitAt.y, 8);
       // (and he's shown taking it: lit up, jerking, the current crawling over him, till the next one)
       b.e.shockedUntil = state.frame + BOLT.every;
-      if (!isMidBoss(b.e)) b.e.pauseTimer = Math.max(b.e.pauseTimer || 0, 6);
-      hurt(ctx, b.e, BOLT.dmg, 'fried');
+      if (!stormHit?.(ctx, b.e, 'bolt', BOLT.dmg)) {
+        if (!isMidBoss(b.e)) b.e.pauseTimer = Math.max(b.e.pauseTimer || 0, 6);
+        hurt(ctx, b.e, BOLT.dmg, 'fried');
+      }
     }
   }
 };

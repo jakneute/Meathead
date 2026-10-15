@@ -1,0 +1,836 @@
+// STUNTMAN STEVE, the fight (the user's design, first pass). Every number that matters is up top, to tune.
+//
+//   THE INTRO   (a cutscene, skippable, all of it; no HUD) The tornado's dropped him on the stage: the crowd goes wild,
+//               the jumbotron cuts from Steve's two seconds to an instant replay of the man who fell out of the sky.
+//               The PA; him; the camera down the stage to Steve, furious: "NO ONE SHOWS ME UP. I WAS IN A REAL
+//               HOLLYWOOD MOVIE. ONCE. FOR ABOUT 2 SECONDS." His posse revs up in the doors; on.
+//   THE POSSE   Steve sends his stunt drivers (cars.ts): RED cars drift into him along the floor, BLUE cars jump the
+//               (many, always moving) ramps through the hoops and come down on him; both come from either end. They
+//               mostly send him flying. While he's way off from Steve, they come quicker.
+//   STEVE       Wants nothing to do with him (a total pussy): he stays at his end directing traffic. Too close, and a car
+//               is sent straight at him; right up to him, Steve flails his arms (a slap, a little hurt); grab him and
+//               he squirts out of it (forty years of baby oil). Hang about by him and he's off: a tow car, a rope,
+//               dragged on his belly the length of the stage to the other end (blow the tow car up and he's stranded,
+//               scrambling back on foot).
+//   HURTING HIM The ray gun and Meathead's moves in full; any other weapon 35% (every land boss's way); the 60-frame
+//               breather after each hit. His WEAKNESS is the SPELLBOOK, its storm picking by what's on the screen:
+//               METEORS for the red cars, COMETS for the blue, the LIGHTNING for Steve (stunned and struck the whole
+//               time it's on him: the user's opt-in to a status on a boss). "WHY DID I WEAR A CONDUCTIVE SUIT". Every
+//               time it gets him it sets off the stage's PYROTECHNICS ("I FORGOT ABOUT THOSE."): a wave of fire jets
+//               out from him down the stage that throws Meathead right back (no hurt): no spamming it from close in.
+//               Bulked up (the book's other spell), he can pick a car up and throw it back at him: a big hit.
+//
+// Two deaths. The weakness (the lightning's the last thing to hit him): the kill cam; fried stood there, charred
+//   black, still giving the thumbs-up, the crowd applauding; then he topples flat and goes to ash. Any other way: one
+//   last stunt, THE STEVE SIDESTEP: his back goes mid-step, the car takes him up into his own ring of fire, he's stuck
+//   in it by the waist, his pants burn off, and he drops out of it face first, right next to the crash mat.
+
+import type { GameState } from '../../../m1/game/core/state';
+import type { FrameContext } from '../../../m1/game/core/context';
+import type { Controls } from '../../../m1/game/platform/input';
+import type { Enemy, EnemyKind } from '../../../m1/types';
+import { shakeScreen } from '../../../m1/game/core/state';
+import { playSound } from '../../../m1/game/platform/audio';
+import { say, silenceAll, pickLine } from '../../../m1/game/platform/speech';
+import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
+import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { isShat, isNude } from '../../../m1/game/player/gut';
+import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
+import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
+import { registerM2Kind } from '../../kinds';
+import { setStormPick, setStormHit } from '../../weapons/spellbook';
+import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
+import { box, label, saidOver, hands, speak, voice, meatheadSays, landVisit, getHollywood } from '../section';
+import { ARENA_L, ARENA_R, ARENA_MID, GY, ZK, CUT, CAM_ROW, DOORS_X, STEVE_AT, LANE_FRONT, BARRIER_Y } from './arena';
+import {
+  type Garage, newRamps, spawnRed, spawnBlue, spawnTow, pickRamp, updateRamps, updateCars, tickLaunch, launchHim, boom, freeze,
+  clearCars, dropCars, countCars, targetable, carOf, pmid, landingOf,
+} from './cars';
+import { CAR, drawCar, drawCarShadow, extents } from './carArt';
+import type { Car } from './state';
+import { drawSteve, STEVE_H, type StevePose } from './steve';
+import { drawSkids, drawRamp, drawHoop, drawRing, drawPyro, ringAt, PYRO_X } from './art';
+import * as L from './lines';
+
+type Ctx = CanvasRenderingContext2D;
+const pick = pickLine;
+
+// ---------------------------------------------------------------------------------------------------------------
+// The numbers (tune here)
+
+/** His health (the land bosses'), and the enemy's (never runs out: the hits come off ours). */
+const HP = 666, BIG = 100000;
+/** Anything but the ray gun, his moves and the book: this share; the breather after a hit. */
+const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
+/** The lightning on him: the first strike of a storm, each one after (no breather: it's one long hit); stunned this
+ *  long past the last strike, then smoking a while. */
+const ZAP_FIRST = 24, ZAP_EACH = 6, ZAP_HOLD = 26, SMOKE_T = 70;
+/** A meteor or comet that catches him going off on a car; a car thrown into him (bulked up). */
+const METEOR_SPLASH = 30, COMET_SPLASH = 20, THROWN_DMG = 120;
+/** The pyro: a beat after the lightning lands, the jets go off out from him down the stage this fast (px a frame);
+ *  each burns this long; the blast that throws him (along, up; no hurt). */
+const PYRO_DELAY = 14, PYRO_SPEED = 24, PYRO_BURN = 42, PYRO_VX = 17, PYRO_VY = -12;
+/** Cars: how often (frames, by phase), how many out at once; quicker while he's way off from Steve. */
+const RED_EVERY = [0, 165, 130, 100], BLUE_EVERY = [0, 230, 180, 140], MAX_RED = [0, 3, 4, 5], MAX_BLUE = [0, 1, 2, 3];
+const FAR = 1000, FAR_RATE = 1.35;
+/** How often a red car comes from the far end (at him, toward Steve) instead of Steve's own. */
+const FROM_FAR = 0.35;
+/** Close to Steve: a car sent straight at him (this often at most); his flail (how close; its slap, how often). */
+const CLOSE = 520, PUSH_GAP = 110, FLAIL_AT = 80, FLAIL_DMG = 3, FLAIL_EVERY = 45;
+/** Hanging about him (this near, this long): off on a tow rope. The tow's speed, its rope. */
+const TOW_NEAR = 260, TOW_AFTER = 150, TOW_V = 9, ROPE = 70;
+/** Stranded mid-stage (his tow blown up): back to an end on foot, wheezing (px a frame). */
+const SCRAMBLE_V = 1.7;
+/** Steve's taunts; Meathead's thinking out loud about the book. */
+const TAUNT_EVERY = 760, HINT_GAP = 600;
+
+// ---------------------------------------------------------------------------------------------------------------
+// The state
+
+type Act = 'idle' | 'wave' | 'flail' | 'slip' | 'hurt' | 'zapped' | 'smoking' | 'call' | 'yank' | 'towed' | 'slide' | 'getup' | 'scramble' | 'angry';
+type Intro = 'land' | 'talk' | 'pan' | 'steve' | 'back';
+interface Death {
+  how: 'stunt' | 'fried'; t: number; step: string; at: number;
+  x: number; y: number; vx: number; vy: number; rot: number; car: Car | null;
+  pants: { x: number; y: number; vy: number } | null;
+}
+interface KillCam { t: number; acc: number; z: number; out: boolean }
+
+export interface Fight extends Garage {
+  mode: 'intro' | 'on' | 'dead'; t: number; total: number;
+  hp: number; iframes: number; flash: number;
+  /** Steve: where (his feet's x, his depth), which end he's at, which way he faces, what he's at. */
+  sx: number; sz: number; side: 1 | -1; facing: 1 | -1; act: Act; actT: number;
+  zapT: number; frizz: number; singe: number; zappedOnce: boolean;
+  closeT: number; flailAt: number; pushAt: number; tauntT: number;
+  tow: Car | null;
+  redT: number; blueT: number;
+  pyro: { t: number; x: number; hit: boolean } | null; fire: Map<number, number>;
+  e: Enemy; moveSeen: number | undefined; grabWas: string;
+  said: string | null; paSaid: string | null;
+  wrongN: number; hintAt: number; lowSaid: boolean; crowdAt: number;
+  intro: Intro; introT: number; skipT: number; camX: number; replay: number;
+  death: Death | null; deathSaid: number; cam: KillCam | null;
+}
+
+/** The fight going on now (the spellbook's hooks look at it). */
+let live: Fight | null = null;
+let game: GameState | null = null;
+const pants = (): 'clean' | 'shitty' | 'nude' => (!game ? 'clean' : isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean');
+export const resetFight = () => { live = null; };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Steve, the enemy (the engine's: for the hits; drawn here)
+
+const STEVE_KIND = 'm2:steve' as const;
+registerM2Kind({
+  kind: STEVE_KIND,
+  stats: { w: 44, h: 96, hp: BIG, contact: 0, mass: 260, air: true },
+  make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y, harmless: true }),
+  gender: 'm', humanoid: true, grab: 'none', midBoss: true,
+  head: { x: 2, y: -90, r: 12 },
+  draw: () => {},
+  ai: () => true,
+});
+TOO_BIG_BY_KIND[STEVE_KIND] = L.GRAB_STEVE;
+
+// ---------------------------------------------------------------------------------------------------------------
+// The weakness: the storm's say over its targets (what's on the screen), and what it does
+
+setStormPick((state, px, py) => {
+  const f = live;
+  if (!f || f.mode !== 'on') return null;
+  const a = state.camera.x, b = a + CANVAS_WIDTH;
+  const seen = (c: Car) => c.x + 60 > a && c.x - 60 < b;
+  const nearest = (cs: Car[]) => cs.sort((p, q) => Math.hypot(p.x - px, p.y - py) - Math.hypot(q.x - px, q.y - py))[0]?.e ?? null;
+  return {
+    meteor: nearest(f.cars.filter(c => c.color === 'red' && targetable(c) && seen(c))),
+    comet: nearest(f.cars.filter(c => c.color === 'blue' && targetable(c) && seen(c))),
+    bolt: f.sx > a - 20 && f.sx < b + 20 ? f.e : null,
+  };
+});
+setStormHit((ctx, e, el, _dmg) => {
+  const f = live;
+  if (!f) return false;
+  if (e === f.e) { if (f.mode === 'on') struck(ctx, f, el); return true; }
+  const car = carOf(e);
+  if (!car) return false;
+  if (el === 'comet') freeze(ctx, f, car); else boom(ctx, f, car);
+  return true;
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Saying things (one at a time; words only while said)
+
+let token = 0;
+const tokened = (fn: () => void) => { const tok = token; return () => { if (tok === token) fn(); }; };
+const quiet = (f: Fight) => !f.said && !f.paSaid;
+/** Steve says one of these (waits its turn). */
+const steveSays = (f: Fight, text: string, onDone?: () => void) => {
+  const tok = token;
+  speak(L.STEVE_VOICE, text, s => { if (tok === token) f.said = s?.text ?? null; }, true, () => { if (tok === token) onDone?.(); });
+};
+const steveLine = (f: Fight, lines: L.ByPants, onDone?: () => void) => steveSays(f, pick(lines[pants()]), onDone);
+/** A bark: dropped if somebody's talking. */
+const bark = (f: Fight, lines: L.ByPants) => {
+  if (!quiet(f)) return;
+  const text = pick(lines[pants()]);
+  say(text, voice(L.STEVE_VOICE), 'casual', {
+    always: true,
+    onShow: spoken => { f.said = text; if (!spoken) setTimeout(() => { if (f.said === text) f.said = null; }, Math.max(1600, text.length * 65)); },
+    onHide: () => { if (f.said === text) f.said = null; },
+  });
+};
+const paSays = (f: Fight, lines: L.ByPants, onDone?: () => void) => {
+  const tok = token;
+  speak(L.PA_VOICE, pick(lines[pants()]), s => { if (tok === token) f.paSaid = s?.text ?? null; }, true, () => { if (tok === token) onDone?.(); });
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Starting
+
+/** Seen the intro this visit (a retry from the checkpoint skips it). */
+let introVisit = -1;
+
+const camFor = (x: number) => Math.max(ARENA_L, Math.min(ARENA_R - CANVAS_WIDTH, x - CANVAS_WIDTH / 2));
+
+export const startFight = (state: GameState): Fight => {
+  game = state; token++;
+  const side: 1 | -1 = 1;
+  const e = makeKindEnemy(STEVE_KIND as EnemyKind, STEVE_AT(side), GY);
+  e.facing = -1; e.seen = true;
+  const f: Fight = {
+    cars: [], ramps: newRamps(), skids: [], nextId: 0, launch: null, hype: 0, hot: false,
+    steveBox: () => null, onThrownHit: () => {}, onCrowd: () => {},
+    mode: 'intro', t: 0, total: 0, hp: HP, iframes: 0, flash: 0,
+    sx: STEVE_AT(side), sz: 0, side, facing: -1, act: 'idle', actT: 0,
+    zapT: 0, frizz: 0, singe: 0, zappedOnce: false, closeT: 0, flailAt: -999, pushAt: -999, tauntT: 0, tow: null,
+    redT: 0, blueT: 0, pyro: null, fire: new Map(),
+    e, moveSeen: e.hitByMove, grabWas: 'idle', said: null, paSaid: null, wrongN: 0, hintAt: -9999, lowSaid: false, crowdAt: -99,
+    intro: 'land', introT: 0, skipT: 0, camX: camFor(pmid(state).x), replay: 0,
+    death: null, deathSaid: 0, cam: null,
+  };
+  f.steveBox = () => (f.mode === 'on' ? { x0: f.sx - 24, x1: f.sx + 24, y0: GY - STEVE_H, y1: GY } : null);
+  f.onThrownHit = (ctx) => thrownHit(ctx, f);
+  f.onCrowd = (ctx, x, what) => crowd(ctx, f, x, what);
+  live = f;
+  if (introVisit === landVisit()) { beginFight(state, f); return f; }
+  state.player.inCutscene = true;
+  f.replay = 1;
+  return f;
+};
+
+/** On: out of the cutscene, Steve in the world, the posse on its way. */
+const beginFight = (state: GameState, f: Fight) => {
+  token++; introVisit = landVisit();
+  f.said = null; f.paSaid = null;
+  state.cameraOverride = null;
+  const p = state.player;
+  p.inCutscene = false; p.isDucking = false;
+  f.mode = 'on'; f.act = 'idle'; f.actT = 0; f.replay = 0;
+  f.redT = RED_EVERY[1] - 50; f.blueT = BLUE_EVERY[1] * 0.4;
+  if (!state.enemies.includes(f.e)) state.enemies.push(f.e);
+};
+
+const intro = (ctx: FrameContext, f: Fight): Controls => {
+  const { state } = ctx, p = state.player;
+  f.introT++; f.skipT++;
+  p.inCutscene = true; p.vel.x = 0;
+  if (f.replay > 0) f.replay++;
+  if (f.skipT > SKIP_AFTER) offerSkip();
+  if (f.skipT > SKIP_AFTER && takeSkip()) { silenceAll(); state.playerVulgarityTimer = 0; beginFight(state, f); return hands(); }
+  const t = f.introT, me = camFor(pmid(state).x), him = camFor(f.sx);
+  switch (f.intro) {
+    case 'land':
+      // (down out of the sky in a crouch, up out of it; the crowd goes nuts, the cameras flash)
+      p.isDucking = t < 34;
+      f.hype = 1;
+      if (t % 12 === 0) crowd(ctx, f, p.pos.x + (Math.random() - 0.5) * 500, t % 24 ? 'wow' : 'boom', true);
+      if (t >= 46) {
+        f.intro = 'talk'; f.introT = 0;
+        paSays(f, L.PA_LANDING, () => meatheadSays(state, pick(L.MEATHEAD_LANDED), true, tokened(() => { f.intro = 'pan'; f.introT = 0; })));
+      }
+      f.camX = me;
+      break;
+    case 'talk':
+      f.hype = Math.max(f.hype, 0.6); f.camX = me;
+      break;
+    case 'pan':
+      // (down the stage to Steve, at his end, livid)
+      f.camX += (him - f.camX) * 0.06; f.act = 'angry'; f.facing = -1;
+      if (t >= 70) {
+        f.intro = 'steve'; f.introT = 0;
+        steveLine(f, L.STEVE_FUMING, () => steveSays(f, L.STEVE_SHOWN_UP, () => {
+          f.act = 'wave'; playSound('engine', 0.8, -4); playSound('carroar', 0.6, 2);
+          steveLine(f, L.STEVE_POSSE, () => { f.intro = 'back'; f.introT = 0; });
+        }));
+      }
+      break;
+    case 'steve':
+      f.camX = him;
+      if (f.act === 'wave' && t % 30 === 0) playSound('carroar', 0.4, Math.random() * 4);
+      break;
+    case 'back':
+      f.camX += (me - f.camX) * 0.08;
+      if (t >= 50) beginFight(state, f);
+      break;
+  }
+  f.actT++;
+  state.cameraOverride = { x: f.camX, y: GY - CAM_ROW };
+  state.camera.x = f.camX; state.camera.y = GY - CAM_ROW;
+  return hands();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Each frame
+
+const phase = (f: Fight) => (f.hp > HP * 0.66 ? 1 : f.hp > HP * 0.33 ? 2 : 3);
+const setAct = (f: Fight, a: Act) => { f.act = a; f.actT = 0; };
+const doorOf = (side: 1 | -1, inner = false) => (side > 0 ? DOORS_X[inner ? 2 : 3] : DOORS_X[inner ? 1 : 0]);
+
+export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
+  const { state } = ctx;
+  live = f; game = state;
+  f.total++;
+  f.hype = Math.max(0, f.hype - 0.006);
+  for (const [x, t] of f.fire) if (t <= 1) f.fire.delete(x); else f.fire.set(x, t - 1);
+  if (f.mode === 'intro') { const out = intro(ctx, f); sync(state, f); return out; }
+  f.t++;
+  if (f.iframes > 0) f.iframes--;
+  if (f.flash > 0) f.flash--;
+  tickLaunch(ctx, f);
+  if (f.mode === 'dead') { updateCars(ctx, f); dying(ctx, f); return hands(); }
+  takeHits(ctx, f);
+  watchGrab(ctx, f);
+  if (f.hp <= 0) { die(ctx, f, false); return hands(); }
+  f.hot = phase(f) >= 3;
+  steve(ctx, f);
+  pyro(ctx, f);
+  spawn(ctx, f);
+  updateRamps(state, f, pmid(state).x);
+  updateCars(ctx, f);
+  if (f.mode === 'on' && f.hp < HP * 0.25 && !f.lowSaid && quiet(f)) { f.lowSaid = true; steveLine(f, L.STEVE_LOW); }
+  sync(state, f);
+  return controls;
+};
+
+/** Steve himself: at his end directing traffic, and whatever's being done to him. */
+const steve = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, p = state.player, m = pmid(state);
+  const d = Math.abs(m.x - f.sx);
+  f.actT++;
+  if (f.frizz > 0) f.frizz = Math.max(0, f.frizz - 0.002);
+  // Struck (the lightning): jerking, lit up, going nowhere, till it's off him; then smoking
+  if (f.zapT > 0) {
+    if (f.act !== 'zapped') { if (f.tow) dropTow(f); setAct(f, 'zapped'); }
+    if (--f.zapT === 0) setAct(f, 'smoking');
+    f.sz += (0 - f.sz) * 0.2;
+    return;
+  }
+  const atEnd = Math.abs(f.sx - STEVE_AT(f.side)) < 6;
+  switch (f.act) {
+    case 'smoking': if (f.actT > SMOKE_T) setAct(f, atEnd ? 'idle' : 'scramble'); break;
+    case 'hurt': if (f.actT > 14) setAct(f, atEnd ? 'idle' : 'scramble'); break;
+    case 'slip': if (f.actT > 40) setAct(f, 'idle'); break;
+    case 'wave': if (f.actT > 40) setAct(f, 'idle'); break;
+    case 'call': {
+      // (whistling the tow over: it comes out of the door and round into the front lane; the rope's thrown)
+      const c = f.tow;
+      if (!c || c.mode !== 'tow') { f.tow = null; setAct(f, 'idle'); break; }
+      c.speed = 1.5;
+      f.facing = c.x < f.sx ? -1 : 1;
+      if (c.z > LANE_FRONT * 0.6 || f.actT > 120) { setAct(f, 'yank'); playSound('whoosh', 1, -6); playSound('screams', 0.3, 10); }
+      break;
+    }
+    case 'yank': case 'towed': {
+      // (yanked off his feet, then dragged on his belly behind it the length of the stage)
+      const c = f.tow;
+      if (!c || c.mode !== 'tow') { dropTow(f); break; }
+      c.speed = Math.min(TOW_V, c.speed + 0.35);
+      const rear = c.x - c.dir * (CAR.L / 2), want = rear - c.dir * ROPE;
+      f.sx += (want - f.sx) * (f.act === 'yank' ? 0.25 : 0.6); f.sz += (c.z - f.sz) * 0.2;
+      f.facing = c.dir;
+      if (f.act === 'yank' && f.actT > 14) setAct(f, 'towed');
+      if (f.actT % 6 === 0) state.particles.push({ pos: { x: f.sx, y: GY + f.sz * ZK - 4 }, vel: { x: -c.dir, y: -0.8 }, life: 24, color: 'rgba(168, 162, 158, 0.6)', size: 6 });
+      // (the far end: let go, slid in the rest of the way)
+      const far = doorOf((-f.side) as 1 | -1);
+      if ((c.x - far) * c.dir >= 0) { f.side = (-f.side) as 1 | -1; c.mode = 'recover'; c.t = 0; f.tow = null; setAct(f, 'slide'); }
+      break;
+    }
+    case 'slide':
+      f.sx += (STEVE_AT(f.side) - f.sx) * 0.08; f.sz += (0 - f.sz) * 0.08;
+      if (f.actT > 40) setAct(f, 'getup');
+      break;
+    case 'getup':
+      f.sz += (0 - f.sz) * 0.2;
+      if (f.actT > 40) setAct(f, atEnd ? 'idle' : 'scramble');
+      break;
+    case 'scramble': {
+      // (stranded out on the floor: back to the nearer end on foot, wheezing)
+      f.side = f.sx > ARENA_MID ? 1 : -1;
+      const to = STEVE_AT(f.side), dir = Math.sign(to - f.sx);
+      f.sx += dir * Math.min(SCRAMBLE_V, Math.abs(to - f.sx)); f.facing = (dir || f.facing) as 1 | -1;
+      if (f.actT % 40 === 1) playSound('snort', 0.4, 6);
+      if (Math.abs(to - f.sx) < 1) setAct(f, 'idle');
+      if (d < FLAIL_AT) setAct(f, 'flail');
+      break;
+    }
+    case 'idle': case 'flail': case 'angry': {
+      f.facing = m.x < f.sx ? -1 : 1;
+      f.sz += (0 - f.sz) * 0.2;
+      if (d < FLAIL_AT) {
+        if (f.act !== 'flail') { setAct(f, 'flail'); if (Math.random() < 0.6) bark(f, L.STEVE_FLAIL); }
+        // (a slap, now and then, when he's in his arms' way)
+        if (f.total - f.flailAt > FLAIL_EVERY && Math.abs(m.x - f.sx) < 46 && p.pos.y + p.height > GY - STEVE_H + 10 && p.invincibilityTimer <= 0) {
+          f.flailAt = f.total;
+          hurtPlayer(ctx, FLAIL_DMG, 'm2:steve_flail', { x: (m.x < f.sx ? -1 : 1) * 4, y: -3 }, 10);
+          playSound('punch', 0.6, 8);
+        }
+      } else if (f.act !== 'idle') setAct(f, 'idle');
+      // (hanging about him: off on a tow rope to the other end)
+      f.closeT = d < TOW_NEAR ? f.closeT + 1 : Math.max(0, f.closeT - 1);
+      if (f.closeT > TOW_AFTER && !f.tow) { callTow(ctx, f); break; }
+      // (getting close: a car straight at him)
+      if (d < CLOSE && f.total - f.pushAt > PUSH_GAP && countCars(f, 'red') < MAX_RED[phase(f)] + 1) {
+        f.pushAt = f.total;
+        spawnRed(state, f, doorOf(f.side, Math.random() < 0.4), (-f.side) as 1 | -1, 'drift');
+        if (Math.random() < 0.5) bark(f, L.STEVE_TOO_CLOSE);
+        if (f.act === 'idle') setAct(f, 'wave');
+      }
+      if (++f.tauntT >= TAUNT_EVERY) { f.tauntT = Math.floor(Math.random() * 200); bark(f, L.STEVE_TAUNT); }
+      break;
+    }
+    default: break;
+  }
+};
+
+const callTow = (ctx: FrameContext, f: Fight) => {
+  f.closeT = 0;
+  f.tow = spawnTow(ctx.state, f, doorOf(f.side), (-f.side) as 1 | -1);
+  setAct(f, 'call');
+  bark(f, L.STEVE_TOW);
+  playSound('beep', 0.6, 10);
+};
+/** Off the rope (zapped off it, or his tow car's blown up): down where he is; stranded, he'll walk back. */
+const dropTow = (f: Fight) => {
+  if (f.tow && f.tow.mode === 'tow') { f.tow.mode = 'recover'; f.tow.t = 0; }
+  f.tow = null;
+  f.sz = 0;
+  if (f.act === 'yank' || f.act === 'towed' || f.act === 'call') setAct(f, 'getup');
+};
+
+/** The posse, sent: red cars (from either end, at him), blue cars off whichever ramp's jump comes down nearest him. */
+const spawn = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, m = pmid(state), ph = phase(f);
+  // (not while he's out of it: nobody's calling them)
+  if (f.zapT > 0 || f.act === 'smoking' || f.act === 'towed' || f.act === 'yank') return;
+  const rate = Math.abs(m.x - f.sx) > FAR ? FAR_RATE : 1;
+  f.redT += rate; f.blueT += rate;
+  if (f.redT >= RED_EVERY[ph] && countCars(f, 'red') < MAX_RED[ph]) {
+    f.redT = Math.random() * 30;
+    // (from Steve's end, or now and then the far one; whichever, out of a door on that side of him, at him)
+    let from = Math.random() < FROM_FAR ? (-f.side as 1 | -1) : f.side;
+    const doors = DOORS_X.filter(x => (x - m.x) * from > 140);
+    if (!doors.length) from = (-from) as 1 | -1;
+    const pool = DOORS_X.filter(x => (x - m.x) * from > 140);
+    const door = pool.length ? pool[Math.floor(Math.random() * pool.length)] : doorOf(from);
+    spawnRed(state, f, door, (-from) as 1 | -1);
+    if (f.act === 'idle') setAct(f, 'wave');
+    if (Math.random() < 0.35) bark(f, L.STEVE_SEND);
+  }
+  if (f.blueT >= BLUE_EVERY[ph] && countCars(f, 'blue') < MAX_BLUE[ph]) {
+    const i = pickRamp(f, m.x);
+    if (i >= 0 && spawnBlue(state, f, i)) { f.blueT = Math.random() * 40; if (Math.random() < 0.3) bark(f, L.STEVE_RAMP); }
+  }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Hits on him
+
+const plainHit = (state: GameState, melee: boolean): number | null => {
+  const p = state.player;
+  if (melee) return p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE;
+  return p.currentWeapon === 'GUN' ? BULLET_DAMAGE : null;
+};
+
+const takeHits = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, e = f.e;
+  const dealt = Math.max(0, BIG - e.health);
+  e.health = BIG; e.maxHealth = BIG;
+  const melee = e.hitByMove !== f.moveSeen;
+  f.moveSeen = e.hitByMove;
+  if (dealt <= 0 || !state.enemies.includes(e) || f.iframes > 0) return;
+  const plain = plainHit(state, melee);
+  // (anything else but the book: a share; and him thinking out loud about the book, now and then)
+  if (plain === null && state.player.currentWeapon !== 'SPELLBOOK' && !f.zappedOnce && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.total - f.hintAt > HINT_GAP) {
+    f.hintAt = f.total; meatheadSays(state, pick(L.MEATHEAD_HINT), false);
+  }
+  hurt(ctx, f, plain ?? Math.max(1, dealt * SHARE), IFRAMES);
+};
+
+const hurt = (ctx: FrameContext, f: Fight, dmg: number, iframes: number) => {
+  const { state } = ctx;
+  f.hp -= dmg; f.iframes = Math.max(f.iframes, iframes); f.flash = 8;
+  for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: f.sx, y: GY - 60 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
+  playSound('gunhit', 0.5, 2);
+  ctx.fx.spawnDamageNumber({ x: f.sx - 10, y: GY - STEVE_H - 10 }, Math.max(1, Math.round(dmg)), dmg > 40);
+  if (f.act === 'idle' || f.act === 'flail' || f.act === 'wave' || f.act === 'scramble' || f.act === 'getup') setAct(f, 'hurt');
+  if (f.hp > 0 && Math.random() < 0.15) bark(f, L.STEVE_HURT);
+};
+
+/** The book's storm on him: the lightning (stunned, struck, the pyro off), or a meteor's or comet's splash off a car. */
+const struck = (ctx: FrameContext, f: Fight, el: 'meteor' | 'comet' | 'bolt') => {
+  if (el !== 'bolt') { if (f.iframes <= 0) hurt(ctx, f, el === 'meteor' ? METEOR_SPLASH : COMET_SPLASH, IFRAMES); if (f.hp <= 0) die(ctx, f, false); return; }
+  const first = f.zapT <= 0 && f.act !== 'zapped';
+  f.zapT = ZAP_HOLD;
+  const dmg = first ? ZAP_FIRST : ZAP_EACH;
+  f.hp -= dmg; f.flash = 6;
+  f.frizz = 1; f.singe = Math.min(1, f.singe + 0.06);
+  ctx.fx.spawnDamageNumber({ x: f.sx - 10, y: GY - STEVE_H - 10 }, dmg, first);
+  if (first) {
+    playSound('taser', 1, -2);
+    // (and the stage's pyro goes off with it)
+    f.pyro = { t: 0, x: f.sx, hit: false };
+    if (!f.zappedOnce) { f.zappedOnce = true; steveSays(f, L.STEVE_CONDUCTIVE, () => steveLine(f, L.STEVE_PYRO)); }
+    else if (Math.random() < 0.4 && quiet(f)) steveLine(f, Math.random() < 0.5 ? L.STEVE_ZAPPED : L.STEVE_PYRO);
+    else if (quiet(f)) steveLine(f, L.STEVE_PYRO);
+    f.hype = 1;
+  }
+  if (f.hp <= 0) die(ctx, f, true);
+};
+
+/** The pyrotechnics: a wave of fire jets out from Steve both ways down the stage; it throws Meathead clear (no hurt). */
+const pyro = (ctx: FrameContext, f: Fight) => {
+  const P = f.pyro;
+  if (!P) return;
+  const { state } = ctx;
+  P.t++;
+  if (P.t === PYRO_DELAY) { playSound('ignite', 1, -6); playSound('boom', 0.7, -10); shakeScreen(state, 10, 5); }
+  if (P.t < PYRO_DELAY) return;
+  const r = (P.t - PYRO_DELAY) * PYRO_SPEED;
+  for (const px of PYRO_X) if (Math.abs(px - P.x) <= r && !f.fire.has(px) && Math.abs(px - P.x) > r - PYRO_SPEED - 1) { f.fire.set(px, PYRO_BURN); if (Math.abs(px - (state.camera.x + 400)) < 500 && px % 2 === 0) playSound('flame', 0.4, Math.random() * 4); }
+  const m = pmid(state);
+  if (!P.hit && Math.abs(m.x - P.x) <= r + 30) {
+    P.hit = true;
+    const away = (Math.sign(m.x - P.x) || -f.side) as 1 | -1;
+    launchHim(ctx, f, away * PYRO_VX, PYRO_VY, 0, 'm2:stunt_pyro');
+    ctx.fx.spawnDamageNumber({ x: m.x - 20, y: m.y - 50 }, 'KABOOM!', true, '#F97316');
+  }
+  if (r > 2200) f.pyro = null;
+};
+
+/** A car he threw (bulked up) into Steve. */
+const thrownHit = (ctx: FrameContext, f: Fight) => {
+  if (f.mode !== 'on') return;
+  hurt(ctx, f, THROWN_DMG, IFRAMES);
+  if (f.tow) dropTow(f);
+  if (quiet(f)) steveLine(f, L.STEVE_CAR_HIT);
+  f.hype = 1;
+  if (f.hp <= 0) die(ctx, f, false);
+};
+
+/** A grab at Steve: he squirts out of it like a wet bar of soap. */
+const watchGrab = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx;
+  const g = (getHollywood(state) as unknown as { grab?: { phase: string } } | null)?.grab;
+  const ph = g?.phase ?? 'idle';
+  if (ph !== f.grabWas && (ph === 'windup' || ph === 'reach' || ph === 'awind')) {
+    const p = state.player, dx = (f.sx - pmid(state).x) * p.facing;
+    if (dx > -20 && dx < 150 && (f.act === 'idle' || f.act === 'flail' || f.act === 'wave' || f.act === 'hurt' || f.act === 'scramble')) {
+      setAct(f, 'slip');
+      bark(f, L.STEVE_SLIP);
+      playSound('oil', 0.8, 4);
+      for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: f.sx, y: GY - 50 - Math.random() * 40 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 30, color: i % 2 ? '#FDE68A' : '#FEF3C7', size: 2 + Math.random() * 2, grav: 0.3 });
+    }
+  }
+  f.grabWas = ph;
+};
+
+/** The crowd: words up over the barrier (not too often). */
+const crowd = (ctx: FrameContext, f: Fight, x: number, what: 'ooh' | 'boom' | 'wow', always = false) => {
+  f.hype = Math.max(f.hype, what === 'ooh' ? 0.7 : 1);
+  if (!always && f.total - f.crowdAt < 25) return;
+  f.crowdAt = f.total;
+  const s = ctx.state, cx = Math.max(s.camera.x + 60, Math.min(s.camera.x + CANVAS_WIDTH - 60, x + (Math.random() - 0.5) * 160));
+  ctx.fx.spawnDamageNumber({ x: cx - 20, y: BARRIER_Y + 30 }, what === 'ooh' ? 'OOOH!' : what === 'boom' ? 'WOOO!' : 'WHOA!', true, '#FDE68A');
+  playSound('screams', 0.15, 12);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Dying
+
+const die = (ctx: FrameContext, f: Fight, fried: boolean) => {
+  const { state } = ctx, p = state.player;
+  if (f.mode === 'dead') return;
+  token++;
+  f.mode = 'dead'; f.t = 0;
+  state.enemies = state.enemies.filter(o => o !== f.e);
+  if (f.tow) dropTow(f);
+  clearCars(f);
+  f.pyro = null;
+  state.damageNumbers = [];
+  f.said = null; f.paSaid = null;
+  p.inCutscene = true;
+  f.death = { how: fried ? 'fried' : 'stunt', t: 0, step: 'start', at: 0, x: f.sx, y: GY, vx: 0, vy: 0, rot: 0, car: null, pants: null };
+  f.facing = (-f.side) as 1 | -1;
+  if (fried) {
+    f.cam = { t: 0, acc: 0, z: 1, out: false };
+    playSound('bolt', 1.2, -4); playSound('thunder', 0.8, 2);
+    steveLine(f, L.STEVE_FRIED);
+  } else playSound('hurt', 0.8, -4);
+};
+
+/** The deaths' beats. */
+const dying = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, d = f.death!, p = state.player;
+  d.t++;
+  const t = d.t;
+  p.inCutscene = true;
+  // (the camera on him, his end of the stage)
+  const want = camFor(d.x);
+  f.camX = t === 1 ? state.camera.x : f.camX + (want - f.camX) * 0.08;
+  state.cameraOverride = { x: f.camX, y: GY - CAM_ROW }; state.camera.x = f.camX; state.camera.y = GY - CAM_ROW;
+  if (d.how === 'fried') {
+    if (t % 7 === 0 && t < 70) { playSound('taser', 0.6, Math.random() * 6); for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: d.x, y: GY - 60 }, vel: { x: (Math.random() - 0.5) * 8, y: -Math.random() * 6 }, life: 14, color: i % 2 ? '#FFFFFF' : '#A5F3FC', size: 2 }); }
+    if (t === 80) { d.step = 'charred'; playSound('crumble', 0.5, 4); f.hype = 1; }
+    if (f.cam && t > 90) f.cam.out = true;
+    if (d.step === 'charred') {
+      if (t % 5 === 0) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 20, y: GY - 80 - Math.random() * 20 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1 }, life: 50, color: 'rgba(87, 83, 78, 0.55)', size: 6 + Math.random() * 6 });
+      if (t % 20 === 0 && t < 220) crowd(ctx, f, d.x, 'boom', true);
+      if (t === 110) paSays(f, L.PA_DEATH_FRIED, tokened(() => { d.step = 'topple'; d.at = d.t; }));
+    }
+    if (d.step === 'topple') {
+      const k = Math.min(1, (t - d.at) / 22);
+      d.rot = k * k * (Math.PI / 2);
+      if (k >= 1) { d.step = 'ash'; d.at = t; playSound('thud', 1, -6); playSound('crumble', 1, -4); shakeScreen(state, 8, 4); }
+    }
+    if (d.step === 'ash' && t === d.at + 50 && f.deathSaid === 0) { f.deathSaid = 1; meatheadSays(state, pick(L.MEATHEAD_WON_WEAK), true, tokened(() => { f.deathSaid = 4; })); }
+  } else {
+    // THE STEVE SIDESTEP: one last stunt, a car, his back, the ring of fire, the floor (not the mat)
+    if (d.step === 'start' && t === 30) { d.step = 'announce'; steveLine(f, L.STEVE_LAST_STUNT, tokened(() => { d.step = 'car'; d.at = d.t; })); }
+    if (d.step === 'car' && t === d.at + 1) {
+      const from = (-f.side) as 1 | -1, car = spawnRed(state, f, doorOf(from, true), f.side, 'drift');
+      car.plan = 'none'; car.scripted = true; d.car = car;
+      playSound('carroar', 1, -2);
+    }
+    if ((d.step === 'car' || d.step === 'back') && d.car) {
+      const c = d.car, gap = (d.x - c.x) * c.dir;
+      if (d.step === 'car' && gap < 170) { d.step = 'back'; playSound('crack', 1, -6); steveLine(f, L.STEVE_BACK); }
+      if (gap < extents(c.yaw).hx + 12) {
+        // (it takes him: up, spinning, into his own ring of fire)
+        d.step = 'fly'; d.at = t;
+        const r = ringAt(f.side), up = GY - (r.y + 40);
+        d.vy = -Math.sqrt(2 * 0.55 * up); d.vx = (r.x - d.x) / (-d.vy / 0.55);
+        playSound('crash', 1, -4); playSound('punch', 1, -6); shakeScreen(state, 14, 7);
+        f.hype = 1; crowd(ctx, f, d.x, 'ooh', true);
+      }
+    }
+    if (d.step === 'fly') {
+      d.x += d.vx; d.y += d.vy; d.vy += 0.55; d.rot += 0.3;
+      if (d.vy >= 0) {
+        const r = ringAt(f.side);
+        d.step = 'hoop'; d.at = t; d.x = r.x; d.y = r.y + 40; d.rot = 0;
+        playSound('clang', 0.9, -4); playSound('ignite', 0.8, 0);
+      }
+    }
+    if (d.step === 'hoop') {
+      // (stuck in it by the waist; his pants catch, and drop off him burning)
+      if (t === d.at + 20) { d.pants = { x: d.x, y: d.y - 30, vy: 0 }; playSound('ignite', 0.7, 6); crowd(ctx, f, d.x, 'ooh', true); }
+      if (t === d.at + 80) { d.step = 'drop'; d.vy = 0; playSound('clang', 1, -8); }
+    }
+    if (d.pants && d.pants.y < GY - 4) { d.pants.vy += 0.4; d.pants.y = Math.min(GY - 4, d.pants.y + d.pants.vy); }
+    if (d.step === 'drop') {
+      d.vy += 0.6; d.y += d.vy;
+      if (d.y >= GY) { d.y = GY; d.step = 'down'; d.at = t; playSound('thud', 1.2, -8); playSound('splat', 0.5, -4); shakeScreen(state, 14, 7); f.hype = 1; }
+    }
+    if (d.step === 'down' && t === d.at + 40) paSays(f, L.PA_DEATH, tokened(() => meatheadSays(state, pick(L.MEATHEAD_WON), true, tokened(() => { f.deathSaid = 4; }))));
+  }
+  // (it never hangs)
+  if (t > 1800) f.deathSaid = 4;
+};
+
+/** Done with: his death played out, everybody's had their say. */
+export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.deathSaid >= 4 && f.death.t > 200 && (!f.cam || f.cam.z <= 1);
+export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; state.cameraOverride = null; dropCars(state, f); live = null; };
+export const killedByWeakness = (f: Fight) => f.death?.how === 'fried';
+export const introOn = (f: Fight) => f.mode === 'intro';
+export const introSkipT = (f: Fight) => f.skipT;
+
+/** The enemy, where he is (in the play plane at his x). */
+const sync = (state: GameState, f: Fight) => {
+  const e = f.e;
+  e.pos.x = f.sx - e.width / 2; e.pos.y = GY - e.height - 2;
+  e.vel.x = 0; e.vel.y = 0; e.facing = f.facing; e.initialY = e.pos.y;
+  e.hitCooldown = f.iframes;
+  e.pauseTimer = 0; e.frozenTimer = 0; e.isTased = false; e.sludgeTimer = 0; e.returnHome = false; e.puppet = false;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The kill cam (the weakness death): Donnie's, near enough
+
+const CAM_Z = 2.2, SLOW = 0.25, SLOW_HOLD = 50, SLOW_RAMP = 110;
+export const killCamTick = (f: Fight): boolean => {
+  const cam = f.cam;
+  if (!cam) return false;
+  cam.t++;
+  cam.z += ((cam.out ? 1 : CAM_Z) - cam.z) * (cam.out ? 0.05 : cam.t < 6 ? 0.35 : 0.08);
+  if (cam.out && cam.z < 1.004) cam.z = 1;
+  let rate = cam.t < SLOW_HOLD ? SLOW : Math.min(1, SLOW + ((1 - SLOW) * (cam.t - SLOW_HOLD)) / SLOW_RAMP);
+  if (cam.out) rate = 1;
+  cam.acc += rate;
+  if (cam.acc >= 1) { cam.acc -= 1; return false; }
+  return true;
+};
+export const killCamZoom = (state: GameState, f: Fight) => {
+  const cam = f.cam, d = f.death;
+  if (!cam || !d || cam.z <= 1) return null;
+  const k = (cam.z - 1) / (CAM_Z - 1), fx = d.x, fy = GY - 60;
+  return { scale: cam.z, x: fx, y: fy, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - fx), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 + 40 - fy) };
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Drawing
+
+const poseOf = (f: Fight): StevePose => {
+  if (f.flash > 0 && f.act !== 'zapped' && f.act !== 'towed') return 'hurt';
+  switch (f.act) {
+    case 'wave': case 'call': return 'wave';
+    case 'flail': return 'flail';
+    case 'slip': return 'slip';
+    case 'hurt': return 'hurt';
+    case 'zapped': return 'zapped';
+    case 'smoking': return 'smoking';
+    case 'yank': return 'tumble';
+    case 'towed': case 'slide': return 'towed';
+    case 'getup': return 'getup';
+    case 'angry': return 'angry';
+    case 'scramble': return f.actT % 20 < 10 ? 'flail' : 'getup';
+    default: return f.total % 400 < 60 ? 'thumb' : 'idle';
+  }
+};
+
+const drawHim = (c: Ctx, f: Fight, fr: number) => {
+  const look = { singe: f.singe, frizz: f.frizz };
+  const d = f.death;
+  if (f.mode === 'dead' && d) {
+    if (d.how === 'fried') {
+      if (d.step === 'start') { drawSteve(c, d.x, GY, f.facing, 'zapped', fr, { ...look, frizz: 1, singe: 1 }); return; }
+      if (d.step === 'charred') { drawSteve(c, d.x, GY, f.facing, 'charred', fr, look); return; }
+      if (d.step === 'topple') { c.save(); c.translate(d.x, GY); c.rotate(d.rot * f.facing); drawSteve(c, 0, 0, f.facing, 'charred', fr, look); c.restore(); return; }
+      // (ash: a pile, his aviators on top, the neck brace rolled off beside it)
+      const k = Math.min(1, (d.t - d.at) / 40);
+      c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(d.x + f.facing * 40, GY, 46 * k + 4, 16 * k + 2, 0, Math.PI, 0); c.fill();
+      c.fillStyle = '#57534E'; c.beginPath(); c.ellipse(d.x + f.facing * 40, GY, 44 * k + 2, 14 * k + 1, 0, Math.PI, 0); c.fill();
+      if (k < 1) { c.save(); c.translate(d.x, GY); c.rotate((Math.PI / 2) * f.facing); c.globalAlpha = 1 - k; drawSteve(c, 0, 0, f.facing, 'charred', fr, look); c.restore(); }
+      box(c, d.x + f.facing * 40 - 9, GY - 16 * k - 6, 18, 4, '#CA8A04'); box(c, d.x + f.facing * 40 - 8, GY - 16 * k - 5, 7, 4, '#1C1917'); box(c, d.x + f.facing * 40 + 1, GY - 16 * k - 5, 7, 4, '#1C1917');
+      box(c, d.x + f.facing * 100, GY - 8, 16, 8, '#F1F5F9');
+      return;
+    }
+    const lk = { ...look, pantsDown: !!d.pants };
+    switch (d.step) {
+      case 'start': case 'announce': drawSteve(c, d.x, GY, f.facing, d.t < 30 ? 'hurt' : 'thumb', fr, look); return;
+      case 'car': drawSteve(c, d.x, GY, f.facing, 'sidestep', fr, look); return;
+      case 'back': drawSteve(c, d.x + (fr % 2 ? 1 : -1), GY, f.facing, 'sidestep', fr, look); return;
+      case 'fly': drawSteve(c, d.x, d.y, f.facing, 'tumble', fr, lk); return;
+      case 'hoop': case 'drop': {
+        const r = ringAt(f.side);
+        if (d.step === 'hoop') drawRing(c, f.side, false, true, fr);
+        drawSteve(c, d.x, d.y, f.facing, 'hoop', fr, lk);
+        if (d.step === 'hoop') drawRing(c, f.side, true, true, fr);
+        void r;
+        return;
+      }
+      default: drawSteve(c, d.x, GY, f.facing, 'down', fr, { ...lk, pantsDown: true }); return;
+    }
+  }
+  const blink = f.iframes > 0 && Math.floor(fr / 3) % 2 === 0;
+  if (blink) c.globalAlpha = 0.6;
+  const hop = f.act === 'slip' ? Math.sin(Math.min(1, f.actT / 30) * Math.PI) * 34 : 0;
+  drawSteve(c, f.sx, GY + f.sz * ZK - hop, f.facing, poseOf(f), fr, look);
+  c.globalAlpha = 1;
+  // (zapped: the current crawling over him)
+  if (f.act === 'zapped') for (let i = 0; i < 3; i++) { c.strokeStyle = i % 2 ? '#FFFFFF' : '#A5F3FC'; c.lineWidth = 2; c.beginPath(); let x = f.sx - 20 + Math.random() * 40, y = GY - 100; c.moveTo(x, y); for (let k = 0; k < 4; k++) { x += (Math.random() - 0.5) * 24; y += 22; c.lineTo(x, y); } c.stroke(); }
+  // (smoking, after)
+  if (f.act === 'smoking' && fr % 3 === 0) { c.fillStyle = 'rgba(120, 113, 108, 0.45)'; c.beginPath(); c.arc(f.sx + Math.sin(fr) * 6, GY - 110 - (fr % 30), 6 + (fr % 30) * 0.3, 0, Math.PI * 2); c.fill(); }
+};
+
+/** A car, its shadow, and (blue, coming) the mark where it'll come down. */
+const drawOne = (c: Ctx, car: Car) => {
+  if (car.mode === 'held' || car.mode === 'gone') return;
+  const fadeA = 1 - car.fade;
+  if (fadeA <= 0) return;
+  if (fadeA < 1) c.globalAlpha = fadeA;
+  drawCar(c, { color: car.color, x: car.x, y: car.y, z: car.z, yaw: car.yaw, pitch: car.pitch, crumple: car.crumple, ice: car.ice, burnt: car.burnt, driver: car.mode !== 'wreck', wheel: car.wheel });
+  c.globalAlpha = 1;
+};
+
+/** World space, behind him: the floor's marks, the pyro jets, the ramps and hoops, the cars back of him, Steve. */
+export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
+  const fr = state.frame;
+  drawSkids(c, f.skids);
+  // (the blue cars' marks on the floor: where they'll come down, from the time they're on the ramp)
+  for (const car of f.cars) {
+    if (car.color !== 'blue' || (car.mode !== 'climb' && car.mode !== 'air')) continue;
+    const r = f.ramps[car.ramp];
+    const lx = car.mode === 'air' ? car.x + car.vx * Math.max(0, car.airTotal - car.airT) : landingOf(r);
+    const k = car.mode === 'air' ? car.airT / car.airTotal : 0, rad = 70 - 30 * k, col = fr % 8 < 4 ? '#EF4444' : '#FDE047';
+    c.strokeStyle = '#1A0B06'; c.lineWidth = 5; c.beginPath(); c.ellipse(lx, GY, rad, rad * 0.22, 0, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = col; c.lineWidth = 3; c.stroke();
+    box(c, lx - 12, GY - 2, 24, 4, col); box(c, lx - 2, GY - 6, 4, 12, col);
+  }
+  // (the rings of fire over his two ends: their back halves)
+  const inRing = f.mode === 'dead' && f.death?.how === 'stunt' && (f.death.step === 'hoop');
+  for (const s of [-1, 1] as const) if (!(inRing && s === f.side)) drawRing(c, s, false, f.mode !== 'dead', fr);
+  for (const r of f.ramps) { drawHoop(c, r, false, f.hot, fr); drawRamp(c, r, fr); }
+  for (const car of f.cars) if (car.mode !== 'held' && car.mode !== 'gone') drawCarShadow(c, car.x, GY, car.mode === 'thrown' ? 0 : car.z, car.yaw, GY - car.y);
+  const back = f.cars.filter(c2 => c2.z < CUT && c2.mode !== 'thrown').sort((a, b) => a.z - b.z);
+  for (const car of back) drawOne(c, car);
+  for (const r of f.ramps) drawHoop(c, r, true, f.hot, fr);
+  for (const s of [-1, 1] as const) if (!(inRing && s === f.side)) drawRing(c, s, true, f.mode !== 'dead', fr);
+  drawPyro(c, state, f.fire);
+  if (f.mode !== 'dead' ? f.sz < CUT : true) drawHim(c, f, fr);
+  // (his pants, off and burning on the floor)
+  const pt = f.death?.pants;
+  if (pt) { box(c, pt.x - 12, pt.y - 6, 24, 10, '#1A0B06'); box(c, pt.x - 11, pt.y - 5, 22, 8, '#FACC15'); if (fr % 6 < 3) box(c, pt.x - 4, pt.y - 14, 8, 8, '#F97316'); }
+};
+
+/** World space, in front of him: the cars in front, Steve dragged in front, thrown cars, the tow rope, the words,
+ *  the barrier and the crowd. */
+export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
+  const fr = state.frame;
+  const front = f.cars.filter(c2 => c2.z >= CUT || c2.mode === 'thrown').sort((a, b) => a.z - b.z);
+  for (const car of front) drawOne(c, car);
+  if (f.mode !== 'dead' && f.sz >= CUT) drawHim(c, f, fr);
+  // (the tow rope: the car's back bumper to his fists)
+  if (f.tow && (f.act === 'yank' || f.act === 'towed' || f.act === 'call')) {
+    const t = f.tow, rx = t.x - t.dir * CAR.L / 2, ry = GY + t.z * ZK - 18;
+    const hx = f.act === 'call' ? f.sx + f.facing * 20 : f.sx + t.dir * 46, hy = f.act === 'call' ? GY - 60 : GY + f.sz * ZK - 12;
+    c.strokeStyle = '#1A0B06'; c.lineWidth = 3; c.beginPath(); c.moveTo(rx, ry); c.quadraticCurveTo((rx + hx) / 2, Math.max(ry, hy) + (f.act === 'call' ? 20 : 4), hx, hy); c.stroke();
+    c.strokeStyle = '#D6B98C'; c.lineWidth = 1.5; c.stroke();
+  }
+  // (who's talking: Steve over his head; the PA up over the stage)
+  if (f.said) { const d = f.death; const x = d ? d.x : f.sx, y = d && d.step !== 'down' && d.step !== 'ash' ? Math.min(GY, d.y) - STEVE_H - 18 : GY + f.sz * ZK - STEVE_H - 18; saidOver(c, f.said, x, y, '#FDE047', 220); }
+  if (f.paSaid) saidOver(c, f.paSaid, state.camera.x + CANVAS_WIDTH / 2, state.camera.y + 120, '#E5E7EB', 420);
+};
+
+/** Screen space: his bar in the top band clear of the HUD; the intro's bars and SKIP. */
+export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; mid: number }, inCutscene: boolean) => {
+  if (f.mode === 'intro') {
+    const k = Math.min(1, f.skipT / 20), bar = Math.round(k * 44);
+    c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar);
+    if (f.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
+    return;
+  }
+  if (f.cam) {
+    const cam = f.cam, k = cam.out ? Math.max(0, (cam.z - 1) / (CAM_Z - 1)) : Math.min(1, cam.t / 20), bar = Math.round(k * 44);
+    if (bar > 0) { c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar); }
+    if (cam.t < 14) { c.fillStyle = `rgba(255, 255, 255, ${(1 - cam.t / 14).toFixed(2)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
+  }
+  if (inCutscene || f.mode === 'dead') return;
+  const w = band.x2 - band.x1, k = Math.max(0, f.hp / HP);
+  box(c, band.x1, 22, w, 14, '#18181B'); box(c, band.x1 + 2, 24, (w - 4) * k, 10, f.iframes > 0 && Math.floor(f.iframes / 4) % 2 ? '#FEF08A' : '#FACC15');
+  label(c, 'STUNTMAN STEVE', band.mid, 50, '#FDE047', 7);
+};
+
+/** For the jumbotron: the replay while it's on; OUCH when he's hit. */
+export const screenState = (f: Fight) => ({ replay: f.replay, hurtFlash: f.flash, hype: f.hype });

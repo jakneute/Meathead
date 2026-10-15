@@ -170,5 +170,6 @@
   "m2.hollywood.crew": { "voice": "am_michael", "speed": 1.1, "rate": 0.98, "gain": 1.05 },
   "m2.hollywood.crewf": { "voice": "af_sarah", "speed": 1.1, "rate": 1.0, "gain": 1.05 },
   "m2.hollywood.poppy": { "voice": "am_puck", "speed": 1.2, "rate": 1.14, "gain": 1.05 },
-  "m2.hollywood.poppyf": { "voice": "af_nova", "speed": 1.2, "rate": 1.14, "gain": 1.05 }
+  "m2.hollywood.poppyf": { "voice": "af_nova", "speed": 1.2, "rate": 1.14, "gain": 1.05 },
+  "m2.hollywood.steve": { "voice": [["am_fenrir", 0.55], ["am_michael", 0.45]], "speed": 1.02, "rate": 0.93, "gain": 1.1 }
 }

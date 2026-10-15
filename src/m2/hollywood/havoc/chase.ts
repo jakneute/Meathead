@@ -69,7 +69,7 @@ export const buildCovers = (state: GameState, fromRx: number) => {
 interface Tear { key: string; x0: number; x1: number; h: number; kind: 'facade' | 'steve' | 'horn' | 'fall'; col: string; i: number }
 export const TEARS: Tear[] = [
   ...DECOR.map(([rx, w, h, wall], i): Tear => ({ key: `decor-${i}`, x0: rx, x1: rx + w, h, kind: 'facade', col: wall, i })),
-  ...STEVES.map(([rx], i): Tear => ({ key: `steve-${i}`, x0: rx - 30, x1: rx + 30, h: 150, kind: 'steve', col: '#B91C1C', i })),
+  ...STEVES.map(([rx], i): Tear => ({ key: `steve-${i}`, x0: rx - 30, x1: rx + 30, h: 150, kind: 'steve', col: '#FACC15', i })),
   ...HORNS.map((rx, i): Tear => ({ key: `horn-${i}`, x0: rx - 10, x1: rx + 10, h: 230, kind: 'horn', col: '#57534E', i })),
   ...FALLS.map(([rx, w, h], i): Tear => ({ key: `fall-${i}`, x0: rx, x1: rx + w, h, kind: 'fall', col: '#A16207', i })),
 ].filter(t => t.x0 > DOWNHILL.b);

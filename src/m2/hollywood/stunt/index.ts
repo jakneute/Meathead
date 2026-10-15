@@ -1,72 +1,119 @@
-// THE STUNT STAGE: section 7 of Hollywood Land, the boss (owner: the disaster agent). The tornado flings him into the
-// set of a stunt show: STUNTMAN STEVE'S STUPENDOUS STUNTERY. Steve's a washed-up stunt double who did dangerous work on
-// 80s action films; now he does unimpressive stunts (sidestepping an oncoming car). He still has his balls; he lost his
-// athleticism. The park treats the show as its crown jewel because his face was seen for a few frames of a released
-// film once (the arena: grandstands half empty, a ramp, a car on a cable, a fire ring, crash mats, a giant face banner).
-// THE FIGHT ISN'T DESIGNED YET (the user will do it): build the stage and Steve's entrance (cutscene beat: HUD hidden,
-// skip all-or-nothing) when it's designed; till then, a clearly placeholder stand-in. Main bosses: 666 HP, the 60-frame
-// breather, non-weakness damage 35%; a big health + ammo refill before its door; clean / shitty / naked line pools for
-// every line group, intro to death.
+// THE STUNT STAGE: section 7 of Hollywood Land, the boss. The tornado flings him down onto the set of a stunt show:
+// STUNTMAN STEVE'S STUPENDOUS STUNTERY, an amphitheater's stage (extra wide, a small crowd at the barrier and up the
+// ends, the street set along the back, the posse's garage doors in it, ramps creeping along the back lane, hoops and
+// rings of fire hung off the truss). Steve: a washed-up 80s stunt double in a yellow suit (fight.ts: the intro, the
+// fight, his two deaths; cars.ts: his posse; art.ts and steve.ts: the look).
 //
-// THE SKELETON'S STAND-IN (replace it): walk past the middle of the stage and it's VICTORY, the walk-away
-// (walkAway/stuntmanSteve.ts, a placeholder SceneDef registered as 'stuntman-steve' in walkAway.ts; his toy: the
-// STUNT_CAR) and the hub, Hollywood Land cleared. Its checkpoint (60) is at the stage's door for now; give the boss its
-// own `clear` as the others do. Revisits: once the land's cleared, the stand-in doesn't fire.
+// In off the fling (or on foot from the havoc), it starts as soon as he's on the stage: the walls go up (the stacked
+// tires), the camera keeps to the arena. A retry from the checkpoint (60, at the way in, a big health and ammo refill
+// there) goes straight to the fight. Beaten: VICTORY, the walk-away (walkAway/stuntmanSteve.ts), the hub, Hollywood
+// Land cleared. Revisits: once the land's cleared, the stage stands empty (SHOW CANCELED, the wrecks).
 //
 // The way back: the left end (back to where the tornado caught him: DOORS.havoc.end). No way on (the end of the land).
 
 import type { GameState } from '../../../m1/game/core/state';
+import type { Block } from '../../../m1/types';
 import type { HollywoodSection } from '../section';
-import { layOwn, endWalls, endExits, runExits, groundBox, postSign, placeholderBackdrop, hollywoodState, hands, steveFlier } from '../section';
-import { SECTIONS, DOORS, GY } from '../geometry';
+import { layOwn, endWalls, endExits, runExits, hollywoodState, hands } from '../section';
+import { DOORS, GY } from '../geometry';
+import { topBand } from '../../../m1/constants';
 import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
+import { x0, x1, ARENA_L, ARENA_R, CEIL_Y, CAM_ROW, REFILL_X } from './arena';
+import { drawStuntBackdrop, drawStage, drawCrowd } from './art';
+import {
+  type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud,
+  killCamTick, killCamZoom, killedByWeakness, screenState,
+} from './fight';
 
-const { x0, x1 } = SECTIONS.stunt;
-/** Where the stand-in ends the land (past the middle of the stage). */
-const TRIGGER_X = x0 + 1500;
+interface Stunt {
+  fight: 'wait' | 'on' | 'won'; wonAt: number;
+  f: Fight | null; walls: Block[];
+  victory: Victory | null; walk: WalkAway | null;
+}
+const stuntOf = (state: GameState) => hollywoodState<Stunt>(state, 'stunt', () => ({ fight: 'wait', wonAt: 0, f: null, walls: [], victory: null, walk: null }));
 
-interface Stunt { done: boolean; wonAt: number; victory: Victory | null; walk: WalkAway | null }
-const stuntOf = (state: GameState) => hollywoodState<Stunt>(state, 'stunt', () => ({ done: false, wonAt: 0, victory: null, walk: null }));
+const leave = (state: GameState, weakness: boolean) => {
+  const s = stuntOf(state);
+  markLandCleared('hollywood'); noteBossKill();
+  s.walk = playWalkAway(state, { boss: 'stuntman-steve', weakness, onDone: () => goTo('hub') });
+};
 
 export const stunt: HollywoodSection = {
   id: 'stunt', x0, x1,
-  checkpoints: [{ name: 'THE STUNT STAGE', cp: 60, x: DOORS.stunt.start.x, y: GY }],
+  checkpoints: [{ name: 'THE STUNT STAGE', cp: 60, x: DOORS.stunt.start.x, y: GY, clear: [400, 3000] }],
   build: (state) => {
+    resetFight();
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'hard' }]);
     endWalls(state, 'stunt');
+    // (the far end's stacked tires: always there; nothing past them but the bleachers)
+    state.blocks.push({ x: ARENA_R, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'stunt-end' } as Block);
+    // (the big health and ammo, by the way in: before it starts, and on every retry)
+    if (!isLandCleared('hollywood')) for (const [dx, type] of [[-16, 'large_health'], [16, 'large_ammo']] as const) state.pickups.push({ id: `stunt-${type}`, pos: { x: REFILL_X + dx - 10, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = stuntOf(state);
-    if (!s.done) {
+    if (s.fight === 'wait') {
       runExits(state, endExits('stunt'));
-      if (!isLandCleared('hollywood') && p.pos.x + p.width / 2 > TRIGGER_X && p.isGrounded) { s.done = true; s.wonAt = state.frame; s.victory = startVictory(); }
+      // (on the stage, not cleared: it's on; the walls up, the truss over it)
+      if (!isLandCleared('hollywood') && p.pos.x + p.width / 2 > ARENA_L + 40 && p.pos.x + p.width / 2 < ARENA_R) {
+        s.fight = 'on';
+        s.f = startFight(state);
+        s.walls = [
+          { x: ARENA_L - 40, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'stunt-wall' } as Block,
+          { x: ARENA_R, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'stunt-wall' } as Block,
+          { x: ARENA_L - 40, y: CEIL_Y - 40, w: ARENA_R - ARENA_L + 80, h: 40, type: 'wall', hidden: true, tag: 'stunt-truss' } as Block,
+        ];
+        state.blocks.push(...s.walls);
+      }
       return controls;
     }
-    p.inCutscene = true;
-    if (s.victory) {
-      tickVictory(state, s.victory);
-      if (victoryDone(s.victory) && state.frame - s.wonAt > 60) {
-        s.victory = null;
-        markLandCleared('hollywood'); noteBossKill();
-        s.walk = playWalkAway(state, { boss: 'stuntman-steve', onDone: () => goTo('hub') });
+    if (s.fight === 'on' && s.f) {
+      const f = s.f;
+      const out = updateFight(ctx, f, controls);
+      // (held in: never out of the arena, whatever sends him flying)
+      const lo = ARENA_L, hi = ARENA_R - p.width;
+      if (p.pos.x < lo) { p.pos.x = lo; if (p.vel.x < 0) p.vel.x = 0; }
+      if (p.pos.x > hi) { p.pos.x = hi; if (p.vel.x > 0) p.vel.x = 0; }
+      if (p.pos.y < CEIL_Y) { p.pos.y = CEIL_Y; if (p.vel.y < 0) p.vel.y = 0; }
+      if (fightOver(f)) {
+        s.fight = 'won'; s.wonAt = state.frame;
+        endFight(state, f);
+        state.blocks = state.blocks.filter(b => !s.walls.includes(b)); s.walls = [];
+        s.victory = startVictory();
       }
+      return out;
     }
-    if (s.walk) tickWalkAway(s.walk, controls);
-    return hands();
+    if (s.fight === 'won') {
+      p.inCutscene = true;
+      if (s.victory) { tickVictory(state, s.victory); if (victoryDone(s.victory) && state.frame - s.wonAt > 60) { s.victory = null; leave(state, !!s.f && killedByWeakness(s.f)); } }
+      if (s.walk) tickWalkAway(s.walk, controls);
+      return hands();
+    }
+    return controls;
   },
-  drawBackdrop: (c, state) => placeholderBackdrop(c, state, { sky: ['#1E3A8A', '#3B82F6', '#93C5FD', '#FDE68A'], far: '#7F1D1D', hill: true }),
-  drawBack: (c) => {
-    groundBox(c, x0 - 200, x1 + 200, GY, '#44403C', '#FACC15');
-    postSign(c, x0 + 600, GY, "STUNTMAN STEVE'S STUPENDOUS STUNTERY");
-    steveFlier(c, x0 + 1200, GY - 170, 'poster');
-    postSign(c, x0 + 1500, GY, 'STUNTMAN STEVE: COMING SOON');
+  cameraX: (state) => (stuntOf(state).fight === 'on' ? { min: ARENA_L, max: ARENA_R - 800 } : { min: x0, max: ARENA_R + 40 - 800 }),
+  cameraRow: () => CAM_ROW,
+  drawBackdrop: (c, state) => drawStuntBackdrop(c, state),
+  drawBack: (c, state) => {
+    const s = stuntOf(state), f = s.f;
+    const sc = f ? screenState(f) : { replay: 0, hurtFlash: 0, hype: 0 };
+    drawStage(c, state, { cleared: isLandCleared('hollywood') && !f, hype: sc.hype, replay: sc.replay, hurtFlash: sc.hurtFlash, doorsLit: !!f });
+    if (f) drawFightBack(c, state, f);
+  },
+  drawFront: (c, state) => {
+    const s = stuntOf(state), f = s.f;
+    if (f && s.fight !== 'wait') drawFightFront(c, state, f);
+    drawCrowd(c, state, f ? f.hype : 0);
   },
   drawHud: (c, state) => {
     const s = stuntOf(state);
+    if (s.f && s.fight === 'on') drawFightHud(c, s.f, topBand(), !!state.player.inCutscene);
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },
+  zoom: (state) => { const f = stuntOf(state).f; return f ? killCamZoom(state, f) : null; },
+  holdTick: (ctx) => { const f = stuntOf(ctx.state).f; return f ? killCamTick(f) : false; },
   outdoors: () => 1,
 };

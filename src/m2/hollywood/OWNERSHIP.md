@@ -123,7 +123,9 @@ standees (`steveFlier(c, x, y, 'flier' | 'poster' | 'standee')` in section.ts, o
 
 ## The land's end
 
-`stunt/` holds the skeleton's stand-in: past the middle of the stage it's VICTORY, the walk-away
-(`walkAway/stuntmanSteve.ts`, a placeholder SceneDef registered as `'stuntman-steve'` in walkAway.ts; the STUNT_CAR)
-and the hub, Hollywood Land cleared. The fight isn't designed yet (the user's to do). The portal walk in is
-`walkAway/intoHollywood.ts` (crude; the blvd's owner may bring the blvd's painting into it).
+**Built** (`stunt/`): Stuntman Steve's fight, to the user's design (fight.ts: the intro, Steve, the weakness, the pyro,
+his two deaths; cars.ts: the posse, red drifters and blue ramp jumpers from either end, many moving ramps, the launch;
+art.ts / steve.ts / carArt.ts: the look). The spellbook's storm picks its targets here through its hooks
+(`setStormPick` / `setStormHit`, weapons/spellbook.ts). Beaten: VICTORY, the walk-away (`walkAway/stuntmanSteve.ts`;
+the STUNT_CAR), the hub, Hollywood Land cleared. Every Steve flier/poster/standee is YELLOW (his suit). The portal walk
+in is `walkAway/intoHollywood.ts` (crude; the blvd's owner may bring the blvd's painting into it).
