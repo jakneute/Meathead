@@ -29,7 +29,7 @@ import { smear, drip, cut, bloodFresh, bloodDark } from '../../../m1/game/render
 
 export type StevePose =
   | 'idle' | 'thumb' | 'wave' | 'angry' | 'flail' | 'slip' | 'hurt' | 'zapped' | 'smoking' | 'towed' | 'getup'
-  | 'sidestep' | 'struck' | 'tumble' | 'hoop' | 'down' | 'charred';
+  | 'sidestep' | 'struck' | 'tumble' | 'hoop' | 'down' | 'charred' | 'stagger' | 'brace';
 
 export interface SteveLook {
   /** How singed (0..1: the lightning's left its mark). */
@@ -257,6 +257,17 @@ const rig = (pose: StevePose, f: number, L: SteveLook): Rig => {
       }
       // (THE STEVE SIDESTEP: one big step out of the car's way, arms out like a matador, cool as you like)
       return { legs: [lg(-4, -17, ANKLE, 1, -0.1, 4), lg(4, 17, ANKLE, 1, 0.1, 4)], drop: 4, lean: -0.05, bob: 0, far: far(-24, -58, -1, 0.4), near: near(24, -62, 1, 0.4), fk: 'open', nk: 'open', head: [0, 0, -0.05], mood: 'cool' };
+    case 'stagger': {
+      // (out to center stage on his last legs: knees gone soft, feet dragging, arms out for balance, the face screwed up)
+      const s = Math.sin(f * 0.22), drop = 6;
+      return {
+        legs: [lg(-4, -7 + s * 7, ANKLE - Math.max(0, s) * 3, 1, 0, drop), lg(4, 8 - s * 7, ANKLE - Math.max(0, -s) * 3, 1, 0, drop)], drop, lean: 0.16, bob: Math.abs(s) * 1.4,
+        far: far(-23, -54 + s * 5, -1, 0.5), near: near(23, -56 - s * 5, 1, 0.5), fk: 'open', nk: 'open', head: [1, 1, 0.18 + s * 0.06], mood: 'strain',
+      };
+    }
+    case 'brace':
+      // (putting his neck brace straight for the crowd, both hands to it, chin up: composure)
+      return { legs: stand(2), drop: 2, lean: -0.04, bob: 0, far: far(-3, -77, -1, 0.4), near: near(9, -78, 1, 0.4), fk: 'grip', nk: 'grip', head: [0, -1, -0.2], mood: 'strain' };
     case 'tumble': case 'struck':
       return { legs: [lk(-4, -14, -26, -20, -12, -0.8), lk(4, 15, -30, 23, -19, 0.6)], drop: 0, lean: 0, bob: 0, far: far(-20, -88, -1, 0.3), near: near(24, -86, 1, 0.3), fk: 'open', nk: 'open', head: [0, 0, 0], mood: pose === 'struck' ? 'ouch' : 'scared' };
     case 'hoop': {

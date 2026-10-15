@@ -1,9 +1,9 @@
 m2/hub/index.ts:121 name: AMERICA_DENY
-m2/weapons/soulSucker.ts:190 name: FULL_BAG_LINES
-m2/weapons/soulSucker.ts:320 name: EMPTY_BAG_LINES
-m2/weapons/mallet.ts:189 name: DUCK_LINES
-m2/weapons/spellbook.ts:353 name: BULK_LINES
-m2/weapons/spellbook.ts:358 name: BULK_FAIL_LINES
+m2/weapons/soulSucker.ts:191 name: FULL_BAG_LINES
+m2/weapons/soulSucker.ts:330 name: EMPTY_BAG_LINES
+m2/weapons/mallet.ts:192 name: DUCK_LINES
+m2/weapons/spellbook.ts:368 name: BULK_LINES
+m2/weapons/spellbook.ts:373 name: BULK_FAIL_LINES
 m2/intro/index.ts:345 name: MEATHEAD_PARKED
 m2/intro/index.ts:632 name: MEATHEAD_TICKET
 m2/intro/index.ts:634 name: MEATHEAD_TICKET
@@ -111,9 +111,9 @@ m2/hollywood/disaster/index.ts:179 voice: false
 m2/hollywood/disaster/index.ts:184 voice: false
 m2/hollywood/havoc/kinds.ts:45 voice: false
 m2/hollywood/havoc/index.ts:57 voice: line
-m2/hollywood/stunt/fight.ts:171 voice: text
-m2/hollywood/stunt/fight.ts:178 voice: voice(L.STEVE_VOICE)
-m2/hollywood/stunt/fight.ts:186 voice: pick(lines[pants()])
+m2/hollywood/stunt/fight.ts:178 voice: text
+m2/hollywood/stunt/fight.ts:185 voice: voice(L.STEVE_VOICE)
+m2/hollywood/stunt/fight.ts:193 voice: pick(lines[pants()])
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice
 m1/game/bosses/alien.ts:90 voice: text
@@ -142,6 +142,8 @@ m1/game/core/update.ts:622 call: layout?.deathMessage?.(ctx)
 m1/game/core/update.ts:622 call: deathByCause(state)
 m1/game/core/update.ts:622 call: deathFallback(state, ctx.stageId, fell)
 m1/game/player/player.ts:84 call: message()
+m1/game/render/world.ts:1303 voice: 0
+m1/game/render/world.ts:1309 voice: Math.max(state.camera.y + 16 + (rows.length - 1) * 13, playe
 m1/game/stages/artie/ski.ts:464 call: skiDeathMessage(state, ski)
 m1/game/stages/artie/ski.ts:464 name: DEATH_LINES
 m1/game/stages/artie/ski.ts:557 name: undefined

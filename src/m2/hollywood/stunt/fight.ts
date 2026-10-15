@@ -22,8 +22,12 @@
 //
 // Two deaths. The weakness (the lightning's the last thing to hit him): the kill cam; fried stood there, charred
 //   black, still giving the thumbs-up, the crowd applauding; then he topples flat and goes to ash. Any other way: one
-//   last stunt, THE STEVE SIDESTEP: his back goes mid-step, the car takes him up into his own ring of fire, he's stuck
-//   in it by the waist, his pants burn off, and he drops out of it face first, right next to the crash mat.
+//   last stunt, THE STEVE SIDESTEP (a cutscene, skippable, all of it; Meathead out of the shot): a cut to center
+//   stage, the crowd hushed, Steve staggering out onto the star (a trip, a wheeze, "I'M GOOD!"), straightening his neck
+//   brace, a shaky thumbs-up, the announcement; the car; he goes to sidestep it and can't anymore (a feeble half-step,
+//   his back seizes); it takes him across the stage into his own ring of fire, he's stuck in it by the waist, his pants
+//   burn off, and he drops out of it face first, right next to the crash mat. Meathead strolls in for the last word.
+//   Every shot's camera is kept to the arena (camFor, the kill cam's focus too): nothing past its ends.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -93,6 +97,9 @@ interface Death {
   how: 'stunt' | 'fried'; t: number; step: string; at: number;
   x: number; y: number; vx: number; vy: number; rot: number; car: Car | null;
   pants: { x: number; y: number; vy: number } | null;
+  /** The stunt: the end whose ring of fire he goes into (the far one from Meathead, parked off the shot at the other);
+   *  the stagger's beat ('go', 'trip', 'wheeze') and its clock; where the stagger started; the cut's black (0..1). */
+  side: 1 | -1; sub: string; subT: number; from: number; fade: number;
 }
 interface KillCam { t: number; acc: number; z: number; out: boolean }
 
@@ -192,7 +199,9 @@ const paSays = (f: Fight, lines: L.ByPants, onDone?: () => void) => {
 /** Seen the intro this visit (a retry from the checkpoint skips it). */
 let introVisit = -1;
 
-const camFor = (x: number) => Math.max(ARENA_L, Math.min(ARENA_R - CANVAS_WIDTH, x - CANVAS_WIDTH / 2));
+/** Every shot kept to the arena: never past either end of it. */
+const clampCam = (x: number) => Math.max(ARENA_L, Math.min(ARENA_R - CANVAS_WIDTH, x));
+const camFor = (x: number) => clampCam(x - CANVAS_WIDTH / 2);
 
 export const startFight = (state: GameState): Fight => {
   game = state; token++;
@@ -278,6 +287,7 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
   f.actT++;
   // (the fight's begun this frame (the pan back's done): the camera's his again, not held here for good)
   if (f.mode !== 'intro') return hands();
+  f.camX = clampCam(f.camX);
   state.cameraOverride = { x: f.camX, y: GY - CAM_ROW };
   state.camera.x = f.camX; state.camera.y = GY - CAM_ROW;
   return hands();
@@ -301,7 +311,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;
   tickLaunch(ctx, f);
-  if (f.mode === 'dead') { updateCars(ctx, f); dying(ctx, f); return hands(); }
+  if (f.mode === 'dead') { updateCars(ctx, f); return dying(ctx, f); }
   takeHits(ctx, f);
   watchGrab(ctx, f);
   if (f.hp <= 0) { die(ctx, f, false); return hands(); }
@@ -573,7 +583,13 @@ const die = (ctx: FrameContext, f: Fight, fried: boolean) => {
   state.damageNumbers = [];
   f.said = null; f.paSaid = null;
   p.inCutscene = true;
-  f.death = { how: fried ? 'fried' : 'stunt', t: 0, step: 'start', at: 0, x: f.sx, y: GY, vx: 0, vy: 0, rot: 0, car: null, pants: null };
+  // (the stunt goes off toward the end Meathead's furthest from: he's parked out of the shot at the other)
+  const side: 1 | -1 = pmid(state).x < ARENA_MID ? 1 : -1;
+  f.death = {
+    how: fried ? 'fried' : 'stunt', t: 0, step: 'start', at: 0, x: f.sx, y: GY, vx: 0, vy: 0, rot: 0, car: null, pants: null,
+    side, sub: 'go', subT: 0, from: f.sx, fade: 0,
+  };
+  f.skipT = 0;
   f.facing = (-f.side) as 1 | -1;
   if (fried) {
     f.cam = { t: 0, acc: 0, z: 1, out: false };
@@ -583,16 +599,17 @@ const die = (ctx: FrameContext, f: Fight, fried: boolean) => {
 };
 
 /** The deaths' beats. */
-const dying = (ctx: FrameContext, f: Fight) => {
+const dying = (ctx: FrameContext, f: Fight): Controls => {
   const { state } = ctx, d = f.death!, p = state.player;
   d.t++;
   const t = d.t;
   p.inCutscene = true;
+  if (d.how === 'stunt') return sidestep(ctx, f);
   // (the camera on him, his end of the stage)
   const want = camFor(d.x);
-  f.camX = t === 1 ? state.camera.x : f.camX + (want - f.camX) * 0.08;
+  f.camX = clampCam(t === 1 ? state.camera.x : f.camX + (want - f.camX) * 0.08);
   state.cameraOverride = { x: f.camX, y: GY - CAM_ROW }; state.camera.x = f.camX; state.camera.y = GY - CAM_ROW;
-  if (d.how === 'fried') {
+  {
     if (t % 7 === 0 && t < 70) { playSound('taser', 0.6, Math.random() * 6); for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: d.x, y: GY - 60 }, vel: { x: (Math.random() - 0.5) * 8, y: -Math.random() * 6 }, life: 14, color: i % 2 ? '#FFFFFF' : '#A5F3FC', size: 2 }); }
     if (t === 80) { d.step = 'charred'; playSound('crumble', 0.5, 4); f.hype = 1; }
     if (f.cam && t > 90) f.cam.out = true;
@@ -607,53 +624,152 @@ const dying = (ctx: FrameContext, f: Fight) => {
       if (k >= 1) { d.step = 'ash'; d.at = t; playSound('thud', 1, -6); playSound('crumble', 1, -4); shakeScreen(state, 8, 4); }
     }
     if (d.step === 'ash' && t === d.at + 50 && f.deathSaid === 0) { f.deathSaid = 1; meatheadSays(state, pick(L.MEATHEAD_WON_WEAK), true, tokened(() => { f.deathSaid = 4; })); }
-  } else {
-    // THE STEVE SIDESTEP: one last stunt, a car, his back, the ring of fire, the floor (not the mat)
-    if (d.step === 'start' && t === 30) { d.step = 'announce'; steveLine(f, L.STEVE_LAST_STUNT, tokened(() => { d.step = 'car'; d.at = d.t; })); }
-    if (d.step === 'car' && t === d.at + 1) {
-      const from = (-f.side) as 1 | -1, car = spawnRed(state, f, doorOf(from, true), f.side, 'drift');
-      car.plan = 'none'; car.scripted = true; d.car = car;
-      playSound('carroar', 1, -2);
-    }
-    if ((d.step === 'car' || d.step === 'back') && d.car) {
-      const c = d.car, gap = (d.x - c.x) * c.dir;
-      if (d.step === 'car' && gap < 170) { d.step = 'back'; playSound('crack', 1, -6); steveLine(f, L.STEVE_BACK); }
-      if (gap < extents(c.yaw).hx + 12) {
-        // (it takes him: up, spinning, into his own ring of fire)
-        d.step = 'fly'; d.at = t;
-        const r = ringAt(f.side), up = GY - (r.y + 40);
-        d.vy = -Math.sqrt(2 * 0.55 * up); d.vx = (r.x - d.x) / (-d.vy / 0.55);
-        playSound('crash', 1, -4); playSound('punch', 1, -6); shakeScreen(state, 14, 7);
-        f.hype = 1; crowd(ctx, f, d.x, 'ooh', true);
-      }
-    }
-    if (d.step === 'fly') {
-      d.x += d.vx; d.y += d.vy; d.vy += 0.55; d.rot += 0.3;
-      if (d.vy >= 0) {
-        const r = ringAt(f.side);
-        d.step = 'hoop'; d.at = t; d.x = r.x; d.y = r.y + 40; d.rot = 0;
-        playSound('clang', 0.9, -4); playSound('ignite', 0.8, 0);
-      }
-    }
-    if (d.step === 'hoop') {
-      // (stuck in it by the waist; his pants catch, and drop off him burning)
-      if (t === d.at + 20) { d.pants = { x: d.x, y: d.y - 30, vy: 0 }; playSound('ignite', 0.7, 6); crowd(ctx, f, d.x, 'ooh', true); }
-      if (t === d.at + 80) { d.step = 'drop'; d.vy = 0; playSound('clang', 1, -8); }
-    }
-    if (d.pants && d.pants.y < GY - 4) { d.pants.vy += 0.4; d.pants.y = Math.min(GY - 4, d.pants.y + d.pants.vy); }
-    if (d.step === 'drop') {
-      d.vy += 0.6; d.y += d.vy;
-      if (d.y >= GY) { d.y = GY; d.step = 'down'; d.at = t; playSound('thud', 1.2, -8); playSound('splat', 0.5, -4); shakeScreen(state, 14, 7); f.hype = 1; }
-    }
-    if (d.step === 'down' && t === d.at + 40) paSays(f, L.PA_DEATH, tokened(() => meatheadSays(state, pick(L.MEATHEAD_WON), true, tokened(() => { f.deathSaid = 4; }))));
   }
   // (it never hangs)
   if (t > 1800) f.deathSaid = 4;
+  return hands();
+};
+
+/** The sidestep's beats (frames): the cut to black and back; the stagger out (how fast, its trip and wheeze, where
+ *  they come); the brace; the half-step before his back goes; the flight's gravity; Meathead's stroll in. */
+const SS = {
+  CUT_AT: 26, CUT_T: 14, IN_T: 18, START: 300, V: 1.25, LURCH: 1.1, TRIP_AT: 100, TRIP_T: 34, WHEEZE_AT: 205, WHEEZE_T: 52,
+  BRACE_T: 46, TRY_GAP: 330, HALF_T: 12, G: 0.42, WALK_STOP: 240,
+};
+
+/** THE STEVE SIDESTEP: center stage, Meathead out of the shot; staggering, the brace, the thumb, the car; can't. */
+const sidestep = (ctx: FrameContext, f: Fight): Controls => {
+  const { state } = ctx, d = f.death!, p = state.player, t = d.t, side = d.side;
+  const ring = ringAt(side);
+  let out = hands();
+  // (all or nothing: skipped, he's face down by the mat, done)
+  f.skipT++;
+  const skippable = d.step !== 'start' && f.deathSaid < 4;
+  if (skippable && f.skipT > SKIP_AFTER) offerSkip();
+  if (skippable && f.skipT > SKIP_AFTER && takeSkip()) {
+    token++; silenceAll(); state.playerVulgarityTimer = 0;
+    f.said = null; f.paSaid = null;
+    d.step = 'down'; d.at = t; d.x = ring.x; d.y = GY; d.rot = 0; d.fade = 0;
+    d.pants = { x: ring.x, y: GY - 4, vy: 0 };
+    p.hidden = false;
+    f.deathSaid = 4; d.t = Math.max(d.t, 201);
+    return out;
+  }
+  const hush = () => { f.hype = Math.min(f.hype, 0.05); };
+  switch (d.step) {
+    case 'start':
+      // (the hit that did it, where he stood; then the cut to black)
+      if (t > SS.CUT_AT) d.fade = Math.min(1, (t - SS.CUT_AT) / SS.CUT_T);
+      if (t >= SS.CUT_AT + SS.CUT_T) {
+        // (in the black: Meathead parked out of the shot at the far end, Steve just off center stage)
+        p.pos.x = side > 0 ? ARENA_L + 6 : ARENA_R - p.width - 6; p.pos.y = GY - p.height;
+        p.vel.x = 0; p.vel.y = 0; p.isGrounded = true; p.isDucking = false; p.freefall = undefined; p.facing = side;
+        p.hidden = true;
+        d.step = 'stumble'; d.at = t; d.sub = 'go'; d.subT = 0;
+        d.from = ARENA_MID + side * SS.START; d.x = d.from; d.y = GY; d.vy = 0;
+        f.facing = (-side) as 1 | -1;
+        f.camX = camFor(ARENA_MID);
+        steveLine(f, L.STEVE_STUMBLE);
+      }
+      break;
+    case 'stumble': {
+      // (out to the star on his last legs, to a hushed crowd: lurching, a trip, a wheeze)
+      hush();
+      d.fade = Math.max(0, 1 - (t - d.at) / SS.IN_T);
+      d.subT++;
+      const gone = Math.abs(d.x - d.from);
+      if (d.sub === 'go') {
+        const v = SS.V + SS.LURCH * Math.max(0, Math.sin(d.subT * 0.22));
+        d.x += -side * Math.min(v, Math.abs(d.x - ARENA_MID));
+        if (d.subT % 50 === 1) playSound('snort', 0.35, 6);
+        // (d.vy: how far through his beats he is, while he's staggering)
+        if (d.vy === 0 && gone >= SS.TRIP_AT) { d.vy = 1; d.sub = 'trip'; d.subT = 0; playSound('stomp', 0.5, 4); playSound('screams', 0.1, 14); }
+        else if (d.vy === 1 && gone >= SS.WHEEZE_AT) { d.vy = 2; d.sub = 'wheeze'; d.subT = 0; }
+        else if (Math.abs(d.x - ARENA_MID) < 0.5) { d.step = 'brace'; d.at = t; }
+      } else if (d.sub === 'trip') {
+        // (a toe catches: windmilling, a lurch on, and he's caught himself)
+        if (d.subT < 14) d.x += -side * 1.6;
+        if (d.subT >= SS.TRIP_T) { d.sub = 'go'; d.subT = 0; }
+      } else if (d.sub === 'wheeze') {
+        // (hands on his knees, wheezing)
+        if (d.subT % 14 === 1) playSound('snort', 0.5, 2 + Math.random() * 4);
+        if (d.subT >= SS.WHEEZE_T) { d.sub = 'go'; d.subT = 0; }
+      }
+      break;
+    }
+    case 'brace':
+      // (the neck brace put straight for the crowd; then the thumb, and the big announcement)
+      hush();
+      if (t === d.at + 22) playSound('click', 0.6, -4);
+      if (t >= d.at + SS.BRACE_T) { d.step = 'thumb'; d.at = t; steveLine(f, L.STEVE_LAST_STUNT, tokened(() => { d.step = 'car'; d.at = d.t; })); }
+      break;
+    case 'thumb': hush(); break;
+    case 'car': case 'try': case 'back': {
+      if (!d.car) {
+        // (out of the far door on Meathead's side, flat out along the line at him)
+        const car = spawnRed(state, f, side > 0 ? DOORS_X[0] : DOORS_X[3], side);
+        car.plan = 'none'; car.scripted = true; d.car = car;
+        playSound('carroar', 1, -2); playSound('horn', 0.7, 0);
+      }
+      const c = d.car, gap = (d.x - c.x) * c.dir;
+      if (d.step === 'car' && gap < SS.TRY_GAP) { d.step = 'try'; d.at = t; playSound('whoosh', 0.4, 10); }
+      // (the half-step: about a foot of it; then his back seizes, and that's where he is)
+      if (d.step === 'try') { if (t - d.at < SS.HALF_T) d.x += side * 0.6; else { d.step = 'back'; d.at = t; playSound('crack', 1, -6); steveLine(f, L.STEVE_BACK); } }
+      if (gap < extents(c.yaw).hx + 12) {
+        // (SPLAT: it takes him across the stage, spinning, into his own ring of fire)
+        d.step = 'fly'; d.at = t;
+        const up = GY - (ring.y + 40);
+        d.vy = -Math.sqrt(2 * SS.G * up); d.vx = (ring.x - d.x) / (-d.vy / SS.G);
+        // (and the driver brakes, and carries on out the far door: a hit-and-run)
+        c.mode = 'skid'; c.t = 0;
+        playSound('crash', 1, -4); playSound('punch', 1, -6); playSound('splat', 0.8, -6); shakeScreen(state, 14, 7);
+        f.hype = 1; crowd(ctx, f, d.x, 'ooh', true);
+      }
+      break;
+    }
+    case 'fly':
+      d.x += d.vx; d.y += d.vy; d.vy += SS.G; d.rot += 0.3;
+      if (d.vy >= 0) {
+        d.step = 'hoop'; d.at = t; d.x = ring.x; d.y = ring.y + 40; d.rot = 0;
+        playSound('clang', 0.9, -4); playSound('ignite', 0.8, 0);
+      }
+      break;
+    case 'hoop':
+      // (stuck in it by the waist; his pants catch, and drop off him burning)
+      if (t === d.at + 20) { d.pants = { x: d.x, y: d.y - 30, vy: 0 }; playSound('ignite', 0.7, 6); crowd(ctx, f, d.x, 'ooh', true); }
+      if (t === d.at + 80) { d.step = 'drop'; d.vy = 0; playSound('clang', 1, -8); }
+      break;
+    case 'drop':
+      d.vy += 0.6; d.y += d.vy;
+      if (d.y >= GY) { d.y = GY; d.step = 'down'; d.at = t; playSound('thud', 1.2, -8); playSound('splat', 0.5, -4); shakeScreen(state, 14, 7); f.hype = 1; }
+      break;
+    case 'down': {
+      // (the PA's wrap-up; Meathead strolls in from off the shot for the last word)
+      if (t === d.at + 30) {
+        p.hidden = false; p.pos.x = (side > 0 ? f.camX - 50 : f.camX + CANVAS_WIDTH + 50 - p.width); p.pos.y = GY - p.height; p.facing = side;
+        paSays(f, L.PA_DEATH, tokened(() => meatheadSays(state, pick(L.MEATHEAD_WON), true, tokened(() => { f.deathSaid = 4; }))));
+      }
+      if (t > d.at + 30 && !p.hidden && (d.x - pmid(state).x) * side > SS.WALK_STOP) out = { ...hands(), [side > 0 ? 'right' : 'left']: true } as Controls;
+      else if (t > d.at + 30) p.vel.x = 0;
+      break;
+    }
+  }
+  if (d.pants && d.pants.y < GY - 4) { d.pants.vy += 0.4; d.pants.y = Math.min(GY - 4, d.pants.y + d.pants.vy); }
+  // (the camera: on him where it ended; center stage; whipped along after him; held on his end)
+  const want = d.step === 'start' ? camFor(d.x)
+    : d.step === 'fly' ? camFor(d.x)
+    : d.step === 'hoop' || d.step === 'drop' || d.step === 'down' ? camFor(ring.x)
+    : camFor(ARENA_MID);
+  const k = d.step === 'start' ? 0.08 : d.step === 'fly' || d.step === 'hoop' ? 0.2 : 1;
+  f.camX = clampCam(t === 1 ? state.camera.x : f.camX + (want - f.camX) * k);
+  state.cameraOverride = { x: f.camX, y: GY - CAM_ROW }; state.camera.x = f.camX; state.camera.y = GY - CAM_ROW;
+  if (t > 1800) f.deathSaid = 4;
+  return out;
 };
 
 /** Done with: his death played out, everybody's had their say. */
 export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.deathSaid >= 4 && f.death.t > 200 && (!f.cam || f.cam.z <= 1);
-export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; state.cameraOverride = null; dropCars(state, f); live = null; };
+export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; state.player.hidden = false; state.cameraOverride = null; dropCars(state, f); live = null; };
 export const killedByWeakness = (f: Fight) => f.death?.how === 'fried';
 export const introOn = (f: Fight) => f.mode === 'intro';
 export const introSkipT = (f: Fight) => f.skipT;
@@ -686,7 +802,9 @@ export const killCamTick = (f: Fight): boolean => {
 export const killCamZoom = (state: GameState, f: Fight) => {
   const cam = f.cam, d = f.death;
   if (!cam || !d || cam.z <= 1) return null;
-  const k = (cam.z - 1) / (CAM_Z - 1), fx = d.x, fy = GY - 60;
+  // (its focus kept far enough in from the shot's edges that the zoomed view never shows past the arena's ends)
+  const k = (cam.z - 1) / (CAM_Z - 1), m = CANVAS_WIDTH / 2 / CAM_Z;
+  const fx = Math.max(state.camera.x + m, Math.min(state.camera.x + CANVAS_WIDTH - m, d.x)), fy = GY - 60;
   return { scale: cam.z, x: fx, y: fy, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - fx), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 + 40 - fy) };
 };
 
@@ -727,19 +845,29 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
       return;
     }
     const lk = { ...look, pantsDown: !!d.pants };
+    // (on his last legs: the whole of him wobbling about his feet)
+    const wobbly = (pose: StevePose, amt: number, dx = 0) => {
+      c.save(); c.translate(d.x + dx, GY); c.rotate(Math.sin(fr * 0.13) * amt + Math.sin(fr * 0.31) * amt * 0.4);
+      drawSteve(c, 0, 0, f.facing, pose, fr, look); c.restore();
+    };
     switch (d.step) {
-      case 'start': case 'announce': drawSteve(c, d.x, GY, f.facing, d.t < 30 ? 'hurt' : 'thumb', fr, look); return;
-      case 'car': drawSteve(c, d.x, GY, f.facing, 'sidestep', fr, look); return;
+      case 'start': drawSteve(c, d.x, GY, f.facing, 'hurt', fr, look); return;
+      case 'stumble':
+        if (d.sub === 'trip') { wobbly('flail', 0.06); return; }
+        if (d.sub === 'wheeze') { wobbly('smoking', 0.02); return; }
+        wobbly('stagger', 0.07);
+        return;
+      case 'brace': wobbly('brace', 0.03); return;
+      // (the thumbs-up to the crowd: shaking)
+      case 'thumb': case 'car': wobbly('thumb', 0.035, fr % 4 < 2 ? 0.8 : -0.8); return;
+      case 'try': drawSteve(c, d.x, GY, f.facing, 'sidestep', fr, look); return;
       case 'back': drawSteve(c, d.x + (fr % 2 ? 1 : -1), GY, f.facing, 'sidestep', fr, { ...look, back: true }); return;
       case 'fly': drawSteve(c, d.x, d.y, f.facing, 'tumble', fr, lk); return;
-      case 'hoop': case 'drop': {
-        const r = ringAt(f.side);
-        if (d.step === 'hoop') drawRing(c, f.side, false, true, fr);
+      case 'hoop': case 'drop':
+        if (d.step === 'hoop') drawRing(c, d.side, false, true, fr);
         drawSteve(c, d.x, d.y, f.facing, 'hoop', fr, lk);
-        if (d.step === 'hoop') drawRing(c, f.side, true, true, fr);
-        void r;
+        if (d.step === 'hoop') drawRing(c, d.side, true, true, fr);
         return;
-      }
       default: drawSteve(c, d.x, GY, f.facing, 'down', fr, { ...lk, pantsDown: true }); return;
     }
   }
@@ -779,14 +907,16 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     box(c, lx - 12, GY - 2, 24, 4, col); box(c, lx - 2, GY - 6, 4, 12, col);
   }
   // (the rings of fire over his two ends: their back halves)
-  const inRing = f.mode === 'dead' && f.death?.how === 'stunt' && (f.death.step === 'hoop');
-  for (const s of [-1, 1] as const) if (!(inRing && s === f.side)) drawRing(c, s, false, f.mode !== 'dead', fr);
+  // (lit for his big finish, too)
+  const inRing = f.mode === 'dead' && f.death?.how === 'stunt' && (f.death.step === 'hoop'), ringSide = f.death?.side ?? f.side;
+  const ringsLit = f.mode !== 'dead' || f.death?.how === 'stunt';
+  for (const s of [-1, 1] as const) if (!(inRing && s === ringSide)) drawRing(c, s, false, ringsLit, fr);
   for (const r of f.ramps) { drawHoop(c, r, false, f.hot, fr); drawRamp(c, r, fr); }
   for (const car of f.cars) if (car.mode !== 'held' && car.mode !== 'gone') drawCarShadow(c, car.x, GY, car.mode === 'thrown' ? 0 : car.z, car.yaw, GY - car.y);
   const back = f.cars.filter(c2 => c2.z < CUT && c2.mode !== 'thrown').sort((a, b) => a.z - b.z);
   for (const car of back) drawOne(c, car);
   for (const r of f.ramps) drawHoop(c, r, true, f.hot, fr);
-  for (const s of [-1, 1] as const) if (!(inRing && s === f.side)) drawRing(c, s, true, f.mode !== 'dead', fr);
+  for (const s of [-1, 1] as const) if (!(inRing && s === ringSide)) drawRing(c, s, true, ringsLit, fr);
   drawPyro(c, state, f.fire);
   if (f.mode !== 'dead' ? f.sz < CUT : true) drawHim(c, f, fr);
   // (his pants, off and burning on the floor)
@@ -819,6 +949,15 @@ export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; m
     const k = Math.min(1, f.skipT / 20), bar = Math.round(k * 44);
     c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar);
     if (f.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
+    return;
+  }
+  // (the sidestep: the letterbox, the cut's black, SKIP)
+  const d = f.death;
+  if (d && d.how === 'stunt') {
+    const bar = 44;
+    c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar);
+    if (d.fade > 0) { c.fillStyle = `rgba(0, 0, 0, ${d.fade.toFixed(2)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
+    if (d.step !== 'start' && f.deathSaid < 4 && f.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
     return;
   }
   if (f.cam) {

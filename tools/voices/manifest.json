@@ -21326,6 +21326,21 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "I'M GOOD! I'M GOOD! STAY IN YOUR SEATS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I'M GOOD! THAT SMELL WASN'T ME! STAY IN YOUR SEATS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "I'M GOOD! THE NAKED GUY'S GONE! STAY IN YOUR SEATS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "I'M NOT DYING WITH THAT THING LOOKING AT ME.",
   "from": "HOLLYWOOD"
  },
@@ -21447,6 +21462,11 @@
  {
   "voice": "m2.hollywood.steve",
   "text": "NOBODY HOLDS STEVE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NOBODY LEAVE! I'M FINE! THIS IS THE SHOW!",
   "from": "HOLLYWOOD"
  },
  {

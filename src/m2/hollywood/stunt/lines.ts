@@ -110,6 +110,12 @@ export const STEVE_LOW: ByPants = {
 // ---------------------------------------------------------------------------------------------------------------
 // His deaths: the stunt (any way but the weakness) and the lightning rod (the spellbook's lightning)
 
+/** Beaten: staggering out to center stage for it, to a hushed crowd. */
+export const STEVE_STUMBLE: ByPants = {
+  clean: ['I\'M GOOD! I\'M GOOD! STAY IN YOUR SEATS!', 'NOBODY LEAVE! I\'M FINE! THIS IS THE SHOW!'],
+  shitty: ['I\'M GOOD! THAT SMELL WASN\'T ME! STAY IN YOUR SEATS!'],
+  nude: ['I\'M GOOD! THE NAKED GUY\'S GONE! STAY IN YOUR SEATS!'],
+};
 /** Beaten: one last stunt, the one he's known for. */
 export const STEVE_LAST_STUNT: ByPants = {
   clean: ['LADIES AND GENTLEMEN... THE STEVE SIDESTEP!'],
@@ -192,6 +198,6 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...pools(STEVE_FUMING), STEVE_SHOWN_UP, ...pools(STEVE_POSSE), ...pools(STEVE_TAUNT), ...pools(STEVE_SEND),
     ...pools(STEVE_RAMP), ...pools(STEVE_TOO_CLOSE), ...pools(STEVE_FLAIL), ...pools(STEVE_SLIP), ...pools(STEVE_TOW),
     ...pools(STEVE_HURT), STEVE_CONDUCTIVE, ...pools(STEVE_ZAPPED), ...pools(STEVE_PYRO), ...pools(STEVE_CAR_HIT), ...pools(STEVE_LOW),
-    ...pools(STEVE_LAST_STUNT), ...pools(STEVE_BACK), ...pools(STEVE_FRIED),
+    ...pools(STEVE_STUMBLE), ...pools(STEVE_LAST_STUNT), ...pools(STEVE_BACK), ...pools(STEVE_FRIED),
   ],
 };
