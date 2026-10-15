@@ -23,7 +23,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { x0, TEMPLE_X } from './arena';
 import { timeOfDay, skyRamp, farTint, sunAt, drawSun, drawStars, drawMoon, cloudTint } from '../../timeOfDay';
-import { pixelBlob, mix, checker } from '../../intro/art/kit';
+import { pixelBlob, mix } from '../../intro/art/kit';
 import { STONE as SR, MOSS } from '../roof/stone';
 
 type Ctx = CanvasRenderingContext2D;
@@ -349,6 +349,19 @@ const TREES: { x: number; z: number }[] = (() => {
   return out;
 })();
 
+/** A checker of `col` (2 px cells, the rest clear), as a repeating pattern: made once a color. */
+const DITHER = new Map<string, CanvasPattern | string>();
+const ditherOf = (c: Ctx, col: string): CanvasPattern | string => {
+  let p = DITHER.get(col);
+  if (!p) {
+    const t = document.createElement('canvas'); t.width = t.height = 4;
+    const g = t.getContext('2d')!; g.fillStyle = col; g.fillRect(0, 0, 2, 2); g.fillRect(2, 2, 2, 2);
+    p = c.createPattern(t, 'repeat') ?? col;
+    DITHER.set(col, p);
+  }
+  return p;
+};
+
 /** A bumpy band round the loop at radius r (the jungle's canopy, the hills): its far side, as one shape. */
 const band = (c: Ctx, v: View, r: number, height: (a: number) => number, col: string, nearest: number, crest?: string, bands?: [number, string][]) => {
   const tops: { x: number; y: number }[] = [], bases: { x: number; y: number }[] = [];
@@ -368,7 +381,9 @@ const band = (c: Ctx, v: View, r: number, height: (a: number) => number, col: st
   };
   const layer = (dy: number, cl: string) => { c.fillStyle = cl; outline(dy); c.fill(); };
   /** A step down into `cl` at dy under the crest: a row of dither, then the step solid. */
-  const step = (dy: number, cl: string) => { c.save(); outline(dy - 2); c.clip(); checker(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, cl, 0); c.restore(); layer(dy, cl); };
+  // (the dither's a cached checker pattern filled through the shape: a full-screen checker under a clip, per step per
+  // frame, is tens of thousands of fills and crawled the loop)
+  const step = (dy: number, cl: string) => { c.fillStyle = ditherOf(c, cl); outline(dy - 2); c.fill(); layer(dy, cl); };
   if (crest) { layer(0, crest); step(4, col); } else layer(0, col);
   // (darker going down, in steps following the crest: the far side of the hills in their own shade)
   if (bands) for (const [dy, cl] of bands) step(dy, cl);
