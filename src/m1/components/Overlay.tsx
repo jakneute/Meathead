@@ -294,15 +294,16 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onTitlePick, title
     <TitleArt shitty={!!cheats?.flags.shittyPants} paused={!!introOn} />
     <h1 className="sr-only">MEATHEAD</h1>
     {cheats && <CheatPanel rank={progressionRank + (whiteHouseOpen ? 1 : 0)} cheats={cheats} musicOn={getSettings().music > 0 && getSettings().master > 0} />}
-    <div className="animate-in fade-in duration-700 relative w-full h-full flex flex-col items-center pt-[284px]">
-      <div className="flex flex-col items-center gap-2 shrink-0">
+    {/* (the menu in the street under the plate, from the horizon down: the middle of it) */}
+    <div className="animate-in fade-in duration-700 absolute inset-x-0 top-[300px] bottom-0 flex flex-col items-center justify-center pb-2">
+      <div className="flex flex-col items-center gap-3 shrink-0">
         {options.map((o, i) => {
           const on = selectedIndex === i;
           // (OPTIONS isn't held back with the way in: there's nothing to skip past by opening it)
           const lockedOut = isInputLocked && o.kind !== 'options' && o.kind !== 'quit';
           return (
             <button key={o.label} disabled={lockedOut} onClick={() => onTitlePick?.(i)} onMouseEnter={() => { if (!confirmLeave) onSelectIndex(i); }}
-              className={`relative w-[380px] px-10 ${options.length > 2 ? 'py-1.5' : 'py-2.5'} text-sm md:text-base whitespace-nowrap border-2 border-black font-black uppercase shrink-0 [text-shadow:2px_2px_0_#000] ${lockedOut
+              className={`relative w-[420px] px-10 ${options.length > 3 ? 'py-2' : 'py-3'} text-base md:text-lg whitespace-nowrap border-2 border-black font-black uppercase shrink-0 [text-shadow:2px_2px_0_#000] ${lockedOut
                 ? 'bg-zinc-700 text-zinc-400 shadow-[inset_0_2px_0_#71717a,inset_0_-4px_0_#27272a,4px_4px_0_#000] opacity-60 cursor-not-allowed'
                 : on ? 'bg-[#c81c10] text-[#fff6d8] shadow-[inset_0_2px_0_#fc7c5c,inset_0_-4px_0_#6c0c04,0_0_0_2px_#fcd850,0_0_0_4px_#000,6px_6px_0_4px_#000] active:translate-y-1 active:shadow-[inset_0_2px_0_#fc7c5c,inset_0_-2px_0_#6c0c04,0_0_0_2px_#fcd850,0_0_0_4px_#000]'
                 : 'bg-[#5c0a08] text-white/70 shadow-[inset_0_2px_0_#9c1a0a,inset_0_-4px_0_#2c0402,4px_4px_0_#000] hover:bg-[#8c1408]'}`}>
@@ -313,8 +314,8 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onTitlePick, title
           );
         })}
       </div>
-      <div className="mt-3 flex items-center gap-3 shrink-0">
-        {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label={options[selectedIndex]?.kind === 'new' ? 'START' : options[selectedIndex]?.kind === 'continue' ? 'CONTINUE' : options[selectedIndex]?.kind === 'quit' ? 'QUIT' : 'OPEN'} size={15} className="text-[7px] font-black text-white/85 tracking-wider [text-shadow:1px_1px_0_#000] animate-pulse" />}
+      <div className="mt-5 flex items-center gap-3 shrink-0">
+        {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label={options[selectedIndex]?.kind === 'new' ? 'START' : options[selectedIndex]?.kind === 'continue' ? 'CONTINUE' : options[selectedIndex]?.kind === 'quit' ? 'QUIT' : 'OPEN'} size={18} className="text-[8px] font-black text-white/85 tracking-wider [text-shadow:1px_1px_0_#000] animate-pulse" />}
       </div>
     </div>
     {/* (QUIT GAME, the desktop app's: are you sure?) */}
