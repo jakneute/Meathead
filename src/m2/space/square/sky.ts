@@ -1,7 +1,8 @@
 // Futureland's far off (screen space; the square's and the main drag's backdrops, and drawn small in the walk in): the
 // sky by the hour (banded, the sun, the moon and stars after dark), a bank of fair-weather clouds drifting, the park's
-// blimp going over, the far skyline of the future (domes, saucers on stalks, a rocket, the ORBITRON's arms; their
-// bulbs lit after dark) with the haze at its foot; and the two big things over it all, each the same wherever it's
+// blimp going over, the far hills round the park, the far skyline of the future in two layers (space/farArt.ts: domes,
+// saucers on stalks, rockets on their pads, the ORBITRON's arms, spires, hotels, radar dishes; their windows lit after
+// dark), each standing on its own ground with the haze at its foot; and the two big things over it all, each the same wherever it's
 // seen: THE GIANT ATOM (a ball of fiberglass on its stalk, three chrome orbits turning round it, a car going round
 // each) and SPACE NEEDLE 2 (three legs to a waist, saucer decks up its shaft, the lift going up and down, and on up out
 // of sight: it goes to space).
@@ -10,7 +11,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawTodSky, timeOfDay, farTint, skyAt, cloudTint, hourMix, type TimeOfDay } from '../../timeOfDay';
 import { lettering, letterSize, type Letter } from './lettering';
-import { type Ctx, INK, box, checker, mix, hash, stamp, hazeBands, pixelBlob, steppedGlow, bandedGradient, CHROME, ramp6 } from './paint';
+import { type Ctx, INK, box, checker, mix, hash, stamp, pixelBlob, steppedGlow, bandedGradient, CHROME, ramp6 } from './paint';
+import { type Far, type Piece, type RangeLook, skyline, monorail, parkGround, mist, range, snap2, wave, jag } from '../farArt';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 const TW = 1024;
@@ -48,85 +50,69 @@ const paintClouds = (g: Ctx, tod: TimeOfDay) => {
   for (let i = 0; i < 4; i++) wrap(i * (TW / 4) + 60, x => { const y = 30 + hash(i * 5.5) * 20; box(g, x, y, 120, 2, body); checker(g, x - 20, y, 20, 2, body, 0, 2); checker(g, x + 120, y, 30, 2, body, 1, 2); });
 };
 
-/** The far skyline of the future (hazy): domes ribbed in steps, saucers up on stalks, a rocket on its gantry, the
- *  ORBITRON's arms, a tower with a ball on top; their bulbs lit after dark. Its foot at the tile's bottom. */
-const paintFar = (g: Ctx, tod: TimeOfDay, h: number, k: number, seed: number) => {
-  const T = (c: string) => mix(farTint(c, 1, tod), skyAt(0.86, tod), k);
-  const body = T(hourMix('#8A9AC8', '#9A7AA0', '#2A3058', tod)), sh = T(hourMix('#7484B4', '#80648A', '#20264A', tod)), lt = T(hourMix('#A8B6DC', '#C09AB0', '#3A4270', tod));
-  const bulb = tod.lamps > 0.3 ? '#FFE8A0' : lt, f = h;
-  let x = 0, i = seed;
-  while (x < TW) {
-    const kind = Math.floor(hash(i * 7.3) * 6), w = 70 + hash(i * 2.9) * 80;
-    const cx = x + w / 2;
-    if (kind === 0) {
-      // (a dome, ribbed)
-      const r = w * 0.45;
-      g.fillStyle = sh; g.beginPath(); g.arc(cx, f, r, Math.PI, 0); g.fill();
-      g.fillStyle = body; g.beginPath(); g.arc(cx - r * 0.1, f, r * 0.82, Math.PI, 0); g.fill();
-      g.fillStyle = lt; g.beginPath(); g.arc(cx - r * 0.3, f - r * 0.3, r * 0.3, 0, Math.PI * 2); g.fill();
-      for (let a = 1; a < 6; a++) { const xx = cx + Math.cos((a * Math.PI) / 6) * r; box(g, xx, f - Math.sin((a * Math.PI) / 6) * r, 1, Math.sin((a * Math.PI) / 6) * r, sh); }
-      box(g, cx - 1, f - r - 10, 2, 10, sh); box(g, cx - 2, f - r - 12, 4, 3, bulb);
-    } else if (kind === 1) {
-      // (a saucer up on its stalk)
-      const sh2 = 80 + hash(i) * 60;
-      box(g, cx - 3, f - sh2, 6, sh2, sh); box(g, cx - 3, f - sh2, 2, sh2, lt);
-      g.fillStyle = sh; g.beginPath(); g.ellipse(cx, f - sh2, w * 0.42, 8, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = body; g.beginPath(); g.ellipse(cx, f - sh2 - 2, w * 0.4, 5, 0, Math.PI, Math.PI * 2); g.fill();
-      g.fillStyle = lt; g.beginPath(); g.arc(cx, f - sh2 - 6, 9, Math.PI, 0); g.fill();
-      for (let b = -3; b <= 3; b++) box(g, cx + b * w * 0.1 - 1, f - sh2 + 1, 2, 2, bulb);
-    } else if (kind === 2) {
-      // (a rocket on its gantry)
-      const rh = 110 + hash(i * 1.3) * 50;
-      for (let y = f - rh + 20; y < f; y += 10) { box(g, cx + 12, y, 10, 1, sh); box(g, cx + 12, y, 1, 10, sh); box(g, cx + 21, y, 1, 10, sh); }
-      g.fillStyle = body; g.beginPath(); g.moveTo(cx - 8, f - 14); g.lineTo(cx - 8, f - rh + 30); g.quadraticCurveTo(cx, f - rh - 10, cx + 8, f - rh + 30); g.lineTo(cx + 8, f - 14); g.fill();
-      box(g, cx - 8, f - rh + 30, 4, rh - 44, lt);
-      g.fillStyle = sh; for (const s of [-1, 1]) { g.beginPath(); g.moveTo(cx + s * 8, f - 40); g.lineTo(cx + s * 18, f - 4); g.lineTo(cx + s * 8, f - 14); g.fill(); }
-      box(g, cx - 2, f - rh + 4, 4, 4, bulb);
-      // (its launch pad under it: a stand it sits on, the gantry's arm across to it)
-      box(g, cx - 22, f - 6, 46, 6, sh); box(g, cx - 22, f - 6, 46, 1, lt); box(g, cx - 4, f - 14, 8, 8, sh); box(g, cx + 8, f - rh + 40, 5, 2, sh);
-    } else if (kind === 3) {
-      // (the ORBITRON: a hub up on a post, its arms out, a rocket car on the end of each)
-      const ph = 70 + hash(i) * 30;
-      box(g, cx - 3, f - ph, 6, ph, sh);
-      for (let a = 0; a < 6; a++) { const an = (a * Math.PI) / 3 + 0.3, ex = cx + Math.cos(an) * w * 0.45, ey = f - ph + Math.sin(an) * 14; g.strokeStyle = sh; g.lineWidth = 2; g.beginPath(); g.moveTo(cx, f - ph - 6); g.lineTo(ex, ey); g.stroke(); box(g, ex - 5, ey - 3, 10, 6, body); box(g, ex - 5, ey - 3, 10, 2, lt); }
-      g.fillStyle = body; g.beginPath(); g.arc(cx, f - ph - 6, 9, 0, Math.PI * 2); g.fill();
-      box(g, cx - 1, f - ph - 24, 2, 10, sh); box(g, cx - 2, f - ph - 26, 4, 3, bulb);
-    } else if (kind === 4) {
-      // (a tower with a ball on top)
-      const th = 120 + hash(i * 4.1) * 70;
-      g.fillStyle = sh; g.beginPath(); g.moveTo(cx - 12, f); g.lineTo(cx - 4, f - th); g.lineTo(cx + 4, f - th); g.lineTo(cx + 12, f); g.fill();
-      box(g, cx - 4, f - th, 3, th, lt);
-      g.fillStyle = body; g.beginPath(); g.arc(cx, f - th - 10, 12, 0, Math.PI * 2); g.fill();
-      g.fillStyle = lt; g.beginPath(); g.arc(cx - 4, f - th - 14, 4, 0, Math.PI * 2); g.fill();
-      for (let y = f - th + 12; y < f - 10; y += 16) box(g, cx - 1, y, 2, 2, bulb);
-    } else {
-      // (a low pavilion, a zigzag roof)
-      const ph = 30 + hash(i) * 30;
-      box(g, x + 4, f - ph, w - 8, ph, body); box(g, x + 4, f - ph, 3, ph, lt); box(g, x + w - 8, f - ph, 4, ph, sh);
-      g.fillStyle = sh; g.beginPath(); g.moveTo(x, f - ph); for (let z = 0; z <= 4; z++) g.lineTo(x + (z * w) / 4, f - ph - (z % 2 ? 14 : 0)); g.lineTo(x + w, f - ph + 4); g.lineTo(x, f - ph + 4); g.fill();
-      box(g, x + 1, f - ph + 4, w - 2, 3, lt); box(g, x + 4, f - ph + 7, w - 8, 2, sh);
-      for (let wx = x + 12; wx < x + w - 14; wx += 12) box(g, wx, f - ph + 10, 6, 8, tod.lamps > 0.3 ? '#E8C070' : sh);
-    }
-    x += w + 10 + hash(i * 5.7) * 40;
-    i++;
-  }
-  // (the ground they stand on, and the haze lying over their feet)
-  box(g, 0, f, TW, 2, sh);
-  hazeBands(g, 0, f - 50, TW, 50, skyAt(0.92, tod), 0, 0.55, 5);
+/** A far layer's look at the hour: its pastels toward dusk and night, then into the sky's haze by `k`. */
+const farLook = (tod: TimeOfDay, k: number, s: number): Far => {
+  const T = (c: string) => mix(farTint(hourMix(c, mix(c, '#9A6A90', 0.22), mix(c, '#1A2048', 0.4), tod), 1, tod), skyAt(0.86, tod), k);
+  return { T, night: tod.lamps, s, glass: T(mix(skyAt(0.45, tod), '#2A3A6A', 0.25)) };
+};
+/** How tall a skyline tile is over its foot, and the ground under its foot (its own: it stands on that). */
+const FH = 240, GH = 30;
+/** The pieces each skyline layer's made of: the far one everything, small and close set (a monorail along it); the
+ *  near one the big pieces, wider apart. */
+const FAR_KINDS: Piece[] = ['dome', 'saucer', 'spire', 'hotel', 'radar', 'pavilion', 'geo', 'orbitron', 'hotel', 'pavilion'];
+const NEAR_KINDS: Piece[] = ['dome', 'saucer', 'rocket', 'orbitron', 'spire', 'hotel', 'pavilion', 'radar', 'geo'];
+/**
+ * The far skyline of the future (farTint's haze by `k`): domes ribbed in steps on their drums, saucers up on stalks,
+ * rockets on their pads by their gantries, the ORBITRON's arms, googie spires with starbursts, hotels of tomorrow with
+ * their fins, radar dishes, the Tomorrow Sphere, pavilions under folded-plate roofs (space/farArt.ts); windows with the sky
+ * in them by day, lit after dark, the neon on; the far one with the monorail going along it. All of it standing on its
+ * own ground (the lawn, a walk with its lamps, the tree line along its back in front of their feet); the haze lying
+ * over their feet.
+ */
+const paintFar = (g: Ctx, tod: TimeOfDay, k: number, seed: number, near: boolean) => {
+  const F = farLook(tod, k, near ? 1 : 0.7), f = FH;
+  skyline(g, F, TW, f, seed * 31 + 7, near ? NEAR_KINDS : FAR_KINDS, near ? [40, 110] : [10, 40]);
+  if (!near) monorail(g, F, TW, f, f - 50, 300 + hash(seed) * 400);
+  parkGround(g, F, TW, f, GH, seed * 17);
+  mist(g, TW, f - 90, 90, skyAt(0.92, tod), 0, near ? 0.38 : 0.5, 6);
+  mist(g, TW, f, GH, skyAt(0.92, tod), near ? 0.3 : 0.45, 0.1, 3);
+};
+/** The far hills round the park (past its fence, past the parking lots): a pale range at the back, rolling hills in
+ *  front with woods up their slopes, misted along their feet. Their feet under the far skyline's ground. */
+const HH = 170;
+const hillsBackY = (x: number) => snap2(HH - 96 + wave(x, TW, 2.2) * 30 + jag(x, TW, 8, 4) * 6);
+const hillsFrontY = (x: number) => snap2(HH - 46 + wave(x, TW, 5.3, 2) * 14);
+const paintHills = (g: Ctx, tod: TimeOfDay) => {
+  const haze = skyAt(0.9, tod);
+  const look = (base: string, k: number): RangeLook => {
+    const T = (c: string) => mix(farTint(hourMix(c, mix(c, '#7A5A80', 0.2), mix(c, '#141A3A', 0.45), tod), 1.3, tod), haze, k);
+    return { body: T(base), lit: T(mix(base, '#E4ECF6', 0.24)), hi: T(mix(base, '#FFFFFF', 0.38)), shade: T(mix(base, '#141A30', 0.18)), deep: T(mix(base, '#141A30', 0.32)) };
+  };
+  range(g, TW, hillsBackY, HH, look('#8496C0', 0.5), 3, { gullies: 26, d: 14 });
+  mist(g, TW, 30, HH - 40, haze, 0, 0.5, 6);
+  const front = look('#6A8A9A', 0.32);
+  range(g, TW, hillsFrontY, HH, front, 9, { gullies: 14, d: 12, forest: [front.shade, front.body], forestY: x => hillsFrontY(x) + 14 + wave(x, TW, 1.7, 3) * 6 });
+  mist(g, TW, HH - 50, 50, haze, 0, 0.55, 5);
 };
 
 export const drawClouds = (c: Ctx, state: GameState) => {
   const tod = timeOfDay(), hz = horizonY(state);
   tile(c, `spc-clouds-${tod.key}`, state.camera.x * 0.015 + state.frame * 0.03, hz - 330, 200, g => paintClouds(g, tod));
 };
-/** The far skyline (at parallax `k`; `haze` how far into the sky's haze it's gone). */
+/** The far hills (behind the far skyline; their feet under its ground). */
+export const drawFarHills = (c: Ctx, state: GameState) => {
+  const tod = timeOfDay(), hz = horizonY(state);
+  tile(c, `spc-hills-${tod.key}`, state.camera.x * 0.015 + 500, hz - HH + 6, HH, g => paintHills(g, tod));
+};
+/** The far skyline (at parallax `k`; `haze` how far into the sky's haze it's gone; the nearer one `dy` lower). */
 export const drawFarSkyline = (c: Ctx, state: GameState, k: number, haze: number, seed: number, dy = 0) => {
-  const tod = timeOfDay(), hz = horizonY(state), FH = 240;
-  tile(c, `spc-far-${seed}-${haze}-${tod.key}`, state.camera.x * k + seed * 300, hz - FH + dy, FH + 2, g => paintFar(g, tod, FH, haze, seed));
+  const tod = timeOfDay(), hz = horizonY(state), near = dy > 0;
+  tile(c, `spc-far2-${seed}-${haze}-${tod.key}`, state.camera.x * k + seed * 300, hz - FH + dy, FH + GH, g => paintFar(g, tod, haze, seed, near));
   // (under it, down to the bottom of the screen: the ground of the far park, never the sky)
   // (banded, darker nearer, rows of far planters and lamp bulbs along it)
-  const T = (k: number) => mix(farTint(hourMix('#8A9AC8', '#9A7AA0', '#2A3058', tod), 1, tod), skyAt(0.9, tod), haze * k);
-  const top = hz + dy + 2;
+  // (it carries on from the darkest of the tile's own ground)
+  const L = farLook(tod, haze, 1).T, T = (k: number) => mix(L('#2A4512'), '#0C1406', (1 - k) * 0.4);
+  const top = hz + dy + GH;
   bandedGradient(c, 0, top, W, H - top, [T(1), T(0.7), T(0.45), T(0.3)], 6);
   const bulb = tod.lamps > 0.3 ? '#FFE8A0' : T(0.2);
   for (let r = 0; r < 3; r++) { const y = top + 14 + r * 26 + r * r * 6, off = -(((state.camera.x * (k + 0.03 * (r + 1))) % 40) + 40) % 40; for (let x = off; x < W; x += 40 - r * 6) box(c, x, y, 2 + r, 1 + (r >> 1), r % 2 ? bulb : T(0.15)); }

@@ -13,7 +13,7 @@ import { SECTIONS, GY } from '../geometry';
 import { X, Y, PIT, WALL, DOORS_X, SOLIDS, LEDGES, LAMPS, SPEAKERS } from './layout';
 import { type Ctx, INK, box, checker, mix, poly, still, inView, viewOf, board, slab, ramp6, lit, chromePole, starburst, ball, bandedGradient, CHROME, PINK, TEAL, ORANGE, LIP, glassOf, timeOfDay } from './paint';
 import { lettering } from './lettering';
-import { drawSky, drawClouds, drawBlimp, drawFarSkyline, drawGiantAtom, drawNeedle, horizonY } from './sky';
+import { drawSky, drawClouds, drawBlimp, drawFarHills, drawFarSkyline, drawGiantAtom, drawNeedle, horizonY } from './sky';
 import { drawGoingBack, drawPlayPlane, drawPitDressing, type Ground } from './ground';
 import { type Shop, type Block, drawSides, drawShopFront, shopBlocks } from './buildings';
 import { drawLamp, drawSpeaker, drawBigSign, paintGate, paintTrashCan, paintPlanter } from './props';
@@ -31,6 +31,7 @@ export const drawSquareBackdrop = (c: Ctx2, state: GameState) => {
   const hz = horizonY(state);
   drawClouds(c, state);
   drawBlimp(c, state);
+  drawFarHills(c, state);
   drawFarSkyline(c, state, 0.03, 0.45, 3);
   // Space Needle 2, far off to the right (it goes up out of sight)
   drawNeedle(c, 770 - (cam - x0) * 0.004, hz + 4, 0.26, t);

@@ -15,6 +15,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { timeOfDay, skyRamp, farTint, type TimeOfDay } from '../../timeOfDay';
 import { bandedGradient, hazeBands, checker, steppedGlow } from '../../../m1/game/render/pixelArt';
+import { drawGiantAtom } from '../square/sky';
+import { type Far, type Piece, type RangeLook, skyline as skylineStrip, piece, monorail, parkGround, mist, range, snap2, wave, jag } from '../farArt';
 
 type Ctx = CanvasRenderingContext2D;
 type RGB = [number, number, number];
@@ -399,42 +401,31 @@ const paintPark = (tod: TimeOfDay) => {
   const B = PARK_H - 40;
   const R = (x: number, y: number, w: number, h: number, col: string) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
   const T = (col: string, k = 1) => farTint(col, k, tod);
-  // (the far hills, hazed; then the park on its flat)
-  for (let x = 0; x < W; x += PX) {
-    const h = 30 + Math.sin(x * 0.011) * 10 + Math.sin(x * 0.031 + 2) * 6;
-    R(x, B - h, PX, h, T('#5E6E9A', 1.6)); R(x, B - h, PX, PX, T('#8494C0', 1.6));
-    // (their lower slopes a step darker, the step dithered: every other column reaches a pixel up)
-    const k = Math.round(h * 0.5 / PX) * PX + ((x / PX) % 2 ? PX : 0);
-    R(x, B - k, PX, k, T('#506088', 1.6));
+  // (the far hills round the park: a range, lit flanks, gullies, woods up their slopes; misted along their feet)
+  const haze = tod.haze;
+  const hillT = (col: string) => mixHex(farTint(col, 1.4, tod), haze, 0.3);
+  const hillY = (x: number) => snap2(B - 44 + wave(x, W, 2.6) * 12 + jag(x, W, 8, 5) * 4);
+  const hills: RangeLook = { body: hillT('#5E6E9A'), lit: hillT('#7E8EB8'), hi: hillT('#9AAACC'), shade: hillT('#506088'), deep: hillT('#44527A') };
+  range(g, W, hillY, B + 2, hills, 5, { gullies: 16, d: 10, forest: [hillT('#4A6070'), hillT('#5E7880')] });
+  mist(g, W, B - 60, 62, haze, 0.05, 0.6, 5);
+  // (the far side of the park, small in the haze, on its own ground)
+  const far = (k: number, s: number): Far => { const t = (col: string) => mixHex(farTint(col, 1.2, tod), haze, k); return { T: t, night: tod.lamps, s, glass: t(mixHex(tod.sky[Math.min(3, tod.sky.length - 1)], '#2A3A6A', 0.25)) }; };
+  const F1 = far(0.4, 0.38);
+  skylineStrip(g, F1, W, B - 10, 61, ['pavilion', 'dome', 'hotel', 'spire', 'saucer', 'radar', 'pavilion'], [6, 22]);
+  parkGround(g, F1, W, B - 10, 10, 7);
+  mist(g, W, B - 70, 80, haze, 0, 0.45, 5);
+  // (this side of the park: the Tomorrow Sphere, the giant atom (the hole he came out of in it), towers and domes; the
+  // monorail's beam across on its pylons, a train on it)
+  const F2 = far(0.18, 0.5);
+  piece(g, F2, 'geo', 150, B, 3, 1.1);
+  drawGiantAtom(g, 560, B - 66, 0.26, 0, true);
+  for (let k = 0; k < 9; k++) {
+    const x = 40 + k * 92 + hash(k) * 20;
+    if (Math.abs(x - 150) < 60 || Math.abs(x - 560) < 70) continue;
+    piece(g, F2, (['hotel', 'dome', 'pavilion', 'spire', 'saucer', 'pavilion'] as Piece[])[k % 6], x, B, 90 + k * 7);
   }
-  hazeBands(g, 0, B - 46, W, 46, tod.haze, 0.05, 0.6, 5, PX);
-  // (the buildings: towers, a dome, the giant atom, Googie pylons; lit down their left, a darker right, inked tops)
-  const tower = (x: number, w: number, h: number, col: string, k = 1) => {
-    const r = [T(col, k), T(mixHex(col, '#000000', 0.25), k), T(mixHex(col, '#FFFFFF', 0.3), k)];
-    R(x, B - h, w, h, r[0]); R(x + w * 0.62, B - h, w * 0.38, h, r[1]); R(x, B - h, PX, h, r[2]); R(x, B - h, w, PX, r[2]);
-    for (let wy = B - h + 6; wy < B - 6; wy += 8) for (let wx = x + 4; wx < x + w - 4; wx += 6) if (hash(wx * 3 + wy) > 0.4) R(wx, wy, 2, 2, T('#F8E7A8', k));
-  };
-  for (let k = 0; k < 16; k++) tower(k * 54 - 14 + hash(k) * 16, 22 + hash(k + 3) * 18, 24 + hash(k + 9) * 46, k % 3 ? '#7C88B4' : '#9A86B0', 1.2);
-  // (the geodesic ball: a sphere in steps, its facets dithered)
-  const bx = 150, by = B - 36, br = 30;
-  for (let j = -br; j < br; j += PX) for (let i = -br; i < br; i += PX) {
-    const rr = (i * i + j * j) / (br * br); if (rr > 1 || j > 26) continue;
-    const l = c01(0.65 - i / br * 0.4 - j / br * 0.5);
-    const tone = ['#5C6890', '#7E8CB4', '#A4B2D4', '#CED8EE', '#F0F4FC'][Math.min(4, Math.floor(l * 4 + (((i + j) / PX) & 1 ? 0.4 : 0)))];
-    R(bx + i, by + j, PX, PX, T(tone, 0.8));
-  }
-  for (let i = -br; i < br; i += 8) R(bx + i, by - Math.sqrt(Math.max(0, br * br - i * i)), 1, 2 * Math.sqrt(Math.max(0, br * br - i * i)), T('#5C6890', 0.8));
-  // (the giant atom: its ball on a stem, the rings round it)
-  const ax = 560, ay = B - 70;
-  R(ax - 3, ay, 6, 70, T('#8E9AC0', 0.8)); R(ax - 3, ay, 2, 70, T('#C6D0EA', 0.8));
-  g.lineWidth = 2;
-  for (const rot of [0.5, -0.5, 1.57]) { g.strokeStyle = T('#B8C4E4', 0.8); g.beginPath(); g.ellipse(ax, ay, 34, 10, rot, 0, Math.PI * 2); g.stroke(); }
-  for (let j = -12; j < 12; j += PX) for (let i = -12; i < 12; i += PX) { if (i * i + j * j > 144) continue; R(ax + i, ay + j, PX, PX, T(i + j < -6 ? '#F4F6FC' : i + j < 6 ? '#C6D0EA' : '#8E9AC0', 0.8)); }
-  // (the monorail's beam across, a train on it)
-  R(0, B - 22, W, 2, T('#F2F4FA', 0.9)); R(0, B - 20, W, 2, T('#BCC4DC', 0.9)); R(0, B - 18, W, 2, T('#6A7498', 0.9));
-  for (let x = 0; x < W; x += PX * 2) R(x, B - 20, PX, PX, T('#DCE2F0', 0.9));
-  for (let x = 30; x < W; x += 70) R(x, B - 18, 4, 18, T('#7A84A8', 0.9));
-  R(300, B - 30, 70, 8, T('#F2F4FA', 0.9)); R(300, B - 30, 70, 2, T('#FFFFFF', 0.9)); R(306, B - 28, 58, 2, T('#3C4A78', 0.9));
+  monorail(g, F2, W, B, B - 24, 300, 140);
+  parkGround(g, F2, W, B, 0, 13);
   // (the ground: the park's paths and lawns, banded to the bottom, under its own haze)
   bandedGradient(g, 0, B, W, PARK_H - B, [T('#6A8A5A', 1.1), T('#557848', 1), T('#466A3C', 0.9)], 4, PX);
   for (let x = 0; x < W; x += 46) R(x + hash(x) * 20, B + 4 + hash(x + 1) * 24, 18, 2, T('#D8CCA8', 1));

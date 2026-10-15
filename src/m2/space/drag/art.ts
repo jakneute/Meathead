@@ -10,7 +10,7 @@ import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { SECTIONS, GY } from '../geometry';
 import { type Ctx, INK, box, checker, poly, still, inView, viewOf, board, slab, ramp6, lit, chromePole, starburst, ball, glassOf, CHROME, PINK, TEAL, LIP, mix } from '../square/paint';
-import { drawSky, drawClouds, drawBlimp, drawFarSkyline, drawGiantAtom, drawNeedle, horizonY } from '../square/sky';
+import { drawSky, drawClouds, drawBlimp, drawFarHills, drawFarSkyline, drawGiantAtom, drawNeedle, horizonY } from '../square/sky';
 import { drawGoingBack, drawPlayPlane, drawPitDressing, type Ground } from '../square/ground';
 import { type Shop, type Block, drawSides, drawShopFront, shopBlocks } from '../square/buildings';
 import { drawLamp, drawSpeaker, drawBigSign } from '../square/props';
@@ -25,6 +25,7 @@ export const drawDragBackdrop = (c: Ctx, state: GameState) => {
   const hz = horizonY(state);
   drawClouds(c, state);
   drawBlimp(c, state);
+  drawFarHills(c, state);
   drawFarSkyline(c, state, 0.03, 0.45, 11);
   // The giant atom, behind him now (receding off to the left), the hole in it smoking
   const as = 1.1 - prog * 0.6;

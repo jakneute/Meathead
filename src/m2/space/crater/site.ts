@@ -15,6 +15,8 @@ import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { drawCorpse, slimePool, drawRag, type CorpseKind } from './aliens';
 import { drawCheapGreen } from './green';
 import { lettering, letterSize } from '../square/lettering';
+import { drawGiantAtom, drawNeedle } from '../square/sky';
+import { type Far, type Piece, type RangeLook, skyline, piece, monorail, parkGround, mist, range, snap2, wave, jag } from '../farArt';
 import { D, x0, BOWL, WRECK_X, CART, PYLON, CHUNK_X, HOUSE_DOOR, MOUTH_X, CEIL } from './layout';
 import {
   type Ctx, type View, INK, box, checker, mix, hash, stamp, hazeBands, pixelBlob, steppedGlow, bendFloor, viewOf, at, atDepth, poly, inked, line,
@@ -47,7 +49,14 @@ export const drawImpactBackdrop = (c: Ctx, state: GameState) => {
   const tod = timeOfDay(), cam = state.camera.x - D, hz = horizonY(state);
   drawTodSky(c, 0, 0, W, H, SKY, { horizon: hz, sun: [600, 110], moon: [140, 90], t: state.frame, scroll: cam * 0.02 });
   layer(c, `xc-clouds-${tod.key}`, -cam * 0.03 - state.frame * 0.04, 0, 1400, 10, 240, paintClouds);
-  c.save(); c.translate(Math.round(-cam * 0.1), hz + 2); stamp(c, `xc-skyline-${tod.key}`, -130, -560, 1660, 566, paintSkyline); c.restore();
+  // (the hills and the far side of the park; then the two big things, the same as from the square (the atom with the
+  // hole he came out of, smoking; the needle going up out of sight); then this side of the park in front of their feet)
+  const sx = Math.round(-cam * 0.1);
+  c.save(); c.translate(sx, hz + 2); stamp(c, `xc-skyback-${tod.key}`, -130, -260, 1660, 266, paintSkyBack); c.restore();
+  if (sx + 70 > -200 && sx + 70 < W + 200) drawNeedle(c, sx + 70, hz + 2, 0.4, state.frame);
+  const as = 0.36;
+  if (sx + 440 > -120 && sx + 440 < W + 120) drawGiantAtom(c, sx + 440, hz + 2 - 120 * as - 40, as, state.frame, true);
+  c.save(); c.translate(sx, hz + 2); stamp(c, `xc-skyfront-${tod.key}`, -130, -200, 1660, 206, paintSkyFront); c.restore();
   layer(c, `xc-trees-${tod.key}`, -cam * 0.3, hz + 6, 1200, -120, 330, paintTrees);
   return true;
 };
@@ -67,94 +76,60 @@ const paintClouds = (g: Ctx) => {
   }
 };
 
-/** The far skyline, standing on y = 0 (from x -130 to 1530: it slides 0.1 of the camera). */
-const paintSkyline = (g: Ctx) => {
-  const tod = timeOfDay(), haze = skyAt(0.86, tod);
-  const T = (col: string, k = 1) => mix(farTint(col, 1, tod), haze, 0.22 + 0.2 * k);
-  const tr = (R: string[], k = 1) => R.map(col => T(col, k));
-  const C = tr(CHROME, 1.2), P = tr(PINK, 1.2), Tl = tr(TEAL, 1.2);
-  // Space Needle 2 (going up out of the picture: its decks stacked, a crane on the one they're still adding)
-  {
-    const x = 70;
-    poly(g, [[x - 24, 0], [x - 6, -560], [x + 6, -560], [x + 24, 0]], C[2]);
-    poly(g, [[x - 24, 0], [x - 6, -560], [x - 1, -560], [x - 8, 0]], C[4]);
-    for (let y = -20; y > -560; y -= 34) { const hw = 24 - (18 * -y) / 560; line(g, [x - hw + 2, y], [x + hw - 2, y - 17], C[1]); line(g, [x + hw - 2, y], [x - hw + 2, y - 17], C[1]); }
-    for (const [y, w] of [[-170, 96], [-290, 80], [-400, 66], [-500, 54]] as const) {
-      g.fillStyle = C[1]; g.beginPath(); g.ellipse(x, y + 5, w / 2, 8, 0, 0, Math.PI * 2); g.fill();
-      box(g, x - w / 2, y - 5, w, 10, C[4]); box(g, x - w / 2, y - 2, w, 4, Tl[3]);
-      for (let k = x - w / 2 + 4; k < x + w / 2 - 2; k += 7) box(g, k, y - 2, 1, 4, Tl[1]);
-      g.fillStyle = C[5]; g.beginPath(); g.ellipse(x, y - 5, w / 2, 6, 0, Math.PI, 0); g.fill();
-      box(g, x - w / 2 + 6, y - 9, w * 0.3, 2, C[6]);
-    }
-    box(g, x - 1, -560, 2, 30, C[1]);
-  }
-  // The giant atom: its nucleus up on a pylon, three orbits round it, the electrons
-  {
-    const x = 440, y = -160;
-    box(g, x - 6, y + 20, 12, -y - 20, C[2]); box(g, x - 6, y + 20, 4, -y - 20, C[4]); box(g, x - 16, -8, 32, 8, C[2]); box(g, x - 16, -8, 32, 2, C[4]);
-    const ring = (a: number, back: boolean) => {
-      g.save(); g.translate(x, y); g.rotate(a);
-      g.beginPath(); g.rect(-100, back ? -40 : 0, 200, 40); g.clip();
-      g.strokeStyle = C[1]; g.lineWidth = 6; g.beginPath(); g.ellipse(0, 0, 86, 24, 0, 0, Math.PI * 2); g.stroke();
-      g.strokeStyle = C[5]; g.lineWidth = 2; g.beginPath(); g.ellipse(0, -1, 86, 24, 0, 0, Math.PI * 2); g.stroke();
-      g.restore();
-    };
-    for (const a of [0, 1.05, -1.05]) ring(a, true);
-    orb(g, x, y, 24, P, false);
-    for (const a of [0, 1.05, -1.05]) ring(a, false);
-    for (const [ex, ey] of [[x + 82, y + 8], [x - 40, y - 50], [x + 30, y + 52]]) orb(g, ex, ey, 6, Tl, false);
-  }
-  // The Tomorrow Sphere: a geodesic ball on three legs
-  {
-    const x = 900, y = -86, r = 70;
-    for (const lx of [-54, 0, 54]) poly(g, [[x + lx - 5, 0], [x + lx * 0.5 - 3, y + 40], [x + lx * 0.5 + 3, y + 40], [x + lx + 5, 0]], C[2]);
-    orb(g, x, y, r, C, false);
-    g.save(); g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.clip();
-    g.strokeStyle = C[2]; g.lineWidth = 1;
-    for (let k = -r; k < r; k += 18) { g.beginPath(); g.ellipse(x, y, r, Math.abs(k) + 2, 0, 0, Math.PI * 2); g.stroke(); }
-    for (let k = -4; k <= 4; k++) { g.beginPath(); g.ellipse(x, y, Math.abs(k) * 17 + 1, r, 0, 0, Math.PI * 2); g.stroke(); }
-    checker(g, x - r, y + r * 0.35, r * 2, r, C[1]);
-    g.restore();
-  }
-  // The rocket jets: rockets on arms round a tower
-  {
-    const x = 1330;
-    box(g, x - 4, -190, 8, 190, C[3]); box(g, x - 4, -190, 3, 190, C[5]); orb(g, x, -196, 9, P, false);
-    for (const [s, k] of [[-1, 0], [1, 1], [-1, 2], [1, 3]] as const) {
-      const ay = -150 + k * 18, ex = x + s * (60 + k * 6), ey = ay + 26;
-      line(g, [x, ay], [ex, ey], C[2], 3);
-      g.fillStyle = (k % 2 ? Tl : P)[3]; g.beginPath(); g.ellipse(ex, ey + 4, 14, 6, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = (k % 2 ? Tl : P)[5]; g.fillRect(ex - 10, ey + 1, 12, 2);
-      poly(g, [[ex - s * 12, ey + 4], [ex - s * 20, ey - 4], [ex - s * 18, ey + 8]], (k % 2 ? Tl : P)[2]);
-    }
-  }
-  // The monorail's beam across the lot, on its T pylons; a car on it
-  {
-    const y = -70;
-    for (let x = -100; x < 1540; x += 230) { box(g, x - 4, y, 8, -y, C[2]); box(g, x - 4, y, 3, -y, C[4]); box(g, x - 12, y + 6, 24, 4, C[2]); }
-    box(g, -130, y - 1, 1660, 9, C[1]); box(g, -130, y, 1660, 6, C[3]); box(g, -130, y, 1660, 2, C[5]);
-    const cx = 1110;
-    g.fillStyle = T('#F8FAFC'); g.beginPath(); g.roundRect(cx, y - 22, 130, 21, [12, 12, 4, 4]); g.fill();
-    box(g, cx + 6, y - 17, 116, 5, Tl[2]); for (let k = cx + 12; k < cx + 120; k += 14) box(g, k, y - 17, 1, 5, C[4]);
-    box(g, cx + 2, y - 8, 126, 3, P[3]); box(g, cx + 8, y - 21, 50, 1, T('#FFFFFF'));
-  }
-  // The low buildings along the park's back: googie roofs (a boomerang, folded plates, a starburst up on a pole)
-  const bodies = ['#E6E1F0', '#D9E8F2', '#F2E1EA', '#E4EEE0', '#F3EBD8'];
-  for (let i = 0; i < 14; i++) {
-    const x = -110 + i * 118 + Math.round(hash(i * 1.9) * 24), w = 70 + Math.round(hash(i * 2.7) * 44), h = 24 + Math.round(hash(i * 4.1) * 42);
-    const R = tr([dark2(bodies[i % 5], 0.45), dark2(bodies[i % 5], 0.25), bodies[i % 5], lite2(bodies[i % 5])], 0.7);
-    box(g, x, -h, w, h, R[2]); box(g, x, -h, 3, h, R[3]); box(g, x + w - 4, -h, 4, h, R[1]);
-    box(g, x + 4, -Math.round(h * 0.6), w - 8, 6, Tl[2]); box(g, x + 4, -Math.round(h * 0.6), w - 8, 1, Tl[4]);
-    for (let k = x + 10; k < x + w - 6; k += 12) box(g, k, -Math.round(h * 0.6), 1, 6, R[1]);
-    const kind = i % 3, rc = i % 2 ? P : Tl;
-    if (kind === 0) { poly(g, [[x - 12, -h + 2], [x + w * 0.55, -h - 16], [x + w + 14, -h + 2], [x + w + 14, -h + 5], [x + w * 0.55, -h - 12], [x - 12, -h + 5]], rc[3]); line(g, [x - 12, -h + 2], [x + w * 0.55, -h - 16], rc[5]); }
-    else if (kind === 1) { for (let k = 0; k < 4; k++) { const a = x + (k * w) / 4, b = a + w / 4; poly(g, [[a, -h], [a + w / 8, -h - 9], [b, -h]], k % 2 ? rc[2] : rc[4]); } }
-    else { box(g, x + w / 2 - 1, -h - 30, 2, 30, R[1]); const sx = x + w / 2, sy = -h - 34; for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4; line(g, [sx, sy], [sx + Math.cos(a) * 9, sy + Math.sin(a) * 9], T(HAZ[4])); } }
-  }
-  hazeBands(g, -130, -44, 1660, 46, tod.haze, 0, 0.6, 6);
+/** The strip's span (screen x at camera 0): it slides 0.1 of the camera. */
+const SKY_X0 = -130, SKY_W = 1660;
+const skyFar = (tod: ReturnType<typeof timeOfDay>, k: number, s: number): Far => {
+  const haze = skyAt(0.86, tod), T = (col: string) => mix(farTint(col, 1, tod), haze, k);
+  return { T, night: tod.lamps, s, glass: T(mix(skyAt(0.45, tod), '#2A3A6A', 0.25)) };
 };
-const dark2 = (c: string, k: number) => mix(c, '#2A2238', k);
-const lite2 = (c: string) => mix(c, '#FFFFFF', 0.35);
+/**
+ * The back of the far skyline, standing on y = 0: the hills round the park (a pale range at the back, wooded hills in
+ * front, misted along their feet), the far side of the park small in its haze on its own ground (space/farArt.ts).
+ */
+const paintSkyBack = (g: Ctx) => {
+  const tod = timeOfDay(), haze = skyAt(0.9, tod);
+  g.save(); g.translate(SKY_X0, 0);
+  const look = (base: string, k: number): RangeLook => {
+    const T = (c: string) => mix(farTint(c, 1.3, tod), haze, k);
+    return { body: T(base), lit: T(mix(base, '#E4ECF6', 0.24)), hi: T(mix(base, '#FFFFFF', 0.38)), shade: T(mix(base, '#141A30', 0.18)), deep: T(mix(base, '#141A30', 0.32)) };
+  };
+  const backY = (x: number) => snap2(-150 + wave(x, SKY_W, 1.1) * 34 + jag(x, SKY_W, 8, 2) * 6);
+  const frontY = (x: number) => snap2(-96 + wave(x, SKY_W, 3.7, 2) * 14);
+  range(g, SKY_W, backY, 6, look('#8496C0', 0.5), 4, { gullies: 40, d: 14 });
+  mist(g, SKY_W, -200, 200, haze, 0, 0.5, 6);
+  const front = look('#6A8A9A', 0.32);
+  range(g, SKY_W, frontY, 6, front, 8, { gullies: 22, d: 12, forest: [front.shade, front.body], forestY: x => frontY(x) + 14 + wave(x, SKY_W, 1.7, 3) * 6 });
+  mist(g, SKY_W, -60, 66, haze, 0, 0.5, 5);
+  // (the far side of the park, small: its own ground, its tree line)
+  const F = skyFar(tod, 0.48, 0.5);
+  skyline(g, F, SKY_W, -4, 51, ['pavilion', 'dome', 'hotel', 'radar', 'saucer', 'pavilion', 'spire'], [8, 30]);
+  parkGround(g, F, SKY_W, -4, 10, 23);
+  mist(g, SKY_W, -70, 76, haze, 0, 0.45, 5);
+  g.restore();
+};
+/**
+ * The front of the far skyline, standing on y = 0 (in front of the needle's and the atom's feet): the monorail's beam
+ * across the lot on its T pylons, a train on it; the Tomorrow Sphere on its legs; the rocket jets (the ORBITRON); the
+ * low buildings along the park's back under their googie roofs, domes, a hotel or two; their windows lit after dark.
+ */
+const paintSkyFront = (g: Ctx) => {
+  const tod = timeOfDay(), haze = skyAt(0.9, tod);
+  g.save(); g.translate(SKY_X0, 0);
+  const F = skyFar(tod, 0.3, 0.62), at = (x: number) => x - SKY_X0;
+  piece(g, F, 'geo', at(900), 0, 5, 2.3);
+  piece(g, F, 'orbitron', at(1330), 0, 9, 1.6);
+  monorail(g, F, SKY_W, 0, -70, at(1110), 230);
+  const kinds: Piece[] = ['pavilion', 'dome', 'hotel', 'pavilion', 'saucer', 'radar', 'pavilion', 'dome'];
+  for (let i = 0; i < 14; i++) {
+    const x = -110 + i * 118 + Math.round(hash(i * 1.9) * 24) + 40;
+    if (Math.abs(x - 900) < 110 || Math.abs(x - 1330) < 110 || Math.abs(x - 70) < 70 || Math.abs(x - 440) < 40) continue;
+    piece(g, F, kinds[i % kinds.length], at(x), 0, 70 + i * 11);
+  }
+  parkGround(g, F, SKY_W, 0, 6, 41);
+  mist(g, SKY_W, -60, 66, haze, 0, 0.42, 5);
+  g.restore();
+};
+
 
 /** The tree line along the far edge of the lawn (standing on y = 0), a chrome rail fence, the far lawn under it. */
 const paintTrees = (g: Ctx) => {
