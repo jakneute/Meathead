@@ -1,5 +1,8 @@
 // The ending (the user's): the last of the cast dead, Meathead says "BETTER CLEAN UP THE BODIES." Cut: the bodies are
-// all in one big pile. He's in the bulldozer that happens to be parked at the back of the stage; it rumbles up and
+// all in one big pile; a beat on it (the user's: a comic one), the camera in on it, panning slowly up it: the shield
+// rolls off the top, down onto the floor, and spins down flat like a dropped coin; the hammer slides off the other side
+// and lands on the floor squeaking (a rubber prop); last, up top, a hand sticking up out of it twitches, and flops.
+// He's in the bulldozer that happens to be parked at the back of the stage; it rumbles up and
 // shoves the pile along the stage, and as it gets to the script's case at the back of the stage the camera PUSHES IN on
 // it (the playtest notes): the pile slams into the plinth, the case goes over, the glass goes, the pages go up and out
 // over the crowd at the fallen walls (the leak, the most devastating thing he's done). Back out, and it CRASHES THROUGH
@@ -31,7 +34,7 @@ import { SECTIONS, LOT_WALL_BREAK, LOT_DUMPSTER } from '../geometry';
 import { words, print } from '../blvd/paint';
 import { X, GY, BACK_Y, PILE_X, DOZER_X, DOZER_START, CASE_X, FAR_WALL, ARENA_CAM, LEAK_MEMO, CAST_MEMO } from './layout';
 import { whOf } from './state';
-import { drawBody } from './cast';
+import { drawBody, CAST } from './cast';
 import { CLEAN_UP, CROWD_PAGES, SHRUG, AD_LEAK, EXEC_PHONE, EXEC_SEES, EXEC_RANT } from './lines';
 import { crowdSay, adSay, execSay } from './talk';
 
@@ -48,6 +51,8 @@ const RIM = GY - 132;
 const EX_BACK_X = CASE_X + 85, EX_BACK = 0.82, EX_RANT_X = LOT0 + 210;
 /** The push in on the case: where on it, how far in. */
 const CASE_FOCUS = { y: BACK_Y - 80 }, ZOOM_IN = 1.25;
+/** The beat on the pile: how long; how far in; the pile's top (off the floor); the shield's size. */
+const PILE_T = 160, PILE_ZOOM = 0.8, TOP = 86, SR = 13;
 
 export const leaked = (state: GameState) => !!state.stageMemo[LEAK_MEMO];
 /** Going (from the line to the hop down). */
@@ -56,7 +61,7 @@ export const endingOn = (state: GameState) => { const ph = whOf(state).ending.ph
 export const dozerX = (state: GameState) => {
   const E = whOf(state).ending;
   if (leaked(state) || E.phase === 'lot' || E.phase === 'done') return null;
-  return E.phase === 'drive' || (E.phase === 'cut' && E.heap.length) ? E.dx : X(DOZER_X);
+  return E.phase === 'drive' || E.phase === 'pile' || (E.phase === 'cut' && E.heap.length) ? E.dx : X(DOZER_X);
 };
 /** The case: knocked over (empty, smashed) or still up. */
 export const caseDown = (state: GameState) => leaked(state) || whOf(state).ending.caseDown;
@@ -100,7 +105,7 @@ const finish = (state: GameState, skipped: boolean) => {
   const o = whOf(state), E = o.ending, p = state.player;
   if (skipped) silenceAll();
   state.stageMemo[LEAK_MEMO] = '1'; state.stageMemo[CAST_MEMO] = '1';
-  E.phase = 'done'; E.heap = []; E.flying = []; E.caseDown = true; E.caseT = 99; E.zoomK = 0; E.wallHit = true; E.white = 0; E.fade = 0;
+  E.phase = 'done'; E.heap = []; E.flying = []; E.caseDown = true; E.caseT = 99; E.zoomK = 0; E.zf = null; E.wallHit = true; E.white = 0; E.fade = 0;
   E.ex.mode = 'off'; E.ex.said = null;
   o.fight.bodies = []; o.castSaid.clear(); o.crowd = null; o.ad = null;
   if (o.farWall) o.farWall.x = -1e7;
@@ -112,7 +117,51 @@ const finish = (state: GameState, skipped: boolean) => {
   if (!skipped) { outOf(state).said['lot-arrive'] = true; meatheadSays(state, pickLine(SHRUG), true); }
 };
 
-export const updateEnding = (ctx: FrameContext): Controls | null => {
+// ---------------------------------------------------------------------------------------------------------------
+// The beat on the pile: where each gag is at frame t of it (after it: where they were left, on the pile, pushed along
+// with it). x's off the pile's middle; y's the world's.
+
+/** The shield: on top, then rolling down the pile's right side, along the floor, then wobbling down flat like a coin. */
+const S0 = 12, S1 = 40, S2 = 64, S3 = 118;
+const shieldAt = (t: number) => {
+  if (t < S0) return { x: -4, y: GY - TOP - SR, rot: 0, ry: SR, jig: 0, ph: 0 };
+  if (t < S1) { const e = ((t - S0) / (S1 - S0)) ** 2, x = -4 + e * 124; return { x, y: GY - TOP + e * TOP - SR, rot: x / SR, ry: SR, jig: 0, ph: 0 }; }
+  if (t < S2) { const u = (t - S1) / (S2 - S1), x = 120 + 45 * (1 - (1 - u) ** 2); return { x, y: GY - SR, rot: x / SR, ry: SR, jig: 0, ph: 0 }; }
+  const s = Math.min(1, (t - S2) / (S3 - S2)), ph = s * s * 46, ry = Math.max(2.5, SR * (1 - s ** 1.4));
+  return { x: 165, y: GY - ry, rot: 165 / SR, ry, jig: Math.sin(ph) * (1 - s) * 3, ph };
+};
+/** The hammer: on top (left), sliding off and tumbling down the left side; the floor: a squeaky bounce, a littler one. */
+const H0 = 58, H1 = 80, H2 = 96, H3 = 106;
+const hammerAt = (t: number) => {
+  if (t < H0) return { x: -26, y: GY - TOP - 4, rot: 0.2 };
+  if (t < H1) { const e = ((t - H0) / (H1 - H0)) ** 2; return { x: -26 - e * 74, y: GY - TOP - 4 + e * (TOP - 2), rot: 0.2 - e * 5.2 }; }
+  if (t < H2) { const u = (t - H1) / (H2 - H1); return { x: -100 + u * 8, y: GY - 6 - 28 * Math.sin(Math.PI * u), rot: -5 + u * 3.2 }; }
+  if (t < H3) { const u = (t - H2) / (H3 - H2); return { x: -92 + u * 4, y: GY - 6 - 9 * Math.sin(Math.PI * u), rot: -1.8 + u * 1.8 }; }
+  return { x: -88, y: GY - 6, rot: 0 };
+};
+/** The hand up out of the top: still, three twitches, then over it flops. Its lean (0: straight up). */
+const TW = [104, 113, 119], FLOP = 136;
+const handLean = (t: number) => {
+  for (let k = 0; k < TW.length; k++) if (t >= TW[k] && t < TW[k] + 4) return (k % 2 ? -0.35 : 0.3) * (t % 2 ? 1 : 0.6);
+  if (t < FLOP) return 0;
+  const u = Math.min(1, (t - FLOP) / 7);
+  return 1.75 * u * u - (t >= FLOP + 7 && t < FLOP + 10 ? 0.15 : 0);
+};
+const pileSounds = (t: number) => {
+  // (the shield: bumping down the pile, onto the floor, the rattle down to flat getting faster)
+  if (t > S0 && t < S1 && (t - S0) % 7 === 0) playSound('clink', 0.3, 2);
+  if (t === S1) playSound('clang', 0.45, 6);
+  if (t > S2 && t < S3 && Math.floor(shieldAt(t).ph / Math.PI) !== Math.floor(shieldAt(t - 1).ph / Math.PI)) playSound('clink', 0.32, 8);
+  if (t === S3) playSound('clink', 0.5, 4);
+  // (the hammer: the rubber squeaks)
+  if (t === H0 + 4) playSound('whoosh', 0.2, 6);
+  if (t === H1) { playSound('squish', 0.6, 14); playSound('boing', 0.4, 10); }
+  if (t === H2) { playSound('squish', 0.4, 17); playSound('boing', 0.25, 14); }
+  // (the hand going over)
+  if (t === FLOP + 7) playSound('thud', 0.35, 6);
+};
+
+export const updateEnding =(ctx: FrameContext): Controls | null => {
   const { state, fx } = ctx, o = whOf(state), E = o.ending, p = state.player, f = state.frame;
   if (E.phase === 'off' || E.phase === 'done') return null;
   E.t++; E.all++;
@@ -127,9 +176,20 @@ export const updateEnding = (ctx: FrameContext): Controls | null => {
       if (E.t <= 10) E.fade = E.t / 10;
       if (E.t === 10) heapUp(state);
       if (E.t > 14) E.fade = Math.max(0, 1 - (E.t - 14) / 12);
-      if (E.t > 26) { E.phase = 'drive'; E.t = 0; E.fade = 0; }
+      if (E.t > 26) { E.phase = 'pile'; E.t = 0; E.fade = 0; }
       if (E.heap.length) seat(state, E.dx);
       break;
+    case 'pile': {
+      // The beat on the pile: in on it, panning slowly up it (the shield, the hammer, the hand up top)
+      const u = Math.min(1, E.t / 110);
+      E.zf = { x: E.heapX + 30, y: GY - 36 - 48 * u * u * (3 - 2 * u), z: PILE_ZOOM };
+      E.zoomK += (1 - E.zoomK) * 0.1;
+      pileSounds(E.t);
+      seat(state, E.dx);
+      state.cameraOverride = { x: X(ARENA_CAM), y: GY - 550 };
+      if (E.t >= PILE_T) { E.phase = 'drive'; E.t = 0; }
+      break;
+    }
     case 'drive': {
       // The exec on his phone at the back (after his line, in turn): never a look at any of it
       if (E.t === 1 && !E.wallHit) execSay(state, EXEC_PHONE);
@@ -181,6 +241,9 @@ export const updateEnding = (ctx: FrameContext): Controls | null => {
       }
       // (the push in on the case: in as the pile gets to it, held while it goes over, back out)
       const zoomTo = !E.wallHit && ((!E.caseDown && front() > X(CASE_X) - 140) || (E.caseDown && E.caseT < 95)) ? 1 : 0;
+      // (back out off the pile as the engine catches; then in on the case)
+      if (zoomTo) E.zf = null;
+      else if (E.zf) E.zf.x = E.heapX + 30;
       E.zoomK += (zoomTo - E.zoomK) * 0.07;
       if (E.zoomK < 0.005) E.zoomK = 0;
       seat(state, E.dx);
@@ -225,10 +288,10 @@ export const updateEnding = (ctx: FrameContext): Controls | null => {
 
 /** The camera pushed in on the case as the pile gets to it (the section's zoom). */
 export const endingZoom = (state: GameState) => {
-  const k0 = whOf(state).ending.zoomK;
+  const E = whOf(state).ending, k0 = E.zoomK;
   if (k0 <= 0) return null;
-  const k = k0 * k0 * (3 - 2 * k0), x = X(CASE_X), y = CASE_FOCUS.y;
-  return { scale: 1 + ZOOM_IN * k, x, y, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - x), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - y) };
+  const k = k0 * k0 * (3 - 2 * k0), x = E.zf ? E.zf.x : X(CASE_X), y = E.zf ? E.zf.y : CASE_FOCUS.y;
+  return { scale: 1 + (E.zf ? E.zf.z : ZOOM_IN) * k, x, y, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - x), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - y) };
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -295,6 +358,34 @@ const execBack = (c: Ctx, state: GameState) => {
   c.restore();
 };
 
+/** The beat's gags on the pile (where they've got to; after it, where they were left, pushed along with it). */
+const drawPileGags = (c: Ctx, state: GameState) => {
+  const E = whOf(state).ending, t = E.phase === 'pile' ? E.t : E.phase === 'cut' ? 0 : PILE_T, hx = E.heapX;
+  // (the hand, up out of the top one: their sleeve, their glove or skin)
+  const top = E.heap[E.heap.length - 1];
+  if (top) {
+    const a = CAST[top.i], lean = handLean(t), skin = a.gloves ?? a.look?.skin ?? '#D6A06B';
+    c.save(); c.translate(hx + top.ox + 6, GY - TOP + 8); c.rotate(lean);
+    box(c, -4, -28, 8, 30, '#000'); box(c, -3, -27, 6, 28, a.suit);
+    box(c, -5, -38, 10, 12, '#000'); box(c, -4, -37, 8, 10, skin);
+    // (the fingers, spread; gone limp once it's down)
+    if (lean < 1) for (let k = 0; k < 3; k++) box(c, -4 + k * 3, -42, 2, 5, skin);
+    c.restore();
+  }
+  // (the hammer: a rubber prop's grey head, the wooden handle)
+  const h = hammerAt(t);
+  c.save(); c.translate(hx + h.x, h.y); c.rotate(h.rot);
+  box(c, -14, -3, 22, 6, '#000'); box(c, -13, -2, 20, 4, '#78350F');
+  box(c, 6, -9, 14, 18, '#000'); box(c, 7, -8, 12, 16, '#A1A1AA'); box(c, 7, -8, 12, 3, '#D4D4D8');
+  c.restore();
+  // (the shield: red, white, blue, the star; turning as it rolls, squashing down flat as it settles)
+  const s = shieldAt(t);
+  c.save(); c.translate(hx + s.x + s.jig, s.y); c.scale(1, s.ry / SR); c.rotate(s.rot);
+  for (const [r, col] of [[SR + 1.5, '#000'], [SR, '#DC2626'], [SR * 0.72, '#F8FAFC'], [SR * 0.45, '#1D4ED8']] as const) { c.fillStyle = col; c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.fill(); }
+  box(c, -2, -5, 4, 10, '#F8FAFC'); box(c, -5, -2, 10, 4, '#F8FAFC');
+  c.restore();
+};
+
 /** The cab's front posts and roof edge, over him in the seat. */
 const dozerFront = (c: Ctx, x: number, f: number) => {
   const jig = f % 4 < 2 ? -1 : 0;
@@ -305,17 +396,18 @@ const dozerFront = (c: Ctx, x: number, f: number) => {
 /** The exec at the back, the heap (on the stage, ahead of the blade), the bulldozer driving. */
 export const drawEndingBack = (c: Ctx, state: GameState) => {
   const E = whOf(state).ending;
-  if (E.phase !== 'cut' && E.phase !== 'drive') return;
+  if (E.phase !== 'cut' && E.phase !== 'pile' && E.phase !== 'drive') return;
   execBack(c, state);
   if (!E.heap.length) return;
   for (const h of E.heap) drawBody(c, h.i, E.heapX + h.ox, GY - h.oy, h.dir, 1, 0);
+  drawPileGags(c, state);
   drawDozer(c, E.dx, state.frame, E.phase === 'drive');
 };
 /** Over him: the cab's front; the exec's words. */
 export const drawEndingFront = (c: Ctx, state: GameState) => {
   const E = whOf(state).ending, ex = E.ex;
-  if ((E.phase === 'cut' && E.heap.length) || E.phase === 'drive') dozerFront(c, E.dx, state.frame);
-  if ((E.phase === 'cut' || E.phase === 'drive') && ex.said && (ex.mode === 'stand' || ex.mode === 'lose')) saidOver(c, ex.said.text, ex.x, ex.y - 104, '#FDE68A', 260);
+  if ((E.phase === 'cut' && E.heap.length) || E.phase === 'pile' || E.phase === 'drive') dozerFront(c, E.dx, state.frame);
+  if ((E.phase === 'cut' || E.phase === 'pile' || E.phase === 'drive') && ex.said && (ex.mode === 'stand' || ex.mode === 'lose')) saidOver(c, ex.said.text, ex.x, ex.y - 104, '#FDE68A', 260);
 };
 /** Outside (the lot's beat: he's still in the warehouse's hands, so it's drawn from its HUD, in the world): the bodies
  *  flying into the dumpster and the dust out of the hole. */

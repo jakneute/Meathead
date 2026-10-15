@@ -75,7 +75,7 @@ export interface Exec {
 }
 
 export interface Ending {
-  phase: 'off' | 'say' | 'cut' | 'drive' | 'lot' | 'done';
+  phase: 'off' | 'say' | 'cut' | 'pile' | 'drive' | 'lot' | 'done';
   t: number;
   /** The bulldozer's middle (world x), its speed. */
   dx: number; v: number;
@@ -91,6 +91,8 @@ export interface Ending {
   caseT: number;
   /** The camera pushed in on the case as the pile hits it (0..1). */
   zoomK: number;
+  /** Where the camera's pushed in on, and how far, when it isn't the case (the beat on the pile). */
+  zf: { x: number; y: number; z: number } | null;
   /** Through the far wall; the white flash of the cut to outside (0..1); frames since it started; the line's done. */
   wallHit: boolean; white: number; all: number; said: boolean;
   ex: Exec;
@@ -173,7 +175,7 @@ export const whOf = (state: GameState): Warehouse => {
         dir: { x: 0, face: -1, mode: 'gone', said: null }, runners: [] },
       fight: { phase: 'wait', t: 0, order: [], next: 0, spawnT: 0, arrivals: [], actors: [], bodies: [], killed: 0, door: null, doorK: 0, said: {},
         barkAt: -9999, moveId: -1, knockAt: -9999, seen: new WeakSet(), lastCd: 0, crushed: false },
-      ending: { phase: 'off', t: 0, dx: 0, v: 0, heap: [], heapX: 0, fade: 0, flying: [], caseDown: false, caseT: 0, zoomK: 0, wallHit: false, white: 0, all: 0, said: false,
+      ending: { phase: 'off', t: 0, dx: 0, v: 0, heap: [], heapX: 0, fade: 0, flying: [], caseDown: false, caseT: 0, zoomK: 0, zf: null, wallHit: false, white: 0, all: 0, said: false,
         ex: { mode: 'off', x: 0, y: 0, face: -1, t: 0, said: null, done: false } },
       hz: { lights: [], pyroHit: [] },
       flashes: [], upLatch: true, castSaid: new Map(), farWall: null,
