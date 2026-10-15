@@ -1,5 +1,6 @@
-// THE STAR TOILETS (an easter egg: no prompt, ever; found by crouching beside one). Hold crouch by any of the three
-// shrines' toilets (on the deck by the plinth, or up on it) once the stop's staff are dead, and he hops up onto it, jeans
+// THE STAR TOILETS (an easter egg, prompted now: the user). Once a stop's staff are all dead, by its toilet the prompt
+// comes up (HOLD down: SHIT ON IT, the real buttons, App.tsx's holdPrompt); never before (nor does it work before).
+// Hold crouch by any of the three shrines' toilets (on the deck by the plinth, or up on it), and he hops up onto it, jeans
 // down round his boots, and goes: a big steaming one (render/player/throne.ts: his own pose: pushing red-faced,
 // slumped in relief). Keep holding:
 //
@@ -63,21 +64,28 @@ const getUp = (state: GameState, co: Coaster) => {
   p.pos.x = g.sx + g.sw + 26 - p.width / 2; p.pos.y = g.deck - p.height; p.vel.x = 0; p.vel.y = 0; p.isGrounded = true;
 };
 
+/** The toilet he's by (on the deck by its plinth, or up on it, on his feet), its stop's staff all dead, the toilet
+ *  still there: which (-1 none). Only then does holding down sit him on it, and only then is its prompt up. */
+const throneBy = (state: GameState) => {
+  const p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  if (!p.isGrounded || p.health <= 0 || onWire(state)) return -1;
+  for (let i = 0; i < 3; i++) {
+    const g = throneAt(i);
+    if (Math.abs(cx - g.mx) > g.sw / 2 + 70 || feet < g.top - 8 || feet > g.deck + 8) continue;
+    if (!state.stageMemo[CLEARED_MEMO(i)] || throneState(state, i) === 'exploded') continue;
+    return i;
+  }
+  return -1;
+};
+/** HOLD down's prompt is up (by one he can sit on, not sat on it yet). */
+export const throneHere = (state: GameState, co: Coaster) => !co.sit && throneBy(state) >= 0;
+
 /** Each frame, off the train: the crouch by a toilet, and him on one. Controls to pass on (none while he's sat). */
 export const updateThrones = (ctx: FrameContext, co: Coaster, controls: Controls, pa: (line: string) => void): Controls | null => {
   const { state } = ctx, p = state.player;
   if (co.sit) return sitting(ctx, co, controls, pa);
   // Crouched by one (on the deck by its plinth, or up on it), the stop's staff dead, the toilet still there
-  const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
-  let by = -1;
-  if (controls.down && p.isGrounded && !p.isSliding && !p.isCharging && p.health > 0 && !onWire(state)) {
-    for (let i = 0; i < 3; i++) {
-      const g = throneAt(i);
-      if (Math.abs(cx - g.mx) > g.sw / 2 + 70 || feet < g.top - 8 || feet > g.deck + 8) continue;
-      if (!state.stageMemo[CLEARED_MEMO(i)] || throneState(state, i) === 'exploded') continue;
-      by = i;
-    }
-  }
+  const by = controls.down && !p.isSliding && !p.isCharging ? throneBy(state) : -1;
   if (by < 0) { co.squat = { i: -1, t: 0 }; return null; }
   if (co.squat.i !== by) co.squat = { i: by, t: 0 };
   if (++co.squat.t < HOLD) return null;

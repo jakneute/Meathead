@@ -29,6 +29,9 @@ export interface M2Ui {
   locked?: boolean;
   /** What up does right here, if anything (a lever to pull...): its prompt (a land's own; reset each frame). */
   upPrompt?: string | null;
+  /** What holding down does right here, if anything (sitting on a star toilet...): its prompt, shown as HOLD (down)
+   *  and this (a land's own; reset each frame). */
+  holdPrompt?: string | null;
 }
 
 let ui: M2Ui = { near: null, map: null, nearExit: false, notice: null };

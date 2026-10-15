@@ -102,6 +102,14 @@ on its own loop while nobody's on it; `off: true` hangs slack.
 **Keep each section's list in a steady order** (wires are matched frame to frame by their place in the list): switch
 one `off` rather than leaving it out. `onWire(state)` if you need to know.
 
+## Levers thrown by hand (shared)
+
+`hollywood/lever.ts` (the coaster owner's, for anyone): a lever he hauls over with the engine's own pose
+(Player.leverPull, him from behind, both hands on the grip). `startThrow()` when up's pressed at it, `tickThrow(state,
+lever, throw)` every frame ('busy': give him no controls; 'thrown': the frame it hits its stop; 'done'), draw the handle
+at `throwAngle(lever, throw, flipped)`. The coaster's RIDE MODE lever uses it; **Disaster: The Ride's REAL DISASTERS
+lever can use it as it is.**
+
 ## Things that outlive a death
 
 `state.stage` is rebuilt on every death. What has to outlive one (havoc's "died to the tornado") lives in its own

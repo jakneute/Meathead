@@ -15,10 +15,11 @@
 //          stunt wire over the shrine between the high catwalks, a second staff door up on the right one.
 //   8900   RIDE 3 (the second lift, the near-vertical drop, the INSANITY LOOPS: ten, each smaller): ~24 s.
 //   12300  STOP 3 (up 1100): THE ROCK GOD'S TOUR BUS TOILET (a biohazard: its case vents fumes, and they hurt
-//          anybody). Three waves. The CONTROL BOOTH up on its stilts at the right end (a wire up to its balcony, or
-//          the catwalks), the sleeper, the lever: EXPERIMENTAL. Next ride: THE LAUNCH (off the bent end of the track,
-//          through the air, into the warehouse's wall). With the lever on NORMAL, the train takes him back to the
-//          station.
+//          anybody), at the far end by the booth. Three waves, out of two doors on the deck. The CONTROL BOOTH up on
+//          its stilts at the right end (a wire up to its balcony, past the fumes), the sleeper, the lever (locked out
+//          till the staff are dead): EXPERIMENTAL. Next ride: THE LAUNCH (off the bent end of the track, through the
+//          air, into the warehouse's wall). He won't ride on NORMAL (pull the lever first).
+//   (The station and the stops are dressed as a bathroom: a tiled set wall, stalls, urinals, sinks: art.ts.)
 //
 // Every stop has a SERVICE STAIRS door at its left end (locked while the staff are at him): down and out at the
 // station. So the way back from the warehouse (DOORS.coaster.end: under the booth) is the stairs, or another launch.
@@ -26,6 +27,7 @@
 import { SECTIONS, GY } from '../geometry';
 export { GY };
 import type { StuntWire } from '../section';
+import type { HandLever } from '../lever';
 
 export const x0 = SECTIONS.coaster.x0, x1 = SECTIONS.coaster.x1;
 export const X = (rx: number) => x0 + rx;
@@ -73,6 +75,8 @@ export interface Stop {
   a: number; b: number; h: number; park: number;
   shrine: { x: number; w: number; h: number };
   door: number; upper?: { x: number; h: number };
+  /** A second staff door on the deck (where a stop without a catwalk door sends its 'upper' lot out). */
+  door2?: number;
   stairs: number;
   ledges: [number, number, number][];
   cp: number; cpName: string;
@@ -94,15 +98,20 @@ export const STOPS: Stop[] = [
     cp: 13, cpName: "STOP 2: THE GODFATHER'S CLOG",
   },
   {
+    // (the user: the staff couldn't get to him here, the case in their way and the catwalk door's lot stuck up on it.
+    // The case is at the far end now, by the booth (past the fight, its fumes between him and the lever), and both
+    // staff doors are on the deck on his side of it: the restroom's, and the janitor's closet)
     a: 12300, b: 14200, h: 1100, park: 12560,
-    shrine: { x: 13040, w: 130, h: 120 },
-    door: 13560, upper: { x: 12740, h: 130 }, stairs: 12380,
-    ledges: [[12660, 130, 200], [12860, 250, 150], [13250, 130, 180], [13480, 240, 160], [13700, 130, 140]],
+    shrine: { x: 13560, w: 130, h: 120 },
+    door: 13260, door2: 12960, stairs: 12380,
+    ledges: [[12660, 130, 200], [12880, 250, 160], [13060, 130, 140], [13700, 130, 140]],
     cp: 14, cpName: 'STOP 3: THE CONTROL BOOTH',
   },
 ];
 /** The control booth (stop 3): its balcony (one-way, up on stilts), the booth on it, the lever. */
-export const BOOTH = { a: 13860, b: 14200, h: 1100 + 260, lever: 13900, cab: 13980 } as const;
+export const BOOTH = { a: 13860, b: 14200, h: 1100 + 260, lever: 13930, cab: 14020 } as const;
+/** The lever itself (../lever.ts): its pivot, the grip, its throws (NORMAL to EXPERIMENTAL), him square behind it. */
+export const BOOTH_LEVER: HandLever = { x: X(BOOTH.lever), y: Y(BOOTH.h) - 12, len: 60, from: -0.6, to: 0.6, stand: 0 };
 /** The biohazard's fumes (stop 3): how far either side of the case they reach, how often it vents. */
 export const FUMES = { reach: 190, every: 330, tell: 60, vent: 90 } as const;
 
@@ -136,7 +145,7 @@ export const WAVES: [CoasterKind, 'door' | 'upper'][][][] = [
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
   [5300, 420 + 120, 'small_ammo'],
   [7940, 760 + 250, 'small_health'],
-  [12920, 1100 + 250, 'small_ammo'], [13530, 1100 + 240, 'small_health'],
+  [12960, 1100 + 250, 'small_ammo'], [13130, 1100 + 130, 'small_health'],
 ];
 
 export const CHECKPOINTS = [

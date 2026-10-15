@@ -17,8 +17,9 @@ import { farCoaster } from '../blvd/art';
 import { words, print, enamel, brass, marquee, ledgeLip, velvetRope, signW } from '../blvd/paint';
 import {
   x0, X, Y, GY, QUEUE_GROUND, STATION, RAILS, RAIL_H, STOPS, BOOTH, FUMES, CAR_GAP, CARS, STEVE_STANDEE, queueH, parkAt,
-  LAUNCHED_MEMO, WALKER_MEMO, CLEARED_MEMO, LEVER_MEMO, type Place,
+  LAUNCHED_MEMO, WALKER_MEMO, CLEARED_MEMO, LEVER_MEMO, BOOTH_LEVER, type Place,
 } from './layout';
+import { throwAngle } from '../lever';
 import { tracks, at, STEP, type Track } from './track';
 import type { Coaster, QGuest } from './state';
 import { throneState, caseLift, drawThroneMess } from './thrones';
@@ -243,15 +244,142 @@ const spot = (c: Ctx, x: number, y: number, h: number, f: number, col = 'rgba(25
   c.fillStyle = col; c.beginPath(); c.moveTo(x - 10, y - h); c.lineTo(x + 10, y - h); c.lineTo(x + 70, y); c.lineTo(x - 70, y); c.closePath(); c.fill();
   box(c, x - 9, y - h - 12, 18, 14, '#18181B'); box(c, x - 6, y - h, 12, 3, f % 60 < 58 ? '#FEF9C3' : '#FDE68A');
 };
-/** A door: its frame; open by `k` (0 shut); a sign over it. */
-const door = (c: Ctx, x: number, feetY: number, k: number, sign: string, signCol = '#FACC15', board = '#18181B', light?: 'red' | 'green') => {
-  box(c, x - 34, feetY - 116, 68, 116, '#000'); box(c, x - 32, feetY - 114, 64, 114, '#3F3F46');
-  box(c, x - 26, feetY - 108, 52, 108, '#09090B');
+/** A door (the bathroom set's: diegetic): its frame; open by `k` (0 shut); a sign over it. `kind`: a restroom door
+ *  (the little man and woman on it), a toilet stall's (the partitions either side, the gap under it, the latch's
+ *  OCCUPIED tab), a janitor's closet (louvers). */
+type DoorKind = 'restroom' | 'stall' | 'closet';
+const door = (c: Ctx, x: number, feetY: number, k: number, sign: string, signCol = '#FACC15', board = '#18181B', light?: 'red' | 'green', kind: DoorKind = 'restroom') => {
   const w = 52 * (1 - k * 0.85);
-  box(c, x - 26, feetY - 108, w, 108, '#57534E'); box(c, x - 26 + w - 6, feetY - 58, 4, 8, '#A1A1AA');
-  const L = print(1, signCol), sw = signW(sign, L) + 14;
-  box(c, x - sw / 2, feetY - 136, sw, 16, board); words(c, sign, x, feetY - 124, L);
+  if (kind === 'stall') {
+    // (the partitions either side of it, up off the floor and short of the top; the dark of the stall behind)
+    for (const px of [x - 58, x + 34]) { box(c, px, feetY - 128, 24, 116, '#000'); box(c, px + 1, feetY - 127, 22, 114, '#8B8F80'); box(c, px + 1, feetY - 127, 22, 3, '#6B6F62'); }
+    box(c, x - 34, feetY - 128, 68, 116, '#000'); box(c, x - 32, feetY - 126, 64, 114, '#57534E');
+    box(c, x - 28, feetY - 124, 56, 124, '#09090B');
+    box(c, x - 28, feetY - 124, w + 4, 110, '#000'); box(c, x - 27, feetY - 123, w + 2, 108, '#A3A894');
+    if (w > 20) { box(c, x - 26 + w - 10, feetY - 72, 8, 6, '#000'); box(c, x - 25 + w - 10, feetY - 71, 6, 4, k > 0.1 ? '#4ADE80' : '#DC2626'); }
+  } else {
+    box(c, x - 34, feetY - 116, 68, 116, '#000'); box(c, x - 32, feetY - 114, 64, 114, '#3F3F46');
+    box(c, x - 26, feetY - 108, 52, 108, '#09090B');
+    box(c, x - 26, feetY - 108, w, 108, kind === 'closet' ? '#6B7280' : '#57534E'); box(c, x - 26 + w - 6, feetY - 58, 4, 8, '#A1A1AA');
+    if (kind === 'closet' && w > 20) for (let y = feetY - 96; y < feetY - 70; y += 5) box(c, x - 22, y, Math.min(w - 10, 30), 2, '#374151');
+    if (kind === 'restroom' && w > 30) {
+      // (the little man and the little woman, on a plate)
+      box(c, x - 22, feetY - 96, 26, 22, '#E5E7EB');
+      for (const [fx, dress] of [[x - 15, false], [x - 4, true]] as const) {
+        box(c, fx - 2, feetY - 94, 4, 4, '#1E3A8A');
+        if (dress) { c.fillStyle = '#1E3A8A'; c.beginPath(); c.moveTo(fx, feetY - 89); c.lineTo(fx + 4, feetY - 80); c.lineTo(fx - 4, feetY - 80); c.closePath(); c.fill(); box(c, fx - 2, feetY - 80, 1, 4, '#1E3A8A'); box(c, fx + 1, feetY - 80, 1, 4, '#1E3A8A'); }
+        else { box(c, fx - 2, feetY - 89, 4, 8, '#1E3A8A'); box(c, fx - 2, feetY - 81, 1, 5, '#1E3A8A'); box(c, fx + 1, feetY - 81, 1, 5, '#1E3A8A'); }
+      }
+    }
+  }
+  const L = print(1, signCol), sw = signW(sign, L) + 14, top = kind === 'stall' ? feetY - 148 : feetY - 136;
+  box(c, x - sw / 2, top, sw, 16, board); words(c, sign, x, top + 12, L);
   if (light) { box(c, x + 22, feetY - 70, 8, 8, '#000'); box(c, x + 23, feetY - 69, 6, 6, light === 'red' ? '#EF4444' : '#4ADE80'); }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The bathroom set (the user: the station and the stops are a FACSIMILE OF A BATHROOM, still outdoors): a freestanding
+// tiled wall along the back of each deck, flats braced from behind at their ends (it's a set: the sky over it), and on
+// it the fittings, themed to the toilets: stall partitions, mirrors over sinks, hand dryers, a row of urinals, paper
+// towels, EMPLOYEES MUST WASH HANDS. Nothing on it's for standing on: the wall's top is a dark cap, no lit lip; the
+// fittings are set back, dimmed.
+
+/** Each place's tiles (main, grout, the wainscot band) and its trim. */
+interface Tiles { tile: string; grout: string; band: string; cap: string; dirt?: boolean }
+const TILES: Record<Place, Tiles> = {
+  station: { tile: '#B9C7BC', grout: '#94A39A', band: '#7F1D1D', cap: '#44403C' },
+  0: { tile: '#D9B8C2', grout: '#B8939E', band: '#9D174D', cap: '#4C0519' },
+  1: { tile: '#A9B57C', grout: '#86915E', band: '#713F12', cap: '#3F3F1F' },
+  2: { tile: '#6B7064', grout: '#4B5046', band: '#18181B', cap: '#1C1917', dirt: true },
+};
+const WALL_H = 210;
+type Fitting = 'stalls' | 'urinals' | 'sink' | 'dryer' | 'towels' | 'sign';
+const FIT_W: Record<Fitting, number> = { stalls: 160, urinals: 130, sink: 60, dryer: 34, towels: 36, sign: 96 };
+const ORDER: Fitting[] = ['stalls', 'sign', 'sink', 'sink', 'dryer', 'urinals', 'towels', 'sink', 'dryer', 'stalls', 'urinals', 'sign'];
+/** Where each fitting goes along a wall (a..b, world), round what's in front (doors, the shrine...); the signs kept
+ *  clear of the low catwalks (nothing over them). Laid out once per place. */
+const FITS = new Map<Place, [Fitting, number][]>();
+const fitsFor = (pl: Place, a: number, b: number, keep: [number, number][], lowLedges: [number, number][]) => {
+  let out = FITS.get(pl);
+  if (out) return out;
+  out = [];
+  let x = a + 40, k = 0;
+  for (let guard = 0; x < b - 40 && guard < 200; guard++) {
+    const f = ORDER[k % ORDER.length], w = FIT_W[f];
+    const hit = keep.find(([p, q]) => x < q && x + w > p) ?? (f === 'sign' ? lowLedges.find(([p, q]) => x < q + 10 && x + w > p - 10) : undefined);
+    if (hit) { x = hit[1] + 12; continue; }
+    if (x + w > b - 40) break;
+    out.push([f, x]); x += w + 26; k++;
+  }
+  FITS.set(pl, out);
+  return out;
+};
+const fitting = (c: Ctx, f: Fitting, x: number, y: number, t: Tiles, pl: Place) => {
+  const porcelain = '#D6D3CE', steel = '#9CA3AF';
+  if (f === 'stalls') {
+    // (two stalls, doors shut, the gap under them; a gold star on each: the stars' own)
+    for (let i = 0; i < 2; i++) {
+      const sx = x + i * 80;
+      box(c, sx, y - 150, 8, 138, '#000'); box(c, sx + 1, y - 149, 6, 136, '#7C806F');
+      box(c, sx + 10, y - 146, 64, 128, '#000'); box(c, sx + 11, y - 145, 62, 126, '#969A86');
+      box(c, sx + 62, y - 88, 6, 4, '#7F1D1D');
+      c.fillStyle = '#CA8A04'; c.beginPath();
+      for (let j = 0; j < 10; j++) { const r = j % 2 ? 3 : 7, an = -Math.PI / 2 + (j * Math.PI) / 5; c.lineTo(sx + 42 + Math.cos(an) * r, y - 120 + Math.sin(an) * r); }
+      c.closePath(); c.fill();
+    }
+    box(c, x + 160, y - 150, 8, 138, '#000'); box(c, x + 161, y - 149, 6, 136, '#7C806F');
+  } else if (f === 'urinals') {
+    for (let i = 0; i < 3; i++) {
+      const ux = x + 10 + i * 42;
+      box(c, ux - 1, y - 92, 26, 46, '#000'); box(c, ux, y - 91, 24, 44, porcelain); box(c, ux + 4, y - 80, 16, 26, '#B8B4AC');
+      box(c, ux + 10, y - 104, 4, 12, steel);
+      if (i < 2) { box(c, ux + 31, y - 110, 4, 70, '#000'); box(c, ux + 32, y - 109, 2, 68, '#7C806F'); }
+      // (stop 3's: one's full of something)
+      if (pl === 2 && i === 1) box(c, ux + 5, y - 70, 14, 10, '#5C3A16');
+    }
+  } else if (f === 'sink') {
+    // (a mirror over a sink: the glass catching the sky, a faucet, the bracket)
+    box(c, x + 4, y - 168, 52, 66, '#000'); box(c, x + 6, y - 166, 48, 62, '#8FA3B5');
+    c.strokeStyle = 'rgba(255, 255, 255, 0.35)'; c.lineWidth = 3; c.beginPath(); c.moveTo(x + 14, y - 112); c.lineTo(x + 34, y - 160); c.moveTo(x + 26, y - 110); c.lineTo(x + 44, y - 152); c.stroke();
+    if (t.dirt) { box(c, x + 10, y - 130, 18, 3, '#3F3F46'); box(c, x + 30, y - 150, 3, 20, '#4D7C0F'); }
+    box(c, x + 2, y - 72, 56, 14, '#000'); box(c, x + 3, y - 71, 54, 12, porcelain);
+    box(c, x + 27, y - 82, 6, 10, steel); box(c, x + 27, y - 82, 12, 3, steel);
+    box(c, x + 26, y - 58, 8, 22, '#6B7280');
+  } else if (f === 'dryer') {
+    box(c, x, y - 118, 34, 26, '#000'); box(c, x + 1, y - 117, 32, 24, '#A1A1AA'); box(c, x + 1, y - 117, 32, 3, '#D4D4D8');
+    box(c, x + 13, y - 93, 8, 6, '#52525B');
+    words(c, 'PUSH', x + 17, y - 100, print(1, '#27272A'));
+  } else if (f === 'towels') {
+    box(c, x, y - 150, 36, 44, '#000'); box(c, x + 1, y - 149, 34, 42, '#A8A29E'); box(c, x + 6, y - 140, 24, 3, '#78716C');
+    box(c, x + 10, y - 107, 16, 10, '#F5F5F4');
+  } else {
+    // EMPLOYEES MUST WASH HANDS (screwed to the tiles; its own letters)
+    box(c, x, y - 128, 96, 34, '#000'); box(c, x + 1, y - 127, 94, 32, '#F8FAFC');
+    box(c, x + 3, y - 125, 90, 2, '#1E40AF');
+    words(c, 'EMPLOYEES MUST', x + 48, y - 112, print(1, '#1E3A8A'));
+    words(c, 'WASH HANDS', x + 48, y - 100, enamel(1, '#B91C1C'));
+    for (const sx of [x + 4, x + 90]) box(c, sx, y - 123, 2, 2, '#71717A');
+  }
+};
+/** The wall: from a to b (world) behind a deck at y, the fittings round what's kept clear (world x ranges). */
+const bathroomSet = (c: Ctx, state: GameState, pl: Place, a: number, b: number, y: number, keep: [number, number][], lowLedges: [number, number][]) => {
+  if (!seen(state, a - 60, b + 60, y - WALL_H - 40, y)) return;
+  const t = TILES[pl], top = y - WALL_H;
+  // (the flats' bracing, out from behind at each end: 2x4s and sandbags: it's a set)
+  for (const [ex, d] of [[a, -1], [b, 1]] as const) {
+    c.strokeStyle = '#8A6A3F'; c.lineWidth = 6; c.beginPath(); c.moveTo(ex, top + 20); c.lineTo(ex + d * 70, y - 4); c.stroke();
+    box(c, ex + d * 70 - 14, y - 12, 28, 12, '#A39171');
+  }
+  box(c, a, top, b - a, WALL_H, t.grout);
+  // (the tiles: a grid, cheap, in two shades)
+  c.fillStyle = t.tile;
+  const v = viewOf(state), l = Math.max(a, v.x - 20), r = Math.min(b, v.x + v.w + 20);
+  for (let ty = top + 8; ty < y - 40; ty += 16) for (let tx = a + Math.floor((l - a) / 16) * 16; tx < r; tx += 16) c.fillRect(tx + 1, ty + 1, 14, 14);
+  // (a band of contrasting tile, the wainscot below it; the dark cap along the top (not a lip: not for standing on))
+  box(c, a, y - 40, b - a, 40, t.grout); box(c, a, y - 46, b - a, 6, t.band);
+  box(c, a, top, b - a, 8, t.cap);
+  if (t.dirt) for (let k = 0; k < 12; k++) { const gx = a + ((k * 173) % Math.max(1, b - a)); box(c, gx, top + 8, 3 + (k % 3), 40 + (k * 13) % 70, 'rgba(60, 50, 30, 0.45)'); }
+  for (const [f, x] of fitsFor(pl, a, b, keep, lowLedges)) if (seen(state, x - 20, x + FIT_W[f] + 20)) fitting(c, f, x, y, t, pl);
 };
 /** A pylon at a deck's end: a steel lattice tower up out of sight and down to the park; the train's arch through it at
  *  the deck, barred (the barrier arm down) unless the train's going through. */
@@ -335,12 +463,13 @@ const drawQueue = (c: Ctx, state: GameState, co: Coaster) => {
   // The station: its canopy (a crown of gold over it), its BOARDING sign, its end wall (the track out through its arch)
   if (seen(state, X(STATION.a - 100), X(STATION.b + 100))) {
     const y = Y(STATION.h);
+    bathroomSet(c, state, 'station', X(STATION.a + 70), X(STATION.b - 10), y, [[X(STATION.b - 190), X(STATION.b - 50)], [X(1980) - 60, X(1980) + 60]], []);
     for (const rx of [STATION.a + 40, 2100, STATION.b - 60]) box(c, X(rx), y - 250, 12, 250, '#CA8A04');
     box(c, X(STATION.a), y - 274, STATION.b - STATION.a, 28, '#000'); box(c, X(STATION.a) + 2, y - 272, STATION.b - STATION.a - 4, 24, '#EAB308');
     for (let x = X(STATION.a); x < X(STATION.b); x += 50) { c.fillStyle = '#EAB308'; c.beginPath(); c.moveTo(x, y - 272); c.lineTo(x + 25, y - 300); c.lineTo(x + 50, y - 272); c.closePath(); c.fill(); box(c, x + 22, y - 304, 6, 6, f % 40 < 30 ? '#FEF3C7' : '#FDE68A'); }
     words(c, 'BOARDING', X(2300), y - 254, enamel(8, '#7F1D1D'));
     // (the station's staff door: where the stops' service stairs come out)
-    door(c, X(STATION.b - 120), y, 0, 'STAFF ONLY', '#FCA5A5');
+    door(c, X(STATION.b - 120), y, 0, 'STAFF ONLY', '#FCA5A5', '#18181B', undefined, 'restroom');
     steveFlier(c, X(1980), y - 150, 'poster', 3);
     box(c, X(STATION.b), y - 800, 50, 800, '#000'); box(c, X(STATION.b) + 2, y - 800, 46, 800, '#7F1D1D');
     box(c, X(STATION.b) + 2, y - 104, 46, 104, '#0C0A09');
@@ -452,18 +581,24 @@ const drawBooth = (c: Ctx, state: GameState, co: Coaster) => {
   } else {
     box(c, cx0 + 50, by - 96, 70, 24, '#FEF3C7'); words(c, 'BACK IN 5', cx0 + 85, by - 80, print(1, '#18181B'));
   }
-  // The lever: on the balcony, a plate reading NORMAL / EXPERIMENTAL, the handle thrown one way or the other
-  const lx = X(BOOTH.lever), k = co.lever;
-  box(c, lx - 36, by - 64, 4, 64, '#57534E');
-  box(c, lx - 40, by - 100, 80, 38, '#000'); box(c, lx - 38, by - 98, 76, 34, '#E7E5E4');
-  words(c, 'RIDE MODE', lx, by - 88, print(1, '#18181B'));
-  words(c, 'NORMAL', lx - 18, by - 72, print(1, k < 0.5 ? '#15803D' : '#A8A29E'));
-  words(c, 'EXPER.', lx + 20, by - 72, print(1, k >= 0.5 ? '#DC2626' : '#A8A29E'));
-  box(c, lx - 14, by - 14, 28, 14, '#000'); box(c, lx - 12, by - 12, 24, 12, '#52525B');
-  const ang = -0.7 + k * 1.4;
-  c.save(); c.translate(lx, by - 10); c.rotate(ang);
-  box(c, -3, -46, 6, 46, '#000'); box(c, -2, -45, 4, 44, '#A1A1AA');
-  c.fillStyle = '#000'; c.beginPath(); c.arc(0, -48, 8, 0, Math.PI * 2); c.fill(); c.fillStyle = '#DC2626'; c.beginPath(); c.arc(0, -48, 6, 0, Math.PI * 2); c.fill();
+  // The lever: on the balcony, a plate up on its post behind it reading RIDE MODE, NORMAL (to the left) and
+  // EXPERIMENTAL (to the right), both whole, the one it's on lit; its lockout lamp (red while the stop's staff are alive);
+  // the handle thrown one way or the other (mid-throw, where he's hauled it: ../lever.ts; his hands are his own)
+  const lv = BOOTH_LEVER, lx = lv.x, flipped = !!state.stageMemo[LEVER_MEMO];
+  const ang = throwAngle(lv, co.pull, flipped), exp = ang > 0;
+  const L1 = print(1, '#18181B'), Ln = print(1, !exp ? '#15803D' : '#A8A29E'), Le = print(1, exp ? '#DC2626' : '#A8A29E');
+  const pw = Math.max(signW('RIDE MODE', L1), signW('< NORMAL', Ln), signW('EXPERIMENTAL >', Le)) + 18, ptop = by - 150;
+  box(c, lx - 2, ptop + 50, 4, by - ptop - 50, '#57534E');
+  box(c, lx - pw / 2 - 2, ptop - 2, pw + 4, 54, '#000'); box(c, lx - pw / 2, ptop, pw, 50, '#E7E5E4');
+  words(c, 'RIDE MODE', lx, ptop + 13, L1);
+  words(c, '< NORMAL', lx - pw / 2 + 8, ptop + 28, Ln, 'left');
+  words(c, 'EXPERIMENTAL >', lx + pw / 2 - 8, ptop + 43, Le, 'right');
+  const locked = !state.stageMemo[CLEARED_MEMO(2)];
+  box(c, lx + pw / 2 - 12, ptop + 4, 8, 8, '#000'); box(c, lx + pw / 2 - 11, ptop + 5, 6, 6, locked ? (f % 40 < 20 ? '#EF4444' : '#7F1D1D') : '#4ADE80');
+  box(c, lx - 16, by - 14, 32, 14, '#000'); box(c, lx - 14, by - 12, 28, 12, '#52525B');
+  c.save(); c.translate(lx, lv.y); c.rotate(ang);
+  box(c, -3, -lv.len + 2, 6, lv.len - 2, '#000'); box(c, -2, -lv.len + 3, 4, lv.len - 4, '#A1A1AA');
+  c.fillStyle = '#000'; c.beginPath(); c.arc(0, -lv.len, 8, 0, Math.PI * 2); c.fill(); c.fillStyle = '#DC2626'; c.beginPath(); c.arc(0, -lv.len, 6, 0, Math.PI * 2); c.fill();
   c.restore();
 };
 
@@ -473,6 +608,12 @@ const drawStop = (c: Ctx, state: GameState, i: number, co: Coaster) => {
   const run = co.stops[i], cleared = !!state.stageMemo[CLEARED_MEMO(i)];
   const passing = co.ride.on && !!co.ride.track && Math.abs(at(co.ride.track, co.ride.s).y - dy) < 30;
   deckFloor(c, X(s.a), X(s.b), dy);
+  // (the bathroom set along the back, round the doors and the shrine; its sign clear of the low catwalks)
+  {
+    const keep: [number, number][] = [[X(s.door) - 64, X(s.door) + 64], [X(s.stairs) - 60, X(s.stairs) + 60], [X(s.shrine.x) - 175, X(s.shrine.x + s.shrine.w) + 120]];
+    if (s.door2 !== undefined) keep.push([X(s.door2) - 50, X(s.door2) + 50]);
+    bathroomSet(c, state, i as Place, X(s.a) + 20, X(s.b) - 20, dy, keep, s.ledges.filter(([, h]) => h <= 160).map(([rx, , w]) => [X(rx), X(rx) + w]));
+  }
   // (the stop's number, big, on a board at the back on posts)
   { const NL = enamel({ sx: 2, sy: 3 }, '#FDE68A', '#000'); hungSign(c, X(s.a + 200), dy - 300, signW(`STOP ${i + 1}`, NL) + 30, 40, dy, '#4C0519', true); words(c, `STOP ${i + 1}`, X(s.a + 200), dy - 300 + 11, NL); }
   // The catwalks (lit lips), their chains up into the structure
@@ -482,10 +623,12 @@ const drawStop = (c: Ctx, state: GameState, i: number, co: Coaster) => {
   }
   if (i === 2) drawBooth(c, state, co);
   // The doors: STAFF ONLY (where they come from), the SERVICE STAIRS (locked while they're at him)
-  door(c, X(s.door), dy, run.door, 'STAFF ONLY', '#FCA5A5');
-  if (s.upper) door(c, X(s.upper.x), Y(s.h + s.upper.h), run.upper, 'STAFF', '#FCA5A5');
+  // (diegetic: the staff burst out of a stall marked STAFF ONLY, and the janitor's closet; the stairs are a restroom door)
+  door(c, X(s.door), dy, run.door, 'STAFF ONLY', '#FCA5A5', '#18181B', undefined, 'stall');
+  if (s.upper) door(c, X(s.upper.x), Y(s.h + s.upper.h), run.upper, 'JANITOR', '#FDE68A', '#1E3A8A', undefined, 'closet');
+  if (s.door2 !== undefined) door(c, X(s.door2), dy, run.upper, 'JANITOR', '#FDE68A', '#1E3A8A', undefined, 'closet');
   const fighting = run.phase === 'intro' || run.phase === 'fight';
-  door(c, X(s.stairs), dy, 0, 'SERVICE STAIRS', '#86EFAC', '#14532D', fighting && !cleared ? 'red' : 'green');
+  door(c, X(s.stairs), dy, 0, 'SERVICE STAIRS', '#86EFAC', '#14532D', fighting && !cleared ? 'red' : 'green', 'restroom');
   drawShrine(c, state, i, co);
   // Stop 2's track walker (in his headphones, mopping the rail, his back to the way it comes), or what's left
   if (i === 1) {

@@ -35,7 +35,7 @@ const hits = (state: GameState) => { const p = state.player; return p.health > 0
 /** A bark over its head (rare; never on another, or over the PA). */
 export const staffBark = (state: GameState, e: Enemy, voice: string, pool: ByPants, chance = 0.35) => {
   const o = coasterOf(state);
-  if (o.pa || o.paBusy || state.frame - o.barkAt < 200 || Math.random() > chance) return;
+  if (o.ride.on || o.pa || o.paBusy || state.frame - o.barkAt < 200 || Math.random() > chance) return;
   o.barkAt = state.frame;
   speak(voice, pickLine(byPants(state, pool)), s => { if (s) o.barks.set(e, s); else o.barks.delete(e); }, false);
 };

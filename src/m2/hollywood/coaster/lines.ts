@@ -49,6 +49,10 @@ export const LOCKED = ["IT WON'T GO TILL THEY'RE DEAD. FINE.", 'LOCKED. GUESS I 
 export const WALKER = ["HE WAS ON THE TRACK. THAT'S ON HIM.", 'SPLAT. NEXT.'];
 /** Stop 3: the sleeper by the lever (once he's cleared them). */
 export const BOOTH = ["A GUY ASLEEP NEXT TO A LEVER. I'M PULLING IT.", 'EXPERIMENTAL MODE. NOBODY WATCHING. PERFECT.'];
+/** Stop 3: up at the lever with the staff still alive (it's locked out: its lamp's red). */
+export const LEVER_LOCKED = ["IT'S LOCKED. FINE. KILL FIRST, PULL AFTER.", "WON'T BUDGE. SOMEBODY'S STILL BREATHING."];
+/** Stop 3, the staff dead: on the train without pulling the lever (he's not riding it on NORMAL). */
+export const LEVER_FIRST = ["FUCK NORMAL. I'M PULLING THAT LEVER.", "NOT YET. I GOT A LEVER TO YANK.", "RIDE IT ON NORMAL? I'D RATHER SHIT MYSELF."];
 /** The lever flipped. */
 export const LEVER = ['EXPERIMENTAL. HELL YES.', "WHAT'S THE WORST THAT COULD HAPPEN."];
 /** Off the end of the track. */
@@ -58,7 +62,7 @@ export const RIDE_BACK = ['BACK TO THE START? LAME.', "THAT'S IT? BACK TO THE ST
 /** Back at stop 3 from the warehouse: the track's still bent where he left it. */
 export const BENT = ["THE TRACK'S STILL BENT. THEY JUST LEFT IT.", "THEY DIDN'T EVEN FIX THE TRACK. LAUNCH ME AGAIN."];
 
-/** The star toilets (thrones.ts; no prompt: found by crouching by one): sitting down on each (clean; his own in it). */
+/** The star toilets (thrones.ts; HOLD down by one, its stop cleared): sitting down on each (clean; his own in it). */
 export const THRONE_SIT = [
   ['MOVE OVER, DINO. MY TURN.', "I'M DOING IT MY WAY."],
   ["SITTING ON THE GODFATHER'S CLOG. HOLD MY BEER.", "IT'S ALREADY CLOGGED. WHAT'S ONE MORE."],
@@ -219,7 +223,7 @@ const pools = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...CUT_LINE, ...SHOVE, ...STEVE_STANDEE, ...BOARD, ...BOARD_AGAIN, ...Object.values(RIDE_LINES).flat(), ...TOILET_LINES.flat(),
-    ...STAFF_OUT, ...CLEARED, ...LOCKED, ...WALKER, ...BOOTH, ...LEVER, ...LAUNCH, ...RIDE_BACK, ...BENT,
+    ...STAFF_OUT, ...CLEARED, ...LOCKED, ...WALKER, ...BOOTH, ...LEVER_LOCKED, ...LEVER_FIRST, ...LEVER, ...LAUNCH, ...RIDE_BACK, ...BENT,
     ...THRONE_SIT.flat(), ...THRONE_SIT_AGAIN, ...THRONE_CASE, ...THRONE_STRAIN, ...THRONE_PLOP, ...THRONE_CLOG, ...THRONE_STAND,
     ...THRONE_DONE, ...THRONE_UHOH, ...THRONE_BLOW,
     ...Object.values(HURT).flatMap(h => h.hurt),

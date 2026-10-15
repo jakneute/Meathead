@@ -7,6 +7,8 @@ import type { Enemy } from '../../../m1/types';
 import type { Said } from '../section';
 import type { Track } from './track';
 import type { Place } from './layout';
+import type { Beat, RideName, Who } from './script';
+import type { LeverThrow } from '../lever';
 
 /** A thrown plunger (lobbed; stuck on his face, or upright on the floor where it landed). */
 export interface Plunger { x: number; y: number; vx: number; vy: number; t: number; stuck: number; rot: number }
@@ -38,6 +40,13 @@ export interface Ride {
   lx: number; ly: number; zoom: number;
   /** Where the camera's looking (world): the zoom's about it. */
   fx: number; fy: number;
+  /** Its script (script.ts): which ride; the beats still to come; what's come up and is waiting its turn; a line being
+   *  said (its number: a line from an earlier ride finishing doesn't count; 0 none); frames since the last one finished;
+   *  what each beat said; frames held parked for the script (before it goes, at the end); the rides' count. */
+  name: RideName; beats: Beat[]; waiting: { who: Who; text: string; at: string }[]; saying: number; quiet: number;
+  said: Map<string, string>; held: number; n: number;
+  /** It's gone (left the platform: the board beats said); the beat being said. */
+  gone: boolean; sayingAt: string;
 }
 export interface Coaster {
   ride: Ride;
@@ -61,6 +70,8 @@ export interface Coaster {
   fumeT: number; fumeHit: WeakSet<Enemy>;
   /** The lever's throw (0 NORMAL .. 1 EXPERIMENTAL), for drawing; up's been let go since the last press. */
   lever: number; upLatch: boolean;
+  /** The lever being thrown (him hauling on it: ../lever.ts), or null. */
+  pull: LeverThrow | null;
   /** Stop 2's track walker, being hit: frames since (0: not yet). */
   walkerT: number; walker: { x: number; y: number; vx: number; vy: number; rot: number } | null;
   /** The star toilets (thrones.ts): crouch held beside one (frames, which); sat on one, going (null: not). */
@@ -77,11 +88,11 @@ export const coasterOf = (state: GameState): Coaster => {
   let o = ALL.get(k);
   if (!o) {
     o = {
-      ride: { on: false, track: null, s: 0, v: 0, t: 0, at: null, fly: null, fade: 0, cued: new Set(), lx: 0, ly: 0, zoom: 1, fx: 0, fy: 0 },
+      ride: { on: false, track: null, s: 0, v: 0, t: 0, at: null, fly: null, fade: 0, cued: new Set(), lx: 0, ly: 0, zoom: 1, fx: 0, fy: 0, name: 'r1', beats: [], waiting: [], saying: 0, quiet: 0, said: new Map(), held: 0, n: 0, gone: false, sayingAt: '' },
       stops: [0, 1, 2].map(() => ({ phase: 'idle', wave: 0, t: 0, spawnT: 0, queue: [], out: [], door: 0, upper: 0, doorT: 0, upperT: 0, go: false, n: 0 })),
       guests: [], plungers: [], faceStuck: 0, said: {},
       pa: null, paBusy: false, paAt: -9999, paFrom: 'train', barks: new WeakMap(), barkAt: -9999,
-      guestSaid: null, guestAt: -9999, sleeper: null, sleepAt: -9999, fumeT: 0, fumeHit: new WeakSet(), lever: 0, upLatch: true, walkerT: 0, walker: null, squat: { i: -1, t: 0 }, sit: null,
+      guestSaid: null, guestAt: -9999, sleeper: null, sleepAt: -9999, fumeT: 0, fumeHit: new WeakSet(), lever: 0, upLatch: true, pull: null, walkerT: 0, walker: null, squat: { i: -1, t: 0 }, sit: null,
     };
     ALL.set(k, o);
   }

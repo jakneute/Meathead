@@ -113,7 +113,7 @@ export const hollywoodLayout: StageLayout = {
     if (hs.lastSec !== sec.id) { hs.lastSec = sec.id; state.camera.x = Math.max(lim.min, Math.min(lim.max, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2)); }
     // (passing a checkpoint: it's his)
     for (const c of sec.checkpoints) if (c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
-    setUi({ near: null, map: null, nearExit: false, upPrompt: null });
+    setUi({ near: null, map: null, nearExit: false, upPrompt: null, holdPrompt: null });
     // (the stunt wires: every section's, gathered for this frame (section.ts's hollywoodWires); grabbing and riding
     // them is the blvd owner's to build)
     hs.wires = SECTION_ORDER.flatMap(id => ALL[id].wires?.(state) ?? []);

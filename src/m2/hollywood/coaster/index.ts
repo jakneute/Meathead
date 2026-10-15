@@ -15,18 +15,23 @@
 // had his headphones on). Kept across his deaths (state.stageMemo; layout.ts): each stop's staff dead, the lever, the
 // launch, the walker. Checkpoints 10-14: the queue, the station, a stop each.
 //
-// One-way: the launch. Back from the warehouse (DOORS.coaster.end) he's on stop 3's deck under the booth; the way
-// down is each stop's SERVICE STAIRS (out at the station's staff door), or the train (the lever stays on EXPERIMENTAL:
-// it launches him again, off the bent end). Revisits differ: the booth empty (BACK IN 5), the track bent and torn at
-// the end (TRACK CLOSED), the staff gone, the walker's blood on the deck.
+// With the lever left on NORMAL he won't board at stop 3: he wants that lever pulled first. The lines on the rides run
+// to a script (script.ts: one speaker at a time, every line said before the ride lets him off); stopped at a stop:
+// KILL THEM ALL. The lever's thrown by hand (../lever.ts, shared: him hauling it over).
 //
-// ~15000 px of play: the queue and station ~2700 (~35 s with the shoving), the rides ~14 s, ~20 s and ~30 s (the
-// launch ~6 s), the three stops' fights ~25 s, ~40 s and ~60 s. About 3.5 min, the rides skippable.
+// One-way: the launch. Back from the warehouse (DOORS.coaster.end) he's on stop 3's deck under the booth; the way down
+// is each stop's SERVICE STAIRS (out at the station's staff door), or the train (the lever stays on EXPERIMENTAL: it
+// launches him again, off the bent end). Revisits differ: the booth empty (BACK IN 5), the track bent and torn at the
+// end (TRACK CLOSED), the staff gone, the walker's blood on the deck.
+//
+// ~15000 px of play: the queue and station ~2700 (~35 s with the shoving), the rides ~17 s, ~19 s and ~27 s (track
+// ~11600, ~13600 and ~21600 px, the loops run fast: track.ts; the launch ~5 s plus its flight), the three stops' fights
+// ~25 s, ~40 s and ~60 s. About 3.5 min, the rides skippable.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
-import type { EnemyKind } from '../../../m1/types';
+import type { Enemy, EnemyKind } from '../../../m1/types';
 import type { HollywoodSection } from '../section';
 import {
   layOwn, solid, ledge, endWalls, endExits, runExits, hands, speak, meatheadSays, saidOver, teleport, noteBurstIn,
@@ -46,15 +51,18 @@ import { byPants } from '../blvd/kinds';
 import { PA_VOICE } from '../blvd/lines';
 import {
   x0, x1, X, Y, GY, QUEUE_GROUND, STATION, RAILS, RAIL_H, GUESTS, GATE_OPS, STEVE_STANDEE, STOPS, BOOTH, FUMES, WAVES, WIRES,
-  PICKUPS, CHECKPOINTS, queueH, parkAt, CLEARED_MEMO, LEVER_MEMO, LAUNCHED_MEMO, WALKER_MEMO, type Place,
+  PICKUPS, CHECKPOINTS, queueH, parkAt, CLEARED_MEMO, LEVER_MEMO, LAUNCHED_MEMO, WALKER_MEMO, BOOTH_LEVER, type Place,
 } from './layout';
-import { tracks, rideFrom, at, Mode, type Track } from './track';
+import { tracks, rideFrom, Mode, stepRide, pointOn } from './track';
+import { SCRIPTS, type Env, type RideName } from './script';
+import { startThrow, tickThrow } from '../lever';
+import { safeAhead } from '../../../m1/game/enemies/kinds';
 import { coasterOf, type Coaster } from './state';
 import { updatePlungers, staffBark, BEAM } from './kinds';
 import { drawPlunger } from './kindArt';
 import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, carsOn, carsParked, coasterLamps, SINK } from './art';
 import * as L from './lines';
-import { updateThrones, drawThroneFront, inCase, throneState } from './thrones';
+import { updateThrones, drawThroneFront, inCase, throneState, throneHere } from './thrones';
 
 const narr = L.NARRATOR;
 
@@ -95,32 +103,56 @@ const seat = (state: GameState, x: number, y: number, a: number, roll: number) =
   p.spriteRot = a + roll;
   p.facing = k >= 0 ? 1 : -1;
 };
-/** (past the end of a track: on along its last heading) */
-const pointOn = (tr: Track, s: number) => {
-  if (s <= tr.len) return at(tr, s);
-  const e = tr.pts[tr.pts.length - 1], d = s - tr.len;
-  return { ...e, x: e.x + Math.cos(e.a) * d, y: e.y + Math.sin(e.a) * d };
-};
-
 const board = (state: GameState, co: Coaster, pl: Place) => {
   const p = state.player, r = co.ride, lever = memo(state, LEVER_MEMO);
   const tr = rideFrom(pl, lever);
+  const name: RideName = pl === 'station' ? 'r1' : pl === 0 ? 'r2' : pl === 1 ? 'r3' : lever ? 'launch' : 'back';
   Object.assign(r, { on: true, track: tr, s: 0, v: 0, t: 0, fly: null, fade: 0, cued: new Set<string>(), lx: 0, ly: 0, zoom: 1 });
+  // (its script, from the top: nothing waiting, nobody's line of an earlier ride counted)
+  Object.assign(r, { name, beats: [...SCRIPTS[name]], waiting: [], saying: 0, quiet: 0, said: new Map<string, string>(), held: 0, gone: false, sayingAt: '' });
+  if (!co.said.boarded) r.said.set('#first', '1');
+  co.said.boarded = true;
   // (the camera from where it is: it glides onto the train, no jump)
   r.fx = state.camera.x + CANVAS_WIDTH / 2; r.fy = state.camera.y + CANVAS_HEIGHT / 2;
   p.carried = true; p.cartSeat = true; p.inCutscene = true;
   p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.isDucking = false;
-  p.vine = undefined;
-  const first = !co.said.boarded; co.said.boarded = true;
-  meatheadSays(state, pickLine(first ? L.BOARD : L.BOARD_AGAIN), true);
+  p.vine = undefined; p.leverPull = undefined;
   playSound('clang', 0.7, 4); playSound('beep', 0.4, 8);
-  if (pl === 'station' && once(state, 'spiel')) paSay(state, narr, pickLine(L.SPIEL_STATION));
-  if (pl === 0 && once(state, 'steve-narr')) paSay(state, narr, L.SPIEL_LIFT[1]);
-  if (pl === 2) {
-    if (lever) paSay(state, narr, L.SPIEL_EXPERIMENTAL[0]);
-    else { paSay(state, narr, L.SPIEL_BACK[0]); meatheadSays(state, pickLine(L.RIDE_BACK), true); }
-  }
 };
+
+/** The ride's script (script.ts): beats whose moment has come go on the waiting list, picked then; one at a time,
+ *  said once nobody's talking (and a breath after). */
+let lineN = 0;
+const runScript = (state: GameState, co: Coaster) => {
+  const r = co.ride, tr = r.track!;
+  const env: Env = { state, first: r.said.has('#first'), once: k => once(state, k), said: r.said };
+  while (r.beats.length) {
+    const b = r.beats[0];
+    if (b.at !== 'board') {
+      if (!r.gone) break;
+      const s = b.at === 'depart' ? 0 : tr.marks.get(b.at);
+      if (s !== undefined && r.s < s && !r.fly) break;
+    }
+    r.beats.shift();
+    const pool = b.pool(env);
+    if (!pool || !pool.length) continue;
+    const text = pickLine(pool);
+    r.said.set(b.at, text);
+    r.waiting.push({ who: b.who, text, at: b.at });
+  }
+  if (r.saying || !r.waiting.length) return;
+  if (isTalking()) { r.quiet = 0; return; }
+  if (++r.quiet < 8) return;
+  const w = r.waiting.shift()!, n = ++lineN;
+  r.saying = n; r.sayingAt = w.at;
+  const done = () => { if (co.ride.saying === n) { co.ride.saying = 0; co.ride.quiet = 0; co.ride.sayingAt = ''; } };
+  if (w.who === 'mh') meatheadSays(state, w.text, true, done);
+  else paSay(state, narr, w.text, done);
+};
+/** Everything in the script's been said (nothing to come, nothing waiting, nobody on). */
+const scriptDone = (r: Coaster['ride']) => !r.beats.length && !r.waiting.length && !r.saying;
+/** The board beats still to say (the train waits for them). */
+const boarding0 = (r: Coaster['ride']) => r.beats.some(b => b.at === 'board') || r.waiting.some(w => w.at === 'board') || (!!r.saying && r.sayingAt === 'board');
 
 /** Off the train (a ride's end, or the cut), back in his own hands. */
 const offTrain = (state: GameState, co: Coaster) => {
@@ -138,6 +170,8 @@ const arrive = (state: GameState, co: Coaster, pl: Place, snap: boolean) => {
   state.cameraRestY = park.y - 550;
   if (snap) { state.camera.x = park.x - CANVAS_WIDTH / 2; state.camera.y = park.y - 550; }
   if (pl === 1 && co.said.walkerHit) { co.said.walkerHit = false; meatheadSays(state, pickLine(L.WALKER), true); }
+  // (stopped at a stop with its staff still about: the order)
+  if (pl !== 'station' && !memo(state, CLEARED_MEMO(pl))) setUi({ notice: { text: 'KILL THEM ALL', at: performance.now() } });
 };
 /** Out of the sky and through the warehouse's wall: on to the warehouse (its burst-in's its own). */
 const handoff = (state: GameState, co: Coaster, skipped: boolean) => {
@@ -153,55 +187,44 @@ const handoff = (state: GameState, co: Coaster, skipped: boolean) => {
 };
 /** SKIP >>: the whole ride, to its end. */
 const finish = (state: GameState, co: Coaster) => {
-  const tr = co.ride.track!;
+  const tr = co.ride.track!, r = co.ride;
   silenceAll();
   co.pa = null; co.paBusy = false;
+  r.beats = []; r.waiting = []; r.saying = 0;
   if (tr === tracks().r2 && !memo(state, WALKER_MEMO)) state.stageMemo[WALKER_MEMO] = '1';
   if (tr.to === 'warehouse') return handoff(state, co, true);
   arrive(state, co, tr.to === 'fade' ? 'station' : tr.to, true);
 };
 
-/** What's said where on a ride (Meathead's casual: never over anybody). */
-const cue = (state: GameState, co: Coaster, name: string) => {
-  const T = tracks(), tr = co.ride.track!;
-  const whoop = (pool: string[]) => meatheadSays(state, pickLine(pool), false);
-  if (name === 'lift') { if (tr === T.r3) paSay(state, narr, L.SPIEL_INSANE[0]); else if (!co.paBusy) paSay(state, narr, L.SPIEL_LIFT[0]); else whoop(L.RIDE_LINES.lift); }
-  else if (name === 'drop') whoop(L.RIDE_LINES.drop);
-  else if (name === 'loop' || name === 'immelmann' || name === 'double') whoop(L.RIDE_LINES.loop);
-  else if (name === 'roll') whoop(L.RIDE_LINES.roll);
-  else if (name === 'tophat') whoop(L.RIDE_LINES.tophat);
-  else if (name === 'insane0' || name === 'insane4' || name === 'insane8') whoop(L.RIDE_LINES[name]);
-  else if (name === 'brakes' && Math.random() < 0.5) whoop(L.RIDE_LINES.brakes);
-};
-
-const G = 0.26, DRAG = 0.00025, LIFT_V = 4.5, MIN_V = 4;
 const riding = (ctx: FrameContext, co: Coaster): Controls => {
   const { state } = ctx, p = state.player, r = co.ride, T = tracks();
   let tr = r.track!;
   r.t++;
   p.inCutscene = true; p.carried = true;
   if (r.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { finish(state, co); return hands(); } }
+  runScript(state, co);
   let x: number, y: number, a: number, roll = 0;
   if (r.fly) {
-    // THE LAUNCH's flight: off the end, up and away, turning over; a white-out, and he's at the warehouse
+    // THE LAUNCH's flight: off the end, up and away, turning over (a long, floaty arc: the PA's still going); a
+    // white-out once it's done, and he's at the warehouse
     const fl = r.fly;
-    fl.t++; fl.vy += 0.3; fl.x += fl.vx; fl.y += fl.vy; fl.rot += 0.07;
-    if (fl.t === 12) paSay(state, narr, L.SPIEL_FLIGHT[0]);
-    if (fl.t > 75) r.fade = Math.min(1, r.fade + 0.04);
+    fl.t++; fl.vy += 0.2; fl.x += fl.vx; fl.y += fl.vy; fl.rot += 0.07;
+    if (fl.t > 75 && (scriptDone(r) || fl.t > 600)) r.fade = Math.min(1, r.fade + 0.04);
     x = fl.x; y = fl.y; a = fl.rot;
     if (r.fade >= 1) { handoff(state, co, false); return hands(); }
+  } else if (!r.gone) {
+    // Parked, the lap bar down: it goes once the boarding's been said (the launch's boosters spooling up meanwhile)
+    const pt = pointOn(tr, 0);
+    x = pt.x; y = pt.y; a = pt.a;
+    if (tr === T.launch && state.frame % 12 === 0) playSound('rumble', 0.3 + Math.min(0.4, r.t / 600), 10);
+    if (r.t > 24 && (!boarding0(r) || ++r.held > 900)) { r.gone = true; r.held = 0; playSound('clang', 0.5, -2); }
   } else {
-    const pt0 = pointOn(tr, r.s);
-    // The physics: gravity along the rail, a little drag; the chain's own speed; the boosters; the launch; the brakes
-    if (pt0.mode === Mode.Lift) { r.v += (LIFT_V - r.v) * 0.2; if (state.frame % 8 === 0) playSound('click', 0.35, -6); }
-    else if (pt0.mode === Mode.Boost) r.v = Math.min(Math.max(r.v, 0) + 0.3, Math.max(r.v, 10));
-    else if (pt0.mode === Mode.Launch) { r.v = Math.min(r.v + 0.5, 26); if (state.frame % 4 === 0) playSound('rumble', 0.5, 6); }
-    else r.v += G * Math.sin(pt0.a) - DRAG * r.v * r.v;
-    if (pt0.mode === Mode.Brake) { r.v = Math.min(r.v, Math.sqrt(2 * 0.14 * Math.max(0, tr.len - r.s)) + 0.4); if (state.frame % 6 === 0 && r.v > 1) playSound('grind', 0.25, 8); }
-    if (pt0.mode !== Mode.Lift && pt0.mode !== Mode.Brake) r.v = Math.max(r.v, MIN_V);
+    // (the physics: track.ts)
+    const mode = r.s >= tr.len && tr.to !== 'fade' && tr.to !== 'warehouse' ? Mode.Brake : stepRide(tr, r);
+    if (mode === Mode.Lift && state.frame % 8 === 0) playSound('click', 0.35, -6);
+    if (mode === Mode.Launch && state.frame % 4 === 0) playSound('rumble', 0.5, 6);
+    if (mode === Mode.Brake && state.frame % 6 === 0 && r.v > 1) playSound('grind', 0.25, 8);
     if (r.v > 14 && state.frame % 10 === 0) playSound('rumble', 0.35, 2);
-    r.s += r.v;
-    for (const [name, s] of tr.marks) if (r.s >= s && !r.cued.has(name)) { r.cued.add(name); cue(state, co, name); }
     // (the cut to the station: past the end of the way back, the fade to black; then in to the station, out of it)
     if (tr.to === 'fade' && r.s >= tr.len) {
       r.fade = Math.min(1, r.fade + 1 / 30);
@@ -227,10 +250,12 @@ const riding = (ctx: FrameContext, co: Coaster): Controls => {
     if (r.s >= tr.len && tr.to !== 'fade') {
       if (tr.to === 'warehouse') {
         // (off the end of the EXPERIMENTAL section)
+        // (he says nothing: the PA's talking (the user: too much for him to be heard))
         r.fly = { x, y, vx: Math.cos(a) * r.v, vy: Math.sin(a) * r.v, rot: a, t: 0 };
-        meatheadSays(state, pickLine(L.LAUNCH), false);
         playSound('boom', 0.8, -6); playSound('whoosh', 1, -8); shakeScreen(state, 14, 6);
-      } else { arrive(state, co, tr.to, false); return hands(); }
+      } else if (scriptDone(r) || ++r.held > 600) { arrive(state, co, tr.to, false); return hands(); }
+      // (stopped, the lap bar still down: the last of the script first)
+      else { r.s = tr.len; r.v = 0; }
     }
   }
   seat(state, x, y, a, roll);
@@ -256,14 +281,15 @@ const startFight = (state: GameState, i: number) => {
 const clearStop = (state: GameState, co: Coaster, i: number) => {
   co.stops[i].phase = 'clear';
   state.stageMemo[CLEARED_MEMO(i)] = '1';
-  meatheadSays(state, pickLine(L.CLEARED), true);
-  paSay(state, narr, pickLine(L.SPIEL_CLEAR));
-  if (i === 2 && !memo(state, LEVER_MEMO)) meatheadSays(state, pickLine(L.BOOTH), true);
+  // (one after another, never two at once: him, the PA, him about the lever (stop 3))
+  const booth = i === 2 && !memo(state, LEVER_MEMO);
+  meatheadSays(state, pickLine(L.CLEARED), true, () => paSay(state, narr, pickLine(L.SPIEL_CLEAR), () => { if (booth) meatheadSays(state, pickLine(L.BOOTH), true); }));
 };
 const spawn = (state: GameState, co: Coaster, i: number) => {
   const run = co.stops[i], s = STOPS[i], [kind, which] = run.queue.shift()!;
-  const up = which === 'upper' && s.upper;
-  const dx = up ? X(s.upper!.x) : X(s.door), fy = up ? Y(s.h + s.upper!.h) : Y(s.h);
+  // ('upper': the catwalk's staff door; a stop without one (stop 3) has a second door on the deck instead)
+  const up = which === 'upper' && s.upper, second = which === 'upper' && !s.upper && s.door2 !== undefined;
+  const dx = up ? X(s.upper!.x) : X(second ? s.door2! : s.door), fy = up ? Y(s.h + s.upper!.h) : Y(s.h);
   const e = makeKindEnemy(kind as EnemyKind, dx, fy);
   e.variant = (i * 41 + run.wave * 13 + run.n++ * 7) % 23;
   e.homeX = e.pos.x; e.homeY = e.pos.y; e.initialY = e.pos.y;
@@ -271,12 +297,33 @@ const spawn = (state: GameState, co: Coaster, i: number) => {
   e.facing = dx > p.pos.x + p.width / 2 ? -1 : 1;
   e.aiState = 'approach'; e.aiTimer = 0; e.leapCd = 30;
   state.enemies.push(e); run.out.push(e);
-  if (up) run.upperT = 30; else run.doorT = 30;
+  if (up || second) run.upperT = 30; else run.doorT = 30;
   playSound('slam', 0.4, 6);
   if (run.n === 1) meatheadSays(state, pickLine(L.STAFF_OUT), false);
   else staffBark(state, e, e.kind === 'm2:hwc_janitor' ? L.STAFF_VOICES.janitor : e.kind === 'm2:hwc_docent' ? L.STAFF_VOICES.docent : e.kind === 'm2:hwc_guard' ? L.STAFF_VOICES.guard : L.STAFF_VOICES.rideop, e.kind === 'm2:hwc_janitor' ? L.JANITOR_BARK : e.kind === 'm2:hwc_docent' ? L.DOCENT_BARK : e.kind === 'm2:hwc_guard' ? L.GUARD_BARK : L.RIDEOP_BARK, 0.25);
 };
-const runStop = (state: GameState, co: Coaster, i: number) => {
+/** The staff getting to him (the user: at stop 3 they couldn't): a plinth (or the hazmat case) in their way, they hop
+ *  up over it; up on a catwalk with him down below, they step off it. (Their own AI won't do either.) */
+const hopping = new WeakMap<Enemy, { dir: 1 | -1; t: number }>();
+const helpStaff = (ctx: FrameContext, run: Coaster['stops'][number], s: (typeof STOPS)[number]) => {
+  const { state } = ctx, p = state.player, pcx = p.pos.x + p.width / 2, pf = p.pos.y + p.height;
+  for (const e of run.out) {
+    // (mid-hop: carried on over it, whatever its own walking says)
+    const hop = hopping.get(e);
+    if (hop) { if (++hop.t > 4 && e.vel.y === 0) hopping.delete(e); else { e.pos.x += hop.dir * 2.6; continue; } }
+    if (e.vel.y !== 0 || e.health <= 0 || e.isBlownAway || (e.aiState !== 'approach' && e.aiState !== 'rush')) continue;
+    const cx = e.pos.x + e.width / 2, feet = e.pos.y + e.height, dx = pcx - cx, dir = (Math.sign(dx) || 1) as 1 | -1;
+    if (Math.abs(dx) < 50) continue;
+    const ax = cx + dir * (e.width / 2 + 10);
+    if (state.blocks.some(b => b.type === 'wall' && b.tag === 'coaster' && ax > b.x && ax < b.x + b.w && b.y < feet - 20 && b.y > feet - 140 && b.y + b.h > feet - 10)) {
+      e.vel.y = -12.5; e.vel.x = dir * 3; e.facing = dir; hopping.set(e, { dir, t: 0 });
+      continue;
+    }
+    const onCatwalk = s.ledges.some(([rx, h, w]) => Math.abs(feet - Y(s.h + h)) < 3 && cx > X(rx) - 4 && cx < X(rx + w) + 4);
+    if (onCatwalk && pf > feet + 40 && !safeAhead(ctx, e, dir)) { e.facing = dir; e.pos.x += dir * 2.5; }
+  }
+};
+const runStop = (state: GameState, co: Coaster, i: number, ctx: FrameContext) => {
   const run = co.stops[i], cleared = memo(state, CLEARED_MEMO(i));
   if (run.doorT > 0) run.doorT--;
   if (run.upperT > 0) run.upperT--;
@@ -284,6 +331,8 @@ const runStop = (state: GameState, co: Coaster, i: number) => {
   if (cleared && run.phase !== 'clear') { run.phase = 'clear'; return; }
   switch (run.phase) {
     case 'idle': {
+      // (whoever's talking (his line off the train) has their say first: nobody starts over them)
+      if (isTalking() && ++run.t < 300) break;
       run.phase = 'intro'; run.t = 0; run.go = false;
       // (the first time here: the narrator's relic, his take on it, the staff called; back again after dying: straight on)
       if (once(state, `toilet${i}`)) paSay(state, narr, L.SPIEL_TOILET[i][0], () => {
@@ -299,6 +348,7 @@ const runStop = (state: GameState, co: Coaster, i: number) => {
       break;
     case 'fight': {
       run.out = run.out.filter(e => e.health > 0 && !e.isBlownAway && state.enemies.includes(e));
+      helpStaff(ctx, run, STOPS[i]);
       if (run.queue.length) { if (--run.spawnT <= 0) { spawn(state, co, i); run.spawnT = 28; } break; }
       if (run.out.length) { run.t = 0; break; }
       if (run.wave < WAVES[i].length - 1) {
@@ -345,8 +395,10 @@ const boarding = (state: GameState, co: Coaster, pl: Place, upIn: boolean) => {
   const park = parkAt(pl);
   if (!onDeckAt(state, park.x, park.y, 46)) return;
   const free = pl === 'station' || memo(state, CLEARED_MEMO(pl));
-  if (free) prompt(pl === 2 ? (memo(state, LEVER_MEMO) ? 'HOP ON (EXPERIMENTAL)' : 'HOP ON (BACK TO THE STATION)') : 'HOP ON');
+  if (free) prompt(pl === 2 && memo(state, LEVER_MEMO) ? 'HOP ON (EXPERIMENTAL)' : 'HOP ON');
   if (!upIn) return;
+  // (stop 3, the staff dead, the lever not pulled: he's not riding this on NORMAL)
+  if (free && pl === 2 && !memo(state, LEVER_MEMO)) { if (!isTalking()) meatheadSays(state, pickLine(L.LEVER_FIRST), true); return; }
   if (free) board(state, co, pl);
   else if (!co.said[`locked${pl}`]) { co.said[`locked${pl}`] = true; { if (fresh(L.LOCKED[0])) meatheadSays(state, L.LOCKED[0], true); }; }
 };
@@ -370,15 +422,29 @@ const booth = (state: GameState, co: Coaster, upIn: boolean) => {
     speak(L.SLEEPER, pickLine(byPants(state, L.SLEEPER_MUMBLE)), s => { co.sleeper = s; }, false);
   }
   // (back here off the launch: the track's still bent)
-  if (launched && !co.said.bent) { co.said.bent = true; meatheadSays(state, pickLine(L.BENT), true); paSay(state, narr, L.SPIEL_BENT[0]); }
-  if (lever || !onDeckAt(state, X(BOOTH.lever), Y(BOOTH.h), 44)) return;
-  prompt('PULL THE LEVER');
+  if (launched && !co.said.bent) { co.said.bent = true; meatheadSays(state, pickLine(L.BENT), true, () => paSay(state, narr, L.SPIEL_BENT[0])); }
+  if (lever || co.pull || !onDeckAt(state, X(BOOTH.lever), Y(BOOTH.h), 44)) return;
+  // (locked out till the stop's staff are all dead: its lamp's red)
+  const cleared = memo(state, CLEARED_MEMO(2));
+  if (cleared) prompt('PULL THE LEVER');
   if (!upIn) return;
-  // EXPERIMENTAL
-  state.stageMemo[LEVER_MEMO] = '1';
-  playSound('clang', 1, -8); playSound('alarm', 0.5, 4); shakeScreen(state, 4, 2);
-  meatheadSays(state, pickLine(L.LEVER), true);
-  if (!launched && fresh(L.SLEEPER_LEVER[0])) speak(L.SLEEPER, L.SLEEPER_LEVER[0], s => { co.sleeper = s; }, true);
+  if (!cleared) { if (!isTalking()) meatheadSays(state, pickLine(L.LEVER_LOCKED), true); return; }
+  // He hauls it over (../lever.ts: the throw, a frame at a time, in the update)
+  co.pull = startThrow();
+};
+/** The lever, being thrown: him on it, no other say; EXPERIMENTAL the moment it hits its stop. */
+const pulling = (state: GameState, co: Coaster): Controls | null => {
+  if (!co.pull) return null;
+  const step = tickThrow(state, BOOTH_LEVER, co.pull);
+  if (step === 'thrown') {
+    state.stageMemo[LEVER_MEMO] = '1'; co.lever = 1;
+    playSound('clang', 1, -8); playSound('alarm', 0.5, 4); shakeScreen(state, 4, 2);
+    // (him, then the sleeper in his sleep: one after the other)
+    const sleeper = !memo(state, LAUNCHED_MEMO);
+    meatheadSays(state, pickLine(L.LEVER), true, () => { if (sleeper && fresh(L.SLEEPER_LEVER[0])) speak(L.SLEEPER, L.SLEEPER_LEVER[0], s => { co.sleeper = s; }, true); });
+  }
+  if (step === 'done') { co.pull = null; return null; }
+  return hands();
 };
 
 /** Stop 3's biohazard: the case rattles (the tell), then vents; the fumes hurt whoever's in them. */
@@ -456,13 +522,16 @@ export const coaster: HollywoodSection = {
     co.lever += ((state.stageMemo[LEVER_MEMO] ? 1 : 0) - co.lever) * 0.2;
     if (co.ride.on) return riding(ctx, co);
     setHazardZones(state, 'hwc-train', []);
-    if (p.health <= 0) return controls;
-    // (the star toilets: crouched by one, or sat on one (thrones.ts))
+    if (p.health <= 0) { co.pull = null; setUi({ holdPrompt: null }); return controls; }
+    const hauling = pulling(state, co);
+    if (hauling) return hauling;
+    // (the star toilets: crouched by one, or sat on one (thrones.ts); HOLD down's prompt by one, its stop cleared)
     const sat = updateThrones(ctx, co, controls, line => paSay(state, narr, line));
+    setUi({ holdPrompt: throneHere(state, co) ? 'SHIT ON IT' : null });
     if (sat) return sat;
     const pl = placeOf(state);
     if (pl === 'station') queueBits(state, co);
-    if (pl !== null && pl !== 'station') { runStop(state, co, pl); stairs(state, co, pl, upIn); }
+    if (pl !== null && pl !== 'station') { runStop(state, co, pl, ctx); stairs(state, co, pl, upIn); }
     if (pl !== null) boarding(state, co, pl, upIn);
     if (pl === 2) booth(state, co, upIn);
     runExits(state, endExits('coaster').filter(e => e.to === DOORS.blvd.end));
