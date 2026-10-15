@@ -12,8 +12,8 @@ import { keysFor } from './game/platform/keys';
 import { takeAllSouvenirs, garageState, setGarageState } from './game/garage/store';
 import type { Souvenir } from './content/garage';
 import HUD from './components/HUD';
-import Overlay, { CheatFlags, leaveAnswers, type LeaveAnswer } from './components/Overlay';
-import { quitToDesktop } from './game/platform/desktop';
+import Overlay, { CheatFlags, leaveAnswers, type LeaveAnswer, type LeaveTo } from './components/Overlay';
+import { quitToDesktop, isDesktop } from './game/platform/desktop';
 import GameCanvas from './components/GameCanvas';
 import EndingCutscene from './components/EndingCutscene';
 import EpilogueCutscene from './components/EpilogueCutscene';
@@ -182,15 +182,15 @@ const App: React.FC = () => {
   const [lockedWeapon, setLockedWeapon] = useState<WeaponType | undefined>(undefined);
   /** The weapon wheel (the right stick): which one it's pointing at, while it's up. */
   const [wheelAt, setWheelAt] = useState<number | null>(null);
-  /** The pause menu's "are you sure" before leaving for the boss select, and which answer's highlighted. */
+  /** The "are you sure" (the pause menu's before leaving the stage, the title's before QUIT GAME), and which answer's highlighted. */
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [confirmPick, setConfirmPick] = useState(0);
   /** What he shouted going into the stage (the flourish puts the same words up). */
   const [engageShout, setEngageShout] = useState(ENGAGE_SHOUTS[0]);
   /** A little cutscene in the stage, him not in control: the HUD's put away till it's over. */
   const [inCutscene, setInCutscene] = useState(false);
-  /** What the "are you sure" is for: leaving for the boss select, or quitting to the title. */
-  const [leaveTo, setLeaveTo] = useState<'boss' | 'quit'>('boss');
+  /** What the "are you sure" is for (see LeaveTo). */
+  const [leaveTo, setLeaveTo] = useState<LeaveTo>('boss');
   const viewScale = useFitToWindow();
   const [isInputLocked, setIsInputLocked] = useState(true);
   /** Stage select: the boss dossier is showing instead of the map. */
@@ -282,10 +282,10 @@ const App: React.FC = () => {
   // checkpoint picker. (Locking in and ENGAGE have their own.)
   const inMenu = status === GameStatus.START || status === GameStatus.STAGE_SELECT || status === GameStatus.PAUSED;
   useCursorSound(selectedIndex, inMenu && intro === 'off' && !inGarage && !pickFor && !fileSelect, `${status}|${showArchive}|${inGarage}`);
-  useCursorSound(confirmPick, confirmLeave, confirmLeave);
+  useCursorSound(confirmPick, confirmLeave, `${confirmLeave}|${leaveTo}`);
   useCursorSound(wheelAt, wheelAt !== null);
   useOpenCloseSound(status === GameStatus.PAUSED, status === GameStatus.PAUSED || status === GameStatus.PLAYING);
-  useOpenCloseSound(confirmLeave, status === GameStatus.PAUSED);
+  useOpenCloseSound(confirmLeave, status === GameStatus.PAUSED || status === GameStatus.START);
   useOpenCloseSound(pauseDossier, status === GameStatus.PAUSED);
   useOpenCloseSound(optionsOpen);
   // (it only belongs to the screen it was opened on)
@@ -391,11 +391,11 @@ const App: React.FC = () => {
   /** One of the title's options picked: CONTINUE (the file played last), NEW GAME (the file select), OPTIONS. */
   const pickTitle = (index: number) => {
     const o = options[index];
-    if (!o || intro !== 'off' || fileSelect) return;
+    if (!o || intro !== 'off' || fileSelect || confirmLeave) return;
     // (OPTIONS: up it comes, no waiting for the way in to unlock)
     if (o.kind === 'options') { setOptionsOpen(true); return; }
-    // (QUIT GAME, the desktop app's: straight out, there's nothing unsaved on the title)
-    if (o.kind === 'quit') { playMenuOk(); closeFile(); quitToDesktop(); return; }
+    // (QUIT GAME, the desktop app's: are you sure? NO highlighted)
+    if (o.kind === 'quit') { ask('game'); return; }
     if (Date.now() - screenShownAtRef.current < MIN_CONFIRM_DELAY_MS) return;
     if (o.kind === 'continue') { const slot = latestSlot(); if (slot) loadFile(slot); return; }
     playMenuOk();
@@ -499,17 +499,27 @@ const App: React.FC = () => {
     setStatus(GameStatus.PLAYING);
   };
 
-  /** BOSS SELECT in the pause menu: asks first (NO highlighted). */
-  const askBossSelect = () => { setLeaveTo('boss'); setConfirmPick(leaveAnswers('boss').length - 1); setConfirmLeave(true); };
-  /** QUIT in the pause menu: asks first too (NO highlighted): it's the whole run gone, not just the stage. */
-  // (in the desktop app, it's QUIT TO TITLE, QUIT TO DESKTOP or NO)
-  const askQuit = () => { setLeaveTo('quit'); setConfirmPick(leaveAnswers('quit').length - 1); setConfirmLeave(true); };
+  /** The "are you sure" up, for this (NO highlighted). */
+  const ask = (to: LeaveTo) => { setLeaveTo(to); setConfirmPick(leaveAnswers(to).length - 1); setConfirmLeave(true); };
+  /** BOSS SELECT in the pause menu: asks first. */
+  const askBossSelect = () => ask('boss');
+  /** QUIT in the pause menu: asks first too: it's the whole run gone, not just the stage. (In the desktop app it's
+   * first TO TITLE or TO DESKTOP, and then are you sure about that one.) */
+  const askQuit = () => ask(isDesktop ? 'quit' : 'title');
   const answerBossSelect = (answer: LeaveAnswer) => {
+    // (the desktop app's QUIT: which way out picked, now are you sure)
+    if (answer === 'title' || answer === 'desktop') { playMenuOk(); ask(answer); return; }
     setConfirmLeave(false);
-    if (answer === 'yes') { if (leaveTo === 'quit') handleQuitToMenu(); else handleBossSelect(); }
+    if (answer !== 'yes') return;
+    if (leaveTo === 'boss') handleBossSelect();
+    else if (leaveTo === 'title') handleQuitToMenu();
     // (out to the desktop: the file keeps what it had at the last safe point, and the time played)
-    else if (answer === 'desktop') { pauseSpeech(false); silenceAll(); closeFile(); quitToDesktop(); }
+    else if (leaveTo === 'desktop') { pauseSpeech(false); silenceAll(); closeFile(); quitToDesktop(); }
+    // (the title's QUIT GAME: there's nothing unsaved on the title)
+    else if (leaveTo === 'game') { playMenuOk(); closeFile(); quitToDesktop(); }
   };
+  /** Back on the title: the "are you sure" says no. */
+  const titleBack = () => { if (confirmLeave) setConfirmLeave(false); };
 
   /** The ending's cutscene is done (IT'S ON): straight into the fight with the alien, in the press room, on his feet,
    * topped right up (health, power, every gun he's got). */
@@ -727,6 +737,8 @@ const App: React.FC = () => {
     if (intro !== 'off') return false;
     // The title: CONTINUE (if there's a file), NEW GAME (or NEW GAME + INTRO), then OPTIONS
     if (status === GameStatus.START) {
+      // (QUIT GAME's "are you sure": YES on the left, NO on the right)
+      if (confirmLeave) { if (dx) setConfirmPick(i => Math.max(0, Math.min(leaveAnswers(leaveTo).length - 1, i + Math.sign(dx)))); return !!dx; }
       if (!dy) return false;
       const n = options.length;
       setSelectedIndex(i => (i + (dy > 0 ? 1 : -1) + n) % n);
@@ -754,7 +766,7 @@ const App: React.FC = () => {
   const confirmSelection = () => {
     // (nothing while the call's still fading off the stage select)
     if (callOutro || intro !== 'off') return;
-    if (status === GameStatus.START) { pickTitle(selectedIndex); return; }
+    if (status === GameStatus.START) { if (confirmLeave) answerBossSelect(leaveAnswers(leaveTo)[confirmPick]?.answer ?? 'no'); else pickTitle(selectedIndex); return; }
     if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
     else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(leaveAnswers(leaveTo)[confirmPick]?.answer ?? 'no'); else if (!pauseDossier) activatePauseItem(selectedIndex); }
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
@@ -860,15 +872,16 @@ const App: React.FC = () => {
 
   // (in the garage, it's the garage's own input: the stage select's is off)
   // (the options screen too: it reads its own input, like the garage)
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen || !!fileSelect, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene };
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, titleBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, titleBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen || !!fileSelect, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (inputRef.current.garage) return;
-      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, switchTab, stageSelectBack } = inputRef.current;
+      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, switchTab, stageSelectBack, titleBack } = inputRef.current;
       const key = e.key.toLowerCase();
       if (status === GameStatus.STAGE_SELECT && (key === 'escape' || key === 'backspace')) { stageSelectBack(); return; }
+      if (status === GameStatus.START && (key === 'escape' || key === 'backspace')) { titleBack(); return; }
       if (key === 'escape') togglePause();
 
       if (status === GameStatus.PLAYING) {
@@ -922,9 +935,10 @@ const App: React.FC = () => {
       if (inputRef.current.garage) return;
       bumpWeapon('mouse' + e.button);
       if (e.button !== 2) return;
-      const { status, stageSelectBack } = inputRef.current;
+      const { status, stageSelectBack, titleBack } = inputRef.current;
       rightPressedInPause = status === GameStatus.PAUSED;
       if (status === GameStatus.STAGE_SELECT) stageSelectBack();
+      else if (status === GameStatus.START) titleBack();
     };
     const onMouseUp = (e: MouseEvent) => {
       if (e.button !== 2) return;
@@ -1008,6 +1022,7 @@ const App: React.FC = () => {
         if (justPressed('b')) {
           if (status === GameStatus.PAUSED) handleResume();
           else if (status === GameStatus.STAGE_SELECT) stageSelectBack();
+          else if (status === GameStatus.START) inputRef.current.titleBack();
         }
         if (justPressed('start') && inGame) togglePause();
         Object.assign(prev, pressed);

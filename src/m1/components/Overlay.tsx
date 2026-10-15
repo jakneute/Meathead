@@ -59,12 +59,12 @@ interface OverlayProps {
   onResume: () => void;
   onBossSelect: () => void;
   onQuitToMenu: () => void;
-  /** Pause menu: the "are you sure" before leaving for the boss select (and which answer's highlighted), and the answer. */
+  /** The "are you sure" up (the pause menu's, before leaving the stage; the title's, before QUIT GAME), and the answer. */
   confirmLeave?: boolean;
   /** What he shouted going in: the flourish slams the same words up. */
   engageShout?: string;
-  /** What the "are you sure" is for: the boss select (this stage's progress) or quitting (the whole run). */
-  leaveTo?: 'boss' | 'quit';
+  /** What the "are you sure" is for (see LeaveTo). */
+  leaveTo?: LeaveTo;
   /** Which of the answers (leaveAnswers) is highlighted. */
   confirmPick?: number;
   onAnswerLeave?: (answer: LeaveAnswer) => void;
@@ -229,21 +229,66 @@ export const titleOptions = (hasFile: boolean): TitleOption[] => [
   ...(isDesktop ? [{ label: 'QUIT GAME', kind: 'quit' as const, intro: false }] : []),
 ];
 
-/** An answer to the pause menu's "are you sure": yes, no, or (quitting, in the desktop app) yes, all the way out. */
-export type LeaveAnswer = 'yes' | 'desktop' | 'no';
 /**
- * The "are you sure"'s answers, left to right (NO always last, and highlighted first). Quitting in the desktop app it's
- * QUIT TO TITLE, QUIT TO DESKTOP or NO; otherwise YES or NO.
+ * What the "are you sure" is for. In the pause menu: 'boss' (BOSS SELECT: this stage's progress gone), 'title' (QUIT, out
+ * to the title: everything since the last save gone), 'desktop' (the desktop app's QUIT TO DESKTOP: the same), and
+ * 'quit' (the desktop app's QUIT: not a yes or no but where to, TITLE or DESKTOP, each of them asking in turn). On the
+ * title: 'game' (the desktop app's QUIT GAME). One "are you sure" on every way out.
  */
-export const leaveAnswers = (leaveTo: 'boss' | 'quit' | undefined): { label: string; answer: LeaveAnswer; face: string; edge: string }[] => [
-  ...(leaveTo === 'quit' && isDesktop
-    ? [{ label: 'QUIT TO TITLE', answer: 'yes' as const, face: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', edge: '#450A0A' },
-      { label: 'QUIT TO DESKTOP', answer: 'desktop' as const, face: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', edge: '#450A0A' }]
-    : [{ label: 'YES', answer: 'yes' as const, face: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', edge: '#450A0A' }]),
+export type LeaveTo = 'boss' | 'quit' | 'title' | 'desktop' | 'game';
+/** An answer: yes, no, or (the desktop app's QUIT) which way out, asked about next. */
+export type LeaveAnswer = 'yes' | 'no' | 'title' | 'desktop';
+const RED = { face: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', edge: '#450A0A' };
+/** The answers, left to right (NO always last, and highlighted first). */
+export const leaveAnswers = (leaveTo: LeaveTo | undefined): { label: string; answer: LeaveAnswer; face: string; edge: string }[] => [
+  ...(leaveTo === 'quit'
+    ? [{ label: 'QUIT TO TITLE', answer: 'title' as const, ...RED }, { label: 'QUIT TO DESKTOP', answer: 'desktop' as const, ...RED }]
+    : [{ label: 'YES', answer: 'yes' as const, ...RED }]),
   { label: 'NO', answer: 'no', face: 'linear-gradient(180deg, #52525B, #3F3F46)', edge: '#18181B' },
 ];
 
-const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onTitlePick, titleOptions: options = [], onSelectIndex, selectedIndex, cheats, progressionRank, whiteHouseOpen, introOn }) => (
+/** The run's loss, quitting: since the last save on a file; with no file, the lot. */
+const runLoss = () => (activeSlot() ? "YOU'LL LOSE WHAT YOU'VE DONE SINCE THE LAST SAVE" : "NO SAVE FILE: YOU'LL LOSE EVERY BOSS, EVERY WEAPON");
+const LEAVE_TEXT: Record<LeaveTo, { ask?: string; head: string; loss?: () => string }> = {
+  boss: { head: 'ARE YOU SURE?', loss: () => "YOU'LL LOSE YOUR PROGRESS ON THIS STAGE" },
+  quit: { head: 'QUIT?' },
+  title: { ask: 'QUIT TO TITLE?', head: 'ARE YOU SURE?', loss: runLoss },
+  desktop: { ask: 'QUIT TO DESKTOP?', head: 'ARE YOU SURE?', loss: runLoss },
+  game: { ask: 'QUIT GAME?', head: 'ARE YOU SURE?' },
+};
+
+/** The "are you sure" box, over the pause menu (or, `full`, over the whole screen: the title's). */
+const LeaveConfirm: React.FC<{ leaveTo: LeaveTo; confirmPick?: number; onAnswerLeave?: (answer: LeaveAnswer) => void; full?: boolean }> = ({ leaveTo, confirmPick, onAnswerLeave, full }) => {
+  const text = LEAVE_TEXT[leaveTo];
+  return (
+    // (`fixed` is the game's own 800x600, which is scaled: the whole screen)
+    <div className={`${full ? 'fixed' : 'absolute'} inset-0 flex items-center justify-center bg-black/80 z-20 animate-in fade-in duration-150`}>
+      <div className="flex flex-col items-center px-8 py-5" style={{ background: 'linear-gradient(180deg, #27272A, #09090B)', border: '3px solid #EF4444', boxShadow: '0 0 0 3px #000, 0 0 30px rgba(239,68,68,0.35)' }}>
+        {text.ask && <div className="text-white text-[11px] font-black tracking-widest mb-2" style={{ textShadow: '2px 2px 0 #000' }}>{text.ask}</div>}
+        <div className="text-yellow-400 text-[15px] font-black italic tracking-widest mb-2" style={{ textShadow: '2px 2px 0 #7F1D1D' }}>{text.head}</div>
+        {text.loss && <div className="text-zinc-300 text-[8px] font-black uppercase tracking-wider mb-2">{text.loss()}</div>}
+        <div className="flex gap-4 mt-2">
+          {leaveAnswers(leaveTo).map(({ label, answer, face, edge }, i) => {
+            const on = confirmPick === i;
+            return (
+              <button key={label} onClick={() => onAnswerLeave?.(answer)}
+                className={`relative pl-8 pr-5 py-[7px] text-white text-[11px] font-black tracking-wider whitespace-nowrap transition-all ${on ? 'translate-y-[-1px]' : 'opacity-80 hover:opacity-100'}`}
+                style={{ background: face, borderBottom: `4px solid ${edge}`, boxShadow: on ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: on ? '2px solid #FACC15' : 'none' }}>
+                {on && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}{label}
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-4 flex items-center gap-4 text-[6px] text-zinc-400 tracking-wider">
+          <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="SELECT" size={15} />
+          <button onClick={() => onAnswerLeave?.('no')} className="contents"><Prompt pad={['BACK']} kb={['ESC']} mouse="right" label="NO" size={15} /></button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onTitlePick, titleOptions: options = [], onSelectIndex, selectedIndex, cheats, progressionRank, whiteHouseOpen, introOn, confirmLeave, leaveTo, confirmPick, onAnswerLeave }) => (
   <>
     {/* (the picture, the whole screen: the logo's in it, over his chest) */}
     <TitleArt shitty={!!cheats?.flags.shittyPants} paused={!!introOn} />
@@ -256,7 +301,7 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onTitlePick, title
           // (OPTIONS isn't held back with the way in: there's nothing to skip past by opening it)
           const lockedOut = isInputLocked && o.kind !== 'options' && o.kind !== 'quit';
           return (
-            <button key={o.label} disabled={lockedOut} onClick={() => onTitlePick?.(i)} onMouseEnter={() => onSelectIndex(i)}
+            <button key={o.label} disabled={lockedOut} onClick={() => onTitlePick?.(i)} onMouseEnter={() => { if (!confirmLeave) onSelectIndex(i); }}
               className={`relative w-[380px] px-10 ${options.length > 2 ? 'py-1.5' : 'py-2.5'} text-sm md:text-base whitespace-nowrap border-2 border-black font-black uppercase shrink-0 [text-shadow:2px_2px_0_#000] ${lockedOut
                 ? 'bg-zinc-700 text-zinc-400 shadow-[inset_0_2px_0_#71717a,inset_0_-4px_0_#27272a,4px_4px_0_#000] opacity-60 cursor-not-allowed'
                 : on ? 'bg-[#c81c10] text-[#fff6d8] shadow-[inset_0_2px_0_#fc7c5c,inset_0_-4px_0_#6c0c04,0_0_0_2px_#fcd850,0_0_0_4px_#000,6px_6px_0_4px_#000] active:translate-y-1 active:shadow-[inset_0_2px_0_#fc7c5c,inset_0_-2px_0_#6c0c04,0_0_0_2px_#fcd850,0_0_0_4px_#000]'
@@ -272,6 +317,8 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onTitlePick, title
         {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label={options[selectedIndex]?.kind === 'new' ? 'START' : options[selectedIndex]?.kind === 'continue' ? 'CONTINUE' : options[selectedIndex]?.kind === 'quit' ? 'QUIT' : 'OPEN'} size={15} className="text-[7px] font-black text-white/85 tracking-wider [text-shadow:1px_1px_0_#000] animate-pulse" />}
       </div>
     </div>
+    {/* (QUIT GAME, the desktop app's: are you sure?) */}
+    {confirmLeave && leaveTo === 'game' && <LeaveConfirm leaveTo="game" confirmPick={confirmPick} onAnswerLeave={onAnswerLeave} full />}
   </>
 );
 
@@ -687,26 +734,7 @@ const PauseMenu: React.FC<OverlayProps> = ({ onOpenOptions, availableWeapons, cu
       )}
 
       {/* Leaving for the boss select, or quitting: are you sure? */}
-      {confirmLeave && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20 animate-in fade-in duration-150">
-          <div className="flex flex-col items-center px-8 py-5" style={{ background: 'linear-gradient(180deg, #27272A, #09090B)', border: '3px solid #EF4444', boxShadow: '0 0 0 3px #000, 0 0 30px rgba(239,68,68,0.35)' }}>
-            <div className="text-yellow-400 text-[15px] font-black italic tracking-widest mb-2" style={{ textShadow: '2px 2px 0 #7F1D1D' }}>ARE YOU SURE?</div>
-            <div className="text-zinc-300 text-[8px] font-black uppercase tracking-wider mb-4">{leaveTo === 'quit' ? (activeSlot() ? "YOU'LL LOSE WHAT YOU'VE DONE SINCE THE LAST SAVE" : "NO SAVE FILE: YOU'LL LOSE EVERY BOSS, EVERY WEAPON") : "YOU'LL LOSE YOUR PROGRESS ON THIS STAGE"}</div>
-            <div className="flex gap-4">
-              {leaveAnswers(leaveTo).map(({ label, answer, face, edge }, i) => {
-                const on = confirmPick === i;
-                return (
-                  <button key={label} onClick={() => onAnswerLeave?.(answer)}
-                    className={`relative pl-8 pr-5 py-[7px] text-white text-[11px] font-black tracking-wider whitespace-nowrap transition-all ${on ? 'translate-y-[-1px]' : 'opacity-80 hover:opacity-100'}`}
-                    style={{ background: face, borderBottom: `4px solid ${edge}`, boxShadow: on ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: on ? '2px solid #FACC15' : 'none' }}>
-                    {on && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}{label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+      {confirmLeave && leaveTo && leaveTo !== 'game' && <LeaveConfirm leaveTo={leaveTo} confirmPick={confirmPick} onAnswerLeave={onAnswerLeave} />}
     </div>
   );
 };
