@@ -111,9 +111,9 @@ m2/hollywood/disaster/index.ts:179 voice: false
 m2/hollywood/disaster/index.ts:184 voice: false
 m2/hollywood/havoc/kinds.ts:45 voice: false
 m2/hollywood/havoc/index.ts:57 voice: line
-m2/hollywood/stunt/fight.ts:178 voice: text
-m2/hollywood/stunt/fight.ts:185 voice: voice(L.STEVE_VOICE)
-m2/hollywood/stunt/fight.ts:193 voice: pick(lines[pants()])
+m2/hollywood/stunt/fight.ts:181 voice: text
+m2/hollywood/stunt/fight.ts:188 voice: voice(L.STEVE_VOICE)
+m2/hollywood/stunt/fight.ts:196 voice: pick(lines[pants()])
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice
 m1/game/bosses/alien.ts:90 voice: text

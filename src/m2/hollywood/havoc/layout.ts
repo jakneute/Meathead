@@ -27,8 +27,10 @@
 //          poles, the people) and throws some of it ahead of him. Lesser takes on everything he's been through: low
 //          snow slides rolling along the street after him (jump them), narrow lava rivers, puddles (slow him), weaker
 //          gusts, a few falling bits, hail. CHECKPOINT on Main Street.
-//   21280  A FIRST AID station (the big health and ammo, before the stunt stage). Past it the tornado surges: it catches
-//          him and flings him (the cutscene) onto Stuntman Steve's stage.
+//   21280  A FIRST AID station (the big health and ammo, before the stunt stage). Past it, the CUTSCENE TRIGGER ZONE
+//   21480  (YOU ARE NOW ENTERING A..., the flashing sign on its gantry, the hazard box and arrows painted on the street,
+//          the spotlights): in it the tornado surges, catches him (held in the box) and flings him (the cutscene) onto
+//          Stuntman Steve's stage.
 //
 // Revisits (the fling's been: the tornado's spent): no tornado, no flood, no wind, quake or hail; the lava crusted over
 // (walkable), every facade down, the chase's street blown bare, the snow banked up, the wrecking ball hanging still,
@@ -150,8 +152,11 @@ export const AV_H = 1500, AV_LEN = 1500, AV_V = 18, AV_REACH = 650, AV_TELL = 20
 export const SLIDE_H = 62, SLIDE_LEN = 150, SLIDE_V = 11, SLIDE_GAP = 300;
 /** The chase's puddles (ankle-deep: they slow him): [rx from, to]. */
 export const PUDDLES: [number, number][] = [[15200, 15430], [17080, 17360], [20560, 20780]];
-/** The final stretch: past here the tornado surges and gets him. */
-export const SURGE_AT = 21460;
+/** THE CUTSCENE TRIGGER ZONE (rx from, to): the painted box on the street past the first aid station, under its
+ *  gantry. Into it and the tornado surges; it gets him in there (he's held in it: art.ts marks it, loud). */
+export const ZONE = { a: 21480, b: 21780 } as const;
+/** The final stretch: past here the tornado surges and gets him (the zone's mouth). */
+export const SURGE_AT = ZONE.a;
 /** The first aid station (the big refill). */
 export const REFILL = 21280;
 
@@ -185,7 +190,7 @@ export const DECOR: [number, number, number, string, string][] = [
   [4400, 280, 300, '#334155', 'PRECINCT 13'], [4800, 300, 340, '#57534E', 'GRAND HOTEL'], [5750, 280, 280, '#7C2D12', 'SALOON'],
   [14700, 300, 260, '#57534E', 'HILLS DRIVE INN'], [15550, 260, 300, '#334155', 'MOTEL'], [16050, 300, 280, '#44403C', 'DINER'],
   [16900, 260, 260, '#7C2D12', 'GIFT SHOP'], [17550, 280, 300, '#3F3F46', 'BANK'], [19150, 280, 300, '#7F1D1D', 'THEATER'],
-  [20700, 260, 280, '#3F3F46', 'POST OFFICE'], [21500, 300, 320, '#57534E', 'CITY HALL'],
+  [20700, 260, 280, '#3F3F46', 'POST OFFICE'], [20990, 260, 300, '#57534E', 'CITY HALL'],
 ];
 
 /** The stunt wires, in order (wires are matched by their place: keep it). */
@@ -230,7 +235,7 @@ export const PICKUPS: [number, number | null, 'small_health' | 'small_ammo' | 'l
 export const HORNS = [400, 2300, 4600, 6150, 14600, 17300, 19700];
 export const STEVES: [number, 'standee' | 'poster' | 'flier'][] = [
   [620, 'standee'], [1500, 'poster'], [3300, 'flier'], [4700, 'poster'], [5850, 'standee'], [14950, 'standee'], [16400, 'poster'],
-  [18550, 'poster'], [20500, 'standee'], [21850, 'poster'],
+  [18550, 'poster'], [20500, 'standee'], [21170, 'poster'],
 ];
 
 /** The checkpoints (passed by x; the climb's are on the roofs, past the buildings' walls, so they're only reached up

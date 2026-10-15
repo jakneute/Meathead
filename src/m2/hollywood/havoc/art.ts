@@ -19,11 +19,13 @@ import { words, enamel, print, ledgeLip, sidewalk, facade, lamppost, guest, BACK
 import { outOf } from '../blvd/state';
 import {
   x0, x1 as X1, X, Y, R, GY, RUNS, LAVA, LAVA_DOWN, LAVA_FLOOR, FALLS, LEDGES, BALL, BUILDINGS, SHAFTS, CLIMB, COVERS, ROOF,
-  REFILL, HORNS, STEVES, WIND, DECOR, DOWNHILL, PUDDLES, AV_LEN, AV_H, AV_TELL, SLIDE_H, SLIDE_LEN,
+  REFILL, HORNS, STEVES, WIND, DECOR, DOWNHILL, PUDDLES, AV_LEN, AV_H, AV_TELL, SLIDE_H, SLIDE_LEN, ZONE,
 } from './layout';
 import { hvOf, type Hv } from './state';
 import { spent, ballAt } from './hazards';
 import { tornadoBase, funnelHalf, FUNNEL_H, FORM_T, coverRoof, isTorn, guestAt, GUEST_BASES } from './chase';
+import { drawSkinned } from './skinned';
+import type { Look } from '../../signLetters';
 
 type Ctx = CanvasRenderingContext2D;
 const TAU = Math.PI * 2;
@@ -312,6 +314,111 @@ const bunker = (c: Ctx, state: GameState, k: number, done: boolean) => {
   box(c, r.x - 2, r.y - 2, r.w + 4, 3, '#FDE68A');
 };const groundAtSign = (rx: number) => { for (const [a, b, h1, h2] of RUNS) if (rx >= a && rx <= b) return h1 + ((h2 - h1) * (rx - a)) / (b - a); return 0; };
 
+// ---------------------------------------------------------------------------------------------------------------
+// THE CUTSCENE TRIGGER ZONE: loud about it. A hazard-striped box painted on the street (the zone's name stenciled on
+// the curb's face under it), arrows chasing along the pavement and the asphalt into it, YOU ARE NOW ENTERING A on its
+// own sign before it, and over it a gantry: the flashing marquee sign on chains under its truss, beacons turning on its
+// posts, two spotlights down onto the box. The truss is dark along its top (scenery: not a ledge). Spent (the
+// revisit): painted on still, the sign's bulbs dead, no lights.
+
+/** Diagonal hazard stripes (yellow and black) filling a box, sliding along by `phase`. */
+const hazard = (c: Ctx, x: number, y: number, w: number, h: number, phase = 0, col = '#FACC15') => {
+  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+  box(c, x, y, w, h, '#18181B');
+  c.fillStyle = col;
+  for (let sx = x - h - 16 + (phase % 16); sx < x + w + h; sx += 16) { c.beginPath(); c.moveTo(sx, y + h); c.lineTo(sx + 8, y + h); c.lineTo(sx + 8 + h, y); c.lineTo(sx + h, y); c.closePath(); c.fill(); }
+  c.restore();
+};
+const zoneFlash = (state: GameState, hv: Hv) => { const per = hv.tornado.surge ? 8 : 18; return state.frame % per < per / 2; };
+
+/** Painted on the street: the box (and its name on the curb), the arrows running into it. */
+const zoneFloor = (c: Ctx, state: GameState, hv: Hv, done: boolean) => {
+  const A = X(ZONE.a), B = X(ZONE.b), f = state.frame;
+  if (!inView(state, A - 320, B + 20)) return;
+  // (the arrows: chevrons on the pavement and big block arrows on the asphalt, the light chasing along them into it)
+  for (let i = 0, x = A - 40; x > A - 300; x -= 44, i++) {
+    const lit = !done && (Math.floor(f / 4) + i) % 6 < 2;
+    const col = lit ? '#FEF08A' : done ? '#A16207' : '#CA8A04';
+    c.fillStyle = col; c.beginPath();
+    c.moveTo(x - 12, BACK_Y + 6); c.lineTo(x, BACK_Y + 6); c.lineTo(x + 14, (BACK_Y + GY) / 2); c.lineTo(x, GY - 6); c.lineTo(x - 12, GY - 6); c.lineTo(x + 2, (BACK_Y + GY) / 2);
+    c.closePath(); c.fill();
+  }
+  for (let i = 0, x = A - 70; x > A - 300; x -= 90, i++) {
+    const lit = !done && (Math.floor(f / 6) + i) % 3 === 0;
+    const y = GY + 30, col = lit ? '#FDE047' : done ? '#854D0E' : '#A16207';
+    box(c, x - 36, y - 6, 26, 12, col);
+    c.fillStyle = col; c.beginPath(); c.moveTo(x - 10, y - 15); c.lineTo(x + 12, y); c.lineTo(x - 10, y + 15); c.closePath(); c.fill();
+  }
+  // (the box: the pavement tinted inside it, hazard stripes all round it)
+  box(c, A, BACK_Y + 2, B - A, BACK - 3, done ? 'rgba(250, 204, 21, 0.08)' : 'rgba(250, 204, 21, 0.16)');
+  const ph = done ? 0 : f * 0.5;
+  hazard(c, A, BACK_Y + 2, B - A, 6, ph); hazard(c, A, GY - 7, B - A, 6, -ph);
+  hazard(c, A, BACK_Y + 2, 8, BACK - 3, ph); hazard(c, B - 8, BACK_Y + 2, 8, BACK - 3, ph);
+  // (on the curb's face: a stripe, the name stenciled big, another stripe)
+  hazard(c, A, GY + 12, B - A, 8, ph); hazard(c, A, GY + 54, B - A, 8, -ph);
+  words(c, 'CUTSCENE TRIGGER ZONE', (A + B) / 2, GY + 47, { sx: 2, sy: 3, fill: done ? '#CA8A04' : '#FACC15', stencil: true, worn: 0.12, wornCol: '#3F3F46', seed: 7 });
+};
+
+/** The zone's signs: YOU ARE NOW ENTERING A on its posts before it; the gantry over it (its spotlights, the marquee on
+ *  chains, the beacons). */
+const zoneSigns = (c: Ctx, state: GameState, hv: Hv, done: boolean) => {
+  const A = X(ZONE.a), B = X(ZONE.b), f = state.frame, mid = (A + B) / 2, on = zoneFlash(state, hv);
+  if (!inView(state, A - 200, B + 20)) return;
+  // YOU ARE NOW ENTERING A (on two posts, before it, clear of the first aid tent)
+  {
+    const x = A - 82, w = 136, top = GY - 218, h = 48;
+    for (const px of [x - 30, x + 24]) { box(c, px, top + h, 6, BACK_Y - top - h + 4, '#44403C'); box(c, px, top + h, 2, BACK_Y - top - h + 4, '#57534E'); }
+    box(c, x - w / 2 - 2, top - 2, w + 4, h + 4, '#000'); box(c, x - w / 2, top, w, h, '#FACC15'); box(c, x - w / 2 + 3, top + 3, w - 6, h - 6, '#18181B');
+    const L = enamel({ sx: 2, sy: 2 }, '#FDE047', '#000');
+    words(c, 'YOU ARE NOW', x, top + 21, L); words(c, 'ENTERING A', x, top + 40, L);
+  }
+  // The gantry: its posts (hazard banded), the truss over the street (dark along its top: not a ledge)
+  const trussY = GY - 404;
+  for (const px of [A - 4, B - 6]) {
+    box(c, px - 1, trussY, 12, BACK_Y - trussY + 4, '#000');
+    for (let y = trussY; y < BACK_Y; y += 16) box(c, px, y, 10, 8, (y / 16) % 2 ? '#FACC15' : '#27272A');
+    box(c, px - 6, BACK_Y - 2, 22, 6, '#27272A');
+  }
+  box(c, A - 6, trussY - 2, B - A + 12, 16, '#000'); box(c, A - 4, trussY, B - A + 8, 12, '#3F3F46');
+  c.strokeStyle = '#18181B'; c.lineWidth = 2; c.beginPath();
+  for (let x = A; x < B; x += 16) { c.moveTo(x, trussY + 1); c.lineTo(x + 8, trussY + 11); c.lineTo(x + 16, trussY + 1); }
+  c.stroke();
+  box(c, A - 6, trussY - 2, B - A + 12, 3, '#18181B');
+  // (the beacons on top of the posts, turning)
+  for (const [k, px] of [[0, A + 1], [1, B - 1]] as const) {
+    box(c, px - 7, trussY - 14, 14, 12, '#000');
+    const lit = !done && (Math.floor(f / 5) + k * 2) % 4 < 2;
+    box(c, px - 6, trussY - 13, 12, 10, lit ? '#FB923C' : done ? '#57534E' : '#9A3412'); if (lit) box(c, px - 4, trussY - 12, 4, 3, '#FFEDD5');
+    if (lit) { c.fillStyle = 'rgba(251, 146, 60, 0.25)'; c.beginPath(); c.ellipse(px, trussY - 8, 24, 10, 0, 0, TAU); c.fill(); }
+  }
+  // (the spotlights, hung under the truss at the ends, down onto the box: the cones first, the sign over them)
+  for (const [lx, dir] of [[A + 26, 1], [B - 26, -1]] as const) {
+    if (!done) {
+      const pulse = 0.09 + 0.06 * (0.5 + 0.5 * Math.sin(f * 0.16 + dir));
+      c.fillStyle = `rgba(254, 240, 138, ${pulse.toFixed(3)})`;
+      c.beginPath(); c.moveTo(lx - 6, trussY + 22); c.lineTo(lx + 6, trussY + 22); c.lineTo(mid + dir * 30 + 80, GY - 6); c.lineTo(mid + dir * 30 - 80, GY - 6); c.closePath(); c.fill();
+    }
+    box(c, lx - 8, trussY + 12, 16, 12, '#000'); box(c, lx - 7, trussY + 13, 14, 10, '#27272A'); box(c, lx - 5 + dir * 2, trussY + 21, 10, 3, done ? '#57534E' : '#FEF3C7');
+  }
+  if (!done) { const k = 0.5 + 0.5 * Math.sin(f * 0.16); c.fillStyle = `rgba(254, 240, 138, ${(0.14 + k * 0.1).toFixed(3)})`; c.beginPath(); c.ellipse(mid, GY - 18, 130, 13, 0, 0, TAU); c.fill(); }
+  // The sign: on two chains under the truss, a marquee: bulbs chasing round its edge, CUTSCENE / TRIGGER ZONE in bulbs,
+  // the two lines flashing yellow and red against each other (faster once it's coming)
+  const w = 290, h = 92, top = trussY + 26, x0 = mid - w / 2;
+  c.strokeStyle = '#18181B'; c.lineWidth = 2; c.beginPath();
+  for (const cx of [x0 + 40, x0 + w - 40]) for (let y = trussY + 12; y < top; y += 5) { c.moveTo(cx, y); c.lineTo(cx, y + 3); }
+  c.stroke();
+  box(c, x0 - 3, top - 3, w + 6, h + 6, '#000'); box(c, x0, top, w, h, '#7F1D1D'); box(c, x0 + 6, top + 6, w - 12, h - 12, '#18181B');
+  let n = 0;
+  const bulb = (bx: number, by: number) => { const lit = !done && (n++ + Math.floor(f / 3)) % 3 === 0; box(c, bx - 1, by - 1, 4, 4, '#000'); box(c, bx, by, 2, 2, lit ? '#FEF3C7' : done ? '#44403C' : '#B45309'); };
+  for (let x = x0 + 3; x < x0 + w - 3; x += 9) bulb(x, top + 2);
+  for (let y = top + 11; y < top + h - 3; y += 9) bulb(x0 + w - 4, y);
+  for (let x = x0 + w - 6; x > x0 + 3; x -= 9) bulb(x, top + h - 4);
+  for (let y = top + h - 13; y > top + 3; y -= 9) bulb(x0 + 2, y);
+  const look = (col: string): Look => ({ sx: 3, sy: 4, gap: 1, fill: '#000', bulbs: { lit: !done, col: done ? '#57534E' : col, dim: '#44403C' } });
+  words(c, 'CUTSCENE', mid, top + 42, look(on ? '#FDE047' : '#F87171'));
+  words(c, 'TRIGGER ZONE', mid, top + 80, look(on ? '#F87171' : '#FDE047'));
+};
+
 export const drawHavocBack = (c: Ctx, state: GameState) => {
   const hv = hvOf(state), f = state.frame, done = spent(state);
   // The ride they came out of: its wall, the hole, the far wall lying flat on the street
@@ -379,6 +486,8 @@ export const drawHavocBack = (c: Ctx, state: GameState) => {
   if (done) for (let x = Math.max(X(8600), state.camera.x - 60); x < Math.min(X(DOWNHILL.b + 600), state.camera.x + 860); x += 46) {
     const g = groundAtSign(R(x)); c.fillStyle = '#E2E8F0'; c.beginPath(); c.ellipse(x, Y(g) + 2, 32, 9 + ((x / 46) % 3) * 3, 0, Math.PI, TAU); c.fill();
   }
+  // The CUTSCENE TRIGGER ZONE: what's painted on the street (under the tent's legs, the arrows run up to it)
+  zoneFloor(c, state, hv, done);
   // The first aid station (its tent's roof: under it out of the hail; on it, standable)
   if (inView(state, X(REFILL - 100), X(REFILL + 100))) {
     const t = Y(118);
@@ -387,8 +496,10 @@ export const drawHavocBack = (c: Ctx, state: GameState) => {
     box(c, X(REFILL - 70), t + 18, 6, 100, '#A1A1AA'); box(c, X(REFILL + 64), t + 18, 6, 100, '#A1A1AA');
     words(c, 'FIRST AID', X(REFILL), t - 10, enamel(10, '#DC2626', '#000'));
   }
-  // The way on (revisits: to the stunt stage) at the end
-  if (inView(state, X1 - 200, X1)) standSign(c, X1 - 120, GY, ['STUNTMAN STEVE\'S', 'STUPENDOUS STUNTERY >'], '#FACC15', '#18181B');
+  // The zone's signs: YOU ARE NOW ENTERING A, and the gantry over it
+  zoneSigns(c, state, hv, done);
+  // The way on (revisits: to the stunt stage) at the end, past the zone (never reached before the fling: he's held)
+  if (done && inView(state, X1 - 200, X1)) standSign(c, X1 - 100, GY, ['STUNTMAN STEVE\'S', 'STUPENDOUS STUNTERY >'], '#FACC15', '#18181B');
   // The wind's stretches: a windsock on a pole at their start (the tell's in it)
   for (const [a] of WIND) if (inView(state, X(a), X(a))) {
     const wt = f % 320, k = done ? 0.1 : wt >= 210 ? 1 : wt >= 160 ? 0.6 : 0.25;
@@ -586,8 +697,10 @@ export const drawHavocFront = (c: Ctx, state: GameState) => {
     }
     c.save(); c.translate(o.x, o.y - (o.landed ? 20 : 0)); if (!o.landed) c.rotate(o.rot); junk(c, o.kind, o.ch); c.restore();
   }
-  // The tornado; what it's torn loose; the snow slides; the avalanche over everything
+  // The tornado (and him dying in it: skinned, in front of it so he reads); what it's torn loose; the snow slides; the
+  // avalanche over everything
   tornado(c, state, hv);
+  drawSkinned(c, state);
   debris(c, state, hv);
   slides(c, state, hv);
   avalanches(c, state, hv);
@@ -621,5 +734,12 @@ export const havocLamps = (state: GameState): Light[] => {
   if (spent(state)) return [];
   const cam = state.camera.x, out: Light[] = [];
   for (const l of LAVA) { const x = X((l.a + l.b) / 2); if (Math.abs(x - cam - 400) < 1200) out.push({ x, y: Y(Math.min(l.hl, l.hr)) + 20, r: Math.max(160, (l.b - l.a) * 0.9), a: 0.9, color: '#F97316' }); }
+  // (the CUTSCENE TRIGGER ZONE's spotlights, pulsing on its box; its sign lit up)
+  const zx = X((ZONE.a + ZONE.b) / 2);
+  if (Math.abs(zx - cam - 400) < 1200) {
+    const k = 0.5 + 0.5 * Math.sin(state.frame * 0.16);
+    out.push({ x: zx, y: GY - 40, r: 210, a: 0.6 + 0.35 * k, color: '#FDE68A' });
+    out.push({ x: zx, y: GY - 360, r: 170, a: 0.55, color: '#FDE047' });
+  }
   return out;
 };

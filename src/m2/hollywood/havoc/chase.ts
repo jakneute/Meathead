@@ -8,12 +8,14 @@
 // along (a big hit, and another if he's still in it: not dead, about half his health). The bunkers are the hill's only.
 //
 // THE TORNADO (past the foot of the hill): it comes down out of the clouds behind him and comes after him to the end.
-// Touch it and he's dead (noteTornadoDeath: the fling's fourth-wall line). A little slower than him, never far off (it
+// Touch it and he's dead, skinned by the wind (skinned.ts; it goes on without stopping: tornadoRoams), noted
+// (noteTornadoDeath: the fling's fourth-wall line). A little slower than him, never far off (it
 // closes in to just off the left of the screen); everything slows him (the puddles, the slides, the gusts, a fight).
 // It pulls him (and anybody) in; anybody it gets is sucked up; it blows away everything it comes to (the facades, the
 // standees, the PA's poles, the guests at the back: torn loose, round it and up, thrown out) and now and then throws
 // what it's picked up ahead of him, its mark on the ground. Low SNOW SLIDES roll along the street after him (jump
-// them). THE END: past the first aid station it surges (no outrunning it now) and when it gets him it's the fling.
+// them). THE END: past the first aid station, into the CUTSCENE TRIGGER ZONE, it surges (no outrunning it now; he's
+// held in the zone's box) and when it gets him, in there, it's the fling.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -22,7 +24,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { setHazardZones, hazardVictims, hazardKill, hazardHit, boxHits, type Zone } from '../../hazardHit';
 import {
-  X, Y, R, GY, groundH, COVERS, ROOF, SURGE_AT, REFILL, TORNADO_FORM, BUILDINGS, DOWNHILL, DECOR, STEVES, HORNS, FALLS,
+  X, Y, R, GY, groundH, COVERS, ROOF, SURGE_AT, ZONE, REFILL, TORNADO_FORM, BUILDINGS, DOWNHILL, DECOR, STEVES, HORNS, FALLS,
   AV_H, AV_LEN, AV_V, AV_REACH, AV_TELL, AV_TELL_IN, SLIDE_H, SLIDE_LEN, SLIDE_V, SLIDE_GAP,
 } from './layout';
 import { hvOf, noteTornadoDeath, TORN_MEMO, FALL_MEMO, type Hv } from './state';
@@ -176,8 +178,14 @@ export const updateChase = (ctx: FrameContext): ChaseEvents => {
       if (t.surge) v = 14;
       t.v = v; t.x += v;
     }
-    // (past the first aid station: it surges)
+    // (into the CUTSCENE TRIGGER ZONE: it surges)
     if (!t.surge && R(cx) > SURGE_AT && alive) { t.surge = true; t.hold = 0; ev.surge = true; playSound('roar', 1, -20); }
+    // (and he's held in the zone's box till it has him: it gets him inside the markings, never past them)
+    if (t.surge && alive && !p.carried) {
+      const lo = X(ZONE.a) + 12, hi = X(ZONE.b) - 16;
+      if (cx > hi) { p.pos.x = hi - p.width / 2; if (p.vel.x > 0) p.vel.x = 0; }
+      if (cx < lo) { p.pos.x = lo - p.width / 2; if (p.vel.x < 0) p.vel.x = 0; }
+    }
     const bh = tornadoBase(t.x), baseY = Y(bh), up = baseY - feet;
     // (its roar, louder the nearer)
     if (f % 36 === 0) playSound('whirl', Math.max(0.15, 1 - Math.abs(gap) / 1200), -12);
@@ -241,16 +249,7 @@ export const updateChase = (ctx: FrameContext): ChaseEvents => {
   });
 
   // ---- What it's torn loose: round it and up, then thrown out
-  hv.debris = hv.debris.filter(d => {
-    d.t++;
-    if (d.t < d.orbit) {
-      const base = Y(tornadoBase(t.x)), y = d.y - (d.guest ? 7 : 5);
-      d.ang += 0.2; d.r += (funnelHalf(base - y) * 0.85 - d.r) * 0.08;
-      d.x = t.x + Math.sin(d.ang) * d.r; d.y = y; d.rot += 0.25;
-      if (d.t === Math.floor(d.orbit) - 1) { d.vx = (Math.random() < 0.6 ? 1 : -1) * (5 + Math.random() * 8); d.vy = -3 - Math.random() * 4; }
-    } else { d.vy += 0.3; d.x += d.vx; d.y += d.vy; d.rot += 0.2; }
-    return d.t < d.orbit + 110 && d.y < state.camera.y + 760;
-  });
+  spinDebris(state, hv);
 
   // ---- What it threw
   hv.thrown = hv.thrown.filter(o => {
@@ -271,6 +270,33 @@ export const updateChase = (ctx: FrameContext): ChaseEvents => {
   for (const o of hv.thrown) if (o.landed === 0) zones.push({ x0: o.tx - 60, x1: o.tx + 60, y0: o.ty - 100, y1: o.ty + 4, ground: true });
   setHazardZones(state, 'havoc-chase', zones);
   return ev;
+};
+
+/** What it's torn loose: round it and up, then thrown out. */
+const spinDebris = (state: GameState, hv: Hv) => {
+  const t = hv.tornado;
+  hv.debris = hv.debris.filter(d => {
+    d.t++;
+    if (d.t < d.orbit) {
+      const base = Y(tornadoBase(t.x)), y = d.y - (d.guest ? 7 : 5);
+      d.ang += 0.2; d.r += (funnelHalf(base - y) * 0.85 - d.r) * 0.08;
+      d.x = t.x + Math.sin(d.ang) * d.r; d.y = y; d.rot += 0.25;
+      if (d.t === Math.floor(d.orbit) - 1) { d.vx = (Math.random() < 0.6 ? 1 : -1) * (5 + Math.random() * 8); d.vy = -3 - Math.random() * 4; }
+    } else { d.vy += 0.3; d.x += d.vx; d.y += d.vy; d.rot += 0.2; }
+    return d.t < d.orbit + 110 && d.y < state.camera.y + 760;
+  });
+};
+
+/** While he's dying to it (skinned: player/tornadoDeath.ts), it doesn't stop for him: on down its war path, blowing
+ *  away what it comes to, its junk going round. */
+export const tornadoRoams = (state: GameState) => {
+  const hv = hvOf(state), t = hv.tornado;
+  if (!t.on || spent(state)) return;
+  t.formT++;
+  t.x = Math.min(X(22100), t.x + Math.max(3.6, Math.min(t.v, 6)));
+  for (const tr of TEARS) if (t.x + 140 > X(tr.x0) && t.x - 400 < X(tr.x1) && state.stageMemo[TORN_MEMO(tr.key)] !== '1') tear(state, hv, tr, false);
+  spinDebris(state, hv);
+  if (state.frame % 36 === 0) playSound('whirl', 0.7, -12);
 };
 
 const JUNK: ['cow' | 'letter' | 'potty' | 'standee' | 'cart', string][] = [['letter', 'H'], ['cow', ''], ['letter', 'A'], ['potty', ''], ['letter', 'P'], ['standee', ''], ['letter', 'Y'], ['cart', ''], ['letter', 'W'], ['letter', 'D']];

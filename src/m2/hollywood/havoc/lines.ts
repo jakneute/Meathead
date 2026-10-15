@@ -152,6 +152,9 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
       'HE\'S IN THE TORNADO. ALL OF HIM. IN PIECES.',
       'TWISTED LIKE A PRETZEL. A DEAD ONE.',
       'DON\'T STAND NEXT TO THE TORNADO',
+      'SKINNED BY THE WIND',
+      'STRIPPED TO THE BONE BY A TORNADO',
+      'THE TORNADO KEPT THE MEAT. IT DIDN\'T WANT THE BONES.',
     ],
   },
   'm2:hwh_thrown': {

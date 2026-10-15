@@ -10161,6 +10161,11 @@
  },
  {
   "voice": "death",
+  "text": "SKINNED BY THE WIND",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "SKINNY ARMS, BIG RESULTS",
   "from": "content/deaths"
  },
@@ -10533,6 +10538,11 @@
   "voice": "death",
   "text": "STRIKE!",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STRIPPED TO THE BONE BY A TORNADO",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -11102,6 +11112,11 @@
  {
   "voice": "death",
   "text": "THE TORNADO GOT HIM. HE'S IN KANSAS NOW.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "THE TORNADO KEPT THE MEAT. IT DIDN'T WANT THE BONES.",
   "from": "HOLLYWOOD"
  },
  {
