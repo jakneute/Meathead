@@ -27,6 +27,7 @@ import {
 import { GY } from '../geometry';
 import { sunBehind } from '../../sunFlare';
 import { signAt, stencil, stone, routed, print } from '../letters';
+import { snap2, wave, jag, range, mist, kabooma, canopy } from '../farArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -103,41 +104,128 @@ const canopyStrip = (g: Ctx, w: number, h: number, seed: number, ramp: string[],
   checker(g, 0, r0 * 1.6, w, 2, ramp[1]);
 };
 
-/** The other lands' landmarks along the skyline (as from Adventure Land: off over the hub), hazed by the distance. */
-const skyline = (g: Ctx, w: number, h: number, haze: (c: string) => string) => {
+/**
+ * The other lands' landmarks along the skyline (as from Adventure Land: off over the hub), hazed by the distance, each
+ * in its own ramp (lit at the left, its shade dithered in at the right): the castle (curtain wall, crenels, round towers
+ * in bands under stepped blue cones, pennants, the gate), the needle tower (its saucer, a ring of windows, the beacon),
+ * the haunted castle on its crag (snuffer roofs, a sick green window), the mesa in its strata (the water tower by it),
+ * the Ferris wheel by the hub's gate; windows lit after dark (more the darker it gets), the wheel's bulbs on. The hub's
+ * treeline along their feet. Painted 1:1 (on the art's grid), y = h the ground.
+ */
+const skyline = (g: Ctx, w: number, h: number, haze: (c: string) => string, lamps: number) => {
   const y = h;
-  const f = (col: string, path: () => void) => { g.fillStyle = haze(col); g.beginPath(); path(); g.fill(); };
-  const r = (x: number, yy: number, ww: number, hh: number, col: string) => box(g, x, y + yy, ww, hh, haze(col));
-  // (the hub's own treeline under them)
-  for (let x = 0; x < w; x += 14) { const hh = 10 + r1(x, 3) * 10; r(x, -hh, 14, hh, '#2F5A3A'); }
-  // The castle (fantasy): towers with blue cones, pennants
-  let cx = 400;
-  r(cx - 50, -60, 100, 60, '#D6D3D1');
-  for (const [tx, th] of [[-56, 90], [-20, 124], [18, 108], [52, 80]] as const) {
-    r(cx + tx - 8, -th, 16, th, '#E7E5E4'); r(cx + tx - 8, -th, 5, th, '#F5F5F4');
-    f('#2563EB', () => { g.moveTo(cx + tx - 11, y - th); g.lineTo(cx + tx, y - th - 34); g.lineTo(cx + tx + 11, y - th); });
+  /** A ramp of a color, hazed: deep, shade, body, lit, highlight. */
+  const R = (col: string) => [haze(mix(col, '#0A0A14', 0.36)), haze(mix(col, '#0A0A14', 0.18)), haze(col), haze(mix(col, '#FFFFFF', 0.2)), haze(mix(col, '#FFFFFF', 0.4))];
+  const lampCol = haze(mix('#FFD27A', '#FFFFFF', 0.1)), lit = (n: number) => lamps > 0.1 && r1(n, 7) > 0.9 - 0.5 * lamps;
+  const quadP = (pts: [number, number][], col: string) => { g.fillStyle = col; g.beginPath(); pts.forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py))); g.closePath(); g.fill(); };
+  /** A round thing standing (a tower): in bands across, lit at the left. */
+  const round = (x: number, top: number, ww: number, P: string[]) => {
+    const order = [3, 3, 2, 2, 2, 1, 1, 0];
+    for (let k = 0; k < order.length; k++) box(g, x + Math.floor((k * ww) / order.length), top, Math.ceil(ww / order.length) + 1, y - top, P[order[k]]);
+    checker(g, x + Math.floor((2 * ww) / order.length) - 1, top, 2, y - top, P[2]);
+    checker(g, x + Math.floor((5 * ww) / order.length) - 1, top, 2, y - top, P[1]);
+  };
+  /** A cone (a tower's roof): stepped across in `P`'s steps, lit at the left. */
+  const cone = (cx: number, base: number, top: number, half: number, cols: string[]) => {
+    const n = cols.length;
+    for (let i = 0; i < n; i++) { const a = -half + (2 * half * i) / n, b = -half + (2 * half * (i + 1)) / n; quadP([[cx + a, base], [cx + a * 0.08, top], [cx + b * 0.08, top], [cx + b, base]], cols[i]); }
+  };
+  const win = (x: number, wy: number, ww: number, hh: number, n: number, dark: string) => box(g, x, wy, ww, hh, lit(n) ? lampCol : dark);
+
+  // The castle (fantasy)
+  {
+    const cx = 220, S = R('#D6D3D1'), T = R('#E7E5E4'), B = R('#2563EB'), F = R('#DC2626');
+    // (the curtain wall: lit at its left, its shade dithered in, crenels along its top, the gate's arch)
+    box(g, cx - 30, y - 30, 60, 30, S[2]); box(g, cx - 30, y - 30, 4, 30, S[3]); box(g, cx + 22, y - 30, 8, 30, S[1]); checker(g, cx + 20, y - 30, 2, 30, S[1]);
+    for (let k = 0; k < 60; k += 6) box(g, cx - 30 + k, y - 34, 4, 4, S[2]);
+    box(g, cx - 6, y - 16, 12, 16, S[0]); box(g, cx - 4, y - 18, 8, 2, S[0]);
+    for (let k = 0; k < 4; k++) win(cx - 24 + k * 14 + (k > 1 ? 8 : 0), y - 24, 2, 4, cx + k, S[0]);
+    // (the towers: round, in bands; stepped blue cones; pennants)
+    for (const [tx, th, tw] of [[-34, 46, 10], [-14, 66, 12], [6, 58, 12], [26, 42, 10]] as const) {
+      const x = cx + tx;
+      round(x, y - th, tw, T);
+      box(g, x - 1, y - th - 2, tw + 2, 2, T[1]);
+      cone(x + tw / 2, y - th - 2, y - th - 22, tw / 2 + 3, [B[4], B[3], B[2], B[1], B[0]]);
+      box(g, x + tw / 2 - 1, y - th - 30, 1, 8, T[0]); box(g, x + tw / 2, y - th - 30, 5, 3, F[2]); box(g, x + tw / 2, y - th - 28, 3, 1, F[1]);
+      for (let wy = y - th + 8; wy < y - 34; wy += 12) win(x + tw / 2 - 1, wy, 2, 4, x * 3 + wy, T[0]);
+    }
   }
-  // The needle tower (space): its saucer
-  cx = 1150;
-  r(cx - 4, -150, 8, 150, '#CBD5E1'); r(cx - 4, -150, 3, 150, '#F1F5F9');
-  f('#E2E8F0', () => g.ellipse(cx, y - 146, 30, 7, 0, 0, Math.PI * 2)); f('#94A3B8', () => g.ellipse(cx, y - 143, 30, 4, 0, 0, Math.PI));
-  f('#F87171', () => g.ellipse(cx, y - 152, 11, 6, 0, Math.PI, 0));
+  // The needle tower (space)
+  {
+    const cx = 632, S = R('#CBD5E1'), D = R('#F87171');
+    // (its legs flaring at the foot, the shaft in bands)
+    quadP([[cx - 12, y], [cx - 3, y - 30], [cx + 3, y - 30], [cx + 12, y]], S[1]); quadP([[cx - 12, y], [cx - 3, y - 30], [cx - 1, y - 30], [cx - 8, y]], S[3]);
+    box(g, cx - 3, y - 84, 2, 84, S[3]); box(g, cx - 1, y - 84, 2, 84, S[2]); box(g, cx + 1, y - 84, 2, 84, S[1]);
+    for (let k = y - 80; k < y - 30; k += 10) box(g, cx - 3, k, 6, 1, S[0]);
+    // (the saucer: its top lit, its underside in shade, a ring of windows round its rim)
+    const sy = y - 84;
+    g.fillStyle = S[1]; g.beginPath(); g.ellipse(cx, sy + 2, 17, 4, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = S[3]; g.beginPath(); g.ellipse(cx, sy, 17, 3, 0, Math.PI, 0); g.fill();
+    g.fillStyle = S[4]; g.beginPath(); g.ellipse(cx - 4, sy - 1, 8, 1.5, 0, Math.PI, 0); g.fill();
+    box(g, cx - 16, sy + 1, 32, 1, S[0]);
+    for (let k = -14; k <= 12; k += 4) box(g, cx + k, sy + 2, 2, 2, lamps > 0.1 ? lampCol : S[0]);
+    // (the dome on top, the beacon)
+    g.fillStyle = D[2]; g.beginPath(); g.ellipse(cx, sy - 2, 6, 4, 0, Math.PI, 0); g.fill();
+    g.fillStyle = D[3]; g.beginPath(); g.ellipse(cx - 2, sy - 3, 3, 2, 0, Math.PI, 0); g.fill();
+    box(g, cx, sy - 12, 1, 6, S[0]); box(g, cx - 1, sy - 14, 3, 2, lamps > 0.1 ? '#FF6A5A' : D[1]);
+  }
   // The haunted castle (spooky), on its crag
-  cx = 1850;
-  f('#3B3049', () => { g.moveTo(cx - 70, y); g.lineTo(cx - 48, y - 40); g.lineTo(cx + 52, y - 46); g.lineTo(cx + 70, y); });
-  r(cx - 38, -100, 76, 60, '#4C3D5E');
-  for (const [sx, th] of [[-40, 50], [-10, 74], [24, 56]] as const) { r(cx + sx, -100 - th * 0.6, 16, th * 0.6, '#4C3D5E'); f('#2E2440', () => { g.moveTo(cx + sx - 2, y - 100 - th * 0.6); g.lineTo(cx + sx + 8, y - 100 - th); g.lineTo(cx + sx + 18, y - 100 - th * 0.6); }); }
-  r(cx - 4, -84, 5, 7, '#BEF264');
-  // The mesa (frontier), its water tower
-  cx = 2400;
-  f('#C2410C', () => { g.moveTo(cx - 90, y); g.lineTo(cx - 70, y - 84); g.lineTo(cx + 50, y - 94); g.lineTo(cx + 84, y); });
-  f('#EA580C', () => { g.moveTo(cx - 70, y - 84); g.lineTo(cx + 50, y - 94); g.lineTo(cx + 51, y - 88); g.lineTo(cx - 69, y - 78); });
-  r(cx + 60, -60, 3, 60, '#78350F'); r(cx + 74, -60, 3, 60, '#78350F'); r(cx + 56, -84, 26, 24, '#92400E');
-  // (the Ferris wheel by the hub's gate)
-  cx = 2780;
-  g.strokeStyle = haze('#E5E7EB'); g.lineWidth = 2; g.beginPath(); g.arc(cx, y - 70, 50, 0, Math.PI * 2); g.stroke();
-  for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; g.beginPath(); g.moveTo(cx, y - 70); g.lineTo(cx + Math.cos(a) * 50, y - 70 + Math.sin(a) * 50); g.stroke(); r(cx + Math.cos(a) * 50 - 3, -70 + Math.sin(a) * 50 - 2, 6, 6, ['#EF4444', '#FACC15', '#3B82F6'][k % 3]); }
-  f('#9CA3AF', () => { g.moveTo(cx - 30, y); g.lineTo(cx, y - 70); g.lineTo(cx + 30, y); });
+  {
+    const cx = 1017, C = R('#3B3049'), K = R('#4C3D5E'), Rf = R('#2E2440');
+    // (the crag: its left face lit, its right in shade, a seam or two down it)
+    quadP([[cx - 40, y], [cx - 26, y - 22], [cx + 28, y - 26], [cx + 40, y]], C[2]);
+    quadP([[cx - 40, y], [cx - 26, y - 22], [cx - 14, y - 23], [cx - 26, y]], C[3]);
+    quadP([[cx + 14, y], [cx + 20, y - 25], [cx + 28, y - 26], [cx + 40, y]], C[1]);
+    for (const sx of [-6, 6]) for (let k = 0; k < 18; k += 2) box(g, cx + sx + Math.round(Math.sin(k) * 1), y - 20 + k, 1, 2, C[0]);
+    // (the keep and its towers, snuffer roofs; one sick green window)
+    box(g, cx - 20, y - 56, 40, 34, K[2]); box(g, cx - 20, y - 56, 3, 34, K[3]); box(g, cx + 14, y - 56, 6, 34, K[1]); checker(g, cx + 12, y - 56, 2, 34, K[1]);
+    for (let k = 0; k < 40; k += 6) box(g, cx - 20 + k, y - 60, 4, 4, K[2]);
+    for (const [sx, th] of [[-22, 28], [-6, 42], [12, 32]] as const) {
+      round(cx + sx, y - 56 - th + 22, 9, K);
+      cone(cx + sx + 4.5, y - 56 - th + 22, y - 56 - th + 2, 7, [Rf[3], Rf[2], Rf[1], Rf[0]]);
+    }
+    box(g, cx - 3, y - 46, 3, 4, haze('#BEF264')); box(g, cx - 4, y - 47, 5, 1, mix(haze('#BEF264'), K[2], 0.5));
+    for (let k = 0; k < 3; k++) win(cx - 14 + k * 12, y - 36, 2, 4, cx * 2 + k, K[0]);
+  }
+  // The mesa (frontier), in its strata; the water tower by it
+  {
+    const cx = 1320, M = R('#C2410C'), N = R('#EA580C');
+    quadP([[cx - 48, y], [cx - 38, y - 46], [cx + 28, y - 52], [cx + 46, y]], M[2]);
+    g.save(); g.beginPath(); g.moveTo(cx - 48, y); g.lineTo(cx - 38, y - 46); g.lineTo(cx + 28, y - 52); g.lineTo(cx + 46, y); g.closePath(); g.clip();
+    // (the strata: bands across, dithered between)
+    for (let k = 0; k < 5; k++) { const by = y - 44 + k * 10, col = k % 2 ? N[1] : M[1]; box(g, cx - 50, by, 100, 4, col); checker(g, cx - 50, by + 4, 100, 2, col); }
+    // (its left face lit, the right in shade)
+    quadP([[cx - 48, y], [cx - 38, y - 46], [cx - 30, y - 47], [cx - 40, y]], N[3]);
+    quadP([[cx + 20, y], [cx + 22, y - 52], [cx + 28, y - 52], [cx + 46, y]], M[0]);
+    g.restore();
+    // (the water tower: legs, the tank lit at the left)
+    const T = R('#92400E');
+    for (const lx of [32, 40]) box(g, cx + lx, y - 32, 2, 32, T[1]);
+    box(g, cx + 29, y - 46, 15, 14, T[2]); box(g, cx + 29, y - 46, 3, 14, T[3]); box(g, cx + 40, y - 46, 4, 14, T[1]);
+    quadP([[cx + 28, y - 46], [cx + 36, y - 51], [cx + 45, y - 46]], T[1]);
+  }
+  // The Ferris wheel by the hub's gate: its rim, the spokes, gondolas, its A-frame; bulbs round the rim after dark
+  {
+    const cx = 1529, cy = y - 40, rr = 28, S = R('#E5E7EB'), Fr = R('#9CA3AF');
+    quadP([[cx - 17, y], [cx - 1, cy], [cx + 1, cy], [cx - 13, y]], Fr[3]); quadP([[cx + 13, y], [cx - 1, cy], [cx + 1, cy], [cx + 17, y]], Fr[1]);
+    g.strokeStyle = S[1]; g.lineWidth = 1;
+    for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); g.stroke(); }
+    g.strokeStyle = S[2]; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = S[3]; g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, rr - 1, Math.PI * 0.9, Math.PI * 1.6); g.stroke();
+    g.strokeStyle = S[1]; g.beginPath(); g.arc(cx, cy, rr * 0.55, 0, Math.PI * 2); g.stroke();
+    box(g, cx - 2, cy - 2, 4, 4, S[0]);
+    const GC = ['#EF4444', '#FACC15', '#3B82F6'].map(R);
+    for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, gx = Math.round(cx + Math.cos(a) * rr), gy = Math.round(cy + Math.sin(a) * rr); const P = GC[k % 3]; box(g, gx - 2, gy + 1, 5, 4, P[2]); box(g, gx - 2, gy + 1, 2, 4, P[3]); box(g, gx, gy - 1, 1, 2, S[0]); }
+    if (lamps > 0.1) for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2 + 0.13; box(g, Math.round(cx + Math.cos(a) * rr) - 1, Math.round(cy + Math.sin(a) * rr) - 1, 2, 2, k % 2 ? lampCol : haze('#FF9AD0')); }
+  }
+  // (the hub's own treeline along their feet: crowns in steps, lit up the left)
+  const TR = R('#2F5A3A');
+  box(g, 0, y - 6, w, 6, TR[1]);
+  for (let x = 0; x < w; x += 8) {
+    const hh = 6 + r1(x, 3) * 8;
+    pixelBlob(g, x + 4, y - hh * 0.5, 7, hh * 0.6, TR[1]);
+    pixelBlob(g, x + 2, y - hh * 0.6, 4, hh * 0.35, TR[3]);
+  }
 };
 
 /** A cloud bank (stepped: a shadowed base, the body, a lit crown). */
@@ -157,14 +245,24 @@ export const drawRoofBackdrop = (c: Ctx, state: GameState) => {
   strip(c, `rfCloud:${tod.key}`, 40 + up * 0.03, 1400, 140, cam.x * 0.03 - f * 0.08, g => {
     cloud(g, 160, 50, 1.6, cc); cloud(g, 520, 90, 1.1, cc); cloud(g, 860, 40, 1.9, cc); cloud(g, 1180, 100, 1.2, cc);
   });
-  // The far hills, the other lands on the skyline
+  // The far hills (in their mist: lit flanks, gullies, the jungle up them), the other lands on the skyline
   strip(c, `rfHill:${tod.key}`, hz - 60, 1600, 100, cam.x * 0.04, g => {
-    const col = mix(farTint('#6F9AA8', 1, tod), sky(0.85), 0.45);
-    g.fillStyle = col; g.beginPath(); g.moveTo(0, 100);
-    for (let x = 0; x <= 1600; x += 8) g.lineTo(x, 40 + 22 * Math.sin((x / 1600) * Math.PI * 6) + 12 * Math.sin((x / 1600) * Math.PI * 14 + 1));
-    g.lineTo(1600, 100); g.fill();
+    const hzK = 0.45, base = '#6F9AA8', T = (col: string) => mix(farTint(col, 1, tod), sky(0.85), hzK);
+    const yAt = (x: number) => snap2(40 + 22 * Math.sin((x / 1600) * Math.PI * 6) + 12 * Math.sin((x / 1600) * Math.PI * 14 + 1) + jag(x, 1600, 8, 5) * 4);
+    range(g, 1600, yAt, 100, { body: T(base), lit: T(mix(base, '#E0F0F4', 0.24)), hi: T(mix(base, '#FFFFFF', 0.4)), shade: T(mix(base, '#0A1418', 0.16)), deep: T(mix(base, '#0A1418', 0.28)) }, 9,
+      { gullies: 30, d: 12, forest: [T('#3E6E52'), T('#5A8A60')], forestY: x => yAt(x) + 22 + wave(x, 1600, 3.3, 3) * 6 });
+    mist(g, 1600, 30, 70, sky(0.9), 0.0, 0.4, 5);
   });
-  strip(c, `rfSky:${tod.key}`, hz - 100, 1600, 104, cam.x * 0.06, g => { g.save(); g.translate(0, 100 * (1 - 0.55)); g.scale(0.55, 0.55); skyline(g, 1600 / 0.55, 100, col => mix(farTint(col, 1, tod), sky(0.9), 0.5)); g.restore(); });
+  strip(c, `rfSky:${tod.key}`, hz - 100, 1600, 104, cam.x * 0.06, g => skyline(g, 1600, 100, col => mix(farTint(col, 1, tod), sky(0.9), 0.5), tod.lamps));
+  // MOUNT KABOOMA, over in the dino park: nearer than the other lands, steaming
+  strip(c, `rfKab:${tod.key}`, hz - 236, 2400, 276, cam.x * 0.08, g => {
+    const KC = '#6A5A4E', T = (col: string, k = 0.32) => mix(farTint(col, 1, tod), sky(0.9), k);
+    const st = [cloudTint('#B8C0CC', tod), cloudTint('#DCE2EA', tod), cloudTint('#F6F8FC', tod)].map(cl => mix(cl, sky(0.9), 0.3));
+    kabooma(g, 1500, 276, 230, 140, { body: T(KC), lit: T(mix(KC, '#E8D4B4', 0.25)), hi: T(mix(KC, '#FFF0D8', 0.4)), shade: T(mix(KC, '#140C08', 0.2)), deep: T(mix(KC, '#140C08', 0.36)), lava: T('#E0581A', 0.2), lavaHi: '#FFB040', steam: st }, tod.lamps);
+    // (the jungle round its foot)
+    const fr = ['#1F4A2E', '#2D6438', '#3E7A40', '#5A9446'].map(cl => T(cl, 0.36));
+    canopy(g, 2400, x => 256 + wave(x, 2400, 2.7, 4) * 6, 276, fr, 10, 23);
+  });
   // (the haze lying along the horizon)
   const hzc = sky(1);
   box(c, 0, hz, W, 6, mix(hzc, '#FFFFFF', 0.1)); checker(c, 0, hz - 2, W, 2, hzc);
@@ -178,7 +276,7 @@ export const drawRoofBackdrop = (c: Ctx, state: GameState) => {
     for (let car = 0; car < 4; car++) {
       const cx2 = tx + car * 50;
       box(c, cx2, my - 12, 46, 12, farTint(car ? '#E5E7EB' : '#DC2626', 0.8, tod)); box(c, cx2, my - 12, 46, 2, farTint('#FFFFFF', 0.8, tod));
-      for (let wdw = 0; wdw < 4; wdw++) box(c, cx2 + 5 + wdw * 10, my - 9, 6, 4, farTint('#60A5FA', 0.8, tod));
+      for (let wdw = 0; wdw < 4; wdw++) box(c, cx2 + 5 + wdw * 10, my - 9, 6, 4, tod.lamps > 0.15 ? mix(farTint('#60A5FA', 0.8, tod), '#FFE0A0', Math.min(1, tod.lamps * 1.2)) : farTint('#60A5FA', 0.8, tod));
     }
   }
   // The jungle: two layers of canopy, the far one hazed

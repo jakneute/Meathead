@@ -23,7 +23,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { x0, TEMPLE_X } from './arena';
 import { timeOfDay, skyRamp, farTint, sunAt, drawSun, drawStars, drawMoon, cloudTint } from '../../timeOfDay';
-import { pixelBlob } from '../../intro/art/kit';
+import { pixelBlob, mix, checker } from '../../intro/art/kit';
 import { STONE as SR, MOSS } from '../roof/stone';
 
 type Ctx = CanvasRenderingContext2D;
@@ -350,7 +350,7 @@ const TREES: { x: number; z: number }[] = (() => {
 })();
 
 /** A bumpy band round the loop at radius r (the jungle's canopy, the hills): its far side, as one shape. */
-const band = (c: Ctx, v: View, r: number, height: (a: number) => number, col: string, nearest: number, crest?: string) => {
+const band = (c: Ctx, v: View, r: number, height: (a: number) => number, col: string, nearest: number, crest?: string, bands?: [number, string][]) => {
   const tops: { x: number; y: number }[] = [], bases: { x: number; y: number }[] = [];
   for (let k = 0; k < 720; k++) {
     const a = (k / 720) * Math.PI * 2, p = polar(r, a);
@@ -360,13 +360,18 @@ const band = (c: Ctx, v: View, r: number, height: (a: number) => number, col: st
   const order = tops.map((_, i) => i).sort((i, j) => tops[i].x - tops[j].x);
   if (order.length < 2) return;
   // (lit along its crest: the shape in a lighter step, then itself a little lower over it)
-  const layer = (dy: number, cl: string) => {
-    c.fillStyle = cl; c.beginPath();
+  const outline = (dy: number) => {
+    c.beginPath();
     order.forEach((i, n) => (n ? c.lineTo(tops[i].x, tops[i].y + dy) : c.moveTo(tops[i].x, tops[i].y + dy)));
     for (let n = order.length - 1; n >= 0; n--) c.lineTo(bases[order[n]].x, bases[order[n]].y + 3);
-    c.closePath(); c.fill();
+    c.closePath();
   };
-  if (crest) { layer(0, crest); layer(4, col); } else layer(0, col);
+  const layer = (dy: number, cl: string) => { c.fillStyle = cl; outline(dy); c.fill(); };
+  /** A step down into `cl` at dy under the crest: a row of dither, then the step solid. */
+  const step = (dy: number, cl: string) => { c.save(); outline(dy - 2); c.clip(); checker(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, cl, 0); c.restore(); layer(dy, cl); };
+  if (crest) { layer(0, crest); step(4, col); } else layer(0, col);
+  // (darker going down, in steps following the crest: the far side of the hills in their own shade)
+  if (bands) for (const [dy, cl] of bands) step(dy, cl);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -449,8 +454,16 @@ export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean, 
     if (cy > top - 40) continue;
     for (const [dx, dy, rw, rh, k] of [[0, 6, 40, 10, 0], [-22, 0, 22, 12, 1], [12, -4, 26, 16, 1], [30, 4, 18, 9, 1], [4, -8, 16, 9, 2]] as const) pixelBlob(c, cx + dx * 1.4, cy + dy * 1.4, rw * 1.4, rh * 1.4, cc[k]);
   }
-  band(c, v, 4200, a => 700 + 260 * Math.sin(3 * a) + 140 * Math.sin(7 * a + 1) + 60 * Math.sin(17 * a + 2), farTint('#6E9C96', 1, tod), 600, farTint('#94BEB6', 1, tod));
-  band(c, v, 3000, a => 380 + 120 * Math.sin(5 * a + 2) + 70 * Math.sin(13 * a), farTint('#4A7A5E', 0.7, tod), 600, farTint('#6A9A6E', 0.7, tod));
+  // (farthest: the peaks, palest, jagged, in steps of shade down them; then the hills, then the nearer ridge, each
+  // darker and greener, banded darker going down)
+  const hzd = (col: string, k: number, far = 1) => mix(farTint(col, far, tod), SKY[SKY.length - 1], k);
+  const jagA = (a: number, n: number, seed: number) => { const x = Math.sin(Math.floor(a * n) * 91.7 + seed) * 43758.5; return x - Math.floor(x) - 0.5; };
+  band(c, v, 5600, a => 1250 + 420 * Math.sin(4 * a + 0.5) + 200 * Math.sin(9 * a + 2) + 90 * Math.sin(23 * a) + 70 * jagA(a, 160, 3), hzd('#7A9AAE', 0.45), 600, hzd('#B8D0DC', 0.45),
+    [[10, hzd('#6A889C', 0.45)], [26, hzd('#5E7C90', 0.5)]]);
+  band(c, v, 4200, a => 700 + 260 * Math.sin(3 * a) + 140 * Math.sin(7 * a + 1) + 60 * Math.sin(17 * a + 2) + 30 * jagA(a, 240, 7), hzd('#6E9C96', 0.15), 600, hzd('#94BEB6', 0.15),
+    [[12, hzd('#5E8C84', 0.15)], [28, hzd('#527E76', 0.18)], [50, hzd('#48706A', 0.22)]]);
+  band(c, v, 3000, a => 380 + 120 * Math.sin(5 * a + 2) + 70 * Math.sin(13 * a) + 26 * Math.abs(Math.sin(70 * a)), farTint('#4A7A5E', 0.7, tod), 600, farTint('#6A9A6E', 0.7, tod),
+    [[14, farTint('#3E6C50', 0.7, tod)], [32, farTint('#346046', 0.7, tod)]]);
   drawFloor(c, v);
   // The jungle's canopy round the loop (its far side)
   band(c, v, PR + 520, a => 330 + 60 * Math.sin(9 * a) + 40 * Math.sin(23 * a + 1), '#1B5E2E', DC - 150, '#2E7A3A');

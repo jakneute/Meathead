@@ -9,6 +9,7 @@ import { timeOfDay, farTint, skyRamp, skyAt, drawStars, drawMoon, sunAt, type Ti
 import { noteSun } from '../../../sunFlare';
 import { stamp, bandedGradient, hazeBands, steppedGlow, pixelBlob } from '../../../intro/art/kit';
 import { type Ctx, INK, box, mix, hash, poly, clump, fern, bigLeaf, bark, LEAF, BARK } from './paint';
+import { snap2, wave, jag, range, falls, mist, canopy, crown, banded, checker } from '../../farArt';
 
 const TW = 1024;
 
@@ -26,35 +27,82 @@ const lift = (state: GameState) => GROUND_Y - 500 - state.camera.y;
 // The layers' own colors, by day; the hour's tint over them (farTint), and haze the further back.
 const hazeOf = (col: string, k: number, tod: TimeOfDay) => mix(farTint(col, 1, tod), skyAt(0.85, tod), k);
 
-/** The far jungle: crowns rolling away in the haze, giants standing up out of them, the temple's top. */
+/** The far jungle: misty peaks at the back (a falls down one), the temple standing up out of the trees (a stepped
+ *  pyramid in its stone's ramp: courses, the stair up its front, the shrine and its roof comb, vines and moss down it),
+ *  giants over the canopy (umbrella crowns on bare trunks), and the canopy rolling away in two rows, the back one paler;
+ *  mist lying in it. Farther: paler, bluer, flatter. */
 const paintFar = (g: Ctx, tod: TimeOfDay) => {
-  const G = 560;
-  const body = hazeOf('#2C5A3A', 0.5, tod), lit = hazeOf('#4F8A4E', 0.45, tod), dk = hazeOf('#20462E', 0.52, tod);
-  // (the temple: a stepped pyramid, its shrine on top, vines down it)
+  const G = 560, H = 700;
+  const sky = skyAt(0.88, tod);
+  // The peaks at the back: palest, jagged, in the mist; a falls down one
+  {
+    const K = 0.62, base = '#4E7A86';
+    const L = { body: hazeOf(base, K, tod), lit: hazeOf(mix(base, '#C8E4E8', 0.28), K, tod), hi: hazeOf(mix(base, '#F0FAFA', 0.4), K, tod), shade: hazeOf(mix(base, '#0A1A20', 0.18), K, tod), deep: hazeOf(mix(base, '#0A1A20', 0.3), K, tod) };
+    const yAt = (x: number) => snap2(262 + wave(x, TW, 2.2) * 30 + jag(x, TW, 8, 31) * 6);
+    range(g, TW, yAt, H, L, 41, { gullies: 18, d: 14, forest: [hazeOf('#2E5A44', K, tod), hazeOf('#4A7A56', K, tod)], forestY: x => yAt(x) + 34 + wave(x, TW, 6.1, 2) * 8 });
+    const fx = 380, top = yAt(fx) + 8;
+    falls(g, fx, top, top + 58, 6, { rock: L.deep, water: hazeOf('#B8D8E0', K * 0.8, tod), lit: hazeOf('#F0FAFF', K * 0.7, tod), spray: hazeOf('#DCECF0', K * 0.7, tod) });
+    mist(g, TW, 250, 120, sky, 0.05, 0.6, 6);
+  }
+  // The temple: a stepped pyramid, its stair up the front, the shrine on top, vines and moss down it
   wrap(700, x => {
-    const st = hazeOf('#6E6A58', 0.5, tod), sl = hazeOf('#8E8872', 0.45, tod), sd = hazeOf('#4A4A3E', 0.52, tod);
-    for (let i = 0; i < 6; i++) { const w = 150 - i * 22, y = 300 - i * 18; box(g, x - w / 2, y, w, 18, st); box(g, x - w / 2, y, w, 3, sl); box(g, x + w / 2 - 10, y, 10, 18, sd); }
-    box(g, x - 16, 170, 32, 24, st); box(g, x - 16, 170, 32, 3, sl); box(g, x - 6, 178, 12, 16, sd);
-    box(g, x - 20, 166, 40, 5, sd);
-    for (let i = 0; i < 5; i++) box(g, x - 50 + i * 24, 240 + hash(i) * 30, 3, 40 + hash(i * 2) * 40, body);
+    const K = 0.46, S = ['#3E3A2E', '#57523F', '#6E6A54', '#8A8468', '#A8A080'].map(c => hazeOf(c, K, tod));
+    const moss = hazeOf('#4A6A34', K, tod), mossL = hazeOf('#6A8A44', K, tod);
+    const tiers = 6, th = 18;
+    for (let i = 0; i < tiers; i++) {
+      const w = 150 - i * 22, y = 300 - i * th, l = x - w / 2;
+      // (the tier's face: lit at its left end, its shade dithered in at the right; a dark line under the tread over it)
+      box(g, l, y, w, th, S[2]);
+      box(g, l, y, 6, th, S[3]); box(g, l, y, 2, th, S[4]); checker(g, l + 6, y, 2, th, S[3]);
+      box(g, l + w - 12, y, 12, th, S[1]); checker(g, l + w - 14, y, 2, th, S[1]);
+      box(g, l, y, w, 2, S[0]);
+      // (block courses, the joints staggered)
+      for (let cy = y + 7; cy < y + th; cy += 6) {
+        box(g, l + 2, cy, w - 4, 1, S[1]);
+        for (let jx = l + 6 + ((cy >> 1) % 2) * 6; jx < l + w - 6; jx += 12) box(g, jx, cy - 5, 1, 5, S[1]);
+      }
+      // (moss creeping along under the tread, dripping)
+      for (let mx = l + 4; mx < l + w - 4; mx += 6) if (hash(mx * 0.7 + i) > 0.45) { box(g, mx, y + 2, 4, 2, moss); if (hash(mx + i * 3) > 0.6) box(g, mx + 1, y + 4, 2, 2 + Math.round(hash(mx * 1.3) * 4), moss); }
+    }
+    // (the stair up the middle: its treads in shade, its edges lit; the walls either side of it)
+    const sw = 22, sTop = 300 - (tiers - 1) * th;
+    box(g, x - sw / 2 - 3, sTop, 3, 318 - sTop, S[3]); box(g, x + sw / 2, sTop, 3, 318 - sTop, S[1]);
+    for (let y = sTop; y < 318; y += 4) { box(g, x - sw / 2, y, sw, 2, S[2]); box(g, x - sw / 2, y + 2, sw, 2, S[1]); }
+    // (the shrine on top: its walls, the dark doorway, the roof comb over it pierced)
+    const sy = 170;
+    box(g, x - 18, sy, 36, 30, S[2]); box(g, x - 18, sy, 3, 30, S[4]); box(g, x + 12, sy, 6, 30, S[1]); checker(g, x + 10, sy, 2, 30, S[1]);
+    box(g, x - 7, sy + 10, 14, 20, S[0]); box(g, x - 5, sy + 8, 10, 2, S[0]);
+    box(g, x - 22, sy - 4, 44, 4, S[1]); box(g, x - 22, sy, 44, 1, S[0]);
+    box(g, x - 12, sy - 22, 24, 18, S[2]); box(g, x - 12, sy - 22, 2, 18, S[3]); box(g, x + 8, sy - 22, 4, 18, S[1]);
+    for (let k = 0; k < 3; k++) box(g, x - 8 + k * 6, sy - 18, 3, 6, S[0]);
+    box(g, x - 4, sy - 26, 8, 4, S[1]);
+    // (vines down it: green strands from the shrine and the tiers, leafy)
+    for (let i = 0; i < 7; i++) {
+      const vx = x - 60 + i * 20 + Math.round(hash(i * 2.7) * 6), dx = Math.abs(vx - x);
+      // (hung off the highest tier that's under it)
+      const vy = Math.max(210 + hash(i) * 30, 300 - Math.max(0, Math.floor((142 - 2 * dx) / 22)) * 18 + 4), len = 30 + hash(i * 1.9) * 50;
+      for (let y = vy; y < Math.min(318, vy + len); y += 2) { box(g, vx + Math.round(Math.sin(y * 0.15 + i) * 1.5), y, 2, 2, (y >> 1) % 3 ? moss : mossL); }
+    }
   });
-  // (emergent giants: thin trunks, umbrella crowns)
+  // The giants: bare trunks up over the canopy, lit down the left, forking; umbrella crowns in stepped lumps
+  const GR = ['#1E4430', '#2C5A3A', '#467A46', '#6A9A58'].map(c => hazeOf(c, 0.46, tod));
+  const tr = BARK.map(c => hazeOf(c, 0.5, tod));
   for (let i = 0; i < 4; i++) wrap(i * 256 + 90 + hash(i * 3.3) * 80, x => {
     const top = 180 + hash(i) * 50;
-    box(g, x - 3, top, 6, G - top, dk); box(g, x - 3, top, 2, G - top, body);
-    for (let k = -2; k <= 2; k++) pixelBlob(g, x + k * 22, top + Math.abs(k) * 4, 26, 13, k < 1 ? lit : body);
-    pixelBlob(g, x - 8, top - 6, 22, 9, mix(lit, '#FFFFFF', 0.08));
+    box(g, x - 4, top, 8, G - top, tr[3]); box(g, x - 4, top, 2, G - top, tr[5]); box(g, x + 2, top, 2, G - top, tr[2]); checker(g, x - 2, top, 2, G - top, tr[4]);
+    // (the fork into its crown)
+    for (let k = 0; k < 14; k += 2) { box(g, x - 4 - k, top - k * 0.6, 3, 2, tr[3]); box(g, x + 3 + k, top - k * 0.5, 3, 2, tr[2]); }
+    for (let k = -2; k <= 2; k++) crown(g, x + k * 20, top - 8 + Math.abs(k) * 5, 18 - Math.abs(k) * 2, GR);
+    crown(g, x - 6, top - 16, 16, GR);
   });
-  // (the rolling crowns: two rows, the back one paler)
-  for (const [row, y0, col, top] of [[0, 300, mix(body, skyAt(0.85, tod), 0.25), mix(lit, skyAt(0.85, tod), 0.25)], [1, 340, body, lit]] as [number, number, string, string][]) {
-    for (let i = 0; i < 22; i++) wrap(i * (TW / 22) + hash(i + row * 50) * 20, x => {
-      const y = y0 + hash(i * 1.7 + row) * 34, r = 30 + hash(i * 2.9 + row) * 18;
-      pixelBlob(g, x, y + r * 0.4, r * 1.1, r * 0.9, col);
-      pixelBlob(g, x - r * 0.2, y + r * 0.15, r * 0.7, r * 0.5, top);
-    });
-    box(g, 0, y0 + 40, TW, G + 140 - y0, col);
-  }
-  hazeBands(g, 0, 380, TW, 180, skyAt(0.9, tod), 0.0, 0.35, 5);
+  // The canopy rolling away: the back row paler and flatter, the front row nearer, bumpier
+  const back = ['#2A5038', '#386848', '#4E8256', '#6E9E6A'].map(c => hazeOf(c, 0.56, tod));
+  const front = ['#1E4430', '#2C5C38', '#427C44', '#64A058'].map(c => hazeOf(c, 0.42, tod));
+  canopy(g, TW, x => 300 + wave(x, TW, 1.1, 2) * 10, H, back, 16, 7);
+  mist(g, TW, 300, 70, sky, 0.1, 0.35, 4);
+  canopy(g, TW, x => 346 + wave(x, TW, 3.7, 2) * 14, H, front, 24, 19);
+  banded(g, TW, 410, 36, [mix(front[0], sky, 0.1), mix(front[0], sky, 0.22)], H);
+  mist(g, TW, 380, 180, sky, 0.0, 0.4, 5);
 };
 
 /** The middle distance: a misty row of trunks, their crowns up top, ferns at their feet. */

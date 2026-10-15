@@ -5,8 +5,8 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { pixelRidge, screenRidge } from '../../../m1/game/render/pixelArt';
-import { drawTodSky, farTint, timeOfDay } from '../../timeOfDay';
+import { drawTodSky, farTint, timeOfDay, skyTint, cloudTint, type TimeOfDay } from '../../timeOfDay';
+import { snap2, wave, jag, range, mist, kabooma, falls, canopy, palm, wrapAt, banded, pixelBlob } from '../farArt';
 import { type Ctx, INK, rampOf, box, checker, hazeBands, PIX, hash, mix, dark, lite, stamp, tilePattern, text } from '../../intro/art/kit';
 import { signAt, stencil as stencilLook } from '../letters';
 
@@ -194,67 +194,87 @@ export const box3d = (c: Ctx, eye: Eye, x: number, top: number, w: number, botto
 // ---------------------------------------------------------------------------------------------------------------
 // The jungle out past it all (screen space), in the hour's light
 
-const palmCache = new Map<string, HTMLCanvasElement>();
-/** A palm, painted once per hour (a silhouette in the hour's far color, its fronds stepped). */
-const palm = (variant: number, col: string, key: string) => {
-  const id = `${variant}|${key}`;
-  let cv = palmCache.get(id);
-  if (cv) return cv;
-  if (palmCache.size > 60) palmCache.clear();
-  cv = document.createElement('canvas'); cv.width = 120; cv.height = 170;
-  const g = cv.getContext('2d')!;
-  const r = rampOf(col), lean = (variant % 3 - 1) * 14, top = 30 + (variant % 2) * 12;
-  // (the trunk: segments, curving)
-  for (let y = 168; y > top; y -= 4) {
-    const t = (168 - y) / (168 - top), x = 60 + lean * t * t;
-    g.fillStyle = r[1]; g.fillRect(Math.round(x - 3), y, 6, 4);
-    g.fillStyle = r[2]; g.fillRect(Math.round(x - 3), y, 2, 3);
+// Each layer's a tile painted once for the hour (a stamp) and slid along at its own pace; farther: paler, bluer, flatter.
+// Tile y 0 is HZ_TOP over the horizon.
+const TW = 1024, HZ_TOP = 220;
+/** Far scenery at the hour: its own color under the hour's light, then into the haze by k. */
+const hazeOf = (col: string, k: number, tod: TimeOfDay) => mix(farTint(col, 1, tod), skyTint('#B4E0F0', 0.9, tod), k);
+/** The far ranges' lines (tile space): the high peaks at the back; the jungle mountains in front, low where KABOOMA
+ *  stands up behind them. */
+const KAB_X = 640, FALLS_X = 260;
+const backY = (x: number) => snap2(HZ_TOP - 150 + wave(x, TW, 1.3) * 40 + jag(x, TW, 8, 7) * 8);
+const frontY = (x: number) => snap2(HZ_TOP - 80 + wave(x, TW, 4.4) * 26 + jag(x, TW, 12, 13) * 4 + 50 * Math.exp(-(((x - KAB_X) / 110) ** 2)));
+
+/** The far ranges: the high peaks at the back (palest, a cloud caught on one), MOUNT KABOOMA steaming between, the
+ *  jungle mountains in front (forest up their lower slopes, a falls down one), the mist they stand in. */
+const paintRanges = (g: Ctx, tod: TimeOfDay) => {
+  const H = HZ_TOP + 80, hz = skyTint('#B4E0F0', 0.9, tod);
+  const L = (base: string, k: number) => ({ body: hazeOf(base, k, tod), lit: hazeOf(mix(base, '#D8ECF4', 0.26), k, tod), hi: hazeOf(mix(base, '#FFFFFF', 0.42), k, tod), shade: hazeOf(mix(base, '#0A1420', 0.18), k, tod), deep: hazeOf(mix(base, '#0A1420', 0.3), k, tod) });
+  // (the high peaks)
+  range(g, TW, backY, H, L('#5A7A9A', 0.5), 3, { gullies: 26, d: 16 });
+  mist(g, TW, HZ_TOP - 120, 200, hz, 0.02, 0.55, 6);
+  // (a lens of cloud caught on the highest)
+  let px = 0, best = 1e9;
+  for (let x = 40; x < TW - 40; x += 4) if (backY(x) < best) { best = backY(x); px = x; }
+  const cl = [cloudTint(mix('#C8D4E4', '#B4C8DC', 0.3), tod), cloudTint('#E8EEF6', tod), cloudTint('#FFFFFF', tod)];
+  pixelBlob(g, px + 4, best + 12, 52, 7, cl[0]); pixelBlob(g, px, best + 9, 44, 5, cl[1]); pixelBlob(g, px - 10, best + 7, 22, 3, cl[2]);
+  // (MOUNT KABOOMA, the dino park's volcano, off past the trees, steaming)
+  const KC = '#6A5A4E', kk = 0.38;
+  kabooma(g, KAB_X, HZ_TOP + 10, 190, 128, {
+    body: hazeOf(KC, kk, tod), lit: hazeOf(mix(KC, '#E8D4B4', 0.25), kk, tod), hi: hazeOf(mix(KC, '#FFF0D8', 0.4), kk, tod), shade: hazeOf(mix(KC, '#140C08', 0.2), kk, tod), deep: hazeOf(mix(KC, '#140C08', 0.36), kk, tod),
+    lava: hazeOf('#E0581A', 0.25, tod), lavaHi: '#FFB040', steam: [cloudTint('#B8C0CC', tod), cloudTint('#DCE2EA', tod), cloudTint('#F6F8FC', tod)].map(c => mix(c, hz, 0.3)),
+  }, tod.lamps);
+  // (the jungle mountains, nearer: greener, forest up their slopes; the falls)
+  const F = L('#3E6E5E', 0.32);
+  range(g, TW, frontY, H, F, 17, { gullies: 18, d: 18, forest: [hazeOf('#2A5A3A', 0.3, tod), hazeOf('#447A48', 0.3, tod)], forestY: x => frontY(x) + 26 + wave(x, TW, 8.3, 2) * 10 });
+  const top = frontY(FALLS_X) + 6;
+  falls(g, FALLS_X, top, HZ_TOP + 6, 6, { rock: F.deep, water: hazeOf('#B8DCE8', 0.3, tod), lit: hazeOf('#F0FAFF', 0.25, tod), spray: hazeOf('#DCEEF4', 0.25, tod) });
+  mist(g, TW, HZ_TOP - 70, 150, hz, 0.0, 0.5, 6);
+};
+
+/** A canopy ridge (tile space, its top `y0` down from the tile's top): crowns along it in the ridge's ramp, palms up
+ *  off it here and there (`palms` of them), hazed at the foot. */
+const paintRidge = (g: Ctx, tod: TimeOfDay, H: number, y0: number, amp: number, r: number, k: number, seed: number, palms: number) => {
+  const R = ['#163E26', '#24583A', '#3A7A44', '#5E9E56'].map(c => hazeOf(c, k, tod));
+  const yAt = (x: number) => y0 + wave(x, TW, seed, 2) * amp;
+  // (the palms first: their feet down in the crowns)
+  for (let i = 0; i < palms; i++) {
+    const x = snap2(((i + 0.3 + hash(seed + i) * 0.4) * TW) / palms), h = 70 + hash(seed + i * 2.3) * 50;
+    wrapAt(TW, x, xx => palm(g, xx, yAt(xx) + r, h, (hash(seed + i * 5.1) - 0.5) * 20, [hazeOf('#3A2C1E', k, tod), hazeOf('#6A5438', k, tod)], [R[0], R[1], R[3]], seed + i), 80);
   }
-  const cx = 60 + lean, cy = top;
-  // (the fronds: arcs of leaflets, the lit ones on top)
-  for (let k = 0; k < 7; k++) {
-    const a = -Math.PI + (k / 6) * Math.PI + (hash(variant + k) - 0.5) * 0.3, len = 34 + hash(k * 3 + variant) * 16;
-    for (let t = 0; t < 1; t += 0.06) {
-      const x = cx + Math.cos(a) * len * t, y = cy + Math.sin(a) * len * t * 0.5 + t * t * 26;
-      const lw = 3 + Math.sin(t * Math.PI) * 6;
-      g.fillStyle = r[1]; g.fillRect(Math.round(x - 1), Math.round(y), 2, Math.round(lw));
-      g.fillStyle = k % 2 ? r[2] : r[3]; g.fillRect(Math.round(x - 1), Math.round(y), 2, 2);
-    }
-  }
-  g.fillStyle = r[0]; g.fillRect(cx - 4, cy - 2, 8, 6);
-  palmCache.set(id, cv);
-  return cv;
+  canopy(g, TW, yAt, H, R, r, seed);
+  banded(g, TW, y0 + r * 3, r * 2, [mix(R[0], skyTint('#B4E0F0', 0.9, tod), k * 0.25)], H);
+  mist(g, TW, y0 - amp, r * 4 + amp, skyTint('#B4E0F0', 0.9, tod), 0.0, 0.18 + k * 0.3, 4);
+};
+
+/** A tile slid along at `k` of the camera's pace; under it (if it doesn't reach), its bottom color on down. */
+const layer = (c: Ctx, key: string, scroll: number, k: number, y: number, h: number, paint: (g: Ctx) => void, under?: string) => {
+  let x = -((((scroll * k) % TW) + TW) % TW);
+  const tx = x;
+  for (; x < CANVAS_WIDTH; x += TW) { c.save(); c.translate(Math.round(x), Math.round(y)); stamp(c, key, 0, 0, TW, h, paint); c.restore(); }
+  if (under && y + h < CANVAS_HEIGHT) box(c, 0, Math.round(y + h), CANVAS_WIDTH, CANVAS_HEIGHT - Math.round(y + h), under);
+  return tx;
 };
 
 /**
- * The sky and the jungle going back from the river (screen space): the hour's sky, far blue mountains (one with a
- * falls down it, its water cycling), the canopy in three ridges each nearer and darker, palms up off the nearest,
- * haze between. `horizon`: the screen y the land meets the sky; `scroll`: the camera's x.
+ * The sky and the jungle going back from the river (screen space): the hour's sky, the far ranges (the high peaks, MOUNT
+ * KABOOMA steaming, the jungle mountains with a falls down one, its water cycling), the canopy in two ridges each
+ * nearer, darker and bumpier (palms up off them), mist between. `horizon`: the screen y the land meets the sky;
+ * `scroll`: the camera's x.
  */
 export const drawJungleBackdrop = (c: Ctx, state: GameState, horizon: number, scroll: number, f: number) => {
   const tod = timeOfDay(), W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
   drawTodSky(c, 0, 0, W, H, ['#3AA0E0', '#6EC0EE', '#A6DCF4', '#D6EFD0', '#C8E6A0'], { sun: [620, horizon - 300], moon: [470, horizon - 280], horizon, t: f, scroll: scroll * 0.03 });
-  // The far mountains (and the falls down one: its stripes cycling down)
-  const mtn = screenRidge(1.3, horizon - 40, 150);
-  pixelRidge(c, 0, W, H, mtn, scroll * 0.05, { fill: farTint('#5A7A9A', 1), rim: farTint('#8AAAC4', 1), lit: farTint('#7090B0', 1), shade: farTint('#4A6884', 1) }, -1);
+  // The far ranges (and the falls down the near one: its water cycling down, live)
+  const tx = layer(c, `jc-rng-${tod.key}`, scroll, 0.05, horizon - HZ_TOP, HZ_TOP + 80, g => paintRanges(g, tod));
   {
-    const fx = Math.round(((2400 - scroll * 0.05) % 1600 + 1600) % 1600 - 300), top = mtn(fx + scroll * 0.05) + 6;
-    if (fx > -40 && fx < W + 40) {
-      const wc = [farTint('#BFE6F2', 1), farTint('#E8F8FF', 1), farTint('#8CC8E0', 1)];
-      for (let y = top; y < horizon + 10; y += 2) { const k = ((y - (f >> 1)) >> 2) % 3; box(c, fx + Math.round(Math.sin(y * 0.05) * 1), y, 6, 2, wc[(k + 3) % 3]); }
-      box(c, fx - 6, horizon + 4, 18, 4, farTint('#E8F8FF', 1));
+    const top = frontY(FALLS_X) + 6 - HZ_TOP + horizon, wc = farTint('#E8F8FF', 1);
+    for (let x = tx + FALLS_X; x < W + 20; x += TW) {
+      if (x < -20) continue;
+      for (let y = top; y < horizon + 4; y += 2) { const k = ((y - (f >> 1)) >> 2) % 4; if (k === 0) box(c, x - 3 + (((y >> 3) & 1) << 1), y, 2, 2, wc); }
     }
   }
-  hazeBands(c, 0, horizon - 90, W, 120, mix(tod.haze, '#C8E0E8', 0.5), 0, 0.35, 5);
-  // The canopy: three ridges, each nearer, darker, bumpier (round crowns), quicker
-  const crowns = (seed: number, base: number, amp: number) => (x: number) => base - amp * 0.55 * Math.abs(Math.sin(x * 0.03 + seed)) - amp * 0.45 * (0.5 + 0.5 * Math.sin(x * 0.007 + seed * 2));
-  pixelRidge(c, 0, W, H, crowns(2.1, horizon + 6, 70), scroll * 0.12, { fill: farTint('#2E6A3A', 0.8), rim: farTint('#5E9A4A', 0.8), lit: farTint('#4A8A44', 0.8), shade: farTint('#245A30', 0.8) }, -1);
-  hazeBands(c, 0, horizon - 10, W, 60, mix(tod.haze, '#A8D0B8', 0.5), 0, 0.22, 4);
-  // (palms up off the middle ridge, slow)
-  const pcol = farTint('#245A34', 0.6);
-  for (let i = -1; i < 8; i++) {
-    const wx = i * 140 - ((scroll * 0.18) % 140), v = Math.abs(Math.floor((scroll * 0.18) / 140) + i) % 5;
-    c.drawImage(palm(v, pcol, tod.key), Math.round(wx - 60), Math.round(horizon - 130 + (v % 3) * 10));
-  }
-  pixelRidge(c, 0, W, H, crowns(4.7, horizon + 40, 60), scroll * 0.22, { fill: farTint('#1E4E2A', 0.5), rim: farTint('#3E7A38', 0.5), lit: farTint('#336E34', 0.5), shade: farTint('#163E22', 0.5) }, -1);
+  // The canopy: two ridges, each nearer, darker, bumpier, quicker; palms up off them
+  layer(c, `jc-r1-${tod.key}`, scroll, 0.12, horizon - 200, 360, g => paintRidge(g, tod, 360, 150, 14, 14, 0.4, 2.1, 6));
+  layer(c, `jc-r2-${tod.key}`, scroll, 0.22, horizon - 150, 360, g => paintRidge(g, tod, 360, 176, 18, 22, 0.2, 4.7, 5), hazeOf('#163E26', 0.2, tod));
 };

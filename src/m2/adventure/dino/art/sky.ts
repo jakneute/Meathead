@@ -9,7 +9,8 @@
 import type { GameState } from '../../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../../m1/constants';
 import { GY } from '../../geometry';
-import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, hourMix } from '../../../timeOfDay';
+import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, hourMix, type TimeOfDay } from '../../../timeOfDay';
+import { snap2, wave, jag, range, mist, falls, canopy, banded, fillUnder, flanks, wrapAt, poly, palm as farPalm } from '../../farArt';
 import { noteSun } from '../../../sunFlare';
 import { type Ctx, box, mix, hash, checker, bandedGradient, steppedGlow, pixelBlob, PIX } from './kit';
 import { pixelRidge } from '../../../../m1/game/render/pixelArt';
@@ -152,22 +153,35 @@ const clouds = (c: Ctx, cam: number, f: number, tier: number) => {
 // shimmer)
 
 const MTN_FALL_X = 760;
+/** Far scenery at the hour, into the sky's own haze by k (farther: paler, bluer, flatter). */
+const hazed = (col: string, k: number, far: number, tod: TimeOfDay) => mix(farTint(col, far, tod), skyRamp(SKY, tod)[7], k);
+const rangeLook = (base: string, k: number, far: number, tod: TimeOfDay) => ({
+  body: hazed(base, k, far, tod), lit: hazed(mix(base, '#DCECF2', 0.26), k, far, tod), hi: hazed(mix(base, '#FFFFFF', 0.4), k, far, tod),
+  shade: hazed(mix(base, '#0A1418', 0.18), k, far, tod), deep: hazed(mix(base, '#0A1418', 0.3), k, far, tod),
+});
+const MTN_W = 1200;
+const mtnBackY = (x: number) => snap2(52 + wave(x, MTN_W, 1.3) * 38 + jag(x, MTN_W, 8, 3) * 8);
+const mtnFrontY = (x: number) => snap2(96 + wave(x, MTN_W, 4.1) * 24 + jag(x, MTN_W, 12, 9) * 4 - 16 * Math.exp(-(((x - MTN_FALL_X) / 90) ** 2)));
+/** The mountains: the high peaks at the back (palest, in their mist, a cloud caught on the highest), the jungle range
+ *  in front (lit flanks, gullies, forest up its slopes in stepped lumps), the falls down a cliff in it (its shimmer's
+ *  live), the mist along their feet. */
 const paintMountains = (g: Ctx, tw: number, th: number) => {
-  const tod = timeOfDay(), base = th - 24;
-  const ridge = (seed: number, amp: number, lift: number) => (x: number) => {
-    const u = (x / tw) * Math.PI * 2;
-    return base - lift - amp * (0.55 + 0.3 * Math.sin(u * 2 + seed) + 0.15 * Math.sin(u * 5 + seed * 2)) - amp * 0.35 * Math.max(0, Math.sin(u * 3 + seed * 3)) ** 3;
-  };
-  pixelRidge(g, 0, tw, th, ridge(1.3, 120, 10), 0, { fill: farTint('#6E8EA8', 1.4, tod), rim: farTint('#9AB4C8', 1.4, tod), lit: farTint('#86A2BA', 1.4, tod), shade: farTint('#5E7E98', 1.4, tod) });
-  pixelRidge(g, 0, tw, th, ridge(4.1, 80, 0), 0, { fill: farTint('#4F7464', 1.2, tod), rim: farTint('#7A9C80', 1.2, tod), lit: farTint('#668A70', 1.2, tod), shade: farTint('#44685A', 1.2, tod) });
-  // (the waterfall's cliff: a notch down the near range, the water's white pour painted; its shimmer's live)
-  const top = ridge(4.1, 80, 0)(MTN_FALL_X) + 6;
-  box(g, MTN_FALL_X - 8, top, 16, base - top, farTint('#3C5A4C', 1.2, tod));
-  box(g, MTN_FALL_X - 4, top, 8, base - top, farTint('#C8DCE8', 1.2, tod));
-  box(g, MTN_FALL_X - 4, top, 2, base - top, farTint('#EEF6FF', 1.2, tod));
-  pixelBlob(g, MTN_FALL_X, base - 2, 18, 6, farTint('#DCE8F0', 1.2, tod));
-  // (a lens of cloud caught on the high peak)
-  pixelBlob(g, 300, ridge(1.3, 120, 10)(300) + 8, 46, 7, cloudTint(mix('#E8EEF8', '#B8CCEA', 0.4), tod));
+  const tod = timeOfDay(), base = th - 24, hz = skyRamp(SKY, tod)[7];
+  // (the high peaks)
+  range(g, tw, mtnBackY, th, rangeLook('#6E8EA8', 0.42, 1.4, tod), 5, { gullies: 30, d: 16 });
+  mist(g, tw, 20, base - 10, hz, 0.0, 0.55, 6);
+  let px = 300, best = 1e9;
+  for (let x = 60; x < tw - 60; x += 4) if (mtnBackY(x) < best) { best = mtnBackY(x); px = x; }
+  pixelBlob(g, px + 4, best + 12, 54, 7, cloudTint(mix('#C8D4E4', '#B8CCEA', 0.4), tod));
+  pixelBlob(g, px, best + 9, 44, 5, cloudTint(mix('#E8EEF8', '#B8CCEA', 0.3), tod));
+  pixelBlob(g, px - 10, best + 7, 22, 3, cloudTint('#FFFFFF', tod));
+  // (the jungle range, nearer)
+  const F = rangeLook('#4F7464', 0.2, 1.2, tod);
+  range(g, tw, mtnFrontY, th, F, 21, { gullies: 22, d: 18, forest: [hazed('#3A6444', 0.2, 1.2, tod), hazed('#56844E', 0.2, 1.2, tod)], forestY: x => mtnFrontY(x) + 28 + wave(x, tw, 7.7, 2) * 10 });
+  // (the waterfall's cliff, its pour painted; its shimmer's live)
+  const top = mtnFrontY(MTN_FALL_X) + 6;
+  falls(g, MTN_FALL_X, top, base, 8, { rock: F.deep, water: hazed('#C8DCE8', 0.15, 1.2, tod), lit: hazed('#F4FAFF', 0.1, 1.2, tod), spray: hazed('#DCE8F0', 0.1, 1.2, tod) });
+  mist(g, tw, base - 50, 50, hz, 0.0, 0.45, 5);
   box(g, 0, base, tw, th - base, farTint('#4E6A5A', 1, tod));
 };
 const waterfall = (c: Ctx, cam: number, camY: number, f: number) => {
@@ -175,7 +189,8 @@ const waterfall = (c: Ctx, cam: number, camY: number, f: number) => {
   const off = (((scrollOf(d, cam)) % 1200) + 1200) % 1200;
   for (let x = MTN_FALL_X - off; x < W + 20; x += 1200) {
     if (x < -20) continue;
-    for (let i = 0; i < 5; i++) { const yy = y + 60 + ((f * 1.5 + i * 23) % 100); if (yy < base - 4) box(c, x - 3 + (i % 2) * 3, yy, 2, 6, 'rgba(255, 255, 255, 0.55)'); }
+    const top = y + mtnFrontY(MTN_FALL_X) + 6;
+    for (let i = 0; i < 5; i++) { const yy = top + ((f * 1.5 + i * 23) % 100); if (yy < base - 4) box(c, x - 3 + (i % 2) * 3, yy, 2, 6, 'rgba(255, 255, 255, 0.55)'); }
   }
 };
 
@@ -195,28 +210,50 @@ const palm = (g: Ctx, x: number, foot: number, h: number, lean: number, trunk: s
   }
   box(g, topX - 2, topY - 1, 4, 4, mix(trunk, '#000000', 0.3));
 };
+/** The hills: rolling jungle (crowns shoulder to shoulder, lit up the left, the hollows in shade going down), palms
+ *  up off the crests, the park's water tower on its legs (its tank in bands round it, the cone roof stepped, the
+ *  catwalk, ADVENTURE LAND's green band; a red light on top after dark). */
 const paintHills = (g: Ctx, tw: number, th: number) => {
-  const tod = timeOfDay(), base = th - 24;
+  const tod = timeOfDay(), base = th - 24, hz = skyRamp(SKY, tod)[7];
   const ridge = (x: number) => { const u = (x / tw) * Math.PI * 2; return base - 34 - 30 * (0.5 + 0.5 * Math.sin(u * 2 + 0.7)) - 12 * Math.sin(u * 5 + 2) ** 2; };
-  pixelRidge(g, 0, tw, th, ridge, 0, { fill: farTint('#3E6A3A', 0.9, tod), rim: farTint('#6E9A4E', 0.9, tod), lit: farTint('#58864A', 0.9, tod), shade: farTint('#355E32', 0.9, tod) });
-  // (canopy lumps along it, stepped)
-  for (let i = 0; i < 26; i++) {
-    const x = (i / 26) * tw + hash(i * 3.3) * 20, y = ridge(x) + 6;
-    pixelBlob(g, x, y, 16 + hash(i) * 10, 9, farTint('#4A7A40', 0.9, tod));
-    pixelBlob(g, x - 3, y - 3, 10 + hash(i) * 6, 5, farTint('#64944E', 0.9, tod));
-  }
+  const R = ['#2E5A30', '#3E6E3A', '#58884A', '#76A45C'].map(c => hazed(c, 0.12, 0.9, tod));
+  // (the palms first, their feet down in the crowns)
   for (let i = 0; i < 9; i++) {
-    const x = 30 + (i / 9) * tw + hash(i * 7.7) * 40;
-    palm(g, x, ridge(x) + 12, 34 + hash(i * 1.9) * 16, (hash(i * 2.2) - 0.5) * 14, farTint('#6A5A44', 0.9, tod), farTint('#4E8A44', 0.9, tod), farTint('#3A6A36', 0.9, tod));
+    const x = snap2(30 + (i / 9) * tw + hash(i * 7.7) * 40);
+    if (Math.abs(x - 600) < 50) continue;
+    wrapAt(tw, x, xx => farPalm(g, xx, ridge(xx) + 14, 40 + hash(i * 1.9) * 18, (hash(i * 2.2) - 0.5) * 14, [hazed('#4A3C2C', 0.12, 0.9, tod), hazed('#7A6648', 0.12, 0.9, tod)], [R[0], R[1], R[3]], i * 7), 60);
   }
-  // (the water tower on its legs, ADVENTURE LAND round its tank)
-  const wx = 600, wy = ridge(600) + 4;
-  const steel = farTint('#9AA4AE', 0.9, tod), steelLo = farTint('#6A747E', 0.9, tod);
-  for (const lx of [-16, -6, 6, 16]) box(g, wx + lx, wy - 56, 2, 56, steelLo);
-  for (let y = wy - 50; y < wy; y += 14) box(g, wx - 16, y, 34, 1, steelLo);
-  box(g, wx - 22, wy - 80, 44, 26, steel); box(g, wx - 22, wy - 80, 44, 4, farTint('#C4CCD4', 0.9, tod)); box(g, wx + 12, wy - 76, 10, 22, steelLo);
-  g.fillStyle = steel; g.beginPath(); g.moveTo(wx - 24, wy - 80); g.lineTo(wx, wy - 92); g.lineTo(wx + 24, wy - 80); g.closePath(); g.fill();
-  box(g, wx - 18, wy - 70, 30, 6, farTint('#3E7A3A', 0.9, tod));
+  // (the water tower on its legs, behind the crowns along its foot)
+  const wx = 600, wy = Math.round(ridge(600)) + 10;
+  const ST = ['#4E5862', '#6A747E', '#8A949E', '#AAB4BC', '#CCD4DA'].map(c => hazed(c, 0.12, 0.9, tod));
+  for (const lx of [-17, -7, 5, 15]) { box(g, wx + lx, wy - 58, 2, 58, ST[lx < 0 ? 2 : 1]); }
+  // (the bracing: an X between each pair of legs, a girt across)
+  for (let y = wy - 52; y < wy - 6; y += 16) {
+    box(g, wx - 17, y, 34, 1, ST[1]);
+    for (let k = 0; k < 16; k += 2) { box(g, wx - 15 + k * 0.6, y + k, 1, 2, ST[0]); box(g, wx + 13 - k * 0.6, y + k, 1, 2, ST[0]); }
+  }
+  // (the tank: in bands round it, lit at the left, dithered into its shade at the right)
+  const tankL = wx - 22, tankT = wy - 84, bands = [3, 4, 3, 2, 2, 2, 1, 1, 0];
+  for (let k = 0; k < bands.length; k++) box(g, tankL + Math.round((k * 44) / bands.length), tankT, Math.ceil(44 / bands.length) + 1, 28, ST[bands[k]]);
+  for (let k = 1; k < bands.length; k++) if (bands[k] !== bands[k - 1]) checker(g, tankL + Math.round((k * 44) / bands.length) - 2, tankT, 2, 28, ST[bands[k]]);
+  box(g, tankL, tankT + 28, 44, 2, ST[0]);
+  // (ADVENTURE LAND's band round it: green, lettering a row of pale ticks from out here)
+  const GB = [hazed('#2A5A2A', 0.12, 0.9, tod), hazed('#3E7A3A', 0.12, 0.9, tod), hazed('#5A9A4A', 0.12, 0.9, tod)];
+  box(g, tankL, tankT + 10, 44, 8, GB[1]); box(g, tankL, tankT + 10, 8, 8, GB[2]); box(g, tankL + 32, tankT + 10, 12, 8, GB[0]);
+  for (let k = 0; k < 9; k++) if (k !== 4) box(g, tankL + 4 + k * 4, tankT + 13, 2, 2, hazed('#F2E8C8', 0.12, 0.9, tod));
+  // (the catwalk round its foot, railed)
+  box(g, tankL - 3, tankT + 30, 50, 2, ST[1]); for (let k = 0; k <= 50; k += 5) box(g, tankL - 3 + k, tankT + 24, 1, 6, ST[0]); box(g, tankL - 3, tankT + 24, 50, 1, ST[0]);
+  // (the roof: a cone stepped across, its finial)
+  const roof = [ST[4], ST[3], ST[2], ST[1]];
+  for (let k = 0; k < 4; k++) { const a = -24 + k * 12, b = a + 12; g.fillStyle = roof[k]; g.beginPath(); g.moveTo(wx + a, tankT); g.lineTo(wx + a * 0.12, tankT - 13); g.lineTo(wx + b * 0.12, tankT - 13); g.lineTo(wx + b, tankT); g.closePath(); g.fill(); }
+  box(g, wx - 1, tankT - 18, 2, 5, ST[0]);
+  // (its light on top: red, after dark a step of glow round it)
+  if (tod.lamps > 0.1) { box(g, wx - 3, tankT - 22, 6, 6, mix(ST[2], '#FF3020', 0.35 * tod.lamps)); box(g, wx - 1, tankT - 20, 2, 2, '#FF5040'); }
+  else box(g, wx - 1, tankT - 20, 2, 2, hazed('#8A2A20', 0.12, 0.9, tod));
+  // (the crowns along the hills, then their hollows going down in shade)
+  canopy(g, tw, x => ridge(x) + 6, th, R, 12, 31);
+  banded(g, tw, base - 22, 12, [mix(R[0], hz, 0.05), mix(R[0], '#0A140A', 0.15)], th);
+  mist(g, tw, base - 70, 70, hz, 0.12, 0.0, 4);
   box(g, 0, base, tw, th - base, farTint('#4A6B34', 0.88, tod));
 };
 
@@ -249,33 +286,99 @@ const brachio = (c: Ctx, cam: number, camY: number, f: number) => {
 // ferns, a little sign or two, palms
 
 const paintPaddocks = (g: Ctx, tw: number, th: number) => {
-  const tod = timeOfDay(), base = th - 24;
+  const tod = timeOfDay(), base = th - 24, hz = skyRamp(SKY, tod)[7];
   const k = 0.75;
-  // (the meadow, rolling a little, banded)
-  const ridge = (x: number) => base - 14 - 8 * Math.sin((x / tw) * Math.PI * 6 + 1) ** 2;
-  pixelRidge(g, 0, tw, th, ridge, 0, { fill: farTint('#5E7A34', k, tod), rim: farTint('#8AA64C', k, tod), lit: farTint('#78963E', k, tod) });
-  // (the monorail's far track on its pillars, and its car, stranded)
-  const ty = base - 70;
-  for (let x = 40; x < tw; x += 160) { box(g, x, ty, 6, base - ty, farTint('#8A929A', k, tod)); box(g, x + 4, ty, 2, base - ty, farTint('#6A727A', k, tod)); }
-  box(g, 0, ty - 6, tw, 6, farTint('#A4ACB4', k, tod)); box(g, 0, ty - 6, tw, 1, farTint('#C8D0D6', k, tod)); box(g, 0, ty, tw, 1, farTint('#5A626A', k, tod));
-  const carX = 520;
-  box(g, carX, ty - 26, 120, 20, farTint('#D8DCE0', k, tod)); box(g, carX, ty - 26, 120, 3, farTint('#F2F4F6', k, tod));
-  box(g, carX, ty - 12, 120, 4, farTint('#C2410C', k, tod));
-  for (let i = 0; i < 7; i++) box(g, carX + 8 + i * 15, ty - 22, 10, 7, farTint('#3A4A5A', k, tod));
-  g.fillStyle = farTint('#D8DCE0', k, tod); g.beginPath(); g.moveTo(carX + 120, ty - 26); g.lineTo(carX + 136, ty - 14); g.lineTo(carX + 120, ty - 6); g.closePath(); g.fill();
-  // (vines grown over it: it's been a while)
-  for (let i = 0; i < 6; i++) box(g, carX + 10 + i * 19, ty - 8, 2, 4 + (i % 3) * 3, farTint('#3E6A30', k, tod));
-  // (paddock fences: posts with three wires, running along)
+  const T = (col: string) => farTint(col, k, tod);
+  const lamps = tod.lamps;
+  // (the meadow, rolling a little: its rises lit up the left, its dips in shade, banded darker going down)
+  const ridge = (x: number) => snap2(base - 14 - 8 * Math.sin((x / tw) * Math.PI * 6 + 1) ** 2);
+  const M = ['#3E5A24', '#4E6A2C', '#5E7A34', '#78963E', '#8AA64C'].map(T);
+  fillUnder(g, tw, ridge, th, M[2]);
+  flanks(g, tw, ridge, M[3], M[1], 6);
+  for (let x = 0; x < tw; x += 6) if (hash(x * 0.31) > 0.6) box(g, x, ridge(x) + 4 + Math.round(hash(x) * 6), 2, 2, M[hash(x * 1.7) > 0.5 ? 1 : 3]);
+  // (the monorail's far track on its pillars (T-heads, lit at the left), and its car, stranded)
+  const ty = base - 70, S = ['#4A525A', '#6A727A', '#8A929A', '#A4ACB4', '#C8D0D6'].map(T);
+  for (let x = 40; x < tw; x += 160) {
+    box(g, x, ty, 6, base - ty, S[2]); box(g, x, ty, 2, base - ty, S[3]); box(g, x + 4, ty, 2, base - ty, S[1]);
+    box(g, x - 4, ty, 14, 4, S[1]); box(g, x - 4, ty, 14, 1, S[3]);
+    box(g, x - 2, base - 16, 10, 4, S[1]);
+  }
+  box(g, 0, ty - 6, tw, 6, S[3]); box(g, 0, ty - 6, tw, 1, S[2]); box(g, 0, ty - 1, tw, 1, S[1]); box(g, 0, ty, tw, 1, S[0]);
+  for (let x = 0; x < tw; x += 32) box(g, x, ty - 5, 1, 4, S[2]);
+  const carX = 520, CAR = ['#8A8E92', '#B4B8BC', '#D8DCE0', '#F2F4F6'].map(T);
+  // (its body in bands: lit along the roof's curve, shaded along its skirt; the nose rounded)
+  box(g, carX, ty - 26, 120, 20, CAR[2]); box(g, carX + 2, ty - 28, 116, 2, CAR[3]); box(g, carX, ty - 26, 120, 2, CAR[3]);
+  box(g, carX, ty - 10, 120, 4, CAR[1]); checker(g, carX, ty - 12, 120, 2, CAR[1]);
+  box(g, carX, ty - 14, 120, 3, T('#C2410C')); box(g, carX, ty - 14, 120, 1, T('#E2611C'));
+  g.fillStyle = CAR[2]; g.beginPath(); g.moveTo(carX + 120, ty - 28); g.quadraticCurveTo(carX + 140, ty - 24, carX + 138, ty - 14); g.lineTo(carX + 120, ty - 6); g.closePath(); g.fill();
+  box(g, carX + 124, ty - 22, 10, 6, T('#2A3A4A')); box(g, carX + 124, ty - 22, 4, 2, T('#6A8AA8'));
+  // (its windows: the sky in them by day, a dead car's dark after, a work light left on in one)
+  for (let i = 0; i < 7; i++) {
+    const wx = carX + 8 + i * 15;
+    box(g, wx, ty - 23, 10, 8, T('#2A3A4A'));
+    if (lamps > 0.2 && i === 4) { box(g, wx, ty - 23, 10, 8, mix(T('#2A3A4A'), '#FFD890', 0.7 * lamps)); box(g, wx + 1, ty - 22, 3, 3, '#FFF0C0'); }
+    else { box(g, wx, ty - 23, 5, 3, mix(T('#6A8AA8'), hz, 0.3 * (1 - lamps))); box(g, wx, ty - 20, 2, 2, T('#6A8AA8')); }
+    box(g, wx - 1, ty - 24, 12, 1, CAR[1]);
+  }
+  // (vines grown over it: it's been a while; a strand down off it to the meadow)
+  for (let i = 0; i < 6; i++) { box(g, carX + 10 + i * 19, ty - 8, 2, 4 + (i % 3) * 3, T('#3E6A30')); box(g, carX + 10 + i * 19, ty - 8, 2, 1, T('#5E8A44')); }
+  for (let y = ty - 6; y < base - 12; y += 2) box(g, carX + 66 + Math.round(Math.sin(y * 0.2) * 2), y, 2, 2, (y >> 1) % 3 ? T('#3E6A30') : T('#5E8A44'));
+  // (the paddock's gate: two log towers, the crossbeam over the road, torches on them lit after dark)
+  {
+    const gx = 160, gy = base - 12, L = ['#3A2A1C', '#5A4430', '#7A5E40', '#9A7E58'].map(T);
+    for (const tx of [gx - 34, gx + 22]) {
+      box(g, tx, gy - 66, 12, 66, L[2]); box(g, tx, gy - 66, 3, 66, L[3]); box(g, tx + 9, gy - 66, 3, 66, L[1]);
+      for (let y = gy - 60; y < gy; y += 8) box(g, tx, y, 12, 1, L[1]);
+      box(g, tx - 2, gy - 70, 16, 4, L[1]); box(g, tx - 2, gy - 70, 16, 1, L[2]);
+      // (a torch on its top)
+      box(g, tx + 5, gy - 76, 2, 6, L[0]);
+      if (lamps > 0.15) { box(g, tx + 2, gy - 84, 8, 8, mix(T('#7A5E40'), '#FF9A30', 0.4 * lamps)); box(g, tx + 4, gy - 82, 4, 5, '#FFB040'); box(g, tx + 5, gy - 81, 2, 2, '#FFF0B0'); }
+    }
+    box(g, gx - 38, gy - 58, 76, 8, L[2]); box(g, gx - 38, gy - 58, 76, 1, L[1]); box(g, gx - 38, gy - 52, 76, 2, L[1]);
+    for (let k = 0; k < 7; k++) box(g, gx - 26 + k * 8, gy - 56, 4, 2, T('#E8C890'));
+    // (the doors, shut, planked)
+    for (let k = 0; k < 6; k++) box(g, gx - 22 + k * 8, gy - 44, 7, 44, L[k % 2 ? 1 : 2]);
+    box(g, gx - 22, gy - 30, 44, 2, L[0]); box(g, gx - 22, gy - 14, 44, 2, L[0]);
+  }
+  // (the ranger lookout: a hut on stilts, its roof thatched, a window lit after dark)
+  {
+    const lx = 820, ly = base - 12, L = ['#3A2A1C', '#5A4430', '#7A5E40', '#9A7E58'].map(T), TH = ['#6A5428', '#8A7038', '#AA8C4A', '#C8A864'].map(T);
+    for (const px of [-14, 12]) { box(g, lx + px, ly - 52, 3, 52, L[1]); box(g, lx + px, ly - 52, 1, 52, L[3]); }
+    for (let y = ly - 46; y < ly - 4; y += 14) for (let k = 0; k < 13; k += 1) box(g, lx - 12 + k * 2, y + k, 2, 1, L[0]);
+    box(g, lx - 18, ly - 72, 36, 20, L[2]); box(g, lx - 18, ly - 72, 3, 20, L[3]); box(g, lx + 13, ly - 72, 5, 20, L[1]);
+    box(g, lx - 20, ly - 54, 40, 2, L[1]);
+    box(g, lx - 8, ly - 68, 14, 8, lamps > 0.2 ? mix(L[0], '#FFC870', 0.75 * lamps) : L[0]);
+    poly(g, [[lx - 24, ly - 72], [lx, ly - 90], [lx + 24, ly - 72]], TH[1]);
+    poly(g, [[lx - 24, ly - 72], [lx, ly - 90], [lx, ly - 86], [lx - 18, ly - 72]], TH[3]);
+    for (let k = 0; k < 6; k++) box(g, lx - 22 + k * 8, ly - 72, 2, 3, TH[0]);
+    // (a ladder up to it)
+    for (let y = ly - 52; y < ly; y += 5) box(g, lx - 4, y, 6, 1, L[2]);
+    box(g, lx - 4, ly - 52, 1, 52, L[1]); box(g, lx + 1, ly - 52, 1, 52, L[1]);
+  }
+  // (paddock fences: posts lit at the left, three wires, a warning plate here and there)
   const fy = base - 16;
-  for (let x = 0; x < tw; x += 22) { box(g, x, fy - 22, 2, 24, farTint('#5A4A3A', k, tod)); }
-  for (const dy of [-20, -13, -6]) box(g, 0, fy + dy, tw, 1, farTint('#3A3A3A', k, tod));
+  for (let x = 0; x < tw; x += 22) {
+    if (Math.abs(x - 160) < 46) continue;
+    box(g, x, fy - 22, 2, 24, T('#7A6A50')); box(g, x + 2, fy - 22, 1, 24, T('#4A3A2A'));
+    if (x % 154 === 0) { box(g, x + 4, fy - 16, 8, 6, T('#E0B84A')); box(g, x + 7, fy - 15, 2, 3, T('#3A2A1A')); }
+  }
+  for (const dy of [-20, -13, -6]) { box(g, 0, fy + dy, 126, 1, T('#3A3A3A')); box(g, 198, fy + dy, tw - 198, 1, T('#3A3A3A')); }
   // (palms, ferns, a jeep, a sign on posts)
-  for (let i = 0; i < 7; i++) { const x = 70 + i * 160 + hash(i * 5.1) * 50; palm(g, x, base - 10, 40 + hash(i) * 14, (hash(i * 3.7) - 0.5) * 12, farTint('#6E5E46', k, tod), farTint('#4E8C42', k, tod), farTint('#3A6C34', k, tod)); }
-  for (let i = 0; i < 12; i++) { const x = hash(i * 9.1) * tw; pixelBlob(g, x, base - 10, 12, 6, farTint('#3E7034', k, tod)); pixelBlob(g, x - 2, base - 13, 7, 3, farTint('#5E9446', k, tod)); }
+  for (let i = 0; i < 7; i++) {
+    const x = snap2(70 + i * 160 + hash(i * 5.1) * 50);
+    if (Math.abs(x - 160) < 50 || Math.abs(x - 820) < 40) continue;
+    wrapAt(tw, x, xx => farPalm(g, xx, base - 10, 40 + hash(i) * 14, (hash(i * 3.7) - 0.5) * 12, [T('#4A3A2A'), T('#7A6A4E')], [T('#2E5A2A'), T('#3E7034'), T('#5E9446')], i * 13), 60);
+  }
+  for (let i = 0; i < 12; i++) { const x = hash(i * 9.1) * tw; pixelBlob(g, x, base - 10, 12, 6, T('#3E7034')); pixelBlob(g, x - 2, base - 13, 7, 3, T('#5E9446')); }
   const jx = 300, jy = base - 12;
-  box(g, jx, jy - 10, 30, 8, farTint('#C4A04A', k, tod)); box(g, jx + 6, jy - 16, 14, 6, farTint('#3A4A5A', k, tod)); box(g, jx, jy - 10, 30, 2, farTint('#E0C06A', k, tod));
-  box(g, jx + 4, jy - 3, 6, 5, farTint('#1A1A1A', k, tod)); box(g, jx + 21, jy - 3, 6, 5, farTint('#1A1A1A', k, tod));
-  box(g, 900, base - 40, 2, 30, farTint('#5A4A3A', k, tod)); box(g, 922, base - 40, 2, 30, farTint('#5A4A3A', k, tod)); box(g, 894, base - 46, 36, 14, farTint('#E0B84A', k, tod)); box(g, 898, base - 41, 28, 2, farTint('#5A3A1A', k, tod)); box(g, 898, base - 37, 20, 2, farTint('#5A3A1A', k, tod));
+  box(g, jx, jy - 10, 30, 8, T('#C4A04A')); box(g, jx, jy - 10, 30, 2, T('#E0C06A')); box(g, jx, jy - 4, 30, 2, T('#94742A'));
+  box(g, jx + 6, jy - 16, 14, 6, T('#3A4A5A')); box(g, jx + 6, jy - 16, 6, 2, mix(T('#6A8AA8'), hz, 0.3)); box(g, jx + 4, jy - 17, 18, 1, T('#5A5A5A'));
+  box(g, jx + 24, jy - 18, 1, 8, T('#2A2A2A'));
+  box(g, jx + 4, jy - 3, 6, 5, T('#1A1A1A')); box(g, jx + 21, jy - 3, 6, 5, T('#1A1A1A')); box(g, jx + 6, jy - 2, 2, 2, T('#6A6A6A')); box(g, jx + 23, jy - 2, 2, 2, T('#6A6A6A'));
+  if (lamps > 0.3) box(g, jx + 29, jy - 8, 2, 2, '#FFE8A0');
+  box(g, 900, base - 40, 2, 30, T('#5A4A3A')); box(g, 922, base - 40, 2, 30, T('#5A4A3A')); box(g, 894, base - 46, 36, 14, T('#E0B84A')); box(g, 894, base - 46, 36, 2, T('#F0D070')); box(g, 898, base - 41, 28, 2, T('#5A3A1A')); box(g, 898, base - 37, 20, 2, T('#5A3A1A'));
+  // (the haze lying on the meadow, banded off going down)
+  mist(g, tw, base - 90, 80, hz, 0.14, 0.02, 4);
   box(g, 0, base, tw, th - base, farTint('#5E7A34', k * 0.9, tod));
 };
 
