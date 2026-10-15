@@ -52,7 +52,9 @@ export const updateShots = (ctx: FrameContext) => {
         if (s.kind === 'lasso') {
           // (caught: yanked toward whoever threw it, held a moment)
           const fx = s.from ? s.from.pos.x + s.from.width / 2 : s.x - s.vx * 10;
-          hurtPlayer(ctx, DMG.lasso, SHOT_SRC.lasso, { x: Math.sign(fx - (p.pos.x + p.width / 2)) * 9, y: -3 }, 26);
+          // (a strong pull toward him: about two thirds of the way in (the pushback's 0.9 a frame: ~9.7x the pull), never all of it)
+          const gap = fx - (p.pos.x + p.width / 2);
+          hurtPlayer(ctx, DMG.lasso, SHOT_SRC.lasso, { x: Math.sign(gap) * Math.max(6, Math.min(22, Math.abs(gap) * 0.067)), y: -4 }, 32);
           state.playerStunTimer = Math.max(state.playerStunTimer, 22);
           playSound('slam', 0.4, 4);
         } else hurtPlayer(ctx, DMG[s.kind], SHOT_SRC[s.kind], { x: dir * (s.kind === 'blast' ? 9 : 4), y: -4 }, s.kind === 'blast' ? 24 : 16);
