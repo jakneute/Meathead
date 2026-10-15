@@ -142,6 +142,8 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       return;
     }
     if (page === 'main') { if (a === 'ok') { playMenuOk(); go(MAIN[cursor].page); } return; }
+    // (OK on a setting doesn't change it: it's done, close and keep it all, as it is)
+    if ((page === 'audio' || page === 'video') && a === 'ok') { playMenuOk(); onClose(); return; }
     if (page === 'audio') {
       const id = VOLUMES[cursor].id;
       if (a === 'left') setVolume(id, settings[id] - 10);
@@ -149,7 +151,7 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       return;
     }
     if (page === 'video') {
-      if (a === 'left' || a === 'right' || a === 'ok') stepVideo(cursor, a === 'left' ? -1 : 1);
+      if (a === 'left' || a === 'right') stepVideo(cursor, a === 'left' ? -1 : 1);
       return;
     }
     if (page === 'controls') { if (a === 'ok') { playMenuOk(); go('keyboard'); } return; }

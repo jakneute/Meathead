@@ -110,7 +110,8 @@ export const setFullscreen = (on: boolean) => {
     return;
   }
   try {
-    if (on && !isFullscreen()) document.documentElement.requestFullscreen?.().catch(() => { if (current.fullscreen !== isFullscreen()) updateSettings({ fullscreen: isFullscreen() }); });
+    // (refused: a controller's press doesn't count to the browser as one; it's kept on, and the next key or click does it)
+    if (on && !isFullscreen()) document.documentElement.requestFullscreen?.().catch(() => onNextPress());
     else if (!on && isFullscreen()) document.exitFullscreen?.().catch(() => { /* already out */ });
   } catch { /* no fullscreen here */ }
   if (current.fullscreen !== on) updateSettings({ fullscreen: on });
@@ -121,19 +122,26 @@ const watchFullscreen = () => {
   watching = true;
   if (desktop) {
     // (the window's opened the way it was left; the setting follows it in and out, however it went: F11, Alt+Enter)
-    desktop.onFullscreenChange(on => { if (current.fullscreen !== on) updateSettings({ fullscreen: on }); });
+    // (read again once the window's settled: on the way in, Windows can report the old state first, and the setting
+    // would be put back to it while the window's gone fullscreen anyway)
+    desktop.onFullscreenChange(() => setTimeout(() => { const on = desktop.isFullscreen(); if (current.fullscreen !== on) updateSettings({ fullscreen: on }); }, 250));
     if (current.fullscreen !== desktop.isFullscreen()) desktop.setFullscreen(current.fullscreen);
     return;
   }
   // (out with Esc, or in or out any other way: the setting follows)
   document.addEventListener('fullscreenchange', () => { if (current.fullscreen !== isFullscreen()) updateSettings({ fullscreen: isFullscreen() }); });
   // (remembered on: the browser only lets it go fullscreen off a press, so the first one does it)
-  if (current.fullscreen && !isFullscreen()) {
-    const go = (e: Event) => {
-      if (e instanceof KeyboardEvent && e.key === 'Escape') return;
-      window.removeEventListener('keydown', go, true); window.removeEventListener('pointerdown', go, true);
-      if (current.fullscreen && !isFullscreen()) try { document.documentElement.requestFullscreen?.().catch(() => { /* refused */ }); } catch { /* none */ }
-    };
-    window.addEventListener('keydown', go, true); window.addEventListener('pointerdown', go, true);
-  }
+  if (current.fullscreen && !isFullscreen()) onNextPress();
+};
+let armed = false;
+const onNextPress = () => {
+  if (armed || typeof window === 'undefined') return;
+  armed = true;
+  const go = (e: Event) => {
+    if (e instanceof KeyboardEvent && e.key === 'Escape') return;
+    window.removeEventListener('keydown', go, true); window.removeEventListener('pointerdown', go, true);
+    armed = false;
+    if (current.fullscreen && !isFullscreen()) try { document.documentElement.requestFullscreen?.().catch(() => { /* refused */ }); } catch { /* none */ }
+  };
+  window.addEventListener('keydown', go, true); window.addEventListener('pointerdown', go, true);
 };
