@@ -102,11 +102,23 @@ export interface Director {
   mode: 'sit' | 'up' | 'think' | 'yell' | 'run' | 'gone';
   said: Said | null;
 }
+/** The producer, on the set before the crash (the scene's, not an enemy): laying down the law to the cast and crew;
+ *  looking up at the noise; dead under the throne-train (and there for good). */
+export interface Producer {
+  mode: 'rant' | 'look' | 'dead';
+  said: Said | null;
+  /** When he died (frame: the blood spreading). */
+  at: number;
+}
 /** The crew off the sets in the background (the burst-in's KILL THEM ALL): out over the fallen back wall at the public. */
 export interface Runner { x: number; seed: number; t: number; at: number }
 
 export interface Burst {
   on: boolean; t: number;
+  /** b.t when the roof goes (the producer's had his say first; far off till then). */
+  c0: number;
+  /** The producer, under where it comes down. */
+  prod: Producer;
   /** The walls' fall (0 up .. 1 flat); falling (frames since the creak, or -1). */
   fall: number; falling: number;
   /** The throne-train coming down through the roof: its middle, its height (feet), how fast it's falling, its tilt. */
@@ -157,7 +169,7 @@ export const whOf = (state: GameState): Warehouse => {
   if (!o) {
     o = {
       shots: [], said: {}, barks: new WeakMap(), barkAt: -9999, ad: null, adBusy: false, crowd: null, action: new WeakMap(), stuck: 0,
-      burst: { on: false, t: 0, fall: 1, falling: -1, tx: 0, ty: 0, tv: 0, tilt: 1, my: 0, mv: 0, landed: true, step: 0,
+      burst: { on: false, t: 0, c0: 0, prod: { mode: 'dead', said: null, at: -9999 }, fall: 1, falling: -1, tx: 0, ty: 0, tv: 0, tilt: 1, my: 0, mv: 0, landed: true, step: 0,
         dir: { x: 0, face: -1, mode: 'gone', said: null }, runners: [] },
       fight: { phase: 'wait', t: 0, order: [], next: 0, spawnT: 0, arrivals: [], actors: [], bodies: [], killed: 0, door: null, doorK: 0, said: {},
         barkAt: -9999, moveId: -1, knockAt: -9999, seen: new WeakSet(), lastCd: 0, crushed: false },

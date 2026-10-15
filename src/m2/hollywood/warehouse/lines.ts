@@ -79,6 +79,19 @@ export const DIR_PONDER: ByPants = {
   shitty: ['WE BRIBE HIM. OR WE KILL HIM. KILLING HIM SMELLS CHEAPER.', 'BRIBE HIM? BURY HIM? NOBODY WANTS TO TOUCH HIM. HMM.'],
   nude: ['WE BRIBE HIM. HE HAS NO POCKETS. SO WE KILL HIM?', 'BRIBE HIM? BURY HIM? WE COULD BURY HIM. HE CAME DRESSED FOR IT.'],
 };
+// ---------------------------------------------------------------------------------------------------------------
+// The producer, on the set before the crash (his own voice): a control freak laying down the law to the cast and crew.
+// Then the throne-train comes down through the roof on him.
+
+export const PRODUCER_VOICE = 'm2.hollywood.producer';
+/** Warming up (one of these first). */
+export const PROD_RULES = [
+  'NO PHONES. NO PICTURES. NO TALKING TO EACH OTHER. NO TALKING TO ME.',
+  'YOU EAT IN HERE. YOU SHIT IN HERE. NOBODY LEAVES THIS BUILDING.',
+];
+/** Then (the user's line, word for word). */
+export const PROD_ASSASSIN = "IF YOU TELL YOUR FRIENDS OR FAMILY WHAT YOU'RE WORKING ON, I'LL SEND AN ASSASSIN TO YOUR HOME.";
+
 /** The walls down, the whole public looking in (the user's line, word for word). */
 export const DIR_KILL = 'KILL THEM ALL! THEY CANNOT KNOW!';
 
@@ -270,6 +283,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   [GUEST_VOICES.f]: [...pools(CROWD_GASP), ...pools(CROWD_PAGES)],
   [AD_VOICE]: [...AD_STEVE, ...pools(AD_CAST), ...pools(AD_SHRUG), ...AD_LEAK],
   [EXEC_VOICE]: [...EXEC_PHONE, ...EXEC_SEES, ...EXEC_RANT],
+  [PRODUCER_VOICE]: [...PROD_RULES, PROD_ASSASSIN],
   [CREW_VOICES.grip]: pools(GRIP_BARK), [CREW_VOICES.gripf]: pools(GRIP_BARK),
   [CREW_VOICES.boom]: pools(BOOM_BARK), [CREW_VOICES.boomf]: pools(BOOM_BARK),
   [CREW_VOICES.runner]: pools(RUNNER_BARK), [CREW_VOICES.runnerf]: pools(RUNNER_BARK),

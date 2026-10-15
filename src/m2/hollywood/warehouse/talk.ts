@@ -9,7 +9,7 @@ import { lookOf } from '../../adventure/temple/people';
 import type { ByPants } from '../blvd/lines';
 import { byPants } from '../blvd/kinds';
 import { whOf } from './state';
-import { AD_VOICE, ACTOR_VOICE_OF, GUEST_VOICES, EXEC_VOICE, CREW_VOICES } from './lines';
+import { AD_VOICE, ACTOR_VOICE_OF, GUEST_VOICES, EXEC_VOICE, CREW_VOICES, PRODUCER_VOICE } from './lines';
 
 /** A fixed line said in the last 45 s isn't said again yet (pickLine does it for pools). */
 const lastSaid = new Map<string, number>();
@@ -43,6 +43,12 @@ export const dirSay = (state: GameState, pool: ByPants | string, onDone?: () => 
   const d = whOf(state).burst.dir;
   let done = false;
   speak(CREW_VOICES.director, lineOf(state, pool), s => { d.said = s; }, true, () => { if (done) return; done = true; onDone?.(); });
+};
+/** The producer before the crash, in turn, shown over him (a pool, or a line of his own). */
+export const prodSay = (state: GameState, pool: string[] | string, onDone?: () => void) => {
+  const P = whOf(state).burst.prod;
+  let done = false;
+  speak(PRODUCER_VOICE, lineOf(state, pool), s => { P.said = s; }, true, () => { if (done) return; done = true; onDone?.(); });
 };
 /** The studio executive (the ending), in turn, shown over him. */
 export const execSay = (state: GameState, pool: string[], onDone?: () => void) => {

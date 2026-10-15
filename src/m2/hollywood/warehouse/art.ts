@@ -16,7 +16,7 @@ import {
   X, Y, GY, x0, x1, BACK_Y, ROOF_Y, PIT_A, PIT_B, SOLIDS, LEDGES, STEVES, ARENA, CASE_X, DOZER_X, FAR_WALL, REFILL, LIGHTS,
 } from './layout';
 import { whOf } from './state';
-import { WRECK_X, ROOF_HOLE, wallsDown } from './burst';
+import { WRECK_X, ROOF_HOLE, PROD_X, wallsDown, roofHoled, drawProducer } from './burst';
 import { dozerX, caseDown, caseTip, wallOpen, endingOn, drawDozer } from './ending';
 
 type Ctx = CanvasRenderingContext2D;
@@ -157,7 +157,7 @@ export const drawWarehouseBack = (c: Ctx, state: GameState) => {
   }
   // The steel frame (it's still up): the roof's underside, its trusses, the columns. The hole the train came down
   // through (the burst-in on: once the roof's gone; for good after)
-  const holed = b.on ? b.t >= 24 : wallsDown(state);
+  const holed = roofHoled(state);
   const ha = X(ROOF_HOLE.a), hb = X(ROOF_HOLE.b);
   c.save();
   if (holed && inView(state, ha, hb)) {
@@ -200,7 +200,9 @@ export const drawWarehouseBack = (c: Ctx, state: GameState) => {
   for (const [rx, h, w, what] of LEDGES) if (inView(state, X(rx), X(rx) + w)) ledgePiece(c, X(rx), Y(h), w, h, what);
   // The wreck (where it stopped; tumbling in, in the burst-in)
   const wx = b.on ? b.tx : X(WRECK_X);
-  if ((!b.on || b.t >= 24) && inView(state, wx - 200, wx + 140)) drawWreck(c, wx, b.on ? b.ty : GY, b.on ? b.tilt : 1, f);
+  // (the producer: on the set till it comes down on him, then under it for good)
+  if (inView(state, X(PROD_X) - 140, X(PROD_X) + 140)) drawProducer(c, state);
+  if ((!b.on || holed) && inView(state, wx - 200, wx + 140)) drawWreck(c, wx, b.on ? b.ty : GY, b.on ? b.tilt : 1, f);
   for (const [rx, h, kind] of STEVES) if (inView(state, X(rx) - 60, X(rx) + 60)) steveFlier(c, X(rx), kind === 'standee' ? Y(h) : Y(h), kind, rx);
   mainStage(c, state);
 };

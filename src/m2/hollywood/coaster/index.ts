@@ -173,7 +173,8 @@ const arrive = (state: GameState, co: Coaster, pl: Place, snap: boolean) => {
   // (stopped at a stop with its staff still about: the order)
   if (pl !== 'station' && !memo(state, CLEARED_MEMO(pl))) setUi({ notice: { text: 'KILL THEM ALL', at: performance.now() } });
 };
-/** Out of the sky and through the warehouse's wall: on to the warehouse (its burst-in's its own). */
+/** Out of the sky and through the warehouse's roof: on to the warehouse (its burst-in's its own; `skipped`: cut off
+ *  whoever's still talking). */
 const handoff = (state: GameState, co: Coaster, skipped: boolean) => {
   if (skipped) silenceAll();
   offTrain(state, co);
@@ -208,10 +209,16 @@ const riding = (ctx: FrameContext, co: Coaster): Controls => {
     // THE LAUNCH's flight: off the end, up and away, turning over (a long, floaty arc: the PA's still going); a
     // white-out once it's done, and he's at the warehouse
     const fl = r.fly;
-    fl.t++; fl.vy += 0.2; fl.x += fl.vx; fl.y += fl.vy; fl.rot += 0.07;
-    if (fl.t > 75 && (scriptDone(r) || fl.t > 600)) r.fade = Math.min(1, r.fade + 0.04);
+    // (the air slows it along: however long the PA goes on, it can't carry him far)
+    fl.t++; fl.vy += 0.2; fl.vx *= 0.985; fl.x += fl.vx; fl.y += fl.vy; fl.rot += 0.07;
+    // (never out of the coaster's stretch while flying: past its end the land hands the frame to the warehouse,
+    // nobody runs the flight, and he hangs there (the soft lock). Near the end, the white-out whatever's still to say,
+    // and never past it)
+    const edge = fl.x > x1 - 500;
+    if (edge) fl.x = Math.min(fl.x, x1 - 80);
+    if ((fl.t > 75 && (scriptDone(r) || fl.t > 600)) || edge) r.fade = Math.min(1, r.fade + (edge ? 0.06 : 0.04));
     x = fl.x; y = fl.y; a = fl.rot;
-    if (r.fade >= 1) { handoff(state, co, false); return hands(); }
+    if (r.fade >= 1) { handoff(state, co, !scriptDone(r)); return hands(); }
   } else if (!r.gone) {
     // Parked, the lap bar down: it goes once the boarding's been said (the launch's boosters spooling up meanwhile)
     const pt = pointOn(tr, 0);
