@@ -179,10 +179,10 @@ const pteroAI = (ctx: FrameContext, e: Enemy): boolean => {
 
 export const DINO_KINDS = { raptor: 'm2:raptor', trike: 'm2:trike', ptero: 'm2:ptero' } as const;
 
-registerM2Kind({ kind: 'm2:raptor', stats: { w: 64, h: 50, hp: 140, contact: 12, mass: 170 }, ai: raptorAI, draw: (c, e, f, state) => drawRaptorBot(c, e, f, { friendly: !modeOf(state).hostile }), head: { x: 27, y: -50, r: 8 }, gender: 'n', robot: true, grab: 'body' });
-registerM2Kind({ kind: 'm2:trike', stats: { w: 96, h: 56, hp: 260, contact: 14, mass: 700 }, ai: trikeAI, draw: (c, e, f, state) => drawTrikeBot(c, e, f, { friendly: !modeOf(state).hostile }), head: { x: 50, y: -38, r: 10 }, gender: 'n', robot: true, grab: 'none', pointy: { source: 'm2:trike_horns', label: 'GORED!', damage: 14 } });
+registerM2Kind({ kind: 'm2:raptor', stats: { w: 64, h: 50, hp: 120, contact: 12, mass: 170 }, ai: raptorAI, draw: (c, e, f, state) => drawRaptorBot(c, e, f, { friendly: !modeOf(state).hostile }), head: { x: 27, y: -50, r: 8 }, gender: 'n', robot: true, grab: 'body' });
+registerM2Kind({ kind: 'm2:trike', stats: { w: 96, h: 56, hp: 170, contact: 14, mass: 700 }, ai: trikeAI, draw: (c, e, f, state) => drawTrikeBot(c, e, f, { friendly: !modeOf(state).hostile }), head: { x: 50, y: -38, r: 10 }, gender: 'n', robot: true, grab: 'none', pointy: { source: 'm2:trike_horns', label: 'GORED!', damage: 14 } });
 registerM2Kind({
-  kind: 'm2:ptero', stats: { w: 70, h: 30, hp: 60, contact: 10, mass: 70, air: true }, ai: pteroAI, draw: (c, e, f, state) => drawPteroBot(c, e, f, { friendly: !modeOf(state).hostile }), head: { x: 22, y: -22, r: 6 }, gender: 'n', robot: true, grab: 'critter',
+  kind: 'm2:ptero', stats: { w: 70, h: 30, hp: 50, contact: 10, mass: 70, air: true }, ai: pteroAI, draw: (c, e, f, state) => drawPteroBot(c, e, f, { friendly: !modeOf(state).hostile }), head: { x: 22, y: -22, r: 6 }, gender: 'n', robot: true, grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
 });
 

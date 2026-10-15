@@ -77,7 +77,7 @@ export const drawStaffer = (c: Ctx, seed: number, f: number, doing: StaffDoing, 
 
 registerM2Kind({
   kind: 'm2:staffer',
-  stats: { w: 34, h: 62, hp: 70, contact: 0, mass: 180 },
+  stats: { w: 34, h: 62, hp: 60, contact: 0, mass: 180 },
   humanoid: true,
   make: b => ({ ...b, harmless: true, noCrowd: true }),
   // (they don't do anything: that's the joke)

@@ -182,14 +182,14 @@ const twisty = (ctx: FrameContext, e: Enemy) => {
 const personGender = (e: Enemy) => (womanOf(e) ? 'f' : 'm') as 'm' | 'f';
 
 registerM2Kind({
-  kind: 'm2:hwd_usher', stats: { w: 40, h: 74, hp: 130, contact: 6, mass: 220 }, humanoid: true, gender: personGender, head: { x: 1, y: -68, r: 10 },
+  kind: 'm2:hwd_usher', stats: { w: 40, h: 74, hp: 140, contact: 6, mass: 220 }, humanoid: true, gender: personGender, head: { x: 1, y: -68, r: 10 },
   ai: usher, draw: (c, e, f) => drawUsher(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:hwd_tech', stats: { w: 36, h: 72, hp: 80, contact: 5, mass: 170 }, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 10 },
+  kind: 'm2:hwd_tech', stats: { w: 36, h: 72, hp: 90, contact: 5, mass: 170 }, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 10 },
   ai: tech, draw: (c, e, f) => drawTech(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:hwd_twisty', stats: { w: 50, h: 80, hp: 120, contact: 7, mass: 230 }, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 10 },
+  kind: 'm2:hwd_twisty', stats: { w: 50, h: 80, hp: 160, contact: 7, mass: 230 }, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 10 },
   ai: twisty, draw: (c, e, f) => drawTwisty(c, e, f, seedOf(e)),
 });

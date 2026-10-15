@@ -362,13 +362,13 @@ const stuntco = (ctx: FrameContext, e: Enemy) => {
 const personGender = (e: Enemy) => (womanOf(e) ? 'f' : 'm') as 'm' | 'f';
 const H = (y: number) => ({ x: 1, y, r: 10 });
 
-registerM2Kind({ kind: 'm2:hww_grip', stats: { w: 42, h: 76, hp: 160, contact: 7, mass: 270 }, humanoid: true, gender: personGender, head: H(-70), ai: grip, draw: (c, e, f) => drawGrip(c, e, f, seedOf(e)) });
-registerM2Kind({ kind: 'm2:hww_boom', stats: { w: 36, h: 74, hp: 80, contact: 5, mass: 180 }, humanoid: true, gender: personGender, head: H(-68), ai: boom, draw: (c, e, f) => drawBoom(c, e, f, seedOf(e)) });
-registerM2Kind({ kind: 'm2:hww_runner', stats: { w: 34, h: 72, hp: 50, contact: 5, mass: 160 }, humanoid: true, gender: personGender, head: H(-66), ai: runner, draw: (c, e, f) => drawRunner(c, e, f, seedOf(e)) });
-registerM2Kind({ kind: 'm2:hww_director', stats: { w: 40, h: 74, hp: 130, contact: 5, mass: 210 }, humanoid: true, gender: personGender, head: H(-68), ai: director, draw: (c, e, f, s) => drawDirector(c, e, f, seedOf(e), (whOf(s).action.get(e) ?? -1) > s.frame) });
-registerM2Kind({ kind: 'm2:hww_craft', stats: { w: 40, h: 72, hp: 70, contact: 5, mass: 200 }, humanoid: true, gender: personGender, head: H(-66), ai: craft, draw: (c, e, f) => drawCraft(c, e, f, seedOf(e)) });
-registerM2Kind({ kind: 'm2:hww_mocap', stats: { w: 34, h: 72, hp: 60, contact: 7, mass: 160 }, humanoid: true, gender: personGender, head: H(-66), ai: mocap, draw: (c, e, f) => drawMocap(c, e, f, seedOf(e)) });
-registerM2Kind({ kind: 'm2:hww_stuntco', stats: { w: 42, h: 76, hp: 150, contact: 7, mass: 250 }, humanoid: true, gender: personGender, head: H(-70), ai: stuntco, draw: (c, e, f) => drawStuntco(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:hww_grip', stats: { w: 42, h: 76, hp: 140, contact: 7, mass: 270 }, humanoid: true, gender: personGender, head: H(-70), ai: grip, draw: (c, e, f) => drawGrip(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:hww_boom', stats: { w: 36, h: 74, hp: 140, contact: 5, mass: 180 }, humanoid: true, gender: personGender, head: H(-68), ai: boom, draw: (c, e, f) => drawBoom(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:hww_runner', stats: { w: 34, h: 72, hp: 120, contact: 5, mass: 160 }, humanoid: true, gender: personGender, head: H(-66), ai: runner, draw: (c, e, f) => drawRunner(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:hww_director', stats: { w: 40, h: 74, hp: 90, contact: 5, mass: 210 }, humanoid: true, gender: personGender, head: H(-68), ai: director, draw: (c, e, f, s) => drawDirector(c, e, f, seedOf(e), (whOf(s).action.get(e) ?? -1) > s.frame) });
+registerM2Kind({ kind: 'm2:hww_craft', stats: { w: 40, h: 72, hp: 120, contact: 5, mass: 200 }, humanoid: true, gender: personGender, head: H(-66), ai: craft, draw: (c, e, f) => drawCraft(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:hww_mocap', stats: { w: 34, h: 72, hp: 140, contact: 7, mass: 160 }, humanoid: true, gender: personGender, head: H(-66), ai: mocap, draw: (c, e, f) => drawMocap(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:hww_stuntco', stats: { w: 42, h: 76, hp: 160, contact: 7, mass: 250 }, humanoid: true, gender: personGender, head: H(-70), ai: stuntco, draw: (c, e, f) => drawStuntco(c, e, f, seedOf(e)) });
 
 /** The crew sped up by the director's ACTION! (the "!" over them, drawn by index.ts). */
 export const actionOn = (state: GameState, e: Enemy) => boost(state, e) > 1;

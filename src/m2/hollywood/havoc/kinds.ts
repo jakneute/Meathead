@@ -204,14 +204,14 @@ const poppy = (ctx: FrameContext, e: Enemy) => {
 const personGender = (e: Enemy) => (womanOf(e) ? 'f' : 'm') as 'm' | 'f';
 
 registerM2Kind({
-  kind: 'm2:hwh_looter', stats: { w: 38, h: 72, hp: 85, contact: 6, mass: 180 }, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 10 },
+  kind: 'm2:hwh_looter', stats: { w: 38, h: 72, hp: 120, contact: 6, mass: 180 }, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 10 },
   ai: looter, draw: (c, e, f) => drawLooter(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:hwh_crew', stats: { w: 40, h: 74, hp: 120, contact: 6, mass: 210 }, humanoid: true, gender: personGender, head: { x: 1, y: -68, r: 10 },
+  kind: 'm2:hwh_crew', stats: { w: 40, h: 74, hp: 90, contact: 6, mass: 210 }, humanoid: true, gender: personGender, head: { x: 1, y: -68, r: 10 },
   ai: crew, draw: (c, e, f) => drawCrew(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:hwh_poppy', stats: { w: 50, h: 82, hp: 130, contact: 8, mass: 240 }, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 10 },
+  kind: 'm2:hwh_poppy', stats: { w: 50, h: 82, hp: 160, contact: 8, mass: 240 }, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 10 },
   ai: poppy, draw: (c, e, f) => drawPoppy(c, e, f, seedOf(e)),
 });

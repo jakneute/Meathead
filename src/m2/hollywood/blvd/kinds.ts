@@ -252,28 +252,28 @@ const gendered = (m: string, f: string) => (e: Enemy) => (womanOf(e) ? f : m);
 const personGender = (e: Enemy) => (womanOf(e) ? 'f' : 'm') as 'm' | 'f';
 
 registerM2Kind({
-  kind: 'm2:hw_marilyn', stats: { w: 36, h: 72, hp: 70, contact: 5, mass: 150 }, humanoid: true, gender: 'f', head: { x: 1, y: -66, r: 10 },
+  kind: 'm2:hw_marilyn', stats: { w: 36, h: 72, hp: 90, contact: 5, mass: 150 }, humanoid: true, gender: 'f', head: { x: 1, y: -66, r: 10 },
   ai: hustler({ speed: 1.3, voice: () => HUSTLER_VOICES.marilyn, pool: MARILYN_HUSTLE, attack: marilynAttack, own: marilynOwn }),
   draw: (c, e, f) => drawMarilyn(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:hw_elvis', stats: { w: 40, h: 76, hp: 90, contact: 6, mass: 210 }, humanoid: true, gender: 'm', head: { x: 1, y: -70, r: 10 },
+  kind: 'm2:hw_elvis', stats: { w: 40, h: 76, hp: 140, contact: 6, mass: 210 }, humanoid: true, gender: 'm', head: { x: 1, y: -70, r: 10 },
   ai: hustler({ speed: 1.4, voice: () => HUSTLER_VOICES.elvis, pool: ELVIS_HUSTLE, attack: elvisAttack, own: elvisOwn }),
   draw: (c, e, f) => drawElvis(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:hw_hero', stats: { w: 40, h: 74, hp: 90, contact: 6, mass: 200 }, humanoid: true, gender: personGender, head: { x: 1, y: -68, r: 10 },
+  kind: 'm2:hw_hero', stats: { w: 40, h: 74, hp: 120, contact: 6, mass: 200 }, humanoid: true, gender: personGender, head: { x: 1, y: -68, r: 10 },
   ai: hustler({ speed: 1.2, voice: gendered(HUSTLER_VOICES.hero, HUSTLER_VOICES.herof), pool: HERO_HUSTLE, attack: heroAttack, own: heroOwn }),
   draw: (c, e, f) => drawHero(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:hw_pirate', stats: { w: 40, h: 74, hp: 110, contact: 6, mass: 200 }, humanoid: true, gender: personGender, head: { x: 1, y: -68, r: 10 },
+  kind: 'm2:hw_pirate', stats: { w: 40, h: 74, hp: 160, contact: 6, mass: 200 }, humanoid: true, gender: personGender, head: { x: 1, y: -68, r: 10 },
   pointy: { source: 'm2:hw_pirate_cutlass', label: 'SKEWERED!', damage: 13 },
   ai: hustler({ speed: 1.0, voice: gendered(HUSTLER_VOICES.pirate, HUSTLER_VOICES.piratef), pool: PIRATE_HUSTLE, attack: pirateAttack, own: pirateOwn }),
   draw: (c, e, f) => drawPirate(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:hw_statue', stats: { w: 42, h: 78, hp: 160, contact: 5, mass: 260 }, humanoid: true, gender: personGender, head: { x: 1, y: -72, r: 10 },
+  kind: 'm2:hw_statue', stats: { w: 42, h: 78, hp: 140, contact: 5, mass: 260 }, humanoid: true, gender: personGender, head: { x: 1, y: -72, r: 10 },
   ai: statueAI,
   draw: (c, e, f) => drawStatue(c, e, f, seedOf(e)),
 });

@@ -318,36 +318,36 @@ const human = (e: Enemy, woman?: boolean) => (lookOf(seedOf(e), woman).woman ? '
 const brideWoman = (e: Enemy) => seedOf(e) % 5 !== 0;
 
 registerM2Kind({
-  kind: STAFF.skeleton, stats: { w: 42, h: 68, hp: 150, contact: 8, mass: 230 }, ai: skeletonAI, humanoid: true,
+  kind: STAFF.skeleton, stats: { w: 42, h: 68, hp: 160, contact: 8, mass: 230 }, ai: skeletonAI, humanoid: true,
   make: b => ({ ...b, enemyType: 'shield', isShieldActive: true }),
   gender: e => human(e), head: { x: 1, y: -67, r: 9 },
   draw: (c, e, f) => drawSkeletonCostume(c, wear(e, f), 'lid', e.isShieldActive !== false),
 });
 registerM2Kind({
-  kind: STAFF.knight, stats: { w: 42, h: 70, hp: 210, contact: 9, mass: 300 }, ai: knightAI, humanoid: true,
+  kind: STAFF.knight, stats: { w: 42, h: 70, hp: 160, contact: 9, mass: 300 }, ai: knightAI, humanoid: true,
   spiky: { source: `${STAFF.knight}_spikes`, label: 'SPIKED!' },
   gender: e => human(e), head: { x: 1, y: -67, r: 10 },
   draw: (c, e, f) => drawKnightCostume(c, wear(e, f)),
 });
 registerM2Kind({
-  kind: STAFF.igor, stats: { w: 40, h: 62, hp: 120, contact: 9, mass: 200 }, ai: igorAI, humanoid: true,
+  kind: STAFF.igor, stats: { w: 40, h: 62, hp: 170, contact: 9, mass: 200 }, ai: igorAI, humanoid: true,
   pointy: { source: `${STAFF.igor}_fork`, label: 'FORKED!' },
   gender: e => human(e), head: { x: 8, y: -61, r: 9 },
   draw: (c, e, f) => drawIgorCostume(c, wear(e, f), 'chef'),
 });
 registerM2Kind({
-  kind: STAFF.witch, stats: { w: 38, h: 66, hp: 90, contact: 7, mass: 170 }, ai: witchAI, humanoid: true,
+  kind: STAFF.witch, stats: { w: 38, h: 66, hp: 120, contact: 7, mass: 170 }, ai: witchAI, humanoid: true,
   gender: e => human(e), head: { x: 1, y: -67, r: 9 },
   draw: (c, e, f) => drawWitchCostume(c, wear(e, f)),
 });
 registerM2Kind({
-  kind: STAFF.bride, stats: { w: 38, h: 66, hp: 100, contact: 12, mass: 170 }, ai: brideAI, humanoid: true,
+  kind: STAFF.bride, stats: { w: 38, h: 66, hp: 140, contact: 12, mass: 170 }, ai: brideAI, humanoid: true,
   gender: e => human(e, brideWoman(e)), head: { x: 1, y: -67, r: 9 },
   // (rushing: leaning into it, arms out for his neck)
   draw: (c, e, f) => drawBrideCostume(c, wear(e, f, brideWoman(e)), 'rush'),
 });
 registerM2Kind({
-  kind: STAFF.batsuit, stats: { w: 44, h: 66, hp: 80, contact: 10, mass: 160, air: true }, ai: batsuitAI, humanoid: true, grab: 'critter',
+  kind: STAFF.batsuit, stats: { w: 44, h: 66, hp: 100, contact: 10, mass: 160, air: true }, ai: batsuitAI, humanoid: true, grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
   gender: e => human(e), head: { x: 1, y: -67, r: 9 },
   // (the wire only while he's flying on it: not once it's snapped (grabbed, or a charge move), not as a corpse or flung)
@@ -358,12 +358,12 @@ registerM2Kind({
   },
 });
 registerM2Kind({
-  kind: STAFF.mummy, stats: { w: 50, h: 74, hp: 420, contact: 12, mass: 520 }, ai: mummyAI, humanoid: true, grab: 'body',
+  kind: STAFF.mummy, stats: { w: 50, h: 74, hp: 360, contact: 12, mass: 520 }, ai: mummyAI, humanoid: true, grab: 'body',
   gender: e => human(e), head: { x: 1, y: -67, r: 10 },
   draw: (c, e, f) => drawMummyCostume(c, wear(e, f), 1.1),
 });
 registerM2Kind({
-  kind: STAFF.bat, stats: { w: 26, h: 18, hp: 20, contact: 6, mass: 15, air: true }, ai: batAI, gender: 'n', grab: 'critter',
+  kind: STAFF.bat, stats: { w: 26, h: 18, hp: 14, contact: 6, mass: 15, air: true }, ai: batAI, gender: 'n', grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
   head: { x: 0, y: -10, r: 5 },
   draw: (c, e, f) => drawBatArt(c, e, f, 0.9),

@@ -279,24 +279,24 @@ const drawRinger = (c: Ctx, e: Enemy, f: number) => drawRingerArt(c, e, f);
 const personGender = (e: Enemy) => (lookOf(seedOf(e)).woman ? 'f' : 'm') as 'm' | 'f';
 
 registerM2Kind({
-  kind: TK.igor, stats: { w: 40, h: 60, hp: 120, contact: 10, mass: 200 }, ai: igorAI, humanoid: true, gender: personGender,
+  kind: TK.igor, stats: { w: 40, h: 60, hp: 170, contact: 10, mass: 200 }, ai: igorAI, humanoid: true, gender: personGender,
   pointy: { source: 'm2:tower_pitchfork', label: 'FORKED!' }, head: { x: 11, y: -52, r: 8 },
   draw: (c, e, f) => drawIgor(c, e, f),
 });
 registerM2Kind({
-  kind: TK.mummy, stats: { w: 46, h: 84, hp: 300, contact: 13, mass: 430 }, ai: mummyAI, humanoid: true, gender: personGender,
+  kind: TK.mummy, stats: { w: 46, h: 84, hp: 340, contact: 13, mass: 430 }, ai: mummyAI, humanoid: true, gender: personGender,
   head: { x: 0, y: -74, r: 11 }, draw: (c, e, f) => drawMummy(c, e, f),
 });
 registerM2Kind({
-  kind: TK.bride, stats: { w: 38, h: 70, hp: 80, contact: 8, mass: 170 }, ai: brideAI, humanoid: true, gender: personGender,
+  kind: TK.bride, stats: { w: 38, h: 70, hp: 120, contact: 8, mass: 170 }, ai: brideAI, humanoid: true, gender: personGender,
   head: { x: 0, y: -60, r: 8 }, draw: (c, e, f) => drawBride(c, e, f),
 });
 registerM2Kind({
-  kind: TK.cuckoo, stats: { w: 26, h: 20, hp: 25, contact: 8, mass: 20, air: true }, ai: cuckooAI, gender: 'n', grab: 'critter', fixture: true,
+  kind: TK.cuckoo, stats: { w: 26, h: 20, hp: 14, contact: 8, mass: 20, air: true }, ai: cuckooAI, gender: 'n', grab: 'critter', fixture: true,
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
   head: { x: 6, y: -14, r: 5 }, draw: (c, e, f) => drawCuckoo(c, e, f),
 });
 registerM2Kind({
-  kind: TK.ringer, stats: { w: 50, h: 120, hp: 300, contact: 10, mass: 900 }, ai: ringerAI, robot: true, gender: 'n', grab: 'none',
+  kind: TK.ringer, stats: { w: 50, h: 120, hp: 360, contact: 10, mass: 900 }, ai: ringerAI, robot: true, gender: 'n', grab: 'none',
   head: { x: 0, y: -104, r: 13 }, draw: (c, e, f) => drawRinger(c, e, f),
 });

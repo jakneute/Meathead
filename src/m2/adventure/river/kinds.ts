@@ -117,7 +117,7 @@ const snapper = (ctx: FrameContext, e: Enemy) => {
 };
 // ---------------------------------------------------------------------------------------------------------------
 
-registerM2Kind({ kind: 'm2:piranha', stats: { w: 28, h: 18, hp: 22, contact: 5, mass: 25, air: true }, ai: piranha, draw: drawPiranha, head: { x: 8, y: -9, r: 6 }, gender: 'n', grab: 'critter', make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
-registerM2Kind({ kind: 'm2:eel', stats: { w: 80, h: 16, hp: 60, contact: 9, mass: 60, air: true }, ai: eel, draw: drawEel, head: { x: 32, y: -8, r: 7 }, gender: 'n', grab: 'critter', grabHurts: { dmg: 9, when: e => e.aiState === 'zap' || e.aiState === 'lunge' }, make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
-registerM2Kind({ kind: 'm2:snapper', stats: { w: 34, h: 30, hp: 80, contact: 10, mass: 80, air: true }, ai: snapper, draw: drawSnapper, head: { x: 8, y: -15, r: 10 }, gender: 'n', grab: 'critter', make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
+registerM2Kind({ kind: 'm2:piranha', stats: { w: 28, h: 18, hp: 14, contact: 5, mass: 25, air: true }, ai: piranha, draw: drawPiranha, head: { x: 8, y: -9, r: 6 }, gender: 'n', grab: 'critter', make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
+registerM2Kind({ kind: 'm2:eel', stats: { w: 80, h: 16, hp: 35, contact: 9, mass: 60, air: true }, ai: eel, draw: drawEel, head: { x: 32, y: -8, r: 7 }, gender: 'n', grab: 'critter', grabHurts: { dmg: 9, when: e => e.aiState === 'zap' || e.aiState === 'lunge' }, make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
+registerM2Kind({ kind: 'm2:snapper', stats: { w: 34, h: 30, hp: 35, contact: 10, mass: 80, air: true }, ai: snapper, draw: drawSnapper, head: { x: 8, y: -15, r: 10 }, gender: 'n', grab: 'critter', make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }) });
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, [...l.hurt], [...l.death]);

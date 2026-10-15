@@ -204,7 +204,7 @@ const mascotAI = (ctx: FrameContext, e: Enemy): boolean => {
 const posed = (e: Enemy): Pose => (e.aiState === 'windup' ? 'tell' : e.aiState === 'jab' || e.aiState === 'bump' ? 'strike' : Math.abs(e.vel.x) > 0.3 ? 'walk' : 'stand');
 
 registerM2Kind({
-  kind: CLERK, stats: { w: 38, h: 66, hp: 90, contact: 9, mass: 200 }, ai: clerkAI, humanoid: true, grab: 'body',
+  kind: CLERK, stats: { w: 38, h: 66, hp: 170, contact: 9, mass: 200 }, ai: clerkAI, humanoid: true, grab: 'body',
   pointy: { source: PITCHFORK, label: 'FORKED!' },
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -64, r: 9 },
@@ -212,7 +212,7 @@ registerM2Kind({
 });
 
 registerM2Kind({
-  kind: HAWKER, stats: { w: 38, h: 66, hp: 70, contact: 6, mass: 200 }, ai: hawkerAI, humanoid: true, grab: 'body',
+  kind: HAWKER, stats: { w: 38, h: 66, hp: 120, contact: 6, mass: 200 }, ai: hawkerAI, humanoid: true, grab: 'body',
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -64, r: 9 },
   draw: (c, e, f) => drawShopStaff(c, 'hawker', { seed: seedOf(e), f, ...(reaction(e) ?? { pose: posed(e), md: moodOf(e) }), t: (e.aiTimer ?? 0) / 24 }),

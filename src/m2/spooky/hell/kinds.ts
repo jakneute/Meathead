@@ -194,14 +194,14 @@ const goatAI = (ctx: FrameContext, e: Enemy): boolean => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawn in creatures.ts (the jungle animals' finish: stamped frames, stepped ramps, ink)
 
-registerM2Kind({ kind: 'm2:imp', stats: { w: 26, h: 42, hp: 45, contact: 8, mass: 60 }, ai: impAI, draw: drawImpArt, head: { x: 0, y: -34, r: 8 }, gender: 'n', grab: 'critter' });
-registerM2Kind({ kind: 'm2:hellhound', stats: { w: 60, h: 44, hp: 100, contact: 12, mass: 150 }, ai: houndAI, draw: drawHoundArt, head: { x: 32, y: -36, r: 9 }, gender: 'n', grab: 'body' });
+registerM2Kind({ kind: 'm2:imp', stats: { w: 26, h: 42, hp: 35, contact: 8, mass: 60 }, ai: impAI, draw: drawImpArt, head: { x: 0, y: -34, r: 8 }, gender: 'n', grab: 'critter' });
+registerM2Kind({ kind: 'm2:hellhound', stats: { w: 60, h: 44, hp: 120, contact: 12, mass: 150 }, ai: houndAI, draw: drawHoundArt, head: { x: 32, y: -36, r: 9 }, gender: 'n', grab: 'body' });
 registerM2Kind({
-  kind: 'm2:firebat', stats: { w: 34, h: 22, hp: 30, contact: 9, mass: 30, air: true }, ai: batAI, draw: drawBatArt, head: { x: 0, y: -12, r: 6 }, gender: 'n', grab: 'critter',
+  kind: 'm2:firebat', stats: { w: 34, h: 22, hp: 14, contact: 9, mass: 30, air: true }, ai: batAI, draw: drawBatArt, head: { x: 0, y: -12, r: 6 }, gender: 'n', grab: 'critter',
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
 });
 registerM2Kind({
-  kind: 'm2:hellgoat', stats: { w: 68, h: 64, hp: 220, contact: 14, mass: 420 }, ai: goatAI, draw: drawGoatArt, head: { x: 32, y: -54, r: 10 }, gender: 'n', grab: 'none',
+  kind: 'm2:hellgoat', stats: { w: 68, h: 64, hp: 170, contact: 14, mass: 420 }, ai: goatAI, draw: drawGoatArt, head: { x: 32, y: -54, r: 10 }, gender: 'n', grab: 'none',
   pointy: { source: 'm2:hellgoat_horns', label: 'HORNED!', damage: 16 },
 });
 
