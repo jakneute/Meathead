@@ -38,7 +38,18 @@ export interface StuntWire {
   speed?: number;
   /** Not working right now (cut, not rigged yet, the power's off): drawn slack, not grabbable. */
   off?: boolean;
+  /** A rig on its own loop (a camera dolly): it never parks, it runs back and forth between the ends by itself; grab
+   *  it as it comes and it takes him the way it's going. (The wire code: hollywood/wires.ts.) */
+  shuttle?: boolean;
 }
+// (Wires are matched frame to frame by their place in a section's list: keep the list's order steady, and switch one
+// `off` rather than leaving it out.)
+
+/** The real disasters are on (Disaster: The Ride's lever, REAL DISASTERS (EXPERIMENTAL), flipped): state.stageMemo,
+ *  kept across his deaths. The disaster owner sets it (`setRealDisasters`); the lot shows the weather once it's on. */
+export const REAL_DISASTERS_MEMO = 'hollywood-real-disasters';
+export const realDisastersOn = (state: GameState) => state.stageMemo[REAL_DISASTERS_MEMO] === '1';
+export const setRealDisasters = (state: GameState) => { state.stageMemo[REAL_DISASTERS_MEMO] = '1'; };
 
 /** A section of Hollywood Land: Adventure Land's Section, plus Hollywood Land's own hooks. */
 export interface HollywoodSection extends Section<HollywoodId> {

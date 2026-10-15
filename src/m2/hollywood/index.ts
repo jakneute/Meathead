@@ -27,6 +27,7 @@ import { lot } from './lot';
 import { disaster } from './disaster';
 import { havoc } from './havoc';
 import { stunt } from './stunt';
+import { updateWires, drawWires, onWire, WIRE_ROW } from './wires';
 export { HOLLYWOOD_VOICE_LINES } from './voices';
 
 export const HOLLYWOOD_STAGE = 'M2 Hollywood Land';
@@ -121,6 +122,8 @@ export const hollywoodLayout: StageLayout = {
     if (hs.arrive && !arriving) hs.arrive = undefined;
     if (arriving) controls = { ...NO_CONTROLS };
     let out = sec.update ? sec.update(ctx, controls) : controls;
+    // (the stunt wires: grabbing, riding, letting go (wires.ts))
+    out = updateWires(ctx, hs.wires, out);
     out = updateGrab(ctx, hs.grab, out);
     if (arriving) out = { ...NO_CONTROLS };
     // (a cutscene in any section: no HUD; the HUD's look: Hollywood Land's, everywhere in it for now)
@@ -137,6 +140,7 @@ export const hollywoodLayout: StageLayout = {
   drawBack: (c, state) => {
     // (the ones either side too, so walking from one into the next there's no gap)
     for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawBack?.(c, state); }
+    drawWires(c, state, getHollywood(state)?.wires ?? []);
   },
   drawFront: (c, state) => {
     // (a grab's in the play plane: anything the sections draw in front of him goes in front of it too)
@@ -160,7 +164,7 @@ export const hollywoodLayout: StageLayout = {
     const out = sec.outdoors?.(state) ?? 0;
     return out > 0 ? todLight(sec.lamps?.(state) ?? [], out) : null;
   },
-  cameraRow: (state) => current(state).cameraRow?.(state),
+  cameraRow: (state) => (onWire(state) ? WIRE_ROW : current(state).cameraRow?.(state)),
   cylinder: (state) => current(state).cylinder?.(state) ?? null,
   worldTilt: (state) => current(state).worldTilt?.(state) ?? null,
 };
