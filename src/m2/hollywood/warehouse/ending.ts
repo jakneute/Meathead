@@ -192,11 +192,12 @@ export const updateEnding =(ctx: FrameContext): Controls | null => {
     }
     case 'drive': {
       // The exec on his phone at the back (after his line, in turn): never a look at any of it
-      if (E.t === 1 && !E.wallHit) execSay(state, EXEC_PHONE);
+      if (E.t === 1 && !E.wallHit) { E.ex.phoned = false; execSay(state, EXEC_PHONE, () => { E.ex.phoned = true; }); }
       if (E.ex.mode !== 'off') E.ex.t++;
       const front = () => E.heapX + HALF;
       // The engine catching; then up the stage, the pile ahead of the blade
-      if (E.t < 50) {
+      // (idling till the exec's had his say on the phone: then it goes; 10 s at most)
+      if (E.t < 50 || (!E.ex.phoned && E.t < 600 && !E.wallHit)) {
         if (E.t % 10 === 1) playSound('engine', 0.5, -10);
         if (E.t === 20) playSound('rumble', 0.7, -8);
         if (E.t % 4 === 0) state.particles.push({ pos: { x: E.dx + 26, y: GY - 156 }, vel: { x: -0.4, y: -1.5 }, life: 40, color: 'rgba(41, 37, 36, 0.7)', size: 5 + Math.random() * 4 });

@@ -72,6 +72,8 @@ export interface Exec {
   x: number; y: number; face: 1 | -1; t: number;
   /** What he's saying, while it's said; the rant's over. */
   said: Said | null; done: boolean;
+  /** His phone call's done (the bulldozer waits on it: he's had his say before it goes). */
+  phoned?: boolean;
 }
 
 export interface Ending {
