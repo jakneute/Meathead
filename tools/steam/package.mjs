@@ -20,7 +20,7 @@ const electronVersion = createRequire(import.meta.url)('electron/package.json').
 
 fs.rmSync(path.join(root, '.steam-build'), { recursive: true, force: true });
 fs.mkdirSync(stage, { recursive: true });
-for (const f of ['main.cjs', 'preload.cjs', 'steam.cjs', 'package.json']) fs.copyFileSync(path.join(root, 'electron', f), path.join(stage, f));
+for (const f of ['main.cjs', 'preload.cjs', 'steam.cjs', 'package.json', 'icon.ico']) fs.copyFileSync(path.join(root, 'electron', f), path.join(stage, f));
 fs.copyFileSync(page, path.join(stage, 'Meathead.html'));
 
 const [built] = await packager({
@@ -28,6 +28,8 @@ const [built] = await packager({
   out: outTmp,
   name: 'Meathead',
   executableName: 'Meathead',
+  // (Meathead's face, from the cutscenes: npm run icon makes it)
+  icon: path.join(root, 'electron', 'icon.ico'),
   platform: 'win32',
   arch: 'x64',
   electronVersion,

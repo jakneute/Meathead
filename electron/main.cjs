@@ -83,6 +83,7 @@ const createWindow = () => {
     title: 'Meathead',
     width: 1280, height: 960, minWidth: 800, minHeight: 600,
     backgroundColor: '#000000',
+    icon: path.join(__dirname, 'icon.ico'),
     fullscreen,
     show: false,
     autoHideMenuBar: true,
