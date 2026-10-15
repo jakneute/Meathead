@@ -29,6 +29,8 @@ Studios), never their names or looks:
   photographing them.
 - Franchise fatigue: knock-off franchise banners, absurd sequel numbers, COMING SOON for old things, Revengers merch
   carts.
+- The Revengers' tagline (the user's): **"REVENGERS: RESEMBLE"**, a stupid, nonsensical line, and that's the point. It
+  goes on every Revengers banner, poster, merch cart and bit of franchise signage (and in lines where it fits).
 - The old studio-tour attractions done badly.
 - PHOTOS $20 hustlers and tip jars; exit through the gift shop.
 - Stuntman Steve fliers, posters, standees and PA plugs everywhere (section.ts `steveFlier`).
@@ -110,7 +112,8 @@ lever stays flipped, the sleeper gone, the track bent.
 
 The burst-in (cutscene beat: the train through the wall, all four walls falling outward, the public outside staring
 in, phones up). They were secretly filming THE REVENGERS (legally distinct; a sequel number absurd enough) for a tax
-write-off; the secret's out; cast and crew are pissed. Green-screen sets: half-built hero sets, mocap-suited stand-ins,
+write-off; the secret's out; cast and crew are pissed. Its tagline: "REVENGERS: RESEMBLE" (the user's; nonsense on
+purpose): on the set's banners, slates, the script's cover, and in the cast's lines where it fits. Green-screen sets: half-built hero sets, mocap-suited stand-ins,
 a skyline on a flat, crash mats, rigging (stunt wires), a camera crane (ride it?), wind machines. Enemies: the film
 crew (grips with C-stands, boom ops, ADs with headsets, a director with a megaphone, craft services throwing food,
 mocap stunt doubles). At the end: the script in a glass case on a pedestal, lit and roped off like a temple idol
