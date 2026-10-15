@@ -170,7 +170,8 @@ const App: React.FC = () => {
   const requestSave = () => setSaveAsked(n => n + 1);
   /** The title's menu: CONTINUE there while there's a file to continue. */
   const filesV = useSyncExternalStore(subscribeFiles, filesVersion, filesVersion);
-  const options = useMemo(() => titleOptions(anyFile()), [filesV]);
+  // (the cheats build saves nothing: no CONTINUE, no file select; START GAME is NO SAVE)
+  const options = useMemo(() => titleOptions(!SHOW_CHEATS && anyFile()), [filesV]);
   /**
    * The opening (START GAME + INTRO): its first half playing over the title ('opening'), then the gym, then its second
    * half ('playing') over the title again, fading off the stage select ('outro').
@@ -403,6 +404,7 @@ const App: React.FC = () => {
     if (o.kind === 'quit') { ask('game'); return; }
     if (Date.now() - screenShownAtRef.current < MIN_CONFIRM_DELAY_MS) return;
     if (o.kind === 'continue') { const slot = latestSlot(); if (slot) loadFile(slot); return; }
+    if (SHOW_CHEATS) { startNewGame(null, o.intro); return; }
     playMenuOk();
     setFileSelect({ intro: o.intro });
   };
@@ -411,9 +413,9 @@ const App: React.FC = () => {
    * A new game: on a file (anything that was on it gone), or with NO SAVE (null). Everything starts empty (the set
    * the dev cheat's put it on stays: see handleChangeRank), the garage too.
    */
-  const startNewGame = (slot: Slot | null) => {
+  const startNewGame = (slot: Slot | null, intro = !!fileSelect?.intro) => {
     // (the dev cheat's skip set past 0: no intro)
-    const withIntro = !!fileSelect?.intro && !skipIntroCheat;
+    const withIntro = intro && !skipIntroCheat;
     if (slot !== null && readFile(slot)) deleteFile(slot);
     playMenuOk();
     setFileSelect(null);
