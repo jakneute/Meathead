@@ -166,7 +166,7 @@ const riding = (ctx: FrameContext, s: Sled, controls: Controls): Controls => {
   // (a worker, the lights up and the sled still coming)
   if (!s.yelled && s.x > ACT3_X + 50 && s.k >= 1) { s.yelled = true; sayAt(s, 'm2.space.hand', pickLine(L.WORKER_YELLS), WORKERS[2][0], (trackY(WORKERS[2][0]) ?? GY) - 90); }
   // (the brake run's attendant, him coming far too fast)
-  if (!s.braked && s.x > BRAKE_AT - 520) { s.braked = true; sayAt(s, 'm2.space.hand', L.BRAKE_YELL, BRAKE_X - 10, (trackY(BRAKE_X) ?? GY) - 170); }
+  if (!s.braked && s.x > BRAKE_AT - 900) { s.braked = true; sayAt(s, 'm2.space.hand', L.BRAKE_YELL, BRAKE_X - 10, (trackY(BRAKE_X) ?? GY) - 170); }
   // The brake run: from here, a scene
   if (s.x >= BRAKE_AT) { startCrash(state, s); return hands(); }
   // Jump: the sled and him in it (not crawling through the reveal). Pressed a moment early, it goes as he lands; a
@@ -262,7 +262,8 @@ const scene = (ctx: FrameContext, s: Sled): Controls => {
       if (state.frame % 9 === 0) playSound('grind', 0.6, -4 + Math.random() * 4);
       for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: s.x - 40 + Math.random() * 80, y: s.y - 4 }, vel: { x: -2 - Math.random() * 5, y: -1 - Math.random() * 5 }, life: 14 + Math.random() * 10, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 2, grav: 0.25 });
       // He's had enough of that: the space blaster into the brake box
-      if (!s.boxShot && s.brakeT > 34) { s.boxShot = true; blast(state, s); }
+      // (once his line's said: the words before the shot, not after it; never longer than 5 s)
+      if (!s.boxShot && s.brakeT > 34 && (!isTalking() || s.brakeT > 300)) { s.boxShot = true; blast(state, s); }
       if (s.boxShot && !s.boxT && tr.bolts.every(b => b.x < BRAKE_BOX_X - 20)) {
         // (the bolt's in it)
         s.boxT = 1; tr.bolts = []; s.hold = SMASH_HOLD;
@@ -275,8 +276,10 @@ const scene = (ctx: FrameContext, s: Sled): Controls => {
         if (s.paLive) paStory(state, 'brakefail', true);
       }
     } else if (s.boxT) {
-      // No brakes: off it goes, over the crest and down the last drop, faster and faster
-      s.speed = Math.min(RUNAWAY, s.speed + (s.x > CREST_X ? RUNAWAY_GAIN : 0.22));
+      // No brakes: off it goes, over the crest and down the last drop, faster and faster. (Held at the crawl till
+      // BRAKE FAILURE's been said, so it's heard before the drop, not over it; 6 s at most.)
+      const held = s.boxT < 50 || (isTalking() && s.boxT < 360);
+      if (!held) s.speed = Math.min(RUNAWAY, s.speed + (s.x > CREST_X ? RUNAWAY_GAIN : 0.22));
       if (s.boxT % 50 === 1) playSound('siren', 0.7);
       if (s.x > CREST_X && s.speed > 12) shakeScreen(state, 4, 2);
       if (s.x > CREST_X && state.frame % 3 === 0) playSound('rumble', 0.5, 4);
