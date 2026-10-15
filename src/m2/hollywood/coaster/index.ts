@@ -60,7 +60,7 @@ import { safeAhead } from '../../../m1/game/enemies/kinds';
 import { coasterOf, type Coaster } from './state';
 import { updatePlungers, staffBark, BEAM } from './kinds';
 import { drawPlunger } from './kindArt';
-import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, carsOn, carsParked, coasterLamps, SINK } from './art';
+import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, carsOn, carsParked, coasterLamps, SINK, rollScale } from './art';
 import * as L from './lines';
 import { updateThrones, drawThroneFront, inCase, throneState, throneHere } from './thrones';
 
@@ -94,14 +94,16 @@ const placeOf = (state: GameState): Place | null => {
 // ---------------------------------------------------------------------------------------------------------------
 // The ride: on the train, along a track (a show: no hands), and off at the far end
 
-/** His feet on the front seat at a rail point (rolled with the car: over the top of a loop he's hanging under it). */
+/** His feet on the front seat at a rail point, sat in it the way the other rides' cars sit him (cartSeat: the mine
+ *  cart's pose, its sink), turned and rolled exactly as the car is (art.ts drawTrain: rotated along the rail, squashed
+ *  by the roll; hung under the rail, upside down with it). */
 const seat = (state: GameState, x: number, y: number, a: number, roll: number) => {
-  const p = state.player, k = Math.cos(roll);
+  const p = state.player, k = rollScale(roll);
   p.pos.x = x + Math.sin(a) * SINK * k - p.width / 2;
   p.pos.y = y - Math.cos(a) * SINK * k - p.height;
   p.vel.x = 0; p.vel.y = 0;
-  p.spriteRot = a + roll;
-  p.facing = k >= 0 ? 1 : -1;
+  p.spriteRot = a; p.spriteScaleY = k;
+  p.facing = 1; p.cartSeat = true; p.isDucking = false;
 };
 const board = (state: GameState, co: Coaster, pl: Place) => {
   const p = state.player, r = co.ride, lever = memo(state, LEVER_MEMO);
@@ -158,7 +160,7 @@ const boarding0 = (r: Coaster['ride']) => r.beats.some(b => b.at === 'board') ||
 const offTrain = (state: GameState, co: Coaster) => {
   const p = state.player, r = co.ride;
   r.on = false; r.track = null; r.fly = null; r.fade = 0; r.zoom = 1;
-  p.carried = false; p.cartSeat = false; p.inCutscene = false; p.spriteRot = 0; p.facing = 1; p.hidden = false;
+  p.carried = false; p.cartSeat = false; p.inCutscene = false; p.spriteRot = 0; p.spriteScaleY = undefined; p.facing = 1; p.hidden = false;
   state.cameraOverride = null;
   setHazardZones(state, 'hwc-train', []);
 };
@@ -545,10 +547,10 @@ export const coaster: HollywoodSection = {
     return controls;
   },
   drawBackdrop: (c, state) => drawCoasterBackdrop(c, state),
-  drawBack: (c, state) => {
+  drawBack: (c, state) => drawCoasterBack(c, state, coasterOf(state)),
+  drawOverWires: (c, state) => {
     const co = coasterOf(state), f = state.frame, r = co.ride;
-    drawCoasterBack(c, state, co);
-    // The trains: parked at every place (one each: the ride runs a few), but the one he's on, going
+    // The trains (after everything of the structure and the stunt rigs' chains: nothing of them across a car or him): parked at every place (one each: the ride runs a few), but the one he's on, going
     if (r.on && r.track && !r.fly) drawTrain(c, carsOn(r.track, r.s), 'back', f, true);
     else if (r.on && r.fly) drawFlyingTrain(c, r.fly.x, r.fly.y, r.fly.rot, 'back', f);
     if (!r.on) for (const pl of ['station', 0, 1, 2] as Place[]) drawTrain(c, carsParked(pl), 'back', f, false, pl === 'station' ? undefined : !state.stageMemo[CLEARED_MEMO(pl)]);

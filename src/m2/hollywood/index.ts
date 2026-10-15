@@ -141,6 +141,7 @@ export const hollywoodLayout: StageLayout = {
     // (the ones either side too, so walking from one into the next there's no gap)
     for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawBack?.(c, state); }
     drawWires(c, state, getHollywood(state)?.wires ?? []);
+    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawOverWires?.(c, state); }
   },
   drawFront: (c, state) => {
     // (a grab's in the play plane: anything the sections draw in front of him goes in front of it too)

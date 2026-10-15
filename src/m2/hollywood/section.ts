@@ -66,6 +66,8 @@ export interface HollywoodSection extends Section<HollywoodId> {
   /** The stunt wires in it right now (read every frame; the stage gathers every section's into the stage's own list:
    *  hollywoodWires(state)). Left out: none. */
   wires?: (state: GameState) => StuntWire[];
+  /** Drawn after the stunt wires' rigs, still behind him (the coaster's train: nothing of the rigs' chains across it). */
+  drawOverWires?: (c: CanvasRenderingContext2D, state: GameState) => void;
 }
 /** Hollywood Land's own state (state.stage): which section he's in, each section's own state by its id. */
 export interface Hollywood extends Adv<HollywoodId> {

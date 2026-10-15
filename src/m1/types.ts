@@ -245,6 +245,9 @@ export interface Player extends Entity {
   cartSeat?: boolean;
   /** The whole of him drawn turned (radians, about his feet): sat in a cart that's going up a loop. */
   spriteRot?: number;
+  /** Drawn squashed up and down (about his feet, after spriteRot; negative: upside down), with the car he's sat in:
+   *  a coaster car rolled over on its side or hung under the rail (Thrones of the Stars). */
+  spriteScaleY?: number;
   /** Frames since he was last on the ground. */
   offGround?: number;
   vine?: { mode: 'hang' | 'climb' | 'zipUp' | 'zipDown' | 'push'; th: number; om: number };

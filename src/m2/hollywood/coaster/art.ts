@@ -79,6 +79,10 @@ const chunksOf = (tr: Track) => {
 /** On a deck (where the deck's own floor carries the rail: no legs). */
 const onDeck = (x: number, y: number) => (y > Y(STATION.h) - 4 && y < Y(STATION.h) + 4 && x < X(STATION.b + 60)) || STOPS.some(s => x > X(s.a - 60) && x < X(s.b + 60) && Math.abs(y - Y(s.h)) < 4);
 
+/** A leg down from here: the track the right way up, going either way (the cars sat on top of it: not climbing a
+ *  loop, not mid-roll, not hung under the rail: there a leg off the rail comes down right through the cars and him),
+ *  not on a deck, up off the park. */
+const legAt = (p: { x: number; y: number; a: number; roll: number }) => Math.cos(p.a) * Math.cos(p.roll) >= 0.5 && Math.abs(Math.cos(p.roll)) >= 0.9 && !onDeck(p.x, p.y) && p.y <= GY - 30;
 const drawTrackPath = (c: Ctx, state: GameState, tr: Track, bentFrom = -1) => {
   const v = viewOf(state), pts = tr.pts;
   for (const ch of chunksOf(tr)) {
@@ -89,7 +93,7 @@ const drawTrackPath = (c: Ctx, state: GameState, tr: Track, bentFrom = -1) => {
     for (let i = ch.i0; i < ch.i1; i++) {
       if (i % 50 !== 0) continue;
       const p = pts[i];
-      if (Math.cos(p.a) < 0.5 || onDeck(p.x, p.y) || p.y > GY - 30) continue;
+      if (!legAt(p)) continue;
       c.moveTo(p.x, p.y + 10); c.lineTo(p.x, GY);
     }
     c.stroke();
@@ -98,7 +102,7 @@ const drawTrackPath = (c: Ctx, state: GameState, tr: Track, bentFrom = -1) => {
     for (let i = ch.i0; i < ch.i1; i++) {
       if (i % 50 !== 0) continue;
       const p = pts[i];
-      if (Math.cos(p.a) < 0.5 || onDeck(p.x, p.y) || p.y > GY - 30) continue;
+      if (!legAt(p)) continue;
       for (let y = p.y + 60; y < GY - 40; y += 120) { c.moveTo(p.x - 14, y); c.lineTo(p.x + 14, y + 60); c.moveTo(p.x + 14, y); c.lineTo(p.x - 14, y + 60); }
     }
     c.stroke();
@@ -156,11 +160,16 @@ export const drawTracks = (c: Ctx, state: GameState) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 // The train: three golden throne-toilets on wheels (front first). Local: x along the rail, up is -y. `layer` 'back'
-// (the bogie, the base, the throne's back, the seat), 'front' (the bowl's front and the lap bar, over whoever's sat in
-// it).
+// (the bogie, the base, the throne's back, the tank, the seat: behind whoever's sat in it), 'front' (the throne's near
+// arm and side, the bowl's front, the lap bar: in front of him, like the mine cart's tub, so he's sat down in it, just
+// his top half showing). Sat in the way the other rides' cars sit him (the cart's RIDE_SINK, the cart's pose:
+// cartSeat): feet SINK over the rail at the car's middle, hips under the arm's top.
 
-/** How far over the rail his feet sit in the front car. */
-export const SINK = 16;
+/** How far over the rail his feet sit in the front car (the mine cart's RIDE_SINK). */
+export const SINK = 14;
+/** How a car (and whoever's in it) is squashed up and down by the track's roll: on its side, nearly flat; hung under
+ *  the rail, upside down. */
+export const rollScale = (roll: number) => { const sc = Math.cos(roll); return Math.abs(sc) < 0.12 ? 0.12 * Math.sign(sc || 1) : sc; };
 const car = (c: Ctx, layer: 'back' | 'front', f: number, k: number) => {
   if (layer === 'back') {
     // (the bogie and its wheels)
@@ -170,24 +179,39 @@ const car = (c: Ctx, layer: 'back' | 'front', f: number, k: number) => {
     // (no lit top on it: it's not for standing on)
     box(c, -30, -24, 60, 15, '#000'); box(c, -29, -23, 58, 13, '#CA8A04'); box(c, -29, -14, 58, 3, '#A16207');
     // (the throne's back: gold frame, red velvet, a star on top)
-    box(c, -32, -88, 16, 66, '#000'); box(c, -31, -87, 14, 64, '#EAB308'); box(c, -28, -82, 8, 54, '#9F1239');
-    for (let y = -78; y < -32; y += 10) box(c, -26, y, 4, 4, '#BE123C');
+    box(c, -34, -90, 16, 68, '#000'); box(c, -33, -89, 14, 66, '#EAB308'); box(c, -30, -84, 8, 56, '#9F1239');
+    for (let y = -80; y < -34; y += 10) box(c, -28, y, 4, 4, '#BE123C');
     c.fillStyle = '#FDE047'; c.beginPath();
-    for (let i = 0; i < 10; i++) { const r = i % 2 ? 4 : 9, an = -Math.PI / 2 + (i * Math.PI) / 5; c.lineTo(-24 + Math.cos(an) * r, -96 + Math.sin(an) * r); }
+    for (let i = 0; i < 10; i++) { const r = i % 2 ? 4 : 9, an = -Math.PI / 2 + (i * Math.PI) / 5; c.lineTo(-26 + Math.cos(an) * r, -98 + Math.sin(an) * r); }
     c.closePath(); c.fill();
-    // (the tank behind the seat, white porcelain; the lid up against the back)
-    box(c, -18, -60, 12, 30, '#000'); box(c, -17, -59, 10, 28, '#F5F5F4');
-    // (the seat: the ring)
-    box(c, -10, -36, 34, 6, '#000'); box(c, -9, -35, 32, 4, k ? '#FDE68A' : '#FEF3C7');
-    // (the bowl, behind his legs)
-    box(c, -6, -32, 28, 14, '#E7E5E4');
+    // (the far arm, behind him)
+    box(c, -22, -54, 46, 6, '#000'); box(c, -21, -53, 44, 4, '#A16207');
+    // (the tank behind the seat, white porcelain)
+    box(c, -20, -64, 12, 30, '#000'); box(c, -19, -63, 10, 28, '#F5F5F4'); box(c, -19, -63, 10, 3, '#FFFFFF');
+    // (the seat: the ring, the bowl down under him)
+    box(c, -12, -40, 38, 6, '#000'); box(c, -11, -39, 36, 4, k ? '#FDE68A' : '#FEF3C7');
+    box(c, -8, -36, 32, 14, '#E7E5E4');
   } else {
-    // (the bowl's front, porcelain, and the gold lap bar down over his lap)
-    c.fillStyle = '#000'; c.beginPath(); c.moveTo(-6, -32); c.lineTo(24, -32); c.quadraticCurveTo(26, -18, 14, -16); c.lineTo(0, -16); c.closePath(); c.fill();
-    c.fillStyle = '#F5F5F4'; c.beginPath(); c.moveTo(-4, -31); c.lineTo(22, -31); c.quadraticCurveTo(23, -19, 13, -17); c.lineTo(1, -17); c.closePath(); c.fill();
-    box(c, 2, -30, 18, 2, '#FFFFFF');
-    c.strokeStyle = '#000'; c.lineWidth = 5; c.beginPath(); c.moveTo(-18, -66); c.quadraticCurveTo(10, -76, 20, -44); c.stroke();
-    c.strokeStyle = '#FBBF24'; c.lineWidth = 3; c.beginPath(); c.moveTo(-18, -66); c.quadraticCurveTo(10, -76, 20, -44); c.stroke();
+    // The near side of the throne: a gold panel from the base up to the arm (his hips and legs down behind it),
+    // stepped from its lit top to its dark foot, a velvet inset
+    box(c, -26, -48, 52, 38, '#000');
+    box(c, -25, -47, 50, 36, '#CA8A04'); box(c, -25, -47, 50, 4, '#FACC15'); box(c, -25, -20, 50, 9, '#A16207'); box(c, -25, -13, 50, 2, '#854D0E');
+    box(c, -19, -40, 34, 18, '#000'); box(c, -18, -39, 32, 16, '#9F1239'); box(c, -18, -39, 32, 3, '#BE123C'); box(c, -18, -25, 32, 2, '#881337');
+    for (const bx of [-12, -2, 8]) box(c, bx, -32, 2, 2, '#FDE047');
+    // (the bowl's front, porcelain, out the front of it)
+    c.fillStyle = '#000'; c.beginPath(); c.moveTo(22, -42); c.lineTo(38, -42); c.quadraticCurveTo(40, -24, 28, -16); c.lineTo(22, -16); c.closePath(); c.fill();
+    c.fillStyle = '#F5F5F4'; c.beginPath(); c.moveTo(23, -41); c.lineTo(36, -41); c.quadraticCurveTo(38, -25, 27, -17); c.lineTo(23, -17); c.closePath(); c.fill();
+    box(c, 24, -40, 11, 2, '#FFFFFF'); box(c, 24, -24, 6, 2, '#D6D3D1');
+    // (the near arm: rolled gold, a scroll at the front end)
+    box(c, -28, -52, 58, 7, '#000'); box(c, -27, -51, 56, 5, '#EAB308'); box(c, -27, -51, 56, 1, '#FEF08A'); box(c, -27, -47, 56, 1, '#A16207');
+    c.fillStyle = '#000'; c.beginPath(); c.arc(30, -48, 6, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FACC15'; c.beginPath(); c.arc(30, -48, 4.5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#A16207'; c.beginPath(); c.arc(30, -48, 2, 0, Math.PI * 2); c.fill();
+    // (the lap bar: up from the arm's front, over his lap)
+    c.lineCap = 'round';
+    c.strokeStyle = '#000'; c.lineWidth = 5; c.beginPath(); c.moveTo(24, -50); c.quadraticCurveTo(24, -64, 6, -62); c.stroke();
+    c.strokeStyle = '#FBBF24'; c.lineWidth = 3; c.beginPath(); c.moveTo(24, -50); c.quadraticCurveTo(24, -64, 6, -62); c.stroke();
+    c.lineCap = 'butt';
     void f;
   }
 };
@@ -206,13 +230,15 @@ export const carsParked = (pl: Place): CarAt[] => { const p = parkAt(pl); return
 export const drawTrain = (c: Ctx, cars: CarAt[], layer: 'back' | 'front', f: number, riderFront = false, lockLight?: boolean) => {
   // (the back car first: the front one's in front of it)
   for (let i = cars.length - 1; i >= 0; i--) {
-    const k = cars[i];
-    if (layer === 'front' && !(riderFront && i === 0)) continue;
+    const k = cars[i], ridden = riderFront && i === 0;
+    if (layer === 'front' && !ridden) continue;
     c.save(); c.translate(k.x, k.y); c.rotate(k.a);
-    const sc = Math.cos(k.roll); c.scale(1, Math.abs(sc) < 0.12 ? 0.12 * Math.sign(sc || 1) : sc);
+    c.scale(1, rollScale(k.roll));
     car(c, layer, f, i);
+    // (nobody in it: its near side too, here (behind him walking past it); his: in front of him, drawn after him)
+    if (layer === 'back' && !ridden) car(c, 'front', f, i);
     // (the front car's light: red, the lap bar locked; green, hop on)
-    if (layer === 'back' && i === 0 && lockLight !== undefined) { box(c, 24, -30, 6, 6, '#000'); box(c, 25, -29, 4, 4, lockLight ? (f % 30 < 15 ? '#EF4444' : '#7F1D1D') : '#4ADE80'); }
+    if (layer === 'back' && i === 0 && lockLight !== undefined) { box(c, 16, -36, 6, 6, '#000'); box(c, 17, -35, 4, 4, lockLight ? (f % 30 < 15 ? '#EF4444' : '#7F1D1D') : '#4ADE80'); }
     c.restore();
   }
 };

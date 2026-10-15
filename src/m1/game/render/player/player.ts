@@ -79,6 +79,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   if (buffs.size !== 1) { const fx0 = p.pos.x + p.width / 2, fy0 = p.pos.y + p.height; ctx.translate(fx0, fy0); ctx.scale(buffs.size, buffs.size); ctx.translate(-fx0, -fy0); }
   // (turned as a whole, about his feet: sat in a cart going up a loop)
   if (p.spriteRot) { const fx0 = p.pos.x + p.width / 2, fy0 = p.pos.y + p.height; ctx.translate(fx0, fy0); ctx.rotate(p.spriteRot); ctx.translate(-fx0, -fy0); }
+  // (squashed with a coaster car rolled over on its side, flipped with one hung under the rail)
+  if (p.spriteScaleY !== undefined && p.spriteScaleY !== 1) { const fx0 = p.pos.x + p.width / 2, fy0 = p.pos.y + p.height; ctx.translate(fx0, fy0); ctx.scale(1, p.spriteScaleY); ctx.translate(-fx0, -fy0); }
 
   // 1. Filth Shield Aura
   if (p.filthShieldTimer && p.filthShieldTimer > 0 && !state.victoryString && showFilthShield) {
