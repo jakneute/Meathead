@@ -8,6 +8,9 @@
 // Hanging off a vine (Meathead 2's jungle), both work one-handed, the other hand on the vine: the storm read out of the
 // book thrust out at arm's length, its pages flipping over, the vine fizzing in his other fist; the bulk-up a one-armed
 // flex, the book up in his fist.
+// One opted in (weapons/half.ts: the Ensemble Cast) is only hit if it's one of that storm's own three (no splash on the
+// rest of them), and then hard (ON_CAST: shares of its real health; a fresh one mostly lives through it, a hurt one
+// doesn't), the comet's freeze and the meteor's burn at half; it never dies the spell's death (its own fight's).
 
 import type { Enemy, Projectile } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
@@ -26,6 +29,7 @@ import { drawPoseSprite, drawPoseHead } from '../moves/grab';
 import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/player/body';
 import { setArmor } from '../../m1/game/core/resist';
 import { vineGrip } from '../../m1/game/combat/muzzle';
+import { specialsHalf, specialsOff, realMax, HALF } from './half';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -40,6 +44,11 @@ const COMET = { dmg: 45, freeze: 320 };
 /** The lightning: a strike this often, this hard, for this long (three seconds: about 180 in all, a shooter's dead, a
  * bouncer's still standing). */
 const BOLT = { every: 14, dmg: 15, maxFrames: 186 };
+/** On one opted in, as shares of its real health: the meteor's blast, the comet's, a lightning strike (a dozen or so of
+ *  them), the burning a frame. */
+const ON_CAST = { meteor: 0.45, comet: 0.45, bolt: 0.04, burn: 0.0011 };
+/** The last storm's three (the only opted-in ones its meteor and comet can touch). */
+let castThree: Enemy[] = [];
 /** What each costs in mana: a storm 9 to 13, a roll each time (11 on average); bulking up a lot more. */
 const MANA = { storm: [9, 13] as const };
 const BULK = { mana: 24, frames: 720, cooldown: 480, speed: 1.6, size: 1.3, knock: 2.2 };
@@ -51,7 +60,7 @@ const mid = (e: Enemy) => ({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2
 // The storm
 
 type Element = 'meteor' | 'comet';
-interface Fall { el: Element; target: Enemy | null; to: { x: number; y: number } }
+interface Fall { el: Element; target: Enemy | null; to: { x: number; y: number }; three?: Enemy[] }
 const fallOf = (p: Projectile) => p.customData as Fall;
 
 /** Whoever's struck over and over, and when next. */
@@ -115,7 +124,7 @@ const riftSpot = (state: GameState, want: { x: number; y: number }, size: number
     ?? { x: clampX(want.x), y: clampY(want.y) };
 };
 /** Things still to come out of a rift that's opening. */
-let pending: { at: number; el: Element; target: Enemy | null; to: { x: number; y: number }; from: { x: number; y: number } }[] = [];
+let pending: { at: number; el: Element; target: Enemy | null; to: { x: number; y: number }; from: { x: number; y: number }; three: Enemy[] }[] = [];
 
 /** A scorch on the floor where something hit it (lies there, fading slowly). */
 const scorch = (state: GameState, x: number, y: number, size: number, color = '#1C1917', life = 400) => {
@@ -132,7 +141,7 @@ const spellKill = (ctx: FrameContext, e: Enemy, how: 'charred' | 'fried' | 'panc
   bolts = bolts.filter(b => b.e !== e); burning.delete(e);
 };
 const hurt = (ctx: FrameContext, e: Enemy, dmg: number, how: 'charred' | 'fried' | 'pancaked') => {
-  if (isMidBoss(e)) dmg *= 0.5;
+  if (specialsOff(e)) dmg *= 0.5;
   e.health -= dmg;
   if (e.health <= 0) { if (isMidBoss(e)) e.health = 1; else { spellKill(ctx, e, how); return true; } }
   ctx.fx.spawnDamageNumber(e.pos, Math.round(dmg), dmg > 30);
@@ -157,6 +166,7 @@ const unleash = (ctx: FrameContext) => {
   // (the stage's own pick, if it has one and there's anything in it)
   const own = stormPick?.(state, px, py);
   if (own && (own.meteor || own.comet || own.bolt)) {
+    castThree = [own.meteor, own.comet, own.bolt].filter((e): e is Enemy => !!e);
     const ahead = { x: px + pl.facing * 260, y: pl.pos.y + pl.height };
     if (own.meteor) fall(state, 'meteor', own.meteor, ahead);
     if (own.comet) fall(state, 'comet', own.comet, { x: ahead.x + pl.facing * 90, y: ahead.y });
@@ -167,6 +177,7 @@ const unleash = (ctx: FrameContext) => {
   const onScreen = (e: Enemy) => e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH;
   const targets = state.enemies.filter(e => alive(e) && onScreen(e) && Math.hypot(mid(e).x - px, mid(e).y - py) < REACH)
     .sort((a, b) => Math.hypot(mid(a).x - px, mid(a).y - py) - Math.hypot(mid(b).x - px, mid(b).y - py)).slice(0, 3);
+  castThree = targets;
   const at = (i: number) => (targets.length ? targets[i % targets.length] : null);
   const ahead = { x: px + pl.facing * 260, y: pl.pos.y + pl.height };
   fall(state, 'meteor', at(0), ahead);
@@ -191,11 +202,11 @@ const fall = (state: GameState, el: Element, target: Enemy | null, fallback: { x
   const size = el === 'meteor' ? 1.15 : 0.9;
   const from = riftSpot(state, { x: to.x + side * (130 + Math.random() * 90), y: state.camera.y + HUD_CLEAR_Y + 30 + Math.random() * 40 }, size, to);
   openRift(from.x, from.y, size, RIFT_OPEN + 34);
-  pending.push({ at: state.frame + RIFT_OPEN, el, target, to, from });
+  pending.push({ at: state.frame + RIFT_OPEN, el, target, to, from, three: castThree });
 };
 /** Out of the rift, at last. */
 const emerge = (state: GameState, q: (typeof pending)[number]) => {
-  const { el, target, from } = q;
+  const { el, target, from, three } = q;
   const to = target && alive(target) ? mid(target) : q.to;
   const d = Math.hypot(to.x - from.x, to.y - from.y) || 1, sp = el === 'meteor' ? 13 : 15;
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: from.x, y: from.y }, vel: { x: (Math.random() - 0.5) * 5, y: (Math.random() - 0.5) * 3 }, life: 18, color: i % 2 ? '#A855F7' : '#1E1B4B', size: 3 + Math.random() * 3 });
@@ -204,7 +215,7 @@ const emerge = (state: GameState, q: (typeof pending)[number]) => {
   state.projectiles.push({
     id: `spell-${el}-${state.frame}-${Math.random()}`, pos: { x: from.x - size / 2, y: from.y - size / 2 },
     vel: { x: (to.x - from.x) / d * sp, y: (to.y - from.y) / d * sp }, width: size, height: size, health: 1, maxHealth: 1,
-    type: 'projectile', damage: 0, owner: 'player', custom: 'SPELLBOOK', customData: { el, target, to } satisfies Fall,
+    type: 'projectile', damage: 0, owner: 'player', custom: 'SPELLBOOK', customData: { el, target, to, three } satisfies Fall,
   });
 };
 
@@ -226,7 +237,7 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
   for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: c.x + (Math.random() - 0.5) * p.width * 0.6, y: c.y + (Math.random() - 0.5) * p.height * 0.6 }, vel: { x: -p.vel.x * 0.15 + (Math.random() - 0.5), y: -p.vel.y * 0.15 + (Math.random() - 0.5) }, life: 16 + Math.random() * 10, color: f.el === 'meteor' ? ['#F97316', '#FDE047', '#57534E'][i + Math.floor(Math.random() * 2)] : ['#BAE6FD', '#FFFFFF', '#7DD3FC'][i + Math.floor(Math.random() * 2)], size: 3 + Math.random() * 4 });
   const hit = state.enemies.find(e => alive(e) && c.x > e.pos.x - 4 && c.x < e.pos.x + e.width + 4 && c.y > e.pos.y - 4 && c.y < e.pos.y + e.height + 4);
   if (hit || solid(state, c.x, c.y + p.height / 2) || c.y > state.camera.y + 900) {
-    if (f.el === 'meteor') meteorBlast(ctx, c); else cometHit(ctx, c, hit ?? null);
+    if (f.el === 'meteor') meteorBlast(ctx, c, f.three ?? []); else cometHit(ctx, c, hit ?? null, f.three ?? []);
     return false;
   }
   return true;
@@ -239,7 +250,7 @@ export const onMeteorBlast = (fn: (ctx: FrameContext, at: { x: number; y: number
 if (import.meta.env?.DEV && typeof window !== 'undefined') (window as unknown as { __meteorHooks?: unknown }).__meteorHooks = meteorHooks;
 
 /** The meteor going up: a blast, everybody in it hurt by how near, and whoever lives through it left burning. */
-const meteorBlast = (ctx: FrameContext, at: { x: number; y: number }) => {
+const meteorBlast = (ctx: FrameContext, at: { x: number; y: number }, three: Enemy[] = []) => {
   const { state, fx } = ctx;
   for (const h of meteorHooks) h(ctx, at);
   playSound('boom'); playSound('crash', 0.7, -6); shakeScreen(state, 22, 12);
@@ -256,16 +267,18 @@ const meteorBlast = (ctx: FrameContext, at: { x: number; y: number }) => {
     const d = Math.hypot(mid(e).x - at.x, mid(e).y - at.y);
     if (d > METEOR.radius + e.width / 2) continue;
     const k = Math.max(0, 1 - d / (METEOR.radius + e.width / 2));
+    const half = specialsHalf(e);
+    if (half && !three.includes(e)) continue;
     if (stormHit?.(ctx, e, 'meteor', METEOR.edge + (METEOR.dmg - METEOR.edge) * k)) continue;
-    if (!hurt(ctx, e, METEOR.edge + (METEOR.dmg - METEOR.edge) * k, 'charred')) {
-      burning.set(e, METEOR.burn);
+    if (!hurt(ctx, e, half ? realMax(e) * ON_CAST.meteor : METEOR.edge + (METEOR.dmg - METEOR.edge) * k, 'charred')) {
+      burning.set(e, half ? METEOR.burn * HALF : METEOR.burn);
       e.vel = { x: Math.sign(mid(e).x - at.x || 1) * 4 * k, y: -4 * k };
     }
   }
 };
 
 /** The comet: it hurts whoever it comes down on; living through it, he's frozen solid (anybody right by it too). */
-const cometHit = (ctx: FrameContext, at: { x: number; y: number }, hit: Enemy | null) => {
+const cometHit = (ctx: FrameContext, at: { x: number; y: number }, hit: Enemy | null, three: Enemy[] = []) => {
   const { state, fx } = ctx;
   playSound('ice'); playSound('glass', 0.9, 4); playSound('crack', 0.8, 2); shakeScreen(state, 12, 6);
   fx.spawnExplosion(at, '#BAE6FD', 34, 0, 20); fx.spawnExplosion(at, '#FFFFFF', 18, 0, 12); fx.spawnExplosion(at, '#7DD3FC', 14, 0, 16);
@@ -279,8 +292,10 @@ const cometHit = (ctx: FrameContext, at: { x: number; y: number }, hit: Enemy | 
     if (!alive(e)) continue;
     const near = e === hit || Math.hypot(mid(e).x - at.x, mid(e).y - at.y) < 34 + e.width / 2;
     if (!near) continue;
+    const half = specialsHalf(e);
+    if (half && !three.includes(e)) continue;
     if (stormHit?.(ctx, e, 'comet', e === hit ? COMET.dmg : COMET.dmg * 0.5)) continue;
-    if (!hurt(ctx, e, e === hit ? COMET.dmg : COMET.dmg * 0.5, 'pancaked') && !isMidBoss(e)) { e.frozeAt = state.frame; e.frozenTimer = COMET.freeze; }
+    if (!hurt(ctx, e, half ? realMax(e) * ON_CAST.comet : e === hit ? COMET.dmg : COMET.dmg * 0.5, 'pancaked') && !specialsOff(e)) { e.frozeAt = state.frame; e.frozenTimer = half ? COMET.freeze * HALF : COMET.freeze; }
   }
 };
 
@@ -386,8 +401,9 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
     if (left <= 0) { burning.delete(e); continue; }
     burning.set(e, left - 1);
     for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height * 0.7 }, vel: { x: (Math.random() - 0.5), y: -1.2 - Math.random() * 1.8 }, life: 16 + Math.random() * 8, color: Math.random() < 0.25 ? 'rgba(68, 64, 60, 0.6)' : Math.random() < 0.5 ? '#F97316' : '#FDE047', size: 3 + Math.random() * 4 });
-    e.health -= METEOR.burnDmg;
-    if (left % 20 === 0) ctx.fx.spawnDamageNumber(e.pos, Math.round(METEOR.burnDmg * 20));
+    const bd = specialsHalf(e) ? realMax(e) * ON_CAST.burn : METEOR.burnDmg;
+    e.health -= bd;
+    if (left % 20 === 0) ctx.fx.spawnDamageNumber(e.pos, Math.round(bd * 20));
     if (e.health <= 0) { if (isMidBoss(e)) e.health = 1; else spellKill(ctx, e, 'charred'); }
   }
   // The lightning: strike, strike, strike, for a few seconds (or till he's dead)
@@ -409,8 +425,8 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
       // (and he's shown taking it: lit up, jerking, the current crawling over him, till the next one)
       b.e.shockedUntil = state.frame + BOLT.every;
       if (!stormHit?.(ctx, b.e, 'bolt', BOLT.dmg)) {
-        if (!isMidBoss(b.e)) b.e.pauseTimer = Math.max(b.e.pauseTimer || 0, 6);
-        hurt(ctx, b.e, BOLT.dmg, 'fried');
+        if (!specialsOff(b.e)) b.e.pauseTimer = Math.max(b.e.pauseTimer || 0, 6);
+        hurt(ctx, b.e, specialsHalf(b.e) ? realMax(b.e) * ON_CAST.bolt : BOLT.dmg, 'fried');
       }
     }
   }

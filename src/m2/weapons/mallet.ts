@@ -24,6 +24,7 @@ import { shakeScreen } from '../../m1/game/core/state';
 import { groundLineAt } from '../../m1/game/core/terrain';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
+import { specialsHalf, heavyHit, HALF } from './half';
 import { playSound } from '../../m1/game/platform/audio';
 import { setArmor } from '../../m1/game/core/resist';
 import { CANVAS_WIDTH } from '../../m1/constants';
@@ -123,6 +124,8 @@ const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: num
   word(cx, cy - 20);
   playSound('bonk'); shakeScreen(state, 8, 5);
   for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; state.particles.push({ pos: { x: cx, y: cy }, vel: { x: Math.cos(a) * 4, y: Math.sin(a) * 4 }, life: 10, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 3 }); }
+  // (one opted in, weapons/half.ts: hurt, and sent half as far, dazed half as long; never the cartoon death)
+  if (specialsHalf(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: vel.x * HALF, y: vel.y * HALF }; e.pauseTimer = Math.max(e.pauseTimer || 0, 50 * HALF); return; }
   if (isMidBoss(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); return; }
   // (a blow from in front, at his shield: it's the shield it lands on; he goes flying all the same, but the blow does
   // him no harm (whatever he hits on the way does). The overhead ones, flattening, come down over it)
@@ -290,6 +293,8 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         // (from a vine: down in front of him, under his feet as well)
         for (const e of inBox(state, px + dir * 15, fy - 80, px + dir * SMASH.reach, fy + (hang ? 45 : 6))) {
           struck.add(e);
+          // (one opted in, weapons/half.ts: not flattened, a heavy hit)
+          if (specialsHalf(e)) { const h = heavyHit(e); e.health -= h; ctx.fx.spawnDamageNumber(e.pos, h, true); e.pauseTimer = Math.max(e.pauseTimer || 0, 50 * HALF); continue; }
           if (isMidBoss(e)) { e.health -= 120; ctx.fx.spawnDamageNumber(e.pos, 120, true); continue; }
           toonKill(ctx, e, 'flatten', dir);
         }

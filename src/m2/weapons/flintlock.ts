@@ -7,6 +7,7 @@
 // floor or a ceiling it ricochets, once, straight at whoever's nearest that's still got a head (a little one low down
 // is shot at downward, so the floor behind him nearly always gives it that second go). Fired with nobody in front, it
 // goes straight out (up or down if he's holding that), and a wall can still find it somebody.
+// One of the Ensemble Cast (weapons/half.ts) loses his, but only the one: the ball stops in him.
 // A boss or a mid-boss keeps his head: the ball goes into him and stays there (no going on through, no ricochet), a big
 // hit (BOSS_HIT), one boss hit a shot (the T. rex's parts can't all take it off one ball).
 
@@ -22,6 +23,7 @@ import { deathFacing } from '../../m1/game/enemies/deaths';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { isRobot } from '../kinds';
+import { specialsHalf, halfKill } from './half';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -78,6 +80,15 @@ const line = (ctx: FrameContext, x: number, y: number, dx: number, dy: number, k
       if (!alive(e) || killed.has(e)) continue;
       if (cx < e.pos.x || cx > e.pos.x + e.width || cy < e.pos.y - (KIND_TOP_REACH[e.kind ?? ''] ?? 0) || cy > e.pos.y + e.height) continue;
       killed.add(e);
+      // (one opted in (weapons/half.ts: the Ensemble Cast): the head comes off, but it's one a shot: the ball stops in
+      // him, no going on through, no ricochet; the body stays, headless, its own fight lays it down)
+      if (specialsHalf(e)) {
+        lodged = true;
+        fx.spawnExplosion(headOf(e), '#8B0000', 14, dx * 6, 14);
+        playSound('splat', 0.9, -2);
+        halfKill(ctx, e, 'headless');
+        break;
+      }
       // (a boss: it's in him, and that's where it stops; one a shot, the ricochet included)
       if (isMidBoss(e)) {
         if (bossHitThisShot) continue;

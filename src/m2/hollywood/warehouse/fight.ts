@@ -39,6 +39,7 @@ import { CAST, ACTOR_KIND, BIG, drawArriving, drawBody, drawClinger } from './ca
 import { CAST_ARRIVE, KILL_QUIPS, HALF, LAST, DEATH, ARRIVE, LATCH, CAP_RESEMBLE, CAP_SURE, CAP_REPLY, AD_CAST, AD_SHRUG } from './lines';
 import { adSay, castSay } from './talk';
 import { hurtTaken } from '../../../m1/game/core/resist';
+import { setHalfHooks } from '../../weapons/half';
 
 /** How many of them are in it this time (CAPTAIN AMERICANO and the rest of the order: a share of the thirty). */
 const FIGHT_SIZE = 22;
@@ -115,6 +116,12 @@ const start = (state: GameState) => {
 };
 
 /** One of them down on the floor and on: an enemy now (a hero landing's a beat on one knee first). */
+// (the special weapons' say over them, at half: their real health; dead of a headshot, or into the soul sucker)
+setHalfHooks(ACTOR_KIND, {
+  max: e => (CAST[e.variant ?? 0]?.hp ?? 100),
+  kill: (ctx, e, how) => { const a = whOf(ctx.state).fight.actors.find(q => q.e === e); if (a) fall(ctx, a, how); else e.health = 0; },
+});
+
 const appear = (state: GameState, a: Arrival) => {
   const F = whOf(state).fight, c = CAST[a.i], p = state.player;
   const e = makeKindEnemy(ACTOR_KIND as EnemyKind, a.x, a.y);
@@ -126,8 +133,9 @@ const appear = (state: GameState, a: Arrival) => {
   F.actors.push({ i: a.i, hp: c.hp, max: c.hp, e, lx: a.x, ly: a.y, flash: 0, cling: null, heldT: 0 });
 };
 
-/** Dead: down where they stood (bloodied), the body staying; onto the heap if there's one there. */
-const fall = (ctx: FrameContext, a: Actor) => {
+/** Dead: down where they stood (bloodied), the body staying; onto the heap if there's one there. `headless`: the
+ *  flintlock had the head off (the body stays, without it); `gone`: into the soul sucker (no body: it's in the bag). */
+const fall = (ctx: FrameContext, a: Actor, how?: 'headless' | 'gone') => {
   const { state } = ctx, o = whOf(state), F = o.fight, p = state.player;
   if (a.e) { const e = a.e; e.health = 0; state.enemies = state.enemies.filter(q => q !== e); o.barks.delete(e); }
   a.e = null; a.hp = 0; a.cling = null;
@@ -135,10 +143,12 @@ const fall = (ctx: FrameContext, a: Actor) => {
   const under = F.bodies.filter(b => Math.abs(b.x - x) < 48 && Math.abs(b.y + b.lift - y) < 30).length;
   const lift = Math.min(4, under) * 13;
   const dir: 1 | -1 = p.pos.x + p.width / 2 < x ? -1 : 1;
-  F.bodies.push({ i: a.i, x, y: y - lift, dir, t: 0, fall: 0, pool: 0, lift });
+  if (how !== 'gone') F.bodies.push({ i: a.i, x, y: y - lift, dir, t: 0, fall: 0, pool: 0, lift, headless: how === 'headless' });
   F.killed++;
-  playSound('splat', 0.9, -2); playSound('thud', 0.6, -6);
-  for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 20, y: y - 30 - Math.random() * 30 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 5 }, life: 30 + Math.random() * 20, color: ['#B91C1C', '#7F1D1D', '#DC2626'][k % 3], size: 2 + Math.random() * 3, grav: 0.35 });
+  if (how !== 'gone') { playSound('splat', 0.9, -2); playSound('thud', 0.6, -6); }
+  // (the head off: it all comes up out of the neck)
+  if (how === 'headless') for (let k = 0; k < 26; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 8, y: y - 68 }, vel: { x: (Math.random() - 0.5) * 5, y: -3 - Math.random() * 7 }, life: 30 + Math.random() * 30, color: ['#B91C1C', '#7F1D1D', '#DC2626'][k % 3], size: 2 + Math.random() * 3, grav: 0.35 });
+  if (how !== 'gone') for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 20, y: y - 30 - Math.random() * 30 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 5 }, life: 30 + Math.random() * 20, color: ['#B91C1C', '#7F1D1D', '#DC2626'][k % 3], size: 2 + Math.random() * 3, grav: 0.35 });
   // (what's said: sparse, one at a time; the AD shrugs a couple of times, they own the scans)
   const total = F.order.length, left = total - F.killed;
   if ((F.killed === 6 || F.killed === 15) && quiet(state)) adSay(state, AD_SHRUG, undefined, false);
@@ -308,6 +318,8 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
     const e = a.e;
     if (!e || a.cling || e.health <= 0 || (e.leapCd ?? 0) > 0 || e.aiState === 'land') continue;
     if ((e.pauseTimer ?? 0) > 0 && Math.abs(e.vel.x) > 1) continue;
+    // (in no state to: puking, panicking in the soul sucker's pull, frozen, tased)
+    if (e.harmless || (e.frozenTimer ?? 0) > 0 || e.isTased) continue;
     if (!state.enemies.includes(e)) continue;
     const gx = 30;
     if (e.pos.x + e.width + gx < p.pos.x || e.pos.x - gx > p.pos.x + p.width) continue;
@@ -369,7 +381,7 @@ export const fightCam = (state: GameState) => (fightOn(state) ? { min: X(ARENA_C
 /** The bodies (behind the living), the drop shadows of the ones coming down, the ones on his back. */
 export const drawFightBack = (c: CanvasRenderingContext2D, state: GameState) => {
   const F = whOf(state).fight, cam = state.camera.x;
-  for (const b of F.bodies) if (b.x > cam - 160 && b.x < cam + 960) drawBody(c, b.i, b.x, b.y, b.dir, b.fall, b.lift > 0 ? b.pool * 0.4 : b.pool);
+  for (const b of F.bodies) if (b.x > cam - 160 && b.x < cam + 960) drawBody(c, b.i, b.x, b.y, b.dir, b.fall, b.lift > 0 ? b.pool * 0.4 : b.pool, b.headless);
   for (const a of F.arrivals) {
     if (a.mode !== 'drop' || a.t < 1) continue;
     const k = Math.max(0.15, Math.min(1, 1 - (GY - a.y) / 600));

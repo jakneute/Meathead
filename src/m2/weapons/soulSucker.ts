@@ -8,7 +8,8 @@
 // till some's been sprayed out. Ammo pickups fill its ammo, never the bag: only sucking does.
 // A boss or a mid-boss won't come: it doesn't pull on him at all. It draws the blood out of him instead (a machine:
 // bolts, oil, and a little blood too), a stream of it across into the intake, a gulp at a time, hurting him about as
-// much as the ray gun would, and every gulp of it goes in the bag.
+// much as the ray gun would, and every gulp of it goes in the bag. One opted in (weapons/half.ts: the Ensemble Cast)
+// comes, the whole way, in and through the grinder (no body left), but only one of them at a time: the nearest.
 
 import type { Enemy, Particle, Projectile } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
@@ -16,7 +17,6 @@ import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { setArmor } from '../../m1/game/core/resist';
 import { startGoreSlide, tickGoreSlides, drawGoreSlides, stopGoreSlides } from './goreSlide';
-import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { muzzlePoint } from '../../m1/game/combat/muzzle';
 import { getEnemyMass } from '../../m1/game/combat/knockback';
@@ -27,6 +27,7 @@ import { grabCallout } from '../moves/callouts';
 import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES } from '../lines/weaponLines';
 import { isRobot } from '../kinds';
+import { specialsHalf, specialsOff, realMax, halfKill } from './half';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -50,7 +51,7 @@ export const setGoreBag = (v: number) => setGore(v);
 // Poise
 
 /** Everybody's poise: how much pulling they'll take before they go in (the beefier, the more). */
-const poiseMax = (e: Enemy) => Math.round(e.maxHealth * 0.6 + 10);
+const poiseMax = (e: Enemy) => Math.round(realMax(e) * 0.6 + 10);
 interface Poise { left: number; lastPulled: number; fleeUntil: number; /** Panicking, he's no fight in him: what he was before, to put back. */ held?: { puppet?: boolean; harmless?: boolean } }
 /** Everybody panicking right now (their fight held off till they've got over it). */
 const panicking = new Set<Enemy>();
@@ -65,9 +66,9 @@ export const beingSucked = (e: Enemy, frame: number) => { const ps = poise.get(e
 /** (for tests) */
 export const poiseLeft = (e: Enemy) => poise.get(e)?.left;
 /** What can be pulled in: anybody but a boss, a mid-boss or a bystander. */
-const suckable = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss' && !isMidBoss(e);
+const suckable = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss' && !specialsOff(e);
 /** What's too big to pull in, so it's bled instead: a mid-boss (Meathead 2's bosses are, to the engine). */
-const bleedable = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss' && isMidBoss(e);
+const bleedable = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss' && specialsOff(e);
 
 // ---------------------------------------------------------------------------------------------------------------
 // The pull
@@ -214,8 +215,15 @@ const fire = (ctx: FrameContext) => {
     q.vel.x = ((mouth.x - qx) / d) * sp; q.vel.y = ((mouth.y - qy) / d) * sp;
     return true;
   });
+  // (the opted-in ones: only the nearest of them in it is pulled, and none while one's already going in)
+  let one: Enemy | null = null, oneNear = -1;
+  if (!swallowing.some(s => specialsHalf(s.e))) for (const e of state.enemies) {
+    if (!suckable(e) || !specialsHalf(e)) continue;
+    const near = inCone(state, e, mouth);
+    if (near !== null && near > oneNear) { one = e; oneNear = near; }
+  }
   for (const e of state.enemies) {
-    if (!suckable(e)) continue;
+    if (!suckable(e) || (specialsHalf(e) && e !== one)) continue;
     const near = inCone(state, e, mouth);
     if (near === null) continue;
     const ps = poiseOf(e);
@@ -255,6 +263,8 @@ const fire = (ctx: FrameContext) => {
 const swallow = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx;
   state.enemies = state.enemies.filter(o => o !== e);
+  // (one opted in: dead to its own fight now, no body; it's in the bag)
+  if (specialsHalf(e)) { halfKill(ctx, e, 'gone'); e.health = 1; }
   swallowing.push({ e, t: 0, from: { x: e.pos.x + e.width / 2, y: e.pos.y + e.height } });
   playSound('whoosh', 0.9, 4);
 };

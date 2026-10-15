@@ -14,6 +14,7 @@ import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
+import { specialsHalf, HALF } from './half';
 import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
 import { isHumanoidKind } from '../../m1/game/render/enemies';
@@ -233,8 +234,10 @@ const gnaw = (ctx: FrameContext, a: Alien) => {
   a.chomp++;
   if (--a.bite > 0) return true;
   a.bite = BITE.every + Math.floor(Math.random() * 3);
-  e.health -= BITE.dmg;
-  bitten.set(e, (bitten.get(e) ?? 0) + BITE.dmg);
+  // (one opted in, weapons/half.ts: they get their teeth into it, but half as deep)
+  const bite = specialsHalf(e) ? BITE.dmg * HALF : BITE.dmg;
+  e.health -= bite;
+  bitten.set(e, (bitten.get(e) ?? 0) + bite);
   // (a squirt of him)
   if (Math.random() < 0.5) state.particles.push({ pos: { x: a.x + a.face * 4, y: a.y - 6 }, vel: { x: -a.face * (0.5 + Math.random() * 2), y: -1 - Math.random() * 2 }, life: 16, color: Math.random() < 0.5 ? '#B91C1C' : '#7F1D1D', size: 1.5 + Math.random() * 2, grav: 0.3 });
   if (Math.random() < 0.25) playSound('gnaw', 0.5);

@@ -11,6 +11,7 @@ import { registerKindDrawer, KIND_HEAD } from '../m1/game/render/enemies';
 import { BOSS_DIALOGUE } from '../m1/content/dialogue';
 import { DEATH_LINES } from '../m1/content/deaths';
 import { registerMidBossKind } from '../m1/game/combat/midBoss';
+import { registerHalfKind } from './weapons/half';
 import { beforeAI, afterAI } from './hazardHit';
 import { pathAfterAI } from './pathing';
 
@@ -56,6 +57,9 @@ export interface M2Kind {
   /** A mid-boss (a sub-boss): the weapons give it their mid-boss hit (no instant kills, no status effects), and no
    *  health bar over it (it draws its own: see adventure/dino/rex.ts). */
   midBoss?: boolean;
+  /** A mid-boss that isn't really one (people in costumes): the special weapons' specials work on it after all, at
+   *  about half (weapons/half.ts). */
+  specialsHalf?: boolean;
   /** Its own say over him touching it (his moves landing on it): see KindDef's `touch`. */
   touch?: (ctx: FrameContext, e: Enemy) => boolean;
   /** Part of the set where it's put (a cuckoo in its clock): not kept out of the stage's hazards (hazardHit.ts). */
@@ -82,6 +86,7 @@ export const registerM2Kind = (d: M2Kind) => {
   registerKind(d.kind as EnemyKind, { stats: d.stats, ai: guarded, make: d.make, machine: d.robot, humanoid: d.humanoid, solid: d.solid ?? !d.stats.air, pointy: d.pointy, spiky: d.spiky, touch: d.touch });
   registerKindDrawer(d.kind as EnemyKind, d.draw);
   if (d.midBoss) registerMidBossKind(d.kind);
+  if (d.specialsHalf) registerHalfKind(d.kind);
   if (d.head) (KIND_HEAD as Record<string, { x: number; y: number; r: number }>)[d.kind] = d.head;
 };
 export const m2Kind = (kind?: string) => (kind ? defs.get(kind) : undefined);

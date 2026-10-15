@@ -4,8 +4,9 @@
 // costumes. No powers, no moves of their own (the user's playtest notes): they come at him and DOGPILE him, latching on
 // like cockroaches (fight.ts: legs, back, head, a growing pile; every one on him slows him; enough of them and he's
 // down under it, dead). They're heavy to shove (hard to push about), and they die like the ordinary people they are:
-// they fall over dead where they stand, bloodied, and stay there. Never gibbed, whatever the weapon (they're mid-bosses
-// to the engine: it never runs their health out; fight.ts keeps their real health and lays the bodies down). His grab
+// they fall over dead where they stand, bloodied, and stay there. Never gibbed, whatever the weapon (but the flintlock
+// takes a head off, one a shot: the body stays, headless; the soul sucker can have one whole: weapons/half.ts). They're mid-bosses
+// to the engine: it never runs their health out; fight.ts keeps their real health and lays the bodies down. His grab
 // gets one at a time (the rest still pile on him while he's at it).
 
 import type { Enemy } from '../../../m1/types';
@@ -44,36 +45,36 @@ export interface CastMember {
 }
 
 export const CAST: CastMember[] = [
-  { hero: 'CAPTAIN AMERICANO', actor: 'CHAZ EVANSTON', woman: false, seed: 12, suit: '#1D4ED8', trim: '#DC2626', boots: '#7F1D1D', gloves: '#7F1D1D', emblem: 'star', mask: 'helmetA', prop: 'shield', hp: 100, speed: 1.4 },
-  { hero: 'THUD, GOD OF THUNDER-ISH', actor: 'LIAM HAMSWORTH', woman: false, seed: 25, look: { hair: '#F5D27A', long: true }, suit: '#3F3F46', trim: '#A1A1AA', boots: '#57534E', emblem: 'discs', cape: '#B91C1C', mask: 'none', prop: 'hammer', hp: 110, speed: 1.2 },
-  { hero: 'IRONIC MAN', actor: 'ROBBIE DOWNLY JR. JR.', woman: false, seed: 8, suit: '#B91C1C', trim: '#FACC15', boots: '#B91C1C', gloves: '#B91C1C', emblem: 'reactor', mask: 'faceplate', prop: 'gauntlet', hp: 100, speed: 1.3 },
-  { hero: 'THE INCREDIBLE BULK', actor: 'MARK RUFFLO', woman: false, seed: 3, look: { skin: '#65A30D', heavy: true, hair: '#1F1611' }, suit: '#65A30D', trim: '#6D28D9', boots: '#65A30D', legs: '#6D28D9', bare: true, emblem: 'none', mask: 'none', prop: 'none', hp: 195, speed: 1.0 },
-  { hero: 'BLACK WINDOW', actor: 'SCARLETT JOHANSWAN', woman: true, seed: 30, look: { hair: '#B91C1C' }, suit: '#18181B', trim: '#71717A', boots: '#18181B', gloves: '#18181B', emblem: 'hourglass', mask: 'none', prop: 'batons', hp: 105, speed: 1.7 },
-  { hero: 'HAWKGUY', actor: 'JEREMY RENTER', woman: false, seed: 17, suit: '#581C87', trim: '#18181B', boots: '#18181B', gloves: '#18181B', emblem: 'none', mask: 'none', prop: 'bow', hp: 85, speed: 1.4 },
-  { hero: 'SPIDER-TEEN', actor: 'TOM HOLLOWAY', woman: false, seed: 41, suit: '#DC2626', trim: '#1D4ED8', boots: '#1D4ED8', gloves: '#DC2626', emblem: 'spider', mask: 'full', prop: 'webs', hp: 75, speed: 1.9 },
-  { hero: 'DOCTOR STRANGLE', actor: 'BENEDICT CUMBERSOME', woman: false, seed: 22, look: { hair: '#1F1611' }, suit: '#1E3A8A', trim: '#A16207', boots: '#57534E', emblem: 'amulet', cape: '#B91C1C', mask: 'none', prop: 'hands', hp: 90, speed: 1.2 },
-  { hero: 'THE SCARLET WHICH', actor: 'ELIZABETH OLSONNE', woman: true, seed: 51, look: { hair: '#7F1D1D', long: true }, suit: '#9F1239', trim: '#7F1D1D', boots: '#7F1D1D', emblem: 'none', cape: '#9F1239', mask: 'crown', prop: 'hands', hp: 90, speed: 1.2 },
-  { hero: 'VISIONARY', actor: 'PAUL BETTERNY', woman: false, seed: 14, look: { skin: '#DC2626', bald: true }, suit: '#15803D', trim: '#FACC15', boots: '#15803D', emblem: 'gem', cape: '#FACC15', mask: 'none', prop: 'none', hp: 100, speed: 1.0 },
-  { hero: 'STAR-LARD', actor: 'CHRIS PRATTLE', woman: false, seed: 29, suit: '#7F1D1D', trim: '#1F2937', boots: '#3F2A14', legs: '#1F2937', emblem: 'none', mask: 'none', prop: 'blaster', hp: 90, speed: 1.5 },
-  { hero: 'GAMMA-RAY', actor: 'ZOE SALAMANDA', woman: true, seed: 37, look: { skin: '#4D7C0F', hair: '#7F1D1D', long: true }, suit: '#18181B', trim: '#7F1D1D', boots: '#18181B', emblem: 'none', mask: 'none', prop: 'sword', hp: 105, speed: 1.7 },
-  { hero: 'DRAKS THE DEMOLISHER', actor: 'DAVE BOTTISTA', woman: false, seed: 45, look: { skin: '#64748B', bald: true, heavy: true }, suit: '#64748B', trim: '#B91C1C', boots: '#3F2A14', legs: '#57534E', bare: true, emblem: 'tattoo', mask: 'none', prop: 'knives', hp: 180, speed: 1.0 },
-  { hero: 'AUNT-MAN', actor: 'PAUL RUDDER', woman: false, seed: 33, suit: '#B91C1C', trim: '#18181B', boots: '#18181B', gloves: '#18181B', emblem: 'none', mask: 'helmet', prop: 'none', hp: 85, speed: 1.4 },
-  { hero: 'CAPTAIN MARVELOUS', actor: 'BREE LARSONG', woman: true, seed: 63, look: { hair: '#F5D27A', long: false }, suit: '#1E3A8A', trim: '#DC2626', boots: '#DC2626', emblem: 'star8', mask: 'none', prop: 'hands', hp: 105, speed: 1.3 },
-  { hero: 'THE WINTER SOLDER', actor: 'SEBASTIEN STANLEY', woman: false, seed: 58, look: { hair: '#1F1611', long: true }, suit: '#18181B', trim: '#3F3F46', boots: '#18181B', gloves: '#18181B', emblem: 'none', mask: 'domino', prop: 'arm', hp: 120, speed: 1.5 },
-  { hero: 'THE FALCONER', actor: 'ANTONY MACKEREL', woman: false, seed: 4, suit: '#52525B', trim: '#B91C1C', boots: '#18181B', emblem: 'none', mask: 'goggles', prop: 'wings', hp: 100, speed: 1.0 },
-  { hero: 'SHE-BULK', actor: 'TATIANA MASLANKY', woman: true, seed: 18, look: { skin: '#65A30D', hair: '#111827', long: true, heavy: true }, suit: '#6D28D9', trim: '#F8FAFC', boots: '#6D28D9', emblem: 'none', mask: 'none', prop: 'none', hp: 180, speed: 1.0 },
-  { hero: 'MISS MARBLE', actor: 'IMAN VANILLI', woman: true, seed: 48, look: { hair: '#1F1611' }, suit: '#B91C1C', trim: '#1D4ED8', boots: '#FACC15', emblem: 'bolt', mask: 'domino', prop: 'fist', hp: 85, speed: 1.6 },
-  { hero: 'QUICKSHILL', actor: 'ERIN TAILOR-JOHANSEN', woman: false, seed: 26, look: { hair: '#D6D3D1' }, suit: '#1E3A8A', trim: '#93C5FD', boots: '#F8FAFC', emblem: 'bolt', mask: 'none', prop: 'none', hp: 85, speed: 1.9 },
-  { hero: 'WOLVERINO', actor: 'HUGH JACKHAMMER', woman: false, seed: 21, look: { hair: '#1F1611' }, suit: '#FACC15', trim: '#1E3A8A', boots: '#1E3A8A', gloves: '#1E3A8A', emblem: 'none', mask: 'ears', prop: 'claws', hp: 110, speed: 1.6 },
-  { hero: 'DEADPAN', actor: 'BRYAN RAYNOLDS', woman: false, seed: 35, suit: '#B91C1C', trim: '#18181B', boots: '#18181B', gloves: '#18181B', emblem: 'circle', mask: 'full', prop: 'katanas', hp: 105, speed: 1.8 },
-  { hero: 'DRIZZLE', actor: 'HALLE BURRY', woman: true, seed: 46, look: { hair: '#F5F5F4', long: true }, suit: '#18181B', trim: '#F5F5F4', boots: '#18181B', emblem: 'none', cape: '#27272A', mask: 'none', prop: 'hands', hp: 90, speed: 1.2 },
-  { hero: 'NEBULOUS', actor: 'KAREN GILLIGAN', woman: true, seed: 44, look: { skin: '#3B82F6', bald: true }, suit: '#7F1D1D', trim: '#3F3F46', boots: '#3F3F46', gloves: '#3F3F46', emblem: 'none', mask: 'none', prop: 'baton', hp: 110, speed: 1.6 },
-  { hero: 'JEAN BEIGE', actor: 'FAMKE JANSEN-SEN', woman: true, seed: 55, look: { hair: '#B45309', long: true }, suit: '#15803D', trim: '#FACC15', boots: '#FACC15', gloves: '#FACC15', emblem: 'phoenix', mask: 'none', prop: 'hands', hp: 90, speed: 1.2 },
-  { hero: 'WONDER WOMANISH', actor: 'GAL GADGET', woman: true, seed: 59, look: { hair: '#1F1611', long: true }, suit: '#B91C1C', trim: '#FACC15', boots: '#B91C1C', legs: '#1D4ED8', emblem: 'W', mask: 'tiara', prop: 'tiara', hp: 105, speed: 1.5 },
-  { hero: 'SUPERBMAN', actor: 'HENRY CAVITY', woman: false, seed: 2, look: { hair: '#111827' }, suit: '#1D4ED8', trim: '#DC2626', boots: '#DC2626', emblem: 'S', cape: '#DC2626', mask: 'none', prop: 'hands', hp: 110, speed: 1.3 },
-  { hero: 'BATTMAN', actor: 'BEN AFFLECKTION', woman: false, seed: 23, suit: '#3F3F46', trim: '#FACC15', boots: '#18181B', gloves: '#18181B', emblem: 'bat', cape: '#18181B', mask: 'cowl', prop: 'batarang', hp: 105, speed: 1.3 },
-  { hero: 'GROAT', actor: 'VIN DEISEL', woman: false, seed: 39, look: { skin: '#92400E', heavy: true, bald: true }, suit: '#78350F', trim: '#4D7C0F', boots: '#57534E', emblem: 'bark', mask: 'leaves', prop: 'none', hp: 180, speed: 0.9 },
-  { hero: 'SOCKET', actor: 'BRADLEY COOPERSMITH', woman: false, seed: 31, suit: '#78716C', trim: '#F5F5F4', boots: '#3F3F46', emblem: 'none', mask: 'raccoon', prop: 'gun', hp: 75, speed: 1.5, short: true },
+  { hero: 'CAPTAIN AMERICANO', actor: 'CHAZ EVANSTON', woman: false, seed: 12, suit: '#1D4ED8', trim: '#DC2626', boots: '#7F1D1D', gloves: '#7F1D1D', emblem: 'star', mask: 'helmetA', prop: 'shield', hp: 125, speed: 1.4 },
+  { hero: 'THUD, GOD OF THUNDER-ISH', actor: 'LIAM HAMSWORTH', woman: false, seed: 25, look: { hair: '#F5D27A', long: true }, suit: '#3F3F46', trim: '#A1A1AA', boots: '#57534E', emblem: 'discs', cape: '#B91C1C', mask: 'none', prop: 'hammer', hp: 138, speed: 1.2 },
+  { hero: 'IRONIC MAN', actor: 'ROBBIE DOWNLY JR. JR.', woman: false, seed: 8, suit: '#B91C1C', trim: '#FACC15', boots: '#B91C1C', gloves: '#B91C1C', emblem: 'reactor', mask: 'faceplate', prop: 'gauntlet', hp: 125, speed: 1.3 },
+  { hero: 'THE INCREDIBLE BULK', actor: 'MARK RUFFLO', woman: false, seed: 3, look: { skin: '#65A30D', heavy: true, hair: '#1F1611' }, suit: '#65A30D', trim: '#6D28D9', boots: '#65A30D', legs: '#6D28D9', bare: true, emblem: 'none', mask: 'none', prop: 'none', hp: 244, speed: 1.0 },
+  { hero: 'BLACK WINDOW', actor: 'SCARLETT JOHANSWAN', woman: true, seed: 30, look: { hair: '#B91C1C' }, suit: '#18181B', trim: '#71717A', boots: '#18181B', gloves: '#18181B', emblem: 'hourglass', mask: 'none', prop: 'batons', hp: 131, speed: 1.7 },
+  { hero: 'HAWKGUY', actor: 'JEREMY RENTER', woman: false, seed: 17, suit: '#581C87', trim: '#18181B', boots: '#18181B', gloves: '#18181B', emblem: 'none', mask: 'none', prop: 'bow', hp: 106, speed: 1.4 },
+  { hero: 'SPIDER-TEEN', actor: 'TOM HOLLOWAY', woman: false, seed: 41, suit: '#DC2626', trim: '#1D4ED8', boots: '#1D4ED8', gloves: '#DC2626', emblem: 'spider', mask: 'full', prop: 'webs', hp: 94, speed: 1.9 },
+  { hero: 'DOCTOR STRANGLE', actor: 'BENEDICT CUMBERSOME', woman: false, seed: 22, look: { hair: '#1F1611' }, suit: '#1E3A8A', trim: '#A16207', boots: '#57534E', emblem: 'amulet', cape: '#B91C1C', mask: 'none', prop: 'hands', hp: 113, speed: 1.2 },
+  { hero: 'THE SCARLET WHICH', actor: 'ELIZABETH OLSONNE', woman: true, seed: 51, look: { hair: '#7F1D1D', long: true }, suit: '#9F1239', trim: '#7F1D1D', boots: '#7F1D1D', emblem: 'none', cape: '#9F1239', mask: 'crown', prop: 'hands', hp: 113, speed: 1.2 },
+  { hero: 'VISIONARY', actor: 'PAUL BETTERNY', woman: false, seed: 14, look: { skin: '#DC2626', bald: true }, suit: '#15803D', trim: '#FACC15', boots: '#15803D', emblem: 'gem', cape: '#FACC15', mask: 'none', prop: 'none', hp: 125, speed: 1.0 },
+  { hero: 'STAR-LARD', actor: 'CHRIS PRATTLE', woman: false, seed: 29, suit: '#7F1D1D', trim: '#1F2937', boots: '#3F2A14', legs: '#1F2937', emblem: 'none', mask: 'none', prop: 'blaster', hp: 113, speed: 1.5 },
+  { hero: 'GAMMA-RAY', actor: 'ZOE SALAMANDA', woman: true, seed: 37, look: { skin: '#4D7C0F', hair: '#7F1D1D', long: true }, suit: '#18181B', trim: '#7F1D1D', boots: '#18181B', emblem: 'none', mask: 'none', prop: 'sword', hp: 131, speed: 1.7 },
+  { hero: 'DRAKS THE DEMOLISHER', actor: 'DAVE BOTTISTA', woman: false, seed: 45, look: { skin: '#64748B', bald: true, heavy: true }, suit: '#64748B', trim: '#B91C1C', boots: '#3F2A14', legs: '#57534E', bare: true, emblem: 'tattoo', mask: 'none', prop: 'knives', hp: 225, speed: 1.0 },
+  { hero: 'AUNT-MAN', actor: 'PAUL RUDDER', woman: false, seed: 33, suit: '#B91C1C', trim: '#18181B', boots: '#18181B', gloves: '#18181B', emblem: 'none', mask: 'helmet', prop: 'none', hp: 106, speed: 1.4 },
+  { hero: 'CAPTAIN MARVELOUS', actor: 'BREE LARSONG', woman: true, seed: 63, look: { hair: '#F5D27A', long: false }, suit: '#1E3A8A', trim: '#DC2626', boots: '#DC2626', emblem: 'star8', mask: 'none', prop: 'hands', hp: 131, speed: 1.3 },
+  { hero: 'THE WINTER SOLDER', actor: 'SEBASTIEN STANLEY', woman: false, seed: 58, look: { hair: '#1F1611', long: true }, suit: '#18181B', trim: '#3F3F46', boots: '#18181B', gloves: '#18181B', emblem: 'none', mask: 'domino', prop: 'arm', hp: 150, speed: 1.5 },
+  { hero: 'THE FALCONER', actor: 'ANTONY MACKEREL', woman: false, seed: 4, suit: '#52525B', trim: '#B91C1C', boots: '#18181B', emblem: 'none', mask: 'goggles', prop: 'wings', hp: 125, speed: 1.0 },
+  { hero: 'SHE-BULK', actor: 'TATIANA MASLANKY', woman: true, seed: 18, look: { skin: '#65A30D', hair: '#111827', long: true, heavy: true }, suit: '#6D28D9', trim: '#F8FAFC', boots: '#6D28D9', emblem: 'none', mask: 'none', prop: 'none', hp: 225, speed: 1.0 },
+  { hero: 'MISS MARBLE', actor: 'IMAN VANILLI', woman: true, seed: 48, look: { hair: '#1F1611' }, suit: '#B91C1C', trim: '#1D4ED8', boots: '#FACC15', emblem: 'bolt', mask: 'domino', prop: 'fist', hp: 106, speed: 1.6 },
+  { hero: 'QUICKSHILL', actor: 'ERIN TAILOR-JOHANSEN', woman: false, seed: 26, look: { hair: '#D6D3D1' }, suit: '#1E3A8A', trim: '#93C5FD', boots: '#F8FAFC', emblem: 'bolt', mask: 'none', prop: 'none', hp: 106, speed: 1.9 },
+  { hero: 'WOLVERINO', actor: 'HUGH JACKHAMMER', woman: false, seed: 21, look: { hair: '#1F1611' }, suit: '#FACC15', trim: '#1E3A8A', boots: '#1E3A8A', gloves: '#1E3A8A', emblem: 'none', mask: 'ears', prop: 'claws', hp: 138, speed: 1.6 },
+  { hero: 'DEADPAN', actor: 'BRYAN RAYNOLDS', woman: false, seed: 35, suit: '#B91C1C', trim: '#18181B', boots: '#18181B', gloves: '#18181B', emblem: 'circle', mask: 'full', prop: 'katanas', hp: 131, speed: 1.8 },
+  { hero: 'DRIZZLE', actor: 'HALLE BURRY', woman: true, seed: 46, look: { hair: '#F5F5F4', long: true }, suit: '#18181B', trim: '#F5F5F4', boots: '#18181B', emblem: 'none', cape: '#27272A', mask: 'none', prop: 'hands', hp: 113, speed: 1.2 },
+  { hero: 'NEBULOUS', actor: 'KAREN GILLIGAN', woman: true, seed: 44, look: { skin: '#3B82F6', bald: true }, suit: '#7F1D1D', trim: '#3F3F46', boots: '#3F3F46', gloves: '#3F3F46', emblem: 'none', mask: 'none', prop: 'baton', hp: 138, speed: 1.6 },
+  { hero: 'JEAN BEIGE', actor: 'FAMKE JANSEN-SEN', woman: true, seed: 55, look: { hair: '#B45309', long: true }, suit: '#15803D', trim: '#FACC15', boots: '#FACC15', gloves: '#FACC15', emblem: 'phoenix', mask: 'none', prop: 'hands', hp: 113, speed: 1.2 },
+  { hero: 'WONDER WOMANISH', actor: 'GAL GADGET', woman: true, seed: 59, look: { hair: '#1F1611', long: true }, suit: '#B91C1C', trim: '#FACC15', boots: '#B91C1C', legs: '#1D4ED8', emblem: 'W', mask: 'tiara', prop: 'tiara', hp: 131, speed: 1.5 },
+  { hero: 'SUPERBMAN', actor: 'HENRY CAVITY', woman: false, seed: 2, look: { hair: '#111827' }, suit: '#1D4ED8', trim: '#DC2626', boots: '#DC2626', emblem: 'S', cape: '#DC2626', mask: 'none', prop: 'hands', hp: 138, speed: 1.3 },
+  { hero: 'BATTMAN', actor: 'BEN AFFLECKTION', woman: false, seed: 23, suit: '#3F3F46', trim: '#FACC15', boots: '#18181B', gloves: '#18181B', emblem: 'bat', cape: '#18181B', mask: 'cowl', prop: 'batarang', hp: 131, speed: 1.3 },
+  { hero: 'GROAT', actor: 'VIN DEISEL', woman: false, seed: 39, look: { skin: '#92400E', heavy: true, bald: true }, suit: '#78350F', trim: '#4D7C0F', boots: '#57534E', emblem: 'bark', mask: 'leaves', prop: 'none', hp: 225, speed: 0.9 },
+  { hero: 'SOCKET', actor: 'BRADLEY COOPERSMITH', woman: false, seed: 31, suit: '#78716C', trim: '#F5F5F4', boots: '#3F3F46', emblem: 'none', mask: 'raccoon', prop: 'gun', hp: 94, speed: 1.5, short: true },
 ];
 
 /** The engine's health for one (it never runs out: what comes off it each frame is the hit, fight.ts keeps the real). */
@@ -234,7 +235,7 @@ const prop = (g: Ctx, a: CastMember, x: number, y: number, up: boolean, out: boo
 
 /** One of them, painted (feet at the origin, facing right). `v`: 'land' a hero landing, 'flop' diving at him (the hop
  *  up at him), 'dead' a body (limp). */
-const paintActor = (g: Ctx, a: CastMember, F: Frame) => {
+const paintActor = (g: Ctx, a: CastMember, F: Frame, headless = false) => {
   const B = castBody(a, F.pose, F.fr), L = B.L;
   if (a.short) g.scale(1, 0.78);
   const land = F.v === 'land', flop = F.v === 'flop';
@@ -261,6 +262,7 @@ const paintActor = (g: Ctx, a: CastMember, F: Frame) => {
     px(g, -6, B.shY + 8, 5, 1, dk(L.skin, 0.2)); px(g, 2, B.shY + 8, 5, 1, dk(L.skin, 0.2));
   }
   emblem(g, a, B);
+  if (headless) { stump(g, a, B); arm(g, B, 1, near[0], near[1], { sleeve: arms, hand }); return; }
   const covered = a.mask === 'full' || a.mask === 'helmet';
   if (!covered && a.mask !== 'cowl' && a.mask !== 'raccoon') hairBack(g, B);
   headShape(g, B, a.mask === 'full' ? a.suit : L.skin);
@@ -313,13 +315,24 @@ export const drawClinger = (c: Ctx, i: number, x: number, y: number, rot: number
 
 const BODY_BOX: [number, number, number, number] = [-110, -130, 220, 150];
 /** Down: on their back, face up, the head off behind them; blood on them; what they had in their hands beside them. */
-const paintBody = (g: Ctx, a: CastMember, step: number) => {
+/** Where the head was (the flintlock's): the neck, cut off short, the meat and the bone in it, and blood out of it. */
+const stump = (g: Ctx, a: CastMember, B: Person) => {
+  const nx = B.hx, ny = B.hy + B.ry - 3, skin = B.L.skin;
+  px(g, nx - 4, ny - 1, 8, Math.max(3, B.shY - ny + 2), a.mask === 'full' ? a.suit : skin);
+  flat(g, () => g.ellipse(nx, ny - 1, 5, 2.5, 0, 0, Math.PI * 2), '#B91C1C', 1);
+  flat(g, () => g.ellipse(nx, ny - 1, 3, 1.5, 0, 0, Math.PI * 2), '#7F1D1D', 0);
+  px(g, nx - 1, ny - 2, 2, 2, '#F5F5F4');
+  // (it's still coming out of him)
+  px(g, nx - 2, ny - 7, 2, 5, '#B91C1C'); px(g, nx + 1, ny - 10, 2, 3, '#DC2626'); px(g, nx + 3, ny - 5, 2, 2, '#991B1B');
+  px(g, nx - 5, ny + 1, 2, 6, '#991B1B');
+};
+const paintBody = (g: Ctx, a: CastMember, step: number, headless = false) => {
   const k = step / 3, F = frameOf(a.seed, 0, 'limp', 'dead', 0, a.woman, 'dead');
   g.save();
   g.translate(0, -15 * k);
   g.rotate(-k * Math.PI / 2);
-  paintActor(g, a, F);
-  if (step > 0) {
+  paintActor(g, a, F, headless);
+  if (step > 0 && !headless) {
     // (blood: the chest, the head)
     const B = castBody(a, 'limp', 0);
     flat(g, () => g.ellipse(2, B.shY + 12, 6, 4, 0.3, 0, Math.PI * 2), '#991B1B', 0);
@@ -332,14 +345,14 @@ const paintBody = (g: Ctx, a: CastMember, step: number) => {
   if (step === 3 && a.prop !== 'none' && a.prop !== 'hands' && a.prop !== 'wings' && a.prop !== 'arm') prop(g, a, 26, -4, false, true);
 };
 /** A body, world: its pool first (it spreads), then them, gone over as far as they've gone. */
-export const drawBody = (c: Ctx, i: number, x: number, y: number, dir: 1 | -1, fall: number, pool: number) => {
+export const drawBody = (c: Ctx, i: number, x: number, y: number, dir: 1 | -1, fall: number, pool: number, headless = false) => {
   if (pool > 0) {
     c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(x - dir * 18, y - 1, 10 + pool * 34, 3 + pool * 4, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#991B1B'; c.beginPath(); c.ellipse(x - dir * 24, y - 2, 6 + pool * 18, 2 + pool * 2, 0, 0, Math.PI * 2); c.fill();
   }
   const step = Math.min(3, Math.floor(fall * 3.999));
   c.save(); c.translate(Math.round(x), Math.round(y)); c.scale(dir, 1);
-  stamp(c, `hww-body${i}-${step}`, BODY_BOX[0], BODY_BOX[1], BODY_BOX[2], BODY_BOX[3], g => paintBody(g, CAST[i], step));
+  stamp(c, `hww-body${i}-${step}${headless ? 'h' : ''}`, BODY_BOX[0], BODY_BOX[1], BODY_BOX[2], BODY_BOX[3], g => paintBody(g, CAST[i], step, headless));
   c.restore();
 };
 
@@ -351,7 +364,8 @@ registerM2Kind({
   stats: { w: 36, h: 74, hp: BIG, contact: 0, mass: 560 },
   ai: actorAI,
   // (his grab gets one: the rest still pile on him while he's at it)
-  humanoid: true, grab: 'body', midBoss: true, touch: actorTouch,
+  // (people in costumes, not real bosses: the special weapons' specials work on them, at about half; weapons/half.ts)
+  humanoid: true, grab: 'body', midBoss: true, specialsHalf: true, touch: actorTouch,
   gender: e => (castOf(e).woman ? 'f' : 'm'),
   head: { x: 1, y: -68, r: 10 },
   draw: (c, e, f, s) => drawActor(c, e, f, s),

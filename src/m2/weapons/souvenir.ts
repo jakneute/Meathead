@@ -12,6 +12,7 @@ import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
 import { isMidBoss } from '../../m1/game/combat/midBoss';
+import { specialsHalf, HALF } from './half';
 import { gunDeathMode } from '../../m1/game/enemies/gunDeaths';
 import { startGunKill } from '../../m1/game/enemies/deaths';
 import { spared } from '../../m1/game/enemies/enemies';
@@ -313,7 +314,9 @@ const hitEnemy = (ctx: FrameContext, p: Projectile, e: Enemy) => {
   } else {
     fx.spawnDamageNumber(e.pos, dmg, dmg > 30);
     // (stunned, by how heavy it was: a mid-boss shrugs it off)
-    if (!isMidBoss(e)) { e.pauseTimer = Math.max(e.pauseTimer || 0, t.stun); e.vel = { x: dir * (0.5 + t.mass * 3), y: Math.min(e.vel.y, -1.5 - t.mass * 2) }; }
+    // (one opted in, weapons/half.ts: stunned half as long, knocked half as far)
+    if (specialsHalf(e)) { e.pauseTimer = Math.max(e.pauseTimer || 0, Math.round(t.stun * HALF)); e.vel = { x: dir * (0.5 + t.mass * 3) * HALF, y: Math.min(e.vel.y, (-1.5 - t.mass * 2) * HALF) }; }
+    else if (!isMidBoss(e)) { e.pauseTimer = Math.max(e.pauseTimer || 0, t.stun); e.vel = { x: dir * (0.5 + t.mass * 3), y: Math.min(e.vel.y, -1.5 - t.mass * 2) }; }
   }
   playSound(t.mass > 0.5 ? 'thud' : 'clink', 0.8, t.mass > 0.5 ? -2 : 6);
   // Off him: popped up, high (the lighter, the higher), back the way it came; and then, if there's somebody near, lobbed

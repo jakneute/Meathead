@@ -10,7 +10,8 @@
 // whoever's near: it can still pass it on), keeling over face first into it, and lying there with the flies.
 // Every enemy gets the animation: rearing back, heaving forward over it, a green look about him, his mouth going.
 // A boss or a mid-boss never gets sick on it (unless his own fight says otherwise: none does yet): the darts just hit
-// him harder, a machine gun (BOSS_DART_DMG).
+// him harder, a machine gun (BOSS_DART_DMG). One opted in (weapons/half.ts: the Ensemble Cast) does get sick, at half:
+// half the darts' extra hurt, and half as many heaves; it dies its own fight's way (never puked to death).
 
 import type { Enemy, Projectile } from '../../m1/types';
 import { shieldStops, clang } from './shield';
@@ -27,6 +28,7 @@ import { grabCallout } from '../moves/callouts';
 import { drawEnemyAt } from '../moves/grab';
 import { drawComposited } from '../../m1/game/render/composite';
 import { isRobot } from '../kinds';
+import { specialsHalf, specialsOff, realMax, HALF } from './half';
 import { drawGooPuddle, drawGooOverhang, drawGooString, gooOverhangDrips, type GooPalette } from '../../m1/game/render/goo';
 
 type Ctx = CanvasRenderingContext2D;
@@ -48,7 +50,7 @@ const lockOn = (state: GameState, up: boolean): Enemy | null => {
   const pl = state.player, f = pl.facing, mx = pl.pos.x + pl.width / 2;
   let best: Enemy | null = null, bestD = Infinity;
   for (const e of state.enemies) {
-    if (!alive(e) || isMidBoss(e)) continue;
+    if (!alive(e) || specialsOff(e)) continue;
     const dx = (e.pos.x + e.width / 2 - mx) * f;
     if (dx < 10 || dx > LOCK_REACH || e.pos.x + e.width < state.camera.x || e.pos.x > state.camera.x + CANVAS_WIDTH) continue;
     // (up: whoever's in the air, or stood up over him, on a floor he could jump up through, say; down: whoever's on the
@@ -70,7 +72,7 @@ const lockOn = (state: GameState, up: boolean): Enemy | null => {
 const TIP = { x: 27, y: -4 };
 let aim = 0;
 /** Tolerance: a few darts' worth, and more by how much of him there is. Unhit a while, it comes back. */
-const tolMax = (e: Enemy) => 2 + e.maxHealth / 35;
+const tolMax = (e: Enemy) => 2 + realMax(e) / 35;
 const REGEN_AFTER = 120, REGEN = 0.03;
 /** Being sick: so many heaves, each this long (rearing back, spewing, getting his breath). After, a short spell he's
  *  over it, then he can be got again. */
@@ -172,8 +174,9 @@ const darted = (ctx: FrameContext, e: Enemy, p: Projectile, through = 1) => {
   if (stuck.filter(s => s.e === e).length > 12) stuck.splice(stuck.findIndex(s => s.e === e), 1);
   for (let i = 0; i < 2; i++) puff(state, { pos: { x: cx, y: cy }, vel: { x: -Math.sign(p.vel.x) * Math.random() * 2, y: -Math.random() * 2 }, life: 12, color: i ? '#B91C1C' : '#84CC16', size: 1.5 });
   playSound('click', 0.4, 10);
-  if (isMidBoss(e)) { hurt(ctx, e, BOSS_DART_DMG); e.hitFlash = 2; ctx.fx.spawnDamageNumber(e.pos, BOSS_DART_DMG); return; }
-  hurt(ctx, e, DART.dmg * through);
+  if (specialsOff(e)) { hurt(ctx, e, BOSS_DART_DMG); e.hitFlash = 2; ctx.fx.spawnDamageNumber(e.pos, BOSS_DART_DMG); return; }
+  if (specialsHalf(e)) { hurt(ctx, e, BOSS_DART_DMG * HALF * through); e.hitFlash = 2; }
+  else hurt(ctx, e, DART.dmg * through);
   if (!alive(e)) return;
   const s = sickOf(e); tracked.add(e);
   s.lastHit = state.frame;
@@ -310,7 +313,7 @@ const mouthOf = (e: Enemy, dir: number, lean: number) => {
 const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
   const { state } = ctx;
   const n = Math.floor(s.t / HEAVE), cyc = s.t % HEAVE;
-  if (n >= HEAVES) { s.t = -1; s.tol = s.max; s.immuneUntil = state.frame + IMMUNE; s.target = null; e.pose = undefined; recover(e, s); return; }
+  if (n >= (specialsHalf(e) ? Math.ceil(HEAVES * HALF) : HEAVES)) { s.t = -1; s.tol = s.max; s.immuneUntil = state.frame + IMMUNE; s.target = null; e.pose = undefined; recover(e, s); return; }
   // (in no state to fight: his AI held off, no shooting, stood there; it's not a daze, no stars)
   e.pauseTimer = Math.max(e.pauseTimer || 0, 2); e.shootTimer = 0; e.vel.x *= 0.6;
   if (cyc === 0 || (s.target && !alive(s.target)) || (s.target && !state.enemies.includes(s.target))) s.target = pickTarget(state, e);
@@ -362,7 +365,7 @@ const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part,
   if (splashes.length > MAX_SPLASHES) splashes.shift();
   if (Math.random() < 0.3) playSound('splat', 0.3, 6);
   hurt(ctx, e, own ? PUKE.selfDmg : PUKE.dmg);
-  if (!alive(e) || isMidBoss(e)) return;
+  if (!alive(e) || specialsOff(e)) return;
   const s = sickOf(e); tracked.add(e);
   s.doused = 120; s.lastHit = state.frame;
   if (!own && s.t < 0 && state.frame >= s.immuneUntil) { s.tol -= PUKE.sick; if (s.tol <= 0) getSick(state, e, s); }
@@ -478,7 +481,7 @@ const dripHits = (ctx: FrameContext, x: number, y: number, big: boolean) => {
     if (splashes.length > MAX_SPLASHES) splashes.shift();
     if (Math.random() < (big ? 0.6 : 0.2)) playSound('splat', 0.3, 6);
     hurt(ctx, e, big ? PUKE.dmg : DRIP.dmg);
-    if (!alive(e) || isMidBoss(e)) return true;
+    if (!alive(e) || specialsOff(e)) return true;
     const s = sickOf(e); tracked.add(e);
     s.doused = Math.max(s.doused, big ? 120 : 50); s.lastHit = state.frame;
     if (s.t < 0 && state.frame >= s.immuneUntil) { s.tol -= big ? PUKE.sick : DRIP.sick; if (s.tol <= 0) getSick(state, e, s); }

@@ -40,6 +40,8 @@ export interface Arrival {
  *  over it's gone (0 stood .. 1 down), the pool under it, how high up the heap it lies. */
 export interface Body {
   i: number; x: number; y: number; dir: 1 | -1; t: number; fall: number; pool: number; lift: number;
+  /** The flintlock had the head off. */
+  headless?: boolean;
 }
 
 export interface Fight {
