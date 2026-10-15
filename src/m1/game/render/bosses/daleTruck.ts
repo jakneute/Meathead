@@ -1,9 +1,10 @@
 // Drug Trade Dale's delivery truck and its incoming-truck warning (world space).
 
 import { Enemy } from '../../../types';
-import { BOSS_DOOR_X, DALE_TRUCK_SPEED } from '../../../constants';
-import { bandedGradient, pixelBlob } from '../pixelArt';
+import { BOSS_DOOR_X, ARENA_LEFT, DALE_TRUCK_SPEED } from '../../../constants';
+import { bandedGradient, pixelBlob, checker } from '../pixelArt';
 import { INK, dark, lite, ink } from '../npc/kit';
+import { drawFire } from '../fx/fire';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -84,8 +85,49 @@ export const drawDaleTruck = (ctx: Ctx, e: Enemy, frame: number) => {
   ctx.filter = 'none';
   ctx.shadowBlur = 0;
   if (e.truckX < BOSS_DOOR_X) drawIncomingWarning(ctx, frame);
+  if ((e.truckRev ?? 0) > 0) drawRevving(ctx, e.truckRev!, frame);
   drawDeliveryTruck(ctx, e.truckX, TRUCK_Y, frame, !!e.truckCrashing, true, DALE_TRUCK_SPEED);
+  drawRoofFire(ctx, e.truckX, TRUCK_Y, frame, !!e.truckCrashing);
   ctx.restore();
+};
+
+/**
+ * Revving out back before it comes (`left`: frames of it to go): its high beams flashing in through the shop's
+ * front doors at shin height, a glare at the doorway, in three stepped bands, on and off, faster as it gets close.
+ */
+const drawRevving = (ctx: Ctx, left: number, frame: number) => {
+  const period = left > 14 ? 8 : 4;
+  if (frame % period >= period / 2 + 1) return;
+  const x = ARENA_LEFT, y0 = TRUCK_Y + 72, y1 = TRUCK_Y + 82;
+  headBeam(ctx, x, y0, y1, 300, 40, 1, 0.55);
+  // (the glare, where it's coming in)
+  pixelBlob(ctx, x + 4, (y0 + y1) / 2, 26, 18, 'rgba(255, 244, 180, 0.35)');
+  pixelBlob(ctx, x + 2, (y0 + y1) / 2, 12, 9, 'rgba(255, 255, 255, 0.7)');
+};
+
+/**
+ * Dale's truck's roof, on fire (so nobody takes it for somewhere to stand): the trailer roof charred black along its
+ * rail, dithered off into the white, and fires all down it and on the cab roof, blown back by the speed it's going.
+ */
+const ROOF_FIRES: { dx: number; dy: number; w: number; h: number }[] = [
+  { dx: 30, dy: 3, w: 50, h: 30 }, { dx: 92, dy: 3, w: 56, h: 38 }, { dx: 158, dy: 3, w: 50, h: 30 }, { dx: 220, dy: 3, w: 48, h: 34 },
+  { dx: TRAILER_W + 30, dy: 31, w: 40, h: 26 },
+];
+const drawRoofFire = (ctx: Ctx, x: number, y: number, frame: number, crashing: boolean) => {
+  const bounce = crashing ? Math.sin(frame * 1.7) * 3 + 4 : Math.sin(frame * 0.9) * 1.2;
+  const by = Math.round(y + bounce);
+  // (the char along the top of the box, and up the cab roof)
+  ctx.fillStyle = 'rgba(28, 25, 23, 0.7)'; ctx.fillRect(x + 2, by + 4, TRAILER_W - 4, 5);
+  checker(ctx, x + 2, by + 9, TRAILER_W - 4, 4, 'rgba(28, 25, 23, 0.5)');
+  ctx.fillStyle = 'rgba(28, 25, 23, 0.6)'; ctx.fillRect(x + TRAILER_W + 8, by + 30, 44, 4);
+  ROOF_FIRES.forEach((f, i) => {
+    ctx.save();
+    ctx.translate(x + f.dx, by + f.dy);
+    // (leaning back off the way it's going)
+    ctx.transform(1, 0, 0.45, 1, 0, 0);
+    drawFire(ctx, 0, 0, f.w, f.h, frame, { seed: 11 + i * 17, smoke: 0.6, glow: 0.7 });
+    ctx.restore();
+  });
 };
 
 /**

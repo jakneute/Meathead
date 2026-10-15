@@ -803,6 +803,13 @@ export const BOSS_DIALOGUE: {
       "YOU DROVE AN 18-WHEELER INTO MY DELTS, BASTARD!",
       "I'LL BENCH PRESS THAT BIG RIG RIGHT BACK AT YOU!"
     ],
+    // (came down on its roof: it's on fire)
+    'truck_fire': [
+      "THE ROOF'S ON FIRE! WHY IS YOUR ROOF ON FIRE, DALE?!",
+      "HOT ROOF! HOT ROOF! MY FUCKING SOLES!",
+      "WHO KEEPS DRIVING A TRUCK THAT'S ON FIRE?!",
+      "I LANDED ON A BARBECUE DOING FORTY!"
+    ],
     'poop': [
       "A HURRICANE TURD TO THE FACE?! THAT'S A NEW LOW, HECTOR!",
       "THERE'S SHIT IN MY PROTEIN SHAKER NOW! THANKS, HECTOR!",

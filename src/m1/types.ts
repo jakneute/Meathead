@@ -574,6 +574,10 @@ export interface Enemy extends Entity {
   blazes?: number;
   /** This run of the truck's already through that end. */
   truckThroughLeft?: boolean; truckThroughRight?: boolean;
+  /** Frames left of the truck revving out back before this run comes in (the warning: see dale.ts). */
+  truckRev?: number;
+  /** This run's already hit him the once (it carries on past him after that: no juggling him on the bumper). */
+  truckHitPlayer?: boolean;
   /** Standing in Meathead's sludge: frames toward the next tick, and the last frame it ticked. */
   sludgeDotTimer?: number;
   sludgeDotFrame?: number;

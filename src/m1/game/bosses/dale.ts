@@ -10,14 +10,15 @@
 import { playSound } from '../platform/audio';
 import { Enemy, Projectile } from '../../types';
 import {
-  ARENA_LEFT, ARENA_RIGHT, BOSS_DOOR_X, STAGE_WIDTH, DALE_TRUCK_SPEED, DALE_SPEED_WINDUP, DALE_TRUCK_DAMAGE, DALE_PUSHBACK_VEL,
-  METH_BARREL_DAMAGE, PLAYER_PUSHBACK_VEL_Y, PARTICLE_PALETTES,
+  ARENA_LEFT, ARENA_RIGHT, BOSS_DOOR_X, STAGE_WIDTH, DALE_TRUCK_SPEED, DALE_SPEED_WINDUP, DALE_TRUCK_DAMAGE,
+  METH_BARREL_DAMAGE, PARTICLE_PALETTES,
 } from '../../constants';
 import { DALE_LINES } from '../../content/dialogue';
 import type { FrameContext } from '../core/context';
 import { shakeScreen } from '../core/state';
 import { pickRandom } from '../core/utils';
 import { BossDef, FLOOR_Y, hurtPlayer, enemyProjectile, speakAsBoss } from './shared';
+import { SOOT_FRAMES } from '../render/player/player';
 
 const HOME_X = ARENA_RIGHT - 120;
 const TRUCK = { startX: BOSS_DOOR_X - 600, endX: STAGE_WIDTH + 200, y: 400, w: 350, h: 150 };
@@ -32,6 +33,15 @@ const PUDDLE_TICK_FRAMES = 30;       // standing in sludge: a small hit this oft
 const PUDDLE_TICK_DAMAGE = 4;        // ...of this much
 const CRASH_DAMAGE = 150;            // his own truck, tires blown, plowing into him
 const CRASH_REST_FRAMES = 180;
+/** The truck revving out back before each run (on top of its run in): the horn, the engine winding up, its headlights
+ * flashing in through the front doors, dust shaking down, the horn again, then it comes. */
+export const TRUCK_REV_FRAMES = 32;
+/** The truck hitting him: launched up and away the way it's going, high enough for it to go on under him, and no
+ * control for a moment. It only hits him the once a run. */
+const TRUCK_LAUNCH = { x: 15, y: -16 };
+const TRUCK_LAUNCH_FRAMES = 28;
+/** He came down on the roof (it's on fire: see daleTruck.ts), not the front of it: his feet this close to the top. */
+const ROOF_DEPTH = 34;
 
 type Shipment = NonNullable<Enemy['shipmentType']>;
 const SHIPMENTS: Shipment[] = ['cocaine', 'speed', 'meth'];
@@ -56,14 +66,45 @@ const sendTruck = (ctx: FrameContext, boss: Enemy) => {
   boss.truckActive = true;
   boss.truckPasses = (boss.truckPasses ?? 0) + 1;
   boss.truckThroughLeft = false; boss.truckThroughRight = false;
+  boss.truckRev = TRUCK_REV_FRAMES;
+  boss.truckHitPlayer = false;
   (boss.truckReach ??= []).push(-Infinity);
   ctx.bossHelpers.playGunSound('truckhorn');
+  playSound('engine', 0.7, -5);
+};
+
+/** Out back, revving, before it comes: the engine winding up, the shop shaking, dust down off the front, the horn again. */
+const revTruck = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  const t = TRUCK_REV_FRAMES - boss.truckRev!;
+  boss.truckRev!--;
+  if (t === 12) playSound('engine', 0.85, 0);
+  if (t === 22) playSound('engine', 1, 5);
+  if (t === TRUCK_REV_FRAMES - 8) ctx.bossHelpers.playGunSound('truckhorn');
+  if (t % 8 === 0) shakeScreen(state, 4, 2 + t / 12);
+  // (dust shaking down off the front of the shop, and kicked in under the doors)
+  if (t % 2 === 0) {
+    state.particles.push({ pos: { x: ARENA_LEFT + Math.random() * 40, y: FLOOR_Y - 4 }, vel: { x: 1 + Math.random() * 3, y: -Math.random() * 1.5 }, life: 30, color: Math.random() < 0.5 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 4 });
+    state.particles.push({ pos: { x: ARENA_LEFT + Math.random() * 120, y: 120 + Math.random() * 40 }, vel: { x: (Math.random() - 0.5), y: 1 + Math.random() }, life: 40, color: '#A8A29E', size: 2 + Math.random() * 2 });
+  }
+};
+
+/** The truck hits him: up and away, the once this run. */
+const launchPlayer = (ctx: FrameContext, boss: Enemy, source: string) => {
+  const p = ctx.state.player;
+  boss.truckHitPlayer = true;
+  hurtPlayer(ctx, DALE_TRUCK_DAMAGE, source, TRUCK_LAUNCH, TRUCK_LAUNCH_FRAMES);
+  p.jumpHoldTimer = 0; p.isGrounded = false;
+  // (off the burning roof: he's scorched)
+  if (source === 'truck_fire') p.sootTimer = SOOT_FRAMES;
+  shakeScreen(ctx.state, 14, 8);
 };
 
 /** The truck runs over anything in its path, then drops off a random shipment. */
 const driveTruck = (ctx: FrameContext, boss: Enemy) => {
   const { state, cheats } = ctx;
   const { player } = state;
+  if ((boss.truckRev ?? 0) > 0) { revTruck(ctx, boss); return; }
   boss.truckX! += DALE_TRUCK_SPEED;
   const truck = { x: boss.truckX!, y: TRUCK.y, w: TRUCK.w, h: TRUCK.h };
   // (how far this run's got: what it's wrecked so far, and all it'll ever wreck if it doesn't make it out the far end)
@@ -87,13 +128,15 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
   if (hits(player)) {
     // The filth shield eats the truck like it eats bullets
     if (player.filthShieldTimer && player.filthShieldTimer > 0) { wreckTruck(ctx, boss); return; }
-    const canHurt = player.invincibilityTimer <= 0 && !cheats.invincible;
+    // (once a run: it's hit him, it carries on past him, however long he's still in its way)
+    const canHurt = !boss.truckHitPlayer && player.invincibilityTimer <= 0 && !cheats.invincible;
     // Out of control and it catches you: it piles into you instead of Dale
     // (if you're still flashing from an earlier hit, it carries on past you)
     if (boss.truckCrashing && canHurt) { crashIntoPlayer(ctx, boss); return; }
     if (canHurt) {
-      // (charged into it head on: that gets its own lines, and its own death screen)
-      hurtPlayer(ctx, DALE_TRUCK_DAMAGE, player.isCharging && !player.isSliding ? 'truck_charge' : 'truck', { x: DALE_PUSHBACK_VEL.x, y: PLAYER_PUSHBACK_VEL_Y });
+      // (came down on the roof: it's on fire; charged into it head on: that gets its own lines, and its own death screen)
+      const onRoof = player.pos.y + player.height <= truck.y + ROOF_DEPTH;
+      launchPlayer(ctx, boss, onRoof ? 'truck_fire' : player.isCharging && !player.isSliding ? 'truck_charge' : 'truck');
     }
   }
   state.projectiles.forEach((p: Projectile) => { if (p.isMethBarrel && p.health > 0 && hits(p)) p.health = -1; });
@@ -225,7 +268,7 @@ const crashIntoPlayer = (ctx: FrameContext, boss: Enemy) => {
   boss.truckCrashing = false;
   boss.bossState = 'idle';
   boss.stateTimer = WRECKED_REST_FRAMES;
-  hurtPlayer(ctx, DALE_TRUCK_DAMAGE, 'truck', { x: DALE_PUSHBACK_VEL.x, y: PLAYER_PUSHBACK_VEL_Y });
+  launchPlayer(ctx, boss, 'truck');
   fx.spawnExplosion(at, pickRandom(PARTICLE_PALETTES.FIRE), 20, 0, 16);
   fx.spawnExplosion(at, '#212121', 20, 0, 12);
   fx.spawnPowderExplosion(at, 20);
