@@ -64,13 +64,13 @@ export const AIR_GRAB = {
   WINDUP_MAX_FALL: 1.5,
   /** The launch: a little forward, a lot up. */
   LAUNCH_VX: 3.5,
-  LAUNCH_VY: 14,
+  LAUNCH_VY: 16.5,
   /** The longest the hands are out on the way up (it's over sooner once he's started falling). */
-  LUNGE_FRAMES: 20,
+  LUNGE_FRAMES: 23,
   /** How far the hands reach: ahead of his front, over his head, under his feet (that's what gets ground enemies). */
   REACH_FRONT: 30, REACH_UP: 24, REACH_DOWN: 28,
   /** Caught one: the little hop up together before it all comes down (up speed). */
-  ARC_POP: 5,
+  ARC_POP: 7,
   /** The arc's own pull down, each frame (on top of the engine's gravity), and the fastest they fall. */
   ARC_GRAV: 0.45, ARC_MAX_FALL: 20,
   /** Sideways speed of each arc: back held (backflip), forward held (dive), nothing held (piledriver). */
