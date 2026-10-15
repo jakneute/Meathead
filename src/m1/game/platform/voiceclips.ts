@@ -16,10 +16,11 @@ interface Pack { buf: ArrayBuffer; base: number; clips: Record<string, [number, 
 let pack: Pack | null = null;
 const keyOf = (voice: string, text: string) => `${voice}|${text.trim()}`;
 
-/** Loads the pack (from its URL: in the release, it's inside the page). */
-export const loadVoicePack = async (url: string) => {
+/** Loads the pack: from its URL (in the browser builds, it's inside the page), or as the desktop app hands it over (a
+ * file of its own there: see electron/main.cjs). */
+export const loadVoicePack = async (from: string | (() => Promise<ArrayBuffer>)) => {
   try {
-    const buf = await (await fetch(url)).arrayBuffer();
+    const buf = typeof from === 'string' ? await (await fetch(from)).arrayBuffer() : await from();
     const n = new DataView(buf).getUint32(0, true);
     const header = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 4, n)));
     pack = { buf, base: 4 + n, clips: header.clips, voices: header.voices };

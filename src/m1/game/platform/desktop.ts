@@ -13,6 +13,8 @@ interface DesktopBridge {
   setFullscreen(on: boolean): void;
   onFullscreenChange(fn: (on: boolean) => void): () => void;
   quit(): void;
+  /** The voice pack, read off the disk (the desktop app ships it as a file of its own, not inside the page). */
+  voicePack?(): Promise<ArrayBuffer>;
 }
 
 /** The desktop app, if that's where it's running (null in a browser). */
@@ -25,6 +27,10 @@ export const isDesktop = !!desktop;
 
 /** Quits to the desktop (the desktop app only). */
 export const quitToDesktop = () => { desktop?.quit(); };
+
+/** The voice pack from the desktop app (the steam build's page doesn't carry it). */
+export const desktopVoicePack = (): Promise<ArrayBuffer> =>
+  desktop?.voicePack ? desktop.voicePack() : Promise.reject(new Error('no desktop voice pack'));
 
 // The files on disk, swapped in before anything's read (this module's imported first: see index.tsx). The first time,
 // whatever the app's own browser storage already had (the game's names: meathead-...) is copied onto the disk, unless

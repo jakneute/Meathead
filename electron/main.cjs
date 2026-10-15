@@ -129,6 +129,9 @@ const createWindow = () => {
 ipcMain.on('fullscreen-get', e => { e.returnValue = !!win && win.isFullScreen(); });
 ipcMain.on('fullscreen-set', (_e, on) => { if (win && win.isFullScreen() !== !!on) win.setFullScreen(!!on); });
 ipcMain.on('quit', () => { app.quit(); });
+// The voice pack: a file of its own beside the app (resources/voices.bin, outside app.asar), not inside the page, so a
+// code patch is only the few-MB page. (Unpackaged, a voices.bin next to this file.)
+ipcMain.handle('voice-pack', () => fs.promises.readFile(app.isPackaged ? path.join(process.resourcesPath, 'voices.bin') : path.join(__dirname, 'voices.bin')));
 
 app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });
 

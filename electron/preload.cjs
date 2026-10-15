@@ -22,4 +22,6 @@ contextBridge.exposeInMainWorld('meatheadDesktop', {
   /** The window going in or out of fullscreen (any way: the options, F11, Alt+Enter). Returns the unsubscribe. */
   onFullscreenChange: fn => { fullscreenListeners.add(fn); return () => { fullscreenListeners.delete(fn); }; },
   quit: () => { ipcRenderer.send('quit'); },
+  /** The voice pack (resources/voices.bin: not inside the page, so a code patch doesn't drag 24 MB of voices with it). */
+  voicePack: () => ipcRenderer.invoke('voice-pack').then(u => (u.byteOffset === 0 && u.byteLength === u.buffer.byteLength ? u.buffer : u.slice().buffer)),
 });

@@ -13,7 +13,7 @@ import { takeAllSouvenirs, garageState, setGarageState } from './game/garage/sto
 import type { Souvenir } from './content/garage';
 import HUD from './components/HUD';
 import Overlay, { CheatFlags, leaveAnswers, type LeaveAnswer, type LeaveTo } from './components/Overlay';
-import { quitToDesktop, isDesktop } from './game/platform/desktop';
+import { quitToDesktop, isDesktop, desktopVoicePack } from './game/platform/desktop';
 import GameCanvas from './components/GameCanvas';
 import EndingCutscene from './components/EndingCutscene';
 import EpilogueCutscene from './components/EpilogueCutscene';
@@ -27,8 +27,9 @@ import { GYM_STAGE } from './game/stages/gym';
 import voicePackUrl from './generated/voices-m1.bin?url';
 import { loadVoicePack } from './game/platform/voiceclips';
 
-// Everybody's recorded voice, loaded once (it comes inside the page: see tools/voices)
-loadVoicePack(voicePackUrl);
+// Everybody's recorded voice, loaded once (it comes inside the page: see tools/voices; in the desktop app it's a file of
+// its own, next to the page, and the app reads it: the build's import is then just the marker 'desktop:voices')
+loadVoicePack(voicePackUrl === 'desktop:voices' ? () => desktopVoicePack() : voicePackUrl);
 // The options screen's settings, as they were left (the volumes, the video, the keys)
 loadSettings();
 import { canSkip, requestSkip } from './game/platform/skip';
