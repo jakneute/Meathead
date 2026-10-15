@@ -2,7 +2,7 @@
 // impact site, then mixed in XENOSCARE:
 //   SOLDIER  (m2:sp_grunt) the ray gun on his forearm, as Zorblax had: keeps his distance, raises the arm (the coil
 //            glowing up: the tell) and fires a pink bolt at him (level; angled down at him off a perch, or up at him on
-//            one). The bolts hit anybody in the way (friendly fire). Posted up on something he stays up on it, unless
+//            one). The bolts go by his own kind (they're only for him). Posted up on something he stays up on it, unless
 //            Meathead's right under him where he can't get the angle: then he comes down after him.
 //   BRUTE    (m2:sp_brute) a head taller and twice as wide, a spiked battle helmet (spiky: dive kicking down onto it is
 //            his own foot through a spike); plods at him, raises both fists (the tell) and lunges a punch.
@@ -21,7 +21,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { say, pickLine } from '../../../m1/game/platform/speech';
 import { isGoreColor } from '../../../m1/game/core/effects';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
-import { hazardVictims, hazardHit, inHazard } from '../../hazardHit';
+import { inHazard } from '../../hazardHit';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { voice, saidOver } from '../section';
@@ -98,7 +98,7 @@ export const drawAlienSaid = (c: Ctx, state: GameState) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The bolts (the soldiers'): level, fast, pink; hitting him, anybody else in the way, or a wall
+// The bolts (the soldiers'): level, fast, pink; hitting him or a wall (through their own)
 
 interface Bolt { x: number; y: number; vx: number; vy: number; t: number; from: Enemy }
 let bolts: Bolt[] = [];
@@ -133,9 +133,7 @@ export const tickAliens = (ctx: FrameContext) => {
       hurtPlayer(ctx, BOLT_DMG, LASER, { x: Math.sign(b.vx) * 3, y: -2 }, 10);
       spark(); playSound('gunhit', 0.5, 6); return false;
     }
-    // (one of theirs in the way, once it's clear of the one who fired it)
-    const e = b.t > 6 ? hazardVictims(state).find(o => o !== b.from && b.x > o.pos.x && b.x < o.pos.x + o.width && b.y > o.pos.y && b.y < o.pos.y + o.height) : undefined;
-    if (e) { hazardHit(ctx, e, 30, b.x - b.vx * 3, 'FRIENDLY FIRE!', { color: ALIEN.laser[4], knock: 5 }); spark(); return false; }
+    // (one of theirs in the way: it goes by them; their gunfire never hurts their own)
     // (a wall; the floor (one angled down that missed); not the perch it was fired off, on its way out)
     if (b.t > 4 && state.blocks.some(k => k.type !== 'platform' && !k.oneWay && b.x > k.x && b.x < k.x + k.w && b.y > k.y && b.y < k.y + k.h)) { spark(); return false; }
     if (b.vy && b.y > floorAt(b.x)) { spark(); return false; }

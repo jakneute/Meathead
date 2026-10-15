@@ -5,7 +5,7 @@
 // one nearby gripes about it (the ride makes them look bad). From Specimen Bay on, the real ones have operators about:
 // soldiers in mind-control headsets. Once one of those rigs has popped, its operator takes it over (green rings from
 // his headset to it; its eyes go green; it jerks like a puppet) and it comes for him: lunging off its rig on its arm or
-// its spring and clawing, every third go spitting sparks. Its claws hit anybody in the way (them too: hazardHit.ts).
+// its spring and clawing, every third go spitting sparks (at him only). Its claws hit anybody in the way (them too: hazardHit.ts).
 // The operator stands at it working it, not shooting: kill him and the link's gone, and it drops back to a prop,
 // twitching and sparking, and goes back in for good. (The queen's the same trick, bigger.)
 
@@ -94,8 +94,7 @@ export const tickRigs = (ctx: FrameContext, rigs: Rig[]) => {
     if (p.health > 0 && state.deathTimer <= 0 && p.invincibilityTimer <= 0 && sp.x > p.pos.x - 4 && sp.x < p.pos.x + p.width + 4 && sp.y > p.pos.y && sp.y < p.pos.y + p.height) {
       hurtPlayer(ctx, SPARK_DMG, SPARK, { x: Math.sign(sp.vx) * 3, y: -3 }, 10); playSound('taser', 0.4, 6); return false;
     }
-    const e = sp.t > 8 ? hazardVictims(state).find(o => sp.x > o.pos.x && sp.x < o.pos.x + o.width && sp.y > o.pos.y && sp.y < o.pos.y + o.height) : undefined;
-    if (e) { hazardHit(ctx, e, 20, sp.x - sp.vx * 3, 'ZAPPED!', { knock: 4, color: '#FDE047' }); return false; }
+    // (spat at him: they go by the others, their gunfire never hurts their own)
     if (sp.y > GY) { for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: sp.x, y: GY - 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 14, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 2 }); return false; }
     return sp.t < 200;
   });

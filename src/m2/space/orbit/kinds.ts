@@ -7,7 +7,7 @@
 //   zmine:     a space mine, sat there. Get close and it's armed (blinking fast), then it goes off. Shot, it goes off
 //              anyway (whoever's near it gets it: chain them).
 //   zcruiser:  a gunship. Comes on and sits, warms its nose up (a thin line where it's going), then the beam, swinging
-//              up or down after him as it fires; does it again, and leaves. The beam takes out anybody else in it too.
+//              up or down after him as it fires; does it again, and leaves. The beam's only for him (their gunfire never hurts their own).
 //   ufo:       the flying saucer (the sub-boss): its own file (ufo.ts) drives it; this only makes it a kind.
 // Everything that moves with the screen goes along at the scroll's pace plus its own. Each new hurt has his callouts
 // and its death screen (registerHurtLines: lines.ts).
@@ -20,7 +20,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
-import { hazardVictims, hazardHit, setHazardZones } from '../../hazardHit';
+import { hazardVictims } from '../../hazardHit';
 import { HURT, KAMIKAZE_YELL, CRUISER_YELL } from './lines';
 import { drawFighter, drawKamikaze, drawTurret, drawMine, drawCruiser, drawBeam, drawSaucer } from './art';
 import { blast, bolt, bark } from './hazards';
@@ -265,7 +265,7 @@ const mineTouch = (ctx: FrameContext, e: Enemy) => { if (e.health > 0) mineBlows
 // ---------------------------------------------------------------------------------------------------------------
 // Cruisers: sat at screen x P.sx; the beam out of its nose (on its left: it faces left)
 
-const BEAM_DMG = 14, BEAM_ENEMY = 60, BEAM_H = 26, WARN = 55, FIRE = 100, COOL = 70, BEAM_SWEEP = 1.0;
+const BEAM_DMG = 14, BEAM_H = 26, WARN = 55, FIRE = 100, COOL = 70, BEAM_SWEEP = 1.0;
 const NOSE = 92, NOSE_Y = 24;
 const cruiser = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, P = pilots.get(e);
@@ -310,10 +310,9 @@ const cruiser = (ctx: FrameContext, e: Enemy) => {
   if (beamOn) {
     const x1 = e.pos.x + e.width / 2 - NOSE, y = e.pos.y + e.height - NOSE_Y;
     P.beamY = y;
-    setHazardZones(state, `orbit-beam-${e.id}`, [{ x0: x1 - 900, x1, y0: y - BEAM_H, y1: y + BEAM_H }]);
+    // (it's only him it hurts: their gunfire never hurts their own)
     if (P.cr === 'fire') {
       if (p.health > 0 && p.invincibilityTimer <= 0 && p.pos.x < x1 && p.pos.y < y + BEAM_H / 2 && p.pos.y + p.height > y - BEAM_H / 2) hurtPlayer(ctx, BEAM_DMG, 'm2:alien_beam', { x: -3, y: Math.sign(pm.y - y || 1) * 5 });
-      for (const o of hazardVictims(state)) if (o !== e && o.pos.x < x1 && o.pos.x + o.width > x1 - 900 && o.pos.y < y + BEAM_H / 2 && o.pos.y + o.height > y - BEAM_H / 2) hazardHit(ctx, o, BEAM_ENEMY, x1, 'BEAMED!');
     }
   }
   return true;
