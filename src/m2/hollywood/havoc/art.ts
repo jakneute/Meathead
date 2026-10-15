@@ -338,7 +338,16 @@ export const drawHavocBack = (c: Ctx, state: GameState) => {
   });
   // (the PA's horns on their lampposts, Steve's fliers and standees: what the tornado hasn't taken)
   HORNS.forEach((rx, i) => { if (inView(state, X(rx), X(rx))) { if (isTorn(state, 'horn', i)) box(c, X(rx) - 4, BACK_Y - 6, 8, 16, '#3F3F46'); else lamppost(c, X(rx), BACK_Y + 10, true, i); } });
-  STEVES.forEach(([rx, kind], i) => { if (inView(state, X(rx), X(rx)) && !isTorn(state, 'steve', i)) steveFlier(c, X(rx), kind === 'standee' ? BACK_Y + 6 : BACK_Y - (kind === 'poster' ? 160 : 120), kind, rx % 3); });
+  // (a poster or flier on its own post, down to the sidewalk: held up, never hung on the air where a front's gone)
+  STEVES.forEach(([rx, kind], i) => {
+    if (!inView(state, X(rx), X(rx)) || isTorn(state, 'steve', i)) return;
+    if (kind !== 'standee') {
+      const y = BACK_Y - (kind === 'poster' ? 160 : 120), bottom = y + (kind === 'poster' ? 60 : 30);
+      box(c, X(rx) - 4, bottom - 6, 8, BACK_Y - bottom + 10, '#1C1917'); box(c, X(rx) - 3, bottom - 6, 6, BACK_Y - bottom + 9, '#57534E'); box(c, X(rx) - 3, bottom - 6, 2, BACK_Y - bottom + 9, '#78716C');
+      box(c, X(rx) - 9, BACK_Y, 18, 4, '#1C1917');
+    }
+    steveFlier(c, X(rx), kind === 'standee' ? BACK_Y + 6 : BACK_Y - (kind === 'poster' ? 160 : 120), kind, rx % 3);
+  });
   // (guests running for it, behind: back and forth along the back of the sidewalk; the tornado takes the chase's)
   if (!done) for (let k = 0; k < GUEST_BASES.length; k++) {
     if (hv.guestsGone[k] || !inView(state, X(GUEST_BASES[k]), X(GUEST_BASES[k] + 700))) continue;
