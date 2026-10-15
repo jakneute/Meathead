@@ -121,7 +121,18 @@ mocap stunt doubles). At the end: the script in a glass case on a pedestal, lit 
 members, each distinct (costume, build, skin tone, hair, gender; legally distinct A-list parodies with parody names and
 one-word bits), arriving in waves (hero landings, entrances, each with a one-liner), till every one is dead. Sub-boss
 rules: lock both sides once it starts, never respawned once past (`clear` on its checkpoint), big health + ammo before
-it; clean / shitty / naked pools for every line group (the cast react to his state). Then he kicks the glass case, the
+it; clean / shitty / naked pools for every line group (the cast react to his state). The user, on the cast:
+- **Modestly detailed:** not full stage-boss detail, but each one distinct (costume, build, hair, skin tone, a gender
+  mix; legally distinct parody heroes).
+- **The bodies stay:** every actor killed falls over dead and STAYS; no body despawns during the fight, so they pile
+  up into a huge heap of dead celebrities. Really sell the carnage.
+- **No gibs, ever:** whatever the weapon, none of them explodes into bits; every one just falls over dead and
+  bloodied, and the body stays on the pile.
+- **The joke:** they're so conceited from playing superheroes that they think they ARE superheroes: they fight like
+  they have powers they don't (hero poses, catchphrases, fake power moves, wires that aren't hooked up), and die like
+  the ordinary people they are.
+
+Then he kicks the glass case, the
 pages fly out over the onlookers, who grab them: the script's leaked (cutscene beat, HUD hidden). Revisits differ:
 walls down for good, sets wrecked, pages everywhere, the case empty.
 
