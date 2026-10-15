@@ -25,7 +25,7 @@ import { drawKindCorpse } from '../../render/enemies';
 import { drawChopperBike, drawLmgProp } from '../../render/enemies/oscar';
 import { COURSE } from './course';
 import type { Bunker, Worker } from './bunker';
-import { roomIntact, doorShut, veinBox, clockSeconds, panelBox, PANEL_HANG, PANEL_FALL } from './bunker';
+import { roomIntact, doorShut, veinBox, clockSeconds, panelBox, PANEL_HANG, PANEL_FALL, PANEL_SHUDDER } from './bunker';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -140,7 +140,8 @@ export const drawBunkerBack = (ctx: Ctx, state: GameState, b: Bunker) => {
 
 /**
  * The panel over the gas line's joint: a dented steel access plate, four screws (three of them long gone), a note
- * taped on it. Shaken loose, it swings off its last screw a moment, then drops, turning, and lies on the floor.
+ * taped on it. Shot, it shudders and flashes, and wears the damage; shot loose, it swings off its last screw a
+ * moment, then drops, turning, and lies on the floor.
  */
 const drawPanel = (ctx: Ctx, state: GameState, b: Bunker) => {
   const pb = panelBox();
@@ -156,8 +157,14 @@ const drawPanel = (ctx: Ctx, state: GameState, b: Bunker) => {
     return;
   }
   // Up (or hanging off its last screw, top left, swinging out; or on its way down, turning as it goes)
-  let ox = 0, oy = 0, rot = 0;
-  if (t >= 0 && t < PANEL_HANG) rot = Math.min(0.5, t * 0.05) + Math.sin(t * 0.6) * 0.06 * Math.min(1, t / 8);
+  const hits = b.panelHits ?? 0;
+  // (sagging off its screw a bit more with each hit; and the shudder after one)
+  const sag = hits >= 3 ? 0.13 : hits >= 2 ? 0.05 : 0;
+  const since = b.panelHitAt === undefined ? 999 : state.frame - b.panelHitAt;
+  const shudder = since < PANEL_SHUDDER ? (1 - since / PANEL_SHUDDER) : 0;
+  let ox = 0, oy = 0, rot = sag;
+  if (t < 0 && shudder > 0) { ox = Math.round(Math.sin(since * 2.6) * 3 * shudder); rot += Math.sin(since * 1.9) * 0.05 * shudder; }
+  if (t >= 0 && t < PANEL_HANG) rot = Math.max(sag, Math.min(0.5, t * 0.05)) + Math.sin(t * 0.6) * 0.06 * Math.min(1, t / 8);
   else if (t >= PANEL_HANG) { const u = (t - PANEL_HANG) / PANEL_FALL; oy = u * u * (Y - 3 - pb.y - pb.h * 0.5); ox = u * 14; rot = 0.5 + u * 1.1; }
   ctx.translate(pb.x + 4 + ox, pb.y + 4 + oy); ctx.rotate(rot); ctx.translate(-4, -4);
   // The plate: steel, lit along its top and left, a dent, scuffs
@@ -178,7 +185,52 @@ const drawPanel = (ctx: Ctx, state: GameState, b: Bunker) => {
   ctx.fillStyle = 'rgba(148, 163, 184, 0.7)'; ctx.fillRect(pb.w / 2 - 6, 7, 12, 5); // the tape
   letter(ctx, 'LEAKY JOINT', pb.w / 2, 21, 'bold 6px monospace', '#B91C1C', '#FDE68A');
   letter(ctx, 'FIX REQUESTED 1997', pb.w / 2, 30, 'bold 6px monospace', '#44403C', '#FDE68A');
+  panelDamage(ctx, pb.w, pb.h, Math.min(hits, 3), state.frame);
+  // The flash off a fresh hit (white, then gone: two steps, no fade)
+  if (t < 0 && since < 5) { ctx.fillStyle = since < 2 ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.35)'; ctx.fillRect(0, 0, pb.w, pb.h); }
   ctx.restore();
+};
+
+/**
+ * What the shots have done to the panel (drawn in its own frame, w x h): dents punched in it (dark pits, lit on
+ * their lower right lip), then cracks running out of them and the note torn, then the bottom corner peeled out off
+ * the wall, the dark behind it showing and the odd spark off the bent edge.
+ */
+const panelDamage = (ctx: Ctx, w: number, h: number, n: number, frame: number) => {
+  if (n < 1) return;
+  const dent = (x: number, y: number, s: number) => {
+    ctx.fillStyle = '#374151'; ctx.fillRect(x, y, s, s);
+    ctx.fillStyle = '#1F2937'; ctx.fillRect(x, y, s - 1, s - 1);
+    ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x + 1, y + s, s, 1); ctx.fillRect(x + s, y + 1, 1, s);
+  };
+  dent(14, 44, 4); dent(58, 40, 3); dent(66, 14, 3);
+  if (n < 2) return;
+  // Cracks out of the dents: stepped runs of ink, a lit pixel along one side
+  const crack = (pts: [number, number][]) => {
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+      const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+      for (let k = 0; k <= steps; k++) {
+        const x = Math.round(x0 + (x1 - x0) * k / steps), y = Math.round(y0 + (y1 - y0) * k / steps);
+        ctx.fillStyle = '#111827'; ctx.fillRect(x, y, 1, 1);
+        ctx.fillStyle = '#A8A29E'; ctx.fillRect(x + 1, y, 1, 1);
+      }
+    }
+  };
+  crack([[16, 44], [10, 50], [12, 56], [6, 63]]);
+  crack([[59, 40], [64, 48], [61, 54], [68, 62]]);
+  crack([[67, 15], [74, 9], [79, 10]]);
+  dent(36, 52, 4); dent(74, 30, 3);
+  // (the note: a corner torn off where the tape let go)
+  ctx.fillStyle = '#6B7280'; ctx.fillRect(w / 2 + 18, 28, 8, 7); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(w / 2 + 18, 28, 8, 1);
+  if (n < 3) return;
+  // The bottom right corner peeled away from the wall: the dark behind, the bent lip lit, a spark now and then
+  ctx.fillStyle = '#0C0A09';
+  for (let k = 0; k < 14; k++) ctx.fillRect(w - 14 + k, h - k - 1, 14 - k, 1);
+  ctx.fillStyle = '#D1D5DB';
+  for (let k = 0; k < 14; k++) ctx.fillRect(w - 15 + k, h - k - 1, 1, 1);
+  crack([[40, 20], [46, 30], [42, 38], [48, 46]]);
+  if (frame % 47 < 3) { ctx.fillStyle = '#FDE047'; ctx.fillRect(w - 9, h - 8, 2, 2); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(w - 6, h - 11, 1, 1); ctx.fillRect(w - 11, h - 5, 1, 1); }
 };
 
 /** The furniture in the room, the union on their break (and after), the bikers out the far side. */

@@ -39,9 +39,12 @@ export interface Biker { x: number; y: number; vx: number; vy: number; rot: numb
 export interface Bunker {
   phase: BunkerPhase;
   t: number;
-  /** The panel over the gas line's joint: when it came loose (walking to the far side of the room shakes it off its
-   * last screw), undefined while it's still up. Till it's down, the joint can't be got at. */
+  /** The panel over the gas line's joint: when it came loose (shot off its last screw), undefined while it's still
+   * up. Till it's down, the joint can't be got at. */
   panelAt?: number;
+  /** How many hits it's taken (PANEL_HP knocks it off), and when the last one landed (it shudders and flashes). */
+  panelHits?: number;
+  panelHitAt?: number;
   /** The gas line's joint's been shot out (and when); how much gas is in the room (0..1). */
   popped: boolean;
   poppedAt: number;
@@ -112,6 +115,11 @@ export const createBunker = (state: GameState, startedAt: number): Bunker => {
 export const panelBox = () => ({ x: COURSE.bunker.vein.x - 30, y: COURSE.bunker.vein.y - 52, w: 84, h: 70 });
 /** How long the panel hangs off its last screw before it drops, and how long it takes to hit the floor. */
 export const PANEL_HANG = 26, PANEL_FALL = 18;
+/** Hits to knock it off the wall (any weapon: a shot, a pellet blast, a lick of flame), and the frames after one
+ * before the next counts (so a shotgun blast or a flamethrower's stream is one hit, not a dozen). */
+export const PANEL_HP = 4, PANEL_HIT_GAP = 8;
+/** The shudder and the flash after a hit. */
+export const PANEL_SHUDDER = 12;
 /** The joint's out in the open (the panel's on its way down, or down). */
 export const jointExposed = (b: Bunker, frame: number) => b.panelAt !== undefined && frame - b.panelAt >= PANEL_HANG;
 
@@ -160,29 +168,50 @@ const NAG_FROM = 600, NAG_EVERY = 1200;
 const LOOK_ROUND = [
   "THERE'S GOT TO BE ANOTHER WAY THROUGH THIS ROOM.",
   'LET ME HAVE A LOOK AROUND. A REAL LOOK.',
-  "NOTHING IN HERE BUT SANDWICHES AND A LOCKED DOOR. ...SO FAR.",
+  "NO ACCESS, HUH? THAT PANEL'S HANGING BY ONE SCREW. A FEW GOOD SHOTS...",
 ];
+
+/** Shots that have already knocked the panel once (the ones that carry on through it: a wave, a boulder, the LMG's rounds). */
+const panelStruck = new WeakSet<object>();
 
 /**
  * The panel over the gas line: up on the wall, the note taped on it, the joint behind it where nobody can get at it.
- * Walking over to the far side of the room (the door), the floor shakes it off its last screw: it hangs a moment,
- * drops, and there's the joint. Shots into it before then just clink off it. The room has something to say.
+ * It's held on by one screw and a prayer: shoot it (any weapon) and it shudders, flashes, dents, cracks, sags off
+ * its screw; PANEL_HP hits and it swings loose, hangs a moment, drops, and there's the joint. The room has
+ * something to say.
  */
-const panel = (ctx: FrameContext, b: Bunker, talk: Talk, px: number) => {
+const panel = (ctx: FrameContext, b: Bunker, talk: Talk) => {
   const { state, fx } = ctx;
   const B = COURSE.bunker;
   if (b.panelAt === undefined) {
-    // (shots into it: a clink, and nothing)
     const pb = panelBox();
-    const hit = state.projectiles.find(q => q.owner === 'player' && rectsOverlap(boundsOf(q), pb));
+    // (shots into it: they stop on it; the big ones that carry on through only knock it the once)
+    const hit = state.projectiles.find(q => q.owner === 'player' && !q.visualOnly && !panelStruck.has(q) && rectsOverlap(boundsOf(q), pb));
+    let at: { x: number; y: number } | undefined;
     if (hit) {
-      state.projectiles = state.projectiles.filter(q => q !== hit);
-      playSound('clink', 0.6);
-      for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: hit.pos.x, y: hit.pos.y }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 10, color: '#FDE047', size: 2 });
+      at = { x: hit.pos.x + hit.width / 2, y: hit.pos.y + hit.height / 2 };
+      if (hit.isTsunami || hit.isBoulder || hit.pierce) panelStruck.add(hit);
+      else state.projectiles = state.projectiles.filter(q => q !== hit);
+    } else {
+      const lick = state.flameSegments.find(s => s.x > pb.x - s.size / 2 && s.x < pb.x + pb.w + s.size / 2 && s.y > pb.y - s.size / 2 && s.y < pb.y + pb.h + s.size / 2);
+      if (lick) at = { x: Math.max(pb.x, Math.min(pb.x + pb.w, lick.x)), y: Math.max(pb.y, Math.min(pb.y + pb.h, lick.y)) };
     }
-    if (px < B.x2 - 150 || !state.player.isGrounded) return;
+    if (!at || state.frame - (b.panelHitAt ?? -999) < PANEL_HIT_GAP) return;
+    b.panelHits = (b.panelHits ?? 0) + 1; b.panelHitAt = state.frame;
+    // The clank (deeper as it gives), sparks off the steel, a fleck of paint
+    playSound('clang', 0.5 + b.panelHits * 0.08, -b.panelHits * 3);
+    for (let i = 0; i < 7; i++) state.particles.push({ pos: { x: at.x, y: at.y }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 10 + Math.random() * 8, color: i % 3 ? '#FDE047' : '#FFFFFF', size: 2 });
+    state.particles.push({ pos: { x: at.x, y: at.y }, vel: { x: (Math.random() - 0.5) * 2, y: -1 }, life: 30, color: '#6B7280', size: 3, chunk: true, grav: 0.3 });
+    if (b.panelHits < PANEL_HP) {
+      fx.spawnDamageNumber({ x: at.x - 14, y: pb.y - 6 }, 'CLANK!', false, '#D6D3D1');
+      // (the first one: somebody looks up from his cards)
+      if (b.panelHits === 1 && quiet(talk)) { b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'worker', text: "HEY. THAT'S UNION PROPERTY." }]); }
+      return;
+    }
+    // Off its last screw
     b.panelAt = state.frame;
     playSound('clink', 0.8, -6);
+    shakeScreen(state, 4, 2);
     return;
   }
   const t = state.frame - b.panelAt;
@@ -231,7 +260,7 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
   for (const w of b.workers) w.t++;
   const px = p.pos.x + p.width / 2;
   const inside = px > B.x1 && px < B.x2;
-  if (b.phase === 'break' || b.phase === 'clockout' || b.phase === 'open') panel(ctx, b, talk, px);
+  if (b.phase === 'break' || b.phase === 'clockout' || b.phase === 'open') panel(ctx, b, talk);
   switch (b.phase) {
     case 'waiting':
       if (px > B.x1 + 40 && p.isGrounded) {
