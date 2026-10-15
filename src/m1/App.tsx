@@ -87,7 +87,9 @@ const navigateStageGrid = (index: number, dx: number, dy: number, whiteHouse: bo
 };
 
 /** Pause menu: a 3-wide weapon grid (indices 0..n-1) above a row of five buttons (RESUME, DOSSIER, OPTIONS, BOSS SELECT, QUIT). */
-const navigatePauseMenu = (index: number, dx: number, dy: number, numWeapons: number) => {
+const navigatePauseMenu = (index: number, dx: number, dy: number, numWeapons: number, noBossSelect = false): number => {
+  // (no BOSS SELECT in the gym: stepped over)
+  if (noBossSelect && dx) { const i = navigatePauseMenu(index, dx, dy, numWeapons); return i === numWeapons + 3 ? navigatePauseMenu(i, dx, dy, numWeapons) : i; }
   // (the buttons line up with the grid's columns left to right: RESUME under the first, DOSSIER the second, OPTIONS,
   // BOSS SELECT and QUIT the third)
   const lastRow = Math.floor((numWeapons - 1) / 3);
@@ -727,7 +729,7 @@ const App: React.FC = () => {
     else if (index === numWeapons) handleResume();
     else if (index === numWeapons + 1) setPauseDossier(true);
     else if (index === numWeapons + 2) setOptionsOpen(true);
-    else if (index === numWeapons + 3) askBossSelect();
+    else if (index === numWeapons + 3) { if (selectedStage !== GYM_STAGE) askBossSelect(); }
     else if (index === numWeapons + 4) askQuit();
   };
 
@@ -758,7 +760,7 @@ const App: React.FC = () => {
       if (confirmLeave) { if (dx) { const n = leaveAnswers(leaveTo).length; setConfirmPick(i => Math.max(0, Math.min(n - 1, i + Math.sign(dx)))); } return true; }
       // (the file's up: the cursor stays where it is till it's shut)
       if (pauseDossier) return true;
-      setSelectedIndex(i => navigatePauseMenu(i, dx, dy, numWeapons));
+      setSelectedIndex(i => navigatePauseMenu(i, dx, dy, numWeapons, selectedStage === GYM_STAGE));
       return true;
     }
     return false;

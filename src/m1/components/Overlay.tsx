@@ -712,7 +712,7 @@ const PauseMenu: React.FC<OverlayProps> = ({ onOpenOptions, availableWeapons, cu
         {menuButton('RESUME', '▶', numWeapons, onResume, 'linear-gradient(180deg, #CA8A04, #A16207)', '#713F12')}
         {menuButton('DOSSIER', '▤', numWeapons + 1, () => onOpenPauseDossier?.(), 'linear-gradient(180deg, #A16207, #713F12)', '#422006')}
         {menuButton('OPTIONS', '⚙', numWeapons + 2, () => onOpenOptions?.(), 'linear-gradient(180deg, #3F6212, #365314)', '#1A2E05')}
-        {menuButton('BOSS SELECT', '☰', numWeapons + 3, onBossSelect, 'linear-gradient(180deg, #B91C1C, #7F1D1D)', '#450A0A')}
+        {stageId !== GYM_STAGE && menuButton('BOSS SELECT', '☰', numWeapons + 3, onBossSelect, 'linear-gradient(180deg, #B91C1C, #7F1D1D)', '#450A0A')}
         {menuButton('QUIT', '✖', numWeapons + 4, onQuitToMenu, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B')}
       </div>
       <div className="mt-3 flex items-center gap-4 text-[6px] text-zinc-500 tracking-wider">
