@@ -45,7 +45,7 @@ export const QUEUE_GROUND: [number, number, number, number][] = [
 /** The station's deck: its height, its ends; its end wall. */
 export const STATION = { a: 1600, b: 2700, h: 210 } as const;
 /** The queue's rails (low walls between the lanes: over them): [x, height of the ground there]. */
-export const RAILS: [number, number][] = [[300, 0], [520, 0], [1080, 110], [1220, 110], [1760, 210]];
+export const RAILS: [number, number][] = [[300, 0], [520, 0], [1080, 110], [1220, 110]];
 export const RAIL_H = 34;
 /** Who's in the queue (guests: shoved aside, outraged): [x, seed]. Ground under each from QUEUE_GROUND. */
 export const GUESTS: [number, number][] = [
