@@ -154,5 +154,14 @@
   "m2.hollywood.actor2": { "voice": "am_michael", "speed": 1.02, "rate": 1.0, "gain": 1.05 },
   "m2.hollywood.actor2f": { "voice": "af_nicole", "speed": 1.0, "rate": 1.02, "gain": 1.05 },
   "m2.hollywood.actorbig": { "voice": [["am_onyx", 0.6], ["am_fenrir", 0.4]], "speed": 0.9, "rate": 0.86, "gain": 1.1 },
-  "m2.hollywood.actorbigf": { "voice": [["af_sarah", 0.6], ["af_kore", 0.4]], "speed": 0.92, "rate": 0.9, "gain": 1.1 }
+  "m2.hollywood.actorbigf": { "voice": [["af_sarah", 0.6], ["af_kore", 0.4]], "speed": 0.92, "rate": 0.9, "gain": 1.1 },
+  "m2.hollywood.host": { "voice": [["am_eric", 0.6], ["am_adam", 0.4]], "speed": 1.18, "rate": 1.06, "gain": 1.1, "fx": "radio_mild" },
+  "m2.hollywood.disaster": { "voice": "bm_lewis", "speed": 0.82, "rate": 0.9, "gain": 0.95, "fx": "radio_mild" },
+  "m2.hollywood.usher": { "voice": "am_michael", "speed": 1.08, "rate": 1.0 },
+  "m2.hollywood.usherf": { "voice": "af_kore", "speed": 1.08, "rate": 1.02 },
+  "m2.hollywood.tech": { "voice": "am_liam", "speed": 1.12, "rate": 1.0 },
+  "m2.hollywood.techf": { "voice": "af_nicole", "speed": 1.12, "rate": 1.02 },
+  "m2.hollywood.twisty": { "voice": "am_puck", "speed": 1.15, "rate": 1.12, "gain": 1.05 },
+  "m2.hollywood.twistyf": { "voice": "af_sky", "speed": 1.15, "rate": 1.12, "gain": 1.05 },
+  "m2.hollywood.sleeper2": { "voice": "am_fenrir", "speed": 0.78, "rate": 0.88, "gain": 0.8 }
 }
