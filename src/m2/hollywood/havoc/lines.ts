@@ -147,9 +147,6 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
     hurt: ['THE TORNADO\'S GOT ME!', 'IT\'S SUCKING ME UP!'],
     death: [
       'TAKEN BY THE TORNADO',
-      'SUCKED UP AND SPAT OUT OVER ENCINO',
-      'THE TORNADO GOT HIM. HE\'S IN KANSAS NOW.',
-      'HE\'S IN THE TORNADO. ALL OF HIM. IN PIECES.',
       'TWISTED LIKE A PRETZEL. A DEAD ONE.',
       'DON\'T STAND NEXT TO THE TORNADO',
       'SKINNED BY THE WIND',
