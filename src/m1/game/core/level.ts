@@ -71,7 +71,7 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
   p.bleedT = 0; p.bloodHp = undefined;
   // (and nothing left over from how he died, or what he was in the middle of: no pose, no twitch, no hold on him)
   p.stabbed = undefined; p.kickPose = 0; p.deathFace = undefined; p.gut = undefined; p.headless = undefined; p.shownDead = undefined;
-  p.hidden = undefined; p.spriteRot = undefined; p.spriteScaleY = undefined;p.squash = undefined; p.ledgeDrop = 0;
+  p.hidden = undefined; p.spriteRot = undefined; p.spriteScaleY = undefined; p.spriteScaleX = undefined; p.squash = undefined; p.ledgeDrop = 0;
   p.hurtForm = undefined; p.hurtFormTimer = 0; p.hurtTimer = 0; p.pushbackTimer = 0; p.lockTimer = 0; p.recoiling = false;
   p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.isDucking = false; p.powerLocked = false;
   p.throwTimer = 0; p.barfTimer = 0; p.peeTimer = 0; p.isTasing = false; p.isFlaming = false;

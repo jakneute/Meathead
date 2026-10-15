@@ -1,8 +1,8 @@
 // THE FLING (a cutscene: HUD hidden, SKIP >> for the lot). Past the first aid station the tornado surges and gets him:
 // he's lifted, spinning, up round the funnel (tumbling: Player.freefall), up into the junk it's carrying (a cow, the
 // HAPPYWOOD letters, a porta-potty, Steve's standee); round and round up top while he says his piece; then it spits him
-// out, high over the park, off toward Stuntman Steve's stage (a cut in the black: he comes down on the stage,
-// DOORS.stunt.start). If the tornado killed him before on this visit (diedToTornado), up top he breaks the fourth wall,
+// out, high over the park, off toward Stuntman Steve's stage (a cut in the black: he's high over the stage's way in,
+// DOORS.stunt.start, and the stunt intro brings him down, all accidental flips and twists: stunt/fight.ts 'land'). If the tornado killed him before on this visit (diedToTornado), up top he breaks the fourth wall,
 // the user's line, verbatim. Once it's done the tornado's spent (FLUNG_MEMO: the revisit's calm).
 
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -10,7 +10,6 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Controls } from '../../../m1/game/platform/input';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
-import { shakeScreen } from '../../../m1/game/core/state';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { hazardVictims, hazardKill } from '../../hazardHit';
@@ -20,6 +19,7 @@ import { Y } from './layout';
 import { hvOf, diedToTornado, FLUNG_MEMO } from './state';
 import { tornadoBase } from './chase';
 import { CAUGHT, SPIN, FOURTH_WALL, FLUNG } from './lines';
+import { FLUNG_IN, LAND_FALL } from '../stunt/state';
 
 export const flinging = (state: GameState) => { const s = hvOf(state).fling.step; return s !== 'off' && s !== 'done'; };
 
@@ -44,15 +44,15 @@ const finish = (ctx: FrameContext, skipped: boolean) => {
   state.stageMemo[FLUNG_MEMO] = '1';
   fl.step = 'done'; fl.fade = 0;
   hv.tornado.on = false;
-  p.freefall = undefined; p.carried = false; p.inCutscene = false; p.spriteRot = undefined;
+  p.spriteRot = undefined;
   state.cameraOverride = null;
-  // (down on the stunt stage: a thump in the dust)
+  // (high over the stunt stage's way in, still tumbling: the stunt intro's landing brings him down, all flips)
   const to = DOORS.stunt.start;
-  teleport(state, to.x, to.y);
+  teleport(state, to.x, to.y - LAND_FALL.h);
+  p.freefall = { style: 'flail', t: 0, rot: 0, land: 0 }; p.carried = true; p.inCutscene = true;
+  FLUNG_IN.on = true;
   state.camera.y = to.y - 550; state.cameraRestY = state.camera.y;
-  p.vel.y = 2;
-  playSound('crash', 1, -6); playSound('thud', 1, -8); shakeScreen(state, 16, 7);
-  for (let k = 0; k < 26; k++) state.particles.push({ pos: { x: to.x + (Math.random() - 0.5) * 60, y: to.y - 6 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 3 }, life: 50, color: 'rgba(168, 162, 158, 0.85)', size: 5 + Math.random() * 6 });
+  playSound('whoosh', 1, -6);
 };
 
 /** Each frame of it (null: it's not on). */

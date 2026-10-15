@@ -43,3 +43,9 @@ export interface Ramp {
 }
 
 export interface Skid { x: number; z: number }
+
+/** He's coming in off the tornado's fling (havoc/fling.ts sets it, putting him high over the stage's way in; the
+ *  intro's landing takes it): his fall onto the stage, how high it starts (feet over the floor), how far along it
+ *  carries him, how long it takes (frames). */
+export const FLUNG_IN = { on: false };
+export const LAND_FALL = { h: 520, dx: 190, t: 72 } as const;

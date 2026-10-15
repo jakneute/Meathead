@@ -51,7 +51,7 @@ import {
   clearCars, dropCars, countCars, targetable, carOf, pmid, landingOf,
 } from './cars';
 import { CAR, drawCar, drawCarShadow, extents } from './carArt';
-import type { Car } from './state';
+import { type Car, FLUNG_IN, LAND_FALL } from './state';
 import { drawSteve, drawSteveAsh, drawSteveBrace, drawStevePants, STEVE_H, type StevePose } from './steve';
 import { drawSkids, drawRamp, drawHoop, drawRing, drawPyro, ringAt, PYRO_X } from './art';
 import * as L from './lines';
@@ -117,6 +117,9 @@ export interface Fight extends Garage {
   said: string | null; paSaid: string | null;
   wrongN: number; hintAt: number; lowSaid: boolean; crowdAt: number;
   intro: Intro; introT: number; skipT: number; camX: number; replay: number;
+  /** In off the fling: his fall onto the stage (frames in, where along it started, how many times he's gone over, the
+   *  style he's tumbling in), till he's down. */
+  fall: { t: number; x0: number; over: number; style: 'flail' | 'ball' } | null;
   death: Death | null; deathSaid: number; cam: KillCam | null;
 }
 
@@ -217,8 +220,10 @@ export const startFight = (state: GameState): Fight => {
     redT: 0, blueT: 0, pyro: null, fire: new Map(),
     e, moveSeen: e.hitByMove, grabWas: 'idle', said: null, paSaid: null, wrongN: 0, hintAt: -9999, lowSaid: false, crowdAt: -99,
     intro: 'land', introT: 0, skipT: 0, camX: camFor(pmid(state).x), replay: 0,
+    fall: FLUNG_IN.on ? { t: 0, x0: pmid(state).x, over: 0, style: 'flail' } : null,
     death: null, deathSaid: 0, cam: null,
   };
+  FLUNG_IN.on = false;
   f.steveBox = () => (f.mode === 'on' ? { x0: f.sx - 24, x1: f.sx + 24, y0: GY - STEVE_H, y1: GY } : null);
   f.onThrownHit = (ctx) => thrownHit(ctx, f);
   f.onCrowd = (ctx, x, what) => crowd(ctx, f, x, what);
@@ -235,10 +240,69 @@ const beginFight = (state: GameState, f: Fight) => {
   f.said = null; f.paSaid = null;
   state.cameraOverride = null;
   const p = state.player;
+  // (skipped while he was still coming down: down, on his feet)
+  if (f.fall) { f.fall = null; touchDown(state, true); }
   p.inCutscene = false; p.isDucking = false;
   f.mode = 'on'; f.act = 'idle'; f.actT = 0; f.replay = 0;
   f.redT = RED_EVERY[1] - 50; f.blueT = BLUE_EVERY[1] * 0.4;
   if (!state.enemies.includes(f.e)) state.enemies.push(f.e);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// In off the fling: THE STYLISH ENTRANCE (none of it on purpose). Down out of the sky onto the stage, tumbling: head
+// over heels three times, flailing, then balled up by accident (a somersault), flailing again, two accidental twists
+// (turned clean round in the air, arms everywhere), a last tuck, and he unwinds just in time to come down in a
+// three-point crouch. The crowd eats it up; Steve's seething (the intro goes on from here as it always did).
+
+const easeOut = (u: number) => 1 - (1 - u) * (1 - u);
+/** The twists: frames in (from, to) each turns him clean round once (a cos about upright: his width). */
+const TWISTS: [number, number, 1 | -1][] = [[20, 34, 1], [44, 55, -1]];
+/** What he's tumbling in, frames in: flailing, then balled up, and so on; the last stretch flailing for the ground. */
+const STYLES: [number, 'flail' | 'ball'][] = [[0, 'flail'], [14, 'ball'], [28, 'flail'], [46, 'ball'], [58, 'flail']];
+
+/** Down on the stage: his feet on the floor, the tumble done. (skipped: just stood there; else the crouch, the dust.) */
+const touchDown = (state: GameState, skipped: boolean) => {
+  const p = state.player;
+  p.freefall = undefined; p.carried = false; p.spriteScaleX = undefined; p.spriteRot = undefined;
+  p.facing = 1; p.pos.y = GY - p.height; p.vel.x = 0; p.vel.y = 0; p.isGrounded = true;
+  if (skipped) return;
+  p.isDucking = true;
+  const x = p.pos.x + p.width / 2;
+  playSound('crash', 0.8, -4); playSound('thud', 1, -8); playSound('land', 1, -4); shakeScreen(state, 14, 6);
+  for (let k = 0; k < 26; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 60, y: GY - 6 }, vel: { x: (k % 2 ? 1 : -1) * (1 + Math.random() * 6), y: -1 - Math.random() * 3 }, life: 50, color: 'rgba(168, 162, 158, 0.85)', size: 5 + Math.random() * 6 });
+};
+
+/** A frame of the fall; true once he's down. */
+const comingDown = (ctx: FrameContext, f: Fight, fall: NonNullable<Fight['fall']>): boolean => {
+  const { state } = ctx, p = state.player;
+  fall.t++;
+  const T = LAND_FALL.t, u = Math.min(1, fall.t / T);
+  // Where he is: carried along a way, falling faster and faster
+  const x = fall.x0 + LAND_FALL.dx * easeOut(u), feet = GY - LAND_FALL.h * (1 - u * u);
+  p.carried = true; p.pos.x = x - p.width / 2; p.pos.y = feet - p.height; p.vel.x = 0; p.vel.y = 0;
+  // How he's going over: three times head over heels, quick to start, slowing, a wobble that dies out, upright as he
+  // hits (the luck of it)
+  const rot = Math.PI * 6 * easeOut(u) + Math.sin(fall.t * 0.45) * 0.5 * (1 - u);
+  // What he's tumbling in (each change eased into from the start)
+  let style: 'flail' | 'ball' = 'flail';
+  for (const [at, s] of STYLES) if (fall.t >= at) style = s;
+  if (!p.freefall || style !== fall.style) { p.freefall = { style, t: 0, rot, land: 0 }; fall.style = style; if (style === 'ball') playSound('whoosh', 0.6, 6); }
+  p.freefall.t++; p.freefall.rot = rot;
+  // (each time he comes over: the whoosh of it)
+  const over = Math.floor(rot / (Math.PI * 2) + 0.5);
+  if (over > fall.over) { fall.over = over; playSound('whoosh', 0.8, -2 + over * 2); }
+  // The twists: turned clean round, side to side (the crowd: WHOA)
+  let tw = 0;
+  for (const [a, b, dir] of TWISTS) if (fall.t >= a && fall.t < b) tw = dir * Math.PI * 2 * ((fall.t - a) / (b - a));
+  const c = Math.cos(tw);
+  p.facing = c < 0 ? -1 : 1;
+  p.spriteScaleX = Math.max(0.15, Math.abs(c));
+  for (const [a] of TWISTS) if (fall.t === a + 6) crowd(ctx, f, x, 'wow', true);
+  if (fall.t % 12 === 0) crowd(ctx, f, x + (Math.random() - 0.5) * 400, 'ooh', true);
+  if (fall.t < T) return false;
+  touchDown(state, false);
+  crowd(ctx, f, x, 'boom', true);
+  return true;
 };
 
 const intro = (ctx: FrameContext, f: Fight): Controls => {
@@ -251,6 +315,12 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
   const t = f.introT, me = camFor(pmid(state).x), him = camFor(f.sx);
   switch (f.intro) {
     case 'land':
+      // (in off the fling: the fall, all flips, the crowd already losing it)
+      if (f.fall) {
+        f.hype = 1; f.camX = me;
+        if (comingDown(ctx, f, f.fall)) { f.fall = null; f.introT = 0; }
+        break;
+      }
       // (down out of the sky in a crouch, up out of it; the crowd goes nuts, the cameras flash)
       p.isDucking = t < 34;
       f.hype = 1;

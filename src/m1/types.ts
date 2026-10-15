@@ -248,6 +248,9 @@ export interface Player extends Entity {
   /** Drawn squashed up and down (about his feet, after spriteRot; negative: upside down), with the car he's sat in:
    *  a coaster car rolled over on its side or hung under the rail (Thrones of the Stars). */
   spriteScaleY?: number;
+  /** Drawn narrowed side to side (about his middle; 1 as he is): a twist in the air, turning round (Meathead 2's
+   *  stunt-stage landing). */
+  spriteScaleX?: number;
   /** Frames since he was last on the ground. */
   offGround?: number;
   vine?: { mode: 'hang' | 'climb' | 'zipUp' | 'zipDown' | 'push'; th: number; om: number };
