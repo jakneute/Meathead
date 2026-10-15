@@ -25,6 +25,7 @@ import { playSound, playGlassShatterSound } from '../../platform/audio';
 import { say, canSpeak, isTalking, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { JETSKI_CRUISE } from '../../enemies/kinds/ernie';
+import { driftStep } from '../driftCam';
 import { hurtPlayer } from '../../bosses/shared';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { GROUND_Y, CANVAS_WIDTH, KICK_POSE_FRAMES } from '../../../constants';
@@ -63,6 +64,8 @@ export interface JetSki {
   /** The hipster, back on his standby jet ski, flat out behind him, who goes off the ramp after him; and Meathead's word on that. */
   chaser: { x: number; y: number; vx: number; vy: number; rot: number; state: 'off' | 'riding' | 'flying' | 'gone'; at: number };
   chaserLine: 'no' | 'said' | 'done';
+  /** How far ahead of his spot on the screen he is (behind it: -), gunning it or easing off (see driftCam.ts). */
+  drift: number;
 }
 
 /** How long the run lasts. */
@@ -71,6 +74,9 @@ export const RIDE_FRAMES = 65 * 60;
 const SKI_BASE = JETSKI_CRUISE, SKI_FAST = 9.5, SKI_SLOW = 5.5;
 /** How far ahead of him the camera looks (not far: there's plenty coming from behind too). */
 const SKI_LEAD = 70;
+/** How quick he gets up to speed, or off it (a share of the difference a frame); how far back down the screen easing
+ * off drops him, and how far up it gunning it takes him (world px from his spot). */
+const SKI_EASE = 0.12, DRIFT_BACK = 170, DRIFT_FRONT = 190;
 const WRECK_DAMAGE = 8;
 const HIPSTER_VOICE: Voice = { id: 'hipster', pitch: 1.4, rate: 1.1 };
 
@@ -108,7 +114,7 @@ export const createJetSki = (state: GameState, startedAt: number): JetSki => {
     hipster: { x: B.ski, y: B.water, vx: 0, vy: 0, rot: 0, state: onSki || past ? 'swimming' : 'sitting', line: '', lineT: 0 },
     line: '', lineT: 0, arrived: false, step: 0, stepAt: 0, talk: null, wrecks: [], wreckTimer: 500, spawned: 0, extraTimer: 900, hint: '', hintT: 0, hinted: new Set(),
     rampX: 0, launchT: 0,
-    chaser: { x: 0, y: 0, vx: 0, vy: 0, rot: 0, state: 'off', at: 0 }, chaserLine: 'no',
+    chaser: { x: 0, y: 0, vx: 0, vy: 0, rot: 0, state: 'off', at: 0 }, chaserLine: 'no', drift: 0,
   };
   if (!past && !onSki) {
     // (no going in the water till you've got something to ride)
@@ -256,7 +262,11 @@ const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => 
     // (and nothing gets to pick him off while he's helpless)
     p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
   }
-  p.skiSpeed = controls.right ? SKI_FAST : controls.left ? SKI_SLOW : SKI_BASE;
+  // (the view rolls on at cruising speed: gunning it takes him on up the screen, easing off drops him back down it)
+  const v = p.skiSpeed ?? SKI_BASE;
+  p.skiSpeed = v + ((controls.right ? SKI_FAST : controls.left ? SKI_SLOW : SKI_BASE) - v) * SKI_EASE;
+  js.drift = driftStep(js.drift, p.skiSpeed, SKI_BASE, DRIFT_BACK, DRIFT_FRONT);
+  state.cameraLeadX = SKI_LEAD - js.drift;
   // Everything in the air goes along with him (they're chasing him; the AI works out where to be from where he is)
   for (const e of state.enemies) {
     if (e.health <= 0 || e.isBlownAway || onTheIsland(e)) continue;

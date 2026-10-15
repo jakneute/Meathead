@@ -23,6 +23,7 @@ import { killPlayer } from '../../player/player';
 import { deathByCause } from '../../core/deathCause';
 import { COURSE } from './course';
 import { isShat } from '../../player/gut';
+import { driftStep } from '../driftCam';
 
 /** The Coast Guard's skipper on the loudhailer, and his boarding crew (up close, no loudhailer). */
 const LOUDHAILER: Voice = { id: 'hector.coastguard', pitch: 0.9, rate: 1.0 };
@@ -95,10 +96,15 @@ export interface Chase {
   cgInT?: number;
   /** Wrecked (killed by the junk): the clock of him flung out and the boat going up (0 = not). */
   wreckT: number;
+  /** How far ahead of its spot on the screen the boat is (behind it: -), leaning on it or easing off (see driftCam.ts). */
+  drift: number;
 }
 
 // Speeds (px a frame): his, pushing on, easing off, knocked about
 const BOAT_BASE = 7.2, BOAT_FAST = 9.8, BOAT_SLOW = 4.6, BOAT_HIT = 2.6;
+/** The view rolls on at cruising speed: how far back down the screen easing off drops the boat, how far up it leaning
+ * on it takes it (world px from its spot), and where the view sits on him at his spot. */
+const BOAT_DRIFT_BACK = 100, BOAT_DRIFT_FRONT = 200, CHASE_LEAD = 120;
 /** The cutter: how far back it starts, the most it drops back, how much a hit lets it close, how fast it drops back clean. */
 const CG_START = 520, CG_MAX = 640, CG_HIT = 130;
 /** What getting past one thing earns (the cutter drops back this far), and how fast it drops back (px a frame). */
@@ -171,7 +177,7 @@ export const dropReach = (j: Junk) => (CHASE_BOAT_W - 6) / 2 + Math.max(0, junkS
 export const createChase = (): Chase => ({
   t: 0, boatX: 0, boatSpeed: 0, cgX: 0, gap: CG_START, hopY: 0, hopV: 0, jumpHeld: true, relief: 0, crash: 0, junk: [], nextJunkX: 0,
   nextKind: null, throttle: 1, clearAt: 0, dropReadyAt: DROP_FIRST, drops: 0,
-  lineAt: 0, said: new Set(), hail: '', hailT: 0, caughtT: 0, quiet: { n: 0 }, cgSpin: 0, cgLift: 0, wreckT: 0,
+  lineAt: 0, said: new Set(), hail: '', hailT: 0, caughtT: 0, quiet: { n: 0 }, cgSpin: 0, cgLift: 0, wreckT: 0, drift: 0,
 });
 
 const hail = (c: Chase, text: string) => {
@@ -208,7 +214,7 @@ export const startChase = (state: GameState, boatX: number): Chase => {
   const c = createChase();
   c.cgX = boatX - CG_START;
   c.nextJunkX = boatX + 700;
-  state.cameraLeadX = 120;
+  state.cameraLeadX = CHASE_LEAD;
   return c;
 };
 
@@ -308,6 +314,10 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
   }
   player.isDucking = false;
   move(b.speed, COURSE.boat.y + Math.sin(c.t * 0.12) * 1.6 + c.hopY);
+  // (and the view rolling on at cruising speed: the boat up the screen or back down it as he's going; knocked about,
+  // the view stays with him)
+  c.drift = driftStep(c.drift, b.speed, BOAT_BASE, BOAT_DRIFT_BACK, BOAT_DRIFT_FRONT, c.crash > 0);
+  state.cameraLeadX = CHASE_LEAD - c.drift;
   // (where it is now, for the marks: what's coming down is aimed from here)
   c.boatX = b.x;
   c.boatSpeed = b.speed;

@@ -24,6 +24,7 @@ import { isShat } from '../../player/gut';
 import { killPlayer, clearForDoom } from '../../player/player';
 import { DEATH_LINES } from '../../../content/deaths';
 import { pickRandom } from '../../core/utils';
+import { driftStep, driftHome } from '../driftCam';
 
 type SkiPhase = 'waiting' | 'cutscene' | 'skiing' | 'runout' | 'finale' | 'done';
 
@@ -55,6 +56,8 @@ export interface Ski {
   gap: number;
   /** How far the camera's zoomed out on the way down (1 not at all): enough to keep the avalanche's front in view. */
   zoom: number;
+  /** How far ahead of his spot on the screen he is (behind it: -), pushing on or dragging his heels (see driftCam.ts). */
+  drift: number;
   /** Frames the how-to-ski prompt's been up (it goes after a few seconds out on the run). */
   hintT: number;
   /** Killed in the snowball: it's thrown him off the far side of the mountain (see drawFlingDeath). */
@@ -65,6 +68,11 @@ export interface Ski {
 
 // Ski speeds (px/frame): cruising, pushing on, and dragging your heels
 const SKI_BASE = 9.2, SKI_FAST = 11, SKI_SLOW = 7, SKI_CRASHED = 2.5;
+/** How quick he gets up to speed, or off it (a share of the difference a frame: quick, so a jump's as long as ever). */
+const SKI_EASE = 0.2;
+/** How far back down the screen he can drop dragging his heels, and up it pushing on (world px from his spot); and,
+ * pushed right up, the least of the slope ahead of him that's still in view. */
+const SKI_DRIFT_BACK = 130, SKI_DRIFT_FRONT = 170, SKI_VIEW_AHEAD_MIN = 380;
 /** How long the how-to-ski prompt stays up once he's off (frames). */
 const SKI_HINT_FOR = 420;
 const AVALANCHE_SPEED = 8.7;
@@ -97,8 +105,12 @@ export const skiZoom = (state: GameState, ski: Ski) => {
   const p = state.player, s = ski.zoom;
   const px = p.pos.x + p.width / 2, py = p.pos.y + p.height;
   const normal = px - state.camera.x;
-  const want = Math.max(normal, (Math.max(0, px - ski.avX) + SKI_VIEW_BEHIND) * s);
-  return { scale: s, x: px, y: py, shiftX: Math.min(CANVAS_WIDTH - SKI_VIEW_AHEAD * s, want) - normal, shiftY: 0 };
+  // (his spot, where the view's rolling along: the avalanche's front kept in view behind it, a good look ahead of it)
+  const spot = px - ski.drift;
+  const spotAt = Math.min(CANVAS_WIDTH - SKI_VIEW_AHEAD * s, Math.max(normal - ski.drift, (Math.max(0, spot - ski.avX) + SKI_VIEW_BEHIND) * s));
+  // (and him, up ahead of it or dropped back behind it, as he's going: never so far up he can't see what's coming)
+  const at = Math.min(CANVAS_WIDTH - SKI_VIEW_AHEAD_MIN * s, spotAt + ski.drift * s);
+  return { scale: s, x: px, y: py, shiftX: at - normal, shiftY: 0 };
 };
 
 /** How far ahead of him the camera looks on skis (not so far he ends up under the HUD in the corner). */
@@ -111,7 +123,7 @@ export const createSki = (state: GameState, startedAt: number): Ski => {
     phase: past ? 'done' : onSkis ? 'skiing' : 'waiting', t: 0, quiet: { n: 0 },
     skier: { x: COURSE.skier.x, y: COURSE.skier.y, vx: 0, vy: 0, rot: 0, state: onSkis || past ? 'gone' : 'stand', line: '', lineT: 0 },
     skis: null, avX: COURSE.checkpoints[CP.SKI].x - 650, ball: 0, ballX: 0, ballRot: 0, crash: 0,
-    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false, zoom: 1, fling: false, cliff: null, gap: AVALANCHE_HEAD_START, hintT: 0,
+    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false, zoom: 1, drift: 0, fling: false, cliff: null, gap: AVALANCHE_HEAD_START, hintT: 0,
   };
   if (onSkis) { state.player.skiing = true; state.player.skiSpeed = SKI_BASE; state.cameraLeadX = SKI_CAMERA_LEAD; ski.zoom = skiZoomFor(COURSE.checkpoints[CP.SKI].x - ski.avX); }
   if (past) addPile(state, ski);
@@ -178,7 +190,7 @@ export const updateSki = (ctx: FrameContext, ski: Ski, controls: Controls): Cont
   updateSkierBody(state, ski);
   // Zoomed out on the way down, as far as it takes to keep the avalanche's front on screen behind him (and a good
   // look ahead): easing in and out, back to normal at the bottom
-  const want = ski.phase === 'skiing' ? skiZoomFor(player.pos.x + player.width / 2 - ski.avX) : 1;
+  const want = ski.phase === 'skiing' ? skiZoomFor(player.pos.x + player.width / 2 - ski.drift - ski.avX) : 1;
   ski.zoom += (want - ski.zoom) * (want < ski.zoom ? 0.18 : 0.03);
   if (Math.abs(ski.zoom - 1) < 0.002) ski.zoom = 1;
   switch (ski.phase) {
@@ -326,9 +338,13 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
 
   // The prompt, for the first few seconds out on the run: what left and right do (in the air too)
   if (ski.hintT < SKI_HINT_FOR) { if (ski.hintT === 0) ctx.events.onTutorialHint?.('ski'); if (++ski.hintT === SKI_HINT_FOR) ctx.events.onTutorialHint?.(null); }
-  // Speed: lean on it, drag your heels, or pick yourself up after a crash
+  // Speed: lean on it, drag your heels, or pick yourself up after a crash. The view rolls on at cruising speed, so
+  // leaning on it takes him on up the screen, dragging his heels drops him back down it (see driftCam.ts); knocked
+  // flat, the view stays with him
   if (ski.crash > 0) { ski.crash--; player.skiSpeed = SKI_CRASHED + (1 - ski.crash / CRASH_FRAMES) * (SKI_BASE - SKI_CRASHED); }
-  else player.skiSpeed = controls.right ? SKI_FAST : controls.left ? SKI_SLOW : SKI_BASE;
+  else { const v = player.skiSpeed ?? SKI_BASE; player.skiSpeed = v + ((controls.right ? SKI_FAST : controls.left ? SKI_SLOW : SKI_BASE) - v) * SKI_EASE; }
+  ski.drift = driftStep(ski.drift, player.skiSpeed, SKI_BASE, SKI_DRIFT_BACK, SKI_DRIFT_FRONT, ski.crash > 0);
+  state.cameraLeadX = SKI_CAMERA_LEAD - ski.drift;
 
   // Obstacles: crash into them, or shoot the logs and trees out of the way
   const hurt = boundsOf(player);
@@ -368,7 +384,8 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
   if (ski.surge) { ski.gap = Math.min(AVALANCHE_HEAD_START, ski.gap + 4.2); if (ski.gap >= AVALANCHE_HEAD_START) ski.surge = false; }
   else ski.gap = Math.min(AVALANCHE_MAX_GAP, ski.gap + GAP_RECOVER + (player.skiSpeed - SKI_BASE) * 0.08);
   // (it rolls on down to where that puts it: surging when it's closing in, never back up the mountain)
-  ski.avX += Math.max(2, (player.pos.x - ski.gap - ski.avX) * 0.15);
+  // (held back from his spot on the screen: dragging his heels down the screen is dropping back toward it)
+  ski.avX += Math.max(2, (player.pos.x - ski.drift - ski.gap - ski.avX) * 0.15);
   const gap = player.pos.x - ski.avX;
   if (state.frame % 3 === 0) shakeScreen(state, 4, Math.max(1, 5 - gap / 200));
   if (ski.avX >= player.pos.x + 16 && state.deathTimer <= 0) {
@@ -392,6 +409,7 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
 const inBall = (ctx: FrameContext, ski: Ski): Controls => {
   const { state } = ctx;
   const { player } = state;
+  ski.drift = driftHome(ski.drift); state.cameraLeadX = SKI_CAMERA_LEAD - ski.drift;
   ski.ball--;
   ski.avX += AVALANCHE_SPEED;
   ski.ballX += AVALANCHE_SPEED + 3.2;
@@ -477,6 +495,7 @@ const finale = (ctx: FrameContext, ski: Ski): Controls => {
   if (ski.phase === 'runout') {
     // Coast in and skid to a stop past the cabin (out of his hands: the finale's cutscene starts here)
     player.inCutscene = true;
+    ski.drift = driftHome(ski.drift); state.cameraLeadX = SKI_CAMERA_LEAD - ski.drift;
     const left = cabin.stopX - player.pos.x;
     player.skiSpeed = Math.max(0, Math.min(SKI_BASE, left * 0.06));
     if (left < 30 && player.isGrounded) { player.skiSpeed = 0; ski.phase = 'finale'; ski.t = 0; state.cameraLeadX = 0; }
