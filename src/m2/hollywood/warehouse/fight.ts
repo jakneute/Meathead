@@ -45,7 +45,7 @@ const FIGHT_SIZE = 22;
 /** How many on him and he's down under them, dead. */
 export const CRUSH = 6;
 /** How many may be up (on the floor, on him, or coming down) at once: a few at first, more as they die. */
-const capOf = (killed: number) => Math.min(10, 4 + Math.floor(killed / 2));
+const capOf = (killed: number) => Math.min(10, 5 + Math.floor(killed / 2));
 const L0 = X(ARENA.a) + 50, R0 = X(ARENA.b) - 50;
 const clampX = (x: number) => Math.max(L0, Math.min(R0, x));
 const DOOR_H = 700;
@@ -309,7 +309,7 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
     if (!e || a.cling || e.health <= 0 || (e.leapCd ?? 0) > 0 || e.aiState === 'land') continue;
     if ((e.pauseTimer ?? 0) > 0 && Math.abs(e.vel.x) > 1) continue;
     if (!state.enemies.includes(e)) continue;
-    const gx = 22;
+    const gx = 30;
     if (e.pos.x + e.width + gx < p.pos.x || e.pos.x - gx > p.pos.x + p.width) continue;
     if (e.pos.y > p.pos.y + p.height + 4 || e.pos.y + e.height < p.pos.y - 8) continue;
     latch(ctx, a);
@@ -348,7 +348,7 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
   const up = F.actors.filter(a => a.e).length + F.arrivals.length;
   if (alive && F.next < F.order.length && up < capOf(F.killed) && F.arrivals.length < 2 && (F.spawnT <= 0 || up === 0)) {
     F.arrivals.push({ i: F.order[F.next++], mode: Math.random() < 0.7 ? 'drop' : 'wire', x: spawnX(state), y: 0, vy: 0, t: 0 });
-    F.spawnT = 55 + Math.floor(Math.random() * 45);
+    F.spawnT = 40 + Math.floor(Math.random() * 35);
   }
   // All of them dead
   if (F.next >= F.order.length && F.killed >= F.order.length && !F.arrivals.length) {

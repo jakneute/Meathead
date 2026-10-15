@@ -87,7 +87,7 @@ const castOf = (e: Enemy) => CAST[e.variant ?? 0] ?? CAST[0];
 
 const can = (state: GameState) => state.player.health > 0 && !holdingOff(state) && !state.player.inCutscene && !state.player.carried;
 /** How quick they come (px a frame). */
-export const actorSpeed = (i: number) => (CAST[i]?.speed ?? 1.3) * 1.55;
+export const actorSpeed = (i: number) => (CAST[i]?.speed ?? 1.3) * 1.8;
 
 const actorAI = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, p = mid(state.player), m = mid(e), dx = p.x - m.x, dy = p.y - m.y;
@@ -109,7 +109,7 @@ const actorAI = (ctx: FrameContext, e: Enemy) => {
       e.vel.x = Math.abs(dx) > 4 && safeAhead(ctx, e, e.facing) ? e.facing * actorSpeed(e.variant ?? 0) : 0;
       // (he's up off the floor over them: a hop up at him, arms out)
       if ((e.leapCd ?? 0) <= 0 && dy < -46 && Math.abs(dx) < 130) {
-        e.vel.y = -10.5; e.vel.x = Math.max(-5, Math.min(5, dx / 18)); e.leapCd = 50;
+        e.vel.y = -10.5; e.vel.x = Math.max(-5, Math.min(5, dx / 18)); e.leapCd = 38;
         playSound('jump', 0.4, 2 + ((e.variant ?? 0) % 5));
       }
       break;
