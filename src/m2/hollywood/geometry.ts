@@ -50,7 +50,9 @@ export const DOORS: Record<HollywoodId, { start: { x: number; y: number }; end: 
   // back down to the station is the coaster owner's call; walking out the stop's service stairs works too))
   // (end: stop 3's deck, under the control booth (coaster/layout.ts STOPS[2], BOOTH))
   coaster: { start: { x: SECTIONS.coaster.x0 + 200, y: GY }, end: { x: SECTIONS.coaster.x0 + 14050, y: GY - 1100 } },
-  warehouse: { start: { x: SECTIONS.warehouse.x0 + 200, y: GY }, end: { x: SECTIONS.warehouse.x1 - 250, y: GY } },
+  // (end: back in from the lot through the bulldozer's hole, just inside the far wall of the one-screen main stage
+  // (warehouse/layout.ts FAR_WALL))
+  warehouse: { start: { x: SECTIONS.warehouse.x0 + 200, y: GY }, end: { x: SECTIONS.warehouse.x0 + 10580, y: GY } },
   lot: { start: { x: SECTIONS.lot.x0 + 200, y: GY }, end: { x: SECTIONS.lot.x1 - 250, y: GY } },
   disaster: { start: { x: SECTIONS.disaster.x0 + 200, y: GY }, end: { x: SECTIONS.disaster.x1 - 250, y: GY } },
   // (the fling is one-way: back in from the stunt stage, he's put where the tornado caught him (havoc's end, on the

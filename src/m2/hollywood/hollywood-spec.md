@@ -151,6 +151,25 @@ still "the most devastating thing Meathead has done" (cutscene beats, HUD hidden
 Revisits differ: walls down for good, sets wrecked, pages everywhere, the case knocked over and empty, the far wall
 smashed open (the bulldozer's path out to the dumpster).
 
+**Playtest notes (the user's; they replace the above where they differ):**
+- **The burst-in:** he crashes in through the CEILING only (the launch drops him through the roof; a hole in it for
+  good). The director panics: a member of the public on the secret set of the newest team-up, REVENGERS:
+  END-OF-THE-WORLD'S-DAY (tagline still REVENGERS: RESEMBLE), shot at Happy Land of all places for tax write-off
+  purposes, the location kept secret, treated like fucking Area 51; he seriously thinks about bribing or killing
+  Meathead. Meathead has no idea what the fuss is and knows next to nothing about the Revengers; the director assumes
+  everybody knows it and is hyped. While he's still thinking, the walls all come down and the public sees everything:
+  "KILL THEM ALL! THEY CANNOT KNOW!": the crew in the background go fight the civilians who saw (background action), the
+  foreground ones come after Meathead. Blunt, short, one speaker at a time.
+- **The Ensemble Cast:** one screen, the script in its glass case the showpiece in the background (no collision), no
+  platforms. No powers, no unique moves: all just in costume, they DOGPILE him, latching on like cockroaches (hard to
+  shove). Each one on him slows him; enough of them and he can't move, and he's dead (piled on: its own hurt and death
+  lines). Shooting knocks them loose; a charge throws them off; constant pressure wins. His grab gets one, but the rest
+  still pile on. CAPTAIN AMERICANO always first (a short cutscene: "REVENGERS: RESEMBLE!", sure he can stop him because
+  he plays a superhero); after him a random order each attempt; generic arrival lines from a shared pool, sparse; not
+  every actor or line in any one fight; a cap on how many come at once. More health each than the first pass.
+- **The ending:** the camera zooms in on the case as the bulldozer's pile hits it (the case over, the pages flying);
+  the studio exec stands at the back by the script on his phone, out of the bulldozer's way. The rest as above.
+
 ### Havoc: havoc (50-59)
 
 Every disaster at once, a total juxtaposition: high winds (gusts push him, fling debris and enemies), lava rivers

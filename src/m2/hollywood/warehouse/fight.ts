@@ -1,12 +1,21 @@
-// THE ENSEMBLE CAST, the sub-boss: the main stage. Open till he's in; then the stage door comes down behind him (the far
-// wall's ahead: both sides locked) till every one of the thirty is dead. They come in waves of five: hero landings out
-// of the rafters (a shadow on the floor first: don't be under one), down on wires, walking on from the wings, and two
-// whose wires aren't hooked up (they come down, and that's that). Each wave's first says their bit (clean, shat or
-// naked, as he is). Their real health is kept here (cast.ts: the engine's never runs out); dead, they fall over where
-// they stand, bloodied, and the bodies stay, piling up where they fell on each other. Never respawned once past
-// (CAST_MEMO, kept across his deaths); dying mid-fight, it's all of them again from the refill (checkpoint 25).
+// THE ENSEMBLE CAST, the sub-boss: the main stage, one screen (the user's playtest notes). Open till he's in; then the
+// stage door comes down behind him (the far wall's ahead: both sides locked) till every one of them is dead.
 //
-// No breather between hits (the sub-bosses' rule): every hit counts. Every weapon hits them its mid-boss way.
+// The first of them is always CAPTAIN AMERICANO (a short cutscene: he jumps in shouting REVENGERS: RESEMBLE!, sure he
+// can stop this civilian because he plays a super soldier); after him, the rest come in a random order each attempt (a
+// share of the thirty: not all of them in any one fight), dropping out of the rafters or lowered on wires, a few at a
+// time (a cap on how many are up at once, rising as they die; never more than two coming down at once), the odd one
+// with a line from the shared pool (sparse).
+//
+// They have no moves: they DOGPILE him. Touching him, one's on him like a cockroach (a hold each: his legs, his back,
+// round his waist, on his shoulders, across the top: a growing pile), and every one on him slows him; with CRUSH of
+// them on him he can't move at all and he's dead under them (piled on: its own hurt and death lines). He shakes them
+// off: a charge (any of the charge moves) throws the lot off and hurts them; every shot knocks one loose. Let up, and
+// they're all over him. His grab gets one at a time (the rest keep piling on).
+//
+// Their real health is kept here (cast.ts: the engine's never runs out); dead, they fall over where they stand,
+// bloodied, and the bodies stay, piling up where they fell on each other. Never respawned once past (CAST_MEMO, kept
+// across his deaths); dying mid-fight, it's all of them again from the refill (checkpoint 25), in a new order.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -14,235 +23,390 @@ import type { EnemyKind } from '../../../m1/types';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
-import { pickLine } from '../../../m1/game/platform/speech';
+import { pickLine, takeFreshLine, silenceAll } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { floorTopAt } from '../../../m1/game/core/terrain';
-import { CANVAS_WIDTH, topBand } from '../../../m1/constants';
-import { solid, meatheadSays, box, label } from '../section';
-import { X, GY, ROOF_Y, ARENA, ARENA_TRIGGER, CAST_MEMO } from './layout';
+import { buffs } from '../../../m1/game/core/buffs';
+import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
+import { CANVAS_WIDTH, PLAYER_MOVE_SPEED, topBand } from '../../../m1/constants';
+import type { Controls } from '../../../m1/game/platform/input';
+import { solid, meatheadSays, box, label, hands } from '../section';
+import { byPants } from '../blvd/kinds';
+import type { ByPants } from '../blvd/lines';
+import { X, GY, ROOF_Y, ARENA, ARENA_CAM, ARENA_TRIGGER, CAST_MEMO } from './layout';
 import { whOf, type Arrival, type Actor } from './state';
-import { CAST, ACTOR_KIND, BIG, TOTAL_HP, drawArriving, drawBody } from './cast';
-import { CASE, CAST_ARRIVE, KILL_QUIPS, UNHOOKED_QUIP, HALF, LAST, ENTRANCES, DEATH, UNHOOKED, AD_CAST, AD_WAVE, AD_SHRUG } from './lines';
+import { CAST, ACTOR_KIND, BIG, drawArriving, drawBody, drawClinger } from './cast';
+import { CAST_ARRIVE, KILL_QUIPS, HALF, LAST, DEATH, ARRIVE, LATCH, CAP_RESEMBLE, CAP_SURE, CAP_REPLY, AD_CAST, AD_SHRUG } from './lines';
 import { adSay, castSay } from './talk';
 
-/** The waves: [who, how they come in, where (off him: a signed distance; walk: which wing)]. */
-const WAVES: [number, Arrival['mode'], number][][] = [
-  [[0, 'drop', -220], [1, 'drop', 250], [2, 'drop', -380], [3, 'drop', 400], [4, 'wire', 130]],
-  [[5, 'wire', -270], [6, 'wire', 300], [7, 'walk', -1], [8, 'walk', 1], [9, 'unhooked', 170]],
-  [[10, 'drop', -300], [11, 'drop', 270], [12, 'walk', 1], [13, 'wire', -150], [14, 'drop', 360]],
-  [[15, 'drop', -210], [16, 'unhooked', -130], [17, 'drop', 310], [18, 'wire', 230], [19, 'walk', -1]],
-  [[20, 'drop', -260], [21, 'drop', 240], [22, 'wire', -370], [23, 'walk', 1], [24, 'wire', 370]],
-  [[25, 'drop', -290], [26, 'drop', 300], [27, 'wire', -190], [28, 'walk', 1], [29, 'walk', -1]],
-];
-const L0 = X(ARENA.a) + 70, R0 = X(ARENA.b) - 70;
+/** How many of them are in it this time (CAPTAIN AMERICANO and the rest of the order: a share of the thirty). */
+const FIGHT_SIZE = 22;
+/** How many on him and he's down under them, dead. */
+export const CRUSH = 6;
+/** How many may be up (on the floor, on him, or coming down) at once: a few at first, more as they die. */
+const capOf = (killed: number) => Math.min(8, 3 + Math.floor(killed / 3));
+const L0 = X(ARENA.a) + 50, R0 = X(ARENA.b) - 50;
 const clampX = (x: number) => Math.max(L0, Math.min(R0, x));
 const DOOR_H = 700;
 
 const memo = (state: GameState, k: string) => !!state.stageMemo[k];
 export const castDone = (state: GameState) => memo(state, CAST_MEMO);
-export const fightOn = (state: GameState) => whOf(state).fight.phase === 'on';
+export const fightOn = (state: GameState) => { const ph = whOf(state).fight.phase; return ph === 'on' || ph === 'intro'; };
+
+/**
+ * The holds on him (the dogpile), in the order they're taken (the one they came at him from first): where each one's
+ * feet go off his feet's middle (dx forward of him, the way he faces; dy up his height, a share of it), how they're
+ * turned, whether they face him (or his way), and whether they're drawn in front of him or behind.
+ *   0 flat out hugging his front leg · 1 his back leg · 2 up on his back · 3 round his waist from the front ·
+ *   4 up on his shoulders · 5 across the top of him · 6+ piled on top of that
+ */
+const SLOTS: { dx: number; dy: number; rot: number; toward: boolean; front: boolean }[] = [
+  { dx: 76, dy: -0.1, rot: 1.3, toward: true, front: true },
+  { dx: -76, dy: -0.1, rot: 1.3, toward: true, front: false },
+  { dx: -15, dy: -0.42, rot: 0.3, toward: true, front: false },
+  { dx: 22, dy: -0.05, rot: 0.4, toward: true, front: true },
+  { dx: 3, dy: -0.58, rot: -0.15, toward: false, front: true },
+  { dx: -38, dy: -0.95, rot: 1.45, toward: false, front: true },
+];
+const slotOf = (s: number) => SLOTS[s] ?? { dx: s % 2 ? 34 : -34, dy: -0.95 - (s - 5) * 0.22, rot: s % 2 ? -1.45 : 1.45, toward: false, front: true };
+/** Where one on him is this frame (feet, world), which way it faces, how it's turned. */
+const clingAt = (state: GameState, a: Actor) => {
+  const p = state.player, c = a.cling!, s = slotOf(c.slot), f = (p.facing ?? 1) as 1 | -1, h = p.height;
+  const px = p.pos.x + p.width / 2, feet = p.pos.y + p.height, fr = state.frame;
+  let x = px + f * s.dx + Math.sin(fr * 0.6 + a.i) * 2, y = feet + s.dy * h + Math.cos(fr * 0.5 + a.i) * 1.5;
+  // (the jump on: from where they were, onto him)
+  const k = Math.min(1, c.t / 8);
+  if (k < 1) { x = px + c.fx + (x - px - c.fx) * k; y = feet + c.fy + (y - feet - c.fy) * k - Math.sin(k * Math.PI) * 24; }
+  const dir: 1 | -1 = s.toward ? (s.dx * f > 0 ? -1 : s.dx * f < 0 ? 1 : (f === 1 ? -1 : 1)) : f;
+  return { x, y, dir, rot: s.rot };
+};
+export const onHim = (state: GameState) => whOf(state).fight.actors.reduce((n, a) => n + (a.cling ? 1 : 0), 0);
 
 // ---------------------------------------------------------------------------------------------------------------
 
-const start = (state: GameState) => {
+/** Nobody saying anything just now (the barks wait for quiet: one speaker at a time). */
+const quiet = (state: GameState) => { const o = whOf(state); return !o.ad && !o.adBusy && !o.castSaid.size; };
+/** One of them says a line from a pool (sparse: only now and then, only into quiet, a line not said lately). */
+const castBark = (state: GameState, i: number, pool: ByPants, chance: number, gap = 360) => {
   const F = whOf(state).fight;
-  F.phase = 'on'; F.t = 0; F.wave = -1; F.waveT = 0;
-  // (the stage door down behind him: no backing out)
-  F.door = solid(state, X(ARENA.a) - 34, GY - DOOR_H, 34, DOOR_H, { hidden: true, tag: 'hww-lock' });
-  const p = state.player;
-  if (p.pos.x < X(ARENA.a) + 4) p.pos.x = X(ARENA.a) + 4;
-  playSound('slam', 1, -10); playSound('rumble', 0.6, -6); shakeScreen(state, 8, 3);
-  // (the script first; then the AD calls them; then they come)
-  meatheadSays(state, pickLine(CASE), true, () => adSay(state, AD_CAST, () => { F.said.called = true; }));
+  if (state.frame - F.barkAt < gap || !quiet(state) || Math.random() > chance) return;
+  const line = takeFreshLine(byPants(state, pool));
+  if (!line) return;
+  F.barkAt = state.frame;
+  castSay(state, i, line, false);
 };
 
-const queueWave = (state: GameState, w: number) => {
-  const F = whOf(state).fight, p = state.player, px = p.pos.x + p.width / 2, cam = state.camera.x;
-  F.wave = w; F.waveT = 0;
-  WAVES[w].forEach(([i, mode, d], k) => {
-    // (walking on from the wings: from off the screen, whichever side there's stage off it (no popping in))
-    const offL = cam - 40 >= L0, offR = cam + CANVAS_WIDTH + 40 <= R0;
-    const side = d < 0 ? (offL || !offR ? -1 : 1) : (offR || !offL ? 1 : -1);
-    const x = mode === 'walk' ? clampX(side < 0 ? cam - 40 : cam + CANVAS_WIDTH + 40) : clampX(px + d);
-    F.queue.push({ i, mode, x, y: 0, vy: 0, t: -k * 26, speaks: k === 0 || (mode === 'unhooked') });
-  });
-  if (w > 0) adSay(state, AD_WAVE, undefined, false);
-  // (lean: a little something comes down with the third and fifth waves)
-  if (w === 2 || w === 4) state.pickups.push({ id: `hww-cast-${w}`, pos: { x: clampX(px + (w === 2 ? 180 : -180)) - 10, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: w === 2 ? 'small_health' : 'small_ammo', life: 1e9 });
+const start = (state: GameState) => {
+  const F = whOf(state).fight, p = state.player;
+  F.phase = 'intro'; F.t = 0; F.killed = 0; F.crushed = false;
+  // (who's in it this time: him first, then a shuffled share of the rest)
+  const rest = Array.from({ length: CAST.length - 1 }, (_, k) => k + 1);
+  for (let k = rest.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [rest[k], rest[j]] = [rest[j], rest[k]]; }
+  F.order = [0, ...rest.slice(0, FIGHT_SIZE - 1)]; F.next = 1; F.spawnT = 0;
+  // (the stage door down behind him: no backing out)
+  F.door = solid(state, X(ARENA.a) - 34, GY - DOOR_H, 34, DOOR_H, { hidden: true, tag: 'hww-lock' });
+  if (p.pos.x < X(ARENA.a) + 4) p.pos.x = X(ARENA.a) + 4;
+  playSound('slam', 1, -10); playSound('rumble', 0.6, -6); shakeScreen(state, 8, 3);
+  // CAPTAIN AMERICANO: in out of the rafters, ahead of him (the side with the room), shouting it on the way down
+  const px = p.pos.x + p.width / 2, mid = (X(ARENA.a) + X(ARENA.b)) / 2;
+  F.arrivals.push({ i: 0, mode: 'drop', x: clampX(px + (px < mid ? 230 : -230)), y: 0, vy: 0, t: -20 });
+  p.inCutscene = true; p.vel.x = 0;
 };
 
 /** One of them down on the floor and on: an enemy now (a hero landing's a beat on one knee first). */
 const appear = (state: GameState, a: Arrival) => {
-  const F = whOf(state).fight, c = CAST[a.i];
-  const top = a.y;
-  const e = makeKindEnemy(ACTOR_KIND as EnemyKind, a.x, top);
+  const F = whOf(state).fight, c = CAST[a.i], p = state.player;
+  const e = makeKindEnemy(ACTOR_KIND as EnemyKind, a.x, a.y);
   e.variant = a.i; e.health = BIG; e.maxHealth = BIG; e.seen = true;
   e.homeX = e.pos.x; e.homeY = e.pos.y; e.initialY = e.pos.y;
-  const p = state.player;
   e.facing = a.x > p.pos.x + p.width / 2 ? -1 : 1;
-  e.aiState = a.mode === 'drop' ? 'land' : 'approach'; e.aiTimer = 0; e.leapCd = 40 + (a.i * 13) % 50;
+  e.aiState = a.mode === 'drop' ? 'land' : 'approach'; e.aiTimer = 0; e.leapCd = 20;
   state.enemies.push(e);
-  F.actors.push({ i: a.i, hp: c.hp, max: c.hp, e, lx: a.x, ly: top, flash: 0 });
+  F.actors.push({ i: a.i, hp: c.hp, max: c.hp, e, lx: a.x, ly: a.y, flash: 0, cling: null, heldT: 0 });
 };
 
 /** Dead: down where they stood (bloodied), the body staying; onto the heap if there's one there. */
-const fall = (ctx: FrameContext, a: Actor, how: 'hit' | 'splat') => {
+const fall = (ctx: FrameContext, a: Actor) => {
   const { state } = ctx, o = whOf(state), F = o.fight, p = state.player;
-  if (a.e) { const e = a.e; state.enemies = state.enemies.filter(q => q !== e); o.barks.delete(e); }
-  a.e = null; a.hp = 0;
-  const x = a.lx, y = Math.min(GY, floorTopAt(state.blocks, x, a.ly - 4) ?? GY);
+  if (a.e) { const e = a.e; e.health = 0; state.enemies = state.enemies.filter(q => q !== e); o.barks.delete(e); }
+  a.e = null; a.hp = 0; a.cling = null;
+  const x = Math.max(X(ARENA.a) + 20, Math.min(X(ARENA.b) - 20, a.lx)), y = Math.min(GY, floorTopAt(state.blocks, x, a.ly - 4) ?? GY);
   const under = F.bodies.filter(b => Math.abs(b.x - x) < 48 && Math.abs(b.y + b.lift - y) < 30).length;
   const lift = Math.min(4, under) * 13;
   const dir: 1 | -1 = p.pos.x + p.width / 2 < x ? -1 : 1;
-  F.bodies.push({ i: a.i, x, y: y - lift, dir, t: 0, fall: how === 'splat' ? 0.99 : 0, pool: 0, lift });
+  F.bodies.push({ i: a.i, x, y: y - lift, dir, t: 0, fall: 0, pool: 0, lift });
   F.killed++;
   playSound('splat', 0.9, -2); playSound('thud', 0.6, -6);
-  for (let k = 0; k < (how === 'splat' ? 30 : 18); k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 20, y: y - 30 - Math.random() * 30 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 5 }, life: 30 + Math.random() * 20, color: ['#B91C1C', '#7F1D1D', '#DC2626'][k % 3], size: 2 + Math.random() * 3, grav: 0.35 });
-  if (how === 'splat') { shakeScreen(state, 8, 4); return; }
-  // (their last words, now and then; his, now and then)
-  const left = CAST.length - F.killed;
-  // (the AD, a couple of times: a shrug; they own the scans)
-  if ((F.killed === 8 || F.killed === 23) && !o.ad && !o.adBusy) adSay(state, AD_SHRUG, undefined, false);
-  else if (Math.random() < 0.6) castSay(state, a.i, DEATH, false);
-  if (F.killed === 15) meatheadSays(state, pickLine(HALF), true);
-  else if (left === 1 && !F.queue.length && !F.arrivals.length) meatheadSays(state, pickLine(LAST), true);
-  else if (left > 0 && Math.random() < 0.2) meatheadSays(state, pickLine(KILL_QUIPS), false);
+  for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 20, y: y - 30 - Math.random() * 30 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 5 }, life: 30 + Math.random() * 20, color: ['#B91C1C', '#7F1D1D', '#DC2626'][k % 3], size: 2 + Math.random() * 3, grav: 0.35 });
+  // (what's said: sparse, one at a time; the AD shrugs a couple of times, they own the scans)
+  const total = F.order.length, left = total - F.killed;
+  if ((F.killed === 6 || F.killed === 15) && quiet(state)) adSay(state, AD_SHRUG, undefined, false);
+  else castBark(state, a.i, DEATH, 0.3, 240);
+  if (F.killed === Math.floor(total / 2)) meatheadSays(state, pickLine(HALF), true);
+  else if (left === 1 && F.next >= total && !F.arrivals.length) meatheadSays(state, pickLine(LAST), true);
+  else if (left > 0 && Math.random() < 0.12) meatheadSays(state, pickLine(KILL_QUIPS), false);
+  // (lean: a little something comes down a couple of times)
+  if (F.killed === 7 || F.killed === 14) state.pickups.push({ id: `hww-cast-${F.killed}`, pos: { x: clampX(x + (x < (L0 + R0) / 2 ? 120 : -120)) - 10, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: F.killed === 7 ? 'small_health' : 'small_ammo', life: 1e9 });
 };
 
-/** On the way in: dropping (the shadow under them), down a wire, falling off one, walking on. */
+/** On the way in: dropping (the shadow under them), or lowered on a wire. Down: true. */
 const arrive = (ctx: FrameContext, a: Arrival) => {
-  const { state } = ctx, F = whOf(state).fight, p = state.player, top = state.camera.y - 60;
+  const { state } = ctx, F = whOf(state).fight, p = state.player;
   a.t++;
-  if (a.t === 1) {
-    a.y = a.mode === 'walk' ? GY : a.mode === 'drop' ? top : ROOF_Y + 40;
-    if (a.mode === 'walk') { appear(state, a); if (a.speaks) castSay(state, a.i, ENTRANCES[a.i], true); return true; }
-    if (a.speaks && a.mode !== 'unhooked') castSay(state, a.i, ENTRANCES[a.i], true);
-    if (a.mode === 'unhooked') castSay(state, a.i, ENTRANCES[a.i], true, () => castSay(state, a.i, UNHOOKED, false));
-    playSound(a.mode === 'drop' ? 'whoosh' : 'click', 0.5, a.mode === 'drop' ? -6 : 8);
-  }
   if (a.t < 1) return false;
-  // (the first thing under them: a riser, the plinth, the floor)
+  if (a.t === 1) {
+    a.y = a.mode === 'drop' ? state.camera.y - 60 : ROOF_Y + 40;
+    playSound(a.mode === 'drop' ? 'whoosh' : 'click', 0.5, a.mode === 'drop' ? -6 : 8);
+    if (a.i === 0) castSay(state, 0, CAP_RESEMBLE, true, () => { F.said.shout = true; });
+    else castBark(state, a.i, ARRIVE, 0.4);
+  }
   const ground = floorTopAt(state.blocks, a.x, a.y, 0) ?? GY;
   if (a.mode === 'drop') { a.vy = Math.min(22, a.vy + 0.8); a.y += a.vy; }
-  else if (a.mode === 'wire') { a.y = Math.min(ground, a.y + 5); }
-  else if (a.mode === 'unhooked') {
-    // (lowered like a god a moment; then the wire's gone and so are they)
-    if (a.t < 40) a.y += 2.5; else { if (a.t === 40) playSound('clink', 0.8, 10); a.vy = Math.min(24, a.vy + 0.9); a.y += a.vy; }
-  }
+  else a.y = Math.min(ground, a.y + 5);
   if (a.y < ground) return false;
   a.y = ground;
-  if (a.mode === 'unhooked') {
-    // SPLAT: that's them
-    const dead: Actor = { i: a.i, hp: 0, max: CAST[a.i].hp, e: null, lx: a.x, ly: ground, flash: 0 };
-    F.actors.push(dead);
-    fall(ctx, dead, 'splat');
-    playSound('crunch', 1, -6);
-    ctx.fx.spawnDamageNumber({ x: a.x - 20, y: ground - 90 }, 'NOT HOOKED UP', true, '#FCA5A5');
-    if (!F.said[`unhooked${a.i}`]) { F.said[`unhooked${a.i}`] = true; meatheadSays(state, pickLine(UNHOOKED_QUIP), true); }
-    return true;
-  }
   if (a.mode === 'drop') {
     // (the hero landing: on him, it's on him)
     playSound('slam', 0.9, -8); shakeScreen(state, 7, 4);
     for (let k = 0; k < 14; k++) state.particles.push({ pos: { x: a.x + (Math.random() - 0.5) * 50, y: ground - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -0.5 - Math.random() * 2 }, life: 30, color: 'rgba(168, 162, 158, 0.7)', size: 4 + Math.random() * 5 });
     const pcx = p.pos.x + p.width / 2;
     if (p.health > 0 && Math.abs(pcx - a.x) < 40 && p.pos.y + p.height > ground - 90 && p.invincibilityTimer <= 0 && !p.inCutscene) hurtPlayer(ctx, 10, 'm2:hww_flop', { x: Math.sign(pcx - a.x || 1) * 8, y: -6 }, 20);
-    if (!F.said.arrived) { F.said.arrived = true; meatheadSays(state, pickLine(CAST_ARRIVE), true); }
   } else playSound('clink', 0.5, 4);
+  if (a.i === 0) F.said.capDown = true;
+  else if (!F.said.arrived) { F.said.arrived = true; meatheadSays(state, pickLine(CAST_ARRIVE), true); }
   appear(state, a);
   return true;
 };
 
-/** Each frame of the fight: the door, the waves, the arrivals, the hits, the bodies. */
-export const updateFight = (ctx: FrameContext) => {
+/** Where the next one comes in: somewhere on the stage well clear of him. */
+const spawnX = (state: GameState) => {
+  const p = state.player, px = p.pos.x + p.width / 2;
+  for (let k = 0; k < 8; k++) { const x = L0 + Math.random() * (R0 - L0); if (Math.abs(x - px) > 170) return x; }
+  return px < (L0 + R0) / 2 ? R0 : L0;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The dogpile
+
+/** On him: off the floor and onto a hold (the side they came at him from first). */
+const latch = (ctx: FrameContext, a: Actor) => {
+  const { state } = ctx, o = whOf(state), F = o.fight, p = state.player, e = a.e!;
+  const px = p.pos.x + p.width / 2, feet = p.pos.y + p.height, ex = e.pos.x + e.width / 2;
+  const fromFront = Math.sign(ex - px || 1) === (p.facing ?? 1);
+  const used = new Set(F.actors.filter(q => q.cling).map(q => q.cling!.slot));
+  const pref = fromFront ? [0, 3, 4, 5, 1, 2] : [1, 2, 5, 4, 0, 3];
+  let slot = pref.find(s => !used.has(s)) ?? 6;
+  while (used.has(slot)) slot++;
+  state.enemies = state.enemies.filter(q => q !== e); o.barks.delete(e);
+  e.vel.x = 0; e.vel.y = 0;
+  a.cling = { slot, t: 0, fx: ex - px, fy: e.pos.y + e.height - feet };
+  playSound('thud', 0.6, 4 + (a.i % 4)); shakeScreen(state, 3, 2);
+  // (jumped on: it hurts a little; it's what they're doing that's the danger)
+  if (p.invincibilityTimer <= 0 && p.health > 0) hurtPlayer(ctx, 3, 'm2:hww_pile', undefined, 0);
+  castBark(state, a.i, LATCH, 0.35, 300);
+};
+/** Off him: thrown (a charge), or knocked loose (a shot): back on the engine's list, off the side of him they were on,
+ *  dazed a while; hurt by it. */
+const shakeOff = (ctx: FrameContext, a: Actor, how: 'charge' | 'shot', dmg: number) => {
+  const { state } = ctx, p = state.player, e = a.e!, s = slotOf(a.cling!.slot), f = (p.facing ?? 1) as 1 | -1;
+  const side = (Math.sign(s.dx) || (a.i % 2 ? 1 : -1)) * f;
+  const px = p.pos.x + p.width / 2;
+  e.pos.x = Math.max(X(ARENA.a) + 2, Math.min(X(ARENA.b) - e.width - 2, px + side * (p.width / 2 + e.width / 2 + 2) - e.width / 2));
+  e.pos.y = Math.min(GY, p.pos.y + p.height) - e.height - 2;
+  e.vel = how === 'charge' ? { x: side * 8, y: -7 } : { x: side * 4.5, y: -4 };
+  e.pauseTimer = how === 'charge' ? 40 : 22; e.leapCd = how === 'charge' ? 40 : 30;
+  e.health = BIG; e.aiState = 'approach'; e.aiTimer = 0; e.facing = (-side) as 1 | -1;
+  state.enemies.push(e);
+  a.cling = null;
+  a.lx = e.pos.x + e.width / 2; a.ly = e.pos.y + e.height;
+  a.hp -= dmg; a.flash = 6;
+  for (let k = 0; k < 6; k++) state.particles.push({ pos: { x: a.lx, y: a.ly - 50 }, vel: { x: side * (1 + Math.random() * 3), y: -2 - Math.random() * 2 }, life: 20, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
+  if (a.hp <= 0) fall(ctx, a);
+};
+
+/** Each frame of the fight: the door, the order, the arrivals, the hits, the dogpile, the bodies. Returns the controls
+ *  while CAPTAIN AMERICANO's cutscene has them. */
+export const updateFight = (ctx: FrameContext): Controls | null => {
   const { state } = ctx, o = whOf(state), F = o.fight, p = state.player;
-  F.doorK += ((F.phase === 'on' ? 1 : 0) - F.doorK) * 0.2;
+  F.doorK += ((F.phase === 'on' || F.phase === 'intro' ? 1 : 0) - F.doorK) * 0.2;
   // (the bodies: going over, the pool spreading under them)
   for (const b of F.bodies) { b.t++; b.fall = Math.min(1, b.fall + 1 / 16); if (b.fall >= 1) b.pool = Math.min(1, b.pool + 1 / 110); }
   if (F.phase === 'wait') {
     if (!castDone(state) && p.health > 0 && !p.inCutscene && p.pos.x + p.width / 2 > X(ARENA_TRIGGER)) start(state);
-    return;
+    else return null;
   }
-  if (F.phase !== 'on') return;
+  if (F.phase === 'done') return null;
   F.t++;
-  // The hits: what came off the engine's health is the hit; theirs is kept here (no breather)
+  F.arrivals = F.arrivals.filter(a => !arrive(ctx, a));
+
+  // CAPTAIN AMERICANO's piece (a cutscene: SKIP >> for it all)
+  if (F.phase === 'intro') {
+    p.inCutscene = true;
+    const finish = (skipped: boolean) => {
+      if (skipped) { silenceAll(); o.castSaid.clear(); }
+      for (const a of F.arrivals) { a.y = GY; appear(state, a); }
+      F.arrivals = [];
+      F.phase = 'on'; F.spawnT = 100; p.inCutscene = false;
+      adSay(state, AD_CAST, undefined, true);
+    };
+    if (F.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { finish(true); return hands(); } }
+    if (F.said.capDown && F.said.shout && !F.said.capSure) {
+      F.said.capSure = true;
+      castSay(state, 0, CAP_SURE, true, () => meatheadSays(state, pickLine(CAP_REPLY), true, () => { F.said.introDone = true; }));
+    }
+    if (F.said.introDone || F.t > 1200) finish(false);
+    return hands();
+  }
+
+  // The hits: what came off the engine's health is the hit; theirs is kept here (no breather). One in his grab is off
+  // the engine's list a while (he's got it): it still takes his hits
   for (const a of F.actors) {
     const e = a.e;
-    if (!e) continue;
-    const gone = !state.enemies.includes(e) || !!e.isBlownAway;
-    const dealt = gone ? a.hp : Math.max(0, BIG - e.health);
+    if (!e || a.cling) continue;
+    const inE = state.enemies.includes(e);
+    let dead = e.isBlownAway || e.health <= 0;
+    if (!dead && !inE) dead = !e.wasGrabbed || ++a.heldT > 900;
+    else a.heldT = 0;
+    if (dead) { fall(ctx, a); continue; }
+    const dealt = Math.max(0, BIG - e.health);
     e.health = BIG; e.maxHealth = BIG;
-    if (!gone) { a.lx = e.pos.x + e.width / 2; a.ly = e.pos.y + e.height; }
+    if (inE) { a.lx = e.pos.x + e.width / 2; a.ly = e.pos.y + e.height; }
+    else { a.lx = p.pos.x + p.width / 2 + (p.facing ?? 1) * 30; a.ly = GY; }
     if (a.flash > 0) a.flash--;
     if (dealt <= 0) continue;
     a.hp -= dealt; a.flash = 6;
     if (Math.random() < 0.5) state.particles.push({ pos: { x: a.lx, y: a.ly - 50 }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 2 }, life: 20, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
-    if (a.hp <= 0) fall(ctx, a, 'hit');
+    if (a.hp <= 0) fall(ctx, a);
   }
-  // The waves: the first once he's been called on; the next once the last's down to one (the last, all of them)
-  const alive = F.actors.filter(a => a.e).length + F.arrivals.length + F.queue.length;
-  if (F.wave < 0) { if (F.said.called || F.t > 420) queueWave(state, 0); }
-  else if (F.wave < WAVES.length - 1 && alive <= 1) { if (++F.waveT > 50) queueWave(state, F.wave + 1); }
-  // (the queue: each in its turn)
-  for (const a of F.queue) a.t++;
-  while (F.queue.length && F.queue[0].t >= 0) { const a = F.queue.shift()!; a.t = 0; F.arrivals.push(a); }
-  F.arrivals = F.arrivals.filter(a => !arrive(ctx, a));
+
+  // The dogpile. Shaking them off: any charge move throws the lot (each move once); each shot knocks one loose
+  const alive = p.health > 0;
+  const attacking = p.isCharging || p.isUppercutting || !!p.isDivekicking;
+  let on = F.actors.filter(a => a.cling);
+  if (alive && attacking && on.length && p.moveId !== F.moveId) {
+    F.moveId = p.moveId ?? -1;
+    const dmg = p.isCharging ? 20 : 35;
+    for (const a of on) shakeOff(ctx, a, 'charge', dmg);
+    playSound('punch', 0.9, -4); playSound('whoosh', 0.8, -6); shakeScreen(state, 8, 4);
+  }
+  let fired = false;
+  for (const pr of state.projectiles) if (pr.owner === 'player' && !F.seen.has(pr)) { F.seen.add(pr); fired = true; }
+  const cd = p.shootCooldown ?? 0;
+  if (cd > F.lastCd) fired = true;
+  F.lastCd = cd;
+  on = F.actors.filter(a => a.cling);
+  if (alive && fired && on.length && state.frame - F.knockAt >= 6) {
+    F.knockAt = state.frame;
+    // (the ones in front of him first: that's where he's shooting; the last on, first off)
+    const pick = [...on].sort((u, v) => (+slotOf(v.cling!.slot).front - +slotOf(u.cling!.slot).front) || (u.cling!.t - v.cling!.t))[0];
+    shakeOff(ctx, pick, 'shot', 15);
+    playSound('punch', 0.5, 6);
+  }
+  // Getting on him: anyone touching him (a little reach: they jump at him), not dazed off a shove, not mid-landing
+  if (alive && !p.inCutscene && !attacking) for (const a of F.actors) {
+    const e = a.e;
+    if (!e || a.cling || e.health <= 0 || (e.leapCd ?? 0) > 0 || e.aiState === 'land') continue;
+    if ((e.pauseTimer ?? 0) > 0 && Math.abs(e.vel.x) > 1) continue;
+    if (!state.enemies.includes(e)) continue;
+    const gx = 22;
+    if (e.pos.x + e.width + gx < p.pos.x || e.pos.x - gx > p.pos.x + p.width) continue;
+    if (e.pos.y > p.pos.y + p.height + 4 || e.pos.y + e.height < p.pos.y - 8) continue;
+    latch(ctx, a);
+  }
+  // On him: carried along (their enemy kept with him, for when they come off), the pile slowing him; CRUSH and he's
+  // down under them
+  on = F.actors.filter(a => a.cling);
+  for (const a of on) {
+    a.cling!.t++;
+    const e = a.e!;
+    e.pos.x = p.pos.x + p.width / 2 - e.width / 2; e.pos.y = p.pos.y + p.height - e.height;
+    a.lx = p.pos.x + p.width / 2; a.ly = p.pos.y + p.height;
+    if (a.flash > 0) a.flash--;
+  }
+  const n = on.length;
+  if (n > 0 && alive) {
+    const k = Math.max(0, 1 - n / CRUSH);
+    if (!attacking && p.pushbackTimer <= 0) { const max = PLAYER_MOVE_SPEED * buffs.speed * k; if (Math.abs(p.vel.x) > max) p.vel.x = Math.sign(p.vel.x) * max; }
+    if (p.vel.y < 0 && !attacking) p.vel.y += 0.1 * n;
+    if (n >= CRUSH && !F.crushed) {
+      F.crushed = true;
+      playSound('crunch', 1, -6); playSound('thud', 1, -10); shakeScreen(state, 14, 6);
+      ctx.fx.spawnDamageNumber({ x: p.pos.x - 20, y: p.pos.y - 70 }, 'PILED ON', true, '#FCA5A5');
+      hurtPlayer(ctx, 9999, 'm2:hww_pile', undefined, 0);
+    }
+  }
+  if (n < CRUSH) F.crushed = false;
+
+  // The next of them: while there's room for another up, a beat apart, never more than two coming down at once
+  if (F.spawnT > 0) F.spawnT--;
+  const up = F.actors.filter(a => a.e).length + F.arrivals.length;
+  if (alive && F.next < F.order.length && up < capOf(F.killed) && F.arrivals.length < 2 && (F.spawnT <= 0 || up === 0)) {
+    F.arrivals.push({ i: F.order[F.next++], mode: Math.random() < 0.7 ? 'drop' : 'wire', x: spawnX(state), y: 0, vy: 0, t: 0 });
+    F.spawnT = 55 + Math.floor(Math.random() * 45);
+  }
   // All of them dead
-  if (F.killed >= CAST.length && !F.arrivals.length && !F.queue.length) {
+  if (F.next >= F.order.length && F.killed >= F.order.length && !F.arrivals.length) {
     F.phase = 'done';
     state.stageMemo[CAST_MEMO] = '1';
     // (the stage door goes back up)
     if (F.door) F.door.x = -1e7;
   }
+  return null;
 };
 
-/** The camera kept to the main stage while they're at him. */
-export const fightCam = (state: GameState) => (fightOn(state) ? { min: X(ARENA.a) - 30, max: X(ARENA.b) + 60 - CANVAS_WIDTH } : undefined);
+/** The camera kept on the main stage while they're at him: the whole of it, held still. */
+export const fightCam = (state: GameState) => (fightOn(state) ? { min: X(ARENA_CAM), max: X(ARENA_CAM) } : undefined);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-/** The bodies (behind the living), the drop shadows of the ones coming down. */
+/** The bodies (behind the living), the drop shadows of the ones coming down, the ones on his back. */
 export const drawFightBack = (c: CanvasRenderingContext2D, state: GameState) => {
   const F = whOf(state).fight, cam = state.camera.x;
   for (const b of F.bodies) if (b.x > cam - 160 && b.x < cam + 960) drawBody(c, b.i, b.x, b.y, b.dir, b.fall, b.lift > 0 ? b.pool * 0.4 : b.pool);
   for (const a of F.arrivals) {
-    if (a.mode !== 'drop' && a.mode !== 'unhooked') continue;
+    if (a.mode !== 'drop' || a.t < 1) continue;
     const k = Math.max(0.15, Math.min(1, 1 - (GY - a.y) / 600));
     c.fillStyle = `rgba(0, 0, 0, ${0.25 + 0.35 * k})`; c.beginPath(); c.ellipse(a.x, GY - 2, 14 + 26 * k, 4 + 3 * k, 0, 0, Math.PI * 2); c.fill();
   }
+  for (const a of F.actors) if (a.cling && !slotOf(a.cling.slot).front) { const w = clingAt(state, a); drawClinger(c, a.i, w.x, w.y, w.rot, w.dir, state.frame); }
 };
-/** The ones coming down (in front), and what any of them is saying. */
+/** The ones coming down, the ones on him (in front), and what any of them is saying. */
 export const drawFightFront = (c: CanvasRenderingContext2D, state: GameState, saidOver: (c: CanvasRenderingContext2D, s: string, x: number, y: number, col: string, w: number) => void) => {
   const o = whOf(state), F = o.fight, f = state.frame, p = state.player;
   for (const a of F.arrivals) {
     if (a.t < 1) continue;
     const dir: 1 | -1 = a.x > p.pos.x + p.width / 2 ? -1 : 1;
-    if (a.mode === 'wire' || (a.mode === 'unhooked' && a.t < 40)) { c.strokeStyle = '#18181B'; c.lineWidth = 2; c.beginPath(); c.moveTo(a.x, ROOF_Y + 30); c.lineTo(a.x, a.y - 80); c.stroke(); box(c, a.x - 5, a.y - 84, 10, 6, '#F59E0B'); }
-    if (a.mode === 'unhooked' && a.t >= 40) { c.strokeStyle = '#18181B'; c.lineWidth = 2; c.beginPath(); c.moveTo(a.x, ROOF_Y + 30); c.lineTo(a.x + 6, ROOF_Y + 120); c.stroke(); }
-    drawArriving(c, a.i, a.x, a.y, f, a.mode === 'drop' || (a.mode === 'unhooked' && a.t >= 40), dir);
+    if (a.mode === 'wire') { c.strokeStyle = '#18181B'; c.lineWidth = 2; c.beginPath(); c.moveTo(a.x, ROOF_Y + 30); c.lineTo(a.x, a.y - 80); c.stroke(); box(c, a.x - 5, a.y - 84, 10, 6, '#F59E0B'); }
+    drawArriving(c, a.i, a.x, a.y, f, a.mode === 'drop', dir);
   }
-  // (who's saying what: over them on the way in, up, or lying there)
+  // (the pile on him: the low ones first, the top of it last)
+  const front = F.actors.filter(a => a.cling && slotOf(a.cling.slot).front).sort((u, v) => u.cling!.slot - v.cling!.slot);
+  for (const a of front) { const w = clingAt(state, a); drawClinger(c, a.i, w.x, w.y, w.rot, w.dir, f); }
+  // (who's saying what: over them on the way in, up, on him, or lying there)
   for (const [i, s] of o.castSaid) {
     const act = F.actors.find(a => a.i === i), arr = F.arrivals.find(a => a.i === i), body = F.bodies.find(b => b.i === i);
     let x: number, y: number;
-    if (act?.e) { x = act.e.pos.x + act.e.width / 2; y = act.e.pos.y - 18; }
+    if (act?.cling) { x = p.pos.x + p.width / 2; y = p.pos.y - 70; }
+    else if (act?.e) { x = act.e.pos.x + act.e.width / 2; y = act.e.pos.y - 18; }
     else if (arr) { x = arr.x; y = arr.y - 100; }
     else if (body) { x = body.x; y = body.y - 40; }
     else continue;
     saidOver(c, s.text, x, y, '#FBCFE8', 220);
   }
 };
-/** Their bar: the lot of them (top band, clear of the HUD). */
+/** Their bar: the lot of them (top band, clear of the HUD); SKIP >> in CAPTAIN AMERICANO's piece. */
 export const drawFightHud = (c: CanvasRenderingContext2D, state: GameState) => {
   const F = whOf(state).fight;
+  if (F.phase === 'intro' && F.t > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
   if (F.phase !== 'on' || state.player.inCutscene) return;
-  const band = topBand(), w = band.x2 - band.x1;
-  const done = new Set(F.actors.map(a => a.i));
-  let hp = 0;
+  const band = topBand(), w = band.x2 - band.x1, total = F.order.length;
+  let hp = 0, all = 0;
+  for (const i of F.order) all += CAST[i].hp;
   for (const a of F.actors) hp += Math.max(0, a.hp);
-  CAST.forEach((m, i) => { if (!done.has(i)) hp += m.hp; });
+  for (let k = F.next; k < F.order.length; k++) hp += CAST[F.order[k]].hp;
+  for (const a of F.arrivals) hp += CAST[a.i].hp;
   const flash = F.actors.some(a => a.flash > 0);
-  box(c, band.x1, 18, w, 14, '#18181B'); box(c, band.x1 + 2, 20, (w - 4) * Math.max(0, hp / TOTAL_HP), 10, flash ? '#FECACA' : '#DC2626');
-  label(c, `THE ENSEMBLE CAST: ${CAST.length - F.killed} OF ${CAST.length}`, band.mid, 44, '#FDE68A', 8);
+  box(c, band.x1, 18, w, 14, '#18181B'); box(c, band.x1 + 2, 20, (w - 4) * Math.max(0, Math.min(1, hp / Math.max(1, all))), 10, flash ? '#FECACA' : '#DC2626');
+  label(c, `THE ENSEMBLE CAST: ${total - F.killed} OF ${total}`, band.mid, 44, '#FDE68A', 8);
 };

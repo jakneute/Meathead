@@ -16,8 +16,8 @@ import {
   X, Y, GY, x0, x1, BACK_Y, ROOF_Y, PIT_A, PIT_B, SOLIDS, LEDGES, STEVES, ARENA, CASE_X, DOZER_X, FAR_WALL, REFILL, LIGHTS,
 } from './layout';
 import { whOf } from './state';
-import { WRECK_X, wallsDown } from './burst';
-import { dozerX, caseDown, wallOpen, endingOn, drawDozer } from './ending';
+import { WRECK_X, ROOF_HOLE, wallsDown } from './burst';
+import { dozerX, caseDown, caseTip, wallOpen, endingOn, drawDozer } from './ending';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -65,9 +65,10 @@ const slate = (c: Ctx, x: number, feetY: number) => {
   box(c, x - 2, feetY - 80, 4, 80, '#71717A');
   box(c, x - 34, feetY - 128, 68, 50, '#000'); box(c, x - 32, feetY - 126, 64, 46, '#27272A');
   for (let k = 0; k < 6; k++) box(c, x - 32 + k * 11, feetY - 136, 6, 8, k % 2 ? '#F8FAFC' : '#18181B');
-  words(c, 'REVENGERS 19', x, feetY - 112, print(1, '#F8FAFC'));
-  words(c, 'SC 4 TK 312', x, feetY - 98, print(1, '#F8FAFC'));
-  words(c, 'CLOSED SET', x, feetY - 86, print(1, '#FCA5A5'));
+  words(c, 'REVENGERS:', x, feetY - 116, print(1, '#F8FAFC'));
+  words(c, "END-OF-THE-", x, feetY - 106, print(1, '#F8FAFC'));
+  words(c, "WORLD'S-DAY", x, feetY - 96, print(1, '#F8FAFC'));
+  words(c, 'SECRET SET', x, feetY - 85, print(1, '#FCA5A5'));
 };
 /** A painted city skyline on a flat (dim: scenery), fire painted on if `burning`; its bracing showing at its ends. */
 const skyline = (c: Ctx, a: number, b: number, h: number, burning: boolean) => {
@@ -82,10 +83,11 @@ const skyline = (c: Ctx, a: number, b: number, h: number, burning: boolean) => {
     if (burning && k % 3 === 0) { c.fillStyle = '#F97316'; c.beginPath(); c.moveTo(x + 4, BACK_Y - bh); c.lineTo(x + 19, BACK_Y - bh - 34); c.lineTo(x + 34, BACK_Y - bh); c.fill(); }
   }
 };
-/** The wrecked throne-train: three golden toilets on wheels, on their sides, the track bits with them. */
-export const drawWreck = (c: Ctx, x: number, tilt: number, f: number) => {
+/** The wrecked throne-train: three golden toilets on wheels, on their sides, the track bits with them (feet at y:
+ *  coming down through the roof, then on the floor). */
+export const drawWreck = (c: Ctx, x: number, y: number, tilt: number, f: number) => {
   for (let k = 0; k < 3; k++) {
-    c.save(); c.translate(x - k * 78, GY - 4); c.rotate(-tilt * (1.2 + k * 0.25));
+    c.save(); c.translate(x - k * 78 + 78, y - 4 - (y < GY ? k * 30 : 0)); c.rotate(-tilt * (1.2 + k * 0.25));
     box(c, -34, -46, 68, 42, '#000'); box(c, -32, -44, 64, 38, '#CA8A04'); box(c, -32, -44, 64, 6, '#FDE047');
     box(c, -36, -70, 22, 30, '#000'); box(c, -34, -68, 18, 26, '#EAB308');
     box(c, -10, -52, 40, 10, '#F8FAFC');
@@ -95,15 +97,40 @@ export const drawWreck = (c: Ctx, x: number, tilt: number, f: number) => {
   if (tilt >= 1 && f % 50 < 30) { c.fillStyle = 'rgba(120, 113, 108, 0.4)'; c.beginPath(); c.ellipse(x - 40, GY - 70 - (f % 50), 14, 9, 0, 0, Math.PI * 2); c.fill(); }
 };
 
-/** The crowd outside, on the fallen back wall: guests by seed, phones up, staring in. */
-const crowd = (c: Ctx, state: GameState) => {
+/** The crowd outside, on the fallen back wall: guests by seed, phones up, staring in. Once the director's said KILL
+ *  THEM ALL, every few of them a brawl: one of the crew (in their blacks) laying into a guest (the background's fight:
+ *  the crew at the public who saw). */
+const crowd = (c: Ctx, state: GameState, brawl: boolean) => {
   const cam = state.camera.x, f = state.frame;
   const feet = BACK_Y - 22;
   for (let x = Math.floor((cam - 60) / 58) * 58; x < cam + 860; x += 58) {
-    const seed = Math.abs((x / 58) | 0) * 37 + 11, face: 1 | -1 = seed % 2 ? 1 : -1;
+    const n = Math.abs((x / 58) | 0), seed = n * 37 + 11, face: 1 | -1 = seed % 2 ? 1 : -1;
+    if (brawl && n % 3 === 1) {
+      // (the crew member, punching; the guest reeling, arms up, knocked back and forth)
+      const hit = (f + seed) % 40 < 8, gx = x + 18 + (hit ? 4 : 0);
+      c.save(); c.translate(x - 6 + (seed % 9), feet); c.scale(0.56, 0.56);
+      drawPerson(c, { seed: seed + 5, outfit: 'stage', f, pose: hit ? 'thrust' : 'stand', mood: 'shocked' });
+      c.restore();
+      c.save(); c.translate(gx, feet); c.rotate(hit ? 0.25 : 0.08); c.scale(-0.56, 0.56);
+      drawPerson(c, { seed, outfit: 'guest', f, pose: 'cheer', mood: 'shocked' });
+      c.restore();
+      continue;
+    }
     c.save(); c.translate(x + (seed % 23), feet); c.scale(face * 0.56, 0.56);
     drawPerson(c, { seed, outfit: 'guest', f, pose: seed % 3 === 0 ? 'cheer' : 'photo', mood: seed % 4 ? 'shocked' : 'happy' });
     if (seed % 3 !== 0) { box(c, 14, -70, 8, 12, '#18181B'); box(c, 15, -68, 6, 8, (f + seed) % 70 < 3 ? '#FFFFFF' : '#60A5FA'); }
+    c.restore();
+  }
+};
+/** The burst-in's KILL THEM ALL: the crew off the sets, running back over the stage floor and out at the public. */
+const runners = (c: Ctx, state: GameState) => {
+  const b = whOf(state).burst, f = state.frame;
+  for (const r of b.runners) {
+    const t = r.t - r.at;
+    if (t < 0 || t > 70) continue;
+    const k = t / 70, y = BACK_Y + 14 - k * 36, s = 0.68 - k * 0.12;
+    c.save(); c.translate(r.x + Math.sin(r.seed) * 20, y); c.scale(s, s);
+    drawPerson(c, { seed: r.seed, outfit: 'stage', f, pose: 'walk', mood: 'shocked' });
     c.restore();
   }
 };
@@ -120,7 +147,7 @@ export const drawWarehouseBack = (c: Ctx, state: GameState) => {
   if (fall > 0) {
     box(c, a, BACK_Y - 30 * fall, z - a, 24 * fall, '#71717A');
     for (let x = Math.floor(a / 16) * 16; x < z; x += 16) box(c, x, BACK_Y - 30 * fall, 2, 24 * fall, '#52525B');
-    if (fall >= 1) crowd(c, state);
+    if (fall >= 1) { crowd(c, state, !b.on || b.runners.some(r => r.t - r.at > 60)); if (b.on) runners(c, state); }
   }
   // The back wall, standing (till it goes: it falls away from us, shorter as it goes over)
   if (fall < 1) {
@@ -128,13 +155,33 @@ export const drawWarehouseBack = (c: Ctx, state: GameState) => {
     box(c, a, top, z - a, BACK_Y - top, '#44403C');
     for (let x = Math.floor(a / 14) * 14; x < z; x += 14) box(c, x, top, 3, BACK_Y - top, '#3F3B37');
   }
-  // The steel frame (it's still up): the roof's underside, its trusses, the columns
+  // The steel frame (it's still up): the roof's underside, its trusses, the columns. The hole the train came down
+  // through (the burst-in on: once the roof's gone; for good after)
+  const holed = b.on ? b.t >= 24 : wallsDown(state);
+  const ha = X(ROOF_HOLE.a), hb = X(ROOF_HOLE.b);
+  c.save();
+  if (holed && inView(state, ha, hb)) {
+    c.beginPath(); c.rect(a, ROOF_Y - 160, z - a, 170);
+    c.moveTo(ha, ROOF_Y - 160); c.lineTo(ha + 20, ROOF_Y + 6); c.lineTo(ha + 70, ROOF_Y - 10); c.lineTo(ha + 120, ROOF_Y + 8); c.lineTo(ha + 170, ROOF_Y - 6);
+    c.lineTo(hb - 50, ROOF_Y + 10); c.lineTo(hb - 10, ROOF_Y - 4); c.lineTo(hb, ROOF_Y - 160); c.closePath();
+    c.clip('evenodd');
+  }
   box(c, a, ROOF_Y - 140, z - a, 140, '#1C1917');
   box(c, a, ROOF_Y - 8, z - a, 8, '#292524');
   c.strokeStyle = '#3F3F46'; c.lineWidth = 2; c.beginPath();
   for (let x = Math.floor(a / 30) * 30, k = 0; x < z; x += 30, k++) { c.moveTo(x, ROOF_Y - 40); c.lineTo(x + 15, ROOF_Y - (k % 2 ? 4 : 40)); }
   c.stroke();
   box(c, a, ROOF_Y - 44, z - a, 4, '#3F3F46'); box(c, a, ROOF_Y - 4, z - a, 4, '#3F3F46');
+  c.restore();
+  // (the torn ends of the trusses, bent down into the hole; a cable or two hanging)
+  if (holed && inView(state, ha, hb)) {
+    c.strokeStyle = '#52525B'; c.lineWidth = 3; c.beginPath();
+    c.moveTo(ha + 20, ROOF_Y - 4); c.lineTo(ha + 34, ROOF_Y + 30); c.moveTo(hb - 10, ROOF_Y - 6); c.lineTo(hb - 22, ROOF_Y + 36);
+    c.stroke();
+    c.strokeStyle = '#18181B'; c.lineWidth = 1; c.beginPath();
+    c.moveTo(ha + 90, ROOF_Y); c.quadraticCurveTo(ha + 96, ROOF_Y + 40, ha + 88, ROOF_Y + 70); c.moveTo(hb - 70, ROOF_Y); c.lineTo(hb - 66, ROOF_Y + 50);
+    c.stroke();
+  }
   for (let x = Math.floor(a / 900) * 900 + 450; x < z; x += 900) { box(c, x - 9, ROOF_Y, 18, BACK_Y - ROOF_Y, '#27272A'); box(c, x - 9, ROOF_Y, 4, BACK_Y - ROOF_Y, '#3F3F46'); box(c, x - 14, BACK_Y - 8, 28, 8, '#18181B'); }
   // The stage floor (the back of it to the play plane's lit edge), the pits through it
   box(c, a, BACK_Y, z - a, GY - BACK_Y, '#57534E');
@@ -153,7 +200,7 @@ export const drawWarehouseBack = (c: Ctx, state: GameState) => {
   for (const [rx, h, w, what] of LEDGES) if (inView(state, X(rx), X(rx) + w)) ledgePiece(c, X(rx), Y(h), w, h, what);
   // The wreck (where it stopped; tumbling in, in the burst-in)
   const wx = b.on ? b.tx : X(WRECK_X);
-  if (inView(state, wx - 260, wx + 60)) drawWreck(c, wx, b.on ? b.tilt : 1, f);
+  if ((!b.on || b.t >= 24) && inView(state, wx - 200, wx + 140)) drawWreck(c, wx, b.on ? b.ty : GY, b.on ? b.tilt : 1, f);
   for (const [rx, h, kind] of STEVES) if (inView(state, X(rx) - 60, X(rx) + 60)) steveFlier(c, X(rx), kind === 'standee' ? Y(h) : Y(h), kind, rx);
   mainStage(c, state);
 };
@@ -209,12 +256,8 @@ const solidPiece = (c: Ctx, x: number, y: number, w: number, h: number, what: st
     for (const wx of [x + 24, x + w - 24]) { c.fillStyle = '#18181B'; c.beginPath(); c.arc(wx, GY - 8, 12, 0, Math.PI * 2); c.fill(); }
     ledgeLip(c, x + 22, y, w - 46, '#EAB308', '#FEF08A', 6);
     words(c, 'TAXI', x + w / 2, y + 34, print(1, '#18181B'));
-  } else if (what === 'plinth') {
-    ledgeLip(c, x, y, w, '#A8A29E', '#F5F5F4', h);
-    box(c, x + 4, y + 10, w - 8, 2, '#78716C');
-    words(c, 'DO NOT TOUCH', x + w / 2, y + 40, print(1, '#44403C'));
-    void state;
   }
+  void state;
 };
 
 const ledgePiece = (c: Ctx, x: number, y: number, w: number, h: number, what: string) => {
@@ -308,9 +351,9 @@ const mainStage = (c: Ctx, state: GameState) => {
   const o = whOf(state), F = o.fight, f = state.frame;
   if (!inView(state, X(ARENA.a) - 200, x1 + 200)) return;
   const v = (a: number, b: number) => inView(state, X(a), X(b));
-  if (v(9950, 12500)) {
-    greenScreen(c, X(10040), X(12400), 430);
-    banner(c, X(11200), BACK_Y - 470, 520, 70, 'THE REVENGERS 19', 'REVENGERS: RESEMBLE', '#18181B', '#FDE047');
+  if (v(ARENA.a - 50, ARENA.b + 50)) {
+    greenScreen(c, X(ARENA.a + 30), X(ARENA.b - 8), 430);
+    banner(c, X((ARENA.a + ARENA.b) / 2), BACK_Y - 470, 560, 70, "REVENGERS: END-OF-THE-WORLD'S-DAY", 'REVENGERS: RESEMBLE', '#18181B', '#FDE047');
   }
   // The stage door: its frame always; the door down behind him while they're at him
   if (v(9900, 10010)) {
@@ -332,34 +375,41 @@ const mainStage = (c: Ctx, state: GameState) => {
     c.restore();
     words(c, 'KEYS IN IT', dz - 30, BACK_Y - 140, print(1, '#FDE68A'));
   }
-  // The script: its plinth (a solid piece), the case on it under its light, the ropes, the laser grid
-  if (v(CASE_X - 260, CASE_X + 260)) {
-    const cx = X(CASE_X), py = GY - 76, down = caseDown(state);
-    c.fillStyle = 'rgba(254, 249, 195, 0.14)'; c.beginPath(); c.moveTo(cx - 20, ROOF_Y + 10); c.lineTo(cx + 20, ROOF_Y + 10); c.lineTo(cx + 90, GY); c.lineTo(cx - 90, GY); c.closePath(); c.fill();
+  // THE SCRIPT, the showpiece, at the back of the stage (scenery: nothing to stand on or bump into): its plinth, the
+  // case on it under its light, the velvet ropes, the laser grid, its marquee. Knocked over (the ending): the case
+  // tipping off the back of the plinth, the glass gone, empty
+  if (v(CASE_X - 200, CASE_X + 200)) {
+    const cx = X(CASE_X), foot = BACK_Y + 20, top = foot - 84, tip = caseTip(state), down = caseDown(state);
+    c.fillStyle = 'rgba(254, 249, 195, 0.14)'; c.beginPath(); c.moveTo(cx - 20, ROOF_Y + 10); c.lineTo(cx + 20, ROOF_Y + 10); c.lineTo(cx + 100, foot + 12); c.lineTo(cx - 100, foot + 12); c.closePath(); c.fill();
+    // (the ropes round it, the laser grid between their posts)
     if (!down) {
-      // (the case: glass, the script in it, its cover)
-      box(c, cx - 34, py - 74, 68, 74, 'rgba(186, 230, 253, 0.35)'); c.strokeStyle = '#E0F2FE'; c.lineWidth = 2; c.strokeRect(cx - 34, py - 74, 68, 74);
-      box(c, cx - 20, py - 50, 40, 50, '#000'); box(c, cx - 18, py - 48, 36, 46, '#7F1D1D');
-      words(c, 'REVENGERS', cx, py - 38, print(1, '#FDE047'));
-      words(c, 'RESEMBLE', cx, py - 28, print(1, '#FEF3C7'));
-      words(c, 'DO NOT LEAK', cx, py - 12, print(1, '#FCA5A5'));
-      box(c, cx - 30, py - 70, 6, 30, 'rgba(255, 255, 255, 0.5)');
-      // (the ropes, the laser grid between their posts)
-      velvetRope(c, cx - 150, cx + 150, GY);
-      for (let k = 0; k < 3; k++) { c.fillStyle = (f + k * 7) % 30 < 24 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(239, 68, 68, 0.25)'; c.fillRect(cx - 150, GY - 14 - k * 9, 300, 1); }
-      words(c, 'THE SCRIPT', cx, GY - 196, marquee(2, 2, '#FDE047', f % 40 < 32));
-    } else {
-      // (knocked over and smashed: the case on its side, empty, glass everywhere, the ropes down)
-      c.save(); c.translate(cx + 90, GY); c.rotate(1.35); box(c, -34, -74, 68, 74, 'rgba(186, 230, 253, 0.25)'); c.strokeStyle = '#E0F2FE'; c.lineWidth = 2; c.strokeRect(-34, -74, 68, 74); c.restore();
-      for (let k = 0; k < 14; k++) box(c, cx - 60 + ((k * 43) % 220), GY - 3, 5, 3, '#E0F2FE');
-      for (let k = 0; k < 4; k++) { box(c, cx - 150 + k * 100, GY - 6, 6, 6, '#CA8A04'); }
-      words(c, 'THE SCRIPT', cx, GY - 196, marquee(2, 2, '#78716C', false));
+      velvetRope(c, cx - 110, cx + 110, foot + 10);
+      for (let k = 0; k < 3; k++) { c.fillStyle = (f + k * 7) % 30 < 24 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(239, 68, 68, 0.25)'; c.fillRect(cx - 110, foot - 4 - k * 9, 220, 1); }
+    } else for (let k = 0; k < 4; k++) box(c, cx - 110 + k * 72, foot + 4, 6, 6, '#CA8A04');
+    // (the plinth: marble, DO NOT TOUCH; dimmed, set back: it's scenery, not a ledge)
+    box(c, cx - 42, top, 84, foot - top, '#000'); box(c, cx - 40, top + 2, 80, foot - top - 2, '#8F8984');
+    box(c, cx - 46, top - 6, 92, 10, '#000'); box(c, cx - 45, top - 5, 90, 8, '#A8A29E');
+    box(c, cx - 36, top + 14, 72, 2, '#A8A29E');
+    words(c, 'DO NOT TOUCH', cx, top + 44, print(1, '#57534E'));
+    // (the case on it: glass, the script inside, its cover; tipping off the back right corner as it goes)
+    c.save(); c.translate(cx + 34, top - 1); c.rotate(tip * 1.45);
+    const gx = -68, gy = -78;
+    box(c, gx, gy, 68, 78, `rgba(186, 230, 253, ${down ? 0.18 : 0.35})`); c.strokeStyle = '#E0F2FE'; c.lineWidth = 2; c.strokeRect(gx, gy, 68, 78);
+    if (!down || tip < 0.6) {
+      box(c, gx + 14, gy + 26, 40, 50, '#000'); box(c, gx + 16, gy + 28, 36, 46, '#7F1D1D');
+      words(c, 'REVENGERS', gx + 34, gy + 40, print(1, '#FDE047'));
+      words(c, 'EOTWD', gx + 34, gy + 50, print(1, '#FEF3C7'));
+      words(c, 'DO NOT LEAK', gx + 34, gy + 66, print(1, '#FCA5A5'));
     }
+    box(c, gx + 4, gy + 4, 6, 30, 'rgba(255, 255, 255, 0.5)');
+    c.restore();
+    if (down) for (let k = 0; k < 14; k++) box(c, cx - 70 + ((k * 43) % 200), foot + 2 - (k % 3) * 3, 5, 3, '#E0F2FE');
+    words(c, 'THE SCRIPT', cx, top - 140, marquee(2, 2, down ? '#78716C' : '#FDE047', !down && f % 40 < 32));
   }
   // The pages all over the stage, after
-  if (caseDown(state)) for (let rx = 10100; rx < 12400; rx += 37 + (rx % 23)) if (inView(state, X(rx), X(rx) + 12)) box(c, X(rx), GY - 4 - (rx % 3) * 2, 12, 4, '#F5F5F4');
+  if (caseDown(state)) for (let rx = ARENA.a + 30; rx < ARENA.b - 10; rx += 37 + (rx % 23)) if (inView(state, X(rx), X(rx) + 12)) box(c, X(rx), GY - 4 - (rx % 3) * 2 - (rx % 5) * 9, 12, 4, '#F5F5F4');
   // The far wall: the one still up; then smashed open
-  if (v(FAR_WALL - 100, 12600)) {
+  if (v(FAR_WALL - 100, FAR_WALL + 900)) {
     const wx = X(FAR_WALL), top = ROOF_Y;
     box(c, wx, top, x1 + 400 - wx, GY - top, '#44403C');
     for (let x = wx; x < x1 + 400; x += 14) box(c, x, top, 3, GY - top, '#3F3B37');
@@ -378,7 +428,7 @@ const mainStage = (c: Ctx, state: GameState) => {
       for (let k = 0; k < 10; k++) box(c, wx - 60 + k * 14, GY - 8 - (k % 3) * 4, 10, 8, k % 2 ? '#78716C' : '#A8A29E');
       words(c, 'THIS WAY OUT', wx - 60, GY - 260, print(1, '#FDE68A'));
     } else {
-      words(c, 'FIRE EXIT (BRICKED UP)', wx + 60, GY - 300, print(1, '#E7E5E4'));
+      words(c, 'FIRE EXIT (BRICKED UP)', wx - 90, GY - 300, print(1, '#E7E5E4'));
     }
   }
 };
@@ -386,7 +436,7 @@ const mainStage = (c: Ctx, state: GameState) => {
 /** The studio lights and the signs, lit after dark (through the open walls). */
 export const warehouseLamps = (): Light[] => [
   ...LIGHTS.map(([rx]) => ({ x: X(rx), y: ROOF_Y + 110, r: 260, a: 0.9, color: '#FEF9C3' })),
-  { x: X(CASE_X), y: GY - 140, r: 260, a: 1, color: '#FEF08A' },
+  { x: X(CASE_X), y: BACK_Y - 120, r: 260, a: 1, color: '#FEF08A' },
   { x: X(5325), y: BACK_Y - 214, r: 180, a: 0.7, color: '#FDE68A' },
-  { x: X(11200), y: BACK_Y - 470, r: 300, a: 0.7, color: '#FDE047' },
+  { x: X((ARENA.a + ARENA.b) / 2), y: BACK_Y - 470, r: 300, a: 0.7, color: '#FDE047' },
 ];

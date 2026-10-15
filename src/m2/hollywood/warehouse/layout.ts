@@ -3,8 +3,9 @@
 // green-screen sets in a row along it, each a platforming stretch with the film crew on it; each new crew kind alone
 // first, then mixed; the stunt wires taught again, then escalated.
 //
-//   0      THE BURST-IN: the throne-train through the end wall, wrecked where it stopped; the walls falling flat
-//          outward, the public staring in over them, phones up. (Off the left end: back to the coaster's stop 3.)
+//   0      THE BURST-IN: the throne-train down through the roof (a hole in it for good), wrecked where it landed; the
+//          director's panic; the walls falling flat outward, the public staring in over them, phones up; KILL THEM ALL
+//          (the crew out at the public in the background). (Off the left end: back to the coaster's stop 3.)
 //   700    SET 1, THE ROOFTOP: crash mats, rostrums, a city skyline on a flat, the rooftop set's front a solid wall up to
 //          its roof (impassable): a wire from the rostrum up onto the roof (the wires again), down its far side. A grip,
 //          alone; a runner (a PA with a walkie and the coffee); a boom op up on the roof.
@@ -20,10 +21,11 @@
 //   8200   SET 4, THE BATTLE OF NEW NEW YORK (checkpoint): a fake taxi, a toppled building flat (up it, or the wire), a
 //          wind machine, the lighting rig, a pyro jet; everybody.
 //   9600   THE CAST'S HOLDING AREA: the big health and ammo; PRINCIPAL CAST ONLY BEYOND THIS POINT (checkpoint).
-//   9950   THE MAIN STAGE: the arena. The roll-up stage door behind him, the far wall ahead; the risers; the bulldozer
-//          parked at the back; THE SCRIPT on its pedestal at the far end, in its glass case, lit from above, the velvet
-//          ropes, the laser grid. THE ENSEMBLE CAST (cast.ts, fight.ts). Then the bulldozer through the far wall
-//          (ending.ts), out into the dumpster at the lot's start (geometry.ts LOT_WALL_BREAK, LOT_DUMPSTER).
+//   9950   THE MAIN STAGE: the arena, one screen (the user's), a bare floor (nothing to stand on). The roll-up stage door
+//          behind him, the far wall ahead; the bulldozer parked at the back; THE SCRIPT in its glass case on its plinth
+//          at the back of the stage (scenery: no collision), lit from above, the velvet ropes, the laser grid: the
+//          showpiece. THE ENSEMBLE CAST (cast.ts, fight.ts). Then the bulldozer through the far wall (ending.ts), out
+//          into the dumpster at the lot's start (geometry.ts LOT_WALL_BREAK, LOT_DUMPSTER).
 
 import { SECTIONS, GY } from '../geometry';
 export { GY };
@@ -50,7 +52,7 @@ export const PIT_B = { a: 3720, b: 4280 } as const;
 /** The floor: runs of it (the pits between). */
 export const GROUND: [number, number][] = [[-200, PIT_A.a], [PIT_A.b, PIT_B.a], [PIT_B.b, 12700]];
 
-export type SolidWhat = 'mat' | 'roof' | 'table' | 'taxi' | 'plinth';
+export type SolidWhat = 'mat' | 'roof' | 'table' | 'taxi';
 /** Solid things (stood on; walked into): [x, height, width, what]. */
 export const SOLIDS: [number, number, number, SolidWhat][] = [
   [900, 40, 150, 'mat'],
@@ -58,8 +60,6 @@ export const SOLIDS: [number, number, number, SolidWhat][] = [
   [1820, 300, 330, 'roof'],
   [4950, 50, 170, 'table'],
   [8440, 62, 140, 'taxi'],
-  // (the script's plinth)
-  [11870, 76, 80, 'plinth'],
 ];
 export type LedgeWhat = 'rostrum' | 'flat' | 'truck' | 'scaffold' | 'riser';
 /** One-way ledges (up through, stood on): [x, height, width, what]. */
@@ -70,8 +70,6 @@ export const LEDGES: [number, number, number, LedgeWhat][] = [
   [5220, 110, 210, 'truck'],
   [6480, 120, 170, 'scaffold'], [6700, 240, 180, 'scaffold'], [7640, 130, 220, 'scaffold'], [7900, 250, 150, 'scaffold'],
   [8700, 120, 150, 'scaffold'], [8880, 240, 200, 'flat'],
-  // (the main stage's risers)
-  [10520, 110, 200, 'riser'], [11180, 110, 170, 'riser'],
 ];
 
 /** The stunt wires, in a steady order (wires are matched frame to frame by their place). */
@@ -107,6 +105,8 @@ export const FAN = { every: 330, spin: 70, gust: 130, reach: 720 } as const;
 
 export type CrewKind = 'm2:hww_grip' | 'm2:hww_boom' | 'm2:hww_runner' | 'm2:hww_director' | 'm2:hww_craft' | 'm2:hww_mocap' | 'm2:hww_stuntco';
 export const ENEMIES: [CrewKind, number, number][] = [
+  // the burst-in's own foreground crew (on the set he comes down on: they come at him on KILL THEM ALL)
+  ['m2:hww_grip', 720, 0], ['m2:hww_runner', 840, 0],
   // the rooftop: a grip alone, a runner, a boom op up on the roof, a grip down its far side
   ['m2:hww_grip', 1060, 0], ['m2:hww_runner', 1470, 0], ['m2:hww_boom', 2070, 300], ['m2:hww_grip', 2420, 0],
   // the abyss: a runner between the pits; a mocap double alone past the second, then two
@@ -133,19 +133,23 @@ export const REFILL = 9700;
 // ---------------------------------------------------------------------------------------------------------------
 // The main stage
 
-/** The arena: the stage door (the lock behind him), the far wall's inside face. */
-export const ARENA = { a: 9950, b: 12440 } as const;
+/** The arena (one screen): the stage door (the lock behind him), the far wall's inside face. */
+export const ARENA = { a: 9950, b: 10690 } as const;
+/** The camera on the main stage (the whole of it on the screen: the stage door at its left edge, the far wall at its
+ *  right). */
+export const ARENA_CAM = ARENA.a - 30;
 /** Where he's gone far enough in for the cast to come out. */
-export const ARENA_TRIGGER = 10180;
-/** The script's case on its plinth. */
-export const CASE_X = 11910;
+export const ARENA_TRIGGER = 10070;
+/** The script's case on its plinth, at the back of the stage (scenery: no collision). */
+export const CASE_X = 10560;
 /** The bulldozer, parked at the back of the stage (its middle). */
-export const DOZER_X = 10260;
-/** Where the bodies are heaped for the bulldozer (the heap's middle). */
-export const PILE_X = 10700;
+export const DOZER_X = 10090;
+/** The ending: the bulldozer brought round into the play plane (its middle), the heap ahead of its blade (its middle). */
+export const DOZER_START = 10070;
+export const PILE_X = 10284;
 
 /** Back outside: the far wall smashed open, the way out to the lot. */
-export const FAR_WALL = 12440;
+export const FAR_WALL = ARENA.b;
 
 /** Steve, foreshadowed: [x, height, kind] (fliers on the frame's columns and the props, posters on the flats). */
 export const STEVES: [number, number, 'flier' | 'poster' | 'standee'][] = [
@@ -160,7 +164,7 @@ export const CHECKPOINTS = [
   { name: 'THE MOTHERSHIP', cp: 23, x: X(6320), y: GY },
   { name: 'THE BATTLE OF NEW NEW YORK', cp: 24, x: X(8230), y: GY },
   // (back for another go at the cast: nobody about the refill and the stage)
-  { name: 'THE ENSEMBLE CAST', cp: 25, x: X(REFILL - 60), y: GY, clear: [600, 3200] as [number, number] },
+  { name: 'THE ENSEMBLE CAST', cp: 25, x: X(REFILL - 60), y: GY, clear: [600, 1400] as [number, number] },
 ];
 
 /** Kept across his deaths (state.stageMemo): the walls down (the burst-in seen), the cast dead, the bulldozer gone

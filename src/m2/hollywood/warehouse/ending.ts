@@ -1,16 +1,18 @@
 // The ending (the user's): the last of the cast dead, Meathead says "BETTER CLEAN UP THE BODIES." Cut: the bodies are
 // all in one big pile. He's in the bulldozer that happens to be parked at the back of the stage; it rumbles up and
-// shoves the pile along the stage, through the script's velvet ropes, knocking the glass case over (the pages go up
-// and out over the crowd at the fallen walls: the leak, the most devastating thing he's done), and CRASHES THROUGH THE
-// FAR WALL. Cut to outside, at the lot's start (geometry.ts LOT_WALL_BREAK, LOT_DUMPSTER: the lot owner's set piece):
-// the dust out of the hole, the bodies tumbling out of it into the dumpster, the pages blowing down the lot; the dust
-// settles on the bulldozer, crashed into the dumpster's end, and he hops down. He's in the lot.
+// shoves the pile along the stage, and as it gets to the script's case at the back of the stage the camera PUSHES IN on
+// it (the playtest notes): the pile slams into the plinth, the case goes over, the glass goes, the pages go up and out
+// over the crowd at the fallen walls (the leak, the most devastating thing he's done). Back out, and it CRASHES THROUGH
+// THE FAR WALL. Cut to outside, at the lot's start (geometry.ts LOT_WALL_BREAK, LOT_DUMPSTER: the lot owner's set
+// piece): the dust out of the hole, the bodies tumbling out of it into the dumpster, the pages blowing down the lot; the
+// dust settles on the bulldozer, crashed into the dumpster's end, and he hops down. He's in the lot.
 //
-// The tragedy's the leak, not the cast (the user's): while the bulldozer runs, a studio executive walks over the pile
-// and the bulldozer on his phone without a glance (they own the faces: CGI, AI); off the back, the case goes, the pages
-// fly, and he loses it: chases it out through the wall, the AD panics on the bullhorn, the public grabs pages; outside
-// he rants (the cast we can replace; the script was the only copy) under the bodies flying into the dumpster, never a
-// look, and runs off after the pages. Then he hops down and shrugs. One speaker at a time (all queued, in turn).
+// The tragedy's the leak, not the cast (the user's): a studio executive stands at the back of the stage by the script,
+// on his phone (they own the faces: CGI, AI), well out of the bulldozer's way, never a look at the bodies going past;
+// the case goes, the pages fly, and he loses it; the AD panics on the bullhorn, the public grabs pages; outside he comes
+// out of the hole after them and rants (the cast we can replace; the script was the only copy) under the bodies flying
+// into the dumpster, never a look, and runs off after the pages. Then he hops down and shrugs. One speaker at a time
+// (all queued, in turn).
 //
 // A cutscene: HUD hidden (inCutscene), SKIP >> for the lot (all or nothing). Kept across his deaths: LEAK_MEMO (the far
 // wall open, the case down and empty, the bodies gone, the bulldozer outside).
@@ -27,8 +29,8 @@ import { hands, meatheadSays, box, saidOver } from '../section';
 import { outOf } from '../blvd/state';
 import { SECTIONS, LOT_WALL_BREAK, LOT_DUMPSTER } from '../geometry';
 import { words, print } from '../blvd/paint';
-import { X, GY, x1, PILE_X, DOZER_X, CASE_X, FAR_WALL, LEAK_MEMO, CAST_MEMO } from './layout';
-import { whOf, type Warehouse } from './state';
+import { X, GY, BACK_Y, PILE_X, DOZER_X, DOZER_START, CASE_X, FAR_WALL, ARENA_CAM, LEAK_MEMO, CAST_MEMO } from './layout';
+import { whOf } from './state';
 import { drawBody } from './cast';
 import { CLEAN_UP, CROWD_PAGES, SHRUG, AD_LEAK, EXEC_PHONE, EXEC_SEES, EXEC_RANT } from './lines';
 import { crowdSay, adSay, execSay } from './talk';
@@ -36,13 +38,16 @@ import { crowdSay, adSay, execSay } from './talk';
 type Ctx = CanvasRenderingContext2D;
 
 const LOT0 = SECTIONS.lot.x0;
-/** The bulldozer: its blade's front off its middle; the heap's half width. */
-const BLADE = 124, HALF = 130;
+/** The bulldozer: its blade's front off its middle; the heap's half width (its rows), its rows. */
+const BLADE = 124, HALF = 90, ROWS = [8, 6, 4, 3, 1], SPACE = 22;
 /** Where the bodies come out of the hole, and where they come down (into the dumpster, under its rim). */
 const OUT = { x: LOT_WALL_BREAK.hole.x1 - 30, y: GY - 80 };
 const RIM = GY - 132;
-/** The exec: his walk (on whatever's under him), his sprint after it; where he stands to rant outside. */
-const EX_WALK = 2.2, EX_RUN = 10, EX_RANT_X = LOT0 + 210;
+/** The exec: where he stands at the back of the stage (by the script, past it: never in the bulldozer's way), how big
+ *  he's drawn back there; where he stands to rant outside. */
+const EX_BACK_X = CASE_X + 85, EX_BACK = 0.82, EX_RANT_X = LOT0 + 210;
+/** The push in on the case: where on it, how far in. */
+const CASE_FOCUS = { y: BACK_Y - 80 }, ZOOM_IN = 1.25;
 
 export const leaked = (state: GameState) => !!state.stageMemo[LEAK_MEMO];
 /** Going (from the line to the hop down). */
@@ -55,6 +60,8 @@ export const dozerX = (state: GameState) => {
 };
 /** The case: knocked over (empty, smashed) or still up. */
 export const caseDown = (state: GameState) => leaked(state) || whOf(state).ending.caseDown;
+/** How far over the case has gone (0 up .. 1 on its side). */
+export const caseTip = (state: GameState) => (leaked(state) ? 1 : whOf(state).ending.caseDown ? Math.min(1, whOf(state).ending.caseT / 16) : 0);
 /** Through the far wall (the hole's there). */
 export const wallOpen = (state: GameState) => leaked(state) || whOf(state).ending.wallHit;
 
@@ -71,20 +78,20 @@ const seat = (state: GameState, dx: number) => {
   const p = state.player;
   p.pos.x = dx - 34 - p.width / 2; p.pos.y = GY - 96 - p.height; p.vel.x = 0; p.vel.y = 0; p.facing = 1;
 };
-/** The cut: every body heaped up in one big pile; him up in the bulldozer. */
+/** The cut: every body heaped up in one big pile; him up in the bulldozer; the exec at the back on his phone. */
 const heapUp = (state: GameState) => {
   const o = whOf(state), E = o.ending, F = o.fight, p = state.player;
-  const who = F.bodies.length ? F.bodies.map(b => b.i) : Array.from({ length: 30 }, (_, i) => i);
-  const rows = [9, 8, 6, 4, 2, 1];
+  const who = F.bodies.length ? F.bodies.map(b => b.i) : Array.from({ length: 22 }, (_, i) => i);
   E.heap = []; let n = 0;
-  rows.forEach((count, r) => {
-    for (let k = 0; k < count && n < who.length; k++, n++) E.heap.push({ i: who[n], ox: (k - (count - 1) / 2) * 27 + ((n * 7) % 9) - 4, oy: r * 14, dir: (n % 2 ? 1 : -1) as 1 | -1 });
+  ROWS.forEach((count, r) => {
+    for (let k = 0; k < count && n < who.length; k++, n++) E.heap.push({ i: who[n], ox: (k - (count - 1) / 2) * SPACE + ((n * 7) % 9) - 4, oy: r * 14, dir: (n % 2 ? 1 : -1) as 1 | -1 });
   });
-  E.heapX = X(PILE_X); E.dx = X(DOZER_X); E.v = 0;
+  E.heapX = X(PILE_X); E.dx = X(DOZER_START); E.v = 0;
   F.bodies = []; o.castSaid.clear();
   p.hidden = false; p.carried = true; p.cartSeat = true; p.isCharging = false; p.isSliding = false; p.isDucking = false;
   seat(state, E.dx);
-  state.camera.x = E.dx - 260; state.camera.y = GY - 550;
+  Object.assign(E.ex, { mode: 'stand', x: X(EX_BACK_X), y: BACK_Y + 18, face: -1, t: 0, said: null, done: false });
+  state.camera.x = X(ARENA_CAM); state.camera.y = GY - 550;
   state.cameraOverride = { x: state.camera.x, y: state.camera.y };
 };
 
@@ -93,9 +100,9 @@ const finish = (state: GameState, skipped: boolean) => {
   const o = whOf(state), E = o.ending, p = state.player;
   if (skipped) silenceAll();
   state.stageMemo[LEAK_MEMO] = '1'; state.stageMemo[CAST_MEMO] = '1';
-  E.phase = 'done'; E.heap = []; E.flying = []; E.caseDown = true; E.wallHit = true; E.white = 0; E.fade = 0;
+  E.phase = 'done'; E.heap = []; E.flying = []; E.caseDown = true; E.caseT = 99; E.zoomK = 0; E.wallHit = true; E.white = 0; E.fade = 0;
   E.ex.mode = 'off'; E.ex.said = null;
-  o.fight.bodies = []; o.castSaid.clear(); o.crowd = null;
+  o.fight.bodies = []; o.castSaid.clear(); o.crowd = null; o.ad = null;
   if (o.farWall) o.farWall.x = -1e7;
   p.hidden = false; p.carried = false; p.cartSeat = false; p.inCutscene = false; p.spriteRot = 0; p.facing = 1;
   p.pos.x = LOT0 + 312 - p.width / 2; p.pos.y = GY - 150 - p.height; p.vel.x = 2.5; p.vel.y = -3; p.isGrounded = false;
@@ -103,33 +110,6 @@ const finish = (state: GameState, skipped: boolean) => {
   state.camera.x = LOT0 + 312 - CANVAS_WIDTH / 2; state.camera.y = GY - 550; state.cameraRestY = GY - 550;
   // (down off it: he cares about neither; it stands in for the lot's own arrival line)
   if (!skipped) { outOf(state).said['lot-arrive'] = true; meatheadSays(state, pickLine(SHRUG), true); }
-};
-
-type End = Warehouse['ending'];
-/** How high what's under x stands (up from the floor), and how fast it's going: the heap, the bulldozer (over its
- *  blade, its hood, its cab's roof), the floor. */
-const under = (E: End, x: number) => {
-  let h = 0, v = 0;
-  if (E.heap.length) {
-    const rows = [9, 8, 6, 4, 2, 1], rx = x - E.heapX;
-    for (let r = rows.length - 1; r >= 0; r--) if (Math.abs(rx) < (rows[r] / 2) * 27) { h = r * 14 + 24; break; }
-    if (h && (E.wallHit || E.dx + BLADE >= E.heapX - HALF - 1)) v = E.v;
-    const dx = x - E.dx, dh = dx >= -76 && dx <= 16 ? 178 : dx >= -102 && dx < 112 ? 98 : dx >= 112 && dx <= 146 ? 112 : 0;
-    if (dh && dh >= h) { h = dh; v = E.v; }
-  }
-  return { h, v };
-};
-/** The exec, a frame: over everything on his phone, off the back, stood there; then after the pages. */
-const stepExec = (E: End) => {
-  const ex = E.ex;
-  if (ex.mode !== 'walk' && ex.mode !== 'stand' && ex.mode !== 'chase') return;
-  ex.t++;
-  const u0 = under(E, ex.x);
-  if (ex.mode === 'walk') { ex.x += u0.v - EX_WALK; if (ex.x < E.dx - 120 && !u0.h) ex.mode = 'stand'; }
-  else if (ex.mode === 'chase') { ex.x = Math.min(ex.x + EX_RUN, E.dx - 130); ex.face = 1; }
-  // (stepping up onto things; down off them)
-  const top = GY - under(E, ex.x).h;
-  ex.y = top < ex.y ? ex.y + (top - ex.y) * 0.5 : Math.min(top, ex.y + 7);
 };
 
 export const updateEnding = (ctx: FrameContext): Controls | null => {
@@ -151,18 +131,21 @@ export const updateEnding = (ctx: FrameContext): Controls | null => {
       if (E.heap.length) seat(state, E.dx);
       break;
     case 'drive': {
-      // The exec, in from the far side on his phone (walking over all of it, never a glance)
-      if (E.t === 1 && !E.wallHit && E.ex.mode === 'off') {
-        Object.assign(E.ex, { mode: 'walk', x: E.dx + 590, y: GY, face: -1, t: 0, said: null, done: false });
-        execSay(state, EXEC_PHONE);
-      }
+      // The exec on his phone at the back (after his line, in turn): never a look at any of it
+      if (E.t === 1 && !E.wallHit) execSay(state, EXEC_PHONE);
+      if (E.ex.mode !== 'off') E.ex.t++;
+      const front = () => E.heapX + HALF;
       // The engine catching; then up the stage, the pile ahead of the blade
       if (E.t < 50) {
         if (E.t % 10 === 1) playSound('engine', 0.5, -10);
         if (E.t === 20) playSound('rumble', 0.7, -8);
         if (E.t % 4 === 0) state.particles.push({ pos: { x: E.dx + 26, y: GY - 156 }, vel: { x: -0.4, y: -1.5 }, life: 40, color: 'rgba(41, 37, 36, 0.7)', size: 5 + Math.random() * 4 });
       } else if (!E.wallHit) {
-        E.v = Math.min(7.5, E.v + 0.12);
+        // (slowing as it gets to the case, the camera in on it; a beat on it going over; then on, flat out)
+        const near = !E.caseDown && front() > X(CASE_X) - 120;
+        if (E.caseDown) E.caseT++;
+        const crawl = near || (E.caseDown && E.caseT < 70);
+        E.v = crawl ? Math.min(E.v + 0.12, near ? 1.8 : 1.1) : Math.min(7.5, E.v + 0.14);
         E.dx += E.v;
         if (f % 8 === 0) playSound('engine', 0.6, -8 + E.v);
         if (f % 3 === 0) state.particles.push({ pos: { x: E.dx + 26, y: GY - 156 }, vel: { x: -1 - E.v * 0.3, y: -1.5 }, life: 30, color: 'rgba(41, 37, 36, 0.6)', size: 4 + Math.random() * 4 });
@@ -172,20 +155,20 @@ export const updateEnding = (ctx: FrameContext): Controls | null => {
           if (f % 2 === 0) state.particles.push({ pos: { x: E.heapX + HALF * (Math.random() - 0.2), y: GY - 6 }, vel: { x: E.v * 0.6, y: -1 - Math.random() * 2 }, life: 22, color: Math.random() < 0.5 ? 'rgba(168, 162, 158, 0.7)' : '#991B1B', size: 3 + Math.random() * 4 });
           if (f % 14 === 0) playSound('grind', 0.4, -6);
         }
-        // The case: knocked over; the pages up and out to the crowd
-        if (!E.caseDown && E.heapX + HALF > X(CASE_X) - 20) {
-          E.caseDown = true;
+        // The case: the pile into its plinth; over it goes, the glass, the pages up and out to the crowd
+        if (!E.caseDown && front() > X(CASE_X) - 30) {
+          E.caseDown = true; E.caseT = 0;
           playSound('glass', 1, -2); playSound('crash', 0.8); playSound('alarm', 0.5, 4); shakeScreen(state, 8, 4);
-          fx.spawnGlassShatter({ x: X(CASE_X), y: GY - 120 });
-          for (let k = 0; k < 70; k++) state.particles.push({ pos: { x: X(CASE_X) + (Math.random() - 0.5) * 30, y: GY - 120 }, vel: { x: (Math.random() - 0.4) * 9, y: -3 - Math.random() * 9 }, life: 150 + Math.random() * 60, color: k % 4 ? '#F8FAFC' : '#E7E5E4', size: 4 + Math.random() * 2, grav: 0.06 });
-          // (the exec sees: after it; the AD on the bullhorn; the public grabbing pages. In turn)
-          E.ex.mode = 'chase'; E.ex.face = 1; E.ex.t = 0;
+          fx.spawnGlassShatter({ x: X(CASE_X), y: BACK_Y - 110 });
+          for (let k = 0; k < 80; k++) state.particles.push({ pos: { x: X(CASE_X) + (Math.random() - 0.5) * 40, y: BACK_Y - 110 }, vel: { x: (Math.random() - 0.45) * 8, y: -2 - Math.random() * 9 }, life: 160 + Math.random() * 60, color: k % 4 ? '#F8FAFC' : '#E7E5E4', size: 4 + Math.random() * 2, grav: 0.05 });
+          // (the exec sees; the AD on the bullhorn; the public grabbing pages. In turn)
+          E.ex.mode = 'lose'; E.ex.t = 0;
           execSay(state, EXEC_SEES);
           adSay(state, AD_LEAK);
-          crowdSay(state, CROWD_PAGES, X(CASE_X) - 120, 7);
+          crowdSay(state, CROWD_PAGES, X(CASE_X) - 160, 7);
         }
         // The far wall: straight through it
-        if (E.heapX + HALF > X(FAR_WALL)) {
+        if (front() > X(FAR_WALL)) {
           E.wallHit = true; E.t = 0;
           playSound('crash', 1, -8); playSound('boom', 0.9, -6); shakeScreen(state, 26, 9);
           for (let k = 0; k < 40; k++) state.particles.push({ pos: { x: X(FAR_WALL) + Math.random() * 40, y: GY - Math.random() * 260 }, vel: { x: 3 + Math.random() * 8, y: -2 - Math.random() * 6 }, life: 40, color: ['#78716C', '#A8A29E', '#57534E', '#7C2D12'][k % 4], size: 3 + Math.random() * 5, grav: 0.35 });
@@ -196,13 +179,16 @@ export const updateEnding = (ctx: FrameContext): Controls | null => {
         E.white = Math.min(1, E.t / 18);
         if (E.t >= 20) { E.phase = 'lot'; E.t = 0; }
       }
+      // (the push in on the case: in as the pile gets to it, held while it goes over, back out)
+      const zoomTo = !E.wallHit && ((!E.caseDown && front() > X(CASE_X) - 140) || (E.caseDown && E.caseT < 95)) ? 1 : 0;
+      E.zoomK += (zoomTo - E.zoomK) * 0.07;
+      if (E.zoomK < 0.005) E.zoomK = 0;
       seat(state, E.dx);
-      stepExec(E);
-      const cx = Math.min(E.dx - 240, x1 - CANVAS_WIDTH + 120);
-      state.cameraOverride = { x: cx, y: GY - 550 };
+      state.cameraOverride = { x: X(ARENA_CAM), y: GY - 550 };
       break;
     }
     case 'lot': {
+      E.zoomK = 0;
       // Outside: the dust out of the hole, the bodies out of it and into the dumpster, the pages down the lot
       if (E.t === 1) {
         p.hidden = true; p.cartSeat = false;
@@ -229,12 +215,20 @@ export const updateEnding = (ctx: FrameContext): Controls | null => {
       if (ex.mode === 'out') { ex.x += 5; if (ex.x >= EX_RANT_X) { ex.x = EX_RANT_X; ex.mode = 'rant'; ex.t = 0; execSay(state, EXEC_RANT, () => { ex.done = true; }); } }
       else if (ex.mode === 'rant') { ex.t++; if (ex.done) { ex.mode = 'run'; ex.t = 0; } }
       else if (ex.mode === 'run') { ex.t++; ex.x += 6; }
-      const gone = ex.mode === 'off' || (ex.mode === 'run' && ex.x > state.camera.x + CANVAS_WIDTH + 60);
+      const gone = ex.mode === 'off' || ex.mode === 'stand' || ex.mode === 'lose' || (ex.mode === 'run' && ex.x > state.camera.x + CANVAS_WIDTH + 60);
       if ((E.t >= 160 && gone) || E.t > 1500) finish(state, false);
       break;
     }
   }
   return hands();
+};
+
+/** The camera pushed in on the case as the pile gets to it (the section's zoom). */
+export const endingZoom = (state: GameState) => {
+  const k0 = whOf(state).ending.zoomK;
+  if (k0 <= 0) return null;
+  const k = k0 * k0 * (3 - 2 * k0), x = X(CASE_X), y = CASE_FOCUS.y;
+  return { scale: 1 + ZOOM_IN * k, x, y, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - x), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - y) };
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -263,10 +257,10 @@ export const drawDozer = (c: Ctx, x: number, f: number, running: boolean) => {
   c.fillStyle = '#A16207'; c.beginPath(); c.moveTo(x + 114, GY - 110); c.quadraticCurveTo(x + 135, GY - 60, x + 120, GY - 4); c.lineTo(x + 130, GY - 4); c.quadraticCurveTo(x + 146, GY - 60, x + 124, GY - 110); c.closePath(); c.fill();
   box(c, x + 120, GY - 8, 12, 4, '#D6D3D1');
 };
-/** The studio exec (feet's middle at x, y): charcoal suit, red tie, the slicked silver hair, a tan. On the phone (the
- *  walk, stood), arms up (losing it: the chase, the rant), or running. */
+/** The studio exec (feet's middle at x, y): charcoal suit, red tie, the slicked silver hair, a tan. On the phone (stood
+ *  there), arms up (losing it: the case going, the rant), or running. */
 const drawExec = (c: Ctx, x: number, y: number, face: 1 | -1, pose: 'phone' | 'arms' | 'run', f: number) => {
-  const step = pose === 'phone' ? (f % 20 < 10 ? 2 : -2) : f % 8 < 4 ? 5 : -5;
+  const step = pose === 'phone' ? 0 : f % 8 < 4 ? 5 : -5;
   x += pose === 'arms' ? (f % 4 < 2 ? 1 : -1) : 0;
   // (the shoes, the legs)
   box(c, x - 11 + step, y - 6, 10, 6, '#000'); box(c, x + 2 - step, y - 6, 10, 6, '#000');
@@ -291,13 +285,14 @@ const drawExec = (c: Ctx, x: number, y: number, face: 1 | -1, pose: 'phone' | 'a
     box(c, x - face * 18 - 3, y - 66 - step, 6, 22, '#3F3F46'); box(c, x + face * 14 - 3, y - 92 + step, 6, 24, '#3F3F46');
   }
 };
-/** The exec and what he's saying, wherever he is. */
-const execNow = (c: Ctx, state: GameState, part: 'him' | 'words' | 'both' = 'both') => {
+const execPose = (mode: string) => (mode === 'stand' ? 'phone' : mode === 'lose' || mode === 'rant' ? 'arms' : 'run');
+/** The exec at the back of the stage (drawn smaller: he's back there, by the script), and his words over him. */
+const execBack = (c: Ctx, state: GameState) => {
   const ex = whOf(state).ending.ex;
-  if (ex.mode === 'off') return;
-  const pose = ex.mode === 'walk' || ex.mode === 'stand' ? 'phone' : ex.mode === 'rant' || (ex.mode === 'chase' && ex.t < 24) ? 'arms' : 'run';
-  if (part !== 'words') drawExec(c, ex.x, ex.y, ex.face, pose, state.frame);
-  if (part !== 'him' && ex.said) saidOver(c, ex.said.text, ex.x, ex.y - 118, '#FDE68A', 260);
+  if (ex.mode !== 'stand' && ex.mode !== 'lose') return;
+  c.save(); c.translate(ex.x, ex.y); c.scale(EX_BACK, EX_BACK);
+  drawExec(c, 0, 0, ex.face, execPose(ex.mode), state.frame);
+  c.restore();
 };
 
 /** The cab's front posts and roof edge, over him in the seat. */
@@ -307,24 +302,25 @@ const dozerFront = (c: Ctx, x: number, f: number) => {
   box(c, x - 80, GY - 182 + jig, 100, 8, '#A16207');
 };
 
-/** The heap (on the stage, ahead of the blade), the bulldozer driving. */
+/** The exec at the back, the heap (on the stage, ahead of the blade), the bulldozer driving. */
 export const drawEndingBack = (c: Ctx, state: GameState) => {
   const E = whOf(state).ending;
   if (E.phase !== 'cut' && E.phase !== 'drive') return;
+  execBack(c, state);
   if (!E.heap.length) return;
   for (const h of E.heap) drawBody(c, h.i, E.heapX + h.ox, GY - h.oy, h.dir, 1, 0);
   drawDozer(c, E.dx, state.frame, E.phase === 'drive');
 };
-/** Over him: the cab's front. */
+/** Over him: the cab's front; the exec's words. */
 export const drawEndingFront = (c: Ctx, state: GameState) => {
-  const E = whOf(state).ending;
+  const E = whOf(state).ending, ex = E.ex;
   if ((E.phase === 'cut' && E.heap.length) || E.phase === 'drive') dozerFront(c, E.dx, state.frame);
-  if (E.phase === 'cut' || E.phase === 'drive') execNow(c, state);
+  if ((E.phase === 'cut' || E.phase === 'drive') && ex.said && (ex.mode === 'stand' || ex.mode === 'lose')) saidOver(c, ex.said.text, ex.x, ex.y - 104, '#FDE68A', 260);
 };
 /** Outside (the lot's beat: he's still in the warehouse's hands, so it's drawn from its HUD, in the world): the bodies
  *  flying into the dumpster and the dust out of the hole. */
 const drawLotBeat = (c: Ctx, state: GameState) => {
-  const E = whOf(state).ending, f = state.frame;
+  const E = whOf(state).ending, f = state.frame, ex = E.ex;
   c.save(); c.translate(-Math.round(state.camera.x), -Math.round(state.camera.y));
   for (const b of E.flying) {
     if (b.t < 0 || b.inBin) continue;
@@ -335,7 +331,8 @@ const drawLotBeat = (c: Ctx, state: GameState) => {
     c.restore();
   }
   // (the exec: out of the dust, under the bodies flying past; his words over the dust)
-  execNow(c, state, 'him');
+  const outside = ex.mode === 'out' || ex.mode === 'rant' || ex.mode === 'run';
+  if (outside) drawExec(c, ex.x, ex.y, ex.face, execPose(ex.mode), f);
   // (the dust: thick at first, thinning off the bulldozer as it settles)
   const k = E.t < 60 ? 0.92 : Math.max(0, 0.92 - (E.t - 60) / 70);
   if (k > 0) {
@@ -345,7 +342,7 @@ const drawLotBeat = (c: Ctx, state: GameState) => {
       c.beginPath(); c.ellipse(dx, dy, 80 + (E.t % 40), 60, 0, 0, Math.PI * 2); c.fill();
     }
   }
-  execNow(c, state, 'words');
+  if (outside && ex.said) saidOver(c, ex.said.text, ex.x, ex.y - 118, '#FDE68A', 260);
   c.restore();
 };
 /** The cuts (the black, the white), and SKIP >>. */

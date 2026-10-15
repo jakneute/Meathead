@@ -157,7 +157,8 @@ export const isCritter = (e: Enemy) => !!e.kind && (m2Grab(e) ?? (CRITTERS.has(e
 
 // (held by hand isn't held off: the break room's dummies are all puppets, and a cutscene's puppets are out of his reach
 // anyway, him being out of his own hands then)
-export const grabbable = (e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway && !!e.kind
+// (a mid-boss whose kind says it's a body, explicitly, can be had: Hollywood Land's Ensemble Cast, one actor at a time)
+export const grabbable = (e: Enemy) => e.type !== 'boss' && (!isMidBoss(e) || m2Kind(e.kind)?.grab === 'body') && e.health > 0 && !e.isBlownAway && !!e.kind
   && (m2Grab(e) ? m2Grab(e) === 'body' : (isHumanoidKind(e.kind) && !NOT_PEOPLE.has(e.kind)) || MID_ANIMALS.has(e.kind));
 
 /** Swimming, or hanging off a vine: only what goes in the one hand (nothing to stand on to beat or shake anybody). */
