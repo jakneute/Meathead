@@ -288,7 +288,7 @@ const App: React.FC = () => {
   useCursorSound(confirmPick, confirmLeave, `${confirmLeave}|${leaveTo}`);
   useCursorSound(wheelAt, wheelAt !== null);
   useOpenCloseSound(status === GameStatus.PAUSED, status === GameStatus.PAUSED || status === GameStatus.PLAYING);
-  useOpenCloseSound(confirmLeave, status === GameStatus.PAUSED || status === GameStatus.START);
+  useOpenCloseSound(confirmLeave, status === GameStatus.PAUSED || status === GameStatus.START || status === GameStatus.STAGE_SELECT);
   useOpenCloseSound(pauseDossier, status === GameStatus.PAUSED);
   useOpenCloseSound(optionsOpen);
   // (it only belongs to the screen it was opened on)
@@ -511,13 +511,14 @@ const App: React.FC = () => {
   const askQuit = () => ask(isDesktop ? 'quit' : 'title');
   const answerBossSelect = (answer: LeaveAnswer) => {
     // (the desktop app's QUIT: which way out picked, now are you sure)
-    if (answer === 'title' || answer === 'desktop') { playMenuOk(); ask(answer); return; }
+    // (the boss select's menu: the same, its own are-you-sures)
+    if (answer === 'title' || answer === 'desktop') { playMenuOk(); ask(leaveTo === 'map' ? (answer === 'title' ? 'mapTitle' : 'mapDesktop') : answer); return; }
     setConfirmLeave(false);
     if (answer !== 'yes') return;
     if (leaveTo === 'boss') handleBossSelect();
-    else if (leaveTo === 'title') handleQuitToMenu();
+    else if (leaveTo === 'title' || leaveTo === 'mapTitle') handleQuitToMenu();
     // (out to the desktop: the file keeps what it had at the last safe point, and the time played)
-    else if (leaveTo === 'desktop') { pauseSpeech(false); silenceAll(); closeFile(); quitToDesktop(); }
+    else if (leaveTo === 'desktop' || leaveTo === 'mapDesktop') { pauseSpeech(false); silenceAll(); closeFile(); quitToDesktop(); }
     // (the title's QUIT GAME: there's nothing unsaved on the title)
     else if (leaveTo === 'game') { playMenuOk(); closeFile(); quitToDesktop(); }
   };
@@ -661,7 +662,7 @@ const App: React.FC = () => {
   /** Who's on the damage report (in the garage): the first four, from the start of the second set; all eight once they're all dead. */
   const reportBosses = progressionRank >= 1 ? [...STAGES_SET_0, ...(whiteHouseOpen ? STAGES_SET_1 : [])].map(s => s.id) : [];
   /** The tab switch on the stage select: the map or the dossier. */
-  const switchTab = (dir = 1) => { void dir; toggleDossier(); };
+  const switchTab = (dir = 1) => { void dir; if (!confirmLeave) toggleDossier(); };
 
   /** Old targets (the previous set's files) can be browsed once you're on the second set. */
   const toggleArchive = () => {
@@ -749,6 +750,8 @@ const App: React.FC = () => {
     }
     if (status === GameStatus.STAGE_SELECT) {
       if (dx === 0 && dy === 0) return false;
+      // (its menu up: left and right along the answers)
+      if (confirmLeave) { if (dx) { const n = leaveAnswers(leaveTo).length; setConfirmPick(i => Math.max(0, Math.min(n - 1, i + Math.sign(dx)))); } return true; }
       if (lockedIndex !== null || engaging) return false; // locked in: back out first
       setSelectedIndex(i => navigateStageGrid(i, dx, dy, whiteHouseOpen));
       return true;
@@ -770,7 +773,7 @@ const App: React.FC = () => {
     // (nothing while the call's still fading off the stage select)
     if (callOutro || intro !== 'off') return;
     if (status === GameStatus.START) { if (confirmLeave) answerBossSelect(leaveAnswers(leaveTo)[confirmPick]?.answer ?? 'no'); else pickTitle(selectedIndex); return; }
-    if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
+    if (status === GameStatus.STAGE_SELECT) { if (confirmLeave) answerBossSelect(leaveAnswers(leaveTo)[confirmPick]?.answer ?? 'no'); else if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
     else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(leaveAnswers(leaveTo)[confirmPick]?.answer ?? 'no'); else if (!pauseDossier) activatePauseItem(selectedIndex); }
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
     // (the mid-game call runs its own confirm)
@@ -866,17 +869,26 @@ const App: React.FC = () => {
   };
 
   // Input listeners are attached once and always call the latest render's handlers.
-  /** B / Escape on stage select: back out of a lock, or back to the title when nothing is locked. */
-  /** Back, on the stage select: backs out of a locked-in target; otherwise nothing (there's no going back to the title from here). */
+  /** The boss select's menu can come up (not on the way in or out of the map: the gym's pitch, the call, the swoop). */
+  const mapMenuOk = () => !engaging && !deployingTo && !callOutro && intro === 'off';
+  /** Back on the boss select (B, Esc, Backspace, a right click): its menu up, that says no; a target locked in, that's
+   * backed out of; nothing to back out of, its menu (BACK TO TITLE, QUIT TO DESKTOP in the desktop app, NO). */
   const stageSelectBack = () => {
     if (engaging) return;
-    if (lockedIndex !== null) unlockStage();
+    if (confirmLeave) setConfirmLeave(false);
+    else if (lockedIndex !== null) unlockStage();
+    else if (mapMenuOk()) ask('map');
+  };
+  /** Start on the boss select: its menu, up or away (over a locked-in target too: the lock stays). */
+  const stageSelectStart = () => {
+    if (confirmLeave) setConfirmLeave(false);
+    else if (mapMenuOk()) ask('map');
   };
 
   // (in the garage, it's the garage's own input: the stage select's is off)
   // (the options screen too: it reads its own input, like the garage)
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, titleBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, titleBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen || !!fileSelect, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene };
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, stageSelectStart, titleBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, stageSelectStart, titleBack, introOn: intro !== 'off', garage: inGarage || !!pickFor || optionsOpen || !!fileSelect, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -1028,6 +1040,8 @@ const App: React.FC = () => {
           else if (status === GameStatus.START) inputRef.current.titleBack();
         }
         if (justPressed('start') && inGame) togglePause();
+        // (the boss select: Start brings its menu up, or puts it away)
+        if (justPressed('start') && status === GameStatus.STAGE_SELECT) inputRef.current.stageSelectStart();
         Object.assign(prev, pressed);
       }
       frameId = requestAnimationFrame(poll);

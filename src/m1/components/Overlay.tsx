@@ -7,7 +7,6 @@ import {
   getStages, getWeaponDescription, BOSS_SET_TITLES, BOSS_LOCATIONS, getWeaponInfo,
 } from '../content/roster';
 import USAMap from './USAMap';
-import { PUBLIC_BUILD } from '../build';
 import { isDesktop } from '../game/platform/desktop';
 import BossPortrait from './BossPortrait';
 import CorpsePhoto from './CorpsePhoto';
@@ -219,12 +218,12 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
 /** One of the title's options: CONTINUE (the file played last), NEW GAME (the file select), OPTIONS, QUIT GAME. */
 export type TitleOption = { label: string; kind: 'continue' | 'new' | 'options' | 'quit'; intro: boolean };
 /**
- * The title's menu: CONTINUE first, if there's a file to continue; then NEW GAME (the public build: just the one, and
- * it's always got the intro; otherwise with or without it); then the options; and in the desktop app, QUIT GAME.
+ * The title's menu: CONTINUE first, if there's a file to continue; then START GAME (always with the intro, every build);
+ * then the options; and in the desktop app, QUIT GAME.
  */
 export const titleOptions = (hasFile: boolean): TitleOption[] => [
   ...(hasFile ? [{ label: 'CONTINUE', kind: 'continue' as const, intro: false }] : []),
-  ...(PUBLIC_BUILD ? [{ label: 'START GAME', kind: 'new' as const, intro: true }] : [{ label: 'START GAME', kind: 'new' as const, intro: false }, { label: 'START GAME + INTRO', kind: 'new' as const, intro: true }]),
+  { label: 'START GAME', kind: 'new', intro: true },
   { label: 'OPTIONS', kind: 'options', intro: false },
   ...(isDesktop ? [{ label: 'QUIT GAME', kind: 'quit' as const, intro: false }] : []),
 ];
@@ -233,9 +232,13 @@ export const titleOptions = (hasFile: boolean): TitleOption[] => [
  * What the "are you sure" is for. In the pause menu: 'boss' (BOSS SELECT: this stage's progress gone), 'title' (QUIT, out
  * to the title: everything since the last save gone), 'desktop' (the desktop app's QUIT TO DESKTOP: the same), and
  * 'quit' (the desktop app's QUIT: not a yes or no but where to, TITLE or DESKTOP, each of them asking in turn). On the
- * title: 'game' (the desktop app's QUIT GAME). One "are you sure" on every way out.
+ * title: 'game' (the desktop app's QUIT GAME). On the boss select: 'map' (its menu: not a yes or no but where to, BACK
+ * TO TITLE or, in the desktop app, QUIT TO DESKTOP), then 'mapTitle' or 'mapDesktop' (are you sure: nothing's lost on a
+ * file, saved on reaching the map; with NO SAVE, the lot). One "are you sure" on every way out.
  */
-export type LeaveTo = 'boss' | 'quit' | 'title' | 'desktop' | 'game';
+export type LeaveTo = 'boss' | 'quit' | 'title' | 'desktop' | 'game' | 'map' | 'mapTitle' | 'mapDesktop';
+/** The boss select's own: its menu, and the are-you-sures after it. */
+export const MAP_LEAVES: LeaveTo[] = ['map', 'mapTitle', 'mapDesktop'];
 /** An answer: yes, no, or (the desktop app's QUIT) which way out, asked about next. */
 export type LeaveAnswer = 'yes' | 'no' | 'title' | 'desktop';
 const RED = { face: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', edge: '#450A0A' };
@@ -243,18 +246,25 @@ const RED = { face: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', edge: '#450A0A'
 export const leaveAnswers = (leaveTo: LeaveTo | undefined): { label: string; answer: LeaveAnswer; face: string; edge: string }[] => [
   ...(leaveTo === 'quit'
     ? [{ label: 'QUIT TO TITLE', answer: 'title' as const, ...RED }, { label: 'QUIT TO DESKTOP', answer: 'desktop' as const, ...RED }]
+    : leaveTo === 'map'
+    ? [{ label: 'BACK TO TITLE', answer: 'title' as const, ...RED }, ...(isDesktop ? [{ label: 'QUIT TO DESKTOP', answer: 'desktop' as const, ...RED }] : [])]
     : [{ label: 'YES', answer: 'yes' as const, ...RED }]),
   { label: 'NO', answer: 'no', face: 'linear-gradient(180deg, #52525B, #3F3F46)', edge: '#18181B' },
 ];
 
 /** The run's loss, quitting: since the last save on a file; with no file, the lot. */
 const runLoss = () => (activeSlot() ? "YOU'LL LOSE WHAT YOU'VE DONE SINCE THE LAST SAVE" : "NO SAVE FILE: YOU'LL LOSE EVERY BOSS, EVERY WEAPON");
+/** Leaving the boss select: the file was saved on reaching it, nothing's lost; with no file, the lot. */
+const mapLoss = () => (activeSlot() ? 'YOUR PROGRESS IS SAVED' : "NO SAVE FILE: YOU'LL LOSE EVERY BOSS, EVERY WEAPON");
 const LEAVE_TEXT: Record<LeaveTo, { ask?: string; head: string; loss?: () => string }> = {
   boss: { head: 'ARE YOU SURE?', loss: () => "YOU'LL LOSE YOUR PROGRESS ON THIS STAGE" },
   quit: { head: 'QUIT?' },
   title: { ask: 'QUIT TO TITLE?', head: 'ARE YOU SURE?', loss: runLoss },
   desktop: { ask: 'QUIT TO DESKTOP?', head: 'ARE YOU SURE?', loss: runLoss },
   game: { ask: 'QUIT GAME?', head: 'ARE YOU SURE?' },
+  map: { head: 'LEAVE?' },
+  mapTitle: { ask: 'BACK TO TITLE?', head: 'ARE YOU SURE?', loss: mapLoss },
+  mapDesktop: { ask: 'QUIT TO DESKTOP?', head: 'ARE YOU SURE?', loss: mapLoss },
 };
 
 /** The "are you sure" box, over the pause menu (or, `full`, over the whole screen: the title's). */
@@ -330,7 +340,7 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onTitlePick, title
 export const setTitleClass = (title: string) =>
   `${title.length > 20 ? 'text-[17px]' : 'text-xl md:text-2xl'} whitespace-nowrap text-red-600 font-black tracking-widest border-b-4 border-red-900 pb-1 uppercase italic drop-shadow-[0_2px_2px_rgba(153,0,0,0.8)] [text-shadow:2px_2px_0_rgb(0,0,0),_0_4px_0_rgba(153,0,0,0.8),_0_8px_0_rgba(153,0,0,0.4),_2px_12px_2px_rgba(255,0,0,0.5)]`;
 
-const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage, showArchive, onToggleArchive, killRecords, shatKills, whiteHouseOpen }) => {
+const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage, showArchive, onToggleArchive, killRecords, shatKills, whiteHouseOpen, confirmLeave, leaveTo, confirmPick, onAnswerLeave }) => {
   // The archive shows the previous set: every one of them already dead
   // (the old targets' files aren't on this screen any more)
   const archive = false;
@@ -469,6 +479,8 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
           )}
         </div>
       </div>
+      {/* (its menu, Start or Back with nothing to back out of: back to the title, or out to the desktop; are you sure?) */}
+      {confirmLeave && leaveTo && MAP_LEAVES.includes(leaveTo) && <LeaveConfirm leaveTo={leaveTo} confirmPick={confirmPick} onAnswerLeave={onAnswerLeave} full />}
     </div>
   );
 };
@@ -559,7 +571,10 @@ const EngageBar: React.FC<{ locked: boolean; engaging: boolean; onEngage: () => 
     return (
       <div className="h-[58px] flex flex-col items-center justify-center gap-1 border-2 border-dashed border-zinc-700 text-zinc-400">
         <span className="text-[9px] font-black tracking-widest text-yellow-400/90">{nobodyLeft ? 'NOBODY LEFT TO KILL' : 'PICK YOUR VICTIM'}</span>
-        <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="LOCK IN" size={15} className="text-[7px] font-mono tracking-wider" />
+        <span className="inline-flex items-center gap-4">
+          <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="LOCK IN" size={15} className="text-[7px] font-mono tracking-wider" />
+          <Prompt pad={['START']} kb={['ESC']} mouse="right" label="MENU" size={15} className="text-[7px] font-mono tracking-wider" />
+        </span>
       </div>
     );
   }
@@ -735,7 +750,7 @@ const PauseMenu: React.FC<OverlayProps> = ({ onOpenOptions, availableWeapons, cu
       )}
 
       {/* Leaving for the boss select, or quitting: are you sure? */}
-      {confirmLeave && leaveTo && leaveTo !== 'game' && <LeaveConfirm leaveTo={leaveTo} confirmPick={confirmPick} onAnswerLeave={onAnswerLeave} />}
+      {confirmLeave && leaveTo && leaveTo !== 'game' && !MAP_LEAVES.includes(leaveTo) && <LeaveConfirm leaveTo={leaveTo} confirmPick={confirmPick} onAnswerLeave={onAnswerLeave} />}
     </div>
   );
 };
