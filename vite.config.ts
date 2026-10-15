@@ -14,10 +14,10 @@ const externalVoices = (): Plugin => ({
   load: id => (id === '\0meathead-desktop-voices' ? `export default 'desktop:voices';` : null),
 });
 
-// `vite build --mode release` packs the whole game into one self-contained HTML file; `--mode public` the same, for
-// players (no cheats, the intro always: see src/m1/build.ts), into a folder of its own (not emptied first: the desktop app,
-// release-public/steam/ from `npm run release:steam`, lives in it too). `--mode steam`: the public build for the desktop
-// app, its voices outside the page (into .steam-build/page/, where tools/steam/package.mjs picks it up).
+// Every build is one self-contained HTML file: `--mode public` (Meathead 1 standard: no cheats, the intro always; see
+// src/m1/build.ts), `--mode release` (Meathead 1 with the cheats), `--mode m2public` / `--mode m2` (Meathead 2 without / with
+// them); tools/release/build.mjs puts them in release-m1/ and release-m2/. `--mode steam`: the standard build for the
+// desktop app, its voices outside the page (into .steam-build/page/, where tools/steam/package.mjs picks it up).
 export default defineConfig(({ mode }) => ({
   server: {
     port: 3000,
@@ -26,11 +26,12 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     ...(mode === 'steam' ? [externalVoices()] : []),
     react(), tailwindcss(),
-    ...(mode === 'release' || mode === 'public' || mode === 'steam' || mode === 'm2' ? [viteSingleFile()] : []),
-    ...(mode === 'm2' ? [m2Stub()] : []),
+    ...(mode === 'release' || mode === 'public' || mode === 'steam' || mode === 'm2' || mode === 'm2public' ? [viteSingleFile()] : []),
+    ...(mode === 'm2' || mode === 'm2public' ? [m2Stub()] : []),
   ],
   // (`--mode m2`: Meathead 2, from meathead2.html, into a folder of its own)
-  build: mode === 'release' ? { outDir: 'release', emptyOutDir: true } : mode === 'public' ? { outDir: 'release-public', emptyOutDir: false }
+  // (each into .build/<mode>/; tools/release/build.mjs moves the page into release-m1/ or release-m2/)
+  build: mode === 'release' || mode === 'public' ? { outDir: `.build/${mode}`, emptyOutDir: true }
     : mode === 'steam' ? { outDir: '.steam-build/page', emptyOutDir: true }
-    : mode === 'm2' ? { outDir: 'release-m2', emptyOutDir: true, rollupOptions: { input: 'meathead2.html' } } : {},
+    : mode === 'm2' || mode === 'm2public' ? { outDir: `.build/${mode}`, emptyOutDir: true, rollupOptions: { input: 'meathead2.html' } } : {},
 }));

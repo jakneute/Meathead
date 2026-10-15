@@ -5,6 +5,7 @@ import { Prompt } from '../m1/components/ButtonIcons';
 import { M2_WEAPON_INFO, M2WeaponArt, ammoName } from './weapons';
 import ChordPrompt from './ChordPrompt';
 import { PLAIN_PAUSE, type PauseSkin } from './hudThemes';
+import { M2_PUBLIC } from './build';
 import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, type Pants } from './cheats';
 
 /** The cheats (FOR NOW: out before it ships), mouse only: click to flip them. Not buttons (ENTER and SPACE would set
@@ -97,7 +98,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         <div className="absolute left-0 right-0 top-0 h-[6px]" style={{ background: skin.stripe }} />
         {skin.deco}
         {/* The cheats (mouse only) */}
-        {!cheatsOpen && <div role="button" onClick={() => setCheatsOpen(true)} onMouseDown={e => e.preventDefault()}
+        {!cheatsOpen && !M2_PUBLIC && <div role="button" onClick={() => setCheatsOpen(true)} onMouseDown={e => e.preventDefault()}
           className="absolute right-3 top-3 z-10 cursor-pointer select-none px-[5px] py-[2px] text-[6px] font-black tracking-widest border opacity-70 hover:opacity-100"
           style={{ color: skin.muted, borderColor: skin.muted, background: 'rgba(0,0,0,0.5)' }}>CHEATS</div>}
         {/* (over the whole of the menu while it's up: nothing behind it can be clicked) */}
@@ -195,7 +196,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
           <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />
           {locked ? <span className="text-red-400 font-black">WEAPON SWITCHING LOCKED</span>
             : <Prompt pad={['DPAD', 'OK']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />}
-          <Prompt pad={['X']} mouse="left" label="CHEATS" size={15} />
+          {!M2_PUBLIC && <Prompt pad={['X']} mouse="left" label="CHEATS" size={15} />}
         </div>
       </div>
     </div>

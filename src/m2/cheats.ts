@@ -7,6 +7,7 @@ import { M2_WEAPONS } from './weapons';
 import { ownsWeapon, subscribeProgress } from './store';
 import { setTimeOfDayOverride, timeOfDayOverride } from './timeOfDay';
 import { clearSkyCache } from './intro/art/sky';
+import { M2_PUBLIC } from './build';
 
 export interface M2Cheats { god: boolean; ammo: boolean; allWeapons: boolean; skip: boolean }
 let cheats: M2Cheats = { god: false, ammo: false, allWeapons: false, skip: false };
@@ -61,6 +62,8 @@ let cursor = { row: 0, col: 0 };
 export const cheatPanelOpen = () => panelOpen;
 export const cheatCursor = () => cursor;
 export const setCheatPanelOpen = (open: boolean) => {
+  // (the standard build has no cheats)
+  if (M2_PUBLIC) open = false;
   if (open === panelOpen) return;
   panelOpen = open;
   // (opened on the pad: the cursor on the first row, on what's set)
