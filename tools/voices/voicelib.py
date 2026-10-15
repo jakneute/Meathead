@@ -80,6 +80,8 @@ def key_of(line, spec):
     # (said a sentence at a time, with a pause between: those are re-recorded)
     if len(sentences(line['text'])) > 1: k['sp'] = 1
     # (a word respelled so it's said right: re-recorded)
+    # (AM read as the word, not A.M., where it isn't a time: re-recorded)
+    if re.search(r"(?<![0-9] )AM", line['text']): k['am'] = 1
     said = respell(line['text'], line.get('voice'))
     if said != line['text']: k['say'] = said
     blob = json.dumps(k, sort_keys=True)
@@ -99,12 +101,16 @@ def speakable(text):
     t = re.sub(r'([A-Za-z])\1{2,}', r'\1\1', t)
     words = re.split(r'(\s+)', t)
     out = []
+    prev = ''
     for w in words:
         core = re.sub(r"[^A-Za-z&/'.]", '', w)
-        if core.upper().strip("'.") in KEEP and core.isupper():
+        # (AM / PM are the letters only after a time, "3 AM"; otherwise "AM" is the word: "WHERE AM I")
+        clock = core.upper().strip("'.") in ('AM', 'PM')
+        if core.upper().strip("'.") in KEEP and core.isupper() and (not clock or re.search(r'\d$', prev)):
             out.append(w)
         else:
             out.append(w.lower())
+        if w.strip(): prev = w
     t = ''.join(out)
     # Sentences start with a capital; "i" on its own is "I"
     t = re.sub(r"(^|[.!?]\s+)([a-z])", lambda m: m.group(1) + m.group(2).upper(), t)
