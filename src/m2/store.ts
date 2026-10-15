@@ -27,11 +27,14 @@ export interface M2Ui {
   noSwitch?: boolean;
   /** Not his to play right now (a cutscene, the victory walk, a grab or a lever under way, dying): no weapon wheel, no switching. */
   locked?: boolean;
-  /** What up does right here, if anything (a lever to pull...): its prompt (a land's own; reset each frame). */
+  /** What pressing up does right here, if anything (a lever to pull...): its prompt (a land's own; reset each frame). */
   upPrompt?: string | null;
-  /** What holding down does right here, if anything (sitting on a star toilet...): its prompt, shown as HOLD (down)
-   *  and this (a land's own; reset each frame). */
-  holdPrompt?: string | null;
+  /** What HOLDING up does right here, if anything (hiding in a locker: only while it's held): shown as HOLD, the up
+   *  button (the real one, pad or keys) and this (a land's own; reset each frame). */
+  holdUpPrompt?: string | null;
+  /** What HOLDING down does right here, if anything (sitting on a star toilet...): shown as HOLD, the down button and
+   *  this (a land's own; reset each frame). */
+  holdDownPrompt?: string | null;
 }
 
 let ui: M2Ui = { near: null, map: null, nearExit: false, notice: null };

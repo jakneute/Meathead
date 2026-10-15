@@ -1,5 +1,5 @@
 // THE STAR TOILETS (an easter egg, prompted now: the user). Once a stop's staff are all dead, by its toilet the prompt
-// comes up (HOLD down: SHIT ON IT, the real buttons, App.tsx's holdPrompt); never before (nor does it work before).
+// comes up (HOLD down: SHIT ON IT, the real buttons, App.tsx's holdDownPrompt); never before (nor does it work before).
 // Hold crouch by any of the three shrines' toilets (on the deck by the plinth, or up on it), and he hops up onto it, jeans
 // down round his boots, and goes: a big steaming one (render/player/throne.ts: his own pose: pushing red-faced,
 // slumped in relief). Keep holding:

@@ -111,7 +111,7 @@ export const spaceLayout: StageLayout = {
     if (sp.lastSec !== sec.id) { sp.lastSec = sec.id; state.camera.x = Math.max(lim.min, Math.min(lim.max, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2)); }
     // (passing a checkpoint: it's his)
     for (const c of sec.checkpoints) if (c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
-    setUi({ near: null, map: null, nearExit: false, upPrompt: null });
+    setUi({ near: null, map: null, nearExit: false, upPrompt: null, holdUpPrompt: null, holdDownPrompt: null });
     // (free flight (the orbit's shooter: section.ts's Flight): the ray gun only, no switching, while it's on; the flying
     // itself is the section's)
     const fl = sec.flight?.(state) ?? null;

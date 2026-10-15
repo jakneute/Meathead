@@ -382,19 +382,22 @@ const App2: React.FC = () => {
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit || ui.nearAmerica) && (
           <div className={`absolute left-1/2 -translate-x-1/2 ${stage === PEN_STAGE ? 'top-[232px]' : 'top-[132px]'} z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600`}>
-            <Prompt pad={['DPAD_UP']} kb={['W']} label={nearLand ? `MAP: ${nearLand.name}` : ui.nearExit ? 'BACK TO THE HUB' : ui.nearAmerica ? 'BACK TO AMERICA USA' : 'STAFF ONLY: THE STAFF ROOM'} />
+            <Prompt pad={['DPAD_UP']} kb={['@up']} label={nearLand ? `MAP: ${nearLand.name}` : ui.nearExit ? 'BACK TO THE HUB' : ui.nearAmerica ? 'BACK TO AMERICA USA' : 'STAFF ONLY: THE STAFF ROOM'} />
           </div>
         )}
         {/* What up does here, in a land (a lever to pull) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.upPrompt && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
-            <Prompt pad={['DPAD_UP']} kb={['W']} label={ui.upPrompt} />
+            <Prompt pad={['DPAD_UP']} kb={['@up']} label={ui.upPrompt} />
           </div>
         )}
-        {/* What holding down does here, in a land (a star toilet to sit on) */}
-        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.holdPrompt && !ui.upPrompt && (
+        {/* What HOLDING up or down does here, in a land (a locker to hide in, a star toilet to sit on): every one of them
+            the same, HOLD and the button */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && !ui.upPrompt && (ui.holdUpPrompt || ui.holdDownPrompt) && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
-            <span className="inline-flex items-center gap-1 align-middle"><span>HOLD</span><Prompt pad={['DPAD_DOWN']} kb={['@down']} label={ui.holdPrompt} /></span>
+            {ui.holdUpPrompt
+              ? <span className="inline-flex items-center gap-1 align-middle"><span>HOLD</span><Prompt pad={['DPAD_UP']} kb={['@up']} label={ui.holdUpPrompt} /></span>
+              : <span className="inline-flex items-center gap-1 align-middle"><span>HOLD</span><Prompt pad={['DPAD_DOWN']} kb={['@down']} label={ui.holdDownPrompt ?? ''} /></span>}
           </div>
         )}
         {/* The intro: what the panel in the corner's teaching, where he is; what up does at the ticket window; the ticket */}

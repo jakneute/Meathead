@@ -522,12 +522,12 @@ export const coaster: HollywoodSection = {
     co.lever += ((state.stageMemo[LEVER_MEMO] ? 1 : 0) - co.lever) * 0.2;
     if (co.ride.on) return riding(ctx, co);
     setHazardZones(state, 'hwc-train', []);
-    if (p.health <= 0) { co.pull = null; setUi({ holdPrompt: null }); return controls; }
+    if (p.health <= 0) { co.pull = null; setUi({ holdDownPrompt: null }); return controls; }
     const hauling = pulling(state, co);
     if (hauling) return hauling;
     // (the star toilets: crouched by one, or sat on one (thrones.ts); HOLD down's prompt by one, its stop cleared)
     const sat = updateThrones(ctx, co, controls, line => paSay(state, narr, line));
-    setUi({ holdPrompt: throneHere(state, co) ? 'SHIT ON IT' : null });
+    setUi({ holdDownPrompt: throneHere(state, co) ? 'SHIT ON IT' : null });
     if (sat) return sat;
     const pl = placeOf(state);
     if (pl === 'station') queueBits(state, co);

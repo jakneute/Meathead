@@ -275,7 +275,7 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
   const spot = HIDES.findIndex(s => Math.abs(s.x - cx) < 36 && Math.abs(s.y - pfeet(state)) < 10);
   let out: Controls | null = null;
   if (h.mode !== 'kill' && p.health > 0) {
-    if (spot >= 0 && h.hid < 0) setUi({ upPrompt: 'HIDE' });
+    if (spot >= 0 && h.hid < 0) setUi({ holdUpPrompt: 'HIDE' });
     if (spot >= 0 && controls.up && p.isGrounded && (h.hid >= 0 || !p.isCharging)) {
       if (h.hid < 0) {
         // (did she see him get in? on her level and looking his way, or right on him: then she knows where he is)
