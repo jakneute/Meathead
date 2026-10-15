@@ -2,7 +2,9 @@
 // legally distinct, each after a photo and twenty bucks. Every one of them hustles the same way, on top of its own
 // trick:
 //
-//   THE HUSTLE  sees him, comes at him (a bark now and then: clean, shat or naked); right up close, the tell (the
+//   THE HUSTLE  spots him a long way off and RUSHES him (they really want that photo): runs to cut him off where he's
+//               going, crowds round him (one a stride further off than the next), and stands in his way while posing
+//               (walking into one, he's held up); a bark now and then: clean, shat or naked; right up close, the tell (the
 //               camera up, the hand out, the grin) and then the PHOTO: a flash, he's dazzled a moment, and they've
 //               lifted some ammo off him (whatever he's got the most of) and leg it, laughing. Kill one carrying it
 //               and it's dropped back. Respond with violence: hit them out of the tell and nothing's lost.
@@ -12,8 +14,10 @@
 //             hurts and shoves him back.
 //   elvis     an Elvis-ish King in the white rhinestone jumpsuit (always a man): the hip shake (the tell), then a karate
 //             kick lunge across the pavement.
-//   hero      a caped superhero knock-off in a muscle suit (men and women): keeps its distance, strikes the pose (the
-//             tell) and throws its foam shield (it comes back).
+//   hero      a caped superhero knock-off in a muscle suit (men and women), a SHIELD enemy (the engine's shield): the
+//             shield up in front stops shots from the front (overhead ones go over it), a charge into it only drives
+//             him back; he turns round slowly (get behind him). Advances behind it, strikes the pose (the tell) and
+//             throws it (it comes back): his guard's down till it's back in his hand.
 //   pirate    a pirate-captain knock-off, drunk (men and women): staggers about; close, winds up (the tell) and slashes
 //             with the cutlass. The cutlass is out in front: charging into it hurts (pointy).
 //   statue    a gold-painted living statue (men and women): stands stock still on its box, looks like part of the
@@ -96,48 +100,86 @@ const snap = (ctx: FrameContext, e: Enemy, voice: string) => {
 
 interface Hustler {
   speed: number;
+  /** Turns round to him only after this many frames with him round the other side (a shield-holder: get behind him). */
+  turn?: number;
+  /** Doesn't rush him (keeps its own distance: its trick's at range). */
+  keepsOff?: boolean;
   voice: (e: Enemy) => string;
   pool: ByPants;
   /** Its own trick: given how far off he is, start it (return true) or not. Its own states run in `own`. */
   attack?: (ctx: FrameContext, e: Enemy, dx: number, dy: number) => boolean;
   own?: (ctx: FrameContext, e: Enemy) => void;
 }
-/** The hustle (the states every hustler shares), and its own trick on top. */
+/** Frames each one's had him round the side it isn't facing (the slow turners: shield-holders). */
+const TURNING = new WeakMap<Enemy, number>();
+/** Turn to face x: at once, or (a slow turner) only once he's been round that side a while. */
+export const faceTo = (e: Enemy, x: number, turn = 0) => {
+  const want = dirTo(e, x);
+  if (!turn || e.facing === undefined) { e.facing = want; return; }
+  if (want === e.facing) { TURNING.set(e, 0); return; }
+  const n = (TURNING.get(e) ?? 0) + 1;
+  TURNING.set(e, n);
+  if (n >= turn) { e.facing = want; TURNING.set(e, 0); }
+};
+/** Who's after him right now (the hustlers closing in, posing): to crowd round him, not pile into one spot. */
+const closing = (state: GameState, e: Enemy, side: number, px: number) =>
+  state.enemies.filter(o => o !== e && o.health > 0 && !o.isBlownAway && o.kind?.startsWith('m2:hw_') && (o.aiState === 'approach' || o.aiState === 'pose')
+    && Math.sign(mid(o).x - px) === side && Math.abs(mid(o).x - px) < Math.abs(mid(e).x - px) && Math.abs(mid(o).x - px) < 160).length;
+
+/** The hustle (the states every hustler shares), and its own trick on top. They want that photo and that twenty: they
+ *  spot him a long way off, rush him, run to cut him off where he's going (not where he is), crowd round him, and get
+ *  in his way while they pose. */
 const hustler = (h: Hustler) => (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, pl = state.player, p = mid(pl), m = mid(e), dx = p.x - m.x, dy = p.y - m.y;
   tick(e);
   e.leapCd = Math.max(0, (e.leapCd ?? 0) - 1);
   switch (e.aiState) {
     default: {
-      // (strolling about their patch of sidewalk)
+      // (strolling about their patch of sidewalk, looking out for a mark)
       const home = e.homeX ?? e.pos.x;
       e.facing ??= -1;
       if (Math.abs(e.pos.x - home) > 50 || !safeAhead(ctx, e, e.facing)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
       e.vel.x = e.facing * 0.5;
-      if (e.aiTimer > 20 && sees(state, e, 440, 130)) { setState(e, 'approach'); bark(state, e, h.voice(e), byPants(state, h.pool)); }
+      if (e.aiTimer > 10 && sees(state, e, 600, 160)) { setState(e, 'approach'); bark(state, e, h.voice(e), byPants(state, h.pool), 0.7); }
       break;
     }
     case 'approach': {
-      e.facing = dirTo(e, p.x);
+      faceTo(e, p.x, h.turn);
       const close = Math.abs(dx) < 46 && Math.abs(dy) < 60;
       if (close && !holdingOff(state) && !pl.inCutscene) { setState(e, 'pose'); e.vel.x = 0; break; }
       if (!holdingOff(state) && (e.leapCd ?? 0) <= 0 && h.attack?.(ctx, e, dx, dy)) break;
-      e.vel.x = Math.abs(dx) > 40 && safeAhead(ctx, e, e.facing) ? e.facing * h.speed : 0;
-      if (!sees(state, e, 700, 260)) setState(e, 'idle');
+      // (where to: ahead of him, the way he's going (cutting him off), if they're out in front of him; behind him,
+      // flat out after him. With others already on him that side, a stride further off: crowding round him)
+      const side = Math.sign(m.x - p.x) || 1, going = Math.abs(pl.vel.x) > 0.8 ? Math.sign(pl.vel.x) : 0;
+      const ahead = going !== 0 && side === going;
+      const lead = ahead ? Math.max(-170, Math.min(170, pl.vel.x * 26)) : 0;
+      const tx = p.x + lead + side * (36 + closing(state, e, side, p.x) * 34);
+      const gap = tx - m.x, far = Math.abs(dx) > 140;
+      const behind = going !== 0 && !ahead;
+      const sp = h.keepsOff ? h.speed * 1.4 : h.speed * (far ? (behind ? 2.6 : 2.3) : 1.5);
+      const dir = Math.sign(gap);
+      const ok = dir !== 0 && safeAhead(ctx, e, dir as 1 | -1);
+      e.vel.x = Math.abs(gap) > 6 && ok ? dir * Math.min(sp, Math.abs(gap)) : 0;
+      // (running on ahead to cut him off: facing the way they run till they're there, then round to him)
+      if (Math.abs(gap) > 30 && !h.turn) e.facing = (dir || e.facing) as 1 | -1;
+      if (!sees(state, e, 760, 280)) setState(e, 'idle');
+      // (a shout now and then, closing in)
+      if (e.aiTimer % 150 === 75) bark(state, e, h.voice(e), byPants(state, h.pool), 0.35);
       break;
     }
     case 'pose':
-      // (the tell: the camera up, the grin)
-      e.vel.x = 0; e.facing = dirTo(e, p.x);
-      if (e.aiTimer > 26) {
-        if (Math.abs(dx) < 64 && Math.abs(dy) < 60 && pl.health > 0 && pl.invincibilityTimer <= 0 && !pl.carried && !pl.inCutscene) snap(ctx, e, h.voice(e));
+      // (the tell: the camera up, the grin; right in his way: walking into them, he's held up)
+      e.vel.x = 0; faceTo(e, p.x, h.turn);
+      if (Math.abs(dx) < 50 && Math.abs(dy) < 50 && pl.isGrounded && !pl.isCharging && !pl.carried && dx !== 0 && Math.sign(pl.vel.x) === -Math.sign(dx)) pl.vel.x *= 0.72;
+      if (e.aiTimer > 20) {
+        if (Math.abs(dx) < 72 && Math.abs(dy) < 60 && pl.health > 0 && pl.invincibilityTimer <= 0 && !pl.carried && !pl.inCutscene) snap(ctx, e, h.voice(e));
         else setState(e, 'approach');
       }
       break;
     case 'flee':
-      // (legging it with his stuff; back for more after a while)
-      e.vel.x = safeAhead(ctx, e, e.facing!) ? e.facing! * h.speed * 1.9 : 0;
-      if (e.aiTimer > 150) { setState(e, 'approach'); e.leapCd = 40; }
+      // (legging it with his stuff; back for more before long)
+      e.vel.x = safeAhead(ctx, e, e.facing!) ? e.facing! * h.speed * 2.2 : 0;
+      if (e.aiTimer > 110) { setState(e, 'approach'); e.leapCd = 30; }
       break;
     case 'idle':
       setState(e, 'stroll');
@@ -201,15 +243,22 @@ const heroAttack = (ctx: FrameContext, e: Enemy, dx: number, dy: number) => {
   if (out && Math.abs(dx) < 260) { e.vel.x = 0; return true; }
   return false;
 };
+/** The hero's a shield-holder (the engine's shield: enemyType 'shield'): the shield's up on the side he's facing,
+ *  stopping shots from in front of him (from overhead they go over it), and a shoulder charge into it just drives him
+ *  back. He turns round slowly (get behind him). It's down only while it's out of his hand: thrown, till it comes back
+ *  to him (that's when to shoot him). */
+const HERO_TURN = 26;
 const heroOwn = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, p = mid(state.player);
+  const out = outOf(state).shots.some(s => s.from === e && s.kind === 'shield');
   if (e.aiState === 'aim') {
-    e.vel.x = 0; e.facing = dirTo(e, p.x);
-    if (e.aiTimer > 24) { throwShield(state, e, e.facing); setState(e, 'thrown'); }
+    e.vel.x = 0; faceTo(e, p.x, HERO_TURN);
+    if (e.aiTimer > 24) { throwShield(state, e, e.facing!); setState(e, 'thrown'); }
   } else if (e.aiState === 'thrown') {
     e.vel.x = 0;
-    if (e.aiTimer > 40) { setState(e, 'approach'); e.leapCd = 70; }
+    if (e.aiTimer > 40 && !out) { setState(e, 'approach'); e.leapCd = 70; }
   }
+  e.isShieldActive = !out && e.aiState !== 'thrown';
 };
 
 const pirateAttack = (_ctx: FrameContext, e: Enemy, dx: number, dy: number) => {
@@ -263,7 +312,9 @@ registerM2Kind({
 });
 registerM2Kind({
   kind: 'm2:hw_hero', stats: { w: 40, h: 74, hp: 120, contact: 6, mass: 200 }, humanoid: true, gender: personGender, head: { x: 1, y: -68, r: 10 },
-  ai: hustler({ speed: 1.2, voice: gendered(HUSTLER_VOICES.hero, HUSTLER_VOICES.herof), pool: HERO_HUSTLE, attack: heroAttack, own: heroOwn }),
+  ai: hustler({ speed: 1.2, turn: HERO_TURN, keepsOff: true, voice: gendered(HUSTLER_VOICES.hero, HUSTLER_VOICES.herof), pool: HERO_HUSTLE, attack: heroAttack, own: heroOwn }),
+  // (a shield-holder: the engine's own shield, up on the side he's facing)
+  make: b => ({ ...b, enemyType: 'shield', isShieldActive: true }),
   draw: (c, e, f) => drawHero(c, e, f, seedOf(e)),
 });
 registerM2Kind({

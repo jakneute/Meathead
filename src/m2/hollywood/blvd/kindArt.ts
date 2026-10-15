@@ -122,7 +122,8 @@ const paintHero = (g: Ctx, F: Frame) => {
   const fl = flailHands(B, F.fr);
   const shield = F.v !== 'thrown';
   const far: [number, number] = fl ? fl[0] : F.pose === 'tell' ? [-B.w / 2 - 4, B.shY + 10] : [-B.w / 2 + 2, B.hipY - 4];
-  const near: [number, number] = fl ? fl[1] : F.pose === 'tell' ? [B.w / 2 + 12, B.shY + 2] : F.v === 'thrown' ? [B.w / 2 - 2, B.hipY - 4] : [B.w / 2 + 4, -36];
+  // (the shield held up square in front of him, chest high: a proper guard; cocked back to throw for the tell)
+  const near: [number, number] = fl ? fl[1] : F.pose === 'tell' ? [B.w / 2 + 12, B.shY + 2] : F.v === 'thrown' ? [B.w / 2 - 2, B.hipY - 4] : [B.w / 2 + 6, B.shY + 16];
   arm(g, B, -1, far[0], far[1], { sleeve: suit, hand: trim });
   torso(g, B, suit, B.shY, B.hipY + 2, 4);
   // (painted-on abs and pecs; the trunks; the emblem)
@@ -137,10 +138,17 @@ const paintHero = (g: Ctx, F: Frame) => {
   px(g, B.hx - 1, B.hy - 3, 2, 2, '#F8FAFC'); px(g, B.hx + 5, B.hy - 3, 2, 2, '#F8FAFC');
   hairTop(g, B);
   arm(g, B, 1, near[0], near[1], { sleeve: suit, hand: trim });
-  if (shield && !fl) for (const [r, col] of [[11, '#DC2626'], [8, '#F8FAFC'], [5, '#2563EB']] as const) ball(g, near[0] + 3, near[1] - 2, r, col, r === 11 ? 1.2 : 0.6);
+  if (shield && !fl) {
+    // (the round shield: big, rings and a star; side on in front of him (an oval), flat on cocked back to throw)
+    const sx = F.pose === 'tell' ? near[0] + 3 : near[0] + 6, sy = near[1] - 2, guard = F.pose !== 'tell';
+    for (const [r, col] of [[17, '#1A0B06'], [16, '#DC2626'], [12, '#F8FAFC'], [8, '#DC2626'], [5, '#2563EB']] as const)
+      part(g, () => g.ellipse(sx, sy, guard ? r * 0.42 : r, r, 0, 0, Math.PI * 2), col, sx - r, sy - r, r * 2, r * 2, r === 17 ? 1.2 : 0.5);
+    px(g, sx - 1, sy - 1, 2, 2, '#F8FAFC');
+    if (guard) px(g, sx + 4, sy - 14, 2, 26, lt('#DC2626', 0.4));
+  }
 };
 export const drawHero = (c: Ctx, e: Enemy, f: number, seed: number) => {
-  const F = frameFor(e, f, seed, poseOf(e, ['pose', 'aim'], ['thrown']), undefined, e.aiState === 'thrown' ? 'thrown' : '');
+  const F = frameFor(e, f, seed, poseOf(e, ['pose', 'aim'], ['thrown']), undefined, e.isShieldActive === false ? 'thrown' : '');
   putFrame(c, 'hw-hero', F, BOX, g => paintHero(g, F));
 };
 
