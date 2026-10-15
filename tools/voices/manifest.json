@@ -15561,11 +15561,6 @@
  },
  {
   "voice": "m2.guest",
-  "text": "IT'S A TAX WRITE-OFF! I KNEW IT!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.guest",
   "text": "IT'S GOT SHIT ON IT! I'M FRAMING IT!",
   "from": "HOLLYWOOD"
  },
@@ -16032,6 +16027,11 @@
  {
   "voice": "m2.guest",
   "text": "THEY'RE FILMING REVENGERS IN THERE! IN SECRET!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THEY'RE SHOOTING IT HERE TO SAVE MONEY! I KNEW IT!",
   "from": "HOLLYWOOD"
  },
  {
@@ -16811,11 +16811,6 @@
  },
  {
   "voice": "m2.guest2",
-  "text": "IT'S A TAX WRITE-OFF! I KNEW IT!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.guest2",
   "text": "IT'S GOT SHIT ON IT! I'M FRAMING IT!",
   "from": "HOLLYWOOD"
  },
@@ -17272,6 +17267,11 @@
  {
   "voice": "m2.guest2",
   "text": "THEY'RE FILMING REVENGERS IN THERE! IN SECRET!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THEY'RE SHOOTING IT HERE TO SAVE MONEY! I KNEW IT!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18886,17 +18886,17 @@
  },
  {
   "voice": "m2.hollywood.director",
-  "text": "IT'S A SECRET SHOOT! IN HAPPY LAND! FOR TAXES! THIS IS AREA 51 SHIT!",
+  "text": "IT'S A SECRET SHOOT! IN HAPPY LAND! IT'S CHEAPER HERE! THIS IS AREA 51 SHIT!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.director",
-  "text": "IT'S A SECRET SHOOT. IN HAPPY LAND. FOR TAXES. AND NOW A NAKED MAN KNOWS.",
+  "text": "IT'S A SECRET SHOOT. IN HAPPY LAND. IT WAS CHEAPER. NOW A NAKED MAN KNOWS.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.director",
-  "text": "IT'S A SECRET SHOOT. IN HAPPY LAND. FOR TAXES. AND NOW IT SMELLS LIKE SHIT.",
+  "text": "IT'S A SECRET SHOOT. IN HAPPY LAND. IT WAS CHEAPER. NOW IT SMELLS LIKE SHIT.",
   "from": "HOLLYWOOD"
  },
  {
@@ -18911,7 +18911,7 @@
  },
  {
   "voice": "m2.hollywood.director",
-  "text": "NOBODY KNOWS WE'RE HERE! TAX REASONS! AREA 51 SHIT! YOUR SHIT!",
+  "text": "NOBODY KNOWS WE'RE HERE! IT'S CHEAPER! AREA 51 SHIT! YOUR SHIT!",
   "from": "HOLLYWOOD"
  },
  {
@@ -18971,7 +18971,7 @@
  },
  {
   "voice": "m2.hollywood.director",
-  "text": "WE'RE SHOOTING IT AT HAPPY LAND. FOR THE TAX WRITE-OFF. NOBODY CAN KNOW. NOBODY.",
+  "text": "WE'RE SHOOTING IT AT HAPPY LAND. CHEAPEST LOT IN AMERICA. TAX WRITE-OFF. NOBODY CAN KNOW.",
   "from": "HOLLYWOOD"
  },
  {

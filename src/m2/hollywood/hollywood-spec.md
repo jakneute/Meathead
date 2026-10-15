@@ -154,7 +154,7 @@ smashed open (the bulldozer's path out to the dumpster).
 **Playtest notes (the user's; they replace the above where they differ):**
 - **The burst-in:** he crashes in through the CEILING only (the launch drops him through the roof; a hole in it for
   good). The director panics: a member of the public on the secret set of the newest team-up, REVENGERS:
-  END-OF-THE-WORLD'S-DAY (tagline still REVENGERS: RESEMBLE), shot at Happy Land of all places for tax write-off
+  END-OF-THE-WORLD'S-DAY (tagline still REVENGERS: RESEMBLE), shot at Happy Land of all places because it's cheaper (a tax write-off on a cheap lot, not a shelved movie) 
   purposes, the location kept secret, treated like fucking Area 51; he seriously thinks about bribing or killing
   Meathead. Meathead has no idea what the fuss is and knows next to nothing about the Revengers; the director assumes
   everybody knows it and is hyped. While he's still thinking, the walls all come down and the public sees everything:

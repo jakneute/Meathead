@@ -287,7 +287,7 @@ const sets = (c: Ctx, state: GameState) => {
   if (v(700, 2600)) {
     greenScreen(c, X(740), X(1500), 340);
     skyline(c, X(1560), X(2560), 380, false);
-    banner(c, X(1120), BACK_Y - 380, 330, 60, 'REVENGERS: RESEMBLE', 'IN THEATERS NEVER (TAX PURPOSES)');
+    banner(c, X(1120), BACK_Y - 380, 330, 60, 'REVENGERS: RESEMBLE', 'SHOT ON LOCATION (IT WAS CHEAPER)');
     camera(c, X(820), BACK_Y + 10);
     slate(c, X(1380), BACK_Y + 10);
     standSign(c, X(2380), BACK_Y + 10, ['QUIET ON SET', 'CLOSED SET. NO PUBLIC.']);
