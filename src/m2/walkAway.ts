@@ -13,6 +13,7 @@ import type { WeaponType } from '../m1/types';
 import type { Controls } from '../m1/game/platform/input';
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../m1/constants';
 import { playSound } from '../m1/game/platform/audio';
+import { offerSkip, takeSkip } from '../m1/game/platform/skip';
 import { inputDevice, padFamily } from '../m1/game/platform/device';
 import { drawPadFace } from '../m1/game/render/padGlyph';
 import { isNude, isShat } from '../m1/game/player/gut';
@@ -142,6 +143,11 @@ export const tickWalkAway = (w: WalkAway, controls?: Controls | null, padA = fal
   if (w.def.embers && Math.random() < 0.35) w.embers.push({ x: Math.random() * LW, y: LH + 4, vx: 0.2 + Math.random() * 0.5, vy: -0.4 - Math.random() * 0.7, life: 0, max: 200 + Math.random() * 160, col: '', g: Math.random() * 6 });
   w.embers = w.embers.filter(e => { e.life++; e.x += e.vx + Math.sin(e.life * 0.05 + e.g) * 0.3; e.y += e.vy; return e.life < e.max && e.y > -4; });
   // A: off (a fresh press, once it's had a moment)
+  // (Start / Esc does the same as A: the walk's on offer as a skip the whole time, so Start never pauses here; pressed
+  // before A would take, it's just used up)
+  offerSkip();
+  const start = takeSkip();
+  if (start && w.armed && t > A_AFTER) { w.done = true; listenKeys(false); playSound('menuok', 0.8); w.onDone(); return; }
   const a = !!controls?.jump || enterDown || padA;
   if (!a) w.armed = true;
   else if (w.armed && t > A_AFTER) {
