@@ -1,0 +1,127 @@
+// The boulevard, laid out (x from the section's start, heights up from the ground line). Every stretch has a job: the
+// hustlers come in one at a time, then mix; the stunt wires are taught safe, then over a hole, then under fire, then
+// down off a height. He jumps about 145 up and 210 across at most; his hands hang 80 over his feet.
+//
+//   0      Under the HAPPYWOOD BLVD arch (the PA's welcome). The Walk of Fame's stars for nobodies start. Steve's
+//          first standee. An AS SEEN IN bench behind a velvet rope, guests photographing it.
+//   1000   The hustlers alone: a Marilyn, then a living statue (still, gold: it looks like part of the street).
+//   1720   STUNT WIRE 1, the teach: a harmless one over a planter (jump it or ride it).
+//   2500   An Elvis, alone. The movie palace (GROWMAN'S CHINA-ISH THEATRE, plywood, sandbags behind): the handprints
+//          of nobodies; a Marilyn and a statue together; up a trash can onto its marquee for a small ammo.
+//   3500   CHECKPOINT. A pirate, alone (don't charge his cutlass).
+//   3880   STUNT WIRE 2, over the SINKHOLE in the star pavement (fall in and that's it).
+//   4600   A caped hero, alone (the shield). The mixed street: Elvis, Marilyn, a pirate; tip jars, an AS SEEN IN
+//          hydrant; a small health up on an awning.
+//   6300   CHECKPOINT. STUNT WIRE 3, under fire: over the ROAD WORK trench, heroes throwing shields at him from the far
+//          side, one from the street and one from up on a billboard's catwalk.
+//   7550   CHECKPOINT. The SCAFFOLD: up the front of a plywood hotel facade (its bracing and sandbags block the street
+//          under it: CLOSED SET), along its top deck (a statue, a hero, a small ammo), and STUNT WIRE 4 down off the
+//          end of the deck, across to the street.
+//   9150   The STUDIO TOUR TRAM's stretch: out of its garage on the right, down the street at him, into its garage on
+//          the left, again and again (it hurts whoever's in its way: the hustlers too). Up on the bus shelters, or its
+//          roof, as it goes by.
+//   10400  CHECKPOINT. The queue plaza of THRONES OF THE STARS: the last of them all at once; the marquee; on, after the
+//          gap, to the coaster.
+//
+// Back the other way it all still goes: the wires run back from whichever end he finds them at, the deck's wire takes
+// him back up onto it.
+
+import { SECTIONS, GY } from '../geometry';
+import type { StuntWire } from '../section';
+
+export const X = (rx: number) => SECTIONS.blvd.x0 + rx;
+export const Y = (h: number) => GY - h;
+/** His hands over his feet, hanging (wires.ts): a harness for him stood on something `h` high hangs at Y(h) - HANDS. */
+export const HANDS = 80;
+
+export const SINK = { a: 4000, b: 4380 } as const;
+export const TRENCH = { a: 6650, b: 7150 } as const;
+export const DECK = { a: 8050, b: 8650, h: 330 } as const;
+/** The tram's run: between its two garages (it comes out of the right one, going left). */
+export const TRAM = { a: 9150, b: 10350, len: 300, h: 92, v: 5, period: 520 } as const;
+export const MARQUEE_X = 11150;
+
+/** Ground: [from x, to x] at street level (between them: the sinkhole, the trench). */
+export const GROUND: [number, number][] = [[-200, SINK.a], [SINK.b, TRENCH.a], [TRENCH.b, 11700]];
+
+export type SolidWhat = 'planter' | 'trashcan' | 'bracing';
+/** Solid things (walk into them, stand on them): [x, top height, w, what]. */
+export const SOLIDS: [number, number, number, SolidWhat][] = [
+  [1900, 90, 180, 'planter'],
+  [2930, 70, 50, 'trashcan'],
+  // (under the scaffold's deck: the facade's bracing and sandbags, ground to deck: no way under, CLOSED SET)
+  [8150, DECK.h - 16, 70, 'bracing'],
+];
+export type LedgeWhat = 'marquee' | 'awning' | 'catwalk' | 'scaffold' | 'deck' | 'shelter';
+/** Things to stand on (one-way): [x, height, width, what]. */
+export const LEDGES: [number, number, number, LedgeWhat][] = [
+  [2960, 150, 220, 'marquee'],
+  [5380, 120, 150, 'awning'],
+  [7380, 220, 150, 'catwalk'],
+  [7760, 110, 130, 'scaffold'], [7900, 220, 130, 'scaffold'],
+  [DECK.a, DECK.h, DECK.b - DECK.a, 'deck'],
+  [9420, 120, 130, 'shelter'], [9830, 120, 130, 'shelter'],
+];
+
+/** The stunt wires: [from x, height he stands on there, to x, height he lands on there, the rig's height]. */
+const WIRE_DEFS: [number, number, number, number, number][] = [
+  [1720, 0, 2240, 0, 300],
+  [3880, 0, 4500, 0, 330],
+  [6540, 0, 7230, 0, 340],
+  [8600, DECK.h, 9120, 0, 560],
+];
+export const WIRES: StuntWire[] = WIRE_DEFS.map(([a, ha, b, hb, rig]) => ({ from: { x: X(a), y: Y(ha) - HANDS }, to: { x: X(b), y: Y(hb) }, rigY: Y(rig) }));
+
+export type BlvdKind = 'm2:hw_marilyn' | 'm2:hw_elvis' | 'm2:hw_hero' | 'm2:hw_pirate' | 'm2:hw_statue';
+/** Who's where: [kind, x, height of what it stands on]. */
+export const ENEMIES: [BlvdKind, number, number][] = [
+  // alone: a Marilyn, a statue
+  ['m2:hw_marilyn', 1080, 0], ['m2:hw_statue', 1450, 0],
+  // an Elvis alone; the palace: a Marilyn and a statue
+  ['m2:hw_elvis', 2560, 0], ['m2:hw_marilyn', 3150, 0], ['m2:hw_statue', 3380, 0],
+  // a pirate alone
+  ['m2:hw_pirate', 3720, 0],
+  // a hero alone; the mixed street
+  ['m2:hw_hero', 4950, 0], ['m2:hw_elvis', 5300, 0], ['m2:hw_marilyn', 5650, 0], ['m2:hw_pirate', 5980, 0], ['m2:hw_statue', 6200, 0],
+  // the trench, under fire: heroes on the far side, one on the ground, one up on the billboard's catwalk
+  ['m2:hw_hero', 7450, 220], ['m2:hw_hero', 7310, 0],
+  // the deck: a statue, a hero
+  ['m2:hw_statue', 8350, DECK.h], ['m2:hw_hero', 8540, DECK.h],
+  // the tram's street
+  ['m2:hw_elvis', 9650, 0], ['m2:hw_pirate', 10000, 0],
+  // the queue plaza: the lot of them
+  ['m2:hw_marilyn', 10600, 0], ['m2:hw_statue', 10780, 0], ['m2:hw_hero', 10950, 0], ['m2:hw_elvis', 11050, 0], ['m2:hw_pirate', 10850, 0],
+];
+
+/** Lying about up the side routes (lean: small, each for going out of the way). */
+export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
+  [3100, 150, 'small_ammo'],
+  [5450, 120, 'small_health'],
+  [8450, DECK.h, 'small_ammo'],
+  [9890, 120, 'small_health'],
+];
+
+/** The lampposts (a PA horn on some, a Steve flier on every one): [x, has a horn]. */
+export const LAMPS: [number, boolean][] = [
+  [260, true], [900, false], [1560, false], [2380, true], [3600, false], [4560, true], [5200, false], [5900, false],
+  [6380, true], [7560, false], [9000, true], [10450, true], [11000, false],
+];
+/** Steve's standees (life-size cutouts) and posters (on facades): [x, kind]. */
+export const STEVES: [number, 'standee' | 'poster'][] = [[520, 'standee'], [3300, 'standee'], [5120, 'poster'], [6220, 'standee'], [7640, 'poster'], [9060, 'standee'], [10700, 'standee']];
+
+/** The Walk of Fame (a star every so far along the pavement, for nobodies and things). */
+export const STAR_NAMES = [
+  "THE GUY WHO SAID 'CUT' ONCE", "A STUNT DOG'S UNDERSTUDY", 'YOUR NAME HERE $49.99', 'A LAMP FROM A SITCOM',
+  'THE SECOND KEY GRIP', 'MOST OF A STUNTMAN', 'CRAFT SERVICES (1987)', 'THE VOICE OF A CEREAL', 'AN EXTRA WHO SNEEZED',
+  'BOOM MIC IN SHOT', 'A FAMOUS PAIR OF PANTS', 'STUNTMAN STEVE (PENDING)', "SOMEBODY'S NEPHEW", 'THE SHARK (BACK HALF)',
+  'A GUY WHO OWNS A LIMO', 'YOUR NAME HERE $49.99',
+];
+export const STAR_STEP = 300;
+
+export const CHECKPOINTS = [
+  { name: 'HOLLYWOOD BLVD', cp: 0, x: X(150), y: GY },
+  { name: 'THE WALK OF FAME', cp: 1, x: X(3500), y: GY },
+  { name: 'THE ROAD WORK', cp: 2, x: X(6300), y: GY },
+  { name: 'THE SCAFFOLD', cp: 3, x: X(7560), y: GY },
+  { name: 'THRONES OF THE STARS', cp: 4, x: X(10420), y: GY },
+];

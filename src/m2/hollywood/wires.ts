@@ -78,7 +78,7 @@ export const wireRides = (state: GameState) => (state.stage ? storeOf(state).hol
 interface Geo { ax: number; ay: number; bx: number; by: number; rigY: number; dist: number }
 const geoOf = (state: GameState, w: StuntWire): Geo => {
   const p = state.player, feetToHand = p.height - HAND_DY;
-  const ax = w.from.x, ay = w.from.y, bx = w.to.x, by = w.to.y - feetToHand;
+  const ax = w.from.x, ay = w.from.y, bx = w.to.x, by = w.to.y - feetToHand - 2;
   const rigY = w.rigY ?? Math.min(ay, by) - 150;
   return { ax, ay, bx, by, rigY, dist: Math.max(1, Math.abs(bx - ax)) };
 };
@@ -168,16 +168,16 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
       r.om -= ((r.v - v0) * 0.6) / Math.max(90, trolley(g, r.u).len);
       return;
     }
-    // (parked; if he's well nearer the other end and it's been a while, back it goes, empty)
+    // (moving with nobody on it (let go of mid-run, or running back): on to the end it's going to)
+    if (r.v !== 0) {
+      const d = Math.sign(r.v);
+      r.u = Math.max(0, Math.min(1, r.u + (d * RETURN) / g.dist)); r.v = d * RETURN;
+      if (r.u <= 0 || r.u >= 1) r.v = 0;
+      return;
+    }
+    // (parked: if he's stood nearer the other end a while, back it goes, empty: it's never left out of his reach)
     const atA = r.u < 0.5, near = atA ? g.bx : g.ax, here = atA ? g.ax : g.bx;
-    if (r.idle > 120 && Math.abs(cx - near) + 300 < Math.abs(cx - here) && Math.abs(cx - here) > 500) {
-      r.u += (atA ? 1 : -1) * RETURN / g.dist; r.v = (atA ? 1 : -1) * RETURN;
-      r.u = Math.max(0, Math.min(1, r.u));
-    } else if (r.u > 0 && r.u < 1) {
-      // (left mid-track (he let go): on to the end it was going to)
-      const d = r.v >= 0 ? 1 : -1;
-      r.u = Math.max(0, Math.min(1, r.u + d * RETURN / g.dist)); r.v = d * RETURN;
-    } else r.v = 0;
+    if (r.idle > 90 && p.isGrounded && Math.abs(cx - near) + 40 < Math.abs(cx - here)) r.v = (atA ? 1 : -1) * RETURN;
   });
 
   // ---- Not on one
@@ -252,7 +252,11 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
   if (blocked(state, hand.x, hand.y)) {
     // (into a wall: the swing knocked back off it; if the rig itself would drag him through, it waits)
     r.th = th0; r.om = -r.om * 0.3; hand = handAt(g, r);
-    if (blocked(state, hand.x, hand.y)) { r.u = u0; r.v = 0; hand = handAt(g, r); }
+    if (blocked(state, hand.x, hand.y)) {
+      r.u = u0; r.v = 0; hand = handAt(g, r);
+      // (right by the end and it can't get him there: let go here)
+      if (left < 60) { place(state, hand.x, hand.y); letGo(state, s, c, 'end'); return strip(c); }
+    }
   }
   place(state, hand.x, hand.y);
   p.vel.x = r.v + hand.len * r.om * Math.cos(r.th); p.vel.y = -hand.len * r.om * Math.sin(r.th);
