@@ -15,14 +15,40 @@ _pron = os.path.join(HERE, 'pronunciations.json')
 fixes = json.load(open(_pron, encoding='utf-8')).get('fixes', []) if os.path.exists(_pron) else []
 
 def respell(text, voice=None):
-    """The line as it's to be said: with the fixes in pronunciations.json (a word said wrong, respelled where it comes up)."""
+    """The line as it's to be said: with the fixes in pronunciations.json (a word said wrong, respelled where it comes up),
+    and every year said the way people say years (years())."""
     for f in fixes:
         if f.get('voice') and f['voice'] != voice: continue
         pat = re.escape(f['in'])
         # ('word': only where it's a word on its own, not inside another)
         if f.get('word'): pat = r'(?<![A-Za-z])' + pat + r'(?![A-Za-z])'
         text = re.sub(pat, f['say'], text, flags=re.I)
-    return text
+    return years(text)
+
+# ---- years: "1961" is NINETEEN SIXTY-ONE (not "one thousand nine hundred and sixty-one", nor "nineteen hundred and
+# sixty-one"), 1905 NINETEEN OH FIVE, 1900 NINETEEN HUNDRED, 2000 TWO THOUSAND, 2007 TWO THOUSAND SEVEN, 2010 TWENTY TEN,
+# 2026 TWENTY TWENTY-SIX; the 1980S the NINETEEN EIGHTIES. Any four digits 1900-2099 on their own (not money, not part of
+# a bigger number, not a decimal, not a percentage).
+_ONES = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN', 'ELEVEN', 'TWELVE',
+         'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN']
+_TENS = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY']
+def _two(n):
+    return _ONES[n] if n < 20 else _TENS[n // 10] + ('-' + _ONES[n % 10] if n % 10 else '')
+def year_words(y):
+    hi, lo = divmod(y, 100)
+    if y == 2000: return 'TWO THOUSAND'
+    if 2000 < y < 2010: return 'TWO THOUSAND ' + _ONES[lo]
+    if lo == 0: return _two(hi) + ' HUNDRED'
+    if lo < 10: return _two(hi) + ' OH ' + _ONES[lo]
+    return _two(hi) + ' ' + _two(lo)
+_YEAR = re.compile(r"(?<![\d$.,:#/-])(19\d\d|20\d\d)('?[Ss](?![A-Za-z]))?(?![\d%]|[.,]\d)")
+def years(text):
+    def say(m):
+        w = year_words(int(m.group(1)))
+        # (the decade: the EIGHTIES)
+        if m.group(2): w = w[:-1] + 'IES' if w.endswith('Y') else w + 'S'
+        return w
+    return _YEAR.sub(say, text)
 
 def spec_of(v):
     s = cast.get(v)
