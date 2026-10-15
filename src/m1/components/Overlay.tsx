@@ -224,7 +224,7 @@ export type TitleOption = { label: string; kind: 'continue' | 'new' | 'options' 
  */
 export const titleOptions = (hasFile: boolean): TitleOption[] => [
   ...(hasFile ? [{ label: 'CONTINUE', kind: 'continue' as const, intro: false }] : []),
-  ...(PUBLIC_BUILD ? [{ label: 'NEW GAME', kind: 'new' as const, intro: true }] : [{ label: 'NEW GAME', kind: 'new' as const, intro: false }, { label: 'NEW GAME + INTRO', kind: 'new' as const, intro: true }]),
+  ...(PUBLIC_BUILD ? [{ label: 'START GAME', kind: 'new' as const, intro: true }] : [{ label: 'START GAME', kind: 'new' as const, intro: false }, { label: 'START GAME + INTRO', kind: 'new' as const, intro: true }]),
   { label: 'OPTIONS', kind: 'options', intro: false },
   ...(isDesktop ? [{ label: 'QUIT GAME', kind: 'quit' as const, intro: false }] : []),
 ];

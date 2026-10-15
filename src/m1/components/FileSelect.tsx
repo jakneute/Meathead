@@ -260,7 +260,7 @@ const FileSelect: React.FC<{
         }}>
         <div className="absolute left-0 right-0 top-0 h-[6px]" style={{ background: 'repeating-linear-gradient(135deg, #FACC15 0 8px, #111 8px 16px)' }} />
         <div className="flex items-baseline justify-center gap-3 mt-1 mb-3">
-          <h2 className="text-2xl font-black italic tracking-widest text-yellow-400" style={{ textShadow: '3px 3px 0 #7F1D1D, 5px 5px 0 #000' }}>NEW GAME</h2>
+          <h2 className="text-2xl font-black italic tracking-widest text-yellow-400" style={{ textShadow: '3px 3px 0 #7F1D1D, 5px 5px 0 #000' }}>SELECT FILE</h2>
         </div>
 
         <div className="relative flex flex-col gap-3 px-1 py-1">
