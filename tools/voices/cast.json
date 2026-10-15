@@ -125,5 +125,13 @@
   "m2.hollywood.extra": { "voice": "am_santa", "speed": 1.05, "rate": 1.0 },
   "m2.hollywood.extraf": { "voice": "af_sky", "speed": 1.05, "rate": 1.02 },
   "m2.hollywood.gossip": { "voice": "am_liam", "speed": 1.12, "rate": 1.04 },
-  "m2.hollywood.gossipf": { "voice": "af_bella", "speed": 1.12, "rate": 1.06 }
+  "m2.hollywood.gossipf": { "voice": "af_bella", "speed": 1.12, "rate": 1.06 },
+  "m2.hollywood.rideop": { "voice": "am_puck", "speed": 1.18, "rate": 1.08 },
+  "m2.hollywood.rideopf": { "voice": "af_nova", "speed": 1.18, "rate": 1.08 },
+  "m2.hollywood.janitor": { "voice": "am_fenrir", "speed": 0.98, "rate": 0.92 },
+  "m2.hollywood.janitorf": { "voice": "af_sarah", "speed": 0.98, "rate": 0.94 },
+  "m2.hollywood.docent": { "voice": "bm_daniel", "speed": 0.94, "rate": 1.0 },
+  "m2.hollywood.docentf": { "voice": "af_heart", "speed": 0.94, "rate": 1.0 },
+  "m2.hollywood.thrones": { "voice": [["bm_george", 0.6], ["am_onyx", 0.4]], "speed": 0.86, "rate": 0.94, "gain": 0.95, "fx": "radio_mild" },
+  "m2.hollywood.sleeper": { "voice": "am_echo", "speed": 0.8, "rate": 0.9, "gain": 0.8 }
 }

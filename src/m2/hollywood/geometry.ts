@@ -26,7 +26,8 @@ export const SECTIONS = {
   /** Hollywood Blvd (a cheap imitation of it): the Walk of Fame, the impersonator hustlers; teaches the stunt wires. */
   blvd: { x0: HWX, x1: HWX + 11500 },
   /** THRONES OF THE STARS: the line skipped, three rides and three toilet stops, the booth's lever, the launch. */
-  coaster: { x0: HWX + 14500, x1: HWX + 29500 },
+  // (x1 widened into the gap: the launch's flight off the end of the track, over the warehouse's way)
+  coaster: { x0: HWX + 14500, x1: HWX + 31500 },
   /** The secret warehouse: the burst-in, the green-screen sets, the Ensemble Cast sub-boss, the script kicked. */
   warehouse: { x0: HWX + 32500, x1: HWX + 45000 },
   /** The backlot: the second outdoor stretch, up to Disaster: The Ride. */
@@ -47,7 +48,8 @@ export const DOORS: Record<HollywoodId, { start: { x: number; y: number }; end: 
   blvd: { start: { x: SECTIONS.blvd.x0 + 200, y: GY }, end: { x: SECTIONS.blvd.x1 - 250, y: GY } },
   // (the coaster's launch is one-way: back in from the warehouse, he's put at the third stop, by the booth (the ride
   // back down to the station is the coaster owner's call; walking out the stop's service stairs works too))
-  coaster: { start: { x: SECTIONS.coaster.x0 + 200, y: GY }, end: { x: SECTIONS.coaster.x1 - 250, y: GY } },
+  // (end: stop 3's deck, under the control booth (coaster/layout.ts STOPS[2], BOOTH))
+  coaster: { start: { x: SECTIONS.coaster.x0 + 200, y: GY }, end: { x: SECTIONS.coaster.x0 + 14050, y: GY - 1100 } },
   warehouse: { start: { x: SECTIONS.warehouse.x0 + 200, y: GY }, end: { x: SECTIONS.warehouse.x1 - 250, y: GY } },
   lot: { start: { x: SECTIONS.lot.x0 + 200, y: GY }, end: { x: SECTIONS.lot.x1 - 250, y: GY } },
   disaster: { start: { x: SECTIONS.disaster.x0 + 200, y: GY }, end: { x: SECTIONS.disaster.x1 - 250, y: GY } },

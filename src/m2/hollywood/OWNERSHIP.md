@@ -64,6 +64,9 @@ the way back working (revisits), or give a one-way set piece a sane way to retur
 - **The coaster's launch** (coaster -> warehouse) is one-way. Back from the warehouse, he's put at the third stop by
   the booth (`DOORS.coaster.end`); the coaster owner gives him a way down from there (the train back with the lever
   off, or the stop's service stairs).
+  **Built:** the launch puts him at `DOORS.warehouse.start` flying in (vel +6, -5), sets `COASTER_LAUNCHED_MEMO`
+  (section.ts) and `noteBurstIn()`; the warehouse calls `takeBurstIn()` (true once per launch) to run its burst-in
+  (the walls coming down). The lever stays on EXPERIMENTAL, so riding from stop 3 again launches him again.
 - **The fling** (havoc -> stunt) is one-way. Back from the stunt stage, he's put where the tornado caught him
   (`DOORS.havoc.end`, on the ground); the havoc owner keeps that spot reachable on foot both ways (the tornado's spent
   on a revisit).

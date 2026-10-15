@@ -51,6 +51,16 @@ export const REAL_DISASTERS_MEMO = 'hollywood-real-disasters';
 export const realDisastersOn = (state: GameState) => state.stageMemo[REAL_DISASTERS_MEMO] === '1';
 export const setRealDisasters = (state: GameState) => { state.stageMemo[REAL_DISASTERS_MEMO] = '1'; };
 
+/** The coaster's launch has happened (the throne-train off the EXPERIMENTAL track and through the warehouse's wall):
+ *  state.stageMemo, kept across his deaths. The coaster sets it; the warehouse's walls are down once it's on. */
+export const COASTER_LAUNCHED_MEMO = 'hollywood-coaster-launched';
+let burstIn = false;
+/** (the coaster's: he's just been launched in, flying, at DOORS.warehouse.start) */
+export const noteBurstIn = () => { burstIn = true; };
+/** He's just come through the warehouse's wall on the launched train (true once per launch: the warehouse takes it
+ *  for its burst-in beat, the walls coming down). */
+export const takeBurstIn = () => { const b = burstIn; burstIn = false; return b; };
+
 /** A section of Hollywood Land: Adventure Land's Section, plus Hollywood Land's own hooks. */
 export interface HollywoodSection extends Section<HollywoodId> {
   /** The stunt wires in it right now (read every frame; the stage gathers every section's into the stage's own list:
