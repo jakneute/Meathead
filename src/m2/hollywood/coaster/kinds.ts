@@ -257,22 +257,23 @@ const guard = (ctx: FrameContext, e: Enemy) => {
 // ---------------------------------------------------------------------------------------------------------------
 
 const personGender = (e: Enemy) => (womanOf(e) ? 'f' : 'm') as 'm' | 'f';
-// (the stops' own helpStaff (index.ts) hops them over the plinths and off the catwalks: pathing: false)
+// (getting to him: pathing.ts, like the other people (up onto the catwalks after him, down off them, off any ledge
+// whose landing's safe); the stops' own helpStaff (index.ts) hops them over the plinths and the hazmat case too)
 
 registerM2Kind({
-  kind: 'm2:hwc_rideop', stats: { w: 36, h: 72, hp: 140, contact: 5, mass: 170 }, humanoid: true, pathing: false, gender: personGender, head: { x: 1, y: -66, r: 10 },
+  kind: 'm2:hwc_rideop', stats: { w: 36, h: 72, hp: 140, contact: 5, mass: 170 }, humanoid: true, gender: personGender, head: { x: 1, y: -66, r: 10 },
   ai: rideop, draw: (c, e, f) => drawRideop(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:hwc_janitor', stats: { w: 40, h: 74, hp: 120, contact: 5, mass: 210 }, humanoid: true, pathing: false, gender: personGender, head: { x: 1, y: -68, r: 10 },
+  kind: 'm2:hwc_janitor', stats: { w: 40, h: 74, hp: 120, contact: 5, mass: 210 }, humanoid: true, gender: personGender, head: { x: 1, y: -68, r: 10 },
   ai: janitor, draw: (c, e, f) => drawJanitor(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:hwc_docent', stats: { w: 36, h: 74, hp: 150, contact: 5, mass: 170 }, humanoid: true, pathing: false, gender: personGender, head: { x: 1, y: -68, r: 10 },
+  kind: 'm2:hwc_docent', stats: { w: 36, h: 74, hp: 150, contact: 5, mass: 170 }, humanoid: true, gender: personGender, head: { x: 1, y: -68, r: 10 },
   pointy: { source: 'm2:hwc_pointer', label: 'SKEWERED!', damage: 12 },
   ai: docent, draw: (c, e, f) => drawDocent(c, e, f, seedOf(e)),
 });
 registerM2Kind({
-  kind: 'm2:hwc_guard', stats: { w: 44, h: 78, hp: 160, contact: 6, mass: 280 }, humanoid: true, pathing: false, gender: personGender, head: { x: 1, y: -72, r: 10 },
+  kind: 'm2:hwc_guard', stats: { w: 44, h: 78, hp: 160, contact: 6, mass: 280 }, humanoid: true, gender: personGender, head: { x: 1, y: -72, r: 10 },
   ai: guard, draw: (c, e, f) => drawGuard(c, e, f, seedOf(e)),
 });

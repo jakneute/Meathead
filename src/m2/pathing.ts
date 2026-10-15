@@ -185,6 +185,9 @@ export const pathAfterAI = (ctx: FrameContext, e: Enemy) => {
   // (walking his way: what it's after him in, and how fast it goes)
   const walking = e.vel.x !== 0 && Math.sign(e.vel.x) === pdir && Math.abs(e.vel.x) > 0.3 && Math.abs(e.vel.x) <= WALKING;
   if (walking) { m.chaseAt = f; m.chaseState = e.aiState; m.speed = Math.abs(e.vel.x); }
+  // (stood still, still in the state it went after him in (pulled up at an edge, under him up on a ledge): still after
+  // him, however long; no going off the boil stood at the edge of a safe drop)
+  else if (e.vel.x === 0 && m.chaseState === e.aiState && f - m.chaseAt < 240) m.chaseAt = f;
   const chasing = !off && m.chaseState === e.aiState && f - m.chaseAt < 240;
   if (!chasing) { m.backUntil = 0; m.dropUntil = 0; return; }
   // A step back, for a run at it
