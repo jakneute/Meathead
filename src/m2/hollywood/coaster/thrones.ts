@@ -150,7 +150,8 @@ const sitting = (ctx: FrameContext, co: Coaster, controls: Controls, pa: (line: 
   if (st.t >= st.blowAt) {
     st.blow++;
     if (st.blow === 1) {
-      meatheadSays(state, pickLine(L.THRONE_BLOW), false);
+      // (after the uh-oh and the narrator's, in turn)
+      meatheadSays(state, pickLine(L.THRONE_BLOW), true);
       playSound('fart', 1, -16); playSound('rumble', 1, -10);
     }
     if (st.blow % 3 === 0) brownBits(state, g.mx + 16, g.base - 34, 4, 5, 14);

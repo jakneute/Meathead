@@ -158,13 +158,14 @@ export const havoc: HollywoodSection = {
       if (ev.quake && rx < QUAKE[0][1] && once(state, 'quake')) narrate(state, LOOP[0][0], () => meatheadSays(state, pick(L.GAG.quake), true));
       if (rx > SHAFTS[1].a && rx < SHAFTS[1].b && up > 620 && once(state, 'ball')) meatheadSays(state, pick(L.GAG.ball), true);
       if (ch.avalancheTell && rx < COVERS[0].b + 100 && once(state, 'cover')) narrate(state, L.NARR_HAVOC.avalanche, () => meatheadSays(state, pick(L.GAG.coverSign), true));
-      if (ch.inCover && oncePer(state, 'inCover')) meatheadSays(state, pick(L.GAG.inCover), false);
+      if (ch.inCover && oncePer(state, 'inCover')) meatheadSays(state, pick(L.GAG.inCover), true);
       if (ch.ripped && once(state, 'rip')) meatheadSays(state, pick(L.GAG.rip), true);
       if (rx > 15800 && once(state, 'pa-steve-2')) paSay(state, L.PA_STEVE_HAVOC[1]);
       if (rx > WIND[1][0] && once(state, 'everything')) narrate(state, REAL.all, () => meatheadSays(state, pick(L.GAG.everything), true));
       if (ev.hail && rx > HAIL[0][0] && once(state, 'hail')) narrate(state, L.NARR_HAVOC.hail);
-      if (rx > REFILL - 220 && once(state, 'refill')) meatheadSays(state, pick(L.GAG.refill), false);
-      if (ch.surge) { if (once(state, 'surge')) narrate(state, L.NARR_HAVOC.surge); meatheadSays(state, pick(L.GAG.surge), false); }
+      if (rx > REFILL - 220 && once(state, 'refill')) meatheadSays(state, pick(L.GAG.refill), true);
+      // (the first surge: the narrator, then him, in turn; after that just him, if nobody's talking)
+      if (ch.surge) { if (once(state, 'surge')) narrate(state, L.NARR_HAVOC.surge, () => meatheadSays(state, pick(L.GAG.surge), true)); else meatheadSays(state, pick(L.GAG.surge), false); }
     }
     // The ways out: back into the ride (always); on to the stunt stage (once the tornado's spent: the fling's one-way)
     runExits(state, endExits('havoc').filter(e => e.x0 < X(10000) || done));

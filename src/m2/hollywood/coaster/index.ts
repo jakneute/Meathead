@@ -299,7 +299,7 @@ const spawn = (state: GameState, co: Coaster, i: number) => {
   state.enemies.push(e); run.out.push(e);
   if (up || second) run.upperT = 30; else run.doorT = 30;
   playSound('slam', 0.4, 6);
-  if (run.n === 1) meatheadSays(state, pickLine(L.STAFF_OUT), false);
+  if (run.n === 1) meatheadSays(state, pickLine(L.STAFF_OUT), true);
   else staffBark(state, e, e.kind === 'm2:hwc_janitor' ? L.STAFF_VOICES.janitor : e.kind === 'm2:hwc_docent' ? L.STAFF_VOICES.docent : e.kind === 'm2:hwc_guard' ? L.STAFF_VOICES.guard : L.STAFF_VOICES.rideop, e.kind === 'm2:hwc_janitor' ? L.JANITOR_BARK : e.kind === 'm2:hwc_docent' ? L.DOCENT_BARK : e.kind === 'm2:hwc_guard' ? L.GUARD_BARK : L.RIDEOP_BARK, 0.25);
 };
 /** The staff getting to him (the user: at stop 3 they couldn't): a plinth (or the hazmat case) in their way, they hop

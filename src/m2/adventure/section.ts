@@ -120,13 +120,15 @@ export const meatheadSays = (state: GameState, text: string, after = true, onDon
     // (waiting its turn, it never got one: on with the scene anyway)
     onDropped: () => onDone?.(),
   });
-  // (no voice for it yet: up for a while anyway, so a scene doesn't hang on it)
-  if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; setTimeout(() => onDone?.(), 2500); }
+  // (not taken: somebody's talking (a bark), or too many waiting their turn. Its words never go up without its voice,
+  // over somebody else's: on with the scene, that's all)
+  if (!shown) setTimeout(() => onDone?.(), 0);
 };
 
 /**
  * Somebody else says something, in their voice: `set` gets what's shown (null when it's done), for drawing it over
- * their head. Unrecorded lines still show a while, so nothing hangs waiting on them.
+ * their head. Unrecorded lines still show a while, so nothing hangs waiting on them. One not taken (a bark with
+ * somebody talking) isn't shown at all: nobody's words up over anybody else's.
  */
 export interface Said { text: string }
 export const voice = (id: string) => ({ id, pitch: 0, rate: 1 });
@@ -139,7 +141,9 @@ export const speak = (voiceId: string, text: string, set: (s: Said | null) => vo
     onHide: () => { set(null); onDone?.(); },
     onDropped: () => { set(null); onDone?.(); },
   });
-  if (!shown) { set(s); setTimeout(() => { set(null); onDone?.(); }, Math.max(1800, text.length * 70)); }
+  // (not taken: somebody's talking (a bark), or too many waiting their turn. Never its words up without its voice, over
+  // somebody else's: on with the scene)
+  if (!shown) setTimeout(() => onDone?.(), 0);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
