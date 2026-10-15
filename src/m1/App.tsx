@@ -392,6 +392,8 @@ const App: React.FC = () => {
   }, []);
 
   /** One of the title's options picked: CONTINUE (the file played last), NEW GAME (the file select), OPTIONS. */
+  /** The dev cheat's skip set at 1 or more: a new game skips the intro. */
+  const [skipIntroCheat, setSkipIntroCheat] = useState(false);
   const pickTitle = (index: number) => {
     const o = options[index];
     if (!o || intro !== 'off' || fileSelect || confirmLeave) return;
@@ -410,7 +412,8 @@ const App: React.FC = () => {
    * the dev cheat's put it on stays: see handleChangeRank), the garage too.
    */
   const startNewGame = (slot: Slot | null) => {
-    const withIntro = !!fileSelect?.intro;
+    // (the dev cheat's skip set past 0: no intro)
+    const withIntro = !!fileSelect?.intro && !skipIntroCheat;
     if (slot !== null && readFile(slot)) deleteFile(slot);
     playMenuOk();
     setFileSelect(null);
@@ -799,18 +802,22 @@ const App: React.FC = () => {
     }
   };
 
-  // (the cheat's skip set: 0 the first four, 1 the second four, 2 the second four all dead and the White House open)
-  const skipSet = progressionRank + (whiteHouseOpen ? 1 : 0);
+  // (the cheat's skip set: 0 the intro and the first four, 1 the first four with no intro, 2 the second four, 3 the
+  // second four all dead and the White House open)
+  const skipSet = progressionRank === 0 && !whiteHouseOpen ? (skipIntroCheat ? 1 : 0) : progressionRank + (whiteHouseOpen ? 1 : 0) + 1;
   const handleChangeRank = (delta: number) => {
-    const next = Math.max(0, Math.min(2, skipSet + delta));
-    if (next === skipSet) return;
+    const to = Math.max(0, Math.min(3, skipSet + delta));
+    if (to === skipSet) return;
+    setSkipIntroCheat(to >= 1);
+    const was = Math.max(0, skipSet - 1), next = Math.max(0, to - 1);
+    if (next === was) return;
     setProgressionRank(Math.min(1, next));
     if (next === 2) {
       // Set two all done: every one of them dead, their weapons in hand
       setDefeatedStages(STAGES_SET_1.map(st => st.id));
       setAvailableWeapons(ALL_WEAPONS);
     } else {
-      if (skipSet === 2) setDefeatedStages([]);
+      if (was === 2) setDefeatedStages([]);
       setAvailableWeapons(getStartingWeapons(next, cheats.allWeapons));
       setCurrentWeapon('GUN');
     }
@@ -1109,7 +1116,7 @@ const App: React.FC = () => {
           whiteHouseOpen={whiteHouseOpen}
           killRecords={killRecords}
           shatKills={shatKills}
-          cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => { setEndingShat(false); setEndingPart('epilogue'); setStatus(GameStatus.ENDING); }, onPlayCall: () => { setCallPreview(true); setStatus(GameStatus.VICTORY); } } : undefined}
+          cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, skipSet, onPlayEnding: () => { setEndingShat(false); setEndingPart('epilogue'); setStatus(GameStatus.ENDING); }, onPlayCall: () => { setCallPreview(true); setStatus(GameStatus.VICTORY); } } : undefined}
           showCall={progressionRank === 0 || callPreview}
           introOn={intro !== 'off'}
         />

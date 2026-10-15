@@ -98,6 +98,8 @@ interface OverlayProps {
     flags: CheatFlags;
     onToggle: (flag: keyof CheatFlags) => void;
     onChangeRank: (delta: number) => void;
+    /** The skip set as the panel shows it: 0 intro, 1 the first set (no intro), 2 the second, 3 the White House. */
+    skipSet: number;
     onPlayEnding: () => void;
     onPlayCall: () => void;
   };
@@ -303,7 +305,7 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onTitlePick, title
     {/* (the picture, the whole screen: the logo's in it, over his chest) */}
     <TitleArt shitty={!!cheats?.flags.shittyPants} paused={!!introOn} />
     <h1 className="sr-only">MEATHEAD</h1>
-    {cheats && <CheatPanel rank={progressionRank + (whiteHouseOpen ? 1 : 0)} cheats={cheats} musicOn={getSettings().music > 0 && getSettings().master > 0} />}
+    {cheats && <CheatPanel rank={cheats.skipSet} cheats={cheats} musicOn={getSettings().music > 0 && getSettings().master > 0} />}
     {/* (the menu in the street under the plate, from the horizon down: the middle of it) */}
     <div className="animate-in fade-in duration-700 absolute inset-x-0 top-[300px] bottom-0 flex flex-col items-center justify-center pb-2">
       <div className="flex flex-col items-center gap-3 shrink-0">
