@@ -38,13 +38,14 @@ import { whOf, type Arrival, type Actor } from './state';
 import { CAST, ACTOR_KIND, BIG, drawArriving, drawBody, drawClinger } from './cast';
 import { CAST_ARRIVE, KILL_QUIPS, HALF, LAST, DEATH, ARRIVE, LATCH, CAP_RESEMBLE, CAP_SURE, CAP_REPLY, AD_CAST, AD_SHRUG } from './lines';
 import { adSay, castSay } from './talk';
+import { hurtTaken } from '../../../m1/game/core/resist';
 
 /** How many of them are in it this time (CAPTAIN AMERICANO and the rest of the order: a share of the thirty). */
 const FIGHT_SIZE = 22;
 /** How many on him and he's down under them, dead. */
 export const CRUSH = 6;
 /** How many may be up (on the floor, on him, or coming down) at once: a few at first, more as they die. */
-const capOf = (killed: number) => Math.min(8, 3 + Math.floor(killed / 3));
+const capOf = (killed: number) => Math.min(10, 4 + Math.floor(killed / 2));
 const L0 = X(ARENA.a) + 50, R0 = X(ARENA.b) - 50;
 const clampX = (x: number) => Math.max(L0, Math.min(R0, x));
 const DOOR_H = 700;
@@ -328,8 +329,13 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
     const k = Math.max(0, 1 - n / CRUSH);
     if (!attacking && p.pushbackTimer <= 0) { const max = PLAYER_MOVE_SPEED * buffs.speed * k; if (Math.abs(p.vel.x) > max) p.vel.x = Math.sign(p.vel.x) * max; }
     if (p.vel.y < 0 && !attacking) p.vel.y += 0.1 * n;
-    if (n >= CRUSH && !F.crushed) {
-      F.crushed = true;
+    // (they hurt, piled on: a little every half second, more the more of them; i-frames don't stop it, it's weight)
+    if (n >= CRUSH || state.frame % 30 === 0) {
+      const dmg = n >= CRUSH ? 0 : n * 2;
+      if (dmg > 0 && !ctx.cheats.invincible) { p.health = Math.max(0, p.health - hurtTaken(ctx.stageId, dmg)); state.lastHurt = { source: 'm2:hww_pile', at: state.frame }; playSound('punch', 0.4, -4 + n); }
+    }
+    if ((n >= CRUSH || p.health <= 0) && !F.crushed && !ctx.cheats.invincible) {
+      F.crushed = true; p.health = Math.max(1, p.health); p.invincibilityTimer = 0;
       playSound('crunch', 1, -6); playSound('thud', 1, -10); shakeScreen(state, 14, 6);
       ctx.fx.spawnDamageNumber({ x: p.pos.x - 20, y: p.pos.y - 70 }, 'PILED ON', true, '#FCA5A5');
       hurtPlayer(ctx, 9999, 'm2:hww_pile', undefined, 0);

@@ -81,7 +81,7 @@ def key_of(line, spec):
     if len(sentences(line['text'])) > 1: k['sp'] = 1
     # (a word respelled so it's said right: re-recorded)
     # (AM read as the word, not A.M., where it isn't a time: re-recorded)
-    if re.search(r"(?<![0-9] )AM", line['text']): k['am'] = 1
+    if re.search(r"(?<![0-9] )\bAM\b", line['text']): k['am'] = 1
     said = respell(line['text'], line.get('voice'))
     if said != line['text']: k['say'] = said
     blob = json.dumps(k, sort_keys=True)
