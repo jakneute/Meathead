@@ -20660,6 +20660,21 @@
   "from": "HOLLYWOOD"
  },
  {
+  "voice": "m2.hollywood.producer",
+  "text": "IF YOU TELL YOUR FRIENDS OR FAMILY WHAT YOU'RE WORKING ON, I'LL SEND AN ASSASSIN TO YOUR HOME.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.producer",
+  "text": "NO PHONES. NO PICTURES. NO TALKING TO EACH OTHER. NO TALKING TO ME.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.producer",
+  "text": "YOU EAT IN HERE. YOU SHIT IN HERE. NOBODY LEAVES THIS BUILDING.",
+  "from": "HOLLYWOOD"
+ },
+ {
   "voice": "m2.hollywood.rideop",
   "text": "HE ALREADY WENT! GET HIM OFF THE RIDE!",
   "from": "HOLLYWOOD"
