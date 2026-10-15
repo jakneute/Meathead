@@ -58,6 +58,27 @@ export const RIDE_BACK = ['BACK TO THE START? LAME.', "THAT'S IT? BACK TO THE ST
 /** Back at stop 3 from the warehouse: the track's still bent where he left it. */
 export const BENT = ["THE TRACK'S STILL BENT. THEY JUST LEFT IT.", "THEY DIDN'T EVEN FIX THE TRACK. LAUNCH ME AGAIN."];
 
+/** The star toilets (thrones.ts; no prompt: found by crouching by one): sitting down on each (clean; his own in it). */
+export const THRONE_SIT = [
+  ['MOVE OVER, DINO. MY TURN.', "I'M DOING IT MY WAY."],
+  ["SITTING ON THE GODFATHER'S CLOG. HOLD MY BEER.", "IT'S ALREADY CLOGGED. WHAT'S ONE MORE."],
+  ['OPEN THE CASE. PANTS DOWN. NO REGRETS.', "IT'S GLOWING. IT'S WARM. I'M GOING."],
+];
+export const THRONE_SIT_AGAIN = ['ROUND TWO.', "IT'S STILL WARM. THAT'S MINE.", 'BACK FOR SECONDS.'];
+/** Shut in the hazmat case with it (stop 3). */
+export const THRONE_CASE = ['IT SMELLS LIKE 1973 IN HERE.', "I'M IN THE CASE. I'M THE EXHIBIT NOW."];
+export const THRONE_STRAIN = ['NNNNNGH.', 'COME ON. COME ON.', "IT'S A BIG ONE. IT'S FIGHTING ME.", "THIS ONE'S GOT ELBOWS.", "HNNNG. IT'S CROWNING."];
+export const THRONE_PLOP = ["OH YEAH. THAT'S THE STUFF.", 'STEAMING. LIKE A STAR.', "THAT ONE HAD A NAME."];
+/** He's clogged it (15 s on it). */
+export const THRONE_CLOG = ['I CLOGGED A CELEBRITY. HELL YES.', "IT'S UP TO THE SEAT. I'M NOT DONE.", "IT'S BACKING UP. KEEP GOING."];
+/** Up off it: before he's clogged it (nothing); after. */
+export const THRONE_STAND = ['FALSE ALARM.', "NOT YET. IT'S SHY."];
+export const THRONE_DONE = ["LEAVE IT. THAT'S HISTORY NOW.", 'PUT MY NAME ON THE PLAQUE.', "DON'T FLUSH. IT'S A RELIC."];
+/** The blowout coming (get up now or die). */
+export const THRONE_UHOH = ['UH OH.', "THAT'S NOT ME. THAT'S THE PIPES.", "OH NO. IT'S PUSHING BACK."];
+/** His last words (the blowout). */
+export const THRONE_BLOW = ['OH SHIIIIIT!', 'NOT LIKE THIIIIS!'];
+
 // ---------------------------------------------------------------------------------------------------------------
 // The queue's guests (outraged: he's cut in front of them), the voices the park's guests already have
 
@@ -129,6 +150,15 @@ export const SPIEL_BACK = ['THIS THRONE WILL NOW RETURN TO THE STATION. THANK YO
 export const SPIEL_EXPERIMENTAL = ['EXPERIMENTAL MODE ENGAGED. THE TRACK IS NOT FINISHED. ENJOY.'];
 export const SPIEL_FLIGHT = ['THRONES OF THE STARS IS NOT RESPONSIBLE FOR. THAT.'];
 export const SPIEL_BENT = ['EXPERIMENTAL MODE IS STILL ENGAGED. WE HAVE NOT FOUND ANYONE TO TURN IT OFF.'];
+/** The star toilets: him sat on one (each); on his own; clogged; the blowout coming. */
+export const SPIEL_THRONE_SIT = [
+  ["SIR. THAT IS DINO SINATRELLI'S TOILET. SIR. YOUR PANTS."],
+  ["SIR. MARLOWE BRANDOE'S CLOG IS STILL IN THERE. DO NOT ADD TO IT."],
+  ['SIR. THAT CASE IS NOT TO BE OPENED. SIR. THE CASE IS FOR US.'],
+];
+export const SPIEL_THRONE_AGAIN = ['HE IS BACK ON IT.', 'AGAIN. HE IS DOING IT AGAIN.'];
+export const SPIEL_THRONE_CLOG = ['THE RELIC HAS BEEN ADDED TO. THE RELIC IS RUINED.', 'THAT IS NOT A STAR. THAT IS A NOBODY. IN A RELIC.'];
+export const SPIEL_THRONE_UHOH = ['THE THRONE IS MAKING A NOISE IT SHOULD NOT MAKE.', 'PLEASE STAND CLEAR OF THE THRONE. ALL OF YOU. NOW.'];
 
 /** The park's PA (the boulevard's trailer voice) in the queue: Stuntman Steve. */
 export const PA_STEVE_QUEUE = [
@@ -175,6 +205,10 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
     hurt: ['BATON TO THE KIDNEYS!', 'OW! RENT-A-COP!', 'HE HIT ME WITH THE FLASHLIGHT!'],
     death: ['BEATEN DOWN BY THRONE SECURITY', 'SECURITY ESCORTED HIM OUT. OF LIFE'],
   },
+  'm2:hwc_throne': {
+    hurt: ['MY ASS! IT BLEW UP UNDER MY ASS!'],
+    death: ['DIED ON THE THRONE. LIKE THE KING', 'BLEW UP A FAMOUS TOILET FROM THE INSIDE', 'KILLED BY HIS OWN SHIT', 'SAT THERE TOO LONG'],
+  },
   'm2:hwc_fumes': {
     hurt: ['THE FUMES! MY EYES!', "IT'S IN MY MOUTH! SEVENTY-THREE IS IN MY MOUTH!", 'I CAN TASTE THE ROCK STAR!'],
     death: ["GASSED BY A ROCK STAR'S SHIT", 'DIED OF VINTAGE FUMES'],
@@ -186,6 +220,8 @@ export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...CUT_LINE, ...SHOVE, ...STEVE_STANDEE, ...BOARD, ...BOARD_AGAIN, ...Object.values(RIDE_LINES).flat(), ...TOILET_LINES.flat(),
     ...STAFF_OUT, ...CLEARED, ...LOCKED, ...WALKER, ...BOOTH, ...LEVER, ...LAUNCH, ...RIDE_BACK, ...BENT,
+    ...THRONE_SIT.flat(), ...THRONE_SIT_AGAIN, ...THRONE_CASE, ...THRONE_STRAIN, ...THRONE_PLOP, ...THRONE_CLOG, ...THRONE_STAND,
+    ...THRONE_DONE, ...THRONE_UHOH, ...THRONE_BLOW,
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
@@ -198,6 +234,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   [NARRATOR]: [
     ...SPIEL_STATION, ...SPIEL_LIFT, ...SPIEL_INSANE, ...SPIEL_TOILET.flat(), ...pools(SPIEL_STAFF), ...SPIEL_MORE, ...SPIEL_CLEAR,
     ...SPIEL_BACK, ...SPIEL_EXPERIMENTAL, ...SPIEL_FLIGHT, ...SPIEL_BENT,
+    ...SPIEL_THRONE_SIT.flat(), ...SPIEL_THRONE_AGAIN, ...SPIEL_THRONE_CLOG, ...SPIEL_THRONE_UHOH,
   ],
   [PA_VOICE]: PA_STEVE_QUEUE,
   [SLEEPER]: [...pools(SLEEPER_MUMBLE), ...SLEEPER_LEVER],

@@ -54,6 +54,7 @@ import { updatePlungers, staffBark, BEAM } from './kinds';
 import { drawPlunger } from './kindArt';
 import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, carsOn, carsParked, coasterLamps, SINK } from './art';
 import * as L from './lines';
+import { updateThrones, drawThroneFront, inCase, throneState } from './thrones';
 
 const narr = L.NARRATOR;
 
@@ -383,7 +384,8 @@ const booth = (state: GameState, co: Coaster, upIn: boolean) => {
 /** Stop 3's biohazard: the case rattles (the tell), then vents; the fumes hurt whoever's in them. */
 const fumes = (ctx: FrameContext, co: Coaster) => {
   const { state } = ctx, p = state.player, s = STOPS[2], cx = X(s.shrine.x + s.shrine.w / 2);
-  if (co.ride.on || Math.abs(p.pos.x - cx) > 1600) { setHazardZones(state, 'hwc-fumes', []); return; }
+  // (not while he's shut in the case on its toilet; never again once he's blown it up)
+  if (co.ride.on || Math.abs(p.pos.x - cx) > 1600 || inCase(co) || throneState(state, 2) === 'exploded') { setHazardZones(state, 'hwc-fumes', []); return; }
   co.fumeT++;
   const cyc = co.fumeT % FUMES.every, ventAt = FUMES.every - FUMES.vent, tellAt = ventAt - FUMES.tell;
   const tell = cyc >= tellAt && cyc < ventAt, vent = cyc >= ventAt;
@@ -455,6 +457,9 @@ export const coaster: HollywoodSection = {
     if (co.ride.on) return riding(ctx, co);
     setHazardZones(state, 'hwc-train', []);
     if (p.health <= 0) return controls;
+    // (the star toilets: crouched by one, or sat on one (thrones.ts))
+    const sat = updateThrones(ctx, co, controls, line => paSay(state, narr, line));
+    if (sat) return sat;
     const pl = placeOf(state);
     if (pl === 'station') queueBits(state, co);
     if (pl !== null && pl !== 'station') { runStop(state, co, pl); stairs(state, co, pl, upIn); }
@@ -487,11 +492,12 @@ export const coaster: HollywoodSection = {
     // (the fumes: a cloud round the case while it vents)
     {
       const s = STOPS[2], cyc = co.fumeT % FUMES.every, ventAt = FUMES.every - FUMES.vent;
-      if (cyc >= ventAt && Math.abs(p.pos.x - X(s.shrine.x)) < 1600) {
+      if (cyc >= ventAt && Math.abs(p.pos.x - X(s.shrine.x)) < 1600 && !inCase(co) && throneState(state, 2) !== 'exploded') {
         const k = (cyc - ventAt) / FUMES.vent, cx = X(s.shrine.x + s.shrine.w / 2), a = Math.sin(k * Math.PI);
         for (let i = 0; i < 6; i++) { c.fillStyle = `rgba(${i % 2 ? '132, 204, 22' : '190, 242, 100'}, ${0.22 * a})`; c.beginPath(); c.ellipse(cx + (i - 2.5) * 60, Y(s.h) - 60 - (i % 3) * 40 - k * 30, 70, 46, 0, 0, Math.PI * 2); c.fill(); }
       }
     }
+    drawThroneFront(c, state, co);
     // (the walker, flying)
     if (co.walker) { const w = co.walker; c.save(); c.translate(w.x, w.y); c.rotate(w.rot); drawPerson(c, { seed: 3321, outfit: 'maint', f, pose: 'fly', mood: 'shocked' }); c.restore(); }
     // Who's saying what: the staff over their heads, a guest, the sleeper, the PA (not while riding: that's the HUD's)

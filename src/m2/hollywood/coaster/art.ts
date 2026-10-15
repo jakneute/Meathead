@@ -21,6 +21,7 @@ import {
 } from './layout';
 import { tracks, at, STEP, type Track } from './track';
 import type { Coaster, QGuest } from './state';
+import { throneState, caseLift, drawThroneMess } from './thrones';
 
 type Ctx = CanvasRenderingContext2D;
 export { GY };
@@ -377,7 +378,10 @@ const drawShrine = (c: Ctx, state: GameState, i: number, co: Coaster) => {
     for (let k = 0; k < 3; k++) box(c, sx + 10 + k * 34, top + 10, 2, s.shrine.h - 14, '#D6D3D1');
     box(c, sx, top + s.shrine.h - 8, sw, 8, '#CA8A04'); box(c, sx, top, sw, 4, '#FDE68A');
   }
-  if (i === 0) {
+  // (the star toilets: blown up, it's gone (thrones.ts draws the wreck); stop 3's case lifted, him getting in)
+  const gone = throneState(state, i) === 'exploded', lift = caseLift(co);
+  if (gone) { if (i === 2) { box(c, sx - 2, top + 70, sw + 4, 52, '#000'); box(c, sx, top + 72, sw, 48, '#3F3F46'); box(c, sx, top + 72, sw, 3, '#A1A1AA'); } }
+  else if (i === 0) {
     // THE CHAIRMAN OF THE BOWEL: a pink crooner's toilet: a ring in it, a cigarette butt, a martini on the tank, his hat
     toilet(c, mx - 6, top, '#F9A8D4', '#BE185D');
     box(c, mx - 2, top - 27, 30, 2, '#78350F');
@@ -403,17 +407,18 @@ const drawShrine = (c: Ctx, state: GameState, i: number, co: Coaster) => {
     box(c, sx - 2, top + 70, sw + 4, 52, '#000'); box(c, sx, top + 72, sw, 48, '#3F3F46'); box(c, sx, top + 72, sw, 3, '#A1A1AA');
     for (let x = sx + 6; x < sx + sw - 6; x += 18) box(c, x, top + 104, 10, 6, '#FACC15');
     // (the case: glass, steel corners; inside, the glow)
-    box(c, sx + jx - 2, top - 2, sw + 4, 76, '#000');
-    c.fillStyle = 'rgba(132, 204, 22, 0.35)'; c.fillRect(sx + jx, top, sw, 72);
+    if (!lift) box(c, sx + jx - 2, top - 2, sw + 4, 76, '#000');
+    c.fillStyle = 'rgba(132, 204, 22, 0.35)'; c.fillRect(sx + jx, top - lift, sw, 72);
     toilet(c, mx - 6 + jx, top + 72, '#18181B', '#000');
     for (const [x, y, col] of [[mx - 26, top + 20, '#DC2626'], [mx - 20, top + 30, '#FACC15'], [mx + 4, top + 52, '#38BDF8'], [mx + 16, top + 48, '#F472B6']] as const) box(c, x + jx, y, 6, 4, col);
     c.fillStyle = `rgba(190, 242, 100, ${0.45 + 0.25 * Math.sin(f * 0.1)})`; c.beginPath(); c.ellipse(mx + 8 + jx, top + 46, 16, 5, 0, 0, Math.PI * 2); c.fill();
     c.strokeStyle = '#65A30D'; c.lineWidth = 3; c.beginPath(); c.moveTo(mx + 10 + jx, top + 46); c.quadraticCurveTo(mx + 30 + Math.sin(f * 0.05) * 6, top + 20, mx + 18 + jx, top + 6); c.stroke();
-    box(c, sx + jx, top, 6, 72, '#71717A'); box(c, sx + sw - 6 + jx, top, 6, 72, '#71717A');
-    box(c, sx + jx, top, sw, 4, '#D9F99D');
+    box(c, sx + jx, top - lift, 6, 72, '#71717A'); box(c, sx + sw - 6 + jx, top - lift, 6, 72, '#71717A');
+    box(c, sx + jx, top - lift, sw, 4, '#D9F99D');
     // (the biohazard signs on the plinth)
     for (const bx of [sx + 20, sx + sw - 20]) { c.fillStyle = '#FACC15'; c.beginPath(); c.moveTo(bx, top + 78); c.lineTo(bx + 12, top + 98); c.lineTo(bx - 12, top + 98); c.closePath(); c.fill(); box(c, bx - 1, top + 84, 2, 8, '#000'); box(c, bx - 1, top + 94, 2, 2, '#000'); }
   }
+  drawThroneMess(c, state, i);
   // (its name over it: a board, hung or on posts; its own letters)
   const L = i === 2 ? enamel({ sx: 1, sy: 2 }, '#BEF264', '#000') : enamel({ sx: 1, sy: 2 }, '#FDE68A', '#000');
   const tw = signW(TITLES[i], L) + 30, ty = i === 0 ? dy - 186 : i === 1 ? dy - 160 : dy - 196;

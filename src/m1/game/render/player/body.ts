@@ -393,6 +393,7 @@ export type Mood = 'grit' | 'roar' | 'yell' | 'scowl';
 /** He's talking (set for each frame he's drawn): whatever pose he's in, his jaw works with it. */
 let talking = false;
 export const setTalking = (on: boolean) => { talking = on; };
+export const isTalkingNow = () => talking;
 
 /** The talking mouth, at (hx, my): open, shut, wider, the top teeth, the tongue down in it when it's wide. */
 export const drawTalkingMouth = (ctx: Ctx, hx: number, my: number, frame: number) => {

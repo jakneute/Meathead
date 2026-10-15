@@ -4,6 +4,7 @@ import { drawLadderBackArm, drawLadderLegs, drawLadderClimb, drawOverheadPull } 
 import { drawRemains } from './remains';
 import { drawFreefall } from './freefall';
 import { drawExtinguisherPose } from './extinguisher';
+import { drawThronePose } from './throne';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD, vineGrip, vineLean, VINE_SHOULDER } from '../../combat/muzzle';
@@ -251,6 +252,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     drawExtinguisherPose(ctx, p.extinguisher, animFrame, { nude: g?.stage === 3, shat });
     finishBody();
     if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
+    ctx.restore();
+    return;
+  }
+  // Sat on a toilet, pants down, going (Meathead 2's star toilets): its own pose (render/player/throne.ts)
+  if (p.throne && hurtT < 0 && !p.headless && p.health > 0) {
+    const g = p.gut;
+    drawThronePose(ctx, p.throne, animFrame, { nude: g?.stage === 3, shat: !!g && (g.stage === 2 || (g.stage === 3 && !g.washed)) });
+    finishBody();
     ctx.restore();
     return;
   }

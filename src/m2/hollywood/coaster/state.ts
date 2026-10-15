@@ -63,7 +63,13 @@ export interface Coaster {
   lever: number; upLatch: boolean;
   /** Stop 2's track walker, being hit: frames since (0: not yet). */
   walkerT: number; walker: { x: number; y: number; vx: number; vy: number; rot: number } | null;
+  /** The star toilets (thrones.ts): crouch held beside one (frames, which); sat on one, going (null: not). */
+  squat: { i: number; t: number };
+  sit: Sitting | null;
 }
+/** Sat on a star toilet: which; frames since he sat; where he hopped on from; when it blows (frames since he sat);
+ *  the blowout going (frames since: no getting up now); the steam's going; what's been said this sit. */
+export interface Sitting { i: number; t: number; from: { x: number; y: number }; blowAt: number; blow: number; steam: boolean; said: Record<string, boolean> }
 
 const ALL = new WeakMap<object, Coaster>();
 export const coasterOf = (state: GameState): Coaster => {
@@ -75,7 +81,7 @@ export const coasterOf = (state: GameState): Coaster => {
       stops: [0, 1, 2].map(() => ({ phase: 'idle', wave: 0, t: 0, spawnT: 0, queue: [], out: [], door: 0, upper: 0, doorT: 0, upperT: 0, go: false, n: 0 })),
       guests: [], plungers: [], faceStuck: 0, said: {},
       pa: null, paBusy: false, paAt: -9999, paFrom: 'train', barks: new WeakMap(), barkAt: -9999,
-      guestSaid: null, guestAt: -9999, sleeper: null, sleepAt: -9999, fumeT: 0, fumeHit: new WeakSet(), lever: 0, upLatch: true, walkerT: 0, walker: null,
+      guestSaid: null, guestAt: -9999, sleeper: null, sleepAt: -9999, fumeT: 0, fumeHit: new WeakSet(), lever: 0, upLatch: true, walkerT: 0, walker: null, squat: { i: -1, t: 0 }, sit: null,
     };
     ALL.set(k, o);
   }

@@ -270,6 +270,10 @@ export interface Player extends Entity {
    *  the wall, holding it, spraying it, shaking it out, winding up, throwing it; `t` frames into that. Whatever sets it
    *  clears it (and respawn does). */
   extinguisher?: { step: 'reach' | 'hold' | 'spray' | 'shake' | 'wind' | 'throw'; t: number };
+  /** Sat on a toilet, pants down at his ankles, going (Meathead 2's star toilets on Thrones of the Stars; render/player/
+   *  throne.ts): `t` frames since he sat; `mood` pushing (red-faced, trembling), relief (eyes shut, slumped) or uh-oh
+   *  (wide-eyed, gripping on); `push` 0..1 how hard. Whatever sets it clears it (and respawn does). */
+  throne?: { t: number; mood: 'push' | 'relief' | 'uhoh'; push: number };
   /** Something he's doing takes him off the vine he's on (Meathead 2: the mallet's smash down, from one): let go of it. */
   dropVine?: boolean;
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
