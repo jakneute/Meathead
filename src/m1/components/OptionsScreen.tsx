@@ -142,8 +142,8 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       return;
     }
     if (page === 'main') { if (a === 'ok') { playMenuOk(); go(MAIN[cursor].page); } return; }
-    // (OK on a setting doesn't change it: it's done, close and keep it all, as it is)
-    if ((page === 'audio' || page === 'video') && a === 'ok') { playMenuOk(); onClose(); return; }
+    // (OK on a setting doesn't change it: that page is done, back out of it as BACK does, everything kept as it is)
+    if ((page === 'audio' || page === 'video') && a === 'ok') { playMenuOk(); go('main', MAIN.findIndex(m => m.page === page)); return; }
     if (page === 'audio') {
       const id = VOLUMES[cursor].id;
       if (a === 'left') setVolume(id, settings[id] - 10);
