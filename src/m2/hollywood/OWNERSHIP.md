@@ -67,6 +67,12 @@ the way back working (revisits), or give a one-way set piece a sane way to retur
   **Built:** the launch puts him at `DOORS.warehouse.start` flying in (vel +6, -5), sets `COASTER_LAUNCHED_MEMO`
   (section.ts) and `noteBurstIn()`; the warehouse calls `takeBurstIn()` (true once per launch) to run its burst-in
   (the walls coming down). The lever stays on EXPERIMENTAL, so riding from stop 3 again launches him again.
+- **The bulldozer** (warehouse -> lot). **Built** (warehouse/ending.ts): after the Ensemble Cast, a cutscene pushes the
+  pile through the warehouse's far wall; its last beat is shot at the lot's start (LOT_WALL_BREAK, LOT_DUMPSTER: the
+  bodies out of the hole into the dumpster, the dust settling on the lot's crashed bulldozer) and he's let go there,
+  hopping down by the dumpster (lot.x0 + 312). From then on (`hollywood-warehouse-leak` in state.stageMemo) the far wall
+  is open both ways: the lot's left end back in at `DOORS.warehouse.end`, the warehouse's right end out at
+  `DOORS.lot.start`.
 - **The fling** (havoc -> stunt) is one-way. Back from the stunt stage, he's put where the tornado caught him
   (`DOORS.havoc.end`, on the ground); the havoc owner keeps that spot reachable on foot both ways (the tornado's spent
   on a revisit).
