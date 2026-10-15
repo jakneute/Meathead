@@ -132,9 +132,19 @@ it; clean / shitty / naked pools for every line group (the cast react to his sta
   they have powers they don't (hero poses, catchphrases, fake power moves, wires that aren't hooked up), and die like
   the ordinary people they are.
 
-Then he kicks the glass case, the
-pages fly out over the onlookers, who grab them: the script's leaked (cutscene beat, HUD hidden). Revisits differ:
-walls down for good, sets wrecked, pages everywhere, the case empty.
+**The ending (the user's; replaces the old "he kicks the glass case"):** the actors fall dead where they stand
+(bloodied, never gibbed, the bodies stay). When the last one dies, Meathead says "BETTER CLEAN UP THE BODIES." Camera
+cut: the actors are all in one big pile. He gets in a bulldozer that happens to be in the warehouse and CRASHES it
+through the far wall (not a doorway: through the wall), pushing the pile out into a dumpster outside. On the way he
+knocks over the protected glass case, and the script's pages go flying everywhere for the onlookers to grab: the leak,
+still "the most devastating thing Meathead has done" (cutscene beats, HUD hidden, skip all-or-nothing).
+- **Where it comes out (geometry.ts):** the dumpster is the lot's first set piece, at the lot's start (the lot owner
+  builds and draws it): `LOT_WALL_BREAK` (the warehouse's outside wall face at the lot's left end, x0+90, the jagged
+  hole from x0-40 to x0+90, up to GY-230; siding and rebar torn outward, rubble strewn toward the dumpster) and
+  `LOT_DUMPSTER` (x0+420 to x0+700, rim at GY-120; overflowing with the dead Revengers, the bulldozer crashed into
+  its left end, pages blowing down the lot). The warehouse's cutscene can cut there for the push's last beat.
+Revisits differ: walls down for good, sets wrecked, pages everywhere, the case knocked over and empty, the far wall
+smashed open (the bulldozer's path out to the dumpster).
 
 ### Havoc: havoc (50-59)
 

@@ -59,3 +59,12 @@ export const DOORS: Record<HollywoodId, { start: { x: number; y: number }; end: 
 /** The section before and after one (null: the land's start, the boss's arena). */
 export const prevOf = (id: HollywoodId): HollywoodId | null => SECTION_ORDER[SECTION_ORDER.indexOf(id) - 1] ?? null;
 export const nextOf = (id: HollywoodId): HollywoodId | null => SECTION_ORDER[SECTION_ORDER.indexOf(id) + 1] ?? null;
+
+/** The warehouse's far wall, seen from outside at the lot's start: where the bulldozer CRASHED through it (a jagged
+ *  smashed hole, siding and rebar torn outward, rubble strewn toward the dumpster), world x of the wall's outside face
+ *  and the hole's span. The lot's owner draws it; the warehouse's bulldozer push comes out of it (its cutscene can cut
+ *  to here: the pile shoved out through the hole and into the dumpster). */
+export const LOT_WALL_BREAK = { x: SECTIONS.lot.x0 + 90, hole: { x0: SECTIONS.lot.x0 - 40, x1: SECTIONS.lot.x0 + 90, top: GY - 230 } } as const;
+/** The dumpster the dead Revengers end up in (the lot's first set piece; set back against the warehouse, walked past,
+ *  not stood on): world x of its two ends, its rim's height. The bulldozer's left crashed into its left end. */
+export const LOT_DUMPSTER = { x0: SECTIONS.lot.x0 + 420, x1: SECTIONS.lot.x0 + 700, top: GY - 120 } as const;
