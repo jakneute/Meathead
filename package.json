@@ -11,6 +11,7 @@
     "release": "vite build --mode release && node -e \"require('fs').renameSync('release/index.html','release/Meathead.html')\"",
     "release:public": "vite build --mode public && node -e \"require('fs').renameSync('release-public/index.html','release-public/Meathead.html')\"",
     "release:m2": "vite build --mode m2",
+    "release:steam": "npm run release:public && node tools/steam/package.mjs",
     "voices": "node tools/voices/run.cjs",
     "voices:m2": "node node_modules/esbuild/bin/esbuild tools/voices/m2pack.ts --bundle --platform=node --format=cjs --outfile=tools/voices/.m2pack.cjs --log-level=error --loader:.bin=empty --loader:.png=dataurl && node tools/voices/.m2pack.cjs",
     "voices:m1": "node tools/voices/m1pack.cjs"
@@ -23,8 +24,10 @@
     "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
+    "@electron/packager": "^20.3.0",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react-swc": "^4.3.3",
+    "electron": "^44.7.2",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vite-plugin-singlefile": "^2.3.3"

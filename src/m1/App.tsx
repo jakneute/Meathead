@@ -12,7 +12,8 @@ import { keysFor } from './game/platform/keys';
 import { takeAllSouvenirs, garageState, setGarageState } from './game/garage/store';
 import type { Souvenir } from './content/garage';
 import HUD from './components/HUD';
-import Overlay, { CheatFlags } from './components/Overlay';
+import Overlay, { CheatFlags, leaveAnswers, type LeaveAnswer } from './components/Overlay';
+import { quitToDesktop } from './game/platform/desktop';
 import GameCanvas from './components/GameCanvas';
 import EndingCutscene from './components/EndingCutscene';
 import EpilogueCutscene from './components/EpilogueCutscene';
@@ -183,7 +184,7 @@ const App: React.FC = () => {
   const [wheelAt, setWheelAt] = useState<number | null>(null);
   /** The pause menu's "are you sure" before leaving for the boss select, and which answer's highlighted. */
   const [confirmLeave, setConfirmLeave] = useState(false);
-  const [confirmYes, setConfirmYes] = useState(false);
+  const [confirmPick, setConfirmPick] = useState(0);
   /** What he shouted going into the stage (the flourish puts the same words up). */
   const [engageShout, setEngageShout] = useState(ENGAGE_SHOUTS[0]);
   /** A little cutscene in the stage, him not in control: the HUD's put away till it's over. */
@@ -281,7 +282,7 @@ const App: React.FC = () => {
   // checkpoint picker. (Locking in and ENGAGE have their own.)
   const inMenu = status === GameStatus.START || status === GameStatus.STAGE_SELECT || status === GameStatus.PAUSED;
   useCursorSound(selectedIndex, inMenu && intro === 'off' && !inGarage && !pickFor && !fileSelect, `${status}|${showArchive}|${inGarage}`);
-  useCursorSound(confirmYes, confirmLeave, confirmLeave);
+  useCursorSound(confirmPick, confirmLeave, confirmLeave);
   useCursorSound(wheelAt, wheelAt !== null);
   useOpenCloseSound(status === GameStatus.PAUSED, status === GameStatus.PAUSED || status === GameStatus.PLAYING);
   useOpenCloseSound(confirmLeave, status === GameStatus.PAUSED);
@@ -372,12 +373,29 @@ const App: React.FC = () => {
     }
   };
 
+  // The window losing focus (alt-tabbed, clicked away) or minimized, mid-stage: paused, as Start would (not in a
+  // cutscene, nor anywhere that isn't the stage being played)
+  const blurPauseRef = useRef(() => {});
+  blurPauseRef.current = () => {
+    if (status !== GameStatus.PLAYING || isVictoryPhase || inCutscene || canSkip()) return;
+    togglePause();
+  };
+  useEffect(() => {
+    const go = () => blurPauseRef.current();
+    const seen = () => { if (document.visibilityState === 'hidden') go(); };
+    window.addEventListener('blur', go);
+    document.addEventListener('visibilitychange', seen);
+    return () => { window.removeEventListener('blur', go); document.removeEventListener('visibilitychange', seen); };
+  }, []);
+
   /** One of the title's options picked: CONTINUE (the file played last), NEW GAME (the file select), OPTIONS. */
   const pickTitle = (index: number) => {
     const o = options[index];
     if (!o || intro !== 'off' || fileSelect) return;
     // (OPTIONS: up it comes, no waiting for the way in to unlock)
     if (o.kind === 'options') { setOptionsOpen(true); return; }
+    // (QUIT GAME, the desktop app's: straight out, there's nothing unsaved on the title)
+    if (o.kind === 'quit') { playMenuOk(); closeFile(); quitToDesktop(); return; }
     if (Date.now() - screenShownAtRef.current < MIN_CONFIRM_DELAY_MS) return;
     if (o.kind === 'continue') { const slot = latestSlot(); if (slot) loadFile(slot); return; }
     playMenuOk();
@@ -482,12 +500,15 @@ const App: React.FC = () => {
   };
 
   /** BOSS SELECT in the pause menu: asks first (NO highlighted). */
-  const askBossSelect = () => { setLeaveTo('boss'); setConfirmYes(false); setConfirmLeave(true); };
+  const askBossSelect = () => { setLeaveTo('boss'); setConfirmPick(leaveAnswers('boss').length - 1); setConfirmLeave(true); };
   /** QUIT in the pause menu: asks first too (NO highlighted): it's the whole run gone, not just the stage. */
-  const askQuit = () => { setLeaveTo('quit'); setConfirmYes(false); setConfirmLeave(true); };
-  const answerBossSelect = (yes: boolean) => {
+  // (in the desktop app, it's QUIT TO TITLE, QUIT TO DESKTOP or NO)
+  const askQuit = () => { setLeaveTo('quit'); setConfirmPick(leaveAnswers('quit').length - 1); setConfirmLeave(true); };
+  const answerBossSelect = (answer: LeaveAnswer) => {
     setConfirmLeave(false);
-    if (yes) { if (leaveTo === 'quit') handleQuitToMenu(); else handleBossSelect(); }
+    if (answer === 'yes') { if (leaveTo === 'quit') handleQuitToMenu(); else handleBossSelect(); }
+    // (out to the desktop: the file keeps what it had at the last safe point, and the time played)
+    else if (answer === 'desktop') { pauseSpeech(false); silenceAll(); closeFile(); quitToDesktop(); }
   };
 
   /** The ending's cutscene is done (IT'S ON): straight into the fight with the alien, in the press room, on his feet,
@@ -721,7 +742,7 @@ const App: React.FC = () => {
       const numWeapons = availableWeapons.length;
       if (dx === 0 && dy === 0) return false;
       // (the "are you sure": YES on the left, NO on the right)
-      if (confirmLeave) { if (dx) setConfirmYes(dx < 0); return true; }
+      if (confirmLeave) { if (dx) { const n = leaveAnswers(leaveTo).length; setConfirmPick(i => Math.max(0, Math.min(n - 1, i + Math.sign(dx)))); } return true; }
       // (the file's up: the cursor stays where it is till it's shut)
       if (pauseDossier) return true;
       setSelectedIndex(i => navigatePauseMenu(i, dx, dy, numWeapons));
@@ -735,7 +756,7 @@ const App: React.FC = () => {
     if (callOutro || intro !== 'off') return;
     if (status === GameStatus.START) { pickTitle(selectedIndex); return; }
     if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
-    else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(confirmYes); else if (!pauseDossier) activatePauseItem(selectedIndex); }
+    else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(leaveAnswers(leaveTo)[confirmPick]?.answer ?? 'no'); else if (!pauseDossier) activatePauseItem(selectedIndex); }
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
     // (the mid-game call runs its own confirm)
     else if (status === GameStatus.VICTORY && (progressionRank === 0 || callPreview)) return;
@@ -1039,7 +1060,7 @@ const App: React.FC = () => {
           pauseDossier={pauseDossier}
           onOpenPauseDossier={() => setPauseDossier(true)}
           onClosePauseDossier={() => setPauseDossier(false)}
-          confirmYes={confirmYes}
+          confirmPick={confirmPick}
           onAnswerLeave={answerBossSelect}
           lockedWeapon={lockedWeapon}
           onQuitToMenu={askQuit}

@@ -1,0 +1,9 @@
+{
+  "name": "meathead",
+  "productName": "Meathead",
+  "version": "1.0.0",
+  "description": "Meathead",
+  "author": "John Albright",
+  "private": true,
+  "main": "main.cjs"
+}

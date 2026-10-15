@@ -8,6 +8,7 @@ import {
 } from '../content/roster';
 import USAMap from './USAMap';
 import { PUBLIC_BUILD } from '../build';
+import { isDesktop } from '../game/platform/desktop';
 import BossPortrait from './BossPortrait';
 import CorpsePhoto from './CorpsePhoto';
 import WeaponIcon, { WeaponArt } from './WeaponIcon';
@@ -63,8 +64,9 @@ interface OverlayProps {
   engageShout?: string;
   /** What the "are you sure" is for: the boss select (this stage's progress) or quitting (the whole run). */
   leaveTo?: 'boss' | 'quit';
-  confirmYes?: boolean;
-  onAnswerLeave?: (yes: boolean) => void;
+  /** Which of the answers (leaveAnswers) is highlighted. */
+  confirmPick?: number;
+  onAnswerLeave?: (answer: LeaveAnswer) => void;
   /** Pause menu: its DOSSIER up (the file on this stage's boss; in the gym, the one on him), and opening / shutting it. */
   pauseDossier?: boolean;
   onOpenPauseDossier?: () => void;
@@ -213,16 +215,31 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
   </div>
 );
 
-/** One of the title's options: CONTINUE (the file played last), NEW GAME (the file select), OPTIONS. */
-export type TitleOption = { label: string; kind: 'continue' | 'new' | 'options'; intro: boolean };
+/** One of the title's options: CONTINUE (the file played last), NEW GAME (the file select), OPTIONS, QUIT GAME. */
+export type TitleOption = { label: string; kind: 'continue' | 'new' | 'options' | 'quit'; intro: boolean };
 /**
  * The title's menu: CONTINUE first, if there's a file to continue; then NEW GAME (the public build: just the one, and
- * it's always got the intro; otherwise with or without it); then the options.
+ * it's always got the intro; otherwise with or without it); then the options; and in the desktop app, QUIT GAME.
  */
 export const titleOptions = (hasFile: boolean): TitleOption[] => [
   ...(hasFile ? [{ label: 'CONTINUE', kind: 'continue' as const, intro: false }] : []),
   ...(PUBLIC_BUILD ? [{ label: 'NEW GAME', kind: 'new' as const, intro: true }] : [{ label: 'NEW GAME', kind: 'new' as const, intro: false }, { label: 'NEW GAME + INTRO', kind: 'new' as const, intro: true }]),
   { label: 'OPTIONS', kind: 'options', intro: false },
+  ...(isDesktop ? [{ label: 'QUIT GAME', kind: 'quit' as const, intro: false }] : []),
+];
+
+/** An answer to the pause menu's "are you sure": yes, no, or (quitting, in the desktop app) yes, all the way out. */
+export type LeaveAnswer = 'yes' | 'desktop' | 'no';
+/**
+ * The "are you sure"'s answers, left to right (NO always last, and highlighted first). Quitting in the desktop app it's
+ * QUIT TO TITLE, QUIT TO DESKTOP or NO; otherwise YES or NO.
+ */
+export const leaveAnswers = (leaveTo: 'boss' | 'quit' | undefined): { label: string; answer: LeaveAnswer; face: string; edge: string }[] => [
+  ...(leaveTo === 'quit' && isDesktop
+    ? [{ label: 'QUIT TO TITLE', answer: 'yes' as const, face: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', edge: '#450A0A' },
+      { label: 'QUIT TO DESKTOP', answer: 'desktop' as const, face: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', edge: '#450A0A' }]
+    : [{ label: 'YES', answer: 'yes' as const, face: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', edge: '#450A0A' }]),
+  { label: 'NO', answer: 'no', face: 'linear-gradient(180deg, #52525B, #3F3F46)', edge: '#18181B' },
 ];
 
 const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onTitlePick, titleOptions: options = [], onSelectIndex, selectedIndex, cheats, progressionRank, whiteHouseOpen, introOn }) => (
@@ -236,7 +253,7 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onTitlePick, title
         {options.map((o, i) => {
           const on = selectedIndex === i;
           // (OPTIONS isn't held back with the way in: there's nothing to skip past by opening it)
-          const lockedOut = isInputLocked && o.kind !== 'options';
+          const lockedOut = isInputLocked && o.kind !== 'options' && o.kind !== 'quit';
           return (
             <button key={o.label} disabled={lockedOut} onClick={() => onTitlePick?.(i)} onMouseEnter={() => onSelectIndex(i)}
               className={`relative w-[380px] px-10 ${options.length > 2 ? 'py-1.5' : 'py-2.5'} text-sm md:text-base whitespace-nowrap border-2 border-black font-black uppercase shrink-0 [text-shadow:2px_2px_0_#000] ${lockedOut
@@ -251,7 +268,7 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onTitlePick, title
         })}
       </div>
       <div className="mt-3 flex items-center gap-3 shrink-0">
-        {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label={options[selectedIndex]?.kind === 'new' ? 'START' : options[selectedIndex]?.kind === 'continue' ? 'CONTINUE' : 'OPEN'} size={15} className="text-[7px] font-black text-white/85 tracking-wider [text-shadow:1px_1px_0_#000] animate-pulse" />}
+        {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label={options[selectedIndex]?.kind === 'new' ? 'START' : options[selectedIndex]?.kind === 'continue' ? 'CONTINUE' : options[selectedIndex]?.kind === 'quit' ? 'QUIT' : 'OPEN'} size={15} className="text-[7px] font-black text-white/85 tracking-wider [text-shadow:1px_1px_0_#000] animate-pulse" />}
       </div>
     </div>
   </>
@@ -583,7 +600,7 @@ const EngageFlash: React.FC<{ bossId: string; shout?: string }> = ({ bossId, sho
  * buttons below it (RESUME, DOSSIER, OPTIONS, BOSS SELECT, QUIT). DOSSIER brings up the file on the stage's boss (in the gym,
  * the department's own file on him).
  */
-const PauseMenu: React.FC<OverlayProps> = ({ onOpenOptions, availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu, confirmLeave, leaveTo, confirmYes, onAnswerLeave, lockedWeapon, stageId, pauseDossier, onOpenPauseDossier, onClosePauseDossier }) => {
+const PauseMenu: React.FC<OverlayProps> = ({ onOpenOptions, availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu, confirmLeave, leaveTo, confirmPick, onAnswerLeave, lockedWeapon, stageId, pauseDossier, onOpenPauseDossier, onClosePauseDossier }) => {
   const isLocked = (w: WeaponType) => !!lockedWeapon && w !== lockedWeapon;
   const numWeapons = availableWeapons.length;
   const shown = selectedIndex < numWeapons ? availableWeapons[selectedIndex] : currentWeapon;
@@ -675,11 +692,11 @@ const PauseMenu: React.FC<OverlayProps> = ({ onOpenOptions, availableWeapons, cu
             <div className="text-yellow-400 text-[15px] font-black italic tracking-widest mb-2" style={{ textShadow: '2px 2px 0 #7F1D1D' }}>ARE YOU SURE?</div>
             <div className="text-zinc-300 text-[8px] font-black uppercase tracking-wider mb-4">{leaveTo === 'quit' ? "YOU'LL LOSE ALL YOUR PROGRESS: EVERY BOSS, EVERY WEAPON" : "YOU'LL LOSE YOUR PROGRESS ON THIS STAGE"}</div>
             <div className="flex gap-4">
-              {([['YES', true, 'linear-gradient(180deg, #B91C1C, #7F1D1D)', '#450A0A'], ['NO', false, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B']] as const).map(([label, yes, face, edge]) => {
-                const on = !!confirmYes === yes;
+              {leaveAnswers(leaveTo).map(({ label, answer, face, edge }, i) => {
+                const on = confirmPick === i;
                 return (
-                  <button key={label} onClick={() => onAnswerLeave?.(yes)}
-                    className={`relative pl-8 pr-5 py-[7px] text-white text-[11px] font-black tracking-wider transition-all ${on ? 'translate-y-[-1px]' : 'opacity-80 hover:opacity-100'}`}
+                  <button key={label} onClick={() => onAnswerLeave?.(answer)}
+                    className={`relative pl-8 pr-5 py-[7px] text-white text-[11px] font-black tracking-wider whitespace-nowrap transition-all ${on ? 'translate-y-[-1px]' : 'opacity-80 hover:opacity-100'}`}
                     style={{ background: face, borderBottom: `4px solid ${edge}`, boxShadow: on ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: on ? '2px solid #FACC15' : 'none' }}>
                     {on && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}{label}
                   </button>

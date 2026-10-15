@@ -5,6 +5,7 @@
 import { setMixLevel } from './platform/mixer';
 import { DEFAULT_KEYS, sanitizeKeys, setKeyBindings, type KeyBindings } from './platform/keys';
 import { storage, readJson, writeJson } from './save/storage';
+import { desktop } from './platform/desktop';
 
 export type Scaling = 'sharp' | 'stretch';
 export type ShakeLevel = 'heavy' | 'mild' | 'none';
@@ -99,9 +100,15 @@ export const loadSettings = () => {
   watchFullscreen();
 };
 
-// ---- fullscreen (the whole page: the game's what's on it)
-const isFullscreen = () => !!document.fullscreenElement;
+// ---- fullscreen (the whole page: the game's what's on it; in the desktop app, the window itself)
+const isFullscreen = () => (desktop ? desktop.isFullscreen() : !!document.fullscreenElement);
 export const setFullscreen = (on: boolean) => {
+  // (the desktop app: the window goes fullscreen, no press needed first, and F11 / Alt+Enter come back through watchFullscreen)
+  if (desktop) {
+    desktop.setFullscreen(on);
+    if (current.fullscreen !== on) updateSettings({ fullscreen: on });
+    return;
+  }
   try {
     if (on && !isFullscreen()) document.documentElement.requestFullscreen?.().catch(() => { if (current.fullscreen !== isFullscreen()) updateSettings({ fullscreen: isFullscreen() }); });
     else if (!on && isFullscreen()) document.exitFullscreen?.().catch(() => { /* already out */ });
@@ -112,6 +119,12 @@ let watching = false;
 const watchFullscreen = () => {
   if (watching || typeof document === 'undefined') return;
   watching = true;
+  if (desktop) {
+    // (the window's opened the way it was left; the setting follows it in and out, however it went: F11, Alt+Enter)
+    desktop.onFullscreenChange(on => { if (current.fullscreen !== on) updateSettings({ fullscreen: on }); });
+    if (current.fullscreen !== desktop.isFullscreen()) desktop.setFullscreen(current.fullscreen);
+    return;
+  }
   // (out with Esc, or in or out any other way: the setting follows)
   document.addEventListener('fullscreenchange', () => { if (current.fullscreen !== isFullscreen()) updateSettings({ fullscreen: isFullscreen() }); });
   // (remembered on: the browser only lets it go fullscreen off a press, so the first one does it)

@@ -24,6 +24,10 @@ dist-ssr
 *.sw?
 release
 
+# The desktop app (npm run release:steam): built, never committed
+release-public/steam/
+.steam-build/
+
 # Notes, not part of the game
 Stream of Consciousness/
 Fun Stuff/
