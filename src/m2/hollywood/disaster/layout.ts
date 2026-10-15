@@ -16,6 +16,7 @@
 
 import { SECTIONS, GY } from '../geometry';
 import type { StuntWire } from '../section';
+import type { HandLever } from '../lever';
 
 export const { x0, x1 } = SECTIONS.disaster;
 export { GY };
@@ -39,6 +40,9 @@ export const FX = { heater: 3620, fan: 3840, ac: 4080, squirt: 4300, fog: 4520 }
 export const CAT_L = { a: 2900, b: 3680, h: 420 } as const;
 export const CAT_R = { a: 4470, b: 5260, h: 420 } as const;
 export const BOOTH = { cab: 4930, b: 5240, lever: 4800 } as const;
+/** The booth's lever itself (../lever.ts, the coaster's haul): its pivot on the balcony, the grip, its throws
+ *  (SIMULATED to REAL), him square behind it. */
+export const REAL_LEVER: HandLever = { x: X(BOOTH.lever), y: Y(CAT_R.h) - 12, len: 60, from: -0.7, to: 0.7, stand: 0 };
 /** The tornado scene's cow, hung off the ceiling by the wire's start (decor; it goes in REAL DISASTERS). */
 export const COW_AT = { x: 3420, h: 520 } as const;
 

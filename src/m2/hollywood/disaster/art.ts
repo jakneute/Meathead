@@ -15,8 +15,9 @@ import { drawPerson } from '../../adventure/temple/people';
 import { words, print, enamel, marquee, ledgeLip, velvetRope, signW } from '../blvd/paint';
 import {
   X, Y, GY, LOBBY, PRESHOW, THEATER, FAR_WALL, SCREEN, FX, CAT_L, CAT_R, BOOTH, COW_AT, QUEUE_RAILS, RAIL_H, LEAN_RAILS,
-  WATCHERS, PRESHOW_WATCHERS, LEDGES, HORNS,
+  WATCHERS, PRESHOW_WATCHERS, LEDGES, HORNS, REAL_LEVER,
 } from './layout';
+import { throwAngle } from '../lever';
 import type { Dz } from './state';
 import { DISASTERS, FX_LEN } from './show';
 
@@ -393,18 +394,19 @@ const drawBooth = (c: Ctx, state: GameState, o: Dz) => {
     box(c, cx0 + 60, by - 4, 120, 4, '#7F1D1D'); box(c, cx0 + 120, by - 6, 30, 6, '#991B1B');
     box(c, cx0 + 50, by - 160, 120, 22, '#FEF3C7'); words(c, 'BACK IN 5', cx0 + 110, by - 144, print(1, '#18181B'));
   }
-  // The lever: on the balcony, its plate (SIMULATED / REAL (EXPERIMENTAL)), the handle thrown one way or the other
-  const lx = X(BOOTH.lever), k = o.lever;
-  box(c, lx - 2, by - 70, 4, 70, '#57534E');
-  box(c, lx - 62, by - 118, 124, 50, '#000'); box(c, lx - 60, by - 116, 120, 46, '#E7E5E4');
-  words(c, 'REAL DISASTERS', lx, by - 102, print(1, '#B91C1C'));
-  words(c, 'SIMULATED', lx - 30, by - 86, print(1, k < 0.5 ? '#15803D' : '#A8A29E'));
-  words(c, 'REAL', lx + 34, by - 86, print(1, k >= 0.5 ? '#DC2626' : '#A8A29E'));
-  words(c, '(EXPERIMENTAL)', lx, by - 74, print(1, '#57534E'));
-  box(c, lx - 14, by - 14, 28, 14, '#000'); box(c, lx - 12, by - 12, 24, 12, '#52525B');
-  c.save(); c.translate(lx, by - 10); c.rotate(-0.7 + k * 1.4);
-  box(c, -3, -46, 6, 46, '#000'); box(c, -2, -45, 4, 44, '#A1A1AA');
-  c.fillStyle = '#000'; c.beginPath(); c.arc(0, -48, 8, 0, Math.PI * 2); c.fill(); c.fillStyle = '#DC2626'; c.beginPath(); c.arc(0, -48, 6, 0, Math.PI * 2); c.fill();
+  // The lever: on the balcony, its plate (SIMULATED / REAL (EXPERIMENTAL)) up on its post over his head (nothing over
+  // it while he hauls), the handle thrown one way or the other (mid-throw, where he's hauled it: ../lever.ts)
+  const lv = REAL_LEVER, lx = lv.x, ang = throwAngle(lv, o.pull, o.real.phase !== 'off'), on = ang > 0, pt = by - 160;
+  box(c, lx - 2, pt + 50, 4, by - pt - 50, '#57534E');
+  box(c, lx - 62, pt - 2, 124, 54, '#000'); box(c, lx - 60, pt, 120, 50, '#E7E5E4');
+  words(c, 'REAL DISASTERS', lx, pt + 14, print(1, '#B91C1C'));
+  words(c, 'SIMULATED', lx - 30, pt + 30, print(1, !on ? '#15803D' : '#A8A29E'));
+  words(c, 'REAL', lx + 34, pt + 30, print(1, on ? '#DC2626' : '#A8A29E'));
+  words(c, '(EXPERIMENTAL)', lx, pt + 43, print(1, '#57534E'));
+  box(c, lx - 16, by - 14, 32, 14, '#000'); box(c, lx - 14, by - 12, 28, 12, '#52525B');
+  c.save(); c.translate(lx, lv.y); c.rotate(ang);
+  box(c, -3, -lv.len + 2, 6, lv.len - 2, '#000'); box(c, -2, -lv.len + 3, 4, lv.len - 4, '#A1A1AA');
+  c.fillStyle = '#000'; c.beginPath(); c.arc(0, -lv.len, 8, 0, Math.PI * 2); c.fill(); c.fillStyle = '#DC2626'; c.beginPath(); c.arc(0, -lv.len, 6, 0, Math.PI * 2); c.fill();
   c.restore();
 };
 
@@ -468,19 +470,24 @@ export const drawDisasterFront = (c: Ctx, state: GameState, o: Dz, real: boolean
   if (r.cow) { c.save(); c.translate(r.cow.x, r.cow.y); c.rotate(r.cow.rot); box(c, -30, -14, 60, 28, '#000'); box(c, -28, -12, 56, 24, '#F8FAFC'); box(c, -14, -12, 16, 12, '#1C1917'); box(c, 24, -22, 18, 16, '#F8FAFC'); for (const lx of [-22, -8, 8, 20]) box(c, lx, 12, 5, 14, '#F8FAFC'); c.restore(); }
 };
 
+/** A light's color, faint (the engine adds it over what it lights, and tints whoever's in it by it at 0.3 of how lit
+ *  they are: a plain hex color there went over him at full strength, lighting him up white in the dark theater). */
+const tint = (hex: string, a: number) => `rgba(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)}, ${a})`;
+
 /** The light: a dark room lit by its screen (the red gel in the volcano, the fire and the red sky once it's real). */
 export const disasterLights = (o: Dz, beat: number, k: number, real: boolean): Light[] => {
   const out: Light[] = [
-    { x: X(300), y: Y(LOBBY.ceil) + 40, r: 360, a: 0.8, color: '#FDE68A' },
-    { x: X(1000), y: Y(LOBBY.ceil) + 40, r: 360, a: 0.8, color: '#FDE68A' },
-    { x: X(1650), y: Y(LOBBY.ceil) + 40, r: 320, a: 0.8, color: '#FDBA74' },
-    { x: X(PRESHOW.tv), y: Y(PRESHOW.ceil) + 140, r: 360, a: 0.85, color: real ? '#E7E5E4' : '#FDBA74' },
-    { x: X((SCREEN.a + SCREEN.b) / 2), y: Y((SCREEN.lo + SCREEN.hi) / 2), r: 720, a: 0.85, color: real ? '#FCA5A5' : ['#E0F2FE', '#FCA5A5', '#CBD5E1', '#F8FAFC', '#93C5FD', '#FDBA74'][beat] },
-    { x: X(BOOTH.cab + 150), y: Y(CAT_R.h) - 80, r: 220, a: 0.8, color: '#7DD3FC' },
-    { x: X(CAT_L.a + 300), y: Y(CAT_L.h) - 60, r: 260, a: 0.6, color: '#FDE68A' },
+    { x: X(300), y: Y(LOBBY.ceil) + 40, r: 360, a: 0.8, color: tint('#FDE68A', 0.14) },
+    { x: X(1000), y: Y(LOBBY.ceil) + 40, r: 360, a: 0.8, color: tint('#FDE68A', 0.14) },
+    { x: X(1650), y: Y(LOBBY.ceil) + 40, r: 320, a: 0.8, color: tint('#FDBA74', 0.14) },
+    { x: X(PRESHOW.tv), y: Y(PRESHOW.ceil) + 140, r: 360, a: 0.85, color: tint(real ? '#E7E5E4' : '#FDBA74', 0.14) },
+    // (the screen: the room's light, but it's a dim theater: soft on whoever's down in it)
+    { x: X((SCREEN.a + SCREEN.b) / 2), y: Y((SCREEN.lo + SCREEN.hi) / 2), r: 720, a: 0.7, color: tint(real ? '#FCA5A5' : ['#E0F2FE', '#FCA5A5', '#CBD5E1', '#F8FAFC', '#93C5FD', '#FDBA74'][beat], 0.12) },
+    { x: X(BOOTH.cab + 150), y: Y(CAT_R.h) - 80, r: 220, a: 0.7, color: tint('#7DD3FC', 0.12) },
+    { x: X(CAT_L.a + 300), y: Y(CAT_L.h) - 60, r: 260, a: 0.5, color: tint('#FDE68A', 0.1) },
   ];
-  if (!real && beat === 1 && k >= 0 && k < FX_LEN - 40) out.push({ x: X(FX.heater + 36), y: GY - 150, r: 420, a: 0.9, color: '#EF4444' });
-  if (real || o.real.fire > 0) out.push({ x: X(FX.heater), y: GY - 30, r: 360, a: 0.95, color: '#F97316' });
-  if (real) out.push({ x: X(FAR_WALL + 200), y: GY - 200, r: 700, a: 0.9, color: '#EA580C' });
+  if (!real && beat === 1 && k >= 0 && k < FX_LEN - 40) out.push({ x: X(FX.heater + 36), y: GY - 150, r: 420, a: 0.85, color: tint('#EF4444', 0.2) });
+  if (real || o.real.fire > 0) out.push({ x: X(FX.heater), y: GY - 30, r: 360, a: 0.9, color: tint('#F97316', 0.18) });
+  if (real) out.push({ x: X(FAR_WALL + 200), y: GY - 200, r: 700, a: 0.9, color: tint('#EA580C', 0.16) });
   return out;
 };

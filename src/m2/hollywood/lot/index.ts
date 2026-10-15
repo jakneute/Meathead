@@ -21,7 +21,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { HollywoodSection, Said } from '../section';
-import { layOwn, ledge, solid, endWalls, endExits, runExits, meatheadSays, speak, saidOver, realDisastersOn } from '../section';
+import { layOwn, ledge, solid, endWalls, endExits, runExits, meatheadSays, speak, saidOver, realDisastersOn, hands } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { X, Y, R, GROUND, SOLIDS, LEDGES, WIRES, ENEMIES, PICKUPS, CHECKPOINTS, TANK, FALL_TOWER, PIT1, PIT2, RAIN, TOWER, GIFT, RIDE_DOORS, SPEAKERS, READERS, DUMP } from './layout';
 import './kinds';
@@ -30,7 +30,7 @@ import { outOf } from '../blvd/state';
 import { updateShots, drawShots } from '../blvd/shots';
 import { paSay, runThieves } from '../blvd';
 import { flash, BACK_Y } from '../blvd/paint';
-import { updateEffects, drawRainBack, drawRainFront, drawFloodBack, drawFloodFront } from './effects';
+import { updateEffects, drawRainBack, drawRainFront, drawFloodBack, drawFloodFront, flungOut } from './effects';
 import { drawLotBackdrop, drawLotBack, lotLamps } from './art';
 import { ARRIVE, DUMPSTER_AGAIN, GAG_LINES, FALL_SCREAM, LOT_VOICES, GOSSIP, GOSSIP_HIM, PA_LOT, PA_LEAK, PA_RAIN, PA_FLOOD, PA_STEVE_LOT, PA_DISASTER } from './lines';
 
@@ -109,6 +109,8 @@ export const lot: HollywoodSection = {
     if (p.isGrounded || p.carried) lt.falling = false;
     else if (!lt.falling && inPit && p.pos.y + p.height > GY + 30) { lt.falling = true; meatheadSays(state, pick(FALL_SCREAM), false); playSound('whoosh', 0.8, -8); }
     runExits(state, endExits('lot'));
+    // (flung back out of the flood tank: none of his own say in where he goes till he's down on the bank)
+    if (flungOut(state)) return hands();
     return controls;
   },
   drawBackdrop: (c, state) => drawLotBackdrop(c, state),

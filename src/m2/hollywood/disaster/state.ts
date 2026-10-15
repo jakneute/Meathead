@@ -5,6 +5,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block, Enemy } from '../../../m1/types';
 import type { Said } from '../section';
+import type { LeverThrow } from '../lever';
 
 /** A guest in the queue: where (rx), their seed, shoved (frames left of the stumble, which way), mad (frames). */
 export interface QGuest { rx: number; seed: number; shove: number; dir: number; mad: number }
@@ -44,6 +45,8 @@ export interface Dz {
   real: Real;
   /** The lever's throw (0 SIMULATED .. 1 REAL), for drawing; up let go since the last press. */
   lever: number; upLatch: boolean;
+  /** The lever being hauled over (../lever.ts), till he's let go of it. */
+  pull: LeverThrow | null;
   /** The far wall's block (till it's gone). */
   wall: Block | null;
   /** The real fire's last hit on each (frame). */
@@ -62,7 +65,7 @@ export const dzOf = (state: GameState): Dz => {
       barks: new WeakMap(), barkAt: -9999, guestSaid: null, guestAt: -9999, guests: [], sleeper: null, sleepAt: -9999,
       show: { beat: 0, t: -1, on: 0, loops: 0, squirt: [] },
       real: { phase: 'off', step: 0, t: 0, all: 0, done: false, fade: 0, shake: 0, crack: 0, fire: 0, frost: 0, flood: 0, wall: 0, truss: 0, fan: null, cow: null, squashed: false },
-      lever: 0, upLatch: true, wall: null, burnt: new WeakMap(), doorL: 0, doorT: 0,
+      lever: 0, upLatch: true, pull: null, wall: null, burnt: new WeakMap(), doorL: 0, doorT: 0,
     };
     ALL.set(k, o);
   }

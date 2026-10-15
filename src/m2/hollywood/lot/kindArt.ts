@@ -63,11 +63,13 @@ const paintCart = (g: Ctx, F: Frame) => {
   // (the cart: a white tub on four small wheels, a canopy on posts, the light on the roof; the guard sat in it)
   const B = bodyOf(F.seed, 'stand', 0), L = B.L;
   const dead = F.md === 'dead';
-  for (const wx of [-30, 30]) { ball(g, wx, -9, 9, '#18181B', 1.2); ball(g, wx, -9, 4, '#A1A1AA', 0.8); }
-  part(g, () => g.roundRect(-42, -40, 84, 28, 5), '#F8FAFC', -42, -40, 84, 28, 1.4);
-  px(g, -40, -24, 80, 3, '#1D4ED8');
-  // (the guard: sat, from the waist up, behind the wheel)
-  g.save(); g.translate(-6, 18);
+  // (the seat's back, behind him: its cushion up from the tub's rim)
+  part(g, () => g.roundRect(-34, -64, 12, 28, 3), '#27272A', -34, -64, 12, 28, 1);
+  // (the guard: sat on the bench, his seat at the tub's rim, so the side of the cart hides him from the waist down;
+  // head and shoulders up under the canopy, behind the wheel. Translated so his shoulders are ~60 up off the ground
+  // and his head (~72 up) sits where the kind says it is)
+  const sx = -10, sy = -6;
+  g.save(); g.translate(sx, sy);
   torso(g, B, '#1E3A8A');
   px(g, -4, B.shY + 8, 8, 6, '#FACC15');
   hairBack(g, B);
@@ -76,11 +78,19 @@ const paintCart = (g: Ctx, F: Frame) => {
   whiskers(g, B);
   part(g, () => g.roundRect(B.hx - 9, B.hy - 11, 18, 6, 2), '#1E3A8A', B.hx - 9, B.hy - 11, 18, 6, 0.9);
   px(g, B.hx + 6, B.hy - 7, 9, 2, '#1E3A8A');
-  arm(g, B, 1, B.w / 2 + 14, B.shY + 10, { sleeve: '#1E3A8A', hand: L.skin });
   g.restore();
-  // (the wheel, the canopy, its posts, the light)
-  limb(g, 12, -40, 18, -52, 2, '#27272A');
-  ball(g, 19, -53, 4, '#27272A', 0.8);
+  // (the cart's side, in front of his lap and legs; the wheels under it)
+  for (const wx of [-30, 30]) { ball(g, wx, -9, 9, '#18181B', 1.2); ball(g, wx, -9, 4, '#A1A1AA', 0.8); }
+  part(g, () => g.roundRect(-42, -40, 84, 28, 5), '#F8FAFC', -42, -40, 84, 28, 1.4);
+  px(g, -40, -24, 80, 3, '#1D4ED8');
+  // (the dash at the front, up to the wheel; the column, the wheel; his near arm out to it, fist on the rim)
+  part(g, () => g.roundRect(26, -50, 16, 12, 3), '#E4E4E7', 26, -50, 16, 12, 1);
+  limb(g, 30, -46, 22, -62, 2.5, '#27272A');
+  part(g, () => g.ellipse(21, -64, 3, 7, 0.35, 0, Math.PI * 2), '#27272A', 17, -71, 8, 14, 0.9);
+  g.save(); g.translate(sx, sy);
+  arm(g, B, 1, 21 - sx, -66 - sy, { sleeve: '#1E3A8A', hand: L.skin });
+  g.restore();
+  // (the canopy's posts, the canopy, the light)
   px(g, -40, -96, 4, 56, '#71717A'); px(g, 34, -96, 4, 56, '#71717A');
   part(g, () => g.rect(-44, -102, 88, 8), '#F8FAFC', -44, -102, 88, 8, 1.2);
   const lit = (F.pose === 'tell' || F.pose === 'strike') && F.fr % 2 === 0;

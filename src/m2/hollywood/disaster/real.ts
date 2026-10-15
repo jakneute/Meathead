@@ -107,6 +107,8 @@ const finish = (ctx: FrameContext, skipped: boolean) => {
   wreckAll(o); dropWall(state, o);
   r.phase = 'done'; r.fade = 0;
   p.inCutscene = false; p.vel.x = 0;
+  // (off the lever, if a skip came before he'd let go of it)
+  p.leverPull = undefined; o.pull = null;
   // (back on the balcony, by the lever, if the quake threw him off it)
   if (p.pos.y + p.height > Y(CAT_R.h) + 4 || Math.abs(R(p.pos.x + p.width / 2) - BOOTH.lever) > 200) { p.pos.x = X(BOOTH.lever - 60) - p.width / 2; p.pos.y = Y(CAT_R.h) - p.height; p.vel.y = 0; }
   state.cameraOverride = null;

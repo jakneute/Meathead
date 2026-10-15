@@ -66,6 +66,13 @@ export const GAG_LINES: Record<'merch' | 'gate' | 'newyork' | 'rain' | 'flood' |
 };
 /** Grabbed and yanked by a lasso (sometimes). */
 export const LASSOED = ['YEE-HAW MY ASS!', 'LET GO OF ME, COWBOY!'];
+/** Flung back out of the flood tank, gagging (if the sting didn't already get a hurt line out of him). */
+export const TANK_GAG = [
+  'BLEAGH! IT\'S WARM! WHY IS IT WARM?!',
+  'NOPE! NOPE! NOT SWIMMING IN PISS!',
+  'IT GOT IN MY MOUTH! IT TASTES LIKE THE TOUR!',
+  'I\'M OUT! I\'M OUT! SOMEBODY HOSE ME DOWN!',
+];
 /** Over the edge into the stunt pit or the foundation pit (once a fall). */
 export const FALL_SCREAM = ['TIMBERRRR!', 'NOT IN THE PIIIIT!'];
 
@@ -200,11 +207,15 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
     hurt: ['THE FLOOD GOT ME! IT\'S FULL OF PEE!', 'FLASH FLOOD! IN MY MOUTH!', 'I SWALLOWED THE TOUR!'],
     death: ['DROWNED IN THE FLOOD TANK', 'THE TOUR\'S MOST BELOVED EFFECT'],
   },
+  'm2:hw_tank': {
+    hurt: ['TOURIST PEE! IN MY EYES!', 'I FELL IN THE PISS TANK!', 'GET ME OUT! IT\'S CHUNKY!'],
+    death: ['DIED IN THE PEE TANK', 'DROWNED IN TOURIST PISS'],
+  },
 };
 
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...ARRIVE, ...DUMPSTER_AGAIN, ...Object.values(GAG_LINES).flat(), ...FALL_SCREAM,
+    ...ARRIVE, ...DUMPSTER_AGAIN, ...Object.values(GAG_LINES).flat(), ...FALL_SCREAM, ...TANK_GAG,
     ...Object.entries(HURT).flatMap(([k, h]) => (k === 'm2:hw_lasso' ? h.hurt.slice(LASSOED.length) : h.hurt)), ...LASSOED,
   ],
   death: Object.values(HURT).flatMap(h => h.death),

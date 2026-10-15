@@ -30,12 +30,13 @@ import { lookOf } from '../../adventure/temple/people';
 import { setUi } from '../../store';
 import { setHazardZones, hazardVictims, hazardHit, boxHits } from '../../hazardHit';
 import type { HollywoodSection } from '../section';
-import { layOwn, ledge, solid, endWalls, endExits, runExits, meatheadSays, speak, saidOver, realDisastersOn, setRealDisasters } from '../section';
+import { layOwn, ledge, solid, endWalls, endExits, runExits, meatheadSays, speak, saidOver, realDisastersOn, setRealDisasters, hands } from '../section';
+import { startThrow, tickThrow } from '../lever';
 import { byPants } from '../blvd/kinds';
 import { PA_VOICE } from '../blvd/lines';
 import {
   x0, x1, X, Y, R, GY, GROUND, SOLIDS, LEDGES, WIRES, ENEMIES, THEATER_ENEMIES, PICKUPS, CHECKPOINTS, GUESTS, RAIL_H,
-  LOBBY, PRESHOW, THEATER, FAR_WALL, SCREEN, FX, CAT_L, CAT_R, BOOTH, HORNS,
+  LOBBY, PRESHOW, THEATER, FAR_WALL, SCREEN, FX, CAT_L, CAT_R, BOOTH, HORNS, REAL_LEVER,
 } from './layout';
 import { dzOf, type Dz } from './state';
 import './kinds';
@@ -137,6 +138,13 @@ export const disaster: HollywoodSection = {
     if (!controls.up) o.upLatch = false;
     const upIn = !!controls.up && !o.upLatch;
     if (upIn) o.upLatch = true;
+    // The lever, being hauled over (../lever.ts, the coaster's haul): REAL the frame it hits its stop (the cutscene
+    // takes over; his hands come off it as the cut goes); hurt or knocked off partway, he lets go (up to try again)
+    if (o.pull) {
+      const step = tickThrow(state, REAL_LEVER, o.pull);
+      if (step === 'thrown') startReal(ctx);
+      else if (step === 'done') o.pull = null;
+    }
     // (started further on by the cheat (set after the build): it's real)
     if (state.checkpoint >= 43 && o.real.phase === 'off') { setRealDisasters(state); settle(state, o); }
     const real = realDisastersOn(state);
@@ -150,6 +158,7 @@ export const disaster: HollywoodSection = {
     // (the theater's doors, swinging as he goes through)
     o.doorT += ((Math.abs(rx - PRESHOW.b) < 90 ? 1 : 0) - o.doorT) * 0.2;
     if (p.health <= 0 || p.inCutscene) return controls;
+    if (o.pull) return hands();
     const busy = () => !!o.pa || o.paBusy || isTalking();
     // The lobby: the PA, him, Steve; the queue
     if (rx < LOBBY.b) {
@@ -178,7 +187,7 @@ export const disaster: HollywoodSection = {
       if (!real && onBalcony && once(state, 'booth')) meatheadSays(state, pick(L.BOOTH), true);
       if (!real && onBalcony && Math.abs(rx - BOOTH.lever) < 44) {
         setUi({ upPrompt: 'PULL THE LEVER' });
-        if (upIn) { startReal(ctx); return updateReal(ctx) ?? controls; }
+        if (upIn) { o.pull = startThrow(); return hands(); }
       }
     }
     // Out through the hole
@@ -217,7 +226,9 @@ export const disaster: HollywoodSection = {
   lighting: (state) => {
     const o = dzOf(state), { beat, k } = showNow(o), real = realDisastersOn(state);
     const rx = R(state.camera.x + CANVAS_WIDTH / 2);
-    return { dark: rx < THEATER.a - 200 ? 0.22 : real ? 0.42 : 0.55, shade: [14, 8, 20], lights: disasterLights(o, beat, k, real) };
+    // (the theater's a dim room: he keeps less of himself out of its dark than the engine's default, like everybody)
+    const lobby = rx < THEATER.a - 200;
+    return { dark: lobby ? 0.22 : real ? 0.42 : 0.55, shade: [14, 8, 20], lights: disasterLights(o, beat, k, real), rim: lobby ? undefined : 0.3 };
   },
   wires: () => WIRES,
 };

@@ -12,8 +12,8 @@
 //          thunder), and the fake lightning really zaps the wet street: be up off it (the fire escapes, the crates)
 //          when it goes. Backlot security in a golf cart (alone), a guide up a fire escape.
 //   3000   CHECKPOINT. THE FLASH FLOOD tank, sunk across the street: three stunt wires in a chain over it (jump from
-//          one to the next), and the dump tank's surge every so often, knocking him off a low one. Fall in: it hurts,
-//          and he's back at the edge. Centurion extras on the far side (don't charge the spear).
+//          one to the next), and the dump tank's surge every so often, knocking him off a low one. Fall in (it's
+//          tourist pee): it stings, and he's flung back out onto the nearer bank, gagging. Centurion extras on the far side (don't charge the spear).
 //   4700   CHECKPOINT. THE WESTERN TOWN: cowboy extras (the lasso), a centurion; the WATER TOWER, a camera dolly (a
 //          shuttle wire: it runs on its own) up to its tank (a small ammo); MAIN STREET COLLAPSE, a pit, over it on
 //          another shuttle, the old stunt show's fall tower in the middle of it with two extras stood on it in his
