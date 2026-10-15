@@ -10,7 +10,7 @@
 import { type Ctx, type Prop, type SceneDef, INK, HOR, box, hash, smoke, fire } from './kit';
 import { timeOfDay, hourMix } from '../timeOfDay';
 import { slate } from './toys';
-import { drawSteve } from '../hollywood/stunt/steve';
+import { drawSteve, drawSteveAsh, drawSteveBrace } from '../hollywood/stunt/steve';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The floor: asphalt, the lanes, the drift marks
@@ -95,11 +95,11 @@ const steveDown = (g: Ctx, w: number, h: number) => { g.save(); g.translate(w * 
 const pants = (g: Ctx, w: number, h: number) => { box(g, 0, h * 0.2, w, h * 0.6, INK); box(g, 1, h * 0.25, w - 2, h * 0.5, '#CA8A04'); box(g, w * 0.4, h * 0.25, w * 0.08, h * 0.5, '#DC2626'); for (let i = 0; i < 6; i++) box(g, hash(i) * w, h * 0.3 + hash(i * 2) * h * 0.4, 3, 2, '#1C1917'); };
 /** His ash, the gold aviators on top, the neck brace rolled off by it. */
 const ash = (g: Ctx, w: number, h: number) => {
-  g.fillStyle = INK; g.beginPath(); g.ellipse(w * 0.45, h, w * 0.42, h * 0.8, 0, Math.PI, 0); g.fill();
-  g.fillStyle = '#57534E'; g.beginPath(); g.ellipse(w * 0.45, h, w * 0.4, h * 0.7, 0, Math.PI, 0); g.fill();
-  g.fillStyle = '#78716C'; g.beginPath(); g.ellipse(w * 0.4, h * 0.9, w * 0.22, h * 0.4, 0, Math.PI, 0); g.fill();
-  box(g, w * 0.32, h * 0.25, w * 0.28, h * 0.08, '#CA8A04'); box(g, w * 0.33, h * 0.3, w * 0.11, h * 0.12, '#1C1917'); box(g, w * 0.47, h * 0.3, w * 0.11, h * 0.12, '#1C1917');
-  box(g, w * 0.82, h * 0.55, w * 0.16, h * 0.4, INK); box(g, w * 0.83, h * 0.58, w * 0.14, h * 0.34, '#F1F5F9');
+  const s = w / 130;
+  g.save(); g.translate(0, h); g.scale(s, s);
+  drawSteveAsh(g, 54, 0, 1, 0);
+  drawSteveBrace(g, 118, 0, 0);
+  g.restore();
 };
 
 const props = (weakness: boolean): Prop[] => {

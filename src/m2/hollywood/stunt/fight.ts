@@ -48,7 +48,7 @@ import {
 } from './cars';
 import { CAR, drawCar, drawCarShadow, extents } from './carArt';
 import type { Car } from './state';
-import { drawSteve, STEVE_H, type StevePose } from './steve';
+import { drawSteve, drawSteveAsh, drawSteveBrace, drawStevePants, STEVE_H, type StevePose } from './steve';
 import { drawSkids, drawRamp, drawHoop, drawRing, drawPyro, ringAt, PYRO_X } from './art';
 import * as L from './lines';
 
@@ -712,7 +712,7 @@ const poseOf = (f: Fight): StevePose => {
 };
 
 const drawHim = (c: Ctx, f: Fight, fr: number) => {
-  const look = { singe: f.singe, frizz: f.frizz };
+  const look = { singe: f.singe, frizz: f.frizz, damage: Math.max(0, 1 - Math.max(0, f.hp) / HP) };
   const d = f.death;
   if (f.mode === 'dead' && d) {
     if (d.how === 'fried') {
@@ -721,18 +721,16 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
       if (d.step === 'topple') { c.save(); c.translate(d.x, GY); c.rotate(d.rot * f.facing); drawSteve(c, 0, 0, f.facing, 'charred', fr, look); c.restore(); return; }
       // (ash: a pile, his aviators on top, the neck brace rolled off beside it)
       const k = Math.min(1, (d.t - d.at) / 40);
-      c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(d.x + f.facing * 40, GY, 46 * k + 4, 16 * k + 2, 0, Math.PI, 0); c.fill();
-      c.fillStyle = '#57534E'; c.beginPath(); c.ellipse(d.x + f.facing * 40, GY, 44 * k + 2, 14 * k + 1, 0, Math.PI, 0); c.fill();
       if (k < 1) { c.save(); c.translate(d.x, GY); c.rotate((Math.PI / 2) * f.facing); c.globalAlpha = 1 - k; drawSteve(c, 0, 0, f.facing, 'charred', fr, look); c.restore(); }
-      box(c, d.x + f.facing * 40 - 9, GY - 16 * k - 6, 18, 4, '#CA8A04'); box(c, d.x + f.facing * 40 - 8, GY - 16 * k - 5, 7, 4, '#1C1917'); box(c, d.x + f.facing * 40 + 1, GY - 16 * k - 5, 7, 4, '#1C1917');
-      box(c, d.x + f.facing * 100, GY - 8, 16, 8, '#F1F5F9');
+      drawSteveAsh(c, d.x + f.facing * 40, GY, k, fr);
+      drawSteveBrace(c, d.x + f.facing * 100, GY, fr);
       return;
     }
     const lk = { ...look, pantsDown: !!d.pants };
     switch (d.step) {
       case 'start': case 'announce': drawSteve(c, d.x, GY, f.facing, d.t < 30 ? 'hurt' : 'thumb', fr, look); return;
       case 'car': drawSteve(c, d.x, GY, f.facing, 'sidestep', fr, look); return;
-      case 'back': drawSteve(c, d.x + (fr % 2 ? 1 : -1), GY, f.facing, 'sidestep', fr, look); return;
+      case 'back': drawSteve(c, d.x + (fr % 2 ? 1 : -1), GY, f.facing, 'sidestep', fr, { ...look, back: true }); return;
       case 'fly': drawSteve(c, d.x, d.y, f.facing, 'tumble', fr, lk); return;
       case 'hoop': case 'drop': {
         const r = ringAt(f.side);
@@ -793,7 +791,7 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   if (f.mode !== 'dead' ? f.sz < CUT : true) drawHim(c, f, fr);
   // (his pants, off and burning on the floor)
   const pt = f.death?.pants;
-  if (pt) { box(c, pt.x - 12, pt.y - 6, 24, 10, '#1A0B06'); box(c, pt.x - 11, pt.y - 5, 22, 8, '#FACC15'); if (fr % 6 < 3) box(c, pt.x - 4, pt.y - 14, 8, 8, '#F97316'); }
+  if (pt) drawStevePants(c, pt.x, pt.y + 4, fr);
 };
 
 /** World space, in front of him: the cars in front, Steve dragged in front, thrown cars, the tow rope, the words,
