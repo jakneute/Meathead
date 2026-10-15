@@ -93,7 +93,7 @@ export const stunt: HollywoodSection = {
     }
     return controls;
   },
-  cameraX: (state) => (stuntOf(state).fight === 'on' ? { min: ARENA_L, max: ARENA_R - 800 } : { min: x0, max: ARENA_R + 40 - 800 }),
+  cameraX: (state) => (stuntOf(state).fight === 'wait' ? { min: x0, max: ARENA_R + 40 - 800 } : { min: ARENA_L, max: ARENA_R - 800 }),
   cameraRow: () => CAM_ROW,
   drawBackdrop: (c, state) => drawStuntBackdrop(c, state),
   drawBack: (c, state) => {
