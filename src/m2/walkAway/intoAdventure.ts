@@ -9,6 +9,8 @@ import { noteSun } from '../sunFlare';
 import { gateSign } from '../adventure/jungle/art/props';
 import { SIGNS } from '../adventure/jungle/layout';
 import { LEAF, BARK, MOSS, EARTH, clump, fern, bigLeaf, bark, roots } from '../adventure/jungle/art/paint';
+import { snap2, wave, jag, range, mist, canopy, palm } from '../adventure/farArt';
+import { farStrip } from './farStrip';
 
 /** The jungle's own world pixels a meter, here (him: 70 px in the game; 2.4 m in this picture). */
 const PPM = 29;
@@ -69,33 +71,13 @@ const back = (c: Ctx, t: number, sway: number) => {
   // (low: in the open gap, its glare and the lens's ghosts; high, it's behind the leaves: a glimmer)
   const low = sp.y > 20;
   noteSun(c, sp.x, sp.y, low ? 1 : 0.35, low ? 0.8 : 0, 0.5);
-  // The far jungle: three walls of it, each nearer one darker and taller, a gap in the middle where the path goes
-  const walls: [string, number, number][] = [
-    [H('#6C8E7A', '#7A4A5E', '#1A2238'), 18, 0.09],
-    [H('#4A6E4A', '#4E2E44', '#121A2C'), 30, 0.16],
-    [H('#2E4E2C', '#2E1C2E', '#0A1020'), 44, 0.28],
-  ];
-  walls.forEach(([col, hgt, par], wi) => {
-    const jx = sway * par * 3;
-    c.fillStyle = col;
-    c.beginPath(); c.moveTo(0, HOR + 2);
-    for (let x = 0; x <= LW; x += 2) {
-      const gap = Math.max(0, 1 - Math.abs(x - 200 - jx) / (40 + wi * 26));
-      const top = hgt * (1 - gap * 0.85) + 6 * Math.abs(Math.sin((x + jx) * (0.05 + wi * 0.02) + wi)) + 4 * Math.abs(Math.sin((x + jx) * 0.017 + wi * 2));
-      c.lineTo(x, HOR - Math.round(top));
-    }
-    c.lineTo(LW, HOR + 2); c.fill();
-    // (their tops lit, a palm or two sticking up)
-    const lit = mix(col, H('#B8D890', '#F2995A', '#3A4A74'), 0.35);
-    for (let x = 0; x < LW; x += 3) if (Math.abs(x - 200 - jx) > 50 + wi * 30 && hash(x * 0.37 + wi) > 0.6) box(c, x, HOR - hgt - 4 + Math.round(4 * Math.sin(x * 0.2)), 2, 1, lit);
-    for (let i = 0; i < 4; i++) {
-      const px = Math.round(((i * 97 + wi * 41) % LW) + jx);
-      if (Math.abs(px - 200) < 60 + wi * 30) continue;
-      const top = HOR - hgt - 14 - (i % 2) * 6;
-      c.strokeStyle = col; c.lineWidth = 1;
-      c.beginPath(); c.moveTo(px, HOR - hgt + 4); c.lineTo(px + 1, top); c.stroke();
-      for (const [dx, dy] of [[-7, 3], [7, 3], [-5, -2], [5, -2], [0, -4]]) { c.beginPath(); c.moveTo(px + 1, top); c.quadraticCurveTo(px + 1 + dx * 0.6, top - 3, px + 1 + dx, top + dy); c.stroke(); }
-    }
+  // Far off down the gap: the peaks past the jungle, in their mist (Adventure Land's far kit: farStrip.ts)
+  c.drawImage(farStrip('pw-adv-peaks', SW, PEAKS_H, g => paintPeaks(g, H)), -MARGIN + Math.round(sway * 0.1), HOR + 1 - PEAKS_H);
+  // The far jungle: three walls of it, each nearer one darker and taller, a gap in the middle where the path goes;
+  // each painted once for the hour (stepped crowns, palms up out of it, mist at its foot), slid by his sway
+  WALLS.forEach((w, wi) => {
+    const h = w.hgt + 28;
+    c.drawImage(farStrip(`pw-adv-wall${wi}`, SW, h, g => paintWall(g, H, wi, h)), -MARGIN + Math.round(sway * w.par * 3), HOR + 2 - h);
   });
   // (mist lying in the gap, banded)
   const mist = mix(tod.haze, '#FFFFFF', 0.25);
@@ -126,6 +108,50 @@ const back = (c: Ctx, t: number, sway: number) => {
     const swy = Math.sin(t * 0.02 + i) * 2;
     for (let y = 0; y < len; y += 2) { const xx = Math.round(vx + sway * 0.8 + swy * (y / len)); box(c, xx, top + y, 1, 2, leaf[1]); if (y % 8 === 4) box(c, xx - 1, top + y, 3, 1, leaf[2]); }
   }
+};
+
+/** The far strips: the picture's width and a margin either side (for the sway). */
+const MARGIN = 30, SW = LW + MARGIN * 2, PEAKS_H = 40;
+type Hour = (day: string, sundown: string, night: string) => string;
+/** The jungle's three far walls: their color at each hour, how tall (picture px over the horizon), how fast they slide. */
+const WALLS: { col: [string, string, string]; hgt: number; par: number }[] = [
+  { col: ['#6C8E7A', '#7A4A5E', '#1A2238'], hgt: 18, par: 0.09 },
+  { col: ['#4A6E4A', '#4E2E44', '#121A2C'], hgt: 30, par: 0.16 },
+  { col: ['#2E4E2C', '#2E1C2E', '#0A1020'], hgt: 44, par: 0.28 },
+];
+const mistOf = (H: Hour) => mix(timeOfDay().haze, H('#DCECE4', '#E8A0A0', '#2A3058'), 0.5);
+
+/** The peaks past the jungle, far off down the gap (twice the picture's size: farStrip.ts): a jagged range, its flanks
+ *  lit and shaded, gullies down it, the jungle up its foot; deep in the mist. */
+const paintPeaks = (g: Ctx, H: Hour) => {
+  const tw = SW * 2, bottom = PEAKS_H * 2;
+  const b = H('#8EAAB0', '#8A5272', '#222A4A'), lt = H('#E4F0EC', '#F4A880', '#4A5486');
+  const yAt = (x: number) => snap2(30 + wave(x, tw, 2.4) * 16 + jag(x, tw, 8, 7) * 6);
+  range(g, tw, yAt, bottom, { body: b, lit: mix(b, lt, 0.24), hi: mix(b, lt, 0.4), shade: mix(b, '#0A1418', 0.16), deep: mix(b, '#0A1418', 0.3) }, 17,
+    { gullies: 20, d: 10, forest: [mix(H('#3E6E52', '#4A2A4A', '#141C34'), b, 0.4), mix(H('#5A8A60', '#6A3A5A', '#1C2440'), b, 0.4)], forestY: x => yAt(x) + 22 + wave(x, tw, 3.3, 3) * 6 });
+  mist(g, tw, 10, bottom - 10, mistOf(H), 0.15, 0.7, 6);
+};
+
+/** One of the far jungle walls (twice the picture's size): palms standing up out of it (banded trunks, drooping
+ *  fronds), the canopy in stepped crowns along its top (a second row in their shade), low brush in the gap where the
+ *  path goes, mist along its foot. Its top as the old wall's was, so the gap's where it was. */
+const paintWall = (g: Ctx, H: Hour, wi: number, h: number) => {
+  const { col: [d, s, n], hgt } = WALLS[wi], tw = SW * 2;
+  const col = H(d, s, n), litC = H('#B8D890', '#F2995A', '#3A4A74');
+  const R = [mix(col, '#05080A', 0.3), col, mix(col, litC, 0.3), mix(col, litC, 0.55)];
+  const r = 10 + wi * 2;
+  const topOf = (X: number) => {
+    const x = X / 2 - MARGIN, gap = Math.max(0, 1 - Math.abs(x - 200) / (40 + wi * 26));
+    return hgt * (1 - gap * 0.85) + 6 * Math.abs(Math.sin(x * (0.05 + wi * 0.02) + wi)) + 4 * Math.abs(Math.sin(x * 0.017 + wi * 2));
+  };
+  // (the palms first, their feet down in it)
+  for (let i = 0; i < 4; i++) {
+    const px = (i * 97 + wi * 41) % LW;
+    if (Math.abs(px - 200) < 60 + wi * 30) continue;
+    palm(g, (px + MARGIN) * 2, 2 * (h - 2 - hgt) + 16, 2 * (14 + (i % 2) * 6) + 16, (i % 2 ? 1 : -1) * 4, [R[0], R[1]], [R[0], R[1], R[3]], wi * 10 + i);
+  }
+  canopy(g, tw, X => snap2(2 * (h - 2 - topOf(X)) + r * 0.4), h * 2, R, r, 5 + wi * 11);
+  mist(g, tw, h * 2 - 24, 24, mistOf(H), 0, 0.45 - wi * 0.1, 3);
 };
 
 // ---------------------------------------------------------------------------------------------------------------

@@ -14,7 +14,10 @@
 // OTHERWORLDLY SPAWNER.
 
 import { type Ctx, type Prop, type SceneDef, INK, HOR, F, CAM_H, VP_X, ME_X, box, hash, lump, poly, smoke, mix, stipple, rampOf } from './kit';
-import { timeOfDay, hourMix } from '../timeOfDay';
+import { timeOfDay, hourMix, farTint, skyAt } from '../timeOfDay';
+import { type Far, type RangeLook, skyline as farSkyline, monorail, parkGround, range, mist, snap2, wave, jag } from '../space/farArt';
+import { drawGiantAtom, drawNeedle } from '../space/square/sky';
+import { farStrip } from './farStrip';
 import { spawner as drawSpawner } from './toys';
 import { glyphDots } from '../space/square/lettering';
 
@@ -82,46 +85,64 @@ const ground = (g: Ctx, w: number, h: number) => {
 /** The skyline's tones (the hour's): its body, lit side, shade; the haze at its foot. */
 const sky3 = () => [H('#7C83A8', '#6A3F6E', '#1E2240'), H('#A7AECF', '#A35A6E', '#2E3460'), H('#5A6088', '#4A2A54', '#141830')];
 
-const skyline = (c: Ctx, t: number, sway: number) => {
-  const [body, lit, shade] = sky3();
-  const ox = sway * 0.15;
+/** The far park strip: the picture's width and a margin either side (for the sway); how tall; where its ground is
+ *  (picture rows up from the horizon), and the monorail's beam. */
+const SKY_M = 20, SKY_W = 400 + SKY_M * 2, SKY_H = 70, SKY_FOOT = 5, MONO_Y = 20;
+/** Future Land's far look at the hour (space/farArt.ts's Far; the square's far skyline's, at the picture's scale). */
+const farLook = (k: number, s: number): Far => {
   const tod = timeOfDay();
-  // (SPACE NEEDLE 2: three legs tapering in, the saucer, the spire; its beacon blinking)
-  const nx = Math.round(372 + ox), ny = HOR - 6;
-  for (const [a, b] of [[-7, -2], [7, 2], [0, 0]]) { c.strokeStyle = a === 0 ? lit : body; c.lineWidth = a === 0 ? 2 : 1; c.beginPath(); c.moveTo(nx + a, ny); c.quadraticCurveTo(nx + b * 0.5, ny - 30, nx + b, ny - 58); c.stroke(); }
-  box(c, nx - 13, ny - 64, 26, 4, body); box(c, nx - 11, ny - 66, 22, 2, lit); box(c, nx - 12, ny - 60, 24, 2, shade);
-  for (let k = 0; k < 6; k++) box(c, nx - 10 + k * 4, ny - 63, 2, 1, tod.lamps > 0.3 ? '#FDE68A' : shade);
-  box(c, nx - 1, ny - 80, 2, 14, body); box(c, nx, ny - 80, 1, 14, lit);
-  if (t % 50 < 25) box(c, nx - 1, ny - 82, 3, 2, '#EF4444');
-  // (the giant atom: its ball, three orbits, the electrons going round; on its column)
-  const ax = Math.round(64 + ox), ay = HOR - 40;
-  box(c, ax - 2, ay + 8, 4, HOR - ay - 8, body); box(c, ax - 2, ay + 8, 1, HOR - ay - 8, lit);
-  for (let k = 0; k < 3; k++) {
-    const rot = (k * Math.PI) / 3;
-    c.strokeStyle = k === 1 ? lit : body; c.lineWidth = 1; c.beginPath(); c.ellipse(ax, ay, 22, 7, rot, 0, Math.PI * 2); c.stroke();
-    const e = t * 0.03 + k * 2.1, ex = Math.cos(e) * 22, ey = Math.sin(e) * 7;
-    box(c, ax + ex * Math.cos(rot) - ey * Math.sin(rot) - 1, ay + ex * Math.sin(rot) + ey * Math.cos(rot) - 1, 2, 2, tod.lamps > 0.3 ? '#93C5FD' : lit);
-  }
-  c.fillStyle = shade; c.beginPath(); c.arc(ax, ay, 8, 0, Math.PI * 2); c.fill();
-  c.fillStyle = body; c.beginPath(); c.arc(ax - 1, ay - 1, 6, 0, Math.PI * 2); c.fill();
-  c.fillStyle = lit; c.beginPath(); c.arc(ax - 2, ay - 3, 3, 0, Math.PI * 2); c.fill();
+  const T = (col: string) => mix(farTint(hourMix(col, mix(col, '#9A6A90', 0.22), mix(col, '#1A2048', 0.4), tod), 1, tod), skyAt(0.86, tod), k);
+  return { T, night: tod.lamps, s, glass: T(mix(skyAt(0.45, tod), '#2A3A6A', 0.25)) };
+};
+/**
+ * Future Land far off, at twice the picture's size (farStrip.ts): the hills round the park (a pale range, wooded hills
+ * in front, misted); the skyline of tomorrow (space/farArt.ts: domes, saucers on stalks, spires, hotels, radar dishes,
+ * the Tomorrow Sphere, pavilions; windows lit after dark) with the monorail's beam along it, all of it on its own
+ * ground (the lawn, the walk and its lamps, the tree line along its back); the haze over their feet.
+ */
+const paintFarPark = (g: Ctx) => {
+  const tod = timeOfDay(), tw = SKY_W * 2, bottom = SKY_H * 2, f = bottom - SKY_FOOT * 2 - 2, haze = skyAt(0.9, tod);
+  const look = (base: string, k: number): RangeLook => {
+    const T = (col: string) => mix(farTint(hourMix(col, mix(col, '#7A5A80', 0.2), mix(col, '#141A3A', 0.45), tod), 1.3, tod), haze, k);
+    return { body: T(base), lit: T(mix(base, '#E4ECF6', 0.24)), hi: T(mix(base, '#FFFFFF', 0.38)), shade: T(mix(base, '#141A30', 0.18)), deep: T(mix(base, '#141A30', 0.32)) };
+  };
+  range(g, tw, x => snap2(f - 70 + wave(x, tw, 2.2) * 18 + jag(x, tw, 8, 4) * 4), f, look('#8496C0', 0.5), 3, { gullies: 20, d: 10 });
+  mist(g, tw, f - 80, 80, haze, 0, 0.5, 5);
+  const fy = (x: number) => snap2(f - 34 + wave(x, tw, 5.3, 2) * 8);
+  const front = look('#6A8A9A', 0.32);
+  range(g, tw, fy, f, front, 9, { gullies: 12, d: 8, forest: [front.shade, front.body], forestY: x => fy(x) + 10 + wave(x, tw, 1.7, 3) * 4 });
+  const FL = farLook(0.36, 0.42);
+  farSkyline(g, FL, tw, f, 71, ['dome', 'saucer', 'spire', 'hotel', 'radar', 'pavilion', 'geo', 'hotel', 'pavilion', 'dome'], [8, 30]);
+  // (the monorail's beam on its pylons: the train's drawn going along it, live; this one's parked off the tile)
+  monorail(g, FL, tw, f, bottom - MONO_Y * 2, -99999, 92);
+  mist(g, tw, f - 50, 50, skyAt(0.92, tod), 0, 0.45, 5);
+  parkGround(g, FL, tw, f, SKY_FOOT * 2 + 2, 23);
+  mist(g, tw, f, SKY_FOOT * 2 + 2, skyAt(0.92, tod), 0.4, 0.15, 2);
+};
+
+const skyline = (c: Ctx, t: number, sway: number) => {
+  const [body, lit] = sky3();
+  const ox = sway * 0.15;
+  const tod = timeOfDay(), gy = HOR - SKY_FOOT;
+  c.drawImage(farStrip('wa-sq-park', SKY_W, SKY_H, paintFarPark), -SKY_M + Math.round(ox), HOR + 1 - SKY_H);
+  // SPACE NEEDLE 2 and THE GIANT ATOM, the square's own (space/square/sky.ts), stood on the park's ground
+  c.save(); c.beginPath(); c.rect(0, 0, 400, gy + 1); c.clip();
+  drawNeedle(c, Math.round(372 + ox), gy, 0.17, t, 1);
+  drawGiantAtom(c, Math.round(64 + ox), gy - 345 * 0.1, 0.1, t, false, 1);
+  c.restore();
   // (the rocket spinner: a mast, its arms out, little rockets on their ends going round)
-  const rx = Math.round(122 + ox);
-  box(c, rx - 1, HOR - 34, 3, 34, body); box(c, rx - 1, HOR - 34, 1, 34, lit);
-  for (let k = 0; k < 4; k++) { const a = t * 0.04 + k * Math.PI / 2, ex = Math.cos(a) * 16, ez = Math.sin(a); box(c, rx + ex - 2, HOR - 30 + ez * 2, 5, 2, ez > 0 ? lit : body); c.strokeStyle = body; c.lineWidth = 1; c.beginPath(); c.moveTo(rx, HOR - 34); c.lineTo(rx + ex, HOR - 30 + ez * 2); c.stroke(); }
-  // (low blocks of the park between: Googie roofs, flat, a fin or two)
-  c.fillStyle = shade;
-  for (let i = 0; i < 9; i++) { const bx = ((i * 53 + 11) % 420) - 10 + ox, bw = 26 + (i % 3) * 10, bh = 6 + (i % 4) * 3; c.fillRect(Math.round(bx), HOR - bh, bw, bh); box(c, bx, HOR - bh, bw, 1, body); if (i % 3 === 0) { poly(c, [[bx + 4, HOR - bh], [bx + 10, HOR - bh - 8], [bx + 12, HOR - bh]], body, null); } }
-  // (the monorail: its beam across on T pylons, a train going over)
-  const my = HOR - 20;
-  box(c, 0, my, 400, 3, body); box(c, 0, my, 400, 1, lit); box(c, 0, my + 3, 400, 1, shade);
-  for (let x = ((ox % 46) + 46) % 46 - 46; x < 400; x += 46) { box(c, x, my + 3, 2, HOR - my - 3, shade); box(c, x - 3, my + 3, 8, 1, body); }
+  const rx = Math.round(122 + ox), rt = gy - 30;
+  box(c, rx - 1, rt, 3, gy - rt, body); box(c, rx - 1, rt, 1, gy - rt, lit);
+  for (let k = 0; k < 4; k++) { const a = t * 0.04 + k * Math.PI / 2, ex = Math.cos(a) * 16, ez = Math.sin(a); box(c, rx + ex - 2, rt + 4 + ez * 2, 5, 2, ez > 0 ? lit : body); c.strokeStyle = body; c.lineWidth = 1; c.beginPath(); c.moveTo(rx, rt); c.lineTo(rx + ex, rt + 4 + ez * 2); c.stroke(); }
+  // (the train going along the monorail's beam)
+  const my = HOR + 1 - MONO_Y;
   const tx = ((t * 0.5) % 560) - 120 + ox;
   for (let k = 0; k < 3; k++) {
     const cx = Math.round(tx + k * 20);
+    // (its cars: the body, lit down the left, shaded down the right and along the belly (nothing lit along the top))
     c.fillStyle = H('#E2E8F0', '#C9A0B0', '#3A4068'); c.beginPath(); c.roundRect(cx, my - 6, 19, 6, k === 2 ? [0, 4, 2, 0] : k === 0 ? [4, 0, 0, 2] : 0); c.fill();
-    box(c, cx + 1, my - 6, 17, 1, H('#FFFFFF', '#F0C8D0', '#5A6290'));
-    box(c, cx, my - 2, 19, 1, H('#DC2626', '#B02040', '#7F1D1D'));
+    box(c, cx, my - 5, 1, 4, H('#FFFFFF', '#F0C8D0', '#5A6290')); box(c, cx + 18, my - 5, 1, 4, H('#A8B0C4', '#9A7088', '#262C4C'));
+    box(c, cx, my - 2, 19, 1, H('#DC2626', '#B02040', '#7F1D1D')); box(c, cx + 1, my - 1, 17, 1, H('#A8B0C4', '#9A7088', '#262C4C'));
     for (let w = 0; w < 4; w++) box(c, cx + 3 + w * 4, my - 5, 2, 2, tod.lamps > 0.3 ? '#FEF3C7' : '#475569');
   }
   // (the haze at its foot)

@@ -15,6 +15,8 @@ import { mix } from '../../m1/game/render/backdrops/core';
 import { timeOfDay, hourMix, sunAt, drawStars, drawMoon } from '../timeOfDay';
 import { noteSun } from '../sunFlare';
 import { signText, signW, signH, print } from '../adventure/letters';
+import { snap2, wave, jag, range, mist, canopy, palm, poly as fpoly } from '../adventure/farArt';
+import { farStrip } from './farStrip';
 
 const STONE = rampOf('#8A7766');
 const MOSS = ['#2E3A14', '#3F5219', '#56701F'];
@@ -108,42 +110,70 @@ const back = (c: Ctx, t: number, sway: number) => {
     const x = ((i * 131 - t * 0.11) % (LW + 200) + LW + 200) % (LW + 200) - 140;
     strip(40 + (i % 2) * 9, 80 + (i % 3) * 30, 5, x, lo[0], lo[1]);
   }
-  // The hills, far off (dim), the coaster's loop up on them
-  const hx = sway * 0.15;
-  c.fillStyle = H('#7E9AAE', '#6A3462', '#1C2244');
-  c.beginPath(); c.moveTo(0, HOR);
-  for (let x = 0; x <= LW; x += 2) c.lineTo(x, HOR - 16 - Math.round(7 * Math.sin((x + hx) * 0.021) + 4 * Math.sin((x + hx) * 0.057 + 1)));
-  c.lineTo(LW, HOR); c.fill();
-  const coaster = H('#5E7A90', '#4C2450', '#141834');
-  c.strokeStyle = coaster; c.lineWidth = 1;
-  const lx = 330 + hx;
-  c.beginPath(); c.arc(lx, HOR - 30, 8, 0, Math.PI * 2); c.stroke();
-  c.beginPath(); c.moveTo(lx - 40, HOR - 18); c.quadraticCurveTo(lx - 20, HOR - 34, lx, HOR - 22); c.quadraticCurveTo(lx + 22, HOR - 12, lx + 50, HOR - 26); c.stroke();
-  for (let k = -36; k < 50; k += 6) box(c, lx + k, HOR - 24 + Math.abs(k) * 0.08, 1, 10, coaster);
-  // The jungle: a wall of canopy (lumps, their tops caught by the sun), palms over it; a gap where the trees went down
-  // like dominoes
-  const jx = sway * 0.35;
-  const canopy = (x: number) => 9 + Math.round(5 * Math.abs(Math.sin((x + jx) * 0.07)) + 4 * Math.abs(Math.sin((x + jx) * 0.023 + 2)));
-  const gap = (x: number) => x > 236 && x < 300;
-  const jungle = H('#2C4A26', '#2B1B36', '#0C1024'), jungleLit = H('#5A8034', '#5A2E4A', '#222A4C');
-  c.fillStyle = jungle;
-  c.beginPath(); c.moveTo(0, HOR + 1);
-  for (let x = 0; x <= LW; x += 2) c.lineTo(x, HOR - (gap(x) ? 2 : canopy(x)));
-  c.lineTo(LW, HOR + 1); c.fill();
-  for (let x = 0; x < LW; x += 2) if (!gap(x)) { const y = HOR - canopy(x); box(c, x, y, 2, 1, jungleLit); if (x % 6 === 0) box(c, x, y + 1, 1, 1, mix(jungle, jungleLit, 0.5)); }
+  // The hills, far off (a pale range misted at the back, wooded hills in front), the coaster's loop up on them; then
+  // the jungle, a gap in it where the trees went down like dominoes. Each painted once for the hour (farStrip.ts:
+  // Adventure Land's far kit), slid by his sway.
+  c.drawImage(farStrip('artie-hills', SW, HILLS_H, g => paintHills(g, H)), -MARGIN + Math.round(sway * 0.15), HOR + 1 - HILLS_H);
+  c.drawImage(farStrip('artie-jungle', SW, JUNGLE_H, g => paintJungle(g, H)), -MARGIN + Math.round(sway * 0.35), HOR + 2 - JUNGLE_H);
+};
+
+/** The far strips: as wide as the picture and a margin either side (for the sway), and how tall. */
+const MARGIN = 20, SW = LW + MARGIN * 2, HILLS_H = 60, JUNGLE_H = 44;
+type Hour = (day: string, sundown: string, night: string) => string;
+/** A five-step ramp round an hour's color (deep, shade, body, lit, highlight), for the far kit. */
+const rampH = (H: Hour, day: string, sundown: string, night: string) => { const b = H(day, sundown, night); return { deep: mix(b, '#0A0612', 0.3), shade: mix(b, '#0A0612', 0.16), body: b, lit: mix(b, H('#E8F0F4', '#F2A07A', '#5A6294'), 0.24), hi: mix(b, H('#FFFFFF', '#FFC890', '#7A84B4'), 0.38) }; };
+
+/**
+ * The hills (at twice the picture's size: farStrip.ts), the ground at the bottom: a pale range at the back, misted;
+ * the hills in front, lit flanks and shade dithered in, jungle up their lower slopes; Adventure Land's coaster out on
+ * them, its bents down to the hillside, its loop, the track in its steel's steps (nothing lit along a top).
+ */
+const paintHills = (g: Ctx, H: Hour) => {
+  const tw = SW * 2, bottom = HILLS_H * 2;
+  const haze = mix(timeOfDay().haze, H('#DCE8F0', '#E8A0A0', '#2A3058'), 0.5);
+  const backY = (x: number) => snap2(38 + wave(x, tw, 1.7) * 14 + jag(x, tw, 8, 4) * 4);
+  range(g, tw, backY, bottom, rampH(H, '#94AAC0', '#8A4E78', '#262E52'), 7, { gullies: 18, d: 10 });
+  mist(g, tw, 30, bottom - 30, haze, 0.05, 0.6, 5);
+  const frontY = (x: number) => snap2(Math.min(bottom - 10, 80 + wave(x, tw, 3.1, 2) * 12));
+  const front = rampH(H, '#7E9AAE', '#6A3462', '#1C2244');
+  range(g, tw, frontY, bottom, front, 13, { gullies: 14, d: 10, forest: [H('#3E5E44', '#3E2446', '#121834'), H('#4E7050', '#52305A', '#1A2240')], forestY: x => frontY(x) + 12 + wave(x, tw, 2.3, 3) * 4 });
+  mist(g, tw, bottom - 30, 30, haze, 0, 0.45, 4);
+  // (the coaster, out on the hills: its loop, the track dipping over, the bents down to the ground under it)
+  const S = rampH(H, '#6E8AA0', '#5C2E5E', '#1A2040'), Tr = rampH(H, '#B04A4A', '#8A2E4A', '#3A1E3E');
+  const lx = (330 + MARGIN) * 2, ly = (HILLS_H - 1 - 30) * 2;
+  const trackY = (x: number) => {
+    const u = (x - (lx - 80)) / 180;
+    // (never down into the hill: it rides over it)
+    return Math.min(ly + 12 - Math.sin(u * Math.PI * 1.6) * 14 + u * 6, frontY(x) - 8);
+  };
+  for (let x = lx - 80; x < lx + 100; x += 10) { const y = snap2(trackY(x)), f = frontY(x) + 4; if (f > y + 4) { box(g, x, y, 2, f - y, S.shade); box(g, x + 2, y + 4, 2, f - y - 4, S.deep); } }
+  for (let x = lx - 80; x < lx + 90; x += 20) { const y = snap2(trackY(x)) + 6, f = frontY(x); for (let k = 0; k < 20 && y + k < f; k += 2) { box(g, x + Math.round(k / 2) * 2, y + k, 2, 2, S.deep); } }
+  for (const [sd, col] of [[-1, S.lit], [1, S.shade]] as const) fpoly(g,[[lx + sd * 14, frontY(lx) + 4], [lx + sd * 2, ly + 10], [lx + sd * 4, ly + 10], [lx + sd * 18, frontY(lx) + 4]], col);
+  g.lineWidth = 4; g.strokeStyle = Tr.shade; g.beginPath(); g.arc(lx, ly, 16, 0, Math.PI * 2); g.stroke();
+  g.lineWidth = 2; g.strokeStyle = Tr.lit; g.beginPath(); g.arc(lx, ly, 17, Math.PI * 0.7, Math.PI * 1.35); g.stroke();
+  for (let x = lx - 80; x < lx + 100; x += 2) { const y = snap2(trackY(x)); box(g, x, y - 2, 2, 2, Tr.body); box(g, x, y, 2, 2, Tr.deep); }
+};
+
+/**
+ * The jungle wall (at twice the picture's size): palms standing up out of it (banded trunks, drooping fronds), the
+ * canopy in stepped crowns rolling along, a second row in their shade; where the stampede went through, the trees
+ * down, only brush and splintered stumps; mist along its foot.
+ */
+const paintJungle = (g: Ctx, H: Hour) => {
+  const tw = SW * 2, bottom = JUNGLE_H * 2;
+  const gap = (x: number) => x > (236 + MARGIN) * 2 && x < (300 + MARGIN) * 2;
+  const R = [H('#1E3A1C', '#1E1228', '#080C1A'), H('#2C4A26', '#2B1B36', '#0C1024'), H('#456A2E', '#46263F', '#161C38'), H('#5A8034', '#5A2E4A', '#222A4C')];
+  // (the palms first: their feet down in the canopy)
   for (let i = 0; i < 9; i++) {
-    const px = ((i * 47 + 13) % LW) + jx;
-    if (px > 226 && px < 310) continue;
-    const top = HOR - 26 - (i % 3) * 5, lean = (i % 2 ? 1 : -1) * 3;
-    // (the trunk, curved; the fronds drooping off its crown)
-    c.strokeStyle = jungle; c.lineWidth = 2; c.beginPath(); c.moveTo(px, HOR - 6); c.quadraticCurveTo(px + lean * 0.3, (top + HOR) / 2, px + lean, top); c.stroke();
-    for (const [dx, dy] of [[-9, 4], [9, 4], [-7, -2], [7, -2], [-4, 6], [4, 6], [0, -4]]) {
-      c.beginPath(); c.moveTo(px + lean, top); c.quadraticCurveTo(px + lean + dx * 0.6, top + Math.min(0, dy) - 3, px + lean + dx, top + dy); c.stroke();
-    }
-    box(c, px + lean - 1, top - 1, 3, 2, jungleLit);
+    const px = (((i * 47 + 13) % LW) + MARGIN) * 2;
+    if (px > (226 + MARGIN) * 2 && px < (310 + MARGIN) * 2) continue;
+    palm(g, px, bottom - 8, 40 + (i % 3) * 10, (i % 2 ? 1 : -1) * 6, [R[0], R[1]], [R[0], R[1], R[3]], i);
   }
-  // (the stumps in the gap, splintered)
-  for (let i = 0; i < 4; i++) box(c, 244 + i * 15 + jx, HOR - 4 - (i % 2), 2, 4 + (i % 2), H('#4A3420', '#3A2440', '#121428'));
+  const top = (x: number) => (gap(x) ? bottom - 8 : snap2(bottom - 2 * (9 + 5 * Math.abs(Math.sin((x / 2) * 0.07)) + 4 * Math.abs(Math.sin((x / 2) * 0.023 + 2)))));
+  canopy(g, tw, top, bottom, R, 9, 31);
+  // (the stumps in the gap, splintered: lit down their left)
+  for (let i = 0; i < 4; i++) { const x = (244 + MARGIN + i * 15) * 2, h = 8 + (i % 2) * 2; box(g, x, bottom - 6 - h, 4, h, H('#4A3420', '#3A2440', '#121428')); box(g, x, bottom - 6 - h, 2, h, H('#7A5A38', '#5A3A50', '#20223A')); box(g, x + 2, bottom - 8 - h, 2, 2, H('#7A5A38', '#5A3A50', '#20223A')); }
+  mist(g, tw, bottom - 20, 20, mix(timeOfDay().haze, H('#DCE8F0', '#E8A0A0', '#2A3058'), 0.5), 0, 0.5, 3);
 };
 
 // ---------------------------------------------------------------------------------------------------------------

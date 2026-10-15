@@ -8,10 +8,13 @@ import { R, USA_END, FRONT_X, WINDOW_X, TURN_X, GATE_X, END_X, QUEUE_START } fro
 import { GROUND_Y, CANVAS_WIDTH } from '../../../m1/constants';
 import {
   type Ctx, INK, RED, WHITE, BLUE, FLAG_RED, FLAG_WHITE, FLAG_BLUE, box, star, flag, bunting, sign, dim, slab, pole,
-  ball, shinyStar, checker, hazeBands, steppedGlow, pixelBlob, stamp, mix, hash, snap, PIX,
+  ball, shinyStar, checker, steppedGlow, pixelBlob, stamp, mix, hash, snap, PIX,
 } from './kit';
 import { getIntro } from '../index';
 import { signAt, extruded, federal, gilt, print } from './letters';
+import { timeOfDay, skyTint, farTint } from '../../timeOfDay';
+import { type Far, type RangeLook, rampF, block, cylV, ball as orb, windowRow, poly as polyP, snap2, wave, jag, range, mist } from '../../space/farArt';
+import { crown } from '../../adventure/farArt';
 
 const G = GROUND_Y;
 /** The gate's middle, the booth building's left end, her window's left edge, where she stands. */
@@ -108,68 +111,134 @@ export const plaza = (c: Ctx, state: GameState, f: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Far off: the park in the haze
 
-/** The park behind the gate: a castle up on its hill, a roller coaster's loop, a Ferris wheel, a drop tower, trees. */
+/** The park behind the gate (painted once for the hour into a canvas of its own, at the screen's scale: its haze lies
+ *  over only what's painted), going by slower than the plaza. */
+const PARK_W = 1660, PARK_H = 440;
+const parkHeld = new Map<string, HTMLCanvasElement>();
 const parkGlimpse = (c: Ctx, cam: number) => {
   const shift = Math.round((cam - (GX - 400)) * 0.45 / PIX) * PIX;
-  if (GX - 900 + shift > cam + CANVAS_WIDTH || GX + 760 + shift < cam) return;
+  if (GX - 900 + shift > cam + CANVAS_WIDTH || GX + 760 + shift < cam || typeof document === 'undefined') return;
+  const a = Math.abs(c.getTransform().a) || 1, id = `${timeOfDay().key}@${a.toFixed(3)}`;
+  let cv = parkHeld.get(id);
+  if (!cv) {
+    if (parkHeld.size > 6) parkHeld.clear();
+    cv = document.createElement('canvas');
+    cv.width = Math.ceil(PARK_W * a); cv.height = Math.ceil(PARK_H * a);
+    const g = cv.getContext('2d')!;
+    g.scale(a, a); g.imageSmoothingEnabled = false;
+    park(g);
+    parkHeld.set(id, cv);
+  }
   c.save();
   c.beginPath(); c.rect(P0, 0, P1 - P0, G); c.clip();
-  c.translate(shift, 0);
-  stamp(c, 'plaza-park', GX - 900, G - 440, 1660, 440, park);
+  c.drawImage(cv, GX - 900 + shift, G - PARK_H, PARK_W, PARK_H);
   c.restore();
 };
-const hz = (col: string, k = 0.5) => mix(col, HAZE, k);
+/**
+ * The park in the haze (space/farArt.ts's far kit; the hour's light and haze on it; local coords, the ground at
+ * PARK_H): a pale range at the back; wooded hills in front, one rising to a knoll; the castle up on the knoll (the
+ * curtain wall in its stone's ramp, a gate, round towers in columns under stepped blue cones, gold finials and red
+ * pennants: the same castle the temple roof sees); the coaster (its lattice of bents, the track dipping and looping,
+ * a train topping a hill); the Ferris wheel on its A-frame; the drop tower with its ring and a beacon; their feet on a
+ * lawn banded darker going down with a tree line along its back. Windows lit after dark, the wheel's bulbs on. Nothing
+ * lit along a top.
+ */
 const park = (c: Ctx) => {
-  // (the hill the castle stands on, and the hills behind)
-  pixelBlob(c, GX - 520, G - 70, 260, 70, hz('#5E8E5A', 0.62));
-  pixelBlob(c, GX + 520, G - 60, 300, 80, hz('#5E8E5A', 0.62));
-  pixelBlob(c, GX + 40, G - 110, 230, 90, hz('#4F8050', 0.5));
-  // The coaster: a lattice of supports, the track dipping and looping
-  const trackY = (x: number) => G - 210 - 70 * Math.sin((x - (GX - 760)) / 90) - 30 * Math.cos((x - (GX - 760)) / 37);
-  for (let x = GX - 760; x < GX - 200; x += 14) {
-    const y = trackY(x);
-    box(c, x, y, 2, G - y, hz('#F1EFEA', 0.45));
-    if ((x / 14) % 2 < 1) { c.strokeStyle = hz('#DAD7D2', 0.5); c.lineWidth = 1; c.beginPath(); c.moveTo(x, y + 10); c.lineTo(x + 14, Math.min(G, trackY(x + 14) + 50)); c.stroke(); }
-  }
-  for (let x = GX - 760; x < GX - 200; x += 2) { const y = trackY(x); box(c, x, y - 2, 2, 4, hz('#E11D48', 0.42)); box(c, x, y - 2, 2, 1, hz('#FDA4AF', 0.4)); }
-  const ly = trackY(GX - 420) - 50;
-  box(c, GX - 422, ly + 50, 4, G - ly - 50, hz('#F1EFEA', 0.45));
-  c.strokeStyle = hz('#F1EFEA', 0.45); c.lineWidth = 2; c.beginPath(); c.moveTo(GX - 470, G); c.lineTo(GX - 420, ly + 40); c.lineTo(GX - 370, G); c.stroke();
-  c.strokeStyle = hz('#E11D48', 0.42); c.lineWidth = 4; c.beginPath(); c.arc(GX - 420, ly, 50, 0, Math.PI * 2); c.stroke();
-  c.strokeStyle = hz('#FDA4AF', 0.4); c.lineWidth = 1; c.beginPath(); c.arc(GX - 421, ly - 1, 51, Math.PI, Math.PI * 1.7); c.stroke();
-  // (a train of cars topping a hill)
-  for (let i = 0; i < 4; i++) { const x = GX - 330 + i * 10, y = trackY(x); box(c, x, y - 8, 8, 6, hz(['#2563EB', '#FACC15', '#22C55E', '#F97316'][i], 0.42)); }
-  // The castle: pink walls, blue cones, gold tips, flags
-  const cx = GX + 40;
-  const wall = hz('#F5B5CF', 0.4), wallSh = hz('#C97FA2', 0.4), cone = hz('#3B5CC4', 0.38), coneLit = hz('#6F8EE8', 0.38);
-  box(c, cx - 120, G - 190, 240, 90, wall); box(c, cx + 60, G - 190, 60, 90, wallSh);
-  for (let x = cx - 120; x < cx + 120; x += 16) box(c, x, G - 198, 10, 8, wall);
-  const tower = (x: number, w: number, top: number, h: number) => {
-    box(c, x - w / 2, top, w, h, wall); box(c, x + w / 4, top, w / 4, h, wallSh);
-    poly(c, [x - w / 2 - 4, top, x + w / 2 + 4, top, x, top - w * 1.8], cone);
-    poly(c, [x - w / 2 - 4, top, x - 2, top, x, top - w * 1.8], coneLit);
-    box(c, x - 1, top - w * 1.8 - 10, 2, 10, hz('#FDE047', 0.35));
-    box(c, x + 1, top - w * 1.8 - 10, 8, 5, hz('#DC2626', 0.4));
-    for (let y = top + 10; y < top + h - 10; y += 22) box(c, x - 2, y, 4, 8, hz('#3A2A5A', 0.4));
+  const tod = timeOfDay(), haze = skyTint(HAZE, 0.92, tod), tw = PARK_W, H = PARK_H;
+  const T = (col: string) => mix(farTint(col, 1, tod), haze, 0.4);
+  const F: Far = { T, night: tod.lamps, s: 1.4, glass: T(mix(skyTint('#7EA8EA', 0.5, tod), '#2A3A6A', 0.3)) };
+  const LIT = '#FFE8A0';
+  const look = (base: string, k: number): RangeLook => {
+    const Th = (col: string) => mix(farTint(col, 1.2, tod), haze, k);
+    return { body: Th(base), lit: Th(mix(base, '#E8F0F8', 0.26)), hi: Th(mix(base, '#FFFFFF', 0.4)), shade: Th(mix(base, '#18223A', 0.16)), deep: Th(mix(base, '#18223A', 0.3)) };
   };
-  tower(cx - 110, 30, G - 260, 160); tower(cx + 110, 30, G - 250, 150); tower(cx - 50, 26, G - 300, 120); tower(cx + 52, 26, G - 290, 110);
-  tower(cx, 40, G - 350, 170);
-  // (the Ferris wheel)
-  const wx = GX + 470, wy = G - 250, wr = 96;
-  c.strokeStyle = hz('#F1EFEA', 0.45); c.lineWidth = 2;
-  c.beginPath(); c.moveTo(wx - 50, G - 90); c.lineTo(wx, wy); c.lineTo(wx + 50, G - 90); c.stroke();
-  c.beginPath(); c.arc(wx, wy, wr, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.arc(wx, wy, wr - 8, 0, Math.PI * 2); c.stroke();
-  c.lineWidth = 1;
-  for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2; c.beginPath(); c.moveTo(wx, wy); c.lineTo(wx + Math.cos(a) * wr, wy + Math.sin(a) * wr); c.stroke(); }
-  for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2; box(c, wx + Math.cos(a) * wr - 4, wy + Math.sin(a) * wr, 8, 8, hz(['#DC2626', '#FACC15', '#2563EB', '#22C55E'][i % 4], 0.42)); }
-  // (the drop tower)
-  box(c, GX + 660, G - 400, 10, 330, hz('#E5E7EB', 0.45)); box(c, GX + 666, G - 400, 4, 330, hz('#A1A1AA', 0.45));
-  box(c, GX + 650, G - 300, 30, 12, hz('#7C3AED', 0.42)); box(c, GX + 660, G - 410, 10, 10, hz('#DC2626', 0.4));
-  // (trees along the bottom, then the haze over the lot)
-  for (let x = GX - 900; x < GX + 760; x += 26) { const h = 30 + hash(x) * 30; pixelBlob(c, x + 13, G - 60 - h / 2, 18, h / 2 + 8, hz('#3F7A44', 0.48)); pixelBlob(c, x + 9, G - 64 - h / 2, 9, h / 3, hz('#6FA868', 0.5)); }
-  box(c, GX - 900, G - 64, 1660, 64, hz('#3F7A44', 0.5));
-  hazeBands(c, GX - 900, G - 440, 1660, 440, HAZE, 0.1, 0.45, 6);
-  hazeBands(c, GX - 900, G - 120, 1660, 120, HAZE, 0.2, 0.7, 5);
+  // The range at the back, misted
+  const backY = (x: number) => snap2(232 + wave(x, tw, 2.1) * 28 + jag(x, tw, 8, 3) * 6);
+  range(c, tw, backY, H, look('#8EA6C4', 0.5), 41, { gullies: 24, d: 14 });
+  mist(c, tw, 200, H - 200, haze, 0, 0.55, 6);
+  // The hills in front, woods up them; a knoll under the castle, flat on top
+  const KX = 940, KY = 340;
+  const knoll = (x: number) => { const d = Math.abs(x - KX); return d < 130 ? KY : KY + ((d - 130) / 90) ** 2 * 60; };
+  const frontY = (x: number) => snap2(Math.min(356 + wave(x, tw, 4.4, 2) * 14, knoll(x)));
+  const front = look('#6E9070', 0.3);
+  range(c, tw, frontY, H, front, 47, { gullies: 16, d: 12, forest: [front.shade, front.body], forestY: x => frontY(x) + 16 + wave(x, tw, 1.3, 3) * 5 });
+  mist(c, tw, 300, H - 300, haze, 0, 0.4, 5);
+  // The castle on its knoll
+  {
+    const C = rampF(F, '#E6E2DC'), B = rampF(F, '#3B5CC4'), Rd = rampF(F, '#DC2626'), Gd = rampF(F, '#F2CC4A');
+    const tower = (x: number, w: number, top: number) => {
+      cylV(c, x, KY, top, w, w, C);
+      box(c, snap2(x - w / 2) - 2, snap2(top) - 2, snap2(w) + 4, 4, C[1]);
+      // (the cone: stepped across, lit at the left)
+      const ch = w * 1.8, half = w / 2 + 4, n = 5;
+      for (let i = 0; i < n; i++) { const a = -half + (2 * half * i) / n, b = -half + (2 * half * (i + 1)) / n; polyP(c, [[x + a, top - 2], [x + a * 0.06, top - 2 - ch], [x + b * 0.06, top - 2 - ch], [x + b, top - 2]], B[4 - i]); }
+      box(c, snap2(x) - 1, snap2(top - ch - 12), 2, 10, Gd[2]);
+      box(c, snap2(x) + 1, snap2(top - ch - 12), 8, 4, Rd[2]); box(c, snap2(x) + 1, snap2(top - ch - 8), 6, 2, Rd[0]);
+      for (let y = top + 12; y < KY - 100; y += 22) box(c, snap2(x) - 2, snap2(y), 2, 6, hash(x + y) < F.night * 0.9 ? LIT : C[0]);
+    };
+    tower(KX - 110, 30, KY - 160); tower(KX + 110, 30, KY - 150); tower(KX - 50, 26, KY - 200); tower(KX + 52, 26, KY - 190);
+    // (the curtain wall: crenels along it (not lit), the gate's arch, windows)
+    block(c, KX - 120, KY - 90, 240, 90, C);
+    for (let x = KX - 120; x < KX + 120; x += 16) box(c, x, KY - 98, 10, 8, x < KX + 60 ? C[2] : C[1]);
+    box(c, KX - 14, KY - 40, 28, 40, C[0]); c.fillStyle = C[0]; c.beginPath(); c.ellipse(KX, KY - 40, 14, 10, 0, Math.PI, 0); c.fill();
+    windowRow(c, F, KX - 108, KX - 24, KY - 64, C, 3, 14, 6, true); windowRow(c, F, KX + 24, KX + 108, KY - 64, C, 5, 14, 6, true);
+    tower(KX, 40, KY - 250);
+  }
+  // The coaster: bents up to the track, X's between them stepped, the track dipping and looping, a train on a hill
+  const FOOT = 408;
+  {
+    const W_ = rampF(F, '#F1EFEA'), Tr = rampF(F, '#E11D48');
+    const trackY = (x: number) => H - 210 - 70 * Math.sin((x - 140) / 90) - 30 * Math.cos((x - 140) / 37);
+    for (let x = 140; x < 700; x += 14) {
+      const y = snap2(trackY(x));
+      box(c, x, y, 2, FOOT - y, W_[2]); box(c, x + 2, y, 1, FOOT - y, W_[0]);
+      if ((x / 14) % 2 < 1) { const y2 = snap2(trackY(x + 14)); for (let k = 0; k < 14; k += 2) box(c, x + k, snap2(Math.max(y, y2) + 10 + k * 2), 2, 2, W_[1]); }
+    }
+    const ly = snap2(trackY(480) - 50);
+    cylV(c, 480, FOOT, ly + 50, 4, 4, W_);
+    polyP(c, [[430, FOOT], [479, ly + 40], [481, ly + 40], [436, FOOT]], W_[3]); polyP(c, [[524, FOOT], [479, ly + 40], [481, ly + 40], [530, FOOT]], W_[1]);
+    c.lineWidth = 4; c.strokeStyle = Tr[1]; c.beginPath(); c.arc(480, ly, 50, 0, Math.PI * 2); c.stroke();
+    c.lineWidth = 2; c.strokeStyle = Tr[3]; c.beginPath(); c.arc(480, ly, 49, Math.PI * 0.7, Math.PI * 1.4); c.stroke();
+    for (let x = 140; x < 700; x += 2) { const y = snap2(trackY(x)); box(c, x, y - 2, 2, 2, Tr[2]); box(c, x, y, 2, 2, Tr[0]); }
+    ['#2563EB', '#FACC15', '#22C55E', '#F97316'].forEach((col, i) => { const x = 570 + i * 10, y = snap2(trackY(x)), P = rampF(F, col); box(c, x, y - 8, 8, 6, P[2]); box(c, x, y - 8, 2, 6, P[3]); box(c, x + 6, y - 8, 2, 6, P[1]); });
+  }
+  // The Ferris wheel on its A-frame: the rim and spokes, the gondolas (lit at their left), bulbs after dark
+  {
+    const wx = 1370, wy = 190, wr = 96, S = rampF(F, '#F1EFEA');
+    polyP(c, [[wx - 56, FOOT], [wx - 2, wy], [wx + 1, wy], [wx - 48, FOOT]], S[3]); polyP(c, [[wx + 48, FOOT], [wx - 1, wy], [wx + 2, wy], [wx + 56, FOOT]], S[1]);
+    c.lineWidth = 1; c.strokeStyle = S[1];
+    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2; c.beginPath(); c.moveTo(wx, wy); c.lineTo(wx + Math.cos(a) * wr, wy + Math.sin(a) * wr); c.stroke(); }
+    c.lineWidth = 3; c.strokeStyle = S[1]; c.beginPath(); c.arc(wx, wy, wr, 0, Math.PI * 2); c.stroke();
+    c.lineWidth = 2; c.strokeStyle = S[0]; c.beginPath(); c.arc(wx, wy, wr - 8, 0, Math.PI * 2); c.stroke();
+    c.lineWidth = 2; c.strokeStyle = S[3]; c.beginPath(); c.arc(wx, wy, wr, Math.PI * 0.75, Math.PI * 1.4); c.stroke();
+    orb(c, wx, wy, 6, S);
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2, gx = snap2(wx + Math.cos(a) * wr), gy = snap2(wy + Math.sin(a) * wr), P = rampF(F, ['#DC2626', '#FACC15', '#2563EB', '#22C55E'][i % 4]);
+      box(c, gx - 4, gy, 8, 8, P[2]); box(c, gx - 4, gy, 2, 8, P[3]); box(c, gx + 2, gy, 2, 8, P[1]); box(c, gx - 4, gy + 6, 8, 2, P[0]);
+      if (F.night > 0.3) box(c, gx - 1, gy + 2, 2, 2, LIT);
+    }
+    if (F.night > 0.3) for (let i = 0; i < 32; i++) { const a = (i / 32) * Math.PI * 2 + 0.1; box(c, snap2(wx + Math.cos(a) * wr) - 1, snap2(wy + Math.sin(a) * wr) - 1, 2, 2, i % 2 ? LIT : '#FF9AD0'); }
+  }
+  // The drop tower: its mast in columns, the ring of seats, a beacon on top
+  {
+    const D = rampF(F, '#E5E7EB'), P = rampF(F, '#7C3AED');
+    cylV(c, 1564, FOOT, 40, 12, 10, D);
+    for (let y = 48; y < FOOT; y += 12) box(c, 1558, y, 12, 2, D[1]);
+    block(c, 1548, 140, 32, 12, P);
+    box(c, 1562, 32, 4, 4, F.night > 0.15 ? '#FF4A5A' : D[0]);
+  }
+  // Their feet on the lawn, a tree line along its back
+  {
+    const Lw = ['#2E5A32', '#3A6A3C', '#467A46', '#568A52'].map(T), TR = ['#24442A', '#335E34', '#477A3C', '#62964A'].map(T);
+    box(c, 0, FOOT - 2, tw, H - FOOT + 2, Lw[3]);
+    [Lw[2], Lw[1], Lw[0]].forEach((col, i) => { const y = FOOT + snap2(((i + 1) * (H - FOOT)) / 4); box(c, 0, y, tw, H - y, col); checker(c, 0, y - 2, tw, 2, col, i % 2); });
+    for (let i = 0; i < tw / 20; i++) {
+      if (hash(i * 1.37 + 9) < 0.2) continue;
+      const r = 9 + hash(i * 3.1) * 7;
+      crown(c, i * 20 + hash(i * 2.3) * 8, FOOT + 4 - r * 0.4, r, TR);
+    }
+    mist(c, tw, FOOT - 20, H - FOOT + 20, haze, 0.35, 0.6, 4);
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------

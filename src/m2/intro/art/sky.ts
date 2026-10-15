@@ -12,7 +12,9 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import {
   type Ctx, INK, WHITE, BLUE, box, sign, star, pole, mix, rampOf, dim, hash, checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, PIX,
 } from './kit';
-import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, drawStars, drawMoon } from '../../timeOfDay';
+import { timeOfDay, skyRamp, skyTint, farTint, sunAt, sunTint, cloudTint, drawStars, drawMoon } from '../../timeOfDay';
+import { type Far, type RangeLook, rampF, block, cylV, ball as orb, windowGrid, windowRow, across, poly, snap2, wave, jag, range, mist } from '../../space/farArt';
+import { crown } from '../../adventure/farArt';
 import { noteSun } from '../../sunFlare';
 import { signText, signAt, signW, federal } from './letters';
 
@@ -350,27 +352,42 @@ const POLE_EVERY = 9;
 const CAR_COLS = ['#B91C1C', '#1E3A8A', '#E8E8EC', '#52525B', '#CA8A04', '#166534', '#7C3AED', '#111827', '#9CA3AF', '#0E7490', '#9A3412'];
 const LOTS = ['EAGLE', 'LIBERTY', 'APPLE PIE', 'BALD', 'GLORY'];
 
+/** The tree line's strip: how tall, and where the lot's far edge is in it. */
+const TL_H = 104, TL_EDGE = 90;
+/**
+ * Out past the far edge of the lot (adventure/farArt.ts's ranges, the hour's light and haze on them): a pale range of
+ * mountains at the back, misted; rolling hills in front of it, woods up their lower slopes; then the trees along the
+ * lot's edge in stepped crowns (shade, body, lit, a highlight), and the haze lying along it all. Whole cycles across
+ * the tile, so it meets round itself. Nothing lit along a top.
+ */
 const paintTreeLine = (g: Ctx, tw: number) => {
-  // (local y 0..64; the horizon at 52. Low blue hills, then the trees along the far edge of the lot, then the haze)
-  const per = (x: number, m: number, ph: number) => Math.sin((x / tw) * Math.PI * 2 * m + ph);
-  for (let x = 0; x < tw; x += PIX) {
-    const hy = Math.round((30 - 10 * (0.5 + 0.5 * per(x, 3, 1.2)) - 6 * per(x, 7, 0.4)) / PIX) * PIX;
-    box(g, x, hy, PIX, 64 - hy, '#8EA3C2');
-    box(g, x, hy, PIX, 2, '#A8BAD6');
-    if (per(x + 6, 3, 1.2) - per(x - 6, 3, 1.2) < 0) box(g, x, hy + 2, PIX, 4, '#9CB0CC');
+  const tod = timeOfDay(), haze = skyTint(SKY_PALE, 0.96, tod);
+  const look = (base: string, k: number): RangeLook => {
+    const T = (c: string) => mix(farTint(c, 1.2, tod), haze, k);
+    return { body: T(base), lit: T(mix(base, '#E8F0F8', 0.26)), hi: T(mix(base, '#FFFFFF', 0.4)), shade: T(mix(base, '#18223A', 0.16)), deep: T(mix(base, '#18223A', 0.3)) };
+  };
+  // (the range at the back: palest)
+  const backY = (x: number) => snap2(30 + wave(x, tw, 1.3) * 16 + jag(x, tw, 8, 2) * 4);
+  range(g, tw, backY, TL_H, look('#8EA3C2', 0.42), 5, { gullies: 20, d: 12 });
+  mist(g, tw, 26, TL_H - 26, haze, 0, 0.55, 6);
+  // (the hills in front: woods up them)
+  const frontY = (x: number) => snap2(64 + wave(x, tw, 4.1, 2) * 9);
+  const front = look('#7E98A6', 0.26);
+  range(g, tw, frontY, TL_H, front, 11, { gullies: 12, d: 10, forest: [front.shade, front.body], forestY: x => frontY(x) + 10 + wave(x, tw, 2.6, 3) * 4 });
+  mist(g, tw, 56, TL_H - 56, haze, 0, 0.5, 5);
+  // (the trees along the lot's edge: stepped crowns, their feet in the haze)
+  const TR = ['#4E6E78', '#5D7C84', '#6E8E90', '#86A49E'].map(c => mix(farTint(c, 1, tod), haze, 0.12));
+  const n = Math.round(tw / 14);
+  for (let i = 0; i < n; i++) {
+    const r = 8 + hash(i * 7.1) * 7;
+    for (const x of [i * 14 + hash(i * 3.7) * 8, i * 14 + hash(i * 3.7) * 8 - tw]) {
+      if (x < -r * 2) continue;
+      crown(g, x, TL_EDGE - r * 0.5, r, TR);
+    }
   }
-  // (the trees: clumps, a shade under, the body, lit tops)
-  for (let i = 0; i < tw / 14; i++) {
-    const x = i * 14 + hash(i * 3.7) * 8, r = 8 + hash(i * 7.1) * 7, y = 50 - r * 0.5;
-    pixelBlob(g, x, y + 2, r, r * 0.7, '#5D7C84');
-  }
-  for (let i = 0; i < tw / 14; i++) {
-    const x = i * 14 + hash(i * 3.7) * 8, r = 8 + hash(i * 7.1) * 7, y = 50 - r * 0.5;
-    pixelBlob(g, x - 1, y - 1, r * 0.75, r * 0.5, '#6E8E90');
-    pixelBlob(g, x - 3, y - r * 0.3, r * 0.4, r * 0.25, '#86A49E');
-  }
-  box(g, 0, 50, tw, 14, '#7E908E');
-  hazeBands(g, 0, 10, tw, 54, SKY_PALE, 0.15, 0.7, 6);
+  box(g, 0, TL_EDGE, tw, TL_H - TL_EDGE, TR[1]);
+  checker(g, 0, TL_EDGE - 2, tw, 2, TR[1]);
+  mist(g, tw, TL_EDGE - 30, 44, haze, 0.1, 0.7, 6);
 };
 
 const paintLotBase = (g: Ctx) => {
@@ -494,7 +511,7 @@ const paintPole = (g: Ctx, r: number, cx: number, base: number) => {
 const lotName = (n: number, r: number) => `LOT ${LOTS[((n % 5) + 5) % 5]} ${((n * 7 + r) % 90 + 90) % 90}Z`;
 
 const parkingLot = (c: Ctx, cam: number, f: number) => {
-  tiled(c, 'm2treeline', cam * 0.02, HZ - 52, 1024, 64, g => paintTreeLine(g, 1024));
+  tiled(c, 'm2treeline', cam * 0.02, HZ - TL_EDGE + 2, 1024, TL_H, g => paintTreeLine(g, 1024));
   held_(c, 'm2lotbase', 0, HZ, W, HT - HZ, paintLotBase);
   // (heat coming off the far asphalt: thin pale streaks wavering)
   for (let i = 0; i < 5; i++) {
@@ -579,145 +596,217 @@ const walkers = (c: Ctx, cam: number, f: number, r: number, y: number) => {
 // The skyline over America USA: every American city's landmarks, theme-park size, far off in the haze
 // ---------------------------------------------------------------------------------------------------------------------
 
-const SKY_TW = 1400, SKY_TOP = 100, SKY_FOOT = 440;
-/** The far stuff's ramp: shadow, shade, body, lit, highlight (all hazy blue-gray). */
-const FAR = ['#61779E', '#7489B0', '#8A9FC4', '#A9BCDA', '#C6D5EC'];
-const FAR_WIN = '#A3B7D8', FAR_GLINT = '#DCE6F4';
-
-/** A tower block (local coords: the skyline strip's own, y in screen terms minus SKY_TOP). */
-const tower = (g: Ctx, x: number, w: number, top: number, foot = SKY_FOOT - SKY_TOP, ramp = FAR) => {
-  box(g, x, top, w, foot - top, ramp[2]);
-  box(g, x, top, 2, foot - top, ramp[3]);
-  box(g, x + w - Math.max(2, Math.round(w / 3 / 2) * 2), top, Math.max(2, Math.round(w / 3 / 2) * 2), foot - top, ramp[1]);
-  checker(g, x + w - Math.max(2, Math.round(w / 3 / 2) * 2) - 2, top, 2, foot - top, ramp[1]);
-  box(g, x, top, w, 2, ramp[4]);
-  box(g, x + w - 1, top, 1, foot - top, ramp[0]);
-  // (windows in rows, a glint caught here and there)
-  for (let y = top + 6; y < foot - 4; y += 6) for (let wx = x + 4; wx < x + w - 4; wx += 4) {
-    const hsh = hash(wx * 1.3 + y * 7.1);
-    box(g, wx, y, 2, 2, hsh < 0.08 ? FAR_GLINT : hsh < 0.75 ? FAR_WIN : ramp[1]);
-  }
+/**
+ * The skyline strip: SKY_TW wide, put down at SKY_TOP. The landmarks were laid out in screen y with their feet at 440;
+ * they're stood up LIFT higher now, on ground of their own (SKY_FOOT down SKY_GH, over the top of the park in front),
+ * so `L` takes those old screen y's to the strip's own.
+ */
+const SKY_TW = 1400, SKY_TOP = 60, LIFT = 40, SKY_FOOT = 400, SKY_GH = 44;
+const L = (y: number) => y - SKY_TOP - LIFT;
+/** The landmarks' foot (the strip's own y). */
+const SF = SKY_FOOT - SKY_TOP;
+/** The far layer's look at the hour (space/farArt.ts's Far): its colors under the hour's light, into the haze; the
+ *  windows showing the sky by day, lit after dark. */
+const skyFar = (): Far => {
+  const tod = timeOfDay(), hz = skyTint(SKY_PALE, 0.95, tod);
+  const T = (c: string) => mix(farTint(c, 1, tod), hz, 0.36);
+  return { T, night: tod.lamps, s: 1, glass: T(mix(skyTint('#7EA8EA', 0.5, tod), '#2A3A6A', 0.3)) };
 };
 
+/** A tower block on the skyline's foot: lit down its left, shade dithered in down its right, windows over it (the sky
+ *  in them by day, lit after dark, more the darker it gets). */
+const tower = (g: Ctx, F: Far, x: number, w: number, top: number, col = '#B4BCCC') => {
+  const R = rampF(F, col);
+  block(g, x, top, w, SF - top, R);
+  windowGrid(g, F, x + 2, top, w - 6, SF - top - 2, R, x * 7.7, 4);
+};
+
+/**
+ * Every American city's landmarks, theme-park size, far off (space/farArt.ts's far kit, all on the art's 2 px grid,
+ * lit down the left, shade dithered in down the right, round things in columns across or stepped shells): a needle
+ * tower (legs to a waist, its saucer's rim of windows, the orange roof, the spire, a beacon after dark); downtown's
+ * towers (one stepped back to a spire, one under a crown of arches); the big arch in steel; the torch held up on her
+ * pedestal; a capitol (wings in columns, the drum, the dome in shells and ribs, the lantern); a fake mountain, snow
+ * painted on; a coaster's lift hill in lattice; the Ferris wheel's legs and rim (it turns, live). Windows show the sky by
+ * day and light up after dark. All of it stood on its own ground (a lawn banded darker going down, a walk with its
+ * lamps, a tree line along its back in front of their feet), the haze lying over their feet. Nothing lit along a top.
+ */
 const paintSkyline = (g: Ctx) => {
-  const F = SKY_FOOT - SKY_TOP; // (the foot, local)
-  const L = (y: number) => y - SKY_TOP;
+  const F = skyFar(), tod = timeOfDay();
+  const LIT = '#FFE8A0', lamp = (col: string) => (F.night > 0.3 ? mix(col, LIT, Math.min(1, F.night)) : col);
   // A needle tower: three legs pinched at the waist, the saucer, the spire
   {
-    const x = 90;
-    g.fillStyle = FAR[1];
-    g.beginPath(); g.moveTo(x - 16, F); g.lineTo(x - 3, L(240)); g.lineTo(x - 4, L(180)); g.lineTo(x + 4, L(180)); g.lineTo(x + 3, L(240)); g.lineTo(x + 16, F); g.lineTo(x + 10, F); g.lineTo(x, L(260)); g.lineTo(x - 10, F); g.closePath(); g.fill();
-    box(g, x - 3, L(180), 2, 80, FAR[3]);
-    box(g, x - 22, L(176), 44, 6, FAR[0]); box(g, x - 26, L(170), 52, 6, FAR[2]); box(g, x - 26, L(170), 52, 2, FAR[4]); box(g, x - 18, L(164), 36, 6, FAR[3]);
-    for (let i = -22; i < 22; i += 4) box(g, x + i, L(172), 2, 2, FAR_WIN);
-    box(g, x - 10, L(160), 20, 4, FAR[2]); box(g, x - 1, L(124), 2, 36, FAR[3]); box(g, x - 1, L(124), 1, 2, FAR_GLINT);
-    box(g, x - 2, L(242), 4, 2, FAR[2]); // (the halo ring at its waist)
+    const x = 90, C = rampF(F, '#C8CCD6'), O = rampF(F, '#E07A3A');
+    poly(g, [[x - 16, SF], [x - 3, L(240)], [x + 3, L(240)], [x + 16, SF], [x + 10, SF], [x, L(262)], [x - 10, SF]], C[1]);
+    poly(g, [[x - 16, SF], [x - 3, L(240)], [x - 1, L(240)], [x - 12, SF]], C[3]);
+    cylV(g, x, L(240), L(176), 8, 6, C);
+    box(g, x - 6, L(244), 12, 2, C[0]); box(g, x - 6, L(244), 4, 2, C[3]);
+    // (the saucer: its underside stepped up into the rim, the rim's windows, the orange roof, the cap)
+    for (const [k, col] of [[1, C[0]], [0.78, C[1]]] as const) { g.fillStyle = col; g.beginPath(); g.ellipse(x - (1 - k) * 4, L(176), 24 * k, 7 * k, 0, 0, Math.PI); g.fill(); }
+    for (let xx = -26; xx < 26; xx += 2) box(g, x + xx, L(176) - 6, 2, 6, across((xx + 26) / 52, C));
+    windowRow(g, F, x - 22, x + 22, L(174), C, 17, 4, 2, false);
+    for (let xx = -18; xx < 18; xx += 2) box(g, x + xx, L(164), 2, 6, across((xx + 18) / 36, O));
+    for (let xx = -10; xx < 10; xx += 2) box(g, x + xx, L(160), 2, 4, across((xx + 10) / 20, C));
+    cylV(g, x, L(160), L(124), 4, 2, C);
+    box(g, x - 2, L(126), 2, 2, F.night > 0.15 ? '#FF4A5A' : C[0]);
   }
   // Downtown: towers, a stepped one with a spire, one with a crown of arches
-  tower(g, 160, 34, L(262)); tower(g, 198, 26, L(300));
+  tower(g, F, 160, 34, L(262), '#AEB4C4'); tower(g, F, 198, 26, L(300), '#C4BCB0');
   {
-    const x = 232;
-    tower(g, x, 44, L(230)); tower(g, x + 6, 32, L(190)); tower(g, x + 12, 20, L(156));
-    box(g, x + 16, L(130), 12, 26, FAR[2]); box(g, x + 16, L(130), 2, 26, FAR[3]);
-    box(g, x + 21, L(106), 2, 24, FAR[3]); box(g, x + 21, L(106), 1, 2, FAR_GLINT);
+    const x = 232, R = rampF(F, '#C8C0B0');
+    tower(g, F, x, 44, L(230), '#C8C0B0'); tower(g, F, x + 6, 32, L(190), '#C8C0B0'); tower(g, F, x + 12, 20, L(156), '#C8C0B0');
+    block(g, x + 16, L(130), 12, 26, R);
+    cylV(g, x + 22, L(130), L(104), 4, 2, R);
+    box(g, x + 20, L(106), 2, 2, F.night > 0.15 ? '#FF4A5A' : R[0]);
   }
   {
-    const x = 290;
-    tower(g, x, 30, L(204));
+    const x = 290, R = rampF(F, '#D4D8E0');
+    tower(g, F, x, 30, L(204), '#D4D8E0');
+    // (the crown: arches stepped in, each lit at its left and shaded at its right, its windows lit after dark)
     for (let i = 0; i < 5; i++) {
-      const w = 30 - i * 6, y = L(204) - (i + 1) * 7;
-      g.fillStyle = FAR[i % 2 ? 2 : 3]; g.beginPath(); g.arc(x + 15, y + 7, w / 2, Math.PI, 0); g.fill();
-      for (let k = 0; k < w - 4; k += 4) box(g, x + 15 - w / 2 + 3 + k, y + 4, 1, 2, FAR[1]);
+      const w = 30 - i * 6, y = L(204) - (i + 1) * 7, cx = x + 15;
+      for (let xx = -w / 2; xx < w / 2; xx += 2) { const hh = Math.sqrt(Math.max(0, 1 - ((xx + 1) / (w / 2)) ** 2)) * (w / 2); box(g, snap2(cx + xx), snap2(y + 7 - hh), 2, snap2(hh) + 2, across((xx + w / 2) / w, R)); }
+      for (let k = 0; k < w - 4; k += 4) box(g, cx - w / 2 + 3 + k, y + 4, 2, 2, hash(i * 9 + k) < F.night * 0.9 ? LIT : R[0]);
     }
-    box(g, x + 14, L(150), 2, 18, FAR[4]);
+    cylV(g, x + 15, L(150), L(130), 2, 2, R);
   }
-  tower(g, 330, 38, L(250)); tower(g, 372, 22, L(286));
+  tower(g, F, 330, 38, L(250), '#A8B0C2'); tower(g, F, 372, 22, L(286), '#C0B8AC');
   // A big arch: stepped steel, lit down its left leg, thinner at the top
   {
-    const cx = 480, hw = 76, top = L(236);
+    const cx = 480, hw = 76, top = L(236), S = rampF(F, '#D8DEE8');
     for (let dx = -hw; dx <= hw; dx += PIX) {
-      const u = dx / hw, yo = top + (F - top) * (Math.cosh(u * 1.6) - 1) / (Math.cosh(1.6) - 1);
+      const u = dx / hw, yo = top + (SF - top) * (Math.cosh(u * 1.6) - 1) / (Math.cosh(1.6) - 1);
       const th = 6 + 10 * Math.abs(u) * Math.abs(u);
-      const ui = (dx + 1) / hw, yi = top + 6 + (F - top - 6) * (Math.cosh(ui * 1.7) - 1) / (Math.cosh(1.7) - 1);
-      const yb = Math.min(F, Math.max(yo + th * 0.5, yi));
-      box(g, cx + dx, yo, PIX, Math.max(2, yb - yo + (Math.abs(u) > 0.9 ? F - yb : 0)), u < -0.1 ? FAR[3] : u < 0.15 ? FAR[4] : FAR[1]);
-      box(g, cx + dx, yo, PIX, 2, u < 0.2 ? FAR_GLINT : FAR[2]);
+      const ui = (dx + 1) / hw, yi = top + 6 + (SF - top - 6) * (Math.cosh(ui * 1.7) - 1) / (Math.cosh(1.7) - 1);
+      const yb = Math.min(SF, Math.max(yo + th * 0.5, yi));
+      const col = u < -0.5 ? S[3] : u < -0.1 ? S[4] : u < 0.2 ? S[2] : u < 0.6 ? S[1] : S[0];
+      box(g, cx + dx, snap2(yo), PIX, Math.max(2, yb - yo + (Math.abs(u) > 0.9 ? SF - yb : 0)), col);
+      if ((dx / PIX) % 2 === 0 && Math.abs(u) > 0.1) checker(g, cx + dx, snap2(yo) + 2, PIX, Math.max(2, snap2((yb - yo) * 0.5)), u < 0 ? S[3] : S[0]);
     }
   }
-  // The torch held up: a star-shaped base, the pedestal, the robed figure, the arm, the gold flame
+  // The torch held up: a star-shaped base, the pedestal, the robed figure, the arm, the gold flame (brighter after dark)
   {
-    const x = 640, GR = ['#5E8C8A', '#6F9C98', '#86AEA8', '#A0C2BA', '#BCD6CE'].map(cl => mix(cl, FAR[2], 0.3));
-    box(g, x - 30, L(422), 60, F - L(422), FAR[1]); box(g, x - 30, L(422), 60, 2, FAR[3]);
-    box(g, x - 16, L(360), 32, 62, FAR[2]); box(g, x - 16, L(360), 3, 62, FAR[3]); box(g, x + 8, L(360), 8, 62, FAR[1]); box(g, x - 18, L(360), 36, 4, FAR[3]);
-    for (let i = 0; i < 4; i++) box(g, x - 10 + i * 6, L(372), 2, 10, FAR[1]);
-    g.fillStyle = GR[2]; g.beginPath(); g.moveTo(x - 12, L(360)); g.lineTo(x - 7, L(304)); g.lineTo(x + 7, L(304)); g.lineTo(x + 12, L(360)); g.closePath(); g.fill();
-    box(g, x - 7, L(304), 4, 56, GR[3]); box(g, x + 4, L(306), 6, 54, GR[1]);
+    const x = 640, GR = rampF(F, '#7FB0A6'), P = rampF(F, '#C8BEA8');
+    block(g, x - 30, L(422), 60, SF - L(422), P);
+    block(g, x - 16, L(360), 32, 62, P);
+    box(g, x - 18, L(360), 36, 4, P[1]);
+    for (let i = 0; i < 4; i++) box(g, x - 10 + i * 6, L(372), 2, 10, P[0]);
+    for (let y = L(304); y < L(360); y += 2) { const t = (y - L(304)) / (L(360) - L(304)), hw = snap2(7 + 5 * t); for (let xx = -hw; xx < hw; xx += 2) box(g, x + xx, y, 2, 2, across((xx + hw) / (hw * 2), GR)); }
     for (let i = 0; i < 3; i++) box(g, x - 4 + i * 4, L(320), 1, 38, GR[1]); // (the robe's folds)
-    box(g, x - 4, L(296), 8, 9, GR[2]); box(g, x - 4, L(296), 3, 9, GR[3]);
-    for (let i = -2; i <= 2; i++) box(g, x + i * 3, L(292) - (2 - Math.abs(i)) * 2, 2, 4 + (2 - Math.abs(i)) * 2, GR[3]); // (the crown's spikes)
-    box(g, x + 6, L(262), 4, 44, GR[2]); box(g, x + 6, L(262), 1, 44, GR[3]);
-    box(g, x + 4, L(256), 8, 6, GR[1]); box(g, x + 4, L(256), 8, 2, GR[3]);
-    box(g, x + 6, L(248), 4, 8, '#E8B400'); box(g, x + 7, L(244), 2, 6, '#FFD84A'); box(g, x + 7, L(246), 1, 3, '#FFF2A8');
+    for (let xx = -4; xx < 4; xx += 2) box(g, x + xx, L(296), 2, 9, across((xx + 4) / 8, GR));
+    for (let i = -2; i <= 2; i++) box(g, x + i * 3, L(292) - (2 - Math.abs(i)) * 2, 2, 4 + (2 - Math.abs(i)) * 2, i < 0 ? GR[3] : GR[2]); // (the crown's spikes)
+    box(g, x + 6, L(262), 4, 44, GR[2]); box(g, x + 6, L(262), 2, 44, GR[3]); box(g, x + 9, L(262), 1, 44, GR[1]);
+    box(g, x + 4, L(256), 8, 6, GR[1]); box(g, x + 4, L(256), 2, 6, GR[3]);
+    const fl = mix(F.T('#E8B400'), '#FFD84A', 0.4 + F.night * 0.6);
+    if (F.night > 0.3) box(g, x + 4, L(250), 8, 10, mix(F.T('#E8B400'), GR[2], 0.5));
+    box(g, x + 6, L(248), 4, 8, fl); box(g, x + 7, L(244), 2, 6, lamp('#FFD84A')); box(g, x + 7, L(246), 1, 3, '#FFF2A8');
     box(g, x - 12, L(330), 6, 10, GR[1]); // (the tablet)
   }
-  // A capitol: wings with columns, a drum, the dome in stepped ribs, the lantern and the statue on top
+  // A capitol: wings with columns, a drum, the dome in stepped shells and ribs, the lantern and the statue on top
   {
-    const x = 790, CP = ['#7C8CAE', '#93A3C4', '#AEBCD8', '#C8D4EA', '#DFE7F4'];
-    box(g, x - 84, L(398), 168, F - L(398), CP[2]); box(g, x - 84, L(398), 168, 2, CP[4]); box(g, x - 84, L(404), 168, 2, CP[1]);
-    for (let i = -80; i < 80; i += 6) box(g, x + i, L(408), 2, F - L(408) - 4, i < 0 ? CP[3] : CP[1]);
-    g.fillStyle = CP[3]; g.beginPath(); g.moveTo(x - 30, L(398)); g.lineTo(x, L(384)); g.lineTo(x + 30, L(398)); g.closePath(); g.fill();
-    box(g, x - 28, L(360), 56, 24, CP[2]); box(g, x - 28, L(360), 56, 2, CP[4]);
-    for (let i = -24; i < 24; i += 5) box(g, x + i, L(364), 2, 18, i < 0 ? CP[3] : CP[0]);
-    const domeSteps = [CP[1], CP[2], CP[3], CP[4]];
-    for (let i = 0; i < 4; i++) { g.fillStyle = domeSteps[i]; g.beginPath(); g.ellipse(x - i * 3, L(360), 26 - i * 6, 28 - i * 5, 0, Math.PI, 0); g.fill(); }
-    for (let i = -20; i <= 20; i += 8) box(g, x + i, L(360) - Math.sqrt(1 - (i / 26) ** 2) * 26, 1, Math.sqrt(1 - (i / 26) ** 2) * 24, CP[1]);
-    box(g, x - 4, L(340), 8, 10, CP[3]); box(g, x - 3, L(330), 6, 10, CP[2]); box(g, x - 1, L(320), 2, 10, CP[4]);
+    const x = 790, CP = rampF(F, '#E2E4EA');
+    block(g, x - 84, L(398), 168, SF - L(398), CP);
+    box(g, x - 84, L(404), 168, 2, CP[1]);
+    for (let i = -80; i < 80; i += 6) box(g, x + i, L(408), 2, SF - L(408) - 4, i < -40 ? CP[3] : i < 30 ? CP[2] : CP[1]);
+    for (let i = -78; i < 78; i += 6) box(g, x + i + 2, L(410), 2, 4, hash(i * 3.3) < F.night * 0.8 ? LIT : CP[0]);
+    poly(g, [[x - 30, L(398)], [x, L(384)], [x, L(398)]], CP[3]); poly(g, [[x, L(384)], [x + 30, L(398)], [x, L(398)]], CP[1]);
+    block(g, x - 28, L(360), 56, 24, CP);
+    for (let i = -24; i < 24; i += 5) box(g, x + i, L(364), 2, 18, i < -8 ? CP[3] : i < 10 ? CP[2] : CP[0]);
+    orb(g, x, L(360), 26, CP, true);
+    g.save(); g.beginPath(); g.rect(x - 26, L(360) - 26, 52, 26); g.clip();
+    g.strokeStyle = CP[1]; g.lineWidth = 1;
+    for (const k of [0.4, 0.75]) { g.beginPath(); g.ellipse(snap2(x), L(360), 26 * k, 26, 0, Math.PI, Math.PI * 2); g.stroke(); }
+    g.restore();
+    cylV(g, x, L(334), L(326), 8, 8, CP); cylV(g, x, L(326), L(318), 6, 4, CP);
+    box(g, x - 2, L(318), 2, 2, F.night > 0.3 ? LIT : CP[0]);
   }
   // More towers, one with an antenna, a slim one with a needle
-  tower(g, 896, 30, L(232)); box(g, 910, L(196), 2, 36, FAR[3]);
-  tower(g, 930, 46, L(284)); tower(g, 980, 26, L(214)); box(g, 992, L(176), 1, 38, FAR[4]);
-  // The big fake mountain: two faces split down the ridge, the snow on top (painted on), a flag on the peak
+  tower(g, F, 896, 30, L(232), '#B8B0A4'); cylV(g, 911, L(232), L(196), 2, 2, rampF(F, '#B8B0A4'));
+  tower(g, F, 930, 46, L(284), '#A4AEC0'); tower(g, F, 980, 26, L(214), '#C8CCD4'); cylV(g, 993, L(214), L(176), 2, 2, rampF(F, '#C8CCD4'));
+  box(g, 992, L(178), 2, 2, F.night > 0.15 ? '#FF4A5A' : F.T('#8A8E98'));
+  // The big fake mountain: its lit face and its shaded one dithered together down the ridge, crags in them, the snow on
+  // top (painted on: lit and shaded the same way), a flag on the peak
   {
-    const x0 = 1020, x1 = 1170, px = 1086, py = L(206);
-    g.fillStyle = FAR[3]; g.beginPath(); g.moveTo(x0, F); g.lineTo(px - 18, L(270)); g.lineTo(px, py); g.lineTo(px + 6, L(300)); g.lineTo(px - 8, F); g.closePath(); g.fill();
-    g.fillStyle = FAR[1]; g.beginPath(); g.moveTo(px - 8, F); g.lineTo(px + 6, L(300)); g.lineTo(px, py); g.lineTo(px + 22, L(256)); g.lineTo(x1, F); g.closePath(); g.fill();
-    for (let i = 0; i < 6; i++) box(g, x0 + 20 + i * 18, L(360) + hash(i) * 50, 8, 2, i < 3 ? FAR[2] : FAR[0]); // (crags)
-    g.fillStyle = '#E6EEF8'; g.beginPath(); g.moveTo(px - 18, L(250)); g.lineTo(px, py); g.lineTo(px + 18, L(246)); g.lineTo(px + 10, L(240)); g.lineTo(px + 4, L(250)); g.lineTo(px - 4, L(242)); g.lineTo(px - 10, L(254)); g.closePath(); g.fill();
-    g.fillStyle = '#C2D0E6'; g.beginPath(); g.moveTo(px + 1, py + 2); g.lineTo(px + 18, L(246)); g.lineTo(px + 10, L(240)); g.lineTo(px + 4, L(250)); g.closePath(); g.fill();
-    box(g, px, py - 14, 1, 14, FAR[0]); box(g, px + 1, py - 14, 7, 2, '#C86A72'); box(g, px + 1, py - 12, 7, 2, '#E8ECF4'); box(g, px + 1, py - 14, 3, 2, '#6A80B8');
+    const x0 = 1020, x1 = 1170, px = 1086, py = L(206), M = rampF(F, '#8E98AA'), Sn = rampF(F, '#EEF2F8');
+    poly(g, [[x0, SF], [px - 18, L(270)], [px, py], [px + 6, L(300)], [px - 8, SF]], M[3]);
+    poly(g, [[px - 8, SF], [px + 6, L(300)], [px, py], [px + 22, L(256)], [x1, SF]], M[1]);
+    for (let y = py + 4; y < SF; y += 2) { const t = (y - py) / (SF - py), rx = snap2(px + (t < 0.3 ? 6 * (t / 0.3) : 6 - 14 * ((t - 0.3) / 0.7))); box(g, rx - 2, y, 2, 2, (y / 2) % 2 ? M[2] : M[3]); box(g, rx, y, 2, 2, (y / 2) % 2 ? M[1] : M[2]); }
+    for (let i = 0; i < 6; i++) { const cx = x0 + 20 + i * 18 + (i > 2 ? 10 : 0), cy = snap2(L(360) + hash(i) * 50); box(g, cx, cy, 8, 2, i < 3 ? M[4] : M[0]); box(g, cx + 2, cy + 2, 6, 2, i < 3 ? M[2] : M[0]); }
+    poly(g, [[px - 18, L(250)], [px, py], [px + 1, py + 2], [px + 4, L(250)], [px - 4, L(242)], [px - 10, L(254)]], Sn[3]);
+    poly(g, [[px + 1, py + 2], [px + 18, L(246)], [px + 10, L(240)], [px + 4, L(250)]], Sn[1]);
+    box(g, px, py - 14, 1, 14, M[0]); box(g, px + 1, py - 14, 7, 2, F.T('#C86A72')); box(g, px + 1, py - 12, 7, 2, F.T('#E8ECF4')); box(g, px + 1, py - 14, 3, 2, F.T('#6A80B8'));
   }
   // A roller coaster's lift hill: a lattice up, the drop down, the track along its top
   {
-    const ax = 1150, ay = F, bx = 1206, by = L(250), cx = 1250;
-    const drop = (t: number) => ({ x: bx + (cx - bx) * t, y: by + (F - by) * (t * t * (3 - 2 * t)) });
+    const ax = 1150, ay = SF, bx = 1206, by = L(250), cx = 1250, C = rampF(F, '#E2DCD2');
+    const drop = (t: number) => ({ x: bx + (cx - bx) * t, y: by + (SF - by) * (t * t * (3 - 2 * t)) });
+    const topAt = (x: number) => (x <= bx ? ay + (by - ay) * ((x - ax) / (bx - ax)) : drop((x - bx) / (cx - bx)).y);
     for (let x = ax; x <= cx; x += 8) {
-      const ty = x <= bx ? ay + (by - ay) * ((x - ax) / (bx - ax)) : drop((x - bx) / (cx - bx)).y;
-      box(g, x, ty, 1, F - ty, FAR[1]);
-      if (x + 8 <= cx) { g.strokeStyle = FAR[0]; g.lineWidth = 1; g.beginPath(); g.moveTo(x, F); g.lineTo(x + 8, Math.max(ty, F - 40)); g.stroke(); }
+      const ty = snap2(topAt(x));
+      box(g, x, ty, 2, SF - ty, C[2]); box(g, x + 2, ty, 1, SF - ty, C[0]);
+      // (the X's between bents, stepped)
+      if (x + 8 <= cx) for (let y = Math.max(ty, snap2(topAt(x + 8))) + 2; y < SF - 2; y += 8) for (let k = 0; k < 8; k += 2) { box(g, x + k, y + k, 2, 2, C[1]); box(g, x + 6 - k, y + k, 2, 2, C[0]); }
     }
-    g.strokeStyle = FAR[3]; g.lineWidth = 2; g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by);
-    for (let t = 0; t <= 1; t += 0.05) { const p = drop(t); g.lineTo(p.x, p.y); }
-    g.stroke();
-    g.strokeStyle = FAR[4]; g.lineWidth = 1; g.beginPath(); g.moveTo(ax, ay - 1); g.lineTo(bx, by - 1); g.stroke();
+    for (let x = ax; x <= cx; x += 2) { const ty = snap2(topAt(x)); box(g, x, ty - 2, 2, 4, x <= bx ? C[3] : C[1]); }
   }
   // The Ferris wheel's legs and rim (the spokes and the cars go round, live)
   {
-    const { x, y, r } = WHEEL;
-    g.strokeStyle = FAR[1]; g.lineWidth = 3;
-    g.beginPath(); g.moveTo(x - 30, F); g.lineTo(x, L(y)); g.lineTo(x + 30, F); g.stroke();
-    g.strokeStyle = FAR[3]; g.lineWidth = 2; g.beginPath(); g.arc(x, L(y), r, 0, Math.PI * 2); g.stroke();
-    g.strokeStyle = FAR[1]; g.lineWidth = 1; g.beginPath(); g.arc(x, L(y), r - 4, 0, Math.PI * 2); g.stroke();
-    g.strokeStyle = FAR[4]; g.beginPath(); g.arc(x, L(y), r, Math.PI * 1.05, Math.PI * 1.45); g.stroke();
-    box(g, x - 40, F - 4, 80, 4, FAR[1]);
+    const { x, y, r } = WHEEL, C = rampF(F, '#E4E8F0');
+    poly(g, [[x - 32, SF], [x - 2, L(y + LIFT)], [x + 1, L(y + LIFT)], [x - 26, SF]], C[3]);
+    poly(g, [[x + 26, SF], [x - 1, L(y + LIFT)], [x + 2, L(y + LIFT)], [x + 32, SF]], C[1]);
+    g.strokeStyle = C[1]; g.lineWidth = 2; g.beginPath(); g.arc(x, L(y + LIFT), r, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = C[0]; g.lineWidth = 1; g.beginPath(); g.arc(x, L(y + LIFT), r - 4, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = C[3]; g.lineWidth = 2; g.beginPath(); g.arc(x, L(y + LIFT), r, Math.PI * 0.8, Math.PI * 1.4); g.stroke();
+    block(g, x - 40, SF - 4, 80, 4, C);
   }
-  tower(g, 1340, 32, L(276)); tower(g, 1366, 20, L(318));
-  // (the air at their feet: they fade into the haze)
-  hazeBands(g, 0, L(330), SKY_TW, F - L(330), SKY_PALE, 0, 0.78, 7);
-  box(g, 0, F, SKY_TW, 20, mix(SKY_PALE, FAR[2], 0.2));
+  tower(g, F, 1340, 32, L(276), '#B0B8C8'); tower(g, F, 1366, 20, L(318), '#C4BCB0');
+  // (the haze lying over their feet)
+  mist(g, SKY_TW, L(330), SF - L(330), skyTint(SKY_PALE, 0.95, tod), 0, 0.6, 7);
+  skyGround(g, F, tod);
 };
 
-/** The Ferris wheel's middle (in the skyline strip's x, screen y) and its rim's radius. */
-const WHEEL = { x: 1300, y: 352, r: 56 };
+/** The ground the skyline stands on, from its foot down: a lawn banded darker going down (each step dithered in), a
+ *  pale walk along it with its lamps (lit after dark), and a tree line along its back edge in front of the landmarks'
+ *  feet (stepped crowns, gaps here and there), misted. Whole round the tile. */
+const skyGround = (g: Ctx, F: Far, tod: ReturnType<typeof timeOfDay>) => {
+  const Lw = ['#2E4E26', '#3C6230', '#4A763A', '#5C8A44'].map(F.T), Wk = rampF(F, '#D8D2C4');
+  box(g, 0, SF - 2, SKY_TW, SKY_GH + 2, Lw[3]);
+  [Lw[2], Lw[1], Lw[0]].forEach((col, i) => { const y = SF + snap2(((i + 1) * SKY_GH) / 4); box(g, 0, y, SKY_TW, SF + SKY_GH - y, col); checker(g, 0, y - 2, SKY_TW, 2, col, i % 2); });
+  const wy = SF + 16;
+  box(g, 0, wy, SKY_TW, 4, Wk[2]); box(g, 0, wy + 4, SKY_TW, 2, Wk[0]);
+  for (let x = 30; x < SKY_TW; x += 100) { box(g, x, wy - 10, 2, 10, Wk[0]); box(g, x - 2, wy - 12, 4, 2, F.night > 0.3 ? '#FFE8A0' : Wk[1]); }
+  const T = ['#24442A', '#335E34', '#477A3C', '#62964A'].map(F.T), n = Math.round(SKY_TW / 11);
+  for (let i = 0; i < n; i++) {
+    if (hash(i * 1.37 + 4) < 0.25) continue;
+    const rr = 5 + hash(i * 3.1) * 4;
+    for (const x of [(i * SKY_TW) / n, (i * SKY_TW) / n + SKY_TW, (i * SKY_TW) / n - SKY_TW]) if (x > -rr * 2 && x < SKY_TW + rr * 2) crown(g, x, SF + 2 - rr * 0.4, rr, T);
+  }
+  mist(g, SKY_TW, SF - 10, SKY_GH + 10, skyTint(SKY_PALE, 0.95, tod), 0.42, 0.12, 4);
+};
+
+/**
+ * The hills out past America USA, behind its skyline (further off still, slower): a pale range, misted, then wooded
+ * hills rolling in front of it; their feet under the skyline's ground. Whole cycles round the tile.
+ */
+const SKY_HILL_TW = 1024, SKY_HILL_H = 130;
+const paintSkyHills = (g: Ctx) => {
+  const tod = timeOfDay(), haze = skyTint(SKY_PALE, 0.95, tod), tw = SKY_HILL_TW, h = SKY_HILL_H;
+  const look = (base: string, k: number): RangeLook => {
+    const T = (c: string) => mix(farTint(c, 1.2, tod), haze, k);
+    return { body: T(base), lit: T(mix(base, '#E8F0F8', 0.26)), hi: T(mix(base, '#FFFFFF', 0.4)), shade: T(mix(base, '#18223A', 0.16)), deep: T(mix(base, '#18223A', 0.3)) };
+  };
+  const backY = (x: number) => snap2(30 + wave(x, tw, 3.7) * 18 + jag(x, tw, 8, 6) * 4);
+  range(g, tw, backY, h, look('#90A4C4', 0.45), 21, { gullies: 22, d: 12 });
+  mist(g, tw, 30, h - 30, haze, 0, 0.55, 6);
+  const frontY = (x: number) => snap2(78 + wave(x, tw, 0.9, 2) * 12);
+  const front = look('#7C96A8', 0.3);
+  range(g, tw, frontY, h, front, 27, { gullies: 14, d: 10, forest: [front.shade, front.body], forestY: x => frontY(x) + 12 + wave(x, tw, 5.1, 3) * 5 });
+  mist(g, tw, 70, h - 70, haze, 0, 0.55, 5);
+};
+
+/** The Ferris wheel's middle (in the skyline strip's x; its y as laid out, in the old screen terms: see `L`) and its
+ *  rim's radius. */
+const WHEEL = { x: 1300, y: 352 - LIFT, r: 56 };
 
 const SKY_PAR = 0.1, PARK_PAR = 0.2, PARK_TW = 1200, PARK_TOP = 404;
 
@@ -760,28 +849,34 @@ const paintPark = (g: Ctx) => {
 };
 
 const skyline = (c: Ctx, cam: number, f: number) => {
-  tiled(c, 'm2skyline', cam * SKY_PAR, SKY_TOP, SKY_TW, SKY_FOOT - SKY_TOP + 20, paintSkyline);
-  // (what goes round: the Ferris wheel, the coaster's train up the lift hill and over)
+  // (the hills further off still, behind it all: their feet under the skyline's ground)
+  tiled(c, 'm2skyhills', cam * SKY_PAR * 0.5, SKY_FOOT + 4 - SKY_HILL_H, SKY_HILL_TW, SKY_HILL_H, paintSkyHills);
+  tiled(c, 'm2skyline', cam * SKY_PAR, SKY_TOP, SKY_TW, SF + SKY_GH, paintSkyline);
+  // (what goes round: the Ferris wheel, the coaster's train up the lift hill and over; in the far layer's colors)
+  const FC = rampF(skyFar(), '#E4E8F0'), night = timeOfDay().lamps;
   const off = ((cam * SKY_PAR) % SKY_TW + SKY_TW) % SKY_TW;
   for (let base = -Math.round(off); base < W + SKY_TW; base += SKY_TW) {
     const wx = base + WHEEL.x;
     if (wx > -WHEEL.r - 10 && wx < W + WHEEL.r + 10) {
       const th = f * 0.004;
-      c.strokeStyle = FAR[2]; c.lineWidth = 1; c.beginPath();
+      c.strokeStyle = FC[1]; c.lineWidth = 1; c.beginPath();
       for (let i = 0; i < 8; i++) { const a = th + (i / 8) * Math.PI; c.moveTo(wx + Math.cos(a) * WHEEL.r, WHEEL.y + Math.sin(a) * WHEEL.r); c.lineTo(wx - Math.cos(a) * WHEEL.r, WHEEL.y - Math.sin(a) * WHEEL.r); }
       c.stroke();
-      box(c, wx - 3, WHEEL.y - 3, 6, 6, FAR[1]); box(c, wx - 3, WHEEL.y - 3, 3, 3, FAR[3]);
-      const GON = ['#C86A72', '#E6EAF2', '#6A80B8'];
+      box(c, wx - 4, WHEEL.y - 4, 8, 8, FC[1]); box(c, wx - 4, WHEEL.y - 4, 4, 4, FC[3]);
+      // (bulbs round the rim after dark)
+      if (night > 0.3) for (let i = 0; i < 24; i++) { const a = th + (i / 24) * Math.PI * 2 + 0.13; box(c, Math.round(wx + Math.cos(a) * WHEEL.r) - 1, Math.round(WHEEL.y + Math.sin(a) * WHEEL.r) - 1, 2, 2, i % 2 ? '#FFE8A0' : '#FF9AD0'); }
+      const GON = ['#C86A72', '#E6EAF2', '#6A80B8'].map(cl => rampF(skyFar(), cl));
       for (let i = 0; i < 12; i++) {
-        const a = th + (i / 12) * Math.PI * 2, gx = Math.round(wx + Math.cos(a) * WHEEL.r), gy = Math.round(WHEEL.y + Math.sin(a) * WHEEL.r);
-        box(c, gx, gy, 1, 3, FAR[0]); box(c, gx - 3, gy + 3, 7, 5, GON[i % 3]); box(c, gx - 3, gy + 3, 7, 1, '#EEF2F8');
+        const a = th + (i / 12) * Math.PI * 2, gx = Math.round(wx + Math.cos(a) * WHEEL.r), gy = Math.round(WHEEL.y + Math.sin(a) * WHEEL.r), G = GON[i % 3];
+        box(c, gx, gy, 1, 3, FC[0]); box(c, gx - 3, gy + 3, 7, 5, G[2]); box(c, gx - 3, gy + 3, 2, 5, G[3]); box(c, gx + 2, gy + 3, 2, 5, G[1]);
+        if (night > 0.3) box(c, gx - 1, gy + 4, 2, 2, '#FFE8A0');
       }
     }
     // (the train: up the lift hill slow, down the drop fast, gone round the back, again)
-    const cyc = (f % 900) / 900;
+    const cyc = (f % 900) / 900, crest = 250 - LIFT;
     let tx: number, ty: number;
-    if (cyc < 0.7) { const u = cyc / 0.7; tx = 1150 + 56 * u; ty = SKY_FOOT + (250 - SKY_FOOT) * u; }
-    else if (cyc < 0.8) { const u = (cyc - 0.7) / 0.1; tx = 1206 + 44 * u; ty = 250 + (SKY_FOOT - 250) * (u * u * (3 - 2 * u)); }
+    if (cyc < 0.7) { const u = cyc / 0.7; tx = 1150 + 56 * u; ty = SKY_FOOT + (crest - SKY_FOOT) * u; }
+    else if (cyc < 0.8) { const u = (cyc - 0.7) / 0.1; tx = 1206 + 44 * u; ty = crest + (SKY_FOOT - crest) * (u * u * (3 - 2 * u)); }
     else continue;
     const sx = base + tx;
     if (sx > -20 && sx < W + 20) for (let k = 0; k < 3; k++) box(c, Math.round(sx - k * 5 - 2), Math.round(ty - 4 + (cyc < 0.7 ? k * 3.4 : -k * 2)), 4, 3, k === 0 ? '#C04A56' : '#D86A74');
