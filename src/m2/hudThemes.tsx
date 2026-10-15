@@ -10,7 +10,7 @@ import type { HudSkin } from '../m1/components/HUD';
 export type Zone =
   | 'garage' | 'security' | 'america' | 'ticket' | 'hub' | 'staff'
   | 'jungle' | 'queue' | 'boat' | 'underwater' | 'dino' | 'temple' | 'cart' | 'roof' | 'clearing'
-  | 'spooky' | 'space';
+  | 'spooky' | 'space' | 'hollywood';
 
 /** How the pause menu looks. */
 export interface PauseSkin {
@@ -415,6 +415,26 @@ export const THEMES: Record<Zone, Theme> = {
       well: { background: 'rgba(30,27,75,0.6)', border: '1px solid #4338CA' },
       slot: 'rgba(30,27,75,0.92)', slotOn: 'rgba(165,180,252,0.8)',
       button: 'linear-gradient(180deg, #4338CA, #312E81)', buttonEdge: '#1E1B4B',
+    },
+  },
+  // Hollywood Land (one look for all of it): a clapperboard, black and gold, a red carpet edge
+  hollywood: {
+    hud: {
+      panel: { background: 'linear-gradient(180deg, rgba(39,39,42,0.96), rgba(24,24,27,0.96))', border: '2px solid #FACC15', boxShadow: PIXEL_SHADOW },
+      deco: <>{edge('#B91C1C', 4)}{tag('ACTION', { background: '#FACC15', color: '#18181B' })}</>,
+      label: '#FEF3C7', value: '#FFFFFF', name: '#FACC15',
+      track: { background: '#18181B', borderColor: '#B91C1C' },
+      slot: { background: 'rgba(24,24,27,0.6)', borderColor: '#FACC15' },
+    },
+    pause: {
+      title: 'PAUSED', sub: "WE'LL FIX IT IN POST",
+      titleStyle: { color: '#FACC15', textShadow: '3px 3px 0 #B91C1C, 5px 5px 0 #000' },
+      frame: { background: 'linear-gradient(180deg, #27272A, #18181B)', border: '4px solid #FACC15', boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9)' },
+      stripe: 'repeating-linear-gradient(135deg, #FAFAFA 0 8px, #18181B 8px 16px)',
+      accent: '#FACC15', text: '#FEF3C7', muted: '#FDE68A',
+      well: { background: 'rgba(24,24,27,0.6)', border: '1px solid #B91C1C' },
+      slot: 'rgba(24,24,27,0.92)', slotOn: 'rgba(250,204,21,0.8)',
+      button: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', buttonEdge: '#18181B',
     },
   },
 };

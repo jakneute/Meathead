@@ -12,7 +12,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/voices/manife
 
 // (where extract.ts says a line comes from: these tables are Meathead 2's own)
 const M2_ONLY = new Set(['GRAB_CALLOUTS', 'M2_KILL_LINES', 'FULL_BAG_LINES', 'EMPTY_BAG_LINES', 'BULK_LINES', 'BULK_FAIL_LINES',
-  'DUCK_LINES', 'TOO_BIG_LINES', 'M2_GUT_LINES', 'M2_GUT_DEATH', 'INTRO', 'ADVENTURE', 'SPOOKY', 'SPACE', 'HUB']);
+  'DUCK_LINES', 'TOO_BIG_LINES', 'M2_GUT_LINES', 'M2_GUT_DEATH', 'INTRO', 'ADVENTURE', 'SPOOKY', 'SPACE', 'HOLLYWOOD', 'HUB']);
 const from = new Map(manifest.map(m => [`${m.voice}|${m.text}`, m.from]));
 // (but a line of theirs that Meathead 1's own code says too (a kill line, a death screen) stays: its source, read whole)
 let m1src = '';
