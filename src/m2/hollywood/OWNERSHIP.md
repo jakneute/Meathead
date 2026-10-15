@@ -76,6 +76,10 @@ the way back working (revisits), or give a one-way set piece a sane way to retur
 - **The fling** (havoc -> stunt) is one-way. Back from the stunt stage, he's put where the tornado caught him
   (`DOORS.havoc.end`, on the ground); the havoc owner keeps that spot reachable on foot both ways (the tornado's spent
   on a revisit).
+  **Built** (havoc/fling.ts): past the first aid station the tornado surges and gets him; the cutscene ends with him
+  put at `DOORS.stunt.start` (on the ground, a thump in the dust, the HUD back). From then on (`hollywood-havoc-flung`
+  in state.stageMemo, or the checkpoint's 60+, or the land's cleared) the tornado's spent and the havoc's right end goes
+  on to `DOORS.stunt.start` on foot.
 
 ## Stunt wires (the land's new mechanic)
 

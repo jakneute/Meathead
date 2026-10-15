@@ -1,58 +1,184 @@
 // THE HAVOC: section 6 of Hollywood Land (owner: the havoc agent). Disaster: The Ride's lever made it real: every
-// natural disaster at once, a total juxtaposition. High winds (pushing him, flinging debris), lava rivers, crumbling
-// buildings, quakes, hail, a blizzard's avalanches. A forced-forward climb UP (in -y from GY, as far as it needs) as the
-// flood rises under him and buildings are demolished round him. A TORNADO chasing him: if it hits him, he dies; he
-// takes cover where the snow avalanches come down (the avalanche sheds it, or the cover holds while it passes). At the
-// end the tornado catches him and flings him (a cutscene: HUD hidden, skip all-or-nothing) onto Stuntman Steve's stunt
-// stage (on to stunt's start). If he died to the tornado before, he breaks the fourth wall on the way: "NORMALLY YOU
-// KILL ME, BUT BECAUSE THIS IS A CUTSCENE I JUST MOVE TO THE NEXT SCRIPTED SET PIECE. OKAY. MAKES PERFECT SENSE."
+// natural disaster at once, a total juxtaposition. Out the hole the ride's far wall left, onto the backlot under a red
+// sky: lava rivers across the street, the plywood facades coming down flat (nothing behind them), a light tower over a
+// lava river for a bridge, the wind throwing the street at him, the quake bringing down what's up, the Revengers
+// billboard. Then THE FLOOD CLIMB: the water comes up the backlot and the only way is up, a staircase of three shafts as
+// the buildings round him are demolished (the hotel's scaffold, the crane over STAGE 14 and its wrecking ball, the
+// water tower's scaffold), ledges crumbling under him and behind him, chunks coming down. Up on the HAPPYWOOD sign's
+// ridge, THE TORNADO comes down behind him (it drinks the flood) and chases him down the hill road in the snow and on
+// along the foot of the hill: touch it and he dies. At each AVALANCHE ZONE, a shelter: in under it, the avalanche comes
+// down, buries the tornado (it falls back) and goes over him. Then everything at once (lava, wind, the quake, hail,
+// facades, the tornado still coming), a first aid station (the big health and ammo, before Stuntman Steve), and the
+// tornado surges, catches him and flings him (fling.ts: a cutscene, HUD hidden, SKIP >> for the lot) onto the stunt
+// stage. If it killed him before on this visit, he breaks the fourth wall on the way (lines.ts FOURTH_WALL).
 //
-// Every new way to hurt him here (wind debris, lava, the flood, falling buildings, the tornado) gets voiced hurt and
-// death lines. The hazards hurt enemies too (nobody idles in them; they can be knocked in).
+// layout.ts lays it out; hazards.ts the disasters; chase.ts the tornado, the shelters and the avalanches; fling.ts the
+// fling; kinds.ts its people (looters, the storm crew, Poppy the popcorn mascot); art.ts draws it; lines.ts what's said.
 //
-// Target: ~19500 px of play (the climb counted by how long it plays), ~4 min. Checkpoints 50-59. Outdoors: the time of
-// day's light, under whatever the disasters do to the sky.
+// ~19500 px of play (the climb counted by how long it plays), ~4 min. Checkpoints 50-59. Outdoors: the time of day's
+// light, the sky gone red.
 //
-// One-way set piece: the fling. The way back from the stunt stage (DOORS.havoc.end) puts him where the tornado caught
-// him, on the ground; keep that spot reachable on foot both ways. Revisits differ: the tornado's spent (no chase), the
-// flood's gone down and left the wreckage, the climb's still climbable (destruction never locks the way back).
+// One-way set piece: the fling. Back from the stunt stage (DOORS.havoc.end, on the ground at the end) the tornado's
+// spent (FLUNG_MEMO): no chase, no flood (gone down), no wind, quake or hail; the lava crusted over, the facades down,
+// the snow banked up, the ledges solid. Walkable both ways; the right end on to the stunt stage from then on.
 
+import type { GameState } from '../../../m1/game/core/state';
+import type { EnemyKind } from '../../../m1/types';
+import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
+import { pickLine } from '../../../m1/game/platform/speech';
+import { playSound } from '../../../m1/game/platform/audio';
+import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { HollywoodSection } from '../section';
-import { layOwn, endWalls, endExits, runExits, groundBox, postSign, placeholderBackdrop, steveFlier, landVisit } from '../section';
-import { SECTIONS, DOORS, GY } from '../geometry';
+import { layOwn, solid, endWalls, endExits, runExits, meatheadSays, speak } from '../section';
+import { byPants } from '../blvd/kinds';
+import { paSay } from '../blvd';
+import { LOOP, REAL } from '../disaster/lines';
+import {
+  x0, x1, X, Y, R, GY, RUNS, BUILDINGS, ENEMIES, PICKUPS, CHECKPOINTS, WIRES, groundH, FLOOD_AT, CLIMB, SHAFTS, COVERS,
+  REFILL, WIND, QUAKE, HAIL, LAVA,
+} from './layout';
+import { hvOf, FLUNG_MEMO } from './state';
+import './kinds';
+import { buildHazards, updateHazards, updateLobs, spent } from './hazards';
+import { buildCovers, updateChase, startTornado, formTornado, coverRoof } from './chase';
+import { startFling, updateFling, drawFlingHud, flinging } from './fling';
+import { drawHavocBackdrop, drawHavocBack, drawHavocFront, havocLamps } from './art';
+import * as L from './lines';
 
-const { x0, x1 } = SECTIONS.havoc;
+export { noteTornadoDeath, diedToTornado } from './state';
 
-// ---------------------------------------------------------------------------------------------------------------
-// Died to the tornado: kept here, not on the stage (state.stage is rebuilt every death), so it outlives the death;
-// it starts over on a fresh way into the land (section.ts's landVisit), never on a respawn.
+const pick = pickLine;
 
-let tornadoVisit = -1, tornadoDeaths = 0;
-/** He just died to the tornado (call it from the kill). */
-export const noteTornadoDeath = () => { if (tornadoVisit !== landVisit()) { tornadoVisit = landVisit(); tornadoDeaths = 0; } tornadoDeaths++; };
-/** Has the tornado killed him on this visit to the land? (the fling's fourth-wall line) */
-export const diedToTornado = () => tornadoVisit === landVisit() && tornadoDeaths > 0;
+/** The narrator (the ride's, on the park's horns now): in turn, his words up top while he says them. */
+const narrate = (state: GameState, line: string, onDone?: () => void) => {
+  const hv = hvOf(state);
+  speak(L.NARR, line, s => { hv.narr = s; }, true, onDone);
+};
+/** Once a stage run (kept across his deaths). */
+const once = (state: GameState, k: string) => { const key = `hwh-said-${k}`; if (state.stageMemo[key]) return false; state.stageMemo[key] = '1'; return true; };
+/** Once a life. */
+const oncePer = (state: GameState, k: string) => { const hv = hvOf(state); if (hv.said[k]) return false; hv.said[k] = true; return true; };
+
+/** Starting (or starting again): the flood and the tornado as they'd be from here; spent, the calm. Run on the first
+ *  frame (the checkpoint-skip cheat sets the checkpoint after the build). */
+const settle = (state: GameState) => {
+  const hv = hvOf(state);
+  const cp = CHECKPOINTS.find(c => c.cp === state.checkpoint);
+  const cpRx = cp ? R(cp.x) : state.checkpoint >= 60 ? 99999 : -99999;
+  buildCovers(state, cpRx);
+  if (spent(state)) {
+    // (the calm: the lava crusted, everything down, nothing crumbling)
+    if (!hv.crusts.length) for (const l of LAVA) hv.crusts.push(solid(state, X(l.a), Y((l.hl + l.hr) / 2), l.b - l.a, 200, { hidden: true, tag: 'havoc-crust' }));
+    for (const fl of hv.falls) fl.phase = 'down';
+    hv.crumbs = [];
+    hv.flood.on = false; hv.tornado.on = false;
+    for (const av of hv.avalanches) av.phase = 'done';
+    return;
+  }
+  const c = state.checkpoint;
+  if (c === 53) Object.assign(hv.flood, { on: true, h: -60, wait: 70, wave: 0, drain: false });
+  else if (c === 54) Object.assign(hv.flood, { on: true, h: 220, wait: 70, wave: 120, drain: false });
+  else if (c === 55) Object.assign(hv.flood, { on: true, h: 740, wait: 70, wave: 120, drain: false });
+  if (c >= 53 && c <= 55) hv.said.flooded = true;
+  if (c === 56) { formTornado(state); hv.said.top = true; }
+  else if (c >= 57 && c <= 59 && cp) { startTornado(state, cp.x - 900, 100); hv.said.top = true; }
+};
 
 export const havoc: HollywoodSection = {
   id: 'havoc', x0, x1,
-  checkpoints: [{ name: 'REAL DISASTERS', cp: 50, x: DOORS.havoc.start.x, y: GY }],
+  checkpoints: CHECKPOINTS,
   build: (state) => {
-    layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'hard' }]);
+    layOwn(state, RUNS.map(([a, b, h1, h2]) => ({ x1: X(a), y1: Y(h1), x2: X(b), y2: Y(h2), surface: 'hard' as const })));
+    // (the climb's buildings: STAGE 14, STAGE 15)
+    for (const [bx, w, h] of BUILDINGS) solid(state, X(bx), Y(h), w, h, { hidden: true, tag: 'havoc-building' });
+    // (the shelters' lids; the first aid tent's roof)
+    COVERS.forEach((_, k) => { const r = coverRoof(k); solid(state, r.x, r.y, r.w, r.h, { hidden: true, tag: 'havoc-shelter' }); });
+    solid(state, X(REFILL - 74), Y(118), 148, 18, { hidden: true, tag: 'havoc-tent' });
     endWalls(state, 'havoc');
+    buildHazards(state);
+    ENEMIES.forEach(([kind, rx, h], i) => {
+      const e = makeKindEnemy(kind as EnemyKind, X(rx), Y(h ?? groundH(rx) ?? 0));
+      e.homeX = e.pos.x; e.homeY = e.pos.y; e.initialY = e.pos.y;
+      e.variant = (i * 7 + rx) % 23;
+      state.enemies.push(e);
+    });
+    for (const [rx, h, type] of PICKUPS) state.pickups.push({ id: `havoc-${rx}-${type}`, pos: { x: X(rx) - 10, y: Y(h ?? groundH(rx) ?? 0) - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
   },
   update: (ctx, controls) => {
-    runExits(ctx.state, endExits('havoc'));
+    const { state } = ctx, p = state.player, hv = hvOf(state);
+    if (!hv.said.init) { hv.said.init = true; settle(state); }
+    // The fling: it has him
+    const cut = updateFling(ctx);
+    if (cut) return cut;
+    const done = spent(state);
+    const ev = updateHazards(ctx);
+    updateLobs(ctx);
+    const cx = p.pos.x + p.width / 2, rx = R(cx), feet = p.pos.y + p.height, up = GY - feet;
+    const alive = p.health > 0 && !p.inCutscene && state.deathTimer <= 0;
+    // The flood comes (down on the canyon floor)
+    if (!done && alive && !hv.said.flooded && rx > FLOOD_AT && rx < SHAFTS[0].b && up < 60) {
+      hv.said.flooded = true;
+      Object.assign(hv.flood, { on: true, h: -60, wait: 50, wave: 0, drain: false });
+      playSound('tsunami', 1, -6); playSound('rumble', 0.8, -14);
+      if (once(state, 'flood')) narrate(state, LOOP[4][0], () => meatheadSays(state, pick(L.GAG.flood), true));
+      else meatheadSays(state, pick(L.GAG.flood), false);
+    }
+    // Up on the ridge: the tornado comes down behind him, and drinks the flood
+    if (!done && alive && !hv.said.top && rx >= CLIMB.b && up > 1480) {
+      hv.said.top = true;
+      formTornado(state);
+      if (hv.flood.on) hv.flood.drain = true;
+      playSound('roar', 1, -18); playSound('whirl', 1, -10);
+      if (once(state, 'top')) meatheadSays(state, pick(L.GAG.top), true, () => narrate(state, L.NARR_HAVOC.tornado, () => meatheadSays(state, pick(L.GAG.tornado), true)));
+      else meatheadSays(state, pick(L.GAG.tornado), true);
+    }
+    // The tornado, the shelters, the avalanches
+    const ch = updateChase(ctx);
+    if (ch.caught) { startFling(ctx); return updateFling(ctx) ?? controls; }
+    // What's said (talk less: each beat once)
+    if (alive && !done) {
+      if (rx < 900 && state.frame > 50 && once(state, 'arrive')) paSay(state, pick(byPants(state, L.PA_HAVOC)), () => meatheadSays(state, pick(L.ARRIVE), true));
+      if (rx > 1050 && rx < 1300 && once(state, 'lava')) narrate(state, L.NARR_HAVOC.lava, () => meatheadSays(state, pick(L.GAG.lava), true));
+      if (ev.fell?.how === 'flat' && once(state, 'facade')) meatheadSays(state, pick(L.GAG.facade), true);
+      if (ev.fell?.how === 'bridge' && once(state, 'bridge')) meatheadSays(state, pick(L.GAG.bridge), true);
+      if (ev.fell?.how === 'billboard' && once(state, 'billboard')) meatheadSays(state, pick(L.GAG.billboard), true);
+      if (ev.gust && rx < WIND[0][1] && once(state, 'wind')) narrate(state, L.NARR_HAVOC.wind, () => meatheadSays(state, pick(L.GAG.wind), true));
+      if (rx > 3950 && once(state, 'pa-steve')) paSay(state, L.PA_STEVE_HAVOC[0]);
+      if (ev.quake && rx < QUAKE[0][1] && once(state, 'quake')) narrate(state, LOOP[0][0], () => meatheadSays(state, pick(L.GAG.quake), true));
+      if (rx > SHAFTS[1].a && rx < SHAFTS[1].b && up > 620 && once(state, 'ball')) meatheadSays(state, pick(L.GAG.ball), true);
+      if (hv.tornado.on && rx > COVERS[0].a - 560 && once(state, 'cover')) narrate(state, L.NARR_HAVOC.avalanche, () => meatheadSays(state, pick(L.GAG.coverSign), true));
+      if (ch.inCover && hv.tornado.on && oncePer(state, 'inCover')) meatheadSays(state, pick(L.GAG.inCover), false);
+      if (ch.smothered && (oncePer(state, 'smothered') || Math.random() < 0.3)) meatheadSays(state, pick(L.GAG.smothered), false);
+      if (rx > 12900 && once(state, 'pa-steve-2')) paSay(state, L.PA_STEVE_HAVOC[1]);
+      if (rx > 15400 && once(state, 'everything')) narrate(state, REAL.all, () => meatheadSays(state, pick(L.GAG.everything), true));
+      if (ev.hail && rx > HAIL[0][0] && once(state, 'hail')) narrate(state, L.NARR_HAVOC.hail);
+      if (rx > REFILL - 220 && once(state, 'refill')) meatheadSays(state, pick(L.GAG.refill), false);
+      if (ch.surge) { if (once(state, 'surge')) narrate(state, L.NARR_HAVOC.surge); meatheadSays(state, pick(L.GAG.surge), false); }
+    }
+    // The ways out: back into the ride (always); on to the stunt stage (once the tornado's spent: the fling's one-way)
+    runExits(state, endExits('havoc').filter(e => e.x0 < X(10000) || done));
     return controls;
   },
-  drawBackdrop: (c, state) => placeholderBackdrop(c, state, { sky: ['#1C1917', '#44403C', '#7C2D12', '#EA580C'], far: '#292524', hill: true }),
-  drawBack: (c) => {
-    groundBox(c, x0 - 200, x1 + 200, GY, '#3F3F46', '#A8A29E');
-    postSign(c, x0 + 600, GY, 'HAVOC: PLACEHOLDER');
-    steveFlier(c, x0 + 2400, GY - 130, 'flier', 2);
-    postSign(c, x0 + 9000, GY, 'THE FLOOD CLIMB (UP)');
-    postSign(c, x1 - 1500, GY, 'THE TORNADO CATCHES HIM');
-    postSign(c, x1 - 400, GY, 'THIS WAY (FLUNG)');
+  drawBackdrop: (c, state) => drawHavocBackdrop(c, state),
+  drawBack: (c, state) => drawHavocBack(c, state),
+  drawFront: (c, state) => drawHavocFront(c, state),
+  drawHud: (c, state) => drawFlingHud(c, state),
+  cameraX: (state) => {
+    const t = hvOf(state).tornado;
+    if (flinging(state)) return undefined;
+    // (the chase: the tornado always just off the left of the view, never left behind)
+    if (t.on && !spent(state)) return { min: Math.max(x0, Math.min(t.x - 260, x1 - CANVAS_WIDTH)), max: x1 - CANVAS_WIDTH };
+    return undefined;
+  },
+  cameraRow: (state) => {
+    const rx = R(state.player.pos.x + state.player.width / 2);
+    // (up the climb: his feet lower on the screen, the way up in view)
+    return rx > CLIMB.a && rx < CLIMB.b + 60 && !flinging(state) ? 430 : undefined;
   },
   outdoors: () => 1,
-  wires: () => [],
+  lamps: (state) => havocLamps(state),
+  wires: () => WIRES,
 };
+
+// (the fling's memo, for anybody who needs to know the tornado's spent)
+export { FLUNG_MEMO };
