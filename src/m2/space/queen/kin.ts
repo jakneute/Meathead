@@ -1,7 +1,7 @@
 // Her offspring (the impregnator ray: a robot giving birth; don't ask). Out of her rear in a sac, splat, and out of
 // that: cheap little chrome robots with the long eyeless heads of her knockoff kind. Three kinds, all machines (scrap
 // and oil, not blood):
-//   BITER    small, a chrome bug with a big head: rushes him and nips his ankles (small: a slide finishes it).
+//   BITER    small, a chrome bug with a big head: rushes him and nips his ankles (small, but not a one-slide critter: it takes a few).
 //   SPITTER  medium, upright, a tailpipe for a mouth: keeps its distance and spits a gob of hot motor oil at him in an
 //            arc (the tell: its head back, the pipe glowing).
 //   CHARGER  large, hunched, a battering-ram crest: paws (the tell: steam, a scrape), then bull-rushes the floor.
