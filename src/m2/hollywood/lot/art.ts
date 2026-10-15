@@ -9,7 +9,7 @@ import type { Light } from '../../../m1/game/render/lighting';
 import { box, steveFlier, happywoodHill, realDisastersOn } from '../section';
 import { GY, HWX, SECTIONS } from '../geometry';
 import { drawTodSky, hourMix } from '../../timeOfDay';
-import { X, Y, DUMP, BREAK, TOWER, PIT1, PIT2, GIFT, RIDE_DOORS, SOLIDS, LEDGES, SPEAKERS, STEVES, READERS } from './layout';
+import { X, Y, DUMP, BREAK, TOWER, PIT1, PIT2, FALL_TOWER, CRANE, GIFT, RIDE_DOORS, SOLIDS, LEDGES, SPEAKERS, STEVES, READERS } from './layout';
 import {
   BACK, BACK_Y, inView, words, print, enamel, gate, brass, marquee, ledgeLip, sidewalk, hole, sawhorse, facade, palm,
 } from '../blvd/paint';
@@ -192,7 +192,26 @@ export const drawLotBack = (c: Ctx, state: GameState) => {
   }
   // The pits
   if (inView(state, X(PIT1.a), X(PIT1.b))) { hole(c, X(PIT1.a), X(PIT1.b)); sawhorse(c, X(PIT1.a) - 40, f, 'CLOSED 1991'); box(c, X(PIT1.a) + 80, BACK_Y - 64, 240, 44, '#000'); words(c, 'MAIN STREET COLLAPSE', X(PIT1.a) + 200, BACK_Y - 46, print(1, '#FDE68A')); words(c, 'STUNT SHOW CLOSED 1991', X(PIT1.a) + 200, BACK_Y - 32, print(1, '#E7E5E4')); }
-  if (inView(state, X(PIT2.a), X(PIT2.b))) { hole(c, X(PIT2.a), X(PIT2.b)); box(c, X(PIT2.a) + 200, BACK_Y - 64, 300, 44, '#000'); words(c, 'FUTURE HOMES OF THE STARS', X(PIT2.a) + 350, BACK_Y - 46, print(1, '#FDE68A')); words(c, 'BEHIND EVERY HOUSE: NOTHING', X(PIT2.a) + 350, BACK_Y - 32, print(1, '#E7E5E4')); }
+  if (inView(state, X(FALL_TOWER.a) - 40, X(FALL_TOWER.a + FALL_TOWER.w) + 40)) {
+    // (the old stunt show's fall tower: a scaffold column up out of the collapse, a pad on top; standable: its lit lip)
+    const fx = X(FALL_TOWER.a), fw = FALL_TOWER.w, top = GY + FALL_TOWER.drop;
+    box(c, fx + 8, top, 8, 420, '#3F3F46'); box(c, fx + fw - 16, top, 8, 420, '#3F3F46');
+    c.strokeStyle = '#52525B'; c.lineWidth = 2; c.beginPath();
+    for (let y = top + 20; y < top + 400; y += 60) { c.moveTo(fx + 12, y); c.lineTo(fx + fw - 12, y + 60); c.moveTo(fx + fw - 12, y); c.lineTo(fx + 12, y + 60); }
+    c.stroke();
+    ledgeLip(c, fx, top, fw, '#1E40AF', '#FDE68A', 14);
+    words(c, 'FALL PAD', fx + fw / 2, top + 11, print(1, '#F8FAFC'));
+  }
+  // (the foundation pit's sign: left of the crane's mast, nothing over it)
+  if (inView(state, X(PIT2.a), X(PIT2.b))) { hole(c, X(PIT2.a), X(PIT2.b)); box(c, X(PIT2.a) + 16, BACK_Y - 64, 300, 44, '#000'); words(c, 'FUTURE HOMES OF THE STARS', X(PIT2.a) + 166, BACK_Y - 46, print(1, '#FDE68A')); words(c, 'BEHIND EVERY HOUSE: NOTHING', X(PIT2.a) + 166, BACK_Y - 32, print(1, '#E7E5E4')); }
+  if (inView(state, X(CRANE.a) - 40, X(CRANE.b) + 40)) {
+    // (the camera crane's platform: on its mast, down out of sight in the foundation pit; standable: its lit lip)
+    box(c, X((CRANE.a + CRANE.b) / 2) - 10, Y(CRANE.h), 20, CRANE.h + 400, '#44403C');
+    for (let y = Y(CRANE.h) + 30; y < GY + 300; y += 40) box(c, X((CRANE.a + CRANE.b) / 2) - 10, y, 20, 3, '#292524');
+    box(c, X(CRANE.a) + 30, Y(CRANE.h) + 14, CRANE.b - CRANE.a - 60, 10, '#292524');
+    // (the camera on it, pointing at nothing)
+    box(c, X(CRANE.a) + 30, Y(CRANE.h) - 34, 40, 26, '#18181B'); box(c, X(CRANE.a) + 70, Y(CRANE.h) - 28, 16, 14, '#3F3F46'); box(c, X(CRANE.a) + 46, Y(CRANE.h) - 8, 6, 8, '#3F3F46');
+  }
   // The gift shop: its front's open (the shelves, the plushies, the shirts), walked through
   if (inView(state, X(GIFT.a), X(GIFT.b))) {
     box(c, X(GIFT.a), BACK_Y - 280, GIFT.b - GIFT.a, 280, '#000'); box(c, X(GIFT.a) + 2, BACK_Y - 278, GIFT.b - GIFT.a - 4, 276, '#FEF3C7');
@@ -230,6 +249,7 @@ export const drawLotBack = (c: Ctx, state: GameState) => {
   for (const [rx, h, w, what] of LEDGES) {
     if (!inView(state, X(rx), X(rx) + w)) continue;
     if (what === 'tower') { ledgeLip(c, X(rx), Y(h), w, '#57534E'); continue; }
+    if (what === 'crane') { ledgeLip(c, X(rx), Y(h), w, '#3F3F46'); continue; }
     const body = what === 'escape' ? '#27272A' : what === 'porch' ? '#78350F' : '#92400E';
     if (what === 'escape') { box(c, X(rx) + 4, Y(h), 3, h, '#3F3F46'); box(c, X(rx) + w - 7, Y(h), 3, h, '#3F3F46'); for (let k = 0; k < w; k += 10) box(c, X(rx) + k, Y(h) - 18, 2, 18, '#3F3F46'); }
     if (what === 'porch') { box(c, X(rx) + 6, Y(h), 6, h, '#451A03'); box(c, X(rx) + w - 12, Y(h), 6, h, '#451A03'); }

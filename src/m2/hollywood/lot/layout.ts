@@ -16,9 +16,12 @@
 //          and he's back at the edge. Centurion extras on the far side (don't charge the spear).
 //   4700   CHECKPOINT. THE WESTERN TOWN: cowboy extras (the lasso), a centurion; the WATER TOWER, a camera dolly (a
 //          shuttle wire: it runs on its own) up to its tank (a small ammo); MAIN STREET COLLAPSE, a pit, over it on
-//          another shuttle.
-//   6550   CHECKPOINT. THE FAKE SUBURB: the same house six times, no backs; behind them, a foundation pit to cross on a
-//          wire into a shuttle (catch it as it comes back). Guides, carts, extras.
+//          another shuttle, the old stunt show's fall tower in the middle of it with two extras stood on it in his
+//          way (charge the cowboy off; reel up over the centurion's spear).
+//   6550   CHECKPOINT. THE FAKE SUBURB: the same house six times, no backs; behind them, a foundation pit: a wire out
+//          to its end stop under a camera crane's platform (up out of reach: charge at the end of the line, the swoop),
+//          then a shuttle on down from the platform (catch it as it comes). Guides, carts, extras.
+//   (The flood tank's surge knocks him off a low wire: reel up out of it.)
 //   7950   CHECKPOINT. EXIT THROUGH THE GIFT SHOP (walked through), then the doors of DISASTER: THE RIDE.
 
 import { SECTIONS, GY, LOT_DUMPSTER, LOT_WALL_BREAK } from '../geometry';
@@ -36,6 +39,12 @@ export const TANK = { a: 3300, b: 4200, depth: 160, period: 420, warn: 330, surg
 export const TOWER = { x: 5400, w: 170, h: 300 } as const;
 export const PIT1 = { a: 6050, b: 6450 } as const;
 export const PIT2 = { a: 7000, b: 7700 } as const;
+/** In MAIN STREET COLLAPSE: the old stunt show's fall tower, its top `drop` under the street, two extras stood on it
+ *  right in the shuttle's way (charge the cowboy off; not the centurion's spear: reel up over him). */
+export const FALL_TOWER = { a: 6200, w: 110, drop: 30 } as const;
+/** Over the foundation pit: the camera crane's platform, up out of reach: the swoop off the first wire's end gets him up
+ *  onto it, and the shuttle from it on down to the far side. */
+export const CRANE = { a: 7330, b: 7570, h: 290 } as const;
 export const GIFT = { a: 8000, b: 8600 } as const;
 export const RIDE_DOORS = 8800;
 
@@ -47,7 +56,7 @@ export const SOLIDS: [number, number, number, SolidWhat][] = [
   [5250, 50, 120, 'trough'],
   [8280, 60, 100, 'counter'],
 ];
-export type LedgeWhat = 'escape' | 'tower' | 'porch' | 'shelf';
+export type LedgeWhat = 'escape' | 'tower' | 'porch' | 'shelf' | 'crane';
 export const LEDGES: [number, number, number, LedgeWhat][] = [
   [1700, 120, 140, 'escape'], [1740, 240, 120, 'escape'],
   [2200, 120, 140, 'escape'], [2240, 240, 120, 'escape'],
@@ -55,6 +64,7 @@ export const LEDGES: [number, number, number, LedgeWhat][] = [
   [TOWER.x, TOWER.h, TOWER.w, 'tower'],
   [4880, 110, 160, 'porch'], [6700, 110, 150, 'porch'],
   [8420, 130, 140, 'shelf'],
+  [CRANE.a, CRANE.h, CRANE.b - CRANE.a, 'crane'],
 ];
 
 /** The stunt wires, in order (wires are matched by their place: keep it). */
@@ -67,9 +77,10 @@ export const WIRES: StuntWire[] = [
   { from: { x: X(5150), y: Y(0) - HANDS }, to: { x: X(TOWER.x + 60), y: Y(TOWER.h) }, rigY: Y(TOWER.h + 170), shuttle: true, speed: 5 },
   // over MAIN STREET COLLAPSE, on its own loop
   { from: { x: X(5960), y: Y(0) - HANDS }, to: { x: X(6540), y: Y(0) }, rigY: Y(330), shuttle: true, speed: 6 },
-  // the foundation pit: a rig out (it parks), then a shuttle on from it
-  { from: { x: X(6920), y: Y(0) - HANDS }, to: { x: X(7300), y: Y(0) }, rigY: Y(340) },
-  { from: { x: X(7410), y: Y(0) - HANDS - 20 }, to: { x: X(7790), y: Y(0) }, rigY: Y(340), shuttle: true, speed: 6 },
+  // the foundation pit: a rig out to its end stop under the crane's platform (charge there: the swoop up onto it), then
+  // a shuttle on down from the platform to the far side (catch it as it comes)
+  { from: { x: X(6920), y: Y(0) - HANDS }, to: { x: X(CRANE.a - 30), y: Y(60) }, rigY: Y(520) },
+  { from: { x: X(CRANE.b - 50), y: Y(CRANE.h) - HANDS }, to: { x: X(7790), y: Y(0) }, rigY: Y(520), shuttle: true, speed: 6 },
 ];
 
 export type LotKind = 'm2:hw_guide' | 'm2:hw_cart' | 'm2:hw_legionary' | 'm2:hw_cowboy';
@@ -82,6 +93,8 @@ export const ENEMIES: [LotKind, number, number][] = [
   ['m2:hw_legionary', 4450, 0], ['m2:hw_legionary', 4620, 0],
   // the western town: cowboys, a centurion on the porch's far side
   ['m2:hw_cowboy', 5050, 0], ['m2:hw_cowboy', 5650, 0], ['m2:hw_legionary', 5800, 0], ['m2:hw_cowboy', 4950, 110],
+  // in the collapse, on the fall tower in the shuttle's way: a cowboy, a centurion
+  ['m2:hw_cowboy', FALL_TOWER.a + 22, -FALL_TOWER.drop], ['m2:hw_legionary', FALL_TOWER.a + 70, -FALL_TOWER.drop],
   // past the collapse
   ['m2:hw_guide', 6650, 0],
   // the suburb, the far side of the pit

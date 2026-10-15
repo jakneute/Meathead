@@ -5,8 +5,9 @@
 // Elvis, caped heroes, a drunk pirate captain, gold living statues; legally distinct, seeded people under the
 // costumes) come at him for photos and money (PHOTOS $20, tip jars), and pick his pockets for ammo if he lets them;
 // he answers with violence. Fairly standard platforming till it gets more interesting: the land's new mechanic, the
-// STUNT WIRES (hollywood/wires.ts), taught safe, then over the sinkhole, then under fire, then down off the hotel's
-// scaffold; the studio tour tram that stops for nobody. Stuntman Steve's fliers on every pole, his standees, the PA's
+// STUNT WIRES (hollywood/wires.ts), taught safe, then over the sinkhole, then under fire (reel up or down out of the
+// shields), then the swoop up onto the hotel's deck and down off it, then over the tram's street (reel up over the
+// tram, charge the hustlers out of the way); the studio tour tram that stops for nobody. Stuntman Steve's fliers on every pole, his standees, the PA's
 // plugs. At its end, THRONES OF THE STARS' queue plaza: on to the coaster.
 //
 // Laid out in layout.ts; drawn in art.ts (on paint.ts, shared with the lot); the tram's in tram.ts; what's thrown in

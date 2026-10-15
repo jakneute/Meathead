@@ -89,11 +89,16 @@ the way back working (revisits), or give a one-way set piece a sane way to retur
 and its drawing, and teaches it on the blvd; everyone else just returns wires.
 
 **Built** (`hollywood/wires.ts`, run by index.ts after the section's update, drawn after the sections' drawBack, the
-camera row while on one): jump into the harness, or stand under it and press up; the trolley reels him to the far end
-(the cable reeling in or paying out between the two ends' heights), braking at the end and letting him go there; he
-swings under it (left/right pumps), shoots the whole way, jumps off (flung) or drops (down); hurt, he's knocked off.
-`from` is where the harness hangs (his hands: 80 over his feet), `to` his feet at the far end. A rig parks at whichever
-end it last went to (so it takes him back too); `shuttle: true` runs on its own loop; `off: true` hangs slack.
+camera row while on one), **reworked to the user's playtest notes**: jump into the harness or walk up to it (no button);
+the trolley runs the way he faces (left/right turns him and pumps the swing) and stops at either end of its track, where
+he HANGS (it never lets him go); up reels the cable in, down pays it out; the charge button thrusts him forward the way
+he faces (the engine's own shoulder charge: it hurts and shoves whoever he hits; up/down with it are nothing special);
+charging at the end of the track with room above him is THE SWOOP, a launch up a good way (~300 px) off the end of the
+line. He gets off ONLY by jumping (or the swoop), or knocked off by getting hurt. The trolley dragging him into
+something solid hoists him over it (reels him in). He shoots the whole way. `from` is where the harness hangs (his
+hands: 80 over his feet), `to` his feet at the far end (so put an end stop with something to jump off onto, or a high
+ledge to swoop up to). A rig parks at whichever end it last went to (so it takes him back too); `shuttle: true` runs
+on its own loop while nobody's on it; `off: true` hangs slack.
 **Keep each section's list in a steady order** (wires are matched frame to frame by their place in the list): switch
 one `off` rather than leaving it out. `onWire(state)` if you need to know.
 

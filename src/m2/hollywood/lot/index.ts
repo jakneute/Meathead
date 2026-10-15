@@ -23,7 +23,7 @@ import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { HollywoodSection, Said } from '../section';
 import { layOwn, ledge, solid, endWalls, endExits, runExits, meatheadSays, speak, saidOver, realDisastersOn } from '../section';
 import { SECTIONS, GY } from '../geometry';
-import { X, Y, R, GROUND, SOLIDS, LEDGES, WIRES, ENEMIES, PICKUPS, CHECKPOINTS, TANK, PIT1, PIT2, RAIN, TOWER, GIFT, RIDE_DOORS, SPEAKERS, READERS, DUMP } from './layout';
+import { X, Y, R, GROUND, SOLIDS, LEDGES, WIRES, ENEMIES, PICKUPS, CHECKPOINTS, TANK, FALL_TOWER, PIT1, PIT2, RAIN, TOWER, GIFT, RIDE_DOORS, SPEAKERS, READERS, DUMP } from './layout';
 import './kinds';
 import { byPants } from '../blvd/kinds';
 import { outOf } from '../blvd/state';
@@ -50,6 +50,8 @@ export const lot: HollywoodSection = {
     for (const [rx, h, w] of LEDGES) ledge(state, X(rx), Y(h), w, { hidden: true, tag: 'lot' });
     // (the flood tank's floor: under the water)
     solid(state, X(TANK.a), GY + TANK.depth, TANK.b - TANK.a, 200, { hidden: true, tag: 'lot-tank' });
+    // (the fall tower down in MAIN STREET COLLAPSE)
+    solid(state, X(FALL_TOWER.a), GY + FALL_TOWER.drop, FALL_TOWER.w, 900, { hidden: true, tag: 'lot' });
     endWalls(state, 'lot');
     LT.set(state.stage as object, { cast: ENEMIES.length, gossip: new Map(), falling: false });
     outOf(state);

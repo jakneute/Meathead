@@ -5,7 +5,8 @@
 //   0      Under the HAPPYWOOD BLVD arch (the PA's welcome). The Walk of Fame's stars for nobodies start. Steve's
 //          first standee. An AS SEEN IN bench behind a velvet rope, guests photographing it.
 //   1000   The hustlers alone: a Marilyn, then a living statue (still, gold: it looks like part of the street).
-//   1720   STUNT WIRE 1, the teach: a harmless one over a planter (jump it or ride it).
+//   1720   STUNT WIRE 1, the teach: a harmless one over a planter (jump it or ride it; walk up to the harness and he
+//          takes hold; it runs the way he faces; up/down reel him in and out; jump to let go).
 //   2500   An Elvis, alone. The movie palace (GROWMAN'S CHINA-ISH THEATRE, plywood, sandbags behind): the handprints
 //          of nobodies; a Marilyn and a statue together; up a trash can onto its marquee for a small ammo.
 //   3500   CHECKPOINT. A pirate, alone (don't charge his cutlass).
@@ -13,13 +14,16 @@
 //   4600   A caped hero, alone (the shield). The mixed street: Elvis, Marilyn, a pirate; tip jars, an AS SEEN IN
 //          hydrant; a small health up on an awning.
 //   6300   CHECKPOINT. STUNT WIRE 3, under fire: over the ROAD WORK trench, heroes throwing shields at him from the far
-//          side, one from the street and one from up on a billboard's catwalk.
-//   7550   CHECKPOINT. The SCAFFOLD: up the front of a plywood hotel facade (its bracing and sandbags block the street
-//          under it: CLOSED SET), along its top deck (a statue, a hero, a small ammo), and STUNT WIRE 4 down off the
-//          end of the deck, across to the street.
+//          side, one from the street (low: reel up over it) and one from up on a billboard's catwalk (high: pay out
+//          under it).
+//   7550   CHECKPOINT. The SCAFFOLD: STUNT WIRE 4, THE SWOOP: up the front of a plywood hotel facade to its end stop
+//          under the deck (out of a jump's reach: its bracing and sandbags block the street under it, CLOSED SET);
+//          charge at the end of the line and he's launched up onto the deck (a statue, a hero, a small ammo); STUNT
+//          WIRE 5 down off the end of the deck, across to the street.
 //   9150   The STUDIO TOUR TRAM's stretch: out of its garage on the right, down the street at him, into its garage on
 //          the left, again and again (it hurts whoever's in its way: the hustlers too). Up on the bus shelters, or its
-//          roof, as it goes by.
+//          roof, as it goes by; or STUNT WIRE 6 over the street: reel up over the tram's canopy as it comes under,
+//          or charge on past; charge the hustlers stood in the street out of his way.
 //   10400  CHECKPOINT. The queue plaza of THRONES OF THE STARS: the last of them all at once; the marquee; on, after the
 //          gap, to the coaster.
 //
@@ -40,6 +44,11 @@ export const DECK = { a: 8050, b: 8650, h: 330 } as const;
 /** The tram's run: between its two garages (it comes out of the right one, going left). */
 export const TRAM = { a: 9150, b: 10350, len: 300, h: 92, v: 5, period: 520 } as const;
 export const MARQUEE_X = 11150;
+/** The swoop's wire: from the street to its end stop by the scaffold, his feet `h` up there (the deck's 330: only the
+ *  swoop off the end gets him up to it). */
+export const SWOOP = { a: 7610, b: 7985, h: 130 } as const;
+/** The wire over the tram's street. */
+export const TRAM_WIRE = { a: 9230, b: 10280 } as const;
 
 /** Ground: [from x, to x] at street level (between them: the sinkhole, the trench). */
 export const GROUND: [number, number][] = [[-200, SINK.a], [SINK.b, TRENCH.a], [TRENCH.b, 11700]];
@@ -58,17 +67,29 @@ export const LEDGES: [number, number, number, LedgeWhat][] = [
   [2960, 150, 220, 'marquee'],
   [5380, 120, 150, 'awning'],
   [7380, 220, 150, 'catwalk'],
-  [7760, 110, 130, 'scaffold'], [7900, 220, 130, 'scaffold'],
+  // (the scaffold's first lift only: the deck's up out of a jump from it; the wire's swoop gets him up there)
+  [7760, 110, 130, 'scaffold'],
   [DECK.a, DECK.h, DECK.b - DECK.a, 'deck'],
   [9420, 120, 130, 'shelter'], [9830, 120, 130, 'shelter'],
 ];
 
-/** The stunt wires: [from x, height he stands on there, to x, height he lands on there, the rig's height]. */
+/** The stunt wires: [from x, height he stands on there, to x, height his feet hang at there, the rig's height]
+ *  (keep the order: wires are matched by their place in the list). */
 const WIRE_DEFS: [number, number, number, number, number][] = [
+  // the teach: over the planter (the rig hoists him over it; up/down reel him)
   [1720, 0, 2240, 0, 300],
+  // over the sinkhole
   [3880, 0, 4500, 0, 330],
+  // under fire over the trench: the heroes' shields come in low from the street, high from the catwalk (reel up or
+  // down out of the way)
   [6540, 0, 7230, 0, 340],
+  // THE SWOOP: up the hotel front to the end stop under the deck; charge there and he's launched up onto it
+  [SWOOP.a, 0, SWOOP.b, SWOOP.h, 560],
+  // down off the deck's end, across to the street
   [8600, DECK.h, 9120, 0, 560],
+  // over the tram's street: the tram comes at him under it (reel up over its canopy, or charge on past before it
+  // comes); the hustlers stood in the street in his way (charge them off)
+  [TRAM_WIRE.a, 0, TRAM_WIRE.b, 0, 380],
 ];
 export const WIRES: StuntWire[] = WIRE_DEFS.map(([a, ha, b, hb, rig]) => ({ from: { x: X(a), y: Y(ha) - HANDS }, to: { x: X(b), y: Y(hb) }, rigY: Y(rig) }));
 
