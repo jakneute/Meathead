@@ -92,9 +92,9 @@ export const FINALE_DAMAGE_TAKEN = 0.06;
 // 3. PLAYER CORE STATS
 // ==========================================
 export const INITIAL_PLAYER_HEALTH = 100;
-export const PLAYER_INVINCIBILITY_FRAMES = 60;
+export const PLAYER_INVINCIBILITY_FRAMES = 75;
 export const TOMMY_PUKE_PUSHBACK_DURATION = 16;
-export const PLAYER_STUN_INVINCIBILITY = 30;
+export const PLAYER_STUN_INVINCIBILITY = 36;
 export const PLAYER_PUSHBACK_DURATION = 16;
 export const PLAYER_PUSHBACK_VEL_X = 7;
 export const PLAYER_PUSHBACK_VEL_Y = -4;

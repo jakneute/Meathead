@@ -530,7 +530,7 @@ const drain = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   if (dead || h.presses >= ESCAPE_PRESSES || h.t >= DRAIN_MAX) {
     const escaped = !dead && h.presses >= ESCAPE_PRESSES;
     f.held = null;
-    if (!dead) { p.vel.x = -f.facing * 6; p.vel.y = -6; p.invincibilityTimer = Math.max(p.invincibilityTimer, 50); }
+    if (!dead) { p.vel.x = -f.facing * 6; p.vel.y = -6; p.invincibilityTimer = Math.max(p.invincibilityTimer, 62); }
     if (escaped) { bark(f, L.DONNIE_ESCAPED); f.vx = f.facing * -3; playSound('punch', 0.6, -2); }
     to(f, 'rise'); f.vy = -4;
     return controls;
