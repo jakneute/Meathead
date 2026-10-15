@@ -23,9 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
-# Builds (npm run release, release:steam): only release-m1/Meathead.html is committed
-release-m1/steam/
-release-m1/Meathead-cheats.html
+# Builds (npm run release, release:steam)
+
+
 release-m2/
 .steam-build/
 .build/
@@ -38,3 +38,8 @@ Sequel Reference/
 # Leftovers from Google AI Studio, where the game started
 metadata.json
 migrated_prompt_history/
+
+# Big generated files: rebuilt by npm run voices / npm run release, never committed (they bloated .git to 66 GB)
+src/m1/generated/*.bin
+src/m2/generated/*.bin
+release-m1/
