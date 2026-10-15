@@ -62,6 +62,11 @@ export const PA_HAVOC: ByPants = {
   shitty: ['ATTENTION. THERE ARE NOW SEVEN DISASTERS IN THE PARK. ONE OF THEM IS A MAN\'S PANTS.'],
   nude: ['ATTENTION. EVERY DISASTER IS NOW HAPPENING. ALSO A NAKED MAN. THAT ONE WE CAN\'T EXPLAIN.'],
 };
+/** Once, early: every disaster at once, and still not the worst thing that happened today. */
+export const PA_LEAK_HAVOC = [
+  'ATTENTION. THE PARK IS ON FIRE, UNDERWATER AND IN A TORNADO. IT IS STILL NOT AS BAD AS THE SCRIPT LEAK.',
+  'IN A WORLD... WHERE THE REVENGERS SCRIPT GOT OUT... NOTHING ELSE MATTERS. NOT EVEN THE LAVA.',
+];
 export const PA_STEVE_HAVOC = [
   'STUNTMAN STEVE HAS SURVIVED A TORNADO! ON FILM! FOR A SECOND!',
   'REMINDER: STUNTMAN STEVE\'S STUPENDOUS STUNTERY IS INDOORS. MOSTLY.',
@@ -183,7 +188,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   ],
   death: Object.values(HURT).flatMap(h => h.death),
   [NARR]: Object.values(NARR_HAVOC),
-  [PA_VOICE]: [...pools(PA_HAVOC), ...PA_STEVE_HAVOC],
+  [PA_VOICE]: [...pools(PA_HAVOC), ...PA_LEAK_HAVOC, ...PA_STEVE_HAVOC],
   [HAVOC_VOICES.looter]: pools(LOOTER_BARK), [HAVOC_VOICES.looterf]: pools(LOOTER_BARK),
   [HAVOC_VOICES.crew]: pools(CREW_BARK), [HAVOC_VOICES.crewf]: pools(CREW_BARK),
   [HAVOC_VOICES.poppy]: pools(POPPY_BARK), [HAVOC_VOICES.poppyf]: pools(POPPY_BARK),

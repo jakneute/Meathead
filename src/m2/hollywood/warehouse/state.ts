@@ -52,6 +52,15 @@ export interface Fight {
   said: Record<string, boolean>;
 }
 
+/** The studio executive (the ending): on his phone, over the pile and the bulldozer without a glance; off the back;
+ *  the pages fly and he loses it, chasing it out through the wall; out in the lot, his rant; off after the pages. */
+export interface Exec {
+  mode: 'off' | 'walk' | 'stand' | 'chase' | 'out' | 'rant' | 'run';
+  x: number; y: number; face: 1 | -1; t: number;
+  /** What he's saying, while it's said; the rant's over. */
+  said: Said | null; done: boolean;
+}
+
 export interface Ending {
   phase: 'off' | 'say' | 'cut' | 'drive' | 'lot' | 'done';
   t: number;
@@ -67,6 +76,7 @@ export interface Ending {
   caseDown: boolean;
   /** Through the far wall; the white flash of the cut to outside (0..1); frames since it started; the line's done. */
   wallHit: boolean; white: number; all: number; said: boolean;
+  ex: Exec;
 }
 
 export interface Burst {
@@ -120,7 +130,8 @@ export const whOf = (state: GameState): Warehouse => {
       shots: [], said: {}, barks: new WeakMap(), barkAt: -9999, ad: null, adBusy: false, crowd: null, action: new WeakMap(), stuck: 0,
       burst: { on: false, t: 0, fall: 1, tx: 0, tv: 0, tilt: 0, step: 0 },
       fight: { phase: 'wait', t: 0, wave: -1, waveT: 0, queue: [], arrivals: [], actors: [], bodies: [], killed: 0, door: null, doorK: 0, said: {} },
-      ending: { phase: 'off', t: 0, dx: 0, v: 0, heap: [], heapX: 0, fade: 0, flying: [], caseDown: false, wallHit: false, white: 0, all: 0, said: false },
+      ending: { phase: 'off', t: 0, dx: 0, v: 0, heap: [], heapX: 0, fade: 0, flying: [], caseDown: false, wallHit: false, white: 0, all: 0, said: false,
+        ex: { mode: 'off', x: 0, y: 0, face: -1, t: 0, said: null, done: false } },
       hz: { lights: [], pyroHit: [] },
       flashes: [], upLatch: true, castSaid: new Map(), farWall: null, alarm: 0,
     };

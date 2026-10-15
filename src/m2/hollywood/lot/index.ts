@@ -32,7 +32,7 @@ import { paSay, runThieves } from '../blvd';
 import { flash, BACK_Y } from '../blvd/paint';
 import { updateEffects, drawRainBack, drawRainFront, drawFloodBack, drawFloodFront } from './effects';
 import { drawLotBackdrop, drawLotBack, lotLamps } from './art';
-import { ARRIVE, DUMPSTER_AGAIN, GAG_LINES, FALL_SCREAM, LOT_VOICES, GOSSIP, GOSSIP_HIM, PA_LOT, PA_RAIN, PA_FLOOD, PA_STEVE_LOT, PA_DISASTER } from './lines';
+import { ARRIVE, DUMPSTER_AGAIN, GAG_LINES, FALL_SCREAM, LOT_VOICES, GOSSIP, GOSSIP_HIM, PA_LOT, PA_LEAK, PA_RAIN, PA_FLOOD, PA_STEVE_LOT, PA_DISASTER } from './lines';
 
 const { x0, x1 } = SECTIONS.lot;
 const pick = pickLine;
@@ -78,6 +78,7 @@ export const lot: HollywoodSection = {
       }
       if (rx > 2000) o.said['lot-far'] = true;
       if (rx > 780 && rx < 1250) says('lot-merch', GAG_LINES.merch);
+      if (rx > 1150 && rx < 1500 && o.said['lot-pa']) once('lot-pa-leak', () => paSay(state, pick(PA_LEAK)));
       if (rx > 1380 && rx < 1600) says('lot-gate', GAG_LINES.gate);
       if (rx > RAIN.a - 100 && rx < RAIN.a + 200) { once('lot-pa-rain', () => paSay(state, PA_RAIN[0])); }
       if (rx > RAIN.a + 250 && rx < RAIN.b) { says('lot-ny', GAG_LINES.newyork); if (fx.pour) says('lot-rain', GAG_LINES.rain); }

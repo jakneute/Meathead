@@ -138,6 +138,11 @@ cut: the actors are all in one big pile. He gets in a bulldozer that happens to 
 through the far wall (not a doorway: through the wall), pushing the pile out into a dumpster outside. On the way he
 knocks over the protected glass case, and the script's pages go flying everywhere for the onlookers to grab: the leak,
 still "the most devastating thing Meathead has done" (cutscene beats, HUD hidden, skip all-or-nothing).
+- **The leak is the tragedy, the cast a shrug (the user's):** "they can be replaced by CGI and AI." A studio exec walks
+  over the pile and the bulldozer on his phone without a glance, then loses it when the pages fly ("THE SCRIPT WAS THE
+  ONLY COPY"); the AD shrugs at the bodies in the fight and panics at the leak; the PA after it (lot, ride, havoc)
+  mourns the script, nothing for the stars; the lot's guests gossip spoilers, the deaths a footnote. Meathead cares
+  about neither.
 - **Where it comes out (geometry.ts):** the dumpster is the lot's first set piece, at the lot's start (the lot owner
   builds and draws it): `LOT_WALL_BREAK` (the warehouse's outside wall face at the lot's left end, x0+90, the jagged
   hole from x0-40 to x0+90, up to GY-230; siding and rebar torn outward, rubble strewn toward the dumpster) and

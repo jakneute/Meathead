@@ -1,5 +1,5 @@
 // Who's saying what in the warehouse, in turn (never over each other): the first AD on the stage's bullhorn, somebody
-// in the crowd at the fallen walls, one of the cast (by who they are: on the way in, up, or a body).
+// in the crowd at the fallen walls, one of the cast (by who they are: on the way in, up, or a body), the studio exec.
 
 import type { GameState } from '../../../m1/game/core/state';
 import { pickLine } from '../../../m1/game/platform/speech';
@@ -8,7 +8,7 @@ import { lookOf } from '../../adventure/temple/people';
 import type { ByPants } from '../blvd/lines';
 import { byPants } from '../blvd/kinds';
 import { whOf } from './state';
-import { AD_VOICE, ACTOR_VOICE_OF, GUEST_VOICES } from './lines';
+import { AD_VOICE, ACTOR_VOICE_OF, GUEST_VOICES, EXEC_VOICE } from './lines';
 
 /** A fixed line said in the last 45 s isn't said again yet (pickLine does it for pools). */
 const lastSaid = new Map<string, number>();
@@ -34,4 +34,10 @@ export const castSay = (state: GameState, i: number, pool: ByPants, after: boole
   const o = whOf(state);
   let done = false;
   speak(ACTOR_VOICE_OF[i], pickLine(byPants(state, pool)), s => { if (s) o.castSaid.set(i, s); else o.castSaid.delete(i); }, after, () => { if (done) return; done = true; onDone?.(); });
+};
+/** The studio executive (the ending), in turn, shown over him. */
+export const execSay = (state: GameState, pool: string[], onDone?: () => void) => {
+  const ex = whOf(state).ending.ex;
+  let done = false;
+  speak(EXEC_VOICE, pickLine(pool), s => { ex.said = s; }, true, () => { if (done) return; done = true; onDone?.(); });
 };

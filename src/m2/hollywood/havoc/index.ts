@@ -143,6 +143,7 @@ export const havoc: HollywoodSection = {
       if (ev.fell?.how === 'bridge' && once(state, 'bridge')) meatheadSays(state, pick(L.GAG.bridge), true);
       if (ev.fell?.how === 'billboard' && once(state, 'billboard')) meatheadSays(state, pick(L.GAG.billboard), true);
       if (ev.gust && rx < WIND[0][1] && once(state, 'wind')) narrate(state, L.NARR_HAVOC.wind, () => meatheadSays(state, pick(L.GAG.wind), true));
+      if (rx > 2400 && once(state, 'pa-leak')) paSay(state, pick(L.PA_LEAK_HAVOC));
       if (rx > 3950 && once(state, 'pa-steve')) paSay(state, L.PA_STEVE_HAVOC[0]);
       if (ev.quake && rx < QUAKE[0][1] && once(state, 'quake')) narrate(state, LOOP[0][0], () => meatheadSays(state, pick(L.GAG.quake), true));
       if (rx > SHAFTS[1].a && rx < SHAFTS[1].b && up > 620 && once(state, 'ball')) meatheadSays(state, pick(L.GAG.ball), true);

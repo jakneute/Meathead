@@ -22,7 +22,7 @@ import { solid, meatheadSays, box, label } from '../section';
 import { X, GY, ROOF_Y, ARENA, ARENA_TRIGGER, CAST_MEMO } from './layout';
 import { whOf, type Arrival, type Actor } from './state';
 import { CAST, ACTOR_KIND, BIG, TOTAL_HP, drawArriving, drawBody } from './cast';
-import { CASE, CAST_ARRIVE, KILL_QUIPS, UNHOOKED_QUIP, HALF, LAST, ENTRANCES, DEATH, UNHOOKED, AD_CAST, AD_WAVE } from './lines';
+import { CASE, CAST_ARRIVE, KILL_QUIPS, UNHOOKED_QUIP, HALF, LAST, ENTRANCES, DEATH, UNHOOKED, AD_CAST, AD_WAVE, AD_SHRUG } from './lines';
 import { adSay, castSay } from './talk';
 
 /** The waves: [who, how they come in, where (off him: a signed distance; walk: which wing)]. */
@@ -101,7 +101,9 @@ const fall = (ctx: FrameContext, a: Actor, how: 'hit' | 'splat') => {
   if (how === 'splat') { shakeScreen(state, 8, 4); return; }
   // (their last words, now and then; his, now and then)
   const left = CAST.length - F.killed;
-  if (Math.random() < 0.6) castSay(state, a.i, DEATH, false);
+  // (the AD, a couple of times: a shrug; they own the scans)
+  if ((F.killed === 8 || F.killed === 23) && !o.ad && !o.adBusy) adSay(state, AD_SHRUG, undefined, false);
+  else if (Math.random() < 0.6) castSay(state, a.i, DEATH, false);
   if (F.killed === 15) meatheadSays(state, pickLine(HALF), true);
   else if (left === 1 && !F.queue.length && !F.arrivals.length) meatheadSays(state, pickLine(LAST), true);
   else if (left > 0 && Math.random() < 0.2) meatheadSays(state, pickLine(KILL_QUIPS), false);

@@ -97,20 +97,23 @@ export const EXTRA_BARK: ByPants = {
   shitty: ['THE SCENE SAYS THE MAN SMELLS! METHOD!', 'WARDROBE! HE SHAT IN WARDROBE!'],
   nude: ['NOBODY SAID THIS WAS A NUDE SCENE!', 'CLOSED SET! HE\'S NAKED! CLOSED SET!'],
 };
-/** The guests reading the leaked script's pages (spoiler gossip, as he passes). */
+/** The guests reading the leaked script's pages (spoiler gossip, as he passes): the leak's the story of the century;
+ *  thirty dead stars a footnote. */
 export const GOSSIP = [
   'PAGE FORTY! THE CAPTAIN GUY DIES ON THE TOILET!',
   'THEY ALL RESEMBLE AT THE END! THAT\'S THE TWIST!',
   'IT SAYS HERE THE DOG GETS HIS OWN MOVIE.',
-  'THE WHOLE THIRD ACT IS JUST A GROUP HUG?',
   'NO WAY. THE VILLAIN IS THEIR ACCOUNTANT.',
-  'SPOILER: IT\'S BAD.',
+  'THE CAST DIED? WHO CARES. THEY\'LL JUST AI THEM.',
+  'THIRTY DEAD STARS AND I\'M HOLDING PAGE NINETY. BEST DAY OF MY LIFE.',
+  'THE ACTORS ARE IN A DUMPSTER. THE SCRIPT IS ON THE INTERNET. THAT\'S THE TRAGEDY.',
+  'MY SISTER WORKS AT THE STUDIO. THEY\'RE NOT SAD ABOUT THE ACTORS. THEY OWN THE FACES.',
 ];
 /** The guests, seeing him go past. */
 export const GOSSIP_HIM: ByPants = {
-  clean: ['THAT\'S HIM! THE GUY FROM THE DUMPSTER!', 'HE LEAKED IT! I LOVE HIM!'],
-  shitty: ['THAT\'S HIM! HE SMELLS LIKE THE DUMPSTER!', 'HE LEAKED THE SCRIPT AND HIS PANTS!'],
-  nude: ['THAT\'S HIM! HE\'S NAKED NOW!', 'IS THAT IN THE SCRIPT? IS HE IN THE SCRIPT?'],
+  clean: ['THAT\'S HIM! HE LEAKED REVENGERS!', 'HE LEAKED IT! I LOVE HIM!', 'HE KILLED THE WHOLE CAST. WHATEVER. HE LEAKED THE SCRIPT!'],
+  shitty: ['THAT\'S HIM! HE SMELLS LIKE THE DUMPSTER!', 'HE LEAKED THE SCRIPT AND HIS PANTS!', 'HE SHIT HIMSELF AND KILLED THIRTY STARS. NOBODY CARES. HE LEAKED IT!'],
+  nude: ['THAT\'S HIM! HE\'S NAKED NOW!', 'IS THAT IN THE SCRIPT? IS HE IN THE SCRIPT?', 'THE NAKED GUY LEAKED IT! THE DEAD GUYS? WHO?'],
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -130,6 +133,12 @@ export const PA_LOT: ByPants = {
     'IN A WORLD... WHERE ONE MAN... SHOWS EVERYONE EVERYTHING.',
   ],
 };
+/** Once, down the lot: mourning the script; nothing for the stars. */
+export const PA_LEAK = [
+  'ATTENTION, GUESTS. A MOMENT OF SILENCE FOR THE SCRIPT.',
+  'TODAY HAPPYWOOD LOST SOMETHING IRREPLACEABLE: THE REVENGERS SCRIPT. THE CAST WILL BE REPLACED.',
+  'IF YOU ARE HOLDING A PAGE OF THE REVENGERS SCRIPT, PLEASE EAT IT.',
+];
 export const PA_RAIN = ['ENJOY OUR FAMOUS RAINSTORM EFFECT! PLEASE STAY OFF THE WET PAVEMENT DURING THE LIGHTNING!'];
 export const PA_FLOOD = ['FLASH FLOOD! THE TOUR\'S MOST BELOVED EFFECT! ALL GUESTS IN THE TANK WILL BE REIMBURSED!'];
 export const PA_STEVE_LOT = [
@@ -199,7 +208,7 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...Object.entries(HURT).flatMap(([k, h]) => (k === 'm2:hw_lasso' ? h.hurt.slice(LASSOED.length) : h.hurt)), ...LASSOED,
   ],
   death: Object.values(HURT).flatMap(h => h.death),
-  'm2.hollywood.pa': [...Object.values(PA_LOT).flat(), ...PA_RAIN, ...PA_FLOOD, ...PA_STEVE_LOT, ...Object.values(PA_DISASTER).flat()],
+  'm2.hollywood.pa': [...Object.values(PA_LOT).flat(), ...PA_LEAK, ...PA_RAIN, ...PA_FLOOD, ...PA_STEVE_LOT, ...Object.values(PA_DISASTER).flat()],
   [LOT_VOICES.guide]: Object.values(GUIDE_BARK).flat(),
   [LOT_VOICES.guidef]: Object.values(GUIDE_BARK).flat(),
   [LOT_VOICES.security]: Object.values(SECURITY_BARK).flat(),

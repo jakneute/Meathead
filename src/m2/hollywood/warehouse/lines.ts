@@ -42,6 +42,8 @@ export const HALF = ["HALF THE CAST. THE SEQUEL'S GONNA BE CHEAP.", 'FIFTEEN DOW
 export const LAST = ['ONE LEFT. THE ONE NOBODY KNOWS THE NAME OF.', "LAST ONE. YOU'RE THE LEAD NOW. CONGRATULATIONS."];
 /** The last one dead (the user's line, word for word). */
 export const CLEAN_UP = 'BETTER CLEAN UP THE BODIES.';
+/** Hopping down off the bulldozer in the lot, after the exec's meltdown: he cares about neither. */
+export const SHRUG = ["THEY DIED. IT LEAKED. I'M HUNGRY.", "I DIDN'T READ IT. I DON'T READ."];
 
 // ---------------------------------------------------------------------------------------------------------------
 // The public, at the fallen walls (the park's guests' voices)
@@ -53,7 +55,7 @@ export const CROWD_GASP: ByPants = {
 };
 /** The script's pages flying out to them (the leak). */
 export const CROWD_PAGES: ByPants = {
-  clean: ["FREE PAGES! IT'S THE SCRIPT!", 'I GOT THE ENDING! THEY ALL RESEMBLE!'],
+  clean: ["FREE PAGES! IT'S THE SCRIPT!", 'I GOT THE ENDING! THEY ALL RESEMBLE!', 'FORGET THE BODIES! GRAB A PAGE!'],
   shitty: ['THE PAGES SMELL LIKE HIM! STILL WORTH IT!', "IT'S GOT SHIT ON IT! I'M FRAMING IT!"],
   nude: ['THE NAKED GUY LEAKED THE SCRIPT! HERO!', 'PAGE NINETY! THERE\'S A NUDE SCENE NOW!'],
 };
@@ -72,6 +74,14 @@ export const AD_CREW: ByPants = {
   shitty: ['CREW! GET THE SHITTY MAN OFF MY SET! USE GLOVES!', 'ALL CREW! CODE BROWN ON STAGE ONE!'],
   nude: ['CREW! TACKLE THE NAKED MAN! SOMEBODY! ANYBODY!', 'ALL CREW! HE IS NAKED AND HE IS COMING!'],
 };
+/** Another principal dead (a couple of times in the fight): a shrug. They own the scans. */
+export const AD_SHRUG: ByPants = {
+  clean: ['KEEP ROLLING. REVENGERS 20 IS ALL CGI ANYWAY.', 'PRINCIPAL DOWN. NOTED. LEGAL OWNS THE FACE.', "THAT'S FINE. WE SCANNED HIM IN 2019."],
+  shitty: ['KEEP ROLLING. WE CAN CGI THEM. WE CANNOT CGI THAT SMELL.', 'PRINCIPAL DOWN. THE AI VERSION WILL NOT HAVE TO SMELL HIM.'],
+  nude: ['KEEP ROLLING. THE AI VERSIONS NEVER HAVE TO SEE THAT.', "PRINCIPAL DOWN. FINE. WE OWN THE FACE. NOBODY WANTS HIS."],
+};
+/** The case knocked over, the pages out to the public: panic. */
+export const AD_LEAK = ['CODE RED! THE SCRIPT IS LOOSE! THE SCRIPT IS LOOSE!', 'NOBODY READ THOSE PAGES! YOU ARE ALL UNDER NDA! ALL OF YOU!'];
 /** The PA plug (Steve, foreshadowed). */
 export const AD_STEVE = ['FOR THE LAST TIME: STUNTMAN STEVE IS NOT ON THIS PRODUCTION. STOP CALLING THE OFFICE.'];
 export const AD_CAST: ByPants = {
@@ -84,6 +94,20 @@ export const AD_WAVE: ByPants = {
   shitty: ['NEXT PRINCIPALS. AVOID THE BROWN AREA.', 'MORE CAST TO SET. BREATHE THROUGH YOUR MOUTHS.'],
   nude: ['NEXT PRINCIPALS. EYES UP. EYES WAY UP.', 'MORE CAST TO SET. HE IS STILL NAKED. SORRY.'],
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// The studio executive (the ending: over the bodies on his phone, never a glance; then the pages fly)
+
+export const EXEC_VOICE = 'm2.hollywood.exec';
+/** On the phone, walking over the pile (and the bulldozer) like it's carpet. */
+export const EXEC_PHONE = ["YEAH, THE WHOLE CAST. NO, WE'RE FINE. WE OWN THEIR FACES.", 'THIRTY DEAD. SURE. HAVE LEGAL SEND FLOWERS. THE CHEAP ONES.'];
+/** The case down, the pages up: he sees. */
+export const EXEC_SEES = ['NO. NO NO NO. NOT THE SCRIPT!', 'THE SCRIPT! WHO TOUCHED THE SCRIPT?!'];
+/** Out of the hole after the pages, the bodies flying past him into the dumpster. */
+export const EXEC_RANT = [
+  'THE CAST WE CAN REPLACE! CGI! AI! WE OWN THEIR FACES! THE SCRIPT WAS THE ONLY COPY!',
+  'ACTORS GROW BACK! THAT SCRIPT WAS THE ONLY COPY! IT WAS ON PAPER! FOR SECURITY!',
+];
 
 // ---------------------------------------------------------------------------------------------------------------
 // The film crew (kinds.ts), their voices and barks
@@ -242,13 +266,14 @@ const castLines = (v: string) => [...ENTRANCES.flatMap((e, i) => (ACTOR_VOICE_OF
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...BURST, ...BACK_AGAIN, ...Object.values(GAG_LINES).flat(), ...CASE, ...CAST_ARRIVE, ...KILL_QUIPS, ...UNHOOKED_QUIP, ...FIZZLE_MOCK,
-    ...HALF, ...LAST, CLEAN_UP,
+    ...HALF, ...LAST, CLEAN_UP, ...SHRUG,
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
   [GUEST_VOICES.m]: [...pools(CROWD_GASP), ...pools(CROWD_PAGES)],
   [GUEST_VOICES.f]: [...pools(CROWD_GASP), ...pools(CROWD_PAGES)],
-  [AD_VOICE]: [...pools(AD_CLOSED), ...pools(AD_CREW), ...AD_STEVE, ...pools(AD_CAST), ...pools(AD_WAVE)],
+  [AD_VOICE]: [...pools(AD_CLOSED), ...pools(AD_CREW), ...AD_STEVE, ...pools(AD_CAST), ...pools(AD_WAVE), ...pools(AD_SHRUG), ...AD_LEAK],
+  [EXEC_VOICE]: [...EXEC_PHONE, ...EXEC_SEES, ...EXEC_RANT],
   [CREW_VOICES.grip]: pools(GRIP_BARK), [CREW_VOICES.gripf]: pools(GRIP_BARK),
   [CREW_VOICES.boom]: pools(BOOM_BARK), [CREW_VOICES.boomf]: pools(BOOM_BARK),
   [CREW_VOICES.runner]: pools(RUNNER_BARK), [CREW_VOICES.runnerf]: pools(RUNNER_BARK),
