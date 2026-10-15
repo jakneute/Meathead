@@ -86,11 +86,11 @@ m2/hollywood/blvd/index.ts:93 voice: false
 m2/hollywood/blvd/kinds.ts:63 voice: false
 m2/hollywood/coaster/kinds.ts:40 voice: false
 m2/hollywood/coaster/index.ts:83 voice: line
-m2/hollywood/coaster/index.ts:390 voice: false
-m2/hollywood/coaster/index.ts:429 voice: false
-m2/hollywood/coaster/index.ts:451 voice: true
-m2/hollywood/coaster/index.ts:112 name: SCRIPTS
-m2/hollywood/coaster/index.ts:522 call: coasterOf(state)
+m2/hollywood/coaster/index.ts:392 voice: false
+m2/hollywood/coaster/index.ts:431 voice: false
+m2/hollywood/coaster/index.ts:453 voice: true
+m2/hollywood/coaster/index.ts:114 name: SCRIPTS
+m2/hollywood/coaster/index.ts:524 call: coasterOf(state)
 m2/hollywood/warehouse/kinds.ts:47 voice: false
 m2/hollywood/warehouse/kinds.ts:241 voice: false
 m2/hollywood/warehouse/talk.ts:27 voice: line

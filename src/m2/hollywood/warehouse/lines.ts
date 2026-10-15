@@ -19,7 +19,7 @@ export const MOVIE = "REVENGERS: END-OF-THE-WORLD'S-DAY";
 /** The burst-in: down through the roof onto a movie set; the director wants to know who the fuck he is. He hasn't a
  *  clue what the fuss is. */
 export const BURST_WHAT = ['WHAT IS THIS, A PORNO?', 'WHERE AM I? IS THIS THE GIFT SHOP?'];
-export const BURST_NEVER = ['NEVER HEARD OF IT.', 'NOPE. IS IT A CARTOON?'];
+export const BURST_NEVER = ['NEVER HEARD OF IT.', 'NOPE. IS IT A PORNO?'];
 /** The walls down, the crew coming: he still doesn't get it. */
 export const BURST = ['ALL THIS OVER A MOVIE I NEVER HEARD OF.', 'OKAY. KILLING MOVIE PEOPLE. FINE.'];
 /** Launched in again (a revisit: the lever's still on): down through his own hole in the roof. */
