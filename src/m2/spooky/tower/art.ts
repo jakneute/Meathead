@@ -135,16 +135,68 @@ const SKY = ['#34304E', '#423C5E', '#544A6C', '#685A78', '#7E6C82', '#94808A'];
 export const drawTowerBackdrop = (c: Ctx, state?: GameState) => {
   const tod = timeOfDay();
   drawTodSky(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, SKY, { bands: 12, horizon: CANVAS_HEIGHT - 40, moon: [CANVAS_WIDTH - 150, 90], sun: [CANVAS_WIDTH - 170, 120] });
-  // (far off and below: the park's rooftops, its lights after dark; further down the higher he goes)
+  // (far off and below: the hills, the town's roofs, its lights after dark; further down the higher he goes)
   const cy = state ? state.camera.y : 0;
   const base = Math.round(CANVAS_HEIGHT - 60 - Math.min(0, cy) * 0.06);
-  if (base < CANVAS_HEIGHT + 40) {
-    c.fillStyle = mix(hourMix('#3A3450', '#2E2038', '#0A0812', tod), skyAt(0.9, tod), 0.25);
-    c.beginPath(); c.moveTo(0, CANVAS_HEIGHT);
-    for (let x = 0; x <= CANVAS_WIDTH; x += 20) { const h = hash(Math.floor(x / 20) * 1.3); c.lineTo(x, base - h * 34 - (h > 0.85 ? 30 : 0)); c.lineTo(x + 20, base - h * 34 - (h > 0.85 ? 30 : 0)); }
-    c.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT); c.closePath(); c.fill();
-    if (tod.lamps > 0.2) for (let i = 0; i < Math.round(26 * tod.lamps); i++) { const x = Math.floor(hash(i * 9.7) * CANVAS_WIDTH), y = base - 4 + Math.floor(hash(i * 2.9) * 40); box(c, x, y, 2, 2, i % 4 ? '#7A5A2A' : '#5A3A6A'); }
+  if (base - 130 < CANVAS_HEIGHT) { c.save(); c.translate(0, base); stamp(c, `tw-view-${tod.key}`, 0, -130, CANVAS_WIDTH, 190, g => paintView(g, tod)); c.restore(); }
+};
+
+/**
+ * The view down from the tower (its foot at 0): the hills on the horizon (dead trees on them), the far side of town
+ * paler in its fog, then the roofs below nearer (gables, mansards, a spire, chimneys), stepped (lit up their left
+ * slopes), their windows pinpricks of lamplight after dark; banded haze down into the streets. Farther: paler, bluer.
+ */
+const paintView = (g: Ctx, tod: TimeOfDay) => {
+  const W = CANVAS_WIDTH, haze = skyAt(0.9, tod);
+  const T = (col: string, k: number) => mix(col, haze, k);
+  const base = hourMix('#3A3450', '#2E2038', '#0A0812', tod);
+  const win = hourMix('#3A3456', '#7A5A2A', '#B8823A', tod);
+  const on = (n: number, k: number) => tod.lamps > 0.2 && hash(n) > 1 - k * tod.lamps;
+  // (the hills on the horizon, rolling; bare trees along them)
+  const hill = T(base, 0.55), hillL = T(mix(base, '#B0A8D0', 0.18), 0.55);
+  const hy = (x: number) => Math.round((-96 + Math.sin(x * 0.011 + 1.3) * 10 + Math.sin(x * 0.029) * 6) / 2) * 2;
+  g.fillStyle = hill; g.beginPath(); g.moveTo(0, 60);
+  for (let x = 0; x <= W; x += 4) { g.lineTo(x, hy(x)); g.lineTo(x + 4, hy(x)); }
+  g.lineTo(W, 60); g.closePath(); g.fill();
+  for (let x = 0; x < W; x += 4) if (hy(x + 4) < hy(x)) box(g, x, hy(x), 4, 4, hillL);
+  for (let i = 0; i < 24; i++) {
+    const x = Math.round(hash(i * 4.3) * W / 2) * 2, y = hy(x), h = 6 + Math.round(hash(i * 1.7) * 4);
+    box(g, x, y - h, 1, h, hill); box(g, x - 2, y - h + 2, 2, 1, hill); box(g, x + 1, y - h + 3, 2, 1, hill);
   }
+  /** A row of roofs: houses `w0..w0+wv` wide, `h0..h0+hv` tall over `foot`, a church spire now and then. */
+  const roofs = (seed: number, foot: number, w0: number, wv: number, h0: number, hv: number, k: number, lights: number) => {
+    const body = T(base, k), lit = T(mix(base, '#B0A8D0', 0.16), k), dk = T(mix(base, '#000000', 0.25), k), pane = T(mix(base, '#000000', 0.35), k);
+    const glow = mix(win, body, 0.15 + k * 0.4);
+    let x = -10, i = 0;
+    while (x < W + 10) {
+      const w = w0 + Math.round(hash(seed + i * 2.1) * wv / 2) * 2, h = h0 + Math.round(hash(seed + i * 3.7) * hv / 2) * 2, top = foot - h, kind = hash(seed + i * 5.3);
+      box(g, x, top, w, 60 - top, body); box(g, x, top, 2, 60 - top, lit); box(g, x + w - 3, top, 3, 60 - top, dk);
+      if (kind < 0.6) {
+        const gh = Math.min(Math.round(w * 0.6), 22);
+        g.fillStyle = dk; g.beginPath(); g.moveTo(x - 2, top + 1); g.lineTo(x + w / 2, top - gh); g.lineTo(x + w + 2, top + 1); g.fill();
+        g.fillStyle = lit; g.beginPath(); g.moveTo(x - 2, top + 1); g.lineTo(x + w / 2, top - gh); g.lineTo(x + w / 2, top - gh + 3); g.lineTo(x + 1, top + 1); g.fill();
+        box(g, x + w / 2 - 1, top - gh - 3, 2, 3, dk);
+      } else if (kind < 0.82) {
+        g.fillStyle = dk; g.beginPath(); g.moveTo(x - 2, top + 1); g.lineTo(x + 3, top - 8); g.lineTo(x + w - 3, top - 8); g.lineTo(x + w + 2, top + 1); g.fill();
+      } else {
+        const sx = x + w / 2;
+        box(g, sx - 4, top - 10, 8, 10, body); box(g, sx - 4, top - 10, 2, 10, lit);
+        g.fillStyle = dk; g.beginPath(); g.moveTo(sx - 5, top - 10); g.lineTo(sx, top - 36); g.lineTo(sx + 5, top - 10); g.fill();
+        g.fillStyle = lit; g.beginPath(); g.moveTo(sx - 5, top - 10); g.lineTo(sx, top - 36); g.lineTo(sx - 1, top - 10); g.fill();
+        box(g, sx, top - 40, 1, 4, dk);
+      }
+      if (hash(seed + i * 4.9) > 0.5) { const cx = x + Math.round(w * 0.7); box(g, cx, top - 10, 4, 10, dk); box(g, cx - 1, top - 11, 6, 2, dk); }
+      for (let wy = top + 5; wy < 56; wy += 9) for (let wx = x + 4; wx < x + w - 5; wx += 6) box(g, wx, wy, 2, 3, on(seed + wx * 0.37 + wy * 0.91, lights) ? glow : pane);
+      x += w + (hash(seed + i * 6.1) > 0.75 ? 6 : -1);
+      i++;
+    }
+  };
+  // (the far side of town, in the fog; then the roofs below, nearer and darker)
+  roofs(17, -56, 18, 16, 14, 18, 0.42, 0.4);
+  g.save(); g.globalCompositeOperation = 'source-atop'; hazeBands(g, 0, -100, W, 60, haze, 0.0, 0.3, 4); g.restore();
+  roofs(53, -14, 30, 26, 18, 30, 0.2, 0.55);
+  // (the haze down into the streets)
+  g.save(); g.globalCompositeOperation = 'source-atop'; hazeBands(g, 0, -20, W, 80, haze, 0.0, 0.35, 5); g.restore();
 };
 
 // ---------------------------------------------------------------------------------------------------------------
