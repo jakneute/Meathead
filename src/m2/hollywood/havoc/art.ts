@@ -263,7 +263,13 @@ const climb = (c: Ctx, state: GameState, hv: Hv, done: boolean) => {
   c.stroke();
   // (the water tower up on the hill's flank, over shaft 3)
   box(c, X(7980), Y(1700), 160, 120, '#57534E'); words(c, 'HAPPYWOOD', X(8060), Y(1630), enamel(10, '#FDE68A', '#000'));
-  for (const lx of [X(7990), X(8130)]) box(c, lx, Y(1580), 6, 80, '#44403C');
+  // (its legs all the way down to the street, braced: it stood on them, not on the air over the shaft)
+  for (const lx of [X(7990), X(8130)]) box(c, lx, Y(1580), 6, 1580, '#44403C');
+  for (let h = 1500; h > 60; h -= 180) {
+    c.strokeStyle = '#3F3A36'; c.lineWidth = 3; c.beginPath();
+    c.moveTo(X(7993), Y(h)); c.lineTo(X(8133), Y(h - 180)); c.moveTo(X(8133), Y(h)); c.lineTo(X(7993), Y(h - 180)); c.stroke();
+    box(c, X(7990), Y(h), 146, 4, '#44403C');
+  }
   // (the scaffold ledges: lit lips; the crumbly ones cracked, shaking as they go, falling once gone)
   LEDGES.forEach(([rx, h, w, crumbles], i) => {
     const cr = hv.crumbs.find(q => q.i === i);
