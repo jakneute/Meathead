@@ -101,6 +101,9 @@ const VINE_AT = 172;
 const AGITATE_AT = 4;
 /** The knife: each stab, the last one (and the drop); the blowgun's dart, the poison (every so often, for so long). */
 const STAB = 9, STAB_LAST = 10, DART_DMG = 5, DART_SPEED = 11, POISON_TICK = 3, POISON_EVERY = 30, POISON_LEN = 240;
+/** Grabbed at (the counter): the knife harder, each stab and the last (50 in all, before Meathead 2's softer hits);
+ *  at most once every so often (frames), and how long after one his hands just come off him. */
+const COUNTER_STAB = 14, COUNTER_LAST = 22, COUNTER_GAP = 150;
 /** How far off a bush's middle still counts as at it (its plane), and how high up off the ground. */
 const PLANE = BUSH_W / 2 + 12, PLANE_UP = 110;
 /** The puke death, how long. */
@@ -115,7 +118,11 @@ const COIL = [0, 34, 30, 26], LUNGE_MIN = 16, LUNGE_MAX = 44, LANDED = 40;
 
 /** Sources of hurt (each with its lines and its death screen). */
 const KNIFE = 'm2:safari_knife', BLOWDART = 'm2:safari_dart', POISON = 'm2:safari_poison';
+/** The knife, for grabbing at him (the counter): its own hurt and death lines. */
+const COUNTER_KNIFE = 'm2:safari_counter';
 registerHurtLines(KNIFE, L.HURT_KNIFE, L.DEATH_KNIFE);
+registerHurtLines(COUNTER_KNIFE, L.HURT_COUNTER, L.DEATH_COUNTER);
+registerDeathKind(COUNTER_KNIFE, 'gutted');
 registerHurtLines(BLOWDART, L.HURT_BLOWDART, L.DEATH_BLOWDART);
 registerHurtLines(POISON, L.HURT_POISON, L.DEATH_POISON);
 registerHurtLines('m2:rhino', L.HURT_RHINO, L.DEATH_RHINO);
@@ -199,6 +206,8 @@ export interface Fight {
   attacks: number; lastAttack: 'volley' | 'lunge' | null; sameRun: number; lunged: boolean;
   /** The last of Meathead's moves that landed on him (a new one landing is a charge move, not a shot). */
   moveSeen: number | undefined;
+  /** This gut's the counter (he grabbed at him); when the last one was (state.frame). */
+  counter: boolean; counterAt: number;
   e: Enemy;
 }
 
@@ -250,7 +259,30 @@ registerM2Kind({
     if (blink) c.globalAlpha = 1;
   },
   ai: () => true,
+  // (grabbed at: the knife)
+  onGrab: ctx => (live ? counter(ctx, live) : undefined),
 });
+
+/** Where he can take Meathead grabbing at him personally: on his feet, his wits about him, not busy. */
+const COUNTERS: ReadonlySet<Mode> = new Set(['reach', 'exposed', 'landed', 'aim', 'coil', 'whistle', 'watch', 'stunned']);
+/** Grabbed at: the hunting knife's out, and he guts him for it (the gut, harder). */
+const counter = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, p = state.player;
+  if (f.mode === 'dead' || f.mode === 'gut' || f.eaten) return { said: true };
+  // (up his vine, flying, flattened, or too busy slapping at the litter: just can't get hold of him)
+  if (!COUNTERS.has(f.mode) || f.agitated || f.y < GY - 4) return;
+  // (just done it: the hands come off him, nothing more)
+  if (state.frame - f.counterAt < COUNTER_GAP || p.health <= 0 || state.deathTimer > 0 || p.invincibilityTimer > 0) return { said: true };
+  f.counterAt = state.frame;
+  // (out in the open: he's back out in it after, not in a bush)
+  if (!inBush(f)) f.lunged = true;
+  f.dropped = false; f.arc = null; f.y = GY;
+  faceHim(state, f);
+  to(f, 'gut'); f.counter = true;
+  bark(f, L.ARTIE_COUNTER);
+  playSound('clink', 0.8, 8); playSound('punch', 0.9); shakeScreen(state, 8, 4);
+  return { said: true, free: true };
+};
 
 /** How beaten up he looks: his real HP (the enemy's own is only a hit detector), on top of the roof's scuffs. */
 const beaten = (f: Fight) => Math.max(ROOF_SCUFFS, 1 - Math.max(0, f.hp) / HP);
@@ -311,7 +343,7 @@ export const startFight = (state: GameState): Fight => {
     agitated: false, calmT: 0, swatT: 0, herd: [], stampedes: 0, overT: 0, darts: [], poison: 0, pokes: 0,
     said: null, nextCups: 0, byWeakness: false, death: null, eaten: null, eatenSaid: 0, eatenOver: false, cam: null, puke: null, noBushesSaid: false,
     vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, perchT: 0, lureT: 0, inBlind: true, blindT: 0,
-    attacks: 0, lastAttack: null, sameRun: 0, lunged: false, moveSeen: e.hitByMove, e,
+    attacks: 0, lastAttack: null, sameRun: 0, lunged: false, moveSeen: e.hitByMove, counter: false, counterAt: -9999, e,
   };
   // (the vine: up over his hands while he's hanging off it)
   f.vine = {
@@ -364,6 +396,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   let out = controls;
   // (Meathead's held on the knife only while he's being gutted)
   if (f.mode !== 'gut' && state.player.stabbed) state.player.stabbed = undefined;
+  if (f.mode !== 'gut') f.counter = false;
   switch (f.mode) {
     case 'intro':
       // (up in his blind till the view's come round onto the arena (or it's been long enough), then down out of it)
@@ -622,16 +655,22 @@ const gut = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   p.facing = (f.facing > 0 ? -1 : 1);
   // (his own pose for it: held on the knife, doubling over at each stab)
   p.stabbed = { t: f.t, at: STABS_AT };
+  // (the counter, for grabbing at him: harder, its own hurt, more blood)
+  const src = f.counter ? COUNTER_KNIFE : KNIFE;
   if (f.t === 18 || f.t === 38) {
-    hurtPlayer(ctx, STAB, KNIFE, undefined, 0);
+    hurtPlayer(ctx, f.counter ? COUNTER_STAB : STAB, src, undefined, 0);
     blood(state, p.pos.x + p.width / 2, p.pos.y + p.height * 0.5, f.facing);
+    if (f.counter) blood(state, p.pos.x + p.width / 2, p.pos.y + p.height * 0.6, f.facing);
     playSound('splat', 0.8); playSound('punch', 0.5, 6);
   }
   if (f.t === 60) {
-    hurtPlayer(ctx, STAB_LAST, KNIFE, { x: f.facing * 7, y: -6 }, 18);
+    hurtPlayer(ctx, f.counter ? COUNTER_LAST : STAB_LAST, src, { x: f.facing * 7, y: -6 }, 18);
     blood(state, p.pos.x + p.width / 2, p.pos.y + p.height * 0.5, f.facing);
+    if (f.counter) { blood(state, p.pos.x + p.width / 2, p.pos.y + p.height * 0.55, f.facing); playSound('gush', 0.7, -2); }
     playSound('splat', 1); shakeScreen(state, 10, 5);
-    to(f, f.lunged ? 'landed' : 'exposed');
+    // (the counter out in the open, the herd still going by: back to watching it)
+    if (f.counter && f.lunged && !stampedeOver(f.herd)) to(f, 'watch');
+    else to(f, f.lunged ? 'landed' : 'exposed');
   }
   return hands();
 };

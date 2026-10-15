@@ -49,6 +49,10 @@ export interface M2Kind {
   grab?: 'body' | 'critter' | 'none';
   /** Grabbing it hurts him (a poison frog in his bare hand, a live eel): the damage, and when (unset: always). Its hurt lines are its own kind's. */
   grabHurts?: { dmg: number; when?: (e: Enemy) => boolean };
+  /** A grab that's got to it (the hands on it, the lunge into it) and can't have it: its own reaction (a boss's: the
+   *  queen too big, Donnie too greasy, Artie's knife). `said`: it saw to the words (no generic too-big line); `free`:
+   *  the grab's over there and then (he's not left stood in the whiff: thrown off, or the boss has him). */
+  onGrab?: (ctx: FrameContext, e: Enemy) => { said?: boolean; free?: boolean } | void;
   /** A mid-boss (a sub-boss): the weapons give it their mid-boss hit (no instant kills, no status effects), and no
    *  health bar over it (it draws its own: see adventure/dino/rex.ts). */
   midBoss?: boolean;

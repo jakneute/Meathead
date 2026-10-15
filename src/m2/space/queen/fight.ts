@@ -214,7 +214,19 @@ registerM2Kind({
   head: { x: 40, y: -250, r: 24 },
   draw: () => {},
   ai: () => true,
+  // (grabbed at: way too big. The hands close on her shin and he bounces off it)
+  onGrab: ctx => {
+    const { state } = ctx, p = state.player, e = live?.e;
+    const dir = !e || p.pos.x + p.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
+    p.vel = { x: dir * 6, y: Math.min(p.vel.y, -3) };
+    p.lockTimer = Math.max(p.lockTimer, 14); p.recoiling = true;
+    playSound('clang', 0.7, -6); playSound('thud', 0.6, -4); shakeScreen(state, 5, 3);
+    if (state.frame - grabSaidAt >= 150) { grabSaidAt = state.frame; meatheadSays(state, pick(L.MH_GRAB), false); }
+    return { said: true, free: true };
+  },
 });
+/** When he last said his piece about grabbing her. */
+let grabSaidAt = -9999;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Saying things (one voice at a time: a bark's dropped if anybody's talking)

@@ -337,6 +337,13 @@ const tooBig = (state: GameState, e: Enemy) => {
   const pool = own.length && Math.random() < 0.7 ? own : general;
   meatheadSays(state, pickLine(pool), false);
 };
+/** Hands on one that can't be had: its own reaction if it has one (a boss's: see M2Kind's onGrab), else he says so.
+ *  True: the grab's over there and then. */
+const balk = (ctx: FrameContext, e: Enemy) => {
+  const r = m2Kind(e.kind)?.onGrab?.(ctx, e) || undefined;
+  if (!r?.said) tooBig(ctx.state, e);
+  return !!r?.free;
+};
 
 /** The nearest one he could get his hands on, in front of him, within `reach` of his front (`any`: whether he could or not). */
 const inReach = (state: GameState, dir: number, reach: number, any = false) => {
@@ -657,7 +664,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       g.pb = pb;
       const touching = pb > 0 && g.bumpT > 0;
       if (p.isGrounded || handsOnly(state)) g.airSpent = false;
-      const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.noSpecials && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
+      const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.noSpecials && !p.stabbed && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
       // (up held with the beatdown's buttons: the air grab instead)
       let wantNow: 'beat' | 'shake' | 'air' | null = want;
       if (want === 'beat' && controls.up && !handsOnly(state)) wantNow = 'air';
@@ -709,8 +716,9 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (hit && !canGrab(state, hit)) {
         // (a boss, something far too big: the hands close on nothing, and down he comes)
         playSound('thud', 0.8, -4); shakeScreen(state, 4, 3);
-        if (tooBigAnimal(hit) || hit.type === 'boss' || isMidBoss(hit)) tooBig(state, hit);
         g.airSpent = true; g.diveOk = true; p.vel.y = Math.max(p.vel.y, 0); end(state, g);
+        // (after: its own reaction has the last say over where he goes)
+        if (tooBigAnimal(hit) || hit.type === 'boss' || isMidBoss(hit)) balk(ctx, hit);
         return { ...NO_CONTROLS };
       }
       if (hit) {
@@ -747,7 +755,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
           g.phase = 'miss'; g.t = 0; playSound('whoosh', 0.5, 6);
           // (hands out at something far too big to get hold of)
           const big = inReach(state, g.dir, GRAB_REACH, true);
-          if (tooBigAnimal(big)) tooBig(state, big!);
+          if (tooBigAnimal(big) && balk(ctx, big!)) { end(state, g); return { ...NO_CONTROLS }; }
         }
         return hold();
       }
@@ -774,7 +782,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (hit && !canGrab(state, hit)) {
         placeAt(state, g.dir > 0 ? hit.pos.x - p.width : hit.pos.x + hit.width, p.pos.x);
         g.phase = 'whiff'; g.t = 0; playSound('thud', 0.8, -4); shakeScreen(state, 4, 3);
-        if (tooBigAnimal(hit)) tooBig(state, hit);
+        if (tooBigAnimal(hit) && balk(ctx, hit)) { end(state, g); return { ...NO_CONTROLS }; }
         return hold();
       }
       if (!hit) {

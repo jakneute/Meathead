@@ -117,6 +117,12 @@ export const DONNIE_ESCAPED: ByPants = {
   shitty: ['GOOD! GO! I NEEDED AIR!', 'NO WIGGLING! IT GETS ON ME!', 'FINE! I NEED A WET WIPE ANYWAY!'],
   nude: ['HEY! YOU WERE TOUCHING ME!', 'NO WIGGLING! EVERYTHING WIGGLES!', 'FINE! I NEED A MINUTE!'],
 };
+/** Meathead grabs him: he squirts right out of it, the greasy fatass. */
+export const DONNIE_GREASED: ByPants = {
+  clean: ["NOBODY HOLDS DONNIE! I'M BASTED!", "THAT'S BACK SWEAT AND HAIR GREASE, PAL! TOP SHELF!", "YOU CAN'T GET YOUR ARMS AROUND ALL THIS! NOBODY CAN!"],
+  shitty: ['GET YOUR SHITTY HANDS OFF ME! ...OH, THEY SLID OFF!', "GREASE BEATS SHIT, PAL! I'M LIKE A NONSTICK PAN!", "DON'T WIPE YOUR HANDS ON MY CAPE!"],
+  nude: ['A NAKED GUY HUGGED ME! THANK GOD I SWEAT GREASE!', 'NO NAKED WRESTLING! I SLIDE RIGHT OUT!', "HANDS OFF! AND KEEP THAT OTHER THING OFF TOO!"],
+};
 /** A guest running past: lunch. */
 export const DONNIE_SNATCH: ByPants = {
   clean: ['OOH! TAKEOUT!', 'WATCH THIS! DRIVE-THRU!', "SORRY, PAL! I'M ON A ROLL!"],
@@ -195,6 +201,11 @@ export const SATAN_CLAIM: ByPants = {
 /** Meathead, when a souvenir out of the launcher bounces off Donnie without much to show for it: something in that
  *  bag has to work on a vampire (it's the little Christ the Redeemer; he doesn't say so). */
 /** Meathead, Donnie drinking a guest (healing off them), till he's knocked one loose with a charge: the hint. */
+/** A grab at Donnie: too much of a greasy fatass to hold on to. */
+export const MEATHEAD_GREASE = [
+  "HE'S TOO FAT TO GET MY ARMS AROUND!", 'GREASY FAT BASTARD!', 'LIKE HUGGING A BUTTERED HAM!', 'WHAT DOES HE SWEAT, GRAVY?!',
+  'ALL FLAB AND GREASE! NO HANDLES!',
+];
 export const MEATHEAD_CHARGE_HINT = [
   "HE'S HEALING OFF THAT GUY. RAM HIM!",
   'GET OFF HIM, YOU LEECH! I SHOULD TACKLE YOU OFF!',
@@ -223,10 +234,10 @@ export const HURT_BLOOD = ["HE SPIT SOMEBODY ELSE'S BLOOD AT ME!", "IT'S IN MY M
 export const DEATH_BLOOD = ['HOSED DOWN', 'DROWNED IN SECONDHAND BLOOD', 'SPRAYED'];
 
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...MEATHEAD_WON, ...MEATHEAD_WON_WEAK, ...MEATHEAD_SOUVENIR_HINT, ...MEATHEAD_CHARGE_HINT, ...HURT_DRAIN, ...HURT_BLOOD],
+  meathead: [...MEATHEAD_WON, ...MEATHEAD_WON_WEAK, ...MEATHEAD_SOUVENIR_HINT, ...MEATHEAD_CHARGE_HINT, ...MEATHEAD_GREASE, ...HURT_DRAIN, ...HURT_BLOOD],
   death: [...DEATH_DRAIN, ...DEATH_BLOOD],
   'm2.donnie': [
-    ...[DONNIE_PLEAD, DONNIE_ENAMORED, DONNIE_SHOWOFF, DONNIE_SATAN_PANIC, DONNIE_GUEST, DONNIE_STUN, DONNIE_LOW, DONNIE_DIVE, DONNIE_DRAIN, DONNIE_ESCAPED, DONNIE_SNATCH, DONNIE_SPEW, DONNIE_HURT, DONNIE_REDEEMER, DONNIE_TAUNT, DONNIE_DIES, DONNIE_BURNS].flatMap(all),
+    ...[DONNIE_PLEAD, DONNIE_ENAMORED, DONNIE_SHOWOFF, DONNIE_SATAN_PANIC, DONNIE_GUEST, DONNIE_STUN, DONNIE_LOW, DONNIE_DIVE, DONNIE_DRAIN, DONNIE_ESCAPED, DONNIE_GREASED, DONNIE_SNATCH, DONNIE_SPEW, DONNIE_HURT, DONNIE_REDEEMER, DONNIE_TAUNT, DONNIE_DIES, DONNIE_BURNS].flatMap(all),
   ],
   'm2.satan': [...[SATAN_GRANT, SATAN_SOUL, SATAN_NAG, SATAN_GUEST, SATAN_STUN, SATAN_LOW, SATAN_CLAIM].flatMap(all)],
   'm2.guest': [...GUEST_SCREAM],

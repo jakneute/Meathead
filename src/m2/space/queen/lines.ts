@@ -189,6 +189,11 @@ export const MH_THROW_HINT: ByPants = {
 };
 export const MH_BAT = ['RETURN TO SENDER!', 'BACK WHERE YOU CAME FROM! THE ASS!', "HERE'S YOUR KID BACK, LADY!"];
 export const MH_HEAD = ['BONK.', 'RIGHT IN THE CRANIUM.', 'TAKE A SEAT. THE OTHER SIDE.'];
+/** A grab at her: she's way too big (his hands on her shin, bounced off). */
+export const MH_GRAB = [
+  "SHE'S WAY TOO BIG! I'M HUGGING A SHIN!", 'WHERE DO I EVEN GRAB? SHE\'S A BUILDING!', "I'D NEED A FORKLIFT FOR THIS BITCH!",
+  "MY ARMS DON'T EVEN GO AROUND HER ANKLE!", 'TOO MUCH ROBOT. WAY TOO MUCH ROBOT.',
+];
 /** A meteor (the spellbook's storm) come down in her oil, and nothing: it's acid, and it won't burn. Once a life. The
  *  user's line first, every way. */
 export const MH_CHEAP_OIL: ByPants = {
@@ -269,7 +274,7 @@ export const DEATH_SPIT = ['SPAT TO DEATH', 'GREASED', 'KILLED BY A SPITTER'];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...all(MH_GLASS), ...all(MH_KICK), ...all(MH_FALL), ...MH_DARK, ...MH_SPOT, ...all(MH_HIDE), ...all(MH_HIDE_DARK), ...MH_PASSED, ...MH_SEEN, ...MH_WARN_SHOOT, ...MH_WARN_MOVE, ...MH_USELESS,
-    ...all(MH_DISCO), ...MH_EXTINGUISHER, ...MH_FOAM_FAIL, ...MH_THROW, ...all(MH_LESS_FATAL), ...MH_RAY, ...MH_BIRTH, ...all(MH_THROW_HINT), ...MH_BAT, ...MH_HEAD, ...all(MH_CHEAP_OIL), ...all(MH_OPS_GONE), ...HURT_CAN,
+    ...all(MH_DISCO), ...MH_EXTINGUISHER, ...MH_FOAM_FAIL, ...MH_THROW, ...all(MH_LESS_FATAL), ...MH_RAY, ...MH_BIRTH, ...all(MH_THROW_HINT), ...MH_BAT, ...MH_HEAD, ...MH_GRAB,...all(MH_CHEAP_OIL), ...all(MH_OPS_GONE), ...HURT_CAN,
     ...HURT_SPIT, ...HURT_JAW, ...HURT_OIL, ...all(HURT_FLAIL), ...all(HURT_POOL), ...HURT_BITER, ...HURT_SPITTER, ...HURT_CHARGER,
   ],
   death: [...DEATH_CAN, ...DEATH_SPIT, ...DEATH_JAW, ...DEATH_OIL, ...all(DEATH_FLAIL), ...all(DEATH_POOL), ...DEATH_BITER, ...DEATH_SPITTER, ...DEATH_CHARGER],

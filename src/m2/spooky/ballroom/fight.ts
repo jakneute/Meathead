@@ -212,7 +212,32 @@ registerM2Kind({
   head: { x: 2, y: -74, r: 12 },
   draw: () => {},
   ai: () => true,
+  // (grabbed at: too much of a greasy fatass to hold on to; he squirts out)
+  onGrab: ctx => (live && live.mode !== 'dead' && live.mode !== 'intro' && live.mode !== 'drain' ? greased(ctx, live) : undefined),
 });
+
+/** The words over a grab at him, at most this often (frames); whose turn it is (him, then Meathead, and round). */
+const GREASE_SAY_GAP = 150;
+let greaseSaidAt = -9999, greaseN = 0;
+/** A grab at him: his flab squirts out of Meathead's arms in a spray of grease, Meathead's hands slide off and he goes
+ *  stumbling back off him (thrown off balance a beat), and Donnie scoots off the other way. */
+const greased = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, p = state.player;
+  const dir = p.pos.x + p.width / 2 < f.x ? -1 : 1;
+  p.isCharging = false; p.isDivekicking = false; p.isUppercutting = false;
+  p.vel = { x: dir * 7, y: -5 };
+  p.lockTimer = Math.max(p.lockTimer, 22); p.recoiling = true; p.slipT = 22;
+  f.vx -= dir * 5;
+  playSound('squish', 0.9, -2); playSound('oil', 0.8, 2);
+  const hx = p.pos.x + p.width / 2 - dir * 14, hy = p.pos.y + p.height * 0.4;
+  for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: hx + (Math.random() - 0.5) * 10, y: hy + (Math.random() - 0.5) * 20 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 26 + Math.random() * 14, color: ['#FDE68A', '#FACC15', '#A16207'][i % 3], size: 2 + Math.random() * 3, grav: 0.3 });
+  if (state.frame - greaseSaidAt >= GREASE_SAY_GAP) {
+    greaseSaidAt = state.frame;
+    if (greaseN++ % 2 === 0 && quiet(f)) bark(f, L.DONNIE_GREASED);
+    else meatheadSays(state, pick(L.MEATHEAD_GREASE), false);
+  }
+  return { said: true, free: true };
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Saying things
