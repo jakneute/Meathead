@@ -104,7 +104,7 @@ const cone = (g: Ctx, cx: number, base: number, top: number, half: number, cols:
 /** The crags: a range at the edge of the world, palest of all; Dracula's FIRST castle on the highest of them (the one
  *  in town's his other one), its windows lit after dark, a few. */
 const paintCrags = (g: Ctx, tod: TimeOfDay) => {
-  const H = 220, K = 0.62;
+  const H = 280, K = 0.62;
   const base = hourMix('#4A4068', '#503C5A', '#231B38', tod);
   const T = (col: string) => hazeOf(col, K, tod);
   const body = T(base), lit = T(mix(base, '#B4A8D4', 0.2)), lit2 = T(mix(base, '#D0C4EC', 0.32)), dk = T(mix(base, '#0A0614', 0.16)), dk2 = T(mix(base, '#0A0614', 0.3));
@@ -462,7 +462,8 @@ export const drawTownBackdrop = (c: Ctx, state: GameState) => {
   // (the low cloud bank, drifting)
   tile(c, `tn-cloud-${tod.key}`, cx + state.frame * 6, 0.012, 100 + oy * 0.5, 160, g => paintClouds(g, tod));
   // The crags at the edge of the world (the old castle on them), the hills
-  tile(c, `tn-crags-${tod.key}`, cx, 0.008, horizon - 280, 220, g => paintCrags(g, tod));
+  // (stood well up over the hills, so the old castle sits on a mountain, not on the hills' line)
+  tile(c, `tn-crags-${tod.key}`, cx, 0.008, horizon - 350, 280, g => paintCrags(g, tod));
   tile(c, `tn-hills-${tod.key}`, cx, 0.02, horizon - 230, 220, g => paintHills(g, tod));
   // The ELEVATOR TO HELL: far off and small behind the rooftops at the gate, looming by the castle stairs
   const k = Math.max(0, Math.min(1, camX / (STAIRS.a0 - CANVAS_WIDTH / 2))), ke = k * k * (3 - 2 * k);
