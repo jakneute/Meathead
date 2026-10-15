@@ -1286,7 +1286,11 @@ const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState) => {
   // (kept on screen: a long line near the edge would otherwise run off it)
   // (a sentence at a time)
   const line = sentenceShown(state.playerLastVulgarity);
-  const half = ctx.measureText(line).width / 2 + 8;
+  // (too long for the screen: wrapped, the rows stacked up over him, so it's all on screen, none of it trailing off)
+  const rows: string[] = [];
+  { let cur = ''; for (const w of line.split(' ')) { const t = cur ? `${cur} ${w}` : w; if (cur && ctx.measureText(t).width > CANVAS_WIDTH - 60) { rows.push(cur); cur = w; } else cur = t; } if (cur) rows.push(cur); }
+  const half = Math.max(...rows.map(r => ctx.measureText(r).width)) / 2 + 8;
+  const say = (x: number, y: number) => rows.forEach((r, i) => ctx.fillText(r, x, y - (rows.length - 1 - i) * 13));
   // (the camera pulled back or pushed in (a section's zoom, a kill cam): the words kept their full size, and on screen
   // in the view)
   // (the render scale off the canvas's height: a cylinder's strip (the world wrapped round) is wider than the screen,
@@ -1296,12 +1300,13 @@ const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState) => {
     const L = -m.e / m.a, R = (ctx.canvas.width - m.e) / m.a, h = half / z;
     const x = Math.max(L + h, Math.min(R - h, player.pos.x + player.width / 2));
     ctx.translate(x, player.pos.y - 20); ctx.scale(1 / z, 1 / z);
-    ctx.fillText(line, 0, 0);
+    say(0, 0);
     ctx.restore();
     return;
   }
   const x = Math.max(state.camera.x + half, Math.min(state.camera.x + CANVAS_WIDTH - half, player.pos.x + player.width / 2));
-  ctx.fillText(line, x, player.pos.y - 20);
+  // (and not off the top: the rows come down under the top edge)
+  say(x, Math.max(state.camera.y + 16 + (rows.length - 1) * 13, player.pos.y - 20));
   ctx.restore();
 };
 

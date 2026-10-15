@@ -172,7 +172,8 @@ export const updateChase = (ctx: FrameContext): ChaseEvents => {
       // (a little slower than him, flat out: anything that slows him and it gains; far behind, it catches up quick)
       const base = 3.4 + Math.min(0.85, t.ramp * 0.0011);
       let v = gap > 620 ? Math.max(base, 8) : base;
-      if (t.surge) v = 9.6;
+      // (the surge: fast enough to have him well before the end of the street, never him stood waiting at a wall)
+      if (t.surge) v = 14;
       t.v = v; t.x += v;
     }
     // (past the first aid station: it surges)
