@@ -784,7 +784,9 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (!mallet) {
     // (anything but her weakness: a modest knock, a ping, a spark or two)
     f.flash = 6;
-    for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: e.pos.y + 60 + Math.random() * 100 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 12, color: i % 2 ? '#FDE047' : ALIEN.slime, size: 2, grav: 0.3 });
+    for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: e.pos.y + 60 + Math.random() * 100 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 12, color: '#FDE047', size: 2, grav: 0.3 });
+    // (she bleeds oil: black, a glint on it)
+    bleedOil(state, { x: e.pos.x + e.width / 2, y: e.pos.y + 60 + Math.random() * 100 }, (Math.sign(f.x - pm.x) || 1) as 1 | -1, 5);
     playSound('clang', 0.3, 8);
   }
   // (the mallet up close, at any height (him within CLOSE_R of her body): stunned, and off to the other side after.
@@ -812,6 +814,12 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (f.hp <= 0) f.byWeakness = mallet;
 };
 
+/** Hit, she bleeds oil: black motor oil spurting out the way the blow went, a few glints in it, spattering where it
+ *  lands. */
+const OIL_BLOOD = ['#09090B', '#141210', '#1F1B16', '#2C261E'];
+const bleedOil = (state: GameState, at: { x: number; y: number }, away: 1 | -1, n: number) => {
+  for (let i = 0; i < n; i++) state.particles.push({ pos: { x: at.x, y: at.y }, vel: { x: away * (1 + Math.random() * 4) + (Math.random() - 0.5) * 2, y: -1.5 - Math.random() * 3.5 }, life: 40 + Math.random() * 30, color: i % 5 === 0 ? '#5A5040' : OIL_BLOOD[i % 4], size: 2 + Math.random() * 3, grav: 0.32 });
+};
 /** The comic words over a mallet hit on her, by what it was. */
 const FEEL_WORDS: Record<string, string[]> = {
   smash: ['KA-BLAM!', 'KA-RUNCH!', 'WHAM-O!'], head: ['BONK!', 'KLONK!', 'DONK!'], batted: [],
@@ -827,7 +835,7 @@ const malletFeel = (state: GameState, f: Fight, how: MalletHow | 'head' | 'batte
   f.barFrom = f.barT > 0 ? Math.max(f.barFrom, before) : before; f.barT = 50;
   f.dents++;
   for (let i = 0; i < 18; i++) { const a = Math.random() * Math.PI * 2, v = 3 + Math.random() * 7; state.particles.push({ pos: { x: at.x, y: at.y }, vel: { x: Math.cos(a) * v, y: Math.sin(a) * v - 1 }, life: 14 + Math.random() * 10, color: i % 3 ? '#FDE047' : '#FFFFFF', size: 2 + Math.random() * 2, grav: 0.2 }); }
-  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: at.x, y: at.y }, vel: { x: away * (1 + Math.random() * 3), y: -1 - Math.random() * 2 }, life: 26, color: i % 2 ? ALIEN.slime : '#7F1D1D', size: 2 + Math.random() * 2, grav: 0.3 });
+  bleedOil(state, at, away, 14);
   if (f.pieces.length < 80) f.pieces.push(...chipQueen(at.x, at.y, away));
   playSound('bonk', 1.3, -6); playSound('clang', 1, -3); playSound('crash', 0.6, 2);
   if (how === 'smash') playSound('slam', 1, -6);

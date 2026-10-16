@@ -274,12 +274,14 @@ const counter = (ctx: FrameContext, f: Fight) => {
   // (just done it: the hands come off him, nothing more)
   if (state.frame - f.counterAt < COUNTER_GAP || p.health <= 0 || state.deathTimer > 0 || p.invincibilityTimer > 0) return { said: true };
   f.counterAt = state.frame;
+  // (seeing stars, and the grab snaps him right out of it)
+  const wasStunned = f.mode === 'stunned';
   // (out in the open: he's back out in it after, not in a bush)
   if (!inBush(f)) f.lunged = true;
   f.dropped = false; f.arc = null; f.y = GY;
   faceHim(state, f);
   to(f, 'gut'); f.counter = true;
-  bark(f, L.ARTIE_COUNTER);
+  bark(f, wasStunned ? L.ARTIE_PEP : L.ARTIE_COUNTER);
   playSound('clink', 0.8, 8); playSound('punch', 0.9); shakeScreen(state, 8, 4);
   return { said: true, free: true };
 };
