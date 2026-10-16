@@ -260,7 +260,8 @@ export const thinkMember = (ctx: FrameContext, T: Theater, sp: Showpiece, m: Mem
         if (m.t >= 50) { go(m, 'fire'); m.hit.clear(); playSound('alienBeam', 0.8, -4); }
       } else if (m.st === 'fire') {
         // (the beam from its eyes down to the floor, sweeping out across the stage: jump it)
-        const k = m.t / 64, ex = m.x + m.f * 48, ey = m.y - 100, px = m.x + m.f * (20 + k * 760);
+        // (from right under its own haunches: no hiding up against it)
+        const k = m.t / 64, ex = m.x + m.f * 48, ey = m.y - 100, px = m.x + m.f * (-80 + k * 840);
         T.beam = { x0: ex, y0: ey, x1: px, y1: FY };
         hurt(ctx, m, px - 20, FY - 26, px + 20, FY, 14, 'm2:fl_th_laser', m.f * 4, -9);
         friendly(ctx, sp, m, px - 22, FY - 30, px + 22, FY, 35);

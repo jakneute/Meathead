@@ -5416,6 +5416,11 @@
  },
  {
   "voice": "death",
+  "text": "ALL WRAPPED UP",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "ALL YOU CAN EAT",
   "from": "ADVENTURE"
  },
@@ -5477,6 +5482,11 @@
  {
   "voice": "death",
   "text": "AXED",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "AXED BY A MINOTAUR",
   "from": "FOREIGN"
  },
  {
@@ -5866,6 +5876,11 @@
  },
  {
   "voice": "death",
+  "text": "BOOMERANGED",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "BOOT HILL, PLOT 12",
   "from": "m1/game/stages/dale/runtime.ts:190"
  },
@@ -6076,6 +6091,11 @@
  },
  {
   "voice": "death",
+  "text": "CARRIED OUT ON A SHIELD",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "CARTED OFF",
   "from": "content/deaths"
  },
@@ -6283,6 +6303,11 @@
   "voice": "death",
   "text": "CLOCKWORK ORANGE JUICE",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "CLOGGED",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -6501,6 +6526,11 @@
  },
  {
   "voice": "death",
+  "text": "DANCED ON",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "DANCED TO DEATH",
   "from": "content/deaths"
  },
@@ -6606,6 +6636,11 @@
  },
  {
   "voice": "death",
+  "text": "DEATH ROLLED",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "DECAPITATED BY A ROBOT",
   "from": "SPACE"
  },
@@ -6658,6 +6693,11 @@
   "voice": "death",
   "text": "DESTROYED BY A CARDBOARD BOX",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "DIED FOR THE GOLD",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -7068,6 +7108,11 @@
   "voice": "death",
   "text": "EATEN BY A RAT",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "EATEN BY A ROBOT CROC",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -7691,6 +7736,11 @@
  },
  {
   "voice": "death",
+  "text": "GORED BY A ROBOT BULL",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "GOT HIS MAN",
   "from": "FOREIGN"
  },
@@ -8221,6 +8271,11 @@
  },
  {
   "voice": "death",
+  "text": "IT CAME BACK FOR ME",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "IT RAINED LIZARDS",
   "from": "content/deaths"
  },
@@ -8316,12 +8371,27 @@
  },
  {
   "voice": "death",
+  "text": "KICKED IN PERFECT UNISON",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "KICKED TO DEATH BY A DEAD HORSE",
   "from": "SPOOKY"
  },
  {
   "voice": "death",
+  "text": "KICKED TO DEATH BY A SQUATTING ROBOT",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "KICKED TO DEATH IN UNISON",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED AT CARNIVAL",
   "from": "FOREIGN"
  },
  {
@@ -8527,6 +8597,11 @@
  {
   "voice": "death",
   "text": "KILLED BY A SAMURAI FROM OHIO",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A SHOE MADE OF A TREE",
   "from": "FOREIGN"
  },
  {
@@ -8746,6 +8821,11 @@
  },
  {
   "voice": "death",
+  "text": "KNOCKED OUT BY A KANGAROO",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "KUNG FU FIGHTING",
   "from": "FOREIGN"
  },
@@ -8783,6 +8863,11 @@
   "voice": "death",
   "text": "LASER SHOWED",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "LASERED BY A SPHINX",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -8923,6 +9008,11 @@
   "voice": "death",
   "text": "LOST IN THE CLOUDS",
   "from": "m1/game/stages/artie/tram.ts:107"
+ },
+ {
+  "voice": "death",
+  "text": "LOST IN THE LABYRINTH",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -9326,6 +9416,11 @@
  },
  {
   "voice": "death",
+  "text": "OLAY",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "ON THE ROCKS",
   "from": "content/deaths"
  },
@@ -9461,6 +9556,11 @@
  },
  {
   "voice": "death",
+  "text": "PECKED BY A PARROT THE SIZE OF A HOUSE",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "PECKED TO DEATH",
   "from": "content/deaths"
  },
@@ -9498,6 +9598,11 @@
   "voice": "death",
   "text": "PELTED TO DEATH BY HAIL",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "PELTED TO DEATH WITH GOLD",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -9936,6 +10041,11 @@
  },
  {
   "voice": "death",
+  "text": "ROADKILL. FOR A BEAR.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "ROASTED FROM BELOW",
   "from": "SPOOKY"
  },
@@ -10026,6 +10136,11 @@
  },
  {
   "voice": "death",
+  "text": "RUN DOWN BY A BEAR ON A UNICYCLE",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "RUN DOWN BY A BIKER GANG",
   "from": "content/deaths"
  },
@@ -10078,6 +10193,11 @@
   "voice": "death",
   "text": "RUN OVER BY A MALL COP",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "RUN OVER BY A PARADE",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -10146,6 +10266,11 @@
  },
  {
   "voice": "death",
+  "text": "RUN THROUGH BY A ROBOT IN TIGHTS",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "RUNG UP",
   "from": "SPOOKY"
  },
@@ -10158,6 +10283,11 @@
   "voice": "death",
   "text": "SAFE AS MILK",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "SAMBAED TO DEATH",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -10936,6 +11066,11 @@
  },
  {
   "voice": "death",
+  "text": "SPEARED BY SPARTANS",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "SPECIAL DELIVERY: YOU",
   "from": "m1/game/stages/dale/convoy.ts:487"
  },
@@ -11026,6 +11161,11 @@
  },
  {
   "voice": "death",
+  "text": "STABBED. THE CROWD WENT OLAY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "STAPLED",
   "from": "content/deaths"
  },
@@ -11042,6 +11182,11 @@
  {
   "voice": "death",
   "text": "STEEPED",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "STEP DANCED TO DEATH",
   "from": "FOREIGN"
  },
  {
@@ -11246,6 +11391,11 @@
  },
  {
   "voice": "death",
+  "text": "SWATTED BY A DUTCH FAN",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "SWATTED LIKE A FLY",
   "from": "ADVENTURE"
  },
@@ -11398,6 +11548,11 @@
   "voice": "death",
   "text": "THE ALIEN WINS. EARTH IS DOOMED.",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE ANSWER TO THE RIDDLE WAS LASERS",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -11846,6 +12001,11 @@
  },
  {
   "voice": "death",
+  "text": "TKO. ROUND ONE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "TOASTED BY A TODDLER DEVIL",
   "from": "SPOOKY"
  },
@@ -12156,6 +12316,11 @@
  },
  {
   "voice": "death",
+  "text": "WHIPPED BY A MUMMY",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "WHO WANTS NUGGETS?",
   "from": "m1/game/stages/dale/convoy.ts:444"
  },
@@ -12163,6 +12328,11 @@
   "voice": "death",
   "text": "WINDEXED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "WINDMILLED",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -15805,6 +15975,56 @@
   "from": "FOREIGN"
  },
  {
+  "voice": "m2.foreign.crowd",
+  "text": "AGAIN! AGAIN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.crowd",
+  "text": "BOO! YOU SUCK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.crowd",
+  "text": "BOOOOO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.crowd",
+  "text": "ENCORE! ENCORE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.crowd",
+  "text": "KILL IT! KILL IT! KILL IT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.crowd",
+  "text": "OH-LAY!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.crowd",
+  "text": "OLAY!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.crowd",
+  "text": "REFUND! REFUND!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.crowd",
+  "text": "USA! USA! USA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.crowd",
+  "text": "WOOOOO!",
+  "from": "FOREIGN"
+ },
+ {
   "voice": "m2.foreign.dragon",
   "text": "DON'T LOOK UP! WE'RE AT CROTCH LEVEL!",
   "from": "FOREIGN"
@@ -17860,6 +18080,526 @@
   "from": "FOREIGN"
  },
  {
+  "voice": "m2.foreign.showpa",
+  "text": "A VOLUNTEER! A NAKED VOLUNTEER! SIR, THIS IS A FAMILY SHOW!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "A VOLUNTEER! FRONT ROW, YOU MAY WANT TO HOLD YOUR NOSE. WE CERTAINLY ARE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "AND THAT IS THE WORLD! NOT AS COOL AS AMERICA! AS PROVEN TONIGHT, ON STAGE, WITH VIOLENCE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "AND THAT'S TIME! OUR VOLUNTEER COULDN'T FINISH THEM! THEY'LL BE BACK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "AUSTRALIA AGAIN! THE KANGAROO WANTS A REMATCH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "AUSTRALIA IS DOWN AND OUT. AND UNDER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "AUSTRALIA: CANCELLED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "AUSTRALIA! WHERE EVERYTHING WANTS TO KILL YOU! INCLUDING THIS KANGAROO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "BACK DOWN UNDER! THE CROC IS HUNGRY! WE FORGOT TO FEED IT! IT IS A ROBOT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "BACK TO HOLLAND! OR DUTCH! STILL NOT SURE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "BRAZIL AGAIN! CARNIVAL NEVER ENDS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "BRAZIL: CANCELLED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "BRAZIL! IT'S CARNIVAL! IT'S ALWAYS CARNIVAL! THAT'S ALL THEY DO DOWN THERE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "CARNIVAL IS OVER. FIRST TIME EVER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "CUTE. BUT NOT AS COOL AS A FORTY-FOUR-OUNCE SODA.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "EGYPT HAS BEEN RETURNED TO THE TOMB. PERMANENTLY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "EGYPT RETURNS! LIKE A CURSE! IT IS A CURSE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "EGYPT: CANCELLED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "EGYPT! HOME OF THE PYRAMIDS! WHICH ALIENS BUILT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FINE. BUT NOT AS COOL AS A GUN SHOW.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FOLKS, PLEASE SILENCE YOUR PHONES. OR DO NOT. FILM ALL OF IT. TAG THE PARK.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FOLKS, THE VOLUNTEER IS BLEEDING. THAT IS NOT PART OF THE SHOW. IT IS NOW.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FOLKS, THERE IS NOTHING PROTECTING HIM. NOTHING AT ALL.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FOLKS, WE HAVE A VOLUNTEER, AND HE IS NOT WEARING ANYTHING. PHONES DOWN. PHONES DOWN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FROM ANCIENT EGYPT: A REAL MUMMY! NOT REAL. OUR LAWYERS ASKED US TO SAY NOT REAL.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FROM ANCIENT GREECE: SPARTANS! THIS IS SPARTA! IT'S ACTUALLY STAGE FOUR!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FROM BRAZIL: THE SAMBA! AND A GIANT PARROT! THE PARROT IS LOAD-BEARING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FROM DOWN UNDER: A BOXING KANGAROO AND A CROCODILE! SHRIMP NOT INCLUDED!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FROM IRELAND: A LEPRECHAUN AND HIS POT OF GOLD! WE CHECKED. IT'S CHOCOLATE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FROM RUSSIA, WHERE IT'S COLD: COSSACK DANCERS! THEY DANCE SITTING DOWN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FROM SPAIN, WHICH IS NEXT TO MEXICO: THE BULLFIGHT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "FROM THE NETHERLANDS: CLOGS! SHOES MADE OUT OF A WHOLE TREE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "GREECE HAS FALLEN. AGAIN. HISTORY, FOLKS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "GREECE IS BACK! THE SPARTANS DO NOT RETREAT! THEY JUST WENT BEHIND THE CURTAIN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "GREECE: CANCELLED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "GREECE! THEY INVENTED DEMOCRACY! WE PERFECTED IT! ALSO, A MINOTAUR!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "HALFWAY THROUGH THE WORLD, FOLKS! AND WE'VE LOST HALF THE WORLD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "HALFWAY THROUGH! AND HE IS HALFWAY THROUGH HIS PANTS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "HALFWAY THROUGH! FRONT ROW, YOU CAN OPEN YOUR EYES. NO. CLOSE THEM.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "HE TOOK A HIT! AND, I THINK, ANOTHER SHIT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "HOLLAND, DUTCH, WHATEVER IT WAS: CANCELLED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "IRELAND AGAIN! THE DANCERS NEVER STOP! WE CANNOT FIND THE SWITCH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "IRELAND IS OUT OF LUCK. AND OUT OF LEPRECHAUNS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "IRELAND: CANCELLED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "IRELAND! LAND OF STEP DANCING, WHERE YOUR ARMS ARE AGAINST THE LAW!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "LADIES AND GENTLEMEN! CULTURES! OF THE WORLD! THE WHOLE WORLD, ON ONE STAGE! IT WAS CHEAPER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "LADIES AND GENTLEMEN! EIGHT COUNTRIES! ZERO PASSPORTS! CULTURES OF THE WORLD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "LOOK AT THAT, FOLKS! A VOLUNTEER! HE'S NOT SUPPOSED TO BE UP THERE, BUT LOOK AT HIM GO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS A BALD EAGLE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS A BIGGER ONE OF THAT. WHICH WE HAVE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS A DRIVE-THROUGH. FOR ANYTHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS A FOUR-DOLLAR HAMBURGER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS A MONSTER TRUCK.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS A PICKUP TRUCK YOU NEVER PUT ANYTHING IN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS A RECLINER WITH A CUP HOLDER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS CHEESE IN A SPRAY CAN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS DEEP-FRYING A TURKEY IN YOUR GARAGE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS EATING HOT DOGS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS FIREWORKS YOU BOUGHT ACROSS STATE LINES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS FIREWORKS. ON ANY DAY. FOR ANY REASON.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS FREE REFILLS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS THE MOON. WE WENT THERE. ONLY US.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "NEAT. BUT NOT AS COOL AS TRUCK NUTS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "OH! WE HAVE A VOLUNTEER FROM THE AUDIENCE! GIVE HIM A HAND!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "OKAY. BUT NOT AS COOL AS A HALFTIME SHOW.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "OKAY. BUT NOT AS COOL AS MEASURING THINGS IN FEET.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "OOH! AND HE CANNOT AFFORD TO LOSE ANY MORE OF ANYTHING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "OOH! AND HE PAID FOR A TICKET!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "OOH! RIGHT IN THE EVERYTHING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "PLEASE EXIT STAGE RIGHT TO HELICOPTER RIDES ACROSS THE WORLD. WHAT IS LEFT OF IT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "PLEASE TAKE YOUR SEATS. THE SHOW IS ABOUT TO BEGIN. NO FLASH PHOTOGRAPHY. ALL OTHER PHOTOGRAPHY IS FINE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "RUSSIA AGAIN! THEY ARE STILL SQUATTING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "RUSSIA IS BACK! THE BEAR HAS NO BRAKES!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "RUSSIA IS DOWN. THE BEAR HAS LEFT THE UNICYCLE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "RUSSIA: CANCELLED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "RUSSIA! A BEAR ON A UNICYCLE! THAT'S JUST WHAT THEY HAVE OVER THERE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "SPAIN AGAIN! THE BULL REFUSES TO RETIRE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "SPAIN IS BACK! THE BULL HAS UNION PROTECTION!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "SPAIN: CANCELLED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "SPAIN! THE ANCIENT ART OF THE BULLFIGHT! A MAN, A BULL, A CAPE, AND NO SAFETY REGULATIONS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "SURE. BUT NOT AS COOL AS FOOTBALL. THE REAL ONE. WITH THE HANDS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THAT IS ALL FOR SPAIN. FOREVER. OLAY, I GUESS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THAT'S GOTTA HURT! THE ANIMATRONICS ARE FULLY INSURED! HE IS NOT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THAT'S OUR SHOW! A STANDING OVATION FOR THE MAN WHO SHAT THROUGH THE WHOLE WORLD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THAT'S OUR SHOW! GIVE IT UP FOR OUR NAKED VOLUNTEER! ACTUALLY, DON'T. KEEP YOUR HANDS WHERE WE CAN SEE THEM.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THAT'S OUR SHOW! THE WHOLE WORLD, FOLKS! ALL OF IT DEAD! GIVE IT UP FOR AMERICA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THE EXIT IS STAGE RIGHT. THE HELICOPTERS ARE WAITING. TIP YOUR PILOT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THE LEPRECHAUN IS BACK! HE WANTS HIS GOLD BACK TOO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THE MINOTAUR RETURNS! HALF BULL! HALF GUY! ALL UNION!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THE MUMMY IS BACK! MUMMIES ALWAYS COME BACK! THAT IS THEIR WHOLE THING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THE NETHERLANDS AGAIN! THE WINDMILL HAS BEEN SPINNING THIS WHOLE TIME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THE NETHERLANDS: CANCELLED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THE NETHERLANDS! OR HOLLAND! OR DUTCH! NOBODY KNOWS! WINDMILLS AND WOODEN SHOES!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THE PARROT IS BACK! THE PARROT IS ALWAYS BACK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THE WORLD IS DEAD, AND IT SMELLS LIKE IT! GOODNIGHT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "THE WORLD IS DEAD! AND SO IS MODESTY! GOODNIGHT, AMERICA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "TIME! SIR, THE CURTAIN IS NOT FOR YOU. DO NOT HIDE BEHIND THE CURTAIN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "TIME! STAGEHANDS, BRING A MOP.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "TIME'S UP! AND WE'RE OPENING THE DOORS FOR SOME AIR!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "TIME'S UP! LET'S SEE WHAT ELSE THE WORLD'S GOT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "TIME'S UP! SOMEBODY THROW HIM A TOWEL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "WE HAVE A VOLUNTEER! AND HE'S... OH NO. HE SHAT HIMSELF. GIVE HIM A HAND. DON'T TOUCH HIM.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "WELCOME TO CULTURES OF THE WORLD! THE WHOLE WORLD COMES TO YOU! SO YOU NEVER HAVE TO GO THERE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.showpa",
+  "text": "WELCOME TO THE CULTURES OF THE WORLD THEATER! CONCESSIONS ARE AMERICAN ONLY!",
+  "from": "FOREIGN"
+ },
+ {
   "voice": "m2.foreign.slapper",
   "text": "I'M NOT SLAPPING THAT ASS! ...OKAY, ONE SLAP!",
   "from": "FOREIGN"
@@ -18836,6 +19576,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "BEST SHOW IN THE PARK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "BEST SHOW IN THE PARK! KILL ANOTHER ONE!",
   "from": "ADVENTURE"
  },
@@ -18876,8 +19621,18 @@
  },
  {
   "voice": "m2.guest",
+  "text": "DID YOU SEE THAT? IT'S BLEEDING! ROBOTS BLEED!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "DO IT AGAIN!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "DO IT AGAIN! HIT HIM AGAIN!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest",
@@ -18913,6 +19668,11 @@
   "voice": "m2.guest",
   "text": "FREE PAGES! IT'S THE SCRIPT!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HAHAHA! HE GOT HIT!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest",
@@ -18971,6 +19731,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "HE SHIT HIMSELF! THAT'S NOT IN THE PROGRAM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "HE'S CUTTING AND HE SHIT HIMSELF!",
   "from": "SPACE"
  },
@@ -18998,6 +19763,11 @@
   "voice": "m2.guest",
   "text": "HE'S NAKED AND HE'S CUTTING!",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "HE'S NAKED! MOM! MOM, HE'S NAKED!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest",
@@ -19146,6 +19916,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "I CAN SMELL HIM FROM ROW K!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "I CAN TASTE IT. WHY CAN I TASTE IT?",
   "from": "INTRO"
  },
@@ -19206,6 +19981,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "I PAID FORTY DOLLARS FOR THIS AND IT WAS WORTH IT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "I PEED! I PEED A LITTLE!",
   "from": "SPOOKY"
  },
@@ -19228,6 +20008,11 @@
   "voice": "m2.guest",
   "text": "I'M CALLING MY LAWYER!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "I'M GETTING THIS ON VIDEO! EVERYBODY GET IT ON VIDEO!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest",
@@ -19406,6 +20191,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "KILL THE BULL! KILL ALL OF THEM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "LET HIM CUT. GOD, LET HIM CUT.",
   "from": "ADVENTURE"
  },
@@ -19423,6 +20213,11 @@
   "voice": "m2.guest",
   "text": "LOOK, HONEY. THEY HIRED A FAT GUY TO GET EATEN.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "MOM, IS THAT GUY ALLOWED UP THERE?",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest",
@@ -19591,6 +20386,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "OOH! I GOT THAT ON VIDEO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "OW! MY NEW HIP!",
   "from": "INTRO"
  },
@@ -19636,6 +20436,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "SIR! THERE ARE CHILDREN HERE! THEY LOVE IT, BUT STILL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "SIXTY BUCKS A TICKET, AND THE ACTOR IS A SLOB.",
   "from": "ADVENTURE"
  },
@@ -19661,6 +20466,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "TAKE THAT, EUROPE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "THAT GUY ISN'T ACTING. LOOK AT HIS FACE.",
   "from": "ADVENTURE"
  },
@@ -19671,6 +20481,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "THAT ONE WAS MY FAVORITE! KILL IT ANYWAY!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "THAT SUIT WAS ON THE MOON! NOW HIS BALLS ARE IN IT!",
   "from": "SPACE"
  },
@@ -19678,6 +20493,11 @@
   "voice": "m2.guest",
   "text": "THAT SUIT WENT TO THE MOON. NOW IT HAS THAT IN IT.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "THAT WAS FOREIGN! KILL IT!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest",
@@ -19831,6 +20651,11 @@
  },
  {
   "voice": "m2.guest",
+  "text": "THIS IS BETTER THAN THE ACTUAL SHOW!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest",
   "text": "THIS IS LONGER THAN LAST TIME!",
   "from": "SPOOKY"
  },
@@ -19903,6 +20728,11 @@
   "voice": "m2.guest",
   "text": "WHAT IS THAT SMELL— OH GOD, IT'S HIM!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest",
+  "text": "WHAT IS THAT SMELL? IS THAT HIM?",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest",
@@ -20066,6 +20896,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "BEST SHOW IN THE PARK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "BEST SHOW IN THE PARK! KILL ANOTHER ONE!",
   "from": "ADVENTURE"
  },
@@ -20106,8 +20941,18 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "DID YOU SEE THAT? IT'S BLEEDING! ROBOTS BLEED!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "DO IT AGAIN!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "DO IT AGAIN! HIT HIM AGAIN!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest2",
@@ -20143,6 +20988,11 @@
   "voice": "m2.guest2",
   "text": "FREE PAGES! IT'S THE SCRIPT!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HAHAHA! HE GOT HIT!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest2",
@@ -20216,6 +21066,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "HE SHIT HIMSELF! THAT'S NOT IN THE PROGRAM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "HE'S CUTTING AND HE SHIT HIMSELF!",
   "from": "SPACE"
  },
@@ -20243,6 +21098,11 @@
   "voice": "m2.guest2",
   "text": "HE'S NAKED AND HE'S CUTTING!",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "HE'S NAKED! MOM! MOM, HE'S NAKED!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest2",
@@ -20396,6 +21256,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "I CAN SMELL HIM FROM ROW K!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "I CAN TASTE IT. WHY CAN I TASTE IT?",
   "from": "INTRO"
  },
@@ -20461,6 +21326,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "I PAID FORTY DOLLARS FOR THIS AND IT WAS WORTH IT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "I PEED! I PEED A LITTLE!",
   "from": "SPOOKY"
  },
@@ -20483,6 +21353,11 @@
   "voice": "m2.guest2",
   "text": "I'M CALLING MY LAWYER!",
   "from": "INTRO"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "I'M GETTING THIS ON VIDEO! EVERYBODY GET IT ON VIDEO!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest2",
@@ -20656,6 +21531,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "KILL THE BULL! KILL ALL OF THEM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "LET HIM CUT. GOD, LET HIM CUT.",
   "from": "ADVENTURE"
  },
@@ -20673,6 +21553,11 @@
   "voice": "m2.guest2",
   "text": "LOOK, HONEY. THEY HIRED A FAT GUY TO GET EATEN.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "MOM, IS THAT GUY ALLOWED UP THERE?",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest2",
@@ -20836,6 +21721,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "OOH! I GOT THAT ON VIDEO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "OW! MY NEW HIP!",
   "from": "INTRO"
  },
@@ -20881,6 +21771,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "SIR! THERE ARE CHILDREN HERE! THEY LOVE IT, BUT STILL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "SIXTY BUCKS A TICKET, AND THE ACTOR IS A SLOB.",
   "from": "ADVENTURE"
  },
@@ -20906,6 +21801,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "TAKE THAT, EUROPE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "THAT GUY ISN'T ACTING. LOOK AT HIS FACE.",
   "from": "ADVENTURE"
  },
@@ -20916,6 +21816,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "THAT ONE WAS MY FAVORITE! KILL IT ANYWAY!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "THAT SUIT WAS ON THE MOON! NOW HIS BALLS ARE IN IT!",
   "from": "SPACE"
  },
@@ -20923,6 +21828,11 @@
   "voice": "m2.guest2",
   "text": "THAT SUIT WENT TO THE MOON. NOW IT HAS THAT IN IT.",
   "from": "SPACE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "THAT WAS FOREIGN! KILL IT!",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest2",
@@ -21071,6 +21981,11 @@
  },
  {
   "voice": "m2.guest2",
+  "text": "THIS IS BETTER THAN THE ACTUAL SHOW!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.guest2",
   "text": "THIS IS LONGER THAN LAST TIME!",
   "from": "SPOOKY"
  },
@@ -21143,6 +22058,11 @@
   "voice": "m2.guest2",
   "text": "WHAT IS THAT SMELL— OH GOD, IT'S HIM!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.guest2",
+  "text": "WHAT IS THAT SMELL? IS THAT HIM?",
+  "from": "FOREIGN"
  },
  {
   "voice": "m2.guest2",
@@ -32011,6 +32931,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A BEAR ON A UNICYCLE. OKAY. THAT ONE IS PRETTY COOL.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "A BEER GARDEN WHERE THE BEER FIGHTS BACK.",
   "from": "FOREIGN"
  },
@@ -32026,6 +32951,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A BOOMERANG! IT CAME BACK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "A BOTTOMLESS PIT. ON A SOUNDSTAGE. WHO SIGNED OFF ON THIS?",
   "from": "HOLLYWOOD"
  },
@@ -32038,6 +32968,11 @@
   "voice": "meathead",
   "text": "A BOULDER TO THE DOME?! MY TRAPS ARE SOLID ROCK, ERNIE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BOW? FINE. THERE. NOW WHERE'S THE HELICOPTER?",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -32111,6 +33046,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A CLOG! RIGHT IN THE HEAD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "A COCONUT TO THE DOME! GNARLY, FUCK!",
   "from": "HAZARD_HURT"
  },
@@ -32118,6 +33058,11 @@
   "voice": "meathead",
   "text": "A COFFIN LID! TO THE FACE!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A COW MAN WITH AN AXE.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -32481,6 +33426,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A KANGAROO WITH BOXING GLOVES. FINALLY, A FAIR FIGHT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "A KING DOESN'T NEED CLEAN PANTS. A KING NEEDS YOU DEAD.",
   "from": "ALIEN_LINES"
  },
@@ -32508,6 +33458,11 @@
   "voice": "meathead",
   "text": "A LEAF BLOWER! IN MY FACE!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "A LEPRECHAUN THROWING MONEY. I WANT THAT MONEY.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -32596,6 +33551,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A MUMMY. AND A CAT WITH A GUY FOR A HEAD.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "A NIGHTCLUB IN A VOLCANO? FINALLY, A SAUNA HOT ENOUGH FOR MY PUMP.",
   "from": "INTRO_QUOTES"
  },
@@ -32613,6 +33573,11 @@
   "voice": "meathead",
   "text": "A PALM TREE! THE WHOLE TREE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PARADE FLOAT. INDOORS. THIS PLACE IS INSANE.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -32748,6 +33713,16 @@
   "voice": "meathead",
   "text": "A RIVET! TO THE SKULL!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A ROBOT BULL. SURE. WHY NOT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "A ROBOT SHOW. GREAT. A ROBOT SHOW.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -33067,6 +34042,16 @@
  {
   "voice": "meathead",
   "text": "A WHOLE PIZZA! IN MY MOUTH! NOT LIKE THIS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "A WHOLE THEATER FOR ROBOTS. I HATE IT ALREADY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "A WINDMILL. INDOORS. SPINNING. GREAT IDEA.",
   "from": "FOREIGN"
  },
  {
@@ -33811,6 +34796,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BLEEDING. THE ROBOTS ARE BLEEDING. WHATEVER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "BLIND AS A BAT. AN UGLY BAT.",
   "from": "SPACE"
  },
@@ -34252,6 +35242,11 @@
  {
   "voice": "meathead",
   "text": "CANADA. THEY'RE GONNA SAY SORRY WHILE THEY HIT ME. I CAN FEEL IT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "CANCELLED. GOOD.",
   "from": "FOREIGN"
  },
  {
@@ -35946,6 +36941,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FREEDOM FRIES. TWELVE DOLLARS. THEY'RE JUST FRIES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "FREEDOM ISN'T FREE, BUDDY!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -36196,6 +37196,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET BACK HERE! I'M NOT FINISHED KILLING YOU!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "GET BACK IN YOUR APARTMENT, LADY!",
   "from": "HAZARD_HURT"
  },
@@ -36263,6 +37268,11 @@
   "voice": "meathead",
   "text": "GET IT OFF! GET IT OFF!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET IT OFF! GET THE CROC OFF!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -36816,6 +37826,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GOLD COINS! IN MY FACE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "GOLD PAINT IN MY EYE!",
   "from": "HOLLYWOOD"
  },
@@ -37058,6 +38073,11 @@
   "voice": "meathead",
   "text": "HALF A CAR! WHERE'S THE OTHER HALF?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HALF BULL, HALF GUY, ALL ASSHOLE!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -37541,6 +38561,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE STABBED ME THROUGH HIS CAPE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "HE STABBED ME! I DON'T EVEN HAVE A WALLET! I HAVE POCKETS FOR PROTEIN!",
   "from": "HAZARD_HURT"
  },
@@ -37938,6 +38963,11 @@
   "voice": "meathead",
   "text": "HEY! GET BACK HERE AND DIE LIKE YOUR FRIENDS!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEY! I WASN'T DONE!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -38346,6 +39376,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOW DO THEY KICK FROM DOWN THERE?",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "HOW HIGH DO THESE APARTMENTS EVEN GO?!",
   "from": "m1/game/stages/barry/runtime.ts:169"
  },
@@ -38653,6 +39688,11 @@
   "voice": "meathead",
   "text": "I DIDN'T READ IT. I DON'T READ.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DIDN'T VOLUNTEER. BUT YOU'RE WELCOME.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -39436,6 +40476,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M JUST WALKING THROUGH. START YOUR SHOW. I DON'T CARE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M LETTING MYSELF IN.",
   "from": "ADVENTURE"
  },
@@ -39488,6 +40533,11 @@
   "voice": "meathead",
   "text": "I'M NOT A TRESPASSER! I'M A VISITOR! A VIOLENT VISITOR!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT A VOLUNTEER. I'M CUTTING THROUGH.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -40221,6 +41271,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT YANKED ME! WITH ITS WRAPS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "IT ZAPPED ME!",
   "from": "ADVENTURE"
  },
@@ -40363,6 +41418,11 @@
   "voice": "meathead",
   "text": "IT'S GLOWING. IT'S WARM. I'M GOING.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S GOT GLOVES ON! THAT'S CHEATING!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -41156,6 +42216,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MILK MAIDS. THROWING THEIR SHOES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "MINE NOW.",
   "from": "m1/game/stages/artie/ski.ts:145"
  },
@@ -41656,6 +42721,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY LEGS ARE ON FIRE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "MY LEGS ARE ON FIRE. THE WALL WON.",
   "from": "FOREIGN"
  },
@@ -41988,6 +43058,11 @@
   "voice": "meathead",
   "text": "NEXT!",
   "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEXT.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -43066,6 +44141,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ONE LESS COUNTRY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "ONE LESS PIGEON IN NEW YORK! NOBODY'LL NOTICE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -43281,7 +44361,17 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! A WOODEN SHOE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! ALL OF THEM AT ONCE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! BANDAGES! DIRTY BANDAGES!",
   "from": "FOREIGN"
  },
  {
@@ -43303,6 +44393,16 @@
   "voice": "meathead",
   "text": "OW! COSPLAY FUCKER!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! EYE LASERS! WHY DOES IT HAVE EYE LASERS?",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! FEATHERS! FEATHERS IN MY EYE!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -43371,6 +44471,16 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! IT GOT ME ON THE WAY BACK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! IT KICKED ME WITH BOTH FEET!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! IT SAID SORRY AND RAMMED ME!",
   "from": "FOREIGN"
  },
@@ -43396,6 +44506,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! MY LEG! IT'S GOT MY LEG!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! MY NIPPLES ARE ON FIRE!",
   "from": "SPACE"
  },
@@ -43413,6 +44528,11 @@
   "voice": "meathead",
   "text": "OW! NOTES!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! ONE WHEEL! RIGHT OVER ME!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -43438,6 +44558,16 @@
   "voice": "meathead",
   "text": "OW! RENT-A-COP!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! RIGHT IN THE ASS! WITH A HORN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! RIGHT IN THE KNEE!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -43491,6 +44621,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! THE AXE! THE BIG AXE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! THE BAGUETTE IS HARD!",
   "from": "FOREIGN"
  },
@@ -43506,7 +44641,17 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! THE BEAK! THE GIANT BEAK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! THE BIG SWORD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! THE BLADES! THE BLADES!",
   "from": "FOREIGN"
  },
  {
@@ -43556,6 +44701,16 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! THE LEPRECHAUN'S PELTING ME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! THE LITTLE SWORD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! THE LOG RIDE THREW A LOG AT ME!",
   "from": "FOREIGN"
  },
@@ -43577,6 +44732,11 @@
  {
   "voice": "meathead",
   "text": "OW! THE PUCK! THE FUCKING PUCK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! THE RIVER KICK!",
   "from": "FOREIGN"
  },
  {
@@ -43608,6 +44768,11 @@
   "voice": "meathead",
   "text": "OW! THEY DO THEIR OWN STUNTS!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! THEY POKED ME!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -43918,6 +45083,11 @@
   "voice": "meathead",
   "text": "POLICE BRUTALITY! ON MY GAINS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "POLLY WANTS ME DEAD!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -44676,6 +45846,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SAMBA LADIES. AND A PARROT THE SIZE OF A TRUCK.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "SAMBUCA IN MY EYEBROWS!",
   "from": "HAZARD_HURT"
  },
@@ -44908,6 +46083,11 @@
   "voice": "meathead",
   "text": "SHE GOT ME!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE HIP CHECKED ME!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -45721,6 +46901,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMEBODY TAKE THAT BEAR OFF THE ROAD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMEBODY WIN THIS GUY A STUFFED ANIMAL!",
   "from": "RANGE_KILL_LINES"
  },
@@ -45868,6 +47053,11 @@
   "voice": "meathead",
   "text": "SPEAR IN MY GUT!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPEARS! OVER THE SHIELDS!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -46331,8 +47521,18 @@
  },
  {
   "voice": "meathead",
+  "text": "STOP THROWING THAT STICK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "STOP THROWING YOUR KITCHEN AT ME!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP THROWING YOUR SHOES!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -46722,6 +47922,11 @@
  {
   "voice": "meathead",
   "text": "THAT BREAD'S A WEEK OLD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT BULL HAS A MOTOR IN IT!",
   "from": "FOREIGN"
  },
  {
@@ -47526,6 +48731,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE BEAR RAN ME OVER! ON A UNICYCLE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BIG BABY RAN ME OVER!",
   "from": "SPACE"
  },
@@ -47618,6 +48828,11 @@
   "voice": "meathead",
   "text": "THE BROOM IS FOR SWEEPING, YOU HAG!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BULL GORED ME! THE ROBOT BULL!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -47746,12 +48961,27 @@
  },
  {
   "voice": "meathead",
+  "text": "THE COW MAN HIT ME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE COWBOY KICKED ME!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
+  "text": "THE CROC BIT ME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE CUCKOO! IT PECKED ME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE DANCERS KICKED ME! ALL OF THEM AT ONCE!",
   "from": "FOREIGN"
  },
  {
@@ -48001,6 +49231,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE GUY'S HOLDING THE CROC BY THE TAIL. THAT'S HIS WHOLE JOB.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE GYMS ARE EVERYTHING ELSE, DUMBASS.",
   "from": "ALIEN_LINES"
  },
@@ -48081,6 +49316,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE KANGAROO PUNCHED ME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE LAP BAR! THEY DON'T EVEN NEED IT ANYMORE!",
   "from": "SPOOKY"
  },
@@ -48108,6 +49348,11 @@
   "voice": "meathead",
   "text": "THE LIGHTNING'S REAL! THE RAIN'S FAKE AND THE LIGHTNING'S REAL!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LITTLE BASTARD'S THROWING MONEY!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -48166,6 +49411,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THE MATADOR STABBED ME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE MATADOR'S A ROBOT TOO. NOBODY'S EVEN TRYING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE MERRY-GO-ROUND SHOVED ME!",
   "from": "SPOOKY"
  },
@@ -48202,6 +49457,11 @@
  {
   "voice": "meathead",
   "text": "THE MOUNTIE RAN ME OVER! WITH A STICK HORSE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE MUMMY WHIPPED ME!",
   "from": "FOREIGN"
  },
  {
@@ -48263,6 +49523,11 @@
   "voice": "meathead",
   "text": "THE PARKING LOT BIRD WANTS MY BLOOD!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE PARROT FLOAT RAN ME OVER!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -48446,6 +49711,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE SAMBA LADY SPUN INTO ME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE SAME HOUSE SIX TIMES. NO BACKS. LIKE MY SUBURB.",
   "from": "HOLLYWOOD"
  },
@@ -48556,8 +49826,28 @@
  },
  {
   "voice": "meathead",
+  "text": "THE SPARTANS ARE HIDING BEHIND THEIR SHIELDS. PUSSIES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE SPHINX HAS LASERS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE SPHINX'S EYES ARE GLOWING. THAT'S NEVER GOOD.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE SPITTY ONE SHOVED ME!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE SQUATTING GUY KICKED ME!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -48776,6 +50066,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE WHOLE CROWD'S FILMING. NOBODY'S EVEN WATCHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE WHOLE EAST SIDE JUST PUNCHED ME!",
   "from": "HAZARD_HURT"
  },
@@ -48821,12 +50116,27 @@
  },
  {
   "voice": "meathead",
+  "text": "THE WINDMILL HIT ME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE WORLD OF TOMORROW. SMELLS LIKE CHURROS AND ASBESTOS.",
   "from": "SPACE"
  },
  {
   "voice": "meathead",
   "text": "THE WORLD'S BIGGEST CUCKOO CLOCK. IT'S WRONG.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEIR ARMS DON'T MOVE BUT THEIR LEGS SURE DO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEIR ARMS DON'T MOVE. THAT'S THE WHOLE DANCE?",
   "from": "FOREIGN"
  },
  {
@@ -49116,6 +50426,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THIS IS SPARTA! OW!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THIS IS STUPID. THIS IS A STUPID NEIGHBORHOOD.",
   "from": "m1/game/stages/tommy/escape.ts:227"
  },
@@ -49232,6 +50547,11 @@
  {
   "voice": "meathead",
   "text": "THOSE GUARDS DON'T MOVE. I COULD DO ANYTHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THOSE GUYS ARE DANCING SITTING DOWN.",
   "from": "FOREIGN"
  },
  {
@@ -50463,6 +51783,11 @@
   "voice": "meathead",
   "text": "WHO PUT A JET ENGINE IN A HURRICANE?!",
   "from": "m1/game/player/deathAnim.ts:425"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO PUTS A WINDMILL INDOORS?",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
