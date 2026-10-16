@@ -45,7 +45,8 @@ const pivotOf = (pose: RamboPose) => (pose === 'cling' ? { x: 10, y: -60 } : { x
 
 const SK = (green: number) => (green > 0 ? SKIN.map(c => mixHex(c, '#84CC16', green * 0.5)) : SKIN);
 
-/** A two-bone arm from the shoulder to the hand (the elbow bent `bend` way: +1 down, -1 up). */
+/** A two-bone arm from the shoulder to the hand (the elbow bent bend way, clockwise +1 / anticlockwise -1: the front
+ *  arm's elbow goes OUT (forward) with +1, the back arm's with -1; the other way it folds in over his head). */
 const arm = (c: Ctx, sx: number, sy: number, hx: number, hy: number, S: string[], bend = 1, fist = true, big = 1) => {
   const a = 17 * big, b = 17 * big;
   let dx = hx - sx, dy = hy - sy, d = Math.hypot(dx, dy) || 1;
@@ -217,12 +218,12 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
   } else if (pose === 'spin') {
     // (on his back, the gun still going straight up out of his hands)
     gunHeld(c, L, S, { x: 6, y: -50 }, 0, shB, shF);
-  } else if (pose === 'flex') arm(c, shF[0], shF[1], 26, -86, S, -1, true, 1.15);
-  else if (pose === 'rant') { const s = Math.sin(f * 0.5) * 4; arm(c, shF[0], shF[1], 22, -96 + s, S, -1, true); }
-  else if (pose === 'command') { const s = Math.sin(f * 0.35) * 5; arm(c, shF[0], shF[1], 30, -78 + s, S, -1, false); }
+  } else if (pose === 'flex') arm(c, shF[0], shF[1], 26, -86, S, 1, true, 1.15);
+  else if (pose === 'rant') { const s = Math.sin(f * 0.5) * 4; arm(c, shF[0], shF[1], 22, -96 + s, S, 1, true); }
+  else if (pose === 'command') { const s = Math.sin(f * 0.35) * 5; arm(c, shF[0], shF[1], 30, -78 + s, S, 1, false); }
   else if (pose === 'sick') arm(c, shF[0], shF[1], 10, -50, S, 1);
   else if (pose === 'barf') arm(c, shF[0], shF[1], 18, -44, S, 1);
-  else if (pose === 'fall' || pose === 'dead') arm(c, shF[0], shF[1], 28, pose === 'dead' ? -66 : -90, S, -1, false);
+  else if (pose === 'fall' || pose === 'dead') arm(c, shF[0], shF[1], 28, pose === 'dead' ? -66 : -90, S, 1, false);
   concreteCoat(c, L.concrete ?? 0, f);
   c.restore();
   c.restore();

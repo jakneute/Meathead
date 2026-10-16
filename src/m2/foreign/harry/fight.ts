@@ -7,11 +7,11 @@
 //               BETTER WHEN YOU WERE A PUSSY HIPPIE, AND THAT VERSION OF YOU REALLY SUCKED."), and Harry calls her up
 //               out of the dig: THE STATUE OF LIBERTY ("A REAL AMERICAN MONUMENT."). Invulnerable; only her head and
 //               upper body in the shot.
-//   HIS MOVES   WALK: slowly at him, the machine gun going head on in bursts (jump them, duck them, or get behind her
-//               stuck fist: the rounds stop on it). THE CROWN: up into her crown's window to call a smash: the long,
+//   HIS MOVES   WALK: slowly at him, the machine gun going head on in bursts (jump them, duck them, slide under
+//               them). THE CROWN: up into her crown's window to call a smash: the long,
 //               heavy windup (her fist up over him, a shadow on the floor following him, locking, glowing), down, and
-//               it's STUCK (the Wolverine-sentinel parody): a great concrete block on the floor (somewhere to stand,
-//               cover from his rounds) while she strains at it; he's down out of the crown ranting ("YOU'RE USELESS
+//               it's STUCK (the Wolverine-sentinel parody): her fist planted on the floor (it only hurts landing; then
+//               no collision at all: the user's) while she strains at it; he's down out of the crown ranting ("YOU'RE USELESS
 //               NOW", angrier every time: "SHE'S DUMB AT FIGHTING THINGS MUCH SMALLER THAN HER") and walking him down
 //               till she yanks it free; then the crown again. THE WALLS (Contra): up a scaffold tower, then SWEEP 1
 //               (across to the far wall and rotating slowly down to his own feet: safe only right under him) or
@@ -39,6 +39,7 @@ import type { Block, Enemy, EnemyKind } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
 import { say, silenceAll, pickLine } from '../../../m1/game/platform/speech';
+import { harrySaid, harryPick, harryPool } from '../heli/talk';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -75,7 +76,10 @@ const HEAVY = 150, SPLASH_R = 120, SPLASH_DMG = 18;
 /** Walking at him: how fast, how close he comes, how long a walk lasts (the stuck arm's walk lasts till she's up). */
 const WALK_V = 0.8, WALK_NEAR = 170, WALK_T = 320;
 /** The machine gun (head on): a burst's rounds, the frames between them, the rest after; a round's speed and hurt. */
-const BURST_N = 9, BURST_GAP = 4, BURST_REST = [0, 50, 42, 34], ROUND_V = 10, ROUND_DMG = 9;
+// (a burst's 5 rounds 4 frames apart: 20 frames of stream past any one spot. A full jump keeps his feet over chest
+// height for ~36 frames (jump speed 7 held 15 frames, gravity 0.65), so one jump clears a whole burst, with room: the
+// user's "so you can safely hop over them with a single jump". The beat between bursts as it was.)
+const BURST_N = 5, BURST_GAP = 4, BURST_REST = [0, 50, 42, 34], ROUND_V = 10, ROUND_DMG = 9;
 /** On a wall: his feet's height, the laser sight's warning, the sweeps' lengths, a round every so many frames, its
  *  speed and hurt; sweep 1 ends this far out from his wall (safe inside it); sweep 2 ends this high up the far wall. */
 const CLING_WARN = 52, SWEEP_T = [0, 170, 196], SWEEP_EVERY = 3, SWEEP_V = 16, SWEEP_DMG = 10, SAFE_IN = 74, SWEEP2_TOP = 170;
@@ -111,6 +115,8 @@ interface KillCam { t: number; acc: number; z: number; out: boolean }
 
 export interface Fight {
   mode: 'intro' | 'on' | 'dead'; t: number; total: number;
+  /** A retry's entrance beat (frames left): he poses and taunts, doesn't fire, before it's on (the user's). */
+  entrance: number;
   hp: number; iframes: number; flash: number;
   /** Harry: his feet, which way he faces, what he's at (and how long), the gun's angle, a round going off. */
   hx: number; hy: number; facing: 1 | -1; act: Act; actT: number; aim: number; firing: boolean; moving: boolean; scale: number;
@@ -175,15 +181,20 @@ let token = 0;
 const tokened = (fn: () => void) => { const tok = token; return () => { if (tok === token) fn(); }; };
 const quiet = (f: Fight) => !f.said;
 /** Harry says it (waits its turn). */
-const harrySays = (f: Fight, text: string, onDone?: () => void) => {
+const harrySays = (f: Fight, text: string | null, onDone?: () => void) => {
   const tok = token;
+  // (no line left he hasn't said this life: quiet, and on with what comes next)
+  if (text === null) { onDone?.(); return; }
+  harrySaid.add(text);
   speak(L.HARRY, text, s => { if (tok === token) f.said = s?.text ?? null; }, true, () => { if (tok === token) onDone?.(); });
 };
-const harryLine = (f: Fight, lines: L.ByPants, onDone?: () => void) => harrySays(f, pick(lines[pants()]), onDone);
+const harryLine = (f: Fight, lines: L.ByPants, onDone?: () => void) => harrySays(f, harryPick(harryPool(lines, pants())), onDone);
 /** A bark: dropped if somebody's talking. */
 const bark = (f: Fight, lines: L.ByPants) => {
   if (!quiet(f)) return;
-  const text = pick(lines[pants()]);
+  const text = harryPick(harryPool(lines, pants()));
+  if (text === null) return;
+  harrySaid.add(text);
   say(text, voice(L.HARRY), 'casual', {
     always: true,
     onShow: spoken => { f.said = text; if (!spoken) setTimeout(() => { if (f.said === text) f.said = null; }, Math.max(1600, text.length * 65)); },
@@ -206,7 +217,7 @@ export const startFight = (state: GameState): Fight => {
   e.facing = -1; e.seen = true;
   const seen = introSeen();
   const f: Fight = {
-    mode: 'intro', t: 0, total: 0, hp: HP, iframes: 0, flash: 0,
+    mode: 'intro', t: 0, total: 0, entrance: 0, hp: HP, iframes: 0, flash: 0,
     hx: HARRY_START, hy: seen ? GY : sy(-80), facing: -1, act: 'idle', actT: 0, aim: 0, firing: false, moving: false, scale: 1, called: false,
     leap: null, move: 'walk', moveT: 0, queue: ['walk', 'crown'], burst: 0, burstT: 30,
     cling: null, clingKind: 1, stuckN: 0, barfs: 0,
@@ -222,7 +233,9 @@ export const startFight = (state: GameState): Fight => {
   f.e.health = BIG; f.e.maxHealth = BIG;
   live = f;
   playSound('clang', 1, -6); playSound('slam', 0.8, -4); shakeScreen(state, 6, 3);
-  if (seen) { beginFight(state, f); return f; }
+  // (a retry: straight in, but a beat for his entrance first: the user: "give a beat for him to make his entrance
+  // before you can take damage")
+  if (seen) { beginFight(state, f); f.entrance = 105; return f; }
   state.player.inCutscene = true;
   return f;
 };
@@ -341,6 +354,13 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   if (!f.barf || f.barf.stage !== 'pour') f.concrete = Math.max(0, f.concrete - 0.0025);
   // (sick: as soon as he's somewhere it can start from)
   if (!f.sickOn && f.sick >= SICK_AT && !f.leap && f.arm.st !== 'drop') startBarf(state, f);
+  // (his entrance on a retry: flexing, a taunt, nothing fired, her arm at rest; Meathead's free to move)
+  if (f.entrance > 0) {
+    f.entrance--; f.act = 'idle'; f.firing = false; f.moving = false; f.rounds = [];
+    if (f.entrance === 100) bark(f, L.HARRY_TAUNT);
+    sync(state, f);
+    return controls;
+  }
   if (f.barf) barfing(ctx, f); else harry(ctx, f);
   // (her concrete's just killed him: the death's begun)
   if (f.mode !== 'on') return hands();
@@ -612,7 +632,7 @@ const statue = (ctx: FrameContext, f: Fight) => {
   void p;
 };
 
-/** Down: the hit, the block it leaves; stuck. */
+/** Down: the hit; stuck (planted, but nothing solid: it only ever hurts landing). */
 const impact = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, a = f.arm, p = state.player;
   a.st = 'stuck'; a.t = 0; a.fx = a.tx; a.fy = GY - FIST_H / 2;
@@ -628,8 +648,9 @@ const impact = (ctx: FrameContext, f: Fight) => {
     if (under) p.pos.x = away < 0 ? x0 - p.width - 2 : x1 + 2;
     if (p.invincibilityTimer <= 0 && p.health > 0 && !p.inCutscene) hurtPlayer(ctx, under ? FIST_DMG : Math.round(FIST_DMG * 0.5), 'm2:fl_liberty_fist', { x: away * 7, y: -6 }, 16);
   }
-  a.block = { x: x0, y: GY - FIST_H, w: FIST_W, h: FIST_H, type: 'wall', tag: 'harry-fist' } as Block;
-  state.blocks.push(a.block);
+  // (the user: no collision once it's down: it hurts only landing on him; then it's just there, planted at the back of
+  // the floor: nothing to stand on, no wall, no cover from his rounds or his sweeps. a.block stays null: fistBox's
+  // null, so his rounds, his walk and his floor spots all go straight through it)
   f.stuckN++;
   // (the rant from the crown, angrier every time; Meathead's word the first time)
   const lvl = L.HARRY_STUCK[Math.min(L.HARRY_STUCK.length - 1, f.stuckN - 1)];
@@ -941,12 +962,13 @@ const heartbroken = (ctx: FrameContext, f: Fight, d: Death) => {
       // (the tablet dropped into the dig; the hand comes back up with the gun from behind where it was)
       if (t === 6) { lib.tablet = false; playSound('thud', 1, -14); playSound('crumble', 0.6, -8); }
       if (t === 30) { lib.gun = true; playSound('click', 1, -10); }
-      if (t > 30) { const u = Math.min(1, (t - 30) / 60); lib.hand = { x: HAND_TABLET.x + (LIB.x + 104 - HAND_TABLET.x) * ease(u), y: HAND_TABLET.y + (sy(160) - HAND_TABLET.y) * ease(u) }; }
+      if (t > 30) { const u = Math.min(1, (t - 30) / 60); lib.hand = { x: HAND_TABLET.x + (LIB.head.x + 170 - HAND_TABLET.x) * ease(u), y: HAND_TABLET.y + (sy(160) - HAND_TABLET.y) * ease(u) }; }
       if (t >= 100) { d.st = 'aim'; d.stT = 0; }
       break;
     case 'aim':
       // (to her head: shaking; eyes shut)
-      lib.face = 'dread'; lib.shake = 0.8;
+      // (a beat holding it there, sobbing, then dread, eyes shut)
+      lib.face = t < 55 ? 'sob' : 'dread'; lib.shake = 0.8;
       if (t % 30 === 1) playSound('rumble', 0.3, -16);
       if (t === 50) playSound('click', 1, -14);
       if (t >= 100) {
@@ -1062,6 +1084,7 @@ const libLook = (f: Fight, fr: number, crown?: (c: Ctx) => void): LibLook => ({
 
 /** Harry's look, by what he's at. */
 const harryPose = (f: Fight): { pose: RamboPose; lean?: number; rot?: number } => {
+  if (f.entrance > 0) return { pose: 'flex' };
   if (f.flash > 0 && (f.act === 'walk' || f.act === 'idle')) return { pose: 'hurt' };
   switch (f.act) {
     case 'walk': return { pose: f.moving ? 'walk' : f.firing ? 'fire' : 'stand' };
@@ -1217,7 +1240,7 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     // (stuck: the cracks in the slab round it)
     if (a.st === 'stuck') { c.strokeStyle = '#1A0B06'; c.lineWidth = 2; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(a.tx + s * FIST_W / 2, GY - 1); c.lineTo(a.tx + s * (FIST_W / 2 + 26), GY - 4); c.lineTo(a.tx + s * (FIST_W / 2 + 50), GY - 2); c.stroke(); } }
     const away = a.st === 'wind' || a.st === 'drop' ? { x: LIB.head.x, y: LIB.head.y - 40 } : undefined;
-    drawArm(c, libLook(f, fr), a.fx, a.fy, { torch: !f.torch, glow, stuck, away });
+    drawArm(c, libLook(f, fr), a.fx, a.fy, { torch: !f.torch, glow, stuck, away, straight: a.st === 'drop' || a.st === 'stuck' || a.st === 'yank' || a.st === 'snap' });
   }
   // (the rubble once she's gone; the chunks of her head; the torch and the gun)
   if (f.lib.gone) drawRubble(c, MID - 40, GY, fr);

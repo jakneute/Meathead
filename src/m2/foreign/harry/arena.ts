@@ -49,7 +49,7 @@ export const LIB = {
 };
 /** Her right fist, held up (the torch over her head, off the top of the shot). */
 export const FIST_UP = { x: MID - 300, y: sy(-60) };
-/** The stuck fist: a block on the floor (he can stand on it; Harry's rounds stop on it). */
+/** The fist's size (it only hurts landing on him; stuck, it's just there: no collision). */
 export const FIST_W = 112, FIST_H = 74;
 /** The berm along the back of the floor (her below it is out of sight). */
 export const BERM_Y = sy(452);

@@ -11,7 +11,7 @@
 //
 // World space: LIB's spots (arena.ts) are where she is risen; `dy` sinks her, `tilt` topples her about her base.
 
-import { LIB, sy, FIST_W, FIST_H } from './arena';
+import { LIB, sy, FIST_W, FIST_H, ARENA_L, ARENA_R } from './arena';
 import { signText } from '../../signLetters';
 
 type Ctx = CanvasRenderingContext2D;
@@ -262,14 +262,19 @@ export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
   const ex = sh.x + Math.cos(ea) * LIB.upper, ey = sh.y + Math.sin(ea) * LIB.upper;
   const hx2 = sh.x + Math.cos(base) * d, hy2 = sh.y + Math.sin(base) * d;
   if (L.tablet) tablet(c);
-  limbStone(c, sh.x, sh.y, ex, ey, 74, true);
-  limbStone(c, ex, ey, hx2, hy2, 56, false);
-  fl(c, PAT[3], () => c.ellipse(hx2, hy2, 34, 30, 0, 0, Math.PI * 2), 3);
-  r(c, hx2 - 22, hy2 - 20, 20, 6, PAT[5]);
-  if (L.gun) revolver(c, hx2 - 10, hy2 - 10, Math.PI + 0.08, L.f, L.broken > 0 && L.broken < 5);
+  const leftArm = () => {
+    limbStone(c, sh.x, sh.y, ex, ey, 74, true);
+    limbStone(c, ex, ey, hx2, hy2, 56, false);
+    fl(c, PAT[3], () => c.ellipse(hx2, hy2, 34, 30, 0, 0, Math.PI * 2), 3);
+    r(c, hx2 - 22, hy2 - 20, 20, 6, PAT[5]);
+  };
+  // (holding the gun to her head: the arm and the revolver IN FRONT of her head, its muzzle on her temple on our side
+  // (the user: "make sure the gun can be seen"); otherwise the arm's behind, at her side)
+  if (!L.gun) leftArm();
   hair(c, hx, hy);
   face(c, L, hx, hy);
   crown(c, L, hx, hy);
+  if (L.gun) { leftArm(); revolver(c, hx2 - 10, hy2 - 10, Math.PI + 0.08, L.f, L.broken > 0 && L.broken < 5); }
   // (his puke on her)
   for (const s of L.stains) {
     fl(c, PUKE[1], () => c.ellipse(hx + s.x, hy + s.y, s.r, s.r * 0.7, 0, 0, Math.PI * 2), 1.5);
@@ -299,10 +304,16 @@ const limbStone = (c: Ctx, x0: number, y0: number, x1: number, y1: number, w: nu
   }
 };
 
+/** Where her elbow is between its two sides (-1 .. 1), eased frame to frame. */
+let elbowS = 1;
+/** How much of the elbow's bend shows (1: all; down to near straight for the smash), eased. */
+let straightK = 1;
 /** Her right arm: from her shoulder (sunk `dy`) to the fist at (fx, fy) (world), the torch held upright in it.
  *  `glow` (0..1): the windup's tell, the fist going hot. */
-export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torch: boolean; glow?: number; stuck?: number; away?: { x: number; y: number } }) => {
+export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torch: boolean; glow?: number; stuck?: number; away?: { x: number; y: number }; straight?: boolean }) => {
   c.save();
+  // (she's at the back: past the arena's end walls she's behind them, never painted over them)
+  c.beginPath(); c.rect(ARENA_L, -100000, ARENA_R - ARENA_L, 200000); c.clip();
   if (L.shake) c.translate(Math.sin(L.f * 1.7) * L.shake, 0);
   const S = { x: LIB.shR.x, y: LIB.shR.y + L.dy };
   let dx = fx - S.x, dy = fy - S.y, d = Math.hypot(dx, dy) || 1;
@@ -314,7 +325,19 @@ export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torc
   // (raised: the elbow out to her side; down: the elbow up over the line; rearing over him: the elbow kept off her face,
   // so the crown's window stays in sight)
   const far = (p: { x: number; y: number }) => (opts.away ? Math.hypot(p.x - opts.away.x, p.y - opts.away.y) : 0);
-  const E = opts.away ? (far(E1) > far(E2) ? E1 : E2) : fy < S.y ? (E1.x < E2.x ? E1 : E2) : (E1.y < E2.y ? E1 : E2);
+  let want = opts.away ? (far(E1) > far(E2) ? -1 : 1) : fy < S.y ? (E1.x < E2.x ? -1 : 1) : (E1.y < E2.y ? -1 : 1);
+  // (never out past the arena's left wall: the user saw it poke out as she rose)
+  const inside = (p: { x: number }) => p.x > ARENA_L + 24;
+  if (!inside(want < 0 ? E1 : E2) && inside(want < 0 ? E2 : E1)) want = -want;
+  // (the rules above pick a side; the elbow EASES over to it rather than flipping (it popped from one side to the
+  // other between the windup, the smash and the stuck pose): its angle between the two, the forearm reaching the fist)
+  elbowS += (want - elbowS) * 0.12;
+  // (the smash, stuck and the yank: a plain overhead arm, near straight off the shoulder (the user: "a standard arm
+  // smash"), not a deep two-bone fold)
+  straightK += ((opts.straight ? 0.22 : 1) - straightK) * 0.2;
+  const ea = base + off * elbowS * straightK;
+  const E = { x: S.x + Math.cos(ea) * LIB.upper, y: S.y + Math.sin(ea) * LIB.upper };
+  void E1; void E2;
   const hx = S.x + dx, hy = S.y + dy;
   // (the torch: upright in her fist, behind it; the cup and the gold flame over the top)
   if (opts.torch) {
@@ -351,9 +374,8 @@ export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torc
     c.fillStyle = '#F97316'; c.beginPath(); c.roundRect(x0 - 4, y0 - 4, fw + 8, fh + 8, 18); c.fill();
     c.globalAlpha = 1;
   }
-  // (stuck: the lit lip along its top (somewhere to stand), and straining: cracks up the forearm)
+  // (stuck: straining, cracks up the forearm; no lit lip on top: it's not somewhere to stand)
   if (opts.stuck !== undefined) {
-    r(c, x0 + 4, y0 - 2, fw - 8, 3, '#F2D79A'); r(c, x0 + 4, y0 - 2, fw - 8, 1, '#FFF6D8');
     if (opts.stuck > 0) { c.strokeStyle = INK; c.lineWidth = 2; const k = opts.stuck; c.beginPath(); c.moveTo(hx, hy - fh / 2); c.lineTo(hx - 8 * k, hy - fh / 2 - 30 * k); c.lineTo(hx + 4 * k, hy - fh / 2 - 50 * k); c.stroke(); }
   }
   c.restore();
