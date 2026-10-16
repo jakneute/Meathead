@@ -173,7 +173,7 @@ const boardUpdate = (ctx: FrameContext, h: Heli): Controls => {
   // (Harry in the pilot's seat; once he's done talking, up)
   if (h.t === 10) { h.hpose = 'pilot'; playSound('engine', 0.6, -6); }
   if (h.hpose === 'pilot') { h.hx = h.ox + SEAT_FRONT; h.hy = h.oy; }
-  if (h.t > 40 && (h.flags.welcomed || h.t > 900)) { h.phase = 'lift'; h.t = 0; h.flags.liftFrom = true; h.camX = state.camera.x; h.camY = state.camera.y; }
+  if (h.t > 40 && (h.flags.welcomed || h.t > 900)) { h.phase = 'lift'; h.t = 0; h.flags.liftFrom = true; liftFrom.set(h, { x: state.camera.x, y: state.camera.y }); }
   return hands();
 };
 
@@ -181,13 +181,18 @@ const boardUpdate = (ctx: FrameContext, h: Heli): Controls => {
 // The lift and the tour
 
 const LIFT = 210;
+/** The camera where the lift began (each helicopter's run). */
+const liftFrom = new WeakMap<Heli, { x: number; y: number }>();
 const ease = (k: number) => k * k * (3 - 2 * k);
 const liftUpdate = (ctx: FrameContext, h: Heli): Controls => {
   const { state } = ctx, p = state.player;
   p.inCutscene = true;
   h.rotor += 0.6;
   const k = ease(Math.min(1, h.t / LIFT));
-  const sx = h.camX, sy = h.camY;
+  // (from where the camera was when the lift began: held there, not h.camX (holdCam moves that every frame, and the
+  // camera would race up ahead of him, leaving him "fallen" off the bottom of it))
+  const from = liftFrom.get(h) ?? { x: h.camX, y: h.camY };
+  const sx = from.x, sy = from.y;
   // (up and over: from the pad to the tour's spot on the screen; the camera up with it)
   const tx = CAMX + TOUR_AT.x - SEAT_FRONT, ty = CY + TOUR_AT.y;
   h.ox = PAD_O.x + (tx - PAD_O.x) * k; h.oy = PAD_O.y + (ty - PAD_O.y) * k + (k < 0.1 ? -k * 40 : 0);
