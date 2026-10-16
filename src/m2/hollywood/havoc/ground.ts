@@ -6,10 +6,14 @@
 // fronts, the lot strip their bracing stands in (blvd/ground.ts). At the play plane: the street under him, stretch by
 // stretch, painted once for the hour and bent the SNES way (asphalt cracked and scorched, ash, fallen bricks, the
 // canyon's wet sheen, the snow along Main Street, PARIS's cobbles, the western dirt), the curb's lit top where he walks.
-// The lava rivers cut across it all: each a channel going back to the fronts (its far wall, the lava pouring in down it
-// from a fissure, its side walls glowing at their feet, the surface banded and crusted, plates drifting toward us,
-// bubbles), and toward us between the street's bent edges (hung walls, the lava down there). Spent: crusted black, the
-// cracks still faintly orange, walkable (a lit lip along it).
+// The lava rivers cut across it all: each a channel going back to the fronts on the one eye (its far wall in courses
+// with the glow cast up it, the lava pouring in down it out of a gash in its lip as a glowing fall, crusting at its
+// edges, pulses and clots running down it, splashing where it hits; its side walls glowing up from their feet), and
+// toward us between the street's bent edges (hung walls lit from the lava, the lava down there). The molten top banded
+// and carried on toward us, bright ripples on it, dark crust plates drifting on it (their seams near-white yellow going
+// red, cooled black on top) cracking open as they come, bubbles swelling and popping with spatter; over it the heat
+// (stepped glow, the air shimmering, smoke, embers going up). Spent: crusted black, the plates' seams, a few cracks still
+// faintly glowing, walkable (a lit lip along it).
 
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { bendFloor, BEND } from '../../intro/art/kit';
@@ -22,7 +26,7 @@ import {
 import { levelQ, sideQ } from '../disaster/paint';
 import { BOARD as BOARD_R, DIRT as DIRT_R } from '../lot/paint';
 import { GY } from '../geometry';
-import { LAVA_R, BASALT, ROCK, ASHY, SNOW } from './paint';
+import { LAVA_R, BASALT, ROCK, ASHY, SNOW, smokeUp } from './paint';
 
 const W = CANVAS_WIDTH;
 const CURB_D = 0.986, WALK_D = 0.905;
@@ -241,7 +245,7 @@ export const drawHavocStreet = (c: Ctx, v: View, decals: (c: Ctx, a: number, b: 
 // The lava rivers
 
 /** Where the lava pours in (the part of the channel's far wall a front isn't standing over). */
-const pourAt = (l: typeof LAVA[number]) => {
+export const pourAt = (l: typeof LAVA[number]) => {
   for (const [rx, w] of DECOR) if (rx < l.b && rx + w > l.a) {
     const left = rx - l.a, right = l.b - (rx + w);
     if (left >= right && left > 30) return (l.a + rx) / 2;
@@ -250,18 +254,100 @@ const pourAt = (l: typeof LAVA[number]) => {
   return (l.a + l.b) / 2;
 };
 
+/** A point on a lava top: world x, t along the flow (0 its far end, 1 nearest us) to screen x, y and the scale there. */
+type Proj = (x: number, t: number) => [number, number, number];
+
+/** A crust plate's outline (round its middle, x across, t along the flow), jittered per plate. */
+const PLATE: [number, number][] = [[-1, -0.3], [-0.45, -1], [0.55, -0.9], [1, 0.15], [0.5, 1], [-0.6, 0.85]];
+/** One crust plate on the molten: the seam round it near-white yellow going red, the crust black-red, cooled black on top
+ *  with a lit middle, cracks opening across it as it comes on (stepped: red round orange round a white-hot core). */
+const plate = (c: Ctx, proj: Proj, x: number, t: number, pw: number, pt: number, seed: number) => {
+  const [cx, cy, s] = proj(x, t);
+  if (s * pw < 4) return;
+  const pts = PLATE.map(([u, w], i): [number, number] => { const j = 0.72 + hash(seed + i * 1.3) * 0.45, [px, py] = proj(x + (u * j * pw) / 2, t + (w * j * pt) / 2); return [px, py]; });
+  const k = (m: number, dy = 0) => pts.map(([px, py]): [number, number] => [cx + (px - cx) * m, cy + (py - cy) * m + dy]);
+  poly(c, k(1.28), LAVA_R[5]);
+  poly(c, k(1.12), LAVA_R[2]);
+  poly(c, pts, LAVA_R[0]);
+  poly(c, k(0.74, -s * 0.5), BASALT[2]);
+  poly(c, k(0.34, -s), BASALT[4]);
+  // (the cracks: through its middle corner to corner, a branch as it opens up)
+  const open = Math.min(1, t * 1.5), i0 = Math.floor(hash(seed * 1.7) * 6), mid: [number, number] = [cx + (hash(seed + 5) - 0.5) * pw * 0.22 * s, cy];
+  const paths: [number, number][][] = [[pts[i0], mid, pts[(i0 + 3) % 6]]];
+  if (open > 0.5) paths.push([mid, pts[(i0 + 1) % 6]]);
+  for (const p of paths) {
+    const line = (w: number, col: string) => { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); p.forEach(([px, py], i) => (i ? c.lineTo(px, py) : c.moveTo(px, py))); c.stroke(); };
+    if (open > 0.25) line(Math.max(1, 3 * open * Math.min(1.4, s)), LAVA_R[2]);
+    line(Math.max(1, 1.6 * open * Math.min(1.4, s)), LAVA_R[4]);
+    if (open > 0.6) line(1, LAVA_R[6]);
+  }
+};
+/** A bubble: swelling (a stepped dome, a glint, its skin going dark just before), then popping: a ring, spatter thrown up
+ *  and falling back. `u` its life, 0..1. */
+const bubble = (c: Ctx, proj: Proj, x: number, t: number, u: number) => {
+  const [bx, by, s] = proj(x, t);
+  if (u < 0.78) {
+    const g = u / 0.78, r = (1.5 + g * 6) * s, h = Math.max(1, r * (0.5 + g * 0.5));
+    box(c, bx - r - s, by - h * 0.25, r * 2 + s * 2, Math.max(1, h * 0.45), LAVA_R[2]);
+    box(c, bx - r, by - h, r * 2, h, LAVA_R[4]);
+    box(c, bx - r * 0.7, by - h * 1.1, r * 1.4, h * 0.6, g > 0.8 ? LAVA_R[3] : LAVA_R[5]);
+    box(c, bx - r * 0.35, by - h * 1.05, Math.max(1, r * 0.4), Math.max(1, h * 0.3), LAVA_R[6]);
+  } else {
+    const g = (u - 0.78) / 0.22, rr = (5 + g * 8) * s;
+    box(c, bx - rr, by - s, rr * 2, Math.max(1, s), LAVA_R[5]); box(c, bx - rr * 0.6, by, rr * 1.2, Math.max(1, s), LAVA_R[2]);
+    for (let n = 0; n < 6; n++) {
+      const dx = (n - 2.5) * 4.2 * s * g, dy = ((14 + (n % 3) * 7) * g - g * g * 24) * s, sz = Math.max(1, Math.round(2 * s * (1 - g * 0.5)));
+      box(c, bx + dx, by - dy, sz, sz, g < 0.45 ? LAVA_R[6] : g < 0.75 ? LAVA_R[5] : LAVA_R[3]);
+    }
+  }
+};
+/** On the molten (its bands drawn by the caller): the flow's bright ripples carried on toward us, crust plates drifting
+ *  on toward us (the farther first) and cracking open as they come, bubbles swelling and popping. `pt`: t per px of a
+ *  plate's width (how deep a plate is, along the flow). */
+const lavaTop = (c: Ctx, proj: Proj, a: number, b: number, f: number, seed: number, pt: number) => {
+  const w = b - a;
+  for (let k = 0; k < Math.ceil(w / 12); k++) {
+    const t = (f * 0.0016 + hash(k * 2.3 + seed)) % 1, x = a + 6 + hash(k * 7.1 + seed) * (w - 12), [sx, sy, s] = proj(x, t);
+    box(c, sx - 4 * s, sy, 8 * s, Math.max(1, s * 0.6), k % 3 ? LAVA_R[5] : LAVA_R[6]); box(c, sx - 3 * s, sy + Math.max(1, s * 0.6), 7 * s, 1, LAVA_R[2]);
+  }
+  const plates: { k: number; t: number; pw: number; x: number }[] = [];
+  for (let k = 0; k < Math.max(6, Math.round(w / 18)); k++) {
+    const t = (f * 0.0011 + hash(k * 1.9 + seed)) % 1, pw = 14 + hash(k * 4.3 + seed) * 22;
+    plates.push({ k, t, pw, x: a + pw * 0.6 + hash(k * 3.7 + seed) * Math.max(1, w - pw * 1.2) + Math.sin(f * 0.01 + k) * 3 });
+  }
+  plates.sort((p, q) => p.t - q.t);
+  for (const p of plates) plate(c, proj, p.x, p.t, p.pw, pt * p.pw, seed + p.k * 13);
+  for (let k = 0; k < Math.max(3, Math.round(w / 40)); k++) {
+    const per = 64 + (k % 3) * 14, ph = hash(k * 5.5 + seed) * per, cyc = Math.floor((f + ph) / per), u = ((f + ph) % per) / per;
+    bubble(c, proj, a + 10 + hash(k * 9.1 + seed + cyc * 3.3) * (w - 20), 0.08 + hash(k * 2.9 + seed + cyc * 1.7) * 0.85, u);
+  }
+};
+/** A glowing crack in the cooled crust (spent): stepped, dark red round a dim orange core, slowly breathing. */
+const coldCrack = (c: Ctx, pts: [number, number][], br: number) => {
+  for (const [w, col] of [[3, 'rgba(70, 14, 6, 0.55)'], [1, `rgba(226, 104, 36, ${(0.22 + 0.2 * br).toFixed(3)})`]] as const) {
+    c.strokeStyle = col; c.lineWidth = w; c.beginPath(); pts.forEach(([px, py], i) => (i ? c.lineTo(px, py) : c.moveTo(px, py))); c.stroke();
+  }
+};
+
 /** A lava river's channel going back from the play plane to depth D (its far wall, the pour, the lava, its side walls). */
 export const lavaBack = (c: Ctx, v: View, l: typeof LAVA[number], done: boolean, f: number, D: number, notch = false) => {
   const a = X(l.a), b = X(l.b), ya = Y(l.hl), yb = Y(l.hr);
   if (b < v.v0 - 200 || a > v.v1 + 200) return;
   const eye = v.eye, lo = Math.min(l.hl, l.hr), surf = Y(lo) + LAVA_DOWN;
   if (done) {
-    // (crusted over: black basalt flush with the banks going back, its plates and the cracks between them, cooling)
+    // (crusted over: black basalt flush with the banks going back, its plates' seams, a few cracks still faintly glowing)
     const yc = Y((l.hl + l.hr) / 2);
     for (let i = 0; i < 4; i++) { const p = 1 - ((1 - D) * i) / 4, q = 1 - ((1 - D) * (i + 1)) / 4; levelQ(c, eye, a, b, yc, p, q, [BASALT[3], BASALT[2], BASALT[2], BASALT[1]][i]); }
-    c.strokeStyle = 'rgba(200, 80, 20, 0.35)'; c.lineWidth = 1; c.beginPath();
-    for (let x = a + 14; x < b - 10; x += 26) { const [p0, q0] = at(eye, x, yc, 0.99), [p1, q1] = at(eye, x + 10, yc, D + 0.02); c.moveTo(p0, q0); c.lineTo(p1, q1); }
+    c.strokeStyle = BASALT[0]; c.lineWidth = 1; c.beginPath();
+    for (let x = a + 20; x < b - 14; x += 38) { const [p0, q0] = at(eye, x, yc, 0.995), [p1, q1] = at(eye, x + 8 + hash(x) * 10, yc, D + 0.01); c.moveTo(p0, q0); c.lineTo(p1, q1); }
+    for (const d of [0.975, 0.945, 0.915]) if (d > D) { const [p0, q0] = at(eye, a + 4, yc, d), [p1, q1] = at(eye, b - 4, yc, d - 0.004); c.moveTo(p0, q0); c.lineTo(p1, q1); }
     c.stroke();
+    const br = 0.5 + 0.5 * Math.sin(f * 0.025 + l.a), n = Math.max(2, Math.round((b - a) / 140));
+    for (let k = 0; k < n; k++) {
+      const x0c = a + ((k + 0.5) * (b - a)) / n + (hash(k * 3.1 + l.a) - 0.5) * 20, pts: [number, number][] = [];
+      for (let j = 0; j <= 5; j++) pts.push(at(eye, x0c + (hash(k * 7 + j + l.a) - 0.5) * 22, yc, 0.995 - (j * (0.995 - D - 0.015)) / 5));
+      coldCrack(c, pts, br);
+    }
     return;
   }
   c.save();
@@ -269,47 +355,61 @@ export const lavaBack = (c: Ctx, v: View, l: typeof LAVA[number], done: boolean,
   // (its opening going back; on the hill, the notch it cuts down through the rock face at the front too)
   c.beginPath(); if (notch) c.moveTo(a, surf + 2); else c.moveTo(a, ya);
   c.lineTo(a, ya); c.lineTo(A1[0], A1[1]); c.lineTo(B1[0], B1[1]); c.lineTo(b, yb); if (notch) c.lineTo(b, surf + 2); c.closePath(); c.clip();
-  // (the far wall: rock in courses, dark up top, glowing at its foot)
+  const fl = 0.5 + 0.5 * Math.sin(f * 0.09 + l.a) * Math.sin(f * 0.031 + 1);
+  // (the far wall: rock in courses, the glow cast up it from the lava, stepped, flickering)
   const fw = (y0: number, y1: number, col: string) => poly(c, [at(eye, a, y0, D), at(eye, b, y0 + (yb - ya), D), at(eye, b, y1 + (yb - ya), D), at(eye, a, y1, D)], col);
   const span = surf - ya;
-  [ROCK[2], ROCK[1], ROCK[2], ROCK[3], LAVA_R[1], LAVA_R[2]].forEach((col, i) => fw(ya + (span * i) / 6, ya + (span * (i + 1)) / 6 + 1, col));
-  // (the pour: lava down the far wall from a fissure, stepped, a pulse running down it)
-  const px = X(pourAt(l));
-  for (let y = ya - 4; y < surf; y += 3) {
-    const [sx, sy] = at(eye, px + Math.sin(y * 0.2) * 2, y, D), u = (y - ya) / span, wv = (10 + u * 8) * D;
-    box(c, sx - wv / 2 - 1, sy, wv + 2, 3, LAVA_R[2]); box(c, sx - wv / 2, sy, wv, 3, ((y + f * 2) % 18) < 6 ? LAVA_R[5] : LAVA_R[4]); box(c, sx - 1, sy, 2, 3, LAVA_R[6]);
-  }
-  // (the surface: banded going back, hotter toward us, crust plates drifting on toward us, the bright between)
-  const NB = 10;
+  const WALL = [ROCK[2], ROCK[1], ROCK[2], mix(ROCK[3], LAVA_R[1], 0.35), mix(ROCK[3], LAVA_R[2], 0.45 + fl * 0.2), LAVA_R[2], LAVA_R[3]];
+  WALL.forEach((col, i) => fw(ya + (span * i) / WALL.length, ya + (span * (i + 1)) / WALL.length + 1, col));
+  for (let i = 1; i < 5; i++) fw(ya + (span * i) / WALL.length, ya + (span * i) / WALL.length + 1, ROCK[0]);
+  // (the surface: molten, banded going back, the bands carried on toward us)
+  const NB = 12, MOLT = [LAVA_R[3], LAVA_R[4], LAVA_R[4], LAVA_R[3], LAVA_R[2], LAVA_R[3]];
   for (let i = 0; i < NB; i++) {
     const p = 1.6 - ((1.6 - D) * i) / NB, q = 1.6 - ((1.6 - D) * (i + 1)) / NB;
-    const ph = (i + Math.floor(f / 7)) % 4;
-    levelQ(c, eye, a, b, surf, p, q, [LAVA_R[3], LAVA_R[4], LAVA_R[3], LAVA_R[2]][ph]);
+    levelQ(c, eye, a, b, surf, p, q, MOLT[(i + Math.floor(f / 10)) % MOLT.length]);
   }
-  for (let k = 0; k < 9; k++) {
-    const t = ((f * 0.0016 + k * 0.137) % 1), d = D + t * (1.3 - D), x = a + 8 + hash(k * 3.7 + l.a) * (b - a - 30), pw = 14 + hash(k * 1.3) * 18;
-    const pts: [number, number][] = [at(eye, x, surf, d), at(eye, x + pw, surf, d - 0.004), at(eye, x + pw + 4, surf, d - 0.02), at(eye, x + 2, surf, d - 0.024)];
-    poly(c, pts, LAVA_R[1]); poly(c, [pts[0], pts[1], at(eye, x + pw, surf, d - 0.006), at(eye, x, surf, d - 0.002)], LAVA_R[2]);
+  // (hotter where it's poured in: a stepped pool of brighter round the pour's foot)
+  const px = X(pourAt(l)), bank = ya + ((yb - ya) * (px - a)) / Math.max(1, b - a);
+  for (const [hw, dd, col] of [[60, 0.05, LAVA_R[4]], [36, 0.03, LAVA_R[5]], [16, 0.014, LAVA_R[6]]] as const) levelQ(c, eye, px - hw, px + hw, surf, D + dd, D, col);
+  // (the flow, its crust plates, its bubbles)
+  const projB: Proj = (x, t) => { const d = D + 0.012 + t * (1.3 - D), [sx, sy] = at(eye, x, surf, d); return [sx, sy, d]; };
+  lavaTop(c, projB, a, b, f, l.a, 0.0009 / (1.3 - D));
+  // (the pour: a glowing fall down the far wall out of a gash in its lip, crusting at its edges, pulses and clots running
+  // down it, white-hot down its middle; splashing where it hits)
+  const gash: [number, number][] = [[-18, -1], [-7, -6], [4, -3], [16, -6], [20, 3], [-15, 4]];
+  poly(c, gash.map(([gx, gy]) => at(eye, px + gx, bank + gy, D)), INK);
+  poly(c, gash.map(([gx, gy]) => at(eye, px + gx * 0.7, bank + gy * 0.6 + 1, D)), LAVA_R[5]);
+  poly(c, gash.map(([gx, gy]) => at(eye, px + gx * 0.35, bank + gy * 0.3 + 1, D)), LAVA_R[6]);
+  const pulse = f * 2.4;
+  for (let y = bank - 2; y < surf; y += 2) {
+    const [sx, sy] = at(eye, px + Math.sin(y * 0.15 + f * 0.05) * 2, y, D), u = (y - bank) / Math.max(1, surf - bank), wv = (12 + u * 10) * D;
+    const band = (((y - pulse) % 16) + 16) % 16;
+    box(c, sx - wv / 2 - 1, sy, wv + 2, 2, LAVA_R[1]); box(c, sx - wv / 2, sy, wv, 2, LAVA_R[3]);
+    box(c, sx - wv * 0.35, sy, wv * 0.7, 2, band < 6 ? LAVA_R[5] : LAVA_R[4]);
+    box(c, sx - wv * 0.12, sy, Math.max(1, wv * 0.24), 2, band < 3 ? '#FFFFFF' : LAVA_R[6]);
+    if (hash(Math.floor((y - pulse) / 6) * 1.37) > 0.82) box(c, sx + (hash(Math.floor((y - pulse) / 6)) - 0.5) * wv * 0.6, sy, 3 * D, 2, LAVA_R[0]);
   }
-  // (bubbles: a ring swelling and popping)
-  for (let k = 0; k < 4; k++) {
-    const t = ((f + k * 37) % 60) / 60, d = D + 0.05 + hash(k * 9 + l.a) * (1 - D - 0.06), x = a + 14 + hash(k * 5.1 + l.b) * (b - a - 28);
-    const [bx, by] = at(eye, x, surf, d), r = (2 + t * 5) * d;
-    if (t < 0.85) { box(c, bx - r, by - r * 0.6, r * 2, r * 1.2, LAVA_R[5]); box(c, bx - r * 0.5, by - r * 0.5, r, r * 0.5, LAVA_R[6]); }
-    else box(c, bx - 1, by - 6, 2, 3, LAVA_R[5]);
+  const [fx, fy] = at(eye, px, surf, D + 0.008);
+  box(c, fx - 18, fy - 2, 36, 4, LAVA_R[5]); box(c, fx - 9, fy - 3, 18, 3, LAVA_R[6]);
+  for (let k = 0; k < 3; k++) { const t = ((f + k * 14) % 42) / 42, rw = 14 + t * 46; box(c, fx - rw, fy + 1 + t * 3, rw * 2, 1, t < 0.5 ? LAVA_R[2] : LAVA_R[1]); }
+  for (let k = 0; k < 7; k++) {
+    const t = ((f * 1.3 + k * 9) % 30) / 30, dx = (k - 3) * 5 * t * D, dy = (18 + (k % 3) * 8) * t - t * t * 30;
+    box(c, fx + dx, fy - dy * D, 2, 2, t < 0.4 ? LAVA_R[6] : t < 0.75 ? LAVA_R[5] : LAVA_R[3]);
   }
-  // (the side walls, the ones he's looking at: rock, glowing up from their feet)
+  // (the side walls, the ones he's looking at: rock, the glow up them from their feet (stepped, flickering), splashes
+  // glowing along the foot)
   const wall = (e: number, ye: number, side: 1 | -1) => {
     if ((eye.x - e) * side <= 1) return;
-    const sp = surf - ye;
-    [ROCK[3], ROCK[2], ROCK[2], ROCK[3], LAVA_R[1], LAVA_R[2]].forEach((col, i) => sideQ(c, eye, e, ye + (sp * i) / 6, ye + (sp * (i + 1)) / 6 + 1, 1, D, col));
+    const sp = surf - ye, SW = [ROCK[3], ROCK[2], ROCK[2], mix(ROCK[3], LAVA_R[1], 0.4), mix(ROCK[2], LAVA_R[2], 0.4 + fl * 0.2), LAVA_R[1], LAVA_R[2]];
+    SW.forEach((col, i) => sideQ(c, eye, e, ye + (sp * i) / SW.length, ye + (sp * (i + 1)) / SW.length + 1, 1, D, col));
+    for (let k = 0; k < 6; k++) { const d = D + ((k + 0.5) * (1 - D)) / 6, [sx, sy] = at(eye, e, surf - 3 - hash(k + e) * 6, d); if (((f >> 3) + k) % 4) box(c, sx - 1, sy, 2, 2, LAVA_R[(k % 2) + 4]); }
   };
   wall(a, ya, 1); wall(b, yb, -1);
   c.restore();
 };
 
 /** The lava toward us (under the play plane, between the street's bent edges): the near walls hung under the broken
- *  curb, the lava down there; crusted, spent (a lit lip along it: walkable). */
+ *  curb, the lava down there (banded toward us, its plates and bubbles); crusted, spent (a lit lip along it: walkable). */
 export const lavaNear = (c: Ctx, v: View, l: typeof LAVA[number], done: boolean, f: number) => {
   const a = X(l.a), b = X(l.b);
   if (b < v.v0 - 100 || a > v.v1 + 100 || v.bot < GY) return;
@@ -317,43 +417,82 @@ export const lavaNear = (c: Ctx, v: View, l: typeof LAVA[number], done: boolean,
   const edge = (e: number, y: number) => ex + (e - ex) * (1 + (y - GY) * BEND);
   const N = 10, A: [number, number][] = [], B: [number, number][] = [], Af: [number, number][] = [], Bf: [number, number][] = [];
   for (let i = 0; i <= N; i++) { const y = GY + ((Y1 - GY) * i) / N; A.push([edge(a, y), y]); B.push([edge(b, y), y]); Af.push([Math.min(a, edge(a, y)), y]); Bf.push([Math.max(b, edge(b, y)), y]); }
-  // (the lava (or the crust) between them, banded toward us)
-  const cols = done ? [BASALT[3], BASALT[2], BASALT[2], BASALT[1], BASALT[1]] : [LAVA_R[3], LAVA_R[4], LAVA_R[3], LAVA_R[4], LAVA_R[3]];
-  for (let i = 0; i < N; i++) {
-    const ph = done ? i : (i + Math.floor(f / 7)) % 5;
-    poly(c, [Af[i], Bf[i], Bf[i + 1], Af[i + 1]], cols[ph % cols.length]);
-  }
   if (done) {
-    c.strokeStyle = 'rgba(200, 80, 20, 0.3)'; c.lineWidth = 1; c.beginPath();
-    for (let x = a + 10; x < b - 6; x += 22) { c.moveTo(edge(x, GY + 6), GY + 6); c.lineTo(edge(x + 8, GY + 60), GY + 60); }
+    // (crusted: basalt banded toward us, its plates' seams, a few cracks still faintly glowing)
+    const cols = [BASALT[3], BASALT[2], BASALT[2], BASALT[1], BASALT[1]];
+    for (let i = 0; i < N; i++) poly(c, [Af[i], Bf[i], Bf[i + 1], Af[i + 1]], cols[i % cols.length]);
+    c.strokeStyle = BASALT[0]; c.lineWidth = 1; c.beginPath();
+    for (let x = a + 16; x < b - 10; x += 34) { c.moveTo(edge(x, GY + 6), GY + 6); c.lineTo(edge(x + 6 + hash(x) * 8, GY + 70), GY + 70); }
+    for (const y of [GY + 30, GY + 74, GY + 130]) { c.moveTo(edge(a + 4, y), y); c.lineTo(edge(b - 4, y + 3), y + 3); }
     c.stroke();
+    const br = 0.5 + 0.5 * Math.sin(f * 0.025 + l.b), n = Math.max(2, Math.round((b - a) / 140));
+    for (let k = 0; k < n; k++) {
+      const x0c = a + ((k + 0.5) * (b - a)) / n + (hash(k * 4.3 + l.b) - 0.5) * 20, pts: [number, number][] = [];
+      for (let j = 0; j <= 5; j++) { const y = GY + 6 + j * 24; pts.push([edge(x0c + (hash(k * 9 + j + l.b) - 0.5) * 22, y), y]); }
+      coldCrack(c, pts, br);
+    }
     box(c, a, GY - 1, b - a, 1, INK); box(c, a, GY, b - a, 3, LIP[2]); box(c, a, GY, b - a, 1, LIP[3]);
     return;
   }
-  // (the near walls: hung from the broken edge, the one facing him rock, glowing at the foot)
+  // (the lava between them: banded toward us, the bands carried on toward us, dithered where they meet; on it the flow,
+  // the crust plates, the bubbles)
+  c.save(); c.beginPath(); [...Af, ...[...Bf].reverse()].forEach(([px, py], i) => (i ? c.lineTo(px, py) : c.moveTo(px, py))); c.closePath(); c.clip();
+  const xl = Af[N][0] - 4, xr = Bf[N][0] + 4, NB = 14, rh = (Y1 - GY) / NB, MOLT = [LAVA_R[3], LAVA_R[4], LAVA_R[4], LAVA_R[3], LAVA_R[2], LAVA_R[3]];
+  let prev = '';
+  for (let i = 0; i < NB; i++) {
+    const col = MOLT[(((i - Math.floor(f / 10)) % MOLT.length) + MOLT.length) % MOLT.length], y = GY + i * rh;
+    box(c, xl, y, xr - xl, rh + 1, col);
+    if (prev && prev !== col) checker(c, Math.round(xl / 2) * 2, Math.round(y / 2) * 2, xr - xl, 2, prev, 0);
+    prev = col;
+  }
+  const projN: Proj = (x, t) => { const y = GY + 4 + t * (Y1 - GY), s = 1 + (y - GY) * BEND; return [edge(x, y), y, s]; };
+  lavaTop(c, projN, a, b, f, l.b, 0.45 / Math.max(60, Y1 - GY));
+  c.restore();
+  // (the near walls: hung from the broken edge, the one facing him rock, the glow up them from the lava, flickering)
+  const fl = 0.5 + 0.5 * Math.sin(f * 0.09 + l.a) * Math.sin(f * 0.031 + 1);
   for (const [P, s, e] of [[A, 1, a], [B, -1, b]] as const) {
     if ((ex - e) * s <= 1) continue;
     for (let i = 0; i < N; i++) {
       const th = 10 + i * 4;
       poly(c, [P[i], P[i + 1], [P[i + 1][0] + s * th, P[i + 1][1] + th * 0.4], [P[i][0] + s * th, P[i][1] + th * 0.4]], i % 2 ? ROCK[2] : ROCK[3]);
+      poly(c, [[P[i][0] + s * th * 0.55, P[i][1] + th * 0.22], [P[i + 1][0] + s * th * 0.55, P[i + 1][1] + th * 0.22], [P[i + 1][0] + s * th * 0.7, P[i + 1][1] + th * 0.28], [P[i][0] + s * th * 0.7, P[i][1] + th * 0.28]], mix(ROCK[3], LAVA_R[2], 0.4 + fl * 0.2));
       poly(c, [[P[i][0] + s * th * 0.7, P[i][1] + th * 0.28], [P[i + 1][0] + s * th * 0.7, P[i + 1][1] + th * 0.28], [P[i + 1][0] + s * th, P[i + 1][1] + th * 0.4], [P[i][0] + s * th, P[i][1] + th * 0.4]], LAVA_R[2]);
+      poly(c, [[P[i][0] + s * th * 0.92, P[i][1] + th * 0.37], [P[i + 1][0] + s * th * 0.92, P[i + 1][1] + th * 0.37], [P[i + 1][0] + s * th, P[i + 1][1] + th * 0.4], [P[i][0] + s * th, P[i][1] + th * 0.4]], LAVA_R[4]);
     }
   }
-  // (the broken lips: jagged chunks of the curb)
+  // (the broken lips: jagged chunks of the curb, lit from under by the lava)
   for (const [e, s] of [[a, 1], [b, -1]] as const) {
     poly(c, [[e, GY], [e + s * 22, GY], [e + s * 12, GY + 7], [e + s * 24, GY + 12], [e + s * 6, GY + 20], [e, GY + 16]], INK);
     poly(c, [[e, GY + 1], [e + s * 20, GY + 1], [e + s * 10, GY + 7], [e + s * 21, GY + 11], [e + s * 5, GY + 18], [e, GY + 14]], CONCRETE[3]);
+    poly(c, [[e + s * 21, GY + 11], [e + s * 5, GY + 18], [e + s * 8, GY + 15], [e + s * 18, GY + 11]], mix(CONCRETE[2], LAVA_R[3], 0.5));
     box(c, Math.min(e, e + s * 18), GY + 1, 18, 2, LIP[2]);
   }
   void W;
 };
 
-/** The heat off a lava river (live, after what stands behind it): orange bands up over it, a shimmer. */
+/** The heat off a lava river (live, after what stands behind it; at the play plane): the glow up over it in stepped
+ *  bands, flickering; the air over it shimmering (rows wavering side to side); smoke curling up thin; embers going up,
+ *  winking, cooling as they go (white-yellow, orange, red). */
 export const lavaGlow = (c: Ctx, v: View, l: typeof LAVA[number], f: number) => {
   const a = X(l.a), b = X(l.b), top = Y(Math.max(l.hl, l.hr));
   if (b < v.v0 - 100 || a > v.v1 + 100) return;
-  for (let k = 0; k < 5; k++) { c.fillStyle = `rgba(249, 115, 22, ${(0.04 + k * 0.035).toFixed(3)})`; c.fillRect(a - 10, top - 90 + k * 18, b - a + 20, 18); }
-  for (let k = 0; k < 6; k++) { const t = ((f * 0.9 + k * 23) % 80) / 80, x = a + 10 + hash(k * 3.3 + l.a) * (b - a - 20); box(c, x + Math.sin(f * 0.2 + k) * 3, top - 6 - t * 70, 2, 3, `rgba(253, 200, 72, ${(0.8 * (1 - t)).toFixed(2)})`); }
+  const fl = 0.85 + 0.15 * Math.sin(f * 0.11 + l.a) * Math.sin(f * 0.037);
+  for (let k = 0; k < 6; k++) { c.fillStyle = `rgba(249, 115, 22, ${((0.03 + k * 0.028) * fl).toFixed(3)})`; c.fillRect(Math.round(a - 14 + k * 2), top - 108 + k * 18, Math.round(b - a + 28 - k * 4), 18); }
+  for (let y = top - 96, i = 0; y < top - 4; y += 2, i++) {
+    if (i % 2) continue;
+    const off = Math.sin(y * 0.35 + f * 0.3) * 3 + Math.sin(y * 0.13 - f * 0.17) * 2, k = 1 - (top - y) / 96;
+    c.fillStyle = `rgba(255, 214, 150, ${(0.04 + 0.07 * k).toFixed(3)})`; c.fillRect(Math.round(a + 8 + off), y, Math.round(b - a - 16), 1);
+    c.fillStyle = `rgba(120, 30, 10, ${(0.03 + 0.05 * k).toFixed(3)})`; c.fillRect(Math.round(a + 8 - off), y + 1, Math.round(b - a - 16), 1);
+  }
+  for (let k = 0; k < Math.max(1, Math.round((b - a) / 120)); k++) smokeUp(c, a + 20 + hash(k * 4.1 + l.a) * (b - a - 40), top - 2, f, k + (l.a % 7), 0.55, 0.26, 5);
+  const n = 10 + Math.round((b - a) / 30);
+  for (let k = 0; k < n; k++) {
+    const per = 70 + (k % 4) * 20, t = ((f + k * 23) % per) / per;
+    if (t > 0.5 && ((f + k * 5) >> 2) % 7 === 0) continue;
+    const x = a + 8 + hash(k * 3.3 + l.a) * (b - a - 16) + Math.sin(f * 0.08 + k) * 6 * t, y = top - 4 - t * (90 + (k % 3) * 30);
+    const sz = t < 0.5 ? 2 : 1;
+    box(c, x, y, sz, sz, t < 0.25 ? LAVA_R[6] : t < 0.55 ? LAVA_R[5] : t < 0.8 ? LAVA_R[4] : LAVA_R[2]);
+  }
 };
 
 /** The chase's puddles: the water going back over the pavement (ripples, the red sky in it), and on the near street

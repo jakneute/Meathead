@@ -20,12 +20,13 @@ import { CANVAS_WIDTH } from '../../../m1/constants';
 import { saidOver } from '../section';
 import { viewOf, at, FRONT_D } from '../blvd/kit';
 import { outOf } from '../blvd/state';
-import { X, Y, R, GY, LAVA } from './layout';
+import { X, Y, R, GY, LAVA, LAVA_DOWN } from './layout';
+import { ROAD_D } from './paint';
 import { hvOf } from './state';
 import { spent } from './hazards';
 import { isTorn } from './chase';
 import { drawHavocFar } from './far';
-import { drawHavocPavement, drawHavocStreet, lavaBack, lavaNear, lavaGlow, puddlesBack, puddlesNear, STREET_LAVA } from './ground';
+import { drawHavocPavement, drawHavocStreet, lavaBack, lavaNear, lavaGlow, puddlesBack, puddlesNear, STREET_LAVA, pourAt } from './ground';
 import { drawHavocFronts, drawLightTower, drawRideEnd, FRONTS } from './fronts';
 import { drawClimb, drawHill } from './climb';
 import { drawHavocProps, zoneFloor, zoneStreet, zoneSigns, zoneLights } from './props';
@@ -76,7 +77,17 @@ export const drawHavocFront = (c: Ctx, state: GameState) => {
 export const havocLamps = (state: GameState): Light[] => {
   if (spent(state)) return [];
   const cam = state.camera.x, out: Light[] = [], v = viewOf(state);
-  for (const l of LAVA) { const x = X((l.a + l.b) / 2); if (Math.abs(x - cam - 400) < 1200) out.push({ x, y: Y(Math.min(l.hl, l.hr)) + 20, r: Math.max(160, (l.b - l.a) * 0.9), a: 0.9, color: '#F97316' }); }
+  // (the lava: its glow up out of the channel, flickering; the pour at the far wall; each bank, up the channel's walls
+  // and onto what's by it)
+  for (const l of LAVA) {
+    const x = X((l.a + l.b) / 2);
+    if (Math.abs(x - cam - 400) > 1200) continue;
+    const fl = 0.85 + 0.15 * Math.sin(state.frame * 0.11 + l.a) * Math.sin(state.frame * 0.037), y = Y(Math.min(l.hl, l.hr));
+    out.push({ x, y: y + 20, r: Math.max(160, (l.b - l.a) * 0.9), a: 0.9 * fl, color: '#F97316' });
+    const [px, py] = at(v.eye, X(pourAt(l)), y + LAVA_DOWN, l.hl > 0 ? ROAD_D : FRONT_D);
+    out.push({ x: px, y: py - 16, r: 120, a: 0.75 * fl, color: '#FDBA4A' });
+    for (const e of [X(l.a), X(l.b)]) out.push({ x: e, y: y + 10, r: 110, a: 0.5 * fl, color: '#FB6A1E' });
+  }
   // (the fronts burning: their tops, where they're drawn)
   let n = 0;
   FRONTS.forEach((fr, i) => {
