@@ -6001,6 +6001,11 @@
  },
  {
   "voice": "death",
+  "text": "BURIED IN CONCRETE VOMIT",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "BURIED IN IGUANAS",
   "from": "content/deaths"
  },
@@ -7071,6 +7076,11 @@
  },
  {
   "voice": "death",
+  "text": "DROWNED IN STATUE PUKE",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "DROWNED IN THE DUNGEON",
   "from": "m1/game/stages/ernie/index.ts:28"
  },
@@ -7671,6 +7681,11 @@
  },
  {
   "voice": "death",
+  "text": "FREEDOM PUNCHED",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "FREEZE-DRIED",
   "from": "SPACE"
  },
@@ -8193,6 +8208,11 @@
   "voice": "death",
   "text": "HOSED DOWN",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "HOSED DOWN BY A HIPPIE",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -8891,6 +8911,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY THE REAL HARRY",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY THE STORM CREW",
   "from": "HOLLYWOOD"
  },
@@ -9323,6 +9348,21 @@
   "voice": "death",
   "text": "MOST OF MEATHEAD",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "MOWED DOWN BOTTOM TO TOP",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "MOWED DOWN BY A HIPPIE",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "MOWED DOWN TOP TO BOTTOM",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -9947,6 +9987,11 @@
  {
   "voice": "death",
   "text": "PUCKED",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "PUKED ON BY A NATIONAL MONUMENT",
   "from": "FOREIGN"
  },
  {
@@ -10586,6 +10631,11 @@
  },
  {
   "voice": "death",
+  "text": "SHE FINALLY HIT SOMETHING",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "SHE HAD A BRICK IN THERE",
   "from": "content/deaths"
  },
@@ -10731,6 +10781,11 @@
  },
  {
   "voice": "death",
+  "text": "SHOT BY HELICOPTER HARRY",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "SHOT BY SMOKEY",
   "from": "content/deaths"
  },
@@ -10806,12 +10861,22 @@
  },
  {
   "voice": "death",
+  "text": "SHOT FROM ABOVE BY A HIPPIE",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "SHOT FROM BEHIND A SHIELD",
   "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "SHOT FULL OF ROMAN HOLES",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT OFF THE WALL",
   "from": "FOREIGN"
  },
  {
@@ -11091,6 +11156,11 @@
  },
  {
   "voice": "death",
+  "text": "SMASHED BY THE STATUE OF LIBERTY",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "SMASHED LIKE A PUMPKIN ON NOVEMBER FIRST",
   "from": "SPOOKY"
  },
@@ -11303,6 +11373,11 @@
   "voice": "death",
   "text": "SPRAYED AND PRAYED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SPRAYED OFF A WALL",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -16631,6 +16706,31 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "A REAL AMERICAN MONUMENT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "AGAIN! SHE'S DUMB AT FIGHTING THINGS MUCH SMALLER THAN HER! HE'S A TURD! HIT THE TURD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "AGAIN! SHE'S DUMB AT FIGHTING THINGS MUCH SMALLER THAN HER! THERE'S A WHOLE NAKED GUY RIGHT THERE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "AGAIN? SHE'S DUMB AT FIGHTING THINGS MUCH SMALLER THAN HER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "AIM FOR THE... NO. CENTER MASS. CENTER MASS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "AUSTRALIA! THE UPSIDE-DOWN PEOPLE! SING HIM TO DEATH, YOU FANCY-ASS BOAT SHED!",
   "from": "FOREIGN"
  },
@@ -16671,7 +16771,27 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "BOTTOM TO TOP, STINKY! RUN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "BOTTOM TO TOP! RUN, NUDIE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "BOTTOM TO TOP! RUN, YOU SON OF A BITCH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "BRAZIL! ARMS OUT, BIG GUY! GIVE HIM A HUG HE WON'T WALK AWAY FROM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "BRRRRRT, MOTHERFUCKER!",
   "from": "FOREIGN"
  },
  {
@@ -16691,12 +16811,52 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "COME ON, YOU HELICOPTER-STEALING SON OF A BITCH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "CONCRETE IN MY MOUTH! AT LEAST I CAN'T SEE HIM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "CONCRETE! IN MY MOUTH! AND I CAN STILL SMELL HIM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "DON'T COME ANY CLOSER. I'M AIRSICK, I LOST MY PILLS, AND YOU SHIT YOURSELF.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "DON'T STAND UNDER ME NAKED! NOBODY WANTS THAT VIEW!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "DOWN THERE: THE EIFFEL TOWER. THREE TIMES BIGGER THAN THE REAL ONE. IN AMERICA, EVERYTHING IS BIGGER. EVEN OTHER PLACES.",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.harry",
   "text": "EASTER ISLAND! BIG HEAD! SHOW HIM YOUR GODDAMN BODY! YEAH! THEY HAVE BODIES! LOOK IT UP!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "EAT FREEDOM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "EAT LEAD, NUDIST!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "EAT LEAD, STINK BOMB!",
   "from": "FOREIGN"
  },
  {
@@ -16716,12 +16876,77 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "EVERY GODDAMN TIME! HE'S NAKED! THERE'S NOTHING IN THE WAY! HOW?!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "EVERY GODDAMN TIME! HE'S SMALL, HE'S SLOW, HE'S COVERED IN SHIT! HOW?!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "EVERY TIME! EVERY GODDAMN TIME! YOU'RE A HUNDRED AND FIFTY FEET TALL AND YOU CAN'T HIT ONE ASSHOLE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "EVERYBODY IN THE PARK CAN SEE YOUR WIENER! IT'S A HELICOPTER! IT'S IN THE SKY!",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "FINALLY. NOW AIM FOR THE NAKED ONE. HE STANDS OUT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "FINALLY. NOW SQUASH THE STINKY ONE. AND AIM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "FINALLY. ONE MORE TIME. AND AIM THIS TIME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "FINE! SMASH THE NAKED ONE! FAST! AIM SMALL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "FINE! WE BOTH PUKED! NOW SMASH THE ONE WHO SHIT! FAST!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "FLATTEN HIM, LADY! ALL OF HIM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "FORGET IT! I FORGIVE YOU! SMASH HIM! NOW!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "FRANCE! GET OVER HERE AND KILL HIM! THE ONE GODDAMN TIME YOU DON'T SURRENDER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "FRENCH PIECE OF SHIT! YOU CAN'T EVEN HIT A GUY WHO SHIT HIMSELF!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "FRENCH PIECE OF SHIT! YOU MISSED A NAKED MAN! A NAKED MAN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "GET HIM, LADY! FIST OF FREEDOM!",
   "from": "FOREIGN"
  },
  {
@@ -16741,7 +16966,42 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "GOT YOU, YOU HIJACKING SON OF A BITCH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "GOT YOU! RIGHT IN THE SHITTY PANTS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "GOT YOU! STOP FLOPPING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "HA! RIGHT IN THE NAKED!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "HA! SHAKE THAT LOOSE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "HA! TAKE THAT, YOU HIJACKING SON OF A BITCH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "HA! THAT ONE WAS FOR SOCCER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "HE IS RIGHT THERE! HIT HIM!",
   "from": "FOREIGN"
  },
  {
@@ -16761,12 +17021,52 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "HOLD STILL, SHITTY PANTS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "HOSE DOWN THE SHITTY ONE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "HOSING THE PLACE DOWN! IT NEEDS IT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "HOW'D THAT FEEL? THAT'S AMERICAN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I CAN SMELL YOU FROM UP HERE, YOU DIRTY BASTARD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I CAN STILL TAKE YOU. I CAN STILL TAKE ALL OF YOU. THE WHOLE WORLD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I DID NAM! THE RESTAURANT! I CAN TAKE IT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "I DRIVE A TRUCK! A BIG ONE! IT GETS SIX MILES TO THE GALLON AND I LOVE IT!",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.harry",
   "text": "I HATE THE WORLD! I HATE ALL OF IT! EXCEPT AMERICA! AND NOT EVEN ALL OF AMERICA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I REGRET... NOTHING... EXCEPT THE STRAWS... AMERICAAAA!",
   "from": "FOREIGN"
  },
  {
@@ -16786,7 +17086,87 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "I'LL MOW YOU DOWN, STINKY! TOP TO BOTTOM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'LL MOW YOU DOWN! NAKED TARGET PRACTICE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'LL SHOOT THE SHIT RIGHT OUT OF YOU! OH. ALREADY OUT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'M GONNA MOW YOU DOWN LIKE A FOREIGN LAWN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "I'M HELICOPTER HARRY, AND TODAY WE'RE GOING TO FLY ACROSS THE WHOLE BEAUTIFUL WORLD. NO BORDERS UP HERE, MAN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'M NOT DYING IN A CONSTRUCTION SITE! I'M NOT DYING ON FOREIGN SOIL! ...THIS IS AMERICA. OKAY. BUT IT FEELS FOREIGN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'M NOT DYING TO A GUY WHO SHIT HIMSELF!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'M NOT DYING TO A NAKED GUY! THAT'S A FOREIGN WAY TO DIE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'VE BEEN FAKING A SMILE SINCE NINETEEN NINETY-NINE! THIS IS REAL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "IT'S IN MY MOUTH! IT'S SETTING! IT'S SETTING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "KILLED BY A GUY... WHO SHIT HIMSELF... AMERICAAAAA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "KILLED... BY A NAKED... EUROPEAN... AMERICAAAAA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "LADY LIBERTY! GET UP HERE! THERE'S A NAKED GUY IN YOUR CONSTRUCTION SITE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "LADY LIBERTY! UP! THERE'S A SHIT-PANTS HIJACKER THAT NEEDS FREEDOM-ING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "LADY! SMASH HIM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "LADY! SMASH THE NAKED ONE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "LADY! SMASH THE STINKY ONE!",
   "from": "FOREIGN"
  },
  {
@@ -16801,7 +17181,147 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "MMF! AT LEAST... I CAN'T SEE HIM... MMMF!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MMF! AT LEAST... I CAN'T SMELL HIM... MMMF!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MMF! IT'S SETTING! MMMF! LADY! DIG ME OUT! MMMF!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MMMF! I CAN'T MOVE MY... MMMF... ANYTHING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MMMF! STILL BETTER THAN HIS PANTS! MMMF!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MMMF! WORTH IT! NO MORE NAKED GUY! MMMF!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "MORE KIDS! I GOT JETPACKS FOR ALL OF THEM! THE LIABILITY WAIVERS ARE SIGNED!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MY ABS! THEY'RE GRAY! THEY'RE SOLID!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MY AIRSICK PILLS! I FORGOT THEM! AND YOU SMELL LIKE THAT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MY PILLS! I FORGOT MY PILLS! STOP JIGGLING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "MY STOMACH'S FLIPPING. PUT THAT AWAY BEFORE I LOSE IT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NAKED LIKE A DAMN FRENCHMAN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NAKED? WHAT ARE YOU, EUROPEAN? DAMN FOREIGNERS AND THEIR NUDE BEACHES! BUILD A WALL AROUND EUROPE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NO SHIRT, NO SHOES, NO SURVIVING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOBODY HIDES UNDER ME, YOU SNEAKY BASTARD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOBODY HIDES UNDER ME! ESPECIALLY NOT SMELLING LIKE THAT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOT AGAIN! IT'S THE SMELL! IT'S THE SMELL TOO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOT AGAIN! STOP SHOWING ME THAT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOT AGAIN. NOT AGAIN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOT LIKE THIS! NOT DOWNWIND OF YOU!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOT LIKE THIS! NOT LOOKING AT THAT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOT... ON FOREIGN... OH, WAIT. AMERICAAAAAA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OH GOD. HE'S NAKED AND I'M SPINNING. HERE IT COMES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OH GOD. HERE IT COMES. LADY! DUCK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OH GOD. HIS SMELL. HERE IT COMES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OH NO. NO AIRSICK PILLS. AND I'M LOOKING RIGHT AT IT. HERE IT COMES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OH NO. NO PILLS, AND I CAN SMELL YOU. HERE IT COMES.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OH NO. OH NO NO NO. I FORGOT MY AIRSICK PILLS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OH, YOU LIKE BEING NAKED? I'LL SHOW YOU A BODY WORTH LOOKING AT!",
   "from": "FOREIGN"
  },
  {
@@ -16812,6 +17332,26 @@
  {
   "voice": "m2.foreign.harry",
   "text": "OPERA HOUSE! THERE'S A NAKED MAN IN MY SKY! DO SOMETHING CULTURAL TO HIM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OW! AND THE SMELL! THE SMELL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OW! DON'T TOUCH ME WITH THAT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OW! MY GOOD PEC!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "OW! SOMETHING SLAPPED ME! I HOPE IT WAS A HAND!",
   "from": "FOREIGN"
  },
  {
@@ -16841,6 +17381,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "PUT SOME PANTS ON! AMERICAN PANTS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "PYRAMID! KILL HIM! THE GUY SMELLS LIKE A FOUR THOUSAND YEAR OLD TOMB!",
   "from": "FOREIGN"
  },
@@ -16861,12 +17406,97 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "SAY HELLO TO MY LITTLE AMERICAN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE LIVES. GREAT. HERE WE GO AGAIN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE'S DUMB AT FIGHTING THINGS MUCH SMALLER THAN HER, AND SHE'S DUMB AT EVERYTHING ELSE TOO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE'S DUMB AT FIGHTING THINGS MUCH SMALLER THAN HER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE'S DUMB AT FIGHTING THINGS MUCH SMALLER THAN HER. AND NAKEDER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE'S DUMB AT FIGHTING THINGS MUCH SMALLER THAN HER. AND STINKIER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE'S STUCK. OF COURSE SHE'S STUCK. YOU'RE USELESS NOW.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE'S UP. HIT HIM. HE'S THE PINK ONE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE'S UP. TRY HITTING THE SMELL. IT'S EVERYWHERE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "SHIT-PANTS! YOU KNOW HOW HARD IT IS TO GET SHIT OUT OF HEMP?",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.harry",
   "text": "SHIT! I GOT A WHOLE STAFF MEETING OF THEM! SEND MORE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SMASH HIM! FAST! BEFORE MY ABS HARDEN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SMASH HIM! FAST! HE CAN'T HIDE THAT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SON OF A BITCH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SQUASH HIM! LIKE THE TURD HE IS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "STOP JIGGLING AT ME, YOU SICK BASTARD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "STRAIGHT DOWN, THEN STRAIGHT AT YOU!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "STUCK? YOU'RE USELESS NOW. LOOK AT HIM WIGGLING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "STUCK. YOU'RE USELESS NOW. HE'S RIGHT THERE STINKING.",
   "from": "FOREIGN"
  },
  {
@@ -16882,6 +17512,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "TAJ MAHAL! THE BIG WHITE ONION! KILL HIM! I DON'T EVEN KNOW WHAT YOU ARE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "THAT ALL YOU GOT?",
   "from": "FOREIGN"
  },
  {
@@ -16916,6 +17551,16 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "THE LAST THING I SEE... IS THAT... AMERICAAAA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "THE LAST THING I SMELL... IS YOU... AMERICAAAA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "THE OPERA HOUSE! SHIT! WHO EVEN GOES TO THE OPERA! NOBODY! GOOD RIDDANCE!",
   "from": "FOREIGN"
  },
@@ -16941,12 +17586,87 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "THIS IS FOR EVERY DAMN BAMBOO STRAW I HAD TO HAND OUT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "THIS IS HOW WE SAY HELLO IN AMERICA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "THOSE WERE FOREIGN MONUMENTS. THEY WERE ALWAYS GONNA LOSE. LADY LIBERTY! UP! NOW!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "THOSE WERE GOOD AMERICAN KIDS! FROM OHIO!",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "TIME TO SHOW YOU A REAL AMERICAN. ONE THAT DOESN'T SHIT HIMSELF.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "TOP TO BOTTOM, MOTHERFUCKER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "TWENTY YEARS OF TOLERANCE! TWENTY GODDAMN YEARS OF SMILING AT DAMN FOREIGNERS AND THEIR DAMN FOREIGN LANDMARKS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "TWENTY-TWO YEARS IN TIE-DYE. NO MORE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "TWENTY-TWO YEARS OF HUGGING FOREIGNERS. I HATE THEIR FOOD, I HATE THEIR MONEY, I HATE THEIR LITTLE CARS. AND NOW A NAKED GUY STEALS MY HELICOPTER. DAMN EVERYBODY!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "TWENTY-TWO YEARS OF SAYING NAMASTE TO THESE PEOPLE. I HATE THE METRIC SYSTEM. I HATE SOCCER. I HATE ANY FOOD WITH A VOWEL ON THE END. DAMN FOREIGNERS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "TWENTY-TWO YEARS OF SMILING AT FOREIGNERS. I HATE THEIR FOOD, I HATE THEIR SOCCER, AND I HATE YOU, YOU SHIT-PANTS HIJACKER. MOSTLY THE FOREIGNERS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "UGH. AIRSICK. NO PILLS. AND NOW I'M LOOKING AT THAT. GREAT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "UGH. I'M AIRSICK AND YOU SMELL LIKE THAT. WHERE ARE MY DAMN PILLS?",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "UGH. JETPACKS. WHERE THE HELL ARE MY AIRSICK PILLS? ...SCREW IT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "UNBELIEVABLE. MADE IN FRANCE. I SHOULD'VE KNOWN. FRENCH PIECE OF SHIT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "WALL TO WALL FREEDOM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "WALL TO WALL! NOWHERE TO HIDE THAT!",
   "from": "FOREIGN"
  },
  {
@@ -16966,6 +17686,16 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "WHAT WAS ON THAT DART? WHERE ARE MY AIRSICK PILLS? OH GOD.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "WHERE'S YOUR PASSPORT? YOU DON'T NEED ONE! YOU'RE DEAD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "WHOA! A FREE SPIRIT! LOVE IT, BROTHER. BUCKLE UP. CAREFULLY. AROUND EVERYTHING.",
   "from": "FOREIGN"
  },
@@ -16976,7 +17706,37 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "WHOO. MY STOMACH. I LEFT MY DAMN AIRSICK PILLS IN THE HELICOPTER. THE ONE YOU STOLE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "WHY DIDN'T I BRING THE PILLS?!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "YEAH! RIGHT IN THE HELICOPTER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU BEAT MY FOREIGN JUNK WITH SHIT IN YOUR PANTS. OKAY. LADY! GET UP HERE AND STOMP THIS STINKY BASTARD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU BEAT MY LANDMARKS NAKED. FINE. LADY! UP! AND DON'T LOOK DOWN THERE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU GOT SHIT ON MY ABS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU KILLED MY LANDMARKS. FOREIGN JUNK. TIME FOR THE REAL THING. LADY! GET YOUR GREEN ASS UP HERE!",
   "from": "FOREIGN"
  },
  {
@@ -16996,7 +17756,72 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "YOU KNOW WHAT'S WRONG WITH THE WORLD? THE REST OF IT! EVERY DAMN COUNTRY THAT ISN'T THIS ONE. THEY SHOULD BUILD A WALL AROUND THE WALL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU PUKED CONCRETE ON ME! ON ME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU PUKED ON ME! I'M THE ONE WHO PUKED! HE'S THE ONE WHO SHIT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU PUKED ON ME?! THERE'S A NAKED GUY RIGHT THERE! PUKE ON HIM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU PUKED ON ME. MAKE IT UP TO ME. SMASH HIM! FAST!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "YOU SHIT IN MY HELICOPTER! THAT SEAT WAS HEMP!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU SHIT YOURSELF? FINE. AT LEAST IT'S AMERICAN SHIT. NOT LIKE THOSE DAMN FOREIGNERS AND THEIR FOREIGN SHIT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU SMELL LIKE A FOREIGN BATHROOM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU WANNA MEET THE REAL HARRY? HERE HE IS, YOU SON OF A BITCH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU WANNA SEE WHAT A REAL MAN LOOKS LIKE? NOT SHITTY PANTS OVER HERE. THIS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU'RE NOT THE ONLY ONE WHO CAN TAKE HIS SHIRT OFF! JUST THE SHIRT, THOUGH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU'RE USELESS NOW.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU'RE USELESS NOW. AND HE STILL STINKS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU'RE USELESS NOW. AND THE NAKED GUY IS LAUGHING.",
   "from": "FOREIGN"
  },
  {
@@ -33526,6 +34351,11 @@
  },
  {
   "voice": "meathead",
+  "text": "...DAMN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "...EIGHTEEN.",
   "from": "m1/game/stages/dale/convoy.ts:403"
  },
@@ -33588,6 +34418,11 @@
   "voice": "meathead",
   "text": "...OKAY. SAVES ME A BULLET.",
   "from": "m1/game/stages/dale/town.ts:642"
+ },
+ {
+  "voice": "meathead",
+  "text": "...SHE'S STUCK.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -33663,6 +34498,11 @@
   "voice": "meathead",
   "text": "...WELL. I'M NAKED NOW.",
   "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "...WELL. THAT'S AMERICA.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -36031,6 +36871,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CAN'T GET A GRIP! IT'S ALL MUSCLE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "CAN'T GET A HOLD!",
   "from": "TOO_BIG_LINES"
  },
@@ -36433,6 +37278,11 @@
   "voice": "meathead",
   "text": "COMING THROUGH, LOSERS.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "CONCRETE PUKE! IT BURNS!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -39326,6 +40176,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE SAID HE FORGOT HIS AIRSICK PILLS. I GOT A CROSSBOW THAT MAKES PEOPLE PUKE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "HE SCREAMED AND IT FUCKING WORKED!",
   "from": "FOREIGN"
  },
@@ -39333,6 +40188,11 @@
   "voice": "meathead",
   "text": "HE SHOOK MY FILLINGS LOOSE!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SHOT ME FROM THE WALL!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -39353,6 +40213,11 @@
   "voice": "meathead",
   "text": "HE SHOT ME! WITH HIS EYES CLOSED!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SHOT STRAIGHT DOWN!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -39391,6 +40256,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE SMELLS LIKE PATCHOULI AND GUN OIL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "HE SPIT SOMEBODY ELSE'S BLOOD AT ME!",
   "from": "SPOOKY"
  },
@@ -39403,6 +40273,11 @@
   "voice": "meathead",
   "text": "HE SPRAYED ME! LIKE A LAWN! LIKE A LAWN, MAN!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SPRAYED THE WHOLE PLACE!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -39518,6 +40393,11 @@
   "voice": "meathead",
   "text": "HE'S A POPSICLE ON STRINGS.",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S ALL OILED UP!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -40043,6 +40923,11 @@
   "voice": "meathead",
   "text": "HOLLYWOOD. WHERE DREAMS COME TO GET A TETANUS SHOT.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOLY SHIT. THE HIPPIE GOT JACKED.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -40871,6 +41756,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I LIKED YOU BETTER WHEN YOU WERE A PUSSY HIPPIE, AND THAT VERSION OF YOU REALLY SUCKED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "I LIT THE GROUND! WHY DID I LIGHT THE GROUND?!",
   "from": "HAZARD_HURT"
  },
@@ -40973,6 +41863,11 @@
   "voice": "meathead",
   "text": "I SEE YOU TOO, CREEP.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SHOULD HAVE JUMPED!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -42511,6 +43406,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S SETTING ON MY LEGS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S SHIT! IT'S MONKEY SHIT!",
   "from": "ADVENTURE"
  },
@@ -42593,6 +43493,11 @@
   "voice": "meathead",
   "text": "JUNKIE TRASH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "JUST LIKE EVERY GIANT STATUE EVER.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -42688,6 +43593,11 @@
   "voice": "meathead",
   "text": "LACKING SYMMETRY",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LADY LIBERTY! WHY?!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -43038,6 +43948,11 @@
   "voice": "meathead",
   "text": "MACHETE TO THE MIDSECTION! MY ABS! MY PRECIOUS ABS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MACHINE GUN! HE HAS A MACHINE GUN!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -45086,6 +46001,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OKAY. THAT'S KIND OF BADASS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OKAY. THAT'S REAL LAVA.",
   "from": "SPOOKY"
  },
@@ -45326,6 +46246,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! A FIST THE SIZE OF A CAR!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! A HIGH NOTE! RIGHT IN THE EAR!",
   "from": "FOREIGN"
  },
@@ -45456,8 +46381,18 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! I SHOULD HAVE STOOD UNDER HIM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! IS THAT A DIRTY NEEDLE, YOU SICK FUCK?!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! IT CAME UP THE FLOOR!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -45601,6 +46536,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! SHE PUKED ON ME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! SIX KIDS IN A BLANKET!",
   "from": "FOREIGN"
  },
@@ -45718,6 +46658,11 @@
   "voice": "meathead",
   "text": "OW! THE HEELS! THE HEELS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! THE HIPPIE SHOT ME!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -47161,6 +48106,16 @@
  },
  {
   "voice": "meathead",
+  "text": "SHE PUKES CONCRETE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE REALLY LOVED THAT ASSHOLE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "SHE SLAPPED IT OUT OF ME! MORE OF IT!",
   "from": "SPACE"
  },
@@ -47202,6 +48157,11 @@
  {
   "voice": "meathead",
   "text": "SHE TROTTED RIGHT INTO ME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE'S A TOUGH OLD BROAD. HE ISN'T. THE CROSSBOW.",
   "from": "FOREIGN"
  },
  {
@@ -47408,6 +48368,11 @@
   "voice": "meathead",
   "text": "SHOULD HAVE LED WITH THIS.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULD HAVE TAKEN YOUR PILLS.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -49511,6 +50476,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S GONNA SET.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S IT? A RUBBER HEAD ON A STICK?",
   "from": "SPACE"
  },
@@ -50963,6 +51933,11 @@
   "voice": "meathead",
   "text": "THE STATUE MOVED! THE STATUE HIT ME!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE STATUE PUNCHED ME!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -52501,6 +53476,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WEAK STOMACH. THE PUKE DARTS.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "WEAKLING",
   "from": "VULGARITIES"
  },
@@ -52723,6 +53703,11 @@
   "voice": "meathead",
   "text": "WHERE ARE YOU GOING? I'M NOT DONE WITH YOU.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHERE DID HE EVEN GET THAT?",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
