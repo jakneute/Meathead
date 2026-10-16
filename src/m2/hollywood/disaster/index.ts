@@ -195,7 +195,7 @@ export const disaster: HollywoodSection = {
     runExits(state, endExits('disaster'));
     return controls;
   },
-  drawBackdrop: (c) => drawDisasterBackdrop(c),
+  drawBackdrop: (c, state) => drawDisasterBackdrop(c, state),
   drawBack: (c, state) => {
     const o = dzOf(state), { beat, k } = showNow(o);
     drawDisasterBack(c, state, o, beat, k, realDisastersOn(state));
