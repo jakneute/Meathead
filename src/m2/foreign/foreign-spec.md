@@ -148,9 +148,69 @@ sides lock once it starts; no i-frames; big total HP; the PA reacts to each kill
   of weight) as giant googly-eyed mechs, each with its own bullet-hell patterns, jetpack goons in between: the Eiffel
   Tower, the Sydney Opera House, Christ the Redeemer, the Leaning Tower of Pisa, the Taj Mahal, Big Ben, the Colosseum,
   the Great Pyramid, an Easter Island head (moai).
+- **THE LEANING TOWER OF PISA (the user's, 2026-10-16):** about midway through the rush. A joke fight: it's IMPERVIOUS
+  to all damage (shots ping off, a big IMMUNE read) and taunts him about it the whole time, trash-talking how
+  unbeatable it is. Yet all it ever does is lean over and fall (a long, telegraphed lean: its shadow/arc where it'll
+  land shown, creaking). If the falling tower hits him, he DIES (an instant kill, its own death + lines). If he
+  evades it, it smashes down and its health bar goes from 100 to zero instantly, and on to the next monument.
 - **The end:** Harry, furious, blasts him out of the sky with a rocket launcher; the crash; then the HELICOPTER HARRY
-  fight on the ground (mechanics: the user's, later). Harry is the land boss: full detail from the first pass, every
-  line group in clean / shitty / naked pools.
+  fight on the ground (below). Harry is the land boss: full detail from the first pass, every line group in clean /
+  shitty / naked pools.
+
+## The land boss: HELICOPTER HARRY (the user's fight design, verbatim, 2026-10-16)
+
+> got helicopter harry spec'd out. when he blows you out of the sky, you land in a fiery landing spot where all the
+> monuments you blew up are in shot. he rips off his uniform to look like a jacked Rambo type, bandana and all. meathead
+> is impressed, but his pivot from annoying hippie to vulgar xenophobe goes so far that even meathead is taken aback. "i
+> liked you better when you were a pussy hippie, and that version of you really sucked." harry summons a companion for
+> the fight. it cannot be harmed but it assists him: the statue of liberty - "a real American monument"
+>
+> harry has a machine gun and blasts it head on and while walking slowly. he will occasionally jump in the crown of the
+> statue (you only see the head and upper portions of the statue) and commands it to smash you. the status does a long
+> heavily telegraphed windup with its fist and smashes the ground and gets stuck, parodying many boss fights where you
+> fight a giant statue that slowly telegraphs its attack and just holds its arm down, like the sentinel fight in the
+> most recent wolverine game.
+>
+> this pisses off harry "you're useless now" eventually the statue does get unstuck and standing again. when it does
+> that, harry once again jumps in the crown and the same slow attack happens, increasingly pissing off harry because the
+> statue is really "dumb at fighting things much smaller than you"
+>
+> some moves during the fight is that harry will cling to a wall like in contra and fire his machine gun. there's two
+> different arcs. one of them directly to the opposite wall from his elevated position and slowly rotating downwards.
+> you need to stand completely underneath him to avoid it. the other wall move he can do is he fires it starting
+> straight downwards and arcs it upwards. the most reliable way to dodge it is to uppercut at the last moments on the
+> far end of the arena before it arcs up to you.
+>
+> his weakness is the plague crossbow. does minimal damage to him the darts themselves, but it makes him sick. he forgot
+> to take his "airsick pills" and he barfs on the statue - the statue immediately goes to a standing status if not
+> already in one and proceeds to barf its own 'concrete guts' onto harry, doing heavy damage. this will make harry jump
+> into the mecha statue and follow up with an arm smash attack. these get progressively faster as the fight goes on.
+> this also makes sure you cannot 'spam sick' him.
+>
+> when he dies the statue is saddened his master is dead, and the statue of liberty brings out a statue gun and blows
+> its statue brains out. it commits statue suicide. no gore, just statue concrete.
+
+Notes for the builder:
+- **The arena:** the crash site, on fire, the wrecked monument mechs from the gauntlet all in shot behind; walls at both
+  ends that Harry clings to (Contra style). The STATUE OF LIBERTY stands at the back: only her head and upper body in
+  frame (huge), invulnerable; her arm's smash lands on the arena floor and stays down a while (stuck: the parody of the
+  giant-statue boss that holds its arm down; its stuck arm likely something to stand on or a wall, the builder's call).
+- **Harry's moves:** walking slowly firing his machine gun head on; jumping up into her crown to command the slow,
+  heavily telegraphed fist smash (stuck after; his rants: "YOU'RE USELESS NOW", "SHE'S DUMB AT FIGHTING THINGS MUCH
+  SMALLER THAN HER"); unstuck, she stands, he's back in the crown, the same again, him angrier each time; the two wall
+  sweeps (from up a wall: across to the far wall then sweeping slowly down, safe right under him; or straight down then
+  arcing up, best dodged by an uppercut at the last moment at the far end).
+- **The weakness (opted in, overriding the "crossbow no vomit on bosses" rule):** the plague crossbow's darts barely
+  hurt, but make him sick (no airsick pills): he barfs on her; she snaps standing (if not already) and barfs her
+  concrete guts onto him (HEAVY damage); then he's back in her crown for an arm smash that gets faster through the
+  fight. That built-in follow-up is what stops him being spammed sick.
+- **His death (the user's, 2026-10-16):** TWO deaths, like every boss: the WEAKNESS death (a kill by the plague
+  crossbow's effect: buried/drowned in her concrete barf, undignified) and the NON-WEAKNESS death (any other kill;
+  nothing special per weapon). AFTER either, ALWAYS the same beat: she's heartbroken, pulls out a statue-sized gun and
+  shoots herself in the head: concrete, no gore.
+- Boss rules: 666 HP, 60-frame breather, non-weakness 35%; lines in clean / shitty / naked pools for every group;
+  Meathead's lines ("I LIKED YOU BETTER WHEN YOU WERE A PUSSY HIPPIE, AND THAT VERSION OF YOU REALLY SUCKED."); the
+  rip-off-the-uniform reveal; every new hurt source gets hurt + death lines; Harry fully drawn.
 
 ## Standing rules
 
