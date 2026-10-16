@@ -65,8 +65,9 @@ const TENT = { a: 3180, b: 3420, h: 190 } as const;
 const SPICE = { a: 3460, b: 3570, h: 100 } as const;
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_carpet', 400, 0], ['m2:fl_snakecharmer', 825, 0], ['m2:fl_carpet', 940, 220], ['m2:fl_camel', 1150, 0],
-  ['m2:fl_hookah', 1260, 300], ['m2:fl_snakecharmer', 1455, 0], ['m2:fl_camel', 1700, 0],
+  // (none down in the narrow alleys between the roofs, where he goes over them: up on the roofs, or out in the open)
+  ['m2:fl_camel', 260, 0], ['m2:fl_carpet', 400, 0], ['m2:fl_snakecharmer', 610, 140], ['m2:fl_carpet', 940, 220],
+  ['m2:fl_hookah', 1260, 300], ['m2:fl_snakecharmer', 1575, 200], ['m2:fl_camel', 1700, 0],
   ['m2:fl_carpet', 1920, 240], ['m2:fl_hookah', 1820, 600],
   ['m2:fl_carpet', 2220, 0], ['m2:fl_camel', 3080, 0],
   ['m2:fl_snakecharmer', 3140, 0], ['m2:fl_hookah', 3330, 0], ['m2:fl_carpet', 3510, SPICE.h],
