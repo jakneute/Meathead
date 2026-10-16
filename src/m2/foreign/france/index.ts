@@ -5,7 +5,8 @@
 // EIFFEL-ISH TOWER (the base of one: "OURS IS BIGGER"), climbed: up the girders in its left leg to the first deck,
 // along it over the arch, girders to the second level, and the top; the ELEVATOR in its right leg rides up to the
 // second level and down again (the way back up, too). Then the bakery street (baguettes swung), the flower stall, the
-// Mona Lisa print stand, to the border with the UK.
+// Mona Lisa print stand; then LE LOUVRE (louvre.ts, job 4b: the glass pyramid climbed over through its fountain show,
+// the Seine's bookstalls, an apartment block over its mansard roof), to the border with the UK.
 //
 // Crude (the first pass): readable boxes with full game feel. Checkpoints 70-79. Outdoors: the time of day's light.
 
@@ -24,6 +25,7 @@ import {
 } from '../kit';
 import { TALK } from './lines';
 import { updateMimeWalls, drawMimeWalls } from './kinds';
+import { LOUVRE_CHECKPOINTS, buildLouvre, updateLouvre, drawLouvreBack, drawLouvreFront, louvreLamps } from './louvre';
 
 const { x0, x1 } = SECTIONS.france;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -62,6 +64,7 @@ export const FRANCE_CHECKPOINTS = [
   { name: 'FRANCE: THE CABARET', cp: 71, x: X(1080), y: GY },
   { name: 'FRANCE: THE TOWER', cp: 72, x: X(1520), y: GY },
   { name: 'FRANCE: THE BAKERY', cp: 73, x: X(2680), y: GY },
+  ...LOUVRE_CHECKPOINTS,
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -144,6 +147,7 @@ export const france: ForeignSection = {
   checkpoints: FRANCE_CHECKPOINTS,
   build: (state) => {
     layOwn(state, [{ x1: x0, y1: GY, x2: x1, y2: GY, surface: 'hard' }]);
+    buildLouvre(state);
     for (const [a, b, h] of AWNINGS) ledge(state, X(a), Y(h), b - a, { hidden: true, tag: 'fr-awning' });
     for (const [a, b, h] of [...TABLES, [COLUMN.a, COLUMN.b, COLUMN.h] as [number, number, number], [STAGE.a, STAGE.b, STAGE.h] as [number, number, number], ...STALLS.map(([a, b, h]) => [a, b, h] as [number, number, number])]) solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'fr-solid' });
     for (const [a, b, h] of [[MARQUEE.a, MARQUEE.b, MARQUEE.h] as [number, number, number], DECK, LEVEL2, TOP, ...GIRDERS]) ledge(state, X(a), Y(h), b - a, { hidden: true, tag: 'fr-ledge' });
@@ -154,6 +158,7 @@ export const france: ForeignSection = {
   update: (ctx, controls) => {
     const { state } = ctx, f = state.frame, fr = fraOf(state), p = state.player;
     pavilionTalk(state, 'fr', x0, GY, TALK);
+    updateLouvre(ctx);
     updateMimeWalls(ctx);
     if (fr.lift) moveMover(state, fr.lift, X(LIFT.a), Y(liftH(f)));
     const cyc = (LIFT.wait + LIFT.run) * 2, t = f % cyc;
@@ -196,20 +201,21 @@ export const france: ForeignSection = {
     if (onScreen(v, X(1460), X(1600))) postBoard(c, X(1530), GY, ['EIFFEL TOWER', 'ACTUAL SIZE*', '*BIGGER'], LOOKS.france(1), '#1C1917', undefined, 130);
     if (onScreen(v, X(LIFT.a), X(LIFT.a + LIFT.w))) hungBoard(c, X(LIFT.a + LIFT.w / 2), Y(LIFT.hi) - 60, Y(LIFT.hi) - 30, ['ASCENSEUR', '(ELEVATOR)'], LOOKS.france(1), '#1C1917');
     { const [a, b, h] = STALLS[1]; if (onScreen(v, X(a) - 60, X(b))) postBoard(c, X(a) - 50, GY, ['MONA LISA', 'COPY OF A COPY'], LOOKS.france(1), '#78350F', undefined, 110); void b; void h; }
-    if (onScreen(v, X(3460), X(3600))) postBoard(c, X(3520), GY, ['LEAVING FRANCE', 'AU REVOIR (HELLO)'], LOOKS.france(1), '#14532D', undefined, 100);
+    drawLouvreBack(c, v, state);
     if (onScreen(v, X(20), X(120))) {
       const fx = X(40); box(c, fx - 2, GY - 200, 4, 200, hour('#9CA3AF'));
       for (let i = 0; i < 48; i += 4) box(c, fx + 2 + i, GY - 198 + Math.sin(f * 0.08 + i * 0.12) * 2, 4, 30, hour(i < 16 ? '#002395' : i < 32 ? '#F8FAFC' : '#ED2939'));
     }
     void mix; void at; void ramp6;
   },
-  drawFront: (c, state) => { drawMimeWalls(c, state); },
+  drawFront: (c, state) => { drawMimeWalls(c, state); drawLouvreFront(c, viewIn(state), state); },
   outdoors: () => 1,
   lamps: (state) => {
     const v = viewIn(state), out: Light[] = [];
     for (const rx of [490, 880]) if (onScreen(v, X(rx), X(rx))) out.push({ x: X(rx), y: Y(240), r: 160, a: 0.4, color: '#FDE68A' });
     if (onScreen(v, X(STAGE.a), X(STAGE.b))) out.push({ x: X(1300), y: Y(200), r: 200, a: 0.5, color: '#FCA5A5' });
     if (onScreen(v, X(LIFT.a), X(LIFT.a + LIFT.w))) { const l = fraOf(state).lift; if (l) out.push({ x: X(LIFT.a + LIFT.w / 2), y: l.y - 40, r: 90, a: 0.45, color: '#FDE68A' }); }
+    out.push(...louvreLamps(v));
     return out;
   },
 };

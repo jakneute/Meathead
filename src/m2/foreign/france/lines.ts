@@ -34,6 +34,10 @@ export const TALK: PavilionTalk = {
     { from: 600, to: 1700, key: 'mime', lines: ["A MIME. THE ONLY GOOD THING ABOUT A MIME IS THEY CAN'T TALK BACK.", "HE MADE A WALL. A FAKE WALL. AND IT WORKS."] },
     { from: 1100, to: 1500, key: 'cancan', lines: ['THE CAN-CAN. KICKING IN A LINE. SURE.', "THEY ALL KICK AT ONCE. THAT'S THE WHOLE TRICK."] },
     { from: 1550, to: 2650, key: 'eiffel', lines: ["IT'S THE EIFFEL TOWER, BUT WE BUILT IT, SO IT'S BETTER.", 'A TOWER MADE OF NOTHING BUT HOLES.'], minH: 340 },
+    // (job 4b: the Louvre, the Seine)
+    { from: 3700, to: 4100, key: 'louvre', lines: ['THE LOUVRE. A GLASS PYRAMID FULL OF GIFT SHOP.', "A MUSEUM. I'VE NEVER BEEN IN ONE. I'M STILL NOT GOING IN."] },
+    { from: 4200, to: 4400, key: 'mona', lines: ["THE MONA LISA. IT'S A POSTCARD. SHE STILL LOOKS SMUG.", "THAT'S IT? I CLIMBED A PYRAMID FOR A POSTCARD?"], minH: 460 },
+    { from: 4700, to: 5000, key: 'seine', lines: ['THE SEINE. IT SAYS A PUDDLE. IT IS A PUDDLE.', "USED BOOKS. IN FRENCH. I DON'T READ IN ENGLISH."] },
   ],
 };
 
@@ -88,6 +92,17 @@ export const HURT: HurtTable = {
     hurt: ['THE SMOKER SHOVED ME!', 'OW! SHE BURNED ME!', 'BACK OFF, ASHTRAY!'],
     death: ['KILLED BY A RUDE SMOKER', 'BORED TO DEATH'],
   },
+  'm2:fl_fountain': {
+    hurt: ['THE FOUNTAIN! UP MY SHORTS!', 'HOSED! BY A MUSEUM!', 'WATER! IN MY EVERYTHING!'],
+    death: ['HOSED OFF THE LOUVRE', 'DIED IN A FOUNTAIN SHOW'],
+  },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.mime, MIME], [V.waiter, WAITER], [V.baguette, BAGUETTE], [V.cancan, CANCAN], [V.smoker, SMOKER]]);
+/** A waiter, sneering, as the fountain show starts (the waiter voices). */
+export const FOUNTAIN: ByPants = {
+  clean: ['THE FOUNTAIN SHOW BEGINS. YOU ARE STANDING IN IT. OF COURSE.', 'ZE FOUNTAINS, MONSIEUR. I AM FROM DAYTON.', 'PLEASE DO NOT TOUCH ZE ART. ZE ART WILL TOUCH YOU.'],
+  shitty: ['ZE FOUNTAIN WILL WASH YOU. IT CANNOT WASH YOU ENOUGH.', 'MONSIEUR, ZE FOUNTAIN IS NOT A BIDET.'],
+  nude: ['MONSIEUR, ZE LOUVRE HAS NUDES. YOU ARE NOT ONE OF ZEM.', 'ZE STATUES ARE NAKED. ZEY ARE ALSO BETTER.'],
+};
+
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.mime, MIME], [V.waiter, WAITER], [V.baguette, BAGUETTE], [V.cancan, CANCAN], [V.smoker, SMOKER], [{ m: V.waiter.m, f: V.waiter.m }, FOUNTAIN]]);
