@@ -99,6 +99,12 @@ export interface Ending {
   zf: { x: number; y: number; z: number } | null;
   /** Through the far wall; the white flash of the cut to outside (0..1); frames since it started; the line's done. */
   wallHit: boolean; white: number; all: number; said: boolean;
+  /** THE SCRIPT, flung out of its case as it goes over, tumbling across the stage into the far wall; the hole it
+   *  punches through it (its height), before the bulldozer makes a bigger one. */
+  script: { x: number; y: number; vx: number; vy: number; a: number } | null;
+  scriptHole: number | null;
+  /** The bulldozer: frames into its last go at starting (after the exec's call); its engine going (tracks turning). */
+  catchT: number; running: boolean;
   ex: Exec;
 }
 
@@ -179,7 +185,7 @@ export const whOf = (state: GameState): Warehouse => {
         dir: { x: 0, face: -1, mode: 'gone', said: null }, runners: [] },
       fight: { phase: 'wait', t: 0, order: [], next: 0, spawnT: 0, arrivals: [], actors: [], bodies: [], killed: 0, door: null, doorK: 0, said: {},
         barkAt: -9999, moveId: -1, knockAt: -9999, seen: new WeakSet(), lastCd: 0, crushed: false },
-      ending: { phase: 'off', t: 0, dx: 0, v: 0, heap: [], heapX: 0, fade: 0, flying: [], caseDown: false, caseT: 0, zoomK: 0, zf: null, wallHit: false, white: 0, all: 0, said: false,
+      ending: { phase: 'off', t: 0, dx: 0, v: 0, heap: [], heapX: 0, fade: 0, flying: [], caseDown: false, caseT: 0, zoomK: 0, zf: null, wallHit: false, white: 0, all: 0, said: false, script: null, scriptHole: null, catchT: 0, running: false,
         ex: { mode: 'off', x: 0, y: 0, face: -1, t: 0, said: null, done: false } },
       hz: { lights: [], pyroHit: [] },
       flashes: [], upLatch: true, castSaid: new Map(), farWall: null,

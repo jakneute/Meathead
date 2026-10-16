@@ -34,7 +34,7 @@ import { SECTIONS, LOT_WALL_BREAK, LOT_DUMPSTER } from '../geometry';
 import { INK, checker, mix, poly, stamp, pixelBlob, board, plain } from '../blvd/kit';
 import { bodyOf, legs, arm, torso, part, px, dk, headShape, faceOn } from '../../spooky/costume';
 import { X, GY, BACK_Y, PILE_X, DOZER_X, DOZER_START, CASE_X, FAR_WALL, ARENA_CAM, LEAK_MEMO, CAST_MEMO } from './layout';
-import { whOf } from './state';
+import { whOf, type Ending } from './state';
 import { drawBody, CAST } from './cast';
 import { CLEAN_UP, CROWD_PAGES, SHRUG, AD_LEAK, EXEC_PHONE, EXEC_SEES, EXEC_RANT } from './lines';
 import { crowdSay, adSay, execSay } from './talk';
@@ -71,10 +71,38 @@ export const caseTip = (state: GameState) => (leaked(state) ? 1 : whOf(state).en
 /** Through the far wall (the hole's there). */
 export const wallOpen = (state: GameState) => leaked(state) || whOf(state).ending.wallHit;
 
+/** The script out of the case: how long after it goes over; its flight across to the far wall (frames, gravity); where
+ *  it goes through the wall (up off the floor), and how far into the wall's face. */
+const SCRIPT_AT = 22, SCRIPT_T = 30, SCRIPT_G = 0.3, HOLE_UP = 176, HOLE_IN = 34;
+export const scriptHoleY = (state: GameState) => { const E = whOf(state).ending; return E.scriptHole !== null && !wallOpen(state) ? E.scriptHole : null; };
+export const scriptHoleX = () => X(FAR_WALL) + HOLE_IN;
+export const flyingScript = (state: GameState) => whOf(state).ending.script;
+/** Still in its case (up, or going over and not flung out yet). */
+export const scriptInCase = (state: GameState) => { const E = whOf(state).ending; return !caseDown(state) || (!leaked(state) && !E.wallHit && !E.script && E.scriptHole === null); };
+const tickScript = (state: GameState, E: Ending) => {
+  if (E.caseDown && E.caseT === SCRIPT_AT && !E.script && E.scriptHole === null) {
+    const x = X(CASE_X), y = GY - 170, tx = X(FAR_WALL) + HOLE_IN, ty = GY - HOLE_UP;
+    E.script = { x, y, vx: (tx - x) / SCRIPT_T, vy: (ty - y - 0.5 * SCRIPT_G * SCRIPT_T * SCRIPT_T) / SCRIPT_T, a: 0 };
+    playSound('whoosh', 1, -4);
+  }
+  const s = E.script;
+  if (!s) return;
+  s.vy += SCRIPT_G; s.x += s.vx; s.y += s.vy; s.a += 0.45;
+  // (pages shedding off it as it goes)
+  if (state.frame % 2 === 0) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: -s.vx * 0.2 + (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 90, color: '#F8FAFC', size: 4, grav: 0.05 });
+  if (s.x >= X(FAR_WALL) + HOLE_IN) {
+    // Through the wall: a hole its size punched in the siding, daylight through it, bits of wall out the far side
+    E.scriptHole = GY - HOLE_UP; E.script = null;
+    playSound('crash', 0.9, -2); playSound('clang', 0.7, -6); shakeScreen(state, 10, 5);
+    for (let k = 0; k < 24; k++) state.particles.push({ pos: { x: X(FAR_WALL) + HOLE_IN + (Math.random() - 0.5) * 30, y: GY - HOLE_UP + (Math.random() - 0.5) * 30 }, vel: { x: -1 - Math.random() * 4, y: -2 - Math.random() * 4 }, life: 36, color: ['#78716C', '#A8A29E', '#57534E', '#E7E5E4'][k % 4], size: 2 + Math.random() * 4, grav: 0.35 });
+  }
+};
+
 export const startEnding = (state: GameState) => {
   const E = whOf(state).ending;
   if (E.phase !== 'off' || leaked(state)) return;
   E.phase = 'say'; E.t = 0; E.all = 0; E.said = false;
+  E.script = null; E.scriptHole = null; E.catchT = 0; E.running = false;
   state.player.inCutscene = true;
   meatheadSays(state, CLEAN_UP, true, () => { E.said = true; });
 };
@@ -196,12 +224,26 @@ export const updateEnding =(ctx: FrameContext): Controls | null => {
       if (E.t === 1 && !E.wallHit) { E.ex.phoned = false; execSay(state, EXEC_PHONE, () => { E.ex.phoned = true; }); }
       if (E.ex.mode !== 'off') E.ex.t++;
       const front = () => E.heapX + HALF;
-      // The engine catching; then up the stage, the pile ahead of the blade
-      // (idling till the exec's had his say on the phone: then it goes; 10 s at most)
-      if (E.t < 50 || (!E.ex.phoned && E.t < 600 && !E.wallHit)) {
-        if (E.t % 10 === 1) playSound('engine', 0.5, -10);
-        if (E.t === 20) playSound('rumble', 0.7, -8);
-        if (E.t % 4 === 0) state.particles.push({ pos: { x: E.dx + 26, y: GY - 156 }, vel: { x: -0.4, y: -1.5 }, life: 40, color: 'rgba(41, 37, 36, 0.7)', size: 5 + Math.random() * 4 });
+      // (the script, flung out of the case as it went over: across the stage and through the far wall, a hole of its own)
+      tickScript(state, E);
+      // Not started yet: all the time the exec's on the phone (the actors, the flowers), Meathead's sat up there working
+      // out how it goes. Looking this way and that over the controls, the starter tried now and then: a click, a cough
+      // of smoke, a shudder, nothing. Never moving. Once the exec's done, one more go and it catches; then up the stage,
+      // the pile ahead of the blade (15 s at most for the phone)
+      if (!E.ex.phoned && E.t < 900 && !E.wallHit) {
+        E.catchT = 0;
+        p.facing = (Math.floor(E.t / 55) % 3 === 1 ? -1 : 1);
+        const k = E.t % 150;
+        if (k === 60 || k === 72) playSound('click', 0.35, -6);
+        if (k === 100) { playSound('engine', 0.25, -16); state.particles.push({ pos: { x: E.dx + 26, y: GY - 156 }, vel: { x: -0.3, y: -1.2 }, life: 34, color: 'rgba(41, 37, 36, 0.55)', size: 4 }); }
+      } else if (!E.wallHit && E.catchT < 40) {
+        // (one more go: the starter grinding, a cough, then it catches, a roar and a belch of black smoke)
+        E.catchT++; p.facing = 1;
+        if (E.catchT === 1 || E.catchT === 8) playSound('click', 0.5, -4);
+        if (E.catchT === 14) playSound('engine', 0.4, -12);
+        if (E.catchT === 26) { playSound('rumble', 0.8, -8); playSound('engine', 0.7, -8); shakeScreen(state, 4, 2); }
+        if (E.catchT >= 26 && E.catchT % 2 === 0) state.particles.push({ pos: { x: E.dx + 26, y: GY - 156 }, vel: { x: -0.5 + Math.random() * 0.4, y: -2 - Math.random() }, life: 44, color: 'rgba(28, 25, 23, 0.75)', size: 6 + Math.random() * 5 });
+        E.running = E.catchT >= 26;
       } else if (!E.wallHit) {
         // (slowing as it gets to the case, the camera in on it; a beat on it going over; then on, flat out)
         const near = !E.caseDown && front() > X(CASE_X) - 120;
@@ -242,7 +284,8 @@ export const updateEnding =(ctx: FrameContext): Controls | null => {
         if (E.t >= 20) { E.phase = 'lot'; E.t = 0; }
       }
       // (the push in on the case: in as the pile gets to it, held while it goes over, back out)
-      const zoomTo = !E.wallHit && ((!E.caseDown && front() > X(CASE_X) - 140) || (E.caseDown && E.caseT < 95)) ? 1 : 0;
+      // (out again as the script's flung, to see it go through the wall)
+      const zoomTo = !E.wallHit && ((!E.caseDown && front() > X(CASE_X) - 140) || (E.caseDown && E.caseT < SCRIPT_AT + 4)) ? 1 : 0;
       // (back out off the pile as the engine catches; then in on the case)
       if (zoomTo) E.zf = null;
       else if (E.zf) E.zf.x = E.heapX + 30;
@@ -460,7 +503,7 @@ export const drawEndingBack = (c: Ctx, state: GameState) => {
   if (!E.heap.length) return;
   for (const h of E.heap) drawBody(c, h.i, E.heapX + h.ox, GY - h.oy, h.dir, 1, 0);
   drawPileGags(c, state);
-  drawDozer(c, E.dx, state.frame, E.phase === 'drive');
+  drawDozer(c, E.dx, state.frame, E.phase === 'drive' && E.running);
 };
 /** Over him: the cab's front; the exec's words. */
 export const drawEndingFront = (c: Ctx, state: GameState) => {

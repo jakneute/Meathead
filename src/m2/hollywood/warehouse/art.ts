@@ -19,7 +19,7 @@ import { drawPerson } from '../../adventure/temple/people';
 import { bendFloor } from '../../intro/art/kit';
 import {
   box, checker, mix, hash, poly, at, atDepth, still, stamp, bandedGradient, pixelBlob, lit, ramp6, board, plain, deco, bulbs, words,
-  sideBack, topBack, timeOfDay, STEVE, BRASS, VELVET, type Look,
+  sideBack, topBack, timeOfDay, STEVE, BRASS, VELVET, signW, type Look,
 } from '../blvd/kit';
 import { steveCard, paintStandee, velvetRopePaint } from '../blvd/props';
 import { drawTrain, type CarAt } from '../coaster/art';
@@ -30,7 +30,7 @@ import {
 } from './layout';
 import { whOf } from './state';
 import { WRECK_X, ROOF_HOLE, PROD_X, wallsDown, roofHoled, drawProducer } from './burst';
-import { dozerX, caseDown, caseTip, wallOpen, endingOn, drawDozer } from './ending';
+import { dozerX, caseDown, caseTip, wallOpen, endingOn, drawDozer, scriptHoleX, scriptHoleY, flyingScript, scriptInCase } from './ending';
 import { drawWarehouseFar } from './far';
 import { drawSets } from './sets';
 import {
@@ -583,18 +583,88 @@ const paintPlinth = (g: Ctx) => {
   box(g, -26, -66, 52, 22, INK); box(g, -25, -65, 50, 20, G[3]); box(g, -24, -64, 48, 18, G[2]);
   words(g, 'DO NOT', 0, -57, plain(1, 1, G[0])); words(g, 'TOUCH', 0, -48, plain(1, 1, G[0]));
 };
+/**
+ * THE SCRIPT itself (local: the foot of its stand at (0, 0)): a treasure, not a binder. Bound in oxblood leather,
+ * stepped and grained, the spine's raised bands in gold, its pages' edges showing (gilt); a gold-tooled double border
+ * with corner flourishes; the crest in the middle (the R in a gold ring, laurels round it); a red banner across the
+ * top with REVENGERS on it in gold, its tails folded back past the cover; a wax seal, brass brads, two ribbon
+ * bookmarks hanging out the bottom; up on a little brass easel on a velvet cushion.
+ */
+const paintScript = (g: Ctx, book = false) => {
+  const G = BRASS, L = ramp6('#7A1414'), V = ramp6('#5A1030'), P = ['#B8A27A', '#D8C49A', '#EADBB4', '#F6EED6'];
+  // (the cushion, the easel's lip and feet; not flying)
+  if (!book) {
+    box(g, -32, -7, 64, 8, INK); box(g, -31, -6, 62, 6, V[2]); box(g, -31, -6, 62, 2, V[4]); box(g, -31, -1, 62, 1, V[1]);
+    for (const x of [-27, 22]) { box(g, x, -2, 5, 3, G[1]); }
+    box(g, -27, -10, 54, 4, INK); box(g, -26, -9, 52, 2, G[3]); box(g, -26, -9, 52, 1, G[5]); box(g, -26, -7, 52, 1, G[1]);
+  }
+  // (the bookmarks, out of the bottom of the pages, down over the lip)
+  box(g, 6, -12, 3, 14, INK); box(g, 7, -12, 1, 13, '#B91C1C'); box(g, 7, 0, 1, 1, '#7F1D1D');
+  box(g, 11, -12, 3, 11, INK); box(g, 12, -12, 1, 10, G[4]);
+  poly(g, [[6, 2], [9, 2], [7.5, 0]], INK);
+  // (the pages' edges: gilt, ruled)
+  box(g, 19, -70, 6, 60, INK); box(g, 20, -69, 4, 58, P[1]);
+  for (let y = -68; y < -12; y += 2) box(g, 20, y, 4, 1, y % 4 === 0 ? P[3] : P[0]);
+  box(g, 20, -69, 4, 1, G[4]); box(g, 23, -69, 1, 58, G[2]);
+  box(g, -20, -12, 44, 3, INK); box(g, -19, -12, 42, 2, P[2]); box(g, -19, -11, 42, 1, G[3]);
+  // (the cover: leather in steps, grained; the spine down its left)
+  box(g, -24, -72, 46, 62, INK);
+  box(g, -23, -71, 44, 60, L[2]);
+  box(g, -23, -71, 44, 3, L[4]); box(g, -23, -68, 44, 2, L[3]); box(g, -23, -14, 44, 3, L[1]);
+  box(g, 18, -71, 3, 60, L[1]);
+  for (let k = 0; k < 40; k++) { const x = -16 + Math.floor(hash(k * 3.1) * 34), y = -66 + Math.floor(hash(k * 5.7) * 50); box(g, x, y, 1, 1, hash(k * 9.1) < 0.5 ? L[3] : L[1]); }
+  box(g, -23, -71, 7, 60, L[1]); box(g, -23, -71, 2, 60, L[3]); box(g, -17, -71, 1, 60, L[0]);
+  for (const y of [-64, -50, -36, -22]) { box(g, -23, y - 1, 7, 4, INK); box(g, -23, y, 7, 2, G[3]); box(g, -23, y, 7, 1, G[5]); }
+  // (the gold-tooled border, doubled; the flourishes in its corners)
+  const bx0 = -13, bx1 = 17, by0 = -67, by1 = -16;
+  for (const [i, col] of [[0, G[3]], [2, G[1]]] as const) {
+    box(g, bx0 + i, by0 + i, bx1 - bx0 - i * 2, 1, col); box(g, bx0 + i, by1 - i, bx1 - bx0 - i * 2 + 1, 1, col);
+    box(g, bx0 + i, by0 + i, 1, by1 - by0 - i * 2, col); box(g, bx1 - i, by0 + i, 1, by1 - by0 - i * 2, col);
+  }
+  for (const [cx, cy, sx, sy] of [[bx0 + 4, by0 + 4, 1, 1], [bx1 - 4, by0 + 4, -1, 1], [bx0 + 4, by1 - 4, 1, -1], [bx1 - 4, by1 - 4, -1, -1]] as const) {
+    box(g, cx, cy, 1, 1, G[5]); box(g, cx + sx, cy + sy, 1, 1, G[3]); box(g, cx + sx * 2, cy, 1, 1, G[3]); box(g, cx, cy + sy * 2, 1, 1, G[3]);
+    box(g, cx + sx * 3, cy + sy, 1, 1, G[2]); box(g, cx + sx, cy + sy * 3, 1, 1, G[2]);
+  }
+  // (the crest: a gold ring, the R in it, laurels round it)
+  const mx = 2, my = -38;
+  for (const [r, col] of [[11, INK], [10, G[1]], [9, G[3]], [8, G[4]], [7, INK], [6, '#2A060A']] as const) { g.fillStyle = col; g.beginPath(); g.arc(mx, my, r, 0, Math.PI * 2); g.fill(); }
+  box(g, mx - 7, my - 9, 4, 1, G[5]);
+  words(g, 'R', mx + 1, my + 5, deco(G[4], '#2A060A', 2, 1));
+  for (const s of [-1, 1]) for (let k = 0; k < 6; k++) {
+    const a = Math.PI / 2 + s * (0.5 + k * 0.32), lx = mx + Math.cos(a) * 13, ly = my + Math.sin(a) * 13;
+    box(g, Math.round(lx) - 1, Math.round(ly) - 1, 3, 2, INK); box(g, Math.round(lx), Math.round(ly) - 1, 2, 1, k % 2 ? G[3] : G[4]);
+  }
+  // (the banner across the top: red, gold-edged, its tails folded back past the cover; REVENGERS in gold)
+  const look = deco(G[4], '#5A0A10', 2, 1), tw = signW('REVENGERS', look), hw = Math.round(tw / 2) + 5, ty = -60;
+  for (const s of [-1, 1]) {
+    const ex = mx + s * hw;
+    poly(g, [[ex, ty - 4], [ex + s * 9, ty - 2], [ex + s * 6, ty + 3], [ex + s * 10, ty + 8], [ex, ty + 7]], INK);
+    poly(g, [[ex, ty - 3], [ex + s * 7, ty - 1], [ex + s * 4, ty + 3], [ex + s * 7, ty + 7], [ex, ty + 6]], '#7F1D1D');
+  }
+  box(g, mx - hw - 1, ty - 7, hw * 2 + 2, 13, INK); box(g, mx - hw, ty - 6, hw * 2, 11, '#B91C1C'); box(g, mx - hw, ty - 6, hw * 2, 2, '#DC2626'); box(g, mx - hw, ty + 3, hw * 2, 2, '#7F1D1D');
+  box(g, mx - hw, ty - 6, hw * 2, 1, G[4]); box(g, mx - hw, ty + 4, hw * 2, 1, G[2]);
+  words(g, 'REVENGERS', mx, ty + 3, look);
+  // (the seal: red wax, pressed, a drip off it; the brads)
+  for (const [r, col] of [[5, INK], [4, '#991B1B'], [3, '#B91C1C']] as const) { g.fillStyle = col; g.beginPath(); g.arc(12, -21, r, 0, Math.PI * 2); g.fill(); }
+  box(g, 11, -22, 2, 2, '#7F1D1D'); box(g, 10, -24, 1, 1, '#F87171'); box(g, 13, -17, 2, 3, '#991B1B');
+  for (const y of [-58, -24]) { box(g, -21, y, 3, 3, INK); box(g, -20, y, 2, 2, G[4]); box(g, -20, y, 1, 1, G[5]); }
+};
+
 /** The case on its plinth: glass in a brass frame, the script inside (red, bound with brads, its title); tipping off
  *  the back of the plinth as it goes over, empty after. */
-const drawCase = (c: Ctx, tip: number, down: boolean) => {
+const drawCase = (c: Ctx, tip: number, down: boolean, frameNow: number, scriptIn: boolean) => {
   c.save(); c.translate(34, -97); c.rotate(tip * 1.45);
   const gx = -68, gy = -80, G = BRASS;
-  if (!down || tip < 0.6) {
-    box(c, gx + 13, gy + 25, 42, 53, INK); box(c, gx + 14, gy + 26, 40, 51, '#7A1414'); box(c, gx + 14, gy + 26, 40, 2, '#B4302A'); box(c, gx + 14, gy + 26, 3, 51, '#9A2020'); box(c, gx + 50, gy + 26, 4, 51, '#4A0A0A');
-    for (const by of [gy + 32, gy + 70]) { box(c, gx + 17, by, 2, 2, G[4]); }
-    words(c, 'REVENGERS', gx + 35, gy + 40, plain(1, 1, '#FDE047'));
-    words(c, 'EOTWD', gx + 35, gy + 50, plain(1, 1, '#FEF3C7'));
-    words(c, 'DO NOT LEAK', gx + 35, gy + 66, plain(1, 1, '#FCA5A5'));
-    box(c, gx + 18, gy + 74, 34, 3, '#F4F0E8');
+  if (scriptIn) {
+    c.save(); c.translate(gx + 34, gy + 78);
+    stamp(c, 'hww-script-ornate', -52, -82, 104, 90, paintScript);
+    // (a glint off the gold now and then: the crest, the banner's end)
+    const gt = frameNow % 110;
+    if (gt < 12) {
+      const k = gt < 6 ? gt / 6 : (12 - gt) / 6, [sx, sy] = (Math.floor(frameNow / 110) % 2) ? [2, -40] : [-24, -57], r = Math.round(1 + k * 4);
+      c.fillStyle = '#FFFBE6'; c.fillRect(sx - r, sy, r * 2 + 1, 1); c.fillRect(sx, sy - r, 1, r * 2 + 1); c.fillRect(sx - 1, sy - 1, 3, 3);
+    }
+    c.restore();
   }
   // (the glass: a pale tint, its frame, two glints; gone after: a corner of frame and a shard)
   if (!down) {
@@ -608,7 +678,7 @@ const drawCase = (c: Ctx, tip: number, down: boolean) => {
   }
   c.restore();
 };
-const showpiece = (c: Ctx, v: View, f: number, tip: number, down: boolean) => {
+const showpiece = (c: Ctx, v: View, f: number, tip: number, down: boolean, scriptIn: boolean) => {
   const wx = caseWX();
   if (!seenAt(v, wx - 200, wx + 200, CASE_D)) return;
   atDepth(c, v.eye, CASE_D, () => {
@@ -625,13 +695,13 @@ const showpiece = (c: Ctx, v: View, f: number, tip: number, down: boolean) => {
       for (let k = 0; k < 3; k++) { c.fillStyle = (f + k * 7) % 30 < 24 ? 'rgba(239, 68, 68, 0.75)' : 'rgba(239, 68, 68, 0.25)'; c.fillRect(wx - 120, GY - 6 - k * 10, 240, 1); }
     } else for (let k = 0; k < 4; k++) { box(c, wx - 116 + k * 76, GY + 2, 32, 5, INK); box(c, wx - 115 + k * 76, GY + 3, 30, 3, BRASS[3]); }
     still(c, 'hww-plinth', wx, GY, -56, -100, 112, 102, paintPlinth);
-    c.save(); c.translate(wx, GY); drawCase(c, tip, down); c.restore();
+    c.save(); c.translate(wx, GY); drawCase(c, tip, down, f, scriptIn); c.restore();
     if (down) for (let k = 0; k < 14; k++) box(c, wx - 80 + ((k * 43) % 220), GY + 2 - (k % 3) * 3, 5, 3, '#E0F2FE');
   });
 };
 
 /** The far wall: the one still up (FIRE EXIT, bricked up); smashed open by the bulldozer (daylight through it). */
-const farWall = (c: Ctx, v: View, open: boolean) => {
+const farWall = (c: Ctx, v: View, open: boolean, scriptHole: number | null = null) => {
   const wx = X(FAR_WALL), top = ROOF_Y - 220, end = x1 + 400, Sd = pal().siding, O = pal().oxide;
   if (!seenAt(v, wx - 200, end)) return;
   // (its inside face going back, if he's left of it)
@@ -667,6 +737,21 @@ const farWall = (c: Ctx, v: View, open: boolean) => {
     for (let y = GY - 110, r = 0; y < GY; y += 8, r++) { box(c, dx, y, 60, 1, B[1]); for (let x = dx + (r % 2 ? 0 : 7); x < dx + 60; x += 14) box(c, x, y, 1, 8, B[1]); }
     box(c, dx + 6, GY - 132, 48, 16, INK); box(c, dx + 7, GY - 131, 46, 14, '#EF4444'); words(c, 'EXIT', dx + 30, GY - 120, plain(1, 1, '#FFF4F4'));
     still(c, 'hww-bricked', wx - 40, GY - 300, -100, -14, 200, 28, g => board(g, 0, 0, ['FIRE EXIT (BRICKED UP)'], plain(1, 1, '#E7E5E4'), '#3A1A1A', BRASS, 5));
+    // (where the script went through it: a hole its size, jagged, daylight through it, the siding's torn edge lit,
+    // cracks out from it; the bulldozer's makes it nothing later)
+    if (scriptHole !== null) {
+      const hx = scriptHoleX(), hy = scriptHole, n = 14;
+      const edge = (grow: number) => { c.beginPath(); for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2, r = (k % 2 ? 15 : 22) + hash(k * 3.7) * 6 + grow; const px = hx + Math.cos(a) * r * 1.15, py = hy + Math.sin(a) * r * 0.85; if (k) c.lineTo(px, py); else c.moveTo(px, py); } c.closePath(); };
+      c.fillStyle = INK; edge(3); c.fill();
+      c.fillStyle = Sd[4]; edge(1.5); c.fill();
+      c.save(); edge(0); c.clip();
+      const tod = timeOfDay();
+      bandedGradient(c, hx - 34, hy - 26, 68, 52, [mix('#6C92C8', '#141832', tod.lamps * 0.8), mix('#C6BC9E', '#2A2840', tod.lamps * 0.8), mix('#DEBE8A', '#3A3048', tod.lamps * 0.8)], 4);
+      c.restore();
+      c.strokeStyle = INK; c.lineWidth = 1; c.beginPath();
+      for (let k = 0; k < 6; k++) { const a = hash(k * 5.3) * Math.PI * 2, r0 = 26, r1 = 34 + hash(k * 2.1) * 16; c.moveTo(hx + Math.cos(a) * r0 * 1.1, hy + Math.sin(a) * r0 * 0.8); c.lineTo(hx + Math.cos(a + 0.15) * r1 * 1.1, hy + Math.sin(a + 0.15) * r1 * 0.8); }
+      c.stroke();
+    }
   }
 };
 
@@ -682,10 +767,17 @@ const mainStage = (c: Ctx, v: View, state: GameState) => {
     c.restore();
     still(c, 'hww-keys', dz - 30, BACK_Y - 142, -40, -12, 80, 24, g => board(g, 0, 0, ['KEYS IN IT'], plain(1, 1, '#18181B'), '#FDE68A', BRASS, 4));
   }
-  showpiece(c, v, f, caseTip(state), caseDown(state));
+  showpiece(c, v, f, caseTip(state), caseDown(state), scriptInCase(state));
   // (the pages all over the stage, after)
   if (caseDown(state)) for (let rx = ARENA.a + 30; rx < ARENA.b - 10; rx += 37 + (rx % 23)) if (seenAt(v, X(rx), X(rx) + 12)) { const y = GY - 4 - (rx % 3) * 2 - (rx % 5) * 9; box(c, X(rx) - 1, y - 1, 14, 6, INK); box(c, X(rx), y, 12, 4, '#F5F5F4'); box(c, X(rx) + 2, y + 1, 8, 1, '#A8A29E'); }
-  farWall(c, v, wallOpen(state));
+  farWall(c, v, wallOpen(state), scriptHoleY(state));
+  // (THE SCRIPT, flung out of the case, tumbling across to the far wall, shedding pages)
+  const s = flyingScript(state);
+  if (s) {
+    c.save(); c.translate(Math.round(s.x), Math.round(s.y)); c.rotate(s.a); c.scale(0.6, 0.6); c.translate(0, 40);
+    stamp(c, 'hww-script-book', -52, -76, 104, 80, g => paintScript(g, true));
+    c.restore();
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------

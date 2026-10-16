@@ -94,8 +94,9 @@ const paintDumpster = (g: Ctx) => {
   // beside it in his pool; where he hit, the rim's dented in and smeared, a run of him down the bin's end
   poly(g, [[DW - 18, -RIM - 4], [DW + 4, -RIM - 4], [DW + 4, -RIM + 3], [DW - 6, -RIM + 6], [DW - 18, -RIM + 1]], INK);
   poly(g, [[DW - 16, -RIM - 2], [DW + 2, -RIM - 2], [DW + 2, -RIM + 2], [DW - 6, -RIM + 4], [DW - 16, -RIM]], B[1]);
-  box(g, DW - 20, -RIM - 4, 26, 4, Bl[2]); box(g, DW - 16, -RIM - 4, 14, 1, Bl[3]); box(g, DW - 8, -RIM, 4, 10, Bl[1]);
-  for (const [dy, w, l] of [[4, 8, 30], [36, 6, 34], [74, 4, 30]] as const) { box(g, DW - 2, -RIM + dy, w, l, Bl[1]); box(g, DW - 1, -RIM + dy, 2, l, Bl[3]); box(g, DW - 2, -RIM + dy + l, w, 3, Bl[0]); }
+  box(g, DW - 22, -RIM - 4, 24, 4, Bl[2]); box(g, DW - 18, -RIM - 4, 14, 1, Bl[3]);
+  // (the smear down the bin's face below where he hit, on the steel, never off its edge)
+  for (const [dx, w, l] of [[-14, 6, 44], [-24, 4, 26], [-8, 3, 70]] as const) { box(g, DW + dx, -RIM + 2, w, l, Bl[1]); box(g, DW + dx + 1, -RIM + 2, Math.max(1, w - 3), l, Bl[3]); box(g, DW + dx, -RIM + 2 + l, w, 3, Bl[0]); }
   const mx = DW + 78;
   drawBody(g, 0, mx, 0, 1, 1, 1);
   // (what came off him on the way down: his shield, rolled off on its rim; a boot; spatter on the asphalt)
