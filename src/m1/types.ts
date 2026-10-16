@@ -288,6 +288,10 @@ export interface Player extends Entity {
    *  throne.ts): `t` frames since he sat; `mood` pushing (red-faced, trembling), relief (eyes shut, slumped) or uh-oh
    *  (wide-eyed, gripping on); `push` 0..1 how hard. Whatever sets it clears it (and respawn does). */
   throne?: { t: number; mood: 'push' | 'relief' | 'uhoh'; push: number };
+  /** Sat in Meathead 2's helicopter (render/player/copterPose.ts): a passenger on the tour, or flying it: how far he's
+   *  leaning into it, firing, the stick yanked back (an up boost), hanging off his seatbelt (upside down), his face.
+   *  Whatever sets it clears it. */
+  copterSeat?: { mode: 'passenger' | 'pilot'; lean: number; fire: boolean; yank: boolean; hang: boolean; mood: 'grit' | 'snarl' | 'flinch' | 'bored' };
   /** Something he's doing takes him off the vine he's on (Meathead 2: the mallet's smash down, from one): let go of it. */
   dropVine?: boolean;
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */

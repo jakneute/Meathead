@@ -5,6 +5,7 @@ import { drawRemains } from './remains';
 import { drawFreefall } from './freefall';
 import { drawExtinguisherPose } from './extinguisher';
 import { drawThronePose } from './throne';
+import { drawCopterSeatPose } from './copterPose';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD, vineGrip, vineLean, VINE_SHOULDER } from '../../combat/muzzle';
@@ -259,6 +260,16 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     const g = p.gut;
     const shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
     drawExtinguisherPose(ctx, p.extinguisher, animFrame, { nude: g?.stage === 3, shat });
+    finishBody();
+    if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
+    ctx.restore();
+    return;
+  }
+  // Sat in Meathead 2's helicopter, a passenger or flying it: its own poses (render/player/copterPose.ts); a cutscene
+  // kick (out of his seat at the pilot) takes over
+  if (p.copterSeat && !((p.kickPose || 0) > 0) && hurtT < 0 && !p.headless && p.health > 0) {
+    const g = p.gut, shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    drawCopterSeatPose(ctx, p.copterSeat, animFrame, { nude: g?.stage === 3, shat });
     finishBody();
     if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
     ctx.restore();
