@@ -32,6 +32,7 @@ import { advLayout, ADV_STAGE, ADV_CHECKPOINTS } from './adventure/index';
 import { spookyLayout, SPOOKY_STAGE, SPOOKY_CHECKPOINTS } from './spooky/index';
 import { spaceLayout, SPACE_STAGE, SPACE_CHECKPOINTS } from './space/index';
 import { hollywoodLayout, HOLLYWOOD_STAGE, HOLLYWOOD_CHECKPOINTS } from './hollywood/index';
+import { foreignLayout, FOREIGN_STAGE, FOREIGN_CHECKPOINTS } from './foreign/index';
 import { SPOTS, LANDS } from './hub/lands';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
 import { setGenderOf, unpaired } from '../m1/content/gender';
@@ -69,18 +70,20 @@ import { registerGrabCallouts } from './moves/callouts';
 // test pen behind the staff door (try out the beatdown and the shakedown on whoever walks in).
 
 // (in Meathead 2, what's thrown up off the top of the screen comes back down: no "TO THE MOON")
-for (const l of [hubLayout, penLayout, advLayout, spookyLayout, spaceLayout, hollywoodLayout, introLayout]) l.noMoonKills = true;
+for (const l of [hubLayout, penLayout, advLayout, spookyLayout, spaceLayout, hollywoodLayout, foreignLayout, introLayout]) l.noMoonKills = true;
 // (and the camera glides where it'd jump in the lands: out of a cutscene's view, onto a fight's arena)
 advLayout.smoothCameraSnaps = true;
 spookyLayout.smoothCameraSnaps = true;
 spaceLayout.smoothCameraSnaps = true;
 hollywoodLayout.smoothCameraSnaps = true;
+foreignLayout.smoothCameraSnaps = true;
 registerStageLayout(HUB_STAGE, hubLayout);
 registerStageLayout(PEN_STAGE, penLayout);
 registerStageLayout(ADV_STAGE, advLayout);
 registerStageLayout(SPOOKY_STAGE, spookyLayout);
 registerStageLayout(SPACE_STAGE, spaceLayout);
 registerStageLayout(HOLLYWOOD_STAGE, hollywoodLayout);
+registerStageLayout(FOREIGN_STAGE, foreignLayout);
 registerStageLayout(INTRO_STAGE, introLayout);
 registerIntro();
 loadVoicePack(voicePackUrl);
@@ -137,6 +140,7 @@ const LAND_STAGES: Record<string, { stage: string; checkpoints: { name: string; 
   spooky: { stage: SPOOKY_STAGE, checkpoints: SPOOKY_CHECKPOINTS },
   space: { stage: SPACE_STAGE, checkpoints: SPACE_CHECKPOINTS },
   hollywood: { stage: HOLLYWOOD_STAGE, checkpoints: HOLLYWOOD_CHECKPOINTS },
+  foreign: { stage: FOREIGN_STAGE, checkpoints: FOREIGN_CHECKPOINTS },
 };
 const landOfStage = (stage: string) => Object.keys(LAND_STAGES).find(id => LAND_STAGES[id].stage === stage) ?? null;
 
@@ -151,10 +155,10 @@ const App2: React.FC = () => {
   const scale = useFitToWindow();
   const ui = useSyncExternalStore(subscribeUi, getUi);
   // (it starts on the way in: the intro; in dev, ?adv=<checkpoint> starts in Adventure Land, ?spooky=<checkpoint> in
-  // Spooky Land, ?space=<checkpoint> in Space Land, ?hollywood=<checkpoint> in Hollywood Land, ?hub=<spot> at the hub,
-  // ?pen in the staff room)
+  // Spooky Land, ?space=<checkpoint> in Space Land, ?hollywood=<checkpoint> in Hollywood Land, ?foreign=<checkpoint> in
+  // Foreign Lands, ?hub=<spot> at the hub, ?pen in the staff room)
   const devQ = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
-  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : INTRO_STAGE;
+  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : INTRO_STAGE;
   const [stage, setStage] = useState(first);
   const [status, setStatus] = useState(GameStatus.START);
   const pending = useRef<string | null>(first);

@@ -26,9 +26,10 @@ import { SAFARI_ARTIE } from './walkAway/artie';
 import { DONNIE_DRACULA } from './walkAway/donnie';
 import { SPACE_QUEEN } from './walkAway/spaceQueen';
 import { STUNTMAN_STEVE } from './walkAway/stuntmanSteve';
+import { HELICOPTER_HARRY } from './walkAway/helicopterHarry';
 
 /** The bosses that have a walk-away (add each boss's SceneDef here). */
-export const WALK_AWAY_SCENES = { 'safari-artie': SAFARI_ARTIE, 'donnie-dracula': DONNIE_DRACULA, 'space-queen': SPACE_QUEEN, 'stuntman-steve': STUNTMAN_STEVE } satisfies Record<string, SceneDef>;
+export const WALK_AWAY_SCENES = { 'safari-artie': SAFARI_ARTIE, 'donnie-dracula': DONNIE_DRACULA, 'space-queen': SPACE_QUEEN, 'stuntman-steve': STUNTMAN_STEVE, 'helicopter-harry': HELICOPTER_HARRY } satisfies Record<string, SceneDef>;
 export type WalkAwayBoss = keyof typeof WALK_AWAY_SCENES;
 
 export interface WalkAwayOpts {
@@ -338,7 +339,7 @@ export const devPreviewWalkAway = () => {
   window.addEventListener('keyup', e => { if (e.key === ' ') jumpDown = false; });
   const start = () => {
     const which = q.get('walkaway');
-    const boss: WalkAwayBoss = which === 'donnie' ? 'donnie-dracula' : which === 'queen' || which === 'space' ? 'space-queen' : which === 'steve' || which === 'hollywood' ? 'stuntman-steve' : 'safari-artie';
+    const boss: WalkAwayBoss = which === 'donnie' ? 'donnie-dracula' : which === 'queen' || which === 'space' ? 'space-queen' : which === 'steve' || which === 'hollywood' ? 'stuntman-steve' : which === 'harry' || which === 'foreign' ? 'helicopter-harry' : 'safari-artie';
     const weapon = (q.get('weapon')?.toUpperCase() || undefined) as WeaponType | undefined;
     const w = playWalkAway(null, { boss, weapon: weapon && M2_WEAPON_INFO[weapon] ? weapon : undefined, weakness: q.has('weak'), onDone: () => setTimeout(() => { cur = start(); }, 400) });
     w.shat = q.has('shat'); w.nude = q.has('nude');

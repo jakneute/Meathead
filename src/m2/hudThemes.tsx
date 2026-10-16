@@ -10,7 +10,7 @@ import type { HudSkin } from '../m1/components/HUD';
 export type Zone =
   | 'garage' | 'security' | 'america' | 'ticket' | 'hub' | 'staff'
   | 'jungle' | 'queue' | 'boat' | 'underwater' | 'dino' | 'temple' | 'cart' | 'roof' | 'clearing'
-  | 'spooky' | 'space' | 'hollywood';
+  | 'spooky' | 'space' | 'hollywood' | 'foreign';
 
 /** How the pause menu looks. */
 export interface PauseSkin {
@@ -435,6 +435,26 @@ export const THEMES: Record<Zone, Theme> = {
       well: { background: 'rgba(24,24,27,0.6)', border: '1px solid #B91C1C' },
       slot: 'rgba(24,24,27,0.92)', slotOn: 'rgba(250,204,21,0.8)',
       button: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', buttonEdge: '#18181B',
+    },
+  },
+  // Foreign Lands (one look for all of it): a passport, navy with a gold edge, a red customs stamp
+  foreign: {
+    hud: {
+      panel: { background: 'linear-gradient(180deg, rgba(30,58,138,0.96), rgba(23,37,84,0.96))', border: '2px solid #CA8A04', boxShadow: PIXEL_SHADOW },
+      deco: <>{edge('#B91C1C', 4)}{tag('VISA', { background: '#B91C1C', color: '#FEF2F2' })}</>,
+      label: '#DBEAFE', value: '#FFFFFF', name: '#FDE68A',
+      track: { background: '#172554', borderColor: '#CA8A04' },
+      slot: { background: 'rgba(23,37,84,0.6)', borderColor: '#CA8A04' },
+    },
+    pause: {
+      title: 'PAUSED', sub: 'NO PASSPORT ALLOWED',
+      titleStyle: { color: '#FDE68A', textShadow: '3px 3px 0 #B91C1C, 5px 5px 0 #000' },
+      frame: { background: 'linear-gradient(180deg, #1E3A8A, #172554)', border: '4px solid #CA8A04', boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9)' },
+      stripe: 'repeating-linear-gradient(135deg, #B91C1C 0 8px, #F8FAFC 8px 16px, #1E40AF 16px 24px, #F8FAFC 24px 32px)',
+      accent: '#FDE68A', text: '#DBEAFE', muted: '#93C5FD',
+      well: { background: 'rgba(23,37,84,0.6)', border: '1px solid #CA8A04' },
+      slot: 'rgba(23,37,84,0.92)', slotOn: 'rgba(253,230,138,0.8)',
+      button: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', buttonEdge: '#172554',
     },
   },
 };
