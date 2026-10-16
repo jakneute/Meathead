@@ -589,12 +589,12 @@ The user's HELICOPTER HARRY fight, built (harry/: arena.ts, scene.ts, rambo.ts, 
   gagging, puking, sad, sobbing, dread); the stola's folds; the tablet (JULY IV / MDCCLXXVI). Her right (torch) arm is
   a two-bone arm drawn to wherever her fist is (rearing over him, its elbow kept off her face so the window stays in
   sight); the torch stays upright in her fist, its gold flame. Invulnerable: she isn't an enemy at all.
-- **His moves** (fight.ts; numbers up top): WALK (slowly at him, M60 bursts head on at chest height: jump them, duck or
-  slide under them, or get behind/on the stuck fist: rounds stop on it); THE CROWN (a big leap up into her window,
+- **His moves** (fight.ts; numbers up top): WALK (slowly at him, M60 bursts head on at chest height, 5 rounds each: one
+  jump clears a burst; or duck or slide under them); THE CROWN (a big leap up into her window,
   "LADY! SMASH HIM!"; her fist rears up over him, a shadow ring on the floor follows him for 70% of the windup, then
   LOCKS (flashing, an alert), the fist going hot; ~2.8 s the first time; down in 12 frames; under it is a big hit);
-  STUCK: the fist is a 112x74 concrete block on the floor with a lit top: STANDABLE, and cover (my call: a block, not a
-  wall); 400 frames of her straining, shaking, grinding; Harry's rant from the crown (three escalating levels, the
+  STUCK: the fist planted on the floor (112x74), NO collision at all (the user, later: it hurts only landing on him; not
+  standable, no wall, no cover: his rounds and sweeps go through; a plain square arena); 400 frames of her straining, shaking, grinding; Harry's rant from the crown (three escalating levels, the
   user's lines in the first two), then he's down walking him down; she yanks it free (anybody on it popped off);
   Meathead's "...SHE'S STUCK." once a visit. THE WALLS: sweep 1 off the far wall from him (level across, then rotating
   down to 74 px out from his own wall: safe only right under him), sweep 2 off the near wall (straight down, then a
@@ -685,3 +685,51 @@ timings, HP_SCALE 2, one wave each, Pisa, checkpoints).
   head: the nine checkpoints share one x and the walk-past loop fired them all on respawn; now manual); a big health +
   ammo after every landmark; the rotor boost's own recharge (14-frame cooldown, a boost every 30 frames: twice a
   charge on foot), never his power cells, a BOOST meter by the rockets.
+
+### Follow-ups (the user's playtest notes, same pass)
+
+- **The jacking, shown:** after "SHUT UP, HIPPIE." the view punches in on the cabin (the zoom's pull about the cabin,
+  the park's camera with it); Meathead's cutscene kick; WHAM; Harry out the door, flailing, yelling; the helicopter
+  wobbles; back out as Meathead slides into the pilot's seat; Harry's fall and landing as before. The tour trimmed to
+  Harry's welcome, the bigger landmarks ("IN AMERICA, EVERYTHING IS BIGGER. EVEN OTHER PLACES.") and the straws, with
+  Meathead's "UH HUH." and "I DON'T WANT A STRAW." kept.
+- **The rotor always chops** any of the lackeys touching its disc (the boost's own shred kill, its callout), boosting or
+  not; it never hurts him. The disc's line turns with the helicopter.
+- **The boosts turn it:** right + B a quarter over nose down, left + B a quarter over backward, down + B upside down, up
+  + B upright: the rotor leading, blades first; snappy into it and back.
+- **The arrivals come from all over the park, close:** each landmark comes up somewhere of its own (park.ts RISE: out of
+  the far parking lot, the lagoon, behind its pavilion, off to the side) with the camera still short of it, then STOMPS
+  in to its plinth as the camera comes the rest of the way round (exactly there as its fight starts). The pavilions are
+  placed so each landmark with a country stands by its own (France, Italy, the UK, Morocco).
+- **The ruin (looks only):** each landmark's walk in tramples a path: footprint craters, flipped cars, pavilions caved in,
+  fires and smoke along it; fires round each plinth as its fight goes on. Worked out from where the landmarks have got
+  to, so it stacks up (the park's a burning ruin by the Easter Island head) and comes back as it was at a checkpoint;
+  the fires glow through the lighting (the section's lamps). Car alarms, crashes, screams, splashes as it stomps.
+- **The landmarks** a little tougher (HP_SCALE 2 -> 1.6) and hit harder (MECH_DMG 1.3: shots, beams, drops, minions,
+  contact; not the Leaning Tower's fall, not the lackeys).
+- **The lasers** (the Eiffel Tower's and the Pyramid's): narrower, a longer warning, then a LOCK (22 frames, held still,
+  flashing white the width it'll fire) before it fires, and slow following once firing; every beam can't hurt him
+  during the first 12 frames of a boost, so a boost through a beam clears it.
+- **No ammo up here:** the refill after each landmark is health only; the lackeys drop health only (FLY_DROPS), the
+  park's table back on the ground.
+- **Rockets:** kept (ROCKETS_ON, one line to switch them off), the recharge 50% longer (225 frames a rocket).
+- **His pose in the seat** (render/player/copterPose.ts, Player.copterSeat): bored and slumped, arms crossed, on the
+  tour; flying, hunched over the controls, elbows out, the cyclic and the collective, boots on the pedals; leaning into
+  boosts, the stick jittering while he fires, yanked back for an up boost, hanging off his belt upside down, a snarl
+  after a kill, a flinch when hit; jeans, shat or bare as he is.
+- **Harry never says a line twice in a life:** one set (heli/talk.ts harrySaid) cleared each stage build, every Harry
+  line in the helicopter and his arena picked through harryPick (unsaid ones, then the 45 s rule); a pool run dry, he's
+  quiet for it. His shitty and naked pools get the clean ones on top. His pools rewritten and grown, the swearing varied
+  (motherfucker, cocksucker, shit-for-brains, dipshit, fuckwit, douchebag, sumbitch ...), no slurs; the arena's rant and
+  summons cut to about half; the stuck-arm rant's last level (it repeats) twelve lines.
+- **Harry's arena:** his arms in the rant, the command, the flex and the fall bend out, not in over his head; her arm
+  eases between its elbow sides (no pop), stays inside the arena (clipped to it: past the end walls she's behind them),
+  and smashes near straight; the stuck fist has no collision (above); a retry gives him a 1.75 s entrance (flexing, a
+  taunt, no fire) before it's on; his bursts are 5 rounds (one jump clears one); her revolver's drawn in front of her
+  head at her near temple, a sobbing beat before the shot.
+- **Lackeys during the fights** (goons.ts fightGroup): a small group every 8-12 s while a landmark's fighting (not while
+  it arrives, not at the Leaning Tower), from in front, behind, over and under, 2 to 4 of them as the gauntlet goes, no
+  more than a handful out. **The rockets go for them first** (the nearest on screen), the landmark only when none's up.
+- **Harry to her like a lousy husband** (the user's lines and more, in the crown, stuck-arm and unstuck pools): "LOOK AT
+  WHAT YOU MADE ME DO.", "YOU NEVER LISTEN.", "I GAVE YOU EVERYTHING. I GAVE YOU A TORCH.", "I'M NOT MAD. I'M
+  DISAPPOINTED." ... Verbal only; it pays off her heartbreak when he's dead.
