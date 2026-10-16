@@ -184,6 +184,16 @@ export const LOOKS = {
   germany: (s = 2): Look => ({ sx: s, sy: s + 1, fill: rampDown('#FBBF24', 0.3), serif: true, ink: '#1C1917', gap: 2 }),
   /** Italy: a sign-painter's cream script-ish (serifs, a lean), red shadow. */
   italy: (s = 2): Look => ({ sx: s, sy: s + 1, fill: rampDown('#FEF3C7', 0.2), serif: true, slant: 0.5, shadow: '#991B1B', drop: 1, gap: 2 }),
+  /** Japan: brush-ish black on white paper, heavy, a red hanko-ish drop. */
+  japan: (s = 2): Look => ({ sx: s, sy: s + 1, fill: rampDown('#1C1917', 0.15), bold: s >= 2, shadow: '#DC2626', drop: 1, gap: 1 }),
+  /** Morocco: tile-blue and gold, a raised edge. */
+  morocco: (s = 2): Look => ({ sx: s, sy: s + 1, fill: rampDown('#FCD34D', 0.3), hi: '#FEF9C3', ink: '#1E3A8A', gap: 1 }),
+  /** France: thin gold serifs on bistro green, a lean. */
+  france: (s = 2): Look => ({ sx: s, sy: s + 1, fill: rampDown('#FDE68A', 0.25), serif: true, slant: 0.3, ink: '#14532D', gap: 2 }),
+  /** The UK: enamel-sign white on red, bold, a dark drop. */
+  uk: (s = 2): Look => ({ sx: s, sy: s + 1, fill: rampDown('#F8FAFC', 0.15), bold: s >= 2, shadow: '#1E3A8A', drop: 1, gap: 1 }),
+  /** Canada: routed into a plank (carved, wood grain), lumber-camp yellow. */
+  canada: (s = 2): Look => ({ sx: s, sy: s + 1, fill: rampDown('#FDE68A', 0.3), grain: '#92400E', lip: '#78350F', gap: 1 }),
   /** The land's own (the gate, the PA horns): red, white and blue, stars-and-stripes loud. */
   land: (s = 2): Look => ({ sx: s, sy: s + 1, fill: rampDown('#F8FAFC', 0.2), ink: '#1E3A8A', shadow: '#991B1B', drop: 2, gap: 1 }),
 } as const;
