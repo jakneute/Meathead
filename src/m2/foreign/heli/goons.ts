@@ -67,8 +67,11 @@ const ai = (ctx: FrameContext, e: Enemy) => {
   const leaving = t > Pl.leave;
   if (Pl.mode === 'hover') {
     // (in to its spot, bobbing there, a flare at him now and then; told to go: off the way it came)
-    const tx = leaving ? CAMX + W + 160 : fx(Pl.sx), ty = fy(Pl.sy) + Math.sin(t * 0.05 + Pl.sx) * 18;
-    e.pos.x += (tx - m.x) * (leaving ? 0.03 : 0.05); e.pos.y += (ty - m.y) * 0.05;
+    // (told to go: off the right at a steady clip (easing toward a spot just off the edge, it never quite got there and
+    // hung about out of sight, holding the next wave up))
+    const ty = fy(Pl.sy) + Math.sin(t * 0.05 + Pl.sx) * 18;
+    if (leaving) e.pos.x += 5; else e.pos.x += (fx(Pl.sx) - m.x) * 0.05;
+    e.pos.y += (ty - m.y) * 0.05;
     if (!leaving && t > 50 && --Pl.cd <= 0 && state.player.health > 0 && !state.player.inCutscene) {
       Pl.cd = 110 + Math.floor(Math.random() * 60);
       const a = Math.atan2(pc.y - m.y, pc.x - m.x);
@@ -97,10 +100,33 @@ const ai = (ctx: FrameContext, e: Enemy) => {
     }
   }
   if (t === 30 && Math.random() < 0.5) goonSays(state, e, woman, pickLine(byPants(state, GOON_BARK)));
-  // (gone off the screen: out of it)
-  const sx = m.x - CAMX, sy = m.y - CY;
-  if (t > 90 && (sx < -140 || sx > W + 200 || sy < -200 || sy > H + 160)) { (e as Enemy & { gone?: boolean }).gone = true; }
   return true;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Always in sight (the user: "make sure all active enemies are always visible"): the view's the whole field (W x H is
+// the screen over the zoom; pulled back for an arrival it only shows more). A hoverer at its post is kept fully inside
+// it, a little in from the edges; anybody that goes out of it (a diver through and out, a sneak out the far side, one
+// told to go, one knocked out) is gone the moment it's all the way out, and one hanging half out for a second is too.
+
+const INSET = 10, HALF_OUT_MAX = 60;
+const halfOut = new WeakMap<Enemy, number>();
+const keepInView = (e: Enemy) => {
+  const x0 = CAMX + INSET, x1 = CAMX + W - INSET, y0 = CY + INSET, y1 = CY + H - INSET;
+  const gone = () => { (e as Enemy & { gone?: boolean }).gone = true; };
+  // (all the way out: gone)
+  if (e.pos.x > x1 || e.pos.x + e.width < x0 || e.pos.y > y1 || e.pos.y + e.height < y0) { gone(); return; }
+  const out = e.pos.x < x0 || e.pos.x + e.width > x1 || e.pos.y < y0 || e.pos.y + e.height > y1;
+  if (!out) { halfOut.delete(e); return; }
+  const Pl = pilots.get(e);
+  // (a hoverer at its post: back in)
+  if (Pl && Pl.mode === 'hover' && Pl.t <= Pl.leave) {
+    e.pos.x = Math.max(x0, Math.min(x1 - e.width, e.pos.x)); e.pos.y = Math.max(y0, Math.min(y1 - e.height, e.pos.y));
+    return;
+  }
+  const n = (halfOut.get(e) ?? 0) + 1;
+  halfOut.set(e, n);
+  if (n > HALF_OUT_MAX) gone();
 };
 
 /** Them (origin: their feet's middle): the flames out of the jetpack under them, then them. */
@@ -241,6 +267,8 @@ export const goonsLeft = (state: GameState) => {
 };
 /** Clears the gone ones out of the world (flown off). */
 export const sweepGoons = (state: GameState) => {
+  // (every frame: those on the plane kept in sight, or gone)
+  for (const e of heliOf(state).goons) if (e.health > 0 && !e.isBlownAway && state.enemies.includes(e)) keepInView(e);
   state.enemies = state.enemies.filter(e => !(e as Enemy & { gone?: boolean }).gone);
 };
 

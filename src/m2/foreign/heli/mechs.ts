@@ -580,7 +580,8 @@ const updateMinions = (ctx: FrameContext) => {
     for (const q of state.projectiles) if (q.owner === 'player' && q.health > 0 && Math.abs(q.pos.x + q.width / 2 - n.x) < n.r + q.width / 2 && Math.abs(q.pos.y + q.height / 2 - n.y) < n.r + 4) { q.health = 0; hurtMinion(ctx, n, 22); }
     // (into him)
     if (!n.dead && p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && Math.abs(pc.x - n.x) < n.r + 18 && Math.abs(pc.y - n.y) < n.r + 26) { hurtPlayer(ctx, Math.round(12 * MECH_DMG), n.src, { x: n.vx > 0 ? 6 : -6, y: -3 }); if (n.kind !== 'lion' && n.kind !== 'head' && n.kind !== 'gear') n.dead = true; }
-    if (n.x < CAMX - 80 || n.x > CAMX + W + 100 || n.y > CY + H + 100 || n.t > 900) n.dead = true;
+    // (out of sight: gone, the moment it's all the way out (a moment's grace coming out of whatever threw it))
+    if (n.t > 900 || (n.t > 20 && (n.x + n.r < CAMX || n.x - n.r > CAMX + W || n.y - n.r > CY + H || n.y + n.r < CY))) n.dead = true;
   }
   h.minions = h.minions.filter(n => !n.dead);
 };

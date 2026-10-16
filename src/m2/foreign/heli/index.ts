@@ -133,7 +133,7 @@ const handOver = (state: GameState, h: Heli) => {
 };
 
 /** Between landmarks, how long (frames) it waits on lackeys still out with none being killed before they fly off. */
-const STRAGGLER_WAIT = 600;
+const STRAGGLER_WAIT = 240;
 const beginTransit = (state: GameState, h: Heli, i: number) => {
   h.transit = true; h.transitFrom = h.prog; h.transitT = 0; h.cur = i;
   h.waves = [...WAVES[i]]; h.waveAt = state.frame + 90;
