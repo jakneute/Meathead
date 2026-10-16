@@ -11,7 +11,7 @@
 //
 // World space: LIB's spots (arena.ts) are where she is risen; `dy` sinks her, `tilt` topples her about her base.
 
-import { LIB, sy, FIST_W, FIST_H, ARENA_L, ARENA_R } from './arena';
+import { LIB, sy, ARENA_L, ARENA_R } from './arena';
 import { signText } from '../../signLetters';
 
 type Ctx = CanvasRenderingContext2D;
@@ -263,10 +263,11 @@ export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
   const hx2 = sh.x + Math.cos(base) * d, hy2 = sh.y + Math.sin(base) * d;
   if (L.tablet) tablet(c);
   const leftArm = () => {
-    limbStone(c, sh.x, sh.y, ex, ey, 74, true);
-    limbStone(c, ex, ey, hx2, hy2, 56, false);
-    fl(c, PAT[3], () => c.ellipse(hx2, hy2, 34, 30, 0, 0, Math.PI * 2), 3);
-    r(c, hx2 - 22, hy2 - 20, 20, 6, PAT[5]);
+    // (a sculpted arm, the sleeve over it; the elbow's bend kept gentle, a statue's)
+    const ln = Math.hypot(hx2 - sh.x, hy2 - sh.y) || 1, mx = (sh.x + hx2) / 2, my = (sh.y + hy2) / 2, el = Math.hypot(ex - mx, ey - my) || 1;
+    const sag = Math.min(0.2, el / ln) * ln;
+    sculptedArm(c, sh, { x: mx + ((ex - mx) / el) * sag, y: my + ((ey - my) / el) * sag }, { x: hx2, y: hy2 }, 70);
+    handOpen(c, hx2, hy2);
   };
   // (holding the gun to her head: the arm and the revolver IN FRONT of her head, its muzzle on her temple on our side
   // (the user: "make sure the gun can be seen"); otherwise the arm's behind, at her side)
@@ -286,100 +287,217 @@ export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
   c.restore();
 };
 
-/** A stone limb: fat, inked, lit along its top; `sleeve`: the robe hanging off it in folds. */
-const limbStone = (c: Ctx, x0: number, y0: number, x1: number, y1: number, w: number, sleeve: boolean) => {
-  c.lineCap = 'round';
-  c.strokeStyle = INK; c.lineWidth = w + 6; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
-  c.strokeStyle = PAT[3]; c.lineWidth = w; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
-  const a = Math.atan2(y1 - y0, x1 - x0), nx = -Math.sin(a), ny = Math.cos(a);
-  const up = ny < 0 ? 1 : -1;
-  c.strokeStyle = PAT[5]; c.lineWidth = w * 0.18; c.beginPath(); c.moveTo(x0 + nx * up * w * 0.3, y0 + ny * up * w * 0.3); c.lineTo(x1 + nx * up * w * 0.3, y1 + ny * up * w * 0.3); c.stroke();
-  c.strokeStyle = PAT[1]; c.lineWidth = w * 0.16; c.beginPath(); c.moveTo(x0 - nx * up * w * 0.34, y0 - ny * up * w * 0.34); c.lineTo(x1 - nx * up * w * 0.34, y1 - ny * up * w * 0.34); c.stroke();
-  if (sleeve) {
-    // (the sleeve's folds: hanging straight down off the arm, its hem)
-    for (let k = 1; k < 5; k++) {
-      const t = k / 5, px = x0 + (x1 - x0) * t, py = y0 + (y1 - y0) * t + w * 0.35;
-      c.strokeStyle = PAT[2]; c.lineWidth = 4; c.beginPath(); c.moveTo(px, py); c.lineTo(px + 2, py + 26 - k * 3); c.stroke();
-    }
+// ---------------------------------------------------------------------------------------------------------------
+// Her arms (the user: "bend more naturally ... natural for a statue"): the sculpted classical arm of a copper statue,
+// not flesh and not blocks. Smooth tapered volumes, lit in the patina's steps from the upper left; the heavy robe
+// sleeve carved over the upper arm, hanging off its underside as one solid mass, its folds cut deep, a seam of rivets
+// where two copper sheets meet; the elbow a gentle sculpted bend hidden in the sleeve's mouth; the hand closed round
+// the torch's handle (or laid on the tablet). It moves like a heavy statue: stiff, the sleeve going with it.
+
+type Pt = { x: number; y: number };
+/** The lit side of a limb going from a to b: its normal toward the upper left. */
+const litN = (a: Pt, b: Pt) => {
+  const L = Math.hypot(b.x - a.x, b.y - a.y) || 1, nx = -(b.y - a.y) / L, ny = (b.x - a.x) / L;
+  return nx * -0.6 + ny * -0.8 >= 0 ? { x: nx, y: ny } : { x: -nx, y: -ny };
+};
+/** A tapered sculpted volume from a (width w0) to b (w1), its ends rounded: inked, then the patina in steps (the
+ *  shadow side, the body, the lit side, a hard highlight). */
+const volume = (c: Ctx, a: Pt, b: Pt, w0: number, w1: number) => {
+  const n = litN(a, b), an = Math.atan2(n.y, n.x);
+  const whole = () => {
+    c.beginPath();
+    c.moveTo(a.x + n.x * w0 / 2, a.y + n.y * w0 / 2);
+    c.lineTo(b.x + n.x * w1 / 2, b.y + n.y * w1 / 2);
+    // (round over the far end, then the near end, outward each time)
+    const ux = b.x - a.x, uy = b.y - a.y, ccw = n.x * uy - n.y * ux < 0;
+    c.arc(b.x, b.y, w1 / 2, an, an + Math.PI, ccw);
+    c.lineTo(a.x - n.x * w0 / 2, a.y - n.y * w0 / 2);
+    c.arc(a.x, a.y, w0 / 2, an + Math.PI, an, ccw);
+    c.closePath();
+  };
+  /** The band between o0 and o1 of the half width (-1 the shadow side .. 1 the lit side). */
+  const band = (o0: number, o1: number, col: string) => {
+    c.beginPath();
+    c.moveTo(a.x + n.x * w0 / 2 * o1, a.y + n.y * w0 / 2 * o1); c.lineTo(b.x + n.x * w1 / 2 * o1, b.y + n.y * w1 / 2 * o1);
+    c.lineTo(b.x + n.x * w1 / 2 * o0, b.y + n.y * w1 / 2 * o0); c.lineTo(a.x + n.x * w0 / 2 * o0, a.y + n.y * w0 / 2 * o0);
+    c.closePath(); c.fillStyle = col; c.fill();
+  };
+  whole(); c.fillStyle = PAT[3]; c.fill(); c.strokeStyle = INK; c.lineWidth = 3; c.lineJoin = 'round'; c.stroke();
+  c.save(); whole(); c.clip();
+  band(-1.6, -0.45, PAT[2]); band(-1.6, -0.8, PAT[1]); band(0.3, 1.6, PAT[4]); band(0.6, 0.76, PAT[5]);
+  c.restore();
+};
+/** The robe's sleeve over the upper arm, shoulder `a` to elbow `b`: one heavy carved mass, close over the top of the
+ *  arm and hanging off its underside in a bell to its mouth past the elbow; deep folds; a riveted seam. */
+const sleeve = (c: Ctx, a: Pt, b: Pt, w: number) => {
+  const L = Math.hypot(b.x - a.x, b.y - a.y) || 1, ux = (b.x - a.x) / L, uy = (b.y - a.y) / L, nx = -uy, ny = ux;
+  // (how far each side hangs out: whichever faces down hangs heavier, smoothly as the arm turns: no flip)
+  const hang = (s: number) => 14 + 50 * Math.max(0, Math.min(1, (s * ny + 0.35) / 1.35));
+  const off = (s: number, t: number) => w / 2 + 6 + Math.pow(t, 1.6) * hang(s);
+  const END = 1.12, N = 10;
+  const at = (s: number, t: number, k = 1) => ({ x: a.x + ux * L * t + nx * s * off(s, t) * k, y: a.y + uy * L * t + ny * s * off(s, t) * k });
+  const m1 = at(1, END), m2 = at(-1, END);
+  const outline = () => {
+    c.beginPath();
+    for (let i = 0; i <= N; i++) { const p = at(1, (i / N) * END); if (i) c.lineTo(p.x, p.y); else c.moveTo(p.x, p.y); }
+    // (the hem across the mouth, rounded)
+    c.quadraticCurveTo((m1.x + m2.x) / 2 + ux * 16, (m1.y + m2.y) / 2 + uy * 16, m2.x, m2.y);
+    for (let i = N; i >= 0; i--) { const p = at(-1, (i / N) * END); c.lineTo(p.x, p.y); }
+    // (round over the shoulder end)
+    c.quadraticCurveTo(a.x - ux * w * 0.5, a.y - uy * w * 0.5, at(1, 0).x, at(1, 0).y);
+    c.closePath();
+  };
+  outline(); c.fillStyle = PAT[3]; c.fill(); c.strokeStyle = INK; c.lineWidth = 3; c.lineJoin = 'round'; c.stroke();
+  c.save(); outline(); c.clip();
+  // (stepped: the side away from the light dark, its far edge darker; the lit side a step up)
+  const n = litN(a, b), lit = n.x * nx + n.y * ny > 0 ? 1 : -1;
+  const strip = (s: number, k0: number, k1: number, col: string) => {
+    c.beginPath();
+    for (let i = 0; i <= N; i++) { const p = at(s, (i / N) * END, k0); if (i) c.lineTo(p.x, p.y); else c.moveTo(p.x, p.y); }
+    for (let i = N; i >= 0; i--) { const p = at(s, (i / N) * END, k1); c.lineTo(p.x, p.y); }
+    c.closePath(); c.fillStyle = col; c.fill();
+  };
+  strip(-lit, 0.45, 1.3, PAT[2]); strip(-lit, 0.8, 1.3, PAT[1]); strip(lit, 0.25, 0.8, PAT[4]);
+  // (the folds: grooves cut from up by the shoulder fanning out to the mouth, a lit lip along each)
+  for (const k of [-0.75, -0.4, 0.1, 0.5]) {
+    const s = k < 0 ? -1 : 1, kk = Math.abs(k), p0 = at(s, 0.2, kk), p1 = at(s, END - 0.03, kk);
+    const cx = (p0.x + p1.x) / 2 + nx * s * 8, cy = (p0.y + p1.y) / 2 + ny * s * 8;
+    c.strokeStyle = PAT[1]; c.lineWidth = 4; c.beginPath(); c.moveTo(p0.x, p0.y); c.quadraticCurveTo(cx, cy, p1.x, p1.y); c.stroke();
+    c.strokeStyle = PAT[5]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(p0.x + n.x * 4, p0.y + n.y * 4); c.quadraticCurveTo(cx + n.x * 4, cy + n.y * 4, p1.x + n.x * 4, p1.y + n.y * 4); c.stroke();
   }
+  // (a seam between two of her copper sheets, riveted)
+  const s0 = at(lit, 0.55), s1 = at(-lit, 0.62);
+  c.strokeStyle = PAT[1]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(s0.x, s0.y); c.lineTo(s1.x, s1.y); c.stroke();
+  for (let k = 1; k < 6; k++) { const t = k / 6, x = s0.x + (s1.x - s0.x) * t, y = s0.y + (s1.y - s0.y) * t; r(c, x - 1.5, y - 4, 3, 3, PAT[1]); c.fillStyle = PAT[6]; c.fillRect(Math.round(x - 1.5), Math.round(y - 4), 1, 1); }
+  c.restore();
+  // (the mouth's hollow: dark inside, where the forearm comes out)
+  c.fillStyle = PAT[0]; c.beginPath(); c.ellipse((m1.x + m2.x) / 2 + ux * 4, (m1.y + m2.y) / 2 + uy * 4, Math.hypot(m1.x - m2.x, m1.y - m2.y) * 0.32, 8, Math.atan2(m1.y - m2.y, m1.x - m2.x), 0, Math.PI * 2); c.fill();
+};
+/** A sculpted arm: shoulder S, elbow E, wrist W; the sleeve over the upper arm last (the elbow hidden in its mouth). */
+const sculptedArm = (c: Ctx, S: Pt, E: Pt, W: Pt, w: number) => {
+  volume(c, E, W, w * 0.78, w * 0.58);
+  volume(c, S, E, w, w * 0.8);
+  sleeve(c, S, E, w);
 };
 
-/** Where her elbow is between its two sides (-1 .. 1), eased frame to frame. */
-let elbowS = 1;
-/** How much of the elbow's bend shows (1: all; down to near straight for the smash), eased. */
-let straightK = 1;
-/** Her right arm: from her shoulder (sunk `dy`) to the fist at (fx, fy) (world), the torch held upright in it.
- *  `glow` (0..1): the windup's tell, the fist going hot. */
-export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torch: boolean; glow?: number; stuck?: number; away?: { x: number; y: number }; straight?: boolean }) => {
+/** Her torch (local: the cup's foot at the origin, the flame up -y, the handle down +y `H` long): the ornate handle in
+ *  carved rings, the cup with its carved leaves, the balcony and its railing, the gold leaf flame in steps (`lit`: its
+ *  glow). */
+const torchArt = (c: Ctx, H: number, lit: boolean, f: number) => {
+  // (the handle: tapering, carved rings, a knob on its end)
+  fl(c, PAT[3], () => { c.moveTo(-12, 0); c.lineTo(12, 0); c.lineTo(9, H); c.lineTo(-9, H); c.closePath(); }, 2.5);
+  r(c, -10, 2, 5, H - 4, PAT[5]); r(c, 4, 2, 5, H - 4, PAT[1]);
+  for (let y = 18; y < H - 8; y += 26) { r(c, -12, y, 24, 4, PAT[2]); r(c, -12, y, 24, 1.5, PAT[5]); }
+  fl(c, PAT[3], () => c.ellipse(0, H + 4, 14, 9, 0, 0, Math.PI * 2), 2.5); r(c, -8, H, 6, 3, PAT[5]);
+  // (the cup: flaring up, carved leaves round it)
+  fl(c, PAT[3], () => { c.moveTo(-14, 2); c.lineTo(14, 2); c.lineTo(28, -30); c.lineTo(-28, -30); c.closePath(); }, 2.5);
+  r(c, -22, -26, 9, 22, PAT[4]); r(c, 13, -26, 9, 22, PAT[2]);
+  for (let k = -2; k <= 2; k++) { c.strokeStyle = PAT[1]; c.lineWidth = 2; c.beginPath(); c.moveTo(k * 5, 0); c.lineTo(k * 10, -26); c.stroke(); }
+  // (the balcony round the top: its floor, the railing's posts, the top rail)
+  fl(c, PAT[4], () => c.ellipse(0, -32, 46, 8, 0, 0, Math.PI * 2), 2.5);
+  r(c, -44, -34, 88, 2, PAT[6]);
+  for (let k = -4; k <= 4; k++) r(c, k * 10 - 1.5, -50, 3, 16, k < 0 ? PAT[4] : PAT[2]);
+  fl(c, PAT[3], () => c.roundRect(-46, -54, 92, 6, 3), 2);
+  // (the flame: gold leaf, lobed, in steps in to its hot heart)
+  const sh = Math.sin(f * 0.15) * 2;
+  const flame = (k: number) => () => {
+    const y0 = -54, j = (v: number) => y0 + v * k;
+    c.moveTo(-34 * k, y0); c.quadraticCurveTo(-46 * k, j(-46), -12 * k + sh, j(-80));
+    c.quadraticCurveTo(-14 * k, j(-54), -2 * k, j(-48));
+    c.quadraticCurveTo(4 * k + sh, j(-78), 22 * k + sh, j(-100));
+    c.quadraticCurveTo(48 * k, j(-46), 34 * k, y0); c.closePath();
+  };
+  if (lit) { const g = c.createRadialGradient(0, -96, 8, 0, -96, 110); g.addColorStop(0, 'rgba(254, 240, 138, 0.4)'); g.addColorStop(1, 'rgba(254, 240, 138, 0)'); c.fillStyle = g; c.beginPath(); c.arc(0, -96, 110, 0, Math.PI * 2); c.fill(); }
+  fl(c, GOLD[1], flame(1), 2.5);
+  fl(c, GOLD[2], flame(0.78), 0);
+  fl(c, GOLD[3], flame(0.52), 0);
+  if (lit) fl(c, GOLD[4], flame(0.28), 0);
+  r(c, -20, -98, 4, 20, GOLD[4]); r(c, 8, -120, 3, 14, GOLD[3]);
+};
+/** Her hand closed round the torch's handle (local: the torch's frame, the grip at the origin): the fingers wrapped
+ *  across the front in sculpted rolls, the thumb over them, lit in steps; `glow` the windup's heat. */
+const fistOnHandle = (c: Ctx, glow: number) => {
+  fl(c, PAT[3], () => c.roundRect(-34, -30, 68, 60, 22), 3);
+  r(c, -28, -24, 12, 46, PAT[4]); r(c, 18, -22, 12, 44, PAT[2]);
+  for (let k = 0; k < 4; k++) {
+    const y = -22 + k * 12;
+    fl(c, k % 2 ? PAT[3] : PAT[4], () => c.roundRect(-30, y, 60, 13, 6), 2);
+    r(c, -24, y + 2, 30, 2, PAT[5]);
+  }
+  // (the thumb, round over the first fingers)
+  fl(c, PAT[4], () => { c.moveTo(-34, -28); c.quadraticCurveTo(-8, -40, 14, -22); c.quadraticCurveTo(6, -12, -14, -14); c.quadraticCurveTo(-30, -16, -34, -28); c.closePath(); }, 2.5);
+  r(c, -22, -30, 18, 2, PAT[6]);
+  if (glow > 0) { c.globalAlpha = Math.min(1, glow); c.fillStyle = '#F97316'; c.beginPath(); c.roundRect(-38, -34, 76, 68, 24); c.fill(); c.globalAlpha = 1; }
+};
+/** Her left hand laid on the tablet (or round the gun): a sculpted hand, the fingers over the edge. */
+const handOpen = (c: Ctx, x: number, y: number) => {
+  fl(c, PAT[3], () => c.ellipse(x, y, 32, 28, -0.3, 0, Math.PI * 2), 3);
+  r(c, x - 22, y - 18, 18, 6, PAT[5]);
+  for (let k = 0; k < 4; k++) fl(c, PAT[4], () => c.roundRect(x - 26 + k * 13, y + 10, 12, 26 - Math.abs(k - 1.5) * 4, 6), 2);
+};
+
+/** Where her elbow is between its two sides (-1 .. 1), and how bent it is, eased frame to frame (never a pop). */
+let elbowS = 1, bendK = 0.15;
+/** The torch's flame (world), last drawn: for the lighting (the section's lamps). */
+export let torchFlame: { x: number; y: number; f: number } | null = null;
+/** The grip to the cup's foot along the torch, the cup's foot to the flame's middle, the handle's length. */
+const GRIP = 76, HEAD = 96, TORCH_H = 132;
+/**
+ * Her right arm, the torch arm: from her shoulder (sunk `dy`) to (fx, fy) (world): her hand, the torch upright in it;
+ * or, smashing (`smash` 0..1), the torch's HEAD there: the arm and the torch one long line out from the shoulder, the
+ * flame what hits and sticks in the floor, her fist round the handle behind it. `glow` (0..1): the windup's tell.
+ */
+export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torch: boolean; glow?: number; stuck?: number; away?: { x: number; y: number }; straight?: boolean; smash?: number }) => {
   c.save();
   // (she's at the back: past the arena's end walls she's behind them, never painted over them)
   c.beginPath(); c.rect(ARENA_L, -100000, ARENA_R - ARENA_L, 200000); c.clip();
-  if (L.shake) c.translate(Math.sin(L.f * 1.7) * L.shake, 0);
+  const jx = L.shake ? Math.sin(L.f * 1.7) * L.shake : 0;
+  if (jx) c.translate(jx, 0);
   const S = { x: LIB.shR.x, y: LIB.shR.y + L.dy };
-  let dx = fx - S.x, dy = fy - S.y, d = Math.hypot(dx, dy) || 1;
-  const reach = LIB.upper + LIB.fore - 2;
-  if (d > reach) { const k = reach / d; dx *= k; dy *= k; d = reach; }
-  const base = Math.atan2(dy, dx), off = Math.acos(Math.max(-1, Math.min(1, (d * d) / (2 * LIB.upper * d))));
-  const e1 = base - off, e2 = base + off;
-  const E1 = { x: S.x + Math.cos(e1) * LIB.upper, y: S.y + Math.sin(e1) * LIB.upper }, E2 = { x: S.x + Math.cos(e2) * LIB.upper, y: S.y + Math.sin(e2) * LIB.upper };
-  // (raised: the elbow out to her side; down: the elbow up over the line; rearing over him: the elbow kept off her face,
-  // so the crown's window stays in sight)
-  const far = (p: { x: number; y: number }) => (opts.away ? Math.hypot(p.x - opts.away.x, p.y - opts.away.y) : 0);
-  let want = opts.away ? (far(E1) > far(E2) ? -1 : 1) : fy < S.y ? (E1.x < E2.x ? -1 : 1) : (E1.y < E2.y ? -1 : 1);
-  // (never out past the arena's left wall: the user saw it poke out as she rose)
-  const inside = (p: { x: number }) => p.x > ARENA_L + 24;
-  if (!inside(want < 0 ? E1 : E2) && inside(want < 0 ? E2 : E1)) want = -want;
-  // (the rules above pick a side; the elbow EASES over to it rather than flipping (it popped from one side to the
-  // other between the windup, the smash and the stuck pose): its angle between the two, the forearm reaching the fist)
-  elbowS += (want - elbowS) * 0.12;
-  // (the smash, stuck and the yank: a plain overhead arm, near straight off the shoulder (the user: "a standard arm
-  // smash"), not a deep two-bone fold)
-  straightK += ((opts.straight ? 0.22 : 1) - straightK) * 0.2;
-  const ea = base + off * elbowS * straightK;
-  const E = { x: S.x + Math.cos(ea) * LIB.upper, y: S.y + Math.sin(ea) * LIB.upper };
-  void E1; void E2;
-  const hx = S.x + dx, hy = S.y + dy;
-  // (the torch: upright in her fist, behind it; the cup and the gold flame over the top)
+  let dx = fx - S.x, dy = fy - S.y;
+  const d0 = Math.hypot(dx, dy) || 1, reachMax = LIB.upper + LIB.fore - 2;
+  if (d0 > reachMax) { const k = reachMax / d0; dx *= k; dy *= k; }
+  const d = Math.min(d0, reachMax), T = { x: S.x + dx, y: S.y + dy };
+  // (the torch's way: upright, held up; smashing, turned on out along the arm from the shoulder)
+  const w = opts.torch ? Math.max(0, Math.min(1, opts.smash ?? 0)) : 0;
+  const upA = -Math.PI / 2, radial = Math.atan2(dy, dx);
+  let turn = radial - upA; while (turn > Math.PI) turn -= Math.PI * 2; while (turn < -Math.PI) turn += Math.PI * 2;
+  const ta = upA + turn * w;
+  // (pointing out at us, foreshortened: her hand never closer in to her shoulder than 150)
+  const full = GRIP + HEAD, fk = w > 0 ? 1 - (1 - Math.max(0.4, Math.min(1, (d - 150) / full))) * w : 1;
+  const H = { x: T.x - Math.cos(ta) * full * fk * w, y: T.y - Math.sin(ta) * full * fk * w };
+  // (the elbow: a gentle sculpted bend: out to her side raised, up over the line lowered, away from her face rearing)
+  const hdx = H.x - S.x, hdy = H.y - S.y, hd = Math.hypot(hdx, hdy) || 1, nx = -hdy / hd, ny = hdx / hd;
+  const mid = { x: S.x + hdx * 0.5, y: S.y + hdy * 0.5 };
+  const E1 = { x: mid.x + nx * hd * 0.2, y: mid.y + ny * hd * 0.2 }, E2 = { x: mid.x - nx * hd * 0.2, y: mid.y - ny * hd * 0.2 };
+  const far = (p: Pt) => (opts.away ? Math.hypot(p.x - opts.away.x, p.y - opts.away.y) : 0);
+  let want = opts.away ? (far(E1) > far(E2) ? 1 : -1) : H.y < S.y ? (E1.x < E2.x ? 1 : -1) : (E1.y < E2.y ? 1 : -1);
+  // (never out past the arena's left wall)
+  const inside = (p: Pt) => p.x > ARENA_L + 24;
+  if (!inside(want > 0 ? E1 : E2) && inside(want > 0 ? E2 : E1)) want = -want;
+  elbowS += (want - elbowS) * 0.1;
+  bendK += ((opts.straight ? 0.05 : 0.15) - bendK) * 0.15;
+  const E = { x: mid.x + nx * hd * bendK * elbowS, y: mid.y + ny * hd * bendK * elbowS };
+  // (the torch first (its handle runs on back behind the fist), then the arm, then her hand round the handle)
+  const rot = ta + Math.PI / 2;
   if (opts.torch) {
-    const top = hy - FIST_H / 2 - 150;
-    fl(c, PAT[3], () => c.rect(hx - 14, top + 40, 28, 150), 2.5);
-    r(c, hx - 12, top + 40, 6, 150, PAT[5]); r(c, hx + 6, top + 40, 6, 150, PAT[1]);
-    for (let k = 0; k < 4; k++) r(c, hx - 14, top + 60 + k * 30, 28, 3, PAT[2]);
-    // (the balcony round the cup)
-    fl(c, PAT[3], () => { c.moveTo(hx - 44, top + 34); c.lineTo(hx + 44, top + 34); c.lineTo(hx + 30, top + 50); c.lineTo(hx - 30, top + 50); c.closePath(); }, 2.5);
-    for (let k = -3; k <= 3; k++) r(c, hx + k * 11 - 1, top + 22, 3, 12, PAT[2]);
-    r(c, hx - 44, top + 20, 88, 3, PAT[4]);
-    // (the flame: gold leaf, stepped)
-    fl(c, GOLD[2], () => { c.moveTo(hx - 30, top + 20); c.quadraticCurveTo(hx - 34, top - 20, hx - 6, top - 46); c.quadraticCurveTo(hx - 10, top - 20, hx + 4, top - 10); c.quadraticCurveTo(hx + 8, top - 40, hx + 22, top - 60); c.quadraticCurveTo(hx + 40, top - 20, hx + 30, top + 20); c.closePath(); }, 2.5);
-    fl(c, GOLD[3], () => { c.moveTo(hx - 16, top + 16); c.quadraticCurveTo(hx - 18, top - 6, hx - 4, top - 24); c.quadraticCurveTo(hx + 2, top - 4, hx + 12, top + 16); c.closePath(); }, 0);
-    r(c, hx - 6, top - 2, 6, 10, GOLD[4]);
+    c.save(); c.translate(H.x, H.y); c.rotate(rot); c.scale(1, fk); c.translate(0, GRIP); torchArt(c, TORCH_H, true, L.f); c.restore();
+    torchFlame = { x: H.x + jx + Math.cos(ta) * full * fk, y: H.y + Math.sin(ta) * full * fk, f: L.f };
   }
-  limbStone(c, S.x, S.y, E.x, E.y, 76, true);
-  limbStone(c, E.x, E.y, hx, hy, 60, false);
-  // (the fist: a great knuckled block, upright; hot in the windup)
-  const fw = FIST_W, fh = FIST_H, x0 = hx - fw / 2, y0 = hy - fh / 2;
-  fl(c, PAT[3], () => c.roundRect(x0, y0, fw, fh, 16), 3);
-  r(c, x0 + 6, y0 + 6, fw - 12, 8, PAT[5]);
-  r(c, x0 + fw - 18, y0 + 10, 12, fh - 18, PAT[2]);
-  for (let k = 0; k < 4; k++) {
-    const kx = x0 + 14 + k * 24;
-    fl(c, PAT[4], () => c.roundRect(kx, y0 + 4, 20, 18, 7), 2);
-    c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(kx + 10, y0 + 22); c.lineTo(kx + 10, y0 + fh - 18); c.stroke();
-  }
-  // (the thumb across the front)
-  fl(c, PAT[4], () => c.roundRect(x0 + 10, y0 + fh - 30, 58, 20, 9), 2);
-  r(c, x0 + 14, y0 + fh - 28, 40, 4, PAT[6]);
-  if (opts.glow && opts.glow > 0) {
-    c.globalAlpha = Math.min(1, opts.glow) * (0.5 + 0.3 * Math.sin(L.f * 0.6));
-    c.fillStyle = '#F97316'; c.beginPath(); c.roundRect(x0 - 4, y0 - 4, fw + 8, fh + 8, 18); c.fill();
-    c.globalAlpha = 1;
-  }
-  // (stuck: straining, cracks up the forearm; no lit lip on top: it's not somewhere to stand)
-  if (opts.stuck !== undefined) {
-    if (opts.stuck > 0) { c.strokeStyle = INK; c.lineWidth = 2; const k = opts.stuck; c.beginPath(); c.moveTo(hx, hy - fh / 2); c.lineTo(hx - 8 * k, hy - fh / 2 - 30 * k); c.lineTo(hx + 4 * k, hy - fh / 2 - 50 * k); c.stroke(); }
+  sculptedArm(c, S, E, H, 70);
+  c.save(); c.translate(H.x, H.y); c.rotate(rot); fistOnHandle(c, (opts.glow ?? 0) * (0.5 + 0.3 * Math.sin(L.f * 0.6))); c.restore();
+  // (stuck: cracks up the forearm from her grip)
+  if (opts.stuck !== undefined && opts.stuck > 0) {
+    const sk = opts.stuck, el = Math.hypot(E.x - H.x, E.y - H.y) || 1, ux = (E.x - H.x) / el, uy = (E.y - H.y) / el;
+    c.strokeStyle = INK; c.lineWidth = 2; c.beginPath();
+    c.moveTo(H.x + ux * 36, H.y + uy * 36);
+    c.lineTo(H.x + ux * (36 + 40 * sk) - uy * 8 * sk, H.y + uy * (36 + 40 * sk) + ux * 8 * sk);
+    c.lineTo(H.x + ux * (36 + 70 * sk) + uy * 4 * sk, H.y + uy * (36 + 70 * sk) - ux * 4 * sk);
+    c.stroke();
   }
   c.restore();
 };
+
 
 // ---------------------------------------------------------------------------------------------------------------
 // After: what's left of her on the floor (the end of the fight, and revisits)
@@ -400,11 +518,7 @@ export const drawRevolverAt = (c: Ctx, x: number, y: number, a: number) => revol
 /** Her torch at (x, y) (the cup), turned `a` (0: upright; -PI/2 lying, the flame to the left). Its flame's out. */
 export const drawTorchAt = (c: Ctx, x: number, y: number, a: number) => {
   c.save(); c.translate(x, y); c.rotate(a);
-  fl(c, PAT[3], () => c.rect(-14, 0, 28, 150), 2.5);
-  r(c, -12, 0, 6, 150, PAT[5]);
-  fl(c, PAT[3], () => { c.moveTo(-44, -6); c.lineTo(44, -6); c.lineTo(30, 10); c.lineTo(-30, 10); c.closePath(); }, 2.5);
-  fl(c, GOLD[1], () => { c.moveTo(-30, -6); c.quadraticCurveTo(-34, -40, -6, -60); c.quadraticCurveTo(10, -50, 22, -66); c.quadraticCurveTo(40, -30, 30, -6); c.closePath(); }, 2.5);
-  r(c, -10, -30, 8, 12, GOLD[2]);
+  torchArt(c, TORCH_H, false, 0);
   c.restore();
 };
 /** The revolver dropped (lying on the floor), and the torch, lying. */

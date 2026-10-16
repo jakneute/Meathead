@@ -611,10 +611,10 @@ const statue = (ctx: FrameContext, f: Fight) => {
       break;
     }
     case 'stuck': {
-      // (straining at it: shaking, grinding, cracks up her arm)
+      // (straining at it: shaking, cracks up her arm; silent (the user: no noise as she struggles), the landing and the
+      // yank free are the sounds)
       a.fx = a.tx + Math.sin(a.t * 0.9) * (a.t > STUCK_T - 80 ? 2 : 0.6); a.fy = GY - FIST_H / 2;
       lib.shake = 1.4; lib.face = 'strain';
-      if (a.t % 40 === 0) playSound('grind', 0.6, -8 + Math.random() * 3);
       if (a.t % 10 === 0) puff(state, a.tx + (Math.random() - 0.5) * FIST_W, GY - 4, 1, '#A8A29E');
       if (a.t >= STUCK_T) unstick(state, f, false);
       break;
@@ -630,6 +630,23 @@ const statue = (ctx: FrameContext, f: Fight) => {
   }
   // (anybody on the fist when it comes up: popped off)
   void p;
+};
+
+/** Her torch arm as drawn (looks only: the hit's at a.fx, a.fy as ever): where its end is and how far into the smash
+ *  (0: her hand there, the torch held up; 1: the torch's head there, the torch out along the arm). The drop swings it
+ *  down in an arc about her shoulder; stuck, the torch's flame is what's planted; the yank brings it back up. */
+const armView = (f: Fight) => {
+  const a = f.arm;
+  if (a.st === 'drop') {
+    const u = Math.min(1, a.t / DROP_T), k = u * u, S = { x: LIB.shR.x, y: LIB.shR.y + f.lib.dy }, to = { x: a.tx, y: GY - FIST_H / 2 };
+    const a0 = Math.atan2(a.from.y - S.y, a.from.x - S.x), a1 = Math.atan2(to.y - S.y, to.x - S.x);
+    let da = a1 - a0; while (da > Math.PI) da -= Math.PI * 2; while (da < -Math.PI) da += Math.PI * 2;
+    const r0 = Math.hypot(a.from.x - S.x, a.from.y - S.y), r1 = Math.hypot(to.x - S.x, to.y - S.y), ang = a0 + da * k, rr = r0 + (r1 - r0) * k;
+    return { x: S.x + Math.cos(ang) * rr, y: S.y + Math.sin(ang) * rr, smash: ease(u) };
+  }
+  if (a.st === 'stuck') return { x: a.fx, y: a.fy, smash: 1 };
+  if (a.st === 'yank' || a.st === 'snap') return { x: a.fx, y: a.fy, smash: 1 - ease(Math.min(1, a.t / (a.st === 'snap' ? SNAP_T : YANK_T))) };
+  return { x: a.fx, y: a.fy, smash: 0 };
 };
 
 /** Down: the hit; stuck (planted, but nothing solid: it only ever hurts landing). */
@@ -1200,7 +1217,7 @@ export const drawStatue = (c: Ctx, state: GameState, f: Fight) => {
     drawRambo(g, CROWN.x, CROWN.y, { pose: P.pose, f: fr, facing: f.facing, talking: !!f.said, scale: CROWN_SCALE, green: f.green, concrete: f.concrete });
   } : undefined;
   // (toppling: the arm goes over with her)
-  const arm = f.lib.tilt > 0 || f.lib.dy > 0 ? (g: Ctx) => drawArm(g, { ...libLook(f, fr), dy: 0, shake: 0 }, f.arm.fx, f.arm.fy, { torch: !f.torch }) : undefined;
+  const arm = f.lib.tilt > 0 || f.lib.dy > 0 ? (g: Ctx) => { const v = armView(f); drawArm(g, { ...libLook(f, fr), dy: 0, shake: 0 }, v.x, v.y, { torch: !f.torch, smash: v.smash }); } : undefined;
   drawLibertyBody(c, libLook(f, fr, crown), arm);
 };
 
@@ -1240,7 +1257,8 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     // (stuck: the cracks in the slab round it)
     if (a.st === 'stuck') { c.strokeStyle = '#1A0B06'; c.lineWidth = 2; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(a.tx + s * FIST_W / 2, GY - 1); c.lineTo(a.tx + s * (FIST_W / 2 + 26), GY - 4); c.lineTo(a.tx + s * (FIST_W / 2 + 50), GY - 2); c.stroke(); } }
     const away = a.st === 'wind' || a.st === 'drop' ? { x: LIB.head.x, y: LIB.head.y - 40 } : undefined;
-    drawArm(c, libLook(f, fr), a.fx, a.fy, { torch: !f.torch, glow, stuck, away, straight: a.st === 'drop' || a.st === 'stuck' || a.st === 'yank' || a.st === 'snap' });
+    const v = armView(f);
+    drawArm(c, libLook(f, fr), v.x, v.y, { torch: !f.torch, glow, stuck, away, straight: a.st === 'drop' || a.st === 'stuck' || a.st === 'yank' || a.st === 'snap', smash: v.smash });
   }
   // (the rubble once she's gone; the chunks of her head; the torch and the gun)
   if (f.lib.gone) drawRubble(c, MID - 40, GY, fr);

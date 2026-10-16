@@ -21,6 +21,7 @@ import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } fro
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { x0, x1, VIEW_X, ARENA_L, ARENA_R, CAM_ROW, REFILL_X, sy } from './arena';
 import { drawSky, drawScene } from './scene';
+import { torchFlame } from './liberty';
 import {
   type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawStatue, drawFightBack, drawFightFront, drawFightHud,
   drawWaiting, introSeen, killCamTick, killCamZoom, killedByWeakness,
@@ -120,4 +121,6 @@ export const harry: ForeignSection = {
   zoom: (state) => { const f = harryOf(state).f; return f ? killCamZoom(state, f) : null; },
   holdTick: (ctx) => { const f = harryOf(ctx.state).f; return f ? killCamTick(f) : false; },
   outdoors: () => 1,
+  // (her torch's gold flame glows, wherever it is: held up, or planted in the floor)
+  lamps: (state) => (torchFlame && Math.abs(state.frame - torchFlame.f) <= 2 ? [{ x: torchFlame.x, y: torchFlame.y, r: 180, a: 0.75, color: '#FDE68A' }] : []),
 };
