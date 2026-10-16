@@ -77,6 +77,23 @@ const meatheadSays = (state: GameState, text: string) => {
 };
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
+
+/** What kind of mallet hit last landed on a mid-boss (the queen reads it: a held smash hits her harder than a swing). */
+export type MalletHow = 'swing' | 'launch' | 'pound' | 'smash' | 'spin';
+let lastBig: { e: Enemy; how: MalletHow; frame: number } | null = null;
+const noteBig = (state: GameState, e: Enemy, how: MalletHow) => {
+  // (the heaviest of a frame's kept: a smash isn't overwritten by anything lesser)
+  if (lastBig && lastBig.e === e && lastBig.how === 'smash' && how !== 'smash') return;
+  lastBig = { e, how, frame: state.frame };
+};
+/** The mallet hit that last landed on this one (taken: read once), or null. */
+export const takeMalletHit = (e: Enemy): { how: MalletHow; frame: number } | null => {
+  if (!lastBig || lastBig.e !== e) return null;
+  const h = { how: lastBig.how, frame: lastBig.frame };
+  lastBig = null;
+  return h;
+};
+const howNow = (): MalletHow => (mode === 'tornado' ? 'spin' : mode === 'launch' ? 'launch' : mode === 'pound' || mode === 'land' ? 'pound' : mode === 'smash' ? 'smash' : 'swing');
 const wearOut = (ctx: FrameContext, n = 1) => { if (!ctx.cheats.infiniteAmmo) ctx.state.player.weaponAmmo.MALLET = Math.max(0, ctx.state.player.weaponAmmo.MALLET - n); };
 const durable = (ctx: FrameContext) => ctx.cheats.infiniteAmmo || ctx.state.player.weaponAmmo.MALLET > 0;
 
@@ -129,7 +146,7 @@ const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: num
   for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; state.particles.push({ pos: { x: cx, y: cy }, vel: { x: Math.cos(a) * 4, y: Math.sin(a) * 4 }, life: 10, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 3 }); }
   // (one opted in, weapons/half.ts: hurt, and sent half as far, dazed half as long; never the cartoon death)
   if (specialsHalf(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: vel.x * HALF, y: vel.y * HALF }; e.pauseTimer = Math.max(e.pauseTimer || 0, 50 * HALF); return; }
-  if (isMidBoss(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); return; }
+  if (isMidBoss(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); noteBig(state, e, howNow()); return; }
   // (a blow from in front, at his shield: it's the shield it lands on; he goes flying all the same, but the blow does
   // him no harm (whatever he hits on the way does). The overhead ones, flattening, come down over it)
   if (how !== 'flatten' && shieldTakesBlow(e, vel.x || (cx - (state.player.pos.x + state.player.width / 2)))) {
@@ -300,7 +317,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
           struck.add(e);
           // (one opted in, weapons/half.ts: not flattened, a heavy hit)
           if (specialsHalf(e)) { const h = heavyHit(e); e.health -= h; ctx.fx.spawnDamageNumber(e.pos, h, true); e.pauseTimer = Math.max(e.pauseTimer || 0, 50 * HALF); continue; }
-          if (isMidBoss(e)) { e.health -= 120; ctx.fx.spawnDamageNumber(e.pos, 120, true); continue; }
+          if (isMidBoss(e)) { e.health -= 120; ctx.fx.spawnDamageNumber(e.pos, 120, true); noteBig(state, e, 'smash'); continue; }
           toonKill(ctx, e, 'flatten', dir);
         }
         if (!hang) for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: px + dir * 70, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 4 }, life: 24, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 3 });

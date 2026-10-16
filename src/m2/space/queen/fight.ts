@@ -55,6 +55,7 @@ import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { ENEMY_HIT_COOLDOWN, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { takeBites } from '../../weapons/spawner';
+import { takeMalletHit } from '../../weapons/mallet';
 import { setHazardZones } from '../../hazardHit';
 import { ink, limb } from '../../../m1/game/render/npc/kit';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
@@ -104,6 +105,11 @@ const THROWN_DMG = 12, BATTED_DMG = 60, BATTED_STUN = 90;
 const HEAD_EXTRA = 8, HEAD_STUN = 70;
 /** The mallet's plain swing on her: a modest knock (the breather after it, like anything). */
 const MALLET_HIT = 45;
+/** The held smash (Y held, the windup): twice and more a swing, and never swallowed by the breather after one. */
+const MALLET_SMASH = 95;
+/** Any straight mallet hit with him this close to her body (px, any height): stunned this long, and across she goes
+ *  after it; not again within CLOSE_GAP frames of the last (nor while she's stunned or leaping). */
+const CLOSE_R = 150, CLOSE_STUN = 60, SMASH_STUN = 90, CLOSE_GAP = 180;
 /** The booth's spotlight: how often (by phase; 0 none), the tell (its spot on the floor), the fall, how wide, how hard. */
 const DROP_EVERY = [0, 0, 620, 420], DROP_TELL = 54, DROP_FALL = 14, DROP_R = 36, DROP_DMG = 16;
 /** The oil slicks: how long one lasts (frames). */
@@ -158,6 +164,8 @@ export interface Fight {
   lights: number; down: number; foam: number; ext2: 'wall' | 'held' | 'air' | 'gone'; ex: { x: number; y: number; vx: number; vy: number; r: number };
   said: string | null; boothSaid: string | null;
   birthT: number; leapT: number; linger: number; forceLeap: boolean; stunT: number;
+  /** When a close mallet hit last stunned her (f.total). */
+  closeAt: number;
   /** The pool round her (after a leap; gone with her next birth): where, how far up it is (0..1), going. */
   pool: { x: number; k: number; going: boolean } | null;
   drops: Drop[]; sacs: Sac[]; slicks: Slick[]; barf: Barf[]; spots: Spot[];
@@ -192,7 +200,7 @@ export const makeFight = (state: GameState): Fight => {
     glass: !seen, booth: 1, beam: 0, alive: 1,
     lights: seen ? 1 : 0, down: seen ? 1 : 0, foam: 0, ext2: seen ? 'gone' : 'wall', ex: { x: EXTINGUISHER_X, y: GY - 90, vx: 0, vy: 0, r: 0 },
     said: null, boothSaid: null,
-    birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, pool: null,
+    birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, closeAt: -9999, pool: null,
     drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, barked: new Set(), throwAt: -1, throwHintAt: -9999, eventAt: -99,
     ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], deathT: 0, deathSaid: 0, byWeakness: false, e: null,
   };
@@ -720,13 +728,16 @@ const thrownInto = (ctx: FrameContext, f: Fight) => {
     playSound('crash', 0.8, 2); shakeScreen(state, 8, 4);
     if (isKin(e) || e.isBlownAway) destroyKin(ctx, e);
     else { e.health = 0; ctx.fx.blowAwayEnemy(e, { x: -Math.sign(e.vel.x) * 6, y: -6 }, null as never, -Math.sign(e.vel.x) || 1); }
-    if (f.hp <= 0) f.byWeakness = p.currentWeapon === 'MALLET';
+    // (a throw's never her weakness, whatever's in his hand: only a straight mallet hit or a batted kid is)
+    if (f.hp <= 0) f.byWeakness = false;
   }
 };
 
 const takeHits = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, e = f.e, p = state.player;
   if (!e) return;
+  // (what the mallet just did to her, if anything: read every frame, so it's never stale)
+  const mh = takeMalletHit(e);
   const bites = takeBites(e);
   const dealt = Math.max(0, BIG - e.health);
   e.health = BIG; e.maxHealth = BIG;
@@ -737,22 +748,35 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (f.total - f.eventAt <= 4) return;
   const nib = Math.min(dealt, bites), hit = dealt - nib;
   if (nib > 0) f.hp -= nib * SHARE;
-  if (hit <= 0.5 || f.iframes > 0) return;
-  const mallet = !melee && p.currentWeapon === 'MALLET';
-  const dmg = melee ? (p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE)
+  // (finished by a nibble (the spawner's bites), mallet in hand or not: a plain death, not her weakness)
+  if (f.hp <= 0) { f.byWeakness = false; return; }
+  // (the held smash isn't swallowed by the breather after a lesser hit: it always gets its full weight in)
+  const smash = mh?.how === 'smash';
+  if (hit <= 0.5 || (f.iframes > 0 && !smash)) return;
+  // (a straight hit of the mallet's own, reported by it: not just anything that hurts her while he's holding it)
+  const mallet = !!mh;
+  const dmg = smash ? MALLET_SMASH : melee ? (p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE)
     : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : mallet ? Math.min(hit, MALLET_HIT) : Math.max(1, hit * SHARE);
-  f.hp -= dmg; f.iframes = IFRAMES; f.flash = 8;
+  f.hp -= dmg; f.iframes = IFRAMES; f.flash = smash ? 14 : 8;
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: e.pos.y + 60 + Math.random() * 100 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 16, color: i % 2 ? '#FDE047' : ALIEN.slime, size: 2 + Math.random() * 2, grav: 0.3 });
   playSound('clang', 0.5, 4);
-  ctx.fx.spawnDamageNumber({ x: e.pos.x + 20, y: e.pos.y + 20 }, Math.max(1, Math.round(dmg)), false);
-  // (the mallet, straight on, at her head (him up level with it): stunned, a bit more, and off to the other side after)
-  const head = queenHead(f.x, f.facing, 0);
-  if (mallet && f.hp > 0 && f.mode !== 'leap' && Math.abs(pmid(state).y - head.y) < 70 && Math.abs(pmid(state).x - head.x) < 130) {
-    f.hp -= HEAD_EXTRA; f.forceLeap = true;
-    ctx.fx.spawnDamageNumber({ x: head.x, y: head.y - 30 }, 'BONK!', true, '#FDE047');
-    stun(state, f, HEAD_STUN);
-    meatheadSays(state, pick(L.MH_HEAD), false);
+  ctx.fx.spawnDamageNumber({ x: e.pos.x + 20, y: e.pos.y + 20 }, Math.max(1, Math.round(dmg)), smash);
+  if (smash) { playSound('crash', 0.9, -6); shakeScreen(state, 14, 7); }
+  // (the mallet up close, at any height (him within CLOSE_R of her body): stunned, and off to the other side after.
+  // At her head (him up level with it), a bit more and a BONK. Not again while she's stunned or leaping, nor within
+  // CLOSE_GAP of the last: no stun-lock)
+  const pm = pmid(state), head = queenHead(f.x, f.facing, 0);
+  const gap = Math.max(0, e.pos.x - pm.x, pm.x - (e.pos.x + e.width));
+  if (mallet && f.hp > 0 && f.mode !== 'leap' && f.mode !== 'stun' && f.mode !== 'dead' && gap < CLOSE_R && f.total - f.closeAt >= CLOSE_GAP) {
+    f.closeAt = f.total; f.forceLeap = true;
+    if (Math.abs(pm.y - head.y) < 70 && Math.abs(pm.x - head.x) < 130) {
+      f.hp -= HEAD_EXTRA;
+      ctx.fx.spawnDamageNumber({ x: head.x, y: head.y - 30 }, 'BONK!', true, '#FDE047');
+      stun(state, f, HEAD_STUN);
+      meatheadSays(state, pick(L.MH_HEAD), false);
+    } else stun(state, f, smash ? SMASH_STUN : CLOSE_STUN);
   }
+  // (the close-up kill: only for a straight mallet hit (swing, launch, pound, spin, head bonk, the smash))
   if (f.hp <= 0) f.byWeakness = mallet;
 };
 
