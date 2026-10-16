@@ -85,6 +85,38 @@ const layout = (ctx: Ctx, text: string) => {
   return { lines, size: Math.max(16, size) };
 };
 
+/** Where a letter's strokes come down to their feet: columns (off its left) whose lowest ink is down near the bottom of
+ *  the letter's ink, and how far that is below its middle. Read off the letter drawn for real. */
+const feetCache = new Map<string, { dx: number; dy: number }[]>();
+const feetOf = (ch: string, size: number) => {
+  const key = `${ch}|${size}`;
+  const had = feetCache.get(key);
+  if (had) return had;
+  const cv = document.createElement('canvas'), W = Math.ceil(size * 1.4) + 4, H = size * 2;
+  cv.width = W; cv.height = H;
+  const g = cv.getContext('2d')!;
+  g.font = `bold ${size}px ${FONT}`; g.textBaseline = 'middle'; g.fillStyle = '#FFF';
+  g.fillText(ch, 2, size);
+  const px = g.getImageData(0, 0, W, H).data;
+  const low: number[] = [];
+  let lowest = -1;
+  for (let x = 0; x < W; x++) {
+    let b = -1;
+    for (let y = H - 1; y >= 0; y--) if (px[(y * W + x) * 4 + 3] > 128) { b = y; break; }
+    low.push(b);
+    lowest = Math.max(lowest, b);
+  }
+  const out: { dx: number; dy: number }[] = [];
+  // (a stroke's foot: inked, at or near the very bottom, and not right at a stroke's edge (a run off a corner looks stuck on))
+  for (let x = 1; x < W - 1; x++) {
+    if (low[x] < 0 || lowest - low[x] > Math.max(2, size * 0.12)) continue;
+    if (low[x - 1] < low[x] - 2 || low[x + 1] < low[x] - 2) continue;
+    out.push({ dx: x - 2, dy: low[x] - size });
+  }
+  feetCache.set(key, out);
+  return out;
+};
+
 const begin = (ctx: Ctx, text: string, frame: number): Shown => {
   const { lines, size } = layout(ctx, text);
   ctx.font = `bold ${size}px ${FONT}`;
@@ -99,13 +131,16 @@ const begin = (ctx: Ctx, text: string, frame: number): Shown => {
       const cw = ctx.measureText(ch).width;
       if (ch !== ' ') {
         glyphs.push({ ch, x, y: base, w: cw, i });
-        // (a run or two off the bottom of most letters, some long, most short; the last line's run furthest)
-        const n = hash(i * 3.3) < 0.25 ? 0 : hash(i * 7.1) < 0.35 ? 2 : 1;
+        // (a run or two off the bottom of most letters, some long, most short; the last line's run furthest. Only ever
+        // off the letter's own ink: from the foot of a stroke, where it actually is, never out of a gap between legs)
+        const feet = feetOf(ch, size);
+        const n = !feet.length || hash(i * 3.3) < 0.25 ? 0 : hash(i * 7.1) < 0.35 ? 2 : 1;
         for (let k = 0; k < n; k++) {
           const s = i * 11 + k * 5;
           const long = li === lines.length - 1 ? 1.6 : 0.8;
+          const foot = feet[Math.floor(hash(s) * feet.length)];
           runs.push({
-            x: Math.round(x + cw * (0.2 + hash(s) * 0.6)), y: base - 1, w: hash(s + 1) < 0.4 ? 3 : 2,
+            x: Math.round(x + foot.dx - 1), y: Math.round(base + foot.dy - 2), w: hash(s + 1) < 0.4 ? 3 : 2,
             max: (8 + hash(s + 2) * size * 1.4) * long, speed: 0.35 + hash(s + 3) * 0.5,
             start: i * GAP + DROP + BLEED_AFTER + Math.floor(hash(s + 4) * 50), len: 0,
             dropEvery: 60 + Math.floor(hash(s + 5) * 120), nextDrop: 0,
