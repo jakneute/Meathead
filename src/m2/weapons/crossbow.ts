@@ -9,8 +9,9 @@
 // little at a time, anybody stood in one. Puked to death is a death of its own: buckling, one last torrent of it (onto
 // whoever's near: it can still pass it on), keeling over face first into it, and lying there with the flies.
 // Every enemy gets the animation: rearing back, heaving forward over it, a green look about him, his mouth going.
-// A boss or a mid-boss never gets sick on it (unless his own fight says otherwise: none does yet): the darts just hit
-// him harder, a machine gun (BOSS_DART_DMG). One opted in (weapons/half.ts: the Ensemble Cast) does get sick, at half:
+// A boss or a mid-boss never gets sick on it (unless his own fight says otherwise: setDartTaker; HELICOPTER HARRY's
+// does, the user's opt-in: his weakness, and his fight does what it does to him): the darts just hit him harder, a
+// machine gun (BOSS_DART_DMG). One opted in (weapons/half.ts: the Ensemble Cast) does get sick, at half:
 // half the darts' extra hurt, and half as many heaves; it dies its own fight's way (never puked to death).
 
 import type { Enemy, Projectile } from '../../m1/types';
@@ -45,12 +46,17 @@ const SHIELD_THROUGH = 0.35;
  *  on the screen, this far off at most. */
 const LOCK_REACH = 560;
 let locked: Enemy | null = null;
+/** A boss whose own fight takes the darts (opted in to the sickness: the user's call per boss): it's handed each dart
+ *  that sticks in him (true: dealt with, instead of the boss rule's plain hit), and the bow locks on to him. */
+const dartTakers = new Map<string, (ctx: FrameContext, e: Enemy) => boolean>();
+export const setDartTaker = (kind: string, take: (ctx: FrameContext, e: Enemy) => boolean) => { dartTakers.set(kind, take); };
+const takerOf = (e: Enemy) => (e.kind ? dartTakers.get(e.kind) : undefined);
 const airborne = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || (e.vel.y !== 0 && Math.abs(e.vel.y) > 0.5);
 const lockOn = (state: GameState, up: boolean): Enemy | null => {
   const pl = state.player, f = pl.facing, mx = pl.pos.x + pl.width / 2;
   let best: Enemy | null = null, bestD = Infinity;
   for (const e of state.enemies) {
-    if (!alive(e) || specialsOff(e)) continue;
+    if (!alive(e) || (specialsOff(e) && !takerOf(e))) continue;
     const dx = (e.pos.x + e.width / 2 - mx) * f;
     if (dx < 10 || dx > LOCK_REACH || e.pos.x + e.width < state.camera.x || e.pos.x > state.camera.x + CANVAS_WIDTH) continue;
     // (up: whoever's in the air, or stood up over him, on a floor he could jump up through, say; down: whoever's on the
@@ -174,6 +180,7 @@ const darted = (ctx: FrameContext, e: Enemy, p: Projectile, through = 1) => {
   if (stuck.filter(s => s.e === e).length > 12) stuck.splice(stuck.findIndex(s => s.e === e), 1);
   for (let i = 0; i < 2; i++) puff(state, { pos: { x: cx, y: cy }, vel: { x: -Math.sign(p.vel.x) * Math.random() * 2, y: -Math.random() * 2 }, life: 12, color: i ? '#B91C1C' : '#84CC16', size: 1.5 });
   playSound('click', 0.4, 10);
+  { const take = takerOf(e); if (take && take(ctx, e)) return; }
   if (specialsOff(e)) { hurt(ctx, e, BOSS_DART_DMG); e.hitFlash = 2; ctx.fx.spawnDamageNumber(e.pos, BOSS_DART_DMG); return; }
   if (specialsHalf(e)) { hurt(ctx, e, BOSS_DART_DMG * HALF * through); e.hitFlash = 2; }
   else hurt(ctx, e, DART.dmg * through);

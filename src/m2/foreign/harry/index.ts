@@ -1,69 +1,123 @@
-// HELICOPTER HARRY: the land's boss. STUB (the first job's): the arena (crude), and a clearly temporary stand-in: walk
-// past the middle and it's VICTORY, the walk-away (walkAway/helicopterHarry.ts, a placeholder) and the hub, Foreign
-// Lands cleared (his toy: the SOUVENIR launcher). Its owner builds the fight when the user gives its mechanics (the
-// arena first): Harry dropped his progressive act after he was thrown out of his own helicopter, and swears a WHOLE lot
-// (no slurs: "DAMN FOREIGNERS", "THEY SHOULD BUILD A WALL AROUND THE WALL"); main boss: 666 HP, the 60-frame breather,
-// non-weakness 35%; clean / shitty / naked pools for every line group, intro to death; Harry fully drawn. A big health
-// + ammo refill before it (the crash site). Checkpoints 120-129.
+// HELICOPTER HARRY: the land's boss (the user's design: foreign-spec.md "The land boss"). Harry's rocket brought the
+// helicopter down in the AMERICA pavilion's construction site (arena.ts): he comes to by the burning wreck
+// (DOORS.harry.start, checkpoint 120), the big health and ammo a few steps on, then through the scaffold towers' gate
+// onto the slab, and it's on: the gate slams shut, Harry comes down on his jetpack, rips the hippie off, and calls the
+// STATUE OF LIBERTY up out of the dig (fight.ts: the intro, the fight, his two deaths, hers; rambo.ts and liberty.ts:
+// the two of them drawn in full; scene.ts: the rest). A retry from the checkpoint goes straight to the fight (her up,
+// him waiting). Beaten: VICTORY, the walk-away (walkAway/helicopterHarry.ts), the hub, Foreign Lands cleared (his toy:
+// the SOUVENIR launcher). Revisits: once the land's cleared, the slab stands empty (her rubble, the gun and the torch
+// lying, a chalk outline, his tie-dye in shreds), the gate open.
 //
-// The way in: Harry's rocket and the crash (DOORS.harry.start, for now the helipad's right end). Back: the left end.
+// The way back: the left end (to the helipad's end, DOORS.heli.end). No way on (the end of the land).
 
 import type { GameState } from '../../../m1/game/core/state';
+import type { Block } from '../../../m1/types';
 import type { ForeignSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, foreignState, hands } from '../section';
-import { SECTIONS, GY } from '../geometry';
-import { viewIn, promenade, postBoard, onScreen, LOOKS } from '../kit';
+import { DOORS, GY } from '../geometry';
+import { topBand } from '../../../m1/constants';
 import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
-import { drawTodSky } from '../../timeOfDay';
+import { x0, x1, VIEW_X, ARENA_L, ARENA_R, CAM_ROW, REFILL_X, sy } from './arena';
+import { drawSky, drawScene } from './scene';
+import {
+  type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawStatue, drawFightBack, drawFightFront, drawFightHud,
+  drawWaiting, introSeen, killCamTick, killCamZoom, killedByWeakness,
+} from './fight';
 
-const { x0, x1 } = SECTIONS.harry;
-const X = (rx: number) => x0 + rx;
-/** Where the stand-in ends the land. */
-const TRIGGER_X = X(1500);
+interface Harry {
+  fight: 'wait' | 'on' | 'won'; wonAt: number;
+  f: Fight | null; walls: Block[];
+  victory: Victory | null; walk: WalkAway | null;
+}
+const harryOf = (state: GameState) => foreignState<Harry>(state, 'harry', () => ({ fight: 'wait', wonAt: 0, f: null, walls: [], victory: null, walk: null }));
 
-interface Harry { done: boolean; wonAt: number; victory: Victory | null; walk: WalkAway | null }
-const harryOf = (state: GameState) => foreignState<Harry>(state, 'harry', () => ({ done: false, wonAt: 0, victory: null, walk: null }));
+const leave = (state: GameState, weakness: boolean) => {
+  const s = harryOf(state);
+  markLandCleared('foreign'); noteBossKill();
+  s.walk = playWalkAway(state, { boss: 'helicopter-harry', weakness, onDone: () => goTo('hub') });
+};
 
 export const harry: ForeignSection = {
   id: 'harry', x0, x1,
-  checkpoints: [{ name: 'HELICOPTER HARRY', cp: 120, x: X(200), y: GY, clear: [300, 3000] }],
+  checkpoints: [{ name: 'HELICOPTER HARRY', cp: 120, x: DOORS.harry.start.x, y: GY, clear: [300, 3000] }],
   build: (state) => {
+    resetFight();
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'hard' }]);
     endWalls(state, 'harry');
-    state.pickups.push({ id: 'hh-health', pos: { x: X(500), y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 });
-    state.pickups.push({ id: 'hh-ammo', pos: { x: X(600), y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 });
+    // (the right-hand scaffold tower: always there; nothing past it but the dig)
+    state.blocks.push({ x: ARENA_R, y: -6000, w: 40, h: 6000 + GY, type: 'wall', hidden: true, tag: 'harry-end' } as Block);
+    // (the big health and ammo, on the way in: before it starts, and on every retry)
+    state.pickups.push({ id: 'hh-health', pos: { x: REFILL_X - 30, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 });
+    state.pickups.push({ id: 'hh-ammo', pos: { x: REFILL_X + 10, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 });
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = harryOf(state);
-    if (!s.done) {
+    if (s.fight === 'wait') {
       runExits(state, endExits('harry'));
-      if (!isLandCleared('foreign') && p.pos.x + p.width / 2 > TRIGGER_X && p.isGrounded) { s.done = true; s.wonAt = state.frame; s.victory = startVictory(); }
+      // (through the gate onto the slab, not cleared: it's on; the gate shut behind him)
+      const cx = p.pos.x + p.width / 2;
+      if (!isLandCleared('foreign') && cx > ARENA_L + 60 && cx < ARENA_R) {
+        s.fight = 'on';
+        s.f = startFight(state);
+        s.walls = [
+          { x: ARENA_L - 40, y: -6000, w: 40, h: 6000 + GY, type: 'wall', hidden: true, tag: 'harry-gate' } as Block,
+          { x: ARENA_L - 40, y: sy(-80) - 40, w: ARENA_R - ARENA_L + 80, h: 40, type: 'wall', hidden: true, tag: 'harry-top' } as Block,
+        ];
+        state.blocks.push(...s.walls);
+      }
       return controls;
     }
-    p.inCutscene = true;
-    if (s.victory) {
-      tickVictory(state, s.victory);
-      if (victoryDone(s.victory) && state.frame - s.wonAt > 60) {
-        s.victory = null;
-        markLandCleared('foreign'); noteBossKill();
-        s.walk = playWalkAway(state, { boss: 'helicopter-harry', onDone: () => goTo('hub') });
+    if (s.fight === 'on' && s.f) {
+      const f = s.f;
+      const out = updateFight(ctx, f, controls);
+      // (held in: never out of the arena, whatever sends him flying)
+      const lo = ARENA_L, hi = ARENA_R - p.width;
+      if (p.pos.x < lo) { p.pos.x = lo; if (p.vel.x < 0) p.vel.x = 0; }
+      if (p.pos.x > hi) { p.pos.x = hi; if (p.vel.x > 0) p.vel.x = 0; }
+      if (fightOver(f)) {
+        s.fight = 'won'; s.wonAt = state.frame;
+        endFight(state, f);
+        state.blocks = state.blocks.filter(b => !s.walls.includes(b)); s.walls = [];
+        s.victory = startVictory();
       }
+      return out;
     }
-    if (s.walk) tickWalkAway(s.walk, controls);
-    return hands();
+    if (s.fight === 'won') {
+      p.inCutscene = true;
+      if (s.victory) { tickVictory(state, s.victory); if (victoryDone(s.victory) && state.frame - s.wonAt > 60) { s.victory = null; leave(state, !!s.f && killedByWeakness(s.f)); } }
+      if (s.walk) tickWalkAway(s.walk, controls);
+      return hands();
+    }
+    return controls;
   },
-  drawBackdrop: (c) => { drawTodSky(c, 0, 0, 800, 600, ['#7F1D1D', '#C2410C', '#FB923C', '#FDE68A'], { horizon: 430, sun: [620, 110], moon: [170, 90] }); return true; },
+  cameraX: (state) => (harryOf(state).fight === 'wait' ? { min: x0, max: VIEW_X } : { min: VIEW_X, max: VIEW_X }),
+  cameraRow: () => CAM_ROW,
+  drawBackdrop: (c, state) => drawSky(c, state),
   drawBack: (c, state) => {
-    const v = viewIn(state);
-    promenade(c, v, x0 - 200, x1 + 200, '#A8A29E', '#57534E');
-    if (onScreen(v, X(1200), X(1800))) postBoard(c, X(1500), GY, ['HELICOPTER HARRY', 'THE FIGHT: COMING SOON'], LOOKS.land(1), '#7F1D1D', undefined, 120);
+    const s = harryOf(state), f = s.f, cleared = isLandCleared('foreign');
+    // (a retry, before he's on the slab: her up already, him waiting)
+    const waiting = !f && !cleared && introSeen() ? drawWaiting(c, state) : null;
+    drawScene(c, state, {
+      shut: s.fight === 'on',
+      aftermath: cleared && !f,
+      between: f ? (g) => drawStatue(g, state, f) : waiting ? waiting.statue : undefined,
+    });
+    if (f) drawFightBack(c, state, f);
+    else if (waiting) waiting.front(c);
+  },
+  drawFront: (c, state) => {
+    const s = harryOf(state);
+    if (s.f && s.fight !== 'wait') drawFightFront(c, state, s.f);
   },
   drawHud: (c, state) => {
     const s = harryOf(state);
+    if (s.f && s.fight === 'on') drawFightHud(c, s.f, topBand(), !!state.player.inCutscene);
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },
+  zoom: (state) => { const f = harryOf(state).f; return f ? killCamZoom(state, f) : null; },
+  holdTick: (ctx) => { const f = harryOf(ctx.state).f; return f ? killCamTick(f) : false; },
   outdoors: () => 1,
 };
