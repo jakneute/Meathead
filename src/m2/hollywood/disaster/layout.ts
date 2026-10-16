@@ -29,6 +29,8 @@ export const HANDS = 80;
 export const LOBBY = { a: 0, b: 1900, ceil: 330 } as const;
 export const PRESHOW = { a: 1900, b: 2650, ceil: 330, tv: 2280 } as const;
 export const THEATER = { a: 2650, b: 5300, ceil: 620 } as const;
+/** The wall between the pre-show and the theater (art only): its half thickness about THEATER.a. */
+export const DOOR_HALF = 14;
 /** The far wall (solid till the lever's flipped and it's gone). */
 export const FAR_WALL = THEATER.b;
 

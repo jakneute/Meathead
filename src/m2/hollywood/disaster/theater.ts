@@ -18,16 +18,16 @@ import { steveCard } from '../blvd/props';
 import { beam } from '../coaster/paint';
 import { throwAngle } from '../lever';
 import {
-  X, Y, GY, PRESHOW, THEATER, FAR_WALL, SCREEN, FX, CAT_L, CAT_R, BOOTH, COW_AT, LEAN_RAILS, WATCHERS, LEDGES, REAL_LEVER,
+  X, Y, GY, THEATER, FAR_WALL, DOOR_HALF, SCREEN, FX, CAT_L, CAT_R, BOOTH, COW_AT, LEAN_RAILS, WATCHERS, LEDGES, REAL_LEVER,
 } from './layout';
 import type { Dz } from './state';
 import { FX_LEN } from './show';
 import { footage } from './footage';
 import {
   type Ctx, type View, INK, WALL_D, SCREEN_D, seenD, spanAt, levelQ, sideQ, BLACKS, TRUSS, CASE, GOLD, SILVER, SHELL, CHAR, ICE, FIRE, WATER,
-  INDIGO, lip, dimRail, tubeH, tubeV, truss, chain, standBoard, showLook, stencil, still, deep,
+  lip, dimRail, tubeH, tubeV, truss, chain, standBoard, showLook, stencil, still, deep,
 } from './paint';
-import { backWall, floorBack, ceilingUnder, sideWall, plenum } from './rooms';
+import { backWall, floorBack, ceilingUnder, plenum } from './rooms';
 
 import { EFX_D } from './paint';
 
@@ -116,17 +116,10 @@ const grid = (c: Ctx, v: View, real: boolean) => {
 };
 
 export const theaterShell = (c: Ctx, v: View, real: boolean) => {
-  const a = X(THEATER.a), b = X(FAR_WALL);
+  const a = X(THEATER.a) + DOOR_HALF, b = X(FAR_WALL);
   backWall(c, v, `theater-${real ? 1 : 0}`, a, b, THEATER.ceil, (g, x, w) => paintTheaterWall(g, x, w, real));
   ceilingUnder(c, v, a, b, THEATER.ceil, BLACKS, 120);
   floorBack(c, v, a, b, ['#060508', '#0C0A0E', '#16131A', '#1E1A22', '#28232C', '#332C38'], (x, row) => (row % 2 === 0 && x % 240 === 0 ? '#C8F07A' : hash(x * 0.29 + row) > 0.8 ? '#28232C' : null));
-};
-/** The partition from the pre-show (the theater's left wall above it, or the pre-show's side of it). */
-export const theaterPartition = (c: Ctx, v: View) => {
-  const e = X(THEATER.a);
-  if (!seenD(v, e - 10, e + 10, WALL_D) && !seenD(v, e - 10, e + 10)) return;
-  const inT = v.eye.x > e;
-  sideWall(c, v, e, inT ? THEATER.ceil : PRESHOW.ceil, inT ? BLACKS : INDIGO, inT ? TRUSS.map(cc => mix(cc, '#000000', 0.4)) : GOLD, { h: 166, to: 0.96, col: inT ? INDIGO[1] : BLACKS[0] });
 };
 export const theaterPlenum = (c: Ctx, v: View, real: boolean, open: boolean) => {
   plenum(c, v, open ? 'theater-open' : 'theater', X(THEATER.a), X(FAR_WALL + (open ? 0 : 40)), THEATER.ceil, BLACKS);

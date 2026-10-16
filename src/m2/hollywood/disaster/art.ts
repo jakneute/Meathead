@@ -25,7 +25,8 @@ import {
   lobbyShell, lobbyPlenum, drawLobby, preshowShell, lobbyPartition, preshowPlenum, drawPreshow, floorFront, bendAll, paintCarpet,
   paintIndigoCarpet, BAND,
 } from './rooms';
-import { theaterShell, theaterPartition, theaterPlenum, drawTheater, drawOutsideFar, drawFarWall, paintAsphalt, fanHead, cowProp } from './theater';
+import { doorwayBack, doorwaySpillFront, doorwayPlane, spillColor } from './doorway';
+import { theaterShell, theaterPlenum, drawTheater, drawOutsideFar, drawFarWall, paintAsphalt, fanHead, cowProp } from './theater';
 
 /** The far wall's out (or going): outside shows through the hole. */
 const isOpen = (state: GameState) => { const r = dzOf(state).real; return realDisastersOn(state) && (r.phase === 'done' || r.wall > 0); };
@@ -65,13 +66,14 @@ export const drawDisasterBack = (c: Ctx, state: GameState, o: Dz, beat: number, 
   if (P) preshowShell(c, v);
   if (T) theaterShell(c, v, real);
   lobbyPartition(c, v);
-  theaterPartition(c, v);
+  doorwayBack(c, v, o, beat, real);
   if (L) lobbyPlenum(c, v);
   if (P) preshowPlenum(c, v);
   if (T) theaterPlenum(c, v, real, open);
   // The floors toward us (flat), then bent to the eye, before anything stands on them
   floorFront(c, v, 'lobby', X(-200), X(LOBBY.b), (g, x, w) => paintCarpet(g, x, w), CARPET[2]);
   floorFront(c, v, 'preshow', X(PRESHOW.a), X(PRESHOW.b), paintIndigoCarpet, INDIGO[2]);
+  doorwaySpillFront(c, v, beat, real);
   floorFront(c, v, 'theater', X(THEATER.a), X(FAR_WALL + 40), paintDeck, BLACKS[2]);
   if (open) floorFront(c, v, 'outside', X(FAR_WALL + 40), X(6600), paintAsphalt, '#1C1416');
   bendAll(c, v, X(-200), open ? X(6600) : X(FAR_WALL + 40));
@@ -80,6 +82,7 @@ export const drawDisasterBack = (c: Ctx, state: GameState, o: Dz, beat: number, 
   if (seenD(v, X(-200), X(LOBBY.b) + 40)) drawLobby(c, v, state, o, real);
   if (seenD(v, X(PRESHOW.a) - 40, X(PRESHOW.b) + 80)) drawPreshow(c, v, state, o, real);
   if (seenD(v, X(THEATER.a) - 40, X(FAR_WALL + 40))) drawTheater(c, v, state, o, beat, k, real);
+  doorwayPlane(c, v, real);
 };
 
 /** In front of him: the real fire on the floor (the heater's: stepped tongues, ember to white-hot, sparks, its smoke),
@@ -121,6 +124,8 @@ export const disasterLights = (o: Dz, beat: number, k: number, real: boolean): L
     { x: X((SCREEN.a + SCREEN.b) / 2), y: Y((SCREEN.lo + SCREEN.hi) / 2), r: 720, a: 0.7, color: tint(real ? '#FCA5A5' : ['#E0F2FE', '#FCA5A5', '#CBD5E1', '#F8FAFC', '#93C5FD', '#FDBA74'][beat], 0.12) },
     { x: X(BOOTH.cab + 150), y: Y(CAT_R.h) - 80, r: 220, a: 0.7, color: tint('#7DD3FC', 0.12) },
     { x: X(CAT_L.a + 300), y: Y(CAT_L.h) - 60, r: 260, a: 0.5, color: tint('#FDE68A', 0.1) },
+    // (the theater's light through the doorway, spilling onto the pre-show's carpet)
+    { x: X(THEATER.a) - 70, y: GY - 30, r: 150, a: 0.6, color: tint(spillColor(beat, real), 0.1) },
     // (the EXIT's green, faint)
     { x: X(THEATER.b - 90), y: GY - 150, r: 120, a: 0.5, color: tint('#4ADE80', real ? 0.04 : 0.08) },
   ];

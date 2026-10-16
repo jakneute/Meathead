@@ -16,11 +16,11 @@ import { drawPerson } from '../../adventure/temple/people';
 import { box, checker, mix, hash, poly, at, bandedGradient, steppedGlow, ramp6, board, plain, words, timeOfDay, skyAt, hourMix, glassOf, STEVE } from '../blvd/kit';
 import { steveCard, paintStandee, velvetRopePaint } from '../blvd/props';
 import {
-  X, Y, GY, LOBBY, PRESHOW, THEATER, FAR_WALL, QUEUE_RAILS, RAIL_H, LEDGES, HORNS, PRESHOW_WATCHERS,
+  X, Y, GY, LOBBY, PRESHOW, THEATER, FAR_WALL, DOOR_HALF, QUEUE_RAILS, RAIL_H, LEDGES, HORNS, PRESHOW_WATCHERS,
 } from './layout';
 import type { Dz } from './state';
 import {
-  type Ctx, type View, INK, WALL_D, NEAR_D, seenD, spanAt, levelQ, sideQ, MAROON, CARPET, INDIGO, BLACKS, TRUSS, GOLD, CASE, SHELL,
+  type Ctx, type View, INK, WALL_D, NEAR_D, seenD, spanAt, levelQ, sideQ, MAROON, CARPET, INDIGO, TRUSS, GOLD, CASE, SHELL,
   lip, tubeH, tubeV, truss, chain, hungBoard, oneSheet, horn, disasterLook, rideLook, showLook, still, deep,
 } from './paint';
 
@@ -465,29 +465,8 @@ const bigTv = (c: Ctx, o: Dz, f: number, real: boolean) => {
   c.restore();
 };
 
-/** The theater's doors (swinging open as he barges through): padded red leather on brass studs, kick plates, THEATER
- *  hung over them. */
-const theaterDoors = (c: Ctx, o: Dz, real: boolean) => {
-  const dx = X(PRESHOW.b), sw = o.doorT, ceil = Y(PRESHOW.ceil);
-  still(c, 'tdoorframe', dx, GY, -76, -178, 152, 178, g => {
-    box(g, -72, -174, 144, 174, INK);
-    box(g, -70, -172, 140, 172, GOLD[2]); box(g, -70, -172, 140, 2, GOLD[5]); box(g, -70, -172, 2, 172, GOLD[4]);
-    box(g, -64, -166, 128, 166, BLACKS[0]);
-  });
-  if (real) box(c, dx - 64, GY - 166, 128, 166, '#2A0A08');
-  for (const s of [-1, 1]) {
-    const w = 60 * (1 - sw * 0.8), lx = s < 0 ? dx - 62 : dx + 62 - w, V = ramp6('#7F1D1D');
-    box(c, lx, GY - 164, w, 164, INK); box(c, lx + 1, GY - 163, w - 2, 163, V[3]); box(c, lx + 1, GY - 163, Math.max(1, w * 0.2), 163, V[4]); box(c, lx + w - Math.max(2, w * 0.15) - 1, GY - 163, Math.max(2, w * 0.15), 163, V[1]);
-    // (the tufting: studs in a diamond grid)
-    for (let yy = GY - 150; yy < GY - 30; yy += 18) for (let xx = lx + 6 + ((yy / 18) % 2 ? 6 : 0); xx < lx + w - 4; xx += 12) box(c, xx, yy, 2, 2, GOLD[4]);
-    box(c, lx + 1, GY - 22, w - 2, 20, GOLD[2]); box(c, lx + 1, GY - 22, w - 2, 2, GOLD[5]);
-    box(c, s < 0 ? lx + w - 8 : lx + 4, GY - 100, 4, 18, GOLD[4]);
-  }
-  still(c, 'theaterboard', dx, 0, -80, ceil - 1, 160, GY - 200 - ceil + 40, g => hungBoard(g, 0, GY - 236, ceil, ['THEATER'], showLook(2, 2, '#F97316', '#1C0A06'), '#1C1917'));
-};
-
 export const preshowShell = (c: Ctx, v: View) => {
-  const a = X(PRESHOW.a), b = X(PRESHOW.b);
+  const a = X(PRESHOW.a), b = X(PRESHOW.b) - DOOR_HALF;
   backWall(c, v, 'preshow', a, b, PRESHOW.ceil, paintPreshowWall);
   ceilingUnder(c, v, a, b, PRESHOW.ceil, ['#0A0820', '#14103A', '#1E1852', '#2A2268'], 50);
   floorBack(c, v, a, b, INDIGO, (x, row) => (hash(x * 0.41 + row) > 0.7 ? GOLD[1] : null));
@@ -508,7 +487,6 @@ export const drawPreshow = (c: Ctx, v: View, state: GameState, o: Dz, real: bool
   if (seenD(v, X(PRESHOW.tv) - 140, X(PRESHOW.tv) + 140)) bigTv(c, o, f, real);
   // The guests watching it (bored; scared once it's real)
   for (const [rx, seed] of PRESHOW_WATCHERS) { c.save(); c.translate(X(rx), GY); c.scale(rx < PRESHOW.tv ? 0.9 : -0.9, 0.9); drawPerson(c, { seed, outfit: 'guest', f, pose: real ? 'point' : 'stand', mood: real ? 'scared' : 'bored', shorts: seed % 3 === 0 }); c.restore(); }
-  theaterDoors(c, o, real);
 };
 
 /** The floor fronts: the lobby's carpet, the pre-show's, the theater's deck, outside's asphalt (then bent). */
