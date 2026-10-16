@@ -33,19 +33,22 @@ export const TALK: PavilionTalk = {
     { from: 600, to: 2000, key: 'bus', lines: ["A DOUBLE-DECKER BUS. IT'S A BUS WITH A BUS ON IT.", "THEY DRIVE ON THE WRONG SIDE. RIGHT AT ME."] },
     { from: 2000, to: 2350, key: 'pub', lines: ['A PUB. FINALLY, A COUNTRY THAT GETS IT.', 'WARM BEER. THAT EXPLAINS A LOT.'] },
     { from: 2350, to: 3050, key: 'bridge', lines: ["THE BRIDGE GOES UP. WHO DESIGNED A BRIDGE THAT DOESN'T STAY?", 'LONDON BRIDGE. IS IT FALLING DOWN? COME ON. FALL DOWN.'] },
-    // (job 4b: Big Benjamin)
-    { from: 3700, to: 3920, key: 'bigben', lines: ['BIG BENJAMIN. NOBODY CALLS HIM THAT. NOBODY.', 'THE EXIT IS THE CLOCK FACE. THIS WHOLE COUNTRY IS A FIRE HAZARD.'] },
-    { from: 3920, to: 4280, key: 'inside', lines: ["THE INSIDE OF A CLOCK. IT'S ALL STAIRS AND A BIG SWINGING BALL.", 'A GIANT PENDULUM. I KNOW EXACTLY HOW THIS GOES.'], minH: 100 },
-    { from: 4280, to: 4420, key: 'face', lines: ["I'M STANDING ON THE CLOCK. IT'S WRONG. IT'S ALWAYS WRONG.", "THE WHOLE PARK'S DOWN THERE. IT LOOKS SMALLER. STILL SUCKS."], minH: 780 },
+    // (job 4b: the world's tallest phone box)
+    { from: 3700, to: 3920, key: 'bigben', lines: ["THE WORLD'S TALLEST PHONE BOOTH. STILL SMELLS LIKE PISS.", 'THE EXIT IS OUT THE TOP. THIS WHOLE COUNTRY IS A FIRE HAZARD.'] },
+    { from: 3920, to: 4280, key: 'inside', lines: ["THE INSIDE OF A PHONE BOOTH. IT'S ALL STAIRS AND A BIG SWINGING PHONE.", 'SOMEBODY LEFT IT OFF THE HOOK. SOMEBODY HUGE.'], minH: 100 },
+    { from: 4280, to: 4420, key: 'face', lines: ["I'M CLIMBING OUT OF A PHONE BOOTH. NINE STORIES UP.", "THE WHOLE PARK'S DOWN THERE. IT LOOKS SMALLER. STILL SUCKS."], minH: 780 },
   ],
 };
 
-/** A bobby up in the belfry as the hammer winds back (the bobby voices). */
-export const BONG: ByPants = {
-  clean: ["IT'S THE CHIME, INNIT! COVER YOUR EARS! I'M FROM TOLEDO!", "BONG! IT'S ALWAYS BONG O'CLOCK!", 'MIND THE BELL! MIND IT! WHY AREN\'T YOU MINDING IT?!'],
-  shitty: ["THE BELL'S GONNA SHAKE IT RIGHT OUT OF YOU, MATE!", "BONG! ...AND THE SMELL COMES WITH IT!"],
-  nude: ["OI! NO NAKED BLOKES IN THE BELFRY! IT ECHOES!", "BONG! NOT YOURS! THE BELL'S!"],
+/** A bobby up top as the giant phone starts rattling (the bobby voices). */
+export const RINGING: ByPants = {
+  clean: ["IT'S RINGING, INNIT! COVER YOUR EARS! I'M FROM TOLEDO!", "DON'T ANSWER IT! IT'S NEVER GOOD NEWS!", "MIND THE PHONE! MIND IT! WHY AREN'T YOU MINDING IT?!"],
+  shitty: ["THE RING'S GONNA SHAKE IT RIGHT OUT OF YOU, MATE!", "IT'S THE COUNCIL! THEY'RE CALLING ABOUT THE SMELL!"],
+  nude: ["OI! NO NAKED BLOKES IN THE PHONE BOX! WE GET ENOUGH OF THAT!", "IT'S FOR YOU! IT'S YOUR MUM! SHE CAN SEE YOU!"],
 };
+
+/** Him, answering the giant phone as it rings (once). */
+export const ANSWER = ["IT'S FOR YOU. IT'S ALWAYS FOR YOU.", 'HELLO? NO. HE DIED. STOP CALLING.', "HELLO? I DON'T WANT A FUCKING WARRANTY."];
 
 export const GUARD: ByPants = {
   clean: ["NOW YOU'VE DONE IT! I'M ALLOWED TO MOVE NOW!", "I'M TYLER! I STOOD THERE SIX HOURS! YOU SHOT ME!", 'GOD SAVE THE... WHOEVER IT IS NOW!'],
@@ -97,14 +100,14 @@ export const HURT: HurtTable = {
     hurt: ['THE BUS HIT ME! ON THE WRONG SIDE!', "OW! IT DIDN'T EVEN STOP!", 'A BUS! A TWO-STORY BUS!'],
     death: ['HIT BY A BUS', 'RUN OVER ON THE WRONG SIDE OF THE ROAD'],
   },
-  'm2:fl_pendulum': {
-    hurt: ['THE PENDULUM! RIGHT IN THE CHEST!', 'A GIANT BALL! SWUNG AT ME!', 'TICK TOCK MY ASS!'],
-    death: ['KNOCKED OUT BY A CLOCK', "TIME'S UP"],
+  'm2:fl_handset': {
+    hurt: ['THE PHONE HIT ME! THE TALKING PART!', 'OW! RIGHT IN THE TEETH! WITH A PHONE!', 'WHO LEFT IT OFF THE FUCKING HOOK?!'],
+    death: ['HUNG UP ON', 'KILLED BY A LANDLINE'],
   },
-  'm2:fl_bong': {
-    hurt: ['BONG! MY EARS! MY EVERYTHING!', "THE BELL! I CAN'T HEAR ANYTHING!", 'FUCKING BONG!'],
-    death: ['BONGED', 'RUNG TO DEATH'],
+  'm2:fl_ring': {
+    hurt: ['THE RING! MY EARS! MY EVERYTHING!', "IT'S RINGING! IT'S RINGING INSIDE MY SKULL!", 'ANSWER THE FUCKING PHONE!'],
+    death: ['DISCONNECTED', 'RUNG TO DEATH'],
   },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.guard, GUARD], [V.hooligan, HOOLIGAN], [V.tealady, TEALADY], [V.bobby, BOBBY], [{ m: V.bobby.m, f: V.bobby.m }, BONG]]);
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.guard, GUARD], [V.hooligan, HOOLIGAN], [V.tealady, TEALADY], [V.bobby, BOBBY], [{ m: V.bobby.m, f: V.bobby.m }, RINGING]], { meathead: ANSWER });

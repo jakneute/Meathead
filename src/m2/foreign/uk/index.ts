@@ -6,8 +6,9 @@
 // and the booths are out of its lane), and its roof is a ride (a hooligan up top, pints). Then THE PUB, climbed over
 // (the phone booth up onto its roof, barrels down the far side), and TOWER BRIDGE (ish) over the Thames (ish): its
 // two halves lift on a schedule (the bell first) and drop whoever's on them in the river; the towers' stairs up to the
-// high walkway across (the dry way, whenever). The tea shop, a last guard; then BIG BENJAMIN (clocktower.ts, job 4b:
-// the clock tower climbed inside past the pendulum and the bell, out through the clock face and down), to Canada.
+// high walkway across (the dry way, whenever). The tea shop, a last guard; then THE WORLD'S TALLEST PHONE BOX
+// (clocktower.ts, job 4b: climbed inside past the swinging handset and the ringing phone, out through the smashed glass
+// panes at the top and down), to Canada.
 //
 // Crude (the first pass): readable boxes with full game feel. Checkpoints 80-89. Outdoors: the time of day's light.
 

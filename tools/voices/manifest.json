@@ -5871,11 +5871,6 @@
  },
  {
   "voice": "death",
-  "text": "BONGED",
-  "from": "FOREIGN"
- },
- {
-  "voice": "death",
   "text": "BOO",
   "from": "SPACE"
  },
@@ -6853,6 +6848,11 @@
   "voice": "death",
   "text": "DIRTY NEEDLE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DISCONNECTED",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -8331,6 +8331,11 @@
  },
  {
   "voice": "death",
+  "text": "HUNG UP ON",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "HUNG UP ON THE HORNS",
   "from": "content/deaths"
  },
@@ -8642,6 +8647,11 @@
  {
   "voice": "death",
   "text": "KILLED BY A KOI",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A LANDLINE",
   "from": "FOREIGN"
  },
  {
@@ -8973,11 +8983,6 @@
   "voice": "death",
   "text": "KNOCKED OFF BY A WITCH ON A BROOM",
   "from": "SPOOKY"
- },
- {
-  "voice": "death",
-  "text": "KNOCKED OUT BY A CLOCK",
-  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -12283,11 +12288,6 @@
   "voice": "death",
   "text": "TIME CUT HIM SHORT",
   "from": "SPOOKY"
- },
- {
-  "voice": "death",
-  "text": "TIME'S UP",
-  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -15966,22 +15966,12 @@
  },
  {
   "voice": "m2.foreign.bobby",
-  "text": "BONG! ...AND THE SMELL COMES WITH IT!",
-  "from": "FOREIGN"
- },
- {
-  "voice": "m2.foreign.bobby",
-  "text": "BONG! IT'S ALWAYS BONG O'CLOCK!",
-  "from": "FOREIGN"
- },
- {
-  "voice": "m2.foreign.bobby",
-  "text": "BONG! NOT YOURS! THE BELL'S!",
-  "from": "FOREIGN"
- },
- {
-  "voice": "m2.foreign.bobby",
   "text": "COVER YOURSELF, SIR! WITH MY HAT IF YOU HAVE TO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.bobby",
+  "text": "DON'T ANSWER IT! IT'S NEVER GOOD NEWS!",
   "from": "FOREIGN"
  },
  {
@@ -16001,12 +15991,22 @@
  },
  {
   "voice": "m2.foreign.bobby",
-  "text": "IT'S THE CHIME, INNIT! COVER YOUR EARS! I'M FROM TOLEDO!",
+  "text": "IT'S FOR YOU! IT'S YOUR MUM! SHE CAN SEE YOU!",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.bobby",
-  "text": "MIND THE BELL! MIND IT! WHY AREN'T YOU MINDING IT?!",
+  "text": "IT'S RINGING, INNIT! COVER YOUR EARS! I'M FROM TOLEDO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.bobby",
+  "text": "IT'S THE COUNCIL! THEY'RE CALLING ABOUT THE SMELL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.bobby",
+  "text": "MIND THE PHONE! MIND IT! WHY AREN'T YOU MINDING IT?!",
   "from": "FOREIGN"
  },
  {
@@ -16016,12 +16016,12 @@
  },
  {
   "voice": "m2.foreign.bobby",
-  "text": "OI! NO NAKED BLOKES IN THE BELFRY! IT ECHOES!",
+  "text": "OI! NO NAKED BLOKES IN THE PHONE BOX! WE GET ENOUGH OF THAT!",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.bobby",
-  "text": "THE BELL'S GONNA SHAKE IT RIGHT OUT OF YOU, MATE!",
+  "text": "THE RING'S GONNA SHAKE IT RIGHT OUT OF YOU, MATE!",
   "from": "FOREIGN"
  },
  {
@@ -35876,17 +35876,7 @@
  },
  {
   "voice": "meathead",
-  "text": "A GIANT BALL! SWUNG AT ME!",
-  "from": "FOREIGN"
- },
- {
-  "voice": "meathead",
   "text": "A GIANT FISH! IN MY FACE!",
-  "from": "FOREIGN"
- },
- {
-  "voice": "meathead",
-  "text": "A GIANT PENDULUM. I KNOW EXACTLY HOW THIS GOES.",
   "from": "FOREIGN"
  },
  {
@@ -36921,6 +36911,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ANSWER THE FUCKING PHONE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "ANTI-GRAVITY. THERE IS A POLE RIGHT THERE. I CAN SEE THE POLE.",
   "from": "SPACE"
  },
@@ -37326,11 +37321,6 @@
  },
  {
   "voice": "meathead",
-  "text": "BIG BENJAMIN. NOBODY CALLS HIM THAT. NOBODY.",
-  "from": "FOREIGN"
- },
- {
-  "voice": "meathead",
   "text": "BIG CAT! BIG CAT!",
   "from": "ADVENTURE"
  },
@@ -37458,11 +37448,6 @@
   "voice": "meathead",
   "text": "BONED IN THE HEAD!",
   "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "BONG! MY EARS! MY EVERYTHING!",
-  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -39736,11 +39721,6 @@
  },
  {
   "voice": "meathead",
-  "text": "FUCKING BONG!",
-  "from": "FOREIGN"
- },
- {
-  "voice": "meathead",
   "text": "FUCKING TIN CAN!",
   "from": "SPOOKY"
  },
@@ -41586,6 +41566,16 @@
  },
  {
   "voice": "meathead",
+  "text": "HELLO? I DON'T WANT A FUCKING WARRANTY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "HELLO? NO. HE DIED. STOP CALLING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "HELLO? TOMMY?",
   "from": "m1/game/stages/tommy/escape.ts:227"
  },
@@ -43131,6 +43121,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M CLIMBING OUT OF A PHONE BOOTH. NINE STORIES UP.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M COOKING! I'M COOKING!",
   "from": "SPOOKY"
  },
@@ -43442,11 +43437,6 @@
  {
   "voice": "meathead",
   "text": "I'M STANDING ON A RUG ON A ROPE. THAT'S THE PARK'S PROBLEM.",
-  "from": "FOREIGN"
- },
- {
-  "voice": "meathead",
-  "text": "I'M STANDING ON THE CLOCK. IT'S WRONG. IT'S ALWAYS WRONG.",
   "from": "FOREIGN"
  },
  {
@@ -44191,6 +44181,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S FOR YOU. IT'S ALWAYS FOR YOU.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S FREEZING! IN FLORIDA!",
   "from": "FOREIGN"
  },
@@ -44363,6 +44358,11 @@
   "voice": "meathead",
   "text": "IT'S RAINING WOMEN! IN BITS!",
   "from": "FOR_A_WOMAN"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S RINGING! IT'S RINGING INSIDE MY SKULL!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -47496,6 +47496,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! RIGHT IN THE TEETH! WITH A PHONE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! SAMPLE TRAY!",
   "from": "FOREIGN"
  },
@@ -49871,6 +49876,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMEBODY LEFT IT OFF THE HOOK. SOMEBODY HUGE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMEBODY SHOULD PUT UP A SIGN OR SOMETHING.",
   "from": "m1/game/stages/tommy/escape.ts:227"
  },
@@ -51751,11 +51761,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THE BELL! I CAN'T HEAR ANYTHING!",
-  "from": "FOREIGN"
- },
- {
-  "voice": "meathead",
   "text": "THE BIG BABY RAN ME OVER!",
   "from": "SPACE"
  },
@@ -52081,7 +52086,7 @@
  },
  {
   "voice": "meathead",
-  "text": "THE EXIT IS THE CLOCK FACE. THIS WHOLE COUNTRY IS A FIRE HAZARD.",
+  "text": "THE EXIT IS OUT THE TOP. THIS WHOLE COUNTRY IS A FIRE HAZARD.",
   "from": "FOREIGN"
  },
  {
@@ -52366,7 +52371,7 @@
  },
  {
   "voice": "meathead",
-  "text": "THE INSIDE OF A CLOCK. IT'S ALL STAIRS AND A BIG SWINGING BALL.",
+  "text": "THE INSIDE OF A PHONE BOOTH. IT'S ALL STAIRS AND A BIG SWINGING PHONE.",
   "from": "FOREIGN"
  },
  {
@@ -52606,7 +52611,7 @@
  },
  {
   "voice": "meathead",
-  "text": "THE PENDULUM! RIGHT IN THE CHEST!",
+  "text": "THE PHONE HIT ME! THE TALKING PART!",
   "from": "FOREIGN"
  },
  {
@@ -52713,6 +52718,11 @@
   "voice": "meathead",
   "text": "THE RIG! IT'S HOT!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE RING! MY EARS! MY EVERYTHING!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -53207,6 +53217,11 @@
  {
   "voice": "meathead",
   "text": "THE WORLD'S LONGEST PIZZA OVEN. I'M THE TOPPING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE WORLD'S TALLEST PHONE BOOTH. STILL SMELLS LIKE PISS.",
   "from": "FOREIGN"
  },
  {
@@ -53732,11 +53747,6 @@
  {
   "voice": "meathead",
   "text": "THUMBS DOWN, ASSHOLE.",
-  "from": "FOREIGN"
- },
- {
-  "voice": "meathead",
-  "text": "TICK TOCK MY ASS!",
   "from": "FOREIGN"
  },
  {
@@ -54868,6 +54878,11 @@
   "voice": "meathead",
   "text": "WHO KEEPS DRIVING A TRUCK THAT'S ON FIRE?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO LEFT IT OFF THE FUCKING HOOK?!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",

@@ -553,10 +553,14 @@ pavillions, helicopter. less than a typical level but lengthier individually."
   LISA (a postcard, ACTUAL SIZE* *SMALLER); the FOUNTAIN SHOW's nozzles in its steps jet in a wave across it (the
   gurgle first; `m2:fl_fountain` knocks him up and off); the Seine (A PUDDLE) and its bookstalls (the can-can pair on
   them), an apartment block over its mansard roof. Checkpoints 74-75.
-- **The UK, BIG BENJAMIN:** the clock tower climbed inside (its far wall shut to the ground: EXIT: THE CLOCK FACE),
-  THE PENDULUM swinging through the lower floors (`m2:fl_pendulum`), the belfry's bell winding back and BONGING a ring
-  out (`m2:fl_bong`), gears on the walls; out through the clock face onto its ledge and down the outside (in through
-  the face the way back). The terraced street. Checkpoints 84-85.
+- **The UK, THE WORLD'S TALLEST PHONE BOX** (reskinned 2026-10-16 from BIG BENJAMIN, the clock tower: Spooky Land
+  already has one; the layout, collision, timings and hit areas untouched): a giant red British telephone box climbed
+  inside (its far wall shut to the ground: EXIT: OUT THE TOP), THE HANDSET off the hook swinging on its coiled cord
+  through the lower floors (the pendulum's arc and hit area: `m2:fl_handset`), the giant phone on the wall up top
+  rattling (the tell) and RINGING a wave out (the bell's: `m2:fl_ring`; he may answer it, once: IT'S FOR YOU. IT'S
+  ALWAYS FOR YOU.), coin boxes, phone books, INSERT 10P plates and taped-up calling cards on the walls, the lit
+  TELEPHONE crown sign and the domed roof on top; out through the smashed glass panes onto the sill and down the
+  outside by its red moldings (in through the panes the way back). The terraced street. Checkpoints 84-85.
 - **Canada, THE FROZEN POND and THE TOBOGGAN HILL:** ice panels over the pond (REFRIGERATED, SORRY ABOUT THE ICE), a
   hockey game on it; the marked thin panels crack under whoever stands on them and give way (`m2:fl_thin_ice`, the
   cast THROUGH THE ICE!), frozen over again a while later (one-way: he can always come up through a hole); a hockey
