@@ -63,10 +63,7 @@ const paintDumpster = (g: Ctx) => {
   });
   // (a pair of boots up out of it, crossed)
   for (const [x, a] of [[176, 0.5], [188, 0.2]] as const) { g.save(); g.translate(x, -RIM - 30); g.rotate(a); box(g, -5, -30, 10, 30, INK); box(g, -4, -29, 8, 28, hour('#3A2A20')); box(g, -4, -29, 3, 28, hour('#5A4030')); box(g, -6, -36, 14, 8, INK); box(g, -5, -35, 12, 6, hour('#26201C')); box(g, -5, -35, 12, 1, hour('#4A3E34')); g.restore(); }
-  // (a leg up out of it, its boot; an arm hanging over the front; a dropped mask; a shield)
-  const R = ramp6(hour('#DC2626'));
-  box(g, 119, -RIM - 112, 14, 74, INK); box(g, 120, -RIM - 111, 12, 72, R[3]); box(g, 120, -RIM - 111, 4, 72, R[4]); box(g, 129, -RIM - 111, 3, 72, R[1]);
-  box(g, 114, -RIM - 122, 24, 12, INK); box(g, 115, -RIM - 121, 22, 10, hour('#7F1D1D')); box(g, 115, -RIM - 121, 22, 2, hour('#A83A3A'));
+  // (an arm hanging over the front; a shield)
   const shield = (sx: number, sy: number) => { for (const [r, col] of [[15, INK], [14, '#DC2626'], [10, '#F8FAFC'], [6, '#2563EB']] as const) { g.fillStyle = hour(col); g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill(); } poly(g, [[sx, sy - 5], [sx + 1.5, sy - 1.5], [sx + 5, sy - 1], [sx + 2, sy + 1.5], [sx + 3, sy + 5], [sx, sy + 3], [sx - 3, sy + 5], [sx - 2, sy + 1.5], [sx - 5, sy - 1], [sx - 1.5, sy - 1.5]], '#F8FAFC'); box(g, sx - 9, sy - 9, 4, 2, '#FFFFFF'); };
   shield(DW - 50, -RIM - 26);
   // (the bin: a big steel box, its rolled rim, ribs, stiffeners, the fork pockets, casters)
