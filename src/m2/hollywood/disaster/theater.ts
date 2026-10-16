@@ -367,34 +367,70 @@ const catwalk = (c: Ctx, v: View, rx: number, h: number, w: number, real: boolea
   if (real) for (let k = Math.ceil(sa / 26) * 26; k < sb; k += 26) { const ih = 6 + ((k * 7) % 12); poly(c, [[k, y + 14], [k + 5, y + 14], [k + 2, y + 14 + ih]], ICE[4]); box(c, k + 1, y + 14, 1, ih - 2, ICE[5]); }
 };
 
-const drawBooth = (c: Ctx, o: Dz, f: number) => {
-  const r = o.real, by = Y(CAT_R.h), squashed = r.squashed;
-  const cx0 = X(BOOTH.cab), cw = X(BOOTH.b) - cx0;
+/** The booth's depths: its back wall, the operator's chair, the console's front. */
+const BOOTH_BACK = 0.955, BOOTH_SEAT = 0.966, BOOTH_DESK = 0.976;
+/** The EFFECTS CONTROL booth on the one eye: a box on the catwalk going back from its front wall (the play plane) to
+ *  BOOTH_BACK. Inside, back to front: the back wall (rack, monitors, the clock, NO SLEEPING), its side walls, floor and
+ *  ceiling going back, the sleeper in his chair, the console in front of him (its top going back, its lights); then
+ *  the front wall over it all, the window cut in it (its tinted glass over him, the glare; broken once it's down). */
+const drawBooth = (c: Ctx, v: View, o: Dz, f: number) => {
+  const r = o.real, by = Y(CAT_R.h), squashed = r.squashed, eye = v.eye;
+  const cx0 = X(BOOTH.cab), cw = X(BOOTH.b) - cx0, top = by - 140;
+  const W = ramp6('#57534E'), I = W.map(cc => mix(cc, '#0A0C10', 0.45));
+  // (inside: the floor, the ceiling's underside, the side walls going back to the back wall)
+  levelQ(c, eye, cx0 + 4, cx0 + cw - 4, by - 4, 1, BOOTH_BACK, I[1]);
+  if (eye.y > top + 1) levelQ(c, eye, cx0 + 4, cx0 + cw - 4, top, 1, BOOTH_BACK, I[0]);
+  if (eye.x > cx0 + 4) sideQ(c, eye, cx0 + 4, top, by - 4, 1, BOOTH_BACK, I[3]);
+  if (eye.x < cx0 + cw - 4) sideQ(c, eye, cx0 + cw - 4, top, by - 4, 1, BOOTH_BACK, I[2]);
+  deep(c, v, BOOTH_BACK, () => still(c, `booth-back-${squashed ? 1 : 0}`, cx0, by, 0, -142, cw, 142, g => {
+    box(g, 0, -140, cw, 136, I[2]); bandedGradient(g, 0, -140, cw, 136, [I[1], I[2], I[2], I[1]], 4);
+    for (let y = -130; y < -4; y += 10) box(g, 0, y, cw, 1, I[1]);
+    // (the equipment rack: units with knobs and VU lights; two monitors on a shelf; the clock; the sign)
+    box(g, 30, -128, 60, 120, INK); box(g, 31, -127, 58, 118, CASE[2]);
+    for (let y = -124, i = 0; y < -14; y += 14, i++) { box(g, 33, y, 54, 12, CASE[3 + (i % 2)]); box(g, 33, y, 54, 1, CASE[5]); for (let k = 0; k < 4; k++) box(g, 37 + k * 12, y + 4, 3, 3, i % 3 ? '#4ADE80' : '#FDE047'); }
+    for (const mx of [130, 196]) { box(g, mx - 1, -122, 52, 40, INK); box(g, mx, -121, 50, 38, CASE[3]); box(g, mx + 4, -117, 42, 28, squashed ? '#1C1917' : '#1E3A5A'); if (!squashed) { box(g, mx + 4, -117, 42, 2, '#5A8AC8'); for (let yy = -113; yy < -89; yy += 3) box(g, mx + 4, yy, 42, 1, 'rgba(0,0,0,0.25)'); } }
+    box(g, 120, -80, 140, 4, INK); box(g, 121, -79, 138, 2, W[4]);
+    g.fillStyle = INK; g.beginPath(); g.arc(cw - 40, -110, 12, 0, Math.PI * 2); g.fill(); g.fillStyle = '#F5F5F4'; g.beginPath(); g.arc(cw - 40, -110, 10, 0, Math.PI * 2); g.fill();
+    box(g, cw - 41, -118, 2, 9, INK); box(g, cw - 41, -111, 7, 2, INK);
+    board(g, cw - 40, -70, ['NO SLEEPING'], plain(1, 1, '#B91C1C'), '#FEF3C7', GOLD, 4);
+  }));
+  // (the sleeper: slumped in his chair behind the console, the eye mask on, earplugs in, a Zzz going up)
+  if (!squashed) {
+    deep(c, v, BOOTH_SEAT, () => {
+      c.save(); c.translate(cx0 + 110, by - 40); c.scale(0.9, 0.9);
+      drawPerson(c, { seed: 5113, outfit: 'operator', f: 0, pose: 'sit', mood: 'bored', talking: !!o.sleeper });
+      box(c, -9, -83, 22, 8, INK); box(c, -8, -82, 20, 6, '#DB2777'); box(c, -8, -82, 20, 1, '#F472B6');
+      c.restore();
+    });
+  }
+  // (the console: its top going back, its face at its depth, its lights: idle, or panicking)
+  const panic = r.phase === 'on' && r.step >= 2;
+  if (eye.y < by - 50) { levelQ(c, eye, cx0 + 14, cx0 + cw - 14, by - 50, BOOTH_DESK, BOOTH_SEAT + 0.002, CASE[4]); levelQ(c, eye, cx0 + 14, cx0 + cw - 14, by - 50, BOOTH_DESK, BOOTH_DESK - 0.002, CASE[5]); }
+  deep(c, v, BOOTH_DESK, () => {
+    box(c, cx0 + 13, by - 51, cw - 26, 47, INK); box(c, cx0 + 14, by - 50, cw - 28, 45, CASE[2]); box(c, cx0 + 14, by - 50, cw - 28, 2, CASE[4]);
+    for (let k = 0; k < 8; k++) { const lx = cx0 + 24 + k * 34; box(c, lx - 1, by - 44, 8, 7, INK); box(c, lx, by - 43, 6, 5, squashed ? '#1C1917' : panic ? (f % 8 < 4 ? '#EF4444' : '#300') : (k + Math.floor(f / 24)) % 3 ? '#4ADE80' : '#FDE047'); }
+    for (let k = 0; k < 6; k++) { box(c, cx0 + 34 + k * 44, by - 30, 4, 14, INK); box(c, cx0 + 35, by - 18, cw - 70, 1, CASE[1]); box(c, cx0 + 34 + k * 44, by - 30 + ((k * 7) % 9), 4, 4, SILVER[4]); }
+  });
+  if (!squashed) for (let k = 0; k < 3; k++) { const t = ((f + k * 30) % 90) / 90; words(c, 'Z', cx0 + 130 + t * 20 + k * 4, by - 96 - t * 40, { sx: 1 + (k % 2), sy: 1 + (k % 2), fill: `rgba(255,255,255,${(1 - t).toFixed(2)})` }); }
+  // (the front wall over it all, the window cut in it; its glass over him)
   still(c, `booth-${squashed ? 1 : 0}`, cx0, by, -10, -156, cw + 20, 158, g => {
-    const W = ramp6('#57534E'), R = ramp6('#7C2D12');
+    const R = ramp6('#7C2D12');
+    const wall = (x: number, y: number, w: number, h: number) => { box(g, x, y, w, h, W[3]); for (let yy = Math.ceil(y / 10) * 10; yy < y + h; yy += 10) box(g, x, yy, w, 1, W[2]); };
     box(g, -1, -141, cw + 2, 141, INK);
-    box(g, 0, -140, cw, 140, W[3]); box(g, 0, -140, 4, 140, W[4]); box(g, cw - 6, -140, 6, 140, W[1]);
-    for (let y = -130; y < 0; y += 10) box(g, 0, y, cw, 1, W[2]);
+    wall(0, -140, cw, 20); wall(0, -54, cw, 54); wall(0, -120, 14, 66); wall(cw - 14, -120, 14, 66);
+    box(g, 0, -140, 4, 140, W[4]); box(g, cw - 6, -140, 6, 140, W[1]);
     box(g, -8, -153, cw + 16, 16, INK); box(g, -7, -152, cw + 14, 14, R[3]); box(g, -7, -152, cw + 14, 2, R[5]); box(g, -7, -140, cw + 14, 2, R[1]);
     words(g, 'EFFECTS CONTROL', cw / 2, -142, showLook(1, 1, '#FDE68A', '#1C0A06'));
-    // (the window: its frame, the tinted glass (or gone), the desk and its console)
-    box(g, 12, -122, cw - 24, 68, INK); box(g, 14, -120, cw - 28, 64, squashed ? '#120E0C' : '#0C2A3E');
-    if (!squashed) { bandedGradient(g, 14, -120, cw - 28, 64, ['#0C2A3E', '#123A52', '#0C2A3E'], 4); poly(g, [[20, -120], [44, -120], [14, -96], [14, -110]], 'rgba(186, 230, 253, 0.25)'); }
-    else for (let i = 0; i < 6; i++) poly(g, [[14 + i * 46, -120], [30 + i * 46, -120], [22 + i * 46, -104]], 'rgba(224, 242, 254, 0.5)');
-    box(g, 14, -56, cw - 28, 16, INK); box(g, 15, -55, cw - 30, 14, CASE[3]); box(g, 15, -55, cw - 30, 2, CASE[5]);
+    // (the window's frame: inked round, a lit sill, a mullion)
+    for (const [x, y, w, h] of [[12, -122, cw - 24, 3], [12, -57, cw - 24, 3], [12, -122, 3, 68], [cw - 15, -122, 3, 68], [cw / 2 - 1, -120, 3, 64]] as const) box(g, x, y, w, h, INK);
+    box(g, 10, -56, cw - 20, 4, W[5]); box(g, 10, -53, cw - 20, 1, W[1]);
+    if (!squashed) {
+      // (the tint, the glare in stepped streaks)
+      box(g, 15, -119, cw - 30, 62, 'rgba(12, 42, 62, 0.35)');
+      for (const gx of [24, cw / 2 + 20]) { poly(g, [[gx, -119], [gx + 22, -119], [gx - 10, -57], [gx - 32, -57]].map(([px, py]) => [Math.max(15, Math.min(cw - 15, px)), py] as [number, number]), 'rgba(186, 230, 253, 0.14)'); poly(g, [[gx + 28, -119], [gx + 34, -119], [gx + 2, -57], [gx - 4, -57]].map(([px, py]) => [Math.max(15, Math.min(cw - 15, px)), py] as [number, number]), 'rgba(224, 242, 254, 0.18)'); }
+    } else for (let i = 0; i < 6; i++) poly(g, [[14 + i * 46, -120], [30 + i * 46, -120], [22 + i * 46, -104]], 'rgba(224, 242, 254, 0.5)');
     box(g, 10, -4, cw - 20, 4, W[1]);
   });
-  // (the console's lights: idle, or panicking)
-  const panic = r.phase === 'on' && r.step >= 2;
-  for (let k = 0; k < 8; k++) box(c, cx0 + 24 + k * 34, by - 52, 6, 5, squashed ? '#1C1917' : panic ? (f % 8 < 4 ? '#EF4444' : '#300') : (k + Math.floor(f / 24)) % 3 ? '#4ADE80' : '#FDE047');
-  if (!squashed) {
-    // (the sleeper: slumped over the desk, the eye mask on, earplugs in, a Zzz going up)
-    c.save(); c.translate(cx0 + 110, by - 40); c.scale(0.9, 0.9);
-    drawPerson(c, { seed: 5113, outfit: 'operator', f: 0, pose: 'sit', mood: 'bored', talking: !!o.sleeper });
-    box(c, -9, -83, 22, 8, INK); box(c, -8, -82, 20, 6, '#DB2777'); box(c, -8, -82, 20, 1, '#F472B6');
-    c.restore();
-    for (let k = 0; k < 3; k++) { const t = ((f + k * 30) % 90) / 90; words(c, 'Z', cx0 + 130 + t * 20 + k * 4, by - 96 - t * 40, { sx: 1 + (k % 2), sy: 1 + (k % 2), fill: `rgba(255,255,255,${(1 - t).toFixed(2)})` }); }
-  }
   // (the truss, coming down on it; down on it: his legs out from under, the blood)
   if (r.truss > 0) {
     const ty = by - 300 + 230 * r.truss;
@@ -536,7 +572,7 @@ export const drawTheater = (c: Ctx, v: View, state: GameState, o: Dz, beat: numb
     } else { box(c, X(COW_AT.x) - 6, Y(COW_AT.h) + 28, 12, 6, INK); box(c, X(COW_AT.x) - 5, Y(COW_AT.h) + 29, 10, 4, '#3A3A44'); }
   }
   if (seenD(v, X(CAT_L.b - 80), X(CAT_L.b + 20))) still(c, 'cowrig', X(CAT_L.b - 30), Y(565) - 14, -36, -10, 72, 14, g => tape(g, 0, 2, 'COW RIG', '#7C2D12'));
-  if (seenD(v, X(BOOTH.lever) - 80, X(BOOTH.b) + 20)) drawBooth(c, o, f);
+  if (seenD(v, X(BOOTH.lever) - 80, X(BOOTH.b) + 20)) drawBooth(c, v, o, f);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
