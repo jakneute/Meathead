@@ -9,7 +9,7 @@ index.ts header says what goes in it.
 | Folders | Sections (checkpoint numbers) | State |
 |---|---|---|
 | `mexico/`, `norway/`, `china/`, `germany/`, `italy/` | 0-9, 10-19, 20-29, 30-39, 40-49 | built (job 1, first pass) |
-| `japan/`, `morocco/`, `france/`, `uk/`, `canada/` | 50-59, 60-69, 70-79, 80-89, 90-99 | stubs (stub.ts) |
+| `japan/`, `morocco/`, `france/`, `uk/`, `canada/` | 50-59, 60-69, 70-79, 80-89, 90-99 | built (job 2, first pass) |
 | `theater/` (CULTURES OF THE WORLD, the sub-boss) | 100-109 | stub: its front, the refill, its doors |
 | `heli/` (boarding, the jacking, the shooter) | 110-119 | stub: the helipad |
 | `harry/` (HELICOPTER HARRY, the land boss) | 120-129 | stub: the arena + a temporary walk-past win |

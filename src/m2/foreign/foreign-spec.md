@@ -220,3 +220,55 @@ voices recorded (npm run voices) and the M2 html rebuilt (npm run release:m2) af
   theater (its front, the refill, its doors), the helipad, Harry's arena with a clearly temporary walk-past VICTORY ->
   walk-away -> hub (land cleared). The hub portal is open; the walk in is walkAway/intoForeign.ts; Harry's walk-away
   (walkAway/helicopterHarry.ts) a placeholder.
+
+## Decisions (job 2)
+
+- **Same shape as job 1.** Japan..Canada keep their 3600-px stretches (FLX+21000..39000, no geometry changes): each its
+  own folder (index.ts, kinds.ts, lines.ts), the promenade drawn first, set-back fronts dimmed, play-plane boxes with lit
+  lips, signs last. Checkpoints 50-53, 60-63, 70-73, 80-83, 90-93. Two small pickups each, up the climbs. Every climb has
+  a way back down and up (revisits); every dead end got a crate or stump out.
+- **Shared appends:** shots.ts got shuriken, ki, spit, smoke, plate, pint, tea, puck (each its own hurt source); kit.ts
+  LOOKS got japan (black brush on paper, a red drop), morocco (gold on tile blue), france (gold serifs, bistro green),
+  uk (enamel white on red), canada (routed plank). The stub (stub.ts) is no longer used by any pavilion.
+- **Japan:** two torii (both beams standable), the koi pond (stepping stones; the park's ROBOT KOI leaps out on a
+  schedule, bubbles first: `m2:fl_koi`, it hits the cast too), the vending-machine alley (one stacked), the FIVE-STORY
+  PAGODA climbed inside floor by floor (doors at the bottom), out through its top roof and down its eaves outside (both
+  sides). The sumo ring on its clay mound, stone lanterns, the manga stand. Cast: ninja (shuriken; every few seconds a
+  smoke-bomb blink round BEHIND him onto whatever he's stood on), sumo (shove close; the leg-up STOMP out to ~270 knocks
+  about whoever's stood near, him and the cast: `m2:fl_sumo_stomp`), samurai (KindDef.pointy: the katana always out
+  front; a dash and cut), cosplay kid (screams a legally distinct half-remembered move name through a long tell, then the
+  glitter energy ball).
+- **Morocco:** the gate, the ROOFTOPS (flat roofs stepping up, carpets hung on lines across the alleys: just ledges), a
+  gift-shop tower (ELEVATOR OUT OF ORDER: kept clear of anything religious) climbed inside to its balcony and dome, down
+  by the carpets hung off its far side; THE TANNERY: five dye vats (in one he's scalded and popped out: `m2:fl_dye`; the
+  cast too, knocked in; walkers keep out), drying racks over them the high way; the hookah lounge's tent, the spice
+  stall. Cast: carpet salesman (a rolled-rug ram), snake charmer (the snake strikes low and long out of the basket:
+  `m2:fl_snake`), the camel suit (spit lobs: a gag stun), the hookah bro (slow drifting smoke clouds: cough stun).
+- **France:** cafes (striped awnings standable, tables), the newspaper column, THE CABARET (the can-can line kicks in
+  UNISON on a fixed beat, near him or not; the marquee over the stage is the high way), the EIFFEL-ISH TOWER (girders
+  up the left leg, the first deck over the arch, level two, the top; an ELEVATOR rides the right leg between the ground
+  and level two, dinging), the bakery street, the Mona Lisa print. Cast: mime (an INVISIBLE WALL: a solid block that
+  eats his projectiles, 6 to break, gone in 7 s or when the mime dies; drawn as a faint shimmer that cracks; close, a real
+  punch), waiter (plates), baguette swinger, can-can dancer (men and women), the rude smoker (smoke).
+- **The UK:** fog (thin drifting banks; never hides anybody), the palace gate's sentry boxes, the DOUBLE-DECKER BUS on its
+  route (it stops at each end and REVERSES back, beeping; its front runs over whoever's in the lane: `m2:fl_bus`, the cast
+  too; its roof a mover: a hooligan rides it), phone booths, the pub climbed over, TOWER BRIDGE over the Thames (a pool):
+  its halves lift on a schedule after a bell (whoever's on them goes in the river), the towers' stairs to the high
+  walkway (the dry way). The tea shop's cart. Cast: royal guard (harmless and frozen at attention till hurt by anything,
+  then awake for good: fast, the bayonet hits hard), hooligan (pints; no pathing: keeps to the bus top or the pub roof),
+  tea lady (always a woman: scalding tea lobbed, the pot close), bobby (truncheon, whistle).
+- **Canada:** the lumber camp (log piles, carved PLYWOOD poles: MADE IN OHIO, stumps between), the log pond (three
+  floating logs drifting and bobbing: movers), THE FALLS: rock ledges zigzag up across the waterfall (a pumped pipe) to
+  the clifftop (900 up); the MAPLE LOG FLUME on the clifftop dumps a log down the falls every 3.5 s (it slides along the
+  trough first: the tell; `m2:fl_flume_log`, the cast too). The rink on top (low boards: the pucks ricochet off them),
+  then the trail's stairs down (15 of them: "1,000 STAIRS"), the ranger station, the theater. Cast: lumberjack (an
+  overhead chop), Mountie on a stick horse (a gallop lunge), hockey player (slapshot pucks: fast, ricochet twice), moose
+  suit (KindDef.spiky antlers: `m2:fl_moose_antlers`; a head-down charge). Every Canada strike shouts SORRY (a shared
+  pool in all eight voices).
+- **Signs (the park's mistakes):** JAPAN: A TASTE OF ASIA (CHINA), MANGA (READ BACKWARDS), SAYONARA (THANK YOU);
+  MOROCCO: THE MIDDLE EAST (IN AFRICA), THE SOUK (SOUP), SHUKRAN (CHEERS); FRANCE: OOH LA LA ZONE, BISTRO: FRENCH FRIES
+  (BELGIAN), EIFFEL TOWER ACTUAL SIZE* *BIGGER, AU REVOIR (HELLO); UNITED KINGDOM: ENGLAND / BRITAIN / LONDON (SAME
+  PLACE), THE QUEEN'S HEAD (AND SHOULDERS), TOWER BRIDGE (LONDON BRIDGE) (SAME BRIDGE), CHEERIO (HELLO); CANADA:
+  AMERICA'S HAT, CARVED POLES (PLYWOOD) MADE IN OHIO, MAPLE LOG FLUME CLOSED (THE LOGS GOT OUT), THE TRAIL 1,000 STAIRS (15).
+- **Voices:** 37 new cast voice ids in cast.json (m2.foreign.ninja .. moosef; the tea lady one voice); the PA's hello,
+  his arrival and gags, barks in clean / shitty / naked pools, hurt + death lines for every kind and every new source.
