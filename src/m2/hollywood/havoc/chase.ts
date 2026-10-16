@@ -29,6 +29,8 @@ import {
 } from './layout';
 import { hvOf, noteTornadoDeath, TORN_MEMO, FALL_MEMO, type Hv } from './state';
 import { spent } from './hazards';
+import { fromDepth } from '../disaster/paint';
+import { FRONT_D } from '../blvd/kit';
 
 /** The ground's height under the tornado (over the flooded canyon: the roofs it's over). */
 export const tornadoBase = (x: number) => {
@@ -87,10 +89,13 @@ const tear = (state: GameState, hv: Hv, t: Tear, quiet: boolean) => {
   if (t.kind === 'fall') { state.stageMemo[FALL_MEMO(t.i)] = '1'; const fl = hv.falls.find(q => q.i === t.i); if (fl) fl.phase = 'down'; }
   if (quiet) return;
   const n = t.kind === 'facade' || t.kind === 'fall' ? 9 : 4;
+  // (off it where it's drawn: the fronts back at their depth, the PA poles and Steve's things nearer)
+  const d = t.kind === 'facade' || t.kind === 'fall' ? FRONT_D : t.kind === 'horn' ? 0.965 : 0.955;
   for (let k = 0; k < n && hv.debris.length < 70; k++) {
     const big = t.kind === 'facade' || t.kind === 'fall';
+    const [px, py] = fromDepth(state, X(t.x0) + Math.random() * (t.x1 - t.x0), GY - 10 - Math.random() * t.h, d);
     hv.debris.push({
-      x: X(t.x0) + Math.random() * (t.x1 - t.x0), y: GY - 40 - Math.random() * t.h, vx: 0, vy: 0, rot: Math.random() * 6,
+      x: px, y: py, vx: 0, vy: 0, rot: Math.random() * 6,
       w: big ? 20 + Math.random() * 36 : 8 + Math.random() * 14, h: big ? 8 + Math.random() * 18 : 6 + Math.random() * 10,
       col: k % 3 === 0 ? '#A16207' : k % 3 === 1 ? t.col : '#78350F', orbit: 40 + Math.random() * 50, ang: Math.random() * 6.28, r: 60 + Math.random() * 120, t: 0, guest: false,
     });
@@ -215,7 +220,8 @@ export const updateChase = (ctx: FrameContext): ChaseEvents => {
         const g = guestAt(k, f);
         if (Math.abs(g.x - t.x) < 120) {
           hv.guestsGone[k] = true;
-          hv.debris.push({ x: g.x, y: GY - 80, vx: 0, vy: 0, rot: 0, w: 18, h: 40, col: '#F6DCC8', orbit: 70, ang: 0, r: 60, t: 0, guest: true });
+          const [px, py] = fromDepth(state, g.x, GY - 40, 0.935);
+          hv.debris.push({ x: px, y: py, vx: 0, vy: 0, rot: 0, w: 18, h: 40, col: '#F6DCC8', orbit: 70, ang: 0, r: 60, t: 0, guest: true });
           playSound('screams', 0.5, 2);
         }
       }

@@ -63,10 +63,17 @@ const paintLooter = (g: Ctx, F: Frame) => {
   const near: [number, number] = fl ? fl[1] : up ? [B.hx - 2, B.hy - 18] : toss ? [B.w / 2 + 18, B.shY - 4] : [B.w / 2 + 2, B.shY + 16];
   arm(g, B, -1, far[0], far[1], { sleeve: tee, hand: L.skin, len: 0.4 });
   // (the gift-shop bag in the far hand: HAPPYWOOD on it)
-  if (!fl) { part(g, () => g.rect(far[0] - 8, far[1], 14, 16), '#F8FAFC', far[0] - 8, far[1], 14, 16, 1); px(g, far[0] - 6, far[1] + 6, 10, 2, '#DC2626'); }
+  if (!fl) {
+    // (the gift-shop bag: white paper lit down its left, shaded right, its fold, the red HAPPYWOOD band, the handles)
+    g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.arc(far[0] - 1, far[1] + 1, 4, Math.PI, 0); g.stroke();
+    part(g, () => g.rect(far[0] - 8, far[1], 14, 16), '#F1F0EC', far[0] - 8, far[1], 14, 16, 1);
+    px(g, far[0] - 8, far[1], 3, 16, '#FFFFFF'); px(g, far[0] + 3, far[1], 3, 16, '#C8C4BC'); px(g, far[0] - 8, far[1] + 14, 14, 2, '#B4B0A8');
+    px(g, far[0] - 6, far[1] + 6, 10, 3, '#DC2626'); px(g, far[0] - 6, far[1] + 6, 10, 1, '#F87171'); px(g, far[0] - 4, far[1] + 7, 6, 1, '#FDE68A');
+  }
   torso(g, B, tee);
   // (the ash on them, the fanny pack)
-  px(g, -4, B.shY + 6, 3, 2, '#78716C'); px(g, 5, B.shY + 14, 2, 2, '#78716C');
+  px(g, -4, B.shY + 6, 3, 2, '#78716C'); px(g, 5, B.shY + 14, 2, 2, '#78716C'); px(g, -2, B.shY + 9, 2, 1, '#57534E'); px(g, 2, B.hipY - 10, 3, 1, '#57534E');
+  px(g, -B.w / 2 + 1, B.shY + 3, 2, B.hipY - B.shY - 6, dk(tee, 0.18)); px(g, B.w / 2 - 4, B.shY + 3, 2, B.hipY - B.shY - 6, lt(tee, 0.15));
   part(g, () => g.roundRect(-B.hipW / 2 + 2, B.hipY - 6, B.hipW - 2, 7, 3), '#18181B', -B.hipW / 2 + 2, B.hipY - 6, B.hipW - 2, 7, 1);
   hairBack(g, B);
   face(g, B, F, up || toss ? 'angry' : 'wide', toss ? 'teeth' : up ? 'grin' : 'o');
@@ -96,13 +103,17 @@ const paintCrew = (g: Ctx, F: Frame) => {
   const jig = rev ? (F.v === 's1' ? 1 : -1) : 0;
   // (the engine on the back: a red box, its pull cord, its exhaust)
   part(g, () => g.roundRect(-B.w / 2 - 12, B.shY + 2 + jig, 14, 22, 3), '#DC2626', -B.w / 2 - 12, B.shY + 2, 14, 22, 1.2);
-  px(g, -B.w / 2 - 10, B.shY + 6 + jig, 10, 3, '#27272A');
+  px(g, -B.w / 2 - 11, B.shY + 4 + jig, 3, 18, '#F87171'); px(g, -B.w / 2 - 2, B.shY + 4 + jig, 2, 18, '#991B1B');
+  px(g, -B.w / 2 - 10, B.shY + 6 + jig, 10, 3, '#27272A'); for (let k = 0; k < 3; k++) px(g, -B.w / 2 - 10, B.shY + 12 + k * 3 + jig, 9, 1, '#7F1D1D');
+  px(g, -B.w / 2 - 14, B.shY + 4 + jig, 3, 4, '#18181B'); px(g, -B.w / 2 - 13, B.shY + 4 + jig, 1, 1, '#A1A1AA');
+  if (rev || blow) for (let k = 0; k < 3; k++) px(g, -B.w / 2 - 14 - k * 4, B.shY - 2 - k * 4 + jig, 3 + k, 3 + k, k ? 'rgba(120, 113, 108, 0.5)' : 'rgba(80, 76, 72, 0.7)');
   const far: [number, number] = fl ? fl[0] : [B.w / 2 + 6, B.shY + 18];
   const near: [number, number] = fl ? fl[1] : rev || blow ? [B.w / 2 + 14, B.shY + 14] : [B.w / 2 + 6, B.shY + 20];
   arm(g, B, -1, far[0], far[1] + jig, { sleeve: SLICKER, hand: '#1F2937' });
   torso(g, B, SLICKER, B.shY, B.hipY + 8, 3);
   // (the slicker's snaps, its reflective band, STORM CREW tag)
   for (let k = 0; k < 3; k++) px(g, 2, B.shY + 8 + k * 7, 2, 2, '#A16207');
+  px(g, -B.w / 2 + 1, B.shY + 2, 2, B.hipY - B.shY + 4, lt(SLICKER, 0.3)); px(g, B.w / 2 - 3, B.shY + 2, 2, B.hipY - B.shY + 4, dk(SLICKER, 0.25)); px(g, -3, B.shY + 4, 1, B.hipY - B.shY, dk(SLICKER, 0.15));
   px(g, -B.w / 2 - 1, B.hipY - 4, B.w + 4, 3, '#E5E7EB');
   // (the hood up round the face)
   part(g, () => g.ellipse(B.hx, B.hy - 1, B.rx + 4, B.ry + 4, 0, 0, Math.PI * 2), SLICKER, B.hx - B.rx - 4, B.hy - B.ry - 5, (B.rx + 4) * 2, (B.ry + 4) * 2, 1.2);
@@ -143,7 +154,12 @@ const paintPoppy = (g: Ctx, F: Frame) => {
   for (let k = -2; k <= 2; k += 2) {
     const xt = (k / 3) * wTop, xb = (k / 3) * wBot;
     g.fillStyle = '#DC2626'; g.beginPath(); g.moveTo(xt - 5, top + 1); g.lineTo(xt + 5, top + 1); g.lineTo(xb + 4, bot - 1); g.lineTo(xb - 4, bot - 1); g.closePath(); g.fill();
+    g.fillStyle = '#991B1B'; g.beginPath(); g.moveTo(xt + 2, top + 1); g.lineTo(xt + 5, top + 1); g.lineTo(xb + 4, bot - 1); g.lineTo(xb + 1, bot - 1); g.closePath(); g.fill();
+    g.fillStyle = '#F87171'; g.beginPath(); g.moveTo(xt - 5, top + 1); g.lineTo(xt - 3, top + 1); g.lineTo(xb - 2, bot - 1); g.lineTo(xb - 4, bot - 1); g.closePath(); g.fill();
   }
+  // (the bucket's shade down its right side, its rolled rim)
+  g.fillStyle = 'rgba(28, 16, 20, 0.22)'; g.beginPath(); g.moveTo(wTop - 7, top + 1); g.lineTo(wTop - 1, top + 1); g.lineTo(wBot - 1, bot - 1); g.lineTo(wBot - 6, bot - 1); g.closePath(); g.fill();
+  px(g, -wTop + 1, top - 1, wTop * 2 - 2, 3, '#E7E5E4'); px(g, -wTop + 1, top - 1, wTop * 2 - 2, 1, '#FFFFFF');
   px(g, -wTop + 2, top + 2, wTop * 2 - 4, 2, lt('#F8FAFC', 0.3));
   // (POPPY on the front)
   px(g, -12, B.hipY - 8, 24, 7, '#FACC15'); px(g, -10, B.hipY - 6, 20, 3, '#DC2626');

@@ -413,3 +413,6 @@ export const drawFar = (c: Ctx, state: GameState, along: number) => {
  *  climbs). */
 export const FAR = { SKY, TW, MH, FH, CH, SH, LW, PH, PW, PG, SG, CG } as const;
 export { tile, farCol, rampF, paintMountains, paintFoothills, drawHill, paintCity, paintLot, paintPalms };
+/** The HAPPYWOOD hill's size and its ridge (the havoc's eruption runs down it). */
+export const HILL = { HW, HHT } as const;
+export { hillY };

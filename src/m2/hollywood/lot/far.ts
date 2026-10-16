@@ -175,6 +175,24 @@ const paintStages = (g: Ctx, tod: TimeOfDay) => {
   mist(g, SW, 0, f, skyAt(0.9, tod), 0.22, 0.04, 5);
 };
 
+/** Where paintStages put each soundstage (tile x, width, height; its eaves at SH - SG - h, its ridge 24 over them):
+ *  the havoc sets their roofs burning. The same steps as paintStages' loop. */
+export const stageRoofs = () => {
+  const out: { x: number; w: number; h: number; i: number }[] = [];
+  const AFTER = [40, 136, 210, 130, 156, 40];
+  let x = 10, i = 0;
+  while (x < SW - 300 && i < 6) {
+    const w = 270 + Math.round(hash(i * 2.2) * 60), h = 170 + Math.round(hash(i * 3.3) * 40);
+    out.push({ x, w, h, i });
+    x += w + 14;
+    if (x < SW - 120) x += AFTER[i % AFTER.length] + 14;
+    i++;
+  }
+  return out;
+};
+export const STAGES = { SW, SH, SG } as const;
+export { paintStages, smoke };
+
 // ---------------------------------------------------------------------------------------------------------------
 
 /** How far each layer sits back (its slide across, and how far it drops as he climbs: the nearer, the more). */

@@ -32,6 +32,8 @@ import {
   FLOOD_MAX, FLOOD_LOW, DOWNHILL, PUDDLES,
 } from './layout';
 import { hvOf, FLUNG_MEMO, FALL_MEMO, type Hv } from './state';
+import { fromDepth } from '../disaster/paint';
+import { FRONT_D } from '../blvd/kit';
 
 /** The fling's been (or the land's done, or he's past it): the tornado's spent and the place is calm-ish. */
 export const spent = (state: GameState) => state.stageMemo[FLUNG_MEMO] === '1' || state.checkpoint >= 60 || isLandCleared('hollywood');
@@ -125,7 +127,8 @@ export const updateHazards = (ctx: FrameContext): HazEvents => {
     zones.push({ x0: a, x1: b, y0: GY - 140, y1: GY + 4, ground: true });
     if (fl.phase === 'creak') {
       if (fl.t % 12 === 0) playSound('crack', 0.35, -2 - (fl.t % 3));
-      if (f % 3 === 0) state.particles.push({ pos: { x: X(frx) + Math.random() * w, y: GY - 36 - h + Math.random() * 30 }, vel: { x: 0, y: 1 + Math.random() }, life: 40, color: 'rgba(168, 162, 158, 0.8)', size: 3 });
+      // (dust shaken off its top: from where it's drawn, back at the fronts' depth)
+      if (f % 3 === 0) { const [px, py] = fromDepth(state, X(frx) + Math.random() * w, GY - (how === 'billboard' ? 120 + h * 0.6 : how === 'bridge' ? h : h) + Math.random() * 30, how === 'bridge' ? 1 : FRONT_D); state.particles.push({ pos: { x: px, y: py }, vel: { x: 0, y: 1 + Math.random() }, life: 40, color: 'rgba(168, 162, 158, 0.8)', size: 3 }); }
       if (fl.t >= 54) { fl.phase = 'falling'; fl.t = 0; playSound('whoosh', 0.8, -10); }
     } else if (fl.phase === 'falling' && fl.t >= 22) {
       fl.phase = 'down'; fl.t = 0;
