@@ -24,7 +24,7 @@ import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../w
 import { hands } from '../section';
 import { drawBars } from '../control/cine';
 import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, CHANDELIERS, RISER } from './arena';
-import { type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam, killedByWeakness, introOn, introSkipT } from './fight';
+import { type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam, killedByWeakness, introOn, introSkipT, deathLights } from './fight';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -96,7 +96,7 @@ export const ballroom: SpookySection = {
   },
   cameraX: (state) => (ballOf(state).fight !== 'wait' ? { min: ARENA_L, max: ARENA_L } : { min: x0, max: ARENA_R - CANVAS_WIDTH }),
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#0A0310'); return true; },
-  lighting: (state) => ballroomLighting(state, ballOf(state).f?.circle ?? 0),
+  lighting: (state) => { const f = ballOf(state).f, s = ballroomLighting(state, f?.circle ?? 0); if (f) s.lights.push(...deathLights(f, state.frame)); return s; },
   drawBack: (c, state) => {
     drawBallroom(c, state);
     const b = ballOf(state);

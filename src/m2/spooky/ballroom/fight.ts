@@ -56,6 +56,7 @@ import { discoBall } from './art';
 import { INK, checker, pixelBlob } from '../control/paint';
 import * as L from './lines';
 import { since } from '../../frames';
+import { drawBurn, burnLights } from './burn';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -767,7 +768,7 @@ const dying = (ctx: FrameContext, f: Fight) => {
   } else {
     // (alight: flailing, then down, then ash)
     if (d.y < GY) { d.vy += 0.3; d.y = Math.min(GY, d.y + d.vy); }
-    if (t % 5 === 0 && t < 150) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 30, y: d.y - Math.random() * 80 }, vel: { x: (Math.random() - 0.5) * 1.5, y: -1.5 - Math.random() * 2 }, life: 30, color: ['#FDE047', '#F97316', '#DC2626'][t % 3], size: 3 + Math.random() * 4, grav: -0.05 });
+    // (the flames, the embers, the smoke: drawn, burn.ts)
     if (t === 100) playSound('crumble', 1, -4);
     if (f.cam && t > 170) f.cam.out = true;
   }
@@ -1037,35 +1038,12 @@ const drawDeath = (c: Ctx, f: Fight, fr: number) => {
     if (lt > 150 && lt < 260) { const s = (lt - 150) / 110; c.fillStyle = `rgba(163, 190, 60, ${(0.5 * (1 - s)).toFixed(2)})`; c.beginPath(); c.arc(d.x - d.facing * 30, GY - 40 - s * 30, 6 + s * 20, 0, Math.PI * 2); c.fill(); }
     return;
   }
-  // Burning up: alight and flailing; down; to a pile of ash, the wig on top, the little statue standing in it
-  const k = Math.min(1, Math.max(0, (t - 90) / 70));
-  if (k < 1) {
-    c.save();
-    // (sinking into the pile as he goes)
-    c.beginPath(); c.rect(d.x - 80, d.y - 200, 160, 200 - 70 * k); c.clip();
-    c.translate(0, 70 * k);
-    drawDonnie(c, d.x + Math.sin(t * 0.7) * 3 * (1 - k), d.y, d.facing, fr, t < 90 ? 'panic' : 'hurt', 1, { cape: true, wig: !f.wigOff, powered: t < 40 });
-    // (charring: black over him, stepped, from the feet up)
-    for (let i = 0; i < 8; i++) if (t / 12 > i) { c.fillStyle = 'rgba(20, 12, 8, 0.45)'; c.fillRect(d.x - 30, d.y - (i + 1) * 12, 60, 12); }
-    c.restore();
-    for (let i = 0; i < 6; i++) { const h = 20 + 16 * Math.abs(Math.sin(fr * 0.3 + i)); box(c, d.x - 30 + i * 11, d.y - 40 - h * (1 - k * 0.5), 8, h, ['#F97316', '#FDE047', '#DC2626'][i % 3]); }
-  }
-  // (the pile)
-  const pile = Math.min(1, t / 140);
-  c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(d.x, GY, 34 * pile + 2, 16 * pile + 1, 0, Math.PI, 0); c.fill();
-  c.fillStyle = '#57534E'; c.beginPath(); c.ellipse(d.x, GY, 32 * pile, 14 * pile, 0, Math.PI, 0); c.fill();
-  c.fillStyle = '#78716C'; c.beginPath(); c.ellipse(d.x - 6, GY - 2, 18 * pile, 8 * pile, 0, Math.PI, 0); c.fill();
-  if (t > 150) {
-    drawLooseWig(c, d.x + 6, GY - 16 * pile - 2, fr, 0.9, 0.2);
-    // (the little statue, glowing, arms out, standing in the ash)
-    const gx = d.x - 18, gy = GY - 10;
-    c.fillStyle = 'rgba(217, 249, 157, 0.35)'; c.beginPath(); c.arc(gx, gy - 12, 14, 0, Math.PI * 2); c.fill();
-    box(c, gx - 2, gy - 18, 4, 16, '#D9F99D'); box(c, gx - 9, gy - 16, 18, 3, '#D9F99D'); box(c, gx - 2, gy - 23, 4, 4, '#ECFCCB');
-    // (the name tag, come down on the pile)
-    box(c, d.x + 14, GY - 8, 12, 7, '#FFFFFF'); box(c, d.x + 14, GY - 8, 12, 2, '#DC2626');
-  }
-  if (t > 160) for (let i = 0; i < 3; i++) { const u = ((fr + i * 30) % 90) / 90; c.fillStyle = `rgba(160, 160, 160, ${(0.4 * (1 - u)).toFixed(2)})`; c.beginPath(); c.arc(d.x - 10 + i * 10, GY - 20 - u * 50, 3 + u * 8, 0, Math.PI * 2); c.fill(); }
+  // Burning up: alight and flailing; down; to a pile of ash, the wig on top, the little statue standing in it (burn.ts)
+  drawBurn(c, d, !f.wigOff, fr);
 };
+
+/** The fire's light (the weakness death), for the room's lighting. */
+export const deathLights = (f: Fight, fr: number) => (f.mode === 'dead' && f.death?.how === 'burn' ? burnLights(f.death, fr) : []);
 
 /** Screen space: his bar, in the top band clear of the HUD. */
 export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; mid: number }, inCutscene: boolean) => {
