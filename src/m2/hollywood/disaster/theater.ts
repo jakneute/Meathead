@@ -288,14 +288,29 @@ const drawEffects = (c: Ctx, v: View, o: Dz, beat: number, k: number, f: number)
 // ---------------------------------------------------------------------------------------------------------------
 // The play plane: what he stands on (lit lips), the people, the cow, the booth
 
+/** The padded lean rail's vinyl (darkest first). */
+const PAD = ['#140E0C', '#22181A', '#2E2224', '#3E2E2E', '#54403C', '#6E5650'];
+/** A lean rail exactly over its solid (rx - 60, 120 wide, 32 tall): a padded top bar (its top going back, brass end
+ *  caps, button tufts), brass stanchions down to floor flanges, a foot rail; the lit lip along the top (he stands on
+ *  it), its shadow on the deck. */
 const leanRail = (c: Ctx, v: View, rx: number) => {
-  const x = X(rx) - 60, y = Y(32), w = 120;
-  topBack(c, v.eye, x, x + w, y, 1, 0.97, TRUSS, 1);
-  still(c, 'leanrail', x, y, -2, -2, w + 4, 36, g => {
-    const S = TRUSS;
-    for (const px of [6, w / 2 - 3, w - 12]) { tubeV(g, px, 4, 32, 6, S); box(g, px - 4, 28, 14, 4, INK); box(g, px - 3, 29, 12, 3, S[2]); }
-    tubeH(g, 0, w, 16, 3, S);
-    box(g, -1, -1, w + 2, 8, INK); box(g, 0, 0, w, 6, '#3A2A22'); box(g, 0, 0, w, 2, '#5A4434'); box(g, 0, 5, w, 1, '#1E1410');
+  const x = X(rx) - 60, y = Y(32), w = 120, G = GOLD;
+  levelQ(c, v.eye, x + 2, x + w - 2, GY, 1, 0.975, 'rgba(0, 0, 0, 0.35)');
+  // (the posts' flanges going back on the deck)
+  for (const px of [8, w / 2, w - 8]) levelQ(c, v.eye, x + px - 7, x + px + 7, GY - 1, 1, 0.988, G[1]);
+  topBack(c, v.eye, x, x + w, y, 1, 0.975, PAD, 1);
+  still(c, 'leanrail2', x, y, -2, -2, w + 4, 36, g => {
+    for (const px of [8, w / 2, w - 8]) {
+      box(g, px - 4, 7, 8, 25, INK); box(g, px - 3, 7, 6, 25, G[3]); box(g, px - 3, 7, 2, 25, G[4]); box(g, px - 2, 7, 1, 25, G[5]); box(g, px + 2, 7, 1, 25, G[1]);
+      box(g, px - 5, 7, 10, 3, INK); box(g, px - 4, 8, 8, 1, G[2]);
+      box(g, px - 8, 29, 16, 3, INK); box(g, px - 7, 29, 14, 3, G[2]); box(g, px - 7, 29, 14, 1, G[5]); box(g, px + 4, 30, 3, 2, G[0]);
+    }
+    tubeH(g, 2, w - 2, 21, 3, G);
+    // (the padded bar: a vinyl roll, lit along its top, dithered under, its button tufts; brass caps at its ends)
+    box(g, -1, -1, w + 2, 9, INK);
+    box(g, 0, 0, w, 7, PAD[3]); box(g, 0, 0, w, 2, PAD[5]); box(g, 0, 5, w, 2, PAD[1]); checker(g, 0, 4, w, 1, PAD[1], 0, 1);
+    for (let k = 10; k < w - 6; k += 14) { box(g, k, 3, 2, 2, PAD[0]); box(g, k, 3, 1, 1, PAD[5]); }
+    for (const ex of [0, w - 4]) { box(g, ex, 0, 4, 7, G[3]); box(g, ex, 0, 4, 1, G[5]); box(g, ex + 3, 0, 1, 7, G[1]); }
   });
   lip(c, x, y, w);
 };

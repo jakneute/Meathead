@@ -285,10 +285,15 @@ const lobbyMarquee = (c: Ctx, f: number, real: boolean) => {
 };
 
 /** The queue's posts (brass stanchions, solid: a lit lip on each) and the velvet between them (behind). */
-const queueRails = (c: Ctx, v: View) => {
+const queueVelvet = (c: Ctx, v: View) => {
   deep(c, v, NEAR_D, () => { c.save(); c.translate(0, GY); velvetRopePaint(c, X(QUEUE_RAILS[0]) - 40, X(QUEUE_RAILS[QUEUE_RAILS.length - 1]) + 40); c.restore(); });
+};
+/** The posts themselves (over the guests: never hidden), exactly on their solids, their caps' tops going back. */
+const queueRails = (c: Ctx, v: View) => {
   for (const rx of QUEUE_RAILS) {
     if (!seenD(v, X(rx) - 20, X(rx) + 20)) continue;
+    if (v.eye.y < Y(RAIL_H) - 1) levelQ(c, v.eye, X(rx) - 6, X(rx) + 6, Y(RAIL_H), 1, 0.985, GOLD[4]);
+    levelQ(c, v.eye, X(rx) - 8, X(rx) + 8, GY - 1, 1, 0.988, GOLD[1]);
     still(c, 'qpost', X(rx), GY, -9, -RAIL_H - 2, 18, RAIL_H + 2, g => {
       const G = GOLD;
       box(g, -6, -RAIL_H, 12, RAIL_H, INK);
@@ -369,7 +374,7 @@ export const drawLobby = (c: Ctx, v: View, state: GameState, o: Dz, real: boolea
   if (seenD(v, X(30), X(640))) lobbyMarquee(c, f, real);
   if (seenD(v, X(980), X(1320))) still(c, 'waitboard', X(1150), 0, -180, ceil - 1, 360, 160, g => hungBoard(g, 0, ceil + 130, ceil, ['WAIT FROM HERE: 90 MINUTES'], showLook(2, 2, '#18181B', '#B8860B'), '#FDE047'));
   if (seenD(v, X(1530), X(1740))) still(c, 'snackboard', X(1635), 0, -100, ceil - 1, 200, 100, g => hungBoard(g, 0, ceil + 56, ceil, ['DISASTER SNACKS'], showLook(1, 2, '#FDE68A', '#000000'), '#7F1D1D'));
-  queueRails(c, v);
+  queueVelvet(c, v);
   // The queue's guests (shoved aside, mad)
   for (const g of o.guests) {
     const x = X(g.rx) + (g.shove > 0 ? g.dir * (30 - g.shove) * 1.2 : 0);
@@ -378,6 +383,7 @@ export const drawLobby = (c: Ctx, v: View, state: GameState, o: Dz, real: boolea
     drawPerson(c, { seed: g.seed, outfit: 'guest', f, pose: g.mad > 0 ? 'point' : g.seed % 4 === 0 ? 'photo' : 'stand', mood: g.mad > 0 ? 'angry' : 'bored', shorts: g.seed % 3 === 0, talking: g.mad > 0 && f % 10 < 5 });
     c.restore();
   }
+  queueRails(c, v);
   gantry(c, v, f, real);
   counter(c, v, f);
   // Steve: a standee in the queue (yellow)
