@@ -194,7 +194,7 @@ const upperWindows = (g: Ctx, f: Front, y0: number, y1: number, R: string[], T: 
   }
 };
 
-const paintFront = (g: Ctx, f: Front) => {
+export const paintFront = (g: Ctx, f: Front) => {
   const { w, h } = f, R = rampH(f.wall, true), T = rampH(f.trim, true);
   // The wall: stepped, its plywood showing
   box(g, -2, -h - 2, w + 4, h + 2, INK);

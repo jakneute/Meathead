@@ -947,9 +947,19 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
   drawSteve(c, f.sx, GY + f.sz * ZK - hop, f.facing, poseOf(f), fr, look);
   c.globalAlpha = 1;
   // (zapped: the current crawling over him)
-  if (f.act === 'zapped') for (let i = 0; i < 3; i++) { c.strokeStyle = i % 2 ? '#FFFFFF' : '#A5F3FC'; c.lineWidth = 2; c.beginPath(); let x = f.sx - 20 + Math.random() * 40, y = GY - 100; c.moveTo(x, y); for (let k = 0; k < 4; k++) { x += (Math.random() - 0.5) * 24; y += 22; c.lineTo(x, y); } c.stroke(); }
+  if (f.act === 'zapped') for (let i = 0; i < 3; i++) {
+    const pts: [number, number][] = []; let x = f.sx - 20 + Math.random() * 40, y = GY - 100; pts.push([x, y]);
+    for (let k = 0; k < 4; k++) { x += (Math.random() - 0.5) * 24; y += 22; pts.push([x, y]); }
+    // (stepped: a wide dim glow, a cyan body, a white core)
+    for (const [w, col] of [[6, 'rgba(165, 243, 252, 0.3)'], [3, '#67E8F9'], [1, '#FFFFFF']] as const) { c.strokeStyle = col; c.lineWidth = w; c.lineJoin = 'miter'; c.beginPath(); pts.forEach(([px, py], j) => (j ? c.lineTo(px, py) : c.moveTo(px, py))); c.stroke(); }
+  }
   // (smoking, after)
-  if (f.act === 'smoking' && fr % 3 === 0) { c.fillStyle = 'rgba(120, 113, 108, 0.45)'; c.beginPath(); c.arc(f.sx + Math.sin(fr) * 6, GY - 110 - (fr % 30), 6 + (fr % 30) * 0.3, 0, Math.PI * 2); c.fill(); }
+  if (f.act === 'smoking') for (let k = 0; k < 5; k++) {
+    // (stepped puffs off him, rising, spreading, thinning)
+    const t = ((fr * 0.6 + k * 12) % 60) / 60, r = 4 + t * 10, px = f.sx + Math.sin(t * 5 + k) * 5 + t * 10, py = GY - 104 - t * 60;
+    c.fillStyle = `rgba(90, 84, 80, ${(0.5 * (1 - t)).toFixed(2)})`; c.fillRect(Math.round(px - r), Math.round(py - r * 0.6), Math.round(r * 2), Math.round(r * 1.2));
+    c.fillStyle = `rgba(150, 144, 138, ${(0.4 * (1 - t)).toFixed(2)})`; c.fillRect(Math.round(px - r * 0.6), Math.round(py - r * 0.6), Math.round(r * 1.1), Math.round(r * 0.5));
+  }
 };
 
 /** A car, its shadow, and (blue, coming) the mark where it'll come down. */
