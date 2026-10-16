@@ -32,7 +32,11 @@ export const TALK: PavilionTalk = {
     { from: 1300, to: 2000, key: 'wall', lines: ["THEY BUILT THIS TO KEEP PEOPLE OUT. IT DIDN'T WORK. I'M HERE.", 'MY LEGS ARE ON FIRE. THE WALL WON.'], minH: 400 },
     { from: 2550, to: 2750, key: 'dip', lines: ['DOWN, THEN UP. WHO DESIGNED THIS? A MOUNTAIN?', 'THE WALL GOES DOWN JUST TO GO BACK UP. FUCK THE WALL.'], minH: 380 },
     { from: 4300, to: 4620, key: 'top', lines: ["YOU CAN SEE THE WHOLE PARK FROM UP HERE. IT'S ALL PARKING LOT.", "I CAN SEE MEXICO FROM HERE. IT'S SMOKING."], minH: 1000 },
-    { from: 4620, to: 5150, key: 'scaffold', lines: ['THE GREAT WALL ENDS IN A SCAFFOLD. HISTORICALLY ACCURATE.', 'BUILT IN 1987. STILL UNDER CONSTRUCTION.'], maxH: 1000 },
+    // (job 4b: the second ridge, the battery, the beacon tower)
+    { from: 4650, to: 5250, key: 'saddle', lines: ["IT KEEPS GOING. WHY DOES IT KEEP GOING?", 'A SECOND MOUNTAIN. THE FIRST ONE WAS A WARMUP. FUCK ME.'], minH: 700 },
+    { from: 5250, to: 5650, key: 'shelling', lines: ["THEY'RE SHELLING THE GREAT WALL. FROM THE GREAT WALL. WITH FIREWORKS.", 'INCOMING! I ALWAYS WANTED TO SAY INCOMING!'], minH: 800 },
+    { from: 6000, to: 6260, key: 'beacon', lines: ["TOP OF THE WORLD. I CAN SEE CANADA. IT'S APOLOGIZING.", "HIGHEST POINT IN OHIO. I'M NOT EVEN IN OHIO."], minH: 1600 },
+    { from: 6500, to: 7030, key: 'scaffold', lines: ['THE GREAT WALL ENDS IN A SCAFFOLD. HISTORICALLY ACCURATE.', 'BUILT IN 1987. STILL UNDER CONSTRUCTION.'], maxH: 1200 },
   ],
 };
 
@@ -54,6 +58,13 @@ export const FIREWORKS: ByPants = {
   nude: ['LIGHTING YOUR FUSE! WAIT, NO! NO!', "I'M NOT AIMING AT THAT! I'M NOT AIMING NEAR THAT!"],
 };
 
+/** The battery's intern lighting a volley (the pyrotechnics voices). */
+export const BATTERY: ByPants = {
+  clean: ['FIRE IN THE HOLE! ALL THE HOLES!', "THE SHOW'S EVERY FIVE SECONDS! IT'S A LOT OF SHOW!", "I'M AIMING! I'M NOT LICENSED TO AIM!"],
+  shitty: ["AIM FOR THE SMELL! YOU CAN'T MISS!", 'LIGHT IT UP! NOT HIM! HE MIGHT BLOW!'],
+  nude: ["AIM FOR THE NAKED GUY! IT'S A BIG TARGET! IT'S NOT THAT BIG!", 'FIRE! COVER HIS JUNK WITH SMOKE!'],
+};
+
 export const HURT: HurtTable = {
   'm2:fl_kungfu': {
     hurt: ['KICKED BY A KAYLEE!', 'OW! THAT WAS A REAL KICK!', 'HE SAID CRANE KICK! HE MEANT IT!'],
@@ -71,6 +82,10 @@ export const HURT: HurtTable = {
     hurt: ['FIREWORKS! IN MY FACE!', 'MY EYEBROWS! WHERE ARE MY EYEBROWS?!', 'THAT ONE WAS ILLEGAL IN OHIO!'],
     death: ['HAPPY FOURTH OF JULY', 'EXPLODED. FESTIVELY.'],
   },
+  'm2:fl_mortar': {
+    hurt: ['A MORTAR! ON THE GREAT WALL!', 'THE FIREWORKS SHOW HIT ME!', 'MY ASS IS ON FIRE! FESTIVELY!'],
+    death: ['SHELLED ON THE GREAT WALL', 'THE GRAND FINALE'],
+  },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.kungfu, KUNGFU], [V.dragon, DRAGON], [V.fireworks, FIREWORKS]], { [V.kungfu.m]: MOVES, [V.kungfu.f]: MOVES });
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.kungfu, KUNGFU], [V.dragon, DRAGON], [V.fireworks, FIREWORKS], [{ m: V.fireworks.m, f: V.fireworks.m }, BATTERY]],{ [V.kungfu.m]: MOVES, [V.kungfu.f]: MOVES });
