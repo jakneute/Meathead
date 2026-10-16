@@ -60,6 +60,8 @@ export interface M2Kind {
   /** A mid-boss that isn't really one (people in costumes): the special weapons' specials work on it after all, at
    *  about half (weapons/half.ts). */
   specialsHalf?: boolean;
+  /** Any mallet hit kills it outright (the queen's kids): see weapons/mallet.ts. */
+  malletOneShot?: boolean;
   /** Its own say over him touching it (his moves landing on it): see KindDef's `touch`. */
   touch?: (ctx: FrameContext, e: Enemy) => boolean;
   /** Part of the set where it's put (a cuckoo in its clock): not kept out of the stage's hazards (hazardHit.ts). */

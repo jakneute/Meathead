@@ -37,6 +37,7 @@ import { grabCallout } from '../moves/callouts';
 import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { DUCK_LINES } from '../lines/weaponLines';
 import { shieldTakesBlow, clang } from './shield';
+import { m2Kind } from '../kinds';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -102,6 +103,8 @@ const toonKill = (ctx: FrameContext, e: Enemy, how: 'fling' | 'launch' | 'flatte
     state.enemies = state.enemies.filter(o => o !== e);
     flat.push({ e, x: e.pos.x + e.width / 2, y: e.pos.y + e.height, t: 0, face: (e.facing ?? 1) as 1 | -1 });
     e.isBlownAway = true;
+    // (a kill like any other: maybe a drop, where he was flattened)
+    fx.spawnPickup(e.pos);
     playSound('squish');
     fx.spawnKillCallout(e, grabCallout('mallet'));
     fx.speakVulgarity(m2Kill('mallet_kill'));
@@ -134,6 +137,8 @@ const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: num
     e.vel = { x: vel.x, y: vel.y }; e.pauseTimer = Math.max(e.pauseTimer || 0, 50);
     return;
   }
+  // (the queen's kids: any hit's the end of them, dropping whatever they drop right where it lands, not where they do)
+  if (m2Kind(e.kind)?.malletOneShot) dmg = Math.max(dmg, e.health);
   e.health -= dmg;
   if (e.health <= 0) { toonKill(ctx, e, how, Math.sign(vel.x) || dir); return; }
   fx.spawnDamageNumber(e.pos, dmg, true);

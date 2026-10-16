@@ -276,9 +276,9 @@ const drawCharger = (c: Ctx, e: Enemy, f: number) => {
   if (paw && f % 6 < 3) { c.fillStyle = 'rgba(226, 232, 240, 0.7)'; c.beginPath(); c.ellipse(32, -60, 5, 4, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = dith(c, '#E2E8F0'); c.beginPath(); c.ellipse(38, -66, 6, 5, 0, 0, Math.PI * 2); c.fill(); }
 };
 
-registerM2Kind({ kind: BITER, stats: { w: 30, h: 26, hp: 30, contact: 7, mass: 40 }, ai: biterAI, draw: drawBiter, robot: true, grab: 'critter', gender: 'm', head: { x: 10, y: -20, r: 7 } });
-registerM2Kind({ kind: SPITTER, stats: { w: 38, h: 58, hp: 80, contact: 6, mass: 140 }, ai: spitterAI, draw: drawSpitter, robot: true, grab: 'body', gender: 'm', head: { x: 4, y: -52, r: 9 } });
-registerM2Kind({ kind: CHARGER, stats: { w: 66, h: 64, hp: 170, contact: 16, mass: 420 }, ai: chargerAI, draw: drawCharger, robot: true, grab: 'body', gender: 'm', head: { x: 24, y: -40, r: 11 } });
+registerM2Kind({ kind: BITER, malletOneShot: true, stats: { w: 30, h: 26, hp: 30, contact: 7, mass: 40 }, ai: biterAI, draw: drawBiter, robot: true, grab: 'critter', gender: 'm', head: { x: 10, y: -20, r: 7 } });
+registerM2Kind({ kind: SPITTER, malletOneShot: true, stats: { w: 38, h: 58, hp: 80, contact: 6, mass: 140 }, ai: spitterAI, draw: drawSpitter, robot: true, grab: 'body', gender: 'm', head: { x: 4, y: -52, r: 9 } });
+registerM2Kind({ kind: CHARGER, malletOneShot: true, stats: { w: 66, h: 64, hp: 170, contact: 16, mass: 420 }, ai: chargerAI, draw: drawCharger, robot: true, grab: 'body', gender: 'm', head: { x: 24, y: -40, r: 11 } });
 
 /** A sac on its way out of her / lying there hatching. World. */
 export const drawSac = (c: Ctx, x: number, y: number, t: number, hatch: number) => {
