@@ -14241,6 +14241,11 @@
  },
  {
   "voice": "m2.donnie",
+  "text": "BACK FOR SECONDS? I'M STILL THIRSTY!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
   "text": "BEHOLD! I AM LORD OF THE NIGHT! AND YOU STINK LIKE A BUS STATION!",
   "from": "SPOOKY"
  },
@@ -14631,6 +14636,11 @@
  },
  {
   "voice": "m2.donnie",
+  "text": "I'LL DRINK FROM THE NECK! FAR FROM THE PANTS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
   "text": "I'M BURNING! AND THE LAST THING I SEE IS... AAAAGH!",
   "from": "SPOOKY"
  },
@@ -14732,6 +14742,11 @@
  {
   "voice": "m2.donnie",
   "text": "JUST THE NECK! THE NECK IS FINE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "LOOK AT ME! STILL GORGEOUS! STILL FLYING!",
   "from": "SPOOKY"
  },
  {
@@ -14991,6 +15006,16 @@
  },
  {
   "voice": "m2.donnie",
+  "text": "ROUND TWO! I WAXED MY WINGS FOR THIS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "ROUND TWO! PUT SOMETHING ON! ANYTHING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
   "text": "SANCTUARY! NO SHIRT, NO SHOES, NO DICKS!",
   "from": "SPOOKY"
  },
@@ -15097,6 +15122,16 @@
  {
   "voice": "m2.donnie",
   "text": "STAY BACK! I KNOW KARATE! I'M NOT KICKING THAT! BYE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STILL NAKED! I'M LOOKING AT THE CEILING!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "STILL SHITTY? I'LL USE A STRAW!",
   "from": "SPOOKY"
  },
  {
@@ -15307,6 +15342,21 @@
  {
   "voice": "m2.donnie",
   "text": "YEAH, YEAH! THE NECK! I KNOW WHERE THE NECK IS!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU AGAIN! I JUST GOT YOU OUT OF MY TEETH!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU CAME BACK NUDE? YOU CAN'T HAVE MY CAPE!",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "YOU CAME BACK! STILL SMELL LIKE A CRYPT TOILET!",
   "from": "SPOOKY"
  },
  {
@@ -28326,6 +28376,21 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "HE'S BACK, FOLKS! LET'S KILL HIM AGAIN!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HE'S BACK, FOLKS! STILL SHIT HIS PANTS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HE'S BACK! STILL NAKED! CUT TO THE CROWD!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "HE'S CLOSE! I CAN TASTE IT!",
   "from": "HOLLYWOOD"
  },
@@ -28601,6 +28666,16 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "RESET THE CARS! WE GOT A RETURNING VICTIM!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "RETURNING VICTIM! STILL STINKS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "RUN HIM OVER!",
   "from": "HOLLYWOOD"
  },
@@ -28627,6 +28702,21 @@
  {
   "voice": "m2.hollywood.steve",
   "text": "STAY OVER THERE! WITH THAT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "TAKE TWO! SOMEBODY HOSE OFF THE STUNT DOUBLE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "TAKE TWO! THIS TIME, STAY DEAD!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "TAKE TWO! WARDROBE! WARDROBE!",
   "from": "HOLLYWOOD"
  },
  {
@@ -28691,6 +28781,11 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "THIS ISN'T THAT KIND OF STUNT SHOW!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "THROUGH THE HOOP! ON HIS HEAD!",
   "from": "HOLLYWOOD"
  },
@@ -28727,6 +28822,11 @@
  {
   "voice": "m2.hollywood.steve",
   "text": "WHY DID I WEAR A CONDUCTIVE SUIT",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "YOU AGAIN? I'M NOT PAYING YOU FOR THIS!",
   "from": "HOLLYWOOD"
  },
  {
@@ -29986,6 +30086,21 @@
  },
  {
   "voice": "m2.safari",
+  "text": "BACK AGAIN! STILL NO PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "BACK AGAIN! STILL SMELL LIKE THE HIPPO PEN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "BACK FOR THE SECOND TOUR? NO REFUNDS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "BAD! BAD ANIMAL!",
   "from": "ADVENTURE"
  },
@@ -30706,6 +30821,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "LOOK WHO CAME BACK! THE ANIMALS MISSED YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "MAINTENANCE, BOAT SEVEN. OUT OF GAS. AGAIN. OVER.",
   "from": "ADVENTURE"
  },
@@ -31151,6 +31271,21 @@
  },
  {
   "voice": "m2.safari",
+  "text": "ROUND TWO, FOLKS! SAME GUIDE, NEW GUTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SECOND TOUR! SAME SHITTY PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SECOND TOUR! STILL NAKED! STILL STUPID!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "SEE THAT ROCK? THAT'S GERALD. GERALD'S MY BEST FRIEND.",
   "from": "ADVENTURE"
  },
@@ -31307,6 +31442,11 @@
  {
   "voice": "m2.safari",
   "text": "THE ANIMALS SMELL SOMETHING DEAD! IT IS YOUR PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE GIFT SHOP SELLS SHORTS, YOU KNOW!",
   "from": "ADVENTURE"
  },
  {
@@ -31637,6 +31777,16 @@
  {
   "voice": "m2.safari",
   "text": "WHY NOT HIM?! ...OH. NOBODY WANTS TO EAT THAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU AGAIN? I JUST HOSED YOU OFF MY BOOTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU CAME BACK AND YOU DIDN'T EVEN WIPE!",
   "from": "ADVENTURE"
  },
  {
@@ -34201,6 +34351,41 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "RESETTING SHOW. PLEASE ENJOY YOUR SECOND DEATH.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "RETURNING GUEST DETECTED. NO DISCOUNT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "RETURNING GUEST DETECTED. ODOR ALSO DETECTED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "RETURNING GUEST DETECTED. STILL NO PANTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "SECOND SHOW. NUDITY IS NOT PERMITTED IN THE QUEUE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "SECOND SHOW. SAME SMELL.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "SHOW NUMBER FORTY THOUSAND AND ONE. SAME IDIOT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "SURRENDER YOUR PLANET. AND COVER THAT UP.",
   "from": "SPACE"
  },
@@ -34312,6 +34497,21 @@
  {
   "voice": "m2.space.queen",
   "text": "WE ARE... A PEACEFUL... PEOPLE... YOU... STINK... BZZT...",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "WELCOME BACK. PLEASE COVER YOUR EXHIBIT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "WELCOME BACK. YOU DID NOT CHANGE. ESPECIALLY YOUR PANTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "WELCOME BACK. YOUR BLOOD IS STILL ON MY FLOOR.",
   "from": "SPACE"
  },
  {

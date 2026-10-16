@@ -36,9 +36,9 @@ m2/adventure/temple/index.ts:228 voice: 'm2.operator2'
 m2/adventure/cart/index.ts:109 voice: text
 m2/adventure/cart/index.ts:239 voice: pick(ARTIE_CHASE_START[dressed(state)])
 m2/adventure/roof/index.ts:114 voice: text
-m2/adventure/clearing/index.ts:174 voice: text
-m2/adventure/clearing/fight.ts:327 voice: voice('m2.safari')
-m2/adventure/clearing/fight.ts:333 voice: pick(lines[pants()])
+m2/adventure/clearing/index.ts:176 voice: text
+m2/adventure/clearing/fight.ts:329 voice: voice('m2.safari')
+m2/adventure/clearing/fight.ts:335 voice: pick(lines[pants()])
 m2/adventure/section.ts:139 voice: voice(voiceId)
 m2/spooky/castle/pa.ts:72 voice: voice(PA)
 m2/spooky/hell/satan.ts:111 voice: SATAN_CORE
@@ -51,7 +51,7 @@ m2/spooky/control/shop.ts:246 voice: true
 m2/spooky/control/shop.ts:253 voice: voice('m2.donnie')
 m2/spooky/ballroom/fight.ts:253 voice: voice('m2.donnie')
 m2/spooky/ballroom/fight.ts:263 voice: pick(lines[pants()])
-m2/spooky/ballroom/fight.ts:580 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
+m2/spooky/ballroom/fight.ts:582 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
 m2/space/square/kinds.ts:170 voice: false
 m2/space/square/index.ts:43 voice: line
 m2/space/atom/hijack.ts:60 voice: text
@@ -77,11 +77,11 @@ m2/space/crater/house.ts:134 voice: pick(L.XENO_ARRIVED)
 m2/space/crater/rigs.ts:167 voice: pick(L.BOO)
 m2/space/crater/kinds.ts:73 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
 m2/space/queen/show.ts:111 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
-m2/space/queen/fight.ts:263 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:269 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:279 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
-m2/space/queen/fight.ts:430 voice: pick(L.BOOTH_RAY[dressed(state)])
-m2/space/queen/fight.ts:853 voice: voice('m2.space.queen')
+m2/space/queen/fight.ts:265 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:271 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:281 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
+m2/space/queen/fight.ts:436 voice: pick(L.BOOTH_RAY[dressed(state)])
+m2/space/queen/fight.ts:869 voice: voice('m2.space.queen')
 m2/hollywood/blvd/index.ts:46 voice: line
 m2/hollywood/blvd/index.ts:93 voice: false
 m2/hollywood/blvd/kinds.ts:63 voice: false
@@ -112,9 +112,9 @@ m2/hollywood/disaster/index.ts:180 voice: false
 m2/hollywood/disaster/index.ts:185 voice: false
 m2/hollywood/havoc/kinds.ts:45 voice: false
 m2/hollywood/havoc/index.ts:57 voice: line
-m2/hollywood/stunt/fight.ts:181 voice: text
-m2/hollywood/stunt/fight.ts:188 voice: voice(L.STEVE_VOICE)
-m2/hollywood/stunt/fight.ts:196 voice: pick(lines[pants()])
+m2/hollywood/stunt/fight.ts:183 voice: text
+m2/hollywood/stunt/fight.ts:190 voice: voice(L.STEVE_VOICE)
+m2/hollywood/stunt/fight.ts:198 voice: pick(lines[pants()])
 m2/foreign/state.ts:42 voice: line
 m2/foreign/state.ts:50 voice: false
 m2/foreign/heli/talk.ts:37 voice: line
