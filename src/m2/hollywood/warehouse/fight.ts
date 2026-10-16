@@ -40,9 +40,12 @@ import { CAST_ARRIVE, KILL_QUIPS, HALF, LAST, DEATH, ARRIVE, LATCH, CAP_RESEMBLE
 import { adSay, castSay } from './talk';
 import { hurtTaken } from '../../../m1/game/core/resist';
 import { setHalfHooks } from '../../weapons/half';
+import { setDropTable } from '../../../m1/game/core/effects';
 
 /** How many of them are in it (CAPTAIN AMERICANO and the rest in a shuffled order: the whole thirty). */
 const FIGHT_SIZE = CAST.length;
+/** The drops: none in the fight (pure attrition); the park's everywhere else (App.tsx's). */
+const NO_DROPS = { health: 0, ammo: 0 }, PARK_DROPS = { health: 0.06, ammo: 0.05 };
 /** How many on him and he's down under them, dead. */
 export const CRUSH = 6;
 /** How many may be up (on the floor, on him, or coming down) at once: a few at first, more as they die. */
@@ -126,6 +129,8 @@ const appear = (state: GameState, a: Arrival) => {
   const F = whOf(state).fight, c = CAST[a.i], p = state.player;
   const e = makeKindEnemy(ACTOR_KIND as EnemyKind, a.x, a.y);
   e.variant = a.i; e.health = BIG; e.maxHealth = BIG; e.seen = true;
+  // (pure attrition: no beatdown or air grab heals off them, no ammo shaken out of them)
+  e.noHeal = true;
   e.homeX = e.pos.x; e.homeY = e.pos.y; e.initialY = e.pos.y;
   e.facing = a.x > p.pos.x + p.width / 2 ? -1 : 1;
   e.aiState = a.mode === 'drop' ? 'land' : 'approach'; e.aiTimer = 0; e.leapCd = 20;
@@ -156,8 +161,6 @@ const fall = (ctx: FrameContext, a: Actor, how?: 'headless' | 'gone') => {
   if (F.killed === Math.floor(total / 2)) meatheadSays(state, pickLine(HALF), true);
   else if (left === 1 && F.next >= total && !F.arrivals.length) meatheadSays(state, pickLine(LAST), true);
   else if (left > 0 && Math.random() < 0.12) meatheadSays(state, pickLine(KILL_QUIPS), false);
-  // (lean: a little something comes down a couple of times)
-  if (F.killed === 8 || F.killed === 16 || F.killed === 24) state.pickups.push({ id: `hww-cast-${F.killed}`, pos: { x: clampX(x + (x < (L0 + R0) / 2 ? 120 : -120)) - 10, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: F.killed === 16 ? 'small_ammo' : 'small_health', life: 1e9 });
 };
 
 /** On the way in: dropping (the shadow under them), or lowered on a wire. Down: true. */
@@ -240,6 +243,8 @@ const shakeOff = (ctx: FrameContext, a: Actor, how: 'charge' | 'shot', dmg: numb
 export const updateFight = (ctx: FrameContext): Controls | null => {
   const { state } = ctx, o = whOf(state), F = o.fight, p = state.player;
   F.doorK += ((F.phase === 'on' || F.phase === 'intro' ? 1 : 0) - F.doorK) * 0.2;
+  // (pure attrition: nothing drops while it's on, health or ammo; the park's drops back once it's over)
+  setDropTable(F.phase === 'on' || F.phase === 'intro' ? NO_DROPS : PARK_DROPS);
   // (the bodies: going over, the pool spreading under them)
   for (const b of F.bodies) { b.t++; b.fall = Math.min(1, b.fall + 1 / 16); if (b.fall >= 1) b.pool = Math.min(1, b.pool + 1 / 110); }
   if (F.phase === 'wait') {

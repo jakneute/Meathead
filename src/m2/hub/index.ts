@@ -23,6 +23,7 @@ import { type Show, startPortal, startExit, runShow, portalZoom, portalLights, p
 import { todLight } from '../timeOfDay';
 import { HUB, HUB_CIRC, slotX } from './geometry';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
+import { setDropTable } from '../../m1/game/core/effects';
 
 export const HUB_STAGE = 'M2 Happy Hub';
 
@@ -57,6 +58,8 @@ export const hubLayout: StageLayout = {
   startsStanding: true,
   build: (state) => {
     arrived(); stopWeapons();
+    // (the park's own drops, whatever fight he walked out of (one with none, one with its own))
+    setDropTable({ health: 0.06, ammo: 0.05 });
     // (back on his own two feet, whatever he was doing when he left (hanging off a wire, in a cart, mid-move): his
     // walking pose, always)
     {
