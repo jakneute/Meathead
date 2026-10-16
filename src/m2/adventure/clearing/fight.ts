@@ -201,6 +201,8 @@ export interface Fight {
   /** Still up in his blind at the start (saying his piece), till the view's come round onto the arena (tower.ts turns
    *  the blind side on as it does); how long he's been waiting on it. */
   inBlind: boolean; blindT: number;
+  /** A retry's entrance beat (frames left): up in his blind, a taunt, then down (the user's: a beat before it's on). */
+  entrance: number;
   /** His goes at him out of a bush since he last whistled; the last one (and how many of it running); out of his bush
    *  on a lunge (till he's back in one). */
   attacks: number; lastAttack: 'volley' | 'lunge' | null; sameRun: number; lunged: boolean;
@@ -335,7 +337,7 @@ const announce = (f: Fight, lines: L.ByPants, onDone?: () => void) => speak('m2.
 // ---------------------------------------------------------------------------------------------------------------
 // Starting
 
-export const startFight = (state: GameState): Fight => {
+export const startFight = (state: GameState, retry = false): Fight => {
   game = state;
   const e = makeKindEnemy(ARTIE_KIND as EnemyKind, BLIND_X, BLIND_Y);
   e.facing = -1; e.seen = true;
@@ -344,7 +346,7 @@ export const startFight = (state: GameState): Fight => {
     bush: 2, bushes: [], moves: [], moveI: 0, decoy: -1, wait: 0, after: 'whistle', stunLen: STUN,
     agitated: false, calmT: 0, swatT: 0, herd: [], stampedes: 0, overT: 0, darts: [], poison: 0, pokes: 0,
     said: null, nextCups: 0, byWeakness: false, death: null, eaten: null, eatenSaid: 0, eatenOver: false, cam: null, puke: null, noBushesSaid: false,
-    vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, perchT: 0, lureT: 0, inBlind: true, blindT: 0,
+    vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, perchT: 0, lureT: 0, inBlind: true, blindT: 0, entrance: 0,
     attacks: 0, lastAttack: null, sameRun: 0, lunged: false, moveSeen: e.hitByMove, counter: false, counterAt: -9999, e,
   };
   // (the vine: up over his hands while he's hanging off it)
@@ -364,6 +366,9 @@ export const startFight = (state: GameState): Fight => {
   f.bush = Math.abs(px - BUSH_X[0]) > Math.abs(px - BUSH_X[last]) ? 0 : last;
   f.arc = { x0: BLIND_X, y0: BLIND_Y, x1: BUSH_X[f.bush], y1: GY, d: 46, up: 90 };
   live = f;
+  // (a retry: the kick's been seen; a beat up in his blind for his entrance, a taunt, before he comes down: the user's
+  // "give a beat for him to make his entrance before you can take damage")
+  if (retry) { f.entrance = 100; bark(f, L.ARTIE_ENTRANCE); return f; }
   playSound('jump', 0.8);
   announce(f, L.ARTIE_START);
   return f;
@@ -402,6 +407,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   switch (f.mode) {
     case 'intro':
       // (up in his blind till the view's come round onto the arena (or it's been long enough), then down out of it)
+      if (f.entrance > 0) { f.t = 0; if (--f.entrance === 0) playSound('jump', 0.8); break; }
       if (f.inBlind) { f.t = 0; if (Math.abs(state.camera.x - VIEW_L) < 1 || ++f.blindT > 150) f.inBlind = false; break; }
       if (onArc(f)) { landInBush(state, f); hide(f); }
       break;
@@ -1045,6 +1051,8 @@ export const drawKillCam = (c: Ctx, f: Fight) => {
 
 /** Still up in his blind at the start: the clearing draws him there (tower.ts), his words over him. */
 export const artieInBlind = (f: Fight) => f.mode === 'intro' && f.inBlind;
+/** Up in his blind on a retry, not talking: pointing him out. */
+export const artieEntrance = (f: Fight) => f.mode === 'intro' && f.entrance > 0;
 
 /** Done with: the fight's over and he's had his say (the death played out). */
 export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && (f.death.how === 'eaten' ? f.eatenOver : f.death.t > 300);

@@ -33,7 +33,7 @@ import { type BlindLook, blindOrbitItem, drawBlindOnStrip, blindWordsAt } from '
 import { BEASTS } from './stampede';
 import { popAliensIn } from '../../weapons/spawner';
 import type { Enemy } from '../../../m1/types';
-import { type Fight, startFight as beginFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam, artieInBlind } from './fight';
+import { type Fight, startFight as beginFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam, artieInBlind, artieEntrance } from './fight';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 
@@ -50,6 +50,8 @@ interface Clearing {
   init: boolean;
   /** The domino (first time through); with it done (or not the first time) the trees are down already. */
   domino: boolean;
+  /** The kick played this time (it's a first go at him); not, it's a retry. */
+  kicked: boolean;
   scene: 'kick' | null; t: number; token: number;
   /** Each tree: how far over (radians), how fast it's going over, done. */
   trees: { a: number; v: number; on: boolean; done: boolean }[];
@@ -76,7 +78,7 @@ interface Clearing {
   saidAt: 'blind' | 'speaker';
 }
 const getClearing = (state: GameState) => sectionState<Clearing>(state, 'clearing', () => ({
-  init: false, domino: firstVisit(state), scene: null, t: 0, token: 0,
+  init: false, domino: firstVisit(state), kicked: false, scene: null, t: 0, token: 0,
   trees: TREE_X.map(() => ({ a: 0, v: 0, on: false, done: false })), trunk: null, templeHit: false,
   fight: 'wait', wonAt: 0, fence: null, f: null, said: null, nextLine: 0, booms: [], wiped: false, victory: null, walk: null,
   call: 'no', callT: 0, out: 0, flap: 0, saidAt: 'blind',
@@ -209,7 +211,8 @@ const fallTrees = (state: GameState, cl: Clearing) => {
 const startFight = (state: GameState, cl: Clearing) => {
   cl.fight = 'on';
   popGuides(state, cl);
-  cl.f = beginFight(state);
+  // (a retry: the kick not played this time, it's been seen: his entrance beat first)
+  cl.f = beginFight(state, !cl.kicked);
   cl.fence = { x: ARENA_L - 30, y: -4000, w: 30, h: 4000 + GY, type: 'wall', hidden: true, tag: 'artie-fence' };
   state.blocks.push(cl.fence as never);
 };
@@ -226,6 +229,7 @@ const kick = (ctx: FrameContext, cl: Clearing): Controls => {
   const { state } = ctx, p = state.player;
   cl.t++;
   p.inCutscene = true; p.facing = 1; p.vel.x = 0;
+  cl.kicked = true;
   if (cl.t > SKIP_AFTER) offerSkip();
   if (cl.t > SKIP_AFTER && takeSkip()) { endKick(state, cl, true); return hands(); }
   const t = cl.t;
@@ -402,7 +406,7 @@ const blindLook = (state: GameState, cl: Clearing): BlindLook => {
   const hidden = cl.fight === 'wait' && cl.domino && cl.trees[5].a <= 0.5;
   let artie: BlindLook['artie'] = null;
   if (cl.fight === 'wait' && !hidden) artie = cl.said?.text ? 'talk' : 'angry';
-  else if (cl.fight === 'on' && cl.f && artieInBlind(cl.f)) artie = cl.f.said ? 'talk' : 'angry';
+  else if (cl.fight === 'on' && cl.f && artieInBlind(cl.f)) artie = cl.f.said ? 'talk' : artieEntrance(cl.f) ? 'point' : 'angry';
   return { hidden, artie, frame: state.frame };
 };
 
