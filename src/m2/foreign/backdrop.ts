@@ -2,7 +2,7 @@
 // next): the sky by the hour (timeOfDay.ts), the lagoon along the back with its big fake FIREWORKS barge (it drifts
 // across the whole walk, slow: the far shore's that far off), and each pavilion's far landmark (Mexico's fake volcano,
 // Norway's fjord, China's ridge with the wall on it, Germany's castle on its hill, Italy's bell tower and its volcano,
-// Fuji, the dunes, the tower, the clock tower, the Rockies, the theater's dome) slid in by parallax round where its
+// Fuji, the dunes, the tower, the clock tower, the Rockies, the helicopter tour's giant replicas) slid in by parallax round where its
 // pavilion is, so they come and go as he walks. Crude (the first pass), all of it tinted far into the haze.
 //
 // Up a climb (the Great Wall) the horizon sinks: more sky.
@@ -79,10 +79,11 @@ const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => vo
     poly(c, [[-400, hz], [-240, hz - 260], [-120, hz - 150], [20, hz - 300], [160, hz - 170], [300, hz - 240], [420, hz]], farTint('#334155', 0.6));
     for (const [x, y] of [[-240, -260], [20, -300], [300, -240]] as const) poly(c, [[x - 40, hz + y + 50], [x, hz + y], [x + 40, hz + y + 50]], farTint('#F8FAFC', 0.5));
   },
-  theater: (c, hz) => {
-    c.fillStyle = farTint('#1E3A8A', 0.55); c.beginPath(); c.arc(0, hz - 40, 140, Math.PI, 0); c.fill();
-    box(c, -150, hz - 40, 300, 40, farTint('#E5E7EB', 0.55));
-    for (let k = 0; k < 7; k++) box(c, -132 + k * 44, hz - 40, 8, 40, farTint('#B91C1C', 0.5));
+  heli: (c, hz) => {
+    // (the helicopter tour's giant replicas, far over the water and still huge: an Eiffel, a pyramid, a moai's head)
+    poly(c, [[-260, hz], [-180, hz - 380], [-168, hz - 380], [-90, hz]], farTint('#57534E', 0.65));
+    poly(c, [[-40, hz], [90, hz - 200], [220, hz]], farTint('#D97706', 0.6));
+    box(c, 240, hz - 190, 70, 190, farTint('#78716C', 0.6)); box(c, 228, hz - 200, 86, 22, farTint('#57534E', 0.6));
   },
 };
 

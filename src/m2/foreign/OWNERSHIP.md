@@ -10,8 +10,8 @@ index.ts header says what goes in it.
 |---|---|---|
 | `mexico/`, `norway/`, `china/`, `germany/`, `italy/` | 0-9, 10-19, 20-29, 30-39, 40-49 | built (job 1, first pass) |
 | `japan/`, `morocco/`, `france/`, `uk/`, `canada/` | 50-59, 60-69, 70-79, 80-89, 90-99 | built (job 2, first pass) |
-| `theater/` (CULTURES OF THE WORLD, the sub-boss) | 100-109 | built (job 3, first pass) |
-| `heli/` (boarding, the jacking, the shooter) | 110-119 | stub: the helipad |
+| ~~`theater/`~~ (CULTURES OF THE WORLD) | ~~100-109~~ | AXED (the user, 2026-10-16): removed |
+| `heli/` (the helipad off the end of Canada, boarding, the jacking, the shooter) | 110-119 | job 4 |
 | `harry/` (HELICOPTER HARRY, the land boss) | 120-129 | stub: the arena + a temporary walk-past win |
 
 Inside your folders, anything goes (layout.ts, art.ts, kinds.ts, lines.ts...). Number checkpoints only inside your
@@ -32,8 +32,7 @@ playtime, not x width.
 | germany | FLX+13200 .. FLX+17000 | ~0.8 min |
 | italy | FLX+17000 .. FLX+21000 | ~0.8 min |
 | japan, morocco, france, uk, canada | 3600 each, FLX+21000 .. FLX+39000 | ~0.7 min each |
-| theater | FLX+39000 .. FLX+42000 | the sub-boss |
-| heli | FLX+45000 .. FLX+48000 (the shooter auto-scrolls: count it by time) | ~7 min |
+| heli | FLX+39000 .. FLX+42000 (on the end of the streets; the shooter auto-scrolls high over it: count it by time) | ~7 min |
 | harry | FLX+52000 .. FLX+55000 | the boss fight |
 
 FLX = 600000. **The streets are one continuous walk: no gaps between street sections.** Need more room in a pavilion?
@@ -55,8 +54,6 @@ tools/voices/cast.json, the engine) the same: re-read, append minimally.
 
 ## How sections connect
 
-- The streets: walked, Mexico -> Canada -> the theater's front.
-- Theater -> helipad: its doors (for now its right end, `endExits`) to `DOORS.heli.start`; back from the helipad's
-  left end to `DOORS.theater.end`. The theater's owner puts the show between, then the exit to the helipad.
+- The streets: walked, Mexico -> Canada -> the helipad (heli is a street section: no cut, no walls between).
 - Helipad -> Harry: Harry's rocket and the crash (for now the helipad's right end) to `DOORS.harry.start`; back by the
   arena's left end. Keep a way back working (revisits).

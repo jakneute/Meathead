@@ -2,8 +2,8 @@
 // painting into it later, the way intoHollywood.ts does the boulevard's). Out of the portal and down the lagoon
 // promenade: pale pavers, the lagoon off to the left with the fireworks barge far out on it, flags of every country
 // (and some that aren't) on poles down both sides, the pavilions' fronts along the right (a stepped pyramid, a stave
-// church's peaks, a pagoda's eaves, a castle's turret), and far off at the end of it, across the water, the theater's
-// blue dome. The sky by whatever hour it is (timeOfDay.ts).
+// church's peaks, a pagoda's eaves, a castle's turret), and far off at the end of it, across the water, the helicopter
+// tour's giant replicas (an Eiffel, a pyramid). The sky by whatever hour it is (timeOfDay.ts).
 
 import { type Ctx, type Prop, type PortalDef, HOR, box, hash } from './kit';
 import { timeOfDay, hourMix } from '../timeOfDay';
@@ -21,13 +21,13 @@ const ground = (g: Ctx, w: number, h: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The far off: the theater's dome across the water, the barge
+// The far off: the helicopter tour's giant replicas across the water, the barge
 
 const back = (c: Ctx, t: number, sway: number) => {
   const tod = timeOfDay(), sx = Math.round(sway * 0.4);
   const far = hourMix('#1E3A8A', '#4C1D95', '#0F172A');
-  c.fillStyle = far; c.beginPath(); c.arc(240 + sx, HOR - 6, 34, Math.PI, 0); c.fill();
-  box(c, 200 + sx, HOR - 8, 80, 8, hourMix('#E5E7EB', '#C4B5FD', '#334155'));
+  c.fillStyle = far; c.beginPath(); c.moveTo(214 + sx, HOR); c.lineTo(236 + sx, HOR - 70); c.lineTo(240 + sx, HOR - 70); c.lineTo(262 + sx, HOR); c.closePath(); c.fill();
+  c.fillStyle = hourMix('#B45309', '#7C2D12', '#1E293B'); c.beginPath(); c.moveTo(262 + sx, HOR); c.lineTo(290 + sx, HOR - 30); c.lineTo(318 + sx, HOR); c.closePath(); c.fill();
   // (the barge, and after dark a burst over it now and then)
   box(c, 110 + sx, HOR - 4, 50, 4, '#1F2937');
   if (tod.lamps > 0.3 && t % 120 < 40) { const r = (t % 120) * 0.6, k = (t / 120) | 0; for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; box(c, 135 + sx + Math.cos(a) * r, HOR - 60 + Math.sin(a) * r, 2, 2, ['#F87171', '#FDE047', '#60A5FA'][k % 3]); } }

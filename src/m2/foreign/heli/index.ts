@@ -1,33 +1,31 @@
-// HELICOPTER RIDES ACROSS THE WORLD: the second stretch (about half the land). STUB (the first job's): the helipad, a
-// crude helicopter, a placeholder walk on to Harry's arena. Its owner builds (foreign-spec.md): boarding (he skips the
-// line), HELICOPTER HARRY's tolerance tour over landmark replicas much bigger than the real ones ("IN AMERICA,
-// EVERYTHING IS BIGGER. EVEN OTHER PLACES."), "SHUT UP, HIPPIE.", Harry thrown out, the helicopter jacked; then the
-// shooter (space/orbit's way, a Cuphead-Djimmi framing round a giant globe; X machine gun, Y up to three homing
-// rockets on a cooldown, B the rotor boost that shreds jetpackers, any direction; the helicopter always faces right):
-// the souvenir landmarks as googly-eyed mechs one at a time, jetpack goons between; then Harry's rocket and the crash
-// (on to Harry's arena). Checkpoints 110-119.
+// HELICOPTER RIDES ACROSS THE WORLD: the second stretch (about half the land). Walked into off the end of Canada (no
+// cut: the helipad's on the promenade at the end of the streets). STUB for now: the helipad, the big refill and its
+// checkpoint before the ride, a crude helicopter, a placeholder walk on to Harry's arena.
 //
-// The way in: the theater's doors (DOORS.heli.start). Back: the left end, to the theater. On: the right end (for now).
+// The way on: the right end (for now) to Harry's arena (DOORS.harry.start). Back: walked, along the streets.
 
 import type { ForeignSection } from '../section';
 import { layOwn, endWalls, endExits, runExits } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { viewIn, promenade, postBoard, onScreen, LOOKS, box, INK } from '../kit';
-import { drawTodSky } from '../../timeOfDay';
 
 const { x0, x1 } = SECTIONS.heli;
 const X = (rx: number) => x0 + rx;
 
 export const heli: ForeignSection = {
   id: 'heli', x0, x1,
-  checkpoints: [{ name: 'HELICOPTER RIDES', cp: 110, x: X(200), y: GY }],
-  build: (state) => { layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'hard' }]); endWalls(state, 'heli'); },
-  update: (ctx, controls) => { runExits(ctx.state, endExits('heli')); return controls; },
-  drawBackdrop: (c) => { drawTodSky(c, 0, 0, 800, 600, ['#1E3A8A', '#2563EB', '#60A5FA', '#BFDBFE'], { horizon: 430, sun: [620, 110], moon: [170, 90] }); return true; },
+  checkpoints: [{ name: 'HELICOPTER RIDES', cp: 110, x: X(500), y: GY }],
+  build: (state) => {
+    layOwn(state, [{ x1: x0, y1: GY, x2: x1 + 200, y2: GY, surface: 'hard' }]);
+    endWalls(state, 'heli', { left: false });
+    // (the big refill before the ride: the boss-door rule)
+    state.pickups.push({ id: 'hl-health', pos: { x: X(400), y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 });
+    state.pickups.push({ id: 'hl-ammo', pos: { x: X(440), y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 });
+  },
+  update: (ctx, controls) => { runExits(ctx.state, endExits('heli', { left: false })); return controls; },
   drawBack: (c, state) => {
     const v = viewIn(state);
-    promenade(c, v, x0 - 200, x1 + 200, '#9CA3AF', '#4B5563');
-    // (the helipad's line, the helicopter: a cabin, a tail, the rotor, the skids)
+    promenade(c, v, x0, x1 + 200, '#9CA3AF', '#4B5563');
     if (onScreen(v, X(1100), X(1900))) {
       box(c, X(1200), GY - 2, 400, 2, '#FDE047');
       box(c, X(1300), GY - 120, 160, 100, INK); box(c, X(1302), GY - 118, 156, 96, '#F8FAFC');

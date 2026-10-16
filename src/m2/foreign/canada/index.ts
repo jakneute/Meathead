@@ -1,4 +1,4 @@
-// CANADA: section 10 of Foreign Lands' streets, the last pavilion (flows on from the UK, into the theater: no walls, no
+// CANADA: section 10 of Foreign Lands' streets, the last pavilion (flows on from the UK, on to the helipad: no walls, no
 // doors). Everybody here says SORRY as they hit him. THE LUMBER CAMP first: log piles to climb, the cabin, the CARVED
 // POLES (plywood: a moose, a beaver, a hockey player, a Mountie; MADE IN OHIO) to hop along. THE LOG POND: logs
 // floating, bobbing and drifting (ride them across, or swim). Then THE FALLS: the Rockies' cliff, its waterfall a
@@ -6,7 +6,7 @@
 // ride runs along the clifftop and its logs go over the falls (they slide along the trough first: the tell), down the
 // falls onto whoever's crossing (him, the cast). On top: THE RINK (boards each end: the pucks ricochet off them),
 // hockey players, a moose, a Mountie on a stick horse; then down THE TRAIL's thousand stairs (they climb back up, too),
-// the ranger station, to the theater's doors.
+// the ranger station, on to HELICOPTER RIDES ACROSS THE WORLD's helipad.
 //
 // Crude (the first pass): readable boxes with full game feel. Checkpoints 90-99. Outdoors: the time of day's light.
 

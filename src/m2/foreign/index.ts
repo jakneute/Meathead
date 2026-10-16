@@ -6,7 +6,7 @@
 // promenade, and the camera runs along the whole of it (no section limits, no snap walking from one into the next).
 // What they share runs here once a frame: the cast's shots (shots.ts), their barks and the PA's words over it all, the
 // one backdrop (backdrop.ts: the sky, the lagoon and its fireworks barge, each pavilion's far landmark slid in by
-// parallax). The cut sections (the helipad, Harry's arena) keep to their own stretch.
+// parallax). The helipad's on the end of the walk; the cut section (Harry's arena) keeps to its own stretch.
 //
 // Shared file (see OWNERSHIP.md): section owners may only append minimally, and must re-read it before editing.
 
@@ -36,14 +36,13 @@ import { morocco } from './morocco';
 import { france } from './france';
 import { uk } from './uk';
 import { canada } from './canada';
-import { theater } from './theater';
 import { heli } from './heli';
 import { harry } from './harry';
 export { FOREIGN_VOICE_LINES } from './voices';
 
 export const FOREIGN_STAGE = 'M2 Foreign Lands';
 
-const ALL: Record<ForeignId, ForeignSection> = { mexico, norway, china, germany, italy, japan, morocco, france, uk, canada, theater, heli, harry };
+const ALL: Record<ForeignId, ForeignSection> = { mexico, norway, china, germany, italy, japan, morocco, france, uk, canada, heli, harry };
 const sectionAt = (x: number): ForeignSection => {
   for (const id of SECTION_ORDER) { const s = ALL[id]; if (x >= s.x0 && x < s.x1) return s; }
   let best = ALL.mexico, bestD = Infinity;

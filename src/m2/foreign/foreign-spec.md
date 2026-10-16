@@ -55,10 +55,11 @@ FEW hard transitions (the user's): each stretch flows continuously, as one walk 
 fades and section doors as possible (sections exist in code, but the player shouldn't feel the seams).
 
 1. **The streets** (the World Showcase walk, ~half): ten pavilions in Epcot's order, flowing one into the next along
-   the lagoon promenade, then the Cultures of the World theater (the sub-boss). Platforming only (NO new traversal
+   the lagoon promenade, then straight on to the helipad (the Cultures of the World theater sub-boss was AXED: the
+   user, 2026-10-16). Platforming only (NO new traversal
    mechanic in this land: the user's call), but plenty of verticality in every pavilion, most of all in China (the
    Great Wall climb: watchtowers, steep stepped ramparts up and down a mountain ridge, a gate tower climbed inside).
-2. **The helicopter** (~half): boarding and the pilot's tolerance tour, the jacking, then the shooter (the landmark-mech
+2. **The helicopter** (~half; the helicopter gauntlet is now the land's mini-boss rush): boarding and the pilot's tolerance tour, the jacking, then the shooter (the landmark-mech
    gauntlet round the giant circle), then Harry's rocket and the crash, then the HELICOPTER HARRY fight (the land
    boss; its mechanics come from the user later: build the arena and a clearly temporary placeholder fight so the land
    can be finished).
@@ -106,7 +107,14 @@ The pavilions (fill-ins; each a section with its own cast enemies, set pieces an
   axes, a Mountie on a fake horse, hockey players (slapshot pucks), a moose; everyone apologizes as they attack
   ("SORRY! SORRY!").
 
-## The sub-boss: CULTURES OF THE WORLD (the theater at the end of the streets)
+## The sub-boss: CULTURES OF THE WORLD (the theater at the end of the streets) -- AXED (user, 2026-10-16)
+
+**AXED (the user, 2026-10-16):** the theater sub-boss is gone entirely (its folder, section, checkpoints 100-102,
+voices). The streets go through all ten pavilions and at the end of Canada (the trail's stairs down, the ranger
+station) he walks straight on, no cut, to HELICOPTER RIDES ACROSS THE WORLD's helipad (the heli section sits where the
+theater was, FLX+39000, on the end of the streets' walk). The big health + ammo refill and checkpoint 110 are at the
+helipad, before the ride. The helicopter gauntlet is the land's mini-boss rush. What follows (and job 3's decisions)
+is kept only for the record.
 
 A stage show in a proscenium theater: the curtain, the stage, and a foreground crowd in silhouette watching the WHOLE
 time (they cheer, boo, film it on their phones). The PA narrator (a smarmy patriotic announcer) introduces each
@@ -333,7 +341,7 @@ voices recorded (npm run voices) and the M2 html rebuilt (npm run release:m2) af
 - **Voices:** 37 new cast voice ids in cast.json (m2.foreign.ninja .. moosef; the tea lady one voice); the PA's hello,
   his arrival and gags, barks in clean / shitty / naked pools, hurt + death lines for every kind and every new source.
 
-## Decisions (job 3)
+## Decisions (job 3) -- AXED with the theater (kept for the record)
 
 - **One walk in, no cut** (theater/layout.ts): the theater's front set back off the promenade (columns, the marquee:
   NOW SHOWING: EVERYBODY ELSE), its street doors through the side wall (the wall's outside face over the lobby fades as

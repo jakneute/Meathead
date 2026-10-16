@@ -32,7 +32,7 @@ export const landVisit = () => visit;
 export const newLandVisit = () => { visit++; };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The cuts (the streets are walked: only the theater -> helipad -> Harry's arena are cut to, for now crudely)
+// The cuts (the streets are walked, the helipad on the end of them: only the helicopter -> Harry's arena is a cut)
 
 export interface Exit { x0: number; x1: number; yTop: number; yBot: number; to: { x: number; y: number } }
 /** The crude way on at a cut section's right end and back at its left end (on the ground), to the next and last
