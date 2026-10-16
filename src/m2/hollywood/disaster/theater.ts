@@ -30,6 +30,7 @@ import {
 import { backWall, floorBack, ceilingUnder, plenum } from './rooms';
 
 import { EFX_D } from './paint';
+import { floodSurface, floodFoamFront } from './flood';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The shell
@@ -503,12 +504,7 @@ const wreckWall = (c: Ctx, v: View, o: Dz) => {
 };
 const wreckFloor = (c: Ctx, v: View, o: Dz, f: number) => {
   const r = o.real;
-  if (r.flood > 0) {
-    // (the water out of the screen, across the floor going back: banded, the light on it rippling)
-    const a = X(SCREEN.a - 200), b = a + (SCREEN.b - SCREEN.a + 400) * r.flood;
-    for (let i = 0; i < 4; i++) levelQ(c, v.eye, a, b, GY - 1, 1 - ((1 - WALL_D) * i) / 4, 1 - ((1 - WALL_D) * (i + 1)) / 4, `rgba(46, 106, 178, ${(0.5 - i * 0.08).toFixed(2)})`);
-    for (let i = 0; i < 6; i++) { const d = 0.99 - i * 0.025, [p, q] = at(v.eye, a + ((i * 173 + f * 0.7) % Math.max(1, b - a - 60)), GY, d); box(c, p, q - 1, 30 * d, 1, 'rgba(166, 206, 242, 0.6)'); }
-  }
+  void f;
   if (r.fire > 0.5) {
     // (the heater's patch of floor, burnt black around it)
     const hx = X(FX.heater);
@@ -522,6 +518,7 @@ export const drawTheater = (c: Ctx, v: View, state: GameState, o: Dz, beat: numb
   grid(c, v, real);
   if (seenD(v, X(SCREEN.a) - 120, X(SCREEN.b) + 120, SCREEN_D)) drawScreen(c, v, o, beat, k, real, f);
   wreckFloor(c, v, o, f);
+  floodSurface(c, v, state, o, f, real);
   // (the front-of-house truss along the ceiling's edge: dim, set back, its pars (red once it's real))
   deep(c, v, 0.985, () => {
     const [a, b] = spanAt(v, 0.985, 40), lo = Math.max(a, X(THEATER.a)), hi = Math.min(b, X(FAR_WALL));
@@ -532,6 +529,7 @@ export const drawTheater = (c: Ctx, v: View, state: GameState, o: Dz, beat: numb
     }
   });
   if (seenD(v, X(FX.heater) - 80, X(FX.fog) + 80, EFX_D)) drawEffects(c, v, o, beat, k, f);
+  floodFoamFront(c, v, o, f);
   // The sign: PLEASE STAND. HOLD THE RAIL.
   if (seenD(v, X(3170) - 80, X(3170) + 80, EFX_D)) deep(c, v, EFX_D, () => still(c, 'standsign', X(3170), GY, -70, -120, 140, 122, g => standBoard(g, 0, 0, ['PLEASE STAND.', 'HOLD THE RAIL.'], showLook(1, 1, '#FDE68A', '#000000'), '#18181B')));
   // The guests standing about watching (scenery: behind him), down once it's real (gone after)
