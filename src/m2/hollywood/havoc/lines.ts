@@ -36,9 +36,12 @@ export const GAG: Record<'lava' | 'facade' | 'bridge' | 'wind' | 'quake' | 'bill
 
 /** The fling. Caught; spun round in it (the SAFE TORNADO LAUNCHING ZONE: how is a tornado launcher SAFE); flung. */
 export const CAUGHT = ['OH SHIIIIT!', 'IT GOT MEEEE!'];
-export const SPIN = ['I\'M IN THE TORNADO! THERE\'S A COW IN HERE!', 'WHEEE! FUCK! WHEEE!'];
-/** The user's line, verbatim. */
-export const FOURTH_WALL = 'NORMALLY YOU KILL ME, BUT BECAUSE THIS IS A CUTSCENE I JUST MOVE TO THE NEXT SCRIPTED SET PIECE. OKAY. MAKES PERFECT SENSE.';
+export const SPIN = [
+  'A SAFE TORNADO LAUNCHING ZONE! THEY PAINTED A BOX ON THE STREET AND CALLED IT SAFE!',
+  "SAFE?! IT SAID SAFE! IN BIG LETTERS! THERE'S A COW IN HERE!",
+  'WHO BUILDS A SAFE PLACE TO GET LAUNCHED BY A TORNADO?! WHO SIGNED OFF ON THIS?!',
+  "THIS IS THE SAFE ONE?! I'D HATE TO SEE THE OTHER ZONE!",
+];
 export const FLUNG = ['WHERE AM I GOIIIING?!', 'PUT ME DOWN SOMEWHERE SOFT!'];
 
 // ---------------------------------------------------------------------------------------------------------------
