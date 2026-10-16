@@ -13,10 +13,11 @@ import { drawCopter } from '../heli/copter';
 import type { MechId } from '../heli/lines';
 import { TIEDYE } from '../heli/harryArt';
 import { x0, X, GY, VIEW_X, ARENA_L, ARENA_R, WALL_W, MID, sy, WRECK_X, BERM_Y } from './arena';
-import { drawRubble, drawDropped } from './liberty';
+import { drawRubble, drawDropped, drawTorchAt, drawChunk } from './liberty';
 
 type Ctx = CanvasRenderingContext2D;
 /** His tie-dye in shreds on the floor (from MID, its color). */
+const CRUMBS: [number, number, number, boolean][] = [[-300, 14, 0.4, true], [-200, 9, 1.2, true], [-60, 18, 2.1, true], [30, 11, 0.8, false], [120, 16, 2.7, true], [210, 8, 1.9, true], [300, 13, 0.2, true]];
 const TIEDYE_SHREDS: [number, string][] = TIEDYE.map((col, i) => [-150 + i * 23 + (i % 2) * 9, col]);
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -157,8 +158,9 @@ export interface SceneState {
   shut: boolean;
   /** She's in the dig behind (drawn by the fight between the sky and the berm). */
   between?: (c: Ctx) => void;
-  /** Revisits: the aftermath on the floor. */
-  aftermath: boolean;
+  /** Revisits: the aftermath on the floor (null: none): whether she crumbled in the winning run, and what's left of him
+   *  (drawn by the fight: his concrete mound, his puke pool; null: the chalk outline). */
+  aftermath: { crumbled: boolean; him: ((c: Ctx) => void) | null; outline: boolean } | null;
 }
 
 export const drawScene = (c: Ctx, state: GameState, S: SceneState) => {
@@ -172,14 +174,23 @@ export const drawScene = (c: Ctx, state: GameState, S: SceneState) => {
   if (onScreen(v, VIEW_X - 60, VIEW_X + 860)) {
     tower(c, ARENA_L - WALL_W, -1, S.shut ? 'shut' : 'open', f);
     tower(c, ARENA_R, 1, 'none', f);
-    if (S.aftermath) aftermath(c, f);
+    if (S.aftermath) aftermath(c, f, S.aftermath);
   }
 };
 
 /** What's left (revisits): her rubble, the gun and the torch, a chalk outline, his shirt in shreds, the jetpack. */
-const aftermath = (c: Ctx, f: number) => {
+const aftermath = (c: Ctx, f: number, A: NonNullable<SceneState['aftermath']>) => {
   drawRubble(c, MID - 40, GY, f);
-  drawDropped(c, MID + 144, MID - 240, GY, f);
+  if (A.crumbled) {
+    // (she came apart: more of her broken copper about, the torch snapped in two and lying, no revolver)
+    for (const [dx, s, a, g] of CRUMBS) drawChunk(c, MID + dx, GY - s * 0.5, s, a, g);
+    c.save(); c.translate(MID - 250, GY - 14); c.rotate(-0.12); c.scale(0.9, 0.9);
+    drawTorchAt(c, 0, 0, -Math.PI / 2 + 0.25);
+    c.restore();
+    box(c, MID - 140, GY - 8, 54, 9, '#2E8A78'); box(c, MID - 140, GY - 8, 54, 2, '#86D1BD'); box(c, MID - 88, GY - 9, 4, 11, INK);
+  } else drawDropped(c, MID + 144, MID - 240, GY, f);
+  if (A.him) A.him(c);
+  if (!A.outline) { void dimmed; return; }
   // (a chalk outline: arms and legs out, on the slab)
   c.strokeStyle = mix('#F8FAFC', '#A8A29E', 0.2); c.lineWidth = 2;
   const ox = MID + 40, oy = GY - 8;

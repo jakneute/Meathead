@@ -16,7 +16,7 @@ import type { ForeignSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, foreignState, hands } from '../section';
 import { DOORS, GY } from '../geometry';
 import { topBand } from '../../../m1/constants';
-import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
+import { goTo, markLandCleared, noteBossKill, isLandCleared, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { x0, x1, VIEW_X, ARENA_L, ARENA_R, CAM_ROW, REFILL_X, sy } from './arena';
@@ -24,8 +24,14 @@ import { drawSky, drawScene } from './scene';
 import { torchFlame } from './liberty';
 import {
   type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawStatue, drawFightBack, drawFightFront, drawFightHud,
-  drawWaiting, introSeen, killCamTick, killCamZoom, killedByWeakness,
+  drawWaiting, introSeen, killCamTick, killCamZoom, killedByWeakness, drawLeftovers, MEMO_CRUMBLED, MEMO_DEATH,
 } from './fight';
+
+/** A revisit: what's left, as the winning run left it. */
+const leftovers = (state: GameState) => {
+  const how = keptForRevisits(MEMO_DEATH) || 'spin';
+  return { crumbled: keptForRevisits(MEMO_CRUMBLED) === '1', him: how === 'spin' ? null : (g: CanvasRenderingContext2D) => drawLeftovers(g, how, state.frame), outline: how !== 'buried' };
+};
 
 interface Harry {
   fight: 'wait' | 'on' | 'won'; wonAt: number;
@@ -102,7 +108,7 @@ export const harry: ForeignSection = {
     const waiting = !f && !cleared && introSeen() ? drawWaiting(c, state) : null;
     drawScene(c, state, {
       shut: s.fight === 'on',
-      aftermath: cleared && !f,
+      aftermath: cleared && !f ? leftovers(state) : null,
       between: f ? (g) => drawStatue(g, state, f) : waiting ? waiting.statue : undefined,
     });
     if (f) drawFightBack(c, state, f);

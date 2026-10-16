@@ -49,6 +49,7 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE } from '../../../m1/constants';
 import { registerM2Kind } from '../../kinds';
+import { keepForRevisits } from '../../store';
 import { setDartTaker } from '../../weapons/crossbow';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { box, label, saidOver, hands, speak, voice, meatheadSays, landVisit } from '../section';
@@ -1219,7 +1220,12 @@ const updateChunks = (f: Fight) => {
 
 /** Done with: his death played out, hers too, Meathead's had his say. */
 export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.deathSaid >= 4 && f.death.t > 200 && (!f.cam || f.cam.z <= 1);
+/** Kept for revisits (store.ts keepForRevisits): whether she crumbled in the winning run, how he died. */
+export const MEMO_CRUMBLED = 'm2:fl_harry_crumbled', MEMO_DEATH = 'm2:fl_harry_death';
 export const endFight = (state: GameState, f: Fight) => {
+  // (kept for the playthrough, not just this visit)
+  keepForRevisits(MEMO_CRUMBLED, f.crumbled ? '1' : null);
+  keepForRevisits(MEMO_DEATH, f.death?.how ?? 'spin');
   state.player.inCutscene = false; state.player.hidden = false; state.cameraOverride = null;
   if (f.arm.block) { const b = f.arm.block; state.blocks = state.blocks.filter(q => q !== b); f.arm.block = null; }
   live = null;
@@ -1329,6 +1335,12 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
     drawRambo(c, f.hx, f.hy, { pose, f: fr, facing: f.facing, aim: f.aim, flash: f.firing && fr % 4 < 2, talking: !!f.said, green: f.green, concrete: f.concrete, lean: P.lean, rot: P.rot, scale: f.scale });
   }
   c.globalAlpha = 1;
+};
+
+/** What's left of him on a revisit, by how he died (the standard death: the chalk outline, the scene's). */
+export const drawLeftovers = (c: Ctx, how: string, fr: number) => {
+  if (how === 'buried') drawBuried(c, MID + 40, 1, fr, 9999);
+  else if (how === 'barfed') drawPuddle(c, MID + 90, 1, 1);
 };
 
 /** His own puke on the floor: a pool in steps, its middle going red the bloodier it got. */
