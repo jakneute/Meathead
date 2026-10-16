@@ -77,10 +77,10 @@ m2/space/crater/house.ts:134 voice: pick(L.XENO_ARRIVED)
 m2/space/crater/rigs.ts:167 voice: pick(L.BOO)
 m2/space/crater/kinds.ts:73 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
 m2/space/queen/show.ts:111 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
-m2/space/queen/fight.ts:237 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:243 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:253 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
-m2/space/queen/fight.ts:398 voice: pick(L.BOOTH_RAY[dressed(state)])
+m2/space/queen/fight.ts:238 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:244 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:254 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
+m2/space/queen/fight.ts:399 voice: pick(L.BOOTH_RAY[dressed(state)])
 m2/hollywood/blvd/index.ts:46 voice: line
 m2/hollywood/blvd/index.ts:93 voice: false
 m2/hollywood/blvd/kinds.ts:63 voice: false

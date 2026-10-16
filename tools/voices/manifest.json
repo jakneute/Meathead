@@ -131,6 +131,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BACK TO MOMMY!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "BACKDROPPED!",
   "from": "GRAB_CALLOUTS"
  },
@@ -716,6 +721,11 @@
  },
  {
   "voice": "announcer",
+  "text": "HOME RUN!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "HOSED DOWN!",
   "from": "GRAB_CALLOUTS"
  },
@@ -957,6 +967,11 @@
  {
   "voice": "announcer",
   "text": "NO REFUNDS!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "NO RETURNS!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -1392,6 +1407,11 @@
  {
   "voice": "announcer",
   "text": "SPEARED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SPECIAL DELIVERY!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -7616,11 +7636,6 @@
  },
  {
   "voice": "death",
-  "text": "HE'S IN THE TORNADO. ALL OF HIM. IN PIECES.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "HEAD FIRST INTO THE SNOW",
   "from": "content/deaths"
  },
@@ -10611,11 +10626,6 @@
  },
  {
   "voice": "death",
-  "text": "SUCKED UP AND SPAT OUT OVER ENCINO",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "SUNK BY A SEDAN",
   "from": "content/deaths"
  },
@@ -11108,11 +11118,6 @@
   "voice": "death",
   "text": "THE STRONGEST LINK",
   "from": "ADVENTURE"
- },
- {
-  "voice": "death",
-  "text": "THE TORNADO GOT HIM. HE'S IN KANSAS NOW.",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",

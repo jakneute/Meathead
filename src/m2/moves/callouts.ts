@@ -23,6 +23,8 @@ export const GRAB_CALLOUTS = {
   smash: { lines: ['PULVERIZED!', 'OBLITERATED!', 'PASTE!', 'SPLATTERED!', 'MEAT RAIN!'], color: '#EF4444' },
   // (the clapperboard's stunt car and stuntman)
   stunt: { lines: ['ROADKILL!', "THAT'S A WRAP!", 'TOTALED!', 'HIT AND RUN!', 'STUNT DOUBLED!'], color: '#F59E0B' },
+  // (the mallet, batting one of the queen's own back into her)
+  batted: { lines: ['RETURN TO SENDER!', 'HOME RUN!', 'SPECIAL DELIVERY!', 'BACK TO MOMMY!', 'NO RETURNS!'], color: '#FDE047' },
   // (the mallet of pain's: cartoon ones)
   // (the otherworldly spawner's: eaten down to the bone)
   alien: { lines: ['EATEN ALIVE!', 'PICKED CLEAN!', 'DEVOURED!', 'GNAWED!', 'DE-FLESHED!'], color: '#84CC16' },

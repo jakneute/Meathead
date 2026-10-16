@@ -45,7 +45,8 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy, EnemyKind } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
-import { say, silenceAll, pickLine } from '../../../m1/game/platform/speech';
+import { say, silenceAll, pickLine, announce } from '../../../m1/game/platform/speech';
+import { GRAB_CALLOUTS } from '../../moves/callouts';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -97,11 +98,11 @@ const LEAP_EVERY = [0, 720, 520, 360], CROUCH_T = 34, AIR_T = 84, LAND_T = 22, L
 const FLAIL_REACH = 190, FLAIL_LINGER = 90, FLAIL_TELL = 20, FLAIL_T = 26, FLAIL_WIDE = 230, FLAIL_DMG = 28;
 /** Thrown into her: what it does; batted back with the mallet: what that does, and how long she's stunned. */
 /** (a throw into her is crowd control, a chip: only her own batted back with the mallet really hurts her) */
-const THROWN_DMG = 12, BATTED_DMG = 72, BATTED_STUN = 90;
+const THROWN_DMG = 12, BATTED_DMG = 60, BATTED_STUN = 90;
 /** Her head bonked with the mallet: the extra, the stun. */
 const HEAD_EXTRA = 8, HEAD_STUN = 70;
 /** The mallet's plain swing on her: a modest knock (the breather after it, like anything). */
-const MALLET_HIT = 16;
+const MALLET_HIT = 45;
 /** The booth's spotlight: how often (by phase; 0 none), the tell (its spot on the floor), the fall, how wide, how hard. */
 const DROP_EVERY = [0, 0, 620, 420], DROP_TELL = 54, DROP_FALL = 14, DROP_R = 36, DROP_DMG = 16;
 /** The oil slicks: how long one lasts (frames). */
@@ -697,9 +698,12 @@ const thrownInto = (ctx: FrameContext, f: Fight) => {
       if (state.enemies.includes(e)) destroyKin(ctx, e);
       f.sacs = []; f.litter = [];
       ctx.fx.spawnDamageNumber({ x: f.x - 20, y: GY - 260 }, BATTED_DMG, true);
-      ctx.fx.spawnDamageNumber({ x: f.x - 60, y: GY - 300 }, 'RETURN TO SENDER!', true, '#FDE047');
+      // (its own callout, the announcer calling it)
+      const call = pickLine(GRAB_CALLOUTS.batted.lines);
+      state.damageNumbers.push({ id: `queen-bat-${state.frame}`, text: call, pos: { x: f.x - 60, y: GY - 300 }, vel: { x: 0, y: -2.8 }, life: 80, maxLife: 80, isCritical: true, isCallout: true, color: GRAB_CALLOUTS.batted.color });
+      announce(call, 1, true);
       playSound('bonk', 1.2, -4); playSound('crash', 1, -2); shakeScreen(state, 16, 8);
-      if (f.hp > 0) { stun(state, f, BATTED_STUN); meatheadSays(state, pick(L.MH_BAT), false); }
+      if (f.hp > 0) { stun(state, f, BATTED_STUN); meatheadSays(state, pick(L.MH_BAT), true); }
       else f.byWeakness = true;
       return;
     }
