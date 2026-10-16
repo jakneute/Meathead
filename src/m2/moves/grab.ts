@@ -145,6 +145,8 @@ const CONTACT_GRACE = 30;
 const CHORD_WINDOW = 4;
 /** The frame A was last pressed (A + B, the air grab: A first and he's already jumping; B a moment after's still it). */
 let aAt = -99;
+/** A + B has to be pressed together: the same frame, or the next at most (a short hop then B is the air charge). */
+const AB_WINDOW = 1;
 
 /** The animals that are a handful but not too much. */
 const MID_ANIMALS = new Set<EnemyKind>(['wolverine', 'goat', 'gator', 'coyote', 'pitbull']);
@@ -642,14 +644,14 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // the jump it started)
       const airOk = !handsOnly(state);
       if (pressed('a')) aAt = state.frame;
-      if (!want && !y && airOk && pressed('b') && state.frame - aAt <= CHORD_WINDOW) { want = 'air'; out = { ...out, special: false }; }
+      if (!want && !y && airOk && pressed('b') && state.frame - aAt <= AB_WINDOW) { want = 'air'; out = { ...out, special: false }; }
       // B or X first, on its own: held back a few frames for Y or A (a grab's two buttons are never quite together);
       // neither, and it goes through as itself (its charge, its shot), a moment late
       if (!want && !y && !g.pend) { if (pressed('b')) g.pend = { k: 'b', t: 0 }; else if (pressed('x')) g.pend = { k: 'x', t: 0 }; }
       if (g.pend) {
         const ctl = g.pend.k === 'b' ? 'special' : 'shoot';
         if (y) { if (!want) want = g.pend.k === 'b' ? 'beat' : 'shake'; g.pend = null; }
-        else if (g.pend.k === 'b' && airOk && btn('a')) { if (!want) want = 'air'; g.pend = null; out = { ...out, special: false, jump: false }; }
+        else if (g.pend.k === 'b' && airOk && g.pend.t <= AB_WINDOW && state.frame - aAt <= AB_WINDOW) { if (!want) want = 'air'; g.pend = null; out = { ...out, special: false, jump: false }; }
         else if (++g.pend.t > CHORD_WINDOW) { out = { ...out, [ctl]: true }; g.pend = null; }
         else out = { ...out, [ctl]: false };
       }
