@@ -445,6 +445,9 @@ const fly = (g: Grab, e: Enemy, how: GrabCallout = 'thrown', oneChunk = false, i
 const FLY_FRAMES = 70;
 /** How long one who's lived through being thrown is dazed for, once he's down. */
 const THROW_STUN = 70;
+/** One let go of out of the air grab: the AI held off this long at a go while he falls (topped up till he's down);
+ *  and how hard the floor hits him, as a share of a thrown body's (always under the slam's). */
+const DROP_HOLD = 600, BAIL_IMPACT = 0.6;
 /** A body he's thrown takes out whoever it flies into, by its weight and speed, and knocks them on the way it's going. */
 const flyInto = (ctx: FrameContext, g: Grab) => {
   const { state, fx } = ctx;
@@ -466,7 +469,13 @@ const flyInto = (ctx: FrameContext, g: Grab) => {
     // Down and stopped, still alive: seeing stars a moment
     // (stopped for a few frames running: down; a moment's stillness at the top of a throw up doesn't count)
     fl.still = speed < 1.5 && fl.fall === 0 ? fl.still + 1 : 0;
-    if (fl.t > FLY_FRAMES * 2 || (fl.t > 6 && fl.still > 5)) { e.enemyCollisionCooldown = 0; e.vel.x = 0; e.pauseTimer = Math.max(e.pauseTimer || 0, THROW_STUN); return false; }
+    // (one let go of mid-air: falling, however long, till he's down)
+    if (e.dropping) {
+      if (fl.t > 6 && fl.still > 5) { e.dropping = false; e.enemyCollisionCooldown = 0; e.vel.x = 0; e.pauseTimer = THROW_STUN; return false; }
+      if (fl.t > FLY_FRAMES * 2) fl.t = FLY_FRAMES;
+      e.pauseTimer = Math.max(e.pauseTimer || 0, DROP_HOLD);
+    }
+    if (fl.t > FLY_FRAMES * 2 || (fl.t > 6 && fl.still > 5)) { e.dropping = false; e.enemyCollisionCooldown = 0; e.vel.x = 0; e.pauseTimer = Math.max(e.pauseTimer || 0, THROW_STUN); return false; }
     for (const o of state.enemies) {
       if (o === e || fl.hit.has(o.id) || o.health <= 0 || o.isBlownAway || o.type === 'boss' || o.innocent) continue;
       if (o.pos.x > e.pos.x + e.width || o.pos.x + o.width < e.pos.x || o.pos.y > e.pos.y + e.height || o.pos.y + o.height < e.pos.y) continue;
@@ -1241,18 +1250,20 @@ const airArc = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   p.power = 0; p.vel.x = 0; p.jumpHoldTimer = 0;
   // (in the water, or somehow going on forever: let go of him, alive)
   if (p.swimming || g.t > A.ARC_MAX_FRAMES) { letGo(state, g); return { ...NO_CONTROLS }; }
-  // (jump: bail out of it (heading somewhere bad): he lets go and kicks off; no slam, no heal; the one he had falls on
-  // his own, the way he was going, and the floor hurts him by how hard he hits it, like any thrown body)
+  // (jump: bail out of it (heading somewhere bad, a pit): he lets go and kicks off; no slam, no heal; the one he had
+  // keeps on the way they were going, up or down, till the ground stops him (a flyer too: no flying off till it's
+  // down), and the floor hurts him by how hard he hits it, less than the slam would have)
   const jumpNow = !!controls.jump, fresh = jumpNow && !g.arcJump;
   g.arcJump = jumpNow;
   if (fresh && g.held) {
     const e = g.held, at = arcHold(state, g, e).feet;
     e.pos = { x: at.x - e.width / 2, y: Math.min(at.y, feetY(state)) - e.height };
-    e.vel = { x: g.avx, y: Math.max(2, g.avy) };
+    e.vel = { x: g.avx, y: g.avy };
     e.rotation = 0;
+    e.dropping = true; e.pauseTimer = Math.max(e.pauseTimer || 0, DROP_HOLD);
     g.held = null;
     release(state, e);
-    fly(g, e, 'thrown');
+    fly(g, e, 'thrown', false, BAIL_IMPACT);
     end(state, g);
     p.vel = { x: -g.dir * A.BAIL_VX, y: -A.BAIL_VY }; p.isGrounded = false;
     playSound('whoosh', 0.8, 2);

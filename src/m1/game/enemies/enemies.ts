@@ -454,7 +454,8 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     && e.pos.y + e.height > scr.y && e.pos.y < scr.y + scr.h;
   const isStunned = (e.pauseTimer || 0) > 0;
   const isHeld = (e.frozenTimer && e.frozenTimer > 0) || e.isTased;
-  const air = isAirEnemy(e);
+  // (a flyer let go of mid-air (Meathead 2's air grab, bailed out of): it falls like anything else till it's down)
+  const air = isAirEnemy(e) && !e.dropping;
 
   // Air enemies bob around their spawn height (sludge drags them down to the floor)
   if (air) {

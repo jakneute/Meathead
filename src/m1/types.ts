@@ -420,6 +420,8 @@ export interface Enemy extends Entity {
   crushing?: boolean;
   /** A flyer knocked up above its height: dropping back down to it. */
   returnHome?: boolean;
+  /** Let go of mid-air (Meathead 2's air grab, bailed out of): falls like anything else, a flyer too, till it's down. */
+  dropping?: boolean;
   /** Uppercut dead off its feet: it comes back down and splats. */
   uppercutFlung?: boolean;
   /** Its body's splat has had its callout already (a wall, then the floor: only the one). */
