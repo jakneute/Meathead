@@ -68,6 +68,7 @@ import { REACH_T, REACH_GRAB, WIND_T, THROW_FROM, SPRAY_AIM, sprayNozzle, shakeN
 import { onMeteorBlast } from '../../weapons/spellbook';
 import { BITER, SPITTER, CHARGER, KIN, isKin, kinAge, spawnKin, destroyKin, tickKin, drawKinShots, drawSac, resetKin } from './kin';
 import * as L from './lines';
+import { setDropTable } from '../../../m1/game/core/effects';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -261,8 +262,14 @@ const bark = (state: GameState, f: Fight, lines: L.ByPants, who: 'queen' | 'boot
 // ---------------------------------------------------------------------------------------------------------------
 // Starting: the cutscene (or, on a retry, straight in)
 
+/** Her kids' drops, in the fight: small health only (nothing else drops here), a bit more often than out in the park
+ *  (Meathead 2's usual: 6% small health, 5% small ammo: App.tsx). */
+const KID_DROPS = { health: 0.12, ammo: 0 }, PARK_DROPS = { health: 0.06, ammo: 0.05 };
+/** The drops kept to the fight: hers while it's on, the park's otherwise (the queen section's update says which). */
+export const queenDrops = (on: boolean) => setDropTable(on ? KID_DROPS : PARK_DROPS);
 export const startFight = (state: GameState, f: Fight) => {
   f.token++;
+  setDropTable(KID_DROPS);
   resetKin();
   if (!f.glass) { begin(state, f); return; }
   f.mode = 'intro'; f.step = 'lights'; f.stepT = 0; f.skipT = 0;
@@ -840,7 +847,7 @@ onMeteorBlast((ctx, at) => {
 });
 
 export const fightOver = (f: Fight) => f.mode === 'dead' && f.deathSaid >= 3 && f.deathT > 220;
-export const endFight = (state: GameState, f: Fight) => { live = null; state.player.inCutscene = false; state.player.extinguisher = undefined; f.drops = []; f.pool = null; setHazardZones(state, 'queen-pool', []); clearOil(state); };
+export const endFight = (state: GameState, f: Fight) => { setDropTable(PARK_DROPS); live = null; state.player.inCutscene = false; state.player.extinguisher = undefined; f.drops = []; f.pool = null; setHazardZones(state, 'queen-pool', []); clearOil(state); };
 export const introOn = (f: Fight) => f.mode === 'intro';
 
 // ---------------------------------------------------------------------------------------------------------------

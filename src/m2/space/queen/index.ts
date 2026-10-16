@@ -35,7 +35,7 @@ import { updateLadders, drawLadders } from '../../moves/ladders';
 import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
 import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP } from './basement';
-import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom } from './fight';
+import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, queenDrops, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom } from './fight';
 import { drawBasement, drawDisco, discoLighting, discoGlow, drawShutter } from './lowerArt';
 
 interface Queen {
@@ -144,6 +144,8 @@ export const queen: SpaceSection = {
       if (kicking && doorIn(h) && q.fight === 'wait' && !isLandCleared('space')) beginDisco(state, q, f);
       if (out) return out;
     }
+    // (her kids' drops while the fight's on; the park's otherwise)
+    queenDrops(q.fight === 'on');
     // The disco
     if (q.fight === 'wait') {
       if (doorIn(h) && !isLandCleared('space') && cx > DISCO_TRIGGER && p.isGrounded && p.health > 0) beginDisco(state, q, f);
