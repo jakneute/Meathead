@@ -22,7 +22,7 @@ import { meatheadSays } from '../section';
 import { heliOf, type Heli } from './state';
 import { CAMX, CY, W, H, FLY_SPEED, FLY_ACCEL, FEET_X0, FEET_X1, FEET_Y0, FEET_Y1 } from './geo';
 import { drawBoom } from './mechArt';
-import { mechAim, hitMech, hitMinions, type Rect } from './mechs';
+import { mechAim, hitMech, hitMinions, chopLions, type Rect } from './mechs';
 import { MH_SHRED } from './lines';
 import { shredGoon, tickShred, drawShred, drawRotorSmear, drawShieldSplat } from './shred';
 
@@ -174,6 +174,7 @@ type Disc = ReturnType<typeof rotorDisc>;
 const rotorChops = (ctx: FrameContext, h: Heli) => {
   const { state } = ctx, d0 = rotorDisc(state, h), { ax, ay, bx, by } = d0;
   tickShred(ctx, { x: ax, y: ay }, { x: bx, y: by });
+  chopLions(ctx, ax, ay, bx, by, ROTOR_REACH);
   let chopped = 0;
   for (const e of hazardVictims(state)) {
     const ex = e.pos.x + e.width / 2, ey = e.pos.y + e.height / 2;
@@ -236,7 +237,7 @@ const rocketTarget = (state: GameState, k: { x: number; y: number }) => {
   if (best) return best;
   for (const n of heliOf(state).minions) {
     if (n.dead) continue;
-    const d = Math.hypot(n.x - k.x, n.y - k.y) + (n.x < k.x ? 300 : 0);
+    const d = Math.hypot(n.x - k.x, n.y - k.y) + (n.x < k.x ? 300 : 0) - (n.kind === 'lion' ? 400 : 0);
     if (d < bd) { bd = d; best = { x: n.x, y: n.y }; }
   }
   return best ?? mechAim(state);

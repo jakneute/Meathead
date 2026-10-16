@@ -14,13 +14,14 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Projectile } from '../../../m1/types';
 import { enemyProjectile, hurtPlayer } from '../../../m1/game/bosses/shared';
-import { playSound } from '../../../m1/game/platform/audio';
+import { playSound, stopSound } from '../../../m1/game/platform/audio';
+import { goreBurst } from './shred';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { meatheadSays } from '../section';
 import { heliOf, type Mech, type ShotLook, type Beam, type Drop, type Minion, type Heli } from './state';
 import { BASE, LEG, CAMX, CY, W, H, Z, fx, toScreen } from './geo';
-import { ringY, mechStep } from './park';
+import { ringY, mechStep, lionStain } from './park';
 import { MECHS, MECH_TALK, HARRY_LOST, HARRY_SEND, MH_KILL, PISA_FALL, PISA_MISSED, PISA_GOT_HIM, MH_PISA_MISSED, type MechId } from './lines';
 import { harrySays, mechSays, harryFrom, harryPick } from './talk';
 
@@ -124,13 +125,47 @@ export const hitMinions = (ctx: FrameContext, zone: Rect, dmg: number, first = f
   }
   return any;
 };
+/** The rotor's blades (a, b their ends, world) through any lion touching them, boosting or not. */
+export const chopLions = (ctx: FrameContext, ax: number, ay: number, bx: number, by: number, reach: number) => {
+  const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1;
+  for (const n of heliOf(ctx.state).minions) {
+    if (n.dead || n.kind !== 'lion') continue;
+    const k = Math.max(0, Math.min(1, ((n.x - ax) * dx + (n.y - ay) * dy) / l2));
+    if (Math.hypot(n.x - ax - k * dx, n.y - ay - k * dy) <= n.r + reach) hurtMinion(ctx, n, 999);
+  }
+};
+/** A lion's roar cut off at this frame (shot mid-roar). */
+let roarCut = -1;
+const LION_CALLS = ['CAT FOOD!', 'LION TARTARE!', 'MANE COURSE!', 'KING OF NOTHING!', 'POUNCED!'];
+/** A lion hit by anything: it bursts (the shred's gore, fur and lion bits, a little flash), its roar cut short. */
+const lionPops = (ctx: FrameContext, n: Minion) => {
+  const { state } = ctx;
+  n.dead = true;
+  goreBurst(state, n.x, n.y, n.vx >= 0 ? 1 : -1, 0, ['#B45309', '#F59E0B', '#78350F']);
+  heliOf(state).booms.push({ x: n.x, y: n.y, r: 26, t: 0, big: false });
+  playSound('roar', 0.7, 6); roarCut = state.frame + 8;
+  playSound('splat', 1, -2); playSound('crunch', 0.7, 4); playSound('boom', 0.35, 12);
+  shakeScreen(state, 4, 3);
+  ctx.fx.spawnDamageNumber({ x: n.x - 30, y: n.y - 30 }, LION_CALLS[Math.floor(Math.random() * LION_CALLS.length)], true, '#F87171');
+};
+/** A lion that missed him comes down on the park: SPLAT, flat, no bounce; its stain left there (park.ts). */
+const lionSplats = (ctx: FrameContext, n: Minion, gy: number) => {
+  const { state } = ctx;
+  n.dead = true;
+  for (let i = 0; i < 26 && state.particles.length < 1400; i++) state.particles.push({ pos: { x: n.x + (Math.random() - 0.5) * 20, y: gy - 2 }, vel: { x: (Math.random() - 0.5) * 9, y: -Math.random() * 5 }, life: 18 + Math.random() * 16, color: ['#5A0A0A', '#8B1010', '#B91C1C', '#DC2626'][i % 4], size: 1.5 + Math.random() * 3.5 });
+  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: n.x + (Math.random() - 0.5) * 30, y: gy - 4 }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 1.2 }, life: 24 + Math.random() * 14, color: i % 2 ? '#A8977E' : '#6B5B45', size: 4 + Math.random() * 4 });
+  playSound('splat', 1, -8); playSound('thud', 0.8, -6);
+  lionStain(state, n.x);
+};
 const hurtMinion = (ctx: FrameContext, n: Minion, dmg: number) => {
   const { state } = ctx;
+  // (a lion: anything that touches it, it's had it)
+  if (n.kind === 'lion') { if (!n.dead) lionPops(ctx, n); return; }
   n.hp -= dmg; n.flash = 4;
   if (n.hp <= 0 && !n.dead) {
     n.dead = true;
-    playSound(n.kind === 'gull' || n.kind === 'lion' || n.kind === 'scarab' ? 'splat' : 'crunch', 0.6, 6);
-    const cols = n.kind === 'gull' ? ['#F8FAFC', '#B91C1C'] : n.kind === 'lion' ? ['#D97706', '#B91C1C'] : n.kind === 'scarab' ? ['#14532D', '#84CC16'] : n.kind === 'keychain' ? ['#EAB308', '#FDE047'] : ['#78716C', '#A8A29E'];
+    playSound(n.kind === 'gull' || n.kind === 'scarab' ? 'splat' : 'crunch', 0.6, 6);
+    const cols = n.kind === 'gull' ? ['#F8FAFC', '#B91C1C'] : n.kind === 'scarab' ? ['#14532D', '#84CC16'] : n.kind === 'keychain' ? ['#EAB308', '#FDE047'] : ['#78716C', '#A8A29E'];
     for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: n.x, y: n.y }, vel: { x: (Math.random() - 0.5) * 6, y: (Math.random() - 0.8) * 6 }, life: 20 + Math.random() * 10, color: cols[i % 2], size: 2 + Math.random() * 3 });
   }
 };
@@ -559,6 +594,7 @@ const updateDrops = (ctx: FrameContext) => {
 
 const updateMinions = (ctx: FrameContext) => {
   const { state } = ctx, h = heliOf(state), p = state.player, pc = P(state);
+  if (roarCut >= 0 && state.frame >= roarCut) { stopSound('roar'); roarCut = -1; }
   for (const n of h.minions) {
     if (n.dead) continue;
     n.t++; if (n.flash > 0) n.flash--;
@@ -570,7 +606,10 @@ const updateMinions = (ctx: FrameContext) => {
       case 'gear': case 'head': case 'lion': {
         n.vy += n.kind === 'lion' ? 0.18 : 0.22;
         const gy = groundY(n.x);
-        if (n.y + n.r > gy && n.vy > 0) { n.y = gy - n.r; n.vy = n.kind === 'lion' ? 0 : -Math.max(6, Math.abs(n.vy) * 0.85); if (n.kind === 'lion') n.vx = -3.2; playSound('thud', 0.3, 8); }
+        if (n.y + n.r > gy && n.vy > 0) {
+          if (n.kind === 'lion') { lionSplats(ctx, n, gy); break; }
+          n.y = gy - n.r; n.vy = -Math.max(6, Math.abs(n.vy) * 0.85); playSound('thud', 0.3, 8);
+        }
         if (n.y - n.r < CY + 20 && n.vy < 0) n.vy = -n.vy;
         break;
       }

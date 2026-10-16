@@ -27,7 +27,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { timeOfDay, skyRamp, farTint, hourMix, drawStars, drawMoon, sunAt, drawSun, cloudTint } from '../../timeOfDay';
 import { pixelBlob } from '../../intro/art/kit';
 import { heliOf, type Heli, type Mech } from './state';
-import { Z, BASE_SCREEN, SW, SH } from './geo';
+import { Z, BASE_SCREEN, SW, SH, MEMO, toScreen } from './geo';
 import { MECHS } from './lines';
 import { drawMech, mechLook } from './mechArt';
 
@@ -612,6 +612,45 @@ const drawScars = (c: Ctx, cam: Cam, h: Heli, mul: number[]) => {
     }
   });
 };
+// The Colosseum's lions that came down on the park (mechs.ts): a flattened lion pancake in its blood where each hit,
+// there for the rest of the run (the stage's memo: it outlives his deaths, like the rest of the ruin).
+
+const LION_MAX = 24;
+let lionCache = { raw: '', list: [] as [number, number, number][] };
+const lionsOf = (state: GameState) => {
+  const raw = state.stageMemo[MEMO.lions] ?? '';
+  if (raw !== lionCache.raw) { let list: [number, number, number][] = []; try { list = raw ? JSON.parse(raw) : []; } catch { list = []; } lionCache = { raw, list }; }
+  return lionCache.list;
+};
+/** A lion splatted on the park at world x (on the circuit's ground, the near side): its stain's ground point kept. */
+export const lionStain = (state: GameState, wx: number) => {
+  const cam0: Cam = { phi: 0, cos: 1, sin: 0, hc: HC, ...basis(HC), ...FIT }, sx = toScreen(wx, 0).x;
+  let best = 0, bd = Infinity;
+  for (let a = -1.5; a <= 1.5; a += 0.01) { const p = polar(R_MECH, a), q = proj(cam0, p.x, 0, p.z), d = Math.abs(q.x - sx); if (d < bd) { bd = d; best = a; } }
+  // (the camera's turned φ round: the same spot on screen is that much further round the ring)
+  const g = polar(R_MECH, best + camOf(heliOf(state)).phi);
+  const list = [...lionsOf(state), [Math.round(g.x), Math.round(g.z), Math.floor(Math.random() * 1000)] as [number, number, number]].slice(-LION_MAX);
+  state.stageMemo[MEMO.lions] = JSON.stringify(list);
+};
+const drawLionStains = (c: Ctx, cam: Cam, state: GameState) => {
+  for (const [x, z, seed] of lionsOf(state)) {
+    const q = proj(cam, x, 0, z);
+    if (q.z < 60 || q.x < -60 || q.x > SW + 60) continue;
+    const k = q.k, fl = seed % 2 ? 1 : -1;
+    // (the blood out round it in lobes, splashes thrown off)
+    c.fillStyle = '#5A0A0A'; c.beginPath(); c.ellipse(q.x, q.y, 40 * k, 11 * k, 0, 0, Math.PI * 2); c.fill();
+    for (let i = 0; i < 6; i++) { const a = seed + i * 1.05, d = (34 + (i % 3) * 10) * k; c.beginPath(); c.ellipse(q.x + Math.cos(a) * d, q.y + Math.sin(a) * d * 0.28, (6 + (i % 2) * 4) * k, 3 * k, 0, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = '#8B1010'; c.beginPath(); c.ellipse(q.x, q.y, 30 * k, 8 * k, 0, 0, Math.PI * 2); c.fill();
+    // (him, flat: the body, the mane round his squashed head, the tail out the back, a leg each way)
+    c.fillStyle = '#B45309'; c.beginPath(); c.ellipse(q.x + fl * 4 * k, q.y, 20 * k, 5 * k, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#78350F'; c.beginPath(); c.ellipse(q.x - fl * 16 * k, q.y, 11 * k, 6 * k, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#F59E0B'; c.beginPath(); c.ellipse(q.x - fl * 16 * k, q.y, 6 * k, 3.5 * k, 0, 0, Math.PI * 2); c.fill();
+    c.fillRect(q.x + fl * 20 * k, q.y - 1 * k, fl * 14 * k, Math.max(1, 2 * k));
+    for (const s of [-1, 1]) c.fillRect(q.x + s * 6 * k, q.y + 3 * k, 3 * k, Math.max(1, 4 * k));
+    c.fillStyle = '#DC2626'; c.fillRect(q.x - 8 * k, q.y - 2 * k, 10 * k, Math.max(1, 1.5 * k));
+  }
+};
+
 /** A car it flipped, wheels up (a little box on the ground). */
 const flippedCar = (c: Ctx, q: { x: number; y: number; k: number }, n: number) => {
   const w = 34 * q.k, hh = 14 * q.k, col = ['#7F1D1D', '#1E3A8A', '#9CA3AF', '#1C1917', '#854D0E'][n % 5];
@@ -661,6 +700,7 @@ export const drawPark = (c: Ctx, state: GameState, alpha = 1) => {
   drawRevealGround(c, cam, h);
   const segs = pathsOf(h);
   drawScars(c, cam, h, mul);
+  drawLionStains(c, cam, state);
   const items: Item[] = [];
   pavilions().forEach((pv, j) => {
     const q = proj(cam, PAV_R * Math.sin(pv.at), 0, PAV_R * Math.cos(pv.at));

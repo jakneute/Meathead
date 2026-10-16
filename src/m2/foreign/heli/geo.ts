@@ -52,4 +52,6 @@ export const MEMO = {
   tips: 'm2:fl_heli_tips',
   /** How many landmarks are wrecked round the circuit (Harry's arena shows them all). */
   wrecks: 'm2:fl_heli_wrecks',
+  /** The Colosseum's lions splatted on the park (their stains' ground points: park.ts). */
+  lions: 'm2:fl_heli_lions',
 } as const;

@@ -77,6 +77,22 @@ export const shredGoon = (ctx: FrameContext, e: Enemy, x: number, y: number, dx:
   heliOf(state).killAt = state.frame;
 };
 
+/** Something else blown to paste (the Colosseum's lions): the mist, the gooey gobs, meat, and its own bits (`bits`:
+ *  colors of what it was covered in: fur, feathers), flung out along (dx, dy). No hit-stop, no callout. */
+export const goreBurst = (state: GameState, x: number, y: number, dx: number, dy: number, bits: string[]) => {
+  S.lastTick = state.frame;
+  const px = -dy, py = dx;
+  for (let i = 0; i < 30 && state.particles.length < MAX_PARTICLES; i++) {
+    const along = rnd(-3, 9), side = rnd(-6, 6);
+    state.particles.push({ pos: { x: x + rnd(-6, 6), y: y + rnd(-6, 6) }, vel: { x: dx * along + px * side, y: dy * along + py * side + rnd(-3, 1) }, life: rnd(10, 26), color: BLOOD[1 + (i % 4)], size: i % 4 ? rnd(1.5, 3.5) : rnd(4, 7), alpha: i % 4 ? undefined : 0.55 });
+  }
+  const add = (b: Omit<Bit, 't' | 'rot' | 'vr' | 'seed'>) => { if (S.bits.length >= MAX_BITS) S.bits.shift(); S.bits.push({ ...b, t: 0, rot: rnd(0, 6.28), vr: rnd(-0.35, 0.35), seed: rnd(0, 100) }); };
+  const fling = (lo: number, hi: number, spread: number) => { const a = rnd(lo, hi), s = rnd(-spread, spread); return { vx: dx * a + px * s, vy: dy * a + py * s - rnd(1, 5) }; };
+  for (let i = 0; i < 10; i++) add({ kind: 'gob', x: x + rnd(-5, 5), y: y + rnd(-5, 5), ...fling(-2, 10, 6), r: rnd(2.5, 5.5), col: '' });
+  for (let i = 0; i < 5; i++) add({ kind: 'meat', x, y, ...fling(0, 9, 6), r: rnd(3, 5.5), col: MEAT[i % MEAT.length] });
+  for (let i = 0; i < 5; i++) add({ kind: 'cloth', x, y, ...fling(0, 8, 6), r: rnd(4, 7), col: bits[i % bits.length] });
+};
+
 /** Each frame he's flying: the bits fly and fall, the jetpack sputters and goes up, the red rotor throws drops off its
  *  tips (`a`, `b` the blade's ends, world). */
 export const tickShred = (ctx: FrameContext, a: { x: number; y: number }, b: { x: number; y: number }) => {
