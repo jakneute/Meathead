@@ -26,8 +26,9 @@ import { harrySays, mechSays } from './talk';
 export interface Rect { x: number; y: number; w: number; h: number }
 const overlap = (a: Rect, b: Rect) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
-/** Each one's health (the big ones last), scaled together. */
-const HP_SCALE = 1;
+/** Each one's health (the big ones last). HP_SCALE multiplies the damage they take, so 2 is half as long a fight
+ *  (2: trimmed for length, the user: a land plays ~5 min; each landmark ~15-20 s). */
+const HP_SCALE = 2;
 const HP: Record<MechId, number> = { eiffel: 3600, opera: 4000, redeemer: 4400, pisa: 1, taj: 4800, bigben: 5000, colosseum: 5400, pyramid: 5800, moai: 6600 };
 /** What a machine-gun round does to one (the engine's 22 is for people). */
 const ROUND_MECH = 10;

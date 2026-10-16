@@ -136,7 +136,9 @@ const sneak = (state: GameState, from: 'left' | 'top' | 'bottom', s: number) =>
     : spawn(state, 'sneak', { from, sx: s, sy: 0 }, CAMX + s, from === 'top' ? CY - 60 : CY + 640);
 
 /** The waves before each landmark (by its index), each a function putting one wave out. */
-export const WAVES: ((state: GameState) => void)[][] = [
+// (trimmed for length (the user: a land plays ~5 min): the lesson before the first landmark whole; one wave before
+// each of the rest)
+export const WAVES: ((state: GameState) => void)[][] = ([
   // (before the Eiffel Tower: the lesson. Three that hover and pop at him; then two from behind and two from over him)
   [s => { hover(s, 560, 180); hover(s, 640, 320, 30); hover(s, 560, 460, 60); }, s => { sneak(s, 'left', 200); sneak(s, 'left', 420); sneak(s, 'top', 300); sneak(s, 'top', 460); }],
   [s => { diver(s, 200); diver(s, 420, 120); hover(s, 620, 300); }, s => { sneak(s, 'bottom', 280); sneak(s, 'bottom', 420); hover(s, 560, 160); hover(s, 600, 460, 40); }],
@@ -147,7 +149,7 @@ export const WAVES: ((state: GameState) => void)[][] = [
   [s => { for (let i = 0; i < 4; i++) hover(s, 540 + (i % 2) * 120, 150 + i * 105, i * 25); sneak(s, 'left', 300); }, s => { diver(s, 180); diver(s, 450, 50); sneak(s, 'bottom', 250); sneak(s, 'top', 450); }, s => { for (let i = 0; i < 3; i++) hover(s, 600, 160 + i * 150, i * 30); }],
   [s => { diver(s, 160); diver(s, 300, 50); diver(s, 440, 100); hover(s, 640, 220); hover(s, 640, 400, 30); }, s => { sneak(s, 'left', 160); sneak(s, 'left', 300); sneak(s, 'left', 440); }, s => { sneak(s, 'top', 220); sneak(s, 'top', 420); sneak(s, 'bottom', 320); diver(s, 300, 80); }],
   [s => { for (let i = 0; i < 5; i++) hover(s, 520 + (i % 2) * 130, 120 + i * 95, i * 15); }, s => { diver(s, 150); diver(s, 270, 40); diver(s, 390, 80); diver(s, 510, 120); sneak(s, 'left', 330); }, s => { sneak(s, 'top', 250); sneak(s, 'top', 450); sneak(s, 'bottom', 350); hover(s, 620, 200); hover(s, 620, 420, 20); }],
-];
+] as ((state: GameState) => void)[][]).map((w, i) => (i === 0 ? w : w.slice(0, 1)));
 
 /** The goons still out (alive, on the screen). */
 export const goonsLeft = (state: GameState) => {
