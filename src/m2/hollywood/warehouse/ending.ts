@@ -43,7 +43,7 @@ type Ctx = CanvasRenderingContext2D;
 
 const LOT0 = SECTIONS.lot.x0;
 /** The bulldozer: its blade's front off its middle; the heap's half width (its rows), its rows. */
-const BLADE = 124, HALF = 90, ROWS = [8, 6, 4, 3, 1], SPACE = 22;
+const BLADE = 124, HALF = 100, ROWS = [9, 8, 6, 4, 2, 1], SPACE = 22;
 /** Where the bodies come out of the hole, and where they come down (into the dumpster, under its rim). */
 const OUT = { x: LOT_WALL_BREAK.hole.x1 - 30, y: GY - 80 };
 const RIM = GY - 132;
@@ -87,7 +87,7 @@ const seat = (state: GameState, dx: number) => {
 /** The cut: every body heaped up in one big pile; him up in the bulldozer; the exec at the back on his phone. */
 const heapUp = (state: GameState) => {
   const o = whOf(state), E = o.ending, F = o.fight, p = state.player;
-  const who = F.bodies.length ? F.bodies.map(b => b.i) : Array.from({ length: 22 }, (_, i) => i);
+  const who = F.bodies.length ? F.bodies.map(b => b.i) : Array.from({ length: CAST.length }, (_, i) => i);
   E.heap = []; let n = 0;
   ROWS.forEach((count, r) => {
     for (let k = 0; k < count && n < who.length; k++, n++) E.heap.push({ i: who[n], ox: (k - (count - 1) / 2) * SPACE + ((n * 7) % 9) - 4, oy: r * 14, dir: (n % 2 ? 1 : -1) as 1 | -1 });

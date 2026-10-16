@@ -41,8 +41,8 @@ import { adSay, castSay } from './talk';
 import { hurtTaken } from '../../../m1/game/core/resist';
 import { setHalfHooks } from '../../weapons/half';
 
-/** How many of them are in it this time (CAPTAIN AMERICANO and the rest of the order: a share of the thirty). */
-const FIGHT_SIZE = 22;
+/** How many of them are in it (CAPTAIN AMERICANO and the rest in a shuffled order: the whole thirty). */
+const FIGHT_SIZE = CAST.length;
 /** How many on him and he's down under them, dead. */
 export const CRUSH = 6;
 /** How many may be up (on the floor, on him, or coming down) at once: a few at first, more as they die. */
@@ -151,13 +151,13 @@ const fall = (ctx: FrameContext, a: Actor, how?: 'headless' | 'gone') => {
   if (how !== 'gone') for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 20, y: y - 30 - Math.random() * 30 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 5 }, life: 30 + Math.random() * 20, color: ['#B91C1C', '#7F1D1D', '#DC2626'][k % 3], size: 2 + Math.random() * 3, grav: 0.35 });
   // (what's said: sparse, one at a time; the AD shrugs a couple of times, they own the scans)
   const total = F.order.length, left = total - F.killed;
-  if ((F.killed === 6 || F.killed === 15) && quiet(state)) adSay(state, AD_SHRUG, undefined, false);
+  if ((F.killed === 6 || F.killed === 20) && quiet(state)) adSay(state, AD_SHRUG, undefined, false);
   else castBark(state, a.i, DEATH, 0.3, 240);
   if (F.killed === Math.floor(total / 2)) meatheadSays(state, pickLine(HALF), true);
   else if (left === 1 && F.next >= total && !F.arrivals.length) meatheadSays(state, pickLine(LAST), true);
   else if (left > 0 && Math.random() < 0.12) meatheadSays(state, pickLine(KILL_QUIPS), false);
   // (lean: a little something comes down a couple of times)
-  if (F.killed === 7 || F.killed === 14) state.pickups.push({ id: `hww-cast-${F.killed}`, pos: { x: clampX(x + (x < (L0 + R0) / 2 ? 120 : -120)) - 10, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: F.killed === 7 ? 'small_health' : 'small_ammo', life: 1e9 });
+  if (F.killed === 8 || F.killed === 16 || F.killed === 24) state.pickups.push({ id: `hww-cast-${F.killed}`, pos: { x: clampX(x + (x < (L0 + R0) / 2 ? 120 : -120)) - 10, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: F.killed === 16 ? 'small_ammo' : 'small_health', life: 1e9 });
 };
 
 /** On the way in: dropping (the shadow under them), or lowered on a wire. Down: true. */

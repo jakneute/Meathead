@@ -23,6 +23,7 @@ import {
 } from '../blvd/kit';
 import { paintStandee, steveCard, paintPalm, paintSawhorse, velvetRopePaint } from '../blvd/props';
 import { revLook, subLook } from '../warehouse/paint';
+import { drawBody, CAST } from '../warehouse/cast';
 import { drawPerson } from '../../adventure/temple/people';
 import { gate } from '../../hub/letters';
 import { BIN, CAT, BOARD, SHINGLE, lip, boards, tube } from './paint';
@@ -46,20 +47,22 @@ const paintDumpster = (g: Ctx) => {
   poly(g, [[6, -RIM - 2], [DW - 6, -RIM - 2], [DW - 30, -RIM - 64], [30, -RIM - 64]], INK);
   poly(g, [[8, -RIM - 3], [DW - 8, -RIM - 3], [DW - 31, -RIM - 62], [31, -RIM - 62]], B[1]);
   for (let k = 1; k < 6; k++) { const y = -RIM - 3 - k * 10; box(g, 10 + k * 3.6, y, DW - 20 - k * 7.2, 1, B[0]); }
-  // (the heap over the rim: bodies in their suits, capes, masks, heads lolling)
-  const body = (x: number, y: number, a: number, k: number) => {
-    const S = ramp6(hour(SUITS[k % SUITS.length])), sk = ramp6(hour(SKIN[k % SKIN.length]));
-    g.save(); g.translate(x, y); g.rotate(a);
-    if (k % 3 === 1) { const C = ramp6(hour(SUITS[(k + 3) % SUITS.length])); poly(g, [[-20, -7], [-48, 6], [-44, 10], [-18, 8]], INK); poly(g, [[-20, -6], [-46, 6], [-42, 8], [-18, 7]], C[2]); poly(g, [[-20, -6], [-46, 6], [-40, 5], [-18, -2]], C[4]); }
-    box(g, -21, -8, 42, 16, INK); box(g, -20, -7, 40, 14, S[3]); box(g, -20, -7, 40, 3, S[4]); box(g, -20, 4, 40, 3, S[1]);
-    box(g, -2, -7, 1, 14, S[1]); box(g, -12, -7, 2, 14, S[2]);
-    if (k % 2 === 0) { box(g, -6, -2, 8, 4, hour('#F2C24A')); box(g, -6, -2, 8, 1, '#FFF0A8'); }
-    box(g, 18, -7, 14, 14, INK); box(g, 19, -6, 12, 12, sk[3]); box(g, 19, -6, 4, 12, sk[4]); box(g, 28, -6, 3, 12, sk[1]);
-    if (k % 3 === 0) { box(g, 19, -6, 12, 6, S[1]); box(g, 21, -3, 3, 2, '#F8FAFC'); box(g, 26, -3, 3, 2, '#F8FAFC'); }
-    else { box(g, 22, -2, 2, 2, INK); box(g, 27, -2, 2, 2, INK); box(g, 22, -3, 1, 1, '#F8FAFC'); }
-    g.restore();
-  };
-  for (let k = 0; k < 18; k++) body(14 + ((k * 61) % (DW - 40)), -RIM - 8 - ((k * 23) % 60), ((k * 0.9) % 3) - 1.5, k);
+  // (the heap over the rim: the cast themselves, the very bodies off the warehouse floor (suits, capes, masks, blood),
+  // tipped in every which way, the back ones higher, the bin's front hiding what's sunk in)
+  // All of them but the one that missed (twenty-nine), heaped into a mound well over the rim: wide at the bottom,
+  // narrowing to one on top, each row drawn over the one under it
+  const ROWS = [8, 7, 6, 4, 3, 1];
+  let n = 0;
+  ROWS.forEach((count, r) => {
+    const w = (DW - 40) * (1 - r * 0.14), y0 = -RIM + 10 - r * 15;
+    for (let k = 0; k < count; k++, n++) {
+      const x = DW / 2 - w / 2 + (count > 1 ? (k / (count - 1)) * w : w / 2) + (hash(n * 3.1) - 0.5) * 14;
+      const y = y0 + (hash(n * 5.7) - 0.5) * 8, a = (hash(n * 9.3) - 0.5) * 1.1, d: 1 | -1 = hash(n * 2.3) < 0.5 ? 1 : -1;
+      g.save(); g.translate(x, y); g.rotate(a); drawBody(g, 1 + (n % (CAST.length - 1)), 0, 0, d, 1, 0); g.restore();
+    }
+  });
+  // (a pair of boots up out of it, crossed)
+  for (const [x, a] of [[176, 0.5], [188, 0.2]] as const) { g.save(); g.translate(x, -RIM - 30); g.rotate(a); box(g, -5, -30, 10, 30, INK); box(g, -4, -29, 8, 28, hour('#3A2A20')); box(g, -4, -29, 3, 28, hour('#5A4030')); box(g, -6, -36, 14, 8, INK); box(g, -5, -35, 12, 6, hour('#26201C')); box(g, -5, -35, 12, 1, hour('#4A3E34')); g.restore(); }
   // (a leg up out of it, its boot; an arm hanging over the front; a dropped mask; a shield)
   const R = ramp6(hour('#DC2626'));
   box(g, 119, -RIM - 112, 14, 74, INK); box(g, 120, -RIM - 111, 12, 72, R[3]); box(g, 120, -RIM - 111, 4, 72, R[4]); box(g, 129, -RIM - 111, 3, 72, R[1]);
@@ -87,6 +90,18 @@ const paintDumpster = (g: Ctx) => {
   box(g, 205, -RIM + 46, 20, 10, INK); box(g, 206, -RIM + 47, 18, 8, sk[3]); box(g, 206, -RIM + 47, 18, 2, sk[4]);
   box(g, 209, -RIM - 6, 12, 10, hour(SUITS[0]));
   g.fillStyle = 'rgba(20, 10, 14, 0.3)'; g.fillRect(-6, -2, DW + 12, 4);
+  // ONE THAT MISSED: CAPTAIN AMERICANO himself, off the far corner and down the outside of it, flat on the asphalt
+  // beside it in his pool; where he hit, the rim's dented in and smeared, a run of him down the bin's end
+  poly(g, [[DW - 18, -RIM - 4], [DW + 4, -RIM - 4], [DW + 4, -RIM + 3], [DW - 6, -RIM + 6], [DW - 18, -RIM + 1]], INK);
+  poly(g, [[DW - 16, -RIM - 2], [DW + 2, -RIM - 2], [DW + 2, -RIM + 2], [DW - 6, -RIM + 4], [DW - 16, -RIM]], B[1]);
+  box(g, DW - 20, -RIM - 4, 26, 4, Bl[2]); box(g, DW - 16, -RIM - 4, 14, 1, Bl[3]); box(g, DW - 8, -RIM, 4, 10, Bl[1]);
+  for (const [dy, w, l] of [[4, 8, 30], [36, 6, 34], [74, 4, 30]] as const) { box(g, DW - 2, -RIM + dy, w, l, Bl[1]); box(g, DW - 1, -RIM + dy, 2, l, Bl[3]); box(g, DW - 2, -RIM + dy + l, w, 3, Bl[0]); }
+  const mx = DW + 78;
+  drawBody(g, 0, mx, 0, 1, 1, 1);
+  // (what came off him on the way down: his shield, rolled off on its rim; a boot; spatter on the asphalt)
+  shield(mx + 70, -14);
+  box(g, mx - 64, -7, 16, 8, INK); box(g, mx - 63, -6, 14, 6, hour('#7F1D1D')); box(g, mx - 63, -6, 14, 2, hour('#A83A3A'));
+  for (const [dx, dy, w] of [[-38, -2, 4], [-26, -1, 6], [46, -1, 5], [58, -3, 3], [-14, -4, 2], [30, -5, 2]] as const) { box(g, mx + dx, dy, w, 2, Bl[1]); box(g, mx + dx, dy, Math.max(1, w - 2), 1, Bl[3]); }
 };
 
 /** The bulldozer, crashed nose up into the dumpster's left end (local: its tracks' rear foot at (0, 0), facing right). */
@@ -162,7 +177,7 @@ const paintMerch = (g: Ctx) => {
 };
 
 /** A PA pole: a steel pole on its base, the junction box, two gray horns, Steve's flier taped round it. Feet at 0. */
-const paintPA = (g: Ctx, seed: number) => {
+export const paintPA = (g: Ctx, seed: number) => {
   const S = STEEL.map(c => hour(c));
   box(g, -9, -10, 18, 10, INK); box(g, -8, -9, 16, 9, S[2]); box(g, -8, -9, 16, 2, S[4]);
   post(g, 0, -224, -10, 6, S);
@@ -207,13 +222,13 @@ const paintGate = (g: Ctx) => {
 };
 
 /** A poster stand (a one-sheet frame on two legs), Steve's poster in it. Feet at 0. */
-const paintPosterStand = (g: Ctx, seed: number) => {
+export const paintPosterStand = (g: Ctx, seed: number) => {
   const S = STEEL.map(c => hour(c));
   for (const lx of [-40, 36]) { box(g, lx - 1, -84, 6, 84, INK); box(g, lx, -84, 4, 84, S[3]); box(g, lx, -84, 1, 84, S[5]); }
   steveCard(g, 0, -150, 1.6, seed, 'poster');
 };
 /** A board on two posts (a set's sign), its lines in `L`. Feet at 0. */
-const paintTwoPostSign = (g: Ctx, lines: string[], bg: string, ink: string, h: number, span: number) => {
+export const paintTwoPostSign = (g: Ctx, lines: string[], bg: string, ink: string, h: number, span: number) => {
   const S = STEEL.map(c => hour(c));
   for (const px of [-span / 2, span / 2]) post(g, px, -h, 0, 5, S);
   board(g, 0, -h - 8, lines, plain(1, 1, ink), bg, S, 6);
@@ -274,7 +289,7 @@ const inPit = (rx: number) => (rx > PIT1.a - 60 && rx < PIT1.b + 60) || (rx > PI
 
 const standing = (): Standing[] => {
   const out: Standing[] = [];
-  out.push({ x: X(DUMP.a), d: DUMP_D, key: 'dumpster', bx: -60, by: -RIM - 140, bw: DW + 120, bh: RIM + 142, paint: paintDumpster, live: (c, f) => {
+  out.push({ x: X(DUMP.a), d: DUMP_D, key: 'dumpster', bx: -60, by: -RIM - 140, bw: DW + 260, bh: RIM + 142, paint: paintDumpster, live: (c, f) => {
     // (the flies over it)
     for (let k = 0; k < 8; k++) { const fx = X(DUMP.a) + 50 + ((k * 43 + f * (k + 1) * 0.6) % 190), fy = GY - RIM - 50 + Math.sin(f * 0.2 + k) * 16; box(c, fx, fy, 2, 2, '#18181B'); if ((f + k) % 4 < 2) box(c, fx - 1, fy - 1, 4, 1, 'rgba(226, 232, 240, 0.6)'); }
   } });
