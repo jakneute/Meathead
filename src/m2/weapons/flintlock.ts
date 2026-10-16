@@ -25,8 +25,6 @@ import { grabCallout } from '../moves/callouts';
 import { isRobot } from '../kinds';
 import { specialsHalf, halfKill } from './half';
 import { since } from '../frames';
-import { setArmor } from '../../m1/game/core/resist';
-
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
@@ -174,16 +172,6 @@ const fire = (ctx: FrameContext) => { facingState = ctx.state;
 
 const tick = (ctx: FrameContext) => { facingState = ctx.state;
   const { state } = ctx;
-  const pl = state.player;
-  // (drawing the bead: armored, a hit hurts him but doesn't knock him out of it. Whatever still got a knock or a stun on
-  // him (a stage's own shove) is taken off him, and fire still held keeps drawing it through the frame it kept from him)
-  if (charge > 0 && pl.currentWeapon === 'FLINTLOCK' && pl.shootHeldLastFrame && (pl.pushbackTimer > 0 || state.playerStunTimer > 0 || pl.recoiling || pl.lockTimer > 0)) {
-    pl.pushbackTimer = 0; state.playerStunTimer = 0;
-    if (pl.recoiling) { pl.recoiling = false; pl.lockTimer = 0; }
-    pl.vel.x = 0;
-    if (since(state.frame, chargedAt) === 1) fire(ctx);
-  }
-  setArmor(charge > 0 && pl.currentWeapon === 'FLINTLOCK', 'flintlock');
   // Fire let go: primed, it goes; not yet, nothing
   if (since(state.frame, chargedAt) > 1 && charge > 0) {
     if (charge >= CHARGE && state.player.currentWeapon === 'FLINTLOCK' && (ctx.cheats.infiniteAmmo || state.player.weaponAmmo.FLINTLOCK > 0)) shoot(ctx);
