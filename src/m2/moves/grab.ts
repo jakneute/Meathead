@@ -53,7 +53,7 @@ import { TOO_BIG_LINES, TOO_BIG_BY_KIND, GRAB_IMMUNE_LINES } from '../lines/weap
 type Ctx = CanvasRenderingContext2D;
 
 // ---------------------------------------------------------------------------------------------------------------------
-// AIR GRAB TUNING: up + Y + B on a pad, W + R on the keyboard. Every number the air grab uses is here.
+// AIR GRAB TUNING: A + B on a pad, Q on the keyboard. Every number the air grab uses is here.
 // (speeds are px per frame, times are frames at 60 a second, angles radians; the engine's gravity is about 0.61 a frame
 // on top of the arc's own, and a normal jump goes up at 7)
 // ---------------------------------------------------------------------------------------------------------------------
@@ -143,6 +143,8 @@ const Y_TAP = 15;
 const CONTACT_GRACE = 30;
 /** How near together B (or X) and Y count as pressed together: frames B's held back, waiting for Y. */
 const CHORD_WINDOW = 4;
+/** The frame A was last pressed (A + B, the air grab: A first and he's already jumping; B a moment after's still it). */
+let aAt = -99;
 
 /** The animals that are a handful but not too much. */
 const MID_ANIMALS = new Set<EnemyKind>(['wolverine', 'goat', 'gator', 'coyote', 'pitbull']);
@@ -635,13 +637,19 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       let out = controls;
       // Y on its own is a button of its own (secondary fire) on a tap; held, it's half of a grab
       const y = btn('y');
-      let want: 'beat' | 'shake' | null = pressed('beatKey') ? 'beat' : pressed('shakeKey') ? 'shake' : null;
-      // B or X first, on its own: held back a few frames for Y (a grab's two buttons are never quite together);
-      // no Y, and it goes through as itself (its charge, its shot), a moment late
-      if (!y && !g.pend) { if (pressed('b')) g.pend = { k: 'b', t: 0 }; else if (pressed('x')) g.pend = { k: 'x', t: 0 }; }
+      let want: 'beat' | 'shake' | 'air' | null = pressed('beatKey') ? 'beat' : pressed('shakeKey') ? 'shake' : pressed('airKey') && !handsOnly(state) ? 'air' : null;
+      // (A + B: the air grab. A's never held back (it's his jump); A first, then B a moment after: the air grab, from
+      // the jump it started)
+      const airOk = !handsOnly(state);
+      if (pressed('a')) aAt = state.frame;
+      if (!want && !y && airOk && pressed('b') && state.frame - aAt <= CHORD_WINDOW) { want = 'air'; out = { ...out, special: false }; }
+      // B or X first, on its own: held back a few frames for Y or A (a grab's two buttons are never quite together);
+      // neither, and it goes through as itself (its charge, its shot), a moment late
+      if (!want && !y && !g.pend) { if (pressed('b')) g.pend = { k: 'b', t: 0 }; else if (pressed('x')) g.pend = { k: 'x', t: 0 }; }
       if (g.pend) {
         const ctl = g.pend.k === 'b' ? 'special' : 'shoot';
         if (y) { if (!want) want = g.pend.k === 'b' ? 'beat' : 'shake'; g.pend = null; }
+        else if (g.pend.k === 'b' && airOk && btn('a')) { if (!want) want = 'air'; g.pend = null; out = { ...out, special: false, jump: false }; }
         else if (++g.pend.t > CHORD_WINDOW) { out = { ...out, [ctl]: true }; g.pend = null; }
         else out = { ...out, [ctl]: false };
       }
@@ -665,10 +673,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       const touching = pb > 0 && g.bumpT > 0;
       if (p.isGrounded || handsOnly(state)) g.airSpent = false;
       const free = !g.airSpent && !p.isCharging && !p.isSliding && !p.isUppercutting && !p.isDivekicking && !p.inCutscene && !p.noSpecials && !p.stabbed && (!(p.pushbackTimer && p.pushbackTimer > 0) || touching);
-      // (up held with the beatdown's buttons: the air grab instead)
-      let wantNow: 'beat' | 'shake' | 'air' | null = want;
-      if (want === 'beat' && controls.up && !handsOnly(state)) wantNow = 'air';
-      if (wantNow) g.queued = { want: wantNow, t: 0 };
+      if (want) g.queued = { want, t: 0 };
       else if (g.queued && ++g.queued.t > GRAB_BUFFER) g.queued = null;
       // (an air grab's been used: no charge moves till he's down again)
       if (g.airLock && (p.isGrounded || handsOnly(state))) g.airLock = false;

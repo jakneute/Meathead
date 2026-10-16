@@ -418,7 +418,7 @@ const App2: React.FC = () => {
                   <span className="text-zinc-400"><ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" size={12} /> <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" size={12} /></span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <ChordPrompt pad={['DPAD_UP', 'Y', 'B']} join="+" kb={['W', 'R']} label="AIR GRAB" />
+                  <ChordPrompt pad={['A', 'B']} join="+" kb={['Q']} label="AIR GRAB" />
                   <span className="text-green-400">LEAP, GRAB, SLAM. IT HEALS.</span>
                   <span className="text-zinc-400">BACK: FLIP. FORWARD: DIVE.</span>
                 </div>

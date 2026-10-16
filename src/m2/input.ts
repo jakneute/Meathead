@@ -1,5 +1,5 @@
-// Meathead 2's own buttons, on top of the engine's controls: the grabs (Y + B, Y + X on a pad; R and T on the
-// keyboard) and the menu buttons for the map (confirm/back, swapped on a Switch pad like every menu).
+// Meathead 2's own buttons, on top of the engine's controls: the grabs (Y + B, Y + X, A + B on a pad; R, T and Q on
+// the keyboard) and the menu buttons for the map (confirm/back, swapped on a Switch pad like every menu).
 
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, menuButtons } from '../m1/game/platform/gamepad';
 
@@ -17,11 +17,11 @@ export interface M2Buttons {
   /** The pad's face buttons, by position. */
   a: boolean; b: boolean; x: boolean; y: boolean;
   /** The keyboard's grab keys. */
-  beatKey: boolean; shakeKey: boolean;
+  beatKey: boolean; shakeKey: boolean; airKey: boolean;
   /** Menus: confirm, back. */
   ok: boolean; back: boolean;
 }
-const NONE: M2Buttons = { a: false, b: false, x: false, y: false, beatKey: false, shakeKey: false, ok: false, back: false };
+const NONE: M2Buttons = { a: false, b: false, x: false, y: false, beatKey: false, shakeKey: false, airKey: false, ok: false, back: false };
 
 let now: M2Buttons = NONE, was: M2Buttons = NONE, polledAt = -1;
 
@@ -36,7 +36,7 @@ export const pollM2 = (frame: number) => {
   const k = (c: string) => held.has(c);
   now = {
     a: p(GP_BUTTONS.A), b: p(GP_BUTTONS.B), x: p(GP_BUTTONS.X), y: p(GP_BUTTONS.Y),
-    beatKey: k('keyr'), shakeKey: k('keyt'),
+    beatKey: k('keyr'), shakeKey: k('keyt'), airKey: k('keyq'),
     ok: (!!menu && p(menu.ok)) || k('enter') || k('space'),
     back: (!!menu && p(menu.back)) || k('escape') || k('backspace'),
   };
