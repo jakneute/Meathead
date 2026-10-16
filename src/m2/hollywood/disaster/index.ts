@@ -44,6 +44,7 @@ import { updateShow, showNow, narrate, fresh } from './show';
 import { startReal, updateReal, realOn, wreckAll, drawRealHud, WIDE } from './real';
 import { drawDisasterBackdrop, drawDisasterBack, drawDisasterFront, disasterLights } from './art';
 import * as L from './lines';
+import { fromDepth, SCREEN_D } from './paint';
 
 const pick = pickLine;
 
@@ -208,7 +209,7 @@ export const disaster: HollywoodSection = {
     for (const e of state.enemies) { const s = o.barks.get(e); if (s && e.health > 0 && e.pos.x > x0 - 200 && e.pos.x < x1 + 200) saidOver(c, s.text, e.pos.x + e.width / 2, e.pos.y - 18, '#FECACA', 220); }
     if (o.guestSaid) saidOver(c, o.guestSaid.s.text, o.guestSaid.x, o.guestSaid.y, '#FBCFE8', 220);
     if (o.sleeper) saidOver(c, o.sleeper.text, X(BOOTH.cab + 150), Y(CAT_R.h) - 170, '#BAE6FD', 220);
-    if (o.narr) saidOver(c, o.narr.text, X((SCREEN.a + SCREEN.b) / 2), Y(SCREEN.hi) - 24, '#FDE68A', 340);
+    if (o.narr) { const [nx, ny] = fromDepth(state, X((SCREEN.a + SCREEN.b) / 2), Y(SCREEN.hi), SCREEN_D); saidOver(c, o.narr.text, nx, ny - 24, '#FDE68A', 340); }
     if (o.host) saidOver(c, o.host.text, X(PRESHOW.tv), Y(PRESHOW.ceil) + 40, '#FDBA74', 300);
     if (o.pa) {
       const cx = cam + CANVAS_WIDTH / 2;

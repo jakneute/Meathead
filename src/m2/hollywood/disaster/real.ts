@@ -22,6 +22,7 @@ import { hands, meatheadSays, speak, setRealDisasters, realDisastersOn, saidOver
 import { X, Y, R, GY, FX, SCREEN, THEATER, FAR_WALL, BOOTH, CAT_R, COW_AT } from './layout';
 import { dzOf, type Dz } from './state';
 import { narrate } from './show';
+import { fromDepth, EFX_D, SCREEN_D } from './paint';
 import { LEVER, REAL, REAL_AFTER, SLEEPER, SLEEPER_LEVER, SLEEPER_WAKE } from './lines';
 
 /** The wide shot: about this world point, pulled back. */
@@ -47,6 +48,9 @@ const dropWall = (state: GameState, o: Dz) => {
   if (o.wall) { const i = state.blocks.indexOf(o.wall); if (i >= 0) state.blocks.splice(i, 1); o.wall = null; }
 };
 
+/** A point on the screen (rx, height up), where it's drawn (hung at SCREEN_D). */
+const onScreenOf = (state: GameState, rx: number, h: number) => { const [x, y] = fromDepth(state, X(rx), Y(h), SCREEN_D); return { x, y }; };
+
 type Who = 'him' | 'narr' | 'sleeper' | 'none';
 interface Step { who: Who; line: () => string; min: number; start?: (ctx: FrameContext, o: Dz) => void }
 const STEPS: Step[] = [
@@ -59,10 +63,12 @@ const STEPS: Step[] = [
   { who: 'narr', line: () => REAL.volcano, min: 130, start: () => { playSound('ignite', 1, -6); playSound('boom', 0.6, -2); } },
   {
     who: 'narr', line: () => REAL.tornado, min: 120,
-    start: (_ctx, o) => {
+    start: ({ state }, o) => {
       playSound('whoosh', 1, -10); playSound('crash', 0.5, 4);
-      o.real.fan = { x: X(FX.fan), y: Y(50), vx: 7, vy: -13, rot: 0 };
-      o.real.cow = { x: X(COW_AT.x), y: Y(COW_AT.h) + 30, vx: 6, vy: -4, rot: 0 };
+      // (from where they're drawn: the fan's head on its stool at the effects' depth, the cow on its chain)
+      const [fx, fy] = fromDepth(state, X(FX.fan), GY - 88, EFX_D);
+      o.real.fan = { x: fx, y: fy, vx: 7, vy: -13, rot: 0 };
+      o.real.cow = { x: X(COW_AT.x), y: Y(COW_AT.h) + 50, vx: 6, vy: -4, rot: 0 };
     },
   },
   { who: 'narr', line: () => REAL.blizzard, min: 110, start: () => { playSound('ice', 0.9, -6); playSound('whoosh', 0.6, 8); } },
@@ -137,9 +143,10 @@ export const updateReal = (ctx: FrameContext): Controls | null => {
   }
   // The volcano: the heater's eruption, the screen catching
   if (st >= 3) {
+    const [hx, hy] = fromDepth(state, X(FX.heater), GY - 50, EFX_D);
     if (st === 3) r.fire = Math.min(1, r.fire + 0.01);
-    if (f % 2 === 0) state.particles.push({ pos: { x: X(FX.heater) + (Math.random() - 0.5) * 30, y: Y(50) }, vel: { x: (Math.random() - 0.5) * 2, y: -3 - Math.random() * (st === 3 ? 7 : 3) }, life: 30, color: ['#F97316', '#FDE047', '#DC2626'][f % 3], size: 3 + Math.random() * 4 });
-    if (r.fire > 0.3 && f % 3 === 0) state.particles.push({ pos: { x: X(SCREEN.a + Math.random() * (SCREEN.b - SCREEN.a)), y: Y(SCREEN.hi) + 10 }, vel: { x: (Math.random() - 0.5), y: -2 - Math.random() * 2 }, life: 34, color: ['#F97316', '#FDE047', '#B91C1C'][f % 3], size: 3 + Math.random() * 3 });
+    if (f % 2 === 0) state.particles.push({ pos: { x: hx + (Math.random() - 0.5) * 30, y: hy }, vel: { x: (Math.random() - 0.5) * 2, y: -3 - Math.random() * (st === 3 ? 7 : 3) }, life: 30, color: ['#F97316', '#FDE047', '#DC2626'][f % 3], size: 3 + Math.random() * 4 });
+    if (r.fire > 0.3 && f % 3 === 0) state.particles.push({ pos: { ...onScreenOf(state, SCREEN.a + Math.random() * (SCREEN.b - SCREEN.a), SCREEN.hi - 10) }, vel: { x: (Math.random() - 0.5), y: -2 - Math.random() * 2 }, life: 34, color: ['#F97316', '#FDE047', '#B91C1C'][f % 3], size: 3 + Math.random() * 3 });
   }
   // The tornado: the fan and the cow, flying; the wind
   for (const k of ['fan', 'cow'] as const) {
@@ -158,7 +165,7 @@ export const updateReal = (ctx: FrameContext): Controls | null => {
   // The flood: out of the screen
   if (st >= 6) {
     if (st === 6) r.flood = Math.min(1, r.flood + 0.012);
-    if (st <= 8) for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: X(SCREEN.a + 200 + Math.random() * (SCREEN.b - SCREEN.a - 400)), y: Y(SCREEN.lo + 40) }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 2 }, life: 40, color: i ? '#60A5FA' : '#BFDBFE', size: 3 + Math.random() * 3 });
+    if (st <= 8) for (let i = 0; i < 2; i++) state.particles.push({ pos: { ...onScreenOf(state, SCREEN.a + 200 + Math.random() * (SCREEN.b - SCREEN.a - 400), SCREEN.lo + 40) }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 2 }, life: 40, color: i ? '#60A5FA' : '#BFDBFE', size: 3 + Math.random() * 3 });
   }
   // Everything: the far wall, out flat
   if (st === 7 && r.t > 40 && r.wall < 1) {

@@ -36,6 +36,11 @@ export const dview = (state: GameState): View => {
   if (sv && (sv.w > CANVAS_WIDTH + 1 || sv.h > CANVAS_HEIGHT + 1)) { v.v0 = sv.x - 120; v.v1 = sv.x + sv.w + 120; v.top = sv.y - 40; v.bot = sv.y + sv.h + 40; }
   return v;
 };
+/** Where a world point drawn at depth d lands (in the world, at the play plane), by the camera's eye now: for things
+ *  that come off art drawn at depth (particles, captions, a prop torn loose) so they start where it's drawn. */
+export const fromDepth = (state: GameState, x: number, y: number, d: number): [number, number] => at(viewOf(state).eye, x, y, d);
+/** Where the effects stand, and the screen hangs. */
+export const EFX_D = 0.97;
 /** On screen: something at world x a..b at depth d (by where it lands: no pop-in). */
 export const seenD = (v: View, a: number, b: number, d = 1, pad = 60) => {
   const [sa] = at(v.eye, a, 0, d), [sb] = at(v.eye, b, 0, d);

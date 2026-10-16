@@ -29,7 +29,7 @@ import {
 } from './paint';
 import { backWall, floorBack, ceilingUnder, sideWall, plenum } from './rooms';
 
-const EFX_D = 0.97;
+import { EFX_D } from './paint';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The shell
