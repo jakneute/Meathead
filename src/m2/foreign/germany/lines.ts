@@ -32,7 +32,17 @@ export const TALK: PavilionTalk = {
     { from: 1700, to: 2200, key: 'clock', lines: ["THE WORLD'S BIGGEST CUCKOO CLOCK. IT'S WRONG.", 'THE LITTLE WOODEN GUYS COME OUT AND SPIN. SAME, BUDDY.'] },
     { from: 2000, to: 2700, key: 'castle', lines: ['A CASTLE. THE DOOR IS LOCKED. THE CLOCK IS NOT.', "I'M ON TOP OF A CASTLE. THE KING'S A TUBA GUY."], minH: 500 },
     { from: 2900, to: 3400, key: 'pretzel', lines: ['A PRETZEL THE SIZE OF MY HEAD. I RESPECT THAT.', 'BRATWURST. NOW WE ARE TALKING.'] },
+    // (job 4b: the brewery hill)
+    { from: 3850, to: 4300, key: 'kegs', lines: ["THEY'RE ROLLING FULL KEGS DOWN A HILL. AT ME. WHAT A WASTE.", "IT'S RAINING BEER. UPHILL. THE WRONG WAY."] },
+    { from: 4880, to: 5060, key: 'brauhaus', lines: ['A BREWERY THAT SERVES BUD LIGHT. GERMANY WOULD CRY.', "THE COPPER KETTLE'S EMPTY. IT'S A PROP. EVERYTHING'S A PROP."], minH: 760 },
   ],
+};
+
+/** The keg dock's crew sending one down (the barmaid voices). */
+export const KEG: ByPants = {
+  clean: ['KEG! KEG! KEG!', "ROLL OUT THE BARREL! THAT'S A SONG! IT'S ALSO AN ORDER!", "THEY'RE FULL! DON'T WASTE THEM! ...WITH YOUR BODY!"],
+  shitty: ['KEG! RIGHT AT THE STINK!', 'ROLL IT! FLATTEN HIM! FLATTEN THE SMELL!'],
+  nude: ["KEG! AIM FOR THE NAKED ONE! THAT'S GONNA HURT!", 'ROLL IT AT HIS LITTLE BRATWURST!'],
 };
 
 export const TUBA: ByPants = {
@@ -76,6 +86,10 @@ export const HURT: HurtTable = {
     hurt: ['THE CUCKOO! IT PECKED ME!', 'A WOODEN BIRD! IN MY FACE!', 'CUCKOO! FUCK YOU!'],
     death: ['CUCKOO\'D', 'KILLED BY A CLOCK'],
   },
+  'm2:fl_keg': {
+    hurt: ['A KEG! A FULL ONE!', 'RUN OVER BY BEER!', 'MY SHINS! THE KEG GOT MY SHINS!'],
+    death: ['FLATTENED BY A KEG', 'ROLLED OUT THE BARREL'],
+  },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.tuba, TUBA], [V.barmaid, BARMAID], [V.slapper, SLAPPER]]);
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.tuba, TUBA], [V.barmaid, BARMAID], [V.slapper, SLAPPER], [{ m: V.barmaid.f, f: V.barmaid.f }, KEG]]);

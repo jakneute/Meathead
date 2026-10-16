@@ -5,7 +5,8 @@
 // a goat...) come out on a schedule, round and round on its big wheel, a sixth of a turn at a time: ride them up to
 // the battlements. Over the battlements, under the clock's door: on the hour (every few seconds) the CUCKOO bursts out
 // and pecks whoever's under it (him, the cast). Down the far tower's balconies (the way back up, too), the beer tent,
-// the border with Italy.
+// then THE BREWERY HILL (brewery.ts, job 4b: kegs rolled down the ramp at him, the Brauhaus climbed over), the
+// border with Italy.
 //
 // Crude (the first pass): readable boxes with full game feel. Checkpoints 30-39. Outdoors: the time of day's light.
 
@@ -27,6 +28,7 @@ import {
 } from '../kit';
 import { TALK } from './lines';
 import './kinds';
+import { BREW_FROM, BREW_CHECKPOINTS, breweryRuns, buildBrewery, updateBrewery, drawBreweryBack, drawBreweryFront, breweryLamps } from './brewery';
 
 const { x0, x1 } = SECTIONS.germany;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -61,6 +63,7 @@ export const GERMANY_CHECKPOINTS = [
   { name: 'GERMANY', cp: 30, x: X(150), y: GY },
   { name: 'GERMANY: THE CUCKOO CLOCK', cp: 31, x: X(1750), y: GY },
   { name: 'GERMANY: THE CASTLE', cp: 32, x: X(2960), y: GY },
+  ...BREW_CHECKPOINTS,
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -161,7 +164,8 @@ const drawCuckoo = (c: Ctx, v: View, f: number) => {
 };
 
 const drawGarden = (c: Ctx, v: View, f: number) => {
-  promenade(c, v, x0, x1, '#D6CBB4', '#8C7F68');
+  promenade(c, v, x0, X(4000), '#D6CBB4', '#8C7F68');
+  promenade(c, v, X(5480), x1, '#D6CBB4', '#8C7F68');
   // (the fronts: half-timbered, white plaster, dark beams, flower boxes)
   for (const [rx, w, h] of [[300, 240, 180], [1240, 300, 200], [2980, 260, 170], [3400, 280, 190]] as const) setBack(c, v, X(rx), w, FACADE_D, () => {
     wall(c, 0, w, h, '#F5F0E0');
@@ -198,7 +202,8 @@ export const germany: ForeignSection = {
   id: 'germany', x0, x1,
   checkpoints: GERMANY_CHECKPOINTS,
   build: (state) => {
-    layOwn(state, [{ x1: x0, y1: GY, x2: x1, y2: GY, surface: 'hard' }]);
+    layOwn(state, [{ x1: x0, y1: GY, x2: X(BREW_FROM), y2: GY, surface: 'hard' }, ...breweryRuns()]);
+    buildBrewery(state);
     for (const [a, b, h] of TABLES) solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'de-table' });
     solid(state, X(STAGE.a), Y(STAGE.h), STAGE.b - STAGE.a, STAGE.h, { hidden: true, tag: 'de-stage' });
     ledge(state, X(STAGE.a), Y(STAGE.roof), STAGE.b - STAGE.a, { hidden: true, tag: 'de-roof' });
@@ -215,6 +220,7 @@ export const germany: ForeignSection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, g = gerOf(state), f = state.frame;
     pavilionTalk(state, 'de', x0, GY, TALK);
+    updateBrewery(ctx);
     // The wheel: a sixth of a turn at a time (a clunk as each turn starts)
     g.figs.forEach((m, i) => { const q = figAt(f, i); moveMover(state, m, q.x, q.y); });
     if (f % STEP === 0 && Math.abs(p.pos.x - X(WHEEL.cx)) < 900) playSound('clang', 0.4, -10);
@@ -263,15 +269,16 @@ export const germany: ForeignSection = {
     if (onScreen(v, X(1520), X(1650))) hungBoard(c, X(1585), Y(130) - 6, Y(130) + 30, ['WURST', 'THE WURST IN TOWN'], LOOKS.germany(1), '#7F1D1D');
     if (onScreen(v, X(1760), X(1960))) postBoard(c, X(1860), GY, ["WORLD'S BIGGEST", 'CUCKOO CLOCK', 'SWISS MADE'], LOOKS.germany(1), '#3F2A14', undefined, 130);
     if (onScreen(v, X(2560), X(2700))) postBoard(c, X(2620), GY, ['CASTLE CLOSED', 'USE THE CLOCK'], LOOKS.germany(1), '#7F1D1D', undefined, 80);
-    if (onScreen(v, X(3560), X(3800))) postBoard(c, X(3680), GY, ['LEAVING GERMANY', 'AUF WIEDERSEHEN', '(GOODBYE IN DUTCH)'], LOOKS.germany(1), '#1C1917', undefined, 120);
+    drawBreweryBack(c, v, state);
     if (onScreen(v, X(20), X(120))) flagPole(c, X(40), GY, 200, ['#000000', '#DD0000', '#FFCE00'], f);
   },
-  drawFront: (c, state) => { drawCuckoo(c, viewIn(state), state.frame); },
+  drawFront: (c, state) => { drawCuckoo(c, viewIn(state), state.frame); drawBreweryFront(c, viewIn(state), state); },
   outdoors: () => 1,
   lamps: (state) => {
     const v = viewIn(state), out: Light[] = [];
     if (onScreen(v, X(STAGE.a), X(STAGE.b))) out.push({ x: X(870), y: Y(200), r: 170, a: 0.5, color: '#FDE68A' });
     if (onScreen(v, X(2100), X(2500))) out.push({ x: X(2300), y: Y(860), r: 200, a: 0.4, color: '#FDE68A' });
+    out.push(...breweryLamps(v));
     return out;
   },
 };
