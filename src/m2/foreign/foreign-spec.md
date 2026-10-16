@@ -563,3 +563,74 @@ pavillions, helicopter. less than a typical level but lengthier individually."
   SOLD OUT), on to the helipad. Checkpoints 94-95.
 - **Voices:** no new voice ids: the set pieces' barks are in existing cast voices (luchador, viking, fireworks,
   barmaid, pizza, cosplay, carpet, waiter, bobby, hockey); 11 new hurt sources with hurt + death lines.
+
+## Decisions (job 5)
+
+The user's HELICOPTER HARRY fight, built (harry/: arena.ts, scene.ts, rambo.ts, liberty.ts, fight.ts, lines.ts, index.ts).
+
+- **The crash site** is the AMERICA pavilion's construction site (THE ONLY COUNTRY / COMING SOON, the land's lettering):
+  he comes to by the helicopter's burning wreck in its crater (DOORS.harry.start, checkpoint 120), the big health + ammo
+  a few steps on (REFILL_X), then through the gate of the left scaffold tower onto the poured slab. The fight's floor is
+  ONE screen (the camera fixed at VIEW_X), Contra's way, between two scaffold towers (plywood hoarding up out of the
+  shot: walls; the scaffold Harry hangs off). The gate slams shut (chain-link, padlocked) as it starts; open after.
+  Behind the slab, the dig's dirt berm with all nine wrecked landmark mechs from the gauntlet piled along it in two rows
+  (heli/mechArt's wrecks, painted once to a cached canvas; their fires live); the sky smoky at the hour.
+- **The intro** (a cutscene: HUD hidden, SKIP >> skips all of it; a retry skips it: her up, him waiting): Harry down on
+  the jetpack, it sputters out; green: "WHERE THE HELL ARE MY AIRSICK PILLS?" (the weakness, planted); "YOU WANNA MEET
+  THE REAL HARRY?", the jacket, the tie-dye and the helmet torn off in shreds: jacked (pecs, abs, gray chest hair, a
+  PEACE SIGN tattoo from the old days, a bandolier, the red bandana, still the glasses, the ponytail, the jeans and the
+  socks and sandals), the flex; Meathead impressed ("...DAMN."); the rant (DAMN FOREIGNERS, the metric system, soccer);
+  the user's line, verbatim; Harry calls her ("LADY! GET YOUR GREEN ASS UP HERE!"), she rises out of the dig (170
+  frames of quake and dust); "A REAL AMERICAN MONUMENT."; on.
+- **The Statue of Liberty** (liberty.ts, full detail): head, crown and upper body only (the berm hides the rest), patina
+  greens in a 7-step ramp; the seven rays off the top of the shot; the crown's row of windows, the middle one a room
+  Harry stands in (head and shoulders in it, clipped); a classical face that moves (stern, straining, disgusted,
+  gagging, puking, sad, sobbing, dread); the stola's folds; the tablet (JULY IV / MDCCLXXVI). Her right (torch) arm is
+  a two-bone arm drawn to wherever her fist is (rearing over him, its elbow kept off her face so the window stays in
+  sight); the torch stays upright in her fist, its gold flame. Invulnerable: she isn't an enemy at all.
+- **His moves** (fight.ts; numbers up top): WALK (slowly at him, M60 bursts head on at chest height: jump them, duck or
+  slide under them, or get behind/on the stuck fist: rounds stop on it); THE CROWN (a big leap up into her window,
+  "LADY! SMASH HIM!"; her fist rears up over him, a shadow ring on the floor follows him for 70% of the windup, then
+  LOCKS (flashing, an alert), the fist going hot; ~2.8 s the first time; down in 12 frames; under it is a big hit);
+  STUCK: the fist is a 112x74 concrete block on the floor with a lit top: STANDABLE, and cover (my call: a block, not a
+  wall); 400 frames of her straining, shaking, grinding; Harry's rant from the crown (three escalating levels, the
+  user's lines in the first two), then he's down walking him down; she yanks it free (anybody on it popped off);
+  Meathead's "...SHE'S STUCK." once a visit. THE WALLS: sweep 1 off the far wall from him (level across, then rotating
+  down to 74 px out from his own wall: safe only right under him), sweep 2 off the near wall (straight down, then a
+  steady arc out across the floor and up the far wall to 170 px: get to the far end and uppercut late). A red laser
+  sight shows the line (52 frames of it flashing and beeping first). The order: walk, crown; after each stuck arm
+  alternately the crown again, or a sweep (alternating 1 and 2), a walk, the crown; under a third, two sweeps in a row.
+- **The weakness** (opted in: weapons/crossbow.ts `setDartTaker` hands a boss's darts to its own fight, and the bow
+  locks on to him): a dart does 2 (never his last point); 7 darts (a QUEASY meter over his head; it drains if he's left
+  alone ~2.5 s) and he's sick: off the wall or out of the crown first; "OH NO. I FORGOT MY AIRSICK PILLS." the first
+  time; the heaves; he barfs up onto her (green splats stay on her); she snaps standing (a stuck arm yanked free);
+  disgust, the gag (cheeks blown out), then her concrete guts down on him: 150 (HEAVY), a splash that hurts Meathead
+  within 120 px, a mound left on the floor; "IT'S SETTING!"; then, furious, straight up into her crown for the smash,
+  the windup quicker each time (x1.25, x1.5 ... to x2.4). The meter's shut from the sickness till that smash lands: no
+  sick-spamming.
+- **Hurting him:** the ray gun and his moves in full, anything else 35%, the 60-frame breather; no instant kills (the
+  engine's mid-boss rule: a `midBoss` kind). He's harmless to touch. In the crown his hitbox is the window.
+- **His deaths:** the weakness (her concrete's the killing hit): the kill cam (slow, zoomed); the pour goes on, a mound
+  builds over him face down, just his socks and sandals sticking out, kicking ("MMF! IT'S SETTING!"), setting still.
+  Any other way: staggering, over on his back, the M60 still firing straight up, its recoil spinning him round on the
+  slab (seen from the side: flipping) till it clicks empty; bandana down over his eyes, the seat of his jeans split
+  (tie-dye underpants); "AMERICAAAA!". THEN, either way, her: she looks down (sad), sobs (a concrete tear, shaking),
+  lets the torch go (it clangs down onto the slab), drops the tablet into the dig, brings a statue-sized patina-green
+  revolver up from behind it, puts it to her temple (eyes shut, trembling), BANG: the far side of her head blown out
+  (hollow concrete, rebar, dust; chunks across the floor), the gun drops onto the slab, and she goes over backward into
+  the dig. Meathead: "SHE REALLY LOVED THAT ASSHOLE." / "SHOULD HAVE TAKEN YOUR PILLS." All of it skippable (all or
+  nothing). VICTORY, the walk-away, the hub, Foreign Lands cleared.
+- **Hurt sources** (hurt + death lines each): `m2:fl_harry_gun`, `m2:fl_liberty_fist`, `m2:fl_harry_sweep_down`,
+  `m2:fl_harry_sweep_up`, `m2:fl_liberty_barf`.
+- **Lines:** every Harry group in clean / shitty / naked pools (queasy, rip, rant, summon, taunt, fire, crown, three
+  stuck levels, unstuck, both sweeps, hurt, gloat, low, sick first / later, concreted, follow-up, both deaths); the
+  user's verbatim lines whatever his state. No slurs. Meathead sparse (impressed, the user's line, a crossbow hint for
+  anything else now and then, the stuck arm once, the concrete once, the last word). She never talks (rumbles, grinds,
+  gags, sobs). No new voice ids (Harry's is job 4's).
+- **Revisits** (the land cleared): the slab empty, her rubble (concrete and green shell, a crown ray, her nose), the
+  revolver and the torch lying, a chalk outline, his tie-dye in shreds, the spent jetpack; the gate open; the wrecks
+  still burning on the berm. The way back to the helipad is the left end.
+- **The walk-away** (walkAway/helicopterHarry.ts, replacing the placeholder): back across the slab (joints, scorch, her
+  concrete set in puddles, spent brass), the dig behind him with the wrecks' silhouettes burning and her hand up out of
+  the rubble; her blown-open head, the revolver, the torch, chunks, shreds, the jetpack; Harry's fate (the mound and
+  his feet, or flat on his back).

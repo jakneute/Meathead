@@ -12,7 +12,7 @@ index.ts header says what goes in it.
 | `japan/`, `morocco/`, `france/`, `uk/`, `canada/` | 50-59, 60-69, 70-79, 80-89, 90-99 | built (job 2, first pass) |
 | ~~`theater/`~~ (CULTURES OF THE WORLD) | ~~100-109~~ | AXED (the user, 2026-10-16): removed |
 | `heli/` (the helipad off the end of Canada, boarding, the jacking, the shooter) | 110-119 | built (job 4, first pass) |
-| `harry/` (HELICOPTER HARRY, the land boss) | 120-129 | stub: the arena + a temporary walk-past win |
+| `harry/` (HELICOPTER HARRY, the land boss) | 120-129 | built (job 5: the fight, the Statue of Liberty, both deaths; the walk-away) |
 
 Inside your folders, anything goes (layout.ts, art.ts, kinds.ts, lines.ts...). Number checkpoints only inside your
 range. Your lines go in your folder's `lines.ts` `VOICE_LINES` (by voice id); new voice ids go in
@@ -67,5 +67,5 @@ tools/voices/cast.json, the engine) the same: re-read, append minimally.
 ## How sections connect
 
 - The streets: walked, Mexico -> Canada -> the helipad (heli is a street section: no cut, no walls between).
-- Helipad -> Harry: Harry's rocket and the crash (for now the helipad's right end) to `DOORS.harry.start`; back by the
-  arena's left end. Keep a way back working (revisits).
+- Helipad -> Harry: Harry's rocket and the crash to `DOORS.harry.start`; back by the crash site's left end (to
+  `DOORS.heli.end`). Keep a way back working (revisits).
