@@ -446,7 +446,8 @@ const paintWaitSign = (g: Ctx) => {
 /** Every thing standing on the pavement going back: [x (world), depth, key, box, paint]. The farthest first. */
 interface Standing { x: number; d: number; key: string; bx: number; by: number; bw: number; bh: number; paint: (g: Ctx) => void; live?: (c: Ctx) => void }
 
-const PALMS = [1150, 2450, 4300, 7100, 9050];
+// (only in the wide gaps between the fronts: a crown never over a shop's sign)
+const PALMS = [420, 1450, 2640, 7800, 8900, 10700];
 const TIPS = [1250, 2650, 4700, 6050, 10250];
 const ONLOOKERS: [number, number][] = [[1800, 5], [3250, 8], [4800, 14], [6100, 19], [10650, 27], [10880, 30]];
 
@@ -549,7 +550,7 @@ export const drawPlayThings = (c: Ctx, v: View, f: number) => {
       const R = ramp6(hour(CONCRETE[4]));
       topBack(c, eye, x, x + w, y, 1, 0.93, ramp6(hour('#4A3424')));
       sideBack(c, eye, eye.x > x + w ? x + w : x, eye.x > x + w ? 1 : -1, y, GY, 1, 0.93, R);
-      atDepth(c, eye, 0.965, () => { still(c, `planterpalm`, x + w / 2, y, -80, -250, 160, 252, g => paintPalm(g, 170, 3)); still(c, `plantertop-${w}`, x, y, -10, -30, w + 20, 32, g => paintPlanterTop(g, w)); });
+      atDepth(c, eye, 0.965, () => { still(c, `planterpalm2`, x + w / 2, y, -80, -150, 160, 152, g => paintPalm(g, 70, 3)); still(c, `plantertop-${w}`, x, y, -10, -30, w + 20, 32, g => paintPlanterTop(g, w)); });
       still(c, `planter-${w}-${h}`, x, GY, -6, -h - 6, w + 12, h + 8, g => paintPlanter(g, w, h));
     } else if (what === 'trashcan') {
       const R = ramp6(hour('#2E5A3A'));

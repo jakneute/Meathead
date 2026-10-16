@@ -123,9 +123,10 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
 ];
 
 /** The lampposts (a PA horn on some, a Steve flier on every one): [x, has a horn]. */
+// (each in a gap between the fronts, never in front of a shop's sign; the gaps between the holes' edges and the fronts)
 export const LAMPS: [number, boolean][] = [
-  [260, true], [900, false], [1560, false], [2380, true], [3600, false], [4560, true], [5200, false], [5900, false],
-  [6380, true], [7560, false], [9000, true], [10450, true], [11000, false],
+  [260, true], [1450, false], [2060, false], [2550, true], [3500, false], [4420, true], [4810, false], [5310, false], [5700, false],
+  [6585, true], [7200, false], [9000, true], [9605, false], [10450, true], [10880, false],
 ];
 /** Steve's standees (life-size cutouts) and posters (on facades): [x, kind]. */
 export const STEVES: [number, 'standee' | 'poster'][] = [[520, 'standee'], [3300, 'standee'], [5120, 'poster'], [6220, 'standee'], [7640, 'poster'], [9060, 'standee'], [10700, 'standee']];
