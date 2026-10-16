@@ -121,6 +121,7 @@ m2/foreign/heli/talk.ts:19 voice: line
 m2/foreign/heli/talk.ts:28 voice: line
 m2/foreign/heli/talk.ts:37 voice: false
 m2/foreign/heli/talk.ts:45 voice: false
+m2/foreign/setpiece.ts:48 voice: false
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice
 m1/game/bosses/alien.ts:90 voice: text
