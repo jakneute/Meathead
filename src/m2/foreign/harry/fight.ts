@@ -31,6 +31,9 @@
 //   it clicks empty (his jeans split: tie-dye underpants). THEN, either way (the user's): she's heartbroken (a concrete
 //   tear, sobbing), lets the torch go, drops the tablet, brings out a statue-sized revolver, puts it to her head, and
 //   blows her concrete brains out (no gore: concrete, rebar, dust); over backward into the dig. Meathead's word.
+// HER WEAR (the user's): each smash cracks her more; her STATUE_LIFE-th, she comes apart into the dig. Then no crown, no
+//   smash, no suicide after; Harry enraged (faster, the walls more often); the crossbow's sickness is grief and
+//   airsickness, doubled over puking on the floor, wide open; and his third death: BARFED TO DEATH.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -70,7 +73,9 @@ const HP = 666, BIG = 100000;
 const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
 /** A dart: its scratch (never the last of him: only her concrete or a real hit kills), how many make him sick, how
  *  long unhit before the queasiness starts going off, and how fast. */
-const DART_DMG = 2, SICK_AT = 7, SICK_COOL = 150, SICK_DECAY = 0.008;
+/** (the user: "harry takes more shots to make queasy too": 7 -> 10, with her or without) */
+const QUEASY_DARTS = 10;
+const DART_DMG = 2, SICK_AT = QUEASY_DARTS, SICK_COOL = 150, SICK_DECAY = 0.008;
 /** Her concrete on him (the weakness's hit). Its splash on the floor round him (and what it does to Meathead). */
 const HEAVY = 150, SPLASH_R = 120, SPLASH_DMG = 18;
 /** Walking at him: how fast, how close he comes, how long a walk lasts (the stuck arm's walk lasts till she's up). */
@@ -88,6 +93,15 @@ const CLING_WARN = 52, SWEEP_T = [0, 170, 196], SWEEP_EVERY = 3, SWEEP_V = 16, S
 const WIND = 168, TRACK = 0.7, DROP_T = 12, FIST_DMG = 32, STUCK_T = 400, YANK_T = 44, SNAP_T = 14, SPEED_UP = 0.25, SPEED_MAX = 2.4;
 /** Harry's taunts; Meathead thinking out loud about the crossbow. */
 const TAUNT_EVERY = 760, HINT_GAP = 600;
+/** Her wear (the user: "if the statue of liberty smashes enough times it will crumble and fall apart"): smashes she
+ *  survives (the last one's her end: she comes apart while it's stuck); the collapse's length. */
+const STATUE_LIFE = 6, CRUMBLE_T = 170;
+/** Him without her, enraged: his walk this much faster, his gun's rests this much shorter, his walks this much
+ *  shorter (so the walls come round more often). */
+const RAGE_WALK = 1.35, RAGE_REST = 0.65, RAGE_WALK_T = 0.55;
+/** The crossbow without her: he doubles over puking (grief and airsickness) this long, losing this much to it, every
+ *  hit in it this much at least (the weakness's window). */
+const GRIEF_T = 200, GRIEF_DRAIN = 60, GRIEF_HIT = 75;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The state
@@ -102,9 +116,10 @@ type Intro = 'land' | 'queasy' | 'rip' | 'flex' | 'impressed' | 'rant' | 'aback'
 interface Leap { x0: number; y0: number; x1: number; y1: number; t: number; T: number; h: number; then: Act; s0: number; s1: number }
 interface Round { x: number; y: number; vx: number; vy: number; src: string; dmg: number; life: number; harmless?: boolean }
 interface Chunk { x: number; y: number; vx: number; vy: number; a: number; va: number; s: number; green: boolean; down: boolean }
-interface Barf { stage: 'drop' | 'heave' | 'spew' | 'gag' | 'pour' | 'daze'; t: number; hit: boolean; splashed: boolean; first: boolean }
+interface Barf { stage: 'drop' | 'heave' | 'spew' | 'gag' | 'pour' | 'daze' | 'grief'; t: number; hit: boolean; splashed: boolean; first: boolean }
+type How = 'spin' | 'buried' | 'barfed';
 interface Death {
-  how: 'spin' | 'buried'; t: number; step: string; at: number;
+  how: How; t: number; step: string; at: number;
   x: number; y: number; vy: number; spin: number; spinV: number; mound: number;
   /** Her: which beat, its clock. */
   st: string; stT: number; fade: number;
@@ -132,7 +147,11 @@ export interface Fight {
   green: number; concrete: number;
   /** Her: risen (dy), the arm (its state, clock, the target, the fist, the block it leaves), her face and the rest. */
   arm: { st: ArmSt; t: number; T: number; tx: number; fx: number; fy: number; from: { x: number; y: number }; block: Block | null };
-  lib: { dy: number; face: Face; shake: number; stains: Stain[]; tear: number; broken: number; hand: { x: number; y: number }; tablet: boolean; gun: boolean; tilt: number; gone: boolean };
+  lib: { dy: number; face: Face; shake: number; stains: Stain[]; tear: number; broken: number; hand: { x: number; y: number }; tablet: boolean; gun: boolean; tilt: number; gone: boolean; wear: number };
+  /** Her smashes so far; her collapse (frames into it, -1: not); she's gone (crumbled: him enraged). */
+  smashes: number; crumble: number; crumbled: boolean;
+  /** His own puke on the floor (the grief puke). */
+  puddle: { x: number; k: number } | null;
   rounds: Round[]; chunks: Chunk[]; piles: { x: number; k: number }[];
   /** On the floor after: the torch she let go, the gun (falling, then lying). */
   torch: { x: number; y: number; vy: number; a: number; down: boolean } | null;
@@ -151,7 +170,7 @@ let game: GameState | null = null;
 const pants = (): 'clean' | 'shitty' | 'nude' => (!game ? 'clean' : isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean');
 export const resetFight = () => { live = null; };
 /** Seen the intro this visit (a retry from the checkpoint skips it); said once a visit. */
-let introVisit = -1, stuckSaidVisit = -1, concreteSaidVisit = -1;
+let introVisit = -1, stuckSaidVisit = -1, concreteSaidVisit = -1, griefSaidVisit = -1;
 export const introSeen = () => introVisit === landVisit();
 
 registerHurts(L.HURT);
@@ -223,7 +242,8 @@ export const startFight = (state: GameState): Fight => {
     cling: null, clingKind: 1, stuckN: 0, barfs: 0,
     sick: 0, sickAt: -999, sickOn: false, sickFirst: false, barf: null, green: 0, concrete: 0,
     arm: { st: seen ? 'up' : 'hidden', t: 0, T: 0, tx: MID, fx: FIST_UP.x, fy: FIST_UP.y, from: { ...FIST_UP }, block: null },
-    lib: { dy: seen ? 0 : LIB.sink, face: 'stern', shake: 0, stains: [], tear: 0, broken: 0, hand: { ...HAND_TABLET }, tablet: true, gun: false, tilt: 0, gone: false },
+    lib: { dy: seen ? 0 : LIB.sink, face: 'stern', shake: 0, stains: [], tear: 0, broken: 0, hand: { ...HAND_TABLET }, tablet: true, gun: false, tilt: 0, gone: false, wear: 0 },
+    smashes: 0, crumble: -1, crumbled: false, puddle: null,
     rounds: [], chunks: [], piles: [], torch: null, gunDrop: null,
     e, moveSeen: e.hitByMove, said: null,
     wrongN: 0, hintAt: -9999, lowSaid: false, tauntT: 0, gloatAt: -999, lastHp: state.player.health,
@@ -347,13 +367,13 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   updateRounds(ctx, f);
   if (f.mode === 'dead') return dying(ctx, f);
   takeHits(ctx, f);
-  if (f.hp <= 0) { die(ctx, f, false); return hands(); }
+  if (f.hp <= 0) { die(ctx, f, f.barf?.stage === 'grief' ? 'barfed' : 'spin'); return hands(); }
   // (the queasiness going off, unhit a while)
   if (!f.sickOn && f.total - f.sickAt > SICK_COOL) f.sick = Math.max(0, f.sick - SICK_DECAY);
   f.green += ((f.sickOn ? 1 : Math.min(1, f.sick / SICK_AT) * 0.6) - f.green) * 0.08;
   if (!f.barf || f.barf.stage !== 'pour') f.concrete = Math.max(0, f.concrete - 0.0025);
   // (sick: as soon as he's somewhere it can start from)
-  if (!f.sickOn && f.sick >= SICK_AT && !f.leap && f.arm.st !== 'drop') startBarf(state, f);
+  if (!f.sickOn && f.sick >= SICK_AT && !f.leap && f.arm.st !== 'drop' && f.crumble < 0) startBarf(state, f);
   // (his entrance on a retry: flexing, a taunt, nothing fired, her arm at rest; Meathead's free to move)
   if (f.entrance > 0) {
     f.entrance--; f.act = 'idle'; f.firing = false; f.moving = false; f.rounds = [];
@@ -370,7 +390,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   const p = state.player;
   if (p.health < f.lastHp && p.health > 0 && f.total - f.gloatAt > 500 && Math.random() < 0.35) { f.gloatAt = f.total; bark(f, L.HARRY_GLOAT); }
   f.lastHp = p.health;
-  if (++f.tauntT >= TAUNT_EVERY) { f.tauntT = Math.floor(Math.random() * 200); bark(f, L.HARRY_TAUNT); }
+  if (++f.tauntT >= TAUNT_EVERY * (f.crumbled ? 0.6 : 1)) { f.tauntT = Math.floor(Math.random() * 200); bark(f, f.crumbled ? L.HARRY_ENRAGED : L.HARRY_TAUNT); }
   sync(state, f);
   return controls;
 };
@@ -379,6 +399,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
 // Harry: his moves
 
 const nextMove = (f: Fight): Move => {
+  // (without her: no crown, no stuck arm; the walls more often)
+  if (f.crumbled || f.crumble >= 0) { f.queue = f.queue.filter(m => m !== 'crown' && m !== 'stuckWalk'); if (!f.queue.length) f.queue = ['cling', 'walk', 'cling']; return f.queue.shift()!; }
   if (f.arm.st === 'stuck') return 'stuckWalk';
   if (!f.queue.length) f.queue = phase(f) >= 3 ? ['cling', 'cling', 'walk', 'crown'] : ['cling', 'walk', 'crown'];
   return f.queue.shift()!;
@@ -399,6 +421,7 @@ const floorSpot = (state: GameState, f: Fight) => {
 
 const startMove = (ctx: FrameContext, f: Fight, mv: Move) => {
   const { state } = ctx, m = pmid(state).x;
+  if ((f.crumbled || f.crumble >= 0) && (mv === 'crown' || mv === 'stuckWalk')) mv = 'cling';
   f.move = mv; f.moveT = 0;
   if (mv === 'walk' || mv === 'stuckWalk') { setAct(f, 'walk'); f.burstT = 30; f.aim = 0; if (mv === 'walk' && Math.random() < 0.5) bark(f, L.HARRY_FIRE); return; }
   if (mv === 'crown') {
@@ -412,7 +435,7 @@ const startMove = (ctx: FrameContext, f: Fight, mv: Move) => {
   const side: 1 | -1 = kind === 1 ? (nearL ? 1 : -1) : (nearL ? -1 : 1);
   const wx = side < 0 ? ARENA_L + CLING_IN : ARENA_R - CLING_IN;
   f.cling = { side, kind, a0: 0, a1: 0, t: 0, fired: false };
-  leapTo(f, wx, GY - CLING_H, 46, 90, 'cling');
+  leapTo(f, wx, GY - CLING_H, f.crumbled ? 36 : 46, 90, 'cling');
 };
 
 const harry = (ctx: FrameContext, f: Fight) => {
@@ -436,19 +459,24 @@ const harry = (ctx: FrameContext, f: Fight) => {
   }
   switch (f.act) {
     case 'idle':
-      if (f.actT > 20) nextUp(ctx, f);
+      // (her coming apart: he stands and watches it, horrified)
+      if (f.crumble >= 0) { setAct(f, 'await'); f.facing = f.hx < MID ? 1 : -1; break; }
+      if (f.actT > (f.crumbled ? 10 : 20)) nextUp(ctx, f);
+      break;
+    case 'await':
+      if (f.crumble < 0) setAct(f, 'idle');
       break;
     case 'walk': {
       f.facing = m.x < f.hx ? -1 : 1;
       const d = Math.abs(m.x - f.hx), fb = fistBox(f), was = f.hx;
       if (d > WALK_NEAR) {
-        const nx = f.hx + f.facing * WALK_V * (phase(f) >= 3 ? 1.3 : 1);
+        const nx = f.hx + f.facing * WALK_V * (phase(f) >= 3 ? 1.3 : 1) * (f.crumbled ? RAGE_WALK : 1);
         if (!fb || nx + 22 < fb.x0 || nx - 22 > fb.x1) f.hx = Math.max(ARENA_L + 30, Math.min(ARENA_R - 30, nx));
       }
       f.moving = f.hx !== was;
       gunBursts(state, f);
       // (done: a walk's time up; the stuck arm's walk once she's up again)
-      if (f.move === 'walk' && f.moveT > WALK_T && f.burst === 0) setAct(f, 'idle');
+      if (f.move === 'walk' && f.moveT > WALK_T * (f.crumbled ? RAGE_WALK_T : 1) && f.burst === 0) setAct(f, 'idle');
       if (f.move === 'stuckWalk' && f.arm.st === 'up' && f.burst === 0) setAct(f, 'idle');
       break;
     }
@@ -476,7 +504,7 @@ const gunBursts = (state: GameState, f: Fight) => {
       const a = (Math.random() - 0.5) * 0.1 + (state.player.isDucking || state.player.isSliding ? 0.05 : 0);
       f.aim = a;
       fire(state, f, 'walk', a, ROUND_V, ROUND_DMG, 'm2:fl_harry_gun');
-      if (f.burst === 0) f.burstT = BURST_REST[phase(f)];
+      if (f.burst === 0) f.burstT = Math.round(BURST_REST[phase(f)] * (f.crumbled ? RAGE_REST : 1));
     }
     f.firing = true;
     return;
@@ -581,6 +609,9 @@ const windup = (state: GameState, f: Fight) => {
 
 const statue = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, a = f.arm, lib = f.lib, p = state.player;
+  // (gone: nothing; coming apart: that)
+  if (f.crumbled) return;
+  if (f.crumble >= 0) { crumbling(ctx, f); return; }
   a.t++;
   if (lib.face === 'disgust' && !f.barf) lib.face = 'stern';
   switch (a.st) {
@@ -616,6 +647,8 @@ const statue = (ctx: FrameContext, f: Fight) => {
       a.fx = a.tx + Math.sin(a.t * 0.9) * (a.t > STUCK_T - 80 ? 2 : 0.6); a.fy = GY - FIST_H / 2;
       lib.shake = 1.4; lib.face = 'strain';
       if (a.t % 10 === 0) puff(state, a.tx + (Math.random() - 0.5) * FIST_W, GY - 4, 1, '#A8A29E');
+      // (her last smash: she comes apart while it's stuck)
+      if (f.smashes >= STATUE_LIFE && a.t === 30) { startCrumble(ctx, f); break; }
       if (a.t >= STUCK_T) unstick(state, f, false);
       break;
     }
@@ -653,6 +686,57 @@ const armView = (f: Fight) => {
   return { x: a.fx, y: a.fy, smash: 0 };
 };
 
+/** Bits of her knocked off (her copper shell and its concrete), falling down onto the floor in front of her. */
+const chipHer = (state: GameState, f: Fight, n: number) => {
+  for (let i = 0; i < n; i++) {
+    const x = MID + (Math.random() - 0.5) * 560, y = sy(150 + Math.random() * 260) + f.lib.dy;
+    f.chunks.push({ x, y, vx: (Math.random() - 0.5) * 3, vy: -1 - Math.random() * 2, a: Math.random() * 6, va: (Math.random() - 0.5) * 0.3, s: 4 + Math.random() * 9, green: Math.random() < 0.6, down: false });
+    state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 2, y: Math.random() }, life: 50, color: i % 2 ? '#4FAE98' : '#B87333', size: 2 + Math.random() * 2, grav: 0.15 });
+  }
+  if (f.chunks.length > 120) f.chunks.splice(0, f.chunks.length - 120);
+};
+/** Her last smash: she comes apart. Harry down out of her crown to watch it, horrified. */
+const startCrumble = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx;
+  f.crumble = 0;
+  f.lib.face = 'dread';
+  playSound('crack', 1, -10); playSound('rumble', 1, -14); shakeScreen(state, 10, 6);
+  if (!f.barf) {
+    if (f.act === 'crown' || f.leap) leapTo(f, floorSpot(state, f), GY, 46, 70, 'idle', 1);
+    else { f.cling = null; setAct(f, 'await'); f.hy = GY; f.scale = 1; }
+  }
+  harryLine(f, L.HARRY_CRUMBLE);
+};
+/** Coming apart: cracking all over, shaking, bits raining off her; her torch let go; down into the dig in pieces. */
+const crumbling = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, lib = f.lib, a = f.arm, t = ++f.crumble;
+  lib.wear = 1 + Math.min(0.6, t / 120);
+  lib.face = t < 90 ? 'dread' : 'sob';
+  lib.shake = 1.5 + t / 60;
+  if (t % 4 === 0) chipHer(state, f, 2);
+  if (t % 18 === 0) { playSound('crumble', 0.8, -10 + Math.random() * 3); shakeScreen(state, 6, 4); }
+  if (t % 6 === 0) puff(state, VIEW_X + 80 + Math.random() * 640, sy(440), 2, '#A8A29E');
+  if (t === 70) {
+    // (her grip goes: the torch drops where it was stuck, her arm with her)
+    f.torch = { x: Math.max(ARENA_L + 80, Math.min(ARENA_R - 80, a.tx)), y: GY - 40, vy: 0, a: -Math.PI / 2, down: true };
+    playSound('clang', 1, -12); playSound('crash', 0.8, -8); shakeScreen(state, 12, 6);
+    puff(state, a.tx, GY, 12, CONC[4]);
+  }
+  if (t > 70) {
+    // (down she goes, in pieces, tipping a little)
+    const k = Math.min(1, (t - 70) / (CRUMBLE_T - 70));
+    lib.dy = LIB.sink * 1.3 * k * k; lib.tilt = 0.12 * k;
+  }
+  if (t >= CRUMBLE_T) {
+    f.crumble = -1; f.crumbled = true; lib.gone = true; lib.shake = 0; a.st = 'hidden'; a.block = null;
+    playSound('crash', 1, -16); playSound('boom', 1, -18); playSound('crumble', 1, -10); shakeScreen(state, 30, 16);
+    for (let i = 0; i < 40; i++) puff(state, VIEW_X + Math.random() * 800, sy(440 + Math.random() * 60), 1, i % 2 ? '#A8A29E' : '#78716C');
+    f.queue = ['cling', 'walk', 'cling'];
+    meatheadSays(state, pick(L.MH_CRUMBLE), false);
+    bark(f, L.HARRY_ENRAGED);
+  }
+};
+
 /** Down: the hit; stuck (planted, but nothing solid: it only ever hurts landing). */
 const impact = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, a = f.arm, p = state.player;
@@ -673,6 +757,12 @@ const impact = (ctx: FrameContext, f: Fight) => {
   // the floor: nothing to stand on, no wall, no cover from his rounds or his sweeps. a.block stays null: fistBox's
   // null, so his rounds, his walk and his floor spots all go straight through it)
   f.stuckN++;
+  // (her wear: each smash cracks her more, chips flying off her, the patina flaking)
+  f.smashes++; f.lib.wear = Math.min(1, f.smashes / STATUE_LIFE);
+  chipHer(state, f, 4 + f.smashes * 2);
+  playSound('crumble', 0.4 + f.lib.wear * 0.5, -6);
+  // (her last: no rant, she's coming apart)
+  if (f.smashes >= STATUE_LIFE) { if (f.sickOn) { f.sickOn = false; f.sick = 0; } return; }
   // (the rant from the crown, angrier every time; Meathead's word the first time)
   const lvl = L.HARRY_STUCK[Math.min(L.HARRY_STUCK.length - 1, f.stuckN - 1)];
   harryLine(f, lvl, tokened(() => {
@@ -744,8 +834,19 @@ const barfing = (ctx: FrameContext, f: Fight) => {
       break;
     }
     case 'heave':
-      if (b.t === 1) { if (b.first) { f.sickFirst = true; harryLine(f, L.HARRY_SICK_FIRST); } else bark(f, L.HARRY_SICK); }
+      if (b.t === 1) {
+        // (without her: grief on top of the airsickness)
+        if (f.crumbled) harryLine(f, L.HARRY_GRIEF_SICK, tokened(() => { if (griefSaidVisit !== landVisit()) { griefSaidVisit = landVisit(); meatheadSays(state, L.MH_GRIEF_PUKE, false); } }));
+        else if (b.first) { f.sickFirst = true; harryLine(f, L.HARRY_SICK_FIRST); } else bark(f, L.HARRY_SICK);
+      }
       if (b.t % 18 === 6) playSound('retch', 0.8, -2);
+      if (b.t >= 56 && f.crumbled) {
+        // (nobody to puke on: doubled over, puking his guts out on the floor; wide open)
+        go('grief'); setAct(f, 'heave');
+        f.puddle = { x: f.hx + f.facing * 46, k: f.puddle ? Math.min(f.puddle.k, 0.5) : 0 };
+        playSound('barf', 1, -2); playSound('gush', 0.7, 2);
+        break;
+      }
       if (b.t >= 56) {
         go('spew'); setAct(f, 'spew');
         // (turned to her; she's standing for it, stuck or not)
@@ -781,7 +882,7 @@ const barfing = (ctx: FrameContext, f: Fight) => {
         playSound('splat', 1, -10); playSound('crunch', 0.8, -8); shakeScreen(state, 10, 5);
         f.barfs++;
         f.piles.push({ x: f.hx, k: 0 }); if (f.piles.length > 4) f.piles.shift();
-        if (f.hp <= 0) { die(ctx, f, true); return; }
+        if (f.hp <= 0) { die(ctx, f, 'buried'); return; }
         harryLine(f, L.HARRY_CONCRETED, tokened(() => { if (concreteSaidVisit !== landVisit()) { concreteSaidVisit = landVisit(); meatheadSays(state, pick(L.MH_CONCRETE), false); } }));
       }
       // (the splash on the floor round him: Meathead in it)
@@ -795,6 +896,23 @@ const barfing = (ctx: FrameContext, f: Fight) => {
       }
       if (b.t % 3 === 0) state.particles.push({ pos: { x: f.hx + (Math.random() - 0.5) * 40, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 26, color: CONC[3 + (b.t % 2)], size: 3 + Math.random() * 3, grav: 0.35 });
       if (b.t >= 70) { go('daze'); setAct(f, 'concreted'); lib.face = 'stern'; lib.shake = 0; }
+      break;
+    }
+    case 'grief': {
+      // (puking and sobbing; every hit a big one; it takes it out of him)
+      f.green = 1;
+      if (b.t % 22 === 4) playSound(b.t % 44 === 4 ? 'barf' : 'retch', 0.8, -2 + Math.random() * 2);
+      if (b.t % 3 === 0) state.particles.push({ pos: { x: f.hx + f.facing * 40, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 24, color: PUKE[b.t % 3], size: 2 + Math.random() * 3, grav: 0.35 });
+      if (f.puddle) f.puddle.k = Math.min(1, f.puddle.k + 1 / GRIEF_T);
+      f.hp -= GRIEF_DRAIN / GRIEF_T;
+      if (b.t % 50 === 25) ctx.fx.spawnDamageNumber({ x: f.hx - 10, y: f.hy - 100 }, Math.round(GRIEF_DRAIN / 4), false);
+      if (f.hp <= 0) { die(ctx, f, 'barfed'); return; }
+      if (b.t >= GRIEF_T) {
+        f.barf = null; f.sickOn = false; f.sick = 0; f.green = 0;
+        f.queue = ['cling'];
+        setAct(f, 'idle');
+        bark(f, L.HARRY_ENRAGED);
+      }
       break;
     }
     case 'daze':
@@ -829,7 +947,9 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (plain === null && state.player.currentWeapon !== 'CROSSBOW' && f.barfs === 0 && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.total - f.hintAt > HINT_GAP) {
     f.hintAt = f.total; meatheadSays(state, pick(L.MH_HINT), false);
   }
-  hurt(ctx, f, plain ?? Math.max(1, dealt * SHARE), IFRAMES);
+  // (puking his guts out, without her: wide open, every hit a big one)
+  const base = plain ?? Math.max(1, dealt * SHARE);
+  hurt(ctx, f, f.barf?.stage === 'grief' ? Math.max(GRIEF_HIT, base) : base, IFRAMES);
 };
 
 const hurt = (ctx: FrameContext, f: Fight, dmg: number, iframes: number) => {
@@ -844,7 +964,8 @@ const hurt = (ctx: FrameContext, f: Fight, dmg: number, iframes: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Dying, and her
 
-const die = (ctx: FrameContext, f: Fight, buried: boolean) => {
+const die = (ctx: FrameContext, f: Fight, how: How) => {
+  const weak = how !== 'spin';
   const { state } = ctx, p = state.player;
   if (f.mode === 'dead') return;
   token++;
@@ -857,10 +978,11 @@ const die = (ctx: FrameContext, f: Fight, buried: boolean) => {
   f.cling = null; f.leap = null; f.barf = null;
   f.skipT = 0;
   // (her arm up, whatever it was at)
-  if (f.arm.st === 'stuck') unstick(state, f, true);
+  if (f.crumbled || f.crumble >= 0) { /* (she's gone, or going: no arm to put up) */ }
+  else if (f.arm.st === 'stuck') unstick(state, f, true);
   else if (f.arm.st === 'wind' || f.arm.st === 'drop') { f.arm.from = { x: f.arm.fx, y: f.arm.fy }; f.arm.st = 'snap'; f.arm.t = 0; }
-  f.death = { how: buried ? 'buried' : 'spin', t: 0, step: f.hy < GY - 2 ? 'fall' : 'start', at: 0, x: f.hx, y: f.hy, vy: 0, spin: 0, spinV: 0.32, mound: 0, st: 'wait', stT: 0, fade: 0, lineDone: false };
-  if (buried) { f.cam = { t: 0, acc: 0, z: 1, out: false }; playSound('splat', 1, -12); }
+  f.death = { how, t: 0, step: f.hy < GY - 2 ? 'fall' : 'start', at: 0, x: f.hx, y: f.hy, vy: 0, spin: 0, spinV: 0.32, mound: 0, st: 'wait', stT: 0, fade: 0, lineDone: false };
+  if (weak) { f.cam = { t: 0, acc: 0, z: 1, out: false }; playSound(how === 'barfed' ? 'barf' : 'splat', 1, -12); }
   else { playSound('hurt', 0.8, -4); harryLine(f, L.HARRY_DEATH, tokened(() => { if (f.death) f.death.lineDone = true; })); }
 };
 
@@ -868,10 +990,14 @@ const die = (ctx: FrameContext, f: Fight, buried: boolean) => {
 const skipToEnd = (state: GameState, f: Fight) => {
   const d = f.death!;
   token++; silenceAll(); state.playerVulgarityTimer = 0; f.said = null;
-  d.step = d.how === 'buried' ? 'set' : 'still'; d.x = f.hx; d.y = GY; d.mound = 1; d.st = 'gone'; d.stT = 999; d.fade = 0;
+  d.step = d.how !== 'spin' ? 'set' : 'still'; d.x = f.hx; d.y = GY; d.mound = 1; d.st = 'gone'; d.stT = 999; d.fade = 0;
   f.lib.gone = true; f.lib.broken = 1; f.chunks = [];
-  f.torch = { x: TORCH_X, y: GY - 40, vy: 0, a: -Math.PI / 2, down: true };
-  f.gunDrop = { x: GUN_X, y: GY - 40, vy: 0, a: 0, down: true };
+  if (!f.crumbled) {
+    f.torch = { x: TORCH_X, y: GY - 40, vy: 0, a: -Math.PI / 2, down: true };
+    f.gunDrop = { x: GUN_X, y: GY - 40, vy: 0, a: 0, down: true };
+  }
+  f.crumble = -1;
+  if (f.puddle && d.how === 'barfed') f.puddle.k = 1;
   f.barf = null; f.cam = null; f.deathSaid = 4; d.t = Math.max(d.t, 400);
 };
 
@@ -884,7 +1010,10 @@ const dying = (ctx: FrameContext, f: Fight): Controls => {
   f.skipT++;
   if (f.deathSaid < 4 && f.skipT > SKIP_AFTER) { offerSkip(); if (takeSkip()) { skipToEnd(state, f); return hands(); } }
   const t = d.t;
-  if (d.how === 'buried') {
+  // (her collapse, if it was going, plays on out)
+  if (f.crumble >= 0) crumbling(ctx, f);
+  if (d.how === 'barfed') barfedToDeath(ctx, f, d, t);
+  else if (d.how === 'buried') {
     // (the pour goes on: down on his face, the mound building over him, just his feet out; kicking; set)
     f.lib.face = d.mound < 1 ? 'puke' : f.lib.face; f.concrete = 1;
     if (d.step === 'start' || d.step === 'fall') { d.step = 'pour'; d.at = t; }
@@ -896,7 +1025,7 @@ const dying = (ctx: FrameContext, f: Fight): Controls => {
       if (d.mound >= 1 && d.lineDone) { d.step = 'set'; d.at = t; f.lib.face = 'sad'; playSound('crumble', 0.6, -6); if (f.cam) f.cam.out = true; }
       if (t > 600) { d.step = 'set'; d.at = t; if (f.cam) f.cam.out = true; }
     }
-    if (d.step === 'set' && d.st === 'wait' && t - d.at > 50) { d.st = 'look'; d.stT = 0; }
+    if (d.step === 'set' && d.st === 'wait' && t - d.at > 50 && f.crumble < 0) { d.st = f.crumbled ? 'gone' : 'look'; d.stT = 0; }
   } else {
     switch (d.step) {
       case 'fall':
@@ -928,7 +1057,7 @@ const dying = (ctx: FrameContext, f: Fight): Controls => {
         if (t - d.at > 70) { d.step = 'still'; d.at = t; }
         break;
       case 'still':
-        if (d.st === 'wait' && t - d.at > 40 && (d.lineDone || quiet(f))) { d.st = 'look'; d.stT = 0; }
+        if (d.st === 'wait' && t - d.at > 40 && (d.lineDone || quiet(f)) && f.crumble < 0) { d.st = f.crumbled ? 'gone' : 'look'; d.stT = 0; }
         break;
     }
   }
@@ -936,6 +1065,58 @@ const dying = (ctx: FrameContext, f: Fight): Controls => {
   if (t > 3000) f.deathSaid = 4;
   return hands();
 };
+
+/**
+ * His third death (the weakness without her: the user's "BARF TO DEATH"): down on his knees by her rubble, retching and
+ * sobbing; it gushes out of him in heaves, each bigger (green-brown, then bloody); he deflates, goes pale; keels over
+ * face first into the puddle and gurgles; one last heave, a twitch; and he lies there in it.
+ */
+const BARF_HEAVES = 4, HEAVE_T = 46;
+const barfedToDeath = (ctx: FrameContext, f: Fight, d: Death, t: number) => {
+  const { state } = ctx;
+  if (d.step === 'start' || d.step === 'fall') { d.step = 'kneel'; d.at = t; d.x = f.hx; d.y = GY; f.scale = 1; f.puddle = f.puddle ?? { x: f.hx + f.facing * 46, k: 0 }; f.puddle.x = f.hx + f.facing * 46; }
+  const u = t - d.at, pd = f.puddle!;
+  switch (d.step) {
+    case 'kneel':
+      if (u === 8) { playSound('thud', 0.9, -6); puff(state, d.x, GY, 6, CONC[4]); }
+      if (u === 14) playSound('bellow', 0.5, 8);
+      if (u >= 44) { d.step = 'heave'; d.at = t; }
+      break;
+    case 'heave': {
+      const n = Math.floor(u / HEAVE_T), k = u % HEAVE_T;
+      if (k === 1) { playSound('barf', 0.8 + n * 0.1, -2 - n * 3); playSound('gush', 0.6 + n * 0.12, -n * 2); shakeScreen(state, 3 + n * 2, 3); }
+      if (k < 28) {
+        pd.k = Math.min(1, pd.k + (0.25 + n * 0.1) / 28);
+        const cols = n < 2 ? PUKE : BLOODY;
+        if (k % 2 === 0) state.particles.push({ pos: { x: pd.x + (Math.random() - 0.5) * 30, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * (4 + n * 2), y: -1 - Math.random() * (2 + n) }, life: 26, color: cols[(k >> 1) % cols.length], size: 2 + Math.random() * (3 + n), grav: 0.35 });
+      } else if (k === 34) playSound('bellow', 0.4, 6 - n * 2);
+      if (u >= BARF_HEAVES * HEAVE_T) { d.step = 'pale'; d.at = t; harryLine(f, L.HARRY_BARF_DEATH, tokened(() => { d.lineDone = true; })); }
+      break;
+    }
+    case 'pale':
+      if (u >= 70) { d.step = 'keel'; d.at = t; }
+      break;
+    case 'keel':
+      if (u === 22) { playSound('splat', 1, -10); playSound('glug', 0.8, -8); for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: pd.x, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 4 }, life: 30, color: i % 2 ? PUKE[1] : BLOODY[1], size: 2 + Math.random() * 3, grav: 0.35 }); }
+      if (u >= 30) { d.step = 'gurgle'; d.at = t; }
+      break;
+    case 'gurgle':
+      if (u % 16 === 0) playSound('glug', 0.5, -4 - (u % 3));
+      if (u >= 90 && (d.lineDone || quiet(f) || u > 400)) { d.step = 'last'; d.at = t; }
+      break;
+    case 'last':
+      if (u === 12) { playSound('barf', 0.6, -10); pd.k = Math.min(1, pd.k + 0.05); }
+      if (u >= 60) {
+        d.step = 'set'; d.at = t; d.lineDone = true;
+        if (f.cam) f.cam.out = true;
+        ctx.fx.spawnDamageNumber({ x: d.x - 60, y: GY - 120 }, pick(L.BARFED_CAPTION), true, '#BEF264');
+      }
+      break;
+  }
+  if (t > 1400 && d.step !== 'set') { d.step = 'set'; d.at = t; if (f.cam) f.cam.out = true; }
+  if (d.step === 'set' && d.st === 'wait' && t - d.at > 50 && f.crumble < 0) { d.st = f.crumbled ? 'gone' : 'look'; d.stT = 0; }
+};
+const BLOODY = ['#450A0A', '#7F1D1D', '#B91C1C', '#5B3A1A'];
 
 /** Her arm, while it's not the fight's any more (up, then the beats' business). */
 const statueArmOnly = (f: Fight) => {
@@ -1021,7 +1202,7 @@ const heartbroken = (ctx: FrameContext, f: Fight, d: Death) => {
       break;
     }
     case 'gone':
-      if (t === 70) meatheadSays(state, pick(d.how === 'buried' ? L.MH_WON_WEAK : L.MH_WON), true, tokened(() => { f.deathSaid = 4; }));
+      if (t === 70) meatheadSays(state, pick(d.how === 'barfed' ? L.MH_WON_BARFED : d.how === 'buried' ? L.MH_WON_WEAK : f.crumbled ? L.MH_WON_ALONE : L.MH_WON), true, tokened(() => { f.deathSaid = 4; }));
       if (t > 900) f.deathSaid = 4;
       break;
   }
@@ -1043,7 +1224,7 @@ export const endFight = (state: GameState, f: Fight) => {
   if (f.arm.block) { const b = f.arm.block; state.blocks = state.blocks.filter(q => q !== b); f.arm.block = null; }
   live = null;
 };
-export const killedByWeakness = (f: Fight) => f.death?.how === 'buried';
+export const killedByWeakness = (f: Fight) => !!f.death && f.death.how !== 'spin';
 
 /** The enemy, where he is (in the crown: just the window's worth of him). */
 const sync = (state: GameState, f: Fight) => {
@@ -1125,6 +1306,7 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
   const d = f.death;
   if (f.mode === 'dead' && d) {
     if (d.how === 'buried') { drawBuried(c, d.x, d.mound, fr, d.step === 'set' ? d.t - d.at : 0); return; }
+    if (d.how === 'barfed') { drawBarfed(c, f, d, fr); return; }
     if (d.step === 'fall') { drawRambo(c, d.x, d.y, { pose: 'fall', f: fr, facing: f.facing, rot: d.t * 0.2, scale: f.scale }); return; }
     if (d.step === 'start') { drawRambo(c, d.x, GY, { pose: 'hurt', f: fr, facing: f.facing, talking: !!f.said }); return; }
     // (on his back: turned about his hips; spinning: seen from the side, he flips side to side)
@@ -1149,6 +1331,49 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
   c.globalAlpha = 1;
 };
 
+/** His own puke on the floor: a pool in steps, its middle going red the bloodier it got. */
+const drawPuddle = (c: Ctx, x: number, k: number, bloody: number) => {
+  if (k <= 0.02) return;
+  const w = 24 + 90 * k, h = 4 + 7 * k;
+  c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(x, GY - 1, w + 2, h + 2, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = PUKE[0]; c.beginPath(); c.ellipse(x, GY - 1, w, h, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = PUKE[1]; c.beginPath(); c.ellipse(x - w * 0.1, GY - 2, w * 0.7, h * 0.6, 0, 0, Math.PI * 2); c.fill();
+  if (bloody > 0) { c.fillStyle = BLOODY[1]; c.beginPath(); c.ellipse(x + w * 0.1, GY - 1, w * 0.5 * bloody, h * 0.55 * bloody, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = BLOODY[2]; c.fillRect(x - w * 0.2, GY - 3, w * 0.25 * bloody, 2); }
+  c.fillStyle = PUKE[3]; c.fillRect(x - w * 0.5, GY - h * 0.6, w * 0.3, 2);
+};
+/** Barfed to death: kneeling over the pool heaving; pale; face first into it; gurgling; still. */
+const drawBarfed = (c: Ctx, f: Fight, d: Death, fr: number) => {
+  const pd = f.puddle, u = d.t - d.at, heaves = d.step === 'heave' ? Math.floor(u / HEAVE_T) : 0;
+  const bloody = d.step === 'kneel' ? 0 : d.step === 'heave' ? Math.max(0, (heaves - 1) / 3) : 1;
+  if (pd) drawPuddle(c, pd.x, pd.k, bloody);
+  const pale = d.step === 'pale' ? Math.min(1, u / 60) : d.step === 'kneel' || d.step === 'heave' ? 0 : 1;
+  const face = f.facing;
+  if (d.step === 'kneel' || d.step === 'heave' || d.step === 'pale') {
+    // (on his knees: what's under the floor line's not drawn; hunched, heaving, deflating)
+    const sink = Math.min(1, (d.step === 'kneel' ? u : 99) / 10) * 22, k = d.step === 'heave' ? u % HEAVE_T : 99;
+    const lean = 0.45 + (k < 28 ? Math.sin(k * 0.5) * 0.12 + 0.15 : 0) + pale * 0.15;
+    c.save(); c.beginPath(); c.rect(d.x - 200, GY - 400, 400, 400); c.clip();
+    drawRambo(c, d.x, GY + sink, { pose: 'sick', f: fr, facing: face, lean, scale: 1 - pale * 0.06, green: 1 - pale * 0.5, concrete: pale * 0.35, talking: !!f.said });
+    c.restore();
+    if (d.step === 'heave' && k > 2 && k < 30) {
+      const m = mouthAt(lean, 1, face), sx = d.x + m.x, syy = GY + sink + m.y, ex = pd ? pd.x : d.x + face * 46;
+      const cols = heaves < 2 ? PUKE : BLOODY;
+      stream(c, sx, syy, (sx + ex) / 2 + face * 20, syy + 6, ex, GY - 4, 7 + heaves * 3, cols, fr, true);
+    }
+    return;
+  }
+  // (over, face first into it; the gurgle's bubbles; the twitch)
+  const k = d.step === 'keel' ? Math.min(1, u / 22) : 1;
+  const tw = d.step === 'last' && u < 24 ? Math.sin(u * 1.4) * 3 : 0;
+  c.save(); c.translate(d.x + tw, GY + 30 * k);
+  drawRambo(c, 0, 0, { pose: k >= 1 ? 'dead' : 'sick', f: fr, facing: face, rot: (Math.PI / 2) * k * face, dead: k >= 1, green: 0.5, concrete: 0.35 });
+  c.restore();
+  if (pd && (d.step === 'gurgle' || d.step === 'last')) for (let i = 0; i < 3; i++) {
+    const ph = ((fr * 0.04 + i / 3) % 1), bx = d.x + face * (60 + i * 8), by = GY - 4 - ph * 14;
+    c.globalAlpha = 1 - ph; c.strokeStyle = PUKE[3]; c.lineWidth = 1.5; c.beginPath(); c.arc(bx, by, 2 + ph * 3, 0, Math.PI * 2); c.stroke(); c.globalAlpha = 1;
+  }
+};
+
 /** Buried in her concrete: a mound over him, face down, just his socks and sandals sticking out, kicking (then not). */
 const drawBuried = (c: Ctx, x: number, k: number, fr: number, setT: number) => {
   const set = Math.min(1, setT / 120);
@@ -1170,6 +1395,46 @@ const drawBuried = (c: Ctx, x: number, k: number, fr: number, setT: number) => {
   c.fillStyle = col; c.fill(); c.strokeStyle = '#1A0B06'; c.lineWidth = 2; c.stroke();
   c.fillStyle = lite; c.fillRect(x - w * 0.5, GY - h * 0.8, w * 0.5, 4); c.fillRect(x - w * 0.3, GY - h * 0.55, 10, 3);
   if (set < 1) for (let i = 0; i < 4; i++) { c.fillStyle = CONC[2]; c.fillRect(x - w * 0.6 + i * 20, GY - h * 0.6 + ((fr * 0.3 + i * 5) % 14), 3, 6); }
+  // (the user: "some of his limbs stick out along with blood") Out of the top, his arm, clawing up, then set hard
+  // flipping the bird; out the near slope, the top of his head and the bandana's knot; the blood seeping out through the
+  // cracks as it sets, down the mound into a pool round its foot, red-stained chunks)
+  if (k < 0.35) return;
+  const up = Math.min(1, (k - 0.35) / 0.4), claw = set < 1 ? Math.sin(fr * 0.35) * 4 * (1 - set) : 0;
+  const ax = x - 18, ay = GY - h + 6, ex = ax - 8 + claw, ey = ay - 30 * up, hx2 = ex - 2 + claw * 0.5, hy2 = ey - 26 * up;
+  c.lineCap = 'round';
+  c.strokeStyle = '#1A0B06'; c.lineWidth = 13; c.beginPath(); c.moveTo(ax, ay); c.lineTo(ex, ey); c.lineTo(hx2, hy2); c.stroke();
+  c.strokeStyle = '#C98E66'; c.lineWidth = 9; c.beginPath(); c.moveTo(ax, ay); c.lineTo(ex, ey); c.lineTo(hx2, hy2); c.stroke();
+  c.strokeStyle = '#F2C9A6'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(ax - 3, ay); c.lineTo(ex - 3, ey); c.lineTo(hx2 - 3, hy2); c.stroke();
+  // (the fist, the middle finger up once it's set; clawing before)
+  c.fillStyle = '#1A0B06'; c.fillRect(hx2 - 8, hy2 - 9, 16, 13); c.fillStyle = '#C98E66'; c.fillRect(hx2 - 7, hy2 - 8, 14, 11); c.fillStyle = '#E2AC84'; c.fillRect(hx2 - 7, hy2 - 8, 14, 3);
+  if (set > 0.3) { c.fillStyle = '#1A0B06'; c.fillRect(hx2 - 3, hy2 - 24, 7, 17); c.fillStyle = '#E2AC84'; c.fillRect(hx2 - 2, hy2 - 23, 5, 16); c.fillStyle = '#F2C9A6'; c.fillRect(hx2 - 2, hy2 - 23, 5, 2); }
+  else for (let i = 0; i < 3; i++) { c.fillStyle = '#1A0B06'; c.fillRect(hx2 - 7 + i * 5, hy2 - 15 + Math.abs(claw), 4, 8); c.fillStyle = '#C98E66'; c.fillRect(hx2 - 6 + i * 5, hy2 - 14 + Math.abs(claw), 2, 6); }
+  c.fillStyle = CONC[3]; c.fillRect(ax - 9, ay - 2, 18, 5);
+  // (the top of his head out the near slope: gray hair, the red bandana's knot and tails)
+  const tx = x - w * 0.62, ty = GY - h * 0.42;
+  c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(tx, ty, 15, 10, -0.5, Math.PI, Math.PI * 2); c.fill();
+  c.fillStyle = '#9CA3AF'; c.beginPath(); c.ellipse(tx, ty, 13, 8, -0.5, Math.PI, Math.PI * 2); c.fill();
+  c.fillStyle = '#DC2626'; c.fillRect(tx - 12, ty - 6, 22, 4); c.fillRect(tx + 8, ty - 9, 5, 5);
+  c.fillRect(tx + 12, ty - 12 + Math.sin(fr * 0.2) * 2, 9, 3); c.fillRect(tx + 12, ty - 6 + Math.sin(fr * 0.2 + 1) * 2, 8, 3);
+  // (the blood: out through the cracks, down the slopes, pooling round its foot, chunks stained)
+  const bleed = Math.min(1, Math.max(0, k - 0.6) + setT / 160);
+  if (bleed <= 0) return;
+  const BL = ['#2A0404', '#5A0A0A', '#8B1010', '#B91C1C'];
+  c.fillStyle = BL[0]; c.beginPath(); c.ellipse(x - 6, GY - 1, (w + 14) * bleed, 7 * bleed + 1, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = BL[1]; c.beginPath(); c.ellipse(x - 10, GY - 1, (w + 4) * bleed, 5 * bleed + 1, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = BL[2]; c.fillRect(x - w * 0.6 * bleed, GY - 3, w * 0.5 * bleed, 2);
+  // (re-edge the mound's foot over the pool)
+  c.strokeStyle = '#1A0B06'; c.lineWidth = 2; c.beginPath(); c.moveTo(x - w, GY); c.quadraticCurveTo(x - w * 0.7, GY - h * 0.9, x - 10, GY - h); c.quadraticCurveTo(x + w * 0.5, GY - h * 0.9, x + w * 0.8, GY); c.stroke();
+  for (const [cx, cy, len] of [[-0.45, 0.7, 0.55], [0.2, 0.8, 0.7], [-0.15, 0.55, 0.45], [0.5, 0.45, 0.4]] as const) {
+    const sx = x + w * cx, sy0 = GY - h * cy, L2 = h * len * bleed;
+    c.strokeStyle = BL[0]; c.lineWidth = 2; c.beginPath(); c.moveTo(sx - 6, sy0 - 4); c.lineTo(sx, sy0); c.lineTo(sx + 5, sy0 - 6); c.stroke();
+    c.fillStyle = BL[2]; c.fillRect(sx - 1, sy0, 3, L2); c.fillStyle = BL[3]; c.fillRect(sx - 1, sy0, 1, L2 * 0.6);
+    c.fillStyle = BL[1]; c.beginPath(); c.arc(sx + 0.5, sy0 + L2, 2.5, 0, Math.PI * 2); c.fill();
+  }
+  for (const [cx, s2] of [[-1.05, 7], [0.9, 6], [-0.8, 5], [1.05, 4]] as const) {
+    const bx = x + w * cx * Math.min(1, bleed + 0.4);
+    c.fillStyle = '#1A0B06'; c.fillRect(bx - s2 - 1, GY - s2 - 1, s2 * 2 + 2, s2 + 1); c.fillStyle = CONC[3]; c.fillRect(bx - s2, GY - s2, s2 * 2, s2); c.fillStyle = BL[2]; c.fillRect(bx - s2, GY - s2, s2 * 2, 2); c.fillRect(bx - s2 * 0.4, GY - s2 + 2, 2, s2 - 2);
+  }
 };
 
 /** The streams: his puke up onto her, her concrete down onto him. */
@@ -1181,6 +1446,10 @@ const drawStreams = (c: Ctx, f: Fight, fr: number) => {
     const u = Math.min(1, (b.t - 4) / 12), ex = sx + (tx - sx) * u, ey = syy + (ty - syy) * u;
     const cx = (sx + ex) / 2, cy = Math.min(syy, ey) - 60 * u;
     stream(c, sx, syy, cx, cy, ex, ey, 9, PUKE, fr, b.t < 64);
+  }
+  if (b && b.stage === 'grief' && b.t % 22 < 16) {
+    const lean = 0.38, m = mouthAt(lean, f.scale, f.facing), sx = f.hx + m.x, syy = f.hy + m.y, ex = f.puddle ? f.puddle.x : f.hx + f.facing * 46;
+    stream(c, sx, syy, (sx + ex) / 2 + f.facing * 16, syy + 6, ex, GY - 4, 8, PUKE, fr, true);
   }
   const pouring = (b && b.stage === 'pour') || (d && d.how === 'buried' && d.step === 'pour');
   if (pouring) {
@@ -1208,6 +1477,8 @@ const drawQueasy = (c: Ctx, f: Fight) => {
   if (f.mode !== 'on' || (f.sick <= 0.05 && !f.sickOn) || f.act === 'crown') return;
   const k = f.sickOn ? 1 : f.sick / SICK_AT, x = f.hx - 22, y = f.hy - 112 * f.scale;
   box(c, x - 1, y - 1, 46, 7, '#1A0B06'); box(c, x, y, 44 * k, 5, f.sickOn ? '#BEF264' : '#84CC16');
+  // (a notch a dart)
+  for (let i = 1; i < SICK_AT; i++) box(c, x + Math.round((44 * i) / SICK_AT), y, 1, 5, 'rgba(26, 11, 6, 0.55)');
   label(c, 'QUEASY', f.hx, y - 4, '#BEF264', 6);
 };
 
@@ -1247,6 +1518,8 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     c.fillStyle = CONC[2]; c.beginPath(); c.ellipse(pl.x, GY, w, h, 0, Math.PI, Math.PI * 2); c.fill();
     c.fillStyle = CONC[3]; c.fillRect(pl.x - w * 0.4, GY - h * 0.7, w * 0.4, 3);
   }
+  // (his own puke on the floor, while he's alive to make it)
+  if (f.puddle && !(f.death && f.death.how === 'barfed')) drawPuddle(c, f.puddle.x, f.puddle.k, 0);
   // (the windup's mark on the floor: following him, then locked, red)
   if (a.st === 'wind' || a.st === 'drop') {
     const u = a.st === 'drop' ? 1 : a.t / a.T, locked = u >= TRACK, col = locked ? (fr % 8 < 4 ? '#EF4444' : '#FDE047') : 'rgba(239, 68, 68, 0.6)';

@@ -188,6 +188,45 @@ export const HARRY_FOLLOWUP: ByPants = {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// Her smashed to pieces (the user: "if the statue of liberty smashes enough times it will crumble and fall apart"),
+// and him after: enraged, and sick with grief on top of the airsickness
+
+/** She's coming apart: horrified, then furious. */
+export const HARRY_CRUMBLE: ByPants = {
+  clean: ['NO. NO NO NO. LADY? LADY! HOLD TOGETHER! THAT IS AN ORDER!', "DON'T YOU DARE FALL APART ON ME! NOT NOW! NOT IN FRONT OF HIM!", 'LADY! SHE WAS A HUNDRED AND THIRTY YEARS OLD, YOU MOTHERFUCKER!'],
+  shitty: ["LADY! NO! DON'T LEAVE ME HERE WITH THE SHITTY ONE!", 'SHE CRACKED! SHE SMELLED HIM AND SHE CRACKED!'],
+  nude: ["LADY! NO! YOU CAN'T LEAVE ME ALONE WITH A NAKED MAN!", 'SHE CRACKED! SHE SAW HIM NAKED AND SHE CRACKED!'],
+};
+/** Without her: enraged (his taunts now). */
+export const HARRY_ENRAGED: ByPants = {
+  clean: [
+    'YOU KILLED LADY LIBERTY, YOU SON OF A BITCH!', "SHE'S GONE! AND YOU'RE NEXT, MOTHERFUCKER!", 'I DIDN\'T NEED HER! I NEVER NEEDED HER!',
+    'ONE MAN ARMY NOW, COCKSUCKER! JUST ME AND MY RAGE!', "THAT WAS A NATIONAL MONUMENT, YOU DIPSHIT! THAT'S A FEDERAL CRIME!",
+    'I SAID HORRIBLE THINGS TO HER! AND IT\'S YOUR FAULT!', "NO MORE MISTER NICE HIPPIE! THERE WASN'T ONE! BUT NOW THERE'S EVEN LESS!",
+  ],
+  shitty: ['YOU SHAT ON A GRAVE! HER GRAVE!', "SHE DIED SMELLING YOU! I'LL AVENGE THAT TOO!"],
+  nude: ['SHE DIED LOOKING AT YOUR DICK! I WILL AVENGE HER!', "THE LAST THING SHE SAW WAS YOU NAKED! YOU MONSTER!"],
+};
+/** The crossbow again, without her: grief and airsickness, sobbing while he retches. */
+export const HARRY_GRIEF_SICK: ByPants = {
+  clean: [
+    "I'M NOT CRYING! IT'S THE AIRSICK! BLEARGH!", 'SHE WAS THE ONLY ONE WHO LISTENED! BLEARGH!', 'LIBERTY... BLEARGH!',
+    "I NEVER TOLD HER I LOVED HER... HURK... I TOLD HER SHE WAS FRENCH!", 'SHE HAD SUCH A NICE TORCH... BLEARGH!',
+    "WHY'D YOU LEAVE ME, LADY... HURK... I GOT NOBODY TO YELL AT!",
+  ],
+  shitty: ["I'M NOT CRYING! IT'S YOUR SMELL! AND THE AIRSICK! BLEARGH!", 'SHE WOULD HAVE HATED THIS SMELL... BLEARGH!'],
+  nude: ["I'M NOT CRYING! IT'S THE NAKED! AND THE AIRSICK! BLEARGH!", 'SHE DIED SO SHE WOULDN\'T HAVE TO SEE THAT... BLEARGH!'],
+};
+/** Barfed to death (the weakness death without her): pale, empty, about to go over into it. */
+export const HARRY_BARF_DEATH: ByPants = {
+  clean: ["LADY... I'M COMING... SAVE ME A... HURK... GLRRK... AMERICAAA...", "THERE'S NOTHING LEFT... THAT WAS MY SPLEEN... GLRRK...", 'NOT LIKE THIS... NOT LIKE A ROCK STAR... BLUB...'],
+  shitty: ['STILL SMELLS BETTER... THAN HIM... HURK... BLUB...', 'DYING IN MY OWN PUKE... NEXT TO HIS SHIT... GLRRK...'],
+  nude: ["AT LEAST... I CAN'T SEE HIM... FROM DOWN HERE... BLUB...", 'LAST THING I SEE... MY OWN PUKE... STILL BETTER THAN THAT... GLRRK...'],
+};
+/** Over him once it's done (the weakness death without her). */
+export const BARFED_CAPTION = ['PUKED HIMSELF TO DEATH!', 'DEATH BY BARF!', 'GRIEF-PUKED TO DEATH!'];
+
+// ---------------------------------------------------------------------------------------------------------------
 // His deaths: the machine gun's recoil spinning him round on his back (any way but the weakness), and buried in her
 // concrete puke (the plague crossbow's)
 
@@ -218,6 +257,13 @@ export const MH_CONCRETE = ['SHE PUKES CONCRETE.', "THAT'S GONNA SET."];
 /** It's over (after her). */
 export const MH_WON = ['...WELL. THAT\'S AMERICA.', 'SHE REALLY LOVED THAT ASSHOLE.'];
 export const MH_WON_WEAK = ['SHOULD HAVE TAKEN YOUR PILLS.', 'SHE REALLY LOVED THAT ASSHOLE.'];
+/** She's crumbled (once). */
+export const MH_CRUMBLE = ['SHE SMASHED HERSELF TO PIECES.', 'MADE IN FRANCE.'];
+/** The grief puke (once). */
+export const MH_GRIEF_PUKE = 'GRIEF PUKE. NEVER SEEN THAT.';
+/** It's over, without her. */
+export const MH_WON_ALONE = ["...WELL. THAT'S AMERICA.", 'NOW THEY CAN BE RUBBLE TOGETHER.'];
+export const MH_WON_BARFED = ['SHOULD HAVE TAKEN YOUR PILLS.', 'PUKED HIMSELF TO DEATH. VERY ROCK AND ROLL.'];
 /** A grab at Harry (the grab's pool for his kind). */
 export const GRAB_HARRY = ["HE'S ALL OILED UP!", "CAN'T GET A GRIP! IT'S ALL MUSCLE!", 'HE SMELLS LIKE PATCHOULI AND GUN OIL!'];
 
@@ -249,12 +295,13 @@ export const HURT: HurtTable = {
 
 const levels = (l: ByPants[]) => l.flatMap(allOf);
 export const VOICE_LINES = pavilionVoices({ pa: { clean: [], shitty: [], nude: [] }, arrive: [], gags: [] }, HURT, [], {
-  meathead: [...MH_IMPRESSED, MH_ABACK, ...MH_HINT, ...MH_STUCK, ...MH_CONCRETE, ...MH_WON, ...MH_WON_WEAK, ...GRAB_HARRY],
+  meathead: [...MH_IMPRESSED, MH_ABACK, ...MH_HINT, ...MH_STUCK, ...MH_CONCRETE, ...MH_WON, ...MH_WON_WEAK, ...GRAB_HARRY, ...MH_CRUMBLE, MH_GRIEF_PUKE, ...MH_WON_ALONE, ...MH_WON_BARFED],
   [HARRY]: [
     ...allOf(HARRY_QUEASY), ...allOf(HARRY_RIP), ...allOf(HARRY_RANT), ...allOf(HARRY_SUMMON), HARRY_MONUMENT,
     ...allOf(HARRY_TAUNT), ...allOf(HARRY_FIRE), ...allOf(HARRY_CROWN), ...levels(HARRY_STUCK), ...allOf(HARRY_UNSTUCK),
     ...allOf(HARRY_CLING_DOWN), ...allOf(HARRY_CLING_UP), ...allOf(HARRY_HURT), ...allOf(HARRY_GLOAT), ...allOf(HARRY_LOW),
     ...allOf(HARRY_SICK_FIRST), ...allOf(HARRY_SICK), ...allOf(HARRY_CONCRETED), ...allOf(HARRY_FOLLOWUP),
     ...allOf(HARRY_DEATH), ...allOf(HARRY_BURIED),
+    ...allOf(HARRY_CRUMBLE), ...allOf(HARRY_ENRAGED), ...allOf(HARRY_GRIEF_SICK), ...allOf(HARRY_BARF_DEATH),
   ],
 });

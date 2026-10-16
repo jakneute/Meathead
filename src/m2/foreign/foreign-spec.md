@@ -737,3 +737,29 @@ timings, HP_SCALE 2, one wave each, Pisa, checkpoints).
 - **Harry to her like a lousy husband** (the user's lines and more, in the crown, stuck-arm and unstuck pools): "LOOK AT
   WHAT YOU MADE ME DO.", "YOU NEVER LISTEN.", "I GAVE YOU EVERYTHING. I GAVE YOU A TORCH.", "I'M NOT MAD. I'M
   DISAPPOINTED." ... Verbal only; it pays off her heartbreak when he's dead.
+
+## Decisions (Harry: the statue wears out, 2026-10-16)
+
+The user: "if the statue of liberty smashes enough times it will crumble and fall apart. this means no suicide after
+death or further arm smash moves. harry will speed up a bit in rage to make up for it. he will do his wall attacks more
+often. the statue gets more cracked the more often it does it."; "he has 'grieving sickness' now in addition to 'air
+sickness'"; the barf-to-death; "harry takes more shots to make queasy too".
+
+- **Her arm and torch (sculpture):** smooth copper volumes, the robe sleeve one carved mass with folds and a riveted
+  seam, gentle eased elbow bends; the gilded torch gripped in her fist. The smash drives the torch down handle first like
+  a stake: its butt lodges in the floor, flame on top; silent while she tugs; dirt trailing on the yank.
+- **Wear (fight.ts STATUE_LIFE = 6):** every smash cracks her more (cracks, chips showing her concrete, the patina
+  flaking to bare copper), bits of her raining onto the floor. The 6th smash is her last: stuck, she comes apart
+  (CRUMBLE_T 170 frames: cracking all over, shaking, the torch dropping where it was stuck, down into the dig in pieces);
+  Harry down out of the crown to watch, horrified (HARRY_CRUMBLE).
+- **Without her:** no crown, no smash, no stuck arm; Harry ENRAGED: walks 35% faster, his gun's rests 35% shorter, his
+  walks about half as long and walls queued twice as often (cling, walk, cling), quicker up them; HARRY_ENRAGED taunts.
+- **The weakness without her (fill-in, user approved):** the crossbow still makes him sick (QUEASY_DARTS 7 -> 10, with
+  her or without; the meter notched a dart); with nobody to puke on he doubles over puking (grief AND airsickness:
+  HARRY_GRIEF_SICK; Meathead's "GRIEF PUKE. NEVER SEEN THAT." once) for GRIEF_T 200 frames: it costs him 60, every hit
+  in it at least 75. Dying in it (or from it) is his third death, BARFED TO DEATH: on his knees by her rubble, four
+  heaves, each bigger (green-brown, then bloody), pale and deflating, face first into the pool, gurgling, one last
+  heave, a twitch, still ("PUKED HIMSELF TO DEATH!" over him). The kill cam, as the concrete death.
+- **His deaths:** any (the standard spin, buried, barfed) with her gone plays alone: no heartbreak, no revolver.
+- **Buried (with her):** his arm out of the top clawing, then set flipping the bird; the top of his head and the
+  bandana's knot out the slope; blood seeping out through the cracks into a pool round the foot, stained chunks.

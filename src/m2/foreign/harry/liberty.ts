@@ -40,6 +40,8 @@ export interface LibLook {
   tablet: boolean; gun: boolean;
   /** Who's in the crown (drawn clipped to its middle window), if anybody. */
   crown?: (c: Ctx) => void;
+  /** How worn she is by her smashes (0 whole .. 1 about to go; past 1 while she crumbles): cracks, chips, flaking. */
+  wear?: number;
 }
 
 const fl = (c: Ctx, col: string, path: () => void, line = 2) => { c.beginPath(); path(); c.fillStyle = col; c.fill(); if (line > 0) { c.strokeStyle = INK; c.lineWidth = line; c.lineJoin = 'round'; c.stroke(); } };
@@ -246,6 +248,44 @@ const hole = (c: Ctx, hx: number, hy: number, f: number) => {
   c.globalAlpha = 1;
 };
 
+// The wear (the user: "the statue gets more cracked the more often it does it"): each smash shows more of it. Cracks
+// running over her copper (inked, a lit edge), chips knocked out of her (the shell gone, her concrete core showing), the
+// patina flaking off to bare copper. Laid out once (seeded), shown a share at a time.
+
+const wh = (n: number) => { const s = Math.sin(n * 91.7 + 13.1) * 43758.5; return s - Math.floor(s); };
+const AREAS = [
+  { x: LIB.head.x, y: LIB.head.y, rx: 70, ry: 80 }, { x: LIB.x - 180, y: sy(380), rx: 90, ry: 60 },
+  { x: LIB.x + 170, y: sy(370), rx: 90, ry: 60 }, { x: LIB.x, y: sy(420), rx: 150, ry: 70 }, { x: LIB.head.x, y: LIB.head.y - 95, rx: 110, ry: 30 },
+];
+const spot = (n: number) => { const a = AREAS[n % AREAS.length], t = wh(n * 3.1) * Math.PI * 2, k = Math.sqrt(wh(n * 7.7)); return { x: a.x + Math.cos(t) * a.rx * k, y: a.y + Math.sin(t) * a.ry * k }; };
+const CRACKS = Array.from({ length: 26 }, (_, i) => {
+  const p = spot(i + 1), pts = [p];
+  let a = Math.PI / 2 + (wh(i * 5.3) - 0.5) * 2.2;
+  for (let s = 0; s < 6; s++) { a += (wh(i * 11 + s) - 0.5) * 1.2; const q = pts[pts.length - 1], l = 12 + wh(i * 17 + s) * 16; pts.push({ x: q.x + Math.cos(a) * l, y: q.y + Math.sin(a) * l }); }
+  return pts;
+});
+const CHIPS = Array.from({ length: 12 }, (_, i) => ({ ...spot(i * 3 + 40), r: 8 + wh(i * 2.9) * 12, seed: i }));
+const FLAKES = Array.from({ length: 44 }, (_, i) => ({ ...spot(i * 5 + 90), w: 3 + wh(i * 1.3) * 6 }));
+const wearMarks = (c: Ctx, wear: number) => {
+  // (the patina flaking: bare copper showing)
+  for (let i = 0; i < Math.min(FLAKES.length, Math.floor(wear * 34)); i++) { const p = FLAKES[i]; r(c, p.x, p.y, p.w, p.w * 0.6, i % 3 ? '#B87333' : '#8C5A2B'); r(c, p.x, p.y, p.w * 0.5, 1, '#E3A869'); }
+  // (chips knocked out: a hole in the shell, the concrete in it, a broken lit rim)
+  for (let i = 0; i < Math.min(CHIPS.length, Math.floor(wear * 9)); i++) {
+    const ch = CHIPS[i];
+    c.beginPath();
+    for (let k = 0; k < 7; k++) { const a = (k / 7) * Math.PI * 2, rr = ch.r * (0.7 + wh(ch.seed * 13 + k) * 0.5); if (k) c.lineTo(ch.x + Math.cos(a) * rr, ch.y + Math.sin(a) * rr * 0.8); else c.moveTo(ch.x + Math.cos(a) * rr, ch.y + Math.sin(a) * rr * 0.8); }
+    c.closePath(); c.fillStyle = CONC[2]; c.fill(); c.strokeStyle = PAT[0]; c.lineWidth = 2; c.stroke();
+    r(c, ch.x - ch.r * 0.5, ch.y - ch.r * 0.4, ch.r * 0.6, 2, CONC[4]);
+  }
+  // (the cracks: more of them, and each longer, the worse she is)
+  const n = Math.min(CRACKS.length, Math.ceil(wear * 18));
+  for (let i = 0; i < n; i++) {
+    const pts = CRACKS[i], len = Math.min(pts.length, 2 + Math.floor(wear * 6));
+    c.strokeStyle = INK; c.lineWidth = 2.5; c.lineJoin = 'miter'; c.beginPath(); pts.slice(0, len).forEach((p, k) => (k ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y))); c.stroke();
+    c.strokeStyle = PAT[5]; c.lineWidth = 1; c.beginPath(); pts.slice(0, len).forEach((p, k) => (k ? c.lineTo(p.x + 1.5, p.y + 1.5) : c.moveTo(p.x + 1.5, p.y + 1.5))); c.stroke();
+  }
+};
+
 /** Everything of her but her right arm (and, toppling, that too: `arm` draws it in her frame). */
 export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
   c.save();
@@ -282,6 +322,7 @@ export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
     r(c, hx + s.x - s.r * 0.4, hy + s.y - s.r * 0.3, s.r * 0.5, 3, PUKE[3]);
     r(c, hx + s.x - 2, hy + s.y + s.r * 0.5, 4, s.r * 1.3, PUKE[0]);
   }
+  if (L.wear) wearMarks(c, L.wear);
   if (L.broken > 0) hole(c, hx, hy, L.f);
   if (arm) arm(c);
   c.restore();

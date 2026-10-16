@@ -16811,6 +16811,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "AT LEAST... I CAN'T SEE HIM... FROM DOWN HERE... BLUB...",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "AUSTRALIA! YOU FANCY-ASS BOAT SHED! UP! SING THAT DIPSHIT TO DEATH!",
   "from": "FOREIGN"
  },
@@ -16986,6 +16991,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "DON'T YOU DARE FALL APART ON ME! NOT NOW! NOT IN FRONT OF HIM!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "DON'T YOU LOOK AT ME LIKE THAT.",
   "from": "FOREIGN"
  },
@@ -16997,6 +17007,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "DOWN YOU GO, JACKASS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "DYING IN MY OWN PUKE... NEXT TO HIS SHIT... GLRRK...",
   "from": "FOREIGN"
  },
  {
@@ -17341,6 +17356,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "I DIDN'T NEED HER! I NEVER NEEDED HER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "I DRIVE A TRUCK! A BIG ONE! SIX MILES TO THE GALLON AND I LOVE IT, YOU DIPSHIT!",
   "from": "FOREIGN"
  },
@@ -17376,12 +17396,22 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "I NEVER TOLD HER I LOVED HER... HURK... I TOLD HER SHE WAS FRENCH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "I REGRET... NOTHING... EXCEPT THE STRAWS... AMERICAAAA!",
   "from": "FOREIGN"
  },
  {
   "voice": "m2.foreign.harry",
   "text": "I SAID BODIES WERE BEAUTIFUL! I LIED! YOURS ISN'T!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I SAID HORRIBLE THINGS TO HER! AND IT'S YOUR FAULT!",
   "from": "FOREIGN"
  },
  {
@@ -17432,6 +17462,21 @@
  {
   "voice": "m2.foreign.harry",
   "text": "I'M HELICOPTER HARRY, AND TODAY WE'RE GOING TO FLY ACROSS THE WHOLE BEAUTIFUL WORLD. NO BORDERS UP HERE, MAN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'M NOT CRYING! IT'S THE AIRSICK! BLEARGH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'M NOT CRYING! IT'S THE NAKED! AND THE AIRSICK! BLEARGH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "I'M NOT CRYING! IT'S YOUR SMELL! AND THE AIRSICK! BLEARGH!",
   "from": "FOREIGN"
  },
  {
@@ -17516,7 +17561,22 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "LADY! NO! DON'T LEAVE ME HERE WITH THE SHITTY ONE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "LADY! NO! YOU CAN'T LEAVE ME ALONE WITH A NAKED MAN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "LADY! RIGHT ON HIS STUPID HEAD!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "LADY! SHE WAS A HUNDRED AND THIRTY YEARS OLD, YOU MOTHERFUCKER!",
   "from": "FOREIGN"
  },
  {
@@ -17556,7 +17616,17 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "LADY... I'M COMING... SAVE ME A... HURK... GLRRK... AMERICAAA...",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "LANDMARKS OF THE WORLD! WAKE YOUR ASSES UP AND KILL THIS PRICK!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "LAST THING I SEE... MY OWN PUKE... STILL BETTER THAN THAT... GLRRK...",
   "from": "FOREIGN"
  },
  {
@@ -17567,6 +17637,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "LEAD SALAD, ASSHOLE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "LIBERTY... BLEARGH!",
   "from": "FOREIGN"
  },
  {
@@ -17686,7 +17761,17 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "NO MORE MISTER NICE HIPPIE! THERE WASN'T ONE! BUT NOW THERE'S EVEN LESS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "NO SHIRT, NO SHOES, NO SURVIVING!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NO. NO NO NO. LADY? LADY! HOLD TOGETHER! THAT IS AN ORDER!",
   "from": "FOREIGN"
  },
  {
@@ -17722,6 +17807,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "NOT LIKE THIS! NOT LOOKING AT THAT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOT LIKE THIS... NOT LIKE A ROCK STAR... BLUB...",
   "from": "FOREIGN"
  },
  {
@@ -17772,6 +17862,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "OH, YOU LIKE BEING NAKED? I'LL SHOW YOU A BODY WORTH LOOKING AT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "ONE MAN ARMY NOW, COCKSUCKER! JUST ME AND MY RAGE!",
   "from": "FOREIGN"
  },
  {
@@ -17941,7 +18036,47 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "SHE CRACKED! SHE SAW HIM NAKED AND SHE CRACKED!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE CRACKED! SHE SMELLED HIM AND SHE CRACKED!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE DIED LOOKING AT YOUR DICK! I WILL AVENGE HER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE DIED SMELLING YOU! I'LL AVENGE THAT TOO!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE DIED SO SHE WOULDN'T HAVE TO SEE THAT... BLEARGH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE HAD SUCH A NICE TORCH... BLEARGH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "SHE LIVES. GREAT. HERE WE GO AGAIN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE WAS THE ONLY ONE WHO LISTENED! BLEARGH!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE WOULD HAVE HATED THIS SMELL... BLEARGH!",
   "from": "FOREIGN"
  },
  {
@@ -17967,6 +18102,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "SHE'S DUMB AT FIGHTING THINGS MUCH SMALLER THAN HER. LOOK AT WHAT YOU MADE ME SAY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "SHE'S GONE! AND YOU'RE NEXT, MOTHERFUCKER!",
   "from": "FOREIGN"
  },
  {
@@ -18047,6 +18187,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "STAND STILL, SHIT-FOR-BRAINS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "STILL SMELLS BETTER... THAN HIM... HURK... BLUB...",
   "from": "FOREIGN"
  },
  {
@@ -18141,6 +18286,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "THAT WAS A NATIONAL MONUMENT, YOU DIPSHIT! THAT'S A FEDERAL CRIME!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "THAT'S COMING OUT OF YOUR PAYCHECK! ...THEIRS! NOT YOURS! SHIT!",
   "from": "FOREIGN"
  },
@@ -18186,6 +18336,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "THE LAST THING SHE SAW WAS YOU NAKED! YOU MONSTER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "THE OPERA HOUSE! SHIT! WHO EVEN GOES TO THE OPERA! NOBODY! GOOD RIDDANCE, YOU FANCY-ASS SHED!",
   "from": "FOREIGN"
  },
@@ -18212,6 +18367,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "THERE. WAS THAT SO HARD? I'M NOT MAD. I'M DISAPPOINTED.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "THERE'S NOTHING LEFT... THAT WAS MY SPLEEN... GLRRK...",
   "from": "FOREIGN"
  },
  {
@@ -18466,6 +18626,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "WHY'D YOU LEAVE ME, LADY... HURK... I GOT NOBODY TO YELL AT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "YEAH! RIGHT IN THE HELICOPTER!",
   "from": "FOREIGN"
  },
@@ -18497,6 +18662,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "YOU HAD ONE JOB, LADY! ONE! AND IT WAS STANDING THERE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU KILLED LADY LIBERTY, YOU SON OF A BITCH!",
   "from": "FOREIGN"
  },
  {
@@ -18547,6 +18717,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "YOU PUKED ON ME. MAKE IT UP TO ME. SMASH HIM! FAST!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU SHAT ON A GRAVE! HER GRAVE!",
   "from": "FOREIGN"
  },
  {
@@ -36111,6 +36286,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A MOOSE. LAST TIME I MET ONE IT HAD A PERSONAL PROBLEM WITH ME. THIS ONE'S A GUY IN A SUIT. SAME ENERGY.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "A MORTAR! ON THE GREAT WALL!",
   "from": "FOREIGN"
  },
@@ -36908,6 +37088,11 @@
   "voice": "meathead",
   "text": "ANOTHER GUY ASLEEP NEXT TO A LEVER. THIS PARK NEVER LEARNS.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "ANOTHER MOOSE. THE LAST ONE KICKED ME IN THE DICK. IN ALASKA. I REMEMBER.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -40638,6 +40823,11 @@
   "voice": "meathead",
   "text": "GREETINGS FROM YOUR FUNERAL!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GRIEF PUKE. NEVER SEEN THAT.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -44916,6 +45106,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MADE IN FRANCE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "MADE IN OHIO. IT SAYS IT RIGHT ON THE BEAVER.",
   "from": "FOREIGN"
  },
@@ -46671,6 +46866,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOW THEY CAN BE RUBBLE TOGETHER.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "NOW YOU'RE PROTEIN!",
   "from": "M2_KILL_LINES"
  },
@@ -48136,6 +48336,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PUKED HIMSELF TO DEATH. VERY ROCK AND ROLL.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "PUKING ON ME WON'T SAVE YOUR LIFE, YOU FILTHY PIG!",
   "from": "HURT"
  },
@@ -49113,6 +49318,11 @@
   "voice": "meathead",
   "text": "SHE SLAPPED ME! WITH HER PURSE!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE SMASHED HERSELF TO PIECES.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
