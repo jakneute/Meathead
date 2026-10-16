@@ -310,7 +310,7 @@ const EMPTY_LINE_GAP = 420, EMPTY_LINE_CHANCE = 0.25;
 
 /** Sucking: hurt, he takes it, but he's not knocked about or off the trigger (armor: core/resist). */
 let armored = false;
-const syncArmor = (on: boolean) => { if (on !== armored) { armored = on; setArmor(on); } };
+const syncArmor = (on: boolean) => { if (on !== armored) { armored = on; setArmor(on, 'soulSucker'); } };
 
 const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; moveDown: boolean }, equipped: boolean) => {
   syncArmor(equipped && since(ctx.state.frame, suckingAt) <= 2);

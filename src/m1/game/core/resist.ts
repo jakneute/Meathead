@@ -15,4 +15,7 @@ export const gritty = (stageId: string | null | undefined) => stageId === FINALE
 
 /** Armor, fighting-game style, wherever he is (Meathead 2, through a grab): hurt, but not knocked about or out of it. */
 let armored = false;
-export const setArmor = (on: boolean) => { armored = on; };
+/** Who's giving it him (a grab, a weapon's windup): armored while any of them is, so one setting it off every frame
+ *  never takes another's away. */
+const holders = new Set<string>();
+export const setArmor = (on: boolean, who = 'grab') => { if (on) holders.add(who); else holders.delete(who); armored = holders.size > 0; };

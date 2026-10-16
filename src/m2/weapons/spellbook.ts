@@ -334,7 +334,7 @@ const meatheadSays = (state: GameState, text: string) => {
 
 /** Armored while he's reading a storm out or bulking up: hurt, but not knocked about or out of it (core/resist). */
 let armored = false;
-const syncArmor = () => { const want = casting > 0 || posing > 0; if (want !== armored) { armored = want; setArmor(want); } };
+const syncArmor = () => { const want = casting > 0 || posing > 0; if (want !== armored) { armored = want; setArmor(want, 'spellbook'); } };
 
 const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boolean) => {
   const { state } = ctx;

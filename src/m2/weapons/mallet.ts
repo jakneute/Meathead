@@ -185,7 +185,7 @@ const inBox = (state: GameState, x0: number, y0: number, x1: number, y1: number)
  *  knocked about or out of it (armor: core/resist). */
 const ARMORED: Mode[] = ['windup', 'spinup', 'smash', 'tornado'];
 let armored = false;
-const syncArmor = () => { const want = ARMORED.includes(mode); if (want !== armored) { armored = want; setArmor(want); } };
+const syncArmor = () => { const want = ARMORED.includes(mode); if (want !== armored) { armored = want; setArmor(want, 'mallet'); } };
 const start = (m: Mode, pl: GameState['player']) => { mode = m; t = 0; rebound = false; dir = pl.facing; struck = new Set(); playSound('whoosh', m === 'tornado' ? 0.6 : 1, m === 'launch' ? 4 : -4); };
 
 const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) => {
@@ -207,6 +207,15 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   flat.forEach(f => f.t++); flat = flat.filter(f => f.t < 150);
 
   if (!equipped) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); } xHeld = yHeld = 0; return; }
+  // (wound up for the smash or the tornado, the smash coming down, the tornado going: a hit hurts him, but nothing
+  // knocks him out of it, whatever it was (a stage's own shove, a stun): the knock's taken off him, and X still held
+  // through the frame the hit kept from him is still held)
+  if (ARMORED.includes(mode) && (pl.pushbackTimer > 0 || state.playerStunTimer > 0 || pl.recoiling)) {
+    pl.pushbackTimer = 0; state.playerStunTimer = 0;
+    if (pl.recoiling) { pl.recoiling = false; pl.lockTimer = 0; }
+    pl.vel.x = 0; if (pl.vel.y < 0 && (pl.isGrounded || pl.vine)) pl.vel.y = 0;
+  }
+  if (ARMORED.includes(mode) && !input.shoot && pl.shootHeldLastFrame) input = { shoot: true };
   const ground = pl.isGrounded;
   // (on a vine: in the air, but it's as good as the ground to him for the held ones)
   const hang = !!pl.vine, footed = ground || hang;
