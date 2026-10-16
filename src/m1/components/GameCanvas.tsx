@@ -104,8 +104,10 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
         // (not in the public build: the error up on screen, so it can be read off and reported)
         if (!PUBLIC_BUILD) {
           const e = err as Error, lines = [`DRAW FAILED: ${e?.message ?? String(err)}`, ...String(e?.stack ?? '').split('\n').slice(1, 6).map(s => s.trim())];
-          ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.font = '12px monospace'; ctx.textAlign = 'left';
-          lines.forEach((l, i) => { ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(4, 4 + i * 16, Math.min(ctx.canvas.width - 8, ctx.measureText(l).width + 8), 16); ctx.fillStyle = '#FF6B6B'; ctx.fillText(l, 8, 16 + i * 16); });
+          // (low on the screen, clear of the HUD up top; big enough to read)
+          ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.font = `${Math.round(ctx.canvas.height / 40)}px monospace`; ctx.textAlign = 'left';
+          const lh = Math.round(ctx.canvas.height / 32), top = ctx.canvas.height - lh * (lines.length + 1);
+          lines.forEach((l, i) => { ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(4, top + i * lh, Math.min(ctx.canvas.width - 8, ctx.measureText(l).width + 12), lh); ctx.fillStyle = '#FF6B6B'; ctx.fillText(l, 10, top + i * lh + lh * 0.78); });
           ctx.restore();
         }
       }
