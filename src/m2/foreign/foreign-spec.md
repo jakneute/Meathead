@@ -332,3 +332,74 @@ voices recorded (npm run voices) and the M2 html rebuilt (npm run release:m2) af
   AMERICA'S HAT, CARVED POLES (PLYWOOD) MADE IN OHIO, MAPLE LOG FLUME CLOSED (THE LOGS GOT OUT), THE TRAIL 1,000 STAIRS (15).
 - **Voices:** 37 new cast voice ids in cast.json (m2.foreign.ninja .. moosef; the tea lady one voice); the PA's hello,
   his arrival and gags, barks in clean / shitty / naked pools, hurt + death lines for every kind and every new source.
+
+## Decisions (job 3)
+
+- **One walk in, no cut** (theater/layout.ts): the theater's front set back off the promenade (columns, the marquee:
+  NOW SHOWING: EVERYBODY ELSE), its street doors through the side wall (the wall's outside face over the lobby fades as
+  he goes through), THE LOBBY (ticket booth FREE* *$189 PARK ADMISSION, CONCESSIONS: AMERICAN ONLY / FREEDOM FRIES, the
+  posters, chandeliers; the big health + ammo by the house doors, checkpoint 101), THE HOUSE (the side aisle, three
+  steps up), THE STAGE (one screen, 800 wide, 60 up), the stage-right wing door, three steps down BACKSTAGE (fly ropes,
+  sandbags) to the EXIT (HELICOPTER RIDES ACROSS THE WORLD: endExits' right end to DOORS.heli.start; back from the
+  helipad lands backstage, checkpoint 102). In the house and on the stage his feet sit higher on screen (row 400) so
+  the seats show under the stage.
+- **The crowd** (art.ts): two rows of heads and shoulders in silhouette in the foreground, nearer than him (they slide
+  past faster than the world), rim-lit by the stage, the whole time. Moods: idle bob, cheer (arms up, at kills and
+  cancels), laugh (him hurt), boo (thumbs down, a showpiece timing out), ovation (on their feet, clapping, the call).
+  Phones up with lit screens (more for a kill; nearly all of them when he's naked; the odd flash). Applause under it.
+- **The narrator** is the show's own PA (new voice m2.foreign.showpa, announcer fx), not the streets' PA. Each culture:
+  its INTRO (2 each; a RETURN pair when it comes round again), then the SPIN from a shared pool of 20 ("NEAT. BUT NOT
+  AS COOL AS ..." hot dogs, monster trucks, a four-dollar hamburger, fireworks bought across state lines, a bald eagle,
+  truck nuts, free refills, the moon...), two recorded lines back to back (no line twice in 45 s: pickLine). CANCEL per
+  culture ("SPAIN: CANCELLED."). About HIM, clean / shitty / naked pools: the volunteer, him hurt, the timeouts,
+  halfway, the wrap. The whole house chants (new voice m2.foreign.crowd, chorus fx: USA! USA!, BOO!, OLAY! when he
+  jumps the bull, ENCORE!); one guest at a time shouts (the park guests' voices; about him by his pants, at kills, at
+  him getting hit). Meathead sparse: the lobby, the house, "I'M NOT A VOLUNTEER. I'M CUTTING THROUGH.", a line at most
+  showpieces' first curtain, now and then at a cancel or a timeout, the call. Lobby and house lines once a land visit.
+- **The start:** a few steps onto the stage, the house takes him for a VOLUNTEER: the stage-left wing slams shut (the
+  stage-right wing door is shut till it's over: CAST ONLY), the spotlight, the narrator, his reply, the opening (a
+  cutscene beat: HUD hidden, SKIP >> for all of it), then the curtain goes up on SPAIN (always first).
+- **The cycle:** 25 seconds on the STAGE CLOCK (a seven-segment LED countdown hung off the proscenium's arch; it beeps
+  the last five, blinks at zero). Dead in time: CANCELLED, cheers, the curtain comes down. Out of time: an alarm, boos,
+  the curtain down anyway. Down, the turntable turns (a rumble), the set changes, up on the NEXT LIVING showpiece in
+  order (wrapping round). Damage stays; the dead stay where they fell, as wrecks on their set, when their showpiece
+  comes round again. All eight dead: the CURTAIN CALL (a cutscene beat: down, a bare stage, up on him alone in the
+  spotlight, confetti, the house on its feet, the wrap, his line, the exit line), then both wings open.
+- **The animatronics** (troupe.ts, robots.ts): each troupe distinct, crude but readable, clearly machines (plastic
+  faces, LED eyes that glow on a tell, panel seams, servos at the joints, chipped paint, poses that tick over every 4
+  frames with the odd twitch), sparks when hit, and they BLEED red hydraulic fluid (not `robot` kinds, on purpose: the
+  kept joke), seizing over dead in a spreading red pool. Every attack has a tell; every attack is its own hurt source
+  with hurt + death lines (17: m2:fl_th_bull .. m2:fl_th_parrot). Their hazards hurt each other (damage numbers pop):
+  - SPAIN: the BULL (walks at him, paws and snorts steam, CHARGES the width of the stage; into the wall it's stunned,
+    sparking; it gores the matador too; jump it and the house goes OLAY), the MATADOR (cape flourish, sword up with a
+    glint, a lunging thrust).
+  - IRELAND: the STEP-DANCE LINE (four in a row moving as one, arms dead at their sides; a stomp-stomp, then all four
+    high-kick at once), the LEPRECHAUN (on his pot of gold in a corner, flinging three gold coins in arcs; get close and
+    he hops to the far corner, pot and all; stray coins clock the dancers).
+  - EGYPT: the PHARAOH MUMMY (shambles; arm back, then the bandage LASH out to 190 that yanks him in), the SPHINX (lying
+    at the side; eyes glow, then a laser from its eyes down to the floor sweeping out across the stage: jump it; it
+    burns the mummy too).
+  - RUSSIA: the BEAR ON A UNICYCLE (round and round the stage at him, no brakes, bouncing off the walls; runs over the
+    Cossacks too), two COSSACK DANCERS (squat-kick hopping in, arms crossed; rise, then a flying split kick).
+  - THE NETHERLANDS: the WINDMILL (center stage; its four sails sweep the floor in front of it, faster as it's hurt:
+    time the gap to get past; they swat the milkmaids too), two CLOG-DANCING MILKMAIDS (keeping their distance, lobbing
+    clogs at where he's going).
+  - AUSTRALIA: the BOXING KANGAROO (hops in; a one-two jab, every third time it leans back on its tail for the
+    two-footed kick), the CROC and its WRANGLER (the croc creeps, turns slowly, jaws wide then SNAPS, biting the kangaroo
+    or the wrangler if they're in front; the wrangler holds its tail and throws a BOOMERANG over it now and then, out and
+    back; with the croc dead he throws more often).
+  - GREECE: the MINOTAUR (paws and charges from far; up close the double axe up high, then CHOPS; tramples the
+    Spartans), three SPARTAN HOPLITES (a shield wall moving as one, slow to turn: shields block shots from the front,
+    spears out front punish a charge (KindDef.pointy: m2:fl_th_spear); now and then spears drawn back, then thrust).
+  - BRAZIL: three SAMBA DANCERS (feather backpieces; shimmy in, arms up, a feathered SPIN), the GIANT PARROT FLOAT (rolls
+    up and down the stage, stopping to turn at each end; its fringed skirt runs over him and the samba line; the parrot
+    rears back and PECKS the floor in front).
+- **Numbers:** about 9000 HP across the eight (troupe.ts `HP` scales it all): Spain 1000, Ireland 860, Egypt 1160,
+  Russia 1000, the Netherlands 1220, Australia 1140, Greece 1210, Brazil 1440. To the engine they're mid-boss hitboxes
+  (show.ts: BIG health, what comes off each frame is the hit, so every hit lands, no breather; mid-boss weapon hits, no
+  instant kills or status effects; grab 'none'); anything that would take one out of the world is a heavy hit (150).
+  Lean drops: a dying animatronic drops a small health 6% / small ammo 5%.
+- **Sub-boss rules:** both wings locked from the volunteer to the call; dying mid-show it's all eight again from the
+  lobby; SHOW_MEMO once it's over (and any start at checkpoint 102 on). Revisits: the marquee reads SHOW CANCELLED /
+  ALL OF IT, the house doors' sign SHOW OVER, the seats empty (popcorn tubs left), the stage struck (the wrecks shoved in
+  a pile upstage in their fluid), the wing door open (EXIT THIS WAY).
