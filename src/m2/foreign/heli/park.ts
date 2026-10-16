@@ -446,14 +446,48 @@ export const RISE: { r: number; da: number; d: number }[] = [
   { r: 320, da: -0.2, d: 0.4 }, { r: 980, da: 0.9, d: 0.6 }, { r: 1150, da: Math.PI + 0.3, d: 0.45 },
   { r: 820, da: -0.45, d: 0.35 }, { r: 1050, da: Math.PI - 0.2, d: 0.5 }, { r: 90, da: 0, d: 0.5 },
 ];
-/** Where a landmark is on the ground right now (mechs.ts: what it's stomping through). */
-export const mechGround = (m: Mech) => mechAt(m, m.i);
 const riseAt = (i: number) => polar(RISE[i].r, mechAngle(i) + RISE[i].da);
-/** Where it is now (ground): its plinth, or on its way there from where it came up. */
+/**
+ * Its walk in, perspective-true (the user: "perspective correct as it moves forward"): it STEPS, its feet planted on
+ * the park's ground. The way from where it came up to its plinth is cut into strides; each step one foot lifts and
+ * comes down a stride on (the other planted), and the body's always halfway between its feet (so it surges a step at a
+ * time, never sliding). Each foot's projected through the one eye where it is on the ground, so it's smaller and higher
+ * further off, bigger and lower nearer; where it plants is where the dust goes up and the footprint's left.
+ */
+const STRIDE = 230, LIFT = 26, FOOT_X = 28;
+interface Gait { a: { x: number; z: number }; ux: number; uz: number; D: number; d: [number, number]; lift: [number, number]; j: number; fr: number; n: number; s: number }
+const gaitOf = (m: Mech, i: number): Gait => {
+  const a = riseAt(i), b = MECH_AT[i], D = Math.hypot(b.x - a.x, b.z - a.z) || 1;
+  const n = Math.max(2, Math.round(D / STRIDE)), s = D / n, N = n + 1;
+  const u = Math.max(0, Math.min(1, m.walk)) * N, j = Math.min(N - 1, Math.floor(u)), fr = m.walk >= 1 ? 1 : u - j;
+  const tgt = (jj: number) => (jj < 0 ? 0 : Math.min(D, (jj + 1) * s));
+  const mv = j % 2, e = fr * fr * (3 - 2 * fr), from = tgt(j - 2), to = tgt(j);
+  const d: [number, number] = [0, 0], lift: [number, number] = [0, 0];
+  d[mv] = from + (to - from) * e; lift[mv] = to > from ? Math.sin(fr * Math.PI) * LIFT : 0;
+  d[1 - mv] = tgt(j - 1);
+  return { a, ux: (b.x - a.x) / D, uz: (b.z - a.z) / D, D, d, lift, j, fr, n: N, s };
+};
+const gaitPt = (g: Gait, d: number) => ({ x: g.a.x + g.ux * d, z: g.a.z + g.uz * d });
+const walking = (m: Mech | undefined): m is Mech => !!m && m.st === 'intro' && m.unfold >= 0 && m.walk < 1;
+/** Where it is now (ground): its plinth, or on its way there from where it came up (halfway between its feet). */
 const mechAt = (m: Mech | undefined, i: number) => {
-  if (!m || m.st !== 'intro' || m.walk >= 1 || m.unfold < 0) return MECH_AT[i];
-  const a = riseAt(i), b = MECH_AT[i], k = m.walk * m.walk * (3 - 2 * m.walk);
-  return { x: a.x + (b.x - a.x) * k, z: a.z + (b.z - a.z) * k };
+  if (!walking(m)) return MECH_AT[i];
+  const g = gaitOf(m, i);
+  return gaitPt(g, (g.d[0] + g.d[1]) / 2);
+};
+/** Which step it's on (mechs.ts: a foot coming down is a stomp), and where that foot's planted (ground). */
+export const mechStep = (m: Mech) => {
+  const i = m.i;
+  if (!walking(m)) return { j: -1, at: MECH_AT[i] };
+  const g = gaitOf(m, m.i);
+  return { j: g.j, at: gaitPt(g, g.d[1 - (g.j % 2)]) };
+};
+/** Every footprint it's left (ground distance along its way, which foot): the steps it's finished. */
+const plantsOf = (m: Mech, i: number) => {
+  if (m.st === 'wait' || (m.st === 'intro' && (m.unfold < 0 || m.walk <= 0))) return null;
+  const g = gaitOf(m, i), done = m.walk >= 1 || m.st !== 'intro' ? g.n : g.j, out: { d: number; s: number }[] = [];
+  for (let jj = 0; jj < done; jj++) out.push({ d: Math.min(g.D, (jj + 1) * g.s), s: jj % 2 ? 1 : -1 });
+  return { g, out };
 };
 
 const mechItems = (c: Ctx, cam: Cam, h: Heli, f: number, out: Item[]) => {
@@ -462,8 +496,27 @@ const mechItems = (c: Ctx, cam: Cam, h: Heli, f: number, out: Item[]) => {
     if (inWorld(h, m)) return;
     const p = mechAt(m, i), q = proj(cam, p.x, 0, p.z);
     if (q.z < 80 || q.x < -260 * q.k - 60 || q.x > SW + 260 * q.k + 60) return;
-    out.push({ z: q.z, y0: 0, draw: () => drawMech(c, id, q.x, q.y, q.k, 0, mechLook(h, m, i, f)) });
+    const look = mechLook(h, m, i, f);
+    if (walking(m)) {
+      // (its feet where they are on the ground, through the eye, in its own frame)
+      const g = gaitOf(m, i);
+      look.feet = [0, 1].map(k => { const fp = gaitPt(g, g.d[k]), pq = proj(cam, fp.x, 0, fp.z); return { x: (pq.x - q.x) / q.k + (k ? FOOT_X : -FOOT_X), y: (pq.y - q.y) / q.k - 7 - g.lift[k] }; });
+      // (the dust where the last foot came down, at its depth)
+      const pf = 1 - (g.j % 2), fp = gaitPt(g, g.d[pf]), dq = proj(cam, fp.x, 0, fp.z), age = g.fr;
+      if (g.j > 0 && age < 0.9) out.push({ z: dq.z - 2, y0: 2, draw: () => stompDust(c, dq.x + (pf ? FOOT_X : -FOOT_X) * dq.k, dq.y, dq.k, age, RISE[i].r < LAGOON_R && Math.hypot(fp.x, fp.z) < LAGOON_R) });
+    }
+    out.push({ z: q.z, y0: 0, draw: () => drawMech(c, id, q.x, q.y, q.k, 0, look) });
   });
+};
+/** A foot coming down: a ring of dust (spray, in the lagoon) puffing out low along the ground, settling. */
+const stompDust = (c: Ctx, x: number, y: number, k: number, age: number, wet: boolean) => {
+  const a = 1 - age, R = (30 + age * 70) * k;
+  c.globalAlpha = 0.7 * a;
+  for (let n = 0; n < 9; n++) {
+    const t = (n / 9) * Math.PI * 2, px = x + Math.cos(t) * R, py = y + Math.sin(t) * R * 0.32 - age * 14 * k;
+    pixelBlob(c, px, py, (14 + (n % 3) * 5) * k * (0.7 + age), (8 + (n % 2) * 4) * k * (0.7 + age), wet ? (n % 2 ? '#F0F9FF' : '#BAE6FD') : (n % 2 ? '#A8977E' : '#6B5B45'));
+  }
+  c.globalAlpha = 1;
 };
 
 /** The ground where the one round in front is coming up: the cracks spreading out (through France's plaza, for the
@@ -545,15 +598,19 @@ const firesOf = (h: Heli, segs: Seg[]) => {
   return out;
 };
 
-const drawScars = (c: Ctx, cam: Cam, segs: Seg[], mul: number[]) => {
-  // (its footprints: craters stamped into whatever it walked on)
-  for (const s of segs) for (const p of along(s, 70, 26, 40)) {
-    const q = proj(cam, p.x, 0, p.z);
-    if (q.z < 60 || q.x < -40 || q.x > SW + 40) continue;
-    const w = 24 * q.k, hh = w * 0.38;
-    c.fillStyle = shadeRgb([110, 96, 80], 1, mul); c.beginPath(); c.ellipse(q.x, q.y, w * 1.25, hh * 1.3, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = shadeRgb([34, 28, 24], 1, mul); c.beginPath(); c.ellipse(q.x, q.y, w, hh, 0, 0, Math.PI * 2); c.fill();
-  }
+const drawScars = (c: Ctx, cam: Cam, h: Heli, mul: number[]) => {
+  // (its footprints: craters stamped where each foot came down, under where it was drawn)
+  h.mechs.forEach((m, i) => {
+    const pl = plantsOf(m, i);
+    if (!pl) return;
+    for (const p of pl.out) {
+      const g = gaitPt(pl.g, p.d), q = proj(cam, g.x, 0, g.z);
+      if (q.z < 60 || q.x < -40 || q.x > SW + 40) continue;
+      const x = q.x + p.s * FOOT_X * q.k, w = 24 * q.k, hh = w * 0.38;
+      c.fillStyle = shadeRgb([110, 96, 80], 1, mul); c.beginPath(); c.ellipse(x, q.y, w * 1.25, hh * 1.3, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = shadeRgb([34, 28, 24], 1, mul); c.beginPath(); c.ellipse(x, q.y, w, hh, 0, 0, Math.PI * 2); c.fill();
+    }
+  });
 };
 /** A car it flipped, wheels up (a little box on the ground). */
 const flippedCar = (c: Ctx, q: { x: number; y: number; k: number }, n: number) => {
@@ -603,7 +660,7 @@ export const drawPark = (c: Ctx, state: GameState, alpha = 1) => {
   drawFloor(c, cam, f, h.mechs.map(m => m.st === 'dead'), mul);
   drawRevealGround(c, cam, h);
   const segs = pathsOf(h);
-  drawScars(c, cam, segs, mul);
+  drawScars(c, cam, h, mul);
   const items: Item[] = [];
   pavilions().forEach((pv, j) => {
     const q = proj(cam, PAV_R * Math.sin(pv.at), 0, PAV_R * Math.cos(pv.at));

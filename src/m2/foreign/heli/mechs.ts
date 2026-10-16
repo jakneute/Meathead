@@ -20,7 +20,7 @@ import { pickLine } from '../../../m1/game/platform/speech';
 import { meatheadSays } from '../section';
 import { heliOf, type Mech, type ShotLook, type Beam, type Drop, type Minion, type Heli } from './state';
 import { BASE, LEG, CAMX, CY, W, H, Z, fx, toScreen } from './geo';
-import { ringY, mechGround } from './park';
+import { ringY, mechStep } from './park';
 import { MECHS, MECH_TALK, HARRY_LOST, HARRY_SEND, MH_KILL, PISA_FALL, PISA_MISSED, PISA_GOT_HIM, MH_PISA_MISSED, type MechId } from './lines';
 import { harrySays, mechSays, harryFrom, harryPick } from './talk';
 
@@ -347,6 +347,7 @@ const easeOut = (k: number) => 1 - (1 - k) * (1 - k);
 const dust = (state: GameState, n: number, spread: number, up: number, col = '#A8977E') => {
   for (let i = 0; i < n; i++) state.particles.push({ pos: { x: BASE.x + (Math.random() - 0.5) * spread, y: BASE.y - Math.random() * 10 }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * up }, life: 40 + Math.random() * 40, color: i % 3 ? col : '#6B5B45', size: 6 + Math.random() * 10 });
 };
+const lastStep = new WeakMap<Mech, number>();
 const arrive = (ctx: FrameContext, h: Heli, m: Mech) => {
   const { state } = ctx, t = m.t, L = m.introLen, k = t / L;
   if (k < P1) {
@@ -379,9 +380,12 @@ const arrive = (ctx: FrameContext, h: Heli, m: Mech) => {
     m.open = Math.min(1, m.open + 0.25);
     const w = Math.min(1, (k - P5) / (WALKED - P5));
     m.walk = w;
-    if (w < 1 && t % 22 === 0) {
+    // (a stomp each time a foot comes down (park.ts: its steps), what it came down on by where that foot is)
+    const st = mechStep(m), last = lastStep.get(m) ?? -1;
+    lastStep.set(m, st.j);
+    if (w < 1 && st.j > last && st.j > 0) {
       playSound('stomp', 0.8, -12); shakeScreen(state, 4, 3);
-      const g = mechGround(m), r = Math.hypot(g.x, g.z);
+      const g = st.at, r = Math.hypot(g.x, g.z);
       if (r > 740 && r < 1420) { playSound('crunch', 0.6, -4); if (Math.random() < 0.5) playSound('alarm', 0.25, 10); }
       else if (r > 268 && r < 505) { playSound('crash', 0.6, -6); playSound('screams', 0.3, 4); }
       else if (r < 220) playSound('splash', 0.7, -8);

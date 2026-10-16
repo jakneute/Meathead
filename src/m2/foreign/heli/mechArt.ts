@@ -37,6 +37,8 @@ export interface MechLook {
   eyes?: 'none' | 'shut' | 'open';
   /** How far it's sunk into the ground (0 .. 1: all of it), clipped at the ground; how hard it's shaking. */
   sink?: number; shake?: number;
+  /** Walking in (park.ts): each foot (left, right) where it is on the ground, in its own frame (feet planted). */
+  feet?: { x: number; y: number }[];
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -61,7 +63,10 @@ const legsOf = (c: Ctx, L: MechLook, u: number) => {
   for (const s of [-1, 1]) {
     // (each foot lifts in turn: stomping in place; crouched, the knees splay out)
     const lift = u > 0.95 ? Math.max(0, Math.sin(ph + (s > 0 ? Math.PI : 0))) * 9 : 0;
-    const kx = s * (22 + (1 - u) * 18), ky = hy / 2 - lift, fx = s * 28 + (u > 0.95 ? Math.cos(ph + (s > 0 ? Math.PI : 0)) * 5 : 0), fy = -7 - lift;
+    let kx = s * (22 + (1 - u) * 18), ky = hy / 2 - lift, fx = s * 28 + (u > 0.95 ? Math.cos(ph + (s > 0 ? Math.PI : 0)) * 5 : 0), fy = -7 - lift;
+    // (walking in: the foot where it is on the ground, the knee between, bent out and up as the foot lifts)
+    const ft = L.feet?.[s > 0 ? 1 : 0];
+    if (ft) { fx = ft.x; fy = ft.y; kx = (s * 16 + fx) / 2 + s * 8; ky = (hy + fy) / 2 - 4 + Math.min(0, fy + 7) * 0.4; }
     c.lineCap = 'round';
     // (thigh: armored)
     c.strokeStyle = INK; c.lineWidth = 19; c.beginPath(); c.moveTo(s * 16, hy); c.lineTo(kx, ky); c.stroke();
