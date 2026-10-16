@@ -8,6 +8,7 @@ import { KeyboardMouseState, HeldButtonGate, readControls } from '../game/platfo
 import { stepGame } from '../game/core/update';
 import { canSkip } from '../game/platform/skip';
 import { drawWorld } from '../game/render/world';
+import { PUBLIC_BUILD } from '../build';
 import { closeAudio } from '../game/platform/audio';
 import { setGameMusic, gameMusicCue } from '../game/music';
 
@@ -100,6 +101,13 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
         // (a drawing bug mustn't black out the game: the frame's what it is, the next one starts clean)
         drawFailed = true;
         if (!drawWarned) { drawWarned = true; console.error('draw failed', err); }
+        // (not in the public build: the error up on screen, so it can be read off and reported)
+        if (!PUBLIC_BUILD) {
+          const e = err as Error, lines = [`DRAW FAILED: ${e?.message ?? String(err)}`, ...String(e?.stack ?? '').split('\n').slice(1, 6).map(s => s.trim())];
+          ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.font = '12px monospace'; ctx.textAlign = 'left';
+          lines.forEach((l, i) => { ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(4, 4 + i * 16, Math.min(ctx.canvas.width - 8, ctx.measureText(l).width + 8), 16); ctx.fillStyle = '#FF6B6B'; ctx.fillText(l, 8, 16 + i * 16); });
+          ctx.restore();
+        }
       }
     };
 

@@ -135,7 +135,8 @@ export const drawPavement = (c: Ctx, v: View) => {
     const lines = twoLines(STAR_NAMES[k % STAR_NAMES.length]);
     const Lk = plain(1, 1, tint(BRASS[4], STAR_D), tint(CHAR[0], STAR_D));
     lines.forEach((ln, i) => {
-      const d = lines.length > 1 ? (i ? 0.92 : 0.957) : 0.94, [nx, ny] = at(eye, sx0 + 136, GY, d);
+      // (the first line further back, so it reads top to bottom)
+      const d = lines.length > 1 ? (i ? 0.957 : 0.92) : 0.94, [nx, ny] = at(eye, sx0 + 136, GY, d);
       signText(c, ln, Math.round(nx), Math.round(ny + 4), Lk);
     });
   }

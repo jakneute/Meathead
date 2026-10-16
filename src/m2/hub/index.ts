@@ -57,6 +57,14 @@ export const hubLayout: StageLayout = {
   startsStanding: true,
   build: (state) => {
     arrived(); stopWeapons();
+    // (back on his own two feet, whatever he was doing when he left (hanging off a wire, in a cart, mid-move): his
+    // walking pose, always)
+    {
+      const p = state.player;
+      p.vine = undefined; p.ladder = undefined; p.carried = undefined; p.cartSeat = undefined; p.dropVine = undefined; p.leverPull = undefined;
+      p.freefall = undefined; p.throne = undefined; p.airGrab = undefined; p.hidden = false; p.isCharging = false; p.isSliding = false;
+      p.isUppercutting = false; p.isDivekicking = false; p.isDucking = false; p.recoiling = false; p.lockTimer = 0; p.pushbackTimer = 0;
+    }
     // (his pants as they were in the last room)
     { const g = takeGut(); if (g) state.player.gut = g; }
     const runs = [{ x1: HUB.x0 - HUB_CIRC, y1: GROUND_Y, x2: HUB.x0 + HUB_CIRC * 2, y2: GROUND_Y, surface: 'plaza' }];
