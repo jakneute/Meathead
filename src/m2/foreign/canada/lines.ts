@@ -32,6 +32,8 @@ export const TALK: PavilionTalk = {
   gags: [
     { from: 300, to: 1100, key: 'poles', lines: ['CARVED POLES. A MOOSE, A BEAVER, A HOCKEY GUY. DEEP.', 'MADE IN OHIO. IT SAYS IT RIGHT ON THE BEAVER.'] },
     { from: 1100, to: 1650, key: 'logs', lines: ["LOGS IN A POND. THAT'S A WHOLE ATTRACTION?", 'LOG ROLLING. IT IS WHAT IT SOUNDS LIKE.'] },
+    // (the first moose: the one in Alaska, his first time out, kicked him in the dick)
+    { from: 1650, to: 1900, key: 'moose', lines: ['ANOTHER MOOSE. THE LAST ONE KICKED ME IN THE DICK. IN ALASKA. I REMEMBER.', "A MOOSE. LAST TIME I MET ONE IT HAD A PERSONAL PROBLEM WITH ME. THIS ONE'S A GUY IN A SUIT. SAME ENERGY."] },
     { from: 1900, to: 2300, key: 'falls', lines: ['THE WATERFALL IS A PIPE. I CAN SEE THE PIPE.', "THE LOG RIDE'S DUMPING LOGS DOWN THE FALLS. ON PURPOSE?"], minH: 250 },
     { from: 2300, to: 2950, key: 'rink', lines: ['A HOCKEY RINK ON A MOUNTAIN. SURE.', 'THESE GUYS SAY SORRY AND THEN SLAPSHOT YOU IN THE NUTS.'], minH: 800 },
     // (job 4b: the frozen pond, the toboggan hill)

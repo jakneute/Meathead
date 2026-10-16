@@ -60,7 +60,8 @@ const BOARD_H = 40;
 const LOG_EVERY = 210, LOG_SLIDE = 90, LOG_G = 0.7;
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_lumberjack', 450, 90], ['m2:fl_hockey', 660, 0], ['m2:fl_hockey', 870, 240], ['m2:fl_lumberjack', 1070, 80],
+  // (none stood down in the narrow gap between the log piles and the poles: up on the high pile instead)
+  ['m2:fl_lumberjack', 450, 90], ['m2:fl_hockey', 580, 140], ['m2:fl_hockey', 870, 240], ['m2:fl_lumberjack', 1070, 80],
   ['m2:fl_moose', 1720, 0], ['m2:fl_lumberjack', 1880, 0],
   ['m2:fl_hockey', 2240, 520],
   ['m2:fl_mountie', 2380, TOP], ['m2:fl_hockey', 2560, TOP], ['m2:fl_hockey', 2760, TOP], ['m2:fl_moose', 2910, TOP],
