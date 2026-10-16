@@ -446,7 +446,8 @@ voices recorded (npm run voices) and the M2 html rebuilt (npm run release:m2) af
 - **The controls:** X the chin machine gun (a round every 4 frames, the engine's machine-gun rounds: 22 to people, 10
   to a landmark); Y homing rockets (three charges, one back every 2.5 s; they go for the nearest lackey or minion,
   else the landmark; a blast of 64: 140 to people, 120 to minions, 70 to a landmark; the charges drawn bottom left);
-  B the boost (16 frames at 15 px a frame, a 34-frame cooldown): plain/right forward nose-down, left bent back, up
+  B the boost (16 frames at 15 px a frame, a 14-frame cooldown: its own, never his power cells; one every 30 frames,
+  twice as often as a charge on foot; a BOOST meter by the rockets): plain/right forward nose-down, left bent back, up
   straight up, down flipped upside down (the rotor underneath) and back over after; its blades reach 70 px past the
   helicopter the way it's going and SHRED any lackey or minion (gore, SHREDDED!); into a landmark it's a 60 hit and he's
   bounced off (no hurt for it).

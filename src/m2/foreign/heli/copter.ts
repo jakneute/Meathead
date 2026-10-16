@@ -14,6 +14,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy } from '../../../m1/types';
 import { playSound } from '../../../m1/game/platform/audio';
+import { POWER_CELLS } from '../../../m1/constants';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { hazardVictims, hazardKill, hazardHit } from '../../hazardHit';
@@ -30,8 +31,10 @@ const INK = '#1A0B06';
 const GUN_CD = 4, ROUND_V = 21, ROUND_DMG = 22;
 /** Rockets: how long one takes to come back, top speed, turn, life, blast. */
 const ROCKET_BACK = 150, ROCKET_V = 11, ROCKET_TURN = 0.13, ROCKET_LIFE = 200, ROCKET_R = 64, ROCKET_MECH = 70;
-/** The boost: frames, speed, cooldown; how far past the helicopter its blades reach. */
-const BOOST_T = 16, BOOST_V = 15, BOOST_CD = 34, BLADE = 70;
+/** The boost: frames, speed, cooldown; how far past the helicopter its blades reach. Its own recharge, not his power
+ *  cells (the user: more often than he can charge on land: on foot a charge every 60 frames at best (the 30-frame
+ *  charge, a cell back every 30); up here one every 30). */
+const BOOST_T = 16, BOOST_V = 15, BOOST_CD = 14, BLADE = 70;
 
 const feet = (state: GameState) => ({ x: state.player.pos.x + state.player.width / 2, y: state.player.pos.y + state.player.height });
 /** The helicopter's box (world), round him in it (the cabin and the boom). */
@@ -50,6 +53,8 @@ const muzzle = (state: GameState, h: Heli) => {
 export const flyCopter = (ctx: FrameContext, controls: Controls) => {
   const { state } = ctx, h = heliOf(state), p = state.player;
   p.carried = true; p.cartSeat = true; p.isGrounded = false; p.facing = 1; p.isDucking = false; p.noSpecials = true;
+  // (his own power cells aren't the boost's: kept full, so the HUD's don't read as spent)
+  p.power = POWER_CELLS;
   const dead = p.health <= 0;
   // (knocked: off the way he was hit, easing off)
   if ((p.pushbackTimer ?? 0) > h.pb) { h.vx = Math.max(-8, Math.min(8, p.vel.x)); h.vy = Math.max(-8, Math.min(8, p.vel.y)); h.boost = null; }
@@ -297,10 +302,17 @@ export const drawRockets = (c: Ctx, state: GameState) => {
     c.globalAlpha = 1;
   }
 };
-/** Screen: the rockets' charges (three little rockets, bottom left; the one coming back filling in). */
+/** Screen: the rockets' charges (three little rockets, bottom left; the one coming back filling in), and the rotor
+ *  boost's own meter beside them (empty while it's boosting, filling over its cooldown, lit when it's ready). */
 export const drawCharges = (c: Ctx, state: GameState) => {
   const h = heliOf(state);
-  c.fillStyle = 'rgba(0,0,0,0.55)'; c.fillRect(12, 562, 112, 28);
+  c.fillStyle = 'rgba(0,0,0,0.55)'; c.fillRect(12, 562, 172, 28);
+  {
+    const k = h.boost ? 0 : 1 - Math.max(0, h.boostCd) / BOOST_CD, x = 124, y = 578;
+    c.font = '6px "Press Start 2P"'; c.fillStyle = k >= 1 ? '#86EFAC' : '#A1A1AA'; c.fillText('BOOST', 126, 572);
+    c.fillStyle = '#27272A'; c.fillRect(x, y, 54, 8);
+    c.fillStyle = k >= 1 ? ((state.frame >> 3) % 4 ? '#4ADE80' : '#BBF7D0') : '#15803D'; c.fillRect(x + 1, y + 1, 52 * k, 6);
+  }
   c.font = '6px "Press Start 2P"'; c.fillStyle = '#FDE68A'; c.fillText('ROCKETS', 18, 572);
   for (let i = 0; i < 3; i++) {
     const k = Math.max(0, Math.min(1, h.charges - i)), x = 18 + i * 34, y = 578;
