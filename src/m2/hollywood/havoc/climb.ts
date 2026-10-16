@@ -11,7 +11,7 @@
 // jib out over STAGE 14 and its trolley, the counter-jib's weights, the A-frame and its pendants, the tip's light: dim,
 // not a ledge); the HAPPYWOOD water tower, its four legs braced all the way down to the street on their footings. The
 // flood: the water behind everything at each depth it's come up past (stacked: the farther, the more water in front of
-// it), its surface going back.
+// it), its surface going back. As the surge first comes in, the hotel's lobby arches and lowest windows burst.
 //
 // THE HILL: the hill's flank over the third shaft; the hillside rising behind the road (snow in bands, firs under snow,
 // rocks), the HAPPYWOOD sign's letters along the ridge on their scaffold legs (the W and the second O gone: bare legs),
@@ -40,6 +40,7 @@ import {
 } from './paint';
 import { win, soot } from './fronts';
 import { lavaBack } from './ground';
+import { surgeOf } from './effects';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The flood behind things
@@ -69,6 +70,50 @@ const waterTop = (c: Ctx, v: View, hv: Hv) => {
   const cols = ['rgba(60, 74, 100, 0.85)', 'rgba(96, 60, 64, 0.8)', 'rgba(52, 66, 92, 0.8)', 'rgba(120, 70, 60, 0.75)'];
   for (let i = 0; i < 4; i++) levelQ(c, eye, a, b, sy, 1 - 0.0125 * i, 1 - 0.0125 * (i + 1), cols[i]);
   for (let x = Math.ceil(a / 40) * 40; x < b; x += 40) { const [px, py] = at(eye, x + ((v.f * 0.6 + x) % 20), sy, 0.985 - hash(x) * 0.03); box(c, px, py, 12, 1, 'rgba(226, 232, 240, 0.6)'); }
+};
+
+/** As the surge comes in (looks only): the HOTEL HAPPYWOOD's lobby arches bursting, the water shoving up inside them and
+ *  gushing out over the sills onto the street in a fan, and the lowest windows blowing out (the glass first), the water
+ *  pouring out of them down the brick. Drawn at the hotel's depth, as if at the play plane (hotel-local x from hx). */
+const SURGE_MURK = ['#121A1C', '#1C2A2C', '#2A3C3A', '#3E5046', '#5A6856', '#7C8870'];
+const SURGE_FOAM = ['#7E8A84', '#A8B2AC', '#CCD4CE', '#E8EDE9', '#FFFFFF'];
+const hotelBursts = (c: Ctx, hx: number, w: number, wave: number, E: number, f: number) => {
+  const M = SURGE_MURK, F = SURGE_FOAM;
+  const foam = (x: number, y: number, r: number) => { box(c, x - r, y - r * 0.5, r * 2, r, F[1]); box(c, x - r * 0.7, y - r * 0.75, r * 1.3, r * 0.8, F[2]); box(c, x - r * 0.4, y - r * 0.85, r * 0.7, r * 0.4, F[3]); };
+  // (the lowest windows: the glass out first, then the water pouring out of them down the brick)
+  for (let k = 0, x = 30; x < w - 40; x += 80, k++) {
+    if (hash(k * 5.3 + 1) < 0.45) continue;
+    const st = 12 + k * 3, t = wave - st;
+    if (t < 0) continue;
+    const I = Math.min(1, t / 8) * E, wx = hx + x, cx = wx + 17, sill = GY - 96;
+    if (t < 16) for (let n = 0; n < 7; n++) { const u = t / 16, px = cx + (n - 3) * u * 12, py = GY - 120 - u * 14 + u * u * 50 + (n % 3) * 4; box(c, px, py, 2 + (n % 2), 2, n % 2 ? '#C8E0F0' : '#88A8C0'); }
+    box(c, wx + 2, GY - 134 + (1 - I) * 26, 30, 36 - (1 - I) * 26, M[2]); box(c, wx + 2, GY - 134 + (1 - I) * 26, 30, 3, F[2]);
+    const half = 8 + 5 * I;
+    poly(c, [[cx - 12 * I - 3, sill], [cx + 12 * I + 3, sill], [cx + half + 4 * I, GY], [cx - half - 4 * I, GY]], M[3]);
+    poly(c, [[cx - 5 * I, sill], [cx + 5 * I, sill], [cx + half * 0.5, GY], [cx - half * 0.5, GY]], M[4]);
+    for (let n = 0; n < 5; n++) { const y = sill + ((f * 6 + n * 19) % 96); box(c, cx - half * 0.6 + n * half * 0.3, y, 2, 6, n % 2 ? F[2] : M[5]); }
+    box(c, cx - 14 * I, sill - 1, 28 * I, 2, F[3]);
+    for (let n = 0; n < 3; n++) foam(cx - 10 + n * 10 + Math.sin(f * 0.4 + n) * 2, GY - 2, (5 + (n % 2) * 3) * I);
+  }
+  // (the lobby arches: the water shoved up in them, its crown churning; out over the sills toward us in a fan)
+  for (let j = 0, x = 20; x < w - 70; x += 110, j++) {
+    const st = 6 + j * 4, t = wave - st;
+    if (t < 0) continue;
+    const I = Math.min(1, t / 10) * E, ax = hx + x, top = GY - 30 - 66 * I;
+    c.save(); c.beginPath(); c.rect(ax, GY - 64, 70, 64); c.arc(ax + 35, GY - 64, 35, Math.PI, 0); c.clip();
+    box(c, ax, top, 70, 6, M[5]); box(c, ax, top + 6, 70, 14, M[4]); box(c, ax, top + 20, 70, GY - top - 20, M[3]);
+    checker(c, ax, top + 18, 70, 2, M[4], 0);
+    for (let n = 0; n < 6; n++) foam(ax + 6 + n * 12 + Math.sin(f * 0.5 + n + j) * 3, top + 2, 5 + ((n + j) % 3) * 2);
+    c.restore();
+    const out = 26 * I, lip = GY - 28 * I;
+    poly(c, [[ax + 2, lip], [ax + 68, lip], [ax + 70 + out, GY + 4], [ax - out, GY + 4]], M[3]);
+    poly(c, [[ax + 12, lip], [ax + 58, lip], [ax + 62 + out * 0.5, GY + 4], [ax + 8 - out * 0.5, GY + 4]], M[4]);
+    box(c, ax + 2, lip - 1, 66, 2, F[3]);
+    for (let n = 0; n < 7; n++) { const u = ((f * 0.12 + n * 0.37) % 1), px = ax + 6 + n * 10 + (n - 3) * u * 6, py = lip + u * (GY - lip); box(c, px, py, 2, 5, n % 2 ? F[2] : M[5]); }
+    for (let n = 0; n < 6; n++) foam(ax - out + n * ((70 + out * 2) / 5) + Math.sin(f * 0.45 + n) * 2, GY + 2, (6 + (n % 3) * 3) * I);
+    // (spray thrown up off the burst)
+    for (let n = 0; n < 6; n++) { const u = ((f * 0.05 + n * 0.21 + j * 0.13) % 1), px = ax + 10 + n * 10 + (n - 2.5) * u * 18, py = top - u * 22 + u * u * 40; box(c, px, py, 2, 2, u < 0.5 ? F[4] : F[2]); }
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -294,6 +339,8 @@ const climbNear = (c: Ctx, v: View, state: GameState, hv: Hv, done: boolean) => 
     topBack(c, eye, hx, X(s1.b), Y(HH), HOTEL_D, BACKS_D + 0.03, ramp6(dimmed('#4A4440')), 3);
     atDepth(c, eye, HOTEL_D, () => still(c, 'hh-hotel', hx, GY, -12, -HH - 100, hw + 24, HH + 102, g => paintHotel(g, hw, HH)));
     if (!done) atDepth(c, eye, HOTEL_D, () => { for (let k = 0; k < 2; k++) flame(c, hx + 120 + k * 360, Y(HH) + 2, 26, 40, f, 50 + k); });
+    const s = surgeOf(state, hv);
+    if (!done && s.on && s.E > 0.02) atDepth(c, eye, HOTEL_D, () => hotelBursts(c, hx, hw, s.wave, s.E, f));
   }
   waterAt(c, v, hv, HOTEL_D);
   // STAGE 14, STAGE 15: their sides into the shafts, their roofs going back, their faces

@@ -19,17 +19,20 @@
 //                       wall of snow taller than the screen, churning in bands, billows stepped from shade to white,
 //                       firs and boulders tumbling in it, a front of spray; the bunkers' insides cut out of it).
 //   THE FLOOD           its front face over whatever's in it (banded deeper, streaks), the foam along its top, what's
-//                       floating, the wave rolling in.
+//                       floating. THE SURGE as it first comes in: murky silty water banded down from a churning top,
+//                       a curling wave front (glassy green under the lip, the hollow under it, a whitewater curtain
+//                       off it, its foot blowing up in foam, spray, mist), junk tumbling in it (2x4s, a trash can, a
+//                       golf cart, a prop column, plywood), up STAGE 14's face in a column of spray when it hits; it
+//                       settles to the rising water's own level by the time it's done (they meet exactly).
 
 import type { GameState } from '../../../m1/game/core/state';
 import { drawPerson } from '../../adventure/temple/people';
-import { GY } from '../geometry';
-import { X, Y, R, BALL, COVERS, ROOF, AV_LEN, AV_H, AV_TELL, SLIDE_H, SLIDE_LEN, CLIMB, x0, groundH } from './layout';
+import { X, Y, R, BALL, COVERS, ROOF, AV_LEN, AV_H, AV_TELL, SLIDE_H, SLIDE_LEN, CLIMB, SHAFTS, x0, groundH } from './layout';
 import type { Hv } from './state';
 import { spent, ballAt } from './hazards';
 import { tornadoBase, funnelHalf, FUNNEL_H, FORM_T, coverRoof } from './chase';
 import { drawSkinned } from './skinned';
-import { type Ctx, INK, box, poly, hash, mix, STEEL, BRASS, PLY, ramp6, ball, signText, plain } from '../blvd/kit';
+import { type Ctx, INK, box, poly, hash, mix, checker, STEEL, BRASS, PLY, ramp6, ball, signText, plain } from '../blvd/kit';
 import { enamel, hillside } from '../../hub/letters';
 import { steveCard, paintStandee } from '../blvd/props';
 import { BRICK } from '../lot/paint';
@@ -299,8 +302,10 @@ const avalanches = (c: Ctx, state: GameState, hv: Hv) => {
 const floodFront = (c: Ctx, state: GameState, hv: Hv) => {
   const fd = hv.flood, f = state.frame, cam = state.camera;
   if (!fd.on) return;
-  const a = Math.max(x0 - 900, cam.x - 20), b = Math.min(X(CLIMB.b), cam.x + 820), sy = Y(fd.h);
-  if (b <= a) return;
+  // (while it's surging in, none of it ahead of the surge's front)
+  const s = surgeOf(state, hv);
+  const a = Math.max(x0 - 900, cam.x - 20), b = Math.min(X(CLIMB.b), cam.x + 820, s.on ? s.raw + 40 : Infinity), sy = Y(fd.h);
+  if (b <= a) { if (s.on) surgeArt(c, state, s); return; }
   const bot = cam.y + 640;
   // (the water: banded deeper, streaks, the red sky on it)
   const bands = ['rgba(64, 92, 124, 0.62)', 'rgba(44, 70, 102, 0.68)', 'rgba(32, 54, 86, 0.74)', 'rgba(22, 40, 68, 0.8)'];
@@ -319,13 +324,202 @@ const floodFront = (c: Ctx, state: GameState, hv: Hv) => {
     else { box(c, -16, -3, 32, 6, INK); box(c, -15, -2, 30, 4, PLY[3]); box(c, -15, -2, 30, 1, PLY[5]); }
     c.restore();
   }
-  // (the wave rolling in as it starts: a curl of it, its lip, the foam off it)
-  if (fd.wave < 120) {
-    const wx = cam.x - 200 + fd.wave * 14;
-    c.fillStyle = 'rgba(52, 80, 112, 0.88)'; c.beginPath(); c.moveTo(cam.x - 40, GY + 10); c.lineTo(wx, GY + 10); c.quadraticCurveTo(wx + 60, GY - 80, wx - 20, GY - 130); c.lineTo(cam.x - 40, GY - 120); c.closePath(); c.fill();
-    c.fillStyle = 'rgba(96, 128, 160, 0.8)'; c.beginPath(); c.moveTo(wx - 60, GY - 110); c.quadraticCurveTo(wx + 30, GY - 90, wx - 20, GY - 130); c.lineTo(wx - 60, GY - 124); c.closePath(); c.fill();
-    for (let k = 0; k < 10; k++) { const fx = wx - 24 + ((k * 13) % 50), fy = GY - 124 - (k % 3) * 10; billow(c, fx, fy, 7 + (k % 3) * 2); }
+  // (the surge rolling in as it starts, over the water's own level: see surgeArt)
+  if (s.on) surgeArt(c, state, s);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The surge (the flood's first rush in: fd.wave 0..SURGE_T, looks only)
+
+/** The surge's water (silty, green-brown, darkest first), and its whitewater (darkest first). */
+const MURK = ['#121A1C', '#1C2A2C', '#2A3C3A', '#3E5046', '#5A6856', '#7C8870'];
+const FOAM = ['#7E8A84', '#A8B2AC', '#CCD4CE', '#E8EDE9', '#FFFFFF'];
+/** The glassy green under its lip, lit through. */
+const GLASS = ['#4E6E5E', '#6E8E78', '#92B09A'];
+const SURGE_T = 120;
+const smooth = (a: number, b: number, x: number) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+type Surge = ReturnType<typeof surgeOf>;
+
+/** The surge: its front (the old wave's x, coming on 14 px a frame; it fetches up against STAGE 14's face), how much of
+ *  it there still is over the water's own level (E: 1 down to 0 at SURGE_T, when it's just the rising water and the two
+ *  meet exactly), the water's height over GY at x behind the front. */
+export const surgeOf = (state: GameState, hv: Hv) => {
+  const fd = hv.flood, k = fd.wave / SURGE_T;
+  const raw = state.camera.x - 200 + fd.wave * 14, wall = X(SHAFTS[0].b), front = Math.min(raw, wall), hit = raw > wall;
+  const E = 1 - smooth(0.35, 1, k), grow = Math.min(1, fd.wave / 10);
+  // (what it settles to: just over the street while it's surging, down to the flood's own level by the end)
+  const base = fd.h + (Math.max(0, fd.h) + 6 - fd.h) * E;
+  const ti = hit ? (raw - wall) / 14 : 0, peak = 98 * (hit ? Math.max(0.25, 1 - ti / 22) : 1);
+  const hAt = (x: number, f: number) => base + E * grow * (52 + peak * Math.exp(-Math.max(0, front - x) / 170)) + E * (Math.sin(x * 0.07 + f * 0.3) * 3 + Math.sin(x * 0.021 - f * 0.11) * 5);
+  return { on: fd.on && fd.wave < SURGE_T, wave: fd.wave, raw, wall, front, hit, ti, E, grow, base, hAt, sy: Y(fd.h) };
+};
+
+/** A puff of whitewater, stepped: its shade, itself, lit, a glint. */
+const puff = (c: Ctx, x: number, y: number, r: number) => {
+  if (r < 1.5) return;
+  box(c, x - r, y - r * 0.55, r * 2, r * 1.1, FOAM[1]);
+  box(c, x - r * 0.8, y - r * 0.8, r * 1.5, r * 0.9, FOAM[2]);
+  box(c, x - r * 0.55, y - r * 0.95, r * 0.9, r * 0.5, FOAM[3]);
+  if (r > 5) box(c, x - r * 0.4, y - r * 0.9, Math.max(1, r * 0.3), Math.max(1, r * 0.2), FOAM[4]);
+};
+
+/** What it's carrying, tumbling (drawn at its middle). */
+const surgeJunk = (c: Ctx, j: number, f: number) => {
+  const k = j % 5;
+  if (k === 0) {
+    // (a 2x4, nails in it)
+    box(c, -31, -5, 62, 10, INK); box(c, -30, -4, 60, 8, PLY[3]); box(c, -30, -4, 60, 2, PLY[5]); box(c, -30, 2, 60, 2, PLY[1]);
+    for (let n = 0; n < 4; n++) box(c, -24 + n * 15, -3, 6 + (n % 2) * 4, 1, PLY[2]);
+    box(c, 20, -8, 2, 4, STEEL[5]); box(c, -18, -9, 2, 5, STEEL[4]);
+  } else if (k === 1) { c.scale(0.9, 0.9); trashCan(c, f); }
+  else if (k === 2) { c.scale(0.55, 0.55); golfCart(c); }
+  else if (k === 3) {
+    // (a prop column, styrofoam, fluted, its capital)
+    const P = ['#5E5648', '#8A8070', '#B4AA96', '#D6CCB6', '#EEE6D2', '#FFFAEE'];
+    box(c, -13, -26, 26, 52, INK); box(c, -12, -22, 24, 44, P[3]);
+    for (let n = 0; n < 4; n++) { box(c, -10 + n * 6, -22, 2, 44, P[2]); box(c, -8 + n * 6, -22, 1, 44, P[4]); }
+    box(c, 8, -22, 4, 44, P[1]);
+    box(c, -16, -27, 32, 7, INK); box(c, -15, -26, 30, 5, P[4]); box(c, -15, -26, 30, 1, P[5]);
+    box(c, -15, 21, 30, 6, INK); box(c, -14, 22, 28, 4, P[3]);
+    poly(c, [[2, 6], [12, 2], [12, 14], [4, 12]], P[5]);
+  } else { c.scale(0.7, 0.7); plySheet(c); }
+};
+
+/** The surge drawn: its body behind the front (banded deeper, streaked, silt in it, the junk in it), the whitewater
+ *  along its top, the curl at its front (or the spray off STAGE 14's face once it's hit it), the mist. */
+const surgeArt = (c: Ctx, state: GameState, s: Surge) => {
+  const f = state.frame, cam = state.camera, E = s.E;
+  if (E <= 0.002) return;
+  const bot = Math.min(s.sy, cam.y + 660);
+  const l = Math.max(x0 - 900, cam.x - 40), r = Math.min(cam.x + 840, s.hit ? s.wall : s.front - 6);
+  // ---- the body: in 4 px strips, banded down from its surface, dithered where the bands meet
+  const BANDS: [number, string][] = [[3, FOAM[2]], [5, MURK[5]], [12, MURK[4]], [24, MURK[3]], [36, MURK[2]], [9999, MURK[1]]];
+  c.globalAlpha = 0.62 + 0.32 * E;
+  if (r > l) for (let x = Math.floor(l / 4) * 4; x < r; x += 4) {
+    const top = Math.round(Y(s.hAt(x, f)));
+    if (top >= bot) continue;
+    let y = top, prev = '';
+    for (const [dh, col] of BANDS) {
+      const h = Math.min(dh, bot - y);
+      if (h <= 0) break;
+      c.fillStyle = col; c.fillRect(x, y, 4, h);
+      if (prev && h > 3) { c.fillStyle = prev; c.fillRect(x + ((x >> 2) & 1) * 2, y, 2, 2); }
+      prev = col; y += h;
+    }
   }
+  if (r > l) {
+    const W2 = r - l;
+    // (flow streaks running with it, silt clouding it)
+    for (let k = 0; k < 28; k++) {
+      const x = l + ((k * 131 + f * (7 + (k % 4) * 2)) % W2), top = Y(s.hAt(x, f)), y = top + 9 + ((k * 47) % 120);
+      if (y > bot - 3) continue;
+      box(c, x, y, 10 + (k % 3) * 8, 1, k % 3 ? MURK[5] : MURK[0]);
+      if (k % 4 === 0) checker(c, Math.round(x / 2) * 2 - 10, Math.round(y / 2) * 2 + 4, 20, 8, '#6A5236', k % 2);
+    }
+    c.globalAlpha = 1;
+    // ---- the junk in it, tumbling, half under (the water's bands over its lower half), a foam ring round each
+    const reach = s.hit ? s.wall - 34 : s.front - 30;
+    for (let j = 0; j < 6; j++) {
+      const x = s.front - 80 - j * 108 - Math.sin(f * 0.05 + j) * 14;
+      if (x < cam.x - 60 || x > reach || E < 0.2) continue;
+      const top = Y(s.hAt(x, f)), bob = Math.sin(f * 0.2 + j * 1.7) * 3;
+      c.save(); c.translate(x, top + 4 + bob); c.rotate(f * (0.05 + (j % 3) * 0.03) * (j % 2 ? 1 : -1) + j * 1.3); surgeJunk(c, j, f); c.restore();
+      c.globalAlpha = 0.62 + 0.32 * E;
+      box(c, x - 30, top + 8, 60, 12, MURK[4]); box(c, x - 30, top + 20, 60, 16, MURK[3]);
+      c.globalAlpha = 1;
+      for (let n = 0; n < 5; n++) puff(c, x - 28 + n * 14 + Math.sin(f * 0.3 + n) * 2, top + 8, 4 + ((n + j) % 3) * 2);
+    }
+    // ---- its top: a lit line of chop, lace foam trailing back, whitewater thick toward the front
+    for (let x = Math.floor(l / 4) * 4; x < r; x += 4) {
+      const top = Math.round(Y(s.hAt(x, f)));
+      box(c, x, top - 1, 4, 1, FOAM[3]);
+      if (hash(Math.floor(x / 4) * 1.7 + Math.floor(f / 4)) > 0.7) box(c, x, top + 3 + ((x >> 2) % 3) * 2, 3, 1, FOAM[1]);
+    }
+    for (let x = Math.max(l, s.front - 340); x < r; x += 7) {
+      const near = Math.exp(-(s.front - x) / 110), hsh = hash(Math.floor(x / 7) * 3.1 + Math.floor(f / 3));
+      if (hsh > 0.25 + near * 0.7) continue;
+      puff(c, x + Math.sin(f * 0.4 + x) * 2, Y(s.hAt(x, f)) - near * 4, (3 + near * 9) * (0.6 + 0.4 * E) * (0.7 + hsh * 0.6));
+    }
+  }
+  c.globalAlpha = 1;
+  if (!s.hit) curl(c, s, f); else wallHit(c, s, f);
+};
+
+/** The curl at its front: the face going up, banded, glassy green under the lip, the lip going over, the hollow under it
+ *  dark, the whitewater curtain falling off the lip, the foot blowing up in foam, spray off the lip, mist. */
+const curl = (c: Ctx, s: Surge, f: number) => {
+  const hh = s.hAt(s.front, f) - s.base;
+  if (hh < 18) return;
+  const sc = Math.max(0.5, hh / 150), y0 = Math.round(Y(s.base)), fx = s.front;
+  const P = (u: number, v: number): [number, number] => [fx + u * sc, y0 - v * hh];
+  const wob = Math.sin(f * 0.35) * 0.02;
+  const outer: [number, number][] = [[-96, 0.74], [-56, 0.87], [-24, 0.97], [4, 1.0], [24, 0.94 + wob], [38, 0.8 + wob], [44, 0.64], [39, 0.5]];
+  const inner: [number, number][] = [[30, 0.56], [20, 0.62], [10, 0.58], [4, 0.44], [6, 0.26], [14, 0.1], [24, -0.04]];
+  const shape = [...outer, ...inner, [-96, -0.04]].map(([u, v]) => P(u, v));
+  // (the face: banded up it, dithered where the bands meet; streaks drawn up it)
+  c.save(); c.beginPath(); shape.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.clip();
+  const bands: [number, string][] = [[0, MURK[2]], [0.28, MURK[3]], [0.5, MURK[4]], [0.66, GLASS[0]], [0.76, GLASS[1]], [0.85, GLASS[2]], [0.93, FOAM[2]]];
+  const L = fx - 100 * sc, Wd = 150 * sc;
+  bands.forEach(([v, col], i) => {
+    const v1 = i + 1 < bands.length ? bands[i + 1][0] : 1.1, ya = y0 - v1 * hh, yb = y0 - v * hh;
+    box(c, L, ya, Wd, yb - ya + 1, col);
+    if (i > 0) checker(c, Math.round(L / 2) * 2, Math.round(yb / 2) * 2 - 2, Wd, 2, bands[i - 1][1], 0);
+  });
+  for (let k = 0; k < 9; k++) {
+    const t = ((f * 3 + k * 23) % 60) / 60, u = -80 + ((k * 37) % 100), v = 0.1 + t * 0.8;
+    const [px, py] = P(u + t * 20, v);
+    box(c, px, py, 2, 6 * sc, v > 0.6 ? GLASS[2] : MURK[5]);
+  }
+  c.restore();
+  // (inked round its back and over the top)
+  c.strokeStyle = '#0A1012'; c.lineWidth = 2; c.beginPath(); outer.forEach(([u, v], i) => { const [x, y] = P(u, v); if (i) c.lineTo(x, y); else c.moveTo(x, y); }); c.stroke();
+  // (the hollow under the lip: dark, darker in, its back lit a little)
+  poly(c, [P(39, 0.5), P(30, 0.56), P(20, 0.62), P(10, 0.58), P(4, 0.44), P(6, 0.26), P(14, 0.1), P(24, -0.04), P(46, -0.04), P(44, 0.3)], MURK[1]);
+  poly(c, [P(30, 0.5), P(18, 0.56), P(11, 0.46), P(12, 0.26), P(20, 0.12), P(34, 0.1), P(38, 0.34)], MURK[0]);
+  c.strokeStyle = GLASS[0]; c.lineWidth = 1; c.beginPath(); [P(30, 0.56), P(20, 0.62), P(10, 0.58), P(4, 0.44), P(6, 0.26)].forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke();
+  // (the curtain falling off the lip, whitewater streaming down it)
+  poly(c, [P(36, 0.54), P(45, 0.62), P(50, -0.04), P(39, -0.04)], FOAM[1]);
+  poly(c, [P(40, 0.56), P(45, 0.6), P(48, -0.04), P(43, -0.04)], FOAM[2]);
+  for (let k = 0; k < 6; k++) { const t = ((f * 5 + k * 13) % 40) / 40, [px, py] = P(39 + (k % 3) * 3 + t * 3, 0.56 - t * 0.6); box(c, px, py, 2, 5 * sc, FOAM[4]); }
+  // (the lip: lit along its top, a glint)
+  c.strokeStyle = FOAM[3]; c.lineWidth = 2; c.beginPath(); [P(-24, 0.97), P(4, 1.0), P(24, 0.94 + wob), P(38, 0.8 + wob), P(44, 0.64)].forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke();
+  // (whitewater rolling on its crest)
+  for (let k = 0; k < 9; k++) { const u = -70 + k * 12 + Math.sin(f * 0.3 + k) * 3, v = k < 5 ? 0.8 + k * 0.04 : 1 - (k - 5) * 0.05, [px, py] = P(u, v); puff(c, px, py + 2, (5 + (k % 3) * 2.5) * sc); }
+  // (its foot blowing up in foam, a skirt of it shoved on ahead)
+  for (let k = 0; k < 8; k++) { const ph = f * 0.4 + k * 1.3, [px, py] = P(46 + (k % 4) * 10 + Math.sin(ph) * 3, 0.05 + (k % 3) * 0.05 + Math.abs(Math.sin(ph)) * 0.06); puff(c, px, py, (8 + (k % 3) * 4) * sc); }
+  for (let k = 0; k < 7; k++) { const [px] = P(70 + k * 14, 0); puff(c, px + Math.sin(f * 0.5 + k) * 2, y0 + 2 - (k % 2) * 2, (6 - k * 0.6) * sc); }
+  // (spray off the lip, thrown on ahead and falling)
+  for (let k = 0; k < 16; k++) {
+    const t = ((f * 1.6 + k * 7) % 26) / 26, [lx, ly] = P(42, 0.7 + (k % 4) * 0.06);
+    const px = lx + (20 + (k % 5) * 12) * t * sc * 2, py = ly - (14 + (k % 3) * 10) * t * sc + t * t * 70 * sc, sz = Math.max(1, Math.round((4 - t * 3) * Math.min(1.2, sc)));
+    box(c, px, py, sz, sz, t < 0.4 ? FOAM[4] : t < 0.75 ? FOAM[3] : FOAM[1]);
+  }
+  // (mist hanging round its front, dithered, thinning out)
+  c.globalAlpha = 0.28 * s.E;
+  checker(c, Math.round((fx - 20 * sc) / 2) * 2, Math.round((y0 - hh * 1.15) / 2) * 2, Math.round(130 * sc), Math.round(hh * 0.5), FOAM[3], (f >> 3) & 1);
+  c.globalAlpha = 0.18 * s.E;
+  checker(c, Math.round((fx - 60 * sc) / 2) * 2, Math.round((y0 - hh * 1.35) / 2) * 2, Math.round(200 * sc), Math.round(hh * 0.3), FOAM[4], ((f >> 3) + 1) & 1);
+  c.globalAlpha = 1;
+};
+
+/** Once it's hit STAGE 14's face: it goes up the wall in a column of spray (stepped puffs, rising, spreading back over
+ *  it, falling), sheets running back down the wall, droplets coming down, the mist. */
+const wallHit = (c: Ctx, s: Surge, f: number) => {
+  const wx = s.wall, y0 = Y(s.base), up = Math.min(1, s.ti / 10), fall = Math.max(0, 1 - s.ti / 46);
+  const H = 260 * s.E * up * fall + 30 * s.E;
+  if (H < 8) return;
+  for (let k = 0; k < 18; k++) {
+    const t = k / 17, py = y0 - t * H, spread = t * t * 70;
+    const px = wx - 14 - spread * (0.6 + hash(k * 3.3) * 0.6) + Math.sin(f * 0.35 + k) * 4;
+    puff(c, px, py, (7 + t * 12 + (k % 3) * 2) * (0.5 + 0.5 * fall));
+  }
+  // (sheets running back down the wall)
+  for (let k = 0; k < 6; k++) { const t = ((f * 4 + k * 17) % 60) / 60, x = wx - 6 - k * 4, y = y0 - H * 0.8 + t * H * 0.8; box(c, x, y, 2, 10, k % 2 ? FOAM[2] : MURK[5]); }
+  // (droplets falling back)
+  for (let k = 0; k < 18; k++) { const t = ((f * 1.3 + k * 11) % 40) / 40, px = wx - 20 - (k * 13) % 120 - t * 30, py = y0 - H * (0.4 + (k % 5) * 0.12) + t * t * 160; if (py < y0) box(c, px, py, 2 + (k % 2), 2 + (k % 2), t < 0.5 ? FOAM[4] : FOAM[2]); }
+  c.globalAlpha = 0.24 * s.E;
+  checker(c, Math.round((wx - 160) / 2) * 2, Math.round((y0 - H) / 2) * 2, 156, Math.round(H * 0.8), FOAM[3], (f >> 3) & 1);
+  c.globalAlpha = 1;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
