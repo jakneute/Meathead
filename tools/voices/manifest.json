@@ -7041,6 +7041,11 @@
  },
  {
   "voice": "death",
+  "text": "DROWNED IN A THEME PARK",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "DROWNED IN A WAVE POOL",
   "from": "FOREIGN"
  },
@@ -7088,6 +7093,11 @@
   "voice": "death",
   "text": "DROWNED IN THE FLOOD TANK",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "DROWNED IN THE INTERNATIONAL WATERS",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -34766,11 +34776,6 @@
  },
  {
   "voice": "meathead",
-  "text": "A FAKE VOLCANO. IT'S A FOG MACHINE IN A CONE.",
-  "from": "FOREIGN"
- },
- {
-  "voice": "meathead",
   "text": "A FAT GUY IN A DIAPER. RESPECT.",
   "from": "FOREIGN"
  },
@@ -50426,6 +50431,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S ARIZONA. THEY PAINTED ARIZONA BACK THERE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S ASSAULT, YOU UGLY BULLFROG!",
   "from": "SPACE"
  },
@@ -50883,6 +50893,11 @@
   "voice": "meathead",
   "text": "THE BUTLER WANTS A PIECE!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CACTUSES ARE PLYWOOD. EVEN THE CACTUSES ARE FAKE.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -52093,11 +52108,6 @@
   "voice": "meathead",
   "text": "THE VOLCANO IS A SPACE HEATER WITH A RED LIGHT ON IT.",
   "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
-  "text": "THE VOLCANO IS SMOKING. SO AM I, AFTER THIS.",
-  "from": "FOREIGN"
  },
  {
   "voice": "meathead",

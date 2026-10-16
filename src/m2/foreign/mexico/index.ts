@@ -1,6 +1,6 @@
 // MEXICO: section 1 of Foreign Lands' streets (and the land's way in). Through FOREIGN LANDS' gate (the PA's welcome,
 // his first words), onto the lagoon promenade: papel picado strung over it all, stucco fronts in hot pink, marigold and
-// turquoise, the fake volcano smoking far off. The cast come at him one at a time first (a mariachi; a sombrero
+// turquoise, the mesas and plywood saguaros far off. The cast come at him one at a time first (a mariachi; a sombrero
 // thrower behind the taco cart: up on it to jump the rolling hats), then THE PYRAMID: stepped terraces climbed up and
 // over (mariachis and hat throwers up the steps, the TEMPLE OF THE SUN (GIFT SHOP) on top, a small ammo on its roof),
 // and under the terraces, inside it, the dusk-lit MERCADO plaza (string lights, stalls, a painted sunset: the blind

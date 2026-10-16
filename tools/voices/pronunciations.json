@@ -17,6 +17,7 @@
     { "in": "FACEPLANT", "say": "FACE PLANT" },
     { "in": "GANGRENE", "say": "GANG GREEN", "word": true },
     { "in": "NAMASTE", "say": "NAH MUH STAY" },
+    { "in": "OLE", "say": "OH LAY", "word": true },
     { "in": "BANDANA", "say": "BAN DANNUH", "word": true },
     { "in": "CARBON FIB-", "say": "CARBON FYE-" },
     { "in": "WAY TOO EASY", "say": "WAY TOO EE-ZEE" },

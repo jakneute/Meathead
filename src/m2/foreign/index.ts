@@ -10,6 +10,7 @@
 //
 // Shared file (see OWNERSHIP.md): section owners may only append minimally, and must re-read it before editing.
 
+import { updateSwimAir, drawAir } from './air';
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
 import type { Enemy } from '../../m1/types';
@@ -126,6 +127,8 @@ export const foreignLayout: StageLayout = {
     if (arriving) controls = { ...NO_CONTROLS };
     // (the streets' shared business: what the cast throw)
     if (isStreet(sec.id)) updateShots(ctx);
+    // (in the water anywhere: he swims, and his air goes while he's under)
+    updateSwimAir(ctx, (x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null);
     let out = sec.update ? sec.update(ctx, controls) : controls;
     out = updateGrab(ctx, fs.grab, out);
     if (arriving) out = { ...NO_CONTROLS };
@@ -145,6 +148,7 @@ export const foreignLayout: StageLayout = {
     for (const id of near(state)) ALL[id].drawFront?.(c, state);
     // (the streets' shared: what's flying, who's saying what over their heads, the PA's words up top)
     drawShots(c, state);
+    drawAir(c, state);
     const o = streetsOf(state);
     for (const e of state.enemies) { const s = o.barks.get(e); if (s && e.health > 0) saidOver(c, s.text, e.pos.x + e.width / 2, e.pos.y - 18, '#BFDBFE', 220); }
     if (o.pa) saidOver(c, o.pa.text, state.camera.x + CANVAS_WIDTH / 2 + 120, state.camera.y + 150, '#FDE68A', 320);

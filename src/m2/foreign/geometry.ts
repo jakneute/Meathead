@@ -29,7 +29,7 @@ export const FLX = 600000;
 /** The sections, in order: where each runs (world x). The streets' are back to back (one continuous walk). */
 export const SECTIONS = {
   /** The way in from the hub (FOREIGN LANDS' gate), then MEXICO: the pyramid climbed up and over (its dusk-lit
-   *  marketplace plaza inside, under the terraces), the taco cart, papel picado, the fake volcano. */
+   *  marketplace plaza inside, under the terraces), the taco cart, papel picado, the mesas and saguaros. */
   mexico: { x0: FLX, x1: FLX + 6200 },
   /** NORWAY: the stave church climbed, the longship on the wave machine's pool, troll statues, the fjord. */
   norway: { x0: FLX + 6200, x1: FLX + 11800 },

@@ -89,6 +89,11 @@ export const HURT: HurtTable = {
     hurt: ['THE WAVE MACHINE! IN MY NOSE!', 'FUCKING WAVE POOL!', 'I SWALLOWED THE FJORD!'],
     death: ['DROWNED IN A WAVE POOL', 'THE FJORD TOOK HIM'],
   },
+  // (out of air, in any of the land's water (air.ts): Norway's table carries it for the whole land)
+  'm2:fl_drown': {
+    hurt: ["CAN'T BREATHE!", 'AIR! AIR!', 'GLUB! GLUB!', 'WATER IN MY LUNGS!'],
+    death: ['DROWNED IN A THEME PARK', 'FORGOT TO BREATHE', 'DROWNED IN THE INTERNATIONAL WATERS', 'GLUB GLUB GLUB'],
+  },
   'm2:fl_lutefisk_fish': {
     hurt: ['LUTEFISK! IN MY MOUTH!', "OH GOD, IT'S JELLY!", "I'M GONNA PUKE!"],
     death: ['DROWNED IN FISH JELLY', 'DIED OF LUTEFISK'],

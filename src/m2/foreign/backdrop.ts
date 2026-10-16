@@ -1,7 +1,7 @@
 // The streets' backdrop (screen space; ONE for the whole walk, so nothing pops walking from one pavilion into the
 // next): the sky by the hour (timeOfDay.ts), the lagoon along the back with its big fake FIREWORKS barge (it drifts
-// across the whole walk, slow: the far shore's that far off), and each pavilion's far landmark (Mexico's fake volcano,
-// Norway's fjord, China's ridge with the wall on it, Germany's castle on its hill, Italy's bell tower and its volcano,
+// across the whole walk, slow: the far shore's that far off), and each pavilion's far landmark (Mexico's mesas and saguaros,
+// Norway's fjord, China's ridge with the wall on it, Germany's castle on its hill, Italy's bell tower and its hills,
 // Fuji, the dunes, the tower, the clock tower, the Rockies, the helicopter tour's giant replicas) slid in by parallax round where its
 // pavilion is, so they come and go as he walks. Crude (the first pass), all of it tinted far into the haze.
 //
@@ -22,10 +22,14 @@ const K = 0.22, BARGE_K = 0.02;
 /** Each pavilion's far landmark, painted about (0, horizon) (its middle at x 0), tinted far. */
 const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => void>> = {
   mexico: (c, hz, f) => {
-    // (the fake volcano: a cone, a crater, a lazy puff of smoke (a fog machine), a pyramid in front of it)
-    poly(c, [[-260, hz], [-50, hz - 210], [40, hz - 210], [260, hz]], farTint('#7C2D12', 0.6));
-    poly(c, [[-50, hz - 210], [-10, hz - 196], [40, hz - 210]], farTint('#431407', 0.6));
-    for (let k = 0; k < 4; k++) { const r = 18 + k * 9, x = -5 + Math.sin(f * 0.01 + k) * 6 + k * 12, y = hz - 230 - k * 22; c.fillStyle = farTint('#D6D3D1', 0.7); c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); }
+    // (desert mesas, flat-topped and banded, a row of giant saguaros along the foot (painted plywood), a pyramid in
+    // front of it all)
+    void f;
+    poly(c, [[-330, hz], [-300, hz - 130], [-150, hz - 130], [-120, hz]], farTint('#9A3412', 0.6));
+    box(c, -300, hz - 104, 150, 6, farTint('#C2410C', 0.6));
+    poly(c, [[110, hz], [140, hz - 170], [300, hz - 170], [330, hz]], farTint('#7C2D12', 0.6));
+    box(c, 140, hz - 136, 160, 6, farTint('#C2410C', 0.6));
+    for (const x of [-230, -60, 60, 230]) { box(c, x - 6, hz - 90, 12, 90, farTint('#3F6212', 0.55)); box(c, x - 22, hz - 64, 10, 30, farTint('#3F6212', 0.55)); box(c, x - 22, hz - 64, 16, 8, farTint('#3F6212', 0.55)); box(c, x + 12, hz - 76, 10, 34, farTint('#3F6212', 0.55)); box(c, x + 6, hz - 46, 16, 8, farTint('#3F6212', 0.55)); }
     for (let k = 0; k < 5; k++) box(c, -150 + k * 18, hz - 26 - k * 22, 300 - k * 36, 24, farTint('#A8A29E', 0.55));
   },
   norway: (c, hz) => {
@@ -53,8 +57,9 @@ const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => vo
     }
   },
   italy: (c, hz) => {
-    // (a volcano far off, a bell tower and a dome nearer)
-    poly(c, [[-340, hz], [-200, hz - 150], [-140, hz - 150], [0, hz]], farTint('#57534E', 0.65));
+    // (rolling Tuscan-ish hills with their cypresses far off, a bell tower and a dome nearer)
+    c.fillStyle = farTint('#4D7C0F', 0.65); c.beginPath(); c.ellipse(-230, hz, 150, 70, 0, Math.PI, 0); c.ellipse(-60, hz, 120, 50, 0, Math.PI, 0); c.fill();
+    for (const [x, y] of [[-300, 40], [-250, 62], [-190, 58], [-110, 40], [-40, 30]] as const) poly(c, [[x - 6, hz - y], [x, hz - y - 46], [x + 6, hz - y]], farTint('#14532D', 0.6));
     box(c, 60, hz - 200, 34, 200, farTint('#C2410C', 0.55)); poly(c, [[56, hz - 200], [77, hz - 236], [98, hz - 200]], farTint('#7C2D12', 0.55));
     c.fillStyle = farTint('#B45309', 0.55); c.beginPath(); c.arc(170, hz - 60, 60, Math.PI, 0); c.fill(); box(c, 110, hz - 60, 120, 60, farTint('#D6D3D1', 0.55));
   },

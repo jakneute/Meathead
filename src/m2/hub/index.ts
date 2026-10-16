@@ -64,7 +64,7 @@ export const hubLayout: StageLayout = {
     // walking pose, always)
     {
       const p = state.player;
-      p.vine = undefined; p.ladder = undefined; p.carried = undefined; p.cartSeat = undefined; p.dropVine = undefined; p.leverPull = undefined;
+      p.swimming = false; p.vine = undefined; p.ladder = undefined; p.carried = undefined; p.cartSeat = undefined; p.dropVine = undefined; p.leverPull = undefined;
       p.freefall = undefined; p.throne = undefined; p.airGrab = undefined; p.hidden = false; p.isCharging = false; p.isSliding = false;
       p.isUppercutting = false; p.isDivekicking = false; p.isDucking = false; p.recoiling = false; p.lockTimer = 0; p.pushbackTimer = 0;
     }

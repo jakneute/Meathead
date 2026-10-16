@@ -32,7 +32,7 @@ export const TALK: PavilionTalk = {
     { from: 900, to: 1300, key: 'taco', lines: ['TACOS: AN ITALIAN TRADITION. I\'M NOT EVEN MAD.', 'THAT TACO CART SMELLS LIKE A GYM BAG.'] },
     { from: 1500, to: 2100, key: 'pyramid', lines: ['A PYRAMID. THE GIFT SHOP\'S AT THE TOP. OF COURSE IT IS.', 'STAIRS. MY ASS IS GONNA FEEL THIS TOMORROW.'], minH: 150 },
     { from: 1700, to: 2900, key: 'plaza', lines: ["IT'S NIGHTTIME IN HERE. IT'S TWO IN THE AFTERNOON.", 'A FAKE SUNSET. INDOORS. I WANT A FAKE MARGARITA.'], maxH: 60 },
-    { from: 3100, to: 3600, key: 'volcano', lines: ["A FAKE VOLCANO. IT'S A FOG MACHINE IN A CONE.", 'THE VOLCANO IS SMOKING. SO AM I, AFTER THIS.'] },
+    { from: 3100, to: 3600, key: 'mesas', lines: ['THE CACTUSES ARE PLYWOOD. EVEN THE CACTUSES ARE FAKE.', "THAT'S ARIZONA. THEY PAINTED ARIZONA BACK THERE."] },
     // (job 4b: La Quebrada, the cliff divers)
     { from: 4250, to: 4700, key: 'quebrada', lines: ['CLIFF DIVERS. INTO SIX FEET OF WATER. FROM OHIO.', "A FIBERGLASS CLIFF. YOU CAN SEE THE SCREWS."] },
     { from: 4820, to: 5480, key: 'clifftop', lines: ["THE GUY ON THE POLE IS CRYING. HE'S STILL GONNA JUMP.", "IT'S A LONG WAY DOWN. THE POOL LOOKS LIKE A BATHTUB."], minH: 560 },
