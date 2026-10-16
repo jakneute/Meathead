@@ -11,7 +11,7 @@ index.ts header says what goes in it.
 | `mexico/`, `norway/`, `china/`, `germany/`, `italy/` | 0-9, 10-19, 20-29, 30-39, 40-49 | built (job 1, first pass) |
 | `japan/`, `morocco/`, `france/`, `uk/`, `canada/` | 50-59, 60-69, 70-79, 80-89, 90-99 | built (job 2, first pass) |
 | ~~`theater/`~~ (CULTURES OF THE WORLD) | ~~100-109~~ | AXED (the user, 2026-10-16): removed |
-| `heli/` (the helipad off the end of Canada, boarding, the jacking, the shooter) | 110-119 | job 4 |
+| `heli/` (the helipad off the end of Canada, boarding, the jacking, the shooter) | 110-119 | built (job 4, first pass) |
 | `harry/` (HELICOPTER HARRY, the land boss) | 120-129 | stub: the arena + a temporary walk-past win |
 
 Inside your folders, anything goes (layout.ts, art.ts, kinds.ts, lines.ts...). Number checkpoints only inside your
@@ -32,7 +32,7 @@ playtime, not x width.
 | germany | FLX+13200 .. FLX+17000 | ~0.8 min |
 | italy | FLX+17000 .. FLX+21000 | ~0.8 min |
 | japan, morocco, france, uk, canada | 3600 each, FLX+21000 .. FLX+39000 | ~0.7 min each |
-| heli | FLX+39000 .. FLX+42000 (on the end of the streets; the shooter auto-scrolls high over it: count it by time) | ~7 min |
+| heli | FLX+39000 .. FLX+42000 (on the end of the streets; the shooter's one fixed screen high over it: count it by time) | ~10 min (matches the pavilions) |
 | harry | FLX+52000 .. FLX+55000 | the boss fight |
 
 FLX = 600000. **The streets are one continuous walk: no gaps between street sections.** Need more room in a pavilion?

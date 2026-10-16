@@ -50,6 +50,11 @@ victory, walkAway, pathing.ts, hollywood/blvd/kit.ts art helpers.
 
 ## Shape and length
 
+**The user (2026-10-16): "there's essentially two sequences: pavilions, helicopter. less than a typical level but
+lengthier individually."** The land is just TWO sequences (fewer than other lands have), each one long. The helicopter
+sequence is a substantial stretch (the tour, nine mechs with goon waves between, the end), roughly matching the
+pavilions sequence (which gets lengthened in its own job).
+
 Two stretches, about half the play time each; the whole land about as long to play as Adventure / Hollywood Land.
 FEW hard transitions (the user's): each stretch flows continuously, as one walk and one flight, with as few cuts,
 fades and section doors as possible (sections exist in code, but the player shouldn't feel the seams).
@@ -411,3 +416,82 @@ voices recorded (npm run voices) and the M2 html rebuilt (npm run release:m2) af
   lobby; SHOW_MEMO once it's over (and any start at checkpoint 102 on). Revisits: the marquee reads SHOW CANCELLED /
   ALL OF IT, the house doors' sign SHOW OVER, the seats empty (popcorn tubs left), the stage struck (the wrecks shoved in
   a pile upstage in their fluid), the wing door open (EXIT THIS WAY).
+
+## Decisions (job 4)
+
+- **The theater's axed** (the user): heli sits where it was (FLX+39000..42000) as a STREET section, so Canada's trail
+  walks straight onto the helipad (no cut). Checkpoint 110 and the big health + ammo at the pad, before the ride.
+- **Files** (heli/): geo.ts (the pad's layout, the fixed flight camera CAMX/CY high over the pad, the globe), state.ts,
+  lines.ts, talk.ts (one voice at a time), copter.ts (the helicopter drawn and flown, the gun, rockets, boost),
+  mechs.ts (the nine: bodies, moves, shots, beams, drops, minions, the Pisa joke), mechArt.ts, globe.ts, goons.ts,
+  harryArt.ts (HELICOPTER HARRY fully drawn: job 5 should import drawHarry for the arena), index.ts (the flow).
+- **The helipad:** the queue (22 guests behind switchback rails, WAIT TIME: 3 HOURS, TOLERANCE: MANDATORY) yells at him
+  as he walks the length of it (guest voices, by his pants); Harry waves by the helicopter. Past the queue it's the
+  BOARDING cutscene (HUD hidden; SKIP >> skips everything up to his taking the controls): he walks to it, hops in the
+  back, Harry's welcome by his pants (no judgment), up off the pad, the camera going up with it, the globe rising in
+  from under. No hard cut anywhere: the tour turns into the shooter in place.
+- **The tour:** the helicopter held on the left of the screen; the globe turns the replicas round (plain, on plinths:
+  no legs, no eyes yet); Harry's five lines with Meathead's grunts between, then "SHUT UP, HIPPIE."; Harry shoved out
+  his door (still nice: "THAT IS NOT A SAFE SPACE!"), Meathead slides into the pilot's seat ("MY HELICOPTER NOW."),
+  Harry roars back up on the ride's emergency jetpack, red-faced: "I WAS FAKING IT THE WHOLE TIME, YOU SON OF A
+  BITCH!", the rant, "LANDMARKS OF THE WORLD! WAKE YOUR ASSES UP AND KILL THIS PRICK!", and every landmark grows legs
+  and googly eyes. The controls card (X MACHINE GUN, Y ROCKETS, direction + B BOOST: real button icons, store.ts
+  heliTips) shows ~12 s, once a run.
+- **The flight:** one fixed screen (the camera doesn't scroll: Cuphead's Djimmi, the world goes by instead): the sky
+  by the hour with clouds and speed streaks streaming left, the GLOBE across the bottom turning the whole time, the
+  landmark he's fighting standing on it on the right, upright on its stomping mech legs; the next ones further round
+  ahead, smaller (further off), and the beaten ones rolled away behind as wrecks (blackened, on their sides, smoking,
+  eyes X'd; the Leaning Tower lies flat with its legs still standing). The helicopter always faces right; his feet kept
+  on screen (x 150-770, y 120-560); the hurtbox is his own seated box (the boom and the rotor never count).
+- **The controls:** X the chin machine gun (a round every 4 frames, the engine's machine-gun rounds: 22 to people, 10
+  to a landmark); Y homing rockets (three charges, one back every 2.5 s; they go for the nearest lackey or minion,
+  else the landmark; a blast of 64: 140 to people, 120 to minions, 70 to a landmark; the charges drawn bottom left);
+  B the boost (16 frames at 15 px a frame, a 34-frame cooldown): plain/right forward nose-down, left bent back, up
+  straight up, down flipped upside down (the rotor underneath) and back over after; its blades reach 70 px past the
+  helicopter the way it's going and SHRED any lackey or minion (gore, SHREDDED!); into a landmark it's a 60 hit and he's
+  bounced off (no hurt for it).
+- **The nine** (hp: Eiffel 3600, Opera 4000, Redeemer 4400, Taj 4800, Big Ben 5000, Colosseum 5400, Pyramid 5800,
+  Moai 6600; mechs.ts HP / HP_SCALE): not engine enemies (their health is their own; rounds that reach one are spent on
+  it; no i-frames; mini-boss rules). Each: Harry orders it in (by his pants), its intro, ~1.7 s before it fires, then
+  four moves in random order (never the same twice running), shorter gaps under half health, taunts into quiet, a hurt
+  line at half, its death line, a chain of blasts and over; Harry's reaction; Meathead now and then.
+  - EIFFEL: rivet fans off the tip, a rivet spiral off the second deck, the SEARCHLIGHT (a tracking laser), keychain
+    Eiffels homing in. OPERA HOUSE: music notes in waves, the shells clap shut (rings), the HIGH C (big slow notes that
+    burst), SEAGULLS diving. CHRIST THE REDEEMER: arms spinning (a spiral off its hands), THE HUG (both arms swing in
+    to its reach, top and bottom: get further off than that), the halo (a ring with a gap at him), aimed bursts.
+    TAJ MAHAL: a double marble spiral off the dome, its MINARETS thrown up and dropped on his column (red warning
+    columns), ripples off its pool, aimed marbles. BIG BEN: its HANDS (the long minute hand and the short hour hand
+    sweeping opposite ways out of the face: stay out of reach), BONG rings, bouncing gears, teacups. COLOSSEUM: walls
+    of shots out of its arches with one row open, LIONS leaping at him, THUMBS DOWN (a giant fist dropped on him), a
+    fan. PYRAMID: the capstone EYE (a beam that follows him), two-ton blocks lobbed, a sand spiral, scarabs. EASTER
+    ISLAND HEAD: the STARE (beams out of its eyes), a spat boulder that bursts, little heads bouncing, rocks rained
+    down; at half health THE BODY (it rises up out of the globe: "NOBODY KNOWS ABOUT THE BODY").
+  - THE LEANING TOWER OF PISA (the user's): impervious (every hit pings: IMMUNE pops, the bar reads IMMUNE), taunting
+    all the while (~7 s), then the LEAN (~5.3 s: creaking, wobbling, its whole sweep shaded red and where it'll lie
+    outlined), then the FALL to the left from its base: on him is death (`m2:fl_pisa_fall`: its own death screen and
+    lines; "TOLD YOU! ...CAN SOMEBODY HELP ME UP?"); dodged (far up-left beyond its length, or right of it) it smashes
+    down, its bar goes from full to nothing, "...I MEANT TO DO THAT.", "IT KILLED ITSELF.", on to the next.
+- **Their shots** are engine enemy projectiles (`m2:fl_mech_<id>_shot`: the engine does the hurt and knockback), drawn
+  here over the engine's own (rivets, notes, marbles, gears, teacups, blocks, rocks, orbs). Beams, drops, minions and
+  contact are this section's own hurts. Every one has hurt + death lines (28 sources in lines.ts HURT).
+- **The lackeys** (`m2:fl_jetgoon`): the ride's cast members in blue polos, aviator caps and goggles on the ride's
+  emergency jetpacks (Spooky's costume drawer: men and women of every look by seed, name tags on). Hoverers (in to a
+  spot, flare shots), divers (line up, then straight at him), sneaks (from behind him, above or below: teaching the
+  back, up and down boosts). Two or three waves before each landmark (goons.ts WAVES), the first a slow lesson; the
+  globe turns the next landmark round meanwhile (~5 s). Barks by his pants (two voices).
+- **Checkpoints:** 111-119, one per landmark, set as it comes on; starting again there: up in the air, the globe round
+  to it, the wrecks before it in place, straight into it (no waves). A big health + ammo floats out before the Easter
+  Island head. Lean drops from the lackeys (the engine's); what's dropped up here floats.
+- **Harry** (fully drawn: gray ponytail, white helmet with a peace sign, amber round glasses, gray goatee, tie-dye under
+  an olive flight jacket, jeans, socks and sandals; red-faced and snarling once turned, the emergency jetpack, a rocket
+  launcher for the end) hovers over the top middle the whole gauntlet: orders each landmark in, reacts to each wreck,
+  heckles into quiet, gloats when he's hit, curses the lackeys' deaths; clean / shitty / naked pools; swearing,
+  regressive, NO slurs.
+- **The end** (a cutscene, skippable): every landmark down, the lackeys gone; Harry's rant (by his pants) and the
+  launcher up; "OH, COME ON."; the rocket, the hit, the helicopter burning and spinning down off the bottom of the
+  screen; the white; Harry's arena at DOORS.harry.start with him on his feet, the camera his, weapon switching back
+  (MEMO done: the ride's gone for good; stageMemo `m2:fl_heli_wrecks` = 9 for job 5's crash site). Back on the pad
+  later: no helicopter, a scorch, CLOSED (HELICOPTER MISSING), nobody in line.
+- **Voices:** new ids in cast.json: m2.foreign.harry, m2.foreign.jetgoon / jetgoonf, m2.foreign.mech_<id> (nine).
+- **Length:** the tour ~1 min (skippable), nine fights ~40-60 s each, ~20 s of lackeys before each: ~10 min, about
+  the pavilions' length.
