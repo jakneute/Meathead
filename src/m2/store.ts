@@ -35,6 +35,8 @@ export interface M2Ui {
   /** What HOLDING down does right here, if anything (sitting on a star toilet...): shown as HOLD, the down button and
    *  this (a land's own; reset each frame). */
   holdDownPrompt?: string | null;
+  /** (Foreign Lands' helicopter) The flying controls card: X the gun, Y the rockets, B and a direction the boost. */
+  heliTips?: boolean;
 }
 
 let ui: M2Ui = { near: null, map: null, nearExit: false, notice: null };

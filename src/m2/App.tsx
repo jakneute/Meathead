@@ -411,6 +411,14 @@ const App2: React.FC = () => {
               : <span className="inline-flex items-center gap-1 align-middle"><span>HOLD</span><Prompt pad={['DPAD_DOWN']} kb={['@down']} label={ui.holdDownPrompt ?? ''} /></span>}
           </div>
         )}
+        {/* Foreign Lands' helicopter: the flying controls, for a while once he's jacked it */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.heliTips && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex gap-4 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
+            <Prompt pad={['X']} kb={['@fire']} mouse="left" label="MACHINE GUN" />
+            <Prompt pad={['Y']} kb={['@secondary']} label="ROCKETS" />
+            <span className="inline-flex items-center gap-1 align-middle"><Prompt pad={['DPAD']} kb={['@up', '@down', '@left', '@right']} /><span>+</span><Prompt pad={['B']} kb={['@special']} label="BOOST" /></span>
+          </div>
+        )}
         {/* The intro: what the panel in the corner's teaching, where he is; what up does at the ticket window; the ticket */}
         {status === GameStatus.PLAYING && stage === INTRO_STAGE && !ui.introCutscene && ui.introTip && (
           // (the grabs' sheet goes wide, three moves side by side, under the HUD: not a tall column)
