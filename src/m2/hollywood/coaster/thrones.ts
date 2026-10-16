@@ -17,6 +17,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import { hands, meatheadSays, box } from '../section';
+import { checker, mix } from '../../intro/art/kit';
+import { signText, signW } from '../../signLetters';
 import { pickLine, isTalking } from '../../../m1/game/platform/speech';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
@@ -178,67 +180,99 @@ const sitting = (ctx: FrameContext, co: Coaster, controls: Controls, pa: (line: 
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
+const INK = '#1C1014';
+/** Poo, in steps (darkest first). */
+const POO = ['#1E1006', '#3A220C', '#5C3A16', '#7A4E1E', '#9A6A2E', '#BC8A48'];
 const flies = (c: Ctx, x: number, y: number, f: number, n: number) => {
-  for (let k = 0; k < n; k++) { const a = f * 0.13 + k * 0.9; box(c, x + Math.cos(a * 1.3) * (16 + k * 3), y + Math.sin(a) * 12, 2, 2, '#000'); }
+  for (let k = 0; k < n; k++) { const a = f * 0.13 + k * 0.9, fx = x + Math.cos(a * 1.3) * (16 + k * 3), fy = y + Math.sin(a) * 12; box(c, fx, fy, 2, 2, INK); if ((f + k) % 4 < 2) box(c, fx - 1, fy - 1, 1, 1, '#C8D4E0'); else box(c, fx + 2, fy - 1, 1, 1, '#C8D4E0'); }
 };
+/** A note taped up (a printed sheet, tilted), stenciled. */
 const note = (c: Ctx, x: number, y: number, text: string, bg: string, fg: string, rot: number) => {
   c.save(); c.translate(x, y); c.rotate(rot);
-  c.font = '6px "Press Start 2P"';
-  const w = c.measureText(text).width + 8;
-  box(c, -w / 2 - 1, -7, w + 2, 14, '#000'); box(c, -w / 2, -6, w, 12, bg);
-  c.fillStyle = fg; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, 0, 0.5);
-  c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+  const L = { sx: 1, sy: 1, fill: fg, stencil: true }, w = signW(text, L) + 10;
+  box(c, -w / 2 - 1, -8, w + 2, 16, INK); box(c, -w / 2, -7, w, 14, bg); box(c, -w / 2, -7, w, 1, '#FFFFFF'); box(c, -w / 2, 5, w, 2, 'rgba(0,0,0,0.15)');
+  box(c, -w / 2 + 2, -9, 8, 3, 'rgba(240,240,220,0.75)'); box(c, w / 2 - 10, -9, 8, 3, 'rgba(240,240,220,0.75)');
+  signText(c, text, 0, 4, L);
   c.restore();
+};
+/** A drip: down from y0 to y1, a bead at its foot, lit down its left. */
+const drip = (c: Ctx, x: number, y0: number, y1: number, w: number) => {
+  box(c, x - 1, y0, w + 2, y1 - y0, INK); box(c, x, y0, w, y1 - y0, POO[2]); box(c, x, y0, 1, y1 - y0, POO[4]);
+  c.fillStyle = INK; c.beginPath(); c.ellipse(x + w / 2, y1, w / 2 + 2, 3, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = POO[2]; c.beginPath(); c.ellipse(x + w / 2, y1, w / 2 + 1, 2, 0, 0, Math.PI * 2); c.fill();
+  box(c, x + 1, y1 - 1, 1, 1, POO[5]);
+};
+/** The lake on the deck: banded, a sheen. */
+const lake = (c: Ctx, x: number, y: number, rx: number) => {
+  for (const [k, col, dy] of [[1, INK, 0], [0.97, POO[1], -0.5], [0.8, POO[2], -1], [0.5, POO[3], -1.5]] as const) { c.fillStyle = col; c.beginPath(); c.ellipse(x, y + dy, rx * k, 6 * k, 0, 0, Math.PI * 2); c.fill(); }
+  box(c, x - rx * 0.3, y - 3, rx * 0.25, 1, POO[5]);
 };
 
 /** A toilet's state on the shrine (behind him): the clog (heaped, overflowing, the lake on the deck), or the wreck. */
 export const drawThroneMess = (c: Ctx, state: GameState, i: number) => {
   const ts = throneState(state, i), f = state.frame, g = throneAt(i), tx = g.mx - 6;
   if (ts === 'clean') return;
-  // (the lake on the deck: both)
-  c.fillStyle = '#4A2E10'; c.beginPath(); c.ellipse(g.mx + 10, g.deck - 1, g.sw / 2 + 120, 6, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#6B4219'; c.beginPath(); c.ellipse(g.mx + 30, g.deck - 2, g.sw / 2 + 60, 3, 0, 0, Math.PI * 2); c.fill();
+  lake(c, g.mx + 10, g.deck - 1, g.sw / 2 + 120);
   if (ts === 'shitty') {
     if (i === 2) {
-      // (in the case: brown up the inside of the glass, fogged)
-      c.fillStyle = 'rgba(92, 58, 22, 0.55)'; c.fillRect(g.sx + 6, g.top + 34, g.sw - 12, 38);
-      c.fillStyle = 'rgba(120, 90, 40, 0.3)'; c.fillRect(g.sx + 6, g.top + 4, g.sw - 12, 30);
-      for (const x of [g.sx + 2, g.sx + g.sw - 8]) box(c, x, g.top + 72, 6, 48, '#5C3A16');
+      // (in the case: brown up the inside of the glass in bands, fogged; seeping out of its seams down the base)
+      for (let k = 0; k < 3; k++) { c.fillStyle = `rgba(92, 58, 22, ${0.6 - k * 0.15})`; c.fillRect(g.sx + 6, g.top + 72 - (k + 1) * 14, g.sw - 12, 14); }
+      c.fillStyle = 'rgba(120, 90, 40, 0.25)'; c.fillRect(g.sx + 6, g.top + 4, g.sw - 12, 26);
+      for (const x of [g.sx + 2, g.sx + g.sw - 8]) drip(c, x, g.top + 72, g.deck - 3, 5);
     } else {
-      // (heaped over the rim, down the bowl and the plinth's front)
-      c.fillStyle = '#000'; c.beginPath(); c.ellipse(tx + 16, g.base - 30, 22, 14, 0, Math.PI, 0); c.fill();
-      c.fillStyle = '#5C3A16'; c.beginPath(); c.ellipse(tx + 16, g.base - 30, 21, 13, 0, Math.PI, 0); c.fill();
-      c.fillStyle = '#78350F'; c.beginPath(); c.ellipse(tx + 12, g.base - 36, 10, 6, 0, Math.PI, 0); c.fill();
-      for (const [x, w] of [[tx + 26, 7], [tx + 34, 5], [tx + 6, 6]]) box(c, x, g.base - 30, w, 30 + (g.deck - g.base), '#5C3A16');
-      for (const [x, w] of [[g.sx + 8, 8], [g.sx + g.sw - 20, 10]]) box(c, x, g.base, w, g.deck - g.base, '#78350F');
+      // (heaped over the rim in steps, down the bowl and the plinth's front)
+      const hx = tx + 16, hy = g.base - 30;
+      c.fillStyle = INK; c.beginPath(); c.ellipse(hx, hy, 23, 15, 0, Math.PI, 0); c.fill();
+      c.fillStyle = POO[2]; c.beginPath(); c.ellipse(hx, hy, 21, 13, 0, Math.PI, 0); c.fill();
+      c.fillStyle = POO[3]; c.beginPath(); c.ellipse(hx - 3, hy - 3, 14, 8, 0, Math.PI, 0); c.fill();
+      c.fillStyle = POO[4]; c.beginPath(); c.ellipse(hx - 6, hy - 6, 7, 4, 0, Math.PI, 0); c.fill();
+      box(c, hx - 9, hy - 10, 3, 2, POO[5]);
+      checker(c, hx - 20, hy - 2, 40, 2, POO[1], 0, 2);
+      for (const [x, w, y1] of [[tx + 26, 6, g.deck - 2], [tx + 33, 4, g.base - 4], [tx + 6, 5, g.deck - 2]] as const) drip(c, x, g.base - 30, y1, w);
+      for (const [x, w] of [[g.sx + 8, 7], [g.sx + g.sw - 20, 9]] as const) drip(c, x, g.base, g.deck - 2, w);
     }
     flies(c, g.mx + 6, g.base - 60, f, 9);
-    // (the stink coming off it)
-    c.strokeStyle = 'rgba(132, 204, 22, 0.55)'; c.lineWidth = 2;
-    for (let k = 0; k < 3; k++) { const x = g.mx - 14 + k * 16, y = g.base - 50 - ((f + k * 20) % 60) * 0.5; c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 6, y - 8, x, y - 16); c.quadraticCurveTo(x - 6, y - 24, x, y - 32); c.stroke(); }
+    // (the stink coming off it: wavy, in steps)
+    c.lineWidth = 2;
+    for (let k = 0; k < 3; k++) {
+      const x = g.mx - 14 + k * 16, u = ((f + k * 20) % 60) / 60, y = g.base - 50 - u * 30;
+      c.strokeStyle = `rgba(132, 204, 22, ${0.6 * (1 - u)})`;
+      c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 6, y - 8, x, y - 16); c.quadraticCurveTo(x - 6, y - 24, x, y - 32); c.stroke();
+    }
     note(c, g.sx - 40, g.deck - 36, 'OUT OF ORDER', '#FEF9C3', '#7F1D1D', -0.08);
   } else {
-    // EXPLODED: a stump of it, shards, brown up everything; the case blown open (stop 3)
-    const col = i === 0 ? '#F9A8D4' : i === 1 ? '#84CC16' : '#18181B';
-    c.fillStyle = '#000'; c.beginPath(); c.moveTo(tx - 3, g.base); c.lineTo(tx - 1, g.base - 12); c.lineTo(tx + 5, g.base - 7); c.lineTo(tx + 9, g.base - 16); c.lineTo(tx + 14, g.base - 9); c.lineTo(tx + 17, g.base); c.closePath(); c.fill();
+    // EXPLODED: a stump of it (porcelain, stepped), shards, brown up everything; the case blown open (stop 3)
+    const col = i === 0 ? '#F4A6CC' : i === 1 ? '#9CAE3E' : '#2A2830', lt2 = mix(col, '#FFFFFF', 0.35), dk2 = mix(col, '#000000', 0.3);
+    c.fillStyle = INK; c.beginPath(); c.moveTo(tx - 3, g.base); c.lineTo(tx - 1, g.base - 13); c.lineTo(tx + 5, g.base - 8); c.lineTo(tx + 9, g.base - 17); c.lineTo(tx + 14, g.base - 10); c.lineTo(tx + 17, g.base); c.closePath(); c.fill();
     c.fillStyle = col; c.beginPath(); c.moveTo(tx - 1, g.base); c.lineTo(tx, g.base - 10); c.lineTo(tx + 5, g.base - 5); c.lineTo(tx + 9, g.base - 14); c.lineTo(tx + 13, g.base - 7); c.lineTo(tx + 15, g.base); c.closePath(); c.fill();
-    for (let k = 0; k < 9; k++) { const sx = g.sx - 60 + ((k * 53) % (g.sw + 140)), sy = (k % 3 === 0 ? g.top : g.deck) - 3; box(c, sx, sy, 4 + (k % 3) * 2, 3, col); }
-    // (splattered up the plinth and the back of the shrine)
-    for (let k = 0; k < 14; k++) {
-      const a = k * 2.4, r = 30 + (k * 37) % 90;
-      c.fillStyle = k % 2 ? '#5C3A16' : '#78350F';
-      c.beginPath(); c.ellipse(g.mx + Math.cos(a) * r, g.base - 40 + Math.sin(a) * r * 0.6, 4 + (k % 4) * 2, 3 + (k % 3), a, 0, Math.PI * 2); c.fill();
+    box(c, tx, g.base - 8, 2, 8, lt2); box(c, tx + 11, g.base - 6, 4, 6, dk2);
+    for (let k = 0; k < 11; k++) { const sx = g.sx - 70 + ((k * 53) % (g.sw + 160)), sy = (k % 3 === 0 ? g.top : g.deck) - 3, w = 4 + (k % 3) * 2; box(c, sx - 1, sy - 1, w + 2, 5, INK); box(c, sx, sy, w, 3, col); box(c, sx, sy, w, 1, lt2); }
+    // (splattered up the plinth and the back of the shrine: blobs, stepped)
+    for (let k = 0; k < 16; k++) {
+      const a = k * 2.4, r = 30 + (k * 37) % 100, ex = g.mx + Math.cos(a) * r, ey = g.base - 40 + Math.sin(a) * r * 0.6, rw = 4 + (k % 4) * 2, rh = 3 + (k % 3);
+      c.fillStyle = POO[1]; c.beginPath(); c.ellipse(ex, ey, rw + 1, rh + 1, a, 0, Math.PI * 2); c.fill();
+      c.fillStyle = POO[k % 2 ? 2 : 3]; c.beginPath(); c.ellipse(ex, ey, rw, rh, a, 0, Math.PI * 2); c.fill();
+      box(c, ex - rw * 0.4, ey - rh * 0.5, 1, 1, POO[5]);
+      if (k % 3 === 0) drip(c, ex - 1, ey, ey + 10 + (k % 5) * 4, 2);
     }
     flies(c, g.mx, g.base - 30, f, 12);
     if (i === 2) {
       // (the case's steel posts bent out, jagged glass at their feet; no glow now)
-      c.strokeStyle = '#71717A'; c.lineWidth = 6;
-      c.beginPath(); c.moveTo(g.sx + 3, g.base); c.quadraticCurveTo(g.sx - 6, g.top + 30, g.sx - 22, g.top + 4); c.stroke();
-      c.beginPath(); c.moveTo(g.sx + g.sw - 3, g.base); c.quadraticCurveTo(g.sx + g.sw + 6, g.top + 30, g.sx + g.sw + 22, g.top + 4); c.stroke();
-      c.fillStyle = 'rgba(190, 242, 100, 0.5)';
-      for (let x = g.sx + 6; x < g.sx + g.sw - 6; x += 12) { c.beginPath(); c.moveTo(x, g.base); c.lineTo(x + 5, g.base - 8 - ((x * 7) % 10)); c.lineTo(x + 10, g.base); c.closePath(); c.fill(); }
+      c.lineCap = 'round';
+      for (const [w, cl] of [[8, INK], [6, '#71717A'], [2, '#B4BCC8']] as const) {
+        c.strokeStyle = cl; c.lineWidth = w;
+        c.beginPath(); c.moveTo(g.sx + 3, g.base); c.quadraticCurveTo(g.sx - 6, g.top + 30, g.sx - 22, g.top + 4); c.stroke();
+        c.beginPath(); c.moveTo(g.sx + g.sw - 3, g.base); c.quadraticCurveTo(g.sx + g.sw + 6, g.top + 30, g.sx + g.sw + 22, g.top + 4); c.stroke();
+      }
+      c.lineCap = 'butt';
+      for (let x = g.sx + 6; x < g.sx + g.sw - 6; x += 12) {
+        const h = 8 + ((x * 7) % 10);
+        c.fillStyle = INK; c.beginPath(); c.moveTo(x - 1, g.base); c.lineTo(x + 5, g.base - h - 1); c.lineTo(x + 11, g.base); c.closePath(); c.fill();
+        c.fillStyle = 'rgba(190, 242, 100, 0.55)'; c.beginPath(); c.moveTo(x, g.base); c.lineTo(x + 5, g.base - h); c.lineTo(x + 10, g.base); c.closePath(); c.fill();
+        box(c, x + 4, g.base - h + 2, 1, 3, 'rgba(255,255,255,0.7)');
+      }
     }
-    note(c, g.sx - 40, g.deck - 36, 'CLOSED FOREVER', '#FACC15', '#000', 0.06);
+    note(c, g.sx - 40, g.deck - 36, 'CLOSED FOREVER', '#FACC15', '#000000', 0.06);
   }
 };
 
@@ -255,10 +289,13 @@ export const drawThroneFront = (c: Ctx, state: GameState, co: Coaster) => {
     }
   }
   if (st.i === 2 && inCase(co)) {
+    // (the case down over him: tinted glass in bands, fogging brown from the floor up, glare; the steel corners, the lid)
     const fog = Math.min(1, st.t / 900);
-    c.fillStyle = `rgba(132, 204, 22, ${0.16})`; c.fillRect(g.sx, g.top, g.sw, 72);
-    c.fillStyle = `rgba(92, 58, 22, ${0.45 * fog})`; c.fillRect(g.sx, g.top + 72 * (1 - fog * 0.6), g.sw, 72 * fog * 0.6);
+    for (let k = 0; k < 3; k++) { c.fillStyle = `rgba(132, 204, 22, ${0.1 + k * 0.04})`; c.fillRect(g.sx, g.top + k * 24, g.sw, 24); }
+    const fh = 72 * fog * 0.6;
+    for (let k = 0; k < 3; k++) { c.fillStyle = `rgba(92, 58, 22, ${0.45 * fog * (1 - k * 0.25)})`; c.fillRect(g.sx, g.top + 72 - fh * (k + 1) / 3, g.sw, fh / 3); }
     c.fillStyle = 'rgba(255, 255, 255, 0.35)'; c.fillRect(g.sx + 12, g.top + 6, 3, 60); c.fillRect(g.sx + 20, g.top + 6, 2, 40);
-    box(c, g.sx, g.top, 6, 72, '#71717A'); box(c, g.sx + g.sw - 6, g.top, 6, 72, '#71717A'); box(c, g.sx, g.top, g.sw, 4, '#D9F99D');
+    for (const px of [g.sx, g.sx + g.sw - 7]) { box(c, px - 1, g.top - 1, 9, 74, INK); box(c, px, g.top, 7, 72, '#71717A'); box(c, px, g.top, 2, 72, '#B4BCC8'); box(c, px + 6, g.top, 1, 72, '#3F3F46'); }
+    box(c, g.sx - 2, g.top - 2, g.sw + 4, 7, INK); box(c, g.sx - 1, g.top - 1, g.sw + 2, 5, '#52525B'); box(c, g.sx - 1, g.top - 1, g.sw + 2, 2, '#F2D79A');
   }
 };

@@ -627,4 +627,7 @@ export const lampLights = (v: View): Light[] => {
   return out;
 };
 
+/** Shared with the coaster (its queue's standee, its shrines' ropes). */
+export { paintStandee, rope as velvetRopePaint };
+
 void checker; void mix; void timeOfDay; void PLY; void LIP; void glassOf; void slab; void post; void deco; void paint; void hash; void streetPalm;

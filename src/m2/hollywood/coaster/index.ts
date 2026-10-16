@@ -564,15 +564,20 @@ export const coaster: HollywoodSection = {
     // (security's flashlight beams, while they aim)
     for (const e of state.enemies) {
       if (e.kind !== 'm2:hwc_guard' || e.aiState !== 'aim' || e.health <= 0) continue;
+      // (banded: brighter in its core)
       const fx = e.pos.x + e.width / 2 + e.facing! * 24, fy = e.pos.y + 34;
-      c.fillStyle = 'rgba(254, 249, 195, 0.28)'; c.beginPath(); c.moveTo(fx, fy - 3); c.lineTo(fx + e.facing! * BEAM, fy - 40); c.lineTo(fx + e.facing! * BEAM, fy + 40); c.lineTo(fx, fy + 3); c.closePath(); c.fill();
+      for (const [k, a] of [[1, 0.14], [0.62, 0.12], [0.3, 0.14]] as const) { c.fillStyle = `rgba(254, 249, 195, ${a})`; c.beginPath(); c.moveTo(fx, fy - 3 * k); c.lineTo(fx + e.facing! * BEAM, fy - 40 * k); c.lineTo(fx + e.facing! * BEAM, fy + 40 * k); c.lineTo(fx, fy + 3 * k); c.closePath(); c.fill(); }
     }
     // (the fumes: a cloud round the case while it vents)
     {
       const s = STOPS[2], cyc = co.fumeT % FUMES.every, ventAt = FUMES.every - FUMES.vent;
       if (cyc >= ventAt && Math.abs(p.pos.x - X(s.shrine.x)) < 1600 && !inCase(co) && throneState(state, 2) !== 'exploded') {
         const k = (cyc - ventAt) / FUMES.vent, cx = X(s.shrine.x + s.shrine.w / 2), a = Math.sin(k * Math.PI);
-        for (let i = 0; i < 6; i++) { c.fillStyle = `rgba(${i % 2 ? '132, 204, 22' : '190, 242, 100'}, ${0.22 * a})`; c.beginPath(); c.ellipse(cx + (i - 2.5) * 60, Y(s.h) - 60 - (i % 3) * 40 - k * 30, 70, 46, 0, 0, Math.PI * 2); c.fill(); }
+        // (puffs in steps: a dark rim, the body, a lit core up-left)
+        for (let i = 0; i < 6; i++) {
+          const px = cx + (i - 2.5) * 60, py = Y(s.h) - 60 - (i % 3) * 40 - k * 30;
+          for (const [r, col, al, o] of [[1, '77, 124, 15', 0.14, 0], [0.78, i % 2 ? '132, 204, 22' : '163, 230, 53', 0.16, -4], [0.42, '190, 242, 100', 0.16, -10]] as const) { c.fillStyle = `rgba(${col}, ${al * a})`; c.beginPath(); c.ellipse(px + o, py + o * 0.6, 70 * r, 46 * r, 0, 0, Math.PI * 2); c.fill(); }
+        }
       }
     }
     drawThroneFront(c, state, co);

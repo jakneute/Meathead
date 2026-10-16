@@ -1,65 +1,43 @@
-// Thrones of the Stars, drawn (the crude first pass: readable boxes and the park's letters). The sky by the hour (the
-// park far below the higher he gets, the HAPPYWOOD hill and the skyline sinking under him), the rest of the monstrosity
-// in the distance; the track he rides (a gold rail on a crimson spine, rolling where it rolls, on spindly legs down to
-// the park), the queue's switchbacks full of guests, the station under its crown of a canopy, and the three stops: the
-// decks up on the structure (walled off by the pylons: the track goes through them, barred), the catwalks (lit lips:
-// standable), the staff doors, the SERVICE STAIRS, and the shrine at each: a famous toilet on a plinth behind velvet
-// ropes, spotlit, its plaque, its name over it. The control booth up on its stilts, the sleeper, the lever. The train:
-// three golden throne-toilets on wheels.
+// Thrones of the Stars, drawn (the final pass: peak SNES, fake 3D, one eye for the scene: paint.ts). Back to front:
+// the backdrop (far.ts: the boulevard's sky and far off, sinking as he climbs, the rest of the monstrosity across the
+// park in two rows, the park under it all); the plaza going back, the hedge on its far side and the structure going
+// back on it (structure.ts); the track he rides (a crimson box spine, the gold rails lit along their tops, the ties, the
+// chain up the lifts, the brake fins and the booster tires; lattice legs down to their piers where it's the right way
+// up); the queue (its switchbacks going back full of guests, the queue house under the ramps, its posters, the rails,
+// the arch, the signs, Steve's standee); the station under its gold crown of a canopy; the three stops (each deck's
+// floor of bathroom tile going back to the set's wall (set.ts), the shrine (shrine.ts), the catwalks, the doors, the
+// pylons); the control booth and its lever; Steve's billboard. The train: three golden throne-toilets on wheels, in
+// two layers (the back behind him, the near side in front: he's sat down in it).
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
-import { box, happywoodHill, steveFlier } from '../section';
-import { HWX } from '../geometry';
-import { drawTodSky, hourMix } from '../../timeOfDay';
 import { drawPerson } from '../../adventure/temple/people';
-import { farCoaster } from '../blvd/art';
-import { words, print, enamel, brass, marquee, ledgeLip, velvetRope, signW } from '../blvd/paint';
+import { type Ctx, type CView, INK, cview, vis, pal, lattice, rivets, hazard, goldStar, chains, PORCELAIN, CHROME, CRIMSON } from './paint';
 import {
-  x0, X, Y, GY, QUEUE_GROUND, STATION, RAILS, RAIL_H, STOPS, BOOTH, FUMES, CAR_GAP, CARS, STEVE_STANDEE, queueH, parkAt,
-  LAUNCHED_MEMO, WALKER_MEMO, CLEARED_MEMO, LEVER_MEMO, BOOTH_LEVER, type Place,
+  box, checker, mix, hash, poly, at, atDepth, still, stillAt, signW, STEEL, BRASS, VELVET, STEVE, ramp6, hour, lit, board, deco, bulbs, plain,
+  words, sideBack, topBack, underBack, ball,
+} from '../blvd/kit';
+import { paintStandee, steveCard, velvetRopePaint } from '../blvd/props';
+import { drawCoasterFar } from './far';
+import { drawStructureBack, drawFloor } from './structure';
+import { drawSet, deckTop, deckFront, deckRail, catwalk, door, pylon, WALL_D, WALL_H } from './set';
+import { drawShrine, drawShrineTitle, drawBooth } from './shrine';
+import {
+  x0, X, Y, GY, QUEUE_GROUND, STATION, RAILS, RAIL_H, STOPS, BOOTH, CAR_GAP, CARS, STEVE_STANDEE, queueH, parkAt,
+  LAUNCHED_MEMO, WALKER_MEMO, LEVER_MEMO, CLEARED_MEMO, type Place,
 } from './layout';
-import { throwAngle } from '../lever';
-import { tracks, at, STEP, type Track } from './track';
+import { tracks, at as trackAt, STEP, Mode, type Track } from './track';
 import type { Coaster, QGuest } from './state';
-import { throneState, caseLift, drawThroneMess } from './thrones';
 
-type Ctx = CanvasRenderingContext2D;
 export { GY };
 
-const viewOf = (state: GameState) => state.view ?? { x: state.camera.x, y: state.camera.y, w: 800, h: 600 };
-const seen = (state: GameState, a: number, b: number, top = -1e9, bot = 1e9) => {
-  const v = viewOf(state);
-  return b > v.x - 80 && a < v.x + v.w + 80 && bot > v.y - 80 && top < v.y + v.h + 80;
-};
+// ---------------------------------------------------------------------------------------------------------------
+// Screen space: the sky, the far off
+
+export const drawCoasterBackdrop = (c: Ctx, state: GameState) => { drawCoasterFar(c, state); return true; };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Screen space: the sky, the park far below
-
-export const drawCoasterBackdrop = (c: Ctx, state: GameState) => {
-  const W = 800, H = 600, cam = state.camera.x;
-  // (up on the structure, the horizon goes down under him: the park far below, then nothing but sky)
-  const up = Math.max(0, -state.camera.y);
-  const horizon = 430 + up * 0.17;
-  drawTodSky(c, 0, 0, W, H, ['#1E3A8A', '#3B82F6', '#93C5FD', '#FDE68A'], { horizon: Math.min(horizon, 900), sun: [620, 120 + up * 0.04], moon: [160, 90] });
-  if (horizon > H + 300) return true;
-  happywoodHill(c, 560 - (cam - HWX) * 0.004, horizon, hourMix('#A16207', '#92400E', '#3F2A14'));
-  // (the rest of the monstrosity, off in the distance: huge)
-  farCoaster(c, 500 - (cam - x0) * 0.05, horizon, 1.5, hourMix('#64748B', '#475569', '#1E293B'));
-  farCoaster(c, 1300 - (cam - x0) * 0.05, horizon, 1.1, hourMix('#64748B', '#475569', '#1E293B'));
-  const far = hourMix('#78716C', '#57534E', '#292524');
-  const off = -((cam * 0.2) % 160);
-  for (let x = off - 160, k = 0; x < W + 160; x += 160, k++) {
-    const h = 50 + ((k * 37 + Math.floor(cam / 800)) % 5) * 18;
-    box(c, x, horizon - h, 120, h + 400, far);
-  }
-  // (the park's floor far below: a haze)
-  box(c, 0, horizon, W, H, hourMix('#A8A29E', '#78716C', '#292524'));
-  return true;
-};
-
-// ---------------------------------------------------------------------------------------------------------------
-// The track: a gold rail on a crimson spine, ties across, legs down to the park
+// The track
 
 interface Chunk { i0: number; i1: number; x0: number; x1: number; y0: number; y1: number }
 const CHUNKS = new WeakMap<Track, Chunk[]>();
@@ -71,148 +49,180 @@ const chunksOf = (tr: Track) => {
     const i1 = Math.min(tr.pts.length - 1, i + 48);
     let a = Infinity, b = -Infinity, t = Infinity, u = -Infinity;
     for (let k = i; k <= i1; k++) { const p = tr.pts[k]; a = Math.min(a, p.x); b = Math.max(b, p.x); t = Math.min(t, p.y); u = Math.max(u, p.y); }
-    ch.push({ i0: i, i1, x0: a, x1: b, y0: t, y1: Math.max(u, GY) });
+    ch.push({ i0: i, i1, x0: a, x1: b, y0: t, y1: u });
   }
   CHUNKS.set(tr, ch);
   return ch;
 };
 /** On a deck (where the deck's own floor carries the rail: no legs). */
 const onDeck = (x: number, y: number) => (y > Y(STATION.h) - 4 && y < Y(STATION.h) + 4 && x < X(STATION.b + 60)) || STOPS.some(s => x > X(s.a - 60) && x < X(s.b + 60) && Math.abs(y - Y(s.h)) < 4);
-
 /** A leg down from here: the track the right way up, going either way (the cars sat on top of it: not climbing a
  *  loop, not mid-roll, not hung under the rail: there a leg off the rail comes down right through the cars and him),
  *  not on a deck, up off the park. */
 const legAt = (p: { x: number; y: number; a: number; roll: number }) => Math.cos(p.a) * Math.cos(p.roll) >= 0.5 && Math.abs(Math.cos(p.roll)) >= 0.9 && !onDeck(p.x, p.y) && p.y <= GY - 30;
-const drawTrackPath = (c: Ctx, state: GameState, tr: Track, bentFrom = -1) => {
-  const v = viewOf(state), pts = tr.pts;
+
+/** A point off the rail along its normal (rolled with the train), `off` px (+ under it). */
+const offAt = (p: { x: number; y: number; a: number; roll: number }, off: number): [number, number] => {
+  const k = Math.cos(p.roll);
+  return [p.x - Math.sin(p.a) * k * off, p.y + Math.cos(p.a) * k * off];
+};
+const drawTrackPath = (c: Ctx, v: CView, tr: Track, f: number) => {
+  const pts = tr.pts, S = pal().steel, Cr = pal().crimson, G = pal().gold;
+  const vis0 = v.vx - 80, vis1 = v.vx + v.vw + 80, vt = v.vy - 80, vb = v.vy + v.vh + 80;
   for (const ch of chunksOf(tr)) {
-    if (ch.x1 < v.x - 60 || ch.x0 > v.x + v.w + 60 || ch.y1 < v.y - 60 || ch.y0 > v.y + v.h + 60) continue;
+    if (ch.x1 < vis0 || ch.x0 > vis1 || ch.y0 > vb) continue;
     // (the legs: from the track down to the park, now and then, where the track's the right way up)
-    c.strokeStyle = '#52525B'; c.lineWidth = 5;
-    c.beginPath();
     for (let i = ch.i0; i < ch.i1; i++) {
       if (i % 50 !== 0) continue;
       const p = pts[i];
-      if (!legAt(p)) continue;
-      c.moveTo(p.x, p.y + 10); c.lineTo(p.x, GY);
+      if (!legAt(p) || p.x < vis0 || p.x > vis1) continue;
+      const top = Math.max(p.y + 12, vt - 60), foot = Math.min(GY, vb + 60);
+      if (foot > top) lattice(c, p.x, top, foot, 20, S, 52, 0, foot >= GY, p.y + 12);
+      if (p.y + 12 >= vt - 60) { box(c, p.x - 14, p.y + 8, 28, 6, INK); box(c, p.x - 13, p.y + 9, 26, 4, S[3]); box(c, p.x - 13, p.y + 9, 26, 1, S[5]); }
     }
+    if (ch.y1 < vt) continue;
+    // (the spine and the rails, along the points (every third), rolled with the train)
+    const spine: [number, number][] = [], rail: [number, number][] = [];
+    for (let i = ch.i0; i <= ch.i1; i += 3) { spine.push(offAt(pts[i], 7)); rail.push(offAt(pts[i], -2)); }
+    if (ch.i1 % 3) { spine.push(offAt(pts[ch.i1], 7)); rail.push(offAt(pts[ch.i1], -2)); }
+    const path = (ps: [number, number][]) => () => { c.moveTo(ps[0][0], ps[0][1]); for (let k = 1; k < ps.length; k++) c.lineTo(ps[k][0], ps[k][1]); };
+    const sp = path(spine), rl = path(rail);
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    c.strokeStyle = INK; c.lineWidth = 13; c.beginPath(); sp(); c.stroke();
+    c.strokeStyle = Cr[1]; c.lineWidth = 11; c.beginPath(); sp(); c.stroke();
+    c.save(); c.translate(-1, -1.5); c.strokeStyle = Cr[2]; c.lineWidth = 8; c.beginPath(); sp(); c.stroke();
+    c.translate(-1, -1.5); c.strokeStyle = Cr[4]; c.lineWidth = 2; c.beginPath(); sp(); c.stroke(); c.restore();
+    // (the ties across, steel)
+    c.lineCap = 'butt';
+    c.strokeStyle = INK; c.lineWidth = 4; c.beginPath();
+    for (let i = ch.i0; i < ch.i1; i += 5) { const [ax, ay] = offAt(pts[i], -6), [bx, by] = offAt(pts[i], 10); c.moveTo(ax, ay); c.lineTo(bx, by); }
     c.stroke();
-    c.strokeStyle = '#3F3F46'; c.lineWidth = 2;
-    c.beginPath();
-    for (let i = ch.i0; i < ch.i1; i++) {
-      if (i % 50 !== 0) continue;
+    c.strokeStyle = S[3]; c.lineWidth = 2; c.beginPath();
+    for (let i = ch.i0; i < ch.i1; i += 5) { const [ax, ay] = offAt(pts[i], -5), [bx, by] = offAt(pts[i], 9); c.moveTo(ax, ay); c.lineTo(bx, by); }
+    c.stroke();
+    // (what the track's doing: the chain up the lifts (crawling), the brake fins, the booster tires)
+    for (let i = ch.i0; i < ch.i1; i += 2) {
       const p = pts[i];
-      if (!legAt(p)) continue;
-      for (let y = p.y + 60; y < GY - 40; y += 120) { c.moveTo(p.x - 14, y); c.lineTo(p.x + 14, y + 60); c.moveTo(p.x + 14, y); c.lineTo(p.x - 14, y + 60); }
+      if (p.mode === Mode.Lift && (i + (f >> 1)) % 4 === 0) { const [qx, qy] = offAt(p, 2); box(c, qx - 2, qy - 2, 4, 4, INK); box(c, qx - 1, qy - 1, 2, 2, S[2]); }
+      else if (p.mode === Mode.Brake && i % 6 === 0) { const [qx, qy] = offAt(p, 12); box(c, qx - 3, qy - 2, 6, 6, INK); box(c, qx - 2, qy - 1, 4, 4, '#B4642A'); box(c, qx - 2, qy - 1, 4, 1, '#E89A5A'); }
+      else if ((p.mode === Mode.Boost || p.mode === Mode.Launch) && i % 8 === 0) { const [qx, qy] = offAt(p, 12); c.fillStyle = INK; c.beginPath(); c.arc(qx, qy, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = '#3A3A40'; c.beginPath(); c.arc(qx, qy, 2.5, 0, Math.PI * 2); c.fill(); box(c, qx - 1, qy - 1, 1, 1, '#8A8A90'); }
     }
-    c.stroke();
-    // (the spine, under the rail; the rail on top: rolled with the train where it rolls)
-    for (const [w, col, off] of [[9, '#450A0A', 6], [6, '#991B1B', 6], [4, '#000000', -2], [3, '#FBBF24', -2]] as const) {
-      c.strokeStyle = col; c.lineWidth = w; c.beginPath();
-      let started = false;
-      for (let i = ch.i0; i <= ch.i1; i += 3) {
-        const p = pts[i];
-        if (bentFrom >= 0 && i * STEP > bentFrom) break;
-        const k = Math.cos(p.roll), nx = Math.sin(p.a) * k * -off, ny = -Math.cos(p.a) * k * -off;
-        if (!started) { c.moveTo(p.x + nx, p.y + ny); started = true; } else c.lineTo(p.x + nx, p.y + ny);
-      }
-      c.stroke();
-    }
-    // (ties across the rail)
-    c.strokeStyle = '#78350F'; c.lineWidth = 2; c.beginPath();
-    for (let i = ch.i0; i < ch.i1; i += 5) {
-      const p = pts[i];
-      if (bentFrom >= 0 && i * STEP > bentFrom) break;
-      const k = Math.cos(p.roll), nx = Math.sin(p.a) * k, ny = -Math.cos(p.a) * k;
-      c.moveTo(p.x - nx * 4, p.y - ny * 4); c.lineTo(p.x + nx * 8, p.y + ny * 8);
-    }
-    c.stroke();
+    // (the gold rails over it, lit along their tops)
+    c.lineCap = 'round';
+    c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); rl(); c.stroke();
+    c.strokeStyle = G[2]; c.lineWidth = 4; c.beginPath(); rl(); c.stroke();
+    c.save(); c.translate(-0.5, -1); c.strokeStyle = G[4]; c.lineWidth = 2; c.beginPath(); rl(); c.stroke();
+    c.translate(-0.5, -0.5); c.strokeStyle = G[5]; c.lineWidth = 1; c.beginPath(); rl(); c.stroke(); c.restore();
+    c.lineCap = 'butt'; c.lineJoin = 'miter';
   }
 };
 
 /** Every track (the three rides, the launch, the way back, the station's way in), and the EXPERIMENTAL section's end. */
-export const drawTracks = (c: Ctx, state: GameState) => {
-  const T = tracks(), launched = !!state.stageMemo[LAUNCHED_MEMO];
-  for (const tr of [T.r1, T.r2, T.r3, T.back, T.arrive]) drawTrackPath(c, state, tr);
-  drawTrackPath(c, state, T.launch);
-  // The EXPERIMENTAL section: the track just stops, pointed at the sky, a sign on the end; bent up and torn after the
+const drawTracks = (c: Ctx, v: CView, state: GameState) => {
+  const T = tracks(), launched = !!state.stageMemo[LAUNCHED_MEMO], f = state.frame;
+  for (const tr of [T.r1, T.r2, T.r3, T.back, T.arrive, T.launch]) drawTrackPath(c, v, tr, f);
+  // The EXPERIMENTAL section: the track just stops, pointed at the sky, a buffer on its end; bent up and torn after the
   // launch (they never fixed it)
   const end = T.launch.pts[T.launch.pts.length - 1];
-  if (seen(state, end.x - 300, end.x + 300, end.y - 300, end.y + 300)) {
-    c.save(); c.translate(end.x, end.y); c.rotate(end.a);
-    if (launched) {
-      // (the rails torn and curled up off the end)
-      c.strokeStyle = '#FBBF24'; c.lineWidth = 3; c.beginPath(); c.moveTo(0, -2); c.quadraticCurveTo(40, -10, 54, -50); c.stroke();
-      c.strokeStyle = '#991B1B'; c.lineWidth = 6; c.beginPath(); c.moveTo(0, 6); c.quadraticCurveTo(30, 10, 46, -16); c.stroke();
-      for (let k = 0; k < 4; k++) box(c, 10 + k * 12, -14 - k * 6, 6, 3, '#71717A');
-    } else {
-      box(c, -4, -10, 10, 22, '#000'); box(c, -2, -8, 6, 18, '#FACC15');
-    }
-    c.restore();
-    // (the sign on its post, under the end: held up, its own letters)
-    const sx = end.x - 40, sy = end.y + 60;
-    box(c, sx - 3, sy, 6, 140, '#57534E');
-    box(c, sx - 74, sy - 34, 148, 36, '#000'); box(c, sx - 72, sy - 32, 144, 32, launched ? '#7F1D1D' : '#FACC15');
-    words(c, launched ? 'TRACK CLOSED' : 'EXPERIMENTAL', sx, sy - 18, print(1, launched ? '#FEF3C7' : '#18181B'));
-    words(c, launched ? 'SORRY' : 'TRACK ENDS', sx, sy - 6, print(1, launched ? '#FCA5A5' : '#7F1D1D'));
+  if (!vis(v, end.x - 300, end.x + 300, end.y - 300, end.y + 300)) return;
+  const G = pal().gold, Cr = pal().crimson, S = pal().steel;
+  c.save(); c.translate(end.x, end.y); c.rotate(end.a);
+  if (launched) {
+    // (the rails torn and curled up off the end, the spine split, bolts hanging)
+    c.lineCap = 'round';
+    for (const [w, col] of [[6, INK], [4, G[2]], [1, G[5]]] as const) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(0, -2); c.quadraticCurveTo(40, -10, 54, -50); c.stroke(); }
+    for (const [w, col] of [[11, INK], [8, Cr[2]], [2, Cr[4]]] as const) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(0, 7); c.quadraticCurveTo(30, 12, 46, -16); c.stroke(); }
+    c.lineCap = 'butt';
+    for (let k = 0; k < 4; k++) { box(c, 10 + k * 12, -14 - k * 6, 7, 4, INK); box(c, 11 + k * 12, -13 - k * 6, 5, 2, S[3]); }
+  } else {
+    // (the buffer stop: a hazard-striped block on the rail's end)
+    box(c, -6, -14, 14, 28, INK); hazard(c, -5, -13, 12, 26, 5);
   }
+  c.restore();
+  // (the sign on its post under the end: held up, stenciled)
+  const sx = end.x - 40, sy = end.y + 60;
+  box(c, sx - 4, sy, 8, 150, INK); box(c, sx - 3, sy, 6, 150, S[3]); box(c, sx - 3, sy, 2, 150, S[5]);
+  still(c, `hwc-endsign-${launched ? 1 : 0}`, sx, sy - 18, -84, -28, 168, 56, g => {
+    if (launched) board(g, 0, 0, ['TRACK CLOSED', 'SORRY'], { sx: 1, sy: 1, fill: '#FEF3C7', stencil: true }, '#7F1D1D', STEEL, 7);
+    else board(g, 0, 0, ['EXPERIMENTAL', 'TRACK ENDS'], { sx: 1, sy: 1, fill: '#18181B', stencil: true }, '#FACC15', STEEL, 7);
+  });
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The train: three golden throne-toilets on wheels (front first). Local: x along the rail, up is -y. `layer` 'back'
 // (the bogie, the base, the throne's back, the tank, the seat: behind whoever's sat in it), 'front' (the throne's near
-// arm and side, the bowl's front, the lap bar: in front of him, like the mine cart's tub, so he's sat down in it, just
-// his top half showing). Sat in the way the other rides' cars sit him (the cart's RIDE_SINK, the cart's pose:
-// cartSeat): feet SINK over the rail at the car's middle, hips under the arm's top.
+// side and arm, the bowl's front, the lap bar: in front of him, so he's sat down in it, just his top half showing). Sat
+// in the way the other rides' cars sit him (the cart's RIDE_SINK, the cart's pose: cartSeat): feet SINK over the rail
+// at the car's middle, hips under the arm's top.
 
 /** How far over the rail his feet sit in the front car (the mine cart's RIDE_SINK). */
 export const SINK = 14;
 /** How a car (and whoever's in it) is squashed up and down by the track's roll: on its side, nearly flat; hung under
  *  the rail, upside down. */
 export const rollScale = (roll: number) => { const sc = Math.cos(roll); return Math.abs(sc) < 0.12 ? 0.12 * Math.sign(sc || 1) : sc; };
-const car = (c: Ctx, layer: 'back' | 'front', f: number, k: number) => {
+const car = (c: Ctx, layer: 'back' | 'front', k: number) => {
+  const G = pal().gold, V = pal().velvet, P = pal().porcelain, S = pal().steel;
   if (layer === 'back') {
-    // (the bogie and its wheels)
-    box(c, -28, -10, 56, 10, '#000'); box(c, -27, -9, 54, 8, '#27272A');
-    for (const wx of [-18, 18]) { c.fillStyle = '#000'; c.beginPath(); c.arc(wx, -2, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = '#71717A'; c.beginPath(); c.arc(wx, -2, 3, 0, Math.PI * 2); c.fill(); }
-    // (the gold base)
-    // (no lit top on it: it's not for standing on)
-    box(c, -30, -24, 60, 15, '#000'); box(c, -29, -23, 58, 13, '#CA8A04'); box(c, -29, -14, 58, 3, '#A16207');
-    // (the throne's back: gold frame, red velvet, a star on top)
-    box(c, -34, -90, 16, 68, '#000'); box(c, -33, -89, 14, 66, '#EAB308'); box(c, -30, -84, 8, 56, '#9F1239');
-    for (let y = -80; y < -34; y += 10) box(c, -28, y, 4, 4, '#BE123C');
-    c.fillStyle = '#FDE047'; c.beginPath();
-    for (let i = 0; i < 10; i++) { const r = i % 2 ? 4 : 9, an = -Math.PI / 2 + (i * Math.PI) / 5; c.lineTo(-26 + Math.cos(an) * r, -98 + Math.sin(an) * r); }
-    c.closePath(); c.fill();
-    // (the far arm, behind him)
-    box(c, -22, -54, 46, 6, '#000'); box(c, -21, -53, 44, 4, '#A16207');
-    // (the tank behind the seat, white porcelain)
-    box(c, -20, -64, 12, 30, '#000'); box(c, -19, -63, 10, 28, '#F5F5F4'); box(c, -19, -63, 10, 3, '#FFFFFF');
-    // (the seat: the ring, the bowl down under him)
-    box(c, -12, -40, 38, 6, '#000'); box(c, -11, -39, 36, 4, k ? '#FDE68A' : '#FEF3C7');
-    box(c, -8, -36, 32, 14, '#E7E5E4');
+    // (the bogie: a steel frame, its wheels (stepped, a hub, a glint), an upstop wheel under)
+    box(c, -29, -11, 58, 11, INK); box(c, -28, -10, 56, 9, S[2]); box(c, -28, -10, 56, 2, S[4]); box(c, -28, -3, 56, 2, S[1]);
+    rivets(c, -24, 24, -8, 8, S);
+    for (const wx of [-18, 18]) {
+      c.fillStyle = INK; c.beginPath(); c.arc(wx, -2, 7, 0, Math.PI * 2); c.fill();
+      c.fillStyle = S[1]; c.beginPath(); c.arc(wx, -2, 6, 0, Math.PI * 2); c.fill();
+      c.fillStyle = S[3]; c.beginPath(); c.arc(wx - 1, -3, 4, 0, Math.PI * 2); c.fill();
+      c.fillStyle = S[5]; c.beginPath(); c.arc(wx, -2, 1.6, 0, Math.PI * 2); c.fill();
+    }
+    // (the gold base: no lit top on it: it's not for standing on)
+    box(c, -31, -25, 62, 16, INK); box(c, -30, -24, 60, 14, G[3]); box(c, -30, -24, 3, 14, G[4]); box(c, -30, -15, 60, 3, G[2]); box(c, -30, -12, 60, 2, G[1]);
+    checker(c, -30, -17, 60, 2, G[2], 0, 2);
+    for (let x = -24; x < 28; x += 12) { box(c, x, -21, 2, 2, G[1]); box(c, x, -21, 1, 1, G[5]); }
+    // (the throne's back: a carved gold frame, red velvet tufted in it, a star on top)
+    box(c, -35, -91, 18, 70, INK);
+    box(c, -34, -90, 16, 68, G[3]); box(c, -34, -90, 3, 68, G[5]); box(c, -21, -90, 3, 68, G[1]); box(c, -34, -90, 16, 2, G[4]);
+    for (let y = -84; y < -24; y += 12) box(c, -34, y, 2, 2, G[1]);
+    box(c, -31, -85, 10, 58, INK); box(c, -30, -84, 8, 56, V[2]); box(c, -30, -84, 2, 56, V[3]); box(c, -24, -84, 2, 56, V[1]);
+    for (let y = -79; y < -32; y += 9) { box(c, -28, y, 3, 3, V[1]); box(c, -28, y, 1, 1, G[4]); }
+    box(c, -36, -96, 20, 6, INK); box(c, -35, -95, 18, 4, G[4]); box(c, -35, -95, 18, 1, G[5]);
+    goldStar(c, -26, -104, 8);
+    // (the far arm, behind him: in shade)
+    box(c, -23, -55, 48, 8, INK); box(c, -22, -54, 46, 6, G[2]); box(c, -22, -54, 46, 1, G[3]);
+    // (the tank behind the seat: white porcelain, stepped; its lid; a gold handle)
+    box(c, -21, -65, 14, 32, INK); box(c, -20, -64, 12, 30, P[3]); box(c, -20, -64, 3, 30, P[4]); box(c, -11, -64, 3, 30, P[2]);
+    box(c, -22, -68, 16, 5, INK); box(c, -21, -67, 14, 3, P[4]); box(c, -21, -67, 14, 1, P[5]);
+    box(c, -9, -58, 4, 2, G[4]);
+    // (the seat: the ring, lit; the bowl down under him in shade)
+    box(c, -13, -41, 40, 8, INK); box(c, -12, -40, 38, 6, k ? G[4] : P[4]); box(c, -12, -40, 38, 1, k ? G[5] : P[5]); box(c, -12, -36, 38, 2, k ? G[2] : P[2]);
+    box(c, -8, -35, 32, 14, P[2]); box(c, -8, -35, 32, 3, P[1]);
   } else {
     // The near side of the throne: a gold panel from the base up to the arm (his hips and legs down behind it),
-    // stepped from its lit top to its dark foot, a velvet inset
-    box(c, -26, -48, 52, 38, '#000');
-    box(c, -25, -47, 50, 36, '#CA8A04'); box(c, -25, -47, 50, 4, '#FACC15'); box(c, -25, -20, 50, 9, '#A16207'); box(c, -25, -13, 50, 2, '#854D0E');
-    box(c, -19, -40, 34, 18, '#000'); box(c, -18, -39, 32, 16, '#9F1239'); box(c, -18, -39, 32, 3, '#BE123C'); box(c, -18, -25, 32, 2, '#881337');
-    for (const bx of [-12, -2, 8]) box(c, bx, -32, 2, 2, '#FDE047');
+    // stepped from its lit top to its dark foot, a velvet inset tufted, a star
+    box(c, -27, -49, 54, 40, INK);
+    box(c, -26, -48, 52, 38, G[3]); box(c, -26, -48, 52, 4, G[4]); box(c, -26, -48, 52, 1, G[5]); box(c, -26, -48, 3, 38, G[5]);
+    box(c, -26, -21, 52, 9, G[2]); checker(c, -26, -23, 52, 2, G[2], 0, 2); box(c, -26, -13, 52, 3, G[1]);
+    box(c, 22, -44, 4, 22, G[2]);
+    box(c, -20, -41, 36, 20, INK); box(c, -19, -40, 34, 18, V[2]); box(c, -19, -40, 34, 3, V[3]); box(c, -19, -40, 2, 18, V[4]); box(c, -19, -25, 34, 3, V[1]);
+    for (const bx of [-13, 9]) for (const by of [-35, -28]) { box(c, bx, by, 3, 3, V[0]); box(c, bx, by, 1, 1, G[4]); }
+    goldStar(c, -2, -31, 5);
     // (the bowl's front, porcelain, out the front of it)
-    c.fillStyle = '#000'; c.beginPath(); c.moveTo(22, -42); c.lineTo(38, -42); c.quadraticCurveTo(40, -24, 28, -16); c.lineTo(22, -16); c.closePath(); c.fill();
-    c.fillStyle = '#F5F5F4'; c.beginPath(); c.moveTo(23, -41); c.lineTo(36, -41); c.quadraticCurveTo(38, -25, 27, -17); c.lineTo(23, -17); c.closePath(); c.fill();
-    box(c, 24, -40, 11, 2, '#FFFFFF'); box(c, 24, -24, 6, 2, '#D6D3D1');
+    const bowl = () => { c.beginPath(); c.moveTo(22, -42); c.lineTo(38, -42); c.quadraticCurveTo(41, -24, 28, -15); c.lineTo(22, -15); c.closePath(); };
+    c.fillStyle = INK; c.save(); c.translate(0.5, 0.5); bowl(); c.fill(); c.restore();
+    c.save(); bowl(); c.clip();
+    box(c, 20, -44, 22, 30, P[3]); box(c, 20, -44, 6, 30, P[4]); box(c, 23, -42, 2, 14, P[5]); box(c, 33, -44, 9, 30, P[2]); box(c, 20, -22, 22, 8, P[1]);
+    c.restore();
+    c.strokeStyle = INK; c.lineWidth = 1.2; bowl(); c.stroke();
     // (the near arm: rolled gold, a scroll at the front end)
-    box(c, -28, -52, 58, 7, '#000'); box(c, -27, -51, 56, 5, '#EAB308'); box(c, -27, -51, 56, 1, '#FEF08A'); box(c, -27, -47, 56, 1, '#A16207');
-    c.fillStyle = '#000'; c.beginPath(); c.arc(30, -48, 6, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FACC15'; c.beginPath(); c.arc(30, -48, 4.5, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#A16207'; c.beginPath(); c.arc(30, -48, 2, 0, Math.PI * 2); c.fill();
-    // (the lap bar: up from the arm's front, over his lap)
+    box(c, -29, -53, 60, 9, INK); box(c, -28, -52, 58, 7, G[3]); box(c, -28, -52, 58, 2, G[5]); box(c, -28, -46, 58, 1, G[1]);
+    c.fillStyle = INK; c.beginPath(); c.arc(30, -48, 6.5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = G[3]; c.beginPath(); c.arc(30, -48, 5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = G[4]; c.beginPath(); c.arc(29, -49, 3, 0, Math.PI * 2); c.fill();
+    c.fillStyle = G[1]; c.beginPath(); c.arc(30.5, -47.5, 1.6, 0, Math.PI * 2); c.fill();
+    box(c, 27, -52, 1, 1, G[5]);
+    // (the lap bar: up from the arm's front, over his lap; a padded grip)
     c.lineCap = 'round';
-    c.strokeStyle = '#000'; c.lineWidth = 5; c.beginPath(); c.moveTo(24, -50); c.quadraticCurveTo(24, -64, 6, -62); c.stroke();
-    c.strokeStyle = '#FBBF24'; c.lineWidth = 3; c.beginPath(); c.moveTo(24, -50); c.quadraticCurveTo(24, -64, 6, -62); c.stroke();
+    for (const [w, col] of [[6, INK], [4, S[3]], [1.5, S[5]]] as const) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(24, -50); c.quadraticCurveTo(24, -64, 6, -62); c.stroke(); }
+    c.strokeStyle = INK; c.lineWidth = 7; c.beginPath(); c.moveTo(14, -63); c.lineTo(6, -62); c.stroke();
+    c.strokeStyle = V[2]; c.lineWidth = 5; c.beginPath(); c.moveTo(14, -63); c.lineTo(6, -62); c.stroke();
     c.lineCap = 'butt';
-    void f;
   }
 };
 /** The cars' places: along the track (a train going), or parked at a place (level, front at its parked spot). */
@@ -221,7 +231,7 @@ export const carsOn = (tr: Track, s: number): CarAt[] => {
   const out: CarAt[] = [];
   for (let i = 0; i < CARS; i++) {
     const si = s - i * CAR_GAP;
-    if (si >= 0) { const p = at(tr, si); out.push({ x: p.x, y: p.y, a: p.a, roll: p.roll }); }
+    if (si >= 0) { const p = trackAt(tr, si); out.push({ x: p.x, y: p.y, a: p.a, roll: p.roll }); }
     else { const p0 = tr.pts[0]; out.push({ x: p0.x + Math.cos(p0.a) * si, y: p0.y + Math.sin(p0.a) * si, a: p0.a, roll: 0 }); }
   }
   return out;
@@ -234,11 +244,11 @@ export const drawTrain = (c: Ctx, cars: CarAt[], layer: 'back' | 'front', f: num
     if (layer === 'front' && !ridden) continue;
     c.save(); c.translate(k.x, k.y); c.rotate(k.a);
     c.scale(1, rollScale(k.roll));
-    car(c, layer, f, i);
+    car(c, layer, i);
     // (nobody in it: its near side too, here (behind him walking past it); his: in front of him, drawn after him)
-    if (layer === 'back' && !ridden) car(c, 'front', f, i);
+    if (layer === 'back' && !ridden) car(c, 'front', i);
     // (the front car's light: red, the lap bar locked; green, hop on)
-    if (layer === 'back' && i === 0 && lockLight !== undefined) { box(c, 16, -36, 6, 6, '#000'); box(c, 17, -35, 4, 4, lockLight ? (f % 30 < 15 ? '#EF4444' : '#7F1D1D') : '#4ADE80'); }
+    if (layer === 'back' && i === 0 && lockLight !== undefined) { box(c, 15, -37, 8, 8, INK); box(c, 16, -36, 6, 6, lockLight ? (f % 30 < 15 ? '#EF4444' : '#7F1D1D') : '#4ADE80'); box(c, 16, -36, 2, 2, '#FFFFFF'); }
     c.restore();
   }
 };
@@ -249,192 +259,10 @@ export const drawFlyingTrain = (c: Ctx, x: number, y: number, rot: number, layer
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Bits
-
-/** A plaque on a stand: two lines (brass). */
-const plaque = (c: Ctx, x: number, feetY: number, a: string, b: string, col = '#FEF3C7') => {
-  box(c, x - 2, feetY - 50, 4, 50, '#57534E'); box(c, x - 10, feetY - 4, 20, 4, '#44403C');
-  const L1 = brass(8), L2 = print(1, col), w = Math.max(signW(a, L1), signW(b, L2)) + 16;
-  box(c, x - w / 2 - 1, feetY - 84, w + 2, 34, '#000'); box(c, x - w / 2, feetY - 83, w, 32, '#92400E'); box(c, x - w / 2 + 2, feetY - 81, w - 4, 28, '#B45309');
-  words(c, a, x, feetY - 70, L1);
-  words(c, b, x, feetY - 58, L2);
-};
-/** A sign board hung on two chains from y0 (or on two posts from the floor if `posts`), its middle at (x, y). */
-const hungSign = (c: Ctx, x: number, y: number, w: number, h: number, from: number, board: string, posts = false) => {
-  if (posts) { box(c, x - w / 2 + 8, y + h / 2, 6, from - y - h / 2, '#57534E'); box(c, x + w / 2 - 14, y + h / 2, 6, from - y - h / 2, '#57534E'); }
-  else for (const cx of [x - w / 2 + 12, x + w / 2 - 12]) for (let yy = from; yy < y - h / 2; yy += 7) box(c, cx - 2, yy, 4, 5, '#71717A');
-  box(c, x - w / 2 - 3, y - h / 2 - 3, w + 6, h + 6, '#000'); box(c, x - w / 2, y - h / 2, w, h, board);
-};
-/** A spotlight's beam down onto (x, y) from up above. */
-const spot = (c: Ctx, x: number, y: number, h: number, f: number, col = 'rgba(254, 240, 138, 0.16)') => {
-  c.fillStyle = col; c.beginPath(); c.moveTo(x - 10, y - h); c.lineTo(x + 10, y - h); c.lineTo(x + 70, y); c.lineTo(x - 70, y); c.closePath(); c.fill();
-  box(c, x - 9, y - h - 12, 18, 14, '#18181B'); box(c, x - 6, y - h, 12, 3, f % 60 < 58 ? '#FEF9C3' : '#FDE68A');
-};
-/** A door (the bathroom set's: diegetic): its frame; open by `k` (0 shut); a sign over it. `kind`: a restroom door
- *  (the little man and woman on it), a toilet stall's (the partitions either side, the gap under it, the latch's
- *  OCCUPIED tab), a janitor's closet (louvers). */
-type DoorKind = 'restroom' | 'stall' | 'closet';
-const door = (c: Ctx, x: number, feetY: number, k: number, sign: string, signCol = '#FACC15', board = '#18181B', light?: 'red' | 'green', kind: DoorKind = 'restroom') => {
-  const w = 52 * (1 - k * 0.85);
-  if (kind === 'stall') {
-    // (the partitions either side of it, up off the floor and short of the top; the dark of the stall behind)
-    for (const px of [x - 58, x + 34]) { box(c, px, feetY - 128, 24, 116, '#000'); box(c, px + 1, feetY - 127, 22, 114, '#8B8F80'); box(c, px + 1, feetY - 127, 22, 3, '#6B6F62'); }
-    box(c, x - 34, feetY - 128, 68, 116, '#000'); box(c, x - 32, feetY - 126, 64, 114, '#57534E');
-    box(c, x - 28, feetY - 124, 56, 124, '#09090B');
-    box(c, x - 28, feetY - 124, w + 4, 110, '#000'); box(c, x - 27, feetY - 123, w + 2, 108, '#A3A894');
-    if (w > 20) { box(c, x - 26 + w - 10, feetY - 72, 8, 6, '#000'); box(c, x - 25 + w - 10, feetY - 71, 6, 4, k > 0.1 ? '#4ADE80' : '#DC2626'); }
-  } else {
-    box(c, x - 34, feetY - 116, 68, 116, '#000'); box(c, x - 32, feetY - 114, 64, 114, '#3F3F46');
-    box(c, x - 26, feetY - 108, 52, 108, '#09090B');
-    box(c, x - 26, feetY - 108, w, 108, kind === 'closet' ? '#6B7280' : '#57534E'); box(c, x - 26 + w - 6, feetY - 58, 4, 8, '#A1A1AA');
-    if (kind === 'closet' && w > 20) for (let y = feetY - 96; y < feetY - 70; y += 5) box(c, x - 22, y, Math.min(w - 10, 30), 2, '#374151');
-    if (kind === 'restroom' && w > 30) {
-      // (the little man and the little woman, on a plate)
-      box(c, x - 22, feetY - 96, 26, 22, '#E5E7EB');
-      for (const [fx, dress] of [[x - 15, false], [x - 4, true]] as const) {
-        box(c, fx - 2, feetY - 94, 4, 4, '#1E3A8A');
-        if (dress) { c.fillStyle = '#1E3A8A'; c.beginPath(); c.moveTo(fx, feetY - 89); c.lineTo(fx + 4, feetY - 80); c.lineTo(fx - 4, feetY - 80); c.closePath(); c.fill(); box(c, fx - 2, feetY - 80, 1, 4, '#1E3A8A'); box(c, fx + 1, feetY - 80, 1, 4, '#1E3A8A'); }
-        else { box(c, fx - 2, feetY - 89, 4, 8, '#1E3A8A'); box(c, fx - 2, feetY - 81, 1, 5, '#1E3A8A'); box(c, fx + 1, feetY - 81, 1, 5, '#1E3A8A'); }
-      }
-    }
-  }
-  const L = print(1, signCol), sw = signW(sign, L) + 14, top = kind === 'stall' ? feetY - 148 : feetY - 136;
-  box(c, x - sw / 2, top, sw, 16, board); words(c, sign, x, top + 12, L);
-  if (light) { box(c, x + 22, feetY - 70, 8, 8, '#000'); box(c, x + 23, feetY - 69, 6, 6, light === 'red' ? '#EF4444' : '#4ADE80'); }
-};
-
-// ---------------------------------------------------------------------------------------------------------------
-// The bathroom set (the user: the station and the stops are a FACSIMILE OF A BATHROOM, still outdoors): a freestanding
-// tiled wall along the back of each deck, flats braced from behind at their ends (it's a set: the sky over it), and on
-// it the fittings, themed to the toilets: stall partitions, mirrors over sinks, hand dryers, a row of urinals, paper
-// towels, EMPLOYEES MUST WASH HANDS. Nothing on it's for standing on: the wall's top is a dark cap, no lit lip; the
-// fittings are set back, dimmed.
-
-/** Each place's tiles (main, grout, the wainscot band) and its trim. */
-interface Tiles { tile: string; grout: string; band: string; cap: string; dirt?: boolean }
-const TILES: Record<Place, Tiles> = {
-  station: { tile: '#B9C7BC', grout: '#94A39A', band: '#7F1D1D', cap: '#44403C' },
-  0: { tile: '#D9B8C2', grout: '#B8939E', band: '#9D174D', cap: '#4C0519' },
-  1: { tile: '#A9B57C', grout: '#86915E', band: '#713F12', cap: '#3F3F1F' },
-  2: { tile: '#6B7064', grout: '#4B5046', band: '#18181B', cap: '#1C1917', dirt: true },
-};
-const WALL_H = 210;
-type Fitting = 'stalls' | 'urinals' | 'sink' | 'dryer' | 'towels' | 'sign';
-const FIT_W: Record<Fitting, number> = { stalls: 160, urinals: 130, sink: 60, dryer: 34, towels: 36, sign: 96 };
-const ORDER: Fitting[] = ['stalls', 'sign', 'sink', 'sink', 'dryer', 'urinals', 'towels', 'sink', 'dryer', 'stalls', 'urinals', 'sign'];
-/** Where each fitting goes along a wall (a..b, world), round what's in front (doors, the shrine...); the signs kept
- *  clear of the low catwalks (nothing over them). Laid out once per place. */
-const FITS = new Map<Place, [Fitting, number][]>();
-const fitsFor = (pl: Place, a: number, b: number, keep: [number, number][], lowLedges: [number, number][]) => {
-  let out = FITS.get(pl);
-  if (out) return out;
-  out = [];
-  let x = a + 40, k = 0;
-  for (let guard = 0; x < b - 40 && guard < 200; guard++) {
-    const f = ORDER[k % ORDER.length], w = FIT_W[f];
-    const hit = keep.find(([p, q]) => x < q && x + w > p) ?? (f === 'sign' ? lowLedges.find(([p, q]) => x < q + 10 && x + w > p - 10) : undefined);
-    if (hit) { x = hit[1] + 12; continue; }
-    if (x + w > b - 40) break;
-    out.push([f, x]); x += w + 26; k++;
-  }
-  FITS.set(pl, out);
-  return out;
-};
-const fitting = (c: Ctx, f: Fitting, x: number, y: number, t: Tiles, pl: Place) => {
-  const porcelain = '#D6D3CE', steel = '#9CA3AF';
-  if (f === 'stalls') {
-    // (two stalls, doors shut, the gap under them; a gold star on each: the stars' own)
-    for (let i = 0; i < 2; i++) {
-      const sx = x + i * 80;
-      box(c, sx, y - 150, 8, 138, '#000'); box(c, sx + 1, y - 149, 6, 136, '#7C806F');
-      box(c, sx + 10, y - 146, 64, 128, '#000'); box(c, sx + 11, y - 145, 62, 126, '#969A86');
-      box(c, sx + 62, y - 88, 6, 4, '#7F1D1D');
-      c.fillStyle = '#CA8A04'; c.beginPath();
-      for (let j = 0; j < 10; j++) { const r = j % 2 ? 3 : 7, an = -Math.PI / 2 + (j * Math.PI) / 5; c.lineTo(sx + 42 + Math.cos(an) * r, y - 120 + Math.sin(an) * r); }
-      c.closePath(); c.fill();
-    }
-    box(c, x + 160, y - 150, 8, 138, '#000'); box(c, x + 161, y - 149, 6, 136, '#7C806F');
-  } else if (f === 'urinals') {
-    for (let i = 0; i < 3; i++) {
-      const ux = x + 10 + i * 42;
-      box(c, ux - 1, y - 92, 26, 46, '#000'); box(c, ux, y - 91, 24, 44, porcelain); box(c, ux + 4, y - 80, 16, 26, '#B8B4AC');
-      box(c, ux + 10, y - 104, 4, 12, steel);
-      if (i < 2) { box(c, ux + 31, y - 110, 4, 70, '#000'); box(c, ux + 32, y - 109, 2, 68, '#7C806F'); }
-      // (stop 3's: one's full of something)
-      if (pl === 2 && i === 1) box(c, ux + 5, y - 70, 14, 10, '#5C3A16');
-    }
-  } else if (f === 'sink') {
-    // (a mirror over a sink: the glass catching the sky, a faucet, the bracket)
-    box(c, x + 4, y - 168, 52, 66, '#000'); box(c, x + 6, y - 166, 48, 62, '#8FA3B5');
-    c.strokeStyle = 'rgba(255, 255, 255, 0.35)'; c.lineWidth = 3; c.beginPath(); c.moveTo(x + 14, y - 112); c.lineTo(x + 34, y - 160); c.moveTo(x + 26, y - 110); c.lineTo(x + 44, y - 152); c.stroke();
-    if (t.dirt) { box(c, x + 10, y - 130, 18, 3, '#3F3F46'); box(c, x + 30, y - 150, 3, 20, '#4D7C0F'); }
-    box(c, x + 2, y - 72, 56, 14, '#000'); box(c, x + 3, y - 71, 54, 12, porcelain);
-    box(c, x + 27, y - 82, 6, 10, steel); box(c, x + 27, y - 82, 12, 3, steel);
-    box(c, x + 26, y - 58, 8, 22, '#6B7280');
-  } else if (f === 'dryer') {
-    box(c, x, y - 118, 34, 26, '#000'); box(c, x + 1, y - 117, 32, 24, '#A1A1AA'); box(c, x + 1, y - 117, 32, 3, '#D4D4D8');
-    box(c, x + 13, y - 93, 8, 6, '#52525B');
-    words(c, 'PUSH', x + 17, y - 100, print(1, '#27272A'));
-  } else if (f === 'towels') {
-    box(c, x, y - 150, 36, 44, '#000'); box(c, x + 1, y - 149, 34, 42, '#A8A29E'); box(c, x + 6, y - 140, 24, 3, '#78716C');
-    box(c, x + 10, y - 107, 16, 10, '#F5F5F4');
-  } else {
-    // EMPLOYEES MUST WASH HANDS (screwed to the tiles; its own letters)
-    box(c, x, y - 128, 96, 34, '#000'); box(c, x + 1, y - 127, 94, 32, '#F8FAFC');
-    box(c, x + 3, y - 125, 90, 2, '#1E40AF');
-    words(c, 'EMPLOYEES MUST', x + 48, y - 112, print(1, '#1E3A8A'));
-    words(c, 'WASH HANDS', x + 48, y - 100, enamel(1, '#B91C1C'));
-    for (const sx of [x + 4, x + 90]) box(c, sx, y - 123, 2, 2, '#71717A');
-  }
-};
-/** The wall: from a to b (world) behind a deck at y, the fittings round what's kept clear (world x ranges). */
-const bathroomSet = (c: Ctx, state: GameState, pl: Place, a: number, b: number, y: number, keep: [number, number][], lowLedges: [number, number][]) => {
-  if (!seen(state, a - 60, b + 60, y - WALL_H - 40, y)) return;
-  const t = TILES[pl], top = y - WALL_H;
-  // (the flats' bracing, out from behind at each end: 2x4s and sandbags: it's a set)
-  for (const [ex, d] of [[a, -1], [b, 1]] as const) {
-    c.strokeStyle = '#8A6A3F'; c.lineWidth = 6; c.beginPath(); c.moveTo(ex, top + 20); c.lineTo(ex + d * 70, y - 4); c.stroke();
-    box(c, ex + d * 70 - 14, y - 12, 28, 12, '#A39171');
-  }
-  box(c, a, top, b - a, WALL_H, t.grout);
-  // (the tiles: a grid, cheap, in two shades)
-  c.fillStyle = t.tile;
-  const v = viewOf(state), l = Math.max(a, v.x - 20), r = Math.min(b, v.x + v.w + 20);
-  for (let ty = top + 8; ty < y - 40; ty += 16) for (let tx = a + Math.floor((l - a) / 16) * 16; tx < r; tx += 16) c.fillRect(tx + 1, ty + 1, 14, 14);
-  // (a band of contrasting tile, the wainscot below it; the dark cap along the top (not a lip: not for standing on))
-  box(c, a, y - 40, b - a, 40, t.grout); box(c, a, y - 46, b - a, 6, t.band);
-  box(c, a, top, b - a, 8, t.cap);
-  if (t.dirt) for (let k = 0; k < 12; k++) { const gx = a + ((k * 173) % Math.max(1, b - a)); box(c, gx, top + 8, 3 + (k % 3), 40 + (k * 13) % 70, 'rgba(60, 50, 30, 0.45)'); }
-  for (const [f, x] of fitsFor(pl, a, b, keep, lowLedges)) if (seen(state, x - 20, x + FIT_W[f] + 20)) fitting(c, f, x, y, t, pl);
-};
-/** A pylon at a deck's end: a steel lattice tower up out of sight and down to the park; the train's arch through it at
- *  the deck, barred (the barrier arm down) unless the train's going through. */
-const pylon = (c: Ctx, x: number, deckY: number, open: boolean) => {
-  box(c, x - 4, deckY - 1400, 48, 1400 + (GY - deckY) + 10, '#000');
-  box(c, x - 2, deckY - 1400, 44, 1400 + (GY - deckY) + 10, '#52525B');
-  c.strokeStyle = '#3F3F46'; c.lineWidth = 3; c.beginPath();
-  for (let y = deckY - 1400; y < GY; y += 44) { c.moveTo(x - 2, y); c.lineTo(x + 42, y + 44); c.moveTo(x + 42, y); c.lineTo(x - 2, y + 44); }
-  c.stroke();
-  box(c, x - 2, deckY - 1400, 4, 1400 + GY - deckY, '#71717A');
-  // (the train's arch through it, at the deck; the barrier)
-  box(c, x - 2, deckY - 104, 44, 104, '#0C0A09');
-  if (!open) for (let k = 0; k < 5; k++) box(c, x - 2, deckY - 96 + k * 20, 44, 10, k % 2 ? '#F8FAFC' : '#DC2626');
-};
-/** A deck up on the structure: its floor (the lit lip), its girder face down a bit, struts down to the park. */
-const deckFloor = (c: Ctx, a: number, b: number, y: number) => {
-  c.strokeStyle = '#57534E'; c.lineWidth = 6; c.beginPath();
-  for (let x = a + 60; x < b - 30; x += 240) { c.moveTo(x, y + 40); c.lineTo(x, GY); c.moveTo(x, y + 40); c.lineTo(x + 120, y + 260); }
-  c.stroke();
-  box(c, a, y, b - a, 40, '#000'); box(c, a, y + 1, b - a, 38, '#44403C');
-  for (let x = a; x < b; x += 40) box(c, x, y + 14, 2, 26, '#292524');
-  box(c, a, y, b - a, 4, '#D6D3D1');
-  // (the rail along it: the train's)
-  box(c, a, y - 3, b - a, 3, '#FBBF24');
-};
-
-// ---------------------------------------------------------------------------------------------------------------
 // The queue and the station
 
+/** How far back the queue's walkways go (the lanes behind him, full of guests). */
+const LANE_D = 0.9;
 const guestAt = (c: Ctx, g: QGuest, f: number) => {
   const h = queueH(g.rx), x = X(g.rx) + (g.shove > 0 ? g.dir * (30 - g.shove) * 0.8 : 0), y = Y(h);
   c.save(); c.translate(x, y);
@@ -442,263 +270,330 @@ const guestAt = (c: Ctx, g: QGuest, f: number) => {
   const face = (g.seed % 2 ? 1 : -1) as 1 | -1;
   c.scale(face * 0.92, 0.92);
   drawPerson(c, { seed: g.seed, outfit: 'guest', f, pose: g.mad > 0 ? 'point' : g.seed % 5 === 0 ? 'photo' : 'stand', mood: g.mad > 0 ? 'angry' : g.seed % 3 === 0 ? 'bored' : 'happy', shorts: g.seed % 3 === 0, talking: g.mad > 0 && f % 10 < 5 });
+  if (g.mad <= 0 && g.seed % 5 === 0) { box(c, 14, -70, 8, 12, INK); box(c, 15, -69, 6, 10, '#27272A'); box(c, 16, -67, 4, 5, f % 120 < 4 ? '#FFFFFF' : '#60A5FA'); }
   c.restore();
 };
-
-const drawQueue = (c: Ctx, state: GameState, co: Coaster) => {
-  const f = state.frame;
-  if (!seen(state, X(-200), X(STATION.b + 100))) return;
-  // (the queue house under the ramps and the station: a wall with posters, the floors' lit lips)
-  c.fillStyle = '#4C0519'; c.beginPath(); c.moveTo(X(700), GY);
-  for (const [a, b, ha, hb] of QUEUE_GROUND) if (a >= 700) { c.lineTo(X(a), Y(ha)); c.lineTo(X(b), Y(hb)); }
-  c.lineTo(X(STATION.b), GY); c.closePath(); c.fill();
-  for (const rx of [900, 1450, 2000, 2450]) { box(c, X(rx) - 30, GY - 80, 60, 60, '#000'); box(c, X(rx) - 28, GY - 78, 56, 56, '#FDE68A'); words(c, 'THRONES', X(rx), GY - 50, print(1, '#9F1239')); words(c, 'SIT HERE', X(rx), GY - 38, print(1, '#7F1D1D')); }
+/** The queue's floor going back from its front edge to the back lane (the ramps too: each a quad). */
+const laneTops = (c: Ctx, v: CView) => {
+  const eye = v.eye, R = ramp6(hour('#4A3A3E')), K = pal().concrete;
   for (const [a, b, ha, hb] of QUEUE_GROUND) {
-    if (b < X(-200) - x0) continue;
-    c.fillStyle = '#000'; c.beginPath(); c.moveTo(X(a), Y(ha) - 1); c.lineTo(X(b), Y(hb) - 1); c.lineTo(X(b), Y(hb) + 8); c.lineTo(X(a), Y(ha) + 8); c.closePath(); c.fill();
-    c.fillStyle = '#A8A29E'; c.beginPath(); c.moveTo(X(a), Y(ha)); c.lineTo(X(b), Y(hb)); c.lineTo(X(b), Y(hb) + 6); c.lineTo(X(a), Y(ha) + 6); c.closePath(); c.fill();
-    c.strokeStyle = '#F5F5F4'; c.lineWidth = 2; c.beginPath(); c.moveTo(X(a), Y(ha)); c.lineTo(X(b), Y(hb)); c.stroke();
+    if (b < a + 1 || !vis(v, X(a), X(b), Y(Math.max(ha, hb)) - 10, Y(Math.min(ha, hb)) + 10)) continue;
+    const n = 3;
+    for (let i = 0; i < n; i++) {
+      const d0 = 1 - ((1 - LANE_D) * i) / n, d1 = 1 - ((1 - LANE_D) * (i + 1)) / n;
+      const col = a >= STATION.a ? K[4 - Math.min(i, 2)] : R[4 - i];
+      poly(c, [at(eye, X(a), Y(ha), d0), at(eye, X(b), Y(hb), d0), at(eye, X(b), Y(hb), d1), at(eye, X(a), Y(ha), d1)], col);
+    }
+    // (rubber matting's ribs, running back)
+    if (a < STATION.a) { c.strokeStyle = R[2]; c.lineWidth = 1; c.beginPath(); for (let x = Math.ceil(a / 24) * 24; x < b; x += 24) { const h = ha + ((hb - ha) * (x - a)) / (b - a), [px, py] = at(eye, X(x), Y(h), 1), [qx, qy] = at(eye, X(x), Y(h), LANE_D); c.moveTo(px, py); c.lineTo(qx, qy); } c.stroke(); }
   }
-  if (seen(state, X(-200), X(800))) box(c, X(-200), GY, 1000, 400, '#57534E');
-  // The way in: the arch, the wait
-  {
-    const ax = X(120);
-    box(c, ax - 90, GY - 230, 14, 230, '#57534E'); box(c, ax + 76, GY - 230, 14, 230, '#57534E');
-    box(c, ax - 110, GY - 280, 220, 56, '#000'); box(c, ax - 106, GY - 276, 212, 48, '#4C0519');
-    words(c, 'THRONES', ax, GY - 252, marquee(2, 2, '#FBBF24', f % 30 < 24));
-    words(c, 'QUEUE', ax, GY - 236, print(1, '#FDE68A'));
-    // (the PA's horn on it)
-    box(c, ax + 80, GY - 300, 10, 10, '#52525B'); c.fillStyle = '#71717A'; c.beginPath(); c.moveTo(ax + 90, GY - 302); c.lineTo(ax + 106, GY - 310); c.lineTo(ax + 106, GY - 282); c.lineTo(ax + 90, GY - 290); c.closePath(); c.fill();
-    const wx = X(250);
-    box(c, wx - 3, GY - 120, 6, 120, '#71717A');
-    box(c, wx - 60, GY - 156, 120, 40, '#000'); box(c, wx - 58, GY - 154, 116, 36, '#F8FAFC');
-    words(c, 'WAIT FROM HERE', wx, GY - 140, print(1, '#18181B')); words(c, '4 HOURS', wx, GY - 125, brass(8));
-    const fx = X(1100);
-    box(c, fx - 3, Y(110) - 130, 6, 130, '#71717A');
-    box(c, fx - 70, Y(110) - 166, 140, 40, '#000'); box(c, fx - 68, Y(110) - 164, 136, 36, '#FDE68A');
-    words(c, 'FAST PASS LANE', fx, Y(110) - 150, print(1, '#18181B')); words(c, 'WAIT: 3 HOURS', fx, Y(110) - 136, print(1, '#7F1D1D'));
+};
+/** The lanes going back: stanchions and their velvet ropes along them, the guests waiting in them. */
+const BACK_GUESTS: [number, number, number][] = [
+  [150, 0.955, 31], [330, 0.93, 44], [470, 0.955, 18], [610, 0.93, 66], [820, 0.955, 9], [960, 0.93, 57], [1140, 0.955, 72],
+  [1240, 0.93, 13], [1420, 0.955, 85], [1520, 0.93, 28], [260, 0.93, 90], [700, 0.955, 3],
+];
+const lanes = (c: Ctx, v: CView, f: number) => {
+  const eye = v.eye;
+  for (const d of [0.93, 0.955]) {
+    const [lo, hi] = [v.eye.x + (v.vx - 80 - v.eye.x) / d, v.eye.x + (v.vx + v.vw + 80 - v.eye.x) / d];
+    atDepth(c, eye, d, () => {
+      const G = BRASS.map(cc => hour(cc)), V = VELVET.map(cc => hour(cc));
+      // (the people first: the ropes are in front of them)
+      for (const [rx, gd, seed] of BACK_GUESTS) {
+        if (gd !== d || X(rx) < lo - 40 || X(rx) > hi + 40) continue;
+        c.save(); c.translate(X(rx), Y(queueH(rx))); c.scale((seed % 2 ? 1 : -1) * 0.92, 0.92);
+        drawPerson(c, { seed, outfit: 'guest', f, pose: seed % 4 === 0 ? 'photo' : 'stand', mood: seed % 3 ? 'bored' : 'happy', shorts: seed % 3 === 0 });
+        c.restore();
+      }
+      const step = 64;
+      for (let rx = Math.floor((lo - x0) / step) * step; X(rx) < hi && rx < STATION.a - 40; rx += step) {
+        if (rx < -200) continue;
+        const x = X(rx), y = Y(queueH(rx)), nx = X(rx + step), ny = Y(queueH(rx + step));
+        if (rx + step < STATION.a - 40) for (const [w, col, o] of [[5, INK, 0], [3, V[2], 0], [1, V[4], -1]] as const) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(x, y - 30 + o); c.quadraticCurveTo((x + nx) / 2, (y + ny) / 2 - 16 + o, nx, ny - 30 + o); c.stroke(); }
+        box(c, x - 3, y - 36, 6, 36, INK); box(c, x - 2, y - 35, 4, 35, G[3]); box(c, x - 2, y - 35, 1, 35, G[5]);
+        box(c, x - 6, y - 4, 12, 4, INK); box(c, x - 5, y - 3, 10, 3, G[2]);
+        ball(c, x, y - 38, 3, G[4]);
+      }
+    });
   }
-  // The rails between the lanes (low: over them), velvet along them
+};
+/** The queue house: the mass under the ramps and the station (crimson stucco, a gold band, posters in frames). */
+const paintPosterThrones = (g: Ctx) => {
+  board(g, 0, -30, ['THRONES'], deco('#F2C24A', '#4C0519', 2, 1), '#5A0820', BRASS, 5);
+  board(g, 0, 0, ['SIT WHERE', 'THE STARS SAT'], plain(1, 1, '#FEF3C7'), '#7F1D1D', BRASS, 5);
+};
+const paintPosterToilet = (g: Ctx) => {
+  const G = BRASS.map(c => hour(c));
+  box(g, -34, -46, 68, 92, INK); box(g, -33, -45, 66, 90, G[2]); box(g, -33, -45, 66, 1, G[5]); box(g, -33, -45, 1, 90, G[4]);
+  box(g, -29, -41, 58, 82, hour('#2A0A18'));
+  for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; g.fillStyle = hour('#4C0519'); g.beginPath(); g.moveTo(0, -6); g.lineTo(Math.cos(a - 0.2) * 40, -6 + Math.sin(a - 0.2) * 40); g.lineTo(Math.cos(a + 0.2) * 40, -6 + Math.sin(a + 0.2) * 40); g.closePath(); g.fill(); }
+  box(g, -29, -41, 58, 2, hour('#5A1426'));
+  // (a gold toilet, spotlit)
+  box(g, -12, -24, 12, 18, INK); box(g, -11, -23, 10, 16, G[3]); box(g, -11, -23, 3, 16, G[5]);
+  box(g, -4, -8, 22, 6, INK); box(g, -3, -7, 20, 4, G[4]);
+  box(g, -1, -3, 16, 12, INK); box(g, 0, -2, 14, 10, G[3]); box(g, 0, -2, 4, 10, G[5]);
+  words(g, 'NOW', 0, 26, plain(1, 1, '#FDE68A')); words(g, 'SEATING', 0, 36, plain(1, 1, '#FDE68A'));
+};
+const queueHouse = (c: Ctx, v: CView) => {
+  const a = 700, b = STATION.b;
+  if (!vis(v, X(a), X(b), Y(STATION.h), GY)) return;
+  const R = ramp6(hour('#6A0E24')), G = pal().gold, K = pal().concrete;
+  // (its face: from the ramps' edges down to the park; banded darker going down; a plinth of concrete at its foot)
+  c.fillStyle = R[3]; c.beginPath(); c.moveTo(X(a), GY);
+  for (const [qa, qb, ha, hb] of QUEUE_GROUND) if (qa >= a) { c.lineTo(X(qa), Y(ha) + 8); c.lineTo(X(qb), Y(hb) + 8); }
+  c.lineTo(X(b), GY); c.closePath(); c.fill();
+  const l = Math.max(X(a), v.vx - 40), r = Math.min(X(b), v.vx + v.vw + 40);
+  box(c, l, GY - 40, r - l, 40, R[2]); checker(c, l, GY - 42, r - l, 2, R[2], 0, 2);
+  box(c, l, GY - 16, r - l, 16, K[2]); box(c, l, GY - 16, r - l, 2, K[4]);
+  // (the gold band under the walkways' edges)
+  for (const [qa, qb, ha, hb] of QUEUE_GROUND) {
+    if (qa < a) continue;
+    for (const [o, col, w] of [[8, INK, 8], [9, G[3], 6], [9, G[5], 1], [14, G[1], 1]] as const) { c.fillStyle = col; c.beginPath(); c.moveTo(X(qa), Y(ha) + o); c.lineTo(X(qb), Y(hb) + o); c.lineTo(X(qb), Y(hb) + o + w); c.lineTo(X(qa), Y(ha) + o + w); c.closePath(); c.fill(); }
+  }
+  // (pilasters every so far, stepped)
+  for (let rx = a + 100; rx < b; rx += 200) { const x = X(rx), h = queueH(rx); if (x < l - 30 || x > r + 30 || h < 80) continue; box(c, x - 9, Y(h) + 22, 18, GY - Y(h) - 62, INK); box(c, x - 8, Y(h) + 22, 16, GY - Y(h) - 62, R[4]); box(c, x - 8, Y(h) + 22, 4, GY - Y(h) - 62, R[5]); box(c, x + 4, Y(h) + 22, 4, GY - Y(h) - 62, R[2]); }
+  // (the posters: THRONES, a gold toilet NOW SEATING; Steve's, yellow)
+  const POS: [number, 'thrones' | 'toilet' | 'steve'][] = [[1100, 'steve'], [1300, 'steve'], [1700, 'thrones'], [1900, 'steve'], [2100, 'toilet'], [2300, 'thrones'], [2500, 'steve']];
+  for (const [rx, kind] of POS) {
+    const x = X(rx), wt = Y(queueH(rx)) + 16, wb = GY - 42, y = Math.round((wt + wb) / 2);
+    if (x < l - 80 || x > r + 80) continue;
+    // (a low wall gets a flier; the station's tall one, the framed posters)
+    if (wb - wt < 110) { if (wb - wt >= 50 && kind === 'steve') still(c, `hwc-qflier-${rx % 3}`, x, y, -24, -32, 48, 64, g => steveCard(g, 0, 0, 0.8, rx, 'flier')); continue; }
+    if (kind === 'steve') still(c, `hwc-qsteve-${rx % 3}`, x, y, -50, -66, 100, 132, g => steveCard(g, 0, 0, 1.4, rx, 'poster'));
+    else if (kind === 'toilet') still(c, 'hwc-qtoilet', x, y, -40, -50, 80, 100, paintPosterToilet);
+    else still(c, 'hwc-qthrones', x, y, -70, -50, 140, 70, paintPosterThrones);
+  }
+  // (the walkways' front edges: their lit lips)
+  const Lp = pal().lip;
+  for (const [qa, qb, ha, hb] of QUEUE_GROUND) {
+    if (qa < -200) continue;
+    for (const [o, col, w] of [[-1, INK, 9], [0, Lp[1], 4], [0, Lp[2], 2], [0, Lp[3], 1]] as const) { c.fillStyle = col; c.beginPath(); c.moveTo(X(qa), Y(ha) + o); c.lineTo(X(qb), Y(hb) + o); c.lineTo(X(qb), Y(hb) + o + w); c.lineTo(X(qa), Y(ha) + o + w); c.closePath(); c.fill(); }
+  }
+};
+
+/** The arch over the way in: its posts, the header (THRONES in bulbs), QUEUE; the PA's horn. Feet at 0. */
+const paintArch = (g: Ctx) => {
+  const S = STEEL.map(c => hour(c)), G = BRASS, R = ramp6(hour('#5A0820'));
+  for (const px of [-84, 84]) { box(g, px - 8, -232, 16, 232, INK); box(g, px - 7, -232, 14, 232, G[3]); box(g, px - 7, -232, 4, 232, G[5]); box(g, px + 3, -232, 4, 232, G[1]); for (let y = -220; y < -10; y += 30) box(g, px - 7, y, 14, 2, G[2]); box(g, px - 12, -10, 24, 10, INK); box(g, px - 11, -9, 22, 9, S[2]); box(g, px - 11, -9, 22, 2, S[4]); }
+  box(g, -114, -286, 228, 62, INK); box(g, -112, -284, 224, 58, G[2]); box(g, -112, -284, 224, 2, G[5]); box(g, -112, -284, 2, 58, G[4]);
+  box(g, -106, -278, 212, 46, R[2]); for (let y = -278; y < -232; y += 8) box(g, -106, y, 212, 4, R[3]);
+  box(g, -106, -244, 212, 12, R[1]);
+  signText2(g, 'QUEUE', 0, -235);
+  // (the horn on its bracket)
+  box(g, 80, -304, 12, 8, INK); box(g, 81, -303, 10, 6, S[3]);
+  poly(g, [[90, -306], [110, -314], [110, -284], [90, -292]], INK); poly(g, [[91, -305], [108, -312], [108, -286], [91, -293]], S[3]); poly(g, [[91, -305], [108, -312], [108, -305], [91, -299]], S[5]);
+};
+const signText2 = (g: Ctx, t: string, x: number, y: number) => words(g, t, x, y, plain(1, 1, '#FDE68A', '#2A0408'));
+/** A sign on a post: its board up top. Feet at 0. */
+const paintPostSign = (g: Ctx, lines: string[], bg: string, ink: string, h: number, sub?: string) => {
+  const S = STEEL.map(c => hour(c));
+  box(g, -3, -h, 6, h, INK); box(g, -2, -h, 4, h, S[3]); box(g, -2, -h, 1, h, S[5]);
+  box(g, -8, -4, 16, 4, INK); box(g, -7, -3, 14, 3, S[2]);
+  board(g, 0, -h - 12, lines, plain(1, 1, ink), bg, S, 6);
+  if (sub) board(g, 0, -h + 12, [sub], { sx: 2, sy: 2, fill: ['#FFF0A8', '#E8C25A', '#C8962E', '#9A6A1C'], dither: true, shadow: '#3A2408' }, '#2A1A1A', BRASS, 5);
+};
+
+/** What of the queue and the station's set back (behind the track): the lanes going back and their guests, the
+ *  station's floor, the set behind it, Steve's poster on it. */
+const drawQueueBack = (c: Ctx, v: CView, state: GameState) => {
+  if (!vis(v, X(-260), X(STATION.b + 100), Y(STATION.h) - 340, GY)) return;
+  laneTops(c, v);
+  lanes(c, v, state.frame);
+  if (vis(v, X(STATION.a - 100), X(STATION.b + 100), Y(STATION.h) - 320, Y(STATION.h))) {
+    const y = Y(STATION.h);
+    deckTop(c, v, 'station', X(STATION.a), X(STATION.b), y);
+    drawSet(c, v, 'station', X(STATION.a + 70), X(STATION.b - 10), y, [[X(STATION.b - 190), X(STATION.b - 50)], [X(1980) - 60, X(1980) + 60]], []);
+    atDepth(c, v.eye, WALL_D, () => still(c, 'hwc-stposter', X(1980), y - 150, -50, -66, 100, 132, g => steveCard(g, 0, 0, 1.4, 3, 'poster')));
+  }
+};
+const drawQueue = (c: Ctx, v: CView, state: GameState, co: Coaster) => {
+  const f = state.frame;
+  if (!vis(v, X(-260), X(STATION.b + 100), Y(STATION.h) - 340, GY)) return;
+  queueHouse(c, v);
+  deckRail(c, v, X(STATION.a), X(STATION.b), Y(STATION.h));
+  // The way in: the arch, the wait; the FAST PASS lane's sign (still a three-hour wait)
+  const ax = X(120);
+  if (vis(v, ax - 130, ax + 130, GY - 320, GY)) {
+    stillAt(c, v, 0.975, 'hwc-arch', ax, GY, -130, -320, 260, 322, paintArch);
+    atDepth(c, v.eye, 0.975, () => words(c, 'THRONES', ax, GY - 251, bulbs(3, 3, '#FBBF24', lit() || f % 30 < 24)));
+  }
+  if (vis(v, X(250) - 80, X(250) + 80, GY - 170, GY)) stillAt(c, v, 0.97, 'hwc-wait', X(250), GY, -80, -170, 160, 172, g => paintPostSign(g, ['WAIT FROM HERE'], '#F8FAFC', '#18181B', 120, '4 HOURS'));
+  if (vis(v, X(1100) - 80, X(1100) + 80, Y(110) - 190, Y(110))) stillAt(c, v, 0.97, 'hwc-fastpass', X(1100), Y(110), -90, -190, 180, 192, g => paintPostSign(g, ['FAST PASS LANE', 'WAIT: 3 HOURS'], '#FDE68A', '#18181B', 140));
+  // The rails between the lanes (low: over them): chrome stanchions on a rail, the velvet along them
+  const G = BRASS.map(cc => hour(cc)), V = pal().velvet, Ch = CHROME.map(cc => hour(cc)), Lp = pal().lip;
   for (const [rx, h] of RAILS) {
     const x = X(rx), y = Y(h);
-    box(c, x - 5, y - RAIL_H, 10, RAIL_H, '#000'); box(c, x - 4, y - RAIL_H + 1, 8, RAIL_H - 1, '#A1A1AA'); box(c, x - 4, y - RAIL_H, 8, 3, '#F5F5F4');
-    c.strokeStyle = '#7F1D1D'; c.lineWidth = 3; c.beginPath(); c.moveTo(x - 60, y - 26); c.quadraticCurveTo(x - 30, y - 14, x, y - 28); c.quadraticCurveTo(x + 30, y - 14, x + 60, y - 26); c.stroke();
+    if (!vis(v, x - 70, x + 70, y - 50, y)) continue;
+    for (const s of [-1, 1]) for (const [w, col, o] of [[5, INK, 0], [3, V[2], 0], [1, V[4], -1]] as const) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(x, y - 28 + o); c.quadraticCurveTo(x + s * 30, y - 14 + o, x + s * 60, y - 26 + o); c.stroke(); }
+    box(c, x - 6, y - RAIL_H - 1, 12, RAIL_H + 1, INK); box(c, x - 5, y - RAIL_H, 10, RAIL_H, Ch[3]); box(c, x - 5, y - RAIL_H, 3, RAIL_H, Ch[5]); box(c, x + 2, y - RAIL_H, 3, RAIL_H, Ch[1]);
+    box(c, x - 9, y - 5, 18, 5, INK); box(c, x - 8, y - 4, 16, 4, G[2]); box(c, x - 8, y - 4, 16, 1, G[4]);
+    box(c, x - 6, y - RAIL_H - 3, 12, 4, Lp[1]); box(c, x - 6, y - RAIL_H - 3, 12, 2, Lp[2]);
   }
-  // Steve's standee, in the queue
-  steveFlier(c, X(STEVE_STANDEE), Y(queueH(STEVE_STANDEE)), 'standee', 1);
-  // The station: its canopy (a crown of gold over it), its BOARDING sign, its end wall (the track out through its arch)
-  if (seen(state, X(STATION.a - 100), X(STATION.b + 100))) {
+  // Steve's standee, in the queue (yellow)
+  if (vis(v, X(STEVE_STANDEE) - 60, X(STEVE_STANDEE) + 60, Y(queueH(STEVE_STANDEE)) - 150, Y(queueH(STEVE_STANDEE)))) stillAt(c, v, 0.975, 'standee', X(STEVE_STANDEE), Y(queueH(STEVE_STANDEE)), -52, -140, 104, 152, paintStandee);
+  // The station: its floor, the set behind it, the canopy (a gold crown) on its columns, BOARDING, the staff door,
+  // its end wall
+  if (vis(v, X(STATION.a - 100), X(STATION.b + 100), Y(STATION.h) - 320, Y(STATION.h))) {
     const y = Y(STATION.h);
-    bathroomSet(c, state, 'station', X(STATION.a + 70), X(STATION.b - 10), y, [[X(STATION.b - 190), X(STATION.b - 50)], [X(1980) - 60, X(1980) + 60]], []);
-    for (const rx of [STATION.a + 40, 2100, STATION.b - 60]) box(c, X(rx), y - 250, 12, 250, '#CA8A04');
-    box(c, X(STATION.a), y - 274, STATION.b - STATION.a, 28, '#000'); box(c, X(STATION.a) + 2, y - 272, STATION.b - STATION.a - 4, 24, '#EAB308');
-    for (let x = X(STATION.a); x < X(STATION.b); x += 50) { c.fillStyle = '#EAB308'; c.beginPath(); c.moveTo(x, y - 272); c.lineTo(x + 25, y - 300); c.lineTo(x + 50, y - 272); c.closePath(); c.fill(); box(c, x + 22, y - 304, 6, 6, f % 40 < 30 ? '#FEF3C7' : '#FDE68A'); }
-    words(c, 'BOARDING', X(2300), y - 254, enamel(8, '#7F1D1D'));
-    // (the station's staff door: where the stops' service stairs come out)
-    door(c, X(STATION.b - 120), y, 0, 'STAFF ONLY', '#FCA5A5', '#18181B', undefined, 'restroom');
-    steveFlier(c, X(1980), y - 150, 'poster', 3);
-    box(c, X(STATION.b), y - 800, 50, 800, '#000'); box(c, X(STATION.b) + 2, y - 800, 46, 800, '#7F1D1D');
-    box(c, X(STATION.b) + 2, y - 104, 46, 104, '#0C0A09');
-    for (let k = 0; k < 5; k++) box(c, X(STATION.b) + 2, y - 96 + k * 20, 46, 10, k % 2 ? '#F8FAFC' : '#DC2626');
+    canopy(c, v, y, f);
+    door(c, v, X(STATION.b - 120), y, 0, 'STAFF ONLY', '#FCA5A5', '#18181B', undefined, 'restroom', 'station');
   }
-  for (const g of co.guests) if (seen(state, X(g.rx) - 40, X(g.rx) + 40)) guestAt(c, g, f);
+  for (const g of co.guests) if (vis(v, X(g.rx) - 40, X(g.rx) + 40, Y(queueH(g.rx)) - 90, Y(queueH(g.rx)))) guestAt(c, g, f);
 };
-
-// ---------------------------------------------------------------------------------------------------------------
-// The three shrines
-
-const TITLES = ['THE CHAIRMAN OF THE BOWEL', "THE GODFATHER'S CLOG", "THE ROCK GOD'S TOUR BUS TOILET"];
-const PLAQUES: [string, string][] = [['AS SAT ON BY', 'DINO SINATRELLI 1961'], ['AS CLOGGED BY', 'MARLOWE BRANDOE 1994'], ['NEVER FLUSHED', 'SINCE 1973']];
-
-/** A toilet (crude): the tank, the bowl, the seat; its color. Feet at (x, y). */
-const toilet = (c: Ctx, x: number, y: number, col: string, dark: string) => {
-  box(c, x - 26, y - 70, 24, 40, '#000'); box(c, x - 25, y - 69, 22, 38, col);
-  box(c, x - 28, y - 74, 28, 6, '#000'); box(c, x - 27, y - 73, 26, 4, col);
-  box(c, x - 6, y - 34, 40, 10, '#000'); box(c, x - 5, y - 33, 38, 8, col);
-  c.fillStyle = '#000'; c.beginPath(); c.moveTo(x - 4, y - 26); c.lineTo(x + 32, y - 26); c.quadraticCurveTo(x + 30, y - 8, x + 16, y - 6); c.lineTo(x + 12, y); c.lineTo(x - 2, y); c.closePath(); c.fill();
-  c.fillStyle = col; c.beginPath(); c.moveTo(x - 2, y - 25); c.lineTo(x + 30, y - 25); c.quadraticCurveTo(x + 28, y - 9, x + 15, y - 7); c.lineTo(x + 11, y - 1); c.lineTo(x, y - 1); c.closePath(); c.fill();
-  box(c, x - 4, y - 30, 4, 4, dark);
-};
-
-const drawShrine = (c: Ctx, state: GameState, i: number, co: Coaster) => {
-  const s = STOPS[i], f = state.frame, dy = Y(s.h), sx = X(s.shrine.x), sw = s.shrine.w, top = dy - s.shrine.h, mx = sx + sw / 2;
-  // (the spotlights down on it)
-  spot(c, mx - 50, top, 300, f); spot(c, mx + 50, top, 300, f + 20);
-  // (the velvet ropes either side, the plaque in front)
-  velvetRope(c, sx - 110, sx - 14, dy); velvetRope(c, sx + sw + 14, sx + sw + 110, dy);
-  plaque(c, sx - 150, dy, PLAQUES[i][0], PLAQUES[i][1]);
-  // The plinth (marble, gold trim; its top lit: he can stand on it)
-  if (i < 2) {
-    box(c, sx - 2, top - 2, sw + 4, s.shrine.h + 2, '#000'); box(c, sx, top, sw, s.shrine.h, '#E7E5E4');
-    for (let k = 0; k < 3; k++) box(c, sx + 10 + k * 34, top + 10, 2, s.shrine.h - 14, '#D6D3D1');
-    box(c, sx, top + s.shrine.h - 8, sw, 8, '#CA8A04'); box(c, sx, top, sw, 4, '#FDE68A');
+/** The station's canopy: gold fluted columns (front and back), the crimson fascia in its gold frame, the crown's
+ *  points along the top with their bulbs (chasing), its top going back; BOARDING hung under it. */
+const canopy = (c: Ctx, v: CView, y: number, f: number) => {
+  const G = pal().gold, R = ramp6(hour('#6A0820')), eye = v.eye, a = X(STATION.a), b = X(STATION.b), top = y - 274;
+  const cols = [STATION.a + 40, 2100, STATION.b - 60];
+  // (the back columns, at the wall)
+  atDepth(c, eye, WALL_D, () => { for (const rx of cols) { box(c, X(rx) - 1, top + 28, 14, y - top - 28, INK); box(c, X(rx), top + 28, 12, y - top - 28, G[2]); box(c, X(rx), top + 28, 3, y - top - 28, G[3]); } });
+  topBack(c, eye, a, b, top, 1, WALL_D, R, 3);
+  underBack(c, eye, a, b, top + 28, 1, WALL_D, R, 3);
+  // (the front columns: fluted, stepped, a capital and a base)
+  for (const rx of cols) {
+    const x = X(rx);
+    box(c, x - 1, top + 28, 14, y - top - 28, INK);
+    box(c, x, top + 28, 12, y - top - 28, G[3]); box(c, x, top + 28, 3, y - top - 28, G[5]); box(c, x + 9, top + 28, 3, y - top - 28, G[1]);
+    for (const fx of [x + 4, x + 7]) box(c, fx, top + 34, 1, y - top - 46, G[2]);
+    box(c, x - 4, top + 28, 20, 6, INK); box(c, x - 3, top + 29, 18, 4, G[4]);
+    box(c, x - 4, y - 8, 20, 8, INK); box(c, x - 3, y - 7, 18, 7, G[2]); box(c, x - 3, y - 7, 18, 1, G[4]);
   }
-  // (the star toilets: blown up, it's gone (thrones.ts draws the wreck); stop 3's case lifted, him getting in)
-  const gone = throneState(state, i) === 'exploded', lift = caseLift(co);
-  if (gone) { if (i === 2) { box(c, sx - 2, top + 70, sw + 4, 52, '#000'); box(c, sx, top + 72, sw, 48, '#3F3F46'); box(c, sx, top + 72, sw, 3, '#A1A1AA'); } }
-  else if (i === 0) {
-    // THE CHAIRMAN OF THE BOWEL: a pink crooner's toilet: a ring in it, a cigarette butt, a martini on the tank, his hat
-    toilet(c, mx - 6, top, '#F9A8D4', '#BE185D');
-    box(c, mx - 2, top - 27, 30, 2, '#78350F');
-    box(c, mx + 10, top - 26, 6, 2, '#F5F5F4'); box(c, mx + 15, top - 26, 2, 2, '#F97316');
-    c.strokeStyle = '#000'; c.lineWidth = 1; c.beginPath(); c.moveTo(mx - 30, top - 92); c.lineTo(mx - 20, top - 82); c.lineTo(mx - 10, top - 92); c.closePath(); c.stroke();
-    box(c, mx - 21, top - 82, 2, 8, '#000'); box(c, mx - 22, top - 87, 3, 3, '#16A34A');
-    box(c, mx - 34, top - 104, 26, 6, '#1C1917'); box(c, mx - 28, top - 112, 14, 8, '#1C1917'); box(c, mx - 28, top - 106, 14, 2, '#7F1D1D');
-  } else if (i === 1) {
-    // THE GODFATHER'S CLOG: an avocado toilet, overflowing (brown down the plinth, a puddle), a plunger stuck in it,
-    // flies
-    toilet(c, mx - 6, top, '#84CC16', '#3F6212');
-    box(c, mx - 4, top - 30, 36, 6, '#713F12');
-    for (const [x, h] of [[mx + 4, s.shrine.h + 6], [mx + 22, s.shrine.h - 10], [mx - 20, s.shrine.h - 20]]) box(c, x, top - 2, 6, h, '#78350F');
-    box(c, sx - 30, dy - 4, sw + 60, 4, '#713F12');
-    c.save(); c.translate(mx + 10, top - 28); c.rotate(0.3); box(c, -2, -40, 4, 40, '#A16207'); box(c, -9, -4, 18, 8, '#B91C1C'); c.restore();
-    for (let k = 0; k < 7; k++) { const a = f * 0.13 + k * 0.9; box(c, mx + 8 + Math.cos(a * 1.3) * (18 + k * 3), top - 46 + Math.sin(a) * 14, 2, 2, '#000'); }
-  } else {
-    // THE ROCK GOD'S TOUR BUS TOILET: sealed in a hazmat case on its plinth (the case is the solid: stand on its lid),
-    // the black bus toilet inside covered in band stickers, glowing green, something growing out of it; biohazard
-    // signs; the case rattles before it vents (the fumes: index.ts)
-    const cyc = co.fumeT % FUMES.every, tell = cyc >= FUMES.every - FUMES.vent - FUMES.tell && cyc < FUMES.every - FUMES.vent;
-    const jx = tell ? (f % 4 < 2 ? -1 : 1) : 0;
-    box(c, sx - 2, top + 70, sw + 4, 52, '#000'); box(c, sx, top + 72, sw, 48, '#3F3F46'); box(c, sx, top + 72, sw, 3, '#A1A1AA');
-    for (let x = sx + 6; x < sx + sw - 6; x += 18) box(c, x, top + 104, 10, 6, '#FACC15');
-    // (the case: glass, steel corners; inside, the glow)
-    if (!lift) box(c, sx + jx - 2, top - 2, sw + 4, 76, '#000');
-    c.fillStyle = 'rgba(132, 204, 22, 0.35)'; c.fillRect(sx + jx, top - lift, sw, 72);
-    toilet(c, mx - 6 + jx, top + 72, '#18181B', '#000');
-    for (const [x, y, col] of [[mx - 26, top + 20, '#DC2626'], [mx - 20, top + 30, '#FACC15'], [mx + 4, top + 52, '#38BDF8'], [mx + 16, top + 48, '#F472B6']] as const) box(c, x + jx, y, 6, 4, col);
-    c.fillStyle = `rgba(190, 242, 100, ${0.45 + 0.25 * Math.sin(f * 0.1)})`; c.beginPath(); c.ellipse(mx + 8 + jx, top + 46, 16, 5, 0, 0, Math.PI * 2); c.fill();
-    c.strokeStyle = '#65A30D'; c.lineWidth = 3; c.beginPath(); c.moveTo(mx + 10 + jx, top + 46); c.quadraticCurveTo(mx + 30 + Math.sin(f * 0.05) * 6, top + 20, mx + 18 + jx, top + 6); c.stroke();
-    box(c, sx + jx, top - lift, 6, 72, '#71717A'); box(c, sx + sw - 6 + jx, top - lift, 6, 72, '#71717A');
-    box(c, sx + jx, top - lift, sw, 4, '#D9F99D');
-    // (the biohazard signs on the plinth)
-    for (const bx of [sx + 20, sx + sw - 20]) { c.fillStyle = '#FACC15'; c.beginPath(); c.moveTo(bx, top + 78); c.lineTo(bx + 12, top + 98); c.lineTo(bx - 12, top + 98); c.closePath(); c.fill(); box(c, bx - 1, top + 84, 2, 8, '#000'); box(c, bx - 1, top + 94, 2, 2, '#000'); }
+  // (the fascia: a crimson band in its gold frame)
+  box(c, a, top, b - a, 28, INK); box(c, a + 2, top + 2, b - a - 4, 24, G[3]); box(c, a + 2, top + 2, b - a - 4, 1, G[4]);
+  box(c, a + 5, top + 5, b - a - 10, 18, R[3]); box(c, a + 5, top + 5, b - a - 10, 2, R[4]); box(c, a + 5, top + 20, b - a - 10, 3, R[1]);
+  // (the crown's points, a bulb on each, chasing)
+  for (let x = a, k = 0; x < b; x += 50, k++) {
+    poly(c, [[x, top + 1], [x + 25, top - 29], [x + 50, top + 1]], INK);
+    poly(c, [[x + 2, top], [x + 25, top - 26], [x + 48, top]], G[3]);
+    poly(c, [[x + 2, top], [x + 25, top - 26], [x + 25, top]], G[4]);
+    const on = (k + (f >> 3)) % 3 === 0 || lit();
+    box(c, x + 21, top - 34, 8, 8, INK); box(c, x + 22, top - 33, 6, 6, on ? '#FFF6C8' : '#C8A040'); box(c, x + 22, top - 33, 2, 2, '#FFFFFF');
   }
-  drawThroneMess(c, state, i);
-  // (its name over it: a board, hung or on posts; its own letters)
-  const L = i === 2 ? enamel({ sx: 1, sy: 2 }, '#BEF264', '#000') : enamel({ sx: 1, sy: 2 }, '#FDE68A', '#000');
-  const tw = signW(TITLES[i], L) + 30, ty = i === 0 ? dy - 186 : i === 1 ? dy - 160 : dy - 196;
-  if (i === 0) hungSign(c, mx, ty, tw, 34, dy - 240 + 16, '#4C0519');
-  else hungSign(c, mx, ty, tw, 34, dy, i === 2 ? '#14532D' : '#4C0519', true);
-  words(c, TITLES[i], mx, ty + 8, L);
+  // (BOARDING, hung under the fascia on chains)
+  chains(c, [X(2300) - 70, X(2300) + 70], top + 28, y - 234);
+  still(c, 'hwc-boarding', X(2300), y - 218, -100, -20, 200, 40, g => board(g, 0, 0, ['BOARDING'], deco('#F2C24A', '#4C0519', 3, 2), '#5A0820', BRASS, 8));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The stops
 
-const drawBooth = (c: Ctx, state: GameState, co: Coaster) => {
-  const f = state.frame, by = Y(BOOTH.h), launched = !!state.stageMemo[LAUNCHED_MEMO];
-  // (the stilts down to the deck, the balcony (lit lip: stand on it), its railing posts)
-  for (const rx of [BOOTH.a + 20, BOOTH.b - 30]) box(c, X(rx), by + 14, 10, Y(STOPS[2].h) - by - 14, '#3F3F46');
-  ledgeLip(c, X(BOOTH.a), by, BOOTH.b - BOOTH.a, '#52525B', '#FDE68A');
-  // The booth: walls, its big window, the panel inside, the sleeper (or the note)
-  const cx0 = X(BOOTH.cab), cw = X(BOOTH.b) - cx0 - 8;
-  box(c, cx0, by - 130, cw, 130, '#000'); box(c, cx0 + 2, by - 128, cw - 4, 128, '#A8A29E');
-  box(c, cx0 - 8, by - 140, cw + 16, 14, '#000'); box(c, cx0 - 6, by - 138, cw + 12, 10, '#7F1D1D');
-  words(c, 'RIDE CONTROL', cx0 + cw / 2, by - 129, print(1, '#FDE68A'));
-  box(c, cx0 + 14, by - 110, cw - 28, 60, '#0C4A6E'); box(c, cx0 + 16, by - 108, cw - 32, 56, 'rgba(186, 230, 253, 0.35)');
-  box(c, cx0 + 16, by - 56, cw - 32, 14, '#27272A');
-  for (let k = 0; k < 6; k++) box(c, cx0 + 24 + k * 22, by - 52, 6, 6, (k + Math.floor(f / 20)) % 3 ? '#4ADE80' : '#EF4444');
-  if (!launched) {
-    // (the sleeper: slumped over the desk, mouth open, a Zzz going up)
-    c.save(); c.translate(cx0 + 70, by - 40); c.scale(0.9, 0.9);
-    drawPerson(c, { seed: 4407, outfit: 'operator', f: 0, pose: 'sit', mood: 'bored', talking: !!co.sleeper });
-    c.restore();
-    for (let k = 0; k < 3; k++) { const t = ((f + k * 30) % 90) / 90; words(c, 'Z', cx0 + 86 + t * 20 + k * 4, by - 90 - t * 50, print(1 + (k % 2), `rgba(255,255,255,${1 - t})`)); }
-  } else {
-    box(c, cx0 + 50, by - 96, 70, 24, '#FEF3C7'); words(c, 'BACK IN 5', cx0 + 85, by - 80, print(1, '#18181B'));
-  }
-  // The lever: on the balcony, a plate up on its post behind it reading RIDE MODE, NORMAL (to the left) and
-  // EXPERIMENTAL (to the right), both whole, the one it's on lit; its lockout lamp (red while the stop's staff are alive);
-  // the handle thrown one way or the other (mid-throw, where he's hauled it: ../lever.ts; his hands are his own)
-  const lv = BOOTH_LEVER, lx = lv.x, flipped = !!state.stageMemo[LEVER_MEMO];
-  const ang = throwAngle(lv, co.pull, flipped), exp = ang > 0;
-  const L1 = print(1, '#18181B'), Ln = print(1, !exp ? '#15803D' : '#A8A29E'), Le = print(1, exp ? '#DC2626' : '#A8A29E');
-  const pw = Math.max(signW('RIDE MODE', L1), signW('< NORMAL', Ln), signW('EXPERIMENTAL >', Le)) + 18, ptop = by - 150;
-  box(c, lx - 2, ptop + 50, 4, by - ptop - 50, '#57534E');
-  box(c, lx - pw / 2 - 2, ptop - 2, pw + 4, 54, '#000'); box(c, lx - pw / 2, ptop, pw, 50, '#E7E5E4');
-  words(c, 'RIDE MODE', lx, ptop + 13, L1);
-  words(c, '< NORMAL', lx - pw / 2 + 8, ptop + 28, Ln, 'left');
-  words(c, 'EXPERIMENTAL >', lx + pw / 2 - 8, ptop + 43, Le, 'right');
-  const locked = !state.stageMemo[CLEARED_MEMO(2)];
-  box(c, lx + pw / 2 - 12, ptop + 4, 8, 8, '#000'); box(c, lx + pw / 2 - 11, ptop + 5, 6, 6, locked ? (f % 40 < 20 ? '#EF4444' : '#7F1D1D') : '#4ADE80');
-  box(c, lx - 16, by - 14, 32, 14, '#000'); box(c, lx - 14, by - 12, 28, 12, '#52525B');
-  c.save(); c.translate(lx, lv.y); c.rotate(ang);
-  box(c, -3, -lv.len + 2, 6, lv.len - 2, '#000'); box(c, -2, -lv.len + 3, 4, lv.len - 4, '#A1A1AA');
-  c.fillStyle = '#000'; c.beginPath(); c.arc(0, -lv.len, 8, 0, Math.PI * 2); c.fill(); c.fillStyle = '#DC2626'; c.beginPath(); c.arc(0, -lv.len, 6, 0, Math.PI * 2); c.fill();
-  c.restore();
-};
-
-const drawStop = (c: Ctx, state: GameState, i: number, co: Coaster) => {
-  const s = STOPS[i], dy = Y(s.h), f = state.frame;
-  if (!seen(state, X(s.a - 200), X(s.b + 200), dy - 1400, GY)) return;
-  const run = co.stops[i], cleared = !!state.stageMemo[CLEARED_MEMO(i)];
-  const passing = co.ride.on && !!co.ride.track && Math.abs(at(co.ride.track, co.ride.s).y - dy) < 30;
-  deckFloor(c, X(s.a), X(s.b), dy);
-  // (the bathroom set along the back, round the doors and the shrine; its sign clear of the low catwalks)
+/** A stop's set back (behind the track): the floor going back, the set along the back (round the doors and the
+ *  shrine; its sign clear of the low catwalks), the stop's number on its board. */
+const drawStopBack = (c: Ctx, v: CView, i: number) => {
+  const s = STOPS[i], dy = Y(s.h), pl = i as Place;
+  if (!vis(v, X(s.a - 200), X(s.b + 200), dy - 400, dy + 40)) return;
+  deckTop(c, v, pl, X(s.a), X(s.b), dy);
   {
     const keep: [number, number][] = [[X(s.door) - 64, X(s.door) + 64], [X(s.stairs) - 60, X(s.stairs) + 60], [X(s.shrine.x) - 175, X(s.shrine.x + s.shrine.w) + 120]];
     if (s.door2 !== undefined) keep.push([X(s.door2) - 50, X(s.door2) + 50]);
-    bathroomSet(c, state, i as Place, X(s.a) + 20, X(s.b) - 20, dy, keep, s.ledges.filter(([, h]) => h <= 160).map(([rx, , w]) => [X(rx), X(rx) + w]));
+    drawSet(c, v, pl, X(s.a) + 20, X(s.b) - 20, dy, keep, s.ledges.filter(([, h]) => h <= 160).map(([rx, , w]) => [X(rx), X(rx) + w]));
   }
-  // (the stop's number, big, on a board at the back on posts)
-  { const NL = enamel({ sx: 2, sy: 3 }, '#FDE68A', '#000'); hungSign(c, X(s.a + 200), dy - 300, signW(`STOP ${i + 1}`, NL) + 30, 40, dy, '#4C0519', true); words(c, `STOP ${i + 1}`, X(s.a + 200), dy - 300 + 11, NL); }
-  // The catwalks (lit lips), their chains up into the structure
-  for (const [rx, h, w] of s.ledges) {
-    for (const cx of [X(rx) + 10, X(rx) + w - 14]) box(c, cx, Y(s.h + h) - 600, 4, 600, '#3F3F46');
-    ledgeLip(c, X(rx), Y(s.h + h), w, '#52525B', '#FDE68A');
+  // (the stop's number, big, on a board at the back on its posts)
+  {
+    const NL = deco('#F2C24A', '#4C0519', 3, 2), w = signW(`STOP ${i + 1}`, NL) + 30, bx = X(s.a + 200), by = dy - 300;
+    if (vis(v, bx - w, bx + w, by - 40, dy)) {
+      const S = pal().steel;
+      atDepth(c, v.eye, 0.97, () => {
+        for (const px of [bx - w / 2 + 14, bx + w / 2 - 14]) { box(c, px - 3, by + 20, 6, dy - by - 20, INK); box(c, px - 2, by + 20, 4, dy - by - 20, S[3]); box(c, px - 2, by + 20, 1, dy - by - 20, S[5]); }
+        still(c, `hwc-stopn-${i}`, bx, by, -w / 2 - 10, -30, w + 20, 60, g => board(g, 0, 0, [`STOP ${i + 1}`], NL, '#5A0820', BRASS, 10));
+      });
+    }
   }
-  if (i === 2) drawBooth(c, state, co);
+};
+const drawStop = (c: Ctx, v: CView, state: GameState, i: number, co: Coaster) => {
+  const s = STOPS[i], dy = Y(s.h), f = state.frame;
+  if (!vis(v, X(s.a - 200), X(s.b + 200), dy - 1400, GY)) return;
+  const run = co.stops[i];
+  const passing = co.ride.on && !!co.ride.track && Math.abs(trackAt(co.ride.track, co.ride.s).y - dy) < 30;
+  const pl = i as Place;
+  // The deck's front and struts
+  deckFront(c, v, X(s.a), X(s.b), dy);
+  deckRail(c, v, X(s.a), X(s.b), dy);
+  // The shrine (its name first: the catwalks go in front of its posts)
+  drawShrineTitle(c, v, i);
+  drawShrine(c, v, state, i, co);
+  // The catwalks (lit lips), on their rods up into the structure
+  for (const [rx, h, w] of s.ledges) catwalk(c, v, X(rx), Y(s.h + h), w);
+  if (i === 2) drawBooth(c, v, state, co);
   // The doors: STAFF ONLY (where they come from), the SERVICE STAIRS (locked while they're at him)
   // (diegetic: the staff burst out of a stall marked STAFF ONLY, and the janitor's closet; the stairs are a restroom door)
-  door(c, X(s.door), dy, run.door, 'STAFF ONLY', '#FCA5A5', '#18181B', undefined, 'stall');
-  if (s.upper) door(c, X(s.upper.x), Y(s.h + s.upper.h), run.upper, 'JANITOR', '#FDE68A', '#1E3A8A', undefined, 'closet');
-  if (s.door2 !== undefined) door(c, X(s.door2), dy, run.upper, 'JANITOR', '#FDE68A', '#1E3A8A', undefined, 'closet');
+  const cleared = !!state.stageMemo[CLEARED_MEMO(i)];
+  door(c, v, X(s.door), dy, run.door, 'STAFF ONLY', '#FCA5A5', '#18181B', undefined, 'stall', pl);
+  if (s.upper) door(c, v, X(s.upper.x), Y(s.h + s.upper.h), run.upper, 'JANITOR', '#FDE68A', '#1E3A8A', undefined, 'closet', pl, 0.972);
+  if (s.door2 !== undefined) door(c, v, X(s.door2), dy, run.upper, 'JANITOR', '#FDE68A', '#1E3A8A', undefined, 'closet', pl);
   const fighting = run.phase === 'intro' || run.phase === 'fight';
-  door(c, X(s.stairs), dy, 0, 'SERVICE STAIRS', '#86EFAC', '#14532D', fighting && !cleared ? 'red' : 'green', 'restroom');
-  drawShrine(c, state, i, co);
+  door(c, v, X(s.stairs), dy, 0, 'SERVICE STAIRS', '#86EFAC', '#14532D', fighting && !cleared ? 'red' : 'green', 'restroom', pl);
   // Stop 2's track walker (in his headphones, mopping the rail, his back to the way it comes), or what's left
   if (i === 1) {
     const wx = X(s.a + 100);
     if (!state.stageMemo[WALKER_MEMO] && !co.walker) {
+      const P = pal().porcelain;
       c.save(); c.translate(wx, dy); c.scale(-0.92, 0.92);
       drawPerson(c, { seed: 3321, outfit: 'maint', f, pose: 'hold', mood: 'happy' });
       c.restore();
-      box(c, wx - 6, dy - 70, 12, 4, '#18181B'); box(c, wx - 18, dy - 60, 4, 60, '#A16207'); box(c, wx - 26, dy - 6, 20, 6, '#E7E5E4');
+      // (his headphones; the mop and its bucket)
+      box(c, wx - 8, dy - 72, 16, 4, INK); box(c, wx - 7, dy - 71, 14, 2, '#3F3F46'); box(c, wx - 9, dy - 70, 4, 7, INK); box(c, wx + 5, dy - 70, 4, 7, INK);
+      box(c, wx - 20, dy - 62, 5, 62, INK); box(c, wx - 19, dy - 61, 3, 60, '#A16207'); box(c, wx - 19, dy - 61, 1, 60, '#D4A040');
+      box(c, wx - 30, dy - 8, 24, 8, INK); box(c, wx - 29, dy - 7, 22, 7, P[4]); for (let k = 0; k < 5; k++) box(c, wx - 28 + k * 4, dy - 4, 2, 4, P[2]);
+      box(c, wx - 60, dy - 20, 24, 20, INK); box(c, wx - 59, dy - 19, 22, 19, '#EAB308'); box(c, wx - 59, dy - 19, 22, 3, '#FDE047'); box(c, wx - 59, dy - 19, 4, 19, '#FDE047'); box(c, wx - 41, dy - 19, 4, 19, '#A16207');
     } else if (state.stageMemo[WALKER_MEMO]) {
-      box(c, wx - 10, dy - 3, 160, 3, '#7F1D1D'); box(c, wx + 40, dy - 4, 50, 4, '#991B1B');
-      c.save(); c.translate(wx + 120, dy - 4); c.rotate(-0.1); box(c, -30, -2, 60, 4, '#A16207'); box(c, 28, -6, 14, 8, '#E7E5E4'); c.restore();
+      // (what's left: a smear down the deck, the mop snapped, a shoe)
+      c.fillStyle = '#5A0A0A'; c.beginPath(); c.ellipse(wx + 70, dy - 1, 90, 3, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#8A1414'; c.beginPath(); c.ellipse(wx + 60, dy - 2, 60, 2, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#B91C1C'; c.beginPath(); c.ellipse(wx + 40, dy - 2, 24, 1.5, 0, 0, Math.PI * 2); c.fill();
+      c.save(); c.translate(wx + 120, dy - 4); c.rotate(-0.1); box(c, -31, -3, 62, 6, INK); box(c, -30, -2, 60, 4, '#A16207'); box(c, 27, -7, 16, 10, INK); box(c, 28, -6, 14, 8, '#E7E5E4'); c.restore();
+      box(c, wx + 160, dy - 7, 14, 7, INK); box(c, wx + 161, dy - 6, 12, 5, '#3A2A1A'); box(c, wx + 161, dy - 6, 12, 1, '#5A4A3A');
     }
   }
   // The pylons at the deck's ends (the train's way through; barred unless it's passing)
-  pylon(c, X(s.a) - 40, dy, passing);
-  pylon(c, X(s.b), dy, passing);
-  void f;
+  pylon(c, v, X(s.a) - 40, dy, passing, f);
+  pylon(c, v, X(s.b), dy, passing, f);
+};
+
+/** Steve's billboard on the structure, seen from the first lift (yellow): he tested it. Its foot at (0, 0). */
+const paintBillboard = (g: Ctx) => {
+  const Y2 = ramp6(STEVE[3]), S = STEEL.map(c => hour(c));
+  box(g, -154, -124, 308, 128, INK); box(g, -152, -122, 304, 124, S[2]); box(g, -152, -122, 304, 1, S[4]);
+  box(g, -148, -118, 296, 116, Y2[3]); box(g, -148, -118, 296, 3, Y2[5]); box(g, -148, -118, 3, 116, Y2[4]); box(g, -148, -6, 296, 4, Y2[2]);
+  for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; if (k % 2) continue; poly(g, [[-100, -60], [-100 + Math.cos(a - 0.2) * 90, -60 + Math.sin(a - 0.2) * 90], [-100 + Math.cos(a + 0.2) * 90, -60 + Math.sin(a + 0.2) * 90]], Y2[4]); }
+  steveCard(g, -100, -60, 1.5, 1, 'flier');
+  words(g, 'SAFETY TESTED BY', 40, -80, plain(1, 1, '#2A1408'));
+  words(g, 'STUNTMAN STEVE', 40, -60, { sx: 1, sy: 2, fill: ['#5A3A04', '#2A1408', '#2A1408', '#2A1408', '#000000'], dither: true, shadow: STEVE[5] });
+  words(g, 'HE IS FINE', 40, -38, plain(1, 1, '#7F1D1D'));
+  // (its catwalk, its lamps over it)
+  box(g, -158, 2, 316, 6, INK); box(g, -157, 3, 314, 4, S[3]); box(g, -157, 3, 314, 1, S[5]);
+  for (let x = -130; x <= 130; x += 65) { box(g, x, -140, 2, 16, S[2]); box(g, x - 6, -144, 14, 6, INK); box(g, x - 5, -143, 12, 4, lit() ? '#FFF2C8' : S[4]); }
 };
 
 export const drawCoasterBack = (c: Ctx, state: GameState, co: Coaster) => {
-  const v = viewOf(state);
-  // (the park's floor, far below)
-  if (v.y + v.h > GY - 40) { box(c, v.x - 100, GY, v.w + 200, 600, '#57534E'); box(c, v.x - 100, GY, v.w + 200, 4, '#A8A29E'); }
-  drawTracks(c, state);
-  drawQueue(c, state, co);
-  for (let i = 0; i < 3; i++) drawStop(c, state, i, co);
-  // (a billboard on the structure, seen from the first lift: Steve tested it)
+  const v = cview(state);
+  drawStructureBack(c, state);
+  drawFloor(c, state);
+  // (Steve's billboard on its lattice mast, seen from the first lift: behind the track)
   const bx = X(3200), by = Y(700);
-  if (seen(state, bx - 200, bx + 200, by - 200, by + 200)) {
-    box(c, bx - 4, by, 8, GY - by, '#52525B');
-    box(c, bx - 150, by - 120, 300, 124, '#000'); box(c, bx - 146, by - 116, 292, 116, '#FACC15');
-    steveFlier(c, bx - 100, by - 58, 'flier', 1);
-    words(c, 'SAFETY TESTED BY', bx + 40, by - 76, print(1, '#18181B'));
-    words(c, 'STUNTMAN STEVE', bx + 40, by - 58, enamel({ sx: 1, sy: 2 }, '#18181B'));
-    words(c, 'HE IS FINE', bx + 40, by - 38, print(1, '#7F1D1D'));
+  if (vis(v, bx - 170, bx + 170, by - 150, GY)) {
+    lattice(c, bx, by + 8, GY, 26, pal().steel, 60);
+    still(c, 'hwc-billboard', bx, by, -160, -146, 320, 156, paintBillboard);
   }
+  // (what's set back at the station and the stops, then the track over it, then what's at the play plane)
+  drawQueueBack(c, v, state);
+  for (let i = 0; i < 3; i++) drawStopBack(c, v, i);
+  drawTracks(c, v, state);
+  drawQueue(c, v, state, co);
+  // (the station's end wall: the train's way out through its arch)
+  pylon(c, v, X(STATION.b), Y(STATION.h), co.ride.on && !!co.ride.track && co.ride.track === tracks().r1 && co.ride.s < 600, state.frame, true);
+  for (let i = 0; i < 3; i++) drawStop(c, v, state, i, co);
 };
 
-/** The lights after dark: the station's canopy bulbs, each shrine's spotlights, the booth's window. */
+/** The lights after dark: the station's canopy bulbs, each shrine's theatre lights, the booth's window, the arch. */
 export const coasterLamps = (): Light[] => [
   { x: X(2150), y: Y(STATION.h) - 290, r: 380, a: 0.9, color: '#FDE68A' },
-  ...STOPS.map(s => ({ x: X(s.shrine.x + s.shrine.w / 2), y: Y(s.h) - 200, r: 300, a: 0.95, color: '#FEF08A' })),
+  ...STOPS.map(s => ({ x: X(s.shrine.x + s.shrine.w / 2), y: Y(s.h) - 120, r: 300, a: 0.95, color: '#FEF08A' })),
   { x: X(BOOTH.cab + 100), y: Y(BOOTH.h) - 80, r: 160, a: 0.8, color: '#7DD3FC' },
   { x: X(120), y: GY - 250, r: 200, a: 0.8, color: '#FBBF24' },
+  { x: X(3200), y: Y(700) - 140, r: 220, a: 0.7, color: '#FDE68A' },
 ];
 export { LEVER_MEMO };
+
+void mix; void hash; void STEP; void PORCELAIN; void CRIMSON; void velvetRopePaint; void WALL_H; void x0; void sideBack; void rivets;

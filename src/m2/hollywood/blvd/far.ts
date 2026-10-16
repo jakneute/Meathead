@@ -408,3 +408,8 @@ export const drawFar = (c: Ctx, state: GameState, along: number) => {
   if (top < H) bandedGradient(c, 0, top, W, H - top, [T2('#7A7068'), T2('#625A54'), T2('#4E4844'), T2('#3E3A38')], 6);
   void fillUnder; void words; void deco;
 };
+
+/** The far layers' painters and sizes (the coaster's backdrop puts the same far off under its own sky, sinking as it
+ *  climbs). */
+export const FAR = { SKY, TW, MH, FH, CH, SH, LW, PH, PW, PG, SG, CG } as const;
+export { tile, farCol, rampF, paintMountains, paintFoothills, drawHill, paintCity, paintLot, paintPalms };
