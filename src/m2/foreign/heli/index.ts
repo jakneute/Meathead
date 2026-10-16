@@ -34,22 +34,22 @@ import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { setUi } from '../../store';
+import { setDropTable } from '../../../m1/game/core/effects';
 import type { ForeignSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, meatheadSays, hands, teleport, saidOver, box, label } from '../section';
 import { DOORS } from '../geometry';
-import { byPants } from '../cast';
 import { registerHurts } from '../pavilion';
 import { viewIn, promenade, postBoard, onScreen, LOOKS, INK, dimmed, hour, setBack } from '../kit';
 import { heliOf, type Heli } from './state';
 import { x0, x1, X, GY, REFILL, CP_PAD, QUEUE_A, QUEUE_B, BOARD_AT, PAD_X, PAD_O, SEAT_BACK, SEAT_FRONT, CAMX, CY, Z, SW, SH, CAM_FLY, BASE, toWorld, CP_X, MEMO } from './geo';
 import { flyCopter, updateRockets, drawCopter, drawRockets, drawCharges } from './copter';
 import { makeMechs, startMech, updateMechs, mechDone } from './mechs';
-import { WAVES, goonsLeft, sweepGoons } from './goons';
-import { drawPark, roadY, panicAt, inWorld } from './park';
+import { WAVES, goonsLeft, sweepGoons, fightGroup } from './goons';
+import { drawPark, roadY, panicAt, inWorld, RISE, fireLamps } from './park';
 import { drawAttacks, drawMech, mechLook } from './mechArt';
 import { drawStreetsBackdrop } from '../backdrop';
 import { drawHarry } from './harryArt';
-import { harrySays, guestShouts, quiet } from './talk';
+import { harrySays, guestShouts, quiet, harryFrom, harryPick, harrySaid } from './talk';
 import {
   HURT, MECHS, MECH_NAME, QUEUE_SHOUT, QUEUE_SHOUT_SHAT, QUEUE_SHOUT_NUDE, HARRY_BOARD, HARRY_TOUR, MH_TOUR, MH_SHUT_UP, HARRY_SHOVED,
   HARRY_TURNS, MH_TAKES, HARRY_HECKLE, HARRY_GOONS, HARRY_GLOAT, HARRY_END, MH_ROCKET, HARRY_HIT,
@@ -99,10 +99,10 @@ const takeOff = (state: GameState, h: Heli, at: number) => {
   h.phase = 'fly'; h.t = 0; h.turned = true; h.seat = SEAT_FRONT; h.flags.door = false;
   if (!h.mechs.length) h.mechs = makeMechs();
   h.mechs.forEach((m, i) => { if (i < at) m.st = 'dead'; });
-  h.cur = at; h.prog = at;
+  h.cur = at; h.prog = at - RISE[at].d;
   p.inCutscene = false; p.noSpecials = true; p.spriteRot = 0;
   setUi({ noSwitch: true });
-  h.zoom = Z; h.up = 1; h.pull = 1;
+  h.zoom = Z; h.up = 1; h.pull = 1; h.pullX = SW / 2; h.pullY = SH / 2; h.tilt = 0; p.kickPose = 0;
   holdCam(state, h, CAM_FLY.x, CAM_FLY.y);
   const spot = toWorld(TOUR_AT.x, TOUR_AT.y);
   h.ox = spot.x - h.seat; h.oy = spot.y;
@@ -136,13 +136,13 @@ const beginTransit = (state: GameState, h: Heli, i: number) => {
   h.waves = [...WAVES[i]]; h.waveAt = state.frame + 90;
 };
 
-/** A big health and a big ammo floated out after every landmark (the user's), in front of him. */
+/** A big health floated out after every landmark (the user's), in front of him. No ammo up here: the helicopter's
+ *  guns don't use it (the lackeys drop health only, FLY_DROPS). */
 const refillAfter = (state: GameState, i: number) => {
-  state.pickups.push(
-    { id: `hl-sky-health-${i}`, pos: toWorld(520, 230), vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
-    { id: `hl-sky-ammo-${i}`, pos: toWorld(520, 330), vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 },
-  );
+  state.pickups.push({ id: `hl-sky-health-${i}`, pos: toWorld(520, 280), vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 });
 };
+/** What the lackeys drop up here (health only, at the park's rate), and the park's own, back on the ground. */
+const FLY_DROPS = { health: 0.06, ammo: 0 }, PARK_DROPS = { health: 0.06, ammo: 0.05 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The helipad and the boarding
@@ -171,7 +171,7 @@ const boardUpdate = (ctx: FrameContext, h: Heli): Controls => {
   if (h.step === 0) {
     // (over to it, past the front of the line)
     h.hpose = 'wave';
-    if (h.t === 1) harrySays(state, pickLine(byPants(state, HARRY_BOARD)), true, () => { h.flags.welcomed = true; });
+    if (h.t === 1) harrySays(state, harryFrom(state, HARRY_BOARD), true, () => { h.flags.welcomed = true; });
     if (cx < seatX - 30 && h.t < 300) return { ...hands(), right: true };
     h.step = 1; h.t = 0; h.flags.fromX = true; (h as unknown as { boardHop: { x: number; y: number } }).boardHop = { x: cx, y: p.pos.y + p.height };
     playSound('jump', 0.6);
@@ -227,9 +227,8 @@ const liftUpdate = (ctx: FrameContext, h: Heli): Controls => {
 /** The tour's script: Harry and him, one after another (each waits for the last). */
 const TOUR: { who: 'harry' | 'mh'; line: () => string }[] = [
   { who: 'harry', line: () => HARRY_TOUR[1] }, { who: 'mh', line: () => MH_TOUR[0] },
-  { who: 'harry', line: () => HARRY_TOUR[2] }, { who: 'mh', line: () => MH_TOUR[2] },
-  { who: 'harry', line: () => HARRY_TOUR[3] }, { who: 'mh', line: () => MH_TOUR[1] },
-  { who: 'harry', line: () => HARRY_TOUR[4] }, { who: 'mh', line: () => MH_SHUT_UP },
+  { who: 'harry', line: () => HARRY_TOUR[2] }, { who: 'mh', line: () => MH_TOUR[1] },
+  { who: 'mh', line: () => MH_SHUT_UP },
 ];
 
 const tourUpdate = (ctx: FrameContext, h: Heli): Controls => {
@@ -239,10 +238,13 @@ const tourUpdate = (ctx: FrameContext, h: Heli): Controls => {
   h.spin += 0.0015;
   if (h.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { skipTour(state, h); return hands(); } }
   // (the park turning round toward the Eiffel Tower as he talks)
-  h.prog = Math.min(0, h.prog + 0.0035);
+  h.prog = Math.min(-RISE[0].d, h.prog + 0.0035);
   // (the helicopter bobbing where it's held; him over into the pilot's seat once Harry's gone)
   { const at = toWorld(TOUR_AT.x, TOUR_AT.y); h.ox = at.x - SEAT_FRONT + Math.sin(f * 0.03) * 4; h.oy = at.y + Math.sin(f * 0.05) * 5; }
   if (h.flags.shoved) h.seat = Math.min(SEAT_FRONT, h.seat + 1.6);
+  // (the wobble from the kick, dying away; the view easing back out after it)
+  if (h.flags.shoved) { const w = h.step === TOUR.length ? h.t - 30 : h.t + 28; h.tilt = Math.sin(w * 0.45) * 0.22 * Math.max(0, 1 - w / 70); p.spriteRot = h.tilt; }
+  if (h.step > TOUR.length && h.pull > 1) h.pull = Math.max(1, h.pull - 0.035);
   seatHim(state, h);
   const fly = (step: number) => { h.step = step; h.flags.busy = false; };
   // The script: Harry's tour and his answers; SHUT UP, HIPPIE.; out the door
@@ -257,12 +259,23 @@ const tourUpdate = (ctx: FrameContext, h: Heli): Controls => {
     return hands();
   }
   if (h.step === TOUR.length) {
-    // (shoved out the door: Harry's last nice words on the way)
-    h.step++; h.flags.shoved = true; h.flags.door = true;
-    h.hpose = 'shoved'; h.hvx = 2.5; h.hvy = -3;
-    playSound('punch', 1, -6); playSound('whoosh', 0.8, 4);
-    harrySays(state, HARRY_SHOVED[0], true);
-    h.t = 0;
+    // THE KICK (the user: "show meathead kicking the hippie off"): the view punches in on the cabin; he turns in his
+    // seat and plants his boot in Harry; Harry out the door, arms flailing, yelling; the helicopter wobbles; then back
+    // out (the fall and the landing go on below), him sliding over into the pilot's seat
+    if (!h.flags.kick) { h.flags.kick = true; h.t = 0; h.flags.door = true; playSound('whoosh', 0.5, 8); }
+    const cab = { x: TOUR_AT.x + 10 * Z, y: TOUR_AT.y - 50 * Z };
+    h.pullX = cab.x; h.pullY = cab.y;
+    h.pull = 1 + 0.9 * ease(Math.min(1, h.t / 22));
+    if (h.t === 22) { p.kickPose = 22; playSound('whoosh', 0.8, -4); }
+    if (h.t === 30) {
+      // (the boot lands: WHAM)
+      h.flags.shoved = true; h.hpose = 'shoved'; h.hvx = 4.5; h.hvy = -3.5; h.flags.wham = true;
+      playSound('punch', 1, -8); playSound('crunch', 0.6, 4); shakeScreen(state, 8, 6);
+      harrySays(state, HARRY_SHOVED[0], true);
+    }
+    if (h.flags.shoved) { h.hvy += 0.35; h.hx += h.hvx; h.hy += h.hvy; } else { h.hx = h.ox + SEAT_FRONT; h.hy = h.oy; h.hpose = 'pilot'; }
+    if (h.t >= 58) { h.step++; h.t = 0; h.flags.wham = false; }
+    return hands();
   }
   if (h.step === TOUR.length + 1) {
     // (Harry falling away, all the way down to the park, flat on his back on the service road; him into the pilot's
@@ -315,12 +328,15 @@ const flyUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => 
   // Between landmarks: the park turning the next one round in front; the waves, one after another
   if (h.transit) {
     h.transitT++;
-    h.prog = Math.min(h.cur, h.transitFrom + h.transitT / 320);
+    // (round to just short of it: it comes up somewhere off ahead, and the camera comes the rest of the way round as it
+    // arrives)
+    h.prog = Math.min(h.cur - RISE[h.cur].d, h.transitFrom + h.transitT / 320);
     const died = h.goons.filter(e => e.health <= 0 || e.isBlownAway).length;
-    if (died && Math.random() < 0.2) harrySays(state, pickLine(HARRY_GOONS), false);
+    if (died) h.killAt = f;
+    if (died && Math.random() < 0.2) harrySays(state, harryPick(HARRY_GOONS), false);
     const left = goonsLeft(state);
     if (h.waves.length && left === 0 && f >= h.waveAt) { const w = h.waves.shift()!; w(state); h.waveAt = f + 150; }
-    if (!h.waves.length && left === 0 && h.prog >= h.cur && f >= h.waveAt - 90) {
+    if (!h.waves.length && left === 0 && h.prog >= h.cur - RISE[h.cur].d - 1e-6 && f >= h.waveAt - 90) {
       h.transit = false;
       if (state.checkpoint < 111 + h.cur) state.checkpoint = 111 + h.cur;
       callUp(state, h, h.cur);
@@ -334,10 +350,19 @@ const flyUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => 
     refillAfter(state, h.cur);
     beginTransit(state, h, h.cur + 1);
   }
+  // (lackeys sent in during a fight too, every 8-12 s, from all round; not while it's arriving, not at the Leaning
+  // Tower (its lean has to read), never more than a handful out)
+  { const cm = h.mechs[h.cur];
+    if (!h.transit && cm?.st === 'fight' && cm.id !== 'pisa') {
+      if (h.fightGoonAt === 0) h.fightGoonAt = f + 360;
+      if (f >= h.fightGoonAt) { if (goonsLeft(state) < 4) { fightGroup(state, h.cur, h.fightGoonN++); } h.fightGoonAt = f + 480 + Math.floor(Math.random() * 240) - h.cur * 12; }
+    } else { h.fightGoonAt = 0; } }
+  // (arriving, the camera comes the rest of the way round to it: there exactly as its fight starts)
+  { const cm = h.mechs[h.cur]; if (!h.transit && cm?.st === 'intro') { const q = Math.min(1, cm.t / (cm.introLen * 0.95)); h.prog = h.cur - RISE[h.cur].d * (1 - q * q * (3 - 2 * q)); } else if (!h.transit && cm && (cm.st === 'fight' || cm.st === 'dying')) h.prog = h.cur; }
   // Harry down on the ground, chasing after him, swearing up at him, working the remote
   harryRuns(state, h);
-  if (p.health > 0 && f > h.heckleAt && quiet(state)) { h.heckleAt = f + 800 + Math.random() * 400; harrySays(state, pickLine(byPants(state, HARRY_HECKLE)), false); }
-  if (h.lastHp >= 0 && p.health < h.lastHp && p.health > 0 && f - h.gloatAt > 600 && Math.random() < 0.3) { h.gloatAt = f; harrySays(state, pickLine(HARRY_GLOAT), false); }
+  if (p.health > 0 && f > h.heckleAt && quiet(state)) { h.heckleAt = f + 800 + Math.random() * 400; harrySays(state, harryFrom(state, HARRY_HECKLE), false); }
+  if (h.lastHp >= 0 && p.health < h.lastHp && p.health > 0 && f - h.gloatAt > 600 && Math.random() < 0.3) { h.gloatAt = f; harrySays(state, harryPick(HARRY_GLOAT), false); }
   h.lastHp = p.health;
   // (what's dropped up here floats)
   for (const q of state.pickups as Pickup[]) if (q.pos.y < GY - 1000) { q.vel.x = 0; q.vel.y = -GRAVITY; }
@@ -408,7 +433,7 @@ const endUpdate = (ctx: FrameContext, h: Heli): Controls => {
     p.spriteRot = h.tilt + h.flip * Math.PI;
     seatHim(state, h);
     if (h.hpose !== 'aim') harryRuns(state, h, 470);
-    if (h.t === 40) harrySays(state, pickLine(byPants(state, HARRY_END)), true, () => { h.hpose = 'aim'; meatheadSays(state, pickLine(MH_ROCKET), true, () => { h.flags.fire = true; }); });
+    if (h.t === 40) harrySays(state, harryFrom(state, HARRY_END), true, () => { h.hpose = 'aim'; meatheadSays(state, pickLine(MH_ROCKET), true, () => { h.flags.fire = true; }); });
     if (h.flags.fire || h.t > 1200) {
       h.step = 1; h.t = 0; h.hpose = 'fire';
       const m = aimAtHim(state, h);
@@ -453,13 +478,51 @@ const finish = (state: GameState, h: Heli) => {
   h.phase = 'gone'; h.over = true; h.white = 0; h.hrocket = null;
   for (const q of h.shots.keys()) q.health = 0;
   h.shots.clear(); h.beams = []; h.drops = []; h.minions = []; h.rockets = [];
-  p.carried = false; p.cartSeat = false; p.hidden = false; p.spriteRot = 0; p.inCutscene = false; p.noSpecials = false;
+  p.carried = false; p.cartSeat = false; p.copterSeat = undefined; p.hidden = false; p.spriteRot = 0; p.inCutscene = false; p.noSpecials = false;
   p.vel.x = 0; p.vel.y = 0; p.facing = 1; p.invincibilityTimer = 0;
   setUi({ noSwitch: false, heliTips: false });
+  setDropTable(PARK_DROPS);
   letCamGo(state, h);
   teleport(state, DOORS.harry.start.x, DOORS.harry.start.y);
   state.camera.y = DOORS.harry.start.y - 550;
   if (state.checkpoint < 120) state.checkpoint = 119;
+};
+
+/** The ride by where it's got to. */
+const phaseUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => {
+  const { state } = ctx;
+  switch (h.phase) {
+    case 'pad': return padUpdate(ctx, h, controls);
+    case 'board': {
+      if (h.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { skipTour(state, h); return hands(); } }
+      return boardUpdate(ctx, h);
+    }
+    case 'lift': {
+      if (h.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { skipTour(state, h); return hands(); } }
+      return liftUpdate(ctx, h);
+    }
+    case 'tour': return tourUpdate(ctx, h);
+    case 'fly': return flyUpdate(ctx, h, controls);
+    case 'end': return endUpdate(ctx, h);
+  }
+  return controls;
+};
+
+/** His pose in the seat (render/player/copterPose.ts): bored stiff on the tour; flying it, leaning into it, the gun hand
+ *  on the trigger, the stick yanked back for an up boost, hanging off his belt upside down, a snarl after a kill, a
+ *  flinch when he's hit. Off it, nothing. */
+const seatPose = (state: GameState, h: Heli, controls: Controls) => {
+  const p = state.player, f = state.frame, b = h.boost;
+  const seated = !h.over && ((h.phase === 'board' && h.step >= 2) || h.phase === 'lift' || h.phase === 'tour' || h.phase === 'fly' || h.phase === 'end');
+  if (!seated) { p.copterSeat = undefined; return; }
+  const pilot = h.phase === 'fly' || h.phase === 'end' || (h.phase === 'tour' && !!h.flags.shoved);
+  const hit = p.invincibilityTimer > 30 || (p.pushbackTimer ?? 0) > 0 || (h.phase === 'end' && h.step >= 2);
+  p.copterSeat = {
+    mode: pilot ? 'pilot' : 'passenger',
+    lean: b ? 0.18 : Math.max(-0.1, Math.min(0.15, h.vx * 0.025)),
+    fire: pilot && h.phase === 'fly' && !!controls.shoot, yank: !!b && b.dy < 0, hang: h.flip > 0.5,
+    mood: !pilot ? 'bored' : hit ? 'flinch' : f - h.killAt < 50 ? 'snarl' : 'grit',
+  };
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -477,35 +540,30 @@ export const heli: ForeignSection = {
     const h = heliOf(state);
     h.mechs = makeMechs();
     state.viewIsScreen = false;
+    // (a new life: Harry's said nothing yet)
+    harrySaid.clear();
+    setDropTable(PARK_DROPS);
     if (state.stageMemo[MEMO.done]) { h.over = true; h.phase = 'gone'; }
     setUi({ heliTips: false, noSwitch: false });
   },
   update: (ctx, controls) => {
-    const { state } = ctx, h = heliOf(state), p = state.player;
+    const { state } = ctx, h = heliOf(state);
     h.t++;
+    setDropTable(h.phase === 'tour' || h.phase === 'fly' || h.phase === 'end' ? FLY_DROPS : PARK_DROPS);
     if (h.over) { runExits(state, endExits('heli', { left: false })); return controls; }
     // (starting again at a landmark's checkpoint: straight up there, into it)
     if (h.phase === 'pad' && state.checkpoint >= 111 && state.checkpoint <= 119) { startAt(state, h, state.checkpoint - 111); return hands(); }
-    switch (h.phase) {
-      case 'pad': return padUpdate(ctx, h, controls);
-      case 'board': {
-        if (h.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { skipTour(state, h); return hands(); } }
-        return boardUpdate(ctx, h);
-      }
-      case 'lift': {
-        if (h.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { skipTour(state, h); return hands(); } }
-        return liftUpdate(ctx, h);
-      }
-      case 'tour': return tourUpdate(ctx, h);
-      case 'fly': return flyUpdate(ctx, h, controls);
-      case 'end': return endUpdate(ctx, h);
-    }
-    void p;
-    return controls;
+    const out = phaseUpdate(ctx, h, controls);
+    seatPose(state, h, controls);
+    return out;
   },
   cameraX: (state) => { const h = heliOf(state); return h.cam ? { min: h.camX, max: h.camX } : undefined; },
   // (zoomed out over the park from the lift on, about the screen's middle; pulled back further while a landmark comes up)
-  zoom: (state) => { const h = heliOf(state), z = h.zoom * h.pull; return h.cam && Math.abs(z - 1) > 0.002 ? { scale: z, x: state.camera.x + SW / 2, y: state.camera.y + SH / 2 } : null; },
+  // (the pull, about its own screen point: the shift keeps that point put; the park's camera does the same)
+  zoom: (state) => {
+    const h = heliOf(state), z = h.zoom * h.pull;
+    return h.cam && Math.abs(z - 1) > 0.002 ? { scale: z, x: state.camera.x + SW / 2, y: state.camera.y + SH / 2, shiftX: (1 - h.pull) * (h.pullX - SW / 2), shiftY: (1 - h.pull) * (h.pullY - SH / 2) } : null;
+  },
   drawBackdrop: (c, state) => {
     const h = heliOf(state);
     // (the lift: the park opening up below as he climbs, faded in over the streets)
@@ -529,7 +587,7 @@ export const heli: ForeignSection = {
     // (the helicopter round him: its back half, behind him)
     if (!h.over && h.phase !== 'gone') {
       const piv = h.phase === 'pad' || (h.phase === 'board' && h.step < 2) ? { x: PAD_O.x + SEAT_BACK, y: PAD_O.y } : feetOf(state);
-      const rot = h.phase === 'fly' || h.phase === 'end' ? { tilt: h.tilt, flip: h.flip } : { tilt: 0, flip: 0 };
+      const rot = h.phase === 'fly' || h.phase === 'end' || h.phase === 'tour' ? { tilt: h.tilt, flip: h.flip } : { tilt: 0, flip: 0 };
       drawCopter(c, 'back', piv.x, piv.y, { seat: h.phase === 'pad' || (h.phase === 'board' && h.step < 2) ? SEAT_BACK : h.seat, tilt: rot.tilt, flip: rot.flip, rotor: h.rotor }, f, { flash: state.player.invincibilityTimer > 0 && (f >> 2) % 2 === 0 });
       // (Harry in the pilot's seat)
       if (h.hpose === 'pilot') drawHarry(c, h.hx, h.hy, { pose: 'pilot', f, talking: !!h.harry });
@@ -543,11 +601,19 @@ export const heli: ForeignSection = {
     if (!h.over && h.phase !== 'gone') {
       const onPad = h.phase === 'pad' || (h.phase === 'board' && h.step < 2);
       const piv = onPad ? { x: PAD_O.x + SEAT_BACK, y: PAD_O.y } : feetOf(state);
-      const rot = h.phase === 'fly' || h.phase === 'end' ? { tilt: h.tilt, flip: h.flip } : { tilt: 0, flip: 0 };
+      const rot = h.phase === 'fly' || h.phase === 'end' || h.phase === 'tour' ? { tilt: h.tilt, flip: h.flip } : { tilt: 0, flip: 0 };
       drawCopter(c, 'front', piv.x, piv.y, { seat: onPad ? SEAT_BACK : h.seat, tilt: rot.tilt, flip: rot.flip, rotor: h.rotor }, f, { harryDoor: !!h.flags.door, burning: (h.phase === 'end' && h.step >= 2) || p.health <= 0 });
     }
     drawRockets(c, state);
-    // Harry shoved out, falling past (in front of everything) all the way down
+    // (the kick's WHAM, where the boot met him)
+    if (h.flags.wham) {
+      const ft = feetOf(state), x = ft.x + 40, y = ft.y - 50;
+      c.fillStyle = '#FDE047'; c.strokeStyle = INK; c.lineWidth = 2; c.beginPath();
+      for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, rr = i % 2 ? 10 : 24; c[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+      c.closePath(); c.fill(); c.stroke();
+      c.font = '10px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = INK; c.fillText('WHAM', x, y + 4); c.textAlign = 'left';
+    }
+    // Harry kicked out, falling past (in front of everything) all the way down
     if (h.phase === 'tour' && (h.hpose === 'shoved' || h.hpose === 'fall')) drawHarry(c, h.hx, h.hy, { pose: h.hpose, f, talking: !!h.harry, rot: h.t * 0.15, scale: 0.9 + 0.1 * Math.max(0, 1 - h.t / 60) });
     if (h.hrocket) {
       // (his rocket, nose on toward the helicopter, its flame behind)
@@ -583,6 +649,8 @@ export const heli: ForeignSection = {
     }
   },
   outdoors: () => 1,
+  // (the fires down in the wrecked park glowing, at dusk and after)
+  lamps: (state) => fireLamps(state),
 };
 
 // ---------------------------------------------------------------------------------------------------------------

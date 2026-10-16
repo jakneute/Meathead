@@ -162,3 +162,20 @@ export const goonsLeft = (state: GameState) => {
 export const sweepGoons = (state: GameState) => {
   state.enemies = state.enemies.filter(e => !(e as Enemy & { gone?: boolean }).gone);
 };
+
+/** A few of them sent in DURING a landmark's fight (the user: "jetpack enemies spawn in semi regularly during the mid
+ *  boss fights"): a small group from all round, a little bigger later in the gauntlet. `n`: which group this fight. */
+export const fightGroup = (state: GameState, landmark: number, n: number) => {
+  const size = 2 + (landmark >= 3 ? 1 : 0) + (landmark >= 6 ? 1 : 0);
+  const pick = (k: number) => (n * 3 + k * 5 + landmark) % 5;
+  for (let k = 0; k < size; k++) {
+    const y = 140 + ((n * 97 + k * 131) % 340);
+    switch (pick(k)) {
+      case 0: hover(state, 520 + (k % 2) * 90, y, k * 20, 420); break;
+      case 1: sneak(state, 'left', y); break;
+      case 2: sneak(state, 'top', 200 + (k * 150) % 400); break;
+      case 3: sneak(state, 'bottom', 220 + (k * 130) % 380); break;
+      default: diver(state, y, k * 50);
+    }
+  }
+};

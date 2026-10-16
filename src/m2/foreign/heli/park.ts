@@ -4,8 +4,8 @@
 // middle, everything put through it (proj) and drawn back to front; the floor Mode 7 style (each row of it scaled for
 // how far off it is, chunky).
 //
-//   The middle: the LAGOON (its ripples), its promenade round it, and round that the ten PAVILIONS he walked, in his
-//   order (Mexico .. Canada), small, crude, recognizable (Mexico's stepped pyramid, Norway's stave church, China's
+//   The middle: the LAGOON (its ripples), its promenade round it, and round that the ten PAVILIONS he walked (each by
+//   its own landmark where it has one), small, crude, recognizable (Mexico's stepped pyramid, Norway's stave church, China's
 //   pagoda and wall, Germany's steep roofs and tower, Italy's campanile, Japan's pagoda and torii, Morocco's minaret,
 //   France's mansards and glass pyramid, the UK's clock tower, Canada's chateau and totem), tiny guests milling on the
 //   paths; a hedge ring; then THE CIRCUIT (R_MECH) the giant landmarks stand round, one to a plinth (the Eiffel
@@ -58,10 +58,10 @@ const FIT = (() => {
   return { F: Z * zc, ppx: BASE_SCREEN.x - Z * X, ppy: BASE_SCREEN.y + Z * yc };
 })();
 
-/** The camera now: round to the progress, up as far as the lift's got, pulled back about the screen's middle. */
+/** The camera now: round to the progress, up as far as the lift's got, pulled back (or punched in) about (pullX, pullY). */
 export const camOf = (h: Heli): Cam => {
   const phi = phiOf(h.prog), up = Math.max(0, Math.min(1, h.up)), hc = 90 + (HC - 90) * up * up * (3 - 2 * up), b = basis(hc), k = h.pull;
-  return { phi, cos: Math.cos(phi), sin: Math.sin(phi), hc, ...b, F: FIT.F * k, ppx: SW / 2 + (FIT.ppx - SW / 2) * k, ppy: SH / 2 + (FIT.ppy - SH / 2) * k };
+  return { phi, cos: Math.cos(phi), sin: Math.sin(phi), hc, ...b, F: FIT.F * k, ppx: h.pullX + (FIT.ppx - h.pullX) * k, ppy: h.pullY + (FIT.ppy - h.pullY) * k };
 };
 /** A world point (x, z on the ground, y up) on screen: where, its scale, how far off. */
 export const proj = (cam: Cam, x: number, y: number, z: number) => {
@@ -95,11 +95,13 @@ export const roadY = nearCurve(ROAD_R);
 // ---------------------------------------------------------------------------------------------------------------
 // The park's plan
 
-/** The pavilions, in the order he walked them, round the lagoon (France in front of the Eiffel Tower's plinth). */
-const PAV_IDS = ['mexico', 'norway', 'china', 'germany', 'italy', 'japan', 'morocco', 'france', 'uk', 'canada'] as const;
+/** The pavilions round the lagoon, a tenth of the way round each, placed so each landmark that has a country here
+ *  stands by its own (the user: "the eiffel tower by france, big ben by the uk"): France by the Eiffel Tower, Italy by
+ *  the Leaning Tower, the UK by Big Ben, Morocco by the Pyramid. */
+const PAV_IDS = ['france', 'mexico', 'norway', 'italy', 'china', 'germany', 'uk', 'japan', 'morocco', 'canada'] as const;
 type PavId = typeof PAV_IDS[number];
 const PAV_R = 400;
-const pavAngle = (j: number) => A0 + (j - 7) * ((Math.PI * 2) / 10);
+const pavAngle = (j: number) => A0 + j * ((Math.PI * 2) / 10);
 /** Each pavilion's plaza paving. */
 const PLAZA: Record<PavId, number[]> = {
   mexico: [196, 120, 80], norway: [150, 128, 96], china: [176, 72, 60], germany: [168, 156, 140], italy: [214, 176, 112],
@@ -140,7 +142,7 @@ const groundAt = (x: number, z: number, f: number, dead: boolean[]): number[] =>
   const a = Math.atan2(x, z);
   if (r < HEDGE_R0) {
     // (the pavilions' plazas, each in its own paving; a lawn strip between them)
-    const sec = ((((a - pavAngle(0)) / ((Math.PI * 2) / 10)) % 10) + 10.5) % 10, j = Math.floor(sec), off = Math.abs(sec - j - 0.5);
+    const sec = ((((a - pavAngle(0)) / ((Math.PI * 2) / 10)) % 10) + 10.5) % 10, j = Math.floor(sec) % 10, off = Math.abs(sec - Math.floor(sec) - 0.5);
     if (off > 0.43) return LAWN[(Math.floor(x / 40) + Math.floor(z / 40)) & 1];
     const p = PLAZA[PAV_IDS[j]];
     return hash2(Math.floor(x / 16), Math.floor(z / 16)) > 0.8 ? p.map(v => v * 0.9) : p;
@@ -328,7 +330,7 @@ const guestItems = (c: Ctx, cam: Cam, h: Heli, f: number, out: Item[]) => {
   for (const g of GUESTS) {
     let p = polar(g.r, g.a + f * g.sp), run = false;
     if (pm) for (const [i, at] of pm) {
-      const m = MECH_AT[i], dx = p.x - m.x, dz = p.z - m.z, d = Math.hypot(dx, dz) || 1;
+      const m = mechAt(h.mechs[i], i), dx = p.x - m.x, dz = p.z - m.z, d = Math.hypot(dx, dz) || 1;
       if (d < 420) { const k = Math.min(1, (f - at) / 150), push = (420 - d) * 0.8 * k; p = { x: p.x + (dx / d) * push, z: p.z + (dz / d) * push }; if (f - at < 240) run = true; }
     }
     const q = proj(cam, p.x, 0, p.z);
@@ -417,14 +419,48 @@ const drawClouds = (c: Ctx, cam: Cam, f: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The landmarks out on the circuit (all but the one round in front while it's up: that one's the world's)
 
-/** Whether the landmark's drawn by the world (the one he's fighting, up and about) rather than out here. */
-export const inWorld = (h: Heli, m: Mech | undefined) => !!m && m.i === h.cur && (m.st === 'intro' || m.st === 'fight' || m.st === 'dying') && (h.phase === 'fly' || h.phase === 'end');
+/** Whether the landmark's drawn by the world (the one he's fighting, up and about) rather than out here. While it's
+ *  arriving it's out here, at its own place in the park, coming up and walking to its plinth as the camera comes round
+ *  to it (it has no boxes till then). */
+export const inWorld = (h: Heli, m: Mech | undefined) => !!m && m.i === h.cur && (m.st === 'fight' || m.st === 'dying') && (h.phase === 'fly' || h.phase === 'end');
+
+/**
+ * Where each one comes up (the user: "sell the idea they aren't popping from the same spot but closer to you"): its
+ * own place round the park, each a different way: r out from the middle, da round from its plinth, and how far short
+ * of it the camera is when it starts (the camera comes round to it as it arrives, so it's plainly somewhere else in the
+ * park each time). It walks from there to its plinth while it settles.
+ * Then it STOMPS in to its plinth (the user: "like they stomp through the parking lot getting rendered, causing an
+ * increased catastrophe in the surrounding area"), through whatever's on the way, growing as it nears:
+ *   the Eiffel Tower: out of the parking lot on the far side, across the lagoon and the pavilions, to France;
+ *   the Opera House: up out of the lagoon, wading out over the promenade;
+ *   Christ the Redeemer: from the far lot, across the park;
+ *   the Leaning Tower: tearing up from behind Italy;
+ *   the Taj Mahal: off to the side in the lot, swinging round to its plinth as the camera turns;
+ *   Big Ben: from the far lot, through the middle;
+ *   the Colosseum: up close on the left, out of the near lot;
+ *   the Pyramid: from the far lot;
+ *   the Easter Island head: out of the middle of the lagoon.
+ */
+export const RISE: { r: number; da: number; d: number }[] = [
+  { r: 1050, da: Math.PI + 0.25, d: 0.5 }, { r: 120, da: 0.15, d: 0.5 }, { r: 1100, da: Math.PI - 0.4, d: 0.45 },
+  { r: 320, da: -0.2, d: 0.4 }, { r: 980, da: 0.9, d: 0.6 }, { r: 1150, da: Math.PI + 0.3, d: 0.45 },
+  { r: 820, da: -0.45, d: 0.35 }, { r: 1050, da: Math.PI - 0.2, d: 0.5 }, { r: 90, da: 0, d: 0.5 },
+];
+/** Where a landmark is on the ground right now (mechs.ts: what it's stomping through). */
+export const mechGround = (m: Mech) => mechAt(m, m.i);
+const riseAt = (i: number) => polar(RISE[i].r, mechAngle(i) + RISE[i].da);
+/** Where it is now (ground): its plinth, or on its way there from where it came up. */
+const mechAt = (m: Mech | undefined, i: number) => {
+  if (!m || m.st !== 'intro' || m.walk >= 1 || m.unfold < 0) return MECH_AT[i];
+  const a = riseAt(i), b = MECH_AT[i], k = m.walk * m.walk * (3 - 2 * m.walk);
+  return { x: a.x + (b.x - a.x) * k, z: a.z + (b.z - a.z) * k };
+};
 
 const mechItems = (c: Ctx, cam: Cam, h: Heli, f: number, out: Item[]) => {
   MECHS.forEach((id, i) => {
     const m = h.mechs[i];
     if (inWorld(h, m)) return;
-    const p = MECH_AT[i], q = proj(cam, p.x, 0, p.z);
+    const p = mechAt(m, i), q = proj(cam, p.x, 0, p.z);
     if (q.z < 80 || q.x < -260 * q.k - 60 || q.x > SW + 260 * q.k + 60) return;
     out.push({ z: q.z, y0: 0, draw: () => drawMech(c, id, q.x, q.y, q.k, 0, mechLook(h, m, i, f)) });
   });
@@ -434,9 +470,12 @@ const mechItems = (c: Ctx, cam: Cam, h: Heli, f: number, out: Item[]) => {
  *  first), the hole it went down. Under it. */
 const drawRevealGround = (c: Ctx, cam: Cam, h: Heli) => {
   const m = h.mechs[h.cur];
-  if (!m || !inWorld(h, m) || m.st !== 'intro') return;
-  const k = Math.min(1, m.t / Math.max(1, m.introLen * 0.3)), at = MECH_AT[m.i];
-  c.strokeStyle = '#1C1917'; c.lineWidth = 2;
+  if (!m || m.st !== 'intro' || (h.phase !== 'fly' && h.phase !== 'end')) return;
+  // (first at its plinth, under the replica; then where it comes up, somewhere else in the park)
+  const up = m.unfold >= 0 || m.t > m.introLen * 0.22, k = up ? Math.min(1, (m.t - m.introLen * 0.22) / Math.max(1, m.introLen * 0.08)) : Math.min(1, m.t / Math.max(1, m.introLen * 0.14));
+  const at = up ? riseAt(m.i) : MECH_AT[m.i], wet = up && RISE[m.i].r < LAGOON_R;
+  c.strokeStyle = wet ? '#E0F2FE' : '#1C1917';
+  c.lineWidth = 2;
   for (let j = 0; j < 9; j++) {
     const a0 = j * 0.7 + 0.2, len = (130 + (j % 3) * 90) * k;
     let x = at.x, z = at.z;
@@ -450,11 +489,105 @@ const drawRevealGround = (c: Ctx, cam: Cam, h: Heli) => {
     c.stroke();
   }
   // (the hole it went down, while it's under or coming up)
-  if (m.sink > 0.02 || m.unfold < 1) {
+  if (up || m.sink > 0.02) {
     const q = proj(cam, at.x, 0, at.z), w = 110 * q.k, hh = w * 0.36;
-    c.fillStyle = '#4A3A2A'; c.beginPath(); c.ellipse(q.x, q.y, w * 1.12, hh * 1.2, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#140E0A'; c.beginPath(); c.ellipse(q.x, q.y, w, hh, 0, 0, Math.PI * 2); c.fill();
+    // (in the lagoon: foam and a churning dark swirl; on land: the broken earth and the hole)
+    c.fillStyle = wet ? '#F0F9FF' : '#4A3A2A'; c.beginPath(); c.ellipse(q.x, q.y, w * 1.12, hh * 1.2, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = wet ? '#1E3A5F' : '#140E0A'; c.beginPath(); c.ellipse(q.x, q.y, w, hh, 0, 0, Math.PI * 2); c.fill();
   }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The ruin (looks only: the fight's untouched). Each landmark's walk in, from where it came up to its plinth (as far
+// as it's got), is a path of wreckage: footprint craters, the cars in the lot crushed and flipped, any pavilion it went
+// through caved in, fires and smoke along it; and round each plinth, fires lit as its fight goes on (all of them once
+// it's down). Worked out from where the landmarks have got to, so it stacks up landmark by landmark (by the Easter
+// Island head the park's a burning ruin) and comes back as it was starting again at a checkpoint.
+
+interface Seg { ax: number; az: number; bx: number; bz: number; i: number }
+const pathsOf = (h: Heli): Seg[] => {
+  const out: Seg[] = [];
+  h.mechs.forEach((m, i) => {
+    if (m.st === 'wait' || (m.st === 'intro' && m.walk <= 0)) return;
+    const a = riseAt(i), b = mechAt(m, i);
+    out.push({ ax: a.x, az: a.z, bx: b.x, bz: b.z, i });
+  });
+  return out;
+};
+const segD = (x: number, z: number, s: Seg) => {
+  const dx = s.bx - s.ax, dz = s.bz - s.az, l = dx * dx + dz * dz || 1, k = Math.max(0, Math.min(1, ((x - s.ax) * dx + (z - s.az) * dz) / l));
+  return Math.hypot(x - s.ax - k * dx, z - s.az - k * dz);
+};
+/** Points along a path every step (from its start), alternating either side by side. */
+const along = (s: Seg, step: number, side: number, from = 0) => {
+  const dx = s.bx - s.ax, dz = s.bz - s.az, L = Math.hypot(dx, dz) || 1, nx = -dz / L, nz = dx / L, out: { x: number; z: number; n: number }[] = [];
+  for (let d = from, n = 0; d <= L; d += step, n++) { const o = (n % 2 ? 1 : -1) * side; out.push({ x: s.ax + (dx / L) * d + nx * o, z: s.az + (dz / L) * d + nz * o, n }); }
+  return out;
+};
+const pavWrecked = (segs: Seg[], at: number) => { const p = polar(PAV_R, at); return segs.some(s => segD(p.x, p.z, s) < 125); };
+/** A pavilion caved in: everything a third the height, scorched dark. Made once each. */
+const crushedOf = new Map<number, Solid[]>();
+const crushed = (j: number, solids: Solid[]) => {
+  let c = crushedOf.get(j);
+  if (!c) { c = solids.map(s => ({ ...s, faces: s.faces.map(fc => fc.map(p => ({ x: p.x, y: p.y * 0.3, z: p.z }))), col: s.col.map(v => v * 0.5), mid: { ...s.mid, y: s.mid.y * 0.3 }, y0: s.y0 * 0.3 })); crushedOf.set(j, c); }
+  return c;
+};
+
+/** Where the fires are (ground): along each path, in each wrecked pavilion, round each plinth as its fight goes. */
+const firesOf = (h: Heli, segs: Seg[]) => {
+  const out: { x: number; z: number; s: number }[] = [];
+  for (const s of segs) for (const p of along(s, 230, 30, 120)) out.push({ x: p.x, z: p.z, s: 0.8 + hash2(s.i, p.n) * 0.6 });
+  pavilions().forEach((pv) => { if (pavWrecked(segs, pv.at)) { const p = polar(PAV_R + 20, pv.at); out.push({ x: p.x, z: p.z, s: 1.4 }); } });
+  h.mechs.forEach((m, i) => {
+    const n = m.st === 'dead' ? 4 : m.st === 'fight' || m.st === 'dying' ? Math.floor((1 - m.hp / m.max) * 4.99) : 0;
+    for (let k = 0; k < n; k++) { const a = mechAngle(i) + (k - 1.5) * 0.16, p = polar(R_MECH + (k % 2 ? 90 : -90), a); out.push({ x: p.x, z: p.z, s: 1 + (k % 2) * 0.4 }); }
+  });
+  return out;
+};
+
+const drawScars = (c: Ctx, cam: Cam, segs: Seg[], mul: number[]) => {
+  // (its footprints: craters stamped into whatever it walked on)
+  for (const s of segs) for (const p of along(s, 70, 26, 40)) {
+    const q = proj(cam, p.x, 0, p.z);
+    if (q.z < 60 || q.x < -40 || q.x > SW + 40) continue;
+    const w = 24 * q.k, hh = w * 0.38;
+    c.fillStyle = shadeRgb([110, 96, 80], 1, mul); c.beginPath(); c.ellipse(q.x, q.y, w * 1.25, hh * 1.3, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = shadeRgb([34, 28, 24], 1, mul); c.beginPath(); c.ellipse(q.x, q.y, w, hh, 0, 0, Math.PI * 2); c.fill();
+  }
+};
+/** A car it flipped, wheels up (a little box on the ground). */
+const flippedCar = (c: Ctx, q: { x: number; y: number; k: number }, n: number) => {
+  const w = 34 * q.k, hh = 14 * q.k, col = ['#7F1D1D', '#1E3A8A', '#9CA3AF', '#1C1917', '#854D0E'][n % 5];
+  c.save(); c.translate(q.x, q.y); c.rotate((hash2(n, 9) - 0.5) * 0.8);
+  c.fillStyle = col; c.fillRect(-w / 2, -hh, w, hh); c.fillStyle = '#111827'; c.fillRect(-w / 2, -hh, w, Math.max(1, hh * 0.3));
+  c.fillStyle = '#18181B'; for (const x of [-0.32, 0.32]) { c.beginPath(); c.arc(x * w, -hh - 2 * q.k, Math.max(1.5, 5 * q.k), 0, Math.PI * 2); c.fill(); }
+  c.restore();
+};
+/** A fire on the ground: banded flames, flickering; a column of smoke going up off it. */
+const drawFire = (c: Ctx, cam: Cam, x: number, z: number, sz: number, f: number, n: number, mul: number[]) => {
+  const q = proj(cam, x, 0, z), k = q.k * sz, fl = Math.sin(f * 0.4 + n) * 0.15 + 1;
+  for (let p = 0; p < 6; p++) {
+    const ph = ((f * 0.5 + p * 37 + n * 13) % 220) / 220, s = proj(cam, x + Math.sin(ph * 4 + n) * 30, 40 + ph * 320, z);
+    c.globalAlpha = 0.55 * (1 - ph); c.fillStyle = shadeRgb(p % 2 ? [70, 66, 66] : [96, 92, 90], 1, mul);
+    c.beginPath(); c.arc(s.x, s.y, (10 + ph * 34) * s.k * sz, 0, Math.PI * 2); c.fill();
+  }
+  c.globalAlpha = 1;
+  const band = (w: number, h: number, col: string) => { c.fillStyle = col; c.beginPath(); c.moveTo(q.x - w * k, q.y); c.quadraticCurveTo(q.x - w * 0.4 * k, q.y - h * 0.6 * k * fl, q.x, q.y - h * k * fl); c.quadraticCurveTo(q.x + w * 0.4 * k, q.y - h * 0.6 * k * fl, q.x + w * k, q.y); c.closePath(); c.fill(); };
+  band(26, 60, '#B91C1C'); band(20, 46, '#F97316'); band(12, 30, '#FDE047'); band(5, 14, '#FFFBEB');
+};
+
+/** The fires' glow (world space, for the lighting at dusk and after): the nearest eighteen. */
+export const fireLamps = (state: GameState) => {
+  const h = heliOf(state);
+  if (h.phase !== 'fly' && h.phase !== 'end') return [];
+  const cam = camOf(h), out: { x: number; y: number; r: number; a: number; color: string }[] = [];
+  for (const fz of firesOf(h, pathsOf(h))) {
+    const q = proj(cam, fz.x, 20, fz.z);
+    if (q.z < 60 || q.x < -60 || q.x > SW + 60) continue;
+    out.push({ x: state.camera.x + SW / 2 + (q.x - SW / 2) / Z, y: state.camera.y + SH / 2 + (q.y - SH / 2) / Z, r: (160 * fz.s * q.k) / Z, a: 0.8, color: '#F97316' });
+    if (out.length >= 18) break;
+  }
+  return out;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -469,12 +602,22 @@ export const drawPark = (c: Ctx, state: GameState, alpha = 1) => {
   drawFar(c, cam, f);
   drawFloor(c, cam, f, h.mechs.map(m => m.st === 'dead'), mul);
   drawRevealGround(c, cam, h);
+  const segs = pathsOf(h);
+  drawScars(c, cam, segs, mul);
   const items: Item[] = [];
-  for (const pv of pavilions()) {
+  pavilions().forEach((pv, j) => {
     const q = proj(cam, PAV_R * Math.sin(pv.at), 0, PAV_R * Math.cos(pv.at));
-    if (q.z < 60 || q.x < -200 || q.x > SW + 200) continue;
-    for (const s of pv.solids) { const mq = proj(cam, s.mid.x, 0, s.mid.z); items.push({ z: mq.z, y0: s.y0, draw: () => drawSolid(c, cam, s, mul) }); }
+    if (q.z < 60 || q.x < -200 || q.x > SW + 200) return;
+    for (const s of pavWrecked(segs, pv.at) ? crushed(j, pv.solids) : pv.solids) { const mq = proj(cam, s.mid.x, 0, s.mid.z); items.push({ z: mq.z, y0: s.y0, draw: () => drawSolid(c, cam, s, mul) }); }
+  });
+  // (the cars it flipped crossing the lot; the fires)
+  for (const sg of segs) for (const p of along(sg, 80, 40, 30)) {
+    const r = Math.hypot(p.x, p.z);
+    if (r < LOT_R0 || r > LOT_R1) continue;
+    const q = proj(cam, p.x, 0, p.z);
+    if (q.z > 60 && q.x > -40 && q.x < SW + 40) items.push({ z: q.z, y0: 0, draw: () => flippedCar(c, q, sg.i * 31 + p.n) });
   }
+  firesOf(h, segs).forEach((fz, n) => { const q = proj(cam, fz.x, 0, fz.z); if (q.z > 60 && q.x > -60 && q.x < SW + 60) items.push({ z: q.z - 1, y0: 1, draw: () => drawFire(c, cam, fz.x, fz.z, fz.s, f, n, mul) }); });
   for (const t of TREE_AT) { const q = proj(cam, t.x, 0, t.z); if (q.z > 60 && q.x > -40 && q.x < SW + 40) items.push({ z: q.z, y0: 0, draw: () => drawTree(c, cam, t, mul) }); }
   guestItems(c, cam, h, f, items);
   mechItems(c, cam, h, f, items);

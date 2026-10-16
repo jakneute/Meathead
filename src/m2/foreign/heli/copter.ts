@@ -3,8 +3,8 @@
 //   free 4-way flight on one fixed screen, always facing right;
 //   X: the chin machine gun (held: a hose of rounds);
 //   Y: up to three homing rockets, on a cooldown (the charges by the bottom-left corner);
-//   B: the rotor tilted that way and a BOOST, shredding any jetpacker it hits: plain or right + B forward (nose down),
-//      left + B bent back and backward, up + B straight up (rotor screaming), down + B flipped upside down and down
+//   B: the rotor turned that way and a BOOST, shredding any jetpacker it hits: plain or right + B a quarter over nose
+//      down (the rotor out in front), left + B a quarter over backward, up + B straight up (rotor screaming), down + B flipped upside down and down
 //      (the rotor blending what's under it), rightside up after.
 // The engine's own rounds (machine-gun rounds: they hit the goons the engine's way); his rockets and the boost are this
 // file's own.
@@ -28,10 +28,15 @@ import { MH_SHRED } from './lines';
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
+/** The homing rockets (Y) on or not (the user: "remove the rocket attack for now or dummy it out"): off, Y does nothing
+ *  up here, the charges aren't shown, the controls card leaves Y out, the BOOST meter takes the rockets' corner. All the
+ *  rest of it's kept: set this true to have them back. (Harry's launcher at the end is his, not this.) */
+export const ROCKETS_ON = true;
+
 /** The gun: frames between rounds, a round's speed and damage (to the goons: the engine's; to a landmark: mechs.ts). */
 const GUN_CD = 4, ROUND_V = 21, ROUND_DMG = 22;
 /** Rockets: how long one takes to come back, top speed, turn, life, blast. */
-const ROCKET_BACK = 150, ROCKET_V = 11, ROCKET_TURN = 0.13, ROCKET_LIFE = 200, ROCKET_R = 64, ROCKET_MECH = 70;
+const ROCKET_BACK = 225, ROCKET_V = 11, ROCKET_TURN = 0.13, ROCKET_LIFE = 200, ROCKET_R = 64, ROCKET_MECH = 70;
 /** The boost: frames, speed, cooldown; how far past the helicopter its blades reach. Its own recharge, not his power
  *  cells (the user: more often than he can charge on land: on foot a charge every 60 frames at best (the 30-frame
  *  charge, a cell back every 30); up here one every 30). */
@@ -92,14 +97,17 @@ export const flyCopter = (ctx: FrameContext, controls: Controls) => {
   p.vel.x = 0; p.vel.y = 0;
   // The look: nose down going forward, back going back; flipped for a down boost (and back over after)
   const b = h.boost;
-  const want = dead ? h.tilt : b ? (b.dx > 0 ? 0.42 : b.dx < 0 ? -0.55 : 0) : Math.max(-0.25, Math.min(0.25, h.vx * 0.04));
-  if (!dead) h.tilt += (want - h.tilt) * 0.25;
+  // (the user's: a sideways boost turns it a quarter over that way, the rotor disc out in front, blades first, as the
+  // down boost turns it upside down; snappy into it and back out)
+  const want = dead ? h.tilt : b ? (b.dx > 0 ? Math.PI / 2 : b.dx < 0 ? -Math.PI / 2 : 0) : Math.max(-0.25, Math.min(0.25, h.vx * 0.04));
+  if (!dead) h.tilt += (want - h.tilt) * (b ? 0.5 : 0.32);
   h.flip += ((b && b.dy > 0 ? 1 : 0) - h.flip) * (b && b.dy > 0 ? 0.35 : 0.14);
   if (h.flip < 0.01) h.flip = 0;
   h.rotor += b ? 1.2 : 0.7;
   p.spriteRot = h.tilt + h.flip * Math.PI;
   if (dead) return;
   if (b) shred(ctx, h);
+  rotorChops(ctx, h);
   // The gun (X: held)
   if (h.gunCd > 0) h.gunCd--;
   if (controls.shoot && h.gunCd <= 0 && !p.inCutscene) {
@@ -118,12 +126,12 @@ export const flyCopter = (ctx: FrameContext, controls: Controls) => {
   // The rockets (Y: a press each; three at most, coming back one at a time)
   h.charges = Math.min(3, h.charges + 1 / ROCKET_BACK);
   const yNow = !!controls.secondary;
-  if (yNow && !h.wasY && h.charges >= 1 && !p.inCutscene) {
+  if (yNow && !h.wasY && h.charges >= 1 && !p.inCutscene && ROCKETS_ON) {
     h.charges -= 1;
     const f = feet(state);
     h.rockets.push({ x: f.x - h.seat + 10, y: f.y + 8, vx: 5 + h.vx * 0.5, vy: 2.5, t: 0 });
     playSound('whoosh', 0.8, 8); playSound('ignite', 0.6, 4);
-  } else if (yNow && !h.wasY && h.charges < 1) playSound('click', 0.6, 4);
+  } else if (yNow && !h.wasY && h.charges < 1 && ROCKETS_ON) playSound('click', 0.6, 4);
   h.wasY = yNow;
 };
 
@@ -149,9 +157,31 @@ const shred = (ctx: FrameContext, h: Heli) => {
   }
 };
 
+/** The rotor's blades always chop (the user: "any human enemies that come into contact with your blades get chopped
+ *  up, whether you charge or not"): any of them touching the disc is shredded, the boost's own kill. The disc's never
+ *  a hurt to him (it's his). Its line: the rotor's (1, -99) out 160 either way in the helicopter's frame, tilted and
+ *  flipped with it. */
+const ROTOR_R = 160, ROTOR_REACH = 14;
+const rotorChops = (ctx: FrameContext, h: Heli) => {
+  const { state } = ctx, f = feet(state), a = h.tilt + h.flip * Math.PI, ca = Math.cos(a), sa = Math.sin(a);
+  const lx = 1 - h.seat, ly = -99;
+  const cx = f.x + ca * lx - sa * ly, cy = f.y + sa * lx + ca * ly;
+  const ax = cx - ca * ROTOR_R, ay = cy - sa * ROTOR_R, bx = cx + ca * ROTOR_R, by = cy + sa * ROTOR_R;
+  let chopped = 0;
+  for (const e of hazardVictims(state)) {
+    const ex = e.pos.x + e.width / 2, ey = e.pos.y + e.height / 2;
+    const dx = bx - ax, dy = by - ay, k = Math.max(0, Math.min(1, ((ex - ax) * dx + (ey - ay) * dy) / (dx * dx + dy * dy)));
+    const d = Math.hypot(ex - ax - k * dx, ey - ay - k * dy);
+    if (d > Math.min(e.width, e.height) / 2 + ROTOR_REACH) continue;
+    blend(ctx, e, ax + k * dx + (ex < cx ? 60 : -60)); chopped++;
+  }
+  if (chopped && Math.random() < 0.3) meatheadSays(state, pickLine(MH_SHRED), false);
+};
+
 /** Through the blades: a red mist, bits. */
 const blend = (ctx: FrameContext, e: Enemy, fromX: number) => {
   const { state } = ctx, cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height / 2;
+  heliOf(state).killAt = state.frame;
   hazardKill(ctx, e, fromX, 'SHREDDED!', { color: '#DC2626', fling: { x: (cx - fromX > 0 ? 1 : -1) * 14, y: -9 } });
   for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 30, y: cy + (Math.random() - 0.5) * 40 }, vel: { x: (Math.random() - 0.5) * 12, y: (Math.random() - 0.7) * 10 }, life: 30 + Math.random() * 20, color: i % 3 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 4 });
   playSound('splat', 1, -4); playSound('crunch', 0.8, 6);
@@ -188,12 +218,15 @@ export const updateRockets = (ctx: FrameContext) => {
 };
 const rocketTarget = (state: GameState, k: { x: number; y: number }) => {
   let best: { x: number; y: number } | null = null, bd = Infinity;
+  // (the jetpack lackeys first, the nearest on screen, whichever side (the user: "rockets prioritize them"); then the
+  // minions; the landmark only when there's nobody else up)
   for (const e of hazardVictims(state)) {
     const m = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 };
-    if (m.x < CAMX - 20 || m.x > CAMX + W + 20) continue;
-    const d = Math.hypot(m.x - k.x, m.y - k.y) + (m.x < k.x ? 300 : 0);
+    if (m.x < CAMX - 20 || m.x > CAMX + W + 20 || m.y < CY - 20 || m.y > CY + H + 20) continue;
+    const d = Math.hypot(m.x - k.x, m.y - k.y);
     if (d < bd) { bd = d; best = m; }
   }
+  if (best) return best;
   for (const n of heliOf(state).minions) {
     if (n.dead) continue;
     const d = Math.hypot(n.x - k.x, n.y - k.y) + (n.x < k.x ? 300 : 0);
@@ -315,13 +348,14 @@ export const drawRockets = (c: Ctx, state: GameState) => {
  *  boost's own meter beside them (empty while it's boosting, filling over its cooldown, lit when it's ready). */
 export const drawCharges = (c: Ctx, state: GameState) => {
   const h = heliOf(state);
-  c.fillStyle = 'rgba(0,0,0,0.55)'; c.fillRect(12, 562, 172, 28);
+  c.fillStyle = 'rgba(0,0,0,0.55)'; c.fillRect(12, 562, ROCKETS_ON ? 172 : 66, 28);
   {
-    const k = h.boost ? 0 : 1 - Math.max(0, h.boostCd) / BOOST_CD, x = 124, y = 578;
-    c.font = '6px "Press Start 2P"'; c.fillStyle = k >= 1 ? '#86EFAC' : '#A1A1AA'; c.fillText('BOOST', 126, 572);
+    const k = h.boost ? 0 : 1 - Math.max(0, h.boostCd) / BOOST_CD, x = ROCKETS_ON ? 124 : 18, y = 578;
+    c.font = '6px "Press Start 2P"'; c.fillStyle = k >= 1 ? '#86EFAC' : '#A1A1AA'; c.fillText('BOOST', x + 2, 572);
     c.fillStyle = '#27272A'; c.fillRect(x, y, 54, 8);
     c.fillStyle = k >= 1 ? ((state.frame >> 3) % 4 ? '#4ADE80' : '#BBF7D0') : '#15803D'; c.fillRect(x + 1, y + 1, 52 * k, 6);
   }
+  if (!ROCKETS_ON) return;
   c.font = '6px "Press Start 2P"'; c.fillStyle = '#FDE68A'; c.fillText('ROCKETS', 18, 572);
   for (let i = 0; i < 3; i++) {
     const k = Math.max(0, Math.min(1, h.charges - i)), x = 18 + i * 34, y = 578;

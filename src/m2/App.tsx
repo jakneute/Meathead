@@ -33,6 +33,7 @@ import { spookyLayout, SPOOKY_STAGE, SPOOKY_CHECKPOINTS } from './spooky/index';
 import { spaceLayout, SPACE_STAGE, SPACE_CHECKPOINTS } from './space/index';
 import { hollywoodLayout, HOLLYWOOD_STAGE, HOLLYWOOD_CHECKPOINTS } from './hollywood/index';
 import { foreignLayout, FOREIGN_STAGE, FOREIGN_CHECKPOINTS } from './foreign/index';
+import { ROCKETS_ON } from './foreign/heli/copter';
 import { SPOTS, LANDS } from './hub/lands';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
 import { setGenderOf, unpaired } from '../m1/content/gender';
@@ -417,7 +418,7 @@ const App2: React.FC = () => {
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.heliTips && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex gap-4 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
             <Prompt pad={['X']} kb={['@fire']} mouse="left" label="MACHINE GUN" />
-            <Prompt pad={['Y']} kb={['@secondary']} label="ROCKETS" />
+            {ROCKETS_ON && <Prompt pad={['Y']} kb={['@secondary']} label="ROCKETS" />}
             <span className="inline-flex items-center gap-1 align-middle"><Prompt pad={['DPAD']} kb={['@up', '@down', '@left', '@right']} /><span>+</span><Prompt pad={['B']} kb={['@special']} label="BOOST" /></span>
           </div>
         )}

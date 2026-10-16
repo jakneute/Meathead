@@ -36,6 +36,8 @@ export interface Mech {
   /** Its arrival (mechs.ts reveal): how far it's sunk into the ground (0 stood up, 1 gone under), its legs unfolded
    *  (0 folded up, 1 stood), its eyes open (0 shut), its shake (px). Before it: a replica on its plinth. */
   sink: number; unfold: number; open: number; shake: number;
+  /** Its stomp in from where it came up to its plinth (0 .. 1: there). */
+  walk: number;
   /** How long its arrival takes (frames: the first's the longest). */
   introLen: number;
 }
@@ -90,6 +92,12 @@ export interface Heli {
   /** The view: the stage's zoom (1 on the pad, Z in the air), the reveal's pull back (1: none); how high the park's
    *  camera has got (0 on the pad, 1 up). */
   zoom: number; pull: number; up: number;
+  /** Where on screen the pull's about (the screen's middle; the cabin for the kick's punch in). */
+  pullX: number; pullY: number;
+  /** The last frame he killed something (his snarl in the seat). */
+  killAt: number;
+  /** Lackeys during a fight: the next group's frame (0: not counting), how many groups so far. */
+  fightGoonAt: number; fightGoonN: number;
   /** Cutscene bits: the step it's on, done flags; the skip. */
   step: number; flags: Record<string, boolean>;
   /** The camera's ours (cameraOverride) from the lift on; where it's got to. */
@@ -107,6 +115,6 @@ export const heliOf = (state: GameState) => foreignState<Heli>(state, 'heli', ()
   gunCd: 0, charges: 3, rockets: [], wasY: false, wasB: false, booms: [], prog: -2.6, spin: 0, mechs: [], cur: 0,
   waves: [], waveAt: 0, transit: false, transitFrom: 0, transitT: 0, goons: [], shots: new Map(), beams: [], drops: [], minions: [],
   harry: null, harryBusy: false, mech: null, guest: null, goonSaid: null, guestAt: -9999, heckleAt: 0, goonBarkAt: -9999, gloatAt: -9999, lastHp: -1,
-  hx: 0, hy: 0, hvx: 0, hvy: 0, hpose: 'wave', turned: false, hop: 0, remote: 0, hfacing: 1, zoom: 1, pull: 1, up: 0, step: 0, flags: {}, cam: false, camX: 0, camY: 0,
+  hx: 0, hy: 0, hvx: 0, hvy: 0, hpose: 'wave', turned: false, hop: 0, remote: 0, hfacing: 1, zoom: 1, pull: 1, up: 0, pullX: 400, pullY: 300, killAt: -999, fightGoonAt: 0, fightGoonN: 0, step: 0, flags: {}, cam: false, camX: 0, camY: 0,
   hrocket: null, fall: 0, white: 0, tips: 0, over: false,
 }));

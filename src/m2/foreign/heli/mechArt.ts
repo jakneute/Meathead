@@ -12,7 +12,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { Mech, Heli, Boom } from './state';
 import { LEG, CY } from './geo';
-import { EYES, PISA_DOWN, groundY, pisaPivot } from './mechs';
+import { EYES, PISA_DOWN, groundY, pisaPivot, BEAM_LOCK } from './mechs';
 import type { MechId } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -403,6 +403,8 @@ export const drawAttacks = (c: Ctx, state: GameState, h: Heli) => {
       c.globalAlpha = 0.55; c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(b.x, b.y); c.lineTo(ex, ey); c.stroke();
       c.globalAlpha = 0.5 + 0.5 * ((b.t >> 2) % 2); c.strokeStyle = b.src === 'm2:fl_redeemer_arms' ? '#FEE2E2' : b.col; c.lineWidth = 3; c.beginPath(); c.moveTo(b.x, b.y); c.lineTo(ex, ey); c.stroke();
       c.setLineDash([]); c.globalAlpha = 0.6; c.fillStyle = b.col; c.beginPath(); c.arc(b.x, b.y, 8 + (b.t % 10), 0, Math.PI * 2); c.fill();
+      // (a tracking beam's lock: solid and flashing white, the whole width it'll fire at, just before it does)
+      if (b.track && b.t > b.warn - BEAM_LOCK) { c.globalAlpha = (b.t >> 1) % 2 ? 0.85 : 0.35; c.strokeStyle = '#FFFFFF'; c.lineWidth = b.w; c.beginPath(); c.moveTo(b.x, b.y); c.lineTo(ex, ey); c.stroke(); }
       c.restore();
       if (b.src !== 'm2:fl_redeemer_arms') continue;
     }

@@ -17,25 +17,27 @@ import { enemyProjectile, hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { pickLine } from '../../../m1/game/platform/speech';
-import { byPants } from '../cast';
 import { meatheadSays } from '../section';
 import { heliOf, type Mech, type ShotLook, type Beam, type Drop, type Minion, type Heli } from './state';
 import { BASE, LEG, CAMX, CY, W, H, Z, fx, toScreen } from './geo';
-import { ringY } from './park';
+import { ringY, mechGround } from './park';
 import { MECHS, MECH_TALK, HARRY_LOST, HARRY_SEND, MH_KILL, PISA_FALL, PISA_MISSED, PISA_GOT_HIM, MH_PISA_MISSED, type MechId } from './lines';
-import { harrySays, mechSays } from './talk';
+import { harrySays, mechSays, harryFrom, harryPick } from './talk';
 
 export interface Rect { x: number; y: number; w: number; h: number }
 const overlap = (a: Rect, b: Rect) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
 /** Each one's health (the big ones last). HP_SCALE multiplies the damage they take, so 2 is half as long a fight
  *  (2: trimmed for length, the user: a land plays ~5 min; each landmark ~15-20 s). */
-const HP_SCALE = 2;
+const HP_SCALE = 1.6;
 const HP: Record<MechId, number> = { eiffel: 3600, opera: 4000, redeemer: 4400, pisa: 1, taj: 4800, bigben: 5000, colosseum: 5400, pyramid: 5800, moai: 6600 };
 /** What a machine-gun round does to one (the engine's 22 is for people). */
 const ROUND_MECH = 10;
+/** How hard everything of theirs hits him (the user: a little harder: their shots, beams, drops, minions and their
+ *  bodies; not the Leaning Tower's fall, which kills anyway, nor the lackeys'). */
+const MECH_DMG = 1.3;
 /** Their shots' hurt (the engine halves it, then the M2 soak). */
-const SHOT = 14, BIG_SHOT = 20;
+const SHOT = Math.round(14 * MECH_DMG), BIG_SHOT = Math.round(20 * MECH_DMG);
 const kindOf = (id: MechId) => `m2:fl_mech_${id}`;
 
 /** Where the ground is under world x: the circuit's near side, down in the park (what they throw lands there). */
@@ -156,6 +158,10 @@ const ring = (state: GameState, id: MechId, x: number, y: number, n: number, spe
     shot(state, id, x, y, Math.cos(a) * speed, Math.sin(a) * speed, look);
   }
 };
+/** A tracking beam's lock: the last frames of its warning, held still and flashing before it fires. */
+export const BEAM_LOCK = 22;
+/** A boost's first frames can't be hurt by a beam (the boost's 16 frames: while it's got more than this left). */
+const BOOST_PROOF = 4;
 const beam = (state: GameState, b: Omit<Beam, 't'>) => { heliOf(state).beams.push({ ...b, t: 0 }); playSound('alienCharge', 0.6, 4); };
 const drop = (state: GameState, kind: Drop['kind'], x: number, w: number, warn: number, src: string) => { heliOf(state).drops.push({ kind, x, w, t: 0, warn, y: CY - 260, src }); playSound('alert', 0.4, 4); };
 const minion = (state: GameState, kind: Minion['kind'], x: number, y: number, vx: number, vy: number, src: string) => {
@@ -186,7 +192,7 @@ const MOVES: Record<MechId, Move[]> = {
   eiffel: [
     { len: 90, tick: ({ state }, m, t) => { if (t % 22 === 1 && t < 70) { const o = at(0, -LEG - 370); fan(state, m.id, o.x, o.y, 5, 0.6, 4.2, L.rivet); playSound('clink', 0.5, 2); } } },
     { len: 160, tick: ({ state }, m, t) => { if (t % 5 === 0 && t < 150) { const o = at(0, -LEG - 180); for (let k = 0; k < 3; k++) { const a = t * 0.11 + k * 2.094; shot(state, m.id, o.x, o.y, Math.cos(a) * 3.2, Math.sin(a) * 3.2, L.rivet); } } } },
-    { len: 150, tick: ({ state }, m, t) => { if (t === 1) { const o = at(0, -LEG - 360); beam(state, { x: o.x, y: o.y, a: aimAng(state, o.x, o.y), len: 900, w: 24, warn: 55, fire: 80, turn: 0, track: 0.008, src: 'm2:fl_eiffel_beam', col: '#FEF08A', dmg: 12 }); } } },
+    { len: 150, tick: ({ state }, m, t) => { if (t === 1) { const o = at(0, -LEG - 360); beam(state, { x: o.x, y: o.y, a: aimAng(state, o.x, o.y), len: 900, w: 18, warn: 80, fire: 80, turn: 0, track: 0.008, src: 'm2:fl_eiffel_beam', col: '#FEF08A', dmg: 12 }); } } },
     { len: 100, tick: ({ state }, m, t) => { if (t % 20 === 10 && t < 80) { const o = at(t % 40 === 10 ? -90 : 90, -LEG - 110); minion(state, 'keychain', o.x, o.y, -2, -1, 'm2:fl_mech_eiffel_shot'); playSound('clink', 0.6, 8); } } },
   ],
   // THE OPERA HOUSE: music in waves, its shells clapping shut (a ring), the high C (big slow notes that burst), seagulls
@@ -238,7 +244,7 @@ const MOVES: Record<MechId, Move[]> = {
   ],
   // THE GREAT PYRAMID: the eye on its top (a beam that follows him), blocks lobbed, a sand spiral, scarabs
   pyramid: [
-    { len: 160, tick: ({ state }, m, t) => { if (t === 1) { const o = at(0, -LEG - 285); beam(state, { x: o.x, y: o.y, a: aimAng(state, o.x, o.y), len: 900, w: 20, warn: 45, fire: 100, turn: 0, track: 0.011, src: 'm2:fl_pyramid_eye', col: '#F472B6', dmg: 12 }); } } },
+    { len: 160, tick: ({ state }, m, t) => { if (t === 1) { const o = at(0, -LEG - 285); beam(state, { x: o.x, y: o.y, a: aimAng(state, o.x, o.y), len: 900, w: 15, warn: 75, fire: 100, turn: 0, track: 0.011, src: 'm2:fl_pyramid_eye', col: '#F472B6', dmg: 12 }); } } },
     { len: 110, tick: ({ state }, m, t) => { if (t % 14 === 1 && t < 84) { const o = at(-60, -LEG - 220), p = P(state); shot(state, m.id, o.x, o.y, Math.max(-9, (p.x - o.x) / 70), -5.5 + Math.random(), L.block, BIG_SHOT); playSound('thud', 0.5, 4); } } },
     { len: 130, tick: ({ state }, m, t) => { if (t % 5 === 0 && t < 120) { const o = at(0, -LEG - 180); for (let k = 0; k < 4; k++) { const a = -t * 0.08 + k * Math.PI / 2; shot(state, m.id, o.x, o.y, Math.cos(a) * 2.8, Math.sin(a) * 2.8, L.orb('#FCD34D', 7)); } } } },
     { len: 80, tick: ({ state }, m, t) => { if (t % 10 === 5 && t < 55) { const o = at(-100 + t * 2, -LEG - 60); minion(state, 'scarab', o.x, o.y, -2, -2, 'm2:fl_mech_pyramid_shot'); playSound('chitter', 0.5, 10); } } },
@@ -259,25 +265,25 @@ const MOVES: Record<MechId, Move[]> = {
 export const makeMechs = (): Mech[] => MECHS.map((id, i) => ({
   id, i, hp: HP[id] * (id === 'pisa' ? 1 : 1), max: HP[id], st: 'wait', t: 0, move: -1, mt: 0, gap: 90, last: -1, flash: 0, hurtSaid: false,
   eyes: [{ x: 0, y: 0, vx: 0, vy: 0 }, { x: 0, y: 0, vx: 0, vy: 0 }], a: 0, b: 0, k: 0, lean: 0.07, lv: 0, pinged: -99, talkAt: 0,
-  sink: 0, unfold: -1, open: 0, shake: 0, introLen: 200,
+  sink: 0, unfold: -1, open: 0, shake: 0, introLen: 200, walk: 0,
 }));
 
 /** Its arrival's length (frames): the Eiffel Tower's, the first, the full build-up (~5.5 s); the rest shorter (~3.3 s),
  *  so each one still ARRIVES. */
-const INTRO_FIRST = 330, INTRO = 200;
+const INTRO_FIRST = 380, INTRO = 300;
 
 /** On: it's come round in front of him (the checkpoint's its; Harry yells it up with his remote; it comes up out of
  *  the ground and introduces itself). Nothing of the last lot's left flying: nothing hurts him while it arrives. */
 export const startMech = (state: GameState, i: number) => {
   const h = heliOf(state), m = h.mechs[i];
   h.cur = i; m.st = 'intro'; m.t = 0; m.hp = m.max; m.lean = 0.07;
-  m.introLen = i === 0 ? INTRO_FIRST : INTRO; m.sink = 0; m.unfold = -1; m.open = 0; m.shake = 0;
+  m.introLen = i === 0 ? INTRO_FIRST : INTRO; m.sink = 0; m.unfold = -1; m.open = 0; m.shake = 0; m.walk = 0;
   for (const q of state.projectiles) if (q.owner !== 'player') q.health = 0;
   for (const q of h.shots.keys()) q.health = 0;
   h.shots.clear(); h.beams = []; h.drops = []; h.minions = [];
   h.remote = Math.min(m.introLen, 200);
   playSound('rumble', 0.8, -8);
-  harrySays(state, pickLine(byPants(state, HARRY_SEND[m.id])), true, () => {
+  harrySays(state, harryFrom(state, HARRY_SEND[m.id]), true, () => {
     const intro = MECH_TALK[m.id].intro;
     if (m.id === 'moai') mechSays(state, 'moai', intro[0], true, () => mechSays(state, 'moai', intro[1], true));
     else mechSays(state, m.id, pickLine(intro), true);
@@ -299,7 +305,7 @@ export const updateMechs = (ctx: FrameContext) => {
   if (m && (m.st === 'intro' || m.st === 'fight' || m.st === 'dying')) {
     m.t++;
     if (m.st === 'intro') arrive(ctx, h, m);
-    if (m.st === 'intro' && m.t > m.introLen) { m.st = 'fight'; m.t = 0; m.talkAt = m.id === 'pisa' ? 90 : 500 + Math.random() * 300; m.gap = 30; m.sink = 0; m.unfold = 1; m.open = 1; m.shake = 0; h.pull = 1; }
+    if (m.st === 'intro' && m.t > m.introLen) { m.st = 'fight'; m.t = 0; m.talkAt = m.id === 'pisa' ? 90 : 500 + Math.random() * 300; m.gap = 30; m.sink = 0; m.unfold = 1; m.open = 1; m.shake = 0; m.walk = 1; h.pull = 1; }
     if (m.st === 'fight') {
       if (m.id === 'pisa') pisa(ctx, h, m);
       else fight(ctx, m);
@@ -315,7 +321,7 @@ export const updateMechs = (ctx: FrameContext) => {
     // (him flying into it)
     if (boxes.length && p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && !h.boost) {
       const pb = { x: p.pos.x + 6, y: p.pos.y + 6, w: p.width - 12, h: p.height - 12 };
-      if (boxes.some(r => overlap(r, pb))) hurtPlayer(ctx, 14, kindOf(m.id), { x: -8, y: 0 });
+      if (boxes.some(r => overlap(r, pb))) hurtPlayer(ctx, Math.round(14 * MECH_DMG), kindOf(m.id), { x: -8, y: 0 });
     }
   }
   updateShots(state);
@@ -336,42 +342,55 @@ export const updateMechs = (ctx: FrameContext) => {
 //   its googly eyes SNAP open on him, a klaxon and a roar;
 //   a beat of stillness, its line; then it attacks.
 
-const P1 = 0.24, P2 = 0.36, P3 = 0.48, P4 = 0.66, P5 = 0.76;
+const P1 = 0.14, P2 = 0.22, P3 = 0.3, P4 = 0.42, P5 = 0.48, WALKED = 0.9;
 const easeOut = (k: number) => 1 - (1 - k) * (1 - k);
 const dust = (state: GameState, n: number, spread: number, up: number, col = '#A8977E') => {
   for (let i = 0; i < n; i++) state.particles.push({ pos: { x: BASE.x + (Math.random() - 0.5) * spread, y: BASE.y - Math.random() * 10 }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * up }, life: 40 + Math.random() * 40, color: i % 3 ? col : '#6B5B45', size: 6 + Math.random() * 10 });
 };
 const arrive = (ctx: FrameContext, h: Heli, m: Mech) => {
-  const { state } = ctx, t = m.t, L = m.introLen, k = t / L, at = (q: number) => t === Math.round(q * L);
+  const { state } = ctx, t = m.t, L = m.introLen, k = t / L;
   if (k < P1) {
-    m.unfold = -1; m.sink = 0; m.shake = (k / P1) * 3;
+    // (the replica on its plinth, shaking, the ground cracking under it)
+    m.unfold = -1; m.sink = 0; m.walk = 0; m.shake = (k / P1) * 3;
     if (t % 18 === 1) { playSound('rumble', 0.6 + k, -12); shakeScreen(state, 2 + k * 8, 4); }
-    if (t % 6 === 0) dust(state, 2, 200, 3);
   } else if (k < P2) {
-    if (at(P1) || t === Math.ceil(P1 * L)) { playSound('crash', 0.9, -12); playSound('crumble', 1, -8); shakeScreen(state, 12, 10); dust(state, 30, 260, 7); }
+    // (swallowed)
+    if (t === Math.ceil(P1 * L)) { playSound('crash', 0.9, -12); playSound('crumble', 1, -8); shakeScreen(state, 12, 10); }
     m.sink = easeOut((k - P1) / (P2 - P1)); m.shake = 2;
   } else if (k < P3) {
+    // (a beat under: somewhere else in the park the ground heaves)
     m.sink = 1; m.shake = 0;
-    if (t % 10 === 0) { dust(state, 3, 160, 4); shakeScreen(state, 3, 3); }
+    if (t % 10 === 0) shakeScreen(state, 3, 3);
   } else if (k < P4) {
+    // (it bursts up out of its own place in the park, crouched on its legs)
     const q = (k - P3) / (P4 - P3);
-    if (m.unfold < 0) { m.unfold = 0; playSound('boom', 1, -16); playSound('crash', 1, -8); playSound('whoosh', 1, -10); shakeScreen(state, 22, 14); dust(state, 50, 300, 11); for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: BASE.x + (Math.random() - 0.5) * 160, y: BASE.y - 10 }, vel: { x: (Math.random() - 0.5) * 12, y: -6 - Math.random() * 10 }, life: 50, color: i % 2 ? '#57534E' : '#3F3A35', size: 6 + Math.random() * 8 }); }
-    // (up out of the hole, a little past standing height, and back)
-    m.sink = q < 0.75 ? 1 - easeOut(q / 0.75) * 1.05 : -0.05 + (q - 0.75) / 0.25 * 0.05;
+    if (m.unfold < 0) { m.unfold = 0; playSound('boom', 1, -16); playSound('crash', 1, -8); playSound('whoosh', 1, -10); shakeScreen(state, 22, 14); }
+    m.sink = q < 0.75 ? 1 - easeOut(q / 0.75) * 1.05 : -0.05 + ((q - 0.75) / 0.25) * 0.05;
     m.unfold = 0; m.shake = 1.5;
   } else if (k < P5) {
     m.sink = 0; m.shake = 0;
     m.unfold = Math.min(1, (k - P4) / (P5 - P4));
     if (t % 8 === 0) playSound('clang', 0.4, 8);
   } else {
+    // (its eyes snap open on him; then it STOMPS in to its plinth through whatever's in the way: cars, pavilions,
+    // guests; each step a thud; car alarms crossing the lot; then still)
     m.unfold = 1;
     if (m.open === 0) { playSound('alarm', 1, -6); playSound('roar', 0.9, -10); shakeScreen(state, 8, 6); }
     m.open = Math.min(1, m.open + 0.25);
+    const w = Math.min(1, (k - P5) / (WALKED - P5));
+    m.walk = w;
+    if (w < 1 && t % 22 === 0) {
+      playSound('stomp', 0.8, -12); shakeScreen(state, 4, 3);
+      const g = mechGround(m), r = Math.hypot(g.x, g.z);
+      if (r > 740 && r < 1420) { playSound('crunch', 0.6, -4); if (Math.random() < 0.5) playSound('alarm', 0.25, 10); }
+      else if (r > 268 && r < 505) { playSound('crash', 0.6, -6); playSound('screams', 0.3, 4); }
+      else if (r < 220) playSound('splash', 0.7, -8);
+    }
+    if (w >= 1 && m.walk === 1 && t === Math.ceil(WALKED * L)) { dust(state, 30, 260, 6); playSound('stomp', 1, -16); shakeScreen(state, 10, 6); }
   }
-  // (the view pulling back as it comes up, easing in again in the stillness)
-  const pb = k < P2 ? 0 : k < P4 ? (k - P2) / (P4 - P2) : k < P5 ? 1 : 1 - (k - P5) / (1 - P5);
-  h.pull = 1 - 0.13 * (pb * pb * (3 - 2 * pb));
-  void at;
+  // (the view pulling back as it comes up and in, easing back in the stillness)
+  const pb = k < P2 ? 0 : k < P4 ? (k - P2) / (P4 - P2) : k < WALKED ? 1 : 1 - (k - WALKED) / (1 - WALKED);
+  h.pull = 1 - 0.13 * (pb * pb * (3 - 2 * pb)); h.pullX = 400; h.pullY = 300;
 };
 
 const fight = (ctx: FrameContext, m: Mech) => {
@@ -463,7 +482,7 @@ const dying = (ctx: FrameContext, h: Heli, m: Mech) => {
 const afterKill = (state: GameState, m: Mech) => {
   const lost = HARRY_LOST[m.id];
   const mh = () => { const l = MH_KILL[m.id]; if (l.length && Math.random() < 0.6 && state.player.health > 0) meatheadSays(state, pickLine(l), false); };
-  if (lost.length) harrySays(state, pickLine(lost), true, mh); else mh();
+  if (lost.length) harrySays(state, harryPick(lost), true, mh); else mh();
 };
 /** The landmark he's on is done with (wrecked, or the tower down): on to the next. */
 export const mechDone = (state: GameState) => { const h = heliOf(state), m = h.mechs[h.cur]; return !!m && m.st === 'dead'; };
@@ -492,14 +511,18 @@ const updateBeams = (ctx: FrameContext) => {
   const { state } = ctx, h = heliOf(state), p = state.player, pc = P(state);
   for (const b of h.beams) {
     b.t++;
-    if (b.track) { const want = Math.atan2(pc.y - b.y, pc.x - b.x); let d = want - b.a; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; b.a += Math.max(-b.track, Math.min(b.track, d)) * (b.t < b.warn ? 3 : 1); }
+    // (a tracking beam: its thin aim line follows him, then LOCKS (the last LOCK frames of its warning: it holds still,
+    // flashing), then fires, following only slowly: a boost or a hard turn gets clear of it)
+    if (b.track && !(b.t > b.warn - BEAM_LOCK && b.t <= b.warn)) { const want = Math.atan2(pc.y - b.y, pc.x - b.x); let d = want - b.a; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; b.a += Math.max(-b.track, Math.min(b.track, d)) * (b.t < b.warn ? 2 : 0.45); }
     if (b.t > b.warn) {
       b.a += b.turn;
       if (b.t === b.warn + 1) playSound('alienBeam', 0.7, b.src === 'm2:fl_bigben_hand' ? -12 : 0);
       const ex = b.x + Math.cos(b.a) * b.len, ey = b.y + Math.sin(b.a) * b.len;
-      if (p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && segDist(pc.x, pc.y, b.x, b.y, ex, ey) < b.w / 2 + 14) {
+      // (the start of a boost is beam-proof: every beam, a boost through it clears it)
+      const boosting = !!h.boost && h.boost.t > BOOST_PROOF;
+      if (!boosting && p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && segDist(pc.x, pc.y, b.x, b.y, ex, ey) < b.w / 2 + 14) {
         const nx = -Math.sin(b.a), ny = Math.cos(b.a), side = Math.sign((pc.x - b.x) * nx + (pc.y - b.y) * ny) || 1;
-        hurtPlayer(ctx, b.dmg, b.src, { x: nx * side * 7, y: ny * side * 7 });
+        hurtPlayer(ctx, Math.round(b.dmg * MECH_DMG), b.src, { x: nx * side * 7, y: ny * side * 7 });
       }
     }
   }
@@ -525,7 +548,7 @@ const updateDrops = (ctx: FrameContext) => {
       if (d.y + hgt >= gy) { d.done = true; playSound(d.kind === 'minaret' ? 'crash' : 'thud', 0.8, -6); shakeScreen(state, d.kind === 'minaret' ? 10 : 4, 4); for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * d.w, y: gy - 6 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 30, color: d.kind === 'minaret' ? '#F8FAFC' : '#A8A29E', size: 3 + Math.random() * 4 }); }
     }
     const box = { x: d.x - d.w / 2, y: d.y, w: d.w, h: hgt };
-    if (p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && overlap(box, { x: p.pos.x + 4, y: p.pos.y + 4, w: p.width - 8, h: p.height - 8 })) hurtPlayer(ctx, d.kind === 'rock' ? 12 : 16, d.src, { x: (P(state).x < d.x ? -1 : 1) * 8, y: 5 });
+    if (p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && overlap(box, { x: p.pos.x + 4, y: p.pos.y + 4, w: p.width - 8, h: p.height - 8 })) hurtPlayer(ctx, Math.round((d.kind === 'rock' ? 12 : 16) * MECH_DMG), d.src, { x: (P(state).x < d.x ? -1 : 1) * 8, y: 5 });
   }
   h.drops = h.drops.filter(d => !d.done);
 };
@@ -552,7 +575,7 @@ const updateMinions = (ctx: FrameContext) => {
     // (his rounds)
     for (const q of state.projectiles) if (q.owner === 'player' && q.health > 0 && Math.abs(q.pos.x + q.width / 2 - n.x) < n.r + q.width / 2 && Math.abs(q.pos.y + q.height / 2 - n.y) < n.r + 4) { q.health = 0; hurtMinion(ctx, n, 22); }
     // (into him)
-    if (!n.dead && p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && Math.abs(pc.x - n.x) < n.r + 18 && Math.abs(pc.y - n.y) < n.r + 26) { hurtPlayer(ctx, 12, n.src, { x: n.vx > 0 ? 6 : -6, y: -3 }); if (n.kind !== 'lion' && n.kind !== 'head' && n.kind !== 'gear') n.dead = true; }
+    if (!n.dead && p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && Math.abs(pc.x - n.x) < n.r + 18 && Math.abs(pc.y - n.y) < n.r + 26) { hurtPlayer(ctx, Math.round(12 * MECH_DMG), n.src, { x: n.vx > 0 ? 6 : -6, y: -3 }); if (n.kind !== 'lion' && n.kind !== 'head' && n.kind !== 'gear') n.dead = true; }
     if (n.x < CAMX - 80 || n.x > CAMX + W + 100 || n.y > CY + H + 100 || n.t > 900) n.dead = true;
   }
   h.minions = h.minions.filter(n => !n.dead);
