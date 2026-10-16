@@ -64,6 +64,8 @@ const Y_HOLD = 14;
 
 type Mode = 'idle' | 'swing' | 'airSwing' | 'launch' | 'pound' | 'windup' | 'smash' | 'land' | 'tornado' | 'spinup';
 let mode: Mode = 'idle', t = 0, dir: 1 | -1 = 1;
+/** Bounced back off one with a breather (the tornado's one hit): the landing doesn't stop him dead. */
+let rebound = false;
 /** X: held how long; Y: held how long, and whether it was let go this frame. */
 let xHeld = 0, yHeld = 0, yWas = false, xWas = false;
 /** Who this one's hit (each only once a hit). */
@@ -86,6 +88,15 @@ const noteBig = (state: GameState, e: Enemy, how: MalletHow) => {
   if (lastBig && lastBig.e === e && lastBig.how === 'smash' && how !== 'smash') return;
   lastBig = { e, how, frame: state.frame };
 };
+/** Mid-bosses (their kinds) whose fights read takeMalletHit and show the real damage themselves: no number of the
+ *  mallet's own over theirs. */
+const readers = new Set<string>();
+/** Of those, the ones with a breather after a hit (i-frames, main-boss rules): the tornado's later rounds would only be
+ *  swallowed, so it lands once on them, a plain swing's hit, and he's bounced back off them, the tornado over. */
+const breathers = new Set<string>();
+export const malletReadBy = (kind: string, o: { breather?: boolean } = {}) => { readers.add(kind); if (o.breather) breathers.add(kind); };
+const hasBreather = (e: Enemy) => !!e.kind && breathers.has(e.kind);
+const ownNumber = (e: Enemy) => !e.kind || !readers.has(e.kind);
 /** The mallet hit that last landed on this one (taken: read once), or null. */
 export const takeMalletHit = (e: Enemy): { how: MalletHow; frame: number } | null => {
   if (!lastBig || lastBig.e !== e) return null;
@@ -137,7 +148,7 @@ const toonKill = (ctx: FrameContext, e: Enemy, how: 'fling' | 'launch' | 'flatte
 };
 
 /** One hit landing on him: the damage, the word, the sound; dead, a cartoon death; alive, sent the way it goes. */
-const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: number }, how: 'fling' | 'launch' | 'flatten') => {
+const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: number }, how: 'fling' | 'launch' | 'flatten', as?: MalletHow) => {
   const { fx, state } = ctx;
   struck.add(e);
   const cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height * 0.4;
@@ -146,7 +157,7 @@ const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: num
   for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; state.particles.push({ pos: { x: cx, y: cy }, vel: { x: Math.cos(a) * 4, y: Math.sin(a) * 4 }, life: 10, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 3 }); }
   // (one opted in, weapons/half.ts: hurt, and sent half as far, dazed half as long; never the cartoon death)
   if (specialsHalf(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: vel.x * HALF, y: vel.y * HALF }; e.pauseTimer = Math.max(e.pauseTimer || 0, 50 * HALF); return; }
-  if (isMidBoss(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); noteBig(state, e, howNow()); return; }
+  if (isMidBoss(e)) { e.health -= dmg; if (ownNumber(e)) fx.spawnDamageNumber(e.pos, dmg, true); noteBig(state, e, as ?? howNow()); return; }
   // (a blow from in front, at his shield: it's the shield it lands on; he goes flying all the same, but the blow does
   // him no harm (whatever he hits on the way does). The overhead ones, flattening, come down over it)
   if (how !== 'flatten' && shieldTakesBlow(e, vel.x || (cx - (state.player.pos.x + state.player.width / 2)))) {
@@ -174,7 +185,7 @@ const inBox = (state: GameState, x0: number, y0: number, x1: number, y1: number)
 const ARMORED: Mode[] = ['windup', 'spinup', 'smash', 'tornado'];
 let armored = false;
 const syncArmor = () => { const want = ARMORED.includes(mode); if (want !== armored) { armored = want; setArmor(want); } };
-const start = (m: Mode, pl: GameState['player']) => { mode = m; t = 0; dir = pl.facing; struck = new Set(); playSound('whoosh', m === 'tornado' ? 0.6 : 1, m === 'launch' ? 4 : -4); };
+const start = (m: Mode, pl: GameState['player']) => { mode = m; t = 0; rebound = false; dir = pl.facing; struck = new Set(); playSound('whoosh', m === 'tornado' ? 0.6 : 1, m === 'launch' ? 4 : -4); };
 
 const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) => {
   const { state } = ctx;
@@ -317,7 +328,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
           struck.add(e);
           // (one opted in, weapons/half.ts: not flattened, a heavy hit)
           if (specialsHalf(e)) { const h = heavyHit(e); e.health -= h; ctx.fx.spawnDamageNumber(e.pos, h, true); e.pauseTimer = Math.max(e.pauseTimer || 0, 50 * HALF); continue; }
-          if (isMidBoss(e)) { e.health -= 120; ctx.fx.spawnDamageNumber(e.pos, 120, true); noteBig(state, e, 'smash'); continue; }
+          if (isMidBoss(e)) { e.health -= 120; if (ownNumber(e)) ctx.fx.spawnDamageNumber(e.pos, 120, true); noteBig(state, e, 'smash'); continue; }
           toonKill(ctx, e, 'flatten', dir);
         }
         if (!hang) for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: px + dir * 70, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 4 }, life: 24, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 3 });
@@ -326,7 +337,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       if (t >= SMASH.len) mode = 'idle';
       break;
     case 'land':
-      pl.vel.x = 0;
+      if (!rebound) pl.vel.x = 0;
       if (t >= 12) mode = 'idle';
       break;
     case 'tornado': {
@@ -359,12 +370,24 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       if (t % TORNADO.every === 0) {
         struck = new Set();
         const hits = state.enemies.filter(o => alive(o) && Math.abs(o.pos.x + o.width / 2 - px) < TORNADO.radius + o.width / 2 && o.pos.y < fy + (hang ? 40 : 10) && o.pos.y + o.height > fy - 110);
+        let off: Enemy | null = null;
         for (const e of hits) {
           const side = Math.sign(e.pos.x + e.width / 2 - px) || dir;
+          // (one with a breather after a hit (the queen): one hit, a plain swing's, and that's the tornado done)
+          if (isMidBoss(e) && hasBreather(e)) { if (!off) { bonk(ctx, e, SWING.dmg, { x: 0, y: 0 }, 'fling', 'swing'); off = e; } continue; }
           bonk(ctx, e, TORNADO.dmg, { x: side * TORNADO.knock, y: -9 }, 'fling');
         }
         // (worn by what it hits, a bit a go round, never by spinning at nothing)
         if (hits.length && ++spinHits % TORNADO.wear === 0) wearOut(ctx);
+        if (off) {
+          // (bounced back off her: away, a little hop, a beat before he's his own again; dizzy as the tornado ends)
+          const away = -(Math.sign(off.pos.x + off.width / 2 - px) || dir);
+          mode = 'land'; t = 0; rebound = true; pl.facing = dir;
+          pl.vel.x = away * 8; if (!hang) { pl.vel.y = Math.min(pl.vel.y, -4); pl.isGrounded = false; }
+          pl.lockTimer = Math.max(pl.lockTimer, 12); pl.recoiling = true;
+          playSound('boing', 0.8, -6);
+          break;
+        }
       }
       if (!input.shoot || t >= TORNADO.max || !durable(ctx) || offT > 6) { mode = 'land'; t = 0; pl.facing = dir; playSound('boing', 0.8, -6); }
       break;

@@ -24,7 +24,7 @@ import { layOwn, endWalls, endExits, runExits, spaceState, hands, box, teleport,
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
-import { goTo, markLandCleared, noteBossKill, isLandCleared, setUi } from '../../store';
+import { goTo, markLandCleared, noteBossKill, isLandCleared, setUi, keepForRevisits, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { drawBars } from '../../spooky/control/cine';
@@ -36,7 +36,8 @@ import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from '.
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
 import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP } from './basement';
 import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, queenDrops, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom, queenHoldTick, drawBurstFlash } from './fight';
-import { drawBasement, drawDisco, discoLighting, discoGlow, drawShutter } from './lowerArt';
+import { drawBasement, drawDisco, discoLighting, discoGlow, drawShutter, drawDiscoShell } from './lowerArt';
+import { type Piece, type Splat, packPieces, unpackPieces, drawPieces, drawSplats } from './burst';
 
 interface Queen {
   init: boolean;
@@ -50,8 +51,12 @@ interface Queen {
   /** The camera pulled back for her death and the booth's two running out (0..1): in as she goes, out for the walk-away. */
   deathCam: number;
   victory: Victory | null; walk: WalkAway | null;
+  /** A revisit after her weakness death: her pieces where they landed (kept: the store), or null (her corpse). */
+  wreck: { pieces: Piece[]; splats: Splat[] } | null | undefined;
 }
-const queenOf = (state: GameState) => spaceState<Queen>(state, 'queen', () => ({ init: false, fight: 'wait', wonAt: 0, show: null, h: null, f: null, glassBlock: null, holdGate: null, gate: null, holeBlock: null, shutter: 0, shutterTo: 0, deathCam: 0, victory: null, walk: null }));
+/** The store's key for her pieces (a revisit after her weakness death). */
+const WRECK_KEPT = 'space-queen-pieces';
+const queenOf = (state: GameState) => spaceState<Queen>(state, 'queen', () => ({ init: false, fight: 'wait', wonAt: 0, show: null, h: null, f: null, glassBlock: null, holdGate: null, gate: null, holeBlock: null, shutter: 0, shutterTo: 0, deathCam: 0, victory: null, walk: null, wreck: undefined }));
 const showOf = (state: GameState) => { const q = queenOf(state); return (q.show ??= makeShow(state)); };
 const hunterOf = (state: GameState) => { const q = queenOf(state); return (q.h ??= makeHunter(state)); };
 const fightOf = (state: GameState) => { const q = queenOf(state); return (q.f ??= makeFight(state)); };
@@ -175,6 +180,8 @@ export const queen: SpaceSection = {
       if (victoryDone(q.victory) && state.frame - q.wonAt > 60) {
         q.victory = null;
         markLandCleared('space'); noteBossKill();
+        // (her pieces where they lie, for the revisits; a plain death's her corpse)
+        keepForRevisits(WRECK_KEPT, f.blown ? packPieces(f.pieces, f.splats) : null);
         q.walk = playWalkAway(state, { boss: 'space-queen', weakness: f.byWeakness, onDone: () => goTo('hub') });
       }
     }
@@ -225,11 +232,18 @@ export const queen: SpaceSection = {
     drawFallingSlabs(c, state, s);
     drawLadders(c, state, LADDERS);
     drawHides(c, state, h);
+    // (pulled right back for her weakness death: the building round the hall, not whatever's past it)
+    if (queenOf(state).deathCam > 0) drawDiscoShell(c, state);
     drawDisco(c, state, { lights: cleared ? 1 : discoLights(f), ops: cleared ? null : boothOps(f), extinguisher: f.ext2 === 'wall' });
     drawDiscoDoor(c, state, h);
     // (the shutter down in the same doorway, behind him)
     drawShutter(c, state, queenOf(state).shutter);
-    if (cleared && queenOf(state).fight === 'wait') drawQueen(c, DISCO_QX, -1, { pose: 'dead', t: state.frame, ext: 0, alive: 0, beat: 1, free: true });
+    if (cleared && queenOf(state).fight === 'wait') {
+      // (her weakness death: the pieces where they landed; otherwise her, dead on the dance floor)
+      const q = queenOf(state), w = q.wreck === undefined ? (q.wreck = unpackPieces(keptForRevisits(WRECK_KEPT))) : q.wreck;
+      if (w) { drawSplats(c, w.splats); drawPieces(c, w.pieces, state.frame); }
+      else drawQueen(c, DISCO_QX, -1, { pose: 'dead', t: state.frame, ext: 0, alive: 0, beat: 1, free: true });
+    }
     else if (queenOf(state).fight !== 'wait') drawQueenFight(c, state, f);
     drawHunter(c, state, h);
   },

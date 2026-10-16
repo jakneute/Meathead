@@ -89,6 +89,15 @@ export const clearedLands = () => [...cleared];
 export const restoreClearedLands = (ids: string[]) => { cleared.clear(); ids.forEach(id => cleared.add(id)); progressListeners.forEach(l => l()); };
 export const subscribeProgress = (l: () => void) => { progressListeners.add(l); return () => { progressListeners.delete(l); }; };
 
+/** What a cleared land keeps for its revisits beyond being cleared (how its boss was left: the queen's pieces where they
+ *  landed), by key. For the playthrough (state.stageMemo goes with each visit; this doesn't). */
+const kept = new Map<string, string>();
+export const keepForRevisits = (key: string, value: string | null) => { if (value === null) kept.delete(key); else kept.set(key, value); };
+export const keptForRevisits = (key: string) => kept.get(key) ?? null;
+/** All of it (for a save); put back from one. */
+export const allKept = () => Object.fromEntries(kept);
+export const restoreKept = (o: Record<string, string>) => { kept.clear(); Object.entries(o).forEach(([k, v]) => kept.set(k, v)); };
+
 /** Each land's boss's weapon: clearing the land gets it him. */
 const LAND_WEAPON: Record<string, import('../m1/types').WeaponType> = {
   adventure: 'CROSSBOW', frontier: 'FLINTLOCK', fantasy: 'SPELLBOOK', hollywood: 'STUNT_CAR', cartoon: 'MALLET',

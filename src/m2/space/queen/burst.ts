@@ -105,6 +105,20 @@ export const tickPieces = (state: GameState, ps: Piece[], splats: Splat[]) => {
   if (clatter) { playSound(Math.random() < 0.6 ? 'clang' : 'thud', Math.min(0.7, 0.25 + clatter * 0.12), rnd(-2, 10)); }
 };
 
+/** The lot, where it lies (for her revisits: kept once the land's cleared), packed small; and back. */
+export const packPieces = (ps: Piece[], splats: Splat[]) => JSON.stringify({
+  p: ps.map(p => [p.k, Math.round(p.x), Math.round(p.rest ? p.y : GY - p.r), +p.a.toFixed(2), +p.s.toFixed(2), p.flip, +p.seed.toFixed(3)]),
+  s: splats.map(s => [Math.round(s.x), +s.r.toFixed(1), s.red ? 1 : 0]),
+});
+export const unpackPieces = (str: string | null): { pieces: Piece[]; splats: Splat[] } | null => {
+  if (!str) return null;
+  try {
+    const o = JSON.parse(str) as { p: [PieceKind, number, number, number, number, 1 | -1, number][]; s: [number, number, number][] };
+    const pieces = o.p.filter(q => q[0] in RADIUS).map(([k, x, y, a, s, flip, seed]): Piece => ({ k, x, y, vx: 0, vy: 0, a, va: 0, r: RADIUS[k] * s, s, flip, seed, rest: true, hitT: 99, bleed: 0 }));
+    return { pieces, splats: o.s.map(([x, r, red]) => ({ x, r, red: !!red })) };
+  } catch { return null; }
+};
+
 /** The head piece (her words come out of it), or null. */
 export const headPiece = (ps: Piece[]) => ps.find(p => p.k === 'head') ?? null;
 

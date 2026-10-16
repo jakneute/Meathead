@@ -366,6 +366,71 @@ export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: Bo
 
 /** The shutter in the doorway (the same opening the doors were in): a heavy steel roll-down out of its housing up
  *  under the casing's head, slatted, hazard stripes along its foot (0 up, 1 down). World, behind him. */
+// ---------------------------------------------------------------------------------------------------------------
+// The building round the hall, cut away (only seen pulled right back, her weakness death: the whole hall on screen, wall
+// to wall, so the screen's taller than the hall): over the ceiling, its slab, the long-span joists in the dark of the
+// plenum (the ducts, the sprinkler main, the hangers), the roof deck, black above; under the floor, its slab, the piers
+// under the pillars, black below; the outer wall past the far end. Drawn before the hall, which covers its own part.
+
+const SHELL_TOP = GY - 1700, SHELL_BOT = GY + 600;
+const CONC = ['#0E0C12', '#16141B', '#1C1A22', '#26232D', '#34303C'];
+const STEEL_S = ['#101015', '#1F1F26', '#2E2E37', '#4A4A55'];
+export const drawDiscoShell = (c: Ctx, state: GameState) => {
+  if (!shown(state, DISCO_L - 60, DISCO_R + 60)) return;
+  const xl = DISCO_L - 240, xr = DISCO_R + 240, ww = xr - xl, top = GY - 600;
+  // (black, all of it, first)
+  px(c, xl, SHELL_TOP, ww, SHELL_BOT - SHELL_TOP, '#020104');
+  // Over the ceiling. The roof deck (corrugated, its ribs lit along the top), the membrane over it; black above
+  const deck = top - 330;
+  px(c, xl, deck - 26, ww, 26, '#0A0910'); px(c, xl, deck - 26, ww, 2, '#17151C');
+  px(c, xl, deck, ww, 30, CONC[1]);
+  for (let x = xl; x < xr; x += 14) { px(c, x, deck + 2, 6, 26, CONC[2]); px(c, x, deck + 2, 6, 1, CONC[3]); px(c, x + 6, deck + 2, 1, 26, CONC[0]); }
+  // (the plenum: dark, banded darker up toward the deck)
+  const PLEN = ['#06040A', '#08060D', '#0A0710', '#0C0913'];
+  for (let k = 0; k < 4; k++) px(c, xl, deck + 30 + k * 64, ww, k === 3 ? top - 40 - (deck + 30 + k * 64) : 64, PLEN[k]);
+  // (the joists, open web: top chord under the deck, bottom chord over the slab, the webs zigzag between; a column of
+  // each pillar's up through it to the roof)
+  const tc = deck + 34, bc = top - 76;
+  for (const y of [tc, bc]) { px(c, xl, y, ww, 7, STEEL_S[1]); px(c, xl, y, ww, 1, STEEL_S[3]); px(c, xl, y + 6, ww, 1, STEEL_S[0]); }
+  c.strokeStyle = STEEL_S[1]; c.lineWidth = 3; c.beginPath();
+  for (let x = xl, k = 0; x <= xr; x += 48, k++) c.lineTo(x, k % 2 ? bc : tc + 7);
+  c.stroke();
+  c.strokeStyle = STEEL_S[2]; c.lineWidth = 1; c.beginPath();
+  for (let x = xl, k = 0; x <= xr; x += 48, k++) c.lineTo(x - 1, k % 2 ? bc : tc + 7);
+  c.stroke();
+  for (const x of [DISCO_L + 260, DISCO_L + 1060, DISCO_L + 1560, DISCO_R - 40]) { px(c, x - 10, deck + 30, 20, top - 40 - deck - 30, STEEL_S[1]); px(c, x - 10, deck + 30, 3, top - 40 - deck - 30, STEEL_S[2]); px(c, x + 8, deck + 30, 2, top - 40 - deck - 30, STEEL_S[0]); }
+  // (the supply duct along it, galvanized: its seams, its top lit; the sprinkler main under it in red, its hangers)
+  const dy = deck + 120;
+  px(c, xl, dy, ww, 46, '#1E2128'); px(c, xl, dy, ww, 2, '#3A3F4A'); px(c, xl, dy + 2, ww, 10, '#252931'); px(c, xl, dy + 44, ww, 2, '#0C0D11');
+  for (let x = xl + 20; x < xr; x += 96) { px(c, x, dy, 3, 46, '#2E333D'); px(c, x + 3, dy, 1, 46, '#0F1014'); }
+  const sy = bc - 34;
+  px(c, xl, sy, ww, 7, '#3A0C0C'); px(c, xl, sy, ww, 2, '#7F1D1D'); px(c, xl, sy + 6, ww, 1, '#1A0505');
+  for (let x = xl + 40; x < xr; x += 140) { px(c, x, sy - 10, 2, 10, STEEL_S[2]); px(c, x - 3, sy + 7, 8, 2, '#5A1414'); px(c, x, sy + 9, 2, 6, '#71717A'); }
+  // (the slab hung off the bottom chords: rods down to it)
+  for (let x = xl + 24; x < xr; x += 96) px(c, x, bc + 7, 2, top - 40 - bc - 7, STEEL_S[2]);
+  // (the ceiling slab, cut: concrete, its aggregate stippled, its top edge lit dimly, its underside the hall's ceiling)
+  px(c, xl, top - 40, ww, 40, CONC[2]); px(c, xl, top - 40, ww, 2, CONC[3]); px(c, xl, top - 4, ww, 4, CONC[0]);
+  for (let i = 0; i < ww / 6; i++) { const x = xl + hash(i * 1.7) * ww, y = top - 36 + hash(i * 2.3) * 30; px(c, x, y, 2, 1, i % 3 ? CONC[1] : CONC[3]); }
+  // Under the floor. Its structure under the tiles (the ends past them), the slab, the piers under the pillars and
+  // their footings; black below
+  px(c, xl, GY + 4, ww, 52, CONC[1]);
+  px(c, xl, GY + 56, ww, 40, CONC[2]); px(c, xl, GY + 56, ww, 2, CONC[3]); px(c, xl, GY + 94, ww, 2, CONC[0]);
+  for (let i = 0; i < ww / 6; i++) { const x = xl + hash(i * 3.1 + 7) * ww, y = GY + 60 + hash(i * 1.3 + 2) * 30; px(c, x, y, 2, 1, i % 3 ? CONC[1] : CONC[3]); }
+  const PIT = ['#07050A', '#050307', '#030205'];
+  for (let k = 0; k < 3; k++) px(c, xl, GY + 96 + k * 40, ww, 40, PIT[k]);
+  for (const x of [DISCO_L - 40, DISCO_L + 260, DISCO_L + 1060, DISCO_L + 1560, DISCO_R - 40, DISCO_R + 40]) {
+    px(c, x - 18, GY + 96, 36, 90, CONC[1]); px(c, x - 18, GY + 96, 4, 90, CONC[2]); px(c, x + 15, GY + 96, 3, 90, CONC[0]);
+    px(c, x - 36, GY + 186, 72, 18, CONC[1]); px(c, x - 36, GY + 186, 72, 2, CONC[3]);
+  }
+  // The outer walls past each end, the hall's height and the plenum's: block, its courses
+  for (const [x0, w] of [[DISCO_R + 40, 60], [DISCO_L - 100, 60]] as const) {
+    px(c, x0, deck, w, GY + 96 - deck, CONC[1]);
+    for (let y = deck; y < GY + 96; y += 20) px(c, x0, y, w, 1, CONC[0]);
+    for (let y = deck, r = 0; y < GY + 96; y += 20, r++) for (let x = x0 + (r % 2 ? 20 : 0); x < x0 + w; x += 40) px(c, x, y, 1, 20, CONC[0]);
+    px(c, x0, deck, 2, GY + 96 - deck, CONC[2]);
+  }
+};
+
 export const drawShutter = (c: Ctx, state: GameState, k: number) => {
   const D = DOORWAY;
   if (k <= 0 || !shown(state, D.l - 20, D.r + 20)) return;

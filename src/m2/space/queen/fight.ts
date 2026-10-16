@@ -55,7 +55,7 @@ import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { ENEMY_HIT_COOLDOWN, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { takeBites } from '../../weapons/spawner';
-import { takeMalletHit, type MalletHow } from '../../weapons/mallet';
+import { takeMalletHit, malletReadBy, type MalletHow } from '../../weapons/mallet';
 import { type Piece, type Splat, burstQueen, chipQueen, burstSpray, tickPieces, headPiece, drawPieces, drawSplats } from './burst';
 import { setHazardZones } from '../../hazardHit';
 import { ink, limb } from '../../../m1/game/render/npc/kit';
@@ -247,6 +247,9 @@ registerM2Kind({
     return { said: true, free: true };
   },
 });
+// (her fight shows the real damage of a mallet hit on her: not the mallet's own number as well; and she has her
+// breather after a hit, so the tornado lands once on her, a swing's hit, and bounces him back)
+malletReadBy(QUEEN_KIND, { breather: true });
 /** When he last said his piece about grabbing her. */
 let grabSaidAt = -9999;
 

@@ -251,4 +251,4 @@ const drawStairsUp = (c: Ctx, state: GameState) => {
 };
 
 // The space disco, the shutter, the hall's light: disco.ts
-export { drawDisco, drawShutter, discoLighting, discoGlow, type BoothOps } from './disco';
+export { drawDisco, drawDiscoShell, drawShutter, discoLighting, discoGlow, type BoothOps } from './disco';
