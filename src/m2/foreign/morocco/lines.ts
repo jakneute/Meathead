@@ -33,7 +33,18 @@ export const TALK: PavilionTalk = {
     { from: 1700, to: 2050, key: 'tower', lines: ['A TOWER. THE ELEVATOR SAYS OUT OF ORDER. SINCE 1994.', "WHO BUILDS A GIFT SHOP UP A TOWER?"], minH: 400 },
     { from: 2250, to: 3150, key: 'dye', lines: ["VATS OF DYE. IF I FALL IN I'M BLUE FOREVER.", 'IT SMELLS LIKE A HOT DUMPSTER FULL OF PAINT.'] },
     { from: 3150, to: 3600, key: 'hookah', lines: ["THAT GUY'S SMOKING A BONG SHAPED LIKE A LAMP.", "THE SMOKE'S APPLE FLAVORED. STILL SMOKE."] },
+    // (job 4b: the souk, the stampede)
+    { from: 3700, to: 4300, key: 'souk', lines: ["THE SOUK. THE SIGN SAYS SOUP. THERE'S NO SOUP.", 'WATCH FOR CAMELS. THEY PUT IT ON A SIGN. THAT MEANS IT HAPPENS A LOT.'] },
+    { from: 4600, to: 4820, key: 'terrace', lines: ['SWEET TEA. ON A ROOF. IN AFRICA. IN FLORIDA. WHATEVER.', "UP HERE THE CAMELS CAN'T GET ME. NOTHING ELSE CAN EITHER."], minH: 400 },
+    { from: 5100, to: 5400, key: 'corral', lines: ['THE CAMELS ARE BROKEN. THE GATE IS BROKEN. THE WHOLE COUNTRY IS BROKEN.', "CAMEL RIDES. I'D RIDE ONE IF IT WOULD STOP RUNNING ME OVER."] },
   ],
+};
+
+/** A salesman as the herd gets loose (a carpet salesman's voice). */
+export const STAMPEDE: ByPants = {
+  clean: ['CAMELS! THE CAMELS GOT OUT AGAIN!', "STAMPEDE! GET ON A RUG! RUGS ARE FIFTY PERCENT OFF!", 'THEY ONLY GO ONE WAY! AND IT IS THIS WAY!'],
+  shitty: ["CAMELS! THEY SMELLED YOU! THEY'RE RUNNING AT IT!", "STAMPEDE! EVEN THE CAMELS WANT YOU GONE!"],
+  nude: ['CAMELS! RUN! COVER UP! RUN!', "STAMPEDE! THEY'VE NEVER SEEN A NAKED GUY! THEY'RE ANGRY!"],
 };
 
 export const CARPET: ByPants = {
@@ -90,6 +101,10 @@ export const HURT: HurtTable = {
     hurt: ["THE DYE! I'M IN THE DYE!", "HOT! IT'S HOT! AND I'M BLUE!", 'MY BALLS ARE DYED NOW!'],
     death: ['DYED', 'DIED IN A DYE VAT'],
   },
+  'm2:fl_stampede': {
+    hurt: ['CAMELS! FIVE OF THEM! ON ME!', 'TRAMPLED BY FIBERGLASS!', 'A HOOF! IN MY BALLS!'],
+    death: ['TRAMPLED BY RIDE CAMELS', 'STAMPEDED'],
+  },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.carpet, CARPET], [V.snake, SNAKE], [V.camel, CAMEL], [V.hookah, HOOKAH]]);
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.carpet, CARPET], [V.snake, SNAKE], [V.camel, CAMEL], [V.hookah, HOOKAH], [{ m: V.carpet.m, f: V.carpet.m }, STAMPEDE]]);

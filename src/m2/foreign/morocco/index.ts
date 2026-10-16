@@ -4,7 +4,8 @@
 // hookah bro up top. Then the MINARET-ISH TOWER (the gift shop's: its elevator OUT OF ORDER), climbed inside floor by
 // floor to its balcony, and down its far side by the carpets hung off it on poles (they climb back up, too). Then THE
 // TANNERY: a row of dye vats (hot, filthy: in one, he's hurt and out again; the cast too), their rims to hop along,
-// the drying racks over them the high way; the hookah lounge's tent, the spice stall, to the border with France.
+// the drying racks over them the high way; the hookah lounge's tent, the spice stall; then THE SOUK (souk.ts, job 4b:
+// its awnings stepping up and down over the alley, the ride camels stampeding along it), to the border with France.
 //
 // Crude (the first pass): readable boxes with full game feel. Checkpoints 60-69. Outdoors: the time of day's light.
 
@@ -24,6 +25,7 @@ import {
 } from '../kit';
 import { TALK } from './lines';
 import './kinds';
+import { SOUK_CHECKPOINTS, buildSouk, updateSouk, drawSoukBack, drawSoukFront, soukLamps } from './souk';
 
 const { x0, x1 } = SECTIONS.morocco;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -66,6 +68,7 @@ export const MOROCCO_CHECKPOINTS = [
   { name: 'MOROCCO: THE ROOFTOPS', cp: 61, x: X(470), y: GY },
   { name: 'MOROCCO: THE TOWER', cp: 62, x: X(1690), y: GY },
   { name: 'MOROCCO: THE TANNERY', cp: 63, x: X(2240), y: GY },
+  ...SOUK_CHECKPOINTS,
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -174,6 +177,7 @@ export const morocco: ForeignSection = {
   checkpoints: MOROCCO_CHECKPOINTS,
   build: (state) => {
     layOwn(state, runsAround(x0, x1, VATS));
+    buildSouk(state);
     for (const [a, b, h] of ROOFS) solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'ma-roof' });
     for (const [a, b, h] of CRATES) solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'ma-crate' });
     for (const [a, b, h] of [...CARPETS, ...T_FLOORS, BALCONY, ...T_CARPETS, ...RACKS]) ledge(state, X(a), Y(h), b - a, { hidden: true, tag: 'ma-ledge' });
@@ -187,6 +191,7 @@ export const morocco: ForeignSection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player;
     pavilionTalk(state, 'ma', x0, GY, TALK);
+    updateSouk(ctx);
     // The dye vats: walkers keep out; in one, he's scalded and pops back out (the cast too, knocked in)
     setHazardZones(state, 'ma-vats', VATS.map(v => ({ x0: v.a, x1: v.b, y0: GY - 4, y1: GY + VAT_DEEP, ground: true })));
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
@@ -235,7 +240,7 @@ export const morocco: ForeignSection = {
     if (onScreen(v, X(2160), X(2300))) postBoard(c, X(2230), GY, ['THE TANNERY', 'DO NOT SWIM', 'IN THE DYE'], LOOKS.morocco(1), '#7C2D12', undefined, 120);
     if (onScreen(v, X(TENT.a), X(TENT.b))) hungBoard(c, X((TENT.a + TENT.b) / 2), Y(TENT.h) + 30, Y(TENT.h) + 56, ['HOOKAH LOUNGE', 'APPLE. ONLY APPLE.'], LOOKS.morocco(1), TILEBLUE);
     if (onScreen(v, X(SPICE.a), X(SPICE.b))) hungBoard(c, X((SPICE.a + SPICE.b) / 2), Y(SPICE.h) - 4, Y(SPICE.h) - 40, ['SPICES', 'MILD (ALL OF THEM)'], LOOKS.morocco(1), '#7C2D12');
-    if (onScreen(v, X(3540), X(3600))) postBoard(c, X(3560), GY, ['LEAVING MOROCCO', 'SHUKRAN (CHEERS)'], LOOKS.morocco(1), TILEBLUE, undefined, 160);
+    drawSoukBack(c, v, state);
     // (the flag: red, the green star)
     if (onScreen(v, X(20), X(120))) {
       const fx = X(40);
@@ -247,11 +252,13 @@ export const morocco: ForeignSection = {
     }
     void lantern; void timeOfDay; void hole;
   },
+  drawFront: (c, state) => drawSoukFront(c, viewIn(state), state),
   outdoors: () => 1,
   lamps: (state) => {
     const v = viewIn(state), out: Light[] = [];
     for (const [a, b] of [[700, 860], [1020, 1180], [1340, 1500]] as const) if (onScreen(v, X(a), X(b))) out.push({ x: X((a + b) / 2), y: Y(310), r: 140, a: 0.4, color: '#FDBA74' });
     if (onScreen(v, X(TENT.a), X(TENT.b))) out.push({ x: X(3300), y: Y(110), r: 150, a: 0.45, color: '#FCA5A5' });
+    out.push(...soukLamps(v));
     return out;
   },
 };
