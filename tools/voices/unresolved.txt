@@ -1,9 +1,9 @@
 m2/hub/index.ts:121 name: AMERICA_DENY
 m2/weapons/soulSucker.ts:191 name: FULL_BAG_LINES
 m2/weapons/soulSucker.ts:330 name: EMPTY_BAG_LINES
-m2/weapons/mallet.ts:192 name: DUCK_LINES
 m2/weapons/spellbook.ts:368 name: BULK_LINES
 m2/weapons/spellbook.ts:373 name: BULK_FAIL_LINES
+m2/weapons/mallet.ts:214 name: DUCK_LINES
 m2/intro/index.ts:345 name: MEATHEAD_PARKED
 m2/intro/index.ts:632 name: MEATHEAD_TICKET
 m2/intro/index.ts:634 name: MEATHEAD_TICKET
@@ -77,10 +77,11 @@ m2/space/crater/house.ts:134 voice: pick(L.XENO_ARRIVED)
 m2/space/crater/rigs.ts:167 voice: pick(L.BOO)
 m2/space/crater/kinds.ts:73 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
 m2/space/queen/show.ts:111 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
-m2/space/queen/fight.ts:238 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:244 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:254 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
-m2/space/queen/fight.ts:399 voice: pick(L.BOOTH_RAY[dressed(state)])
+m2/space/queen/fight.ts:259 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:265 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:275 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
+m2/space/queen/fight.ts:426 voice: pick(L.BOOTH_RAY[dressed(state)])
+m2/space/queen/fight.ts:841 voice: voice('m2.space.queen')
 m2/hollywood/blvd/index.ts:46 voice: line
 m2/hollywood/blvd/index.ts:93 voice: false
 m2/hollywood/blvd/kinds.ts:63 voice: false

@@ -26851,6 +26851,36 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "DENT DETECTED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "DENT DETECTED. NUDITY DETECTED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "DENT DETECTED. STAIN DETECTED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "DOES NOT COMPUTE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "DOES NOT COMPUTE. NEITHER DOES THAT SMELL.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "DOES NOT COMPUTE. WHERE ARE YOUR PANTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "ERROR. ERROR. THAT WAS MY SON.",
   "from": "SPACE"
  },
@@ -26966,6 +26996,21 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "MALFUNCTION.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "MALFUNCTION. HIS PANTS TOO.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "MALFUNCTION. HIS TOO, APPARENTLY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "MOTOR OIL. FINALLY, SOMETHING TO COVER YOU.",
   "from": "SPACE"
  },
@@ -26986,6 +27031,21 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "NOT THE HAMMER.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "NOT THE HAMMER. NOT THE OTHER HAMMER.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "NOT THE HAMMER. NOT THE PANTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "NOW ENTERING LESS FATAL MODE.",
   "from": "SPACE"
  },
@@ -27002,6 +27062,21 @@
  {
   "voice": "m2.space.queen",
   "text": "OW. AND PUT THAT AWAY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "OW. OW. EW.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "OW. OW. OW.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "OW. OW. OW. PUT IT AWAY.",
   "from": "SPACE"
  },
  {
@@ -27112,6 +27187,21 @@
  {
   "voice": "m2.space.queen",
   "text": "TOP OFF YOUR FLUIDS. YOU LOST SOME.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "WARNING. STRUCTURAL INTEGRITY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "WARNING. STRUCTURAL INTEGRITY. AND DECENCY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "WARNING. STRUCTURAL INTEGRITY. AND ODOR.",
   "from": "SPACE"
  },
  {

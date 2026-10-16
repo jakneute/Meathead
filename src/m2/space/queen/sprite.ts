@@ -37,7 +37,20 @@ export interface QueenDraw {
   jaw?: number;
   /** Her inner jaws out this far (0..1.6), whatever the pose (0: kept in; the kill draws its own strike). */
   inner?: number;
+  /** Mallet hits she's taken (her weakness): a dent for each, crumpled in, the foam showing (up to DENTS). */
+  dents?: number;
 }
+
+/** Where the mallet's dents go (torso-local, the first ones on her chest and hips, the later ones up her dome). */
+const DENTS: [number, number, number][] = [[4, -196, 9], [-20, -168, 8], [24, -140, 7], [-8, -128, 8], [14, -220, 7], [-26, -206, 7], [30, -180, 6], [-4, -150, 9]];
+/** A dent: the latex crumpled in (a dark hollow, a lit rim on its lower lip, the yellow foam split through), a scrape. */
+const dent = (c: Ctx, x: number, y: number, r: number, i: number) => {
+  c.fillStyle = LAT[0]; c.beginPath(); c.ellipse(x, y, r + 1.5, r * 0.75 + 1.5, 0.3 * (i % 3 - 1), 0, Math.PI * 2); c.fill();
+  c.fillStyle = LAT[1]; c.beginPath(); c.ellipse(x - 1, y - 1, r, r * 0.7, 0.3 * (i % 3 - 1), 0, Math.PI * 2); c.fill();
+  c.strokeStyle = LAT[4]; c.lineWidth = 1.5; c.beginPath(); c.ellipse(x, y, r, r * 0.72, 0.3 * (i % 3 - 1), 0.15 * Math.PI, 0.85 * Math.PI); c.stroke();
+  px(c, x - r * 0.4, y - 1, r * 0.8, 2, FOAMR[2]); px(c, x - r * 0.3, y - 1, r * 0.4, 1, FOAMR[4]);
+  c.strokeStyle = CHROME[3]; c.lineWidth = 1; c.beginPath(); c.moveTo(x + r * 0.6, y - r * 0.9); c.lineTo(x + r * 1.5, y - r * 1.4); c.stroke();
+};
 
 /** How tall she stands (plinth to the crest's top). */
 export const QUEEN_H = 300;
@@ -276,6 +289,8 @@ const torso = (c: Ctx, q: QueenDraw, t: number) => {
     for (let k = 0; k < 3; k++) hose(c, quad(14, -186 + k * 4, 22, -170 + k * 3, 18 + k * 5, -160), 1.5, LINES[k], false);
   }
   if (q.beat > 0.7) { tear(22, -220, 12, 8); tear(-30, -132, 10, 10); if (t % 24 < 3) px(c, 16, -164, 4, 4, '#FDE047'); }
+  // (the mallet's dents, one a hit)
+  for (let i = 0; i < Math.min(DENTS.length, q.dents ?? 0); i++) dent(c, DENTS[i][0], DENTS[i][1], DENTS[i][2], i);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -325,6 +340,11 @@ const head = (c: Ctx, q: QueenDraw, t: number, sag: number, glow: number) => {
   px(c, 22, -22, 4, 2, SPEC); px(c, 23, -23, 2, 1, '#FFFFFF');
   // (a crack in it, the more she's been hit)
   if (q.beat > 0.7) { c.strokeStyle = LAT[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(30, -18); c.lineTo(26, -10); c.lineTo(32, -6); c.lineTo(28, 2); c.stroke(); }
+  // (past the chest's dents, the dome's: crumpled in, the rig showing through)
+  const dd = (q.dents ?? 0) - DENTS.length;
+  if (dd > 0) dent(c, 22, -12, 7, 1);
+  if (dd > 1) dent(c, 4, -6, 6, 2);
+  if (dd > 2) dent(c, 40, -6, 5, 0);
   // (the lips drawn back off the silver teeth; the lower jaw dropping)
   const jaw = q.jaw !== undefined ? Math.round(q.jaw * 20) : pose === 'roar' || pose === 'grab' ? 16 : pose === 'spit' || pose === 'leap' ? 14 : pose === 'tell' ? 8 : pose === 'hurt' ? 10 : pose === 'birth' ? 4 : pose === 'flail' ? 12 : 0;
   if (jaw > 0) {

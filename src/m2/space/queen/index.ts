@@ -35,7 +35,7 @@ import { updateLadders, drawLadders } from '../../moves/ladders';
 import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
 import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP } from './basement';
-import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, queenDrops, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom } from './fight';
+import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, queenDrops, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom, queenHoldTick, drawBurstFlash } from './fight';
 import { drawBasement, drawDisco, discoLighting, discoGlow, drawShutter } from './lowerArt';
 
 interface Queen {
@@ -196,6 +196,8 @@ export const queen: SpaceSection = {
   // (the basement: its whole height on one screen, the camera held level on it; dropping into it, it follows him down)
   cameraRow: (state) => (inBasement(state) ? feetOf(state) - (GY - 6) : undefined),
   zoom: (state) => hunterZoom(state, hunterOf(state)) ?? discoZoom(state, fightOf(state), queenOf(state).deathCam),
+  // (a mallet hit on her: a beat's hit-stop; her weakness death: slow motion on the burst)
+  holdTick: (ctx) => (queenOf(ctx.state).fight === 'wait' ? false : queenHoldTick(fightOf(ctx.state))),
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#07040E'); return true; },
   lighting: (state) => {
     const cx = cxOf(state), s = showOf(state), f = fightOf(state);
@@ -255,6 +257,7 @@ export const queen: SpaceSection = {
     drawShowFade(c, s);
     if (introOn(f)) { drawBars(c, Math.min(1, f.skipT / 20)); if (f.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH); }
     if (q.fight === 'on') drawFightHud(c, f, topBand(), !!state.player.inCutscene);
+    if (q.fight !== 'wait') drawBurstFlash(c, f);
     if (q.victory) drawVictory(c, q.victory);
     if (q.walk) drawWalkAway(c, q.walk);
   },

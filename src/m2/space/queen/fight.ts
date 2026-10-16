@@ -45,7 +45,7 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy, EnemyKind } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
-import { say, silenceAll, pickLine, announce } from '../../../m1/game/platform/speech';
+import { say, silenceAll, pickLine, announce, isTalking } from '../../../m1/game/platform/speech';
 import { GRAB_CALLOUTS } from '../../moves/callouts';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
@@ -55,7 +55,8 @@ import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { ENEMY_HIT_COOLDOWN, BULLET_DAMAGE, BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { takeBites } from '../../weapons/spawner';
-import { takeMalletHit } from '../../weapons/mallet';
+import { takeMalletHit, type MalletHow } from '../../weapons/mallet';
+import { type Piece, type Splat, burstQueen, chipQueen, burstSpray, tickPieces, headPiece, drawPieces, drawSplats } from './burst';
 import { setHazardZones } from '../../hazardHit';
 import { ink, limb } from '../../../m1/game/render/npc/kit';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
@@ -166,6 +167,16 @@ export interface Fight {
   birthT: number; leapT: number; linger: number; forceLeap: boolean; stunT: number;
   /** When a close mallet hit last stunned her (f.total). */
   closeAt: number;
+  /** The mallet's marks on her: dents (one a hit); what's come off her (chips in the fight, all of her at a weakness
+   *  death) and the splashes under it; when her speaker last glitched. */
+  dents: number; pieces: Piece[]; splats: Splat[]; glitchAt: number;
+  /** Real ticks of hit-stop left (a mallet hit: the world held a beat). */
+  stopT: number;
+  /** Her bar's chunk just knocked off (from this hp, fading over barT frames). */
+  barFrom: number; barT: number;
+  /** Her weakness death: burst into pieces; its slow motion (real ticks, game time banked); its white flash (real
+   *  ticks); her last words said (from her head, wherever it lands). */
+  blown: boolean; slow: { t: number; acc: number } | null; whiteT: number; lastWords: boolean;
   /** The pool round her (after a leap; gone with her next birth): where, how far up it is (0..1), going. */
   pool: { x: number; k: number; going: boolean } | null;
   drops: Drop[]; sacs: Sac[]; slicks: Slick[]; barf: Barf[]; spots: Spot[];
@@ -201,6 +212,7 @@ export const makeFight = (state: GameState): Fight => {
     lights: seen ? 1 : 0, down: seen ? 1 : 0, foam: 0, ext2: seen ? 'gone' : 'wall', ex: { x: EXTINGUISHER_X, y: GY - 90, vx: 0, vy: 0, r: 0 },
     said: null, boothSaid: null,
     birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, closeAt: -9999, pool: null,
+    dents: 0, pieces: [], splats: [], glitchAt: -9999, stopT: 0, barFrom: HP, barT: 0, blown: false, slow: null, whiteT: 99, lastWords: false,
     drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, barked: new Set(), throwAt: -1, throwHintAt: -9999, eventAt: -99,
     ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], deathT: 0, deathSaid: 0, byWeakness: false, e: null,
   };
@@ -445,6 +457,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   f.t++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;
+  if (f.barT > 0) f.barT--;
+  tickPieces(state, f.pieces, f.splats);
   tickKin(ctx);
   fileLines(state);
   if (f.mode !== 'dead') { thrownInto(ctx, f); takeHits(ctx, f); }
@@ -708,7 +722,9 @@ const thrownInto = (ctx: FrameContext, f: Fight) => {
     f.eventAt = f.total; f.throwAt = f.total;
     if (batted) {
       // (her own, batted back into her: the big one; she's stunned, and the lot of them go)
+      const before = f.hp;
       f.hp -= BATTED_DMG; f.flash = 16; f.iframes = IFRAMES;
+      malletFeel(state, f, 'batted', before, { x: f.x, y: GY - 170 }, (Math.sign(e.vel.x) || 1) as 1 | -1);
       for (const k of kinAbout(state)) destroyKin(ctx, k);
       if (state.enemies.includes(e)) destroyKin(ctx, e);
       f.sacs = []; f.litter = [];
@@ -723,7 +739,7 @@ const thrownInto = (ctx: FrameContext, f: Fight) => {
       return;
     }
     // (thrown into her: it's done for, and she's hurt)
-    f.hp -= THROWN_DMG; f.flash = 10;
+    f.hp -= THROWN_DMG; f.flash = 8;
     ctx.fx.spawnDamageNumber({ x: f.x - 20, y: GY - 260 }, THROWN_DMG, true);
     playSound('crash', 0.8, 2); shakeScreen(state, 8, 4);
     if (isKin(e) || e.isBlownAway) destroyKin(ctx, e);
@@ -757,27 +773,75 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   const mallet = !!mh;
   const dmg = smash ? MALLET_SMASH : melee ? (p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE)
     : p.currentWeapon === 'GUN' ? BULLET_DAMAGE : mallet ? Math.min(hit, MALLET_HIT) : Math.max(1, hit * SHARE);
-  f.hp -= dmg; f.iframes = IFRAMES; f.flash = smash ? 14 : 8;
-  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: e.pos.y + 60 + Math.random() * 100 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 16, color: i % 2 ? '#FDE047' : ALIEN.slime, size: 2 + Math.random() * 2, grav: 0.3 });
-  playSound('clang', 0.5, 4);
-  ctx.fx.spawnDamageNumber({ x: e.pos.x + 20, y: e.pos.y + 20 }, Math.max(1, Math.round(dmg)), smash);
-  if (smash) { playSound('crash', 0.9, -6); shakeScreen(state, 14, 7); }
+  const before = f.hp;
+  f.hp -= dmg; f.iframes = IFRAMES;
+  ctx.fx.spawnDamageNumber({ x: e.pos.x + 20, y: e.pos.y + 20 }, Math.max(1, Math.round(dmg)), mallet);
+  const pm = pmid(state), head = queenHead(f.x, f.facing, 0);
+  if (!mallet) {
+    // (anything but her weakness: a modest knock, a ping, a spark or two)
+    f.flash = 6;
+    for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: e.pos.y + 60 + Math.random() * 100 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 12, color: i % 2 ? '#FDE047' : ALIEN.slime, size: 2, grav: 0.3 });
+    playSound('clang', 0.3, 8);
+  }
   // (the mallet up close, at any height (him within CLOSE_R of her body): stunned, and off to the other side after.
   // At her head (him up level with it), a bit more and a BONK. Not again while she's stunned or leaping, nor within
   // CLOSE_GAP of the last: no stun-lock)
-  const pm = pmid(state), head = queenHead(f.x, f.facing, 0);
   const gap = Math.max(0, e.pos.x - pm.x, pm.x - (e.pos.x + e.width));
+  const atHead = Math.abs(pm.y - head.y) < 70 && Math.abs(pm.x - head.x) < 130;
+  let stunned = false;
   if (mallet && f.hp > 0 && f.mode !== 'leap' && f.mode !== 'stun' && f.mode !== 'dead' && gap < CLOSE_R && f.total - f.closeAt >= CLOSE_GAP) {
-    f.closeAt = f.total; f.forceLeap = true;
-    if (Math.abs(pm.y - head.y) < 70 && Math.abs(pm.x - head.x) < 130) {
+    f.closeAt = f.total; f.forceLeap = true; stunned = true;
+    if (atHead) {
       f.hp -= HEAD_EXTRA;
-      ctx.fx.spawnDamageNumber({ x: head.x, y: head.y - 30 }, 'BONK!', true, '#FDE047');
       stun(state, f, HEAD_STUN);
       meatheadSays(state, pick(L.MH_HEAD), false);
     } else stun(state, f, smash ? SMASH_STUN : CLOSE_STUN);
   }
+  if (mallet) {
+    // (her weakness, and it shows: the world held a beat, the shake, her flash, the chunk off her bar, a dent, a bit
+    // knocked off her, the noise of it, the word; her speaker glitching (when the stun hasn't had her say already))
+    const at = { x: Math.max(e.pos.x, Math.min(e.pos.x + e.width, pm.x + Math.sign(f.x - pm.x) * 30)), y: Math.max(GY - 250, Math.min(GY - 70, atHead ? head.y : pm.y)) };
+    malletFeel(state, f, smash ? 'smash' : atHead && stunned ? 'head' : mh!.how, before, at, (Math.sign(f.x - pm.x) || 1) as 1 | -1);
+    if (!stunned && f.hp > 0) glitch(state, f);
+  }
   // (the close-up kill: only for a straight mallet hit (swing, launch, pound, spin, head bonk, the smash))
   if (f.hp <= 0) f.byWeakness = mallet;
+};
+
+/** The comic words over a mallet hit on her, by what it was. */
+const FEEL_WORDS: Record<string, string[]> = {
+  smash: ['KA-BLAM!', 'KA-RUNCH!', 'WHAM-O!'], head: ['BONK!', 'KLONK!', 'DONK!'], batted: [],
+  other: ['CLANG!', 'WHANG!', 'KLONG!', 'SPANG!', 'THWONK!'],
+};
+const FEEL_COLORS = ['#FDE047', '#F472B6', '#60A5FA', '#4ADE80', '#FB923C'];
+/** A mallet hit on her (any: swing, head, smash, a kid batted back): it has to read as THE weakness. */
+const malletFeel = (state: GameState, f: Fight, how: MalletHow | 'head' | 'batted', before: number, at: { x: number; y: number }, away: 1 | -1) => {
+  const big = how === 'smash' || how === 'batted';
+  f.stopT = how === 'smash' ? 9 : big ? 8 : 5;
+  shakeScreen(state, big ? 22 : 16, big ? 11 : 8);
+  f.flash = 16;
+  f.barFrom = f.barT > 0 ? Math.max(f.barFrom, before) : before; f.barT = 50;
+  f.dents++;
+  for (let i = 0; i < 18; i++) { const a = Math.random() * Math.PI * 2, v = 3 + Math.random() * 7; state.particles.push({ pos: { x: at.x, y: at.y }, vel: { x: Math.cos(a) * v, y: Math.sin(a) * v - 1 }, life: 14 + Math.random() * 10, color: i % 3 ? '#FDE047' : '#FFFFFF', size: 2 + Math.random() * 2, grav: 0.2 }); }
+  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: at.x, y: at.y }, vel: { x: away * (1 + Math.random() * 3), y: -1 - Math.random() * 2 }, life: 26, color: i % 2 ? ALIEN.slime : '#7F1D1D', size: 2 + Math.random() * 2, grav: 0.3 });
+  if (f.pieces.length < 80) f.pieces.push(...chipQueen(at.x, at.y, away));
+  playSound('bonk', 1.3, -6); playSound('clang', 1, -3); playSound('crash', 0.6, 2);
+  if (how === 'smash') playSound('slam', 1, -6);
+  const words = FEEL_WORDS[how === 'smash' || how === 'head' || how === 'batted' ? how : 'other'];
+  if (words.length) {
+    const text = pick(words), col = FEEL_COLORS[Math.floor(Math.random() * FEEL_COLORS.length)];
+    state.damageNumbers.push({ id: `queen-feel-${state.frame}`, text, pos: { x: at.x - 40, y: at.y - 50 }, vel: { x: 0, y: -2.4 }, life: 60, maxLife: 60, isCritical: true, isCallout: true, color: col });
+  }
+};
+/** Her speaker glitching out at a mallet hit: short, a while apart, not over anybody. */
+const glitch = (state: GameState, f: Fight) => {
+  if (f.total - f.glitchAt < 150 || !quiet(f) || isTalking()) return;
+  f.glitchAt = f.total;
+  const text = pickLine(L.QUEEN_MALLET[dressed(state)]);
+  say(text, voice('m2.space.queen'), 'casual', {
+    onShow: spoken => { f.said = text; if (!spoken) setTimeout(() => { if (f.said === text) f.said = null; }, Math.max(1400, text.length * 65)); },
+    onHide: () => { if (f.said === text) f.said = null; },
+  });
 };
 
 const stun = (state: GameState, f: Fight, t: number) => {
@@ -809,16 +873,41 @@ const die = (ctx: FrameContext, f: Fight) => {
   state.damageNumbers = [];
   f.said = null; f.boothSaid = null;
   playSound('rayFizzle', 1, -8); playSound('crash', 0.6, -4);
-  queenSays(state, f, L.QUEEN_DIES, tokened(f, () => { f.deathSaid = 1; }));
+  // (her weakness: a beat of slow motion on the killing blow, she swells and shudders, and bursts; her last words come
+  // out of her head wherever it lands. Otherwise: her circuits going, said where she stands)
+  if (f.byWeakness) { f.blown = true; f.slow = { t: 0, acc: 0 }; f.stopT = 0; f.whiteT = 99; shakeScreen(state, 10, 6); }
+  else queenSays(state, f, L.QUEEN_DIES, tokened(f, () => { f.deathSaid = 1; }));
 };
+/** Game frames into her weakness death that she bursts. */
+const BURST_AT = 7;
 const dying = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   const t = ++f.deathT;
   f.ext *= 0.95;
-  if (t % 5 === 0 && t < 200) state.particles.push({ pos: queenHead(f.x, f.facing, f.ext), vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 16, color: Math.random() < 0.5 ? '#FDE047' : '#FFFFFF', size: 2 + Math.random() * 2, grav: 0.3 });
-  if (t > 30 && t < 120 && t % 2 === 0) state.particles.push({ pos: { x: f.x, y: GY - 180 }, vel: { x: f.facing * (2 + Math.random() * 4), y: -3 - Math.random() * 3 }, life: 40, color: [ALIEN.slime, ALIEN.slimeDark, ALIEN.slimeLight][t % 3], size: 3 + Math.random() * 3, grav: 0.35 });
-  if (t === 30) playSound('gush', 1, -6);
-  if (t === 140) { playSound('thud', 1, -8); shakeScreen(state, 10, 5); }
+  if (f.blown) {
+    if (t < BURST_AT) {
+      // (swelling, shuddering, sparks out of every seam)
+      for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 90, y: GY - 60 - Math.random() * 220 }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 3 }, life: 14, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 2 + Math.random() * 2, grav: 0.2 });
+      if (t % 2 === 0) playSound('rayFizzle', 0.7, 4 + t);
+    }
+    if (t === BURST_AT) {
+      f.pieces.push(...burstQueen(f.x, f.facing));
+      burstSpray(state, f.x);
+      f.whiteT = 0;
+      playSound('boom', 1.2, -6); playSound('crash', 1.2, -4); playSound('gush', 1, -4); playSound('bonk', 1, -10);
+      shakeScreen(state, 30, 16);
+    }
+    // (her last words: out of her head, once it's come to rest (or a while on, wherever it is))
+    const hd = headPiece(f.pieces);
+    if (!f.lastWords && t > BURST_AT && (hd?.rest || t > 150)) {
+      f.lastWords = true;
+      queenSays(state, f, L.QUEEN_DIES, tokened(f, () => { f.deathSaid = 1; }));
+    }
+  }
+  if (!f.blown && t % 5 === 0 && t < 200) state.particles.push({ pos: queenHead(f.x, f.facing, f.ext), vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 16, color: Math.random() < 0.5 ? '#FDE047' : '#FFFFFF', size: 2 + Math.random() * 2, grav: 0.3 });
+  if (!f.blown && t > 30 && t < 120 && t % 2 === 0) state.particles.push({ pos: { x: f.x, y: GY - 180 }, vel: { x: f.facing * (2 + Math.random() * 4), y: -3 - Math.random() * 3 }, life: 40, color: [ALIEN.slime, ALIEN.slimeDark, ALIEN.slimeLight][t % 3], size: 3 + Math.random() * 3, grav: 0.35 });
+  if (!f.blown && t === 30) playSound('gush', 1, -6);
+  if (!f.blown && t === 140) { playSound('thud', 1, -8); shakeScreen(state, 10, 5); }
   // (her last words done: the booth's two lose it (fists, stomping, CURSES), WE'LL SEE YOU AGAIN, out the back; then
   // him)
   const o = f.ops;
@@ -839,6 +928,7 @@ const dying = (ctx: FrameContext, f: Fight) => {
  *  booth (and what they say over it), her and him; the booth's words kept clear below the HUD. */
 export const discoZoom = (state: GameState, f: Fight, k: number) => {
   if (k <= 0) return null;
+  if (f.blown) return wideZoom(state, k);
   const e = k * k * (3 - 2 * k), px = pmid(state).x;
   const x0 = Math.min(BOOTH.x - 40, f.x - 140, px - 50), x1 = Math.max(BOOTH.x + BOOTH.w + 40, f.x + 140, px + 50);
   const y0 = BOOTH.y - 80, y1 = GY + 16;
@@ -846,6 +936,39 @@ export const discoZoom = (state: GameState, f: Fight, k: number) => {
   const sc = Math.min(1, w / (x1 - x0), h / (y1 - y0));
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
   return { scale: 1 + (sc - 1) * e, x: cx, y: cy, shiftX: e * (state.camera.x + CANVAS_WIDTH / 2 - cx), shiftY: e * (state.camera.y + top + h / 2 - cy) };
+};
+
+/** Her weakness death: pulled right back, the whole disco wall to wall, its floor along the bottom of the screen, to
+ *  see her pieces go to every corner of it. */
+const wideZoom = (state: GameState, k: number) => {
+  const e = k * k * (3 - 2 * k);
+  const x0 = ARENA_L - 20, x1 = ARENA_R + 20;
+  const sc = Math.min(1, (CANVAS_WIDTH - 16) / (x1 - x0));
+  // (the floor (GY + 16) this far down the screen; the hall's middle across it)
+  const floorAt = CANVAS_HEIGHT - 70, mid = CANVAS_HEIGHT / 2;
+  const cx = (x0 + x1) / 2, cy = GY + 16 - (floorAt - mid) / sc;
+  return { scale: 1 + (sc - 1) * e, x: cx, y: cy, shiftX: e * (state.camera.x + CANVAS_WIDTH / 2 - cx), shiftY: e * (state.camera.y + mid - cy) };
+};
+
+/** Every real tick: a mallet hit's hit-stop, her weakness death's slow motion (held, then back up to speed). True: this
+ *  tick passes no game time. */
+const SLOW = 0.22, SLOW_HOLD = 40, SLOW_RAMP = 70;
+export const queenHoldTick = (f: Fight): boolean => {
+  if (f.whiteT < 99) f.whiteT++;
+  if (f.stopT > 0) { f.stopT--; return true; }
+  const s = f.slow;
+  if (!s) return false;
+  s.t++;
+  const rate = s.t < SLOW_HOLD ? SLOW : Math.min(1, SLOW + ((1 - SLOW) * (s.t - SLOW_HOLD)) / SLOW_RAMP);
+  if (rate >= 1) { f.slow = null; return false; }
+  s.acc += rate;
+  if (s.acc >= 1) { s.acc -= 1; return false; }
+  return true;
+};
+/** Screen space: the white flash she bursts in. */
+export const drawBurstFlash = (c: Ctx, f: Fight) => {
+  if (f.whiteT >= 16) return;
+  c.fillStyle = `rgba(255, 255, 255, ${(0.85 * (1 - f.whiteT / 16)).toFixed(2)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1011,17 +1134,25 @@ export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
     c.fillStyle = `rgba(0, 0, 0, ${(0.25 + 0.45 * k).toFixed(2)})`; c.beginPath(); c.ellipse(d.tx, GY - 1, 4 + 8 * k, 2 + 2 * k, 0, 0, Math.PI * 2); c.fill();
   }
   for (const s of f.sacs) drawSac(c, s.x, s.y, state.frame, s.landed > 10 ? Math.min(1, (s.landed - 10) / 16) : 0);
-  if (f.down > 0) {
+  // (what's come off her: the splashes, the pieces)
+  drawSplats(c, f.splats);
+  if (f.down > 0 && !(f.blown && f.deathT >= BURST_AT)) {
     const blink = f.iframes > 0 && Math.floor(state.frame / 3) % 2 === 0 && f.mode !== 'dead';
     if (blink) c.globalAlpha = 0.65;
-    const dy = -420 * (1 - f.down) - f.y, sx = f.mode === 'intro' && f.step === 'shake' ? Math.sin(state.frame * 1.3) * 6 : 0;
+    // (about to burst: shuddering, swelling)
+    const burst = f.blown ? f.deathT / BURST_AT : 0;
+    const dy = -420 * (1 - f.down) - f.y, sx = f.mode === 'intro' && f.step === 'shake' ? Math.sin(state.frame * 1.3) * 6 : burst ? (state.frame % 2 ? 4 : -4) * burst : 0;
     const crouch = f.mode === 'leap' && f.ph !== 'air' ? 0.9 : 1;
     c.save(); c.translate(sx, dy);
-    c.translate(f.x, GY); c.scale(1, crouch); c.translate(-f.x, -GY);
-    drawQueen(c, f.x, f.facing, { pose: poseOf(f), t: state.frame, ext: f.ext, alive: f.mode === 'dead' ? Math.max(0, 1 - f.deathT / 60) : f.alive, beat: Math.max(0, 1 - f.hp / HP), free: true, foam: f.foam, stride: 0 });
+    c.translate(f.x, GY); c.scale(1 + burst * 0.08, crouch * (1 + burst * 0.06)); c.translate(-f.x, -GY);
+    const qd = { pose: poseOf(f), t: state.frame, ext: f.ext, alive: f.mode === 'dead' ? Math.max(0, 1 - f.deathT / 60) : f.alive, beat: Math.max(0, 1 - f.hp / HP), free: true, foam: f.foam, stride: 0, dents: f.dents };
+    drawQueen(c, f.x, f.facing, qd);
+    // (a mallet hit: she flashes, lit up over herself)
+    if (f.flash > 8 && f.mode !== 'dead') { c.globalCompositeOperation = 'lighter'; c.globalAlpha = Math.min(1, (f.flash - 8) / 8) * 0.8; drawQueen(c, f.x, f.facing, qd); drawQueen(c, f.x, f.facing, qd); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; }
     c.restore();
     if (blink) c.globalAlpha = 1;
   }
+  drawPieces(c, f.pieces, state.frame);
   // (the flail's tell: her reach marked on the floor, red, flashing)
   if (f.mode === 'flail' && f.ph === 'tell') box(c, f.x - FLAIL_WIDE, GY - 3, FLAIL_WIDE * 2, 3, f.t % 6 < 3 ? '#EF4444' : '#7F1D1D');
   // (the impregnator ray: pink rings down out of the DJ booth into her belly)
@@ -1055,7 +1186,10 @@ export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
 };
 /** Her words; theirs, up in the booth. */
 export const drawQueenSaid = (c: Ctx, f: Fight) => {
-  if (f.said) saidAt(c, f.said, f.x - f.facing * 20, GY - 330 - f.y, '#BEF264');
+  // (in pieces: out of her head, wherever it's ended up)
+  const hd = f.blown ? headPiece(f.pieces) : null;
+  if (f.said && hd) saidAt(c, f.said, Math.max(ARENA_L + 140, Math.min(ARENA_R - 140, hd.x)), hd.y - 50, '#BEF264');
+  else if (f.said) saidAt(c, f.said, f.x - f.facing * 20, GY - 330 - f.y, '#BEF264');
   if (f.boothSaid) saidAt(c, f.boothSaid, BOOTH.x + BOOTH.w / 2, BOOTH.y - 20, '#D9F99D');
 };
 /** Said over a point, the words their full size even with the camera pulled back (her death: discoZoom). */
@@ -1071,5 +1205,12 @@ export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; m
   if (inCutscene || f.mode === 'dead' || f.mode === 'intro' || f.mode === 'wait') return;
   const w = band.x2 - band.x1, k = Math.max(0, f.hp / HP);
   box(c, band.x1, 22, w, 14, '#18181B'); box(c, band.x1 + 2, 24, (w - 4) * k, 10, f.iframes > 0 && Math.floor(f.iframes / 4) % 2 ? '#D9F99D' : '#65A30D');
+  // (the chunk a mallet hit just took off her: flashing white and yellow where it was, then gone)
+  if (f.barT > 0 && f.barFrom > f.hp) {
+    const k0 = Math.min(1, f.barFrom / HP), x = band.x1 + 2 + (w - 4) * k;
+    c.globalAlpha = Math.min(1, f.barT / 20);
+    box(c, x, 24, (w - 4) * (k0 - k), 10, Math.floor(f.barT / 3) % 2 ? '#FFFFFF' : '#FDE047');
+    c.globalAlpha = 1;
+  }
   label(c, 'THE QUEEN (LEGALLY DISTINCT)', band.mid, 50, '#D9F99D', 7);
 };
