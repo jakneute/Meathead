@@ -186,7 +186,8 @@ export const HAIL: [number, number][] = [[19800, 21200]];
  *  (past the hill) are the tornado's to blow away. */
 export const DECOR: [number, number, number, string, string][] = [
   [420, 260, 260, '#7C2D12', 'HAPPYWOOD BURGERS'], [960, 280, 300, '#3F3F46', 'BANK OF BURBANK'],
-  [2900, 200, 240, '#57534E', 'CHICAGO'], [3350, 300, 320, '#7F1D1D', 'GOTHAM-ISH'], [3900, 240, 260, '#44403C', 'DRY CLEANERS'],
+  // (never over a lava river: they stand on the sidewalk either side of its gap)
+  [3040, 210, 240, '#57534E', 'CHICAGO'], [3350, 300, 320, '#7F1D1D', 'GOTHAM-ISH'], [4190, 200, 260, '#44403C', 'DRY CLEANERS'],
   [4400, 280, 300, '#334155', 'PRECINCT 13'], [4800, 300, 340, '#57534E', 'GRAND HOTEL'], [5750, 280, 280, '#7C2D12', 'SALOON'],
   [14700, 300, 260, '#57534E', 'HILLS DRIVE INN'], [15550, 260, 300, '#334155', 'MOTEL'], [16050, 300, 280, '#44403C', 'DINER'],
   [16900, 260, 260, '#7C2D12', 'GIFT SHOP'], [17550, 280, 300, '#3F3F46', 'BANK'], [19150, 280, 300, '#7F1D1D', 'THEATER'],

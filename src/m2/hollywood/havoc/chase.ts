@@ -107,9 +107,10 @@ const tear = (state: GameState, hv: Hv, t: Tear, quiet: boolean) => {
 export const tearUpTo = (state: GameState, x: number) => { const hv = hvOf(state); for (const t of TEARS) if (X(t.x0) < x) tear(state, hv, t, true); };
 
 /** The guests running about at the back of the street: where each is (world x), by its slot. */
-export const GUEST_BASES = [300, 2200, 3800, 5200, 14700, 16800, 18900, 20500];
+// (each one's run of sidewalk clear of the lava rivers' gaps: nobody walks on air)
+export const GUEST_BASES = [300, 2000, 4200, 5200, 14700, 16800, 18900, 20500];
 export const guestAt = (k: number, f: number) => {
-  const span = 700, base = GUEST_BASES[k];
+  const span = 650, base = GUEST_BASES[k];
   const ph = (f * (1.6 + (k % 3) * 0.4) + k * 211) % (span * 2);
   return { x: X(base) + (ph < span ? ph : span * 2 - ph), dir: (ph < span ? 1 : -1) as 1 | -1 };
 };

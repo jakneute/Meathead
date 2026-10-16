@@ -60,8 +60,13 @@ export const steveCard = (g: Ctx, x: number, y: number, s: number, seed: number,
   box(g, l + 4 * s, t + 34 * s, 22 * s, 6 * s, INK); box(g, l + 5 * s, t + 35 * s, 20 * s, 4 * s, '#C83A2A'); box(g, l + 8 * s, t + 32 * s, 11 * s, 3 * s, '#C83A2A'); box(g, l + 5 * s, t + 35 * s, 20 * s, 1, '#F07A5A');
   for (let i = 0; i < 3; i++) box(g, l + 28 * s, t + (34 + i * 2.5) * s, 10 * s, Math.max(1, s * 0.7), Y[1]);
   // (the show's name, in the park's letters)
-  const L = plain(s >= 1.5 ? 2 : 1, s >= 1.5 ? 2 : 1, '#2A1408');
-  if (s >= 0.9) { signText(g, 'STUNTMAN', x, t + 50 * s, L); signText(g, 'STEVE', x, t + 58 * s, L); }
+  // (as big as fits inside the paper: never past its edges)
+  const big = plain(2, 2, '#2A1408'), L = s >= 1.5 && signW('STUNTMAN', big) <= w - 6 ? big : plain(1, 1, '#2A1408');
+  if (s >= 0.9) {
+    // (still too wide at its smallest: squeezed to fit)
+    const k = Math.min(1, (w - 6) / signW('STUNTMAN', L));
+    for (const [text, dy] of [['STUNTMAN', 50], ['STEVE', 58]] as const) { g.save(); g.translate(x, t + dy * s); g.scale(k, k); signText(g, text, 0, 0, L); g.restore(); }
+  }
   else box(g, l + 4 * s, t + 46 * s, w - 8 * s, Math.max(1, 3 * s), '#2A1408');
   if (kind === 'flier') { box(g, l + 3, t + 1, 3, 1, '#A1A1AA'); box(g, l + w - 6, t + 1, 3, 1, '#A1A1AA'); poly(g, [[l + w, t + h - 7 * s], [l + w - 7 * s, t + h], [l + w, t + h]], '#D6D3D1'); poly(g, [[l + w - 7 * s, t + h - 7 * s], [l + w, t + h - 7 * s], [l + w - 7 * s, t + h]], Y[2]); }
 };
