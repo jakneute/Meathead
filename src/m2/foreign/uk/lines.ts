@@ -33,7 +33,18 @@ export const TALK: PavilionTalk = {
     { from: 600, to: 2000, key: 'bus', lines: ["A DOUBLE-DECKER BUS. IT'S A BUS WITH A BUS ON IT.", "THEY DRIVE ON THE WRONG SIDE. RIGHT AT ME."] },
     { from: 2000, to: 2350, key: 'pub', lines: ['A PUB. FINALLY, A COUNTRY THAT GETS IT.', 'WARM BEER. THAT EXPLAINS A LOT.'] },
     { from: 2350, to: 3050, key: 'bridge', lines: ["THE BRIDGE GOES UP. WHO DESIGNED A BRIDGE THAT DOESN'T STAY?", 'LONDON BRIDGE. IS IT FALLING DOWN? COME ON. FALL DOWN.'] },
+    // (job 4b: Big Benjamin)
+    { from: 3700, to: 3920, key: 'bigben', lines: ['BIG BENJAMIN. NOBODY CALLS HIM THAT. NOBODY.', 'THE EXIT IS THE CLOCK FACE. THIS WHOLE COUNTRY IS A FIRE HAZARD.'] },
+    { from: 3920, to: 4280, key: 'inside', lines: ["THE INSIDE OF A CLOCK. IT'S ALL STAIRS AND A BIG SWINGING BALL.", 'A GIANT PENDULUM. I KNOW EXACTLY HOW THIS GOES.'], minH: 100 },
+    { from: 4280, to: 4420, key: 'face', lines: ["I'M STANDING ON THE CLOCK. IT'S WRONG. IT'S ALWAYS WRONG.", "THE WHOLE PARK'S DOWN THERE. IT LOOKS SMALLER. STILL SUCKS."], minH: 780 },
   ],
+};
+
+/** A bobby up in the belfry as the hammer winds back (the bobby voices). */
+export const BONG: ByPants = {
+  clean: ["IT'S THE CHIME, INNIT! COVER YOUR EARS! I'M FROM TOLEDO!", "BONG! IT'S ALWAYS BONG O'CLOCK!", 'MIND THE BELL! MIND IT! WHY AREN\'T YOU MINDING IT?!'],
+  shitty: ["THE BELL'S GONNA SHAKE IT RIGHT OUT OF YOU, MATE!", "BONG! ...AND THE SMELL COMES WITH IT!"],
+  nude: ["OI! NO NAKED BLOKES IN THE BELFRY! IT ECHOES!", "BONG! NOT YOURS! THE BELL'S!"],
 };
 
 export const GUARD: ByPants = {
@@ -86,6 +97,14 @@ export const HURT: HurtTable = {
     hurt: ['THE BUS HIT ME! ON THE WRONG SIDE!', "OW! IT DIDN'T EVEN STOP!", 'A BUS! A TWO-STORY BUS!'],
     death: ['HIT BY A BUS', 'RUN OVER ON THE WRONG SIDE OF THE ROAD'],
   },
+  'm2:fl_pendulum': {
+    hurt: ['THE PENDULUM! RIGHT IN THE CHEST!', 'A GIANT BALL! SWUNG AT ME!', 'TICK TOCK MY ASS!'],
+    death: ['KNOCKED OUT BY A CLOCK', "TIME'S UP"],
+  },
+  'm2:fl_bong': {
+    hurt: ['BONG! MY EARS! MY EVERYTHING!', "THE BELL! I CAN'T HEAR ANYTHING!", 'FUCKING BONG!'],
+    death: ['BONGED', 'RUNG TO DEATH'],
+  },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.guard, GUARD], [V.hooligan, HOOLIGAN], [V.tealady, TEALADY], [V.bobby, BOBBY]]);
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.guard, GUARD], [V.hooligan, HOOLIGAN], [V.tealady, TEALADY], [V.bobby, BOBBY], [{ m: V.bobby.m, f: V.bobby.m }, BONG]]);

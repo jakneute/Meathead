@@ -6,7 +6,8 @@
 // and the booths are out of its lane), and its roof is a ride (a hooligan up top, pints). Then THE PUB, climbed over
 // (the phone booth up onto its roof, barrels down the far side), and TOWER BRIDGE (ish) over the Thames (ish): its
 // two halves lift on a schedule (the bell first) and drop whoever's on them in the river; the towers' stairs up to the
-// high walkway across (the dry way, whenever). The tea shop, a last guard, to the border with Canada.
+// high walkway across (the dry way, whenever). The tea shop, a last guard; then BIG BENJAMIN (clocktower.ts, job 4b:
+// the clock tower climbed inside past the pendulum and the bell, out through the clock face and down), to Canada.
 //
 // Crude (the first pass): readable boxes with full game feel. Checkpoints 80-89. Outdoors: the time of day's light.
 
@@ -28,6 +29,7 @@ import {
 } from '../kit';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { TALK } from './lines';
+import { TOWER_CHECKPOINTS, buildTower, updateTower, drawTowerBack, drawTowerFront, towerLamps } from './clocktower';
 import './kinds';
 
 const { x0, x1 } = SECTIONS.uk;
@@ -66,6 +68,7 @@ export const UK_CHECKPOINTS = [
   { name: 'THE UK: THE BUS STOP', cp: 81, x: X(600), y: GY },
   { name: 'THE UK: THE PUB', cp: 82, x: X(1930), y: GY },
   { name: 'THE UK: THE BRIDGE', cp: 83, x: X(2410), y: GY },
+  ...TOWER_CHECKPOINTS,
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -192,6 +195,7 @@ export const uk: ForeignSection = {
   checkpoints: UK_CHECKPOINTS,
   build: (state) => {
     layOwn(state, runsAround(x0, x1, [THAMES]));
+    buildTower(state);
     poolSteps(state, THAMES);
     for (const [a, b, h] of [...SENTRY, ...BOOTHS, [PUB.a, PUB.b, PUB.h] as [number, number, number], [BARRELS.a, BARRELS.b, BARRELS.h] as [number, number, number], [CART.a, CART.b, CART.h] as [number, number, number]]) solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'uk-solid' });
     ledge(state, X(SHELTER.a), Y(SHELTER.h), SHELTER.b - SHELTER.a, { hidden: true, tag: 'uk-shelter' });
@@ -210,6 +214,7 @@ export const uk: ForeignSection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, f = state.frame, br = britOf(state);
     pavilionTalk(state, 'uk', x0, GY, TALK);
+    updateTower(ctx);
     poolZones(state, 'uk-thames', [THAMES]);
     // The bus: along its route; its front runs over whoever's in the lane (not him up on its roof)
     const b = busAt(f), near = Math.abs(p.pos.x - b.x) < 900;
@@ -268,7 +273,7 @@ export const uk: ForeignSection = {
     if (onScreen(v, X(PUB.a), X(PUB.b))) { hungBoard(c, X((PUB.a + PUB.b) / 2), Y(PUB.h) + 14, Y(PUB.h) + 30, ["THE QUEEN'S HEAD", '(AND SHOULDERS)'], LOOKS.uk(1), '#0F172A'); }
     if (onScreen(v, X(2360), X(2440))) postBoard(c, X(2400), GY, ['TOWER BRIDGE', '(LONDON BRIDGE)', '(SAME BRIDGE)'], LOOKS.uk(1), '#1E3A8A', undefined, 150);
     if (onScreen(v, X(CART.a), X(CART.b))) hungBoard(c, X((CART.a + CART.b) / 2), Y(CART.h) - 4, Y(CART.h) - 40, ['YE OLDE TEA', 'EST. 2009'], LOOKS.uk(1), '#7F1D1D');
-    if (onScreen(v, X(3440), X(3600))) postBoard(c, X(3460), GY, ['LEAVING THE UK', 'CHEERIO (HELLO)'], LOOKS.uk(1), '#991B1B', undefined, 100);
+    drawTowerBack(c, v, state);
     if (onScreen(v, X(-60), X(60))) {
       const fx = X(20); box(c, fx - 2, GY - 200, 4, 200, hour('#9CA3AF'));
       for (let i = 0; i < 48; i += 4) { const w8 = Math.sin(f * 0.08 + i * 0.12) * 2; box(c, fx + 2 + i, GY - 198 + w8, 4, 30, hour('#012169')); box(c, fx + 2 + i, GY - 186 + w8, 4, 6, hour('#F8FAFC')); box(c, fx + 2 + i, GY - 185 + w8, 4, 4, hour('#C8102E')); if (i >= 20 && i < 28) { box(c, fx + 2 + i, GY - 198 + w8, 4, 30, hour('#F8FAFC')); box(c, fx + 3 + i, GY - 198 + w8, 2, 30, hour('#C8102E')); } }
@@ -279,6 +284,7 @@ export const uk: ForeignSection = {
     const v = viewIn(state), f = state.frame;
     drawPoolFront(c, v, THAMES, f);
     drawFog(c, v, f);
+    drawTowerFront(c, viewIn(state), state);
   },
   outdoors: () => 1,
   lamps: (state) => {
@@ -286,6 +292,7 @@ export const uk: ForeignSection = {
     if (onScreen(v, X(PUB.a), X(PUB.b))) out.push({ x: X((PUB.a + PUB.b) / 2), y: Y(80), r: 180, a: 0.45, color: '#FDE68A' });
     for (const [a, b, h] of BOOTHS) if (onScreen(v, X(a), X(b))) out.push({ x: X((a + b) / 2), y: Y(h / 2), r: 80, a: 0.35, color: '#FEF3C7' });
     for (const rx of [900, 1400, 3200]) if (onScreen(v, X(rx), X(rx))) out.push({ x: X(rx), y: Y(170), r: 120, a: 0.35, color: '#FDE68A' });
+    out.push(...towerLamps(v, state.frame));
     return out;
   },
 };
