@@ -385,7 +385,8 @@ export const drawFightBack = (c: CanvasRenderingContext2D, state: GameState) => 
   for (const a of F.arrivals) {
     if (a.mode !== 'drop' || a.t < 1) continue;
     const k = Math.max(0.15, Math.min(1, 1 - (GY - a.y) / 600));
-    c.fillStyle = `rgba(0, 0, 0, ${0.25 + 0.35 * k})`; c.beginPath(); c.ellipse(a.x, GY - 2, 14 + 26 * k, 4 + 3 * k, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = `rgba(0, 0, 0, ${0.18 + 0.2 * k})`; c.beginPath(); c.ellipse(a.x, GY - 2, 16 + 28 * k, 5 + 3 * k, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = `rgba(0, 0, 0, ${0.2 + 0.25 * k})`; c.beginPath(); c.ellipse(a.x, GY - 2, 9 + 18 * k, 3 + 2 * k, 0, 0, Math.PI * 2); c.fill();
   }
   for (const a of F.actors) if (a.cling && !slotOf(a.cling.slot).front) { const w = clingAt(state, a); drawClinger(c, a.i, w.x, w.y, w.rot, w.dir, state.frame); }
 };
@@ -395,7 +396,13 @@ export const drawFightFront = (c: CanvasRenderingContext2D, state: GameState, sa
   for (const a of F.arrivals) {
     if (a.t < 1) continue;
     const dir: 1 | -1 = a.x > p.pos.x + p.width / 2 ? -1 : 1;
-    if (a.mode === 'wire') { c.strokeStyle = '#18181B'; c.lineWidth = 2; c.beginPath(); c.moveTo(a.x, ROOF_Y + 30); c.lineTo(a.x, a.y - 80); c.stroke(); box(c, a.x - 5, a.y - 84, 10, 6, '#F59E0B'); }
+    if (a.mode === 'wire') {
+      // (the stunt wire down from the grid: the cable (a glint down it), the pulley, the spreader bar and its clips)
+      box(c, a.x - 1, ROOF_Y + 30, 3, a.y - 84 - ROOF_Y - 30, '#0A0A0E'); box(c, a.x, ROOF_Y + 30, 1, a.y - 84 - ROOF_Y - 30, '#6A6A76');
+      box(c, a.x - 7, ROOF_Y + 22, 14, 12, '#0A0A0E'); box(c, a.x - 6, ROOF_Y + 23, 12, 10, '#36363E'); box(c, a.x - 6, ROOF_Y + 23, 3, 10, '#5A5A66');
+      box(c, a.x - 12, a.y - 86, 24, 5, '#0A0A0E'); box(c, a.x - 11, a.y - 85, 22, 3, '#C8962E'); box(c, a.x - 11, a.y - 85, 22, 1, '#F2D27A');
+      for (const s of [-1, 1]) { box(c, a.x + s * 9 - 1, a.y - 82, 3, 8, '#0A0A0E'); box(c, a.x + s * 9, a.y - 81, 1, 6, '#A8A8B0'); }
+    }
     drawArriving(c, a.i, a.x, a.y, f, a.mode === 'drop', dir);
   }
   // (the pile on him: the low ones first, the top of it last)

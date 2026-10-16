@@ -14,7 +14,9 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { setHazardZones, hazardVictims, hazardHit, boxHits } from '../../hazardHit';
 import { isMidBoss } from '../../../m1/game/combat/midBoss';
-import { box } from '../section';
+import { box, poly } from '../blvd/kit';
+import { INK, pal, truss } from './paint';
+import { beam } from '../coaster/paint';
 import { X, GY, ROOF_Y, LIGHTS, LIGHT, PYRO, PYRO_T, FANS, FAN } from './layout';
 import { whOf } from './state';
 
@@ -100,75 +102,106 @@ export const updateHazards = (ctx: FrameContext) => {
 const blow = (e: Enemy, dir: number) => { e.pos.x += dir * 1.3; };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (world, behind him)
+// Drawing (world, behind him; peak SNES: steel and gear in steps, inked; the fire banded)
 
-/** A par can: its yoke, its barn doors, the lens (lit). */
+const GR = ['#08080A', '#121216', '#1C1C22', '#28282F', '#36363E', '#4A4A54', '#6A6A76'];
+/** A par can: its yoke, the can (stepped black), its barn doors, the lens (lit: a glint), cracked once it's down. */
 const parCan = (c: Ctx, x: number, y: number, lit: boolean, broken = false) => {
-  box(c, x - 12, y - 4, 24, 4, '#27272A');
-  box(c, x - 13, y, 26, 22, '#000'); box(c, x - 12, y + 1, 24, 20, '#3F3F46'); box(c, x - 12, y + 1, 6, 20, '#52525B');
-  box(c, x - 16, y + 18, 6, 10, '#27272A'); box(c, x + 10, y + 18, 6, 10, '#27272A');
-  box(c, x - 9, y + 20, 18, 4, broken ? '#57534E' : lit ? '#FEF9C3' : '#A8A29E');
+  const S = pal().steel;
+  box(c, x - 14, y - 6, 28, 6, INK); box(c, x - 13, y - 5, 26, 4, S[3]); box(c, x - 13, y - 5, 26, 1, S[5]);
+  box(c, x - 14, y - 2, 4, 14, INK); box(c, x + 10, y - 2, 4, 14, INK);
+  box(c, x - 12, y, 24, 22, INK); box(c, x - 11, y + 1, 22, 20, GR[3]); box(c, x - 11, y + 1, 6, 20, GR[5]); box(c, x - 9, y + 1, 1, 20, GR[6]); box(c, x + 6, y + 1, 5, 20, GR[1]);
+  for (const s of [-1, 1]) poly(c, [[x + s * 11, y + 20], [x + s * 18, y + 30], [x + s * 15, y + 31], [x + s * 9, y + 21]], GR[2]);
+  box(c, x - 10, y + 20, 20, 5, INK);
+  box(c, x - 9, y + 21, 18, 3, broken ? '#57534E' : lit ? '#FEF3C0' : '#A8A29E');
+  if (!broken && lit) box(c, x - 6, y + 21, 4, 1, '#FFFFFF');
+  if (broken) { box(c, x - 4, y + 21, 1, 3, INK); box(c, x + 3, y + 21, 1, 3, INK); }
 };
 export const drawHazards = (c: Ctx, state: GameState) => {
-  const f = state.frame, cam = state.camera.x;
+  const f = state.frame, cam = state.camera.x, S = pal().steel;
   const view = (x: number) => x > cam - 200 && x < cam + 1000;
   LIGHTS.forEach(([rx, off]) => {
     const x = X(rx);
     if (!view(x)) return;
     const L = lightAt(f, off);
-    // (the rig's truss over it, the cable)
-    box(c, x - 70, ROOF_Y + 30, 140, 8, '#27272A'); box(c, x - 70, ROOF_Y + 30, 140, 2, '#52525B');
-    for (let k = -60; k < 60; k += 12) { c.strokeStyle = '#3F3F46'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + k, ROOF_Y + 30); c.lineTo(x + k + 6, ROOF_Y + 38); c.stroke(); }
+    // (the rig: a length of box truss on its two chain motors, the can's safety cable up to it)
+    for (const mx of [x - 56, x + 56]) { box(c, mx - 1, ROOF_Y, 3, 14, INK); box(c, mx - 6, ROOF_Y + 12, 12, 14, INK); box(c, mx - 5, ROOF_Y + 13, 10, 12, GR[3]); box(c, mx - 5, ROOF_Y + 13, 3, 12, GR[5]); box(c, mx, ROOF_Y + 26, 1, 4, S[4]); }
+    truss(c, x - 76, x + 76, ROOF_Y + 30, 12, S, 12);
     if (L.st === 'hang' || L.st === 'tell') {
       const sw = L.st === 'tell' ? Math.sin(f * 0.5) * 8 * L.k : 0;
-      c.strokeStyle = '#18181B'; c.lineWidth = 2; c.beginPath(); c.moveTo(x, ROOF_Y + 38); c.lineTo(x + sw, HANG_Y - 4); c.stroke();
-      parCan(c, x + sw, HANG_Y, true);
-      // (its light down on the floor; the tell: flickering)
-      if (L.st === 'hang' || f % 6 < 4) { c.fillStyle = 'rgba(254, 249, 195, 0.12)'; c.beginPath(); c.moveTo(x - 10 + sw, HANG_Y + 24); c.lineTo(x + 10 + sw, HANG_Y + 24); c.lineTo(x + 60, GY); c.lineTo(x - 60, GY); c.closePath(); c.fill(); }
-      if (L.st === 'tell') { c.fillStyle = 'rgba(239, 68, 68, 0.25)'; c.beginPath(); c.ellipse(x, GY - 2, 50, 6, 0, 0, Math.PI * 2); c.fill(); }
+      c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(x, ROOF_Y + 42); c.lineTo(x + sw, HANG_Y - 6); c.stroke();
+      c.strokeStyle = S[4]; c.lineWidth = 1; c.beginPath(); c.moveTo(x, ROOF_Y + 42); c.lineTo(x + sw, HANG_Y - 6); c.stroke();
+      parCan(c, x + sw, HANG_Y, L.st === 'hang' || f % 6 < 4);
+      // (its light down on the floor (banded); the tell: flickering, the pool under it gone red)
+      if (L.st === 'hang' || f % 6 < 4) beam(c, x + sw, HANG_Y + 26, GY - 2, 62, '#FEF9C3', 0.1);
+      if (L.st === 'tell') { for (const [rx2, a] of [[56, 0.18], [40, 0.22], [22, 0.3]] as const) { c.fillStyle = `rgba(239, 68, 68, ${a})`; c.beginPath(); c.ellipse(x, GY - 2, rx2, rx2 * 0.12, 0, 0, Math.PI * 2); c.fill(); } }
     } else if (L.st === 'fall') {
-      c.strokeStyle = '#18181B'; c.lineWidth = 2; c.beginPath(); c.moveTo(x, ROOF_Y + 38); c.lineTo(x + 4, ROOF_Y + 90); c.stroke();
+      c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(x, ROOF_Y + 42); c.lineTo(x + 4, ROOF_Y + 90); c.stroke();
+      c.strokeStyle = S[4]; c.lineWidth = 1; c.stroke();
       parCan(c, x, lightY(L.k), true);
     } else {
-      // (down: smashed on the floor, its cable snaked up)
+      // (down: smashed on the floor, its cable snaked up, the glass)
       c.save(); c.translate(x, GY - 12); c.rotate(1.1); parCan(c, 0, -10, false, true); c.restore();
-      for (let k = 0; k < 5; k++) box(c, x - 24 + k * 11, GY - 3, 4, 3, '#E5E7EB');
+      for (let k = 0; k < 5; k++) { box(c, x - 25 + k * 11, GY - 4, 5, 4, INK); box(c, x - 24 + k * 11, GY - 3, 3, 2, '#E5E7EB'); }
     }
   });
   PYRO.forEach(([rx, off]) => {
     const x = X(rx);
     if (!view(x)) return;
     const P = pyroAt(f, off);
-    // (the nozzle in the floor, hazard-striped; the fire)
-    box(c, x - 16, GY - 8, 32, 8, '#000'); box(c, x - 15, GY - 7, 30, 6, '#3F3F46');
-    for (let k = 0; k < 4; k++) box(c, x - 14 + k * 8, GY - 7, 4, 6, '#FACC15');
-    box(c, x - 6, GY - 12, 12, 5, P.tell ? '#F97316' : '#27272A');
+    // (the nozzle in the floor: its plate hazard-striped, the burner's mouth (glowing for the tell))
+    box(c, x - 18, GY - 9, 36, 9, INK);
+    c.save(); c.beginPath(); c.rect(x - 17, GY - 8, 34, 7); c.clip();
+    box(c, x - 17, GY - 8, 34, 7, '#18141A');
+    c.fillStyle = '#E8B416'; for (let k = -10; k < 40; k += 10) { c.beginPath(); c.moveTo(x - 17 + k, GY - 1); c.lineTo(x - 12 + k, GY - 1); c.lineTo(x - 5 + k, GY - 8); c.lineTo(x - 10 + k, GY - 8); c.closePath(); c.fill(); }
+    c.restore();
+    box(c, x - 17, GY - 8, 34, 1, '#FFF09A');
+    box(c, x - 8, GY - 14, 16, 6, INK); box(c, x - 7, GY - 13, 14, 4, P.tell ? (f % 6 < 3 ? '#F97316' : '#FDBA74') : GR[4]); box(c, x - 7, GY - 13, 14, 1, P.tell ? '#FEF3C0' : GR[6]);
     if (P.burn) {
       const h = PYRO_T.h * Math.min(1, P.k * 6) * (P.k > 0.85 ? (1 - P.k) / 0.15 : 1), w = PYRO_T.w;
-      const cols = ['#B91C1C', '#EA580C', '#F97316', '#FDE047', '#FEF9C3'];
+      // (banded: dark red out to white-hot at the core, each band a flicker of its own; inked at its edge)
+      const cols = ['#5A0A06', '#B91C1C', '#EA580C', '#F97316', '#FDE047', '#FEF9C3'];
       cols.forEach((col, i) => {
-        const ww = w * (1 - i * 0.17), hh = h * (1 - i * 0.12);
-        c.fillStyle = col; c.beginPath(); c.moveTo(x - ww / 2, GY - 8);
-        for (let k = 0; k <= 6; k++) { const t = k / 6; c.lineTo(x - ww / 2 + ww * t, GY - 8 - hh * (0.75 + 0.25 * Math.sin(f * 0.7 + k * 1.7 + i)) * (1 - Math.abs(t - 0.5) * 0.9)); }
-        c.lineTo(x + ww / 2, GY - 8); c.closePath(); c.fill();
+        const ww = (w + 6) * (1 - i * 0.15), hh = h * (1 - i * 0.11);
+        c.fillStyle = col; c.beginPath(); c.moveTo(x - ww / 2, GY - 12);
+        for (let k = 0; k <= 8; k++) { const t = k / 8; c.lineTo(Math.round(x - ww / 2 + ww * t), Math.round(GY - 12 - hh * (0.72 + 0.28 * Math.sin(f * 0.7 + k * 1.7 + i)) * (1 - Math.abs(t - 0.5) * 0.9))); }
+        c.lineTo(x + ww / 2, GY - 12); c.closePath(); c.fill();
       });
+      // (its glow on the floor)
+      for (const [r, a] of [[70, 0.12], [44, 0.18]] as const) { c.fillStyle = `rgba(253, 186, 116, ${a})`; c.beginPath(); c.ellipse(x, GY - 2, r, r * 0.12, 0, 0, Math.PI * 2); c.fill(); }
     }
   });
   FANS.forEach(([rx, dir, off]) => {
     const x = X(rx);
     if (!view(x)) return;
-    const F = fanAt(f, off), spin = F.gust ? f * 0.9 : F.spin ? f * 0.2 * (1 + F.k * 3) : f * 0.02;
-    // (the stand, the cage, the blades going round)
-    box(c, x - 4, GY - 120, 8, 120, '#3F3F46'); box(c, x - 30, GY - 8, 60, 8, '#27272A');
-    c.fillStyle = '#000'; c.beginPath(); c.arc(x, GY - 150, 52, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#52525B'; c.beginPath(); c.arc(x, GY - 150, 49, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#A1A1AA';
-    for (let k = 0; k < 3; k++) { const a = spin + (k * Math.PI * 2) / 3; c.beginPath(); c.ellipse(x + Math.cos(a) * 22 * 0.4 * dir, GY - 150 + Math.sin(a) * 22, 10 * 0.5, 22, a, 0, Math.PI * 2); c.fill(); }
-    c.strokeStyle = '#18181B'; c.lineWidth = 2;
-    for (const r of [20, 36, 48]) { c.beginPath(); c.arc(x, GY - 150, r, 0, Math.PI * 2); c.stroke(); }
-    box(c, x - 5, GY - 155, 10, 10, '#18181B');
-    // (which way it blows: the arrow painted on its housing)
-    box(c, x - dir * 70, GY - 104, 22, 14, '#FACC15');
-    c.fillStyle = '#18181B'; c.beginPath(); c.moveTo(x - dir * 70 + (dir > 0 ? 18 : 4), GY - 97); c.lineTo(x - dir * 70 + 11, GY - 102); c.lineTo(x - dir * 70 + 11, GY - 92); c.closePath(); c.fill();
+    const F = fanAt(f, off), spin = F.gust ? f * 0.9 : F.spin ? f * 0.2 * (1 + F.k * 3) : f * 0.02, cy = GY - 150;
+    // (the stand: a rolling base, its casters, the yoke up to the drum)
+    box(c, x - 34, GY - 12, 68, 8, INK); box(c, x - 33, GY - 11, 66, 6, GR[3]); box(c, x - 33, GY - 11, 66, 1, GR[5]);
+    for (const wx of [x - 26, x + 26]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, GY - 4, 5, 0, Math.PI * 2); c.fill(); c.fillStyle = GR[4]; c.beginPath(); c.arc(wx, GY - 4, 3, 0, Math.PI * 2); c.fill(); }
+    box(c, x - 6, GY - 110, 12, 100, INK); box(c, x - 5, GY - 110, 10, 100, GR[3]); box(c, x - 5, GY - 110, 3, 100, GR[5]);
+    for (const s of [-1, 1]) { box(c, x + s * 54 - 4, cy - 6, 8, 60, INK); box(c, x + s * 54 - 3, cy - 5, 6, 58, GR[4]); }
+    box(c, x - 58, GY - 96, 116, 8, INK); box(c, x - 57, GY - 95, 114, 6, GR[3]); box(c, x - 57, GY - 95, 114, 1, GR[5]);
+    // (the drum: its housing ring stepped, the blades a blur when it's going, the cage rings and spokes over them)
+    c.fillStyle = INK; c.beginPath(); c.arc(x, cy, 53, 0, Math.PI * 2); c.fill();
+    c.fillStyle = GR[4]; c.beginPath(); c.arc(x, cy, 51, 0, Math.PI * 2); c.fill();
+    c.fillStyle = GR[5]; c.beginPath(); c.arc(x - 2, cy - 2, 49, Math.PI * 0.9, Math.PI * 1.6); c.lineTo(x - 2, cy - 2); c.fill();
+    c.fillStyle = GR[1]; c.beginPath(); c.arc(x, cy, 45, 0, Math.PI * 2); c.fill();
+    if (F.gust) { c.fillStyle = 'rgba(161, 161, 170, 0.45)'; c.beginPath(); c.arc(x, cy, 40, 0, Math.PI * 2); c.fill(); c.fillStyle = 'rgba(212, 212, 216, 0.3)'; c.beginPath(); c.arc(x, cy, 26, 0, Math.PI * 2); c.fill(); }
+    else for (let k = 0; k < 3; k++) {
+      const a = spin + (k * Math.PI * 2) / 3;
+      c.fillStyle = INK; c.beginPath(); c.ellipse(x + Math.cos(a) * 21 * 0.4 * dir, cy + Math.sin(a) * 21, 6.5, 23, a, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#A1A1AA'; c.beginPath(); c.ellipse(x + Math.cos(a) * 21 * 0.4 * dir, cy + Math.sin(a) * 21, 5, 21, a, 0, Math.PI * 2); c.fill();
+    }
+    c.strokeStyle = INK; c.lineWidth = 2;
+    for (const r of [16, 30, 44]) { c.beginPath(); c.arc(x, cy, r, 0, Math.PI * 2); c.stroke(); }
+    c.beginPath(); for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4; c.moveTo(x + Math.cos(a) * 8, cy + Math.sin(a) * 8); c.lineTo(x + Math.cos(a) * 45, cy + Math.sin(a) * 45); } c.stroke();
+    c.strokeStyle = GR[6]; c.lineWidth = 1; c.beginPath(); c.arc(x - 1, cy - 1, 44, Math.PI * 1.05, Math.PI * 1.5); c.stroke();
+    box(c, x - 7, cy - 7, 14, 14, INK); box(c, x - 6, cy - 6, 12, 12, GR[4]); box(c, x - 6, cy - 6, 4, 4, GR[6]);
+    // (which way it blows: the arrow stenciled on its housing, yellow; its spin-up light)
+    const ax = x - dir * 72;
+    box(c, ax - 13, GY - 108, 26, 16, INK); box(c, ax - 12, GY - 107, 24, 14, '#E8B416'); box(c, ax - 12, GY - 107, 24, 1, '#FFF09A');
+    c.fillStyle = '#18181B'; c.beginPath(); c.moveTo(ax + dir * 9, GY - 100); c.lineTo(ax - dir * 2, GY - 105); c.lineTo(ax - dir * 2, GY - 95); c.closePath(); c.fill();
+    box(c, ax - dir * 9 - 3, GY - 101, 8, 3, '#18181B');
+    box(c, x - 3, GY - 120, 6, 5, INK); box(c, x - 2, GY - 119, 4, 3, F.spin || F.gust ? (f % 10 < 5 ? '#EF4444' : '#7F1D1D') : '#4ADE80');
   });
 };

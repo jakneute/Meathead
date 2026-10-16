@@ -31,6 +31,8 @@ import { whOf } from './state';
 import { BURST, BURST_WHAT, BURST_NEVER, BACK_AGAIN, CROWD_GASP, DIR_WHO, DIR_TITLE, DIR_SECRET, DIR_PONDER, DIR_KILL, PROD_RULES, PROD_ASSASSIN } from './lines';
 import { crowdSay, dirSay, prodSay } from './talk';
 import { drawDirector } from './kindArt';
+import { INK as KINK, stamp, signText } from '../blvd/kit';
+import { bodyOf, legs, arm, torso, part, px, dk, headShape, faceOn } from '../../spooky/costume';
 
 /** Where the wreck comes down (its middle), where he lands, where the director stands (x from the section's start). */
 export const WRECK_X = 380;
@@ -191,8 +193,8 @@ export const drawBurstDirector = (c: CanvasRenderingContext2D, state: GameState)
   const e = puppetOf(state), f = state.frame;
   e.pos.x = d.x - e.width / 2; e.pos.y = GY - e.height; e.facing = d.face;
   e.aiState = d.mode === 'yell' ? 'action' : 'approach'; e.vel.x = d.mode === 'run' ? 6 : 0;
-  // (his chair, behind him, till he's off)
-  if (d.mode !== 'run') { box(c, X(DIR_X) + 20, GY - 46, 40, 6, '#78350F'); box(c, X(DIR_X) + 20, GY - 82, 40, 26, '#18181B'); box(c, X(DIR_X) + 24, GY - 40, 4, 40, '#78350F'); box(c, X(DIR_X) + 52, GY - 40, 4, 40, '#78350F'); }
+  // (his chair, behind him, till he's off: the director's chair, his name on its back)
+  if (d.mode !== 'run') { c.save(); c.translate(X(DIR_X) + 20, GY); stamp(c, 'hww-burstchair', -4, -86, 50, 88, paintChair); c.restore(); }
   c.save(); c.translate(Math.round(d.x), GY); c.scale(d.face, 1);
   drawDirector(c, e, f, DIR_SEED, false);
   c.restore();
@@ -207,43 +209,83 @@ export const drawProducer = (c: CanvasRenderingContext2D, state: GameState) => {
   const b = whOf(state).burst, P = b.prod, f = state.frame, x = X(PROD_X), y = GY;
   if (!(b.on ? true : wallsDown(state))) return;
   if (b.on && P.mode !== 'dead') {
-    const look = P.mode === 'look', jab = !look && !!P.said && f % 16 < 8;
-    // (the sneakers, the khakis)
-    box(c, x - 11, y - 6, 10, 6, '#F5F5F4'); box(c, x + 2, y - 6, 11, 6, '#F5F5F4');
-    box(c, x - 10, y - 38, 8, 33, '#C8B48A'); box(c, x + 2, y - 38, 8, 33, '#C8B48A');
-    // (the checked shirt under the navy fleece vest; the lanyard and his laminate)
-    box(c, x - 14, y - 70, 28, 34, '#000'); box(c, x - 13, y - 69, 26, 32, '#93C5FD');
-    for (let k = 0; k < 4; k++) box(c, x - 13, y - 66 + k * 8, 26, 1, '#60A5FA');
-    box(c, x - 13, y - 69, 8, 32, '#1E3A8A'); box(c, x + 5, y - 69, 8, 32, '#1E3A8A');
-    box(c, x - 1, y - 69, 2, 18, '#DC2626'); box(c, x - 4, y - 52, 8, 10, '#F8FAFC');
-    // (the head: the bald dome, the gray horseshoe, the glasses; the headset and its mic; the mouth going)
-    const hy = look ? -2 : 0;
-    box(c, x - 9, y - 88 + hy, 18, 19, '#000'); box(c, x - 8, y - 87 + hy, 16, 17, '#E7B48F');
-    box(c, x - 9, y - 82 + hy, 4, 7, '#A8A29E'); box(c, x + 5, y - 82 + hy, 4, 7, '#A8A29E');
-    box(c, x + 1, y - (look ? 86 : 82) + hy, 8, 2, '#18181B');
-    box(c, x - 10, y - 91 + hy, 20, 3, '#18181B'); box(c, x - 11, y - 84 + hy, 3, 8, '#18181B'); box(c, x - 9, y - 76 + hy, 12, 1, '#18181B');
-    if (P.said || look) box(c, x + 2, y - 76 + hy, 6, look ? 5 : f % 10 < 5 ? 4 : 2, '#000');
-    // (the arms: the clipboard in one; the other jabbing at the crew, or both up at the noise)
-    if (look) {
-      box(c, x - 20, y - 98, 6, 30, '#93C5FD'); box(c, x + 14, y - 98, 6, 30, '#93C5FD');
-      box(c, x - 26, y - 108, 14, 18, '#78350F'); box(c, x - 24, y - 106, 10, 14, '#F8FAFC');
-    } else {
-      box(c, x - 19, y - 68, 6, 24, '#93C5FD'); box(c, x - 24, y - 52, 12, 16, '#78350F'); box(c, x - 22, y - 50, 8, 12, '#F8FAFC');
-      if (jab) { box(c, x + 13, y - 70, 22, 6, '#93C5FD'); box(c, x + 35, y - 69, 7, 3, '#E7B48F'); }
-      else { box(c, x + 13, y - 68, 6, 22, '#93C5FD'); box(c, x + 13, y - 47, 6, 5, '#E7B48F'); }
-    }
+    const look = P.mode === 'look', jab = !look && !!P.said && f % 16 < 8, talk = !!P.said && f % 10 < 5;
+    const pose = look ? 'look' : jab ? 'jab' : 'stand';
+    c.save(); c.translate(x, y);
+    stamp(c, `hww-producer-${pose}-${talk || look ? 1 : 0}`, -44, -124, 96, 128, g => paintProducer(g, pose, talk || look));
+    c.restore();
     return;
   }
-  // Flat under the train: the blood out from under it (spreading), the legs out the left end, a sneaker off, the
-  // clipboard flung
+  // Flat under the train: the blood out from under it (spreading, stepped), the legs out the left end (the khakis, a
+  // sneaker on, one off), the clipboard flung, its pages
   const k = b.on ? Math.min(1, (f - P.at) / 120) : 1;
-  c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(x - 10, y + 1, 30 + 70 * k, 3 + 3 * k, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#B91C1C'; c.beginPath(); c.ellipse(x - 20, y, 18 + 50 * k, 2 + 2 * k, 0, 0, Math.PI * 2); c.fill();
-  box(c, x - 92, y - 9, 56, 8, '#C8B48A'); box(c, x - 84, y - 17, 48, 7, '#B8A47A');
-  box(c, x - 100, y - 16, 8, 14, '#F5F5F4'); box(c, x - 92, y - 22, 6, 6, '#E7B48F');
-  box(c, x - 64, y - 4, 12, 4, '#F5F5F4');
-  box(c, x + 48, y - 3, 16, 3, '#78350F'); box(c, x + 50, y - 4, 12, 1, '#F8FAFC');
-  for (let i = 0; i < 4; i++) box(c, x - 40 + i * 26, y - 30 - ((i * 13) % 20), 3, 3, '#991B1B');
+  for (const [dx, rx, ry, col] of [[-10, 34 + 70 * k, 3.5 + 3 * k, '#3A0606'], [-10, 30 + 66 * k, 3 + 3 * k, '#6A0E0E'], [-18, 20 + 48 * k, 2 + 2 * k, '#9A1414'], [-26, 8 + 20 * k, 1 + k, '#C83030']] as const) { c.fillStyle = col; c.beginPath(); c.ellipse(x + dx, y + 1, rx, ry, 0, 0, Math.PI * 2); c.fill(); }
+  box(c, x - 40 - 30 * k, y - 1, 6, 1, '#E86A5A');
+  c.save(); c.translate(x, y); stamp(c, 'hww-producer-flat', -110, -30, 190, 34, paintProducerFlat); c.restore();
+  for (let i = 0; i < 4; i++) { box(c, x - 41 + i * 26, y - 31 - ((i * 13) % 20), 4, 4, '#3A0606'); box(c, x - 40 + i * 26, y - 30 - ((i * 13) % 20), 2, 2, '#B91C1C'); }
+};
+
+/** A director's chair (feet at 0, its left): the frame crossed under the seat, the canvas, DIRECTOR on its back. */
+const paintChair = (g: CanvasRenderingContext2D) => {
+  const W = ['#3A2410', '#5C3A1A', '#80562A', '#A87A3E', '#C99E5C'];
+  for (const lx of [2, 34]) { box(g, lx - 1, -84, 5, 84, KINK); box(g, lx, -84, 3, 84, W[3]); box(g, lx, -84, 1, 84, W[4]); }
+  g.strokeStyle = KINK; g.lineWidth = 4; g.beginPath(); g.moveTo(3, -2); g.lineTo(36, -42); g.moveTo(36, -2); g.lineTo(3, -42); g.stroke();
+  g.strokeStyle = W[2]; g.lineWidth = 2; g.stroke();
+  box(g, -1, -48, 42, 8, KINK); box(g, 0, -47, 40, 6, '#18181B'); box(g, 0, -47, 40, 1, '#3A3A44');
+  box(g, -1, -82, 42, 24, KINK); box(g, 0, -81, 40, 22, '#18181B'); box(g, 0, -81, 40, 2, '#3A3A44'); box(g, 0, -61, 40, 2, '#0A0A0E');
+  signText(g, 'DIRECTOR', 20, -66, { sx: 1, sy: 1, fill: '#F4F0E8' });
+};
+/** The producer, stood laying down the law (or looking up at the noise): the fleece vest over the checked shirt, the
+ *  khakis, the sneakers, the lanyard, the bald dome and its gray horseshoe, the glasses, the headset; the clipboard in
+ *  one hand, the other jabbing at the crew (or both up). Feet at 0, facing right. */
+const paintProducer = (g: CanvasRenderingContext2D, pose: 'stand' | 'jab' | 'look', talk: boolean) => {
+  const B = bodyOf(14, 'stand', 0, false);
+  B.L = { ...B.L, skin: '#E2AC86', hair: '#9A9A9A', bald: true, long: false, heavy: true, face: 3 };
+  B.w = 27; B.hipW = 26;
+  const skin = B.L.skin, shirt = '#8AB4E8', vest = '#1E2E5A', khaki = '#C8B48A';
+  legs(g, B, { col: khaki, shoe: 'sneaker', shoeCol: '#E8E8E4', detail: (gg, _h, kn, ft) => px(gg, (kn[0] + ft[0]) / 2, (kn[1] + ft[1]) / 2 - 3, 1, 6, dk(khaki, 0.25)) });
+  const far: [number, number] = pose === 'look' ? [-B.w / 2 - 8, B.shY - 28] : [-B.w / 2 - 6, B.shY + 18];
+  const near: [number, number] = pose === 'look' ? [B.w / 2 + 6, B.shY - 30] : pose === 'jab' ? [B.w / 2 + 22, B.shY + 2] : [B.w / 2 + 3, B.shY + 22];
+  arm(g, B, -1, far[0], far[1], { sleeve: shirt, hand: skin });
+  // (the clipboard in the far hand: brown board, the clip, the page)
+  part(g, () => g.rect(far[0] - 8, far[1] - 12, 14, 18), '#7A4A1E', far[0] - 8, far[1] - 12, 14, 18, 1);
+  px(g, far[0] - 6, far[1] - 9, 10, 13, '#F4F0E8'); px(g, far[0] - 3, far[1] - 13, 4, 3, '#A8A8B0');
+  for (let k = 0; k < 3; k++) px(g, far[0] - 5, far[1] - 6 + k * 3, 7, 1, '#8A8A94');
+  torso(g, B, shirt);
+  for (let y = B.shY + 3; y < B.hipY; y += 4) px(g, -B.w / 2 + 2, y, B.w - 4, 1, '#5A84C8');
+  for (let x = -B.w / 2 + 3; x < B.w / 2 - 2; x += 4) px(g, x, B.shY + 2, 1, B.hipY - B.shY - 2, '#6A94D8');
+  // (the fleece vest: its zip, its pocket, the logo)
+  part(g, () => { g.moveTo(-B.w / 2, B.shY + 2); g.lineTo(-B.hipW / 2 - 1, B.hipY + 3); g.lineTo(-1, B.hipY + 3); g.lineTo(-2, B.shY + 2); g.closePath(); }, vest, -B.hipW / 2 - 1, B.shY + 2, B.w / 2 + 2, B.hipY - B.shY + 2, 1);
+  part(g, () => { g.moveTo(B.w / 2, B.shY + 2); g.lineTo(B.hipW / 2 + 3, B.hipY + 3); g.lineTo(2, B.hipY + 3); g.lineTo(2, B.shY + 2); g.closePath(); }, vest, 2, B.shY + 2, B.w / 2 + 3, B.hipY - B.shY + 2, 1);
+  px(g, 0, B.shY + 2, 1, B.hipY - B.shY, '#A8A8B0'); px(g, 5, B.shY + 8, 4, 3, '#E8C25A');
+  // (the lanyard, the laminate)
+  px(g, -3, B.shY + 1, 1, 14, '#DC2626'); px(g, 3, B.shY + 1, 1, 14, '#DC2626');
+  part(g, () => g.rect(-4, B.shY + 14, 8, 10), '#F8FAFC', -4, B.shY + 14, 8, 10, 0.8); px(g, -3, B.shY + 15, 6, 2, '#B91C1C'); px(g, -3, B.shY + 19, 5, 1, '#3F3F46');
+  // (the head: tipped back to look up; the horseshoe of gray hair round the back, the glasses, the headset)
+  if (pose === 'look') { B.hy -= 2; B.hx -= 1; }
+  headShape(g, B, skin);
+  faceOn(g, B, { skin, eyes: pose === 'look' ? 'wide' : 'angry', mouth: pose === 'look' ? 'o' : talk ? 'teeth' : 'flat', md: 'ok', look: pose === 'look' ? -1 : 0.6, brows: '#7A7A7A' });
+  part(g, () => { g.moveTo(B.hx - 9, B.hy - 2); g.quadraticCurveTo(B.hx - 10, B.hy + 6, B.hx - 5, B.hy + 7); g.lineTo(B.hx - 4, B.hy + 2); g.quadraticCurveTo(B.hx - 7, B.hy, B.hx - 6, B.hy - 3); g.closePath(); }, '#9A9A9A', B.hx - 10, B.hy - 3, 6, 10, 0.8);
+  px(g, B.hx - 4, B.hy - 9, 5, 1, '#F8E0CC');
+  for (const s of [-1, 1]) { g.strokeStyle = KINK; g.lineWidth = 1.6; g.strokeRect(B.hx + 2.5 + s * 3.6 - 2.6, B.hy - 3, 5.2, 3.6); }
+  g.strokeStyle = KINK; g.lineWidth = 2; g.beginPath(); g.arc(B.hx, B.hy - 1, 10, Math.PI * 1.08, Math.PI * 1.92); g.stroke();
+  part(g, () => g.ellipse(B.hx - 8, B.hy + 1, 3, 3.6, 0, 0, Math.PI * 2), '#27272A', B.hx - 11, B.hy - 3, 6, 8, 1);
+  g.strokeStyle = '#3F3F46'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(B.hx - 7, B.hy + 3); g.quadraticCurveTo(B.hx - 1, B.hy + 10, B.hx + 6, B.hy + 8); g.stroke();
+  arm(g, B, 1, near[0], near[1], { sleeve: shirt, hand: skin });
+  // (the jabbing finger)
+  if (pose === 'jab') px(g, near[0] + 3, near[1] - 1, 5, 2, skin);
+};
+/** What's left showing of him under the wreck (feet at 0): the khakis out from under its left end, a sneaker on, one
+ *  off, a hand; the clipboard flung, its page. */
+const paintProducerFlat = (g: CanvasRenderingContext2D) => {
+  const K = ['#5A4A2A', '#8A7650', '#B8A47A', '#C8B48A', '#DCCCA8'];
+  box(g, -93, -10, 58, 10, KINK); box(g, -92, -9, 56, 8, K[3]); box(g, -92, -9, 56, 2, K[4]); box(g, -92, -3, 56, 2, K[1]);
+  box(g, -85, -18, 50, 9, KINK); box(g, -84, -17, 48, 7, K[2]); box(g, -84, -17, 48, 1, K[3]);
+  box(g, -101, -17, 10, 16, KINK); box(g, -100, -16, 8, 14, '#E8E8E4'); box(g, -100, -16, 8, 2, '#FFFFFF'); box(g, -100, -4, 8, 2, '#A8A8A4');
+  box(g, -93, -23, 8, 7, KINK); box(g, -92, -22, 6, 5, '#E2AC86'); box(g, -92, -22, 2, 2, '#F2C8A8');
+  box(g, -65, -5, 14, 5, KINK); box(g, -64, -4, 12, 4, '#E8E8E4'); box(g, -64, -4, 12, 1, '#FFFFFF');
+  box(g, 47, -4, 18, 5, KINK); box(g, 48, -3, 16, 3, '#7A4A1E'); box(g, 50, -4, 12, 1, '#F4F0E8');
+  box(g, 68, -2, 9, 2, '#F4F0E8');
 };
 
 /** The director's (and before him the producer's) words over him (in front of everything). */

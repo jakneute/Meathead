@@ -31,7 +31,8 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { hands, meatheadSays, box, saidOver } from '../section';
 import { outOf } from '../blvd/state';
 import { SECTIONS, LOT_WALL_BREAK, LOT_DUMPSTER } from '../geometry';
-import { words, print } from '../blvd/paint';
+import { INK, checker, mix, poly, stamp, pixelBlob, board, plain } from '../blvd/kit';
+import { bodyOf, legs, arm, torso, part, px, dk, headShape, faceOn } from '../../spooky/costume';
 import { X, GY, BACK_Y, PILE_X, DOZER_X, DOZER_START, CASE_X, FAR_WALL, ARENA_CAM, LEAK_MEMO, CAST_MEMO } from './layout';
 import { whOf } from './state';
 import { drawBody, CAST } from './cast';
@@ -295,59 +296,106 @@ export const endingZoom = (state: GameState) => {
   return { scale: 1 + (E.zf ? E.zf.z : ZOOM_IN) * k, x, y, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - x), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - y) };
 };
 
-// ---------------------------------------------------------------------------------------------------------------
-// Drawing
 
-/** The bulldozer, its middle at x on the floor (blade to the right): HAPPYWOOD FACILITIES' own, yellow, beat up. */
+// ---------------------------------------------------------------------------------------------------------------
+// Drawing (peak SNES: every material in steps, inked round)
+
+const DY = ['#3A2A04', '#6A4C06', '#A87A0A', '#D8A40E', '#F2C424', '#FCE06A', '#FFF4B0'];
+/** The bulldozer's body, its cab, its push arms and blade (still: painted once), its middle-bottom at (0, 0), blade
+ *  to the right. HAPPYWOOD FACILITIES' own: yellow, beat up, the paint chipped, rust down its seams. */
+const paintDozer = (g: Ctx) => {
+  const Y = DY, S = ['#141418', '#24242A', '#36363E', '#4C4C56', '#6A6A76', '#9A9AA6', '#D4D4DC'];
+  // (the track frame behind the wheels: its top roller rail)
+  box(g, -110, -40, 212, 6, INK); box(g, -109, -39, 210, 4, S[2]);
+  // (the engine's hood: stepped, lit along the top, the side panels' louvers, the grille at the front)
+  box(g, -102, -99, 176, 66, INK);
+  box(g, -101, -98, 174, 64, Y[3]); box(g, -101, -98, 174, 4, Y[5]); box(g, -101, -98, 174, 1, Y[6]); box(g, -101, -98, 4, 64, Y[4]);
+  box(g, -101, -40, 174, 6, Y[1]); checker(g, -101, -42, 174, 2, Y[1], 0, 2);
+  box(g, 30, -90, 40, 52, INK); box(g, 31, -89, 38, 50, Y[2]); for (let k = 0; k < 6; k++) { box(g, 34, -85 + k * 8, 32, 4, S[1]); box(g, 34, -85 + k * 8, 32, 1, S[3]); }
+  box(g, 68, -98, 6, 64, Y[1]);
+  for (let k = 0; k < 5; k++) { box(g, -94 + k * 10, -86, 6, 30, Y[2]); box(g, -94 + k * 10, -86, 6, 1, Y[4]); }
+  // (the decal, chipped paint, rust down a seam, a dent)
+  board(g, -16, -60, ['HAPPYWOOD', 'FACILITIES'], plain(1, 1, '#1C1917'), '#E8E4DA', ['#3A2408', '#6A4410', '#9A6A1C', '#C8962E', '#E8C25A', '#FFF0A8'], 3);
+  for (const [cx, cy] of [[-80, -94], [-40, -50], [10, -88], [50, -46]] as const) { box(g, cx, cy, 4, 2, S[2]); box(g, cx + 1, cy + 2, 2, 1, Y[1]); }
+  box(g, 22, -96, 2, 50, '#7A3A12'); checker(g, 21, -70, 4, 22, '#9A5A22', 0, 1);
+  g.fillStyle = Y[2]; g.beginPath(); g.ellipse(-60, -48, 7, 4, 0, 0, Math.PI * 2); g.fill();
+  // (the hazard stripes on its back)
+  box(g, -104, -96, 6, 60, INK);
+  for (let y = -96; y < -36; y += 8) poly(g, [[-104, y], [-98, y + 4], [-98, y + 8], [-104, y + 4]], '#18181B');
+  // (the exhaust stack, its rain cap)
+  box(g, 20, -156, 10, 60, INK); box(g, 21, -155, 8, 58, S[2]); box(g, 21, -155, 2, 58, S[4]);
+  box(g, 18, -160, 14, 6, INK); box(g, 19, -159, 12, 4, S[3]); box(g, 19, -159, 12, 1, S[5]);
+  // (the cab: its posts and roof (the front posts go over him: drawn after him), the glass behind his seat, the seat)
+  box(g, -78, -182, 98, 86, INK);
+  box(g, -76, -180, 94, 8, Y[3]); box(g, -76, -180, 94, 2, Y[5]); box(g, -76, -174, 94, 2, Y[1]);
+  box(g, -76, -172, 10, 76, Y[2]); box(g, -76, -172, 3, 76, Y[4]);
+  box(g, -66, -172, 76, 76, '#5A7A98'); box(g, -66, -172, 76, 14, '#8AA8C4'); box(g, -66, -172, 76, 3, '#C8DCEC');
+  poly(g, [[-60, -158], [-46, -172], [-40, -172], [-54, -158]], '#C8DCEC'); poly(g, [[-30, -158], [-20, -168], [-17, -168], [-27, -158]], '#A8C4DC');
+  box(g, -60, -140, 22, 40, INK); box(g, -59, -139, 20, 38, '#2A2420'); box(g, -59, -139, 4, 38, '#3A342E');
+  box(g, 10, -172, 8, 76, Y[2]); box(g, 15, -172, 3, 76, Y[1]);
+  // (the push arms out to the blade, their rams)
+  box(g, 60, -70, 60, 12, INK); box(g, 61, -69, 58, 10, Y[2]); box(g, 61, -69, 58, 2, Y[4]);
+  box(g, 70, -94, 40, 7, INK); box(g, 71, -93, 38, 5, S[4]); box(g, 71, -93, 38, 1, S[6]);
+  // (the blade: curved, its face stepped, the cutting edge worn bright, its bolts)
+  const curve = (o: number) => { g.beginPath(); g.moveTo(112 - o, -114 - o); g.quadraticCurveTo(136 - o, -60, 118 - o, -2 + o); g.lineTo(134 + o, -2 + o); g.quadraticCurveTo(150 + o, -60, 128 + o, -114 - o); g.closePath(); };
+  g.fillStyle = INK; curve(1); g.fill();
+  g.fillStyle = Y[2]; curve(0); g.fill();
+  g.save(); curve(0); g.clip();
+  box(g, 110, -116, 8, 116, Y[4]); box(g, 110, -116, 3, 116, Y[5]); box(g, 128, -116, 22, 116, Y[1]);
+  for (let y = -104; y < -10; y += 22) { box(g, 122, y, 3, 3, Y[0]); box(g, 122, y, 1, 1, Y[5]); }
+  box(g, 110, -116, 40, 6, Y[3]);
+  g.restore();
+  box(g, 117, -8, 18, 6, INK); box(g, 118, -7, 16, 4, S[5]); box(g, 118, -7, 16, 1, S[6]);
+};
+/** The bulldozer, its middle at x on the floor (blade to the right). The tracks live (their plates going round). */
 export const drawDozer = (c: Ctx, x: number, f: number, running: boolean) => {
   const jig = running ? (f % 4 < 2 ? -1 : 0) : 0;
-  // (the tracks)
-  box(c, x - 112, GY - 36, 214, 36, '#000'); box(c, x - 110, GY - 34, 210, 32, '#292524');
-  for (let k = 0; k < 9; k++) box(c, x - 104 + ((k * 24 + (running ? f * 3 : 0)) % 200), GY - 32, 12, 28, '#44403C');
-  for (const wx of [x - 92, x + 84]) { c.fillStyle = '#1C1917'; c.beginPath(); c.arc(wx, GY - 18, 15, 0, Math.PI * 2); c.fill(); }
-  // (the body, the engine, the exhaust stack)
-  box(c, x - 102, GY - 98 + jig, 174, 64, '#000'); box(c, x - 100, GY - 96 + jig, 170, 60, '#EAB308');
-  box(c, x - 100, GY - 96 + jig, 170, 6, '#FDE047'); box(c, x + 30, GY - 90 + jig, 38, 50, '#CA8A04');
-  for (let k = 0; k < 4; k++) box(c, x + 34, GY - 84 + k * 10 + jig, 30, 3, '#78350F');
-  box(c, x + 22, GY - 152 + jig, 8, 56, '#27272A'); box(c, x + 20, GY - 156 + jig, 12, 6, '#18181B');
-  words(c, 'HAPPYWOOD', x - 36, GY - 66 + jig, print(1, '#1C1917'));
-  words(c, 'FACILITIES', x - 36, GY - 54 + jig, print(1, '#1C1917'));
-  // (the cab: its roof and back; the glass)
-  box(c, x - 76, GY - 178 + jig, 92, 82, '#000'); box(c, x - 74, GY - 176 + jig, 88, 80, '#CA8A04');
-  box(c, x - 66, GY - 166 + jig, 72, 62, '#7DD3FC'); box(c, x - 66, GY - 166 + jig, 72, 10, '#BAE6FD');
-  // (the arms out to the blade; the blade, curved, its edge worn bright)
-  box(c, x + 66, GY - 66 + jig, 50, 10, '#A16207');
-  c.fillStyle = '#000'; c.beginPath(); c.moveTo(x + 112, GY - 112); c.quadraticCurveTo(x + 134, GY - 60, x + 118, GY - 2); c.lineTo(x + 132, GY - 2); c.quadraticCurveTo(x + 148, GY - 60, x + 126, GY - 112); c.closePath(); c.fill();
-  c.fillStyle = '#A16207'; c.beginPath(); c.moveTo(x + 114, GY - 110); c.quadraticCurveTo(x + 135, GY - 60, x + 120, GY - 4); c.lineTo(x + 130, GY - 4); c.quadraticCurveTo(x + 146, GY - 60, x + 124, GY - 110); c.closePath(); c.fill();
-  box(c, x + 120, GY - 8, 12, 4, '#D6D3D1');
+  const S = ['#141418', '#24242A', '#36363E', '#4C4C56', '#6A6A76', '#9A9AA6'];
+  // (the tracks: the belt, its grousers going round, the sprocket and the idler, the road wheels)
+  box(c, x - 114, GY - 38, 218, 38, INK); box(c, x - 112, GY - 36, 214, 34, S[1]);
+  const sh = running ? (f * 3) % 16 : 0;
+  for (let k = -112 + sh; k < 100; k += 16) { box(c, x + k, GY - 37, 10, 4, S[3]); box(c, x + k, GY - 37, 10, 1, S[5]); box(c, x + k + 4, GY - 4, 10, 4, S[2]); }
+  for (const [wx, r] of [[-94, 16], [86, 15]] as const) { c.fillStyle = INK; c.beginPath(); c.arc(x + wx, GY - 18, r + 1, 0, Math.PI * 2); c.fill(); c.fillStyle = S[3]; c.beginPath(); c.arc(x + wx, GY - 18, r - 2, 0, Math.PI * 2); c.fill(); c.fillStyle = S[1]; c.beginPath(); c.arc(x + wx, GY - 18, r * 0.45, 0, Math.PI * 2); c.fill(); const a = running ? f * 0.2 : 0; for (let k = 0; k < 4; k++) box(c, x + wx + Math.cos(a + k * 1.57) * r * 0.7 - 1, GY - 19 + Math.sin(a + k * 1.57) * r * 0.7, 3, 3, S[5]); }
+  for (let k = 0; k < 5; k++) { const wx = x - 64 + k * 30; c.fillStyle = INK; c.beginPath(); c.arc(wx, GY - 12, 8, 0, Math.PI * 2); c.fill(); c.fillStyle = S[2]; c.beginPath(); c.arc(wx, GY - 12, 6, 0, Math.PI * 2); c.fill(); box(c, wx - 1, GY - 14, 2, 2, S[5]); }
+  c.save(); c.translate(Math.round(x), GY + jig);
+  stamp(c, 'hww-dozer', -112, -190, 268, 192, paintDozer);
+  c.restore();
 };
-/** The studio exec (feet's middle at x, y): charcoal suit, red tie, the slicked silver hair, a tan. On the phone (stood
- *  there), arms up (losing it: the case going, the rant), or running. */
+
+/** The studio exec (feet's middle at x, y): a charcoal suit (stepped, a pocket square), a red tie, the silver hair
+ *  slicked back, a tan, a gold watch. On the phone (stood there), arms up (losing it: the case going, the rant), or
+ *  running. On Spooky Land's person drawer (costume.ts), a stamp a frame. */
+const EXEC_SEED = 22, SUIT = '#33343C', EXEC_BOX: [number, number, number, number] = [-40, -112, 90, 116];
+const paintExec = (g: Ctx, pose: 'phone' | 'arms' | 'run', fr: number) => {
+  const B = bodyOf(EXEC_SEED, pose === 'run' ? 'walk' : 'stand', fr, false);
+  B.L = { ...B.L, skin: '#C8905A', hair: '#D8D8DC', bald: false, long: false, face: 0, heavy: false };
+  const skin = B.L.skin;
+  legs(g, B, { col: SUIT, shoe: 'shoe', shoeCol: '#141012', detail: (gg, _h, k, ft) => px(gg, (k[0] + ft[0]) / 2, (k[1] + ft[1]) / 2 - 3, 1, 6, dk(SUIT, 0.3)) });
+  const far: [number, number] = pose === 'arms' ? [-B.w / 2 - 8, B.shY - 26] : pose === 'run' ? [-B.w / 2 - 6, B.shY + 14 - (fr % 2) * 8] : [-B.w / 2 - 1, -30];
+  const near: [number, number] = pose === 'arms' ? [B.w / 2 + 8, B.shY - 28] : pose === 'run' ? [B.w / 2 + 8, B.shY + 6 + (fr % 2) * 8] : [B.hx + 5, B.hy + 2];
+  arm(g, B, -1, far[0], far[1], { sleeve: SUIT, hand: skin });
+  torso(g, B, '#F4F2EC');
+  // (the jacket open over the shirt, its lapels, a pocket square; the tie)
+  part(g, () => { g.moveTo(-B.w / 2, B.shY + 1); g.lineTo(-B.hipW / 2 - 1, B.hipY + 3); g.lineTo(-2, B.hipY + 3); g.lineTo(-3, B.shY + 1); g.closePath(); }, SUIT, -B.hipW / 2 - 1, B.shY + 1, B.w / 2 + 2, B.hipY - B.shY + 2, 1);
+  part(g, () => { g.moveTo(B.w / 2, B.shY + 1); g.lineTo(B.hipW / 2 + 1, B.hipY + 3); g.lineTo(3, B.hipY + 3); g.lineTo(4, B.shY + 1); g.closePath(); }, SUIT, 3, B.shY + 1, B.w / 2 + 2, B.hipY - B.shY + 2, 1);
+  px(g, -4, B.shY + 2, 2, 10, dk(SUIT, 0.3)); px(g, 4, B.shY + 2, 2, 10, dk(SUIT, 0.3));
+  part(g, () => { g.moveTo(-1, B.shY + 1); g.lineTo(2, B.shY + 1); g.lineTo(3, B.shY + 16); g.lineTo(0.5, B.shY + 19); g.lineTo(-2, B.shY + 16); g.closePath(); }, '#B91C1C', -2, B.shY + 1, 5, 18, 0.8);
+  px(g, 6, B.shY + 8, 4, 2, '#F4F2EC'); px(g, 7, B.shY + 7, 2, 1, '#FFFFFF');
+  headShape(g, B, skin);
+  faceOn(g, B, { skin, eyes: pose === 'phone' ? 'smug' : 'wide', mouth: pose === 'phone' ? 'smirk' : 'o', md: 'ok', brows: '#9A9AA0' });
+  // (the silver hair, slicked straight back: the top, a sweep behind the ear)
+  part(g, () => { g.moveTo(B.hx - 9, B.hy + 1); g.quadraticCurveTo(B.hx - 9, B.hy - 12, B.hx + 2, B.hy - 11.5); g.quadraticCurveTo(B.hx + 9, B.hy - 11, B.hx + 9.5, B.hy - 6); g.lineTo(B.hx + 3, B.hy - 7); g.quadraticCurveTo(B.hx - 4, B.hy - 7, B.hx - 6, B.hy + 2); g.closePath(); }, '#D8D8DC', B.hx - 9, B.hy - 12, 19, 14, 1);
+  for (let k = 0; k < 3; k++) px(g, B.hx - 6 + k * 4, B.hy - 9 + k, 3, 1, '#F4F4F6');
+  arm(g, B, 1, near[0], near[1], { sleeve: SUIT, hand: skin });
+  // (the phone at his ear; the gold watch)
+  if (pose === 'phone') { part(g, () => g.roundRect(near[0] - 2, near[1] - 7, 5, 11, 1), '#18181B', near[0] - 2, near[1] - 7, 5, 11, 0.8); px(g, near[0] - 1, near[1] - 6, 3, 1, '#60A5FA'); }
+  px(g, near[0] - 3, near[1] + 3, 4, 2, '#E8C25A');
+};
 const drawExec = (c: Ctx, x: number, y: number, face: 1 | -1, pose: 'phone' | 'arms' | 'run', f: number) => {
-  const step = pose === 'phone' ? 0 : f % 8 < 4 ? 5 : -5;
-  x += pose === 'arms' ? (f % 4 < 2 ? 1 : -1) : 0;
-  // (the shoes, the legs)
-  box(c, x - 11 + step, y - 6, 10, 6, '#000'); box(c, x + 2 - step, y - 6, 10, 6, '#000');
-  box(c, x - 10 + step, y - 38, 8, 33, '#27272A'); box(c, x + 2 - step, y - 38, 8, 33, '#27272A');
-  // (the jacket, the shirt's V and the tie)
-  box(c, x - 14, y - 70, 28, 36, '#000'); box(c, x - 13, y - 69, 26, 34, '#3F3F46');
-  box(c, x - 4, y - 69, 8, 14, '#F8FAFC'); box(c, x - 2, y - 67, 4, 16, '#B91C1C');
-  // (the head: tan, the silver hair slicked back; the mouth shut on the phone, wide open otherwise)
-  box(c, x - 9, y - 88, 18, 19, '#000'); box(c, x - 8, y - 87, 16, 17, '#D6A06B');
-  box(c, x - 9, y - 90, 18, 6, '#D4D4D8'); box(c, x - 9 - face * 3, y - 88, 6, 8, '#D4D4D8');
-  box(c, x + face * 4 - 1, y - 82, 3, 3, '#000');
-  if (pose === 'phone') box(c, x + face * 2 - 2, y - 75, 5, 2, '#7C2D12');
-  else { box(c, x + face * 3 - 3, y - 77, 6, 5, '#000'); box(c, x + face * 4 - 9, y - 85, 18, 2, '#000'); }
-  // (the arms: one at his side, the phone at his ear; both up; pumping)
-  if (pose === 'phone') {
-    box(c, x - face * 15 - 3, y - 68, 6, 26, '#3F3F46');
-    box(c, x + face * 9 - 3, y - 80, 6, 14, '#3F3F46'); box(c, x + face * 8 - 3, y - 88, 6, 10, '#111827');
-  } else if (pose === 'arms') {
-    box(c, x - 20, y - 104, 6, 36, '#3F3F46'); box(c, x + 14, y - 104, 6, 36, '#3F3F46');
-    box(c, x - 21, y - 110, 8, 7, '#D6A06B'); box(c, x + 13, y - 110, 8, 7, '#D6A06B');
-  } else {
-    box(c, x - face * 18 - 3, y - 66 - step, 6, 22, '#3F3F46'); box(c, x + face * 14 - 3, y - 92 + step, 6, 24, '#3F3F46');
-  }
+  const fr = pose === 'run' ? Math.floor(f / 5) % 6 : pose === 'arms' ? Math.floor(f / 4) % 2 : 0;
+  c.save(); c.translate(Math.round(x + (pose === 'arms' ? (f % 4 < 2 ? 1 : -1) : 0)), Math.round(y)); c.scale(face, 1);
+  stamp(c, `hww-exec-${pose}-${fr}`, EXEC_BOX[0], EXEC_BOX[1], EXEC_BOX[2], EXEC_BOX[3], g => paintExec(g, pose, fr));
+  c.restore();
 };
 const execPose = (mode: string) => (mode === 'stand' ? 'phone' : mode === 'lose' || mode === 'rant' ? 'arms' : 'run');
 /** The exec at the back of the stage (drawn smaller: he's back there, by the script), and his words over him. */
@@ -362,36 +410,46 @@ const execBack = (c: Ctx, state: GameState) => {
 /** The beat's gags on the pile (where they've got to; after it, where they were left, pushed along with it). */
 const drawPileGags = (c: Ctx, state: GameState) => {
   const E = whOf(state).ending, t = E.phase === 'pile' ? E.t : E.phase === 'cut' ? 0 : PILE_T, hx = E.heapX;
-  // (the hand, up out of the top one: their sleeve, their glove or skin)
+  // (the hand, up out of the top one: their sleeve, their glove or skin, stepped)
   const top = E.heap[E.heap.length - 1];
   if (top) {
     const a = CAST[top.i], lean = handLean(t), skin = a.gloves ?? a.look?.skin ?? '#D6A06B';
+    const R = [mix(a.suit, INK, 0.4), a.suit, mix(a.suit, '#FFFFFF', 0.25)], K = [mix(skin, INK, 0.35), skin, mix(skin, '#FFFFFF', 0.3)];
     c.save(); c.translate(hx + top.ox + 6, GY - TOP + 8); c.rotate(lean);
-    box(c, -4, -28, 8, 30, '#000'); box(c, -3, -27, 6, 28, a.suit);
-    box(c, -5, -38, 10, 12, '#000'); box(c, -4, -37, 8, 10, skin);
+    box(c, -5, -29, 10, 32, INK); box(c, -4, -28, 8, 30, R[1]); box(c, -4, -28, 2, 30, R[2]); box(c, 2, -28, 2, 30, R[0]);
+    box(c, -6, -39, 12, 13, INK); box(c, -5, -38, 10, 11, K[1]); box(c, -5, -38, 3, 11, K[2]); box(c, 3, -38, 2, 11, K[0]);
     // (the fingers, spread; gone limp once it's down)
-    if (lean < 1) for (let k = 0; k < 3; k++) box(c, -4 + k * 3, -42, 2, 5, skin);
+    if (lean < 1) for (let k = 0; k < 3; k++) { box(c, -5 + k * 3.5, -45, 3, 7, INK); box(c, -4 + k * 3.5, -44, 1.5, 6, K[1]); }
+    else box(c, -5, -42, 10, 4, K[0]);
+    box(c, 5, -34, 4, 3, INK); box(c, 5, -33, 3, 2, K[1]);
     c.restore();
   }
-  // (the hammer: a rubber prop's grey head, the wooden handle)
-  const h = hammerAt(t);
+  // (the hammer: a rubber prop's grey head (it squashes), the wooden handle)
+  const h = hammerAt(t), sq = t >= H1 && t < H1 + 4 ? 0.7 : t >= H2 && t < H2 + 3 ? 0.85 : 1;
   c.save(); c.translate(hx + h.x, h.y); c.rotate(h.rot);
-  box(c, -14, -3, 22, 6, '#000'); box(c, -13, -2, 20, 4, '#78350F');
-  box(c, 6, -9, 14, 18, '#000'); box(c, 7, -8, 12, 16, '#A1A1AA'); box(c, 7, -8, 12, 3, '#D4D4D8');
+  box(c, -15, -4, 24, 8, INK); box(c, -14, -3, 22, 6, '#8A5A2A'); box(c, -14, -3, 22, 2, '#B8844A'); box(c, -14, 1, 22, 1, '#5A3A1A');
+  c.save(); c.scale(1, sq);
+  box(c, 5, -10, 16, 20, INK); box(c, 6, -9, 14, 18, '#9A9AA4'); box(c, 6, -9, 14, 3, '#C8C8D0'); box(c, 6, -9, 3, 18, '#B8B8C0'); box(c, 17, -9, 3, 18, '#6A6A74');
+  box(c, 7, -2, 12, 1, '#7A7A84');
   c.restore();
-  // (the shield: red, white, blue, the star; turning as it rolls, squashing down flat as it settles)
+  c.restore();
+  // (the shield: red, white, blue rings, stepped, the star; turning as it rolls, squashing down flat as it settles)
   const s = shieldAt(t);
   c.save(); c.translate(hx + s.x + s.jig, s.y); c.scale(1, s.ry / SR); c.rotate(s.rot);
-  for (const [r, col] of [[SR + 1.5, '#000'], [SR, '#DC2626'], [SR * 0.72, '#F8FAFC'], [SR * 0.45, '#1D4ED8']] as const) { c.fillStyle = col; c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.fill(); }
-  box(c, -2, -5, 4, 10, '#F8FAFC'); box(c, -5, -2, 10, 4, '#F8FAFC');
+  for (const [r, col] of [[SR + 1.5, INK], [SR, '#B91C1C'], [SR - 1.5, '#DC2626'], [SR * 0.72, '#F4F2EC'], [SR * 0.5, '#B91C1C'], [SR * 0.38, '#1D4ED8']] as const) { c.fillStyle = col; c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.fill(); }
+  c.fillStyle = '#F8FAFC'; c.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, rr = k % 2 ? 1.6 : 4.2; c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } c.closePath(); c.fill();
+  box(c, -SR * 0.6, -SR * 0.75, 3, 2, '#FFFFFF');
   c.restore();
 };
 
 /** The cab's front posts and roof edge, over him in the seat. */
 const dozerFront = (c: Ctx, x: number, f: number) => {
-  const jig = f % 4 < 2 ? -1 : 0;
-  box(c, x - 76, GY - 178 + jig, 10, 82, '#CA8A04'); box(c, x + 6, GY - 178 + jig, 10, 82, '#CA8A04');
-  box(c, x - 80, GY - 182 + jig, 100, 8, '#A16207');
+  const jig = f % 4 < 2 ? -1 : 0, Y = DY;
+  for (const px2 of [x - 78, x + 8]) { box(c, px2, GY - 182 + jig, 12, 86, INK); box(c, px2 + 1, GY - 181 + jig, 10, 84, Y[3]); box(c, px2 + 1, GY - 181 + jig, 3, 84, Y[5]); box(c, px2 + 8, GY - 181 + jig, 3, 84, Y[1]); }
+  box(c, x - 82, GY - 186 + jig, 104, 10, INK); box(c, x - 81, GY - 185 + jig, 102, 8, Y[3]); box(c, x - 81, GY - 185 + jig, 102, 2, Y[5]); box(c, x - 81, GY - 179 + jig, 102, 2, Y[1]);
+  // (the glass in front of him: a glint)
+  c.fillStyle = 'rgba(200, 220, 236, 0.18)'; c.fillRect(x - 66, GY - 172 + jig, 74, 40);
+  box(c, x - 20, GY - 170 + jig, 2, 22, 'rgba(255,255,255,0.4)');
 };
 
 /** The exec at the back, the heap (on the stage, ahead of the blade), the bulldozer driving. */
@@ -426,13 +484,14 @@ const drawLotBeat = (c: Ctx, state: GameState) => {
   // (the exec: out of the dust, under the bodies flying past; his words over the dust)
   const outside = ex.mode === 'out' || ex.mode === 'rant' || ex.mode === 'run';
   if (outside) drawExec(c, ex.x, ex.y, ex.face, execPose(ex.mode), f);
-  // (the dust: thick at first, thinning off the bulldozer as it settles)
-  const k = E.t < 60 ? 0.92 : Math.max(0, 0.92 - (E.t - 60) / 70);
-  if (k > 0) {
+  // (the dust: thick at first, thinning off the bulldozer as it settles; stepped puffs)
+  const k = E.t < 60 ? 1 : Math.max(0, 1 - (E.t - 60) / 70);
+  if (k > 0.05) {
     for (let i = 0; i < 9; i++) {
       const dx = LOT_WALL_BREAK.hole.x0 + i * 62 + Math.sin(f * 0.03 + i) * 10, dy = GY - 60 - (i % 3) * 50 - Math.min(40, E.t * 0.4);
-      c.fillStyle = `rgba(${i % 2 ? '168, 162, 158' : '120, 113, 108'}, ${k})`;
-      c.beginPath(); c.ellipse(dx, dy, 80 + (E.t % 40), 60, 0, 0, Math.PI * 2); c.fill();
+      const r = (80 + (E.t % 40)) * (0.5 + k * 0.5);
+      pixelBlob(c, dx, dy, r, r * 0.72, i % 2 ? '#A8A29E' : '#78716C');
+      if (k > 0.5) pixelBlob(c, dx - r * 0.25, dy - r * 0.25, r * 0.5, r * 0.36, '#C8C2BA');
     }
   }
   if (outside && ex.said) saidOver(c, ex.said.text, ex.x, ex.y - 118, '#FDE68A', 260);

@@ -216,8 +216,13 @@ const prop = (g: Ctx, a: CastMember, x: number, y: number, up: boolean, out: boo
   const rot = up ? -1.9 : out ? 0.1 : 0.9;
   g.save(); g.translate(x, y); g.rotate(rot);
   switch (a.prop) {
-    case 'shield': g.rotate(-rot); ball(g, 6, 0, 10, '#DC2626', 1); ball(g, 6, 0, 7, '#F8FAFC', 0.6); ball(g, 6, 0, 4.4, '#1D4ED8', 0.6); px(g, 5, -1, 2, 2, '#F8FAFC'); break;
-    case 'hammer': limb(g, 0, 0, 14, 0, 2.2, '#78350F'); part(g, () => g.roundRect(12, -6, 8, 12, 1), '#A1A1AA', 12, -6, 8, 12, 1); break;
+    case 'shield': {
+      g.rotate(-rot); ball(g, 6, 0, 10, '#DC2626', 1); ball(g, 6, 0, 7.4, '#F8FAFC', 0.6); ball(g, 6, 0, 5, '#DC2626', 0.5); ball(g, 6, 0, 3.6, '#1D4ED8', 0.5);
+      flat(g, () => { for (let k = 0; k < 10; k++) { const r = k % 2 ? 1 : 2.6, an = -Math.PI / 2 + (k * Math.PI) / 5; g.lineTo(6 + Math.cos(an) * r, Math.sin(an) * r); } g.closePath(); }, '#F8FAFC', 0);
+      px(g, 0, -6, 2, 2, '#FFFFFF');
+      break;
+    }
+    case 'hammer': limb(g, 0, 0, 14, 0, 2.2, '#78350F'); px(g, 2, -1, 10, 1, '#A16207'); part(g, () => g.roundRect(12, -6, 9, 12, 1), '#A1A1AA', 12, -6, 9, 12, 1); px(g, 13, -2, 7, 1, '#71717A'); px(g, 13, 2, 7, 1, '#71717A'); px(g, 14, -5, 2, 2, '#E4E4E7'); break;
     case 'bow': g.rotate(-rot - 1.57); g.strokeStyle = INK; g.lineWidth = 2.6; g.beginPath(); g.arc(0, 0, 14, -1.2, 1.2); g.stroke(); g.strokeStyle = '#581C87'; g.lineWidth = 1.6; g.beginPath(); g.arc(0, 0, 14, -1.2, 1.2); g.stroke(); break;
     case 'blaster': case 'gun': part(g, () => g.roundRect(0, -3, 14, 6, 1), a.prop === 'gun' ? '#F97316' : '#71717A', 0, -3, 14, 6, 0.9); px(g, 2, 2, 3, 4, '#3F3F46'); break;
     case 'sword': limb(g, 0, 0, 26, 0, 2.4, '#D4D4D8'); px(g, -2, -3, 3, 6, '#78350F'); break;
@@ -233,6 +238,49 @@ const prop = (g: Ctx, a: CastMember, x: number, y: number, up: boolean, out: boo
   g.restore();
 };
 
+/** Behind them (drawn first): what's on their back (a quiver, katana hilts, a tail, a coat's tails). */
+const extrasBack = (g: Ctx, a: CastMember, B: Person) => {
+  switch (a.hero) {
+    case 'HAWKGUY': part(g, () => { g.moveTo(-B.w / 2 + 2, B.shY - 2); g.lineTo(-B.w / 2 + 8, B.shY - 4); g.lineTo(-B.w / 2 + 2, B.hipY - 4); g.lineTo(-B.w / 2 - 4, B.hipY - 2); g.closePath(); }, '#5A3A1A', -B.w / 2 - 4, B.shY - 4, 12, B.hipY - B.shY, 1); for (let k = 0; k < 3; k++) { px(g, -B.w / 2 + 2 + k * 2, B.shY - 10, 1, 7, '#D4D4D8'); px(g, -B.w / 2 + 1 + k * 2, B.shY - 12, 3, 3, '#B91C1C'); } break;
+    case 'DEADPAN': for (const s of [0, 1]) { limb(g, -4 + s * 6, B.shY + 18, -10 + s * 14, B.shY - 12, 2, '#3A3A44'); px(g, -12 + s * 14, B.shY - 14, 4, 3, '#18181B'); } break;
+    case 'SOCKET': part(g, () => { g.moveTo(-B.hipW / 2, B.hipY); g.quadraticCurveTo(-B.hipW / 2 - 18, B.hipY + 4, -B.hipW / 2 - 16, B.hipY - 16); g.quadraticCurveTo(-B.hipW / 2 - 10, B.hipY - 6, -B.hipW / 2 + 2, B.hipY - 6); g.closePath(); }, '#78716C', -B.hipW / 2 - 18, B.hipY - 16, 20, 20, 1); for (let k = 0; k < 3; k++) px(g, -B.hipW / 2 - 14 + k * 5, B.hipY - 8 + (k % 2) * 3, 3, 2, '#27272A'); break;
+    case 'STAR-LARD': part(g, () => { g.moveTo(-B.w / 2 + 1, B.shY + 4); g.lineTo(-B.hipW / 2 - 5, -8); g.lineTo(B.hipW / 2 + 3, -8); g.lineTo(B.w / 2 - 1, B.shY + 4); g.closePath(); }, '#6A1414', -B.hipW / 2 - 5, B.shY + 4, B.hipW + 8, -8 - B.shY - 4, 1); break;
+    default: break;
+  }
+};
+/** On them (after the torso): the costume's own seams, belts, bracers, a few of the heroes' own touches. */
+const extrasFront = (g: Ctx, a: CastMember, B: Person, F: Frame) => {
+  const s = a.suit, ownBelt = ['star', 'reactor', 'hourglass', 'gem', 'phoenix', 'bat'].includes(a.emblem);
+  if (!a.bare) {
+    // (the suit's seams: down the middle, under the chest, the abs in shade; a lit seam across the shoulders)
+    px(g, 0, B.shY + 4, 1, B.hipY - B.shY - 6, dk(s, 0.22));
+    px(g, -B.w / 2 + 3, B.shY + 2, B.w - 6, 1, lt(s, 0.22));
+    if (!B.L.woman) { px(g, -7, B.shY + 15, 6, 1, dk(s, 0.25)); px(g, 2, B.shY + 15, 6, 1, dk(s, 0.25)); for (let y = B.shY + 19; y < B.hipY - 4; y += 4) px(g, -3, y, 6, 1, dk(s, 0.15)); }
+    else px(g, -6, B.shY + 13, 12, 1, dk(s, 0.25));
+    if (!ownBelt) { px(g, -B.hipW / 2, B.hipY - 3, B.hipW, 3, a.trim); px(g, -B.hipW / 2, B.hipY - 3, B.hipW, 1, lt(a.trim, 0.3)); px(g, -2, B.hipY - 3, 4, 3, '#E8C25A'); }
+  }
+  switch (a.hero) {
+    case 'SPIDER-TEEN': { g.strokeStyle = dk(s, 0.4); g.lineWidth = 0.6; g.beginPath(); for (let k = -2; k <= 2; k++) { g.moveTo(0, B.shY + 10); g.lineTo(k * 6, B.hipY); } for (let y = B.shY + 14; y < B.hipY; y += 6) { g.moveTo(-B.w / 2 + 2, y); g.quadraticCurveTo(0, y + 2, B.w / 2 - 2, y); } g.stroke(); break; }
+    case 'BATTMAN': for (let k = 0; k < 4; k++) part(g, () => g.rect(-B.hipW / 2 + 1 + k * 6, B.hipY - 6, 4, 5), '#CA8A04', -B.hipW / 2 + 1 + k * 6, B.hipY - 6, 4, 5, 0.6); break;
+    case 'WONDER WOMANISH': part(g, () => g.ellipse(B.hipW / 2 - 2, B.hipY + 2, 4, 3, 0, 0, Math.PI * 2), '#E8C25A', B.hipW / 2 - 6, B.hipY - 1, 8, 6, 0.8); break;
+    case 'NEBULOUS': px(g, B.hx - 6, B.hy - 9, 7, 3, '#8A8A94'); px(g, B.hx - 6, B.hy - 9, 7, 1, '#C8C8D0'); break;
+    case 'THE WINTER SOLDER': break;
+    case 'JEAN BEIGE': case 'CAPTAIN MARVELOUS': part(g, () => { g.moveTo(-B.w / 2 + 2, B.shY + 2); g.lineTo(-B.w / 2 + 6, B.shY + 2); g.lineTo(B.hipW / 2, B.hipY - 2); g.lineTo(B.hipW / 2 - 4, B.hipY); g.closePath(); }, a.trim, -B.w / 2 + 2, B.shY + 2, B.w, B.hipY - B.shY, 0.6); break;
+    case 'GROAT': for (let k = 0; k < 6; k++) px(g, -B.w / 2 + 2 + ((k * 7) % (B.w - 4)), B.shY + 6 + ((k * 11) % 20), 3, 1, '#4D7C0F'); break;
+    case 'GAMMA-RAY': for (const [dx, dy] of [[-3, -4], [-4, 0], [-3, 4]] as const) px(g, B.hx + dx, B.hy + dy, 1, 1, '#B91C1C'); break;
+    case 'DOCTOR STRANGLE': if (a.cape) part(g, () => { g.moveTo(-B.w / 2 + 1, B.shY + 2); g.lineTo(-B.w / 2 - 2, B.shY - 10); g.lineTo(-B.w / 2 + 6, B.shY - 2); g.closePath(); }, a.cape, -B.w / 2 - 2, B.shY - 10, 8, 12, 0.8); break;
+    case 'STAR-LARD': px(g, -B.hipW / 2 + 2, B.hipY - 8, 6, 5, '#1C1C24'); px(g, -B.hipW / 2 + 3, B.hipY - 7, 4, 1, '#F97316'); break;
+    default: break;
+  }
+  void F;
+};
+/** Hands in gloves: a cuff at the wrist (the glove's own, stepped). */
+const cuff = (g: Ctx, A: { ex: number; ey: number }, hx: number, hy: number, col: string, w: number) => {
+  const wx = hx + (A.ex - hx) * 0.28, wy = hy + (A.ey - hy) * 0.28;
+  ball(g, wx, wy, w * 0.62, col, 0.8);
+  px(g, wx - 1, wy - 1, 1, 1, lt(col, 0.35));
+};
+
 /** One of them, painted (feet at the origin, facing right). `v`: 'land' a hero landing, 'flop' diving at him (the hop
  *  up at him), 'dead' a body (limp). */
 const paintActor = (g: Ctx, a: CastMember, F: Frame, headless = false) => {
@@ -243,24 +291,34 @@ const paintActor = (g: Ctx, a: CastMember, F: Frame, headless = false) => {
   if (land) g.scale(1.08, 0.8);
   if (flop) { g.translate(0, -30); g.rotate(1.2); g.translate(0, 30); }
   const arms = a.bare ? L.skin : a.suit, hand = a.gloves ?? L.skin;
-  // (behind: the cape, the cardboard wings)
+  // (behind: the cape (its lining, a fold down it), the cardboard wings, what's on their back)
   if (a.cape) {
-    const fl = F.pose === 'walk' ? (F.fr % 3) * 2 : land ? 6 : 0;
-    part(g, () => { g.moveTo(-B.w / 2 + 3, B.shY + 1); g.lineTo(-B.w / 2 - 8 - fl, -4 - (land ? 8 : 0)); g.lineTo(B.w / 2 - 10, -2 - (land ? 8 : 0)); g.lineTo(B.w / 2 - 4, B.shY + 1); g.closePath(); }, a.cape, -B.w / 2 - 8 - fl, B.shY, B.w + fl + 4, -B.shY, 1);
+    const fl = F.pose === 'walk' ? (F.fr % 3) * 2 : land ? 6 : 0, lift = land ? 8 : 0;
+    const capePath = () => { g.moveTo(-B.w / 2 + 3, B.shY + 1); g.lineTo(-B.w / 2 - 8 - fl, -4 - lift); g.lineTo(B.w / 2 - 10, -2 - lift); g.lineTo(B.w / 2 - 4, B.shY + 1); g.closePath(); };
+    part(g, capePath, a.cape, -B.w / 2 - 8 - fl, B.shY, B.w + fl + 4, -B.shY, 1);
+    part(g, () => { g.moveTo(-B.w / 2 - 6 - fl, -4 - lift); g.lineTo(-B.w / 2 - 3 - fl * 0.6, -14 - lift); g.lineTo(B.w / 2 - 12, -10 - lift); g.lineTo(B.w / 2 - 10, -2 - lift); g.closePath(); }, dk(a.cape, 0.35), -B.w / 2 - 6 - fl, -14 - lift, B.w + fl, 12, 0.8);
+    px(g, -B.w / 2 - 2 - fl * 0.5, B.shY + 10, 1, -B.shY - 18, dk(a.cape, 0.25));
   }
-  if (a.prop === 'wings') for (const s of [0, 1]) part(g, () => { g.moveTo(-4, B.shY + 4); g.lineTo(-30 - s * 8, B.shY - 14 + s * 12); g.lineTo(-24 - s * 6, B.shY + 18); g.closePath(); }, s ? '#A8A29E' : '#D6D3D1', -38, B.shY - 14, 34, 34, 1);
-  legs(g, B, { col: a.legs ?? a.suit, shoe: a.bare ? 'shoe' : 'boot', shoeCol: a.boots });
+  if (a.prop === 'wings') for (const s of [0, 1]) { part(g, () => { g.moveTo(-4, B.shY + 4); g.lineTo(-30 - s * 8, B.shY - 14 + s * 12); g.lineTo(-24 - s * 6, B.shY + 18); g.closePath(); }, s ? '#A8A29E' : '#D6D3D1', -38, B.shY - 14, 34, 34, 1); for (let k = 1; k < 4; k++) px(g, -8 - k * 6 - s * 2, B.shY - 2 + k * 4 + s * 4, 5, 1, '#8A8480'); }
+  extrasBack(g, a, B);
+  legs(g, B, { col: a.legs ?? a.suit, shoe: a.bare ? 'shoe' : 'boot', shoeCol: a.boots, detail: (gg, _h, k, ft, near) => { if (a.bare || a.boots === (a.legs ?? a.suit)) return; const bx = k[0] + (ft[0] - k[0]) * 0.45, by = k[1] + (ft[1] - k[1]) * 0.45; px(gg, bx - B.legW / 2, by, B.legW, (ft[1] - by) - 4, near ? a.boots : dk(a.boots, 0.14)); px(gg, bx - B.legW / 2, by, B.legW, 1, lt(a.boots, 0.3)); } });
   const fl = flailHands(B, F.fr);
   const reach = F.pose === 'tell';
   const far: [number, number] = fl ? fl[0] : flop ? [B.w / 2 + 8, B.shY - 16] : land ? [B.w / 2 + 2, -6] : reach ? [B.w / 2 + 12, B.shY + 2] : [-B.w / 2 - 2, -30];
   const near: [number, number] = fl ? fl[1] : flop ? [B.w / 2 + 12, B.shY - 12] : land ? [-B.w / 2 - 10, B.shY - 8] : reach ? [B.w / 2 + 14, B.shY + 8] : [B.w / 2 + 3, -32];
-  arm(g, B, -1, far[0], far[1], { sleeve: a.prop === 'arm' ? '#A1A1AA' : arms, hand: a.prop === 'arm' ? '#A1A1AA' : hand });
+  const metal = a.prop === 'arm';
+  const A1 = arm(g, B, -1, far[0], far[1], { sleeve: metal ? '#A1A1AA' : arms, hand: metal ? '#A1A1AA' : hand });
+  if (metal) { px(g, A1.ex - 2, A1.ey - 1, 4, 1, '#E4E4E7'); px(g, (A1.sx + A1.ex) / 2 - 1, (A1.sy + A1.ey) / 2 - 1, 3, 3, '#B91C1C'); }
+  if (a.gloves && !metal) cuff(g, A1, far[0], far[1], a.gloves, B.armW);
   torso(g, B, a.bare ? L.skin : a.suit);
   if (a.bare) {
-    // (the torn pants' waist; the big ones' pecs)
+    // (the torn pants' waist, ragged; the big ones' pecs and abs in shade)
     px(g, -B.hipW / 2 - 1, B.hipY - 3, B.hipW + 2, 5, a.legs ?? a.trim);
+    for (let k = -B.hipW / 2; k < B.hipW / 2; k += 4) px(g, k, B.hipY + 2, 2, 2, dk(a.legs ?? a.trim, 0.2));
     px(g, -6, B.shY + 8, 5, 1, dk(L.skin, 0.2)); px(g, 2, B.shY + 8, 5, 1, dk(L.skin, 0.2));
+    for (let y = B.shY + 13; y < B.hipY - 4; y += 4) { px(g, -4, y, 3, 1, dk(L.skin, 0.14)); px(g, 2, y, 3, 1, dk(L.skin, 0.14)); }
   }
+  extrasFront(g, a, B, F);
   emblem(g, a, B);
   if (headless) { stump(g, a, B); arm(g, B, 1, near[0], near[1], { sleeve: arms, hand }); return; }
   const covered = a.mask === 'full' || a.mask === 'helmet';
@@ -273,9 +331,14 @@ const paintActor = (g: Ctx, a: CastMember, F: Frame, headless = false) => {
   if (!covered && a.mask !== 'cowl' && a.mask !== 'ears' && a.mask !== 'raccoon' && a.mask !== 'helmetA' && a.mask !== 'faceplate') hairTop(g, B);
   if (a.mask === 'faceplate' || a.mask === 'helmetA') hairTop(g, B, B.L.hair);
   mask(g, a, B);
-  arm(g, B, 1, near[0], near[1], { sleeve: arms, hand });
+  // (a few heads' own touches: Superbman's curl, Wolverino's tufts out of the cowl, Quickshill's silver streak)
+  if (a.hero === 'SUPERBMAN') px(g, B.hx + 3, B.hy - 9, 2, 3, B.L.hair);
+  if (a.hero === 'WOLVERINO') for (const s of [-1, 1]) px(g, B.hx + s * 9 - 1, B.hy - 2, 2, 6, B.L.hair);
+  if (a.hero === 'QUICKSHILL') px(g, B.hx - 4, B.hy - 11, 6, 2, '#F4F4F6');
+  const A2 = arm(g, B, 1, near[0], near[1], { sleeve: arms, hand });
+  if (a.gloves) cuff(g, A2, near[0], near[1], a.gloves, B.armW);
+  if (a.hero === 'WONDER WOMANISH' || a.hero === 'BLACK WINDOW') { const wx = near[0] + (A2.ex - near[0]) * 0.3, wy = near[1] + (A2.ey - near[1]) * 0.3; ball(g, wx, wy, B.armW * 0.6, a.hero === 'BLACK WINDOW' ? '#CA8A04' : '#D4D4D8', 0.8); }
   if (!fl) prop(g, a, near[0], near[1], false, reach);
-  void lt;
 };
 
 const BOX: [number, number, number, number] = [-70, -130, 150, 140];
@@ -292,13 +355,13 @@ const drawActor = (c: Ctx, e: Enemy, f: number, state: GameState) => {
   // (dead: the body's fight.ts's to draw, where they fell)
   if (e.health <= 0) return;
   const a = castOf(e), F = actorFrame(e, f, state);
-  putFrame(c, `hww-actor${e.variant ?? 0}`, F, BOX, g => paintActor(g, a, F));
+  putFrame(c, `hww-actor2-${e.variant ?? 0}`, F, BOX, g => paintActor(g, a, F));
 };
 /** One of them on the way in (not an enemy yet: falling, on a wire), feet at (x, y), world. */
 export const drawArriving = (c: Ctx, i: number, x: number, y: number, f: number, falling: boolean, dir: 1 | -1) => {
   const a = CAST[i], F = frameOf(a.seed, f, falling ? 'thrown' : 'stand', 'ok', 0, a.woman, '');
   c.save(); c.translate(Math.round(x), Math.round(y)); c.scale(dir, 1);
-  putFrame(c, `hww-actor${i}`, F, BOX, g => paintActor(g, a, F));
+  putFrame(c, `hww-actor2-${i}`, F, BOX, g => paintActor(g, a, F));
   c.restore();
 };
 /** One of them on him (the dogpile), world: their feet at (x, y), facing `dir`, turned `rot` (about their feet),
@@ -306,7 +369,7 @@ export const drawArriving = (c: Ctx, i: number, x: number, y: number, f: number,
 export const drawClinger = (c: Ctx, i: number, x: number, y: number, rot: number, dir: 1 | -1, f: number) => {
   const a = CAST[i], F = frameOf(a.seed, f + i * 3, 'thrown', 'ok', 0, a.woman, '');
   c.save(); c.translate(Math.round(x), Math.round(y)); c.scale(dir, 1); c.rotate(rot);
-  putFrame(c, `hww-actor${i}`, F, BOX, g => paintActor(g, a, F));
+  putFrame(c, `hww-actor2-${i}`, F, BOX, g => paintActor(g, a, F));
   c.restore();
 };
 
@@ -347,12 +410,15 @@ const paintBody = (g: Ctx, a: CastMember, step: number, headless = false) => {
 /** A body, world: its pool first (it spreads), then them, gone over as far as they've gone. */
 export const drawBody = (c: Ctx, i: number, x: number, y: number, dir: 1 | -1, fall: number, pool: number, headless = false) => {
   if (pool > 0) {
-    c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(x - dir * 18, y - 1, 10 + pool * 34, 3 + pool * 4, 0, 0, Math.PI * 2); c.fill();
+    // (the pool: stepped, dark at its edge, a wet glint on it)
+    c.fillStyle = '#3A0606'; c.beginPath(); c.ellipse(x - dir * 18, y - 1, 11 + pool * 35, 3.5 + pool * 4, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#6A0E0E'; c.beginPath(); c.ellipse(x - dir * 18, y - 1, 10 + pool * 33, 3 + pool * 3.6, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#991B1B'; c.beginPath(); c.ellipse(x - dir * 24, y - 2, 6 + pool * 18, 2 + pool * 2, 0, 0, Math.PI * 2); c.fill();
+    if (pool > 0.3) { c.fillStyle = '#D85A4A'; c.fillRect(Math.round(x - dir * 30 - 3), Math.round(y - 3), Math.round(3 + pool * 6), 1); }
   }
   const step = Math.min(3, Math.floor(fall * 3.999));
   c.save(); c.translate(Math.round(x), Math.round(y)); c.scale(dir, 1);
-  stamp(c, `hww-body${i}-${step}${headless ? 'h' : ''}`, BODY_BOX[0], BODY_BOX[1], BODY_BOX[2], BODY_BOX[3], g => paintBody(g, CAST[i], step, headless));
+  stamp(c, `hww-body2-${i}-${step}${headless ? 'h' : ''}`, BODY_BOX[0], BODY_BOX[1], BODY_BOX[2], BODY_BOX[3], g => paintBody(g, CAST[i], step, headless));
   c.restore();
 };
 
