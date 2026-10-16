@@ -78,6 +78,8 @@ export interface Heli {
   /** Between landmarks: the waves left, the next's frame. */
   waves: ((state: GameState) => void)[]; waveAt: number; transit: boolean; transitFrom: number; transitT: number;
   goons: Enemy[];
+  /** The last frame a lackey came down onto the fight plane (its entrance done: goons.ts). */
+  goonLandAt: number;
   shots: Map<Projectile, ShotLook>;
   beams: Beam[]; drops: Drop[]; minions: Minion[];
   /** Who's saying what: Harry, the landmark, a guest in the queue (over who), a goon (over whom). */
@@ -113,7 +115,7 @@ export interface Heli {
 export const heliOf = (state: GameState) => foreignState<Heli>(state, 'heli', () => ({
   phase: 'pad', t: 0, ox: 0, oy: 0, seat: 0, tilt: 0, flip: 0, rotor: 0, vx: 0, vy: 0, pb: 0, boost: null, boostCd: 0,
   gunCd: 0, charges: 3, rockets: [], wasY: false, wasB: false, booms: [], prog: -2.6, spin: 0, mechs: [], cur: 0,
-  waves: [], waveAt: 0, transit: false, transitFrom: 0, transitT: 0, goons: [], shots: new Map(), beams: [], drops: [], minions: [],
+  waves: [], waveAt: 0, transit: false, transitFrom: 0, transitT: 0, goons: [], goonLandAt: -9999, shots: new Map(), beams: [], drops: [], minions: [],
   harry: null, harryBusy: false, mech: null, guest: null, goonSaid: null, guestAt: -9999, heckleAt: 0, goonBarkAt: -9999, gloatAt: -9999, lastHp: -1,
   hx: 0, hy: 0, hvx: 0, hvy: 0, hpose: 'wave', turned: false, hop: 0, remote: 0, hfacing: 1, zoom: 1, pull: 1, up: 0, pullX: 400, pullY: 300, killAt: -999, fightGoonAt: 0, fightGoonN: 0, step: 0, flags: {}, cam: false, camX: 0, camY: 0,
   hrocket: null, fall: 0, white: 0, tips: 0, over: false,

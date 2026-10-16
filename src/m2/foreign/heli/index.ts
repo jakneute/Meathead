@@ -44,7 +44,7 @@ import { heliOf, type Heli } from './state';
 import { x0, x1, X, GY, REFILL, CP_PAD, QUEUE_A, QUEUE_B, BOARD_AT, PAD_X, PAD_O, SEAT_BACK, SEAT_FRONT, CAMX, CY, Z, SW, SH, CAM_FLY, BASE, toWorld, CP_X, MEMO } from './geo';
 import { flyCopter, updateRockets, drawCopter, drawRockets, drawCharges } from './copter';
 import { makeMechs, startMech, updateMechs, mechDone } from './mechs';
-import { WAVES, goonsLeft, sweepGoons, fightGroup } from './goons';
+import { WAVES, goonsLeft, sweepGoons, fightGroup, tickEntrances, drawEntrances } from './goons';
 import { shredHold } from './shred';
 import { drawPark, roadY, panicAt, inWorld, RISE, fireLamps } from './park';
 import { drawAttacks, drawMech, mechLook } from './mechArt';
@@ -325,6 +325,7 @@ const flyUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => 
   const ft = feetOf(state); h.ox = ft.x - h.seat; h.oy = ft.y;
   updateRockets(ctx);
   updateMechs(ctx);
+  tickEntrances(state);
   sweepGoons(state);
   // (the checkpoint's own: nothing to walk past up here)
   if (h.tips > 0 && --h.tips === 0) setUi({ heliTips: false }); else if (h.tips > 0) setUi({ heliTips: true });
@@ -340,7 +341,7 @@ const flyUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => 
     let left = goonsLeft(state);
     // (never stuck waiting on a lackey that won't die or leave (one hung up at the edge of the view, a fight's group
     // still about): a while with nothing killed, and whoever's left flies off)
-    if (left > 0 && f - Math.max(h.killAt ?? 0, h.waveAt) > STRAGGLER_WAIT) {
+    if (left > 0 && f - Math.max(h.killAt ?? 0, h.waveAt, h.goonLandAt) > STRAGGLER_WAIT) {
       for (const e of h.goons) (e as typeof e & { gone?: boolean }).gone = true;
       sweepGoons(state); left = goonsLeft(state);
     }
@@ -616,6 +617,8 @@ export const heli: ForeignSection = {
       drawCopter(c, 'front', piv.x, piv.y, { seat: onPad ? SEAT_BACK : h.seat, tilt: rot.tilt, flip: rot.flip, rotor: h.rotor }, f, { harryDoor: !!h.flags.door, burning: (h.phase === 'end' && h.step >= 2) || p.health <= 0 });
     }
     drawRockets(c, state);
+    // (lackeys swooping in from up close, over everything)
+    if (h.phase === 'fly') drawEntrances(c, state);
     // (the kick's WHAM, where the boot met him)
     if (h.flags.wham) {
       const ft = feetOf(state), x = ft.x + 40, y = ft.y - 50;

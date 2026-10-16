@@ -103,20 +103,100 @@ const ai = (ctx: FrameContext, e: Enemy) => {
   return true;
 };
 
+/** Them (origin: their feet's middle): the flames out of the jetpack under them, then them. */
+const drawGoon = (c: CanvasRenderingContext2D, e: Enemy, f: number) => {
+  const fl = 10 + ((f >> 1) % 3) * 4, bx = -14;
+  c.fillStyle = '#F97316'; c.beginPath(); c.moveTo(bx - 6, -36); c.lineTo(bx - 1, -36 + fl + 10); c.lineTo(bx + 6, -36); c.fill();
+  c.fillStyle = '#FDE047'; c.beginPath(); c.moveTo(bx - 3, -36); c.lineTo(bx - 1, -36 + fl); c.lineTo(bx + 3, -36); c.fill();
+  drawCast(c, e, f, COSTUME, undefined, () => 'fly');
+};
+
 registerM2Kind({
   kind: GOON_KIND, stats: { w: 38, h: 72, hp: 40, contact: 12, mass: 160, air: true }, humanoid: true, pathing: false, grab: 'none',
   head: { x: 1, y: -66, r: 10 },
   gender: e => (womanOf(e) ? 'f' : 'm'),
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }),
   ai,
-  draw: (c, e, f) => {
-    // (the flames out of the jetpack under them, then them)
-    const fl = 10 + ((f >> 1) % 3) * 4, bx = -14;
-    c.fillStyle = '#F97316'; c.beginPath(); c.moveTo(bx - 6, -36); c.lineTo(bx - 1, -36 + fl + 10); c.lineTo(bx + 6, -36); c.fill();
-    c.fillStyle = '#FDE047'; c.beginPath(); c.moveTo(bx - 3, -36); c.lineTo(bx - 1, -36 + fl); c.lineTo(bx + 3, -36); c.fill();
-    drawCast(c, e, f, COSTUME, undefined, () => 'fly');
-  },
+  draw: (c, e, f) => drawGoon(c, e, f),
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// Their entrance (the user: "put them in the foreground first then stylishly 'mode 7' them to the fight plane. they
+// zoom out to you"): each comes in huge, up close to the camera, low and partly off the screen, its jetpack flaring;
+// then swoops away from the camera down onto the fight plane in a curve, banking, shrinking in perspective (its depth
+// eased, its size one over it), speed lines and a trail behind it, its shadow sweeping across the park below; and
+// settles at its own size at its spot, where it starts its business. Not in the world till then: nothing hits it and
+// it hurts nobody. A group's come in one after another.
+
+interface Entry { e: Enemy; t: number; delay: number; lx: number; ly: number; sx: number; sy: number; side: number }
+/** How long the swoop takes (frames), the gap between a group's, how big it starts (times its size). */
+const ENTER_T = 46, STAGGER = 16, BIG = 5.5;
+const entries = new WeakMap<object, Entry[]>();
+const entriesOf = (state: GameState) => { const h = heliOf(state); let l = entries.get(h); if (!l) { l = []; entries.set(h, l); } return l; };
+let groupAt = -1, groupN = 0;
+const isEntering = (state: GameState, e: Enemy) => entriesOf(state).some(q => q.e === e);
+const enter = (state: GameState, e: Enemy, mode: Mode, p: Omit<Pilot, 'mode' | 't' | 'cd' | 'leave'>) => {
+  if (groupAt !== state.frame) { groupAt = state.frame; groupN = 0; }
+  // (where it settles: its spot on the plane, or just in from the edge it sneaks in at)
+  const lx = mode === 'sneak' ? (p.from === 'left' ? CAMX + 70 : fx(p.sx)) : fx(p.sx);
+  const ly = mode === 'sneak' ? (p.from === 'top' ? CY + 90 : p.from === 'bottom' ? CY + H - 90 : fy(p.sy)) : fy(p.sy);
+  const side = (groupN % 2 ? -1 : 1) * (lx > CAMX + W / 2 ? -1 : 1);
+  entriesOf(state).push({ e, t: 0, delay: groupN++ * STAGGER, lx, ly, sx: Math.max(CAMX + 80, Math.min(CAMX + W - 80, lx + side * W * 0.32)), sy: CY + H + 60, side });
+};
+/** Where it is in its swoop (u 0..1): world point (its middle), scale, bank, how near the camera still (1 .. 0). */
+const swoop = (q: Entry, u: number) => {
+  // (its depth eased from up close out to the plane; its size one over its depth; the way across follows the size)
+  const z0 = 1 / BIG, k = u * u * (3 - 2 * u), z = z0 + (1 - z0) * k, sc = 1 / z, near = (sc - 1) / (BIG - 1);
+  const ox = q.sx - q.lx, oy = q.sy - q.ly, L = Math.hypot(ox, oy) || 1, curve = Math.sin(near * Math.PI) * 120 * q.side;
+  return { x: q.lx + ox * near + (-oy / L) * curve, y: q.ly + oy * near + (ox / L) * curve, sc, bank: q.side * (0.5 * near + 0.12 * Math.sin(u * Math.PI)), near };
+};
+/** Each frame: the swoops on; any down on the plane, into the world at its spot. */
+export const tickEntrances = (state: GameState) => {
+  const l = entriesOf(state), h = heliOf(state);
+  for (const q of l) {
+    if (q.e.health <= 0) { q.t = -1; continue; }
+    if (q.delay > 0) { q.delay--; continue; }
+    if (q.t === 0) playSound('whoosh', 0.7, 6);
+    if (++q.t >= ENTER_T) {
+      q.e.pos.x = q.lx - q.e.width / 2; q.e.pos.y = q.ly - q.e.height / 2; q.e.homeY = q.e.pos.y; q.e.initialY = q.e.pos.y;
+      state.enemies.push(q.e); h.goonLandAt = state.frame; q.t = -1;
+      playSound('ignite', 0.4, 8);
+    }
+  }
+  const left = l.filter(q => q.t >= 0);
+  l.length = 0; l.push(...left);
+};
+/** World, in front of everything (they're up close): the swoops, their trails, their shadows on the park. */
+export const drawEntrances = (c: CanvasRenderingContext2D, state: GameState) => {
+  const l = entriesOf(state), f = state.frame, px = state.player.pos.x + state.player.width / 2;
+  for (const q of l) {
+    if (q.delay > 0 || q.t < 0) continue;
+    const u = q.t / ENTER_T, s = swoop(q, u), e = q.e, facing = px < s.x ? -1 : 1;
+    // (its shadow sweeping across the park below: big and soft up close, tight down on the plane)
+    c.fillStyle = `rgba(10, 10, 20, ${(0.12 + 0.18 * (1 - s.near)).toFixed(3)})`;
+    c.beginPath(); c.ellipse(s.x + q.side * 40 * s.near, CY + H - 30, 30 * s.sc, 6 * s.sc, 0, 0, Math.PI * 2); c.fill();
+    // (speed lines streaming off it, back the way it came)
+    const b = swoop(q, Math.max(0, u - 0.08)), vx = s.x - b.x, vy = s.y - b.y, vl = Math.hypot(vx, vy) || 1;
+    c.strokeStyle = 'rgba(255, 255, 255, 0.6)'; c.lineWidth = 2;
+    for (let i = 0; i < 6; i++) {
+      const o = (i - 2.5) * 14 * s.sc, ax = s.x - (vy / vl) * o, ay = s.y + (vx / vl) * o, len = (40 + ((i * 37 + f * 5) % 50)) * Math.min(3, vl / 20);
+      c.beginPath(); c.moveTo(ax - (vx / vl) * 20 * s.sc, ay - (vy / vl) * 20 * s.sc); c.lineTo(ax - (vx / vl) * (20 * s.sc + len), ay - (vy / vl) * (20 * s.sc + len)); c.stroke();
+    }
+    // (the trail: two ghosts of it behind, fading; then it, the jetpack flaring)
+    for (const [du, al] of [[0.16, 0.18], [0.08, 0.35], [0, 1]] as const) {
+      if (u - du < 0) continue;
+      const g = du ? swoop(q, u - du) : s;
+      c.save(); c.globalAlpha = al;
+      c.translate(g.x, g.y + (e.height / 2) * g.sc); c.rotate(g.bank); c.scale(facing * g.sc, g.sc);
+      if (!du) {
+        c.fillStyle = 'rgba(249, 115, 22, 0.55)'; c.beginPath(); c.ellipse(-14, -20, 12 + (f % 3) * 3, 26 + (f % 4) * 4, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = 'rgba(253, 224, 71, 0.8)'; c.beginPath(); c.ellipse(-14, -26, 6, 14 + (f % 3) * 3, 0, 0, Math.PI * 2); c.fill();
+      }
+      drawGoon(c, e, f);
+      c.restore();
+    }
+  }
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Spawning, the waves
@@ -126,8 +206,9 @@ const spawn = (state: GameState, mode: Mode, p: Omit<Pilot, 'mode' | 't' | 'cd' 
   e.pos.y = y - e.height / 2; e.initialX = Math.round(x + Math.random() * 1000); e.variant = Math.floor(Math.random() * 13);
   e.seen = true; e.homeY = e.pos.y;
   pilots.set(e, { mode, t: 0, cd: 40 + Math.floor(Math.random() * 80), leave: p.leave ?? 640, ...p });
-  state.enemies.push(e);
+  // (not into the world yet: it swoops in first)
   heliOf(state).goons.push(e);
+  enter(state, e, mode, p);
   return e;
 };
 const hover = (state: GameState, sx: number, sy: number, delay = 0, leave = 640) => spawn(state, 'hover', { sx, sy, leave: leave + delay }, CAMX + W + 80 + delay * 3, fy(sy));
@@ -152,10 +233,10 @@ export const WAVES: ((state: GameState) => void)[][] = ([
   [s => { for (let i = 0; i < 5; i++) hover(s, 520 + (i % 2) * 130, 120 + i * 95, i * 15); }, s => { diver(s, 150); diver(s, 270, 40); diver(s, 390, 80); diver(s, 510, 120); sneak(s, 'left', 330); }, s => { sneak(s, 'top', 250); sneak(s, 'top', 450); sneak(s, 'bottom', 350); hover(s, 620, 200); hover(s, 620, 420, 20); }],
 ] as ((state: GameState) => void)[][]).map((w, i) => (i === 0 ? w : w.slice(0, 1)));
 
-/** The goons still out (alive, on the screen). */
+/** The goons still out (alive, on the screen, or still swooping in). */
 export const goonsLeft = (state: GameState) => {
   const h = heliOf(state);
-  h.goons = h.goons.filter(e => state.enemies.includes(e) && e.health > 0 && !e.isBlownAway && !(e as Enemy & { gone?: boolean }).gone);
+  h.goons = h.goons.filter(e => (state.enemies.includes(e) || isEntering(state, e)) && e.health > 0 && !e.isBlownAway && !(e as Enemy & { gone?: boolean }).gone);
   return h.goons.length;
 };
 /** Clears the gone ones out of the world (flown off). */
