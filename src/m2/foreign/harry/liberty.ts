@@ -440,14 +440,17 @@ const handOpen = (c: Ctx, x: number, y: number) => {
 let elbowS = 1, bendK = 0.15;
 /** The torch's flame (world), last drawn: for the lighting (the section's lamps). */
 export let torchFlame: { x: number; y: number; f: number } | null = null;
-/** The grip to the cup's foot along the torch, the cup's foot to the flame's middle, the handle's length. */
-const GRIP = 76, HEAD = 96, TORCH_H = 132;
+/** The grip to the cup's foot along the torch, the cup's foot to the flame's middle, the handle's length; the grip to
+ *  the handle's butt (the knob's end). */
+const GRIP = 76, HEAD = 96, TORCH_H = 132, BUTT = TORCH_H + 13 - GRIP;
 /**
  * Her right arm, the torch arm: from her shoulder (sunk `dy`) to (fx, fy) (world): her hand, the torch upright in it;
- * or, smashing (`smash` 0..1), the torch's HEAD there: the arm and the torch one long line out from the shoulder, the
- * flame what hits and sticks in the floor, her fist round the handle behind it. `glow` (0..1): the windup's tell.
+ * or, smashing (`smash` 0..1; the user: "slams it down with the bottom of the torch sticking in the ground"), the
+ * torch's BUTT there: driven down handle first like a stake, it stands up out of the floor (`floor`: anything of it
+ * under that's hidden), the flame on top, leaning a little back toward her, her fist round the handle above the floor.
+ * `glow` (0..1): the windup's tell.
  */
-export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torch: boolean; glow?: number; stuck?: number; away?: { x: number; y: number }; straight?: boolean; smash?: number }) => {
+export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torch: boolean; glow?: number; stuck?: number; away?: { x: number; y: number }; straight?: boolean; smash?: number; floor?: number }) => {
   c.save();
   // (she's at the back: past the arena's end walls she's behind them, never painted over them)
   c.beginPath(); c.rect(ARENA_L, -100000, ARENA_R - ARENA_L, 200000); c.clip();
@@ -457,15 +460,15 @@ export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torc
   let dx = fx - S.x, dy = fy - S.y;
   const d0 = Math.hypot(dx, dy) || 1, reachMax = LIB.upper + LIB.fore - 2;
   if (d0 > reachMax) { const k = reachMax / d0; dx *= k; dy *= k; }
-  const d = Math.min(d0, reachMax), T = { x: S.x + dx, y: S.y + dy };
-  // (the torch's way: upright, held up; smashing, turned on out along the arm from the shoulder)
+  const T = { x: S.x + dx, y: S.y + dy };
+  // (the torch's way: upright, held up; staked in the floor, leaning back toward her shoulder a little)
   const w = opts.torch ? Math.max(0, Math.min(1, opts.smash ?? 0)) : 0;
-  const upA = -Math.PI / 2, radial = Math.atan2(dy, dx);
-  let turn = radial - upA; while (turn > Math.PI) turn -= Math.PI * 2; while (turn < -Math.PI) turn += Math.PI * 2;
-  const ta = upA + turn * w;
-  // (pointing out at us, foreshortened: her hand never closer in to her shoulder than 150)
-  const full = GRIP + HEAD, fk = w > 0 ? 1 - (1 - Math.max(0.4, Math.min(1, (d - 150) / full))) * w : 1;
-  const H = { x: T.x - Math.cos(ta) * full * fk * w, y: T.y - Math.sin(ta) * full * fk * w };
+  const upA = -Math.PI / 2;
+  let lean = Math.atan2(S.y - T.y, S.x - T.x) - upA; while (lean > Math.PI) lean -= Math.PI * 2; while (lean < -Math.PI) lean += Math.PI * 2;
+  const ta = upA + Math.max(-0.55, Math.min(0.55, lean * 0.35)) * w;
+  // (her hand: there, or up the handle from the butt)
+  const full = GRIP + HEAD;
+  const H = { x: T.x + Math.cos(ta) * BUTT * w, y: T.y + Math.sin(ta) * BUTT * w };
   // (the elbow: a gentle sculpted bend: out to her side raised, up over the line lowered, away from her face rearing)
   const hdx = H.x - S.x, hdy = H.y - S.y, hd = Math.hypot(hdx, hdy) || 1, nx = -hdy / hd, ny = hdx / hd;
   const mid = { x: S.x + hdx * 0.5, y: S.y + hdy * 0.5 };
@@ -481,8 +484,11 @@ export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torc
   // (the torch first (its handle runs on back behind the fist), then the arm, then her hand round the handle)
   const rot = ta + Math.PI / 2;
   if (opts.torch) {
-    c.save(); c.translate(H.x, H.y); c.rotate(rot); c.scale(1, fk); c.translate(0, GRIP); torchArt(c, TORCH_H, true, L.f); c.restore();
-    torchFlame = { x: H.x + jx + Math.cos(ta) * full * fk, y: H.y + Math.sin(ta) * full * fk, f: L.f };
+    c.save();
+    // (the butt in the floor: what's under it hidden)
+    if (opts.floor !== undefined && w > 0) { c.beginPath(); c.rect(-100000, -100000, 200000, opts.floor + 100000); c.clip(); }
+    c.translate(H.x, H.y); c.rotate(rot); c.translate(0, -GRIP); torchArt(c, TORCH_H, true, L.f); c.restore();
+    torchFlame = { x: H.x + jx + Math.cos(ta) * full, y: H.y + Math.sin(ta) * full, f: L.f };
   }
   sculptedArm(c, S, E, H, 70);
   c.save(); c.translate(H.x, H.y); c.rotate(rot); fistOnHandle(c, (opts.glow ?? 0) * (0.5 + 0.3 * Math.sin(L.f * 0.6))); c.restore();

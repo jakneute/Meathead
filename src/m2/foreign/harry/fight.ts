@@ -623,6 +623,8 @@ const statue = (ctx: FrameContext, f: Fight) => {
       const T = a.st === 'snap' ? SNAP_T : YANK_T, u = Math.min(1, a.t / T);
       a.fx = a.from.x + (FIST_UP.x - a.from.x) * ease(u); a.fy = a.from.y + (FIST_UP.y - a.from.y) * ease(u);
       lib.shake = 0.6;
+      // (the torch's butt up out of the floor trailing dirt)
+      if (u < 0.5 && a.t % 2 === 0) { const v = armView(f); for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: v.x + (Math.random() - 0.5) * 16, y: v.y }, vel: { x: (Math.random() - 0.5) * 2, y: Math.random() * 1.5 }, life: 40, color: i ? '#6B5B45' : '#A8A29E', size: 2 + Math.random() * 3, grav: 0.3 }); }
       if (u >= 1) { a.st = 'up'; a.t = 0; lib.shake = 0; }
       break;
     }
@@ -635,17 +637,19 @@ const statue = (ctx: FrameContext, f: Fight) => {
 /** Her torch arm as drawn (looks only: the hit's at a.fx, a.fy as ever): where its end is and how far into the smash
  *  (0: her hand there, the torch held up; 1: the torch's head there, the torch out along the arm). The drop swings it
  *  down in an arc about her shoulder; stuck, the torch's flame is what's planted; the yank brings it back up. */
+/** How deep the torch's butt goes into the floor. */
+const STAKE = 14;
 const armView = (f: Fight) => {
   const a = f.arm;
   if (a.st === 'drop') {
-    const u = Math.min(1, a.t / DROP_T), k = u * u, S = { x: LIB.shR.x, y: LIB.shR.y + f.lib.dy }, to = { x: a.tx, y: GY - FIST_H / 2 };
+    const u = Math.min(1, a.t / DROP_T), k = u * u, S = { x: LIB.shR.x, y: LIB.shR.y + f.lib.dy }, to = { x: a.tx, y: GY + STAKE };
     const a0 = Math.atan2(a.from.y - S.y, a.from.x - S.x), a1 = Math.atan2(to.y - S.y, to.x - S.x);
     let da = a1 - a0; while (da > Math.PI) da -= Math.PI * 2; while (da < -Math.PI) da += Math.PI * 2;
     const r0 = Math.hypot(a.from.x - S.x, a.from.y - S.y), r1 = Math.hypot(to.x - S.x, to.y - S.y), ang = a0 + da * k, rr = r0 + (r1 - r0) * k;
     return { x: S.x + Math.cos(ang) * rr, y: S.y + Math.sin(ang) * rr, smash: ease(u) };
   }
-  if (a.st === 'stuck') return { x: a.fx, y: a.fy, smash: 1 };
-  if (a.st === 'yank' || a.st === 'snap') return { x: a.fx, y: a.fy, smash: 1 - ease(Math.min(1, a.t / (a.st === 'snap' ? SNAP_T : YANK_T))) };
+  if (a.st === 'stuck') return { x: a.fx, y: a.fy + FIST_H / 2 + STAKE, smash: 1 };
+  if (a.st === 'yank' || a.st === 'snap') { const sm = 1 - ease(Math.min(1, a.t / (a.st === 'snap' ? SNAP_T : YANK_T))); return { x: a.fx, y: a.fy + (FIST_H / 2 + STAKE) * sm, smash: sm }; }
   return { x: a.fx, y: a.fy, smash: 0 };
 };
 
@@ -1217,7 +1221,7 @@ export const drawStatue = (c: Ctx, state: GameState, f: Fight) => {
     drawRambo(g, CROWN.x, CROWN.y, { pose: P.pose, f: fr, facing: f.facing, talking: !!f.said, scale: CROWN_SCALE, green: f.green, concrete: f.concrete });
   } : undefined;
   // (toppling: the arm goes over with her)
-  const arm = f.lib.tilt > 0 || f.lib.dy > 0 ? (g: Ctx) => { const v = armView(f); drawArm(g, { ...libLook(f, fr), dy: 0, shake: 0 }, v.x, v.y, { torch: !f.torch, smash: v.smash }); } : undefined;
+  const arm = f.lib.tilt > 0 || f.lib.dy > 0 ? (g: Ctx) => { const v = armView(f); drawArm(g, { ...libLook(f, fr), dy: 0, shake: 0 }, v.x, v.y, { torch: !f.torch, smash: v.smash, floor: GY }); } : undefined;
   drawLibertyBody(c, libLook(f, fr, crown), arm);
 };
 
@@ -1258,7 +1262,7 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     if (a.st === 'stuck') { c.strokeStyle = '#1A0B06'; c.lineWidth = 2; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(a.tx + s * FIST_W / 2, GY - 1); c.lineTo(a.tx + s * (FIST_W / 2 + 26), GY - 4); c.lineTo(a.tx + s * (FIST_W / 2 + 50), GY - 2); c.stroke(); } }
     const away = a.st === 'wind' || a.st === 'drop' ? { x: LIB.head.x, y: LIB.head.y - 40 } : undefined;
     const v = armView(f);
-    drawArm(c, libLook(f, fr), v.x, v.y, { torch: !f.torch, glow, stuck, away, straight: a.st === 'drop' || a.st === 'stuck' || a.st === 'yank' || a.st === 'snap', smash: v.smash });
+    drawArm(c, libLook(f, fr), v.x, v.y, { torch: !f.torch, glow, stuck, away, straight: a.st === 'drop' || a.st === 'stuck' || a.st === 'yank' || a.st === 'snap', smash: v.smash, floor: GY });
   }
   // (the rubble once she's gone; the chunks of her head; the torch and the gun)
   if (f.lib.gone) drawRubble(c, MID - 40, GY, fr);
