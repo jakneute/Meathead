@@ -131,6 +131,8 @@ const handOver = (state: GameState, h: Heli) => {
   if (state.checkpoint < 111) state.checkpoint = 110;
 };
 
+/** Between landmarks, how long (frames) it waits on lackeys still out with none being killed before they fly off. */
+const STRAGGLER_WAIT = 600;
 const beginTransit = (state: GameState, h: Heli, i: number) => {
   h.transit = true; h.transitFrom = h.prog; h.transitT = 0; h.cur = i;
   h.waves = [...WAVES[i]]; h.waveAt = state.frame + 90;
@@ -334,7 +336,13 @@ const flyUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => 
     const died = h.goons.filter(e => e.health <= 0 || e.isBlownAway).length;
     if (died) h.killAt = f;
     if (died && Math.random() < 0.2) harrySays(state, harryPick(HARRY_GOONS), false);
-    const left = goonsLeft(state);
+    let left = goonsLeft(state);
+    // (never stuck waiting on a lackey that won't die or leave (one hung up at the edge of the view, a fight's group
+    // still about): a while with nothing killed, and whoever's left flies off)
+    if (left > 0 && f - Math.max(h.killAt ?? 0, h.waveAt) > STRAGGLER_WAIT) {
+      for (const e of h.goons) (e as typeof e & { gone?: boolean }).gone = true;
+      sweepGoons(state); left = goonsLeft(state);
+    }
     if (h.waves.length && left === 0 && f >= h.waveAt) { const w = h.waves.shift()!; w(state); h.waveAt = f + 150; }
     if (!h.waves.length && left === 0 && h.prog >= h.cur - RISE[h.cur].d - 1e-6 && f >= h.waveAt - 90) {
       h.transit = false;
