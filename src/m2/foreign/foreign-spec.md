@@ -117,7 +117,7 @@ The pavilions (fill-ins; each a section with its own cast enemies, set pieces an
 **AXED (the user, 2026-10-16):** the theater sub-boss is gone entirely (its folder, section, checkpoints 100-102,
 voices). The streets go through all ten pavilions and at the end of Canada (the trail's stairs down, the ranger
 station) he walks straight on, no cut, to HELICOPTER RIDES ACROSS THE WORLD's helipad (the heli section sits where the
-theater was, FLX+39000, on the end of the streets' walk). The big health + ammo refill and checkpoint 110 are at the
+theater was, on the end of the streets' walk: FLX+57800 since job 4b). The big health + ammo refill and checkpoint 110 are at the
 helipad, before the ride. The helicopter gauntlet is the land's mini-boss rush. What follows (and job 3's decisions)
 is kept only for the record.
 
@@ -495,3 +495,71 @@ voices recorded (npm run voices) and the M2 html rebuilt (npm run release:m2) af
 - **Voices:** new ids in cast.json: m2.foreign.harry, m2.foreign.jetgoon / jetgoonf, m2.foreign.mech_<id> (nine).
 - **Length:** the tour ~1 min (skippable), nine fights ~40-60 s each, ~20 s of lackeys before each: ~10 min, about
   the pavilions' length.
+
+## Decisions (job 4b)
+
+The user, with the theater axed: "make the pavillions a bit longer to compensate"; "there's essentially two sequences:
+pavillions, helicopter. less than a typical level but lengthier individually."
+
+- **Every pavilion ~50% longer, new content on its far end.** The old stretch of each is untouched (its x's are from
+  its own start); the new stretch is its own file in the pavilion's folder, hooked into index.ts (build, update, draw
+  back and front, lamps, water), and each old LEAVING sign moved to the new end. Widths: Mexico 6200, Norway 5600,
+  China 7600, Germany 5600, Italy 5800, the other five 5400 each: the streets 57800 px (were 39000), ~12 min played.
+  Every later section moved on together (geometry.ts SECTIONS; DOORS follow); the helipad's FLX+57800, Harry's arena
+  FLX+71000. Still one walk: no doors, fades or walls. Promenade first in every draw (the dug-out and hill stretches
+  leave it out under them).
+- **Each new stretch:** more climbing (each has a climb or tower; nothing on the way on is skippable at ground where
+  it's a wall: impassable drawn down to the ground, and every climb has a way back down and up), the pavilion's cast in
+  tougher mixes (shield walls at a gate, a tuba at the top of a ramp to shove him back down, ninjas and a sumo on the
+  train's walkway), a set piece on a timer with a clear tell, which hurts the cast too (hazardHit; the cast keep out of
+  it while it's live: setHazardZones), its own hurt source with hurt + death lines, Meathead's gags by x and height,
+  and a cast bark at the set piece (setpiece.ts `shout`: a cast voice over the prop, one voice at a time, the barks'
+  spacing). Two small pickups each (lean).
+- **setpiece.ts** (new, shared): hurtIn (a hazard's box on him), hitCastIn (on the cast), playerIn, the prop shout,
+  placePickups.
+- **Mexico, LA QUEBRADA:** a fiberglass cliff (solid to the ground) climbed by its outcrops, a diving board off its top
+  over the DIVE POOL; the cast divers on a pole platform (CAST ONLY) throw their arms up and shout, then plunge onto
+  whoever's under them (`m2:fl_cliff_diver`, the splash too); his own dive off the board gets TEN. TEN. TEN.; the
+  outcrops on the cliff's far face are the way back up. The tequila stand (APPLE JUICE). Checkpoints 3-4.
+- **Norway, THE TROLL TOLL BRIDGE:** two three-story trolls (knee, shoulder, head) hold a bridge up over the troll
+  river; the TOLL GATE on it is shut (deck to crossbeam) and the TOLL GANG (two shield vikings, a viking, the lutefisk
+  lady) demand five dollars; all dead, the gate goes up (TOLL PAID (IN BLOOD)) and stays up for the land visit (through
+  deaths). Or swim under: the TROLL UNDER THE BRIDGE's arm sweeps the river (bubbles first; `m2:fl_troll_hand`).
+  Checkpoints 13-14.
+- **China, THE SECOND RIDGE:** the wall goes on past the pagoda: down into a saddle (the B-TEAM DRAGON, four kids under
+  a cloth for six), up the steepest stairs under the FIREWORKS BATTERY's mortar volleys (red X marks and the hiss
+  first, one mark on where he's stood; `m2:fl_mortar`; it stops once its intern's dead), THE BEACON TOWER climbed
+  inside to 1720 up (the land's highest point: HIGHEST POINT IN OHIO), and the repair scaffold down the wall's raw end
+  (moved there from the pagoda). Checkpoints 24-26.
+- **Germany, THE BREWERY HILL:** the hay-bale keg catcher, the cobbled KEG RAMP up to the brewery yard, a full keg
+  rolled down it every couple of seconds (the dock door, the teeter, the crew's KEG! first; `m2:fl_keg`), bursting on
+  the bales; the BRAUHAUS (BEER: BUD LIGHT) a wall to its roof, climbed by the crates and the hop loft, down the drying
+  racks and the stairs. Checkpoints 33-34.
+- **Italy, IL FORNO:** the WORLD'S LONGEST PIZZA OVEN walked through, three burners flaring floor to ceiling in turn
+  (the blue pilot first; `m2:fl_oven_fire`), or over its roof past the chimneys that blow on the off beat; then the
+  terracotta houses up the hill (a Vespa, laundry over the alleys) and down the last one's balconies. Checkpoints
+  44-45.
+- **Japan, THE BULLET TRAIN:** two fiberglass Fujis (three steps tall, the snow paint) climbed over, the track between
+  them; the SHINKANSEN (DOES NOT STOP) comes out of one tunnel and into the other on a timer (bells, red lights, the
+  tunnel shutter rolling up first: the portals are shuttered, solid; `m2:fl_bullet_train` hits him hard and kills the
+  cast); the signal gantries, the platform walkway, the station roof and the departure board are all over its roof.
+  The attendant: PLEASE STAND BEHIND THE YELLOW LINE. THERE IS NO YELLOW LINE. Checkpoints 54-55.
+- **Morocco, THE SOUK:** a covered market alley under striped awnings stepping up to the tea terrace (SWEET TEA
+  (SOUTHERN)) and down; the CAMEL RIDE's fiberglass camels get loose on a timer and STAMPEDE down the alley (dust,
+  rumble, bells, a salesman's shout first; `m2:fl_stampede`); the awnings are over their humps. The broken corral
+  (GATE BROKEN, CAMELS: ALSO BROKEN). Checkpoints 64-65.
+- **France, LE LOUVRE (GIFT SHOP):** the glass pyramid in steel-framed tiers, solid, climbed up and over to the MONA
+  LISA (a postcard, ACTUAL SIZE* *SMALLER); the FOUNTAIN SHOW's nozzles in its steps jet in a wave across it (the
+  gurgle first; `m2:fl_fountain` knocks him up and off); the Seine (A PUDDLE) and its bookstalls (the can-can pair on
+  them), an apartment block over its mansard roof. Checkpoints 74-75.
+- **The UK, BIG BENJAMIN:** the clock tower climbed inside (its far wall shut to the ground: EXIT: THE CLOCK FACE),
+  THE PENDULUM swinging through the lower floors (`m2:fl_pendulum`), the belfry's bell winding back and BONGING a ring
+  out (`m2:fl_bong`), gears on the walls; out through the clock face onto its ledge and down the outside (in through
+  the face the way back). The terraced street. Checkpoints 84-85.
+- **Canada, THE FROZEN POND and THE TOBOGGAN HILL:** ice panels over the pond (REFRIGERATED, SORRY ABOUT THE ICE), a
+  hockey game on it; the marked thin panels crack under whoever stands on them and give way (`m2:fl_thin_ice`, the
+  cast THROUGH THE ICE!), frozen over again a while later (one-way: he can always come up through a hole); a hockey
+  player's too-late SORRY. The snow stairs up to the SUGAR SHACK (SYRUP: $40), down the toboggan chute (TOBOGGANS:
+  SOLD OUT), on to the helipad. Checkpoints 94-95.
+- **Voices:** no new voice ids: the set pieces' barks are in existing cast voices (luchador, viking, fireworks,
+  barmaid, pizza, cosplay, carpet, waiter, bobby, hockey); 11 new hurt sources with hurt + death lines.

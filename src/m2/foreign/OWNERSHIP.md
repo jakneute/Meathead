@@ -24,16 +24,28 @@ hurt + death lines (`registerHurts` in your kinds.ts).
 Meathead walks ~210 px/s; "played" times assume fighting and platforming (about 2.5x pure walking). Count climbs by
 playtime, not x width.
 
+The land is TWO long sequences (the user's): the pavilions (one continuous walk) and the helicopter, about as long to
+play as each other. Job 4b lengthened every pavilion ~50% (each one's old stretch kept as it was; the new stretch on
+its far end, in its own file: mexico/cliff.ts, norway/toll.ts, china/ridge.ts, germany/brewery.ts, italy/oven.ts,
+japan/station.ts, morocco/souk.ts, france/louvre.ts, uk/clocktower.ts, canada/pond.ts).
+
 | Section | x range (world) | Target playtime |
 |---|---|---|
-| mexico | FLX+0 .. FLX+4200 | ~0.8 min |
-| norway | FLX+4200 .. FLX+8000 | ~0.8 min |
-| china | FLX+8000 .. FLX+13200 (the wall climbs to 1480 up) | ~1.3 min |
-| germany | FLX+13200 .. FLX+17000 | ~0.8 min |
-| italy | FLX+17000 .. FLX+21000 | ~0.8 min |
-| japan, morocco, france, uk, canada | 3600 each, FLX+21000 .. FLX+39000 | ~0.7 min each |
-| heli | FLX+39000 .. FLX+42000 (on the end of the streets; the shooter's one fixed screen high over it: count it by time) | ~10 min (matches the pavilions) |
-| harry | FLX+52000 .. FLX+55000 | the boss fight |
+| mexico | FLX+0 .. FLX+6200 (La Quebrada's cliff from +4200) | ~1.2 min |
+| norway | FLX+6200 .. FLX+11800 (the troll toll bridge from +3800) | ~1.2 min |
+| china | FLX+11800 .. FLX+19400 (the wall climbs to 1120, then the second ridge and the beacon tower to 1720) | ~2 min |
+| germany | FLX+19400 .. FLX+25000 (the brewery hill from +3800) | ~1.2 min |
+| italy | FLX+25000 .. FLX+30800 (il forno and the rooftops from +4000) | ~1.2 min |
+| japan | FLX+30800 .. FLX+36200 (the bullet train from +3600) | ~1.1 min |
+| morocco | FLX+36200 .. FLX+41600 (the souk's stampede from +3600) | ~1.1 min |
+| france | FLX+41600 .. FLX+47000 (the Louvre's pyramid from +3600) | ~1.1 min |
+| uk | FLX+47000 .. FLX+52400 (Big Benjamin from +3600) | ~1.2 min |
+| canada | FLX+52400 .. FLX+57800 (the frozen pond and the toboggan hill from +3600) | ~1.1 min |
+| heli | FLX+57800 .. FLX+60800 (on the end of the streets; the shooter's one fixed screen high over it: count it by time) | ~10 min (matches the pavilions, ~12 min) |
+| harry | FLX+71000 .. FLX+74000 | the boss fight |
+
+Checkpoints inside the longer pavilions keep each one's tens: Mexico 3-4, Norway 13-14, China 24-26, Germany 33-34,
+Italy 44-45, Japan 54-55, Morocco 64-65, France 74-75, UK 84-85, Canada 94-95.
 
 FLX = 600000. **The streets are one continuous walk: no gaps between street sections.** Need more room in a pavilion?
 Grow it UP (-y), or move every later street section on together (and their DOORS). The cut sections have gaps.
