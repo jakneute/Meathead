@@ -1,9 +1,9 @@
-m2/hub/index.ts:121 name: AMERICA_DENY
-m2/weapons/soulSucker.ts:191 name: FULL_BAG_LINES
-m2/weapons/soulSucker.ts:330 name: EMPTY_BAG_LINES
-m2/weapons/spellbook.ts:368 name: BULK_LINES
-m2/weapons/spellbook.ts:373 name: BULK_FAIL_LINES
-m2/weapons/mallet.ts:214 name: DUCK_LINES
+m2/hub/index.ts:132 name: AMERICA_DENY
+m2/weapons/soulSucker.ts:192 name: FULL_BAG_LINES
+m2/weapons/soulSucker.ts:331 name: EMPTY_BAG_LINES
+m2/weapons/spellbook.ts:369 name: BULK_LINES
+m2/weapons/spellbook.ts:374 name: BULK_FAIL_LINES
+m2/weapons/mallet.ts:235 name: DUCK_LINES
 m2/intro/index.ts:345 name: MEATHEAD_PARKED
 m2/intro/index.ts:632 name: MEATHEAD_TICKET
 m2/intro/index.ts:634 name: MEATHEAD_TICKET
@@ -37,21 +37,21 @@ m2/adventure/cart/index.ts:109 voice: text
 m2/adventure/cart/index.ts:239 voice: pick(ARTIE_CHASE_START[dressed(state)])
 m2/adventure/roof/index.ts:114 voice: text
 m2/adventure/clearing/index.ts:174 voice: text
-m2/adventure/clearing/fight.ts:325 voice: voice('m2.safari')
-m2/adventure/clearing/fight.ts:331 voice: pick(lines[pants()])
+m2/adventure/clearing/fight.ts:327 voice: voice('m2.safari')
+m2/adventure/clearing/fight.ts:333 voice: pick(lines[pants()])
 m2/adventure/section.ts:137 voice: voice(voiceId)
 m2/spooky/castle/pa.ts:72 voice: voice(PA)
 m2/spooky/hell/satan.ts:111 voice: SATAN_CORE
 m2/spooky/hell/satan.ts:114 voice: pick(dressedPool(state))
-m2/spooky/hell/demon.ts:140 voice: voice('m2.demon')
+m2/spooky/hell/demon.ts:141 voice: voice('m2.demon')
 m2/spooky/control/staff.ts:55 voice: voice(woman ? 'm2.spooky.clerkf' : 'm2.spooky.clerk')
 m2/spooky/control/index.ts:79 voice: pick(lines[dressed(state)])
 m2/spooky/control/doors.ts:76 voice: pick(L.DONNIE_LOCKED[dressed(state)])
 m2/spooky/control/shop.ts:246 voice: true
 m2/spooky/control/shop.ts:253 voice: voice('m2.donnie')
-m2/spooky/ballroom/fight.ts:251 voice: voice('m2.donnie')
-m2/spooky/ballroom/fight.ts:261 voice: pick(lines[pants()])
-m2/spooky/ballroom/fight.ts:578 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
+m2/spooky/ballroom/fight.ts:253 voice: voice('m2.donnie')
+m2/spooky/ballroom/fight.ts:263 voice: pick(lines[pants()])
+m2/spooky/ballroom/fight.ts:580 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
 m2/space/square/kinds.ts:170 voice: false
 m2/space/square/index.ts:43 voice: line
 m2/space/atom/hijack.ts:60 voice: text
@@ -77,11 +77,11 @@ m2/space/crater/house.ts:134 voice: pick(L.XENO_ARRIVED)
 m2/space/crater/rigs.ts:167 voice: pick(L.BOO)
 m2/space/crater/kinds.ts:73 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
 m2/space/queen/show.ts:111 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
-m2/space/queen/fight.ts:259 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:265 voice: pick(lines[dressed(state)])
-m2/space/queen/fight.ts:275 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
-m2/space/queen/fight.ts:426 voice: pick(L.BOOTH_RAY[dressed(state)])
-m2/space/queen/fight.ts:841 voice: voice('m2.space.queen')
+m2/space/queen/fight.ts:263 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:269 voice: pick(lines[dressed(state)])
+m2/space/queen/fight.ts:279 voice: voice(who === 'queen' ? 'm2.space.queen' : 'm2.space.alien')
+m2/space/queen/fight.ts:430 voice: pick(L.BOOTH_RAY[dressed(state)])
+m2/space/queen/fight.ts:853 voice: voice('m2.space.queen')
 m2/hollywood/blvd/index.ts:46 voice: line
 m2/hollywood/blvd/index.ts:93 voice: false
 m2/hollywood/blvd/kinds.ts:63 voice: false
@@ -100,16 +100,16 @@ m2/hollywood/warehouse/talk.ts:39 voice: lineOf(state, pool)
 m2/hollywood/warehouse/talk.ts:45 voice: lineOf(state, pool)
 m2/hollywood/warehouse/talk.ts:51 voice: lineOf(state, pool)
 m2/hollywood/warehouse/talk.ts:57 voice: pickLine(pool)
-m2/hollywood/lot/index.ts:102 voice: false
+m2/hollywood/lot/index.ts:103 voice: false
 m2/hollywood/disaster/kinds.ts:41 voice: false
-m2/hollywood/disaster/show.ts:34 voice: line
-m2/hollywood/disaster/show.ts:75 voice: false
-m2/hollywood/disaster/real.ts:89 voice: s.line()
-m2/hollywood/disaster/index.ts:56 voice: line
-m2/hollywood/disaster/index.ts:75 voice: false
-m2/hollywood/disaster/index.ts:87 voice: line
-m2/hollywood/disaster/index.ts:179 voice: false
-m2/hollywood/disaster/index.ts:184 voice: false
+m2/hollywood/disaster/show.ts:35 voice: line
+m2/hollywood/disaster/show.ts:76 voice: false
+m2/hollywood/disaster/real.ts:95 voice: s.line()
+m2/hollywood/disaster/index.ts:57 voice: line
+m2/hollywood/disaster/index.ts:76 voice: false
+m2/hollywood/disaster/index.ts:88 voice: line
+m2/hollywood/disaster/index.ts:180 voice: false
+m2/hollywood/disaster/index.ts:185 voice: false
 m2/hollywood/havoc/kinds.ts:45 voice: false
 m2/hollywood/havoc/index.ts:57 voice: line
 m2/hollywood/stunt/fight.ts:181 voice: text
