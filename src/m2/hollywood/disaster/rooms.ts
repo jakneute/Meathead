@@ -415,9 +415,12 @@ const paintPreshowWall = (g: Ctx, x: number, w: number) => {
   // (the rules board: what the ride may cause)
   const rb = X(2010);
   if (x < rb + 90 && x + w > rb - 90) board(g, rb, GY - 170, ['THIS RIDE MAY CAUSE:', 'MILD WARMTH', 'A BREEZE', 'DAMPNESS', 'NO FLASH PHOTOGRAPHY'], showLook(1, 1, '#FDE68A', '#000000'), '#1E1B4B', G, 6);
-  // (Steve, a framed poster)
-  const sp = X(2530);
-  if (x < sp + 60 && x + w > sp - 60) steveCard(g, sp, GY - 250, 1.2, 1, 'poster');
+  // (Steve, a framed poster: low on the wall by the doorway, under THEATER / PLEASE MOVE ALL THE WAY IN (doorway.ts,
+  // hung at the play plane down to GY - 255; the poster's top lands below GY - 236 even with the eye well over its
+  // rest), and far enough right of CHIP's TV (play plane, to rx 2411; swung, 2430) that the wall's parallax never
+  // slides it under the set while it's on screen, wide shot included)
+  const sp = X(2590);
+  if (x < sp + 60 && x + w > sp - 60) steveCard(g, sp, GY - 175, 1.2, 1, 'poster');
 };
 
 /** CHIP CHADWICK on the big TV, hung off the ceiling (very excited; static once it's real, the set swinging). */
