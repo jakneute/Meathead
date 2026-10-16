@@ -2,12 +2,10 @@
 // Like the sniper up Dale's bell tower: hold fire and the laser finds somebody near out in front (on the ground or in
 // the air, it doesn't care) and draws a bead on his head, the sights closing in. He can walk and jump with it held,
 // but not turn round: it's locking on. Held long enough it's primed (the hammer clacks back, a ring off the steel, the
-// sights go red), and it goes off when fire's let go (let go before that, and it doesn't). The ball goes dead straight
-// at him and on through: everybody on that line gets his head blown off, however many. Where the line meets a wall, a
-// floor or a ceiling it ricochets, once, straight at whoever's nearest that's still got a head (a little one low down
-// is shot at downward, so the floor behind him nearly always gives it that second go). Fired with nobody in front, it
-// goes straight out (up or down if he's holding that), and a wall can still find it somebody.
-// One of the Ensemble Cast (weapons/half.ts) loses his, but only the one: the ball stops in him.
+// sights go red), and it goes off when fire's let go (let go before that, and it doesn't). A single-target eliminator:
+// the ball goes dead straight at him, his head comes off, and it stops in him (nothing through, no ricochet; anybody
+// stood in the way first is the one who gets it). Fired with nobody in front, it goes straight out (up or down if he's
+// holding that) till it hits something. One of the Ensemble Cast (weapons/half.ts) loses his the same.
 // A boss or a mid-boss keeps his head: the ball goes into him and stays there (no going on through, no ricochet), a big
 // hit (BOSS_HIT), one boss hit a shot (the T. rex's parts can't all take it off one ball).
 
@@ -29,7 +27,7 @@ type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
 /** How long it's held to go off; how near somebody has to be for it to find him; how far a ball goes. */
-const CHARGE = 48, LOCK_REACH = 560, RANGE = 1500, COOLDOWN = 34, RICOCHET_REACH = 700;
+const CHARGE = 48, LOCK_REACH = 560, RANGE = 1500, COOLDOWN = 34;
 /** A boss or a mid-boss hit: one ball a CHARGE + COOLDOWN (82 frames): ~110 a second, about the ray gun's 125 (25
  *  every 12), the gun's six bolts' worth in one go. Against a boss with Meathead 1's breather (Safari Artie: one hit a
  *  second counts) it's the best there is a shot. */
@@ -96,7 +94,10 @@ const line = (ctx: FrameContext, x: number, y: number, dx: number, dy: number, k
         bossHit(ctx, e, cx, cy, dx, dy);
         break;
       }
+      // (one a shot: his head comes off, and the ball stops in him)
       headOff(ctx, e, dx, dy);
+      lodged = true;
+      break;
     }
   }
   trails.push({ x0: x, y0: y, x1: cx, y1: cy, t: 0, spark: wall });
@@ -128,7 +129,7 @@ const headOff = (ctx: FrameContext, e: Enemy, dx: number, dy: number) => {
   fx.killWithAnimation(e, 'headshot', m2Kill('flintlock_kill'), grabCallout('flintlock'), { x: dx * 6, y: -6 + dy * 4 });
 };
 
-/** Bang: straight down the line at him (or out the front), through everybody on it, and one ricochet off the first surface it meets. */
+/** Bang: straight down the line at him (or out the front), into the first one on it. */
 const shoot = (ctx: FrameContext) => {
   const { state, cheats } = ctx;
   const pl = state.player;
@@ -138,13 +139,7 @@ const shoot = (ctx: FrameContext) => {
   let dx = pl.facing, dy = 0;
   if (target && alive(target)) { const h = headOf(target); const d = Math.hypot(h.x - m.x, h.y - m.y) || 1; dx = (h.x - m.x) / d; dy = (h.y - m.y) / d; }
   else if (state.player.steer) { const a = state.player.steer * 0.6; dx = pl.facing * Math.cos(a); dy = Math.sin(a); }
-  const end = line(ctx, m.x, m.y, dx, dy, killed);
-  // (the one ricochet: off whatever it hit, straight at the nearest that's still got a head)
-  if (end.wall) {
-    let best: Enemy | null = null, bestD = RICOCHET_REACH;
-    for (const e of state.enemies) { if (!alive(e) || killed.has(e)) continue; const h = headOf(e), d = Math.hypot(h.x - end.x, h.y - end.y); if (d < bestD) { bestD = d; best = e; } }
-    if (best) { const h = headOf(best), d = Math.hypot(h.x - end.x, h.y - end.y) || 1; playSound('whoosh', 0.6, 9); line(ctx, end.x, end.y, (h.x - end.x) / d, (h.y - end.y) / d, killed); }
-  }
+  line(ctx, m.x, m.y, dx, dy, killed);
   // The shot: the flint's spark, the flash, a great cloud of smoke, the kick
   playSound('flintlock');
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: m.x + dx * 6, y: m.y + dy * 6 }, vel: { x: dx * (1 + Math.random() * 2) + (Math.random() - 0.5), y: dy * 2 - Math.random() * 1.2 }, life: 40 + Math.random() * 30, color: `rgba(${200 + Math.floor(Math.random() * 40)}, ${200 + Math.floor(Math.random() * 40)}, ${200 + Math.floor(Math.random() * 40)}, 0.55)`, size: 6 + Math.random() * 8 });
