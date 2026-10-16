@@ -9,6 +9,7 @@ import { setFootstepVolume } from '../m1/game/player/footsteps';
 import { setHurtScale } from '../m1/game/core/resist';
 import { setDeathMessageDrawer } from '../m1/game/render/world';
 import { drawM2DeathMessage } from './deathText';
+import { installCanvasSafety } from './canvasSafety';
 import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage, WHEEL_COOLDOWN_MS } from '../m1/constants';
@@ -118,6 +119,8 @@ Object.assign(enemyMeleeDamage, { charge: 14, slide: 14, uppercut: 45, divekick:
 setHurtScale(0.65);
 setDropTable({ health: 0.06, ammo: 0.05 });
 registerWeapons();
+// (no arc or ellipse with a radius gone below zero ever throws away the rest of a frame)
+installCanvasSafety();
 // (the death message: the letters drop in, and bleed)
 setDeathMessageDrawer(drawM2DeathMessage);
 
