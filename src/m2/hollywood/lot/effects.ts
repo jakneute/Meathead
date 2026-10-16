@@ -28,6 +28,7 @@ import {
 import { wallBack } from '../blvd/ground';
 import { TILE } from './paint';
 import { TANK_GAG } from './lines';
+import { canDrown, drownEnemy } from '../../drown';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -126,9 +127,16 @@ export const updateEffects = (ctx: FrameContext): FxEvents => {
       hurtPlayer(ctx, 11, 'm2:hw_flood', { x: (Math.random() - 0.5) * 6, y: -7 }, 22);
     }
   }
+  // (what's in the tank, or caught in the surge over it, drowns in it, past its middle; on the street, the surge flings it)
+  const tankTop = () => GY + 30 - Math.max(0, surgeLevel(floodPhase(state)) + 30);
   for (const e of hazardVictims(state, { flyers: false })) {
     if (!boxHits(e, X(TANK.a) + 4, Math.min(GY + 30, top + 10), X(TANK.b) - X(TANK.a) - 8, GY + TANK.depth)) continue;
-    hazardKill(ctx, e, e.pos.x + e.width / 2, 'FLASH FLOOD!', { color: '#7DD3FC', fling: { x: 0, y: -6 }, sound: 'splash' });
+    const ecx = e.pos.x + e.width / 2;
+    if (ecx > X(TANK.a) && ecx < X(TANK.b)) {
+      if (canDrown(e) && e.pos.y + e.height * 0.6 > tankTop() + 6) drownEnemy(ctx, e, { surface: tankTop(), x1: X(TANK.a), x2: X(TANK.b), key: 'lot-tank' }, { spray: PEE, surfaceAt: tankTop });
+      continue;
+    }
+    hazardKill(ctx, e, ecx, 'FLASH FLOOD!', { color: '#7DD3FC', fling: { x: 0, y: -6 }, sound: 'splash' });
   }
   setHazardZones(state, 'lot-fx', zones);
   return ev;

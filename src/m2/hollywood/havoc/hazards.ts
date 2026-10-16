@@ -26,6 +26,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { setHazardZones, hazardVictims, hazardHit, hazardKill, boxHits, type Zone } from '../../hazardHit';
 import { isLandCleared } from '../../store';
+import { canDrown, drownEnemy } from '../../drown';
 import { solid, teleport } from '../section';
 import {
   X, Y, R, GY, groundH, LAVA, LAVA_DOWN, LAVA_FLOOR, FALLS, FALL_TRIGGER, WIND, QUAKE, HAIL, LEDGES, BALL, CLIMB, SHAFTS,
@@ -208,7 +209,11 @@ export const updateHazards = (ctx: FrameContext): HazEvents => {
       if (p.pos.y > surf + 4) { if (++fd.under > 80) hurtPlayer(ctx, 9999, 'm2:hwh_drown', { x: 0, y: -2 }, 0); }
       else fd.under = 0;
     }
-    for (const e of hazardVictims(state)) if (e.pos.x < X(CLIMB.b) && e.pos.y + e.height > surf + 20) hazardKill(ctx, e, e.pos.x + e.width / 2, 'FLOODED!', { color: '#7DD3FC', fling: { x: 0, y: -6 }, sound: 'splash' });
+    // (caught in it: drowned, once it's past their middle (what can't drown, flung by it); the floaters ride it up)
+    for (const e of hazardVictims(state)) if (e.pos.x < X(CLIMB.b) && e.pos.y + e.height > surf + 20) {
+      if (!canDrown(e)) { hazardKill(ctx, e, e.pos.x + e.width / 2, 'FLOODED!', { color: '#7DD3FC', fling: { x: 0, y: -6 }, sound: 'splash' }); continue; }
+      if (e.pos.y + e.height * 0.6 > surf + 6) drownEnemy(ctx, e, { surface: surf, x1: e.pos.x - 300, x2: Math.min(X(CLIMB.b), e.pos.x + e.width + 300), key: 'havoc-flood' }, { surfaceAt: () => Y(fd.h) });
+    }
     // (chunks of the buildings they're knocking down, down the shafts at him)
     if (!fd.drain && rx > CLIMB.a && rx < CLIMB.b && f % 150 === 75) {
       const sh = SHAFTS.find(s => rx >= s.a && rx < s.b) ?? SHAFTS[0];

@@ -1,6 +1,6 @@
 // Water in the streets (Norway's wave pool, Venice's canals): a stretch of the promenade dug out and filled. He swims in
 // it (the stage's waterBodyAt), climbs out by a step just under the surface at each end; walkers keep out of it (a
-// danger zone along it: hazardHit.ts), knocked in they flounder. Painted crude: the dug-out's walls going back, the
+// danger zone along it: hazardHit.ts), knocked in they drown (drown.ts) and float up. Painted crude: the dug-out's walls going back, the
 // water banded, its surface lit, drawn over whoever's in it (drawFront) so they're in it, not on it.
 
 import type { GameState } from '../../m1/game/core/state';

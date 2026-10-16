@@ -10,6 +10,7 @@
 //             blowing off and up; left behind, a heap of ash on a scorch mark, his smoking shoes and his sunglasses
 //   plugged   (the pistol, on a person), gunned (the pistol, on an animal), ejected (a lowrider's crew, thrown out of it):
 //             see gunDeaths.ts
+//   drowned   (a land enemy in deep water: Meathead 2): flails, goes under, floats up face down, bobs, bursts (drownDeath.ts)
 // The enemy itself is removed; one of these plays in its place.
 
 import { Enemy, EnemyKind, Vector2 } from '../../types';
@@ -19,8 +20,9 @@ import { floorTopAt } from '../core/terrain';
 import { isMidBoss } from '../combat/midBoss';
 import { kindHead, isHumanoidKind } from '../render/enemies/index';
 import { GunDeath, GunMode, startGunDeath, updateGunDeath, updateEjected } from './gunDeaths';
+import { type Drown, updateDrowned } from './drownDeath';
 
-export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot' | 'ceilinged' | 'vaporized' | 'plugged' | 'gunned' | 'ejected';
+export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot' | 'ceilinged' | 'vaporized' | 'plugged' | 'gunned' | 'ejected' | 'drowned';
 
 export interface EnemyDeath {
   kind: EnemyDeathKind;
@@ -45,6 +47,8 @@ export interface EnemyDeath {
   head?: { ox: number; oy: number; r: number; x: number; y: number; vx: number; vy: number; rot: number; landed: boolean; side: boolean };
   /** (plugged, gunned) How the pistol's kill is going. */
   gd?: GunDeath;
+  /** (drowned) The water it went into, and how the drowning's going. */
+  dw?: Drown;
   /** (ejected, and the pancake he becomes) One of a lowrider's crew: his shirt, which way he faces, his tumble. */
   crew?: { shirt: string; facing: 1 | -1; spin: number };
 }
@@ -52,7 +56,7 @@ export interface EnemyDeath {
 export const DEATH_FRAMES: Record<EnemyDeathKind, number> = {
   charred: 95, fried: 85, melted: 110, greased: 160, pancaked: 130, headshot: 170, ceilinged: 600, vaporized: 110,
   // (these end themselves: see gunDeaths.ts)
-  plugged: 600, gunned: 600, ejected: 600,
+  plugged: 600, gunned: 600, ejected: 600, drowned: 600,
 };
 
 /** (vaporized) How long it's held lit up in the beam before it starts going, and how long it takes to go (frames). */
@@ -142,6 +146,7 @@ export const updateEnemyDeaths = (state: GameState) => {
   state.enemyDeaths = state.enemyDeaths.filter(d => {
     if (d.gd && (d.kind === 'plugged' || d.kind === 'gunned')) return updateGunDeath(state, d);
     if (d.kind === 'ejected') return updateEjected(state, d);
+    if (d.kind === 'drowned') return updateDrowned(state, d);
     // Killed down in a pool: up it comes, bubbling, to the surface first
     if (d.floatTo !== undefined && d.y + d.h > d.floatTo) {
       d.y = Math.max(d.floatTo - d.h, d.y - 2.2);

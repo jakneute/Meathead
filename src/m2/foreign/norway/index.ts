@@ -216,7 +216,12 @@ export const norway: ForeignSection = {
     }
     return controls;
   },
-  waterBodyAt: (_state, x, y) => poolAt([POOL], x, y) ?? tollWater(x, y),
+  waterBodyAt: (state, x, y) => {
+    // (the wave machine's swell lifts what's floating in it)
+    const w = poolAt([POOL], x, y);
+    if (w) { w.lift = waveH(state.frame, x); return w; }
+    return tollWater(x, y);
+  },
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame;
     promenade(c, v, x0, POOL.a, '#D6CBB4', '#8C7F68');

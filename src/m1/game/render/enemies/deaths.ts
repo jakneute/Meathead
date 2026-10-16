@@ -12,6 +12,7 @@ import { drawKindCorpse, kindHead, isHumanoidKind, isLyingKind, KIND_HEAD, skele
 import { drawBloodPool } from '../spatter';
 import { drawCrewman } from './tommy';
 import { drawGunDeath, drawEjected } from './gunDeaths';
+import { drawDrowned } from './drownDeath';
 import { isMachineKind } from '../../enemies/kinds';
 
 type Ctx = CanvasRenderingContext2D;
@@ -51,6 +52,7 @@ export const drawEnemyDeaths = (ctx: Ctx, state: GameState) => {
       case 'vaporized': drawVaporized(ctx, d, state.frame, state); break;
       case 'plugged': case 'gunned': drawGunDeath(ctx, d, state, drawBody); break;
       case 'ejected': drawEjected(ctx, d, state, drawBody); break;
+      case 'drowned': drawDrowned(ctx, d, state, drawBody); break;
     }
     ctx.restore();
   }

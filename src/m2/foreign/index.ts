@@ -11,6 +11,7 @@
 // Shared file (see OWNERSHIP.md): section owners may only append minimally, and must re-read it before editing.
 
 import { updateSwimAir, drawAir } from './air';
+import { drownLanders } from '../drown';
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
 import type { Enemy } from '../../m1/types';
@@ -131,6 +132,8 @@ export const foreignLayout: StageLayout = {
     if (isStreet(sec.id)) updateShots(ctx);
     // (in the water anywhere: he swims, and his air goes while he's under)
     updateSwimAir(ctx, (x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null);
+    // (and the cast that end up in it drown: nobody here can swim)
+    drownLanders(ctx, (x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null);
     let out = sec.update ? sec.update(ctx, controls) : controls;
     out = updateGrab(ctx, fs.grab, out);
     if (arriving) out = { ...NO_CONTROLS };

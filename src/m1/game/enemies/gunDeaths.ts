@@ -101,7 +101,7 @@ const MEAT = ['#9F1239', '#7F1D1D', '#BE123C', '#FCA5A5'];
  * Burst: the blood and the flesh (they land as splats), the pop of it, and the meat and bone that bounce and lie there.
  * Thrown up and out (it's come down on something), leaning `dir`; `extra` mixed in for what else it was full of.
  */
-const gibs = (state: GameState, x: number, y: number, dir: number, mult: number, extra?: string[]) => {
+export const gibs = (state: GameState, x: number, y: number, dir: number, mult: number, extra?: string[]) => {
   const n = Math.round(100 * mult);
   for (let i = 0; i < n; i++) {
     const a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.35, sp = rnd(2, 13) * (0.7 + mult * 0.3);

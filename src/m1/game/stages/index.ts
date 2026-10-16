@@ -22,7 +22,7 @@ import { walkOnLayout } from './whiteHouse';
 import { FINALE_STAGE, WALK_ON_STAGE } from '../../constants';
 
 /** A body of water: which one (to tell them apart), how far it runs, and whether it's clean water or muck. */
-export interface WaterBody { key: string; x1: number; x2: number; surface: number; bottom: number; kind: 'clean' | 'muck' }
+export interface WaterBody { key: string; x1: number; x2: number; surface: number; bottom: number; kind: 'clean' | 'muck'; /** How far a wave's lifting the surface at x right now (a wave machine), if any. */ lift?: number }
 
 export interface StageLayout {
   /** The body of water at (x, y), if there's one there (anywhere from just above its surface down). */
