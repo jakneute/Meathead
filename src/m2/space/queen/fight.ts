@@ -202,6 +202,8 @@ export interface Fight {
   leapFrom: number;
   deathT: number; deathSaid: number; byWeakness: boolean;
   e: Enemy | null;
+  /** A retry's entrance beat (frames left): she rears and screeches, a greeting, nothing at him (the user's). */
+  entrance: number;
 }
 export const makeFight = (state: GameState): Fight => {
   const seen = !!state.stageMemo[INTRO_MEMO];
@@ -215,7 +217,7 @@ export const makeFight = (state: GameState): Fight => {
     birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, closeAt: -9999, pool: null,
     dents: 0, pieces: [], splats: [], glitchAt: -9999, stopT: 0, barFrom: HP, barT: 0, blown: false, slow: null, whiteT: 99, lastWords: false,
     drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, barked: new Set(), throwAt: -1, throwHintAt: -9999, eventAt: -99,
-    ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], deathT: 0, deathSaid: 0, byWeakness: false, e: null,
+    ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], deathT: 0, deathSaid: 0, byWeakness: false, e: null, entrance: 0,
   };
 };
 
@@ -295,7 +297,9 @@ export const startFight = (state: GameState, f: Fight) => {
   f.token++;
   setDropTable(KID_DROPS);
   resetKin();
-  if (!f.glass) { begin(state, f); return; }
+  // (a retry: straight in, but a beat for her entrance first: the user's "give a beat for him to make his entrance
+  // before you can take damage")
+  if (!f.glass) { begin(state, f); f.entrance = ENTRANCE_T; playSound('roar', 1, -6); playSound('screams', 0.5, -10); shakeScreen(state, 10, 5); return; }
   f.mode = 'intro'; f.step = 'lights'; f.stepT = 0; f.skipT = 0;
   state.player.inCutscene = true;
   meatheadSays(state, pick(L.MH_DISCO[dressed(state)]), true, tokened(f, () => go(f, 'drop')));
@@ -317,6 +321,8 @@ const begin = (state: GameState, f: Fight) => {
   state.enemies.push(e);
 };
 
+/** A retry's entrance beat (frames). */
+const ENTRANCE_T = 105;
 const go = (f: Fight, s: Step) => { f.step = s; f.stepT = 0; };
 
 const intro = (ctx: FrameContext, f: Fight): Controls => {
@@ -472,6 +478,16 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
     f.throwHintAt = f.total; meatheadSays(state, pick(L.MH_THROW_HINT[dressed(state)]), false);
   }
   if (f.hp <= 0 && f.mode !== 'dead') die(ctx, f);
+  // (her entrance on a retry: reared up, screeching, her greeting; nothing born, leapt, dropped or swung at him)
+  if (f.entrance > 0 && f.mode !== 'dead') {
+    f.entrance--; f.linger = 0; f.ext *= 0.85;
+    f.facing = (pmid(state).x < f.x ? -1 : 1);
+    if (f.entrance === ENTRANCE_T - 12) bark(state, f, L.QUEEN_ENTRANCE);
+    if (f.entrance % 10 === 0) playSound('click', 0.4, -4);
+    tickOil(ctx, f);
+    sync(f);
+    return controls;
+  }
   const ph = phase(f), p = state.player, pm = pmid(state);
   const toward = (pm.x < f.x ? -1 : 1) as 1 | -1;
   if (f.mode !== 'dead' && ++f.tauntT >= TAUNT_EVERY) { f.tauntT = Math.floor(Math.random() * 200); bark(state, f, L.QUEEN_TAUNT); }
@@ -1016,6 +1032,7 @@ const poseOf = (f: Fight): QueenPose => {
   if (f.mode === 'dead') return f.deathT < 140 ? 'stunned' : 'dead';
   if (f.mode === 'intro' || f.mode === 'wait') return f.step === 'drop' ? 'roar' : f.step === 'shake' ? 'hurt' : f.step === 'bonk' ? 'stunned' : f.step === 'mode' || f.step === 'beam' ? 'wake' : 'idle';
   if (f.flash > 0) return 'hurt';
+  if (f.entrance > 0) return 'roar';
   if (f.mode === 'birth') return f.ph === 'push' ? 'birth' : 'idle';
   if (f.mode === 'flail') return f.ph === 'tell' ? 'wake' : 'flail';
   if (f.mode === 'leap') return f.ph === 'crouch' ? 'stalk' : f.ph === 'air' ? 'leap' : 'stalk';
