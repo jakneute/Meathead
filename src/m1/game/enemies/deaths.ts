@@ -11,6 +11,8 @@
 //   plugged   (the pistol, on a person), gunned (the pistol, on an animal), ejected (a lowrider's crew, thrown out of it):
 //             see gunDeaths.ts
 //   drowned   (a land enemy in deep water: Meathead 2): flails, goes under, floats up face down, bobs, bursts (drownDeath.ts)
+//   wallsplatted (killed by a wall: Meathead 2): obliterated into a gooey puddle on the wall, runs of goo oozing down it
+//             to a pool at its foot, meat sliding after them (wallSplatDeath.ts)
 // The enemy itself is removed; one of these plays in its place.
 
 import { Enemy, EnemyKind, Vector2 } from '../../types';
@@ -21,8 +23,9 @@ import { isMidBoss } from '../combat/midBoss';
 import { kindHead, isHumanoidKind } from '../render/enemies/index';
 import { GunDeath, GunMode, startGunDeath, updateGunDeath, updateEjected } from './gunDeaths';
 import { type Drown, updateDrowned } from './drownDeath';
+import { type WallSplat, updateWallSplat, WALLSPLAT_FRAMES } from './wallSplatDeath';
 
-export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot' | 'ceilinged' | 'vaporized' | 'plugged' | 'gunned' | 'ejected' | 'drowned';
+export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot' | 'ceilinged' | 'vaporized' | 'plugged' | 'gunned' | 'ejected' | 'drowned' | 'wallsplatted';
 
 export interface EnemyDeath {
   kind: EnemyDeathKind;
@@ -49,6 +52,8 @@ export interface EnemyDeath {
   gd?: GunDeath;
   /** (drowned) The water it went into, and how the drowning's going. */
   dw?: Drown;
+  /** (wallsplatted) The puddle on the wall, its runs and its meat. */
+  ws?: WallSplat;
   /** (ejected, and the pancake he becomes) One of a lowrider's crew: his shirt, which way he faces, his tumble. */
   crew?: { shirt: string; facing: 1 | -1; spin: number };
 }
@@ -56,7 +61,7 @@ export interface EnemyDeath {
 export const DEATH_FRAMES: Record<EnemyDeathKind, number> = {
   charred: 95, fried: 85, melted: 110, greased: 160, pancaked: 130, headshot: 170, ceilinged: 600, vaporized: 110,
   // (these end themselves: see gunDeaths.ts)
-  plugged: 600, gunned: 600, ejected: 600, drowned: 600,
+  plugged: 600, gunned: 600, ejected: 600, drowned: 600, wallsplatted: WALLSPLAT_FRAMES,
 };
 
 /** (vaporized) How long it's held lit up in the beam before it starts going, and how long it takes to go (frames). */
@@ -147,6 +152,7 @@ export const updateEnemyDeaths = (state: GameState) => {
     if (d.gd && (d.kind === 'plugged' || d.kind === 'gunned')) return updateGunDeath(state, d);
     if (d.kind === 'ejected') return updateEjected(state, d);
     if (d.kind === 'drowned') return updateDrowned(state, d);
+    if (d.kind === 'wallsplatted') return updateWallSplat(state, d);
     // Killed down in a pool: up it comes, bubbling, to the surface first
     if (d.floatTo !== undefined && d.y + d.h > d.floatTo) {
       d.y = Math.max(d.floatTo - d.h, d.y - 2.2);

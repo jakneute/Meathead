@@ -37,7 +37,8 @@ import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
 import { isMidBoss } from '../combat/midBoss';
 import { isBeingTased } from '../combat/statusEffects';
-import { hurtTaken, gritty, shoveSetDistance } from '../core/resist';
+import { hurtTaken, gritty, shoveSetDistance, wallSplatDeath } from '../core/resist';
+import { startWallSplat } from './wallSplatDeath';
 import { inFinale } from '../combat/finaleBuffs';
 import { ROOM_L, ROOM_R } from '../stages/finale/geometry';
 import { noteAnimalKill } from '../player/animalDeaths';
@@ -1232,6 +1233,9 @@ export const impactKill = (ctx: FrameContext, e: Enemy, callout: KillCallout, sp
     if (callout === 'groundsplat') {
       startEnemyDeath(state, e, 'pancaked');
       fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height - 4 }, '#8B0000', 16, 0, 12);
+    } else if (callout === 'wallsplat' && splatDir !== 0 && wallSplatDeath() && !isMidBoss(e)) {
+      // (Meathead 2: nothing left to slide down it; a puddle on it. He's against the wall, on the far side from splatDir)
+      wallSplatOn(ctx, e, splatDir < 0 ? e.pos.x + e.width : e.pos.x, splatDir < 0 ? -1 : 1, false);
     } else if (callout === 'wallsplat') {
       e.isBlownAway = true; e.splatCalled = true; e.vel = { x: 0, y: 1 }; e.rotation = 0;
     }
@@ -1560,6 +1564,24 @@ export const ceilingSplat = (ctx: FrameContext, e: Enemy, ceilY: number, callout
   fx.playGunSound('crunch');
 };
 
+/** Obliterated into a gooey puddle on a wall (Meathead 2's wall kills: see wallSplatDeath.ts): `wx` the wall's face,
+ *  `side` the way out from it into the air. The burst, the callout (unless the caller's given its own), a crunch and a
+ *  shake; the enemy itself is gone. */
+export const wallSplatOn = (ctx: FrameContext, e: Enemy, wx: number, side: 1 | -1, callout = true) => {
+  const { state, fx } = ctx;
+  const at = { x: wx, y: e.pos.y + e.height / 2 };
+  e.health = 0; e.isBlownAway = false; e.vel = { x: 0, y: 0 };
+  fx.spawnDeathShower(at, side, 2.5);
+  fx.spawnExplosion(at, '#8B0000', 22, side * 3, 14);
+  const n = state.enemyDeaths.length;
+  startEnemyDeath(state, e, 'wallsplatted');
+  const d = state.enemyDeaths[n];
+  if (d && d.kind === 'wallsplatted') startWallSplat(state, d, wx, side, at.y);
+  if (callout && !e.splatCalled) { e.splatCalled = true; fx.spawnKillCallout(e, 'wallsplat'); }
+  shakeScreen(state, 12, 8);
+  fx.playGunSound('crunch');
+};
+
 /** A live enemy knocked up into a ceiling: it takes the hit (its weight and how fast it was going up). If that kills it, it's
  * flattened up there; if not, it's on its way back down. True if it's dead. */
 const bonkCeiling = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
@@ -1595,6 +1617,11 @@ const splatBody = (ctx: FrameContext, e: Enemy): boolean => {
     if (wall) {
       const hitSpeed = Math.abs(e.vel.x);
       e.pos.x = e.vel.x > 0 ? wall.x - e.width : wall.x + wall.w;
+      // (Meathead 2: hit hard, he goes to a puddle on it; nothing slides down)
+      if (wallSplatDeath() && hitSpeed > SPLAT_CALLOUT_SPEED && !isMidBoss(e)) {
+        wallSplatOn(ctx, e, e.vel.x > 0 ? wall.x : wall.x + wall.w, e.vel.x > 0 ? -1 : 1);
+        return true;
+      }
       const at = { x: e.vel.x > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 };
       fx.spawnDeathShower(at, -Math.sign(e.vel.x), 2, true, 90);
       fx.spawnExplosion(at, '#8B0000', 14, -Math.sign(e.vel.x) * 3, 10);

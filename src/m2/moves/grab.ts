@@ -1348,7 +1348,8 @@ const airImpact = (ctx: FrameContext, g: Grab, where: 'floor' | 'wall' | 'ceilin
   if (e.health <= 0) {
     if (where === 'wall') { e.vel.x = 0; impactKill(ctx, e, 'wallsplat', -s); fx.speakVulgarity(m2Kill('airgrab_kill')); }
     else if (where === 'ceiling') { e.health = 0; e.vel = { x: 0, y: 0 }; ceilingSplat(ctx, e, e.pos.y); fx.speakVulgarity(m2Kill('airgrab_kill')); }
-    else { fx.blowAwayEnemy(e, { x: away * A.BOUNCE_VX, y: -A.BOUNCE_VY }, m2Kill('airgrab_kill'), away); e.meleeFlung = true; fx.spawnKillCallout(e, grabCallout(how)); }
+    // (the floor: pancaked on it, where he went in)
+    else { e.vel = { x: 0, y: 0 }; impactKill(ctx, e, 'groundsplat', 0); fx.speakVulgarity(m2Kill('airgrab_kill')); }
     p.killSatisfactionTimer = 60;
   } else {
     fx.spawnDamageNumber(e.pos, dmg, true);

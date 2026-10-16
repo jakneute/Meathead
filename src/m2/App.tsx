@@ -6,7 +6,7 @@ import { Prompt } from '../m1/components/ButtonIcons';
 import { GameStatus, WeaponType } from '../m1/types';
 import { setGutBlowout, setGutLines, setGutDeathLines } from '../m1/game/player/gut';
 import { setFootstepVolume } from '../m1/game/player/footsteps';
-import { setHurtScale, setShoveSetDistance } from '../m1/game/core/resist';
+import { setHurtScale, setShoveSetDistance, setWallSplatDeath } from '../m1/game/core/resist';
 import { setDeathMessageDrawer } from '../m1/game/render/world';
 import { drawM2DeathMessage } from './deathText';
 import { installCanvasSafety } from './canvasSafety';
@@ -123,6 +123,7 @@ Object.assign(enemyMeleeDamage, { charge: 14, slide: 14, uppercut: 45, divekick:
 setHurtScale(0.65);
 // (a shield shove: a set distance, and the shoved man can't hurt him by contact meanwhile)
 setShoveSetDistance(true);
+setWallSplatDeath(true);
 setDropTable({ health: 0.06, ammo: 0.05 });
 registerWeapons();
 // (no arc or ellipse with a radius gone below zero ever throws away the rest of a frame)

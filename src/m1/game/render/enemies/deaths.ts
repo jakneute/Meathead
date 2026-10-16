@@ -13,6 +13,7 @@ import { drawBloodPool } from '../spatter';
 import { drawCrewman } from './tommy';
 import { drawGunDeath, drawEjected } from './gunDeaths';
 import { drawDrowned } from './drownDeath';
+import { drawWallSplat } from './wallSplatDeath';
 import { isMachineKind } from '../../enemies/kinds';
 
 type Ctx = CanvasRenderingContext2D;
@@ -53,6 +54,7 @@ export const drawEnemyDeaths = (ctx: Ctx, state: GameState) => {
       case 'plugged': case 'gunned': drawGunDeath(ctx, d, state, drawBody); break;
       case 'ejected': drawEjected(ctx, d, state, drawBody); break;
       case 'drowned': drawDrowned(ctx, d, state, drawBody); break;
+      case 'wallsplatted': drawWallSplat(ctx, d); break;
     }
     ctx.restore();
   }

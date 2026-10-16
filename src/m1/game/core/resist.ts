@@ -19,6 +19,12 @@ let setShove = false;
 export const setShoveSetDistance = (on: boolean) => { setShove = on; };
 export const shoveSetDistance = () => setShove;
 
+/** Killed by a wall, he's obliterated into a gooey puddle on it (Meathead 2: enemies/wallSplatDeath.ts); Meathead 1's
+ *  wall kills slide down the wall as a body, as they always have. */
+let wallSplats = false;
+export const setWallSplatDeath = (on: boolean) => { wallSplats = on; };
+export const wallSplatDeath = () => wallSplats;
+
 /** Armor, fighting-game style, wherever he is (Meathead 2, through a grab): hurt, but not knocked about or out of it. */
 let armored = false;
 /** Who's giving it him (a grab, a weapon's windup): armored while any of them is, so one setting it off every frame
