@@ -36171,6 +36171,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BACK TO MY NATURAL MEATHEAD COLOR.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "BACK TO THE DESERT, MANGY!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -39671,6 +39676,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GREAT. I'M A DIFFERENT COLOR. THAT'S NOT GONNA WASH OUT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "GREAT. NOW IT'S RAINING.",
   "from": "m1/game/stages/hector/beach.ts:110"
  },
@@ -41771,6 +41781,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I LOOK LIKE A SMURF THAT GOT INTO SOMETHING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "I MOVED THE TOWER. I MOVED A WHOLE TOWER.",
   "from": "SPOOKY"
  },
@@ -42173,6 +42188,11 @@
   "voice": "meathead",
   "text": "I'M BEING STEAMED LIKE A FUCKING DUMPLING, VICTOR!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M BLUE NOW. OR YELLOW. WHATEVER THIS VAT WAS.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -44116,6 +44136,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MIXED IT. I LOOK LIKE A FROZEN DRINK.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "MOIST MOTHERFUCKER",
   "from": "VULGARITIES"
  },
@@ -45671,6 +45696,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOW I'M TWO COLORS. I'M A FINGER PAINTING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "NOW JUST A LITTLE FIRE.",
   "from": "m1/game/stages/oscar/bar.ts:217"
  },
@@ -45898,6 +45928,11 @@
   "voice": "meathead",
   "text": "OH, SHE'S UP THERE. GREAT.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH, THAT FIXED IT. DON'T ASK ME HOW.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -50536,6 +50571,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S NOT A COLOR. THAT'S A BRUISE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S NOT A PET. THAT'S A BUILDING.",
   "from": "TOO_BIG_LINES"
  },
@@ -52678,6 +52718,11 @@
   "voice": "meathead",
   "text": "THREE BIG HUMMING BOXES. GOT IT.",
   "from": "m1/game/stages/barry/power.ts:63"
+ },
+ {
+  "voice": "meathead",
+  "text": "THREE COLORS CANCEL OUT. I'M BACK. SCIENCE.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",

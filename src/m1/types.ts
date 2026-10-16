@@ -217,6 +217,10 @@ export interface Player extends Entity {
   spaceSuit?: { before?: Player['gut'] };
   /** Black with soot from a blast (frames left: it wears off). */
   sootTimer?: number;
+  /** Dyed (Meathead 2's tannery vats): a color over all of him for a while, fading back (dyeTimer frames left). */
+  dyeColor?: string; dyeTimer?: number;
+  /** The dyes on him (one, or two mixed). */
+  dyeParts?: string[];
   /** His head's gone (the sniper): frames since. The body stays up on the death screen, and goes over. */
   headless?: number;
   /** Dead, but still drawn through the death screen (tased himself in the water: charred where he floats). */

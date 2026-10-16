@@ -172,6 +172,7 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   const { state } = ctx;
   const { player } = state;
   if (player.sootTimer && player.sootTimer > 0) player.sootTimer--;
+  if (player.dyeTimer && player.dyeTimer > 0) player.dyeTimer--;
   // (a kill's voice, settled: Meathead's quip or the announcer, never both)
   ctx.fx.settleKillVoice();
   if (state.playerStunTimer > 0) state.playerStunTimer--;

@@ -107,4 +107,9 @@ export const HURT: HurtTable = {
   },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.carpet, CARPET], [V.snake, SNAKE], [V.camel, CAMEL], [V.hookah, HOOKAH], [{ m: V.carpet.m, f: V.carpet.m }, STAMPEDE]]);
+/** Out of a dye vat, his new color (the first), mixed with the one he had (the second), and back to normal (a third). */
+export const DYED_LINES = ["I'M BLUE NOW. OR YELLOW. WHATEVER THIS VAT WAS.", "GREAT. I'M A DIFFERENT COLOR. THAT'S NOT GONNA WASH OUT.", 'I LOOK LIKE A SMURF THAT GOT INTO SOMETHING.'];
+export const MIXED_LINES = ["NOW I'M TWO COLORS. I'M A FINGER PAINTING.", "THAT'S NOT A COLOR. THAT'S A BRUISE.", 'MIXED IT. I LOOK LIKE A FROZEN DRINK.'];
+export const UNDYED_LINES = ["THREE COLORS CANCEL OUT. I'M BACK. SCIENCE.", "OH, THAT FIXED IT. DON'T ASK ME HOW.", "BACK TO MY NATURAL MEATHEAD COLOR."];
+
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.carpet, CARPET], [V.snake, SNAKE], [V.camel, CAMEL], [V.hookah, HOOKAH], [{ m: V.carpet.m, f: V.carpet.m }, STAMPEDE]], { meathead: [...DYED_LINES, ...MIXED_LINES, ...UNDYED_LINES] });

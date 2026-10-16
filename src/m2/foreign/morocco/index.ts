@@ -23,7 +23,9 @@ import {
   type Ctx, type View, viewIn, box, mix, poly, at, promenade, boxes3, ledge3, setBack, wall, hole, postBoard, hungBoard, swag, lantern,
   LOOKS, dimmed, hour, ramp6, onScreen, FACADE_D, INK, LIP, timeOfDay,
 } from '../kit';
-import { TALK } from './lines';
+import { TALK, DYED_LINES, MIXED_LINES, UNDYED_LINES } from './lines';
+import { meatheadSays } from '../section';
+import { pickLine } from '../../../m1/game/platform/speech';
 import './kinds';
 import { SOUK_CHECKPOINTS, buildSouk, updateSouk, drawSoukBack, drawSoukFront, soukLamps } from './souk';
 
@@ -47,6 +49,14 @@ const T_CARPETS: [number, number, number][] = [[2000, 2110, 580], [2060, 2170, 4
 /** The tannery's dye vats (dug out: their rims between are the ground), how deep, their dyes; the drying racks over them. */
 const VAT_DEEP = 60;
 const DYES = ['#1E40AF', '#EAB308', '#DC2626', '#16A34A', '#7C2D12'];
+/** How long a dye stays on him (15 s, its last 3 fading). */
+const DYE_FRAMES = 900;
+/** Two dyes mixed like paint: each channel the geometric mean (blue and yellow, olive green; red and yellow, orange). */
+const mixDye = (a: string, b: string) => {
+  const rgb = (h: string) => { const n = parseInt(h.replace('#', ''), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const A = rgb(a), B = rgb(b);
+  return '#' + A.map((v, i) => Math.round(Math.sqrt(v * B[i])).toString(16).padStart(2, '0')).join('');
+};
 const VATS: Pool[] = [[2300, 2420], [2450, 2570], [2600, 2720], [2750, 2870], [2900, 3020]].map(([a, b], i) => ({ key: `vat${i}`, a: X(a), b: X(b), surface: 18, bed: VAT_DEEP, col: DYES[i], wall: '#A8A29E' }));
 const RACKS: [number, number, number][] = [[2400, 2620, 150], [2700, 2920, 150]];
 /** The hookah lounge: cushions, the tent's top; the spice stall. */
@@ -197,7 +207,18 @@ export const morocco: ForeignSection = {
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     const vat = VATS.find(v => cx > v.a + 4 && cx < v.b - 4 && feet > GY + v.surface + 4);
     if (vat && p.health > 0 && !p.inCutscene) {
-      if (p.invincibilityTimer <= 0) { hurtPlayer(ctx, 9, 'm2:fl_dye', { x: 0, y: -12 }, 30); playSound('splash', 0.7, -4); }
+      if (p.invincibilityTimer <= 0) {
+        hurtPlayer(ctx, 9, 'm2:fl_dye', { x: 0, y: -12 }, 30); playSound('splash', 0.7, -4);
+        // (and he comes out that color, a good while, fading back to himself. Like paint: a second color mixes in (red
+        // and blue, purple); one of those two again, and it's just that one; a third color on top of two, and somehow
+        // it's all gone, he's himself again)
+        const parts = p.dyeTimer && p.dyeTimer > 0 ? (p.dyeParts ?? []) : [];
+        const set = (next: string[]) => { p.dyeParts = next; p.dyeColor = next.length === 2 ? mixDye(next[0], next[1]) : next[0]; p.dyeTimer = next.length ? DYE_FRAMES : 0; };
+        if (parts.length === 2 && !parts.includes(vat.col)) { set([]); meatheadSays(state, pickLine(UNDYED_LINES), false); }
+        else if (parts.length === 2) set([vat.col]);
+        else if (parts.length === 1 && parts[0] !== vat.col) { set([parts[0], vat.col]); meatheadSays(state, pickLine(MIXED_LINES), false); }
+        else { if (!parts.length) meatheadSays(state, pickLine(DYED_LINES), false); set([vat.col]); }
+      }
       else if (p.vel.y >= 0) p.vel.y = -11;
     }
     for (const e of hazardVictims(state)) {
