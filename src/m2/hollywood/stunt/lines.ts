@@ -18,6 +18,12 @@ export const PA_LANDING: ByPants = {
   nude: ['A NAKED MAN JUST FELL OUT OF A TORNADO! GIVE IT UP!', 'FOLKS, THAT\'S NOT A COSTUME. THAT\'S ALL HIM.'],
 };
 export const MEATHEAD_LANDED = ['...I MEANT TO DO THAT.', 'STUCK IT. TEN OUT OF TEN.', 'WHERE THE FUCK AM I NOW?'];
+/** A retry (the intro seen): playing to the crowd from his end, a taunt, before the cars come. */
+export const STEVE_ENTRANCE: ByPants = {
+  clean: ["HE'S BACK, FOLKS! LET'S KILL HIM AGAIN!", 'TAKE TWO! THIS TIME, STAY DEAD!', 'RESET THE CARS! WE GOT A RETURNING VICTIM!', "YOU AGAIN? I'M NOT PAYING YOU FOR THIS!"],
+  shitty: ['TAKE TWO! SOMEBODY HOSE OFF THE STUNT DOUBLE!', "HE'S BACK, FOLKS! STILL SHIT HIS PANTS!", 'RETURNING VICTIM! STILL STINKS!'],
+  nude: ['TAKE TWO! WARDROBE! WARDROBE!', "HE'S BACK! STILL NAKED! CUT TO THE CROWD!", "THIS ISN'T THAT KIND OF STUNT SHOW!"],
+};
 export const STEVE_FUMING: ByPants = {
   clean: ['THEY\'RE CLAPPING. FOR HIM.', 'THAT\'S MY APPLAUSE. MINE.'],
   shitty: ['HE SHIT HIMSELF ON THE LANDING AND THEY\'RE CLAPPING?', 'THEY GAVE A STANDING OVATION TO A DIAPER.'],
@@ -195,7 +201,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   death: Object.values(HURT).flatMap(h => h.death),
   [PA_VOICE]: [...pools(PA_LANDING), ...pools(PA_DEATH), ...pools(PA_DEATH_FRIED)],
   [STEVE_VOICE]: [
-    ...pools(STEVE_FUMING), STEVE_SHOWN_UP, ...pools(STEVE_POSSE), ...pools(STEVE_TAUNT), ...pools(STEVE_SEND),
+    ...pools(STEVE_FUMING), ...pools(STEVE_ENTRANCE), STEVE_SHOWN_UP, ...pools(STEVE_POSSE), ...pools(STEVE_TAUNT), ...pools(STEVE_SEND),
     ...pools(STEVE_RAMP), ...pools(STEVE_TOO_CLOSE), ...pools(STEVE_FLAIL), ...pools(STEVE_SLIP), ...pools(STEVE_TOW),
     ...pools(STEVE_HURT), STEVE_CONDUCTIVE, ...pools(STEVE_ZAPPED), ...pools(STEVE_PYRO), ...pools(STEVE_CAR_HIT), ...pools(STEVE_LOW),
     ...pools(STEVE_STUMBLE), ...pools(STEVE_LAST_STUNT), ...pools(STEVE_BACK), ...pools(STEVE_FRIED),

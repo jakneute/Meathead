@@ -121,6 +121,8 @@ export interface Fight extends Garage {
    *  style he's tumbling in), till he's down. */
   fall: { t: number; x0: number; over: number; style: 'flail' | 'ball' } | null;
   death: Death | null; deathSaid: number; cam: KillCam | null;
+  /** A retry's entrance beat (frames left): playing to the crowd, a taunt, no cars, no slaps (the user's). */
+  entrance: number;
 }
 
 /** The fight going on now (the spellbook's hooks look at it). */
@@ -221,18 +223,23 @@ export const startFight = (state: GameState): Fight => {
     e, moveSeen: e.hitByMove, grabWas: 'idle', said: null, paSaid: null, wrongN: 0, hintAt: -9999, lowSaid: false, crowdAt: -99,
     intro: 'land', introT: 0, skipT: 0, camX: camFor(pmid(state).x), replay: 0,
     fall: FLUNG_IN.on ? { t: 0, x0: pmid(state).x, over: 0, style: 'flail' } : null,
-    death: null, deathSaid: 0, cam: null,
+    death: null, deathSaid: 0, cam: null, entrance: 0,
   };
   FLUNG_IN.on = false;
   f.steveBox = () => (f.mode === 'on' ? { x0: f.sx - 24, x1: f.sx + 24, y0: GY - STEVE_H, y1: GY } : null);
   f.onThrownHit = (ctx) => thrownHit(ctx, f);
   f.onCrowd = (ctx, x, what) => crowd(ctx, f, x, what);
   live = f;
-  if (introVisit === landVisit()) { beginFight(state, f); return f; }
+  // (a retry: straight in, but a beat for his entrance first: the user's "give a beat for him to make his entrance
+  // before you can take damage")
+  if (introVisit === landVisit()) { beginFight(state, f); f.entrance = ENTRANCE_T; f.act = 'wave'; f.hype = 1; return f; }
   state.player.inCutscene = true;
   f.replay = 1;
   return f;
 };
+
+/** A retry's entrance beat (frames). */
+const ENTRANCE_T = 105;
 
 /** On: out of the cutscene, Steve in the world, the posse on its way. */
 const beginFight = (state: GameState, f: Fight) => {
@@ -385,6 +392,19 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   takeHits(ctx, f);
   watchGrab(ctx, f);
   if (f.hp <= 0) { die(ctx, f, false); return hands(); }
+  // (his entrance on a retry: waving to the stands, a taunt, the crowd going; no cars sent, no slaps)
+  if (f.entrance > 0) {
+    f.entrance--; f.actT++;
+    if (f.act !== 'wave' && f.act !== 'hurt') { f.act = 'wave'; f.actT = 0; }
+    if (f.act === 'hurt' && f.actT > 14) setAct(f, 'wave');
+    f.facing = pmid(state).x < f.sx ? -1 : 1;
+    if (f.entrance === ENTRANCE_T - 6) { bark(f, L.STEVE_ENTRANCE); crowd(ctx, f, f.sx, 'wow', true); }
+    if (f.entrance === 0) setAct(f, 'idle');
+    updateRamps(state, f, pmid(state).x);
+    updateCars(ctx, f);
+    sync(state, f);
+    return controls;
+  }
   f.hot = phase(f) >= 3;
   steve(ctx, f);
   pyro(ctx, f);
