@@ -54,7 +54,7 @@ registerHurts(HURT);
 
 const CHECKPOINTS = [
   { name: 'HELICOPTER RIDES ACROSS THE WORLD', cp: 110, x: X(CP_PAD), y: GY },
-  ...MECHS.map((id, i) => ({ name: `HELICOPTER: ${MECH_NAME[id].replace(/ \(.*\)$/, '')}`, cp: 111 + i, x: CP_X, y: GY })),
+  ...MECHS.map((id, i) => ({ name: `HELICOPTER: ${MECH_NAME[id].replace(/ \(.*\)$/, '')}`, cp: 111 + i, x: CP_X, y: GY, manual: true })),
 ];
 
 /** Where the helicopter's held during the tour and handed over (screen: his feet). */

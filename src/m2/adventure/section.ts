@@ -37,6 +37,8 @@ export interface Section<Id extends string = SectionId> {
     name: string; cp: number; x: number; y: number;
     /** A boss's (or a sub-boss's) checkpoint: starting again from it, nobody's about this far left and right of it. */
     clear?: [number, number];
+    /** Only ever set by the section's own code (the helicopter's landmarks), never by walking past its x. */
+    manual?: boolean;
   }[];
   /** Puts its ground, its walls, its enemies and its set pieces into the world (all at once, at the start). */
   build: (state: GameState) => void;

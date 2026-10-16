@@ -120,7 +120,9 @@ export const foreignLayout: StageLayout = {
     // follows him, whichever pavilion it is)
     const want = Math.max(lim.min, Math.min(lim.max, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2));
     if (fs.lastSec !== sec.id) { if (!fs.lastSec || !(isStreet(sec.id) && isStreet(fs.lastSec as ForeignId)) || Math.abs(want - state.camera.x) > CANVAS_WIDTH) state.camera.x = want; fs.lastSec = sec.id; }
-    for (const c of sec.checkpoints) if (c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
+    // (a section's manual ones (the helicopter's landmarks, all at the one x) only ever by its own code: walked past,
+    // standing there on a respawn at the second fired them all and started him at the last)
+    for (const c of sec.checkpoints) if (!c.manual && c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
     setUi({ near: null, map: null, nearExit: false, upPrompt: null, holdUpPrompt: null, holdDownPrompt: null });
     const arriving = !!fs.arrive && tickPortalArrival(state, fs.arrive, sec.cameraRow?.(state) ?? 550);
     if (fs.arrive && !arriving) fs.arrive = undefined;
