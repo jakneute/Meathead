@@ -26,6 +26,44 @@ let shown: Shown | null = null;
 
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
+/**
+ * One run of it, gooey: a smear spread wide along the letter's foot where it comes out, thick at the top and thinning
+ * as it goes, its sides wobbling like it can't decide, swelling again into the bead hanging off the end (a teardrop
+ * that stretches as it fills). Shaded in steps: a dark edge, the red, a lighter core off to one side, a wet glint.
+ */
+const goo = (ctx: Ctx, cx: number, top: number, L: number, w: number, br: number, hang: number, seed: number, t: number) => {
+  const end = top + L, bead = end + br * hang * 0.5;
+  /** The half width down it (y from the top). */
+  const half = (y: number) => {
+    const k = y / Math.max(1, L);
+    const lip = w * 1.5 * Math.exp(-y / 3);
+    const body = (w / 2) * (1.35 - 0.55 * k) + Math.sin(y * 0.45 + seed) * 0.45 + Math.sin(y * 0.17 + seed * 2 + t * 0.03) * 0.35;
+    // (the neck into the bead: pulled thin as it hangs)
+    const neck = y > L - br * 2 ? (w / 2) * (1 - hang * 0.45) : Infinity;
+    return Math.max(0.6, Math.min(body, neck) + lip);
+  };
+  const outline = (grow: number, shift: number, scale: number) => {
+    ctx.beginPath();
+    const pts: [number, number][] = [];
+    for (let y = 0; y <= L; y += 2) pts.push([cx + shift - (half(y) * scale + grow), top + y]);
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (const [x, y] of pts) ctx.lineTo(x, y);
+    // (round the bead)
+    const r = br * scale + grow;
+    ctx.arc(cx + shift, bead, r, Math.PI, 0, true);
+    for (let y = L; y >= 0; y -= 2) ctx.lineTo(cx + shift + half(y) * scale + grow, top + y);
+    ctx.closePath();
+    ctx.fill();
+  };
+  ctx.fillStyle = BLOOD[0]; outline(1, 0, 1);
+  ctx.fillStyle = BLOOD[2]; outline(0, 0, 1);
+  ctx.fillStyle = BLOOD[3]; outline(0, -0.4, 0.55);
+  // (the wet glint: down the core, and on the bead)
+  ctx.fillStyle = BLOOD[5];
+  for (let y = 2; y < L - 2; y += 1) if (Math.sin(y * 0.3 + seed) > 0.2) ctx.fillRect(Math.round(cx - half(y) * 0.35), Math.round(top + y), 1, 1);
+  ctx.fillRect(Math.round(cx - br * 0.45), Math.round(bead - br * 0.4), 1, 2);
+};
+
 /** The lines and the size, as Meathead 1 fits them (one line shrunk to fit; too small, wrapped). */
 const layout = (ctx: Ctx, text: string) => {
   const maxW = CANVAS_WIDTH - 80;
@@ -98,27 +136,30 @@ export const drawM2DeathMessage = (ctx: Ctx, state: GameState, text: string) => 
     if (step && r.len < r.max) r.len = Math.min(r.max, r.len + r.speed * (1 - (r.len / r.max) * 0.85));
     const L = Math.round(r.len);
     if (L <= 0) continue;
-    const top = r.y;
-    ctx.fillStyle = BLOOD[0]; ctx.fillRect(r.x - 1, top, r.w + 2, L);
-    ctx.fillStyle = BLOOD[2]; ctx.fillRect(r.x, top, r.w, L);
-    ctx.fillStyle = BLOOD[3]; ctx.fillRect(r.x, top, Math.max(1, r.w - 1), L);
-    ctx.fillStyle = BLOOD[5]; ctx.fillRect(r.x, top + 1, 1, Math.max(0, L - 3));
-    // (the bead on the end, swelling as it goes; it lets go now and then, and a new one starts)
-    const swell = Math.min(1, r.len / 10), br = r.w * 0.6 + 1.2 * swell + (r.len >= r.max ? Math.min(1.5, ((t - r.start) % r.dropEvery) / r.dropEvery * 2) : 0);
-    const by = top + L;
-    ctx.fillStyle = BLOOD[0]; ctx.beginPath(); ctx.arc(r.x + r.w / 2, by, br + 1, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = BLOOD[3]; ctx.beginPath(); ctx.arc(r.x + r.w / 2, by, br, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = BLOOD[5]; ctx.fillRect(Math.round(r.x + r.w / 2 - br * 0.5), Math.round(by - br * 0.5), 1, 1);
-    if (step && r.len >= r.max && (t - r.start) % r.dropEvery === r.dropEvery - 1) S.drops.push({ x: r.x + r.w / 2, y: by, vy: 1, r: Math.max(1.5, br) });
+    // (the bead on the end, swelling as it goes; hanging there, it fills and stretches till it lets go)
+    const hang = r.len >= r.max ? ((t - r.start) % r.dropEvery) / r.dropEvery : 0;
+    const br = r.w * 0.55 + 1.3 * Math.min(1, r.len / 10) + hang * 1.6;
+    goo(ctx, r.x + r.w / 2, r.y, L, r.w, br, hang, r.x * 0.37 + r.y, t);
+    if (step && r.len >= r.max && (t - r.start) % r.dropEvery === r.dropEvery - 1) S.drops.push({ x: r.x + r.w / 2, y: r.y + L + br * (1 + hang * 0.5), vy: 1, r: Math.max(1.5, br) });
   }
   // The drops, falling the rest of the way down the screen
   if (step) for (const d of S.drops) { d.vy = Math.min(9, d.vy + 0.35); d.y += d.vy; }
   S.drops = S.drops.filter(d => d.y < CANVAS_HEIGHT + 10);
   for (const d of S.drops) {
-    const tail = Math.min(10, d.vy * 1.4);
-    ctx.fillStyle = BLOOD[2]; ctx.fillRect(Math.round(d.x - 0.5), Math.round(d.y - tail), 1, Math.round(tail));
-    ctx.fillStyle = BLOOD[0]; ctx.beginPath(); ctx.arc(d.x, d.y, d.r + 0.8, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = BLOOD[3]; ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
+    // (a teardrop, drawn out longer the faster it falls)
+    const tail = d.r * (1.6 + Math.min(2.5, d.vy * 0.35));
+    const tear = (r: number, tl: number) => {
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y - tl);
+      ctx.bezierCurveTo(d.x + r * 0.35, d.y - tl * 0.45, d.x + r, d.y - r * 0.4, d.x + r, d.y);
+      ctx.arc(d.x, d.y, r, 0, Math.PI);
+      ctx.bezierCurveTo(d.x - r, d.y - r * 0.4, d.x - r * 0.35, d.y - tl * 0.45, d.x, d.y - tl);
+      ctx.fill();
+    };
+    ctx.fillStyle = BLOOD[0]; tear(d.r + 1, tail + 1.5);
+    ctx.fillStyle = BLOOD[2]; tear(d.r, tail);
+    ctx.fillStyle = BLOOD[3]; ctx.beginPath(); ctx.ellipse(d.x - d.r * 0.2, d.y + d.r * 0.1, d.r * 0.6, d.r * 0.7, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = BLOOD[5]; ctx.fillRect(Math.round(d.x - d.r * 0.5), Math.round(d.y - d.r * 0.4), 1, 2);
   }
 
   // The letters: each drops in and lands with a squash; then a shudder through one now and then
