@@ -115,6 +115,8 @@ m2/hollywood/havoc/index.ts:57 voice: line
 m2/hollywood/stunt/fight.ts:181 voice: text
 m2/hollywood/stunt/fight.ts:188 voice: voice(L.STEVE_VOICE)
 m2/hollywood/stunt/fight.ts:196 voice: pick(lines[pants()])
+m2/foreign/state.ts:42 voice: line
+m2/foreign/state.ts:50 voice: false
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice
 m1/game/bosses/alien.ts:90 voice: text
