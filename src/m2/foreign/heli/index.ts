@@ -12,7 +12,7 @@
 //     (legs, googly eyes). No cut: the tour becomes the shooter.
 //   THE GAUNTLET (his: copter.ts the flying, mechs.ts the nine landmarks, goons.ts the lackeys between them, globe.ts
 //     the world going round): checkpoints 111-119, one per landmark (starting again at one: the globe round to it, the
-//     wrecks before it on the globe, straight into it). A refill before the last.
+//     wrecks before it on the globe, straight into it). A big health + ammo after every one.
 //   THE END (a cutscene): Harry, furious, shoots him out of the sky with a rocket launcher; the fall; the white; Harry's
 //     arena (DOORS.harry.start: job 5's).
 //
@@ -119,14 +119,14 @@ const handOver = (state: GameState, h: Heli) => {
 const beginTransit = (state: GameState, h: Heli, i: number) => {
   h.transit = true; h.transitFrom = h.prog; h.transitT = 0; h.cur = i;
   h.waves = [...WAVES[i]]; h.waveAt = state.frame + 90;
-  // (the big refill before the last one: floating out in front)
-  if (i === MECHS.length - 1 && !h.refill) {
-    h.refill = true;
-    state.pickups.push(
-      { id: 'hl-sky-health', pos: { x: CAMX + 520, y: CY + 230 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
-      { id: 'hl-sky-ammo', pos: { x: CAMX + 520, y: CY + 340 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 },
-    );
-  }
+};
+
+/** A big health and a big ammo floated out after every landmark (the user's), in front of him. */
+const refillAfter = (state: GameState, i: number) => {
+  state.pickups.push(
+    { id: `hl-sky-health-${i}`, pos: { x: CAMX + 520, y: CY + 230 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
+    { id: `hl-sky-ammo-${i}`, pos: { x: CAMX + 520, y: CY + 340 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 },
+  );
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -310,6 +310,7 @@ const flyUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => 
   } else if (mechDone(state)) {
     state.stageMemo[MEMO.wrecks] = String(h.cur + 1);
     if (h.cur >= MECHS.length - 1) { endBegin(state, h); return hands(); }
+    refillAfter(state, h.cur);
     beginTransit(state, h, h.cur + 1);
   }
   // Harry hovering over it all, swearing

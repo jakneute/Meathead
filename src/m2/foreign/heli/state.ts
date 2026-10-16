@@ -86,8 +86,6 @@ export interface Heli {
   hrocket: { x: number; y: number } | null; fall: number; white: number;
   /** The controls card (frames left). */
   tips: number;
-  /** The refill before the last landmark's out. */
-  refill: boolean;
   /** Back here after it's all over (a revisit): the pad's empty. */
   over: boolean;
 }
@@ -98,5 +96,5 @@ export const heliOf = (state: GameState) => foreignState<Heli>(state, 'heli', ()
   waves: [], waveAt: 0, transit: false, transitFrom: 0, transitT: 0, goons: [], shots: new Map(), beams: [], drops: [], minions: [],
   harry: null, harryBusy: false, mech: null, guest: null, goonSaid: null, guestAt: -9999, heckleAt: 0, goonBarkAt: -9999, gloatAt: -9999, lastHp: -1,
   hx: 0, hy: 0, hvx: 0, hvy: 0, hpose: 'wave', turned: false, step: 0, flags: {}, cam: false, camX: 0, camY: 0,
-  hrocket: null, fall: 0, white: 0, tips: 0, refill: false, over: false,
+  hrocket: null, fall: 0, white: 0, tips: 0, over: false,
 }));
