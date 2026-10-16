@@ -282,8 +282,9 @@ export const startFight = (state: GameState): Fight => {
     beat: null, beatOn: false, beatEnd: -9999, beatsDone: new Set(), guestKills: 0,
   };
   live = f;
-  // (a retry: he's up and waiting already, powered, no cutscene)
-  if (introSeen) { f.x = ARENA_MID + 140; f.y = GY - HOVER_UP; beginFight(state, f); return f; }
+  // (a retry: he's up and waiting already, powered, no cutscene; a beat for his entrance first (a loop and a taunt,
+  // nothing at him): the user's "give a beat for him to make his entrance before you can take damage")
+  if (introSeen) { f.x = ARENA_MID + 140; f.y = GY - HOVER_UP; beginFight(state, f, true); return f; }
   state.player.inCutscene = true;
   line(f, 'donnie', L.DONNIE_PLEAD, () => { f.intro = 'open'; f.introT = 0; });
   return f;
@@ -329,7 +330,7 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
 };
 
 /** On: out of the cutscene, into the air, the circle shut. */
-const beginFight = (state: GameState, f: Fight) => {
+const beginFight = (state: GameState, f: Fight, retry = false) => {
   token++; introSeen = true;
   f.said = null; f.satanSaid = null;
   f.powered = true; f.circle = 0;
@@ -337,8 +338,9 @@ const beginFight = (state: GameState, f: Fight) => {
   to(f, 'hover'); f.nagT = NAG_EVERY - 300; f.tauntT = 0; f.guestT = 0;
   state.player.inCutscene = false;
   // (and straight away, smitten with himself: a loop-the-loop and a gush about it)
+  // (a retry's entrance: the same loop, nothing at him through it, his taunt for coming back)
   f.admireT = ADMIRE_T; playSound('whoosh', 0.8, 6);
-  line(f, 'donnie', L.DONNIE_ENAMORED);
+  line(f, 'donnie', retry ? L.DONNIE_ENTRANCE : L.DONNIE_ENAMORED);
   state.enemies.push(f.e);
 };
 
