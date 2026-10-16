@@ -20,7 +20,7 @@ import { topBand } from '../../../m1/constants';
 import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
-import { x0, x1, ARENA_L, ARENA_R, CEIL_Y, CAM_ROW, REFILL_X } from './arena';
+import { x0, x1, ARENA_L, ARENA_R, CEIL_Y, CAM_ROW } from './arena';
 import { drawStuntBackdrop, drawStage, drawCrowd } from './art';
 import {
   type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud,
@@ -50,7 +50,7 @@ export const stunt: HollywoodSection = {
     // (the far end's stacked tires: always there; nothing past them but the bleachers)
     state.blocks.push({ x: ARENA_R, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'stunt-end' } as Block);
     // (the big health and ammo, by the way in: before it starts, and on every retry)
-    if (!isLandCleared('hollywood')) for (const [dx, type] of [[-16, 'large_health'], [16, 'large_ammo']] as const) state.pickups.push({ id: `stunt-${type}`, pos: { x: REFILL_X + dx - 10, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
+    // (no pickups on the stage: the refill's in the havoc's CUTSCENE TRIGGER ZONE, on the way in)
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = stuntOf(state);

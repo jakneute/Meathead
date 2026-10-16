@@ -228,7 +228,9 @@ export const PICKUPS: [number, number | null, 'small_health' | 'small_ammo' | 'l
   // (in the bunkers: something for getting in)
   [11240, null, 'small_health'], [13740, null, 'small_ammo'], [17000, null, 'small_health'],
   // the first aid station, before Steve's stage
-  [REFILL - 30, null, 'large_health'], [REFILL + 30, null, 'large_ammo'],
+  // (the big health and ammo before Steve's stage: in the CUTSCENE TRIGGER ZONE, at its mouth (the only refill for the
+  // fight: none on the stage itself))
+  [ZONE.a + 50, null, 'large_health'], [ZONE.a + 100, null, 'large_ammo'],
 ];
 
 /** PA horns (on poles): rx. Steve's fliers, posters, standees: [rx, kind]. */
