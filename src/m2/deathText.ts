@@ -1,0 +1,157 @@
+// The death message, Meathead 2's way (the way VICTORY got its stamp, victory.ts): not Meathead 1's flat red words.
+// The letters drop in one after another and land with a squash, then sit there not quite still (a shudder through
+// one now and then, a slow throb in the red), in banded blood red with a black edge. And they bleed: runs creep down
+// off the bottoms of the letters, slowing as they go, a bead swelling on the end of each; now and then one lets go and
+// a drop falls the rest of the way down the screen.
+//
+// Screen space. Drawn in place of Meathead 1's message (setDeathMessageDrawer, App.tsx); it keeps its own clock off
+// the frame the message first shows, so it starts over for every death.
+
+import type { GameState } from '../m1/game/core/state';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../m1/constants';
+
+type Ctx = CanvasRenderingContext2D;
+const FONT = '"Press Start 2P"';
+
+/** Frames between letters dropping in; each one's drop; when the bleeding starts (after its letter's landed). */
+const GAP = 2, DROP = 10, BLEED_AFTER = 8;
+/** The blood, in steps: its darkest edge up to the wet glint. */
+const BLOOD = ['#2A0404', '#5A0A0A', '#8B1010', '#B91C1C', '#DC2626', '#F87171'];
+
+interface Run { x: number; y: number; w: number; max: number; speed: number; start: number; len: number; dropEvery: number; nextDrop: number }
+interface Drop { x: number; y: number; vy: number; r: number }
+interface Glyph { ch: string; x: number; y: number; w: number; i: number }
+interface Shown { text: string; at: number; last: number; size: number; glyphs: Glyph[]; runs: Run[]; drops: Drop[] }
+let shown: Shown | null = null;
+
+const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+/** The lines and the size, as Meathead 1 fits them (one line shrunk to fit; too small, wrapped). */
+const layout = (ctx: Ctx, text: string) => {
+  const maxW = CANVAS_WIDTH - 80;
+  let size = 48;
+  ctx.font = `bold ${size}px ${FONT}`;
+  const w = ctx.measureText(text).width;
+  if (w > maxW) size = Math.floor(size * (maxW / w));
+  if (size >= 22) return { lines: [text], size };
+  const lines: string[] = [];
+  let cur = '';
+  ctx.font = `bold 30px ${FONT}`;
+  for (const word of text.split(' ')) {
+    const t = cur ? `${cur} ${word}` : word;
+    if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = word; } else cur = t;
+  }
+  if (cur) lines.push(cur);
+  size = 30;
+  for (const l of lines) { ctx.font = `bold ${size}px ${FONT}`; const lw = ctx.measureText(l).width; if (lw > maxW) size = Math.floor(size * (maxW / lw)); }
+  return { lines, size: Math.max(16, size) };
+};
+
+const begin = (ctx: Ctx, text: string, frame: number): Shown => {
+  const { lines, size } = layout(ctx, text);
+  ctx.font = `bold ${size}px ${FONT}`;
+  const lh = size * 1.6, y0 = CANVAS_HEIGHT / 2 - ((lines.length - 1) * lh) / 2 - size * 0.25;
+  const glyphs: Glyph[] = [], runs: Run[] = [];
+  let i = 0;
+  lines.forEach((line, li) => {
+    const lw = ctx.measureText(line).width;
+    let x = CANVAS_WIDTH / 2 - lw / 2;
+    const base = y0 + li * lh + size / 2;
+    for (const ch of line) {
+      const cw = ctx.measureText(ch).width;
+      if (ch !== ' ') {
+        glyphs.push({ ch, x, y: base, w: cw, i });
+        // (a run or two off the bottom of most letters, some long, most short; the last line's run furthest)
+        const n = hash(i * 3.3) < 0.25 ? 0 : hash(i * 7.1) < 0.35 ? 2 : 1;
+        for (let k = 0; k < n; k++) {
+          const s = i * 11 + k * 5;
+          const long = li === lines.length - 1 ? 1.6 : 0.8;
+          runs.push({
+            x: Math.round(x + cw * (0.2 + hash(s) * 0.6)), y: base - 1, w: hash(s + 1) < 0.4 ? 3 : 2,
+            max: (8 + hash(s + 2) * size * 1.4) * long, speed: 0.35 + hash(s + 3) * 0.5,
+            start: i * GAP + DROP + BLEED_AFTER + Math.floor(hash(s + 4) * 50), len: 0,
+            dropEvery: 60 + Math.floor(hash(s + 5) * 120), nextDrop: 0,
+          });
+        }
+      }
+      x += cw; i++;
+    }
+  });
+  return { text, at: frame, last: frame, size, glyphs, runs, drops: [] };
+};
+
+export const drawM2DeathMessage = (ctx: Ctx, state: GameState, text: string) => {
+  const frame = state.frame;
+  // (a new death, or the clock gone back (a new stage): from the top)
+  if (!shown || shown.text !== text || frame < shown.last || frame - shown.last > 30) shown = begin(ctx, text, frame);
+  const S = shown;
+  const t = frame - S.at, step = frame !== S.last;
+  S.last = frame;
+  const size = S.size;
+  ctx.save();
+  ctx.font = `bold ${size}px ${FONT}`;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+
+  // The runs, under the letters (they come out from under them)
+  for (const r of S.runs) {
+    if (t < r.start) continue;
+    if (step && r.len < r.max) r.len = Math.min(r.max, r.len + r.speed * (1 - (r.len / r.max) * 0.85));
+    const L = Math.round(r.len);
+    if (L <= 0) continue;
+    const top = r.y;
+    ctx.fillStyle = BLOOD[0]; ctx.fillRect(r.x - 1, top, r.w + 2, L);
+    ctx.fillStyle = BLOOD[2]; ctx.fillRect(r.x, top, r.w, L);
+    ctx.fillStyle = BLOOD[3]; ctx.fillRect(r.x, top, Math.max(1, r.w - 1), L);
+    ctx.fillStyle = BLOOD[5]; ctx.fillRect(r.x, top + 1, 1, Math.max(0, L - 3));
+    // (the bead on the end, swelling as it goes; it lets go now and then, and a new one starts)
+    const swell = Math.min(1, r.len / 10), br = r.w * 0.6 + 1.2 * swell + (r.len >= r.max ? Math.min(1.5, ((t - r.start) % r.dropEvery) / r.dropEvery * 2) : 0);
+    const by = top + L;
+    ctx.fillStyle = BLOOD[0]; ctx.beginPath(); ctx.arc(r.x + r.w / 2, by, br + 1, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = BLOOD[3]; ctx.beginPath(); ctx.arc(r.x + r.w / 2, by, br, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = BLOOD[5]; ctx.fillRect(Math.round(r.x + r.w / 2 - br * 0.5), Math.round(by - br * 0.5), 1, 1);
+    if (step && r.len >= r.max && (t - r.start) % r.dropEvery === r.dropEvery - 1) S.drops.push({ x: r.x + r.w / 2, y: by, vy: 1, r: Math.max(1.5, br) });
+  }
+  // The drops, falling the rest of the way down the screen
+  if (step) for (const d of S.drops) { d.vy = Math.min(9, d.vy + 0.35); d.y += d.vy; }
+  S.drops = S.drops.filter(d => d.y < CANVAS_HEIGHT + 10);
+  for (const d of S.drops) {
+    const tail = Math.min(10, d.vy * 1.4);
+    ctx.fillStyle = BLOOD[2]; ctx.fillRect(Math.round(d.x - 0.5), Math.round(d.y - tail), 1, Math.round(tail));
+    ctx.fillStyle = BLOOD[0]; ctx.beginPath(); ctx.arc(d.x, d.y, d.r + 0.8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = BLOOD[3]; ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // The letters: each drops in and lands with a squash; then a shudder through one now and then
+  const throb = 0.5 + 0.5 * Math.sin(t * 0.06);
+  for (const g of S.glyphs) {
+    const lt = t - g.i * GAP;
+    if (lt < 0) continue;
+    let dy = 0, sx = 1, sy = 1;
+    if (lt < DROP) { const k = lt / DROP; dy = -(1 - k) * (1 - k) * size * 1.6; sy = 1.15; sx = 0.9; }
+    else if (lt < DROP + 6) { const k = (lt - DROP) / 6; sy = 0.75 + 0.25 * k; sx = 1.18 - 0.18 * k; }
+    // (the shudder: a letter at a time, a pixel or two, a few frames)
+    const shake = (Math.floor(t / 4) + g.i * 13) % 97 < 3 ? (hash(t + g.i) - 0.5) * 3 : 0;
+    const cx = g.x + g.w / 2 + shake, cy = g.y + dy;
+    ctx.save();
+    ctx.translate(Math.round(cx), Math.round(cy + size / 2));
+    ctx.scale(sx, sy);
+    ctx.translate(0, -size / 2);
+    // (the edge: black, thick, a drop shadow under it)
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#000000'; ctx.lineWidth = Math.max(4, Math.round(size / 5));
+    ctx.strokeText(g.ch, -g.w / 2 + 2, 3);
+    ctx.strokeStyle = BLOOD[0]; ctx.lineWidth = Math.max(3, Math.round(size / 6));
+    ctx.strokeText(g.ch, -g.w / 2, 0);
+    // (the red in bands, light at the top down to dark, a hot glint along the top that throbs)
+    const grad = ctx.createLinearGradient(0, -size / 2, 0, size / 2);
+    const hi = throb > 0.5 ? BLOOD[5] : BLOOD[4];
+    grad.addColorStop(0, hi); grad.addColorStop(0.16, hi);
+    grad.addColorStop(0.16, BLOOD[4]); grad.addColorStop(0.42, BLOOD[4]);
+    grad.addColorStop(0.42, BLOOD[3]); grad.addColorStop(0.7, BLOOD[3]);
+    grad.addColorStop(0.7, BLOOD[2]); grad.addColorStop(1, BLOOD[2]);
+    ctx.fillStyle = grad;
+    ctx.fillText(g.ch, -g.w / 2, 0);
+    ctx.restore();
+  }
+  ctx.restore();
+};

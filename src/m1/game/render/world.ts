@@ -227,7 +227,7 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
   drawEyeFallCam(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT);
   drawAnimalDeathScreen(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT, view.currentWeapon);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
-  else if (state.deathTimer > 0 && state.deathString && state.deathFreeze === undefined && !(state.deathScene && state.deathScene.t < state.deathScene.len)) drawDeathMessage(ctx, state.deathString);
+  else if (state.deathTimer > 0 && state.deathString && state.deathFreeze === undefined && !(state.deathScene && state.deathScene.t < state.deathScene.len)) { if (deathDrawer) deathDrawer(ctx, state, state.deathString); else drawDeathMessage(ctx, state.deathString); }
   if (state.deathTimer > 0 ? state.deathFrames > SKIP_AFTER : state.dyingSkipAt !== undefined && state.frame - state.dyingSkipAt >= 0 && state.frame - state.dyingSkipAt <= 1) drawSkipPrompt(ctx, CANVAS_WIDTH);
   // Skyfall intro: coming down out of the clouds the deploy transition dove into
   // (not on a stage that starts him on his feet: those have their own way in)
@@ -1578,6 +1578,10 @@ const drawVictoryText = (ctx: CanvasRenderingContext2D, text: string) => {
   ctx.fillText(text, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
   ctx.restore();
 };
+
+/** A game's own death message in place of this one (Meathead 2's bleeding letters), or null for this. */
+let deathDrawer: ((ctx: CanvasRenderingContext2D, state: GameState, text: string) => void) | null = null;
+export const setDeathMessageDrawer = (fn: typeof deathDrawer) => { deathDrawer = fn; };
 
 /** Big red death message, shrunk or word-wrapped to fit the screen. */
 const drawDeathMessage = (ctx: CanvasRenderingContext2D, deathString: string) => {

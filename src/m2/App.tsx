@@ -7,6 +7,8 @@ import { GameStatus, WeaponType } from '../m1/types';
 import { setGutBlowout, setGutLines, setGutDeathLines } from '../m1/game/player/gut';
 import { setFootstepVolume } from '../m1/game/player/footsteps';
 import { setHurtScale } from '../m1/game/core/resist';
+import { setDeathMessageDrawer } from '../m1/game/render/world';
+import { drawM2DeathMessage } from './deathText';
 import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
 import { createFullAmmo, maxAmmo, INITIAL_PLAYER_HEALTH, enemyMeleeDamage, WHEEL_COOLDOWN_MS } from '../m1/constants';
@@ -116,6 +118,8 @@ Object.assign(enemyMeleeDamage, { charge: 14, slide: 14, uppercut: 45, divekick:
 setHurtScale(0.65);
 setDropTable({ health: 0.06, ammo: 0.05 });
 registerWeapons();
+// (the death message: the letters drop in, and bleed)
+setDeathMessageDrawer(drawM2DeathMessage);
 
 /** What he can pick from: what he's got this playthrough, or every weapon (the cheat): cheats.ts. */
 const arsenal = availableWeapons;
