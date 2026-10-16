@@ -34,7 +34,17 @@ export const TALK: PavilionTalk = {
     { from: 1100, to: 1650, key: 'logs', lines: ["LOGS IN A POND. THAT'S A WHOLE ATTRACTION?", 'LOG ROLLING. IT IS WHAT IT SOUNDS LIKE.'] },
     { from: 1900, to: 2300, key: 'falls', lines: ['THE WATERFALL IS A PIPE. I CAN SEE THE PIPE.', "THE LOG RIDE'S DUMPING LOGS DOWN THE FALLS. ON PURPOSE?"], minH: 250 },
     { from: 2300, to: 2950, key: 'rink', lines: ['A HOCKEY RINK ON A MOUNTAIN. SURE.', 'THESE GUYS SAY SORRY AND THEN SLAPSHOT YOU IN THE NUTS.'], minH: 800 },
+    // (job 4b: the frozen pond, the toboggan hill)
+    { from: 3650, to: 4100, key: 'pond', lines: ["A FROZEN POND. IN FLORIDA. IT'S A FREEZER WITH A LID.", "THE DARK ICE IS THIN. THE SIGN DOESN'T SAY KEEP OFF. IT SAYS SORRY."] },
+    { from: 4560, to: 5020, key: 'hill', lines: ['TOBOGGANS: SOLD OUT. THE HILL IS STILL HERE. GREAT.', "SYRUP'S FORTY BUCKS. I'LL DRINK IT OUT OF THE TREE."], minH: 300 },
   ],
+};
+
+/** A hockey player as the ice cracks under him (the hockey voice): sorry, too late. */
+export const THIN_ICE: ByPants = {
+  clean: ["SORRY! THAT ICE IS THIN! I SHOULD'VE SAID!", 'OH, BUD, NOT THAT PART! SORRY!', "THAT'S THE THIN BIT! SORRY! IT'S MARKED! KIND OF!"],
+  shitty: ["SORRY! THE ICE CAN'T TAKE THAT KIND OF WEIGHT, EH!", "OH NO! IF IT BREAKS IT'S GOING IN THE POND! SORRY!"],
+  nude: ["SORRY! YOU'RE GONNA GO IN NAKED! THAT'S SO COLD! SORRY!", "THIN ICE, BUD! AND THIN PANTS! NO PANTS! SORRY!"],
 };
 
 export const LUMBERJACK: ByPants = {
@@ -89,8 +99,12 @@ export const HURT: HurtTable = {
     hurt: ['A LOG! A LOG CAME DOWN THE WATERFALL!', 'OW! THE LOG RIDE THREW A LOG AT ME!', 'LOG! LOG! LOG!'],
     death: ['FLATTENED BY A LOG', 'LOGGED'],
   },
+  'm2:fl_thin_ice': {
+    hurt: ['COLD! COLD! COLD! MY BALLS!', 'THROUGH THE ICE! THEY SAID SORRY!', "IT'S FREEZING! IN FLORIDA!"],
+    death: ['WENT THROUGH THE ICE', 'FROZEN SOLID, SORRY'],
+  },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.lumberjack, LUMBERJACK], [V.mountie, MOUNTIE], [V.hockey, HOCKEY], [V.moose, MOOSE]], Object.fromEntries(
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.lumberjack, LUMBERJACK], [V.mountie, MOUNTIE], [V.hockey, HOCKEY], [V.moose, MOOSE], [{ m: V.hockey.m, f: V.hockey.m }, THIN_ICE]], Object.fromEntries(
   [V.lumberjack, V.mountie, V.hockey, V.moose].flatMap(v => [[v.m, SORRY], [v.f, SORRY]]),
 ));

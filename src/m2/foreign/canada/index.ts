@@ -6,7 +6,8 @@
 // ride runs along the clifftop and its logs go over the falls (they slide along the trough first: the tell), down the
 // falls onto whoever's crossing (him, the cast). On top: THE RINK (boards each end: the pucks ricochet off them),
 // hockey players, a moose, a Mountie on a stick horse; then down THE TRAIL's thousand stairs (they climb back up, too),
-// the ranger station, on to HELICOPTER RIDES ACROSS THE WORLD's helipad.
+// the ranger station; then THE FROZEN POND and THE TOBOGGAN HILL (pond.ts, job 4b: the thin ice giving way under
+// whoever stands on it, the sugar shack on the hill), on to HELICOPTER RIDES ACROSS THE WORLD's helipad.
 //
 // Crude (the first pass): readable boxes with full game feel. Checkpoints 90-99. Outdoors: the time of day's light.
 
@@ -29,6 +30,7 @@ import {
 } from '../kit';
 import { TALK } from './lines';
 import './kinds';
+import { POND_FROM, POND_CHECKPOINTS, ICE_POND, pondRuns, buildPond, updatePond, pondWater, drawPondBack, drawPondFront, pondLamps } from './pond';
 
 const { x0, x1 } = SECTIONS.canada;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -71,13 +73,15 @@ export const CANADA_CHECKPOINTS = [
   { name: 'CANADA: THE LOG POND', cp: 91, x: X(1065), y: GY },
   { name: 'CANADA: THE FALLS', cp: 92, x: X(1900), y: GY },
   { name: 'CANADA: THE RINK', cp: 93, x: X(2340), y: Y(TOP) },
+  ...POND_CHECKPOINTS,
 ];
 
 const RUNS: GroundRun[] = [
   ...runsAround(x0, X(CLIFF), [POND, PLUNGE]),
   { x1: X(CLIFF), y1: Y(TOP), x2: X(TRAIL_A), y2: Y(TOP), surface: 'hard' },
   { x1: X(TRAIL_A), y1: Y(TOP), x2: X(TRAIL_B), y2: GY, surface: 'hard', steps: { n: 15 } },
-  { x1: X(TRAIL_B), y1: GY, x2: x1, y2: GY, surface: 'hard' },
+  { x1: X(TRAIL_B), y1: GY, x2: X(POND_FROM), y2: GY, surface: 'hard' },
+  ...pondRuns(),
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -195,6 +199,7 @@ export const canada: ForeignSection = {
   checkpoints: CANADA_CHECKPOINTS,
   build: (state) => {
     layOwn(state, RUNS);
+    buildPond(state);
     poolSteps(state, POND); poolSteps(state, PLUNGE);
     for (const [a, b, h] of [...LOGPILES, ...POLES, ...STUMPS]) solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'ca-solid' });
     for (const [a, b, h] of CLIMB) ledge(state, X(a), Y(h), b - a, { hidden: true, tag: 'ca-ledge' });
@@ -207,6 +212,7 @@ export const canada: ForeignSection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, f = state.frame, cn = canOf(state);
     pavilionTalk(state, 'ca', x0, GY, TALK);
+    updatePond(ctx);
     poolZones(state, 'ca-water', [POND, PLUNGE]);
     cn.logs.forEach((m, i) => moveMover(state, m, logX(i, f), logY(i, f)));
     // The flume's logs: a creak as one starts along the trough, then down the falls onto whoever's crossing
@@ -226,13 +232,15 @@ export const canada: ForeignSection = {
     }
     return controls;
   },
-  waterBodyAt: (_state, x, y) => poolAt([POND, PLUNGE], x, y),
+  waterBodyAt: (_state, x, y) => poolAt([POND, PLUNGE], x, y) ?? pondWater(x, y),
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame, cn = canOf(state);
     promenade(c, v, x0, POND.a, '#D6CBB4', '#8C7F68');
     promenade(c, v, POND.b, PLUNGE.a, '#D6CBB4', '#8C7F68');
     promenade(c, v, PLUNGE.b, X(CLIFF), '#D6CBB4', '#8C7F68');
-    promenade(c, v, X(TRAIL_B), x1, '#D6CBB4', '#8C7F68');
+    promenade(c, v, X(TRAIL_B), ICE_POND.a, '#D6CBB4', '#8C7F68');
+    promenade(c, v, ICE_POND.b, X(4560), '#D6CBB4', '#8C7F68');
+    promenade(c, v, X(5360), x1, '#D6CBB4', '#8C7F68');
     // (pines behind, the cabin, the ranger station)
     for (const rx of [80, 300, 660, 1060, 1700, 3420, 3560]) setBack(c, v, X(rx) - 40, 80, 0.9, () => pine(c, 40, 220 + (rx % 3) * 30));
     setBack(c, v, X(200), 280, FACADE_D, () => {
@@ -272,12 +280,14 @@ export const canada: ForeignSection = {
       for (let i = 0; i < 48; i += 4) box(c, fx + 2 + i, GY - 198 + Math.sin(f * 0.08 + i * 0.12) * 2, 4, 30, hour(i < 12 || i >= 36 ? '#D52B1E' : '#F8FAFC'));
       poly(c, [[fx + 26, GY - 194], [fx + 33, GY - 182], [fx + 30, GY - 176], [fx + 22, GY - 176], [fx + 19, GY - 182]], hour('#D52B1E'));
     }
+    drawPondBack(c, v, state);
     void mix; void wall; void hole;
   },
   drawFront: (c, state) => {
     const v = viewIn(state), f = state.frame;
     drawPoolFront(c, v, POND, f);
     drawPoolFront(c, v, PLUNGE, f);
+    drawPondFront(c, v, state);
   },
   outdoors: () => 1,
   lamps: (state) => {
@@ -285,6 +295,7 @@ export const canada: ForeignSection = {
     if (onScreen(v, X(200), X(480))) out.push({ x: X(340), y: Y(60), r: 140, a: 0.4, color: '#FDBA74' });
     if (onScreen(v, X(3420), X(3580))) out.push({ x: X(3500), y: Y(60), r: 120, a: 0.4, color: '#FDE68A' });
     if (onScreen(v, X(2430), X(2870))) out.push({ x: X(2650), y: Y(TOP + 120), r: 260, a: 0.35, color: '#E0F2FE' });
+    out.push(...pondLamps(v));
     return out;
   },
 };
