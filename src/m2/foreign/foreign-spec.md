@@ -635,3 +635,53 @@ The user's HELICOPTER HARRY fight, built (harry/: arena.ts, scene.ts, rambo.ts, 
   concrete set in puddles, spent brass), the dig behind him with the wrecks' silhouettes burning and her hand up out of
   the rubble; her blown-open head, the revolver, the torch, chunks, shreds, the jetpack; Harry's fate (the mound and
   his feet, or flat on his back).
+
+## Decisions (heli rework)
+
+The user (2026-10-16): "not a fan of the appearance of the helicopter section. the scale is sold poorly. should look
+like i'm going around the park like the clearing in the adventure stage. it should look more zoomed out. harry
+shouldn't be in the scene. he should be on the ground chasing you and yelling at you, controlling the animatronics";
+then "a major visual refactor ... boss mechanics are fine-ish"; "give some anticipation before the first monument's
+appearance, the eiffel tower, as it rises from the ground, ready to destroy you". Mechanics kept (controls, patterns,
+timings, HP_SCALE 2, one wave each, Pisa, checkpoints).
+
+- **Zoomed out:** the stage zoom at Z 0.65 from the lift on (geo.ts), about the screen's middle; the flight field is
+  the screen over Z (1231x923 world). Patterns and lackey spots laid out for 800x600 are mapped into it (fx/fy); the
+  Colosseum's walls are seven rows of three down the taller field, one open. Speeds stay world speeds (the zoom just
+  shows more room). The engine counts the zoomed view as the screen while flying (GameState.viewIsScreen, opt-in via
+  screenRect), so goons out at the field's edges can be shot. The HUD, the bar, prompts and subtitles are screen space.
+- **The circuit (park.ts, the clearing's orbit trick):** one camera going round a ring looking in at the park's middle;
+  the floor Mode 7 (chunky, banded haze); everything back to front through the one eye. The park: the lagoon and its
+  promenade; the ten pavilions he walked, in his order, as small crude solids (lit faces in steps); trees, tiny guests;
+  a hedge; THE CIRCUIT the nine landmarks stand round on plinths (the Eiffel Tower's behind France); the service road;
+  the parking lot; fields; the other lands on the horizon (castle, needle, sign, volcano); the sky by the hour; clouds
+  drifting below him. Scale: a landmark's about as tall as the park is wide, a pavilion knee-high to it.
+- **Seamless hand-off:** the camera's fitted so the landmark round in front lands exactly on BASE at the field's scale:
+  out on the ring it's the park's (drawn in the backdrop), up and fighting it's the world's (its boxes), same spot.
+  h.prog turns the park (the next one ahead round the ring, right and further off; the ones after across the back; the
+  wrecks where they fell, on scorched plinths, painted once each to a cached canvas). The tour turns the park 2.6 steps
+  round to the Eiffel Tower; the nine take one lap.
+- **The lift:** up off the pad zooming 1 -> Z, the park's camera climbing from near the ground, faded in over the
+  streets (no cut). The tour is the flight's view.
+- **Harry on the ground:** shoved out, he falls all the way down onto the service road, flat on his back; up, red-faced,
+  the ride's REMOTE out (a brick with an antenna, a red button), the act dropped, he wakes them (eyes on, shut: asleep).
+  Flying, he chases along the road a little behind the helicopter (on foot; too far behind, a jetpack hop), stops to
+  key the remote while a landmark arrives; drawn at 0.78 with a shadow; words over him (saidOver, whole on screen). No
+  hitbox. The end: he stops under the helicopter, tips the launcher up and fires from the ground. One line changed
+  ("FROM UP HERE" -> "FROM DOWN HERE").
+- **Each landmark ARRIVES (mechs.ts arrive):** no hurt possible (the air's cleared, it has no boxes), his controls free.
+  Beats: the ground at its plinth rumbles and cracks (spreading through its pavilion's plaza), the replica shaking,
+  dust, the guests scattering; the ground swallows it; a beat under, heaving; it bursts back up on folded mech legs,
+  debris, the view pulling back 13% to take in the size of it; it stands; its eyes SNAP open (klaxon, roar); a beat of
+  stillness, its line; it attacks. The Eiffel Tower's takes 330 frames (~5.5 s), the rest 200 (~3.3 s). Its bar fills
+  as it arrives.
+- **The look:** the mechs rebuilt (mechArt.ts): a hip chassis with hazard stripes and a warning light, armored piston
+  legs, three-toed feet; each landmark lit in steps with its shadow side and details (the Eiffel's lattice and decks and
+  a flag, the Opera's sail undersides and glass, Big Ben's gothic panels, the Colosseum's three tiers, the moai's red
+  topknot ...); bigger googly eyes with lids. Shots on a dark halo with a flashing rim, a size up; beam warnings dashed
+  over a dark line; drop columns outlined, a big "!". Blasts: a white flash, banded lumpy fire, a shock ring, chunks.
+  The helicopter: stepped shading, an engine cowling, panel lines, nav lights and a strobe, a banded rotor blur.
+- **Also this pass (separate commits):** the checkpoint bug (dying at the Opera House restarted at the Easter Island
+  head: the nine checkpoints share one x and the walk-past loop fired them all on respawn; now manual); a big health +
+  ammo after every landmark; the rotor boost's own recharge (14-frame cooldown, a boost every 30 frames: twice a
+  charge on foot), never his power cells, a BOOST meter by the rockets.
