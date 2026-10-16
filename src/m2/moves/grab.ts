@@ -613,8 +613,8 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   if (g.phase !== 'idle') { if (!PRE_GRAB.has(g.phase)) keepClear(ctx.state, g); easeOff(ctx.state, g); }
   // (armor, fighting-game style: through a grab, and for a moment after, with whoever he's just put down still at his
   // feet, anything that hits him hurts him, but nothing knocks him about or out of what he's doing)
-  // (not in the beatdown's windup: that's open, a hit knocks him out of it, back as it would)
-  if (g.phase !== 'idle' && g.phase !== 'windup' && g.phase !== 'awind') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
+  // (the windups too: the user, a hit never knocks him out of a beatdown or an air grab once it's started)
+  if (g.phase !== 'idle') g.clearT = CONTACT_GRACE; else if (g.clearT > 0) g.clearT--;
   setArmor(g.clearT > 0);
   // (going for a critter, holding one, pitching one: the little things right by him don't hurt just for touching him,
   // or snatching one up would cost a bite most times; back to themselves once it's over)
@@ -794,8 +794,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
     }
 
     case 'windup':
-      // Coiled up for it, half a second: hurt in that time, and he's knocked out of it (the hit's own knockback goes)
-      if (p.health < g.windHp) { end(state, g); playSound('thud', 0.5, 4); return controls; }
+      // Coiled up for it: hurt in that time, he takes it and goes anyway (the user: a hit never knocks him out of it)
       if (g.t >= WINDUP) { g.phase = 'lunge'; g.t = 0; playSound('whoosh', 1, -2); }
       return hold();
 
