@@ -32,8 +32,21 @@ export const TALK: PavilionTalk = {
     { from: 1550, to: 1900, key: 'lutefisk', lines: ['LUTEFISK. FISH JELLY. WHO DID THIS TO A FISH?', 'FREE SAMPLES. NO REFUNDS. NO SHIT.'] },
     { from: 1900, to: 2400, key: 'fjord', lines: ["THE FJORD. IT'S A WAVE POOL. THEY PUT A SIGN ON A WAVE POOL.", 'A VIKING SHIP. MADE IN TAIWAN.'] },
     { from: 2900, to: 3400, key: 'church', lines: ['A WOODEN CHURCH WITH DRAGONS ON IT. FINALLY, A RELIGION I GET.', "A STAVE CHURCH. I DON'T KNOW WHAT A STAVE IS."] },
+    // (job 4b: the troll toll bridge)
+    { from: 3900, to: 4200, key: 'giants', lines: ["NOW THAT'S A TROLL. HE'S HOLDING A BRIDGE ON HIS HEAD. RESPECT.", 'TWO GIANT TROLLS. THE OTHER ONE WAS THE SAMPLE SIZE.'] },
+    { from: 4300, to: 4740, key: 'toll', lines: ["A TOLL. I DON'T PAY TOLLS. I DON'T EVEN PAY TAXES.", "FIVE BUCKS TO CROSS A PLANK. I'LL PAY IN TEETH. YOURS."], minH: 380 },
+    { from: 4400, to: 4900, key: 'river', lines: ["THERE'S A HAND IN THE RIVER. THE TROLL'S UNDER THE BRIDGE. OF COURSE HE IS.", "SOMETHING TOUCHED MY LEG. I'M NOT ASKING."], maxH: 40 },
   ],
 };
+
+/** The toll gang's demand, up on the bridge (a viking's voice). */
+export const TOLL: ByPants = {
+  clean: ["TROLL TOLL! FIVE BUCKS OR YOUR LIFE! MOSTLY YOUR LIFE!", "NOBODY CROSSES THE BRIDGE WITHOUT PAYING! IT'S IN THE SAGAS! I THINK!"],
+  shitty: ["TOLL'S FIVE BUCKS! TEN FOR YOU! YOU'RE GONNA STINK UP THE BRIDGE!", 'YOU CAN PAY IN CASH! NOT IN WHATEVER THAT IS!'],
+  nude: ["TOLL'S FIVE BUCKS! WHERE ARE YOU EVEN KEEPING FIVE BUCKS?!", "NO SHIRT, NO PANTS, NO BRIDGE!"],
+};
+/** The gang dead, the gate going up. */
+export const PAID_GAG = ['TOLL PAID. IN VIKINGS.', "THAT'S THE MOST I'VE EVER PAID FOR A BRIDGE.", 'KEEP THE CHANGE. THE CHANGE IS YOUR TEETH.'];
 
 export const VIKING: ByPants = {
   clean: ["SKOL! THAT'S ALL I KNOW! SKOL!", "I'M TYLER! MY GREAT-GRANDMA WAS NORWEGIAN! OR DUTCH!"],
@@ -80,6 +93,10 @@ export const HURT: HurtTable = {
     hurt: ['LUTEFISK! IN MY MOUTH!', "OH GOD, IT'S JELLY!", "I'M GONNA PUKE!"],
     death: ['DROWNED IN FISH JELLY', 'DIED OF LUTEFISK'],
   },
+  'm2:fl_troll_hand': {
+    hurt: ['THE TROLL GRABBED MY ASS!', 'A HAND! IN THE RIVER! FUCK!', 'OW! TROLL KNUCKLES!'],
+    death: ['TAKEN BY THE TROLL UNDER THE BRIDGE', "SHOULD'VE PAID THE TOLL"],
+  },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.viking, VIKING], [V.shield, SHIELD], [{ m: V.lutefisk.m, f: V.lutefisk.f }, LUTEFISK]]);
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.viking, VIKING], [V.shield, SHIELD], [{ m: V.lutefisk.m, f: V.lutefisk.f }, LUTEFISK], [{ m: V.viking.m, f: V.viking.m }, TOLL]], { meathead: PAID_GAG });

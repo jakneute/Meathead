@@ -5,7 +5,8 @@
 // LONGSHIP on it, ferrying across and back, rocking on the wave machine's swell (a viking aboard). The wave machine
 // sends a big wave down the pool every few seconds: in the water, it shoves and hurts (him and the cast: anybody
 // knocked in). Then the STAVE CHURCH, climbed roof by roof (dragon heads off every gable end, a small ammo up top),
-// and the lot of them mixed, to the border with China.
+// and the lot of them mixed; then THE TROLL TOLL BRIDGE (toll.ts, job 4b: two giant trolls holding a bridge up, the
+// toll gang at its gate, the troll under the bridge in the river), to the border with China.
 //
 // Crude (the first pass): readable boxes with full game feel. Checkpoints 10-19. Outdoors: the time of day's light.
 
@@ -27,6 +28,7 @@ import {
 } from '../kit';
 import { TALK } from './lines';
 import './kinds';
+import { TOLL_FROM, TOLL_CHECKPOINTS, RIVER, tollRuns, buildToll, updateToll, tollWater, drawTollBack, drawTollFront, tollLamps } from './toll';
 
 const { x0, x1 } = SECTIONS.norway;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -59,6 +61,7 @@ export const NORWAY_CHECKPOINTS = [
   { name: 'NORWAY', cp: 10, x: X(150), y: GY },
   { name: 'NORWAY: THE FJORD', cp: 11, x: X(1950), y: GY },
   { name: 'NORWAY: THE STAVE CHURCH', cp: 12, x: X(2860), y: GY },
+  ...TOLL_CHECKPOINTS,
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -175,7 +178,8 @@ export const norway: ForeignSection = {
   id: 'norway', x0, x1,
   checkpoints: NORWAY_CHECKPOINTS,
   build: (state) => {
-    layOwn(state, runsAround(x0, x1, [POOL]));
+    layOwn(state, [...runsAround(x0, X(TOLL_FROM), [POOL]), ...tollRuns()]);
+    buildToll(state);
     poolSteps(state, POOL);
     for (const [a, b] of TROLLS) solid(state, X(a), Y(TROLL_H), b - a, TROLL_H, { hidden: true, tag: 'no-troll' });
     ledge(state, X(PLANK.a), Y(PLANK.h), PLANK.b - PLANK.a, { hidden: true, tag: 'no-plank' });
@@ -191,6 +195,7 @@ export const norway: ForeignSection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, n = norOf(state), f = state.frame;
     pavilionTalk(state, 'no', x0, GY, TALK);
+    updateToll(ctx);
     poolZones(state, 'no-fjord', [POOL]);
     // The longship, across and back, riding the swell
     if (n.ship) { const sx = shipX(f); moveMover(state, n.ship, sx, deckY(f, sx)); }
@@ -211,11 +216,12 @@ export const norway: ForeignSection = {
     }
     return controls;
   },
-  waterBodyAt: (_state, x, y) => poolAt([POOL], x, y),
+  waterBodyAt: (_state, x, y) => poolAt([POOL], x, y) ?? tollWater(x, y),
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame;
     promenade(c, v, x0, POOL.a, '#D6CBB4', '#8C7F68');
-    promenade(c, v, POOL.b, x1, '#D6CBB4', '#8C7F68');
+    promenade(c, v, POOL.b, RIVER.a, '#D6CBB4', '#8C7F68');
+    promenade(c, v, RIVER.b, x1, '#D6CBB4', '#8C7F68');
     drawFronts(c, v);
     drawPoolBack(c, v, POOL);
     // (the wave machine's housing at the pool's far end, set back: the sign on it)
@@ -235,19 +241,21 @@ export const norway: ForeignSection = {
     if (onScreen(v, X(PLANK.a), X(PLANK.b))) postBoard(c, X(1010), GY, ['TROLL BRIDGE', 'TOLL: $5'], LOOKS.norway(1), '#3F6212', undefined, 80);
     if (onScreen(v, X(1880), X(2000))) postBoard(c, X(1930), GY, ['THE FJORD', '(WAVE POOL)', 'NO LIFEGUARD ON DUTY'], LOOKS.norway(1), '#1E3A8A', undefined, 130);
     if (onScreen(v, X(2820), X(2920))) postBoard(c, X(2860), GY, ['STAVE CHURCH', 'NO STAVES INSIDE'], LOOKS.norway(1), '#3F2A14', undefined, 110);
-    if (onScreen(v, X(3560), X(3800))) postBoard(c, X(3660), GY, ['LEAVING NORWAY', 'NEXT: CHINA (NOT JAPAN)'], LOOKS.norway(1), '#7F1D1D', undefined, 100);
-    for (const [fx, cols] of [[X(80), ['#BA0C2F', '#F8FAFC', '#00205B', '#F8FAFC', '#BA0C2F']], [X(3780), ['#BA0C2F', '#F8FAFC', '#00205B', '#F8FAFC', '#BA0C2F']]] as const) if (onScreen(v, fx - 20, fx + 60)) flagPole(c, fx, GY, 200, [...cols], f);
+    drawTollBack(c, v, state);
+    for (const [fx, cols] of [[X(80), ['#BA0C2F', '#F8FAFC', '#00205B', '#F8FAFC', '#BA0C2F']], [X(5580),['#BA0C2F', '#F8FAFC', '#00205B', '#F8FAFC', '#BA0C2F']]] as const) if (onScreen(v, fx - 20, fx + 60)) flagPole(c, fx, GY, 200, [...cols], f);
     void WHITE;
   },
   drawFront: (c, state) => {
     const v = viewIn(state), f = state.frame;
     drawPoolFront(c, v, POOL, f, x => waveH(f, x));
+    drawTollFront(c, v, state);
   },
   outdoors: () => 1,
   lamps: (state) => {
     const v = viewIn(state), out: Light[] = [];
     if (onScreen(v, X(2900), X(3500))) out.push({ x: X(3200), y: Y(60), r: 160, a: 0.45, color: '#FDE68A' });
     if (onScreen(v, X(BOOTH.a), X(BOOTH.b))) out.push({ x: X(1680), y: Y(110), r: 120, a: 0.4, color: '#FDE68A' });
+    out.push(...tollLamps(v));
     return out;
   },
 };
