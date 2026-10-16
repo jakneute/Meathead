@@ -71,6 +71,7 @@ import { onMeteorBlast } from '../../weapons/spellbook';
 import { BITER, SPITTER, CHARGER, KIN, isKin, kinAge, spawnKin, destroyKin, tickKin, drawKinShots, drawSac, resetKin } from './kin';
 import * as L from './lines';
 import { setDropTable } from '../../../m1/game/core/effects';
+import { since } from '../../frames';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -243,7 +244,7 @@ registerM2Kind({
     p.vel = { x: dir * 6, y: Math.min(p.vel.y, -3) };
     p.lockTimer = Math.max(p.lockTimer, 14); p.recoiling = true;
     playSound('clang', 0.7, -6); playSound('thud', 0.6, -4); shakeScreen(state, 5, 3);
-    if (state.frame - grabSaidAt >= 150) { grabSaidAt = state.frame; meatheadSays(state, pick(L.MH_GRAB), false); }
+    if (since(state.frame, grabSaidAt) >= 150) { grabSaidAt = state.frame; meatheadSays(state, pick(L.MH_GRAB), false); }
     return { said: true, free: true };
   },
 });

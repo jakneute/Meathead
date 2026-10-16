@@ -55,6 +55,7 @@ import { ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X } from './arena';
 import { discoBall } from './art';
 import { INK, checker, pixelBlob } from '../control/paint';
 import * as L from './lines';
+import { since } from '../../frames';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -231,7 +232,7 @@ const greased = (ctx: FrameContext, f: Fight) => {
   playSound('squish', 0.9, -2); playSound('oil', 0.8, 2);
   const hx = p.pos.x + p.width / 2 - dir * 14, hy = p.pos.y + p.height * 0.4;
   for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: hx + (Math.random() - 0.5) * 10, y: hy + (Math.random() - 0.5) * 20 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 26 + Math.random() * 14, color: ['#FDE68A', '#FACC15', '#A16207'][i % 3], size: 2 + Math.random() * 3, grav: 0.3 });
-  if (state.frame - greaseSaidAt >= GREASE_SAY_GAP) {
+  if (since(state.frame, greaseSaidAt) >= GREASE_SAY_GAP) {
     greaseSaidAt = state.frame;
     if (greaseN++ % 2 === 0 && quiet(f)) bark(f, L.DONNIE_GREASED);
     else meatheadSays(state, pick(L.MEATHEAD_GREASE), false);

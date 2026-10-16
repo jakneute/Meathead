@@ -24,6 +24,7 @@ import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { isRobot } from '../kinds';
 import { specialsHalf, halfKill } from './half';
+import { since } from '../frames';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -173,7 +174,7 @@ const fire = (ctx: FrameContext) => { facingState = ctx.state;
 const tick = (ctx: FrameContext) => { facingState = ctx.state;
   const { state } = ctx;
   // Fire let go: primed, it goes; not yet, nothing
-  if (chargedAt < state.frame - 1 && charge > 0) {
+  if (since(state.frame, chargedAt) > 1 && charge > 0) {
     if (charge >= CHARGE && state.player.currentWeapon === 'FLINTLOCK' && (ctx.cheats.infiniteAmmo || state.player.weaponAmmo.FLINTLOCK > 0)) shoot(ctx);
     charge = 0; target = null;
   }

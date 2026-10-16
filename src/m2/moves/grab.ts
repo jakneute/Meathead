@@ -26,6 +26,7 @@ import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { shakeScreen } from '../../m1/game/core/state';
 import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
+import { since } from '../frames';
 import type { Enemy, EnemyKind, WeaponType } from '../../m1/types';
 import { isHumanoidKind, drawKindEnemy, kindHead, kindFacing } from '../../m1/game/render/enemies';
 import { getEnemyMass } from '../../m1/game/combat/knockback';
@@ -148,7 +149,7 @@ let aAt = -99;
 /** A + B has to be pressed together: the same frame, or the next at most (a short hop then B is the air charge). */
 const AB_WINDOW = 1;
 /** A pressed just now (each stage counts its frames from nothing: a press from the last one is never "just now"). */
-const aJust = (frame: number) => frame - aAt >= 0 && frame - aAt <= AB_WINDOW;
+const aJust = (frame: number) => since(frame, aAt) <= AB_WINDOW;
 
 /** The animals that are a handful but not too much. */
 const MID_ANIMALS = new Set<EnemyKind>(['wolverine', 'goat', 'gator', 'coyote', 'pitbull']);
@@ -334,7 +335,7 @@ const tooBigAnimal = (e: Enemy | null) => !!e && e.health > 0 && !e.isBlownAway 
 /** ...and he says so (not every time), by what it is. */
 let tooBigAt = -9999;
 const tooBig = (state: GameState, e: Enemy) => {
-  if (state.frame - tooBigAt < 150) return;
+  if (since(state.frame, tooBigAt) < 150) return;
   tooBigAt = state.frame;
   const own = (e.kind && TOO_BIG_BY_KIND[e.kind]) || [];
   const general = e.type === 'boss' || isMidBoss(e) ? GRAB_IMMUNE_LINES.boss

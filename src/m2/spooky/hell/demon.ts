@@ -46,6 +46,7 @@ import {
   DEMON_NAME, MH_TRIP_HINT, DEMON_INTRO, DEMON_CHATTER, DEMON_HIT, DEMON_HURT, MH_DEMON, HURT_FORK, DEATH_FORK, HURT_QUAKE, DEATH_QUAKE,
   HURT_BELLY, DEATH_BELLY, HURT_BOUNCE_FIRE, DEATH_BOUNCE_FIRE, HURT_AIRBODY, DEATH_AIRBODY, type Dressed, type ByPants,
 } from './lines';
+import { since } from '../../frames';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -401,7 +402,7 @@ export const updateDemon = (ctx: FrameContext) => {
   // (a while at him and the legs never taken out: Meathead thinks out loud about them, plainer each time)
   if (d.fight === 'on') {
     fightT++;
-    if (!trippedEver && fightT > HINT_FIRST && f - hintAt > HINT_EVERY && p.health > 0) {
+    if (!trippedEver && fightT > HINT_FIRST && since(f, hintAt) > HINT_EVERY && p.health > 0) {
       hintAt = f;
       meatheadSays(state, MH_TRIP_HINT[Math.min(hintN++, MH_TRIP_HINT.length - 1)], false);
     }

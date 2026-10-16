@@ -30,6 +30,7 @@ import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/play
 import { setArmor } from '../../m1/game/core/resist';
 import { vineGrip } from '../../m1/game/combat/muzzle';
 import { specialsHalf, specialsOff, realMax, HALF } from './half';
+import { since } from '../frames';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -370,7 +371,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
       // (it won't: a click, and he says why, a while apart)
       playSound('click', 0.7, -4);
       const why = bulkLeft > 0 ? 'already' : bulkCool > 0 ? 'cooldown' : !mana ? 'mana' : 'air';
-      if (state.frame - bulkFailSaidAt > 150) { bulkFailSaidAt = state.frame; const pool = BULK_FAIL_LINES[why]; meatheadSays(state, pickLine(pool)); }
+      if (since(state.frame, bulkFailSaidAt) > 150) { bulkFailSaidAt = state.frame; const pool = BULK_FAIL_LINES[why]; meatheadSays(state, pickLine(pool)); }
     }
   }
   syncArmor();

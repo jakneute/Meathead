@@ -28,6 +28,7 @@ import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES } from '../lines/weaponLines';
 import { isRobot } from '../kinds';
 import { specialsHalf, specialsOff, realMax, halfKill } from './half';
+import { since } from '../frames';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -156,7 +157,7 @@ const bleed = (ctx: FrameContext, e: Enemy, near: number, mouth: { x: number; y:
   // (nothing out of the dead: nothing in the bag for it)
   if (e.health <= 0 || e.isBlownAway) return;
   // (a fresh go at him: the first gulp comes quicker)
-  if (bleedFrom !== e || state.frame - bleedAt > 2) { bleedFrom = e; bleedT = BLEED.gulp >> 1; bleedBank = 0; }
+  if (bleedFrom !== e || since(state.frame, bleedAt) > 2) { bleedFrom = e; bleedT = BLEED.gulp >> 1; bleedBank = 0; }
   bleedAt = state.frame;
   bleedRobot = isRobot(e);
   bleedSrc.x = Math.max(e.pos.x + 4, Math.min(e.pos.x + e.width - 4, mouth.x));
@@ -188,7 +189,7 @@ const fire = (ctx: FrameContext) => {
   // A full bag: it won't pull (the motor chokes, a puff of red out the intake); empty some of it first (secondary fire)
   if (gore >= SPRAY * MAX_SPRAYS) {
     // (and he says so: once a go, a while apart)
-    if (state.frame - suckingAt > 30 && state.frame - fullSaidAt > FULL_LINE_GAP) { fullSaidAt = state.frame; meatheadSays(state, pickLine(FULL_BAG_LINES)); }
+    if (since(state.frame, suckingAt) > 30 && since(state.frame, fullSaidAt) > FULL_LINE_GAP) { fullSaidAt = state.frame; meatheadSays(state, pickLine(FULL_BAG_LINES)); }
     suckingAt = state.frame - 2;
     pl.shootCooldown = 18;
     playSound('click', 0.8, -6);
@@ -312,7 +313,7 @@ let armored = false;
 const syncArmor = (on: boolean) => { if (on !== armored) { armored = on; setArmor(on); } };
 
 const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; moveDown: boolean }, equipped: boolean) => {
-  syncArmor(equipped && ctx.state.frame - suckingAt <= 2);
+  syncArmor(equipped && since(ctx.state.frame, suckingAt) <= 2);
   tickGoreSlides(ctx);
   // (got over his panic, or gone: himself again; till then, running off his own way, but not shooting)
   for (const e of panicking) { const ps = poise.get(e); if (!ps || ctx.state.frame > ps.fleeUntil || e.health <= 0 || e.isBlownAway) calmDown(e); else e.shootTimer = 0; }
@@ -327,7 +328,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
     const mouth = muzzlePoint(pl, 'SOUL_SUCKER');
     playSound('dry_gore');
     for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: mouth.x, y: mouth.y + 2 }, vel: { x: pl.facing * (0.3 + Math.random()), y: 0.5 + Math.random() }, life: 30, color: i ? '#991B1B' : 'rgba(200, 200, 200, 0.5)', size: i ? 2 : 4 });
-    if (state.frame - emptySaidAt > EMPTY_LINE_GAP && Math.random() < EMPTY_LINE_CHANCE) { emptySaidAt = state.frame; meatheadSays(state, pickLine(EMPTY_BAG_LINES)); }
+    if (since(state.frame, emptySaidAt) > EMPTY_LINE_GAP && Math.random() < EMPTY_LINE_CHANCE) { emptySaidAt = state.frame; meatheadSays(state, pickLine(EMPTY_BAG_LINES)); }
   }
   if (sprayLeft > 0) {
     sprayLeft--;
@@ -516,7 +517,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   drawGoreSlides(c, state);
   const pl = state.player, out = pl.currentWeapon === 'SOUL_SUCKER';
   void out;
-  const sucking = state.frame - suckingAt <= 1 && out;
+  const sucking = since(state.frame, suckingAt) <= 1 && out;
   const mouth = muzzlePoint(pl, 'SOUL_SUCKER');
   // The pull: streaks of air rushing in to the intake from all over the cone
   if (sucking) {
