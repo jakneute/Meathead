@@ -14,7 +14,7 @@
 // It pulls him (and anybody) in; anybody it gets is sucked up; it blows away everything it comes to (the facades, the
 // standees, the PA's poles, the guests at the back: torn loose, round it and up, thrown out) and now and then throws
 // what it's picked up ahead of him, its mark on the ground. Low SNOW SLIDES roll along the street after him (jump
-// them). THE END: past the first aid station, into the CUTSCENE TRIGGER ZONE, it surges (no outrunning it now; he's
+// them). THE END: past the first aid station, into the SAFE TORNADO LAUNCHING ZONE, it surges (no outrunning it now; he's
 // held in the zone's box) and when it gets him, in there, it's the fling.
 
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -184,7 +184,7 @@ export const updateChase = (ctx: FrameContext): ChaseEvents => {
       if (t.surge) v = 14;
       t.v = v; t.x += v;
     }
-    // (into the CUTSCENE TRIGGER ZONE: it surges)
+    // (into the SAFE TORNADO LAUNCHING ZONE: it surges)
     if (!t.surge && R(cx) > SURGE_AT && alive) { t.surge = true; t.hold = 0; ev.surge = true; playSound('roar', 1, -20); }
     // (and he's held in the zone's box till it has him: it gets him inside the markings, never past them)
     if (t.surge && alive && !p.carried) {

@@ -5,7 +5,7 @@
 // stretches (the gust's tell in them), the first aid tent (its canopy's top going back, FIRST AID on its valance, lit
 // along its top: stood on), the way on to Steve's stage (revisits).
 //
-// THE CUTSCENE TRIGGER ZONE: loud about it, the user's design. Painted on the pavement going back: a box in hazard
+// THE SAFE TORNADO LAUNCHING ZONE: loud about it, the user's design. Painted on the pavement going back: a box in hazard
 // stripes, the pavement inside it tinted, chevrons chasing into it; on the curb's face and the street (before the bend)
 // stripes, the zone's name stenciled big, block arrows chasing in. YOU ARE NOW ENTERING A on its own sign on two posts
 // before it. Over it a gantry at the back of the sidewalk: its posts banded in hazard colors on their footings, a truss
@@ -144,7 +144,7 @@ export const drawHavocProps = (c: Ctx, v: View, state: GameState, hv: Hv, done: 
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// THE CUTSCENE TRIGGER ZONE
+// THE SAFE TORNADO LAUNCHING ZONE
 
 const zoneFlash = (state: GameState, hv: Hv) => { const per = hv.tornado.surge ? 8 : 18; return state.frame % per < per / 2; };
 const ZD0 = 0.998, ZD1 = FRONT_D + 0.006, BAND_D = 0.013;
@@ -186,7 +186,7 @@ export const zoneStreet = (c: Ctx, a: number, b: number, state: GameState, done:
   }
   const ph = done ? 0 : f * 0.5;
   hazard(c, A, GY + 12, B - A, 8, ph); hazard(c, A, GY + 54, B - A, 8, -ph);
-  signText(c, 'CUTSCENE TRIGGER ZONE', (A + B) / 2, GY + 47, { sx: 2, sy: 3, fill: done ? '#CA8A04' : ['#FEF08A', '#FACC15', '#FACC15', '#CA8A04'], dither: true, stencil: true, worn: 0.1, wornCol: '#3F3F46', seed: 7, shadow: '#18181B' });
+  signText(c, 'SAFE TORNADO LAUNCHING ZONE', (A + B) / 2, GY + 47, { sx: 1, sy: 3, fill: done ? '#CA8A04' : ['#FEF08A', '#FACC15', '#FACC15', '#CA8A04'], dither: true, stencil: true, worn: 0.1, wornCol: '#3F3F46', seed: 7, shadow: '#18181B' });
 };
 
 const paintEnteringSign = (g: Ctx) => {
@@ -251,8 +251,8 @@ export const zoneSigns = (c: Ctx, v: View, state: GameState, hv: Hv, done: boole
     for (let x = x0 + w - 6; x > x0 + 3; x -= 9) bulb(x, top + h - 4);
     for (let y = top + h - 13; y > top + 3; y -= 9) bulb(x0 + 2, y);
     const look = (col: string): Look => ({ sx: 3, sy: 4, gap: 1, fill: '#000', bulbs: { lit: !done, col: done ? '#57534E' : col, dim: '#44403C' } });
-    signText(c, 'CUTSCENE', mid, top + 42, look(on ? '#FDE047' : '#F87171'));
-    signText(c, 'TRIGGER ZONE', mid, top + 80, look(on ? '#F87171' : '#FDE047'));
+    signText(c, 'SAFE TORNADO', mid, top + 42, look(on ? '#FDE047' : '#F87171'));
+    signText(c, 'LAUNCHING ZONE', mid, top + 80, look(on ? '#F87171' : '#FDE047'));
   });
   void lip; void hash;
 };

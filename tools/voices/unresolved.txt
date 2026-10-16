@@ -121,8 +121,8 @@ m2/foreign/heli/talk.ts:37 voice: line
 m2/foreign/heli/talk.ts:46 voice: line
 m2/foreign/heli/talk.ts:55 voice: false
 m2/foreign/heli/talk.ts:63 voice: false
-m2/foreign/harry/fight.ts:205 voice: text
-m2/foreign/harry/fight.ts:214 voice: voice(L.HARRY)
+m2/foreign/harry/fight.ts:209 voice: text
+m2/foreign/harry/fight.ts:218 voice: voice(L.HARRY)
 m2/foreign/setpiece.ts:48 voice: false
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice

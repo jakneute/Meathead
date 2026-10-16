@@ -50,7 +50,7 @@ export const stunt: HollywoodSection = {
     // (the far end's stacked tires: always there; nothing past them but the bleachers)
     state.blocks.push({ x: ARENA_R, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'stunt-end' } as Block);
     // (the big health and ammo, by the way in: before it starts, and on every retry)
-    // (no pickups on the stage: the refill's in the havoc's CUTSCENE TRIGGER ZONE, on the way in)
+    // (no pickups on the stage: the refill's in the havoc's SAFE TORNADO LAUNCHING ZONE, on the way in)
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = stuntOf(state);

@@ -27,7 +27,7 @@
 //          poles, the people) and throws some of it ahead of him. Lesser takes on everything he's been through: low
 //          snow slides rolling along the street after him (jump them), narrow lava rivers, puddles (slow him), weaker
 //          gusts, a few falling bits, hail. CHECKPOINT on Main Street.
-//   21280  A FIRST AID station (the big health and ammo, before the stunt stage). Past it, the CUTSCENE TRIGGER ZONE
+//   21280  A FIRST AID station (the big health and ammo, before the stunt stage). Past it, the SAFE TORNADO LAUNCHING ZONE
 //   21480  (YOU ARE NOW ENTERING A..., the flashing sign on its gantry, the hazard box and arrows painted on the street,
 //          the spotlights): in it the tornado surges, catches him (held in the box) and flings him (the cutscene) onto
 //          Stuntman Steve's stage.
@@ -152,7 +152,7 @@ export const AV_H = 1500, AV_LEN = 1500, AV_V = 18, AV_REACH = 650, AV_TELL = 20
 export const SLIDE_H = 62, SLIDE_LEN = 150, SLIDE_V = 11, SLIDE_GAP = 300;
 /** The chase's puddles (ankle-deep: they slow him): [rx from, to]. */
 export const PUDDLES: [number, number][] = [[15200, 15430], [17080, 17360], [20560, 20780]];
-/** THE CUTSCENE TRIGGER ZONE (rx from, to): the painted box on the street past the first aid station, under its
+/** THE SAFE TORNADO LAUNCHING ZONE (rx from, to): the painted box on the street past the first aid station, under its
  *  gantry. Into it and the tornado surges; it gets him in there (he's held in it: art.ts marks it, loud). */
 export const ZONE = { a: 21480, b: 21780 } as const;
 /** The final stretch: past here the tornado surges and gets him (the zone's mouth). */
@@ -229,7 +229,7 @@ export const PICKUPS: [number, number | null, 'small_health' | 'small_ammo' | 'l
   // (in the bunkers: something for getting in)
   [11240, null, 'small_health'], [13740, null, 'small_ammo'], [17000, null, 'small_health'],
   // the first aid station, before Steve's stage
-  // (the big health and ammo before Steve's stage: in the CUTSCENE TRIGGER ZONE, at its mouth (the only refill for the
+  // (the big health and ammo before Steve's stage: in the SAFE TORNADO LAUNCHING ZONE, at its mouth (the only refill for the
   // fight: none on the stage itself))
   [ZONE.a + 50, null, 'large_health'], [ZONE.a + 100, null, 'large_ammo'],
 ];

@@ -2,7 +2,7 @@
 // far off by the hour under the real disasters' red sky, the HAPPYWOOD hill erupting, the city and the soundstages
 // burning, the storm's clouds, ash and snow and the blizzard, lightning. In the world, back to front: the street under
 // him (bent) and the lava toward us (ground.ts); the lot strip and the ground going back, the lava channels going back,
-// the CUTSCENE TRIGGER ZONE painted on the pavement, the puddles; DISASTER: THE RIDE's end at the start; the fronts,
+// the SAFE TORNADO LAUNCHING ZONE painted on the pavement, the puddles; DISASTER: THE RIDE's end at the start; the fronts,
 // burning, braced, coming down (fronts.ts); the soundstages coming down behind the climb, the hillside and the
 // HAPPYWOOD letters and the road down it, then the climb's buildings, frames, crane, water tower and platforms
 // (climb.ts); the bunkers, the hill's rock face; what stands about (props.ts); the light tower; the zone's signs and
@@ -96,7 +96,7 @@ export const havocLamps = (state: GameState): Light[] => {
     if (Math.abs(x - cam - 400) > 700) return;
     out.push({ x, y, r: 190, a: 0.55 + 0.1 * Math.sin(state.frame * 0.2 + i), color: '#FB8A1E' }); n++;
   });
-  // (the CUTSCENE TRIGGER ZONE's spotlights, pulsing on its box; its sign lit up)
+  // (the SAFE TORNADO LAUNCHING ZONE's spotlights, pulsing on its box; its sign lit up)
   const z = zoneLights(v);
   if (Math.abs(z.floor[0] - cam - 400) < 1200) {
     const k = 0.5 + 0.5 * Math.sin(state.frame * 0.16);

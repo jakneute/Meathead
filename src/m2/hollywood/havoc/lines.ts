@@ -34,7 +34,7 @@ export const GAG: Record<'lava' | 'facade' | 'bridge' | 'wind' | 'quake' | 'bill
   surge: ['IT\'S FASTER! IT\'S WAY FASTER!', 'NOPE. NOPE. NOPE.'],
 };
 
-/** The fling. Caught; spun round in it (never died to it); the fourth wall (he did die to it, this visit); flung. */
+/** The fling. Caught; spun round in it (the SAFE TORNADO LAUNCHING ZONE: how is a tornado launcher SAFE); flung. */
 export const CAUGHT = ['OH SHIIIIT!', 'IT GOT MEEEE!'];
 export const SPIN = ['I\'M IN THE TORNADO! THERE\'S A COW IN HERE!', 'WHEEE! FUCK! WHEEE!'];
 /** The user's line, verbatim. */
@@ -187,7 +187,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
 const pools = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...ARRIVE, ...Object.values(GAG).flat(), ...CAUGHT, ...SPIN, FOURTH_WALL, ...FLUNG,
+    ...ARRIVE, ...Object.values(GAG).flat(), ...CAUGHT, ...SPIN, ...FLUNG,
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),

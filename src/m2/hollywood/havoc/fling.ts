@@ -2,7 +2,7 @@
 // he's lifted, spinning, up round the funnel (tumbling: Player.freefall), up into the junk it's carrying (a cow, the
 // HAPPYWOOD letters, a porta-potty, Steve's standee); round and round up top while he says his piece; then it spits him
 // out, high over the park, off toward Stuntman Steve's stage (a cut in the black: he's high over the stage's way in,
-// DOORS.stunt.start, and the stunt intro brings him down, all accidental flips and twists: stunt/fight.ts 'land'). If the tornado killed him before on this visit (diedToTornado), up top he breaks the fourth wall,
+// DOORS.stunt.start, and the stunt intro brings him down, all accidental flips and twists: stunt/fight.ts 'land'). Up top he says what he thinks of a SAFE tornado launching zone,
 // the user's line, verbatim. Once it's done the tornado's spent (FLUNG_MEMO: the revisit's calm).
 
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -16,9 +16,9 @@ import { hazardVictims, hazardKill } from '../../hazardHit';
 import { hands, meatheadSays, teleport } from '../section';
 import { DOORS, GY } from '../geometry';
 import { Y } from './layout';
-import { hvOf, diedToTornado, FLUNG_MEMO } from './state';
+import { hvOf, FLUNG_MEMO } from './state';
 import { tornadoBase } from './chase';
-import { CAUGHT, SPIN, FOURTH_WALL, FLUNG } from './lines';
+import { CAUGHT, SPIN, FLUNG } from './lines';
 import { FLUNG_IN, LAND_FALL } from '../stunt/state';
 
 export const flinging = (state: GameState) => { const s = hvOf(state).fling.step; return s !== 'off' && s !== 'done'; };
@@ -75,8 +75,7 @@ export const updateFling = (ctx: FrameContext): Controls | null => {
     if (fl.t >= 72) {
       fl.step = 'spin'; fl.t = 0; fl.lineDone = false;
       const done = () => { fl.lineDone = true; };
-      if (diedToTornado()) meatheadSays(state, FOURTH_WALL, true, done);
-      else meatheadSays(state, pickLine(SPIN), true, done);
+      meatheadSays(state, pickLine(SPIN), true, done);
     }
   } else if (fl.step === 'spin') {
     // Round and round up top, the junk going round with him, while he says his piece

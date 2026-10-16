@@ -12,7 +12,7 @@
 // comes to; lesser takes on everything else come at him on the way (snow slides to jump, narrow lava, puddles, gusts,
 // a few falling bits, hail). A first aid station (the big health and ammo, before Stuntman Steve), and the tornado
 // surges, catches him and flings him (fling.ts: a cutscene, HUD hidden, SKIP >> for the lot) onto the stunt stage. If
-// it killed him before on this visit, he breaks the fourth wall on the way (lines.ts FOURTH_WALL).
+// up there he rants about how a tornado launching zone can be SAFE (lines.ts SPIN).
 //
 // layout.ts lays it out; hazards.ts the disasters; chase.ts the bunkers, the avalanches and the tornado; fling.ts the
 // fling; kinds.ts its people (looters, the storm crew, Poppy the popcorn mascot); art.ts draws it; lines.ts what's said.

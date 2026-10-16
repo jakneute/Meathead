@@ -25,7 +25,7 @@ export {
 // The depths (d of the way from the eye to the play plane; the ground at d lands (1 - d) x 298 px up from GY at rest)
 
 /** The PA poles by the curb; Steve's standees; his posters on their stands; the signs on posts; the guests running
- *  about at the back of the sidewalk; the CUTSCENE TRIGGER ZONE's gantry. */
+ *  about at the back of the sidewalk; the SAFE TORNADO LAUNCHING ZONE's gantry. */
 export const PA_D = 0.965, STANDEE_D = 0.958, PROP_D = 0.952, SIGN_D = 0.955, GUEST_D = 0.935, GANTRY_D = 0.93;
 /** The climb: each shaft's scaffold frame (the ledges are clamped to it), the HOTEL HAPPYWOOD behind the first, the
  *  soundstages' backs (STAGE 14 and 15 go back to there), the soundstages behind coming down. */
