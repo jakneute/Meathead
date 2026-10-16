@@ -33,7 +33,17 @@ export const TALK: PavilionTalk = {
     { from: 1200, to: 1700, key: 'vending', lines: ['A VENDING MACHINE THAT SELLS VENDING MACHINES.', 'HOT CORN SOUP IN A CAN. NO.'] },
     { from: 1750, to: 2300, key: 'pagoda', lines: ['FIVE FLOORS OF NOTHING. GREAT TOWER.', "EVERY FLOOR'S GOT A NINJA. THAT'S THE WHOLE TOWER."], minH: 300 },
     { from: 2350, to: 2900, key: 'sumo', lines: ["A FAT GUY IN A DIAPER. RESPECT.", "I COULD DO SUMO. I'M HALFWAY THERE."] },
+    // (job 4b: the bullet train)
+    { from: 3650, to: 3960, key: 'fuji', lines: ['MOUNT FUJI. THREE STEPS TALL. THE SNOW IS PAINT.', "A MOUNTAIN WITH A TUNNEL IN IT. I'VE SEEN THIS CARTOON."] },
+    { from: 3960, to: 4960, key: 'train', lines: ["THE BULLET TRAIN DOESN'T STOP HERE. NOTHING STOPS HERE.", "TRAIN TRACKS IN A THEME PARK. I'M GONNA DIE IN A THEME PARK."], maxH: 60 },
   ],
+};
+
+/** The station attendant as the bells go (the cosplay voices: a conductor's cap over the wig). */
+export const STATION: ByPants = {
+  clean: ['PLEASE STAND BEHIND THE YELLOW LINE! THERE IS NO YELLOW LINE!', "THE TRAIN IS ALWAYS ON TIME! IT'S ALWAYS COMING!", 'NEXT STOP: NOT HERE!'],
+  shitty: ['SIR, THE TRAIN HAS A STRICT NO-SMELL POLICY!', "PLEASE STAND BEHIND THE YELLOW LINE! IS THAT YOURS?!"],
+  nude: ['SIR, THE TRAIN REQUIRES PANTS! ALL TRAINS DO!', 'PLEASE STAND BEHIND THE YELLOW LINE! AND COVER YOUR BULLET!'],
 };
 
 export const NINJA: ByPants = {
@@ -96,8 +106,12 @@ export const HURT: HurtTable = {
     hurt: ['THE ROBOT FISH HIT ME!', 'A GIANT FISH! IN MY FACE!', 'FUCK THIS FISH!'],
     death: ['KILLED BY A KOI', 'SLAPPED BY A ROBOT FISH'],
   },
+  'm2:fl_bullet_train': {
+    hurt: ['THE BULLET TRAIN! RIGHT IN MY EVERYTHING!', 'HIT BY A TRAIN! A FAST ONE!', "IT DIDN'T EVEN SLOW DOWN!"],
+    death: ['HIT BY THE BULLET TRAIN', 'RIGHT ON TIME'],
+  },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.ninja, NINJA], [V.sumo, SUMO], [V.samurai, SAMURAI], [V.cosplay, COSPLAY]], {
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.ninja, NINJA], [V.sumo, SUMO], [V.samurai, SAMURAI], [V.cosplay, COSPLAY], [{ m: V.cosplay.f, f: V.cosplay.f }, STATION]], {
   [V.cosplay.m]: SCREAM, [V.cosplay.f]: SCREAM,
 });

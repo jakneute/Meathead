@@ -4,7 +4,8 @@
 // cast), the VENDING-MACHINE ALLEY (machines to climb, one stacked on another), then THE FIVE-STORY PAGODA, climbed
 // inside floor by floor (its doors at the bottom, a ninja a floor; out over the top roof and down its eaves on the far
 // side: the eaves climb back up, too), the SUMO RING on its clay mound (a sumo stomping), the stone lanterns, the
-// manga stand, to the border with Morocco.
+// manga stand; then THE BULLET TRAIN (station.ts, job 4b: two Fujis climbed over, the track between them that the
+// Shinkansen blasts along, the gantries and walkway out of its way), to the border with Morocco.
 //
 // Crude (the first pass): readable boxes with full game feel. Checkpoints 50-59. Outdoors: the time of day's light.
 
@@ -24,6 +25,7 @@ import {
 } from '../kit';
 import { TALK } from './lines';
 import './kinds';
+import { STATION_CHECKPOINTS, buildStation, updateStation, drawStationBack, drawStationFront, stationLamps } from './station';
 
 const { x0, x1 } = SECTIONS.japan;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -67,6 +69,7 @@ export const JAPAN_CHECKPOINTS = [
   { name: 'JAPAN: THE KOI POND', cp: 51, x: X(740), y: GY },
   { name: 'JAPAN: THE PAGODA', cp: 52, x: X(1720), y: GY },
   { name: 'JAPAN: THE SUMO RING', cp: 53, x: X(2330), y: GY },
+  ...STATION_CHECKPOINTS,
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -201,6 +204,7 @@ export const japan: ForeignSection = {
   checkpoints: JAPAN_CHECKPOINTS,
   build: (state) => {
     layOwn(state, runsAround(x0, x1, [POND]));
+    buildStation(state);
     poolSteps(state, POND);
     for (const [a, b] of TORII) { ledge(state, X(a), Y(KASAGI), b - a, { hidden: true, tag: 'jp-torii' }); ledge(state, X(a) + 10, Y(NUKI), b - a - 20, { hidden: true, tag: 'jp-torii' }); }
     for (const [a, b] of STONES) ledge(state, X(a), Y(STONE_TOP), b - a, { hidden: true, tag: 'jp-stone' });
@@ -218,6 +222,7 @@ export const japan: ForeignSection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, f = state.frame;
     pavilionTalk(state, 'jp', x0, GY, TALK);
+    updateStation(ctx);
     poolZones(state, 'jp-pond', [POND]);
     // The koi: the bubbles, then out and over in an arc; it hits whoever's in the way (him, the cast)
     const k = koiAt(f), near = Math.abs(p.pos.x - (POND.a + POND.b) / 2) < 800;
@@ -263,7 +268,7 @@ export const japan: ForeignSection = {
     if (onScreen(v, X(PAGODA.a) - 120, X(PAGODA.a))) postBoard(c, X(1640), GY, ['FIVE-STORY PAGODA', 'NO ELEVATOR. NINJAS.'], LOOKS.japan(1), '#F8FAFC', undefined, 150);
     if (onScreen(v, X(2300), X(2440))) postBoard(c, X(2350), GY, ['SUMO RING', 'NO SHOES', 'NO SHIRT', 'NO PROBLEM'], LOOKS.japan(1), '#FEF3C7', undefined, 140);
     if (onScreen(v, X(MANGA.a), X(MANGA.b))) hungBoard(c, X(3070), Y(MANGA.h) - 4, Y(MANGA.h) - 40, ['MANGA', '(JAPANESE COMICS)', '(READ BACKWARDS)'], LOOKS.japan(1), '#FEF3C7');
-    if (onScreen(v, X(3380), X(3580))) postBoard(c, X(3480), GY, ['LEAVING JAPAN', 'SAYONARA (THANK YOU)'], LOOKS.japan(1), '#F8FAFC', undefined, 100);
+    drawStationBack(c, v, state);
     if (onScreen(v, X(20), X(120))) drawFlag(c, X(40), f);
     void mix; void wall; void hole;
   },
@@ -271,6 +276,7 @@ export const japan: ForeignSection = {
     const v = viewIn(state), f = state.frame;
     drawPoolFront(c, v, POND, f);
     drawKoi(c, v, f);
+    drawStationFront(c, v, state);
   },
   outdoors: () => 1,
   lamps: (state) => {
@@ -278,6 +284,7 @@ export const japan: ForeignSection = {
     for (const [a, b, h] of LANTERNS) if (onScreen(v, X(a), X(b))) out.push({ x: X((a + b) / 2), y: Y(h) + 20, r: 110, a: 0.45, color: '#FDE68A' });
     if (onScreen(v, X(1240), X(1660))) out.push({ x: X(1450), y: Y(120), r: 220, a: 0.45, color: '#E0F2FE' });
     for (const lx of [3160, 3220]) if (onScreen(v, X(lx), X(lx))) out.push({ x: X(lx), y: GY - 94, r: 90, a: 0.4, color: '#FEF3C7' });
+    out.push(...stationLamps(v, state.frame));
     return out;
   },
 };
