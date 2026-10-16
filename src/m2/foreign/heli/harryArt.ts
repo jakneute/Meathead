@@ -13,25 +13,33 @@ const INK = '#1A0B06';
 export type HarryPose = 'stand' | 'wave' | 'pilot' | 'shoved' | 'fall' | 'jet' | 'aim' | 'fire' | 'gloat';
 export interface HarryLook { pose: HarryPose; f: number; facing?: 1 | -1; mad?: boolean; talking?: boolean; jetpack?: boolean; rot?: number; scale?: number; launcher?: boolean }
 
-const SKIN = ['#8A5A3C', '#C98E66', '#E2AC84', '#F2C9A6'];
+// (exported for job 5's arena: harry/rambo.ts draws him jacked with the same pieces)
+export const SKIN = ['#8A5A3C', '#C98E66', '#E2AC84', '#F2C9A6'];
 const JACKET = ['#2F3A1E', '#4B5A2C', '#66773C', '#83954F'];
-const DENIM = ['#2A3E66', '#3D5A8A', '#5677AA', '#7D9AC4'];
-const GRAY = ['#6B6B6B', '#9CA3AF', '#C7CCD3', '#E5E7EB'];
-const TIEDYE = ['#DC2626', '#F97316', '#FACC15', '#22C55E', '#3B82F6', '#A855F7'];
+export const DENIM = ['#2A3E66', '#3D5A8A', '#5677AA', '#7D9AC4'];
+export const GRAY = ['#6B6B6B', '#9CA3AF', '#C7CCD3', '#E5E7EB'];
+export const TIEDYE = ['#DC2626', '#F97316', '#FACC15', '#22C55E', '#3B82F6', '#A855F7'];
 
-const fill = (c: Ctx, col: string, path: () => void, line = 1.4) => {
+/** Two hex colors mixed (k of the second). */
+export const mixHex = (a: string, b: string, k: number) => {
+  const p = (h: string, i: number) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16);
+  const ch = (i: number) => Math.round(p(a, i) + (p(b, i) - p(a, i)) * k).toString(16).padStart(2, '0');
+  return `#${ch(0)}${ch(1)}${ch(2)}`;
+};
+
+export const fill = (c: Ctx, col: string, path: () => void, line = 1.4) => {
   c.beginPath(); path(); c.fillStyle = col; c.fill(); c.strokeStyle = INK; c.lineWidth = line; c.lineJoin = 'round'; c.stroke();
 };
-const rect = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
+export const rect = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
 
 /** A limb: a fat inked line from (x0, y0) to (x1, y1), then its lit edge. */
-const limb = (c: Ctx, x0: number, y0: number, x1: number, y1: number, w: number, col: string, lit: string) => {
+export const limb = (c: Ctx, x0: number, y0: number, x1: number, y1: number, w: number, col: string, lit: string) => {
   c.lineCap = 'round';
   c.strokeStyle = INK; c.lineWidth = w + 2.4; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
   c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
   c.strokeStyle = lit; c.lineWidth = Math.max(1, w * 0.3); c.beginPath(); c.moveTo(x0 - w * 0.2, y0 - w * 0.15); c.lineTo(x1 - w * 0.2, y1 - w * 0.15); c.stroke();
 };
-const hand = (c: Ctx, x: number, y: number, fist = false) => {
+export const hand = (c: Ctx, x: number, y: number, fist = false) => {
   fill(c, SKIN[2], () => c.arc(x, y, fist ? 4.2 : 3.8, 0, Math.PI * 2), 1.2);
   rect(c, x - 2, y - 2.5, 2, 2, SKIN[3]);
   if (!fist) { c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 2, y - 3); c.lineTo(x + 5, y - 6); c.moveTo(x + 3, y - 1); c.lineTo(x + 6, y - 3); c.stroke(); }
@@ -63,16 +71,19 @@ const launcher = (c: Ctx, firing: boolean) => {
   else for (let i = 0; i < 4; i++) { c.fillStyle = i % 2 ? '#FDE047' : '#F97316'; c.beginPath(); c.arc(40 + i * 5, -58.5 + (i % 2 ? 2 : -2), 7 - i, 0, Math.PI * 2); c.fill(); }
 };
 
-/** His head (the helmet, the ponytail, the glasses, the goatee, his face by his mood). */
-const head = (c: Ctx, f: number, mad: boolean, talking: boolean, hx: number, hy: number) => {
+/** His head (the helmet, the ponytail, the glasses, the goatee, his face by his mood). `bandana`: the helmet off (job
+ *  5's arena: the Rambo reveal), his gray hair swept back under a red bandana, its tails flying out behind; `green`
+ *  (0..1): airsick. */
+export const head = (c: Ctx, f: number, mad: boolean, talking: boolean, hx: number, hy: number, o: { bandana?: boolean; green?: number } = {}) => {
   // (the ponytail out the back of the helmet, swinging)
   const sw = Math.sin(f * 0.15) * 2;
   fill(c, GRAY[1], () => { c.moveTo(hx - 8, hy - 6); c.quadraticCurveTo(hx - 18, hy - 2 + sw, hx - 17, hy + 12 + sw); c.lineTo(hx - 13, hy + 13 + sw); c.quadraticCurveTo(hx - 12, hy, hx - 5, hy - 2); c.closePath(); }, 1.2);
   rect(c, hx - 14, hy + 2 + sw, 4, 2, '#DC2626');
   // (the face)
-  const skin = mad ? '#E89A7A' : SKIN[2];
+  const g = o.green ?? 0, sick = (col: string) => (g > 0 ? mixHex(col, '#84CC16', g * 0.55) : col);
+  const skin = sick(mad ? '#E89A7A' : SKIN[2]);
   fill(c, skin, () => c.ellipse(hx + 1, hy, 10, 11, 0, 0, Math.PI * 2));
-  rect(c, hx + 5, hy - 4, 4, 6, mad ? '#F0B49A' : SKIN[3]);
+  rect(c, hx + 5, hy - 4, 4, 6, sick(mad ? '#F0B49A' : SKIN[3]));
   rect(c, hx - 8, hy + 2, 3, 6, SKIN[1]);
   // (an ear)
   fill(c, SKIN[1], () => c.ellipse(hx - 6, hy + 1, 2.5, 3.5, 0, 0, Math.PI * 2), 1);
@@ -95,6 +106,18 @@ const head = (c: Ctx, f: number, mad: boolean, talking: boolean, hx: number, hy:
   else { c.moveTo(hx - 1, hy - 8); c.quadraticCurveTo(hx + 2, hy - 10, hx + 4, hy - 8.5); c.moveTo(hx + 7, hy - 8.5); c.quadraticCurveTo(hx + 9, hy - 10, hx + 12, hy - 8); }
   c.stroke();
   if (mad) { c.strokeStyle = '#B91C1C'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(hx - 3, hy - 12); c.lineTo(hx - 1, hy - 9); c.lineTo(hx - 3, hy - 7); c.stroke(); }
+  if (o.bandana) {
+    // (gray hair swept back over the top, the red bandana tied round his forehead, the knot and its tails flying)
+    fill(c, GRAY[1], () => { c.moveTo(hx - 10, hy - 4); c.quadraticCurveTo(hx - 11, hy - 15, hx + 1, hy - 14); c.quadraticCurveTo(hx + 11, hy - 14, hx + 11, hy - 8); c.lineTo(hx - 9, hy - 6); c.closePath(); }, 1.1);
+    rect(c, hx - 6, hy - 13, 9, 2, GRAY[3]); rect(c, hx - 8, hy - 10, 3, 2, GRAY[2]);
+    fill(c, '#B91C1C', () => { c.moveTo(hx - 10, hy - 9); c.lineTo(hx + 11, hy - 10); c.lineTo(hx + 11, hy - 6); c.lineTo(hx - 10, hy - 4); c.closePath(); }, 1.1);
+    rect(c, hx - 8, hy - 9, 18, 1.5, '#EF4444'); rect(c, hx - 6, hy - 6, 2, 1, '#7F1D1D'); rect(c, hx + 2, hy - 7, 2, 1, '#7F1D1D');
+    const fl = Math.sin(f * 0.3) * 3, fl2 = Math.sin(f * 0.3 + 1.3) * 3;
+    fill(c, '#991B1B', () => c.ellipse(hx - 11, hy - 7, 2.6, 2.2, 0, 0, Math.PI * 2), 1);
+    fill(c, '#B91C1C', () => { c.moveTo(hx - 12, hy - 8); c.quadraticCurveTo(hx - 20, hy - 9 + fl, hx - 25, hy - 6 + fl); c.lineTo(hx - 23, hy - 3 + fl); c.quadraticCurveTo(hx - 18, hy - 5 + fl, hx - 12, hy - 6); c.closePath(); }, 1);
+    fill(c, '#991B1B', () => { c.moveTo(hx - 12, hy - 6); c.quadraticCurveTo(hx - 18, hy - 2 + fl2, hx - 22, hy + 2 + fl2); c.lineTo(hx - 19, hy + 3 + fl2); c.quadraticCurveTo(hx - 16, hy - 1 + fl2, hx - 11, hy - 5); c.closePath(); }, 1);
+    return;
+  }
   // (the helmet: white, the visor flipped up, the peace sign on its side)
   fill(c, '#F8FAFC', () => { c.moveTo(hx - 11, hy - 3); c.quadraticCurveTo(hx - 12, hy - 17, hx + 1, hy - 17); c.quadraticCurveTo(hx + 13, hy - 17, hx + 12, hy - 7); c.lineTo(hx - 11, hy - 6); c.closePath(); });
   rect(c, hx - 9, hy - 15, 6, 3, '#FFFFFF'); rect(c, hx + 5, hy - 10, 6, 3, '#CBD5E1');
@@ -103,7 +126,7 @@ const head = (c: Ctx, f: number, mad: boolean, talking: boolean, hx: number, hy:
 };
 
 /** The tie-dye shirt: a rainbow spiral of bands, clipped to the torso. */
-const tieDye = (c: Ctx, path: () => void, cx: number, cy: number, f: number) => {
+export const tieDye =(c: Ctx, path: () => void, cx: number, cy: number, f: number) => {
   c.save(); c.beginPath(); path(); c.clip();
   for (let r = 22, i = 0; r > 0; r -= 3.2, i++) { c.fillStyle = TIEDYE[(i + (f >> 5)) % TIEDYE.length]; c.beginPath(); c.ellipse(cx + Math.sin(i) * 1.5, cy + Math.cos(i) * 1.5, r, r * 0.9, 0.4, 0, Math.PI * 2); c.fill(); }
   c.restore();
