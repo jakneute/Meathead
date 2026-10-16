@@ -4,7 +4,8 @@
 // aboard swinging the pole. Then the PALACE (pink and white diamonds, balconies stacked up to its roof: the opera
 // singer's high note up there, a small ammo on top), the SECOND CANAL (two gondolas in step: ride one, hop to the
 // other), and the LEANING TOWER OF PIZZA, climbed floor by floor (each floor further out than the one under it; a
-// nonna and a small health at the top). The piazza again, to the border with Japan.
+// nonna and a small health at the top). The piazza again; then IL FORNO and THE ROOFTOPS (oven.ts, job 4b: the
+// pizza-oven tunnel's burners and chimneys, the terracotta houses up the hill), to the border with Japan.
 //
 // The canals are water (he swims; climbs out by the steps at each end). Crude (the first pass): readable boxes with
 // full game feel. Checkpoints 40-49. Outdoors: the time of day's light.
@@ -25,6 +26,7 @@ import {
 } from '../kit';
 import { TALK } from './lines';
 import './kinds';
+import { OVEN_CHECKPOINTS, buildOven, updateOven, drawOvenBack, drawOvenFront, ovenLamps } from './oven';
 
 const { x0, x1 } = SECTIONS.italy;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -63,6 +65,7 @@ export const ITALY_CHECKPOINTS = [
   { name: 'ITALY: THE GRAND CANAL', cp: 41, x: X(930), y: GY },
   { name: 'ITALY: THE PALACE', cp: 42, x: X(1860), y: GY },
   { name: 'ITALY: THE LEANING TOWER', cp: 43, x: X(3140), y: GY },
+  ...OVEN_CHECKPOINTS,
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -160,6 +163,7 @@ export const italy: ForeignSection = {
   checkpoints: ITALY_CHECKPOINTS,
   build: (state) => {
     layOwn(state, runsAround(x0, x1, POOLS));
+    buildOven(state);
     for (const p of POOLS) poolSteps(state, p);
     solid(state, X(OVEN.a), Y(OVEN.h), OVEN.b - OVEN.a, OVEN.h, { hidden: true, tag: 'it-oven' });
     for (const [a, b, h] of [...STUBS, ...PALACE, ...TOWER]) ledge(state, X(a), Y(h), b - a, { hidden: true, tag: 'it-ledge' });
@@ -174,6 +178,7 @@ export const italy: ForeignSection = {
     const { state } = ctx, it = itaOf(state), f = state.frame;
     pavilionTalk(state, 'it', x0, GY, TALK);
     poolZones(state, 'it-canals', POOLS);
+    updateOven(ctx);
     it.boats.forEach((m, i) => moveMover(state, m, boatX(i, f), boatY(i, f)));
     return controls;
   },
@@ -203,19 +208,21 @@ export const italy: ForeignSection = {
     if (onScreen(v, X(900), X(1000))) postBoard(c, X(900), GY, ['PONTE CLOSED', 'FOR REPAIRS', 'TAKE A GONDOLA $40'], LOOKS.italy(1), '#1E3A8A', undefined, 120);
     if (onScreen(v, X(2240), X(2300))) postBoard(c, X(2270), GY, ['GRAND CANAL TWO', 'NO SWIMMING (EVER)'], LOOKS.italy(1), '#1E3A8A', undefined, 100);
     if (onScreen(v, X(3120), X(3180))) postBoard(c, X(3140), GY, ['THE LEANING', 'TOWER OF PIZZA'], LOOKS.italy(1), '#7F1D1D', undefined, 110);
-    if (onScreen(v, X(3800), X(4000))) postBoard(c, X(3920), GY, ['LEAVING ITALY', 'ARRIVEDERCI (BYE)'], LOOKS.italy(1), '#14532D', undefined, 100);
+    drawOvenBack(c, v, state);
     if (onScreen(v, X(20), X(120))) flagPole(c, X(40), GY, 200, ['#009246', '#F8FAFC', '#CE2B37'], f, true);
     void mix; void wall; void hole;
   },
   drawFront: (c, state) => {
     const v = viewIn(state), f = state.frame;
     for (const p of POOLS) drawPoolFront(c, v, p, f);
+    drawOvenFront(c, v, state);
   },
   outdoors: () => 1,
   lamps: (state) => {
     const v = viewIn(state), out: Light[] = [];
     if (onScreen(v, X(OVEN.a), X(OVEN.b))) out.push({ x: X(760), y: Y(OVEN.h) + 60, r: 120, a: 0.55, color: '#FB923C' });
     for (const rx of [1950, 2150]) if (onScreen(v, X(rx), X(rx))) out.push({ x: X(rx), y: Y(180), r: 130, a: 0.4, color: '#FDE68A' });
+    out.push(...ovenLamps(v, state.frame));
     return out;
   },
 };
