@@ -13,10 +13,10 @@
 //   helipad on the promenade; the flight goes on high over it). HELICOPTER HARRY's arena is cut to (Harry's rocket and
 //   the crash put him there), so it sits on its own past a generous gap.
 //
-// Budget (OWNERSHIP.md): the land plays about as long as Hollywood Land (~79000 world px of play there). The streets
-// ~39000 px of play (the pavilions ~3600-3800 each, China's Great Wall 5200 counting its climb by playtime); the
-// helicopter about as long again to play (the shooter is auto-scrolled: count it
-// by time, ~7 min), then Harry.
+// Budget (OWNERSHIP.md): the land is TWO long sequences (the user's), the pavilions and the helicopter, about as long
+// to play as each other. The streets ~57800 px (job 4b lengthened every pavilion ~50%: 5400-6200 each, China's Great
+// Wall 7600 with its second ridge; every one with more climbing); the helicopter about as long again to play (the
+// shooter has one fixed screen: count it by time, ~10 min), then Harry.
 //
 // Shared file (see OWNERSHIP.md): section owners may only append minimally, and must re-read it before editing.
 
@@ -30,31 +30,31 @@ export const FLX = 600000;
 export const SECTIONS = {
   /** The way in from the hub (FOREIGN LANDS' gate), then MEXICO: the pyramid climbed up and over (its dusk-lit
    *  marketplace plaza inside, under the terraces), the taco cart, papel picado, the fake volcano. */
-  mexico: { x0: FLX, x1: FLX + 4200 },
+  mexico: { x0: FLX, x1: FLX + 6200 },
   /** NORWAY: the stave church climbed, the longship on the wave machine's pool, troll statues, the fjord. */
-  norway: { x0: FLX + 4200, x1: FLX + 8000 },
+  norway: { x0: FLX + 6200, x1: FLX + 11800 },
   /** CHINA: THE GREAT WALL, the land's big climb (ramparts up a ridge, watchtowers climbed inside, the gate tower, the
    *  pagoda at the top), the dragon dance, fireworks. */
-  china: { x0: FLX + 8000, x1: FLX + 13200 },
+  china: { x0: FLX + 11800, x1: FLX + 19400 },
   /** GERMANY: the biergarten, the giant cuckoo clock's wheel of figures up to the castle's battlements. */
-  germany: { x0: FLX + 13200, x1: FLX + 17000 },
+  germany: { x0: FLX + 19400, x1: FLX + 25000 },
   /** ITALY: Venice: the canals and their gondolas, the palace, the little leaning tower climbed. */
-  italy: { x0: FLX + 17000, x1: FLX + 21000 },
-  /** JAPAN (stub): the five-story pagoda, torii gates, a koi pond, a vending-machine alley. */
-  japan: { x0: FLX + 21000, x1: FLX + 24600 },
-  /** MOROCCO (stub): the bazaar's rooftops and hanging carpets, the minaret-ish tower. */
-  morocco: { x0: FLX + 24600, x1: FLX + 28200 },
-  /** FRANCE (stub): a Paris street, a cafe, an Eiffel-ish tower base climbed. */
-  france: { x0: FLX + 28200, x1: FLX + 31800 },
-  /** UNITED KINGDOM (stub): a London street, phone booths, a double-decker bus, a pub, fog. */
-  uk: { x0: FLX + 31800, x1: FLX + 35400 },
-  /** CANADA (stub): the Rockies, a waterfall climb, a lumber camp. */
-  canada: { x0: FLX + 35400, x1: FLX + 39000 },
+  italy: { x0: FLX + 25000, x1: FLX + 30800 },
+  /** JAPAN: the five-story pagoda, torii gates, a koi pond, a vending-machine alley. */
+  japan: { x0: FLX + 30800, x1: FLX + 36200 },
+  /** MOROCCO: the bazaar's rooftops and hanging carpets, the minaret-ish tower. */
+  morocco: { x0: FLX + 36200, x1: FLX + 41600 },
+  /** FRANCE: a Paris street, a cafe, an Eiffel-ish tower base climbed. */
+  france: { x0: FLX + 41600, x1: FLX + 47000 },
+  /** UNITED KINGDOM: a London street, phone booths, a double-decker bus, a pub, fog. */
+  uk: { x0: FLX + 47000, x1: FLX + 52400 },
+  /** CANADA: the Rockies, a waterfall climb, a lumber camp. */
+  canada: { x0: FLX + 52400, x1: FLX + 57800 },
   /** HELICOPTER RIDES ACROSS THE WORLD: walked into off the end of Canada (the helipad, the queue he skips, the
    *  boarding), Harry's tolerance tour, the jacking, the shooter (high over the helipad: heli/geo.ts). */
-  heli: { x0: FLX + 39000, x1: FLX + 42000 },
+  heli: { x0: FLX + 57800, x1: FLX + 60800 },
   /** HELICOPTER HARRY (stub): where the crash puts him, the land's boss. */
-  harry: { x0: FLX + 52000, x1: FLX + 55000 },
+  harry: { x0: FLX + 71000, x1: FLX + 74000 },
 } as const;
 export type ForeignId = keyof typeof SECTIONS;
 export const SECTION_ORDER: ForeignId[] = ['mexico', 'norway', 'china', 'germany', 'italy', 'japan', 'morocco', 'france', 'uk', 'canada', 'heli', 'harry'];

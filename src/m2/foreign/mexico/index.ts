@@ -5,7 +5,8 @@
 // over (mariachis and hat throwers up the steps, the TEMPLE OF THE SUN (GIFT SHOP) on top, a small ammo on its roof),
 // and under the terraces, inside it, the dusk-lit MERCADO plaza (string lights, stalls, a painted sunset: the blind
 // pinata host and the luchador down there, a small health): over or through, either way. Then the cantina (a hat
-// thrower up on its balcony) and the lot of them mixed, to the border with Norway.
+// thrower up on its balcony) and the lot of them mixed; then LA QUEBRADA (cliff.ts, job 4b: the fiberglass cliff
+// climbed, the cliff divers plunging into the dive pool), to the border with Norway.
 //
 // Crude (the first pass): readable boxes with full game feel. Checkpoints 0-9. Outdoors: the time of day's light.
 
@@ -26,6 +27,7 @@ import {
 } from '../kit';
 import { TALK } from './lines';
 import './kinds';
+import { CLIFF_FROM, CLIFF_CHECKPOINTS, DIVE_POOL, cliffRuns, buildCliff, updateCliff, cliffWater, drawCliffBack, drawCliffFront, cliffLamps } from './cliff';
 
 const { x0, x1 } = SECTIONS.mexico;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -58,6 +60,7 @@ export const MEXICO_CHECKPOINTS = [
   { name: 'FOREIGN LANDS', cp: 0, x: X(150), y: GY },
   { name: 'MEXICO: THE PYRAMID', cp: 1, x: X(1440), y: GY },
   { name: 'MEXICO: THE CANTINA', cp: 2, x: X(3200), y: GY },
+  ...CLIFF_CHECKPOINTS,
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -137,7 +140,8 @@ export const mexico: ForeignSection = {
   id: 'mexico', x0, x1,
   checkpoints: MEXICO_CHECKPOINTS,
   build: (state) => {
-    layOwn(state, [{ x1: x0 - 300, y1: GY, x2: x1, y2: GY, surface: 'hard' }]);
+    layOwn(state, [{ x1: x0 - 300, y1: GY, x2: X(CLIFF_FROM), y2: GY, surface: 'hard' }, ...cliffRuns()]);
+    buildCliff(state);
     endWalls(state, 'mexico', { right: false });
     for (const [a, b, h] of TERRACES) ledge(state, X(a), Y(h), b - a, { hidden: true, tag: 'mx-terrace' });
     solid(state, X(SHRINE.a), Y(SHRINE.h), SHRINE.b - SHRINE.a, SHRINE.h - 400, { hidden: true, tag: 'mx-shrine' });
@@ -153,15 +157,20 @@ export const mexico: ForeignSection = {
       paSay(state, pickLine(byPants(state, PA_WELCOME)), () => { const o = streetsOf(state); o.saidAt = state.frame; meatheadSays(state, pickLine(ARRIVE), true); });
     });
     if (p.pos.x - x0 > 450 || state.checkpoint > 0) pavilionTalk(state, 'mx', x0, GY, TALK);
+    updateCliff(ctx);
     return controls;
   },
+  waterBodyAt: (_state, x, y) => cliffWater(x, y),
+  drawFront: (c, state) => drawCliffFront(c, viewIn(state), state),
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame;
     // (the promenade first: what stands on it, set back, stands on it, not under it)
-    promenade(c, v, x0 - 300, x1, '#E7D9BE', '#9C8462');
+    promenade(c, v, x0 - 300, DIVE_POOL.a, '#E7D9BE', '#9C8462');
+    promenade(c, v, DIVE_POOL.b, x1, '#E7D9BE', '#9C8462');
     drawGate(c, v, f);
     drawFronts(c, v);
     drawPyramid(c, v);
+    drawCliffBack(c, v, state);
     // (the pyramid's terraces, the posts holding them, the shrine; the taco cart)
     for (const [a, b, h] of TERRACES) if (onScreen(v, X(a), X(b))) { for (let x = X(a) + 20; x < X(b) - 10; x += 90) box(c, x, Y(h) + 16, 10, h - 16, hour(STONE_D)); }
     boxes3(c, v, [
@@ -174,13 +183,12 @@ export const mexico: ForeignSection = {
     // (the shrine's doorway and its sign; the plaza's sign over its arch)
     if (onScreen(v, X(SHRINE.a), X(SHRINE.b))) { box(c, X(SHRINE.a) + 70, Y(SHRINE.h) + 50, 40, 70, '#1C1014'); postBoard(c, X((SHRINE.a + SHRINE.b) / 2), Y(400), ['TEMPLE OF THE SUN', '(GIFT SHOP)'], LOOKS.mexico(1), '#7C2D12', undefined, 160); }
     // (papel picado, strung all along over the promenade; string lights through the plaza)
-    for (let rx = 400; rx < 4200; rx += 360) if (onScreen(v, X(rx), X(rx + 360))) swag(c, X(rx), Y(250), X(rx + 360), Y(250), 26, PICADO, 'flags');
+    for (let rx = 400; rx < 4300; rx += 360) if (onScreen(v, X(rx), X(rx + 360))) swag(c, X(rx), Y(250), X(rx + 360), Y(250), 26, PICADO, 'flags');
     for (let rx = PYR.a + 40; rx < PYR.b - 200; rx += 260) if (onScreen(v, X(rx), X(rx + 260))) swag(c, X(rx), Y(92), X(rx + 260), Y(92), 14, ['#FDE68A'], 'bulbs', 14);
     // (the signs: held up on posts, never with anything over them)
     if (onScreen(v, X(500), X(760))) postBoard(c, X(560), GY, ['MEXICO', "EUROPE'S MEXICO"], LOOKS.mexico(2), '#0F766E');
     if (onScreen(v, X(PYR.a - 200), X(PYR.a))) postBoard(c, X(PYR.a - 80), GY, ['MERCADO INSIDE', 'EVERYTHING $25'], LOOKS.mexico(1), '#7C2D12', undefined, 90);
     if (onScreen(v, X(3150), X(3350))) postBoard(c, X(3250), GY, ['SIESTA ZONE', 'NO NAPPING'], LOOKS.mexico(1), '#1E3A8A', undefined, 90);
-    if (onScreen(v, X(4000), X(4200))) postBoard(c, X(4100), GY, ['LEAVING MEXICO', 'NEXT: NORWAY'], LOOKS.mexico(1), '#7C2D12', undefined, 100);
     // (a cactus or two in pots by the fronts: scenery)
     for (const rx of [760, 1300, 3300]) if (onScreen(v, X(rx), X(rx + 40))) { const R = ramp6(dimmed('#15803D')); box(c, X(rx), GY - 70, 14, 60, R[3]); box(c, X(rx) - 10, GY - 50, 10, 6, R[3]); box(c, X(rx) - 10, GY - 62, 6, 12, R[3]); box(c, X(rx) - 6, GY - 12, 26, 12, dimmed('#B45309')); }
     void poly;
@@ -189,6 +197,7 @@ export const mexico: ForeignSection = {
   lamps: (state) => {
     const v = viewIn(state), out: Light[] = [];
     for (let rx = PYR.a + 170; rx < PYR.b; rx += 260) if (onScreen(v, X(rx), X(rx))) out.push({ x: X(rx), y: Y(80), r: 150, a: 0.5, color: '#FDE68A' });
+    out.push(...cliffLamps(v));
     return out;
   },
 };

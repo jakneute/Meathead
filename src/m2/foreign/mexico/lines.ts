@@ -33,7 +33,21 @@ export const TALK: PavilionTalk = {
     { from: 1500, to: 2100, key: 'pyramid', lines: ['A PYRAMID. THE GIFT SHOP\'S AT THE TOP. OF COURSE IT IS.', 'STAIRS. MY ASS IS GONNA FEEL THIS TOMORROW.'], minH: 150 },
     { from: 1700, to: 2900, key: 'plaza', lines: ["IT'S NIGHTTIME IN HERE. IT'S TWO IN THE AFTERNOON.", 'A FAKE SUNSET. INDOORS. I WANT A FAKE MARGARITA.'], maxH: 60 },
     { from: 3100, to: 3600, key: 'volcano', lines: ["A FAKE VOLCANO. IT'S A FOG MACHINE IN A CONE.", 'THE VOLCANO IS SMOKING. SO AM I, AFTER THIS.'] },
+    // (job 4b: La Quebrada, the cliff divers)
+    { from: 4250, to: 4700, key: 'quebrada', lines: ['CLIFF DIVERS. INTO SIX FEET OF WATER. FROM OHIO.', "A FIBERGLASS CLIFF. YOU CAN SEE THE SCREWS."] },
+    { from: 4820, to: 5480, key: 'clifftop', lines: ["THE GUY ON THE POLE IS CRYING. HE'S STILL GONNA JUMP.", "IT'S A LONG WAY DOWN. THE POOL LOOKS LIKE A BATHTUB."], minH: 560 },
+    { from: 5800, to: 6200, key: 'tequila', lines: ['TEQUILA. APPLE JUICE. FINE. I STILL WANT ONE.', 'APPLE JUICE TEQUILA. WHO IS THIS FOR?'] },
   ],
+};
+
+/** His own dive off the board into the pool. */
+export const DIVE_GAG = ['TEN. TEN. TEN. SUCK IT, OHIO.', 'CANNONBALL! THE JUDGES LOVED IT!', 'MY BALLS HIT THE WATER FIRST. NEVER AGAIN.'];
+
+/** The cast divers on the pole, before the plunge (the luchador voices). */
+export const DIVER: ByPants = {
+  clean: ["OLE! I CAN'T SWIM!", 'TEN POINTS, PLEASE! I HAVE A SCHOLARSHIP!', "FOURTH DIVE TODAY! I CAN'T FEEL MY FACE!", "IT'S SIX FEET DEEP! WHO APPROVED THIS?!"],
+  shitty: ["SOMETHING'S FLOATING IN THE POOL! IS THAT YOURS?!", "I'M NOT DIVING INTO THAT! ...I'M CONTRACTUALLY DIVING INTO THAT!"],
+  nude: ["NAKED DIVING ISN'T IN THE SHOW, DUDE!", "HE'S NAKED IN MY POOL! I'M AIMING FOR HIM!"],
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -88,6 +102,10 @@ export const HURT: HurtTable = {
     hurt: ['SUPLEXED! BY A GUY FROM OHIO!', 'MY BACK! MY WHOLE BACK!', 'FUCK! THE MASK GUY!'],
     death: ['PINNED. ONE. TWO. THREE.', 'SUPLEXED INTO THE AFTERLIFE'],
   },
+  'm2:fl_cliff_diver': {
+    hurt: ['A GUY FELL ON ME! FROM THE SKY!', 'OW! HIS FEET! IN MY FACE!', 'WATCH WHERE YOU DIVE, ASSHOLE!'],
+    death: ['DIVED ON FROM 80 FEET', 'A PERFECT TEN, ON HIS HEAD'],
+  },
 };
 
-export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.mariachi, MARIACHI], [V.sombrero, SOMBRERO], [V.pinata, PINATA], [V.luchador, LUCHADOR]]);
+export const VOICE_LINES = pavilionVoices(TALK, HURT, [[V.mariachi, MARIACHI], [V.sombrero, SOMBRERO], [V.pinata, PINATA], [V.luchador, LUCHADOR], [V.luchador, DIVER]], { meathead: DIVE_GAG });
