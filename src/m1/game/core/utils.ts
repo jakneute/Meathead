@@ -26,5 +26,5 @@ export const isOnScreen = (camera: { x: number; y: number; w?: number; h?: numbe
  * bounds): the camera's 800x600, or, in the press room (the finale, and the walk on before it: the view pulled right
  * back to take in all of it), all of what's drawn.
  */
-export const screenRect = (state: { camera: { x: number; y: number }; view?: { x: number; y: number; w: number; h: number }; stageId: string | null }) =>
-  (state.stageId === FINALE_STAGE || state.stageId === WALK_ON_STAGE) && state.view ? state.view : { x: state.camera.x, y: state.camera.y, w: 800, h: 600 };
+export const screenRect = (state: { camera: { x: number; y: number }; view?: { x: number; y: number; w: number; h: number }; viewIsScreen?: boolean; stageId: string | null }) =>
+  (state.stageId === FINALE_STAGE || state.stageId === WALK_ON_STAGE || state.viewIsScreen) && state.view ? state.view : { x: state.camera.x, y: state.camera.y, w: 800, h: 600 };

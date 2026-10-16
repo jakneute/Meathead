@@ -144,6 +144,9 @@ export interface GameState {
   shotDead?: { frame: number; dir: number };
   /** What of the world's on screen this frame (set as it's drawn): the camera's 800x600, or more of it zoomed out. */
   view?: { x: number; y: number; w: number; h: number };
+  /** The game's rules take `view` (the zoomed-out view as drawn) as the screen this frame, not the camera's 800x600: a
+   *  stage's zoomed-out play field (Meathead 2's helicopter), so what's on screen can be shot. Set by the stage. */
+  viewIsScreen?: boolean;
   /** The last frame a long death on its way offered SKIP >> (see skipDying). */
   dyingSkipAt?: number;
   /** Reached the boss this attempt: dying now respawns right outside his door (cleared when a stage starts). */
