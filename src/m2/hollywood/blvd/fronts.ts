@@ -127,7 +127,7 @@ const GOODS: Record<Goods, Paint> = {
   },
   liquor: (g, x, y, w, h) => {
     // (bottles in rows, lit from behind; a neon COLD BEER in the corner)
-    for (const sy of [y + h * 0.4, y + h * 0.72, y + h - 4]) { shelf(g, x, sy, w); for (let k = 0; k < w / 8 - 1; k++) { const bx = x + 4 + k * 8, col = ['#2A6A2A', '#8A4A1A', '#E8D8A8', '#4A1A3A', '#2A4A8A'][(k * 7 + Math.round(sy)) % 5], hh = 12 + (k % 3) * 3; box(g, bx, sy - hh, 6, hh, col); box(g, bx + 2, sy - hh - 4, 2, 4, col); box(g, bx, sy - hh, 1, hh, mix(col, '#FFFFFF', 0.4)); } }
+    for (const sy of [y + h * 0.4, y + h * 0.72, y + h - 4]) { shelf(g, x, sy, w); for (let k = 0; k < w / 8 - 1; k++) { const bx = x + 4 + k * 8, col = ['#2A6A2A', '#8A4A1A', '#E8D8A8', '#4A1A3A', '#2A4A8A'][(((k * 7 + Math.round(sy)) % 5) + 5) % 5], hh = 12 + (k % 3) * 3; box(g, bx, sy - hh, 6, hh, col); box(g, bx + 2, sy - hh - 4, 2, 4, col); box(g, bx, sy - hh, 1, hh, mix(col, '#FFFFFF', 0.4)); } }
     signText(g, 'COLD BEER', x + w - 34, y + 14, plain(1, 1, lit() ? '#FF5A8A' : '#8A3A4A'));
   },
   tours: (g, x, y, w, h) => {
