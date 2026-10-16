@@ -135,7 +135,7 @@ const paintLamp = (g: Ctx, horn: boolean, seed: number) => {
 };
 
 /** A street palm, near (a big one): its trunk ringed and stepped across, its skirt of dead fronds, its head of fans. */
-const paintPalm = (g: Ctx, h: number, seed: number) => {
+export const paintPalm = (g: Ctx, h: number, seed: number) => {
   const T = (c: string) => hour(c);
   // (the trunk: wide at the foot, ringed, lit down its left, a lean)
   const lean = (hash(seed) - 0.5) * 24;
@@ -361,7 +361,7 @@ const paintClosedSet = (g: Ctx, w: number, h: number) => {
   board(g, w / 2, -150, ['CLOSED', 'SET'], { sx: 2, sy: 2, fill: '#C8302A', stencil: true }, '#F4F0E8', STEEL, 6);
 };
 /** A sawhorse barricade (orange and white rails, a blinker), its sign on it. Feet at 0. */
-const paintSawhorse = (g: Ctx, text: string) => {
+export const paintSawhorse = (g: Ctx, text: string) => {
   const O = ['#4A1404', '#7C2408', '#B83C0C', '#EA6214', '#FB9440', '#FFC48A'];
   for (const lx of [-26, 22]) { box(g, lx - 1, -36, 6, 36, INK); box(g, lx, -36, 4, 36, O[3]); box(g, lx, -36, 1, 36, O[5]); poly(g, [[lx - 6, 0], [lx + 1, -12], [lx + 3, -12], [lx + 10, 0]], O[1]); }
   for (const by of [-34, -21]) { box(g, -33, by - 1, 66, 9, INK); for (let k = 0; k < 64; k += 8) box(g, -32 + k, by, Math.min(8, 64 - k), 7, (k / 8) % 2 ? '#F8FAFC' : O[3]); box(g, -32, by, 64, 1, 'rgba(255,255,255,0.5)'); }
@@ -369,7 +369,7 @@ const paintSawhorse = (g: Ctx, text: string) => {
   box(g, -4, -55, 8, 6, INK); box(g, -1, -50, 2, 2, INK);
 };
 /** A sign on a post (a stake, a pole), its board up top. Feet at 0. */
-const paintPostSign = (g: Ctx, lines: string[], bg: string, ink: string, h = 120) => {
+export const paintPostSign = (g: Ctx, lines: string[], bg: string, ink: string, h = 120) => {
   const S = STEEL.map(c => hour(c));
   post(g, 0, -h, 0, 5, S);
   board(g, 0, -h - 8, lines, plain(1, 1, ink), bg, S, 6);

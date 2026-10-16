@@ -8,7 +8,8 @@
 // of them over the flood tank, moving rigs (shuttles) up the water tower and over the pits. Steve's standees every
 // screen, the PA's plugs. At its end, the doors of DISASTER: THE RIDE.
 //
-// Laid out in layout.ts; drawn in art.ts (on the boulevard's paint.ts); the effects in effects.ts.
+// Laid out in layout.ts; drawn in art.ts (on the boulevard's kit: far.ts, ground.ts, fronts.ts, props.ts, paint.ts); the
+// effects in effects.ts.
 // Target: ~9000 px of play, ~1.8 min. Checkpoints 30-39. Outdoors: the time of day's light.
 //
 // Revisits differ: once the real disasters are on (disaster's lever: section.ts's realDisastersOn), the lot shows the
@@ -30,7 +31,7 @@ import { outOf } from '../blvd/state';
 import { updateShots, drawShots } from '../blvd/shots';
 import { paSay, runThieves } from '../blvd';
 import { flash, BACK_Y } from '../blvd/paint';
-import { updateEffects, drawRainBack, drawRainFront, drawFloodBack, drawFloodFront, flungOut } from './effects';
+import { updateEffects, drawRainFront, drawFloodFront, flungOut } from './effects';
 import { drawLotBackdrop, drawLotBack, lotLamps } from './art';
 import { ARRIVE, DUMPSTER_AGAIN, GAG_LINES, FALL_SCREAM, LOT_VOICES, GOSSIP, GOSSIP_HIM, PA_LOT, PA_LEAK, PA_RAIN, PA_FLOOD, PA_STEVE_LOT, PA_DISASTER } from './lines';
 
@@ -114,7 +115,7 @@ export const lot: HollywoodSection = {
     return controls;
   },
   drawBackdrop: (c, state) => drawLotBackdrop(c, state),
-  drawBack: (c, state) => { drawLotBack(c, state); drawRainBack(c, state); drawFloodBack(c, state); },
+  drawBack: (c, state) => drawLotBack(c, state),
   drawFront: (c, state) => {
     const o = outOf(state), lt = mine(state);
     drawFloodFront(c, state); drawRainFront(c, state);
@@ -132,6 +133,6 @@ export const lot: HollywoodSection = {
     void DUMP;
   },
   outdoors: () => 1,
-  lamps: () => lotLamps(),
+  lamps: (state) => lotLamps(state),
   wires: () => WIRES,
 };

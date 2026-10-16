@@ -18,7 +18,7 @@ import {
 
 const W = CANVAS_WIDTH;
 /** How far toward him the street under his feet comes. */
-const BAND = 300;
+export const BAND = 300;
 /** The pavement's rows going back: the curb's top, the star row, the strip along the fronts. */
 const CURB_D = 0.986, ROW_A = 0.979, ROW_B = 0.9, STAR_D = 0.94;
 /** The movie palace's forecourt (instead of stars). */
@@ -30,7 +30,7 @@ export const PITS: Pit[] = [{ a: X(SINK.a), b: X(SINK.b), kind: 'sink' }, { a: X
 const FLOOR: [number, number][] = GROUND.map(([a, b]) => [X(a), X(b)]);
 
 /** A color going back (hazier the further). */
-const tint = (col: string, d: number) => mix(hour(col, 0.15), skyAt(0.9, timeOfDay()), (1 - d) * 0.3);
+export const tint = (col: string, d: number) => mix(hour(col, 0.15), skyAt(0.9, timeOfDay()), (1 - d) * 0.3);
 const Q = (c: Ctx, eye: View['eye'], xa: number, xb: number, d0: number, d1: number, col: string) => poly(c, [at(eye, xa, GY, d0), at(eye, xb, GY, d0), at(eye, xb, GY, d1), at(eye, xa, GY, d1)], col);
 const twoLines = (s: string) => {
   if (s.length <= 16) return [s];
@@ -161,7 +161,7 @@ export const drawPavement = (c: Ctx, v: View) => {
 
 /** A face going back from the play plane at x = e, down from GY (a hole's wall), to the fronts' depth: in courses
  *  (dirt and broken pavement, or the trench's poured concrete), darker going back and the deeper. */
-const wallBack = (c: Ctx, v: View, e: number, side: 1 | -1, kind: PitKind) => {
+export const wallBack = (c: Ctx, v: View, e: number, side: 1 | -1, kind: PitKind) => {
   const eye = v.eye, d = FRONT_D;
   if ((eye.x - e) * side <= 1) return;
   const bot = Math.min(GY + 1400, eye.y + (v.bot - eye.y) / d + 40);
@@ -295,7 +295,7 @@ const paintStreet = (g: Ctx, x0: number, w: number) => {
 
 /** A hole's near lip at the play plane: the street's edge (bent like the street) and the wall hung under it, darker
  *  the deeper (seen when he's looking at it). */
-const nearBank = (c: Ctx, v: View, e: number, side: 1 | -1, kind: PitKind) => {
+export const nearBank = (c: Ctx, v: View, e: number, side: 1 | -1, kind: PitKind) => {
   const ex = v.eye.x;
   if ((ex - e) * side <= 1) return;
   const Y1 = GY + BAND + 120;

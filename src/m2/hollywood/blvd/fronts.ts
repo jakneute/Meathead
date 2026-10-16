@@ -153,7 +153,7 @@ const GOODS: Record<Goods, Paint> = {
 // The fronts, painted flat (their foot at (0, 0), x across 0..w)
 
 /** The plywood showing: faint sheet seams, nail heads in rows, a sheet's raw edge along the top. */
-const plywood = (g: Ctx, w: number, h: number, R: string[]) => {
+export const plywood = (g: Ctx, w: number, h: number, R: string[]) => {
   for (let sx = 96; sx < w; sx += 96) { box(g, sx, -h, 1, h, R[1]); for (let y = -h + 8; y < -6; y += 16) box(g, sx + 2, y, 1, 1, R[1]); }
   box(g, 0, -h - 2, w, 2, dimmed(PLY[3])); box(g, 0, -h - 2, w, 1, dimmed(PLY[4]));
 };
@@ -275,14 +275,14 @@ const paintFront = (g: Ctx, f: Front) => {
 // What holds them up: 2x4s down to sandbags, going back toward the eye past their ends
 
 /** A 2x4 from one point to another (screen), inked, lit along one side. */
-const two4 = (c: Ctx, x0: number, y0: number, x1: number, y1: number, w: number) => {
+export const two4 = (c: Ctx, x0: number, y0: number, x1: number, y1: number, w: number) => {
   c.lineCap = 'butt';
   c.strokeStyle = INK; c.lineWidth = w + 2; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
   c.strokeStyle = dimmed(PLY[3]); c.lineWidth = w; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
   c.strokeStyle = dimmed(PLY[5]); c.lineWidth = Math.max(1, w * 0.3); c.beginPath(); c.moveTo(x0 - w * 0.25, y0 - w * 0.2); c.lineTo(x1 - w * 0.25, y1 - w * 0.2); c.stroke();
 };
 /** A pile of sandbags (screen), its middle-bottom at (x, y), `s` its scale. */
-const sandbags = (c: Ctx, x: number, y: number, s: number) => {
+export const sandbags = (c: Ctx, x: number, y: number, s: number) => {
   const S = SAND.map(dimmed);
   for (const [dx, dy, w, h] of [[-12, 0, 14, 7], [1, 0, 14, 7], [-6, -6, 14, 7]] as const) {
     const bx = x + dx * s, by = y + (dy - h) * s, bw = w * s, bh = h * s;
@@ -293,7 +293,7 @@ const sandbags = (c: Ctx, x: number, y: number, s: number) => {
   }
 };
 /** The bracing round a front's two ends (x0..x1 at the play plane's x, its top `top`), and its plywood edge. */
-const bracing = (c: Ctx, eye: View['eye'], x0: number, x1: number, top: number) => {
+export const bracing = (c: Ctx, eye: View['eye'], x0: number, x1: number, top: number) => {
   for (const [e, side] of [[x0, -1], [x1, 1]] as const) {
     const ex = e - side * 6;
     // (the plywood's edge: a sliver of raw sheet going back)
