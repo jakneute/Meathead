@@ -489,6 +489,31 @@ const drawStopBack = (c: Ctx, v: CView, i: number) => {
     if (s.door2 !== undefined) keep.push([X(s.door2) - 50, X(s.door2) + 50]);
     drawSet(c, v, pl, X(s.a) + 20, X(s.b) - 20, dy, keep, s.ledges.filter(([, h]) => h <= 160).map(([rx, , w]) => [X(rx), X(rx) + w]));
   }
+  // (the catwalk's janitor closet: built into a tall tiled plumbing chase that rises off the set's top behind it, so
+  // it stands against a wall, never hanging in the air; its pipes up it, the plywood edge going back like the set's)
+  if (s.upper) {
+    const cx = X(s.upper.x), top = Y(s.h + s.upper.h) - 150, base = dy - WALL_H + 2, hw = 62;
+    if (top < base && vis(v, cx - hw - 20, cx + hw + 20, top - 10, base, WALL_D)) {
+      const T = ramp6(hour('#8A8E96')), Pp = ramp6(hour('#9A6A3A'));
+      atDepth(c, v.eye, WALL_D, () => {
+        box(c, cx - hw - 1, top - 1, hw * 2 + 2, base - top + 1, INK);
+        box(c, cx - hw, top, hw * 2, base - top, T[3]);
+        for (let y = top + 10; y < base; y += 10) box(c, cx - hw, y, hw * 2, 1, T[2]);
+        for (let y = top, r = 0; y < base; y += 10, r++) for (let x = cx - hw + (r % 2 ? 0 : 10); x < cx + hw; x += 20) box(c, x, y, 1, Math.min(10, base - y), T[2]);
+        box(c, cx - hw, top, 3, base - top, T[4]); box(c, cx + hw - 4, top, 4, base - top, T[1]);
+        box(c, cx - hw, top, hw * 2, 3, T[5]);
+        // (the pipes up it: a soil stack and a supply line, their brackets)
+        for (const [px, pw] of [[cx - hw + 14, 8], [cx + hw - 20, 5]] as const) {
+          box(c, px - 1, top, pw + 2, base - top, INK); box(c, px, top, pw, base - top, Pp[3]); box(c, px, top, 2, base - top, Pp[5]);
+          for (let y = top + 20; y < base; y += 60) { box(c, px - 3, y, pw + 6, 4, INK); box(c, px - 2, y + 1, pw + 4, 2, T[4]); }
+        }
+      });
+      const P = pal().ply;
+      topBack(c, v.eye, cx - hw, cx + hw, top, WALL_D, WALL_D - 0.012, P, 2);
+      sideBack(c, v.eye, cx - hw, -1, top, base, WALL_D, WALL_D - 0.012, P, 1, false);
+      sideBack(c, v.eye, cx + hw, 1, top, base, WALL_D, WALL_D - 0.012, P, 1, false);
+    }
+  }
   // (the stop's number, big, on a board at the back on its posts)
   {
     const NL = deco('#F2C24A', '#4C0519', 3, 2), w = signW(`STOP ${i + 1}`, NL) + 30, bx = X(s.a + 200), by = dy - 300;
@@ -520,7 +545,7 @@ const drawStop = (c: Ctx, v: CView, state: GameState, i: number, co: Coaster) =>
   // (diegetic: the staff burst out of a stall marked STAFF ONLY, and the janitor's closet; the stairs are a restroom door)
   const cleared = !!state.stageMemo[CLEARED_MEMO(i)];
   door(c, v, X(s.door), dy, run.door, 'STAFF ONLY', '#FCA5A5', '#18181B', undefined, 'stall', pl);
-  if (s.upper) door(c, v, X(s.upper.x), Y(s.h + s.upper.h), run.upper, 'JANITOR', '#FDE68A', '#1E3A8A', undefined, 'closet', pl, 0.972);
+  if (s.upper) door(c, v, X(s.upper.x), Y(s.h + s.upper.h), run.upper, 'JANITOR', '#FDE68A', '#1E3A8A', undefined, 'closet', pl, WALL_D);
   if (s.door2 !== undefined) door(c, v, X(s.door2), dy, run.upper, 'JANITOR', '#FDE68A', '#1E3A8A', undefined, 'closet', pl);
   const fighting = run.phase === 'intro' || run.phase === 'fight';
   door(c, v, X(s.stairs), dy, 0, 'SERVICE STAIRS', '#86EFAC', '#14532D', fighting && !cleared ? 'red' : 'green', 'restroom', pl);
