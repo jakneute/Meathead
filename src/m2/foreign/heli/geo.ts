@@ -1,5 +1,5 @@
 // The helicopter's numbers: the helipad on the end of the streets (world x from the section's start), and the flight
-// field high over it (one fixed screen: the camera doesn't scroll, the world goes by instead, round the giant globe).
+// field high over it (one fixed view, zoomed out: the camera doesn't scroll; the park goes round below instead).
 
 import { SECTIONS, GY } from '../geometry';
 
@@ -14,24 +14,29 @@ export const PAD_O = { x: X(PAD_X), y: GY - 22 };
 /** His seat (feet) from the helicopter's origin: the back seat on the tour, the pilot's seat once he's jacked it. */
 export const SEAT_BACK = -26, SEAT_FRONT = 28;
 
-/** The flight's camera (fixed: its top-left, world). Far over the helipad, out of sight of it. */
+/** The flight, zoomed out (the user: "it should look more zoomed out"; the park laid out below and around it): the
+ *  stage's zoom at Z, so the field (world) is the screen over Z. Its top-left is (CAMX, CY), far over the helipad, out
+ *  of sight of it; the engine's camera sits where a zoom about the screen's middle shows exactly that (CAM_FLY). */
+export const Z = 0.65;
+export const SW = 800, SH = 600;
+export const W = SW / Z, H = SH / Z;
 export const CAMX = X(1100), CY = GY - 550 - 2400;
-export const W = 800, H = 600;
-/** Screen to world. */
-export const wx = (sx: number) => CAMX + sx, wy = (sy: number) => CY + sy;
+export const CAM_FLY = { x: CAMX + (W - SW) / 2, y: CY + (H - SH) / 2 };
+/** The flight's screen to world and back (the screen at the flight's zoom; the camera at CAM_FLY). */
+export const toWorld = (sx: number, sy: number) => ({ x: CAMX + sx / Z, y: CY + sy / Z });
+export const toScreen = (wx: number, wy: number) => ({ x: (wx - CAMX) * Z, y: (wy - CY) * Z });
+/** The patterns and the lackeys' spots were laid out on an 800x600 screen at 1:1: those places, in the field. */
+export const S = 1 / Z;
+export const fx = (sx: number) => CAMX + sx * S, fy = (sy: number) => CY + sy * S;
 
-/** His flying: top speed, how quickly he gets to it; where his feet are kept (screen). */
+/** His flying: top speed, how quickly he gets to it; where his feet are kept (field, from its top-left). */
 export const FLY_SPEED = 5.4, FLY_ACCEL = 0.22;
-export const FEET_X0 = 150, FEET_X1 = 770, FEET_Y0 = 120, FEET_Y1 = 560;
+export const FEET_X0 = 110 / Z, FEET_X1 = 780 / Z, FEET_Y0 = 112 / Z, FEET_Y1 = 586 / Z;
 
-/** The giant globe (screen space): its middle, its radius, and how far round (radians from its top) the landmark he's
- *  fighting stands. Upcoming ones stand further round ahead of it (smaller: further off), beaten ones roll away behind. */
-export const GLOBE = { cx: 380, cy: 1290, r: 820 };
-export const THETA_F = Math.asin((620 - GLOBE.cx) / GLOBE.r);
-/** A point on the globe's surface at angle `t` (from its top, clockwise): screen. */
-export const onGlobe = (t: number) => ({ x: GLOBE.cx + Math.sin(t) * GLOBE.r, y: GLOBE.cy - Math.cos(t) * GLOBE.r });
-/** Where the landmark he's fighting stands (its base: world). */
-export const BASE = { x: wx(onGlobe(THETA_F).x), y: wy(onGlobe(THETA_F).y) };
+/** Where the landmark he's fighting stands (its base, on the circuit: screen, then world). The park's camera (park.ts)
+ *  is fitted so the landmark round in front lands exactly here at the field's own scale. */
+export const BASE_SCREEN = { x: 600, y: 505 };
+export const BASE = toWorld(BASE_SCREEN.x, BASE_SCREEN.y);
 /** Mech legs: how tall (every landmark stands on a pair). */
 export const LEG = 54;
 
@@ -45,6 +50,6 @@ export const MEMO = {
   took: 'm2:fl_heli_took',
   /** The controls card shown (once a run). */
   tips: 'm2:fl_heli_tips',
-  /** How many landmarks are wrecked on the globe (Harry's arena shows them all). */
+  /** How many landmarks are wrecked round the circuit (Harry's arena shows them all). */
   wrecks: 'm2:fl_heli_wrecks',
 } as const;

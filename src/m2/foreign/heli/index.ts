@@ -5,16 +5,20 @@
 //     it yelling at him as he walks past all of them); HELICOPTER HARRY waving by his helicopter.
 //   THE BOARDING (a cutscene: HUD hidden, SKIP >> for the lot, from here to his taking the controls): he's at the front
 //     of the line, climbs in the back; Harry's welcome (no judgment: by his pants). Up off the pad, the camera going up
-//     with it, the giant globe coming up from under (tour.ts).
-//   THE TOUR: round the globe, the giant replicas coming round ("IN AMERICA, EVERYTHING IS BIGGER. EVEN OTHER PLACES."),
-//     Harry preaching tolerance and reusable straws; "SHUT UP, HIPPIE."; Harry out the door; Meathead over into the
-//     pilot's seat; Harry back up on the ride's emergency jetpack, the act dropped, swearing; the landmarks wake up
-//     (legs, googly eyes). No cut: the tour becomes the shooter.
-//   THE GAUNTLET (his: copter.ts the flying, mechs.ts the nine landmarks, goons.ts the lackeys between them, globe.ts
-//     the world going round): checkpoints 111-119, one per landmark (starting again at one: the globe round to it, the
-//     wrecks before it on the globe, straight into it). A big health + ammo after every one.
-//   THE END (a cutscene): Harry, furious, shoots him out of the sky with a rocket launcher; the fall; the white; Harry's
-//     arena (DOORS.harry.start: job 5's).
+//     with it and ZOOMING OUT, the park opening up below (park.ts: the clearing's orbit trick, the whole of Foreign Lands
+//     laid out round the lagoon, the giant landmarks stood round it on their circuit).
+//   THE TOUR: round the park, the giant replicas coming round on their plinths ("IN AMERICA, EVERYTHING IS BIGGER.
+//     EVEN OTHER PLACES."), Harry preaching tolerance and reusable straws; "SHUT UP, HIPPIE."; Harry out the door, all
+//     the way down onto the park's service road, flat on his back; Meathead over into the pilot's seat; Harry up, the
+//     act dropped, swearing, the ride's REMOTE out; the landmarks stir. No cut: the tour becomes the shooter.
+//   THE GAUNTLET (his: copter.ts the flying, mechs.ts the nine landmarks and each one's arrival, goons.ts the lackeys
+//     between them, park.ts the circuit going round): each landmark comes round in front, rises out of the ground and
+//     fights; the beaten ones' wrecks stay where they fell. Harry's on the ground the whole time, chasing along after
+//     the helicopter (on foot, jetpack hops), yelling up, keying the remote; out of the fight. Checkpoints 111-119, one
+//     per landmark (starting again at one: the park round to it, the wrecks before it in place, straight into it). A big
+//     health + ammo after every one.
+//   THE END (a cutscene): Harry, furious, shoots him out of the sky with a rocket launcher from the ground; the fall; the
+//     white; Harry's arena (DOORS.harry.start: job 5's).
 //
 // Back here after it's over (walking back from Harry's arena): no helicopter, a scorch on the pad, the ride closed, the
 // queue gone home.
@@ -37,12 +41,13 @@ import { byPants } from '../cast';
 import { registerHurts } from '../pavilion';
 import { viewIn, promenade, postBoard, onScreen, LOOKS, INK, dimmed, hour, setBack } from '../kit';
 import { heliOf, type Heli } from './state';
-import { x0, x1, X, GY, REFILL, CP_PAD, QUEUE_A, QUEUE_B, BOARD_AT, PAD_X, PAD_O, SEAT_BACK, SEAT_FRONT, CAMX, CY, W, H, CP_X, MEMO } from './geo';
+import { x0, x1, X, GY, REFILL, CP_PAD, QUEUE_A, QUEUE_B, BOARD_AT, PAD_X, PAD_O, SEAT_BACK, SEAT_FRONT, CAMX, CY, Z, SW, SH, CAM_FLY, BASE, toWorld, CP_X, MEMO } from './geo';
 import { flyCopter, updateRockets, drawCopter, drawRockets, drawCharges } from './copter';
 import { makeMechs, startMech, updateMechs, mechDone } from './mechs';
 import { WAVES, goonsLeft, sweepGoons } from './goons';
-import { drawFlightBackdrop, drawLandmarks, globeRise } from './globe';
-import { drawAttacks } from './mechArt';
+import { drawPark, roadY, panicAt, inWorld } from './park';
+import { drawAttacks, drawMech, mechLook } from './mechArt';
+import { drawStreetsBackdrop } from '../backdrop';
 import { drawHarry } from './harryArt';
 import { harrySays, guestShouts, quiet } from './talk';
 import {
@@ -57,10 +62,14 @@ const CHECKPOINTS = [
   ...MECHS.map((id, i) => ({ name: `HELICOPTER: ${MECH_NAME[id].replace(/ \(.*\)$/, '')}`, cp: 111 + i, x: CP_X, y: GY, manual: true })),
 ];
 
-/** Where the helicopter's held during the tour and handed over (screen: his feet). */
-const TOUR_AT = { x: 260, y: 330 };
-/** Where Harry hovers, once he's turned (screen). */
-const HARRY_AT = { x: 430, y: 150 };
+/** Where the helicopter's held during the tour and handed over (screen, at the flight's zoom: his feet). */
+const TOUR_AT = { x: 250, y: 300 };
+/** Harry on the ground: how big he's drawn (he's a small figure down there, but he has to read), his running speed. */
+const HARRY_SCALE = 0.78, HARRY_RUN = 2.6;
+/** Where a landmark's words go (screen): over its head. */
+const BASE_SAY = { x: 600, y: 120 };
+/** The ground under Harry at world x (the park's service road, down below). */
+const roadAt = (wx: number) => CY + roadY((wx - CAMX) * Z) / Z;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The camera
@@ -69,8 +78,10 @@ const holdCam = (state: GameState, h: Heli, x: number, y: number) => {
   h.cam = true; h.camX = x; h.camY = y;
   state.camera.x = x; state.camera.y = y;
   state.cameraOverride = { x, y };
+  // (zoomed out, the whole view's the screen for the rules: what he can see, he can shoot)
+  state.viewIsScreen = true;
 };
-const letCamGo = (state: GameState, h: Heli) => { if (h.cam) { state.cameraOverride = null; h.cam = false; } };
+const letCamGo = (state: GameState, h: Heli) => { if (h.cam) { state.cameraOverride = null; h.cam = false; } state.viewIsScreen = false; h.zoom = 1; h.pull = 1; };
 
 /** His feet into his seat, the helicopter's origin at (ox, oy). */
 const seatHim = (state: GameState, h: Heli) => {
@@ -91,10 +102,14 @@ const takeOff = (state: GameState, h: Heli, at: number) => {
   h.cur = at; h.prog = at;
   p.inCutscene = false; p.noSpecials = true; p.spriteRot = 0;
   setUi({ noSwitch: true });
-  holdCam(state, h, CAMX, CY);
-  h.ox = CAMX + TOUR_AT.x - h.seat; h.oy = CY + TOUR_AT.y;
+  h.zoom = Z; h.up = 1; h.pull = 1;
+  holdCam(state, h, CAM_FLY.x, CAM_FLY.y);
+  const spot = toWorld(TOUR_AT.x, TOUR_AT.y);
+  h.ox = spot.x - h.seat; h.oy = spot.y;
   seatHim(state, h);
-  h.hx = CAMX + HARRY_AT.x; h.hy = CY + HARRY_AT.y; h.hpose = 'jet';
+  // (Harry down on the ground, if he isn't already (starting again up here, or the tour skipped))
+  if (!h.flags.landed) { h.flags.landed = true; h.hx = toWorld(200, 0).x; h.hy = roadAt(h.hx); h.hvx = 0; h.hvy = 0; h.hop = 0; }
+  h.hpose = 'run';
   h.heckleAt = state.frame + 700;
 };
 
@@ -124,8 +139,8 @@ const beginTransit = (state: GameState, h: Heli, i: number) => {
 /** A big health and a big ammo floated out after every landmark (the user's), in front of him. */
 const refillAfter = (state: GameState, i: number) => {
   state.pickups.push(
-    { id: `hl-sky-health-${i}`, pos: { x: CAMX + 520, y: CY + 230 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
-    { id: `hl-sky-ammo-${i}`, pos: { x: CAMX + 520, y: CY + 340 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 },
+    { id: `hl-sky-health-${i}`, pos: toWorld(520, 230), vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
+    { id: `hl-sky-ammo-${i}`, pos: toWorld(520, 330), vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 },
   );
 };
 
@@ -137,6 +152,7 @@ const PAD_GUESTS = Array.from({ length: 22 }, (_, i) => ({ x: QUEUE_A + 20 + i *
 const padUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => {
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2, rx = cx - x0;
   h.ox = PAD_O.x; h.oy = PAD_O.y; h.seat = SEAT_BACK; h.rotor += 0.05;
+  state.viewIsScreen = false;
   h.hx = PAD_O.x + 110; h.hy = GY; h.hpose = 'wave';
   // (the queue yelling at him as he walks past the lot of them)
   if (p.health > 0 && rx > QUEUE_A - 40 && rx < QUEUE_B + 40 && state.frame % 40 === 0 && Math.random() < 0.6) {
@@ -157,12 +173,12 @@ const boardUpdate = (ctx: FrameContext, h: Heli): Controls => {
     h.hpose = 'wave';
     if (h.t === 1) harrySays(state, pickLine(byPants(state, HARRY_BOARD)), true, () => { h.flags.welcomed = true; });
     if (cx < seatX - 30 && h.t < 300) return { ...hands(), right: true };
-    h.step = 1; h.t = 0; h.flags.fromX = true; (h as Heli & { hop?: { x: number; y: number } }).hop = { x: cx, y: p.pos.y + p.height };
+    h.step = 1; h.t = 0; h.flags.fromX = true; (h as unknown as { boardHop: { x: number; y: number } }).boardHop = { x: cx, y: p.pos.y + p.height };
     playSound('jump', 0.6);
   }
   if (h.step === 1) {
     // (the hop in)
-    const hop = (h as Heli & { hop: { x: number; y: number } }).hop, k = Math.min(1, h.t / 18);
+    const hop = (h as unknown as { boardHop: { x: number; y: number } }).boardHop, k = Math.min(1, h.t / 18);
     p.carried = true; p.vel.x = 0; p.vel.y = 0;
     const fx = hop.x + (seatX - hop.x) * k, fy = hop.y + (PAD_O.y - hop.y) * k - Math.sin(k * Math.PI) * 40;
     p.pos.x = fx - p.width / 2; p.pos.y = fy - p.height;
@@ -192,11 +208,12 @@ const liftUpdate = (ctx: FrameContext, h: Heli): Controls => {
   // (from where the camera was when the lift began: held there, not h.camX (holdCam moves that every frame, and the
   // camera would race up ahead of him, leaving him "fallen" off the bottom of it))
   const from = liftFrom.get(h) ?? { x: h.camX, y: h.camY };
-  const sx = from.x, sy = from.y;
-  // (up and over: from the pad to the tour's spot on the screen; the camera up with it)
-  const tx = CAMX + TOUR_AT.x - SEAT_FRONT, ty = CY + TOUR_AT.y;
+  // (up and over: from the pad to the tour's spot; the camera up with it, ZOOMING OUT as it goes (the park opening up
+  // below: its camera climbing too), so the tour's already the flight's view)
+  const to = toWorld(TOUR_AT.x, TOUR_AT.y), tx = to.x - SEAT_FRONT, ty = to.y;
   h.ox = PAD_O.x + (tx - PAD_O.x) * k; h.oy = PAD_O.y + (ty - PAD_O.y) * k + (k < 0.1 ? -k * 40 : 0);
-  holdCam(state, h, sx + (CAMX - sx) * k, sy + (CY - sy) * k);
+  h.zoom = 1 + (Z - 1) * k; h.up = k; h.pull = 1;
+  holdCam(state, h, from.x + (CAM_FLY.x - from.x) * k, from.y + (CAM_FLY.y - from.y) * k);
   h.hx = h.ox + SEAT_FRONT; h.hy = h.oy; h.hpose = 'pilot';
   seatHim(state, h);
   if (h.t === 1) { playSound('whoosh', 0.8, -14); shakeScreen(state, 3, 3); }
@@ -221,10 +238,10 @@ const tourUpdate = (ctx: FrameContext, h: Heli): Controls => {
   h.rotor += 0.6;
   h.spin += 0.0015;
   if (h.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { skipTour(state, h); return hands(); } }
-  // (the globe round toward the Eiffel Tower as he talks)
+  // (the park turning round toward the Eiffel Tower as he talks)
   h.prog = Math.min(0, h.prog + 0.0035);
   // (the helicopter bobbing where it's held; him over into the pilot's seat once Harry's gone)
-  h.ox = CAMX + TOUR_AT.x - SEAT_FRONT + Math.sin(f * 0.03) * 4; h.oy = CY + TOUR_AT.y + Math.sin(f * 0.05) * 5;
+  { const at = toWorld(TOUR_AT.x, TOUR_AT.y); h.ox = at.x - SEAT_FRONT + Math.sin(f * 0.03) * 4; h.oy = at.y + Math.sin(f * 0.05) * 5; }
   if (h.flags.shoved) h.seat = Math.min(SEAT_FRONT, h.seat + 1.6);
   seatHim(state, h);
   const fly = (step: number) => { h.step = step; h.flags.busy = false; };
@@ -248,26 +265,29 @@ const tourUpdate = (ctx: FrameContext, h: Heli): Controls => {
     h.t = 0;
   }
   if (h.step === TOUR.length + 1) {
-    // (Harry falling away; him into the pilot's seat; his line; a beat; the jetpack's roar from under)
-    if (h.hpose === 'shoved' || h.hpose === 'fall') { h.hvy += 0.35; h.hx += h.hvx; h.hy += h.hvy; if (h.t > 20) h.hpose = 'fall'; }
-    if (h.t === 50) { h.flags.door = false; meatheadSays(state, pickLine(MH_TAKES), true, () => { h.flags.took = true; }); }
-    if ((h.flags.took || h.t > 600) && h.t > 140 && !h.flags.rising) {
-      h.flags.rising = true; h.hx = CAMX + 520; h.hy = CY + 700; h.hpose = 'jet'; h.turned = false;
-      playSound('ignite', 1, -10); playSound('engine', 0.8, 6);
-    }
-    if (h.flags.rising) {
-      h.hx += (CAMX + HARRY_AT.x - h.hx) * 0.04; h.hy += (CY + HARRY_AT.y - h.hy) * 0.04;
-      if (Math.abs(h.hy - (CY + HARRY_AT.y)) < 20 && !h.flags.turning) {
-        h.flags.turning = true;
-        harrySays(state, HARRY_TURNS[0], true, () => harrySays(state, HARRY_TURNS[1], true, () => {
-          harrySays(state, HARRY_TURNS[2], true, () => { h.flags.woke = true; });
-          // (the landmarks waking up: legs, eyes, a rumble)
-          setTimeout(() => { h.turned = true; }, 1200);
-        }));
+    // (Harry falling away, all the way down to the park, flat on his back on the service road; him into the pilot's
+    // seat; his line; Harry up on his feet, red-faced, the remote out; the act dropped; he wakes the landmarks)
+    if (!h.flags.landed) {
+      h.hvy += 0.35; h.hx += h.hvx; h.hy += h.hvy; if (h.t > 20) h.hpose = 'fall';
+      const gy = roadAt(h.hx);
+      if (h.hy >= gy) {
+        h.hy = gy; h.flags.landed = true; h.hpose = 'down'; h.hvx = 0; h.hvy = 0;
+        playSound('thud', 1, -8); playSound('crunch', 0.6, 2); shakeScreen(state, 4, 4);
+        for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: h.hx + (Math.random() - 0.5) * 40, y: gy - 4 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 30, color: '#A8A29E', size: 4 + Math.random() * 4 });
       }
     }
+    if (h.t === 50) { h.flags.door = false; meatheadSays(state, pickLine(MH_TAKES), true, () => { h.flags.took = true; }); }
+    if (h.flags.landed && (h.flags.took || h.t > 600) && h.t > 160 && !h.flags.turning) {
+      h.flags.turning = true; h.hpose = 'remote'; h.remote = 9999;
+      playSound('engine', 0.5, 10);
+      harrySays(state, HARRY_TURNS[0], true, () => harrySays(state, HARRY_TURNS[1], true, () => {
+        harrySays(state, HARRY_TURNS[2], true, () => { h.flags.woke = true; });
+        // (the landmarks stirring: a rumble right round the park, their eyes on (shut: asleep till each one's called))
+        setTimeout(() => { h.turned = true; }, 1200);
+      }));
+    }
     if (h.turned && !h.flags.woken) { h.flags.woken = true; playSound('rumble', 1, -10); playSound('clang', 0.9, -8); shakeScreen(state, 10, 6); }
-    if (h.flags.woke && h.turned) handOver(state, h);
+    if (h.flags.woke && h.turned) { h.remote = 0; handOver(state, h); }
   }
   return hands();
 };
@@ -283,7 +303,8 @@ const skipTour = (state: GameState, h: Heli) => {
 const flyUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => {
   const { state } = ctx, p = state.player, f = state.frame;
   h.spin += 0.0015;
-  holdCam(state, h, CAMX, CY);
+  holdCam(state, h, CAM_FLY.x, CAM_FLY.y);
+  h.pull = 1;
   flyCopter(ctx, controls);
   const ft = feetOf(state); h.ox = ft.x - h.seat; h.oy = ft.y;
   updateRockets(ctx);
@@ -291,7 +312,7 @@ const flyUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => 
   sweepGoons(state);
   // (the checkpoint's own: nothing to walk past up here)
   if (h.tips > 0 && --h.tips === 0) setUi({ heliTips: false }); else if (h.tips > 0) setUi({ heliTips: true });
-  // Between landmarks: the globe turning the next one round; the waves, one after another
+  // Between landmarks: the park turning the next one round in front; the waves, one after another
   if (h.transit) {
     h.transitT++;
     h.prog = Math.min(h.cur, h.transitFrom + h.transitT / 320);
@@ -302,36 +323,61 @@ const flyUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => 
     if (!h.waves.length && left === 0 && h.prog >= h.cur && f >= h.waveAt - 90) {
       h.transit = false;
       if (state.checkpoint < 111 + h.cur) state.checkpoint = 111 + h.cur;
-      startMech(state, h.cur);
+      callUp(state, h, h.cur);
     }
   } else if (h.flags.introAt && h.t >= 0) {
     h.flags.introAt = false;
-    startMech(state, h.cur);
+    callUp(state, h, h.cur);
   } else if (mechDone(state)) {
     state.stageMemo[MEMO.wrecks] = String(h.cur + 1);
     if (h.cur >= MECHS.length - 1) { endBegin(state, h); return hands(); }
     refillAfter(state, h.cur);
     beginTransit(state, h, h.cur + 1);
   }
-  // Harry hovering over it all, swearing
-  harryHovers(state, h);
+  // Harry down on the ground, chasing after him, swearing up at him, working the remote
+  harryRuns(state, h);
   if (p.health > 0 && f > h.heckleAt && quiet(state)) { h.heckleAt = f + 800 + Math.random() * 400; harrySays(state, pickLine(byPants(state, HARRY_HECKLE)), false); }
-  if (h.lastHp >= 0 && p.health < h.lastHp && p.health > 0 && f - h.gloatAt > 600 && Math.random() < 0.3) { h.gloatAt = f; if (harrySays(state, pickLine(HARRY_GLOAT), false)) { h.hpose = 'gloat'; h.flags.gloatT = true; } }
+  if (h.lastHp >= 0 && p.health < h.lastHp && p.health > 0 && f - h.gloatAt > 600 && Math.random() < 0.3) { h.gloatAt = f; harrySays(state, pickLine(HARRY_GLOAT), false); }
   h.lastHp = p.health;
   // (what's dropped up here floats)
   for (const q of state.pickups as Pickup[]) if (q.pos.y < GY - 1000) { q.vel.x = 0; q.vel.y = -GRAVITY; }
   return hands();
 };
 
-const harryHovers = (state: GameState, h: Heli) => {
-  const f = state.frame;
-  const tx = CAMX + HARRY_AT.x + Math.sin(f * 0.013) * 70, ty = CY + HARRY_AT.y + Math.sin(f * 0.021) * 22;
-  h.hx += (tx - h.hx) * 0.04; h.hy += (ty - h.hy) * 0.04;
-  if (h.hpose === 'gloat' && !h.harry) h.hpose = 'jet';
+/** A landmark called up: it arrives (mechs.ts), the guests round its plinth scatter, Harry keys his remote. */
+const callUp = (state: GameState, h: Heli, i: number) => {
+  startMech(state, i);
+  panicAt(h, i, state.frame);
+};
+
+/**
+ * Harry on the ground (no hitbox: he's out of the fight till the end): along the park's service road after the
+ * helicopter, a little behind it, on foot; too far behind, a hop on the emergency jetpack (flames, a bounce); stopped
+ * to key the remote while a landmark's coming up, shaking it up at him.
+ */
+const harryRuns = (state: GameState, h: Heli, stopAtSx?: number) => {
+  const p = state.player;
+  const heliSx = (p.pos.x + p.width / 2 - CAMX) * Z;
+  const want = Math.max(60, Math.min(740, stopAtSx ?? heliSx - 70)), wx = toWorld(want, 0).x;
+  const dx = wx - h.hx, still = h.remote > 0 || (stopAtSx !== undefined && Math.abs(dx) < 6);
+  if (h.remote > 0) h.remote--;
+  if (h.hop > 0 || h.hvy !== 0) {
+    // (a jetpack hop: up, over, down)
+    h.hvy += 0.32; h.hy += h.hvy; h.hx += h.hvx;
+    const gy = roadAt(h.hx);
+    if (h.hy >= gy) { h.hy = gy; h.hvy = 0; h.hop = 0; playSound('thud', 0.4, 6); }
+  } else if (!still && Math.abs(dx) > 340) {
+    h.hop = 1; h.hvy = -7.5; h.hvx = Math.sign(dx) * 6.5; playSound('ignite', 0.5, 6);
+  } else {
+    h.hvx = still || Math.abs(dx) < 8 ? 0 : Math.sign(dx) * Math.min(HARRY_RUN, Math.abs(dx) * 0.05 + 0.6);
+    h.hx += h.hvx; h.hy = roadAt(h.hx);
+  }
+  h.hfacing = heliSx > (h.hx - CAMX) * Z ? 1 : -1;
+  h.hpose = h.hop > 0 || h.hvy !== 0 ? 'jet' : still ? 'remote' : Math.abs(h.hvx) > 0.2 ? 'run' : 'remote';
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The end: Harry's rocket, the fall, on to his arena
+// The end: Harry's rocket, fired up from the ground, the fall, on to his arena
 
 const endBegin = (state: GameState, h: Heli) => {
   h.phase = 'end'; h.t = 0; h.step = 0; h.boost = null;
@@ -340,31 +386,42 @@ const endBegin = (state: GameState, h: Heli) => {
   setUi({ heliTips: false });
 };
 
+/** The launcher's angle up at him from Harry's shoulder (radians up from level, his way), and its muzzle (world). */
+const aimAtHim = (state: GameState, h: Heli) => {
+  const ft = feetOf(state), sx = h.hx, sy = h.hy - 60 * HARRY_SCALE;
+  const a = Math.atan2(sy - (ft.y - 40), Math.abs(ft.x - sx));
+  return { a, mx: sx + h.hfacing * Math.cos(a) * 40 * HARRY_SCALE, my: sy - Math.sin(a) * 40 * HARRY_SCALE };
+};
+
 const endUpdate = (ctx: FrameContext, h: Heli): Controls => {
   const { state } = ctx, p = state.player, f = state.frame;
   p.inCutscene = true; p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
-  holdCam(state, h, CAMX, CY);
+  holdCam(state, h, CAM_FLY.x, CAM_FLY.y);
+  h.pull = 1;
   if (h.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); finish(state, h); return hands(); } }
   h.rotor += 0.7; h.spin += 0.0015;
   updateRockets(ctx); updateMechs(ctx);
   if (h.step === 0) {
-    // (him, eased to a hover; Harry to his spot; his rant, the launcher up)
-    h.ox += (CAMX + 240 - h.seat - h.ox) * 0.03; h.oy += (CY + 360 - h.oy) * 0.03; h.tilt *= 0.9; h.flip *= 0.8;
+    // (him, eased to a hover; Harry running in under him, stopping; his rant, the launcher up at him)
+    const to = toWorld(260, 330);
+    h.ox += (to.x - h.seat - h.ox) * 0.03; h.oy += (to.y - h.oy) * 0.03; h.tilt *= 0.9; h.flip *= 0.8;
     p.spriteRot = h.tilt + h.flip * Math.PI;
     seatHim(state, h);
-    h.hx += (CAMX + 600 - h.hx) * 0.04; h.hy += (CY + 160 - h.hy) * 0.04;
+    if (h.hpose !== 'aim') harryRuns(state, h, 470);
     if (h.t === 40) harrySays(state, pickLine(byPants(state, HARRY_END)), true, () => { h.hpose = 'aim'; meatheadSays(state, pickLine(MH_ROCKET), true, () => { h.flags.fire = true; }); });
     if (h.flags.fire || h.t > 1200) {
       h.step = 1; h.t = 0; h.hpose = 'fire';
-      h.hrocket = { x: h.hx - 40, y: h.hy - 58 };
+      const m = aimAtHim(state, h);
+      h.hrocket = { x: m.mx, y: m.my };
       playSound('boom', 0.7, 8); playSound('whoosh', 1, -4);
+      for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: m.mx, y: m.my }, vel: { x: (Math.random() - 0.5) * 3, y: Math.random() * 2 }, life: 30, color: i % 2 ? '#E5E7EB' : '#A1A1AA', size: 6 + Math.random() * 6 });
     }
   } else if (h.step === 1) {
-    // (the rocket: right at him)
+    // (the rocket: up off the ground, right at him)
     seatHim(state, h);
     const r = h.hrocket!, ft = feetOf(state), tx = ft.x, ty = ft.y - 40, d = Math.hypot(tx - r.x, ty - r.y) || 1;
     r.x += (tx - r.x) / d * 12; r.y += (ty - r.y) / d * 12;
-    if (h.t > 8) h.hpose = 'gloat';
+    if (h.t > 8) h.hpose = 'remote';
     if (f % 2 === 0) state.particles.push({ pos: { x: r.x, y: r.y }, vel: { x: 0, y: 0 }, life: 24, color: '#D4D4D8', size: 5 });
     if (d < 20) {
       h.hrocket = null; h.step = 2; h.t = 0; h.vy = -4;
@@ -379,7 +436,7 @@ const endUpdate = (ctx: FrameContext, h: Heli): Controls => {
     p.spriteRot = h.tilt;
     seatHim(state, h);
     if (f % 3 === 0) state.particles.push({ pos: { x: h.ox - 40, y: h.oy - 60 }, vel: { x: -1, y: -2 }, life: 40, color: f % 6 ? '#3F3F46' : '#F97316', size: 8 + Math.random() * 8 });
-    if (h.oy > CY + H + 120) { h.step = 3; h.t = 0; playSound('boom', 1, -16); playSound('crash', 1, -10); shakeScreen(state, 30, 20); }
+    if (h.oy > toWorld(0, SH).y + 120) { h.step = 3; h.t = 0; playSound('boom', 1, -16); playSound('crash', 1, -10); shakeScreen(state, 30, 20); }
   } else if (h.step === 3) {
     // (the crash, off the bottom: the white; then down at the crash site)
     h.white = Math.min(1, h.t / 10);
@@ -419,6 +476,7 @@ export const heli: ForeignSection = {
     state.pickups.push({ id: 'hl-ammo', pos: { x: X(REFILL) + 10, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 });
     const h = heliOf(state);
     h.mechs = makeMechs();
+    state.viewIsScreen = false;
     if (state.stageMemo[MEMO.done]) { h.over = true; h.phase = 'gone'; }
     setUi({ heliTips: false, noSwitch: false });
   },
@@ -446,18 +504,28 @@ export const heli: ForeignSection = {
     return controls;
   },
   cameraX: (state) => { const h = heliOf(state); return h.cam ? { min: h.camX, max: h.camX } : undefined; },
+  // (zoomed out over the park from the lift on, about the screen's middle; pulled back further while a landmark comes up)
+  zoom: (state) => { const h = heliOf(state), z = h.zoom * h.pull; return h.cam && Math.abs(z - 1) > 0.002 ? { scale: z, x: state.camera.x + SW / 2, y: state.camera.y + SH / 2 } : null; },
   drawBackdrop: (c, state) => {
     const h = heliOf(state);
-    const up = (h.phase === 'lift' && globeRise(h) > 0) || h.phase === 'tour' || h.phase === 'fly' || h.phase === 'end';
-    if (!up) return false;
-    drawFlightBackdrop(c, state);
+    // (the lift: the park opening up below as he climbs, faded in over the streets)
+    if (h.phase === 'lift') { const a = Math.max(0, Math.min(1, (h.t - 20) / 90)); if (a < 1) drawStreetsBackdrop(c, state); drawPark(c, state, a); return true; }
+    if (h.phase !== 'tour' && h.phase !== 'fly' && h.phase !== 'end') return false;
+    drawPark(c, state);
     return true;
   },
   drawBack: (c, state) => {
-    const h = heliOf(state), v = viewIn(state), f = state.frame;
+    const h = heliOf(state), f = state.frame;
     if (state.camera.y > CY + 900 || h.phase === 'pad' || h.phase === 'board' || h.phase === 'gone') drawPad(c, state, h);
-    if (h.phase === 'lift' || h.phase === 'tour' || h.phase === 'fly' || h.phase === 'end') drawLandmarks(c, state);
-    void v;
+    // (the landmark he's fighting, the world's while it's up; the rest stand out on the park's circuit)
+    const m = h.mechs[h.cur];
+    if (m && inWorld(h, m)) drawMech(c, m.id, BASE.x, BASE.y, 1, 0, mechLook(h, m, h.cur, f));
+    // (Harry down on the ground, under it all: running, hopping, keying the remote, flat on his back, aiming up)
+    if (h.flags.landed && h.hpose !== 'shoved' && h.hpose !== 'fall' && (h.phase === 'tour' || h.phase === 'fly' || h.phase === 'end')) {
+      c.fillStyle = 'rgba(20,20,20,0.35)'; c.beginPath(); c.ellipse(h.hx, roadAt(h.hx), 16, 4, 0, 0, Math.PI * 2); c.fill();
+      const aiming = h.hpose === 'aim' || h.hpose === 'fire';
+      drawHarry(c, h.hx, h.hy, { pose: h.hpose, f, mad: h.turned || !!h.flags.turning, jetpack: true, burn: h.hop > 0 || h.hvy !== 0, talking: !!h.harry, facing: h.hfacing, scale: HARRY_SCALE, remote: true, keyed: h.remote > 0, aim: aiming ? aimAtHim(state, h).a : 0 });
+    }
     // (the helicopter round him: its back half, behind him)
     if (!h.over && h.phase !== 'gone') {
       const piv = h.phase === 'pad' || (h.phase === 'board' && h.step < 2) ? { x: PAD_O.x + SEAT_BACK, y: PAD_O.y } : feetOf(state);
@@ -479,18 +547,19 @@ export const heli: ForeignSection = {
       drawCopter(c, 'front', piv.x, piv.y, { seat: onPad ? SEAT_BACK : h.seat, tilt: rot.tilt, flip: rot.flip, rotor: h.rotor }, f, { harryDoor: !!h.flags.door, burning: (h.phase === 'end' && h.step >= 2) || p.health <= 0 });
     }
     drawRockets(c, state);
-    // Harry out of the helicopter: falling, on his jetpack, with his launcher
-    if (h.phase === 'tour' && h.step >= TOUR.length || h.phase === 'fly' || h.phase === 'end') {
-      if (h.hpose !== 'pilot') drawHarry(c, h.hx, h.hy, { pose: h.hpose, f, mad: h.turned || !!h.flags.rising, jetpack: h.hpose !== 'shoved' && h.hpose !== 'fall', talking: !!h.harry, facing: h.hpose === 'aim' || h.hpose === 'fire' ? -1 : (state.player.pos.x < h.hx ? -1 : 1), rot: h.hpose === 'fall' || h.hpose === 'shoved' ? h.t * 0.15 : 0, scale: 1.15 });
-    }
+    // Harry shoved out, falling past (in front of everything) all the way down
+    if (h.phase === 'tour' && (h.hpose === 'shoved' || h.hpose === 'fall')) drawHarry(c, h.hx, h.hy, { pose: h.hpose, f, talking: !!h.harry, rot: h.t * 0.15, scale: 0.9 + 0.1 * Math.max(0, 1 - h.t / 60) });
     if (h.hrocket) {
-      const r = h.hrocket;
-      c.fillStyle = INK; c.fillRect(r.x - 10, r.y - 5, 20, 10); c.fillStyle = '#4D5B2A'; c.fillRect(r.x - 9, r.y - 4, 18, 8); c.fillStyle = '#DC2626'; c.fillRect(r.x - 10, r.y - 4, 5, 8);
-      c.fillStyle = (f >> 1) % 2 ? '#FDE047' : '#F97316'; c.beginPath(); c.arc(r.x + 13, r.y, 6, 0, Math.PI * 2); c.fill();
+      // (his rocket, nose on toward the helicopter, its flame behind)
+      const r = h.hrocket, ft = feetOf(state), a = Math.atan2(ft.y - 40 - r.y, ft.x - r.x);
+      c.save(); c.translate(r.x, r.y); c.rotate(a);
+      c.fillStyle = INK; c.fillRect(-12, -5, 24, 10); c.fillStyle = '#4D5B2A'; c.fillRect(-11, -4, 20, 8); c.fillStyle = '#DC2626'; c.fillRect(7, -4, 5, 8);
+      c.fillStyle = (f >> 1) % 2 ? '#FDE047' : '#F97316'; c.beginPath(); c.moveTo(-12, -4); c.lineTo(-24 - (f % 3) * 3, 0); c.lineTo(-12, 4); c.fill();
+      c.restore();
     }
     // Who's saying what (kept whole on screen)
-    if (h.harry) saidOver(c, h.harry.text, h.hx, h.hy - 104, '#FDE68A', 300);
-    if (h.mech) { const m = h.mechs[h.cur]; const mx = CAMX + 620, my = CY + (m?.id === 'pisa' ? 160 : 120); saidOver(c, h.mech.text, mx, Math.max(my, state.camera.y + 130), '#BFDBFE', 280); }
+    if (h.harry) saidOver(c, h.harry.text, h.hx, h.hy - (h.hpose === 'pilot' ? 104 : h.hpose === 'down' ? 40 : 84 * HARRY_SCALE + 10), '#FDE68A', 300);
+    if (h.mech) { const m = h.mechs[h.cur], at = toWorld(BASE_SAY.x, m?.id === 'pisa' ? 150 : BASE_SAY.y); saidOver(c, h.mech.text, at.x, at.y, '#BFDBFE', 280); }
     if (h.guest) saidOver(c, h.guest.s.text, h.guest.x, GY - 100, '#E5E7EB', 220);
     if (h.goonSaid && h.goonSaid.e.health > 0) saidOver(c, h.goonSaid.s.text, h.goonSaid.e.pos.x + h.goonSaid.e.width / 2, h.goonSaid.e.pos.y - 16, '#BFDBFE', 200);
   },
@@ -498,18 +567,19 @@ export const heli: ForeignSection = {
     const h = heliOf(state), p = state.player;
     const cut = (h.phase === 'board' || h.phase === 'lift' || h.phase === 'tour' || h.phase === 'end') && h.t > SKIP_AFTER;
     if (cut) drawSkipPrompt(c, CANVAS_WIDTH);
-    if (h.white > 0) { c.fillStyle = `rgba(255,255,255,${h.white})`; c.fillRect(0, 0, W, H); }
+    if (h.white > 0) { c.fillStyle = 'rgba(255,255,255,' + h.white + ')'; c.fillRect(0, 0, SW, SH); }
     if (h.phase !== 'fly' || p.inCutscene) return;
     drawCharges(c, state);
-    // The landmark's bar (the top band, clear of the HUD)
+    // The landmark's bar (the top band, clear of the HUD): filling up as it arrives
     const m = h.mechs[h.cur];
     if (m && !h.transit && (m.st === 'intro' || m.st === 'fight' || m.st === 'dying')) {
-      const band = topBand(), w = band.x2 - band.x1, k = m.id === 'pisa' ? (m.hp > 0 ? 1 : 0) : Math.max(0, m.hp / m.max);
+      const band = topBand(), w = band.x2 - band.x1, arrive = m.st === 'intro' ? Math.min(1, m.t / (m.introLen * 0.8)) : 1;
+      const k = (m.id === 'pisa' ? (m.hp > 0 ? 1 : 0) : Math.max(0, m.hp / m.max)) * arrive;
       box(c, band.x1, 18, w, 14, '#18181B');
       box(c, band.x1 + 2, 20, (w - 4) * k, 10, m.flash > 0 ? '#FECACA' : m.id === 'pisa' ? '#60A5FA' : k < 0.33 ? '#EF4444' : '#F59E0B');
       label(c, MECH_NAME[m.id], band.mid, 46, '#FDE68A', 7);
       if (m.id === 'pisa' && m.hp > 0) label(c, 'IMMUNE', band.mid, 29, (state.frame >> 3) % 2 ? '#FFFFFF' : '#BFDBFE', 7);
-      label(c, `${h.cur + 1} OF ${MECHS.length}`, band.x2 - 40, 60, '#A1A1AA', 6);
+      label(c, (h.cur + 1) + ' OF ' + MECHS.length, band.x2 - 40, 60, '#A1A1AA', 6);
     }
   },
   outdoors: () => 1,

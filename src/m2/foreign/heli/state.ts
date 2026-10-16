@@ -11,7 +11,7 @@ export type Phase =
   | 'pad'      // on foot on the helipad (the queue, Harry waving by his helicopter)
   | 'board'    // the cutscene: he's taken over to it and climbs in; Harry's welcome
   | 'lift'     // up off the pad, the camera going up with it, still the cutscene
-  | 'tour'     // round the globe, Harry preaching; "SHUT UP, HIPPIE."; Harry out the door; Harry back, turned
+  | 'tour'     // round the park, Harry preaching; "SHUT UP, HIPPIE."; Harry out the door, down to the ground, turned
   | 'fly'      // his: the gauntlet (the goon waves and the landmarks)
   | 'end'      // every landmark down: Harry's rocket, the hit, the fall
   | 'gone';    // crashed (the ride's over for good) / off to Harry's arena
@@ -33,6 +33,11 @@ export interface Mech {
   lean: number; lv: number; pinged: number;
   /** Its taunts' next frame. */
   talkAt: number;
+  /** Its arrival (mechs.ts reveal): how far it's sunk into the ground (0 stood up, 1 gone under), its legs unfolded
+   *  (0 folded up, 1 stood), its eyes open (0 shut), its shake (px). Before it: a replica on its plinth. */
+  sink: number; unfold: number; open: number; shake: number;
+  /** How long its arrival takes (frames: the first's the longest). */
+  introLen: number;
 }
 
 /** A shot of theirs (an engine enemy projectile: the engine does its hurt): how it's drawn, any fall on it, any burst. */
@@ -65,7 +70,7 @@ export interface Heli {
   /** The machine gun's next round, the rockets' charges (0..3, fractional while one's coming back). */
   gunCd: number; charges: number; rockets: Rocket[]; wasY: boolean; wasB: boolean;
   booms: Boom[];
-  /** The globe: which landmark's round in front (fractional while it turns), its spin. */
+  /** The circuit: which landmark's round in front (fractional while the park turns), the clouds' drift. */
   prog: number; spin: number;
   mechs: Mech[]; cur: number;
   /** Between landmarks: the waves left, the next's frame. */
@@ -76,8 +81,15 @@ export interface Heli {
   /** Who's saying what: Harry, the landmark, a guest in the queue (over who), a goon (over whom). */
   harry: Said | null; harryBusy: boolean; mech: Said | null; guest: { s: Said; x: number } | null; goonSaid: { s: Said; e: Enemy } | null;
   guestAt: number; heckleAt: number; goonBarkAt: number; gloatAt: number; lastHp: number;
-  /** Harry: where he is (world), his pose, his facing, whether he's turned (the jetpack and the swearing). */
-  hx: number; hy: number; hvx: number; hvy: number; hpose: 'stand' | 'wave' | 'pilot' | 'shoved' | 'fall' | 'jet' | 'aim' | 'fire' | 'gloat'; turned: boolean;
+  /** Harry: where he is (world), his pose, his facing, whether he's turned (the swearing). Once he's out the door he's
+   *  on the GROUND below, chasing along the park's service road after the helicopter (on foot, and jetpack hops),
+   *  working the ride's remote that runs the landmarks: `hop` his height off the road, `hvy` its speed; `remote` frames
+   *  left of the remote held up and keyed. */
+  hx: number; hy: number; hvx: number; hvy: number; hpose: 'stand' | 'wave' | 'pilot' | 'shoved' | 'fall' | 'jet' | 'aim' | 'fire' | 'gloat' | 'run' | 'remote' | 'down'; turned: boolean;
+  hop: number; remote: number; hfacing: 1 | -1;
+  /** The view: the stage's zoom (1 on the pad, Z in the air), the reveal's pull back (1: none); how high the park's
+   *  camera has got (0 on the pad, 1 up). */
+  zoom: number; pull: number; up: number;
   /** Cutscene bits: the step it's on, done flags; the skip. */
   step: number; flags: Record<string, boolean>;
   /** The camera's ours (cameraOverride) from the lift on; where it's got to. */
@@ -95,6 +107,6 @@ export const heliOf = (state: GameState) => foreignState<Heli>(state, 'heli', ()
   gunCd: 0, charges: 3, rockets: [], wasY: false, wasB: false, booms: [], prog: -2.6, spin: 0, mechs: [], cur: 0,
   waves: [], waveAt: 0, transit: false, transitFrom: 0, transitT: 0, goons: [], shots: new Map(), beams: [], drops: [], minions: [],
   harry: null, harryBusy: false, mech: null, guest: null, goonSaid: null, guestAt: -9999, heckleAt: 0, goonBarkAt: -9999, gloatAt: -9999, lastHp: -1,
-  hx: 0, hy: 0, hvx: 0, hvy: 0, hpose: 'wave', turned: false, step: 0, flags: {}, cam: false, camX: 0, camY: 0,
+  hx: 0, hy: 0, hvx: 0, hvy: 0, hpose: 'wave', turned: false, hop: 0, remote: 0, hfacing: 1, zoom: 1, pull: 1, up: 0, step: 0, flags: {}, cam: false, camX: 0, camY: 0,
   hrocket: null, fall: 0, white: 0, tips: 0, over: false,
 }));

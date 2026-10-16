@@ -10,8 +10,10 @@
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
-export type HarryPose = 'stand' | 'wave' | 'pilot' | 'shoved' | 'fall' | 'jet' | 'aim' | 'fire' | 'gloat';
-export interface HarryLook { pose: HarryPose; f: number; facing?: 1 | -1; mad?: boolean; talking?: boolean; jetpack?: boolean; rot?: number; scale?: number; launcher?: boolean }
+export type HarryPose = 'stand' | 'wave' | 'pilot' | 'shoved' | 'fall' | 'jet' | 'aim' | 'fire' | 'gloat' | 'run' | 'remote' | 'down';
+/** burn: the jetpack's flames (a hop); remote: the ride's remote in his hand (keyed: its light on); aim: the launcher
+ *  tipped up this far (radians). */
+export interface HarryLook { pose: HarryPose; f: number; facing?: 1 | -1; mad?: boolean; talking?: boolean; jetpack?: boolean; rot?: number; scale?: number; launcher?: boolean; burn?: boolean; remote?: boolean; keyed?: boolean; aim?: number }
 
 // (exported for job 5's arena: harry/rambo.ts draws him jacked with the same pieces)
 export const SKIN = ['#8A5A3C', '#C98E66', '#E2AC84', '#F2C9A6'];
@@ -59,6 +61,16 @@ const jetpack = (c: Ctx, f: number, burn: boolean) => {
       c.fillStyle = '#FFFFFF'; c.fillRect(dx - 1, -31, 3, 3);
     }
   }
+};
+
+/** The ride's remote (the one that runs the landmarks): a black brick, a long antenna, a big red button, its light. */
+const remoteAt = (c: Ctx, x: number, y: number, f: number, keyed: boolean) => {
+  fill(c, '#27272A', () => c.roundRect(x - 4, y - 9, 9, 13, 2), 1.1);
+  rect(c, x - 3, y - 8, 7, 2, '#52525B');
+  fill(c, keyed && (f >> 2) % 2 ? '#EF4444' : '#991B1B', () => c.arc(x + 0.5, y - 2, 2.2, 0, Math.PI * 2), 0.8);
+  c.strokeStyle = INK; c.lineWidth = 1.4; c.beginPath(); c.moveTo(x + 3, y - 9); c.lineTo(x + 7, y - 26); c.stroke();
+  fill(c, keyed && (f >> 3) % 2 ? '#FDE047' : '#A1A1AA', () => c.arc(x + 7, y - 27, 2, 0, Math.PI * 2), 0.8);
+  if (keyed) { c.strokeStyle = 'rgba(253,224,71,0.8)'; c.lineWidth = 1.2; const k = (f % 12) / 12; c.beginPath(); c.arc(x + 7, y - 27, 4 + k * 10, -2.4, -0.7); c.stroke(); }
 };
 
 /** The rocket launcher on his shoulder (a fat olive tube, a sight, a grip), pointing right; a rocket's nose in it. */
@@ -139,16 +151,23 @@ export const drawHarry = (c: Ctx, x: number, y: number, L: HarryLook) => {
   c.translate(Math.round(x), Math.round(y));
   c.scale((L.facing ?? 1) * (L.scale ?? 1), L.scale ?? 1);
   if (L.rot) { c.translate(0, -42); c.rotate(L.rot); c.translate(0, 42); }
+  // (flat on his back where he came down: legs in the air, kicking)
+  if (pose === 'down') {
+    c.rotate(-Math.PI / 2); c.translate(-6, 10);
+  }
   const seated = pose === 'pilot';
   const air = pose === 'jet' || pose === 'aim' || pose === 'fire' || pose === 'gloat' || pose === 'fall' || pose === 'shoved';
   const bob = air ? Math.sin(f * 0.12) * 1.5 : 0;
   c.translate(0, bob);
-  if (L.jetpack) jetpack(c, f, air);
+  if (L.jetpack) jetpack(c, f, air || !!L.burn);
+  const run = pose === 'run';
+  const stride = run ? Math.sin(f * 0.45) : 0;
   // Legs (jeans; socks and sandals): stood, sat, dangling, kicking
   const kick = pose === 'fall' || pose === 'shoved' ? Math.sin(f * 0.5) * 8 : 0;
   const legs: [number, number, number, number][] = seated
     ? [[-2, -34, 16, -32], [4, -34, 22, -32]]
     : air ? [[-4, -34, -6 + kick, -4], [3, -34, 7 - kick, -6]]
+    : run ? [[-4, -34, -4 + stride * 10, -3 - Math.max(0, stride) * 6], [4, -34, 5 - stride * 10, -3 - Math.max(0, -stride) * 6]]
     : [[-4, -34, -5, -3], [4, -34, 6, -3]];
   const shins: [number, number][] = seated ? [[16, -14], [22, -14]] : [];
   legs.forEach(([a, b, cx, cy], i) => {
@@ -182,9 +201,26 @@ export const drawHarry = (c: Ctx, x: number, y: number, L: HarryLook) => {
     hand(c, hx, hy, fist);
   };
   if (L.launcher || pose === 'aim' || pose === 'fire') {
+    // (tipped up about his shoulder: he's shooting up at the sky)
+    c.save(); c.translate(tx + 4, ty - 26); c.rotate(-(L.aim ?? 0)); c.translate(-(tx + 4), -(ty - 26));
     armTo(shX, shY, shX - 2, shY + 10, tx + 6, ty - 26 + 2);
     launcher(c, pose === 'fire');
     armTo(sh2X, shY, sh2X + 8, shY + 6, tx + 16, ty - 26 + 1, true);
+    c.restore();
+  } else if (pose === 'remote') {
+    // (the remote held up high at the landmark, keyed; the other fist shaking)
+    const s = Math.sin(f * 0.5) * 3;
+    armTo(shX, shY, shX - 3, shY + 12, tx - 6, ty - 4 + s, true);
+    armTo(sh2X, shY, sh2X + 8, shY - 12, tx + 14, ty - 46, true);
+    remoteAt(c, tx + 14, ty - 46, f, true);
+  } else if (pose === 'run') {
+    // (arms pumping, the remote in one hand)
+    armTo(shX, shY, shX - 2 - stride * 6, shY + 10, tx - 4 - stride * 10, ty - 6, true);
+    armTo(sh2X, shY, sh2X + 2 + stride * 6, shY + 10, tx + 10 + stride * 10, ty - 8, true);
+    if (L.remote) remoteAt(c, tx + 12 + stride * 10, ty - 6, f, !!L.keyed);
+  } else if (pose === 'down') {
+    armTo(shX, shY, shX - 10, shY + 6, tx - 14, ty + 4);
+    armTo(sh2X, shY, sh2X + 10, shY + 6, tx + 18, ty + 2);
   } else if (pose === 'pilot') {
     armTo(shX, shY, shX + 6, shY + 10, tx + 18, ty - 6, true);
     armTo(sh2X, shY, sh2X + 8, shY + 8, tx + 20, ty - 8, true);

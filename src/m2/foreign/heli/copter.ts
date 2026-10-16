@@ -20,7 +20,8 @@ import { pickLine } from '../../../m1/game/platform/speech';
 import { hazardVictims, hazardKill, hazardHit } from '../../hazardHit';
 import { meatheadSays } from '../section';
 import { heliOf, type Heli } from './state';
-import { CAMX, CY, FLY_SPEED, FLY_ACCEL, FEET_X0, FEET_X1, FEET_Y0, FEET_Y1 } from './geo';
+import { CAMX, CY, W, H, FLY_SPEED, FLY_ACCEL, FEET_X0, FEET_X1, FEET_Y0, FEET_Y1 } from './geo';
+import { drawBoom } from './mechArt';
 import { mechAim, hitMech, hitMinions, type Rect } from './mechs';
 import { MH_SHRED } from './lines';
 
@@ -179,7 +180,7 @@ export const updateRockets = (ctx: FrameContext) => {
     for (const e of hazardVictims(state)) if (e.pos.x < box.x + box.w && e.pos.x + e.width > box.x && e.pos.y < box.y + box.h && e.pos.y + e.height > box.y) { hit = true; break; }
     if (!hit && hitMinions(ctx, box, 0, true)) hit = true;
     if (!hit && hitMech(ctx, box, 0, k.x, k.y, 'probe')) hit = true;
-    if (hit || k.t > ROCKET_LIFE || k.x > CAMX + 900 || k.x < CAMX - 100 || k.y < CY - 100 || k.y > CY + 700) { k.dead = true; if (hit) rocketBlows(ctx, k.x, k.y); }
+    if (hit || k.t > ROCKET_LIFE || k.x > CAMX + W + 100 || k.x < CAMX - 100 || k.y < CY - 100 || k.y > CY + H + 100) { k.dead = true; if (hit) rocketBlows(ctx, k.x, k.y); }
   }
   h.rockets = h.rockets.filter(k => !k.dead);
   for (const b of h.booms) b.t++;
@@ -189,7 +190,7 @@ const rocketTarget = (state: GameState, k: { x: number; y: number }) => {
   let best: { x: number; y: number } | null = null, bd = Infinity;
   for (const e of hazardVictims(state)) {
     const m = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 };
-    if (m.x < CAMX - 20 || m.x > CAMX + 820) continue;
+    if (m.x < CAMX - 20 || m.x > CAMX + W + 20) continue;
     const d = Math.hypot(m.x - k.x, m.y - k.y) + (m.x < k.x ? 300 : 0);
     if (d < bd) { bd = d; best = m; }
   }
@@ -238,7 +239,16 @@ export const drawCopter = (c: Ctx, part: 'back' | 'front', px: number, py: numbe
     c.strokeStyle = 'rgba(30,30,30,0.35)'; c.lineWidth = 2; c.beginPath(); c.arc(-198, -46, 16, 0, Math.PI * 2); c.stroke();
     c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(-198, -46 - tr); c.lineTo(-198, -46 + tr); c.stroke();
     // The cabin's shell: the back half solid, the inside dark; the seats
-    fl(o.flash ? '#FFFFFF' : '#F8FAFC', () => { c.moveTo(-62, -60); c.quadraticCurveTo(-64, -84, -30, -86); c.lineTo(30, -86); c.quadraticCurveTo(58, -84, 72, -52); c.quadraticCurveTo(80, -24, 66, 2); c.lineTo(-56, 4); c.quadraticCurveTo(-66, -20, -62, -60); c.closePath(); });
+    const shell = () => { c.moveTo(-62, -60); c.quadraticCurveTo(-64, -84, -30, -86); c.lineTo(30, -86); c.quadraticCurveTo(58, -84, 72, -52); c.quadraticCurveTo(80, -24, 66, 2); c.lineTo(-56, 4); c.quadraticCurveTo(-66, -20, -62, -60); c.closePath(); };
+    fl(o.flash ? '#FFFFFF' : '#F8FAFC', shell);
+    // (lit from the upper left in steps: a shadow band along its belly, a darker one under it; a lit band over the top)
+    if (!o.flash) { c.save(); c.beginPath(); shell(); c.clip(); r(-70, -24, 160, 30, '#CBD5E1'); r(-70, -6, 160, 12, '#94A3B8'); r(-70, -86, 160, 6, '#FFFFFF'); r(-64, -86, 8, 90, '#E2E8F0'); c.restore(); c.beginPath(); shell(); c.strokeStyle = INK; c.lineWidth = 1.6; c.stroke(); }
+    // (the engine cowling on its roof, its exhaust, panel lines and rivets)
+    fl('#E2E8F0', () => c.roundRect(-44, -96, 66, 12, 4), 1.4);
+    r(-40, -94, 58, 2, '#FFFFFF'); r(-40, -88, 58, 2, '#94A3B8');
+    fl('#3F3F46', () => c.rect(-52, -94, 10, 7), 1.2);
+    c.strokeStyle = 'rgba(30,41,59,0.45)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-40, -84); c.lineTo(-40, 2); c.moveTo(-14, -86); c.lineTo(-14, 3); c.stroke();
+    for (let x = -54; x < 60; x += 8) r(x, -26, 1.5, 1.5, '#64748B');
     fl('#334155', () => { c.moveTo(-48, -70); c.lineTo(52, -74); c.quadraticCurveTo(66, -50, 62, -6); c.lineTo(-48, -4); c.closePath(); }, 1);
     r(-48, -16, 110, 12, '#1E293B');
     for (const sx of [-26, 28]) { fl('#7F1D1D', () => c.roundRect(sx - 18, -50, 10, 46, 3), 1.2); fl('#991B1B', () => c.roundRect(sx - 14, -10, 26, 8, 2), 1.2); }
@@ -268,13 +278,19 @@ export const drawCopter = (c: Ctx, part: 'back' | 'front', px: number, py: numbe
     // (the mast)
     fl('#52525B', () => c.rect(-4, -98, 10, 14), 1.2);
     // (the rotor: its disc a blur, two blades foreshortened as it turns)
-    c.fillStyle = 'rgba(40, 40, 40, 0.16)'; c.beginPath(); c.ellipse(1, -99, 160, 7, 0, 0, Math.PI * 2); c.fill();
+    // (its disc a blur, in two bands)
+    c.fillStyle = 'rgba(40, 40, 40, 0.12)'; c.beginPath(); c.ellipse(1, -99, 162, 8, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = 'rgba(40, 40, 40, 0.12)'; c.beginPath(); c.ellipse(1, -99, 110, 5, 0, 0, Math.PI * 2); c.fill();
     for (const k of [0, Math.PI / 2]) {
       const L = Math.cos(h.rotor + k) * 160;
       c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(1 - L, -99); c.lineTo(1 + L, -99); c.stroke();
       c.strokeStyle = '#71717A'; c.lineWidth = 2; c.beginPath(); c.moveTo(1 - L, -99.5); c.lineTo(1 + L, -99.5); c.stroke();
     }
     fl('#A1A1AA', () => c.arc(1, -99, 5, 0, Math.PI * 2), 1.2);
+    // (its lights: a red one under the tail, a green one on the nose, a white strobe on the roof, blinking)
+    if ((f >> 3) % 4 === 0) { c.fillStyle = '#EF4444'; c.beginPath(); c.arc(-60, 6, 3, 0, Math.PI * 2); c.fill(); }
+    if ((f >> 3) % 4 === 2) { c.fillStyle = '#4ADE80'; c.beginPath(); c.arc(70, 0, 3, 0, Math.PI * 2); c.fill(); }
+    if (f % 40 < 3) { c.globalAlpha = 0.8; c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(-10, -100, 6, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
     // (hit: smoking, sparking; dying: on fire)
     if (o.burning) for (let i = 0; i < 5; i++) { c.fillStyle = i % 2 ? '#F97316' : '#FDE047'; c.beginPath(); c.arc(-40 + i * 9 + Math.sin(f * 0.5 + i) * 3, -80 - ((f * 3 + i * 7) % 26), 7 - (i % 3), 0, Math.PI * 2); c.fill(); }
   }
@@ -293,14 +309,7 @@ export const drawRockets = (c: Ctx, state: GameState) => {
     c.fillStyle = (k.t >> 1) % 2 ? '#FDE047' : '#F97316'; c.beginPath(); c.moveTo(-12, -3); c.lineTo(-22 - (k.t % 3) * 3, 0); c.lineTo(-12, 3); c.fill();
     c.restore();
   }
-  for (const b of h.booms) {
-    const n = b.t / (b.big ? 40 : 24), r = b.r * (0.4 + n * 0.8), fire = 1 - n;
-    c.globalAlpha = n < 0.55 ? 1 : n < 0.8 ? 0.6 : 0.3;
-    for (const [k, col] of [[1, '#57534E'], [0.85 * fire + 0.1, '#EA580C'], [0.65 * fire, '#F97316'], [0.45 * fire, '#FDE047'], [0.22 * fire * fire, '#FFFFFF']] as const) {
-      if (r * k < 1) continue; c.fillStyle = col; c.beginPath(); c.arc(b.x, b.y, r * k, 0, Math.PI * 2); c.fill();
-    }
-    c.globalAlpha = 1;
-  }
+  for (const b of h.booms) drawBoom(c, b);
 };
 /** Screen: the rockets' charges (three little rockets, bottom left; the one coming back filling in), and the rotor
  *  boost's own meter beside them (empty while it's boosting, filling over its cooldown, lit when it's ready). */

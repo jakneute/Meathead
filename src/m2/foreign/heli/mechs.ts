@@ -1,5 +1,6 @@
 // THE GAUNTLET's landmarks: the souvenir launcher's nine, in its order, as giant googly-eyed mechs (legs bolted under
-// them), one at a time, each standing on the globe where it's come round to, each a mini-boss with its own patterns
+// them), one at a time, each come round the park's circuit in front of him and up out of the ground (its arrival:
+// arrive), each a mini-boss with its own patterns
 // (fans, spirals, aimed bursts, beams, things dropped on him, minions; each its own gag), its own health bar and its own
 // trash talk. Mini-boss rules: no i-frames (every hit lands), big health; no instant kills (nothing he has has one up
 // here anyway). Their health is their own (they're not engine enemies: his rounds that reach one are spent on it here,
@@ -19,7 +20,8 @@ import { pickLine } from '../../../m1/game/platform/speech';
 import { byPants } from '../cast';
 import { meatheadSays } from '../section';
 import { heliOf, type Mech, type ShotLook, type Beam, type Drop, type Minion, type Heli } from './state';
-import { BASE, LEG, CAMX, CY, GLOBE, onGlobe } from './geo';
+import { BASE, LEG, CAMX, CY, W, H, Z, fx, toScreen } from './geo';
+import { ringY } from './park';
 import { MECHS, MECH_TALK, HARRY_LOST, HARRY_SEND, MH_KILL, PISA_FALL, PISA_MISSED, PISA_GOT_HIM, MH_PISA_MISSED, type MechId } from './lines';
 import { harrySays, mechSays } from './talk';
 
@@ -36,8 +38,8 @@ const ROUND_MECH = 10;
 const SHOT = 14, BIG_SHOT = 20;
 const kindOf = (id: MechId) => `m2:fl_mech_${id}`;
 
-/** Where the ground (the globe's top) is under world x. */
-export const groundY = (x: number) => { const sx = x - CAMX, d = Math.min(GLOBE.r, Math.abs(sx - GLOBE.cx)); return CY + GLOBE.cy - Math.sqrt(GLOBE.r * GLOBE.r - d * d); };
+/** Where the ground is under world x: the circuit's near side, down in the park (what they throw lands there). */
+export const groundY = (x: number) => CY + ringY(toScreen(x, 0).x) / Z;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Their bodies (upright at the fight's spot: rects from the base, y up negative)
@@ -71,7 +73,8 @@ const curMech = (state: GameState) => { const h = heliOf(state); const m = h.mec
 /** The current landmark's boxes (world). */
 export const mechBoxes = (state: GameState): Rect[] => {
   const m = curMech(state);
-  if (!m || (m.id === 'pisa' && m.lean > 0.35)) return [];
+  // (coming up out of the ground: nothing to hit, nothing to fly into)
+  if (!m || m.st === 'intro' || (m.id === 'pisa' && m.lean > 0.35)) return [];
   return BODY[m.id](m).map(r => ({ x: BASE.x + r.x, y: BASE.y + r.y, w: r.w, h: r.h }));
 };
 /** Where a rocket goes for it: its middle. */
@@ -227,7 +230,8 @@ const MOVES: Record<MechId, Move[]> = {
   // THE COLOSSEUM: walls of shots out of its arches (one row left open: get to it), lions leaping out at him, THUMBS
   // DOWN (a giant thumb dropped on him), a fan
   colosseum: [
-    { len: 200, tick: ({ state }, m, t) => { if (t === 10 || t === 75 || t === 140) { const gap = (Math.floor(Math.random() * 5) + (m.a | 0) + 1) % 5; m.a = gap; for (let r = 0; r < 5; r++) { if (r === gap) continue; for (const dy of [-16, 16]) shot(state, m.id, B.x - 175, CY + 90 + r * 105 + dy, -3.4, 0, L.orb('#E7C9A0', 9)); } playSound('rumble', 0.5, 6); } } },
+    // (the field's taller zoomed out: seven rows down it, three shots a row, so the only way through's the open one)
+    { len: 200, tick: ({ state }, m, t) => { if (t === 10 || t === 75 || t === 140) { const gap = (Math.floor(Math.random() * 6) + (m.a | 0) + 1) % 7; m.a = gap; for (let r = 0; r < 7; r++) { if (r === gap) continue; for (const dy of [-22, 0, 22]) shot(state, m.id, B.x - 175, CY + 100 + r * ((H - 200) / 6) + dy, -3.4, 0, L.orb('#E7C9A0', 9)); } playSound('rumble', 0.5, 6); } } },
     { len: 110, tick: ({ state }, m, t) => { if (t === 10 || t === 40 || t === 70) { const o = at(-120, -LEG - 60); const p = P(state); minion(state, 'lion', o.x, o.y, Math.max(-7, (p.x - o.x) / 60), -7, 'm2:fl_mech_colosseum_shot'); playSound('roar', 0.6, 4); } } },
     { len: 140, tick: ({ state }, m, t) => { if (t === 10 || t === 70) drop(state, 'thumb', P(state).x, 96, 55, 'm2:fl_colosseum_thumb'); } },
     { len: 60, tick: ({ state }, m, t) => { if (t === 5 || t === 30) { const o = at(-160, -LEG - 140); fan(state, m.id, o.x, o.y, 7, 0.9, 3.6, L.orb('#E7C9A0', 9)); } } },
@@ -245,7 +249,7 @@ const MOVES: Record<MechId, Move[]> = {
     { len: 170, tick: ({ state }, m, t) => { if (t === 1 || t === 70) { const e = EYES.moai(m)[0], o = at(e.x + 30, e.y); beam(state, { x: o.x, y: o.y, a: aimAng(state, o.x, o.y), len: 900, w: 30, warn: 50, fire: 55, turn: 0, src: 'm2:fl_moai_stare', col: '#FCA5A5', dmg: 14 }); } } },
     { len: 120, tick: ({ state }, m, t) => { if (t === 10 || t === 60) { const o = at(-70, -LEG - 120 - m.k * 150), a = aimAng(state, o.x, o.y); const q = shot(state, m.id, o.x, o.y, Math.cos(a) * 3.2, Math.sin(a) * 3.2, { col: '#57534E', r: 18, shape: 'rock' }, BIG_SHOT); heliOf(state).shots.get(q)!.burst = { at: 55, n: 10, speed: 3.2 }; playSound('thud', 0.7, -4); } } },
     { len: 90, tick: ({ state }, m, t) => { if (t === 10 || t === 35 || t === 60) { const o = at(-80, -LEG - 60); minion(state, 'head', o.x, o.y, -2.4, -6, 'm2:fl_mech_moai_shot'); } } },
-    { len: 130, tick: ({ state }, m, t) => { if (t % 16 === 1 && t < 100) drop(state, 'rock', CAMX + 60 + Math.random() * 600, 50, 40, 'm2:fl_mech_moai_shot'); } },
+    { len: 130, tick: ({ state }, m, t) => { if (t % 16 === 1 && t < 100) drop(state, 'rock', fx(60 + Math.random() * 680), 50, 40, 'm2:fl_mech_moai_shot'); } },
   ],
 };
 
@@ -255,13 +259,24 @@ const MOVES: Record<MechId, Move[]> = {
 export const makeMechs = (): Mech[] => MECHS.map((id, i) => ({
   id, i, hp: HP[id] * (id === 'pisa' ? 1 : 1), max: HP[id], st: 'wait', t: 0, move: -1, mt: 0, gap: 90, last: -1, flash: 0, hurtSaid: false,
   eyes: [{ x: 0, y: 0, vx: 0, vy: 0 }, { x: 0, y: 0, vx: 0, vy: 0 }], a: 0, b: 0, k: 0, lean: 0.07, lv: 0, pinged: -99, talkAt: 0,
+  sink: 0, unfold: -1, open: 0, shake: 0, introLen: 200,
 }));
 
-/** On: it's come round in front of him (the checkpoint's its, Harry orders it in, it introduces itself). */
+/** Its arrival's length (frames): the Eiffel Tower's, the first, the full build-up (~5.5 s); the rest shorter (~3.3 s),
+ *  so each one still ARRIVES. */
+const INTRO_FIRST = 330, INTRO = 200;
+
+/** On: it's come round in front of him (the checkpoint's its; Harry yells it up with his remote; it comes up out of
+ *  the ground and introduces itself). Nothing of the last lot's left flying: nothing hurts him while it arrives. */
 export const startMech = (state: GameState, i: number) => {
   const h = heliOf(state), m = h.mechs[i];
   h.cur = i; m.st = 'intro'; m.t = 0; m.hp = m.max; m.lean = 0.07;
-  playSound('rumble', 0.8, -8); playSound('clang', 0.7, -10);
+  m.introLen = i === 0 ? INTRO_FIRST : INTRO; m.sink = 0; m.unfold = -1; m.open = 0; m.shake = 0;
+  for (const q of state.projectiles) if (q.owner !== 'player') q.health = 0;
+  for (const q of h.shots.keys()) q.health = 0;
+  h.shots.clear(); h.beams = []; h.drops = []; h.minions = [];
+  h.remote = Math.min(m.introLen, 200);
+  playSound('rumble', 0.8, -8);
   harrySays(state, pickLine(byPants(state, HARRY_SEND[m.id])), true, () => {
     const intro = MECH_TALK[m.id].intro;
     if (m.id === 'moai') mechSays(state, 'moai', intro[0], true, () => mechSays(state, 'moai', intro[1], true));
@@ -283,7 +298,8 @@ export const updateMechs = (ctx: FrameContext) => {
   const m = h.mechs[h.cur];
   if (m && (m.st === 'intro' || m.st === 'fight' || m.st === 'dying')) {
     m.t++;
-    if (m.st === 'intro' && m.t > 100) { m.st = 'fight'; m.t = 0; m.talkAt = m.id === 'pisa' ? 90 : 500 + Math.random() * 300; m.gap = 30; }
+    if (m.st === 'intro') arrive(ctx, h, m);
+    if (m.st === 'intro' && m.t > m.introLen) { m.st = 'fight'; m.t = 0; m.talkAt = m.id === 'pisa' ? 90 : 500 + Math.random() * 300; m.gap = 30; m.sink = 0; m.unfold = 1; m.open = 1; m.shake = 0; h.pull = 1; }
     if (m.st === 'fight') {
       if (m.id === 'pisa') pisa(ctx, h, m);
       else fight(ctx, m);
@@ -306,6 +322,56 @@ export const updateMechs = (ctx: FrameContext) => {
   updateBeams(ctx);
   updateDrops(ctx);
   updateMinions(ctx);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Its arrival (the user's: "give some anticipation ... as it rises from the ground, ready to destroy you"). Its controls
+// are his the whole time (he can get himself placed) and nothing hurts him (startMech cleared the air; it has no boxes
+// till it's done). In beats, by the fraction of its length:
+//   the ground at its plinth rumbles and CRACKS (spreading, through its pavilion's plaza: park.ts), the replica shaking,
+//   dust; the guests scatter (park.ts panicAt, from index.ts); Harry yelling it up, keying his remote (index.ts);
+//   the ground SWALLOWS it (a dust burst); a beat under, the ground heaving;
+//   it BURSTS back up out of the hole on its mech legs, crouched, debris everywhere, the view pulling back to take in
+//   the size of it; it stands;
+//   its googly eyes SNAP open on him, a klaxon and a roar;
+//   a beat of stillness, its line; then it attacks.
+
+const P1 = 0.24, P2 = 0.36, P3 = 0.48, P4 = 0.66, P5 = 0.76;
+const easeOut = (k: number) => 1 - (1 - k) * (1 - k);
+const dust = (state: GameState, n: number, spread: number, up: number, col = '#A8977E') => {
+  for (let i = 0; i < n; i++) state.particles.push({ pos: { x: BASE.x + (Math.random() - 0.5) * spread, y: BASE.y - Math.random() * 10 }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * up }, life: 40 + Math.random() * 40, color: i % 3 ? col : '#6B5B45', size: 6 + Math.random() * 10 });
+};
+const arrive = (ctx: FrameContext, h: Heli, m: Mech) => {
+  const { state } = ctx, t = m.t, L = m.introLen, k = t / L, at = (q: number) => t === Math.round(q * L);
+  if (k < P1) {
+    m.unfold = -1; m.sink = 0; m.shake = (k / P1) * 3;
+    if (t % 18 === 1) { playSound('rumble', 0.6 + k, -12); shakeScreen(state, 2 + k * 8, 4); }
+    if (t % 6 === 0) dust(state, 2, 200, 3);
+  } else if (k < P2) {
+    if (at(P1) || t === Math.ceil(P1 * L)) { playSound('crash', 0.9, -12); playSound('crumble', 1, -8); shakeScreen(state, 12, 10); dust(state, 30, 260, 7); }
+    m.sink = easeOut((k - P1) / (P2 - P1)); m.shake = 2;
+  } else if (k < P3) {
+    m.sink = 1; m.shake = 0;
+    if (t % 10 === 0) { dust(state, 3, 160, 4); shakeScreen(state, 3, 3); }
+  } else if (k < P4) {
+    const q = (k - P3) / (P4 - P3);
+    if (m.unfold < 0) { m.unfold = 0; playSound('boom', 1, -16); playSound('crash', 1, -8); playSound('whoosh', 1, -10); shakeScreen(state, 22, 14); dust(state, 50, 300, 11); for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: BASE.x + (Math.random() - 0.5) * 160, y: BASE.y - 10 }, vel: { x: (Math.random() - 0.5) * 12, y: -6 - Math.random() * 10 }, life: 50, color: i % 2 ? '#57534E' : '#3F3A35', size: 6 + Math.random() * 8 }); }
+    // (up out of the hole, a little past standing height, and back)
+    m.sink = q < 0.75 ? 1 - easeOut(q / 0.75) * 1.05 : -0.05 + (q - 0.75) / 0.25 * 0.05;
+    m.unfold = 0; m.shake = 1.5;
+  } else if (k < P5) {
+    m.sink = 0; m.shake = 0;
+    m.unfold = Math.min(1, (k - P4) / (P5 - P4));
+    if (t % 8 === 0) playSound('clang', 0.4, 8);
+  } else {
+    m.unfold = 1;
+    if (m.open === 0) { playSound('alarm', 1, -6); playSound('roar', 0.9, -10); shakeScreen(state, 8, 6); }
+    m.open = Math.min(1, m.open + 0.25);
+  }
+  // (the view pulling back as it comes up, easing in again in the stillness)
+  const pb = k < P2 ? 0 : k < P4 ? (k - P2) / (P4 - P2) : k < P5 ? 1 : 1 - (k - P5) / (1 - P5);
+  h.pull = 1 - 0.13 * (pb * pb * (3 - 2 * pb));
+  void at;
 };
 
 const fight = (ctx: FrameContext, m: Mech) => {
@@ -487,7 +553,7 @@ const updateMinions = (ctx: FrameContext) => {
     for (const q of state.projectiles) if (q.owner === 'player' && q.health > 0 && Math.abs(q.pos.x + q.width / 2 - n.x) < n.r + q.width / 2 && Math.abs(q.pos.y + q.height / 2 - n.y) < n.r + 4) { q.health = 0; hurtMinion(ctx, n, 22); }
     // (into him)
     if (!n.dead && p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && Math.abs(pc.x - n.x) < n.r + 18 && Math.abs(pc.y - n.y) < n.r + 26) { hurtPlayer(ctx, 12, n.src, { x: n.vx > 0 ? 6 : -6, y: -3 }); if (n.kind !== 'lion' && n.kind !== 'head' && n.kind !== 'gear') n.dead = true; }
-    if (n.x < CAMX - 80 || n.x > CAMX + 900 || n.y > CY + 700 || n.t > 900) n.dead = true;
+    if (n.x < CAMX - 80 || n.x > CAMX + W + 100 || n.y > CY + H + 100 || n.t > 900) n.dead = true;
   }
   h.minions = h.minions.filter(n => !n.dead);
 };
@@ -507,4 +573,3 @@ const eyesFollow = (state: GameState, m: Mech) => {
   }
 };
 
-export { onGlobe };

@@ -52,7 +52,7 @@ export const HARRY_BOARD: ByPants = {
     "WHOA! A FREE SPIRIT! LOVE IT, BROTHER. BUCKLE UP. CAREFULLY. AROUND EVERYTHING.",
   ],
 };
-/** The tour itself, in order (said one after another while the globe turns). */
+/** The tour itself, in order (said one after another while the park turns below). */
 export const HARRY_TOUR = [
   "I'M HELICOPTER HARRY, AND TODAY WE'RE GOING TO FLY ACROSS THE WHOLE BEAUTIFUL WORLD. NO BORDERS UP HERE, MAN.",
   'DOWN THERE: THE EIFFEL TOWER. THREE TIMES BIGGER THAN THE REAL ONE. IN AMERICA, EVERYTHING IS BIGGER. EVEN OTHER PLACES.',
@@ -65,7 +65,7 @@ export const MH_TOUR = ['UH HUH.', "I DON'T WANT A STRAW.", 'HOW LONG IS THIS RI
 export const MH_SHUT_UP = 'SHUT UP, HIPPIE.';
 /** Harry, as he's shoved out the door (still nice: it's the last time). */
 export const HARRY_SHOVED = ['WHOA! BROTHER! THAT IS NOT A SAFE SPACE!'];
-/** Back up on his jetpack, the facade gone, in order. */
+/** Up off the ground where he landed, the facade gone, the remote out, in order. */
 export const HARRY_TURNS = [
   'I WAS FAKING IT THE WHOLE TIME, YOU SON OF A BITCH!',
   'TWENTY YEARS OF TOLERANCE! TWENTY GODDAMN YEARS OF SMILING AT DAMN FOREIGNERS AND THEIR DAMN FOREIGN LANDMARKS!',
@@ -74,7 +74,7 @@ export const HARRY_TURNS = [
 export const MH_TAKES = ['MY HELICOPTER NOW.', "HOW HARD CAN FLYING BE? IT'S GOT A STICK."];
 
 // ---------------------------------------------------------------------------------------------------------------
-// The gauntlet: Harry, on his jetpack (swearing, no slurs; by his pants)
+// The gauntlet: Harry, down on the ground chasing after him with the remote (swearing, no slurs; by his pants)
 
 /** Each landmark coming on: Harry orders it in. */
 export const HARRY_SEND: Record<MechId, ByPants> = {
@@ -148,7 +148,7 @@ export const HARRY_HECKLE: ByPants = {
   ],
   shitty: [
     'YOU SHIT IN MY HELICOPTER! THAT SEAT WAS HEMP!',
-    "THE WHOLE SKY SMELLS LIKE YOUR ASS! I CAN SMELL IT FROM UP HERE!",
+    "THE WHOLE SKY SMELLS LIKE YOUR ASS! I CAN SMELL IT FROM DOWN HERE!",
     'SHIT-PANTS! YOU KNOW HOW HARD IT IS TO GET SHIT OUT OF HEMP?',
     'I WAS FAKING TOLERANCE, BUT I WAS NEVER FAKING THAT SMELL! THAT SMELL IS REAL!',
   ],

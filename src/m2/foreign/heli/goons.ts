@@ -3,6 +3,7 @@
 // Three ways in: HOVERERS fly in off the right to a spot and pop at him with the ride's flare pistols till they're
 // told to go; DIVERS line up on him and come straight at him (the boost shreds them; or get out of the way); SNEAKS
 // come in from behind or from over or under him (the back boost, the up boost, the down flip). Teach, then escalate:
+// (their spots are laid out on an 800x600 screen: fx/fy put them in the zoomed-out field)
 // the first waves are slow and few. The waves between landmark N-1 and N (geo: the transit) are WAVES[N].
 
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -17,7 +18,7 @@ import { drawCast, womanOf, byPants, px, INK, type Costume } from '../cast';
 import { heliOf } from './state';
 import { goonSays } from './talk';
 import { GOON_BARK } from './lines';
-import { CAMX, CY, W } from './geo';
+import { CAMX, CY, W, H, fx, fy } from './geo';
 
 export const GOON_KIND = 'm2:fl_jetgoon';
 const SHOT = 12;
@@ -66,7 +67,7 @@ const ai = (ctx: FrameContext, e: Enemy) => {
   const leaving = t > Pl.leave;
   if (Pl.mode === 'hover') {
     // (in to its spot, bobbing there, a flare at him now and then; told to go: off the way it came)
-    const tx = leaving ? CAMX + W + 160 : CAMX + Pl.sx, ty = CY + Pl.sy + Math.sin(t * 0.05 + Pl.sx) * 18;
+    const tx = leaving ? CAMX + W + 160 : fx(Pl.sx), ty = fy(Pl.sy) + Math.sin(t * 0.05 + Pl.sx) * 18;
     e.pos.x += (tx - m.x) * (leaving ? 0.03 : 0.05); e.pos.y += (ty - m.y) * 0.05;
     if (!leaving && t > 50 && --Pl.cd <= 0 && state.player.health > 0 && !state.player.inCutscene) {
       Pl.cd = 110 + Math.floor(Math.random() * 60);
@@ -77,7 +78,7 @@ const ai = (ctx: FrameContext, e: Enemy) => {
     }
   } else if (Pl.mode === 'dive') {
     // (in, lined up on him, a beat (it yells), then straight at him and on out)
-    if (t < 60) { e.pos.x += (CAMX + Pl.sx - m.x) * 0.06; e.pos.y += (pc.y - m.y) * 0.05; }
+    if (t < 60) { e.pos.x += (fx(Pl.sx) - m.x) * 0.06; e.pos.y += (pc.y - m.y) * 0.05; }
     else {
       if (!Pl.locked) { Pl.locked = true; const a = Math.atan2(pc.y - m.y, pc.x - m.x); Pl.dx = Math.cos(a) * 7.5; Pl.dy = Math.sin(a) * 7.5; playSound('whoosh', 0.7, 2); }
       e.pos.x += Pl.dx!; e.pos.y += Pl.dy!;
@@ -85,9 +86,9 @@ const ai = (ctx: FrameContext, e: Enemy) => {
   } else {
     // (a sneak: in from behind him, or over him, or under him, along its line, and on out the other side)
     const sp = 2.6;
-    if (Pl.from === 'left') { e.pos.x += sp; e.pos.y += (CY + Pl.sy + Math.sin(t * 0.06) * 30 - m.y) * 0.05; }
-    else if (Pl.from === 'top') { e.pos.y += sp * 0.9; e.pos.x += (CAMX + Pl.sx - m.x) * 0.03; }
-    else { e.pos.y -= sp * 0.9; e.pos.x += (CAMX + Pl.sx - m.x) * 0.03; }
+    if (Pl.from === 'left') { e.pos.x += sp; e.pos.y += (fy(Pl.sy) + Math.sin(t * 0.06) * 30 - m.y) * 0.05; }
+    else if (Pl.from === 'top') { e.pos.y += sp * 0.9; e.pos.x += (fx(Pl.sx) - m.x) * 0.03; }
+    else { e.pos.y -= sp * 0.9; e.pos.x += (fx(Pl.sx) - m.x) * 0.03; }
     if (t > 60 && --Pl.cd <= 0 && state.player.health > 0) {
       Pl.cd = 140;
       const a = Math.atan2(pc.y - m.y, pc.x - m.x);
@@ -98,7 +99,7 @@ const ai = (ctx: FrameContext, e: Enemy) => {
   if (t === 30 && Math.random() < 0.5) goonSays(state, e, woman, pickLine(byPants(state, GOON_BARK)));
   // (gone off the screen: out of it)
   const sx = m.x - CAMX, sy = m.y - CY;
-  if (t > 90 && (sx < -140 || sx > W + 200 || sy < -200 || sy > 760)) { (e as Enemy & { gone?: boolean }).gone = true; }
+  if (t > 90 && (sx < -140 || sx > W + 200 || sy < -200 || sy > H + 160)) { (e as Enemy & { gone?: boolean }).gone = true; }
   return true;
 };
 
@@ -129,11 +130,11 @@ const spawn = (state: GameState, mode: Mode, p: Omit<Pilot, 'mode' | 't' | 'cd' 
   heliOf(state).goons.push(e);
   return e;
 };
-const hover = (state: GameState, sx: number, sy: number, delay = 0, leave = 640) => spawn(state, 'hover', { sx, sy, leave: leave + delay }, CAMX + W + 80 + delay * 3, CY + sy);
-const diver = (state: GameState, sy: number, dx = 0) => spawn(state, 'dive', { sx: 660, sy }, CAMX + W + 80 + dx, CY + sy);
+const hover = (state: GameState, sx: number, sy: number, delay = 0, leave = 640) => spawn(state, 'hover', { sx, sy, leave: leave + delay }, CAMX + W + 80 + delay * 3, fy(sy));
+const diver = (state: GameState, sy: number, dx = 0) => spawn(state, 'dive', { sx: 660, sy }, CAMX + W + 80 + dx, fy(sy));
 const sneak = (state: GameState, from: 'left' | 'top' | 'bottom', s: number) =>
-  from === 'left' ? spawn(state, 'sneak', { from, sx: 0, sy: s }, CAMX - 60, CY + s)
-    : spawn(state, 'sneak', { from, sx: s, sy: 0 }, CAMX + s, from === 'top' ? CY - 60 : CY + 640);
+  from === 'left' ? spawn(state, 'sneak', { from, sx: 0, sy: s }, CAMX - 60, fy(s))
+    : spawn(state, 'sneak', { from, sx: s, sy: 0 }, fx(s), from === 'top' ? CY - 60 : CY + H + 40);
 
 /** The waves before each landmark (by its index), each a function putting one wave out. */
 // (trimmed for length (the user: a land plays ~5 min): the lesson before the first landmark whole; one wave before

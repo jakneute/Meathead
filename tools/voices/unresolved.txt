@@ -39,7 +39,7 @@ m2/adventure/roof/index.ts:114 voice: text
 m2/adventure/clearing/index.ts:174 voice: text
 m2/adventure/clearing/fight.ts:327 voice: voice('m2.safari')
 m2/adventure/clearing/fight.ts:333 voice: pick(lines[pants()])
-m2/adventure/section.ts:137 voice: voice(voiceId)
+m2/adventure/section.ts:139 voice: voice(voiceId)
 m2/spooky/castle/pa.ts:72 voice: voice(PA)
 m2/spooky/hell/satan.ts:111 voice: SATAN_CORE
 m2/spooky/hell/satan.ts:114 voice: pick(dressedPool(state))
@@ -151,7 +151,7 @@ m1/game/core/update.ts:622 call: animalDeathMessage(state)
 m1/game/core/update.ts:622 call: layout?.deathMessage?.(ctx)
 m1/game/core/update.ts:622 call: deathByCause(state)
 m1/game/core/update.ts:622 call: deathFallback(state, ctx.stageId, fell)
-m1/game/player/player.ts:84 call: message()
+m1/game/player/player.ts:85 call: message()
 m1/game/render/world.ts:1303 voice: 0
 m1/game/render/world.ts:1309 voice: Math.max(state.camera.y + 16 + (rows.length - 1) * 13, playe
 m1/game/stages/artie/ski.ts:464 call: skiDeathMessage(state, ski)
