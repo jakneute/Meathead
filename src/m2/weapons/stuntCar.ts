@@ -68,6 +68,16 @@ const pickPaint = (state: GameState) => {
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
 const floorAt = (state: GameState, x: number) => groundLineAt(state.groundRuns, x);
+/** The first thing to land on at x from `from` down: the top of a platform or a ledge (up on one with him), else the
+ *  ground. */
+const surfaceUnder = (state: GameState, x: number, from: number) => {
+  let best = floorAt(state, x);
+  for (const b of state.blocks) {
+    if (b.type === 'pit' || b.type === 'door' || x < b.x || x > b.x + b.w) continue;
+    if (b.y >= from - 2 && b.y < best) best = b.y;
+  }
+  return best;
+};
 
 const fire = (ctx: FrameContext) => {
   const { state, cheats } = ctx;
@@ -75,7 +85,8 @@ const fire = (ctx: FrameContext) => {
   const dir = pl.facing;
   const px = pl.pos.x + pl.width / 2;
   // (out of nowhere, up in the air behind him: started so its jump comes down a little way out in front of him)
-  const feet = pl.pos.y + pl.height, landY = floorAt(state, px + dir * CAR.land);
+  // (where it comes down: off his own height, onto whatever's there at it (the platform he's up on), else lower)
+  const feet = pl.pos.y + pl.height, landY = surfaceUnder(state, px + dir * CAR.land, feet - 4);
   const drop = (landY < 2000 ? landY : feet) - (feet - CAR.rise);
   const T = (-CAR.vy + Math.sqrt(CAR.vy * CAR.vy + 2 * CAR.gravity * Math.max(0, drop))) / CAR.gravity;
   const startX = px + dir * CAR.land - dir * CAR.speed * T - CAR.w / 2;
@@ -156,7 +167,7 @@ const stunt = (ctx: FrameContext, p: Projectile, car: Extract<Part, { kind: 'car
   for (let i = 0; i < 3; i++) fx.spawnExplosion({ x: cx + (i - 1) * 60, y: cy - 10 }, i === 1 ? '#FDE047' : '#F97316', 18, 0, 20);
   for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + Math.random() * p.height }, vel: { x: car.dir * (2 + Math.random() * 5), y: -3 - Math.random() * 6 }, life: 60, color: [PAINT[car.paint].body, '#18181B', '#A1A1AA', '#7DD3FC'][i % 4], size: 2 + Math.random() * 3, grav: 0.35, chunk: true });
   // (the wreck, lying there burning a while)
-  wrecks.push({ x: p.pos.x + p.width / 2, y: floorAt(state, p.pos.x + p.width / 2), dir: car.dir, t: 0, paint: car.paint });
+  wrecks.push({ x: p.pos.x + p.width / 2, y: surfaceUnder(state, p.pos.x + p.width / 2, p.pos.y + p.height - 6), dir: car.dir, t: 0, paint: car.paint });
   // The stuntman, launched out over the hood, every time (out on the screen, wherever it went up): if there's
   // something flying near, he goes for it, a dive, arms out, straight at it; otherwise up and on, tumbling
   const from = { x: Math.max(state.camera.x + 30, Math.min(state.camera.x + CANVAS_WIDTH - 30, front.x)), y: front.y - STUNTMAN.h };
@@ -184,13 +195,15 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
   if (part.kind === 'car') {
     // In the air: the jump, coming down
     p.vel.y += CAR.gravity;
+    const bottom0 = p.pos.y + p.height;
     p.pos.x += p.vel.x; p.pos.y += p.vel.y;
     part.wheel += 1.2;
     // (exhaust streaming off the back)
     const back = part.dir > 0 ? p.pos.x : p.pos.x + p.width;
     if (state.frame % 2 === 0) state.particles.push({ pos: { x: back, y: p.pos.y + p.height - 8 }, vel: { x: -part.dir * (1 + Math.random() * 2), y: -0.3 - Math.random() * 0.5 }, life: 18, color: 'rgba(120, 113, 108, 0.5)', size: 4 + Math.random() * 4 });
     // Down: nose into the ground, and that's the stunt
-    const floor = floorAt(state, p.pos.x + p.width / 2);
+    // (onto a platform as well as the ground: whatever it comes down on first)
+    const floor = surfaceUnder(state, p.pos.x + p.width / 2, bottom0);
     if (p.vel.y > 0 && p.pos.y + p.height >= floor) { p.pos.y = floor - p.height; stunt(ctx, p, part); return false; }
     for (const e of state.enemies) {
       if (!alive(e) || part.hit.includes(e.id)) continue;
@@ -227,11 +240,12 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     p.vel.x += ((tx / d) * sp - p.vel.x) * 0.08; p.vel.y += ((ty / d) * sp - p.vel.y) * 0.08;
     p.vel.y += 0.12;
   } else { part.target = null; p.vel.y += 0.45; }
+  const bottom0 = p.pos.y + p.height;
   p.pos.x += p.vel.x; p.pos.y += p.vel.y;
   part.spin = part.target ? Math.atan2(p.vel.y, Math.abs(p.vel.x)) * part.dir + part.dir * Math.PI / 2 : part.spin + part.dir * 0.35;
   const into = state.enemies.find(e => alive(e) && !(e.pos.x > p.pos.x + p.width || e.pos.x + e.width < p.pos.x || e.pos.y > p.pos.y + p.height || e.pos.y + e.height < p.pos.y));
   if (into) { runDown(ctx, into, part.dir, Math.abs(p.vel.x), 'stuntman'); splat(ctx, p, 'man'); return false; }
-  const floor = floorAt(state, p.pos.x + p.width / 2);
+  const floor = surfaceUnder(state, p.pos.x + p.width / 2, bottom0);
   if (p.vel.y > 0 && p.pos.y + p.height >= floor) { p.pos.y = floor - p.height; splat(ctx, p, 'floor'); return false; }
   if (solidAhead(state, p)) { splat(ctx, p, 'wall'); return false; }
   // (gone off the screen: he's out of the picture)
