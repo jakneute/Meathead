@@ -73,8 +73,15 @@ export const drawShots = (c: Ctx, state: GameState) => {
       // (a round foam shield, star in the middle, rings; spinning flat so it squashes)
       const k = Math.abs(Math.cos(s.t * 0.4));
       c.save(); c.translate(s.x, s.y); c.scale(0.35 + 0.65 * k, 1);
-      for (const [r, col] of [[12, '#1A0B06'], [11, '#DC2626'], [8, '#F8FAFC'], [5, '#2563EB']] as const) { c.fillStyle = col; c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.fill(); }
-      c.fillStyle = '#F8FAFC'; c.fillRect(-2, -2, 4, 4);
+      // (in steps: ink, the red ring (lit up its left), the white, the red, the blue boss, its star; a glint)
+      for (const [r, col, lit] of [[13, '#1A0B06', '#1A0B06'], [12, '#B91C1C', '#EF4444'], [8.5, '#D6D3D1', '#F8FAFC'], [6, '#B91C1C', '#EF4444'], [4, '#1E40AF', '#3B82F6']] as const) {
+        c.fillStyle = col; c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.fill();
+        c.fillStyle = lit; c.beginPath(); c.arc(-r * 0.12, -r * 0.12, r * 0.86, Math.PI * 0.6, Math.PI * 1.6); c.fill();
+      }
+      c.fillStyle = '#F8FAFC'; c.beginPath();
+      for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, r = i % 2 ? 1.3 : 3.2; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+      c.closePath(); c.fill();
+      c.fillRect(-9, -8, 3, 2);
       c.restore();
     } else if (s.kind === 'blast') {
       // (rings of sound: fat arcs going out the way it's going)

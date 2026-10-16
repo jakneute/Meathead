@@ -148,7 +148,7 @@ export const blvd: HollywoodSection = {
     void MARQUEE_X;
   },
   outdoors: () => 1,
-  lamps: () => blvdLamps(),
+  lamps: (state) => blvdLamps(state),
   // (the stunt wires: taught here (layout.ts))
   wires: () => WIRES,
 };

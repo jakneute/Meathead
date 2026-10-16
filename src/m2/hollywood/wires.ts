@@ -353,10 +353,16 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (world space, behind him: drawBack). Only what's on screen (by the rig's whole drawn span).
+// Drawing (world space, behind him: drawBack). Only what's on screen (by the rig's whole drawn span). Peak SNES: the
+// truss in steel steps, inked (rigging, not a ledge: no lit top), the trolley a stepped yellow box, the harness's
+// webbing and buckles.
 
-const TRUSS = '#3F3F46', TRUSS_LIT = '#71717A', CHAIN = '#52525B', CABLE = '#18181B';
-const HARNESS = '#F59E0B', HARNESS_DK = '#B45309', STRAP = '#1F2937';
+const INK = '#1C1014';
+const STEELR = ['#1A1C22', '#2C3038', '#444A54', '#626A76', '#8890A0', '#B4BCC8'];
+const YEL = ['#5A3A04', '#8A5E08', '#C08A10', '#EAB516', '#FAD43A', '#FFF08A'];
+const OFF = ['#2A2622', '#3E3832', '#57534E', '#78716C', '#A8A29E', '#C8C2BC'];
+const STRAP = '#1F2937';
+const px = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
 
 export const drawWires = (c: Ctx, state: GameState, wires: StuntWire[]) => {
   if (!wires.length) return;
@@ -365,51 +371,55 @@ export const drawWires = (c: Ctx, state: GameState, wires: StuntWire[]) => {
     const g = geoOf(state, w), r = s.runs[i] ?? { u: 0, v: 0, th: 0, om: 0, ext: 0, wait: 0, idle: 0 };
     const lo = Math.min(g.ax, g.bx) - 40, hi = Math.max(g.ax, g.bx) + 40;
     if (hi < cam - 200 || lo > cam + 1000) return;
-    const ridden = s.hold.on === i;
-    // The track: a thin dark truss (rigging, not a ledge: no lit top), hung off chains going up out of sight
-    const ty = g.rigY - 10;
-    c.fillStyle = TRUSS; c.fillRect(Math.round(lo), Math.round(ty - 4), Math.round(hi - lo), 3); c.fillRect(Math.round(lo), Math.round(ty + 6), Math.round(hi - lo), 3);
-    c.strokeStyle = TRUSS_LIT; c.lineWidth = 1; c.beginPath();
-    for (let x = lo, k = 0; x < hi - 8; x += 12, k++) { c.moveTo(x, ty + (k % 2 ? -2 : 7)); c.lineTo(x + 12, ty + (k % 2 ? 7 : -2)); }
+    const ridden = s.hold.on === i, S = STEELR, Y = w.off ? OFF : YEL;
+    // The track: a box truss (two chords, diagonals between), hung off chains going up out of sight
+    const ty = g.rigY - 10, a = Math.max(lo, cam - 60), b = Math.min(hi, cam + 860);
+    for (const cy of [ty - 5, ty + 5]) { px(c, a, cy - 1, b - a, 5, INK); px(c, a, cy, b - a, 3, S[3]); px(c, a, cy, b - a, 1, S[5]); px(c, a, cy + 2, b - a, 1, S[1]); }
+    c.lineWidth = 1;
+    c.strokeStyle = S[2]; c.beginPath();
+    for (let x = Math.floor((a - lo) / 12) * 12 + lo, k = Math.floor((a - lo) / 12); x < b - 8; x += 12, k++) { c.moveTo(x, ty + (k % 2 ? -2 : 6)); c.lineTo(x + 12, ty + (k % 2 ? 6 : -2)); }
     c.stroke();
-    c.strokeStyle = CHAIN; c.lineWidth = 2;
+    for (let x = Math.ceil((a - lo) / 48) * 48 + lo; x < b; x += 48) { px(c, x - 1, ty - 4, 3, 12, INK); px(c, x, ty - 4, 1, 12, S[4]); }
     for (const x of [lo + 10, hi - 10, ...(hi - lo > 700 ? [(lo + hi) / 2] : [])]) {
-      c.beginPath(); c.moveTo(x, ty - 4); c.lineTo(x, ty - 700); c.stroke();
-      for (let y = ty - 10; y > ty - 700; y -= 8) { c.fillStyle = CHAIN; c.fillRect(Math.round(x) - 2, Math.round(y), 4, 3); }
+      if (x < cam - 40 || x > cam + 840) continue;
+      for (let y = ty - 10; y > ty - 700; y -= 6) { px(c, x - 2, y, 4, 4, INK); px(c, x - 1, y + 1, 2, 2, (y / 6) % 2 ? S[4] : S[2]); }
     }
-    // (end stops: a block each end, a hazard-striped bumper)
-    for (const x of [lo, hi - 8]) { c.fillStyle = '#18181B'; c.fillRect(Math.round(x), Math.round(ty - 8), 8, 20); c.fillStyle = '#FACC15'; c.fillRect(Math.round(x) + 2, Math.round(ty - 4), 4, 3); c.fillRect(Math.round(x) + 2, Math.round(ty + 4), 4, 3); }
-    // The trolley: a yellow motor box on wheels, its light on when it's live (blinking as it runs), a drum of cable
+    // (end stops: a block each end, hazard-striped bumpers)
+    for (const x of [lo, hi - 10]) { px(c, x - 1, ty - 11, 12, 24, INK); px(c, x, ty - 10, 10, 22, '#2A2A30'); for (let k = 0; k < 4; k++) px(c, x + 1, ty - 8 + k * 5, 8, 2, k % 2 ? '#1A1418' : '#FACC15'); }
+    // The trolley: a yellow motor box on its wheels, stepped, its light (green parked, red blinking running), a drum
     const hand = handAt(g, r);
     const tx = hand.tx;
-    c.fillStyle = '#000'; c.fillRect(Math.round(tx - 15), Math.round(ty - 10), 30, 22);
-    c.fillStyle = w.off ? '#78716C' : '#EAB308'; c.fillRect(Math.round(tx - 14), Math.round(ty - 9), 28, 20);
-    c.fillStyle = w.off ? '#57534E' : '#A16207'; c.fillRect(Math.round(tx - 14), Math.round(ty + 6), 28, 5);
-    c.fillStyle = '#27272A'; c.fillRect(Math.round(tx - 10), Math.round(ty - 14), 6, 6); c.fillRect(Math.round(tx + 4), Math.round(ty - 14), 6, 6);
-    const lit = !w.off && (Math.abs(r.v) < 0.1 || f % 16 < 8);
-    c.fillStyle = w.off ? '#3F3F46' : lit ? (Math.abs(r.v) > 0.1 ? '#EF4444' : '#4ADE80') : '#7F1D1D'; c.fillRect(Math.round(tx - 2), Math.round(ty - 6), 4, 4);
+    px(c, tx - 16, ty - 11, 32, 24, INK);
+    px(c, tx - 15, ty - 10, 30, 22, Y[3]); px(c, tx - 15, ty - 10, 30, 2, Y[5]); px(c, tx - 15, ty - 10, 3, 22, Y[4]); px(c, tx + 11, ty - 10, 4, 22, Y[2]);
+    px(c, tx - 15, ty + 6, 30, 6, Y[1]); px(c, tx - 15, ty + 6, 30, 1, Y[2]);
+    for (let k = 0; k < 3; k++) px(c, tx - 11 + k * 4, ty - 6, 2, 8, Y[2]);
+    for (const wx of [tx - 8, tx + 6]) { px(c, wx - 4, ty - 16, 8, 8, INK); px(c, wx - 3, ty - 15, 6, 6, S[2]); px(c, wx - 2, ty - 14, 2, 2, S[5]); }
+    const live = !w.off && (Math.abs(r.v) < 0.1 || f % 16 < 8);
+    px(c, tx + 1, ty - 7, 6, 6, INK); px(c, tx + 2, ty - 6, 4, 4, w.off ? '#3F3F46' : live ? (Math.abs(r.v) > 0.1 ? '#EF4444' : '#4ADE80') : '#7F1D1D'); if (live && !w.off) px(c, tx + 2, ty - 6, 1, 1, '#FFFFFF');
     // (the drum: turning while the cable's reeled in or out)
-    if (!w.off && ridden) { c.fillStyle = '#18181B'; c.fillRect(Math.round(tx + 6), Math.round(ty - 6), 6, 6); c.fillStyle = '#A1A1AA'; c.fillRect(Math.round(tx + 8 + ((f >> 2) % 2) * 2 - 1), Math.round(ty - 4), 2, 2); }
+    if (!w.off && ridden) { px(c, tx - 6, ty - 1, 8, 6, INK); px(c, tx - 5, ty, 6, 4, '#3A3A40'); px(c, tx - 4 + ((f >> 2) % 2) * 3, ty + 1, 2, 2, '#C8CCD4'); }
     // The cable and the harness (slack, off: a sagging loop, the harness hanging low)
     const hx = hand.x, hy = ridden ? state.player.pos.y + HAND_DY : hand.y;
     const hxx = ridden ? state.player.pos.x + state.player.width / 2 : hx;
-    c.strokeStyle = CABLE; c.lineWidth = 2; c.beginPath(); c.moveTo(tx, ty + 11);
-    if (w.off) c.quadraticCurveTo(tx + 26, hy + 40, hxx, hy + 30); else c.lineTo(hxx, hy);
-    c.stroke();
+    const cable = () => { c.beginPath(); c.moveTo(tx, ty + 11); if (w.off) c.quadraticCurveTo(tx + 26, hy + 40, hxx, hy + 30); else c.lineTo(hxx, hy); c.stroke(); };
+    c.strokeStyle = INK; c.lineWidth = 3; cable();
+    c.strokeStyle = '#6A6E78'; c.lineWidth = 1; cable();
     if (ridden) return;
     const by = w.off ? hy + 30 : hy;
-    // (the harness: a clip, two shoulder straps down to a waist belt, leg loops; glowing a little when it's live)
+    // (the harness: a carabiner, two shoulder straps down to a waist belt and its buckle, leg loops; glowing a little,
+    // stepped, when it's live)
     if (!w.off) {
-      const pulse = 0.25 + 0.2 * Math.sin(f * 0.12 + i);
-      c.fillStyle = `rgba(253, 224, 71, ${pulse})`; c.beginPath(); c.arc(hxx, by + 14, 20, 0, Math.PI * 2); c.fill();
+      const pulse = 0.18 + 0.14 * Math.sin(f * 0.12 + i);
+      for (let k = 3; k >= 1; k--) { c.fillStyle = `rgba(253, 224, 71, ${(pulse * (4 - k) / 3).toFixed(3)})`; c.beginPath(); c.arc(hxx, by + 14, 8 + k * 5, 0, Math.PI * 2); c.fill(); }
     }
-    c.fillStyle = '#A1A1AA'; c.fillRect(Math.round(hxx - 3), Math.round(by - 2), 6, 6);
-    c.fillStyle = STRAP; c.fillRect(Math.round(hxx - 8), Math.round(by + 3), 3, 18); c.fillRect(Math.round(hxx + 5), Math.round(by + 3), 3, 18);
-    c.fillStyle = w.off ? '#78716C' : HARNESS; c.fillRect(Math.round(hxx - 10), Math.round(by + 20), 20, 6);
-    c.fillStyle = w.off ? '#57534E' : HARNESS_DK; c.fillRect(Math.round(hxx - 10), Math.round(by + 24), 20, 2);
-    c.fillStyle = '#E5E7EB'; c.fillRect(Math.round(hxx - 2), Math.round(by + 21), 4, 4);
-    c.strokeStyle = w.off ? '#57534E' : HARNESS; c.lineWidth = 3;
-    c.beginPath(); c.arc(hxx - 5, by + 31, 5, 0, Math.PI * 2); c.stroke();
-    c.beginPath(); c.arc(hxx + 5, by + 31, 5, 0, Math.PI * 2); c.stroke();
+    px(c, hxx - 4, by - 3, 8, 8, INK); px(c, hxx - 3, by - 2, 6, 6, '#A1A1AA'); px(c, hxx - 3, by - 2, 2, 2, '#E5E7EB'); px(c, hxx - 1, by, 2, 2, INK);
+    for (const sx of [hxx - 9, hxx + 4]) { px(c, sx - 1, by + 3, 7, 19, INK); px(c, sx, by + 3, 5, 18, STRAP); px(c, sx, by + 3, 1, 18, '#4B5563'); }
+    px(c, hxx - 11, by + 19, 22, 9, INK); px(c, hxx - 10, by + 20, 20, 7, Y[3]); px(c, hxx - 10, by + 20, 20, 2, Y[5]); px(c, hxx - 10, by + 25, 20, 2, Y[1]);
+    px(c, hxx - 3, by + 20, 6, 6, INK); px(c, hxx - 2, by + 21, 4, 4, '#E5E7EB'); px(c, hxx - 1, by + 22, 2, 2, '#9CA3AF');
+    for (const lx of [hxx - 5, hxx + 5]) {
+      c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.arc(lx, by + 32, 5, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = Y[3]; c.lineWidth = 3; c.beginPath(); c.arc(lx, by + 32, 5, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = Y[5]; c.lineWidth = 1; c.beginPath(); c.arc(lx, by + 32, 5, Math.PI, Math.PI * 1.6); c.stroke();
+    }
   });
 };
