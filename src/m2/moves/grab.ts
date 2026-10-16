@@ -144,6 +144,8 @@ const Y_TAP = 15;
 const CONTACT_GRACE = 30;
 /** How near together B (or X) and Y count as pressed together: frames B's held back, waiting for Y. */
 const CHORD_WINDOW = 4;
+/** After an air grab, how long bumping into anybody doesn't hurt (frames). */
+const AIR_CONTACT_GRACE = 50;
 /** The frame A was last pressed (A + B, the air grab: A first and he's already jumping; B a moment after's still it). */
 let aAt = -99;
 /** A + B has to be pressed together: the same frame, or the next at most (a short hop then B is the air charge). */
@@ -634,7 +636,12 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   g.was = controls;
   g.hp = p.health;
   // (mid air grab: nothing in the scenery takes hold of him (ladders, ropes, vines): see ladders.ts, vines.ts)
+  const wasAir = !!p.airGrab;
   p.airGrab = g.phase === 'awind' || g.phase === 'alunge' || g.phase === 'aarc';
+  // (the whole air grab: nothing hurts him; and a moment after it, bumping into whoever's there doesn't either (the one
+  // he slammed, still alive, at his feet))
+  p.untouchable = p.airGrab;
+  if (wasAir && !p.airGrab) p.noContactUntil = state.frame + AIR_CONTACT_GRACE;
   const press = (k: keyof Controls) => !!controls[k] && !was[k];
   if (state.deathTimer > 0 || p.health <= 0) { if (g.phase !== 'idle') letGo(state, g); return controls; }
   g.t++;

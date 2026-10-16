@@ -219,6 +219,10 @@ export interface Player extends Entity {
   sootTimer?: number;
   /** Dyed (Meathead 2's tannery vats): a color over all of him for a while, fading back (dyeTimer frames left). */
   dyeColor?: string; dyeTimer?: number;
+  /** Nothing hurts him right now (Meathead 2's air grab, the whole of it). */
+  untouchable?: boolean;
+  /** Bumping into anybody doesn't hurt him till this frame (just after an air grab). */
+  noContactUntil?: number;
   /** The dyes on him (one, or two mixed). */
   dyeParts?: string[];
   /** His head's gone (the sniper): frames since. The body stays up on the death screen, and goes over. */

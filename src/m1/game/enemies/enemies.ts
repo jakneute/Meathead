@@ -37,7 +37,7 @@ import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
 import { isMidBoss } from '../combat/midBoss';
 import { isBeingTased } from '../combat/statusEffects';
-import { hurtTaken, gritty } from '../core/resist';
+import { hurtTaken, gritty, shoveSetDistance } from '../core/resist';
 import { inFinale } from '../combat/finaleBuffs';
 import { ROOM_L, ROOM_R } from '../stages/finale/geometry';
 import { noteAnimalKill } from '../player/animalDeaths';
@@ -1060,7 +1060,9 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   // (just bounced off this one: it doesn't get to hurt him for the bump itself; anything else still can)
   const bouncedOff = state.reboundFrom?.id === e.id && state.frame < state.reboundFrom.until;
   // (frozen solid, it's a block of ice: it doesn't hurt to bump into)
-  if (!e.harmless && !isAttacking && !bouncedOff && !isFrozen(e) && !player.noContactHurt && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
+  // (in an air grab, or just after one; shoving a shield along: bumping into them doesn't hurt)
+  const contactSafe = !!player.untouchable || state.frame < (player.noContactUntil ?? -1);
+  if (!e.harmless && !isAttacking && !bouncedOff && !isFrozen(e) && !player.noContactHurt && !contactSafe && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
     // (a boss's own weight behind it; anything else just a bump)
     if (!cheats.invincible) player.health -= hurtTaken(stageId, kindContactDamage(e) ?? (e.type === 'boss' ? stageDef?.contact?.damage : undefined) ?? 5.5);
     state.lastHurt = { source: getContactHurtSource(ctx, e), at: state.frame };
@@ -1327,6 +1329,8 @@ const shieldShove = (ctx: FrameContext, e: Enemy): boolean => {
   // Held down, the charge keeps driving him a good long way (not forever)
   if (first) p.shoveT = SHIELD_SHOVE_FRAMES;
   if ((p.shoveT || 0) > 0) { p.shoveT!--; p.chargeTimer = Math.max(p.chargeTimer, 2); }
+  // (the whole shove, and a moment after: the man he's shoving can't hurt him just by being up against him)
+  if (shoveSetDistance()) p.noContactUntil = Math.max(p.noContactUntil ?? 0, state.frame + 30);
   // Driven back ahead of him, feet dragging; and he's a while getting his feet back under him afterward
   // (no sucker punch the moment you let up)
   e.pos.x = side > 0 ? p.pos.x + p.width + 2 : p.pos.x - e.width - 2;

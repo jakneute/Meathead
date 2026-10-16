@@ -202,6 +202,8 @@ export const hurtPlayer = (
   knockback?: { x: number; y: number }, pushbackFrames = PLAYER_PUSHBACK_DURATION,
 ) => {
   const player: Player = ctx.state.player;
+  // (mid air grab (Meathead 2): nothing gets him)
+  if (player.untouchable) return;
   if (!ctx.cheats.invincible) player.health -= hurtTaken(ctx.stageId, damage);
   // (what hurt him, for the death screen: the killing blow included)
   ctx.state.lastHurt = { source, at: ctx.state.frame };

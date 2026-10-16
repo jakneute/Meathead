@@ -871,7 +871,7 @@ const hitBossWithProjectile = (ctx: FrameContext, boss: Enemy, p: Projectile): b
 const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean => {
   const { state, fx, stageId, cheats } = ctx;
   const { player } = state;
-  if (player.invincibilityTimer > 0 || p.visualOnly) return true;
+  if (player.invincibilityTimer > 0 || player.untouchable || p.visualOnly) return true;
 
   const hurtbox = boundsOf(player);
   if (player.isDucking || player.isSliding) { hurtbox.y += 28; hurtbox.h -= 28; }

@@ -13,6 +13,12 @@ export const hurtTaken = (stageId: string | null | undefined, damage: number) =>
  * alien's laser, the Secret Service's bullets, fists and shields; everything). */
 export const gritty = (stageId: string | null | undefined) => stageId === FINALE_STAGE || armored;
 
+/** A shield shove is a set distance, and the shoved man can't hurt him by contact meanwhile (Meathead 2; Meathead 1's
+ *  shove goes on only while the charge is held, as it always has). */
+let setShove = false;
+export const setShoveSetDistance = (on: boolean) => { setShove = on; };
+export const shoveSetDistance = () => setShove;
+
 /** Armor, fighting-game style, wherever he is (Meathead 2, through a grab): hurt, but not knocked about or out of it. */
 let armored = false;
 /** Who's giving it him (a grab, a weapon's windup): armored while any of them is, so one setting it off every frame

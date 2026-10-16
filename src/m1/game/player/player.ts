@@ -2,6 +2,7 @@
 // Movement and special moves mirror the GameMaker version's oPlayer step order:
 // cooldowns -> special inputs -> special moves -> facing -> crouch -> X -> Y.
 
+import { shoveSetDistance } from '../core/resist';
 import { Enemy, WeaponType, Rect, Block, Player } from '../../types';
 import {
   MAX_AMMO,
@@ -385,8 +386,9 @@ const runSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
         size: 4 + Math.random() * 5,
       });
     }
-    // Hold the button to keep charging, up to the full duration
-    if (player.chargeTimer <= 0 || !input.special) endCharge(ctx);
+    // Hold the button to keep charging, up to the full duration (shoving a shield along, it's a set distance: letting
+    // go doesn't stop it)
+    if (player.chargeTimer <= 0 || (!input.special && !(shoveSetDistance() && (player.shoveT ?? 0) > 0))) endCharge(ctx);
   }
 
   // (however it ended: a launch's boost goes with it)

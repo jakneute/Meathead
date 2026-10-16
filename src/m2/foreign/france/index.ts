@@ -171,6 +171,8 @@ export const france: ForeignSection = {
     drawFronts(c, v);
     // (the cafes: awnings over, tables and chairs, the column with its posters)
     for (const [a, b, h, col] of AWNINGS) drawCafe(c, v, a, b, h, col);
+    // (the cabaret's curtain, set back: drawn before the stage, so the stage they dance on is in front of it)
+    if (onScreen(v, X(STAGE.a), X(STAGE.b))) setBack(c, v, X(STAGE.a), STAGE.b - STAGE.a, 0.93, () => { wall(c, 0, STAGE.b - STAGE.a, 300, '#7F1D1D'); for (let x = 10; x < STAGE.b - STAGE.a; x += 24) box(c, x, -300, 6, 300, dimmed('#991B1B')); });
     boxes3(c, v, [
       ...TABLES.map(([a, b, h]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col: '#1C1917', standable: true })),
       { x: X(COLUMN.a), top: Y(COLUMN.h), w: COLUMN.b - COLUMN.a, bottom: GY, col: '#14532D', standable: true },
@@ -179,9 +181,8 @@ export const france: ForeignSection = {
     ]);
     for (const [a, b, h] of TABLES) if (onScreen(v, X(a), X(b))) { box(c, X(a) + 18, Y(h) + 6, 14, h - 6, hour('#57534E')); box(c, X(a) + 20, Y(h) - 10, 6, 8, '#FDE68A'); }
     if (onScreen(v, X(COLUMN.a), X(COLUMN.b))) { for (let k = 0; k < 3; k++) box(c, X(COLUMN.a) + 6, Y(COLUMN.h) + 20 + k * 44, COLUMN.b - COLUMN.a - 12, 36, hour(['#FDE68A', '#FCA5A5', '#BFDBFE'][k])); poly(c, [[X(COLUMN.a) - 6, Y(COLUMN.h)], [X(COLUMN.b) + 6, Y(COLUMN.h)], [X((COLUMN.a + COLUMN.b) / 2), Y(COLUMN.h) - 18]], hour('#14532D')); }
-    // (the cabaret: its curtain behind, the marquee's bulbs, the marquee to stand on)
+    // (the cabaret: the marquee's bulbs, the marquee to stand on)
     if (onScreen(v, X(STAGE.a), X(STAGE.b))) {
-      setBack(c, v, X(STAGE.a), STAGE.b - STAGE.a, 0.93, () => { wall(c, 0, STAGE.b - STAGE.a, 300, '#7F1D1D'); for (let x = 10; x < STAGE.b - STAGE.a; x += 24) box(c, x, -300, 6, 300, dimmed('#991B1B')); });
       for (const px0 of [X(MARQUEE.a) + 4, X(MARQUEE.b) - 8]) box(c, px0, Y(MARQUEE.h), 4, MARQUEE.h - STAGE.h, hour('#CA8A04'));
       box(c, X(MARQUEE.a), Y(MARQUEE.h), MARQUEE.b - MARQUEE.a, 34, hour('#1C1917'));
       for (let x = X(MARQUEE.a) + 6; x < X(MARQUEE.b); x += 12) box(c, x, Y(MARQUEE.h) + 28, 4, 4, (x + (f >> 3) * 12) % 24 < 12 ? '#FDE047' : '#78350F');
