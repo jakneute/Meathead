@@ -17,13 +17,14 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { POWER_CELLS } from '../../../m1/constants';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { pickLine } from '../../../m1/game/platform/speech';
-import { hazardVictims, hazardKill, hazardHit } from '../../hazardHit';
+import { hazardVictims, hazardHit } from '../../hazardHit';
 import { meatheadSays } from '../section';
 import { heliOf, type Heli } from './state';
 import { CAMX, CY, W, H, FLY_SPEED, FLY_ACCEL, FEET_X0, FEET_X1, FEET_Y0, FEET_Y1 } from './geo';
 import { drawBoom } from './mechArt';
 import { mechAim, hitMech, hitMinions, type Rect } from './mechs';
 import { MH_SHRED } from './lines';
+import { shredGoon, tickShred, drawShred, drawRotorSmear, drawShieldSplat } from './shred';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -142,7 +143,7 @@ const shred = (ctx: FrameContext, h: Heli) => {
   let shredded = 0;
   for (const e of hazardVictims(state)) {
     if (e.pos.x > z.x + z.w || e.pos.x + e.width < z.x || e.pos.y > z.y + z.h || e.pos.y + e.height < z.y) continue;
-    blend(ctx, e, r.x + r.w / 2 - b.dx * 200); shredded++;
+    blend(ctx, e, rotorDisc(state, h)); shredded++;
   }
   if (hitMinions(ctx, z, 999)) shredded++;
   if (shredded && Math.random() < 0.3) meatheadSays(state, pickLine(MH_SHRED), false);
@@ -162,29 +163,35 @@ const shred = (ctx: FrameContext, h: Heli) => {
  *  a hurt to him (it's his). Its line: the rotor's (1, -99) out 160 either way in the helicopter's frame, tilted and
  *  flipped with it. */
 const ROTOR_R = 160, ROTOR_REACH = 14;
-const rotorChops = (ctx: FrameContext, h: Heli) => {
-  const { state } = ctx, f = feet(state), a = h.tilt + h.flip * Math.PI, ca = Math.cos(a), sa = Math.sin(a);
+/** The rotor disc's line (world): its hub, its two blade ends, its axis. */
+const rotorDisc = (state: GameState, h: Heli) => {
+  const f = feet(state), a = h.tilt + h.flip * Math.PI, ca = Math.cos(a), sa = Math.sin(a);
   const lx = 1 - h.seat, ly = -99;
   const cx = f.x + ca * lx - sa * ly, cy = f.y + sa * lx + ca * ly;
-  const ax = cx - ca * ROTOR_R, ay = cy - sa * ROTOR_R, bx = cx + ca * ROTOR_R, by = cy + sa * ROTOR_R;
+  return { cx, cy, ca, sa, ax: cx - ca * ROTOR_R, ay: cy - sa * ROTOR_R, bx: cx + ca * ROTOR_R, by: cy + sa * ROTOR_R };
+};
+type Disc = ReturnType<typeof rotorDisc>;
+const rotorChops = (ctx: FrameContext, h: Heli) => {
+  const { state } = ctx, d0 = rotorDisc(state, h), { ax, ay, bx, by } = d0;
+  tickShred(ctx, { x: ax, y: ay }, { x: bx, y: by });
   let chopped = 0;
   for (const e of hazardVictims(state)) {
     const ex = e.pos.x + e.width / 2, ey = e.pos.y + e.height / 2;
     const dx = bx - ax, dy = by - ay, k = Math.max(0, Math.min(1, ((ex - ax) * dx + (ey - ay) * dy) / (dx * dx + dy * dy)));
     const d = Math.hypot(ex - ax - k * dx, ey - ay - k * dy);
     if (d > Math.min(e.width, e.height) / 2 + ROTOR_REACH) continue;
-    blend(ctx, e, ax + k * dx + (ex < cx ? 60 : -60)); chopped++;
+    blend(ctx, e, d0); chopped++;
   }
   if (chopped && Math.random() < 0.3) meatheadSays(state, pickLine(MH_SHRED), false);
 };
 
-/** Through the blades: a red mist, bits. */
-const blend = (ctx: FrameContext, e: Enemy, fromX: number) => {
-  const { state } = ctx, cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height / 2;
-  heliOf(state).killAt = state.frame;
-  hazardKill(ctx, e, fromX, 'SHREDDED!', { color: '#DC2626', fling: { x: (cx - fromX > 0 ? 1 : -1) * 14, y: -9 } });
-  for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 30, y: cy + (Math.random() - 0.5) * 40 }, vel: { x: (Math.random() - 0.5) * 12, y: (Math.random() - 0.7) * 10 }, life: 30 + Math.random() * 20, color: i % 3 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 4 });
-  playSound('splat', 1, -4); playSound('crunch', 0.8, 6);
+/** Through the blades: no body, paste (shred.ts). Where the blade met him (the nearest point on the disc to him, toward
+ *  him), thrown out along the blade, away from the hub on his side. */
+const blend = (ctx: FrameContext, e: Enemy, d: Disc) => {
+  const ex = e.pos.x + e.width / 2, ey = e.pos.y + e.height / 2;
+  const along = (ex - d.cx) * d.ca + (ey - d.cy) * d.sa, k = Math.max(-ROTOR_R, Math.min(ROTOR_R, along));
+  const x = (d.cx + d.ca * k + ex) / 2, y = (d.cy + d.sa * k + ey) / 2, sg = along < 0 ? -1 : 1;
+  shredGoon(ctx, e, x, y, d.ca * sg, d.sa * sg);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -319,6 +326,9 @@ export const drawCopter = (c: Ctx, part: 'back' | 'front', px: number, py: numbe
       c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(1 - L, -99); c.lineTo(1 + L, -99); c.stroke();
       c.strokeStyle = '#71717A'; c.lineWidth = 2; c.beginPath(); c.moveTo(1 - L, -99.5); c.lineTo(1 + L, -99.5); c.stroke();
     }
+    // (red off the last one through it, and the splatter on the glass)
+    drawRotorSmear(c, f, h.rotor);
+    drawShieldSplat(c, f, h.tilt + h.flip * Math.PI);
     fl('#A1A1AA', () => c.arc(1, -99, 5, 0, Math.PI * 2), 1.2);
     // (its lights: a red one under the tail, a green one on the nose, a white strobe on the roof, blinking)
     if ((f >> 3) % 4 === 0) { c.fillStyle = '#EF4444'; c.beginPath(); c.arc(-60, 6, 3, 0, Math.PI * 2); c.fill(); }
@@ -343,6 +353,7 @@ export const drawRockets = (c: Ctx, state: GameState) => {
     c.restore();
   }
   for (const b of h.booms) drawBoom(c, b);
+  drawShred(c, state);
 };
 /** Screen: the rockets' charges (three little rockets, bottom left; the one coming back filling in), and the rotor
  *  boost's own meter beside them (empty while it's boosting, filling over its cooldown, lit when it's ready). */

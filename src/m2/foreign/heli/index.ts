@@ -45,6 +45,7 @@ import { x0, x1, X, GY, REFILL, CP_PAD, QUEUE_A, QUEUE_B, BOARD_AT, PAD_X, PAD_O
 import { flyCopter, updateRockets, drawCopter, drawRockets, drawCharges } from './copter';
 import { makeMechs, startMech, updateMechs, mechDone } from './mechs';
 import { WAVES, goonsLeft, sweepGoons, fightGroup } from './goons';
+import { shredHold } from './shred';
 import { drawPark, roadY, panicAt, inWorld, RISE, fireLamps } from './park';
 import { drawAttacks, drawMech, mechLook } from './mechArt';
 import { drawStreetsBackdrop } from '../backdrop';
@@ -568,6 +569,8 @@ export const heli: ForeignSection = {
   cameraX: (state) => { const h = heliOf(state); return h.cam ? { min: h.camX, max: h.camX } : undefined; },
   // (zoomed out over the park from the lift on, about the screen's middle; pulled back further while a landmark comes up)
   // (the pull, about its own screen point: the shift keeps that point put; the park's camera does the same)
+  // (the rotor's shred: a little hit-stop, shred.ts)
+  holdTick: () => shredHold(),
   zoom: (state) => {
     const h = heliOf(state), z = h.zoom * h.pull;
     return h.cam && Math.abs(z - 1) > 0.002 ? { scale: z, x: state.camera.x + SW / 2, y: state.camera.y + SH / 2, shiftX: (1 - h.pull) * (h.pullX - SW / 2), shiftY: (1 - h.pull) * (h.pullY - SH / 2) } : null;

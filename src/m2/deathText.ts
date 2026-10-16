@@ -31,7 +31,7 @@ const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453
  * as it goes, its sides wobbling like it can't decide, swelling again into the bead hanging off the end (a teardrop
  * that stretches as it fills). Shaded in steps: a dark edge, the red, a lighter core off to one side, a wet glint.
  */
-const goo = (ctx: Ctx, cx: number, top: number, L: number, w: number, br: number, hang: number, seed: number, t: number) => {
+export const goo = (ctx: Ctx, cx: number, top: number, L: number, w: number, br: number, hang: number, seed: number, t: number) => {
   const end = top + L, bead = end + br * hang * 0.5;
   /** The half width down it (y from the top). */
   const half = (y: number) => {
