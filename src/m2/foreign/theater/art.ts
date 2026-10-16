@@ -43,7 +43,7 @@ export const drawTheaterBack = (c: Ctx, state: GameState) => {
     for (let k = 0; k < 3; k++) hole(c, 120 + k * 150, -150, 90, 150, true);
     box(c, 0, -430, 640, 10, dimmed('#1E3A8A'));
   });
-  if (onScreen(v, X(200), X(760))) board(c, X(460), GY - 300, done ? ['CULTURES OF THE WORLD', 'SHOW CANCELLED', 'ALL OF IT'] : ['CULTURES OF THE WORLD', 'NOW SHOWING: EVERYBODY ELSE', 'COOL. BUT NOT AS COOL AS AMERICA.'], LOOKS.land(2), '#B91C1C');
+  if (onScreen(v, X(200), X(760))) board(c, X(460), GY - 300, done ? ['CULTURES OF THE WORLD', 'SHOW CANCELED', 'ALL OF IT'] : ['CULTURES OF THE WORLD', 'NOW SHOWING: EVERYBODY ELSE', 'COOL. BUT NOT AS COOL AS AMERICA.'], LOOKS.land(2), '#B91C1C');
 
   // INSIDE: the walls first (the lobby, the house, backstage), then the floors
   if (v.cam.x + CANVAS_WIDTH > X(DOOR)) {

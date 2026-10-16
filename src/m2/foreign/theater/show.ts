@@ -4,7 +4,7 @@
 // SKIP >> for all of it), and the curtain goes up on SPAIN.
 //
 // THE CYCLE (the user's): each showpiece gets the stage clock (a big LED countdown hung off the proscenium); dead in
-// time, it's CANCELLED (the narrator says so, the house cheers) and the curtain comes down; not dead in time, the
+// time, it's CANCELED (the narrator says so, the house cheers) and the curtain comes down; not dead in time, the
 // curtain comes down on it anyway (the house boos) and goes up on the NEXT LIVING showpiece. Damage stays; the dead
 // never come back (their wrecks stay on their set). The show's over when all eight are dead: the CURTAIN CALL (a
 // cutscene beat: the curtain up on him alone, the house on its feet, confetti, the narrator's wrap), then the

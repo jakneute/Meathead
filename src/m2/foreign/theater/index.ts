@@ -11,7 +11,7 @@
 // art.ts (the building, the stage, the sets, the curtain, the clock, the crowd).
 //
 // Sub-boss rules: open before it starts; both sides locked once it's on till it's over; never again once it's done
-// (SHOW_MEMO; checkpoint 102 past it). Revisits differ: the marquee says SHOW CANCELLED, the house is empty (popcorn
+// (SHOW_MEMO; checkpoint 102 past it). Revisits differ: the marquee says SHOW CANCELED, the house is empty (popcorn
 // left in the seats), the stage struck (the wrecks shoved in a pile upstage, in their fluid), the wing door open.
 // Back from the helipad: backstage (DOORS.theater.end).
 
