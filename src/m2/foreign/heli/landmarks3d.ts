@@ -118,8 +118,8 @@ const pieceFire = (c: Ctx, x: number, y: number, r: number, t: number, n: number
 };
 
 /** Draws it (whatever's under it first: its shadow, the plinth or the legs; then the body; its eyes). */
-const render = (c: Ctx, cam: Cam, id: MechId, i: number, at: { x: number; z: number }, L: MechLook, feet: FootW[] | undefined, f: number) => {
-  const view = viewOf(cam, f), { R, F } = axesOf(i), m = L.m;
+const render = (c: Ctx, cam: Cam, id: MechId, i: number, at: { x: number; z: number }, L: MechLook, feet: FootW[] | undefined, f: number, axes?: { R: { x: number; z: number }; F: { x: number; z: number } }) => {
+  const view = viewOf(cam, f), { R, F } = axes ?? axesOf(i), m = L.m;
   const base0 = view.proj(at.x, 0, at.z);
   view.lod = base0.k * 420 < 90;
   view.upright = { x: at.x, z: at.z };
@@ -233,4 +233,12 @@ export const drawLandmarkWorld = (c: Ctx, h: Heli, m: Mech, f: number) => {
   const L = mechLook(h, m, m.i, f);
   render(c, camFit(h), m.id, m.i, mechAt(m, m.i), L, undefined, L.f);
   c.restore();
+};
+
+/** A wreck where Harry's arena wants it (harry/scene.ts: the gauntlet's wrecks on the dig's berm): the same 3D wreck
+ *  (blackened, over on its side by its folded legs, its eyes X'd), through the arena's own camera, turned `yaw` about
+ *  its base. Its smoke's the caller's (it's painted once). */
+export const drawWreck3d = (c: Ctx, cam: Cam, id: MechId, at: { x: number; z: number }, yaw: number) => {
+  const axes = { R: { x: Math.cos(yaw), z: -Math.sin(yaw) }, F: { x: -Math.sin(yaw), z: -Math.cos(yaw) } };
+  render(c, cam, id, 0, at, { awake: true, f: 0, wreck: true }, undefined, 0, axes);
 };

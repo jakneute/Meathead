@@ -19,7 +19,7 @@ import { topBand } from '../../../m1/constants';
 import { goTo, markLandCleared, noteBossKill, isLandCleared, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
-import { x0, x1, VIEW_X, ARENA_L, ARENA_R, CAM_ROW, REFILL_X, WALL_W, sy } from './arena';
+import { x0, x1, VIEW_X, ARENA_L, ARENA_R, CAM_ROW, REFILL_X, WALL_W, WRECK_X, sy } from './arena';
 import { KICK_POSE_FRAMES } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
@@ -156,5 +156,9 @@ export const harry: ForeignSection = {
   holdTick: (ctx) => { const f = harryOf(ctx.state).f; return f ? killCamTick(f) : false; },
   outdoors: () => 1,
   // (her torch's gold flame glows, wherever it is: held up, or planted in the floor)
-  lamps: (state) => (torchFlame && Math.abs(state.frame - torchFlame.f) <= 2 ? [{ x: torchFlame.x, y: torchFlame.y, r: 180, a: 0.75, color: '#FDE68A' }] : []),
+  // (her torch's flame, and the helicopter's wreck burning in its crater: they glow after dark)
+  lamps: (state) => [
+    ...(torchFlame && Math.abs(state.frame - torchFlame.f) <= 2 ? [{ x: torchFlame.x, y: torchFlame.y, r: 180, a: 0.75, color: '#FDE68A' }] : []),
+    { x: WRECK_X, y: GY - 40, r: 200 + Math.sin(state.frame * 0.3) * 10, a: 0.7, color: '#FB923C' },
+  ],
 };
