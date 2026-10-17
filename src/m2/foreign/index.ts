@@ -10,6 +10,7 @@
 //
 // Shared file (see OWNERSHIP.md): section owners may only append minimally, and must re-read it before editing.
 
+import { sleepFar, wakeNear } from '../dormant';
 import { updateSwimAir, drawAir } from './air';
 import { drownLanders } from '../drown';
 import type { StageLayout } from '../../m1/game/stages/index';
@@ -96,6 +97,8 @@ export const foreignLayout: StageLayout = {
     const p = state.player;
     p.pos.x = cp.x - p.width / 2; p.pos.y = cp.y - p.height; p.vel.x = 0; p.vel.y = 0;
     state.camera.x = cp.x - CANVAS_WIDTH / 2;
+    // (the cast of every pavilion but the one he's in: asleep till he's near (dormant.ts))
+    sleepFar(state);
     return { x: cp.x, y: cp.y };
   },
   update: (ctx, controls) => {
@@ -104,6 +107,7 @@ export const foreignLayout: StageLayout = {
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
     if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!fs) return controls;
+    wakeNear(state);
     const p = state.player;
     if (fs.grace > 0) {
       fs.grace--;

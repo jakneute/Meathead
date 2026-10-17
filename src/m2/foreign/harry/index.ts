@@ -81,12 +81,14 @@ export const harry: ForeignSection = {
       }
       if (s.gate === 'kick') {
         s.gateT++; p.vel.x = 0;
+        // (the kick's pose runs out on its own here: nothing else counts it down in Meathead 2)
+        if ((p.kickPose ?? 0) > 0) p.kickPose!--;
         if (s.gateT === KICK_HIT) {
           if (s.gateBlock) { state.blocks = state.blocks.filter(b => b !== s.gateBlock); s.gateBlock = null; }
           playSound('clang', 1, -6); playSound('crash', 0.8, -2); shakeScreen(state, 10, 5);
           for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: ARENA_L, y: GY - 20 - Math.random() * 100 }, vel: { x: 1 + Math.random() * 4, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#A8A29E' : '#71717A', size: 2 + Math.random() * 3, grav: 0.3 });
         }
-        if (s.gateT >= KICK_DONE) { s.gate = 'down'; playSound('thud', 0.8, -6); shakeScreen(state, 6, 3); }
+        if (s.gateT >= KICK_DONE) { s.gate = 'down'; p.kickPose = 0; playSound('thud', 0.8, -6); shakeScreen(state, 6, 3); }
         return hands();
       }
       // (through the gate onto the slab, not cleared: it's on; the gate shut behind him)

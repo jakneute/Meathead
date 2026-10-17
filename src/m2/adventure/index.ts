@@ -3,6 +3,7 @@
 //
 // The first pass is a crude one on purpose (prototype boxes and words, to get the feel of it before the real look).
 
+import { sleepFar, wakeNear } from '../dormant';
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
 import type { Enemy } from '../../m1/types';
@@ -78,6 +79,8 @@ export const advLayout: StageLayout = {
     const p = state.player;
     p.pos.x = cp.x - p.width / 2; p.pos.y = cp.y - p.height; p.vel.x = 0; p.vel.y = 0;
     state.camera.x = cp.x - CANVAS_WIDTH / 2;
+    // (the cast of every section but where he starts: asleep till he's near (dormant.ts))
+    sleepFar(state);
     return { x: cp.x, y: cp.y };
   },
   update: (ctx, controls) => {
@@ -86,6 +89,7 @@ export const advLayout: StageLayout = {
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
     if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!adv) return controls;
+    wakeNear(state);
     const p = state.player;
     // (just back at a checkpoint: anything near holds off a moment, then it's itself again)
     if (adv.grace > 0) {
