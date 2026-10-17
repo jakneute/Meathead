@@ -78,20 +78,43 @@ const piecesOf = (id: MechId, t: number): (M34 | null | undefined)[] | undefined
 };
 
 /** One googly eye (screen): the white, the pupil rolling (m.eyes, lagging), the lid (shut, or how far up), X'd. */
+const disc = (c: Ctx, x: number, y: number, r: number, col: string) => { c.fillStyle = col; c.beginPath(); c.arc(x, y, Math.max(0.5, r), 0, Math.PI * 2); c.fill(); };
+/** A googly eye, the craft-store kind stuck on: its drop shadow on the landmark, the clear plastic dome's rim, the
+ *  white in steps (a gray crescent of shade down its lower right), the loose pupil (a lit rim, a glint), the dome's
+ *  shine over it all; a lid down over it in steps; X'd on a wreck. */
 const googly = (c: Ctx, x: number, y: number, R: number, g: { x: number; y: number }, how: 'shut' | 'open', open: number, wreck: boolean, k: number) => {
-  c.fillStyle = '#FFFFFF'; c.strokeStyle = INK; c.lineWidth = Math.max(1, 2.4 * k);
-  c.beginPath(); c.arc(x, y, R, 0, Math.PI * 2); c.fill(); c.stroke();
-  if (wreck) { c.lineWidth = Math.max(1, 3.5 * k); c.beginPath(); c.moveTo(x - R * 0.5, y - R * 0.5); c.lineTo(x + R * 0.5, y + R * 0.5); c.moveTo(x + R * 0.5, y - R * 0.5); c.lineTo(x - R * 0.5, y + R * 0.5); c.stroke(); return; }
-  c.fillStyle = INK; c.beginPath(); c.arc(x + g.x, y + g.y, R * 0.5, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#FFFFFF'; c.fillRect(x + g.x - R * 0.22, y + g.y - R * 0.28, Math.max(1, R * 0.18), Math.max(1, R * 0.18));
+  const lw = Math.max(1, 2.4 * k);
+  c.globalAlpha = 0.35; disc(c, x + R * 0.16, y + R * 0.2, R * 1.04, INK); c.globalAlpha = 1;
+  disc(c, x, y, R + lw * 0.6, INK);
+  disc(c, x, y, R, '#C8CCD4');
+  disc(c, x - R * 0.06, y - R * 0.06, R * 0.9, '#E8EAEE');
+  disc(c, x - R * 0.12, y - R * 0.12, R * 0.74, '#FFFFFF');
+  if (wreck) { c.strokeStyle = INK; c.lineWidth = Math.max(1, 3.5 * k); c.beginPath(); c.moveTo(x - R * 0.5, y - R * 0.5); c.lineTo(x + R * 0.5, y + R * 0.5); c.moveTo(x + R * 0.5, y - R * 0.5); c.lineTo(x - R * 0.5, y + R * 0.5); c.stroke(); return; }
+  const px = x + g.x, py = y + g.y;
+  disc(c, px, py, R * 0.52, '#2A2A34');
+  disc(c, px + R * 0.04, py + R * 0.04, R * 0.44, INK);
+  c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(px - R * 0.24), Math.round(py - R * 0.3), Math.max(1, Math.round(R * 0.2)), Math.max(1, Math.round(R * 0.2)));
+  if (R > 6) { c.fillStyle = '#8A8E9A'; c.fillRect(Math.round(px + R * 0.12), Math.round(py + R * 0.16), Math.max(1, Math.round(R * 0.1)), Math.max(1, Math.round(R * 0.1))); }
   const lid = how === 'shut' ? 1 : 1 - open;
   if (lid > 0.02) {
     c.save(); c.beginPath(); c.arc(x, y, R, 0, Math.PI * 2); c.clip();
-    c.fillStyle = '#9CA3AF'; c.fillRect(x - R - 1, y - R - 1, R * 2 + 2, (R * 2 + 2) * lid);
-    c.fillStyle = INK; c.fillRect(x - R - 1, y - R - 1 + (R * 2 + 2) * lid - Math.max(1, 3 * k), R * 2 + 2, Math.max(1, 3 * k));
+    const lh = (R * 2 + 2) * lid, ly = y - R - 1;
+    c.fillStyle = '#7E8490'; c.fillRect(x - R - 1, ly, R * 2 + 2, lh);
+    c.fillStyle = '#A4AAB4'; c.fillRect(x - R - 1, ly, R * 2 + 2, lh * 0.55);
+    c.fillStyle = '#C4C8D0'; c.fillRect(x - R - 1, ly, R * 0.9, lh * 0.4);
+    c.fillStyle = INK; c.fillRect(x - R - 1, ly + lh - Math.max(1, 3 * k), R * 2 + 2, Math.max(1, 3 * k));
     c.restore();
-    c.strokeStyle = INK; c.lineWidth = Math.max(1, 2.4 * k); c.beginPath(); c.arc(x, y, R, 0, Math.PI * 2); c.stroke();
   }
+  // (the plastic dome's shine: a lit arc up its top left, a glint)
+  c.strokeStyle = 'rgba(255,255,255,0.85)'; c.lineWidth = Math.max(1, R * 0.12); c.beginPath(); c.arc(x, y, R * 0.82, Math.PI * 1.05, Math.PI * 1.45); c.stroke();
+  c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(x - R * 0.5), Math.round(y - R * 0.62), Math.max(1, Math.round(R * 0.16)), Math.max(1, Math.round(R * 0.16)));
+  c.strokeStyle = INK; c.lineWidth = lw; c.beginPath(); c.arc(x, y, R, 0, Math.PI * 2); c.stroke();
+};
+/** A burning piece flung off a landmark going up: a banded fireball on it, smoke trailing off. */
+const pieceFire = (c: Ctx, x: number, y: number, r: number, t: number, n: number) => {
+  const fl = 1 + Math.sin(t * 0.8 + n) * 0.15;
+  c.globalAlpha = 0.55; disc(c, x - r * 0.6, y + r * 0.8, r * 1.3, '#3F3F46'); disc(c, x - r * 1.2, y + r * 1.6, r * 1.6, '#52525B'); c.globalAlpha = 1;
+  disc(c, x, y, r * fl, '#B91C1C'); disc(c, x - r * 0.1, y - r * 0.15, r * 0.74 * fl, '#F97316'); disc(c, x - r * 0.2, y - r * 0.25, r * 0.44 * fl, '#FDE047'); disc(c, x - r * 0.25, y - r * 0.3, r * 0.18, '#FFFBEB');
 };
 
 /** Draws it (whatever's under it first: its shadow, the plinth or the legs; then the body; its eyes). */
@@ -122,19 +145,31 @@ const render = (c: Ctx, cam: Cam, id: MechId, i: number, at: { x: number; z: num
     bx, bz, R, F, by: dy + (wreck && !isPisa ? 0 : plinth ? LEG : hipH(u)),
     groups: groupsOf(id, m, lean), parts: m?.st === 'dying' ? piecesOf(id, m.t) : undefined, all: wreck && !isPisa ? lie(id) : undefined,
   };
+  const pieces = body.parts;
   const bt = prepare(c, mesh, body, view, P);
-  // (its shadow, under all of it)
-  c.fillStyle = 'rgba(20, 16, 12, 0.28)'; c.beginPath();
-  for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2, q = view.proj(at.x + Math.cos(a) * rad, 0, at.z + Math.sin(a) * rad); if (k) c.lineTo(q.x, q.y); else c.moveTo(q.x, q.y); }
-  c.closePath(); c.fill();
+  // (its shadow, under all of it: a soft outer step and a darker core)
+  for (const [kr, a] of [[1, 0.16], [0.72, 0.2]] as const) {
+    c.fillStyle = `rgba(20, 16, 12, ${a})`; c.beginPath();
+    for (let k = 0; k < 16; k++) { const ang = (k / 16) * Math.PI * 2, q = view.proj(at.x + Math.cos(ang) * rad * kr, 0, at.z + Math.sin(ang) * rad * kr); if (k) c.lineTo(q.x, q.y); else c.moveTo(q.x, q.y); }
+    c.closePath(); c.fill();
+  }
   paint(c, P, view, INK, view.lod ? 1 : 2.2);
-  // (the warning light on the chassis, blinking)
+  // (going up: the pieces flung off it burning, smoke trailing)
+  if (pieces && m) mesh.parts.forEach((pc, pi) => {
+    const M = bt.mats[pi];
+    if (!pieces[pi] || !M) return;
+    const w = bt.toWorld(ap(M, pc)), q = bt.scr(w);
+    pieceFire(c, q.x, q.y, Math.max(2, 9 * base0.k), m.t + pi, pi);
+  });
+  // (the warning light on the chassis, blinking: its housing, the lit dome, a stepped glow)
   if (!plinth && !wreck && !view.lod) {
-    const q = bt.scr({ x: bx, y: dy + hipH(u) + 14, z: bz });
-    if (!view.clipGround || dy + hipH(u) + 14 > 0) {
+    const ly = dy + hipH(u) + 17, q = bt.scr({ x: bx, y: ly, z: bz });
+    if (!view.clipGround || ly > 0) {
       const blink = (L.f >> 4) % 2 === 0, rr = Math.max(1.5, 5 * base0.k);
+      if (blink) { c.globalAlpha = 0.18; disc(c, q.x, q.y - rr * 0.4, rr * 3.2, '#F87171'); c.globalAlpha = 0.3; disc(c, q.x, q.y - rr * 0.4, rr * 2, '#F87171'); c.globalAlpha = 1; }
+      c.fillStyle = INK; c.fillRect(Math.round(q.x - rr * 1.3), Math.round(q.y - 1), Math.round(rr * 2.6), Math.max(2, Math.round(rr * 0.6)));
       c.fillStyle = blink ? '#EF4444' : '#7F1D1D'; c.beginPath(); c.arc(q.x, q.y, rr, Math.PI, 0); c.fill();
-      if (blink) { c.globalAlpha = 0.3; c.fillStyle = '#F87171'; c.beginPath(); c.arc(q.x, q.y, rr * 2.2, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
+      c.fillStyle = blink ? '#FECACA' : '#B91C1C'; c.fillRect(Math.round(q.x - rr * 0.5), Math.round(q.y - rr * 0.7), Math.max(1, Math.round(rr * 0.4)), Math.max(1, Math.round(rr * 0.35)));
     }
   }
   // (its googly eyes, on its front, facing the camera; not while its front's turned away, not under the ground)

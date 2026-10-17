@@ -11,30 +11,33 @@ import type { Mech } from './state';
 
 const Q = Math.PI / 4;
 
-// Materials (their old flat art's steps)
-const IRON = mat(['#3A2214', '#5A3620', '#7C4A2D', '#A0673C', '#C98A52']);
-const GRANITE = mat(['#6E5236', '#8C6844', '#A47E58', '#C8A27A', '#E2C29A']);
-const GLASSG = mat(['#3A2A12', '#5C4420', '#7C5A2A', '#A27A3A', '#D9A441']);
-const TILE = mat(['#94A3B8', '#CBD5E1', '#E2E8F0', '#F8FAFC', '#FFFFFF']);
-const SHADOWT = mat(['#64748B', '#7C8BA0', '#94A3B8', '#B4C0D0', '#CBD5E1']);
-const SOAP = mat(['#8E9A7E', '#B8C4A6', '#D6E0C6', '#E7EFD9', '#F4F8EC']);
-const PED = mat(['#4B5056', '#6B7280', '#82888E', '#A8ADB2', '#D1D5DB']);
-const PISAM = mat(['#8E8A85', '#BDB8B2', '#D6D3D1', '#EDEBE9', '#FFFFFF']);
-const MARBLE = mat(['#94A3B8', '#CBD5E1', '#E2E8F0', '#F8FAFC', '#FFFFFF']);
-const SANDST = mat(['#8C6F45', '#B89B6A', '#D4B98A', '#E8D3A8', '#F5E6C8']);
-const GOLD = mat(['#713F12', '#A16207', '#CA8A04', '#EAB308', '#FDE68A']);
-const BENS = mat(['#7C5A2A', '#A16207', '#C08A48', '#D6A35C', '#E8C48A']);
-const VERD = mat(['#22382B', '#36503F', '#4D6B5A', '#6B8F7A', '#8FB39C']);
-const COLS = mat(['#6B5238', '#8B6F4E', '#C8A47A', '#E7C9A0', '#F4DEBC']);
-const COLIN = mat(['#4A3826', '#6B5238', '#8B6F4E', '#A88A64', '#C8A47A']);
-const ARENA = mat(['#8C6F45', '#A88A5C', '#C8A878', '#DCC196', '#EAD6B0']);
-const PYR = mat(['#92400E', '#B45309', '#D97706', '#FCD34D', '#FEF3C7']);
-const MOAI = mat(['#3A3532', '#4A4440', '#6B6560', '#8E8780', '#A8A29E']);
-const PUKAO = mat(['#5A1E14', '#7A2A1E', '#9A3A2A', '#C0563E', '#D9785E']);
-const STEEL = mat(['#2A2A30', '#3F3F46', '#52525B', '#71717A', '#A1A1AA']);
-const CHROME = mat(['#52525B', '#71717A', '#A1A1AA', '#D4D4D8', '#F4F4F5']);
-const YEL = mat(['#854D0E', '#A16207', '#CA8A04', '#FACC15', '#FDE68A']);
-const PLINTHM = mat(['#6E6960', '#8E887C', '#A8A296', '#B8B2A6', '#DAD5CB']);
+// Materials (the SNES pass: five steps each, the shadows cooler and toward plum, the lights warmer, so the steps read
+// as light falling on them, not just darker and lighter paint)
+const IRON = mat(['#2A161A', '#4E2A20', '#7C4A2D', '#A8703E', '#D89A5C']);
+const GRANITE = mat(['#5A3E36', '#86644A', '#A47E58', '#C8A27A', '#E8CCA4']);
+const GLASSG = mat(['#2E1E16', '#5C4420', '#7C5A2A', '#A27A3A', '#E0B04C']);
+const TILE = mat(['#7E8AA4', '#B4C0D2', '#DCE4EE', '#F4F8FC', '#FFFFFF']);
+const SHADOWT = mat(['#4E5672', '#66708C', '#8490A8', '#A8B4C8', '#C8D2E0']);
+const SOAP = mat(['#6E7A6C', '#A2AE94', '#CCD8BC', '#E6EED6', '#F8FCEE']);
+const PED = mat(['#3E4250', '#5E6476', '#82888E', '#A8ADB2', '#D6DADE']);
+const PISAM = mat(['#7A746E', '#ACA69E', '#D2CEC6', '#ECEAE4', '#FFFFFA']);
+const MARBLE = mat(['#7A869E', '#B4C0D2', '#DCE2EC', '#F4F6FA', '#FFFFFF']);
+const SANDST = mat(['#6E5040', '#A68660', '#D0B286', '#E8D2A6', '#F8EACA']);
+const GOLD = mat(['#5E3410', '#9A5E0A', '#CA8A04', '#EAB308', '#FDE68A']);
+const BENS = mat(['#5E3E26', '#94683A', '#C08A48', '#D8A85E', '#EECC90']);
+const VERD = mat(['#1A2E2C', '#2E4A40', '#4D6B5A', '#6E9480', '#9ABCA4']);
+const COLS = mat(['#5A4034', '#86684A', '#C0A078', '#E2C49C', '#F6E0BE']);
+const COLIN = mat(['#3A2A24', '#5E4634', '#806648', '#A28462', '#C4A47C']);
+const ARENA = mat(['#7A5E44', '#A2845C', '#C6A87A', '#DCC296', '#EED8B2']);
+const PYR = mat(['#7A3418', '#AE5A16', '#D88A22', '#F4C054', '#FEEAB8']);
+const MOAI = mat(['#2A2830', '#3E3A3E', '#5E5854', '#847C74', '#A8A096']);
+const PUKAO = mat(['#4A1A18', '#742A22', '#9A3A2A', '#C25A40', '#E08060']);
+const STEEL = mat(['#1E1E28', '#34343E', '#4E4E58', '#71717A', '#A8A8B2']);
+const CHROME = mat(['#3E4250', '#6A6E7A', '#A1A1AA', '#D4D4D8', '#FAFAFA']);
+const YEL = mat(['#6A3A0E', '#A16207', '#CA8A04', '#FACC15', '#FEF08A']);
+const PLINTHM = mat(['#5A5650', '#857F74', '#A8A296', '#C4BEB2', '#E2DCD0']);
+const RUBBER = mat(['#121216', '#1E1E24', '#2A2A32', '#3A3A44', '#52525E']);
+const POOL = mat(['#1E3A5A', '#2E5A82', '#4A82AA', '#7AB4D6', '#C4E8F8']);
 const FLAGB = mat(['#1E3A8A', '#1D4ED8', '#2563EB', '#3B82F6', '#60A5FA']), FLAGW = mat(['#94A3B8', '#CBD5E1', '#E2E8F0', '#F8FAFC', '#FFFFFF']), FLAGR = mat(['#7F1D1D', '#991B1B', '#B91C1C', '#DC2626', '#EF4444']);
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -123,7 +126,9 @@ const pisa = () => {
 
 const taj = () => {
   const b = new MB();
-  b.begin(SANDST); box(b, -170, 170, 0, 8, -170, 170);
+  b.begin(SANDST); box(b, -170, 170, 0, 8, -170, 170, { sides: { k: 'courses', a: 1, b: 12 } });
+  // (the long pool down its front, between the walks)
+  b.begin(POOL, 0, true); box(b, -16, 16, 8, 8.6, -168, -124);
   // (the main block, its corners chamfered: the great iwans on its four faces, niches on the chamfers)
   b.begin(MARBLE);
   {
@@ -252,8 +257,11 @@ let plinthMesh: Mesh | null = null;
 export const plinthOf = () => {
   if (plinthMesh) return plinthMesh;
   const b = new MB();
-  b.begin(PLINTHM); box(b, -64, 64, 0, LEG - 4, -64, 64, { sides: { k: 'panel' } });
-  b.begin(PLINTHM); box(b, -66, 66, LEG - 4, LEG, -66, 66);
+  // (a stepped plinth: its foot, the dado in panels, the cornice; a gold plaque on its front)
+  b.begin(PLINTHM); box(b, -70, 70, 0, 6, -70, 70);
+  b.begin(PLINTHM); box(b, -64, 64, 6, LEG - 6, -64, 64, { sides: { k: 'panel' } });
+  b.begin(PLINTHM); box(b, -67, 67, LEG - 6, LEG, -67, 67, { sides: { k: 'hlines', a: 2 } });
+  b.begin(GOLD, 0, true); box(b, -18, 18, 18, 32, -65, -64);
   return (plinthMesh = b.done());
 };
 
@@ -271,14 +279,35 @@ export const legsMesh = (P: LegPose): Mesh => {
     const hip = { x: s * 16, y: H, z: 0 };
     // (the knee: between, out and forward, more as it's crouched or the foot's up)
     const knee = { x: (hip.x + foot.x) / 2 + s * (8 + (1 - u) * 14), y: (hip.y + foot.y) / 2 + 2, z: (hip.z + foot.z) / 2 - 12 - (1 - u) * 6 };
-    b.begin(STEEL); beam(b, hip, knee, 7.5, 7.5);
-    b.begin(CHROME); beam(b, knee, { x: foot.x, y: foot.y + 8, z: foot.z }, 5.5, 5.5);
-    b.begin(YEL); box(b, knee.x - 8, knee.x + 8, knee.y - 8, knee.y + 8, knee.z - 8, knee.z + 8);
-    b.begin(STEEL); frustum(b, foot.x, foot.z - 4, 26, 22, foot.y, foot.y + 10, 4, 0.6, Q);
-    for (const t of [-16, 0, 16]) { b.begin(STEEL, 0, true); box(b, foot.x + t - 5, foot.x + t + 5, foot.y, foot.y + 6, foot.z - 24, foot.z - 14); }
+    const ankle = { x: foot.x, y: foot.y + 8, z: foot.z };
+    // (the thigh: armored, an inset panel on it; the hip's ball joint)
+    b.begin(STEEL); beam(b, hip, knee, 7.5, 7.5, { k: 'panel' });
+    b.begin(YEL, 0, true); box(b, hip.x - 6, hip.x + 6, hip.y - 6, hip.y + 6, -6, 6);
+    // (the shin: the chrome rod, its piston sleeve over the top of it; the hydraulic line down the back)
+    b.begin(CHROME); beam(b, knee, ankle, 4.5, 4.5);
+    b.begin(STEEL); beam(b, knee, { x: knee.x + (ankle.x - knee.x) * 0.55, y: knee.y + (ankle.y - knee.y) * 0.55, z: knee.z + (ankle.z - knee.z) * 0.55 }, 7, 7, { k: 'hlines', a: 3 });
+    b.begin(RUBBER, 0, true); beam(b, { x: hip.x + s * 4, y: hip.y - 4, z: 6 }, { x: knee.x + s * 5, y: knee.y, z: knee.z + 7 }, 1.5, 1.5);
+    // (the knee: a yellow joint, its steel cap; the ankle's)
+    b.begin(YEL); box(b, knee.x - 8, knee.x + 8, knee.y - 8, knee.y + 8, knee.z - 8, knee.z + 8, { sides: { k: 'panel' } });
+    b.begin(STEEL, 0, true); box(b, knee.x - 5, knee.x + 5, knee.y - 5, knee.y + 5, knee.z - 11, knee.z - 8);
+    b.begin(YEL, 0, true); box(b, ankle.x - 6, ankle.x + 6, ankle.y - 4, ankle.y + 4, ankle.z - 6, ankle.z + 6);
+    // (the foot: a stepped sole, three toes splayed, a claw on each; the heel spur)
+    b.begin(STEEL); frustum(b, foot.x, foot.z - 4, 26, 22, foot.y + 2, foot.y + 10, 4, 0.6, Q, { k: 'hazard', a: 4 });
+    b.begin(RUBBER); frustum(b, foot.x, foot.z - 4, 27, 23, foot.y, foot.y + 2, 4, 1, Q, undefined, false);
+    for (const t of [-16, 0, 16]) {
+      b.begin(STEEL, 0, true); box(b, foot.x + t - 5, foot.x + t + 5, foot.y, foot.y + 6, foot.z - 24, foot.z - 14);
+      b.begin(CHROME, 0, true); box(b, foot.x + t - 3, foot.x + t + 3, foot.y, foot.y + 3, foot.z - 29, foot.z - 24);
+    }
+    b.begin(STEEL, 0, true); box(b, foot.x - 4, foot.x + 4, foot.y, foot.y + 5, foot.z + 12, foot.z + 20);
   }
-  // (the hip chassis: hazard stripes round it; the exhausts)
-  b.begin(STEEL); box(b, -48, 48, H - 6, H + 12, -34, 34, { front: { k: 'hazard', a: 10 }, back: { k: 'hazard', a: 10 } });
-  for (const s of [-1, 1]) { b.begin(STEEL, 0, true); box(b, s * 52 - 4, s * 52 + 4, H + 2, H + 16, -6, 6); }
+  // (the hip chassis: armored, hazard stripes round it, inset panels and vents down its ends; the exhausts and their
+  // soot; a bolted plate on top)
+  b.begin(STEEL); box(b, -48, 48, H - 6, H + 12, -34, 34, { front: { k: 'hazard', a: 10 }, back: { k: 'hazard', a: 10 }, left: { k: 'panel' }, right: { k: 'panel' } });
+  b.begin(STEEL, 0, true); box(b, -40, 40, H + 12, H + 15, -26, 26, { top: { k: 'panel' } });
+  b.begin(STEEL, 0, true); box(b, -50, 50, H - 9, H - 6, -36, 36);
+  for (const s of [-1, 1]) {
+    b.begin(CHROME, 0, true); frustum(b, s * 52, 0, 4.5, 4.5, H + 2, H + 16, 6, 1, 0, { k: 'hlines', a: 3 }, false);
+    b.begin(RUBBER, 0, true); frustum(b, s * 52, 0, 3, 3, H + 15, H + 16.5, 6, 1, 0);
+  }
   return b.done();
 };

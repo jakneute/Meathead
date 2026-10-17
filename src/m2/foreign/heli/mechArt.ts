@@ -331,14 +331,26 @@ const wreckCanvas = (id: MechId) => {
   WRECKS.set(id, w);
   return w;
 };
+/** A wreck's smoke: rolling up off it in puffs, each in steps (its underside dark, lit up its left), lit orange from
+ *  under by the fire at its foot; embers in it. */
 export const smoke = (c: Ctx, f: number) => {
+  const disc = (x: number, y: number, rr: number, col: string) => { c.fillStyle = col; c.beginPath(); c.arc(x, y, rr, 0, Math.PI * 2); c.fill(); };
   for (let k = 0; k < 5; k++) {
-    const ph = ((f * 0.6 + k * 40) % 200) / 200;
-    c.globalAlpha = (1 - ph) * 0.6; c.fillStyle = k % 2 ? '#3F3F46' : '#52525B';
-    c.beginPath(); c.arc(-60 + k * 20 + Math.sin(ph * 6 + k) * 10, -60 - ph * 220, 14 + ph * 30, 0, Math.PI * 2); c.fill();
+    const ph = ((f * 0.6 + k * 40) % 200) / 200, x = -60 + k * 20 + Math.sin(ph * 6 + k) * 10 + ph * 30, y = -60 - ph * 220, rr = 14 + ph * 30;
+    c.globalAlpha = (1 - ph) * 0.66;
+    disc(x + rr * 0.18, y + rr * 0.2, rr, '#27272A');
+    disc(x - rr * 0.06, y - rr * 0.06, rr * 0.84, k % 2 ? '#3F3F46' : '#52525B');
+    disc(x - rr * 0.32, y - rr * 0.34, rr * 0.38, '#71717A');
+    if (ph < 0.25) { c.globalAlpha = (0.25 - ph) * 2; disc(x + rr * 0.1, y + rr * 0.5, rr * 0.5, '#C2410C'); }
+  }
+  // (the fire at its foot, licking up)
+  c.globalAlpha = 1;
+  for (const [dx, w, h, col] of [[-50, 14, 26, '#B91C1C'], [-20, 18, 34, '#B91C1C'], [-34, 10, 22, '#F97316'], [-14, 10, 24, '#F97316'], [-22, 5, 12, '#FDE047']] as const) {
+    const fl = 1 + Math.sin(f * 0.5 + dx) * 0.2;
+    c.fillStyle = col; c.beginPath(); c.moveTo(dx - w, -24); c.quadraticCurveTo(dx - w * 0.3, -24 - h * 0.6 * fl, dx, -24 - h * fl); c.quadraticCurveTo(dx + w * 0.3, -24 - h * 0.6 * fl, dx + w, -24); c.closePath(); c.fill();
   }
   // (embers in it)
-  for (let k = 0; k < 3; k++) { const ph = ((f * 1.3 + k * 70) % 120) / 120; c.globalAlpha = 1 - ph; r(c, -40 + k * 30 + Math.sin(f * 0.1 + k) * 6, -30 - ph * 120, 3, 3, ph < 0.5 ? '#FDE047' : '#F97316'); }
+  for (let k = 0; k < 4; k++) { const ph = ((f * 1.3 + k * 70) % 120) / 120; c.globalAlpha = 1 - ph; r(c, -40 + k * 24 + Math.sin(f * 0.1 + k) * 6, -30 - ph * 130, 3, 3, ph < 0.5 ? '#FDE047' : '#F97316'); }
   c.globalAlpha = 1;
 };
 
