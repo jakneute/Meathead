@@ -37,6 +37,7 @@ import { buffs } from '../../m1/game/core/buffs';
 import { playSound } from '../../m1/game/platform/audio';
 import { INITIAL_PLAYER_HEALTH } from '../../m1/constants';
 import { beginSprite, endSprite } from '../../m1/game/render/player/spriteOutline';
+import { playerTint } from '../../m1/game/render/player/player';
 import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, type Mood } from '../../m1/game/render/player/body';
 import { drawPlayer } from '../../m1/game/render/player/player';
 import { btn, pressed, pollM2 } from '../input';
@@ -602,6 +603,7 @@ export const grabBusy = () => busy;
 let holding: Enemy | null = null;
 export const grabHolding = () => holding;
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
+  tintOf = ctx.state.player;
   const out = stepGrab(ctx, g, controls);
   busy = g.phase !== 'idle' || g.yChord;
   holding = g.held;
@@ -1439,8 +1441,12 @@ const spriteAt = (world: Ctx, x: number, y: number, dir: number, paint: (c: Ctx)
   c.scale(dir, 1);
   paint(c);
   c.restore();
-  if (s) endSprite(world, x, y);
+  // (whatever color's on him (a vat's dye, soot, a suit): on every pose drawn this way too: the grabs, the mallet, the
+  // spellbook)
+  if (s) endSprite(world, x, y, tintOf ? playerTint(tintOf) : undefined);
 };
+/** Him (the player, as the grab last saw him): whose color goes over the poses. */
+let tintOf: GameState['player'] | null = null;
 
 const head = (c: Ctx, x: number, y: number, rot: number, mood: Mood, f: number) => { c.save(); c.translate(x, y); c.rotate(rot); drawHead(c, 0, 0, mood, f); c.restore(); };
 /** (for the other moves and weapons that put him in a pose of their own) */

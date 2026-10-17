@@ -47,6 +47,18 @@ export const SOOT_FRAMES = 420;
 const SOOT_FADE = 120;
 /** A dye's last frames: fading back to himself. */
 const DYE_FADE = 180;
+/** The color over all of him, if any (whoever draws him, wherever: his own sprite, a grab's poses): a suit, soot, a
+ *  vat's dye fading out over its last few seconds. */
+export const playerTint = (p: Player): string | undefined => {
+  if (p.spaceSuit && p.gut?.stage !== 3) return SPACE_SUIT_TINT;
+  if (p.suit) return SUIT_TINT;
+  const soot = p.sootTimer && p.sootTimer > 0 ? Math.min(1, p.sootTimer / SOOT_FADE) : 0;
+  if (soot > 0) return `rgba(24, 20, 18, ${0.9 * soot})`;
+  const dye = p.dyeTimer && p.dyeTimer > 0 && p.dyeColor ? Math.min(1, p.dyeTimer / DYE_FADE) : 0;
+  if (dye <= 0) return undefined;
+  const h = p.dyeColor!.replace('#', ''), n = parseInt(h.length === 3 ? h.split('').map(ch => ch + ch).join('') : h, 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${(0.7 * dye).toFixed(3)})`;
+};
 /** In a hazmat suit (Tommy's sewer): yellow over all of him, a hood's dark visor over his face. */
 const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
 /** In a space suit (Meathead 2's Space Needle 2): white over all of him but his face, the fishbowl helmet over that. */
@@ -197,10 +209,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // (in the water, up against a wall or a pipe: whatever he's holding out stops at it, it doesn't poke through)
     const walls = p.swimming ? state.blocks.filter(b => b.type !== 'pit' && !b.oneWay && b.y < anchorY - 4 && b.y + b.h > p.pos.y - 60 && b.x < anchorX + 100 && b.x + b.w > anchorX - 100) : [];
     if (walls.length) { world.save(); world.beginPath(); world.rect(anchorX - 220, anchorY - 320, 440, 420); for (const b of walls) world.rect(b.x, b.y, b.w, b.h); world.clip('evenodd'); }
-    // (dyed: the vat's color over all of him, fading out over its last few seconds)
-    const dye = p.dyeTimer && p.dyeTimer > 0 && p.dyeColor ? Math.min(1, p.dyeTimer / DYE_FADE) : 0;
-    const dyeTint = dye > 0 ? (() => { const h = p.dyeColor!.replace('#', ''), n = parseInt(h.length === 3 ? h.split('').map(ch => ch + ch).join('') : h, 16); return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${(0.7 * dye).toFixed(3)})`; })() : undefined;
-    if (sprite) endSprite(world, anchorX, anchorY, suitOn ? SPACE_SUIT_TINT : p.suit ? SUIT_TINT : soot > 0 ? `rgba(24, 20, 18, ${0.9 * soot})` : dyeTint, throwShadow ? sil => drawPlayerShadow(world, p, state, anchorX, anchorY, sil) : undefined, suitOn ? 10 : undefined);
+    if (sprite) endSprite(world, anchorX, anchorY, playerTint(p), throwShadow ? sil => drawPlayerShadow(world, p, state, anchorX, anchorY, sil) : undefined, suitOn ? 10 : undefined);
     // (a shat space suit: the stain over the suit's white, where his jeans' would be)
     if (suitOn && p.gut?.stage === 2 && !p.swimming) { world.save(); world.translate(anchorX, anchorY); world.scale(p.facing, 1); drawShitPants(world, isDucking ? -16 : -26, isDucking ? 10 : 20); world.restore(); }
     if (walls.length) world.restore();
