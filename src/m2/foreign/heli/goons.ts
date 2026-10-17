@@ -14,7 +14,7 @@ import { enemyProjectile } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { registerM2Kind } from '../../kinds';
-import { drawCast, womanOf, byPants, px, INK, type Costume } from '../cast';
+import { drawCast, womanOf, seedOf, byPants, px, INK, type Costume } from '../cast';
 import { heliOf } from './state';
 import { goonSays } from './talk';
 import { GOON_BARK } from './lines';
@@ -190,6 +190,30 @@ const drawGoon = (c: CanvasRenderingContext2D, e: Enemy, f: number) => {
   jetFlame(c, -14.5, -36, f + (e.variant ?? 0));
   drawCast(c, e, f, COSTUME, undefined, () => 'fly');
 };
+/** The swoop's figure (banked, scaled up close, its ghosts): painted the once a fly frame at SPRITE_K into a sprite and
+ *  put down with one drawImage (a rotated draw can't use the cast's stamps: painting the whole costume live three
+ *  times a goon at five times its size every frame dropped the frame rate as they came in). */
+const SPRITE_K = 4, SB: [number, number, number, number] = [-64, -132, 140, 136];
+const sprites = new Map<string, HTMLCanvasElement>();
+const goonSprite = (e: Enemy, f: number) => {
+  const fr = Math.floor((f + seedOf(e)) / 5) % 4, key = `${seedOf(e)}|${fr}|${(e.hitFlash ?? 0) > 0 ? 1 : 0}`;
+  let s = sprites.get(key);
+  if (!s) {
+    if (sprites.size > 96) sprites.clear();
+    s = document.createElement('canvas'); s.width = SB[2] * SPRITE_K; s.height = SB[3] * SPRITE_K;
+    const g = s.getContext('2d')!;
+    g.setTransform(SPRITE_K, 0, 0, SPRITE_K, -SB[0] * SPRITE_K, -SB[1] * SPRITE_K);
+    drawCast(g, e, f, COSTUME, undefined, () => 'fly');
+    sprites.set(key, s);
+  }
+  return s;
+};
+const drawGoonSprite = (c: CanvasRenderingContext2D, e: Enemy, f: number) => {
+  jetFlame(c, -14.5, -36, f + (e.variant ?? 0));
+  if (typeof document === 'undefined') return;
+  c.imageSmoothingEnabled = true;
+  c.drawImage(goonSprite(e, f), SB[0], SB[1], SB[2], SB[3]);
+};
 
 registerM2Kind({
   kind: GOON_KIND, stats: { w: 38, h: 72, hp: 40, contact: 12, mass: 160, air: true }, humanoid: true, pathing: false, grab: 'none',
@@ -285,7 +309,7 @@ export const drawEntrances = (c: CanvasRenderingContext2D, state: GameState) => 
         c.fillStyle = 'rgba(249, 115, 22, 0.45)'; c.beginPath(); c.ellipse(-14, -20, 12 + (f % 3) * 3, 26 + (f % 4) * 4, 0, 0, Math.PI * 2); c.fill();
         jetFlame(c, -14.5, -36, f, 1.6);
       }
-      drawGoon(c, e, f);
+      drawGoonSprite(c, e, f);
       c.restore();
     }
   }
