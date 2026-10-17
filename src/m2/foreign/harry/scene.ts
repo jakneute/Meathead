@@ -130,13 +130,18 @@ const tower = (c: Ctx, xa: number, side: 1 | -1, gate: 'none' | 'open' | 'shut',
   if (gate !== 'none') {
     const gy0 = GY - 150;
     box(c, xa - 2, gy0 - 4, WALL_W + 4, 6, '#3F3F46');
-    if (gate === 'open') { box(c, xa + 2, gy0, WALL_W - 4, 150, '#1C1917'); box(c, xa + 2, gy0, 3, 150, '#27272A'); }
-    else {
-      box(c, xa, gy0, WALL_W, 150, 'rgba(63, 63, 70, 0.9)');
+    // (the doorway: dark through it, either way)
+    box(c, xa + 2, gy0, WALL_W - 4, 150, '#1C1917'); box(c, xa + 2, gy0, 3, 150, '#27272A');
+    if (gate === 'shut') {
+      // (the fight on: the gate's knocked flat (he came through it), lying on the slab just inside, buckled, its padlock
+      // still on it. The way back's shut all the same: the fight's own wall, not this)
+      const g0 = xa + WALL_W + 4, g1 = g0 + 150, lift = (x: number) => (x - g0 < 30 ? (30 - (x - g0)) * 0.25 : 0);
+      c.fillStyle = 'rgba(63, 63, 70, 0.85)';
+      c.beginPath(); c.moveTo(g0, GY - 2 - lift(g0)); c.lineTo(g1, GY - 2); c.lineTo(g1 + 6, GY + 4); c.lineTo(g0 + 6, GY + 4 - lift(g0)); c.closePath(); c.fill();
       c.strokeStyle = '#A1A1AA'; c.lineWidth = 1;
-      for (let k = -150; k < WALL_W; k += 10) { c.beginPath(); c.moveTo(xa + k, gy0); c.lineTo(xa + k + 150, GY); c.moveTo(xa + k + 150, gy0); c.lineTo(xa + k, GY); c.stroke(); }
-      box(c, xa, gy0, 3, 150, '#71717A'); box(c, xa + WALL_W - 3, gy0, 3, 150, '#71717A');
-      box(c, xa + WALL_W / 2 - 6, GY - 80, 12, 14, '#CA8A04'); box(c, xa + WALL_W / 2 - 4, GY - 88, 8, 8, '#A1A1AA');
+      for (let x = g0; x < g1; x += 9) { c.beginPath(); c.moveTo(x, GY - 2 - lift(x)); c.lineTo(x + 6, GY + 4 - lift(x)); c.stroke(); }
+      box(c, g0, GY - 4 - lift(g0), 4, 6, '#71717A'); box(c, g0, GY - 3, g1 - g0, 2, '#71717A'); box(c, g0 + 3, GY + 3, g1 - g0, 2, '#52525B');
+      box(c, g0 + 70, GY - 7, 10, 8, '#CA8A04'); box(c, g0 + 72, GY - 11, 6, 5, '#A1A1AA');
     }
   }
   void f;
