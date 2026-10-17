@@ -1338,6 +1338,8 @@ const spark = (state: GameState, x: number, y: number, col: string) => {
 const libLook = (f: Fight, fr: number, crown?: (c: Ctx) => void): LibLook => ({
   f: fr, dy: f.lib.dy, tilt: f.lib.tilt, shake: f.lib.shake, face: f.lib.face, stains: f.lib.stains, tear: f.lib.tear,
   broken: f.lib.broken, hand: f.lib.hand, tablet: f.lib.tablet, gun: f.lib.gun, crown,
+  // (her wear: the cracks, chips and flaking her smashes have given her)
+  wear: f.lib.wear,
 });
 
 /** Harry's look, by what he's at. */
@@ -1378,7 +1380,8 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
   const blink = f.iframes > 0 && Math.floor(fr / 3) % 2 === 0;
   if (blink) c.globalAlpha = 0.6;
   if (!f.ripped) {
-    drawHarry(c, f.hx, f.hy, { pose: f.jet ? 'jet' : 'stand', f: fr, facing: f.facing, mad: true, jetpack: f.jet, talking: !!f.said, scale: 1.15 });
+    // (green, asking after his pills: no steam (that's for his rants))
+    drawHarry(c, f.hx, f.hy, { pose: f.jet ? 'jet' : 'stand', f: fr, facing: f.facing, mad: true, jetpack: f.jet, talking: !!f.said, scale: 1.15, green: f.green, steam: false });
   } else {
     const P = harryPose(f);
     const pose: RamboPose = f.mode === 'intro' ? (f.intro === 'flex' || f.intro === 'impressed' ? 'flex' : f.intro === 'summon' || f.intro === 'rise' || f.intro === 'monument' ? 'command' : 'rant') : P.pose;
