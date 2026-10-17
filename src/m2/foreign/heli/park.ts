@@ -981,8 +981,13 @@ export const fireLamps = (state: GameState) => {
 /** The lot (screen space, under the world): sky, far lands, the floor, the park's buildings, trees, guests and the
  *  landmarks out on the circuit, back to front; the clouds over it. `alpha`: faded in over the streets (the lift). */
 export const drawPark = (c: Ctx, state: GameState, alpha = 1) => {
-  const h = heliOf(state), f = state.frame, cam = camOf(h), tod = timeOfDay(), mul = rgbOf(tod.mul);
+  const h = heliOf(state), f = state.frame, tod = timeOfDay(), mul = rgbOf(tod.mul);
   if (alpha <= 0) return;
+  // (a punch in (the kick): the pull is only a scale about its point, so the park's drawn with the camera unpulled
+  // (every still it's got stays good: the floor, the pavilions) and the lot scaled up, the SNES's way, instead of
+  // everything painted afresh at every step of the zoom)
+  const punch = h.pull > 1.001, cam = camOf(punch ? { ...h, pull: 1 } : h);
+  if (punch) { c.save(); c.translate(h.pullX * (1 - h.pull), h.pullY * (1 - h.pull)); c.scale(h.pull, h.pull); }
   if (alpha < 1) c.globalAlpha = alpha;
   void hourMix;
   drawSky(c, cam, f, horizonOf(cam));
@@ -1014,4 +1019,5 @@ export const drawPark = (c: Ctx, state: GameState, alpha = 1) => {
   items.sort((a, b) => b.z - a.z || a.y0 - b.y0).forEach(it => it.draw());
   drawClouds(c, cam, f);
   c.globalAlpha = 1;
+  if (punch) c.restore();
 };
