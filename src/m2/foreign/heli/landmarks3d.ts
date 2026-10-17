@@ -33,7 +33,8 @@ const hash = (n: number) => { const x = Math.sin(n * 91.7 + 7.1) * 43758.5; retu
 /** A foot walking in (world, on the ground), how high it's lifted, which side. */
 export interface FootW { x: number; z: number; lift: number; side: -1 | 1 }
 
-const viewOf = (cam: Cam, f: number): View => {
+/** The view through the park's camera (park.ts paints the pavilions through it too: one light for the whole scene). */
+export const viewOf = (cam: Cam, f: number): View => {
   const tod = timeOfDay(), mul = [1, 3, 5].map(i => parseInt(tod.mul.slice(i, i + 2), 16));
   // (the light: from the camera's upper left, a little in front; higher at midday, raking at sundown)
   const s = Math.sin(cam.phi), co = Math.cos(cam.phi), el = 0.35 + 0.6 * Math.max(0, Math.min(1, tod.sunH));

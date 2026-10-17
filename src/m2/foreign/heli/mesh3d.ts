@@ -50,7 +50,7 @@ export const mat = (cols: string[] | string): Mat => {
 // ---------------------------------------------------------------------------------------------------------------
 // Meshes
 
-export type DecalKind = 'lattice' | 'rail' | 'hlines' | 'vlines' | 'courses' | 'arches' | 'windows' | 'clock' | 'iwan' | 'niches' | 'eye' | 'hazard' | 'panel' | 'arcade3' | 'moaiArms' | 'moaiFace' | 'tiles';
+export type DecalKind = 'lattice' | 'rail' | 'hlines' | 'vlines' | 'courses' | 'arches' | 'windows' | 'clock' | 'iwan' | 'niches' | 'eye' | 'hazard' | 'panel' | 'arcade3' | 'moaiArms' | 'moaiFace' | 'tiles' | 'timber' | 'grid';
 export interface Decal { k: DecalKind; a?: number; b?: number; col?: string }
 export interface Face { v: number[]; n: V3; mat: Mat; part: number; decal?: Decal; detail: boolean; aspect: number; area: number; top: boolean }
 export interface Mesh { p: V3[]; g: number[]; vp: number[]; faces: Face[]; parts: V3[]; partGroup: number[]; minY: number; maxY: number; minX: number; maxX: number }
@@ -265,7 +265,8 @@ export const prepare = (c: Ctx, mesh: Mesh, pl: Place, view: View, out: Prepared
     const fill = !view.lod && fr > 0.38 && fr < 0.62 && lo < 4 ? ditherOf(c, fc.mat, lo, view) : stepCol(fc.mat, idx, view);
     let z = 0; for (const p of pts) z += p.z; z /= pts.length;
     if (fc.top) z += 6;
-    const it: Item = { pts, z, fill, edge: stepCol(fc.mat, Math.max(0, idx - 1), view), face: fc, idx: fi };
+    // (a flat top's edge a step lit, not darker: it reads as a top catching the light)
+    const it: Item = { pts, z, fill, edge: stepCol(fc.mat, fc.top ? Math.min(4, idx + 1) : Math.max(0, idx - 1), view), face: fc, idx: fi };
     out.items.push(it);
     for (const p of pts) { if (p.x < out.x0) out.x0 = p.x; if (p.x > out.x1) out.x1 = p.x; if (p.y < out.y0) out.y0 = p.y; if (p.y > out.y1) out.y1 = p.y; }
   }
@@ -322,30 +323,87 @@ const archUv = (u0: number, u1: number, v0: number, v1: number, pointed = false,
   return out;
 };
 const drawDecal = (c: Ctx, it: Item, view: View) => {
-  const d = it.face.decal!, p = it.pts, m = it.face.mat, dark = stepCol(m, Math.max(0, it.idx >= 0 ? 0 : 0), view), mid = stepCol(m, 1, view);
+  const d = it.face.decal!, p = it.pts, m = it.face.mat, dark = stepCol(m, 0, view), mid = stepCol(m, 1, view), lite = stepCol(m, 4, view);
   const asp = it.face.aspect;
+  // (how big it is on screen: fine work only where there's room for it)
+  const span = Math.max(Math.abs(p[1].x - p[0].x) + Math.abs(p[1].y - p[0].y), Math.abs(p[3].x - p[0].x) + Math.abs(p[3].y - p[0].y));
   c.lineWidth = 1;
   switch (d.k) {
     case 'lattice': {
+      // (crossed girders, each lit along one side: the X's and the rungs, a lit line beside each dark one)
       const n = d.a ?? 4; c.strokeStyle = dark; c.beginPath();
       for (let r = 0; r < n; r++) { const v0 = r / n, v1 = (r + 1) / n; line(c, p, 0.04, v0, 0.96, v1); line(c, p, 0.96, v0, 0.04, v1); line(c, p, 0, v0, 1, v0); }
-      c.stroke(); break;
+      c.stroke();
+      if (span > 40) {
+        c.strokeStyle = lite; c.beginPath();
+        for (let r = 0; r < n; r++) { const v0 = r / n, v1 = (r + 1) / n, o = 0.03; line(c, p, 0.04 + o, v0, 0.96 + o * 0.2, v1 - o); line(c, p, 0, v0 + o * 0.6, 1, v0 + o * 0.6); }
+        c.stroke();
+        // (the rivets along the rungs)
+        if (span > 90) for (let r = 0; r <= n; r++) for (let q = 1; q < 6; q++) { const a = bil(p, q / 6, r / n); c.fillStyle = lite; c.fillRect(Math.round(a.x), Math.round(a.y) - 1, 1, 1); }
+      }
+      break;
     }
-    case 'rail': { const n = d.a ?? 10; c.strokeStyle = dark; c.beginPath(); for (let k = 1; k < n; k++) line(c, p, k / n, 0.15, k / n, 0.85); line(c, p, 0, 0.82, 1, 0.82); c.stroke(); break; }
-    case 'hlines': { const n = d.a ?? 4; c.strokeStyle = d.col ? tint(d.col, view) : dark; c.beginPath(); for (let k = 1; k < n; k++) line(c, p, 0, k / n, 1, k / n); c.stroke(); break; }
+    case 'rail': { const n = d.a ?? 10; c.strokeStyle = dark; c.beginPath(); for (let k = 1; k < n; k++) line(c, p, k / n, 0.15, k / n, 0.85); line(c, p, 0, 0.82, 1, 0.82); c.stroke(); c.strokeStyle = lite; c.beginPath(); line(c, p, 0, 0.9, 1, 0.9); c.stroke(); break; }
+    case 'hlines': {
+      // (courses across: each line dark, the course over it lit along its foot)
+      const n = d.a ?? 4; c.strokeStyle = d.col ? tint(d.col, view) : dark; c.beginPath(); for (let k = 1; k < n; k++) line(c, p, 0, k / n, 1, k / n); c.stroke();
+      if (span > 50 && !d.col) { c.strokeStyle = lite; c.beginPath(); for (let k = 1; k < n; k++) line(c, p, 0, k / n + 0.5 / n / Math.max(2, span / 30), 1, k / n + 0.5 / n / Math.max(2, span / 30)); c.stroke(); }
+      break;
+    }
     case 'vlines': { const n = d.a ?? 4; c.strokeStyle = d.col ? tint(d.col, view) : dark; c.beginPath(); for (let k = 1; k < n; k++) line(c, p, k / n, 0.02, k / n, 0.98); c.stroke(); break; }
-    case 'tiles': { const n = d.a ?? 5; c.strokeStyle = tint('#94A3B8', view); c.beginPath(); for (let k = 1; k < n; k++) line(c, p, k / n, 0, k / n * 0.6 + 0.4, 1); c.stroke(); break; }
+    case 'tiles': {
+      // (the shells' chevron tiles: the ribs fanning up, rows of tiles across them, a matte tile picked out here and there)
+      const n = d.a ?? 5; c.strokeStyle = tint('#94A3B8', view); c.beginPath(); for (let k = 1; k < n; k++) line(c, p, k / n, 0, k / n * 0.6 + 0.4, 1); c.stroke();
+      if (span > 40) {
+        c.strokeStyle = tint('#B4C0D0', view); c.beginPath(); for (let r = 1; r < 5; r++) line(c, p, 0, r / 5, 1, r / 5); c.stroke();
+        for (let r = 0; r < 5; r++) for (let k = 0; k < n; k++) if (hash(it.idx * 3 + r * 7 + k) > 0.78) poly(c, p, [[k / n + 0.02, r / 5 + 0.03], [(k + 1) / n - 0.02, r / 5 + 0.03], [(k + 1) / n - 0.02, (r + 1) / 5 - 0.03], [k / n + 0.02, (r + 1) / 5 - 0.03]], tint('#E2E8F0', view));
+      }
+      break;
+    }
     case 'courses': {
-      const n = d.a ?? 6, j = d.b ?? 5; c.strokeStyle = dark; c.beginPath();
+      // (cut blocks in courses: each joint dark, a block here and there a step lit or a step down, its top lit)
+      const n = d.a ?? 6, j = d.b ?? 5;
+      if (span > 36) for (let k = 0; k < n; k++) for (let q = 0; q < j; q++) {
+        const h = hash(it.idx * 5.1 + k * 13 + q * 3.7);
+        if (h < 0.7) continue;
+        const u0 = Math.max(0, (q - (k % 2 ? 0.5 : 0.75)) / j + 0.5 / j), u1 = Math.min(1, u0 + 1 / j);
+        poly(c, p, [[u0, k / n], [u1, k / n], [u1, (k + 1) / n], [u0, (k + 1) / n]], h > 0.88 ? mid : lite);
+      }
+      c.strokeStyle = dark; c.beginPath();
       for (let k = 1; k < n; k++) line(c, p, 0, k / n, 1, k / n);
       for (let k = 0; k < n; k++) for (let q = 0; q < j; q++) { const u = (q + (k % 2 ? 0.5 : 0.25)) / j; line(c, p, u, k / n, u, (k + 1) / n); }
       c.stroke(); break;
     }
     case 'arches': case 'windows': {
-      const cols = d.a ?? 3, rows = d.b ?? 1, col = d.col ? tint(d.col, view) : dark;
+      // (each opening dark inside, the inside's top a step darker still; a lit sill under a window, a keystone over an arch)
+      const cols = d.a ?? 3, rows = d.b ?? 1, col = d.col ? tint(d.col, view) : dark, deep = d.col ? tint(d.col, { ...view, variant: 'dark' }) : stepCol(m, 0, { ...view, variant: 'dark' });
       for (let r = 0; r < rows; r++) for (let k = 0; k < cols; k++) {
         const u0 = (k + 0.22) / cols, u1 = (k + 0.78) / cols, v0 = (r + 0.12) / rows, v1 = (r + (d.k === 'windows' ? 0.82 : 0.86)) / rows;
         poly(c, p, archUv(u0, u1, v0, v1, d.k === 'windows', asp * rows / cols), col);
+        if (span / Math.max(cols, rows) > 14) {
+          poly(c, p, [[u0, v1 - (v1 - v0) * 0.36], [u1, v1 - (v1 - v0) * 0.36], [u1, v1 - (v1 - v0) * 0.46], [u0, v1 - (v1 - v0) * 0.46]], deep);
+          if (d.k === 'windows') poly(c, p, [[u0 - 0.02, v0 - 0.04 / rows], [u1 + 0.02, v0 - 0.04 / rows], [u1 + 0.02, v0], [u0 - 0.02, v0]], lite);
+          else { const um = (u0 + u1) / 2; poly(c, p, [[um - 0.03, v1 - 0.01], [um + 0.03, v1 - 0.01], [um + 0.02, v1 + 0.05 / rows], [um - 0.02, v1 + 0.05 / rows]], lite); }
+        }
+      }
+      break;
+    }
+    case 'timber': {
+      // (half-timbering: the frame round it, the posts, a rail across, the braces; dark oak over the plaster)
+      const col = tint(d.col ?? '#3A2414', view), n = d.a ?? 3;
+      const bar = (u0: number, v0: number, u1: number, v1: number, w = 0.035) => { const du = u1 - u0, dv = v1 - v0, L = Math.hypot(du, dv) || 1, nu = (-dv / L) * w, nv = (du / L) * w * asp; poly(c, p, [[u0 + nu, v0 + nv], [u1 + nu, v1 + nv], [u1 - nu, v1 - nv], [u0 - nu, v0 - nv]], col); };
+      bar(0, 0.03, 1, 0.03); bar(0, 0.97, 1, 0.97); bar(0, 0.5, 1, 0.5, 0.025);
+      for (let k = 0; k <= n; k++) bar(k / n, 0, k / n, 1, 0.025);
+      for (let k = 0; k < n; k++) { if (k % 2) bar(k / n, 0.5, (k + 1) / n, 0.97, 0.02); else bar(k / n, 0.97, (k + 1) / n, 0.5, 0.02); }
+      break;
+    }
+    case 'grid': {
+      // (panes: a frame round each, the glass by its own color, a glint in the top-left of each)
+      const cols = d.a ?? 3, rows = d.b ?? 6, col = tint(d.col ?? '#9CC9E6', view), g2 = tint('#FFFFFF', view);
+      for (let r = 0; r < rows; r++) for (let k = 0; k < cols; k++) {
+        const u0 = (k + 0.14) / cols, u1 = (k + 0.86) / cols, v0 = (r + 0.12) / rows, v1 = (r + 0.88) / rows;
+        poly(c, p, [[u0, v0], [u1, v0], [u1, v1], [u0, v1]], col);
+        if (span / Math.max(cols, rows) > 10 && (r + k) % 3 === 0) poly(c, p, [[u0, v1 - 0.25 / rows], [u0 + 0.3 / cols, v1 - 0.25 / rows], [u0 + 0.3 / cols, v1], [u0, v1]], g2);
       }
       break;
     }
@@ -388,7 +446,13 @@ const drawDecal = (c: Ctx, it: Item, view: View) => {
       for (let k = 0; k < n; k++) { const u = k / n; poly(c, p, [[u, 0.25], [u + 0.5 / n, 0.25], [u + 0.25 / n, 0.75], [Math.max(0, u - 0.25 / n), 0.75]], k0); }
       break;
     }
-    case 'panel': { c.strokeStyle = dark; c.beginPath(); line(c, p, 0.15, 0.2, 0.85, 0.2); line(c, p, 0.85, 0.2, 0.85, 0.8); line(c, p, 0.85, 0.8, 0.15, 0.8); line(c, p, 0.15, 0.8, 0.15, 0.2); c.stroke(); break; }
+    case 'panel': {
+      // (an inset panel: dark along its top and left (in shadow), lit along its bottom and right; rivets in its corners)
+      c.strokeStyle = dark; c.beginPath(); line(c, p, 0.15, 0.8, 0.85, 0.8); line(c, p, 0.15, 0.8, 0.15, 0.2); c.stroke();
+      c.strokeStyle = lite; c.beginPath(); line(c, p, 0.15, 0.2, 0.85, 0.2); line(c, p, 0.85, 0.2, 0.85, 0.8); c.stroke();
+      if (span > 30) for (const [u, v] of [[0.07, 0.1], [0.93, 0.1], [0.07, 0.9], [0.93, 0.9]]) { const a = bil(p, u, v); c.fillStyle = dark; c.fillRect(Math.round(a.x) - 1, Math.round(a.y) - 1, 2, 2); c.fillStyle = lite; c.fillRect(Math.round(a.x) - 1, Math.round(a.y) - 1, 1, 1); }
+      break;
+    }
     case 'moaiArms': {
       for (const [u0, u1] of [[0.04, 0.13], [0.87, 0.96]]) poly(c, p, [[u0, 0.08], [u1, 0.08], [u1, 0.92], [u0, 0.92]], dark);
       for (const [u0, u1] of [[0.2, 0.46], [0.54, 0.8]]) poly(c, p, [[u0, 0.42], [u1, 0.42], [u1, 0.52], [u0, 0.52]], dark);
@@ -405,9 +469,19 @@ const drawDecal = (c: Ctx, it: Item, view: View) => {
 const crack = (c: Ctx, it: Item, view: View) => {
   const p = it.pts, s = it.idx * 1.7;
   const q = (u: number, v: number) => (p.length === 4 ? bil(p, u, v) : { x: p[0].x + (p[1].x - p[0].x) * u + (p[2].x - p[0].x) * v * (1 - u), y: p[0].y + (p[1].y - p[0].y) * u + (p[2].y - p[0].y) * v * (1 - u) });
+  // (jagged down the face from near its top, a branch off it partway; a lit lip down one side of it (the broken edge
+  // catching the light), a chip knocked out where it starts)
+  const pts: { x: number; y: number }[] = [];
   let u = 0.2 + hash(s) * 0.6, v = 0.85;
-  c.strokeStyle = tint('#1A0B06', view); c.lineWidth = 1.5; c.beginPath();
-  const a = q(u, v); c.moveTo(a.x, a.y);
-  for (let k = 0; k < 4; k++) { u += (hash(s + k) - 0.5) * 0.3; v -= 0.18; const b = q(Math.max(0.05, Math.min(0.95, u)), v); c.lineTo(b.x, b.y); }
-  c.stroke(); c.lineWidth = 1;
+  pts.push(q(u, v));
+  for (let k = 0; k < 5; k++) { u += (hash(s + k) - 0.5) * 0.32; v -= 0.15; pts.push(q(Math.max(0.05, Math.min(0.95, u)), v)); }
+  const lip = stepCol(it.face.mat, 4, view);
+  c.strokeStyle = lip; c.lineWidth = 1; c.beginPath(); pts.forEach((a, i) => (i ? c.lineTo(a.x + 1, a.y) : c.moveTo(a.x + 1, a.y))); c.stroke();
+  c.strokeStyle = tint('#1A0B06', view); c.lineWidth = 1.5; c.beginPath(); pts.forEach((a, i) => (i ? c.lineTo(a.x, a.y) : c.moveTo(a.x, a.y))); c.stroke();
+  // (the branch)
+  const b0 = pts[2], bu = Math.max(0.05, Math.min(0.95, u + (hash(s + 9) > 0.5 ? 0.22 : -0.22))), b1 = q(bu, 0.4), b2 = q(bu + (hash(s + 11) - 0.5) * 0.15, 0.25);
+  c.lineWidth = 1; c.beginPath(); c.moveTo(b0.x, b0.y); c.lineTo(b1.x, b1.y); c.lineTo(b2.x, b2.y); c.stroke();
+  // (the chip at its head)
+  const h0 = pts[0]; c.fillStyle = stepCol(it.face.mat, 0, view); c.beginPath(); c.moveTo(h0.x - 2, h0.y - 1); c.lineTo(h0.x + 3, h0.y - 2); c.lineTo(h0.x + 1, h0.y + 3); c.closePath(); c.fill();
+  c.lineWidth = 1;
 };
