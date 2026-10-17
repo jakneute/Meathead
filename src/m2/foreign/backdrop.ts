@@ -7,7 +7,7 @@
 //
 // The SNES pass (Mexico's and Norway's so far; the rest still the first pass's live painters, below): each landmark
 // painted once for the hour into a stamp (STILLS: real silhouettes, stepped strata and flanks, snow, forests, the haze
-// over their feet), with only what moves drawn live over it (the volcano's smoke, the falls); the lagoon in banded
+// over their feet), with only what moves drawn live over it (the falls); the lagoon in banded
 // water under the far shore's tree line (a tile for the hour), glinting; the barge painted for the hour (its hull and
 // tire fenders, the mortar racks, the shack and its board), its reflection wobbling, and after dark its show (stepped
 // shells going up, bursts in rings of square sparks with their trails, falling and fading).
@@ -105,34 +105,16 @@ const fjordWall = (g: Ctx, pts: [number, number][], foot: number, dir: number, R
 
 const STILLS: Partial<Record<ForeignId, Far>> = {
   mexico: {
-    // (a VOLCANO far off (a smoking cone, snow on its shoulders: the park's "Popo", fiberglass by its seams up close,
-    // but this far it's a mountain), desert mesas either side, flat-topped and banded, and a row of giant plywood
-    // saguaros along the foot, on its sand)
+    // (NO volcano (the user: we have enough volcanoes): desert mesas, flat-topped and banded, a far one in the haze
+    // behind, and a row of giant plywood saguaros along the foot, on its sand)
     w: 960, h: 340, k: 0.6,
     paint: (g, T, tod) => {
       const w = 960, h = 340, foot = h - 14;
-      // The volcano: its cone in steps (lit up its left flank), gullies radiating off the crater, the snow, the notch
-      const V = rampT(T, '#7A6E86'), S = rampT(T, '#F1F5F9');
-      const cx = 470, peak = 42, base = 380;
-      const cone: [number, number][] = [[cx - base, foot], [cx - 70, peak + 34], [cx - 40, peak + 4], [cx - 18, peak], [cx + 22, peak + 2], [cx + 44, peak + 8], [cx + 78, peak + 40], [cx + base, foot]];
-      poly(g, cone, V[2]);
-      g.save(); g.beginPath(); cone.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip();
-      poly(g, [[cx - base, foot], [cx - 70, peak + 34], [cx - 40, peak + 4], [cx - 18, peak], [cx - 10, foot]], V[3]);
-      checker(g, cx - 14, 0, 4, foot, V[3], 0);
-      poly(g, [[cx + 60, foot], [cx + 44, peak + 8], [cx + 78, peak + 40], [cx + base, foot]], V[1]);
-      for (let i = 0; i < 26; i++) {
-        const a = -Math.PI / 2 + (i / 25 - 0.5) * 2.4, len = 80 + hash(i * 3.3) * 200;
-        for (let s = 10; s < len; s += 3) box(g, cx + Math.cos(a) * s * 1.6 + Math.sin(s * 0.1 + i) * 1.5, peak + 6 + s * 0.95, 2, 2, i % 3 ? V[0] : V[4]);
-      }
-      // (the snow on its shoulders, ragged at its foot; streaks down the gullies)
-      poly(g, [[cx - 92, peak + 64], [cx - 70, peak + 34], [cx - 40, peak + 4], [cx - 18, peak], [cx + 22, peak + 2], [cx + 44, peak + 8], [cx + 78, peak + 40], [cx + 100, peak + 70], [cx + 70, peak + 56], [cx + 50, peak + 78], [cx + 24, peak + 50], [cx, peak + 74], [cx - 26, peak + 52], [cx - 50, peak + 80], [cx - 70, peak + 60]], S[2]);
-      poly(g, [[cx - 92, peak + 64], [cx - 70, peak + 34], [cx - 40, peak + 4], [cx - 18, peak], [cx - 10, peak + 70], [cx - 50, peak + 80], [cx - 70, peak + 60]], S[3]);
-      for (let i = 0; i < 12; i++) { const sx = cx - 80 + i * 15; for (let y = peak + 60; y < peak + 90 + hash(i) * 40; y += 2) box(g, sx + Math.round(Math.sin(y * 0.2) * 2), y, 2, 2, S[1]); }
-      g.restore();
-      // (the crater's notch, dark, a glow in it after dark)
-      box(g, cx - 18, peak - 1, 40, 4, V[0]); box(g, cx - 14, peak, 32, 2, tod.lamps > 0.3 ? '#C2410C' : V[1]);
-      // The mesas, either side
+      // The mesas: a long far one in the haze, two nearer either side, one in the middle
+      mesa(g, 180, 780, 96, foot, rampT(T, mix('#9A6A5A', '#C8B4A8', 0.35)), 5);
+      mist(g, w, foot - 120, 120, skyAt(0.9, tod), 0, 0.3, 4);
       mesa(g, 20, 330, 168, foot, rampT(T, '#B4532A'), 11);
+      mesa(g, 400, 560, 120, foot, rampT(T, '#A8482A'), 17);
       mesa(g, 640, 940, 140, foot, rampT(T, '#9A3F22'), 23);
       mist(g, w, foot - 150, 150, skyAt(0.9, tod), 0, 0.42, 6);
       // The desert floor in bands, a dune or two, scrub
@@ -142,17 +124,6 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       // The plywood saguaros along the front, their shadows on the sand
       const C = rampT(T, '#3F7A34');
       for (let i = 0; i < 9; i++) { const x = 50 + i * 108 + hash(i * 4.1) * 30, hh = 56 + hash(i * 2.9) * 54; box(g, x - 4, foot + 3, 20, 2, D[0]); saguaro(g, x, foot + 4, hh, C, i * 5); }
-    },
-    live: (c, x0, top, f, T) => {
-      // (the volcano's smoke: puffs rising off the crater, drifting right, stepped, thinning)
-      const cx = x0 + 472, cy = top + 40;
-      for (let k = 0; k < 7; k++) {
-        const t = ((f * 0.25 + k * 40) % 280) / 280, r = 8 + t * 26, px = cx + t * 90 + Math.sin(t * 6 + k) * 6, py = cy - t * 150;
-        const col = T(mix('#D6D3D1', '#78716C', t));
-        c.globalAlpha = 0.75 * (1 - t);
-        pixelBlob(c, px, py, r, r * 0.7, col); pixelBlob(c, px - r * 0.3, py - r * 0.25, r * 0.55, r * 0.4, T(mix('#F5F5F4', '#A8A29E', t)));
-        c.globalAlpha = 1;
-      }
     },
   },
   norway: {
