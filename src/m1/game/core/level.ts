@@ -77,6 +77,7 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
   p.throwTimer = 0; p.barfTimer = 0; p.peeTimer = 0; p.isTasing = false; p.isFlaming = false;
   p.vine = undefined; p.ladder = undefined; p.leverPull = undefined; p.freefall = undefined; p.extinguisher = undefined; p.throne = undefined; p.copterSeat = undefined; p.dropVine = undefined; p.carried = undefined; p.cartSeat = undefined; p.inCutscene = undefined; p.spaceSuit = undefined; p.airGrab = undefined; p.untouchable = undefined; p.noContactUntil = undefined;
   // (whatever pose a set piece had him in (a seat, a kick, a swim, stuck on a blade): on his feet, himself)
+  p.dyeTimer = 0; p.dyeColor = undefined; p.dyeParts = undefined;
   p.kickPose = undefined; p.noSpecials = undefined; p.swimming = false; p.swimDash = undefined; p.stabbed = undefined; p.headless = undefined; p.offGround = undefined; p.noContactHurt = false;
   const checkpointStart = buildLevel(state, stageId, atBoss);
   // (a stage he starts on his feet in: back on his feet on its floor, there, not dropped from up where a ceiling might be)
