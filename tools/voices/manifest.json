@@ -30371,7 +30371,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "A NAKED MAN IN THE RIVER. THAT'S THE EVENING NEWS!",
+  "text": "A NAKED WALKOUT! IN THE MIDDLE OF MY BEST BIT!",
   "from": "ADVENTURE"
  },
  {
@@ -30416,7 +30416,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "BACK FOR THE SECOND TOUR? NO REFUNDS!",
+  "text": "BACK FOR THE REST OF MY SET? NO REFUNDS!",
   "from": "ADVENTURE"
  },
  {
@@ -30491,11 +30491,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "EXIT THROUGH THE GIFT SHOP... BUY SOME PANTS...",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "FIELD DRESSING!",
   "from": "ADVENTURE"
  },
@@ -30511,7 +30506,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "FINE! I'LL GIVE THE TOUR FROM UP HERE!",
+  "text": "FINE! GO! THE PIRANHAS ARE REAL, ASSHOLE! THAT ONE WAS A JOKE TOO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FINE! GO! THE PIRANHAS WON'T TOUCH YOU EITHER! THAT'S MATERIAL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FINE! I'LL FINISH MY SET FROM UP HERE!",
   "from": "ADVENTURE"
  },
  {
@@ -30536,17 +30541,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "FINE! THE PIRANHAS ARE REAL, ASSHOLE!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "FINE! THE PIRANHAS GO FOR THE DANGLY BITS, ASSHOLE!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "FINE! THE PIRANHAS WON'T TOUCH YOU EITHER!",
+  "text": "FINE! THE PIRANHAS GO FOR THE DANGLY BITS, ASSHOLE! I WROTE THAT TOO!",
   "from": "ADVENTURE"
  },
  {
@@ -30631,11 +30626,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "GREAT, NOW IT IS IN THE RIVER TOO!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "HA! COVER UP! NOT WITH YOUR HANDS!",
   "from": "ADVENTURE"
  },
@@ -30676,17 +30666,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "HE DIDN'T EVEN TIP.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "HE DIDN'T TIP. HE LEFT SOMETHING ON THE SEAT, THOUGH.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "HE DIDN'T TIP. WHERE WOULD HE EVEN KEEP IT?",
+  "text": "HE SHIT ON MY BENCH AND WALKED OUT ON MY SET. IN THAT ORDER.",
   "from": "ADVENTURE"
  },
  {
@@ -30721,11 +30701,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "HOLD STILL! THIS IS HOW WE CLEAN A CATCH!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "HOLD STILL! WHY IS THIS CATCH SO SLIPPERY?!",
   "from": "ADVENTURE"
  },
@@ -30736,17 +30711,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "HOW'D I GET HERE FIRST? EMPLOYEE SHORTCUTS, DUMBASS.",
+  "text": "HOW'D I GET HERE FIRST? EMPLOYEE SHORTCUTS. I'VE GOT A SET TO FINISH.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "HOW'D I GET HERE FIRST? I DIDN'T STOP TO LOSE MY PANTS.",
+  "text": "HOW'D I GET HERE FIRST? I DIDN'T STOP TO LOSE MY PANTS. I'VE GOT A SET TO FINISH.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "HOW'D I GET HERE FIRST? I DIDN'T STOP TO SHIT MYSELF.",
+  "text": "HOW'D I GET HERE FIRST? I DIDN'T STOP TO SHIT MYSELF. I'VE GOT A SET TO FINISH.",
   "from": "ADVENTURE"
  },
  {
@@ -30781,7 +30756,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "I DO THIS FOR TIPS ON SLOW DAYS!",
+  "text": "I DID MY BEST MATERIAL FOR A NAKED GUY. AND HE LEFT.",
   "from": "ADVENTURE"
  },
  {
@@ -30831,21 +30806,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "I WAS GONNA AMBUSH YOU, YOU PRICK.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "I WAS GONNA AMBUSH YOU. I SMELLED YOU COMING.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "I WAS GONNA AMBUSH YOU. THEN I SAW ALL OF YOU COMING.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "I WAS GONNA BE A VET. I KNOW WHAT I'M LOOKING AT. I WISH I DIDN'T.",
   "from": "ADVENTURE"
  },
@@ -30877,6 +30837,11 @@
  {
   "voice": "m2.safari",
   "text": "I WAS SEEING STARS! NOW I'M SMELLING THEM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I WORK REALLY HARD ON THIS SET. FOUR HOURS A NIGHT. IN A MIRROR.",
   "from": "ADVENTURE"
  },
  {
@@ -30936,6 +30901,16 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I'M NOT LETTING THIS GO, GERALD. I'M NOT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M NOT LETTING THIS GO, GERALD. NEITHER IS THE BENCH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I'M ON MY BREAK, YOU FAT FUCK!",
   "from": "ADVENTURE"
  },
@@ -30991,7 +30966,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "I'VE GUTTED BIGGER FISH THAN YOU! NOT MANY!",
+  "text": "I'VE GUTTED BIGGER FISH THAN YOU! NONE OF THEM WALKED OUT ON ME!",
   "from": "ADVENTURE"
  },
  {
@@ -31061,17 +31036,12 @@
  },
  {
   "voice": "m2.safari",
-  "text": "JUNIOR GUIDES! THAT MAN IS NOT ON THE TOUR! TAKE HIM OFF IT!",
+  "text": "JUNIOR GUIDES! THAT MAN WALKED OUT ON MY SET! TAKE HIM OFF THE TOUR!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "KEEP YOUR ARMS AND LEGS INSIDE THE BUSH!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "KEEP YOUR ARMS AND LEGS INSIDE THE BUSH! GET IN ONE! PLEASE!",
+  "text": "KEEP YOUR ARMS AND LEGS INSIDE THE BUSH! AND YOUR ASS IN YOUR SEAT!",
   "from": "ADVENTURE"
  },
  {
@@ -31111,17 +31081,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "KILLED BY A MAN... IN SHITTY PANTS... DON'T PUT THAT... ON MY HEADSTONE...",
+  "text": "KILLED BY A MAN... WHO WALKED OUT ON MY SET... DON'T PUT THAT... ON MY HEADSTONE...",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "LET'S PLAY A GAME CALLED HIDE AND GUT!",
+  "text": "LET'S PLAY A GAME CALLED HIDE AND GUT! IT KILLS! UNLIKE THE BACKSIDE OF WATER, APPARENTLY!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "LET'S PLAY HIDE AND GUT! YOU ALREADY EMPTIED YOURS!",
+  "text": "LET'S PLAY HIDE AND GUT! YOU ALREADY EMPTIED YOURS! ON MY BENCH!",
   "from": "ADVENTURE"
  },
  {
@@ -31141,7 +31111,22 @@
  },
  {
   "voice": "m2.safari",
-  "text": "LOOK WHO CAME BACK! THE ANIMALS MISSED YOU!",
+  "text": "LOOK WHO CAME BACK! YOU STILL OWE ME A BACKSIDE OF WATER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, A GUEST WALKED OUT ON MY SET. BRING A HOSE FOR THE BENCH. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, A GUEST WALKED OUT ON MY SET. OVERBOARD. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, A NAKED GUEST WALKED OUT ON MY SET. NO, I DIDN'T TAKE HIS PANTS. OVER.",
   "from": "ADVENTURE"
  },
  {
@@ -31187,21 +31172,6 @@
  {
   "voice": "m2.safari",
   "text": "MAINTENANCE, I HAVE A GUEST. HE'S STARING AT ME. OVER.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "MAINTENANCE, I LOST A GUEST. BRING A HOSE FOR THE BENCH. OVER.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "MAINTENANCE, I LOST A GUEST. NO PANTS. NO, I DIDN'T TAKE THEM. OVER.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "MAINTENANCE, I LOST A GUEST. OVERBOARD. ON PURPOSE. OVER.",
   "from": "ADVENTURE"
  },
  {
@@ -31371,22 +31341,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "NO TOUCHING THE STAFF!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "NO TOUCHING THE STAFF! ESPECIALLY WITH THAT HAND!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "NO TOUCHING THE STAFF! NO NAKED HUGS!",
+  "text": "NO TOUCHING THE STAFF! NO HECKLING! NO WALKOUTS!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "NOBODY EVER STAYS FOR THE BACKSIDE OF WATER.",
+  "text": "NO TOUCHING THE STAFF! NO NAKED HUGS!",
   "from": "ADVENTURE"
  },
  {
@@ -31561,11 +31526,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "PLEASE EXIT... THROUGH THE GIFT SHOP...",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "PSST. BIG BUSH OVER HERE. YOU COULD HIDE IN IT. YOU SHOULD.",
   "from": "ADVENTURE"
  },
@@ -31591,7 +31551,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "ROUND TWO, FOLKS! SAME GUIDE, NEW GUTS!",
+  "text": "ROUND TWO, FOLKS! SAME SET, NEW GUTS!",
   "from": "ADVENTURE"
  },
  {
@@ -31611,17 +31571,27 @@
  },
  {
   "voice": "m2.safari",
-  "text": "SIR! NOT LIKE THAT! THERE ARE KIDS ON THE NEXT BOAT!",
+  "text": "SIR! I'M IN THE MIDDLE OF MY SET!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "SIR! YOU CAN'T EXIT THE BOAT DURING THE RIDE!",
+  "text": "SIR! I'M IN THE MIDDLE OF MY SET! ...ACTUALLY, GO.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "SIR! YOU CAN'T... ACTUALLY, GO. PLEASE GO.",
+  "text": "SIR! NOT DURING MY SET! NOT LIKE THAT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SIT DOWN! THE SET IS NOT OVER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SIX YEARS I WORKED ON THE BACKSIDE OF WATER. SIX YEARS.",
   "from": "ADVENTURE"
  },
  {
@@ -31751,17 +31721,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THAT'S A WRITE-UP! THAT'S A WRITE-UP FOR ME!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "THAT'S YOUR FAULT! EVERYTHING TODAY IS YOUR FAULT!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "THE ANIMALS SMELL SOMETHING DEAD! IT IS YOUR PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE BACKSIDE... OF WATER... IT'S THE BACK... OF THE WATER... THAT'S THE JOKE...",
   "from": "ADVENTURE"
  },
  {
@@ -31806,17 +31776,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THE RIVER'S GOING BROWN. THEY'LL SAY IT WAS ME.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "THE TOUR IS MANDATORY! SO IS WIPING!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "THE WORST PART OF THIS JOB? EVERYTHING.",
   "from": "ADVENTURE"
  },
  {
@@ -31901,7 +31861,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THIS CONCLUDES... THE SKELETON TOUR...",
+  "text": "THIS BIT KILLS ON SLOW DAYS! YOU WOULDN'T KNOW! YOU LEFT!",
   "from": "ADVENTURE"
  },
  {
@@ -31911,7 +31871,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THIS CONCLUDES... THE TOUR...",
+  "text": "THIS CONCLUDES... THE TOUR... AND YOU STAYED... FOR ALL OF IT...",
   "from": "ADVENTURE"
  },
  {
@@ -31966,6 +31926,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THIS TIME YOU STAY FOR THE WHOLE SET! PANTS OPTIONAL! APPARENTLY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THIS WHISTLE MEANS \"READY TO BREED.\" IN HIPPO.",
   "from": "ADVENTURE"
  },
@@ -32006,7 +31971,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "TREE HOUSE RULES! NO MEATHEADS!",
+  "text": "TREE HOUSE RULES! NO MEATHEADS! NO WALKOUTS!",
   "from": "ADVENTURE"
  },
  {
@@ -32031,22 +31996,22 @@
  },
  {
   "voice": "m2.safari",
-  "text": "WE'RE NEVER TALKING ABOUT THIS, RIGHT, GERALD?",
+  "text": "WE'RE NEVER TALKING ABOUT THIS, GERALD. EXCEPT THE WALKOUT.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "WELCOME TO THE INTERACTIVE PORTION OF THE TOUR!",
+  "text": "WELCOME BACK TO THE TOUR! STAY DOWNWIND! STAY FOR THE WHOLE SET!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "WELCOME TO THE INTERACTIVE PORTION OF THE TOUR! STAY DOWNWIND!",
+  "text": "WELCOME BACK TO THE TOUR! THE NUDE BEACH IS IN A DIFFERENT PARK!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "WELCOME TO THE INTERACTIVE PORTION OF THE TOUR! THE NUDE BEACH IS IN A DIFFERENT PARK!",
+  "text": "WELCOME BACK TO THE TOUR! THIS TIME YOU STAY FOR THE WHOLE SET!",
   "from": "ADVENTURE"
  },
  {
@@ -32171,6 +32136,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "YOU NEVER... HEARD... THE BACKSIDE OF WATER...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "YOU SET THAT OFF ON PURPOSE, YOU STINKING PRICK!",
   "from": "ADVENTURE"
  },
@@ -32186,6 +32156,31 @@
  },
  {
   "voice": "m2.safari",
+  "text": "YOU SHIT ON MY BENCH AND WALKED OUT ON MY SET! BOTH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU STAYED... FOR THE END... NAKED... WORST STANDING OVATION... EVER...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU WALKED OUT ON MY SET, YOU PRICK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU WALKED OUT ON MY SET. AND YOU LEFT SOMETHING ON MY BENCH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU WALKED OUT ON MY SET. NAKED. IN FRONT OF GERALD.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "YOU'RE BANNED! AND HOSED DOWN! THEN BANNED!",
   "from": "ADVENTURE"
  },
@@ -32197,6 +32192,11 @@
  {
   "voice": "m2.safari",
   "text": "YOU'RE BANNED! PUT SOMETHING ON AND GET BANNED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU'RE WALKING OUT BEFORE THE BACKSIDE OF WATER?! I WROTE THAT!",
   "from": "ADVENTURE"
  },
  {
@@ -45101,11 +45101,6 @@
  },
  {
   "voice": "meathead",
-  "text": "LET'S GO, TOUR GUIDE.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "LEVER! GO GO GO!",
   "from": "SPOOKY"
  },
@@ -50716,6 +50711,11 @@
  },
  {
   "voice": "meathead",
+  "text": "STILL NOT FUNNY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "STILL RECOVERING!",
   "from": "BULK_FAIL_LINES"
  },
@@ -54236,11 +54236,6 @@
  },
  {
   "voice": "meathead",
-  "text": "TIP YOUR GUIDE.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "TIRE MARKS ON MY ASS!",
   "from": "HOLLYWOOD"
  },
@@ -56328,6 +56323,11 @@
   "voice": "meathead",
   "text": "YOUR PELVIS IS A WEAPON, MAN!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR SET SUCKS, ARTIE.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
