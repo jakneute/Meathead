@@ -32,7 +32,7 @@ export const TALK: PavilionTalk = {
     { from: 400, to: 1000, key: 'pizza', lines: ['THEY THROW THE PIZZA. THEY JUST THROW IT.', "THAT'S A PIZZA OVEN. IT'S A MICROWAVE IN A BOX."] },
     { from: 1000, to: 1800, key: 'gondola', lines: ['A GONDOLA. A CANOE WITH A GUY WHO SINGS.', "I'M NOT TIPPING THE BOAT GUY."] },
     { from: 1800, to: 2300, key: 'palace', lines: ['A PALACE. FOR A DOGE. LIKE THE DOG MEME?', 'SHE HIT A NOTE AND MY FILLINGS HURT.'] },
-    { from: 3100, to: 3500, key: 'tower', lines: ['THE LEANING TOWER OF PIZZA. I GET IT. I HATE IT.', "IT'S LEANING. THAT'S NOT A FEATURE. THAT'S A LAWSUIT."], minH: 200 },
+    { from: 3100, to: 3500, key: 'tower', lines: ['A BELL TOWER WITH A PIZZA NAILED TO IT. I GET IT. I HATE IT.', "THE BALCONIES DON'T EVEN LINE UP. WHO BUILT THIS? DOUG?"], minH: 200 },
     // (job 4b: il forno, the rooftops)
     { from: 4200, to: 4700, key: 'forno', lines: ["THE WORLD'S LONGEST PIZZA OVEN. I'M THE TOPPING.", "I'M WALKING THROUGH A PIZZA OVEN. MY MOM WAS RIGHT ABOUT THIS PLACE."] },
     { from: 5080, to: 5640, key: 'roofs', lines: ['ROOFTOPS. EVERY ROOF IN ITALY HAS A GRANDMA ON IT.', 'NICE VIEW. IT SMELLS LIKE GARLIC AND GUNPOWDER.'], minH: 160 },

@@ -14,7 +14,7 @@ export const TALK: PavilionTalk = {
   pa: {
     clean: [
       'BONJOUR AND WELCOME TO FRANCE! THE OOH LA LA ZONE! FRIES SOLD SEPARATELY!',
-      'NOW ENTERING PARIS, FRANCE! HOME OF THE EIFFEL TOWER! OURS IS BIGGER!',
+      'NOW ENTERING PARIS, FRANCE! HOME OF THE ARC DE TRIOMPHE! OURS IS BIGGER!',
     ],
     shitty: [
       'WELCOME TO FRANCE! SIR, THAT SMELL IS NOT A CHEESE. WE CHECKED.',
@@ -33,7 +33,7 @@ export const TALK: PavilionTalk = {
     { from: 300, to: 1100, key: 'cafe', lines: ["A CAFE. EIGHT BUCKS FOR A COFFEE THE SIZE OF A THIMBLE.", "THE WAITER LOOKED AT ME LIKE I'M THE PROBLEM."] },
     { from: 600, to: 1700, key: 'mime', lines: ["A MIME. THE ONLY GOOD THING ABOUT A MIME IS THEY CAN'T TALK BACK.", "HE MADE A WALL. A FAKE WALL. AND IT WORKS."] },
     { from: 1100, to: 1500, key: 'cancan', lines: ['THE CAN-CAN. KICKING IN A LINE. SURE.', "THEY ALL KICK AT ONCE. THAT'S THE WHOLE TRICK."] },
-    { from: 1550, to: 2650, key: 'eiffel', lines: ["IT'S THE EIFFEL TOWER, BUT WE BUILT IT, SO IT'S BETTER.", 'A TOWER MADE OF NOTHING BUT HOLES.'], minH: 340 },
+    { from: 1550, to: 2650, key: 'arc', lines: ["A GIANT ARCH FOR WINNING A WAR. THE FRENCH. WINNING. SURE.", 'A DOOR THE SIZE OF A BUILDING. AND NO BUILDING.'], minH: 340 },
     // (job 4b: the Louvre, the Seine)
     { from: 3700, to: 4100, key: 'louvre', lines: ['THE LOUVRE. A GLASS PYRAMID FULL OF GIFT SHOP.', "A MUSEUM. I'VE NEVER BEEN IN ONE. I'M STILL NOT GOING IN."] },
     { from: 4200, to: 4400, key: 'mona', lines: ["THE MONA LISA. IT'S A POSTCARD. SHE STILL LOOKS SMUG.", "THAT'S IT? I CLIMBED A PYRAMID FOR A POSTCARD?"], minH: 460 },

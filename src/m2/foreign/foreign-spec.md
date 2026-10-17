@@ -797,3 +797,23 @@ The user: "make the landmarks in the helicopter portion 3d modeled so the perspe
 - **Cheap:** a few hundred faces each; the replicas still to come and the wrecks painted once to a canvas each and
   blitted while the camera's still (every fight); details (decals, small parts) dropped when one's small on screen.
   Hitboxes, patterns, timings, arrivals and the stomping are as they were. Harry's arena still shows the flat wrecks.
+
+## Decisions (streets: no fought landmarks, 2026-10-16)
+
+The user: "make sure the leaning tower, eiffel tower and other monuments you fight don't appear in the platforming
+section before. replace them with something else." None of the helicopter's nine shows in the streets now:
+
+- **France:** the Eiffel-ish tower base climb is THE ARC (an Arc de Triomphe-ish arch, cream stone, "OURS IS BIGGER"):
+  the same ledges and heights (the stair landings in its left pier, the gallery across the vault, the frieze ledge, the
+  attic on top, the sculpture's plinth and its step), the elevator kept as the SERVICE LIFT up its right pier. The
+  backdrop's Eiffel is a Notre Dame-ish cathedral (twin towers, rose window, spire, buttresses, gargoyles). The PA and
+  Meathead's lines and the sign follow (re-recorded). The Louvre's glass pyramid stays.
+- **Italy:** the leaning tower of pizza is THE CAMPANILE (a straight St Mark's-ish brick bell tower, its belfry, the green
+  spire and gold angel), the same balconies (still stepping out further each floor), a giant pizza nailed to its front;
+  the sign THE CAMPANILE OF PIZZA, NOW 100% UPRIGHT; Meathead's lines re-recorded.
+- **UK:** the backdrop's clock tower is a giant Ferris wheel (London Eye-ish, turning slowly). The phone box climb stays.
+- **The helicopter's own backdrop** (the streets' far view toward the ride): the replicas are a giant globe on a pylon
+  and a radio mast.
+- Checked and kept: Mexico's Mesoamerican stepped pyramid (not the Great Pyramid), Morocco's minaret, the far straight
+  bell tower in Italy's hills. Outside the streets (not changed here): the hub's landmark cluster and the walk-away
+  into Foreign Lands still show an Eiffel and a pyramid.

@@ -2,9 +2,10 @@
 // first: two cafes (their striped awnings to stand on, little tables, a rude smoker, snooty waiters flinging plates),
 // the newspaper column (climb it), mimes (their invisible walls eat his shots till they break). Then THE CABARET: a
 // stage with the CAN-CAN LINE kicking in unison on the beat, its marquee over it (the high way past them). Then THE
-// EIFFEL-ISH TOWER (the base of one: "OURS IS BIGGER"), climbed: up the girders in its left leg to the first deck,
-// along it over the arch, girders to the second level, and the top; the ELEVATOR in its right leg rides up to the
-// second level and down again (the way back up, too). Then the bakery street (baguettes swung), the flower stall, the
+// ARC (an Arc de Triomphe-ish arch, "OURS IS BIGGER"; it was an Eiffel-ish tower base till the Eiffel became one of the
+// helicopter's landmarks), climbed up its inside: the stair landings in its left pier to the gallery across the vault,
+// the frieze ledge, the attic on top, the sculpture's plinth; the SERVICE LIFT in its right pier rides up to the attic
+// and down again (the way back up, too). Then the bakery street (baguettes swung), the flower stall, the
 // Mona Lisa print stand; then LE LOUVRE (louvre.ts, job 4b: the glass pyramid climbed over through its fountain show,
 // the Seine's bookstalls, an apartment block over its mansard roof), to the border with the UK.
 //
@@ -40,7 +41,7 @@ const COLUMN = { a: 680, b: 740, h: 180 } as const;
 /** The cabaret's stage (solid) and its marquee over it (one-way). */
 const STAGE = { a: 1150, b: 1450, h: 70 } as const;
 const MARQUEE = { a: 1180, b: 1420, h: 200 } as const;
-/** The tower: its legs' footprints, the first deck, the second level, the top; the girders between (one-way). */
+/** The arch: its piers' footprints, the gallery across the vault, the attic, the plinth's top; the landings and ledges between (one-way). */
 const LEG_L: [number, number] = [1600, 1760], LEG_R: [number, number] = [2440, 2600];
 const DECK: [number, number, number] = [1600, 2440, 360];
 const LEVEL2: [number, number, number] = [1900, 2300, 620];
@@ -62,7 +63,7 @@ const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [[2100, 820, 
 export const FRANCE_CHECKPOINTS = [
   { name: 'FRANCE', cp: 70, x: X(150), y: GY },
   { name: 'FRANCE: THE CABARET', cp: 71, x: X(1080), y: GY },
-  { name: 'FRANCE: THE TOWER', cp: 72, x: X(1520), y: GY },
+  { name: 'FRANCE: THE ARC', cp: 72, x: X(1520), y: GY },
   { name: 'FRANCE: THE BAKERY', cp: 73, x: X(2680), y: GY },
   ...LOUVRE_CHECKPOINTS,
 ];
@@ -105,28 +106,41 @@ const drawCafe = (c: Ctx, v: View, a: number, b: number, h: number, col: string)
   ledge3(c, v, X(a), Y(h), b - a, col, 6);
 };
 
-/** The tower: lattice legs (crossed girders, set back a touch: the girders inside are what he stands on), the arch
- *  between them, the decks with their railings, the spire going on up out of the top. */
-const lattice = (c: Ctx, ax: number, ay: number, bx: number, by: number, w: number, col: string) => {
-  c.strokeStyle = col; c.lineWidth = 3;
-  c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.moveTo(ax + w, ay); c.lineTo(bx + w, by); c.stroke();
-  c.lineWidth = 1.5; c.beginPath();
-  const n = Math.max(2, Math.round(Math.abs(by - ay) / 30));
-  for (let k = 0; k < n; k++) { const t0 = k / n, t1 = (k + 1) / n; const x0_ = ax + (bx - ax) * t0, y0_ = ay + (by - ay) * t0, x1_ = ax + (bx - ax) * t1, y1_ = ay + (by - ay) * t1; c.moveTo(x0_, y0_); c.lineTo(x1_ + w, y1_); c.moveTo(x0_ + w, y0_); c.lineTo(x1_, y1_); }
-  c.stroke();
-};
+/** THE ARC (the Arc de Triomphe-ish, "OURS IS BIGGER"; it replaced an Eiffel-ish tower base, the Eiffel being one of
+ *  the helicopter's landmarks): set back, cream stone. Its two piers (the left one cut open: the stair landings inside
+ *  it, what he climbs), carved relief panels, the great vault between them with the stone gallery across it (the first
+ *  deck), the frieze ledge over the vault, the cornice and the attic block on top (the second level), and the
+ *  sculpture's plinth up from it (its step, its top), a tricolor flying over it. The service lift up the right pier. */
+const STONE = '#E7DCC4', STONE_D = '#B8A888', CARVE = '#8C7A5A';
 const drawTower = (c: Ctx, v: View, lift: Mover | null) => {
   if (!onScreen(v, X(LEG_L[0]) - 60, X(LEG_R[1]) + 60)) return;
-  const I = dimmed(IRON), J = hour(IRON);
-  // (the legs, sloping in toward the first deck; the arch between them)
-  lattice(c, X(LEG_L[0]), GY, X(LEG_L[0]) + 60, Y(DECK[2]), LEG_L[1] - LEG_L[0], I);
-  lattice(c, X(LEG_R[0]) - 60, Y(DECK[2]), X(LEG_R[0]), GY, LEG_R[1] - LEG_R[0], I);
-  c.strokeStyle = J; c.lineWidth = 6; c.beginPath(); c.ellipse(X((LEG_L[1] + LEG_R[0]) / 2), GY, (LEG_R[0] - LEG_L[1]) / 2 + 40, 250, 0, Math.PI, 0); c.stroke();
-  // (up from the first deck to the second, and the spire over the top)
-  lattice(c, X(1880), Y(DECK[2]), X(1920), Y(LEVEL2[2]), 360, I);
-  lattice(c, X(2010), Y(LEVEL2[2]), X(2050), Y(TOP[2]), 100, I);
-  poly(c, [[X(2085), Y(TOP[2])], [X(2115), Y(TOP[2])], [X(2102), Y(TOP[2]) - 140], [X(2098), Y(TOP[2]) - 140]], I);
-  // (the elevator's shaft: two rails up the right leg, the car)
+  const J = hour(IRON), S = dimmed(STONE), SD = dimmed(STONE_D), CV = dimmed(CARVE), DARK = dimmed('#2A2218');
+  const L0 = X(LEG_L[0]), R1 = X(LEG_R[1]), VA = X(LEG_L[1]), VB = X(LEG_R[0]), TOPB = Y(560);
+  // (the body: the piers and the mass over the vault, up to the cornice)
+  box(c, L0, TOPB, R1 - L0, GY - TOPB, S);
+  box(c, L0, TOPB, 18, GY - TOPB, SD); box(c, R1 - 18, TOPB, 18, GY - TOPB, SD);
+  // (the vault: an opening through it, a round-headed arch, its coffers in shadow)
+  const vy = Y(300), rx = (VB - VA) / 2, ry = 170;
+  c.fillStyle = DARK; c.beginPath(); c.moveTo(VA, GY); c.lineTo(VA, vy); c.ellipse((VA + VB) / 2, vy, rx, ry, 0, Math.PI, 0); c.lineTo(VB, GY); c.closePath(); c.fill();
+  c.strokeStyle = CV; c.lineWidth = 3; c.beginPath(); c.ellipse((VA + VB) / 2, vy, rx + 8, ry + 8, 0, Math.PI, 0); c.stroke();
+  for (let k = 1; k < 8; k++) { const a = Math.PI + (k / 8) * Math.PI; box(c, (VA + VB) / 2 + Math.cos(a) * (rx + 14) - 4, vy + Math.sin(a) * (ry + 14) - 6, 8, 12, CV); }
+  // (the piers: the relief panels; the left one cut open on its stairs)
+  for (const px of [LEG_L[0], LEG_R[0]]) { box(c, X(px) + 26, Y(250), 108, 110, CV); box(c, X(px) + 32, Y(244), 96, 98, SD); for (let k = 0; k < 4; k++) box(c, X(px) + 40 + k * 22, Y(220), 10, 60, CV); }
+  box(c, L0 + 16, Y(300), LEG_L[1] - LEG_L[0] - 32, 300, DARK);
+  for (const [, , h] of GIRDERS.slice(0, 2)) box(c, L0 + 16, Y(h) + 8, LEG_L[1] - LEG_L[0] - 32, 3, CV);
+  // (the frieze band over the vault, the cornice, the attic block, the plinth on it)
+  box(c, L0, Y(500), R1 - L0, 26, SD); for (let x = L0 + 8; x < R1 - 8; x += 22) box(c, x, Y(496), 12, 18, CV);
+  box(c, L0 - 10, TOPB - 8, R1 - L0 + 20, 12, SD);
+  box(c, X(LEVEL2[0]), Y(LEVEL2[2]), LEVEL2[1] - LEVEL2[0], LEVEL2[2] - 560, S); for (let x = X(LEVEL2[0]) + 14; x < X(LEVEL2[1]) - 20; x += 40) box(c, x, Y(LEVEL2[2]) + 16, 22, 30, CV);
+  box(c, X(TOP[0]), Y(TOP[2]), TOP[1] - TOP[0], TOP[2] - LEVEL2[2], SD);
+  // (the sculpture on the plinth: a winged figure, arms up, holding the flag)
+  poly(c, [[X(2080), Y(TOP[2])], [X(2120), Y(TOP[2])], [X(2112), Y(TOP[2]) - 70], [X(2088), Y(TOP[2]) - 70]], dimmed('#57534E'));
+  poly(c, [[X(2088), Y(TOP[2]) - 60], [X(2050), Y(TOP[2]) - 100], [X(2086), Y(TOP[2]) - 76]], dimmed('#78716C'));
+  poly(c, [[X(2112), Y(TOP[2]) - 60], [X(2150), Y(TOP[2]) - 100], [X(2114), Y(TOP[2]) - 76]], dimmed('#78716C'));
+  box(c, X(2098), Y(TOP[2]) - 84, 6, 14, dimmed('#57534E'));
+  box(c, X(2116), Y(TOP[2]) - 150, 3, 90, dimmed('#9CA3AF'));
+  for (let k = 0; k < 3; k++) box(c, X(2119) + k * 12, Y(TOP[2]) - 150, 12, 26, hour(['#002395', '#F8FAFC', '#ED2939'][k]));
+  // (the service lift's shaft: two rails up the right pier, the car)
   for (const rx of [LIFT.a - 4, LIFT.a + LIFT.w]) box(c, X(rx), Y(LIFT.hi) - 60, 4, LIFT.hi + 60, J);
   box(c, X(LIFT.a) - 10, Y(LIFT.hi) - 70, LIFT.w + 24, 10, J);
   if (lift) {
@@ -138,8 +152,8 @@ const drawTower = (c: Ctx, v: View, lift: Mover | null) => {
     ledge3(c, v, X(LIFT.a), ly, LIFT.w, '#B45309', 8);
   }
   // (the decks and the girders: somewhere to stand, the railings behind)
-  for (const [a, b, h] of [DECK, LEVEL2, TOP]) { for (let x = X(a) + 6; x < X(b); x += 16) box(c, x, Y(h) - 18, 2, 18, dimmed('#1C1917')); box(c, X(a), Y(h) - 20, b - a, 2, dimmed('#1C1917')); ledge3(c, v, X(a), Y(h), b - a, IRON, h === DECK[2] ? 20 : 14); }
-  for (const [a, b, h] of GIRDERS) ledge3(c, v, X(a), Y(h), b - a, IRON, 8);
+  for (const [a, b, h] of [DECK, LEVEL2, TOP]) { for (let x = X(a) + 6; x < X(b); x += 16) box(c, x, Y(h) - 18, 2, 18, dimmed('#1C1917')); box(c, X(a), Y(h) - 20, b - a, 2, dimmed('#1C1917')); ledge3(c, v, X(a), Y(h), b - a, STONE_D, h === DECK[2] ? 20 : 14); }
+  for (const [a, b, h] of GIRDERS) ledge3(c, v, X(a), Y(h), b - a, STONE_D, 8);
 };
 
 export const france: ForeignSection = {
@@ -199,8 +213,8 @@ export const france: ForeignSection = {
     { const [a, b, h] = AWNINGS[0]; if (onScreen(v, X(a), X(b))) hungBoard(c, X((a + b) / 2), Y(h) + 50, Y(h) + 76, ['CAFE', 'NO SUBSTITUTIONS'], LOOKS.france(1), '#14532D'); }
     { const [a, b, h] = AWNINGS[1]; if (onScreen(v, X(a), X(b))) hungBoard(c, X((a + b) / 2), Y(h) + 50, Y(h) + 76, ['BISTRO', 'FRENCH FRIES (BELGIAN)'], LOOKS.france(1), '#7F1D1D'); }
     if (onScreen(v, X(STAGE.a) - 120, X(STAGE.a))) postBoard(c, X(STAGE.a) - 60, GY, ['LE CABARET', '(NOT THAT KIND)'], LOOKS.france(1), '#1C1917', undefined, 130);
-    if (onScreen(v, X(1460), X(1600))) postBoard(c, X(1530), GY, ['EIFFEL TOWER', 'ACTUAL SIZE*', '*BIGGER'], LOOKS.france(1), '#1C1917', undefined, 130);
-    if (onScreen(v, X(LIFT.a), X(LIFT.a + LIFT.w))) hungBoard(c, X(LIFT.a + LIFT.w / 2), Y(LIFT.hi) - 60, Y(LIFT.hi) - 30, ['ASCENSEUR', '(ELEVATOR)'], LOOKS.france(1), '#1C1917');
+    if (onScreen(v, X(1460), X(1600))) postBoard(c, X(1530), GY, ['ARC DE TRIOMPHE', 'ACTUAL SIZE*', '*BIGGER'], LOOKS.france(1), '#1C1917', undefined, 130);
+    if (onScreen(v, X(LIFT.a), X(LIFT.a + LIFT.w))) hungBoard(c, X(LIFT.a + LIFT.w / 2), Y(LIFT.hi) - 60, Y(LIFT.hi) - 30, ['SERVICE LIFT', '(ASCENSEUR)'], LOOKS.france(1), '#1C1917');
     { const [a, b, h] = STALLS[1]; if (onScreen(v, X(a) - 60, X(b))) postBoard(c, X(a) - 50, GY, ['MONA LISA', 'COPY OF A COPY'], LOOKS.france(1), '#78350F', undefined, 110); void b; void h; }
     drawLouvreBack(c, v, state);
     if (onScreen(v, X(20), X(120))) {

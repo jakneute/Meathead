@@ -3,8 +3,8 @@
 // its bridge is CLOSED FOR REPAIRS, two stubs that don't meet) and its GONDOLA ferrying across and back, a gondolier
 // aboard swinging the pole. Then the PALACE (pink and white diamonds, balconies stacked up to its roof: the opera
 // singer's high note up there, a small ammo on top), the SECOND CANAL (two gondolas in step: ride one, hop to the
-// other), and the LEANING TOWER OF PIZZA, climbed floor by floor (each floor further out than the one under it; a
-// nonna and a small health at the top). The piazza again; then IL FORNO and THE ROOFTOPS (oven.ts, job 4b: the
+// other), and THE CAMPANILE (a straight Venetian bell tower with a giant pizza on it; it was a leaning tower of pizza),
+// climbed balcony by balcony (each further out than the one under it; a nonna and a small health at the top). The piazza again; then IL FORNO and THE ROOFTOPS (oven.ts, job 4b: the
 // pizza-oven tunnel's burners and chimneys, the terracotta houses up the hill), to the border with Japan.
 //
 // The canals are water (he swims; climbs out by the steps at each end). Crude (the first pass): readable boxes with
@@ -22,7 +22,7 @@ import { exemptFromZones } from '../../hazardHit';
 import { runsAround, poolSteps, poolAt, poolZones, drawPoolBack, drawPoolFront, type Pool } from '../water';
 import {
   type Ctx, type View, viewIn, box, mix, poly, at, promenade, boxes3, ledge3, setBack, wall, hole, postBoard, hungBoard, swag, flagPole,
-  LOOKS, dimmed, hour, ramp6, onScreen, FACADE_D, INK, LIP,
+  LOOKS, dimmed, hour, ramp6, onScreen, FACADE_D, LIP,
 } from '../kit';
 import { TALK } from './lines';
 import './kinds';
@@ -42,7 +42,7 @@ const OVEN = { a: 700, b: 820, h: 110 } as const;
 const STUBS: [number, number, number][] = [[940, 1160, 130], [1640, 1860, 130]];
 /** The palace's balconies, loggia and roof (one-way). */
 const PALACE: [number, number, number][] = [[1850, 2250, 150], [1900, 2200, 300], [1860, 2240, 450]];
-/** The leaning tower's floors (one-way, each further right than the one under it). */
+/** The bell tower's floors (one-way balconies, each further right than the one under it). */
 const TOWER: [number, number, number][] = [[3180, 3330, 120], [3200, 3350, 240], [3220, 3370, 360], [3240, 3390, 480], [3260, 3410, 600]];
 /** The gondolas: width, where each one's left end runs between, its cycle (frames) and how long it waits at each end. */
 const GONDOLAS = [
@@ -64,7 +64,7 @@ export const ITALY_CHECKPOINTS = [
   { name: 'ITALY', cp: 40, x: X(150), y: GY },
   { name: 'ITALY: THE GRAND CANAL', cp: 41, x: X(930), y: GY },
   { name: 'ITALY: THE PALACE', cp: 42, x: X(1860), y: GY },
-  { name: 'ITALY: THE LEANING TOWER', cp: 43, x: X(3140), y: GY },
+  { name: 'ITALY: THE BELL TOWER', cp: 43, x: X(3140), y: GY },
   ...OVEN_CHECKPOINTS,
 ];
 
@@ -140,22 +140,37 @@ const drawBridge = (c: Ctx, v: View) => {
   }
 };
 
-/** The leaning tower of pizza: white arcaded drums stacked, each further right, the bell on top; its floors' lips. */
+/** THE CAMPANILE (St Mark's-ish; it was a leaning tower of pizza till the Leaning Tower became one of the helicopter's
+ *  landmarks): straight up, red brick in tall recessed panels, set back; its floors are balconies stepping out of it
+ *  (each further right, as they were: "the balconies don't even line up"), each lit along its lip. The belfry over the
+ *  top floor (white arches, the bell swinging), the green pyramid spire, a gold angel on it; a giant pizza nailed to its
+ *  front (the pizza gag kept). */
 const drawTower = (c: Ctx, v: View, f: number) => {
   if (!onScreen(v, X(3150), X(3460))) return;
-  let lastH = 0, lastA = 3160;
-  for (const [a, b, h] of TOWER) {
-    const W = ramp6(hour('#F5F0E0'));
-    // (this drum, from the floor under it up to this one, leaning: its left edge goes from lastA to a)
-    poly(c, [[X(lastA), Y(lastH)], [X(lastA + (b - a)), Y(lastH)], [X(b), Y(h)], [X(a), Y(h)]], W[2]);
-    for (let k = 0; k < 4; k++) { const t = (k + 0.5) / 4, ax = X(lastA + (a - lastA) * 0.5) + (b - a) * t - 8; box(c, ax, Y(h) + 30, 14, h - lastH - 40, W[1]); c.fillStyle = W[1]; c.beginPath(); c.arc(ax + 7, Y(h) + 30, 7, Math.PI, 0); c.fill(); }
-    ledge3(c, v, X(a), Y(h), b - a, '#E7E5E4', 12);
-    lastH = h; lastA = a;
-  }
-  // (the bell up top, swinging)
+  const B = ramp6(hour('#B4532A')), a0 = X(3190), w = 200, top = Y(600);
+  // (the shaft, its recessed panels)
+  box(c, a0, top, w, GY - top, dimmed(B[2]));
+  box(c, a0, top, 12, GY - top, dimmed(B[3])); box(c, a0 + w - 12, top, 12, GY - top, dimmed(B[1]));
+  for (let k = 0; k < 4; k++) box(c, a0 + 22 + k * 44, top + 30, 26, GY - top - 60, dimmed(B[1]));
+  box(c, a0 - 6, GY - 26, w + 12, 26, dimmed('#D6D3D1'));
+  // (the giant pizza on its front: a disc, the crust, the pepperoni)
+  const px = a0 + w / 2, py = Y(300);
+  c.fillStyle = dimmed('#B45309'); c.beginPath(); c.arc(px, py, 56, 0, Math.PI * 2); c.fill();
+  c.fillStyle = dimmed('#FBBF24'); c.beginPath(); c.arc(px, py, 47, 0, Math.PI * 2); c.fill();
+  for (const [dx, dy] of [[-20, -18], [16, -24], [24, 10], [-6, 22], [-28, 12], [4, -2]] as const) { c.fillStyle = dimmed('#B91C1C'); c.beginPath(); c.arc(px + dx, py + dy, 7, 0, Math.PI * 2); c.fill(); }
+  // (the balconies: the floors, stepping out, their railings)
+  for (const [a, b, h] of TOWER) { box(c, X(a), Y(h) + 12, b - a, 10, hour('#D6D3D1')); for (let x = X(a) + 6; x < X(b); x += 14) box(c, x, Y(h) - 18, 3, 18, hour('#F5F5F4')); box(c, X(a), Y(h) - 20, b - a, 3, hour('#F5F5F4')); ledge3(c, v, X(a), Y(h), b - a, '#E7E5E4', 12); }
+  // (the belfry: white arches over the top floor, the bell swinging in the middle one)
+  const bf = top - 90;
+  box(c, a0 - 4, bf, w + 8, 90, dimmed('#F5F0E0'));
+  for (let k = 0; k < 4; k++) { const ax = a0 + 14 + k * 46; box(c, ax, bf + 26, 30, 64, '#1C1014'); c.fillStyle = '#1C1014'; c.beginPath(); c.arc(ax + 15, bf + 26, 15, Math.PI, 0); c.fill(); }
   const sw = Math.sin(f * 0.04) * 0.3;
-  c.save(); c.translate(X(3335), Y(600) - 60); c.rotate(sw); poly(c, [[-12, 0], [12, 0], [16, 22], [-16, 22]], hour('#CA8A04')); c.restore();
-  box(c, X(3270), Y(600) - 70, 4, 70, INK); box(c, X(3396), Y(600) - 70, 4, 70, INK); box(c, X(3266), Y(600) - 74, 138, 6, hour('#F5F0E0'));
+  c.save(); c.translate(a0 + w / 2, bf + 20); c.rotate(sw); poly(c, [[-12, 0], [12, 0], [16, 22], [-16, 22]], hour('#CA8A04')); c.restore();
+  box(c, a0 - 10, bf - 8, w + 20, 10, dimmed('#E7E5E4'));
+  // (the spire, the angel)
+  poly(c, [[a0 + 10, bf - 8], [a0 + w / 2, bf - 190], [a0 + w - 10, bf - 8]], dimmed('#4D7C5A'));
+  poly(c, [[a0 + w / 2, bf - 190], [a0 + w / 2 + 40, bf - 8], [a0 + w - 10, bf - 8]], dimmed('#36503F'));
+  box(c, a0 + w / 2 - 4, bf - 214, 8, 24, hour('#EAB308')); poly(c, [[a0 + w / 2 - 4, bf - 206], [a0 + w / 2 - 18, bf - 220], [a0 + w / 2 - 4, bf - 200]], hour('#FDE68A'));
 };
 
 export const italy: ForeignSection = {
@@ -207,7 +222,7 @@ export const italy: ForeignSection = {
     if (onScreen(v, X(OVEN.a), X(OVEN.b))) hungBoard(c, X(760), Y(OVEN.h) - 4, Y(OVEN.h) + 26, ['PIZZA', 'DEEP DISH ONLY'], LOOKS.italy(1), '#7F1D1D');
     if (onScreen(v, X(900), X(1000))) postBoard(c, X(900), GY, ['PONTE CLOSED', 'FOR REPAIRS', 'TAKE A GONDOLA $40'], LOOKS.italy(1), '#1E3A8A', undefined, 120);
     if (onScreen(v, X(2240), X(2300))) postBoard(c, X(2270), GY, ['GRAND CANAL TWO', 'NO SWIMMING (EVER)'], LOOKS.italy(1), '#1E3A8A', undefined, 100);
-    if (onScreen(v, X(3120), X(3180))) postBoard(c, X(3140), GY, ['THE LEANING', 'TOWER OF PIZZA'], LOOKS.italy(1), '#7F1D1D', undefined, 110);
+    if (onScreen(v, X(3120), X(3180))) postBoard(c, X(3140), GY, ['THE CAMPANILE', 'OF PIZZA', 'NOW 100% UPRIGHT'], LOOKS.italy(1), '#7F1D1D', undefined, 110);
     drawOvenBack(c, v, state);
     if (onScreen(v, X(20), X(120))) flagPole(c, X(40), GY, 200, ['#009246', '#F8FAFC', '#CE2B37'], f, true);
     void mix; void wall; void hole;

@@ -20766,7 +20766,7 @@
  },
  {
   "voice": "m2.foreign.pa",
-  "text": "NOW ENTERING PARIS, FRANCE! HOME OF THE EIFFEL TOWER! OURS IS BIGGER!",
+  "text": "NOW ENTERING PARIS, FRANCE! HOME OF THE ARC DE TRIOMPHE! OURS IS BIGGER!",
   "from": "FOREIGN"
  },
  {
@@ -35741,6 +35741,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A BELL TOWER WITH A PIZZA NAILED TO IT. I GET IT. I HATE IT.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "A BOAT DOESN'T FIT IN THE MAIL. NO.",
   "from": "OSCAR_LINES"
  },
@@ -35926,6 +35931,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A DOOR THE SIZE OF A BUILDING. AND NO BUILDING.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "A DORK IN A BAT SUIT!",
   "from": "SPOOKY"
  },
@@ -36103,6 +36113,11 @@
   "voice": "meathead",
   "text": "A GHOST TRAIN WITH A PACIFIER. THE GHOST IS A BABY. WHO KILLED A BABY?",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GIANT ARCH FOR WINNING A WAR. THE FRENCH. WINNING. SURE.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -36768,11 +36783,6 @@
   "voice": "meathead",
   "text": "A TOURIST! IN A FANNY PACK! TOUCHED MY PUMP!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "A TOWER MADE OF NOTHING BUT HOLES.",
-  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -44511,11 +44521,6 @@
  },
  {
   "voice": "meathead",
-  "text": "IT'S LEANING. THAT'S NOT A FEATURE. THAT'S A LAWSUIT.",
-  "from": "FOREIGN"
- },
- {
-  "voice": "meathead",
   "text": "IT'S LIKE HUGGING A FRIDGE!",
   "from": "TOO_BIG_LINES"
  },
@@ -44658,11 +44663,6 @@
   "voice": "meathead",
   "text": "IT'S SWAYING. I LOVE IT.",
   "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "IT'S THE EIFFEL TOWER, BUT WE BUILT IT, SO IT'S BETTER.",
-  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -52021,6 +52021,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE BALCONIES DON'T EVEN LINE UP. WHO BUILT THIS? DOUG?",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BASEMENT HAS A BASEMENT.",
   "from": "SPOOKY"
  },
@@ -52678,11 +52683,6 @@
   "voice": "meathead",
   "text": "THE LAVA SPIT AT ME!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "THE LEANING TOWER OF PIZZA. I GET IT. I HATE IT.",
-  "from": "FOREIGN"
  },
  {
   "voice": "meathead",

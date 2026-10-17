@@ -1,8 +1,8 @@
 // The streets' backdrop (screen space; ONE for the whole walk, so nothing pops walking from one pavilion into the
 // next): the sky by the hour (timeOfDay.ts), the lagoon along the back with its big fake FIREWORKS barge (it drifts
 // across the whole walk, slow: the far shore's that far off), and each pavilion's far landmark (Mexico's mesas and saguaros,
-// Norway's fjord, China's ridge with the wall on it, Germany's castle on its hill, Italy's bell tower and its hills,
-// Fuji, the dunes, the tower, the clock tower, the Rockies, the helicopter tour's giant replicas) slid in by parallax round where its
+// Norway's fjord, China's ridge with the wall on it, Germany's castle on its hill, Italy's (straight) bell tower and its hills,
+// Fuji, the dunes, the minaret, the cathedral, the Ferris wheel, the Rockies, the helicopter ride's globe) slid in by parallax round where its
 // pavilion is, so they come and go as he walks. Crude (the first pass), all of it tinted far into the haze.
 //
 // Up a climb (the Great Wall) the horizon sinks: more sky.
@@ -72,23 +72,50 @@ const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => vo
     box(c, -20, hz - 210, 30, 210, farTint('#E7D3A8', 0.55)); box(c, -26, hz - 220, 42, 12, farTint('#15803D', 0.55));
   },
   france: (c, hz) => {
-    // (an Eiffel-ish tower, far)
-    poly(c, [[-70, hz], [-6, hz - 300], [6, hz - 300], [70, hz]], farTint('#57534E', 0.6));
-    poly(c, [[-40, hz], [0, hz - 70], [40, hz]], farTint('#BFDBFE', 0.5));
+    // (a Notre Dame-ish cathedral, far: the two square west towers, the rose window between, the nave behind and its
+    // thin spire, flying buttresses down its side, gargoyles crouched on the towers' corners)
+    const st = farTint('#A8A29E', 0.6), dk = farTint('#78716C', 0.6), lt = farTint('#D6D3D1', 0.55);
+    box(c, 40, hz - 150, 220, 150, dk); poly(c, [[40, hz - 150], [150, hz - 200], [260, hz - 150]], farTint('#57534E', 0.6));
+    box(c, 146, hz - 300, 6, 110, dk); poly(c, [[142, hz - 300], [149, hz - 350], [156, hz - 300]], dk);
+    for (const x of [70, 120, 170, 220]) poly(c, [[x, hz - 150], [x + 22, hz - 90], [x + 26, hz - 90], [x + 4, hz - 150]], st);
+    box(c, -110, hz - 260, 60, 260, st); box(c, 10, hz - 260, 60, 260, st); box(c, -50, hz - 200, 60, 200, st);
+    box(c, -110, hz - 264, 60, 6, lt); box(c, 10, hz - 264, 60, 6, lt); box(c, -50, hz - 204, 60, 6, lt);
+    c.fillStyle = lt; c.beginPath(); c.arc(-20, hz - 150, 22, 0, Math.PI * 2); c.fill();
+    c.fillStyle = dk; c.beginPath(); c.arc(-20, hz - 150, 14, 0, Math.PI * 2); c.fill();
+    for (const x of [-96, -76, 24, 44]) { box(c, x, hz - 240, 10, 60, dk); poly(c, [[x, hz - 240], [x + 5, hz - 250], [x + 10, hz - 240]], dk); }
+    for (const x of [-80, -40, 0]) poly(c, [[x, hz], [x, hz - 50], [x + 10, hz - 64], [x + 20, hz - 50], [x + 20, hz]], dk);
+    // (the gargoyles: hunched shapes jutting off the towers' tops)
+    for (const [x, d] of [[-110, -1], [-50, 1], [10, -1], [70, 1]] as const) poly(c, [[x, hz - 262], [x + d * 16, hz - 266], [x + d * 22, hz - 258], [x + d * 12, hz - 254], [x, hz - 250]], farTint('#57534E', 0.55));
   },
-  uk: (c, hz) => {
-    box(c, -24, hz - 260, 48, 260, farTint('#A16207', 0.55)); poly(c, [[-28, hz - 260], [0, hz - 320], [28, hz - 260]], farTint('#3F3F46', 0.55));
-    c.fillStyle = farTint('#F8FAFC', 0.5); c.beginPath(); c.arc(0, hz - 220, 14, 0, Math.PI * 2); c.fill();
+  uk: (c, hz, f) => {
+    // (a giant Ferris wheel (London Eye-ish), far, turning slowly: the rim, its spokes, the pods round it, the A-frame leg)
+    const R = 150, cy = hz - 175, a0 = f * 0.0015, rim = farTint('#E5E7EB', 0.5), sp = farTint('#9CA3AF', 0.55);
+    poly(c, [[-6, cy], [-70, hz], [-56, hz], [0, cy + 10]], farTint('#6B7280', 0.55));
+    c.strokeStyle = sp; c.lineWidth = 1.5; c.beginPath();
+    for (let k = 0; k < 16; k++) { const a = a0 + (k / 16) * Math.PI * 2; c.moveTo(0, cy); c.lineTo(Math.cos(a) * R, cy + Math.sin(a) * R); }
+    c.stroke();
+    c.strokeStyle = rim; c.lineWidth = 5; c.beginPath(); c.arc(0, cy, R, 0, Math.PI * 2); c.stroke();
+    c.lineWidth = 2; c.beginPath(); c.arc(0, cy, R - 10, 0, Math.PI * 2); c.stroke();
+    for (let k = 0; k < 16; k++) { const a = a0 + (k / 16) * Math.PI * 2; c.fillStyle = farTint('#BFDBFE', 0.5); c.beginPath(); c.ellipse(Math.cos(a) * (R + 8), cy + Math.sin(a) * (R + 8), 9, 6, a, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = farTint('#6B7280', 0.55); c.beginPath(); c.arc(0, cy, 10, 0, Math.PI * 2); c.fill();
   },
   canada: (c, hz) => {
     poly(c, [[-400, hz], [-240, hz - 260], [-120, hz - 150], [20, hz - 300], [160, hz - 170], [300, hz - 240], [420, hz]], farTint('#334155', 0.6));
     for (const [x, y] of [[-240, -260], [20, -300], [300, -240]] as const) poly(c, [[x - 40, hz + y + 50], [x, hz + y], [x + 40, hz + y + 50]], farTint('#F8FAFC', 0.5));
   },
-  heli: (c, hz) => {
-    // (the helicopter tour's giant replicas, far over the water and still huge: an Eiffel, a pyramid, a moai's head)
-    poly(c, [[-260, hz], [-180, hz - 380], [-168, hz - 380], [-90, hz]], farTint('#57534E', 0.65));
-    poly(c, [[-40, hz], [90, hz - 200], [220, hz]], farTint('#D97706', 0.6));
-    box(c, 240, hz - 190, 70, 190, farTint('#78716C', 0.6)); box(c, 228, hz - 200, 86, 22, farTint('#57534E', 0.6));
+  heli: (c, hz, f) => {
+    // (the helicopter ride's own landmark, far over the water: a giant globe on a pylon (ACROSS THE WORLD), turning, and a
+    // radio mast blinking; the replicas the tour shows aren't seen from down here: they're the helicopter's to show)
+    box(c, -10, hz - 200, 20, 200, farTint('#6B7280', 0.6)); poly(c, [[-60, hz], [-10, hz - 120], [10, hz - 120], [60, hz]], farTint('#4B5563', 0.6));
+    const R = 90, cy = hz - 290;
+    c.fillStyle = farTint('#2563EB', 0.55); c.beginPath(); c.arc(0, cy, R, 0, Math.PI * 2); c.fill();
+    c.save(); c.beginPath(); c.arc(0, cy, R, 0, Math.PI * 2); c.clip();
+    const sh = (f * 0.2) % 360;
+    for (const [x, y, w, h] of [[-40, -50, 60, 40], [40, -20, 50, 70], [-80, 20, 50, 40], [140, -40, 60, 50], [-200, -30, 70, 60]] as const) { const xx = ((x + sh + 180) % 360) - 180; c.fillStyle = farTint('#16A34A', 0.55); c.beginPath(); c.ellipse(xx, cy + y, w / 2, h / 2, 0, 0, Math.PI * 2); c.fill(); }
+    c.restore();
+    c.strokeStyle = farTint('#CA8A04', 0.5); c.lineWidth = 3; c.beginPath(); c.ellipse(0, cy, R + 14, 22, -0.3, 0, Math.PI * 2); c.stroke();
+    box(c, 220, hz - 360, 4, 360, farTint('#9CA3AF', 0.6));
+    if ((f >> 5) % 2) box(c, 218, hz - 366, 8, 8, '#EF4444');
   },
 };
 

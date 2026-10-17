@@ -38,13 +38,13 @@ export const SECTIONS = {
   china: { x0: FLX + 11800, x1: FLX + 19400 },
   /** GERMANY: the biergarten, the giant cuckoo clock's wheel of figures up to the castle's battlements. */
   germany: { x0: FLX + 19400, x1: FLX + 25000 },
-  /** ITALY: Venice: the canals and their gondolas, the palace, the little leaning tower climbed. */
+  /** ITALY: Venice: the canals and their gondolas, the palace, the bell tower (with a pizza on it) climbed. */
   italy: { x0: FLX + 25000, x1: FLX + 30800 },
   /** JAPAN: the five-story pagoda, torii gates, a koi pond, a vending-machine alley. */
   japan: { x0: FLX + 30800, x1: FLX + 36200 },
   /** MOROCCO: the bazaar's rooftops and hanging carpets, the minaret-ish tower. */
   morocco: { x0: FLX + 36200, x1: FLX + 41600 },
-  /** FRANCE: a Paris street, a cafe, an Eiffel-ish tower base climbed. */
+  /** FRANCE: a Paris street, a cafe, an Arc de Triomphe-ish arch climbed. */
   france: { x0: FLX + 41600, x1: FLX + 47000 },
   /** UNITED KINGDOM: a London street, phone booths, a double-decker bus, a pub, fog. */
   uk: { x0: FLX + 47000, x1: FLX + 52400 },
