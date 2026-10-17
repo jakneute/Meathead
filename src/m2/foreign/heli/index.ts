@@ -39,7 +39,8 @@ import type { ForeignSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, meatheadSays, hands, teleport, saidOver, box, label } from '../section';
 import { DOORS } from '../geometry';
 import { registerHurts } from '../pavilion';
-import { viewIn, promenade, postBoard, onScreen, LOOKS, INK, dimmed, hour, setBack } from '../kit';
+import { viewIn, promenade, postBoard, onScreen, LOOKS, INK, dimmed, hour, setBack, at, topBack, ramp6, checker, still, timeOfDay, box as kbox } from '../kit';
+import { lookOf } from '../../adventure/temple/people';
 import { heliOf, type Heli } from './state';
 import { x0, x1, X, GY, REFILL, CP_PAD, QUEUE_A, QUEUE_B, BOARD_AT, PAD_X, PAD_O, SEAT_BACK, SEAT_FRONT, CAMX, CY, Z, SW, SH, CAM_FLY, toWorld, CP_X, MEMO } from './geo';
 import { flyCopter, updateRockets, drawCopter, drawRockets, heliMeters } from './copter';
@@ -625,19 +626,28 @@ export const heli: ForeignSection = {
     // (the kick's WHAM, where the boot met him)
     if (h.flags.wham) {
       const ft = feetOf(state), x = ft.x + 40, y = ft.y - 50;
-      c.fillStyle = '#FDE047'; c.strokeStyle = INK; c.lineWidth = 2; c.beginPath();
-      for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, rr = i % 2 ? 10 : 24; c[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
-      c.closePath(); c.fill(); c.stroke();
-      c.font = '10px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = INK; c.fillText('WHAM', x, y + 4); c.textAlign = 'left';
+      // (a burst in steps: orange round the points, yellow, a white heart; the word shadowed)
+      const star = (k: number, col: string, stroke: boolean) => { c.fillStyle = col; c.beginPath(); for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2 + 0.1, rr = (i % 2 ? 10 : 24) * k; c[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr); } c.closePath(); c.fill(); if (stroke) { c.strokeStyle = INK; c.lineWidth = 2; c.stroke(); } };
+      star(1.15, '#F97316', true); star(0.95, '#FDE047', false); star(0.55, '#FFFBEB', false);
+      c.font = '10px "Press Start 2P"'; c.textAlign = 'center'; c.fillStyle = '#B91C1C'; c.fillText('WHAM', x + 1, y + 5); c.fillStyle = INK; c.fillText('WHAM', x, y + 4); c.textAlign = 'left';
     }
     // Harry kicked out, falling past (in front of everything) all the way down
     if (h.phase === 'tour' && (h.hpose === 'shoved' || h.hpose === 'fall')) drawHarry(c, h.hx, h.hy, { pose: h.hpose, f, talking: !!h.harry, rot: h.t * 0.15, scale: 0.9 + 0.1 * Math.max(0, 1 - h.t / 60) });
     if (h.hrocket) {
       // (his rocket, nose on toward the helicopter, its flame behind)
       const r = h.hrocket, ft = feetOf(state), a = Math.atan2(ft.y - 40 - r.y, ft.x - r.x);
+      // (olive drab in steps, a yellow band, the red warhead, the fins; its flame banded white-hot to red)
       c.save(); c.translate(r.x, r.y); c.rotate(a);
-      c.fillStyle = INK; c.fillRect(-12, -5, 24, 10); c.fillStyle = '#4D5B2A'; c.fillRect(-11, -4, 20, 8); c.fillStyle = '#DC2626'; c.fillRect(7, -4, 5, 8);
-      c.fillStyle = (f >> 1) % 2 ? '#FDE047' : '#F97316'; c.beginPath(); c.moveTo(-12, -4); c.lineTo(-24 - (f % 3) * 3, 0); c.lineTo(-12, 4); c.fill();
+      const fx = -26 - (f % 3) * 3;
+      c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(-12, -5); c.lineTo(fx - 4, 0); c.lineTo(-12, 5); c.fill();
+      c.fillStyle = '#F97316'; c.beginPath(); c.moveTo(-12, -4); c.lineTo(fx, 0); c.lineTo(-12, 4); c.fill();
+      c.fillStyle = '#FDE047'; c.beginPath(); c.moveTo(-12, -2.5); c.lineTo(fx + 8, 0); c.lineTo(-12, 2.5); c.fill();
+      c.fillStyle = '#FFFBEB'; c.fillRect(-14, -1, 3, 2);
+      c.fillStyle = INK; c.fillRect(-12, -5, 24, 10); c.beginPath(); c.moveTo(11, -5); c.lineTo(18, 0); c.lineTo(11, 5); c.fill();
+      c.fillStyle = '#4D5B2A'; c.fillRect(-11, -4, 22, 8); c.fillStyle = '#6B7E3A'; c.fillRect(-11, -4, 22, 2); c.fillStyle = '#323C1A'; c.fillRect(-11, 2, 22, 2);
+      c.fillStyle = '#EAB308'; c.fillRect(-3, -4, 2, 8);
+      c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(10, -4); c.lineTo(16, 0); c.lineTo(10, 4); c.fill(); c.fillStyle = '#F87171'; c.fillRect(10, -4, 3, 1);
+      c.fillStyle = '#323C1A'; c.beginPath(); c.moveTo(-12, -5); c.lineTo(-17, -10); c.lineTo(-7, -5); c.moveTo(-12, 5); c.lineTo(-17, 10); c.lineTo(-7, 5); c.fill();
       c.restore();
     }
     // Who's saying what (kept whole on screen)
@@ -670,34 +680,116 @@ export const heli: ForeignSection = {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The helipad, drawn (crude, the first pass): the pad and its H, the queue's rails and the guests in it, the ride's
-// sign; after it's all over, the scorch where the helicopter was, the ride closed, nobody in line
+// The helipad, drawn: the concrete pad (its top going back, the joints, the painted yellow ring and the white H, its
+// edge lights), the windsock; the queue's switchback (chrome stanchions, navy belt ropes sagging between them) and the
+// guests in it, fed up, each their own person (lookOf: man or woman by the voice they shout in, skin, hair, build,
+// clothes; arms crossed, on a phone, hands on hips, holding a soda); the ride's signs. After it's all over: the scorch
+// where the helicopter was, the ride closed, nobody in line.
 
 const drawPad = (c: CanvasRenderingContext2D, state: GameState, h: Heli) => {
-  const v = viewIn(state), f = state.frame;
+  const v = viewIn(state), f = state.frame, night = timeOfDay().lamps > 0.3;
   promenade(c, v, x0, x1 + 200, '#D6CBB4', '#8C7F68');
-  // (the pad: a concrete slab, the yellow circle and its H)
-  if (onScreen(v, X(PAD_X - 260), X(PAD_X + 260))) {
-    box(c, X(PAD_X - 240), GY - 4, 480, 4, '#9CA3AF');
-    c.strokeStyle = '#FDE047'; c.lineWidth = 4; c.beginPath(); c.ellipse(X(PAD_X), GY - 2, 200, 6, 0, 0, Math.PI * 2); c.stroke();
-    if (h.over) { c.fillStyle = 'rgba(20,20,20,0.6)'; c.beginPath(); c.ellipse(X(PAD_X), GY - 2, 150, 5, 0, 0, Math.PI * 2); c.fill(); }
+  if (onScreen(v, X(PAD_X - 300), X(PAD_X + 300))) {
+    const xa = X(PAD_X - 240), xb = X(PAD_X + 240), cx = X(PAD_X), top = GY - 4, R = ramp6(hour('#9CA3AF'));
+    // (the pad's top going back, in steps; its joints; the ring and the H painted on it, worn; the scorch on a revisit)
+    topBack(c, v.eye, xa, xb, top, 1, 0.9, R, 3);
+    const P = (x: number, d: number) => at(v.eye, x, top, d);
+    c.strokeStyle = R[1]; c.lineWidth = 1; c.beginPath();
+    for (let x = xa + 120; x < xb; x += 120) { const [ax, ay] = P(x, 1), [bx, by] = P(x, 0.9); c.moveTo(ax, ay); c.lineTo(bx, by); }
+    { const [ax, ay] = P(xa, 0.95), [bx, by] = P(xb, 0.95); c.moveTo(ax, ay); c.lineTo(bx, by); }
+    c.stroke();
+    const ring = (rx: number, rd: number) => Array.from({ length: 33 }, (_, i) => { const a = (i / 32) * Math.PI * 2; return P(cx + Math.cos(a) * rx, 0.95 + Math.sin(a) * rd); });
+    if (v.eye.y < top - 1) {
+      const outer = ring(200, 0.046), inner = ring(184, 0.042);
+      c.fillStyle = hour('#D4A017'); c.beginPath(); outer.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); inner.reverse().forEach(([x, y]) => c.lineTo(x, y)); c.closePath(); c.fill('evenodd');
+      c.strokeStyle = hour('#FDE047'); c.beginPath(); ring(198, 0.045).forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke();
+      const quad = (u0: number, u1: number, d0: number, d1: number, col: string) => { const pts = [P(cx + u0, d0), P(cx + u1, d0), P(cx + u1, d1), P(cx + u0, d1)]; c.fillStyle = col; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.fill(); };
+      const Hc = hour('#E8E8E4');
+      quad(-70, -44, 0.928, 0.972, Hc); quad(44, 70, 0.928, 0.972, Hc); quad(-44, 44, 0.946, 0.954, Hc);
+      if (h.over) {
+        c.fillStyle = 'rgba(20,16,14,0.7)'; c.beginPath(); ring(150, 0.03).forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.fill();
+        c.fillStyle = 'rgba(20,16,14,0.5)'; c.beginPath(); ring(190, 0.04).forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.fill();
+      }
+    }
+    // (its front face: lit along its top, shaded under, inked; the edge lights in their housings, lit after dark)
+    box(c, xa, top, xb - xa, 4, R[3]); box(c, xa, top, xb - xa, 1, R[5]); box(c, xa, GY - 1, xb - xa, 1, R[1]);
+    box(c, xa - 1, top, 1, 4, INK); box(c, xb, top, 1, 4, INK);
+    for (let x = xa + 20; x < xb; x += 55) {
+      box(c, x - 3, top - 4, 6, 4, INK); box(c, x - 2, top - 3, 4, 3, night ? ((f >> 4) % 2 ? '#FDE047' : '#F59E0B') : '#A1A1AA');
+      if (night) { c.fillStyle = 'rgba(253,224,71,0.25)'; c.beginPath(); c.arc(x, top - 2, 7, 0, Math.PI * 2); c.fill(); }
+    }
+    // (the windsock: its pole, the sock in orange and white bands, flapping)
+    const wx = xb + 40, wy = GY - 110;
+    box(c, wx - 2, wy, 4, GY - wy, INK); box(c, wx - 1, wy, 2, GY - wy, '#A1A1AA'); box(c, wx - 1, wy, 1, GY - wy, '#E4E4E7');
+    box(c, wx - 4, GY - 4, 8, 4, INK); box(c, wx - 3, GY - 3, 6, 3, '#52525B');
+    for (let k = 0; k < 5; k++) {
+      const s0 = k * 11, s1 = s0 + 11, fl = (u: number) => Math.sin(f * 0.12 - u * 0.06) * u * 0.08, hh = (u: number) => 9 - u * 0.09;
+      const pts: [number, number][] = [[wx + 2 + s0, wy + 4 - hh(s0) + fl(s0)], [wx + 2 + s1, wy + 4 - hh(s1) + fl(s1)], [wx + 2 + s1, wy + 4 + hh(s1) + fl(s1)], [wx + 2 + s0, wy + 4 + hh(s0) + fl(s0)]];
+      c.fillStyle = INK; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y + (i < 2 ? -1 : 1)) : c.moveTo(x, y - 1))); c.closePath(); c.fill();
+      c.fillStyle = hour(k % 2 ? '#F8FAFC' : '#F97316'); c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.fill();
+      c.fillStyle = hour(k % 2 ? '#CBD5E1' : '#C2410C'); c.fillRect(Math.round(pts[3][0]), Math.round(pts[3][1] - 2), 11, 2);
+    }
   }
-  // (the queue: switchback rails, set back; the guests in it (not on a revisit))
+  // (the queue: the switchback's two lines of stanchions and their sagging belt ropes, set back; the guests between them
+  // (not on a revisit): the back row first, then the front row, then the front rope over them)
   if (onScreen(v, X(QUEUE_A), X(QUEUE_B))) setBack(c, v, X(QUEUE_A), QUEUE_B - QUEUE_A, 0.92, () => {
     const w = QUEUE_B - QUEUE_A;
-    for (const y of [-34, -64]) { box(c, 0, y, w, 4, dimmed('#A1A1AA')); for (let x = 0; x <= w; x += 80) box(c, x, y, 4, -y, dimmed('#71717A')); }
-    if (!h.over) for (const g of PAD_GUESTS) guest(c, g.x - QUEUE_A, g.row ? -30 : -2, g.seed, f);
+    const line = (base: number) => {
+      const posts: number[] = []; for (let x = 0; x <= w; x += 80) posts.push(x);
+      for (let i = 0; i + 1 < posts.length; i++) {
+        const a = posts[i], b = posts[i + 1], y = base - 30;
+        c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(a, y); c.quadraticCurveTo((a + b) / 2, y + 9, b, y); c.stroke();
+        c.strokeStyle = dimmed('#1E3A8A'); c.lineWidth = 2.5; c.stroke();
+        c.strokeStyle = dimmed('#3B82F6'); c.lineWidth = 1; c.beginPath(); c.moveTo(a, y - 1); c.quadraticCurveTo((a + b) / 2, y + 8, b, y - 1); c.stroke();
+      }
+      for (const x of posts) {
+        box(c, x - 6, base - 3, 12, 3, INK); box(c, x - 5, base - 2, 10, 2, dimmed('#71717A'));
+        box(c, x - 2, base - 34, 4, 32, INK); box(c, x - 1, base - 34, 2, 32, dimmed('#D4D4D8')); box(c, x - 1, base - 34, 1, 32, dimmed('#FFFFFF'));
+        box(c, x - 3, base - 37, 6, 4, INK); box(c, x - 2, base - 36, 4, 2, dimmed('#E4E4E7'));
+      }
+    };
+    line(-28);
+    if (!h.over) for (const g of PAD_GUESTS) if (g.row) guest(c, g.x - QUEUE_A, -30, g.seed, f);
+    if (!h.over) for (const g of PAD_GUESTS) if (!g.row) guest(c, g.x - QUEUE_A, -2, g.seed, f);
+    line(0);
   });
   if (onScreen(v, X(QUEUE_A - 120), X(QUEUE_A + 120))) postBoard(c, X(QUEUE_A - 40), GY, h.over ? ['HELICOPTER RIDES ACROSS THE WORLD', 'CLOSED', '(HELICOPTER MISSING)'] : ['HELICOPTER RIDES ACROSS THE WORLD', 'WAIT TIME: 3 HOURS', 'TOLERANCE: MANDATORY'], LOOKS.land(1), '#1E3A8A', undefined, 150);
   if (onScreen(v, X(CP_PAD - 100), X(CP_PAD + 100)) && !h.over) postBoard(c, X(CP_PAD + 40), GY, ['SEE THE WHOLE WORLD', '(BIGGER)'], LOOKS.land(1), '#7F1D1D', undefined, 100);
 };
-/** A guest in the queue (crude: a body, a head, a shirt by seed; fed up). */
+/** A guest in the queue (set back, dimmed: scenery), painted once for the hour: who they are by seed (lookOf: the
+ *  voice they yell in matches), stepped and inked; fed up, shifting their weight. */
 const guest = (c: CanvasRenderingContext2D, x: number, y: number, seed: number, f: number) => {
-  const shirt = ['#DC2626', '#2563EB', '#16A34A', '#F59E0B', '#9333EA', '#F8FAFC'][seed % 6], skin = ['#8A5A3C', '#C98E66', '#E2AC84', '#5C3A24'][seed % 4];
-  const bob = Math.sin(f * 0.04 + seed) * 1;
-  box(c, x - 7, y - 30, 14, 30, dimmed('#334155'));
-  box(c, x - 9, y - 58 + bob, 18, 30, dimmed(shirt));
-  box(c, x - 7, y - 74 + bob, 14, 16, dimmed(skin));
-  box(c, x - 7, y - 76 + bob, 14, 5, dimmed(['#1C1917', '#78350F', '#FDE68A', '#57534E'][seed % 4]));
-  void hour;
+  const bob = Math.round(Math.sin(f * 0.04 + seed));
+  still(c, `hl-guest-${seed}`, x, y + bob, -16, -86, 32, 88, g => paintGuest(g, seed));
+};
+const paintGuest = (g: CanvasRenderingContext2D, seed: number) => {
+  const L = lookOf(seed), pose = seed % 4, shorts = (seed >> 2) % 3 === 0;
+  const sk = ramp6(dimmed(L.skin)), sh = ramp6(dimmed(L.shirt)), pa = ramp6(dimmed(L.pants)), ha = ramp6(dimmed(L.hair));
+  const hw = L.heavy ? 10 : 8, B = (x: number, yy: number, w: number, hh: number, col: string) => kbox(g, x, yy, w, hh, col);
+  // (the legs and shoes: jeans or shorts (bare shins), a step lit up the near one)
+  for (const lx of [-hw + 1, 1]) {
+    B(lx - 1, -31, 8, 30, INK);
+    B(lx, -30, 6, shorts ? 12 : 28, pa[3]); B(lx, -30, 2, shorts ? 12 : 28, pa[4]); B(lx + 5, -30, 1, shorts ? 12 : 28, pa[1]);
+    if (shorts) { B(lx, -18, 6, 16, sk[3]); B(lx, -18, 2, 16, sk[4]); }
+    B(lx - 1, -3, 8, 3, INK); B(lx, -3, 7, 2, dimmed(seed % 3 ? '#F8FAFC' : '#1C1917'));
+  }
+  // (the torso: the shirt in steps, a belt or not, its hem)
+  B(-hw - 1, -59, hw * 2 + 2, 30, INK);
+  B(-hw, -58, hw * 2, 28, sh[3]); B(-hw, -58, 3, 28, sh[4]); B(hw - 3, -58, 3, 28, sh[1]); checker(g, hw - 5, -58, 2, 28, sh[2], 0, 1);
+  if (!L.woman) B(-hw, -32, hw * 2, 2, dimmed('#3F2A1C'));
+  // (the arms by how they stand: crossed, on a phone (its screen glowing), hands on hips, a soda)
+  const arm = (x: number, yy: number, w: number, hh: number) => { B(x - 1, yy - 1, w + 2, hh + 2, INK); B(x, yy, w, hh, sk[3]); B(x, yy, w, 1, sk[4]); };
+  if (pose === 0) { arm(-hw - 2, -56, 4, 14); arm(hw - 2, -56, 4, 14); B(-hw + 1, -46, hw * 2 - 2, 5, INK); B(-hw + 2, -45, hw * 2 - 4, 3, sk[3]); B(-hw + 2, -45, hw * 2 - 4, 1, sk[4]); }
+  else if (pose === 1) { arm(-hw - 3, -56, 4, 24); arm(hw - 1, -56, 4, 10); arm(hw - 6, -47, 8, 4); B(hw - 7, -55, 6, 9, INK); B(hw - 6, -54, 4, 7, '#93C5FD'); B(hw - 6, -54, 4, 2, '#DBEAFE'); }
+  else if (pose === 2) { for (const s of [-1, 1]) { arm(s < 0 ? -hw - 6 : hw + 2, -56, 4, 10); arm(s < 0 ? -hw - 4 : hw - 1, -47, 4, 10); } }
+  else { arm(-hw - 3, -56, 4, 24); arm(hw - 1, -56, 4, 18); B(hw - 2, -44, 7, 10, INK); B(hw - 1, -43, 5, 8, dimmed('#DC2626')); B(hw - 1, -43, 5, 2, dimmed('#F8FAFC')); B(hw + 2, -48, 1, 5, dimmed('#F8FAFC')); }
+  // (the head: skin in steps, the ear, an eye, a frown; the hair (long, short, bald); a cap on some)
+  B(-7, -75, 14, 17, INK); B(-6, -74, 12, 15, sk[3]); B(-6, -74, 3, 15, sk[4]); B(3, -74, 3, 15, sk[2]); B(-2, -63, 6, 4, sk[2]);
+  B(-6, -67, 2, 3, sk[1]);
+  B(2, -69, 2, 2, INK); B(0, -63, 4, 1, INK); B(1, -72, 4, 1, ha[1]);
+  if (!L.bald) {
+    B(-7, -77, 14, 5, INK); B(-6, -76, 12, 4, ha[3]); B(-6, -76, 6, 1, ha[4]);
+    if (L.long) { B(-8, -73, 5, 18, INK); B(-7, -72, 3, 16, ha[2]); }
+  }
+  if (seed % 5 === 0) { B(-7, -80, 14, 5, INK); B(-6, -79, 12, 3, dimmed('#1E40AF')); B(4, -77, 6, 2, INK); B(4, -77, 5, 1, dimmed('#1D4ED8')); }
 };

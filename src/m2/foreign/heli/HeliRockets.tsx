@@ -10,10 +10,12 @@ const Missile: React.FC<{ fill: number }> = ({ fill }) => {
       <rect x={2} y={3} width={11} height={4} fill={on ? '#E5E7EB' : '#52525B'} />
       <rect x={2} y={3} width={11} height={1} fill={on ? '#FFFFFF' : '#71717A'} />
       <rect x={2} y={6} width={11} height={1} fill={on ? '#9CA3AF' : '#3F3F46'} />
-      <rect x={13} y={3} width={2} height={4} fill={on ? '#DC2626' : '#7F1D1D'} />
-      <rect x={15} y={4} width={1} height={2} fill={on ? '#DC2626' : '#7F1D1D'} />
-      <rect x={0} y={1} width={3} height={2} fill={on ? '#4D5B2A' : '#3F3F46'} />
-      <rect x={0} y={7} width={3} height={2} fill={on ? '#4D5B2A' : '#3F3F46'} />
+      <rect x={13} y={3} width={2} height={4} fill={on ? '#B91C1C' : '#7F1D1D'} />
+      <rect x={13} y={3} width={1} height={1} fill={on ? '#F87171' : '#7F1D1D'} />
+      <rect x={15} y={4} width={1} height={2} fill={on ? '#B91C1C' : '#7F1D1D'} />
+      <rect x={7} y={3} width={1} height={4} fill={on ? '#1D4ED8' : '#3F3F46'} />
+      <rect x={0} y={1} width={3} height={2} fill={on ? '#52525B' : '#3F3F46'} />
+      <rect x={0} y={7} width={3} height={2} fill={on ? '#52525B' : '#3F3F46'} />
     </>
   );
   return (

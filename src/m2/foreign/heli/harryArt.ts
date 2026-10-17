@@ -56,6 +56,7 @@ const jetpack = (c: Ctx, f: number, burn: boolean) => {
     fill(c, '#3F3F46', () => { c.moveTo(dx - 3, -36); c.lineTo(dx + 4, -36); c.lineTo(dx + 5, -31); c.lineTo(dx - 4, -31); c.closePath(); }, 1);
     if (burn) {
       const l = 12 + ((f >> 1) % 3) * 4;
+      c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(dx - 5, -31); c.lineTo(dx + 0.5, -31 + l + 6); c.lineTo(dx + 6, -31); c.fill();
       c.fillStyle = '#F97316'; c.beginPath(); c.moveTo(dx - 4, -31); c.lineTo(dx + 0.5, -31 + l); c.lineTo(dx + 5, -31); c.fill();
       c.fillStyle = '#FDE047'; c.beginPath(); c.moveTo(dx - 2, -31); c.lineTo(dx + 0.5, -31 + l * 0.6); c.lineTo(dx + 3, -31); c.fill();
       c.fillStyle = '#FFFFFF'; c.fillRect(dx - 1, -31, 3, 3);
@@ -178,10 +179,20 @@ export const drawHarry = (c: Ctx, x: number, y: number, L: HarryLook) => {
     fill(c, '#F8FAFC', () => c.rect(fx - 3, fy - 1, 6, 4), 1);
     fill(c, '#92400E', () => c.rect(fx - 3, fy + 2, 10, 3), 1);
   });
-  // Torso: the tie-dye under the open jacket
+  // (running: dust kicked up off the road behind him, in stepped puffs)
+  if (run) for (let k = 0; k < 3; k++) {
+    const ph = ((f * 0.9 + k * 9) % 27) / 27, x = -6 - ph * 20 - k * 3, y = -2 - ph * 8;
+    c.globalAlpha = 0.55 * (1 - ph);
+    c.fillStyle = '#8A7860'; c.beginPath(); c.arc(x + 1, y + 1, 3 + ph * 5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#C8B898'; c.beginPath(); c.arc(x - 0.5, y - 0.5, 2 + ph * 4, 0, Math.PI * 2); c.fill();
+    c.globalAlpha = 1;
+  }
+  // Torso: the tie-dye under the open jacket (the jacket a step darker down its shadow side)
   const tx = 0, ty = -34;
   const torso = () => { c.moveTo(tx - 9, ty); c.lineTo(tx + 9, ty); c.lineTo(tx + 11, ty - 26); c.lineTo(tx - 10, ty - 26); c.closePath(); };
   fill(c, JACKET[1], torso);
+  c.save(); c.beginPath(); torso(); c.clip(); rect(c, tx + 6, ty - 27, 6, 28, JACKET[0]); rect(c, tx - 10, ty - 6, 21, 6, JACKET[0]); c.restore();
+  c.beginPath(); torso(); c.strokeStyle = INK; c.lineWidth = 1.4; c.stroke();
   tieDye(c, () => { c.moveTo(tx - 3, ty - 1); c.lineTo(tx + 8, ty - 1); c.lineTo(tx + 9, ty - 25); c.lineTo(tx - 2, ty - 25); c.closePath(); }, tx + 3, ty - 13, f);
   // (the jacket's open fronts, its lit edge, the fleece collar, a wings patch)
   fill(c, JACKET[2], () => { c.moveTo(tx - 10, ty - 26); c.lineTo(tx - 2, ty - 26); c.lineTo(tx - 3, ty); c.lineTo(tx - 9, ty); c.closePath(); });
@@ -193,6 +204,14 @@ export const drawHarry = (c: Ctx, x: number, y: number, L: HarryLook) => {
   rect(c, tx - 10, ty - 1, 20, 2, '#3F2A1C');
   // Head
   head(c, f, mad, !!L.talking, tx + 1, ty - 37);
+  // (yelling mad: steam blowing off the top of his head in stepped puffs (it reads from way up there))
+  if (mad && L.talking && pose !== 'pilot') for (let k = 0; k < 2; k++) {
+    const ph = ((f * 0.7 + k * 14) % 28) / 28, sx = tx + 1 + (k ? 9 : -9) + (k ? 1 : -1) * ph * 6, sy = ty - 55 - ph * 12;
+    c.globalAlpha = 0.85 * (1 - ph);
+    c.fillStyle = '#CBD5E1'; c.beginPath(); c.arc(sx + 0.8, sy + 0.8, 2.5 + ph * 4, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(sx - 0.5, sy - 0.5, 1.8 + ph * 3, 0, Math.PI * 2); c.fill();
+    c.globalAlpha = 1;
+  }
   // Arms: by pose
   const shX = tx - 4, shY = ty - 22, sh2X = tx + 6;
   const armTo = (sx: number, sy: number, ex: number, ey: number, hx: number, hy: number, fist = false) => {
