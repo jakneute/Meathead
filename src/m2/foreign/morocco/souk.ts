@@ -16,7 +16,8 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { setHazardZones } from '../../hazardHit';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout } from '../setpiece';
-import { type Ctx, type View, box, poly, boxes3, ledge3, setBack, wall, hole, postBoard, hungBoard, LOOKS, dimmed, hour, ramp6, onScreen, INK, rnd } from '../kit';
+import { type Ctx, type View, postBoard, LOOKS, onScreen, rnd } from '../kit';
+import { drawSoukWall, drawStallAwning, drawCorral, dustPuff, drawRideCamel } from './art';
 import { V, STAMPEDE } from './lines';
 
 const { x0, x1 } = SECTIONS.morocco;
@@ -91,65 +92,41 @@ export const updateSouk = (ctx: FrameContext) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing
-
-const SAND = '#E7C9A0';
-
-/** A fiberglass ride camel at the run (feet at x, GY): humps, a saddle, a long neck out front, legs going. */
-const drawCamel = (c: Ctx, x: number, f: number, k: number) => {
-  const C = ramp6(hour('#C08A4A')), leg = Math.sin(f * 0.6 + k) * 10, bob = Math.abs(Math.sin(f * 0.3 + k)) * 4;
-  const y = GY - bob;
-  for (const [lx, s] of [[x + 14, 1], [x + 24, -1], [x + 66, -1], [x + 76, 1]] as const) box(c, lx + s * leg * 0.4, y - 52, 7, 52, C[1]);
-  box(c, x + 8, y - 78, 82, 30, INK); box(c, x + 9, y - 77, 80, 28, C[2]);
-  c.fillStyle = C[2]; c.beginPath(); c.arc(x + 30, y - 78, 16, Math.PI, 0); c.arc(x + 66, y - 78, 16, Math.PI, 0); c.fill();
-  box(c, x + 40, y - 88, 18, 12, hour('#B91C1C')); for (let t = 0; t < 3; t++) box(c, x + 41 + t * 6, y - 76, 3, 8, hour('#FACC15'));
-  // (the neck and head, out front: they run left)
-  poly(c, [[x + 10, y - 70], [x - 6, y - 100], [x - 14, y - 108], [x - 4, y - 112], [x + 6, y - 102], [x + 20, y - 74]], C[2]);
-  box(c, x - 26, y - 114, 22, 12, C[3]); box(c, x - 22, y - 112, 4, 3, INK); box(c, x - 4, y - 118, 4, 6, C[1]);
-  box(c, x + 88, y - 72, 4, 24, C[1]);
-};
+// Drawing (the SNES pass: art.ts paints it; still art stamped for the hour, the dust and the herd live)
 
 export const drawSoukBack = (c: Ctx, v: View, state: GameState) => {
   if (!onScreen(v, X(SOUK_FROM), x1)) return;
   const f = state.frame, hd = herdAt(f);
-  // (the souk's far walls, set back: clay, arches, lanterns; the alley's covered roof beams high over it, dimmed)
-  setBack(c, v, X(3720), 1340, 0.9, () => {
-    wall(c, 0, 1340, 560, '#C2794A');
-    for (let ax = 30; ax < 1300; ax += 130) { hole(c, ax, -120, 70, 120, true); box(c, ax - 6, -132, 82, 10, dimmed('#1D4ED8')); }
-    for (let ax = 60; ax < 1300; ax += 200) hole(c, ax, -400, 40, 60, true);
-    for (let k = 0; k < 10; k++) box(c, k * 140, -560, 8, 560, dimmed('#7C4A2A'));
-  });
-  // (the stalls under the awnings: tables of rugs, pots, lamps: scenery at their backs)
-  for (const [a, b, h, col] of AWNINGS) {
-    if (!onScreen(v, X(a), X(b))) continue;
-    for (const px0 of [X(a) + 6, X(b) - 10]) box(c, px0, Y(h) + 14, 4, h - 14, hour('#57534E'));
-    for (let k = 0; k < 3; k++) box(c, X(a) + 14 + k * ((b - a - 30) / 3), GY - 40 - (k % 2) * 14, (b - a - 40) / 3, 40 + (k % 2) * 14, dimmed(['#B45309', '#7C2D12', '#1E3A8A'][k]));
-    // (the awning: striped, sloping off the front, its top the walk)
-    for (let x = X(a); x < X(b); x += 16) box(c, x, Y(h) + 4, 8, 18, hour(((x - X(a)) / 16) % 2 ? '#F8FAFC' : col));
-    ledge3(c, v, X(a), Y(h), b - a, col, 6);
-  }
-  // (the corral: its fence (a hop), its broken gate, the ride's sign)
+  // (the covered market's far wall, set back: its arcade of shops, the windows up it, the roof's beams and reeds)
+  drawSoukWall(c, v, X(3720), 1340, 560);
+  // (the stalls under the awnings: their goods behind, the awnings over them, their tops the walk)
+  AWNINGS.forEach(([a, b, h, col], i) => drawStallAwning(c, v, X(a), X(b), Y(h), col, i));
+  // (the corral: its gatepost (a hop), the rails, its broken gate, the ride's sign)
   if (onScreen(v, X(5100), X(5400))) {
-    boxes3(c, v, [{ x: X(FENCE.a), top: Y(FENCE.h), w: FENCE.b - FENCE.a, bottom: GY, col: '#92400E', standable: true }]);
-    for (let x = X(5150); x < X(5380); x += 50) { box(c, x, GY - 50, 6, 50, dimmed('#92400E')); }
-    box(c, X(5150), GY - 46, 230, 4, dimmed('#92400E')); box(c, X(5150), GY - 24, 230, 4, dimmed('#92400E'));
+    drawCorral(c, v, X(FENCE.a), X(FENCE.b), Y(FENCE.h), X(5380));
     postBoard(c, X(5300), GY, ['CAMEL RIDES', 'GATE BROKEN', 'CAMELS: ALSO BROKEN'], LOOKS.morocco(1), '#1D4ED8', undefined, 150);
   }
-  // (the dust cloud building at the far end: the tell)
-  if (hd.st === 'warn' && onScreen(v, X(4800), X(5100))) for (let k = 0; k < 10; k++) { const r = 10 + hd.t * 0.3 + rnd(k) * 12; c.globalAlpha = 0.5; box(c, X(ALLEY.b) - 20 + rnd(k + 5) * 80 - r / 2, GY - 20 - rnd(k + 9) * 70 - r / 2, r, r, '#D6C3A0'); c.globalAlpha = 1; }
+  // (the dust boiling up at the far end: the tell)
+  if (hd.st === 'warn' && onScreen(v, X(4800), X(5100))) {
+    c.globalAlpha = 0.7;
+    for (let k = 0; k < 10; k++) { const r = 8 + hd.t * 0.22 + rnd(k) * 10; dustPuff(c, X(ALLEY.b) - 20 + rnd(k + 5) * 80, GY - 14 - rnd(k + 9) * 70, r); }
+    c.globalAlpha = 1;
+  }
   // (signs: held up, nothing over them)
   if (onScreen(v, X(3640), X(3760))) postBoard(c, X(3700), GY, ['THE SOUK', '(SOUP)', 'WATCH FOR CAMELS'], LOOKS.morocco(1), '#1D4ED8', undefined, 150);
-  if (onScreen(v, X(4660), X(4800))) hungBoard(c, X(4730), Y(450) - 100, Y(450) - 70, ['TEA TERRACE', 'SWEET TEA (SOUTHERN)'], LOOKS.morocco(1), '#15803D');
+  if (onScreen(v, X(4660), X(4800))) postBoard(c, X(4730), Y(450), ['TEA TERRACE', 'SWEET TEA (SOUTHERN)'], LOOKS.morocco(1), '#15803D', undefined, 62);
   if (onScreen(v, X(5320), X(5480))) postBoard(c, X(5390), GY, ['LEAVING MOROCCO', 'SHUKRAN (CHEERS)'], LOOKS.morocco(1), '#1D4ED8', undefined, 100);
-  void SAND;
 };
 
 export const drawSoukFront = (c: Ctx, v: View, state: GameState) => {
   const f = state.frame, hd = herdAt(f);
   if (hd.st === 'run' && onScreen(v, X(ALLEY.a), X(ALLEY.b) + 80)) {
     c.save(); c.beginPath(); c.rect(X(ALLEY.a) - 40, Y(200), X(ALLEY.b) - X(ALLEY.a) + 140, 220); c.clip();
-    for (let k = 0; k < HERD.n; k++) drawCamel(c, hd.lead + k * HERD.gap, f, k);
-    for (let k = 0; k < 8; k++) { c.globalAlpha = 0.45; const r = 16 + rnd(k + f) * 20; box(c, hd.lead + HERD.n * HERD.gap - 40 + rnd(k * 3) * 80, GY - 20 - rnd(k + 2) * 40, r, r, '#D6C3A0'); c.globalAlpha = 1; }
+    for (let k = 0; k < HERD.n; k++) drawRideCamel(c, hd.lead + k * HERD.gap, f, k);
+    // (the dust kicked up behind the herd)
+    c.globalAlpha = 0.6;
+    for (let k = 0; k < 8; k++) { const r = 12 + rnd(k + f) * 14; dustPuff(c, hd.lead + HERD.n * HERD.gap - 40 + rnd(k * 3) * 80, GY - 14 - rnd(k + 2) * 36, r); }
+    c.globalAlpha = 1;
     c.restore();
   }
   drawShout(c, soukOf(state).said);

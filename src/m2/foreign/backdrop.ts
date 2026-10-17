@@ -5,7 +5,7 @@
 // Fuji, the dunes, the minaret, the cathedral, the Ferris wheel, the Rockies, the helicopter ride's globe) slid in by parallax round where its
 // pavilion is, so they come and go as he walks. All of it tinted far into the haze.
 //
-// The SNES pass (Mexico's, Norway's, China's, Germany's, Italy's and Japan's so far; the rest still the first pass's live painters, below): each landmark
+// The SNES pass (Mexico's, Norway's, China's, Germany's, Italy's, Japan's and Morocco's so far; the rest still the first pass's live painters, below): each landmark
 // painted once for the hour into a stamp (STILLS: real silhouettes, stepped strata and flanks, snow, forests, the haze
 // over their feet), with only what moves drawn live over it (the falls); the lagoon in banded
 // water under the far shore's tree line (a tile for the hour), glinting; the barge painted for the hour (its hull and
@@ -330,6 +330,92 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       bandedGradient(g, 0, foot - 2, w, h - foot + 2, [T('#3A5A3A'), T('#2E4A30')], 2);
     },
   },
+  morocco: {
+    // (THE DUNES and THE MINARET: far dunes in the haze, nearer ones in front, their crests sharp, the windward slopes
+    // lit and rippled, the slip faces in shade; at their feet a walled kasbah town (flat-roofed ochre houses, their
+    // windows lit after dark, the wall's towers and merlons), date palms; and over it the minaret, square and tall (its
+    // carved lattice panels, the tile band, the merlons, the little lantern on top, its dome and three gold balls); the
+    // haze over the feet)
+    w: 960, h: 400, k: 0.6,
+    paint: (g, T, tod) => {
+      const w = 960, h = 400, foot = h - 14, lamps = tod.lamps > 0.3;
+      type Dune = [number, number, number, number];
+      const field = (list: Dune[], base: number) => (x: number): [number, number] => {
+        let best = base, side = 0;
+        for (const [px, H, wl, wr] of list) {
+          const d = x < px ? (px - x) / wl : (x - px) / wr;
+          if (d >= 1) continue;
+          const y = base - H * (x < px ? 1 - d * d : Math.pow(1 - d, 1.4));
+          if (y < best) { best = y; side = x < px ? 1 : -1; }
+        }
+        return [best, side];
+      };
+      const dunes = (f: (x: number) => [number, number], R: string[], seed: number) => {
+        for (let x = 0; x < w; x += 2) {
+          const [y0, side] = f(x), y = Math.round(y0);
+          if (y >= foot) continue;
+          box(g, x, y, 2, foot - y, side > 0 ? R[3] : R[1]);
+          if (side > 0) {
+            // (the windward slope: lit, darker toward its foot, rippled across)
+            box(g, x, y + Math.round((foot - y) * 0.6), 2, foot - y, R[2]); if ((x >> 1) % 2) box(g, x, y + Math.round((foot - y) * 0.6) - 2, 2, 2, R[2]);
+            for (let k = 1; y + k * 6 < foot - 2; k++) { const yy = Math.round(y + k * 6 + Math.sin(x * 0.07 + k * 1.3 + seed) * 2); box(g, x, yy, 2, 1, R[2]); }
+            box(g, x, y, 2, 1, R[4]);
+          } else {
+            // (the slip face: shade, the lip of the crest lit along its top, a dither under it)
+            box(g, x, y, 2, 2, R[2]); if ((x >> 1) % 2) box(g, x, y + 2, 2, 2, R[2]);
+            box(g, x, y + Math.round((foot - y) * 0.5), 2, foot - y, R[0]);
+          }
+        }
+      };
+      dunes(field([[90, 120, 160, 70], [300, 170, 200, 90], [520, 110, 150, 70], [760, 160, 210, 80], [930, 120, 150, 60]], foot - 60), rampT(T, '#D8A868'), 1);
+      mist(g, w, 150, foot - 150, skyAt(0.9, tod), 0.05, 0.5, 6);
+      dunes(field([[170, 90, 180, 60], [420, 70, 160, 60], [690, 100, 200, 70], [880, 70, 140, 50]], foot - 6), rampT(T, '#E0A050'), 4);
+      mist(g, w, foot - 90, 90, skyAt(0.9, tod), 0, 0.3, 4);
+      // (the kasbah town at the foot: its houses, then its wall and towers in front)
+      const H = rampT(T, '#C8844A'), Hl = rampT(T, '#D89A5E');
+      for (let i = 0; i < 26; i++) {
+        const x = 360 + i * 14 + hash(i * 3.1) * 8, hh = 14 + hash(i * 1.7) * 22, hw = 12 + hash(i * 2.3) * 10, y = foot - 18;
+        box(g, x - 1, y - hh - 1, hw + 2, hh + 1, INK); box(g, x, y - hh, hw, hh, i % 3 ? H[2] : Hl[2]); box(g, x, y - hh, Math.max(2, hw * 0.3), hh, i % 3 ? H[3] : Hl[3]); box(g, x, y - hh, hw, 1, H[4]);
+        for (let k = 0; k < 2; k++) if (hash(i * 5 + k) > 0.4) box(g, x + 3 + k * 6, y - hh + 5, 2, 3, lamps && hash(i * 7 + k) > 0.3 ? '#FFD88A' : T('#3A2418'));
+      }
+      const Wl = rampT(T, '#B8743E');
+      box(g, 349, foot - 21, 402, 22, INK); box(g, 350, foot - 20, 400, 20, Wl[2]); box(g, 350, foot - 20, 400, 2, Wl[3]);
+      for (let x = 352; x < 748; x += 7) box(g, x, foot - 24, 4, 4, Wl[2]);
+      for (const tx of [350, 470, 640, 740]) { box(g, tx - 7, foot - 35, 16, 35, INK); box(g, tx - 6, foot - 34, 14, 34, Wl[2]); box(g, tx - 6, foot - 34, 4, 34, Wl[3]); for (let x = tx - 6; x < tx + 8; x += 5) box(g, x, foot - 37, 3, 3, Wl[2]); box(g, tx - 1, foot - 26, 2, 4, INK); }
+      box(g, 548, foot - 16, 18, 16, INK); box(g, 550, foot - 14, 14, 14, T('#2A1A10'));
+      // (the minaret: a square shaft, lit up its left, its carved lattice panels, the tile band, the merlons; the lantern)
+      const M = rampT(T, '#D2A070'), Tl = rampT(T, '#1F8A70'), Gd = rampT(T, '#E8B83A');
+      const mx = 556, mw = 34, mt = foot - 240;
+      box(g, mx - 1, mt - 1, mw + 2, foot - 20 - mt + 1, INK); box(g, mx, mt, mw, foot - 20 - mt, M[2]); box(g, mx, mt, 11, foot - 20 - mt, M[3]); box(g, mx + mw - 8, mt, 8, foot - 20 - mt, M[1]);
+      for (const [py, ph] of [[mt + 24, 60], [mt + 100, 70]] as const) {
+        box(g, mx + 6, py, mw - 12, ph, M[1]);
+        for (let yy = py + 2; yy < py + ph - 2; yy += 2) for (let xx = mx + 7; xx < mx + mw - 7; xx += 2) if (((xx - mx) + (yy - py)) % 8 === 0 || ((xx - mx) - (yy - py) + 800) % 8 === 0) box(g, xx, yy, 2, 2, M[3]);
+        box(g, mx + 6, py, mw - 12, 1, M[0]);
+      }
+      for (let y = mt + 190; y < foot - 26; y += 12) box(g, mx + 14, y, 5, 7, T('#2A1A10'));
+      box(g, mx, mt + 6, mw, 8, Tl[2]); for (let x = mx; x < mx + mw; x += 4) box(g, x, mt + 7, 2, 2, Tl[4]);
+      for (let x = mx; x < mx + mw - 2; x += 7) { box(g, x, mt - 6, 5, 6, M[2]); box(g, x + 1, mt - 9, 3, 3, M[2]); box(g, x, mt - 6, 1, 6, M[3]); }
+      const lw = 14, lx = mx + mw / 2 - lw / 2, lt = mt - 34;
+      box(g, lx - 1, lt - 1, lw + 2, 29, INK); box(g, lx, lt, lw, 28, M[2]); box(g, lx, lt, 5, 28, M[3]); box(g, lx + 5, lt + 8, 4, 10, lamps ? '#FFD88A' : T('#2A1A10'));
+      g.fillStyle = INK; g.beginPath(); g.arc(lx + lw / 2, lt, lw / 2 + 1, Math.PI, 0); g.fill(); g.fillStyle = Tl[2]; g.beginPath(); g.arc(lx + lw / 2, lt, lw / 2, Math.PI, 0); g.fill(); box(g, lx + 2, lt - 5, 3, 3, Tl[4]);
+      box(g, lx + lw / 2 - 1, lt - 26, 2, 20, Gd[2]);
+      for (let k = 0; k < 3; k++) { const r = 3.5 - k * 0.7; g.fillStyle = INK; g.beginPath(); g.arc(lx + lw / 2, lt - 9 - k * 6, r + 1, 0, Math.PI * 2); g.fill(); g.fillStyle = Gd[3]; g.beginPath(); g.arc(lx + lw / 2, lt - 9 - k * 6, r, 0, Math.PI * 2); g.fill(); box(g, lx + lw / 2 - 2, lt - 11 - k * 6, 1, 1, Gd[4]); }
+      // (date palms round the town)
+      const Tr = rampT(T, '#6A4A2A'), Fr = rampT(T, '#3E6A2A');
+      for (const [px, ph, lean] of [[320, 70, -6], [400, 54, 4], [700, 64, -4], [790, 76, 8], [250, 48, 3]] as const) {
+        for (let k = 0; k < ph; k += 3) { const tx = px + lean * (k / ph) * (k / ph); box(g, tx - 2, foot - 4 - k, 4, 3, INK); box(g, tx - 1, foot - 4 - k, 2, 3, k % 6 ? Tr[2] : Tr[3]); }
+        const tx = px + lean, ty = foot - 4 - ph;
+        for (let k = 0; k < 7; k++) {
+          const a = -Math.PI + (k / 6) * Math.PI, ex = tx + Math.cos(a) * 20, ey = ty + Math.sin(a) * 10 + 10 - Math.abs(Math.cos(a)) * 0;
+          g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(tx, ty); g.quadraticCurveTo((tx + ex) / 2, ty - 8, ex, ey); g.stroke();
+          g.strokeStyle = k < 3 ? Fr[3] : Fr[2]; g.lineWidth = 2; g.beginPath(); g.moveTo(tx, ty); g.quadraticCurveTo((tx + ex) / 2, ty - 8, ex, ey); g.stroke();
+        }
+        box(g, tx - 3, ty, 6, 4, T('#8A4A1A'));
+      }
+      mist(g, w, foot - 40, 40, skyAt(0.9, tod), 0, 0.3, 4);
+      bandedGradient(g, 0, foot - 2, w, h - foot + 2, [T('#D8A060'), T('#C89050')], 2);
+    },
+  },
   mexico: {
     // (NO volcano (the user: we have enough volcanoes): desert mesas, flat-topped and banded, a far one in the haze
     // behind, and a row of giant plywood saguaros along the foot, on its sand)
@@ -400,10 +486,6 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
 
 /** Each pavilion's far landmark, painted about (0, horizon) (its middle at x 0), tinted far. */
 const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => void>> = {
-  morocco: (c, hz) => {
-    for (const [x, r] of [[-200, 150], [40, 190], [260, 130]] as const) { c.fillStyle = farTint('#D97706', 0.6); c.beginPath(); c.ellipse(x, hz, r, r * 0.4, 0, Math.PI, 0); c.fill(); }
-    box(c, -20, hz - 210, 30, 210, farTint('#E7D3A8', 0.55)); box(c, -26, hz - 220, 42, 12, farTint('#15803D', 0.55));
-  },
   france: (c, hz) => {
     // (a Notre Dame-ish cathedral, far: the two square west towers, the rose window between, the nave behind and its
     // thin spire, flying buttresses down its side, gargoyles crouched on the towers' corners)

@@ -33,6 +33,7 @@ import { playSound } from '../../m1/game/platform/audio';
 import { shakeScreen } from '../../m1/game/core/state';
 import { hazardVictims, hazardHit, boxHits } from '../hazardHit';
 import { streetsOf } from './state';
+import { pixelBlob } from './kit';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -339,16 +340,32 @@ export const drawShots = (c: Ctx, state: GameState) => {
         for (let k = 0; k < 4; k++) { const tx = s.x - dir * (r + 6 + k * 6), ty = s.y + Math.sin(s.t * 0.4 + k * 1.7) * 6; if ((s.t + k) % 4 < 3) { c.fillStyle = k % 2 ? '#FDE047' : '#E0F2FE'; c.fillRect(Math.round(tx), Math.round(ty), 2, 2); } }
         break;
       }
-      case 'spit': case 'tea': {
-        const col = s.kind === 'tea' ? '#B45309' : '#E7E5E4';
+      case 'spit': {
+        // (a gob of camel spit (squirt-gun water and whatever else): a frothy glob in steps, its bubbles, the strings and
+        // droplets trailing off it)
+        disc(c, s.x, s.y, 7, 6, INK); disc(c, s.x, s.y, 6, 5, '#A8A29E'); disc(c, s.x - 1, s.y - 1, 4.5, 3.5, '#D6D3D1'); disc(c, s.x - 2, s.y - 2, 2.2, 1.6, '#F5F5F4');
+        c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(s.x - 3), Math.round(s.y - 3), 1, 1); c.fillRect(Math.round(s.x + 2), Math.round(s.y - 1), 1, 1);
+        c.fillStyle = '#84CC16'; c.fillRect(Math.round(s.x + 1), Math.round(s.y + 1), 2, 2);
+        for (let k = 0; k < 3; k++) { const tx = s.x - dir * (8 + k * 5), ty = s.y - 2 + k * 1.5 + Math.sin(s.t * 0.5 + k) * 1.5; disc(c, tx, ty, 2.6 - k * 0.6, 2 - k * 0.4, INK); disc(c, tx, ty, 1.8 - k * 0.5, 1.4 - k * 0.4, '#D6D3D1'); }
+        break;
+      }
+      case 'tea': {
+        const col = '#B45309';
         disc(c, s.x, s.y, 6, 5, INK); disc(c, s.x, s.y, 5, 4, col); disc(c, s.x - dir * 6, s.y - 2, 3, 2, col); disc(c, s.x - dir * 10, s.y - 3, 2, 1.5, col);
         if (s.kind === 'tea' && s.t % 6 < 3) { c.fillStyle = 'rgba(255,255,255,0.6)'; c.fillRect(s.x - 2, s.y - 10, 2, 4); }
         break;
       }
       case 'smoke': {
+        // (a slow cloud of smoke: puffs rolling round each other, each in stepped grays (shaded under, lit up its top-left),
+        // a dither of wisps round its edge; thinning as it goes)
         const r = RADIUS.smoke * 0.6 + Math.min(20, s.t * 0.2), fade = Math.max(0, 1 - s.t / LIFE.smoke);
-        c.globalAlpha = 0.65 * fade + 0.15;
-        for (let k = 0; k < 4; k++) { const a = k * 1.7 + s.t * 0.03; disc(c, s.x + Math.cos(a) * r * 0.5, s.y + Math.sin(a) * r * 0.35, r * 0.6, r * 0.5, k % 2 ? '#D6D3D1' : '#E7E5E4'); }
+        c.globalAlpha = 0.7 * fade + 0.15;
+        const puffs = [0, 1, 2, 3, 4].map(k => { const a = k * 1.26 + s.t * 0.03; return [s.x + Math.cos(a) * r * 0.5, s.y + Math.sin(a) * r * 0.32, r * (k === 4 ? 0.42 : 0.56)] as const; });
+        for (const [px0, py0, pr] of puffs) pixelBlob(c, px0 + 2, py0 + 3, pr, pr * 0.8, '#8A8580');
+        for (const [px0, py0, pr] of puffs) pixelBlob(c, px0, py0, pr * 0.92, pr * 0.74, '#B8B3AE');
+        for (const [px0, py0, pr] of puffs) pixelBlob(c, px0 - pr * 0.2, py0 - pr * 0.2, pr * 0.6, pr * 0.46, '#DEDAD4');
+        for (const [px0, py0, pr] of puffs) pixelBlob(c, px0 - pr * 0.32, py0 - pr * 0.32, pr * 0.24, pr * 0.18, '#F5F3EF');
+        for (let k = 0; k < 6; k++) { const a = k * 1.05 + s.t * 0.05; if ((s.t + k * 5) % 12 < 8) { c.fillStyle = '#C8C3BE'; c.fillRect(Math.round(s.x + Math.cos(a) * r * 1.05), Math.round(s.y + Math.sin(a) * r * 0.7), 2, 2); } }
         c.globalAlpha = 1; break;
       }
       case 'plate': {
