@@ -59,7 +59,7 @@ import {
   GY, VIEW_X, ARENA_L, ARENA_R, MID, CAM_ROW, CLING_H, CLING_IN, CROWN, CROWN_SCALE, WINDOW, LIB, FIST_UP, FIST_W, FIST_H, sy,
 } from './arena';
 import { drawRambo, mouthAt, muzzleAt, type RamboPose } from './rambo';
-import { drawLibertyBody, drawArm, drawChunk, drawRubble, drawRevolverAt, drawTorchAt, CONC, PUKE, type Face, type LibLook, type Stain } from './liberty';
+import { drawLibertyBody, drawArm, gunLine, drawChunk, drawRubble, drawRevolverAt, drawTorchAt, CONC, PUKE, type Face, type LibLook, type Stain } from './liberty';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -154,6 +154,8 @@ export interface Fight {
   lib: { dy: number; face: Face; shake: number; stains: Stain[]; tear: number; broken: number; hand: { x: number; y: number }; tablet: boolean; gun: boolean; tilt: number; gone: boolean; wear: number };
   /** Her smashes so far; her collapse (frames into it, -1: not); she's gone (crumbled: him enraged). */
   smashes: number; crumble: number; crumbled: boolean;
+  /** Where the torch has been driven into the floor (the holes it leaves). */
+  holes?: number[];
   /** His own puke on the floor (the grief puke). */
   puddle: { x: number; k: number } | null;
   rounds: Round[]; chunks: Chunk[]; piles: { x: number; k: number }[];
@@ -361,6 +363,8 @@ const speed = (f: Fight) => Math.min(SPEED_MAX, 1 + f.barfs * SPEED_UP);
  *  locked ring always up LOCK_MIN frames before it lands. Below half, FAKE_SHARE of them fake him out. */
 const hpQuick = (f: Fight) => (f.hp < HP * 0.25 ? 2 : f.hp < HP * 0.5 ? 1.4 : 1);
 const QUICK_MAX = 3, LOCK_MIN = 16, FAKE_SHARE = 0.35, FEINT_HOLD = 16;
+/** Stuck: a silent tug every so many frames (the torch lifting a hair in its hole). */
+const TUG_EVERY = 46;
 const fistBox = (f: Fight) => (f.arm.block ? { x0: f.arm.block.x, x1: f.arm.block.x + f.arm.block.w, y0: f.arm.block.y, y1: GY } : null);
 
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
@@ -681,6 +685,8 @@ const statue = (ctx: FrameContext, f: Fight) => {
       a.fx = a.tx + Math.sin(a.t * 0.9) * (a.t > STUCK_T - 80 ? 2 : 0.6); a.fy = GY - FIST_H / 2;
       lib.shake = 1.4; lib.face = 'strain';
       if (a.t % 10 === 0) puff(state, a.tx + (Math.random() - 0.5) * FIST_W, GY - 4, 1, '#A8A29E');
+      // (a silent tug: the torch lifts a hair in its hole, dust and grit kicked up round it, and drops back)
+      if (a.t % TUG_EVERY === 1) { puff(state, a.tx, GY - 6, 3, '#D6D3D1'); for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: a.tx + (Math.random() - 0.5) * 40, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 2.5, y: -1 - Math.random() * 2 }, life: 24, color: i % 2 ? '#8A8378' : '#6B5B45', size: 2 + Math.random() * 2, grav: 0.3 }); }
       // (her last smash: she comes apart while it's stuck)
       if (f.smashes >= STATUE_LIFE && a.t === 30) { startCrumble(ctx, f); break; }
       // (a double slam: torn straight back out, and at him again where he's got to)
@@ -797,6 +803,8 @@ const impact = (ctx: FrameContext, f: Fight) => {
   // the floor: nothing to stand on, no wall, no cover from his rounds or his sweeps. a.block stays null: fistBox's
   // null, so his rounds, his walk and his floor spots all go straight through it)
   f.stuckN++;
+  // (the hole it leaves: there for the rest of the fight)
+  (f.holes ??= []).push(a.tx); if (f.holes.length > 8) f.holes.shift();
   // (her wear: each smash cracks her more, chips flying off her, the patina flaking)
   f.smashes++; f.lib.wear = Math.min(1, f.smashes / STATUE_LIFE);
   chipHer(state, f, 4 + f.smashes * 2);
@@ -826,6 +834,8 @@ const unstick = (state: GameState, f: Fight, snap: boolean) => {
   a.st = snap ? 'snap' : 'yank'; a.t = 0;
   playSound('crack', 1, -6); playSound('crumble', 0.8, -4); shakeScreen(state, 8, 4);
   puff(state, a.tx, GY, 12, '#A8A29E');
+  // (torn out of its hole: dirt and broken slab flung up out of it)
+  for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: a.tx + (Math.random() - 0.5) * 30, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -3 - Math.random() * 6 }, life: 40 + Math.random() * 20, color: ['#8A8378', '#6B5B45', '#A8A29E', '#3A2E22'][i % 4], size: 2 + Math.random() * 5, grav: 0.35 });
   if (!snap && !f.barf) { f.queue = f.stuckN % 2 === 1 ? ['crown'] : ['cling', 'walk', 'crown']; if (Math.random() < 0.7) bark(f, L.HARRY_UNSTUCK); }
 };
 
@@ -1217,9 +1227,10 @@ const heartbroken = (ctx: FrameContext, f: Fight, d: Death) => {
         // (BANG: concrete out the far side of her head; no gore)
         d.st = 'bang'; d.stT = 0; lib.broken = 1; lib.shake = 0;
         playSound('flintlock', 1.2, -14); playSound('boom', 1, -16); playSound('crumble', 1, -6); shakeScreen(state, 24, 12);
-        const hx = LIB.head.x - 50, hy = LIB.head.y - 30;
-        for (let i = 0; i < 26; i++) f.chunks.push({ x: hx, y: hy, vx: -3 - Math.random() * 9, vy: -6 + Math.random() * 6, a: Math.random() * 6, va: (Math.random() - 0.5) * 0.4, s: 5 + Math.random() * 12, green: i % 3 === 0, down: false });
-        for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: hx, y: hy }, vel: { x: -2 - Math.random() * 6, y: -3 + Math.random() * 4 }, life: 60, color: i % 2 ? '#A8A29E' : '#D6D3D1', size: 6 + Math.random() * 8 });
+        // (out where the shot comes out of her head as drawn (on its line from the muzzle), sprayed on along it)
+        const g = gunLine(lib.hand), hx = g.exit.x, hy = g.exit.y + lib.dy, gd = g.dir, px = -gd.y, py = gd.x;
+        for (let i = 0; i < 26; i++) { const sp = 3 + Math.random() * 9, sd = (Math.random() - 0.5) * 5; f.chunks.push({ x: hx, y: hy, vx: gd.x * sp + px * sd, vy: gd.y * sp + py * sd - 2, a: Math.random() * 6, va: (Math.random() - 0.5) * 0.4, s: 5 + Math.random() * 12, green: i % 3 === 0, down: false }); }
+        for (let i = 0; i < 20; i++) { const sp = 2 + Math.random() * 6, sd = (Math.random() - 0.5) * 4; state.particles.push({ pos: { x: hx, y: hy }, vel: { x: gd.x * sp + px * sd, y: gd.y * sp + py * sd - 1 }, life: 60, color: i % 2 ? '#A8A29E' : '#D6D3D1', size: 6 + Math.random() * 8 }); }
       }
       break;
     case 'bang':
@@ -1571,6 +1582,14 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   }
   // (his own puke on the floor, while he's alive to make it)
   if (f.puddle && !(f.death && f.death.how === 'barfed')) drawPuddle(c, f.puddle.x, f.puddle.k, 0);
+  // (the holes the torch has left in the floor (not the one it's in: that one's drawn with it))
+  for (const hx of f.holes ?? []) {
+    if (a.st === 'stuck' && Math.abs(hx - a.tx) < 1) continue;
+    c.fillStyle = '#3A2E22'; c.beginPath(); c.ellipse(hx, GY, 30, 6, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#0E0A08'; c.beginPath(); c.ellipse(hx, GY + 1, 16, 3.5, 0, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = '#1A0B06'; c.lineWidth = 2; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(hx + s * 26, GY); c.lineTo(hx + s * 44, GY - 2); c.lineTo(hx + s * 62, GY); c.stroke(); }
+    for (const ox of [-30, 24]) { c.fillStyle = '#8A8378'; c.beginPath(); c.moveTo(hx + ox - 7, GY + 2); c.lineTo(hx + ox - 2, GY - 6); c.lineTo(hx + ox + 6, GY + 2); c.closePath(); c.fill(); }
+  }
   // (the windup's mark on the floor: following him, then locked, red)
   if (a.st === 'wind' || a.st === 'drop' || a.st === 'feint') {
     const u = a.st === 'wind' ? a.t / a.T : 1, locked = u >= (a.track ?? TRACK), col = locked ? (fr % 8 < 4 ? '#EF4444' : '#FDE047') : 'rgba(239, 68, 68, 0.6)';
@@ -1586,7 +1605,7 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     if (a.st === 'stuck') { c.strokeStyle = '#1A0B06'; c.lineWidth = 2; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(a.tx + s * FIST_W / 2, GY - 1); c.lineTo(a.tx + s * (FIST_W / 2 + 26), GY - 4); c.lineTo(a.tx + s * (FIST_W / 2 + 50), GY - 2); c.stroke(); } }
     const away = a.st === 'wind' || a.st === 'drop' || a.st === 'feint' ? { x: LIB.head.x, y: LIB.head.y - 40 } : undefined;
     const v = armView(f);
-    drawArm(c, libLook(f, fr), v.x, v.y, { torch: !f.torch, glow, stuck, away, straight: a.st === 'drop' || a.st === 'stuck' || a.st === 'yank' || a.st === 'snap', smash: v.smash, floor: GY });
+    drawArm(c, libLook(f, fr), v.x, v.y, { torch: !f.torch, glow, stuck, away, straight: a.st === 'drop' || a.st === 'stuck' || a.st === 'yank' || a.st === 'snap', smash: v.smash, floor: GY, tug: a.st === 'stuck' && a.t % TUG_EVERY < 7 ? 1 : 0 });
     // (a fakeout's tell: a glint off her fist, a four-point star flaring and shrinking)
     if (a.glint && a.glint > 0) {
       const k = a.glint / 22, R = 10 + 46 * Math.sin(k * Math.PI), gx = a.fx + 18, gy = a.fy - 30;

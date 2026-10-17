@@ -227,24 +227,51 @@ const revolver = (c: Ctx, x: number, y: number, a: number, f: number, flash: boo
   fl(c, PAT[3], () => c.rect(32, -22, 100, 16), 2.5);
   r(c, 34, -20, 96, 4, PAT[5]); r(c, 120, -28, 8, 6, PAT[3]);
   fl(c, PAT[2], () => { c.moveTo(-14, -24); c.lineTo(-24, -36); c.lineTo(-16, -38); c.lineTo(-6, -24); c.closePath(); }, 2);
-  if (flash) for (let i = 0; i < 4; i++) { c.fillStyle = i % 2 ? '#FDE047' : '#F97316'; c.beginPath(); c.arc(140 + i * 14, -14 + (i % 2 ? 8 : -8), 26 - i * 5, 0, Math.PI * 2); c.fill(); }
+  // (the flash: at the barrel's tip, pressed to her temple, blowing back out the near side round it)
+  if (flash) for (let i = 0; i < 4; i++) { c.fillStyle = i % 2 ? '#FDE047' : '#F97316'; c.beginPath(); c.arc(MUZZLE.x - i * 9, MUZZLE.y + (i % 2 ? 9 : -9), 24 - i * 5, 0, Math.PI * 2); c.fill(); }
   c.restore();
   void f;
 };
 
-/** The hole the shot blew out of her head (screen left, the far side from the gun): hollow, rebar, chips. */
-const hole = (c: Ctx, hx: number, hy: number, f: number) => {
-  const pts: [number, number][] = [];
-  for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2, rr = 46 + ((i * 37) % 11) * 2 - (i % 2) * 10; pts.push([hx - 44 + Math.cos(a) * rr, hy - 34 + Math.sin(a) * rr]); }
+/** The revolver's muzzle in its own frame (the barrel's tip, its middle), and how it's held to her head. */
+const MUZZLE = { x: 132, y: -14 }, GUN_A = Math.PI + 0.08;
+/** Her gun hand, reached for `hand` (her frame): where her left arm actually gets to (as drawn). */
+const gunHand = (hand: Pt) => {
+  const sh = LIB.shL, dx = hand.x - sh.x, dy = hand.y - sh.y, d = Math.min(LIB.upper + LIB.fore - 2, Math.hypot(dx, dy) || 1), base = Math.atan2(dy, dx);
+  return { x: sh.x + Math.cos(base) * d, y: sh.y + Math.sin(base) * d };
+};
+/** Her head as drawn (her frame): its middle and radii. */
+const HEAD_E = () => ({ x: LIB.head.x, y: LIB.head.y + 6, rx: 54, ry: 72 });
+/**
+ * The shot's line (her frame, as drawn for `hand`): the muzzle at her temple, the way it points, and where it comes out
+ * of her head (the far side, on the line through it: the exit wound and the burst). Toppling, it all goes over with her.
+ */
+export const gunLine = (hand: Pt) => {
+  const h = gunHand(hand), ox = h.x - 10, oy = h.y - 10, ca = Math.cos(GUN_A), sa = Math.sin(GUN_A);
+  const m = { x: ox + MUZZLE.x * ca - MUZZLE.y * sa, y: oy + MUZZLE.x * sa + MUZZLE.y * ca }, d = { x: ca, y: sa };
+  // (out the far side: the ray's far crossing of her head's outline)
+  const E = HEAD_E(), px = (m.x - E.x) / E.rx, py = (m.y - E.y) / E.ry, qx = d.x / E.rx, qy = d.y / E.ry;
+  const A = qx * qx + qy * qy, B = 2 * (px * qx + py * qy), C = px * px + py * py - 1, disc = B * B - 4 * A * C;
+  const t = disc >= 0 ? (-B + Math.sqrt(disc)) / (2 * A) : 0;
+  const exit = t > 0 ? { x: m.x + d.x * t, y: m.y + d.y * t } : { x: E.x - E.rx, y: m.y };
+  return { muzzle: m, dir: d, exit };
+};
+
+/** The hole the shot blew out of her head: on the far side, where the shot came out (on its line from the muzzle),
+ *  jagged, hollow, rebar sticking out along the shot's way, chips; dust still coming off it. */
+const hole = (c: Ctx, hand: Pt, f: number) => {
+  const g = gunLine(hand), d = g.dir, cx = g.exit.x - d.x * 8, cy = g.exit.y - d.y * 8, pts: [number, number][] = [];
+  for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2, rr = 40 + ((i * 37) % 11) * 2 - (i % 2) * 10; pts.push([cx + Math.cos(a) * rr * 0.9, cy + Math.sin(a) * rr]); }
   fl(c, CONC[1], () => { pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); }, 3);
   // (the hollow inside: darker in, the broken shell's rim lit)
-  fl(c, CONC[0], () => c.ellipse(hx - 40, hy - 30, 28, 24, 0, 0, Math.PI * 2), 0);
+  fl(c, CONC[0], () => c.ellipse(cx - d.x * 4, cy - d.y * 4, 24, 22, 0, 0, Math.PI * 2), 0);
   c.strokeStyle = CONC[4]; c.lineWidth = 2; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x + 2, y + 2) : c.moveTo(x + 2, y + 2))); c.closePath(); c.stroke();
-  // (rebar sticking out, rusty)
+  // (rebar sticking out, rusty, bent out the way the shot went)
+  const da = Math.atan2(d.y, d.x);
   c.strokeStyle = '#7C2D12'; c.lineWidth = 3;
-  for (const [a, l] of [[3.4, 40], [2.6, 30], [4.2, 34]] as const) { c.beginPath(); c.moveTo(hx - 40, hy - 30); c.lineTo(hx - 40 + Math.cos(a) * (60 + l), hy - 30 + Math.sin(a) * (60 + l)); c.stroke(); }
-  // (dust still coming off it)
-  for (let k = 0; k < 4; k++) { const t = ((f * 0.8 + k * 25) % 100) / 100; c.globalAlpha = 0.5 * (1 - t); c.fillStyle = CONC[4]; c.beginPath(); c.arc(hx - 70 - t * 40, hy - 40 - t * 60, 10 + t * 20, 0, Math.PI * 2); c.fill(); }
+  for (const [a, l] of [[0.35, 40], [-0.4, 30], [0.9, 34]] as const) { c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(da + a) * (50 + l), cy + Math.sin(da + a) * (50 + l)); c.stroke(); }
+  // (dust still coming off it, out along the shot's way and up)
+  for (let k = 0; k < 4; k++) { const t = ((f * 0.8 + k * 25) % 100) / 100; c.globalAlpha = 0.5 * (1 - t); c.fillStyle = CONC[4]; c.beginPath(); c.arc(g.exit.x + d.x * (20 + t * 40), g.exit.y + d.y * (20 + t * 40) - t * 60, 10 + t * 20, 0, Math.PI * 2); c.fill(); }
   c.globalAlpha = 1;
 };
 
@@ -315,7 +342,7 @@ export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
   hair(c, hx, hy);
   face(c, L, hx, hy);
   crown(c, L, hx, hy);
-  if (L.gun) { leftArm(); revolver(c, hx2 - 10, hy2 - 10, Math.PI + 0.08, L.f, L.broken > 0 && L.broken < 5); }
+  if (L.gun) { leftArm(); revolver(c, hx2 - 10, hy2 - 10, GUN_A, L.f, L.broken > 0 && L.broken < 5); }
   // (his puke on her)
   for (const s of L.stains) {
     fl(c, PUKE[1], () => c.ellipse(hx + s.x, hy + s.y, s.r, s.r * 0.7, 0, 0, Math.PI * 2), 1.5);
@@ -323,7 +350,7 @@ export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
     r(c, hx + s.x - 2, hy + s.y + s.r * 0.5, 4, s.r * 1.3, PUKE[0]);
   }
   if (L.wear) wearMarks(c, L.wear);
-  if (L.broken > 0) hole(c, hx, hy, L.f);
+  if (L.broken > 0) hole(c, L.hand, L.f);
   if (arm) arm(c);
   c.restore();
 };
@@ -484,6 +511,9 @@ export let torchFlame: { x: number; y: number; f: number } | null = null;
 /** The grip to the cup's foot along the torch, the cup's foot to the flame's middle, the handle's length; the grip to
  *  the handle's butt (the knob's end). */
 const GRIP = 76, HEAD = 96, TORCH_H = 132, BUTT = TORCH_H + 13 - GRIP;
+/** Staked: how much further down through her grip the torch is driven (its handle's bottom third in the slab), and
+ *  how far it's slanted, rammed in. */
+const DEEP = 56, RAM = 0.14, RISE = 26;
 /**
  * Her right arm, the torch arm: from her shoulder (sunk `dy`) to (fx, fy) (world): her hand, the torch upright in it;
  * or, smashing (`smash` 0..1; the user: "slams it down with the bottom of the torch sticking in the ground"), the
@@ -491,7 +521,7 @@ const GRIP = 76, HEAD = 96, TORCH_H = 132, BUTT = TORCH_H + 13 - GRIP;
  * under that's hidden), the flame on top, leaning a little back toward her, her fist round the handle above the floor.
  * `glow` (0..1): the windup's tell.
  */
-export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torch: boolean; glow?: number; stuck?: number; away?: { x: number; y: number }; straight?: boolean; smash?: number; floor?: number }) => {
+export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torch: boolean; glow?: number; stuck?: number; away?: { x: number; y: number }; straight?: boolean; smash?: number; floor?: number; tug?: number }) => {
   c.save();
   // (she's at the back: past the arena's end walls she's behind them, never painted over them)
   c.beginPath(); c.rect(ARENA_L, -100000, ARENA_R - ARENA_L, 200000); c.clip();
@@ -507,10 +537,11 @@ export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torc
   const T = w > 0 ? { x: S.x + (fx - S.x) * w + dx * (1 - w), y: S.y + (fy - S.y) * w + dy * (1 - w) } : { x: S.x + dx, y: S.y + dy };
   const upA = -Math.PI / 2;
   let lean = Math.atan2(S.y - T.y, S.x - T.x) - upA; while (lean > Math.PI) lean -= Math.PI * 2; while (lean < -Math.PI) lean += Math.PI * 2;
-  const ta = upA + Math.max(-0.55, Math.min(0.55, lean * 0.35)) * w;
+  // (staked: rammed in at a slant, back toward her)
+  const ta = upA + Math.max(-0.62, Math.min(0.62, lean * 0.35 + (lean >= 0 ? RAM : -RAM))) * w;
   // (her hand: there, or up the handle from the butt)
   const full = GRIP + HEAD;
-  const H = { x: T.x + Math.cos(ta) * BUTT * w, y: T.y + Math.sin(ta) * BUTT * w };
+  const H = { x: T.x + Math.cos(ta) * (BUTT + RISE) * w, y: T.y + Math.sin(ta) * (BUTT + RISE) * w };
   // (the elbow: a gentle sculpted bend: out to her side raised, up over the line lowered, away from her face rearing)
   const hdx = H.x - S.x, hdy = H.y - S.y, hd = Math.hypot(hdx, hdy) || 1, nx = -hdy / hd, ny = hdx / hd;
   const mid = { x: S.x + hdx * 0.5, y: S.y + hdy * 0.5 };
@@ -527,29 +558,40 @@ export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torc
   // Coming down and staked: the arm first, the torch in front of it (it leans back along her forearm: drawn under the
   // arm it was lost behind it), then her hand)
   const rot = ta + Math.PI / 2, torchFront = w > 0.3;
+  // (staked, the torch's driven on down through her grip: the bottom third of its handle's in the slab, her fist up on
+  // the top of the handle; each silent tug lifts it a hair, then it drops back)
+  const deep = DEEP * w, lift = (opts.tug ?? 0) * 2;
   const torch = () => {
     if (!opts.torch) return;
     c.save();
-    // (the butt in the floor: what's under it hidden)
+    // (the butt in the floor: nothing of it below the floor's line)
     if (opts.floor !== undefined && w > 0) { c.beginPath(); c.rect(-100000, -100000, 200000, opts.floor + 100000); c.clip(); }
-    c.translate(H.x, H.y); c.rotate(rot); c.translate(0, -GRIP); torchArt(c, TORCH_H, true, L.f); c.restore();
-    torchFlame = { x: H.x + jx + Math.cos(ta) * full, y: H.y + Math.sin(ta) * full, f: L.f };
+    c.translate(H.x, H.y - lift); c.rotate(rot); c.translate(0, -GRIP + deep); torchArt(c, TORCH_H, true, L.f); c.restore();
+    torchFlame = { x: H.x + jx + Math.cos(ta) * (full - deep), y: H.y - lift + Math.sin(ta) * (full - deep), f: L.f };
   };
-  // (where it's driven in: the floor broken up round the butt, chunks heaved up, a dark hole round the handle)
-  if (opts.torch && opts.floor !== undefined && w > 0.6 && T.y > opts.floor - 4) {
-    const gx = T.x, gy = opts.floor, k = (w - 0.6) / 0.4;
-    c.fillStyle = 'rgba(20,14,10,0.55)'; c.beginPath(); c.ellipse(gx, gy, 30 * k, 5, 0, 0, Math.PI * 2); c.fill();
-    for (const [ox, sz, col] of [[-30, 9, '#8A8378'], [-18, 6, '#A8A29E'], [20, 8, '#8A8378'], [33, 5, '#6B5B45'], [-40, 4, '#6B5B45'], [8, 5, '#A8A29E']] as const) {
-      const s = sz * k;
-      fl(c, col, () => { c.moveTo(gx + ox - s, gy); c.lineTo(gx + ox - s * 0.4, gy - s * 1.1); c.lineTo(gx + ox + s * 0.6, gy - s * 0.8); c.lineTo(gx + ox + s, gy); c.closePath(); }, 1.5);
-    }
+  // (where it went in: on the torch's line, at the floor)
+  const staked = opts.torch && opts.floor !== undefined && w > 0.6 && T.y > opts.floor - 4;
+  const gy = opts.floor ?? 0, k = staked ? (w - 0.6) / 0.4 : 0, s0 = (gy - H.y) / (Math.sin(ta) || -1), ex = H.x + Math.cos(ta) * s0;
+  // (behind it: the hole, dark, its far rim; the cracks running off along the slab)
+  if (staked) {
+    c.fillStyle = '#3A2E22'; c.beginPath(); c.ellipse(ex, gy, 40 * k, 8 * k, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#0E0A08'; c.beginPath(); c.ellipse(ex, gy + 1, 24 * k, 5 * k, 0, 0, Math.PI * 2); c.fill();
     c.strokeStyle = INK; c.lineWidth = 2;
-    for (const s of [-1, 1]) { c.beginPath(); c.moveTo(gx + s * 12, gy - 1); c.lineTo(gx + s * 34 * k, gy - 3); c.lineTo(gx + s * 58 * k, gy - 1); c.stroke(); }
+    for (const [a, l] of [[0.1, 70], [0.5, 46], [2.7, 64], [3.1, 80], [-0.25, 38], [3.4, 40]] as const) { c.beginPath(); c.moveTo(ex + Math.cos(a) * 30 * k, gy + Math.sin(a) * 4); c.lineTo(ex + Math.cos(a) * (30 + l * 0.5) * k, gy + Math.sin(a) * 6 - 1); c.lineTo(ex + Math.cos(a) * (30 + l) * k, gy + Math.sin(a) * 7); c.stroke(); }
   }
   if (!torchFront) torch();
   sculptedArm(c, S, E, H, 70);
   if (torchFront) torch();
-  c.save(); c.translate(H.x, H.y); c.rotate(rot); fistOnHandle(c, (opts.glow ?? 0) * (0.5 + 0.3 * Math.sin(L.f * 0.6))); c.restore();
+  // (in front of it: the broken slab heaped up round the shaft, overlapping the handle, the near rim; dust on a tug)
+  if (staked) {
+    for (const [ox, sz, h, col] of [[-34, 13, 10, '#8A8378'], [-20, 11, 15, '#A8A29E'], [-8, 9, 12, '#6B5B45'], [6, 10, 16, '#A8A29E'], [18, 12, 11, '#8A8378'], [32, 10, 8, '#6B5B45'], [-2, 14, 7, '#78716C']] as const) {
+      const sw = sz * k, sh = h * k;
+      fl(c, col, () => { c.moveTo(ex + ox - sw, gy + 3); c.lineTo(ex + ox - sw * 0.5, gy - sh); c.lineTo(ex + ox + sw * 0.4, gy - sh * 0.8); c.lineTo(ex + ox + sw, gy + 3); c.closePath(); }, 1.5);
+    }
+    c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.ellipse(ex, gy + 2, 40 * k, 7 * k, 0, 0.15, Math.PI - 0.15); c.stroke();
+    if (lift > 0) { c.fillStyle = 'rgba(214, 211, 209, 0.6)'; for (const ox of [-26, -8, 12, 28]) { c.beginPath(); c.arc(ex + ox, gy - 10, 7, 0, Math.PI * 2); c.fill(); } }
+  }
+  c.save(); c.translate(H.x, H.y - lift); c.rotate(rot); fistOnHandle(c, (opts.glow ?? 0) * (0.5 + 0.3 * Math.sin(L.f * 0.6))); c.restore();
   // (stuck: cracks up the forearm from her grip)
   if (opts.stuck !== undefined && opts.stuck > 0) {
     const sk = opts.stuck, el = Math.hypot(E.x - H.x, E.y - H.y) || 1, ux = (E.x - H.x) / el, uy = (E.y - H.y) / el;
