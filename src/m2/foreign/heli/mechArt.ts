@@ -308,7 +308,7 @@ const moai: Body = (c, L) => {
 const BODY: Record<MechId, Body> = { eiffel, opera, redeemer, pisa, taj, bigben, colosseum, pyramid, moai };
 
 /** Its eyes by its look: none on a plain replica; open if it's awake and nothing says otherwise. */
-const eyesOf = (L: MechLook): 'none' | 'shut' | 'open' => L.eyes ?? (L.awake ? 'open' : 'none');
+export const eyesOf = (L: MechLook): 'none' | 'shut' | 'open' => L.eyes ?? (L.awake ? 'open' : 'none');
 
 // ---------------------------------------------------------------------------------------------------------------
 // The wrecks: painted once each to a canvas (blackened, over on their side), drawn scaled; their smoke live
@@ -331,7 +331,7 @@ const wreckCanvas = (id: MechId) => {
   WRECKS.set(id, w);
   return w;
 };
-const smoke = (c: Ctx, f: number) => {
+export const smoke = (c: Ctx, f: number) => {
   for (let k = 0; k < 5; k++) {
     const ph = ((f * 0.6 + k * 40) % 200) / 200;
     c.globalAlpha = (1 - ph) * 0.6; c.fillStyle = k % 2 ? '#3F3F46' : '#52525B';

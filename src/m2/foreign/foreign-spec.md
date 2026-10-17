@@ -763,3 +763,37 @@ sickness'"; the barf-to-death; "harry takes more shots to make queasy too".
 - **His deaths:** any (the standard spin, buried, barfed) with her gone plays alone: no heartbreak, no revolver.
 - **Buried (with her):** his arm out of the top clawing, then set flipping the bird; the top of his head and the
   bandana's knot out the slope; blood seeping out through the cracks into a pool round the foot, stained chunks.
+
+## Decisions (heli: 3D landmarks, 2026-10-16)
+
+The user: "make the landmarks in the helicopter portion 3d modeled so the perspective looks more correct when you move."
+
+- **A software renderer (heli/mesh3d.ts), no WebGL:** meshes in code (vertices, convex faces, a material and an
+  optional painted decal each), through the park's one camera (park.ts proj); faces turned away culled, the rest sorted
+  back to front and filled flat, each lit in steps off its material's five-step ramp (a 2x2 dither where a face falls
+  between two), edged a step darker, the silhouette inked. Groups move as one (the Opera House's shells, the Redeemer's
+  arms, the Leaning Tower leaning, the Taj's minarets, the moai's head and body); parts are what fly off.
+- **The nine (heli/models3d.ts), each the size of its flat art:** the Eiffel Tower's four raking latticed legs, arches,
+  decks, tapering lattice and mast with its flag; the Opera House's podium steps, gold-mullioned glass and six tiled
+  shells, their mouths in shadow; the Redeemer's pedestal, flared robe, arms and head; the Leaning Tower's ten-sided
+  drum in eight arcaded tiers with ledges, its belfry; the Taj's terrace, chamfered block with its iwans and niches, the
+  drum and onion dome, four chhatris, four minarets; Big Ben's three stages of gothic windows, buttresses, a clock face
+  on every side (hands going), belfry, green spire, gold pinnacles; the Colosseum's elliptical ring (three tiers of
+  arches and the attic, broken down on the right), the seating down into the arena, its sand; the Great Pyramid's stepped
+  courses and gold capstone with its eye; the moai's head (brow, nose, lips, chin, ears), its red pukao and the body
+  that rises under it. The mech under each built per frame: chassis with hazard stripes, exhausts, a blinking light,
+  jointed legs (steel thighs, chrome shins, yellow knees, three-toed feet) posed by the stomp and the walk in (each foot
+  where it is on the park's ground). The replicas' plinths too.
+- **The camera:** each model's front faces the camera it's fought from (the fight's view is the old one's), placed on
+  its plinth (or where it's walked to) on the park's ground. The one he's fighting is drawn in world space through the
+  same camera fitted to the field (park.ts camFit), exactly where its boxes are. Verticals kept upright about each
+  one's base (a tilt-shift: the towers stand straight on screen and match their boxes; their ground is the park's).
+- **Light:** from the viewing camera's upper left (the flat art's: the shadow side down the right), its height the
+  hour's sun (high at midday, raking at sundown), colored by the hour's light. Kept to the camera so every fight is lit
+  the same way round; the faces still change as the camera goes round them.
+- **Wear:** a hit's flash (the faces flashed pale); cracks and scorched faces spreading as its health goes; dying, about
+  40% of its parts blown off one by one, flung and tumbling; the wreck blackened, lying on its side by its folded legs,
+  smoking (the Leaning Tower lying where it fell). Googly eyes are billboards on its front (hidden when it's turned away).
+- **Cheap:** a few hundred faces each; the replicas still to come and the wrecks painted once to a canvas each and
+  blitted while the camera's still (every fight); details (decals, small parts) dropped when one's small on screen.
+  Hitboxes, patterns, timings, arrivals and the stomping are as they were. Harry's arena still shows the flat wrecks.

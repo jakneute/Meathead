@@ -29,7 +29,8 @@ import { pixelBlob } from '../../intro/art/kit';
 import { heliOf, type Heli, type Mech } from './state';
 import { Z, BASE_SCREEN, SW, SH, MEMO, toScreen } from './geo';
 import { MECHS } from './lines';
-import { drawMech, mechLook } from './mechArt';
+import { mechLook } from './mechArt';
+import { drawLandmark, type FootW } from './landmarks3d';
 
 type Ctx = CanvasRenderingContext2D;
 type P3 = { x: number; y: number; z: number };
@@ -63,6 +64,9 @@ export const camOf = (h: Heli): Cam => {
   const phi = phiOf(h.prog), up = Math.max(0, Math.min(1, h.up)), hc = 90 + (HC - 90) * up * up * (3 - 2 * up), b = basis(hc), k = h.pull;
   return { phi, cos: Math.cos(phi), sin: Math.sin(phi), hc, ...b, F: FIT.F * k, ppx: h.pullX + (FIT.ppx - h.pullX) * k, ppy: h.pullY + (FIT.ppy - h.pullY) * k };
 };
+/** The camera as the fight's world has it (no pull back): the landmark round in front lands on BASE at the field's
+ *  scale, so screen over Z is world (landmarks3d.ts draws the one he's fighting through it, in world space). */
+export const camFit = (h: Heli): Cam => ({ ...camOf(h), F: FIT.F, ppx: FIT.ppx, ppy: FIT.ppy });
 /** A world point (x, z on the ground, y up) on screen: where, its scale, how far off. */
 export const proj = (cam: Cam, x: number, y: number, z: number) => {
   const X = x * cam.cos - z * cam.sin, Zp = x * cam.sin + z * cam.cos;
@@ -470,7 +474,7 @@ const gaitOf = (m: Mech, i: number): Gait => {
 const gaitPt = (g: Gait, d: number) => ({ x: g.a.x + g.ux * d, z: g.a.z + g.uz * d });
 const walking = (m: Mech | undefined): m is Mech => !!m && m.st === 'intro' && m.unfold >= 0 && m.walk < 1;
 /** Where it is now (ground): its plinth, or on its way there from where it came up (halfway between its feet). */
-const mechAt = (m: Mech | undefined, i: number) => {
+export const mechAt = (m: Mech | undefined, i: number) => {
   if (!walking(m)) return MECH_AT[i];
   const g = gaitOf(m, i);
   return gaitPt(g, (g.d[0] + g.d[1]) / 2);
@@ -497,15 +501,16 @@ const mechItems = (c: Ctx, cam: Cam, h: Heli, f: number, out: Item[]) => {
     const p = mechAt(m, i), q = proj(cam, p.x, 0, p.z);
     if (q.z < 80 || q.x < -260 * q.k - 60 || q.x > SW + 260 * q.k + 60) return;
     const look = mechLook(h, m, i, f);
+    let feet: FootW[] | undefined;
     if (walking(m)) {
-      // (its feet where they are on the ground, through the eye, in its own frame)
+      // (its feet where they are on the ground (the 3D legs reach down to them))
       const g = gaitOf(m, i);
-      look.feet = [0, 1].map(k => { const fp = gaitPt(g, g.d[k]), pq = proj(cam, fp.x, 0, fp.z); return { x: (pq.x - q.x) / q.k + (k ? FOOT_X : -FOOT_X), y: (pq.y - q.y) / q.k - 7 - g.lift[k] }; });
+      feet = [0, 1].map(k => { const fp = gaitPt(g, g.d[k]); return { x: fp.x, z: fp.z, lift: g.lift[k], side: k ? 1 : -1 } as FootW; });
       // (the dust where the last foot came down, at its depth)
       const pf = 1 - (g.j % 2), fp = gaitPt(g, g.d[pf]), dq = proj(cam, fp.x, 0, fp.z), age = g.fr;
       if (g.j > 0 && age < 0.9) out.push({ z: dq.z - 2, y0: 2, draw: () => stompDust(c, dq.x + (pf ? FOOT_X : -FOOT_X) * dq.k, dq.y, dq.k, age, RISE[i].r < LAGOON_R && Math.hypot(fp.x, fp.z) < LAGOON_R) });
     }
-    out.push({ z: q.z, y0: 0, draw: () => drawMech(c, id, q.x, q.y, q.k, 0, look) });
+    out.push({ z: q.z, y0: 0, draw: () => drawLandmark(c, cam, id, i, p, look, feet) });
   });
 };
 /** A foot coming down: a ring of dust (spray, in the lagoon) puffing out low along the ground, settling. */

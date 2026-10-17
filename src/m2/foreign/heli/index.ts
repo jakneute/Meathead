@@ -41,13 +41,14 @@ import { DOORS } from '../geometry';
 import { registerHurts } from '../pavilion';
 import { viewIn, promenade, postBoard, onScreen, LOOKS, INK, dimmed, hour, setBack } from '../kit';
 import { heliOf, type Heli } from './state';
-import { x0, x1, X, GY, REFILL, CP_PAD, QUEUE_A, QUEUE_B, BOARD_AT, PAD_X, PAD_O, SEAT_BACK, SEAT_FRONT, CAMX, CY, Z, SW, SH, CAM_FLY, BASE, toWorld, CP_X, MEMO } from './geo';
+import { x0, x1, X, GY, REFILL, CP_PAD, QUEUE_A, QUEUE_B, BOARD_AT, PAD_X, PAD_O, SEAT_BACK, SEAT_FRONT, CAMX, CY, Z, SW, SH, CAM_FLY, toWorld, CP_X, MEMO } from './geo';
 import { flyCopter, updateRockets, drawCopter, drawRockets, heliMeters } from './copter';
 import { makeMechs, startMech, updateMechs, mechDone } from './mechs';
 import { WAVES, goonsLeft, sweepGoons, fightGroup, tickEntrances, drawEntrances } from './goons';
 import { shredHold } from './shred';
 import { drawPark, roadY, panicAt, inWorld, RISE, fireLamps } from './park';
-import { drawAttacks, drawMech, mechLook } from './mechArt';
+import { drawAttacks } from './mechArt';
+import { drawLandmarkWorld } from './landmarks3d';
 import { drawStreetsBackdrop } from '../backdrop';
 import { drawHarry } from './harryArt';
 import { harrySays, guestShouts, quiet, harryFrom, harryPick, harrySaid } from './talk';
@@ -591,7 +592,7 @@ export const heli: ForeignSection = {
     if (state.camera.y > CY + 900 || h.phase === 'pad' || h.phase === 'board' || h.phase === 'gone') drawPad(c, state, h);
     // (the landmark he's fighting, the world's while it's up; the rest stand out on the park's circuit)
     const m = h.mechs[h.cur];
-    if (m && inWorld(h, m)) drawMech(c, m.id, BASE.x, BASE.y, 1, 0, mechLook(h, m, h.cur, f));
+    if (m && inWorld(h, m)) drawLandmarkWorld(c, h, m, f);
     // (Harry down on the ground, under it all: running, hopping, keying the remote, flat on his back, aiming up)
     if (h.flags.landed && h.hpose !== 'shoved' && h.hpose !== 'fall' && (h.phase === 'tour' || h.phase === 'fly' || h.phase === 'end')) {
       c.fillStyle = 'rgba(20,20,20,0.35)'; c.beginPath(); c.ellipse(h.hx, roadAt(h.hx), 16, 4, 0, 0, Math.PI * 2); c.fill();
