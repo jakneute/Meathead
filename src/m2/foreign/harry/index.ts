@@ -19,7 +19,10 @@ import { topBand } from '../../../m1/constants';
 import { goTo, markLandCleared, noteBossKill, isLandCleared, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
-import { x0, x1, VIEW_X, ARENA_L, ARENA_R, CAM_ROW, REFILL_X, sy } from './arena';
+import { x0, x1, VIEW_X, ARENA_L, ARENA_R, CAM_ROW, REFILL_X, WALL_W, sy } from './arena';
+import { KICK_POSE_FRAMES } from '../../../m1/constants';
+import { playSound } from '../../../m1/game/platform/audio';
+import { shakeScreen } from '../../../m1/game/core/state';
 import { drawSky, drawScene } from './scene';
 import { torchFlame } from './liberty';
 import {
@@ -35,10 +38,14 @@ const leftovers = (state: GameState) => {
 
 interface Harry {
   fight: 'wait' | 'on' | 'won'; wonAt: number;
+  /** The gate in the left tower's doorway: shut (a wall) till he walks up to it and kicks it in; then down for good. */
+  gate: 'up' | 'kick' | 'down'; gateT: number; gateBlock: Block | null;
   f: Fight | null; walls: Block[];
   victory: Victory | null; walk: WalkAway | null;
 }
-const harryOf = (state: GameState) => foreignState<Harry>(state, 'harry', () => ({ fight: 'wait', wonAt: 0, f: null, walls: [], victory: null, walk: null }));
+const harryOf = (state: GameState) => foreignState<Harry>(state, 'harry', () => ({ fight: 'wait', wonAt: 0, f: null, walls: [], victory: null, walk: null, gate: 'up', gateT: 0, gateBlock: null }));
+/** The kick: when his boot lands (the gate starts over), and when it's down flat. */
+const KICK_HIT = 10, KICK_DONE = 34;
 
 const leave = (state: GameState, weakness: boolean) => {
   const s = harryOf(state);
@@ -58,11 +65,30 @@ export const harry: ForeignSection = {
     // (the big health and ammo, on the way in: before it starts, and on every retry)
     state.pickups.push({ id: 'hh-health', pos: { x: REFILL_X - 30, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 });
     state.pickups.push({ id: 'hh-ammo', pos: { x: REFILL_X + 10, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 });
+    // (the gate: shut in its doorway, a wall, till he kicks it in; once the land's done, it's down)
+    const s = harryOf(state);
+    s.gate = isLandCleared('foreign') ? 'down' : 'up'; s.gateT = 0;
+    s.gateBlock = s.gate === 'up' ? { x: ARENA_L - WALL_W, y: GY - 150, w: WALL_W, h: 150, type: 'wall', hidden: true, tag: 'harry-gatepanel' } as Block : null;
+    if (s.gateBlock) state.blocks.push(s.gateBlock);
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = harryOf(state);
     if (s.fight === 'wait') {
       runExits(state, endExits('harry'));
+      // The gate: walk up to it, and he kicks it in (a beat: it goes over flat onto the slab)
+      if (s.gate === 'up' && p.health > 0 && !p.inCutscene && p.isGrounded && p.pos.x + p.width >= ARENA_L - WALL_W - 4) {
+        s.gate = 'kick'; s.gateT = 0; p.facing = 1; p.vel.x = 0; p.kickPose = KICK_POSE_FRAMES; playSound('whoosh', 0.7, -4);
+      }
+      if (s.gate === 'kick') {
+        s.gateT++; p.vel.x = 0;
+        if (s.gateT === KICK_HIT) {
+          if (s.gateBlock) { state.blocks = state.blocks.filter(b => b !== s.gateBlock); s.gateBlock = null; }
+          playSound('clang', 1, -6); playSound('crash', 0.8, -2); shakeScreen(state, 10, 5);
+          for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: ARENA_L, y: GY - 20 - Math.random() * 100 }, vel: { x: 1 + Math.random() * 4, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#A8A29E' : '#71717A', size: 2 + Math.random() * 3, grav: 0.3 });
+        }
+        if (s.gateT >= KICK_DONE) { s.gate = 'down'; playSound('thud', 0.8, -6); shakeScreen(state, 6, 3); }
+        return hands();
+      }
       // (through the gate onto the slab, not cleared: it's on; the gate shut behind him)
       const cx = p.pos.x + p.width / 2;
       if (!isLandCleared('foreign') && cx > ARENA_L + 60 && cx < ARENA_R) {
@@ -107,7 +133,7 @@ export const harry: ForeignSection = {
     // (a retry, before he's on the slab: her up already, him waiting)
     const waiting = !f && !cleared && introSeen() ? drawWaiting(c, state) : null;
     drawScene(c, state, {
-      shut: s.fight === 'on',
+      gate: s.gate === 'up' ? { kind: 'standing' } : s.gate === 'kick' ? (s.gateT < KICK_HIT ? { kind: 'standing' } : { kind: 'falling', k: Math.min(1, (s.gateT - KICK_HIT) / (KICK_DONE - KICK_HIT)) }) : { kind: 'down' },
       aftermath: cleared && !f ? leftovers(state) : null,
       between: f ? (g) => drawStatue(g, state, f) : waiting ? waiting.statue : undefined,
     });

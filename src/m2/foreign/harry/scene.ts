@@ -114,7 +114,18 @@ const floor = (c: Ctx, state: GameState) => {
 };
 
 /** A scaffold tower with plywood hoarding to the top of the shot: a wall (its face toward the floor at `face`). */
-const tower = (c: Ctx, xa: number, side: 1 | -1, gate: 'none' | 'open' | 'shut', f: number) => {
+/** The gate's chain-link panel standing in the doorway, shut, padlocked (local: its foot's left end at (0, 0)). */
+const panel = (c: Ctx, w: number) => {
+  box(c, 0, -150, w, 150, 'rgba(63, 63, 70, 0.92)');
+  c.strokeStyle = '#A1A1AA'; c.lineWidth = 1;
+  c.save(); c.beginPath(); c.rect(0, -150, w, 150); c.clip();
+  for (let k = -150; k < w; k += 10) { c.beginPath(); c.moveTo(k, -150); c.lineTo(k + 150, 0); c.moveTo(k + 150, -150); c.lineTo(k, 0); c.stroke(); }
+  c.restore();
+  box(c, 0, -150, 3, 150, '#71717A'); box(c, w - 3, -150, 3, 150, '#71717A'); box(c, 0, -150, w, 3, '#71717A');
+  box(c, w / 2 - 6, -80, 12, 14, '#CA8A04'); box(c, w / 2 - 4, -88, 8, 8, '#A1A1AA');
+};
+export type GateLook = { kind: 'none' | 'open' | 'standing' | 'down' } | { kind: 'falling'; k: number };
+const tower = (c: Ctx, xa: number, side: 1 | -1, gate: GateLook, f: number) => {
   const P = ramp6(hour('#B08B5A')), top = sy(-40);
   box(c, xa - 2, top, WALL_W + 4, GY - top, INK);
   box(c, xa, top, WALL_W, GY - top, P[3]);
@@ -127,14 +138,17 @@ const tower = (c: Ctx, xa: number, side: 1 | -1, gate: 'none' | 'open' | 'shut',
   box(c, px, top, 4, GY - top, '#71717A'); box(c, px + 1, top, 1, GY - top, '#D4D4D8');
   for (let y = GY - 60; y > top; y -= 90) { box(c, xa, y, WALL_W, 4, '#71717A'); box(c, xa, y, WALL_W, 1, '#D4D4D8'); box(c, px - 2, y - 2, 8, 8, '#3F3F46'); }
   // (the gate: a chain-link panel at the foot of it, open (folded back against the tower) or shut, padlocked)
-  if (gate !== 'none') {
+  if (gate.kind !== 'none') {
     const gy0 = GY - 150;
     box(c, xa - 2, gy0 - 4, WALL_W + 4, 6, '#3F3F46');
-    // (the doorway: dark through it, either way)
+    // (the doorway: dark through it)
     box(c, xa + 2, gy0, WALL_W - 4, 150, '#1C1917'); box(c, xa + 2, gy0, 3, 150, '#27272A');
-    if (gate === 'shut') {
-      // (the fight on: the gate's knocked flat (he came through it), lying on the slab just inside, buckled, its padlock
-      // still on it. The way back's shut all the same: the fight's own wall, not this)
+    // (shut in it, padlocked, till he walks up and kicks it in; going over, hinged at its foot, into the slab side)
+    if (gate.kind === 'standing') { c.save(); c.translate(xa, GY); panel(c, WALL_W); c.restore(); }
+    if (gate.kind === 'falling') { c.save(); c.translate(xa + WALL_W, GY); c.rotate(gate.k * gate.k * Math.PI / 2); c.translate(-WALL_W, 0); panel(c, WALL_W); c.restore(); }
+    if (gate.kind === 'down') {
+      // (kicked in: knocked flat, lying on the slab just inside, buckled, its padlock still on it. The way back's shut
+      // in the fight all the same: the fight's own wall, not this)
       const g0 = xa + WALL_W + 4, g1 = g0 + 150, lift = (x: number) => (x - g0 < 30 ? (30 - (x - g0)) * 0.25 : 0);
       c.fillStyle = 'rgba(63, 63, 70, 0.85)';
       c.beginPath(); c.moveTo(g0, GY - 2 - lift(g0)); c.lineTo(g1, GY - 2); c.lineTo(g1 + 6, GY + 4); c.lineTo(g0 + 6, GY + 4 - lift(g0)); c.closePath(); c.fill();
@@ -159,8 +173,8 @@ const crash = (c: Ctx, f: number) => {
 };
 
 export interface SceneState {
-  /** Fight on: the gate's shut. */
-  shut: boolean;
+  /** The gate: shut in its doorway (till he kicks it in), going over, knocked flat on the slab, or (a revisit) open. */
+  gate: GateLook;
   /** She's in the dig behind (drawn by the fight between the sky and the berm). */
   between?: (c: Ctx) => void;
   /** Revisits: the aftermath on the floor (null: none): whether she crumbled in the winning run, and what's left of him
@@ -179,8 +193,8 @@ export const drawScene = (c: Ctx, state: GameState, S: SceneState) => {
   // (the pavilion's sign, on the way in, clear of everything)
   if (onScreen(v, X(SIGN_X) - 160, X(SIGN_X) + 160)) postBoard(c, X(SIGN_X), GY, ['AMERICA', 'THE ONLY COUNTRY', 'COMING SOON'], LOOKS.land(2), '#1E3A8A', undefined, 140);
   if (onScreen(v, VIEW_X - 60, VIEW_X + 860)) {
-    tower(c, ARENA_L - WALL_W, -1, S.shut ? 'shut' : 'open', f);
-    tower(c, ARENA_R, 1, 'none', f);
+    tower(c, ARENA_L - WALL_W, -1, S.gate, f);
+    tower(c, ARENA_R, 1, { kind: 'none' }, f);
     if (S.aftermath) aftermath(c, f, S.aftermath);
   }
 };
