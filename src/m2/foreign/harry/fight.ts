@@ -80,7 +80,7 @@ const DART_DMG = 2, SICK_AT = QUEASY_DARTS, SICK_COOL = 150, SICK_DECAY = 0.008;
 /** Her concrete on him (the weakness's hit). Its splash on the floor round him (and what it does to Meathead). */
 const HEAVY = 150, SPLASH_R = 120, SPLASH_DMG = 18;
 /** Walking at him: how fast, how close he comes, how long a walk lasts (the stuck arm's walk lasts till she's up). */
-const WALK_V = 0.8, WALK_NEAR = 170, WALK_T = 320;
+const WALK_V = 0.8, WALK_NEAR = 170, WALK_T = 250;
 /** The machine gun (head on): a burst's rounds, the frames between them, the rest after; a round's speed and hurt. */
 // (a burst's 5 rounds 4 frames apart: 20 frames of stream past any one spot. A full jump keeps his feet over chest
 // height for ~36 frames (jump speed 7 held 15 frames, gravity 0.65), so one jump clears a whole burst, with room: the
