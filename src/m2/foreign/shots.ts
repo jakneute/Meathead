@@ -350,9 +350,12 @@ export const drawShots = (c: Ctx, state: GameState) => {
         break;
       }
       case 'tea': {
-        const col = '#B45309';
-        disc(c, s.x, s.y, 6, 5, INK); disc(c, s.x, s.y, 5, 4, col); disc(c, s.x - dir * 6, s.y - 2, 3, 2, col); disc(c, s.x - dir * 10, s.y - 3, 2, 1.5, col);
-        if (s.kind === 'tea' && s.t % 6 < 3) { c.fillStyle = 'rgba(255,255,255,0.6)'; c.fillRect(s.x - 2, s.y - 10, 2, 4); }
+        // (a splash of scalding tea: the slug of it in steps (milky brown, lit up its top, its dark underside), the drops
+        // strung off behind, the steam curling up off it)
+        disc(c, s.x, s.y, 6.5, 5.5, INK); disc(c, s.x, s.y, 5.5, 4.5, '#7C3A10'); disc(c, s.x - 0.5, s.y - 0.8, 4.6, 3.4, '#B4642A'); disc(c, s.x - 1.5, s.y - 1.8, 2.4, 1.6, '#D8A070');
+        c.fillStyle = '#F4DCC0'; c.fillRect(Math.round(s.x - 3), Math.round(s.y - 3), 2, 1);
+        for (let k = 0; k < 3; k++) { const tx = s.x - dir * (7 + k * 4), ty = s.y - 2 + k + Math.sin(s.t * 0.5 + k) * 1.2; disc(c, tx, ty, 2.6 - k * 0.6, 2.2 - k * 0.5, INK); disc(c, tx, ty, 1.9 - k * 0.5, 1.5 - k * 0.4, '#B4642A'); }
+        for (let k = 0; k < 3; k++) { const w = Math.sin(s.t * 0.3 + k * 1.7) * 2; if ((s.t + k * 4) % 12 < 9) { c.fillStyle = k === 0 ? '#E2E8F0' : '#F8FAFC'; c.fillRect(Math.round(s.x - 1 + w), Math.round(s.y - 9 - k * 5), 2, 3); } }
         break;
       }
       case 'smoke': {
@@ -382,9 +385,17 @@ export const drawShots = (c: Ctx, state: GameState) => {
         c.restore(); break;
       }
       case 'pint': {
+        // (a pint glass end over end: the dimpled mug and its handle, the beer in steps (amber, lit up its near side, its
+        // shadow), the dimples catching the light, the head of foam; the beer slopping out behind it in drops)
         c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.3 * dir);
-        c.fillStyle = INK; c.fillRect(-6, -9, 12, 18); c.fillStyle = '#B45309'; c.fillRect(-5, -6, 10, 14); c.fillStyle = '#FEF3C7'; c.fillRect(-5, -8, 10, 3);
-        c.restore(); break;
+        c.fillStyle = INK; c.fillRect(-7, -10, 14, 20); c.fillRect(6, -6, 5, 12);
+        c.fillStyle = '#E0F2FE'; c.fillRect(7, -5, 3, 10); c.fillStyle = INK; c.fillRect(7, -3, 2, 6);
+        c.fillStyle = '#9A4A0A'; c.fillRect(-6, -6, 12, 15); c.fillStyle = '#C2650E'; c.fillRect(-6, -6, 8, 15); c.fillStyle = '#E08A20'; c.fillRect(-6, -6, 3, 15);
+        c.fillStyle = '#FCD34D'; for (let k = 0; k < 3; k++) for (let j = 0; j < 3; j++) c.fillRect(-4 + k * 4, -4 + j * 5, 1, 1);
+        c.fillStyle = '#FEF3C7'; c.fillRect(-6, -9, 12, 3); c.fillStyle = '#FFFFFF'; c.fillRect(-6, -9, 7, 1); c.fillRect(-2, -6, 2, 2);
+        c.restore();
+        for (let k = 0; k < 3; k++) { const tx = s.x - dir * (10 + k * 5), ty = s.y + Math.sin(s.t * 0.4 + k) * 3; disc(c, tx, ty, 2.2 - k * 0.4, 2 - k * 0.4, INK); disc(c, tx, ty, 1.6 - k * 0.4, 1.4 - k * 0.4, k ? '#FEF3C7' : '#E08A20'); }
+        break;
       }
       case 'puck': {
         disc(c, s.x, s.y, 7, 3.5, INK); disc(c, s.x, s.y - 1, 6, 2.5, '#27272A');

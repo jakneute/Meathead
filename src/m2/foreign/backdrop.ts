@@ -5,9 +5,10 @@
 // Fuji, the dunes, the minaret, the cathedral, the Ferris wheel, the Rockies, the helicopter ride's globe) slid in by parallax round where its
 // pavilion is, so they come and go as he walks. All of it tinted far into the haze.
 //
-// The SNES pass (Mexico's, Norway's, China's, Germany's, Italy's, Japan's, Morocco's and France's so far; the rest still the first pass's live painters, below): each landmark
+// The SNES pass (Mexico's, Norway's, China's, Germany's, Italy's, Japan's, Morocco's, France's and the UK's so far; the rest
+// still the first pass's live painters, below): each landmark
 // painted once for the hour into a stamp (STILLS: real silhouettes, stepped strata and flanks, snow, forests, the haze
-// over their feet), with only what moves drawn live over it (the falls); the lagoon in banded
+// over their feet), with only what moves drawn live over it (the falls, the Ferris wheel); the lagoon in banded
 // water under the far shore's tree line (a tile for the hour), glinting; the barge painted for the hour (its hull and
 // tire fenders, the mortar racks, the shack and its board), its reflection wobbling, and after dark its show (stepped
 // shells going up, bursts in rings of square sparks with their trails, falling and fading).
@@ -512,6 +513,114 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       bandedGradient(g, 0, foot - 2, w, h - foot + 2, [T('#8A8478'), T('#7A7468')], 2);
     },
   },
+  uk: {
+    // (LONDON, NO Big Ben and NO clock tower (they're the helicopter's): the giant Ferris wheel (London Eye-ish) on the
+    // near bank, its A-frame leaning back from its hub (the wheel itself turns, live: its rim, the cables, the pods);
+    // behind it the skyline in the haze: a great dome on its colonnaded drum and its lantern, a glass shard, a bullet of
+    // a tower in its diagonal grid, office blocks (lit after dark), a tower crane, and the terraces and their chimney pots
+    // along the foot)
+    w: 960, h: 420, k: 0.6,
+    paint: (g, T, tod) => {
+      const w = 960, h = 420, foot = h - 14, lamps = tod.lamps > 0.3, haze = skyAt(0.9, tod);
+      const S = rampT(T, '#C8C2B4'), Gl = rampT(T, '#7A90A8'), Dk = rampT(T, '#5A6070'), Br = rampT(T, '#8A5A48'), Wt = rampT(T, '#E8ECEF');
+      // (the far blocks in the haze)
+      for (let i = 0; i < 28; i++) { const x = i * 36 - 10 + hash(i * 1.7) * 12, bh = 40 + hash(i * 2.3) * 90, bw = 24 + hash(i * 3.1) * 20; box(g, x, foot - bh, bw, bh, mix(Dk[1], haze, 0.5)); box(g, x, foot - bh, 3, bh, mix(Dk[2], haze, 0.45)); }
+      mist(g, w, foot - 140, 140, haze, 0.1, 0.4, 5);
+      // (the bullet of a tower: its rounded shaft, the diagonal grid spiraling round it, dark bands, the lit flank)
+      const bx = 500, bt = foot - 210, bwid = 46;
+      g.fillStyle = INK; g.beginPath(); g.moveTo(bx - bwid / 2 - 1, foot); g.quadraticCurveTo(bx - bwid / 2 - 6, bt + 40, bx, bt - 1); g.quadraticCurveTo(bx + bwid / 2 + 6, bt + 40, bx + bwid / 2 + 1, foot); g.closePath(); g.fill();
+      g.save(); g.beginPath(); g.moveTo(bx - bwid / 2, foot); g.quadraticCurveTo(bx - bwid / 2 - 5, bt + 40, bx, bt); g.quadraticCurveTo(bx + bwid / 2 + 5, bt + 40, bx + bwid / 2, foot); g.closePath(); g.clip();
+      box(g, bx - 40, bt, 80, foot - bt, Gl[2]); box(g, bx - 40, bt, 26, foot - bt, Gl[3]); box(g, bx + 12, bt, 30, foot - bt, Gl[1]);
+      g.strokeStyle = Gl[0]; g.lineWidth = 1; g.beginPath(); for (let k = -12; k < 20; k++) { g.moveTo(bx - 40, bt + k * 14); g.lineTo(bx + 40, bt + k * 14 + 40); g.moveTo(bx + 40, bt + k * 14); g.lineTo(bx - 40, bt + k * 14 + 40); } g.stroke();
+      for (let k = 0; k < 6; k++) { const y = bt + 30 + k * 30; poly(g, [[bx - 40, y], [bx + 40, y + 24], [bx + 40, y + 30], [bx - 40, y + 6]], Dk[1]); }
+      if (lamps) for (let k = 0; k < 18; k++) box(g, bx - 18 + (k * 7) % 36, bt + 40 + Math.floor(k / 5) * 34, 2, 2, '#FFD88A');
+      g.restore();
+      // (the glass shard: tapering in its facets, lit down its left, the floors banded across, its jagged top)
+      const sx = 820, st = foot - 300;
+      poly(g, [[sx - 34, foot], [sx - 4, st], [sx + 4, st + 6], [sx + 30, foot]], INK);
+      poly(g, [[sx - 33, foot], [sx - 4, st + 2], [sx - 2, foot]], Gl[3]); poly(g, [[sx - 2, foot], [sx - 4, st + 2], [sx + 3, st + 8], [sx + 29, foot]], Gl[1]);
+      for (let y = st + 20; y < foot; y += 8) { const t = (y - st) / (foot - st); box(g, sx - 4 - t * 29, y, t * 58, 1, Gl[0]); }
+      for (let y = st + 30; y < foot; y += 40) { const t = (y - st) / (foot - st); box(g, sx - 3 - t * 25, y, t * 10, 4, Gl[4]); }
+      poly(g, [[sx - 4, st + 2], [sx - 9, st - 14], [sx - 1, st + 4]], Gl[2]); poly(g, [[sx + 2, st + 6], [sx + 7, st - 8], [sx + 4, st + 10]], Gl[1]);
+      if (lamps) { for (let k = 0; k < 24; k++) { const y = st + 40 + k * 10, t = (y - st) / (foot - st); if (hash(k * 3.3) > 0.4) box(g, sx - t * 20, y, 2, 1, '#FFD88A'); } box(g, sx - 5, st - 2, 2, 2, '#EF4444'); }
+      // (the great dome: the nave block under it, the colonnaded drum, the upper drum, the ribbed dome, the lantern and
+      // its gold ball)
+      const dx = 660, dbase = foot - 64;
+      box(g, dx - 82, dbase - 1, 164, foot - dbase + 1, INK); box(g, dx - 81, dbase, 162, foot - dbase, S[2]); box(g, dx - 81, dbase, 40, foot - dbase, S[3]); box(g, dx + 50, dbase, 31, foot - dbase, S[1]);
+      for (let x = dx - 76; x < dx + 78; x += 10) box(g, x, dbase + 10, 3, 40, S[x < dx - 30 ? 4 : 1]);
+      poly(g, [[dx - 30, dbase], [dx, dbase - 18], [dx + 30, dbase]], S[3]); box(g, dx - 82, dbase - 2, 164, 3, S[4]);
+      const d1 = dbase - 18, d2 = d1 - 44;
+      box(g, dx - 46, d2 - 1, 92, d1 - d2 + 1, INK); box(g, dx - 45, d2, 90, d1 - d2, S[2]);
+      for (let x = dx - 42; x < dx + 44; x += 6) { box(g, x, d2 + 4, 2, d1 - d2 - 8, x < dx - 10 ? S[4] : S[3]); box(g, x + 2, d2 + 4, 4, d1 - d2 - 8, lamps ? '#7A5A2A' : S[0]); }
+      box(g, dx - 48, d2 - 4, 96, 5, S[4]); box(g, dx - 48, d1 - 2, 96, 3, S[1]);
+      const d3 = d2 - 18;
+      box(g, dx - 36, d3, 72, d2 - d3, S[2]); for (let x = dx - 32; x < dx + 34; x += 9) box(g, x, d3 + 4, 4, 9, lamps ? '#C88A36' : S[0]);
+      g.fillStyle = INK; g.beginPath(); g.ellipse(dx, d3, 39, 46, 0, Math.PI, 0); g.fill();
+      g.fillStyle = Dk[2]; g.beginPath(); g.ellipse(dx, d3, 38, 45, 0, Math.PI, 0); g.fill();
+      g.fillStyle = Dk[3]; g.beginPath(); g.ellipse(dx - 10, d3, 22, 42, 0, Math.PI, 0); g.fill();
+      g.fillStyle = Dk[4]; g.beginPath(); g.ellipse(dx - 18, d3 - 6, 8, 30, 0, Math.PI, 0); g.fill();
+      g.strokeStyle = Dk[1]; g.lineWidth = 1; for (const k of [-0.75, -0.4, 0, 0.4, 0.75]) { g.beginPath(); g.ellipse(dx, d3, Math.abs(k) * 38 + 0.5, 45, 0, k < 0 ? Math.PI : Math.PI * 1.5, k < 0 ? Math.PI * 1.5 : Math.PI * 2); g.stroke(); }
+      box(g, dx - 7, d3 - 66, 14, 22, INK); box(g, dx - 6, d3 - 65, 12, 21, S[3]); box(g, dx - 6, d3 - 65, 4, 21, S[4]); for (let x = dx - 4; x < dx + 6; x += 4) box(g, x, d3 - 60, 2, 10, S[0]);
+      g.fillStyle = Dk[3]; g.beginPath(); g.ellipse(dx, d3 - 66, 8, 7, 0, Math.PI, 0); g.fill();
+      box(g, dx - 1, d3 - 82, 2, 10, T('#C8A040')); g.fillStyle = T('#E8C050'); g.beginPath(); g.arc(dx, d3 - 84, 3, 0, Math.PI * 2); g.fill();
+      // (office blocks: grids of windows, lit after dark)
+      for (const [ox, ow, oh] of [[360, 50, 130], [410, 38, 96], [560, 44, 150], [740, 40, 110], [880, 56, 140]] as const) {
+        box(g, ox - 1, foot - oh - 1, ow + 2, oh + 1, INK); box(g, ox, foot - oh, ow, oh, Dk[2]); box(g, ox, foot - oh, 8, oh, Dk[3]); box(g, ox + ow - 6, foot - oh, 6, oh, Dk[1]);
+        for (let y = foot - oh + 6; y < foot - 8; y += 8) for (let x = ox + 4; x < ox + ow - 4; x += 6) box(g, x, y, 3, 4, lamps && hash(x * 0.7 + y) > 0.45 ? '#FFD88A' : hash(x + y * 0.3) > 0.5 ? Gl[3] : Dk[1]);
+        box(g, ox - 1, foot - oh - 3, ow + 2, 3, Dk[4]);
+      }
+      // (a tower crane over it all: the lattice mast, the jib and its counterweight, the cab; a red light on top)
+      const cx = 930, ct = foot - 250;
+      box(g, cx - 3, ct, 6, foot - ct, INK); for (let y = ct; y < foot; y += 6) { box(g, cx - 2, y, 4, 1, T('#E8C040')); box(g, cx - 2, y, 1, 6, T('#C8A030')); }
+      box(g, cx - 120, ct - 4, 160, 4, INK); for (let x = cx - 118; x < cx + 38; x += 6) box(g, x, ct - 3, 4, 2, T('#E8C040'));
+      box(g, cx + 22, ct, 16, 10, T('#5A5A60')); box(g, cx - 6, ct + 2, 10, 8, T('#E8C040'));
+      g.strokeStyle = T('#8A8A90'); g.lineWidth = 1; g.beginPath(); g.moveTo(cx, ct - 18); g.lineTo(cx - 118, ct - 3); g.moveTo(cx, ct - 18); g.lineTo(cx + 36, ct - 3); g.moveTo(cx - 80, ct); g.lineTo(cx - 80, ct + 60); g.stroke();
+      box(g, cx - 1, ct - 20, 2, 18, T('#C8A030')); if (lamps) box(g, cx - 2, ct - 23, 4, 3, '#EF4444');
+      // (the terraces along the foot: brick and stucco, their chimney pots, lit windows after dark)
+      for (let i = 0; i < 30; i++) {
+        const x = i * 33 - 8, bh = 22 + hash(i * 4.1) * 16, col = i % 3 === 1 ? Wt : Br;
+        box(g, x - 1, foot - bh - 1, 32, bh + 1, INK); box(g, x, foot - bh, 30, bh, col[2]); box(g, x, foot - bh, 4, bh, col[3]);
+        poly(g, [[x - 1, foot - bh], [x + 4, foot - bh - 8], [x + 26, foot - bh - 8], [x + 31, foot - bh]], Dk[2]);
+        box(g, x + 22, foot - bh - 14, 6, 7, Br[1]); for (let k = 0; k < 3; k++) box(g, x + 22 + k * 2, foot - bh - 17, 1, 3, T('#B8683E'));
+        for (let k = 0; k < 3; k++) box(g, x + 4 + k * 8, foot - bh + 6, 4, 6, lamps && hash(i * 3 + k) > 0.4 ? '#FFD88A' : Gl[1]);
+      }
+      // (the wheel's A-frame, leaning back from its hub to the bank; its hub's housing)
+      const hx = 250, hy = foot - 196;
+      for (const [lx, sh] of [[hx - 150, Wt[3]], [hx - 110, Wt[2]]] as const) {
+        g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(hx, hy); g.lineTo(lx, foot); g.stroke();
+        g.strokeStyle = sh; g.lineWidth = 5; g.beginPath(); g.moveTo(hx, hy); g.lineTo(lx, foot); g.stroke();
+        g.strokeStyle = Wt[4]; g.lineWidth = 1; g.beginPath(); g.moveTo(hx - 1, hy); g.lineTo(lx - 2, foot); g.stroke();
+      }
+      g.strokeStyle = Wt[1]; g.lineWidth = 1; g.beginPath(); for (let k = 1; k < 6; k++) { const t = k / 6; g.moveTo(hx - 150 * t, hy + (foot - hy) * t); g.lineTo(hx - 110 * t, hy + (foot - hy) * t); } g.moveTo(hx, hy); g.lineTo(hx + 120, foot); g.stroke();
+      box(g, hx - 160, foot - 8, 64, 8, S[1]); box(g, hx - 160, foot - 8, 64, 2, S[3]);
+      mist(g, w, foot - 50, 50, haze, 0, 0.3, 4);
+      bandedGradient(g, 0, foot - 2, w, h - foot + 2, [T('#7A8070'), T('#6A7060')], 2);
+    },
+    live: (c, x0, top, f, T) => {
+      // (the wheel: the rim's two rings and the truss between them, the cables to the hub, the pods round the outside
+      // (lit after dark), the hub)
+      const R = 176, cx = x0 + 250, cy = top + 420 - 14 - 196, a0 = f * 0.0015, lamps = timeOfDay().lamps > 0.3;
+      const rim = T('#E8ECEF'), rimD = T('#A8B0B8'), cable = T('#9CA3AF'), pod = T(lamps ? '#FFE8A8' : '#BFDBFE'), podD = T('#7A8A9A');
+      c.strokeStyle = cable; c.lineWidth = 1; c.beginPath();
+      for (let k = 0; k < 32; k++) { const a = a0 + (k / 32) * Math.PI * 2; c.moveTo(cx, cy); c.lineTo(cx + Math.cos(a) * (R - 10), cy + Math.sin(a) * (R - 10)); }
+      c.stroke();
+      c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = rim; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = rimD; c.lineWidth = 2; c.beginPath(); c.arc(cx, cy, R - 10, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = rimD; c.lineWidth = 1; c.beginPath();
+      for (let k = 0; k < 64; k++) { const a = a0 + (k / 64) * Math.PI * 2, b = a0 + ((k + 1) / 64) * Math.PI * 2; c.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); c.lineTo(cx + Math.cos(b) * (R - 10), cy + Math.sin(b) * (R - 10)); }
+      c.stroke();
+      for (let k = 0; k < 32; k++) {
+        const a = a0 + (k / 32) * Math.PI * 2, px = cx + Math.cos(a) * (R + 8), py = cy + Math.sin(a) * (R + 8);
+        c.fillStyle = INK; c.beginPath(); c.ellipse(px, py, 7, 4.5, a + Math.PI / 2, 0, Math.PI * 2); c.fill();
+        c.fillStyle = podD; c.beginPath(); c.ellipse(px, py, 6, 3.5, a + Math.PI / 2, 0, Math.PI * 2); c.fill();
+        c.fillStyle = pod; c.beginPath(); c.ellipse(px - 1, py - 1, 4, 2.2, a + Math.PI / 2, 0, Math.PI * 2); c.fill();
+      }
+      c.fillStyle = INK; c.beginPath(); c.arc(cx, cy, 13, 0, Math.PI * 2); c.fill();
+      c.fillStyle = T('#8A9098'); c.beginPath(); c.arc(cx, cy, 12, 0, Math.PI * 2); c.fill();
+      c.fillStyle = T('#C8CCD2'); c.beginPath(); c.arc(cx - 3, cy - 3, 6, 0, Math.PI * 2); c.fill();
+    },
+  },
   mexico: {
     // (NO volcano (the user: we have enough volcanoes): desert mesas, flat-topped and banded, a far one in the haze
     // behind, and a row of giant plywood saguaros along the foot, on its sand)
@@ -582,18 +691,6 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
 
 /** Each pavilion's far landmark, painted about (0, horizon) (its middle at x 0), tinted far. */
 const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => void>> = {
-  uk: (c, hz, f) => {
-    // (a giant Ferris wheel (London Eye-ish), far, turning slowly: the rim, its spokes, the pods round it, the A-frame leg)
-    const R = 150, cy = hz - 175, a0 = f * 0.0015, rim = farTint('#E5E7EB', 0.5), sp = farTint('#9CA3AF', 0.55);
-    poly(c, [[-6, cy], [-70, hz], [-56, hz], [0, cy + 10]], farTint('#6B7280', 0.55));
-    c.strokeStyle = sp; c.lineWidth = 1.5; c.beginPath();
-    for (let k = 0; k < 16; k++) { const a = a0 + (k / 16) * Math.PI * 2; c.moveTo(0, cy); c.lineTo(Math.cos(a) * R, cy + Math.sin(a) * R); }
-    c.stroke();
-    c.strokeStyle = rim; c.lineWidth = 5; c.beginPath(); c.arc(0, cy, R, 0, Math.PI * 2); c.stroke();
-    c.lineWidth = 2; c.beginPath(); c.arc(0, cy, R - 10, 0, Math.PI * 2); c.stroke();
-    for (let k = 0; k < 16; k++) { const a = a0 + (k / 16) * Math.PI * 2; c.fillStyle = farTint('#BFDBFE', 0.5); c.beginPath(); c.ellipse(Math.cos(a) * (R + 8), cy + Math.sin(a) * (R + 8), 9, 6, a, 0, Math.PI * 2); c.fill(); }
-    c.fillStyle = farTint('#6B7280', 0.55); c.beginPath(); c.arc(0, cy, 10, 0, Math.PI * 2); c.fill();
-  },
   canada: (c, hz) => {
     poly(c, [[-400, hz], [-240, hz - 260], [-120, hz - 150], [20, hz - 300], [160, hz - 170], [300, hz - 240], [420, hz]], farTint('#334155', 0.6));
     for (const [x, y] of [[-240, -260], [20, -300], [300, -240]] as const) poly(c, [[x - 40, hz + y + 50], [x, hz + y], [x + 40, hz + y + 50]], farTint('#F8FAFC', 0.5));
