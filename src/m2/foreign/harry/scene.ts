@@ -163,6 +163,8 @@ export interface SceneState {
   aftermath: { crumbled: boolean; him: ((c: Ctx) => void) | null; outline: boolean } | null;
 }
 
+/** The pavilion's sign on the way in: well left of the gate's tower (X(640)), its board's whole width clear of it. */
+const SIGN_X = 440;
 export const drawScene = (c: Ctx, state: GameState, S: SceneState) => {
   const v = viewIn(state), f = state.frame;
   if (S.between) S.between(c);
@@ -170,7 +172,7 @@ export const drawScene = (c: Ctx, state: GameState, S: SceneState) => {
   floor(c, state);
   if (onScreen(v, WRECK_X - 200, WRECK_X + 200)) crash(c, f);
   // (the pavilion's sign, on the way in, clear of everything)
-  if (onScreen(v, X(560) - 120, X(560) + 120)) postBoard(c, X(560), GY, ['AMERICA', 'THE ONLY COUNTRY', 'COMING SOON'], LOOKS.land(2), '#1E3A8A', undefined, 140);
+  if (onScreen(v, X(SIGN_X) - 160, X(SIGN_X) + 160)) postBoard(c, X(SIGN_X), GY, ['AMERICA', 'THE ONLY COUNTRY', 'COMING SOON'], LOOKS.land(2), '#1E3A8A', undefined, 140);
   if (onScreen(v, VIEW_X - 60, VIEW_X + 860)) {
     tower(c, ARENA_L - WALL_W, -1, S.shut ? 'shut' : 'open', f);
     tower(c, ARENA_R, 1, 'none', f);
