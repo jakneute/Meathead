@@ -303,7 +303,7 @@ const drawFloor = (c: Ctx, cam: Cam, f: number, dead: boolean[], mul: number[], 
   if (typeof document === 'undefined') return;
   if (!floorCanvas) { floorCanvas = document.createElement('canvas'); floorCanvas.width = FW; floorCanvas.height = FH; floorImg = floorCanvas.getContext('2d')!.createImageData(FW, FH); }
   const tod = timeOfDay(), f6 = Math.floor(f / 6);
-  const key = [cam.phi.toFixed(5), cam.hc.toFixed(2), cam.F.toFixed(2), cam.ppx.toFixed(1), cam.ppy.toFixed(1), tod.key, f6, dead.map(d => (d ? 1 : 0)).join(''), segs.map(s => `${Math.round(s.bx)},${Math.round(s.bz)}`).join(';')].join('|');
+  const key = [cam.phi.toFixed(5), cam.hc.toFixed(2), cam.F.toFixed(2), cam.ppx.toFixed(1), cam.ppy.toFixed(1), tod.key, f6, dead.map(d => (d ? 1 : 0)).join(''), segs.map(s => `${Math.round(s.bx / 24)},${Math.round(s.bz / 24)}`).join(';')].join('|');
   if (key !== floorKey) {
     floorKey = key;
     const d = floorImg!.data;
@@ -980,14 +980,18 @@ export const fireLamps = (state: GameState) => {
 
 /** The lot (screen space, under the world): sky, far lands, the floor, the park's buildings, trees, guests and the
  *  landmarks out on the circuit, back to front; the clouds over it. `alpha`: faded in over the streets (the lift). */
+/** The pull the park's held at while a landmark's pull back is on (it goes to 0.87 at the most: mechs.ts). */
+const PULL_REF = 0.86;
 export const drawPark = (c: Ctx, state: GameState, alpha = 1) => {
   const h = heliOf(state), f = state.frame, tod = timeOfDay(), mul = rgbOf(tod.mul);
   if (alpha <= 0) return;
-  // (a punch in (the kick): the pull is only a scale about its point, so the park's drawn with the camera unpulled
-  // (every still it's got stays good: the floor, the pavilions) and the lot scaled up, the SNES's way, instead of
-  // everything painted afresh at every step of the zoom)
-  const punch = h.pull > 1.001, cam = camOf(punch ? { ...h, pull: 1 } : h);
-  if (punch) { c.save(); c.translate(h.pullX * (1 - h.pull), h.pullY * (1 - h.pull)); c.scale(h.pull, h.pull); }
+  // (a zoom (the kick's punch in, the pull back as a landmark stomps in): the pull is only a scale about its point, so
+  // the park's drawn with the camera held at one pull (unpulled for a punch in; pulled back a touch past the most a
+  // landmark takes it for a pull back, so it always covers the screen) and the lot scaled to the pull, the SNES's way:
+  // every still it's got (the floor, the pavilions) stays good instead of everything painted afresh every frame)
+  const kref = h.pull > 1.001 ? 1 : h.pull < 0.999 ? Math.min(h.pull, PULL_REF) : h.pull;
+  const punch = Math.abs(h.pull - kref) > 0.0005, cam = camOf(punch ? { ...h, pull: kref } : h);
+  if (punch) { const s = h.pull / kref; c.save(); c.translate(h.pullX * (1 - s), h.pullY * (1 - s)); c.scale(s, s); }
   if (alpha < 1) c.globalAlpha = alpha;
   void hourMix;
   drawSky(c, cam, f, horizonOf(cam));
