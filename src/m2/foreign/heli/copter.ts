@@ -22,6 +22,7 @@ import { meatheadSays } from '../section';
 import { heliOf, type Heli } from './state';
 import { CAMX, CY, W, H, FLY_SPEED, FLY_ACCEL, FEET_X0, FEET_X1, FEET_Y0, FEET_Y1 } from './geo';
 import { drawBoom } from './mechArt';
+import { checker } from '../../intro/art/kit';
 import { mechAim, hitMech, hitMinions, chopLions, type Rect } from './mechs';
 import { MH_SHRED } from './lines';
 import { shredGoon, tickShred, drawShred, drawRotorSmear, drawShieldSplat } from './shred';
@@ -268,75 +269,142 @@ export const drawCopter = (c: Ctx, part: 'back' | 'front', px: number, py: numbe
   if (o.ghost) c.globalAlpha = 0.5;
   const fl = (col: string, path: () => void, line = 1.6) => { c.beginPath(); path(); c.fillStyle = col; c.fill(); c.strokeStyle = INK; c.lineWidth = line; c.lineJoin = 'round'; c.stroke(); };
   const r = (x: number, y: number, w: number, hh: number, col: string) => { c.fillStyle = col; c.fillRect(x, y, w, hh); };
+  const dot = (x: number, y: number, rr: number, col: string) => { c.fillStyle = col; c.beginPath(); c.arc(x, y, rr, 0, Math.PI * 2); c.fill(); };
+  /** Its white paint, in steps (highlight .. the underside), lit from the upper left. */
+  const WH = o.flash ? ['#FFFFFF', '#FFFFFF', '#FFFFFF', '#FFFFFF', '#FFFFFF'] : ['#FFFFFF', '#F2F4F8', '#D6DCE6', '#AAB4C4', '#7C889C'];
   if (part === 'back') {
-    // The tail boom, tapering, its stripe; the fin; the tail rotor spinning
-    fl('#E5E7EB', () => { c.moveTo(-50, -54); c.lineTo(-196, -48); c.lineTo(-196, -40); c.lineTo(-50, -32); c.closePath(); });
-    r(-190, -46, 140, 3, '#DC2626'); r(-190, -42, 140, 2, '#1D4ED8');
-    fl('#F8FAFC', () => { c.moveTo(-184, -46); c.lineTo(-206, -76); c.lineTo(-196, -76); c.lineTo(-176, -46); c.closePath(); });
-    fl('#F8FAFC', () => { c.moveTo(-190, -42); c.lineTo(-206, -26); c.lineTo(-198, -26); c.lineTo(-182, -42); c.closePath(); });
-    // (the peace sign on the fin)
-    c.strokeStyle = '#16A34A'; c.lineWidth = 1.4; c.beginPath(); c.arc(-196, -62, 5, 0, Math.PI * 2); c.moveTo(-196, -67); c.lineTo(-196, -57); c.moveTo(-196, -62); c.lineTo(-199.5, -58.5); c.moveTo(-196, -62); c.lineTo(-192.5, -58.5); c.stroke();
+    // The tail boom, tapering: lit along its top, shaded down to its belly in steps (dithered between), the stripes
+    // (lit along their tops), its rivets; the fin and the stabilizer, the tail skid; the tail rotor's blurred disc
+    const boom = () => { c.moveTo(-50, -54); c.lineTo(-196, -48); c.lineTo(-196, -40); c.lineTo(-50, -32); c.closePath(); };
+    fl(WH[1], boom);
+    c.save(); c.beginPath(); boom(); c.clip();
+    r(-200, -56, 152, 4, WH[0]); r(-200, -40, 152, 10, WH[2]); checker(c, -200, -42, 152, 2, WH[2], 0, 1); r(-200, -36, 152, 6, WH[3]);
+    r(-196, -47, 146, 3, '#DC2626'); r(-196, -47, 146, 1, '#F87171'); r(-196, -43, 146, 2, '#1D4ED8'); r(-196, -43, 146, 1, '#60A5FA');
+    for (let x = -186; x < -56; x += 12) r(x, -51 + (x + 186) * 0.03, 1, 1, WH[3]);
+    c.restore();
+    c.beginPath(); boom(); c.strokeStyle = INK; c.lineWidth = 1.6; c.stroke();
+    const fin = () => { c.moveTo(-184, -46); c.lineTo(-206, -76); c.lineTo(-196, -76); c.lineTo(-176, -46); c.closePath(); };
+    fl(WH[1], fin); c.save(); c.beginPath(); fin(); c.clip(); r(-210, -78, 12, 34, WH[0]); r(-192, -78, 20, 34, WH[2]); r(-200, -78, 8, 3, '#DC2626'); c.restore(); c.beginPath(); fin(); c.strokeStyle = INK; c.lineWidth = 1.6; c.stroke();
+    fl(WH[2], () => { c.moveTo(-190, -42); c.lineTo(-206, -26); c.lineTo(-198, -26); c.lineTo(-182, -42); c.closePath(); });
+    c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(-196, -27); c.lineTo(-200, -20); c.lineTo(-188, -20); c.stroke();
+    // (the peace sign on the fin: green on a white roundel)
+    dot(-196, -62, 6.5, '#FFFFFF');
+    c.strokeStyle = '#16A34A'; c.lineWidth = 1.6; c.beginPath(); c.arc(-196, -62, 5, 0, Math.PI * 2); c.moveTo(-196, -67); c.lineTo(-196, -57); c.moveTo(-196, -62); c.lineTo(-199.5, -58.5); c.moveTo(-196, -62); c.lineTo(-192.5, -58.5); c.stroke();
+    // (the tail rotor: its blur in two stepped rings, the blade, the hub)
     const tr = Math.cos(h.rotor * 2.3) * 16;
-    c.strokeStyle = 'rgba(30,30,30,0.35)'; c.lineWidth = 2; c.beginPath(); c.arc(-198, -46, 16, 0, Math.PI * 2); c.stroke();
+    c.fillStyle = 'rgba(40,40,48,0.12)'; c.beginPath(); c.arc(-198, -46, 17, 0, Math.PI * 2); c.fill();
+    c.fillStyle = 'rgba(40,40,48,0.14)'; c.beginPath(); c.arc(-198, -46, 11, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,0.35)'; c.lineWidth = 1; c.beginPath(); c.arc(-198, -46, 16, Math.PI * 1.1, Math.PI * 1.6); c.stroke();
     c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(-198, -46 - tr); c.lineTo(-198, -46 + tr); c.stroke();
-    // The cabin's shell: the back half solid, the inside dark; the seats
+    c.strokeStyle = '#A1A1AA'; c.lineWidth = 1; c.beginPath(); c.moveTo(-198.5, -46 - tr); c.lineTo(-198.5, -46 + tr); c.stroke();
+    dot(-198, -46, 3, '#52525B'); r(-199, -47, 1, 1, '#D4D4D8');
+    // The cabin's shell: white in steps (a lit band over the top, a lit edge up its left, shaded along its belly and
+    // darker under it, each seam dithered), the panel lines and rivets, the door and its handle
     const shell = () => { c.moveTo(-62, -60); c.quadraticCurveTo(-64, -84, -30, -86); c.lineTo(30, -86); c.quadraticCurveTo(58, -84, 72, -52); c.quadraticCurveTo(80, -24, 66, 2); c.lineTo(-56, 4); c.quadraticCurveTo(-66, -20, -62, -60); c.closePath(); };
-    fl(o.flash ? '#FFFFFF' : '#F8FAFC', shell);
-    // (lit from the upper left in steps: a shadow band along its belly, a darker one under it; a lit band over the top)
-    if (!o.flash) { c.save(); c.beginPath(); shell(); c.clip(); r(-70, -24, 160, 30, '#CBD5E1'); r(-70, -6, 160, 12, '#94A3B8'); r(-70, -86, 160, 6, '#FFFFFF'); r(-64, -86, 8, 90, '#E2E8F0'); c.restore(); c.beginPath(); shell(); c.strokeStyle = INK; c.lineWidth = 1.6; c.stroke(); }
-    // (the engine cowling on its roof, its exhaust, panel lines and rivets)
-    fl('#E2E8F0', () => c.roundRect(-44, -96, 66, 12, 4), 1.4);
-    r(-40, -94, 58, 2, '#FFFFFF'); r(-40, -88, 58, 2, '#94A3B8');
-    fl('#3F3F46', () => c.rect(-52, -94, 10, 7), 1.2);
-    c.strokeStyle = 'rgba(30,41,59,0.45)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-40, -84); c.lineTo(-40, 2); c.moveTo(-14, -86); c.lineTo(-14, 3); c.stroke();
-    for (let x = -54; x < 60; x += 8) r(x, -26, 1.5, 1.5, '#64748B');
+    fl(WH[1], shell);
+    if (!o.flash) {
+      c.save(); c.beginPath(); shell(); c.clip();
+      r(-70, -86, 160, 6, WH[0]); checker(c, -70, -80, 160, 2, WH[0], 0, 1);
+      r(-64, -86, 8, 90, WH[0]); checker(c, -56, -86, 2, 90, WH[0], 0, 1);
+      r(-70, -24, 160, 30, WH[2]); checker(c, -70, -26, 160, 2, WH[2], 1, 1);
+      r(-70, -6, 160, 12, WH[3]); checker(c, -70, -8, 160, 2, WH[3], 0, 1);
+      r(-70, 0, 160, 6, WH[4]);
+      c.restore();
+      c.beginPath(); shell(); c.strokeStyle = INK; c.lineWidth = 1.6; c.stroke();
+    }
+    // (the engine cowling on its roof: stepped, its intake grille, the exhaust and its heat; the panel lines and rivets)
+    fl(WH[1], () => c.roundRect(-44, -96, 66, 12, 4), 1.4);
+    r(-40, -94, 58, 2, WH[0]); r(-40, -88, 58, 3, WH[3]); r(-40, -90, 58, 2, WH[2]);
+    for (let x = 4; x < 18; x += 3) r(x, -93, 1, 5, '#475569');
+    fl('#3F3F46', () => c.rect(-52, -94, 10, 7), 1.2); r(-51, -93, 8, 2, '#71717A'); r(-51, -89, 8, 1, '#18181B');
+    for (let k = 0; k < 3; k++) { const ph = ((f * 0.8 + k * 10) % 30) / 30; c.globalAlpha = 0.35 * (1 - ph); dot(-56 - ph * 26, -91 - ph * 6 + Math.sin(f * 0.3 + k) * 2, 3 + ph * 6, '#A1A1AA'); }
+    c.globalAlpha = 1;
+    c.strokeStyle = 'rgba(30,41,59,0.45)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-40, -84); c.lineTo(-40, 2); c.moveTo(-14, -86); c.lineTo(-14, 3); c.moveTo(-60, -40); c.lineTo(-40, -40); c.stroke();
+    for (let x = -54; x < 60; x += 8) { r(x, -26, 1.5, 1.5, '#64748B'); r(x, -27, 1, 1, '#FFFFFF'); }
+    for (let y = -78; y < 0; y += 10) r(-39, y, 1.5, 1.5, '#64748B');
+    // (inside: dark in steps, the bulkhead, the seats (red vinyl: lit on top, their seams), the belts)
     fl('#334155', () => { c.moveTo(-48, -70); c.lineTo(52, -74); c.quadraticCurveTo(66, -50, 62, -6); c.lineTo(-48, -4); c.closePath(); }, 1);
+    r(-46, -68, 96, 6, '#475569'); r(-48, -30, 110, 14, '#273449');
     r(-48, -16, 110, 12, '#1E293B');
-    for (const sx of [-26, 28]) { fl('#7F1D1D', () => c.roundRect(sx - 18, -50, 10, 46, 3), 1.2); fl('#991B1B', () => c.roundRect(sx - 14, -10, 26, 8, 2), 1.2); }
-    // (the instrument panel up front, a cup holder, a dashboard hula girl? no: a dashboard peace-sign bobblehead)
+    for (const sx of [-26, 28]) {
+      fl('#7F1D1D', () => c.roundRect(sx - 18, -50, 10, 46, 3), 1.2); r(sx - 17, -49, 3, 42, '#B91C1C'); r(sx - 17, -49, 8, 2, '#DC2626'); r(sx - 13, -30, 4, 1, '#450A0A');
+      fl('#991B1B', () => c.roundRect(sx - 14, -10, 26, 8, 2), 1.2); r(sx - 13, -9, 24, 2, '#DC2626'); r(sx - 13, -4, 24, 1, '#450A0A');
+      r(sx - 9, -46, 1.5, 38, '#18181B'); r(sx - 9, -24, 3, 3, '#A1A1AA');
+    }
+    // (the instrument panel up front: its gauges, the screen glowing, warning lamps; a dashboard peace-sign bobblehead)
     fl('#18181B', () => { c.moveTo(48, -30); c.lineTo(66, -36); c.lineTo(66, -16); c.lineTo(50, -14); c.closePath(); }, 1);
-    for (let i = 0; i < 3; i++) r(54 + (i % 2) * 6, -32 + i * 5, 4, 3, i === 1 ? '#22C55E' : '#FDE047');
-    // (the stripes along its belly, the ride's name on the side)
-    r(-56, -12, 124, 4, '#DC2626'); r(-56, -7, 124, 3, '#1D4ED8');
-    c.font = '5px "Press Start 2P"'; c.fillStyle = '#1D4ED8'; c.fillText('HELICOPTER RIDES', -54, -20);
+    r(49, -29, 16, 1, '#3F3F46');
+    for (const [gx, gy] of [[54, -27], [61, -29]]) { dot(gx, gy, 2.6, '#F8FAFC'); dot(gx, gy, 1.8, '#1E293B'); r(gx, gy - 2, 1, 2, '#F97316'); }
+    r(52, -22, 9, 5, '#14532D'); r(53, -21, 7, 3, (f >> 4) % 2 ? '#22C55E' : '#16A34A'); r(53, -21, 2, 1, '#BBF7D0');
+    for (let i = 0; i < 3; i++) r(62, -24 + i * 3, 2, 2, i === 1 && (f >> 3) % 2 ? '#EF4444' : i === 1 ? '#7F1D1D' : '#FDE047');
+    { const bob = Math.sin(f * 0.3) * 1.5; c.strokeStyle = '#A1A1AA'; c.lineWidth = 1; c.beginPath(); c.moveTo(58, -36); c.lineTo(58 + bob, -40); c.stroke(); dot(58 + bob, -42, 3, '#16A34A'); dot(57.5 + bob, -42.5, 1.8, '#4ADE80'); r(57.5 + bob, -44, 1, 4, '#F8FAFC'); }
+    // (the stripes along its belly (lit along their tops), the ride's name on the side)
+    r(-56, -12, 124, 4, '#DC2626'); r(-56, -12, 124, 1, '#F87171'); r(-56, -9, 124, 1, '#991B1B');
+    r(-56, -7, 124, 3, '#1D4ED8'); r(-56, -7, 124, 1, '#60A5FA'); r(-56, -5, 124, 1, '#1E3A8A');
+    c.font = '5px "Press Start 2P"'; c.fillStyle = '#1E3A8A'; c.fillText('HELICOPTER RIDES', -53, -19); c.fillStyle = '#2563EB'; c.fillText('HELICOPTER RIDES', -54, -20);
   } else {
-    // The pillar between the seats, the door frame, the glass bubble (the light on it), the skids, the mast, the rotor
-    r(1, -84, 5, 86, '#CBD5E1'); c.strokeStyle = INK; c.lineWidth = 1.2; c.strokeRect(1, -84, 5, 86);
-    c.fillStyle = 'rgba(186, 230, 253, 0.22)';
-    c.beginPath(); c.moveTo(6, -86); c.lineTo(30, -86); c.quadraticCurveTo(58, -84, 72, -52); c.quadraticCurveTo(80, -24, 66, 2); c.lineTo(52, 2); c.quadraticCurveTo(60, -40, 6, -78); c.closePath(); c.fill();
+    // The pillar between the seats (stepped), the glass bubble (the sky in it in bands, its glints, the frame), the
+    // door, the chin gun, the skids, the mast and its swashplate, the rotor
+    r(1, -84, 5, 86, WH[2]); r(1, -84, 2, 86, WH[1]); r(5, -84, 1, 86, WH[3]); c.strokeStyle = INK; c.lineWidth = 1.2; c.strokeRect(1, -84, 5, 86);
+    const glass = () => { c.moveTo(6, -86); c.lineTo(30, -86); c.quadraticCurveTo(58, -84, 72, -52); c.quadraticCurveTo(80, -24, 66, 2); c.lineTo(52, 2); c.quadraticCurveTo(60, -40, 6, -78); c.closePath(); };
+    c.fillStyle = 'rgba(186, 230, 253, 0.2)'; c.beginPath(); glass(); c.fill();
+    c.save(); c.beginPath(); glass(); c.clip();
+    c.fillStyle = 'rgba(224, 242, 254, 0.32)'; c.fillRect(0, -90, 90, 16);
+    c.fillStyle = 'rgba(186, 230, 253, 0.16)'; c.fillRect(0, -74, 90, 14);
+    c.fillStyle = 'rgba(30, 58, 95, 0.18)'; c.fillRect(0, -18, 90, 22);
+    c.restore();
     c.strokeStyle = INK; c.lineWidth = 1.6; c.beginPath(); c.moveTo(30, -86); c.quadraticCurveTo(58, -84, 72, -52); c.quadraticCurveTo(80, -24, 66, 2); c.stroke();
-    c.strokeStyle = 'rgba(255,255,255,0.75)'; c.lineWidth = 2; c.beginPath(); c.moveTo(38, -80); c.quadraticCurveTo(58, -74, 64, -56); c.stroke();
-    c.beginPath(); c.moveTo(68, -40); c.lineTo(69, -30); c.stroke();
+    c.strokeStyle = WH[2]; c.lineWidth = 1; c.beginPath(); c.moveTo(29, -85); c.quadraticCurveTo(56, -83, 70, -52); c.stroke();
+    c.strokeStyle = 'rgba(255,255,255,0.8)'; c.lineWidth = 2; c.beginPath(); c.moveTo(38, -80); c.quadraticCurveTo(58, -74, 64, -56); c.stroke();
+    c.lineWidth = 1; c.beginPath(); c.moveTo(42, -76); c.quadraticCurveTo(56, -70, 60, -58); c.stroke();
+    c.lineWidth = 2; c.beginPath(); c.moveTo(68, -40); c.lineTo(69, -30); c.stroke();
+    r(66, -38, 2, 2, '#FFFFFF');
     // (the door: open on Harry's side when he's shoved out)
-    if (o.harryDoor) { fl('#F8FAFC', () => { c.moveTo(66, -70); c.lineTo(96, -64); c.lineTo(94, -14); c.lineTo(66, -10); c.closePath(); }, 1.2); }
-    // (the chin gun)
-    fl('#3F3F46', () => c.rect(56, -16, 22, 6), 1.2);
-    // skids
-    c.strokeStyle = INK; c.lineWidth = 3;
+    if (o.harryDoor) { fl(WH[1], () => { c.moveTo(66, -70); c.lineTo(96, -64); c.lineTo(94, -14); c.lineTo(66, -10); c.closePath(); }, 1.2); r(68, -62, 24, 30, 'rgba(186,230,253,0.35)'); r(88, -40, 4, 2, '#52525B'); r(68, -24, 24, 6, WH[3]); }
+    // (the chin gun: the barrel in steps, its muzzle, the ammo box)
+    fl('#3F3F46', () => c.rect(56, -16, 22, 6), 1.2); r(57, -15, 20, 2, '#71717A'); r(57, -12, 20, 1, '#18181B');
+    fl('#27272A', () => c.rect(76, -17, 4, 8), 1); fl('#4D5B2A', () => c.rect(52, -12, 8, 7), 1); r(53, -11, 6, 2, '#6B7E3A');
+    // skids: the struts (lit up their front), the skid tubes (lit along the top, dark under), the front curl
+    c.strokeStyle = INK; c.lineWidth = 3.4;
     c.beginPath(); c.moveTo(-36, 2); c.lineTo(-40, 18); c.moveTo(40, 2); c.lineTo(44, 18); c.stroke();
-    c.lineWidth = 4; c.beginPath(); c.moveTo(-60, 18); c.lineTo(60, 18); c.quadraticCurveTo(72, 18, 74, 10); c.stroke();
-    c.strokeStyle = '#9CA3AF'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-58, 17); c.lineTo(58, 17); c.stroke();
-    // (the mast)
-    fl('#52525B', () => c.rect(-4, -98, 10, 14), 1.2);
-    // (the rotor: its disc a blur, two blades foreshortened as it turns)
-    // (its disc a blur, in two bands)
-    c.fillStyle = 'rgba(40, 40, 40, 0.12)'; c.beginPath(); c.ellipse(1, -99, 162, 8, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = 'rgba(40, 40, 40, 0.12)'; c.beginPath(); c.ellipse(1, -99, 110, 5, 0, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = '#A1A1AA'; c.lineWidth = 1; c.beginPath(); c.moveTo(-37, 3); c.lineTo(-41, 17); c.moveTo(39, 3); c.lineTo(43, 17); c.stroke();
+    c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(-60, 18); c.lineTo(60, 18); c.quadraticCurveTo(72, 18, 74, 10); c.stroke();
+    c.strokeStyle = '#71717A'; c.lineWidth = 2.5; c.stroke();
+    c.strokeStyle = '#D4D4D8'; c.lineWidth = 1; c.beginPath(); c.moveTo(-58, 17); c.lineTo(58, 17); c.quadraticCurveTo(70, 17, 72, 11); c.stroke();
+    // (the mast: stepped, the swashplate, its links)
+    fl('#52525B', () => c.rect(-4, -98, 10, 14), 1.2); r(-3, -97, 3, 12, '#A1A1AA'); r(4, -97, 1, 12, '#27272A');
+    fl('#71717A', () => c.ellipse(1, -90, 9, 2.5, 0, 0, Math.PI * 2), 1); r(-6, -91, 6, 1, '#D4D4D8');
+    // (the rotor: its blur banded in three stepped rings (no smooth fade), the tip path's rim catching the light, the
+    // two blades foreshortened as it turns (dark, a lit edge, the yellow tip caps))
+    c.fillStyle = 'rgba(40, 40, 48, 0.09)'; c.beginPath(); c.ellipse(1, -99, 162, 8, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = 'rgba(40, 40, 48, 0.1)'; c.beginPath(); c.ellipse(1, -99, 128, 6.5, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = 'rgba(40, 40, 48, 0.12)'; c.beginPath(); c.ellipse(1, -99, 86, 4.5, 0, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = 'rgba(255, 255, 255, 0.28)'; c.lineWidth = 1; c.beginPath(); c.ellipse(1, -99, 161, 7.5, 0, Math.PI, Math.PI * 1.9); c.stroke();
+    c.strokeStyle = 'rgba(250, 204, 21, 0.3)'; c.lineWidth = 1; c.beginPath(); c.ellipse(1, -99, 158, 7.2, 0, 0.1, Math.PI - 0.1); c.stroke();
     for (const k of [0, Math.PI / 2]) {
       const L = Math.cos(h.rotor + k) * 160;
       c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(1 - L, -99); c.lineTo(1 + L, -99); c.stroke();
-      c.strokeStyle = '#71717A'; c.lineWidth = 2; c.beginPath(); c.moveTo(1 - L, -99.5); c.lineTo(1 + L, -99.5); c.stroke();
+      c.strokeStyle = '#52525B'; c.lineWidth = 2; c.beginPath(); c.moveTo(1 - L, -99.5); c.lineTo(1 + L, -99.5); c.stroke();
+      c.strokeStyle = '#A1A1AA'; c.lineWidth = 1; c.beginPath(); c.moveTo(1 - L, -100.5); c.lineTo(1 + L, -100.5); c.stroke();
+      // (the tip caps: the last 8 px of each blade's end, yellow)
+      if (Math.abs(L) > 20) for (const s of [-1, 1]) { const e = 1 + s * L; c.fillStyle = '#FACC15'; c.fillRect(Math.round(Math.min(e, e - Math.sign(s * L) * 8)), -101, 8, 3); }
     }
     // (red off the last one through it, and the splatter on the glass)
     drawRotorSmear(c, f, h.rotor);
     drawShieldSplat(c, f, h.tilt + h.flip * Math.PI);
-    fl('#A1A1AA', () => c.arc(1, -99, 5, 0, Math.PI * 2), 1.2);
-    // (its lights: a red one under the tail, a green one on the nose, a white strobe on the roof, blinking)
-    if ((f >> 3) % 4 === 0) { c.fillStyle = '#EF4444'; c.beginPath(); c.arc(-60, 6, 3, 0, Math.PI * 2); c.fill(); }
-    if ((f >> 3) % 4 === 2) { c.fillStyle = '#4ADE80'; c.beginPath(); c.arc(70, 0, 3, 0, Math.PI * 2); c.fill(); }
-    if (f % 40 < 3) { c.globalAlpha = 0.8; c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(-10, -100, 6, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
-    // (hit: smoking, sparking; dying: on fire)
-    if (o.burning) for (let i = 0; i < 5; i++) { c.fillStyle = i % 2 ? '#F97316' : '#FDE047'; c.beginPath(); c.arc(-40 + i * 9 + Math.sin(f * 0.5 + i) * 3, -80 - ((f * 3 + i * 7) % 26), 7 - (i % 3), 0, Math.PI * 2); c.fill(); }
+    fl('#A1A1AA', () => c.arc(1, -99, 5, 0, Math.PI * 2), 1.2); dot(0, -100, 2, '#E4E4E7');
+    // (its lights: a red one under the tail, a green one on the nose, a white strobe on the roof, blinking; each in its
+    // stepped glow)
+    const lamp = (x: number, y: number, col: string, glow: string) => { c.globalAlpha = 0.2; dot(x, y, 9, glow); c.globalAlpha = 0.4; dot(x, y, 5.5, glow); c.globalAlpha = 1; dot(x, y, 3, col); r(x - 1, y - 2, 1, 1, '#FFFFFF'); };
+    if ((f >> 3) % 4 === 0) lamp(-60, 6, '#EF4444', '#F87171');
+    if ((f >> 3) % 4 === 2) lamp(70, 0, '#4ADE80', '#86EFAC');
+    if (f % 40 < 3) { c.globalAlpha = 0.3; dot(-10, -100, 14, '#FFFFFF'); c.globalAlpha = 0.85; dot(-10, -100, 6, '#FFFFFF'); c.globalAlpha = 1; }
+    // (hit: smoking, sparking; dying: on fire (banded tongues, the smoke rolling off it))
+    if (o.burning) {
+      for (let i = 0; i < 4; i++) { const ph = ((f * 1.5 + i * 22) % 60) / 60; c.globalAlpha = 0.5 * (1 - ph); dot(-30 + i * 12 - ph * 30, -90 - ph * 40, 6 + ph * 12, i % 2 ? '#3F3F46' : '#52525B'); }
+      c.globalAlpha = 1;
+      for (let i = 0; i < 5; i++) { const x = -40 + i * 9 + Math.sin(f * 0.5 + i) * 3, y = -80 - ((f * 3 + i * 7) % 26), rr = 7 - (i % 3); dot(x, y, rr + 1.5, '#B91C1C'); dot(x, y, rr, i % 2 ? '#F97316' : '#FDE047'); dot(x - 1, y - 1, rr * 0.4, '#FFFBEB'); }
+    }
   }
   c.restore();
 };
@@ -345,12 +413,19 @@ export const drawCopter = (c: Ctx, part: 'back' | 'front', px: number, py: numbe
 export const drawRockets = (c: Ctx, state: GameState) => {
   const h = heliOf(state);
   for (const k of h.rockets) {
+    // (the rocket: its body in steps (lit along the top, shaded under), a red nose cone, the band, the fins; its
+    // exhaust banded (white-hot at the nozzle, yellow, orange), flickering)
     c.save(); c.translate(k.x, k.y); c.rotate(Math.atan2(k.vy, k.vx));
-    c.fillStyle = INK; c.fillRect(-12, -4, 22, 8);
-    c.fillStyle = '#E5E7EB'; c.fillRect(-11, -3, 18, 6); c.fillStyle = '#DC2626'; c.fillRect(5, -3, 5, 6);
-    c.fillStyle = '#9CA3AF'; c.fillRect(-11, 1, 18, 2);
-    c.fillStyle = '#3F3F46'; c.beginPath(); c.moveTo(-12, -4); c.lineTo(-16, -8); c.lineTo(-8, -4); c.moveTo(-12, 4); c.lineTo(-16, 8); c.lineTo(-8, 4); c.fill();
-    c.fillStyle = (k.t >> 1) % 2 ? '#FDE047' : '#F97316'; c.beginPath(); c.moveTo(-12, -3); c.lineTo(-22 - (k.t % 3) * 3, 0); c.lineTo(-12, 3); c.fill();
+    const fx = -22 - (k.t % 3) * 3;
+    c.fillStyle = '#F97316'; c.beginPath(); c.moveTo(-12, -4); c.lineTo(fx - 4, 0); c.lineTo(-12, 4); c.fill();
+    c.fillStyle = '#FDE047'; c.beginPath(); c.moveTo(-12, -2.5); c.lineTo(fx + 3, 0); c.lineTo(-12, 2.5); c.fill();
+    c.fillStyle = '#FFFBEB'; c.fillRect(-14, -1, 3, 2);
+    c.fillStyle = INK; c.fillRect(-12, -4, 22, 8); c.beginPath(); c.moveTo(9, -4); c.lineTo(15, 0); c.lineTo(9, 4); c.fill();
+    c.fillStyle = '#D4D4D8'; c.fillRect(-11, -3, 18, 6); c.fillStyle = '#F4F4F5'; c.fillRect(-11, -3, 18, 2); c.fillStyle = '#9CA3AF'; c.fillRect(-11, 1, 18, 2);
+    c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(7, -3); c.lineTo(13, 0); c.lineTo(7, 3); c.fill(); c.fillStyle = '#F87171'; c.fillRect(7, -3, 3, 1);
+    c.fillStyle = '#1D4ED8'; c.fillRect(-2, -3, 2, 6);
+    c.fillStyle = INK; c.beginPath(); c.moveTo(-13, -4); c.lineTo(-17, -9); c.lineTo(-7, -4); c.moveTo(-13, 4); c.lineTo(-17, 9); c.lineTo(-7, 4); c.fill();
+    c.fillStyle = '#52525B'; c.beginPath(); c.moveTo(-12, -4); c.lineTo(-15, -7.5); c.lineTo(-8, -4); c.moveTo(-12, 4); c.lineTo(-15, 7.5); c.lineTo(-8, 4); c.fill();
     c.restore();
   }
   for (const b of h.booms) drawBoom(c, b);

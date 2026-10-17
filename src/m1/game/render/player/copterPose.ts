@@ -52,10 +52,19 @@ export const drawCopterSeatPose = (ctx: Ctx, q: Seat, frame: number, pants: Ladd
   const sB = T(-8, -45), sF = T(6, -45);
   // (the controls: the collective at his far side, the cyclic between his knees, yanked back for an up boost)
   const stickTop: Pt = pilot ? (q.yank ? [9, -24] : [17 + jit, -22]) : [17, -20];
-  ctx.strokeStyle = '#18181B'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(16, -2); ctx.lineTo(stickTop[0], stickTop[1]); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(-14, -6); ctx.lineTo(-4, -16); ctx.stroke();
-  ctx.fillStyle = '#DC2626'; ctx.fillRect(stickTop[0] - 2, stickTop[1] - 3, 4, 3);
+  // (each a steel rod inked, lit along one edge; the cyclic's black grip, its trigger and red button; the collective's
+  // twist grip; the boot in its rubber at the cyclic's foot)
+  const rod = (x0: number, y0: number, x1: number, y1: number) => {
+    ctx.strokeStyle = '#1A0B06'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    ctx.strokeStyle = '#71717A'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(x0 - 0.6, y0); ctx.lineTo(x1 - 0.6, y1); ctx.stroke();
+  };
+  ctx.fillStyle = '#18181B'; ctx.beginPath(); ctx.ellipse(16, -2, 4, 1.8, 0, 0, Math.PI * 2); ctx.fill();
+  rod(16, -2, stickTop[0], stickTop[1]);
+  rod(-14, -6, -4, -16);
+  ctx.fillStyle = '#1A0B06'; ctx.fillRect(stickTop[0] - 3, stickTop[1] - 7, 6, 8); ctx.fillStyle = '#27272A'; ctx.fillRect(stickTop[0] - 2, stickTop[1] - 6, 4, 6); ctx.fillStyle = '#52525B'; ctx.fillRect(stickTop[0] - 2, stickTop[1] - 6, 1, 6);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(stickTop[0] - 1, stickTop[1] - 8, 3, 2); ctx.fillStyle = '#FCA5A5'; ctx.fillRect(stickTop[0] - 1, stickTop[1] - 8, 1, 1);
+  ctx.fillStyle = '#1A0B06'; ctx.fillRect(-6, -19, 5, 5); ctx.fillStyle = '#3F3F46'; ctx.fillRect(-5, -18, 3, 3);
   // (the far arm: the collective, or crossed over his chest; hanging, up toward the roof)
   const fB = reach(sB, hang ? [-10, -62] : pilot ? [-4, -16] : T(8, -30));
   drawArmTo(ctx, sB, elbow(sB, fB, pilot), fB, true);

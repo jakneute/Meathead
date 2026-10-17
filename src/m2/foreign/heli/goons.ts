@@ -30,24 +30,65 @@ const pilots = new WeakMap<Enemy, Pilot>();
 // ---------------------------------------------------------------------------------------------------------------
 // The look: the ride's polo, khaki shorts, an aviator cap with goggles, the jetpack on their back
 
-const POLO = (s: number) => ['#1D4ED8', '#2563EB', '#1E40AF'][s % 3];
+/** The ride's polo (the crew's blues; the odd shift lead in the red one), their shorts (khaki, navy, olive). */
+const POLO = (s: number) => (s % 7 === 3 ? '#B91C1C' : ['#1D4ED8', '#2563EB', '#1E40AF', '#1E3A8A'][s % 4]);
+const SHORTS = (s: number) => ['#D6C29A', '#1E293B', '#C2B280', '#5A6234'][(s >> 2) % 4];
+/** Their caps (by seed): the leather aviator cap with its goggles up, the same with the goggles down over their eyes,
+ *  or the ride's navy ball cap and a headset. Leather in a few browns. */
+const LEATHER = [['#3A1E0C', '#78350F', '#A16207'], ['#2A1608', '#5A2E10', '#8A4A1A'], ['#4A2A14', '#92502A', '#C07A40']];
+const capOf = (s: number) => (s >> 1) % 3;
 const COSTUME: Costume = {
-  id: 'jetgoon', top: POLO, sleeveLen: 0.45, legs: '#D6C29A', shoe: 'sneaker', shoeCol: '#F8FAFC', bareBelow: true,
+  id: 'jetgoon', top: POLO, sleeveLen: 0.45, legs: SHORTS, shoe: 'sneaker', shoeCol: '#F8FAFC', bareBelow: true,
   back: (g, B) => {
-    // (the jetpack: two silver tanks, the straps)
+    // (the ride's EMERGENCY JETPACK: two tanks in steps (lit up their left, shaded down their right), the red band and
+    // its white letter, the domed tops, the frame and its strap, the nozzles under them)
     const x = Math.round(-B.w / 2 - 10 + B.lean), y = Math.round(B.shY - 2);
-    for (const dx of [0, 7]) { px(g, x + dx - 1, y - 1, 8, 30, INK); px(g, x + dx, y, 6, 28, '#D4D4D8'); px(g, x + dx, y, 2, 28, '#F4F4F5'); px(g, x + dx, y + 8, 6, 2, '#DC2626'); px(g, x + dx + 1, y + 28, 4, 4, '#3F3F46'); }
+    px(g, x - 2, y + 4, 17, 4, INK); px(g, x - 1, y + 5, 15, 2, '#3F3F46');
+    for (const dx of [0, 7]) {
+      px(g, x + dx - 1, y - 2, 8, 32, INK);
+      px(g, x + dx, y, 6, 28, '#A1A1AA'); px(g, x + dx, y, 4, 28, '#D4D4D8'); px(g, x + dx, y, 2, 28, '#F4F4F5'); px(g, x + dx + 5, y, 1, 28, '#71717A');
+      px(g, x + dx + 1, y - 1, 4, 1, '#E4E4E7');
+      px(g, x + dx, y + 8, 6, 3, '#B91C1C'); px(g, x + dx, y + 8, 6, 1, '#EF4444'); px(g, x + dx + 2, y + 9, 2, 1, '#FFFFFF');
+      px(g, x + dx, y + 26, 6, 2, '#52525B');
+      px(g, x + dx, y + 28, 6, 4, INK); px(g, x + dx + 1, y + 28, 4, 3, '#3F3F46'); px(g, x + dx + 1, y + 28, 1, 3, '#71717A');
+    }
   },
-  over: (g, B) => { const y = Math.round(B.shY + 4); px(g, Math.round(-B.w / 2 + B.lean), y, B.w, 2, '#F8FAFC'); },
-  hat: (g, B) => {
-    // (a leather aviator cap, the ear flaps, goggles up on the forehead)
-    const hx = Math.round(B.hx), hy = Math.round(B.hy), rx = Math.round(B.rx), ry = Math.round(B.ry);
-    px(g, hx - rx - 1, hy - ry - 2, rx * 2 + 2, ry + 3, INK); px(g, hx - rx, hy - ry - 1, rx * 2, ry + 1, '#78350F'); px(g, hx - rx, hy - ry - 1, rx * 2, 2, '#A16207');
-    px(g, hx - rx - 1, hy - 1, 4, 8, '#78350F');
-    for (const ox of [-4, 3]) { px(g, hx + ox - 1, hy - ry + 1, 6, 5, INK); px(g, hx + ox, hy - ry + 2, 4, 3, '#7DD3FC'); }
+  over: (g, B, F) => {
+    // (the polo's white collar, its placket; the ride's patch (a little yellow helicopter) on the chest; the straps)
+    const y = Math.round(B.shY + 4), x0 = Math.round(-B.w / 2 + B.lean);
+    px(g, x0, y, B.w, 2, '#F8FAFC'); px(g, x0, y + 2, B.w, 1, '#CBD5E1');
+    px(g, Math.round(B.lean) - 1, y + 2, 2, 6, POLO(F.seed) === '#B91C1C' ? '#7F1D1D' : '#1E3A8A');
+    px(g, x0 + 3, y + 6, 5, 3, '#FACC15'); px(g, x0 + 2, y + 5, 7, 1, '#A16207');
+    px(g, x0 + 1, y + 2, 2, 16, '#27272A');
+  },
+  hat: (g, B, F) => {
+    const hx = Math.round(B.hx), hy = Math.round(B.hy), rx = Math.round(B.rx), ry = Math.round(B.ry), cap = capOf(F.seed);
+    if (cap === 2) {
+      // (the ride's navy ball cap (its bill out front, the button, a gold wing on it) and a headset, the mic boom)
+      px(g, hx - rx - 1, hy - ry - 2, rx * 2 + 2, ry, INK); px(g, hx - rx, hy - ry - 1, rx * 2, ry - 2, '#1E3A8A'); px(g, hx - rx, hy - ry - 1, rx * 2, 2, '#2563EB');
+      px(g, hx + rx - 2, hy - 3, 8, 3, INK); px(g, hx + rx - 2, hy - 3, 7, 2, '#1E40AF');
+      px(g, hx - 2, hy - ry - 3, 3, 2, '#1E3A8A'); px(g, hx - 1, hy - ry + 1, 4, 2, '#FACC15');
+      px(g, hx - rx - 2, hy - 2, 4, 6, INK); px(g, hx - rx - 1, hy - 1, 2, 4, '#3F3F46');
+      px(g, hx - rx + 1, hy + 3, rx, 1, '#27272A'); px(g, hx + 1, hy + 3, 2, 2, '#52525B');
+      return;
+    }
+    // (a leather aviator cap: stepped, its seams, the ear flaps; the goggles up on the forehead, or down over the eyes)
+    const Lc = LEATHER[F.seed % 3];
+    px(g, hx - rx - 1, hy - ry - 2, rx * 2 + 2, ry + 3, INK); px(g, hx - rx, hy - ry - 1, rx * 2, ry + 1, Lc[1]); px(g, hx - rx, hy - ry - 1, rx * 2, 2, Lc[2]);
+    px(g, hx - rx, hy - ry + 1, 2, ry - 1, Lc[2]); px(g, hx, hy - ry - 1, 1, ry, Lc[0]);
+    px(g, hx - rx - 1, hy - 1, 4, 8, INK); px(g, hx - rx, hy - 1, 3, 7, Lc[1]); px(g, hx - rx, hy + 5, 3, 1, Lc[0]);
+    const gy = cap === 1 ? hy - 4 : hy - ry + 1;
+    px(g, hx - rx, gy + 1, rx * 2, 2, '#27272A');
+    for (const ox of [-4, 3]) { px(g, hx + ox - 1, gy, 6, 5, INK); px(g, hx + ox, gy + 1, 4, 3, cap === 1 ? '#38BDF8' : '#7DD3FC'); px(g, hx + ox, gy + 1, 1, 1, '#FFFFFF'); px(g, hx + ox + 3, gy + 3, 1, 1, '#0369A1'); }
   },
   hairToo: true,
-  hold: (g, _B, _F, x, y) => { px(g, Math.round(x) - 1, Math.round(y) - 4, 12, 6, INK); px(g, Math.round(x), Math.round(y) - 3, 10, 4, '#F97316'); },
+  hold: (g, _B, _F, x, y) => {
+    // (the ride's flare pistol: the fat orange barrel, its muzzle, the grip, a white stripe)
+    const X = Math.round(x), Y = Math.round(y);
+    px(g, X - 1, Y - 5, 13, 7, INK); px(g, X, Y - 4, 11, 5, '#F97316'); px(g, X, Y - 4, 11, 1, '#FDBA74'); px(g, X, Y, 11, 1, '#C2410C');
+    px(g, X + 3, Y - 4, 1, 5, '#FFFFFF'); px(g, X + 10, Y - 4, 2, 5, '#9A3412');
+    px(g, X - 1, Y, 4, 5, INK); px(g, X, Y, 2, 4, '#3F3F46');
+  },
   eyes: 'angry', mouth: 'teeth',
   hands: (B, F) => (F.pose === 'fly' ? [[-B.w / 2 - 6, B.shY + 4], [B.w / 2 + 14, B.shY + 2]] : null),
 };
@@ -130,10 +171,23 @@ const keepInView = (e: Enemy) => {
 };
 
 /** Them (origin: their feet's middle): the flames out of the jetpack under them, then them. */
+/** The jetpack's flames (under its two nozzles): banded from a red tongue in to the white-hot core, flickering, a
+ *  shimmer of heat and a puff of exhaust under them. */
+export const jetFlame = (c: CanvasRenderingContext2D, bx: number, by: number, f: number, big = 1) => {
+  const fl = (10 + ((f >> 1) % 3) * 4) * big;
+  for (const dx of [-3.5, 3.5]) {
+    const x = bx + dx, w = 3.5 * big;
+    c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(x - w - 1, by); c.lineTo(x, by + fl + 12 * big); c.lineTo(x + w + 1, by); c.fill();
+    c.fillStyle = '#F97316'; c.beginPath(); c.moveTo(x - w, by); c.lineTo(x, by + fl + 6 * big); c.lineTo(x + w, by); c.fill();
+    c.fillStyle = '#FDE047'; c.beginPath(); c.moveTo(x - w * 0.6, by); c.lineTo(x, by + fl * 0.7); c.lineTo(x + w * 0.6, by); c.fill();
+    c.fillStyle = '#FFFBEB'; c.fillRect(Math.round(x - 1), by, 2, Math.round(4 * big));
+  }
+  const ph = (f % 16) / 16;
+  c.globalAlpha = 0.3 * (1 - ph); c.fillStyle = '#A1A1AA'; c.beginPath(); c.arc(bx + Math.sin(f * 0.3) * 3, by + fl + 14 * big + ph * 14 * big, (4 + ph * 8) * big, 0, Math.PI * 2); c.fill();
+  c.globalAlpha = 1;
+};
 const drawGoon = (c: CanvasRenderingContext2D, e: Enemy, f: number) => {
-  const fl = 10 + ((f >> 1) % 3) * 4, bx = -14;
-  c.fillStyle = '#F97316'; c.beginPath(); c.moveTo(bx - 6, -36); c.lineTo(bx - 1, -36 + fl + 10); c.lineTo(bx + 6, -36); c.fill();
-  c.fillStyle = '#FDE047'; c.beginPath(); c.moveTo(bx - 3, -36); c.lineTo(bx - 1, -36 + fl); c.lineTo(bx + 3, -36); c.fill();
+  jetFlame(c, -14.5, -36, f + (e.variant ?? 0));
   drawCast(c, e, f, COSTUME, undefined, () => 'fly');
 };
 
@@ -201,22 +255,35 @@ export const drawEntrances = (c: CanvasRenderingContext2D, state: GameState) => 
     // (its shadow sweeping across the park below: big and soft up close, tight down on the plane)
     c.fillStyle = `rgba(10, 10, 20, ${(0.12 + 0.18 * (1 - s.near)).toFixed(3)})`;
     c.beginPath(); c.ellipse(s.x + q.side * 40 * s.near, CY + H - 30, 30 * s.sc, 6 * s.sc, 0, 0, Math.PI * 2); c.fill();
-    // (speed lines streaming off it, back the way it came)
-    const b = swoop(q, Math.max(0, u - 0.08)), vx = s.x - b.x, vy = s.y - b.y, vl = Math.hypot(vx, vy) || 1;
-    c.strokeStyle = 'rgba(255, 255, 255, 0.6)'; c.lineWidth = 2;
-    for (let i = 0; i < 6; i++) {
-      const o = (i - 2.5) * 14 * s.sc, ax = s.x - (vy / vl) * o, ay = s.y + (vx / vl) * o, len = (40 + ((i * 37 + f * 5) % 50)) * Math.min(3, vl / 20);
-      c.beginPath(); c.moveTo(ax - (vx / vl) * 20 * s.sc, ay - (vy / vl) * 20 * s.sc); c.lineTo(ax - (vx / vl) * (20 * s.sc + len), ay - (vy / vl) * (20 * s.sc + len)); c.stroke();
+    // (its exhaust left hanging along the way it came: puffs in steps (shaded under, lit up their left), thinning)
+    for (let i = 1; i <= 5; i++) {
+      const du = i * 0.06; if (u - du < 0) break;
+      const g = swoop(q, u - du), rr = (6 + i * 3) * g.sc;
+      c.globalAlpha = 0.34 * (1 - i / 6);
+      c.fillStyle = '#52525B'; c.beginPath(); c.arc(g.x + rr * 0.2, g.y + rr * 0.25, rr, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#A1A1AA'; c.beginPath(); c.arc(g.x - rr * 0.1, g.y - rr * 0.1, rr * 0.8, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#D4D4D8'; c.beginPath(); c.arc(g.x - rr * 0.35, g.y - rr * 0.35, rr * 0.35, 0, Math.PI * 2); c.fill();
     }
-    // (the trail: two ghosts of it behind, fading; then it, the jetpack flaring)
+    c.globalAlpha = 1;
+    // (speed lines streaming off it, back the way it came: white, a pale blue edge)
+    const b = swoop(q, Math.max(0, u - 0.08)), vx = s.x - b.x, vy = s.y - b.y, vl = Math.hypot(vx, vy) || 1;
+    for (const [col, lw, sh] of [['rgba(147, 197, 253, 0.45)', 4, 1.5], ['rgba(255, 255, 255, 0.75)', 2, 0]] as const) {
+      c.strokeStyle = col; c.lineWidth = lw;
+      for (let i = 0; i < 6; i++) {
+        const o = (i - 2.5) * 14 * s.sc, ax = s.x - (vy / vl) * o + sh, ay = s.y + (vx / vl) * o + sh, len = (40 + ((i * 37 + f * 5) % 50)) * Math.min(3, vl / 20);
+        c.beginPath(); c.moveTo(ax - (vx / vl) * 20 * s.sc, ay - (vy / vl) * 20 * s.sc); c.lineTo(ax - (vx / vl) * (20 * s.sc + len), ay - (vy / vl) * (20 * s.sc + len)); c.stroke();
+      }
+    }
+    // (the trail: two ghosts of it behind, fading; then it, the jetpack flaring big up close (a glow round the flames))
     for (const [du, al] of [[0.16, 0.18], [0.08, 0.35], [0, 1]] as const) {
       if (u - du < 0) continue;
       const g = du ? swoop(q, u - du) : s;
       c.save(); c.globalAlpha = al;
       c.translate(g.x, g.y + (e.height / 2) * g.sc); c.rotate(g.bank); c.scale(facing * g.sc, g.sc);
       if (!du) {
-        c.fillStyle = 'rgba(249, 115, 22, 0.55)'; c.beginPath(); c.ellipse(-14, -20, 12 + (f % 3) * 3, 26 + (f % 4) * 4, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = 'rgba(253, 224, 71, 0.8)'; c.beginPath(); c.ellipse(-14, -26, 6, 14 + (f % 3) * 3, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = 'rgba(249, 115, 22, 0.28)'; c.beginPath(); c.ellipse(-14, -18, 18 + (f % 3) * 3, 34 + (f % 4) * 4, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = 'rgba(249, 115, 22, 0.45)'; c.beginPath(); c.ellipse(-14, -20, 12 + (f % 3) * 3, 26 + (f % 4) * 4, 0, 0, Math.PI * 2); c.fill();
+        jetFlame(c, -14.5, -36, f, 1.6);
       }
       drawGoon(c, e, f);
       c.restore();
