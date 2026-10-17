@@ -55,7 +55,7 @@ const trumpet = (g: Ctx, x: number, y: number, up: boolean) => {
   g.restore();
 };
 
-const MARIACHI_COSTUME: Costume = {
+export const MARIACHI_COSTUME: Costume = {
   id: 'mariachi', top: s => pick(s, 2, ['#1C1917', '#1C1917', '#7F1D1D', '#F5F5F4']), legs: s => pick(s, 2, ['#1C1917', '#1C1917', '#7F1D1D', '#F5F5F4']),
   shoe: 'boot', shoeCol: '#1C1917',
   over: (g, B, F) => {
@@ -77,7 +77,7 @@ const MARIACHI_COSTUME: Costume = {
 };
 
 const SERAPE = ['#DC2626', '#F59E0B', '#16A34A', '#2563EB', '#DB2777'];
-const SOMBRERO_COSTUME: Costume = {
+export const SOMBRERO_COSTUME: Costume = {
   id: 'sombrero', top: s => pick(s, 3, ['#F8FAFC', '#1E3A8A', '#B91C1C', '#57534E']), legs: '#1E40AF', shoe: 'sneaker', shoeCol: '#F5F5F4',
   over: (g, B, F) => {
     // (the serape: a striped blanket over the shoulder, across the chest)
@@ -95,7 +95,7 @@ const SOMBRERO_COSTUME: Costume = {
   mouth: 'grin',
 };
 
-const PINATA_COSTUME: Costume = {
+export const PINATA_COSTUME: Costume = {
   id: 'pinata', top: s => pick(s, 1, ['#F472B6', '#A78BFA', '#34D399', '#FBBF24']), legs: '#57534E', shoe: 'sneaker', shoeCol: '#F5F5F4',
   // (a party shirt: confetti dots in every color, a lanyard with a whistle)
   over: (g, B) => {

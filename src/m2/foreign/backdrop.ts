@@ -854,3 +854,6 @@ export const drawStreetsBackdrop = (c: Ctx, state: GameState) => {
   if (tod.lamps > 0.3) show(c, bx, wl, f);
   return true;
 };
+
+/** For the walk into the land (walkAway/intoForeign.ts): the stamped landmarks, the far shore, the barge. */
+export { STILLS as FAR_STILLS, paintShore, paintBarge, SW as SHORE_W, SH as SHORE_H, BW as BARGE_W, BH as BARGE_H };

@@ -67,7 +67,7 @@ export const tileBand = (g: Ctx, x: number, y: number, w: number, h = 8) => {
 // The land's gate
 
 const GATE_D = 0.95;
-const paintGate = (g: Ctx) => {
+export const paintGate = (g: Ctx) => {
   const S = ramp6(dimmed('#E7E5E4')), Bl = ramp6(dimmed('#1E3A8A')), Rd = ramp6(dimmed('#B91C1C')), Gd = ramp6(dimmed('#CA8A04'));
   for (const px0 of [40, 440]) {
     // (the pylon: a stepped plinth, the shaft of cut stone, its cap, a gold globe on top)
@@ -105,7 +105,7 @@ export const drawGate = (c: Ctx, v: View, x: number) => facade(c, v, 'mx-gate', 
 // The fronts (FACADE_D: stucco over plywood, braced)
 
 export interface MxFront { rx: number; w: number; h: number; col: string; name: string; sub: string }
-const paintFront = (g: Ctx, f: MxFront) => {
+export const paintFront = (g: Ctx, f: MxFront) => {
   const { w, h } = f, R = ramp6(dimmed(f.col)), T = ramp6(dimmed('#B45309')), Tl = ramp6(dimmed('#1E40AF')), seed = f.rx;
   // (the wall: stucco, stepped, its plywood edge showing along the top)
   box(g, -2, -h - 2, w + 4, h + 2, INK);
