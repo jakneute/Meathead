@@ -193,6 +193,11 @@ export const ledge3 = (c: Ctx, v: View, x: number, y: number, w: number, col: st
   const R = ramp6(hour(col));
   topBack(c, v.eye, x, x + w, y, 1, 0.94, R, 2);
   underBack(c, v.eye, x, x + w, y + thick, 1, 0.95, R, 2);
+  ledgeFront(c, x, y, w, col, thick, look);
+};
+/** Just a ledge's front (and its lip): put back over something stood on its top that came down over it. */
+export const ledgeFront = (c: Ctx, x: number, y: number, w: number, col: string, thick = 16, look?: BoxLook) => {
+  const R = ramp6(hour(col));
   if (look && look !== 'metal' && thick >= 8) still(c, `fl-l3-${look}-${col}-${Math.round(w)}x${thick}-${Math.round(x) % 997}`, x, y, -1, 0, w + 2, thick + 1, g => paintBoxFront(g, Math.round(w), thick, col, look, Math.round(x)));
   else {
     box(c, x, y, w, thick, R[3]); box(c, x, y + 3, w, Math.max(1, thick - 6), R[2]); checker(c, x, y + thick - 5, w, 2, R[1], 0, 1);

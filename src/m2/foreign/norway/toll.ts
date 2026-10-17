@@ -22,7 +22,8 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { runsAround, poolSteps, poolAt, poolZones, drawPoolBack, drawPoolFront, type Pool } from '../water';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, playerIn, type Shout } from '../setpiece';
-import { type Ctx, type View, box, poly, boxes3, ledge3, setBack, wall, hole, postBoard, hungBoard, LOOKS, dimmed, hour, ramp6, onScreen, INK } from '../kit';
+import { type Ctx, type View, box, poly, boxes3, ledge3, ledgeFront, postBoard, hungBoard, LOOKS, hour, ramp6, onScreen, INK } from '../kit';
+import { drawGiant, drawDeck, drawHut, drawTollGate, drawRack, drawBoathouse, drawTrollHand } from './art';
 import { V, TOLL, PAID_GAG } from './lines';
 
 const { x0, x1 } = SECTIONS.norway;
@@ -140,60 +141,52 @@ export const tollWater = (x: number, y: number) => poolAt([RIVER], x, y);
 
 const TROLL = '#6B7F5E';
 
-/** A giant troll (its body and head solid; the knees ledges): lumpy, mossy, a huge nose, tiny eyes, its arms up to the
- *  deck, a loincloth. `flip`: facing left. */
-const drawGiant = (c: Ctx, v: View, T: typeof TROLL_L | typeof TROLL_R, flip: boolean) => {
+/** A giant troll (its body and head solid; the knees ledges): its rock boxes, then its features (giants in art.ts), its
+ *  knees: lumps of leg sticking out, rock, lit lips. `flip`: facing left. */
+const drawGiantTroll = (c: Ctx, v: View, T: typeof TROLL_L | typeof TROLL_R, flip: boolean) => {
   const [ba, bb, bh] = T.body, [ha, hb, hh] = T.head;
-  if (!onScreen(v, X(Math.min(ba, ...T.knees.map(k => k[0]))), X(Math.max(bb, ...T.knees.map(k => k[1]))))) return;
+  if (!onScreen(v, X(Math.min(ba, ...T.knees.map(k => k[0]))) - 40, X(Math.max(bb, ...T.knees.map(k => k[1]))) + 40)) return;
   const R = ramp6(hour(TROLL));
   boxes3(c, v, [
-    { x: X(ba), top: Y(bh), w: bb - ba, bottom: GY, col: TROLL, standable: true },
-    { x: X(ha), top: Y(hh), w: hb - ha, bottom: Y(bh), col: TROLL, standable: true },
+    { x: X(ba), top: Y(bh), w: bb - ba, bottom: GY, col: TROLL, standable: true, look: 'rock' },
+    { x: X(ha), top: Y(hh), w: hb - ha, bottom: Y(bh), col: TROLL, standable: true, look: 'rock' },
   ]);
-  // (the legs down to the ground, the loincloth, the belly)
-  box(c, X(ba) + 20, Y(110), 50, 110, R[1]); box(c, X(bb) - 70, Y(110), 50, 110, R[1]);
-  box(c, X(ba), Y(150), bb - ba, 40, hour('#78350F')); for (let k = 0; k < 6; k++) box(c, X(ba) + 8 + k * 28, Y(112), 18, 6, hour('#92400E'));
-  // (the face on the head: the nose, the eyes, the tusks; moss for hair)
-  const hx = (X(ha) + X(hb)) / 2;
-  box(c, hx - 16 + (flip ? -10 : 10), Y(hh) + 40, 32, 46, R[4]); box(c, hx - 16 + (flip ? -10 : 10), Y(hh) + 40, 32, 3, R[5]);
-  for (const ex of [hx - 26, hx + 18]) { box(c, ex, Y(hh) + 30, 8, 6, INK); box(c, ex + 2, Y(hh) + 31, 2, 2, '#FDE047'); }
-  box(c, hx - 24, Y(hh) + 96, 6, 14, '#F5F5F4'); box(c, hx + 18, Y(hh) + 96, 6, 14, '#F5F5F4');
-  for (let k = 0; k < 6; k++) box(c, X(ha) + 4 + k * 17, Y(hh) - 6 - (k % 2) * 4, 12, 7, dimmed('#3F6212'));
-  // (the knees: lumps of leg sticking out, lit lips)
-  for (const [a, b, h] of T.knees) { poly(c, [[X(a) + 8, Y(h) + 14], [X(b) - 8, Y(h) + 14], [X(b) - 20, Y(h) + 60], [X(a) + 20, Y(h) + 60]], R[2]); ledge3(c, v, X(a), Y(h), b - a, TROLL, 14); }
+  drawGiant(c, T.body, T.head, X, Y, flip, DECK.h);
+  for (const [a, b, h] of T.knees) {
+    poly(c, [[X(a) + 6, Y(h) + 13], [X(b) - 6, Y(h) + 13], [X(b) - 18, Y(h) + 62], [X(a) + 18, Y(h) + 62]], INK);
+    poly(c, [[X(a) + 8, Y(h) + 14], [X(b) - 8, Y(h) + 14], [X(b) - 20, Y(h) + 60], [X(a) + 20, Y(h) + 60]], R[2]);
+    poly(c, [[X(a) + 8, Y(h) + 14], [X(a) + 30, Y(h) + 14], [X(a) + 34, Y(h) + 50], [X(a) + 20, Y(h) + 60]], R[3]);
+    for (let k = 0; k < 3; k++) box(c, X(a) + 24 + k * ((b - a - 48) / 2), Y(h) + 24 + (k % 2) * 10, 10, 2, R[1]);
+    ledge3(c, v, X(a), Y(h), b - a, TROLL, 14, 'rock');
+  }
+  void hb; void ha; void hh; void bh; void bb;
 };
 
 export const drawTollBack = (c: Ctx, v: View, state: GameState) => {
   if (!onScreen(v, X(TOLL_FROM), x1)) return;
   const t = tollOf(state), f = state.frame;
   drawPoolBack(c, v, RIVER);
-  // (the drying racks' far fronts: stockfish on poles, dimmed)
-  setBack(c, v, X(5250), 300, 0.9, () => { wall(c, 0, 300, 160, '#9F1239'); poly(c, [[-10, -160], [150, -260], [310, -160]], dimmed('#292524')); hole(c, 130, -72, 40, 72, true); });
-  drawGiant(c, v, TROLL_L, false);
-  drawGiant(c, v, TROLL_R, true);
-  // (the bridge: planks on the trolls' heads, ropes for rails)
+  // (the boathouse behind the drying racks, set back)
+  drawBoathouse(c, v, X(5250));
+  drawGiantTroll(c, v, TROLL_L, false);
+  drawGiantTroll(c, v, TROLL_R, true);
+  // (the bridge: planks on the trolls' heads, posts and rope rails)
   if (onScreen(v, X(DECK.a), X(DECK.b))) {
-    ledge3(c, v, X(DECK.a), Y(DECK.h), DECK.b - DECK.a, '#8B5E34', 16);
-    for (let x = X(DECK.a); x < X(DECK.b); x += 26) box(c, x, Y(DECK.h) + 2, 1, 14, hour('#5C3A1A'));
-    c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(X(DECK.a), Y(DECK.h) - 40);
-    for (let x = X(DECK.a); x <= X(DECK.b); x += 70) c.quadraticCurveTo(x + 35, Y(DECK.h) - 26, x + 70, Y(DECK.h) - 40);
-    c.stroke();
-    // (the toll booth on the deck, set back a touch: a hut, its window, its sign)
-    setBack(c, v, X(BOOTH.a), BOOTH.b - BOOTH.a, 0.96, () => { c.save(); c.translate(0, -DECK.h); wall(c, 0, BOOTH.b - BOOTH.a, 110, '#9F1239', '#F5F5F4'); hole(c, 20, -84, 60, 34, true); c.restore(); });
+    // (the toll hut on the deck, set back a touch: planked, its window, its sod roof, the cash box; its sign)
+    ledge3(c, v, X(DECK.a), Y(DECK.h), DECK.b - DECK.a, '#8B5E34', 16, 'plank');
+    drawHut(c, v, X(BOOTH.a), BOOTH.b - BOOTH.a, Y(DECK.h));
+    // (looking up at it, the hut's foot comes down past the deck's edge: the edge back over it)
+    if (v.eye.y > Y(DECK.h)) ledgeFront(c, X(DECK.a), Y(DECK.h), DECK.b - DECK.a, '#8B5E34', 16, 'plank');
+    drawDeck(c, X(DECK.a), X(DECK.b), Y(DECK.h));
     hungBoard(c, X((BOOTH.a + BOOTH.b) / 2), Y(DECK.h + 130), Y(DECK.h + 150), paid() ? ['TOLL PAID', '(IN BLOOD)'] : ['TROLL TOLL', '$5 OR YOUR LIFE'], LOOKS.norway(1), '#3F6212');
     // (the gate: its frame, deck to crossbeam; the gate itself, down (a wall) or lifted)
-    const P = ramp6(hour('#78350F')), lift = t.lift * 230;
-    box(c, X(GATE.a) - 14, Y(GATE.top) - 16, 12, GATE.top - DECK.h + 16, P[2]); box(c, X(GATE.b) + 2, Y(GATE.top) - 16, 12, GATE.top - DECK.h + 16, P[1]);
-    box(c, X(GATE.a) - 20, Y(GATE.top) - 22, GATE.b - GATE.a + 40, 12, P[3]);
-    const gTop = Y(GATE.top) - lift, gH = GATE.top - DECK.h;
-    box(c, X(GATE.a), gTop, GATE.b - GATE.a, gH, INK);
-    for (let k = 0; k < gH; k += 30) box(c, X(GATE.a) + 2, gTop + k, GATE.b - GATE.a - 4, 15, k % 60 ? '#F5F5F4' : '#DC2626');
+    drawTollGate(c, X(GATE.a), X(GATE.b), Y(GATE.top), Y(DECK.h), t.lift * 230);
   }
   // (signs: held up, nothing over them)
   if (onScreen(v, X(3880), X(4000))) postBoard(c, X(3940), GY, ['TROLL BRIDGE', '(THE BIG ONE)', 'TOLL AHEAD'], LOOKS.norway(1), '#3F6212', undefined, 120);
   if (onScreen(v, X(5440), X(5600))) postBoard(c, X(5520), GY, ['LEAVING NORWAY', 'NEXT: CHINA (NOT JAPAN)'], LOOKS.norway(1), '#7F1D1D', undefined, 100);
   // (the drying racks: poles, stockfish hanging under the bar he stands on)
-  for (const [a, b, h] of RACKS) if (onScreen(v, X(a), X(b))) { for (const px0 of [X(a) + 4, X(b) - 8]) box(c, px0, Y(h), 4, h, hour('#57534E')); for (let x = X(a) + 12; x < X(b) - 10; x += 14) box(c, x, Y(h) + 12, 6, 30, hour('#D6D3D1')); ledge3(c, v, X(a), Y(h), b - a, '#78716C', 8); }
+  for (const [a, b, h] of RACKS) if (onScreen(v, X(a), X(b))) { drawRack(c, X(a), X(b), Y(h), GY); ledge3(c, v, X(a), Y(h), b - a, '#78716C', 8, 'plank'); }
   void f;
 };
 
@@ -202,15 +195,15 @@ export const drawTollFront = (c: Ctx, v: View, state: GameState) => {
   if (onScreen(v, RIVER.a - 60, RIVER.b + 60)) {
     const arm = armAt(f);
     // (the arm: up out of the water, a big green hand, sweeping)
-    if (arm.st === 'sweep') {
-      const R = ramp6(hour(TROLL)), sy = GY + RIVER.surface, up = 70 * arm.k;
-      box(c, arm.x - 18, sy - up, 36, up + 40, R[2]);
-      box(c, arm.x - 40, sy - up - 40, 80, 46, INK); box(c, arm.x - 38, sy - up - 38, 76, 42, R[3]);
-      for (let k = 0; k < 4; k++) box(c, arm.x - 36 + k * 19, sy - up - 60, 14, 24, R[3]);
-      for (let k = 0; k < 4; k++) box(c, arm.x - 36 + k * 19, sy - up - 62, 14, 4, '#F5F5F4');
-    }
+    if (arm.st === 'sweep') drawTrollHand(c, arm.x, GY + RIVER.surface, arm.k, f);
     drawPoolFront(c, v, RIVER, f, x => (arm.st === 'sweep' ? 16 * arm.k * Math.exp(-(((x - arm.x) / 60) ** 2)) : 0));
-    if (arm.st === 'warn') for (let k = 0; k < 6; k++) { const bx = arm.x + Math.sin(k * 2.1 + f * 0.2) * 30, by = GY + RIVER.surface - ((f * 2 + k * 9) % 26); box(c, bx, by, 5, 5, '#BFDBFE'); }
+    // (the tell: bubbles boiling up where it'll come from, ringed, popping at the top)
+    if (arm.st === 'warn') for (let k = 0; k < 8; k++) {
+      const bx = Math.round(arm.x + Math.sin(k * 2.1 + f * 0.2) * 30), by = Math.round(GY + RIVER.surface - ((f * 2 + k * 9) % 30)), r = 2 + (k % 3);
+      c.fillStyle = INK; c.beginPath(); c.arc(bx, by, r + 1, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#93C5FD'; c.beginPath(); c.arc(bx, by, r, 0, Math.PI * 2); c.fill();
+      box(c, bx - r + 1, by - r + 1, 1, 1, '#FFFFFF');
+    }
   }
   drawShout(c, t.said);
 };

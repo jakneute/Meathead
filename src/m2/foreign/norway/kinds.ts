@@ -31,8 +31,11 @@ const BEARD = ['#EA580C', '#FCD34D', '#78350F', '#F8FAFC'];
 /** The horned helmet: a gray dome, a nose guard, two white horns curling up (and the yarn beard under it). */
 const hornHelmet = (g: CanvasRenderingContext2D, B: { hx: number; hy: number; rx: number; ry: number }, seed: number) => {
   partTop(g, () => { g.moveTo(B.hx - B.rx - 1, B.hy - 2); g.quadraticCurveTo(B.hx, B.hy - B.ry - 9, B.hx + B.rx + 1, B.hy - 2); g.closePath(); }, '#9CA3AF', B.hx - B.rx - 1, B.hy - B.ry - 6, B.rx * 2 + 2, B.ry + 4, 1.2);
-  px(g, B.hx - B.rx - 1, B.hy - 4, B.rx * 2 + 2, 2, '#6B7280');
-  px(g, B.hx + 4, B.hy - 4, 2, 6, '#6B7280');
+  // (the brow band, riveted, the nose guard, a glint on the dome)
+  px(g, B.hx - B.rx - 1, B.hy - 5, B.rx * 2 + 2, 3, '#4B5563'); px(g, B.hx - B.rx - 1, B.hy - 5, B.rx * 2 + 2, 1, '#9CA3AF');
+  for (let k = -B.rx + 1; k < B.rx; k += 3) px(g, B.hx + k, B.hy - 4, 1, 1, '#E5E7EB');
+  px(g, B.hx + 4, B.hy - 4, 2, 7, '#4B5563'); px(g, B.hx + 4, B.hy - 4, 1, 7, '#9CA3AF');
+  px(g, B.hx - 3, B.hy - B.ry - 3, 2, 2, '#F3F4F6');
   for (const s of [-1, 1]) part(g, () => { g.moveTo(B.hx + s * (B.rx - 2), B.hy - 6); g.quadraticCurveTo(B.hx + s * (B.rx + 9), B.hy - 9, B.hx + s * (B.rx + 7), B.hy - 22); g.lineTo(B.hx + s * (B.rx + 3), B.hy - 9); g.closePath(); }, '#F5F5F4', B.hx - B.rx - 10, B.hy - 22, B.rx * 2 + 20, 16, 1);
   // (the yarn beard: hooked over the ears, everybody gets one)
   const col = pick(seed, 3, BEARD);
@@ -40,9 +43,15 @@ const hornHelmet = (g: CanvasRenderingContext2D, B: { hx: number; hy: number; rx
   px(g, B.hx + 2, B.hy + 5, 5, 1, dk(col, 0.3));
 };
 const furVest = (g: CanvasRenderingContext2D, B: { w: number; shY: number; hipY: number }) => {
-  for (const s of [-1, 1]) px(g, s < 0 ? -B.w / 2 - 1 : B.w / 2 - 7, B.shY, 8, B.hipY - B.shY - 6, '#D6C4A8');
-  for (let k = 0; k < 5; k++) px(g, -B.w / 2 + (k % 2) * 2, B.shY + 3 + k * 4, 2, 1, '#A8977C');
-  px(g, -B.w / 2, B.hipY - 4, B.w, 3, '#3F2A14');
+  // (the craft-store fur: its panels in steps, tufts along their edges, a ragged hem; the belt, its buckle)
+  for (const s of [-1, 1]) {
+    const x0 = s < 0 ? -B.w / 2 - 1 : B.w / 2 - 7, h = B.hipY - B.shY - 6;
+    px(g, x0 - 0.5, B.shY - 0.5, 9, h + 1, '#5A4A36'); px(g, x0, B.shY, 8, h, '#D6C4A8'); px(g, x0, B.shY, 3, h, '#EADCC4'); px(g, x0 + 6, B.shY, 2, h, '#B8A688');
+    for (let y = B.shY + 2; y < B.shY + h; y += 3) px(g, s < 0 ? x0 + 7 : x0, y, 2, 1, '#A8977C');
+    for (let x = x0; x < x0 + 8; x += 2) px(g, x, B.shY + h, 1, 2 + ((x | 0) & 1), '#B8A688');
+  }
+  px(g, -B.w / 2, B.hipY - 4, B.w, 3, '#3F2A14'); px(g, -B.w / 2, B.hipY - 4, B.w, 1, '#5C3F22');
+  px(g, -3, B.hipY - 5, 6, 5, INK); px(g, -2, B.hipY - 4, 4, 3, '#CA8A04'); px(g, -2, B.hipY - 4, 2, 1, '#FDE68A');
 };
 const axe = (g: CanvasRenderingContext2D, x: number, y: number, up: boolean) => {
   const a = up ? -2.3 : -1.2;
@@ -72,10 +81,16 @@ const SHIELD_COSTUME: Costume = {
   hold: (g, B, F, x, y) => {
     const [a, b] = pick(F.seed, 2, SHIELDS), r = 17, sx = x + 2, sy = y - 4;
     ball(g, sx, sy, r, a, 1.4);
-    part(g, () => { g.moveTo(sx, sy - r); g.lineTo(sx, sy + r); g.lineTo(sx - 2, sy + r); g.lineTo(sx - 2, sy - r); g.closePath(); }, b, sx - 2, sy - r, 2, r * 2, 0.5);
-    px(g, sx - r + 2, sy - 1, r * 2 - 4, 2, b);
-    ball(g, sx, sy, 4, '#D6D3D1');
-    px(g, sx - r + 3, sy - r + 6, 3, 3, lt(a, 0.4));
+    // (its boards, painted over: the seams, the cross in the second color, the rawhide rim, the iron boss)
+    g.save(); g.beginPath(); g.arc(sx, sy, r - 1, 0, Math.PI * 2); g.clip();
+    for (let k = -r + 6; k < r; k += 7) px(g, sx + k, sy - r, 1, r * 2, dk(a, 0.35));
+    px(g, sx - 2, sy - r, 4, r * 2, b); px(g, sx - r, sy - 2, r * 2, 4, b); px(g, sx - 2, sy - r, 1, r * 2, lt(b, 0.35)); px(g, sx - r, sy - 2, r * 2, 1, lt(b, 0.35));
+    g.restore();
+    g.strokeStyle = '#78716C'; g.lineWidth = 2; g.beginPath(); g.arc(sx, sy, r - 1.5, 0, Math.PI * 2); g.stroke();
+    for (let k = 0; k < 8; k++) { const ang = (k / 8) * Math.PI * 2; px(g, sx + Math.cos(ang) * (r - 2) - 0.5, sy + Math.sin(ang) * (r - 2) - 0.5, 1, 1, '#E7E5E4'); }
+    ball(g, sx, sy, 4.5, '#A8A29E');
+    px(g, sx - 2, sy - 2, 1, 1, '#FFFFFF');
+    px(g, sx - r + 4, sy - r + 7, 3, 3, lt(a, 0.4));
   },
   eyes: 'angry', mouth: 'flat',
 };
@@ -84,10 +99,14 @@ const LUTEFISK_COSTUME: Costume = {
   id: 'lutefisk', top: '#F8FAFC', legs: '#1E3A8A', shoe: 'shoe', shoeCol: '#1C1917',
   over: (g, B) => {
     // (the bunad: a red vest laced up, an embroidered panel, a white apron)
-    px(g, -B.w / 2, B.shY + 2, B.w, B.hipY - B.shY - 2, '#B91C1C');
-    for (let k = 0; k < 4; k++) { px(g, -2, B.shY + 5 + k * 5, 4, 1, '#FCD34D'); px(g, -B.w / 2 + 2, B.shY + 4 + k * 5, 2, 2, '#15803D'); }
-    px(g, -B.hipW / 2 + 2, B.hipY - 2, B.hipW - 4, 22, '#F5F5F4');
+    px(g, -B.w / 2, B.shY + 2, B.w, B.hipY - B.shY - 2, '#B91C1C'); px(g, -B.w / 2, B.shY + 2, 3, B.hipY - B.shY - 2, '#DC2626'); px(g, B.w / 2 - 3, B.shY + 2, 3, B.hipY - B.shY - 2, '#7F1D1D');
+    for (let k = 0; k < 4; k++) { px(g, -2, B.shY + 5 + k * 5, 4, 1, '#FCD34D'); px(g, -B.w / 2 + 2, B.shY + 4 + k * 5, 2, 2, '#15803D'); px(g, -B.w / 2 + 2, B.shY + 4 + k * 5, 1, 1, '#4ADE80'); px(g, B.w / 2 - 4, B.shY + 6 + k * 5, 2, 2, '#1D4ED8'); }
+    // (the silver brooch at the collar, its dangles)
+    ball(g, 0, B.shY + 2, 2.4, '#D6D3D1', 0.6); px(g, -2, B.shY + 4, 1, 3, '#E5E7EB'); px(g, 1, B.shY + 4, 1, 3, '#E5E7EB');
+    // (the apron, its embroidered hem)
+    px(g, -B.hipW / 2 + 2, B.hipY - 2, B.hipW - 4, 22, '#F5F5F4'); px(g, B.hipW / 2 - 5, B.hipY - 2, 3, 22, '#D6D3D1');
     px(g, -B.hipW / 2 + 2, B.hipY - 2, B.hipW - 4, 2, '#D6D3D1');
+    for (let x = -B.hipW / 2 + 3; x < B.hipW / 2 - 3; x += 3) px(g, x, B.hipY + 16, 2, 2, (x | 0) % 2 ? '#DC2626' : '#15803D');
   },
   // (the braided blonde wig, the braids down over the shoulders, a little embroidered cap)
   hat: (g, B) => {

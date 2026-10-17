@@ -23,9 +23,9 @@ import { hazardVictims, hazardHit, boxHits } from '../../hazardHit';
 import { makeMover, moveMover, type Mover } from '../movers';
 import { runsAround, poolSteps, poolAt, poolZones, drawPoolBack, drawPoolFront, type Pool } from '../water';
 import {
-  type Ctx, type View, viewIn, box, mix, poly, at, promenade, boxes3, ledge3, setBack, wall, hole, postBoard, hungBoard, flagPole,
-  LOOKS, dimmed, hour, ramp6, onScreen, FACADE_D, INK, LIP,
+  type Ctx, type View, viewIn, box, poly, promenade, boxes3, ledge3, postBoard, hungBoard, flagPole, LOOKS, hour, ramp6, onScreen, FACADE_D, INK,
 } from '../kit';
+import { drawHouse, trollFace, drawBooth, drawHousing, drawShip, drawChurch, type NoFront } from './art';
 import { TALK } from './lines';
 import './kinds';
 import { TOLL_FROM, TOLL_CHECKPOINTS, RIVER, tollRuns, buildToll, updateToll, tollWater, drawTollBack, drawTollFront, tollLamps } from './toll';
@@ -88,90 +88,30 @@ const deckY = (f: number, sx: number) => Y(SHIP.deck) - waveH(f, sx + SHIP.w / 2
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-const RED = '#9F1239', OCHRE = '#CA8A04', WHITE = '#E7E5E4', TAR = '#3F2A14';
+const RED = '#9F1239', OCHRE = '#CA8A04', WHITE = '#E7E5E4';
 
-/** The fishing village's fronts (set back): wooden, steep-roofed, red, ochre and white, white trim. */
-const FRONTS: [number, number, number, string][] = [[340, 220, 170, RED], [600, 200, 150, OCHRE], [860, 240, 180, WHITE], [3560, 220, 160, RED]];
+/** The fishing village's fronts (set back, braced): board-and-batten, sod roofs, red, ochre and white, white trim. */
+const FRONTS: NoFront[] = [
+  { rx: 340, w: 220, h: 170, col: RED, name: 'SWEATERS' },
+  { rx: 600, w: 200, h: 150, col: OCHRE, name: 'TROLL GIFTS' },
+  { rx: 860, w: 240, h: 180, col: WHITE, name: 'WAFFLES' },
+  { rx: 3560, w: 220, h: 160, col: RED, name: 'FISK' },
+];
 const drawFronts = (c: Ctx, v: View) => {
-  for (const [rx, w, h, col] of FRONTS) setBack(c, v, X(rx), w, FACADE_D, () => {
-    wall(c, 0, w, h, col);
-    for (let x = 8; x < w; x += 12) box(c, x, -h, 1, h, dimmed(mix(col, '#000000', 0.25)));
-    poly(c, [[-10, -h], [w / 2, -h - w * 0.45], [w + 10, -h]], dimmed('#292524'));
-    poly(c, [[-4, -h - 2], [w / 2, -h - w * 0.45 + 6], [w + 4, -h - 2]], dimmed('#3F3F46'));
-    hole(c, w / 2 - 18, -72, 36, 72, true);
-    for (const wx of [18, w - 46]) { hole(c, wx, -h + 36, 28, 32, true); box(c, wx - 3, -h + 34, 34, 3, dimmed('#F5F5F4')); }
-  });
+  const on = FRONTS.filter(fr => onScreen(v, X(fr.rx) - 60, X(fr.rx + fr.w) + 60, FACADE_D));
+  on.sort((p, q) => Math.abs(X(q.rx + q.w / 2) - v.eye.x) - Math.abs(X(p.rx + p.w / 2) - v.eye.x));
+  for (const fr of on) drawHouse(c, v, X(fr.rx), fr);
 };
 
-/** A troll statue (standable: its flat head): a lumpy gray-green body, a big nose, tiny eyes, its arms up to the plank. */
-const drawTroll = (c: Ctx, a: number, b: number, flip: boolean) => {
-  const top = Y(TROLL_H), w = b - a, R = ramp6(hour('#6B7F5E'));
-  // (the arms up holding the plank)
-  const ax = flip ? a + 10 : b - 22;
-  box(c, ax - 1, Y(PLANK.h) + 14, 14, top - Y(PLANK.h) - 10, INK); box(c, ax, Y(PLANK.h) + 14, 12, top - Y(PLANK.h) - 10, R[2]);
-  box(c, ax - 3, Y(PLANK.h) + 12, 18, 10, R[3]);
-  // (the face: the nose, the eyes, the tusks; hair like moss)
-  box(c, a + w / 2 - 12, top + 26, 24, 34, R[4]); box(c, a + w / 2 - 12, top + 26, 24, 2, R[5]);
-  for (const ex of [a + w / 2 - 20, a + w / 2 + 14]) box(c, ex, top + 20, 6, 4, INK);
-  box(c, a + w / 2 - 18, top + 66, 4, 8, '#F5F5F4'); box(c, a + w / 2 + 14, top + 66, 4, 8, '#F5F5F4');
-  for (let k = 0; k < 6; k++) box(c, a + 6 + k * 16, top - 4 - (k % 2) * 3, 10, 6, dimmed('#3F6212'));
-};
-
-/** The lutefisk booth's bits: its striped awning on poles, its sign hung off the awning. */
-const drawBoothBits = (c: Ctx) => {
-  const a = X(BOOTH.a), b = X(BOOTH.b);
-  for (const px0 of [a + 6, b - 10]) box(c, px0, Y(BOOTH.h) - 70, 4, 70, dimmed('#78716C'));
-  for (let k = 0; k < 8; k++) box(c, a - 8 + k * 22, Y(BOOTH.h) - 82, 22, 14, dimmed(k % 2 ? '#F8FAFC' : '#1D4ED8'));
-  hungBoard(c, (a + b) / 2, Y(BOOTH.h) - 68, Y(BOOTH.h) - 40, ['FREE LUTEFISK', 'PLEASE. ANYBODY.'], LOOKS.norway(1), '#7F1D1D');
-};
-
-/** The longship: the hull (planks, a row of round shields along the side), the dragon at the prow, the tail at the stern,
- *  the mast and its striped sail. Its deck's lit lip (standable). */
-const drawShip = (c: Ctx, v: View, sx: number, dy: number, f: number) => {
-  if (!onScreen(v, sx - 60, sx + SHIP.w + 60)) return;
-  const R = ramp6(hour('#7C4A1E')), w = SHIP.w, tilt = Math.sin(f * 0.05) * 3;
-  // (the deck going back)
-  poly(c, [at(v.eye, sx, dy, 1), at(v.eye, sx + w, dy, 1), at(v.eye, sx + w, dy, 0.94), at(v.eye, sx, dy, 0.94)], R[4]);
-  // (the mast and the sail, red and white stripes, bellied)
-  box(c, sx + w / 2 - 3, dy - 170, 6, 170, INK); box(c, sx + w / 2 - 2, dy - 170, 4, 170, R[3]);
-  box(c, sx + w / 2 - 70, dy - 166, 140, 4, R[2]);
-  for (let k = 0; k < 7; k++) { const x = sx + w / 2 - 66 + k * 19, bel = Math.sin((k / 6) * Math.PI) * 10; box(c, x, dy - 162 + bel * 0.2, 19, 100 + bel, hour(k % 2 ? '#F8FAFC' : '#B91C1C')); }
-  // (the hull: curving up at both ends)
-  poly(c, [[sx - 30, dy - 30 + tilt], [sx, dy], [sx + w, dy], [sx + w + 30, dy - 30 - tilt], [sx + w - 20, dy + 44], [sx + 20, dy + 44]], R[2]);
-  for (let k = 0; k < 4; k++) box(c, sx + 10, dy + 6 + k * 9, w - 20, 1, R[1]);
-  // (the shields along the side)
-  for (let k = 0; k < 7; k++) { const cx = sx + 26 + k * 35; c.fillStyle = INK; c.beginPath(); c.arc(cx, dy + 12, 11, 0, Math.PI * 2); c.fill(); c.fillStyle = hour(k % 2 ? '#FCD34D' : '#DC2626'); c.beginPath(); c.arc(cx, dy + 12, 10, 0, Math.PI * 2); c.fill(); box(c, cx - 2, dy + 10, 4, 4, '#D6D3D1'); }
-  // (the dragon's head at the prow (right), its tail curled at the stern)
-  poly(c, [[sx + w + 26, dy - 26 - tilt], [sx + w + 40, dy - 70 - tilt], [sx + w + 66, dy - 74 - tilt], [sx + w + 60, dy - 60 - tilt], [sx + w + 44, dy - 58 - tilt], [sx + w + 34, dy - 24 - tilt]], R[3]);
-  box(c, sx + w + 52, dy - 70 - tilt, 4, 4, '#FDE047');
-  poly(c, [[sx - 26, dy - 26 + tilt], [sx - 40, dy - 60 + tilt], [sx - 26, dy - 74 + tilt], [sx - 30, dy - 58 + tilt], [sx - 20, dy - 24 + tilt]], R[3]);
-  // (the deck's edge: somewhere to stand)
-  box(c, sx, dy, w, 3, LIP[2]); box(c, sx, dy, w, 1, LIP[3]);
-};
-
-/** The stave church (its roofs are what he climbs): dark tarred wood, shingled roofs stacked up to a spire, a dragon
- *  head curling off every gable end, the doorway carved round. */
-const drawChurch = (c: Ctx, v: View) => {
+/** The stave church (its roofs are what he climbs): the walls set back, the shingled roofs, their ridges' lips; the
+ *  spire's little dragon weathervane. */
+const drawStaveChurch = (c: Ctx, v: View) => {
   if (!onScreen(v, X(2880), X(3520))) return;
-  const W = ramp6(hour(TAR));
-  // (the walls under each roof, set back a touch: the body of it)
-  setBack(c, v, X(2950), 500, 0.96, () => {
-    wall(c, 0, 500, 140, TAR); for (let x = 6; x < 500; x += 10) box(c, x, -140, 1, 140, dimmed('#1C1917'));
-    hole(c, 220, -100, 60, 100, true);
-    wall(c, 70, 360, 270, TAR); wall(c, 150, 200, 400, TAR); wall(c, 220, 60, 520, TAR);
-  });
-  for (const [a, b, h] of CHURCH) {
-    const y = Y(h), A = X(a), B = X(b);
-    // (the roof: shingles sloping down from its ridge (the bit he stands on) to its eaves)
-    poly(c, [[A, y], [B, y], [B + 24, y + 46], [A - 24, y + 46]], W[2]);
-    for (let k = 1; k < 4; k++) box(c, A - k * 6, y + k * 11, B - A + k * 12, 1, W[1]);
-    for (let x = A; x < B; x += 14) box(c, x, y + 4, 1, 40, W[1]);
-    // (dragon heads off the gable ends)
-    for (const s of [-1, 1]) { const ex = s < 0 ? A - 24 : B + 24; poly(c, [[ex, y + 46], [ex + s * 14, y + 20], [ex + s * 30, y + 14], [ex + s * 24, y + 26], [ex + s * 12, y + 30]], W[3]); box(c, ex + s * 22 - 2, y + 16, 3, 3, '#FDE047'); }
-    ledge3(c, v, A, y, B - A, '#57402A', 6);
-  }
-  // (the spire's cross... a little dragon instead)
-  box(c, X(3198), Y(520) - 40, 4, 40, W[3]);
+  drawChurch(c, v, X, Y, CHURCH);
+  for (const [a, b, h] of CHURCH) ledge3(c, v, X(a), Y(h), b - a, '#57402A', 6);
+  const W = ramp6(hour('#3F2A14'));
+  box(c, X(3198) - 1, Y(520) - 41, 6, 41, INK); box(c, X(3198), Y(520) - 40, 4, 40, W[3]); box(c, X(3198), Y(520) - 40, 1, 40, W[5]);
+  poly(c, [[X(3200), Y(520) - 40], [X(3212), Y(520) - 48], [X(3218), Y(520) - 44], [X(3208), Y(520) - 38]], hour('#CA8A04'));
 };
 
 export const norway: ForeignSection = {
@@ -229,18 +169,21 @@ export const norway: ForeignSection = {
     promenade(c, v, RIVER.b, x1, '#D6CBB4', '#8C7F68');
     drawFronts(c, v);
     drawPoolBack(c, v, POOL);
-    // (the wave machine's housing at the pool's far end, set back: the sign on it)
-    setBack(c, v, POOL.a - 40, 120, 0.9, () => { wall(c, 0, 120, 90, '#475569'); for (let k = 0; k < 3; k++) box(c, 14 + k * 34, -70, 20, 30, dimmed('#1E293B')); });
+    // (the wave machine's housing at the pool's far end, set back: its light on before a wave)
+    drawHousing(c, v, POOL.a - 40, f % WAVE_EVERY > WAVE_EVERY - 70);
     // (the trolls and their plank, the booth)
     boxes3(c, v, [
-      ...TROLLS.map(([a, b]) => ({ x: X(a), top: Y(TROLL_H), w: b - a, bottom: GY, col: '#6B7F5E', standable: true })),
-      { x: X(BOOTH.a), top: Y(BOOTH.h), w: BOOTH.b - BOOTH.a, bottom: GY, col: '#1E40AF', standable: true },
+      ...TROLLS.map(([a, b]) => ({ x: X(a), top: Y(TROLL_H), w: b - a, bottom: GY, col: '#6B7F5E', standable: true, look: 'rock' as const })),
+      { x: X(BOOTH.a), top: Y(BOOTH.h), w: BOOTH.b - BOOTH.a, bottom: GY, col: '#1E40AF', standable: true, look: 'plank' },
     ]);
-    if (onScreen(v, X(1060), X(1500))) { TROLLS.forEach(([a, b], i) => drawTroll(c, X(a), X(b), i === 1)); ledge3(c, v, X(PLANK.a), Y(PLANK.h), PLANK.b - PLANK.a, '#8B5E34', 12); }
-    if (onScreen(v, X(BOOTH.a), X(BOOTH.b))) drawBoothBits(c);
+    if (onScreen(v, X(1040), X(1520))) {
+      TROLLS.forEach(([a, b], i) => trollFace(c, X(a), Y(TROLL_H), b - a, TROLL_H, i === 1 ? 10 : b - a - 22, PLANK.h - TROLL_H - 14));
+      ledge3(c, v, X(PLANK.a), Y(PLANK.h), PLANK.b - PLANK.a, '#8B5E34', 12, 'plank');
+    }
+    if (onScreen(v, X(BOOTH.a) - 20, X(BOOTH.b) + 20)) { drawBooth(c, X(BOOTH.a), X(BOOTH.b), Y(BOOTH.h)); hungBoard(c, X((BOOTH.a + BOOTH.b) / 2), Y(BOOTH.h) - 68, Y(BOOTH.h) - 40, ['FREE LUTEFISK', 'PLEASE. ANYBODY.'], LOOKS.norway(1), '#7F1D1D'); }
     // (the longship)
-    if (state.stage) { const n = norOf(state); if (n.ship) drawShip(c, v, n.ship.x, n.ship.y, f); }
-    drawChurch(c, v);
+    if (state.stage) { const n = norOf(state); if (n.ship) drawShip(c, v, n.ship.x, n.ship.y, SHIP.w, f); }
+    drawStaveChurch(c, v);
     // (the signs: on posts, hung, never anything over them)
     if (onScreen(v, X(100), X(320))) postBoard(c, X(200), GY, ['NORWAY', 'CAPITAL OF SWEDEN'], LOOKS.norway(2), '#7F1D1D');
     if (onScreen(v, X(PLANK.a), X(PLANK.b))) postBoard(c, X(1010), GY, ['TROLL BRIDGE', 'TOLL: $5'], LOOKS.norway(1), '#3F6212', undefined, 80);
