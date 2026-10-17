@@ -54,9 +54,9 @@ import { setDartTaker } from '../../weapons/crossbow';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { box, label, saidOver, hands, speak, voice, meatheadSays, landVisit } from '../section';
 import { registerHurts } from '../pavilion';
-import { drawHarry, TIEDYE } from '../heli/harryArt';
+import { drawHarry, TIEDYE, shapeR, tubeR, lineR, ellR, dith, SKIN_R, DENIM_R, SOCK_R, LEATHER_R, GRAY_R, BAND_R, BRASS_R, type Ramp } from '../heli/harryArt';
 import {
-  GY, VIEW_X, ARENA_L, ARENA_R, MID, CAM_ROW, CLING_H, CLING_IN, CROWN, CROWN_SCALE, WINDOW, LIB, FIST_UP, FIST_W, FIST_H, sy,
+  GY, VIEW_X, ARENA_L, ARENA_R, ARENA_W, MID, CAM_ROW, CLING_H, CLING_IN, CROWN, CROWN_SCALE, WINDOW, LIB, FIST_UP, FIST_W, FIST_H, sy,
 } from './arena';
 import { drawRambo, mouthAt, muzzleAt, type RamboPose } from './rambo';
 import { drawLibertyBody, drawArm, gunLine, drawChunk, drawRubble, drawRevolverAt, drawTorchAt, CONC, PUKE, type Face, type LibLook, type Stain } from './liberty';
@@ -168,6 +168,8 @@ export interface Fight {
   intro: Intro; introT: number; skipT: number; ripped: boolean; jet: boolean;
   death: Death | null; deathSaid: number; cam: KillCam | null;
   walls: Block[];
+  /** Looks only: how many rounds he's fired (the brass on the slab). */
+  spentN?: number;
 }
 
 /** The fight going on now (the crossbow's hook looks at it). */
@@ -529,6 +531,8 @@ const fire = (state: GameState, f: Fight, pose: RamboPose, a: number, v: number,
   const mz = muzzleAt(pose, a, f.scale, f.facing);
   const vx = Math.cos(a) * v * f.facing, vy = Math.sin(a) * v;
   f.rounds.push({ x: f.hx + mz.x, y: f.hy + mz.y, vx, vy, src, dmg, life: 120, harmless });
+  // (looks only: the brass it leaves lying on the slab)
+  f.spentN = (f.spentN ?? 0) + 1;
   if (f.total % 2 === 0) playSound('lmg', 0.35, -2 + Math.random());
   state.particles.push({ pos: { x: f.hx + mz.x * 0.6, y: f.hy + mz.y + 4 }, vel: { x: -f.facing * (1 + Math.random() * 2), y: -2 - Math.random() * 2 }, life: 30, color: '#D97706', size: 2, grav: 0.3 });
 };
@@ -1360,7 +1364,31 @@ const harryPose = (f: Fight): { pose: RamboPose; lean?: number; rot?: number } =
   }
 };
 
+/** His hippie gear, torn off in shreds: the jacket's olive, the tie-dye, the white helmet; fluttering down in the rip,
+ *  then lying on the slab where he tore it off (the rip's particles fly as they did: these are the bits that stay). */
+const SHREDS = Array.from({ length: 14 }, (_, i) => ({ dx: ((i * 53) % 100) - 50, w: 5 + (i * 7) % 6, h: 3 + (i % 3), a: ((i * 37) % 100) / 30, kind: i % 3 === 0 ? 'jacket' : 'dye', col: TIEDYE[i % TIEDYE.length] }));
+const drawShreds = (c: Ctx, f: Fight, fr: number) => {
+  if (!f.ripped) return;
+  const falling = f.mode === 'intro' && f.intro === 'flex' && f.introT < 70, u = falling ? f.introT / 70 : 1;
+  for (const [i, s] of SHREDS.entries()) {
+    const x = HARRY_START + s.dx * (0.4 + u * 0.6) + (falling ? Math.sin(fr * 0.2 + i) * 6 * (1 - u) : 0);
+    const y = falling ? GY - 90 + (88 - (i % 4)) * (u * u) - Math.sin(u * Math.PI) * 30 : GY - 1 - (i % 2);
+    c.save(); c.translate(x, y); c.rotate(falling ? s.a + fr * 0.15 : s.a * 0.15); c.scale(1, falling ? 1 : 0.55);
+    if (s.kind === 'jacket') { box(c, -s.w / 2 - 1, -s.h / 2 - 1, s.w + 2, s.h + 2, '#1A220C'); box(c, -s.w / 2, -s.h / 2, s.w, s.h, '#6F7F3C'); box(c, -s.w / 2, -s.h / 2, s.w, 1, '#9AAA62'); }
+    else { box(c, -s.w / 2 - 1, -s.h / 2 - 1, s.w + 2, s.h + 2, '#1A0B06'); for (let k = 0; k < 3; k++) box(c, -s.w / 2 + (k * s.w) / 3, -s.h / 2, s.w / 3 + 1, s.h, TIEDYE[(i + k * 2) % TIEDYE.length]); }
+    c.restore();
+  }
+  // (the helmet, tossed: it lands upside down on the slab, the peace sign up)
+  const hx = HARRY_START + 46, hy = falling ? GY - 96 + 92 * u * u - Math.sin(u * Math.PI) * 50 : GY - 5;
+  c.save(); c.translate(hx, hy); c.rotate(falling ? fr * 0.3 : Math.PI + 0.2);
+  shapeR(c, () => { c.moveTo(-8, 3); c.quadraticCurveTo(-9, -8, 0, -8); c.quadraticCurveTo(9, -8, 8, 3); c.closePath(); }, ['#FFFFFF', '#E9EEF3', '#C5CED8', '#909CAA', '#3E4652'], -9, 9, 1);
+  box(c, -8, 1, 16, 2, '#1E3A8A');
+  c.strokeStyle = '#16A34A'; c.lineWidth = 1; c.beginPath(); c.arc(-1, -3, 2.4, 0, Math.PI * 2); c.moveTo(-1, -5.4); c.lineTo(-1, -0.6); c.stroke();
+  c.restore();
+};
+
 const drawHim = (c: Ctx, f: Fight, fr: number) => {
+  drawShreds(c, f, fr);
   const d = f.death;
   if (f.mode === 'dead' && d) {
     if (d.how === 'buried') { drawBuried(c, d.x, d.mound, fr, d.step === 'set' ? d.t - d.at : 0); return; }
@@ -1396,21 +1424,37 @@ export const drawLeftovers = (c: Ctx, how: string, fr: number) => {
   else if (how === 'barfed') drawPuddle(c, MID + 90, 1, 1);
 };
 
-/** His own puke on the floor: a pool in steps, its middle going red the bloodier it got. */
-const drawPuddle = (c: Ctx, x: number, k: number, bloody: number) => {
+/** His own puke on the floor: a pool in steps (its rim dithered into the slab, chunks in it, a wet sheen, a bubble
+ *  now and then), its middle swirling red the bloodier it got. */
+const drawPuddle = (c: Ctx, x: number, k: number, bloody: number, fr = 0) => {
   if (k <= 0.02) return;
-  const w = 24 + 90 * k, h = 4 + 7 * k;
-  c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(x, GY - 1, w + 2, h + 2, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = PUKE[0]; c.beginPath(); c.ellipse(x, GY - 1, w, h, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = PUKE[1]; c.beginPath(); c.ellipse(x - w * 0.1, GY - 2, w * 0.7, h * 0.6, 0, 0, Math.PI * 2); c.fill();
-  if (bloody > 0) { c.fillStyle = BLOODY[1]; c.beginPath(); c.ellipse(x + w * 0.1, GY - 1, w * 0.5 * bloody, h * 0.55 * bloody, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = BLOODY[2]; c.fillRect(x - w * 0.2, GY - 3, w * 0.25 * bloody, 2); }
-  c.fillStyle = PUKE[3]; c.fillRect(x - w * 0.5, GY - h * 0.6, w * 0.3, 2);
+  const w = 24 + 90 * k, h = 4 + 7 * k, y = GY - 1;
+  ellR(c, x, y, w + 4, h + 3, dith(c, PUKE[0]));
+  ellR(c, x, y, w + 2, h + 2, '#1A0B06');
+  ellR(c, x, y, w, h, PUKE[0]);
+  ellR(c, x - w * 0.06, y - 0.6, w * 0.82, h * 0.74, dith(c, PUKE[1]));
+  ellR(c, x - w * 0.1, y - 1, w * 0.66, h * 0.56, PUKE[1]);
+  ellR(c, x - w * 0.18, y - 1.6, w * 0.36, h * 0.3, dith(c, PUKE[2]));
+  if (bloody > 0) {
+    ellR(c, x + w * 0.1, y, w * 0.56 * bloody, h * 0.6 * bloody, dith(c, BLOODY[1]));
+    ellR(c, x + w * 0.12, y, w * 0.44 * bloody, h * 0.48 * bloody, BLOODY[1]);
+    ellR(c, x + w * 0.04, y - 0.6, w * 0.2 * bloody, h * 0.24 * bloody, BLOODY[2]);
+    box(c, x - w * 0.2, GY - 3, w * 0.25 * bloody, 1, BLOODY[2]);
+  }
+  // (chunks in it: what he had for lunch at the Mexico pavilion)
+  for (let i = 0; i < Math.round(3 + k * 6); i++) {
+    const cx = x + (((i * 37) % 100) / 100 - 0.5) * w * 1.4, cy = y + (((i * 53) % 100) / 100 - 0.5) * h * 0.9;
+    box(c, cx - 1.5, cy - 1, 3, 2, i % 3 ? '#CA8A04' : '#A16207'); box(c, cx - 1.5, cy - 1, 1, 1, '#FDE68A');
+  }
+  box(c, x - w * 0.5, y - h * 0.6, w * 0.3, 1, PUKE[3]); box(c, x - w * 0.42, y - h * 0.62, 3, 1, '#FFFFFF');
+  const bub = (fr % 70) / 70;
+  if (bub < 0.4) { c.strokeStyle = PUKE[3]; c.lineWidth = 1; c.beginPath(); c.arc(x + w * 0.3, y - 1 - bub * 3, 1.4 + bub * 3, 0, Math.PI * 2); c.stroke(); }
 };
 /** Barfed to death: kneeling over the pool heaving; pale; face first into it; gurgling; still. */
 const drawBarfed = (c: Ctx, f: Fight, d: Death, fr: number) => {
   const pd = f.puddle, u = d.t - d.at, heaves = d.step === 'heave' ? Math.floor(u / HEAVE_T) : 0;
   const bloody = d.step === 'kneel' ? 0 : d.step === 'heave' ? Math.max(0, (heaves - 1) / 3) : 1;
-  if (pd) drawPuddle(c, pd.x, pd.k, bloody);
+  if (pd) drawPuddle(c, pd.x, pd.k, bloody, fr);
   const pale = d.step === 'pale' ? Math.min(1, u / 60) : d.step === 'kneel' || d.step === 'heave' ? 0 : 1;
   const face = f.facing;
   if (d.step === 'kneel' || d.step === 'heave' || d.step === 'pale') {
@@ -1440,65 +1484,97 @@ const drawBarfed = (c: Ctx, f: Fight, d: Death, fr: number) => {
 };
 
 /** Buried in her concrete: a mound over him, face down, just his socks and sandals sticking out, kicking (then not). */
+const CONC_WET: Ramp = ['#E7E5E2', '#B8B4AE', '#8E8A84', '#66625C', '#2C2925'];
+const CONC_HARD: Ramp = ['#A8A29E', '#7C766F', '#5E5853', '#44403C', '#1C1917'];
+const BLOOD_R = ['#2A0404', '#5A0A0A', '#8B1010', '#B91C1C', '#E04848'];
 const drawBuried = (c: Ctx, x: number, k: number, fr: number, setT: number) => {
   const set = Math.min(1, setT / 120);
   const kick = set < 1 ? Math.sin(fr * (0.6 - set * 0.4)) * 5 * (1 - set) : 0;
-  // (his legs out the end of it, kicking)
-  c.save(); c.translate(x + 40, GY - 14);
+  // (his legs out the end of it, kicking: the jeans in steps, the hems, the tube socks' stripes, the sandals' soles up)
   for (const [dy, ph] of [[0, 0], [6, 1.6]] as const) {
-    const kk = kick * Math.sin(fr * 0.5 + ph);
-    c.fillStyle = '#1A0B06'; c.fillRect(-4, dy - 5 + kk, 34, 11);
-    c.fillStyle = '#3D5A8A'; c.fillRect(-3, dy - 4 + kk, 26, 9);
-    c.fillStyle = '#F8FAFC'; c.fillRect(22, dy - 4 + kk, 6, 9);
-    c.fillStyle = '#92400E'; c.fillRect(28, dy - 5 + kk, 3, 11);
+    const kk = kick * Math.sin(fr * 0.5 + ph), ly = GY - 14 + dy + kk, lx = x + 36;
+    shapeR(c, () => c.roundRect(lx, ly - 4.6, 24, 9.2, 2), dy ? DENIM_R : ([DENIM_R[1], DENIM_R[2], DENIM_R[3], DENIM_R[3], DENIM_R[4]] as Ramp), lx, lx + 24, 1);
+    box(c, lx + 2, ly - 4, 18, 1, DENIM_R[0]); box(c, lx + 20, ly - 4.6, 3, 9.2, DENIM_R[3]);
+    shapeR(c, () => c.rect(lx + 23, ly - 4, 7, 8), SOCK_R, lx + 23, lx + 30, 0.9);
+    box(c, lx + 24.6, ly - 4, 1, 8, '#DC2626'); box(c, lx + 26.4, ly - 4, 1, 8, '#2563EB');
+    shapeR(c, () => c.roundRect(lx + 29.6, ly - 5.4, 3.6, 11, 1.2), LEATHER_R, lx + 29.6, lx + 33.2, 0.9);
+    box(c, lx + 30, ly - 4.6, 1, 9.4, LEATHER_R[0]);
   }
-  c.restore();
-  // (the mound: concrete, slopped, darkening as it sets)
+  // (the mound: her concrete, slopped, pale and wet, going darker and still as it sets; the pour's slumps round it)
   const h = 18 + 52 * k, w = 70 + 30 * k;
-  const col = set > 0.5 ? CONC[2] : CONC[3], lite = set > 0.5 ? CONC[3] : CONC[4];
-  c.beginPath(); c.moveTo(x - w, GY); c.quadraticCurveTo(x - w * 0.7, GY - h * 0.9, x - 10, GY - h); c.quadraticCurveTo(x + w * 0.5, GY - h * 0.9, x + w * 0.8, GY); c.closePath();
-  c.fillStyle = col; c.fill(); c.strokeStyle = '#1A0B06'; c.lineWidth = 2; c.stroke();
-  c.fillStyle = lite; c.fillRect(x - w * 0.5, GY - h * 0.8, w * 0.5, 4); c.fillRect(x - w * 0.3, GY - h * 0.55, 10, 3);
-  if (set < 1) for (let i = 0; i < 4; i++) { c.fillStyle = CONC[2]; c.fillRect(x - w * 0.6 + i * 20, GY - h * 0.6 + ((fr * 0.3 + i * 5) % 14), 3, 6); }
+  const R = set > 0.5 ? CONC_HARD : CONC_WET;
+  const mound = () => { c.moveTo(x - w, GY); c.quadraticCurveTo(x - w * 0.7, GY - h * 0.9, x - 10, GY - h); c.quadraticCurveTo(x + w * 0.5, GY - h * 0.9, x + w * 0.8, GY); c.closePath(); };
+  shapeR(c, mound, R, x - w, x + w * 0.8, 2);
+  c.save(); c.beginPath(); mound(); c.clip();
+  for (let i = 0; i < 4; i++) {
+    const yy = GY - h * (0.2 + i * 0.2);
+    c.strokeStyle = R[3]; c.lineWidth = 1.4; c.beginPath(); c.moveTo(x - w, yy + 6); c.quadraticCurveTo(x - 10, yy - 6, x + w, yy + 8); c.stroke();
+    c.strokeStyle = R[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(x - w, yy + 4); c.quadraticCurveTo(x - 10, yy - 8, x + w, yy + 6); c.stroke();
+  }
+  for (let i = 0; i < 26; i++) box(c, x - w + ((i * 47) % 100) / 100 * w * 1.8, GY - ((i * 31) % 100) / 100 * h, 1.4, 1.4, i % 3 ? R[3] : R[0]);
+  box(c, x - w * 0.5, GY - h * 0.86, w * 0.5, 3, R[0]); box(c, x - w * 0.3, GY - h * 0.55, 10, 2, R[0]);
+  c.restore();
+  // (wet: it's still running down, a sheen on it)
+  if (set < 1) for (let i = 0; i < 4; i++) {
+    const dx = x - w * 0.6 + i * 20, dy0 = GY - h * 0.6 + ((fr * 0.3 + i * 5) % 14);
+    box(c, dx - 0.6, dy0 - 0.6, 4.2, 7.2, R[4]); box(c, dx, dy0, 3, 6, R[1]); box(c, dx, dy0, 1, 6, R[0]);
+  }
+  if (set < 0.5) box(c, x - w * 0.35, GY - h * 0.92, 6, 1, '#FFFFFF');
   // (the user: "some of his limbs stick out along with blood") Out of the top, his arm, clawing up, then set hard
-  // flipping the bird; out the near slope, the top of his head and the bandana's knot; the blood seeping out through the
-  // cracks as it sets, down the mound into a pool round its foot, red-stained chunks)
+  // flipping the bird; out the near slope, the top of his head and the bandana's knot out the slope; the blood seeping
+  // out through the cracks as it sets, down the mound into a pool round its foot, red-stained chunks)
   if (k < 0.35) return;
   const up = Math.min(1, (k - 0.35) / 0.4), claw = set < 1 ? Math.sin(fr * 0.35) * 4 * (1 - set) : 0;
   const ax = x - 18, ay = GY - h + 6, ex = ax - 8 + claw, ey = ay - 30 * up, hx2 = ex - 2 + claw * 0.5, hy2 = ey - 26 * up;
-  c.lineCap = 'round';
-  c.strokeStyle = '#1A0B06'; c.lineWidth = 13; c.beginPath(); c.moveTo(ax, ay); c.lineTo(ex, ey); c.lineTo(hx2, hy2); c.stroke();
-  c.strokeStyle = '#C98E66'; c.lineWidth = 9; c.beginPath(); c.moveTo(ax, ay); c.lineTo(ex, ey); c.lineTo(hx2, hy2); c.stroke();
-  c.strokeStyle = '#F2C9A6'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(ax - 3, ay); c.lineTo(ex - 3, ey); c.lineTo(hx2 - 3, hy2); c.stroke();
+  const S = SKIN_R;
+  tubeR(c, [ax, ay, ex, ey, hx2, hy2 + 4], [10, 8.6], [S, S]);
+  // (the bicep's bulge, the peace sign tattoo, the concrete splashed up it)
+  ellR(c, (ax + ex) / 2 + 2, (ay + ey) / 2, 4, 8, S[0]);
+  c.strokeStyle = '#2E6E7E'; c.lineWidth = 1; c.beginPath(); c.arc((ax + ex) / 2, (ay + ey) / 2 + 2, 2.6, 0, Math.PI * 2); c.moveTo((ax + ex) / 2, (ay + ey) / 2 - 0.6); c.lineTo((ax + ex) / 2, (ay + ey) / 2 + 4.6); c.stroke();
+  for (let i = 0; i < 3; i++) box(c, ax - 4 + i * 3, ay - 6 - i * 4, 3, 5, R[2]);
   // (the fist, the middle finger up once it's set; clawing before)
-  c.fillStyle = '#1A0B06'; c.fillRect(hx2 - 8, hy2 - 9, 16, 13); c.fillStyle = '#C98E66'; c.fillRect(hx2 - 7, hy2 - 8, 14, 11); c.fillStyle = '#E2AC84'; c.fillRect(hx2 - 7, hy2 - 8, 14, 3);
-  if (set > 0.3) { c.fillStyle = '#1A0B06'; c.fillRect(hx2 - 3, hy2 - 24, 7, 17); c.fillStyle = '#E2AC84'; c.fillRect(hx2 - 2, hy2 - 23, 5, 16); c.fillStyle = '#F2C9A6'; c.fillRect(hx2 - 2, hy2 - 23, 5, 2); }
-  else for (let i = 0; i < 3; i++) { c.fillStyle = '#1A0B06'; c.fillRect(hx2 - 7 + i * 5, hy2 - 15 + Math.abs(claw), 4, 8); c.fillStyle = '#C98E66'; c.fillRect(hx2 - 6 + i * 5, hy2 - 14 + Math.abs(claw), 2, 6); }
-  c.fillStyle = CONC[3]; c.fillRect(ax - 9, ay - 2, 18, 5);
-  // (the top of his head out the near slope: gray hair, the red bandana's knot and tails)
+  shapeR(c, () => c.roundRect(hx2 - 7.6, hy2 - 8, 15.2, 12.4, 3), S, hx2 - 7.6, hx2 + 7.6, 1.2);
+  for (let i = 0; i < 4; i++) box(c, hx2 - 6 + i * 3.4, hy2 - 7.4, 2, 1, S[0]);
+  box(c, hx2 - 6, hy2 - 2.4, 12, 1, S[3]);
+  if (set > 0.3) {
+    shapeR(c, () => c.roundRect(hx2 - 2.6, hy2 - 23, 6, 16.4, 2.6), S, hx2 - 2.6, hx2 + 3.4, 1.2);
+    box(c, hx2 - 1.4, hy2 - 22, 2, 1.4, S[0]); box(c, hx2 - 1.6, hy2 - 23, 4, 2.6, '#F8E0C8'); box(c, hx2 - 1.6, hy2 - 15, 4, 0.8, S[3]);
+  } else for (let i = 0; i < 3; i++) {
+    const fx = hx2 - 6.6 + i * 5, fy = hy2 - 15 + Math.abs(claw);
+    shapeR(c, () => c.roundRect(fx, fy, 3.6, 8.4, 1.6), S, fx, fx + 3.6, 1); box(c, fx + 0.6, fy, 2, 1.2, '#F8E0C8');
+  }
+  shapeR(c, () => c.ellipse(ax, ay, 10, 3.6, 0, 0, Math.PI * 2), R, ax - 10, ax + 10, 1.2);
+  // (the top of his head out the near slope: gray hair in strands, the red bandana, its knot and tails)
   const tx = x - w * 0.62, ty = GY - h * 0.42;
-  c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(tx, ty, 15, 10, -0.5, Math.PI, Math.PI * 2); c.fill();
-  c.fillStyle = '#9CA3AF'; c.beginPath(); c.ellipse(tx, ty, 13, 8, -0.5, Math.PI, Math.PI * 2); c.fill();
-  c.fillStyle = '#DC2626'; c.fillRect(tx - 12, ty - 6, 22, 4); c.fillRect(tx + 8, ty - 9, 5, 5);
-  c.fillRect(tx + 12, ty - 12 + Math.sin(fr * 0.2) * 2, 9, 3); c.fillRect(tx + 12, ty - 6 + Math.sin(fr * 0.2 + 1) * 2, 8, 3);
+  shapeR(c, () => c.ellipse(tx, ty, 14, 9, -0.5, Math.PI, Math.PI * 2), GRAY_R, tx - 14, tx + 14, 1.2);
+  for (let i = 0; i < 3; i++) lineR(c, [tx - 8 + i * 5, ty - 4 - i, tx - 2 + i * 5, ty - 7 - i], 0.7, i % 2 ? GRAY_R[0] : GRAY_R[3]);
+  shapeR(c, () => { c.moveTo(tx - 12, ty - 3); c.lineTo(tx + 9, ty - 9); c.lineTo(tx + 10, ty - 5.4); c.lineTo(tx - 11, ty + 0.4); c.closePath(); }, BAND_R, tx - 12, tx + 10, 1);
+  shapeR(c, () => c.ellipse(tx + 10, ty - 7.6, 3, 2.6, 0, 0, Math.PI * 2), BAND_R, tx + 7, tx + 13, 1);
+  const fl = Math.sin(fr * 0.2) * 2, fl2 = Math.sin(fr * 0.2 + 1) * 2;
+  shapeR(c, () => { c.moveTo(tx + 12, ty - 9); c.quadraticCurveTo(tx + 17, ty - 13 + fl, tx + 22, ty - 12 + fl); c.lineTo(tx + 21, ty - 9 + fl); c.quadraticCurveTo(tx + 16, ty - 9, tx + 12, ty - 7); c.closePath(); }, BAND_R, tx + 12, tx + 22, 0.9);
+  shapeR(c, () => { c.moveTo(tx + 12, ty - 7); c.quadraticCurveTo(tx + 16, ty - 5 + fl2, tx + 20, ty - 5 + fl2); c.lineTo(tx + 19, ty - 2.4 + fl2); c.quadraticCurveTo(tx + 15, ty - 3, tx + 11.6, ty - 5.6); c.closePath(); }, BAND_R, tx + 11.6, tx + 20, 0.9);
   // (the blood: out through the cracks, down the slopes, pooling round its foot, chunks stained)
   const bleed = Math.min(1, Math.max(0, k - 0.6) + setT / 160);
   if (bleed <= 0) return;
-  const BL = ['#2A0404', '#5A0A0A', '#8B1010', '#B91C1C'];
-  c.fillStyle = BL[0]; c.beginPath(); c.ellipse(x - 6, GY - 1, (w + 14) * bleed, 7 * bleed + 1, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = BL[1]; c.beginPath(); c.ellipse(x - 10, GY - 1, (w + 4) * bleed, 5 * bleed + 1, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = BL[2]; c.fillRect(x - w * 0.6 * bleed, GY - 3, w * 0.5 * bleed, 2);
+  const BL = BLOOD_R;
+  ellR(c, x - 6, GY - 1, (w + 18) * bleed, 8 * bleed + 1, dith(c, BL[0]));
+  ellR(c, x - 6, GY - 1, (w + 14) * bleed, 7 * bleed + 1, BL[0]);
+  ellR(c, x - 10, GY - 1, (w + 4) * bleed, 5 * bleed + 1, BL[1]);
+  ellR(c, x - 16, GY - 1.6, (w - 20) * bleed, 3 * bleed + 0.5, dith(c, BL[2]));
+  box(c, x - w * 0.6 * bleed, GY - 3, w * 0.5 * bleed, 1, BL[3]); box(c, x - w * 0.5 * bleed, GY - 3, 3, 1, '#FCA5A5');
   // (re-edge the mound's foot over the pool)
-  c.strokeStyle = '#1A0B06'; c.lineWidth = 2; c.beginPath(); c.moveTo(x - w, GY); c.quadraticCurveTo(x - w * 0.7, GY - h * 0.9, x - 10, GY - h); c.quadraticCurveTo(x + w * 0.5, GY - h * 0.9, x + w * 0.8, GY); c.stroke();
+  c.strokeStyle = R[4]; c.lineWidth = 2; c.beginPath(); c.moveTo(x - w, GY); c.quadraticCurveTo(x - w * 0.7, GY - h * 0.9, x - 10, GY - h); c.quadraticCurveTo(x + w * 0.5, GY - h * 0.9, x + w * 0.8, GY); c.stroke();
   for (const [cx, cy, len] of [[-0.45, 0.7, 0.55], [0.2, 0.8, 0.7], [-0.15, 0.55, 0.45], [0.5, 0.45, 0.4]] as const) {
     const sx = x + w * cx, sy0 = GY - h * cy, L2 = h * len * bleed;
-    c.strokeStyle = BL[0]; c.lineWidth = 2; c.beginPath(); c.moveTo(sx - 6, sy0 - 4); c.lineTo(sx, sy0); c.lineTo(sx + 5, sy0 - 6); c.stroke();
-    c.fillStyle = BL[2]; c.fillRect(sx - 1, sy0, 3, L2); c.fillStyle = BL[3]; c.fillRect(sx - 1, sy0, 1, L2 * 0.6);
-    c.fillStyle = BL[1]; c.beginPath(); c.arc(sx + 0.5, sy0 + L2, 2.5, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = R[4]; c.lineWidth = 2; c.beginPath(); c.moveTo(sx - 6, sy0 - 4); c.lineTo(sx, sy0); c.lineTo(sx + 5, sy0 - 6); c.stroke();
+    c.strokeStyle = R[0]; c.lineWidth = 0.8; c.beginPath(); c.moveTo(sx - 5, sy0 - 2.6); c.lineTo(sx + 0.6, sy0 + 1.2); c.stroke();
+    box(c, sx - 1.4, sy0, 3.6, L2, BL[1]); box(c, sx - 1, sy0, 2.6, L2, BL[2]); box(c, sx - 1, sy0, 1, L2 * 0.6, BL[4]);
+    ellR(c, sx + 0.4, sy0 + L2, 2.8, 2.8, BL[1]); box(c, sx - 0.6, sy0 + L2 - 1.4, 1, 1, BL[4]);
   }
   for (const [cx, s2] of [[-1.05, 7], [0.9, 6], [-0.8, 5], [1.05, 4]] as const) {
     const bx = x + w * cx * Math.min(1, bleed + 0.4);
-    c.fillStyle = '#1A0B06'; c.fillRect(bx - s2 - 1, GY - s2 - 1, s2 * 2 + 2, s2 + 1); c.fillStyle = CONC[3]; c.fillRect(bx - s2, GY - s2, s2 * 2, s2); c.fillStyle = BL[2]; c.fillRect(bx - s2, GY - s2, s2 * 2, 2); c.fillRect(bx - s2 * 0.4, GY - s2 + 2, 2, s2 - 2);
+    shapeR(c, () => { c.moveTo(bx - s2, GY); c.lineTo(bx - s2 * 0.7, GY - s2); c.lineTo(bx + s2 * 0.5, GY - s2 * 1.1); c.lineTo(bx + s2, GY); c.closePath(); }, CONC_HARD, bx - s2, bx + s2, 1);
+    box(c, bx - s2 * 0.6, GY - s2 * 0.9, s2 * 1.4, 1.6, BL[2]); box(c, bx - s2 * 0.3, GY - s2 * 0.8, 1.6, s2 * 0.7, BL[1]);
   }
 };
 
@@ -1524,16 +1600,27 @@ const drawStreams = (c: Ctx, f: Fight, fr: number) => {
     stream(c, sx, syy, (sx + ex) / 2, syy + 20, ex, ey, 26, CONC.slice(2), fr, true);
   }
 };
+/** A stream (his puke, her concrete): inked, its body in steps (the shade under, the lit top, a dithered seam), lumps
+ *  tumbling down it, a wobble in its width, and a splatter where it lands. */
 const stream = (c: Ctx, x0: number, y0: number, cx: number, cy: number, x1: number, y1: number, w: number, cols: string[], fr: number, flowing: boolean) => {
+  const path = (o: number) => { c.beginPath(); c.moveTo(x0, y0 + o); c.quadraticCurveTo(cx, cy + o, x1, y1 + o); };
   c.lineCap = 'round';
-  c.strokeStyle = '#1A0B06'; c.lineWidth = w + 4; c.beginPath(); c.moveTo(x0, y0); c.quadraticCurveTo(cx, cy, x1, y1); c.stroke();
-  c.strokeStyle = cols[1]; c.lineWidth = w; c.stroke();
-  c.strokeStyle = cols[2] ?? cols[1]; c.lineWidth = w * 0.4; c.beginPath(); c.moveTo(x0, y0 - w * 0.2); c.quadraticCurveTo(cx, cy - w * 0.2, x1, y1 - w * 0.2); c.stroke();
-  // (lumps along it, moving down it)
-  if (flowing) for (let i = 0; i < 6; i++) {
-    const u = ((fr * 0.05 + i / 6) % 1), a = 1 - u;
-    const x = a * a * x0 + 2 * a * u * cx + u * u * x1, y = a * a * y0 + 2 * a * u * cy + u * u * y1;
-    c.fillStyle = cols[0]; c.beginPath(); c.arc(x, y, w * 0.45, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = '#1A0B06'; c.lineWidth = w + 4; path(0); c.stroke();
+  c.strokeStyle = cols[0]; c.lineWidth = w + 1; path(0.6); c.stroke();
+  c.strokeStyle = cols[1]; c.lineWidth = w * 0.8; path(-0.4); c.stroke();
+  c.strokeStyle = dith(c, cols[2] ?? cols[1]); c.lineWidth = w * 0.6; path(-w * 0.14); c.stroke();
+  c.strokeStyle = cols[2] ?? cols[1]; c.lineWidth = w * 0.34; path(-w * 0.22); c.stroke();
+  if (cols[3]) { c.strokeStyle = cols[3]; c.lineWidth = Math.max(1, w * 0.1); path(-w * 0.3); c.stroke(); }
+  // (lumps along it, tumbling down it, each lit on top)
+  if (flowing) for (let i = 0; i < 7; i++) {
+    const u = ((fr * 0.05 + i / 7) % 1), a = 1 - u;
+    const x = a * a * x0 + 2 * a * u * cx + u * u * x1, y = a * a * y0 + 2 * a * u * cy + u * u * y1, r = w * (0.36 + ((i * 37) % 10) / 50);
+    ellR(c, x, y, r + 1, r + 1, '#1A0B06'); ellR(c, x, y, r, r, cols[0]); ellR(c, x - r * 0.3, y - r * 0.3, r * 0.5, r * 0.5, cols[1]);
+  }
+  // (the splatter where it hits)
+  if (flowing) for (let i = 0; i < 5; i++) {
+    const ph = ((fr * 0.09 + i * 0.21) % 1), dx = (i - 2) * w * 0.5 * ph * 2, dy = -Math.sin(ph * Math.PI) * w * 0.9;
+    ellR(c, x1 + dx, y1 + dy, w * 0.18 * (1 - ph) + 0.8, w * 0.18 * (1 - ph) + 0.8, cols[i % 2 ? 1 : 2] ?? cols[1]);
   }
 };
 
@@ -1541,7 +1628,12 @@ const stream = (c: Ctx, x0: number, y0: number, cx: number, cy: number, x1: numb
 const drawQueasy = (c: Ctx, f: Fight) => {
   if (f.mode !== 'on' || (f.sick <= 0.05 && !f.sickOn) || f.act === 'crown') return;
   const k = f.sickOn ? 1 : f.sick / SICK_AT, x = f.hx - 22, y = f.hy - 112 * f.scale;
-  box(c, x - 1, y - 1, 46, 7, '#1A0B06'); box(c, x, y, 44 * k, 5, f.sickOn ? '#BEF264' : '#84CC16');
+  // (a frame in steps, the bar banded: its lit top, its shade, a sloshing bubble when it's full)
+  box(c, x - 2, y - 2, 48, 9, '#1A0B06'); box(c, x - 1, y - 1, 46, 7, '#3F6212'); box(c, x, y, 44, 5, '#1A2E05');
+  const fillC = f.sickOn ? PUKE[3] : PUKE[2];
+  box(c, x, y, 44 * k, 5, fillC); box(c, x, y, 44 * k, 1, '#ECFCCB'); box(c, x, y + 4, 44 * k, 1, PUKE[1]);
+  if (k > 0.05) box(c, x + 44 * k - 1, y, 1, 5, dith(c, PUKE[0]) as unknown as string);
+  if (f.sickOn) { const b = (f.total % 30) / 30; box(c, x + 4 + b * 34, y + 1, 2, 2, '#FFFFFF'); }
   // (a notch a dart)
   for (let i = 1; i < SICK_AT; i++) box(c, x + Math.round((44 * i) / SICK_AT), y, 1, 5, 'rgba(26, 11, 6, 0.55)');
   label(c, 'QUEASY', f.hx, y - 4, '#BEF264', 6);
@@ -1579,26 +1671,46 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   const fr = state.frame, a = f.arm;
   // (the concrete she's puked: mounds on the floor, set)
   for (const pl of f.piles) {
+    // (a mound of her concrete, set: in steps, its slumps, grit, a lit crest)
     const h = 6 + 20 * pl.k, w = 50 + 30 * pl.k;
-    c.fillStyle = CONC[2]; c.beginPath(); c.ellipse(pl.x, GY, w, h, 0, Math.PI, Math.PI * 2); c.fill();
-    c.fillStyle = CONC[3]; c.fillRect(pl.x - w * 0.4, GY - h * 0.7, w * 0.4, 3);
+    const pile = () => c.ellipse(pl.x, GY, w, h, 0, Math.PI, Math.PI * 2);
+    ellR(c, pl.x, GY, w + 4, 3, dith(c, CONC[1]));
+    shapeR(c, pile, CONC_HARD, pl.x - w, pl.x + w, 1.6);
+    c.save(); c.beginPath(); pile(); c.clip();
+    c.strokeStyle = CONC_HARD[3]; c.lineWidth = 1.2; c.beginPath(); c.ellipse(pl.x - 4, GY + 2, w * 0.7, h * 0.6, 0, Math.PI, Math.PI * 2); c.stroke();
+    for (let i = 0; i < 9; i++) box(c, pl.x - w + ((i * 41 + pl.x) % 100) / 100 * w * 2, GY - ((i * 29) % 100) / 100 * h, 1.4, 1.4, i % 2 ? CONC_HARD[0] : CONC_HARD[3]);
+    c.restore();
+    box(c, pl.x - w * 0.4, GY - h * 0.82, w * 0.4, 2, CONC_HARD[0]);
+  }
+  // (spent brass all over the slab where he's been shooting, the ride's M60's)
+  for (let i = 0; i < Math.min(46, f.spentN ?? 0); i++) {
+    const bx = ARENA_L + 20 + ((i * 137 + 31) % 1000) / 1000 * (ARENA_W - 40), by = GY - 1 - (i % 3);
+    box(c, bx - 1, by - 1, 4, 2, '#3A2002'); box(c, bx - 0.6, by - 0.6, 3, 1.4, BRASS_R[2]); box(c, bx - 0.6, by - 0.6, 1, 1, BRASS_R[0]);
   }
   // (his own puke on the floor, while he's alive to make it)
-  if (f.puddle && !(f.death && f.death.how === 'barfed')) drawPuddle(c, f.puddle.x, f.puddle.k, 0);
+  if (f.puddle && !(f.death && f.death.how === 'barfed')) drawPuddle(c, f.puddle.x, f.puddle.k, 0, fr);
   // (the holes the torch has left in the floor (not the one it's in: that one's drawn with it))
   for (const hx of f.holes ?? []) {
     if (a.st === 'stuck' && Math.abs(hx - a.tx) < 1) continue;
-    c.fillStyle = '#3A2E22'; c.beginPath(); c.ellipse(hx, GY, 30, 6, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#0E0A08'; c.beginPath(); c.ellipse(hx, GY + 1, 16, 3.5, 0, 0, Math.PI * 2); c.fill();
-    c.strokeStyle = '#1A0B06'; c.lineWidth = 2; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(hx + s * 26, GY); c.lineTo(hx + s * 44, GY - 2); c.lineTo(hx + s * 62, GY); c.stroke(); }
-    for (const ox of [-30, 24]) { c.fillStyle = '#8A8378'; c.beginPath(); c.moveTo(hx + ox - 7, GY + 2); c.lineTo(hx + ox - 2, GY - 6); c.lineTo(hx + ox + 6, GY + 2); c.closePath(); c.fill(); }
+    ellR(c, hx, GY, 34, 7, dith(c, '#3A2E22'));
+    ellR(c, hx, GY, 30, 6, '#3A2E22'); ellR(c, hx, GY + 0.6, 22, 4.4, '#241A12'); ellR(c, hx, GY + 1, 16, 3.5, '#0E0A08');
+    box(c, hx - 26, GY - 1, 18, 1, '#6B5B45');
+    c.strokeStyle = '#1A0B06'; c.lineWidth = 2; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(hx + s * 26, GY); c.lineTo(hx + s * 44, GY - 2); c.lineTo(hx + s * 62, GY); c.stroke(); c.strokeStyle = '#D6D3D1'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(hx + s * 27, GY - 1.4); c.lineTo(hx + s * 44, GY - 3.4); c.stroke(); c.strokeStyle = '#1A0B06'; c.lineWidth = 2; }
+    for (const ox of [-30, 24]) shapeR(c, () => { c.moveTo(hx + ox - 7, GY + 2); c.lineTo(hx + ox - 2, GY - 6); c.lineTo(hx + ox + 6, GY + 2); c.closePath(); }, CONC_HARD, hx + ox - 7, hx + ox + 6, 1);
   }
-  // (the windup's mark on the floor: following him, then locked, red)
+  // (the windup's mark on the floor: her fist's shadow, stepped, following him; then locked, flashing red, a target)
   if (a.st === 'wind' || a.st === 'drop' || a.st === 'feint') {
-    const u = a.st === 'wind' ? a.t / a.T : 1, locked = u >= (a.track ?? TRACK), col = locked ? (fr % 8 < 4 ? '#EF4444' : '#FDE047') : 'rgba(239, 68, 68, 0.6)';
-    const rx = FIST_W / 2 + 6 + (1 - u) * 30;
-    c.fillStyle = 'rgba(0,0,0,0.3)'; c.beginPath(); c.ellipse(a.tx, GY - 2, rx, 8, 0, 0, Math.PI * 2); c.fill();
-    c.strokeStyle = col; c.lineWidth = 3; c.beginPath(); c.ellipse(a.tx, GY - 2, rx, 8, 0, 0, Math.PI * 2); c.stroke();
+    const u = a.st === 'wind' ? a.t / a.T : 1, locked = u >= (a.track ?? TRACK), hot = fr % 8 < 4;
+    const rx = FIST_W / 2 + 6 + (1 - u) * 30, dk = Math.min(1, 0.3 + u * 0.7);
+    ellR(c, a.tx, GY - 2, rx + 6, 10, dith(c, `rgba(0,0,0,${(0.3 * dk).toFixed(2)})`));
+    ellR(c, a.tx, GY - 2, rx, 8, `rgba(0,0,0,${(0.3 * dk).toFixed(2)})`);
+    ellR(c, a.tx, GY - 2, rx * 0.6, 5, `rgba(0,0,0,${(0.25 * dk).toFixed(2)})`);
+    c.strokeStyle = '#1A0B06'; c.lineWidth = 5; c.beginPath(); c.ellipse(a.tx, GY - 2, rx, 8, 0, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = locked ? (hot ? '#EF4444' : '#FDE047') : 'rgba(239, 68, 68, 0.75)'; c.lineWidth = 3; c.stroke();
+    if (locked) {
+      c.strokeStyle = hot ? '#FDE047' : '#EF4444'; c.lineWidth = 1.6; c.beginPath(); c.ellipse(a.tx, GY - 2, rx * 0.5, 4, 0, 0, Math.PI * 2); c.stroke();
+      for (const s of [-1, 1]) { box(c, a.tx + s * (rx + 4) - (s > 0 ? 0 : 10), GY - 3, 10, 2, hot ? '#EF4444' : '#FDE047'); }
+    }
   }
   // (her arm, when it's not going over with her)
   if (!f.lib.gone && f.lib.tilt === 0 && f.lib.dy === 0) {
@@ -1635,15 +1747,30 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     let len = 1200;
     if (dy > 0.001) len = Math.min(len, (GY - my) / dy);
     if (Math.abs(dx) > 0.001) len = Math.min(len, ((dx > 0 ? ARENA_R : ARENA_L) - mx) / dx);
-    const warn = f.cling.t <= CLING_WARN;
-    c.strokeStyle = warn ? (fr % 8 < 4 ? '#EF4444' : '#FCA5A5') : 'rgba(239, 68, 68, 0.55)'; c.lineWidth = warn ? 2 : 1;
-    c.beginPath(); c.moveTo(mx, my); c.lineTo(mx + dx * len, my + dy * len); c.stroke();
-    c.fillStyle = '#EF4444'; c.fillRect(mx + dx * len - 3, my + dy * len - 3, 6, 6);
+    const warn = f.cling.t <= CLING_WARN, hot = fr % 8 < 4, ex = mx + dx * len, ey = my + dy * len;
+    // (the beam: a dithered glow round it, the red core, a hot white thread while it's warning)
+    c.lineCap = 'butt';
+    c.strokeStyle = dith(c, warn ? 'rgba(239, 68, 68, 0.55)' : 'rgba(239, 68, 68, 0.3)'); c.lineWidth = warn ? 6 : 4;
+    c.beginPath(); c.moveTo(mx, my); c.lineTo(ex, ey); c.stroke();
+    c.strokeStyle = warn ? (hot ? '#EF4444' : '#FCA5A5') : 'rgba(239, 68, 68, 0.7)'; c.lineWidth = warn ? 2 : 1.2;
+    c.beginPath(); c.moveTo(mx, my); c.lineTo(ex, ey); c.stroke();
+    if (warn && hot) { c.strokeStyle = '#FFE4E6'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(mx, my); c.lineTo(ex, ey); c.stroke(); }
+    // (the dot where it lands: a stepped glow, the bright pip; the sight's lens at the gun)
+    const pr = warn ? 4 + (hot ? 2 : 0) : 3;
+    ellR(c, ex, ey, pr * 2.2, pr * 2.2, dith(c, 'rgba(239, 68, 68, 0.45)'));
+    ellR(c, ex, ey, pr * 1.4, pr * 1.4, 'rgba(239, 68, 68, 0.5)');
+    box(c, ex - pr * 0.6, ey - pr * 0.6, pr * 1.2, pr * 1.2, '#EF4444'); box(c, ex - 1, ey - 1, 2, 2, '#FFE4E6');
+    box(c, mx - 1.5, my - 1.5, 3, 3, '#FCA5A5');
   }
   for (const r of f.rounds) {
-    const l = Math.hypot(r.vx, r.vy) || 1, tx = (r.vx / l) * 12, ty = (r.vy / l) * 12;
-    c.strokeStyle = '#F97316'; c.lineWidth = 3; c.beginPath(); c.moveTo(r.x - tx, r.y - ty); c.lineTo(r.x, r.y); c.stroke();
-    c.strokeStyle = '#FEF08A'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(r.x - tx * 0.5, r.y - ty * 0.5); c.lineTo(r.x, r.y); c.stroke();
+    // (a tracer: a dithered glow trailing it, banded orange to a white-hot tip)
+    const l = Math.hypot(r.vx, r.vy) || 1, ux = r.vx / l, uy = r.vy / l;
+    c.lineCap = 'round';
+    c.strokeStyle = dith(c, 'rgba(249, 115, 22, 0.6)'); c.lineWidth = 6; c.beginPath(); c.moveTo(r.x - ux * 16, r.y - uy * 16); c.lineTo(r.x, r.y); c.stroke();
+    c.strokeStyle = '#B91C1C'; c.lineWidth = 3.4; c.beginPath(); c.moveTo(r.x - ux * 13, r.y - uy * 13); c.lineTo(r.x, r.y); c.stroke();
+    c.strokeStyle = '#F97316'; c.lineWidth = 2.6; c.beginPath(); c.moveTo(r.x - ux * 10, r.y - uy * 10); c.lineTo(r.x, r.y); c.stroke();
+    c.strokeStyle = '#FDE047'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(r.x - ux * 6, r.y - uy * 6); c.lineTo(r.x, r.y); c.stroke();
+    box(c, r.x - 1.2, r.y - 1.2, 2.4, 2.4, '#FFFBEB');
   }
   drawStreams(c, f, fr);
   drawQueasy(c, f);
