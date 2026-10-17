@@ -125,6 +125,8 @@ export const foreignLayout: StageLayout = {
     // standing there on a respawn at the second fired them all and started him at the last)
     for (const c of sec.checkpoints) if (!c.manual && c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
     setUi({ near: null, map: null, nearExit: false, upPrompt: null, holdUpPrompt: null, holdDownPrompt: null });
+    // (out of the helicopter: the HUD's his own again)
+    if (sec.id !== 'heli') setUi({ heliHud: false });
     const arriving = !!fs.arrive && tickPortalArrival(state, fs.arrive, sec.cameraRow?.(state) ?? 550);
     if (fs.arrive && !arriving) fs.arrive = undefined;
     if (arriving) controls = { ...NO_CONTROLS };

@@ -42,7 +42,7 @@ import { registerHurts } from '../pavilion';
 import { viewIn, promenade, postBoard, onScreen, LOOKS, INK, dimmed, hour, setBack } from '../kit';
 import { heliOf, type Heli } from './state';
 import { x0, x1, X, GY, REFILL, CP_PAD, QUEUE_A, QUEUE_B, BOARD_AT, PAD_X, PAD_O, SEAT_BACK, SEAT_FRONT, CAMX, CY, Z, SW, SH, CAM_FLY, BASE, toWorld, CP_X, MEMO } from './geo';
-import { flyCopter, updateRockets, drawCopter, drawRockets, drawCharges } from './copter';
+import { flyCopter, updateRockets, drawCopter, drawRockets, heliMeters } from './copter';
 import { makeMechs, startMech, updateMechs, mechDone } from './mechs';
 import { WAVES, goonsLeft, sweepGoons, fightGroup, tickEntrances, drawEntrances } from './goons';
 import { shredHold } from './shred';
@@ -565,6 +565,8 @@ export const heli: ForeignSection = {
     if (h.phase === 'pad' && state.checkpoint >= 111 && state.checkpoint <= 119) { startAt(state, h, state.checkpoint - 111); return hands(); }
     const out = phaseUpdate(ctx, h, controls);
     seatPose(state, h, controls);
+    // (flying: the main HUD's the helicopter's, its boost on the PWR row, its rockets, the machine gun)
+    { const mt = heliMeters(h); setUi({ heliHud: h.phase === 'fly' || h.phase === 'end', heliBoost: mt.boost, heliRockets: mt.rockets }); }
     return out;
   },
   cameraX: (state) => { const h = heliOf(state); return h.cam ? { min: h.camX, max: h.camX } : undefined; },
@@ -649,7 +651,6 @@ export const heli: ForeignSection = {
     if (cut) drawSkipPrompt(c, CANVAS_WIDTH);
     if (h.white > 0) { c.fillStyle = 'rgba(255,255,255,' + h.white + ')'; c.fillRect(0, 0, SW, SH); }
     if (h.phase !== 'fly' || p.inCutscene) return;
-    drawCharges(c, state);
     // The landmark's bar (the top band, clear of the HUD): filling up as it arrives
     const m = h.mechs[h.cur];
     if (m && !h.transit && (m.st === 'intro' || m.st === 'fight' || m.st === 'dying')) {

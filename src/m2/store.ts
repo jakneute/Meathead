@@ -37,6 +37,11 @@ export interface M2Ui {
   holdDownPrompt?: string | null;
   /** (Foreign Lands' helicopter) The flying controls card: X the gun, Y the rockets, B and a direction the boost. */
   heliTips?: boolean;
+  /** (the helicopter, flying) The main HUD's his helicopter's: the PWR row the rotor boost's charge (0..1), the
+   *  rockets' charges beside it (0..3, fractional while one's coming back), the weapon the machine gun. */
+  heliHud?: boolean;
+  heliBoost?: number;
+  heliRockets?: number;
 }
 
 let ui: M2Ui = { near: null, map: null, nearExit: false, notice: null };

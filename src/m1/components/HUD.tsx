@@ -22,6 +22,10 @@ interface HUDProps {
   maxAmmo: number;
   /** A different look for the plate (Meathead 2's, themed to wherever he is): anything left out keeps the steel one. */
   skin?: HudSkin;
+  /** How many power cells the PWR row shows (default POWER_CELLS; Meathead 2's helicopter: its one boost charge). */
+  powerCells?: number;
+  /** Something on the PWR row to the right of the cells (Meathead 2's helicopter: its rockets). */
+  powerExtra?: React.ReactNode;
 }
 
 /** How the HUD plate looks: the plate, what's drawn on it, its words, its bars, its power cells, the weapon's box. */
@@ -42,7 +46,7 @@ export interface HudSkin {
 }
 
 /** The in-game HUD: health, power cells and the equipped weapon on a steel plate in the corner. */
-const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra, ammoLabel, skin }) => {
+const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra, ammoLabel, skin, powerCells = POWER_CELLS, powerExtra }) => {
   const hp = Math.max(0, Math.min(1, health / maxHealth));
   const low = hp < 0.35;
   const limited = maxAmmo !== Infinity;
@@ -79,8 +83,9 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo
         <div className="flex items-center gap-2">
           <span className="relative w-[26px] text-[8px] font-black text-zinc-300" style={{ color: skin?.label }}>{skin?.pwrLabel ?? 'PWR'}</span>
           <div className="flex gap-[6px]">
-            {Array.from({ length: POWER_CELLS }, (_, i) => <PowerCell key={i} fill={Math.max(0, Math.min(1, power - i))} skin={skin} />)}
+            {Array.from({ length: powerCells }, (_, i) => <PowerCell key={i} fill={Math.max(0, Math.min(1, power - i))} skin={skin} />)}
           </div>
+          {powerExtra}
         </div>
 
         {/* Weapon */}

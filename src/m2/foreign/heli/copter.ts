@@ -356,23 +356,9 @@ export const drawRockets = (c: Ctx, state: GameState) => {
   for (const b of h.booms) drawBoom(c, b);
   drawShred(c, state);
 };
-/** Screen: the rockets' charges (three little rockets, bottom left; the one coming back filling in), and the rotor
- *  boost's own meter beside them (empty while it's boosting, filling over its cooldown, lit when it's ready). */
-export const drawCharges = (c: Ctx, state: GameState) => {
-  const h = heliOf(state);
-  c.fillStyle = 'rgba(0,0,0,0.55)'; c.fillRect(12, 562, ROCKETS_ON ? 172 : 66, 28);
-  {
-    const k = h.boost ? 0 : 1 - Math.max(0, h.boostCd) / BOOST_CD, x = ROCKETS_ON ? 124 : 18, y = 578;
-    c.font = '6px "Press Start 2P"'; c.fillStyle = k >= 1 ? '#86EFAC' : '#A1A1AA'; c.fillText('BOOST', x + 2, 572);
-    c.fillStyle = '#27272A'; c.fillRect(x, y, 54, 8);
-    c.fillStyle = k >= 1 ? ((state.frame >> 3) % 4 ? '#4ADE80' : '#BBF7D0') : '#15803D'; c.fillRect(x + 1, y + 1, 52 * k, 6);
-  }
-  if (!ROCKETS_ON) return;
-  c.font = '6px "Press Start 2P"'; c.fillStyle = '#FDE68A'; c.fillText('ROCKETS', 18, 572);
-  for (let i = 0; i < 3; i++) {
-    const k = Math.max(0, Math.min(1, h.charges - i)), x = 18 + i * 34, y = 578;
-    c.fillStyle = '#27272A'; c.fillRect(x, y, 28, 8);
-    c.fillStyle = k >= 1 ? '#E5E7EB' : '#71717A'; c.fillRect(x + 1, y + 1, 26 * k, 6);
-    if (k >= 1) { c.fillStyle = '#DC2626'; c.fillRect(x + 22, y + 1, 5, 6); }
-  }
+/** For the main HUD (App.tsx: the PWR row): the rotor boost's charge (0 while it's boosting, filling over its
+ *  cooldown, 1 ready) and the rockets' charges (0..3), stepped so the HUD isn't redrawn every frame. */
+export const heliMeters = (h: Heli) => {
+  const q = (v: number) => Math.round(v * 20) / 20;
+  return { boost: q(h.boost ? 0 : 1 - Math.max(0, h.boostCd) / BOOST_CD), rockets: q(Math.max(0, Math.min(3, h.charges))) };
 };
