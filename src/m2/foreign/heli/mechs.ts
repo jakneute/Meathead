@@ -125,11 +125,13 @@ export const hitMinions = (ctx: FrameContext, zone: Rect, dmg: number, first = f
   }
   return any;
 };
-/** The rotor's blades (a, b their ends, world) through any lion touching them, boosting or not. */
+/** The animals among them (they burst in blood; the keychains, gears and stone heads don't). */
+const ORGANIC = new Set<Minion['kind']>(['gull', 'scarab', 'lion']);
+/** The rotor's blades (a, b their ends, world) through any animal (lions, gulls, scarabs) touching them, boosting or not. */
 export const chopLions = (ctx: FrameContext, ax: number, ay: number, bx: number, by: number, reach: number) => {
   const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1;
   for (const n of heliOf(ctx.state).minions) {
-    if (n.dead || n.kind !== 'lion') continue;
+    if (n.dead || !ORGANIC.has(n.kind)) continue;
     const k = Math.max(0, Math.min(1, ((n.x - ax) * dx + (n.y - ay) * dy) / l2));
     if (Math.hypot(n.x - ax - k * dx, n.y - ay - k * dy) <= n.r + reach) hurtMinion(ctx, n, 999);
   }
@@ -164,6 +166,12 @@ const hurtMinion = (ctx: FrameContext, n: Minion, dmg: number) => {
   n.hp -= dmg; n.flash = 4;
   if (n.hp <= 0 && !n.dead) {
     n.dead = true;
+    // (the living ones (the Opera House's gulls, the Pyramid's scarabs): a gory pop, blood mist, gobs, feathers or shell)
+    if (ORGANIC.has(n.kind)) {
+      goreBurst(state, n.x, n.y, n.vx >= 0 ? 1 : -1, 0, n.kind === 'gull' ? ['#F8FAFC', '#E5E7EB', '#FB923C'] : ['#14532D', '#84CC16', '#365314']);
+      playSound('splat', 0.9, n.kind === 'gull' ? 4 : 10); playSound('crunch', 0.4, 12);
+      return;
+    }
     playSound(n.kind === 'gull' || n.kind === 'scarab' ? 'splat' : 'crunch', 0.6, 6);
     const cols = n.kind === 'gull' ? ['#F8FAFC', '#B91C1C'] : n.kind === 'scarab' ? ['#14532D', '#84CC16'] : n.kind === 'keychain' ? ['#EAB308', '#FDE047'] : ['#78716C', '#A8A29E'];
     for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: n.x, y: n.y }, vel: { x: (Math.random() - 0.5) * 6, y: (Math.random() - 0.8) * 6 }, life: 20 + Math.random() * 10, color: cols[i % 2], size: 2 + Math.random() * 3 });
