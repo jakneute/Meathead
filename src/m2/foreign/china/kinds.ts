@@ -34,13 +34,27 @@ const SATIN = ['#B91C1C', '#1C1917', '#CA8A04', '#1E3A8A', '#F8FAFC'];
 const KUNGFU_COSTUME: Costume = {
   id: 'kungfu', top: s => pick(s, 2, SATIN), legs: s => (pick(s, 2, SATIN) === '#1C1917' ? '#B91C1C' : '#1C1917'), shoe: 'shoe', shoeCol: '#1C1917',
   over: (g, B, F) => {
-    // (frog buttons down the front, a sash round the middle)
-    const col = pick(F.seed, 2, SATIN), trim = col === '#CA8A04' ? '#B91C1C' : '#FCD34D';
-    for (let k = 0; k < 4; k++) px(g, B.lean - 2, B.shY + 4 + k * 5, 5, 1.5, trim);
-    px(g, -B.w / 2, B.hipY - 5, B.w, 4, trim); px(g, -B.w / 2 - 3, B.hipY - 3, 4, 12, trim);
+    const col = pick(F.seed, 2, SATIN), trim = col === '#CA8A04' ? '#B91C1C' : '#FCD34D', h = B.hipY - B.shY;
+    // (the satin's sheen: a lit streak down the near side, its glint, shade down the far side, a crease)
+    px(g, -B.w / 2 + 2 + B.lean, B.shY + 4, 3, h - 8, lt(col, 0.3)); px(g, -B.w / 2 + 3 + B.lean, B.shY + 5, 1, h - 12, lt(col, 0.6));
+    px(g, B.w / 2 - 4 + B.lean, B.shY + 4, 3, h - 8, dk(col, 0.22)); px(g, B.lean + 6, B.shY + 10, 1, h - 16, dk(col, 0.15));
+    // (the mandarin collar in the trim; frog buttons down the front: knotted cords, lit)
+    px(g, B.lean - 5, B.shY - 1, 10, 3, trim); px(g, B.lean - 5, B.shY - 1, 10, 1, lt(trim, 0.45)); px(g, B.lean - 5, B.shY + 1, 10, 1, dk(trim, 0.3));
+    for (let k = 0; k < 4; k++) { const y = B.shY + 4 + k * 5; px(g, B.lean - 3, y, 7, 2, INK); px(g, B.lean - 2, y, 5, 1, trim); px(g, B.lean - 3, y + 1, 1, 1, lt(trim, 0.5)); px(g, B.lean + 3, y + 1, 1, 1, dk(trim, 0.3)); }
+    // (a gold dragon embroidered on the chest: a coil of stitches)
+    if (pick(F.seed, 5, [0, 1]) === 1) for (let k = 0; k < 5; k++) px(g, B.lean - B.w / 2 + 4 + k * 2, B.shY + 8 + Math.round(Math.sin(k * 1.4) * 2), 2, 1, k % 2 ? '#FCD34D' : '#F59E0B');
+    // (the sash: wrapped round, knotted at the hip, its tails hanging and shaded)
+    px(g, -B.w / 2, B.hipY - 5, B.w, 4, trim); px(g, -B.w / 2, B.hipY - 5, B.w, 1, lt(trim, 0.4)); px(g, -B.w / 2, B.hipY - 2, B.w, 1, dk(trim, 0.3));
+    ball(g, -B.w / 2 + 1, B.hipY - 3, 2.5, trim, 0.5);
+    px(g, -B.w / 2 - 3, B.hipY - 1, 4, 12, trim); px(g, -B.w / 2 - 3, B.hipY - 1, 1, 12, lt(trim, 0.4)); px(g, -B.w / 2, B.hipY - 1, 1, 12, dk(trim, 0.3));
+    px(g, -B.w / 2 - 1, B.hipY - 1, 3, 9, trim); px(g, -B.w / 2 - 3, B.hipY + 10, 4, 2, dk(trim, 0.2));
   },
-  // (the headband: a red band, its tails out behind)
-  hat: (g, B) => { px(g, B.hx - B.rx, B.hy - 6, B.rx * 2, 3, '#DC2626'); limb(g, B.hx - B.rx, B.hy - 5, B.hx - B.rx - 9, B.hy + 2, 2, '#DC2626'); },
+  // (the headband: a red band lit along its top, the knot at the back, its tails flying)
+  hat: (g, B) => {
+    px(g, B.hx - B.rx, B.hy - 6, B.rx * 2, 3, '#DC2626'); px(g, B.hx - B.rx, B.hy - 6, B.rx * 2, 1, '#F87171'); px(g, B.hx - B.rx, B.hy - 4, B.rx * 2, 1, '#991B1B');
+    ball(g, B.hx - B.rx, B.hy - 5, 2, '#DC2626', 0.5);
+    limb(g, B.hx - B.rx, B.hy - 5, B.hx - B.rx - 9, B.hy + 2, 2, '#DC2626'); limb(g, B.hx - B.rx, B.hy - 4, B.hx - B.rx - 7, B.hy + 6, 2, '#B91C1C');
+  },
   hairToo: true,
   hands: (B, F) => (F.pose === 'tell' ? [[B.w / 2 + 4, B.shY + 4], [B.w / 2 + 12, B.shY - 6]] : F.pose === 'fly' ? [[-B.w / 2 - 10, B.shY - 4], [B.w / 2 + 8, B.shY - 10]] : null),
   eyes: 'angry', mouth: 'o',
@@ -48,15 +62,36 @@ const KUNGFU_COSTUME: Costume = {
 
 const FIREWORKS_COSTUME: Costume = {
   id: 'fireworks', top: s => pick(s, 3, ['#B91C1C', '#1E3A8A', '#15803D']), legs: '#1E3A8A', shoe: 'sneaker', shoeCol: '#F5F5F4',
-  // (the hi-vis vest over the silk)
-  over: (g, B) => { for (const s of [-1, 1]) px(g, s < 0 ? -B.w / 2 : B.w / 2 - 8, B.shY + 1, 8, B.hipY - B.shY, '#FDE047'); px(g, -B.w / 2, B.shY + 14, B.w, 2, '#E5E7EB'); },
-  // (a hard hat with a lantern sticker)
-  hat: (g, B) => { partTop(g, () => g.ellipse(B.hx, B.hy - 5, B.rx + 2, B.ry - 1, 0, Math.PI, 0), '#F59E0B', B.hx - B.rx - 2, B.hy - B.ry - 4, B.rx * 2 + 4, B.ry, 1.2); px(g, B.hx - B.rx - 4, B.hy - 6, B.rx * 2 + 8, 2, '#D97706'); px(g, B.hx - 1, B.hy - 11, 3, 3, '#DC2626'); },
+  // (the hi-vis vest over the silk: fluorescent panels in steps, the reflective bands, its zip; the silk's sheen between)
+  over: (g, B, F) => {
+    const silk = pick(F.seed, 3, ['#B91C1C', '#1E3A8A', '#15803D']), h = B.hipY - B.shY;
+    px(g, -1, B.shY + 2, 3, h - 2, lt(silk, 0.3));
+    for (const s2 of [-1, 1]) {
+      const x = s2 < 0 ? -B.w / 2 : B.w / 2 - 8;
+      px(g, x - 0.5, B.shY + 0.5, 9, h + 0.5, '#5A5A10'); px(g, x, B.shY + 1, 8, h, '#E4F03A'); px(g, x, B.shY + 1, 2, h, '#F6FF8A'); px(g, x + 6, B.shY + 1, 2, h, '#B8C420');
+      for (const y of [B.shY + 12, B.shY + 20]) { px(g, x, y, 8, 2, '#D4D4D8'); px(g, x, y, 8, 1, '#FFFFFF'); }
+    }
+    px(g, -B.w / 2, B.hipY - 3, B.w, 3, '#B8C420');
+  },
+  // (a hard hat, lit across its crown, its brim; the lantern sticker; safety goggles pushed up on it)
+  hat: (g, B) => {
+    partTop(g, () => g.ellipse(B.hx, B.hy - 5, B.rx + 2, B.ry - 1, 0, Math.PI, 0), '#F59E0B', B.hx - B.rx - 2, B.hy - B.ry - 4, B.rx * 2 + 4, B.ry, 1.2);
+    px(g, B.hx - 4, B.hy - B.ry - 2, 5, 2, '#FDE68A'); px(g, B.hx, B.hy - B.ry - 3, 1, B.ry - 2, '#D97706');
+    px(g, B.hx - B.rx - 4, B.hy - 6, B.rx * 2 + 8, 2, '#D97706'); px(g, B.hx - B.rx - 4, B.hy - 6, B.rx * 2 + 8, 1, '#FBBF24');
+    px(g, B.hx + 2, B.hy - 11, 3, 3, '#DC2626'); px(g, B.hx + 2, B.hy - 11, 3, 1, '#FCD34D');
+    px(g, B.hx - B.rx, B.hy - 9, B.rx * 2 - 4, 2, '#27272A'); px(g, B.hx - B.rx + 1, B.hy - 9, 4, 2, '#7DD3FC'); px(g, B.hx - 1, B.hy - 9, 4, 2, '#7DD3FC');
+  },
   hairToo: true,
   hands: (B, F) => (F.pose === 'tell' ? [[B.w / 2 - 2, B.shY + 10], [B.w / 2 + 10, B.shY - 4]] : null),
-  // (the lighter, lit in the tell; the box of rockets under the far arm)
-  hold: (g, B, F, x, y) => { px(g, x - 2, y - 4, 4, 6, '#DC2626'); if (F.pose === 'tell') { px(g, x - 1, y - 9, 2, 4, '#FDE047'); px(g, x, y - 11, 1, 2, '#FFFFFF'); } },
-  holdFar: (g, B, F, x, y) => { px(g, x - 9, y - 8, 18, 12, INK); px(g, x - 8, y - 7, 16, 10, '#B91C1C'); for (let k = 0; k < 4; k++) px(g, x - 7 + k * 4, y - 13, 2, 6, '#FDE047'); },
+  // (the lighter, lit in the tell (a stepped flame); the box of rockets under the far arm, its sticks and fuses)
+  hold: (g, B, F, x, y) => {
+    px(g, x - 3, y - 5, 6, 8, INK); px(g, x - 2, y - 4, 4, 6, '#DC2626'); px(g, x - 2, y - 4, 1, 6, '#F87171'); px(g, x - 2, y - 5, 4, 1, '#A1A1AA');
+    if (F.pose === 'tell') { px(g, x - 1, y - 10, 3, 5, '#F97316'); px(g, x - 1, y - 9, 2, 4, '#FDE047'); px(g, x, y - 12, 1, 2, '#FFFFFF'); }
+  },
+  holdFar: (g, B, F, x, y) => {
+    px(g, x - 9, y - 8, 18, 12, INK); px(g, x - 8, y - 7, 16, 10, '#B91C1C'); px(g, x - 8, y - 7, 16, 1, '#EF4444'); px(g, x - 6, y - 4, 12, 3, '#FDE047'); px(g, x - 5, y - 3, 1, 1, '#B91C1C'); px(g, x - 2, y - 3, 1, 1, '#B91C1C'); px(g, x + 1, y - 3, 1, 1, '#B91C1C');
+    for (let k = 0; k < 4; k++) { px(g, x - 7 + k * 4, y - 15, 3, 8, INK); px(g, x - 6 + k * 4, y - 14, 2, 7, k % 2 ? '#3B82F6' : '#FDE047'); px(g, x - 6 + k * 4, y - 16, 1, 2, '#16A34A'); }
+  },
   eyes: 'wide', mouth: 'grin',
 };
 
@@ -162,24 +197,37 @@ const drawDragon = (c: CanvasRenderingContext2D, e: Enemy, f: number) => {
   const bob = Math.round(Math.sin(f * 0.18 + r * 0.9) * 4), step = Math.sin(f * 0.3 + r) * 5;
   // (the legs under it: black pants, sneakers, a bit of ankle)
   for (const s of [-1, 1]) { const lx = s * 8 + (s > 0 ? step : -step); px(c, lx - 3, -22, 7, 20, '#1C1917'); px(c, lx - 3, -4, 7, 2, L.skin); px(c, lx - 4, -2, 10, 3, '#F5F5F4'); }
-  // (the cloth: a hump of red, scales in rows, a gold fringe along the bottom)
-  const top = -54 + bob;
-  part(c, () => { c.moveTo(-26, -20); c.quadraticCurveTo(-24, top - 6, 0, top - 8); c.quadraticCurveTo(24, top - 6, 26, -20); c.closePath(); }, CLOTH[r % 2], -26, top - 8, 52, -20 - top + 8, 1.4);
-  for (let row = 0; row < 3; row++) for (let k = -2; k <= 2; k++) ball(c, k * 9 + (row % 2) * 4, top + 8 + row * 9, 3, row % 2 ? '#F59E0B' : '#FCD34D', 0.6);
-  for (let x = -24; x < 24; x += 4) px(c, x, -21, 2, 5, '#FCD34D');
-  // (a spine of green felt spikes along the top)
+  // (the cloth: a hump of red satin (shaded by the drawer), scales in rows (each a stepped arc lit on top), a belly band of
+  // gold, the fringe along the bottom in two steps, the shadow under the hump)
+  const top = -54 + bob, C = CLOTH[r % 2];
+  part(c, () => { c.moveTo(-26, -20); c.quadraticCurveTo(-24, top - 6, 0, top - 8); c.quadraticCurveTo(24, top - 6, 26, -20); c.closePath(); }, C, -26, top - 8, 52, -20 - top + 8, 1.4);
+  for (let row = 0; row < 3; row++) for (let k = -2; k <= 2; k++) {
+    const sx = k * 9 + (row % 2) * 4, sy = top + 8 + row * 9, sc = row % 2 ? '#F59E0B' : '#FCD34D';
+    px(c, sx - 3, sy - 2, 7, 1, INK); px(c, sx - 4, sy - 1, 9, 3, sc); px(c, sx - 3, sy - 1, 7, 1, lt(sc, 0.45)); px(c, sx - 4, sy + 2, 9, 1, dk(sc, 0.35));
+  }
+  px(c, -24, -26, 48, 4, '#CA8A04'); px(c, -24, -26, 48, 1, '#FDE68A'); px(c, -24, -23, 48, 1, '#92400E');
+  for (let x = -24; x < 24; x += 4) { px(c, x, -21, 2, 5, '#FCD34D'); px(c, x + 2, -21, 1, 4, '#D97706'); px(c, x, -17 + ((x >> 2) & 1), 2, 2, '#F59E0B'); }
+  // (a spine of green felt spikes along the top, lit on their left)
   for (let k = -2; k <= 2; k++) part(c, () => { c.moveTo(k * 9 - 4, top - 4); c.lineTo(k * 9, top - 13); c.lineTo(k * 9 + 4, top - 4); c.closePath(); }, '#16A34A', k * 9 - 4, top - 13, 8, 9, 0.8);
   if (head) {
-    // (the felt head: a big box of a snout, googly eyes, felt teeth, whiskers, a beard of fringe)
+    // (the felt head: a big box of a snout (lit on top), googly eyes under shaggy brows, felt teeth, nostrils, whiskers, a
+    // fringe beard, gold horns, an orange mane behind)
     const hx = 22, hy = top - 4;
+    for (let k = 0; k < 6; k++) { const mx = hx - 12 + (k % 3) * 4, my = hy - 8 + Math.floor(k / 3) * 12; px(c, mx - 1, my, 6, 14, INK); px(c, mx, my, 4, 13, k % 2 ? '#F97316' : '#FB923C'); px(c, mx, my, 1, 13, '#FDBA74'); }
     part(c, () => { c.moveTo(hx - 8, hy - 10); c.lineTo(hx + 30, hy - 4); c.lineTo(hx + 32, hy + 16); c.lineTo(hx - 6, hy + 20); c.closePath(); }, '#DC2626', hx - 8, hy - 10, 40, 30, 1.4);
+    px(c, hx - 4, hy - 7, 32, 2, '#F87171');
     const chomp = Math.sin(f * 0.25) > 0.6 ? 4 : 0;
-    px(c, hx + 6, hy + 12 + chomp, 26, 6, '#7F1D1D');
-    for (let k = 0; k < 5; k++) { px(c, hx + 8 + k * 5, hy + 10, 3, 4, '#F8FAFC'); px(c, hx + 8 + k * 5, hy + 16 + chomp, 3, 3, '#F8FAFC'); }
-    for (const ex of [hx + 4, hx + 16]) { ball(c, ex, hy - 6, 6, '#FFFFFF', 1); const lk = Math.sin(f * 0.4 + ex) * 2; ball(c, ex + 1 + lk, hy - 5, 2.6, INK, 0); }
+    px(c, hx + 6, hy + 12 + chomp, 26, 6, '#7F1D1D'); px(c, hx + 6, hy + 16 + chomp, 26, 2, '#450A0A');
+    for (let k = 0; k < 5; k++) { px(c, hx + 8 + k * 5, hy + 10, 3, 4, '#F8FAFC'); px(c, hx + 8 + k * 5, hy + 13, 3, 1, '#D6D3D1'); px(c, hx + 8 + k * 5, hy + 16 + chomp, 3, 3, '#F8FAFC'); }
+    for (const nx of [hx + 24, hx + 28]) px(c, nx, hy + 2, 2, 2, '#450A0A');
+    for (const ex of [hx + 4, hx + 16]) {
+      ball(c, ex, hy - 6, 6, '#FFFFFF', 1); const lk = Math.sin(f * 0.4 + ex) * 2; ball(c, ex + 1 + lk, hy - 5, 2.6, INK, 0);
+      px(c, ex - 6, hy - 14, 12, 3, '#FCD34D'); px(c, ex - 6, hy - 14, 12, 1, '#FEF08A');
+    }
     limb(c, hx + 30, hy + 4, hx + 46, hy - 6 + bob, 1.5, '#FCD34D'); limb(c, hx + 30, hy + 8, hx + 48, hy + 12 - bob, 1.5, '#FCD34D');
-    for (let k = 0; k < 4; k++) px(c, hx + 2 + k * 6, hy + 20 + chomp, 3, 8 + (k % 2) * 3, '#FCD34D');
+    for (let k = 0; k < 4; k++) { px(c, hx + 2 + k * 6, hy + 20 + chomp, 3, 8 + (k % 2) * 3, '#FCD34D'); px(c, hx + 2 + k * 6, hy + 20 + chomp, 1, 8 + (k % 2) * 3, '#FEF08A'); }
     part(c, () => { c.moveTo(hx - 2, hy - 10); c.lineTo(hx - 10, hy - 26); c.lineTo(hx + 4, hy - 10); c.closePath(); }, '#FCD34D', hx - 10, hy - 26, 14, 16, 1);
+    part(c, () => { c.moveTo(hx + 8, hy - 9); c.lineTo(hx + 4, hy - 24); c.lineTo(hx + 13, hy - 8); c.closePath(); }, '#FBBF24', hx + 4, hy - 24, 9, 16, 1);
   }
   if (tail) {
     part(c, () => { c.moveTo(-24, top + 4); c.quadraticCurveTo(-46, top - 10 + bob, -54, top - 20); c.lineTo(-44, top - 4); c.lineTo(-26, top + 14); c.closePath(); }, '#DC2626', -54, top - 20, 30, 34, 1.2);

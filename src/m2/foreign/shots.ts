@@ -175,6 +175,8 @@ export const updateShots = (ctx: FrameContext) => {
 
 const disc = (c: Ctx, x: number, y: number, rx: number, ry: number, col: string, rot = 0) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, y, Math.max(0.5, rx), Math.max(0.5, ry), rot, 0, Math.PI * 2); c.fill(); };
 const INK = '#1A0B06';
+/** A hex color k of the way to another. */
+const mixHex = (a: string, b: string, k: number) => { const A = [1, 3, 5].map(i => parseInt(a.slice(i, i + 2), 16)), B = [1, 3, 5].map(i => parseInt(b.slice(i, i + 2), 16)); return `#${A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join('')}`; };
 
 export const drawShots = (c: Ctx, state: GameState) => {
   const o = streetsOf(state);
@@ -271,10 +273,17 @@ export const drawShots = (c: Ctx, state: GameState) => {
         break;
       }
       case 'rocket': {
+        // (a bottle rocket: the cardboard tube banded red and gold, lit along its top, the paper cone, the stick behind it,
+        // and its sparking trail in steps, white at the nozzle)
         const a = Math.atan2(s.vy, s.vx);
+        for (let k = 1; k < 6; k++) { const tx = s.x - Math.cos(a) * (8 + k * 4) + Math.sin(s.t * 0.9 + k) * 1.2, ty = s.y - Math.sin(a) * (8 + k * 4); c.fillStyle = k < 2 ? '#FFFFFF' : k < 4 ? '#FDE047' : '#F97316'; c.fillRect(Math.round(tx) - 1, Math.round(ty) - 1, k < 3 ? 3 : 2, k < 3 ? 3 : 2); }
         c.save(); c.translate(s.x, s.y); c.rotate(a);
-        c.fillStyle = INK; c.fillRect(-9, -3, 16, 6); c.fillStyle = '#DC2626'; c.fillRect(-8, -2, 14, 4); c.fillStyle = '#FDE047'; c.fillRect(-8, -2, 3, 4);
-        c.fillStyle = '#FFFFFF'; c.beginPath(); c.moveTo(6, -3); c.lineTo(11, 0); c.lineTo(6, 3); c.fill();
+        c.fillStyle = INK; c.fillRect(-20, -1, 12, 2); c.fillStyle = '#A16207'; c.fillRect(-20, -1, 12, 1);
+        c.fillStyle = INK; c.fillRect(-9, -4, 16, 8);
+        c.fillStyle = '#B91C1C'; c.fillRect(-8, -3, 14, 6); c.fillStyle = '#EF4444'; c.fillRect(-8, -3, 14, 2); c.fillStyle = '#7F1D1D'; c.fillRect(-8, 2, 14, 1);
+        c.fillStyle = '#FCD34D'; c.fillRect(-8, -3, 3, 6); c.fillRect(1, -3, 2, 6); c.fillStyle = '#FEF08A'; c.fillRect(-8, -3, 3, 1);
+        c.fillStyle = INK; c.beginPath(); c.moveTo(6, -4); c.lineTo(13, 0); c.lineTo(6, 4); c.fill();
+        c.fillStyle = '#F8FAFC'; c.beginPath(); c.moveTo(6, -3); c.lineTo(11, 0); c.lineTo(6, 3); c.fill(); c.fillStyle = '#D6D3D1'; c.fillRect(6, 1, 4, 1);
         c.restore(); break;
       }
       case 'stein': {
@@ -332,12 +341,17 @@ export const drawShots = (c: Ctx, state: GameState) => {
       }
     }
   }
-  // The bursts: a ring of sparks going out, fading
+  // The bursts: a flash, then a ring of square sparks going out (white at first, the shell's color, its shade as they fall
+  // and go out), an inner ring behind it
   for (const b of o.bursts) {
-    const k = (state.frame - b.at) / 26;
-    c.strokeStyle = b.col; c.globalAlpha = 1 - k; c.lineWidth = 4;
-    c.beginPath(); c.arc(b.x, b.y, b.r * (0.3 + k * 0.8), 0, Math.PI * 2); c.stroke();
-    c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(b.x, b.y, b.r * 0.4 * (1 - k), 0, Math.PI * 2); c.fill();
-    c.globalAlpha = 1;
+    const k = Math.max(0, Math.min(1, (state.frame - b.at) / 26)), r = b.r * (0.3 + Math.sqrt(k) * 0.8), fall = k * k * 10;
+    const sh = mixHex(b.col, '#1C1014', 0.45), col = k < 0.2 ? '#FFFFFF' : k < 0.6 ? b.col : sh;
+    if (k < 0.3) { const fr = b.r * 0.45 * (1 - k * 2); c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(b.x - fr / 2), Math.round(b.y - fr / 2), Math.round(fr), Math.round(fr)); c.fillStyle = b.col; c.fillRect(Math.round(b.x - fr), Math.round(b.y - 2), Math.round(fr * 2), 4); c.fillRect(Math.round(b.x - 2), Math.round(b.y - fr), 4, Math.round(fr * 2)); }
+    for (let i = 0; i < 20; i++) {
+      if (k > 0.8 && (i + state.frame) % 2) continue;
+      const a = (i / 20) * Math.PI * 2, px0 = Math.round(b.x + Math.cos(a) * r), py0 = Math.round(b.y + Math.sin(a) * r * 0.9 + fall);
+      c.fillStyle = INK; c.fillRect(px0 - 2, py0 - 2, 5, 5); c.fillStyle = col; c.fillRect(px0 - 1, py0 - 1, 3, 3);
+      if (k < 0.7) { c.fillStyle = sh; c.fillRect(Math.round(b.x + Math.cos(a) * r * 0.7), Math.round(b.y + Math.sin(a) * r * 0.63 + fall * 0.7), 2, 2); }
+    }
   }
 };

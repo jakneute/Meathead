@@ -18,7 +18,8 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { streetsOf } from '../state';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout } from '../setpiece';
-import { type Ctx, type View, box, poly, boxes3, ledge3, postBoard, hungBoard, LOOKS, dimmed, hour, ramp6, onScreen, INK, rnd } from '../kit';
+import { type Ctx, type View, boxes3, postBoard, hungBoard, LOOKS, onScreen, rnd } from '../kit';
+import { batteryTubes, batterySmoke, shellMark, shell, drawScaffoldArt, drawRawEnd } from './art';
 import { V, BATTERY } from './lines';
 
 const { x0 } = SECTIONS.china;
@@ -120,23 +121,20 @@ export const updateRidge = (ctx: FrameContext) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-/** The battery: a rack of mortar tubes on the flat, its fuse lit, smoke out of the tubes after a volley. */
+/** The battery: its timber rack (standable), the cardboard mortars on it, the fuse lit while a volley's coming, smoke
+ *  out of the tubes after one; where they'll land marked on the stone; the signs. */
 export const drawRidgeBack = (c: Ctx, v: View, state: GameState) => {
   const f = state.frame, r = ridgeOf(state), t = f % EVERY;
   if (onScreen(v, X(RACK.a), X(RACK.b))) {
-    boxes3(c, v, [{ x: X(RACK.a), top: Y(RACK.h), w: RACK.b - RACK.a, bottom: Y(1260), col: '#7F1D1D', standable: true }]);
-    for (let k = 0; k < 5; k++) { box(c, X(RACK.a) + 6 + k * 19, Y(RACK.h) - 34, 13, 34, INK); box(c, X(RACK.a) + 7 + k * 19, Y(RACK.h) - 33, 11, 32, hour(k % 2 ? '#DC2626' : '#FCD34D')); }
-    if (r.marks.length && t < WARN && (f >> 2) % 2) box(c, X(RACK.a) - 6, Y(RACK.h) - 6, 4, 4, '#FDE047');
-    if (r.marks.length && t > WARN && t < WARN + 40) for (let k = 0; k < 6; k++) box(c, X(RACK.a) + 20 + rnd(k + t) * 60, Y(RACK.h) - 40 - (t - WARN) * 2 - k * 6, 10, 8, dimmed('#D6D3D1'));
+    boxes3(c, v, [{ x: X(RACK.a), top: Y(RACK.h), w: RACK.b - RACK.a, bottom: Y(1260), col: '#7F1D1D', standable: true, look: 'plank' }]);
+    batteryTubes(c, X(RACK.a), Y(RACK.h), !!r.marks.length && t < WARN, f);
+    if (r.marks.length && t > WARN && t < WARN + 40) for (let k = 0; k < 6; k++) batterySmoke(c, X(RACK.a) + 25 + rnd(k + t) * 60, Y(RACK.h) - 36 - (t - WARN) * 2 - k * 6, 5 + k * 0.6 + (t - WARN) * 0.08);
     postBoard(c, X(RACK.a - 80), Y(1260), ['FIREWORKS', 'SHOW: HOURLY', '(EVERY 5 SEC)'], LOOKS.china(1), '#7F1D1D', undefined, 110);
   }
   // (the marks on the stone: where they'll land)
   if (r.marks.length && t < WARN + FLY) for (const m of r.marks) {
     const mx = X(m), my = Y(wallAt(m));
-    if (!onScreen(v, mx - R, mx + R)) continue;
-    const blink = (f >> 3) % 2 ? '#DC2626' : '#FCA5A5';
-    c.strokeStyle = blink; c.lineWidth = 3; c.beginPath(); c.moveTo(mx - 18, my - 14); c.lineTo(mx + 18, my + 2); c.moveTo(mx + 18, my - 14); c.lineTo(mx - 18, my + 2); c.stroke();
-    c.globalAlpha = 0.18 + 0.12 * Math.sin(f * 0.4); box(c, mx - R, my - 4, R * 2, 6, '#DC2626'); c.globalAlpha = 1;
+    if (onScreen(v, mx - R, mx + R)) shellMark(c, mx, my, R, f);
   }
   // (the signs)
   if (onScreen(v, X(4880), X(5040))) postBoard(c, X(4960), Y(860), ['THE SECOND RIDGE', '(THE FIRST ONE', 'WAS PRACTICE)'], LOOKS.china(1), '#991B1B', undefined, 110);
@@ -153,22 +151,17 @@ export const drawRidgeFront = (c: Ctx, v: View, state: GameState) => {
     for (const m of r.marks) {
       const tx = X(m), ty = Y(wallAt(m)) - 10;
       const x = sx + (tx - sx) * u, y = sy + (ty - sy) * u - Math.sin(u * Math.PI) * 360;
-      box(c, x - 6, y - 6, 12, 12, INK); box(c, x - 5, y - 5, 10, 10, '#DC2626'); box(c, x - 2, y - 9, 3, 4, '#FDE047');
+      shell(c, x, y, f);
     }
   }
   drawShout(c, r.said);
 };
 
-/** The scaffold: poles, cross braces, the planks (what he stands on); the wall's end face cut off raw. */
-export const drawScaffold = (c: Ctx, v: View, brick: string) => {
-  if (!onScreen(v, X(WALL_END - 20), X(7060))) return;
-  const P = ramp6(hour('#9CA3AF')), top = 1260;
-  for (const sx of [6512, 6756, 6782, 7026]) { box(c, X(sx) - 1, Y(top), 5, top, INK); box(c, X(sx), Y(top), 3, top, P[3]); }
-  for (let h = 70; h < top - 140; h += 140) { c.strokeStyle = P[2]; c.lineWidth = 2; c.beginPath(); c.moveTo(X(6514), Y(h)); c.lineTo(X(6758), Y(h + 140)); c.moveTo(X(6784), Y(h + 140)); c.lineTo(X(7028), Y(h)); c.stroke(); }
-  for (const [a, b, h] of SCAFFOLD) ledge3(c, v, X(a), Y(h), b - a, '#A16207', 8);
-  const B = ramp6(hour(brick));
-  box(c, X(WALL_END - 20), Y(top), 20, top, B[1]); for (let y = Y(top); y < GY; y += 14) box(c, X(WALL_END - 20) + ((y / 14) % 2) * 6, y, 8, 7, B[2]);
-  void poly;
+/** The scaffold (poles, couplers, braces, the planks he stands on) and the wall's raw end, cut off. */
+export const drawScaffold = (c: Ctx, v: View) => {
+  if (!onScreen(v, X(WALL_END - 40), X(7060))) return;
+  drawRawEnd(c, X(WALL_END - 30), 30, Y(1260));
+  drawScaffoldArt(c, v, X, Y, SCAFFOLD, [6512, 6756, 6782, 7026], 1260, [6514, 6758, 6784, 7028]);
 };
 
 export const ridgeLamps = (v: View): Light[] => {

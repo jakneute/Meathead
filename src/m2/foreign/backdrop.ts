@@ -5,7 +5,7 @@
 // Fuji, the dunes, the minaret, the cathedral, the Ferris wheel, the Rockies, the helicopter ride's globe) slid in by parallax round where its
 // pavilion is, so they come and go as he walks. All of it tinted far into the haze.
 //
-// The SNES pass (Mexico's and Norway's so far; the rest still the first pass's live painters, below): each landmark
+// The SNES pass (Mexico's, Norway's and China's so far; the rest still the first pass's live painters, below): each landmark
 // painted once for the hour into a stamp (STILLS: real silhouettes, stepped strata and flanks, snow, forests, the haze
 // over their feet), with only what moves drawn live over it (the falls); the lagoon in banded
 // water under the far shore's tree line (a tile for the hour), glinting; the barge painted for the hour (its hull and
@@ -103,7 +103,80 @@ const fjordWall = (g: Ctx, pts: [number, number][], foot: number, dir: number, R
   }
 };
 
+/** A crest through points (linear between them). */
+const crestOf = (pts: [number, number][]) => (x: number) => {
+  if (x <= pts[0][0]) return pts[0][1];
+  for (let i = 1; i < pts.length; i++) if (x <= pts[i][0]) { const [ax, ay] = pts[i - 1], [bx, by] = pts[i]; return ay + ((x - ax) / (bx - ax || 1)) * (by - ay); }
+  return pts[pts.length - 1][1];
+};
+/** A range column by column under its crest: the flanks facing the light (rising to the right: lit from the upper left)
+ *  lit with a rim, the others in shade, dithered into the body; gullies streaked down; ledges across. `snow`: white
+ *  down from the crest where it's over `line`. */
+const rangeCols = (g: Ctx, crest: (x: number) => number, xa: number, xb: number, foot: number, R: string[], seed: number, snow?: { S: string[]; line: number }) => {
+  for (let x = xa; x < xb; x += 2) {
+    const y = Math.round(crest(x)), sl = crest(x + 4) - crest(x - 4), lit = sl < -1.2, shade = sl > 1.2;
+    box(g, x, y, 2, foot - y, R[2]);
+    const band = 18 + Math.round(hash(seed + x * 0.11) * 14);
+    if (lit) { box(g, x, y, 2, band, R[3]); box(g, x, y, 2, 2, R[4]); if ((x >> 1) % 2) box(g, x, y + band, 2, 2, R[3]); }
+    else if (shade) { box(g, x, y, 2, band + 8, R[1]); if ((x >> 1) % 2) box(g, x, y + band + 8, 2, 2, R[1]); }
+    else box(g, x, y, 2, 1, R[3]);
+    if (hash(seed + x * 0.37) > 0.9) for (let yy = y + 8; yy < Math.min(foot, y + 40 + hash(seed + x) * 60); yy += 2) box(g, x + Math.round(Math.sin(yy * 0.2)), yy, 2, 2, R[0]);
+    if (snow && y < snow.line) {
+      const d = Math.round((snow.line - y) * 0.45 + hash(seed + x * 0.5) * 6);
+      box(g, x, y, 2, d, lit ? snow.S[3] : shade ? snow.S[1] : snow.S[2]); box(g, x, y, 2, 1, snow.S[4]);
+      if ((x >> 1) % 2) box(g, x, y + d, 2, 2, snow.S[1]);
+    }
+  }
+  for (let k = 0; k < 7; k++) {
+    const ly = foot - 30 - k * 26 - hash(seed + k) * 10;
+    for (let x = xa; x < xb; x += 2) if (crest(x) < ly - 6 && hash(seed + k * 3 + Math.floor(x / 30)) > 0.45) { box(g, x, ly, 2, 1, R[1]); box(g, x, ly - 1, 2, 1, R[3]); }
+  }
+};
+/** The Great Wall snaking along a crest: a band sat on the ridge (lit along its top), battlements, its watchtowers (lit
+ *  left, a dark door, their own battlements). `k`: how big (near 1, far smaller). */
+const wallAlong = (g: Ctx, crest: (x: number) => number, xa: number, xb: number, W: string[], k: number, towers: number[]) => {
+  const th = Math.max(2, Math.round(5 * k));
+  for (let x = xa; x < xb; x += 2) {
+    const y = Math.round(crest(x)) - th + 1;
+    box(g, x, y, 2, th, W[2]); box(g, x, y, 2, 1, W[3]); box(g, x, y + th - 1, 2, 1, W[1]);
+    if (k > 0.6 && (x >> 1) % 3 === 0) box(g, x, y - 2, 2, 2, W[2]);
+  }
+  for (const tx of towers) {
+    const y = Math.round(crest(tx)), tw = Math.round(12 * k), tt = Math.round(16 * k);
+    box(g, tx - tw / 2 - 1, y - tt - 1, tw + 2, tt + 1, INK);
+    box(g, tx - tw / 2, y - tt, tw, tt, W[2]); box(g, tx - tw / 2, y - tt, Math.max(1, tw / 3), tt, W[3]); box(g, tx + tw / 2 - 2, y - tt, 2, tt, W[1]);
+    box(g, tx - 1, y - Math.round(tt * 0.5), 2, Math.round(tt * 0.4), INK);
+    for (let bx = tx - tw / 2; bx < tx + tw / 2; bx += 4) box(g, bx, y - tt - 2, 2, 2, W[2]);
+  }
+};
+/** Little firs (stepped: shade, lit left, a tip) scattered `n` under a crest. */
+const firsUnder = (g: Ctx, crest: (x: number) => number, w: number, foot: number, F: string[], n: number, seed: number, skip?: (x: number, y: number) => boolean) => {
+  for (let i = 0; i < n; i++) {
+    const x = hash(seed + i * 1.37) * w, y = crest(x) + 12 + hash(seed + i * 2.9) * 115, ph = 6 + hash(seed + i * 3.7) * 7;
+    if (y > foot - 5 || skip?.(x, y)) continue;
+    poly(g, [[x - ph * 0.38, y], [x, y - ph], [x + ph * 0.38, y]], F[1]); poly(g, [[x - ph * 0.38, y], [x, y - ph], [x, y]], F[2]); box(g, x - 1, y - ph, 1, 1, F[3]);
+  }
+};
+
 const STILLS: Partial<Record<ForeignId, Far>> = {
+  china: {
+    // (THE GREAT WALL far off: a far range of misty blue-green peaks, the wall a thread along it and its towers specks;
+    // then the near ridge, green and banded, the wall snaking along its crest (battlements, watchtowers), pines down its
+    // flanks; the haze over the feet of each)
+    w: 960, h: 380, k: 0.6,
+    paint: (g, T, tod) => {
+      const w = 960, h = 380, foot = h - 12;
+      const far = crestOf([[0, 172], [90, 128], [180, 152], [270, 86], [350, 118], [450, 66], [550, 112], [650, 74], [750, 128], [850, 92], [960, 140]]);
+      rangeCols(g, far, 0, w, foot, rampT(T, '#6E8E8C'), 3);
+      wallAlong(g, far, 0, w, rampT(T, '#C8C0B0'), 0.45, [90, 270, 450, 650, 850]);
+      mist(g, w, 70, foot - 70, skyAt(0.9, tod), 0.05, 0.55, 6);
+      const near = crestOf([[0, 232], [70, 196], [150, 220], [240, 150], [330, 182], [420, 118], [520, 168], [610, 128], [700, 188], [790, 154], [880, 206], [960, 194]]);
+      rangeCols(g, near, 0, w, foot, rampT(T, '#4E6E3A'), 11);
+      firsUnder(g, near, w, foot, rampT(T, '#2E4A2A'), 140, 0);
+      wallAlong(g, near, 0, w, rampT(T, '#D6CDB8'), 0.85, [70, 240, 420, 610, 790]);
+      mist(g, w, foot - 110, 110, skyAt(0.9, tod), 0, 0.45, 5);
+    },
+  },
   mexico: {
     // (NO volcano (the user: we have enough volcanoes): desert mesas, flat-topped and banded, a far one in the haze
     // behind, and a row of giant plywood saguaros along the foot, on its sand)
@@ -174,13 +247,6 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
 
 /** Each pavilion's far landmark, painted about (0, horizon) (its middle at x 0), tinted far. */
 const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => void>> = {
-  china: (c, hz) => {
-    // (a ridge of mountains, the wall snaking along its crest with its towers)
-    poly(c, [[-420, hz], [-300, hz - 160], [-200, hz - 120], [-60, hz - 250], [80, hz - 170], [220, hz - 230], [420, hz]], farTint('#3F6212', 0.6));
-    const crest: [number, number][] = [[-300, hz - 160], [-200, hz - 120], [-60, hz - 250], [80, hz - 170], [220, hz - 230]];
-    c.strokeStyle = farTint('#D6D3D1', 0.5); c.lineWidth = 4; c.beginPath(); crest.forEach(([x, y], i) => (i ? c.lineTo(x, y - 4) : c.moveTo(x, y - 4))); c.stroke();
-    for (const [x, y] of crest) box(c, x - 6, y - 18, 12, 14, farTint('#A8A29E', 0.5));
-  },
   germany: (c, hz) => {
     // (the castle on its hill: towers with pointy blue roofs)
     poly(c, [[-260, hz], [-80, hz - 120], [80, hz - 130], [260, hz]], farTint('#365314', 0.6));
