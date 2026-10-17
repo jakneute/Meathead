@@ -12,7 +12,7 @@
 //               heavy windup (her fist up over him, a shadow on the floor following him, locking, glowing), down, and
 //               it's STUCK (the Wolverine-sentinel parody): her fist planted on the floor (it only hurts landing; then
 //               no collision at all: the user's) while she strains at it; he's down out of the crown ranting ("YOU'RE USELESS
-//               NOW", angrier every time: "SHE'S DUMB AT FIGHTING THINGS MUCH SMALLER THAN HER") and walking him down
+//               NOW", angrier every time: "SHE CAN'T HIT ANYTHING SMALLER THAN A BUS") and walking him down
 //               till she yanks it free; then the crown again. THE WALLS (Contra): up a scaffold tower, then SWEEP 1
 //               (across to the far wall and rotating slowly down to his own feet: safe only right under him) or
 //               SWEEP 2 (straight down and arcing up across the floor and up the far wall: get to the far end and
