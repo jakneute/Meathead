@@ -93,8 +93,14 @@ const usualHands = (B: Body, F: Frame): [[number, number], [number, number]] => 
 /** The name tag: a white tag on the chest, a red HELLO band across its top, a scrawl for a name. */
 export const nameTag = (g: Ctx, B: Body) => {
   const x = Math.round(B.w / 2 - 11 + B.lean), y = Math.round(B.shY + 6);
-  px(g, x - 1, y - 1, 10, 7, INK); px(g, x, y, 8, 5, '#FFFFFF'); px(g, x, y, 8, 2, '#DC2626');
-  px(g, x + 1, y + 3, 2, 1, '#1E3A8A'); px(g, x + 4, y + 3, 3, 1, '#1E3A8A');
+  // (inked, a white card stepped (lit top-left, a shaded foot), the red HELLO band (its letters a dotted white), the
+  // name in blue marker, the pin's glint; a shadow under it on the costume)
+  px(g, x, y + 6, 9, 1, 'rgba(26, 11, 6, 0.35)');
+  px(g, x - 1, y - 1, 10, 7, INK); px(g, x, y, 8, 5, '#F4F4F5'); px(g, x, y + 4, 8, 1, '#C8C8CC'); px(g, x, y, 1, 4, '#FFFFFF');
+  px(g, x, y, 8, 2, '#DC2626'); px(g, x, y, 8, 1, '#F05252');
+  px(g, x + 1, y + 1, 1, 1, '#FECACA'); px(g, x + 3, y + 1, 1, 1, '#FECACA'); px(g, x + 5, y + 1, 1, 1, '#FECACA');
+  px(g, x + 1, y + 3, 2, 1, '#1E3A8A'); px(g, x + 4, y + 3, 3, 1, '#1E3A8A'); px(g, x + 3, y + 2, 1, 1, '#2B4BA8');
+  px(g, x + 7, y, 1, 1, '#E5E7EB');
 };
 
 /** One of them, painted (feet at the origin, facing right). */

@@ -33,11 +33,18 @@ const pick = <T>(seed: number, salt: number, l: readonly T[]) => l[Math.abs(Math
 // Costume pieces
 
 /** A sombrero: the wide brim (seen edge-on, a lens), the tall crown, a band. */
-const sombreroHat = (g: Ctx, B: Body, crown: string, brim: string, band: string, w = 22) => {
+const sombreroHat = (g: Ctx, B: Body, crown: string, brim: string, band: string, w = 22, trim?: string) => {
   const y = B.hy - 7;
   part(g, () => g.ellipse(B.hx, y, w, 4.5, 0, 0, Math.PI * 2), brim, B.hx - w, y - 4.5, w * 2, 9, 1.2);
+  // (the brim's turned-up edge, stitched; its underside's shadow)
+  px(g, B.hx - w + 2, y + 2, w * 2 - 4, 1, dk(brim, 0.35));
+  for (let k = -w + 4; k < w - 3; k += 3) px(g, B.hx + k, y - 2 + Math.abs(k) * 0.08, 1, 1, trim ?? lt(brim, 0.45));
   partTop(g, () => { g.moveTo(B.hx - 8, y); g.quadraticCurveTo(B.hx - 9, y - 16, B.hx, y - 17); g.quadraticCurveTo(B.hx + 9, y - 16, B.hx + 8, y); g.closePath(); }, crown, B.hx - 9, y - 17, 18, 17, 1.2);
-  px(g, B.hx - 8, y - 4, 16, 2, band);
+  // (the band round the crown, its studs or stitching)
+  px(g, B.hx - 8, y - 5, 16, 3, dk(band, 0.2)); px(g, B.hx - 8, y - 5, 16, 1, lt(band, 0.3));
+  for (let k = -6; k <= 6; k += 4) px(g, B.hx + k, y - 4, 1, 1, trim ?? lt(band, 0.5));
+  // (a dent in the crown's top, lit)
+  px(g, B.hx - 3, y - 15, 6, 1, dk(crown, 0.3)); px(g, B.hx - 4, y - 14, 2, 1, lt(crown, 0.35));
 };
 const trumpet = (g: Ctx, x: number, y: number, up: boolean) => {
   const a = up ? -0.15 : 0.5;
@@ -51,13 +58,19 @@ const trumpet = (g: Ctx, x: number, y: number, up: boolean) => {
 const MARIACHI_COSTUME: Costume = {
   id: 'mariachi', top: s => pick(s, 2, ['#1C1917', '#1C1917', '#7F1D1D', '#F5F5F4']), legs: s => pick(s, 2, ['#1C1917', '#1C1917', '#7F1D1D', '#F5F5F4']),
   shoe: 'boot', shoeCol: '#1C1917',
-  over: (g, B) => {
-    // (the short charro jacket's trim, a big bow tie, silver buttons)
-    for (let k = 0; k < 4; k++) px(g, -B.w / 2 + 3, B.shY + 4 + k * 5, 2, 2, '#D6D3D1');
-    part(g, () => { g.moveTo(B.hx - 4, B.shY + 1); g.lineTo(B.hx + 6, B.shY + 1); g.lineTo(B.hx + 1, B.shY + 6); g.closePath(); }, '#DC2626', B.hx - 4, B.shY + 1, 10, 5, 0.8);
-    for (let k = 0; k < 4; k++) px(g, -B.hipW * 0.22 + 4, B.hipY + 6 + k * 6, 2, 2, '#D6D3D1');
+  over: (g, B, F) => {
+    // (the short charro jacket: its hem across the waist, the shirt's white front, silver embroidery scrolling up its
+    // fronts, a big bow tie, silver buttons (each lit, a glint) down the jacket and the trouser seams)
+    const suit = pick(F.seed, 2, ['#1C1917', '#1C1917', '#7F1D1D', '#F5F5F4']), silver = suit === '#F5F5F4' ? '#A16207' : '#D6D3D1';
+    px(g, -B.w / 2, B.hipY - 8, B.w, 2, dk(suit, 0.35));
+    px(g, B.hx - 3, B.shY + 2, 6, B.hipY - B.shY - 10, '#F5F5F4'); px(g, B.hx - 3, B.shY + 2, 1, B.hipY - B.shY - 10, '#FFFFFF');
+    for (let k = 0; k < 5; k++) { px(g, -B.w / 2 + 2 + (k % 2), B.shY + 4 + k * 4, 2, 1, silver); px(g, B.w / 2 - 4 - (k % 2), B.shY + 4 + k * 4, 2, 1, silver); }
+    for (let k = 0; k < 4; k++) { px(g, -B.w / 2 + 3, B.shY + 4 + k * 5, 2, 2, dk(silver, 0.3)); px(g, -B.w / 2 + 3, B.shY + 4 + k * 5, 1, 1, '#FFFFFF'); }
+    part(g, () => { g.moveTo(B.hx - 5, B.shY); g.lineTo(B.hx + 7, B.shY); g.lineTo(B.hx + 1, B.shY + 7); g.closePath(); }, '#DC2626', B.hx - 5, B.shY, 12, 7, 0.8);
+    ball(g, B.hx + 1, B.shY + 2, 1.6, '#B91C1C', 0.5);
+    for (let k = 0; k < 5; k++) { px(g, -B.hipW * 0.22 + 4, B.hipY + 6 + k * 6, 2, 2, dk(silver, 0.3)); px(g, -B.hipW * 0.22 + 4, B.hipY + 6 + k * 6, 1, 1, '#FFFFFF'); }
   },
-  hat: (g, B, F) => sombreroHat(g, B, pick(F.seed, 2, ['#1C1917', '#1C1917', '#7F1D1D', '#F5F5F4']), pick(F.seed, 2, ['#292524', '#292524', '#991B1B', '#E7E5E4']), '#D6D3D1', 18),
+  hat: (g, B, F) => sombreroHat(g, B, pick(F.seed, 2, ['#1C1917', '#1C1917', '#7F1D1D', '#F5F5F4']), pick(F.seed, 2, ['#292524', '#292524', '#991B1B', '#E7E5E4']), '#D6D3D1', 18, '#E5E7EB'),
   hands: (B, F) => (F.pose === 'tell' || F.pose === 'strike' ? [[B.hx + 4, B.hy + 10], [B.hx + 10, B.hy + 6]] : null),
   hold: (g, B, F, x, y) => trumpet(g, x - 2, y, F.pose === 'tell' || F.pose === 'strike'),
   mouth: 'o',
@@ -70,9 +83,12 @@ const SOMBRERO_COSTUME: Costume = {
     // (the serape: a striped blanket over the shoulder, across the chest)
     const c0 = pick(F.seed, 1, SERAPE);
     part(g, () => { g.moveTo(-B.w / 2 - 1, B.shY); g.lineTo(B.w / 2 + 1, B.shY); g.lineTo(B.w / 2 + 2, B.shY + 18); g.lineTo(-B.w / 2 - 2, B.shY + 26); g.closePath(); }, c0, -B.w / 2 - 2, B.shY, B.w + 4, 26, 1);
-    for (let k = 0; k < 4; k++) px(g, -B.w / 2, B.shY + 4 + k * 5, B.w, 1.5, SERAPE[(SERAPE.indexOf(c0) + k + 1) % SERAPE.length]);
+    // (its woven stripes, each lit along its top, a zigzag in the middle one; the fringe off its hem)
+    for (let k = 0; k < 4; k++) { const sc = SERAPE[(SERAPE.indexOf(c0) + k + 1) % SERAPE.length], yy = B.shY + 4 + k * 5; px(g, -B.w / 2, yy, B.w, 1.5, sc); px(g, -B.w / 2, yy, B.w, 0.6, lt(sc, 0.4)); }
+    for (let x = -B.w / 2 + 1; x < B.w / 2 - 1; x += 3) px(g, x, B.shY + 12 + ((x / 3) & 1), 1, 1, '#FFFFFF');
+    for (let x = -B.w / 2 - 1; x < B.w / 2 + 2; x += 2) { const t = (x + B.w / 2) / B.w, yy = B.shY + 26 - t * 8; px(g, x, yy, 1, 3 + ((x & 2) ? 1 : 0), dk(c0, 0.2)); }
   },
-  hat: (g, B, F) => sombreroHat(g, B, '#FDE68A', '#FCD34D', pick(F.seed, 4, SERAPE), 25),
+  hat: (g, B, F) => sombreroHat(g, B, '#FDE68A', '#FCD34D', pick(F.seed, 4, SERAPE), 25, pick(F.seed, 2, SERAPE)),
   hands: (B, F) => (F.pose === 'tell' ? [[-B.w / 2 - 4, B.shY + 12], [-B.w / 2 - 8, B.shY - 14]] : null),
   // (a spare sombrero in hand, cocked back to throw)
   hold: (g, B, F, x, y) => { if (F.pose === 'tell') { part(g, () => g.ellipse(x, y, 13, 4, -0.6, 0, Math.PI * 2), '#FCD34D', x - 13, y - 6, 26, 12, 1); ball(g, x, y - 3, 5, '#FDE68A'); } },
@@ -81,9 +97,18 @@ const SOMBRERO_COSTUME: Costume = {
 
 const PINATA_COSTUME: Costume = {
   id: 'pinata', top: s => pick(s, 1, ['#F472B6', '#A78BFA', '#34D399', '#FBBF24']), legs: '#57534E', shoe: 'sneaker', shoeCol: '#F5F5F4',
-  over: (g, B) => { for (let k = 0; k < 3; k++) px(g, -B.w / 2 + 3 + k * 6, B.shY + 10 + (k % 2) * 4, 2, 2, '#FFFFFF'); },
-  // (the party hat, cocked)
-  hat: (g, B) => part(g, () => { g.moveTo(B.hx - 5, B.hy - 8); g.lineTo(B.hx + 3, B.hy - 26); g.lineTo(B.hx + 8, B.hy - 7); g.closePath(); }, '#F59E0B', B.hx - 5, B.hy - 26, 13, 19, 1),
+  // (a party shirt: confetti dots in every color, a lanyard with a whistle)
+  over: (g, B) => {
+    for (let k = 0; k < 8; k++) px(g, -B.w / 2 + 2 + ((k * 5) % (B.w - 4)), B.shY + 4 + ((k * 7) % 22), 2, 2, ['#FFFFFF', '#FDE047', '#38BDF8', '#F472B6'][k % 4]);
+    px(g, B.hx - 4, B.shY + 1, 1, 10, '#1E3A8A'); px(g, B.hx + 3, B.shY + 1, 1, 10, '#1E3A8A'); px(g, B.hx - 2, B.shY + 10, 4, 3, '#A1A1AA'); px(g, B.hx - 2, B.shY + 10, 2, 1, '#F4F4F5');
+  },
+  // (the party hat, cocked: striped, its pom-pom, the elastic under the chin)
+  hat: (g, B) => {
+    part(g, () => { g.moveTo(B.hx - 5, B.hy - 8); g.lineTo(B.hx + 3, B.hy - 26); g.lineTo(B.hx + 8, B.hy - 7); g.closePath(); }, '#F59E0B', B.hx - 5, B.hy - 26, 13, 19, 1);
+    for (let k = 0; k < 3; k++) { const t = 0.3 + k * 0.22; px(g, B.hx - 5 + t * 8 - 1, B.hy - 8 - t * 18, 13 - t * 10, 2, '#EC4899'); }
+    ball(g, B.hx + 3, B.hy - 27, 3, '#38BDF8', 0.8);
+    px(g, B.hx + 7, B.hy - 6, 1, 12, '#E5E7EB');
+  },
   hairToo: true,
   // (the blindfold: a bandana round the eyes)
   face: (g, B) => { px(g, B.hx - 9, B.hy - 4, 19, 5, INK); px(g, B.hx - 8, B.hy - 3, 17, 3, '#DC2626'); px(g, B.hx - 12, B.hy - 2, 4, 6, '#DC2626'); },
@@ -107,9 +132,17 @@ const LUCHADOR_COSTUME: Costume = {
   face: (g, B, F) => {
     const m = pick(F.seed, 5, MASKS);
     part(g, () => g.ellipse(B.hx, B.hy - 1, B.rx + 0.6, B.ry + 0.6, 0, 0, Math.PI * 2), m, B.hx - B.rx, B.hy - B.ry, B.rx * 2, B.ry * 2, 1.2);
-    for (const ex of [B.hx + 0.5, B.hx + 6]) { px(g, ex - 2, B.hy - 3, 5, 4, '#F8FAFC'); px(g, ex - 1, B.hy - 2, 3, 2, F.md === 'dead' ? INK : '#1C1917'); }
-    px(g, B.hx + 1, B.hy + 4, 7, 3, '#F8FAFC'); px(g, B.hx + 2, B.hy + 5, 5, 1, INK);
-    px(g, B.hx - 1, B.hy - B.ry, 2, 6, '#FCD34D');
+    const trim = pick(F.seed, 3, ['#F8FAFC', '#FCD34D', '#F8FAFC']);
+    for (const ex of [B.hx + 0.5, B.hx + 6]) {
+      // (the eye holes trimmed in a flame shape, the eye in them)
+      px(g, ex - 3, B.hy - 4, 7, 6, INK); px(g, ex - 2, B.hy - 3, 5, 4, trim); px(g, ex - 2, B.hy - 5, 2, 2, trim);
+      px(g, ex - 1, B.hy - 2, 3, 2, F.md === 'dead' ? INK : '#F5F5F4'); px(g, ex, B.hy - 2, 1, 2, F.md === 'dead' ? INK : '#1C1917');
+    }
+    px(g, B.hx, B.hy + 3, 9, 5, INK); px(g, B.hx + 1, B.hy + 4, 7, 3, trim); px(g, B.hx + 2, B.hy + 5, 5, 1, INK);
+    // (the flame up the middle, lit; the laces at the back)
+    part(g, () => { g.moveTo(B.hx - 2, B.hy - 4); g.lineTo(B.hx - 3, B.hy - B.ry - 1); g.lineTo(B.hx, B.hy - B.ry + 3); g.lineTo(B.hx + 2, B.hy - B.ry - 2); g.lineTo(B.hx + 2, B.hy - 4); g.closePath(); }, '#FCD34D', B.hx - 3, B.hy - B.ry - 2, 5, B.ry - 2, 0.6);
+    for (let k = 0; k < 3; k++) px(g, B.hx - B.rx + 1, B.hy - 3 + k * 3, 2, 1, trim);
+    px(g, B.hx - B.rx * 0.5, B.hy - B.ry + 2, 2, 2, lt(m, 0.45));
   },
   hat: () => {},
   hands: (B, F) => (F.pose === 'tell' ? [[-B.w / 2 + 6, B.shY + 10], [B.w / 2 + 8, B.shY + 10]] : F.pose === 'strike' ? [[B.w / 2 + 8, B.shY + 2], [B.w / 2 + 16, B.shY + 6]] : null),

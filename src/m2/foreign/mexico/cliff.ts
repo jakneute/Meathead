@@ -21,7 +21,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { runsAround, poolSteps, poolAt, poolZones, drawPoolBack, drawPoolFront, type Pool } from '../water';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout } from '../setpiece';
 import {
-  type Ctx, type View, box, poly, boxes3, ledge3, setBack, postBoard, hungBoard, LOOKS, dimmed, hour, ramp6, onScreen, INK, LIP, rnd,
+  type Ctx, type View, box, poly, mix, hash, checker, boxes3, ledge3, facade, still, rockFace, postBoard, hungBoard, LOOKS, dimmed, hour, ramp6, onScreen, INK, rnd,
 } from '../kit';
 import { V, DIVER, DIVE_GAG } from './lines';
 
@@ -121,65 +121,120 @@ export const cliffWater = (x: number, y: number) => poolAt([DIVE_POOL], x, y);
 
 const ROCK = '#9A7B5A', ROCK_D = '#6E5640';
 
-/** A cast diver: a speedo (or a swimsuit), arms up on the perch; head down, arms out in front, falling. */
+/** A cast diver (a college kid in a swim cap, seeded: a woman in a one-piece or a guy in trunks, every skin, the name
+ *  tag pinned to the suit): arms up on the perch, bouncing; head down, arms out in front, falling. In steps, inked. */
 const drawDiver = (c: Ctx, x: number, feetY: number, n: number, falling: boolean, f: number) => {
-  const skin = ['#F1C9A5', '#C68642', '#8D5524', '#E0AC69', '#5C3A21'][n % 5], suit = n % 2 ? '#DB2777' : '#1D4ED8';
+  const skin = ['#F1C9A5', '#C68642', '#8D5524', '#E0AC69', '#5C3A21', '#FFDBAC'][n % 6], woman = n % 2 === 1;
+  const suit = ['#DB2777', '#1D4ED8', '#F59E0B', '#16A34A', '#7C3AED'][(n >> 1) % 5], cap = ['#F8FAFC', '#DC2626', '#FDE047', '#1E3A8A'][n % 4];
+  const S = ramp6(skin), U = ramp6(suit), Cp = ramp6(cap);
+  const part = (px: number, py: number, w: number, h: number, R: string[]) => { box(c, px - 1, py - 1, w + 2, h + 2, INK); box(c, px, py, w, h, R[3]); box(c, px, py, Math.max(1, w * 0.3), h, R[4]); box(c, px + w - Math.max(1, w * 0.3), py, Math.max(1, w * 0.3), h, R[2]); };
   if (!falling) {
-    box(c, x - 7, feetY - 52, 14, 30, skin); box(c, x - 7, feetY - 30, 14, 8, suit); if (n % 2) box(c, x - 7, feetY - 48, 14, 10, suit);
-    box(c, x - 6, feetY - 22, 5, 22, skin); box(c, x + 1, feetY - 22, 5, 22, skin);
-    box(c, x - 6, feetY - 66, 12, 13, skin); box(c, x - 6, feetY - 68, 12, 4, n % 3 ? '#1C1917' : '#B45309');
-    const up = Math.sin(f * 0.3) * 2;
-    box(c, x - 12, feetY - 84 + up, 4, 32, skin); box(c, x + 8, feetY - 84 - up, 4, 32, skin);
+    const up = Math.round(Math.sin(f * 0.3) * 2);
+    // (arms up over the head: the tell)
+    part(x - 12, feetY - 86 + up, 4, 32, S); part(x + 8, feetY - 86 - up, 4, 32, S);
+    // (legs, the body, the suit (a one-piece, or trunks), the tag)
+    part(x - 6, feetY - 22, 5, 22, S); part(x + 1, feetY - 22, 5, 22, S);
+    part(x - 7, feetY - 52, 14, 30, S);
+    if (woman) part(x - 7, feetY - 50, 14, 28, U); else part(x - 7, feetY - 30, 14, 9, U);
+    box(c, x + 1, feetY - (woman ? 44 : 27), 5, 3, '#FFFFFF'); box(c, x + 1, feetY - (woman ? 44 : 27), 5, 1, '#DC2626');
+    // (the head in its swim cap, goggles up on it)
+    part(x - 6, feetY - 66, 12, 13, S); box(c, x + 2, feetY - 61, 2, 2, INK); box(c, x - 1, feetY - 56, 5, 1, mix(skin, INK, 0.5));
+    part(x - 7, feetY - 70, 14, 7, Cp); box(c, x - 6, feetY - 66, 12, 2, '#38BDF8'); box(c, x - 5, feetY - 66, 3, 1, '#E0F2FE');
     return;
   }
-  // (upside down: feet at the top, head and joined hands at the bottom)
+  // (upside down: feet at the top, head and joined hands at the bottom, a streak of air past it)
   const top = feetY - 64;
-  box(c, x - 6, top, 5, 22, skin); box(c, x + 1, top, 5, 22, skin);
-  box(c, x - 7, top + 22, 14, 8, suit); box(c, x - 7, top + 30, 14, 20, n % 2 ? suit : skin);
-  box(c, x - 6, top + 50, 12, 12, skin); box(c, x - 3, top + 62, 6, 14, skin);
+  part(x - 6, top, 5, 22, S); part(x + 1, top, 5, 22, S);
+  part(x - 7, top + 22, 14, 28, S);
+  if (woman) part(x - 7, top + 22, 14, 26, U); else part(x - 7, top + 22, 14, 9, U);
+  part(x - 6, top + 50, 12, 12, S); part(x - 7, top + 55, 14, 7, Cp);
+  part(x - 3, top + 62, 6, 14, S);
+  for (let k = 0; k < 3; k++) box(c, x - 14 + k * 12, top - 6 - ((f * 3 + k * 9) % 20), 1, 8, 'rgba(255,255,255,0.6)');
+};
+
+/** The cliff's bulk behind the outcrops (set back, stamped for the hour): fiberglass rock, strata painted on, the
+ *  panels' seams and their bolts showing, a scrub of fake agave in the cracks. */
+const paintBulk = (g: Ctx) => {
+  const R = ramp6(dimmed(ROCK_D));
+  const shape: [number, number][] = [[0, 0], [60, -380], [180, -560], [380, -660], [560, -620], [760, -420], [880, -160], [900, 0]];
+  poly(g, shape.map(([x, y]) => [x + (x < 450 ? -2 : 2), y - 2] as [number, number]), INK);
+  poly(g, shape, R[2]);
+  g.save(); g.beginPath(); shape.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip();
+  rockFace(g, 0, -680, 900, 680, R, 4440);
+  // (lit up its left shoulder, in shade down its right)
+  poly(g, [[0, 0], [60, -380], [180, -560], [380, -660], [300, -560], [160, -380], [80, 0]], R[3]);
+  checker(g, 80, -600, 4, 600, R[3], 0);
+  poly(g, [[560, -620], [760, -420], [880, -160], [900, 0], [760, 0], [680, -300]], R[1]);
+  // (the fiberglass panels' seams, bolted)
+  for (let k = 0; k < 4; k++) { const sx = 120 + k * 200; box(g, sx, -640 + k * 40, 2, 640 - k * 40, R[0]); for (let y = -600 + k * 40; y < 0; y += 50) { box(g, sx - 3, y, 2, 2, R[4]); box(g, sx + 3, y + 4, 2, 2, R[4]); } }
+  for (let k = 0; k < 3; k++) { const sy = -480 + k * 160; box(g, 0, sy, 900, 2, R[0]); }
+  // (fake agaves stuck in its cracks)
+  for (let k = 0; k < 10; k++) {
+    const ax = 60 + hash(k * 3.7) * 760, ay = -60 - hash(k * 1.9) * 480, A = ramp6(dimmed('#5E8A5A'));
+    for (let s = -3; s <= 3; s++) poly(g, [[ax - 2, ay], [ax + s * 4, ay - 14 + Math.abs(s) * 2], [ax + 2, ay]], A[Math.abs(s) % 2 ? 2 : 3]);
+  }
+  g.restore();
 };
 
 export const drawCliffBack = (c: Ctx, v: View, state: GameState) => {
   const f = state.frame;
   if (!onScreen(v, X(4200), x1)) return;
   drawPoolBack(c, v, DIVE_POOL);
-  // (the cliff's bulk behind the outcrops, set back: fiberglass rock, painted; the seams show)
-  setBack(c, v, X(4440), 900, 0.95, () => {
-    const R = ramp6(dimmed(ROCK_D));
-    poly(c, [[0, 0], [60, -380], [180, -560], [380, -660], [560, -620], [760, -420], [880, -160], [900, 0]], R[2]);
-    for (let k = 0; k < 14; k++) box(c, 40 + rnd(k + 300) * 800, -40 - rnd(k + 330) * 520, 40, 3, R[1]);
-    for (let k = 0; k < 4; k++) box(c, 120 + k * 200, -600 + k * 40, 2, 560 - k * 40, R[3]);
-  });
+  // (the cliff's bulk behind the outcrops, set back, stamped for the hour)
+  facade(c, v, 'mx-cliffbulk', X(4440), 900, 660, paintBulk, 0.95, 30, 10, false);
   // (the cliff: its face down to the ground (a wall: no way through), its top the walk)
   boxes3(c, v, [
-    { x: X(CLIFF.a), top: Y(CLIFF.h), w: CLIFF.b - CLIFF.a, bottom: GY, col: ROCK, standable: true },
-    { x: X(STAND.a), top: Y(STAND.h), w: STAND.b - STAND.a, bottom: GY, col: '#15803D', standable: true },
+    { x: X(CLIFF.a), top: Y(CLIFF.h), w: CLIFF.b - CLIFF.a, bottom: GY, col: ROCK, standable: true, look: 'rock' },
+    { x: X(STAND.a), top: Y(STAND.h), w: STAND.b - STAND.a, bottom: GY, col: '#15803D', standable: true, look: 'plank' },
   ]);
-  if (onScreen(v, X(CLIFF.a), X(CLIFF.b))) {
-    const R = ramp6(hour(ROCK));
-    for (let k = 0; k < 18; k++) { const rx = X(CLIFF.a) + 10 + rnd(k + 400) * (CLIFF.b - CLIFF.a - 50), ry = Y(CLIFF.h) + 30 + rnd(k + 420) * (CLIFF.h - 60); box(c, rx, ry, 30 + rnd(k) * 20, 4, R[1]); box(c, rx, ry - 2, 20, 2, R[3]); }
-  }
   for (const [a, b, h] of [...OUT_L, ...OUT_R]) if (onScreen(v, X(a), X(b))) {
+    // (the outcrop's lump under its ledge: rock in steps, lit along its top, shaded under)
     const R = ramp6(hour(ROCK));
-    poly(c, [[X(a) + 10, Y(h) + 14], [X(b) - 10, Y(h) + 14], [X(b) - 40, Y(h) + 50], [X(a) + 30, Y(h) + 44]], R[1]);
-    ledge3(c, v, X(a), Y(h), b - a, ROCK, 14);
+    poly(c, [[X(a) + 8, Y(h) + 13], [X(b) - 8, Y(h) + 13], [X(b) - 38, Y(h) + 52], [X(a) + 28, Y(h) + 46]], INK);
+    poly(c, [[X(a) + 10, Y(h) + 14], [X(b) - 10, Y(h) + 14], [X(b) - 40, Y(h) + 50], [X(a) + 30, Y(h) + 44]], R[2]);
+    poly(c, [[X(a) + 10, Y(h) + 14], [X(a) + 40, Y(h) + 14], [X(a) + 44, Y(h) + 40], [X(a) + 30, Y(h) + 44]], R[3]);
+    poly(c, [[X(b) - 30, Y(h) + 14], [X(b) - 10, Y(h) + 14], [X(b) - 40, Y(h) + 50], [X(b) - 48, Y(h) + 40]], R[1]);
+    for (let k = 0; k < 4; k++) box(c, X(a) + 30 + k * ((b - a - 60) / 4), Y(h) + 24 + (k % 2) * 8, 10, 2, R[1]);
+    ledge3(c, v, X(a), Y(h), b - a, ROCK, 14, 'rock');
   }
-  // (the board: a plank on brackets, its rail at the cliff end)
+  // (the board: a fiberglass plank on steel brackets (white, a red stripe, its sandpaper tread), the pipe rail at its
+  // root)
   if (onScreen(v, X(BOARD.a), X(BOARD.b))) {
-    for (const bx of [BOARD.a + 20, BOARD.a + 120]) box(c, X(bx), Y(BOARD.h) + 10, 6, 50, hour('#57534E'));
+    const M = ramp6(hour('#57534E'));
+    for (const bx of [BOARD.a + 20, BOARD.a + 120]) { box(c, X(bx) - 1, Y(BOARD.h) + 9, 8, 52, INK); box(c, X(bx), Y(BOARD.h) + 10, 6, 50, M[3]); box(c, X(bx), Y(BOARD.h) + 10, 2, 50, M[5]); poly(c, [[X(bx) + 6, Y(BOARD.h) + 12], [X(bx) + 30, Y(BOARD.h) + 12], [X(bx) + 6, Y(BOARD.h) + 34]], M[2]); }
     ledge3(c, v, X(BOARD.a), Y(BOARD.h), BOARD.b - BOARD.a, '#E2E8F0', 10);
-    box(c, X(BOARD.a), Y(BOARD.h) - 30, 4, 30, INK); box(c, X(BOARD.a), Y(BOARD.h) - 30, 60, 3, INK);
+    box(c, X(BOARD.a), Y(BOARD.h) + 5, BOARD.b - BOARD.a, 2, hour('#DC2626'));
+    const I = ramp6(hour('#94A3B8'));
+    box(c, X(BOARD.a) - 1, Y(BOARD.h) - 31, 6, 31, INK); box(c, X(BOARD.a), Y(BOARD.h) - 30, 4, 30, I[3]); box(c, X(BOARD.a), Y(BOARD.h) - 30, 1, 30, I[5]);
+    box(c, X(BOARD.a) - 1, Y(BOARD.h) - 31, 62, 5, INK); box(c, X(BOARD.a), Y(BOARD.h) - 30, 60, 3, I[3]); box(c, X(BOARD.a), Y(BOARD.h) - 30, 60, 1, I[5]);
+    poly(c, [[X(BOARD.a) + 56, Y(BOARD.h) - 30], [X(BOARD.a) + 64, Y(BOARD.h) - 20], [X(BOARD.a) + 64, Y(BOARD.h)], [X(BOARD.a) + 60, Y(BOARD.h)], [X(BOARD.a) + 60, Y(BOARD.h) - 19], [X(BOARD.a) + 54, Y(BOARD.h) - 27]], I[2]);
   }
-  // (the divers' pole and platform: out of reach, dimmed, no lip: not somewhere to stand)
+  // (the divers' pole and platform: a steel lattice mast out of the pool, out of reach, dimmed, no lip: not somewhere to
+  // stand)
   if (onScreen(v, X(PERCH.a), X(PERCH.b) + 40)) {
-    const P = ramp6(dimmed('#9CA3AF'));
-    box(c, X(5655), Y(PERCH.h), 8, PERCH.h + DIVE_POOL.bed, P[2]);
-    box(c, X(PERCH.a), Y(PERCH.h), PERCH.b - PERCH.a + 8, 8, P[3]);
-    for (let y = Y(PERCH.h) + 40; y < GY; y += 60) box(c, X(5650), y, 18, 3, P[1]);
+    const P = ramp6(dimmed('#9CA3AF')), mx = X(5655), mt = Y(PERCH.h), mb = GY + DIVE_POOL.bed;
+    still(c, 'fl-mx-perch', mx, mt, -110, -4, 140, mb - mt + 6, g => {
+      const h = mb - mt;
+      box(g, -1, 0, 3, h, INK); box(g, 9, 0, 3, h, INK); box(g, 0, 0, 1, h, P[4]); box(g, 10, 0, 1, h, P[2]);
+      g.strokeStyle = P[2]; g.lineWidth = 1; g.beginPath(); for (let y = 10; y < h; y += 22) { g.moveTo(0, y); g.lineTo(10, y + 11); g.moveTo(10, y + 11); g.lineTo(0, y + 22); } g.stroke();
+      for (let y = 40; y < h; y += 60) { box(g, -6, y, 22, 3, INK); box(g, -5, y, 20, 2, P[3]); }
+      // (the platform: grating, a canvas skirt, no lip)
+      const pa = PERCH.a - 5655, pw = PERCH.b - PERCH.a + 8;
+      box(g, pa - 1, -1, pw + 2, 10, INK); box(g, pa, 0, pw, 8, P[2]); for (let x = pa + 2; x < pa + pw; x += 4) box(g, x, 1, 1, 6, P[1]);
+      box(g, pa, 8, pw, 14, dimmed('#7F1D1D')); for (let x = pa; x < pa + pw; x += 10) box(g, x, 8, 5, 14, dimmed('#991B1B'));
+    });
     hungBoard(c, X(5700), Y(PERCH.h) + 30, Y(PERCH.h) + 70, ['CAST ONLY'], LOOKS.mexico(1), '#7F1D1D');
   }
-  // (the tequila stand's awning bits)
-  if (onScreen(v, X(STAND.a), X(STAND.b))) { for (let k = 0; k < 6; k++) box(c, X(STAND.a) - 6 + k * 22, Y(STAND.h) - 70, 22, 12, dimmed(k % 2 ? '#F8FAFC' : '#16A34A')); for (const px0 of [X(STAND.a) + 4, X(STAND.b) - 8]) box(c, px0, Y(STAND.h) - 58, 4, 58, dimmed('#78716C')); }
+  // (the tequila stand's awning (scalloped stripes on poles) and the bottles behind its counter)
+  if (onScreen(v, X(STAND.a) - 20, X(STAND.b) + 20)) {
+    const a = X(STAND.a), w = STAND.b - STAND.a;
+    still(c, `fl-mx-tequila-${w}`, a, Y(STAND.h), -14, -76, w + 28, 80, g => {
+      const Gn = ramp6(dimmed('#16A34A')), Wt = ramp6(dimmed('#F8FAFC')), P = ramp6(dimmed('#78716C'));
+      for (const px0 of [4, w - 8]) { box(g, px0 - 1, -58, 6, 58, INK); box(g, px0, -58, 4, 58, P[3]); box(g, px0, -58, 1, 58, P[5]); }
+      box(g, -7, -71, w + 14, 14, INK);
+      for (let k = 0; k < Math.ceil((w + 12) / 22); k++) { const R = k % 2 ? Wt : Gn; box(g, -6 + k * 22, -70, 22, 12, R[3]); box(g, -6 + k * 22, -70, 22, 2, R[4]); g.fillStyle = INK; g.beginPath(); g.arc(-6 + k * 22 + 11, -58, 11, 0, Math.PI); g.fill(); g.fillStyle = R[3]; g.beginPath(); g.arc(-6 + k * 22 + 11, -58, 10, 0, Math.PI); g.fill(); }
+    });
+  }
   // (the signs: held up, nothing over them)
   if (onScreen(v, X(4300), X(4500))) postBoard(c, X(4380), GY, ['LA QUEBRADA', 'CLIFF DIVERS', 'SHOWS EVERY 6 SECONDS'], LOOKS.mexico(1), '#0F766E', undefined, 120);
   if (onScreen(v, X(5300), X(5340))) postBoard(c, X(5300), GY, ['DIVE POOL', 'DEPTH: 6 FT', 'NO DIVING'], LOOKS.mexico(1), '#1E3A8A', undefined, 100);
@@ -188,7 +243,7 @@ export const drawCliffBack = (c: Ctx, v: View, state: GameState) => {
   // (the diver up top on the platform in the tell)
   const d = diverAt(f);
   if (d.st === 'tell' && onScreen(v, X(PERCH.a), X(PERCH.b))) drawDiver(c, X(DX), Y(PERCH.h), d.n, false, f);
-  void LIP;
+  void rnd;
 };
 
 export const drawCliffFront = (c: Ctx, v: View, state: GameState) => {
@@ -197,7 +252,15 @@ export const drawCliffFront = (c: Ctx, v: View, state: GameState) => {
   const d = diverAt(f);
   if (d.st === 'fall') drawDiver(c, X(DX), Y(d.h), d.n, true, f);
   drawPoolFront(c, v, DIVE_POOL, f, x => (d.st === 'splash' ? Math.max(0, 22 - d.t) * Math.exp(-(((x - X(DX)) / 50) ** 2)) : 0));
-  if (d.st === 'splash') for (let k = 0; k < 12; k++) { const a = Math.PI * (0.1 + 0.8 * rnd(k + d.n * 13)), r = d.t * (3 + rnd(k) * 3); box(c, X(DX) + Math.cos(a) * r * (k % 2 ? 1 : -1), GY + DIVE_POOL.surface - Math.sin(a) * r + d.t * d.t * 0.12, 4, 4, '#E0F2FE'); }
+  if (d.st === 'splash') {
+    // (the splash: a crown of water up round where it went in, stepped, then its droplets flung out and falling)
+    const sy = GY + DIVE_POOL.surface, up = Math.max(0, 40 - d.t * 1.6);
+    if (up > 0) for (let k = -3; k <= 3; k++) { const hh = up * (1 - Math.abs(k) / 4), sx = X(DX) + k * 7; box(c, sx - 3, sy - hh - 1, 7, hh + 1, '#0E7490'); box(c, sx - 2, sy - hh, 5, hh, k % 2 ? '#BAE6FD' : '#E0F2FE'); box(c, sx - 2, sy - hh, 2, 2, '#FFFFFF'); }
+    for (let k = 0; k < 14; k++) {
+      const a = Math.PI * (0.1 + 0.8 * rnd(k + d.n * 13)), r = d.t * (3 + rnd(k) * 3), px = Math.round(X(DX) + Math.cos(a) * r * (k % 2 ? 1 : -1)), py = Math.round(sy - Math.sin(a) * r + d.t * d.t * 0.12);
+      box(c, px - 1, py - 1, 5, 5, '#0E7490'); box(c, px, py, 3, 3, '#BAE6FD'); box(c, px, py, 1, 1, '#FFFFFF');
+    }
+  }
   drawShout(c, cliffOf(state).said);
 };
 

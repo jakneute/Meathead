@@ -191,41 +191,83 @@ export const drawShots = (c: Ctx, state: GameState) => {
         }
         break;
       }
-      case 'note': case 'tuba': {
-        const r = s.kind === 'tuba' ? 16 + Math.min(14, s.t * 0.3) : 10 + Math.min(8, s.t * 0.15);
-        c.lineWidth = s.kind === 'tuba' ? 5 : 3;
+      case 'note': {
+        // (the trumpet's blast: stepped brass-white arcs going out (three, fainter behind), a quaver and a semiquaver
+        // riding it, bobbing, inked)
+        const r = 10 + Math.min(8, s.t * 0.15), a0 = dir > 0 ? -0.9 : Math.PI - 0.9, a1 = dir > 0 ? 0.9 : Math.PI + 0.9;
+        for (let k = 2; k >= 0; k--) {
+          const rr = r - k * 3, cx = s.x - dir * k * 8;
+          c.lineWidth = 5 - k; c.strokeStyle = INK; c.beginPath(); c.arc(cx, s.y, rr, a0, a1); c.stroke();
+          c.lineWidth = 3 - k * 0.6; c.strokeStyle = ['#FEF9C3', '#FDE68A', '#F59E0B'][k]; c.beginPath(); c.arc(cx, s.y, rr, a0, a1); c.stroke();
+          c.lineWidth = 1; c.strokeStyle = k ? 'rgba(255,255,255,0.4)' : '#FFFFFF'; c.beginPath(); c.arc(cx, s.y, rr - 1, a0 + 0.3, a0 + 0.9); c.stroke();
+        }
+        const bob = Math.round(Math.sin(s.t * 0.3) * 2), nx = Math.round(s.x - dir * 8), ny = Math.round(s.y + 3 + bob);
+        const head = (x: number, y: number) => { disc(c, x, y, 3.6, 2.8, INK, -0.4); disc(c, x, y, 2.6, 1.9, '#1C1917', -0.4); c.fillStyle = '#78716C'; c.fillRect(x - 2, y - 1, 1, 1); };
+        head(nx, ny); c.fillStyle = INK; c.fillRect(nx + 2, ny - 11, 2, 11); c.fillRect(nx + 2, ny - 11, 5, 2); c.fillRect(nx + 6, ny - 10, 1, 3);
+        head(nx - dir * 10, ny - 4 - bob); c.fillRect(nx - dir * 10 + 2, ny - 15 - bob, 2, 11);
+        break;
+      }
+      case 'tuba': {
+        const r = 16 + Math.min(14, s.t * 0.3);
+        c.lineWidth = 5;
         for (let k = 0; k < 3; k++) {
-          c.strokeStyle = s.kind === 'tuba' ? ['#FCD34D', 'rgba(252,211,77,0.6)', 'rgba(252,211,77,0.3)'][k] : ['#FFFFFF', 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.3)'][k];
+          c.strokeStyle = ['#FCD34D', 'rgba(252,211,77,0.6)', 'rgba(252,211,77,0.3)'][k];
           c.beginPath(); c.arc(s.x - dir * k * 8, s.y, r - k * 3, dir > 0 ? -0.9 : Math.PI - 0.9, dir > 0 ? 0.9 : Math.PI + 0.9); c.stroke();
         }
-        // (a little note riding the blast)
-        if (s.kind === 'note') { disc(c, s.x - dir * 6, s.y + 3, 3, 2.4, INK, -0.4); c.fillStyle = INK; c.fillRect(s.x - dir * 6 + 2, s.y - 8, 1.5, 11); }
         break;
       }
       case 'sombrero': {
         c.save(); c.translate(s.x, s.y);
+        const STRAW = ['#78350F', '#B45309', '#D97706', '#FBBF24', '#FDE68A'];
         if (s.rolling) {
-          // (on its brim, rolling: the brim a wheel, the crown out the side)
-          c.rotate(s.t * 0.25 * dir);
-          disc(c, 0, 0, 14, 14, INK); disc(c, 0, 0, 13, 13, '#D97706'); disc(c, 0, 0, 9, 9, '#FBBF24'); disc(c, 0, 0, 5, 5, '#B91C1C');
-          c.fillStyle = '#16A34A'; c.fillRect(-13, -1, 26, 2);
+          // (on its brim, rolling: the brim a wheel (its woven rings, the embroidered edge), the crown's top in the middle,
+          // lit up-left whichever way it turns)
+          disc(c, 0, 0, 14.5, 14.5, INK); disc(c, 0, 0, 13.5, 13.5, STRAW[1]); disc(c, -1, -1, 12, 12, STRAW[2]); disc(c, -2, -2, 8, 8, STRAW[3]);
+          c.save(); c.rotate(s.t * 0.25 * dir);
+          c.strokeStyle = STRAW[0]; c.lineWidth = 1; for (const rr of [11, 7]) { c.beginPath(); c.arc(0, 0, rr, 0, Math.PI * 2); c.stroke(); }
+          for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; c.fillStyle = k % 2 ? '#DC2626' : '#16A34A'; c.fillRect(Math.cos(a) * 12.5 - 1, Math.sin(a) * 12.5 - 1, 2, 2); }
+          c.fillStyle = STRAW[0]; c.fillRect(-1, -6, 2, 12);
+          c.restore();
+          disc(c, 0, 0, 5, 5, INK); disc(c, 0, 0, 4, 4, '#B91C1C'); disc(c, -1, -1, 2, 2, '#F87171');
         } else {
           c.rotate(Math.sin(s.t * 0.4) * 0.3);
-          disc(c, 0, 2, 16, 5, INK); disc(c, 0, 1, 15, 4, '#D97706'); disc(c, 0, -4, 7, 7, INK); disc(c, 0, -4, 6, 6, '#FBBF24'); c.fillStyle = '#B91C1C'; c.fillRect(-6, -2, 12, 2);
+          // (spinning flat: the brim's lens (lit along its top, the embroidered band), the crown up out of it)
+          disc(c, 0, 2, 17, 6, INK); disc(c, 0, 1.5, 16, 5, STRAW[1]); disc(c, -1, 0.5, 14, 3.4, STRAW[3]); disc(c, -3, 0, 8, 1.6, STRAW[4]);
+          for (let k = -12; k <= 12; k += 4) { c.fillStyle = (k / 4 + Math.floor(s.t / 3)) % 2 ? '#DC2626' : '#16A34A'; c.fillRect(k - 1, 4, 2, 1); }
+          disc(c, 0, -4, 7.5, 7.5, INK); disc(c, 0, -4, 6.5, 6.5, STRAW[2]); disc(c, -1.5, -5.5, 4, 4, STRAW[3]); disc(c, -2.5, -7, 1.5, 1.5, STRAW[4]);
+          c.fillStyle = INK; c.fillRect(-7, -2, 14, 3); c.fillStyle = '#B91C1C'; c.fillRect(-6, -2, 12, 2); c.fillStyle = '#F87171'; c.fillRect(-6, -2, 5, 1);
         }
         c.restore(); break;
       }
-      case 'axe': case 'spoon': {
+      case 'axe': {
+        // (a craft-store throwing axe end over end: the haft in steps (its leather grip), the head's bevel lit, its edge
+        // a bright line, the painted rune)
+        c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.4 * dir);
+        c.fillStyle = INK; c.fillRect(-2.5, -13, 5, 26);
+        c.fillStyle = '#92400E'; c.fillRect(-1.5, -12, 3, 24); c.fillStyle = '#B45309'; c.fillRect(-1.5, -12, 1, 24);
+        c.fillStyle = '#3F2A14'; for (let k = 4; k < 12; k += 2) c.fillRect(-1.5, k, 3, 1);
+        c.fillStyle = INK; c.beginPath(); c.moveTo(0, -13); c.lineTo(11, -16); c.quadraticCurveTo(13, -9, 11, -1); c.lineTo(0, -5); c.closePath(); c.fill();
+        c.fillStyle = '#94A3B8'; c.beginPath(); c.moveTo(1, -12); c.lineTo(10, -14.5); c.quadraticCurveTo(11.6, -9, 10, -2.5); c.lineTo(1, -6); c.closePath(); c.fill();
+        c.fillStyle = '#CBD5E1'; c.beginPath(); c.moveTo(1, -12); c.lineTo(10, -14.5); c.lineTo(9, -10); c.lineTo(1, -9); c.closePath(); c.fill();
+        c.fillStyle = '#F8FAFC'; c.fillRect(9.5, -14, 1, 11);
+        c.fillStyle = '#7F1D1D'; c.fillRect(4, -10, 1, 3); c.fillRect(5, -9, 2, 1);
+        c.restore(); break;
+      }
+      case 'spoon': {
         c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.4 * dir);
         c.fillStyle = INK; c.fillRect(-2, -12, 4, 24);
-        c.fillStyle = s.kind === 'axe' ? '#92400E' : '#D6A15E'; c.fillRect(-1, -11, 2, 22);
-        if (s.kind === 'axe') { c.fillStyle = INK; c.beginPath(); c.moveTo(0, -12); c.lineTo(10, -14); c.lineTo(10, -2); c.lineTo(0, -5); c.fill(); c.fillStyle = '#CBD5E1'; c.beginPath(); c.moveTo(1, -11); c.lineTo(9, -13); c.lineTo(9, -3); c.lineTo(1, -6); c.fill(); }
-        else disc(c, 0, -12, 4, 6, '#D6A15E');
+        c.fillStyle = '#D6A15E'; c.fillRect(-1, -11, 2, 22);
+        disc(c, 0, -12, 4, 6, '#D6A15E');
         c.restore(); break;
       }
       case 'fish': {
+        // (a quivering glob of lutefisk jelly: translucent gray-white in steps, a flake of fish in it, wobbling, a drip
+        // flung off behind)
         const w = 1 + Math.sin(s.t * 0.5) * 0.2;
-        disc(c, s.x, s.y, 9 * w, 7 / w, INK); disc(c, s.x, s.y, 8 * w, 6 / w, '#F5F0D8'); disc(c, s.x - 2, s.y - 2, 3, 2, '#FFFFFF');
+        disc(c, s.x, s.y, 9 * w, 7 / w, INK); disc(c, s.x, s.y, 8 * w, 6 / w, '#C9C3A8'); disc(c, s.x - 1, s.y - 0.5, 6.5 * w, 4.8 / w, '#E2DCC0');
+        disc(c, s.x - 2, s.y - 1.5, 4 * w, 2.8 / w, '#F5F0D8'); disc(c, s.x - 3, s.y - 2.5, 1.6, 1.2, '#FFFFFF');
+        c.fillStyle = '#B8A88A'; c.fillRect(Math.round(s.x + 1), Math.round(s.y), 3, 1); c.fillRect(Math.round(s.x + 2), Math.round(s.y + 1), 2, 1);
+        disc(c, s.x - dir * 11, s.y - 2 + Math.sin(s.t * 0.4), 2.2, 1.8, INK); disc(c, s.x - dir * 11, s.y - 2 + Math.sin(s.t * 0.4), 1.4, 1.1, '#E2DCC0');
         break;
       }
       case 'rocket': {
