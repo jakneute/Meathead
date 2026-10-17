@@ -129,6 +129,8 @@ const MECH_AT = MECHS.map((_, i) => polar(R_MECH, mechAngle(i)));
 
 const FS = 4, FW = SW / FS, FH = SH / FS;
 let floorCanvas: HTMLCanvasElement | null = null, floorImg: ImageData | null = null, floorKey = '';
+/** Each floor pixel's ground point, fog and still color, for the camera, hour and wrecks in `key` (drawFloor). */
+const floorBase = { key: '', x: new Float32Array(0), z: new Float32Array(0), r: new Float32Array(0), fog: new Float32Array(0), col: new Uint8Array(0), kind: new Uint8Array(0) };
 const hash2 = (a: number, b: number) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5; return x - Math.floor(x); };
 const rgbOf = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
 const T = rgbOf;
@@ -278,15 +280,17 @@ const groundAt = (x: number, z: number, f6: number, dead: boolean[], ruin: Ruin[
     if (t > 0.82) col = CLUMP[t > 0.95 ? 2 : par ? 1 : 0];
     else { const F = FIELD[Math.floor(hash2(Math.floor(x / 260), Math.floor(z / 260)) * 3)], rows = ((x + z * 0.3) % 24 + 24) % 24; col = rows < 8 ? F[0] : rows < 16 ? F[1] : F[2]; }
   }
-  // (scorched along the way a landmark tramped in: a burnt band, dithered at its edges, embers in it)
-  if (ruin.length && r < LOT_R1 + 100) {
-    for (const s of ruin) {
-      const k = Math.max(0, Math.min(1, ((x - s.ax) * s.dx + (z - s.az) * s.dz) / s.l2)), ex = x - s.ax - k * s.dx, ez = z - s.az - k * s.dz, d2 = ex * ex + ez * ez;
-      if (d2 > 3600) continue;
-      const e = hash2(Math.floor(x / 14), Math.floor(z / 14) + f6 * 0.21);
-      if (d2 < 1600) return e > 0.97 ? EMBER : e > 0.6 ? SCORCH[2] : e > 0.25 ? SCORCH[1] : SCORCH[0];
-      return par ? SCORCH[3] : col;
-    }
+  return ruin.length && r < LOT_R1 + 100 ? ruinOver(x, z, f6, ruin, par, col) : col;
+};
+const NO_RUIN: Ruin[] = [];
+/** Scorched along the way a landmark tramped in: a burnt band, dithered at its edges, embers in it (over `col`). */
+const ruinOver = (x: number, z: number, f6: number, ruin: Ruin[], par: number, col: number[]) => {
+  for (const s of ruin) {
+    const k = Math.max(0, Math.min(1, ((x - s.ax) * s.dx + (z - s.az) * s.dz) / s.l2)), ex = x - s.ax - k * s.dx, ez = z - s.az - k * s.dz, d2 = ex * ex + ez * ez;
+    if (d2 > 3600) continue;
+    const e = hash2(Math.floor(x / 14), Math.floor(z / 14) + f6 * 0.21);
+    if (d2 < 1600) return e > 0.97 ? EMBER : e > 0.6 ? SCORCH[2] : e > 0.25 ? SCORCH[1] : SCORCH[0];
+    return par ? SCORCH[3] : col;
   }
   return col;
 };
@@ -302,15 +306,16 @@ const fogOf = (dist: number, par: number) => {
 const drawFloor = (c: Ctx, cam: Cam, f: number, dead: boolean[], mul: number[], segs: Seg[]) => {
   if (typeof document === 'undefined') return;
   if (!floorCanvas) { floorCanvas = document.createElement('canvas'); floorCanvas.width = FW; floorCanvas.height = FH; floorImg = floorCanvas.getContext('2d')!.createImageData(FW, FH); }
-  const tod = timeOfDay(), f6 = Math.floor(f / 6);
-  const key = [cam.phi.toFixed(5), cam.hc.toFixed(2), cam.F.toFixed(2), cam.ppx.toFixed(1), cam.ppy.toFixed(1), tod.key, f6, dead.map(d => (d ? 1 : 0)).join(''), segs.map(s => `${Math.round(s.bx / 24)},${Math.round(s.bz / 24)}`).join(';')].join('|');
-  if (key !== floorKey) {
-    floorKey = key;
-    const d = floorImg!.data;
-    d.fill(0);
-    const haze = rgbOf(tod.haze), hazeDay = [176, 200, 214];
-    const H = haze.map((v, i) => hazeDay[i] + (v - hazeDay[i]) * Math.min(1, tod.skyK));
-    const ruin: Ruin[] = segs.map(s => { const dx = s.bx - s.ax, dz = s.bz - s.az; return { ax: s.ax, az: s.az, dx, dz, l2: dx * dx + dz * dz || 1 }; });
+  const tod = timeOfDay(), f6 = Math.floor(f / 6), N = FW * FH;
+  // (two steps: where each pixel is on the ground, its fog and its color with nothing moving on it, worked out once the
+  // camera, the hour or the plinths' wreck change; then each repaint (the glints and embers every 6 frames, the trails
+  // of wreckage as they lengthen) works out afresh only what moves there: the lagoon, the wrecked plinths, the trails)
+  const baseKey = [cam.phi.toFixed(5), cam.hc.toFixed(2), cam.F.toFixed(2), cam.ppx.toFixed(1), cam.ppy.toFixed(1), tod.key, dead.map(d => (d ? 1 : 0)).join('')].join('|');
+  if (baseKey !== floorBase.key) {
+    const B = floorBase;
+    B.key = baseKey;
+    if (B.x.length !== N) { B.x = new Float32Array(N); B.z = new Float32Array(N); B.r = new Float32Array(N); B.fog = new Float32Array(N); B.col = new Uint8Array(N * 3); B.kind = new Uint8Array(N); }
+    B.kind.fill(0);
     for (let ry = 0; ry < FH; ry++) {
       const sy = ry * FS + FS / 2, yr = -(sy - cam.ppy) / cam.F;
       const dy = yr * cam.uy + cam.fy;
@@ -320,13 +325,38 @@ const drawFloor = (c: Ctx, cam: Cam, f: number, dead: boolean[], mul: number[], 
         const xr = (rx * FS + FS / 2 - cam.ppx) / cam.F;
         const X = t * xr, Zp = DC + t * dz;
         const x = X * cam.cos + Zp * cam.sin, z = -X * cam.sin + Zp * cam.cos;
-        const dist = t * Math.hypot(xr, dz, dy), par = (rx + ry) & 1;
-        const col = groundAt(x, z, f6, dead, ruin, par);
-        const fog = fogOf(dist, par);
-        const o = (ry * FW + rx) * 4;
-        for (let k = 0; k < 3; k++) { const v = (col[k] * mul[k]) / 255; d[o + k] = v + (H[k] - v) * fog; }
-        d[o + 3] = 255;
+        const dist = t * Math.hypot(xr, dz, dy), par = (rx + ry) & 1, i = ry * FW + rx, r = Math.hypot(x, z);
+        const col = groundAt(x, z, 0, dead, NO_RUIN, par);
+        B.x[i] = x; B.z[i] = z; B.r[i] = r; B.fog[i] = fogOf(dist, par);
+        B.col[i * 3] = col[0]; B.col[i * 3 + 1] = col[1]; B.col[i * 3 + 2] = col[2];
+        // (1: nothing moves here; 2: it does (the lagoon's glints, a wrecked plinth's embers); 3: where a trail can go)
+        B.kind[i] = r < LAGOON_R || dead.some((dd, k) => dd && Math.hypot(x - MECH_AT[k].x, z - MECH_AT[k].z) < PAD_R) ? 2 : r >= PROM_R1 && r < LOT_R1 + 100 ? 3 : 1;
       }
+    }
+    floorKey = '';
+  }
+  const key = [baseKey, f6, segs.map(s => `${Math.round(s.bx / 24)},${Math.round(s.bz / 24)}`).join(';')].join('|');
+  if (key !== floorKey) {
+    floorKey = key;
+    const d = floorImg!.data, B = floorBase;
+    d.fill(0);
+    const haze = rgbOf(tod.haze), hazeDay = [176, 200, 214];
+    const H = haze.map((v, i) => hazeDay[i] + (v - hazeDay[i]) * Math.min(1, tod.skyK));
+    const ruin: Ruin[] = segs.map(s => { const dx = s.bx - s.ax, dz = s.bz - s.az; return { ax: s.ax, az: s.az, dx, dz, l2: dx * dx + dz * dz || 1 }; });
+    const base = [0, 0, 0];
+    for (let i = 0; i < N; i++) {
+      const kd = B.kind[i];
+      if (!kd) continue;
+      const par = ((i % FW) + Math.floor(i / FW)) & 1;
+      let col: number[];
+      if (kd === 2) col = groundAt(B.x[i], B.z[i], f6, dead, ruin, par);
+      else {
+        base[0] = B.col[i * 3]; base[1] = B.col[i * 3 + 1]; base[2] = B.col[i * 3 + 2];
+        col = kd === 3 && ruin.length ? ruinOver(B.x[i], B.z[i], f6, ruin, par, base) : base;
+      }
+      const fog = B.fog[i], o = i * 4;
+      for (let k = 0; k < 3; k++) { const v = (col[k] * mul[k]) / 255; d[o + k] = v + (H[k] - v) * fog; }
+      d[o + 3] = 255;
     }
     floorCanvas!.getContext('2d')!.putImageData(floorImg!, 0, 0);
   }
@@ -980,6 +1010,7 @@ export const fireLamps = (state: GameState) => {
 
 /** The lot (screen space, under the world): sky, far lands, the floor, the park's buildings, trees, guests and the
  *  landmarks out on the circuit, back to front; the clouds over it. `alpha`: faded in over the streets (the lift). */
+const decals: { key: string; cv: HTMLCanvasElement | null } = { key: '', cv: null };
 /** The pull the park's held at while a landmark's pull back is on (it goes to 0.87 at the most: mechs.ts). */
 const PULL_REF = 0.86;
 export const drawPark = (c: Ctx, state: GameState, alpha = 1) => {
@@ -999,8 +1030,20 @@ export const drawPark = (c: Ctx, state: GameState, alpha = 1) => {
   const segs = pathsOf(h);
   drawFloor(c, cam, f, h.mechs.map(m => m.st === 'dead'), mul, segs);
   drawRevealGround(c, cam, h);
-  drawScars(c, cam, h, mul);
-  drawLionStains(c, cam, state);
+  // (the footprints and the lions flat on the ground: painted once into a layer while the camera holds still and none
+  // are added, not one by one every frame: they pile up landmark by landmark)
+  if (typeof document !== 'undefined') {
+    const dk = [cam.phi.toFixed(5), cam.hc.toFixed(2), cam.F.toFixed(2), cam.ppx.toFixed(1), cam.ppy.toFixed(1), tod.key, h.mechs.map((m, i) => plantsOf(m, i)?.out.length ?? -1).join(','), state.stageMemo[MEMO.lions] ?? ''].join('|');
+    if (!decals.cv) { decals.cv = document.createElement('canvas'); decals.cv.width = SW; decals.cv.height = SH; }
+    if (dk !== decals.key) {
+      decals.key = dk;
+      const g = decals.cv.getContext('2d')!;
+      g.clearRect(0, 0, SW, SH);
+      drawScars(g, cam, h, mul);
+      drawLionStains(g, cam, state);
+    }
+    c.drawImage(decals.cv, 0, 0);
+  }
   const items: Item[] = [];
   pavilions().forEach(pv => {
     const q = proj(cam, pv.bx, 0, pv.bz);
