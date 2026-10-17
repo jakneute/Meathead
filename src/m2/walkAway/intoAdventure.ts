@@ -247,7 +247,7 @@ const front = (c: Ctx, t: number, sway: number) => {
 };
 
 export const INTO_ADVENTURE: PortalDef = {
-  land: 'ADVENTURE LAND',
+  land: 'JUNGLE LAND',
   lines: ['ANCIENT RUINS. HOSTILE WILDLIFE. SIGN THE WAIVER.', 'FIRST STOP: THE JUNGLE.'],
   haze: '#5E7A5A',
   ground, back, props, front,

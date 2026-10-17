@@ -30,12 +30,12 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     description: "Duct-taped together out of a dead alien's spaceship. Never runs dry. Whoever eats a bolt gets vaporized down to his shoes. Somebody's mom is getting sneakers in the mail.",
   },
   FLINTLOCK: {
-    name: 'LASER-GUIDED FLINTLOCK', from: 'FRONTIER LAND',
+    name: 'LASER-GUIDED FLINTLOCK', from: 'WILDERNESS LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: LOCK ON' }, { pad: ['X'], mouse: 'left', label: 'LET GO WHEN IT CLICKS: FIRE' }],
     description: "1700s gun, 2000s laser pointer. Hold fire and the dot finds a head. You can't turn around. When it clicks, let go: every head in a line comes off, plus one more off a wall. Yeehaw.",
   },
   SPELLBOOK: {
-    name: 'SPELLBOOK OF THE DAMNED', from: 'FANTASY LAND',
+    name: 'SPELLBOOK OF THE DAMNED', from: 'FAIRY LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'ELEMENTAL STORM (9-13 MANA)' }, { pad: ['Y'], kb: ['F'], label: 'BULK UP (24 MANA)' }],
     description: "Some wizard's diary, now with murder. Fire drops a meteor, a comet and a lightning bolt on up to three assholes. BULK UP makes you huge and punts whoever you touch into orbit. Runs on mana. Ammo refills it. Don't ask.",
     blurb: "Some wizard's diary, now with murder. Fire drops a meteor, a comet and lightning on up to three assholes. BULK UP makes you huge and punts whoever you touch into orbit. Don't ask.",
@@ -62,7 +62,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     description: "Nobody knows how it makes them. Don't ask. It squirts out slimy little space goblins that run people down, yank birds out of the sky and chew. One's a nuisance. Thirty's a skeleton.",
   },
   CROSSBOW: {
-    name: 'CROSSBOW OF PLAGUES', from: 'ADVENTURE LAND',
+    name: 'CROSSBOW OF PLAGUES', from: 'JUNGLE LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: RAPID FIRE' }, { pad: ['DPAD_UP', 'X'], kb: ['W'], mouse: 'left', join: '+', label: 'AIM UP' }, { pad: ['DPAD_DOWN', 'X'], kb: ['S'], mouse: 'left', join: '+', label: 'IN THE AIR: AIM DOWN' }],
     description: "Darts dipped in something the tour guide warned us about. Keep sticking a guy and he projectile vomits on whoever's closest. Then they're next. The big ones take more darts.",
   },

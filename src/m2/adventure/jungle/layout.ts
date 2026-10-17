@@ -83,7 +83,7 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
 export type SignStyle = 'gate' | 'wood' | 'monkey' | 'warn' | 'scenic' | 'jaguar' | 'legal' | 'exit';
 /** Signs: [x, height of what it stands on, the words, a second line, what it's like]. */
 export const SIGNS: [number, number, string, string, SignStyle][] = [
-  [260, 0, 'ADVENTURE LAND', 'A REAL JUNGLE!', 'gate'],
+  [260, 0, 'JUNGLE LAND', 'A REAL JUNGLE!', 'gate'],
   [760, 0, 'MIND THE GAP', 'GRAB A VINE', 'wood'],
   [1280, 0, 'DO NOT FEED THE MONKEYS', 'THEY ARE FED', 'monkey'],
   [3420, 0, 'DANGER: RAVINE', 'VINES ARE NOT A RIDE', 'warn'],

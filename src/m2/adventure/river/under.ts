@@ -235,7 +235,7 @@ const paintCulvertChunk = (g: Ctx, i: number, u0: number, top: number, bot: numb
   for (let y = 0; y < 3; y++) checker(g, u0, fl - y * 8, CHUNK, 8, fogged('#2E5A2A', 0.3), y % 2);
   box(g, u0, fl + 8, CHUNK, bot - fl - 8, fogged('#22402A', 0.35));
   // (stencils, words on the wall)
-  const words = ['STORM CULVERT 3', 'ADVENTURE LAND MAINT.', 'NO DIVING', 'DAVE WAS HERE', 'STA. 4+50', 'ARTIE IS AN ASSHOLE', 'HIGH WATER LINE'];
+  const words = ['STORM CULVERT 3', 'JUNGLE LAND MAINT.', 'NO DIVING', 'DAVE WAS HERE', 'STA. 4+50', 'ARTIE IS AN ASSHOLE', 'HIGH WATER LINE'];
   if (i % 2 === 0) {
     const w = words[(i >> 1) % words.length];
     const graffiti = w === 'DAVE WAS HERE' || w === 'ARTIE IS AN ASSHOLE';

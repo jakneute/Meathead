@@ -687,11 +687,11 @@ export const drawChute = (c: Ctx, x: number, feetY: number, t: number, f: number
   c.stroke();
   // (scalloped rim)
   for (let k = -Wd; k < Wd - 1; k += Wd / 4) { c.fillStyle = INK; c.beginPath(); c.ellipse(k + Wd / 8, RIM, Wd / 8 + 1, 4, 0, 0, Math.PI); c.fill(); c.fillStyle = '#BE185D'; c.beginPath(); c.ellipse(k + Wd / 8, RIM, Wd / 8, 3, 0, 0, Math.PI); c.fill(); }
-  // what's printed on it, once it's open: I (heart) ADVENTURE LAND, and the price tag still on it
+  // what's printed on it, once it's open: I (heart) JUNGLE LAND, and the price tag still on it
   if (open >= 1) {
     signAt(c, 'I', -6, RIM - 21, 7, print(7, '#1E1B4B'));
     c.fillStyle = '#DC2626'; c.beginPath(); c.arc(3.5, RIM - 27, 2.6, Math.PI, 0); c.arc(8.7, RIM - 27, 2.6, Math.PI, 0); c.lineTo(6.1, RIM - 21); c.closePath(); c.fill();
-    signAt(c, 'ADVENTURE LAND', 0, RIM - 10, 6, print(6, '#1E1B4B'));
+    signAt(c, 'JUNGLE LAND', 0, RIM - 10, 6, print(6, '#1E1B4B'));
     const ty = RIM + 10 + Math.sin(f * 0.2) * 1.5;
     c.strokeStyle = '#E7E5E4'; c.beginPath(); c.moveTo(Wd * 0.8, RIM + 1); c.lineTo(Wd * 0.8 + 3, ty); c.stroke();
     box(c, Wd * 0.8 - 3, ty - 1, 22, 11, INK); box(c, Wd * 0.8 - 2, ty, 20, 9, '#FAFAF9');

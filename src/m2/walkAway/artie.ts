@@ -2,7 +2,7 @@
 // (timeOfDay.ts: its look was painted for sundown, and goes by day and by night too), wrecked. The temple behind him with
 // its roof caved in and the tree that went into it, both burning; the ground trampled to dirt by the stampede, hoof
 // prints all over it; the bushes chewed down to stalks; a hippo on its back, legs up; an elephant's leg, standing there
-// on its own; Artie's gift-shop parachute (I HEART ADVENTURE LAND, the $9.99 tag still on it) caught on a stalk; his
+// on its own; Artie's gift-shop parachute (I HEART JUNGLE LAND, the $9.99 tag still on it) caught on a stalk; his
 // pith helmet. And Artie: beaten, face down with his rear in the air, the flies on him, and every so often one more
 // goes out of him; or eaten by the litter (his weakness), a heap of bones in tube socks, boots and heart boxers, the
 // skull off on its own, the buck teeth out of it, a vulture picking it over, the burst little goblins round it.
@@ -399,10 +399,10 @@ const paintChute = (g: Ctx, w: number, h: number) => {
 const chuteWords = (c: Ctx, sx: number, sy: number, s: number) => {
   const fs = Math.round(s * 0.24);
   if (fs >= 4) {
-    // (I, a heart, ADVENTURE; LAND under it: blue on the canopy, the heart red, pixel drawn; printed in the park's
+    // (I, a heart, JUNGLE; LAND under it: blue on the canopy, the heart red, pixel drawn; printed in the park's
     // letters, a cell per pixel or a few at size)
     const u = Math.max(1, Math.round(fs / 7)), L = print({ sx: u, sy: u }, '#1E3A8A', '#F1EFEA'), lh = 7 * u;
-    const w1 = signW('I', L), w2 = signW('ADVENTURE', L), gap = Math.round(lh * 0.5);
+    const w1 = signW('I', L), w2 = signW('JUNGLE', L), gap = Math.round(lh * 0.5);
     const total = w1 + gap + lh + gap + w2;
     let x = Math.round(sx - total / 2);
     const y = Math.round(sy - s * 0.95);
@@ -410,7 +410,7 @@ const chuteWords = (c: Ctx, sx: number, sy: number, s: number) => {
     c.fillStyle = '#B91C1C';
     for (const [hx, hy, hw] of [[1, 0, 2], [4, 0, 2], [0, 1, 7], [0, 2, 7], [1, 3, 5], [2, 4, 3], [3, 5, 1]] as const) c.fillRect(x + hx * u, y - lh + hy * u, hw * u, u);
     x += lh + gap;
-    signText(c, 'ADVENTURE', x, y, L, 'left');
+    signText(c, 'JUNGLE', x, y, L, 'left');
     signText(c, 'LAND', sx, y + lh + 2, L);
   }
   // (the tag, still on it, on its string)
@@ -542,7 +542,7 @@ const crossbow = (c: Ctx, t: number) => {
 };
 
 export const SAFARI_ARTIE: SceneDef = {
-  land: 'ADVENTURE LAND',
+  land: 'JUNGLE LAND',
   weapon: 'CROSSBOW',
   blurb: ["STICK A GUY ENOUGH AND HE PUKES ON WHOEVER'S CLOSEST.", 'THEN THAT GUY PUKES ON THE NEXT GUY. IT NEVER ENDS.'],
   sky: ['#160C2E', '#2E1650', '#541C5C', '#8E2A57', '#C8463F', '#EE7E3A', '#F7AE5A'],
