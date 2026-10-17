@@ -163,6 +163,15 @@ export const HARRY_GLOAT: ByPants = {
   shitty: ['HA! SHAKE THAT LOOSE!', 'GOT YOU! RIGHT IN THE SHITTY PANTS!'],
   nude: ['HA! RIGHT IN THE NAKED!', 'GOT YOU! STOP FLOPPING!'],
 };
+/** Grabbed at (the counter, the user's: "nope, my turn"): he pins him down and empties the M60 into his face. */
+export const HARRY_COUNTER: ByPants = {
+  clean: [
+    'NOPE. MY TURN.', 'NOPE! MY TURN, COCKSUCKER!', 'HANDS OFF THE MERCHANDISE! MY TURN!', 'NOPE. LIE DOWN. MY TURN.',
+    "NOBODY TOUCHES THE ABS! MY TURN!", 'NOPE! SAY AHH, MOTHERFUCKER!', "YOU WANNA WRESTLE? I'M ARMED! MY TURN!", 'NOPE. OPEN WIDE, DIPSHIT.',
+  ],
+  shitty: ['NOPE! NOT WITH THOSE HANDS! MY TURN!', 'NOPE! YOU WIPED WITH THAT HAND! MY TURN!', "NOPE. GET DOWN IN IT, SHIT-PANTS. MY TURN."],
+  nude: ['NOPE! NOT NAKED! NOT EVER! MY TURN!', 'NOPE! NO NAKED HUGS! MY TURN!', 'NOPE. FACE UP, NAKED. MY TURN.'],
+};
 /** Under a quarter: once. */
 export const HARRY_LOW: ByPants = {
   clean: ["I'M NOT DYING IN A CONSTRUCTION SITE! NOT TO YOU, YOU MOTHERFUCKER!", 'I CAN STILL TAKE YOU. I CAN STILL TAKE THE WHOLE WORLD!'],
@@ -281,6 +290,10 @@ export const HURT: HurtTable = {
     hurt: ['MACHINE GUN! HE HAS A MACHINE GUN!', 'OW! THE HIPPIE SHOT ME!', 'WHERE DID HE EVEN GET THAT?'],
     death: ['MOWED DOWN BY A HIPPIE', 'SHOT BY HELICOPTER HARRY', 'KILLED BY THE REAL HARRY'],
   },
+  'm2:fl_harry_pin': {
+    hurt: ['MY FACE! HE IS SHOOTING MY FACE!', 'GET OFF ME! OW! MY FACE!', 'NOT THE FACE! NOT THE FACE!', 'POINT BLANK! OW!'],
+    death: ['SHOT IN THE FACE BY A HIPPIE', 'PINNED AND EMPTIED', 'HE TOOK HIS TURN'],
+  },
   'm2:fl_liberty_fist': {
     hurt: ['THE STATUE PUNCHED ME!', 'OW! A FIST THE SIZE OF A CAR!', 'LADY LIBERTY! WHY?!'],
     death: ['SMASHED BY THE STATUE OF LIBERTY', 'SHE FINALLY HIT SOMETHING', 'FREEDOM PUNCHED'],
@@ -305,7 +318,7 @@ export const VOICE_LINES = pavilionVoices({ pa: { clean: [], shitty: [], nude: [
   [HARRY]: [
     ...allOf(HARRY_QUEASY), ...allOf(HARRY_RIP), ...allOf(HARRY_RANT), ...allOf(HARRY_SUMMON), HARRY_MONUMENT,
     ...allOf(HARRY_TAUNT), ...allOf(HARRY_FIRE), ...allOf(HARRY_CROWN), ...levels(HARRY_STUCK), ...allOf(HARRY_UNSTUCK), ...allOf(HARRY_FAKE),
-    ...allOf(HARRY_CLING_DOWN), ...allOf(HARRY_CLING_UP), ...allOf(HARRY_HURT), ...allOf(HARRY_GLOAT), ...allOf(HARRY_LOW),
+    ...allOf(HARRY_CLING_DOWN), ...allOf(HARRY_CLING_UP), ...allOf(HARRY_HURT), ...allOf(HARRY_GLOAT), ...allOf(HARRY_COUNTER), ...allOf(HARRY_LOW),
     ...allOf(HARRY_SICK_FIRST), ...allOf(HARRY_SICK), ...allOf(HARRY_CONCRETED), ...allOf(HARRY_FOLLOWUP),
     ...allOf(HARRY_DEATH), ...allOf(HARRY_BURIED),
     ...allOf(HARRY_CRUMBLE), ...allOf(HARRY_ENRAGED), ...allOf(HARRY_GRIEF_SICK), ...allOf(HARRY_BARF_DEATH),

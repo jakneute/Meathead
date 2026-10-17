@@ -7966,6 +7966,11 @@
  },
  {
   "voice": "death",
+  "text": "HE TOOK HIS TURN",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "HE WAS A GOOD BOY. JUST NOT TO YOU.",
   "from": "content/deaths"
  },
@@ -9876,6 +9881,11 @@
  },
  {
   "voice": "death",
+  "text": "PINNED AND EMPTIED",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "PINNED. ONE. TWO. THREE.",
   "from": "FOREIGN"
  },
@@ -10887,6 +10897,11 @@
  {
   "voice": "death",
   "text": "SHOT FULL OF ROMAN HOLES",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT IN THE FACE BY A HIPPIE",
   "from": "FOREIGN"
  },
  {
@@ -17281,6 +17296,11 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "HANDS OFF THE MERCHANDISE! MY TURN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "HE IS RIGHT THERE! HIT HIM!",
   "from": "FOREIGN"
  },
@@ -17822,6 +17842,66 @@
  {
   "voice": "m2.foreign.harry",
   "text": "NOBODY HIDES UNDER ME! ESPECIALLY NOT SMELLING LIKE THAT!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOBODY TOUCHES THE ABS! MY TURN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOPE! MY TURN, COCKSUCKER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOPE! NO NAKED HUGS! MY TURN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOPE! NOT NAKED! NOT EVER! MY TURN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOPE! NOT WITH THOSE HANDS! MY TURN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOPE! SAY AHH, MOTHERFUCKER!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOPE! YOU WIPED WITH THAT HAND! MY TURN!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOPE. FACE UP, NAKED. MY TURN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOPE. GET DOWN IN IT, SHIT-PANTS. MY TURN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOPE. LIE DOWN. MY TURN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOPE. MY TURN.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "NOPE. OPEN WIDE, DIPSHIT.",
   "from": "FOREIGN"
  },
  {
@@ -18812,6 +18892,11 @@
  {
   "voice": "m2.foreign.harry",
   "text": "YOU WANNA SEE WHAT A REAL MAN LOOKS LIKE? NOT SHITTY PANTS OVER HERE. THIS!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "YOU WANNA WRESTLE? I'M ARMED! MY TURN!",
   "from": "FOREIGN"
  },
  {
@@ -40256,6 +40341,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET OFF ME! OW! MY FACE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "GET OFF MY BENCH!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -45681,6 +45771,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY FACE! HE IS SHOOTING MY FACE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "MY FEET ARE KEBABS!",
   "from": "SPOOKY"
  },
@@ -46783,6 +46878,11 @@
   "voice": "meathead",
   "text": "NOT THE FACE!",
   "from": "m1/game/stages/dale/convoy.ts:403"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT THE FACE! NOT THE FACE!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -48308,6 +48408,11 @@
   "voice": "meathead",
   "text": "POI TO THE FACE! MY EYEBROWS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "POINT BLANK! OW!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",

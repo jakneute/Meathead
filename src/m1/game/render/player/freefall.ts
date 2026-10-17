@@ -157,6 +157,20 @@ const body = (ctx: Ctx, q: Pose, pants: LadderPants, frame: number, flap: number
 export const drawFreefall = (ctx: Ctx, f: Freefall, frame: number, pants: LadderPants, facing: number) => {
   const P = FREEFALL_PIVOT;
   ctx.save();
+  if (f.style === 'pinned') {
+    // Flat on his back, held down (his head behind him, his face to the sky): arms up over his face, flinching at each
+    // hit (`rot`: the jolt), legs kicking at nothing
+    const t = f.t, j = Math.max(0, Math.min(1, f.rot)), kick = t * 0.45;
+    ctx.translate(0, 25 - j * 2); ctx.translate(0, P); ctx.rotate(-Math.PI / 2); ctx.translate(0, -P);
+    const q: Pose = {
+      ba: -1.75 + Math.sin(t * 0.5) * 0.15 - j * 0.3, bb: -1.1 - j * 0.3, fa: -1.95 + Math.sin(t * 0.43 + 1) * 0.15 - j * 0.35, fb: -1.0 - j * 0.3,
+      bt: -0.55 + 0.45 * Math.sin(kick), bk: 1.0 + 0.6 * Math.sin(kick + 1.3), nt: -0.6 + 0.45 * Math.sin(kick + Math.PI), nk: 1.0 + 0.6 * Math.sin(kick + Math.PI + 1.3),
+      lean: -0.05 * j, hx: -j * 1.5, hy: -54,
+    };
+    body(ctx, q, pants, frame, 0, [1, 0], 0, 'scream', false);
+    ctx.restore();
+    return;
+  }
   if (f.land <= 0) {
     // In the air: turned over about his middle
     ctx.translate(0, P); ctx.rotate(f.rot); ctx.translate(0, -P);

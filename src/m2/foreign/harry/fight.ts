@@ -103,13 +103,19 @@ const RAGE_WALK = 1.35, RAGE_REST = 0.65, RAGE_WALK_T = 0.55;
 /** The crossbow without her: he doubles over puking (grief and airsickness) this long, losing this much to it, every
  *  hit in it this much at least (the weakness's window). */
 const GRIEF_T = 200, GRIEF_DRAIN = 60, GRIEF_HIT = 75;
+/** The counter (the user's, Artie's way: grab at him and he pins you down, the M60 in your face): how long it lasts;
+ *  when each burst goes off (a hit each: heavy all told, 65 before Meathead 2's softer hits); a burst's rounds and the
+ *  frames between them; how long before he'll do it again; the gun's angle down into his face, how far from his face
+ *  Harry stands, and where his face is from his feet's middle (lying on his back, head toward Harry). */
+const PIN_T = 150, PIN_SHOTS = [40, 62, 84, 106, 128], PIN_DMG = 13, PIN_ROUNDS = 5, PIN_EVERY = 3, PIN_GAP = 150;
+const PIN_AIM = 0.45, PIN_REACH = 52, PIN_HEAD = 25;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The state
 
 type Act =
   | 'idle' | 'walk' | 'leap' | 'crown' | 'cling'
-  | 'drop' | 'heave' | 'spew' | 'await' | 'concreted';
+  | 'drop' | 'heave' | 'spew' | 'await' | 'concreted' | 'pin';
 type Move = 'walk' | 'crown' | 'cling' | 'stuckWalk';
 type ArmSt = 'hidden' | 'rise' | 'up' | 'wind' | 'feint' | 'drop' | 'stuck' | 'yank' | 'snap';
 type Fake = 'reaim' | 'feint' | 'double';
@@ -170,6 +176,9 @@ export interface Fight {
   walls: Block[];
   /** Looks only: how many rounds he's fired (the brass on the slab). */
   spentN?: number;
+  /** The counter (grabbed at): Meathead pinned on his back at `ax` (his feet's middle), frames in, his flinch; when the
+   *  last one was (f.total). */
+  pin: { t: number; ax: number; jolt: number } | null; counterAt: number;
 }
 
 /** The fight going on now (the crossbow's hook looks at it). */
@@ -195,6 +204,8 @@ registerM2Kind({
   head: { x: 2, y: -90, r: 12 },
   draw: () => {},
   ai: () => true,
+  // (grabbed at: "nope, my turn": he pins him and empties the M60 into his face)
+  onGrab: ctx => (live ? counter(ctx, live) : undefined),
 });
 TOO_BIG_BY_KIND[HARRY_KIND] = L.GRAB_HARRY;
 
@@ -257,6 +268,7 @@ export const startFight = (state: GameState): Fight => {
     wrongN: 0, hintAt: -9999, lowSaid: false, tauntT: 0, gloatAt: -999, lastHp: state.player.health,
     intro: 'land', introT: 0, skipT: 0, ripped: seen, jet: !seen,
     death: null, deathSaid: 0, cam: null, walls: [],
+    pin: null, counterAt: -9999,
   };
   f.e.health = BIG; f.e.maxHealth = BIG;
   live = f;
@@ -395,6 +407,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
     sync(state, f);
     return controls;
   }
+  // (the counter: him pinned, the gun in his face; her arm carries on)
+  if (f.pin) { const out = pinning(ctx, f); statue(ctx, f); sync(state, f); return out; }
   if (f.barf) barfing(ctx, f); else harry(ctx, f);
   // (her concrete's just killed him: the death's begun)
   if (f.mode !== 'on') return hands();
@@ -505,6 +519,80 @@ const harry = (ctx: FrameContext, f: Fight) => {
     case 'cling': sweep(ctx, f); break;
     default: break;
   }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The counter (grabbed at: the user's, Artie's way): "NOPE. MY TURN." He shoves him down flat on his back, stands over
+// his head and empties the M60 into his face, burst after burst, point blank; then kicks him off and gets on with it.
+
+/** Where he can take a grab at him: on the floor, on his feet, not busy with anything else. */
+const COUNTERS: ReadonlySet<Act> = new Set(['idle', 'walk', 'await', 'concreted']);
+const counter = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, p = state.player;
+  if (f.mode !== 'on' || f.entrance > 0) return;
+  if (f.pin) return { said: true };
+  // (up a wall, in her crown, mid leap, puking: just can't get hold of him)
+  if (f.barf || f.leap || f.hy < GY - 2 || !COUNTERS.has(f.act)) return;
+  // (just done it: the hands come off him, nothing more)
+  if (f.total - f.counterAt < PIN_GAP || p.health <= 0 || state.deathTimer > 0 || p.invincibilityTimer > 0) return { said: true };
+  f.counterAt = f.total;
+  // (him laid out with his head at Harry's feet; Harry moved over if that'd put him through a wall)
+  f.facing = pmid(state).x >= f.hx ? 1 : -1;
+  const span = PIN_REACH + PIN_HEAD;
+  const ax = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, f.hx + f.facing * span));
+  f.hx = ax - f.facing * span;
+  f.pin = { t: 0, ax, jolt: 1 };
+  f.rounds = []; f.burst = 0; f.moving = false; f.aim = PIN_AIM;
+  setAct(f, 'pin');
+  harryLine(f, L.HARRY_COUNTER);
+  playSound('punch', 0.9); playSound('thud', 0.8, -4); shakeScreen(state, 8, 4);
+  puff(state, ax, GY, 4, CONC[4]);
+  return { said: true, free: true };
+};
+
+/** Pinned: held flat on his back, his face under the muzzle; a burst into it every so often; then kicked loose. */
+const pinning = (ctx: FrameContext, f: Fight): Controls => {
+  const { state } = ctx, p = state.player, pin = f.pin!;
+  pin.t++; f.actT++;
+  if (p.health <= 0 || state.deathTimer > 0) { unpin(state, f, false); return hands(); }
+  p.pos.x = pin.ax - p.width / 2; p.pos.y = GY - p.height; p.vel.x = 0; p.vel.y = 0;
+  p.isGrounded = true; p.isDucking = false; p.isSliding = false; p.isCharging = false; p.isUppercutting = false; p.isDivekicking = false;
+  p.facing = f.facing;
+  pin.jolt = Math.max(0, pin.jolt - 0.12);
+  p.freefall = { style: 'pinned', t: pin.t, rot: pin.jolt, land: 0 };
+  f.aim = PIN_AIM + Math.sin(pin.t * 0.7) * 0.02; f.firing = false; f.moving = false;
+  // (his face, and the muzzle right over it)
+  const face = { x: pin.ax - f.facing * PIN_HEAD, y: GY - 14 }, mz = muzzleAt('fire', f.aim, f.scale, f.facing);
+  for (const s of PIN_SHOTS) {
+    const k = pin.t - s;
+    if (k < 0 || k >= PIN_ROUNDS * PIN_EVERY) continue;
+    f.firing = true;
+    if (k % PIN_EVERY) continue;
+    f.spentN = (f.spentN ?? 0) + 1;
+    playSound('lmg', 0.55, -2 + Math.random());
+    state.particles.push({ pos: { x: f.hx + mz.x * 0.6, y: f.hy + mz.y + 4 }, vel: { x: -f.facing * (1 + Math.random() * 2), y: -2 - Math.random() * 2 }, life: 30, color: '#D97706', size: 2, grav: 0.3 });
+    // (each round: blood and grit off his face and the slab under it)
+    for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: face.x + (Math.random() - 0.5) * 8, y: face.y }, vel: { x: (Math.random() - 0.5) * 5, y: -1.5 - Math.random() * 3 }, life: 26, color: i % 2 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 2, grav: 0.35 });
+    state.particles.push({ pos: { x: face.x + (Math.random() - 0.5) * 20, y: GY - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 20, color: '#A8A29E', size: 2, grav: 0.3 });
+    pin.jolt = 1;
+    // (the burst's first round lands the hurt)
+    if (k === 0) { hurtPlayer(ctx, PIN_DMG, 'm2:fl_harry_pin', undefined, 0); shakeScreen(state, 7, 4); playSound('splat', 0.6); }
+  }
+  if (pin.t >= PIN_T) unpin(state, f, true);
+  return hands();
+};
+
+/** Done with him (or he's dead): let go; alive, kicked off along the slab with a breather. */
+const unpin = (state: GameState, f: Fight, kick: boolean) => {
+  const p = state.player;
+  f.pin = null; f.firing = false; p.freefall = undefined;
+  if (kick && p.health > 0) {
+    p.pos.y = GY - p.height - 2; p.vel.x = f.facing * 6; p.vel.y = -5; p.isGrounded = false;
+    p.invincibilityTimer = Math.max(p.invincibilityTimer, 90);
+    playSound('punch', 0.8, -2);
+  }
+  f.counterAt = f.total;
+  setAct(f, 'idle');
 };
 
 /** What's next, now he's free: the stuck arm's walk while she's stuck, else the queue. */
@@ -1360,6 +1448,7 @@ const harryPose = (f: Fight): { pose: RamboPose; lean?: number; rot?: number } =
     case 'spew': return { pose: 'barf', lean: -0.45 };
     case 'await': return { pose: 'rant' };
     case 'concreted': return { pose: 'stand', lean: 0.1 };
+    case 'pin': return { pose: 'fire' };
     default: return { pose: 'stand' };
   }
 };

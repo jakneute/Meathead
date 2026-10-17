@@ -24,7 +24,7 @@ const spinOf = (style: 'flail' | 'ball') => (style === 'ball' ? 0.26 : 0.075);
  */
 export const stepFreefall = (p: Player, ground: number | null) => {
   const f = p.freefall;
-  if (!f) return;
+  if (!f || f.style === 'pinned') return;
   if (f.land > 0) { f.land++; return; }
   f.t++;
   const spin = spinOf(f.style) * Math.min(1, f.t / 24);

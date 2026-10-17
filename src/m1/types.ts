@@ -275,11 +275,12 @@ export interface Player extends Entity {
    *  Whatever sets it clears it (and respawn does). */
   leverPull?: { gx: number; gy: number; ang: number; hold: number; load: number; jolt: number; lean: number };
   /** A long fall out of his hands (Meathead 2: the clock tower's drop into hell), its own undignified pose (render/
-   *  player/freefall.ts): `style` 'flail' (windmilling, kicking, tumbling head over heels) or 'ball' (a spinning
+   *  player/freefall.ts; also 'pinned': flat on his back, held down, arms up over his face, legs kicking, `rot` 0..1 a
+   *  jolt as something hits him): `style` 'flail' (windmilling, kicking, tumbling head over heels) or 'ball' (a spinning
    *  cannonball tuck); `t` frames into it; `rot` how far he's turned over (radians, about his middle); `goal` the turn
    *  he's easing to for the landing; `land` frames into the landing (0 in the air): splatted, then peeling himself up.
    *  Whatever sets it clears it (and respawn does). */
-  freefall?: { style: 'flail' | 'ball'; t: number; rot: number; goal?: number; land: number };
+  freefall?: { style: 'flail' | 'ball' | 'pinned'; t: number; rot: number; goal?: number; land: number };
   /** Posed with a fire extinguisher (Meathead 2's space disco cutscene; render/player/extinguisher.ts): getting it off
    *  the wall, holding it, spraying it, shaking it out, winding up, throwing it; `t` frames into that. Whatever sets it
    *  clears it (and respawn does). */
