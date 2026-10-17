@@ -111,7 +111,8 @@ type Act =
   | 'idle' | 'walk' | 'leap' | 'crown' | 'cling'
   | 'drop' | 'heave' | 'spew' | 'await' | 'concreted';
 type Move = 'walk' | 'crown' | 'cling' | 'stuckWalk';
-type ArmSt = 'hidden' | 'rise' | 'up' | 'wind' | 'drop' | 'stuck' | 'yank' | 'snap';
+type ArmSt = 'hidden' | 'rise' | 'up' | 'wind' | 'feint' | 'drop' | 'stuck' | 'yank' | 'snap';
+type Fake = 'reaim' | 'feint' | 'double';
 type Intro = 'land' | 'queasy' | 'rip' | 'flex' | 'impressed' | 'rant' | 'aback' | 'summon' | 'rise' | 'monument';
 
 interface Leap { x0: number; y0: number; x1: number; y1: number; t: number; T: number; h: number; then: Act; s0: number; s1: number }
@@ -147,7 +148,9 @@ export interface Fight {
   sick: number; sickAt: number; sickOn: boolean; sickFirst: boolean; barf: Barf | null;
   green: number; concrete: number;
   /** Her: risen (dy), the arm (its state, clock, the target, the fist, the block it leaves), her face and the rest. */
-  arm: { st: ArmSt; t: number; T: number; tx: number; fx: number; fy: number; from: { x: number; y: number }; block: Block | null };
+  arm: { st: ArmSt; t: number; T: number; tx: number; fx: number; fy: number; from: { x: number; y: number }; block: Block | null;
+    /** Low on health: this smash's fakeout (or none), the tell's glint (frames left), the second slam to come, how far the windup locks, the drop's length. */
+    fake?: Fake | null; glint?: number; redo?: boolean; track?: number; dropT?: number };
   lib: { dy: number; face: Face; shake: number; stains: Stain[]; tear: number; broken: number; hand: { x: number; y: number }; tablet: boolean; gun: boolean; tilt: number; gone: boolean; wear: number };
   /** Her smashes so far; her collapse (frames into it, -1: not); she's gone (crumbled: him enraged). */
   smashes: number; crumble: number; crumbled: boolean;
@@ -354,6 +357,10 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
 const phase = (f: Fight) => (f.hp > HP * 0.66 ? 1 : f.hp > HP * 0.33 ? 2 : 3);
 const setAct = (f: Fight, a: Act) => { f.act = a; f.actT = 0; };
 const speed = (f: Fight) => Math.min(SPEED_MAX, 1 + f.barfs * SPEED_UP);
+/** The smash by Harry's health: below half quicker, below a quarter FAST; never quicker than QUICK_MAX all told, and the
+ *  locked ring always up LOCK_MIN frames before it lands. Below half, FAKE_SHARE of them fake him out. */
+const hpQuick = (f: Fight) => (f.hp < HP * 0.25 ? 2 : f.hp < HP * 0.5 ? 1.4 : 1);
+const QUICK_MAX = 3, LOCK_MIN = 16, FAKE_SHARE = 0.35, FEINT_HOLD = 16;
 const fistBox = (f: Fight) => (f.arm.block ? { x0: f.arm.block.x, x1: f.arm.block.x + f.arm.block.w, y0: f.arm.block.y, y1: GY } : null);
 
 export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
@@ -602,7 +609,14 @@ const HIGH = sy(120);
 const windup = (state: GameState, f: Fight) => {
   const a = f.arm;
   if (a.st === 'stuck' || a.st === 'yank') return;
-  a.st = 'wind'; a.t = 0; a.T = Math.round(WIND / speed(f));
+  // (quicker as HARRY gets low (the user: "fast and hard to avoid when low on health"), on top of the barf speed-up;
+  // locking later, but always a clear locked tell (LOCK_MIN frames at least) before it comes down)
+  const hk = hpQuick(f), T = Math.round(WIND / Math.min(QUICK_MAX, speed(f) * hk));
+  a.st = 'wind'; a.t = 0; a.T = T;
+  a.track = Math.min(f.hp < HP * 0.25 ? 0.84 : f.hp < HP * 0.5 ? 0.77 : TRACK, 1 - LOCK_MIN / T);
+  a.dropT = Math.max(7, Math.round(DROP_T / Math.sqrt(hk)));
+  // (and below half, faking him out now and then: re-aimed, a feint, or two slams)
+  a.fake = f.hp < HP * 0.5 && !a.redo && f.smashes < STATUE_LIFE - 1 && Math.random() < FAKE_SHARE ? (['reaim', 'feint', 'double'] as const)[Math.floor(Math.random() * 3)] : null;
   a.from = { x: a.fx, y: a.fy };
   a.tx = Math.max(ARENA_L + 64, Math.min(ARENA_R - 64, pmid(state).x));
   playSound('grind', 0.7, -10);
@@ -614,6 +628,7 @@ const statue = (ctx: FrameContext, f: Fight) => {
   if (f.crumbled) return;
   if (f.crumble >= 0) { crumbling(ctx, f); return; }
   a.t++;
+  if (a.glint) a.glint--;
   if (lib.face === 'disgust' && !f.barf) lib.face = 'stern';
   switch (a.st) {
     case 'up': {
@@ -625,19 +640,37 @@ const statue = (ctx: FrameContext, f: Fight) => {
     }
     case 'wind': {
       // (up and over him: tracking him the first stretch, then locked; rumbling, the fist going hot)
-      const u = a.t / a.T;
-      if (u < TRACK) a.tx += (Math.max(ARENA_L + 64, Math.min(ARENA_R - 64, pmid(state).x)) - a.tx) * 0.08;
+      const u = a.t / a.T, tr = a.track ?? TRACK;
+      if (u < tr) a.tx += (Math.max(ARENA_L + 64, Math.min(ARENA_R - 64, pmid(state).x)) - a.tx) * 0.08;
       const g = reach(a.tx, HIGH, lib.dy), k = ease(Math.min(1, u / 0.35));
       a.fx = a.from.x + (g.x - a.from.x) * k; a.fy = a.from.y + (g.y - a.from.y) * k - Math.sin(Math.min(1, u) * Math.PI) * 30;
-      lib.shake = u > TRACK ? 1.2 : 0.4; lib.face = 'strain';
+      lib.shake = u > tr ? 1.2 : 0.4; lib.face = 'strain';
       if (a.t % 28 === 0) playSound('rumble', 0.6, -6 + u * 6);
       if (a.t % 6 === 0) state.particles.push({ pos: { x: a.fx + (Math.random() - 0.5) * 80, y: a.fy + 30 }, vel: { x: 0, y: 1 + Math.random() }, life: 40, color: '#A8A29E', size: 3, grav: 0.2 });
-      if (Math.abs(a.t - Math.round(a.T * TRACK)) < 1) playSound('alert', 0.5, -4);
-      if (a.t >= a.T) { a.st = 'drop'; a.t = 0; a.from = { x: a.fx, y: a.fy }; playSound('whoosh', 1, -10); }
+      if (Math.abs(a.t - Math.round(a.T * tr)) < 1) playSound('alert', 0.5, -4);
+      if (a.t >= a.T) {
+        // (a fakeout: held, a glint off the torch, Harry crowing; then aimed at him all over again)
+        if (a.fake === 'reaim') { a.fake = null; a.t = Math.round(a.T * 0.3); a.glint = 22; playSound('ding', 0.8, 10); bark(f, L.HARRY_FAKE); break; }
+        a.from = { x: a.fx, y: a.fy };
+        // (or a feint: it swings, stops short, a glint, then slams)
+        if (a.fake === 'feint') { a.fake = null; a.st = 'feint'; a.t = 0; playSound('whoosh', 0.7, -2); break; }
+        a.st = 'drop'; a.t = 0; playSound('whoosh', 1, -10);
+      }
+      break;
+    }
+    case 'feint': {
+      // (half way down quick, stopped dead; the glint, his crowing; then the real slam from there, the ring still on it)
+      const D = a.dropT ?? DROP_T, u = Math.min(1, a.t / D);
+      const stop = { x: a.from.x + (a.tx - a.from.x) * 0.45, y: a.from.y + (GY - FIST_H / 2 - a.from.y) * 0.35 };
+      if (a.t <= D) { a.fx = a.from.x + (stop.x - a.from.x) * ease(u); a.fy = a.from.y + (stop.y - a.from.y) * ease(u); }
+      else a.fx = stop.x + Math.sin(a.t * 1.3) * 1.5;
+      lib.shake = 1.4;
+      if (a.t === D + 1) { a.glint = 22; playSound('ding', 0.8, 10); bark(f, L.HARRY_FAKE); }
+      if (a.t >= D + FEINT_HOLD) { a.st = 'drop'; a.t = 0; a.from = { x: a.fx, y: a.fy }; playSound('whoosh', 1, -10); }
       break;
     }
     case 'drop': {
-      const u = Math.min(1, a.t / DROP_T);
+      const u = Math.min(1, a.t / (a.dropT ?? DROP_T));
       a.fx = a.from.x + (a.tx - a.from.x) * u; a.fy = a.from.y + (GY - FIST_H / 2 - a.from.y) * u * u;
       if (u >= 1) impact(ctx, f);
       break;
@@ -650,6 +683,8 @@ const statue = (ctx: FrameContext, f: Fight) => {
       if (a.t % 10 === 0) puff(state, a.tx + (Math.random() - 0.5) * FIST_W, GY - 4, 1, '#A8A29E');
       // (her last smash: she comes apart while it's stuck)
       if (f.smashes >= STATUE_LIFE && a.t === 30) { startCrumble(ctx, f); break; }
+      // (a double slam: torn straight back out, and at him again where he's got to)
+      if (a.fake === 'double' && f.smashes < STATUE_LIFE && a.t >= 24) { a.fake = null; a.redo = true; a.glint = 22; bark(f, L.HARRY_FAKE); unstick(state, f, true); break; }
       if (a.t >= STUCK_T) unstick(state, f, false);
       break;
     }
@@ -659,7 +694,11 @@ const statue = (ctx: FrameContext, f: Fight) => {
       lib.shake = 0.6;
       // (the torch's butt up out of the floor trailing dirt)
       if (u < 0.5 && a.t % 2 === 0) { const v = armView(f); for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: v.x + (Math.random() - 0.5) * 16, y: v.y }, vel: { x: (Math.random() - 0.5) * 2, y: Math.random() * 1.5 }, life: 40, color: i ? '#6B5B45' : '#A8A29E', size: 2 + Math.random() * 3, grav: 0.3 }); }
-      if (u >= 1) { a.st = 'up'; a.t = 0; lib.shake = 0; }
+      if (u >= 1) {
+        a.st = 'up'; a.t = 0; lib.shake = 0;
+        // (the double's second slam: straight into a short windup at him)
+        if (a.redo) { windup(state, f); a.T = Math.max(Math.round(a.T * 0.6), Math.ceil(LOCK_MIN / (1 - (a.track ?? TRACK))) + 4); a.track = Math.min(a.track ?? TRACK, 1 - LOCK_MIN / a.T); a.redo = false; }
+      }
       break;
     }
     default: break;
@@ -1533,8 +1572,8 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   // (his own puke on the floor, while he's alive to make it)
   if (f.puddle && !(f.death && f.death.how === 'barfed')) drawPuddle(c, f.puddle.x, f.puddle.k, 0);
   // (the windup's mark on the floor: following him, then locked, red)
-  if (a.st === 'wind' || a.st === 'drop') {
-    const u = a.st === 'drop' ? 1 : a.t / a.T, locked = u >= TRACK, col = locked ? (fr % 8 < 4 ? '#EF4444' : '#FDE047') : 'rgba(239, 68, 68, 0.6)';
+  if (a.st === 'wind' || a.st === 'drop' || a.st === 'feint') {
+    const u = a.st === 'wind' ? a.t / a.T : 1, locked = u >= (a.track ?? TRACK), col = locked ? (fr % 8 < 4 ? '#EF4444' : '#FDE047') : 'rgba(239, 68, 68, 0.6)';
     const rx = FIST_W / 2 + 6 + (1 - u) * 30;
     c.fillStyle = 'rgba(0,0,0,0.3)'; c.beginPath(); c.ellipse(a.tx, GY - 2, rx, 8, 0, 0, Math.PI * 2); c.fill();
     c.strokeStyle = col; c.lineWidth = 3; c.beginPath(); c.ellipse(a.tx, GY - 2, rx, 8, 0, 0, Math.PI * 2); c.stroke();
@@ -1542,12 +1581,19 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   // (her arm, when it's not going over with her)
   if (!f.lib.gone && f.lib.tilt === 0 && f.lib.dy === 0) {
     const stuck = a.st === 'stuck' ? Math.min(1, a.t / STUCK_T) : undefined;
-    const glow = a.st === 'wind' ? Math.max(0, (a.t / a.T - 0.4) / 0.6) : a.st === 'drop' ? 1 : 0;
+    const glow = a.st === 'wind' ? Math.max(0, (a.t / a.T - 0.4) / 0.6) : a.st === 'drop' || a.st === 'feint' ? 1 : 0;
     // (stuck: the cracks in the slab round it)
     if (a.st === 'stuck') { c.strokeStyle = '#1A0B06'; c.lineWidth = 2; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(a.tx + s * FIST_W / 2, GY - 1); c.lineTo(a.tx + s * (FIST_W / 2 + 26), GY - 4); c.lineTo(a.tx + s * (FIST_W / 2 + 50), GY - 2); c.stroke(); } }
-    const away = a.st === 'wind' || a.st === 'drop' ? { x: LIB.head.x, y: LIB.head.y - 40 } : undefined;
+    const away = a.st === 'wind' || a.st === 'drop' || a.st === 'feint' ? { x: LIB.head.x, y: LIB.head.y - 40 } : undefined;
     const v = armView(f);
     drawArm(c, libLook(f, fr), v.x, v.y, { torch: !f.torch, glow, stuck, away, straight: a.st === 'drop' || a.st === 'stuck' || a.st === 'yank' || a.st === 'snap', smash: v.smash, floor: GY });
+    // (a fakeout's tell: a glint off her fist, a four-point star flaring and shrinking)
+    if (a.glint && a.glint > 0) {
+      const k = a.glint / 22, R = 10 + 46 * Math.sin(k * Math.PI), gx = a.fx + 18, gy = a.fy - 30;
+      c.fillStyle = '#FFFFFF'; c.globalAlpha = Math.min(1, k * 2);
+      c.beginPath(); c.moveTo(gx, gy - R); c.lineTo(gx + R * 0.14, gy - R * 0.14); c.lineTo(gx + R, gy); c.lineTo(gx + R * 0.14, gy + R * 0.14); c.lineTo(gx, gy + R); c.lineTo(gx - R * 0.14, gy + R * 0.14); c.lineTo(gx - R, gy); c.lineTo(gx - R * 0.14, gy - R * 0.14); c.closePath(); c.fill();
+      c.fillStyle = '#FEF08A'; c.beginPath(); c.arc(gx, gy, R * 0.18, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+    }
   }
   // (the rubble once she's gone; the chunks of her head; the torch and the gun)
   if (f.lib.gone) drawRubble(c, MID - 40, GY, fr);

@@ -127,6 +127,12 @@ export const HARRY_UNSTUCK: ByPants = {
   shitty: ["FINALLY. NOW SQUASH THE STINKY ONE. AND AIM!", "SHE'S UP. TRY HITTING THE SMELL. IT'S EVERYWHERE."],
   nude: ['FINALLY. NOW AIM FOR THE NAKED ONE. HE STANDS OUT!', "SHE'S UP. HIT HIM. HE'S THE PINK ONE."],
 };
+/** Her smash faking him out (low on health): re-aimed, a feint, a second slam. */
+export const HARRY_FAKE: ByPants = {
+  clean: ['FAKE!', 'GOTCHA!', 'PSYCH!', 'NOT YET, DUMBASS!', 'FLINCHED! HA!', 'AGAIN! SAME SPOT! NOW!', 'ONE MORE, BABY!', "SHE'S GOT MOVES, YOU SON OF A BITCH!"],
+  shitty: ['FAKE! HE SHAT HIMSELF AGAIN!', 'GOTCHA! SMELLED THAT ONE COMING!'],
+  nude: ['FAKE! LOOK AT IT JIGGLE!', 'GOTCHA! EVERYTHING FLINCHED!'],
+};
 /** Up a wall: across to the far wall and sweeping down (safe right under him). */
 export const HARRY_CLING_DOWN: ByPants = {
   clean: ['WALL TO WALL FREEDOM!', "I'M GONNA MOW YOU DOWN LIKE A FOREIGN LAWN!", 'TOP TO BOTTOM, MOTHERFUCKER!', 'RAINING LEAD, DIPSHIT!', 'SWEEPING UP THE TRASH!', 'DOWN YOU GO, JACKASS!'],
@@ -298,7 +304,7 @@ export const VOICE_LINES = pavilionVoices({ pa: { clean: [], shitty: [], nude: [
   meathead: [...MH_IMPRESSED, MH_ABACK, ...MH_HINT, ...MH_STUCK, ...MH_CONCRETE, ...MH_WON, ...MH_WON_WEAK, ...GRAB_HARRY, ...MH_CRUMBLE, MH_GRIEF_PUKE, ...MH_WON_ALONE, ...MH_WON_BARFED],
   [HARRY]: [
     ...allOf(HARRY_QUEASY), ...allOf(HARRY_RIP), ...allOf(HARRY_RANT), ...allOf(HARRY_SUMMON), HARRY_MONUMENT,
-    ...allOf(HARRY_TAUNT), ...allOf(HARRY_FIRE), ...allOf(HARRY_CROWN), ...levels(HARRY_STUCK), ...allOf(HARRY_UNSTUCK),
+    ...allOf(HARRY_TAUNT), ...allOf(HARRY_FIRE), ...allOf(HARRY_CROWN), ...levels(HARRY_STUCK), ...allOf(HARRY_UNSTUCK), ...allOf(HARRY_FAKE),
     ...allOf(HARRY_CLING_DOWN), ...allOf(HARRY_CLING_UP), ...allOf(HARRY_HURT), ...allOf(HARRY_GLOAT), ...allOf(HARRY_LOW),
     ...allOf(HARRY_SICK_FIRST), ...allOf(HARRY_SICK), ...allOf(HARRY_CONCRETED), ...allOf(HARRY_FOLLOWUP),
     ...allOf(HARRY_DEATH), ...allOf(HARRY_BURIED),
