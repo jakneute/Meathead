@@ -5,8 +5,8 @@
 // Fuji, the dunes, the minaret, the cathedral, the Ferris wheel, the Rockies, the helicopter ride's globe) slid in by parallax round where its
 // pavilion is, so they come and go as he walks. All of it tinted far into the haze.
 //
-// The SNES pass (Mexico's, Norway's, China's, Germany's, Italy's, Japan's, Morocco's, France's and the UK's so far; the rest
-// still the first pass's live painters, below): each landmark
+// The SNES pass (every pavilion's: Mexico's, Norway's, China's, Germany's, Italy's, Japan's, Morocco's, France's, the UK's
+// and Canada's; only the helipad's globe is still the first pass's live painter, below): each landmark
 // painted once for the hour into a stamp (STILLS: real silhouettes, stepped strata and flanks, snow, forests, the haze
 // over their feet), with only what moves drawn live over it (the falls, the Ferris wheel); the lagoon in banded
 // water under the far shore's tree line (a tile for the hour), glinting; the barge painted for the hour (its hull and
@@ -621,6 +621,46 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       c.fillStyle = T('#C8CCD2'); c.beginPath(); c.arc(cx - 3, cy - 3, 6, 0, Math.PI * 2); c.fill();
     },
   },
+  canada: {
+    // (THE ROCKIES (no volcano): far peaks blue in the haze, the near range snow-capped (its flanks lit and shaded in
+    // steps, gullies, ledges), the FALLS down a cliff in the middle (their spray live), a turquoise lake at their feet,
+    // and the pines along the shore in their stepped tiers, a lodge's lit windows after dark)
+    w: 1000, h: 440, k: 0.6,
+    paint: (g, T, tod) => {
+      const w = 1000, h = 440, foot = h - 16, lamps = tod.lamps > 0.3, haze = skyAt(0.9, tod);
+      const Fb = rampT(T, '#7A8CB0'), Sn = rampT(T, '#F1F5F9');
+      const farC = crestOf([[0, 190], [90, 120], [160, 160], [250, 70], [330, 140], [420, 96], [520, 40], [600, 120], [680, 84], [770, 30], [860, 110], [940, 76], [1000, 130]]);
+      rangeCols(g, farC, 0, w, foot, [Fb[0], Fb[1], Fb[2], Fb[3], Fb[4]], 7, { S: [Sn[0], Sn[1], Sn[2], Sn[3], Sn[4]], line: 150 });
+      mist(g, w, 100, foot - 100, haze, 0.15, 0.5, 6);
+      const R = rampT(T, '#5A6070'), Fr = rampT(T, '#2E4A36');
+      const nearC = crestOf([[0, 230], [70, 170], [140, 200], [220, 110], [300, 180], [380, 140], [450, 196], [520, 150], [560, 170], [640, 170], [690, 120], [760, 190], [840, 130], [920, 210], [1000, 160]]);
+      rangeCols(g, nearC, 0, w, foot, R, 19, { S: [Sn[0], Sn[1], Sn[2], Sn[3], Sn[4]], line: 210 });
+      // (the cliff the falls come down, its lip, the falls and their pool)
+      falls(g, 600, 168, foot - 40, 14, { rock: R[1], water: T('#C8DCEC'), lit: T('#F4FAFF'), spray: T('#E0ECF6') });
+      // (the lake: turquoise, banded, the peaks' reflection in streaks, a glint)
+      const L = rampT(T, '#2A9AA8');
+      bandedGradient(g, 0, foot - 40, w, 26, [L[3], L[2], L[2], L[1]], 4);
+      for (let k = 0; k < 18; k++) { const x = hash(k * 3.1) * w; box(g, x, foot - 38 + hash(k * 1.7) * 22, 10 + hash(k) * 30, 1, L[4]); }
+      // (the pines along the shore: stepped tiers, lit down their left)
+      for (let i = 0; i < 150; i++) {
+        const fx = i * 7 + hash(i) * 4, fh = 14 + hash(i * 1.7) * 22, fy = foot - 4 + (i % 3) * 3;
+        if (fx > 560 && fx < 640 && fh > 26) continue;
+        for (let t = 0; t < 3; t++) { const ty = fy - fh * (0.35 + t * 0.25), tw = fh * (0.34 - t * 0.08); poly(g, [[fx - tw, ty + fh * 0.3], [fx, ty - fh * 0.12], [fx + tw, ty + fh * 0.3]], Fr[1]); poly(g, [[fx - tw, ty + fh * 0.3], [fx, ty - fh * 0.12], [fx, ty + fh * 0.3]], Fr[2]); }
+        box(g, fx - 1, fy - fh, 1, 2, Fr[3]); box(g, fx - 1, fy - 2, 2, 4, T('#3A2A1A'));
+      }
+      // (a lodge on the shore: logs, its green roof, lit windows after dark)
+      const lx = 180, ly = foot - 10;
+      box(g, lx - 1, ly - 25, 82, 26, INK); for (let y = ly - 24; y < ly; y += 4) { box(g, lx, y, 80, 3, T('#7A4A22')); box(g, lx, y, 80, 1, T('#9A6A3A')); }
+      poly(g, [[lx - 6, ly - 24], [lx + 40, ly - 44], [lx + 86, ly - 24]], T('#2E4A36')); box(g, lx + 60, ly - 46, 8, 14, T('#6A6A6A'));
+      for (let k = 0; k < 5; k++) box(g, lx + 6 + k * 15, ly - 18, 6, 6, lamps ? '#FFD88A' : T('#3A4A5A'));
+      bandedGradient(g, 0, foot - 2, w, h - foot + 2, [T('#3A5A40'), T('#2E4A36')], 2);
+    },
+    live: (c, x0, top, f, T) => {
+      // (the falls' spray: specks running down its face, a mist puff at its foot)
+      for (let k = 0; k < 14; k++) { const y = top + 170 + ((f * 2.4 + k * 23) % 220); box(c, x0 + 594 + (k % 4) * 3, y, 2, 3, T('#FFFFFF')); }
+      c.globalAlpha = 0.5; pixelBlob(c, x0 + 602, top + 440 - 16 - 44 - Math.sin(f * 0.05) * 3, 30, 8, T('#F1F5F9')); c.globalAlpha = 1;
+    },
+  },
   mexico: {
     // (NO volcano (the user: we have enough volcanoes): desert mesas, flat-topped and banded, a far one in the haze
     // behind, and a row of giant plywood saguaros along the foot, on its sand)
@@ -691,10 +731,6 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
 
 /** Each pavilion's far landmark, painted about (0, horizon) (its middle at x 0), tinted far. */
 const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => void>> = {
-  canada: (c, hz) => {
-    poly(c, [[-400, hz], [-240, hz - 260], [-120, hz - 150], [20, hz - 300], [160, hz - 170], [300, hz - 240], [420, hz]], farTint('#334155', 0.6));
-    for (const [x, y] of [[-240, -260], [20, -300], [300, -240]] as const) poly(c, [[x - 40, hz + y + 50], [x, hz + y], [x + 40, hz + y + 50]], farTint('#F8FAFC', 0.5));
-  },
   heli: (c, hz, f) => {
     // (the helicopter ride's own landmark, far over the water: a giant globe on a pylon (ACROSS THE WORLD), turning, and a
     // radio mast blinking; the replicas the tour shows aren't seen from down here: they're the helicopter's to show)

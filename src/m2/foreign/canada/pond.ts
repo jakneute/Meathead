@@ -22,7 +22,8 @@ import { runsAround, poolSteps, poolAt, drawPoolBack, drawPoolFront, type Pool }
 import { hurtIn, placePickups, newShout, shout, drawShout, type Shout } from '../setpiece';
 import { byPants } from '../cast';
 import { V, THIN_ICE } from './lines';
-import { type Ctx, type View, box, poly, boxes3, setBack, wall, postBoard, hungBoard, LOOKS, dimmed, hour, ramp6, onScreen, INK, LIP, mix } from '../kit';
+import { type Ctx, type View, postBoard, hungBoard, LOOKS, onScreen } from '../kit';
+import { drawPine, drawPondBoards, drawHill, drawShack, icePanel, iceChunks } from './art';
 
 const { x0, x1 } = SECTIONS.canada;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -117,31 +118,19 @@ export const updatePond = (ctx: FrameContext) => {
 export const pondWater = (x: number, y: number) => poolAt([ICE_POND], x, y);
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing
-
-const SNOW = '#F1F5F9', ICE = '#BAE6FD';
+// Drawing (the SNES pass: art.ts paints it; here's only where)
 
 export const drawPondBack = (c: Ctx, v: View, state: GameState) => {
   if (!onScreen(v, X(POND_FROM), x1)) return;
-  // (the pines and the sugar shack's far side, set back; the rink's boards behind the pond, dimmed)
-  for (const rx of [3700, 4200, 4620, 5100]) setBack(c, v, X(rx), 80, 0.9, () => { box(c, 36, -60, 8, 60, dimmed('#3F2A1C')); for (let k = 0; k < 3; k++) poly(c, [[10 + k * 6, -50 - k * 50], [70 - k * 6, -50 - k * 50], [40, -130 - k * 46]], dimmed('#14532D')); });
-  setBack(c, v, ICE_POND.a, ICE_POND.b - ICE_POND.a, 0.92, () => { wall(c, 0, 700, 44, '#F8FAFC'); box(c, 0, -44, 700, 4, dimmed('#DC2626')); box(c, 340, -44, 4, 44, dimmed('#DC2626')); });
+  const f = state.frame;
+  // (the pond's back first, then the pines and the boards behind it (nearer than its far paving), snow on the pines)
   drawPoolBack(c, v, ICE_POND);
-  // (the toboggan hill: snow over it all, the stairs cut in it, the chute down its far side; lit lips)
-  if (onScreen(v, X(HILL.a), X(HILL.end))) {
-    const S = ramp6(hour(SNOW));
-    poly(c, [[X(HILL.a), GY], [X(HILL.top), Y(HILL.h)], [X(HILL.b), Y(HILL.h)], [X(HILL.end), GY]], S[3]);
-    box(c, X(HILL.a), GY, HILL.end - HILL.a, 400, S[2]);
-    for (let k = 0; k < 9; k++) { const a = HILL.a + ((HILL.top - HILL.a) * k) / 9, h = (HILL.h * (k + 1)) / 9; box(c, X(a), Y(h), (HILL.top - HILL.a) / 9, 5, S[1]); box(c, X(a), Y(h), (HILL.top - HILL.a) / 9, 2, LIP[2]); }
-    c.strokeStyle = hour('#93C5FD'); c.lineWidth = 6; c.beginPath(); c.moveTo(X(HILL.b), Y(HILL.h) - 3); c.lineTo(X(HILL.end), GY - 3); c.stroke();
-    c.strokeStyle = LIP[2]; c.lineWidth = 2; c.beginPath(); c.moveTo(X(HILL.top), Y(HILL.h)); c.lineTo(X(HILL.b), Y(HILL.h)); c.lineTo(X(HILL.end), GY); c.stroke();
-    // (the sugar shack on top: a log hut, smoke, its roof the high spot)
-    boxes3(c, v, [{ x: X(SHACK.a), top: Y(SHACK.h), w: SHACK.b - SHACK.a, bottom: Y(HILL.h), col: '#92400E', standable: true }]);
-    for (let y = Y(SHACK.h) + 12; y < Y(HILL.h); y += 14) box(c, X(SHACK.a), y, SHACK.b - SHACK.a, 2, hour('#78350F'));
-    box(c, X(SHACK.a) + 40, Y(HILL.h) - 60, 36, 60, '#1C1014');
-    box(c, X(SHACK.a), Y(SHACK.h), SHACK.b - SHACK.a, 8, hour(SNOW));
-    hungBoard(c, X((SHACK.a + SHACK.b) / 2), Y(SHACK.h) + 20, Y(SHACK.h) + 46, ['SUGAR SHACK', 'SYRUP: $40'], LOOKS.canada(1), '#7C2D12');
-  }
+  for (const rx of [3700, 4200, 4620, 5100]) drawPine(c, v, X(rx) + 40, 200, rx, 0.9, true);
+  drawPondBoards(c, v, ICE_POND.a, ICE_POND.b - ICE_POND.a);
+  // (the toboggan hill: the snow, the stairs cut in it, the chute down its far side; the sugar shack on top)
+  drawHill(c, v, X(HILL.a), X(HILL.top), X(HILL.b), X(HILL.end), Y(HILL.h), 9, f);
+  drawShack(c, v, X(SHACK.a), X(SHACK.b), Y(SHACK.h), Y(HILL.h), f);
+  if (onScreen(v, X(SHACK.a), X(SHACK.b))) hungBoard(c, X((SHACK.a + SHACK.b) / 2), Y(SHACK.h) + 20, Y(SHACK.h) + 46, ['SUGAR SHACK', 'SYRUP: $40'], LOOKS.canada(1), '#7C2D12');
   // (signs: held up, nothing over them)
   if (onScreen(v, X(3620), X(3760))) postBoard(c, X(3680), GY, ['THE FROZEN POND', 'REFRIGERATED', 'SORRY ABOUT THE ICE'], LOOKS.canada(1), '#1E3A8A', undefined, 150);
   if (onScreen(v, X(4460), X(4560))) postBoard(c, X(4500), GY, ['TOBOGGAN HILL', 'TOBOGGANS: SOLD OUT'], LOOKS.canada(1), '#14532D', undefined, 110);
@@ -152,20 +141,11 @@ export const drawPondFront = (c: Ctx, v: View, state: GameState) => {
   if (!onScreen(v, ICE_POND.a - 60, ICE_POND.b + 60)) return;
   const f = state.frame, ice = iceOf(state);
   drawPoolFront(c, v, ICE_POND, f);
-  // (the ice over it: panels (the thin ones darker, cracked, their cracks spreading as they go), lit lips: standable)
+  // (the ice over it: panels (the thin ones darker and marked, their cracks spreading as they go), lit lips: standable)
   for (const pn of ice.panels) {
     const x = panelX(pn.i);
-    if (pn.brokeAt >= 0) { for (let k = 0; k < 3; k++) box(c, x + 8 + k * 20, GY + 26 + Math.sin(f * 0.1 + k) * 2, 14, 5, mix(ICE, '#FFFFFF', 0.3)); continue; }
-    const col = pn.thin ? mix(hour(ICE), '#1E3A8A', 0.3) : hour(ICE);
-    box(c, x, GY, PANEL_W, 12, col); box(c, x, GY + 12, PANEL_W, 2, mix(col, INK, 0.4));
-    box(c, x, GY, PANEL_W, 3, LIP[2]); box(c, x, GY, PANEL_W, 1, LIP[3]);
-    if (!pn.thin) { box(c, x + 10, GY + 4, 18, 2, '#F8FAFC'); continue; }
-    // (the hairline cracks, more as it goes)
-    c.strokeStyle = '#E0F2FE'; c.lineWidth = 1; c.beginPath();
-    const n = 2 + Math.floor((pn.crack / CRACK) * 6);
-    for (let k = 0; k < n; k++) { const sx = x + 10 + ((k * 23) % 50); c.moveTo(sx, GY + 2); c.lineTo(sx + ((k % 2) ? 12 : -10), GY + 11); }
-    c.stroke();
-    if (pn.crack > 0 && (f >> 2) % 2) box(c, x, GY - 2, PANEL_W, 2, '#E0F2FE');
+    if (pn.brokeAt >= 0) { iceChunks(c, x, f); continue; }
+    icePanel(c, x, PANEL_W, pn.thin, pn.crack / CRACK, pn.crack > 0, f);
   }
   drawShout(c, ice.said);
 };

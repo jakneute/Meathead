@@ -398,8 +398,13 @@ export const drawShots = (c: Ctx, state: GameState) => {
         break;
       }
       case 'puck': {
-        disc(c, s.x, s.y, 7, 3.5, INK); disc(c, s.x, s.y - 1, 6, 2.5, '#27272A');
-        c.fillStyle = 'rgba(255,255,255,0.5)'; c.fillRect(s.x - dir * 18, s.y - 1, 10, 1); c.fillRect(s.x - dir * 26, s.y + 1, 8, 1);
+        // (a puck skimming flat: vulcanized rubber in steps (its lit top face, its knurled edge going round), a maple leaf
+        // stamped on it; the ice shavings kicked up behind it, the speed lines)
+        disc(c, s.x, s.y + 1, 8, 4.5, INK); disc(c, s.x, s.y + 1, 7, 3.5, '#18181B'); disc(c, s.x, s.y - 1, 7, 3, '#27272A'); disc(c, s.x - 1, s.y - 1.5, 5, 2, '#3F3F46');
+        c.fillStyle = '#52525B'; for (let k = 0; k < 5; k++) c.fillRect(Math.round(s.x - 6 + ((k * 3 + s.t) % 13)), Math.round(s.y + 2), 1, 1);
+        c.fillStyle = '#B91C1C'; c.fillRect(Math.round(s.x - 1), Math.round(s.y - 2), 3, 1); c.fillRect(Math.round(s.x), Math.round(s.y - 3), 1, 1);
+        c.fillStyle = 'rgba(255,255,255,0.55)'; c.fillRect(s.x - dir * 18, s.y - 1, 10, 1); c.fillRect(s.x - dir * 26, s.y + 1, 8, 1);
+        for (let k = 0; k < 3; k++) if ((s.t + k * 3) % 8 < 5) { c.fillStyle = k % 2 ? '#E0F2FE' : '#FFFFFF'; c.fillRect(Math.round(s.x - dir * (10 + k * 5)), Math.round(s.y + 2 - k * 2 - (s.t % 4)), 2, 2); }
         break;
       }
       case 'pizza': {
