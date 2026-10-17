@@ -18,7 +18,8 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { setHazardZones } from '../../hazardHit';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout } from '../setpiece';
-import { type Ctx, type View, box, poly, boxes3, ledge3, postBoard, hungBoard, LOOKS, dimmed, hour, ramp6, onScreen, INK, rnd } from '../kit';
+import { type Ctx, type View, postBoard, hungBoard, LOOKS, onScreen } from '../kit';
+import { drawTrack, drawGantry, drawWalkway, drawCanopy, drawDepartureBoard, drawFujiSteps, drawPortal, drawTrainArt } from './art';
 import { V, STATION } from './lines';
 
 const { x0, x1 } = SECTIONS.japan;
@@ -92,71 +93,39 @@ export const updateStation = (ctx: FrameContext) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing
+// Drawing (the SNES pass: art.ts paints it; still art stamped for the hour, the shutters, lights and train live)
 
-const SNOW = '#F8FAFC', FUJI = '#64748B';
-
-/** A Fuji: stepped fiberglass, a snowcap, the tunnel's portal at its foot on the track side (its shutter rolls up for
- *  the train: otherwise shut; there's no going in either way, it's solid). */
-const drawFuji = (c: Ctx, v: View, steps: [number, number, number][], portalX: number, side: 1 | -1, open: number) => {
-  if (!onScreen(v, X(Math.min(...steps.map(s => s[0]))), X(Math.max(...steps.map(s => s[1]))))) return;
-  boxes3(c, v, steps.map(([a, b, h]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col: FUJI, standable: true })));
-  for (const [a, b, h] of steps) { box(c, X(a), Y(h), b - a, 14, hour(SNOW)); for (let k = 0; k < 4; k++) box(c, X(a) + 8 + k * ((b - a - 16) / 4), Y(h) + 14, 8, 8 + (k % 2) * 8, hour(SNOW)); }
-  // (the portal: a concrete arch, its shutter)
-  const px = X(portalX) + (side > 0 ? -84 : 0), R = ramp6(hour('#A8A29E'));
-  box(c, px - 6, Y(TRAIN.h + 24), 90, TRAIN.h + 24, R[3]);
-  box(c, px, Y(TRAIN.h + 10), 78, TRAIN.h + 10, '#0B0B0F');
-  const sh = (TRAIN.h + 10) * (1 - open);
-  box(c, px, Y(TRAIN.h + 10), 78, sh, R[1]); for (let y = Y(TRAIN.h + 10) + 6; y < Y(TRAIN.h + 10) + sh; y += 8) box(c, px, y, 78, 1, R[0]);
-  for (let k = 0; k < 6; k++) poly(c, [[px + k * 14, Y(TRAIN.h + 24)], [px + k * 14 + 8, Y(TRAIN.h + 24)], [px + k * 14, Y(TRAIN.h + 16)]], k % 2 ? '#FACC15' : INK);
-};
-
-/** The train: a long white nose, the blue stripe, windows streaking by (clipped to the track between the portals). */
-const drawTrain = (c: Ctx, nose: number, f: number) => {
-  c.save(); c.beginPath(); c.rect(X(LANE.a) - 84, Y(TRAIN.h + 20), X(LANE.b) - X(LANE.a) + 168, TRAIN.h + 40); c.clip();
-  const tail = nose - TRAIN.len, top = Y(TRAIN.h);
-  box(c, tail, top + 6, TRAIN.len - 160, TRAIN.h - 10, INK); box(c, tail, top + 8, TRAIN.len - 160, TRAIN.h - 14, '#F1F5F9');
-  poly(c, [[nose - 160, top + 6], [nose - 40, top + 40], [nose, GY - 16], [nose - 160, GY - 4]], '#F1F5F9');
-  box(c, tail, GY - 40, TRAIN.len - 60, 12, '#1D4ED8'); box(c, tail, GY - 26, TRAIN.len - 20, 4, '#1D4ED8');
-  for (let x = tail + 20; x < nose - 200; x += 46) box(c, x, top + 24, 30, 18, (((x - tail) / 46) | 0) % 9 === (f >> 2) % 9 ? '#E0F2FE' : '#0F172A');
-  box(c, nose - 130, top + 28, 60, 14, '#0F172A');
-  for (let k = 0; k < 8; k++) box(c, tail + rnd(k + f) * TRAIN.len, top + rnd(k * 3 + f) * TRAIN.h, 40, 2, '#FFFFFF');
-  c.restore();
-};
+/** How far up the tunnels' shutters are (0 shut .. 1 up): rolling up at the end of the bells, up while it passes. */
+const shutterUp = (tr: ReturnType<typeof trainAt>) => (tr.st === 'warn' ? Math.min(1, Math.max(0, (tr.t - WARN + 40) / 30)) : tr.st === 'pass' ? 1 : 0);
 
 export const drawStationBack = (c: Ctx, v: View, state: GameState) => {
   if (!onScreen(v, X(STATION_FROM), x1)) return;
-  const f = state.frame, tr = trainAt(f);
-  // (the track: ballast, sleepers, the two rails, the yellow line that isn't there)
-  if (onScreen(v, X(LANE.a), X(LANE.b))) {
-    box(c, X(LANE.a), GY - 6, LANE.b - LANE.a, 6, hour('#57534E'));
-    for (let x = X(LANE.a); x < X(LANE.b); x += 24) box(c, x, GY - 8, 12, 4, hour('#78350F'));
-    box(c, X(LANE.a), GY - 12, LANE.b - LANE.a, 3, '#A1A1AA'); box(c, X(LANE.a), GY - 4, LANE.b - LANE.a, 2, '#71717A');
-  }
-  // (the gantries' posts and lights, the walkway's legs, the station roof's posts, the departure board)
-  const warn = tr.st === 'warn' && (f >> 3) % 2 === 0;
+  const f = state.frame, tr = trainAt(f), warn = tr.st === 'warn';
+  // (the track across the station floor)
+  if (onScreen(v, X(LANE.a), X(LANE.b))) drawTrack(c, v, X(LANE.a), X(LANE.b));
+  // (the gantries at each end (their signals), the walkway, the station canopy over it, the departure board over that)
+  const sig = warn ? ((f >> 3) % 2 ? 1 : 2) : 0;
   for (const [a, b, h] of REFUGES) {
-    if (!onScreen(v, X(a), X(b))) continue;
-    const below = h === 140 ? 0 : h === 280 ? 140 : 280;
-    for (const px0 of [X(a) + 6, X(b) - 12]) box(c, px0, Y(h) + 10, 6, h - below - 10, hour('#475569'));
-    if (h === 410) { box(c, X(a) - 30, Y(h) + 12, b - a + 60, 40, '#0F172A'); for (let k = 0; k < 3; k++) box(c, X(a) - 24 + k * 50, Y(h) + 20, 40, 8, (f >> 5) % 3 === k ? '#FB923C' : '#F59E0B'); }
-    ledge3(c, v, X(a), Y(h), b - a, h === 140 && b - a < 200 ? '#FACC15' : '#94A3B8', 12);
-    if (h === 140 && b - a < 200) { box(c, X(a) + (b - a) / 2 - 10, Y(h) - 34, 20, 26, INK); box(c, X(a) + (b - a) / 2 - 7, Y(h) - 31, 14, 9, warn ? '#EF4444' : '#450A0A'); box(c, X(a) + (b - a) / 2 - 7, Y(h) - 20, 14, 9, !warn && tr.st === 'warn' ? '#EF4444' : '#450A0A'); }
+    if (!onScreen(v, X(a) - 40, X(b) + 40)) continue;
+    if (h === 140 && b - a < 200) drawGantry(c, v, X(a), X(b), Y(h), GY, sig);
+    else if (h === 140) drawWalkway(c, v, X(a), X(b), Y(h));
+    else if (h === 280) drawCanopy(c, v, X(a), X(b), Y(h), Y(140));
+    else drawDepartureBoard(c, v, X(a), X(b), Y(h), Y(280), f);
   }
-  // (the Fujis)
-  const open = tr.st === 'warn' ? Math.min(1, Math.max(0, (tr.t - WARN + 40) / 30)) : tr.st === 'pass' ? 1 : 0;
-  drawFuji(c, v, FUJI_L, LANE.a, 1, open);
-  drawFuji(c, v, FUJI_R, LANE.b, -1, open);
+  // (the Fujis, their portals on the track side)
+  const open = shutterUp(tr);
+  drawFujiSteps(c, v, [...FUJI_L, ...FUJI_R].map(([a, b, h]) => ({ a: X(a), b: X(b), top: Y(h) })));
+  if (onScreen(v, X(LANE.a) - 100, X(LANE.a))) drawPortal(c, X(LANE.a) - 84, Y(TRAIN.h + 10), open, warn, f);
+  if (onScreen(v, X(LANE.b), X(LANE.b) + 100)) drawPortal(c, X(LANE.b), Y(TRAIN.h + 10), open, warn, f);
   // (the signs: held up, nothing over them)
   if (onScreen(v, X(3620), X(3700))) postBoard(c, X(3650), GY, ['SHINKANSEN', 'BULLET TRAIN', '(DOES NOT STOP)'], LOOKS.japan(1), '#F8FAFC', undefined, 150);
   if (onScreen(v, X(4300), X(4620))) hungBoard(c, X(4460), Y(280) + 12, Y(280) + 46, ['PLEASE STAND BEHIND', 'THE YELLOW LINE'], LOOKS.japan(1), '#F8FAFC');
   if (onScreen(v, X(5260), X(5400))) postBoard(c, X(5330), GY, ['LEAVING JAPAN', 'SAYONARA (THANK YOU)'], LOOKS.japan(1), '#F8FAFC', undefined, 100);
-  void dimmed;
 };
 
 export const drawStationFront = (c: Ctx, v: View, state: GameState) => {
   const tr = trainAt(state.frame);
-  if (tr.st === 'pass' && onScreen(v, X(LANE.a), X(LANE.b))) drawTrain(c, tr.nose, state.frame);
+  if (tr.st === 'pass' && onScreen(v, X(LANE.a), X(LANE.b))) drawTrainArt(c, tr.nose, TRAIN.len, Y(TRAIN.h), TRAIN.h, X(LANE.a) - 84, X(LANE.b) + 84, state.frame);
   drawShout(c, stationOf(state).said);
 };
 

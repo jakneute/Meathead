@@ -5,7 +5,7 @@
 // Fuji, the dunes, the minaret, the cathedral, the Ferris wheel, the Rockies, the helicopter ride's globe) slid in by parallax round where its
 // pavilion is, so they come and go as he walks. All of it tinted far into the haze.
 //
-// The SNES pass (Mexico's, Norway's, China's, Germany's and Italy's so far; the rest still the first pass's live painters, below): each landmark
+// The SNES pass (Mexico's, Norway's, China's, Germany's, Italy's and Japan's so far; the rest still the first pass's live painters, below): each landmark
 // painted once for the hour into a stamp (STILLS: real silhouettes, stepped strata and flanks, snow, forests, the haze
 // over their feet), with only what moves drawn live over it (the falls); the lagoon in banded
 // water under the far shore's tree line (a tile for the hour), glinting; the barge painted for the hour (its hull and
@@ -285,6 +285,51 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       bandedGradient(g, 0, foot - 2, w, h - foot + 2, [T('#6A8A3A'), T('#5A7A30')], 2);
     },
   },
+  japan: {
+    // (THE MOUNTAIN, the iconic one: a plain snow-capped cone (no smoke, no glow, no lava: it's the postcard), its flanks
+    // lit on the left and shaded on the right, the snow down its gullies in fingers; a band of cloud round its waist; the
+    // dark forested foothills in front, a little red five-story pagoda on one of them with cherry blossom round it)
+    w: 960, h: 400, k: 0.6,
+    paint: (g, T, tod) => {
+      const w = 960, h = 400, foot = h - 14, cx = 480;
+      // (its profile steep under the summit, easing out to its feet: the postcard's)
+      const cone = (x: number) => { const d = Math.max(0, Math.abs(x - cx) - 26); return 54 + Math.pow(d, 0.75) * 3.9 + Math.sin(x * 0.09) * 1.2; };
+      const crest = (x: number) => Math.min(foot, cone(x));
+      rangeCols(g, crest, 0, w, foot, rampT(T, '#5A6A8E'), 13);
+      // (the snow: from the summit's flat top down to its line, in fingers down the gullies; lit left, shaded right)
+      const S = rampT(T, '#F4F7FB'), line = 170;
+      for (let x = 0; x < w; x += 2) {
+        const y = Math.round(crest(x));
+        if (y >= line) continue;
+        const finger = Math.max(0, Math.sin(x * 0.19) * 18 + Math.sin(x * 0.07 + 1) * 14) + hash(x * 0.3) * 6, d = Math.round(line - y + finger - 24);
+        if (d <= 0) continue;
+        const left = x < cx - 20, right = x > cx + 20;
+        box(g, x, y, 2, d, left ? S[3] : right ? S[1] : S[2]); box(g, x, y, 2, 1, S[4]);
+        if ((x >> 1) % 2) box(g, x, y + d, 2, 2, left ? S[2] : S[0]);
+        if (hash(x * 0.71) > 0.86) box(g, x, y + 6, 2, d - 8, S[0]);
+      }
+      // (the summit's rim: a flat top, lit)
+      for (let x = cx - 26; x < cx + 26; x += 2) box(g, x, Math.round(crest(x)) - 1, 2, 2, S[4]);
+      mist(g, w, 210, 46, '#FFFFFF', 0.0, 0.35, 5);
+      mist(g, w, 120, foot - 120, skyAt(0.9, tod), 0, 0.3, 6);
+      // (the foothills, dark and wooded)
+      const hills = (x: number) => foot - 66 + 22 * Math.sin(x * 0.013 + 0.5) + 12 * Math.sin(x * 0.037) - 30 * Math.exp(-(((x - 230) / 90) ** 2));
+      rangeCols(g, hills, 0, w, foot, rampT(T, '#3A5A3A'), 29);
+      firsUnder(g, hills, w, foot, rampT(T, '#24402A'), 200, 17, (x, y) => Math.abs(x - 230) < 34 && y < hills(230) + 30);
+      // (the little red pagoda on the hill, its five roofs stepping in; blossom round it)
+      const px0 = 230, py0 = Math.round(hills(230)) + 4, Rd = rampT(T, '#C0392B'), Rf = rampT(T, '#3A3A48');
+      for (let k = 0; k < 5; k++) {
+        const bw = 16 - k * 2, by = py0 - k * 9;
+        box(g, px0 - bw / 2, by - 8, bw, 8, Rd[2]); box(g, px0 - bw / 2, by - 8, 2, 8, Rd[3]);
+        box(g, px0 - bw / 2 - 5, by - 10, bw + 10, 2, Rf[2]); box(g, px0 - bw / 2 - 6, by - 11, 2, 1, Rf[3]); box(g, px0 + bw / 2 + 4, by - 11, 2, 1, Rf[3]);
+      }
+      box(g, px0, py0 - 58, 1, 14, T('#A88A3A'));
+      const Bl = rampT(T, '#F4A8C8');
+      for (let i = 0; i < 14; i++) { const bx = px0 - 50 + hash(i * 2.9) * 100, by = Math.round(hills(bx)) + 8 + hash(i * 1.3) * 10; pixelBlob(g, bx, by, 6, 4, Bl[2]); pixelBlob(g, bx - 1, by - 1, 3, 2, Bl[3]); }
+      mist(g, w, foot - 40, 40, skyAt(0.9, tod), 0, 0.3, 4);
+      bandedGradient(g, 0, foot - 2, w, h - foot + 2, [T('#3A5A3A'), T('#2E4A30')], 2);
+    },
+  },
   mexico: {
     // (NO volcano (the user: we have enough volcanoes): desert mesas, flat-topped and banded, a far one in the haze
     // behind, and a row of giant plywood saguaros along the foot, on its sand)
@@ -355,10 +400,6 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
 
 /** Each pavilion's far landmark, painted about (0, horizon) (its middle at x 0), tinted far. */
 const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => void>> = {
-  japan: (c, hz) => {
-    poly(c, [[-320, hz], [-60, hz - 230], [60, hz - 230], [320, hz]], farTint('#475569', 0.6));
-    poly(c, [[-60, hz - 230], [-30, hz - 190], [0, hz - 205], [30, hz - 188], [60, hz - 230]], farTint('#F8FAFC', 0.5));
-  },
   morocco: (c, hz) => {
     for (const [x, r] of [[-200, 150], [40, 190], [260, 130]] as const) { c.fillStyle = farTint('#D97706', 0.6); c.beginPath(); c.ellipse(x, hz, r, r * 0.4, 0, Math.PI, 0); c.fill(); }
     box(c, -20, hz - 210, 30, 210, farTint('#E7D3A8', 0.55)); box(c, -26, hz - 220, 42, 12, farTint('#15803D', 0.55));

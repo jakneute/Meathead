@@ -313,15 +313,30 @@ export const drawShots = (c: Ctx, state: GameState) => {
         break;
       }
       case 'shuriken': {
-        c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.6 * dir);
-        for (let k = 0; k < 4; k++) { c.rotate(Math.PI / 2); c.fillStyle = INK; c.beginPath(); c.moveTo(-3, 0); c.lineTo(0, -9); c.lineTo(3, 0); c.fill(); c.fillStyle = '#9CA3AF'; c.beginPath(); c.moveTo(-2, 0); c.lineTo(0, -7); c.lineTo(2, 0); c.fill(); }
-        disc(c, 0, 0, 2, 2, INK); c.restore(); break;
+        // (a foam throwing star spinning: four points, each lit down one face and shaded down the other, the hole in its
+        // middle, a glint going round; a blur ring behind it)
+        c.save(); c.translate(s.x, s.y);
+        c.strokeStyle = 'rgba(203, 213, 225, 0.35)'; c.lineWidth = 2; c.beginPath(); c.arc(0, 0, 9, 0, Math.PI * 2); c.stroke();
+        c.rotate(s.t * 0.6 * dir);
+        for (let k = 0; k < 4; k++) {
+          c.rotate(Math.PI / 2);
+          c.fillStyle = INK; c.beginPath(); c.moveTo(-4, 0); c.lineTo(0, -10); c.lineTo(4, 0); c.fill();
+          c.fillStyle = '#CBD5E1'; c.beginPath(); c.moveTo(-3, 0); c.lineTo(0, -8); c.lineTo(0, 0); c.fill();
+          c.fillStyle = '#6B7280'; c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -8); c.lineTo(3, 0); c.fill();
+          if (k === 0) { c.fillStyle = '#FFFFFF'; c.fillRect(-1, -7, 1, 3); }
+        }
+        disc(c, 0, 0, 3, 3, INK); disc(c, 0, 0, 2, 2, '#4B5563'); disc(c, -0.5, -0.5, 1, 1, '#1C1014'); c.restore(); break;
       }
       case 'ki': {
-        // (a glittery papier-mache ball, a blue glow round it)
+        // (a glittery papier-mache "energy ball": a stepped blue glow round it (banded rings, not smooth), the ball in steps
+        // (shade, body, lit, the white core), the paper strips' seams, glitter twinkling on it and flung off behind)
         const r = 12 + Math.sin(s.t * 0.5) * 2;
-        disc(c, s.x, s.y, r + 6, r + 6, 'rgba(96,165,250,0.35)'); disc(c, s.x, s.y, r, r, INK); disc(c, s.x, s.y, r - 1, r - 1, '#60A5FA'); disc(c, s.x - 3, s.y - 3, r * 0.45, r * 0.45, '#E0F2FE');
-        for (let k = 0; k < 4; k++) { const a = s.t * 0.3 + k * 1.6; c.fillStyle = '#FDE047'; c.fillRect(s.x + Math.cos(a) * r - 1, s.y + Math.sin(a) * r - 1, 2, 2); }
+        for (const [rr, a] of [[r + 8, 0.18], [r + 5, 0.28], [r + 2, 0.4]] as const) disc(c, s.x, s.y, rr, rr, `rgba(96,165,250,${a})`);
+        disc(c, s.x, s.y, r, r, INK); disc(c, s.x, s.y, r - 1, r - 1, '#1D4ED8'); disc(c, s.x - 1, s.y - 1, r - 2.5, r - 2.5, '#3B82F6');
+        disc(c, s.x - 2.5, s.y - 2.5, r * 0.6, r * 0.6, '#60A5FA'); disc(c, s.x - 4, s.y - 4, r * 0.32, r * 0.32, '#BFDBFE'); disc(c, s.x - 4.5, s.y - 4.5, 1.5, 1.5, '#FFFFFF');
+        c.strokeStyle = '#1E3A8A'; c.lineWidth = 1; for (const k of [-0.4, 0.5]) { c.beginPath(); c.ellipse(s.x, s.y, r - 1, (r - 1) * Math.abs(k), 0.6, 0, Math.PI); c.stroke(); }
+        for (let k = 0; k < 6; k++) { const a = s.t * 0.3 + k * 1.05, rr = r * (0.4 + (k % 3) * 0.25); if ((s.t + k * 3) % 8 < 5) { c.fillStyle = k % 2 ? '#FDE047' : '#F9A8D4'; c.fillRect(Math.round(s.x + Math.cos(a) * rr - 1), Math.round(s.y + Math.sin(a) * rr - 1), 2, 2); } }
+        for (let k = 0; k < 4; k++) { const tx = s.x - dir * (r + 6 + k * 6), ty = s.y + Math.sin(s.t * 0.4 + k * 1.7) * 6; if ((s.t + k) % 4 < 3) { c.fillStyle = k % 2 ? '#FDE047' : '#E0F2FE'; c.fillRect(Math.round(tx), Math.round(ty), 2, 2); } }
         break;
       }
       case 'spit': case 'tea': {
