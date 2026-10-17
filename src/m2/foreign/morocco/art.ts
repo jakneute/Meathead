@@ -166,7 +166,7 @@ const goodsIn = (g: Ctx, x: number, y: number, w: number, h: number, kind: Goods
     for (const sy of [foot - 30, foot - 8]) {
       box(g, x, sy, w, 3, D(CEDAR)[3]); box(g, x, sy, w, 1, D(CEDAR)[5]);
       for (let k = 0; k < Math.floor(w / 14); k++) {
-        const tx = x + 8 + k * 14, R = D([CLAY, '#1E50A8', '#B45309', TILEGREEN][(seed + k + sy) % 4]);
+        const tx = x + 8 + k * 14, R = D([CLAY, '#1E50A8', '#B45309', TILEGREEN][Math.abs(seed + k + sy) % 4]);
         box(g, tx - 6, sy - 3, 13, 3, INK); box(g, tx - 5, sy - 3, 11, 2, R[2]);
         poly(g, [[tx - 5, sy - 3], [tx, sy - 13], [tx + 5, sy - 3]], INK); poly(g, [[tx - 4, sy - 3], [tx, sy - 12], [tx + 4, sy - 3]], R[3]); poly(g, [[tx - 4, sy - 3], [tx, sy - 12], [tx - 1, sy - 3]], R[4]);
         box(g, tx - 1, sy - 15, 2, 3, R[4]);
