@@ -356,9 +356,27 @@ const drawModel = (c: Ctx, cam: Cam, pv: Pav, f: number, crushed: boolean, k: nu
   view.variant = crushed ? 'wreck' : 'n';
   view.wear = crushed ? 0.7 : 0;
   const pl: Place = { bx: pv.bx, by: 0, bz: pv.bz, R: pv.R, F: pv.F, all: crushed ? CRUSH : undefined };
+  // (still: once the camera's held still two frames running, painted to a canvas and blitted till it moves or the
+  // hour changes (every fight); moving, drawn live)
+  const key = typeof document === 'undefined' ? '' : [cam.phi.toFixed(5), cam.hc.toFixed(2), cam.F.toFixed(2), cam.ppx.toFixed(1), cam.ppy.toFixed(1), timeOfDay().key, crushed ? 1 : 0].join('|');
+  const e = modelStill.get(pv.id);
+  if (e && e.key === key && e.cv) { c.drawImage(e.cv, e.x, e.y); return; }
   prepare(c, parkModel(pv.id), pl, view, P);
+  if (key && e?.seen === key && isFinite(P.x0) && P.x1 - P.x0 < 1600 && P.y1 - P.y0 < 1200) {
+    const x0 = Math.floor(P.x0) - 4, y0 = Math.floor(P.y0) - 4, w = Math.ceil(P.x1 - x0) + 8, hh = Math.ceil(P.y1 - y0) + 8;
+    const cv = e.cv ?? document.createElement('canvas');
+    cv.width = w; cv.height = hh;
+    const g = cv.getContext('2d')!;
+    g.clearRect(0, 0, w, hh); g.translate(-x0, -y0);
+    paint(g, P, view, INK, view.lod ? 0.8 : 1.2);
+    modelStill.set(pv.id, { key, seen: key, cv, x: x0, y: y0 });
+    c.drawImage(cv, x0, y0);
+    return;
+  }
+  modelStill.set(pv.id, { key: '', seen: key, cv: e?.cv ?? null, x: 0, y: 0 });
   paint(c, P, view, INK, view.lod ? 0.8 : 1.2);
 };
+const modelStill = new Map<ParkModel, { key: string; seen: string; cv: HTMLCanvasElement | null; x: number; y: number }>();
 
 // ---------------------------------------------------------------------------------------------------------------
 // Trees: round ones, pines (Norway, Canada), palms (Morocco); painted once a size and an hour into a sprite, stepped
