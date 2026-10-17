@@ -9,7 +9,8 @@
 // Mona Lisa print stand; then LE LOUVRE (louvre.ts, job 4b: the glass pyramid climbed over through its fountain show,
 // the Seine's bookstalls, an apartment block over its mansard roof), to the border with the UK.
 //
-// Crude (the first pass): readable boxes with full game feel. Checkpoints 70-79. Outdoors: the time of day's light.
+// The SNES pass: art.ts paints it all (still art stamped for the hour; the lift, the bulbs, the jets, the flags live).
+// Checkpoints 70-79. Outdoors: the time of day's light.
 
 import type { Light } from '../../../m1/game/render/lighting';
 import type { GameState } from '../../../m1/game/core/state';
@@ -20,11 +21,12 @@ import { spawnCast } from '../cast';
 import { pavilionTalk } from '../pavilion';
 import { playSound } from '../../../m1/game/platform/audio';
 import { makeMover, moveMover, type Mover } from '../movers';
-import {
-  type Ctx, type View, viewIn, box, mix, poly, at, promenade, boxes3, ledge3, setBack, wall, hole, postBoard, hungBoard, swag,
-  LOOKS, dimmed, hour, ramp6, onScreen, FACADE_D, INK, timeOfDay,
-} from '../kit';
+import { type Ctx, type View, viewIn, promenade, postBoard, hungBoard, swag, LOOKS, onScreen, FACADE_D } from '../kit';
 import { TALK } from './lines';
+import {
+  type FrFront, BISTRO, OXBLOOD, drawFront, cafeAwning, bistroTable, morrisColumn, drawCurtain, drawStage, drawMarquee, drawArcArt, drawLiftShaft, drawLiftCar,
+  drawFlowerStall, drawMonaStand, drawFrFlag,
+} from './art';
 import { updateMimeWalls, drawMimeWalls } from './kinds';
 import { LOUVRE_CHECKPOINTS, buildLouvre, updateLouvre, drawLouvreBack, drawLouvreFront, louvreLamps } from './louvre';
 
@@ -84,76 +86,33 @@ const liftH = (f: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing
+// Drawing (the SNES pass: art.ts paints it; still art stamped for the hour, the lift, the bulbs, the flags live)
 
-const IRON = '#6B5B4B', CREAM = '#EDE4D3', SLATE = '#475569';
-
-/** The Haussmann-ish fronts: cream stone, wrought-iron balconies, gray mansard roofs with little windows. */
+/** The Haussmann fronts (set back, braced): limestone over a painted shopfront, French windows, the zinc mansard. */
+const FRONTS: FrFront[] = [
+  { rx: 300, w: 300, h: 240, name: 'BOULANGERIE (BAKERY)', shop: 'bakery', paint: BISTRO },
+  { rx: 780, w: 280, h: 250, name: 'FROMAGE (KRAFT SINGLES)', shop: 'cheese', paint: '#1E3A8A' },
+  { rx: 2680, w: 300, h: 230, name: 'CROISSANTS (FROM A CAN)', shop: 'bakery', paint: OXBLOOD },
+  { rx: 3060, w: 300, h: 240, name: 'PARFUM (BODY SPRAY)', shop: 'perfume', paint: '#5B2A6E' },
+  { rx: 3380, w: 220, h: 220, name: 'BERETS (ONE SIZE)', shop: 'berets', paint: BISTRO },
+];
 const drawFronts = (c: Ctx, v: View) => {
-  for (const [rx, w, h] of [[300, 300, 240], [780, 280, 250], [2680, 300, 230], [3060, 300, 240], [3380, 220, 220]] as const) setBack(c, v, X(rx), w, FACADE_D, () => {
-    wall(c, 0, w, h, CREAM);
-    poly(c, [[-6, -h], [w + 6, -h], [w - 14, -h - 50], [14, -h - 50]], dimmed(SLATE));
-    for (let k = 0; k < Math.floor(w / 70); k++) { hole(c, 26 + k * 70, -h - 40, 18, 24, true); hole(c, 20 + k * 70, -h + 30, 26, 44, true); box(c, 16 + k * 70, -h + 74, 34, 3, dimmed('#1C1917')); for (let j = 0; j < 5; j++) box(c, 18 + k * 70 + j * 7, -h + 64, 1, 10, dimmed('#1C1917')); }
-    hole(c, w / 2 - 22, -80, 44, 80, true);
-  });
-};
-
-/** A cafe's awning: striped, sloped, its front lip lit (somewhere to stand); its tables and chairs. */
-const drawCafe = (c: Ctx, v: View, a: number, b: number, h: number, col: string) => {
-  if (!onScreen(v, X(a) - 20, X(b) + 20)) return;
-  for (let x = X(a), k = 0; x < X(b); x += 20, k++) poly(c, [[x, Y(h)], [x + 20, Y(h)], [x + 20, Y(h) + 40], [x, Y(h) + 40]], hour(k % 2 ? '#F8FAFC' : col));
-  for (let x = X(a); x < X(b); x += 20) poly(c, [[x, Y(h) + 40], [x + 20, Y(h) + 40], [x + 10, Y(h) + 50]], hour(col));
-  ledge3(c, v, X(a), Y(h), b - a, col, 6);
+  const on = FRONTS.filter(fr => onScreen(v, X(fr.rx) - 60, X(fr.rx + fr.w) + 60, FACADE_D));
+  on.sort((p, q) => Math.abs(X(q.rx + q.w / 2) - v.eye.x) - Math.abs(X(p.rx + p.w / 2) - v.eye.x));
+  for (const fr of on) drawFront(c, v, X(fr.rx), fr);
 };
 
 /** THE ARC (the Arc de Triomphe-ish, "OURS IS BIGGER"; it replaced an Eiffel-ish tower base, the Eiffel being one of
- *  the helicopter's landmarks): set back, cream stone. Its two piers (the left one cut open: the stair landings inside
- *  it, what he climbs), carved relief panels, the great vault between them with the stone gallery across it (the first
- *  deck), the frieze ledge over the vault, the cornice and the attic block on top (the second level), and the
+ *  the helicopter's landmarks): cream stone behind its ledges. Its two piers (the left one cut open: the stair landings
+ *  inside it, what he climbs), the relief panels, the great vault between them with the stone gallery across it (the
+ *  first deck), the frieze ledge over the vault, the cornice and the attic block on top (the second level), and the
  *  sculpture's plinth up from it (its step, its top), a tricolor flying over it. The service lift up the right pier. */
-const STONE = '#E7DCC4', STONE_D = '#B8A888', CARVE = '#8C7A5A';
-const drawTower = (c: Ctx, v: View, lift: Mover | null) => {
+const drawTower = (c: Ctx, v: View, lift: Mover | null, f: number) => {
   if (!onScreen(v, X(LEG_L[0]) - 60, X(LEG_R[1]) + 60)) return;
-  const J = hour(IRON), S = dimmed(STONE), SD = dimmed(STONE_D), CV = dimmed(CARVE), DARK = dimmed('#2A2218');
-  const L0 = X(LEG_L[0]), R1 = X(LEG_R[1]), VA = X(LEG_L[1]), VB = X(LEG_R[0]), TOPB = Y(560);
-  // (the body: the piers and the mass over the vault, up to the cornice)
-  box(c, L0, TOPB, R1 - L0, GY - TOPB, S);
-  box(c, L0, TOPB, 18, GY - TOPB, SD); box(c, R1 - 18, TOPB, 18, GY - TOPB, SD);
-  // (the vault: an opening through it, a round-headed arch, its coffers in shadow)
-  const vy = Y(300), rx = (VB - VA) / 2, ry = 170;
-  c.fillStyle = DARK; c.beginPath(); c.moveTo(VA, GY); c.lineTo(VA, vy); c.ellipse((VA + VB) / 2, vy, rx, ry, 0, Math.PI, 0); c.lineTo(VB, GY); c.closePath(); c.fill();
-  c.strokeStyle = CV; c.lineWidth = 3; c.beginPath(); c.ellipse((VA + VB) / 2, vy, rx + 8, ry + 8, 0, Math.PI, 0); c.stroke();
-  for (let k = 1; k < 8; k++) { const a = Math.PI + (k / 8) * Math.PI; box(c, (VA + VB) / 2 + Math.cos(a) * (rx + 14) - 4, vy + Math.sin(a) * (ry + 14) - 6, 8, 12, CV); }
-  // (the piers: the relief panels; the left one cut open on its stairs)
-  for (const px of [LEG_L[0], LEG_R[0]]) { box(c, X(px) + 26, Y(250), 108, 110, CV); box(c, X(px) + 32, Y(244), 96, 98, SD); for (let k = 0; k < 4; k++) box(c, X(px) + 40 + k * 22, Y(220), 10, 60, CV); }
-  box(c, L0 + 16, Y(300), LEG_L[1] - LEG_L[0] - 32, 300, DARK);
-  for (const [, , h] of GIRDERS.slice(0, 2)) box(c, L0 + 16, Y(h) + 8, LEG_L[1] - LEG_L[0] - 32, 3, CV);
-  // (the frieze band over the vault, the cornice, the attic block, the plinth on it)
-  box(c, L0, Y(500), R1 - L0, 26, SD); for (let x = L0 + 8; x < R1 - 8; x += 22) box(c, x, Y(496), 12, 18, CV);
-  box(c, L0 - 10, TOPB - 8, R1 - L0 + 20, 12, SD);
-  box(c, X(LEVEL2[0]), Y(LEVEL2[2]), LEVEL2[1] - LEVEL2[0], LEVEL2[2] - 560, S); for (let x = X(LEVEL2[0]) + 14; x < X(LEVEL2[1]) - 20; x += 40) box(c, x, Y(LEVEL2[2]) + 16, 22, 30, CV);
-  box(c, X(TOP[0]), Y(TOP[2]), TOP[1] - TOP[0], TOP[2] - LEVEL2[2], SD);
-  // (the sculpture on the plinth: a winged figure, arms up, holding the flag)
-  poly(c, [[X(2080), Y(TOP[2])], [X(2120), Y(TOP[2])], [X(2112), Y(TOP[2]) - 70], [X(2088), Y(TOP[2]) - 70]], dimmed('#57534E'));
-  poly(c, [[X(2088), Y(TOP[2]) - 60], [X(2050), Y(TOP[2]) - 100], [X(2086), Y(TOP[2]) - 76]], dimmed('#78716C'));
-  poly(c, [[X(2112), Y(TOP[2]) - 60], [X(2150), Y(TOP[2]) - 100], [X(2114), Y(TOP[2]) - 76]], dimmed('#78716C'));
-  box(c, X(2098), Y(TOP[2]) - 84, 6, 14, dimmed('#57534E'));
-  box(c, X(2116), Y(TOP[2]) - 150, 3, 90, dimmed('#9CA3AF'));
-  for (let k = 0; k < 3; k++) box(c, X(2119) + k * 12, Y(TOP[2]) - 150, 12, 26, hour(['#002395', '#F8FAFC', '#ED2939'][k]));
-  // (the service lift's shaft: two rails up the right pier, the car)
-  for (const rx of [LIFT.a - 4, LIFT.a + LIFT.w]) box(c, X(rx), Y(LIFT.hi) - 60, 4, LIFT.hi + 60, J);
-  box(c, X(LIFT.a) - 10, Y(LIFT.hi) - 70, LIFT.w + 24, 10, J);
-  if (lift) {
-    const ly = lift.y;
-    box(c, X(LIFT.a) + LIFT.w / 2 - 1, Y(LIFT.hi) - 60, 2, Math.max(0, ly - Y(LIFT.hi) - 10), '#1C1917');
-    box(c, X(LIFT.a), ly - 70, LIFT.w, 70, INK); box(c, X(LIFT.a) + 2, ly - 68, LIFT.w - 4, 66, hour('#B45309'));
-    box(c, X(LIFT.a) + 8, ly - 60, LIFT.w - 16, 34, timeOfDay().lamps > 0.3 ? '#FDE68A' : '#1C1014');
-    for (let k = 1; k < 4; k++) box(c, X(LIFT.a) + 8 + k * ((LIFT.w - 16) / 4), ly - 60, 1, 34, hour('#78350F'));
-    ledge3(c, v, X(LIFT.a), ly, LIFT.w, '#B45309', 8);
-  }
-  // (the decks and the girders: somewhere to stand, the railings behind)
-  for (const [a, b, h] of [DECK, LEVEL2, TOP]) { for (let x = X(a) + 6; x < X(b); x += 16) box(c, x, Y(h) - 18, 2, 18, dimmed('#1C1917')); box(c, X(a), Y(h) - 20, b - a, 2, dimmed('#1C1917')); ledge3(c, v, X(a), Y(h), b - a, STONE_D, h === DECK[2] ? 20 : 14); }
-  for (const [a, b, h] of GIRDERS) ledge3(c, v, X(a), Y(h), b - a, STONE_D, 8);
+  drawArcArt(c, v, X, Y, { legL: LEG_L, legR: LEG_R, deck: DECK, level2: LEVEL2, top: TOP, girders: GIRDERS }, f);
+  // (the service lift's shaft up the right pier, its car)
+  drawLiftShaft(c, X(LIFT.a), X(LIFT.a + LIFT.w), Y(LIFT.hi) - 60, lift ? lift.y : GY, f);
+  if (lift) drawLiftCar(c, v, X(LIFT.a), LIFT.w, lift.y);
 };
 
 export const france: ForeignSection = {
@@ -183,29 +142,21 @@ export const france: ForeignSection = {
     const v = viewIn(state), f = state.frame;
     promenade(c, v, x0, x1, '#D9D2C2', '#857B68');
     drawFronts(c, v);
-    // (the cafes: awnings over, tables and chairs, the column with its posters)
-    for (const [a, b, h, col] of AWNINGS) drawCafe(c, v, a, b, h, col);
-    // (the cabaret's curtain, set back: drawn before the stage, so the stage they dance on is in front of it)
-    if (onScreen(v, X(STAGE.a), X(STAGE.b))) setBack(c, v, X(STAGE.a), STAGE.b - STAGE.a, 0.93, () => { wall(c, 0, STAGE.b - STAGE.a, 300, '#7F1D1D'); for (let x = 10; x < STAGE.b - STAGE.a; x += 24) box(c, x, -300, 6, 300, dimmed('#991B1B')); });
-    boxes3(c, v, [
-      ...TABLES.map(([a, b, h]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col: '#1C1917', standable: true })),
-      { x: X(COLUMN.a), top: Y(COLUMN.h), w: COLUMN.b - COLUMN.a, bottom: GY, col: '#14532D', standable: true },
-      { x: X(STAGE.a), top: Y(STAGE.h), w: STAGE.b - STAGE.a, bottom: GY, col: '#7F1D1D', standable: true },
-      ...STALLS.map(([a, b, h, col]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col, standable: true })),
-    ]);
-    for (const [a, b, h] of TABLES) if (onScreen(v, X(a), X(b))) { box(c, X(a) + 18, Y(h) + 6, 14, h - 6, hour('#57534E')); box(c, X(a) + 20, Y(h) - 10, 6, 8, '#FDE68A'); }
-    if (onScreen(v, X(COLUMN.a), X(COLUMN.b))) { for (let k = 0; k < 3; k++) box(c, X(COLUMN.a) + 6, Y(COLUMN.h) + 20 + k * 44, COLUMN.b - COLUMN.a - 12, 36, hour(['#FDE68A', '#FCA5A5', '#BFDBFE'][k])); poly(c, [[X(COLUMN.a) - 6, Y(COLUMN.h)], [X(COLUMN.b) + 6, Y(COLUMN.h)], [X((COLUMN.a + COLUMN.b) / 2), Y(COLUMN.h) - 18]], hour('#14532D')); }
-    // (the cabaret: the marquee's bulbs, the marquee to stand on)
-    if (onScreen(v, X(STAGE.a), X(STAGE.b))) {
-      for (const px0 of [X(MARQUEE.a) + 4, X(MARQUEE.b) - 8]) box(c, px0, Y(MARQUEE.h), 4, MARQUEE.h - STAGE.h, hour('#CA8A04'));
-      box(c, X(MARQUEE.a), Y(MARQUEE.h), MARQUEE.b - MARQUEE.a, 34, hour('#1C1917'));
-      for (let x = X(MARQUEE.a) + 6; x < X(MARQUEE.b); x += 12) box(c, x, Y(MARQUEE.h) + 28, 4, 4, (x + (f >> 3) * 12) % 24 < 12 ? '#FDE047' : '#78350F');
-      ledge3(c, v, X(MARQUEE.a), Y(MARQUEE.h), MARQUEE.b - MARQUEE.a, '#CA8A04', 6);
+    // (the cafes: the awnings over, the tables and their chairs, the newspaper column)
+    for (const [a, b, h, col] of AWNINGS) cafeAwning(c, v, X(a), X(b), Y(h), col);
+    for (const [a, b, h] of TABLES) bistroTable(c, v, X(a), X(b), Y(h));
+    morrisColumn(c, v, X(COLUMN.a), X(COLUMN.b), Y(COLUMN.h));
+    // (the cabaret: its curtain, set back (drawn before the stage, so the stage they dance on is in front of it), the
+    // stage, the marquee over it to stand on)
+    if (onScreen(v, X(STAGE.a) - 40, X(STAGE.b) + 40)) {
+      drawCurtain(c, v, X(STAGE.a), X(STAGE.b));
+      drawStage(c, v, X(STAGE.a), X(STAGE.b), Y(STAGE.h), f);
+      drawMarquee(c, v, X(MARQUEE.a), X(MARQUEE.b), Y(MARQUEE.h), Y(STAGE.h), f);
     }
-    drawTower(c, v, fraOf(state).lift);
-    // (flowers on the stall, the Mona Lisa print)
-    { const [a, b, h] = STALLS[0]; if (onScreen(v, X(a), X(b))) for (let k = 0; k < 6; k++) box(c, X(a) + 8 + k * 15, Y(h) - 10, 8, 10, hour(['#F472B6', '#FDE047', '#F87171', '#A78BFA', '#FB923C', '#F8FAFC'][k])); }
-    { const [a, b, h] = STALLS[1]; if (onScreen(v, X(a), X(b))) { box(c, X(a) + 30, Y(h) + 12, 40, 52, '#78350F'); box(c, X(a) + 33, Y(h) + 15, 34, 46, hour('#65A30D')); c.fillStyle = hour('#D6A15E'); c.beginPath(); c.ellipse(X(a) + 50, Y(h) + 32, 8, 10, 0, 0, Math.PI * 2); c.fill(); box(c, X(a) + 40, Y(h) + 42, 20, 18, hour('#3F2A1C')); } }
+    drawTower(c, v, fraOf(state).lift, f);
+    // (the flower stall, the Mona Lisa stand)
+    { const [a, b, h] = STALLS[0]; drawFlowerStall(c, v, X(a), X(b), Y(h)); }
+    { const [a, b, h] = STALLS[1]; drawMonaStand(c, v, X(a), X(b), Y(h)); }
     // (string lights over the cafes)
     if (onScreen(v, X(300), X(1060))) { swag(c, X(300), Y(260), X(680), Y(260), 18, ['#FDE68A'], 'bulbs', 18); swag(c, X(740), Y(260), X(1060), Y(260), 18, ['#FDE68A'], 'bulbs', 18); }
     // (signs)
@@ -217,11 +168,7 @@ export const france: ForeignSection = {
     if (onScreen(v, X(LIFT.a), X(LIFT.a + LIFT.w))) hungBoard(c, X(LIFT.a + LIFT.w / 2), Y(LIFT.hi) - 60, Y(LIFT.hi) - 30, ['SERVICE LIFT', '(ASCENSEUR)'], LOOKS.france(1), '#1C1917');
     { const [a, b, h] = STALLS[1]; if (onScreen(v, X(a) - 60, X(b))) postBoard(c, X(a) - 50, GY, ['MONA LISA', 'COPY OF A COPY'], LOOKS.france(1), '#78350F', undefined, 110); void b; void h; }
     drawLouvreBack(c, v, state);
-    if (onScreen(v, X(20), X(120))) {
-      const fx = X(40); box(c, fx - 2, GY - 200, 4, 200, hour('#9CA3AF'));
-      for (let i = 0; i < 48; i += 4) box(c, fx + 2 + i, GY - 198 + Math.sin(f * 0.08 + i * 0.12) * 2, 4, 30, hour(i < 16 ? '#002395' : i < 32 ? '#F8FAFC' : '#ED2939'));
-    }
-    void mix; void at; void ramp6;
+    if (onScreen(v, X(20), X(120))) drawFrFlag(c, X(40), f);
   },
   drawFront: (c, state) => { drawMimeWalls(c, state); drawLouvreFront(c, viewIn(state), state); },
   outdoors: () => 1,

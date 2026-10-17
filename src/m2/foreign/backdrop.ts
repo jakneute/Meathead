@@ -5,7 +5,7 @@
 // Fuji, the dunes, the minaret, the cathedral, the Ferris wheel, the Rockies, the helicopter ride's globe) slid in by parallax round where its
 // pavilion is, so they come and go as he walks. All of it tinted far into the haze.
 //
-// The SNES pass (Mexico's, Norway's, China's, Germany's, Italy's, Japan's and Morocco's so far; the rest still the first pass's live painters, below): each landmark
+// The SNES pass (Mexico's, Norway's, China's, Germany's, Italy's, Japan's, Morocco's and France's so far; the rest still the first pass's live painters, below): each landmark
 // painted once for the hour into a stamp (STILLS: real silhouettes, stepped strata and flanks, snow, forests, the haze
 // over their feet), with only what moves drawn live over it (the falls); the lagoon in banded
 // water under the far shore's tree line (a tile for the hour), glinting; the barge painted for the hour (its hull and
@@ -416,6 +416,102 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       bandedGradient(g, 0, foot - 2, w, h - foot + 2, [T('#D8A060'), T('#C89050')], 2);
     },
   },
+  france: {
+    // (THE CATHEDRAL (Notre Dame-ish, NOT the Eiffel: that's the helicopter's): the west front square on to us, its two
+    // square towers (their tall paired lancets, the open gallery between them, the gargoyles and chimeras crouched on
+    // their corners), the rose window (stained glass lit after dark), the gallery of kings in its niches, the three
+    // pointed portals; the nave going back behind it under its lead roof, the flying buttresses down its side (their
+    // pinnacles), the thin spire over the crossing; Paris round its feet (zinc mansards, chimney pots, windows lit
+    // after dark); the haze)
+    w: 960, h: 400, k: 0.6,
+    paint: (g, T, tod) => {
+      const w = 960, h = 400, foot = h - 14, lamps = tod.lamps > 0.3;
+      const S = rampT(T, '#C8BFAE'), Ld = rampT(T, '#5A6070'), Gl = rampT(T, '#3A4A8A');
+      // (the nave going back to the right: its wall, the clerestory windows, the lead roof and its ridge)
+      const nx0 = 520, nx1 = 820, ny = foot - 150;
+      box(g, nx0 - 1, ny - 1, nx1 - nx0 + 2, foot - ny + 1, INK); box(g, nx0, ny, nx1 - nx0, foot - ny, S[1]); box(g, nx0, ny, nx1 - nx0, 2, S[2]);
+      for (let x = nx0 + 14; x < nx1 - 10; x += 26) { box(g, x, ny + 20, 8, 30, lamps ? '#C88A36' : Gl[1]); poly(g, [[x, ny + 20], [x + 4, ny + 14], [x + 8, ny + 20]], lamps ? '#C88A36' : Gl[1]); box(g, x + 3, ny + 20, 1, 30, S[0]); }
+      poly(g, [[nx0 - 6, ny], [nx0 + 30, ny - 46], [nx1 - 20, ny - 46], [nx1 + 6, ny]], INK);
+      poly(g, [[nx0 - 4, ny], [nx0 + 31, ny - 44], [nx1 - 21, ny - 44], [nx1 + 4, ny]], Ld[2]);
+      poly(g, [[nx0 - 4, ny], [nx0 + 31, ny - 44], [nx0 + 120, ny - 44], [nx0 + 90, ny]], Ld[3]);
+      for (let x = nx0 + 8; x < nx1; x += 6) box(g, x, ny - 40 + Math.max(0, (nx0 + 30 - x)) * 0.0, 1, 38, Ld[1]);
+      box(g, nx0 + 30, ny - 47, nx1 - nx0 - 50, 2, Ld[4]);
+      // (the apse at the far end, rounded)
+      g.fillStyle = INK; g.beginPath(); g.ellipse(nx1, ny + 20, 34, 60, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = S[1]; g.beginPath(); g.ellipse(nx1, ny + 20, 33, 59, 0, 0, Math.PI * 2); g.fill();
+      box(g, nx1 - 34, ny + 60, 70, foot - ny - 60, S[1]);
+      // (the flying buttresses down its side: piers, their arches up to the nave wall, pinnacles; gargoyle spouts)
+      for (let k = 0; k < 7; k++) {
+        const px = nx0 + 30 + k * 44, py = foot - 70;
+        box(g, px - 5, py - 1, 11, foot - py + 1, INK); box(g, px - 4, py, 9, foot - py, S[2]); box(g, px - 4, py, 3, foot - py, S[3]);
+        poly(g, [[px - 3, py - 18], [px, py - 30], [px + 3, py - 18]], INK); poly(g, [[px - 2, py - 18], [px, py - 28], [px + 2, py - 18]], S[3]); box(g, px - 3, py - 18, 7, 18, S[2]);
+        g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(px, py - 4); g.quadraticCurveTo(px + 6, ny + 14, px + 22, ny + 6); g.stroke();
+        g.strokeStyle = S[2]; g.lineWidth = 3; g.beginPath(); g.moveTo(px, py - 4); g.quadraticCurveTo(px + 6, ny + 14, px + 22, ny + 6); g.stroke();
+        poly(g, [[px - 4, py + 6], [px - 12, py + 4], [px - 14, py + 8], [px - 4, py + 10]], INK); box(g, px - 12, py + 5, 7, 3, S[1]);
+      }
+      // (the spire over the crossing: thin, lit down its left, its pinnacled foot)
+      const sx = nx0 + 150;
+      poly(g, [[sx - 10, ny - 44], [sx - 2, ny - 210], [sx + 2, ny - 210], [sx + 10, ny - 44]], INK);
+      poly(g, [[sx - 9, ny - 44], [sx - 1, ny - 208], [sx + 1, ny - 208], [sx + 9, ny - 44]], Ld[2]);
+      poly(g, [[sx - 9, ny - 44], [sx - 1, ny - 208], [sx, ny - 208], [sx - 2, ny - 44]], Ld[3]);
+      for (let y = ny - 60; y > ny - 200; y -= 14) box(g, sx - (ny - 44 - y) * 0.0, y, 1, 1, Ld[4]);
+      for (const dx of [-12, 10]) { poly(g, [[sx + dx - 2, ny - 44], [sx + dx, ny - 72], [sx + dx + 2, ny - 44]], Ld[1]); }
+      box(g, sx - 1, ny - 218, 2, 10, T('#B8A060'));
+      // (the west front: the two towers and the middle between them)
+      const fx0 = 320, tw = 78, mw = 70, fx1 = fx0 + tw * 2 + mw, top = foot - 250, mid = foot - 186;
+      const tower = (x: number) => {
+        box(g, x - 1, top - 1, tw + 2, foot - top + 1, INK); box(g, x, top, tw, foot - top, S[2]); box(g, x, top, 14, foot - top, S[3]); box(g, x + tw - 10, top, 10, foot - top, S[1]);
+        // (the buttress strips up its corners)
+        for (const bx of [x + 4, x + tw - 10]) { box(g, bx, top + 10, 6, foot - top - 10, bx < x + 10 ? S[4] : S[0]); }
+        // (the tall paired lancets of the belfry, dark; the louvers)
+        for (const lx of [x + 18, x + tw - 32]) { box(g, lx, top + 18, 14, 66, INK); poly(g, [[lx, top + 18], [lx + 7, top + 6], [lx + 14, top + 18]], INK); box(g, lx + 1, top + 18, 12, 64, T('#1A1C28')); for (let y = top + 24; y < top + 82; y += 5) box(g, lx + 2, y, 10, 1, S[1]); }
+        // (the balustrade gallery along its top, the corner gargoyles and chimeras)
+        box(g, x - 2, top - 8, tw + 4, 8, INK); box(g, x - 1, top - 7, tw + 2, 6, S[3]); for (let bx = x + 2; bx < x + tw - 2; bx += 5) box(g, bx, top - 6, 2, 4, S[1]);
+        for (const [gx, d] of [[x - 2, -1], [x + tw + 2, 1]] as const) {
+          poly(g, [[gx, top - 8], [gx + d * 9, top - 14], [gx + d * 16, top - 10], [gx + d * 14, top - 5], [gx + d * 8, top - 3], [gx, top - 1]], INK);
+          poly(g, [[gx, top - 7], [gx + d * 9, top - 12], [gx + d * 14, top - 9], [gx + d * 8, top - 4], [gx, top - 2]], S[1]);
+          box(g, gx + d * 12 - 1, top - 12, 2, 2, S[0]); box(g, gx + d * 4, top - 18, 4, 10, INK); box(g, gx + d * 4 + (d < 0 ? 1 : 0), top - 17, 3, 8, S[1]); box(g, gx + d * 4, top - 20, 1, 3, INK); box(g, gx + d * 4 + 3, top - 20, 1, 3, INK);
+        }
+        // (a gargoyle spout off its middle, lower down)
+        poly(g, [[x + tw, mid + 10], [x + tw + 14, mid + 6], [x + tw + 16, mid + 12], [x + tw, mid + 16]], INK); box(g, x + tw + 2, mid + 9, 12, 3, S[1]);
+      };
+      tower(fx0); tower(fx0 + tw + mw);
+      const mx0 = fx0 + tw;
+      box(g, mx0, mid, mw, foot - mid, S[2]); box(g, mx0, mid, mw, 2, S[4]);
+      // (the open gallery between the towers' tops: its slender arches against the sky)
+      for (let x = mx0 + 2; x < mx0 + mw - 4; x += 8) { box(g, x, mid - 30, 2, 30, S[2]); }
+      box(g, mx0, mid - 34, mw, 5, INK); box(g, mx0, mid - 33, mw, 3, S[3]);
+      // (the rose window: its ring, its spokes, the glass (lit after dark))
+      const rx = mx0 + mw / 2, ry = mid + 40, rr = 26;
+      g.fillStyle = INK; g.beginPath(); g.arc(rx, ry, rr + 3, 0, Math.PI * 2); g.fill();
+      g.fillStyle = S[3]; g.beginPath(); g.arc(rx, ry, rr + 2, 0, Math.PI * 2); g.fill();
+      g.fillStyle = lamps ? '#7A3A9A' : Gl[1]; g.beginPath(); g.arc(rx, ry, rr - 1, 0, Math.PI * 2); g.fill();
+      for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; g.strokeStyle = S[2]; g.lineWidth = 1.5; g.beginPath(); g.moveTo(rx, ry); g.lineTo(rx + Math.cos(a) * rr, ry + Math.sin(a) * rr); g.stroke(); const cx = rx + Math.cos(a + 0.26) * rr * 0.68, cy = ry + Math.sin(a + 0.26) * rr * 0.68; box(g, cx - 1, cy - 1, 3, 3, lamps ? ['#E8A646', '#C04A4A', '#4A7AD0'][k % 3] : Gl[2]); }
+      g.fillStyle = S[3]; g.beginPath(); g.arc(rx, ry, 6, 0, Math.PI * 2); g.fill(); g.fillStyle = lamps ? '#E8A646' : Gl[2]; g.beginPath(); g.arc(rx, ry, 3, 0, Math.PI * 2); g.fill();
+      // (the gallery of kings: a band of niches right across the front)
+      box(g, fx0, foot - 104, fx1 - fx0, 16, INK); box(g, fx0 + 1, foot - 103, fx1 - fx0 - 2, 14, S[1]);
+      for (let x = fx0 + 4; x < fx1 - 6; x += 9) { box(g, x, foot - 101, 5, 11, T('#2A2A34')); box(g, x + 1, foot - 99, 3, 9, S[2]); box(g, x + 1, foot - 101, 3, 2, S[3]); }
+      // (the three portals: pointed, recessed in steps, dark)
+      for (const [px, pw] of [[fx0 + tw / 2, 40], [mx0 + mw / 2, 46], [fx0 + tw + mw + tw / 2, 40]] as const) {
+        for (let k = 0; k < 3; k++) { const ww = pw - k * 8, hh = 70 - k * 8; poly(g, [[px - ww / 2, foot], [px - ww / 2, foot - hh + ww * 0.4], [px, foot - hh], [px + ww / 2, foot - hh + ww * 0.4], [px + ww / 2, foot]], k === 2 ? T('#1A1C28') : S[k ? 1 : 3]); }
+        poly(g, [[px - pw / 2 - 4, foot - 70 + pw * 0.4 - 2], [px, foot - 82], [px + pw / 2 + 4, foot - 70 + pw * 0.4 - 2]], S[4]);
+      }
+      // (Paris round its feet: zinc mansards and their dormers, chimney pots, windows lit after dark)
+      const Z = rampT(T, '#6A7488'), C = rampT(T, '#D8CCB4');
+      for (let i = 0; i < 22; i++) {
+        const x = i * 46 - 10 + hash(i * 2.7) * 10, bh = 26 + hash(i * 1.3) * 22, bw = 40 + hash(i * 3.9) * 14;
+        if (x > fx0 - 30 && x < nx1 + 20 && bh > 34) continue;
+        const y = foot - bh;
+        box(g, x - 1, y - 1, bw + 2, bh + 1, INK); box(g, x, y, bw, bh, C[2]); box(g, x, y, 6, bh, C[3]);
+        for (let k = 0; k < 3; k++) box(g, x + 6 + k * 12, y + 10, 5, 8, lamps && hash(i * 5 + k) > 0.35 ? '#FFD88A' : T('#3A4258'));
+        poly(g, [[x - 2, y], [x + 5, y - 12], [x + bw - 5, y - 12], [x + bw + 2, y]], Z[2]); box(g, x + 5, y - 12, bw - 10, 1, Z[4]);
+        for (let k = 0; k < 2; k++) { const dx = x + 10 + k * 18; box(g, dx, y - 9, 6, 7, C[3]); box(g, dx + 1, y - 7, 4, 4, lamps && hash(i + k) > 0.5 ? '#FFD88A' : T('#3A4258')); }
+        box(g, x + bw - 12, y - 20, 8, 9, INK); box(g, x + bw - 11, y - 19, 6, 8, T('#B86A4A')); for (let k = 0; k < 3; k++) box(g, x + bw - 11 + k * 2, y - 22, 1, 3, T('#A85A3A'));
+      }
+      mist(g, w, foot - 60, 60, skyAt(0.9, tod), 0, 0.35, 4);
+      bandedGradient(g, 0, foot - 2, w, h - foot + 2, [T('#8A8478'), T('#7A7468')], 2);
+    },
+  },
   mexico: {
     // (NO volcano (the user: we have enough volcanoes): desert mesas, flat-topped and banded, a far one in the haze
     // behind, and a row of giant plywood saguaros along the foot, on its sand)
@@ -486,22 +582,6 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
 
 /** Each pavilion's far landmark, painted about (0, horizon) (its middle at x 0), tinted far. */
 const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => void>> = {
-  france: (c, hz) => {
-    // (a Notre Dame-ish cathedral, far: the two square west towers, the rose window between, the nave behind and its
-    // thin spire, flying buttresses down its side, gargoyles crouched on the towers' corners)
-    const st = farTint('#A8A29E', 0.6), dk = farTint('#78716C', 0.6), lt = farTint('#D6D3D1', 0.55);
-    box(c, 40, hz - 150, 220, 150, dk); poly(c, [[40, hz - 150], [150, hz - 200], [260, hz - 150]], farTint('#57534E', 0.6));
-    box(c, 146, hz - 300, 6, 110, dk); poly(c, [[142, hz - 300], [149, hz - 350], [156, hz - 300]], dk);
-    for (const x of [70, 120, 170, 220]) poly(c, [[x, hz - 150], [x + 22, hz - 90], [x + 26, hz - 90], [x + 4, hz - 150]], st);
-    box(c, -110, hz - 260, 60, 260, st); box(c, 10, hz - 260, 60, 260, st); box(c, -50, hz - 200, 60, 200, st);
-    box(c, -110, hz - 264, 60, 6, lt); box(c, 10, hz - 264, 60, 6, lt); box(c, -50, hz - 204, 60, 6, lt);
-    c.fillStyle = lt; c.beginPath(); c.arc(-20, hz - 150, 22, 0, Math.PI * 2); c.fill();
-    c.fillStyle = dk; c.beginPath(); c.arc(-20, hz - 150, 14, 0, Math.PI * 2); c.fill();
-    for (const x of [-96, -76, 24, 44]) { box(c, x, hz - 240, 10, 60, dk); poly(c, [[x, hz - 240], [x + 5, hz - 250], [x + 10, hz - 240]], dk); }
-    for (const x of [-80, -40, 0]) poly(c, [[x, hz], [x, hz - 50], [x + 10, hz - 64], [x + 20, hz - 50], [x + 20, hz]], dk);
-    // (the gargoyles: hunched shapes jutting off the towers' tops)
-    for (const [x, d] of [[-110, -1], [-50, 1], [10, -1], [70, 1]] as const) poly(c, [[x, hz - 262], [x + d * 16, hz - 266], [x + d * 22, hz - 258], [x + d * 12, hz - 254], [x, hz - 250]], farTint('#57534E', 0.55));
-  },
   uk: (c, hz, f) => {
     // (a giant Ferris wheel (London Eye-ish), far, turning slowly: the rim, its spokes, the pods round it, the A-frame leg)
     const R = 150, cy = hz - 175, a0 = f * 0.0015, rim = farTint('#E5E7EB', 0.5), sp = farTint('#9CA3AF', 0.55);

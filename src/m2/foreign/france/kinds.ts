@@ -17,7 +17,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Block, Enemy } from '../../../m1/types';
 import { mid } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
-import { castKind, meleeHit, setState, type Costume, type Ctx, INK, px, part, partTop, ball, limb } from '../cast';
+import { castKind, meleeHit, setState, type Costume, type Ctx, INK, px, part, partTop, ball, limb, dk, lt } from '../cast';
 import { shootFlat } from '../shots';
 import { registerHurts } from '../pavilion';
 import { HURT, V, MIME, WAITER, BAGUETTE, CANCAN, SMOKER } from './lines';
@@ -29,95 +29,161 @@ const pick = <T>(seed: number, salt: number, l: readonly T[]) => l[Math.abs(Math
 // ---------------------------------------------------------------------------------------------------------------
 // Costume pieces
 
+/** A beret (felt in steps: lit across its crown, its shade under the brim's roll), the little stalk on top. */
 const beret = (g: Ctx, B: { hx: number; hy: number; rx: number; ry: number }, col = '#1C1917') => {
   partTop(g, () => g.ellipse(B.hx - 2, B.hy - B.ry + 1, B.rx + 3, 5, -0.15, Math.PI, 0), col, B.hx - B.rx - 5, B.hy - B.ry - 4, B.rx * 2 + 6, 6, 1);
-  px(g, B.hx - 3, B.hy - B.ry - 6, 2, 3, col);
+  px(g, B.hx - B.rx - 3, B.hy - B.ry, B.rx * 2 + 4, 1, dk(col, 0.35)); px(g, B.hx - B.rx, B.hy - B.ry - 3, 6, 1, lt(col, 0.35));
+  px(g, B.hx - 3, B.hy - B.ry - 6, 2, 3, col); px(g, B.hx - 3, B.hy - B.ry - 6, 1, 1, lt(col, 0.4));
 };
-const stripes = (g: Ctx, B: { w: number; shY: number; hipY: number }, col: string) => { for (let y = B.shY + 3; y < B.hipY; y += 5) px(g, -B.w / 2, y, B.w, 2, col); };
-const mustache = (g: Ctx, B: { hx: number; hy: number }) => { px(g, B.hx + 2, B.hy + 3, 8, 1.5, INK); px(g, B.hx + 9, B.hy + 1, 1.5, 2, INK); };
+/** Breton stripes across the shirt: each stripe in steps (lit up its left, shaded down its right). */
+const stripes = (g: Ctx, B: { w: number; shY: number; hipY: number }, col: string) => {
+  for (let y = B.shY + 3; y < B.hipY; y += 5) { px(g, -B.w / 2, y, B.w, 2, col); px(g, -B.w / 2, y, 3, 2, lt(col, 0.3)); px(g, B.w / 2 - 3, y, 3, 2, dk(col, 0.35)); }
+};
+/** A drawn-on mustache (eyeliner, curled at the ends: everybody's got one). */
+const mustache = (g: Ctx, B: { hx: number; hy: number }) => { px(g, B.hx + 2, B.hy + 3, 8, 1.5, INK); px(g, B.hx + 9, B.hy + 1, 1.5, 2, INK); px(g, B.hx + 1, B.hy + 2, 1.5, 1.5, INK); };
 
 const MIME_COSTUME: Costume = {
   id: 'mime', top: '#F8FAFC', legs: '#1C1917', shoe: 'shoe', shoeCol: '#1C1917',
-  over: (g, B) => { stripes(g, B, '#1C1917'); for (const s of [-1, 1]) px(g, s * (B.w / 4) - 1, B.shY, 3, B.hipY - B.shY, '#DC2626'); },
-  // (the white face paint, a black teardrop, red lips)
+  // (the striped shirt, the red suspenders and their clips, a shade down its far side)
+  over: (g, B) => {
+    stripes(g, B, '#1C1917');
+    for (const s of [-1, 1]) { const sx = s * (B.w / 4) - 1; px(g, sx, B.shY, 3, B.hipY - B.shY, '#DC2626'); px(g, sx, B.shY, 1, B.hipY - B.shY, '#F87171'); px(g, sx - 1, B.hipY - 3, 5, 3, '#A1A1AA'); }
+    px(g, B.w / 2 - 4, B.shY, 4, B.hipY - B.shY, 'rgba(28, 16, 20, 0.18)');
+  },
+  // (the white face paint (lit, its edge shaded where it stops short of the ears), the black brows and teardrop, red lips)
   face: (g, B) => {
     px(g, B.hx - B.rx + 1, B.hy - B.ry + 2, B.rx * 2 - 1, 5, '#FFFFFF');
     px(g, B.hx - B.rx + 1, B.hy + 1, B.rx * 2 - 1, B.ry - 2, '#FFFFFF');
-    px(g, B.hx + 2, B.hy - 7, 2, 2, INK); px(g, B.hx + 8, B.hy - 1, 1, 3, INK);
-    px(g, B.hx + 3, B.hy + 5, 6, 2, '#DC2626');
+    px(g, B.hx - B.rx + 1, B.hy + B.ry - 3, B.rx * 2 - 1, 1, '#E5E7EB'); px(g, B.hx + B.rx - 2, B.hy - B.ry + 2, 1, B.ry * 2 - 4, '#E5E7EB');
+    px(g, B.hx + 1, B.hy - 9, 4, 1, INK); px(g, B.hx + 7, B.hy - 9, 4, 1, INK);
+    px(g, B.hx + 2, B.hy - 7, 2, 2, INK); px(g, B.hx + 8, B.hy - 1, 1, 3, INK); px(g, B.hx + 8, B.hy + 1, 2, 1, INK);
+    px(g, B.hx + 3, B.hy + 5, 6, 2, '#DC2626'); px(g, B.hx + 4, B.hy + 5, 2, 1, '#F87171');
   },
   hat: (g, B) => beret(g, B), hairToo: true,
   hands: (B, F) => (F.pose === 'tell' || F.pose === 'strike' ? [[B.w / 2 + 10, B.shY - 4], [B.w / 2 + 12, B.shY + 14]] : null),
-  // (the white gloves)
-  hold: (g, B, F, x, y) => ball(g, x, y, 3.5, '#FFFFFF', 1),
+  // (the white gloves: palms out flat on the air in the tell (the fingers spread), balls otherwise)
+  hold: (g, B, F, x, y) => {
+    if (F.pose === 'tell' || F.pose === 'strike') { px(g, x - 2, y - 5, 5, 9, INK); px(g, x - 1, y - 4, 3, 7, '#FFFFFF'); for (let k = 0; k < 3; k++) px(g, x + 2, y - 4 + k * 3, 3, 1, '#FFFFFF'); px(g, x - 1, y - 4, 1, 7, '#E5E7EB'); return; }
+    ball(g, x, y, 3.5, '#FFFFFF', 1);
+  },
   holdFar: (g, B, F, x, y) => ball(g, x, y, 3.5, '#E5E7EB', 1),
   eyes: 'wide', mouth: 'flat',
 };
 
+const VESTS = ['#1C1917', '#3F2A1C', '#1E293B', '#4A1D2A'];
 const WAITER_COSTUME: Costume = {
   id: 'waiter', top: '#F8FAFC', legs: '#1C1917', shoe: 'shoe', shoeCol: '#1C1917',
-  over: (g, B) => { for (const s of [-1, 1]) px(g, s < 0 ? -B.w / 2 : B.w / 2 - 8, B.shY + 2, 8, B.hipY - B.shY, '#1C1917'); px(g, -4, B.shY + 1, 9, 3, INK); px(g, -1, B.shY + 1, 2, 3, '#7F1D1D'); px(g, -B.hipW / 2 + 1, B.hipY - 2, B.hipW - 2, 20, '#F5F5F4'); },
+  // (the waistcoat over the white shirt: its fronts, the buttons, its sheen; the bow tie; the long apron, its folds)
+  over: (g, B, F) => {
+    const vc = pick(F.seed, 3, VESTS);
+    for (const s of [-1, 1]) { const vx = s < 0 ? -B.w / 2 : B.w / 2 - 8; px(g, vx, B.shY + 2, 8, B.hipY - B.shY, vc); px(g, s < 0 ? vx : vx + 6, B.shY + 2, 2, B.hipY - B.shY, s < 0 ? lt(vc, 0.2) : dk(vc, 0.3)); }
+    for (let k = 0; k < 3; k++) px(g, B.w / 2 - 9, B.shY + 7 + k * 5, 1, 1, '#CA8A04');
+    px(g, -4, B.shY + 1, 9, 3, INK); px(g, -3, B.shY + 1, 3, 2, '#7F1D1D'); px(g, 1, B.shY + 1, 3, 2, '#7F1D1D'); px(g, -1, B.shY + 1, 2, 3, '#991B1B');
+    px(g, -B.hipW / 2 + 1, B.hipY - 2, B.hipW - 2, 20, '#F5F5F4'); px(g, -B.hipW / 2 + 1, B.hipY - 2, 2, 20, '#FFFFFF'); px(g, B.hipW / 2 - 3, B.hipY - 2, 2, 20, '#D6D3D1');
+    for (const fx of [-2, 3]) px(g, fx, B.hipY + 2, 1, 16, '#E7E5E4');
+    px(g, -B.hipW / 2 + 1, B.hipY - 3, B.hipW - 2, 1, '#A8A29E');
+  },
   face: (g, B) => mustache(g, B),
   hairToo: false,
-  hat: (g, B, F) => { partTop(g, () => g.ellipse(B.hx - 1, B.hy - 3, B.rx + 0.5, B.ry - 1, 0, Math.PI, 0), pick(F.seed, 2, ['#1C1917', '#3F2A1C', '#57534E']), B.hx - B.rx - 1, B.hy - B.ry - 2, B.rx * 2, B.ry, 1); },
-  hands: (B, F) => (F.pose === 'tell' ? [[-B.w / 2 - 4, B.shY + 14], [-B.w / 2 - 6, B.shY - 12]] : F.pose === 'strike' ? [[-B.w / 2 - 2, B.shY + 14], [B.w / 2 + 18, B.shY + 4]] : [[-B.w / 2 - 6, B.shY + 10], [B.w / 2 + 10, B.shY - 4]]),
-  // (the tray up on the fingertips, a glass of red on it; a plate cocked back in the tell)
-  hold: (g, B, F, x, y) => {
-    if (F.pose === 'tell') { part(g, () => g.ellipse(x, y - 2, 10, 4, -0.4, 0, Math.PI * 2), '#F8FAFC', x - 10, y - 6, 20, 8, 1); return; }
-    if (F.pose === 'strike') return;
-    px(g, x - 14, y - 3, 28, 3, INK); px(g, x - 13, y - 3, 26, 2, '#D6D3D1');
-    px(g, x - 2, y - 13, 5, 6, '#7F1D1D'); px(g, x, y - 7, 1, 4, '#E5E7EB');
+  // (the hair slicked back: its comb lines, its shine)
+  hat: (g, B, F) => {
+    const col = pick(F.seed, 2, ['#1C1917', '#3F2A1C', '#57534E', '#A16207']);
+    partTop(g, () => g.ellipse(B.hx - 1, B.hy - 3, B.rx + 0.5, B.ry - 1, 0, Math.PI, 0), col, B.hx - B.rx - 1, B.hy - B.ry - 2, B.rx * 2, B.ry, 1);
+    for (let k = 0; k < 3; k++) px(g, B.hx - B.rx + 3 + k * 4, B.hy - B.ry + 1, 3, 1, lt(col, 0.35));
   },
-  holdFar: (g, B, F, x, y) => { px(g, x - 4, y - 2, 8, 14, '#F8FAFC'); },
+  hands: (B, F) => (F.pose === 'tell' ? [[-B.w / 2 - 4, B.shY + 14], [-B.w / 2 - 6, B.shY - 12]] : F.pose === 'strike' ? [[-B.w / 2 - 2, B.shY + 14], [B.w / 2 + 18, B.shY + 4]] : [[-B.w / 2 - 6, B.shY + 10], [B.w / 2 + 10, B.shY - 4]]),
+  // (the tray up on the fingertips, a glass of red on it (the glass's shine, the wine's); a plate cocked back in the tell)
+  hold: (g, B, F, x, y) => {
+    if (F.pose === 'tell') { part(g, () => g.ellipse(x, y - 2, 10, 4, -0.4, 0, Math.PI * 2), '#F8FAFC', x - 10, y - 6, 20, 8, 1); px(g, x - 4, y - 3, 6, 1, '#1E40AF'); return; }
+    if (F.pose === 'strike') return;
+    px(g, x - 14, y - 4, 28, 4, INK); px(g, x - 13, y - 3, 26, 2, '#D6D3D1'); px(g, x - 13, y - 3, 26, 1, '#F5F5F4');
+    px(g, x - 3, y - 14, 7, 8, INK); px(g, x - 2, y - 13, 5, 6, '#E0F2FE'); px(g, x - 2, y - 10, 5, 3, '#7F1D1D'); px(g, x - 2, y - 13, 1, 6, '#FFFFFF');
+    px(g, x, y - 7, 1, 4, '#E5E7EB'); px(g, x - 2, y - 4, 5, 1, '#E5E7EB');
+  },
+  // (the white towel over the far arm, its fold)
+  holdFar: (g, B, F, x, y) => { px(g, x - 5, y - 3, 10, 16, INK); px(g, x - 4, y - 2, 8, 14, '#F8FAFC'); px(g, x - 4, y - 2, 2, 14, '#FFFFFF'); px(g, x + 2, y - 2, 2, 14, '#D6D3D1'); px(g, x - 4, y + 4, 8, 1, '#E5E7EB'); },
   eyes: 'smug', mouth: 'smirk',
 };
 
+const NECKS = ['#DC2626', '#1E3A8A', '#F8FAFC', '#FDE047'];
 const BAGUETTE_COSTUME: Costume = {
-  id: 'baguette', top: '#F8FAFC', legs: s => pick(s, 2, ['#1E3A8A', '#1C1917', '#57534E']), shoe: 'shoe', shoeCol: '#1C1917',
-  over: (g, B) => { stripes(g, B, '#1E3A8A'); part(g, () => { g.moveTo(-5, B.shY); g.lineTo(6, B.shY); g.lineTo(1, B.shY + 8); g.closePath(); }, '#DC2626', -5, B.shY, 11, 8, 0.8); },
+  id: 'baguette', top: '#F8FAFC', legs: s => pick(s, 2, ['#1E3A8A', '#1C1917', '#57534E', '#7F1D1D']), shoe: 'shoe', shoeCol: '#1C1917',
+  // (the Breton stripes, the neckerchief knotted at the throat and its points)
+  over: (g, B, F) => {
+    stripes(g, B, pick(F.seed, 4, ['#1E3A8A', '#1C1917', '#B91C1C']));
+    const nc = pick(F.seed, 5, NECKS);
+    part(g, () => { g.moveTo(-5, B.shY); g.lineTo(6, B.shY); g.lineTo(1, B.shY + 8); g.closePath(); }, nc, -5, B.shY, 11, 8, 0.8);
+    px(g, -1, B.shY, 3, 3, dk(nc, 0.3)); px(g, 3, B.shY + 2, 4, 2, nc);
+  },
   face: (g, B) => mustache(g, B),
-  hat: (g, B) => beret(g, B, '#1C1917'), hairToo: true,
+  hat: (g, B, F) => beret(g, B, pick(F.seed, 6, ['#1C1917', '#1E3A8A', '#7F1D1D'])), hairToo: true,
   hands: (B, F) => (F.pose === 'tell' ? [[-B.w / 2 - 4, B.shY + 12], [-B.w / 2, B.shY - 16]] : F.pose === 'strike' ? [[-B.w / 2, B.shY + 14], [B.w / 2 + 14, B.shY + 4]] : null),
-  // (the baguette: up and back, swung level, or under the arm)
+  // (the Costco baguette: its crust in steps (lit along its top, darker under), the scores across it, flour on it; up and
+  // back, swung level, or under the arm)
   hold: (g, B, F, x, y) => {
-    const a = F.pose === 'tell' ? -2.2 : F.pose === 'strike' ? -0.1 : 1.2, len = 46;
-    limb(g, x, y, x + Math.cos(a) * len, y + Math.sin(a) * len, 4, '#D6A15E');
-    for (let k = 1; k < 4; k++) { const t = k / 4; px(g, x + Math.cos(a) * len * t - 1, y + Math.sin(a) * len * t - 1, 3, 1, '#92400E'); }
+    const a = F.pose === 'tell' ? -2.2 : F.pose === 'strike' ? -0.1 : 1.2, len = 46, ca = Math.cos(a), sa = Math.sin(a);
+    limb(g, x, y, x + ca * len, y + sa * len, 5, '#B8732E'); limb(g, x - sa * 1.2, y + ca * -1.2, x + ca * len - sa * 1.2, y + sa * len - ca * 1.2, 2, '#E0A860', false);
+    for (let k = 1; k < 5; k++) { const t = k / 5, mx = x + ca * len * t, my = y + sa * len * t; px(g, mx - 1, my - 2, 3, 1, '#7A4410'); px(g, mx, my - 1, 2, 1, '#F2D7A0'); }
+    px(g, x + ca * len * 0.3, y + sa * len * 0.3 - 1, 1, 1, '#FFFFFF');
   },
   eyes: 'smug', mouth: 'grin',
 };
 
-const CORSETS = ['#B91C1C', '#1C1917', '#DB2777', '#7C3AED'];
+const CORSETS = ['#B91C1C', '#1C1917', '#DB2777', '#7C3AED', '#0F766E'];
+const PLUMES = ['#F472B6', '#FDE047', '#F8FAFC', '#A78BFA', '#F87171'];
 const CANCAN_COSTUME: Costume = {
   id: 'cancan', top: s => pick(s, 2, CORSETS), legs: '#1C1917', shoe: 'shoe', shoeCol: '#1C1917', sleeveLen: 0.2,
-  // (the frilly skirt: layers of ruffles round the hips, flared)
+  // (the corset (its boning, the lacing up its front, lit down its left), the frilly skirt's layers of ruffles in steps,
+  // flared, each ruffle's scalloped edge, a garter)
   over: (g, B, F) => {
     const col = pick(F.seed, 2, CORSETS);
-    for (let k = 0; k < 3; k++) part(g, () => { g.moveTo(-B.hipW / 2 - 2 - k * 3, B.hipY - 4 + k * 7); g.lineTo(B.hipW / 2 + 2 + k * 3, B.hipY - 4 + k * 7); g.lineTo(B.hipW / 2 + 6 + k * 3, B.hipY + 5 + k * 7); g.lineTo(-B.hipW / 2 - 6 - k * 3, B.hipY + 5 + k * 7); g.closePath(); }, k % 2 ? '#F8FAFC' : col, -B.hipW / 2 - 12, B.hipY - 4, B.hipW + 24, 26, 0.8);
-    for (let k = 0; k < 4; k++) px(g, -B.w / 2 + 3 + k * 5, B.shY + 4, 1, B.hipY - B.shY - 8, '#1C1917');
+    for (let k = 0; k < 4; k++) px(g, -B.w / 2 + 3 + k * 5, B.shY + 4, 1, B.hipY - B.shY - 8, dk(col, 0.4));
+    px(g, -B.w / 2 + 1, B.shY + 2, 2, B.hipY - B.shY - 6, lt(col, 0.3));
+    for (let y = B.shY + 5; y < B.hipY - 6; y += 3) { px(g, -2, y, 2, 1, '#F8FAFC'); px(g, 1, y + 1, 2, 1, '#F8FAFC'); }
+    for (let k = 0; k < 3; k++) {
+      const c2 = k % 2 ? '#F8FAFC' : col, y0 = B.hipY - 4 + k * 7, l = -B.hipW / 2 - 6 - k * 3, r = B.hipW / 2 + 6 + k * 3;
+      part(g, () => { g.moveTo(-B.hipW / 2 - 2 - k * 3, y0); g.lineTo(B.hipW / 2 + 2 + k * 3, y0); g.lineTo(r, y0 + 9); g.lineTo(l, y0 + 9); g.closePath(); }, c2, l - 6, y0, r - l + 12, 26, 0.8);
+      for (let x = l; x < r - 2; x += 4) px(g, x, y0 + 8, 3, 2, k % 2 ? '#E5E7EB' : dk(col, 0.25));
+    }
   },
-  // (the feather plume)
-  hat: (g, B, F) => { const col = pick(F.seed, 3, ['#F472B6', '#FDE047', '#F8FAFC', '#A78BFA']); for (let k = 0; k < 3; k++) part(g, () => g.ellipse(B.hx - 4 + k * 4, B.hy - B.ry - 10, 3, 11, -0.3 + k * 0.3, 0, Math.PI * 2), col, B.hx - 8 + k * 4, B.hy - B.ry - 21, 8, 22, 0.6); px(g, B.hx - 6, B.hy - B.ry - 1, 12, 3, '#FCD34D'); },
+  // (the feather plume in its colors, each feather lit along its spine; the jeweled band)
+  hat: (g, B, F) => {
+    const col = pick(F.seed, 3, PLUMES);
+    for (let k = 0; k < 3; k++) { part(g, () => g.ellipse(B.hx - 4 + k * 4, B.hy - B.ry - 10, 3, 11, -0.3 + k * 0.3, 0, Math.PI * 2), col, B.hx - 8 + k * 4, B.hy - B.ry - 21, 8, 22, 0.6); px(g, B.hx - 4 + k * 4, B.hy - B.ry - 18, 1, 14, lt(col, 0.5)); }
+    px(g, B.hx - 6, B.hy - B.ry - 1, 12, 3, '#FCD34D'); px(g, B.hx - 1, B.hy - B.ry - 1, 2, 2, '#DC2626'); px(g, B.hx - 6, B.hy - B.ry - 1, 12, 1, '#FEF9C3');
+  },
   hairToo: true,
   hands: (B, F) => (F.pose === 'tell' || F.pose === 'strike' ? [[-B.w / 2 - 10, B.shY - 8], [B.w / 2 + 10, B.shY - 10]] : [[-B.w / 2 - 6, B.hipY + 2], [B.w / 2 + 6, B.hipY + 2]]),
   eyes: 'wide', mouth: 'smile',
 };
-/** The kick: a black-stockinged leg up high out front, the shoe at the top, the petticoat flipped. */
+/** The kick: a black-stockinged leg up high out front (its sheen, the garter), the heel at the top, the petticoat
+ *  flipped up in its ruffles. */
 const drawKick = (c: Ctx, e: Enemy) => {
   if (e.aiState !== 'strike' || e.health <= 0 || !e.id) return;
-  limb(c, 2, -34, 30, -70, 6, INK); limb(c, 2, -34, 30, -70, 4, '#1C1917');
-  px(c, 26, -78, 10, 6, '#1C1917'); px(c, 24, -76, 3, 3, '#FCD34D');
+  limb(c, 2, -34, 30, -70, 6, INK); limb(c, 2, -34, 30, -70, 4, '#1C1917'); limb(c, 1, -36, 28, -71, 1, '#57534E', false);
+  px(c, 8, -44, 5, 3, '#DC2626'); px(c, 8, -44, 5, 1, '#F87171');
+  px(c, 26, -78, 10, 6, INK); px(c, 27, -77, 8, 4, '#1C1917'); px(c, 34, -74, 2, 5, INK); px(c, 24, -76, 3, 3, '#FCD34D');
   part(c, () => { c.moveTo(-6, -36); c.lineTo(16, -52); c.lineTo(20, -40); c.closePath(); }, '#F8FAFC', -6, -52, 26, 16, 0.8);
+  for (let k = 0; k < 4; k++) px(c, -2 + k * 5, -40 - k * 3, 3, 2, '#E5E7EB');
 };
 
 const SMOKER_COSTUME: Costume = {
-  id: 'smoker', top: '#1C1917', legs: s => pick(s, 2, ['#1C1917', '#44403C']), shoe: 'pointy', shoeCol: '#1C1917',
-  over: (g, B) => { px(g, -B.w / 2 + 2, B.shY - 2, B.w - 4, 4, '#292524'); },
-  face: (g, B) => { px(g, B.hx - 1, B.hy - 4, 13, 4, INK); },
-  hat: (g, B) => beret(g, B, '#7F1D1D'), hairToo: true,
+  id: 'smoker', top: '#1C1917', legs: s => pick(s, 2, ['#1C1917', '#44403C', '#292524']), shoe: 'pointy', shoeCol: '#1C1917',
+  // (the black turtleneck: its rolled collar, the ribbing, a sheen down its near side)
+  over: (g, B) => {
+    px(g, -B.w / 2 + 2, B.shY - 3, B.w - 4, 5, '#292524'); for (let x = -B.w / 2 + 3; x < B.w / 2 - 2; x += 2) px(g, x, B.shY - 3, 1, 5, '#3F3F46');
+    px(g, -B.w / 2 + 1, B.shY + 3, 2, B.hipY - B.shY - 3, '#3F3F46'); px(g, -B.w / 2, B.hipY - 3, B.w, 2, '#292524');
+  },
+  // (the shades: frames, lenses, the shine)
+  face: (g, B) => { px(g, B.hx - 1, B.hy - 4, 13, 4, INK); px(g, B.hx, B.hy - 3, 5, 2, '#27272A'); px(g, B.hx + 6, B.hy - 3, 5, 2, '#27272A'); px(g, B.hx + 1, B.hy - 3, 1, 1, '#A1A1AA'); px(g, B.hx + 7, B.hy - 3, 1, 1, '#A1A1AA'); },
+  hat: (g, B, F) => beret(g, B, pick(F.seed, 4, ['#7F1D1D', '#1C1917', '#1E3A8A'])), hairToo: true,
   hands: (B, F) => (F.pose === 'tell' || F.pose === 'strike' ? [[-B.w / 2 - 2, B.shY + 14], [B.hx + 7, B.hy + 7]] : [[-B.w / 2 - 2, B.shY + 14], [B.w / 2 + 6, B.shY + 4]]),
-  // (the cigarette, its ember, a curl of smoke up off it)
-  hold: (g, B, F, x, y) => { px(g, x, y - 2, 9, 2, '#F5F5F4'); px(g, x + 8, y - 2, 2, 2, '#F97316'); const w = Math.sin(F.fr * 0.5) * 2; px(g, x + 9 + w, y - 9, 2, 3, '#D6D3D1'); px(g, x + 10 - w, y - 15, 2, 3, '#E7E5E4'); },
+  // (the cigarette (its paper, the filter), its ember glowing, a curl of smoke up off it in stepped grays)
+  hold: (g, B, F, x, y) => {
+    px(g, x - 1, y - 3, 12, 4, INK); px(g, x, y - 2, 3, 2, '#D97706'); px(g, x + 3, y - 2, 6, 2, '#F5F5F4'); px(g, x + 8, y - 2, 2, 2, (F.fr % 2) ? '#F97316' : '#FB923C'); px(g, x + 10, y - 2, 1, 2, '#FDE68A');
+    const w = Math.sin(F.fr * 0.5) * 2;
+    px(g, x + 9 + w, y - 9, 2, 3, '#A8A29E'); px(g, x + 10 - w, y - 15, 2, 3, '#D6D3D1'); px(g, x + 9 + w, y - 21, 2, 3, '#E7E5E4');
+  },
   eyes: 'tired', mouth: 'smirk',
 };
 
@@ -163,15 +229,32 @@ export const updateMimeWalls = (ctx: FrameContext) => {
     }
   }
 };
-/** Drawn faint: a shimmer where it is (it's invisible: just enough to read), its cracks as it's shot. */
+/** Drawn faint (it's invisible: just enough to read as a wall being mimed): a shimmer in stepped bands, a glint
+ *  running up its edge, the mime's two palm prints on it where they press, its cracks (stepped, jagged) as it's shot. */
 export const drawMimeWalls = (c: Ctx, state: GameState) => {
+  const f = state.frame;
   for (const w of wallsOf(state)) {
-    const b = w.b, flash = state.frame - w.hit < 6;
-    c.globalAlpha = flash ? 0.55 : 0.18 + Math.sin(state.frame * 0.15) * 0.05;
-    c.fillStyle = '#E0F2FE'; c.fillRect(b.x, b.y, b.w, b.h);
-    c.globalAlpha = flash ? 0.9 : 0.45;
-    c.strokeStyle = '#FFFFFF'; c.lineWidth = 1; c.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1);
-    for (let k = 0; k < WALL_HP - w.hp; k++) { const y = b.y + 14 + k * 17; c.beginPath(); c.moveTo(b.x + 2, y); c.lineTo(b.x + b.w / 2, y + 6); c.lineTo(b.x + b.w - 2, y + 2); c.stroke(); }
+    const b = w.b, flash = f - w.hit < 6, x = Math.round(b.x), y = Math.round(b.y);
+    const a0 = flash ? 0.5 : 0.16 + Math.sin(f * 0.15) * 0.05;
+    c.globalAlpha = a0; c.fillStyle = '#E0F2FE'; c.fillRect(x, y, b.w, b.h);
+    c.globalAlpha = a0 * 0.8; c.fillStyle = '#FFFFFF'; c.fillRect(x, y, 3, b.h); c.fillStyle = '#93C5FD'; c.fillRect(x + b.w - 3, y, 3, b.h);
+    for (let k = 0; k < 4; k++) { const by = y + ((f * 2 + k * 31) % b.h); c.fillStyle = '#FFFFFF'; c.fillRect(x + 3, by, b.w - 6, 1); }
+    c.globalAlpha = flash ? 0.9 : 0.5;
+    c.strokeStyle = '#FFFFFF'; c.lineWidth = 1; c.strokeRect(x + 0.5, y + 0.5, b.w - 1, b.h - 1);
+    // (a glint climbing its near edge)
+    const gy = y + b.h - ((f * 3) % (b.h + 20));
+    if (gy > y && gy < y + b.h - 6) { c.fillStyle = '#FFFFFF'; c.fillRect(x + 1, gy, 2, 6); c.fillRect(x, gy + 2, 4, 2); }
+    // (the palm prints where the mime presses: a palm, four fingers)
+    const owner = w.owner, side = (owner.facing ?? 1) > 0 ? 0 : 1;
+    c.globalAlpha = flash ? 0.7 : 0.32; c.fillStyle = '#F8FAFC';
+    for (const py of [y + 22, y + 52]) { const px0 = x + (side ? b.w - 6 : 2); c.fillRect(px0, py, 4, 6); for (let k = 0; k < 4; k++) c.fillRect(px0 + k, py - 5 + (k === 0 || k === 3 ? 2 : 0), 1, 5 - (k === 0 || k === 3 ? 2 : 0)); }
+    // (its cracks: jagged, in steps, white over blue)
+    c.globalAlpha = flash ? 0.95 : 0.6;
+    for (let k = 0; k < WALL_HP - w.hp; k++) {
+      const cy = y + 14 + k * 17;
+      c.strokeStyle = '#60A5FA'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 2, cy + 1); c.lineTo(x + b.w / 2, cy + 7); c.lineTo(x + b.w - 2, cy + 3); c.stroke();
+      c.strokeStyle = '#FFFFFF'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 2, cy); c.lineTo(x + b.w / 2, cy + 6); c.lineTo(x + b.w - 2, cy + 2); c.moveTo(x + b.w / 2, cy + 6); c.lineTo(x + b.w / 2 + 2, cy + 12); c.stroke();
+    }
     c.globalAlpha = 1;
   }
 };

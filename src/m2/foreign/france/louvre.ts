@@ -15,7 +15,8 @@ import { spawnCast, byPants } from '../cast';
 import { playSound } from '../../../m1/game/platform/audio';
 import { setHazardZones } from '../../hazardHit';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout } from '../setpiece';
-import { type Ctx, type View, box, poly, boxes3, ledge3, setBack, wall, hole, postBoard, LOOKS, dimmed, hour, onScreen, INK, mix } from '../kit';
+import { type Ctx, type View, postBoard, LOOKS, onScreen } from '../kit';
+import { drawPalace, drawPyramidArt, nozzle, jet, monaPostcard, puddle, bookstall, apartmentBlock, ironBalcony } from './art';
 import { V, FOUNTAIN } from './lines';
 
 const { x0, x1 } = SECTIONS.france;
@@ -93,43 +94,24 @@ export const updateLouvre = (ctx: FrameContext) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-const GLASS = '#93C5FD', STEEL = '#475569';
-
 export const drawLouvreBack = (c: Ctx, v: View, state: GameState) => {
   if (!onScreen(v, X(LOUVRE_FROM), x1)) return;
   const f = state.frame;
-  // (the palace wings behind the courtyard, set back: pale stone, mansards, rows of tall windows)
-  setBack(c, v, X(3700), 1000, 0.9, () => {
-    wall(c, 0, 1000, 300, '#E7E0CC');
-    poly(c, [[-10, -300], [1010, -300], [990, -360], [10, -360]], dimmed('#475569'));
-    for (let wx = 30; wx < 980; wx += 60) { hole(c, wx, -250, 24, 60, true); hole(c, wx, -130, 24, 70, true); }
-  });
-  // (the pyramid: glass tiers in steel frames, lit lips along each tier's top: somewhere to stand)
+  // (the palace wings behind the courtyard, set back: limestone, the arcade, the pediments, the mansard and pavilion)
+  drawPalace(c, v, X(3700), 1000, 300);
+  // (the pyramid: glass tiers in their steel lattice, the gift shop dim inside, lit lips along each tier's top)
   if (onScreen(v, X(TIERS[0][0]), X(TIERS[0][1]))) {
-    boxes3(c, v, TIERS.map(([a, b, h], i) => ({ x: X(a), top: Y(h), w: b - a, bottom: Y(i ? TIERS[i - 1][2] : 0), col: GLASS, standable: true })));
-    for (const [a, b, h] of TIERS) {
-      for (let x = X(a); x < X(b); x += 40) box(c, x, Y(h), 2, 100, hour(STEEL));
-      c.strokeStyle = hour(STEEL); c.lineWidth = 1;
-      for (let x = X(a); x < X(b) - 20; x += 40) { c.beginPath(); c.moveTo(x, Y(h)); c.lineTo(x + 40, Y(h) + 100); c.moveTo(x + 40, Y(h)); c.lineTo(x, Y(h) + 100); c.stroke(); }
-      box(c, X(a) + 6, Y(h) + 8, 30, 4, mix(hour(GLASS), '#FFFFFF', 0.6));
-    }
+    drawPyramidArt(c, v, TIERS.map(([a, b, h], i) => ({ a: X(a), b: X(b), top: Y(h), bottom: Y(i ? TIERS[i - 1][2] : 0) })));
     // (the nozzles in the steps, and their gurgle)
-    NOZZLES.forEach((rx, k) => { const base = Y(tierAt(rx)), j = jetAt(f, k); box(c, X(rx) - 8, base - 6, 16, 6, '#334155'); if (j.st === 'warn' && (f >> 2) % 2) box(c, X(rx) - 4, base - 16 - j.u * 10, 8, 10, '#BAE6FD'); });
-    // (the Mona Lisa on the apex: a postcard on a stand, a rope)
-    box(c, X(4290), Y(500) - 46, 20, 26, INK); box(c, X(4292), Y(500) - 44, 16, 22, hour('#A16207')); box(c, X(4297), Y(500) - 40, 6, 7, '#E8C7A0');
-    box(c, X(4298), Y(500) - 20, 4, 20, '#71717A');
+    NOZZLES.forEach((rx, k) => { const j = jetAt(f, k); nozzle(c, X(rx), Y(tierAt(rx)), j.st === 'warn' ? j.u : -1, f); });
+    // (the Mona Lisa on the apex: a postcard on its easel, behind a velvet rope)
+    monaPostcard(c, v, X(4300), Y(500));
   }
-  // (the bookstalls: green boxes with lids; the apartment block: cream stone, a mansard, wrought-iron balconies)
-  boxes3(c, v, [
-    ...STALLS.map(([a, b, h]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col: '#166534', standable: true })),
-    { x: X(BLOCK.a), top: Y(BLOCK.h), w: BLOCK.b - BLOCK.a, bottom: GY, col: '#E7E0CC', standable: true },
-  ]);
-  if (onScreen(v, X(BLOCK.a), X(BLOCK.b))) {
-    poly(c, [[X(BLOCK.a), Y(BLOCK.h) + 50], [X(BLOCK.b), Y(BLOCK.h) + 50], [X(BLOCK.b) - 14, Y(BLOCK.h)], [X(BLOCK.a) + 14, Y(BLOCK.h)]], hour('#475569'));
-    box(c, X(BLOCK.a), Y(BLOCK.h), BLOCK.b - BLOCK.a, 3, '#FDE68A');
-    for (let wy = Y(BLOCK.h) + 70; wy < GY - 40; wy += 90) for (let wx = X(BLOCK.a) + 24; wx < X(BLOCK.b) - 30; wx += 56) box(c, wx, wy, 22, 50, '#1C1014');
-  }
-  for (const [a, b, h] of BALCONIES) if (onScreen(v, X(a), X(b))) { ledge3(c, v, X(a), Y(h), b - a, '#1C1917', 8); for (let x = X(a) + 4; x < X(b); x += 9) box(c, x, Y(h) - 16, 2, 16, INK); box(c, X(a), Y(h) - 18, b - a, 2, INK); }
+  // (the Seine (a puddle), the bookstalls, the apartment block and its balconies)
+  puddle(c, v, X(4655), X(4735), f);
+  STALLS.forEach(([a, b, h], i) => bookstall(c, v, X(a), X(b), Y(h), i * 3));
+  apartmentBlock(c, v, X(BLOCK.a), X(BLOCK.b), Y(BLOCK.h));
+  for (const [a, b, h] of BALCONIES) ironBalcony(c, v, X(a), X(b), Y(h));
   // (signs: held up, nothing over them)
   if (onScreen(v, X(3780), X(3940))) postBoard(c, X(3860), GY, ['LE LOUVRE', '(GIFT SHOP)', 'MONA LISA: TOP', 'ACTUAL SIZE* *SMALLER'], LOOKS.france(1), '#14532D', undefined, 140);
   if (onScreen(v, X(4700), X(4740))) postBoard(c, X(4700), GY, ['LA SEINE', '(A PUDDLE)'], LOOKS.france(1), '#1E3A8A', undefined, 100);
@@ -141,11 +123,7 @@ export const drawLouvreFront = (c: Ctx, v: View, state: GameState) => {
   if (onScreen(v, X(TIERS[0][0]), X(TIERS[0][1]))) NOZZLES.forEach((rx, k) => {
     const j = jetAt(f, k);
     if (j.st !== 'jet') return;
-    const base = Y(tierAt(rx)), h = JET_H * j.u;
-    c.globalAlpha = 0.8;
-    box(c, X(rx) - JW, base - h, JW * 2, h, '#7DD3FC'); box(c, X(rx) - JW / 2, base - h, JW, h, '#E0F2FE');
-    for (let k2 = 0; k2 < 6; k2++) box(c, X(rx) + Math.sin(f * 0.4 + k2 * 2) * (JW + 10), base - h + k2 * 6, 5, 5, '#E0F2FE');
-    c.globalAlpha = 1;
+    jet(c, X(rx), Y(tierAt(rx)), JET_H * j.u, JW, f);
   });
   drawShout(c, louvreOf(state).said);
 };

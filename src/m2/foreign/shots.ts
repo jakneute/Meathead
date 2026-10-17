@@ -370,8 +370,15 @@ export const drawShots = (c: Ctx, state: GameState) => {
       }
       case 'plate': {
         const k = Math.abs(Math.cos(s.t * 0.4));
+        // (a dinner plate spun flat: its rim in steps (lit on its top-left arc, shaded under), the blue pin line round it,
+        // the well, a smear of sauce and a snail shell left on it, a glint going round)
         c.save(); c.translate(s.x, s.y); c.scale(1, 0.3 + 0.7 * k);
-        disc(c, 0, 0, 12, 12, INK); disc(c, 0, 0, 11, 11, '#F8FAFC'); disc(c, 0, 0, 7, 7, '#E5E7EB'); disc(c, 2, 1, 3, 2, '#A16207');
+        disc(c, 0, 0, 12.5, 12.5, INK); disc(c, 0, 0, 11.5, 11.5, '#C8CDD4'); disc(c, -0.5, -0.5, 10.5, 10.5, '#F1F5F9'); disc(c, -1, -1, 9, 9, '#FFFFFF');
+        c.strokeStyle = '#1E40AF'; c.lineWidth = 1; c.beginPath(); c.arc(0, 0, 9.5, 0, Math.PI * 2); c.stroke();
+        disc(c, 0, 0, 7, 7, '#E2E8F0'); disc(c, 0.5, 0.5, 6, 6, '#EEF2F6');
+        disc(c, 2, 1, 3.5, 2.2, '#9A3412'); disc(c, 1.5, 0.5, 2, 1.2, '#C2410C');
+        disc(c, -2.5, -1, 2.4, 2.4, INK); disc(c, -2.5, -1, 1.8, 1.8, '#A16207'); c.fillStyle = '#FDE68A'; c.fillRect(-3, -2, 1, 1);
+        const ga = s.t * 0.4; c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(Math.cos(ga) * 10.5), Math.round(Math.sin(ga) * 10.5), 2, 1);
         c.restore(); break;
       }
       case 'pint': {
