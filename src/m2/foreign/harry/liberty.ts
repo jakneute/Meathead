@@ -567,6 +567,8 @@ const GRIP = 76, HEAD = 96, TORCH_H = 132, BUTT = TORCH_H + 13 - GRIP;
 /** Staked: how much further down through her grip the torch is driven (its handle's bottom third in the slab), and
  *  how far it's slanted, rammed in. */
 const DEEP = 56, RAM = 0.14, RISE = 26;
+/** Flame first into the floor: how far her fist's punched in after the torch (its middle under the floor's line). */
+const FIST_SINK = 6;
 /**
  * Her right arm, the torch arm: from her shoulder (sunk `dy`) to (fx, fy) (world): her hand, the torch upright in it;
  * or, smashing (`smash` 0..1; the user: "slams it down with the bottom of the torch sticking in the ground"), the
@@ -590,11 +592,15 @@ export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torc
   const T = w > 0 ? { x: S.x + (fx - S.x) * w + dx * (1 - w), y: S.y + (fy - S.y) * w + dy * (1 - w) } : { x: S.x + dx, y: S.y + dy };
   const upA = -Math.PI / 2;
   let lean = Math.atan2(S.y - T.y, S.x - T.x) - upA; while (lean > Math.PI) lean -= Math.PI * 2; while (lean < -Math.PI) lean += Math.PI * 2;
-  // (staked: rammed in at a slant, back toward her)
-  const ta = upA + Math.max(-0.62, Math.min(0.62, lean * 0.35 + (lean >= 0 ? RAM : -RAM))) * w;
-  // (her hand: there, or up the handle from the butt)
+  // (smashing onto the floor (the user: "you can see her fist in the ground, like the whole torch went in"): she turns
+  // it over in her fist as it comes down, flame first like an ice pick, and drives the whole torch into the slab, her
+  // fist punched in after it up to the knuckles. Anywhere else, staked butt first: rammed in at a slant, back toward her)
+  const pick = opts.torch && opts.floor !== undefined && w > 0;
+  const turn = T.x < S.x ? -1 : 1;
+  const ta = pick ? upA + turn * Math.PI * w : upA + Math.max(-0.62, Math.min(0.62, lean * 0.35 + (lean >= 0 ? RAM : -RAM))) * w;
+  // (her hand: there (sunk into the floor once it's in), or up the handle from the butt)
   const full = GRIP + HEAD;
-  const H = { x: T.x + Math.cos(ta) * (BUTT + RISE) * w, y: T.y + Math.sin(ta) * (BUTT + RISE) * w };
+  const H = pick ? { x: T.x, y: Math.min(T.y, opts.floor! + FIST_SINK) } : { x: T.x + Math.cos(ta) * (BUTT + RISE) * w, y: T.y + Math.sin(ta) * (BUTT + RISE) * w };
   // (the elbow: a gentle sculpted bend: out to her side raised, up over the line lowered, away from her face rearing)
   const hdx = H.x - S.x, hdy = H.y - S.y, hd = Math.hypot(hdx, hdy) || 1, nx = -hdy / hd, ny = hdx / hd;
   const mid = { x: S.x + hdx * 0.5, y: S.y + hdy * 0.5 };
@@ -613,14 +619,16 @@ export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torc
   const rot = ta + Math.PI / 2, torchFront = w > 0.3;
   // (staked, the torch's driven on down through her grip: the bottom third of its handle's in the slab, her fist up on
   // the top of the handle; each silent tug lifts it a hair, then it drops back)
-  const deep = DEEP * w, lift = (opts.tug ?? 0) * 2;
+  const deep = pick ? 0 : DEEP * w, lift = (opts.tug ?? 0) * 2;
   const torch = () => {
     if (!opts.torch) return;
     c.save();
-    // (the butt in the floor: nothing of it below the floor's line)
+    // (what's in the floor: nothing of it below the floor's line)
     if (opts.floor !== undefined && w > 0) { c.beginPath(); c.rect(-100000, -100000, 200000, opts.floor + 100000); c.clip(); }
     c.translate(H.x, H.y - lift); c.rotate(rot); c.translate(0, -GRIP + deep); torchArt(c, TORCH_H, true, L.f); c.restore();
-    torchFlame = { x: H.x + jx + Math.cos(ta) * (full - deep), y: H.y - lift + Math.sin(ta) * (full - deep), f: L.f };
+    const flx = H.x + jx + Math.cos(ta) * (full - deep), fly = H.y - lift + Math.sin(ta) * (full - deep);
+    // (its flame buried in the slab: no light off it)
+    torchFlame = opts.floor !== undefined && fly > opts.floor + 10 ? null : { x: flx, y: fly, f: L.f };
   };
   // (where it went in: on the torch's line, at the floor)
   const staked = opts.torch && opts.floor !== undefined && w > 0.6 && T.y > opts.floor - 4;
@@ -632,19 +640,27 @@ export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torc
     c.strokeStyle = INK; c.lineWidth = 2;
     for (const [a, l] of [[0.1, 70], [0.5, 46], [2.7, 64], [3.1, 80], [-0.25, 38], [3.4, 40]] as const) { c.beginPath(); c.moveTo(ex + Math.cos(a) * 30 * k, gy + Math.sin(a) * 4); c.lineTo(ex + Math.cos(a) * (30 + l * 0.5) * k, gy + Math.sin(a) * 6 - 1); c.lineTo(ex + Math.cos(a) * (30 + l) * k, gy + Math.sin(a) * 7); c.stroke(); }
   }
-  if (!torchFront) torch();
+  if (!torchFront || pick) torch();
   sculptedArm(c, S, E, H, 70);
-  if (torchFront) torch();
-  // (in front of it: the broken slab heaped up round the shaft, overlapping the handle, the near rim; dust on a tug)
-  if (staked) {
+  if (torchFront && !pick) torch();
+  // (in front of it: the broken slab heaped up round the shaft, overlapping the handle, the near rim; dust on a tug;
+  // punched in, over the foot of her fist)
+  const rubble = () => {
+    if (!staked) return;
     for (const [ox, sz, h, col] of [[-34, 13, 10, '#8A8378'], [-20, 11, 15, '#A8A29E'], [-8, 9, 12, '#6B5B45'], [6, 10, 16, '#A8A29E'], [18, 12, 11, '#8A8378'], [32, 10, 8, '#6B5B45'], [-2, 14, 7, '#78716C']] as const) {
       const sw = sz * k, sh = h * k;
       fl(c, col, () => { c.moveTo(ex + ox - sw, gy + 3); c.lineTo(ex + ox - sw * 0.5, gy - sh); c.lineTo(ex + ox + sw * 0.4, gy - sh * 0.8); c.lineTo(ex + ox + sw, gy + 3); c.closePath(); }, 1.5);
     }
     c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.ellipse(ex, gy + 2, 40 * k, 7 * k, 0, 0.15, Math.PI - 0.15); c.stroke();
     if (lift > 0) { c.fillStyle = 'rgba(214, 211, 209, 0.6)'; for (const ox of [-26, -8, 12, 28]) { c.beginPath(); c.arc(ex + ox, gy - 10, 7, 0, Math.PI * 2); c.fill(); } }
-  }
-  c.save(); c.translate(H.x, H.y - lift); c.rotate(rot); fistOnHandle(c, (opts.glow ?? 0) * (0.5 + 0.3 * Math.sin(L.f * 0.6))); c.restore();
+  };
+  if (!pick) rubble();
+  // (her fist round the handle; flame first, it's upright with the torch down out of the bottom of it, and what's in
+  // the floor of it hidden)
+  c.save();
+  if (pick) { c.beginPath(); c.rect(-100000, -100000, 200000, gy + 1 + 100000); c.clip(); }
+  c.translate(H.x, H.y - lift); c.rotate(pick ? 0 : rot); fistOnHandle(c, (opts.glow ?? 0) * (0.5 + 0.3 * Math.sin(L.f * 0.6))); c.restore();
+  if (pick) rubble();
   // (stuck: cracks up the forearm from her grip)
   if (opts.stuck !== undefined && opts.stuck > 0) {
     const sk = opts.stuck, el = Math.hypot(E.x - H.x, E.y - H.y) || 1, ux = (E.x - H.x) / el, uy = (E.y - H.y) / el;
