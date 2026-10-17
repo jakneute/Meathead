@@ -1,5 +1,6 @@
 // (first: in the desktop app, the saves on disk are swapped in before anything reads them)
 import './game/platform/desktop';
+import './game/platform/stillMouse';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';

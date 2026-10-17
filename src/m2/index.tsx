@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import '../m1/game/platform/stillMouse';
 import App2 from './App';
 import '@fontsource/press-start-2p';
 import '../m1/index.css';
