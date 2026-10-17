@@ -817,3 +817,9 @@ section before. replace them with something else." None of the helicopter's nine
 - Checked and kept: Mexico's Mesoamerican stepped pyramid (not the Great Pyramid), Morocco's minaret, the far straight
   bell tower in Italy's hills. Outside the streets (not changed here): the hub's landmark cluster and the walk-away
   into Foreign Lands still show an Eiffel and a pyramid.
+
+## Decisions (Harry's gate, the user's)
+
+- The arena's gate stands shut in the left tower's doorway (a wall) till he walks up to it and kicks it in (his
+  standing kick, ~0.5 s, controls held; the pose counted down there); it goes over flat onto the slab and lies there
+  through the fight and on revisits. In the fight the way back is shut by the fight's own invisible wall.
