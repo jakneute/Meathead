@@ -6,7 +6,7 @@
 // pavilion is, so they come and go as he walks. All of it tinted far into the haze.
 //
 // The SNES pass (every pavilion's: Mexico's, Norway's, China's, Germany's, Italy's, Japan's, Morocco's, France's, the UK's
-// and Canada's; only the helipad's globe is still the first pass's live painter, below): each landmark
+// and Canada's, and the helipad's globe): each landmark
 // painted once for the hour into a stamp (STILLS: real silhouettes, stepped strata and flanks, snow, forests, the haze
 // over their feet), with only what moves drawn live over it (the falls, the Ferris wheel); the lagoon in banded
 // water under the far shore's tree line (a tile for the hour), glinting; the barge painted for the hour (its hull and
@@ -723,6 +723,118 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       c.globalAlpha = 0.5; pixelBlob(c, x0 + 604, top + 378 - Math.sin(f * 0.05) * 3, 22, 7, T('#F1F5F9')); c.globalAlpha = 1;
     },
   },
+  heli: {
+    // (the helicopter ride's own landmark, far over the water: ACROSS THE WORLD, a giant fiberglass globe up on a
+    // tapered steel lattice pylon over the ride's round terminal, its gold orbit ring tilted round it (the back half
+    // here, the front half live, over the globe), and the radio mast off to its right on its guy wires (its beacon live).
+    // The replicas the tour shows aren't seen from down here: they're the helicopter's to show)
+    w: 620, h: 440, k: 0.6,
+    paint: (g, T, tod) => {
+      const h = 440, foot = h - 14, cx = 280, cy = foot - 290;
+      const St = rampT(T, '#7A808A'), Gd = rampT(T, '#C8961C'), Cn = rampT(T, '#D8D2C4'), Rd = rampT(T, '#B91C1C'), Wt = rampT(T, '#E8E4DC');
+      // The radio mast: a lattice of red and white bands, its guy wires, its foot
+      const mx = 520, mt = foot - 372;
+      g.strokeStyle = T('#5A5E66'); g.lineWidth = 1;
+      for (const [ax, ay] of [[mx - 70, foot], [mx + 60, foot], [mx - 40, foot]] as const) for (const k of [0.35, 0.7]) { g.beginPath(); g.moveTo(mx, foot - (foot - mt) * k); g.lineTo(ax, ay); g.stroke(); }
+      box(g, mx - 5, mt, 10, foot - mt, INK);
+      for (let y = mt, k = 0; y < foot; y += 24, k++) { const R = k % 2 ? Wt : Rd; box(g, mx - 4, y, 8, Math.min(24, foot - y), R[2]); box(g, mx - 4, y, 2, Math.min(24, foot - y), R[3]); box(g, mx + 2, y, 2, Math.min(24, foot - y), R[1]); }
+      for (let y = mt + 6; y < foot; y += 12) { g.strokeStyle = St[0]; g.beginPath(); g.moveTo(mx - 4, y); g.lineTo(mx + 4, y + 12); g.stroke(); }
+      box(g, mx - 1, mt - 14, 2, 14, St[1]);
+      // The ring's back half (behind the globe): banded gold, inked
+      const ring = (a0: number, a1: number) => {
+        for (const [w, col] of [[9, INK], [7, Gd[1]], [4, Gd[2]], [2, Gd[3]]] as const) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.ellipse(cx, cy, 118, 28, -0.28, a0, a1); g.stroke(); }
+      };
+      ring(Math.PI, Math.PI * 2);
+      // The pylon: two tapered legs of steel lattice, X-braced, inked, lit up their left
+      const leg = (x0: number, x1: number) => { poly(g, [[x0 - 6, foot], [x1 - 4, cy + 70], [x1 + 4, cy + 70], [x0 + 6, foot]], St[2]); box(g, Math.min(x0, x1) - 2, cy + 70, 2, 2, St[4]); };
+      leg(cx - 74, cx - 16); leg(cx + 74, cx + 16);
+      for (let y = cy + 84, k = 0; y < foot - 70; y += 26, k++) {
+        const u0 = (y - (cy + 70)) / (foot - cy - 70), u1 = (y + 26 - (cy + 70)) / (foot - cy - 70);
+        const l0 = cx - 16 - 58 * u0, r0 = cx + 16 + 58 * u0, l1 = cx - 16 - 58 * u1, r1 = cx + 16 + 58 * u1;
+        g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(l0, y); g.lineTo(r1, y + 26); g.moveTo(r0, y); g.lineTo(l1, y + 26); g.stroke();
+        g.strokeStyle = St[3]; g.lineWidth = 2; g.beginPath(); g.moveTo(l0, y); g.lineTo(r1, y + 26); g.stroke();
+        g.strokeStyle = St[1]; g.beginPath(); g.moveTo(r0, y); g.lineTo(l1, y + 26); g.stroke();
+        box(g, l0, y - 1, r0 - l0, 3, INK); box(g, l0, y, r0 - l0, 1, St[3]);
+      }
+      // (the collar the globe sits in)
+      box(g, cx - 26, cy + 64, 52, 14, INK); box(g, cx - 25, cy + 65, 50, 12, St[2]); box(g, cx - 25, cy + 65, 50, 3, St[4]); box(g, cx + 15, cy + 65, 10, 12, St[1]);
+      // The terminal under it: a round drum (its band of windows, lit after dark), the scalloped canopy, its board
+      const tw = 220, tx = cx - tw / 2, th = 70;
+      box(g, tx - 1, foot - th - 1, tw + 2, th + 1, INK);
+      for (let x = tx; x < tx + tw; x += 4) { const u = (x - tx) / tw, k = u < 0.18 ? 4 : u < 0.5 ? 3 : u < 0.82 ? 2 : 1; box(g, x, foot - th, 4, th, Cn[k]); }
+      checker(g, tx + tw * 0.5 - 2, foot - th, 4, th, Cn[2], 0, 2); checker(g, tx + tw * 0.82 - 2, foot - th, 4, th, Cn[1], 0, 2);
+      for (let x = tx + 10; x < tx + tw - 14; x += 18) { box(g, x, foot - th + 26, 12, 16, INK); box(g, x + 1, foot - th + 27, 10, 14, tod.lamps > 0.3 ? '#FFD88A' : T('#4A6A8A')); box(g, x + 1, foot - th + 27, 10, 3, tod.lamps > 0.3 ? '#FFF0C0' : T('#7A9AB8')); }
+      for (let k = 0; k < 11; k++) { const x = tx - 8 + k * ((tw + 16) / 11); g.fillStyle = INK; g.beginPath(); g.arc(x + 11, foot - th, 12, 0, Math.PI); g.fill(); g.fillStyle = (k % 2 ? Rd : Wt)[2]; g.beginPath(); g.arc(x + 11, foot - th, 11, 0, Math.PI); g.fill(); }
+      box(g, tx - 10, foot - th - 6, tw + 20, 8, INK); box(g, tx - 9, foot - th - 5, tw + 18, 6, Rd[2]); box(g, tx - 9, foot - th - 5, tw + 18, 2, Rd[3]);
+      box(g, cx - 92, foot - th - 30, 184, 22, INK); box(g, cx - 91, foot - th - 29, 182, 20, T('#1E3A8A')); box(g, cx - 91, foot - th - 29, 182, 2, T('#3B5BB8'));
+      signText(g, 'ACROSS THE WORLD', cx, foot - th - 14, plain(2, 2, T('#FDE68A')));
+      // (the ground band, the haze over the feet)
+      bandedGradient(g, 0, foot, 620, h - foot, [T('#7A8070'), T('#6A7060')], 2);
+      mist(g, 620, foot - 70, 70, skyAt(0.9, tod), 0, 0.3, 4);
+    },
+    live: (c, x0, top, f, T) => {
+      // The globe, turning: the ocean a stepped ball (lit from the upper left), the land in ten-degree cells (each
+      // cell lit by where it faces), a dithered terminator, a glint, inked; the ring's front half over it; the beacon
+      const cx = x0 + 280, cy = top + 440 - 14 - 290, R = 90, rot = f * 0.004;
+      const O = rampT(T, '#2563EB'), Ld = rampT(T, '#3E8A3A'), Ic = rampT(T, '#E8EEF4');
+      const disc = (dx: number, dy: number, r: number, col: string) => { c.fillStyle = col; c.beginPath(); c.arc(cx + dx, cy + dy, r, 0, Math.PI * 2); c.fill(); };
+      disc(0, 0, R + 2, INK); disc(0, 0, R, O[1]); disc(-8, -8, R * 0.86, O[2]); disc(-22, -22, R * 0.56, O[3]);
+      const Lx = -0.48, Ly = -0.5, Lz = 0.72;
+      for (let j = 0; j < 18; j++) {
+        const row = WORLD[j], lat = ((85 - j * 10) * Math.PI) / 180, cl = Math.cos(lat), sl = Math.sin(lat);
+        for (let i = 0; i < 36; i++) {
+          const ch = row.charCodeAt(i);
+          if (ch !== 35) continue;
+          const lon = ((-175 + i * 10) * Math.PI) / 180 + rot, nz = cl * Math.cos(lon);
+          if (nz <= 0.02) continue;
+          const nx = cl * Math.sin(lon), ny = -sl, lit = nx * Lx + ny * Ly + nz * Lz;
+          const P = j >= 16 || j === 0 ? Ic : Ld, col = P[lit > 0.75 ? 4 : lit > 0.45 ? 3 : lit > 0.15 ? 2 : 1];
+          const w = Math.max(1, R * 0.1745 * nz + 1), hh = Math.max(1, R * 0.1745 * cl + 1);
+          c.fillStyle = col; c.fillRect(Math.round(cx + nx * R - w / 2), Math.round(cy + ny * R - hh / 2), Math.ceil(w), Math.ceil(hh));
+        }
+      }
+      // (the night side: dithered over the lower right, a shade disc inside the limb)
+      c.save(); c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.clip();
+      c.fillStyle = stippleOf(c, T('#0A1430')); c.beginPath(); c.arc(cx + R * 0.55, cy + R * 0.55, R * 0.95, 0, Math.PI * 2); c.fill();
+      c.restore();
+      box(c, cx - 44, cy - 50, 6, 4, T('#FFFFFF')); box(c, cx - 48, cy - 44, 4, 3, T('#DCEBFF'));
+      // (the ring's front half)
+      for (const [w, col] of [[9, INK], [7, T('#9A6E10')], [4, T('#C8961C')], [2, T('#F2CE5A')]] as const) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.ellipse(cx, cy, 118, 28, -0.28, 0, Math.PI); c.stroke(); }
+      // (the beacon on the mast, blinking)
+      if ((f >> 5) % 2) { box(c, x0 + 516, top + 440 - 14 - 390, 8, 8, '#EF4444'); box(c, x0 + 518, top + 440 - 14 - 388, 3, 3, '#FECACA'); }
+    },
+  },
+};
+
+/** The globe's land: ten-degree cells, north (85) to south (-85), west (-175) to east. */
+const WORLD = [
+  '............###.....................',
+  '...#######..####.....#############..',
+  '..########...##....###############..',
+  '...########.........##############..',
+  '....#######........###############..',
+  '.....######.......#############.##..',
+  '......####........######.#####......',
+  '.......###........######...###......',
+  '..........##.......#####....##......',
+  '...........####.....####.....###....',
+  '...........#####....###......####...',
+  '............###.....###.....#####...',
+  '............##..............####....',
+  '............#.......................',
+  '............#.......................',
+  '....................................',
+  '####################################',
+  '####################################',
+].map(r => r.padEnd(36, '.').slice(0, 36));
+/** A see-through dither of `col` (every other pixel), per context. */
+const stipples = new WeakMap<Ctx, Map<string, CanvasPattern | string>>();
+const stippleOf = (c: Ctx, col: string): CanvasPattern | string => {
+  if (typeof document === 'undefined') return col;
+  let m = stipples.get(c); if (!m) stipples.set(c, (m = new Map()));
+  let p = m.get(col);
+  if (!p) { const t = document.createElement('canvas'); t.width = 2; t.height = 2; const g = t.getContext('2d')!; g.fillStyle = col; g.fillRect(0, 0, 1, 1); g.fillRect(1, 1, 1, 1); p = c.createPattern(t, 'repeat') ?? col; m.set(col, p); }
+  return p;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -730,22 +842,7 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
 // middle at x 0), tinted far
 
 /** Each pavilion's far landmark, painted about (0, horizon) (its middle at x 0), tinted far. */
-const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => void>> = {
-  heli: (c, hz, f) => {
-    // (the helicopter ride's own landmark, far over the water: a giant globe on a pylon (ACROSS THE WORLD), turning, and a
-    // radio mast blinking; the replicas the tour shows aren't seen from down here: they're the helicopter's to show)
-    box(c, -10, hz - 200, 20, 200, farTint('#6B7280', 0.6)); poly(c, [[-60, hz], [-10, hz - 120], [10, hz - 120], [60, hz]], farTint('#4B5563', 0.6));
-    const R = 90, cy = hz - 290;
-    c.fillStyle = farTint('#2563EB', 0.55); c.beginPath(); c.arc(0, cy, R, 0, Math.PI * 2); c.fill();
-    c.save(); c.beginPath(); c.arc(0, cy, R, 0, Math.PI * 2); c.clip();
-    const sh = (f * 0.2) % 360;
-    for (const [x, y, w, h] of [[-40, -50, 60, 40], [40, -20, 50, 70], [-80, 20, 50, 40], [140, -40, 60, 50], [-200, -30, 70, 60]] as const) { const xx = ((x + sh + 180) % 360) - 180; c.fillStyle = farTint('#16A34A', 0.55); c.beginPath(); c.ellipse(xx, cy + y, w / 2, h / 2, 0, 0, Math.PI * 2); c.fill(); }
-    c.restore();
-    c.strokeStyle = farTint('#CA8A04', 0.5); c.lineWidth = 3; c.beginPath(); c.ellipse(0, cy, R + 14, 22, -0.3, 0, Math.PI * 2); c.stroke();
-    box(c, 220, hz - 360, 4, 360, farTint('#9CA3AF', 0.6));
-    if ((f >> 5) % 2) box(c, 218, hz - 366, 8, 8, '#EF4444');
-  },
-};
+const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => void>> = {};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The far shore, the lagoon, the barge
