@@ -210,12 +210,17 @@ export const drawShots = (c: Ctx, state: GameState) => {
         break;
       }
       case 'tuba': {
-        const r = 16 + Math.min(14, s.t * 0.3);
-        c.lineWidth = 5;
-        for (let k = 0; k < 3; k++) {
-          c.strokeStyle = ['#FCD34D', 'rgba(252,211,77,0.6)', 'rgba(252,211,77,0.3)'][k];
-          c.beginPath(); c.arc(s.x - dir * k * 8, s.y, r - k * 3, dir > 0 ? -0.9 : Math.PI - 0.9, dir > 0 ? 0.9 : Math.PI + 0.9); c.stroke();
+        // (the oompah: fat stepped brass arcs going out (three, the nearest brightest), inked, a glint along the lead one,
+        // and the OOM riding in it as two fat notes)
+        const r = 16 + Math.min(14, s.t * 0.3), a0 = dir > 0 ? -0.9 : Math.PI - 0.9, a1 = dir > 0 ? 0.9 : Math.PI + 0.9;
+        for (let k = 2; k >= 0; k--) {
+          const rr = r - k * 4, cx = s.x - dir * k * 9;
+          c.lineWidth = 8 - k * 1.5; c.strokeStyle = INK; c.beginPath(); c.arc(cx, s.y, rr, a0, a1); c.stroke();
+          c.lineWidth = 5.5 - k * 1.5; c.strokeStyle = ['#FDE68A', '#EAB308', '#A16207'][k]; c.beginPath(); c.arc(cx, s.y, rr, a0, a1); c.stroke();
+          if (k === 0) { c.lineWidth = 1.5; c.strokeStyle = '#FFFBEB'; c.beginPath(); c.arc(cx, s.y, rr - 1, a0 + 0.2, a0 + 0.8); c.stroke(); }
         }
+        const bob = Math.round(Math.sin(s.t * 0.25) * 2), nx = Math.round(s.x - dir * 12), ny = Math.round(s.y + 4 + bob);
+        for (const [x, y] of [[nx, ny], [nx - dir * 10, ny - 3]] as const) { disc(c, x, y, 4.4, 3.4, INK, -0.4); disc(c, x, y, 3.4, 2.5, '#422006', -0.4); c.fillStyle = '#A16207'; c.fillRect(x - 2, y - 1, 1, 1); c.fillStyle = INK; c.fillRect(x + 3, y - 12, 2, 12); }
         break;
       }
       case 'sombrero': {
@@ -287,10 +292,18 @@ export const drawShots = (c: Ctx, state: GameState) => {
         c.restore(); break;
       }
       case 'stein': {
+        // (a full stein end over end: the glass in steps over the beer, its glint, the pewter lid, the handle, the foam
+        // flung off it)
         c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.3 * dir);
-        c.fillStyle = INK; c.fillRect(-7, -9, 14, 18); c.fillStyle = '#E0F2FE'; c.fillRect(-6, -8, 12, 16); c.fillStyle = '#F59E0B'; c.fillRect(-6, -4, 12, 12); c.fillStyle = '#FFFFFF'; c.fillRect(-6, -8, 12, 4);
-        c.strokeStyle = INK; c.lineWidth = 2; c.strokeRect(6, -4, 4, 8);
-        c.restore(); break;
+        c.fillStyle = INK; c.fillRect(-7, -10, 14, 19); c.fillRect(6, -6, 6, 11);
+        c.fillStyle = '#F59E0B'; c.fillRect(-6, -5, 12, 13); c.fillStyle = '#FCD34D'; c.fillRect(-6, -5, 3, 13); c.fillStyle = '#B45309'; c.fillRect(3, -5, 3, 13);
+        c.fillStyle = '#FFFBEB'; c.fillRect(-4, -3, 1, 8); c.fillStyle = '#D97706'; c.fillRect(-6, 7, 12, 1);
+        c.fillStyle = '#FFFFFF'; c.fillRect(-6, -9, 12, 4); c.fillStyle = '#E5E7EB'; c.fillRect(-6, -6, 12, 1);
+        c.fillStyle = '#E0F2FE'; c.fillRect(7, -5, 3, 9); c.fillStyle = INK; c.fillRect(8, -3, 1, 5);
+        c.fillStyle = '#A8A29E'; c.fillRect(-7, -12, 9, 3); c.fillStyle = '#D6D3D1'; c.fillRect(-7, -12, 9, 1);
+        c.restore();
+        if (s.t % 4 < 2) { c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(s.x - dir * 10), Math.round(s.y - 6), 3, 2); c.fillRect(Math.round(s.x - dir * 15), Math.round(s.y - 3), 2, 2); }
+        break;
       }
       case 'shuriken': {
         c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.6 * dir);

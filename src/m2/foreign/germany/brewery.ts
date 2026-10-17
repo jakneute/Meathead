@@ -17,7 +17,8 @@ import { spawnCast, byPants } from '../cast';
 import { playSound } from '../../../m1/game/platform/audio';
 import { setHazardZones } from '../../hazardHit';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout } from '../setpiece';
-import { type Ctx, type View, box, poly, boxes3, ledge3, setBack, wall, hole, postBoard, hungBoard, LOOKS, dimmed, hour, ramp6, onScreen, INK, LIP } from '../kit';
+import { type Ctx, type View, ledge3, postBoard, hungBoard, LOOKS, onScreen } from '../kit';
+import { drawBrewery, brewerySmoke, drawEmbankment, drawDock, breweryBoxes, kettle, kettleSteam, hops, kegHead, kegBurst } from './art';
 import { V, KEG } from './lines';
 
 const { x0, x1 } = SECTIONS.germany;
@@ -120,67 +121,31 @@ export const updateBrewery = (ctx: FrameContext) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing
-
-const COBBLE = '#A8A29E', OAK = '#92400E', COPPER = '#B45309';
-
-const drawKeg = (c: Ctx, x: number, y: number, spin: number) => {
-  c.save(); c.translate(x, y); c.rotate(-spin);
-  c.fillStyle = INK; c.beginPath(); c.arc(0, 0, KR + 1, 0, Math.PI * 2); c.fill();
-  c.fillStyle = hour(OAK); c.beginPath(); c.arc(0, 0, KR, 0, Math.PI * 2); c.fill();
-  c.strokeStyle = '#3F3F46'; c.lineWidth = 3; c.beginPath(); c.arc(0, 0, KR - 5, 0, Math.PI * 2); c.stroke();
-  box(c, -KR + 4, -2, KR * 2 - 8, 4, '#3F3F46'); box(c, -2, -KR + 4, 4, KR * 2 - 8, hour('#78350F'));
-  box(c, -4, -4, 8, 8, '#CA8A04');
-  c.restore();
-};
+// Drawing (art.ts paints it)
 
 export const drawBreweryBack = (c: Ctx, v: View, state: GameState) => {
   if (!onScreen(v, X(BREW_FROM), x1)) return;
   const f = state.frame;
-  // (the brewery's far fronts: white plaster and dark beams, the copper kettle's chimney, set back)
-  setBack(c, v, X(4650), 700, 0.93, () => {
-    wall(c, 0, 700, 640, '#F5F0E0');
-    const B = dimmed('#3F2A14');
-    for (let x = 0; x <= 700; x += 70) box(c, x - 3, -640, 6, 640, B);
-    box(c, 0, -320, 700, 6, B);
-    poly(c, [[-20, -640], [350, -800], [720, -640]], dimmed('#7F1D1D'));
-    for (const wx of [80, 300, 520]) hole(c, wx, -560, 60, 70, true);
-  });
-  // (the ramp: the hill under it, its cobbled face, the lit lip all the way up: somewhere to stand)
-  if (onScreen(v, X(RAMP.a), X(YARD_B))) {
-    const C = ramp6(hour(COBBLE)), E = ramp6(hour('#6B5B45'));
-    poly(c, [[X(RAMP.a), GY], [X(RAMP.b), Y(RAMP.h)], [X(YARD_B), Y(RAMP.h)], [X(STAIRS_B), GY]], E[2]);
-    box(c, X(RAMP.a), GY, STAIRS_B - RAMP.a, 400, E[1]);
-    for (let k = 0; k < 12; k++) box(c, X(RAMP.a + 120 + k * 80), Y(rampH(RAMP.a + 120 + k * 80)) + 30 + (k % 3) * 40, 26, 5, E[1]);
-    c.strokeStyle = C[3]; c.lineWidth = 6; c.beginPath(); c.moveTo(X(RAMP.a), GY - 2); c.lineTo(X(RAMP.b), Y(RAMP.h) - 2); c.lineTo(X(YARD_B), Y(RAMP.h) - 2); c.stroke();
-    for (let rx = RAMP.a + 10; rx < RAMP.b; rx += 22) box(c, X(rx), Y(rampH(rx)) + 2, 14, 5, C[1]);
-    c.strokeStyle = LIP[2]; c.lineWidth = 2; c.beginPath(); c.moveTo(X(RAMP.a), GY); c.lineTo(X(RAMP.b), Y(RAMP.h)); c.lineTo(X(YARD_B), Y(RAMP.h)); c.stroke();
-    // (the stairs down the far side: treads)
-    for (let k = 0; k < 12; k++) { const a = YARD_B + ((STAIRS_B - YARD_B) * k) / 12, h = RAMP.h - (RAMP.h * (k + 1)) / 12; box(c, X(a), Y(h), (STAIRS_B - YARD_B) / 12, 4, C[3]); box(c, X(a), Y(h), (STAIRS_B - YARD_B) / 12, 2, LIP[2]); }
-  }
-  // (the dock at the top: its door open while a keg teeters)
+  // (the brewery behind it all, set back: plaster and timber, its tiled roof, the chimney and its smoke)
+  drawBrewery(c, v, X(4650));
+  if (onScreen(v, X(5200), X(5400), 0.93)) brewerySmoke(c, v, X(4650), f);
+  // (the embankment under the ramp, the yard and the stairs: the road's cobbles going back, its lit lip all the way up)
+  if (onScreen(v, X(RAMP.a), X(STAIRS_B))) drawEmbankment(c, v, X(RAMP.a), X(RAMP.b), X(YARD_B), X(STAIRS_B), Y(RAMP.h), x => Y(rampH(x - x0)), f);
+  // (the dock at the top: its doors open while a keg teeters)
   if (onScreen(v, X(4690), X(4770))) {
-    const open = f % EVERY < TEETER;
-    setBack(c, v, X(4700), 60, 0.97, () => { c.save(); c.translate(0, -RAMP.h); wall(c, 0, 60, 130, '#78350F'); hole(c, 8, -100, 44, 100, open); c.restore(); });
+    drawDock(c, v, X(4700), Y(RAMP.h), f % EVERY < TEETER);
     hungBoard(c, X(4730), Y(RAMP.h + 140), Y(RAMP.h + 160), ['KEG DOCK'], LOOKS.germany(1), '#1C1917');
   }
+  // (the copper kettle on the Brauhaus roof (behind where he walks), its steam)
+  if (onScreen(v, X(HAUS.a), X(HAUS.b))) { kettle(c, v, X(5000), Y(HAUS.h)); kettleSteam(c, v, X(4990), Y(HAUS.h), f); }
   // (the bales, the crates, the Brauhaus: its wall down to the yard (no way through), its roof the walk)
-  boxes3(c, v, [
+  breweryBoxes(c, v,
     { x: X(BALES.a), top: Y(BALES.h), w: BALES.b - BALES.a, bottom: GY, col: '#CA8A04', standable: true },
     { x: X(CRATES.a), top: Y(CRATES.h), w: CRATES.b - CRATES.a, bottom: Y(RAMP.h), col: '#78350F', standable: true },
     { x: X(HAUS.a), top: Y(HAUS.h), w: HAUS.b - HAUS.a, bottom: Y(RAMP.h), col: '#E7E0CC', standable: true },
-  ]);
-  if (onScreen(v, X(HAUS.a), X(HAUS.b))) {
-    for (let x = X(HAUS.a); x <= X(HAUS.b); x += 50) box(c, x - 3, Y(HAUS.h), 6, HAUS.h - RAMP.h, hour('#3F2A14'));
-    box(c, X(HAUS.a), Y(600), HAUS.b - HAUS.a, 6, hour('#3F2A14'));
-    // (the copper kettle's dome on the roof, its chimney: scenery behind where he walks)
-    const K = ramp6(hour(COPPER));
-    c.fillStyle = K[2]; c.beginPath(); c.arc(X(5000), Y(HAUS.h) - 4, 34, Math.PI, 0); c.fill();
-    box(c, X(4994), Y(HAUS.h) - 90, 12, 56, K[1]);
-    if ((f >> 4) % 3 === 0) box(c, X(4990), Y(HAUS.h) - 110, 20, 14, dimmed('#E5E7EB'));
-  }
-  if (onScreen(v, X(BALES.a), X(BALES.b))) for (let y = Y(BALES.h) + 10; y < GY; y += 18) box(c, X(BALES.a), y, BALES.b - BALES.a, 2, hour('#A16207'));
-  for (const [a, b, h] of LOFT) if (onScreen(v, X(a), X(b))) { ledge3(c, v, X(a), Y(h), b - a, '#78716C', 10); for (let x = X(a) + 8; x < X(b) - 6; x += 12) box(c, x, Y(h) + 10, 5, 26, hour('#65A30D')); }
+  );
+  // (the hop loft and the drying racks: planks, the hops hung under them)
+  for (const [a, b, h] of LOFT) if (onScreen(v, X(a), X(b))) { ledge3(c, v, X(a), Y(h), b - a, '#78716C', 10, 'plank'); hops(c, X(a), X(b), Y(h) + 10); }
   // (the signs: held up, nothing over them)
   if (onScreen(v, X(3960), X(4100))) postBoard(c, X(3990), GY, ['KEG RAMP', 'WATCH FOR KEGS', '(THEY WATCH FOR YOU)'], LOOKS.germany(1), '#7F1D1D', undefined, 160);
   if (onScreen(v, X(BALES.a), X(BALES.b))) hungBoard(c, X((BALES.a + BALES.b) / 2), Y(BALES.h), Y(BALES.h) + 24, ['KEG CATCHER'], LOOKS.germany(1), '#14532D');
@@ -193,10 +158,10 @@ export const drawBreweryFront = (c: Ctx, v: View, state: GameState) => {
   if (onScreen(v, X(BALES.a), X(RAMP.b + 60))) {
     for (const k of kegsAt(f)) {
       const wob = k.rx > RAMP.b ? Math.sin(f * 0.5) * 0.15 : 0;
-      drawKeg(c, X(k.rx), Y(rampH(Math.min(k.rx, RAMP.b))) - KR, k.spin + wob);
+      kegHead(c, X(k.rx), Y(rampH(Math.min(k.rx, RAMP.b))) - KR, KR, k.spin + wob);
     }
     const bt = burstAt(f);
-    if (bt !== null) for (let k = 0; k < 14; k++) { const a = -Math.PI * (0.1 + (0.8 * k) / 13), r = bt * 5; box(c, X(BALES.b + 20) + Math.cos(a) * r, Y(BALES.h) - 10 + Math.sin(a) * r + bt * bt * 0.2, 6, 5, k % 3 ? '#FEF3C7' : '#F59E0B'); }
+    if (bt !== null) kegBurst(c, X(BALES.b + 20), Y(BALES.h) - 10, bt);
   }
   drawShout(c, brewOf(state).said);
 };

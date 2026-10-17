@@ -5,7 +5,7 @@
 // Fuji, the dunes, the minaret, the cathedral, the Ferris wheel, the Rockies, the helicopter ride's globe) slid in by parallax round where its
 // pavilion is, so they come and go as he walks. All of it tinted far into the haze.
 //
-// The SNES pass (Mexico's, Norway's and China's so far; the rest still the first pass's live painters, below): each landmark
+// The SNES pass (Mexico's, Norway's, China's and Germany's so far; the rest still the first pass's live painters, below): each landmark
 // painted once for the hour into a stamp (STILLS: real silhouettes, stepped strata and flanks, snow, forests, the haze
 // over their feet), with only what moves drawn live over it (the falls); the lagoon in banded
 // water under the far shore's tree line (a tile for the hour), glinting; the barge painted for the hour (its hull and
@@ -177,6 +177,55 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       mist(g, w, foot - 110, 110, skyAt(0.9, tod), 0, 0.45, 5);
     },
   },
+  germany: {
+    // (THE CASTLE ON ITS HILL: the snowy Alps far behind; the hill, wooded in firs, a road winding up it, the village at
+    // its foot; on the crag at its top, the castle: white walls, round towers under pointed slate roofs, the tall keep,
+    // the palace's steep roof, windows lit after dark, its flags)
+    w: 900, h: 400, k: 0.6,
+    paint: (g, T, tod) => {
+      const w = 900, h = 400, foot = h - 14, lamps = tod.lamps > 0.3;
+      const alps = crestOf([[0, 214], [60, 152], [110, 182], [170, 92], [230, 142], [300, 62], [360, 122], [420, 84], [480, 150], [560, 72], [630, 132], [700, 92], [770, 160], [840, 112], [900, 172]]);
+      rangeCols(g, alps, 0, w, foot, rampT(T, '#6A7896'), 7, { S: rampT(T, '#EEF2F8'), line: 160 });
+      mist(g, w, 90, foot - 90, skyAt(0.9, tod), 0.05, 0.55, 6);
+      const hill = (x: number) => foot - 168 * Math.exp(-(((x - 450) / 230) ** 2)) - 18 * Math.exp(-(((x - 160) / 90) ** 2)) - 14 * Math.exp(-(((x - 760) / 110) ** 2));
+      rangeCols(g, hill, 0, w, foot, rampT(T, '#4E7A3A'), 19);
+      firsUnder(g, hill, w, foot, rampT(T, '#2A4A2A'), 220, 5, (x, y) => Math.abs(x - 450) < 56 && y < hill(450) + 40);
+      // (the road winding up to the crag)
+      const road = rampT(T, '#C8B48A');
+      for (let k = 0; k < 120; k++) { const t = k / 120, x = 330 + Math.sin(t * 9) * 60 * (1 - t) + t * 110, y = foot - 6 - t * 150; box(g, x, y, 3, 2, road[2]); box(g, x, y, 3, 1, road[3]); }
+      // (the village at the foot: little half-timbered houses, red roofs)
+      for (let i = 0; i < 14; i++) {
+        const x = 230 + i * 34 + hash(i * 3.3) * 12, y = foot - 2 - hash(i) * 6, hw = 12 + hash(i * 1.9) * 6;
+        box(g, x - 1, y - 11, hw + 2, 12, INK); box(g, x, y - 10, hw, 10, T('#EDE6D6')); box(g, x, y - 10, 2, 10, T('#FFFFFF')); box(g, x + 3, y - 7, 2, 3, lamps && hash(i * 7) > 0.4 ? '#FFD88A' : T('#3A4258'));
+        poly(g, [[x - 2, y - 10], [x + hw / 2, y - 18], [x + hw + 2, y - 10]], T('#A8402A')); box(g, x + hw / 2, y - 18, 1, 8, T('#7A2A1A'));
+      }
+      // (the crag: gray rock stepped out of the hilltop, lit left)
+      const C = rampT(T, '#8A8A86'), top = Math.round(hill(450)) - 4;
+      poly(g, [[392, top + 30], [404, top + 6], [430, top - 6], [474, top - 8], [500, top + 4], [512, top + 30]], C[2]);
+      poly(g, [[392, top + 30], [404, top + 6], [430, top - 6], [440, top + 30]], C[3]); poly(g, [[474, top - 8], [500, top + 4], [512, top + 30], [486, top + 30]], C[1]);
+      for (let k = 0; k < 5; k++) box(g, 404 + k * 20, top + 8 + (k % 2) * 8, 12, 1, C[0]);
+      // (the castle on it: the curtain wall and its battlements, the palace's steep roof, the towers and the keep)
+      const Wl = rampT(T, '#ECE8DE'), Sl = rampT(T, '#3E5A8A'), base = top - 4;
+      const tower = (x: number, tw: number, th: number, roof: number) => {
+        box(g, x - 1, base - th - 1, tw + 2, th + 1, INK);
+        box(g, x, base - th, tw, th, Wl[2]); box(g, x, base - th, Math.max(1, Math.round(tw * 0.35)), th, Wl[3]); box(g, x + tw - 2, base - th, 2, th, Wl[1]);
+        for (let y = base - th + 6; y < base - 6; y += 10) box(g, x + Math.round(tw / 2) - 1, y, 2, 3, lamps && hash(x + y) > 0.35 ? '#FFD88A' : T('#2A3048'));
+        poly(g, [[x - 2, base - th], [x + tw / 2, base - th - roof], [x + tw + 2, base - th]], INK);
+        poly(g, [[x - 1, base - th], [x + tw / 2, base - th - roof + 1], [x + tw + 1, base - th]], Sl[2]);
+        poly(g, [[x - 1, base - th], [x + tw / 2, base - th - roof + 1], [x + tw / 2 - 1, base - th]], Sl[3]);
+        box(g, x + tw / 2, base - th - roof - 6, 1, 6, T('#5A5A5A')); box(g, x + tw / 2 + 1, base - th - roof - 6, 5, 3, T('#B91C1C'));
+      };
+      box(g, 409, base - 23, 86, 24, INK); box(g, 410, base - 22, 84, 22, Wl[2]); box(g, 410, base - 22, 84, 2, Wl[3]);
+      for (let x = 410; x < 494; x += 5) box(g, x, base - 25, 3, 3, Wl[2]);
+      box(g, 431, base - 47, 42, 25, INK); box(g, 432, base - 46, 40, 24, Wl[3]); box(g, 432, base - 46, 12, 24, Wl[4]);
+      for (let k = 0; k < 4; k++) box(g, 436 + k * 9, base - 40, 3, 5, lamps && k !== 2 ? '#FFD88A' : T('#2A3048'));
+      poly(g, [[430, base - 46], [452, base - 70], [474, base - 46]], INK); poly(g, [[431, base - 46], [452, base - 69], [473, base - 46]], Sl[2]); poly(g, [[431, base - 46], [452, base - 69], [450, base - 46]], Sl[3]);
+      tower(404, 12, 40, 22); tower(488, 12, 34, 20); tower(470, 9, 56, 18);
+      tower(442, 14, 82, 30);
+      mist(g, w, foot - 60, 60, skyAt(0.9, tod), 0, 0.35, 4);
+      bandedGradient(g, 0, foot - 2, w, h - foot + 2, [T('#5A8A3A'), T('#4A7A30')], 2);
+    },
+  },
   mexico: {
     // (NO volcano (the user: we have enough volcanoes): desert mesas, flat-topped and banded, a far one in the haze
     // behind, and a row of giant plywood saguaros along the foot, on its sand)
@@ -247,14 +296,6 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
 
 /** Each pavilion's far landmark, painted about (0, horizon) (its middle at x 0), tinted far. */
 const LANDMARKS: Partial<Record<ForeignId, (c: Ctx, hz: number, f: number) => void>> = {
-  germany: (c, hz) => {
-    // (the castle on its hill: towers with pointy blue roofs)
-    poly(c, [[-260, hz], [-80, hz - 120], [80, hz - 130], [260, hz]], farTint('#365314', 0.6));
-    for (const [x, h, w] of [[-60, 90, 34], [-14, 140, 26], [26, 110, 30], [64, 80, 22]] as const) {
-      box(c, x - w / 2, hz - 120 - h, w, h, farTint('#E7E5E4', 0.5));
-      poly(c, [[x - w / 2 - 4, hz - 120 - h], [x, hz - 120 - h - w * 1.4], [x + w / 2 + 4, hz - 120 - h]], farTint('#1E40AF', 0.5));
-    }
-  },
   italy: (c, hz) => {
     // (rolling Tuscan-ish hills with their cypresses far off, a bell tower and a dome nearer)
     c.fillStyle = farTint('#4D7C0F', 0.65); c.beginPath(); c.ellipse(-230, hz, 150, 70, 0, Math.PI, 0); c.ellipse(-60, hz, 120, 50, 0, Math.PI, 0); c.fill();

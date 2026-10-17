@@ -8,7 +8,7 @@
 // then THE BREWERY HILL (brewery.ts, job 4b: kegs rolled down the ramp at him, the Brauhaus climbed over), the
 // border with Italy.
 //
-// Crude (the first pass): readable boxes with full game feel. Checkpoints 30-39. Outdoors: the time of day's light.
+// The SNES pass: art.ts paints it all (the layout here untouched). Checkpoints 30-39. Outdoors: the time of day's light.
 
 import type { Light } from '../../../m1/game/render/lighting';
 import type { GameState } from '../../../m1/game/core/state';
@@ -23,9 +23,12 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardHit';
 import { makeMover, moveMover, type Mover } from '../movers';
 import {
-  type Ctx, type View, viewIn, box, mix, poly, promenade, boxes3, ledge3, setBack, wall, hole, postBoard, hungBoard, swag, flagPole,
-  LOOKS, dimmed, hour, ramp6, onScreen, FACADE_D, INK,
+  type Ctx, type View, type Box3, viewIn, atDepth, promenade, boxes3, box3Back, box3Front, ledge3, postBoard, hungBoard, flagPole, LOOKS, onScreen, FACADE_D,
 } from '../kit';
+import {
+  drawFront, drawCastle, drawFarTower, drawClockHouse, drawCuckoo, drawFigure, drawWheelArt, merlons, drawPortcullis, backRail, paintedBoxes, bench,
+  tableSteins, bandstandRoof, valance, giantPretzel, giantSausage, pennants, FIGS, STONE, type DeFront,
+} from './art';
 import { TALK } from './lines';
 import './kinds';
 import { BREW_FROM, BREW_CHECKPOINTS, breweryRuns, buildBrewery, updateBrewery, drawBreweryBack, drawBreweryFront, breweryLamps } from './brewery';
@@ -88,114 +91,55 @@ const cuckooAt = (f: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing
+// Drawing (art.ts paints it all)
 
-const WOOD = '#7C4A1E', STONE = '#B8B2A6';
-const FIGS = ['woodcutter', 'couple', 'drinker', 'goat', 'hunter', 'milkmaid'] as const;
+/** The half-timbered fronts (set back, braced), their boards. */
+const FRONTS: DeFront[] = [
+  { rx: 300, w: 240, h: 180, name: 'WURST HAUS' },
+  { rx: 1240, w: 300, h: 200, name: 'GIFTS (SWISS)' },
+  { rx: 2980, w: 260, h: 170, name: 'LEDERHOSEN' },
+  { rx: 3400, w: 280, h: 190, name: 'STEINS' },
+];
 
-/** A carved wooden figure stood at the back of its platform (scenery on the platform: he stands in front of it). */
-const drawFigure = (c: Ctx, kind: typeof FIGS[number], x: number, y: number, f: number) => {
-  const W = ramp6(hour(WOOD)), sway = Math.round(Math.sin(f * 0.08) * 2);
-  const body = (bx: number, col: string, h = 40) => { box(c, bx - 7, y - h, 14, h - 10, INK); box(c, bx - 6, y - h + 1, 12, h - 12, hour(col)); box(c, bx - 6, y - 10, 4, 10, W[2]); box(c, bx + 2, y - 10, 4, 10, W[2]); box(c, bx - 5, y - h - 10, 10, 10, hour('#E8C7A0')); box(c, bx - 2, y - h - 6, 2, 2, INK); };
-  switch (kind) {
-    case 'woodcutter': body(x + 30, '#991B1B'); box(c, x + 40, y - 46 + sway, 3, 26, W[3]); box(c, x + 38, y - 50 + sway, 10, 6, '#CBD5E1'); box(c, x + 52, y - 12, 20, 12, W[3]); break;
-    case 'couple': body(x + 26, '#15803D'); body(x + 46, '#B91C1C', 36); box(c, x + 30, y - 30 + sway, 14, 3, hour('#E8C7A0')); break;
-    case 'drinker': body(x + 36, '#1E3A8A'); box(c, x + 44, y - 44 - sway, 8, 12, '#F59E0B'); box(c, x + 44, y - 44 - sway, 8, 3, '#FFFFFF'); break;
-    case 'goat': box(c, x + 20, y - 30, 40, 18, hour('#F5F5F4')); box(c, x + 56, y - 40 - sway, 12, 12, hour('#F5F5F4')); box(c, x + 24, y - 12, 4, 12, W[2]); box(c, x + 50, y - 12, 4, 12, W[2]); box(c, x + 60, y - 46 - sway, 2, 6, INK); break;
-    case 'hunter': body(x + 34, '#166534'); box(c, x + 40, y - 46, 26, 3, W[1]); box(c, x + 29, y - 62, 12, 4, '#166534'); break;
-    case 'milkmaid': body(x + 36, '#1E40AF', 38); box(c, x + 48, y - 26 + sway, 10, 10, '#D6D3D1'); break;
-  }
-};
-
-/** The castle (set back): stone walls, round towers with pointy blue roofs, the gate's arch, and the giant cuckoo
- *  clock hung on its wall (its carved house, its face, the pendulum, the pine-cone weights). */
-const drawCastle = (c: Ctx, v: View, f: number) => {
-  setBack(c, v, X(1720), 1180, 0.93, () => {
-    wall(c, 0, 1180, 600, STONE);
-    for (let y = -580; y < 0; y += 22) for (let x = ((y / 22) % 2) * 20; x < 1180; x += 40) box(c, x, y, 1, 22, dimmed('#8A8478'));
-    for (const [tx, w, h] of [[-40, 120, 820], [1080, 140, 860]] as const) { wall(c, tx, w, h, STONE); poly(c, [[tx - 10, -h], [tx + w / 2, -h - 150], [tx + w + 10, -h]], dimmed('#1E40AF')); for (let k = 0; k < 3; k++) hole(c, tx + w / 2 - 8, -h + 60 + k * 160, 16, 30, true); }
-  });
-  // (the clock's house: in front of the wall, set back a touch less; the face over the battlements)
-  setBack(c, v, X(2120), 360, 0.95, () => {
-    const W = ramp6(dimmed(WOOD));
-    box(c, 0, -980, 360, 340, W[2]);
-    poly(c, [[-30, -980], [180, -1120], [390, -980]], W[1]); poly(c, [[-20, -982], [180, -1104], [380, -982]], W[2]);
-    for (let k = 0; k < 10; k++) box(c, 10 + k * 34, -980, 20, 10, W[4]);
-    // (the face: numbers that don't line up, hands at the wrong time)
-    c.fillStyle = dimmed('#F5F0E0'); c.beginPath(); c.arc(180, -840, 92, 0, Math.PI * 2); c.fill();
-    for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; box(c, 180 + Math.cos(a) * 78 - 3, -840 + Math.sin(a) * 78 - 3, 6, 6, INK); }
-    const t = f * 0.002; c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(180, -840); c.lineTo(180 + Math.cos(t * 12) * 50, -840 + Math.sin(t * 12) * 50); c.moveTo(180, -840); c.lineTo(180 + Math.cos(t) * 74, -840 + Math.sin(t) * 74); c.stroke();
-    // (the pendulum swinging, the weights on their chains)
-    const sw = Math.sin(f * 0.05) * 0.35;
-    c.strokeStyle = dimmed('#CA8A04'); c.lineWidth = 3; c.beginPath(); c.moveTo(180, -740); c.lineTo(180 + Math.sin(sw) * 160, -740 + Math.cos(sw) * 160); c.stroke();
-    c.fillStyle = dimmed('#CA8A04'); c.beginPath(); c.arc(180 + Math.sin(sw) * 160, -740 + Math.cos(sw) * 160, 18, 0, Math.PI * 2); c.fill();
-    for (const wx of [60, 300]) { box(c, wx, -740, 2, 120, dimmed('#71717A')); box(c, wx - 10, -620, 22, 44, dimmed('#5C3A1A')); }
-  });
-};
-
-/** The wheel: its hub and spokes (thin, set back: not somewhere to stand), each figure's platform (standable) and its
- *  carved figure. */
+/** The wheel: its rim, teeth and spokes behind (dimmed, thin: not somewhere to stand), each figure's platform
+ *  (standable) and its carved figure. */
 const drawWheel = (c: Ctx, v: View, g: Ger, f: number) => {
   if (!onScreen(v, X(WHEEL.cx - WHEEL.r - 80), X(WHEEL.cx + WHEEL.r + 80))) return;
-  const cx = X(WHEEL.cx), cy = Y(WHEEL.cy);
-  c.strokeStyle = dimmed(WOOD); c.lineWidth = 4;
-  c.beginPath(); c.arc(cx, cy, WHEEL.r, 0, Math.PI * 2); c.stroke();
-  g.figs.forEach(m => { c.beginPath(); c.moveTo(cx, cy); c.lineTo(m.x + WHEEL.w / 2, m.y + 8); c.stroke(); });
-  c.fillStyle = dimmed('#CA8A04'); c.beginPath(); c.arc(cx, cy, 26, 0, Math.PI * 2); c.fill();
+  drawWheelArt(c, X(WHEEL.cx), Y(WHEEL.cy), WHEEL.r, g.figs.map(m => ({ x: m.x + WHEEL.w / 2, y: m.y })), turnAt(f));
   g.figs.forEach((m, i) => { drawFigure(c, FIGS[i % FIGS.length], m.x, m.y, f + i * 20); ledge3(c, v, m.x, m.y, WHEEL.w, '#A16207', 10); });
 };
 
-/** The cuckoo: its little door over the battlements, open in the warning, the bird out on its arm pecking. */
-const drawCuckoo = (c: Ctx, v: View, f: number) => {
-  if (!onScreen(v, X(CUCKOO.a), X(CUCKOO.b))) return;
-  const ck = cuckooAt(f), dx = X(CUCKOO.x), dy = Y(BATTLE.h + 150);
-  const W = ramp6(hour(WOOD));
-  box(c, dx - 34, dy - 40, 68, 56, INK); box(c, dx - 32, dy - 38, 64, 52, W[1]);
-  if (ck.st === 'in') { box(c, dx - 26, dy - 32, 52, 44, W[3]); box(c, dx + 18, dy - 12, 4, 4, '#CA8A04'); return; }
-  box(c, dx - 26, dy - 32, 52, 44, '#1C1014');
-  if (ck.st === 'warn') { box(c, dx - 26 - 10, dy - 32, 10, 44, W[3]); return; }
-  // (the bird, out on its arm and down over the battlements, beak first)
-  const by = dy - 10 + ck.k * 100;
-  box(c, dx - 2, dy - 10, 4, ck.k * 100, W[2]);
-  box(c, dx - 30, by - 22, 60, 40, INK); box(c, dx - 28, by - 20, 56, 36, hour('#92400E'));
-  box(c, dx - 20, by - 14, 40, 6, hour('#FCD34D'));
-  for (const ex of [dx - 14, dx + 6]) { box(c, ex, by - 18, 10, 10, '#FFFFFF'); box(c, ex + 3 + Math.round(Math.sin(f * 0.6) * 2), by - 15, 4, 4, INK); }
-  poly(c, [[dx - 10, by + 14], [dx + 10, by + 14], [dx, by + 36]], hour('#F59E0B'));
-};
-
+/** The biergarten: the promenade, the fronts, the castle and its clock, the tables (steins on them) and their benches,
+ *  the bandstand, the stands and their signs, the keg stack, the pennants. */
 const drawGarden = (c: Ctx, v: View, f: number) => {
   promenade(c, v, x0, X(4000), '#D6CBB4', '#8C7F68');
   promenade(c, v, X(5480), x1, '#D6CBB4', '#8C7F68');
-  // (the fronts: half-timbered, white plaster, dark beams, flower boxes)
-  for (const [rx, w, h] of [[300, 240, 180], [1240, 300, 200], [2980, 260, 170], [3400, 280, 190]] as const) setBack(c, v, X(rx), w, FACADE_D, () => {
-    wall(c, 0, w, h, '#F5F0E0');
-    const B = dimmed('#3F2A14');
-    box(c, 0, -h, w, 6, B); box(c, 0, -h / 2, w, 5, B); for (let x = 0; x <= w; x += 60) box(c, x - 3, -h, 6, h, B);
-    for (let x = 0; x < w - 60; x += 60) { c.strokeStyle = B; c.lineWidth = 4; c.beginPath(); c.moveTo(x, -h / 2); c.lineTo(x + 60, -h); c.stroke(); }
-    poly(c, [[-14, -h], [w / 2, -h - 80], [w + 14, -h]], dimmed('#7F1D1D'));
-    hole(c, w / 2 - 20, -74, 40, 74, true);
-    for (const wx of [24, w - 56]) { hole(c, wx, -h + 30, 32, 30, true); box(c, wx - 2, -h + 60, 36, 6, dimmed('#DC2626')); }
-  });
-  drawCastle(c, v, f);
-  // (the tables: standable; benches either side (scenery), the bandstand, its posts, its roof)
-  boxes3(c, v, [
-    ...TABLES.map(([a, b, h]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col: '#92400E', standable: true })),
-    { x: X(STAGE.a), top: Y(STAGE.h), w: STAGE.b - STAGE.a, bottom: GY, col: '#1E3A8A', standable: true },
-    ...STANDS.map(([a, b, h, col]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col, standable: true })),
-    { x: X(KEGS.a), top: Y(KEGS.h), w: KEGS.b - KEGS.a, bottom: GY, col: '#78350F', standable: true },
+  const on = FRONTS.filter(fr => onScreen(v, X(fr.rx) - 60, X(fr.rx + fr.w) + 60, FACADE_D));
+  on.sort((p, q) => Math.abs(X(q.rx + q.w / 2) - v.eye.x) - Math.abs(X(p.rx + p.w / 2) - v.eye.x));
+  for (const fr of on) drawFront(c, v, X(fr.rx), fr);
+  drawCastle(c, v, X(1720));
+  drawClockHouse(c, v, X(2120), f);
+  // (the giant pretzel and sausage on their sticks, stood at the backs of their stands)
+  if (onScreen(v, X(1340), X(1480))) atDepth(c, v.eye, 0.97, () => giantPretzel(c, X(1410), Y(100) - 50));
+  if (onScreen(v, X(1520), X(1650))) atDepth(c, v.eye, 0.97, () => giantSausage(c, X(1585), Y(130) - 50));
+  // (the tables: their tops, the steins on them, their fronts; the benches either side (scenery))
+  const tables: Box3[] = TABLES.map(([a, b, h]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col: '#92400E', standable: true, look: 'plank' }));
+  const tv = tables.filter(t => onScreen(v, t.x, t.x + t.w));
+  for (const t of tv) box3Back(c, v, t);
+  for (const t of tv) tableSteins(c, v, t.x, t.x + t.w, t.top);
+  for (const t of tv) { box3Front(c, t); bench(c, t.x - 26, 20); bench(c, t.x + t.w + 6, 20); }
+  boxes3(c, v, STANDS.map(([a, b, h, col]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col, standable: true, look: 'plank' as const })));
+  paintedBoxes(c, v, [
+    { b: { x: X(STAGE.a), top: Y(STAGE.h), w: STAGE.b - STAGE.a, bottom: GY, col: '#1E3A8A', standable: true }, kind: 'lozenge' },
+    { b: { x: X(KEGS.a), top: Y(KEGS.h), w: KEGS.b - KEGS.a, bottom: GY, col: '#78350F', standable: true }, kind: 'kegs' },
   ]);
-  for (const [a, b] of TABLES) if (onScreen(v, X(a), X(b))) for (const bx of [X(a) - 26, X(b) + 6]) box(c, bx, GY - 24, 20, 6, dimmed('#78350F'));
-  if (onScreen(v, X(STAGE.a), X(STAGE.b))) {
-    for (const px0 of [X(STAGE.a) + 6, X(STAGE.b) - 12]) { box(c, px0 - 1, Y(STAGE.roof), 8, STAGE.roof - STAGE.h, INK); box(c, px0, Y(STAGE.roof), 6, STAGE.roof - STAGE.h, hour('#F5F5F4')); }
-    poly(c, [[X(STAGE.a - 20), Y(STAGE.roof) + 16], [X(STAGE.b + 20), Y(STAGE.roof) + 16], [X(STAGE.b), Y(STAGE.roof)], [X(STAGE.a), Y(STAGE.roof)]], hour('#1E40AF'));
-    for (let k = 0; k < 11; k++) box(c, X(STAGE.a - 20) + k * 24, Y(STAGE.roof) + 16, 12, 8, hour(k % 2 ? '#F8FAFC' : '#1E40AF'));
+  if (onScreen(v, X(STAGE.a) - 30, X(STAGE.b) + 30)) {
+    bandstandRoof(c, X(STAGE.a), X(STAGE.b), Y(STAGE.roof), Y(STAGE.h));
     ledge3(c, v, X(STAGE.a), Y(STAGE.roof), STAGE.b - STAGE.a, '#1E40AF', 6);
   }
-  for (const [a, b, h, col] of STANDS) if (onScreen(v, X(a), X(b))) { for (let k = 0; k < 6; k++) box(c, X(a) - 4 + k * 25, Y(h) + 6, 22, 10, dimmed(k % 2 ? '#F8FAFC' : col)); }
-  if (onScreen(v, X(1340), X(1480))) { c.strokeStyle = '#B45309'; c.lineWidth = 6; c.beginPath(); c.arc(X(1410), Y(100) - 50, 20, 0, Math.PI * 2); c.stroke(); }
-  // (Bavarian blue-and-white bunting over the garden)
-  for (let rx = 380; rx < 1300; rx += 300) if (onScreen(v, X(rx), X(rx + 300))) swag(c, X(rx), Y(230), X(rx + 300), Y(230), 22, ['#2563EB', '#F8FAFC'], 'flags');
-  void mix;
+  for (const [a, b, h, col] of STANDS) if (onScreen(v, X(a), X(b))) valance(c, X(a), X(b), Y(h), col);
+  // (Bavarian blue-and-white pennants over the garden)
+  for (let rx = 380; rx < 1300; rx += 300) if (onScreen(v, X(rx), X(rx + 300))) pennants(c, X(rx), Y(230), X(rx + 300), Y(230), 22);
 };
 
 export const germany: ForeignSection = {
@@ -243,24 +187,14 @@ export const germany: ForeignSection = {
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame;
     drawGarden(c, v, f);
-    // (the battlements: the walk along the castle's top, its merlons behind; the portcullis, iron, ground to top)
-    if (onScreen(v, X(BATTLE.a), X(BATTLE.b))) {
-      for (let x = X(BATTLE.a); x < X(BATTLE.b); x += 40) box(c, x, Y(BATTLE.h) - 30, 22, 30, dimmed(STONE));
-      ledge3(c, v, X(BATTLE.a), Y(BATTLE.h), BATTLE.b - BATTLE.a, STONE, 20);
-    }
-    if (onScreen(v, X(GATE.a) - 40, X(GATE.b) + 40)) {
-      const S = ramp6(hour(STONE));
-      box(c, X(GATE.a) - 30, Y(BATTLE.h) + 20, 30, BATTLE.h - 20, S[2]); box(c, X(GATE.b), Y(BATTLE.h) + 20, 20, BATTLE.h - 20, S[1]);
-      box(c, X(GATE.a), Y(GATE.h), GATE.b - GATE.a, GATE.h, '#1C1014');
-      for (let x = X(GATE.a) + 2; x < X(GATE.b); x += 9) box(c, x, Y(GATE.h), 4, GATE.h, '#3F3F46');
-      for (let y = Y(GATE.h) + 6; y < GY; y += 26) box(c, X(GATE.a), y, GATE.b - GATE.a, 4, '#3F3F46');
-      for (let x = X(GATE.a) + 2; x < X(GATE.b); x += 9) poly(c, [[x, GY - 4], [x + 4, GY - 4], [x + 2, GY]], '#71717A');
-    }
-    // (the far tower and its balconies)
-    if (onScreen(v, X(2740), X(2920))) {
-      setBack(c, v, X(2745), 170, 0.95, () => { wall(c, 0, 170, 640, STONE); poly(c, [[-10, -640], [85, -800], [180, -640]], dimmed('#1E40AF')); });
-      for (const [a, b, h] of BALCONIES) { ledge3(c, v, X(a), Y(h), b - a, '#78716C', 10); for (let x = X(a) + 6; x < X(b); x += 16) box(c, x, Y(h) - 16, 2, 16, dimmed('#3F3F46')); }
-    }
+    // (back to front: the battlements' merlons (0.94), the far tower (0.95), then the play plane: the battlements' walk,
+    // the portcullis (iron, ground to top), the far tower's balconies, their rails along their backs)
+    const battle = onScreen(v, X(BATTLE.a), X(BATTLE.b)), tower = onScreen(v, X(2740), X(2920));
+    if (battle) merlons(c, v, X(BATTLE.a), X(BATTLE.b), Y(BATTLE.h));
+    if (tower) drawFarTower(c, v, X(2745));
+    if (battle) ledge3(c, v, X(BATTLE.a), Y(BATTLE.h), BATTLE.b - BATTLE.a, STONE, 20, 'stone');
+    if (onScreen(v, X(GATE.a) - 40, X(GATE.b) + 40)) drawPortcullis(c, X(GATE.a), X(GATE.b), Y(GATE.h), Y(BATTLE.h));
+    if (tower) for (const [a, b, h] of BALCONIES) { backRail(c, v, X(a), X(b), Y(h)); ledge3(c, v, X(a), Y(h), b - a, '#78716C', 10, 'stone'); }
     drawWheel(c, v, gerOf(state), f);
     // (signs)
     if (onScreen(v, X(100), X(320))) postBoard(c, X(200), GY, ['GERMANY', 'OKTOBERFEST: ALL YEAR'], LOOKS.germany(2), '#1C1917');
@@ -272,7 +206,11 @@ export const germany: ForeignSection = {
     drawBreweryBack(c, v, state);
     if (onScreen(v, X(20), X(120))) flagPole(c, X(40), GY, 200, ['#000000', '#DD0000', '#FFCE00'], f);
   },
-  drawFront: (c, state) => { drawCuckoo(c, viewIn(state), state.frame); drawBreweryFront(c, viewIn(state), state); },
+  drawFront: (c, state) => {
+    const v = viewIn(state), f = state.frame;
+    if (onScreen(v, X(CUCKOO.a), X(CUCKOO.b))) { const ck = cuckooAt(f); drawCuckoo(c, X(CUCKOO.x), Y(BATTLE.h + 150), ck.st, ck.k, f); }
+    drawBreweryFront(c, v, state);
+  },
   outdoors: () => 1,
   lamps: (state) => {
     const v = viewIn(state), out: Light[] = [];
