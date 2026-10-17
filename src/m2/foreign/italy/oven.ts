@@ -14,7 +14,8 @@ import { spawnCast, byPants } from '../cast';
 import { playSound } from '../../../m1/game/platform/audio';
 import { setHazardZones } from '../../hazardHit';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout } from '../setpiece';
-import { type Ctx, type View, box, poly, at, boxes3, ledge3, setBack, wall, hole, postBoard, hungBoard, LOOKS, dimmed, hour, ramp6, onScreen, INK, rnd } from '../kit';
+import { type Ctx, type View, box, poly, at, atDepth, box3Back, still, lip, underBack, steppedGlow, board, postBoard, LOOKS, hour, ramp6, onScreen } from '../kit';
+import { drawHillTown, paintTunnelBack, pilot, flameColumn, paintRoofFront, paintSacks, chimney, smokePuffs, paintVespa, drawHouseBox, balcony, laundry } from './art';
 import { V, FORNO } from './lines';
 
 const { x0, x1 } = SECTIONS.italy;
@@ -94,74 +95,73 @@ export const updateOven = (ctx: FrameContext) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing
+// Drawing (the SNES pass: art.ts paints it; still art stamped for the hour, the fires and the smoke live)
 
-const BRICK = '#9A3412', TERRA = '#C2410C';
-
-const drawFlame = (c: Ctx, x: number, bot: number, h: number, f: number) => {
-  for (let k = 0; k < 7; k++) {
-    const y = bot - (h * (k + 1)) / 7, w = FW * (1 - k / 9) + Math.sin(f * 0.5 + k) * 6;
-    box(c, x - w, y, w * 2, h / 7 + 2, ['#7C2D12', '#C2410C', '#EA580C', '#F97316', '#FB923C', '#FDBA74', '#FEF3C7'][k]);
-  }
-};
+const BRICK_C = '#A0482E';
 
 export const drawOvenBack = (c: Ctx, v: View, state: GameState) => {
-  if (!onScreen(v, X(OVEN_FROM), x1)) return;
-  const f = state.frame;
-  // (the hill town behind, set back: stucco, shutters)
-  for (const [rx, w, h, col] of [[4020, 220, 200, '#F4A259'], [5050, 600, 520, '#E2725B']] as const) setBack(c, v, X(rx), w, 0.9, () => {
-    wall(c, 0, w, h, col); poly(c, [[-12, -h], [w / 2, -h - 50], [w + 12, -h]], dimmed(TERRA));
-    for (let wx = 20; wx < w - 40; wx += 70) for (let wy = -h + 40; wy < -60; wy += 90) { hole(c, wx, wy, 26, 34, true); box(c, wx - 8, wy, 6, 34, dimmed('#15803D')); box(c, wx + 28, wy, 6, 34, dimmed('#15803D')); }
-  });
-  // (the oven's inside: the back wall glowing, the arch-mouths at the ends; then its roof (the walk) and chimneys)
+  if (!onScreen(v, X(OVEN_FROM), x1, 0.9)) return;
+  const f = state.frame, eye = v.eye;
+  // (the hill town behind, set back: stucco houses up the slope, tiled roofs, a little bell tower)
+  drawHillTown(c, v, X(4020), 220, 200, 3);
+  drawHillTown(c, v, X(5050), 600, 520, 5);
+  // (the oven's inside: the firebrick back wall and its gas manifold, glowing where a burner's going; the soffit; then
+  // its roof (the walk), the flour sacks up to it, and the chimneys on it)
   if (onScreen(v, X(OVEN.a), X(OVEN.b))) {
-    const B = ramp6(hour(BRICK));
-    const [ax, ay] = at(v.eye, X(OVEN.a), Y(OVEN.ceil), 0.93), [bx, by] = at(v.eye, X(OVEN.b), GY, 0.93);
-    box(c, ax, ay, bx - ax, by - ay, '#2A0F08');
-    for (let y = ay + 12; y < by; y += 12) for (let x = ax + ((y / 12) % 2) * 14; x < bx; x += 28) box(c, x, y, 1, 12, '#3B1408');
-    for (const rx of BURNERS) {
-      const fl = flameAt(f, BURNERS.indexOf(rx));
-      const [gx, gy] = at(v.eye, X(rx), GY, 0.93);
-      box(c, gx - 30, gy - 8, 60, 8, '#44403C');
-      if (fl.st === 'warn' && (f >> 2) % 2) box(c, gx - 20, gy - 12, 40, 4, '#60A5FA');
-    }
-    boxes3(c, v, [
-      { x: X(OVEN.a), top: Y(OVEN.roof), w: OVEN.b - OVEN.a, bottom: Y(OVEN.ceil), col: BRICK, standable: true },
-      { x: X(SACKS.a), top: Y(SACKS.h), w: SACKS.b - SACKS.a, bottom: GY, col: '#E7E5E4', standable: true },
-    ]);
-    for (let x = X(OVEN.a); x < X(OVEN.b); x += 28) box(c, x, Y(OVEN.roof) + 20, 1, OVEN.roof - OVEN.ceil - 20, B[1]);
-    // (the mouths: arched, sooty)
-    for (const ex of [X(OVEN.a), X(OVEN.b) - 24]) { box(c, ex, Y(OVEN.ceil) - 4, 24, 10, B[3]); }
-    // (the chimneys: stubs off the roof over each burner, set back a touch: not somewhere to stand)
-    for (const rx of BURNERS) { const [cx, cy] = at(v.eye, X(rx), Y(OVEN.roof), 0.95); box(c, cx - 18, cy - 40, 36, 40, dimmed(BRICK)); box(c, cx - 22, cy - 46, 44, 8, dimmed('#57534E')); const fl = flameAt(f, BURNERS.indexOf(rx), true); if (fl.st === 'warn' && (f >> 3) % 2) box(c, cx - 10, cy - 54, 20, 8, dimmed('#A8A29E')); }
+    const H = OVEN.ceil, w = OVEN.b - OVEN.a;
+    atDepth(c, eye, 0.93, () => still(c, `it-forno-back-${w}`, X(OVEN.a), GY, -2, -H - 2, w + 4, H + 4, g => paintTunnelBack(g, w, H, BURNERS.map(rx => rx - OVEN.a))));
+    BURNERS.forEach((rx, k) => {
+      const fl = flameAt(f, k), [gx, gy] = at(eye, X(rx), GY - 40, 0.93);
+      if (fl.st === 'fire') steppedGlow(c, gx, gy, 60 + fl.k * 30, '#FB923C', 0, 0.35 * fl.k, 4);
+    });
+    const Sf = ramp6(hour('#3A1A10'));
+    underBack(c, eye, X(OVEN.a), X(OVEN.b), Y(OVEN.ceil), 1, 0.93, Sf, 3);
+    // (the burners' grates in the floor, at the play plane under the flames: steel, slotted; the pilot's blue tongues)
+    BURNERS.forEach((rx, k) => {
+      const St = ramp6(hour('#52525B')), P = (x: number, d: number) => at(eye, x, GY, d);
+      poly(c, [P(X(rx) - 34, 1), P(X(rx) + 34, 1), P(X(rx) + 34, 0.95), P(X(rx) - 34, 0.95)], St[1]);
+      for (let s = -28; s <= 28; s += 8) { const [p0, q0] = P(X(rx) + s, 0.995), [p1, q1] = P(X(rx) + s, 0.955); c.strokeStyle = '#0A0A0A'; c.lineWidth = 2; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
+      box(c, X(rx) - 35, GY - 1, 70, 2, St[4]);
+      const fl = flameAt(f, k);
+      if (fl.st === 'warn' && (f >> 2) % 2 === 0) pilot(c, X(rx), GY - 1, f);
+    });
+    const roof = { x: X(OVEN.a), top: Y(OVEN.roof), w, bottom: Y(OVEN.ceil), col: BRICK_C, standable: true };
+    const sacks = { x: X(SACKS.a), top: Y(SACKS.h), w: SACKS.b - SACKS.a, bottom: GY, col: '#E4D8BE', standable: true };
+    box3Back(c, v, roof); box3Back(c, v, sacks);
+    still(c, `it-forno-roof-${w}`, roof.x, roof.top, -2, -1, w + 4, OVEN.roof - OVEN.ceil + 2, g => paintRoofFront(g, w, OVEN.roof - OVEN.ceil));
+    still(c, `it-forno-sacks-${sacks.w}x${SACKS.h}`, sacks.x, sacks.top, -2, -1, sacks.w + 4, SACKS.h + 2, g => paintSacks(g, sacks.w, SACKS.h));
+    lip(c, roof.x, roof.top, w); lip(c, sacks.x, sacks.top, sacks.w);
+    // (the chimneys: stubs off the roof over each burner, set back a touch: not somewhere to stand; smoke before they blow)
+    BURNERS.forEach((rx, k) => {
+      chimney(c, v, X(rx), Y(OVEN.roof));
+      const fl = flameAt(f, k, true);
+      if (fl.st === 'warn') { const [mx, my] = at(eye, X(rx), Y(OVEN.roof) - 46, 0.95); smokePuffs(c, mx, my, f, fl.k); }
+    });
+    board(c, X(4535), Y(OVEN.roof) + 35, ['PIZZA TO GO', '(THROUGH)'], LOOKS.italy(1), '#14532D');
   }
   // (the Vespa, the houses, the balconies)
-  boxes3(c, v, [
-    { x: X(VESPA.a), top: Y(VESPA.h), w: VESPA.b - VESPA.a, bottom: GY - 20, col: '#38BDF8', standable: true },
-    ...HOUSES.map(([a, b, h, col]) => ({ x: X(a), top: Y(h), w: b - a, bottom: GY, col, standable: true })),
-  ]);
-  if (onScreen(v, X(VESPA.a), X(VESPA.b))) for (const wx of [X(VESPA.a) + 12, X(VESPA.b) - 12]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, GY - 10, 10, 0, Math.PI * 2); c.fill(); }
-  for (const [a, b, h] of HOUSES) if (onScreen(v, X(a), X(b))) {
-    // (the tile roof's edge along its top, the shutters)
-    for (let x = X(a) - 6; x < X(b) + 6; x += 14) box(c, x, Y(h) - 6, 12, 8, hour(TERRA));
-    for (let wy = Y(h) + 40; wy < GY - 50; wy += 90) { box(c, X(a) + 30, wy, 26, 34, '#1C1014'); box(c, X(a) + 22, wy, 6, 34, hour('#15803D')); box(c, X(a) + 58, wy, 6, 34, hour('#15803D')); }
+  if (onScreen(v, X(VESPA.a) - 10, X(VESPA.b) + 10)) {
+    const vb = { x: X(VESPA.a), top: Y(VESPA.h), w: VESPA.b - VESPA.a, bottom: GY - 20, col: '#7DD3C0', standable: true };
+    box3Back(c, v, vb);
+    still(c, `it-vespa-${vb.w}`, vb.x, vb.top, -8, -22, vb.w + 16, VESPA.h + 24, g => paintVespa(g, vb.w, VESPA.h - 20, VESPA.h));
+    lip(c, vb.x, vb.top, vb.w);
   }
-  for (const [a, b, h] of BALCONIES) if (onScreen(v, X(a), X(b))) { ledge3(c, v, X(a), Y(h), b - a, '#78716C', 10); for (let x = X(a) + 6; x < X(b); x += 12) box(c, x, Y(h) - 18, 2, 18, INK); box(c, X(a), Y(h) - 20, b - a, 2, INK); }
+  HOUSES.forEach(([a, b, h, col], i) => drawHouseBox(c, v, X(a), X(b), Y(h), col, i + 1));
+  for (const [a, b, h] of BALCONIES) balcony(c, v, X(a), X(b), Y(h), true);
   // (laundry strung between the houses: scenery, high over the alleys)
-  for (const [a, b, h] of [[5250, 5300, 330], [5450, 5500, 450]] as const) if (onScreen(v, X(a), X(b))) { c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(X(a) - 30, Y(h)); c.lineTo(X(b) + 30, Y(h)); c.stroke(); for (let k = 0; k < 4; k++) box(c, X(a) - 24 + k * 26, Y(h), 14, 18, dimmed(['#F8FAFC', '#DC2626', '#FDE68A', '#60A5FA'][k])); }
+  for (const [a, b, h] of [[5250, 5300, 330], [5450, 5500, 450]] as const) if (onScreen(v, X(a) - 40, X(b) + 40)) laundry(c, X(a) - 30, Y(h), X(b) + 30, Y(h), 5, a);
   // (signs: held up, nothing over them)
   if (onScreen(v, X(4180), X(4300))) postBoard(c, X(4180), GY, ['IL FORNO', "WORLD'S LONGEST", 'PIZZA OVEN'], LOOKS.italy(1), '#7F1D1D', undefined, 220);
-  if (onScreen(v, X(OVEN.a), X(OVEN.b))) hungBoard(c, X(4650), Y(OVEN.roof) - 70, Y(OVEN.roof) - 40, ['PIZZA TO GO', '(THROUGH)'], LOOKS.italy(1), '#14532D');
   if (onScreen(v, X(5700), X(5860))) postBoard(c, X(5785), GY, ['LEAVING ITALY', 'ARRIVEDERCI (BYE)'], LOOKS.italy(1), '#14532D', undefined, 100);
-  void rnd;
 };
 
 export const drawOvenFront = (c: Ctx, v: View, state: GameState) => {
   const f = state.frame;
   if (onScreen(v, X(OVEN.a), X(OVEN.b))) BURNERS.forEach((rx, k) => {
     const fi = flameAt(f, k), fo = flameAt(f, k, true);
-    if (fi.st === 'fire') drawFlame(c, X(rx), GY, (OVEN.ceil) * fi.k, f);
-    if (fo.st === 'fire') drawFlame(c, X(rx), Y(OVEN.roof) - 40, 150 * fo.k, f + 9);
+    // (inside: kept under the ceiling; the chimney's: up off its mouth)
+    if (fi.st === 'fire') { c.save(); c.beginPath(); c.rect(X(OVEN.a), Y(OVEN.ceil), OVEN.b - OVEN.a, OVEN.ceil + 2); c.clip(); flameColumn(c, X(rx), GY, OVEN.ceil * fi.k, FW - 6, f); c.restore(); }
+    if (fo.st === 'fire') flameColumn(c, X(rx), Y(OVEN.roof) - 40, 150 * fo.k, FW - 6, f + 9);
   });
   drawShout(c, fornoOf(state).said);
 };

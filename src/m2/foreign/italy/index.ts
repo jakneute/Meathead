@@ -7,8 +7,10 @@
 // climbed balcony by balcony (each further out than the one under it; a nonna and a small health at the top). The piazza again; then IL FORNO and THE ROOFTOPS (oven.ts, job 4b: the
 // pizza-oven tunnel's burners and chimneys, the terracotta houses up the hill), to the border with Japan.
 //
-// The canals are water (he swims; climbs out by the steps at each end). Crude (the first pass): readable boxes with
-// full game feel. Checkpoints 40-49. Outdoors: the time of day's light.
+// The canals are water (he swims; climbs out by the steps at each end). The SNES pass: art.ts paints it all (still art
+// stamped for the hour; the gondolas, the bell, the fires live); the canals' backs go down before the fronts, so the
+// paving and railing behind each canal never paint over anything nearer. Checkpoints 40-49. Outdoors: the time of
+// day's light.
 
 import type { Light } from '../../../m1/game/render/lighting';
 import type { GameState } from '../../../m1/game/core/state';
@@ -21,12 +23,12 @@ import { makeMover, moveMover, type Mover } from '../movers';
 import { exemptFromZones } from '../../hazardHit';
 import { runsAround, poolSteps, poolAt, poolZones, drawPoolBack, drawPoolFront, type Pool } from '../water';
 import {
-  type Ctx, type View, viewIn, box, mix, poly, at, promenade, boxes3, ledge3, setBack, wall, hole, postBoard, hungBoard, swag, flagPole,
-  LOOKS, dimmed, hour, ramp6, onScreen, FACADE_D, LIP,
+  type Ctx, type View, viewIn, atDepth, promenade, box3Back, still, lip, board, postBoard, flagPole, LOOKS, onScreen, FACADE_D,
 } from '../kit';
 import { TALK } from './lines';
 import './kinds';
 import { OVEN_CHECKPOINTS, buildOven, updateOven, drawOvenBack, drawOvenFront, ovenLamps } from './oven';
+import { type ItFront, drawFront, laundry, drawPalace as paintedPalace, balcony, drawStub, drawGondola, mooringPole, drawCampanile, paintOvenFront, ovenFire } from './art';
 
 const { x0, x1 } = SECTIONS.italy;
 const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
@@ -90,87 +92,59 @@ const boatY = (i: number, f: number) => GY + DECK + Math.round(Math.sin(f * 0.06
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-const PINK = '#F9A8D4', CREAM = '#F5F0E0', TERRA = '#C2410C', OCHRE = '#D97706';
-
-/** A gondola: a long black hull curling up at both ends, the steel prow, a red cushion; its deck lit (standable). */
-const drawGondola = (c: Ctx, v: View, sx: number, y: number, w: number, f: number) => {
-  if (!onScreen(v, sx - 40, sx + w + 40)) return;
-  const R = ramp6(hour('#1C1917')), tilt = Math.sin(f * 0.06) * 2;
-  poly(c, [at(v.eye, sx, y, 1), at(v.eye, sx + w, y, 1), at(v.eye, sx + w, y, 0.95), at(v.eye, sx, y, 0.95)], R[4]);
-  poly(c, [[sx - 26, y - 22 + tilt], [sx, y], [sx + w, y], [sx + w + 30, y - 30 - tilt], [sx + w - 10, y + 26], [sx + 14, y + 26]], R[2]);
-  box(c, sx + 8, y + 4, w - 16, 2, R[4]);
-  // (the steel prow, the curl at the stern)
-  poly(c, [[sx + w + 26, y - 28 - tilt], [sx + w + 40, y - 34 - tilt], [sx + w + 36, y - 22 - tilt], [sx + w + 44, y - 24 - tilt], [sx + w + 30, y - 12 - tilt]], hour('#D6D3D1'));
-  box(c, sx + w / 2 - 20, y - 8, 40, 8, hour('#B91C1C')); box(c, sx + w / 2 - 20, y - 8, 40, 2, hour('#F87171'));
-  box(c, sx, y, w, 3, LIP[2]); box(c, sx, y, w, 1, LIP[3]);
-};
-
-/** The piazza's fronts: ochre, terracotta and cream, green shutters, laundry strung between. */
+/** The piazza's fronts (set back, braced): Venetian stucco in ochre, terracotta, rose and cream. */
+const FRONTS: ItFront[] = [
+  { rx: 300, w: 240, h: 200, col: '#E8A85C', name: 'GELATO (ICE CREAM)', goods: 'gelato' },
+  { rx: 560, w: 220, h: 230, col: '#D4613E', name: 'MASKS (HALLOWEEN)', goods: 'masks' },
+  { rx: 3480, w: 260, h: 210, col: '#F2E6CC', name: 'PASTA (FROM A BOX)', goods: 'pasta' },
+  { rx: 3760, w: 220, h: 190, col: '#D98C7A', name: 'ESPRESSO (DRIP)', goods: 'cups' },
+];
 const drawFronts = (c: Ctx, v: View) => {
-  for (const [rx, w, h, col] of [[300, 240, 200, OCHRE], [560, 220, 230, TERRA], [3480, 260, 210, CREAM], [3760, 220, 190, OCHRE]] as const) setBack(c, v, X(rx), w, FACADE_D, () => {
-    wall(c, 0, w, h, col, '#78350F');
-    hole(c, w / 2 - 20, -80, 40, 80, true);
-    for (let k = 0; k < 3; k++) for (let r = 0; r < 2; r++) { const wx = 20 + k * ((w - 60) / 2), wy = -h + 30 + r * 60; hole(c, wx, wy, 22, 32, true); box(c, wx - 8, wy, 7, 32, dimmed('#15803D')); box(c, wx + 23, wy, 7, 32, dimmed('#15803D')); }
+  const on = FRONTS.filter(fr => onScreen(v, X(fr.rx) - 60, X(fr.rx + fr.w) + 60, FACADE_D));
+  on.sort((p, q) => Math.abs(X(q.rx + q.w / 2) - v.eye.x) - Math.abs(X(p.rx + p.w / 2) - v.eye.x));
+  for (const fr of on) drawFront(c, v, X(fr.rx), fr);
+  // (laundry strung across them, window to window, at their depth)
+  if (onScreen(v, X(300), X(780), FACADE_D) || onScreen(v, X(3480), X(3980), FACADE_D)) atDepth(c, v.eye, FACADE_D, () => {
+    laundry(c, X(318), Y(128), X(530), Y(128), 8, 1);
+    laundry(c, X(548), Y(142), X(770), Y(142), 9, 4);
+    laundry(c, X(3500), Y(132), X(3720), Y(132), 8, 7);
   });
 };
 
-/** The palace (Doge's-ish): pink and white diamonds on top, white arcades under, the balconies stacked on its front. */
+/** The palace (Doge's-ish, set back) and the balconies stacked on its front. */
 const drawPalace = (c: Ctx, v: View) => {
   if (!onScreen(v, X(1800), X(2300))) return;
-  setBack(c, v, X(1830), 440, 0.95, () => {
-    wall(c, 0, 440, 470, CREAM);
-    for (let y = -460; y < -170; y += 20) for (let x = ((y / 20) % 2) * 14; x < 440; x += 28) poly(c, [[x, y + 10], [x + 14, y], [x + 28, y + 10], [x + 14, y + 20]], dimmed(PINK));
-    for (let k = 0; k < 6; k++) { const ax = 16 + k * 70; box(c, ax, -150, 50, 150, '#1C1014'); c.fillStyle = '#1C1014'; c.beginPath(); c.arc(ax + 25, -150, 25, Math.PI, 0); c.fill(); }
-    for (let k = 0; k < 4; k++) hole(c, 40 + k * 110, -400, 36, 60, true);
-  });
-  for (const [a, b, h] of PALACE) { ledge3(c, v, X(a), Y(h), b - a, '#E7E5E4', 12); for (let x = X(a) + 6; x < X(b); x += 14) { box(c, x, Y(h) - 18, 4, 18, hour('#F5F5F4')); } box(c, X(a), Y(h) - 20, b - a, 3, hour('#F5F5F4')); }
+  paintedPalace(c, v, X(1830));
+  for (const [a, b, h] of PALACE) balcony(c, v, X(a), X(b), Y(h));
 };
 
-/** The broken bridge: two stone stubs arching out over the canal from each bank, not meeting, a barrier on each end. */
+/** The broken bridge: two stone stubs arching out over the canal from each bank, not meeting, a barricade on each end. */
 const drawBridge = (c: Ctx, v: View) => {
   if (!onScreen(v, X(900), X(1900))) return;
-  const S = ramp6(hour('#D6D3D1'));
-  for (const [a, b, h] of STUBS) {
-    const toWater = a < 1300;
-    poly(c, [[X(a), Y(h) + 16], [X(b), Y(h) + 16], [X(b), Y(h) + 40], toWater ? [X(a) + 60, GY + 30] : [X(a) + 40, Y(h) + 40], toWater ? [X(a), GY] : [X(b) - 60, GY + 30]], S[2]);
-    ledge3(c, v, X(a), Y(h), b - a, '#D6D3D1', 16);
-    // (the barrier at the broken end, striped)
-    const ex = toWater ? X(b) - 8 : X(a) + 2;
-    for (let k = 0; k < 4; k++) box(c, ex, Y(h) - 40 + k * 10, 6, 10, k % 2 ? '#F8FAFC' : '#DC2626');
-  }
+  for (const [a, b, h] of STUBS) drawStub(c, v, X(a), X(b), Y(h), a < 1300);
 };
 
 /** THE CAMPANILE (St Mark's-ish; it was a leaning tower of pizza till the Leaning Tower became one of the helicopter's
- *  landmarks): straight up, red brick in tall recessed panels, set back; its floors are balconies stepping out of it
- *  (each further right, as they were: "the balconies don't even line up"), each lit along its lip. The belfry over the
- *  top floor (white arches, the bell swinging), the green pyramid spire, a gold angel on it; a giant pizza nailed to its
+ *  landmarks): straight up, red brick between its pilasters, dimmed (scenery); its floors are balconies stepping out of
+ *  it (each further right, as they were: "the balconies don't even line up"), each lit along its lip. The belfry over
+ *  the top floor (white arches, the bell swinging), the green spire, a gold angel on it; a giant pizza nailed to its
  *  front (the pizza gag kept). */
 const drawTower = (c: Ctx, v: View, f: number) => {
   if (!onScreen(v, X(3150), X(3460))) return;
-  const B = ramp6(hour('#B4532A')), a0 = X(3190), w = 200, top = Y(600);
-  // (the shaft, its recessed panels)
-  box(c, a0, top, w, GY - top, dimmed(B[2]));
-  box(c, a0, top, 12, GY - top, dimmed(B[3])); box(c, a0 + w - 12, top, 12, GY - top, dimmed(B[1]));
-  for (let k = 0; k < 4; k++) box(c, a0 + 22 + k * 44, top + 30, 26, GY - top - 60, dimmed(B[1]));
-  box(c, a0 - 6, GY - 26, w + 12, 26, dimmed('#D6D3D1'));
-  // (the giant pizza on its front: a disc, the crust, the pepperoni)
-  const px = a0 + w / 2, py = Y(300);
-  c.fillStyle = dimmed('#B45309'); c.beginPath(); c.arc(px, py, 56, 0, Math.PI * 2); c.fill();
-  c.fillStyle = dimmed('#FBBF24'); c.beginPath(); c.arc(px, py, 47, 0, Math.PI * 2); c.fill();
-  for (const [dx, dy] of [[-20, -18], [16, -24], [24, 10], [-6, 22], [-28, 12], [4, -2]] as const) { c.fillStyle = dimmed('#B91C1C'); c.beginPath(); c.arc(px + dx, py + dy, 7, 0, Math.PI * 2); c.fill(); }
-  // (the balconies: the floors, stepping out, their railings)
-  for (const [a, b, h] of TOWER) { box(c, X(a), Y(h) + 12, b - a, 10, hour('#D6D3D1')); for (let x = X(a) + 6; x < X(b); x += 14) box(c, x, Y(h) - 18, 3, 18, hour('#F5F5F4')); box(c, X(a), Y(h) - 20, b - a, 3, hour('#F5F5F4')); ledge3(c, v, X(a), Y(h), b - a, '#E7E5E4', 12); }
-  // (the belfry: white arches over the top floor, the bell swinging in the middle one)
-  const bf = top - 90;
-  box(c, a0 - 4, bf, w + 8, 90, dimmed('#F5F0E0'));
-  for (let k = 0; k < 4; k++) { const ax = a0 + 14 + k * 46; box(c, ax, bf + 26, 30, 64, '#1C1014'); c.fillStyle = '#1C1014'; c.beginPath(); c.arc(ax + 15, bf + 26, 15, Math.PI, 0); c.fill(); }
-  const sw = Math.sin(f * 0.04) * 0.3;
-  c.save(); c.translate(a0 + w / 2, bf + 20); c.rotate(sw); poly(c, [[-12, 0], [12, 0], [16, 22], [-16, 22]], hour('#CA8A04')); c.restore();
-  box(c, a0 - 10, bf - 8, w + 20, 10, dimmed('#E7E5E4'));
-  // (the spire, the angel)
-  poly(c, [[a0 + 10, bf - 8], [a0 + w / 2, bf - 190], [a0 + w - 10, bf - 8]], dimmed('#4D7C5A'));
-  poly(c, [[a0 + w / 2, bf - 190], [a0 + w / 2 + 40, bf - 8], [a0 + w - 10, bf - 8]], dimmed('#36503F'));
-  box(c, a0 + w / 2 - 4, bf - 214, 8, 24, hour('#EAB308')); poly(c, [[a0 + w / 2 - 4, bf - 206], [a0 + w / 2 - 18, bf - 220], [a0 + w / 2 - 4, bf - 200]], hour('#FDE68A'));
+  drawCampanile(c, v, X(3190), 200, Y(600), Y(300), f);
+  for (const [a, b, h] of TOWER) balcony(c, v, X(a), X(b), Y(h));
+};
+
+/** The piazza's pizza oven (a block to stand on): its brick front stamped, the fire in its mouth live, the lit lip; the
+ *  board bolted to its front. */
+const drawPiazzaOven = (c: Ctx, v: View, f: number) => {
+  const b = { x: X(OVEN.a), top: Y(OVEN.h), w: OVEN.b - OVEN.a, bottom: GY, col: '#A0482E', standable: true };
+  if (!onScreen(v, b.x, b.x + b.w)) return;
+  box3Back(c, v, b);
+  still(c, `it-piazza-oven-${b.w}x${OVEN.h}`, b.x, b.top, -2, -1, b.w + 4, OVEN.h + 2, g => paintOvenFront(g, b.w, OVEN.h));
+  ovenFire(c, X((OVEN.a + OVEN.b) / 2), GY - 18, 24, f);
+  lip(c, b.x, b.top, b.w);
+  board(c, X(760), Y(OVEN.h) + 24, ['PIZZA', 'DEEP DISH ONLY'], LOOKS.italy(1), '#7F1D1D');
 };
 
 export const italy: ForeignSection = {
@@ -203,29 +177,24 @@ export const italy: ForeignSection = {
     promenade(c, v, x0, CANAL1.a, '#E7DCC4', '#9C8C6A');
     promenade(c, v, CANAL1.b, CANAL2.a, '#E7DCC4', '#9C8C6A');
     promenade(c, v, CANAL2.b, x1, '#E7DCC4', '#9C8C6A');
-    drawFronts(c, v);
+    // (the canals' backs first (their far paving and railing are farther back than any front), then the fronts)
     for (const p of POOLS) drawPoolBack(c, v, p);
+    drawFronts(c, v);
     drawPalace(c, v);
     drawBridge(c, v);
-    // (the pizza oven: a brick dome on a block, its mouth glowing; stand on it)
-    boxes3(c, v, [{ x: X(OVEN.a), top: Y(OVEN.h), w: OVEN.b - OVEN.a, bottom: GY, col: '#9A3412', standable: true }]);
-    if (onScreen(v, X(OVEN.a), X(OVEN.b))) { c.fillStyle = hour('#7C2D12'); c.beginPath(); c.arc(X(760), Y(OVEN.h) + 40, 40, Math.PI, 0); c.fill(); box(c, X(744), Y(OVEN.h) + 52, 32, 26, '#F97316'); box(c, X(748), Y(OVEN.h) + 58, 24, 20, '#FDE047'); }
-    // (the gondolas, mooring poles striped)
+    drawPiazzaOven(c, v, f);
+    // (the mooring poles, striped, up out of the water; the gondolas)
+    for (const [px0, a, b] of [[1020, '#1E40AF', '#F8FAFC'], [1780, '#B91C1C', '#F8FAFC'], [2320, '#1E40AF', '#FDE68A'], [3080, '#B91C1C', '#F8FAFC']] as const) if (onScreen(v, X(px0) - 10, X(px0) + 10)) mooringPole(c, X(px0), GY - 90, GY + 30, a, b);
     const it = itaOf(state);
     it.boats.forEach((m, i) => drawGondola(c, v, m.x, m.y, GONDOLAS[i].w, f + i * 40));
-    for (const px0 of [1020, 1780, 2320, 3080]) if (onScreen(v, X(px0), X(px0))) for (let k = 0; k < 8; k++) box(c, X(px0) - 3, GY - 120 + k * 15 + 30, 6, 15, k % 2 ? '#F8FAFC' : '#1E40AF');
     drawTower(c, v, f);
-    // (laundry strung across the piazza)
-    for (let rx = 320; rx < 900; rx += 290) if (onScreen(v, X(rx), X(rx + 290))) swag(c, X(rx), Y(240), X(rx + 290), Y(240), 18, ['#F8FAFC', '#FECACA', '#BFDBFE', '#FDE68A'], 'flags', 30);
     // (signs)
     if (onScreen(v, X(100), X(320))) postBoard(c, X(200), GY, ['ITALY', 'BIRTHPLACE OF THE TACO'], LOOKS.italy(2), '#14532D');
-    if (onScreen(v, X(OVEN.a), X(OVEN.b))) hungBoard(c, X(760), Y(OVEN.h) - 4, Y(OVEN.h) + 26, ['PIZZA', 'DEEP DISH ONLY'], LOOKS.italy(1), '#7F1D1D');
     if (onScreen(v, X(900), X(1000))) postBoard(c, X(900), GY, ['PONTE CLOSED', 'FOR REPAIRS', 'TAKE A GONDOLA $40'], LOOKS.italy(1), '#1E3A8A', undefined, 120);
     if (onScreen(v, X(2240), X(2300))) postBoard(c, X(2270), GY, ['GRAND CANAL TWO', 'NO SWIMMING (EVER)'], LOOKS.italy(1), '#1E3A8A', undefined, 100);
     if (onScreen(v, X(3120), X(3180))) postBoard(c, X(3140), GY, ['THE CAMPANILE', 'OF PIZZA', 'NOW 100% UPRIGHT'], LOOKS.italy(1), '#7F1D1D', undefined, 110);
     drawOvenBack(c, v, state);
     if (onScreen(v, X(20), X(120))) flagPole(c, X(40), GY, 200, ['#009246', '#F8FAFC', '#CE2B37'], f, true);
-    void mix; void wall; void hole;
   },
   drawFront: (c, state) => {
     const v = viewIn(state), f = state.frame;

@@ -184,13 +184,18 @@ export const drawShots = (c: Ctx, state: GameState) => {
     const dir = Math.sign(s.vx) || 1;
     switch (s.kind) {
       case 'aria': {
-        // (a tall ring going out, pink, wobbling with the vibrato)
-        const r = 14 + Math.min(10, s.t * 0.2), wob = Math.sin(s.t * 0.9) * 2;
-        c.lineWidth = 3;
-        for (let k = 0; k < 3; k++) {
-          c.strokeStyle = ['#F9A8D4', 'rgba(249,168,212,0.6)', 'rgba(249,168,212,0.3)'][k];
-          c.beginPath(); c.ellipse(s.x - dir * k * 9, s.y, (r - k * 3) * 0.55, r - k * 3 + wob, 0, dir > 0 ? -1.2 : Math.PI - 1.2, dir > 0 ? 1.2 : Math.PI + 1.2); c.stroke();
+        // (the high note: tall stepped rings going out (pink to rose, the nearest brightest), inked, wobbling with the
+        // vibrato, a glint up the lead one, and a sparkle of a note riding it)
+        const r = 14 + Math.min(10, s.t * 0.2), wob = Math.sin(s.t * 0.9) * 2, a0 = dir > 0 ? -1.2 : Math.PI - 1.2, a1 = dir > 0 ? 1.2 : Math.PI + 1.2;
+        for (let k = 2; k >= 0; k--) {
+          const rx = (r - k * 3) * 0.55, ry = r - k * 3 + wob, cx = s.x - dir * k * 9;
+          c.lineWidth = 6 - k * 1.2; c.strokeStyle = INK; c.beginPath(); c.ellipse(cx, s.y, rx, ry, 0, a0, a1); c.stroke();
+          c.lineWidth = 3.5 - k; c.strokeStyle = ['#FCE7F3', '#F9A8D4', '#DB2777'][k]; c.beginPath(); c.ellipse(cx, s.y, rx, ry, 0, a0, a1); c.stroke();
+          if (k === 0) { c.lineWidth = 1; c.strokeStyle = '#FFFFFF'; c.beginPath(); c.ellipse(cx, s.y, rx - 1, ry - 1, 0, a0 + 0.2, a0 + 0.8); c.stroke(); }
         }
+        const nx = Math.round(s.x - dir * 10), ny = Math.round(s.y - 6 + Math.sin(s.t * 0.4) * 3);
+        disc(c, nx, ny, 3.4, 2.6, INK, -0.4); disc(c, nx, ny, 2.4, 1.8, '#9D174D', -0.4); c.fillStyle = INK; c.fillRect(nx + 2, ny - 10, 2, 10); c.fillRect(nx + 2, ny - 10, 5, 2);
+        if (s.t % 6 < 3) { c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(s.x + dir * 4), Math.round(s.y - r - 2), 2, 2); c.fillRect(Math.round(s.x), Math.round(s.y + r - 2), 2, 2); }
         break;
       }
       case 'note': {
@@ -261,10 +266,12 @@ export const drawShots = (c: Ctx, state: GameState) => {
         c.restore(); break;
       }
       case 'spoon': {
+        // (nonna's wooden spoon end over end: the handle's grain in steps, the bowl lit and hollowed, the sauce on it)
         c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.4 * dir);
-        c.fillStyle = INK; c.fillRect(-2, -12, 4, 24);
-        c.fillStyle = '#D6A15E'; c.fillRect(-1, -11, 2, 22);
-        disc(c, 0, -12, 4, 6, '#D6A15E');
+        c.fillStyle = INK; c.fillRect(-2.5, -9, 5, 22);
+        c.fillStyle = '#B07A3A'; c.fillRect(-1.5, -8, 3, 20); c.fillStyle = '#E0B070'; c.fillRect(-1.5, -8, 1, 20); c.fillStyle = '#8A5A28'; c.fillRect(1, -4, 1, 3); c.fillRect(1, 4, 1, 4);
+        disc(c, 0, -13, 5.5, 7, INK); disc(c, 0, -13, 4.5, 6, '#C08A50'); disc(c, -1, -14, 3, 4, '#E0B070'); disc(c, 0.5, -12, 2.4, 3.2, '#8A5A28');
+        disc(c, 0.5, -11.5, 1.8, 1.6, '#B91C1C'); c.fillStyle = '#F87171'; c.fillRect(0, -12, 1, 1);
         c.restore(); break;
       }
       case 'fish': {
@@ -346,11 +353,18 @@ export const drawShots = (c: Ctx, state: GameState) => {
         break;
       }
       case 'pizza': {
+        // (a pie spinning flat: the crust in steps (puffed, a char spot), the sauce's edge, the cheese bubbling, the
+        // pepperoni lit, a basil leaf; a cheese string flung off behind)
         const k = Math.abs(Math.cos(s.t * 0.35));
-        c.save(); c.translate(s.x, s.y); c.scale(1, 0.35 + 0.65 * k);
-        disc(c, 0, 0, 13, 13, INK); disc(c, 0, 0, 12, 12, '#D97706'); disc(c, 0, 0, 10, 10, '#FCD34D');
-        for (const [px, py] of [[-4, -3], [4, -2], [0, 5], [-5, 4], [5, 5]]) disc(c, px, py, 2, 2, '#B91C1C');
-        c.restore(); break;
+        c.save(); c.translate(s.x, s.y); c.scale(1, 0.35 + 0.65 * k); c.rotate(s.t * 0.2 * dir);
+        disc(c, 0, 0, 13.5, 13.5, INK); disc(c, 0, 0, 12.5, 12.5, '#A8641E'); disc(c, -0.5, -0.5, 11.5, 11.5, '#D9963E'); disc(c, -1, -1, 10.5, 10.5, '#E8B060');
+        c.fillStyle = '#5A3010'; c.fillRect(8, 3, 2, 2); c.fillRect(-9, -5, 2, 1);
+        disc(c, 0, 0, 9.5, 9.5, '#B91C1C'); disc(c, 0, 0, 8.5, 8.5, '#F4C542'); disc(c, -1.5, -1.5, 5.5, 5.5, '#FDE68A');
+        for (const [px, py] of [[-4, -3], [4, -2], [0, 5], [-5, 4], [5, 5]]) { disc(c, px, py, 2.4, 2.4, INK); disc(c, px, py, 2, 2, '#9F1D1D'); c.fillStyle = '#F87171'; c.fillRect(px - 1, py - 1, 1, 1); }
+        c.fillStyle = '#2F7A2A'; c.fillRect(1, -6, 3, 2); c.fillStyle = '#4ADE80'; c.fillRect(1, -6, 1, 1);
+        c.restore();
+        if (s.t % 8 < 5) { c.fillStyle = '#FDE68A'; c.fillRect(Math.round(s.x - dir * 14), Math.round(s.y + 1), 4, 1); c.fillRect(Math.round(s.x - dir * 19), Math.round(s.y + 2), 3, 1); }
+        break;
       }
     }
   }
