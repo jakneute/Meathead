@@ -31,7 +31,15 @@ export const TALK: PavilionTalk = {
   gags: [
     { from: 900, to: 1300, key: 'taco', lines: ['TACOS: AN ITALIAN TRADITION. I\'M NOT EVEN MAD.', 'THAT TACO CART SMELLS LIKE A GYM BAG.'] },
     { from: 1500, to: 2100, key: 'pyramid', lines: ['A PYRAMID. THE GIFT SHOP\'S AT THE TOP. OF COURSE IT IS.', 'STAIRS. MY ASS IS GONNA FEEL THIS TOMORROW.'], minH: 150 },
-    { from: 1700, to: 2900, key: 'plaza', lines: ["IT'S NIGHTTIME IN HERE. IT'S TWO IN THE AFTERNOON.", 'A FAKE SUNSET. INDOORS. I WANT A FAKE MARGARITA.'], maxH: 60 },
+    { from: 1700, to: 2900, key: 'plaza', maxH: 60,
+      // (the plaza's painted dusk, against whatever the real sky's doing: never the wrong time of day)
+      lines: ['A FAKE SUNSET. INDOORS. I WANT A FAKE MARGARITA.'],
+      byTime: {
+        morning: ["IT'S NIGHTTIME IN HERE. IT'S NINE IN THE MORNING.", 'A FAKE SUNSET. INDOORS. BEFORE LUNCH.'],
+        day: ["IT'S NIGHTTIME IN HERE. IT'S TWO IN THE AFTERNOON.", 'A FAKE SUNSET. INDOORS. I WANT A FAKE MARGARITA.'],
+        evening: ["A FAKE SUNSET. INDOORS. THERE'S A REAL ONE RIGHT OUTSIDE.", 'THEY PAINTED A SUNSET IN HERE. THE REAL ONE IS FREE.'],
+        night: ["A FAKE NIGHT SKY. INDOORS. THE REAL ONE'S RIGHT OUTSIDE.", "IT'S NIGHT IN HERE AND IT'S NIGHT OUT THERE. WHAT WAS THE POINT?"],
+      } },
     { from: 3100, to: 3600, key: 'mesas', lines: ['THE CACTUSES ARE PLYWOOD. EVEN THE CACTUSES ARE FAKE.', "THAT'S ARIZONA. THEY PAINTED ARIZONA BACK THERE."] },
     // (job 4b: La Quebrada, the cliff divers)
     { from: 4250, to: 4700, key: 'quebrada', lines: ['CLIFF DIVERS. INTO SIX FEET OF WATER. FROM OHIO.', "A FIBERGLASS CLIFF. YOU CAN SEE THE SCREWS."] },

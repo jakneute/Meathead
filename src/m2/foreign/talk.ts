@@ -11,7 +11,13 @@ export const allOf = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 
 /** A gag: passing world x from..to (from the pavilion's start; and his feet at least `minH` up, if given), he says one
  *  of `lines`, once. */
-export interface Gag { from: number; to: number; key: string; lines: string[]; minH?: number; maxH?: number }
+/** The time of day, coarsely (for a line that mentions it: it says the right one). */
+export type DayPart = 'morning' | 'day' | 'evening' | 'night';
+export interface Gag {
+  from: number; to: number; key: string; lines: string[]; minH?: number; maxH?: number;
+  /** Said instead of `lines` at that time of day (a line that names the time never gets it wrong). */
+  byTime?: Partial<Record<DayPart, string[]>>;
+}
 
 export interface PavilionTalk {
   /** The PA's hello for this pavilion (by his pants), as he walks in. */
@@ -26,7 +32,7 @@ export type HurtTable = Record<string, { hurt: string[]; death: string[] }>;
 /** A pavilion's lines for the voices: Meathead's (his own and every hurt), the death screens, the PA's, the cast's. */
 export const pavilionVoices = (t: PavilionTalk, hurts: HurtTable, cast: [voices: { m: string; f: string } | { m: string; f: string }[], pool: ByPants][], extra: Record<string, string[]> = {}) => {
   const out: Record<string, string[]> = {
-    meathead: [...t.arrive, ...t.gags.flatMap(g => g.lines), ...Object.values(hurts).flatMap(h => h.hurt)],
+    meathead: [...t.arrive, ...t.gags.flatMap(g => [...g.lines, ...Object.values(g.byTime ?? {}).flat()]), ...Object.values(hurts).flatMap(h => h.hurt)],
     death: Object.values(hurts).flatMap(h => h.death),
     [PA_VOICE]: allOf(t.pa),
   };

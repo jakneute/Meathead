@@ -35951,7 +35951,22 @@
  },
  {
   "voice": "meathead",
+  "text": "A FAKE NIGHT SKY. INDOORS. THE REAL ONE'S RIGHT OUTSIDE.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FAKE SUNSET. INDOORS. BEFORE LUNCH.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "A FAKE SUNSET. INDOORS. I WANT A FAKE MARGARITA.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FAKE SUNSET. INDOORS. THERE'S A REAL ONE RIGHT OUTSIDE.",
   "from": "FOREIGN"
  },
  {
@@ -40021,7 +40036,7 @@
  },
  {
   "voice": "meathead",
-  "text": "GALACTIC GROOVE. NOBODY IS DANCING WITH ME TONIGHT.",
+  "text": "GALACTIC GROOVE. NOBODY IS DANCING WITH ME. AGAIN.",
   "from": "SPACE"
  },
  {
@@ -44538,6 +44553,16 @@
   "voice": "meathead",
   "text": "IT'S MIXING WITH THE OTHER THING!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S NIGHT IN HERE AND IT'S NIGHT OUT THERE. WHAT WAS THE POINT?",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S NIGHTTIME IN HERE. IT'S NINE IN THE MORNING.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",
@@ -53643,6 +53668,11 @@
   "voice": "meathead",
   "text": "THEY KEEP SENDING 'EM DOWN!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY PAINTED A SUNSET IN HERE. THE REAL ONE IS FREE.",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",

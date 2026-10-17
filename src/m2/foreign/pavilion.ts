@@ -7,7 +7,8 @@ import { registerHurtLines } from '../kinds';
 import { meatheadSays } from './section';
 import { streetsOf, paSay, gag, once } from './state';
 import { byPants } from './cast';
-import type { PavilionTalk, HurtTable } from './talk';
+import type { PavilionTalk, HurtTable, DayPart } from './talk';
+import { timeOfDay } from '../timeOfDay';
 export { pavilionVoices, type Gag, type PavilionTalk, type HurtTable } from './talk';
 
 export const pavilionTalk = (state: GameState, key: string, x0: number, gy: number, t: PavilionTalk) => {
@@ -24,8 +25,11 @@ export const pavilionTalk = (state: GameState, key: string, x0: number, gy: numb
     const h = gy - feet;
     if (g.minH !== undefined && h < g.minH) continue;
     if (g.maxH !== undefined && h > g.maxH) continue;
-    gag(state, `${key}-${g.key}`, g.lines);
+    gag(state, `${key}-${g.key}`, g.byTime?.[dayPart()] ?? g.lines);
   }
 };
+
+/** The time of day, coarsely, for the lines that name it. */
+const dayPart = (): DayPart => { const n = timeOfDay().name; return n === 'morning' ? 'morning' : n === 'midday' || n === 'afternoon' ? 'day' : n === 'golden hour' || n === 'sunset' ? 'evening' : 'night'; };
 
 export const registerHurts = (h: HurtTable) => { for (const [source, l] of Object.entries(h)) registerHurtLines(source, l.hurt, l.death); };
