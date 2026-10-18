@@ -33,7 +33,7 @@ import { CANVAS_WIDTH } from '../../../m1/constants';
 import { hazardVictims, hazardHit, hazardKill, boxHits } from '../../hazardHit';
 import { meatheadSays, byPants, label } from '../section';
 import { GY } from '../geometry';
-import { painted, burned, parkSign } from '../kit';
+import { burned, parkSign } from '../kit';
 import { type Ctx, box, mix, hash, checker, INK, stillAt, N, near, fiberglass, post, slab, planks, boards, lip, puff, FIBER, STONE, PLANK, STEEL, WATER, GRASS, DIRT, BLACK, VARNISH, RED, BRASS } from './paint';
 import { signText } from '../../signLetters';
 import { trainOf, type Passer } from './state';
@@ -389,7 +389,7 @@ const paintBridge = (g: Ctx, w: number) => {
   boards(g, -5, -37, w + 10, 6, P, 6, 3);
   for (let x = -4; x < w + 2; x += 11) { box(g, x, -31, 10, 9, P[2]); box(g, x + 1, -30, 8, 2, P[5]); box(g, x + 3, -27, 4, 3, P[1]); }
   box(g, -5, -22, w + 10, 12, P[3]); box(g, -5, -22, w + 10, 1, P[5]);
-  signText(g, 'LOW', w / 2, -12, painted(1, '#FACC15', '#1C1209'));
+  // (no LOW painted on it: the user's, no duck tells; the bridge is plainly low)
   for (let k = -5; k < w + 5; k += 12) box(g, k, -10, 6, 9, (Math.floor((k + 5) / 12)) % 2 ? '#18181B' : '#FACC15');
   box(g, -5, -10, w + 10, 1, INK); box(g, -5, -1, w + 10, 1, INK);
 };
