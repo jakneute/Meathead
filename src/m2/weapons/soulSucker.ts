@@ -83,6 +83,8 @@ const CLOSE = 60;
  * cube of how near), so further off it's barely a tug and up close it's a different thing altogether.
  */
 const DRAIN_FAR = 0.15, DRAIN_NEAR = 6.8;
+/** Frames of sucking a unit of its ammo lasts. */
+const SUCK_COST_EVERY = 3;
 /** After this long not being pulled, poise comes back, this much a frame. */
 const REGEN_AFTER = 50, REGEN = 0.5;
 /** How fast they run from it, and how long they keep running once it's let them go. */
@@ -198,7 +200,9 @@ const fire = (ctx: FrameContext) => {
   }
   suckingAt = state.frame;
   pl.shootCooldown = 0;
-  if (!cheats.infiniteAmmo) pl.weaponAmmo.SOUL_SUCKER--;
+  // (a unit every third frame of sucking: a full tank's half a minute of it (the playtest: it was every frame, ten
+  // seconds, bled dry way too quickly))
+  if (!cheats.infiniteAmmo && state.frame % SUCK_COST_EVERY === 0) pl.weaponAmmo.SOUL_SUCKER--;
   if (state.frame % 9 === 0) playSound('suck', 0.8);
   // Bullets too: anything shot at him that comes into the cone is bent round into the intake, and gone (not a stage's
   // hazards: boulders, sludge and the like still get him)
