@@ -124,7 +124,7 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | 1400 | THE ROCKY RISE | fiberglass ledges up to a ridge; a crow; a trap on a ledge landing; the first loose edge (safe drop under it) |
 | 2700 | THE POND | the first rolling log on still water, alone (sign: LOG ROLLING); falling in is just a swim |
 | 4500 | WOLF WOODS (cp 1) | two wolves; a trap in their path (watch one step in); a beehive over a pack (shoot it down on them) |
-| 6200 | THE CREEK | two logs (tied up at the near bank) and a stepping rock; the first trout alone; the first fallen tree to duck, alone; a beaver; a crow |
+| 6200 | THE CREEK | two logs (tied up at the near bank) and a stepping rock; the first leeches (sign: LEECHES. RIDE THE LOG.); the first trout alone; the first fallen tree to duck, alone; a beaver; a crow |
 | 7800 | THE BLUFFS | a cougar on the bluff; a chain of loose ledges over a ravine (they come back a few seconds after they drop: the way back's the same) |
 | 9300 | SNAKE FLATS (cp 2) | the first rattlesnake hole alone, then two with a trap between; a porcupine (no dive kicks) |
 | 10400 | THE RAPIDS | current; two channels and a rock island; submerged rocks buck the log; low branches; beavers |
@@ -579,7 +579,8 @@ Teach, then escalate (each hazard alone in a safe spot first):
   sign: TROUT BITE. RIDE THE LOG.), then in every crossing; and SNAGS (sharpened deadwood just under the surface of the
   rapids and the river, their points poking out: a swimmer carried into one is cut, m2:fr_snag; the log rides over
   them; the rapids' sign: SNAGS. DO NOT SWIM.). The obstacles on the crossings: the leaping trout, the fallen trees (a
-  new first one alone in the creek's second pool), the rocks, crows, beavers.
+  new first one alone in the creek's second pool), the rocks, crows, beavers. (The trout's bite at a swimmer and the
+  snags superseded by the leeches, job A2, below.)
 - 2026-10-18 (playtest A): THE FALLEN TREES to duck on the log: the crown a wall of boughs down onto one great low limb
   flat across the water at ducking height (54 px over his feet, his ducked head clear under it), its underside scraped
   pale, a yellow DUCK! board with a red down arrow nailed to it; the limb is what hits (as wide as it's drawn). His own
@@ -656,3 +657,17 @@ Teach, then escalate (each hazard alone in a safe spot first):
   time, Meathead's MH_RAYGUN hint); only the plain RAY GUN's bolt through his window is the shot (the stand-in in the
   window is gone: nothing else can touch him). Then the eye close-up and the crash as before. All clean / shitty /
   naked; voiced.
+- 2026-10-18 (playtest fix A2, the wilds' water, the user's: "the water sections for the logs should have leeches that
+  slow you down, slowly drain health and disables charging when underwater. it goes away when you surface. that's the
+  incentive to use the logs"): THE LEECHES (wilds/leeches.ts) are the swim deterrent, in every log crossing but the
+  pond (layout.ts LEECH_WATERS: the pond stays the gentle log teach, falling in just a swim; the creek's sign teaches
+  them: CREEK CROSSING / LEECHES. RIDE THE LOG.; the rapids': LEECHES. DO NOT SWIM.). UNDER = his head under the water
+  (the same line his air goes by, frontier/air.ts: swimming and his top 6 px below the surface); SURFACED = anything
+  else (head up for air, on a log, out on a bank). Under, the first latches on after 45 frames, then one every 75, up
+  to 8, drawn on him (dark banded slugs hanging off him, wriggling); each slows his swimming (x(1 - 0.012n) a frame on
+  his speed, a little off his strokes up); they drain 2 (x0.65, M2's softer hits) a tick, every 90 - 8n frames (30 at
+  least), straight off his health (no knockback, no i-frames: m2:fr_leech, its hurt lines when one latches, its death
+  screens); while any are on him the special's stripped (no lunge; one going is over). Surfaced, they all drop off at
+  once, shaken off in a spray (flung off him, into the water or the dirt). Not enemies: no kills, no callouts. REMOVED:
+  the trout's chase and bite at a swimmer (it only leaps at him on a log now, head height: duck or shoot it) and the
+  snags (m2:fr_snag, their lines, signs and drawing). The creek's passing line is about the leeches now.

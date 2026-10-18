@@ -52,8 +52,9 @@ export interface Wilds {
   swarms: Swarm[];
   rollers: Roller[];
   quills: Quill[];
-  /** The snags' cut (frames before one can cut him again). */
-  snagCd: number;
+  /** The leeches on him (leeches.ts): how many, frames he's been under, frames to the next drain, the next latch, and
+   *  the ones he's just shaken off (flying, then gone). */
+  leech: { n: number; under: number; drainT: number; latchT: number; sayCd: number; off: { x: number; y: number; vx: number; vy: number; t: number; a: number }[] };
   pileT: number;
   /** The hives (their enemies), where each was last seen (to let the swarm out where it fell). */
   hives: { e: Enemy; x: number; y: number; out: boolean }[];
@@ -67,6 +68,6 @@ export interface Wilds {
 }
 
 export const wildsOf = (state: GameState) => frontierState<Wilds>(state, 'wilds', () => ({
-  logs: [], traps: [], pines: [], loose: [], swarms: [], rollers: [], quills: [], snagCd: 0, pileT: 0, hives: [], said: {},
+  logs: [], traps: [], pines: [], loose: [], swarms: [], rollers: [], quills: [], leech: { n: 0, under: 0, drainT: 0, latchT: 0, sayCd: 0, off: [] }, pileT: 0, hives: [], said: {},
   lastPress: { left: false, right: false, jump: false }, branchCd: 0, tuckerSaid: null,
 }));

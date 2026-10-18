@@ -10,13 +10,13 @@
 //   4500   WOLF WOODS (cp 1): two wolves with a trap in their path (watch one step in); a beehive over a pack (shoot it
 //          down on them); a pine.
 //   6200   THE CREEK: two pools either side of a rock island, a log in each (tied up at the near bank till he's on
-//          it); the first trout alone (it leaps the log: duck; it bites a swimmer: stay on the log); the first fallen
-//          tree to duck under, alone; a beaver; a crow.
+//          it); the first leeches (their sign: under the water they latch on; stay on the log); the first trout alone
+//          (it leaps the log: duck); the first fallen tree to duck under, alone; a beaver; a crow.
 //   7800   THE BLUFFS: ledges up the bluff, a cougar on top; a ravine with a chain of loose ledges over it (they come
 //          back: the way back's the same).
 //   9300   SNAKE FLATS (cp 2): a rattlesnake hole alone, then two with a trap between; a porcupine (no dive kicks).
 //   10400  THE RAPIDS: current; two channels and a rock island; submerged rocks buck the log; a fallen tree to duck under
-//          on the log; beavers, trout; snags just under the surface (swimming it is a bad idea).
+//          on the log; beavers, trout; leeches (swimming it is a bad idea).
 //   13100  BISON MEADOW (cp 3): a bison; a buck; up the hill against the log pile's rolling logs.
 //   15200  THE LONG RIVER: one log, a long gentle river: wolves and a cougar on the overhangs over it, a hive hanging off
 //          one, a crow, a fallen tree to duck; the log boom at the end, the falls past it: jump off to the far cliff.
@@ -118,7 +118,7 @@ export const LOGS: [string, number, number][] = [
 ];
 
 /** Fallen trees across the water to duck under on the log (impassable down to the gap): [x from, x to]. The creek's
- *  is the first, alone (the trout and the snags are elsewhere); then the rapids', then the long river's. */
+ *  is the first, alone (the trout's elsewhere); then the rapids', then the long river's. */
 export const LOW_BRANCHES: [number, number][] = [
   [7320, 7380],
   [12360, 12420],
@@ -127,14 +127,9 @@ export const LOW_BRANCHES: [number, number][] = [
 /** How high the gap under a fallen tree is (px over his feet on the log): ducked, his head's under it with room. */
 export const BRANCH_GAP = 54;
 
-/** Snags (the playtest's: the water's a bad idea): dead branches sharpened by the current, just under the surface of
- *  the rapids and the long river, their tips poking out. A swimmer carried into one is cut; a log rides over them.
- *  [x]. Not by a submerged rock, not under a fallen tree, not at a bank's step. */
-export const SNAGS: number[] = [
-  10760, 11150, 11500,
-  12000, 12520, 12780,
-  15760, 16350, 16620, 17250,
-];
+/** The waters with leeches in them (leeches.ts): every log crossing but the pond (the log's teach, where falling in
+ *  is just a swim). */
+export const LEECH_WATERS = new Set(['creek1', 'creek2', 'rapids1', 'rapids2', 'river']);
 
 /** Bear traps: [x, height of the ground it's on]. */
 export const TRAPS: [number, number][] = [
@@ -175,7 +170,7 @@ export const ANIMALS: [AnimalKind, number, number][] = [
   ['m2:fr_wolf', 5650, 0], ['m2:fr_wolf', 5800, 0],
   ['m2:fr_hive', 5720, 230],
   ['m2:fr_doe', 6150, 0],
-  // (the creek: the first trout alone in the first pool (taught: it leaps the log, it bites a swimmer); the second
+  // (the creek: the first trout alone in the first pool (taught: it leaps the log); the second
   // pool's beaver and trout)
   ['m2:fr_trout', 6640, 0],
   ['m2:fr_beaver', 7480, 0],
@@ -226,10 +221,10 @@ export const SIGNS: [number, number, string[], boolean?][] = [
   [1340, 0, ['SCENIC ROCKS', '100% FIBERGLASS']],
   [2820, 0, ['LOG ROLLING', 'WALK TO ROLL. STOP TO DRIFT.']],
   [4650, 0, ['WOLF WOODS', 'DO NOT HOWL BACK']],
-  [6200, 0, ['CREEK CROSSING', 'TROUT BITE. RIDE THE LOG.'], true],
+  [6200, 0, ['CREEK CROSSING', 'LEECHES. RIDE THE LOG.'], true],
   [7760, 0, ['THE BLUFFS', 'EDGES MAY BE LOOSE'], true],
   [9460, 0, ['RATTLESNAKES', 'REAL ONES. SORRY.'], true],
-  [10380, 0, ['RAPIDS', 'SNAGS. DO NOT SWIM.'], true],
+  [10380, 0, ['RAPIDS', 'LEECHES. DO NOT SWIM.'], true],
   [13180, 0, ['BISON MEADOW', 'DO NOT RIDE THE BISON']],
   [14120, 0, ['LOG PILE', 'LOGS MAY ROLL'], true],
   [15470, 0, ['LONG RIVER', 'GET OFF BEFORE THE FALLS'], true],

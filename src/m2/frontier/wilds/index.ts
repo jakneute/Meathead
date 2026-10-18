@@ -20,7 +20,8 @@ import { GROUND, LEDGES, BOULDERS, ANIMALS, PICKUPS, CHECKPOINTS, WATERS, STATIO
 import { wildsOf } from './state';
 import { waterAt, layWaterSteps, waterZones, carrySwimmer, surfaceY, drawWaterBack, drawWaterFront } from './water';
 import { buildLogs, updateLogs, updateFalls, updateBranches, drawLogs, drawBoomAndBranches } from './logs';
-import { buildHazards, updateTraps, updatePines, updateLoose, updateBees, updateRollers, updateQuills, updateSnags, drawHazardsBack, drawHazardsFront } from './hazards';
+import { buildHazards, updateTraps, updatePines, updateLoose, updateBees, updateRollers, updateQuills, drawHazardsBack, drawHazardsFront } from './hazards';
+import { updateLeeches, drawLeeches } from './leeches';
 import { drawWildsBackdrop, drawWildsBack } from './art';
 import { updateStation, drawStationBack, drawStationFront, drawStationHud, stationGone } from './station';
 import { ARRIVE, GAGS } from './lines';
@@ -30,7 +31,7 @@ const { x0, x1 } = SECTIONS.wilds;
 
 /** Once each, passing: [the gag, from x (from the section's start)]. */
 const GAG_AT: [keyof typeof GAGS, number][] = [
-  ['trap', 470], ['log', 2860], ['wolves', 4900], ['trout', 6240], ['rapids', 10420], ['bison', 13360], ['falls', 15480], ['tracks', 18820],
+  ['trap', 470], ['log', 2860], ['wolves', 4900], ['leeches', 6240], ['rapids', 10420], ['bison', 13360], ['falls', 15480], ['tracks', 18820],
 ];
 
 export const wilds: FrontierSection = {
@@ -64,7 +65,8 @@ export const wilds: FrontierSection = {
     let out = updateStation(ctx, controls);
     out = updateTraps(ctx, out);
     out = updateLogs(ctx, out);
-    updatePines(ctx); updateLoose(ctx); updateBees(ctx); updateRollers(ctx); updateQuills(ctx); updateSnags(ctx); updateBranches(ctx); updateFalls(ctx);
+    out = updateLeeches(ctx, out);
+    updatePines(ctx); updateLoose(ctx); updateBees(ctx); updateRollers(ctx); updateQuills(ctx); updateBranches(ctx); updateFalls(ctx);
     carrySwimmer(state); waterZones(state);
     // What he's got to say about it (once each)
     const once = (k: string, pool: string[]) => { if (!w.said[k] && !p.inCutscene && p.health > 0) { w.said[k] = true; meatheadSays(state, pickLine(pool), false); } };
@@ -84,6 +86,7 @@ export const wilds: FrontierSection = {
     drawLogs(c, state);
   },
   drawFront: (c, state) => {
+    drawLeeches(c, state);
     drawWaterFront(c, state);
     drawBoomAndBranches(c, state);
     drawHazardsFront(c, state);

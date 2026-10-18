@@ -16,8 +16,7 @@
 //                hill's foot.
 //   QUILLS       a porcupine he's close to sprays a fan of quills up off its back (the porcupine's AI, kinds.ts): they
 //                go up and out over anything low; slide in under them.
-//   SNAGS        dead branches sharpened by the current, just under the surface of the rapids and the river: a swimmer
-//                carried into one is cut (the log rides over them). The water's a bad idea; the log's the way.
+// (The water's own deterrent, the leeches, is leeches.ts.)
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -29,8 +28,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { hazardHit, hazardVictims, boxHits, isSmall, setHazardZones } from '../../hazardHit';
 import { ledge } from '../section';
 import { box, onScreen, INK, type Ctx } from '../kit';
-import { GY } from '../geometry';
-import { TRAPS, PINES, LOOSE, LOG_PILE, SNAGS, WATERS, X, Y, groundH } from './layout';
+import { TRAPS, PINES, LOOSE, LOG_PILE, X, Y, groundH } from './layout';
 import { wildsOf, type Trap, type Roller } from './state';
 import { drawLog } from './logs';
 
@@ -360,7 +358,7 @@ export const updateRollers = (ctx: FrameContext) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 // The porcupine's quills (sprayed up off its back when he's close: a fan of them up and out, over anything low; a
-// slide's under it), and the snags in the rapids and the river (a swimmer carried into one is cut)
+// slide's under it)
 
 const QUILL_N = 9, QUILL_SPEED = 7.5, QUILL_G = 0.2, QUILL_LIFE = 28, QUILL_DMG = 8;
 
@@ -412,45 +410,6 @@ const drawQuill = (c: Ctx, x: number, y: number, vx: number, vy: number) => {
   c.strokeStyle = '#F5F5F4'; c.beginPath(); c.moveTo(x - ux * 2, y - uy * 2); c.lineTo(x + ux * 2.5, y + uy * 2.5); c.stroke();
 };
 
-const SNAG_DMG = 9;
-
-/** A swimmer carried into a snag: cut, shoved up off it; and an animal knocked in, the same. */
-export const updateSnags = (ctx: FrameContext) => {
-  const { state } = ctx, p = state.player, w = wildsOf(state);
-  w.snagCd = Math.max(0, w.snagCd - 1);
-  for (const rx of SNAGS) {
-    const x = X(rx), W = WATERS.find(q => x > q.a && x < q.b);
-    if (!W) continue;
-    const s = GY + W.surface;
-    if (w.snagCd === 0 && p.swimming && p.health > 0 && !p.inCutscene && p.pos.x + p.width - 6 > x - 22 && p.pos.x + 6 < x + 22 && p.pos.y + p.height > s - 8 && p.pos.y < s + 70) {
-      w.snagCd = 50; p.invincibilityTimer = 0;
-      hurtPlayer(ctx, SNAG_DMG, 'm2:fr_snag', { x: p.pos.x + p.width / 2 < x ? -3 : 3, y: -3 });
-      playSound('crunch', 0.6, 4); playSound('splash', 0.5, 4);
-      for (let i = 0; i < 6; i++) state.particles.push({ pos: { x, y: s + 4 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 26, color: i % 2 ? '#B91C1C' : '#E0F2FE', size: 2 + Math.random() * 2 });
-    }
-    for (const e of hazardVictims(state)) {
-      if (e.kind === 'm2:fr_beaver' || e.kind === 'm2:fr_trout' || e.kind === 'm2:fr_hive') continue;
-      if (boxHits(e, x - 20, s - 6, 40, 70) && (e.hitFlash ?? 0) <= 0) hazardHit(ctx, e, 12, x, 'SNAGGED!', { knock: 3 });
-    }
-  }
-};
-
-/** A snag (crude): a dead gray branch, its sharpened forks just poking up out of the water, the rest of it a dark
- *  shape down under the surface. */
-const drawSnag = (c: Ctx, x: number, s: number, f: number) => {
-  c.globalAlpha = 0.85;
-  c.strokeStyle = '#2A2A2E'; c.lineCap = 'round';
-  c.lineWidth = 7; c.beginPath(); c.moveTo(x - 14, s + 70); c.lineTo(x - 2, s + 20); c.lineTo(x + 2, s - 6); c.stroke();
-  c.lineWidth = 5; c.beginPath(); c.moveTo(x - 2, s + 26); c.lineTo(x + 16, s - 4); c.moveTo(x - 6, s + 40); c.lineTo(x - 18, s - 2); c.stroke();
-  c.globalAlpha = 1;
-  // (the points out of the water: pale, sharpened, a little foam round each)
-  for (const [px, py] of [[x + 2, s - 8], [x + 16, s - 6], [x - 18, s - 4]] as const) {
-    c.fillStyle = INK; c.beginPath(); c.moveTo(px - 3, py + 7); c.lineTo(px, py - 3); c.lineTo(px + 3, py + 7); c.closePath(); c.fill();
-    c.fillStyle = '#B8B2A6'; c.beginPath(); c.moveTo(px - 2, py + 6); c.lineTo(px, py - 1); c.lineTo(px + 2, py + 6); c.closePath(); c.fill();
-    box(c, px - 5 + ((f >> 3) % 3), py + 6, 4, 2, '#FFFFFF');
-  }
-};
-
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
@@ -466,7 +425,6 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
   for (const L of w.loose) if (L.state !== 'fallen' && onScreen(state, L.a, L.b)) drawShelf(c, L.a, L.b, L.y, true, L.state === 'shake' ? 1 : 0, f);
   for (const L of w.loose) if (L.state === 'fallen' && L.drop < 600) { c.globalAlpha = Math.max(0, 1 - L.drop / 600); drawShelf(c, L.a, L.b, L.y + L.drop, true); c.globalAlpha = 1; }
   for (const t of w.traps) if (onScreen(state, t.x - 30, t.x + 30)) drawTrap(c, t, f);
-  for (const rx of SNAGS) { const x = X(rx), W = WATERS.find(q => x > q.a && x < q.b); if (W && onScreen(state, x - 30, x + 30)) drawSnag(c, x, GY + W.surface, f); }
   // (the log pile: logs stacked in a pyramid behind a broken rail, at the hill's top)
   const px = X(LOG_PILE.x), py = Y(groundH(px) ?? 0);
   if (onScreen(state, px - 140, px + 140)) {

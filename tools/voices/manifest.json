@@ -7086,6 +7086,11 @@
  },
  {
   "voice": "death",
+  "text": "DIED A LEECH BUFFET",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "DIED IN A BLIZZARD. INDOORS.",
   "from": "content/deaths"
  },
@@ -7621,11 +7626,6 @@
  },
  {
   "voice": "death",
-  "text": "EATEN BY TROUT. STOCKED TROUT.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "EATEN BY WOLVES",
   "from": "FRONTIER"
  },
@@ -7783,6 +7783,11 @@
   "voice": "death",
   "text": "FACE FULL OF PIE",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "FACE-SLAPPED TO DEATH BY A TROUT",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -11991,11 +11996,6 @@
  },
  {
   "voice": "death",
-  "text": "SKEWERED ON A SNAG. THE SIGN SAID DO NOT SWIM.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "SKEWERED ON AN UMBRELLA",
   "from": "FRONTIER"
  },
@@ -12596,6 +12596,11 @@
  },
  {
   "voice": "death",
+  "text": "SUCKED DRY BY LEECHES. THE SIGN SAID RIDE THE LOG.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "SUCKED INTO SPACE",
   "from": "SPACE"
  },
@@ -12638,11 +12643,6 @@
   "voice": "death",
   "text": "SWALLOWED WHOLE BY A BOA",
   "from": "ADVENTURE"
- },
- {
-  "voice": "death",
-  "text": "SWAM THE RAPIDS. THE RAPIDS HAD STICKS.",
-  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -41511,11 +41511,6 @@
  },
  {
   "voice": "meathead",
-  "text": "A STICK! UNDER THE WATER!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
   "text": "A TANK WON'T CRUSH THESE QUADS!",
   "from": "HAZARD_HURT"
  },
@@ -42673,11 +42668,6 @@
   "voice": "meathead",
   "text": "BIKER GANG? MORE LIKE BIKER GANGRENE!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "BITING TROUT. THEY CAN SMELL ME FROM THERE.",
-  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -45748,6 +45738,11 @@
   "voice": "meathead",
   "text": "GET OFF ME, YOU RAT WITH WINGS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OFF ME, YOU SLIMY DICKS!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -51146,6 +51141,26 @@
  },
  {
   "voice": "meathead",
+  "text": "LEECHES! ON MY EVERYTHING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "LEECHES. AND EVERYTHING I OWN IS HANGING OUT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "LEECHES. I'M STAYING ON THE LOG.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "LEECHES. THEY'D GO STRAIGHT FOR MY PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "LEG DAY, BABY!",
   "from": "m1/game/stages/tommy/bike.ts:36"
  },
@@ -52288,11 +52303,6 @@
   "voice": "meathead",
   "text": "MY MUSCLES ARE SPASMING, FUCK!",
   "from": "HURT"
- },
- {
-  "voice": "meathead",
-  "text": "MY NUTS! A BRANCH!",
-  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -54038,6 +54048,11 @@
   "voice": "meathead",
   "text": "ONE.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE'S IN MY ASS CRACK!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -56761,11 +56776,6 @@
  },
  {
   "voice": "meathead",
-  "text": "SHOULD HAVE STAYED ON THE LOG!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
   "text": "SHOULD HAVE TAKEN YOUR PILLS.",
   "from": "FOREIGN"
  },
@@ -57453,11 +57463,6 @@
   "voice": "meathead",
   "text": "SOMETHING POPPED ON ME! THAT WAS A BOIL!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "SOMETHING STABBED ME!",
-  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -61411,6 +61416,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY'RE SUCKING ME DRY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY'RE THROWING THE BREAK ROOM AT ME!",
   "from": "HAZARD_HURT"
  },
@@ -62047,16 +62057,6 @@
  {
   "voice": "meathead",
   "text": "TROUT DON'T HAVE TEETH!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
-  "text": "TROUT THAT BITE. EVERYTHING I OWN IS HANGING OUT.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
-  "text": "TROUT WITH TEETH. I'M STAYING ON THE LOG.",
   "from": "FRONTIER"
  },
  {

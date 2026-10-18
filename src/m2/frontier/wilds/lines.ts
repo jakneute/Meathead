@@ -18,11 +18,11 @@ export const ARRIVE: ByPants = {
   shitty: ['THE FRONTIER. PIONEERS SHAT THEIR PANTS TOO. I FIT RIGHT IN.', 'OLD AMERICA. SMELLS LIKE ME.'],
   nude: ['THE FRONTIER. NAKED AS THE DAY THE PIONEERS MADE ME.', 'WILDERNESS LAND. I DRESSED FOR IT.'],
 };
-export const GAGS: Record<'trap' | 'log' | 'wolves' | 'trout' | 'rapids' | 'bison' | 'falls' | 'tracks', ByPants> = {
-  trout: {
-    clean: ['TROUT WITH TEETH. I\'M STAYING ON THE LOG.'],
-    shitty: ['BITING TROUT. THEY CAN SMELL ME FROM THERE.'],
-    nude: ['TROUT THAT BITE. EVERYTHING I OWN IS HANGING OUT.'],
+export const GAGS: Record<'trap' | 'log' | 'wolves' | 'leeches' | 'rapids' | 'bison' | 'falls' | 'tracks', ByPants> = {
+  leeches: {
+    clean: ['LEECHES. I\'M STAYING ON THE LOG.'],
+    shitty: ['LEECHES. THEY\'D GO STRAIGHT FOR MY PANTS.'],
+    nude: ['LEECHES. AND EVERYTHING I OWN IS HANGING OUT.'],
   },
   trap: {
     clean: ['A BEAR TRAP. ON THE PATH. FOR THE GUESTS.'],
@@ -213,11 +213,11 @@ export const HURT: HurtTable = {
   },
   'm2:fr_trout': {
     hurt: ['THE TROUT BIT ME!', 'A FISH JUMPED IN MY FACE!', 'TROUT DON\'T HAVE TEETH!', 'FISH SLAP!'],
-    death: ['EATEN BY TROUT. STOCKED TROUT.', 'KILLED BY A FISH. HE DIDN\'T DUCK.'],
+    death: ['FACE-SLAPPED TO DEATH BY A TROUT', 'KILLED BY A FISH. HE DIDN\'T DUCK.'],
   },
-  'm2:fr_snag': {
-    hurt: ['SOMETHING STABBED ME!', 'A STICK! UNDER THE WATER!', 'MY NUTS! A BRANCH!', 'SHOULD HAVE STAYED ON THE LOG!'],
-    death: ['SKEWERED ON A SNAG. THE SIGN SAID DO NOT SWIM.', 'SWAM THE RAPIDS. THE RAPIDS HAD STICKS.'],
+  'm2:fr_leech': {
+    hurt: ['LEECHES! ON MY EVERYTHING!', 'GET OFF ME, YOU SLIMY DICKS!', 'THEY\'RE SUCKING ME DRY!', 'ONE\'S IN MY ASS CRACK!'],
+    death: ['SUCKED DRY BY LEECHES. THE SIGN SAID RIDE THE LOG.', 'DIED A LEECH BUFFET'],
   },
 };
 

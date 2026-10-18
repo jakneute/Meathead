@@ -14,9 +14,9 @@
 //   bison      grazes; sees him, paws and snorts (a long tell), then CHARGES a long way, plowing through anything in its
 //              way (the other animals too); a charge into its horns hurts (pointy)
 //   hive       a beehive hanging off a branch (shoot it down: the swarm, hazards.ts)
-//   trout      the park's stocked trout (aggressive, as advertised): cruises under the surface; a swimmer, it goes for
-//              like a piranha; him going by on a log, it shows its fin (the tell) and LEAPS out across at head height
-//              (duck under it, or shoot it)
+//   trout      the park's stocked trout (aggressive, as advertised): cruises under the surface; him going by on a log,
+//              it shows its fin (the tell) and LEAPS out across at head height (duck under it, or shoot it). A swimmer
+//              it leaves to the leeches (leeches.ts)
 //
 // The animals are bigger than they were (the playtest's), their health and their hits with them. Deer, wolves, the
 // cougar, the bison are big game, not critters: a charge only dents them, a dive kick or an uppercut's the big hit,
@@ -409,7 +409,6 @@ const trout = (ctx: FrameContext, e: Enemy) => {
   const s = surfaceY(W), em = mid(e), pm = mid(p);
   const log = logUnder(state);
   const onLog = !!log && WATERS[log.water] === W && alive(state);
-  const swimmer = alive(state) && p.swimming && pm.x > W.a && pm.x < W.b;
   const cd = e.aiY ?? 0;
   switch (e.aiState) {
     default: {
@@ -418,21 +417,7 @@ const trout = (ctx: FrameContext, e: Enemy) => {
       e.vel.x = Math.max(-1.2, Math.min(1.2, (tx - em.x) * 0.05));
       e.vel.y = (s + 34 - em.y) * 0.1;
       e.facing = (e.vel.x < 0 ? -1 : 1) as 1 | -1;
-      if (swimmer && Math.abs(pm.x - em.x) < 320) setState(e, 'chase');
-      else if (onLog && state.frame >= cd && Math.abs(pm.x - em.x) < 230 && Math.abs(pm.x - em.x) > 40) { setState(e, 'fin'); e.facing = dirTo(e, pm.x); }
-      break;
-    }
-    case 'chase': {
-      // (a swimmer: straight for him, biting)
-      const ty = Math.max(s + 8, p.pos.y + p.height * 0.5);
-      const dx = pm.x - em.x, dy = ty - em.y, d = Math.hypot(dx, dy) || 1;
-      e.vel.x = (dx / d) * 2.8; e.vel.y = (dy / d) * 2.8;
-      e.facing = dirTo(e, pm.x);
-      if (state.frame >= cd && d < 34) {
-        e.aiY = state.frame + 34;
-        if (strike(ctx, e, { x: e.pos.x - 8, y: e.pos.y - 8, w: e.width + 16, h: e.height + 16 }, 7, 'm2:fr_trout', 3)) playSound('crunch', 0.4, 12);
-      }
-      if (!swimmer || Math.abs(pm.x - em.x) > 420) setState(e, 'idle');
+      if (onLog && state.frame >= cd && Math.abs(pm.x - em.x) < 230 && Math.abs(pm.x - em.x) > 40) { setState(e, 'fin'); e.facing = dirTo(e, pm.x); }
       break;
     }
     case 'fin':
