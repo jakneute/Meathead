@@ -99,6 +99,8 @@ interface Swarm { x: number; y: number; t: number; cd: number; off: number; gone
 interface Lion { x: number; y: number; vx: number; vy: number; dir: 1 | -1; mode: 'wait' | 'run' | 'pounce' | 'maul' | 'drag' | 'gone'; t: number; wait: number; side: number; carry: 'arm' | 'leg' | 'cap' | null }
 interface Death {
   how: 'lions' | 'grizzly'; t: number; step: string; at: number; done: boolean;
+  /** His last say's been said (the grizzly's: it's over once the bear's gone too). */
+  said?: boolean;
   /** The grizzly: where, which way, what it's doing. */
   bx: number; bdir: 1 | -1; bear: BearPose | null;
   /** Tucker's figure: where he's thrown (a hop), the halves of him (the lions' tear: how far apart, 0..1). */
@@ -688,7 +690,8 @@ const dying = (ctx: FrameContext, f: Fight): number => {
   }
   const walk = d.how === 'grizzly' ? grizzly(ctx, f, d) : (lionsKill(ctx, f, d), 0);
   // (the camera: on him, kept to the arena)
-  const want = clampCam((d.step === 'walk' || d.step === 'beat' ? (pmid(state).x + f.tx) / 2 : d.bear && d.bx ? (d.bx + f.tx) / 2 : f.tx) - CANVAS_WIDTH / 2);
+  // (the bear in it as it comes; not followed off: it walks out of the view)
+  const want = clampCam((d.step === 'walk' || d.step === 'beat' ? (pmid(state).x + f.tx) / 2 : d.bear && d.bx && d.step !== 'chunks' ? (d.bx + f.tx) / 2 : f.tx) - CANVAS_WIDTH / 2);
   f.camX += (want - f.camX) * 0.08;
   state.cameraOverride = { x: Math.round(f.camX), y: GY - 550 };
   // (the cap, knocked off: falling, coming to rest)
@@ -746,13 +749,15 @@ const grizzly = (ctx: FrameContext, f: Fight, d: Death): number => {
       // (gloating, jabbing the ledger finger the wrong way; the grizzly up out of nowhere behind him, the far side from
       // Meathead, walking up quiet, then reared up over him)
       if (t === 1) {
-        // (in from the far side of him from Meathead, toward him)
-        d.bdir = (m < f.tx ? -1 : 1) as 1 | -1; d.bx = f.tx - d.bdir * 480; d.bear = 'walk';
+        // (in from whichever side of him has more room to the arena's end (the user's), from off the view's edge)
+        d.bdir = (f.tx - ARENA_L > ARENA_R - f.tx ? 1 : -1) as 1 | -1;
+        d.bx = d.bdir > 0 ? Math.min(f.tx - 480, f.camX - 120) : Math.max(f.tx + 480, f.camX + CANVAS_WIDTH + 120);
+        d.bear = 'walk';
         tuckerSays(f, L.TF_GLOAT, tok(() => { next(d, 'swipe'); d.bear = 'rear'; playSound('roar', 1.2, -6); shakeScreen(state, 12, 6); }));
       }
       if (d.bear === 'walk') {
         const to = f.tx - d.bdir * 70;
-        if ((to - d.bx) * d.bdir > 0) d.bx += d.bdir * 2.4; else d.bear = 'stand';
+        if ((to - d.bx) * d.bdir > 0) d.bx += d.bdir * Math.max(2.4, Math.abs(to - d.bx) / 90); else d.bear = 'stand';
         if (t % 40 === 0) playSound('snort', 0.4, -4);
       }
       break;
@@ -781,9 +786,15 @@ const grizzly = (ctx: FrameContext, f: Fight, d: Death): number => {
       }
       break;
     case 'chunks':
+      // (the bear off the way it came with the leg, gone once it's off the view (whichever edge); it's over when he's
+      // had his say and the bear's gone: it never hangs about on screen into the VICTORY (the playtest))
       if (t === 70) { d.bear = 'walk'; d.bdir = (-d.bdir) as 1 | -1; }
-      if (d.bear === 'walk' && t > 70) d.bx += d.bdir * 2.4;
-      if (t === 100) mhSays(state, L.MH_GRIZZLY, true, () => { d.done = true; });
+      if (d.bear === 'walk' && t > 70) {
+        d.bx += d.bdir * 3.2;
+        if (d.bx < f.camX - 140 || d.bx > f.camX + CANVAS_WIDTH + 140) d.bear = null;
+      }
+      if (t === 100) mhSays(state, L.MH_GRIZZLY, true, () => { d.said = true; });
+      if (d.said && !d.bear && t > 70) d.done = true;
       break;
   }
   return walk;
