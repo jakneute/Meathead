@@ -31056,12 +31056,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "HERE, BIG FELLA! FOLLOW THE STINK! GORE THE WALKOUT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HERE, BIG FELLA! GORE THE WALKOUT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "HERE, BIG FELLA! IGNORE THE SMELL! THAT'S HIM!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "HERE, BIG FELLA! THAT ONE'S ALREADY UNDRESSED FOR YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HERE, BIG FELLA! THE BARE ASS! AIM FOR THE BARE ASS!",
   "from": "ADVENTURE"
  },
  {
@@ -31876,6 +31891,21 @@
  },
  {
   "voice": "m2.safari",
+  "text": "ONE LAST WHISTLE! GORE THE NAKED WALKOUT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ONE LAST WHISTLE! GORE THE ONE WHO SHIT ON MY BENCH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ONE LAST WHISTLE! NOBODY WALKS OUT ON MY CLOSER!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "OW! AND THAT'S NOT EVEN THE WORST THING I'VE SEEN TODAY!",
   "from": "ADVENTURE"
  },
@@ -32112,6 +32142,21 @@
  {
   "voice": "m2.safari",
   "text": "THE BACKSIDE... OF WATER... IT'S THE BACK... OF THE WATER... THAT'S THE JOKE...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE BIG FINISH! I SAVED IT FOR YOU, YOU PRICK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE BIG FINISH! RIGHT UP HIS NAKED ASS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE BIG FINISH! RIGHT UP HIS SHITTY ASS!",
   "from": "ADVENTURE"
  },
  {
@@ -37686,6 +37731,11 @@
  },
  {
   "voice": "meathead",
+  "text": "AND I'M THE ONE WHO SHIT HIMSELF.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "AND NOW A TORNADO. RUN!",
   "from": "HOLLYWOOD"
  },
@@ -38133,6 +38183,11 @@
   "voice": "meathead",
   "text": "BEES! BEES!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEST BIT HE EVER DID. I SHIT MYSELF. AGAIN.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -40216,11 +40271,6 @@
  },
  {
   "voice": "meathead",
-  "text": "FIVE STARS. WOULD NOT RECOMMEND.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
   "text": "FIVE STARS. WOULD WRECK AGAIN.",
   "from": "HOLLYWOOD"
  },
@@ -41786,6 +41836,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE GOT WHAT HE WHISTLED FOR.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "HE HEADBUTTED THE WALL?! OKAY! KEEP HIM HIGH! FIND HIM MORE STASH!",
   "from": "m1/game/stages/dale/junkie.ts:233"
  },
@@ -42018,6 +42073,11 @@
   "voice": "meathead",
   "text": "HE SCREAMED AND IT FUCKING WORKED!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SHIT HIMSELF ON THE HORN. I SAW IT.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -44053,6 +44113,11 @@
   "voice": "meathead",
   "text": "I'M BLUE NOW. OR YELLOW. WHATEVER THIS VAT WAS.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M BUCK NAKED AND HE'S STILL THE GROSSEST THING HERE.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -47401,6 +47466,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY'S LOOKING AT MY DICK NOW.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "NOOOOOOOOOOOOOOOooooooooo...",
   "from": "SPOOKY"
  },
@@ -47676,6 +47746,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOW THAT'S A CLOSER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "NOW THAT'S A DEATH SCENE.",
   "from": "HOLLYWOOD"
  },
@@ -47708,6 +47783,11 @@
   "voice": "meathead",
   "text": "NOW THEY CAN BE RUBBLE TOGETHER.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOW WE'RE BOTH SHOWING EVERYTHING.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -50528,6 +50608,11 @@
   "voice": "meathead",
   "text": "SHOULDA STAYED HOME.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULDA WALKED OUT, ARTIE.",
+  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",
@@ -55173,11 +55258,6 @@
   "voice": "meathead",
   "text": "TOTALLY WIPED OUT, BRAH!",
   "from": "ENEMY_KILL_LINES"
- },
- {
-  "voice": "meathead",
-  "text": "TOUR OVER.",
-  "from": "ADVENTURE"
  },
  {
   "voice": "meathead",

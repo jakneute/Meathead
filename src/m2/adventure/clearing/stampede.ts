@@ -164,6 +164,56 @@ const leg = (c: Ctx, hx: number, hy: number, len: number, th: number, ph: number
   c.fillStyle = IVORY[2]; for (let k = 0; k < 3; k++) c.fillRect(Math.round(fx - th / 2 + 1 + k * (th / 3)), Math.round(fy - 3), 2, 2);
 };
 
+/** The rhino's head's height (its middle) in a frame of its gallop (the body's bob, the nod). */
+const rhinoHeadY = (fr: number) => {
+  const ph = (fr / FRAMES) * Math.PI * 2;
+  return -32 + Math.round(Math.abs(Math.sin(ph)) * 4) - 2 + 4 + Math.round(Math.sin(ph) * 2);
+};
+/** The rhino's head, its middle at (46, hy) (facing right): the head, the snout, the horn, the little horn, the ear, the
+ *  eye. Dead: the eye an X, the tongue lolled out under the snout, blood out of the nostril and down the horn. */
+const rhinoHead = (c: Ctx, r: string[], hy: number, ph: number, dead: boolean) => {
+  mass(c, 46, hy, 20, 13, r, 0.25);
+  mass(c, 62, hy + 6, 10, 8, r, 0.1);
+  if (dead) {
+    // (the tongue, out of the side of its mouth and hanging: pink, a shade down its middle)
+    c.fillStyle = INK; c.beginPath(); c.ellipse(60, hy + 16, 4.4, 7.4, 0.35, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#C0566A'; c.beginPath(); c.ellipse(60, hy + 16, 3, 6, 0.35, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#E58A9A'; c.fillRect(58, hy + 11, 2, 7);
+  }
+  c.fillStyle = INK; c.beginPath(); c.moveTo(60, hy - 2); c.lineTo(78, hy - 26); c.lineTo(70, hy + 2); c.fill();
+  c.fillStyle = IVORY[1]; c.beginPath(); c.moveTo(62, hy - 2); c.lineTo(77, hy - 23); c.lineTo(69, hy); c.fill();
+  c.fillStyle = IVORY[3]; c.beginPath(); c.moveTo(64, hy - 4); c.lineTo(75, hy - 21); c.lineTo(66, hy - 3); c.fill();
+  if (dead) {
+    // (the horn bloodied from the tip down, stepped: fresh at the tip, dark further down, a run down its front)
+    c.fillStyle = '#7F1D1D'; c.beginPath(); c.moveTo(66, hy - 9); c.lineTo(78, hy - 26); c.lineTo(73, hy - 7); c.fill();
+    c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(69, hy - 14); c.lineTo(78, hy - 26); c.lineTo(74, hy - 12); c.fill();
+    c.fillStyle = '#B91C1C'; c.fillRect(70, hy - 8, 1, 9);
+  }
+  c.fillStyle = INK; c.beginPath(); c.moveTo(50, hy - 8); c.lineTo(57, hy - 20); c.lineTo(58, hy - 6); c.fill();
+  c.fillStyle = IVORY[2]; c.beginPath(); c.moveTo(52, hy - 8); c.lineTo(56, hy - 17); c.lineTo(56, hy - 7); c.fill();
+  const ear = dead ? 0.5 : -0.6 + Math.sin(ph) * 0.2;
+  c.fillStyle = INK; c.beginPath(); c.ellipse(36, hy - 12, 4, 8, ear, 0, Math.PI * 2); c.fill();
+  c.fillStyle = r[3]; c.beginPath(); c.ellipse(36, hy - 12, 2.5, 6, ear, 0, Math.PI * 2); c.fill();
+  if (dead) {
+    // (the eye: an X, the lid gone slack over it; a crease of skin bunched up over the brow where it hit)
+    c.fillStyle = INK; for (let i = -2; i <= 2; i++) { c.fillRect(50 + i, hy - 2 + i, 2, 2); c.fillRect(50 + i, hy - 2 - i, 2, 2); }
+    c.strokeStyle = r[0]; c.lineWidth = 1.5; for (const k of [0, 4]) { c.beginPath(); c.moveTo(40 + k, hy - 10 + k * 0.4); c.quadraticCurveTo(46 + k, hy - 13, 52 + k, hy - 9 - k * 0.3); c.stroke(); }
+    c.strokeStyle = r[4]; c.lineWidth = 1; c.beginPath(); c.moveTo(41, hy - 11); c.quadraticCurveTo(46, hy - 14, 52, hy - 10.5); c.stroke();
+    // (blood out of the nostril, running)
+    c.fillStyle = '#7F1D1D'; c.fillRect(67, hy + 8, 4, 3); c.fillStyle = '#B91C1C'; c.fillRect(68, hy + 9, 2, 9); c.fillRect(67, hy + 17, 4, 3);
+  } else {
+    c.fillStyle = INK; c.fillRect(48, hy - 3, 4, 3); c.fillStyle = '#F8FAFC'; c.fillRect(49, hy - 3, 1, 1);
+    c.fillStyle = INK; c.fillRect(46, hy - 6, 7, 2);
+    c.fillStyle = INK; c.fillRect(68, hy + 8, 3, 2);
+  }
+};
+
+/** A frame of the rhino's gallop t frames into its run at `speed` (as drawBeast picks them). */
+export const gallopFrame = (t: number, speed: number) => Math.floor((t * speed * 0.09) / (Math.PI * 2) * FRAMES) % FRAMES;
+/** The rhino's horn in a frame of its gallop (feet at the origin, facing right): its base (the middle of where it comes
+ *  out of the snout) and its tip. */
+export const rhinoHorn = (fr: number) => { const hy = rhinoHeadY(fr); return { bx: 65, by: hy, tx: 77.5, ty: hy - 24.5 }; };
+
 /** One frame of one beast, its feet at the origin, facing right. */
 const paintBeast = (c: Ctx, kind: Beast, fr: number) => {
   const r = RAMPS[kind];
@@ -179,19 +229,7 @@ const paintBeast = (c: Ctx, kind: Beast, fr: number) => {
     for (const fx2 of [-18, 16]) { c.strokeStyle = r[1]; c.lineWidth = 2; c.beginPath(); c.arc(fx2, by, 18, -1.2, 1.2); c.stroke(); c.strokeStyle = r[4]; c.lineWidth = 1; c.beginPath(); c.arc(fx2 + 2, by, 18, -1.1, 0.4); c.stroke(); }
     leg(c, -20, by + 8, 30, 10, ph, r, false); leg(c, 30, by + 8, 30, 10, ph + Math.PI, r, false);
     // (the head, down and charging, nodding with the gait; the horns; an ear back; the eye, mean)
-    const hy = by + 4 + Math.round(Math.sin(ph) * 2);
-    mass(c, 46, hy, 20, 13, r, 0.25);
-    mass(c, 62, hy + 6, 10, 8, r, 0.1);
-    c.fillStyle = INK; c.beginPath(); c.moveTo(60, hy - 2); c.lineTo(78, hy - 26); c.lineTo(70, hy + 2); c.fill();
-    c.fillStyle = IVORY[1]; c.beginPath(); c.moveTo(62, hy - 2); c.lineTo(77, hy - 23); c.lineTo(69, hy); c.fill();
-    c.fillStyle = IVORY[3]; c.beginPath(); c.moveTo(64, hy - 4); c.lineTo(75, hy - 21); c.lineTo(66, hy - 3); c.fill();
-    c.fillStyle = INK; c.beginPath(); c.moveTo(50, hy - 8); c.lineTo(57, hy - 20); c.lineTo(58, hy - 6); c.fill();
-    c.fillStyle = IVORY[2]; c.beginPath(); c.moveTo(52, hy - 8); c.lineTo(56, hy - 17); c.lineTo(56, hy - 7); c.fill();
-    c.fillStyle = INK; c.beginPath(); c.ellipse(36, hy - 12, 4, 8, -0.6 + Math.sin(ph) * 0.2, 0, Math.PI * 2); c.fill();
-    c.fillStyle = r[3]; c.beginPath(); c.ellipse(36, hy - 12, 2.5, 6, -0.6 + Math.sin(ph) * 0.2, 0, Math.PI * 2); c.fill();
-    c.fillStyle = INK; c.fillRect(48, hy - 3, 4, 3); c.fillStyle = '#F8FAFC'; c.fillRect(49, hy - 3, 1, 1);
-    c.fillStyle = INK; c.fillRect(46, hy - 6, 7, 2);
-    c.fillStyle = INK; c.fillRect(68, hy + 8, 3, 2);
+    rhinoHead(c, r, rhinoHeadY(fr), ph, false);
   } else if (kind === 'hippo') {
     const by = -40 + bob;
     leg(c, -36, by + 14, 22, 14, ph + Math.PI, r, true); leg(c, 30, by + 14, 22, 14, ph, r, true);
@@ -281,14 +319,98 @@ export const drawStampede = (c: Ctx, state: GameState, herd: Animal[]) => {
 };
 
 /** One of them, its left edge at a.x, its feet on the ground, facing the way it's going (a frame of its gallop). */
-const drawBeast = (c: Ctx, a: Animal) => {
-  const b = BEASTS[a.kind];
-  const fr = Math.floor((a.t * b.speed * 0.09) / (Math.PI * 2) * FRAMES) % FRAMES;
+const drawBeast = (c: Ctx, a: Animal) => drawBeastAt(c, a.kind, a.x + BEASTS[a.kind].w / 2, a.dir, gallopFrame(a.t, BEASTS[a.kind].speed));
+
+/** One of them, its feet's middle at (cx, GY), facing `dir`, in frame `fr` of its gallop. */
+export const drawBeastAt = (c: Ctx, kind: Beast, cx: number, dir: 1 | -1, fr: number) => {
+  const b = BEASTS[kind];
   c.save();
-  c.translate(Math.round(a.x + b.w / 2), GY);
-  c.scale(a.dir, 1);
+  c.translate(Math.round(cx), GY);
+  c.scale(dir, 1);
   // (its shadow on the ground)
   c.fillStyle = 'rgba(26, 11, 6, 0.3)'; c.fillRect(Math.round(-b.w * 0.5), -3, Math.round(b.w * 1.05), 4);
-  stamp(c, `beast:${a.kind}:${fr}`, -b.w / 2 - 50, -b.h - 50, b.w + 120, b.h + 56, g => paintBeast(g, a.kind, fr));
+  stamp(c, `beast:${kind}:${fr}`, -b.w / 2 - 50, -b.h - 50, b.w + 120, b.h + 56, g => paintBeast(g, kind, fr));
+  c.restore();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The rhino that gored Artie, after the wall (his standard death, fight.ts): crumpled up against it. Its head's been
+// driven into the stone nose-down, the neck kinked under it, the horn level into the wall (through Artie); the body's
+// buckled up behind it, the rear end up in the air: one back leg stuck straight up, dead-bug stiff, the other splayed
+// out behind; the front legs folded under it, one with its foot turned sole-up. An X for an eye, the tongue out.
+
+/** Where its head's middle is (the foot of the wall at the origin, the rhino all off to the left of it), how far its
+ *  head's turned down; so its horn's tip is at DEAD_HORN, in the wall. */
+const DEAD_HEAD = { x: -43, y: -59, rot: 0.9 };
+/** The horn, in that same space: its base (where it leaves the snout) and its tip (in the wall). */
+export const DEAD_HORN = (() => {
+  const cs = Math.cos(DEAD_HEAD.rot), sn = Math.sin(DEAD_HEAD.rot);
+  const at = (x: number, y: number) => ({ x: DEAD_HEAD.x + x * cs - y * sn, y: DEAD_HEAD.y + x * sn + y * cs });
+  const b = at(19, 0), t = at(31.5, -24.5);
+  return { bx: b.x, by: b.y, tx: t.x, ty: t.y };
+})();
+
+/** A limb by its joints (hip, knee, foot), inked, shaded, lit down its front; a pad on the end (sole up: turned over). */
+const deadLeg = (c: Ctx, j: number[], th: number, r: string[], far: boolean, soleUp = false) => {
+  const [hx, hy, kx, ky, fx, fy] = j;
+  const col = far ? r[1] : r[2], lit = far ? r[2] : r[3];
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  for (const [w, cl] of [[th + 3, INK], [th, col]] as const) { c.strokeStyle = cl; c.lineWidth = w; c.beginPath(); c.moveTo(hx, hy); c.lineTo(kx, ky); c.lineTo(fx, fy); c.stroke(); }
+  c.strokeStyle = lit; c.lineWidth = Math.max(2, th * 0.3); c.beginPath(); c.moveTo(hx - th * 0.25, hy - th * 0.2); c.lineTo(kx - th * 0.25, ky - th * 0.2); c.lineTo(fx - th * 0.25, fy - th * 0.2); c.stroke();
+  // (the wrinkles bunched at the knee)
+  c.strokeStyle = r[0]; c.lineWidth = 1; for (const k of [-2, 2]) { c.beginPath(); c.moveTo(kx - th * 0.4, ky + k); c.lineTo(kx + th * 0.4, ky + k + 1); c.stroke(); }
+  c.lineCap = 'butt';
+  // (the foot: the pad, its toenails; turned sole up, the pad's underside and the nails pointing back)
+  const a = Math.atan2(fy - ky, fx - kx);
+  c.save(); c.translate(fx, fy); c.rotate(a - Math.PI / 2);
+  c.fillStyle = INK; c.fillRect(Math.round(-th / 2 - 1), -1, Math.round(th + 2), 7);
+  c.fillStyle = soleUp ? r[3] : r[0]; c.fillRect(Math.round(-th / 2), 0, Math.round(th), 5);
+  c.fillStyle = IVORY[2]; for (let k = 0; k < 3; k++) c.fillRect(Math.round(-th / 2 + 1 + k * (th / 3)), soleUp ? 0 : 3, 2, 2);
+  c.restore();
+};
+
+/**
+ * The rhino after the wall, the foot of the wall at the origin, facing right (all of it to the left). `k` 0..1: how far
+ * it's buckled (the rear end coming up and over in the moment after it hits); `fr` the frame (a back leg twitching).
+ */
+export const drawDeadRhino = (c: Ctx, k: number, fr: number) => {
+  const r = RAMPS.rhino;
+  const e = 1 - (1 - Math.min(1, Math.max(0, k))) ** 3;
+  // (the body: level when it hits, buckling up rear-first behind its head)
+  const bx = -92 + (1 - e) * 6, by = -40 - e * 6, rot = 0.35 * e;
+  const cs = Math.cos(rot), sn = Math.sin(rot);
+  const on = (x: number, y: number): [number, number] => [bx + x * cs - y * sn, by + x * sn + y * cs];
+  // (a back leg kicking, now and then, long after)
+  const tw = fr % 97 < 8 ? Math.sin(fr * 1.9) * 4 : 0;
+  // (its shadow, the length of it)
+  c.fillStyle = 'rgba(26, 11, 6, 0.32)'; c.fillRect(-150, -3, 150, 4);
+  // Far legs first: the back one stuck up in the air, stiff; the front one folded under
+  const [h1x, h1y] = on(-30, -6), [h2x, h2y] = on(36, 8);
+  deadLeg(c, [h1x, h1y, h1x - 12 - e * 4, h1y - 18 * e - 4 + tw * 0.4, h1x - 16 - e * 6 + tw, h1y - 40 * e - 6], 9, r, true);
+  deadLeg(c, [h2x, h2y, h2x + 8, -6, h2x - 10, -3], 9, r, true);
+  // (the tail, limp, hanging off the rear)
+  const [tx, ty] = on(-44, -6);
+  c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(tx, ty); c.quadraticCurveTo(tx - 6, ty + 6, tx - 4, ty + 16); c.stroke();
+  c.strokeStyle = r[2]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(tx, ty); c.quadraticCurveTo(tx - 6, ty + 6, tx - 4, ty + 15); c.stroke();
+  // The body, its armor folds, the folds bunched up hard behind the neck where it buckled
+  mass(c, bx, by, 44, 20, r, rot);
+  for (const fx2 of [-18, 16]) {
+    const [ax, ay] = on(fx2, 0);
+    c.strokeStyle = r[1]; c.lineWidth = 2; c.beginPath(); c.arc(ax, ay, 18, rot - 1.2, rot + 1.2); c.stroke();
+    c.strokeStyle = r[4]; c.lineWidth = 1; c.beginPath(); c.arc(ax + 2, ay, 18, rot - 1.1, rot + 0.4); c.stroke();
+  }
+  for (let i = 0; i < 3; i++) { const [ax, ay] = on(30 + i * 4, -14 + i * 2); c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath(); c.moveTo(ax, ay); c.quadraticCurveTo(ax + 3, ay + 8, ax, ay + 16); c.stroke(); }
+  // Near legs: the back one splayed out behind, the front one buckled out forward, its foot turned sole up
+  const [h3x, h3y] = on(-22, 8), [h4x, h4y] = on(30, 10);
+  deadLeg(c, [h3x, h3y, h3x - 22, h3y + 4, h3x - 38 - e * 6, h3y + 24], 10, r, false);
+  deadLeg(c, [h4x, h4y, h4x + 16, -6, h4x + 30, -10], 10, r, false, true);
+  // The neck, kinked: folded skin from the shoulder down into the head, a dark crease in it
+  const [nx, ny] = on(40, -4);
+  mass(c, (nx + DEAD_HEAD.x) / 2 - 2, (ny + DEAD_HEAD.y) / 2 + 4, 14, 12, r, 0.6);
+  c.strokeStyle = INK; c.lineWidth = 1.5;
+  for (let i = 0; i < 3; i++) { c.beginPath(); c.moveTo(nx - 6 + i * 4, ny - 10 - i * 3); c.quadraticCurveTo(nx + 2 + i * 4, ny - 2 - i * 4, nx + i * 4, ny + 6 - i * 3); c.stroke(); }
+  // The head, driven nose-down into the wall
+  c.save(); c.translate(DEAD_HEAD.x, DEAD_HEAD.y); c.rotate(DEAD_HEAD.rot); c.translate(-46, 0);
+  rhinoHead(c, r, 0, 0, true);
   c.restore();
 };

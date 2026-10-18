@@ -33,8 +33,11 @@
 //                again: back up. Whatever's stampeding runs over the litter (squashed).
 //
 // Two deaths, Meathead 1's way: beaten by his weakness (finished off by the litter, or while they're on him, or by the
-// stampede they left him in the way of), he's eaten alive (eaten.ts: the gory one); beaten any other way, he goes down
-// face first in the dirt, rear in the air, and lets one last one go.
+// stampede they left him in the way of), he's eaten alive (eaten.ts: the gory one); beaten any other way (the user's),
+// he does his mating whistle one last time, for Meathead, and a rhino comes charging in and gores HIM: carries him off
+// across the clearing on its horn and slams him into the temple's wall, and the both of them die of it in a heap
+// against it, crumpled into each other (no bursting: they're left there), him folded backward over the horn. A short
+// cutscene (no HUD, skipped all or nothing), his last words from the heap, Meathead's say.
 //
 // The old rules for hurting a boss (Meathead 1's): after a hit, a breather (ENEMY_HIT_COOLDOWN frames, flickering)
 // when nothing else gets in. The litter's nibbles don't count as hits: they get through, and give him no breather.
@@ -47,7 +50,8 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy, EnemyKind, WeaponType } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
-import { say, pickLine } from '../../../m1/game/platform/speech';
+import { say, pickLine, silenceAll } from '../../../m1/game/platform/speech';
+import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { hurtTaken } from '../../../m1/game/core/resist';
@@ -64,8 +68,8 @@ import { drawSafariArtie, ROOF_SCUFFS, type ArtiePose } from '../river/artie';
 import { box, label, saidOver, hands, speak, voice, meatheadSays } from '../section';
 import { GY } from '../geometry';
 import { drawBushArt, drawVine } from './art';
-import { ARENA_L, ARENA_R, ARENA_MID, BLIND_X, BLIND_Y, BUSH_X, BUSH_W, BUSH_H, VIEW_L } from './arena';
-import { type Animal, type Beast, BEASTS, makeStampede, updateStampede, stampedeOver, nearestTo, clearStampede, drawStampede, drawWarnings } from './stampede';
+import { ARENA_L, ARENA_R, ARENA_MID, BLIND_X, BLIND_Y, BUSH_X, BUSH_W, BUSH_H, VIEW_L, TEMPLE_X } from './arena';
+import { type Animal, type Beast, BEASTS, makeStampede, updateStampede, stampedeOver, nearestTo, clearStampede, drawStampede, drawWarnings, drawBeastAt, gallopFrame, rhinoHorn, drawDeadRhino, DEAD_HORN } from './stampede';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -183,7 +187,9 @@ export interface Fight {
   said: string | null; nextCups: number;
   /** How the last of his health went: the litter's nibbles, or the stampede he couldn't dodge (his weakness, both). */
   byWeakness: boolean;
-  death: { how: 'eaten' | 'flat'; t: number; x: number; facing: 1 | -1 } | null;
+  death: { how: 'eaten' | 'gored'; t: number; x: number; facing: 1 | -1 } | null;
+  /** Gored (his standard death): how it's going. */
+  gore: Gore | null;
   /** Eaten alive (his weakness death): how it's going; his say through it (which line he's on; Meathead's after). */
   eaten: Eaten | null; eatenSaid: number; eatenOver: boolean;
   /** The kill cam on it (Meathead 1's alien kill): the cut in close, the slow motion. */
@@ -345,7 +351,7 @@ export const startFight = (state: GameState, retry = false): Fight => {
     hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, x: BLIND_X, y: BLIND_Y, vx: 0, vy: 0, facing: -1, arc: null,
     bush: 2, bushes: [], moves: [], moveI: 0, decoy: -1, wait: 0, after: 'whistle', stunLen: STUN,
     agitated: false, calmT: 0, swatT: 0, herd: [], stampedes: 0, overT: 0, darts: [], poison: 0, pokes: 0,
-    said: null, nextCups: 0, byWeakness: false, death: null, eaten: null, eatenSaid: 0, eatenOver: false, cam: null, puke: null, noBushesSaid: false,
+    said: null, nextCups: 0, byWeakness: false, death: null, gore: null, eaten: null, eatenSaid: 0, eatenOver: false, cam: null, puke: null, noBushesSaid: false,
     vineHp: VINE_HP, vineChewed: 0, vine: null as unknown as SpawnerBait, snap: null, dropped: false, feedGap: 0, perch: false, spitT: 0, perchT: 0, lureT: 0, inBlind: true, blindT: 0, entrance: 0,
     attacks: 0, lastAttack: null, sameRun: 0, lunged: false, moveSeen: e.hitByMove, counter: false, counterAt: -9999, e,
   };
@@ -492,13 +498,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       if (!f.death) break;
       f.death.t++;
       if (f.eaten) eatenAlive(ctx, f);
-      else {
-        // (the standard death's beats: face first into the dirt, then the last one out of him)
-        const t = f.death.t;
-        if (t === 38) { playSound('thud', 1, -4); playSound('crash', 0.4, -6); shakeScreen(state, 6, 3); }
-        if (t === 84) playSound('fart', 1, -2);
-        if (t === 150) playSound('fart', 0.5, 8);
-      }
+      else if (f.gore) out = gored(ctx, f, f.gore, controls);
       break;
   }
   if (f.snap && ++f.snap.t > 50) f.snap = null;
@@ -1000,12 +1000,163 @@ const die = (ctx: FrameContext, f: Fight) => {
     // (he never shuts up: through all of it, a line at a time, each when the last one's done)
     announce(f, L.ARTIE_EATEN, () => { f.eatenSaid = 2; announce(f, L.ARTIE_EATEN_MORE, () => { f.eatenSaid = 3; }); });
   } else {
+    // (gored: out of the world, ours to draw; down off whatever he was up, then the whistle. Out of Meathead's hands)
     state.enemies = state.enemies.filter(o => o !== e);
-    f.death = { how: 'flat', t: 0, x: f.x, facing: f.facing };
-    f.y = GY;
+    f.death = { how: 'gored', t: 0, x: f.x, facing: f.facing };
+    f.gore = { phase: 'fall', t: 0, all: 0, vy: Math.max(0, f.vy), rx: 0, run: 0, said: 0, doneAt: 0, jump: 0, jumped: false, over: false, token: 0 };
+    f.y = Math.min(f.y, GY);
+    const p = state.player;
+    p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.recoiling = false;
     playSound('hurt', 0.8, -4);
-    announce(f, L.ARTIE_DIES, () => meatheadSays(state, pick(L.MEATHEAD_WON)));
   }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Gored (his standard death, the user's): the mating whistle one last time, for Meathead, and the rhino comes for him
+// instead: gores him, carries him across the clearing on its horn and slams him into the temple's wall. The both of
+// them dead of it in a heap against it. A cutscene: no HUD, skipped all or nothing (to the heap, done).
+
+export interface Gore {
+  /** Down off whatever he was up (a vine, the air); off the wall a way, if he's too near it for a run at him; the
+   *  whistle (his line); the warning; the charge; on the horn; the heap against the wall. */
+  phase: 'fall' | 'hobble' | 'whistle' | 'warn' | 'charge' | 'carry' | 'wreck';
+  t: number; all: number; vy: number;
+  /** The rhino: its feet's middle (world x, running right), how long it's been running (its gallop). */
+  rx: number; run: number;
+  /** The lines: his whistle on, done; his last words on, done; Meathead's, done (the heap's t when it was). */
+  said: number; doneAt: number;
+  /** Meathead hopping the rhino as it comes by him (the jump held this much longer; done the once). */
+  jump: number; jumped: boolean;
+  over: boolean;
+  /** (bumped on a skip: whatever was still to be said, not seen to) */
+  token: number;
+}
+/** How fast the rhino comes (quicker than in the stampede: it's come a long way for this). */
+const RUSH = 11;
+/** How near the wall he can whistle from (any nearer, he hobbles back off it first: there's a run at him). */
+const STAND_MAX = TEMPLE_X - 280;
+/** Meathead's kept back off the wall this far (what's coming at it). */
+const CLEAR_X = TEMPLE_X - 210;
+/** The warning before it comes (frames). */
+const GORE_WARN = 50;
+/** On the horn: how far up it he's stuck (0 its base, 1 its tip), carried; against the wall, driven further on. */
+const ON_HORN = 0.4, ON_HORN_WALL = 0.75;
+/** Against the wall: his hip, the wall's foot the origin. */
+const WRECK_HIP = { x: DEAD_HORN.bx + (DEAD_HORN.tx - DEAD_HORN.bx) * ON_HORN_WALL, y: DEAD_HORN.by + (DEAD_HORN.ty - DEAD_HORN.by) * ON_HORN_WALL };
+
+const nextGore = (g: Gore, phase: Gore['phase']) => { g.phase = phase; g.t = 0; };
+const goreBlood = (state: GameState, x: number, y: number, n: number, vx: number, vy: number, spread: number) => {
+  for (let i = 0; i < n; i++) state.particles.push({ pos: { x, y }, vel: { x: vx + (Math.random() - 0.5) * spread, y: vy - Math.random() * spread * 0.6 }, life: 40 + Math.random() * 20, color: ['#7F1D1D', '#B91C1C', '#DC2626'][i % 3], size: 2 + Math.random() * 3, grav: 0.35 });
+};
+/** Where he's stuck on the horn, carried (world). */
+const hornHip = (g: Gore) => {
+  const h = rhinoHorn(gallopFrame(g.run, RUSH));
+  return { x: g.rx + h.bx + (h.tx - h.bx) * ON_HORN, y: GY + h.by + (h.ty - h.by) * ON_HORN, tx: g.rx + h.tx, ty: GY + h.ty };
+};
+
+const gored = (ctx: FrameContext, f: Fight, g: Gore, controls: Controls): Controls => {
+  const { state } = ctx, p = state.player;
+  g.t++; g.all++;
+  const alive = p.health > 0 && state.deathTimer <= 0;
+  if (alive) p.inCutscene = true;
+  if (!g.over && g.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { skipGore(state, f, g); return hands(); } }
+  switch (g.phase) {
+    case 'fall':
+      if (f.y < GY) { g.vy += 0.6; f.y = Math.min(GY, f.y + g.vy); if (f.y >= GY) { playSound('thud', 0.8); shakeScreen(state, 6, 3); g.t = 0; } }
+      else if (g.t > 12) nextGore(g, f.x > STAND_MAX ? 'hobble' : 'whistle');
+      break;
+    case 'hobble':
+      f.facing = -1; f.x = Math.max(STAND_MAX, f.x - 2.2);
+      if (f.x <= STAND_MAX) nextGore(g, 'whistle');
+      break;
+    case 'whistle': {
+      faceHim(state, f);
+      if (g.t === 1) {
+        playSound('beep', 0.7, 14);
+        const tok = g.token;
+        g.said = 1;
+        announce(f, L.ARTIE_LAST_WHISTLE, () => { if (g.token === tok) g.said = 2; });
+      }
+      if (g.t === 14) playSound('beep', 0.7, 20);
+      if (g.t === 30) playSound('beep', 0.6, 16);
+      if (g.t % 10 === 0) state.particles.push({ pos: { x: f.x + f.facing * 10, y: f.y - 76 }, vel: { x: f.facing * 0.6, y: -1.2 }, life: 40, color: '#F472B6', size: 4 });
+      if (g.t >= 60 && (g.said >= 2 || g.t > 480)) nextGore(g, 'warn');
+      break;
+    }
+    case 'warn':
+      faceHim(state, f);
+      if (g.t === 1) { playSound('rumble', 0.7); shakeScreen(state, 20, 3); }
+      if (g.t === GORE_WARN - 18) playSound('snort', 0.9, -4);
+      if (g.t >= GORE_WARN) { nextGore(g, 'charge'); g.rx = VIEW_L - 140; g.run = 0; }
+      break;
+    case 'charge': case 'carry': {
+      g.run++; g.rx += RUSH;
+      if (g.run % 4 === 0) { playSound('thud', 0.45, -8); shakeScreen(state, 6, 1.6); }
+      if (g.run % 3 === 0) state.particles.push({ pos: { x: g.rx - 40, y: GY - 4 }, vel: { x: -1 - Math.random() * 2, y: -0.5 - Math.random() * 1.5 }, life: 26, color: Math.random() < 0.5 ? 'rgba(168, 140, 100, 0.7)' : 'rgba(120, 100, 70, 0.6)', size: 4 + Math.random() * 6 });
+      const h = hornHip(g);
+      if (g.phase === 'charge') {
+        // (the horn up into him, from behind: up he goes onto it)
+        if (h.x >= f.x) {
+          nextGore(g, 'carry');
+          playSound('crunch', 1.1, -2); playSound('squish', 1); playSound('gorespray', 0.9); playSound('hurt', 1, 4); shakeScreen(state, 12, 6);
+          goreBlood(state, h.x, h.y, 16, 3, -4, 6);
+        }
+        break;
+      }
+      // On the horn: him with it, bleeding all the way; into the wall
+      f.x = h.x; f.y = GY;
+      if (g.run % 2 === 0) goreBlood(state, h.x, h.y + 4, 1, RUSH * 0.6, 0, 1);
+      if (g.run % 9 === 0) playSound('hurt', 0.6, 6 + (g.run % 3));
+      if (h.tx + 8 >= TEMPLE_X) {
+        nextGore(g, 'wreck');
+        f.x = TEMPLE_X + WRECK_HIP.x;
+        playSound('crash', 1, -6); playSound('crunch', 1.2, -4); playSound('splat', 1, -2); playSound('gorespray', 1); playSound('boom', 0.6, -6);
+        shakeScreen(state, 26, 12);
+        goreBlood(state, TEMPLE_X - 8, GY + WRECK_HIP.y, 34, -3, -5, 8);
+        for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: TEMPLE_X - 2, y: GY - 30 - Math.random() * 40 }, vel: { x: -1 - Math.random() * 4, y: -2 - Math.random() * 4 }, life: 50, color: ['#A8A29E', '#78716C', '#D6D3D1'][i % 3], size: 3 + Math.random() * 5, grav: 0.4 });
+      }
+      break;
+    }
+    case 'wreck': {
+      // (the blood running off them, into the pool)
+      if (g.t < 300 && g.t % 7 === 0) goreBlood(state, TEMPLE_X + WRECK_HIP.x + (Math.random() - 0.5) * 16, GY + WRECK_HIP.y + 10, 1, 0, 0, 0.6);
+      // His last words from the heap, then Meathead's say; then it's done
+      if (g.t === 60 && g.said < 3) {
+        const tok = g.token;
+        g.said = 3;
+        announce(f, L.ARTIE_DIES, () => {
+          if (g.token !== tok) return;
+          g.said = 4;
+          meatheadSays(state, pick(L.MEATHEAD_GORED[pants()]), true, () => { if (g.token === tok) { g.said = 5; g.doneAt = g.t; } });
+        });
+      }
+      if ((g.said >= 5 && g.t >= g.doneAt + 50) || g.t > 1200) g.over = true;
+      break;
+    }
+  }
+  return alive ? meatheadGored(state, f, g) : controls;
+};
+
+/** Meathead, through it: back off the wall (what's coming at it), a hop over the rhino as it comes by him, watching. */
+const meatheadGored = (state: GameState, f: Fight, g: Gore): Controls => {
+  const p = state.player, pc = p.pos.x + p.width / 2;
+  if (g.jump > 0) { g.jump--; return { ...hands(), jump: true }; }
+  const running = g.phase === 'charge' || g.phase === 'carry';
+  if (running && !g.jumped && p.isGrounded) {
+    const back = g.rx - 60, front = g.rx + (g.phase === 'carry' ? 140 : 90);
+    if (front > p.pos.x - 90 && back < p.pos.x + p.width) { g.jumped = true; g.jump = 16; return { ...hands(), jump: true }; }
+  }
+  if (!running && g.phase !== 'wreck' && pc > CLEAR_X && p.isGrounded) return { ...hands(), left: true };
+  p.facing = (g.phase === 'wreck' ? TEMPLE_X : f.x) > pc ? 1 : -1;
+  return hands();
+};
+
+/** Skipped: straight to the heap against the wall, done (nothing more said). */
+const skipGore = (state: GameState, f: Fight, g: Gore) => {
+  g.token++;
+  silenceAll(); state.playerVulgarityTimer = 0; f.said = null;
+  g.phase = 'wreck'; g.t = 400; g.said = 6; g.over = true; g.jump = 0;
+  f.x = TEMPLE_X + WRECK_HIP.x; f.y = GY;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1055,7 +1206,7 @@ export const artieInBlind = (f: Fight) => f.mode === 'intro' && f.inBlind;
 export const artieEntrance = (f: Fight) => f.mode === 'intro' && f.entrance > 0;
 
 /** Done with: the fight's over and he's had his say (the death played out). */
-export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && (f.death.how === 'eaten' ? f.eatenOver : f.death.t > 300);
+export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && (f.death.how === 'eaten' ? f.eatenOver : !!f.gore?.over);
 
 /**
  * Eaten alive, each frame: down out of the air first; then it goes on (eaten.ts), his lines through it, the skull
@@ -1193,8 +1344,8 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     // (cheeks puffed)
     c.fillStyle = '#EAA080'; c.beginPath(); c.arc(m.x - f.facing, m.y + 1, 3.2 + Math.min(1, (f.spitT - SPIT_EVERY[phase(f)] + SPIT_AIM) / 12) * 1.6, 0, Math.PI * 2); c.fill();
   }
-  // His death (face down in the dirt; or the loose bits of him, eaten); his words
-  if (f.death?.how === 'flat') drawFlat(c, f, fr);
+  // His death (gored, and the heap against the wall; or the loose bits of him, eaten); his words
+  if (f.gore) drawGored(c, state, f, f.gore);
   if (f.eaten && f.death) { c.save(); c.translate(Math.round(f.death.x), GY); c.scale(f.death.facing, 1); drawEatenLoose(c, f.eaten, fr); c.restore(); }
   // (up in his blind still: those go over him in it, the clearing's (tower.ts))
   if (f.said && !artieInBlind(f)) {
@@ -1274,55 +1425,99 @@ const star = (c: Ctx, x: number, y: number, col: string) => {
 };
 
 /**
- * Beaten (not by his weakness): Meathead 1's standard death, his way. He staggers back, wobbling, and goes over
- * forward, flat on his face, rear up in the air (a bounce, and the dust); lies there, a leg twitching now and then;
- * then one last one goes out of him (a long one, green, rising), and a little one after it; and the flies find him.
+ * Gored (his standard death): him standing there through the whistle (hobbling off the wall first, if he's too near it;
+ * pointing Meathead out to it as it comes, the dust boiling up at the edge), the rhino charging, him up on its horn
+ * (folded backward over it, screaming, kicking), and the heap against the wall after (the temple's stone cracked in
+ * round the horn, the blood up it and pooling under them), crumpled into each other.
  */
-const drawFlat = (c: Ctx, f: Fight, fr: number) => {
-  const d = f.death!, t = d.t;
-  if (t < 24) {
-    // (staggering back, this way and that)
-    const wob = Math.sin(t * 0.55) * 0.12;
-    c.save(); c.translate(d.x - d.facing * t * 0.75, GY); c.rotate(wob);
-    drawSafariArtie(c, 0, 0, d.facing, fr, 'hurt', beaten(f));
-    c.restore();
-    return;
+const drawGored = (c: Ctx, state: GameState, f: Fight, g: Gore) => {
+  const fr = state.frame, dmg = beaten(f);
+  switch (g.phase) {
+    case 'fall': case 'hobble': case 'whistle': case 'warn': {
+      const pose: ArtiePose = g.phase === 'fall' ? 'hurt' : g.phase === 'hobble' ? 'run' : g.phase === 'whistle' ? 'whistle' : 'point';
+      drawSafariArtie(c, f.x, f.y, f.facing, fr, pose, dmg);
+      if (g.phase === 'whistle') for (let i = 0; i < 3; i++) { const t = (fr + i * 13) % 40; note(c, f.x + f.facing * (18 + t * 0.6), f.y - 80 - t + Math.sin(t * 0.3) * 3); }
+      if (g.phase === 'warn') drawWarnings(c, state, [{ kind: 'rhino', dir: 1, x: 0, warn: Math.max(1, GORE_WARN - g.t), t: 0, done: false, block: null, metArtie: true, tame: true }]);
+      return;
+    }
+    case 'charge':
+      // (still pointing Meathead out to it, right up till it's got him)
+      drawSafariArtie(c, f.x, GY, f.facing, fr, 'point', dmg);
+      drawBeastAt(c, 'rhino', g.rx, 1, gallopFrame(g.run, RUSH));
+      return;
+    case 'carry': {
+      const h = hornHip(g);
+      drawBeastAt(c, 'rhino', g.rx, 1, gallopFrame(g.run, RUSH));
+      // (draped backward over the horn: his legs down over its face, his top half hanging off the front, bouncing)
+      c.save(); c.translate(h.x, h.y); c.rotate(0.3 + Math.sin(fr * 0.45) * 0.07);
+      drawSafariArtie(c, 0, 29, -1, fr, 'skewered', dmg);
+      c.restore();
+      hornOut(c, h.x, h.y, h.tx, h.ty, 0.62);
+      return;
+    }
+    case 'wreck': {
+      const k = Math.min(1, g.t / 10), pool = Math.min(1, g.t / 220);
+      c.save(); c.translate(TEMPLE_X, GY);
+      drawWallHit(c, Math.min(1, g.t / 30));
+      // (the pool under them, spreading)
+      c.fillStyle = '#5A0E0E'; c.beginPath(); c.ellipse(-34, -1, 12 + pool * 56, 2.5 + pool * 3, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#8E1414'; c.beginPath(); c.ellipse(-32, -1.5, 9 + pool * 48, 1.6 + pool * 2.2, 0, 0, Math.PI * 2); c.fill();
+      if (pool > 0.3) { c.fillStyle = '#D93A2E'; c.fillRect(Math.round(-52 - pool * 10), -3, Math.round(6 + pool * 8), 1); }
+      // (the jolt of it: shoved up against the wall, settling back)
+      const jolt = g.t < 8 ? (8 - g.t) * 0.6 : 0;
+      c.save(); c.translate(jolt, 0);
+      drawDeadRhino(c, k, fr);
+      // (him: folded right over the horn the wrong way, crushed flat against the stone, his head down at the foot of it)
+      c.save(); c.translate(WRECK_HIP.x, WRECK_HIP.y); c.scale(0.8, 0.9); c.rotate(0.54);
+      drawSafariArtie(c, 0, 29, -1, fr, 'broken', dmg);
+      c.restore();
+      hornOut(c, WRECK_HIP.x, WRECK_HIP.y, DEAD_HORN.tx + 2, DEAD_HORN.ty, 0.55);
+      c.restore();
+      c.restore();
+      return;
+    }
   }
-  // Over he goes (slow, then all at once), a bounce off the ground, then lying there
-  const fall = Math.min(1, (t - 24) / 14);
-  const bounce = t > 38 && t < 50 ? Math.sin(((t - 38) / 12) * Math.PI) * 0.12 : 0;
-  const x = d.x - d.facing * 18;
-  const twitch = t > 56 && (t % 41) < 6 ? Math.sin(t * 2.2) * 0.05 : 0;
-  c.save(); c.translate(x, GY - 30); c.rotate(d.facing * (fall * fall * (Math.PI / 2 + 0.45) - bounce + twitch));
-  drawSafariArtie(c, 0, 12, d.facing, fr, 'stunned', beaten(f));
+};
+
+/** The end of the rhino's horn out through the front of him (from `from` of the way out from his hip to the tip):
+ *  ivory under his blood, inked, a run of it dripping off. */
+const hornOut = (c: Ctx, hx: number, hy: number, tx: number, ty: number, from: number) => {
+  const bx = hx + (tx - hx) * from, by = hy + (ty - hy) * from;
+  const len = Math.hypot(tx - bx, ty - by) || 1, nx = -(ty - by) / len, ny = (tx - bx) / len, w = 2.6;
+  const tri = (s: number) => { c.beginPath(); c.moveTo(bx + nx * w * s, by + ny * w * s); c.lineTo(tx, ty); c.lineTo(bx - nx * w * s, by - ny * w * s); c.closePath(); };
+  c.fillStyle = '#1A0B06'; tri(1.5); c.fill();
+  c.fillStyle = '#E8DDBE'; tri(1); c.fill();
+  c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(bx + nx * w, by + ny * w); c.lineTo(bx + (tx - bx) * 0.7, by + (ty - by) * 0.7); c.lineTo(bx - nx * w, by - ny * w); c.closePath(); c.fill();
+  c.fillStyle = '#7F1D1D'; c.fillRect(Math.round(bx - 2), Math.round(by - 1), 4, 3);
+  c.fillStyle = '#FFF8E6'; c.fillRect(Math.round(bx + (tx - bx) * 0.75), Math.round(by + (ty - by) * 0.75) - 1, 1, 1);
+  c.fillStyle = '#B91C1C'; c.fillRect(Math.round(bx), Math.round(by + 2), 1, 5); c.fillRect(Math.round(bx) - 1, Math.round(by + 7), 3, 2);
+};
+
+/** The wall where they hit it (the foot of it the origin; the stone's face off to the right): cracked in round the horn,
+ *  a chip knocked out, their blood sprayed up it and running down it to the ground. `k` 0..1: the runs getting there. */
+const drawWallHit = (c: Ctx, k: number) => {
+  const cx = 0, cy = DEAD_HORN.ty;
+  // (only on the stone: none of it out in the air in front of it)
+  c.save(); c.beginPath(); c.rect(0, -400, 400, 400); c.clip();
+  // (the cracks, out from the horn: dark, a lit edge along them)
+  for (const [dx, dy] of [[26, -22], [34, 6], [18, 30], [22, -40], [8, -34]] as const) {
+    c.strokeStyle = '#3F3A36'; c.lineWidth = 2; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + dx * 0.5, cy + dy * 0.4 + 3); c.lineTo(cx + dx, cy + dy); c.stroke();
+    c.strokeStyle = '#D6D3D1'; c.lineWidth = 1; c.beginPath(); c.moveTo(cx + 1, cy - 1); c.lineTo(cx + dx * 0.5 + 1, cy + dy * 0.4 + 2); c.stroke();
+  }
+  // (the chip knocked out round the horn's tip)
+  c.fillStyle = '#1A0B06'; c.beginPath(); c.ellipse(cx + 2, cy, 7, 9, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#57534E'; c.beginPath(); c.ellipse(cx + 3, cy + 1, 5, 7, 0, 0, Math.PI * 2); c.fill();
+  // (the blood up it: a burst, the spatter round it, the runs down)
+  c.fillStyle = '#8E1414'; c.beginPath(); c.ellipse(cx + 6, cy - 8, 10, 16, 0.2, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#B91C1C'; c.beginPath(); c.ellipse(cx + 5, cy - 10, 6, 11, 0.2, 0, Math.PI * 2); c.fill();
+  for (const [sx, sy, r] of [[18, -28, 2], [22, -6, 1.5], [12, -36, 1.5], [26, -18, 1], [14, 8, 1.5], [4, -40, 1]] as const) { c.fillStyle = '#B91C1C'; c.fillRect(Math.round(cx + sx), Math.round(cy + sy), Math.ceil(r * 2), Math.ceil(r * 2)); }
+  for (const [rx, w] of [[2, 2], [7, 3], [12, 2]] as const) {
+    const top = cy - 2, bot = Math.min(0, top + (-top) * k);
+    c.fillStyle = '#7F1D1D'; c.fillRect(cx + rx, top, w, bot - top);
+    c.fillStyle = '#B91C1C'; c.fillRect(cx + rx, top, Math.max(1, w - 1), bot - top);
+    if (k < 1) c.fillRect(cx + rx - 0.5, bot - 1, w + 1, 2);
+  }
   c.restore();
-  // (the dust where he hit, his face in it)
-  if (t >= 38 && t < 80) {
-    const s = (t - 38) / 42;
-    for (let i = 0; i < 4; i++) {
-      c.fillStyle = `rgba(168, 140, 100, ${(0.5 * (1 - s)).toFixed(2)})`;
-      c.beginPath(); c.arc(x + d.facing * (40 + i * 14 + s * 20 * (i - 1)), GY - 6 - s * 10 - (i % 2) * 4, 6 + s * 10, 0, Math.PI * 2); c.fill();
-    }
-  }
-  // One last one out of him (green, rising off his rear), and a little one after it
-  const rx = x - d.facing * 8, ry = GY - 44;
-  for (const [t0, len, big] of [[84, 110, 1], [150, 60, 0.45]] as const) {
-    if (t < t0 || t >= t0 + len) continue;
-    const s = (t - t0) / len;
-    c.fillStyle = `rgba(163, 190, 60, ${(0.6 * (1 - s)).toFixed(2)})`;
-    c.beginPath(); c.arc(rx - d.facing * (4 + s * 14), ry - s * 30, (8 + s * 24) * big, 0, Math.PI * 2); c.fill();
-    c.fillStyle = `rgba(132, 160, 40, ${(0.5 * (1 - s)).toFixed(2)})`;
-    c.beginPath(); c.arc(rx - d.facing * (10 + s * 20), ry - 6 - s * 36, (5 + s * 14) * big, 0, Math.PI * 2); c.fill();
-    // (stink lines, wavering up off it)
-    c.strokeStyle = `rgba(101, 163, 13, ${(0.8 * (1 - s)).toFixed(2)})`; c.lineWidth = 1.5;
-    for (let i = -1; i <= 1; i++) {
-      c.beginPath();
-      for (let k = 0; k <= 6; k++) { const yy = ry - 10 - s * 30 - k * 4, xx = rx - d.facing * (8 + s * 16) + i * 9 + Math.sin(k + fr * 0.3 + i) * 2; if (k) c.lineTo(xx, yy); else c.moveTo(xx, yy); }
-      c.stroke();
-    }
-  }
-  // (the flies, round his rear)
-  if (t > 170) for (let i = 0; i < 3; i++) { const a = fr * 0.17 + i * 2.1; c.fillStyle = '#111'; c.fillRect(Math.round(rx + Math.cos(a) * 12 + Math.sin(a * 2.7) * 3), Math.round(ry - 8 + Math.sin(a * 1.3) * 6), 2, 2); }
 };
 
 /** Meathead, poisoned to death: doubled over, heaving, then the lot comes up, again and again, and down he goes in it. */

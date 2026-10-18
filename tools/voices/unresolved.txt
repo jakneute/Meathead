@@ -37,8 +37,8 @@ m2/adventure/cart/index.ts:109 voice: text
 m2/adventure/cart/index.ts:239 voice: pick(ARTIE_CHASE_START[dressed(state)])
 m2/adventure/roof/index.ts:114 voice: text
 m2/adventure/clearing/index.ts:176 voice: text
-m2/adventure/clearing/fight.ts:329 voice: voice('m2.safari')
-m2/adventure/clearing/fight.ts:335 voice: pick(lines[pants()])
+m2/adventure/clearing/fight.ts:335 voice: voice('m2.safari')
+m2/adventure/clearing/fight.ts:341 voice: pick(lines[pants()])
 m2/adventure/section.ts:139 voice: voice(voiceId)
 m2/spooky/castle/pa.ts:72 voice: voice(PA)
 m2/spooky/hell/satan.ts:111 voice: SATAN_CORE
