@@ -30,7 +30,7 @@ import { GY } from '../geometry';
 import { CARS, CAR_X, carRight, DECK, ROOF, CEIL, COUPLER, END, ENTERABLE, TOP, ENGINE, CHECKPOINTS, fittings } from './layout';
 import { trainOf, type Train } from './state';
 import { playerRoom, roomAt } from './where';
-import { shiftBounds, riding, boarding } from './kinds';
+import { shiftBounds } from './kinds';
 import { tubeSay } from './tube';
 import { inView } from './view';
 import { TUBE_UNCOUPLE, TUBE_MISSED, TRAIN_GAGS } from './lines';
@@ -88,7 +88,7 @@ export const updateRooms = (ctx: FrameContext) => {
   // (out of the world: anybody in a car he isn't in)
   const keep: Enemy[] = [];
   for (const e of state.enemies) {
-    if (e.health > 0 && !e.isBlownAway && e.type !== 'boss' && !riding(e) && !boarding(e)) {
+    if (e.health > 0 && !e.isBlownAway && e.type !== 'boss') {
       const r = roomAt(tr, e.pos.x + e.width / 2, e.pos.y + e.height - 2);
       if (r >= 0 && r !== pin) { tr.stash.push({ e, car: r }); continue; }
     }
@@ -240,7 +240,7 @@ const derail = (ctx: FrameContext, tr: Train, k: number) => {
   // (whoever's on it: gone with it; whoever's out of the world in it: gone, never seen)
   for (const e of [...state.enemies]) {
     const ex = e.pos.x + e.width / 2;
-    if (ex >= edge || e.type === 'boss' || riding(e) || boarding(e)) continue;
+    if (ex >= edge || e.type === 'boss') continue;
     if (e.health > 0 && e.seen) hazardKill(ctx, e, edge, 'DERAILED!', { fling: { x: -6, y: -8 } });
     else if (e.health > 0) state.enemies = state.enemies.filter(o => o !== e);
   }
@@ -275,7 +275,7 @@ export const updateTracks = (ctx: FrameContext, x0: number, x1: number) => {
     hurtPlayer(ctx, 9999, 'm2:fr_tracks');
   }
   for (const e of [...state.enemies]) {
-    if (e.health <= 0 || e.type === 'boss' || e.enemyType === 'flyer' || riding(e) || boarding(e)) continue;
+    if (e.health <= 0 || e.type === 'boss' || e.enemyType === 'flyer') continue;
     const ex = e.pos.x + e.width / 2;
     if (ex < x0 || ex > x1 || e.pos.y + e.height < GY - 3) continue;
     if (e.seen) hazardKill(ctx, e, ex + 40, 'RUN OVER!', { fling: { x: -12, y: -8 }, sound: 'splat' });

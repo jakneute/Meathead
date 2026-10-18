@@ -186,7 +186,7 @@ const wolf = (ctx: FrameContext, e: Enemy) => {
       const d = Math.abs(pm.x - em.x), want = 140 + ((e.variant ?? 0) % 3) * 30;
       e.vel.x = d > want + 20 ? e.facing * 2.6 : d < want - 30 ? -e.facing * 1.4 : Math.sin((e.aiTimer ?? 0) * 0.08) * 0.8;
       if (!safeAhead(ctx, e, Math.sign(e.vel.x) || e.facing, 20)) e.vel.x = 0;
-      if (e.aiTimer! > 40 && Math.abs(d - want) < 40 && grounded(e)) { setState(e, 'crouch'); playSound('snort', 0.5, -4); }
+      if (e.aiTimer! > 32 && Math.abs(d - want) < 40 && grounded(e)) { setState(e, 'crouch'); playSound('snort', 0.5, -4); }
       if (!sees(state, e, 700, 320)) setState(e, 'idle');
       break;
     }
@@ -512,10 +512,10 @@ const headAt = (k: number, x: number, y: number, r: number) => ({ x: x * k, y: y
 /** How much bigger each animal is than it was (the playtest's: the deer, the wolves; all of them a bit, the bison too). */
 const S = { doe: 1.4, buck: 1.35, wolf: 1.4, cougar: 1.3, beaver: 1.25, rattler: 1.2, crow: 1.2, porcupine: 1.25, bison: 1.3, trout: 1.2 } as const;
 
-registerM2Kind({ kind: 'm2:fr_doe', stats: { ...sized(S.doe, 50, 46), hp: 55, contact: 10, mass: 120 }, ai: doe, draw: big(S.doe, drawDoe), head: headAt(S.doe, 22, -48, 7), gender: 'n', grab: 'body' });
-registerM2Kind({ kind: 'm2:fr_buck', stats: { ...sized(S.buck, 58, 54), hp: 120, contact: 14, mass: 210 }, ai: buck, draw: big(S.buck, drawBuck), head: headAt(S.buck, 26, -56, 8), gender: 'n', grab: 'body', pointy: { source: 'm2:fr_antlers', label: 'ANTLERS!', damage: 18 } });
-registerM2Kind({ kind: 'm2:fr_wolf', stats: { ...sized(S.wolf, 50, 32), hp: 50, contact: 11, mass: 100 }, ai: wolf, draw: big(S.wolf, drawWolf), head: headAt(S.wolf, 24, -26, 7), gender: 'n', grab: 'body', pathing: true });
-registerM2Kind({ kind: 'm2:fr_cougar', stats: { ...sized(S.cougar, 66, 34), hp: 120, contact: 17, mass: 150 }, ai: cougar, draw: big(S.cougar, drawCougar), head: headAt(S.cougar, 30, -28, 8), gender: 'n', grab: 'body' });
+registerM2Kind({ kind: 'm2:fr_doe', stats: { ...sized(S.doe, 50, 46), hp: 80, contact: 10, mass: 120 }, ai: doe, draw: big(S.doe, drawDoe), head: headAt(S.doe, 22, -48, 7), gender: 'n', grab: 'body' });
+registerM2Kind({ kind: 'm2:fr_buck', stats: { ...sized(S.buck, 58, 54), hp: 150, contact: 14, mass: 210 }, ai: buck, draw: big(S.buck, drawBuck), head: headAt(S.buck, 26, -56, 8), gender: 'n', grab: 'body', pointy: { source: 'm2:fr_antlers', label: 'ANTLERS!', damage: 18 } });
+registerM2Kind({ kind: 'm2:fr_wolf', stats: { ...sized(S.wolf, 50, 32), hp: 80, contact: 12, mass: 100 }, ai: wolf, draw: big(S.wolf, drawWolf), head: headAt(S.wolf, 24, -26, 7), gender: 'n', grab: 'body', pathing: true });
+registerM2Kind({ kind: 'm2:fr_cougar', stats: { ...sized(S.cougar, 66, 34), hp: 140, contact: 17, mass: 150 }, ai: cougar, draw: big(S.cougar, drawCougar), head: headAt(S.cougar, 30, -28, 8), gender: 'n', grab: 'body' });
 registerM2Kind({ kind: 'm2:fr_beaver', stats: { ...sized(S.beaver, 32, 26), hp: 22, contact: 7, mass: 30, air: true }, ai: beaver, make: flyer, draw: big(S.beaver, drawBeaver), head: headAt(S.beaver, 12, -16, 6), gender: 'n', grab: 'critter', pathing: false });
 registerM2Kind({ kind: 'm2:fr_rattler', stats: { ...sized(S.rattler, 30, 22), hp: 16, contact: 7, mass: 5 }, ai: rattler, draw: big(S.rattler, drawRattler), head: headAt(S.rattler, 8, -14, 5), gender: 'n', grab: 'critter', pathing: false });
 registerM2Kind({ kind: 'm2:fr_crow', stats: { ...sized(S.crow, 26, 18), hp: 14, contact: 7, mass: 4, air: true }, ai: crow, make: flyer, draw: big(S.crow, drawCrow), head: headAt(S.crow, 9, -12, 5), gender: 'n', grab: 'critter' });

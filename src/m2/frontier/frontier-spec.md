@@ -1169,3 +1169,65 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   animal style (ticked fur, scaly tail, hurt, belly up dead); the loggers enriched (cut-resistant chaps, flannel check,
   vest or suspenders, gloves, visored hard hats, a stepped chainsaw). Tucker, his saw drop and Meathead's seated pose
   untouched.
+- 2026-10-18 (playtest F, the train; the user's notes): THE ROBBERS NEVER SHOWED UP. The cause: they were spawned as
+  engine enemies with their feet at FG_GROUND (40 under the ground line, past the engine's 26 px floor reach), so the
+  engine had them airborne over a pit: a custom kind's AI only runs grounded, so their ride logic never ran and they
+  fell through the bottom of the world off screen (put back and dropped again while never seen, OFF THE CLIFF the
+  moment the view caught one). Now riding and leaping they are NOT the cast: tr.riders (kinds.ts updateRiders,
+  addRiders), a foreground thing the train runs and draws (drawRider / drawRobberAt in the near lane): in from the
+  view's left edge, galloping up level with him and riding along on screen a good while (aim and fire from the saddle
+  when he's outside; leap after 3 shots and ~6 s, or ~11 s, or when the lane closes ahead: a tunnel, a bridge, the
+  falls, or the dark), then the leap's arc; landed, they're made real enemies (on foot, the train's top where they came
+  down, the same seeded look). In the near lane they're out of his reach: his shots and moves don't touch them (the
+  foreground's inaccessible; the user's); one the lane closed on before he got on screen peels off back the way he
+  came (never a kill, never seen). No leftover rider logic in updateRooms, updateTracks, derail or the hazards.
+  Checkpoints: the train's state is rebuilt with the stage, so riders start empty; back to the station or the crash
+  clears them.
+- 2026-10-18 (playtest F): THE TRACKS BETWEEN CUT CARS (the user's "if you fall off onto tracks between decoupled
+  cars, you die"): updateTracks covers CAR_X[0] - 600 .. the engine's front (the drifting gap is always inside it; the
+  bed under the train is the one ground line at GY, nothing else to land on). The hole was the way back to the
+  station: off the back of the rearmost car teleported him to the station, cut cars or not, so dropping off the back of
+  what was left after a cut sent him to the station mid-fall. Now that way back is only off the caboose (still coupled)
+  or off a train stood still; after a cut, off the back is down on the ties: m2:fr_tracks (its death lines; the user's
+  special death animations later).
+- 2026-10-18 (playtest F): THE HILLS STEEPER as the train goes on (the user's "progressively steeper. not
+  unrealistically so but noticeably so"): the grades' peaks now 0.03, 0.042, 0.054, 0.066, 0.078, 0.09, 0.10 rad
+  (were 0.03, 0.04, 0.05, 0.055, 0.06, 0.065, 0.065): steady steps to ~5.7 degrees at the front. The tilt's still only the
+  view (the caches are tilt-proof; the train's speed still eases 0.7 .. 1.3 with the grade).
+- 2026-10-18 (playtest F): THE ENGINE'S CAB (the user's: "tucker's model and his surrounding environment when he leans
+  out the window looks off"; the SNES pass blew the engine up 2.4x and left his drawing and clip as they were: he hung
+  in the air left of the cab over a sill floating out past its end, under a dark slot up to the roof). Now: an opening
+  in the cab's back post sized for him (CAB_GAP 32 wide, its header beam a little over his cap, CAB.header), the
+  backhead's gauge and the firebox's glow in it, a varnished half door below it down to the footplate, the sill's cap
+  at his waist (his far hand grips it: CAB.feet = sill + 38), a grab iron up the corner; him in it leaning out over the
+  tender (tipped 0.2 about the sill), clipped at the sill and the opening's far post; slumped over the sill once shot.
+  The KILL arrow just over his cap; the shot's zone from over his cap down to the sill. And (the user's) "he evades
+  special weapon attacks and charge moves, closing the window. he won't evade a simple raygun blast though": a special
+  weapon fired (or any secondary fire), anything not the ray gun's bolt flying at the window, or a charge move at the
+  cab (charge, slide, uppercut, dive kick, a grab, within 260 of it): he ducks in and SLAMS the shutter down (slatted,
+  rolled down from the header in 5 frames: a thud and clang), held while it keeps coming, rolled back up after ~1 s
+  and he leans out again; whatever reaches the shutter stops on it. Lines: TUCKER_DODGE for a weapon, new TUCKER_SLAM
+  for a charge move (clean / shitty / naked), MH_RAYGUN after the first. THE FIREMAN on the tender taken off (the
+  user's "remove the coal chucker right before him"): the tender's empty; the coal was only his (the stack's cinders
+  stay); the kind stays registered.
+- 2026-10-18 (playtest F): NORMALIZED (the user's "aside from the teenagers, normalize enemy health and aggression for
+  this stage. right now it feels a bit light"), against the other lands' goons (Foreign's and Hollywood's humanoids:
+  light 85-100 HP, standard 110-150, heavy 160-180, contact 5-7, strikes 9-14 on 20-30 frame tells) and animals
+  (jaguar, raptor, hellhound 120 HP; trike, hellgoat 170). Tells unchanged; M2's softer hits (x0.65) and lean drops
+  untouched; critters (rattler, porcupine, beaver, crow, trout, the rats) as they were; Tucker and the TEENAGERS
+  untouched. Before -> after:
+  - train: porter HP 70 -> 100, contact 4 -> 5, swing 10 -> 12, lobs every 50+ -> 40+ frames; brakeman HP 110 -> 140,
+    contact 5 -> 6; robber HP 80 -> 100, contact 4 -> 5, pistol-whip 9 -> 11, shots 9 -> 10, aims every 70+ -> 56+;
+    cook HP 140 -> 170, contact 5 -> 7, cleavers every 46+ -> 38+; passenger HP 40 -> 85, contact 3 -> 4, jab 7 -> 10;
+    steer HP 120 -> 170, contact 10 -> 14.
+  - town: deputy HP 60 -> 100, contact 4 -> 5, whip 9 -> 11, aims every 70+ -> 56+; snake oil salesman HP 70 -> 95,
+    contact 4 -> 5, smash 8 -> 10, tonics every 60+ -> 48+; barber HP 40 -> 85, contact 3 -> 4, slash 9 -> 10; dancer
+    HP 50 -> 85, contact 3 -> 4, kick 9 -> 10 (brawl hit 9 -> 10); patron HP 60 -> 90, contact 3 -> 5, brawl hit
+    8 -> 10; undertaker HP 120 -> 140, contact 4 -> 5; farmhand HP 70 -> 100, contact 4 -> 5, jab 10 -> 11; feller HP
+    110 -> 140, contact 5 -> 6, hatchets every 60+ -> 50+; birler HP 70 -> 100, contact 4 -> 5; miner HP 100 -> 120,
+    contact 5 -> 6; prospector HP 80 -> 100, contact 4 -> 5, whack 8 -> 10, dynamite every 90+ -> 72+. Sheriff (260),
+    bouncer (240), blacksmith (180) already at the baseline.
+  - wilds: doe HP 55 -> 80; buck 120 -> 150; wolf 50 -> 80, contact 11 -> 12, stalks to its crouch after 40 -> 32
+    frames; cougar 120 -> 140; bison (340) as it was.
+  - the log ride's crew (logride/ was mid art pass: proposed, not made): logger HP 70 -> 110, contact 4 -> 5, chainsaw
+    11 -> 13, its recover 36 -> 30 frames, walk 1.5 -> 1.7; the rats (critters) as they are.

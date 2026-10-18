@@ -26611,6 +26611,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "HANDS OFF MY ENGINE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "HANDS OFF! AND KEEP THAT THING OFF TOO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "HANDS OFF! WASH THEM FIRST!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "HEAR THAT BUZZING? THOSE ARE MY COLLECTORS!",
   "from": "FRONTIER"
  },
@@ -26967,6 +26982,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "NO PANTS, NO TICKET. I'M BILLING YOUR NEXT OF KIN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "NO PUNCHING THE STAFF!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "NO PUNCHING THE STAFF! NO PANTS EITHER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "NO PUNCHING THE STAFF! NO SHITTING IN THE CARS!",
   "from": "FRONTIER"
  },
  {
@@ -27616,6 +27646,11 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "TICKET WINDOW IS CLOSED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "TICKET, PLEASE!",
   "from": "FRONTIER"
  },
@@ -27732,6 +27767,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "WHAT IS THIS?! PLEASE BE BLOOD! PLEASE BE BLOOD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "WINDOW'S CLOSED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "WINDOW'S CLOSED! PUT IT AWAY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "WINDOW'S CLOSED! YOU STINK!",
   "from": "FRONTIER"
  },
  {

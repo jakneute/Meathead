@@ -102,6 +102,13 @@ export const TUCKER_DODGE: ByPants = {
   shitty: ['HA! NOT LEGAL TENDER! NEITHER ARE YOUR PANTS!', "MISSED! THAT'S A SURCHARGE! AND A SMELL CHARGE!", 'NO FANCY STUFF! AND NO SHITTY STUFF!'],
   nude: ['HA! NOT LEGAL TENDER! NEITHER IS THAT!', 'MISSED! AIM WITH THE OTHER THING!', 'NO FANCY STUFF! NO PANTS! NO SERVICE!'],
 };
+/** At the engine: a charge move (a charge, a slide, an uppercut, a dive kick, a grab) at the cab: he slams the
+ *  window's shutter in his face (the user's). */
+export const TUCKER_SLAM: ByPants = {
+  clean: ["WINDOW'S CLOSED!", 'NO PUNCHING THE STAFF!', 'HANDS OFF MY ENGINE!', 'TICKET WINDOW IS CLOSED!'],
+  shitty: ["WINDOW'S CLOSED! YOU STINK!", 'NO PUNCHING THE STAFF! NO SHITTING IN THE CARS!', 'HANDS OFF! WASH THEM FIRST!'],
+  nude: ["WINDOW'S CLOSED! PUT IT AWAY!", 'NO PUNCHING THE STAFF! NO PANTS EITHER!', 'HANDS OFF! AND KEEP THAT THING OFF TOO!'],
+};
 /** At the engine: his rant out of the cab (in order, one after the other: the KILL arrow's up the whole time). */
 export const TUBE_RANT: ByPants = {
   clean: [
@@ -311,5 +318,5 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
-  [TUCKER_VOICE]: [TUBE_BOARD, TUBE_LEDGER, TUBE_UNCOUPLE, TUBE_MISSED, TUBE_TUNNEL, TUBE_ROBBERS, TUBE_FALLS, TUCKER_INSULT, TUCKER_DARE, TUCKER_DODGE, TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT].flatMap(allOf),
+  [TUCKER_VOICE]: [TUBE_BOARD, TUBE_LEDGER, TUBE_UNCOUPLE, TUBE_MISSED, TUBE_TUNNEL, TUBE_ROBBERS, TUBE_FALLS, TUCKER_INSULT, TUCKER_DARE, TUCKER_DODGE, TUCKER_SLAM, TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT].flatMap(allOf),
 };

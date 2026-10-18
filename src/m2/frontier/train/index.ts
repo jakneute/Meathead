@@ -132,10 +132,14 @@ export const train: FrontierSection = {
     }
     // ---- the engine's scene, the cuts, what goes by, what flies, the tracks
     out = updateEngine(ctx, out);
-    // (off the back of the rearmost car, while it's coupled: back to the station)
+    // (off the back of the caboose, while it's coupled (or off the back of the train stood still): back to the station.
+    // The playtest's: once cars have been cut loose, off the back of what's left of the moving train is down on the
+    // tracks: under the wheels (updateTracks), not a way back)
     const rearFloor = tr.cars[tr.rear]?.blocks[0];
-    if (tr.phase !== 'intro' && rearFloor && (!tr.cut || tr.cut.phase === 'tell' || tr.cut.k < tr.rear) && cx < rearFloor.x + 2 && feet < GY - 6 && feet > DECK - 40 && p.health > 0 && !p.inCutscene) {
+    if (tr.phase !== 'intro' && rearFloor && (tr.rear === 0 || tr.phase === 'still') && (!tr.cut || tr.cut.phase === 'tell' || tr.cut.k < tr.rear) && cx < rearFloor.x + 2 && feet < GY - 6 && feet > DECK - 40 && p.health > 0 && !p.inCutscene) {
       if (tr.phase === 'ride') { tr.phase = 'intro'; tr.v = V_INTRO; tr.vTarget = V_INTRO; tr.introT = 0; }
+      // (the riders in the near lane stay with the train)
+      tr.riders = [];
       teleport(state, DOORS.wilds.end.x, DOORS.wilds.end.y);
       return out;
     }
@@ -214,6 +218,6 @@ whenCrashed((state) => {
   tr.rear = 0; tr.cut = null;
   buildCars(state, tr);
   state.enemies = state.enemies.filter(e => e.pos.x < x0 - 400 || e.pos.x > x1 + 400);
-  tr.passers = []; tr.shots = []; tr.horses = []; tr.wrecks = []; tr.stash = [];
+  tr.passers = []; tr.shots = []; tr.horses = []; tr.wrecks = []; tr.stash = []; tr.riders = [];
   tr.phase = 'still'; tr.v = 0; tr.vTarget = 0; tr.dark = 0; tr.grade = 0; tr.tilt = 0; tr.soak = 0;
 });

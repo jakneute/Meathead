@@ -233,13 +233,15 @@ export const drawRobber = (c: Ctx, e: Enemy, f: number, seed: number) => {
   putFrame(c, 'robber', F, g => paintRobber(g, F));
 };
 /** A robber on foot, wherever the caller's put the origin (his feet): leaping off his horse onto the train. */
-export const drawRobberAt = (c: Ctx, e: Enemy, f: number, seed: number) => {
+/** What a rider's drawing needs of him (a rider in the near lane isn't one of the cast: passers.ts). */
+export type RiderLook = Pick<Enemy, 'aiState' | 'facing' | 'hitFlash'>;
+export const drawRobberAt = (c: Ctx, e: RiderLook, f: number, seed: number) => {
   if ((e.facing ?? 1) < 0) c.scale(-1, 1);
   const F = frameOf(seed, f, 'walk', (e.hitFlash ?? 0) > 0 ? 'hurt' : 'ok', 0);
   putFrame(c, 'robber', F, g => paintRobber(g, F));
 };
 /** A robber on his horse (world: feet at (x, feetY), facing): the horse galloping under him. `aim`: the pistol up. */
-export const drawRider = (c: Ctx, e: Enemy, x: number, feetY: number, f: number, seed: number) => {
+export const drawRider = (c: Ctx, e: RiderLook, x: number, feetY: number, f: number, seed: number) => {
   const aim = e.aiState === 'rideAim';
   drawHorse(c, x, feetY + 50, e.facing ?? 1, f, seed);
   c.save(); c.translate(Math.round(x), Math.round(feetY + 14 + horseBob(f))); if ((e.facing ?? 1) < 0) c.scale(-1, 1);

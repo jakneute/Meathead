@@ -4,10 +4,17 @@
 // The playtest's: coming up onto the tender, a CUTSCENE first (no controls, no HUD, SKIP >> for all of it): Tucker pops
 // up out of the cab's back and lays into him (manic, petty, the ledger: the user's Mel Gibson), Meathead's say, Tucker's
 // kicker, the KILL arrow drops in. He isn't something to shoot till that's done (he's not even at his window). Then it's
-// played: up on the tender (the fireman shoveling coal at him), Tucker reads him the ledger, line after line, and the
-// arrow's up all the while. He EVADES anything but the ray gun (a special weapon fired at him, or anything of it flying
-// at his window: he ducks below the sill, a crack about it: it's not legal tender); the plain ray gun's bolt through his
-// window is the shot. Left too long, Tucker cuts the tender loose (the same as any car).
+// played: up on the tender (nobody else on it: the playtest took the fireman off), Tucker reads him the ledger, line
+// after line, and the arrow's up all the while. He EVADES anything but the ray gun (the user's: "he evades special
+// weapon attacks and charge moves, closing the window. he won't evade a simple raygun blast though"): a special weapon
+// fired, anything of it flying at his window, or a charge move (charge, slide, uppercut, dive kick, a grab) coming at
+// the cab: he ducks in and SLAMS the window's shutter down over it (a crack about it: it's not legal tender), then it
+// rolls back up and he leans back out; the plain ray gun's bolt through his window is the shot. Left too long, Tucker
+// cuts the tender loose (the same as any car).
+//
+// The playtest's: the cab's back drawn to fit the big engine (No. 7 at 2.4x; Tucker at his own size): a proper window
+// in the cab's back post, framed, at his height off the footplate, its sill at his waist; him in it, leaning out over
+// the tender, clipped at the sill; the shutter in it.
 //
 // Shot, the user's: an ANIMATED, GRAPHIC close-up of the bullet going through his eye (the mutilation close-up rule:
 // tucker.ts's close-up with this job's wound painter: the slug coming in, the lens starring, the eye bursting, the gout
@@ -33,11 +40,10 @@ import { box, mix, INK, type Ctx } from '../kit';
 import { drawTucker, drawTuckerCloseup, registerWoundPainter } from '../tucker';
 import { trainOf } from './state';
 import { CARS, CAR_X, RAIL, TENDER, ENGINE, CAB } from './layout';
-import { N, VARNISH } from './paint';
-import { ENG, drawMachine, drawCabBack, drawOutOfService, drawBumperArt } from './engineArt';
+import { ENG, drawMachine, drawCabBack, drawCabFront, CAB_GAP, drawOutOfService, drawBumperArt } from './engineArt';
 import { cutTender, cancelCut } from './cars';
 import { screenX, screenY, inView } from './view';
-import { TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT, KILL_SEEN, SHOT_LINE, DRIVER_LINE, TUCKER_INSULT, MH_COMEBACK, TUCKER_DARE, TUCKER_DODGE, MH_RAYGUN } from './lines';
+import { TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT, KILL_SEEN, SHOT_LINE, DRIVER_LINE, TUCKER_INSULT, MH_COMEBACK, TUCKER_DARE, TUCKER_DODGE, TUCKER_SLAM, MH_RAYGUN } from './lines';
 
 /** The train's crashed into Sawdust Gulch (for good: a revisit finds it stood still). */
 export const CRASH_MEMO = 'frontier-train-crashed';
@@ -77,8 +83,14 @@ const tuckerSay = (s: Scene, text: string | null, done?: () => void) => {
 const pick = (state: GameState, pool: ByPants) => pickLine(byPants(state, pool));
 
 const ENGINE_X = CAR_X[ENGINE], ENGINE_FRONT = ENGINE_X + CARS[ENGINE].len;
-/** Where a shot at him counts: from a bit back over the tender up to his window (before the cab wall eats it). */
-const ZONE = { x0: ENGINE_X - 110, x1: ENGINE_X + 6, y0: CAB.sill - 130, y1: CAB.sill + 8 };
+/** Where a shot at him counts: from a bit back over the tender up to his window (before the cab wall eats it), from
+ *  over his cap down to the sill. */
+const ZONE = { x0: ENGINE_X - 110, x1: ENGINE_X + 6, y0: CAB.header - 10, y1: CAB.sill + 8 };
+/** Ducked in behind the shutter, frames (slammed shut in the first few; rolled back up in the last few). */
+const DUCK = 72;
+/** How far down he's ducked (0..1), how far the shutter's down (0..1). */
+const duckDown = (s: Scene) => (s.duck > 0 ? Math.min(1, (DUCK - s.duck) / 4 + 0.25, s.duck / 14) : 0);
+const shutK = (s: Scene) => (s.duck > 0 ? Math.min(1, (DUCK - s.duck) / 5, s.duck / 16) : 0);
 /** The camera on the cab for the insult (the zoomed view: the tender and the cab's back in the middle). */
 const INSULT_CAM = ENGINE_X - 470;
 
@@ -125,13 +137,23 @@ export const updateEngine = (ctx: FrameContext, controls: Controls): Controls =>
       // (a special weapon fired anywhere near: he's already ducking. Anything of his flying into the window: the ray
       // gun's bolt is the shot (unless he's down); anything else, he ducks it)
       const near = cx > CAR_X[TENDER] - 700 && p.health > 0 && !p.inCutscene;
-      if (near && controls.shoot && !s.shootWas && p.currentWeapon !== 'GUN') dodge(state, s);
-      s.shootWas = !!controls.shoot;
+      const firing = !!controls.shoot || !!controls.secondary;
+      if (near && firing && !s.shootWas && (p.currentWeapon !== 'GUN' || controls.secondary)) dodge(state, s, false);
+      s.shootWas = firing;
+      // (a charge move coming at the cab: the charge, a slide, an uppercut, a dive kick, a grab: the window slammed)
+      const moving = p.isCharging || p.isSliding || p.isUppercutting || !!p.isDivekicking || !!p.airGrab || !!p.noContactHurt;
+      if (moving && p.health > 0 && !p.inCutscene && cx > ENGINE_X - 260 && cx < ENGINE_X + 20) dodge(state, s, true);
       let hit = false;
       for (const pj of state.projectiles) {
         if (pj.owner !== 'player' || pj.health <= 0 || pj.pos.x + pj.width < ZONE.x0 - 40 || pj.pos.x > ZONE.x1 || pj.pos.y + pj.height < ZONE.y0 || pj.pos.y > ZONE.y1) continue;
         if (pj.isRay && s.duck <= 0 && pj.pos.x + pj.width > ZONE.x0) { pj.health = 0; hit = true; }
-        else if (!pj.isRay) dodge(state, s);
+        else if (!pj.isRay) dodge(state, s, false);
+        // (the shutter's down: it stops whatever gets to it)
+        if (s.duck > 0 && pj.health > 0 && pj.pos.x + pj.width > ENGINE_X - 6) {
+          pj.health = 0;
+          playSound('thud', 0.5, 4);
+          for (let n = 0; n < 5; n++) state.particles.push({ pos: { x: ENGINE_X - 6, y: pj.pos.y + pj.height / 2 }, vel: { x: -1 - Math.random() * 3, y: (Math.random() - 0.5) * 4 }, life: 12, color: n % 2 ? '#C8A060' : '#FDE047', size: 2 });
+        }
       }
       if (hit) shoot(ctx, s);
       return controls;
@@ -202,14 +224,18 @@ const endInsult = (state: GameState, s: Scene) => {
   playSound('clang', 0.6, -2);
 };
 
-/** Down below the sill: whatever it was goes over him; a crack about it (not over anybody else's words). */
-const dodge = (state: GameState, s: Scene) => {
-  if (s.duck > 6) return;
-  s.duck = 46;
-  playSound('whoosh', 0.6, 6);
+/** In behind the window: he ducks in and slams the shutter down (whatever it was stops on it), a crack about it (not
+ *  over anybody else's words): a weapon's not legal tender (`slam` false), a charge move gets the window shut in his face
+ *  (`slam`: TUCKER_SLAM). Held down while it keeps coming; then it rolls back up and he leans out again. */
+const dodge = (state: GameState, s: Scene, slam: boolean) => {
+  if (s.duck > 16) { s.duck = Math.max(s.duck, 20); return; }
+  const was = s.duck > 0;
+  s.duck = was ? DUCK - 5 : DUCK;
+  if (was) return;
+  playSound('whoosh', 0.6, 6); playSound('thud', 1, -2); playSound('clang', 0.5, 6);
   if (s.busy || s.talking) return;
   s.busy = true;
-  tuckerSay(s, pick(state, TUCKER_DODGE), () => {
+  tuckerSay(s, pick(state, slam ? TUCKER_SLAM : TUCKER_DODGE), () => {
     if (!s.dodged) { s.dodged = true; meatheadSays(state, pick(state, MH_RAYGUN), true, () => { s.busy = false; }); }
     else s.busy = false;
   });
@@ -328,7 +354,8 @@ registerWoundPainter('eye', (c, k) => {
 // (his own size), the KILL arrow, the buffer stop and the crash
 
 const BRASS = '#E0B040';
-const VARN = N(VARNISH);
+/** Where he stands in the cab's back opening (his middle), and the footplate the half door comes down to. */
+const TUCK_X = ENGINE_X + 10, FOOTPLATE = RAIL - 96;
 
 /** Behind the cast: the engine (the boiler, the stack smoking, the cab with Tucker leaning out of the back of it). */
 export const drawEngineBack = (c: Ctx, state: GameState) => {
@@ -338,28 +365,30 @@ export const drawEngineBack = (c: Ctx, state: GameState) => {
   const stuck = s.step === 'slump' || s.step === 'speed';
   // ---- the machine, its wheels on the rail
   drawMachine(c, x, RAIL, f, tr.dist / ENG.dr, tr.v > 1, stuck);
-  // ---- the cab's back (his own size from here: the opening he leans out of, the sill)
-  const back = GY - 300;
-  drawCabBack(c, x, back, CAB.sill, f);
-  // ---- Tucker, leaning out of the back of the cab (clipped at the sill): manic, shaking his fist; ducked under it;
-  // slumped over it once shot. Not at his window till the insult.
+  // ---- the cab's back (his own size from here: the opening he leans out of, the half door's sill at his waist)
+  drawCabBack(c, x, CAB.header, CAB.sill, f);
+  // ---- Tucker, in the opening, leaning out of it over the tender (clipped at the sill and the opening's far post):
+  // manic, shaking his fist; ducked in behind the shutter; slumped over the sill once shot. Not at his window till the
+  // insult.
+  const shot = s.step !== 'insult' && s.step !== 'rant';
   if (tr.phase !== 'still' && s.step !== 'done' && s.step !== 'wait') {
-    const shot = s.step !== 'insult' && s.step !== 'rant';
-    c.save(); c.beginPath(); c.rect(x - 140, GY - 420, 220, CAB.sill - (GY - 420));
+    c.save(); c.beginPath(); c.rect(x - 140, GY - 420, 140 + CAB_GAP - 4, CAB.sill - (GY - 420));
     // (slumped, he hangs out over the sill: below it too, outside the cab)
-    if (shot) c.rect(x - 170, CAB.sill - 4, 168, 130);
+    if (shot) c.rect(x - 170, CAB.sill - 4, 162, 130);
     c.clip();
     if (!shot) {
-      const down = (1 - s.up) * 90 + (s.duck > 0 ? Math.min(1, s.duck / 8, (46 - s.duck + 8) / 8) * 80 : 0);
-      drawTucker(c, x - 12, CAB.feet + down, -1, f, 'cab', { talking: s.talking, face: s.duck > 0 ? 'shock' : 'manic' });
+      const down = (1 - s.up) * 90 + duckDown(s) * 80;
+      // (leaning out over the half door: tipped toward the tender about the sill)
+      c.translate(TUCK_X, CAB.sill); c.rotate(-0.2 * (1 - duckDown(s))); c.translate(-TUCK_X, -CAB.sill);
+      drawTucker(c, TUCK_X, CAB.feet + down, -1, f, 'cab', { talking: s.talking, face: s.duck > 0 ? 'shock' : 'manic' });
     } else {
       // (slumped over the sill head down, his arms hanging, the eye shot through)
-      c.translate(x - 4, CAB.sill + 2); c.rotate(-1.9);
+      c.translate(x - 2, CAB.sill + 2); c.rotate(-1.9);
       drawTucker(c, 0, 50, -1, f, 'cab', { face: 'out', wounds: { eye: true } });
     }
     c.restore();
   }
-  box(c, x - 41, CAB.sill - 4, 66, 10, INK); box(c, x - 40, CAB.sill - 3, 64, 8, VARN[3]); box(c, x - 40, CAB.sill - 3, 64, 2, VARN[5]); box(c, x - 40, CAB.sill - 1, 64, 1, VARN[6]); box(c, x - 40, CAB.sill + 4, 64, 1, VARN[1]);
+  drawCabFront(c, x, CAB.header, CAB.sill, tr.phase === 'still' || shot ? 0 : shutK(s), FOOTPLATE);
   if (tr.phase === 'still' || s.step === 'done') drawOutOfService(c, x + 60, GY - 232);
   // (the whistle cord, pulled tight by his weight once he's slumped on it)
   c.strokeStyle = '#D6D3D1'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 12, GY - 310); c.lineTo(x + 12 + (stuck ? -10 : 0), stuck ? CAB.sill - 10 : GY - 250); c.stroke();
@@ -369,12 +398,13 @@ export const drawEngineBack = (c: Ctx, state: GameState) => {
 export const drawEngineFront = (c: Ctx, state: GameState) => {
   const s = scOf(state), tr = trainOf(state), f = state.frame;
   if (tr.phase === 'still' || s.step === 'done') return;
-  const hx = ENGINE_X - 18;
+  // (over his cap, in the opening he leans out of)
+  const hx = TUCK_X - 8;
   // (the KILL arrow, as Meathead 1 had over Riggs: a red arrow down at him, KILL over it, flashing; dropped in at the end
   // of the insult)
   const arrow = s.step === 'rant' || (s.step === 'insult' && s.beat >= 3);
   if (arrow && Math.floor(f / 10) % 2 === 0) {
-    const ax = hx, ay = CAB.sill - 112 + Math.sin(f * 0.2) * 4;
+    const ax = hx, ay = CAB.sill - 86 + Math.sin(f * 0.2) * 4;
     // (the arrow: inked, stepped red, a lit edge)
     c.fillStyle = INK; c.beginPath(); c.moveTo(ax, ay + 19); c.lineTo(ax - 15, ay - 2); c.lineTo(ax + 15, ay - 2); c.closePath(); c.fill();
     c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(ax, ay + 16); c.lineTo(ax - 12, ay); c.lineTo(ax + 12, ay); c.closePath(); c.fill();

@@ -154,16 +154,50 @@ export const drawMachine = (c: Ctx, x: number, y: number, f: number, roll: numbe
   if (stuck) for (let n = 0; n < 5; n++) { const t = ((f * 0.08 + n / 5) % 1); puff(c, x + ENG.whistle.x + 4 - t * 30, y + ENG.whistle.y - 10 - t * 70, 6 + t * 16, ['#C8CCD4', '#E8ECF2', '#FFFFFF'], 0.8 * (1 - t)); }
 };
 
-/** The cab's open back (local to the cab's back end, world y): the dark inside, the firebox's glow at its foot, the
- *  varnished posts round it. Behind Tucker. */
-export const drawCabBack = (c: Ctx, x: number, top: number, sill: number, f: number) => {
-  const V = N(VARNISH);
-  box(c, x - 4, top - 1, 42, sill - top + 2, INK);
-  for (let i = 0; i < 5; i++) box(c, x - 3, top + ((sill - top) * i) / 5, 40, (sill - top) / 5 + 1, mix('#2A1A10', '#120A06', i / 5));
+/** The cab's back opening (the playtest's: sized for Tucker, not the engine's 2.4x): the gangway in the cab's back post,
+ *  from its header (a little over his cap) down to the half door's sill (his waist). x: the cab's back end; world y.
+ *  The opening's width: CAB_GAP (it stops short of the arched side window). */
+export const CAB_GAP = 32;
+/** Behind Tucker: the dark inside the opening (the boiler's backhead, a gauge glinting), the firebox's glow at its foot,
+ *  the header beam and the post. */
+export const drawCabBack = (c: Ctx, x: number, header: number, sill: number, f: number) => {
+  const V = N(VARNISH), Br = BRASS, h = sill - header, w = CAB_GAP;
+  box(c, x - 5, header - 1, w + 2, h + 2, INK);
+  for (let i = 0; i < 5; i++) box(c, x - 4, header + (h * i) / 5, w, h / 5 + 1, mix('#2A1A10', '#120A06', i / 5));
+  checker(c, x - 4, header + h * 0.4 - 1, w, 2, '#22160C', 0);
+  // (the backhead's steam gauge, a brass rim catching the firelight; a pipe off it)
+  box(c, x + 13, header + 22, 12, 12, INK); box(c, x + 14, header + 23, 10, 10, Br[3]); box(c, x + 16, header + 25, 6, 6, '#E8E0C8'); box(c, x + 18, header + 27, 3, 1, INK); box(c, x + 14, header + 23, 10, 2, Br[5]);
+  box(c, x + 18, header + 34, 2, 18, Br[2]);
+  // (the firebox's door glowing down at the foot)
   const glow = 0.5 + 0.2 * Math.sin(f * 0.3);
-  c.globalAlpha = glow; box(c, x + 6, sill - 40, 26, 40, '#7A2A0A'); box(c, x + 10, sill - 26, 18, 26, '#C8501A'); c.globalAlpha = 1;
-  box(c, x - 3, top, 40, 4, V[5]); box(c, x - 3, top + 4, 40, 2, V[2]);
-  box(c, x + 32, top, 6, sill - top, V[1]);
+  c.globalAlpha = glow; box(c, x + 2, sill - 30, w - 8, 30, '#7A2A0A'); box(c, x + 6, sill - 20, w - 16, 20, '#C8501A'); c.globalAlpha = 1;
+  // (the header beam over it, lit along its top; the post on its far side)
+  box(c, x - 9, header - 9, w + 10, 11, INK); box(c, x - 8, header - 8, w + 8, 9, V[3]); box(c, x - 8, header - 8, w + 8, 2, V[5]); box(c, x - 8, header - 1, w + 8, 1, V[1]);
+  box(c, x + w - 9, header, 4, h, V[1]); box(c, x + w - 9, header, 1, h, V[2]);
+};
+/** In front of Tucker: the shutter (`shut` 0..1: rolled down from the header, slats and its bottom rail; slammed shut
+ *  when he ducks something), the half door below the sill (varnished planks, red trim, its latch), the sill's cap he
+ *  grips, the grab iron up the cab's back corner. */
+export const drawCabFront = (c: Ctx, x: number, header: number, sill: number, shut: number, foot: number) => {
+  const V = N(VARNISH), Rd = N(RED), Br = BRASS, w = CAB_GAP;
+  if (shut > 0.01) {
+    const sh = Math.round((sill - header) * Math.min(1, shut));
+    box(c, x - 5, header, w + 2, sh + 1, INK);
+    for (let y = header; y < header + sh - 1; y += 6) { box(c, x - 4, y, w, 5, V[3]); box(c, x - 4, y, w, 1, V[5]); box(c, x - 4, y + 4, w, 1, V[1]); }
+    box(c, x - 4, header + sh - 4, w, 4, V[2]); box(c, x - 4, header + sh - 4, w, 1, V[4]);
+    box(c, x + w / 2 - 5, header + sh - 3, 6, 2, Br[4]);
+  }
+  // (the half door: sill down to the footplate)
+  box(c, x - 7, sill - 1, w + 6, foot - sill + 2, INK);
+  box(c, x - 6, sill, w + 4, foot - sill, V[3]);
+  for (let px = x - 6; px < x + w - 2; px += 7) { box(c, px, sill, 1, foot - sill, V[2]); box(c, px + 1, sill, 2, foot - sill, V[4]); }
+  box(c, x - 6, sill + 10, w + 4, 3, Rd[3]); box(c, x - 6, sill + 10, w + 4, 1, Rd[5]); box(c, x - 6, foot - 8, w + 4, 3, Rd[2]);
+  box(c, x - 4, sill + 18, 4, 6, INK); box(c, x - 3, sill + 19, 2, 4, Br[4]);
+  // (the sill's cap, lit, he grips it)
+  box(c, x - 9, sill - 4, w + 10, 9, INK); box(c, x - 8, sill - 3, w + 8, 7, V[3]); box(c, x - 8, sill - 3, w + 8, 2, V[5]); box(c, x - 8, sill - 1, w + 8, 1, V[6] ?? V[5]); box(c, x - 8, sill + 3, w + 8, 1, V[1]);
+  // (the grab iron up the corner)
+  box(c, x - 10, header + 8, 4, foot - header - 14, INK); box(c, x - 9, header + 9, 2, foot - header - 16, Br[3]); box(c, x - 9, header + 9, 1, foot - header - 16, Br[5]);
+  for (const gy of [header + 8, foot - 8]) box(c, x - 10, gy - 1, 8, 3, INK);
 };
 
 /** OUT OF SERVICE hung on the cab (after the crash: the train stood at the end of the line). */

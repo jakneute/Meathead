@@ -74,7 +74,9 @@ export const CARS: CarDef[] = [
   /* 17 */ C('tank', 480, { cut: { at: 0.15, tell: 80 }, foes: [['brakeman', 300, 'top']] }),
   /* 18 */ C('coach', 620, { cp: [16, 'THE LAST COACH'], foes: [['passenger', 180, 'in'], ['porter', 400, 'in']] }),
   /* 19 */ C('flat', 520, { cp: [17, 'THE LOG CAR'] }),
-  /* 20 */ C('tender', 400, { cp: [18, 'THE ENGINE'], foes: [['fireman', 230, 'top']] }),
+  // (the tender: nobody on it now (the playtest's: the fireman shoveling coal right before Tucker taken off); the kind
+  // stays registered)
+  /* 20 */ C('tender', 400, { cp: [18, 'THE ENGINE'] }),
   /* 21 */ C('engine', 600),
 ];
 export const TENDER = 20, ENGINE = 21;
@@ -126,8 +128,9 @@ export const fittings = (i: number): Fit[] => {
   }
 };
 
-/** The cab: Tucker leaning out of the back of it over the tender (his feet on the footplate, the sill he leans over). */
-export const CAB = { x: CAR_X[ENGINE], sill: GY - 150, feet: GY - 108 };
+/** The cab: Tucker leaning out of the back of it over the tender (his feet on the cab's floor, the sill of the
+ *  gangway's half door he leans over: at his waist, where his far hand grips it; the header over the opening). */
+export const CAB = { x: CAR_X[ENGINE], sill: GY - 150, feet: GY - 112, header: GY - 244 };
 /** The engine's drawing is the first pass's blown up by this (people stay their own size). */
 export const ENGINE_SCALE = CARS[ENGINE].len / 360;
 /** Back into the train from the town (the tender's front end, on its deck). */
@@ -146,25 +149,25 @@ export const EVENTS: TrainEvent[] = [
   { at: [1, 0.05], kind: 'bridge' },
   { at: [3, 0.3], kind: 'hill', len: 2600, amp: 0.03 },
   { at: [5, 0.1], kind: 'tunnel', len: 1400 },
-  { at: [6, 0.5], kind: 'hill', len: 2400, amp: -0.04 },
+  { at: [6, 0.5], kind: 'hill', len: 2400, amp: -0.042 },
   { at: [8, 0.15], kind: 'falls', len: 2000 },
   { at: [9, 0.4], kind: 'robbers', n: 1 },
-  { at: [10, 0.1], kind: 'hill', len: 2600, amp: 0.05 },
+  { at: [10, 0.1], kind: 'hill', len: 2600, amp: 0.054 },
   { at: [10, 0.4], kind: 'robbers', n: 2 },
   { at: [11, 0.2], kind: 'tower' },
   { at: [12, 0.3], kind: 'bridge' },
   { at: [13, 0.1], kind: 'tunnel', len: 2200 },
-  { at: [13, 0.6], kind: 'hill', len: 2200, amp: -0.055 },
+  { at: [13, 0.6], kind: 'hill', len: 2200, amp: -0.066 },
   { at: [14, 0.3], kind: 'robbers', n: 2 },
   { at: [14, 0.85], kind: 'falls', len: 3800 },
-  { at: [15, 0.5], kind: 'hill', len: 2000, amp: 0.06 },
+  { at: [15, 0.5], kind: 'hill', len: 2000, amp: 0.078 },
   { at: [16, 0.1], kind: 'tunnel', len: 3200 },
   { at: [17, 0.05], kind: 'tunnel', len: 2600 },
-  { at: [17, 0.6], kind: 'hill', len: 1800, amp: -0.065 },
+  { at: [17, 0.6], kind: 'hill', len: 1800, amp: -0.09 },
   { at: [18, 0.2], kind: 'tower' },
   { at: [18, 0.3], kind: 'robbers', n: 2 },
   { at: [18, 0.55], kind: 'bridge' },
-  { at: [19, 0.1], kind: 'hill', len: 1800, amp: 0.065 },
+  { at: [19, 0.1], kind: 'hill', len: 1800, amp: 0.1 },
   { at: [19, 0.35], kind: 'tunnel', len: 3000 },
 ];
 export const eventX = (ev: TrainEvent) => along(ev.at[0], ev.at[1]);

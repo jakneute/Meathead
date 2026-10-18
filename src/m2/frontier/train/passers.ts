@@ -23,11 +23,10 @@
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
-import type { Enemy, EnemyKind } from '../../../m1/types';
+import type { Enemy } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
-import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { hazardVictims, hazardHit, hazardKill, boxHits } from '../../hazardHit';
@@ -39,9 +38,8 @@ import { signText } from '../../signLetters';
 import { trainOf, type Passer } from './state';
 import { carAt, insideCar, playerRoom, roomAt, carXNow } from './where';
 import { EVENTS, eventX, RAIL, DECK, ROOF, CEIL, END, CARS, V_FULL } from './layout';
-import { FG_GROUND, FG_SCALE, riding, boarding, leapK, laneBlocked } from './kinds';
+import { FG_GROUND, FG_SCALE, leapK, leapAt, laneBlocked, addRiders, updateRiders } from './kinds';
 import { drawRider, drawHorse, drawRobberAt } from './kindArt';
-import { seedOf } from './kinds';
 import { tubeSay } from './tube';
 import { viewOf } from './view';
 import { TUBE_TUNNEL, TUBE_ROBBERS, TUBE_FALLS, TRAIN_GAGS } from './lines';
@@ -56,7 +54,6 @@ export const BERM_Y = GY - 120;
 /** The waterfall: frames battered under it before it has him off the train. */
 const SWEPT = 54;
 
-const riders = new WeakSet<Enemy>();
 /** Each one hits each of the cast the once as it goes by. */
 const struck = new WeakMap<Passer, WeakSet<Enemy>>();
 const once = (q: Passer, e: Enemy) => {
@@ -65,7 +62,6 @@ const once = (q: Passer, e: Enemy) => {
   if (s.has(e)) return false;
   s.add(e); return true;
 };
-const notRiding = (e: Enemy) => riding(e) || boarding(e);
 
 /** The grade at world x (radians, climbing above zero), and how far the line's climbed there, from the hills. */
 const gradeAt = (passers: Passer[], x: number) => {
@@ -142,24 +138,15 @@ export const updatePassers = (ctx: FrameContext) => {
     else if (q.kind === 'falls') { if (fallsHits(ctx, q)) under = true; }
   }
   soakHim(ctx, under);
-  // (riders: noted while they ride (their horses drawn under them); off the horse (boarded, shot off), the horse runs on
-  // riderless and drops back)
-  for (const e of state.enemies) {
-    if (riding(e)) { riders.add(e); continue; }
-    if (riders.has(e)) { riders.delete(e); tr.horses.push({ x: e.pos.x + e.width / 2, vx: e.health > 0 ? -1 : -2, t: 0, seed: seedOf(e) }); }
-  }
+  // (the riders in the near lane (not the cast till they land); the riderless horses dropping back)
+  updateRiders(ctx);
   for (const h of tr.horses) { h.t++; h.vx -= 0.03; h.x += h.vx; }
   tr.horses = tr.horses.filter(h => h.t < 300);
 };
 
 const spawnRobbers = (state: GameState, n: number) => {
-  const tr = trainOf(state), v = viewOf(state);
-  for (let k = 0; k < n; k++) {
-    const x = v.x - 90 - k * 130;
-    const e = makeKindEnemy('m2:fr_robber' as EnemyKind, x, FG_GROUND);
-    e.variant = (Math.round(x) + k) % 7; e.aiState = 'ride'; e.facing = 1; e.seen = true;
-    state.enemies.push(e);
-  }
+  const tr = trainOf(state);
+  addRiders(state, n);
   if (!tr.said.robbers) {
     tr.said.robbers = true;
     tubeSay(state, TUBE_ROBBERS);
@@ -178,7 +165,7 @@ const bridgeHits = (ctx: FrameContext, q: Passer) => {
     p.pos.x = Math.min(p.pos.x, q.x - p.width + 2);
     playSound('thud', 1, -8); playSound('crack', 0.6, -4);
   }
-  for (const e of hazardVictims(state, { flyers: true, not: notRiding })) {
+  for (const e of hazardVictims(state, { flyers: true })) {
     if (!boxHits(e, q.x, -2000, q.len, BRIDGE_Y + 2000)) continue;
     if (once(q, e)) hazardHit(ctx, e, 40, q.x + q.len, 'LOW BRIDGE!', { knock: 10 });
   }
@@ -197,7 +184,7 @@ const towerHits = (ctx: FrameContext, q: Passer) => {
     playSound('splash', 1, -2);
     for (let n = 0; n < 14; n++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + 10 }, vel: { x: -2 - Math.random() * 6, y: (Math.random() - 0.7) * 6 }, life: 30, color: n % 2 ? '#BAE6FD' : '#E0F2FE', size: 3 });
   }
-  for (const e of hazardVictims(state, { flyers: true, not: notRiding })) {
+  for (const e of hazardVictims(state, { flyers: true })) {
     if (!boxHits(e, q.x, -2000, q.len, 4000) || e.pos.y + e.height > DECK - 10) continue;
     if (once(q, e)) hazardHit(ctx, e, 24, q.x + q.len, 'HOSED!', { knock: 12 });
   }
@@ -208,7 +195,7 @@ const fallsHits = (ctx: FrameContext, q: Passer) => {
   const { state } = ctx, p = state.player, tr = trainOf(state);
   const pcx = p.pos.x + p.width / 2;
   for (const e of [...state.enemies]) {
-    if (e.health <= 0 || e.type === 'boss' || e.isBlownAway || notRiding(e)) continue;
+    if (e.health <= 0 || e.type === 'boss' || e.isBlownAway) continue;
     const ex = e.pos.x + e.width / 2;
     if (ex < q.x || ex > q.x + q.len || e.pos.y + e.height > GY - 4 || roomAt(tr, ex, e.pos.y + e.height - 2) >= 0) continue;
     if (e.seen) hazardKill(ctx, e, q.x + q.len, 'SWEPT AWAY!', { fling: { x: -9, y: 5 }, sound: 'splash' });
@@ -552,15 +539,16 @@ export const drawNearLane = (c: Ctx, state: GameState) => {
     }
   }
   // (the robbers on their horses, in the near lane: bigger, nearer)
-  for (const e of state.enemies) {
-    if (riding(e)) {
-      c.save(); c.translate(Math.round(e.pos.x + e.width / 2), FG_GROUND); c.scale(FG_SCALE, FG_SCALE);
-      drawRider(c, e, 0, -50, f, seedOf(e));
+  for (const r of tr.riders) {
+    const look = { aiState: r.st === 'rideAim' ? 'rideAim' : 'ride', facing: r.facing, hitFlash: 0 };
+    if (r.st === 'leap' && r.leap) {
+      const s = FG_SCALE + (1 - FG_SCALE) * leapK(r), at = leapAt(r);
+      c.save(); c.translate(Math.round(at.x), Math.round(at.y)); c.scale(s, s);
+      drawRobberAt(c, look, f, r.seed);
       c.restore();
-    } else if (boarding(e)) {
-      const s = FG_SCALE + (1 - FG_SCALE) * leapK(e);
-      c.save(); c.translate(Math.round(e.pos.x + e.width / 2), Math.round(e.pos.y + e.height)); c.scale(s, s);
-      drawRobberAt(c, e, f, seedOf(e));
+    } else {
+      c.save(); c.translate(Math.round(r.x), FG_GROUND); c.scale(FG_SCALE, FG_SCALE);
+      drawRider(c, look, 0, -50, f, r.seed);
       c.restore();
     }
   }

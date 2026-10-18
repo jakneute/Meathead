@@ -33,6 +33,15 @@ export interface Wreck { x: number; y: number; vx: number; rot: number; tip: num
 /** A horse with nobody on it any more (its robber boarded, or shot off it): galloping off. */
 export interface LooseHorse { x: number; vx: number; t: number; seed: number }
 
+/** A robber on his horse in the near lane, or leaping off it (the playtest's: NOT one of the cast yet: a foreground
+ *  thing the train runs itself, out of his reach; he becomes one of the cast when he lands on the train). `x`: his
+ *  middle (world); `ix`, `variant`: who he is (the enemy he lands as gets them, so he looks the same). */
+export interface Rider {
+  x: number; t: number; shots: number; st: 'ride' | 'rideAim' | 'leap' | 'off'; stT: number;
+  facing: 1 | -1; ix: number; variant: number; seed: number;
+  leap?: { x0: number; y0: number; x1: number; y1: number; t: number };
+}
+
 /** Somebody out of the world because they're in a car he isn't in (they come back as he goes in). */
 export interface Stashed { e: Enemy; car: number }
 
@@ -56,6 +65,8 @@ export interface Train {
   shots: Shot[];
   wrecks: Wreck[];
   horses: LooseHorse[];
+  /** The robbers riding up in the near lane (not the cast till they land on the train). */
+  riders: Rider[];
   /** How dark it is (a tunnel), 0..1. */
   dark: number;
   /** The grade under him now (radians, uphill above zero) and the view's tilt easing to it; how far the line's climbed. */
@@ -79,7 +90,7 @@ export interface Train {
 }
 
 export const trainOf = (state: GameState) => frontierState<Train>(state, 'train', () => ({
-  phase: 'intro', settled: false, cars: [], rear: 0, cut: null, cutsDone: new Set(), dist: 0, v: 0, vTarget: 0, passers: [], fired: new Set(), shots: [], wrecks: [], horses: [],
+  phase: 'intro', settled: false, cars: [], rear: 0, cut: null, cutsDone: new Set(), dist: 0, v: 0, vTarget: 0, passers: [], fired: new Set(), shots: [], wrecks: [], horses: [], riders: [],
   dark: 0, grade: 0, tilt: 0, climb: 0, soak: 0, roarT: 0, stash: [],
   introT: 0, hopT: 0, tube: null, tubeBusy: false, ledgerT: 0, said: {}, cinderT: 0, hitCd: 0, shudder: 0,
 }));

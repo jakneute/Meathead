@@ -142,7 +142,7 @@ const deputy = (ctx: FrameContext, e: Enemy) => {
       if (!sees(state, e, 600, 200)) { setState(e, 'idle'); break; }
       if (Math.abs(pm.x - mid(e).x) < 56 && level(state, e)) { setState(e, 'whipWind'); e.vel.x = 0; break; }
       keepAt(ctx, e, 150, 320, 1.4);
-      if (e.aiTimer! > 70) { setState(e, 'aim'); e.vel.x = 0; }
+      if (e.aiTimer! > 56) { setState(e, 'aim'); e.vel.x = 0; }
       break;
     case 'aim':
       e.vel.x = 0; e.facing = dirTo(e, pm.x);
@@ -153,7 +153,7 @@ const deputy = (ctx: FrameContext, e: Enemy) => {
       break;
     case 'whipWind':
       e.vel.x = 0; e.facing = dirTo(e, pm.x);
-      if (e.aiTimer! > 14) { playSound('whoosh', 0.6, 4); strike(ctx, e, 44, 9, 'm2:fr_deputy', 6); setState(e, 'whip'); }
+      if (e.aiTimer! > 14) { playSound('whoosh', 0.6, 4); strike(ctx, e, 44, 11, 'm2:fr_deputy', 6); setState(e, 'whip'); }
       break;
     case 'whip':
       if (e.aiTimer! > 22) setState(e, 'near');
@@ -217,7 +217,7 @@ const snakeoil = (ctx: FrameContext, e: Enemy) => {
       e.facing = dirTo(e, pm.x);
       if (!sees(state, e, 620, 240)) { setState(e, 'idle'); break; }
       if (Math.abs(pm.x - mid(e).x) < 54 && level(state, e)) { setState(e, 'smashWind'); break; }
-      if (e.aiTimer! > 60) setState(e, 'wind');
+      if (e.aiTimer! > 48) setState(e, 'wind');
       break;
     case 'wind':
       e.facing = dirTo(e, pm.x);
@@ -225,7 +225,7 @@ const snakeoil = (ctx: FrameContext, e: Enemy) => {
       break;
     case 'smashWind':
       e.facing = dirTo(e, pm.x);
-      if (e.aiTimer! > 16) { if (strike(ctx, e, 44, 8, 'm2:fr_snakeoil', 5)) playSound('glass', 0.8, 0); setState(e, 'smash'); }
+      if (e.aiTimer! > 16) { if (strike(ctx, e, 44, 10, 'm2:fr_snakeoil', 5)) playSound('glass', 0.8, 0); setState(e, 'smash'); }
       break;
     case 'smash':
       if (e.aiTimer! > 26) setState(e, 'near');
@@ -260,7 +260,7 @@ const barber = (ctx: FrameContext, e: Enemy) => {
       if (e.aiTimer! > 16) {
         const tw = townOf(state);
         if (!tw.said.twobits) { tw.said.twobits = true; bark(state, e, TOWN_VOICES.quartet, QUARTET_HIT, 1, true); }
-        playSound('whoosh', 0.6, 10); strike(ctx, e, 40, 9, 'm2:fr_barber', 5); setState(e, 'slash');
+        playSound('whoosh', 0.6, 10); strike(ctx, e, 40, 10, 'm2:fr_barber', 5); setState(e, 'slash');
       }
       break;
     case 'slash':
@@ -344,7 +344,7 @@ const brawl = (ctx: FrameContext, e: Enemy) => {
       const dmg = bouncer ? 44 : dancer ? 22 : b.chair ? 30 : 16;
       if (t === 'him') {
         const src = bouncer ? 'm2:fr_bouncer' : dancer ? 'm2:fr_dancer' : b.chair ? 'm2:fr_chair' : 'm2:fr_patron';
-        if (strike(ctx, e, reach, bouncer ? 14 : dancer ? 9 : b.chair ? 12 : 8, src, bouncer ? 13 : 6, bouncer ? -10 : -4) && bouncer) shakeScreen(state, 6, 3);
+        if (strike(ctx, e, reach, bouncer ? 14 : dancer ? 10 : b.chair ? 12 : 10, src, bouncer ? 13 : 6, bouncer ? -10 : -4) && bouncer) shakeScreen(state, 6, 3);
       } else {
         const fx0 = e.facing! > 0 ? e.pos.x + e.width - 6 : e.pos.x - reach + 6;
         if (t.pos.x < fx0 + reach && t.pos.x + t.width > fx0 && t.pos.y < e.pos.y + e.height && t.pos.y + t.height > e.pos.y + 6)
@@ -440,7 +440,7 @@ const dancer = (ctx: FrameContext, e: Enemy) => {
       break;
     case 'kickWind':
       e.vel.x = 0; e.facing = dirTo(e, pm.x);
-      if (e.aiTimer! > 14) { playSound('whoosh', 0.6, 8); strike(ctx, e, 56, 9, 'm2:fr_dancer', 7, -6); setState(e, 'kick'); }
+      if (e.aiTimer! > 14) { playSound('whoosh', 0.6, 8); strike(ctx, e, 56, 10, 'm2:fr_dancer', 7, -6); setState(e, 'kick'); }
       break;
     case 'kick': case 'after':
       e.vel.x = 0;
@@ -537,7 +537,7 @@ const farmhand = (ctx: FrameContext, e: Enemy) => {
       break;
     case 'wind':
       e.vel.x = 0; e.facing = dirTo(e, pm.x);
-      if (e.aiTimer! > 20) { playSound('whoosh', 0.6, 0); strike(ctx, e, 70, 10, 'm2:fr_farmhand', 6); setState(e, 'jab'); }
+      if (e.aiTimer! > 20) { playSound('whoosh', 0.6, 0); strike(ctx, e, 70, 11, 'm2:fr_farmhand', 6); setState(e, 'jab'); }
       break;
     case 'jab':
       if (e.aiTimer! > 28) setState(e, 'come');
@@ -582,7 +582,7 @@ const feller = (ctx: FrameContext, e: Enemy) => {
       const dx = Math.abs(pm.x - mid(e).x);
       if (dx < 58 && level(state, e)) { setState(e, 'swingWind'); e.vel.x = 0; break; }
       keepAt(ctx, e, 120, 280, 1.2);
-      if (e.aiTimer! > 60 && sees(state, e, 520, 220)) { setState(e, 'wind'); e.vel.x = 0; }
+      if (e.aiTimer! > 50 && sees(state, e, 520, 220)) { setState(e, 'wind'); e.vel.x = 0; }
       break;
     }
     case 'wind':
@@ -661,7 +661,7 @@ const prospector = (ctx: FrameContext, e: Enemy) => {
       if (!sees(state, e, 680, 260)) { setState(e, 'idle'); break; }
       if (Math.abs(pm.x - mid(e).x) < 54 && level(state, e)) { setState(e, 'whackWind'); e.vel.x = 0; break; }
       keepAt(ctx, e, 180, 360, 1.0);
-      if (e.aiTimer! > 90) { setState(e, 'light'); e.vel.x = 0; playSound('ignite', 0.5, 6); }
+      if (e.aiTimer! > 72) { setState(e, 'light'); e.vel.x = 0; playSound('ignite', 0.5, 6); }
       break;
     case 'light':
       e.vel.x = 0; e.facing = dirTo(e, pm.x);
@@ -669,7 +669,7 @@ const prospector = (ctx: FrameContext, e: Enemy) => {
       break;
     case 'whackWind':
       e.vel.x = 0; e.facing = dirTo(e, pm.x);
-      if (e.aiTimer! > 14) { if (strike(ctx, e, 42, 8, 'm2:fr_prospector', 6)) playSound('clang', 0.7, 6); setState(e, 'whack'); }
+      if (e.aiTimer! > 14) { if (strike(ctx, e, 42, 10, 'm2:fr_prospector', 6)) playSound('clang', 0.7, 6); setState(e, 'whack'); }
       break;
     case 'whack':
       if (e.aiTimer! > 26) setState(e, 'near');
@@ -694,22 +694,22 @@ const leashed = (ai: (ctx: FrameContext, e: Enemy) => boolean) => (ctx: FrameCon
 const person = (kind: `m2:fr_${string}`, stats: { w: number; h: number; hp: number; contact: number; mass: number }, ai: (ctx: FrameContext, e: Enemy) => boolean, draw: (c: CanvasRenderingContext2D, e: Enemy, f: number, seed: number) => void, extra: Partial<Parameters<typeof registerM2Kind>[0]> = {}) =>
   registerM2Kind({ kind, stats, humanoid: true, gender, head: H, ai: leashed(ai), draw: (c, e, f) => draw(c, e, f, seedOf(e)), ...extra });
 
-person('m2:fr_deputy', { w: 38, h: 72, hp: 60, contact: 4, mass: 180 }, deputy, drawDeputy);
+person('m2:fr_deputy', { w: 38, h: 72, hp: 100, contact: 5, mass: 180 }, deputy, drawDeputy);
 person('m2:fr_sheriff', { w: 40, h: 74, hp: 260, contact: 5, mass: 210 }, sheriff, drawSheriff, { head: { x: 1, y: -70, r: 10 } });
-person('m2:fr_snakeoil', { w: 38, h: 72, hp: 70, contact: 4, mass: 180 }, snakeoil, drawSalesman, { pathing: false });
-person('m2:fr_barber', { w: 36, h: 70, hp: 40, contact: 3, mass: 160 }, barber, drawBarber, { head: { x: 1, y: -66, r: 10 } });
+person('m2:fr_snakeoil', { w: 38, h: 72, hp: 95, contact: 5, mass: 180 }, snakeoil, drawSalesman, { pathing: false });
+person('m2:fr_barber', { w: 36, h: 70, hp: 85, contact: 4, mass: 160 }, barber, drawBarber, { head: { x: 1, y: -66, r: 10 } });
 person('m2:fr_bouncer', { w: 50, h: 76, hp: 240, contact: 6, mass: 330 }, bouncer, drawBouncer, { head: { x: 1, y: -70, r: 11 } });
-person('m2:fr_dancer', { w: 36, h: 70, hp: 50, contact: 3, mass: 150 }, dancer, drawDancer, { head: { x: 1, y: -66, r: 10 } });
-person('m2:fr_patron', { w: 38, h: 72, hp: 60, contact: 3, mass: 180 }, saloonAI, drawPatron);
-person('m2:fr_undertaker', { w: 36, h: 80, hp: 120, contact: 4, mass: 170 }, undertaker, drawUndertaker, { head: { x: 1, y: -76, r: 10 } });
+person('m2:fr_dancer', { w: 36, h: 70, hp: 85, contact: 4, mass: 150 }, dancer, drawDancer, { head: { x: 1, y: -66, r: 10 } });
+person('m2:fr_patron', { w: 38, h: 72, hp: 90, contact: 5, mass: 180 }, saloonAI, drawPatron);
+person('m2:fr_undertaker', { w: 36, h: 80, hp: 140, contact: 5, mass: 170 }, undertaker, drawUndertaker, { head: { x: 1, y: -76, r: 10 } });
 person('m2:fr_blacksmith', { w: 44, h: 74, hp: 180, contact: 5, mass: 280 }, blacksmith, drawSmith, { head: { x: 1, y: -70, r: 10 } });
-person('m2:fr_farmhand', { w: 38, h: 72, hp: 70, contact: 4, mass: 180 }, farmhand, drawFarmhand, { pointy: { source: 'm2:fr_pitchfork', label: 'FORKED!', damage: 13 } });
-person('m2:fr_feller', { w: 40, h: 74, hp: 110, contact: 5, mass: 210 }, feller, drawFeller, { head: { x: 1, y: -70, r: 10 } });
-person('m2:fr_birler', { w: 38, h: 72, hp: 70, contact: 4, mass: 190 }, birler, drawBirler, { pathing: false });
+person('m2:fr_farmhand', { w: 38, h: 72, hp: 100, contact: 5, mass: 180 }, farmhand, drawFarmhand, { pointy: { source: 'm2:fr_pitchfork', label: 'FORKED!', damage: 13 } });
+person('m2:fr_feller', { w: 40, h: 74, hp: 140, contact: 6, mass: 210 }, feller, drawFeller, { head: { x: 1, y: -70, r: 10 } });
+person('m2:fr_birler', { w: 38, h: 72, hp: 100, contact: 5, mass: 190 }, birler, drawBirler, { pathing: false });
 // (the birler's out on the water on purpose: the pond's danger zone isn't his)
 exemptFromZones('m2:fr_birler', 'fr-town-water');
-person('m2:fr_miner', { w: 38, h: 72, hp: 100, contact: 5, mass: 200 }, miner, drawMiner, { spiky: { source: 'm2:fr_hotwax', label: 'HOT WAX!', damage: 12 } });
-person('m2:fr_prospector', { w: 38, h: 70, hp: 80, contact: 4, mass: 170 }, prospector, drawProspector, { head: { x: 1, y: -66, r: 10 } });
+person('m2:fr_miner', { w: 38, h: 72, hp: 120, contact: 6, mass: 200 }, miner, drawMiner, { spiky: { source: 'm2:fr_hotwax', label: 'HOT WAX!', damage: 12 } });
+person('m2:fr_prospector', { w: 38, h: 70, hp: 100, contact: 5, mass: 170 }, prospector, drawProspector, { head: { x: 1, y: -66, r: 10 } });
 registerM2Kind({
   kind: 'm2:fr_tntcrate', stats: { w: 34, h: 30, hp: 1, contact: 0, mass: 60 },
   ai: (_ctx, e) => { e.vel.x = 0; return false; },
