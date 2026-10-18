@@ -6,6 +6,7 @@ import { M2_WEAPON_INFO, M2WeaponArt, ammoName } from './weapons';
 import ChordPrompt from './ChordPrompt';
 import { PLAIN_PAUSE, type PauseSkin } from './hudThemes';
 import { M2_PUBLIC } from './build';
+import { walkBackOn } from './store';
 import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, type Pants } from './cheats';
 
 /** The cheats (FOR NOW: out before it ships), mouse only: click to flip them. Not buttons (ENTER and SPACE would set
@@ -180,7 +181,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
               className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider transition-all ${onSkipBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
               style={{ background: 'linear-gradient(180deg, #2563EB, #1E3A8A)', borderBottom: '4px solid #172554', boxShadow: onSkipBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onSkipBtn ? '2px solid #FACC15' : 'none' }}>
               {onSkipBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
-              <span className="w-4 text-center">»</span>SKIP INTRO
+              <span className="w-4 text-center">»</span>{walkBackOn() ? 'SKIP TO HUB' : 'SKIP INTRO'}
             </button>
           )}
           {onHub && (
