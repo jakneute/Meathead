@@ -98,7 +98,8 @@ export const SOLIDS: [number, number, number, number?][] = [
   [3792, 3808, 470, 120], [4892, 4908, 470, 120],
   [3790, 4910, 486, 470],
   // (the alley's crates; the rooftops: false-front stores side by side)
-  [4930, 4975, 95], [5280, 5320, 95], [5580, 5620, 100],
+  // (the first crate stands off the saloon's back door, against the store: it blocked the way out, the playtest)
+  [4965, 5000, 95], [5280, 5320, 95], [5580, 5620, 100],
   [5000, 5250, 190], [5330, 5560, 280], [5640, 5850, 200],
   // (the livery's hay bales)
   [7040, 7100, 70],

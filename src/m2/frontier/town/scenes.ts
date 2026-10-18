@@ -83,6 +83,7 @@ export const buildScenes = (state: GameState) => {
   // (the saloon: [0] the batwings, barred in the brawl; [1] the back door, locked till it's won)
   tw.saloon.walls = [wall(state, SALOON.a - 8, 16, GY - SALOON.doorTop), wall(state, SALOON.b - 8, 16, GY - SALOON.doorTop)];
   tw.showdown.walls = [wall(state, SQUARE.a - 16, 16, 800), wall(state, SQUARE.b, 16, 800)];
+  STASH.length = 0;
   const saloonWon = state.checkpoint >= 23 || wonSaloon === landVisit();
   tw.saloon.state = saloonWon ? 'done' : 'wait';
   tw.saloon.walls[1].y = saloonWon ? AWAY : SALOON.doorTop;
@@ -103,9 +104,36 @@ const shutSquare = (state: GameState, on: boolean) => { for (const w of townOf(s
 // ---------------------------------------------------------------------------------------------------------------
 // The saloon
 
+/** INSIDE IS INSIDE (the playtest, as on the train: "you cannot kill indoor enemies when outdoors"): while he's out of
+ *  the saloon its folk are out of the world (nothing of his reaches them: shots, specials, anything), back where they
+ *  were as he comes in; and no shot crosses its walls or doors, his or anybody's. */
+const STASH: Enemy[] = [];
+const BORN = new WeakMap<object, boolean>();
+const saloonWalls = (state: GameState, inside: boolean) => {
+  if (!inside) {
+    const keep = state.enemies.filter(e => !(SALOON_FOLK.has(e) && e.health > 0 && !e.isBlownAway && inSaloon(e.pos.x + e.width / 2, e.pos.y + e.height)) || !STASH.push(e));
+    if (keep.length !== state.enemies.length) state.enemies = keep;
+  } else if (STASH.length) {
+    for (const e of STASH.splice(0)) { e.vel.x = 0; if (!state.enemies.includes(e)) state.enemies.push(e); }
+  }
+  let cut = false;
+  for (const q of state.projectiles) {
+    const r = inSaloon(q.pos.x + q.width / 2, q.pos.y + q.height / 2), born = BORN.get(q);
+    if (born === undefined) BORN.set(q, r);
+    else if (born !== r) cut = true;
+  }
+  if (cut) state.projectiles = state.projectiles.filter(q => {
+    if (BORN.get(q) === inSaloon(q.pos.x + q.width / 2, q.pos.y + q.height / 2)) return true;
+    for (let n = 0; n < 4; n++) state.particles.push({ pos: { x: q.pos.x, y: q.pos.y }, vel: { x: -Math.sign(q.vel.x) * Math.random() * 3, y: -Math.random() * 3 }, life: 14, color: '#8A5A30', size: 2 });
+    playSound('thud', 0.3, 10);
+    return false;
+  });
+};
+
 const runSaloon = (ctx: FrameContext) => {
   const { state } = ctx, tw = townOf(state), g = tw.saloon, br = tw.brawl, p = state.player;
   const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height, inside = inSaloon(cx, feet), free = p.health > 0 && !p.inCutscene;
+  saloonWalls(state, inside);
   if (br.pop > 0) br.pop++;
   if (g.state === 'done') {
     if (!tw.said.saloonOut && free && cx > SALOON.b + 40 && cx < SALOON.b + 200 && feet > GY - 10) { tw.said.saloonOut = true; meatheadSays(state, pickLine(byPants(state, SALOON_OUT)), false); }
