@@ -12,6 +12,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { hazardVictims, hazardHit, boxHits } from '../../hazardHit';
 import { box, INK, type Ctx } from '../kit';
+import { pixelBlob } from '../../../m1/game/render/pixelArt';
 import { townOf, type Throw } from './state';
 import { explode } from './blast';
 
@@ -109,14 +110,15 @@ const landed = (ctx: FrameContext, s: Throw) => {
 
 export const drawThrows = (c: Ctx, state: GameState) => {
   const tw = townOf(state), f = state.frame;
-  // (the clouds: lumpy, sickly green, see-through)
+  // (the clouds: lumpy, sickly green, stepped, see-through)
   for (const cl of tw.clouds) {
     const k = Math.min(1, cl.t / 20 + 0.4), fade = Math.min(1, (cl.life - cl.t) / 40);
-    c.globalAlpha = 0.42 * fade;
+    c.globalAlpha = 0.4 * fade;
     for (let i = 0; i < 6; i++) {
-      const a = i * 1.05 + cl.t * 0.02, rr = (18 + (i % 3) * 7) * k;
-      c.fillStyle = i % 2 ? '#86EFAC' : '#4ADE80';
-      c.beginPath(); c.arc(cl.x + Math.cos(a) * 26 * k, cl.y - 24 * k + Math.sin(a * 1.3) * 14 * k, rr, 0, Math.PI * 2); c.fill();
+      const a = i * 1.05 + cl.t * 0.02, rr = (18 + (i % 3) * 7) * k, x = cl.x + Math.cos(a) * 26 * k, y = cl.y - 24 * k + Math.sin(a * 1.3) * 14 * k;
+      pixelBlob(c, x, y, rr, rr * 0.86, '#3E8A3A');
+      pixelBlob(c, x - rr * 0.18, y - rr * 0.2, rr * 0.72, rr * 0.6, '#6ACE6A');
+      pixelBlob(c, x - rr * 0.34, y - rr * 0.36, rr * 0.34, rr * 0.28, '#B8F2A8');
     }
     c.globalAlpha = 1;
   }
@@ -126,23 +128,29 @@ export const drawThrows = (c: Ctx, state: GameState) => {
     const spin = s.rest === undefined ? s.t * 0.3 * Math.sign(s.vx || 1) : 0;
     if (s.kind === 'bottle' || s.kind === 'tonic') {
       c.rotate(spin);
-      const col = s.kind === 'tonic' ? '#3E7A3A' : '#8A5A20';
-      box(c, -4, -7, 9, 12, INK); box(c, -3, -6, 7, 10, col); box(c, -1, -11, 3, 5, col); box(c, -2, -4, 5, 4, '#F5E6C0');
+      const col = s.kind === 'tonic' ? '#3E7A3A' : '#8A5A20', hi = s.kind === 'tonic' ? '#9AE09A' : '#E8B060';
+      box(c, -5, -8, 11, 14, INK); box(c, -4, -7, 9, 12, col); box(c, -4, -7, 2, 12, hi); box(c, 3, -7, 2, 12, '#1C1209');
+      box(c, -2, -13, 5, 6, INK); box(c, -1, -12, 3, 5, col); box(c, -1, -14, 3, 2, '#8A5A30');
+      box(c, -3, -4, 7, 5, '#F5E6C0'); box(c, -3, -4, 7, 1, s.kind === 'tonic' ? '#B91C1C' : '#3A2A1A');
     } else if (s.kind === 'horseshoe') {
       const hot = s.rest === undefined || s.rest < 90;
       c.rotate(s.rest === undefined ? spin : 0);
-      c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.arc(0, -4, 6, Math.PI * 0.15, Math.PI * 0.85, true); c.stroke();
-      c.strokeStyle = hot ? (f % 6 < 3 ? '#F97316' : '#FDBA74') : '#57534E'; c.lineWidth = 3; c.stroke();
+      c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.arc(0, -4, 6, Math.PI * 0.15, Math.PI * 0.85, true); c.stroke();
+      c.strokeStyle = hot ? (f % 6 < 3 ? '#F97316' : '#FDBA74') : '#57534E'; c.lineWidth = 4; c.stroke();
+      c.strokeStyle = hot ? '#FDE047' : '#8A8580'; c.lineWidth = 1; c.beginPath(); c.arc(0, -4, 6, Math.PI * 1.1, Math.PI * 1.6); c.stroke();
+      for (const [nx, ny] of [[-5, -2], [5, -2], [-3, -9], [3, -9]] as const) box(c, nx, ny, 1, 1, INK);
+      if (hot && f % 8 < 4) box(c, -1, -14, 2, 2, '#FDE047');
     } else if (s.kind === 'hatchet') {
       c.rotate(s.rest === undefined ? s.t * 0.45 * Math.sign(s.vx || 1) : 0.6 * Math.sign(s.vx || 1));
-      box(c, -8, -2, 14, 4, INK); box(c, -7, -1, 12, 2, '#9A6A3A');
-      box(c, 3, -8, 8, 12, INK); box(c, 4, -7, 6, 10, '#A1A1AA'); box(c, 9, -7, 1, 10, '#E4E4E7');
+      box(c, -9, -3, 16, 6, INK); box(c, -8, -2, 14, 4, '#9A6A3A'); box(c, -8, -2, 14, 1, '#C8965A');
+      box(c, 3, -9, 9, 14, INK); box(c, 4, -8, 7, 12, '#A1A1AA'); box(c, 4, -8, 7, 2, '#D4D4D8'); box(c, 10, -8, 1, 12, '#F4F4F5'); box(c, 4, -2, 2, 2, '#52525B');
     } else {
-      // (a stick of dynamite, its fuse sparking)
+      // (a stick of dynamite, its paper wrap, the fuse sparking)
       c.rotate(s.rest === undefined ? spin : 1.4);
-      box(c, -4, -9, 8, 18, INK); box(c, -3, -8, 6, 16, '#DC2626'); box(c, -3, -8, 6, 2, '#F87171');
+      box(c, -4, -9, 8, 18, INK); box(c, -3, -8, 6, 16, '#DC2626'); box(c, -3, -8, 2, 16, '#F87171'); box(c, 2, -8, 1, 16, '#7F1D1D');
+      box(c, -3, -3, 6, 2, '#1C1917');
       box(c, -1, -14, 1, 6, '#E7E5E4');
-      if (f % 4 < 2) { box(c, -3, -17, 5, 3, '#FDE047'); box(c, 1, -19, 2, 2, '#F97316'); }
+      if (f % 4 < 2) { box(c, -3, -17, 5, 3, '#FDE047'); box(c, 1, -19, 2, 2, '#F97316'); box(c, -3, -20, 1, 1, '#FFFFFF'); }
     }
     c.restore();
   }

@@ -21,6 +21,7 @@ import type { EnemyKind } from '../../../m1/types';
 import { meatheadSays, byPants } from '../section';
 import { drawLog } from '../wilds/logs';
 import { box, INK, type Ctx } from '../kit';
+import { hr, TIMBER, STEEL } from './paint';
 import { onScreen } from './view';
 import { townOf, type PondLog } from './state';
 import { WATERS, LOGS, LADDER, X } from './layout';
@@ -196,13 +197,23 @@ export const drawLadder = (c: Ctx, state: GameState) => {
   const W = WATERS.find(w => w.key === 'pondB')!;
   if (!onScreen(state, W.b - 60, LADDER.top + 60)) return;
   const { xa, ya, xb, yb } = chain();
-  // (the ramp: timbers on trestle legs)
-  for (let k = 0.15; k < 1; k += 0.28) { const lx = xa + (xb - xa) * k, ly = ya + (yb - ya) * k; box(c, lx - 3, ly, 6, ya - ly + 40, '#5A3A1E'); }
-  c.strokeStyle = INK; c.lineWidth = 14; c.beginPath(); c.moveTo(xa, ya); c.lineTo(xb, yb); c.stroke();
-  c.strokeStyle = '#7A5230'; c.lineWidth = 10; c.stroke();
-  // (the chain and its cleats, crawling up)
+  const T = hr('timber', TIMBER), S = hr('steel', STEEL);
+  // (the ramp: a trough of planks on trestle legs, X-braced, their feet in the water)
+  for (let k = 0.15; k < 1; k += 0.28) {
+    const lx = xa + (xb - xa) * k, ly = ya + (yb - ya) * k;
+    box(c, lx - 4, ly, 8, ya - ly + 40, INK); box(c, lx - 3, ly, 6, ya - ly + 40, T[3]); box(c, lx - 3, ly, 2, ya - ly + 40, T[5]);
+    if (k + 0.28 < 1) { const nx = xa + (xb - xa) * (k + 0.28), ny = ya + (yb - ya) * (k + 0.28); c.strokeStyle = T[2]; c.lineWidth = 3; c.beginPath(); c.moveTo(lx, ya + 30); c.lineTo(nx, ny + 10); c.stroke(); }
+  }
+  c.strokeStyle = INK; c.lineWidth = 16; c.beginPath(); c.moveTo(xa, ya); c.lineTo(xb, yb); c.stroke();
+  c.strokeStyle = T[3]; c.lineWidth = 12; c.stroke();
+  c.strokeStyle = T[5]; c.lineWidth = 2; c.beginPath(); c.moveTo(xa, ya - 5); c.lineTo(xb, yb - 5); c.stroke();
+  c.strokeStyle = T[1]; c.lineWidth = 2; c.beginPath(); c.moveTo(xa, ya + 5); c.lineTo(xb, yb + 5); c.stroke();
+  // (the chain and its dogs, crawling up; the head sprocket)
   const len = Math.hypot(xb - xa, yb - ya), ux = (xb - xa) / len, uy = (yb - ya) / len;
-  c.strokeStyle = '#52525B'; c.lineWidth = 3; c.beginPath(); c.moveTo(xa, ya - 6); c.lineTo(xb, yb - 6); c.stroke();
+  c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(xa, ya - 7); c.lineTo(xb, yb - 7); c.stroke();
+  c.strokeStyle = S[3]; c.lineWidth = 2; c.stroke();
   const off = (state.frame * 1.2) % 30;
-  for (let d = off; d < len; d += 30) box(c, xa + ux * d - 3, ya + uy * d - 12, 6, 6, '#A1A1AA');
+  for (let d = off; d < len; d += 10) box(c, xa + ux * d - 1, ya + uy * d - 8, 3, 2, S[5]);
+  for (let d = off; d < len; d += 30) { box(c, xa + ux * d - 4, ya + uy * d - 13, 8, 7, INK); box(c, xa + ux * d - 3, ya + uy * d - 12, 6, 5, S[4]); box(c, xa + ux * d - 3, ya + uy * d - 12, 6, 1, S[6]); }
+  c.fillStyle = INK; c.beginPath(); c.arc(xb, yb - 7, 10, 0, Math.PI * 2); c.fill(); c.fillStyle = S[3]; c.beginPath(); c.arc(xb, yb - 7, 8, 0, Math.PI * 2); c.fill(); box(c, xb - 2, yb - 9, 4, 4, S[6]);
 };

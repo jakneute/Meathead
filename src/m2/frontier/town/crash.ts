@@ -30,7 +30,13 @@ import { playSound, playHornDrone } from '../../../m1/game/platform/audio';
 import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
-import { drawPerson, type Pose as PersonPose } from '../../adventure/temple/people';
+import { drawGuest, type GuestPose, type GuestMood } from './people';
+import { drawMachine, ENG } from '../train/engineArt';
+import { drawBase, drawExt, drawTop, truck, windows, WIN_T, WIN_W, WIN_H } from '../train/carArt';
+import { N, STEEL, BLACK, BRASS, RED as TRED, COAL, VARNISH, flame, puff } from '../train/paint';
+import { CARS } from '../train/layout';
+/** Cedar shakes (the platform canopy's: paint.ts's own, here to keep this module out of the view's import loop). */
+const SHINGLE = ['#1A0E08', '#2E1A0E', '#462816', '#5E3820', '#78482A', '#946038', '#B07A4C'];
 import { meatheadSays, speak, byPants, saidOver, hands, landVisit, teleport, tuckerWoundsOf, type Said } from '../section';
 import { box, mix, INK, hash, type Ctx } from '../kit';
 import { drawTucker, drawTuckerCap } from '../tucker';
@@ -43,7 +49,7 @@ import { TOWN_VOICES, ARRIVE, STRETCHER, MEDIC } from './lines';
 const TAU = Math.PI * 2;
 /** The train's speed coming in (px a frame), the frames of it before the stop. */
 const V = 18, IN = 50;
-/** The engine at the train's size (its first pass's drawing, 360 long, blown up to 600). */
+/** The engine's drawing (the train's, train/engineArt.ts) to the crash's old units (its first pass's 360 long at 600). */
 const ES = 600 / 360;
 /** Where its nose hits the stop, where it ends up (stove into the depot), the frames it takes. */
 const NOSE_HIT = 190, NOSE_END = 470, STOP = 31;
@@ -99,7 +105,7 @@ interface Pose { x: number; h: number; a: number }
 interface CarDef { len: number; base: number; th: number; dur: number; fin: Pose }
 /** The tender (rides up onto the cab) and the coach behind (jackknifed the other way: nose in the dirt, back end up). */
 const TENDER: CarDef = { len: 400, base: NOSE_HIT - 600 - 12 - 400, th: 3, dur: 30, fin: { x: -500, h: 0, a: -0.612 } };
-const COACH: CarDef = { len: 480, base: NOSE_HIT - 600 - 12 - 400 - 12 - 480, th: 9, dur: 34, fin: { x: -978, h: 152, a: 0.32 } };
+const COACH: CarDef = { len: 620, base: NOSE_HIT - 600 - 12 - 400 - 12 - 620, th: 9, dur: 34, fin: { x: -1118, h: 152, a: 0.32 } };
 const carAt = (d: CarDef, t: number): Pose => {
   if (t < d.th) return { x: d.base + V * t, h: 0, a: 0 };
   const k = clamp01((t - d.th) / d.dur), e = ease(k), x0 = d.base + V * d.th, hop = Math.sin(k * Math.PI);
@@ -239,9 +245,9 @@ export const updateCrash = (ctx: FrameContext, controls: Controls): Controls => 
       }
       if (t === COACH.th + COACH.dur) {
         playSound('crash', 1, -16); playSound('boom', 0.8, -20); playSound('glass', 0.8, -6); shakeScreen(state, 22, 9);
-        const [x, y] = onCar(carAt(COACH, t), 440, -150);
+        const [x, y] = onCar(carAt(COACH, t), 560, -200);
         bits(s, 12, x, y, 120, [-6, 6], [-11, -3], ['#5A2A3A', '#BFE0F8', '#341620', '#8A6A40'], [8, 20]);
-        puffs(s, 8, X(-560), GY - 10, 240, '#B8935A', 46, 0.55, 160, 0.5);
+        puffs(s, 8, X(-620), GY - 10, 240, '#B8935A', 46, 0.55, 160, 0.5);
       }
       if (t === FLY_A) playSound('whoosh', 0.8, -4);
       // ---- Tucker comes down: face first, a skid, the dirt
@@ -318,175 +324,147 @@ const skip = (state: GameState, s: Crash) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing: the wreck (behind everything that moves), what's flying (in front), the fade in and SKIP (on the screen)
 
-const RED = '#A3262A', RED_L = '#D4483E', BLACK = '#26262C', BRASS = '#E0B040', WOOD = '#8A5A30', GLASS = '#BFE0F8';
+// (the train's own: the same 4-4-0 No. 7 and the same cars as the train section, train/engineArt.ts, carArt.ts)
+const CRASH_COACH = CARS.findIndex(d => d.kind === 'coach' && d.len === COACH.len);
 
-const wheel = (c: Ctx, x: number, y: number, r: number, a: number, col = RED) => {
-  c.fillStyle = INK; c.beginPath(); c.arc(x, y, r + 1.5, 0, TAU); c.fill();
-  c.fillStyle = col; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
-  c.fillStyle = mix(col, '#000000', 0.45); c.beginPath(); c.arc(x, y, r - 3, 0, TAU); c.fill();
-  c.strokeStyle = mix(col, '#FFFFFF', 0.2); c.lineWidth = 2;
-  for (let k = 0; k < 8; k++) { const q = a + (k * Math.PI) / 4; c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(q) * (r - 3), y + Math.sin(q) * (r - 3)); c.stroke(); }
-  c.fillStyle = BRASS; c.beginPath(); c.arc(x, y, 3, 0, TAU); c.fill();
-};
 const poly = (c: Ctx, pts: number[], col: string) => { c.fillStyle = col; c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.closePath(); c.fill(); };
-const tongue = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => {
-  c.fillStyle = col; c.beginPath(); c.moveTo(x - w / 2, y); c.quadraticCurveTo(x - w / 2, y - h * 0.55, x, y - h); c.quadraticCurveTo(x + w / 2, y - h * 0.55, x + w / 2, y); c.closePath(); c.fill();
-};
-/** A fire: tongues of flame flickering, a column of smoke off it. k 0..1 how far it's caught. */
+/** A fire: stepped flames flickering (the train's), a column of stepped smoke off it. k 0..1 how far it's caught. */
 const fire = (c: Ctx, x: number, y: number, size: number, f: number, seed: number, k: number) => {
   if (k <= 0) return;
   const sz = size * k;
   for (let i = 0; i < 6; i++) {
     const q = (f * 0.01 + i / 6 + seed * 0.37) % 1;
-    c.globalAlpha = 0.42 * (1 - q) * k; c.fillStyle = mix('#27272A', '#78716C', q);
-    c.beginPath(); c.arc(x + Math.sin(q * 5 + seed) * 12 + q * 50, y - sz - q * 220, sz * 0.45 + q * sz * 1.6, 0, TAU); c.fill();
+    puff(c, x + Math.sin(q * 5 + seed) * 12 + q * 50, y - sz - q * 220, sz * 0.45 + q * sz * 1.6, [mix('#1C1A18', '#5A5650', q), mix('#2E2A26', '#7A746C', q), mix('#45403A', '#9A948A', q)], 0.5 * (1 - q) * k);
   }
-  c.globalAlpha = 1;
-  for (let i = 0; i < 4; i++) {
-    const fl = Math.sin(f * 0.45 + i * 2.1 + seed) * 0.22 + 0.86;
-    tongue(c, x + (i - 1.5) * sz * 0.32, y, sz * (0.55 - i * 0.06), sz * (1.3 - i * 0.14) * fl, i % 2 ? '#F97316' : '#DC2626');
-  }
-  tongue(c, x + Math.sin(f * 0.3 + seed) * 2, y, sz * 0.36, sz * 0.85 * (Math.sin(f * 0.6 + seed) * 0.2 + 0.9), '#FDE047');
+  for (let i = 0; i < 3; i++) flame(c, x + (i - 1) * sz * 0.36, y, sz * (1.25 - Math.abs(i - 1) * 0.3), f + i * 7, seed + i);
 };
 
-/** The engine (the train's, at its size), its nose's foot at (x, GY), tipped `tilt` (+: its back end up), its front
- *  stove in `crush`. No lit tops: it's wreck, not a ledge. */
-const drawLoco = (c: Ctx, x: number, tilt: number, crush: number, hit: boolean) => {
-  c.save(); c.translate(x, GY); c.rotate(tilt); c.scale(ES, ES);
-  const b1 = -64 - crush, roll = x / (24 * ES);
-  // (the frame, the drivers and their rods (snapped once it's hit), the pilot wheels)
-  box(c, -362, -36, 340 - crush, 12, INK);
-  for (const wx of [-320, -250, -180]) wheel(c, wx, -24, 24, roll);
-  wheel(c, -112 - crush * 0.5, -12, 12, roll * 2); wheel(c, -72 - crush * 0.8, -12, 12, roll * 2);
-  c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(-320, -14); c.lineTo(-180, -14); c.stroke();
-  c.strokeStyle = '#C8C8D0'; c.lineWidth = 3; c.stroke();
-  c.strokeStyle = '#A1A1AA'; c.lineWidth = 3; c.beginPath(); c.moveTo(-180, -14);
-  if (hit) c.lineTo(-150, 6); else c.lineTo(-112, -30);
-  c.stroke();
-  // (the cab: red, its roof, the window blown out)
-  box(c, -366, -198, 112, 10, BLACK);
-  box(c, -362, -190, 104, 156, INK); box(c, -360, -188, 100, 152, RED);
-  box(c, -360, -150, 100, 4, mix(RED, '#000000', 0.25));
-  box(c, -344, -166, 42, 36, '#1A1210');
-  if (hit) { poly(c, [-344, -166, -334, -166, -340, -150], GLASS); poly(c, [-302, -130, -310, -130, -304, -146], GLASS); }
-  else box(c, -340, -162, 10, 4, '#8AA8C0');
-  // (the boiler: dented, its bands, the domes, the stack bent forward, the smokebox front stove in)
-  box(c, -258, -134, b1 + 258, 72, INK); box(c, -256, -132, b1 + 254, 68, BLACK); box(c, -256, -100, b1 + 254, 3, '#18181C');
-  for (let k = 1; k < 4; k++) { const bx = -256 + k * (b1 + 254) / 4; box(c, bx, -134, 5, 72, k === 3 && hit ? '#926E16' : BRASS); }
-  box(c, -210, -154, 26, 22, INK); box(c, -208, -152, 22, 20, BRASS);
-  box(c, -150, -148, 14, 14, BRASS);
-  c.save(); c.translate(-96, -130); c.rotate(hit ? 0.35 : 0);
-  poly(c, [-14, 0, -24, -60, 22, -60, 12, 0], INK); poly(c, [-12, 0, -21, -57, 19, -57, 10, 0], BLACK); box(c, -24, -63, 46, 6, BRASS);
-  c.restore();
+/** The engine (the train's No. 7, train/engineArt.ts), its nose's foot at (x, GY), tipped `tilt` (+: its back end up);
+ *  once it's hit, its front stove in (`crush`): the cowcatcher's slats crumpled back, the smokebox door caved, the
+ *  headlamp smashed and hanging, steam bursting out of a split. Coming in: the smoke streaming, the whistle stuck on. */
+const drawLoco = (c: Ctx, x: number, tilt: number, crush: number, hit: boolean, f: number) => {
+  c.save(); c.translate(x, GY); c.rotate(tilt);
+  const cab = -ENG.front, roll = x / ENG.dr;
+  drawMachine(c, cab, -7, f, roll, !hit, !hit);
   if (hit) {
-    poly(c, [b1, -136, b1 + 14, -120, b1 + 4, -104, b1 + 18, -86, b1 + 6, -70, b1 + 12, -60, b1 - 6, -60, b1 - 6, -136], '#18181C');
-    poly(c, [b1 + 6, -128, b1 + 12, -118, b1 + 6, -112], '#52525B');
-    // (the headlamp, smashed hanging off)
-    box(c, b1 - 4, -150, 24, 20, INK); box(c, b1 - 2, -148, 20, 16, WOOD); box(c, b1 + 4, -144, 9, 9, '#3F3F46');
-    // (the cowcatcher crumpled under it)
-    poly(c, [b1 - 4, -40, b1 + 30, -10, b1 + 18, -2, b1 - 4, -2], INK);
-    c.strokeStyle = RED_L; c.lineWidth = 3; c.beginPath(); for (let k = 0; k < 4; k++) { c.moveTo(b1 + k * 6, -4); c.lineTo(b1 + 2 + k * 4, -34 + k * 5); } c.stroke();
-  } else {
-    box(c, b1, -138, 18, 80, INK); box(c, b1 + 2, -136, 14, 76, '#3F3F46');
-    box(c, b1 - 6, -164, 28, 26, INK); box(c, b1 - 4, -162, 24, 22, WOOD); box(c, b1 + 4, -157, 12, 12, '#FDE68A');
-    poly(c, [b1 + 14, -40, b1 + 56, -2, b1 + 14, -2], INK);
-    c.strokeStyle = RED_L; c.lineWidth = 3; c.beginPath(); for (let k = 0; k < 5; k++) { c.moveTo(b1 + 16 + k * 7, -4); c.lineTo(b1 + 16, -36 + k * 7); } c.stroke();
+    const k = Math.min(1, crush / 36), S = N(STEEL), B = N(BLACK), Rd = N(TRED);
+    // (the cowcatcher crumpled back: its slats bent every which way, a black tangle)
+    poly(c, [-96, -94, -96 + 40 * (1 - k * 0.6), -8, -96 + 30 * (1 - k * 0.6), -2, -100, -2], INK);
+    for (let n = 0; n < 6; n++) { c.strokeStyle = n % 2 ? Rd[5] : Rd[2]; c.lineWidth = 3; c.beginPath(); c.moveTo(-94 + n * 6 * (1 - k * 0.5), -4); c.lineTo(-92 + n * 2, -20 - n * 9 + (n % 2) * 6); c.lineTo(-86 + n * 4 + (n % 3) * 4, -40 - n * 7); c.stroke(); }
+    // (the smokebox's front caved in: dented black, its number plate's brass ring torn, rivets popped)
+    poly(c, [-100, -238, -92 + 6 * k, -222, -98, -196, -90 + 8 * k, -168, -98, -140, -92, -114, -104, -112, -106, -236], B[1]);
+    poly(c, [-102, -226, -96, -212, -100, -194], B[4]);
+    c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.arc(-124, -175, 19, -0.9, 1.3); c.stroke();
+    c.strokeStyle = BRASS[2]; c.lineWidth = 3; c.stroke();
+    for (let n = 0; n < 5; n++) box(c, -104 + n * 3, -150 + n * 6, 2, 2, S[6]);
+    // (the headlamp's glass smashed out, its lens dark, a crack down its box)
+    c.fillStyle = INK; c.beginPath(); c.arc(-52, -269, 20, 0, TAU); c.fill();
+    c.fillStyle = '#1A1410'; c.beginPath(); c.arc(-52, -269, 17, 0, TAU); c.fill();
+    for (const [gx, gy] of [[-62, -280], [-48, -262], [-58, -258]] as const) poly(c, [gx, gy, gx + 5, gy - 5, gx + 8, gy + 3], '#D8E8F0');
+    c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(-80, -298); c.lineTo(-74, -276); c.lineTo(-82, -252); c.stroke();
   }
   c.restore();
 };
 
-/** The tender: coal heaped on it, lettered, on two trucks (its rear's foot at the pose's point). */
+/** A car of the train's at a pose (its rear's foot): its base and its body (the train's stills, kept under the turn),
+ *  its trucks. */
+const drawCar = (c: Ctx, p: Pose, kind: 'tender' | 'coach', len: number) => {
+  const [x, y] = onCar(p, 0, 0);
+  c.save(); c.translate(x, y); c.rotate(p.a); c.translate(0, -GY);
+  for (const tx of [70, len - 70]) truck(c, tx, x / 18);
+  drawBase(c, kind, len, 0);
+  if (kind === 'coach') drawExt(c, kind, len, 0); else drawTop(c, kind, len, 0);
+  c.restore();
+};
+/** The tender, wrecked: its side stove in, the coal spilling off it once it's hit. */
 const drawTender = (c: Ctx, p: Pose, hit: boolean) => {
-  const [x, y] = onCar(p, 0, 0);
+  drawCar(c, p, 'tender', TENDER.len);
+  if (!hit) return;
+  const [x, y] = onCar(p, 0, 0), C = N(COAL), B = N(BLACK);
   c.save(); c.translate(x, y); c.rotate(p.a);
-  for (const wx of [50, 110, 290, 350]) wheel(c, wx, -20, 20, x / 20 + wx, '#52525B');
-  box(c, 0, -48, 400, 12, INK);
-  box(c, 2, -150, 396, 104, INK); box(c, 4, -148, 392, 100, BLACK); box(c, 4, -112, 392, 10, RED);
-  if (hit) { poly(c, [300, -148, 330, -148, 316, -110, 336, -80, 304, -100], '#18181C'); box(c, 120, -120, 40, 3, '#52525B'); }
-  // (the coal, heaped up over its sides; spilling once it's hit)
-  c.fillStyle = '#18181B'; c.beginPath(); c.moveTo(10, -148);
-  for (let k = 0; k <= 12; k++) c.lineTo(10 + k * 31, -160 - Math.abs(Math.sin(k * 1.7)) * 22 - (hit && k > 8 ? 10 : 0));
-  c.lineTo(390, -148); c.closePath(); c.fill();
-  for (let k = 0; k < 10; k++) box(c, 20 + k * 37, -164 - (k % 3) * 5, 5, 3, '#3F3F46');
+  poly(c, [300, -190, 334, -190, 318, -150, 338, -112, 304, -132], B[0]);
+  c.strokeStyle = B[5]; c.lineWidth = 2; c.beginPath(); c.moveTo(300, -188); c.lineTo(318, -150); c.stroke();
+  for (let k = 0; k < 14; k++) { const cx = 330 + (k % 5) * 16 + hash(k) * 10, cy = -150 + Math.floor(k / 5) * 14 + hash(k * 3) * 8; box(c, cx - 1, cy - 1, 8, 7, INK); box(c, cx, cy, 6, 5, C[2 + (k % 3)]); box(c, cx, cy, 3, 1, C[6]); }
   c.restore();
 };
-
-/** A coach: maroon, a clerestory roof, a row of windows (smashed once it's hit), on two trucks. */
+/** The coach, wrecked: its windows smashed (shards hanging in the sashes, the curtains torn), its front end burst
+ *  (the end wall split, the planks splintered out), soot over it once it's burning. */
 const drawCoach = (c: Ctx, p: Pose, hit: boolean) => {
-  const [x, y] = onCar(p, 0, 0);
+  drawCar(c, p, 'coach', COACH.len);
+  if (!hit) return;
+  const [x, y] = onCar(p, 0, 0), V = N(VARNISH), wt = WIN_T - GY;
   c.save(); c.translate(x, y); c.rotate(p.a);
-  for (const wx of [50, 100, 380, 430]) wheel(c, wx, -18, 18, x / 18 + wx, '#52525B');
-  box(c, 0, -46, 480, 12, INK);
-  box(c, 0, -300, 480, 256, INK); box(c, 2, -298, 476, 252, '#5A2A3A'); box(c, 2, -110, 476, 64, '#341620');
-  box(c, -8, -316, 496, 18, INK); box(c, -6, -314, 492, 14, '#2A1A1E');
-  box(c, 40, -330, 400, 16, INK); box(c, 42, -328, 396, 12, '#3A1E24');
-  for (let k = 0; k < 8; k++) {
-    const wx = 26 + k * 56;
-    box(c, wx, -260, 36, 64, INK);
-    box(c, wx + 2, -258, 32, 60, hit ? '#120A0C' : '#2A3A4A');
-    if (hit && k % 2 === 0) poly(c, [wx + 2, -258, wx + 16, -258, wx + 6, -236], GLASS);
-    if (!hit) box(c, wx + 5, -254, 8, 3, '#8AA8C0');
+  for (const [i, wx] of (CRASH_COACH >= 0 ? windows(CRASH_COACH) : []).entries()) {
+    const l = wx - WIN_W / 2;
+    box(c, l + 2, wt + 2, WIN_W - 4, WIN_H - 4, '#120A0C');
+    for (const [gx, gy, gw] of [[l + 2, wt + 2, 12], [l + WIN_W - 12, wt + 2, 10], [l + 2, wt + WIN_H - 14, 8]] as const) poly(c, [gx, gy, gx + gw, gy, gx + gw * 0.4, gy + 14 + (i % 3) * 4], '#C8DCE8');
+    if (i % 2) box(c, l + 4, wt + 4, 6, WIN_H - 20, '#7A1A20');
   }
-  box(c, 140, -282, 200, 14, INK); box(c, 142, -280, 196, 10, '#C8A070');
-  if (hit) {
-    // (the front end burst: the end wall split, splinters)
-    poly(c, [470, -300, 480, -300, 480, -46, 452, -46, 462, -120, 446, -180, 466, -220], '#120A0C');
-    c.strokeStyle = '#C8A070'; c.lineWidth = 2; c.beginPath(); c.moveTo(452, -150); c.lineTo(500, -170); c.moveTo(458, -210); c.lineTo(496, -240); c.moveTo(450, -90); c.lineTo(492, -70); c.stroke();
-    c.strokeStyle = '#120A0C'; c.lineWidth = 2; c.beginPath(); c.moveTo(200, -298); c.lineTo(214, -250); c.lineTo(196, -200); c.lineTo(220, -140); c.stroke();
-  }
+  const L = COACH.len;
+  poly(c, [L - 14, -376, L, -376, L, -64, L - 30, -64, L - 18, -150, L - 38, -230, L - 16, -290], '#120A0C');
+  c.strokeStyle = INK; c.lineWidth = 5;
+  for (const [a0, b0, a1, b1] of [[L - 30, -190, L + 26, -214], [L - 22, -262, L + 18, -298], [L - 34, -112, L + 20, -88], [L - 26, -150, L + 30, -146]]) { c.beginPath(); c.moveTo(a0, b0); c.lineTo(a1, b1); c.stroke(); }
+  c.strokeStyle = V[4]; c.lineWidth = 3;
+  for (const [a0, b0, a1, b1] of [[L - 30, -190, L + 26, -214], [L - 22, -262, L + 18, -298], [L - 34, -112, L + 20, -88], [L - 26, -150, L + 30, -146]]) { c.beginPath(); c.moveTo(a0, b0); c.lineTo(a1, b1); c.stroke(); }
+  c.strokeStyle = '#120A0C'; c.lineWidth = 2; c.beginPath(); c.moveTo(260, -372); c.lineTo(276, -320); c.lineTo(254, -260); c.lineTo(282, -190); c.stroke();
   c.restore();
 };
 
 /** The platform's canopy: on posts, dimmed and sloped (not a ledge). `broken`: smashed down by the engine (0..1 its
  *  fall); `front` the half of it drawn in front of the engine (the slab come down on it). */
 export const drawCanopy = (c: Ctx, broken: number, front = false) => {
-  c.save(); c.globalAlpha = 0.62;
+  // (dimmed and sloped, its planks lit only faintly: not a ledge)
+  const V = N(VARNISH).map(col => mix(col, '#5A6A7A', 0.3)), Sh = N(SHINGLE).map(col => mix(col, '#5A6A7A', 0.3));
+  const post = (px: number, h: number) => { box(c, px - 5, GY - h, 10, h, INK); box(c, px - 4, GY - h, 8, h, V[3]); box(c, px - 4, GY - h, 2, h, V[5]); box(c, px + 2, GY - h, 2, h, V[1]); };
+  const roof = () => {
+    poly(c, [-6, 0, 222, -10, 226, 6, -4, 14], INK);
+    poly(c, [-4, 1, 220, -8, 222, 4, -2, 12], Sh[3]);
+    for (let k = 0; k < 220; k += 11) poly(c, [k, 1 - k * 0.045, k + 10, 1 - (k + 10) * 0.045, k + 10, 6 - (k + 10) * 0.045, k, 6 - k * 0.045], Sh[2 + ((k / 11) & 1)]);
+    poly(c, [-2, 10, 222, 0, 222, 4, -2, 13], V[2]);
+  };
   if (broken <= 0) {
     if (!front) {
-      for (const px of [205, 290, 370]) { box(c, X(px) - 4, GY - 204, 8, 204, INK); box(c, X(px) - 3, GY - 204, 6, 204, '#6B4423'); }
-      poly(c, [X(180), GY - 204, X(398), GY - 214, X(402), GY - 200, X(176), GY - 192], INK);
-      poly(c, [X(182), GY - 203, X(396), GY - 212, X(398), GY - 202, X(180), GY - 194], '#7A5230');
+      for (const px of [205, 290, 370]) post(X(px), 204);
+      c.save(); c.translate(X(180), GY - 196); roof(); c.restore();
+      for (const px of [205, 290, 370]) { box(c, X(px) - 12, GY - 196, 24, 4, V[2]); }
     }
   } else if (!front) {
-    // (the posts snapped off short, the last one knocked over leaning)
-    for (const px of [205, 290]) { box(c, X(px) - 4, GY - 54, 8, 54, INK); box(c, X(px) - 3, GY - 54, 6, 54, '#6B4423'); poly(c, [X(px) - 4, GY - 54, X(px), GY - 66, X(px) + 4, GY - 54], '#C8A070'); }
+    // (the posts snapped off short (splinters), the last one knocked over leaning)
+    for (const px of [205, 290]) { post(X(px), 54); poly(c, [X(px) - 4, GY - 54, X(px) - 1, GY - 68, X(px) + 2, GY - 58, X(px) + 4, GY - 64, X(px) + 4, GY - 54], '#D8B880'); }
     c.save(); c.translate(X(372), GY); c.rotate(0.55 * broken);
-    box(c, -4, -204, 8, 204, INK); box(c, -3, -204, 6, 204, '#6B4423');
+    box(c, -5, -204, 10, 204, INK); box(c, -4, -204, 8, 204, V[3]); box(c, -4, -204, 2, 204, V[5]);
     c.restore();
   } else {
-    // (the roof come down: one end up on the boiler, the other down on the platform)
+    // (the roof come down: one end up on the boiler, the other down on the platform, its shakes sliding off)
     const k = broken;
     c.save(); c.translate(X(190), GY - 204 - 34 * k); c.rotate(0.62 * k);
-    poly(c, [-6, 0, 222, -10, 226, 4, -4, 12], INK); poly(c, [-4, 1, 220, -8, 222, 2, -2, 10], '#7A5230');
-    poly(c, [222, -10, 236, -18, 230, 0, 240, 8, 226, 4], '#C8A070');
+    roof();
+    poly(c, [222, -10, 236, -18, 230, 0, 240, 8, 226, 4], '#D8B880');
     c.restore();
   }
-  c.restore();
 };
 
 /** The guests: on the platform, then running for it, then (stopped well clear) gawking. */
 const drawGuests = (c: Ctx, t: number, f: number) => {
   for (const [seed, a, b, end] of GUESTS) {
     const run = t >= RUN_AT, x = run ? Math.min(b, a + 4.5 * (t - RUN_AT)) : a, there = x >= b;
-    const pose: PersonPose = !run ? 'stand' : there ? end : 'walk';
-    const mood = !run ? (t < -26 ? 'bored' : 'scared') : there ? 'shocked' : 'scared';
-    c.save(); c.translate(Math.round(X(x)), GY - 6); c.scale(!run || there ? -1 : 1, 1);
-    drawPerson(c, { seed, outfit: 'guest', f: f + seed, pose, mood });
-    c.restore();
+    const pose: GuestPose = !run ? 'stand' : there ? end : 'walk';
+    const mood: GuestMood = !run ? (t < -26 ? 'bored' : 'scared') : there ? 'shocked' : 'scared';
+    drawGuest(c, X(x), GY - 6, { seed, f: f + seed, pose, mood, facing: !run || there ? -1 : 1 });
   }
 };
 
-/** A park paramedic: white shirt, navy trousers, a red cross on the chest (feet at x on the ground). */
-const medic = (c: Ctx, x: number, seed: number, woman: boolean, f: number, facing: number, pose: PersonPose) => {
-  c.save(); c.translate(Math.round(x), GY); c.scale(facing, 1);
-  drawPerson(c, { seed, outfit: 'guest', f, pose, woman, mood: 'bored', look: { shirt: '#F1F5F9', pants: '#1E3A8A' } });
-  box(c, -1, -53, 9, 9, '#F8FAFC'); box(c, 2.5, -52, 2, 7, '#DC2626'); box(c, 0, -49.5, 7, 2, '#DC2626');
-  c.restore();
-};
+/** A park paramedic: the park's white shirt with the red cross and a radio, navy trousers (feet at x on the ground). */
+const medic = (c: Ctx, x: number, seed: number, woman: boolean, f: number, facing: number, pose: GuestPose) =>
+  drawGuest(c, x, GY, { seed, f, pose, woman, outfit: 'medic', mood: 'bored', facing });
+/** The stretcher: canvas on two poles, the poles' grips, its legs folded. */
 const stretcher = (c: Ctx, x: number, top: number) => {
-  box(c, x - 68, top + 2, 136, 4, INK); box(c, x - 67, top + 3, 134, 2, '#A1A1AA');
-  box(c, x - 56, top - 3, 112, 6, INK); box(c, x - 55, top - 2, 110, 4, '#E7E5E4');
-  box(c, x - 46, top + 6, 3, 6, '#71717A'); box(c, x + 43, top + 6, 3, 6, '#71717A');
+  const S = N(STEEL);
+  box(c, x - 69, top + 1, 138, 6, INK); box(c, x - 68, top + 2, 136, 4, S[3]); box(c, x - 68, top + 2, 136, 1, S[6]);
+  for (const gx of [x - 69, x + 59]) { box(c, gx, top + 1, 10, 6, INK); box(c, gx + 1, top + 2, 8, 4, '#3A2A1A'); }
+  box(c, x - 57, top - 4, 114, 8, INK); box(c, x - 56, top - 3, 112, 6, '#E8E4D8'); box(c, x - 56, top - 3, 112, 2, '#F8F6F0'); box(c, x - 56, top + 2, 112, 1, '#B8B2A4');
+  for (const sx of [x - 30, x + 20]) box(c, sx, top - 3, 6, 6, '#C83A3A');
+  for (const lx of [x - 47, x + 42]) { box(c, lx, top + 6, 4, 7, INK); box(c, lx + 1, top + 6, 2, 6, S[4]); }
 };
 
 /** Tucker laid out, his middle at (x, y): sy 1 face up, −1 face down (his head to the right either way); spun `spin`. */
@@ -509,67 +487,77 @@ export const drawWreck = (c: Ctx, state: GameState) => {
   const s = mine(), f = state.frame;
   const t = s && s.phase !== 'done' ? s.t : AFTER;
   const hit = t >= 0;
-  // ---- the rails: torn up past where the stop was, curled up out of the ties
+  // ---- the rails: torn up past where the stop was, curled up out of the ties (the ties kicked askew)
+  const S = N(STEEL), Ti = N(['#1A120C', '#2A1E14', '#3C2C1E', '#4E3A28', '#624A34', '#7A5E44']);
+  const tie = (x: number, y: number, a: number) => { c.save(); c.translate(x, y); c.rotate(a); box(c, -1, -1, 16, 6, INK); box(c, 0, 0, 14, 4, Ti[3]); box(c, 0, 0, 14, 1, Ti[5]); box(c, 2, 0, 2, 2, '#26262C'); box(c, 10, 0, 2, 2, '#26262C'); c.restore(); };
   if (hit) {
-    for (let x = X(100); x < X(250); x += 26) box(c, x + hash(x) * 10, GY - 3 + hash(x * 3) * 3, 14, 4, '#5A3A1E');
-    c.strokeStyle = '#71717A'; c.lineWidth = 4; c.lineCap = 'round';
-    c.beginPath(); c.moveTo(X(96), GY - 4); c.quadraticCurveTo(X(200), GY - 8, X(236), GY - 70); c.quadraticCurveTo(X(250), GY - 104, X(226), GY - 118); c.stroke();
-    c.beginPath(); c.moveTo(X(100), GY - 2); c.quadraticCurveTo(X(180), GY - 4, X(262), GY - 34); c.quadraticCurveTo(X(300), GY - 48, X(304), GY - 30); c.stroke();
+    for (let x = X(100); x < X(250); x += 26) tie(x + hash(x) * 10, GY - 4 + hash(x * 3) * 3, (hash(x * 7) - 0.5) * 0.8);
+    c.lineCap = 'round';
+    for (const [w, col] of [[6, INK], [4, S[3]], [1, S[6]]] as const) {
+      c.strokeStyle = col; c.lineWidth = w;
+      c.beginPath(); c.moveTo(X(96), GY - 4); c.quadraticCurveTo(X(200), GY - 8, X(236), GY - 70); c.quadraticCurveTo(X(250), GY - 104, X(226), GY - 118); c.stroke();
+      c.beginPath(); c.moveTo(X(100), GY - 2); c.quadraticCurveTo(X(180), GY - 4, X(262), GY - 34); c.quadraticCurveTo(X(300), GY - 48, X(304), GY - 30); c.stroke();
+    }
     c.lineCap = 'butt';
   } else {
-    box(c, X(100), GY - 5, X(200) - X(100), 4, '#71717A');
-    for (let x = X(100); x < X(200); x += 26) box(c, x, GY - 3, 14, 4, '#5A3A1E');
+    for (let x = X(100); x < X(200); x += 22) tie(x, GY - 4, 0);
+    box(c, X(100), GY - 6, X(200) - X(100), 5, INK); box(c, X(100), GY - 5, X(200) - X(100), 3, S[3]); box(c, X(100), GY - 5, X(200) - X(100), 1, S[6]);
   }
   // ---- the depot's front: a hole stove in it, once the engine's into it
   const nose = noseAt(t);
   if (nose > 380) {
     const hx = Math.min(nose, NOSE_END) + 30;
     poly(c, [X(372), GY, X(368), GY - 120, X(388), GY - 168, X(404), GY - 150, X(424), GY - 214, X(446), GY - 190, X(hx - 20), GY - 236, X(hx), GY - 200, X(hx + 12), GY - 120, X(hx + 4), GY], '#140D08');
-    c.strokeStyle = '#C8A070'; c.lineWidth = 2; c.beginPath();
-    for (const [a, b, d, e] of [[368, 120, 352, 132], [388, 168, 380, 186], [424, 214, 418, 236], [446, 190, 458, 206], [hx, 200, hx + 18, 214], [hx + 12, 120, hx + 30, 112]]) { c.moveTo(X(a), GY - b); c.lineTo(X(d), GY - e); }
-    c.stroke();
+    poly(c, [X(380), GY, X(378), GY - 110, X(392), GY - 150, X(410), GY - 138, X(426), GY - 196, X(hx - 10), GY - 214, X(hx + 2), GY - 120, X(hx - 2), GY], '#1E140C');
+    // (the boards splintered out round the hole: inked, lit along their tops)
+    for (const [w, col] of [[4, INK], [2, '#D8B880']] as const) {
+      c.strokeStyle = col; c.lineWidth = w; c.beginPath();
+      for (const [a, b, d, e] of [[368, 120, 352, 132], [388, 168, 380, 186], [424, 214, 418, 236], [446, 190, 458, 206], [hx, 200, hx + 18, 214], [hx + 12, 120, hx + 30, 112], [404, 150, 396, 160]]) { c.moveTo(X(a), GY - b); c.lineTo(X(d), GY - e); }
+      c.stroke();
+    }
   }
   // ---- the canopy (behind the engine)
   const fall = hit ? clamp01((t - 2) / 12) : 0;
   drawCanopy(c, hit ? Math.max(0.01, fall) : 0);
   // ---- the buffer stop: whole, or smashed flat and its striped beam gone
-  const bx = X(NOSE_HIT);
+  const bx = X(NOSE_HIT), Tb = N(['#1E140C', '#2E2014', '#40301E', '#56422A', '#6E5838', '#8A7250', '#A88E6A']);
   if (!hit) {
-    box(c, bx - 16, GY - 52, 34, 52, INK); box(c, bx - 15, GY - 51, 32, 51, '#5A3A1E');
-    for (let k = 0; k < 3; k++) box(c, bx - 15, GY - 46 + k * 14, 32, 7, k % 2 ? '#F8FAFC' : '#DC2626');
+    // (heavy timbers bolted up, the red-and-white striped beam, its red lamp (the train's))
+    box(c, bx - 17, GY - 53, 36, 53, INK); box(c, bx - 16, GY - 52, 34, 52, Tb[2]); box(c, bx - 16, GY - 52, 5, 52, Tb[4]); box(c, bx + 13, GY - 52, 5, 52, Tb[1]);
+    for (let k = 0; k < 3; k++) { box(c, bx - 16, GY - 46 + k * 14, 34, 7, k % 2 ? '#F2F0EA' : '#C81E1E'); box(c, bx - 16, GY - 46 + k * 14, 34, 1, k % 2 ? '#FFFFFF' : '#E85A4A'); }
+    for (const by of [GY - 42, GY - 14]) for (const bxx of [bx - 10, bx + 8]) { box(c, bxx, by, 3, 3, INK); box(c, bxx, by, 1, 1, S[5]); }
+    box(c, bx - 6, GY - 66, 14, 14, INK); box(c, bx - 5, GY - 65, 12, 12, S[3]); box(c, bx - 3, GY - 62, 8, 7, '#E8262A'); box(c, bx - 3, GY - 62, 3, 2, '#FF9A8A');
   } else {
+    // (smashed flat: splintered timber stumps, the striped beam's pieces lying about)
     poly(c, [bx - 20, GY, bx - 16, GY - 22, bx - 4, GY - 30, bx + 6, GY - 16, bx + 22, GY - 26, bx + 26, GY], INK);
-    poly(c, [bx - 17, GY, bx - 14, GY - 20, bx - 4, GY - 27, bx + 5, GY - 13, bx + 20, GY - 23, bx + 23, GY], '#5A3A1E');
+    poly(c, [bx - 17, GY, bx - 14, GY - 20, bx - 4, GY - 27, bx + 5, GY - 13, bx + 20, GY - 23, bx + 23, GY], Tb[2]);
+    poly(c, [bx - 14, GY - 20, bx - 4, GY - 27, bx - 2, GY - 20, bx - 12, GY - 14], Tb[5]);
+    for (const [px, a] of [[bx + 40, 0.3], [bx + 74, -0.2]] as const) { c.save(); c.translate(px, GY - 4); c.rotate(a); box(c, -1, -4, 30, 8, INK); for (let k = 0; k < 4; k++) box(c, k * 7, -3, 7, 6, k % 2 ? '#F2F0EA' : '#C81E1E'); c.restore(); }
   }
   // ---- the train: the coach, the tender, the engine
   const tp = carAt(TENDER, t), cp = carAt(COACH, t);
   drawCoach(c, cp, t >= COACH.th);
   drawTender(c, tp, t >= TENDER.th);
-  drawLoco(c, X(nose), tiltAt(t), crushAt(t), hit);
+  drawLoco(c, X(nose), tiltAt(t), crushAt(t), hit, f);
   if (hit) drawCanopy(c, Math.max(0.01, fall), true);
   // ---- the fires catching (the cab, the coal, the coach's front), the steam still pouring off the boiler
   const k = clamp01((t - 24) / 50);
   if (k > 0) {
     const [ax, ay] = onEngine(t, -323, -134);
     fire(c, ax, ay, 30, f, 1, k);
-    const [cx, cy] = onCar(tp, 230, -168);
+    const [cx, cy] = onCar(tp, 230, -150);
     fire(c, cx, cy, 34, f, 2, k);
-    const [dx, dy] = onCar(cp, 420, -60);
+    const [dx, dy] = onCar(cp, 560, -120);
     fire(c, dx, dy, 44, f, 3, k);
-    const [ex, ey] = onCar(cp, 300, -150);
+    const [ex, ey] = onCar(cp, 390, -200);
     fire(c, ex, ey, 22, f, 4, k * 0.8);
   }
   if (hit) {
-    const [sx, sy] = onEngine(t, -90, -140);
-    for (let n = 0; n < 8; n++) {
-      const q = ((f * 0.7 + n * 25) % 200) / 200;
-      c.globalAlpha = 0.5 * (1 - q); c.fillStyle = '#F1F5F9';
-      c.beginPath(); c.arc(sx + n * 6 - q * 30, sy - q * 240, 16 + q * 50, 0, TAU); c.fill();
-    }
+    const [sx, sy] = onEngine(t, -90, -140), st: [string, string, string] = ['#B8C0CA', '#E0E6EC', '#FFFFFF'];
+    for (let n = 0; n < 8; n++) { const q = ((f * 0.7 + n * 25) % 200) / 200; puff(c, sx + n * 6 - q * 30, sy - q * 240, 16 + q * 50, st, 0.5 * (1 - q)); }
     // (a jet of it hissing out of a split in the boiler's side)
     const [jx, jy] = onEngine(t, -200, -100);
-    for (let n = 0; n < 5; n++) { const q = ((f * 1.6 + n * 9) % 45) / 45; c.globalAlpha = 0.55 * (1 - q); c.beginPath(); c.arc(jx - 6 + q * 70, jy + 4 - q * 26, 5 + q * 18, 0, TAU); c.fill(); }
-    c.globalAlpha = 1;
+    for (let n = 0; n < 5; n++) { const q = ((f * 1.6 + n * 9) % 45) / 45; puff(c, jx - 6 + q * 70, jy + 4 - q * 26, 5 + q * 18, st, 0.55 * (1 - q)); }
   }
   // ---- what came down and lay where it fell: the scene's own, or (skipped) strewn as it would be
   if (s) { for (const b of s.bits) if (b.rest) bit(c, b); }
@@ -639,6 +627,8 @@ const drawPeople = (c: Ctx, state: GameState, s: Crash) => {
 const bit = (c: Ctx, b: Bit) => {
   c.save(); c.translate(b.x, b.y); c.rotate(b.a);
   box(c, -b.w / 2 - 1, -b.h / 2 - 1, b.w + 2, b.h + 2, INK); box(c, -b.w / 2, -b.h / 2, b.w, b.h, b.col);
+  box(c, -b.w / 2, -b.h / 2, b.w, 1, mix(b.col, '#FFFFFF', 0.3)); if (b.h > 3) box(c, -b.w / 2, b.h / 2 - 1, b.w, 1, mix(b.col, INK, 0.35));
+  if (b.w > 12) box(c, b.w / 2 - 3, -b.h / 2, 3, b.h, mix(b.col, '#F2E2B8', 0.4));
   c.restore();
 };
 
@@ -647,11 +637,7 @@ export const drawCrashFront = (c: Ctx, state: GameState) => {
   const s = mine();
   if (!s) return;
   for (const b of s.bits) if (!b.rest) bit(c, b);
-  for (const q of s.puffs) {
-    c.globalAlpha = q.a * (1 - q.t / q.life); c.fillStyle = q.col;
-    c.beginPath(); c.arc(q.x, q.y, q.r, 0, TAU); c.fill();
-  }
-  c.globalAlpha = 1;
+  for (const q of s.puffs) puff(c, q.x, q.y, q.r, [mix(q.col, INK, 0.22), q.col, mix(q.col, '#FFFFFF', 0.3)], q.a * (1 - q.t / q.life));
   if (s.medicSaid && s.phase === 'load') saidOver(c, s.medicSaid.text, s.sx - 62, GY - 104, '#FDE68A');
 };
 
@@ -669,7 +655,7 @@ export const wreckLights = (state: GameState) => {
   const s = mine(), t = s && s.phase !== 'done' ? s.t : AFTER;
   if (t < 24) return [];
   const a = 0.34 * clamp01((t - 24) / 50);
-  const out = [onEngine(t, -323, -134), onCar(carAt(TENDER, t), 230, -168), onCar(carAt(COACH, t), 420, -60)];
+  const out = [onEngine(t, -323, -134), onCar(carAt(TENDER, t), 230, -150), onCar(carAt(COACH, t), 560, -120)];
   void state;
   return out.map(([x, y]) => ({ x, y: y - 20, r: 170, a, color: '#6A3010' }));
 };

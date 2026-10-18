@@ -1082,3 +1082,45 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   fiberglass cliff and banded water, the FALLS AHEAD warning as a parkSign, the near bank tile (plunge pool, tunnel
   foot). The cast redrawn seeded (porter, brakeman, robber + horse in four gallop frames, cook, passenger, fireman) and
   the longhorn in the wilds' animal style; the shots touched up.
+- 2026-10-18: SNES pass, section 3 (Sawdust Gulch and the Mother Lode Mine), art only (no gameplay, hitbox, layout,
+  timing or collision changes: the duel's clear lane, the saloon's walls, doors and back door, every ledge and solid
+  as they were; the queue still one cached layer of static guests). New town/paint.ts (the town's ramps: street dirt,
+  sawdust, weathered clapboard, tar paper, shingles, barn red, mine rock and timber, stamped concrete, brick, pond and
+  sump water; one eye at the camera's middle over the zoomed view, FRONT_D 0.9, FAR 0.7; sideBack/topBack/underBack,
+  clapboard, board and batten, sash windows warm after dark, paneled doors, park-western lettering (slab serifs)),
+  far.ts (the wilds' far off with its ground line set to the zoomed street's, then a per-hour tile of the park over the
+  roofs: Timber Tumble's fiberglass mountain and flume, the church, a windmill, the far side's plywood backs on their
+  braces (PROPERTY OF), a water tank, the mill's stack, telegraph poles; down the mine, banded rock), ground.ts (the
+  street going back with its ruts, prints and straw; the floor coming toward him bent (ruts, hoofprints, straw, a
+  popcorn box, a horseshoe; the mill's sawdust; the queue's stamped concrete); near banks; the pond's surface going
+  back to a timber-crib far bank with pilings and reeds; the island; the water's body with a sunk log and saw blade,
+  the flooded shaft's carts, timbers and lantern), fronts.ts (main street's stores and the square's bank and jail back
+  at 0.9 on a boardwalk: stepped, bracketed, arched and gabled parapets, the names in western letters, curtained sash
+  windows, display windows with the gag in them (coonskin caps and rubber tomahawks, gold-painted rocks with GOLD!
+  (FAKE), a teller's cage, fudge, calico, the barber's chair, Tucker's empty coffin, the bathhouse tub), striped porch
+  roofs on posts (dimmed); round their ends the plywood ones' 2x4 braces and sandbags, the real ones' clapboard sides
+  and gable roofs; back lots (outhouses, barrels, woodpiles, a fence, a pump); balconies at the play plane on posts, lit;
+  the rooftops' stores with their tar-paper tops and sides going back), saloon.ts (outside: SALOON painted big, the
+  rooms' windows, the painted-on balcony (flat, dimmed), the ends and roof going back, the batwings or the barred
+  planks, the padlocked back door; inside, opened up: plank floor and pressed-tin ceiling going back, flocked paper and
+  wainscot, the stage's velvet curtain and footlights, the back bar's mirror and bottles, posters, the horse painting,
+  the rooms' doors, chandeliers, card tables, the paneled bar with its brass rail and spittoons, the barkeep, the stairs
+  and balcony, the piano and its player), places.ts (the depot and FIRST AID at the play plane, the rebuilt stop and
+  its bill, the cedar water tower and its catwalk, DR. PEABODY'S wagon, the bleachers and the board on its posts, the
+  gates, the duel's chalk marks, the red gambrel livery with its loft of hay, the smithy back a step with its forge and
+  smoke, the anvil, the sawmill's open shed and its stacked works and gears, the yard's stickered piles and crane),
+  mine.ts (the fiberglass mountain with its armature showing at its cut ends, the headframes and sheaves, the tour
+  shed; real rock inside, tunnels opened up (back wall, floor, ceiling, timber sets), shafts with cribbing and ladders,
+  lanterns (soft), the firedamp's haze, the sump's rock, the canaries; the rails on ties, the trestle's bents over the
+  chasm, the low beams (solid to the line they hit at, striped feet, no words), the hoppers, the cracked ceilings,
+  riveted carts with ore, stepped rocks, the chute's dump and pile), queue.ts (the flume, the switchback deck dimmed,
+  the WAIT boards as parkSigns, the velvet rope, the log lodge station with its shingled gable and chasing marquee).
+  The crash's wreck is the train's own now: No. 7 from train/engineArt.ts (stove in: crumpled cowcatcher, caved
+  smokebox, smashed headlamp) and the tender and coach from train/carArt.ts (the coach at its 620; its windows smashed,
+  its front burst), stepped flames, smoke and steam, a striped buffer stop, the canopy in shakes. people.ts: the guests,
+  the paramedics, the barkeep and the pianist on the costume drawer (seeded, souvenir hats and coonskin caps). The cast
+  enriched (stitched vests and tin stars, chaps and spurs, the sheriff's duster and gloves, the salesman's carnation and
+  spats, the quartet's garters and handlebars, the bouncer's tattoo, the dancers' petticoats and lacing, the gamblers'
+  brocade, the undertaker's crepe band, the smith's bandana, the farmhand's gingham and straw, fellers' knit caps and
+  belt hatchets, the miners' lunch pails and candle drips, the prospectors' patches); the TNT crate stamped with rope
+  handles and DANGER; the throws and the blasts stepped.

@@ -9,6 +9,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hazardVictims, hazardHit } from '../../hazardHit';
 import { box, type Ctx } from '../kit';
+import { pixelBlob } from '../../../m1/game/render/pixelArt';
 import { townOf } from './state';
 import { GAS, FY, CEIL_Y } from './layout';
 
@@ -70,12 +71,16 @@ export const updateBlasts = (ctx: FrameContext) => {
 export const drawBlasts = (c: Ctx, state: GameState) => {
   for (const b of townOf(state).blasts) {
     if (b.t < 0) continue;
-    const k = b.t / 30, r = b.r * (0.5 + k * 0.7);
-    c.globalAlpha = Math.max(0, 1 - k);
-    c.fillStyle = '#57534E'; c.beginPath(); c.arc(b.x, b.y - k * 30, r, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#F97316'; c.beginPath(); c.arc(b.x, b.y, r * 0.75 * (1 - k * 0.5), 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FDE047'; c.beginPath(); c.arc(b.x, b.y, r * 0.45 * (1 - k), 0, Math.PI * 2); c.fill();
-    if (b.t < 4) { c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(b.x, b.y, r * 0.4, 0, Math.PI * 2); c.fill(); }
+    const k = b.t / 30, r = b.r * (0.5 + k * 0.7), a = Math.max(0, 1 - k);
+    // (smoke rolling up off it, stepped; the fireball in rings (red rim, orange, yellow, the white heart); bits)
+    c.globalAlpha = a * 0.9;
+    for (let i = 0; i < 5; i++) { const q = i * 1.26 + b.x * 0.01, rx = b.x + Math.cos(q) * r * 0.5, ry = b.y - k * 34 + Math.sin(q) * r * 0.35; pixelBlob(c, rx, ry, r * 0.55, r * 0.48, '#3A3632'); pixelBlob(c, rx - r * 0.12, ry - r * 0.12, r * 0.36, r * 0.3, '#5A5650'); }
+    c.globalAlpha = a;
+    pixelBlob(c, b.x, b.y, r * 0.8 * (1 - k * 0.4), r * 0.72 * (1 - k * 0.4), '#B4281A');
+    pixelBlob(c, b.x, b.y, r * 0.64 * (1 - k * 0.5), r * 0.58 * (1 - k * 0.5), '#F06A1E');
+    pixelBlob(c, b.x - r * 0.06, b.y - r * 0.06, r * 0.42 * (1 - k), r * 0.38 * (1 - k), '#FBBF24');
+    if (b.t < 5) pixelBlob(c, b.x, b.y, r * 0.3, r * 0.28, '#FFF8D8');
+    for (let i = 0; i < 8; i++) { const q = (i / 8) * Math.PI * 2, d = r * (0.6 + k * 0.9); box(c, b.x + Math.cos(q) * d, b.y + Math.sin(q) * d * 0.8 - k * 10, 3, 3, i % 2 ? '#FDE047' : '#3A2A1A'); }
     c.globalAlpha = 1;
   }
 };

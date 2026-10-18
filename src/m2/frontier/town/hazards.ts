@@ -28,6 +28,8 @@ import { makeMover, moveMover, riding } from '../../foreign/movers';
 import { ledge, meatheadSays, byPants } from '../section';
 import { drawLog } from '../wilds/logs';
 import { box, mix, INK, hash, type Ctx } from '../kit';
+import { hr, PLY, TIMBER, STEEL, TOPLIP } from './paint';
+import { drawMineBitsArt, drawCartArt, drawRockArt, drawDumpArt, drawPileArt } from './mine';
 import { onScreen, viewOf } from './view';
 import { townOf } from './state';
 import { WATERS, PINES, CAVEINS, CHUTES, CART_RUN, RIDE, BEAMS, BEAM_GAP, HEAD_UP, HEAD_DUCKED, BELTS, SAW, MILL_DECK, COVER, CHASM, FY, CEIL_Y, X, Y } from './layout';
@@ -101,26 +103,38 @@ export const updatePines = (ctx: FrameContext) => {
   setHazardZones(state, 'fr-timber', zones);
 };
 
-/** A prop pine (plywood on a brace: the park's): standing, shaking as it's chopped, falling, down. */
+/** A prop pine (the park's: a plywood cutout painted too regular, its raw ply edge showing, on a 4x4 trunk, a brace
+ *  behind): standing, shaking as it's chopped (the notch, chips), falling, down. */
 const drawPine = (c: Ctx, p: ReturnType<typeof townOf>['pines'][number], f: number) => {
   let ang = 0;
   if (p.state === 'chop') ang = Math.sin(f * 0.8) * 0.02;
   else if (p.state === 'fall') ang = (p.t / FALL) ** 2 * (Math.PI / 2) * p.dir;
   else if (p.state === 'down') ang = (Math.PI / 2) * p.dir;
+  const P = hr('ply', PLY), G = hr('ppine', ['#0E2414', '#18381E', '#22502A', '#2E6636', '#3E7E44', '#56985A', '#78B278']), T = hr('timber', TIMBER);
+  // (the brace behind it while it stands)
+  if (p.state === 'up' || p.state === 'chop') { c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(p.x - p.dir * 4, p.y - p.len * 0.45); c.lineTo(p.x - p.dir * p.len * 0.32, p.y); c.stroke(); c.strokeStyle = P[2]; c.lineWidth = 3; c.stroke(); box(c, p.x - p.dir * p.len * 0.32 - 8, p.y - 6, 16, 6, INK); box(c, p.x - p.dir * p.len * 0.32 - 7, p.y - 5, 14, 5, '#8A7A5A'); }
   if (p.state === 'down' && p.water) { c.globalAlpha = Math.max(0, 1 - p.t / 90); }
   c.save(); c.translate(p.x, p.y + (p.state === 'down' && p.water ? 22 : 0)); c.rotate(ang);
-  // (the trunk, its notch; the plywood boughs in tiers)
-  box(c, -6, -p.len, 12, p.len, INK); box(c, -5, -p.len, 10, p.len, '#7A4A2A'); box(c, -5, -p.len, 3, p.len, '#9A6A3A');
-  if (p.state === 'chop' || p.state === 'fall') box(c, p.dir > 0 ? -5 : 1, -22, 4, 8, '#E8C890');
-  for (let k = 0; k < 5; k++) {
-    const y = -p.len + 10 + k * (p.len - 50) / 5, w = 22 + k * 10;
-    c.fillStyle = INK; c.beginPath(); c.moveTo(0, y - 16); c.lineTo(w / 2 + 2, y + 16); c.lineTo(-w / 2 - 2, y + 16); c.closePath(); c.fill();
-    c.fillStyle = k % 2 ? '#2F5A2A' : '#3A6A32'; c.beginPath(); c.moveTo(0, y - 14); c.lineTo(w / 2, y + 14); c.lineTo(-w / 2, y + 14); c.closePath(); c.fill();
+  // (the trunk: a 4x4 post, lit down its left, its notch)
+  box(c, -6, -p.len * 0.42, 12, p.len * 0.42, INK); box(c, -5, -p.len * 0.42, 10, p.len * 0.42, T[3]); box(c, -5, -p.len * 0.42, 3, p.len * 0.42, T[5]); box(c, 2, -p.len * 0.42, 3, p.len * 0.42, T[1]);
+  if (p.state === 'chop' || p.state === 'fall') { c.fillStyle = INK; c.beginPath(); c.moveTo(p.dir > 0 ? 6 : -6, -26); c.lineTo(0, -19); c.lineTo(p.dir > 0 ? 6 : -6, -12); c.closePath(); c.fill(); c.fillStyle = '#E8C890'; c.beginPath(); c.moveTo(p.dir > 0 ? 5 : -5, -24); c.lineTo(p.dir > 0 ? 1 : -1, -19); c.lineTo(p.dir > 0 ? 5 : -5, -14); c.closePath(); c.fill(); }
+  // (the cutout's tiers: its raw ply edge offset right and down (the sheet's thickness), then the paint in two greens
+  // and a lit flank, brushed needles)
+  const tiers = 5;
+  const tierPts = (k: number): [number, number][] => { const y = -p.len + 6 + k * (p.len * 0.62) / tiers, w = 24 + k * 13; return [[0, y - 18], [w / 2, y + 16], [-w / 2, y + 16]]; };
+  for (let k = 0; k < tiers; k++) { const tp = tierPts(k); c.fillStyle = P[4]; c.beginPath(); tp.forEach(([x, y], i) => (i ? c.lineTo(x + 3, y + 1) : c.moveTo(x + 3, y + 1))); c.closePath(); c.fill(); }
+  for (let k = 0; k < tiers; k++) {
+    const tp = tierPts(k);
+    c.fillStyle = INK; c.beginPath(); tp.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.lineWidth = 2; c.strokeStyle = INK; c.stroke(); c.fill();
+    c.fillStyle = G[2 + (k % 2)]; c.beginPath(); c.moveTo(tp[0][0], tp[0][1] + 2); c.lineTo(tp[1][0] - 1, tp[1][1] - 1); c.lineTo(tp[2][0] + 1, tp[2][1] - 1); c.closePath(); c.fill();
+    c.fillStyle = G[4]; c.beginPath(); c.moveTo(tp[0][0], tp[0][1] + 3); c.lineTo(tp[2][0] + 3, tp[2][1] - 1); c.lineTo(tp[0][0] - 3, tp[2][1] - 1); c.closePath(); c.fill();
+    for (let n = 0; n < 4; n++) box(c, -6 + n * 4, tp[1][1] - 6 - (n % 2) * 3, 2, 3, G[5]);
+    box(c, tp[2][0] + 2, tp[2][1] - 2, tp[1][0] - tp[2][0] - 4, 1, G[1]);
   }
   c.restore();
   c.globalAlpha = 1;
-  // (the brace behind it, and its stump once it's down)
-  if (p.state === 'down' || p.state === 'fall') { box(c, p.x - 7, p.y - 12, 14, 12, INK); box(c, p.x - 6, p.y - 11, 12, 11, '#9A6A3A'); box(c, p.x - 6, p.y - 11, 12, 2, '#E8C890'); }
+  // (its stump once it's down: the cut lit, the rings)
+  if (p.state === 'down' || p.state === 'fall') { box(c, p.x - 7, p.y - 12, 14, 12, INK); box(c, p.x - 6, p.y - 11, 12, 11, T[3]); box(c, p.x - 6, p.y - 11, 12, 2, '#E8C890'); box(c, p.x - 3, p.y - 11, 6, 1, '#B08A5A'); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -315,14 +329,24 @@ export const updateCover = (state: GameState) => {
 export const drawHazardsBack = (c: Ctx, state: GameState) => {
   const tw = townOf(state), f = state.frame;
   for (const p of tw.pines) if (onScreen(state, p.x - p.len - 40, p.x + p.len + 40)) drawPine(c, p, f);
-  // (the belts: rollers turning, the rubber running; the saw's housing and its blade)
+  // (the belts: the steel frame, rollers turning, the rubber running with its cleats, its top lit (he rides it); the
+  // saw's housing behind the blade)
   if (onScreen(state, X(BELTS[0][0]) - 40, X(BELTS[1][1]) + 40)) {
+    const S = hr('steel', STEEL), R = hr('rubber', ['#08080A', '#121216', '#1C1C22', '#26262E', '#363642', '#4A4A58', '#6A6A7A']), L = hr('lip', TOPLIP);
+    // (the saw's housing: a riveted iron hood behind the blade, the arbor's pulley and belt)
+    box(c, SAW.x - SAW.r - 14, SAW.y - SAW.r - 18, SAW.r * 2 + 28, SAW.r + 18, INK); box(c, SAW.x - SAW.r - 13, SAW.y - SAW.r - 17, SAW.r * 2 + 26, SAW.r + 17, S[2]);
+    box(c, SAW.x - SAW.r - 13, SAW.y - SAW.r - 17, SAW.r * 2 + 26, 3, S[4]); box(c, SAW.x - SAW.r - 13, SAW.y - SAW.r - 17, 4, SAW.r + 17, S[4]);
+    for (let x = SAW.x - SAW.r - 8; x < SAW.x + SAW.r + 12; x += 9) { box(c, x, SAW.y - SAW.r - 13, 2, 2, INK); box(c, x, SAW.y - SAW.r - 13, 1, 1, S[6]); }
     BELTS.forEach(([a, b, v]) => {
       const xa = X(a), xb = X(b);
-      box(c, xa, beltY - 2, xb - xa, 10, INK); box(c, xa, beltY, xb - xa, 6, '#3F3F46'); box(c, xa, beltY, xb - xa, 2, '#71717A');
+      box(c, xa, beltY - 2, xb - xa, 22, INK);
+      box(c, xa, beltY + 8, xb - xa, 12, S[2]); box(c, xa, beltY + 8, xb - xa, 1, S[4]);
+      for (let x = xa + 10; x < xb; x += 40) { c.fillStyle = INK; c.beginPath(); c.arc(x, beltY + 12, 6.5, 0, Math.PI * 2); c.fill(); c.fillStyle = S[3]; c.beginPath(); c.arc(x, beltY + 12, 5, 0, Math.PI * 2); c.fill(); const q = f * v * 0.3; box(c, x + Math.cos(q) * 3 - 1, beltY + 11 + Math.sin(q) * 3, 2, 2, S[6]); }
+      box(c, xa, beltY, xb - xa, 7, R[3]); box(c, xa, beltY + 5, xb - xa, 2, R[1]);
       const off = ((f * v) % 18 + 18) % 18;
-      for (let x = xa + off; x < xb; x += 18) box(c, x, beltY + 1, 3, 4, '#27272A');
-      for (let x = xa + 10; x < xb; x += 40) { c.fillStyle = INK; c.beginPath(); c.arc(x, beltY + 12, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = '#71717A'; c.beginPath(); c.arc(x, beltY + 12, 4, 0, Math.PI * 2); c.fill(); }
+      for (let x = xa + off; x < xb; x += 18) { box(c, x, beltY, 3, 5, R[1]); box(c, x + 3, beltY, 1, 5, R[5]); }
+      box(c, xa, beltY, xb - xa, 1, L[3]); box(c, xa, beltY + 1, xb - xa, 1, L[2]);
+      for (const ex of [xa - 6, xb]) { box(c, ex, beltY - 4, 6, 26, INK); box(c, ex + 1, beltY - 3, 4, 24, S[3]); }
     });
     for (const L of tw.beltLogs) if (L.cut === 0) drawLog(c, L.x, beltY - 28, L.len, -L.x / 14);
     // (the cut halves, tipping off the deck)
@@ -334,94 +358,54 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
 export const drawHazardsFront = (c: Ctx, state: GameState) => {
   const tw = townOf(state), f = state.frame;
   if (onScreen(state, SAW.x - 60, SAW.x + 60)) {
-    c.save(); c.beginPath(); c.rect(SAW.x - SAW.r - 4, SAW.y - SAW.r - 4, SAW.r * 2 + 8, SAW.r + 4); c.clip();
-    c.fillStyle = INK; c.beginPath(); c.arc(SAW.x, SAW.y, SAW.r + 1, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#A1A1AA'; c.beginPath(); c.arc(SAW.x, SAW.y, SAW.r - 2, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#D4D4D8'; c.beginPath(); c.arc(SAW.x, SAW.y, SAW.r - 10, 0, Math.PI * 2); c.fill();
-    for (let k = 0; k < 16; k++) {
-      const a = k * (Math.PI / 8) + f * 0.5;
-      c.fillStyle = k % 2 ? '#52525B' : '#E4E4E7';
-      c.beginPath(); c.moveTo(SAW.x + Math.cos(a) * (SAW.r - 3), SAW.y + Math.sin(a) * (SAW.r - 3)); c.lineTo(SAW.x + Math.cos(a + 0.12) * (SAW.r + 5), SAW.y + Math.sin(a + 0.12) * (SAW.r + 5)); c.lineTo(SAW.x + Math.cos(a + 0.3) * (SAW.r - 3), SAW.y + Math.sin(a + 0.3) * (SAW.r - 3)); c.closePath(); c.fill();
+    // (the blade: stepped steel, its gullets and set teeth going round, a blur ring, the arbor nut; half under the deck)
+    const S = hr('steel', STEEL);
+    c.save(); c.beginPath(); c.rect(SAW.x - SAW.r - 8, SAW.y - SAW.r - 8, SAW.r * 2 + 16, SAW.r + 8); c.clip();
+    for (let k = 0; k < 18; k++) {
+      const a = k * (Math.PI / 9) + f * 0.5;
+      c.fillStyle = INK; c.beginPath(); c.moveTo(SAW.x + Math.cos(a) * (SAW.r - 4), SAW.y + Math.sin(a) * (SAW.r - 4)); c.lineTo(SAW.x + Math.cos(a + 0.1) * (SAW.r + 7), SAW.y + Math.sin(a + 0.1) * (SAW.r + 7)); c.lineTo(SAW.x + Math.cos(a + 0.3) * (SAW.r - 4), SAW.y + Math.sin(a + 0.3) * (SAW.r - 4)); c.closePath(); c.fill();
+      c.fillStyle = k % 2 ? S[4] : S[6]; c.beginPath(); c.moveTo(SAW.x + Math.cos(a) * (SAW.r - 3), SAW.y + Math.sin(a) * (SAW.r - 3)); c.lineTo(SAW.x + Math.cos(a + 0.1) * (SAW.r + 5), SAW.y + Math.sin(a + 0.1) * (SAW.r + 5)); c.lineTo(SAW.x + Math.cos(a + 0.26) * (SAW.r - 3), SAW.y + Math.sin(a + 0.26) * (SAW.r - 3)); c.closePath(); c.fill();
     }
-    box(c, SAW.x - 4, SAW.y - 4, 8, 8, '#3F3F46');
+    c.fillStyle = INK; c.beginPath(); c.arc(SAW.x, SAW.y, SAW.r - 1, 0, Math.PI * 2); c.fill();
+    c.fillStyle = S[3]; c.beginPath(); c.arc(SAW.x, SAW.y, SAW.r - 2, 0, Math.PI * 2); c.fill();
+    c.fillStyle = S[5]; c.beginPath(); c.arc(SAW.x, SAW.y, SAW.r - 2, Math.PI * 1.05, Math.PI * 1.6); c.lineTo(SAW.x, SAW.y); c.fill();
+    c.fillStyle = S[4]; c.beginPath(); c.arc(SAW.x, SAW.y, SAW.r - 12, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = S[6]; c.lineWidth = 1; c.beginPath(); c.arc(SAW.x, SAW.y, SAW.r - 6, Math.PI * 1.1 + (f * 0.2) % 0.6, Math.PI * 1.5 + (f * 0.2) % 0.6); c.stroke();
+    c.strokeStyle = S[1]; c.beginPath(); c.arc(SAW.x, SAW.y, SAW.r - 8, Math.PI * 1.6, Math.PI * 1.95); c.stroke();
+    box(c, SAW.x - 6, SAW.y - 6, 12, 12, INK); box(c, SAW.x - 5, SAW.y - 5, 10, 10, S[2]); box(c, SAW.x - 5, SAW.y - 5, 3, 3, S[5]);
     c.restore();
     // (the slot in the deck it comes up through)
-    box(c, SAW.x - SAW.r - 6, SAW.y, SAW.r * 2 + 12, 4, INK);
+    box(c, SAW.x - SAW.r - 6, SAW.y, SAW.r * 2 + 12, 4, INK); box(c, SAW.x - SAW.r - 6, SAW.y + 3, SAW.r * 2 + 12, 1, '#3A2A1A');
   }
   // (the cave-ins' rocks and rubble; the chute's pile)
   for (const cv of tw.caves) {
     if (!onScreen(state, cv.x - cv.half - 20, cv.x + cv.half + 20)) continue;
-    for (const r of cv.rocks) { c.fillStyle = INK; c.beginPath(); c.arc(r.x, r.y, r.r + 1, 0, Math.PI * 2); c.fill(); c.fillStyle = '#78716C'; c.beginPath(); c.arc(r.x, r.y, r.r, 0, Math.PI * 2); c.fill(); c.fillStyle = '#A8A29E'; c.fillRect(r.x - r.r * 0.5, r.y - r.r * 0.6, r.r * 0.6, 2); }
-    if (cv.state === 'rubble') { const k = Math.min(1, (RUBBLE - cv.t) / 40); c.globalAlpha = k; for (const r of cv.rocks) { c.fillStyle = '#57534E'; c.fillRect(r.x - r.r, FY - 6, r.r * 2, 6); } c.globalAlpha = 1; }
+    for (const r of cv.rocks) drawRockArt(c, r.x, r.y, r.r);
+    if (cv.state === 'rubble') { const k = Math.min(1, (RUBBLE - cv.t) / 40); c.globalAlpha = k; for (const r of cv.rocks) drawRockArt(c, r.x, FY - r.r * 0.4, r.r * 0.7); c.globalAlpha = 1; }
   }
   for (const ch of tw.chutes) {
     if (!onScreen(state, ch.x - 60, ch.x + 60)) continue;
-    for (let k = 0; k < ch.pile; k++) { c.fillStyle = '#57534E'; c.beginPath(); c.ellipse(ch.x + (k - 1) * 18, FY, 22, 8 + k * 2, 0, Math.PI, 0); c.fill(); }
-    if (ch.state === 'dump') { c.globalAlpha = 0.85; box(c, ch.x - 24, CEIL_Y + 10, 48, FY - CEIL_Y - 10, '#57534E'); for (let y = CEIL_Y + 10 + (f * 7) % 20; y < FY; y += 20) box(c, ch.x - 20 + hash(y) * 30, y, 8, 8, '#CA8A04'); c.globalAlpha = 1; }
+    drawPileArt(c, ch.x, ch.pile);
+    if (ch.state === 'dump') drawDumpArt(c, ch.x, f);
   }
-  // (the runaway carts: their lamp at the screen's edge while warned, then the cart itself)
+  // (the runaway carts: their lamp at the screen's edge while warned (a soft glow, the red warning plate, no words),
+  // then the cart itself)
   for (const r of tw.runaways) {
     if (r.dead > 0) continue;
     if (r.warn > 0) {
       const v = viewOf(state), ex = Math.min(v.x + v.w - 20, r.x + 30), y = FY - 30;
-      c.globalAlpha = 0.4 + 0.4 * Math.sin(f * 0.4); c.fillStyle = '#FEF08A'; c.beginPath(); c.arc(ex, y, 26, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
-      box(c, ex - 30, y - 50, 22, 26, '#B91C1C'); box(c, ex - 22, y - 46, 6, 12, '#FFFFFF'); box(c, ex - 22, y - 30, 6, 4, '#FFFFFF');
+      c.globalAlpha = 0.25 + 0.25 * Math.sin(f * 0.4);
+      for (const [rr, col] of [[30, '#C8A040'], [20, '#F2D27A'], [10, '#FFF4C8']] as const) { c.fillStyle = col; c.beginPath(); c.arc(ex, y, rr, 0, Math.PI * 2); c.fill(); }
+      c.globalAlpha = 1;
+      box(c, ex - 31, y - 51, 24, 28, INK); box(c, ex - 30, y - 50, 22, 26, '#B91C1C'); box(c, ex - 30, y - 50, 22, 2, '#E85A4A'); box(c, ex - 22, y - 46, 6, 12, '#FFFFFF'); box(c, ex - 22, y - 30, 6, 4, '#FFFFFF');
       continue;
     }
-    drawCart(c, r.x, FY, f, true);
+    drawCartArt(c, r.x, FY, f, true);
   }
   // (the ride cart)
-  if (tw.ride && onScreen(state, tw.ride.x - 20, tw.ride.x + RIDE.w + 20)) drawCart(c, tw.ride.x, FY - 34 + 34, f, false);
-};
-
-/** A mine cart (its left end at x, its wheels on the rail at railY): iron, riveted, ore heaped in it (or not). */
-const drawCart = (c: Ctx, x: number, railY: number, f: number, loaded: boolean) => {
-  const w = RIDE.w, top = railY - 34;
-  box(c, x - 1, top - 1, w + 2, 28, INK); box(c, x, top, w, 26, '#57534E'); box(c, x, top, w, 3, '#A1A1AA');
-  for (let k = 0; k < 4; k++) box(c, x + 6 + k * 18, top + 8, 2, 2, '#A1A1AA');
-  if (loaded) for (let k = 0; k < 5; k++) { c.fillStyle = k % 2 ? '#78716C' : '#CA8A04'; c.beginPath(); c.arc(x + 10 + k * 12, top - 2, 7, Math.PI, 0); c.fill(); }
-  for (const wx of [x + 14, x + w - 14]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, railY - 6, 7, 0, Math.PI * 2); c.fill(); c.fillStyle = '#3F3F46'; c.beginPath(); c.arc(wx, railY - 6, 5, 0, Math.PI * 2); c.fill(); const a = f * 0.4; box(c, wx + Math.cos(a) * 3 - 1, railY - 7 + Math.sin(a) * 3, 2, 2, '#A1A1AA'); }
+  if (tw.ride && onScreen(state, tw.ride.x - 20, tw.ride.x + RIDE.w + 20)) drawCartArt(c, tw.ride.x, FY - 34 + 34, f, false);
 };
 
 /** The mine's own: the rails, the trestle over the chasm, the beams, the chute, the cracked ceiling over a cave-in. */
-export const drawMineBits = (c: Ctx, state: GameState) => {
-  const f = state.frame;
-  // (rails: down the cart track, over the trestle)
-  const rail = (a: number, b: number, y: number) => { box(c, a, y - 3, b - a, 3, '#71717A'); for (let x = a; x < b; x += 22) box(c, x, y - 1, 12, 3, '#5A3A1E'); };
-  if (onScreen(state, CART_RUN.a - 40, RIDE.b + RIDE.w + 40)) {
-    rail(CART_RUN.a - 30, RIDE.b + RIDE.w + 40, FY);
-    // (the buffer at the track's foot)
-    box(c, CART_RUN.a - 34, FY - 30, 16, 30, INK); box(c, CART_RUN.a - 33, FY - 29, 14, 28, '#B91C1C'); box(c, CART_RUN.a - 33, FY - 20, 14, 4, '#FDE047');
-    // (the trestle: timbers down into the dark under the rails; the chasm black all the way down)
-    const a = CHASM.a, b = CHASM.b;
-    box(c, a, FY, b - a, 1200, '#050302');
-    for (let x = a; x < b; x += 56) { box(c, x, FY, 8, 300, '#3F2A14'); c.strokeStyle = '#3F2A14'; c.lineWidth = 4; c.beginPath(); c.moveTo(x, FY + 10); c.lineTo(x + 56, FY + 120); c.moveTo(x + 56, FY + 10); c.lineTo(x, FY + 120); c.stroke(); }
-    box(c, a, FY - 2, b - a, 8, '#5A3A1E');
-  }
-  for (const [bx, half] of BEAMS) {
-    const x = X(bx);
-    if (!onScreen(state, x - 30, x + 30)) continue;
-    // (a beam: a timber down from the ceiling to the gap, full across: no standing under it; it comes down solid to the
-    // line it hits at (BEAM_GAP over the cart's floor), its foot hazard-striped; no DUCK plate (the user's: the player can
-    // tell))
-    const bottom = FY - 34 - BEAM_GAP;
-    box(c, x - half - 2, CEIL_Y, half * 2 + 4, bottom - CEIL_Y, INK); box(c, x - half, CEIL_Y, half * 2, bottom - CEIL_Y - 2, '#6B4423'); box(c, x - half, CEIL_Y, 3, bottom - CEIL_Y - 2, '#8A5A30');
-    box(c, x - half - 14, bottom - 14, half * 2 + 28, 14, INK); box(c, x - half - 13, bottom - 13, half * 2 + 26, 12, '#7A5230');
-    for (let k = 0; k < 4; k++) box(c, x - half - 13 + k * ((half * 2 + 26) / 4), bottom - 6, (half * 2 + 26) / 8, 5, '#FDE047');
-  }
-  for (const ch of CHUTES) {
-    const x = X(ch);
-    if (!onScreen(state, x - 40, x + 40)) continue;
-    box(c, x - 26, CEIL_Y - 2, 52, 18, INK); box(c, x - 24, CEIL_Y, 48, 14, '#57534E'); box(c, x - 20, CEIL_Y + 14, 40, 4, '#27272A');
-  }
-  for (const [cx, half] of CAVEINS) {
-    const x = X(cx);
-    if (!onScreen(state, x - half, x + half)) continue;
-    c.strokeStyle = '#1C1209'; c.lineWidth = 2; c.beginPath();
-    for (let k = -2; k <= 2; k++) { c.moveTo(x + k * half / 2.5, CEIL_Y); c.lineTo(x + k * half / 2.5 + 8, CEIL_Y + 12); c.lineTo(x + k * half / 2.5 - 4, CEIL_Y + 22); }
-    c.stroke();
-    box(c, x - half, CEIL_Y - 4, half * 2, 4, mix('#3A2A1A', '#000000', 0.3));
-  }
-  void f;
-};
-void AWAY;
+export const drawMineBits = (c: Ctx, state: GameState) => drawMineBitsArt(c, state);
+void AWAY; void CHASM; void CAVEINS; void CHUTES; void BEAMS; void BEAM_GAP; void CART_RUN; void hash; void mix;
