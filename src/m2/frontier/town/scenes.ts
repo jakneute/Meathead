@@ -281,6 +281,14 @@ const runDuel = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, tw = townOf(state), d = tw.duel, g = tw.showdown, p = state.player, s = d.sheriff;
   const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   if (d.cardT > 0) d.cardT--;
+  // (shot before the duel's even begun (from down the street, before he's walked to his mark): one shot does him, the
+  // user's, and that's cheating: the posse; anything of his that reached him counts)
+  if (s && s.health > 0 && d.phase === 'wait' && p.health > 0 && (s.health < s.maxHealth || s.isBlownAway || (s.hitFlash ?? 0) > 0 || s.meleeFlung || s.uppercutFlung)) {
+    d.phase = 'duel'; d.t = 0; d.drawAt = 9999;
+    state.lockWeapon = undefined;
+    cheat(ctx);
+    return controls;
+  }
   // (the sheriff: held to his mark, untouchable, till it's settled)
   if (s && s.health > 0 && (d.phase === 'wait' || d.phase === 'intro' || d.phase === 'duel' || d.phase === 'lost')) {
     hold(s); s.harmless = true; s.health = s.maxHealth; s.facing = -1;
