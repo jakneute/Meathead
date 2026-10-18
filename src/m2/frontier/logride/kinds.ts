@@ -169,7 +169,7 @@ const logger = (ctx: FrameContext, e: Enemy) => {
       if (!sees) { e.vel.x = 0; break; }
       const dx = Math.abs(pm.x - m.x);
       if (dx < 70 && level) { set('rev'); e.vel.x = 0; playSound('engine', 0.7, 10); break; }
-      e.vel.x = safeAhead(ctx, e, to, 12) ? to * 1.5 : 0;
+      e.vel.x = safeAhead(ctx, e, to, 12) ? to * 1.7 : 0;
       break;
     }
     case 'rev':
@@ -184,7 +184,7 @@ const logger = (ctx: FrameContext, e: Enemy) => {
       const x = e.facing! > 0 ? e.pos.x + e.width - 4 : e.pos.x - 34;
       if (!landed.has(e) && p.invincibilityTimer <= 0 && p.health > 0 && !p.inCutscene && p.pos.x < x + 38 && p.pos.x + p.width > x && p.pos.y < e.pos.y + e.height - 10 && p.pos.y + p.height > e.pos.y + 20) {
         landed.add(e);
-        hurtPlayer(ctx, 11, 'm2:fr_chainsaw', { x: e.facing! * 6, y: -4 });
+        hurtPlayer(ctx, 13, 'm2:fr_chainsaw', { x: e.facing! * 6, y: -4 });
         playSound('gorespray', 0.6, 4);
       }
       if (e.aiTimer! >= 20) { set('after'); landed.delete(e); }
@@ -192,7 +192,7 @@ const logger = (ctx: FrameContext, e: Enemy) => {
     }
     case 'after':
       e.vel.x *= 0.8;
-      if (e.aiTimer! >= 36) set('near');
+      if (e.aiTimer! >= 30) set('near');
       break;
   }
   return false;
@@ -283,7 +283,7 @@ const drawLogger = (c: Ctx, e: Enemy, f: number) => {
 };
 
 registerM2Kind({
-  kind: LOGGER, stats: { w: 38, h: 72, hp: 70, contact: 4, mass: 190 },
+  kind: LOGGER, stats: { w: 38, h: 72, hp: 110, contact: 5, mass: 190 },
   ai: logger, draw: drawLogger, humanoid: true, head: { x: 1, y: -68, r: 10 },
   gender: e => (loggerWoman(e) ? 'f' : 'm'),
 });
