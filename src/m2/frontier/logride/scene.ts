@@ -1,0 +1,344 @@
+// THE BOOTH (the user's): as Meathead cuts the whole line and drops into a log, Tucker (a hole through his eye, somehow
+// still going) bursts into the ride's control booth, shoves the real operator out of it, and at the controls: "TIME TO
+// ENGAGE THE BUZZSAWS". He slams the button; the ride's saws come on all down the line, and the one hung over the
+// console drops on its arm, straight into his forehead. The mutilation close-up rule: an ANIMATED, GRAPHIC close-up of
+// it happening (this job's wound painter on tucker.ts's close-up): the blade coming down out of the dark, the bite
+// through the cap's crown (the brass plate flying), the grind down into his forehead (sparks, bone, blood in a spray),
+// stuck there spinning down, the blood running down over his face and into the hole where his eye was, his one eye
+// rolling up at it; his last words (his splitting headache). Back out: he goes over flat, apparently dead, the saw
+// still in his head (TUCKER_SAW_MEMO: on him for the rest of the land, tucker.ts draws it). Meathead's line, the
+// operator back up (keep your arms inside), and the log goes. A cutscene from the burst on: no HUD, SKIP >> for all of
+// it.
+//
+// The operator: a person of the park's (people.ts: seeded by the visit, a man or a woman), in the ride's frontier
+// vest; her lines by the state of him (lines.ts). Back in a log after the scene (a death, another visit): no scene,
+// just her (OP_AGAIN) and the log goes; this visit, Tucker's still on the booth's floor with the saw in his head.
+
+import type { FrameContext } from '../../../m1/game/core/context';
+import type { GameState } from '../../../m1/game/core/state';
+import type { Controls } from '../../../m1/game/platform/input';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { playSound } from '../../../m1/game/platform/audio';
+import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
+import { shakeScreen } from '../../../m1/game/core/state';
+import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
+import { drawPerson } from '../../adventure/temple/people';
+import { signText } from '../../signLetters';
+import { hands, meatheadSays, speak, saidOver, byPants, landVisit, tuckerWoundsOf } from '../section';
+import { GY } from '../geometry';
+import { TUCKER_VOICE, type ByPants } from '../talk';
+import { box, mix, INK, painted, type Ctx } from '../kit';
+import { drawTucker, drawTuckerCloseup, drawTuckerCap, registerWoundPainter } from '../tucker';
+import { rideOf, type Scene } from './state';
+import { X, waterY, BOOTH, LOAD_X } from './layout';
+import { RIDE_VOICES, TUCKER_ENGAGE, TUCKER_SAWED, OP_CUT, OP_SHOVED, OP_AFTER, OP_AGAIN, DEAD_AGAIN } from './lines';
+import { drawSawDisc } from './hazards';
+import { rideStartLine } from './ride';
+
+/** The saw's in Tucker's forehead (for good: tucker.ts draws it on him from here on). */
+export const TUCKER_SAW_MEMO = 'frontier-tucker-saw';
+export const sawed = (state: GameState) => state.stageMemo[TUCKER_SAW_MEMO] === '1';
+
+/** This visit, the booth's scene was played (his body's on its floor). */
+let bodyVisit = -1;
+/** The operator: a man or a woman, by the visit. */
+const opSeed = () => 300 + (landVisit() * 37) % 200;
+const opWoman = () => (landVisit() % 2) === 1;
+const opVoice = () => (opWoman() ? RIDE_VOICES.operatorf : RIDE_VOICES.operator);
+
+/** Where things are in the booth (world): its left wall, its console, the saw's hanger. */
+const BX0 = X(BOOTH.a), BX1 = X(BOOTH.b), FLOOR = GY - BOOTH.floor;
+const CONSOLE_X = BX1 - 40, SAW_X = CONSOLE_X - 26;
+const TUCK_AT = CONSOLE_X - 30, OP_AT = CONSOLE_X - 20;
+
+const say = (state: GameState, s: Scene, who: 'tucker' | 'op', pool: ByPants, done?: () => void) => {
+  s.busy = true;
+  const text = pickLine(byPants(state, pool));
+  if (who === 'tucker') { s.tuckerTalking = true; speak(TUCKER_VOICE, text, said => { s.tucker = said; if (!said) s.tuckerTalking = false; }, true, () => { s.tuckerTalking = false; s.busy = false; done?.(); }); }
+  else { s.opTalking = true; speak(opVoice(), text, said => { s.op = said; if (!said) s.opTalking = false; }, true, () => { s.opTalking = false; s.busy = false; done?.(); }); }
+};
+const next = (s: Scene, step: Scene['step']) => { s.step = step; s.t = 0; };
+const inScene = (s: Scene) => s.step !== 'wait' && s.step !== 'done';
+
+/** Starts the scene (he's dropped into the log, the first time). */
+export const startScene = (state: GameState) => {
+  const s = rideOf(state).scene;
+  silenceAll();
+  s.step = 'burst'; s.t = 0; s.all = 0; s.busy = false; s.tx = BX0 - 30; s.ox = OP_AT; s.oy = FLOOR; s.ovx = 0; s.ovy = 0; s.opDown = false; s.sawK = 0; s.k = 0;
+  state.player.inCutscene = true;
+  state.cameraOverride = { x: X(BOOTH.a) - 180, y: GY - 470 };
+  playSound('slam', 1, -6);
+};
+
+/** The booth's operator barks at him for cutting (once, as he goes by her window). */
+export const updateBooth = (state: GameState) => {
+  const r = rideOf(state), p = state.player, cx = p.pos.x + p.width / 2;
+  if (!r.said.opcut && r.log.mode === 'off' && cx > BX0 - 160 && cx < X(LOAD_X) && p.health > 0) {
+    r.said.opcut = true;
+    speak(opVoice(), pickLine(byPants(state, OP_CUT)), said => { r.bark = said; }, false);
+  }
+};
+
+/** A frame of the scene (it has the controls). Returns null once it's over (the log goes). */
+export const updateScene = (ctx: FrameContext): Controls | null => {
+  const { state } = ctx, r = rideOf(state), s = r.scene, p = state.player;
+  if (!inScene(s)) return null;
+  s.t++; s.all++;
+  p.inCutscene = true;
+  if (s.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { finishScene(state, true); return null; } }
+  // (the operator, shoved: through the booth's door, down on the platform)
+  if (s.ovx || s.ovy) { s.ox += s.ovx; s.oy += s.ovy; s.ovy += 0.6; if (s.oy >= FLOOR) { s.oy = FLOOR; s.ovx *= 0.6; if (Math.abs(s.ovx) < 0.3) s.ovx = 0; s.ovy = 0; } }
+  switch (s.step) {
+    case 'burst':
+      // (in through the booth's back door at a run, manic)
+      s.tx = Math.min(TUCK_AT - 26, s.tx + 3.4);
+      if (s.t % 12 === 0) playSound('step_wood', 0.6);
+      if (s.tx >= TUCK_AT - 26) next(s, 'shove');
+      break;
+    case 'shove':
+      if (s.t === 6) {
+        playSound('punch', 0.9, -2); playSound('whoosh', 0.7);
+        s.ovx = 3.6; s.ovy = -4.5; s.opDown = true;
+      }
+      if (s.t > 6 && s.t < 20) s.tx = Math.min(TUCK_AT, s.tx + 2);
+      if (s.t === 30) say(state, s, 'op', OP_SHOVED, () => next(s, 'engage'));
+      break;
+    case 'engage':
+      if (s.t === 1) say(state, s, 'tucker', TUCKER_ENGAGE, () => next(s, 'press'));
+      break;
+    case 'press':
+      // (the button: slammed; the klaxon; the saws coming on all down the line)
+      if (s.t === 12) { playSound('slam', 1, -4); playSound('alarm', 0.8); shakeScreen(state, 6, 3); }
+      if (s.t === 22) playSound('grind', 1, -8);
+      if (s.t >= 40) { next(s, 'drop'); playSound('clang', 0.8, -6); }
+      break;
+    case 'drop':
+      // (the saw over the console lets go on its arm: a glimpse of it coming down, then the close-up)
+      s.sawK = Math.min(1, s.t / 10);
+      if (s.t >= 10) { next(s, 'close'); playSound('grind', 1, -2); }
+      break;
+    case 'close': {
+      // (the close-up: the blade down into his forehead; his last words; then back out)
+      s.k = Math.min(1, s.t / 150);
+      if (s.t === 38) { playSound('clang', 1, 6); playSound('crunch', 1, -6); shakeScreen(state, 12, 6); }
+      if (s.t === 44) playSound('gorespray', 1, -2);
+      if (s.t > 38 && s.t < 96 && s.t % 9 === 0) { playSound('grind', 0.9, -6 + (s.t % 18) / 3); playSound('splat', 0.4, -4); }
+      if (s.t === 100) playSound('crunch', 0.8, -10);
+      if (s.t === 160) say(state, s, 'tucker', TUCKER_SAWED, () => next(s, 'fall'));
+      break;
+    }
+    case 'last': break;
+    case 'fall':
+      // (over he goes, flat: the saw stays where it is)
+      if (s.t === 1) { state.stageMemo[TUCKER_SAW_MEMO] = '1'; bodyVisit = landVisit(); }
+      if (s.t === 14) { playSound('thud', 1, -6); shakeScreen(state, 6, 3); }
+      if (s.t === 40) { s.busy = true; meatheadSays(state, pickLine(byPants(state, DEAD_AGAIN)), true, () => { s.busy = false; next(s, 'after'); }); }
+      break;
+    case 'after':
+      if (s.t === 1) { s.opDown = false; say(state, s, 'op', OP_AFTER, () => next(s, 'go')); }
+      break;
+    case 'go':
+      finishScene(state, false);
+      return null;
+  }
+  return hands();
+};
+
+/** Over (played through, or skipped): Tucker down with the saw in him, the operator up, the log away. */
+const finishScene = (state: GameState, skipped: boolean) => {
+  const r = rideOf(state), s = r.scene;
+  if (skipped) silenceAll();
+  state.stageMemo[TUCKER_SAW_MEMO] = '1'; bodyVisit = landVisit();
+  s.step = 'done'; s.tucker = null; s.op = null; s.busy = false; s.opDown = false; s.ox = OP_AT + 90; s.oy = FLOOR; s.ovx = 0; s.ovy = 0;
+  state.player.inCutscene = false;
+  state.cameraOverride = null;
+  r.log.mode = 'ride';
+  rideStartLine(state);
+};
+
+/** He's back in a log after the scene's been (a death, another visit): her line, and away. */
+export const againLine = (state: GameState) => {
+  const r = rideOf(state);
+  speak(opVoice(), pickLine(byPants(state, OP_AGAIN)), said => { r.bark = said; }, true);
+};
+
+export const sceneHasCamera = (state: GameState) => inScene(rideOf(state).scene);
+
+// ---------------------------------------------------------------------------------------------------------------
+// The close-up's wound: the saw into his forehead (the mutilation close-up rule), in the head's units (its middle at
+// the origin, facing right, about 24 across). k 0..1: coming down (to 0.25), the bite through the cap and the grind
+// down into his forehead (to 0.65), stuck there spinning down after.
+
+/** The saw's middle when it's in (head units), its radius. */
+const SX = 4, SY_IN = -18.5, SR = 13;
+const rnd = (n: number) => { const v = Math.sin(n * 91.7 + 13.3) * 43758.5453; return v - Math.floor(v); };
+/** The head's outline (tucker.ts's skull, and the cap over it): for the part of the saw that's buried. */
+const headPath = (c: Ctx) => {
+  c.moveTo(-10.4, -5); c.quadraticCurveTo(-10.8, -13.6, -0.6, -13.8); c.quadraticCurveTo(9.4, -13.8, 10.6, -5.6);
+  c.quadraticCurveTo(12, 1, 11.4, 5.4); c.quadraticCurveTo(10.6, 10.8, 6, 12.6); c.quadraticCurveTo(1.4, 14.2, -3.2, 12.8);
+  c.quadraticCurveTo(-9.4, 10.6, -10.6, 4); c.quadraticCurveTo(-11.2, -0.4, -10.4, -5); c.closePath();
+};
+
+registerWoundPainter('saw', (c, k, frame) => {
+  const line = (pts: number[], w: number, col: string) => { c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); };
+  const ell = (x: number, y: number, rx: number, ry: number, col: string, rot = 0) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, y, Math.max(0.05, rx), Math.max(0.05, ry), rot, 0, Math.PI * 2); c.fill(); };
+  // (where the blade is: falling in from far above, then the grind down into him)
+  const fall = Math.min(1, k / 0.25), grind = Math.max(0, Math.min(1, (k - 0.25) / 0.4)), after = Math.max(0, (k - 0.65) / 0.35);
+  const sy = k < 0.25 ? -70 + (SY_IN - 7 + 70) * fall * fall : SY_IN - 7 + 7 * grind;
+  const spin = frame * (0.9 - after * 0.85);
+  const depth = k < 0.25 ? 0 : grind;
+  // ---- the cap: split in two by the blade, the halves pushed apart, the brass plate gone flying
+  if (k >= 0.25) {
+    const open = Math.min(1, grind * 1.5);
+    c.save(); c.beginPath(); c.rect(-30, -40, 30 + SX, 60); c.clip();
+    c.translate(-open * 2.6, -open * 0.6); c.rotate(-open * 0.12); drawTuckerCap(c, 0, -10, 0, 1); c.restore();
+    c.save(); c.beginPath(); c.rect(SX, -40, 30, 60); c.clip();
+    c.translate(open * 2.6, -open * 0.4); c.rotate(open * 0.12); drawTuckerCap(c, 0, -10, 0, 1); c.restore();
+    // (the plate: off and away, end over end)
+    if (grind < 1) { const t = Math.min(1, grind * 1.4); c.save(); c.translate(SX + 4 + t * 22, -16 - t * 18 + t * t * 26); c.rotate(t * 9); c.fillStyle = '#4A3608'; c.fillRect(-4.9, -2.2, 9.8, 4.4); c.fillStyle = '#F4CC4E'; c.fillRect(-4.5, -1.8, 9, 3.6); c.restore(); }
+  } else {
+    drawTuckerCap(c, 0, -10, 0, 1);
+  }
+  // ---- the wound: the slot the blade's made down into his forehead (meat, white bone at its lips, the pink of what's
+  // inside), opening as it goes in
+  if (depth > 0) {
+    const half = 1.2 + depth * 2.2, bottom = sy + SR - 0.5;
+    c.fillStyle = '#4A0A0A'; c.beginPath(); c.moveTo(SX - half - 1.4, -14.6); c.lineTo(SX + half + 1.4, -13.6); c.lineTo(SX + half * 0.6, bottom); c.lineTo(SX - half * 0.6, bottom); c.closePath(); c.fill();
+    c.fillStyle = '#8A1414'; c.beginPath(); c.moveTo(SX - half, -14.2); c.lineTo(SX + half, -13.4); c.lineTo(SX + half * 0.4, bottom - 0.6); c.lineTo(SX - half * 0.4, bottom - 0.6); c.closePath(); c.fill();
+    ell(SX, (bottom - 14) / 2 - 3, half * 0.5, Math.max(0.5, (bottom + 14) * 0.3), '#F2A8B0');
+    line([SX - half - 1.2, -14.6, SX - half * 0.6 - 0.4, bottom], 0.6, '#F5F0E6');
+    line([SX + half + 1.2, -13.6, SX + half * 0.6 + 0.4, bottom], 0.6, '#F5F0E6');
+  }
+  // ---- the blade: whatever of it isn't inside his head (the head's outline, and the cap's, cut out of it)
+  c.save();
+  c.beginPath(); c.rect(-60, -90, 120, 140); headPath(c);
+  if (k < 0.25) { /* (still clear of him: all of it) */ c.restore(); c.save(); }
+  else c.clip('evenodd');
+  drawSawDisc(c, SX, sy, SR, spin, after > 0.9 ? 1 : 0);
+  c.restore();
+  // (its hanger arm, up out of the frame)
+  line([SX, sy, SX - 2, sy - 60], 2.2, '#1C1209'); line([SX, sy, SX - 2, sy - 60], 1.4, '#71717A');
+  // ---- the bite: sparks off the cap's brass, then bone chips and blood in a spray off the blade's back edge
+  if (k >= 0.25 && grind < 1) {
+    const t = grind;
+    for (let i = 0; i < 18; i++) {
+      const a = -Math.PI * 0.85 + rnd(i) * 0.9, sp = 6 + rnd(i + 20) * 22, ph = ((frame * 0.07 + rnd(i + 40)) % 1);
+      const x = SX + Math.cos(a) * sp * ph, y = -14 + Math.sin(a) * sp * ph + 10 * ph * ph;
+      c.globalAlpha = 1 - ph;
+      if (t < 0.25 && i % 2 === 0) ell(x, y, 0.5, 0.5, i % 4 ? '#FDE047' : '#F97316');
+      else if (i % 5 === 0) ell(x, y, 0.7, 0.5, '#F5F0E6');
+      else ell(x, y, 0.5 + rnd(i) * 0.8, 0.4 + rnd(i) * 0.6, i % 2 ? '#B91C1C' : '#7F1D1D');
+    }
+    c.globalAlpha = 1;
+    // (the mist)
+    c.globalAlpha = 0.35 * (1 - t); ell(SX - 6, -20, 8 + t * 6, 4 + t * 3, '#991B1B'); c.globalAlpha = 1;
+  }
+  // ---- the blood: out of the slot, down his brow, over the spectacles and down into the empty socket, off his jaw
+  if (k > 0.3) {
+    const run = Math.min(1, (k - 0.3) * 2.4);
+    line([SX + 2, -12, SX + 3, -12 + 8 * run, 6.2, -12 + 12 * run, 6.4, -12 + 24 * run], 1.6, '#8A1414');
+    line([SX + 2.2, -12, SX + 3.2, -12 + 8 * run, 6.4, -12 + 12 * run, 6.6, -12 + 24 * run], 0.5, '#D43A3A');
+    line([SX - 1, -12.5, SX - 2, -12.5 + 10 * run, -0.5, -12.5 + 19 * run], 1.2, '#8A1414');
+    line([SX + 4.5, -11.5, SX + 6.5, -11.5 + 6 * run, 9.4, -11.5 + 9 * run], 1, '#8A1414');
+    if (run >= 1) for (let i = 0; i < 3; i++) { const d = ((frame * 0.02 + i / 3) % 1); ell(6.6, 12 + d * 12, 0.6, 0.9, '#991B1B'); }
+  }
+  // ---- after: the saw winding down, smoking, a last spit of blood off its teeth now and then
+  if (after > 0) {
+    c.globalAlpha = Math.min(0.5, after); for (let i = 0; i < 3; i++) ell(SX + 6 + i * 1.6, sy - SR - 2 - i * 2.4 - after * 6, 1 + i * 0.6, 0.8 + i * 0.5, '#D6D3D1'); c.globalAlpha = 1;
+    if (frame % 40 < 6) for (let i = 0; i < 4; i++) ell(SX + SR * 0.8 + i * 1.4, sy - 3 - i * 1.2, 0.5, 0.4, '#B91C1C');
+  }
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Drawing: the booth (its window, the console and its big red button under the flip cover, the saw on its hanger),
+// Tucker in it, the operator; his words; the close-up
+
+/** The booth, and whoever's in it (behind the cast: the platform's in front of the trough). */
+export const drawBooth = (c: Ctx, state: GameState) => {
+  const r = rideOf(state), s = r.scene, f = state.frame, top = FLOOR - BOOTH.top;
+  if (BX1 + 200 < state.camera.x || BX0 - 200 > state.camera.x + CANVAS_WIDTH) return;
+  // ---- the booth's back: dark inside, a wall clock, a SAFETY FIRST poster, the back door (banged open in the scene)
+  box(c, BX0 - 4, top - 4, BX1 - BX0 + 8, BOOTH.top + 4, INK);
+  box(c, BX0, top, BX1 - BX0, BOOTH.top, '#3A2A1E');
+  box(c, BX0, top, BX1 - BX0, 4, '#5A4430');
+  box(c, BX0 + 16, top + 30, 34, 44, '#E7D8B0'); signText(c, 'SAFETY', BX0 + 33, top + 46, painted(1, '#7F1D1D', '#E7D8B0')); signText(c, 'FIRST', BX0 + 33, top + 58, painted(1, '#7F1D1D', '#E7D8B0'));
+  const doorOpen = s.step !== 'wait';
+  box(c, BX0 + 2, FLOOR - 96, 6, 96, doorOpen ? '#1C1209' : '#6B4423');
+  // ---- the blood (once he's had it): up the back wall, on the console
+  if (sawed(state)) { c.fillStyle = '#7F1D1D'; for (let i = 0; i < 9; i++) { c.beginPath(); c.arc(SAW_X - 30 + i * 9, top + 40 + (i * 13) % 30, 2 + (i % 3), 0, Math.PI * 2); c.fill(); } box(c, SAW_X - 14, top + 50, 3, 30, '#7F1D1D'); }
+  // ---- the saw on its hanger over the console (up till the button; then down, into him)
+  const sawDown = s.step === 'drop' ? s.sawK : s.step === 'close' || s.step === 'last' || s.step === 'fall' || s.step === 'after' || s.step === 'go' ? 1 : 0;
+  const tuckerHead = FLOOR - 82;
+  const sawY = top + 26 + sawDown * (tuckerHead - 8 - (top + 26));
+  if (!sawed(state) || inScene(s)) {
+    box(c, SAW_X - 10, top + 2, 20, 8, '#52525B');
+    c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(SAW_X, top + 8); c.lineTo(SAW_X, sawY); c.stroke();
+    if (s.step !== 'fall' && s.step !== 'after' && s.step !== 'go') drawSawDisc(c, SAW_X, sawY, 12, s.step === 'wait' ? 0 : f * 0.6);
+    box(c, SAW_X + 14, top + 12, 40, 12, '#FDE047'); signText(c, 'EFFECT #1', SAW_X + 34, top + 21, painted(1, '#1C1917', '#FDE047'));
+  } else {
+    // (the hanger's arm, snapped)
+    box(c, SAW_X - 10, top + 2, 20, 8, '#52525B'); box(c, SAW_X - 1, top + 8, 3, 18, INK);
+  }
+  // ---- Tucker: in the scene, or flat on its floor after (this visit)
+  const wounds = tuckerWoundsOf(state);
+  if (inScene(s)) {
+    const pose = s.step === 'burst' ? 'run' : s.step === 'shove' ? (s.t < 18 ? 'shove' : 'stand') : s.step === 'engage' ? 'slam' : s.step === 'press' ? (s.t < 12 ? 'slam' : 'press') : s.step === 'fall' || s.step === 'after' || s.step === 'go' ? 'flat' : 'press';
+    const capless = s.step === 'fall' || s.step === 'after' || s.step === 'go';
+    const w = s.step === 'fall' || s.step === 'after' || s.step === 'go' ? { ...wounds, saw: true } : wounds;
+    if (pose === 'flat' && s.t < 14 && s.step === 'fall') {
+      // (toppling: tipped back over his heels)
+      c.save(); c.translate(s.tx, FLOOR); c.rotate(-(s.t / 14) * 1.4); drawTucker(c, 0, 0, 1, f, 'hurt', { wounds: w, face: 'out' }); c.restore();
+    } else drawTucker(c, s.tx, FLOOR, 1, f, pose, { wounds: w, talking: s.tuckerTalking, capless, face: pose === 'flat' ? 'out' : undefined });
+  } else if (sawed(state) && bodyVisit === landVisit()) drawTucker(c, TUCK_AT, FLOOR, 1, f, 'flat', { wounds, face: 'out' });
+  else if (sawed(state)) {
+    // (another visit: the chalk outline on the booth's floor)
+    c.strokeStyle = '#F1F5F9'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(TUCK_AT - 6, FLOOR - 4, 40, 4, 0, 0, Math.PI * 2); c.stroke();
+  }
+  // ---- the console: the levers, the lamps, the big red button under its flip cover (up in the scene)
+  box(c, CONSOLE_X - 14, FLOOR - 52, 56, 52, INK); box(c, CONSOLE_X - 12, FLOOR - 50, 52, 50, '#52525B'); box(c, CONSOLE_X - 12, FLOOR - 50, 52, 6, '#71717A');
+  for (let i = 0; i < 4; i++) box(c, CONSOLE_X - 6 + i * 10, FLOOR - 40, 5, 5, (f >> 4) % 4 === i ? '#22C55E' : '#14532D');
+  const pressed = s.step === 'press' && s.t >= 12;
+  box(c, CONSOLE_X + 22, FLOOR - 58 + (pressed ? 3 : 0), 12, 6, '#DC2626');
+  box(c, CONSOLE_X + 20, FLOOR - 66, 16, 3, s.step === 'wait' || s.step === 'burst' || s.step === 'shove' ? '#FDE047' : '#A16207');
+  // ---- the operator (in the booth till she's shoved; then out on the platform)
+  const op = r.scene.step === 'wait' && !sawed(state) ? { x: OP_AT, y: FLOOR, pose: 'stand' as const } : { x: s.ox, y: s.oy, pose: s.opDown ? (s.ovy || s.ovx ? 'fly' as const : 'sit' as const) : 'stand' as const };
+  if (sawed(state) && !inScene(s)) { op.x = OP_AT + 90; op.y = FLOOR; op.pose = 'stand'; }
+  c.save(); c.translate(Math.round(op.x), Math.round(op.y)); c.scale(-1, 1);
+  drawPerson(c, { seed: opSeed(), woman: opWoman(), outfit: 'operator', f, pose: op.pose, talking: s.opTalking || !!r.bark, mood: s.step === 'fall' || s.step === 'after' ? 'shocked' : s.opDown ? 'scared' : 'angry' });
+  c.restore();
+  // ---- the booth's front: its window frame (the glass over them), the sill, the roof and its sign
+  c.globalAlpha = 0.18; box(c, BX0 + 10, top + 12, BX1 - BX0 - 20, 70, '#BFE0F8'); c.globalAlpha = 1;
+  box(c, BX0 - 4, top - 18, BX1 - BX0 + 8, 18, INK); box(c, BX0 - 2, top - 16, BX1 - BX0 + 4, 14, '#7F1D1D');
+  signText(c, 'RIDE CONTROL', (BX0 + BX1) / 2, top - 5, painted(1, '#FDE047', '#1C1209'));
+  box(c, BX0, top + 82, BX1 - BX0, 6, '#6B4423'); box(c, BX0, top + 82, BX1 - BX0, 2, '#9A6A3A');
+  // (the words over them while they're said)
+  const sayY = top - 30;
+  if (s.tucker && s.step !== 'close') saidOver(c, s.tucker.text, s.tx, sayY, '#FDE68A', 260);
+  else if (s.op) saidOver(c, s.op.text, op.x, sayY - 12, '#E0F2FE', 240);
+  else if (r.bark) saidOver(c, r.bark.text, op.x, sayY - 12, '#E0F2FE', 240);
+};
+
+/** Screen space: the close-up (the saw into his forehead), his last words under it; SKIP. */
+export const drawSceneHud = (c: Ctx, state: GameState) => {
+  const s = rideOf(state).scene;
+  if (s.step === 'close' || (s.step === 'fall' && s.t < 1)) {
+    const t = s.t, k = s.k, z = Math.min(1, t / 10);
+    const w = 400 * (0.6 + 0.4 * z), h = 250 * (0.6 + 0.4 * z), cx = CANVAS_WIDTH / 2, cy = 200, x = cx - w / 2, y = cy - h / 2;
+    c.save();
+    c.globalAlpha = Math.min(1, z * 1.4);
+    box(c, x - 8, y - 8, w + 16, h + 16, INK); box(c, x - 6, y - 6, w + 12, h + 12, '#6B4423'); box(c, x - 6, y - 6, w + 12, 3, '#9A6A3A');
+    for (const [qx, qy] of [[x - 6, y - 6], [x + w - 4, y - 6], [x - 6, y + h - 4], [x + w - 4, y + h - 4]]) box(c, qx, qy, 10, 10, '#E0B040');
+    c.beginPath(); c.rect(x, y, w, h); c.clip();
+    // (behind his head: the booth's dark wall, in bands, the red of the klaxon going round)
+    for (let i = 0; i < 6; i++) box(c, x, y + (i * h) / 6, w, h / 6 + 1, mix('#2A1E14', '#4A3424', i / 6));
+    if ((state.frame >> 3) % 2 === 0) { c.globalAlpha = 0.18; box(c, x, y, w, h, '#DC2626'); c.globalAlpha = 1; }
+    // (him: manic, looking up; the hit (the jolt, the shock); then woozy, his one eye rolled up at it)
+    const face = k < 0.25 ? 'manic' : k < 0.5 ? 'shock' : 'daze';
+    const jolt = k > 0.24 && k < 0.66 ? 0.5 + (k < 0.32 ? 1 : 0) : k < 0.25 ? 0.12 : 0.04;
+    drawTuckerCloseup(c, cx, cy + 30, 6.2, state.frame, { face, talking: s.tuckerTalking && k > 0.9, red: k < 0.25, jolt, wounds: { eye: true }, capless: true, making: { wound: 'saw', k } });
+    c.restore();
+    if (s.tucker) saidOver(c, s.tucker.text, cx, y + h + 34, '#FDE68A', 340);
+  }
+  if (inScene(s) && s.all > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
+  void CANVAS_HEIGHT; void waterY;
+};

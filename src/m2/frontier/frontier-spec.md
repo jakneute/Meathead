@@ -103,7 +103,7 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 | 1 | The frontier wilds + the station | `wilds` | FRX+0 .. FRX+21000 | 0-9 | built (section 1 job) |
 | 2 | The train | `train` | FRX+24000 .. FRX+36000 | 10-19 | built (job 2) |
 | 3 | Sawdust Gulch + the mines | `town` | FRX+39000 .. FRX+50000 | 20-29 | built (job 3) |
-| 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+53000 .. FRX+62000 | 30-39 | stub |
+| 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+53000 .. FRX+64600 | 30-38 | built (job 4) |
 | 5 | The woods (outside the park) | `woods` | FRX+65000 .. FRX+68000 | 40-49 | stub |
 | 6 | The dirt-bike chase (TEENAGERS sub-boss) | `dirtbike` | FRX+71000 .. FRX+81000 | 50-59 | stub |
 | 7 | The catch-up + Tucker's arena | `arena` | FRX+84000 .. FRX+88000 | 60-69 | placeholder end |
@@ -165,6 +165,24 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | 10000 | THE FLOODED SHAFT | dive under the rock |
 | 10330 | UP AND OUT | landings up into the daylight |
 | 10600 | TIMBER TUMBLE (cp 29 at 10660) | the log ride's queue (WAIT FROM HERE: 90 MIN), the station's front; off the right end into the log ride |
+
+### Section 4: Timber Tumble (logride/layout.ts; x from the section's start; one flume, left to right, the log on it)
+
+| x | Stretch (checkpoint) | What |
+|---|---|---|
+| 0 | THE STATION (cp 30) | the platform, the booth (the operator barks as he cuts), the waiting log: drop into it: the booth's scene (Tucker, the shove, ENGAGE THE BUZZSAWS, the saw, the close-up, flat) |
+| 1000 | FIBERGLASS CANYON (cp 31) | WALL SAWS (bulkheads down to head height: duck), alone, then two, then a pair; a settler shredded |
+| 1800 | BEAVER CREEK | RISING SAWS (the water boils, then up out of it knee high: jump), alone, then two; the beavers shredded; the spiel |
+| 2500 | THE LIFT HILL (cp 32 at 2480) | the chain, slow; SWINGING SAWS on gantries (duck as one comes through), alone, then a second |
+| 3000 | THE OLD SAWMILL (cp 33 at 3020) | the shed; DROPPING SAWS out of the rafters (a shudder and a red lamp, the slam: brake or paddle through the gap), alone, then a pair, then one more; the lumberjacks shredded |
+| 3900 | THE BIG DROP | out of the shed down into the splash pool; the ride photo's flash; soaked guests on the bridge |
+| 4250 | THE LUMBER CAMP (cp 34 at 4300) | a drop, RAIL SAWS (along the trough's edge at him: jump), alone, then mixed with a wall saw and a swing; the bear shredded |
+| 5360 | THE BREAK | the cutter comes down across the flume ahead of him: the log jumps the cut and goes down through a storm grate |
+| 5840 | THE SEWER (cp 35 at 5900, cp 36 at 7060) | LOW PIPES (brick headers down to the pipe: duck), SEWAGE GUSHERS (gurgle and drip, then the pour: brake or paddle), RATS on the walkways (they leap at the log), loose saws ROLLING down the tunnel (jump) |
+| 8400 | THE CULVERT | out of the bluff the park sits on through its busted fence (PARK PROPERTY ENDS), down the spillway into a real river |
+| 8640 | A REAL RIVER (cp 37 at 8700, cp 38 at 10080) | ROCKS (be in the air as the log hits one), LOW BRANCHES (a fallen real tree's crown: duck), crows; the rapids; a real waterfall; the crew's WOODCHIPPER AHEAD sign |
+| 10760 | THE SLUICE | the crew's conveyor up into the chipper: READY (amber), then JUMP! (green, flashing, the crew yelling it, ~110 frames): over the hopper onto the clearing; missed: mulched |
+| 11180 | THE CREW'S CLEARING | off its right end into the woods; off its left end the trail back to the park (the station: ride it again) |
 
 ## Standing rules (all apply)
 
@@ -289,3 +307,57 @@ Teach, then escalate (each hazard alone in a safe spot first):
   reaching it, sets the whole pocket off; it builds back), the flooded shaft (swim under the rock). New hurts, each with
   its lines and death screens: the cast's, the tonic, bottles, horseshoes, hatchets, TIMBER, the birler's ram, hot wax,
   dynamite, cave-in, ore, mine cart, beam, firedamp, the mill saw.
+- 2026-10-18 (job 4, the log ride; the user's: the booth, the saw into his forehead and its animated close-up, the
+  saws along a tracked ride, the sewer, the real river, the woodchipper's jump. Everything below is OURS unless it
+  says the user's): the section widened to FRX+64600 (a ride counted by time: ~11000 px of flume at 1.4-3.6 px a frame,
+  the drops faster; about a minute and a half with the scene). One flume left to right (logride/layout.ts TRACK),
+  stacked down in y: the ride at the park's level, the sewer under it (GY+560), the real river in the valley under the
+  park's bluff (GY+900, then GY+1080 past the waterfall).
+- 2026-10-18 (job 4): RIDING THE LOG (ours): the log follows the flume at the ride's pace; LEFT drags his hands in the
+  water (brake, x0.55), RIGHT paddles (x1.4), wherever the ride isn't on the chain or down a drop; JUMP hops him up out
+  of the log and back down into it (kept over the log); DOWN ducks him low in it; he can shoot; no specials (they need
+  ground). No hopping out onto ledges: the saws are the game. Respawns at 31-38 put him straight back in a log there
+  (index.ts boards him the first frame after the rebuild); the station (30) is walked to.
+- 2026-10-18 (job 4): the saws (ours, from the user's "buzzsaw obstacles"): WALL (a hazard-striped bulkhead down to
+  head height: duck), RISING (the water boils, it comes up knee high as the log nears: jump), DROPPING (out of rafters
+  on a beat, a shudder and a red lamp first: brake or paddle through the gap), SWINGING (pendulum under a gantry: duck as
+  it comes through), RAIL (runs along the trough's edge at him: jump), and in the sewer ROLLING (loose, down the tunnel:
+  jump). Each alone and safe first, then two, then mixed. A saw shot 3-4 times JAMS (smokes, stops). The animatronic
+  frontier (a settler, the beavers, lumberjacks, a bear) is sawed in half as the log comes by. The ride's recorded
+  spiel on the PA (the announcer's voice) chirps along regardless. The BREAK: a giant cutter comes down across the
+  flume ahead of him; the log jumps the cut and drops through a storm grate into the sewer.
+- 2026-10-18 (job 4): THE BOOTH (the user's beats; the staging ours): the operator (people.ts, a man or a woman by the
+  visit; two new voices, `m2.frontier.operator` / `operatorf`) barks as he cuts; he drops into the waiting log; Tucker
+  bursts in the booth's back door, shoves the operator out onto the platform, "TIME TO ENGAGE THE BUZZSAWS!" (verbatim
+  in all three pools), slams the big red button (the klaxon, every saw on the line spinning up), and EFFECT #1, hung over
+  the console, drops on its arm into his forehead. The close-up (scene.ts's painter): the blade down out of the dark,
+  the bite through his cap (split in two, the brass plate flying), the grind down into his forehead (sparks, bone chips,
+  a blood spray, the slot with bone at its lips), stuck there spinning down and smoking, the blood down his brow and
+  over his spectacles into the empty socket, his one eye dazed; his last words (SPLITTING HEADACHE). Flat on the booth's
+  floor, the saw still in him; Meathead's line; the operator up (KEEP YOUR ARMS INSIDE THE LOG); away. TUCKER_SAW_MEMO
+  ('frontier-tucker-saw') is set: tucker.ts draws the saw (stopped, a tooth gone, blood on its teeth, the slot through
+  the cap, the blood run) on him from here on. New Tucker poses for it: 'shove', 'slam', 'press'. Back in a log later
+  (a death, another visit): no scene, the operator's OP_AGAIN; this visit his body's still on the booth's floor,
+  another visit a chalk outline.
+- 2026-10-18 (job 4): the sewer (ours past "gross, dark"): brick, sludge (see-through over the log), lit by the
+  lighting system (0.62 at most; daylight down through storm grates, caged bulbs, a little light round him); rats on
+  the walkways (`m2:fr_rat`: sit up sniffing, the hunker and squeak, the leap; a bite, then off into the sludge to drown;
+  saws and gushers kill them).
+- 2026-10-18 (job 4): the real river (ours past the user's "real river"): out of a culvert in the bluff the park sits on,
+  its chain-link busted, the park's last sign on the headwall (PARK PROPERTY ENDS / NOT RESPONSIBLE PAST HERE); real
+  rock, real pines, no bolts; ROCKS (the log bucks: in the air as it hits, or his spine), LOW BRANCHES (a fallen tree's
+  crown: duck), crows (the wilds' kind), a real waterfall.
+- 2026-10-18 (job 4): THE WOODCHIPPER (the user's: jump out at that moment or a funny death): a logging crew's (real
+  loggers, past the park): their hand-painted WOODCHIPPER AHEAD sign, their conveyor hauling the log up into the
+  hopper of their CHIP-O-MATIC 9000. Telegraphed: the lamp on it goes amber (READY...), then flashes green with a big
+  JUMP! and a dotted arc to the landing, the crew yelling it (about 110 frames to do it in; a jump before that is just a
+  hop). Jumped: he vaults over the hopper onto the crew's clearing (his line); the log goes through, chips over their
+  truck. Missed: the log noses in, then him feet first, flailing (his hurt line), the chute spraying chips, then red,
+  his shoe, the bits of his pants, over the truck; the death screen (m2:fr_chipper). The clearing: off its right end into
+  the woods (DOORS.woods.start); back from the woods onto it (DOORS.logride.end); off its left end the TRAIL TO PARK
+  (the station: the ride again, saws still on). Revisits differ: the chipper off and the crew idle, the booth's chalk
+  outline, the operator out on the platform.
+- 2026-10-18 (job 4): new hurts, each with its hurt and death lines: m2:fr_saw, m2:fr_rat, m2:fr_pipe, m2:fr_sewage,
+  m2:fr_rock, m2:fr_chipper (the branches reuse the wilds' m2:fr_branch). Meathead loves rides (I LOVE LOG RIDES; the
+  lift hill's click click; BEST! RIDE! EVER!); his, Tucker's, the operator's and the crew's lines in clean / shitty /
+  naked pools.

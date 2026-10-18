@@ -37,7 +37,10 @@ export type TuckerPose =
   | 'run'      // running for it, manic: coat tails flying, knees high, both fists pumping up by his ears, the face
   | 'cab'      // leaning out of his engine's cab: waist up (the caller clips him at the sill), shaking a fist
   | 'whistle'  // in the cab, hauling on the whistle cord over his head
-  | 'hurt';    // hit: reeling back
+  | 'hurt'     // hit: reeling back
+  | 'shove'    // both hands out flat in front of him, shoving somebody out of his way (the log ride's booth)
+  | 'slam'     // a fist up high over a button, about to bring it down
+  | 'press';   // the fist brought down on it, leaning on it
 
 /** 'manic': the bookkeeper unhinged (the user's model: South Park's Mel Gibson): one eye bulging, the other a pinprick,
  *  a brow up in his cap, a clenched grin of every tooth he's got, the gap and all. */
@@ -153,7 +156,7 @@ const button = (c: Ctx, x: number, y: number, r = 1.1) => { ell(c, x, y, r + 0.4
 const HS = 1.1;
 const FACES: Record<TuckerPose, TuckerFace> = {
   stand: 'smile', talk: 'talk', ticket: 'cheer', tip: 'cheer', sit: 'daze', flat: 'out', furious: 'manic', point: 'angry',
-  run: 'manic', cab: 'manic', whistle: 'manic', hurt: 'ow',
+  run: 'manic', cab: 'manic', whistle: 'manic', hurt: 'ow', shove: 'manic', slam: 'manic', press: 'manic',
 };
 
 export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, frame: number, pose: TuckerPose = 'stand', opts: TuckerOpts = {}) => {
@@ -362,6 +365,12 @@ const armsFor = (pose: TuckerPose, f: number): [Arm, Arm] => {
       return [{ ...FS, hx: -4, hy: -38, bend: -1, fist: false, grip: true }, { ...NS, hx: 9, hy: -106 + Math.max(0, Math.sin(f * 0.2)) * 6, bend: -1, fist: true, grip: true }];
     case 'hurt':
       return [{ ...FS, hx: -24, hy: -70, bend: 1, fist: false }, { ...NS, hx: 18, hy: -76, bend: -1, fist: false, palm: true }];
+    case 'shove':
+      return [{ ...FS, hx: 18, hy: -60, bend: 0.3, fist: false, palm: true }, { ...NS, hx: 34, hy: -58, bend: 0.2, fist: false, palm: true }];
+    case 'slam':
+      return [{ ...FS, hx: -15, hy: -40, bend: 1, fist: true }, { ...NS, hx: 20, hy: -98 + Math.sin(f * 0.5) * 1.5, bend: -1, fist: true }];
+    case 'press':
+      return [{ ...FS, hx: -15, hy: -40, bend: 1, fist: true }, { ...NS, hx: 28, hy: -48, bend: 1, fist: true }];
     default:
       // (thumbs hooked in his vest pockets)
       return [{ ...FS, hx: -7, hy: -47, bend: -1, fist: false, thumbIn: true }, { ...NS, hx: 9, hy: -47, bend: 1, fist: false, thumbIn: true }];
@@ -498,7 +507,7 @@ const drawHead = (c: Ctx, face: TuckerFace, f: number, talking: boolean, capless
   mustache(c, face, f, talking);
   // ---- the cap
   if (!capless) drawCap(c, f);
-  drawWounds(c, wounds, 'head', f);
+  drawWounds(c, wounds, 'head', f, capless);
 };
 
 const specs = (c: Ctx, f: number) => {
@@ -662,7 +671,7 @@ const drawCap = (c: Ctx, _f: number) => {
  * (the eye hole through his spectacles and out the back; the buzzsaw stuck in his forehead, over the cap's line). The
  * train's job draws `eye`, the log ride's `saw`, the catch-up's `branch`. Until then: nothing.
  */
-const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number) => {
+const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, capless = false) => {
   if (!w.eye && !w.saw && !w.branch) return;
   // (the train's job: the near eye shot clean through: an empty socket, the lens starred, blood down his cheek)
   if (w.eye && layer === 'head') {
@@ -687,6 +696,33 @@ const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number) 
     line(c, [-10.6, -1.6, -10.9, 1.8], 0.7, '#7A1212');
   }
   // (the log ride's job: the buzzsaw buried in his forehead, the cap split round it, his splitting headache)
+  if (w.saw && layer === 'head') {
+    // (the slot down through the cap's crown (or, the cap off, his scalp) into his forehead: meat, bone at its lips)
+    const top = capless ? -13.6 : -21.4;
+    fill(c, '#4A0A0A', () => { c.moveTo(1.2, top); c.lineTo(7.4, top + 0.8); c.lineTo(5.6, -8); c.lineTo(3.2, -8.4); c.closePath(); });
+    fill(c, '#8A1414', () => { c.moveTo(2, top + 0.4); c.lineTo(6.6, top + 1); c.lineTo(5, -9); c.lineTo(3.6, -9.2); c.closePath(); });
+    line(c, [1.4, top + 0.2, 3.2, -8.6], 0.35, '#F5F0E6'); line(c, [7.2, top + 0.8, 5.6, -8.2], 0.35, '#F5F0E6');
+    ell(c, 4.4, (top - 8) / 2, 0.8, Math.max(1, (-8 - top) * 0.3), '#F2A8B0');
+    // (the blade: what's out of him, above the cap's crown (his scalp) and out in front of his brow; stopped, a tooth gone)
+    c.save();
+    c.beginPath(); c.rect(-20, -40, 40, top + 41.4 - 1.4); c.rect(capless ? 9.8 : 11.6, top + 0.4, 20, -9 - top); c.clip();
+    const R = 10, sx = 4.4, sy = -17;
+    ell(c, sx, sy, R + 1.4, R + 1.4, STEEL[4]);
+    fill(c, STEEL[2], () => { for (let i = 0; i < 28; i++) { const a = (i / 28) * Math.PI * 2 + 0.2, rr = i % 2 ? R - 0.4 : R + 1.1; c.lineTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); } c.closePath(); });
+    ell(c, sx, sy, R * 0.8, R * 0.8, STEEL[3]);
+    fill(c, STEEL[1], () => { c.moveTo(sx, sy); c.arc(sx, sy, R * 0.75, -2.4, -1.9); c.closePath(); });
+    ell(c, sx, sy, 2.4, 2.4, BRASS[2]); ell(c, sx, sy, 1, 1, STEEL[4]);
+    // (blood dried on its teeth)
+    for (let i = 0; i < 5; i++) { const a = -2.6 + i * 0.5; ell(c, sx + Math.cos(a) * R * 0.9, sy + Math.sin(a) * R * 0.9, 0.8, 0.6, '#7A1212'); }
+    c.restore();
+    // (the hanger's arm, snapped off short, up out of it)
+    line(c, [sx, sy, sx - 1.4, sy - 13], 1.4, STEEL[4]); line(c, [sx, sy, sx - 1.4, sy - 13], 0.7, STEEL[2]);
+    // (the blood down his brow from under the visor, over the spectacles, off his jaw; a fresh drip now and then)
+    line(c, [5.6, -8, 6, -4, 5.2, 2, 5.6, 9], 1, '#7A1212'); line(c, [5.7, -8, 6.1, -4, 5.3, 2, 5.7, 9], 0.35, '#C83232');
+    line(c, [3.4, -8.2, 2.6, -3, 1.6, 2], 0.8, '#7A1212');
+    const d = ((f + 45) % 80) / 80;
+    if (d < 0.6) ell(c, 5.6, 9.6 + d * 4, 0.45, 0.65, '#991B1B');
+  }
   // (the catch-up's job: the giant branch through his chest, out the back of his coat, leaves still on it)
 };
 

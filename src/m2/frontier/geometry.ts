@@ -33,7 +33,7 @@ export const SECTIONS = {
   town: { x0: FRX + 39000, x1: FRX + 50000 },
   /** THE LOG RIDE: Tucker at the controls (the buzzsaw), the tracked ride and its saws, then the SEWER (way off the
    *  track), then out into a real river, which ends at the WOODCHIPPER. */
-  logride: { x0: FRX + 53000, x1: FRX + 62000 },
+  logride: { x0: FRX + 53000, x1: FRX + 64600 },
   /** THE WOODS (outside the park): the kids on dirt bikes, "MINE", Tucker out of the leaf pile, the bounty. */
   woods: { x0: FRX + 65000, x1: FRX + 68000 },
   /** THE DIRT-BIKE CHASE: the TEENAGERS sub-boss, in a Genesis road-racer's view. */

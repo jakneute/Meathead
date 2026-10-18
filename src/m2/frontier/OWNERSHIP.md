@@ -10,7 +10,7 @@ verbatim, the fill-ins, the rules, the section plan). Each section's index.ts he
 | 1 (done) | `wilds/`, `tucker.ts` | wilds (0-9) |
 | 2 (done) | `train/` (and tucker.ts's eye wound) | train (10-18) |
 | 3 (done) | `town/` | town (20-29) |
-| later | `logride/` | logride (30-39) |
+| 4 (done) | `logride/` (and tucker.ts's saw wound, its poses 'shove' / 'slam' / 'press') | logride (30-38) |
 | later | `woods/` | woods (40-49) |
 | later | `dirtbike/` (incl. the TEENAGERS sub-boss) | dirtbike (50-59) |
 | later | `arena/` (incl. Tucker's fight, when the user gives it) | arena (60-69) |
@@ -31,7 +31,7 @@ fighting and platforming on the way (about 2.5x pure walking).
 | wilds | FRX+0 .. FRX+21000 (21000) | ~24000 (platform heavy, the logs) | ~5 min |
 | train | FRX+24000 .. FRX+36000 (12000) | 12000 | ~2.5 min |
 | town | FRX+39000 .. FRX+50000 (11000) | 11000 (the mines' shafts counted by play) | ~2.3 min |
-| logride | FRX+53000 .. FRX+62000 (9000) | 9000 (a ride: by time) | ~2 min |
+| logride | FRX+53000 .. FRX+64600 (11600) | 9000 (a ride: by time) | ~2 min |
 | woods | FRX+65000 .. FRX+68000 (3000) | 3000 + its scene | ~0.6 min |
 | dirtbike | FRX+71000 .. FRX+81000 (10000) | by time: the TEENAGERS | ~3 min |
 | arena | FRX+84000 .. FRX+88000 (4000) | the catch-up + the boss | the fight |
@@ -77,7 +77,10 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
 - **The crash** (train -> town, built, train/engine.ts): the crash puts him at `DOORS.town.start`. Back from the town's
   left end: `DOORS.train.end` (the tender's front, set by train/index.ts): the train stood still after the crash (walk it
   back to the caboose and the station); into the cab's back goes on to the town again.
-- **The woodchipper** (logride -> woods), **the bike** (woods -> dirtbike), **the
+- **The woodchipper** (logride -> woods, built, logride/chipper.ts): he lands on the crew's clearing past the chipper
+  and walks off its right end to `DOORS.woods.start`. Back from the woods: `DOORS.logride.end` (on the clearing, set by
+  logride/index.ts); its left end is the trail back to the ride's station.
+- **The bike** (woods -> dirtbike), **the
   catch-up** (dirtbike -> arena): one-way cuts; give each a way back on foot.
 
 ## Things that outlive a death

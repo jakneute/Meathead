@@ -261,6 +261,8 @@
   "m2.frontier.prospectorf": { "voice": [["af_bella", 0.6], ["af_sarah", 0.4]], "speed": 1.08, "rate": 1.04 },
   "m2.frontier.quartet": { "voice": [["am_adam", 0.5], ["am_michael", 0.5]], "speed": 1.0, "rate": 1.0, "gain": 1.05 },
   "m2.frontier.announcer": { "voice": "am_michael", "speed": 1.08, "rate": 1.0, "fx": "radio_mild" },
+  "m2.frontier.operator": { "voice": "am_echo", "speed": 1.15, "rate": 1.06 },
+  "m2.frontier.operatorf": { "voice": "af_heart", "speed": 1.15, "rate": 1.06 },
   "m2.foreign.jetgoon": { "voice": "am_puck", "speed": 1.15, "rate": 1.04, "fx": "radio_mild" },
   "m2.foreign.jetgoonf": { "voice": "af_nova", "speed": 1.15, "rate": 1.06, "fx": "radio_mild" },
   "m2.foreign.mech_eiffel": { "voice": [["am_eric", 0.6], ["am_onyx", 0.4]], "speed": 0.95, "rate": 0.84, "gain": 1.2, "fx": "mask" },
