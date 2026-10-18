@@ -67,8 +67,12 @@ const stepSaw = (state: GameState, s: Saw, logRx: number) => {
   switch (s.type) {
     case 'wall': s.cx = X(s.x); s.cy = duckCy(wy, s.r); return near > -60 && near < 700;
     case 'swing': {
-      const th = Math.sin(((state.frame + s.phase) / 150) * Math.PI * 2) * 1.0;
-      s.cx = X(s.x) + Math.sin(th) * SWING_ARM; s.cy = wy - SWING_TOP + Math.cos(th) * SWING_ARM; s.k = th;
+      const th = Math.sin(((state.frame + s.phase) / 150) * Math.PI * 2) * 1.0, off = Math.sin(th) * SWING_ARM;
+      s.cx = X(s.x) + off; s.k = th;
+      // (never lower than the duck line over the water right under it: up the lift hill the water's higher on the
+      // uphill side of its arc, and a plain arc brought its teeth down into a ducked head there (the playtest:
+      // "impossible to dodge going uphill"). Ducked he always clears it, slope and all; sat up it gets him)
+      s.cy = Math.min(wy - SWING_TOP + Math.cos(th) * SWING_ARM, waterY(s.x + off) - DUCK_LINE - (s.r + 7));
       return true;
     }
     case 'rise': {
@@ -108,8 +112,12 @@ export const updateHazards = (ctx: FrameContext) => {
   const onRide = L.mode === 'ride' && p.health > 0 && !p.inCutscene;
   // (the big splashes running their course, the water off the screen)
   for (const w of r.waves) w.t++;
-  if (r.waves.length) r.waves = r.waves.filter(w => w.t < 80);
+  for (const w of r.waves) w.x += w.vx * Math.max(0, 1 - w.t / 40) * 0.5;
+  if (r.waves.length) r.waves = r.waves.filter(w => w.t < 110);
   if (r.lens > 0) r.lens--;
+  // (the spray raining back down, gone into the water where it lands)
+  for (const d of r.spray) { d.vy += 0.42; d.vx *= 0.99; d.x += d.vx; d.y += d.vy; d.life--; }
+  if (r.spray.length) r.spray = r.spray.filter(d => d.life > 0 && !(d.vy > 0 && d.y > waterY(d.x - X(0)) + 2));
   const rb = riderBox(state);
   const hitRider = (x: number, y: number, rad: number) => {
     const cx = Math.max(rb.x, Math.min(x, rb.x + rb.w)), cy = Math.max(rb.y, Math.min(y, rb.y + rb.h));
@@ -208,7 +216,9 @@ export const updateHazards = (ctx: FrameContext) => {
   r.gushCd = Math.max(0, r.gushCd - 1);
   for (const [gx, ph] of GUSHERS) {
     const c = (state.frame + ph) % 160, pour = c >= 115 && c < 150;
-    if (c === 90 && Math.abs(X(gx) - state.camera.x - 400) < 500) playSound('glug', 0.6, -6);
+    // (the tell, a good second before it goes: a rumble in the pipe, glugging, a dribble that thickens, its lamp)
+    if ((c === 50 || c === 80 || c === 100) && Math.abs(X(gx) - state.camera.x - 400) < 560) playSound('glug', 0.5 + (c - 50) / 120, -6);
+    if (c === 60 && Math.abs(X(gx) - state.camera.x - 400) < 560) playSound('rumble', 0.35, -4);
     if (c === 115 && Math.abs(X(gx) - state.camera.x - 400) < 500) playSound('gush', 0.8, -4);
     if (!pour) continue;
     const gx0 = X(gx) - 22, gx1 = X(gx) + 22, top = waterY(gx) - 220;
@@ -478,8 +488,20 @@ export const drawObstaclesBack = (c: Ctx, state: GameState) => {
     c.fillStyle = '#6A6A58'; c.beginPath(); c.ellipse(X(gx), top - 4, 20, 7, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#0C0A06'; c.beginPath(); c.ellipse(X(gx), top - 3, 15, 5, 0, 0, Math.PI * 2); c.fill();
     box(c, X(gx) - 18, top - 2, 4, 10, '#3A4A1E'); box(c, X(gx) + 12, top, 3, 7, '#3A4A1E');
-    if (cyc < 115 && cyc >= 90) for (let i = 0; i < 3; i++) box(c, X(gx) - 10 + i * 10, top + 4 + ((f * 4 + i * 30) % 200), 4, 6, '#6B5A1E');
-    else if (cyc % 40 < 4) box(c, X(gx) - 2, top + 4 + (cyc % 40) * 8, 3, 5, '#6B5A1E');
+    // (its warning on the vault wall beside it: a hazard plate, OUTFALL, and a lamp that turns amber and flashes as it
+    // builds, red while it pours)
+    const px = X(gx) + 34, py = top - 30;
+    box(c, px - 1, py - 1, 50, 26, INK); stripes(c, px, py, 48, 6);
+    box(c, px, py + 6, 48, 18, '#F8FAFC'); signText(c, 'OUTFALL', px + 24, py + 19, painted(1, '#1C1917', '#F8FAFC'));
+    const lamp = cyc >= 115 && cyc < 150 ? '#EF4444' : cyc >= 50 ? (f % 10 < 5 ? '#F59E0B' : '#7C2D12') : '#3F3A30';
+    box(c, px + 18, py - 12, 12, 10, INK); box(c, px + 20, py - 10, 8, 7, lamp);
+    // (the build: from a drip to a dribble to a stream, the pipe shuddering and sludge spitting off its lip)
+    if (cyc >= 50 && cyc < 115) {
+      const k = (cyc - 50) / 65, w = 2 + k * 10, sh = Math.sin(f * 1.7) * k * 2;
+      c.globalAlpha = 0.9; box(c, X(gx) - w / 2 + sh, top + 2, w, wy - top - 2, '#6B5A1E'); c.globalAlpha = 1;
+      for (let i = 0; i < 2 + k * 5; i++) box(c, X(gx) - 14 + ((f * 3 + i * 11) % 28), top + 2 + ((f * 6 + i * 37) % 30), 3, 3, '#7A6A28');
+      for (let i = 0; i < 3; i++) box(c, X(gx) - 16 + ((f * 4 + i * 13) % 32), wy - 4 - ((f + i * 5) % 8) * k, 4, 3, '#7A6A28');
+    } else if (cyc % 40 < 4) box(c, X(gx) - 2, top + 4 + (cyc % 40) * 8, 3, 5, '#6B5A1E');
   }
   // (the busted pipe sections: a concrete culvert section fallen across the channel, end-on, half sunk; rebar out of
   // its broken end; the sludge heaping up against it: a hop)
@@ -492,6 +514,11 @@ export const drawObstaclesBack = (c: Ctx, state: GameState) => {
     c.strokeStyle = '#7A4A1E'; c.lineWidth = 2; c.beginPath(); c.moveTo(x - 20, cy - 22); c.lineTo(x - 28, cy - 38); c.moveTo(x + 14, cy - 26); c.lineTo(x + 20, cy - 40); c.stroke();
     box(c, x - 6, cy - 31, 12, 4, '#6A645A');
     for (let i = 0; i < 4; i++) box(c, x - 44 + i * 6 + ((f >> 1) % 6), wy - 3 - (i % 2) * 2, 5, 3, '#8A8A3A');
+    // (the tell: sprayed on the wall behind it by somebody who found it the hard way, JUMP and an arrow up, and a
+    // work crew's orange blinker wedged on top of it, lit (its light in art.ts rideLighting))
+    signText(c, 'JUMP!', x, wy - 128, painted(2, '#F97316', '#1C1917'));
+    c.strokeStyle = '#F97316'; c.lineWidth = 4; c.beginPath(); c.moveTo(x, wy - 70); c.lineTo(x, wy - 106); c.moveTo(x - 10, wy - 96); c.lineTo(x, wy - 108); c.lineTo(x + 10, wy - 96); c.stroke();
+    box(c, x - 6, cy - 44, 12, 12, INK); box(c, x - 4, cy - 42, 8, 8, f % 16 < 8 ? '#FB923C' : '#7C2D12');
   }
   for (const k of ROCKS) {
     if (!onScreen(state, X(k) - 70, X(k) + 70)) continue;
@@ -532,6 +559,15 @@ export const drawObstaclesFront = (c: Ctx, state: GameState) => {
     // (the strap holding the bottom one up)
     box(c, x - PIPE_R - 2, low - 3, PIPE_R * 2 + 4, 4, '#3F3A30');
     if (f % 50 < 30) box(c, x - 1, low + PIPE_R + (f % 50), 3, 4, '#A3A35A');
+    // (the tell: the bottom pipe banded in hazard tape, LOW and DUCK stenciled on the stack, and a caged work lamp hung
+    // off the hanger lighting it up out of the dark (its light in art.ts rideLighting))
+    stripes(c, x - PIPE_R - 4, low + PIPE_R - 6, PIPE_R * 2 + 8, 6);
+    box(c, x - 26, low - 62, 52, 20, INK); box(c, x - 25, low - 61, 50, 18, '#FDE047');
+    signText(c, 'DUCK', x, low - 47, painted(1, '#1C1917', '#FDE047'));
+    const lx = x + 30, ly = low - 70;
+    c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 4, ly - 30); c.lineTo(lx, ly - 6); c.stroke();
+    box(c, lx - 7, ly - 7, 14, 14, INK); box(c, lx - 5, ly - 5, 10, 10, '#FEF9C3');
+    box(c, lx - 1, ly - 7, 2, 14, INK); box(c, lx - 7, ly - 1, 14, 2, INK);
   }
   for (const [gx, ph] of GUSHERS) {
     if (!onScreen(state, X(gx) - 60, X(gx) + 60)) continue;

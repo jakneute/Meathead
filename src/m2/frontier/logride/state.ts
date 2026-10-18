@@ -11,7 +11,7 @@ import type { SawType, PropKind } from './layout';
 /** The log he's in. `mode`: not in one (walking: the station, the clearing), riding, the woodchipper's end. */
 export interface Log {
   mode: 'off' | 'scene' | 'ride' | 'chipper' | 'leap' | 'done';
-  /** Where (its middle, x from the section's start), how fast, how much his brake or paddle has it at (0.55..1.4). */
+  /** Where (its middle, x from the section's start), how fast, how much his brake or paddle has it at (0.38..1.75). */
   rx: number; v: number; push: number;
   /** Him in it: how far up out of it he's jumped, and how fast he's going up or down. */
   up: number; vy: number;
@@ -75,7 +75,9 @@ export interface Chipper {
 }
 
 /** A big wave splash at the bottom of a drop (world: where, and frames since). */
-export interface Wave { x: number; y: number; t: number }
+export interface Wave { x: number; y: number; t: number; /** how big (1: a drop's; the biggest 1.2) */ s: number; /** drifting on with the log */ vx: number }
+/** A drop of a big splash's spray: up, out and raining back down onto the water (world). */
+export interface Spray { x: number; y: number; vx: number; vy: number; floor: number; life: number; s: number; sewer: boolean }
 
 export interface Ride {
   log: Log;
@@ -86,6 +88,8 @@ export interface Ride {
   junk: Rock[];
   /** The big splashes going; frames of water left running down the screen. */
   waves: Wave[]; lens: number;
+  /** The big splashes' spray, raining back down. */
+  spray: Spray[];
   /** The cutter at the break: frames since it slammed down (0: not yet). */
   cutT: number;
   rats: Enemy[];
@@ -106,7 +110,7 @@ export interface Ride {
 
 export const rideOf = (state: GameState) => frontierState<Ride>(state, 'logride', () => ({
   log: { mode: 'off', rx: 0, v: 0, push: 1, up: 0, vy: 0, off: 0, hopV: 0, float: 0, bob: 0, bobV: 0, splash: 0, t: 0, camY: 0 },
-  saws: [], props: [], rocks: [], junk: [], waves: [], lens: 0, cutT: 0, rats: [], crew: [],
+  saws: [], props: [], rocks: [], junk: [], waves: [], lens: 0, spray: [], cutT: 0, rats: [], crew: [],
   scene: { step: 'wait', t: 0, all: 0, busy: false, tucker: null, op: null, tuckerTalking: false, opTalking: false, tx: 0, ox: 0, oy: 0, ovx: 0, ovy: 0, opDown: false, sawK: 0, k: 0 },
   chip: { state: 'idle', t: 0, lx0: 0, ly0: 0, lk: 0, chips: [], crew: null, crewSaid: false, gore: 0, madSaid: false },
   pa: null, bark: null, said: {}, flash: 0, pipeCd: 0, gushCd: 0, branchCd: 0,

@@ -18,7 +18,7 @@ import { drawPerson } from '../../adventure/temple/people';
 import { GY } from '../geometry';
 import { box, mix, INK, frontierSky, frontierSign, onScreen, hash, burned, painted, type Ctx } from '../kit';
 import { rideOf } from './state';
-import { X, Y, x0, waterY, zoneAt, inSewer, indoorsAt, realAt, SIGNS, PLATFORM_END, LOAD_X, WALKWAYS, CHASM, CHIPPER, CLEARING } from './layout';
+import { X, Y, x0, waterY, zoneAt, inSewer, indoorsAt, realAt, SIGNS, PLATFORM_END, LOAD_X, WALKWAYS, CHASM, CHIPPER, CLEARING, PIPES, JUNK, GUSHERS, DUCK_LINE } from './layout';
 import { LOG_LEN, RIM } from './ride';
 
 /** (hazards.ts's beats: the giant saw hits the ground SLAM_AT frames after it lets go; the flume over the crack goes at
@@ -111,6 +111,10 @@ export const drawRideFront = (c: Ctx, state: GameState) => {
   if (onScreen(state, X(5640), X(8460))) drawSewerFront(c, state);
   if (onScreen(state, X(8400), X(11100))) drawRiverFront(c, state);
   if (onScreen(state, X(3000), X(3900))) drawShedFront(c, state);
+};
+
+/** Over everything (index.ts draws it last): the big splashes, the photo's flash, the water running down the screen. */
+export const drawSplashes = (c: Ctx, state: GameState) => {
   drawWaves(c, state);
   const r = rideOf(state);
   if (r.flash > 0) { c.fillStyle = `rgba(255,255,255,${r.flash / 14})`; c.fillRect(state.camera.x - 10, state.camera.y - 10, CANVAS_WIDTH + 20, CANVAS_HEIGHT + 20); }
@@ -123,16 +127,24 @@ export const drawRideFront = (c: Ctx, state: GameState) => {
 // water running down the screen.
 
 const drawWaves = (c: Ctx, state: GameState) => {
-  const r = rideOf(state);
+  const r = rideOf(state), f = state.frame;
   for (const w of r.waves) {
-    if (!onScreen(state, w.x - 400, w.x + 500)) continue;
-    const t = w.t, rx = w.x - x0, sewer = rx > 5700 && rx < 8440;
-    const rise = t < 20 ? Math.sin((t / 20) * Math.PI / 2) : Math.max(0, 1 - (t - 20) / 52);
-    const fade = t < 56 ? 1 : Math.max(0, (80 - t) / 24);
+    if (!onScreen(state, w.x - 600, w.x + 700)) continue;
+    const t = w.t, S = w.s, rx = w.x - x0, sewer = rx > 5700 && rx < 8440;
+    const rise = t < 14 ? Math.sin((t / 14) * Math.PI / 2) : Math.max(0, 1 - (t - 14) / 72);
+    const fade = t < 70 ? 1 : Math.max(0, (110 - t) / 40);
     const body = sewer ? '#7A7A3A' : '#BFE0F8', crest = sewer ? '#A3A35A' : '#F8FAFC', deep = sewer ? '#5A5A28' : '#7AB6D0';
+    // (the hit: a flash of white water over the whole view)
+    if (t < 8) { c.globalAlpha = 0.45 * (1 - t / 8); c.fillStyle = sewer ? '#C8C88A' : '#E0F2FE'; c.fillRect(state.camera.x - 10, state.camera.y - 10, CANVAS_WIDTH + 20, CANVAS_HEIGHT + 20); }
+    // (the mist hanging over it, rising)
+    for (let i = 0; i < 8; i++) {
+      c.globalAlpha = 0.22 * fade * Math.min(1, t / 6); c.fillStyle = crest;
+      c.beginPath(); c.ellipse(w.x - 200 * S + i * 62 * S, w.y - 80 * S - t * 1.6 - hash(i) * 120 * S, (60 + t * 0.9) * S, (34 + t * 0.5) * S, 0, 0, Math.PI * 2); c.fill();
+    }
+    // (the curtains: thrown up and out back the way he came and, the biggest, on ahead: way over his head)
     for (const s of [-1, 1] as const) {
-      const big = s > 0 ? 1.25 : 0.85, H = 240 * rise * big, out = (40 + t * 3.4) * big, base = w.x + s * 24;
-      c.globalAlpha = 0.82 * fade;
+      const big = s > 0 ? 1.05 : 0.8, H = 350 * S * rise * big, out = (60 + t * 4.2) * big * S, base = w.x + s * 20;
+      c.globalAlpha = 0.85 * fade;
       // (the sheet: thick at its foot, up and out, curling over at the top)
       c.fillStyle = deep; c.beginPath(); c.moveTo(base, w.y + 4);
       c.quadraticCurveTo(base + s * out * 0.15, w.y - H * 1.05, base + s * out, w.y - H * 0.8);
@@ -142,30 +154,61 @@ const drawWaves = (c: Ctx, state: GameState) => {
       c.quadraticCurveTo(base + s * out * 1.2, w.y - H * 0.5, base + s * (out * 1.1 + 18), w.y + 2); c.closePath(); c.fill();
       // (the crest breaking into drops, falling as it goes over)
       c.fillStyle = crest;
-      for (let i = 0; i < 12; i++) {
-        const u = i / 11, px = base + s * out * (0.25 + u * 1.05), py = w.y - H * (0.98 - u * 0.5) + Math.max(0, t - 20) * u * 2.2;
-        c.beginPath(); c.arc(px + s * hash(i + t) * 6, py - hash(i * 3) * 10, 3 + hash(i * 7) * 4, 0, Math.PI * 2); c.fill();
+      for (let i = 0; i < 22; i++) {
+        const u = i / 21, px = base + s * out * (0.2 + u * 1.15), py = w.y - H * (0.98 - u * 0.5) + Math.max(0, t - 14) * u * 2.6;
+        c.beginPath(); c.arc(px + s * hash(i + t) * 8, py - hash(i * 3) * 16, 3 + hash(i * 7) * 6, 0, Math.PI * 2); c.fill();
       }
       // (streaks down its face)
-      c.fillStyle = crest; c.globalAlpha = 0.5 * fade;
-      for (let i = 0; i < 4; i++) { const u = 0.3 + i * 0.18, px = base + s * out * u; c.fillRect(px, w.y - H * (0.8 - u * 0.4), 3, H * 0.4); }
+      c.fillStyle = crest; c.globalAlpha = 0.55 * fade;
+      for (let i = 0; i < 7; i++) { const u = 0.2 + i * 0.12, px = base + s * out * u; c.fillRect(px, w.y - H * (0.85 - u * 0.4), 3, H * 0.45); }
     }
-    // (the white water boiling round the log's foot)
+    // (the sheet thrown on ahead, arching right over the log and him)
+    if (rise > 0.05) {
+      const a0 = w.x - 30 * S, a1 = w.x + (180 + t * 3) * S, top = w.y - 300 * S * rise;
+      c.globalAlpha = 0.6 * fade; c.strokeStyle = body; c.lineWidth = 20 * rise * S;
+      c.beginPath(); c.moveTo(a0, w.y); c.quadraticCurveTo((a0 + a1) / 2, top - 60 * S, a1, w.y - 10); c.stroke();
+      c.globalAlpha = 0.8 * fade; c.strokeStyle = crest; c.lineWidth = 5 * rise * S;
+      c.beginPath(); c.moveTo(a0, w.y); c.quadraticCurveTo((a0 + a1) / 2, top - 66 * S, a1, w.y - 10); c.stroke();
+    }
+    // (the near wall of water, thrown up toward us in front of the log: his legs and the log's side behind it)
+    {
+      const nH = 130 * S * rise, nx0 = w.x - 150 * S, nx1 = w.x + 220 * S;
+      c.globalAlpha = 0.62 * fade; c.fillStyle = body;
+      c.beginPath(); c.moveTo(nx0, w.y + 10);
+      for (let i = 0; i <= 12; i++) { const u = i / 12, bump = Math.sin(u * Math.PI) * (0.6 + 0.4 * Math.sin(i * 1.7 + t * 0.4)); c.lineTo(nx0 + (nx1 - nx0) * u, w.y - nH * bump); }
+      c.lineTo(nx1, w.y + 10); c.closePath(); c.fill();
+      c.globalAlpha = 0.85 * fade; c.fillStyle = crest;
+      for (let i = 0; i < 12; i++) { const u = (i + 0.5) / 12, bump = Math.sin(u * Math.PI) * (0.6 + 0.4 * Math.sin(i * 1.7 + 0.85 + t * 0.4)); c.beginPath(); c.arc(nx0 + (nx1 - nx0) * u, w.y - nH * bump, 4 + hash(i + 9) * 5, 0, Math.PI * 2); c.fill(); }
+    }
+    // (the white burst of foam on the surface, spreading, and the white water boiling round the log's foot)
+    c.globalAlpha = 0.85 * fade; c.strokeStyle = crest; c.lineWidth = 6;
+    c.beginPath(); c.ellipse(w.x + 30, w.y, (70 + t * 5) * S, 8 + t * 0.25, 0, 0, Math.PI * 2); c.stroke();
     c.globalAlpha = 0.9 * fade; c.fillStyle = crest;
-    for (let i = 0; i < 16; i++) { const px = w.x - 120 + i * 18 + Math.sin(t * 0.3 + i) * 4; c.beginPath(); c.ellipse(px, w.y - 2 - hash(i + 5) * 6, 10 + hash(i) * 8, 5 + hash(i + 1) * 4, 0, 0, Math.PI * 2); c.fill(); }
+    for (let i = 0; i < 22; i++) { const px = w.x - 180 * S + i * 20 * S + Math.sin(t * 0.3 + i) * 5; c.beginPath(); c.ellipse(px, w.y - 2 - hash(i + 5) * 8, 12 + hash(i) * 10, 6 + hash(i + 1) * 5, 0, 0, Math.PI * 2); c.fill(); }
     c.globalAlpha = 1;
   }
+  // (the spray, up and raining back down)
+  for (const d of r.spray) {
+    if (d.x < state.camera.x - 20 || d.x > state.camera.x + CANVAS_WIDTH + 20) continue;
+    c.globalAlpha = Math.min(1, d.life / 30) * 0.9;
+    c.fillStyle = d.sewer ? (d.s > 4 ? '#A3A35A' : '#7A7A3A') : d.s > 4 ? '#F8FAFC' : '#BFDBFE';
+    c.fillRect(d.x, d.y, d.s, d.s * (d.vy > 0 ? 1.8 : 1.2));
+    if (d.vy > 3) { c.globalAlpha *= 0.4; c.fillRect(d.x + d.s / 2 - 0.5, d.y - d.vy * 1.5, 1, d.vy * 1.5); }
+  }
+  c.globalAlpha = 1;
+  void f;
 };
 
 /** The splash's water down the screen (the lens: drops sliding down it), fading. */
+const LENS = 130;
 const drawLens = (c: Ctx, state: GameState) => {
   const r = rideOf(state);
   if (r.lens <= 0) return;
-  const a = r.lens / 80, run = 80 - r.lens, sewer = inSewer(camRx(state));
-  for (let i = 0; i < 16; i++) {
-    const sx = state.camera.x + hash(i * 7 + 3) * CANVAS_WIDTH, sy = state.camera.y + ((hash(i * 3 + 1) * CANVAS_HEIGHT * 0.8 + run * (2 + hash(i) * 5)) % CANVAS_HEIGHT);
-    const w = 8 + hash(i * 5) * 14, h = w * 1.3;
-    c.globalAlpha = 0.32 * a; c.fillStyle = sewer ? '#A3A35A' : '#E0F2FE';
+  const a = Math.min(1, r.lens / 60), run = LENS - r.lens, sewer = inSewer(camRx(state));
+  for (let i = 0; i < 26; i++) {
+    const sx = state.camera.x + hash(i * 7 + 3) * CANVAS_WIDTH, sy = state.camera.y + ((hash(i * 3 + 1) * CANVAS_HEIGHT * 0.8 + run * (1.5 + hash(i) * 4)) % CANVAS_HEIGHT);
+    const w = 9 + hash(i * 5) * 18, h = w * 1.3;
+    c.globalAlpha = 0.36 * a; c.fillStyle = sewer ? '#A3A35A' : '#E0F2FE';
     c.beginPath(); c.ellipse(sx, sy, w, h, 0, 0, Math.PI * 2); c.fill();
     c.fillRect(sx - 2, sy - h - run * 0.6, 4, run * 0.6);
     c.globalAlpha = 0.6 * a; c.fillStyle = '#FFFFFF'; c.beginPath(); c.ellipse(sx - w * 0.35, sy - h * 0.4, w * 0.22, h * 0.18, 0, 0, Math.PI * 2); c.fill();
@@ -583,6 +626,11 @@ export const rideLighting = (state: GameState, lamps: Light[]): SceneLight | nul
     const lights: Light[] = [me, ...lamps];
     for (let k = 6000; k < 8400; k += 520) lights.push({ x: X(k), y: waterY(k) - 120, r: 140, a: 0.55, color: '#FEF9C3' });
     for (let k = 5980; k < 8400; k += 400) lights.push({ x: X(k), y: waterY(k) - 186, r: 110, a: 0.6, color: '#FDE68A' });
+    // (every obstacle lit out of the dark, so it reads well before it's on him: the pipes' caged work lamps, the busted
+    // sections' orange blinkers, the outfalls' lamps going amber as they build)
+    for (const k of PIPES) lights.push({ x: X(k) + 30, y: waterY(k) - DUCK_LINE - 22 - 70, r: 170, a: 0.85, color: '#FEF9C3' });
+    for (const k of JUNK) lights.push({ x: X(k), y: waterY(k) - 40, r: 130, a: state.frame % 16 < 8 ? 0.8 : 0.45, color: '#FB923C' });
+    for (const [k, ph] of GUSHERS) { const cyc = (state.frame + ph) % 160; lights.push({ x: X(k), y: waterY(k) - 200, r: 150, a: cyc >= 50 ? 0.75 : 0.35, color: cyc >= 115 && cyc < 150 ? '#FCA5A5' : cyc >= 50 ? '#FCD34D' : '#FEF3C7' }); }
     // (daylight down the chasm he came down)
     if (rideOf(state).cutT >= SLAM_AT) lights.push({ x: X((CHASM.a + CHASM.b) / 2), y: waterY(5850) - 120, r: 220, a: 0.7, color: '#FEF9C3' });
     return { dark: 0.62, shade: [10, 12, 6], rim: 0.6, lights };

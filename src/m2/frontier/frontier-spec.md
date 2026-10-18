@@ -994,3 +994,41 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   (no second walk-in). Out the gate, or SKIP INTRO from the pause menu: the hub (America USA's spot), and the walk back's
   over. It plays after every Tucker kill; in practice only the first clear (a cleared land's arena has nobody to fight).
   BACK TO HUB from the pause menu anywhere in the land is untouched: always the hub.
+- 2026-10-18 (playtest E, the log ride; the user's: "i still see no splash on parts where you fly downwards. really
+  sell it. also, many buzzsaws seem impossible to dodge, particularly the ones as you're going uphill"; "the duck and
+  jump parts ... are too close together"; "move left and right a bit more"; "you always face right ... even when
+  jumping"; "you can clearly influence its speed to avoid obstacles. many of the sewer obstacles seem hard to
+  anticipate"; "can't seem to scroll further after the woodchipper"):
+  THE SPLASHES never went off, most times: they waited for the flume's slope (sampled 24 px wide) to go from steep to
+  flat between one frame and the next, and at the log's speed down a drop it nearly always landed a frame inside that
+  band and skipped it (down the chasm into the sewer, at 4.6 a frame, never). Now the foot of each drop is listed
+  (layout.ts DROPS: the big drop 4250, the chasm 5840, the culvert's spillway 8640, the waterfall 9990, sized) and
+  crossing one sets it off. The splash: a flash of white water over the view, curtains thrown up and out both ways
+  (the one on ahead ~370 tall: over half the screen), a sheet arching on ahead right over him, a near wall of water in
+  front of the log over his legs, mist rising, a white foam ring spreading on the surface, ~170 drops of spray of its
+  own (gravity, raining back into the water wherever they come down), the water down the screen longer (130 frames),
+  a bigger bang (three splashes, the crash, the gush, a thud) and shake, the log bucking higher. All drawn last, over
+  everything (art.ts drawSplashes, the end of the section's drawFront).
+  THE SAWS, audited: the lift hill's swings were the impossible ones: a plain arc, and up the slope the water's higher
+  on its uphill side, so the teeth came down ~20 over the water there, into a ducked head (30), and on the chain at 1.4
+  a frame the log's under the arc longer than its swing. Now a swing's saw never comes lower than the duck line over
+  the water right under it (hazards.ts stepSaw): ducked he always clears it, slope and all, sat up it gets him (no
+  change on the flat). The canyon's walls (flat, duck, ~2 s in view), the creek's rising saws (they boil from far off;
+  2000, 2220, 2420), the mill's drops (the shudder and the lamp; pace through) kept. The lumber camp thinned to one of
+  each with room: a rail saw (4880: meets the log ~4620), the drop (4960), the wall (5200), the swing (5340, duck into
+  duck) (was drop, three rail saws, a wall and a swing in 700 px: a rail saw meets the log ~260 short of its x, so they
+  stacked up). The river: rocks 9100, 9580, 9740, 10460; limbs 9340, 10180 (no duck-jump-duck-jump string at the end).
+  THE SEWER, spaced ~300 apart, never a duck straight into a jump: pipe 6100, junk 6400, gusher 6700, pipe 7000, junk
+  7300, the gusher pair 7560/7660 (pace through), pipe 7950, junk 8200; five rats. Every one tells early: the pipes'
+  bottom banded in hazard tape, a DUCK plate on the stack, a caged work lamp lighting it (a real light); the busted
+  sections' JUMP! and an arrow sprayed on the wall behind, an orange blinker wedged on top (lit); the gushers' OUTFALL
+  plate and lamp (amber, flashing from ~1 s before, red pouring), a rumble and glugs, a drip that thickens to a stream,
+  the pipe shuddering (lit amber); the rats squeaking from the moment they're in view, crouching longer (32 frames,
+  chittering) before they leap.
+  SPEED AND LEFT/RIGHT: paddling now 1.75x the stretch's pace, braking 0.38x, answering about twice as quick, water
+  thrown off his hands; the hop carries him further (3.6 a frame, up to 76 off the log's middle). FACING: the ride
+  turns him every frame left or right is held (seated, hopping); the one thing found that held him facing right was the
+  flintlock's lock-on (fire held: no turning round), and carried (the ride) it now turns with him.
+  THE WAY ON from the clearing: its exit into the woods made a wide mouth (the last 100 px of the clearing, any height
+  near the ground) so walking or jumping into the end always takes him through; still clear of where he's put back
+  from the woods (11760).

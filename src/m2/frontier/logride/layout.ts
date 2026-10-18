@@ -77,6 +77,11 @@ export const SPEEDS: [number, number, boolean][] = [
   [9990, 3.2, true], [10760, 1.7, false],
 ];
 export const speedAt = (rx: number) => { let s = SPEEDS[0]; for (const q of SPEEDS) if (rx >= q[0]) s = q; return s; };
+/** The foot of every drop (where the log goes down a slope or falls, onto the flat): [x, how big its splash is]. The
+ *  log crossing one sets off the big wave (ride.ts bigSplash): the big drop, the fall into the sewer, the culvert's
+ *  spillway into the river, the waterfall. (Found by crossing the foot, not by the slope changing: the slope's sampled
+ *  24 px wide, and at the log's speed down a drop it skipped right over the change most of the time.) */
+export const DROPS: [number, number][] = [[4250, 1.15], [5840, 1.1], [8640, 1], [9990, 1.2]];
 
 /** The waterline at x (from the section's start), world y. */
 export const waterY = (rx: number) => {
@@ -102,16 +107,18 @@ export type SawType = 'wall' | 'rise' | 'drop' | 'swing' | 'rail';
  *  in the log) is well under it, his sat-up head well over it (ride.ts). */
 export const DUCK_LINE = 44;
 export const SAWS: [SawType, number, number?][] = [
-  // FIBERGLASS CANYON
-  ['wall', 1250], ['wall', 1520], ['wall', 1700], ['wall', 1760],
-  // BEAVER CREEK
-  ['rise', 2000], ['rise', 2240], ['rise', 2380],
-  // THE LIFT HILL
+  // FIBERGLASS CANYON (all ducks)
+  ['wall', 1250], ['wall', 1520], ['wall', 1720], ['wall', 1780],
+  // BEAVER CREEK (all jumps, each with room)
+  ['rise', 2000], ['rise', 2220], ['rise', 2420],
+  // THE LIFT HILL (on the chain: the swings' saws never come lower than the duck line over the water under them, the
+  // slope and all: hold duck and they go over; sat up, they get him)
   ['swing', 2680, 0], ['swing', 2880, 60],
-  // THE OLD SAWMILL
+  // THE OLD SAWMILL (brake or paddle through the gaps)
   ['drop', 3200, 0], ['drop', 3480, 0], ['drop', 3600, 70], ['drop', 3790, 30],
-  // THE LUMBER CAMP
-  ['drop', 4560, 40], ['rail', 4760], ['rail', 4960], ['wall', 5040], ['rail', 5130], ['swing', 5270, 20],
+  // THE LUMBER CAMP: one of each, ~250-340 apart. (A rail saw meets the log about 260 short of its x, at the ride's
+  // pace: this one around 4620.) Then the drop (pace yourself), the wall (duck), the swing (keep ducking).
+  ['rail', 4880], ['drop', 4960, 40], ['wall', 5200], ['swing', 5340, 20],
 ];
 /** The giant saw that slams into the ground ahead of him (the break): where it comes down; when (the log this far on);
  *  the chasm the fault line opens (the log falls through it). */
@@ -127,19 +134,21 @@ export const PROPS: [number, PropKind][] = [
 // The sewer's and the river's own
 
 /** Low pipes across the sewer (a bundle of them down from the vault to head height: duck). */
-export const PIPES = [6060, 6720, 7280, 8240];
+// (the sewer's beats, ~300 apart, never a duck straight into a jump: pipe 6100, junk 6400, gusher 6700, pipe 7000,
+// junk 7300, the gusher pair 7560/7660, pipe 7950, junk 8200; each lit by its own work lamp, its warning sprayed on)
+export const PIPES = [6100, 7000, 7950];
 /** Busted pipe sections lying across the sewer's channel, half sunk (the log hits one and bucks: be in the air). */
-export const JUNK = [6200, 6980, 7640, 8100];
+export const JUNK = [6400, 7300, 8200];
 /** Sewage pouring out of a pipe in the sewer's roof on a beat (brake or paddle through): [x, phase]. */
-export const GUSHERS: [number, number][] = [[6320, 0], [7180, 50], [7820, 0], [7900, 75]];
+export const GUSHERS: [number, number][] = [[6700, 0], [7560, 0], [7660, 80]];
 /** Rats on the walkways (they leap at the log): [x, height of the walkway]. None in a gusher's or a saw's way. */
-export const RATS: [number, number][] = [[6540, -500], [6600, -500], [6800, -500], [7420, -500], [7470, -500], [8020, -500], [8070, -500], [8110, -500]];
+export const RATS: [number, number][] = [[6560, -500], [6840, -500], [7440, -500], [8040, -500], [8110, -500]];
 /** The walkway along the sewer's back wall (the rats' ground): from, to, height. */
 export const WALKWAYS: [number, number, number][] = [[6450, 6900, -500], [7350, 7560, -500], [7960, 8200, -500]];
 /** Rocks in the river (the log hits it and bucks: be in the air as it does). */
-export const ROCKS = [9100, 9560, 9720, 10320, 10560];
-/** Low limbs over the river (duck). Real trees. */
-export const BRANCHES = [9320, 10160, 10460];
+export const ROCKS = [9100, 9580, 9740, 10460];
+/** Low limbs over the river (duck). Real trees. (Each at least ~240 from the nearest rock.) */
+export const BRANCHES = [9340, 10180];
 /** The crew's hand-painted warnings on the river's far bank: [x, words]. */
 export const CREW_SIGNS: [number, string[]][] = [[8990, ['ROCKS!', 'JUMP EM']], [9230, ['LOW LIMBS', 'DUCK!']]];
 /** Crows over the river: [x, height]. */

@@ -32,12 +32,16 @@ const rat = (ctx: FrameContext, e: Enemy) => {
       e.vel.x = 0;
       // (the log under it, coming: ahead of him and below, not too far)
       const dx = m.x - pm.x, dy = pm.y - m.y;
-      if (p.health > 0 && !p.inCutscene && dx > 40 && dx < 230 && dy > -40 && dy < 200) { e.aiState = 'crouch'; e.aiTimer = 0; playSound('chitter', 0.6, 8); }
+      // (the tell: on screen ahead of him it's up and squeaking, well before it goes; then it crouches a good half
+      // second, chittering, before the leap)
+      if (dx > 0 && dx < 640 && dy > -40 && dy < 260 && e.aiTimer! % 40 === 0) playSound('chitter', 0.35, 10 + (e.aiTimer! % 80 ? 2 : 0));
+      if (p.health > 0 && !p.inCutscene && dx > 40 && dx < 300 && dy > -40 && dy < 200) { e.aiState = 'crouch'; e.aiTimer = 0; playSound('chitter', 0.7, 8); }
       return false;
     }
     case 'crouch':
       e.vel.x = 0;
-      if (e.aiTimer! >= 18) {
+      if (e.aiTimer! % 10 === 0) playSound('chitter', 0.5, 12);
+      if (e.aiTimer! >= 32) {
         // (the leap: at where he'll be)
         e.aiState = 'leap'; e.aiTimer = 0;
         const t = 26, lead = 3 * t;

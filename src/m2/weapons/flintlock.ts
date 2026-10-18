@@ -158,7 +158,9 @@ const fire = (ctx: FrameContext) => { facingState = ctx.state;
   if (chargedAt !== state.frame - 1) { charge = 0; target = null; lockFacing = pl.facing; playSound('click', 0.8, -3); }
   chargedAt = state.frame;
   pl.shootCooldown = 0;
-  // (locking on: he can walk and jump with it held, but he can't turn round)
+  // (locking on: he can walk and jump with it held, but he can't turn round. Except carried along (a log ride, a cart):
+  // there left and right only ever turn him, so he turns with them, fire held or not)
+  if (pl.carried) lockFacing = pl.facing;
   pl.facing = lockFacing;
   if (!target || !alive(target) || Math.hypot(headOf(target).x - m.x, headOf(target).y - m.y) > LOCK_REACH * 1.2 || (headOf(target).x - m.x) * pl.facing < -8) target = pick(state, m);
   // (primed: it'll go when he lets go)

@@ -33,7 +33,7 @@ import { buildHazards, updateHazards, drawHazardsBack, drawHazardsFront, drawPro
 import { RAT, LOGGER, setCrewOn } from './kinds';
 import { startScene, updateScene, updateBooth, againLine, sawed, drawBooth, drawSceneHud } from './scene';
 import { updateChipper, drawChipperBack, drawChipperFront } from './chipper';
-import { drawRideBackdrop, drawRideBack, drawRideFront, drawLogBack, drawLogFront, rideLighting } from './art';
+import { drawRideBackdrop, drawRideBack, drawRideFront, drawLogBack, drawLogFront, drawSplashes, rideLighting } from './art';
 
 /** Back from the woods: on the crew's clearing, past the chipper. */
 DOORS.logride.end = { x: X(11760), y: CHIPPER.ground };
@@ -52,14 +52,16 @@ const waterAt = (x: number, y: number) => {
 /** The ways off its ends, on foot. */
 const EXITS: Exit[] = [
   { x0: x0, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.town.end },
-  { x0: x1 - 60, x1, yTop: CHIPPER.ground - 40, yBot: CHIPPER.ground + 2, to: DOORS.woods.start },
+  // (off the clearing's right end into the woods: a generous mouth, so walking (or jumping) into the end always takes
+  // him through, whatever the run's tread does to his feet there)
+  { x0: x1 - 100, x1: x1 + 60, yTop: CHIPPER.ground - 220, yBot: CHIPPER.ground + 40, to: DOORS.woods.start },
   { x0: X(CLEARING.a), x1: X(CLEARING.a) + 40, yTop: CHIPPER.ground - 40, yBot: CHIPPER.ground + 2, to: STATION },
 ];
 
 /** Round again (the trail back to the station): the saws reset, the log waiting. */
 const resetRide = (state: GameState) => {
   const r = rideOf(state);
-  r.log.mode = 'off'; r.cutT = 0; r.waves = []; r.lens = 0; r.chip = { state: 'idle', t: 0, lx0: 0, ly0: 0, lk: 0, chips: [], crew: null, crewSaid: false, gore: 0, madSaid: false };
+  r.log.mode = 'off'; r.cutT = 0; r.waves = []; r.spray = []; r.lens = 0; r.chip = { state: 'idle', t: 0, lx0: 0, ly0: 0, lk: 0, chips: [], crew: null, crewSaid: false, gore: 0, madSaid: false };
   r.said = { opcut: true };
   buildHazards(state);
 };
@@ -150,6 +152,8 @@ export const logride: FrontierSection = {
     drawHazardsFront(c, state);
     drawObstaclesFront(c, state);
     drawChipperFront(c, state);
+    // (the big splashes over everything: the log, him, the trough, the hazards; then the water down the screen)
+    drawSplashes(c, state);
   },
   drawHud: (c, state) => {
     const r = rideOf(state);

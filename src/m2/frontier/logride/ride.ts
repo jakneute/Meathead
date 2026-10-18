@@ -20,7 +20,7 @@ import { setUi } from '../../store';
 import { meatheadSays, speak, byPants } from '../section';
 import type { ByPants } from '../talk';
 import { rideOf, type Ride } from './state';
-import { X, x0, x1, waterY, speedAt, slopeAt, realAt, RIDE_CPS, START, END } from './layout';
+import { X, x0, x1, waterY, speedAt, slopeAt, realAt, RIDE_CPS, START, END, DROPS } from './layout';
 import {
   RIDE_VOICES, RIDE_START, FIRST_SAW, LIFT_HILL, BIG_DROP, PHOTO, SEWER, RATS_SEEN, REAL_RIVER, FALLS, CHIPPER_SEEN,
   SPIEL_CREEK, SPIEL_MILL, SPIEL_DROP,
@@ -34,7 +34,9 @@ export const SINK = -4, DUCK_SINK = 10, LOG_LEN = 136, RIM = 26;
 const SAT_H = 62, DUCKED_H = 34;
 const JUMP_V = 9.6, FALL = 0.5;
 /** A hop's carry along the log (px a frame either way), how far off its middle he can get, how fast it catches up. */
-const HOP_DX = 2.4, OFF_MAX = 44, CATCH = 0.14;
+const HOP_DX = 3.6, OFF_MAX = 76, CATCH = 0.1;
+/** His paddle and his brake: what they make of the stretch's pace (the user's: speed's a real dodge). */
+const PADDLE = 1.75, BRAKE = 0.38;
 
 /** Ducked down in the log (not mid-hop). */
 const ducked = (state: GameState) => !!state.player.isDucking && rideOf(state).log.up <= 0;
@@ -98,14 +100,26 @@ const drops = (state: GameState, x: number, y: number, n: number, up: number, sp
   for (let i = 0; i < n; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * spread, y }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * up }, life: 26 + Math.random() * 16, color: sewer ? (i % 2 ? '#8A8A3A' : '#6A6A2A') : i % 3 ? '#E0F2FE' : '#93C5FD', size: 2 + Math.random() * 3 });
 };
 
-/** The big wave splash off the foot of a drop (like a real log ride's): a wall of water up either side of the log,
- *  the spray up over everything, the screen running wet. */
-export const bigSplash = (state: GameState, r: Ride, x: number, y: number, sewer = false) => {
-  r.waves.push({ x, y, t: 0 });
-  r.lens = 80;
-  playSound('splash', 1, -10); playSound('splash', 1, -3); playSound('crash', 0.45, -14); playSound('gush', 0.6, -8);
-  shakeScreen(state, 12, 6);
-  drops(state, x + 40, y, 70, 16, 220, sewer);
+/** The big wave splash off the foot of a drop (like a real log ride's): curtains of water thrown up and out both ways
+ *  and on ahead, way over his head (a third of the screen and more), a white burst of foam on the surface, the spray
+ *  raining back down, the screen running wet, the bang and the shake, the log bucking. `s`: how big (the big drop and
+ *  the waterfall the biggest). Drawn over everything (art.ts drawSplashes). */
+export const bigSplash = (state: GameState, r: Ride, x: number, y: number, sewer = false, s = 1, vx = 0) => {
+  r.waves.push({ x, y, t: 0, s, vx });
+  r.lens = 130;
+  playSound('splash', 1, -12); playSound('splash', 1, -5); playSound('splash', 0.9, 2); playSound('crash', 0.6, -16); playSound('gush', 0.9, -10); playSound('thud', 0.8, -12);
+  shakeScreen(state, 18, 10);
+  // (the spray: up and out both ways and on ahead, raining back down onto the water)
+  const n = Math.round(150 * s);
+  for (let i = 0; i < n; i++) {
+    const back = i % 3 === 0, a = Math.random();
+    r.spray.push({
+      x: x + (Math.random() - 0.3) * 90, y: y - Math.random() * 10,
+      vx: back ? -1.5 - a * 5 : 1 + a * 7 + vx * 0.5, vy: -(6 + Math.random() * 13) * s,
+      floor: y, life: 80 + Math.random() * 40, s: 2 + Math.random() * 4, sewer,
+    });
+  }
+  drops(state, x + 40, y, 40, 14, 260, sewer);
 };
 
 /** A frame of the ride. */
@@ -115,30 +129,30 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   L.t++;
   // ---- the pace: the stretch's, his brake or paddle on top where the ride lets him
   const [, base, free] = speedAt(L.rx);
-  const want = free ? (controls.right ? 1.4 : controls.left ? 0.55 : 1) : 1;
-  L.push += (want - L.push) * 0.06;
+  // (a real dodge, the user's: paddling nearly doubles it, dragging his hands nearly stops it, and it answers quick)
+  const want = free ? (controls.right ? PADDLE : controls.left ? BRAKE : 1) : 1;
+  L.push += (want - L.push) * 0.12;
   const target = base * (free ? L.push : 1);
   // (down a drop it builds; anything else eases to it)
-  L.v += (target - L.v) * (base > 6 ? 0.12 : 0.07);
-  const before = L.rx;
+  L.v += (target - L.v) * (base > 6 ? 0.12 : 0.11);
+  const startRx = L.rx;
   L.rx = Math.min(END, L.rx + L.v);
   // (riding the water: a gentle bob on the flat)
   L.float = base < 6 && Math.abs(slopeAt(L.rx)) < 0.15 ? Math.sin(L.t * 0.09) * 1.6 : 0;
   // (the lift hill's chain: clack clack)
   if (base < 1.5 && L.t % 14 === 0) playSound('click', 0.5, -6);
   // (paddling: a slap of water now and then; braking: a hiss)
-  if (free && L.t % 18 === 0 && (controls.right || controls.left)) playSound('splash', 0.18, controls.right ? 4 : -4);
+  if (free && L.t % 14 === 0 && (controls.right || controls.left)) playSound('splash', 0.24, controls.right ? 4 : -4);
+  // (and the water off his hands: thrown back paddling, curling up off them braking)
+  if (free && L.t % 4 === 0 && L.up <= 0 && (controls.right || controls.left)) {
+    const sw = L.rx > 5700 && L.rx < 8440;
+    drops(state, riderX(r) + (controls.right ? -24 : 28), waterY(L.rx) - 2, 2, controls.right ? 3 : 5, 16, sw);
+  }
   // (the water lapping at it, always; the real river rushing)
   if (L.t % 44 === 0) playSound('splash', 0.07, 6 + Math.random() * 6);
   if (realAt(L.rx) && L.t % 90 === 0) playSound('gush', 0.08, -10);
   // (spray off its nose, going)
   if (L.v > 2.4 && L.t % 3 === 0 && L.up <= 0) drops(state, X(L.rx) + 60, waterY(L.rx) - 2, 1, 2 + L.v * 0.6, 10, L.rx > 5700 && L.rx < 8440);
-  // ---- splashdowns: off a drop onto the flat: the big wave
-  const slopeWas = slopeAt(before), slopeNow = slopeAt(L.rx);
-  if (slopeWas > 0.35 && slopeNow < 0.15) {
-    L.bobV = 6 + L.v * 0.4; L.splash = 1;
-    bigSplash(state, r, X(L.rx), waterY(L.rx), L.rx > 5700 && L.rx < 8440);
-  }
   if (L.splash > 0) L.splash++;
   // ---- the log's buck (a rock, a splashdown): up and back down on the water
   if (L.bob > 0 || L.bobV > 0) { L.bob += L.bobV; L.bobV -= 0.7; if (L.bob <= 0) { L.bob = 0; L.bobV = 0; } }
@@ -168,6 +182,12 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   const catchUp = L.off * (L.up > 0 ? CATCH : CATCH * 1.8);
   L.rx = Math.max(START, Math.min(END, L.rx + catchUp)); L.off -= catchUp;
   if (Math.abs(L.off) < 0.05) L.off = 0;
+  // ---- splashdowns: across the foot of a drop this frame: the big wave
+  for (const [fx, sz] of DROPS) {
+    if (startRx >= fx || L.rx < fx) continue;
+    L.bobV = 8 + L.v * 0.5; L.splash = 1;
+    bigSplash(state, r, X(fx), waterY(fx), fx > 5700 && fx < 8440, sz, speedAt(fx + 10)[1]);
+  }
   // ---- checkpoints, as he passes them
   for (const c of RIDE_CPS) if (L.rx >= c.rx && state.checkpoint < c.cp) state.checkpoint = c.cp;
   // ---- what's said along the way (each once)
