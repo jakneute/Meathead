@@ -205,6 +205,7 @@ const clampCam = (x: number) => Math.max(ARENA_L, Math.min(ARENA_R - CANVAS_WIDT
 export const startFight = (state: GameState, tx: number, facing: 1 | -1): Fight => {
   game = state; token++;
   const e = makeKindEnemy(TUCKER_KIND as EnemyKind, tx, GY);
+  e.noCrowd = true;
   e.facing = facing; e.seen = true;
   noBagFrom.add(e);
   state.enemies.push(e);
@@ -497,6 +498,9 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
     e.facing = q.dir; e.aiX = q.sp; e.aiY = q.y - e.height; e.variant = Math.floor(Math.random() * 7); e.seen = true; e.aiState = 'run';
     // (they give nothing back (the user's): no heal or ammo off a beatdown or a shakedown; no drops either, see tickFight)
     e.noHeal = true;
+    // (they run straight through Tucker and each other, harmless to him: never shoved about by anybody (the playtest: they
+    // got stuck on him))
+    e.noCrowd = true;
     state.enemies.push(e);
     return false;
   });
@@ -641,7 +645,7 @@ const leave = (state: GameState, l: Lion) => {
   e.pos.x = l.x - e.width / 2; e.pos.y = GY - e.height; e.vel.x = 0; e.vel.y = 0;
   e.facing = l.side < 0 ? -1 : 1; e.seen = true; e.variant = l.side < 0 ? 0 : 1;
   // (it gives nothing back, like the critters: no heal or ammo off a beatdown or a shakedown; no drops, see updateFight)
-  e.noHeal = true;
+  e.noHeal = true; e.noCrowd = true;
   state.enemies.push(e);
 };
 

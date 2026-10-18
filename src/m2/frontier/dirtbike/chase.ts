@@ -156,6 +156,9 @@ const teensLeft = (c: Chase) => {
 const holdHim = (state: GameState, on: boolean) => {
   const p = state.player;
   p.hidden = on; p.carried = on; p.noSpecials = on; p.vel.x = 0; p.vel.y = 0;
+  // (his gun stays quiet on the bike: the left punch is the fire button, and the side-view gun went off with it, its zap
+  // the "pew" the user kept hearing)
+  if (on) p.shootCooldown = Math.max(p.shootCooldown, 3);
   if (!on) { p.inCutscene = false; p.jetski = false; p.moto = false; }
 };
 

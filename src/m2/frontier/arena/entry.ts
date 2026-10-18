@@ -28,10 +28,10 @@ import { silenceAll } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { AXE_BITE } from '../../../m1/game/render/player/moves';
-import { hands, saidOver, teleport, ledge } from '../section';
+import { hands, saidOver, teleport } from '../section';
 import { box, mix, INK, type Ctx } from '../kit';
 import { drawTuckerCloseup, drawBough, registerWoundPainter, SPLIT_EYES_AT, type TuckerFace } from '../tucker';
-import { GY, AXE_TREE_X, AXE_TR, CUT_H, MH_CHOP_X, TAUNT_X, FIGHT_X, LOG_X, LOG_BARE } from './layout';
+import { GY, AXE_TREE_X, AXE_TR, CUT_H, MH_CHOP_X, TAUNT_X, FIGHT_X, LOG_X } from './layout';
 import { arenaOf, next, markIntroSeen, UP_MEMO, SPLIT_MEMO, type Arena } from './state';
 import { tuckerSays, meatheadLine, camTo, camSnap, tickTucker, WOUNDS_ALL } from './cast';
 import { setBranchMemos } from './catchup';
@@ -50,7 +50,8 @@ const TH_HIT = (() => {
 export const layLog = (state: GameState, s: Arena) => {
   if (s.logLaid) return;
   s.logLaid = true;
-  ledge(state, LOG_X, GY - 2 * AXE_TR, LOG_BARE, { hidden: true });
+  // (no ledge on it: the user's, the felled tree isn't one to stand on in the fight)
+  void state;
 };
 /** The world after the entry: the tree down along the ground, the axe in the stump, him split (a retry, a skip, a
  *  revisit). */

@@ -22,7 +22,7 @@ import type { Enemy } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
 import { registerM2Kind, registerHurtLines, registerKindCallouts } from '../../kinds';
 import { INK } from '../kit';
-import { GY, LOG_X, LOG_LEN, AXE_TR, ROCK_X, ROCK_HW, ROCK_H } from './layout';
+import { GY, ROCK_X, ROCK_HW, ROCK_H } from './layout';
 import { FIGHT_HURT, LION_CALLS } from './lines';
 import { drawLion } from './beasts';
 
@@ -53,7 +53,6 @@ export const critterSpeed = (c: Critter) => DEF[c].speed;
 /** How high the ground is at x (the felled trunk and the boulder: the ground ones run up over them). */
 const humpAt = (x: number) => {
   let h = 0;
-  if (x > LOG_X - 4 && x < LOG_X + LOG_LEN) h = Math.max(h, 2 * AXE_TR);
   const d = Math.abs(x - ROCK_X);
   if (d < ROCK_HW + 20) h = Math.max(h, d < ROCK_HW ? ROCK_H : ROCK_H * (1 - (d - ROCK_HW) / 20));
   return h;
