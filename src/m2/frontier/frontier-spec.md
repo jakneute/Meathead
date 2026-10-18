@@ -50,11 +50,25 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
   fight), show a graphic ANIMATED close-up of it happening: a full-detail, multi-frame, gory cutscene close-up of the
   wound being made, not a still of the result. `tucker.ts` has the close-up renderer (`drawTuckerCloseup`) with a
   wound-in-progress hook (`making: { wound, k }`, painters registered per wound with `registerWoundPainter`).
-- **The fight isn't designed yet:** the arena is a placeholder end; don't invent the fight. Section 7 ends after the
-  jumpscare at the placeholder.
+- **Tucker's fight (the user's, verbatim; built by job G):** "with the final blow of the buzzsaw, you severed all his
+  optical nerves and he's completely blind. he pulls out a flint lock pistol and tries to draw a beat on you. it's similar
+  to oily Oscar but a lot faster and more erratic and has less homing abilities. he can still apparently hear so he will
+  change facing if you jump to the other side of him. about a double sized arena. not as wide as stuntman steve's fight.
+  there are also bees chasing after you that you will need to avoid. they don't like the commotion. every time he fires
+  his gun, various wildlife scurry across the screen, grounded and flying. you need to avoid those. the wildlife - except
+  for the bees - won't try to hurt you. they are smaller wildlife too but will hurt you if they run into you. tucker gets
+  faster and more erratic as the fight continues. getting hit by the bullet does heavy damage, far more damage than any
+  other obstacle in the fight. he moves slowly and cautiously throughout the fight. his weakness is the soul sucker. not
+  directly though. when the animals stampede in terror, they are particularly susceptible to your soul sucker. it fills
+  fairly slowly. could take about one or two stampedes to get a single blood splatter. firing the blood splatter on him
+  will shower him in blood and draw the scent of blood of nearby mountain lions that will maul him for heavy damage. he
+  cannot be hurt by other means as he's getting mauled. be sure to have a special slow mo animation for the weakness
+  kill." (Also the user's: every mutilation of him an animated close-up; the in-fight maulings may be in-world with a brief
+  punch-in; the weakness kill the special slow-mo lions; the grizzly gets its close-up.)
 - **Tucker's STANDARD death (for the fight, later):** he falls over, apparently dead; Meathead walks up to him; Tucker
   pops up "AAHHH!" (his usual jumpscare); then a grizzly bear comes out of nowhere and mauls him to death for good, body
-  chunks flying everywhere (the close-up rule applies to the mauling). His weakness-kill death: with the fight (TBD).
+  chunks flying everywhere (the close-up rule applies to the mauling). His weakness-kill death: the mountain lions, a
+  special slow-mo animation (both built by job G).
 - **The log ride's order:** the tracked ride with its buzzsaws, its LAST stretch in a SEWER (he veered way off the
   intended track), then the theme-park log flies out into an ACTUAL river, and that river ends at the WOODCHIPPER.
 - **The land's running joke: "Wilderness Land" ends up in the ACTUAL wilderness.** Up to the log ride it's all theme
@@ -107,11 +121,11 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 | 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+56000 .. FRX+67900 | 30-38 | built (job 4; playtest fixes D) |
 | 5 | The woods (outside the park) + the bounty | `woods` | FRX+68000 .. FRX+71000 | 40-41 | built (job 5) |
 | 6 | The dirt-bike chase (TEENAGERS sub-boss) | `dirtbike` | FRX+74000 .. FRX+84000 (side view: the first 1800) | 50-55 | built (job 6) |
-| 7 | The catch-up + Tucker's arena | `arena` | FRX+87000 .. FRX+91000 | 60-69 | catch-up, impalement, fake-out built (job 7); the arena entry (the axe tree, the split, blind) built (job F); the fight a placeholder (job G) |
+| 7 | The catch-up + Tucker's arena | `arena` | FRX+87000 .. FRX+91000 | 60-69 | catch-up, impalement, fake-out built (job 7); the arena entry (the axe tree, the split, blind) built (job F); the fight and both deaths built (job G) |
 
 Gaps of 3000 between sections (grow your x1 into the one after yours). The stubs: flat ground, a frontier sign naming
 the section, a COMING SOON board, one checkpoint at the start, walk off the right end into the next section (and back
-off the left end). The arena's stand-in: walk past its middle: VICTORY, the walk-away (`walkAway/tucker.ts`, the
+off the left end). (All replaced now.) The arena's end: Tucker beaten, VICTORY, the walk-away (`walkAway/tucker.ts`, the
 FLINTLOCK), the hub, Wilderness Land cleared.
 
 ### Section 1: the frontier wilds (x from the section's start)
@@ -218,7 +232,7 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
 | 1230 | THE KID'S BIKE | where Meathead gets off after the crash (it stays there on its stand) |
 | 1300 | THE REFILL | big health + big ammo (the boss-door refill; there every retry, short of the entrance beat) |
 | 1400 .. 2000 | THE CLEARING | real woods thinned out round THE OAK (1700): its pointed branch at chest height; the crash, Tucker hung on it, the stolen bike wrecked under it; walk up to the body (~1490): the fake-out; Tucker up (~1550), NOW! ABOUT THAT FARE!, and (the same cutscene) off to the right |
-| 2000 .. 2500 | THE AXE TREE (job F; the arena proper is job G's, about double size) | a tall pine (2130), a lumberjack's axe in its near side: Tucker taunts from just past it (2222), Meathead chops from 2080; the trunk comes down on Tucker's head (the split close-up), then lies along the ground (2144 .. 2404, its bare first 94 a low one-way ledge, lit top), the axe planted in the stump (scenery); Tucker blind at 2192 (a retry: flat there, the entrance beat 220 short); the fight's placeholder board (2424); walk past 2494: VICTORY, the walk-away |
+| 2040 .. 3640 | TUCKER'S GLADE, the fight's arena (job G; 1600 wide: two screens, narrower than Steve's 2000; walled both ends while it's on) | cp 61 at 1780 (manual: his once the fight's first started), the second refill at 1910; THE AXE TREE (job F, moved on by job G): a tall pine (2360), a lumberjack's axe in its near side: Tucker taunts from just past it (2452), Meathead chops from 2310; the trunk comes down on Tucker's head (the split close-up), then lies along the ground (2374 .. 2634, its bare first 94 a low one-way ledge, lit top), the axe planted in the stump (scenery); Tucker blind at 2452 (a retry: flat there, the entrance beat 220 short); a granite boulder (3170, a ledge 58 up, lit lip); THE FIGHT (fight.ts) |
 
 ## Standing rules (all apply)
 
@@ -600,7 +614,7 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   axe tree / felled trunk with it (layout.ts AXE_TREE_X, LOG_X, FIGHT_X).
 - 2026-10-18 (job 7): still a SEPARATE LATER JOB, not built: the walk-back from the parking lot after his kill (the
   walk-away's HEADING BACK TO PARK, the intro's lot in a re-entry mode, the ticket lady's re-entry exchange, clean /
-  shitty / naked; see the fill-ins above). And his fight itself, when the user gives it.
+  shitty / naked; see the fill-ins above; job H). (His fight: built, job G, below.)
 - 2026-10-18 (playtest fixes A, section 1, the user's notes): THE ANIMALS ARE BIGGER and tougher (drawn and boxed at
   a scale each, their heads, corpses and special deaths with them: doe x1.4, buck x1.35, wolf x1.4, cougar x1.3, bison
   x1.3, beaver x1.25, porcupine x1.25, rattler, crow and trout x1.2): doe 55 HP (kick 14), buck 120 (charge 22), wolf
@@ -893,3 +907,73 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   forearms, bloody knuckles; 55% his jeans torn through at the knees and the seat (skinned raw under them; naked: his
   cheeks scraped raw), streaks down his back to his belt, a gash in his scalp running down his neck, blood off his lip
   in profile; 75% the lot dripping (off his back, his ear), the waistband soaked. Clean, shat and naked alike.
+- 2026-10-18 (job G, TUCKER'S FIGHT. The user's design is in the fill-ins above; everything below is OURS unless it says
+  the user's; tuned blind, no runs: arena/fight.ts has every number up top): THE ARENA: a glade in the real woods past the
+  clearing, 1600 wide (two screens; Steve's is 2000), walled at both ends from the moment it's on (the retry's entrance
+  beat included) till he's dead (holdIn too); the axe tree moved on into its left end (AXE_TREE_X = TREE_X + 660: the
+  entry, the felled trunk and its ledge move with it), a granite boulder ledge toward its right (lit lip), no near trees
+  in it. The placeholder board and the walk-past VICTORY are gone. Checkpoint 61 (manual, set when the fight first
+  starts) short of the arena, a second big health + ammo refill between it and the arena (the first stays before the
+  body); a start at 61 (a retry, the cheat skip) is the world as the entry left it (tree down, him split, flat: the
+  entrance beat). The camera holds them both while it can (centered between, always on Meathead); Tucker's kept on the
+  screen (off its edge he hurries back in, and he only cocks the gun from where he's seen).
+- 2026-10-18 (job G): BLIND (the user's: he can hear; turns if you jump to his other side): he hears a jump's takeoff
+  (±40 px off), a landing (±30), running footsteps (every 18 frames, ±70), every shot of Meathead's (±16), any hit on
+  him (exact); that's where he thinks Meathead is and what he aims at; stood still and quiet, he aims where he last heard
+  him. A noise on his other side turns him round (the aim swinging with him; I HEARD THAT!). He shuffles toward it slowly
+  (0.45 .. 0.85 px a frame), keeps 150-300 off, backs off nearer.
+- 2026-10-18 (job G): THE FLINTLOCK (the user's: Oily Oscar's, a lot faster, more erratic, less homing; the bullet the
+  heavy hit; faster and more erratic as the fight goes): a routine, every stage quicker as his health goes (full ..
+  near dead, frames): listen 80 .. 30; the COCK 16 .. 10 (two clicks, the pistol up by his face); the AIM 54 .. 26 (out
+  at arm's length, the far hand cupped behind his ear, a faint dotted line off the muzzle where it points; it follows what
+  he heard at 0.05 .. 0.085 a frame (Oscar's 0.3), wobbling ±20 .. ±58 px and jerking); THE FLASH IN THE PAN 22 .. 13
+  (frozen, sparks and fizz off the lock, the line blinking bright: the readable "move now"); the BANG (the ball 18 .. 25
+  px a frame straight, a big smoke puff); the reload 66 .. 32 (the rod rammed down by feel, the ledger: the window). The
+  ball does 46 (x0.65: ~30 of his 100; bees 3, critters 5-7: far the worst thing here); ducking gets under a chest-high
+  ball, a jump over a low one; it kills any critter in its way. New poses on tucker.ts: 'aim' (opts.aim the angle, opts.pan
+  the flash), 'cock', 'reload', 'mauled'; drawFlintlock, tuckerMuzzle; 'grope' with opts.pistol.
+- 2026-10-18 (job G): THE BEES (the user's: they chase you, they don't like the commotion): the first bang brings a swarm
+  out of the trees, a second below 40% health; nothing kills them; 1.5 .. 2.3 px a frame after him, a 3 sting, then off up
+  and away 50 frames (avoidable); they sting any critter they catch (hazards hurt enemies); they leave Tucker alone (he's
+  not the one jumping around: decided, not the user's). Their own hurt source m2:fr_glade_bees (the wilds' death line
+  names the hive), lines and death screens.
+- 2026-10-18 (job G): THE STAMPEDES (the user's: every shot, small wildlife across the screen, grounded and flying, not
+  aggressive but hurting on contact): arena/critters.ts, seven new kinds: rabbit, squirrel, raccoon, skunk, turkey (on
+  the ground, up over the trunk and the boulder), duck, bat (in the air): 5 .. 8 a bang (+1 sometimes; ~30% flying),
+  22 frames after it, staggered 6-20 apart, from one edge of the view (later a few from the other), after a rustle at
+  that edge (leaves flying, chatter); 3.8-5.8 px a frame (+30% later); 6-13 HP (anything kills them; the engine's deaths);
+  bumps 5-7; each its own hurt lines and death screen (lines.ts FIGHT_HURT). Off the far edge they're just gone (no kill,
+  no callout). Hazards hurt them; they don't hurt Tucker (they run past him).
+- 2026-10-18 (job G): THE WEAKNESS (the user's: the soul sucker, not directly; the stampeding critters fill it slowly,
+  one or two stampedes a splatter; the splatter on him draws the mountain lions, heavy damage, nothing else hurts him
+  while they're at it; the slow-mo kill): the critters' poise is small, so the sucker pulls them in easily, and each one
+  ground adds its poise (~14-18) to the bag: ~6 of them make a spray. THE BAG IS EMPTIED when the fight starts (every
+  start: else a bag brought in from Spooky Land skips the whole mechanic; ours, reversible). His own blood, drawn by the
+  sucker, doesn't go in the bag (weapons/soulSucker.ts noBagFrom; it still hurts him at 35%: the user's "not directly",
+  an exception to the sucker-on-bosses rule for this boss). Five globs of the spray landing on him (onGlobHit: no damage)
+  shower him: blood all over him (tucker.ts `bloody`), he stands there feeling it (WHAT IS THIS?! IT'S WARM!), a roar off
+  in the trees, and the lions come out of the woods just off the view, one from each end (a third below 40%), run him
+  down and pounce; on him (pose 'mauled'), 140 damage in five ticks over 170 frames, a punch-in (x1.45, ~54 frames),
+  nothing else lands meanwhile; then they slink off red to the eyes and he gets up (sat, cap off, up) more clawed each
+  time (tucker.ts `clawed`: a set of rakes more per mauling, coat, trousers, face). About five maulings kill him.
+  Lions and the grizzly are drawn at good detail (arena/beasts.ts), not enemies (nobody can shoot them: they're the kill).
+- 2026-10-18 (job G): HIS DEATHS (the land bosses' two). THE WEAKNESS (the lions' mauling the last thing to hurt him):
+  the kill cam, slowed (x0.3, pushed in x2): THE CLOSE-UP (the 'lions' wound painter: one cat's jaws on his throat, the
+  other's claws hooked into his split crown, the throat torn open, blood sheeting out between them in slow arcs, a rake
+  down his face), his last words (PUT IT... ON MY... TAAAAB...); then in the glade he's torn in two between them (the top
+  half up and away with one, the legs the other way, gut strung out between, his cap flying), still slowed; then normal
+  speed, they drag half of him each off into the trees, Meathead's line. THE STANDARD DEATH (the user's): he falls over
+  (his last words), Meathead walks up himself (YOU DEAD? FOR REAL THIS TIME?), a beat, AAHHH (the jumpscare's face snapped
+  into the screen), Meathead out of his skin; gloating, he can't see the GRIZZLY walk up behind him (WHO'S BREATHING ON MY
+  NECK?): reared up, roaring, down on him: THE CLOSE-UP (the 'maul' painter: its shadow, the jaws clamped over his crown,
+  a paw raking three gashes down his face, shaken like a rag, his cap, a lens, half his mustache, teeth flying, the other
+  paw, the jaws off with a mouthful, the blood pumping), his last words; then chunks of him everywhere, the bear off with a
+  leg, the remains (a leg, ribs, the saw's blade, his spectacles, his cap), Meathead's line. Both cutscenes: no HUD, no
+  controls (the walk up is scripted), SKIP >> all of it (straight to what's left). Revisits: his cap and a stain.
+- 2026-10-18 (job G): HIS LINES (clean / shitty / naked, every group; voiced): taunts, firing, hearing a jump, his hit,
+  reloading, hurt, the bees, the stampedes, showered, mauled, up again, low (GIVE ME BACK MY DOLLAR TEN!, the Mel Gibson
+  nod; the fare from the station), falling over, the pop, gloating, last words under the bear and under the lions;
+  Meathead's: the spray, the lions, hints (the critters, the sucker, something hungry out there), the bag's first spray,
+  the walk up, jumped again, after the bear, after the lions; a grab at him (too slippery). New hurt sources (the ball, the
+  glade's bees, the seven critters) with hurt lines and death screens. The walk-away gets `weakness` (the lions); job H's
+  parking-lot walk-back hooks in at arena/index.ts `leave`.

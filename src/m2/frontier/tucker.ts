@@ -48,17 +48,29 @@ export type TuckerPose =
   | 'ride'     // sat astride a dirt bike, both fists on the bars, boots on the pegs (feetY: the seat + 30)
   | 'ridepoint' // ...one fist on the bars, jabbing a finger with the other
   | 'impaled'   // hung on the tree's branch through his chest: tipped forward over it, arms and legs dangling, head lolled
-  | 'grope';    // blind (the split): both hands out in front of him, feeling the air, shuffling, chin up, listening
+  | 'grope'     // blind (the split): both hands out in front of him, feeling the air, shuffling, chin up, listening
+  // (his fight's: the flintlock. `opts.aim`: the pistol's angle off straight ahead, + down)
+  | 'aim'       // the flintlock out at arm's length in the near hand, the far hand cupped behind his ear, listening
+  | 'cock'      // the flintlock up by his face, muzzle up, the far thumb hauling the hammer back
+  | 'reload'    // the flintlock muzzle up at his belly in the far hand, the near hand ramming the rod down it
+  | 'mauled';   // flat on his back under the cats, thrashing: arms and legs everywhere
 
 /** 'manic': the bookkeeper unhinged (the user's model: South Park's Mel Gibson): one eye bulging, the other a pinprick,
  *  a brow up in his cap, a clenched grin of every tooth he's got, the gap and all. */
 export type TuckerFace = 'smile' | 'cheer' | 'talk' | 'shock' | 'angry' | 'yell' | 'daze' | 'out' | 'ow' | 'manic';
-export type TuckerWound = 'eye' | 'saw' | 'branch' | 'split';
+export type TuckerWound = 'eye' | 'saw' | 'branch' | 'split' | 'maul' | 'lions';
 /** What's been done to him so far (they stack, in this order, through the land). `grime`: the woods' EXTRA BLOODIED
  *  look (his trip after Meathead, never explained: fresh blood, wood chips, sewer muck, leaves; a torn shoulder).
  *  `split`: the arena entry's felled tree drove the saw down through his skull, his face split in half to his nose, both
  *  eyes gone (blind); a number 0..1 is how far it's been driven (the close-up's frames), true is all the way. */
-export interface TuckerWounds { eye?: boolean; saw?: boolean; branch?: boolean; grime?: boolean; split?: boolean | number }
+export interface TuckerWounds {
+  eye?: boolean; saw?: boolean; branch?: boolean; grime?: boolean; split?: boolean | number;
+  /** (his fight's) the mountain lions' rakes so far: one set more for each mauling (0 none .. 4+), across his coat,
+   *  his trousers and his face. */
+  clawed?: number;
+  /** (his fight's) the soul sucker's blood all over him, 0..1 (the scent the cats come for). */
+  bloody?: number;
+}
 
 export interface TuckerOpts {
   wounds?: TuckerWounds;
@@ -71,6 +83,12 @@ export interface TuckerOpts {
   /** Still skewered on the tree (the catch-up's): the branch's broken-off front end isn't drawn (the caller draws the
    *  branch on from his chest to the trunk). */
   onBranch?: boolean;
+  /** 'aim': the flintlock's angle off straight ahead (radians, + down). */
+  aim?: number;
+  /** 'aim': the flash in the pan going (the priming's sparked: the shot's a beat off). */
+  pan?: boolean;
+  /** 'grope' (his fight's): the flintlock in his near hand as he feels his way about. */
+  pistol?: boolean;
 }
 
 /** How tall he is (feet to the top of his cap), for putting words over him. */
@@ -172,6 +190,7 @@ const FACES: Record<TuckerPose, TuckerFace> = {
   stand: 'smile', talk: 'talk', ticket: 'cheer', tip: 'cheer', sit: 'daze', flat: 'out', furious: 'manic', point: 'angry',
   run: 'manic', cab: 'manic', whistle: 'manic', hurt: 'ow', shove: 'manic', slam: 'manic', press: 'manic',
   pop: 'yell', pounce: 'manic', ride: 'smile', ridepoint: 'manic', impaled: 'out', grope: 'shock',
+  aim: 'manic', cock: 'manic', reload: 'talk', mauled: 'yell',
 };
 /** 'impaled': how far he's tipped forward over the branch (about his chest, where it goes in). */
 export const IMPALED_TILT = 0.22;
@@ -191,6 +210,8 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   c.scale(facing < 0 ? -1 : 1, 1);
   // (flat on his back: the whole of him laid down about his hips, head to the back, toes up)
   if (pose === 'flat') { c.translate(-6, -16); c.rotate(-Math.PI / 2); c.translate(0, 26); }
+  // (mauled: laid down the same, thrashing about under them)
+  if (pose === 'mauled') { c.translate(-6 + Math.sin(f * 0.7) * 1.5, -16 - Math.abs(Math.sin(f * 0.45)) * 2); c.rotate(-Math.PI / 2 + Math.sin(f * 0.55) * 0.08); c.translate(0, 26); }
   if (pose === 'sit') c.translate(0, 22);
   // (diving head first: tipped forward about his hips)
   if (pose === 'pounce') { c.translate(0, -31); c.rotate(1.15); c.translate(0, 31); }
@@ -206,17 +227,26 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   if (pose !== 'cab' && pose !== 'whistle') drawLegs(c, pose, f);
   c.translate(0, b);
   // ---- the arms (the far one behind his body), the body, the near arm over it
-  const [far, near] = armsFor(pose, f);
+  const [far, near] = armsFor(pose, f, opts.aim ?? 0);
   drawArm(c, far, false, pose, f);
   drawBody(c, pose, f);
   drawWounds(c, wounds, 'body', f, false, !!opts.onBranch);
   // ---- the head, on his neck
   const hy = pose === 'sit' ? -71 + Math.sin(f * 0.1) * 1.2 : pose === 'hurt' ? -70 : pose === 'impaled' ? -70 : -72;
   const hx = pose === 'sit' ? Math.sin(f * 0.1) * 2 : pose === 'hurt' ? -2 : pose === 'run' ? 1.5 : pose === 'impaled' ? 2.5 : pose === 'grope' ? 1.5 : 0.5;
-  const nod = pose === 'impaled' ? 0.5 : pose === 'hurt' ? -0.25 : pose === 'grope' ? -0.2 + Math.sin(f * 0.07) * 0.08 : pose === 'sit' ? Math.sin(f * 0.1) * 0.14 : pose === 'run' ? 0.08 : pose === 'furious' ? Math.sin(f * 1.3) * 0.05 : pose === 'tip' ? 0.08 : 0;
+  const nod = pose === 'impaled' ? 0.5 : pose === 'hurt' ? -0.25 : pose === 'grope' ? -0.2 + Math.sin(f * 0.07) * 0.08 : pose === 'sit' ? Math.sin(f * 0.1) * 0.14 : pose === 'run' ? 0.08 : pose === 'furious' ? Math.sin(f * 1.3) * 0.05 : pose === 'tip' ? 0.08
+    : pose === 'aim' ? -0.16 : pose === 'cock' ? -0.1 : pose === 'reload' ? 0.12 : pose === 'mauled' ? Math.sin(f * 0.9) * 0.3 : 0;
   c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS);
   drawHead(c, face, f, !!opts.talking, opts.capless || pose === 'sit' || pose === 'flat', pose === 'furious' || face === 'yell', wounds);
   c.restore();
+  // (the flintlock: behind the near hand's fist in the aim and the cock; up in the far hand for the reload, the rod down
+  // it from the near one)
+  if (pose === 'grope' && opts.pistol) drawFlintlock(c, near.hx, near.hy, 0.55, { cocked: false, f });
+  if (pose === 'aim' || pose === 'cock') drawFlintlock(c, near.hx, near.hy, pose === 'aim' ? (opts.aim ?? 0) : -1.3, { cocked: true, pan: !!opts.pan, f });
+  if (pose === 'reload') {
+    drawFlintlock(c, far.hx, far.hy, -1.5, { cocked: false, f });
+    line(c, [near.hx, near.hy + 2, far.hx + 1.4, far.hy - 14], 1.2, '#3B2412'); line(c, [near.hx, near.hy + 2, far.hx + 1.4, far.hy - 14], 0.5, '#A0703C');
+  }
   drawArm(c, near, true, pose, f);
   if (pose === 'ticket') drawPunch(c, far.hx, far.hy, f);
   if (pose === 'furious' || pose === 'cab') steam(c, hx, hy, f);
@@ -266,6 +296,10 @@ const drawLegs = (c: Ctx, pose: TuckerPose, f: number) => {
     L = [[-4, -31, -4.5, -18, -5, -5, 0], [4, -31, 6, -18 - up * 0.6, 5.5, -5 - up, -0.1]];
   } else if (pose === 'hurt') L = [[-4, -31, -6, -18, -8, -5, 0.1], [4, -31, 5, -18, 7, -5, -0.1]];
   else if (pose === 'flat') L = [[-3.5, -31, -3.5, -18, -3.5, -5, -1.4], [3.5, -31, 3.5, -18, 3.5, -5, -1.4]];
+  // (mauled: on his back, kicking at them)
+  else if (pose === 'mauled') { const k = Math.sin(f * 0.6), k2 = Math.cos(f * 0.5); L = [[-3.5, -31, -3.5 + k * 5, -19, -3.5 + k * 9, -6, -1.4 + k * 0.5], [3.5, -31, 3.5 - k2 * 5, -19, 3.5 - k2 * 9, -6, -1.4 - k2 * 0.5]]; }
+  // (the reload and the aim: feet planted, braced; the cock the same)
+  else if (pose === 'aim' || pose === 'cock' || pose === 'reload') L = [[-5, -31, -6, -18, -7, -5, 0], [5, -31, 6.5, -18, 8, -5, 0]];
   // (astride the bike: thighs along the seat, knees forward, shins down to the pegs)
   else if (pose === 'ride' || pose === 'ridepoint') L = [[-3, -30, 8, -32, 10, -19, 0.1], [3, -30, 13, -31, 14, -18, 0.05]];
   // (bursting up: legs wide, kicking; diving: trailing straight, toes pointed)
@@ -372,7 +406,15 @@ const drawBody = (c: Ctx, pose: TuckerPose, f: number) => {
 
 interface Arm { sx: number; sy: number; hx: number; hy: number; bend: number; fist: boolean; palm?: boolean; point?: boolean; thumbIn?: boolean; grip?: boolean }
 
-const armsFor = (pose: TuckerPose, f: number): [Arm, Arm] => {
+/** 'aim': the near hand's reach from his shoulder, out along the pistol's angle. */
+const AIM_REACH = 22;
+/** 'aim': where the flintlock's muzzle is (x, y from his feet, facing right; drawTucker's units) at `aim`. */
+export const tuckerMuzzle = (aim: number): [number, number] => {
+  const cs = Math.cos(aim), sn = Math.sin(aim), L = FLINT_BARREL + 0.8, up = -4.2;
+  return [13 + cs * AIM_REACH + cs * L - sn * up, -58 + sn * AIM_REACH + sn * L + cs * up];
+};
+
+const armsFor = (pose: TuckerPose, f: number, aim = 0): [Arm, Arm] => {
   const FS = { sx: -12, sy: -58 }, NS = { sx: 13, sy: -58 };
   const sh = Math.sin(f * 1.3) * 1.6;
   switch (pose) {
@@ -428,6 +470,23 @@ const armsFor = (pose: TuckerPose, f: number): [Arm, Arm] => {
       // (blind: both hands out in front of him, open, feeling the air in slow circles)
       const w = Math.sin(f * 0.13) * 4, w2 = Math.cos(f * 0.11) * 3.5;
       return [{ ...FS, hx: 20 + w, hy: -64 + w2, bend: -0.5, fist: false, palm: true }, { ...NS, hx: 30 - w, hy: -60 - w2, bend: 0.4, fist: false, palm: true }];
+    }
+    case 'aim': {
+      // (the pistol out at arm's length, the arm all but straight, trembling (more the madder he gets: the caller wobbles
+      // `aim`); the far hand cupped behind his ear)
+      return [{ ...FS, hx: -6, hy: -74, bend: 1, fist: false, palm: true }, { ...NS, hx: NS.sx + Math.cos(aim) * AIM_REACH, hy: NS.sy + Math.sin(aim) * AIM_REACH, bend: 0.12, fist: true, grip: true }];
+    }
+    case 'cock':
+      return [{ ...FS, hx: 15, hy: -71, bend: -0.6, fist: true }, { ...NS, hx: 17, hy: -66, bend: -1, fist: true, grip: true }];
+    case 'reload': {
+      // (the rod rammed down, drawn up, rammed down)
+      const r = Math.abs(Math.sin(f * 0.2)) * 9;
+      return [{ ...FS, hx: 8, hy: -44, bend: -1, fist: true, grip: true }, { ...NS, hx: 10, hy: -78 + r, bend: -1, fist: true, grip: true }];
+    }
+    case 'mauled': {
+      // (on his back: arms flailing up at them, slapping, shielding his face)
+      const k = Math.sin(f * 0.7), k2 = Math.cos(f * 0.8);
+      return [{ ...FS, hx: -22 + k * 8, hy: -70 - k2 * 10, bend: 1, fist: false, palm: true }, { ...NS, hx: 24 - k2 * 8, hy: -72 + k * 10, bend: -1, fist: false, palm: true }];
     }
     default:
       // (thumbs hooked in his vest pockets)
@@ -488,6 +547,46 @@ const drawPunch = (c: Ctx, x: number, y: number, f: number) => {
   c.restore();
   ell(c, 0.6, -8, 2.4, 1.6, STEEL[3]); ell(c, 0.4, -8.4, 1.4, 0.9, STEEL[1]);
   px(c, -0.2, -9.6, 1.4, 1, '#B91C1C');
+  c.restore();
+};
+
+/** The flintlock's barrel: from his fist to the muzzle (the figure's units). */
+const FLINT_BARREL = 16;
+const WALNUT: Ramp = ['#B07A46', '#7A4A24', '#5E3618', '#42240E', '#1E1006'];
+const IRON: Ramp = ['#C8CCD4', '#7C8088', '#5A5E66', '#3A3E46', '#16181C'];
+/**
+ * His flintlock pistol, in a fist at (x, y), pointing along `ang` (radians; 0 straight ahead): a long octagonal iron
+ * barrel to a flared muzzle, the walnut stock under it down to a brass-capped bird's-head grip (in his fist), the lock
+ * plate, the cock (its jaws holding the flint: hauled back when `cocked`, down on the frizzen when not), the pan; the
+ * pan flashing when `pan` (the priming's caught: the shot's a beat off).
+ */
+export const drawFlintlock = (c: Ctx, x: number, y: number, ang: number, o: { cocked?: boolean; pan?: boolean; f?: number } = {}) => {
+  const f = o.f ?? 0;
+  c.save(); c.translate(x, y); c.rotate(ang);
+  // ---- the grip, down and back out of his fist, a brass cap on its butt
+  shape(c, () => { c.moveTo(-1.6, -2.4); c.lineTo(2.6, -2.6); c.quadraticCurveTo(1.6, 2, -1.2, 5.6); c.lineTo(-4.4, 5); c.quadraticCurveTo(-2.4, 2, -1.6, -2.4); c.closePath(); }, WALNUT, -4.4, 2.6, 0.5);
+  ell(c, -2.8, 5.6, 2, 1.2, BRASS[2]); px(c, -3.8, 5, 1, 0.5, BRASS[0]);
+  // ---- the stock forward under the barrel, its brass nose cap
+  shape(c, () => { c.moveTo(1.2, -3.6); c.lineTo(FLINT_BARREL - 3, -3); c.lineTo(FLINT_BARREL - 3, -1.6); c.lineTo(1.6, -0.8); c.closePath(); }, WALNUT, 1.2, FLINT_BARREL - 3, 0.4);
+  px(c, FLINT_BARREL - 4, -3.1, 1.2, 1.5, BRASS[2]);
+  // ---- the barrel: iron, octagonal (a lit flat along its top), a flared muzzle, the sight
+  shape(c, () => { c.moveTo(1, -5.4); c.lineTo(FLINT_BARREL, -5); c.lineTo(FLINT_BARREL + 0.8, -5.6); c.lineTo(FLINT_BARREL + 0.8, -2.4); c.lineTo(FLINT_BARREL, -3); c.lineTo(1, -3.4); c.closePath(); }, IRON, 1, FLINT_BARREL + 0.8, 0.45);
+  line(c, [2, -5, FLINT_BARREL - 0.4, -4.7], 0.35, IRON[0]);
+  px(c, FLINT_BARREL - 1.4, -6, 0.6, 0.7, BRASS[1]);
+  ell(c, FLINT_BARREL + 0.8, -4, 0.35, 1.1, '#050505');
+  // ---- the lock: its plate on the stock's side, the pan and the frizzen, the cock with its flint
+  shape(c, () => c.roundRect(-1.2, -4.6, 5, 2.6, 0.6), IRON, -1.2, 3.8, 0.35);
+  px(c, 2.8, -6, 1.6, 1.4, IRON[2]); px(c, 3, -7.4, 0.8, 1.6, IRON[1]);
+  c.save(); c.translate(-0.6, -4.6); c.rotate(o.cocked ? -0.9 : 0.25);
+  line(c, [0, 0, 1.6, -2.6, 3, -3], 0.9, IRON[4]); line(c, [0, 0, 1.6, -2.6, 3, -3], 0.45, IRON[1]);
+  px(c, 2.4, -3.8, 1.4, 1.2, '#4A4A52');
+  c.restore();
+  // ---- the flash in the pan: sparks off the frizzen, the priming fizzing up in a puff
+  if (o.pan) {
+    for (let i = 0; i < 6; i++) { const a = -Math.PI / 2 + Math.sin(f * 1.7 + i * 2.1) * 1.1, r = 2 + ((f * 3 + i * 5) % 7); px(c, 3.4 + Math.cos(a) * r, -6.2 + Math.sin(a) * r, 0.7, 0.7, i % 2 ? '#FDE047' : '#FFFFFF'); }
+    ell(c, 3.6, -7.4, 1.8 + (f % 4) * 0.3, 1.4, 'rgba(255, 240, 180, 0.9)');
+    c.globalAlpha = 0.6; ell(c, 3, -10 - (f % 6) * 0.6, 2.6, 2, '#D6D3D1'); c.globalAlpha = 1;
+  }
   c.restore();
 };
 
@@ -775,7 +874,7 @@ const drawCap = (c: Ctx, _f: number) => {
  * train's job draws `eye`, the log ride's `saw`, the catch-up's `branch`. Until then: nothing.
  */
 const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, capless = false, onBranch = false) => {
-  if (!w.eye && !w.saw && !w.branch && !w.grime && !w.split) return;
+  if (!w.eye && !w.saw && !w.branch && !w.grime && !w.split && !w.clawed && !w.bloody) return;
   const sd = splitOf(w);
   // (the train's job: the near eye shot clean through: an empty socket, the lens starred, blood down his cheek)
   if (w.eye && layer === 'head') {
@@ -862,6 +961,46 @@ const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, 
     line(c, [8.8, 8.4, 9.2, 10.6, 8.6, 13.4], 0.9, '#7A0E0E'); line(c, [8.9, 8.6, 9.3, 10.6], 0.3, '#C42A2A');
     const d = ((f + 13) % 64) / 64;
     if (d < 0.6) ell(c, 8.6, 13.8 + d * 5, 0.4, 0.6, '#991B1B');
+  }
+  drawFightWounds(c, w, layer, f);
+};
+
+/** (his fight's) The mountain lions' rakes, a set more for each mauling: three torn parallel gashes (the cloth ripped,
+ *  the meat red under it, blood run down from them) across his vest and coat, his trousers, and his face; and the soul
+ *  sucker's blood sheeted all over him (the scent the cats come for). */
+const RAKES_BODY: [number, number, number][] = [[-8, -56, 0.9], [6, -44, -0.7], [-6, -36, 0.6], [10, -58, -1.1], [-2, -22, 0.4]];
+const RAKES_HEAD: [number, number, number][] = [[-5, 4, 0.8], [7, 6, -0.6], [0, -8, 0.3], [-7, -6, -0.9], [3, 9, 1.2]];
+const drawFightWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number) => {
+  const n = Math.min(5, Math.floor(w.clawed ?? 0));
+  const rakes = layer === 'body' ? RAKES_BODY : RAKES_HEAD, s = layer === 'body' ? 1 : 0.55;
+  for (let i = 0; i < n; i++) {
+    const [x, y, a] = rakes[i];
+    c.save(); c.translate(x, y); c.rotate(a);
+    for (let k = -1; k <= 1; k++) {
+      const yy = k * 2.2 * s;
+      line(c, [-5 * s, yy - 0.4, 5 * s, yy + 0.6], 1.5 * s, '#4A0A0A');
+      line(c, [-4.6 * s, yy - 0.3, 4.6 * s, yy + 0.5], 0.8 * s, '#B91C1C');
+      line(c, [-3 * s, yy - 0.1, 2 * s, yy + 0.3], 0.3 * s, '#F4A0A0');
+    }
+    c.restore();
+    // (the blood run down from it)
+    line(c, [x, y + 2 * s, x + 0.4, y + 6 * s + ((f + i * 17) % 40) / 40 * 2 * s], 0.7 * s, '#7A0E0E');
+  }
+  const b = Math.max(0, Math.min(1, w.bloody ?? 0));
+  if (b > 0) {
+    c.globalAlpha = 0.75 * b;
+    if (layer === 'body') {
+      ell(c, 2, -50, 13, 10, '#8A1010'); ell(c, -4, -38, 9, 7, '#7A0E0E'); ell(c, 8, -32, 6, 5, '#991B1B');
+      line(c, [-10, -42, -10.6, -28], 2, '#7A0E0E'); line(c, [12, -40, 12.6, -24], 1.8, '#7A0E0E'); line(c, [-2, -28, -2.4, -12], 1.6, '#8A1010');
+      for (const [x, y] of [[-4, -20], [5, -14], [-6, -8]] as const) ell(c, x, y, 1.6, 1.2, '#991B1B');
+    } else {
+      ell(c, 1, -10, 11, 5, '#8A1010'); ell(c, -4, 2, 5, 4, '#7A0E0E'); ell(c, 7, 4, 4, 3, '#991B1B');
+      line(c, [-8, -4, -8.4, 8], 1.4, '#7A0E0E'); line(c, [9, -6, 9.4, 6], 1.2, '#7A0E0E');
+    }
+    c.globalAlpha = 1;
+    // (dripping off him)
+    const dd = ((f * 1.3) % 30) / 30;
+    if (layer === 'body') { ell(c, -9, -24 + dd * 18, 0.7, 1, '#991B1B'); ell(c, 11, -20 + ((dd + 0.5) % 1) * 16, 0.7, 1, '#991B1B'); }
   }
 };
 

@@ -3,7 +3,7 @@
 // clean / shitty / naked pools (Tucker's, and Meathead's: they react to the state of him). Pure data (tools/voices
 // bundles it in node). His fight's own lines go here when it's designed.
 
-import { allOf, TUCKER_VOICE, type ByPants } from '../talk';
+import { allOf, TUCKER_VOICE, type ByPants, type HurtTable } from '../talk';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The catch-up (the user's: "you took them all out?", he can't stand people cutting the line expecting a free ride, he
@@ -155,10 +155,191 @@ export const TUCKER_MATTER: ByPants = {
   nude: ['DOESN\'T MATTER! I\'LL FIND YOU BY THE BREEZE!', 'DOESN\'T MATTER! I\'LL HEAR IT SLAPPING!'],
 };
 
-const MEATHEAD = [MH_CAUGHT, MH_SKEWERED, FAKE_ME_OUT, MH_JUMPED, MH_AXE, MH_BLIND];
-const TUCKER = [TUCKER_CAUGHT, TUCKER_RANT, TUCKER_HANDOUT, TUCKER_GUN, TUCKER_SKEWERED, TUCKER_JUMP, TUCKER_UP, TUCKER_ENTRANCE, TUCKER_TAUNT, TUCKER_SPLIT, TUCKER_BLIND, TUCKER_MATTER];
+// ---------------------------------------------------------------------------------------------------------------
+// THE FIGHT (job G; the user's: blind, a flintlock, firing at sounds; bees after Meathead; every shot sends the small
+// wildlife stampeding; the soul sucker's blood on him draws the mountain lions; the standard death's grizzly). His
+// ledger, blind: he fires at noises, bills for everything, misjudges where Meathead is. "GIVE ME BACK MY DOLLAR TEN"
+// is the Mel Gibson nod (the fare from the station's TUCKER_CAB).
+
+/** Listening, shuffling, now and then (blind, the ledger). */
+export const TF_TAUNT: ByPants = {
+  clean: ['I CAN HEAR YOU BREATHING! THAT\'S A BREATHING FEE!', 'ONE FARE! A DOLLAR TEN! NOW IT\'S A HUNDRED!', 'I DON\'T NEED EYES TO BALANCE A LEDGER!'],
+  shitty: ['I CAN\'T SEE YOU! I CAN SMELL EXACTLY WHERE YOU ARE!', 'FOLLOW THE STINK, TUCKER! FOLLOW THE STINK!', 'THAT\'S A CLEANING FEE! AND A NOSE FEE!'],
+  nude: ['I CAN HEAR IT FLAPPING! THAT\'S A NOISE FEE!', 'BLIND! AND STILL NOT BLIND ENOUGH FOR YOU!', 'PUT SOMETHING ON! I CAN FEEL IT FROM HERE!'],
+};
+/** The bang. */
+export const TF_FIRE: ByPants = {
+  clean: ['PAY UP!', 'THAT\'S INTEREST!', 'HERE\'S YOUR CHANGE!', 'LATE FEE!'],
+  shitty: ['PAY UP, STINKY!', 'RIGHT IN THE STINK!', 'THAT\'S FOR THE SEATS!'],
+  nude: ['PAY UP, NAKED!', 'AIM FOR THE BREEZE!', 'THAT\'S A DECENCY FINE!'],
+};
+/** Heard him jump to his other side: round he comes. */
+export const TF_HEAR: ByPants = {
+  clean: ['I HEARD THAT!', 'BEHIND ME? NOBODY CUTS IN LINE!', 'OVER THERE, ARE YOU?'],
+  shitty: ['I SMELLED THAT!', 'OVER THERE! THE WIND CHANGED!', 'BEHIND ME! I CAN TELL!'],
+  nude: ['I HEARD IT SLAP!', 'OVER THERE! I FELT THE BREEZE!', 'BEHIND ME? DON\'T YOU DARE!'],
+};
+/** His shot hit. */
+export const TF_HIT: ByPants = {
+  clean: ['GOT YOU! PAID IN LEAD!', 'HA! THERE\'S YOUR RECEIPT!', 'PAYMENT RECEIVED!'],
+  shitty: ['GOT YOU! SMELLS LIKE IT!', 'HA! SQUEEZED ONE OUT OF YOU!', 'PAYMENT RECEIVED! PLUS WHATEVER THAT WAS!'],
+  nude: ['GOT YOU! SOMEWHERE SOFT, I HOPE!', 'HA! HIT SOMETHING FLOPPY!', 'PAYMENT RECEIVED! RIGHT IN THE BARE!'],
+};
+/** Ramming the rod down, by feel. */
+export const TF_RELOAD: ByPants = {
+  clean: ['POWDER. BALL. RAMROD. ALL ON YOUR TAB.', 'EVERY SHOT GOES ON YOUR BILL!', 'HOLD STILL! I\'M RELOADING!'],
+  shitty: ['POWDER. BALL. AND A CLOTHESPIN FOR MY NOSE.', 'EVERY SHOT GOES ON YOUR BILL! SO DOES THE SMELL!'],
+  nude: ['POWDER. BALL. RAMROD. DON\'T SAY IT.', 'EVERY SHOT GOES ON YOUR BILL! PANTS GO ON IT TOO!'],
+};
+/** Hit (anything but the cats). */
+export const TF_HURT: ByPants = {
+  clean: ['OW! THAT\'S ASSAULT! THAT\'S EXTRA!', 'I\'M BILLING YOU FOR THAT!', 'OW! ITEMIZED!'],
+  shitty: ['OW! WITH THOSE HANDS?!', 'DON\'T TOUCH ME! YOU\'RE DIRTY!', 'OW! NOW I SMELL LIKE YOU!'],
+  nude: ['OW! WAS THAT A HAND?! TELL ME THAT WAS A HAND!', 'DON\'T TOUCH ME WITH ANYTHING!', 'OW! WHAT HIT ME?! DON\'T ANSWER!'],
+};
+/** The bees on Meathead (he hears the yelling). */
+export const TF_BEES: ByPants = {
+  clean: ['BEES! GOOD! THEY WORK FOR FREE!', 'HEAR THAT BUZZING? THOSE ARE MY COLLECTORS!'],
+  shitty: ['THE BEES FOUND YOU! THEY THINK YOU\'RE A FLOWER! A DEAD ONE!', 'BEES! THEY LOVE A STINK!'],
+  nude: ['BEES! STING HIM WHERE IT COUNTS!', 'BEES! AND SO MUCH TO STING!'],
+};
+/** The critters off and running past him. */
+export const TF_STAMPEDE: ByPants = {
+  clean: ['GET OFF MY LAND, VARMINTS! NO FREE RIDES!', 'RABBITS! NOBODY PAID FOR THOSE EITHER!'],
+  shitty: ['EVEN THE SKUNKS ARE RUNNING FROM YOU!', 'RUN, VARMINTS! HE SMELLS WORSE THAN YOU!'],
+  nude: ['RUN, VARMINTS! DON\'T LOOK AT IT!', 'EVEN THE RABBITS ARE EMBARRASSED!'],
+};
+/** Showered in the soul sucker's blood. */
+export const TF_BLOODY: ByPants = {
+  clean: ['WHAT IS THIS?! IT\'S WARM! IT\'S IN MY HEADS!', 'IS THIS BLOOD?! WHOSE?! WHO\'S PAYING FOR THIS SUIT?!'],
+  shitty: ['WHAT IS THIS?! PLEASE BE BLOOD! PLEASE BE BLOOD!', 'WARM AND WET! YOU BETTER NOT HAVE!'],
+  nude: ['WHAT IS THIS?! IT\'S WARM! WHAT DID YOU DO?!', 'WARM AND STICKY! OH GOD! OH GOD!'],
+};
+/** The mountain lions on him. */
+export const TF_MAULED: ByPants = {
+  clean: ['GET OFF! YOU DIDN\'T PAY! NONE OF YOU PAID!', 'CATS! I\'M ALLERGIC! AND BEING EATEN!', 'NO! BAD KITTY! THAT\'S MY LEDGER ARM!'],
+  shitty: ['GET OFF! EAT HIM! HE\'S PRE-SEASONED!', 'CATS! GO EAT THE STINKY ONE!'],
+  nude: ['GET OFF! EAT HIM! HE\'S ALREADY UNWRAPPED!', 'CATS! THE NAKED ONE\'S RIGHT THERE! NO WRAPPER!'],
+};
+/** Up again after a mauling, more chewed. */
+export const TF_GETUP: ByPants = {
+  clean: ['I\'M FINE! THAT\'S A DEDUCTIBLE!', 'STILL HERE! STILL BILLING!', 'THEY TOOK A CHUNK! I\'M ADDING IT!'],
+  shitty: ['I\'M FINE! THEY COULDN\'T FINISH ME! YOU RUINED MY FLAVOR!', 'STILL HERE! STILL SMELL YOU!'],
+  nude: ['I\'M FINE! THEY LOST THEIR APPETITE! WONDER WHY!', 'STILL HERE! STILL GRATEFUL I\'M BLIND!'],
+};
+/** Low (once): manic. */
+export const TF_LOW: ByPants = {
+  clean: ['SHOT! SAWED! STABBED! SPLIT! CHEWED! GIVE ME BACK MY DOLLAR TEN!', 'GIVE ME BACK MY DOLLAR TEN!'],
+  shitty: ['GIVE ME BACK MY DOLLAR TEN! AND MY SENSE OF SMELL!', 'I\'LL TAKE IT IN CASH! NOT IN WHATEVER THAT IS!'],
+  nude: ['GIVE ME BACK MY DOLLAR TEN! YOU DON\'T EVEN HAVE POCKETS!', 'CASH! NOT WHATEVER YOU\'RE HIDING! YOU\'RE NOT HIDING ANYTHING!'],
+};
+/** The standard death: falling over, apparently dead. */
+export const TF_FALL: ByPants = {
+  clean: ['TELL MY ACCOUNTANT... I DIED... IN THE BLACK...', 'BALANCED... THE BOOKS...'],
+  shitty: ['THE LAST THING... I SMELLED... WAS YOU... TERRIBLE...', 'THE STINK... IT\'S TAKING ME...'],
+  nude: ['AT LEAST... I DIED... BLIND...', 'THE LAST THING... I FELT... WAS YOUR BREEZE...'],
+};
+/** ...and up again (the jumpscare). */
+export const TF_POP: ByPants = {
+  clean: ['AAAHHH! GOT YOU AGAIN!', 'AAAAAHHHHH!'],
+  shitty: ['AAAHHH! STILL SMELL YOU!', 'AAAAAHHHHH!'],
+  nude: ['AAAHHH! STILL NAKED?!', 'AAAAAHHHHH!'],
+};
+/** Gloating, the grizzly up behind him (he can't see it). */
+export const TF_GLOAT: ByPants = {
+  clean: ['NOW. ABOUT THAT DOLLAR TEN. ...WHO\'S BREATHING ON MY NECK?', 'NOBODY GETS OUT OF PAYING! ...WHY IS IT SO WARM BACK HERE?'],
+  shitty: ['NOW. ABOUT THAT DOLLAR TEN. ...WHAT\'S THAT SMELL? IT\'S NOT YOU!', 'NOBODY GETS OUT OF PAYING! ...SOMETHING BACK HERE SMELLS WORSE THAN YOU!'],
+  nude: ['NOW. ABOUT THAT DOLLAR TEN. ...WHO\'S BREATHING ON ME? PUT IT AWAY!', 'NOBODY GETS OUT OF PAYING! ...WHY IS IT HAIRY BACK HERE?'],
+};
+/** Last words, under the grizzly (its close-up). */
+export const TF_LAST_BEAR: ByPants = {
+  clean: ['NOT... COVERED... BY MY... INSURANCE...', 'BEARS... DON\'T... PAY... EITHER...'],
+  shitty: ['EAT HIM... HE\'S... RIPER...', 'YOU\'RE EATING... THE WRONG ONE...'],
+  nude: ['EAT HIM... HE\'S... ALREADY... PEELED...', 'WRONG ONE... HE\'S... THE NAKED ONE...'],
+};
+/** Last words, under the lions (the weakness kill, slowed). */
+export const TF_LAST_LIONS: ByPants = {
+  clean: ['PUT IT... ON MY... TAAAAB...', 'ITEMIZE... MEEEE...'],
+  shitty: ['THIS... IS... YOUR... FAULT... STINKY...', 'EAT... THE STINKY ONE... NEXT...'],
+  nude: ['AT LEAST... I NEVER... SAW IT...', 'THE NAKED ONE... HAS NO... WRAPPER...'],
+};
+
+/** Meathead: the blood's all over him. */
+export const MH_SPRAY: ByPants = {
+  clean: ['DINNER BELL.', 'HERE, KITTY KITTY.'],
+  shitty: ['MARINATED. NOW WE WAIT.', 'SEASONED HIM WITH BUNNY.'],
+  nude: ['HERE, KITTY KITTY. NOT YOU, LITTLE GUY.', 'MARINATED. NOW WE WAIT.'],
+};
+/** ...and the lions come out of the trees. */
+export const MH_LIONS: ByPants = {
+  clean: ['MOUNTAIN LIONS. RIGHT ON TIME.', 'GET HIM, PUSSYCATS.'],
+  shitty: ['EAT HIM. NOT ME. I\'M SPOILED.', 'GOOD KITTIES. HE\'S THE TASTY ONE.'],
+  nude: ['EAT HIM. I\'M ALL SKIN AND BONE.', 'GOOD KITTIES. DON\'T LOOK AT ME.'],
+};
+/** Thinking out loud (not getting anywhere): the critters, the sucker, something hungry out there. */
+export const MH_HINT: ByPants = {
+  clean: ['THOSE CRITTERS WOULD FIT IN THE SUCKER.', 'BUNNIES IN THE BAG. BAG ON THE CONDUCTOR.', 'SOMETHING IN THESE WOODS EATS CONDUCTORS. IT JUST NEEDS A SMELL.'],
+  shitty: ['I NEED A STRONGER SMELL THAN ME. HARD TO FIND.', 'SUCK UP THE CRITTERS. SPRAY THE CONDUCTOR.'],
+  nude: ['SUCK UP THE CRITTERS. SPRAY THE CONDUCTOR. THEN PANTS.', 'SOMETHING OUT THERE\'S HUNGRY. GIVE IT A SMELL.'],
+};
+/** The bag's got a spray's worth in it (the first time). */
+export const MH_BAG: ByPants = {
+  clean: ['BAG\'S FULL OF BUNNY. TIME TO SEASON THE CONDUCTOR.'],
+  shitty: ['BAG\'S READY. SMELLS BETTER THAN ME.'],
+  nude: ['BAG\'S READY. AT LEAST SOMETHING\'S FULL.'],
+};
+/** The standard death: walking up to the body. */
+export const MH_WALKUP: ByPants = {
+  clean: ['YOU DEAD? FOR REAL THIS TIME?', 'DON\'T YOU DARE.'],
+  shitty: ['YOU DEAD? I\'M OUT OF SHIT TO SCARE OUT.', 'DON\'T. I\'M EMPTY.'],
+  nude: ['YOU DEAD? I\'VE GOT NOTHING LEFT TO SHRINK.', 'DON\'T YOU DARE. I\'M NAKED.'],
+};
+/** ...jumped again. */
+export const MH_POPPED: ByPants = {
+  clean: ['OH, COME ON!', 'EVERY TIME! EVERY GODDAMN TIME!'],
+  shitty: ['OH, COME ON! THAT ONE CAME OUT DRY!', 'EVERY TIME! MY ASS CAN\'T TAKE IT!'],
+  nude: ['OH, COME ON! IT CRAWLED BACK INSIDE!', 'EVERY TIME! EVERYTHING JUST SHRANK AGAIN!'],
+};
+/** After the grizzly. */
+export const MH_GRIZZLY: ByPants = {
+  clean: ['AND STAY DEAD.', 'THE BEAR GETS THE TIP.'],
+  shitty: ['THAT BEAR DID WHAT I COULDN\'T. RESPECT.', 'STAY DEAD. I\'M OUT OF PANTS TO SHIT.'],
+  nude: ['STAY DEAD. THE BEAR CAN KEEP THE CHANGE.', 'GOOD BEAR. DON\'T LOOK AT ME.'],
+};
+/** After the lions. */
+export const MH_LIONS_WON: ByPants = {
+  clean: ['PAID IN FULL.', 'SPLIT THE CHECK. THREE WAYS.'],
+  shitty: ['PAID IN FULL. THEY DIDN\'T EVEN WANT ME.', 'HE\'S IN EVERY CAT NOW.'],
+  nude: ['PAID IN FULL. NOW WHERE ARE MY PANTS.', 'THEY ATE HIM. NOT ME. I\'LL TAKE IT.'],
+};
+/** A grab at him (too far gone to get a hold of). */
+export const GRAB_TUCKER = ['HE\'S TOO SLIPPERY! IT\'S ALL BLOOD!', 'I\'M NOT HUGGING THAT!', 'HE\'S FALLING APART IN MY HANDS!'];
+
+/** What hurts him in the fight (by source), and the death screen. (The critters' own: critters.ts.) */
+export const FIGHT_HURT: HurtTable = {
+  'm2:fr_tucker_shot': {
+    hurt: ['HE SHOT ME! HE\'S BLIND!', 'A MUSKET BALL! IN ME!', 'LUCKY SHOT, YOU BLIND BASTARD!', 'HOW DID HE HIT THAT?!'],
+    death: ['SHOT BY A BLIND MAN', 'THE BLIND CONDUCTOR COLLECTED'],
+  },
+  'm2:fr_glade_bees': {
+    hurt: ['BEES! BEES!', 'WHY ARE THE BEES MAD AT ME?!', 'HE\'S THE ONE SHOOTING!'],
+    death: ['STUNG TO DEATH. TOO MUCH RACKET.', 'THE BEES HATED THE NOISE'],
+  },
+  'm2:fr_rabbit': { hurt: ['A BUNNY HIT ME!', 'RABBIT! TO THE SHIN!'], death: ['TRAMPLED BY A BUNNY', 'KILLED BY A RABBIT. A RABBIT.'] },
+  'm2:fr_squirrel': { hurt: ['SQUIRREL! IN MY FACE!', 'IT RAN UP MY LEG!'], death: ['RUN OVER BY A SQUIRREL', 'THE SQUIRREL DIDN\'T STOP'] },
+  'm2:fr_raccoon': { hurt: ['RACCOON! IT BIT ME!', 'TRASH PANDA!'], death: ['MUGGED BY A RACCOON', 'A RACCOON TOOK HIS LIFE'] },
+  'm2:fr_skunk': { hurt: ['SKUNK! OH GOD, THE SMELL!', 'IT SPRAYED ME!'], death: ['KILLED BY A SKUNK', 'HE SMELLED IT COMING'] },
+  'm2:fr_turkey': { hurt: ['TURKEY! TURKEY!', 'THE BIRD KICKED ME!'], death: ['STAMPEDED BY A TURKEY', 'GOBBLED'] },
+  'm2:fr_duck': { hurt: ['A DUCK! TO THE FACE!', 'DUCK! I SHOULD\'VE DUCKED!'], death: ['HIT BY A DUCK. HE DIDN\'T DUCK.', 'QUACKED TO DEATH'] },
+  'm2:fr_bat': { hurt: ['BAT! IN MY HAIR!', 'GET IT OUT! GET IT OUT!'], death: ['FLOWN INTO BY A BAT', 'BATTED TO DEATH'] },
+};
+
+const MEATHEAD = [MH_CAUGHT, MH_SKEWERED, FAKE_ME_OUT, MH_JUMPED, MH_AXE, MH_BLIND, MH_SPRAY, MH_LIONS, MH_HINT, MH_BAG, MH_WALKUP, MH_POPPED, MH_GRIZZLY, MH_LIONS_WON];
+const TUCKER = [TUCKER_CAUGHT, TUCKER_RANT, TUCKER_HANDOUT, TUCKER_GUN, TUCKER_SKEWERED, TUCKER_JUMP, TUCKER_UP, TUCKER_ENTRANCE, TUCKER_TAUNT, TUCKER_SPLIT, TUCKER_BLIND, TUCKER_MATTER,
+  TF_TAUNT, TF_FIRE, TF_HEAR, TF_HIT, TF_RELOAD, TF_HURT, TF_BEES, TF_STAMPEDE, TF_BLOODY, TF_MAULED, TF_GETUP, TF_LOW, TF_FALL, TF_POP, TF_GLOAT, TF_LAST_BEAR, TF_LAST_LIONS];
 
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: MEATHEAD.flatMap(allOf),
+  meathead: [...MEATHEAD.flatMap(allOf), ...GRAB_TUCKER, ...Object.values(FIGHT_HURT).flatMap(h => h.hurt)],
+  death: Object.values(FIGHT_HURT).flatMap(h => h.death),
   [TUCKER_VOICE]: TUCKER.flatMap(allOf),
 };

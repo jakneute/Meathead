@@ -15,7 +15,8 @@ verbatim, the fill-ins, the rules, the section plan). Each section's index.ts he
 | 6 (done) | `dirtbike/` (incl. the TEENAGERS sub-boss; appended store.ts bikeHud/bikeBoost/bikeTips and App.tsx's bike HUD + controls card) | dirtbike (50-55) |
 | 7 (done) | `arena/` (the catch-up, the impalement, the fake-out and its retry entrance beat, the fight's placeholder; and tucker.ts's `branch` wound, the pose 'impaled', `onBranch`, IMPALED_TILT / tuckerPoint, drawBough, drawCloseupBranch) | arena (60) |
 | F (done) | `arena/entry.ts` (the arena entry: the axe tree, the split close-up, blind; and tucker.ts's `split` wound, the pose 'grope', registerWoundPainter's `drive`; Player.axeSwing / moves.ts drawAxeSwing) | arena (60) |
-| later | `arena/` (Tucker's fight, when the user gives it: it starts at entry.ts's end, `onUp`; he's blind) | arena (61-69) |
+| G (done) | `arena/` (Tucker's fight: fight.ts, critters.ts, beasts.ts; the arena re-laid two screens wide; and tucker.ts's poses 'aim' / 'cock' / 'reload' / 'mauled', drawFlintlock / tuckerMuzzle, opts aim / pan / pistol, the `clawed` / `bloody` looks, the 'maul' / 'lions' wounds; appended weapons/soulSucker.ts noBagFrom / onGlobHit) | arena (60-61) |
+| H (later) | the walk-back in from the parking lot after his kill (HEADING BACK TO PARK; hooks in at arena/index.ts `leave`) | |
 
 Inside your folders, anything goes: split into layout.ts, art.ts, kinds.ts and so on, as `wilds/` does. Number your
 checkpoints only inside your range (they're numbered across the whole land and sorted; the CHECKPOINT SKIP cheat
@@ -60,7 +61,7 @@ tools/voices/cast.json, the engine's player code...) are the same: re-read, appe
 
 `drawTucker(c, x, feetY, facing, frame, pose, wounds?)`: the full figure, any pose the scenes have needed so far (see
 `TuckerPose`); `wounds` (`TuckerWounds`: `eye`, `saw`, `branch`, `grime`, `split`, booleans; `split` may be a number
-0..1, how far it's driven) STACK: each job that mutilates him adds its wound's drawing to the figure (all five drawn
+0..1, how far it's driven; his fight's `clawed` (maulings so far) and `bloody` (0..1)) STACK: each job that mutilates him adds its wound's drawing to the figure (all five drawn
 now; `tuckerWoundsOf(state)` in section.ts). From the split on he's BLIND (both eyes gone). `drawTuckerCloseup(c, cx, cy, scale,
 frame, opts)`: his face at close-up size (the station's furious shout uses it); `opts.making = { wound, k }` is the
 mutilation close-up rule's hook: register a painter per wound (`registerWoundPainter(wound, paint)`) that draws the wound
@@ -98,8 +99,9 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
 - **The arena** (built, arena/): the first frame there with the catch-up not done (in off the chase, or walked in), the
   catch-up plays (arena/catchup.ts); BRANCH_MEMO says it's been, UP_MEMO ('frontier-arena-up') that he's up off the
   branch (arena/state.ts). The fake-out runs on into the arena entry (arena/entry.ts, the same cutscene; SPLIT_MEMO).
-  The fight, when it comes, hangs off `onUp` at the entry's end (index.ts `fightOn`); a retry's entrance beat is
-  intro.ts's startEntrance / tickEntrance (him flat by the felled tree, FIGHT_X).
+  The fight (fight.ts) starts off `onUp` at the entry's end (index.ts `fightOn`: walls up, checkpoint 61); a retry's
+  entrance beat is intro.ts's startEntrance / tickEntrance (him flat by the felled tree, FIGHT_X; walled in, nothing
+  hurts in it), then the fight. Beaten: VICTORY, the walk-away, the hub (index.ts `leave`: job H's hook).
 
 ## Things that outlive a death
 

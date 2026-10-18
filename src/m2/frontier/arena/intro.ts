@@ -7,8 +7,8 @@
 // Meathead leans in)... and YEP: the branch snaps and Tucker comes off the oak at him screaming (the jumpscare: the
 // sting, the shake, the screen snapped to his screaming face, the oak's leaves everywhere), Meathead jumping back out of
 // his skin. Meathead's line; Tucker on his feet with the branch through him, squaring up (his line); then, the same
-// cutscene, THE ARENA ENTRY (entry.ts: the axe tree, the split, blind) and it's his fight (`onUp`: the placeholder now;
-// the fight hangs off it when it's designed). UP_MEMO ('frontier-arena-up') and checkpoint 60 from here on.
+// cutscene, THE ARENA ENTRY (entry.ts: the axe tree, the split, blind) and it's his fight (`onUp`: fight.ts). UP_MEMO
+// ('frontier-arena-up') and checkpoint 60 from here on.
 //
 // REUSABLE for the fight: a retry (dead in his fight, back at checkpoint 60, the same visit) skips all of that for THE
 // ENTRANCE BEAT (as the other land bosses' retries do): he's lying flat by the felled tree (the axe in the stump), the

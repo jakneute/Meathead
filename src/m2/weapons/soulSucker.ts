@@ -175,7 +175,7 @@ const bleed = (ctx: FrameContext, e: Enemy, near: number, mouth: { x: number; y:
   if (dmg <= 0) return;
   e.health -= dmg; e.hitFlash = 3;
   fx.spawnDamageNumber(e.pos, dmg);
-  setGore(gore + dmg * BLEED.bag);
+  if (!noBagFrom.has(e)) setGore(gore + dmg * BLEED.bag);
   playSound('glug', 0.6, -3);
   if (bleedRobot) playSound('clink', 0.4, 4); else playSound('splat', 0.35, 2);
   // (a spurt out of the hole, some of it going down him)
@@ -390,6 +390,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     if (e.health <= 0 || e.isBlownAway || e.innocent || e.type === 'boss' || g.hit.includes(e.id)) continue;
     if (p.pos.x > e.pos.x + e.width || p.pos.x + p.width < e.pos.x || p.pos.y > e.pos.y + e.height || p.pos.y + p.height < e.pos.y) continue;
     g.hit.push(e.id);
+    // (a fight with its own say over the gore landing on its boss (Tucker's: it's his weakness, not a hit): it has it)
+    if (!g.scrap && [...globHooks].some(h => h(ctx, e))) { splat(); return false; }
     e.health -= p.damage;
     splat();
     const dir = Math.sign(p.vel.x) || 1;
@@ -562,5 +564,12 @@ const drawOverlay = (c: Ctx, state: GameState) => {
 const calmDown = (e: Enemy) => { const ps = poise.get(e); if (ps?.held) { e.puppet = ps.held.puppet; e.harmless = ps.held.harmless; ps.held = undefined; } panicking.delete(e); };
 export const stopSoulSucker = () => {
   for (const e of [...panicking]) calmDown(e); for (const d of DROPS) d.on = false; bleedFrom = null; bleedBank = 0; sprayLeft = 0; swallowing = []; suckingAt = -10; stains.length = 0; syncArmor(false); stopGoreSlides(); };
+
+/** (a fight's hooks, Wilderness Land's Tucker's) Bosses whose blood, drawn by the sucker, doesn't go in the bag (his
+ *  fight's bag fills off the critters only: the user's "not directly"); and a say over a glob of the spray landing on
+ *  somebody (true: it's had, no damage). */
+export const noBagFrom = new WeakSet<Enemy>();
+const globHooks = new Set<(ctx: FrameContext, e: Enemy) => boolean>();
+export const onGlobHit = (fn: (ctx: FrameContext, e: Enemy) => boolean) => { globHooks.add(fn); return () => { globHooks.delete(fn); }; };
 
 export const registerSoulSucker = () => registerWeapon('SOUL_SUCKER', { fire: ctx => fire(ctx), update, draw: (c, p) => draw(c, p), drawHeld, tick, drawOverlay });

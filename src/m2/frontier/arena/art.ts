@@ -2,18 +2,17 @@
 // is drawn at full detail by tucker.ts): REAL woods out past the park (real pines and turning hardwoods, a dirt trail,
 // leaf litter; no park lettering out here), opening into a clearing round one giant old oak: a gnarled trunk, a crown
 // going orange, and a long pointed branch out of it at a man's chest height (with Tucker on it, after). The bikes:
-// his kid's bike parked on its stand, the one Tucker stole nosed into the oak and wrecked. The fight's placeholder board
-// (painted plywood on stakes).
+// his kid's bike parked on its stand, the one Tucker stole nosed into the oak and wrecked. Past it, the fight's glade:
+// the felled axe tree, a granite boulder (a ledge).
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawTodSky } from '../../timeOfDay';
-import { signText } from '../../signLetters';
-import { box, mix, hash, INK, painted, onScreen, type Ctx } from '../kit';
+import { box, mix, hash, INK, onScreen, type Ctx } from '../kit';
 import { groundBox } from '../section';
-import { drawBough } from '../tucker';
+import { drawBough, drawTuckerCap } from '../tucker';
 import { drawDirtBike } from '../woods/teens';
-import { x0, x1, X, GY, TREE_X, TRUNK_W, ROOT, PIERCE, TIP, branchY, branchR, BOARD_X, TUCK_BIKE, AXE_TREE_X, AXE_TR, CUT_H, LOG_LEN, LOG_X, LOG_BARE, MH_CHOP_X } from './layout';
+import { x0, x1, X, GY, TREE_X, TRUNK_W, ROOT, PIERCE, TIP, branchY, branchR, TUCK_BIKE, AXE_TREE_X, AXE_TR, CUT_H, LOG_LEN, LOG_X, LOG_BARE, MH_CHOP_X, ARENA_L, ARENA_R, ROCK_X, ROCK_HW, ROCK_H } from './layout';
 import type { Arena } from './state';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -78,7 +77,8 @@ const hardwood = (c: Ctx, x: number, feet: number, h: number, seed: number, dim 
 
 /** The woods, the trail, the clearing, the oak's trunk and crown; the bikes and the branch are separate (see below). */
 export const drawArenaBack = (c: Ctx, state: GameState) => {
-  const clearing = (rx: number) => Math.abs(X(rx) - TREE_X) < 520;
+  // (thinned out round the oak, and the fight's glade past it: no near trees in either)
+  const clearing = (rx: number) => Math.abs(X(rx) - TREE_X) < 520 || (X(rx) > ARENA_L - 60 && X(rx) < ARENA_R + 60);
   // ---- the back rank: real trees, dimmer (thinned out round the clearing)
   along(state, -200, 4200, 70, rx => {
     if (clearing(rx) && hash(rx + 2) < 0.7) return;
@@ -169,15 +169,31 @@ export const drawWreck = (c: Ctx, state: GameState) => {
   c.globalAlpha = 1;
 };
 
-/** The fight's placeholder: a plywood board on two stakes, hand-painted. */
-export const drawBoard = (c: Ctx, state: GameState) => {
-  if (!onScreen(state, BOARD_X - 90, BOARD_X + 90)) return;
-  const x = BOARD_X, top = GY - 112, w = 150, h = 52;
-  for (const sx of [x - 50, x + 46]) { box(c, sx - 1, top, 8, GY - top, INK); box(c, sx, top, 6, GY - top, '#8A6A40'); }
-  box(c, x - w / 2 - 1, top - 1, w + 2, h + 2, INK); box(c, x - w / 2, top, w, h, '#C8A070'); box(c, x - w / 2, top, w, 2, '#E0C090');
-  signText(c, 'TUCKER', x, top + 18, painted(2, '#7F1D1D', '#C8A070'));
-  signText(c, 'THE FIGHT:', x, top + 33, painted(1, '#1C1917', '#C8A070'));
-  signText(c, 'COMING SOON', x, top + 45, painted(1, '#1C1917', '#C8A070'));
+/** A revisit once he's dead: where it happened, his cap in the leaves and a dark stain. */
+export const drawRemainsMark = (c: Ctx, state: GameState) => {
+  const x = ARENA_L + 760;
+  if (!onScreen(state, x - 80, x + 80)) return;
+  c.fillStyle = '#3A0A0A'; c.beginPath(); c.ellipse(x, GY + 1, 54, 4, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#5F0F0F'; c.beginPath(); c.ellipse(x - 8, GY, 30, 2.6, 0, 0, Math.PI * 2); c.fill();
+  drawTuckerCap(c, x + 30, GY - 4, 0.35);
+};
+
+/** The fight's boulder: real granite (gray, lichen, a crack), its flat top a ledge (lit along its lip). */
+export const drawBoulder = (c: Ctx, state: GameState) => {
+  if (!onScreen(state, ROCK_X - ROCK_HW - 30, ROCK_X + ROCK_HW + 30)) return;
+  const x = ROCK_X, w = ROCK_HW, top = GY - ROCK_H;
+  const path = (g: number) => { c.beginPath(); c.moveTo(x - w - 18 - g, GY + 2); c.quadraticCurveTo(x - w - 14 - g, top + 14, x - w + 4, top - g); c.lineTo(x + w - 2, top - g); c.quadraticCurveTo(x + w + 16 + g, top + 10, x + w + 22 + g, GY + 2); c.closePath(); };
+  c.fillStyle = INK; path(1.5); c.fill();
+  c.fillStyle = '#7C7F86'; path(0); c.fill();
+  c.save(); path(0); c.clip();
+  box(c, x - w - 20, top, 30, ROCK_H, '#9CA0A8');
+  box(c, x + w - 10, top, 40, ROCK_H, '#5E6168');
+  box(c, x - w - 20, GY - 14, 2 * w + 44, 16, '#4E5056');
+  for (const [lx, ly, r] of [[-30, 18, 7], [24, 30, 9], [-8, 40, 5]] as const) { c.fillStyle = '#7A8A4A'; c.beginPath(); c.ellipse(x + lx, top + ly, r, r * 0.6, 0, 0, Math.PI * 2); c.fill(); }
+  c.strokeStyle = '#3A3C42'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(x + 6, top + 2); c.lineTo(x + 12, top + 20); c.lineTo(x + 6, top + 34); c.stroke();
+  c.restore();
+  // (the lit lip: it's a ledge)
+  box(c, x - w + 4, top - 1, 2 * w - 6, 3, '#D8DCE2');
 };
 
 // ---------------------------------------------------------------------------------------------------------------

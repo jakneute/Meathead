@@ -6,6 +6,8 @@ import { frontierState, landVisit } from '../section';
 import type { Victory } from '../../victory';
 import type { WalkAway } from '../../walkAway';
 import type { TuckerPose, TuckerFace } from '../tucker';
+import type { Block } from '../../../m1/types';
+import type { Fight } from './fight';
 
 /** The branch is through him (tucker.ts's `branch`, from here on): the catch-up's been. */
 export const BRANCH_MEMO = 'frontier-tucker-branch';
@@ -62,6 +64,8 @@ export interface Arena {
   axe: 'tree' | 'held' | 'stump';
   split: boolean; squash: number; splitK: number; logLaid: boolean;
   victory: Victory | null; walk: WalkAway | null; wonAt: number;
+  // ---- his fight (job G: fight.ts): it, the arena's walls while it's on, and how it ended (his weakness?)
+  fight: Fight | null; walls: Block[]; weak: boolean;
 }
 
 export const arenaOf = (state: GameState) => frontierState<Arena>(state, 'arena', () => ({
@@ -72,6 +76,7 @@ export const arenaOf = (state: GameState) => frontierState<Arena>(state, 'arena'
   closeK: 0, snapped: false, leaves: [], entrance: 0,
   tree: 'up', treeTh: 0, treeVth: 0, treeDrop: 0, axe: 'tree', split: false, squash: 0, splitK: 0, logLaid: false,
   victory: null, walk: null, wonAt: 0,
+  fight: null, walls: [], weak: false,
 }));
 
 export const next = (s: Arena, step: string) => { s.step = step; s.t = 0; };

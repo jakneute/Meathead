@@ -1,9 +1,9 @@
 m2/hub/index.ts:132 name: AMERICA_DENY
-m2/weapons/soulSucker.ts:192 name: FULL_BAG_LINES
-m2/weapons/soulSucker.ts:331 name: EMPTY_BAG_LINES
 m2/weapons/spellbook.ts:369 name: BULK_LINES
 m2/weapons/spellbook.ts:374 name: BULK_FAIL_LINES
 m2/weapons/mallet.ts:235 name: DUCK_LINES
+m2/weapons/soulSucker.ts:192 name: FULL_BAG_LINES
+m2/weapons/soulSucker.ts:331 name: EMPTY_BAG_LINES
 m2/intro/index.ts:345 name: MEATHEAD_PARKED
 m2/intro/index.ts:632 name: MEATHEAD_TICKET
 m2/intro/index.ts:634 name: MEATHEAD_TICKET
@@ -152,6 +152,8 @@ m2/frontier/dirtbike/chase.ts:695 voice: true
 m2/frontier/dirtbike/chase.ts:858 voice: pickLine(byPants(state, TUCKER_FLEE))
 m2/frontier/arena/cast.ts:30 voice: pickLine(byPants(state, pool))
 m2/frontier/arena/cast.ts:35 voice: pickLine(byPants(state, pool))
+m2/frontier/arena/fight.ts:177 voice: pants(lines)
+m2/frontier/arena/fight.ts:184 voice: pants(lines)
 m2/frontier/wilds/station.ts:94 voice: pickLine(byPants(state, pool))
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice

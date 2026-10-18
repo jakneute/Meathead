@@ -46,7 +46,8 @@ export const BODY_NEAR = 130;
 // ---- the arena entry (entry.ts): the axe tree past the oak, a lumberjack's axe stuck in it; Tucker runs off to it and
 // taunts from just past it; Meathead chops it down onto his head with one swing
 /** The axe tree (a tall pine): its trunk's middle, half width, height (ground to its top). */
-export const AXE_TREE_X = TREE_X + 430, AXE_TR = 11, AXE_TREE_H = 300;
+// (job G: moved on past the clearing into the fight's arena, toward its left end)
+export const AXE_TREE_X = TREE_X + 660, AXE_TR = 11, AXE_TREE_H = 300;
 /** Where the swing cuts it (the stump's height). */
 export const CUT_H = 40;
 /** The trunk above the cut: its length. */
@@ -62,10 +63,20 @@ export const FIGHT_X = TAUNT_X;
 export const LOG_X = AXE_TREE_X + 14, LOG_BARE = Math.round(LOG_LEN * 0.36);
 /** A retry: how near before Tucker pops up again (the entrance beat). */
 export const ENTRANCE_NEAR = 220;
-/** The placeholder's end (past him and the felled tree): VICTORY, the walk-away. */
-export const TRIGGER_X = LOG_X + LOG_LEN + 90;
-/** The placeholder board for the fight (past the felled tree). */
-export const BOARD_X = LOG_X + LOG_LEN + 20;
+
+// ---- TUCKER'S FIGHT (job G): a glade in the real woods past the clearing, about double a screen wide (narrower than
+// Stuntman Steve's), walled at both ends once it's on (both sides locked till he's dead); the felled pine along the
+// ground at its left end (its bare part a low ledge), a big granite boulder toward its right (a ledge to get up on)
+/** The fight's floor: its walls and how wide. */
+export const ARENA_L = AXE_TREE_X - 320, ARENA_W = 1600, ARENA_R = ARENA_L + ARENA_W;
+export const ARENA_MID = (ARENA_L + ARENA_R) / 2;
+/** The boulder: its middle, its top's half width, its top over the ground (a one-way ledge, lit top). */
+export const ROCK_X = ARENA_L + 1130, ROCK_HW = 62, ROCK_H = 58;
+/** Checkpoint 61 (his once the fight's first started): short of the arena, past the oak; the second refill (big health
+ *  and ammo: right before his door, every retry) between it and the arena. */
+export const CP61_X = ARENA_L - 260, REFILL2_X = ARENA_L - 130;
+/** Where the mountain lions come out of the woods (off the arena's ends, back in the trees). */
+export const LION_FROM_L = ARENA_L - 90, LION_FROM_R = ARENA_R + 90;
 
 /** The bikes' colors: the kid's (his, from the bounty) and the one Tucker stole (the chase's). */
 export const MH_BIKE = '#DC2626', TUCK_BIKE = '#2563EB';
