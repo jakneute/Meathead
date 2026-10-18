@@ -6076,6 +6076,11 @@
  },
  {
   "voice": "death",
+  "text": "BLOWN UP WITH THE CAR. HE WAS STILL ON IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "BODY CHECKED BY A COMMUTER",
   "from": "content/deaths"
  },
@@ -7132,11 +7137,6 @@
  {
   "voice": "death",
   "text": "DEPUTIZED. INTO THE GROUND.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "DERAILED. HE WAS STILL ON IT.",
   "from": "FRONTIER"
  },
  {
@@ -13751,7 +13751,7 @@
  },
  {
   "voice": "death",
-  "text": "UNCOUPLED, DERAILED, FOLDED. THE FARE WAS FOUR DOLLARS.",
+  "text": "UNCOUPLED, BLOWN UP, SCATTERED. THE FARE WAS FOUR DOLLARS.",
   "from": "FRONTIER"
  },
  {

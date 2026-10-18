@@ -13,10 +13,9 @@
 //
 // THE CUT (the user's: Tucker now and then uncouples the car he's on; dally and it derails, a silly violent death):
 // a good way along a car that's marked for it, the tell (Tucker on the tube, the coupling ahead of him sparking and
-// clanking, a red ! over it, the car shuddering), then the car and everything behind it drop back, slowing; a switch
-// comes out from under the train behind it, its target flips red as the cut end reaches it (the points thrown under it)
-// and the cut end goes off the line: the wheels jump the rails, it slews off down the near bank and goes over on its
-// side (no explosion: the playtest). Still on it then: thrown off with it, dead (m2:fr_derail, its death screen).
+// clanking, a red ! over it, the car shuddering), then the car and everything behind it drop back, slowing a bit,
+// smoking, and blow up (the user's, 2026-10-18: "the decoupled train cars should just explode after slowing down a
+// bit"); the wrecks go over down the bank, burning. Still on it then: blown off with it, dead (m2:fr_derail).
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -30,7 +29,7 @@ import { ledge, solid, meatheadSays, byPants } from '../section';
 import { GY } from '../geometry';
 import { CARS, CAR_X, carRight, DECK, ROOF, CEIL, COUPLER, END, ENTERABLE, TOP, ENGINE, CHECKPOINTS, fittings } from './layout';
 import { trainOf, type Train } from './state';
-import { offOf, playerRoom, roomAt } from './where';
+import { playerRoom, roomAt } from './where';
 import { shiftBounds, riding, boarding } from './kinds';
 import { tubeSay } from './tube';
 import { inView } from './view';
@@ -151,11 +150,6 @@ const shiftCars = (state: GameState, tr: Train, k: number, dx: number) => {
 // Each frame
 
 const TELL_SPARKS = 4;
-/** The switch comes out from under the train this far back of the cut end, once it's dropped back this far. */
-const SW_LEAD = 240, SW_AFTER = -240;
-
-/** The cut-off end's front truck (world x): what goes over the switch's points first. */
-const frontTruck = (tr: Train, k: number) => carRight(k) + offOf(tr, k) - 70;
 
 export const updateCut = (ctx: FrameContext) => {
   const { state } = ctx, tr = trainOf(state), p = state.player;
@@ -185,22 +179,18 @@ export const updateCut = (ctx: FrameContext) => {
     }
     return;
   }
-  // (the drift back: it's lost the engine, slowing; the world, and the switch, go by it slower and slower)
-  cut.v -= 0.034 + Math.max(0, -cut.v) * 0.004;
+  // (the drift back: it's lost the engine, slowing a bit (capped: it used to run away faster and faster and leave him
+  // hanging in the sky); then it blows up (the user's, 2026-10-18), whoever's still on it with it)
+  cut.v = Math.max(DRIFT_MAX, cut.v - 0.034);
   cut.off += cut.v;
   shiftCars(state, tr, cut.k, cut.v);
   if (cut.t % 8 === 0) for (let n = 0; n < 2; n++) state.particles.push({ pos: { x: cpx - 6, y: DECK + 2 }, vel: { x: -1 - Math.random() * 2, y: -Math.random() * 2 }, life: 16, color: '#FDE047', size: 2 });
-  // (the switch: out from under the train in the gap behind it, coming back at the cut end with the ground)
-  if (cut.sw === undefined && cut.off < SW_AFTER) cut.sw = cpx + SW_LEAD;
-  if (cut.sw !== undefined) {
-    cut.sw -= tr.v;
-    const front = frontTruck(tr, cut.k);
-    if (!cut.thrown && cut.sw - front < 150) { cut.thrown = true; playSound('clang', 1, -4); playSound('crack', 0.5, 6); }
-    if (cut.sw <= front) derail(ctx, tr, cut.k);
-  }
-  // (it never just hangs about: well back, off it goes regardless)
-  else if (cut.off < -1400) derail(ctx, tr, cut.k);
+  // (smoking from under it, more and more, as it's about to go)
+  if (cut.t > BLOW_AT - 60 && cut.t % 4 === 0) state.particles.push({ pos: { x: cpx - 40 - Math.random() * 200, y: DECK - Math.random() * 30 }, vel: { x: -1, y: -1 - Math.random() * 2 }, life: 30, color: '#57534E', size: 5 + Math.random() * 4 });
+  if (cut.t >= BLOW_AT) derail(ctx, tr, cut.k);
 };
+/** The cut end's drift back: its top speed (px a frame back), and when it blows (frames after the cut). */
+const DRIFT_MAX = -2.6, BLOW_AT = 130;
 
 const startCut = (state: GameState, tr: Train, k: number, tell: number) => {
   tr.cut = { k, phase: 'tell', t: 0, tell, v: 0, off: 0 };
@@ -235,8 +225,13 @@ const derail = (ctx: FrameContext, tr: Train, k: number) => {
     tr.wrecks.push({ x, y: 0, vx: cut.v, rot: 0, tip: 0, kind: CARS[i].kind, len: CARS[i].len, t: -(k - i) * 8, seed: i * 7 + 3 });
   }
   const onIt = cx < edge && p.health > 0 && !p.inCutscene && p.pos.y + p.height < GY - 4;
-  playSound('crash', 1, -12); playSound('crunch', 1, -6); playSound('clang', 0.8, -14);
-  shakeScreen(state, onIt ? 14 : 6, onIt ? 6 : 3);
+  playSound('boom', 1, -8); playSound('crash', 1, -12); playSound('crunch', 1, -6); playSound('clang', 0.8, -14);
+  shakeScreen(state, onIt ? 16 : 10, onIt ? 7 : 5);
+  // (it blows: a fireball along the cut end, smoke, burning planks)
+  for (let n = 0; n < 60; n++) {
+    const fx = edge - Math.random() * 520, fire = n % 4 !== 3;
+    state.particles.push({ pos: { x: fx, y: DECK - 20 - Math.random() * 140 }, vel: { x: (Math.random() - 0.5) * 10, y: -2 - Math.random() * 9 }, life: 26 + Math.random() * 34, color: fire ? (n % 3 ? '#F97316' : '#FDE047') : '#44403C', size: fire ? 5 + Math.random() * 7 : 8 + Math.random() * 6 });
+  }
   // (the wheels off the rails: sparks; the ballast thrown up; planks)
   for (let n = 0; n < 26; n++) {
     const sx = edge - 60 - Math.random() * 280, spark = n % 3 === 0;
