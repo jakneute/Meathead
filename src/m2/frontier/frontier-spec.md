@@ -105,7 +105,7 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 | 3 | Sawdust Gulch + the mines | `town` | FRX+39000 .. FRX+50000 | 20-29 | built (job 3) |
 | 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+53000 .. FRX+64600 | 30-38 | built (job 4) |
 | 5 | The woods (outside the park) + the bounty | `woods` | FRX+65000 .. FRX+68000 | 40-41 | built (job 5) |
-| 6 | The dirt-bike chase (TEENAGERS sub-boss) | `dirtbike` | FRX+71000 .. FRX+81000 | 50-59 | stub |
+| 6 | The dirt-bike chase (TEENAGERS sub-boss) | `dirtbike` | FRX+71000 .. FRX+81000 (side view: the first 1800) | 50-55 | built (job 6) |
 | 7 | The catch-up + Tucker's arena | `arena` | FRX+84000 .. FRX+88000 | 60-69 | placeholder end |
 
 Gaps of 3000 between sections (grow your x1 into the one after yours). The stubs: flat ground, a frontier sign naming
@@ -194,6 +194,20 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | 1230 | THE BOULDER | jump from it over a wider ivy patch; a second crow |
 | 1600 | THE DIRT LOT (cp 41) | the kids' spot: four riders doing laps over the jumps in its back lane, a ramp, a burnt couch, a fire ring, DIRT RATS sprayed on a boulder; the refill (big health, big ammo); the LEAF PILE by the trail (1700) |
 | 1900 | THE BOUNTY | the scene (woods/scene.ts), then the kid's bike into the chase (DOORS.dirtbike.start). After: the lot empty, the pile scattered, the kicked-off kid sulking on a stump (2080); off the right end on foot to the chase |
+
+### Section 6: the dirt-bike chase (dirtbike/chase.ts WAVES; one stretch of generated road each, by time not x)
+
+| Stretch (checkpoint) | Roadside sign | Teens (weapons, in order) | At once / working him | Road |
+|---|---|---|---|---|
+| THE DIRT TRAIL (cp 50) | DIRT TRAIL | bat, chain, bat | 1 (2 off the bounty) / 1 | woods, gentle bends and hills; logs across, dirt jumps; stumps |
+| OPEN RANGE (cp 51) | OPEN RANGE | crowbar, chain, bat, crowbar | 2 / 1 | fields, fence posts, hay bales, cows (some in the road), rocks; a first-aid kit |
+| FARM ROAD (cp 52) | FARM ROAD | nunchucks, bat, chain, nunchucks, crowbar | 3 / 2 | mailboxes, an outhouse, a parked tractor, SLOW CHILDREN, barns, cows in the road, hay; bigger hills |
+| CREEK CROSSING (cp 53) | CREEK CROSSING | hockey stick, skateboard, chain, nunchucks, hockey stick | 3 / 2 | the creek fords (a CREEK sign, then water across the road: jump it), reeds, boulders, deer; sharper bends |
+| POWER LINE CUT (cp 54) | POWER LINE CUT | skateboard, chain, hockey stick, crowbar, nunchucks, bat | 4 / 2 | the towers marching along both sides, logs, rocks in pairs, jumps, deer; steep hills, hard bends |
+| THE LAST MILE (cp 55) | DEAD END 1 MILE | chain, skateboard, hockey stick, nunchucks, crowbar, bat, chain | 4 / 2 | dry fields, telephone poles, cows and deer crossing, logs, jumps; the hardest bends and hills |
+
+30 teens in all; the wind-up (the tell) shortens 50 -> 34 frames down the stretches; teens take 2 hits early, 3 later
+(+1 if heavyset). Tucker's glimpsed ahead each stretch (the bounty going up: TUCKER_RAISE, the ledger after).
 
 ## Standing rules (all apply)
 
@@ -419,3 +433,69 @@ Teach, then escalate (each hazard alone in a safe spot first):
   scattered, and the kid he kicked off sulking on a stump by the trail (KID_SULK, by the state of him, each time he comes
   back by). The way on after the bounty: off the right end on foot to the chase's start; the way back: the left end
   onto the crew's clearing past the chipper (DOORS.logride.end).
+- 2026-10-18 (job 6, the dirt-bike chase: the TEENAGERS sub-boss. The user's: Road Rash on the Genesis, not Mode 7; X /
+  left click attacks left, B / right click attacks right, A jumps; trees, cows and wildlife by the roadside to bail into
+  (heavy damage, a quick respawn, only deadly low); the teens' weapons; PUNCH PARRIES instead of stealing them, the bike
+  chain's (grab it, swing the teen over his head, toss them forward: a little human bomb ahead of him); a sub-boss
+  called TEENAGERS. Everything below is OURS unless it says the user's): a self-contained mode that takes the screen
+  over (as Foreign Lands' helicopter does): dirtbike/chase.ts, drawn from the section's drawHud over everything, his own
+  figure hidden and held (Player.hidden/carried) while it runs; the React HUD swaps to the bike's (store.ts
+  bikeHud/bikeBoost: the PWR row the boost, FISTS for the weapon) and a controls card at the start (bikeTips, the real
+  button icons via Prompt).
+- 2026-10-18 (job 6): THE ROAD (the user's "the visual effects genesis games would use"; the build ours): Lou's
+  segment road (road.ts): 200-unit segments, bends as an accumulated per-segment x offset, hills as per-segment heights,
+  drawn far to near as flat bands (grass, the dirt's rumble edge, the road, two worn ruts) alternating light/dark every 3
+  segments, fogged toward the horizon in 6 bands (the time of day's haze); roadside sprites painted once each onto little
+  canvases and drawn scaled, cropped at any crest in front of them; parallax (the snowcapped range, a pine line or soft
+  hills with a barn, the power line towers) sliding on the bends; the sky by the hour; all on a 400x300 canvas blown up
+  2x (crisp pixels, banded), the hour's light multiplied over it. The road is GENERATED as he rides into a ring of
+  segments, by stretch (biome), seeded per stretch: a stretch lasts till its teens are beaten (the next one's road starts
+  out past the horizon, its county sign first). Real-world lettering only (county signs, SLOW CHILDREN).
+- 2026-10-18 (job 6): RIDING (ours): it rides itself at a cruise (~63 MPH on the speedo); UP boosts (~90 MPH: drains in
+  2.5 s, back in 7 s, a parry tops it up a third), DOWN brakes; left/right steer, the bends push him outward (harder the
+  faster); off the road is slower and bumpy. A jumps (over logs, rocks, the creek, a teen's swing); dirt jumps in the road
+  launch him. Bails (the user's) on anything tall by or in the road: over the bars, tumbling, the bike cartwheeling,
+  32 damage (x0.65: ~21 of 100), then back on the road in ~1.3 s, blinking 2 s (nothing bails him meanwhile). Cows and
+  deer he (or a teen, or a blast) hits die bleeding (legs up, X eyes). A first-aid kit in the road once a stretch from the
+  second on (+30).
+- 2026-10-18 (job 6): THE TEENS (ours past the user's "teenagers use weapons"): woods/teens.ts's seeded kids (boys and
+  girls, every skin, heavy or thin, helmets or hair, ponytails), drawn from behind on their bikes; weapons: bike chain,
+  baseball bat, crowbar, nunchucks, hockey stick, skateboard. They spawn from behind (off-screen, overtaking) and ahead
+  (hanging back); one or two at a time work him, one per side, the rest hover; a swing is a wind-up (weapon up behind
+  them; the last 18 frames it flashes white with a "!" over them: THE TELL), then the swing (14 damage). A plain hit
+  knocks them about (shoved outward: into the roadside if they're near it); 2-3 and they're off (tumbling, landing face
+  down backside up, the underwear riding up; their bike skidding on loose: it hurts him if he hits it moving). Bumping
+  shoves them more than him. Hazards hit them too (shoved or blinded into trees, cows; blasts).
+- 2026-10-18 (job 6): THE PUNCH PARRIES (the user's rule and the chain's; the others: the bat, crowbar and nunchucks
+  were proposed and liked; the hockey stick and skateboard ours): hit toward a teen's side during the tell or the swing
+  (an 18 + 9 frame window): an instant elimination, a hit-stop, PARRY!, then the flourish (the camera stays on the road):
+  CHAIN (the user's): he grabs the chain, yanks them off, whirls them round over his head and lets go: they sail ahead
+  and go off as a small human bomb (a banded fireball, chunks), taking out any teen (and any cow) near it; riding into
+  its blast hurts him (m2:fr_teenbomb). BAT: he catches it, BONK on their head, they flip over the bars and fly into a
+  roadside tree far enough ahead to see it (it's left a tree with a kid folded round it, bleeding). CROWBAR: yanked
+  away, they FACEPLANT in the road ahead; he rides over them (SPLAT) and their own pack's thumps follow. NUNCHUCKS: round
+  their neck; slung back over his shoulder past the camera into the pack behind: everybody behind him goes down (STRIKE!
+  / SPARE! / GUTTER BALL!). HOCKEY STICK (ours): jammed in their front spokes: the bike stops dead, they pole-vault over
+  the bars and land face down ahead: a HUMAN RAMP (ride over it: big air). SKATEBOARD (ours): snatched and brought down
+  over their head (NECK BOARD!): they ride on blind, wearing it, and drift into whatever's by the road (a cow put there
+  if there's nothing): both dead.
+- 2026-10-18 (job 6): THE SUB-BOSS (the user's: TEENAGERS): the bar in the top band (topBand()): every teen left,
+  pooled (30), its title, the count. Once it's on there's no way out of it (the mode has no exits); never respawned once
+  beaten (TEENS_MEMO 'frontier-teens-done'). Checkpoints (ours): one a stretch, 50-55 (manual, set as each stretch
+  begins); dying puts him straight back on the bike at the stretch he's in, the stretches before it beaten, that
+  stretch's teens all back. Off the bounty's ride (takeBountyHandoff) he's straight into it; walked in on foot, the kid's
+  bike is parked on the side view's trail (walk onto it). The refill was the woods' lot.
+- 2026-10-18 (job 6): TUCKER (ours past "glimpsed, out of reach"): each stretch he rides up out of the distance ahead on
+  the stolen bike, never nearer than ~1700, twisted round in his seat to yell back (tucker.ts's close-up as his face, small,
+  his wounds and grime on), the bounty going up each time (TUCKER_RAISE: FORTY BUCKS!...), sometimes the ledger; then off
+  over the horizon. While he yells, a Genesis-style talking head of him at full detail (the close-up) sits under the bar.
+- 2026-10-18 (job 6): THE END (ours, short of job 7's catch-up): the last teen down, a cutscene (no HUD, SKIP >> for all
+  of it): Tucker ahead, MY BOUNTY! (TUCKER_FLEE), swerves off the road into the trees; Meathead: HEY, BUZZSAW! WHERE'S MY
+  TWENTY BUCKS? (MH_END); black; DOORS.arena.start, takeChaseHandoff() true once (he came on the bike: job 7's to use).
+  Afterward the side view's trail is walkable both ways (the woods behind, the arena ahead), a few wrecked bikes in it.
+- 2026-10-18 (job 6): new hurts, each with hurt lines and death screens: the bails by what he hit (m2:fr_bail_tree,
+  _post (posts, mailboxes, signs), _cow, _deer, _hay, _outhouse, _tractor, _rock, _log, _creek, _pylon), the weapons
+  (m2:fr_chain, _bat, _crowbar, _nunchucks, _hockey, _skateboard), a loose bike (m2:fr_bikewreck), his own human bomb
+  (m2:fr_teenbomb). Lines (clean / shitty / naked): his start, back on after dying, knock-off quips, a pool per parry,
+  the end; the teens' taunts and parried yelps (reacting to the state of him); Tucker's raises, ledger and flee. Tuned
+  blind (no runs): speeds, the parry window, wave sizes, damage.

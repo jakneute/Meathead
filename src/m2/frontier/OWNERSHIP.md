@@ -12,7 +12,7 @@ verbatim, the fill-ins, the rules, the section plan). Each section's index.ts he
 | 3 (done) | `town/` | town (20-29) |
 | 4 (done) | `logride/` (and tucker.ts's saw wound, its poses 'shove' / 'slam' / 'press') | logride (30-38) |
 | 5 (done) | `woods/` (and tucker.ts's `grime` look, its poses 'pop' / 'pounce' / 'ride' / 'ridepoint') | woods (40-41) |
-| later | `dirtbike/` (incl. the TEENAGERS sub-boss) | dirtbike (50-59) |
+| 6 (done) | `dirtbike/` (incl. the TEENAGERS sub-boss; appended store.ts bikeHud/bikeBoost/bikeTips and App.tsx's bike HUD + controls card) | dirtbike (50-55) |
 | later | `arena/` (incl. Tucker's fight, when the user gives it) | arena (60-69) |
 
 Inside your folders, anything goes: split into layout.ts, art.ts, kinds.ts and so on, as `wilds/` does. Number your
@@ -85,7 +85,12 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   once after that, for the chase to start him on a bike. Back from the chase: `DOORS.woods.end` (the lot, the scene
   done); the woods' right end goes on to the chase's start on foot once the bounty's been. The kids: woods/teens.ts
   (teenOf, drawDirtBike, drawTeenPerson) and their voices (woods/lines.ts TEEN_VOICES) are there to reuse.
-- **The catch-up** (dirtbike -> arena): a one-way cut; give it a way back on foot.
+- **The catch-up** (dirtbike -> arena, built on the chase's side, dirtbike/chase.ts): the last teen down, the outro
+  (Tucker off into the trees, black) puts him at `DOORS.arena.start` on foot, his bike flags cleared;
+  `takeChaseHandoff()` (dirtbike/index.ts, from chase.ts) is true once after that, for job 7's catch-up to start him on
+  (or with) the bike. `TEENS_MEMO` ('frontier-teens-done') says the chase is beaten. Back from the arena:
+  `DOORS.dirtbike.end` (the side view's trail, x0+1500; set by dirtbike/index.ts); its right end (x0+1800) goes on to
+  `DOORS.arena.start` once the chase is beaten, its left end back to the woods (`DOORS.woods.end`).
 
 ## Things that outlive a death
 

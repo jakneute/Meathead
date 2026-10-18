@@ -36,6 +36,7 @@ import { foreignLayout, FOREIGN_STAGE, FOREIGN_CHECKPOINTS } from './foreign/ind
 import { frontierLayout, FRONTIER_STAGE, FRONTIER_CHECKPOINTS } from './frontier/index';
 import { ROCKETS_ON } from './foreign/heli/copter';
 import HeliRockets from './foreign/heli/HeliRockets';
+import BikeFist from './frontier/dirtbike/BikeFist';
 import { SPOTS, LANDS } from './hub/lands';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
 import { setGenderOf, unpaired } from '../m1/content/gender';
@@ -207,7 +208,7 @@ const App2: React.FC = () => {
       setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: portalArrivalPending() || hubExitPending() });
-      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false });
+      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false, bikeHud: false, bikeTips: false });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
       const refill = (dest !== 'hub' && dest !== 'pen') || (to === HUB_STAGE && takeBossKill());
@@ -400,6 +401,9 @@ const App2: React.FC = () => {
           ui.heliHud
             // (flying the helicopter: the PWR row's its boost, its rockets beside it; the weapon's its machine gun)
             ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.heliBoost ?? 0} powerCells={1} powerExtra={ROCKETS_ON ? <HeliRockets charges={ui.heliRockets ?? 0} /> : undefined} currentWeapon="LMG" ammo={Infinity} maxAmmo={Infinity} weaponName="MACHINE GUN" skin={theme?.hud} />
+            : ui.bikeHud
+            // (on the dirt bike: the PWR row's its boost; no gun, his fists)
+            ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.bikeBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} />
             : <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weaponName(weapon)} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} skin={theme?.hud} />
         )}
         {/* What up does here */}
@@ -429,6 +433,19 @@ const App2: React.FC = () => {
             <Prompt pad={['X']} kb={['@fire']} mouse="left" label="MACHINE GUN" />
             {ROCKETS_ON && <Prompt pad={['Y']} kb={['@secondary']} label="ROCKETS" />}
             <span className="inline-flex items-center gap-1 align-middle"><Prompt pad={['DPAD']} kb={['@up', '@down', '@left', '@right']} /><span>+</span><Prompt pad={['B']} kb={['@special']} label="BOOST" /></span>
+          </div>
+        )}
+        {/* Wilderness Land's dirt-bike chase: the riding controls, for a while at the start */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.bikeTips && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
+            <div className="flex gap-4">
+              <Prompt pad={['X']} kb={['@fire']} mouse="left" label="HIT LEFT" />
+              <Prompt pad={['B']} kb={['@charge', '@special']} mouse="right" label="HIT RIGHT" />
+              <Prompt pad={['A']} kb={['@jump']} label="JUMP" />
+              <Prompt pad={['DPAD_UP']} kb={['@up']} label="BOOST" />
+              <Prompt pad={['DPAD_DOWN']} kb={['@down']} label="BRAKE" />
+            </div>
+            <span className="text-yellow-300">HIT THEIR SIDE AS THEY SWING (THE FLASH): PARRY!</span>
           </div>
         )}
         {/* The intro: what the panel in the corner's teaching, where he is; what up does at the ticket window; the ticket */}

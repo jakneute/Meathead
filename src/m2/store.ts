@@ -42,6 +42,11 @@ export interface M2Ui {
   heliHud?: boolean;
   heliBoost?: number;
   heliRockets?: number;
+  /** (Wilderness Land's dirt-bike chase) The main HUD's his bike's: the PWR row the boost (0..1), FISTS for the weapon;
+   *  and the riding controls card (X hit left, B hit right, A jump, up boost, down brake, the parry). */
+  bikeHud?: boolean;
+  bikeBoost?: number;
+  bikeTips?: boolean;
 }
 
 let ui: M2Ui = { near: null, map: null, nearExit: false, notice: null };

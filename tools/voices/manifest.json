@@ -5591,6 +5591,11 @@
  },
  {
   "voice": "death",
+  "text": "BATTED TO DEATH BY A KID",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "BATTERED",
   "from": "SPOOKY"
  },
@@ -5868,6 +5873,11 @@
   "voice": "death",
   "text": "BLOWN UP BY A STUNT CAR",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "BLOWN UP BY A TEENAGER HE THREW",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -6351,6 +6361,11 @@
  },
  {
   "voice": "death",
+  "text": "CHECKED INTO THE BOARDS. THERE WERE NO BOARDS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "CHECKED OUT",
   "from": "SPOOKY"
  },
@@ -6613,6 +6628,11 @@
   "voice": "death",
   "text": "CRISPY CRUST",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "CROWBARRED BY A TEENAGER",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -6881,6 +6901,11 @@
  },
  {
   "voice": "death",
+  "text": "DEER IN THE HEADLIGHTS. HE WAS THE DEER.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "DEFEATED BY NASA (UNOFFICIAL)",
   "from": "SPACE"
  },
@@ -6933,6 +6958,16 @@
   "voice": "death",
   "text": "DIED IN A FOUNTAIN SHOW",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "DIED IN A HAY BALE. NOT A ROLL IN THE HAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "DIED IN AN OUTHOUSE",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -7246,6 +7281,11 @@
  },
  {
   "voice": "death",
+  "text": "DROWNED IN A CREEK ON A DIRT BIKE",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "DROWNED IN A THEME PARK",
   "from": "FOREIGN"
  },
@@ -7283,6 +7323,11 @@
   "voice": "death",
   "text": "DROWNED IN SECONDHAND BLOOD",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "DROWNED IN SOMEBODY ELSE'S SHIT FOR ONCE",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -7781,6 +7826,11 @@
  },
  {
   "voice": "death",
+  "text": "FLATTENED BY A TRACTOR THAT WASN'T EVEN ON",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "FLATTENED BY AN AIRLOCK",
   "from": "SPACE"
  },
@@ -7813,6 +7863,11 @@
   "voice": "death",
   "text": "FLATTENED BY THE FINALE",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "FLATTENED ON A POWER LINE TOWER",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -7863,6 +7918,11 @@
   "voice": "death",
   "text": "FLINT'S ROADS: 1, MEATHEAD: 0",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FLIPPED ON A ROCK",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -8256,6 +8316,11 @@
  },
  {
   "voice": "death",
+  "text": "HAY BALES ARE NOT SOFT",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "HE BROUGHT THE HOUSE DOWN. ON HIMSELF.",
   "from": "SPOOKY"
  },
@@ -8361,6 +8426,11 @@
  },
  {
   "voice": "death",
+  "text": "HIGH STICKED TO DEATH",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "HIPPO'D",
   "from": "ADVENTURE"
  },
@@ -8386,6 +8456,16 @@
  },
  {
   "voice": "death",
+  "text": "HIT A COW. BOTH DEAD. NOBODY WON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "HIT A POWER LINE TOWER. SHOCKING.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "HIT AND RUN",
   "from": "content/deaths"
  },
@@ -8393,6 +8473,11 @@
   "voice": "death",
   "text": "HIT AND RUN, LOW EARTH ORBIT",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "HIT BY A BIKE WITH NOBODY ON IT",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -8551,6 +8636,11 @@
  },
  {
   "voice": "death",
+  "text": "HOME RUN. WITH HIS HEAD.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "HOOLIGANED",
   "from": "FOREIGN"
  },
@@ -8663,6 +8753,11 @@
   "voice": "death",
   "text": "HUGGED A HUNTING KNIFE",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "HUGGED A TREE AT FORTY MILES AN HOUR",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -8946,6 +9041,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A COW HE KILLED",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A DAYCARE",
   "from": "SPACE"
  },
@@ -9041,6 +9141,16 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A KID WHO WATCHED TOO MANY KUNG FU MOVIES",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A KID'S BIKE CHAIN. TWENTY BUCKS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A KOI",
   "from": "FOREIGN"
  },
@@ -9058,6 +9168,11 @@
   "voice": "death",
   "text": "KILLED BY A LUNCH PAIL",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A MAILBOX. RETURN TO SENDER.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -9163,6 +9278,11 @@
   "voice": "death",
   "text": "KILLED BY A SAMURAI FROM OHIO",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A SKATEBOARD",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -10011,6 +10131,11 @@
  },
  {
   "voice": "death",
+  "text": "NUNCHUCKED TO DEATH",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "OBJECTS IN MIRROR ARE CLOSER THAN THEY APPEAR",
   "from": "ADVENTURE"
  },
@@ -10471,6 +10596,11 @@
  },
  {
   "voice": "death",
+  "text": "PRIED OFF HIS BIKE",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "PROBED",
   "from": "SPACE"
  },
@@ -10581,6 +10711,11 @@
  },
  {
   "voice": "death",
+  "text": "RAN INTO A PARKED TRACTOR",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "RAN ONTO A KNIFE",
   "from": "content/deaths"
  },
@@ -10623,6 +10758,11 @@
   "voice": "death",
   "text": "RAY GUNNED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "READ A SIGN UP CLOSE",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -10741,6 +10881,11 @@
  },
  {
   "voice": "death",
+  "text": "ROCK ONE. MEATHEAD ZERO.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "ROCKED",
   "from": "content/deaths"
  },
@@ -10768,6 +10913,11 @@
   "voice": "death",
   "text": "RODE INTO A PARKED CAR",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RODE INTO HIS OWN HUMAN BOMB",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -10928,6 +11078,11 @@
   "voice": "death",
   "text": "RUN OVER BY A WIDOW",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "RUN OVER BY AN EMPTY BIKE",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -11491,6 +11646,11 @@
  },
  {
   "voice": "death",
+  "text": "SHOULD HAVE JUMPED THE CREEK",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "SHOULD HAVE KILLED FASTER",
   "from": "m1/game/stages/dale/convoy.ts:487"
  },
@@ -11618,6 +11778,11 @@
   "voice": "death",
   "text": "SIGNED OUT PERMANENTLY",
   "from": "m1/game/stages/barry/runtime.ts:425"
+ },
+ {
+  "voice": "death",
+  "text": "SKATE OR DIE. HE DIED.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -12171,6 +12336,11 @@
  },
  {
   "voice": "death",
+  "text": "STOPPED DEAD BY A LOG",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "STREAK FREE",
   "from": "content/deaths"
  },
@@ -12403,6 +12573,11 @@
   "voice": "death",
   "text": "TAKEN FOR A RIDE BY A STEER",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TAKEN OUT BY BAMBI",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -13171,6 +13346,11 @@
  },
  {
   "voice": "death",
+  "text": "TRIPPED ON A LOG AT FORTY MILES AN HOUR",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "TROD ON BY CLOCKWORK",
   "from": "SPOOKY"
  },
@@ -13351,6 +13531,11 @@
  },
  {
   "voice": "death",
+  "text": "WHIPPED TO DEATH WITH A BIKE CHAIN",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "WHO WANTS NUGGETS?",
   "from": "m1/game/stages/dale/convoy.ts:444"
  },
@@ -13393,6 +13578,11 @@
   "voice": "death",
   "text": "WRAPPED AROUND A PINE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "WRAPPED AROUND A TREE",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -23321,6 +23511,11 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "AIM FOR THE HEAD! NOT DOWN THERE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "BRO, YOU SMELL LIKE A PORTA-POTTY.",
   "from": "FRONTIER"
  },
@@ -23361,7 +23556,37 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "EW! EW! EW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "EW! HE SHAT HIS JEANS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "GO AWAY. AND PUT SOMETHING ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "HE SMELLS LIKE A DIAPER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "HE TOUCHED ME NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "HE TOUCHED ME WITH THE SHIT HAND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "HE'S NAKED ON A BIKE!",
   "from": "FRONTIER"
  },
  {
@@ -23376,6 +23601,26 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "HIS THING TOUCHED MY LEG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "HOLD STILL, GRANDPA!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I CAN SEE HIS BALLS FLAPPING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I NEED THIS TWENTY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "I SAW YOUR WHOLE ASS. I'M TELLING EVERYBODY.",
   "from": "FRONTIER"
  },
@@ -23386,7 +23631,17 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "I WANT MY MOM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I'M NOT TOUCHING HIS PANTS!",
   "from": "FRONTIER"
  },
  {
@@ -23396,12 +23651,42 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "MOM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "MY DAD'S GONNA KILL ME.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "NOT FAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "NOT ON MY SEAT! NOT IN THOSE PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "NOT THE NAKED GUY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "NOT THE SHIT HAND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "OH NO OH NO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "PUT IT AWAY, MAN!",
   "from": "FRONTIER"
  },
  {
@@ -23416,7 +23701,17 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "TWENTY BUCKS ISN'T ENOUGH FOR THIS SMELL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "TWENTY BUCKS TO HIT A NAKED GUY? HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "TWENTY BUCKS, OLD MAN!",
   "from": "FRONTIER"
  },
  {
@@ -23452,6 +23747,16 @@
  {
   "voice": "m2.frontier.teen",
   "text": "YOUR BARE ASS WAS ON MY SEAT, DUDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "YOUR HEAD'S MINE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "AIM FOR THE HEAD! NOT DOWN THERE!",
   "from": "FRONTIER"
  },
  {
@@ -23496,7 +23801,37 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "EW! EW! EW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "EW! HE SHAT HIS JEANS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "GO AWAY. AND PUT SOMETHING ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "HE SMELLS LIKE A DIAPER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "HE TOUCHED ME NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "HE TOUCHED ME WITH THE SHIT HAND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "HE'S NAKED ON A BIKE!",
   "from": "FRONTIER"
  },
  {
@@ -23511,6 +23846,26 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "HIS THING TOUCHED MY LEG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "HOLD STILL, GRANDPA!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I CAN SEE HIS BALLS FLAPPING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I NEED THIS TWENTY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "I SAW YOUR WHOLE ASS. I'M TELLING EVERYBODY.",
   "from": "FRONTIER"
  },
@@ -23521,7 +23876,17 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "I WANT MY MOM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I'M NOT TOUCHING HIS PANTS!",
   "from": "FRONTIER"
  },
  {
@@ -23531,12 +23896,42 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "MOM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "MY DAD'S GONNA KILL ME.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "NOT FAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "NOT ON MY SEAT! NOT IN THOSE PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "NOT THE NAKED GUY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "NOT THE SHIT HAND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "OH NO OH NO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "PUT IT AWAY, MAN!",
   "from": "FRONTIER"
  },
  {
@@ -23551,7 +23946,17 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "TWENTY BUCKS ISN'T ENOUGH FOR THIS SMELL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "TWENTY BUCKS TO HIT A NAKED GUY? HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "TWENTY BUCKS, OLD MAN!",
   "from": "FRONTIER"
  },
  {
@@ -23587,6 +23992,16 @@
  {
   "voice": "m2.frontier.teen2",
   "text": "YOUR BARE ASS WAS ON MY SEAT, DUDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "YOUR HEAD'S MINE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "AIM FOR THE HEAD! NOT DOWN THERE!",
   "from": "FRONTIER"
  },
  {
@@ -23631,7 +24046,37 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "EW! EW! EW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "EW! HE SHAT HIS JEANS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "GO AWAY. AND PUT SOMETHING ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "HE SMELLS LIKE A DIAPER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "HE TOUCHED ME NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "HE TOUCHED ME WITH THE SHIT HAND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "HE'S NAKED ON A BIKE!",
   "from": "FRONTIER"
  },
  {
@@ -23646,6 +24091,26 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "HIS THING TOUCHED MY LEG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "HOLD STILL, GRANDPA!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I CAN SEE HIS BALLS FLAPPING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I NEED THIS TWENTY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "I SAW YOUR WHOLE ASS. I'M TELLING EVERYBODY.",
   "from": "FRONTIER"
  },
@@ -23656,7 +24121,17 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "I WANT MY MOM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I'M NOT TOUCHING HIS PANTS!",
   "from": "FRONTIER"
  },
  {
@@ -23666,12 +24141,42 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "MOM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "MY DAD'S GONNA KILL ME.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "NOT FAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "NOT ON MY SEAT! NOT IN THOSE PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "NOT THE NAKED GUY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "NOT THE SHIT HAND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "OH NO OH NO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "PUT IT AWAY, MAN!",
   "from": "FRONTIER"
  },
  {
@@ -23686,7 +24191,17 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "TWENTY BUCKS ISN'T ENOUGH FOR THIS SMELL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "TWENTY BUCKS TO HIT A NAKED GUY? HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "TWENTY BUCKS, OLD MAN!",
   "from": "FRONTIER"
  },
  {
@@ -23722,6 +24237,16 @@
  {
   "voice": "m2.frontier.teenf",
   "text": "YOUR BARE ASS WAS ON MY SEAT, DUDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "YOUR HEAD'S MINE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "AIM FOR THE HEAD! NOT DOWN THERE!",
   "from": "FRONTIER"
  },
  {
@@ -23766,7 +24291,37 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "EW! EW! EW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "EW! HE SHAT HIS JEANS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "GO AWAY. AND PUT SOMETHING ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "HE SMELLS LIKE A DIAPER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "HE TOUCHED ME NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "HE TOUCHED ME WITH THE SHIT HAND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "HE'S NAKED ON A BIKE!",
   "from": "FRONTIER"
  },
  {
@@ -23781,6 +24336,26 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "HIS THING TOUCHED MY LEG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "HOLD STILL, GRANDPA!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I CAN SEE HIS BALLS FLAPPING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I NEED THIS TWENTY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "I SAW YOUR WHOLE ASS. I'M TELLING EVERYBODY.",
   "from": "FRONTIER"
  },
@@ -23791,7 +24366,17 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "I WANT MY MOM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I'M NOT TOUCHING HIS PANTS!",
   "from": "FRONTIER"
  },
  {
@@ -23801,12 +24386,42 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "MOM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "MY DAD'S GONNA KILL ME.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "NOT FAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "NOT ON MY SEAT! NOT IN THOSE PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "NOT THE NAKED GUY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "NOT THE SHIT HAND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "OH NO OH NO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "PUT IT AWAY, MAN!",
   "from": "FRONTIER"
  },
  {
@@ -23821,7 +24436,17 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "TWENTY BUCKS ISN'T ENOUGH FOR THIS SMELL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "TWENTY BUCKS TO HIT A NAKED GUY? HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "TWENTY BUCKS, OLD MAN!",
   "from": "FRONTIER"
  },
  {
@@ -23857,6 +24482,11 @@
  {
   "voice": "m2.frontier.teenf2",
   "text": "YOUR BARE ASS WAS ON MY SEAT, DUDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "YOUR HEAD'S MINE!",
   "from": "FRONTIER"
  },
  {
@@ -24456,6 +25086,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "A HUNDRED BUCKS! BRING IT IN A BUCKET!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "A HUNDRED BUCKS! DON'T LOOK DOWN, CHILDREN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "A HUNDRED BUCKS! I'LL PUT IT ON HIS TAB!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "A NAKED STOWAWAY. NO POCKETS. NO WALLET. NO EXCUSES.",
   "from": "FRONTIER"
  },
@@ -24566,6 +25211,11 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "EIGHTY BUCKS AND A FREE TRAIN RIDE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "EVERY CAR YOU WALK THROUGH IS ANOTHER FARE. I CHARGE BY THE CAR.",
   "from": "FRONTIER"
  },
@@ -24586,6 +25236,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "FIFTY BUCKS! HOSE THE HEAD OFF FIRST!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "FIFTY BUCKS! JUST THE HEAD! LEAVE THE REST!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "FIFTY BUCKS! PLUS TAX!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "FINE. I'M BILLING YOU FOR THE CAR.",
   "from": "FRONTIER"
  },
@@ -24597,6 +25262,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "FINE. THE CAR'S ON YOUR TAB. WHERE DO YOU EVEN KEEP A WALLET?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "FORTY BUCKS! FIFTY IF YOU PUT PANTS ON HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "FORTY BUCKS! FORTY BUCKS FOR HIS HEAD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "FORTY BUCKS! I'LL THROW IN A CLOTHESPIN!",
   "from": "FRONTIER"
  },
  {
@@ -24686,6 +25366,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "I'M BILLING YOU FOR PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I'M BILLING YOU FOR THAT SMELL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I'M BILLING YOU FOR THESE CHILDREN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "I'M BILLING... THE DRY... CLEANING...",
   "from": "FRONTIER"
  },
@@ -24712,6 +25407,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "LIGHTS OUT. YOU STILL OWE ME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "MY BOUNTY! AND HE STILL STINKS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "MY BOUNTY! AND HE'S STILL NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "MY BOUNTY! MY WHOLE BOUNTY!",
   "from": "FRONTIER"
  },
  {
@@ -24781,6 +25491,11 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "NOBODY RIDES FREE! ESPECIALLY NOT SOILED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "NOBODY RIDES FREE! NOBODY!",
   "from": "FRONTIER"
  },
@@ -24791,7 +25506,17 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "NOBODY RIDES FREE! NOT EVEN ON A STOLEN BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "NOBODY RIDES FREE! NOT EVEN STINKY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "NOBODY RIDES FREE! NOT NAKED! NOT EVER!",
   "from": "FRONTIER"
  },
  {
@@ -24826,12 +25551,27 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "ONE FARE! PLUS A DECENCY FINE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "ONE FARE! PLUS A DECENCY SURCHARGE!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "ONE FARE! PLUS CLEANING FEES!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "ONE FARE! PLUS INTEREST! I'LL GET IT OUT OF YOU!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "ONE FARE! PLUS INTEREST! PLUS THIS BIKE!",
   "from": "FRONTIER"
  },
  {
@@ -40746,6 +41486,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ANTLER IN MY ASS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "ANTLERS! I CHARGED INTO ANTLERS!",
   "from": "FRONTIER"
  },
@@ -40936,8 +41681,18 @@
  },
  {
   "voice": "meathead",
+  "text": "BACK ON THE BIKE. SEAT'S STILL WARM. AND WET.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "BACK ON THE THRONE.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK ON. SEAT STICKS TO MY ASS.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -41061,6 +41816,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BAMBI! NO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "BAMBI'S MOM HITS HARD!",
   "from": "FRONTIER"
  },
@@ -41121,6 +41881,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BAT TO THE HEAD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "BAT! IN MY HAIR!",
   "from": "SPOOKY"
  },
@@ -41133,6 +41898,11 @@
   "voice": "meathead",
   "text": "BATTER UP! BATTER DEAD!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BATTER UP. INTO A TREE.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -41286,6 +42056,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BIKE CHAIN! MY FACE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "BIKER GANG? MORE LIKE BIKER GANGRENE!",
   "from": "HAZARD_HURT"
  },
@@ -41421,6 +42196,16 @@
  },
  {
   "voice": "meathead",
+  "text": "BOOM. NAKED GUY MAGIC.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOOM. THAT'S HOW MY PANTS WENT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "BORING.",
   "from": "SPACE"
  },
@@ -41468,6 +42253,16 @@
   "voice": "meathead",
   "text": "BOWLED OVER BY WINTER, FUCK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOWLED OVER. LIKE MY STOMACH.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOWLING NIGHT.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -42226,6 +43021,11 @@
  },
  {
   "voice": "meathead",
+  "text": "COME GET YOUR TWENTY BUCKS, ZIT FACES.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "COME ON, BAG. GIVE ME SOMETHING HOLY.",
   "from": "SPOOKY"
  },
@@ -42241,8 +43041,18 @@
  },
  {
   "voice": "meathead",
+  "text": "COME ON, PUNKS. NOTHING BETWEEN ME AND THIS SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "COME ON. COME ON.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "COME ON. I'LL SKID MARK ALL OF YOU.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -42316,6 +43126,16 @@
  },
  {
   "voice": "meathead",
+  "text": "COVERED IN IT! SOMEBODY ELSE'S!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "COW! COW! COW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "COWABUNGA!",
   "from": "m1/game/stages/ernie/jetski.ts:142"
  },
@@ -42366,8 +43186,18 @@
  },
  {
   "voice": "meathead",
+  "text": "CREEK! THAT WAS A JUMP!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "CRISPY! MY CALVES ARE CRISPY!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CROWBAR! MY KIDNEY!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -42528,6 +43358,11 @@
   "voice": "meathead",
   "text": "DEEPER THAN IT LOOKS. THAT'S WHAT SHE SAID.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "DEER! RIGHT IN MY FACE!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -42951,6 +43786,16 @@
  },
  {
   "voice": "meathead",
+  "text": "EAT DIRT, KID.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "EAT DIRT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "EAT FLOOR!",
   "from": "M2_KILL_LINES"
  },
@@ -43062,6 +43907,11 @@
  {
   "voice": "meathead",
   "text": "EMBERS! IN MY HAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY BIKE! IN MY NUTS!",
   "from": "FRONTIER"
  },
  {
@@ -43271,8 +44121,23 @@
  },
  {
   "voice": "meathead",
+  "text": "FACE DOWN. I KNOW THE FEELING.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "FACE FULL OF PINE NEEDLES, FUCK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "FACE IN THE DIRT, ASS IN THE AIR. WELCOME TO MY DAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FACE, MEET BARK!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -43316,6 +44181,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FARM EQUIPMENT! MY SPINE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "FAST AND THE FUCKED UP!",
   "from": "M2_KILL_LINES"
  },
@@ -43348,6 +44218,11 @@
   "voice": "meathead",
   "text": "FEEL THE THRUST. DON'T MIND IF I DO.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "FENCE POST TO THE NUTS!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -43473,6 +44348,11 @@
   "voice": "meathead",
   "text": "FIREWORKS! IN MY FACE!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIREWORKS. AND I'M NAKED.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -44043,6 +44923,11 @@
   "voice": "meathead",
   "text": "GET A JOB! OH. TOO LATE.",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET A JOB.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -44676,6 +45561,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GO HOME TO YOUR MOM.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "GO PUT OUT A FIRE, HOSE BOY!",
   "from": "HAZARD_HURT"
  },
@@ -44683,6 +45573,11 @@
   "voice": "meathead",
   "text": "GO SPY ON YOUR MOM!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GO TELL YOUR MOM WHAT YOU SAW.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -44856,6 +45751,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GREASE IN MY EYE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "GREASED AND FLOORED! EMPHASIS ON GREASED!",
   "from": "RANGE_KILL_LINES"
  },
@@ -44933,6 +45833,11 @@
   "voice": "meathead",
   "text": "GRIEF PUKE. NEVER SEEN THAT.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "GRIP TAPE! MY CHEEK!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -45098,6 +46003,16 @@
   "voice": "meathead",
   "text": "HAWK DOWN!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HAY BALE! NOT SOFT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HAY! IN EVERY HOLE!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -45961,6 +46876,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HEADS UP. COW.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "HEART EXPLODED... WORTH IT",
   "from": "VULGARITIES"
  },
@@ -46056,6 +46976,21 @@
  },
  {
   "voice": "meathead",
+  "text": "HEY, BUZZSAW! NAKED AND RIGHT BEHIND YOU!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEY, BUZZSAW! SMELL THAT? I'M RIGHT BEHIND YOU!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEY, BUZZSAW! WHERE'S MY TWENTY BUCKS?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "HEY, TUBBY. PUT DOWN THE GHOST.",
   "from": "SPOOKY"
  },
@@ -46148,6 +47083,11 @@
   "voice": "meathead",
   "text": "HIGH SPEED CHASE! HIGH SPEED DEAD!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIGH STICKING! PENALTY!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -46291,6 +47231,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOCKEY STICK! MY TEETH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "HOLD MY SEAT, ELEVATOR. DADDY'S COMING.",
   "from": "SPOOKY"
  },
@@ -46333,6 +47278,11 @@
   "voice": "meathead",
   "text": "HOME RUN! INTO THE GROUND!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOME RUN.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -46531,6 +47481,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOT! KID BITS! HOT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "HOT. HOT. HOT HOT HOT.",
   "from": "SPOOKY"
  },
@@ -46591,8 +47546,23 @@
  },
  {
   "voice": "meathead",
+  "text": "HUMAN BOMB.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "HUMAN BONFIRE BITCH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HUMAN RAMP. MY BALLS WENT AIRBORNE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HUMAN RAMP. SKID MARK INCLUDED.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -47156,6 +48126,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I HIT A COW! IT HIT BACK!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "I HIT IT AS HARD AS I COULD! IT HIT BACK HARDER!",
   "from": "HAZARD_HURT"
  },
@@ -47691,6 +48666,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M BACK. HIDE YOUR ALLOWANCE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M BEING STEAMED LIKE A FUCKING DUMPLING, VICTOR!",
   "from": "HAZARD_HURT"
  },
@@ -47723,6 +48703,11 @@
   "voice": "meathead",
   "text": "I'M COVERED IN RANCID PUKE, FUCK!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M COVERED IN TEENAGER!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -49161,6 +50146,11 @@
  },
  {
   "voice": "meathead",
+  "text": "JUMP THE ROCKS, DUMBASS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "JUNKIE TRASH",
   "from": "VULGARITIES"
  },
@@ -49491,6 +50481,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LET'S RIDE, PUNKS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "LEVER! GO GO GO!",
   "from": "SPOOKY"
  },
@@ -49636,6 +50631,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LOG! IN MY CROTCH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "LOG! LOG!",
   "from": "FRONTIER"
  },
@@ -49698,6 +50698,11 @@
   "voice": "meathead",
   "text": "LOOSE AMMO IN HIS POCKETS. CARELESS. THANKS, CHUCO.",
   "from": "m1/game/stages/dale/junkie.ts:752"
+ },
+ {
+  "voice": "meathead",
+  "text": "LOOSE BIKE! MY SHINS!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -49798,6 +50803,11 @@
   "voice": "meathead",
   "text": "MAGIC, MOTHERFUCKER!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAILBOX! IN MY TEETH!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -49983,6 +50993,11 @@
   "voice": "meathead",
   "text": "MOLTEN ROCK TO THE FACE! MY PORES!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MOO TO YOU TOO!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -50621,6 +51636,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY SKULL! BATTER UP!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "MY SKULL! IT RANG!",
   "from": "FRONTIER"
  },
@@ -50762,6 +51782,11 @@
  {
   "voice": "meathead",
   "text": "NAKED LOG ROLLING. MOM WOULD BE SO PROUD.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED ON A DIRT BIKE. THIS SEAT IS HOT.",
   "from": "FRONTIER"
  },
  {
@@ -50931,6 +51956,21 @@
  },
  {
   "voice": "meathead",
+  "text": "NEXT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEXT. EYES UP HERE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEXT. HOLD YOUR NOSE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NICE ACCENT. WHAT PART OF TRANSYLVANIA, NEW JERSEY?",
   "from": "SPOOKY"
  },
@@ -50941,6 +51981,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NICE BAT. MINE'S BIGGER.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NICE BIKE. I'M TAKING IT.",
   "from": "m1/game/stages/tommy/bike.ts:183"
  },
@@ -50948,6 +51993,11 @@
   "voice": "meathead",
   "text": "NICE BIKE. I'M TAKING IT. DON'T SNIFF THE SEAT AFTER.",
   "from": "m1/game/stages/tommy/bike.ts:183"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE BOARD. NOW YOU'RE WEARING IT.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -51821,6 +52871,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NUNCHUCKS?! WHAT YEAR IS IT?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "OAT MILK! I HATE OAT MILK!",
   "from": "HOLLYWOOD"
  },
@@ -52371,6 +53426,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OUTHOUSE! I'M IN IT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "OUTTA MY WAY, TREE.",
   "from": "ADVENTURE"
  },
@@ -52473,6 +53533,11 @@
   "voice": "meathead",
   "text": "OW! BRASS TO THE FACE!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! CHAIN LINK FACE!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -52601,6 +53666,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! IT'S ALUMINUM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! IT'S HARD AS HELL!",
   "from": "FOREIGN"
  },
@@ -52638,6 +53708,11 @@
   "voice": "meathead",
   "text": "OW! LITTLE HEADS!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! MY EAR!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -52748,6 +53823,11 @@
   "voice": "meathead",
   "text": "OW! THAT'S A POINTER, NOT A SWORD!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! THAT'S A TOOL, KID!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -53341,6 +54421,11 @@
  },
  {
   "voice": "meathead",
+  "text": "POWER LINE TOWER! I'M BUZZING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "POWER OF FRIENDSHIP, MY ASS!",
   "from": "FOREIGN"
  },
@@ -53731,6 +54816,11 @@
  },
  {
   "voice": "meathead",
+  "text": "READ THE SIGN! WITH MY FACE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "REAL DISASTERS. EXPERIMENTAL. I KNOW THIS ONE.",
   "from": "HOLLYWOOD"
  },
@@ -53851,6 +54941,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RETURN TO SENDER.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "RETURN TO SENDER. GRAB ONE AND SEND IT BACK.",
   "from": "SPACE"
  },
@@ -53898,6 +54993,11 @@
   "voice": "meathead",
   "text": "RIDE THIS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIDING IN A FULL DIAPER. LET'S GO.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -54051,6 +55151,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ROCK! MY TAILBONE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "ROCK! ROCK! WHY IS THERE ALWAYS A ROCK!",
   "from": "HAZARD_HURT"
  },
@@ -54091,6 +55196,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ROLL OUT, KID.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "ROLL THIS, TANK!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -54126,6 +55236,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ROUND TWO, ZIT FACES.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "ROUND TWO.",
   "from": "HOLLYWOOD"
  },
@@ -54133,6 +55248,16 @@
   "voice": "meathead",
   "text": "ROUND TWO. OH GOD, ROUND TWO.",
   "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROUND TWO. STILL NAKED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROUND TWO. STILL SHITTY.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -54871,6 +55996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOULD HAVE JUMPED THAT LOG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "SHOULD HAVE LED WITH THIS.",
   "from": "SPACE"
  },
@@ -55136,6 +56266,26 @@
  },
  {
   "voice": "meathead",
+  "text": "SKATE OR DIE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SKATE OR DIE. NAKED EDITION.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SKATE OR DIE. YOU PICKED DIE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SKATEBOARD! TO THE FACE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "SKEWERED BY AN UMBRELLA!",
   "from": "FRONTIER"
  },
@@ -55228,6 +56378,11 @@
   "voice": "meathead",
   "text": "SMASHED",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMELL THAT ON THE WAY DOWN.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -55466,6 +56621,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMEBODY WAS IN THERE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMEBODY WIN THIS GUY A STUFFED ANIMAL!",
   "from": "RANGE_KILL_LINES"
  },
@@ -55551,6 +56711,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SORRY ABOUT YOUR BACK. AND MY PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "SORRY, BRENDA. YOUR LOCKER'S RUINED.",
   "from": "SPACE"
  },
@@ -55631,6 +56796,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SPEED BUMP.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "SPEW, MOTHERFUCKER!",
   "from": "M2_KILL_LINES"
  },
@@ -55707,6 +56877,11 @@
  {
   "voice": "meathead",
   "text": "SPLASH ZONE. I NEED IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPLAT. LIKE MY PANTS.",
   "from": "FRONTIER"
  },
  {
@@ -55893,6 +57068,11 @@
   "voice": "meathead",
   "text": "STEE-RIKE!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STEEL! MY FACE!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -56176,8 +57356,28 @@
  },
  {
   "voice": "meathead",
+  "text": "STRIKE THREE. YOU'RE A TREE NOW.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "STRIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "STRIKE! I AM THE PINS!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "STRIKE. NAKED BOWLING.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "STRIKE. SHIT HAPPENS.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -56533,6 +57733,16 @@
   "voice": "meathead",
   "text": "TEXAS SHOOTS BACK, I GET IT!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THANKS FOR THE LIFT, KID.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THANKS FOR THE RAMP.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -59151,6 +60361,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THERE'S BRACES IN MY HAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THERE'S GOT TO BE ANOTHER WAY THROUGH THIS ROOM.",
   "from": "m1/game/stages/oscar/bunker.ts:396"
  },
@@ -59981,6 +61196,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TRACTOR! PARKED! WHY?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "TRAIN ROBBERS. ON HORSES. SURE.",
   "from": "FRONTIER"
  },
@@ -60017,6 +61237,11 @@
  {
   "voice": "meathead",
   "text": "TREE TO THE FACE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "TREE!",
   "from": "FRONTIER"
  },
  {
@@ -60446,6 +61671,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WATCH OUT FOR THE COW.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "WATCH THE CASE, PENCIL NECK!",
   "from": "HAZARD_HURT"
  },
@@ -60528,6 +61758,11 @@
   "voice": "meathead",
   "text": "WATER! IN MY EVERYTHING!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "WATER! UP MY NOSE!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -61073,6 +62308,11 @@
   "voice": "meathead",
   "text": "WHO PUT A JET ENGINE IN A HURRICANE?!",
   "from": "m1/game/player/deathAnim.ts:425"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO PUT A TREE THERE?!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -61916,6 +63156,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU SWING LIKE MY BOWELS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU TRYING TO RUIN MY PUMP?",
   "from": "VULGARITIES"
  },
@@ -62006,6 +63251,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU'RE OUT. IN A TREE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU'RE POISONING MY GAINS, YOU ROTTEN SCUMBAG!",
   "from": "HURT"
  },
@@ -62091,6 +63341,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOUR FRIENDS GOT YOU.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "YOUR GREASE IS AN AFFRONT TO MY GAINS!",
   "from": "HURT"
  },
@@ -62103,6 +63358,11 @@
   "voice": "meathead",
   "text": "YOUR MANAGER'S A STEAL? CALL THE COPS ON HIM.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR OWN PACK RAN YOU OVER. TEAMWORK.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
