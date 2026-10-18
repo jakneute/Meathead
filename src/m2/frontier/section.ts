@@ -72,4 +72,6 @@ export const tuckerWoundsOf = (state: GameState) => ({
   eye: state.stageMemo['frontier-tucker-eye'] === '1',
   saw: state.stageMemo['frontier-tucker-saw'] === '1',
   branch: state.stageMemo['frontier-tucker-branch'] === '1',
+  /** (the woods': extra bloodied, from his leaf pile on: woods/scene.ts sets it) */
+  grime: state.stageMemo['frontier-tucker-grime'] === '1',
 });

@@ -6961,6 +6961,11 @@
  },
  {
   "voice": "death",
+  "text": "DIED OF POISON IVY",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "DIED OF VINTAGE FUMES",
   "from": "HOLLYWOOD"
  },
@@ -9476,6 +9481,11 @@
  },
  {
   "voice": "death",
+  "text": "LEAVES OF THREE. SHOULD HAVE LET IT BE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "LECTURED TO DEATH",
   "from": "HOLLYWOOD"
  },
@@ -11048,6 +11058,11 @@
   "voice": "death",
   "text": "SCORPION STING",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SCRATCHED HIMSELF TO DEATH",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -23305,6 +23320,546 @@
   "from": "FRONTIER"
  },
  {
+  "voice": "m2.frontier.teen",
+  "text": "BRO, YOU SMELL LIKE A PORTA-POTTY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "BRO. PUT IT AWAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "DIBS ON HIS HEAD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "DIBS! DON'T LOOK DOWN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "DUDE! WHAT THE HELL?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "DUDE. DID YOU SHIT YOURSELF?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "DUDE. WHERE ARE YOUR CLOTHES?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "EVERYBODY'S GONE. THANKS A LOT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "GO AWAY. AND PUT SOMETHING ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "HELL YEAH! SOMEBODY BRING A BAG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "HIS BARE ASS IS ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I SAW YOUR WHOLE ASS. I'M TELLING EVERYBODY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I SIT THERE! I SIT THERE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "IT STILL SMELLS LIKE YOU OVER HERE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "MY DAD'S GONNA KILL ME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "NOT ON MY SEAT! NOT IN THOSE PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "SICK. A GROWN MAN IN THE WOODS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "TWENTY BUCKS TO HIT A NAKED GUY? HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "TWENTY BUCKS! I'LL HOLD MY BREATH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "TWENTY BUCKS?! HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "YO. YOU LOST, MISTER?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "YOU SHAT ON MY BIKE, DIDN'T YOU.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "YOU STOLE MY BIKE, MAN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "YOU'RE GONNA SHIT ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "YOUR BARE ASS WAS ON MY SEAT, DUDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "BRO, YOU SMELL LIKE A PORTA-POTTY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "BRO. PUT IT AWAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "DIBS ON HIS HEAD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "DIBS! DON'T LOOK DOWN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "DUDE! WHAT THE HELL?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "DUDE. DID YOU SHIT YOURSELF?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "DUDE. WHERE ARE YOUR CLOTHES?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "EVERYBODY'S GONE. THANKS A LOT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "GO AWAY. AND PUT SOMETHING ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "HELL YEAH! SOMEBODY BRING A BAG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "HIS BARE ASS IS ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I SAW YOUR WHOLE ASS. I'M TELLING EVERYBODY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I SIT THERE! I SIT THERE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "IT STILL SMELLS LIKE YOU OVER HERE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "MY DAD'S GONNA KILL ME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "NOT ON MY SEAT! NOT IN THOSE PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "SICK. A GROWN MAN IN THE WOODS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "TWENTY BUCKS TO HIT A NAKED GUY? HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "TWENTY BUCKS! I'LL HOLD MY BREATH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "TWENTY BUCKS?! HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "YO. YOU LOST, MISTER?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "YOU SHAT ON MY BIKE, DIDN'T YOU.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "YOU STOLE MY BIKE, MAN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "YOU'RE GONNA SHIT ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "YOUR BARE ASS WAS ON MY SEAT, DUDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "BRO, YOU SMELL LIKE A PORTA-POTTY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "BRO. PUT IT AWAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "DIBS ON HIS HEAD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "DIBS! DON'T LOOK DOWN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "DUDE! WHAT THE HELL?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "DUDE. DID YOU SHIT YOURSELF?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "DUDE. WHERE ARE YOUR CLOTHES?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "EVERYBODY'S GONE. THANKS A LOT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "GO AWAY. AND PUT SOMETHING ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "HELL YEAH! SOMEBODY BRING A BAG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "HIS BARE ASS IS ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I SAW YOUR WHOLE ASS. I'M TELLING EVERYBODY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I SIT THERE! I SIT THERE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "IT STILL SMELLS LIKE YOU OVER HERE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "MY DAD'S GONNA KILL ME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "NOT ON MY SEAT! NOT IN THOSE PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "SICK. A GROWN MAN IN THE WOODS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "TWENTY BUCKS TO HIT A NAKED GUY? HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "TWENTY BUCKS! I'LL HOLD MY BREATH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "TWENTY BUCKS?! HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "YO. YOU LOST, MISTER?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "YOU SHAT ON MY BIKE, DIDN'T YOU.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "YOU STOLE MY BIKE, MAN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "YOU'RE GONNA SHIT ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "YOUR BARE ASS WAS ON MY SEAT, DUDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "BRO, YOU SMELL LIKE A PORTA-POTTY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "BRO. PUT IT AWAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "DIBS ON HIS HEAD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "DIBS! DON'T LOOK DOWN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "DUDE! WHAT THE HELL?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "DUDE. DID YOU SHIT YOURSELF?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "DUDE. WHERE ARE YOUR CLOTHES?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "EVERYBODY'S GONE. THANKS A LOT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "GO AWAY. AND PUT SOMETHING ON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "HELL YEAH! SOMEBODY BRING A BAG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "HIS BARE ASS IS ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I SAW YOUR WHOLE ASS. I'M TELLING EVERYBODY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I SIT THERE! I SIT THERE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "IT STILL SMELLS LIKE YOU OVER HERE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "MY DAD'S GONNA KILL ME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "NOT ON MY SEAT! NOT IN THOSE PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "SICK. A GROWN MAN IN THE WOODS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "TWENTY BUCKS TO HIT A NAKED GUY? HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "TWENTY BUCKS! I'LL HOLD MY BREATH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "TWENTY BUCKS?! HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "YO. YOU LOST, MISTER?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "YOU SHAT ON MY BIKE, DIDN'T YOU.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "YOU STOLE MY BIKE, MAN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "YOU'RE GONNA SHIT ON MY SEAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "YOUR BARE ASS WAS ON MY SEAT, DUDE.",
+  "from": "FRONTIER"
+ },
+ {
   "voice": "m2.frontier.townsman",
   "text": "BACK OF THE TOUR GROUP, PAL!",
   "from": "FRONTIER"
@@ -23886,7 +24441,47 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "20 BUCKS FOR THE FIRST ONE TO GIVE ME THAT MEATHEAD'S HEAD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "20 BUCKS FOR THE FIRST ONE TO GIVE ME THAT MEATHEAD'S HEAD! THE ONE ON HIS SHOULDERS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "20 BUCKS FOR THE FIRST ONE TO GIVE ME THAT MEATHEAD'S HEAD! WEAR GLOVES!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "A NAKED STOWAWAY. NO POCKETS. NO WALLET. NO EXCUSES.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAAAHHH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAAAHHHHH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAHHH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAHHH! I SEE ALL OF YOU!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAHHH! I SMELLED YOU!",
   "from": "FRONTIER"
  },
  {
@@ -24326,6 +24921,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "SO SORRY, CHILDREN! HE'S NOT ALWAYS NAKED. JUST TODAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "SO SORRY! FARE DODGER. AND HE SOILED MY LOG.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "SO SORRY! I'LL HAVE IT BACK BY SUPPER. MOSTLY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "SPLITTING HEADACHE... AND HE STILL STINKS...",
   "from": "FRONTIER"
  },
@@ -24342,6 +24952,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "STOWAWAY ON THE CABOOSE. THAT'S ONE FARE, PLUS A BOARDING FEE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "TERRIBLY SORRY, YOUNG MAN! AVERT YOUR EYES FROM THAT MAN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "TERRIBLY SORRY, YOUNG MAN! OFFICIAL BUSINESS. I'LL LEAVE A RECEIPT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "TERRIBLY SORRY, YOUNG MAN! WE'RE AFTER THE SMELLY ONE.",
   "from": "FRONTIER"
  },
  {
@@ -44136,6 +44761,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GOOD. TREES DON'T JUDGE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "GOODBYE!",
   "from": "GENERIC_KILL_LINES"
  },
@@ -48291,6 +48921,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S IN MY CRACK!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S IN MY EARS!",
   "from": "FRONTIER"
  },
@@ -48498,6 +49133,11 @@
   "voice": "meathead",
   "text": "ITALY. BIRTHPLACE OF THE TACO. SURE, WHY NOT.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "ITCHY! ITCHY! ITCHY!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -48778,6 +49418,11 @@
   "voice": "meathead",
   "text": "LEAVE NO TRACE! THERE'S A TRACE!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LEAVES OF THREE! I KNOW! I KNOW!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -50107,6 +50752,11 @@
  {
   "voice": "meathead",
   "text": "NAKED IN THE OLD WEST. THEY HANGED GUYS FOR LESS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED IN THE REAL WOODS. NATURE'S WAY.",
   "from": "FRONTIER"
  },
  {
@@ -52641,6 +53291,11 @@
  },
  {
   "voice": "meathead",
+  "text": "POISON IVY! ON MY EVERYTHING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "POKED BY A MUSEUM NERD!",
   "from": "HOLLYWOOD"
  },
@@ -53117,6 +53772,21 @@
  {
   "voice": "meathead",
   "text": "REAL WILDERNESS. REAL NAKED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "REAL WOODS. NO GIFT SHOP.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "REAL WOODS. NOBODY OUT HERE TO SMELL ME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "REAL WOODS. REAL BREEZE. EVERYWHERE.",
   "from": "FRONTIER"
  },
  {
@@ -58526,6 +59196,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THESE TREES DON'T HAVE BOLTS IN THEM.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY ALL KICK AT ONCE. THAT'S THE WHOLE TRICK.",
   "from": "FOREIGN"
  },
@@ -59396,6 +60071,26 @@
  },
  {
   "voice": "meathead",
+  "text": "TWENTY BUCKS? FOR THIS HEAD? INSULTING.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWENTY BUCKS? I'M NAKED, NOT CHEAP.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWENTY BUCKS? MY HEAD'S WORTH WAY MORE THAN THAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWENTY BUCKS. AND I SHIT MYSELF FOR THIS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "TWENTY THREE?! I PRESSED THE TOP ONE!",
   "from": "m1/game/stages/barry/runtime.ts:341"
  },
@@ -59408,6 +60103,16 @@
   "voice": "meathead",
   "text": "TWENTY-FIVE BUCKS FOR A HELL SHIRT. I WENT TO HELL FOR FREE.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWENTY? FOR ALL THIS?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWENTY? I'M INSULTED.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",

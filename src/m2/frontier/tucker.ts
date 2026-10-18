@@ -13,8 +13,9 @@
 // The user's inspiration: a character in Cannibal! The Musical who just can't seem to die. Every "death" sold as final;
 // every comeback more mangled and more stubbornly chipper (or indignant); never explained. His WOUNDS STACK through the
 // land and carry into his fight (`TuckerWounds`): the eye (shot through it from outside the engine), the buzzsaw (stuck
-// in his forehead at the log ride), the branch (impaled through his chest in the woods). Only the clean state is drawn
-// yet: each job that mutilates him draws its wound here (on the figure: `drawWounds`; on the close-up: its painter).
+// in his forehead at the log ride), the branch (impaled through his chest in the woods); and between them the woods'
+// `grime` (EXTRA BLOODIED: blood, chips, sewer muck, leaves; no new wound, so no close-up). Each job that mutilates him
+// draws its wound here (on the figure: `drawWounds`; on the close-up: its painter).
 //
 // THE MUTILATION CLOSE-UP RULE (the user's): every mutilation is shown as a graphic, ANIMATED, multi-frame close-up of
 // it happening (not a still of the result). `drawTuckerCloseup(c, cx, cy, scale, frame, { making: { wound, k } })`
@@ -40,14 +41,19 @@ export type TuckerPose =
   | 'hurt'     // hit: reeling back
   | 'shove'    // both hands out flat in front of him, shoving somebody out of his way (the log ride's booth)
   | 'slam'     // a fist up high over a button, about to bring it down
-  | 'press';   // the fist brought down on it, leaning on it
+  | 'press'    // the fist brought down on it, leaning on it
+  | 'pop'      // bursting up out of something (the woods' leaf pile): arms flung up, legs wide, screaming
+  | 'pounce'   // diving at somebody head first, both hands out to grab (tipped forward about his hips)
+  | 'ride'     // sat astride a dirt bike, both fists on the bars, boots on the pegs (feetY: the seat + 30)
+  | 'ridepoint'; // ...one fist on the bars, jabbing a finger with the other
 
 /** 'manic': the bookkeeper unhinged (the user's model: South Park's Mel Gibson): one eye bulging, the other a pinprick,
  *  a brow up in his cap, a clenched grin of every tooth he's got, the gap and all. */
 export type TuckerFace = 'smile' | 'cheer' | 'talk' | 'shock' | 'angry' | 'yell' | 'daze' | 'out' | 'ow' | 'manic';
 export type TuckerWound = 'eye' | 'saw' | 'branch';
-/** What's been done to him so far (they stack, in this order, through the land). */
-export interface TuckerWounds { eye?: boolean; saw?: boolean; branch?: boolean }
+/** What's been done to him so far (they stack, in this order, through the land). `grime`: the woods' EXTRA BLOODIED
+ *  look (his trip after Meathead, never explained: fresh blood, wood chips, sewer muck, leaves; a torn shoulder). */
+export interface TuckerWounds { eye?: boolean; saw?: boolean; branch?: boolean; grime?: boolean }
 
 export interface TuckerOpts {
   wounds?: TuckerWounds;
@@ -157,7 +163,9 @@ const HS = 1.1;
 const FACES: Record<TuckerPose, TuckerFace> = {
   stand: 'smile', talk: 'talk', ticket: 'cheer', tip: 'cheer', sit: 'daze', flat: 'out', furious: 'manic', point: 'angry',
   run: 'manic', cab: 'manic', whistle: 'manic', hurt: 'ow', shove: 'manic', slam: 'manic', press: 'manic',
+  pop: 'yell', pounce: 'manic', ride: 'smile', ridepoint: 'manic',
 };
+const seated = (pose: TuckerPose) => pose === 'sit' || pose === 'ride' || pose === 'ridepoint';
 
 export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, frame: number, pose: TuckerPose = 'stand', opts: TuckerOpts = {}) => {
   const f = frame, face = opts.face ?? FACES[pose], wounds = opts.wounds ?? {};
@@ -167,6 +175,8 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   // (flat on his back: the whole of him laid down about his hips, head to the back, toes up)
   if (pose === 'flat') { c.translate(-6, -16); c.rotate(-Math.PI / 2); c.translate(0, 26); }
   if (pose === 'sit') c.translate(0, 22);
+  // (diving head first: tipped forward about his hips)
+  if (pose === 'pounce') { c.translate(0, -31); c.rotate(1.15); c.translate(0, 31); }
   const shake = pose === 'furious' ? Math.sin(f * 1.3) * 0.8 : 0;
   // (rocking on his heels, pleased with himself; bobbing at the run)
   const b = pose === 'run' ? -Math.abs(Math.sin(f * 0.34)) * 2.4 : pose === 'stand' || pose === 'ticket' ? Math.sin(f * 0.06) * 0.8 - 0.4 : pose === 'talk' ? Math.sin(f * 0.12) * 0.6 : 0;
@@ -207,8 +217,8 @@ export const drawTuckerCap = (c: Ctx, x: number, y: number, rot = 0, scale = HS)
 
 const drawTails = (c: Ctx, pose: TuckerPose, f: number, b: number) => {
   const flap = pose === 'run' ? Math.sin(f * 0.34) * 3 : Math.sin(f * 0.05) * 0.5;
-  const out = pose === 'run' ? 9 : pose === 'sit' ? 4 : 0;
-  const lo = pose === 'sit' ? -24 : -15;
+  const out = pose === 'run' || pose === 'pounce' ? 9 : seated(pose) ? 4 : 0;
+  const lo = seated(pose) ? -24 : -15;
   shape(c, () => {
     c.moveTo(-11, -40 + b); c.lineTo(-13 - out * 0.4, -30 + b);
     c.quadraticCurveTo(-15 - out, lo + 6, -14 - out - flap, lo); c.lineTo(-9 - out * 0.6 - flap * 0.6, lo + 2);
@@ -237,6 +247,11 @@ const drawLegs = (c: Ctx, pose: TuckerPose, f: number) => {
     L = [[-4, -31, -4.5, -18, -5, -5, 0], [4, -31, 6, -18 - up * 0.6, 5.5, -5 - up, -0.1]];
   } else if (pose === 'hurt') L = [[-4, -31, -6, -18, -8, -5, 0.1], [4, -31, 5, -18, 7, -5, -0.1]];
   else if (pose === 'flat') L = [[-3.5, -31, -3.5, -18, -3.5, -5, -1.4], [3.5, -31, 3.5, -18, 3.5, -5, -1.4]];
+  // (astride the bike: thighs along the seat, knees forward, shins down to the pegs)
+  else if (pose === 'ride' || pose === 'ridepoint') L = [[-3, -30, 8, -32, 10, -19, 0.1], [3, -30, 13, -31, 14, -18, 0.05]];
+  // (bursting up: legs wide, kicking; diving: trailing straight, toes pointed)
+  else if (pose === 'pop') { const k = Math.sin(f * 0.8) * 1.5; L = [[-4, -31, -9, -18 + k, -13, -6, 0.3], [4, -31, 9, -18 - k, 13, -6, -0.3]]; }
+  else if (pose === 'pounce') L = [[-4, -31, -5, -18, -6, -5, 0.7], [4, -31, 2, -18, 0, -6, 0.9]];
   else {
     // (rocking on his heels: the toes up a touch)
     const rock = pose === 'stand' || pose === 'ticket' ? Math.max(0, Math.sin(f * 0.06)) * 0.12 : 0;
@@ -371,6 +386,16 @@ const armsFor = (pose: TuckerPose, f: number): [Arm, Arm] => {
       return [{ ...FS, hx: -15, hy: -40, bend: 1, fist: true }, { ...NS, hx: 20, hy: -98 + Math.sin(f * 0.5) * 1.5, bend: -1, fist: true }];
     case 'press':
       return [{ ...FS, hx: -15, hy: -40, bend: 1, fist: true }, { ...NS, hx: 28, hy: -48, bend: 1, fist: true }];
+    case 'pop': {
+      const w = Math.sin(f * 0.9) * 2;
+      return [{ ...FS, hx: -22, hy: -92 + w, bend: 1, fist: false, palm: true }, { ...NS, hx: 24, hy: -95 - w, bend: -1, fist: false, palm: true }];
+    }
+    case 'pounce':
+      return [{ ...FS, hx: 0, hy: -97, bend: -0.4, fist: false, palm: true }, { ...NS, hx: 12, hy: -98, bend: 0.4, fist: false, palm: true }];
+    case 'ride':
+      return [{ ...FS, hx: 19, hy: -51, bend: 1, fist: true, grip: true }, { ...NS, hx: 23, hy: -53, bend: 1, fist: true, grip: true }];
+    case 'ridepoint':
+      return [{ ...FS, hx: 19, hy: -51, bend: 1, fist: true, grip: true }, { ...NS, hx: 31, hy: -66, bend: 0.2, fist: true, point: true }];
     default:
       // (thumbs hooked in his vest pockets)
       return [{ ...FS, hx: -7, hy: -47, bend: -1, fist: false, thumbIn: true }, { ...NS, hx: 9, hy: -47, bend: 1, fist: false, thumbIn: true }];
@@ -672,7 +697,7 @@ const drawCap = (c: Ctx, _f: number) => {
  * train's job draws `eye`, the log ride's `saw`, the catch-up's `branch`. Until then: nothing.
  */
 const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, capless = false) => {
-  if (!w.eye && !w.saw && !w.branch) return;
+  if (!w.eye && !w.saw && !w.branch && !w.grime) return;
   // (the train's job: the near eye shot clean through: an empty socket, the lens starred, blood down his cheek)
   if (w.eye && layer === 'head') {
     // (the socket: a ragged ring of meat, and clean through the hole, light from the far side of his head)
@@ -724,6 +749,49 @@ const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, 
     if (d < 0.6) ell(c, 5.6, 9.6 + d * 4, 0.45, 0.65, '#991B1B');
   }
   // (the catch-up's job: the giant branch through his chest, out the back of his coat, leaves still on it)
+  // (the woods' job: EXTRA BLOODIED. Wherever he's been since the booth (never said): the sewer's muck smeared up his
+  // trousers' line and his coat, the chipper's wood chips stuck all over him, fresh blood splashed down his front, the
+  // near shoulder torn open, leaves off the pile in his chops and on his cap)
+  if (w.grime) drawGrime(c, layer, f, capless);
+};
+
+/** The woods' extra-bloodied look, on the figure (`layer` as drawWounds). */
+const drawGrime = (c: Ctx, layer: 'body' | 'head', f: number, capless: boolean) => {
+  const MUCK = '#4A4A26', MUCK_D = '#2E2E16', CHIP = '#D6A060', CHIP_D = '#8A6030', BLOOD = '#8A1414', BLOOD_L = '#C42A2A', LEAF = '#D9741E', LEAF_D = '#8A3A10';
+  const chip = (x: number, y: number, r: number) => { c.save(); c.translate(x, y); c.rotate(r); px(c, -1.1, -0.5, 2.2, 1, CHIP_D); px(c, -0.9, -0.4, 1.8, 0.6, CHIP); c.restore(); };
+  const leaf = (x: number, y: number, r: number, s = 1) => { c.save(); c.translate(x, y); c.rotate(r); c.scale(s, s); ell(c, 0, 0, 2.2, 1.1, LEAF_D); ell(c, -0.1, -0.1, 1.8, 0.8, LEAF); line(c, [-2.2, 0, 2, 0], 0.3, LEAF_D); c.restore(); };
+  if (layer === 'body') {
+    // (the sewer's muck: up the coat fronts' hems and across the vest's belly, in ragged smears)
+    fill(c, MUCK_D, () => { c.moveTo(-15, -30); c.quadraticCurveTo(-12, -36, -9, -31); c.lineTo(-9.6, -24); c.lineTo(-14.6, -24); c.closePath(); });
+    fill(c, MUCK, () => { c.moveTo(-14.6, -29); c.quadraticCurveTo(-12, -34, -9.6, -30); c.lineTo(-10, -25); c.lineTo(-14, -25); c.closePath(); });
+    fill(c, MUCK_D, () => { c.moveTo(12.4, -24); c.lineTo(16.6, -24); c.lineTo(16.8, -33); c.quadraticCurveTo(14, -29, 12.6, -31); c.closePath(); });
+    fill(c, MUCK, () => { c.moveTo(13, -25); c.lineTo(16, -25); c.lineTo(16.2, -31); c.quadraticCurveTo(14, -28, 13.2, -30); c.closePath(); });
+    ell(c, -3, -36, 5, 1.6, MUCK_D, 0.15); ell(c, -2.6, -36.3, 4, 1, MUCK, 0.15);
+    // (fresh blood: down the shirt front and the vest from the collar, splashed across the near lapel, spattered)
+    line(c, [0.6, -58, 0.2, -52, 1.4, -46, 0.8, -40], 1.6, BLOOD); line(c, [0.8, -58, 0.4, -52, 1.6, -46, 1, -41], 0.5, BLOOD_L);
+    fill(c, BLOOD, () => { c.moveTo(7, -60); c.lineTo(12, -57); c.lineTo(10, -52); c.lineTo(8.4, -55); c.closePath(); });
+    for (const [x, y, r] of [[-7, -50, 1], [5, -44, 0.8], [11, -46, 1.1], [-10, -42, 0.7], [3, -36, 0.9], [14, -38, 0.6]] as const) { ell(c, x, y, r, r * 0.8, BLOOD); px(c, x - r * 0.3, y - r * 0.4, 0.5, 0.5, BLOOD_L); }
+    // (the near shoulder torn open: a flap of the coat hanging, the shirt and a scrape showing)
+    fill(c, SHIRT[2], () => { c.moveTo(12, -60); c.lineTo(16.4, -58); c.lineTo(15.6, -53); c.lineTo(12.6, -55); c.closePath(); });
+    line(c, [13, -58, 15, -55], 0.8, BLOOD);
+    fill(c, COAT[3], () => { c.moveTo(15.6, -57); c.lineTo(18.6, -53); c.lineTo(16.4, -50); c.closePath(); });
+    // (the chipper's chips, stuck all over the coat)
+    for (let i = 0; i < 9; i++) chip(-13 + ((i * 7.3) % 29), -58 + ((i * 11.7) % 32), i * 0.9);
+    // (a drip off the hem now and then)
+    const d = ((f + 20) % 70) / 70;
+    if (d < 0.5) ell(c, -12, -23 + d * 6, 0.45, 0.65, '#991B1B');
+  } else {
+    // (blood fresh across his near cheek and up his brow; a smear of muck across his forehead)
+    for (const [x, y, r] of [[8.6, 4.6, 0.9], [9.8, 2.2, 0.6], [2.4, 6, 0.5], [-4.8, 2.6, 0.7], [-2, -6.4, 0.6]] as const) ell(c, x, y, r, r * 0.8, BLOOD);
+    line(c, [9.4, -2, 10, 3, 9.2, 8], 0.7, BLOOD);
+    if (!capless) { ell(c, -4, -7.6, 3.6, 0.9, MUCK, 0.1); ell(c, -4.4, -7.8, 2.4, 0.5, MUCK_D, 0.1); }
+    // (chips in his muttonchops and his mustache)
+    chip(-5.4, -2, 0.4); chip(-4.6, 4, -0.6); chip(11, 1, 1.1); chip(9, 6.4, 0.2);
+    // (leaves off the pile: one on his cap (or his scalp), one caught in his far chop, one in his collar)
+    leaf(capless ? -4 : -6, capless ? -13 : -20.6, -0.4, 1.1);
+    leaf(-7.4, 6.4, 0.9, 0.8);
+    leaf(10.6, 11.6, -0.3, 0.9);
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -773,6 +841,15 @@ export const drawTuckerCloseup = (c: Ctx, cx: number, cy: number, scale: number,
   for (let i = 0; i < 2; i++) { button(c, -17, 30 + i * 6, 1.3); button(c, 19, 30 + i * 6, 1.3); }
   shape(c, () => c.roundRect(14, 22.4, 9, 3.4, 0.8), BRASS, 14, 23, 0.4);
   for (let i = 0; i < 6; i++) px(c, 15 + i * 1.2, 23.4, 0.7, 1.4, BRASS[4]);
+  // (the woods' extra-bloodied look: muck and blood down his shoulders, chips stuck in the cloth, the torn shoulder)
+  if (wounds.grime) {
+    ell(c, -18, 34, 6, 3, '#2E2E16', 0.3); ell(c, -18.4, 33.6, 4.6, 2, '#4A4A26', 0.3);
+    line(c, [1, 16, 0.4, 24, 1.6, 32, 1, 40], 2.2, '#8A1414'); line(c, [1.3, 16, 0.7, 24, 1.9, 32], 0.7, '#C42A2A');
+    for (const [x, y, r] of [[-10, 26, 1.4], [12, 30, 1.1], [20, 20, 1.6], [-20, 24, 0.9], [6, 36, 1]] as const) ell(c, x, y, r, r * 0.8, '#8A1414');
+    fill(c, SHIRT[2], () => { c.moveTo(18, 16); c.lineTo(25, 20); c.lineTo(23, 27); c.lineTo(19, 23); c.closePath(); });
+    line(c, [19.6, 18.6, 22.4, 23], 1.2, '#8A1414');
+    for (let i = 0; i < 8; i++) { const x = -22 + ((i * 9.1) % 44), y = 20 + ((i * 7.7) % 18); px(c, x - 1.6, y - 0.7, 3.2, 1.4, '#8A6030'); px(c, x - 1.2, y - 0.5, 2.4, 0.8, '#D6A060'); }
+  }
   c.restore();
   // ---- the neck, the head
   fill(c, (red ? RAGE : SKIN)[2], () => c.roundRect(-6, 8, 12, 6, 2));

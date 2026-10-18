@@ -11,7 +11,7 @@ verbatim, the fill-ins, the rules, the section plan). Each section's index.ts he
 | 2 (done) | `train/` (and tucker.ts's eye wound) | train (10-18) |
 | 3 (done) | `town/` | town (20-29) |
 | 4 (done) | `logride/` (and tucker.ts's saw wound, its poses 'shove' / 'slam' / 'press') | logride (30-38) |
-| later | `woods/` | woods (40-49) |
+| 5 (done) | `woods/` (and tucker.ts's `grime` look, its poses 'pop' / 'pounce' / 'ride' / 'ridepoint') | woods (40-41) |
 | later | `dirtbike/` (incl. the TEENAGERS sub-boss) | dirtbike (50-59) |
 | later | `arena/` (incl. Tucker's fight, when the user gives it) | arena (60-69) |
 
@@ -80,8 +80,12 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
 - **The woodchipper** (logride -> woods, built, logride/chipper.ts): he lands on the crew's clearing past the chipper
   and walks off its right end to `DOORS.woods.start`. Back from the woods: `DOORS.logride.end` (on the clearing, set by
   logride/index.ts); its left end is the trail back to the ride's station.
-- **The bike** (woods -> dirtbike), **the
-  catch-up** (dirtbike -> arena): one-way cuts; give each a way back on foot.
+- **The bike** (woods -> dirtbike, built, woods/scene.ts): the bounty ends with him riding off on the kid's bike and
+  puts him at `DOORS.dirtbike.start` (on foot, his ride flags cleared); `takeBountyHandoff()` (woods/scene.ts) is true
+  once after that, for the chase to start him on a bike. Back from the chase: `DOORS.woods.end` (the lot, the scene
+  done); the woods' right end goes on to the chase's start on foot once the bounty's been. The kids: woods/teens.ts
+  (teenOf, drawDirtBike, drawTeenPerson) and their voices (woods/lines.ts TEEN_VOICES) are there to reuse.
+- **The catch-up** (dirtbike -> arena): a one-way cut; give it a way back on foot.
 
 ## Things that outlive a death
 

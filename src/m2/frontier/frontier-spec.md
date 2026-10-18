@@ -104,7 +104,7 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 | 2 | The train | `train` | FRX+24000 .. FRX+36000 | 10-19 | built (job 2) |
 | 3 | Sawdust Gulch + the mines | `town` | FRX+39000 .. FRX+50000 | 20-29 | built (job 3) |
 | 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+53000 .. FRX+64600 | 30-38 | built (job 4) |
-| 5 | The woods (outside the park) | `woods` | FRX+65000 .. FRX+68000 | 40-49 | stub |
+| 5 | The woods (outside the park) + the bounty | `woods` | FRX+65000 .. FRX+68000 | 40-41 | built (job 5) |
 | 6 | The dirt-bike chase (TEENAGERS sub-boss) | `dirtbike` | FRX+71000 .. FRX+81000 | 50-59 | stub |
 | 7 | The catch-up + Tucker's arena | `arena` | FRX+84000 .. FRX+88000 | 60-69 | placeholder end |
 
@@ -183,6 +183,17 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | 8640 | A REAL RIVER (cp 37 at 8700, cp 38 at 10080) | ROCKS (be in the air as the log hits one), LOW BRANCHES (a fallen real tree's crown: duck), crows; the rapids; a real waterfall; the crew's WOODCHIPPER AHEAD sign |
 | 10760 | THE SLUICE | the crew's conveyor up into the chipper: READY (amber), then JUMP! (green, flashing, the crew yelling it, ~110 frames): over the hopper onto the clearing; missed: mulched |
 | 11180 | THE CREW'S CLEARING | off its right end into the woods; off its left end the trail back to the park (the station: ride it again) |
+
+### Section 5: the woods (woods/layout.ts; x from the section's start; flat ground at GY)
+
+| x | Stretch (checkpoint) | What |
+|---|---|---|
+| 0 | THE TREELINE (cp 40) | in from the crew's clearing (the left end goes back onto it, past the chipper); a real NO TRESPASSING sign nailed to a real tree (buckshot holes); power lines along the trail; the park's back fence and the backs of its painted mountains far behind |
+| 500 | THE TRAIL | litter; a fallen tree over the trail (jump it or stand on it); POISON IVY alone (the scout troop's LEAVES OF THREE, LET IT BE); a crow |
+| 1080 | A REAL BEAR TRAP | alone, rusty, chained to a stump in the leaves, no sign (a glint) |
+| 1230 | THE BOULDER | jump from it over a wider ivy patch; a second crow |
+| 1600 | THE DIRT LOT (cp 41) | the kids' spot: four riders doing laps over the jumps in its back lane, a ramp, a burnt couch, a fire ring, DIRT RATS sprayed on a boulder; the refill (big health, big ammo); the LEAF PILE by the trail (1700) |
+| 1900 | THE BOUNTY | the scene (woods/scene.ts), then the kid's bike into the chase (DOORS.dirtbike.start). After: the lot empty, the pile scattered, the kicked-off kid sulking on a stump (2080); off the right end on foot to the chase |
 
 ## Standing rules (all apply)
 
@@ -361,3 +372,50 @@ Teach, then escalate (each hazard alone in a safe spot first):
   m2:fr_rock, m2:fr_chipper (the branches reuse the wilds' m2:fr_branch). Meathead loves rides (I LOVE LOG RIDES; the
   lift hill's click click; BEST! RIDE! EVER!); his, Tucker's, the operator's and the crew's lines in clean / shitty /
   naked pools.
+- 2026-10-18 (job 5, the woods and the bounty; the user's: real woods outside the park, kids on dirt bikes, the kick
+  and "MINE", Tucker EXTRA BLOODIED out of a leaf pile, knocking a rider off and hijacking his bike, his apology, "20
+  BUCKS FOR THE FIRST ONE TO GIVE ME THAT MEATHEAD'S HEAD", the teens happily obliging, dozens of them. Everything below
+  is OURS unless it says the user's): the section kept at its 3000 (a short walk, most of it the scene). The walk: a real
+  NO TRESPASSING sign on a real tree, power lines (sneakers slung over a span), litter, the park's back fence glimpsed
+  far behind (and over it the BACKS of its painted mountains: raw plywood, 2x4 bracing, PROP 7 stenciled; the log ride's
+  lift hill); real-world lettering only (painted, stenciled, sprayed). Two light hazards: POISON IVY (taught alone with a
+  scout troop's LEAVES OF THREE, LET IT BE; walking through hurts a little every so often and he itches a few ticks
+  after; jump it; m2:fr_ivy, new, its hurt lines and death screens) and A REAL BEAR TRAP (rusty, chained to a stump in
+  the leaves, no sign; the wilds' rules and their m2:fr_beartrap lines). Two crows (the wilds' kind). The refill (big
+  health + big ammo) on the lot before the bounty, for the TEENAGERS after it.
+- 2026-10-18 (job 5): THE KICK IS A SCENE, not played (ours): one cutscene from the kid pulling up to the ride off (no
+  HUD, SKIP >> for all of it), because the kick has to land on one particular kid and flows straight into Tucker's
+  jumpscare and the offer; a played kick would need killable-but-not-killable kids and a way to dawdle out of it. The
+  beats: walking into the lot (x 1900) a kid rides up beside him, idling, and says something about the state of him
+  (KID_HI); the kick (his cutscene kick pose), the kid off it flat in the dirt; "MINE." (the user's, all three pools);
+  he gets on (Meathead's seated pose, Player.jetski/moto set only for the scene; the bike drawn under him); the kid from
+  the dirt (KID_DOWN); a beat: the leaf pile he walked right past shivers, twice.
+- 2026-10-18 (job 5): THE LEAF PILE (the user's pop-up; the staging ours): the sting (slam, crash, a high alarm, the
+  kids screaming, a roar), a big shake, leaves everywhere, and the screen SNAPS to Tucker's screaming face (white frame,
+  red frame, his close-up full screen with leaves whipping across) while he screams (TUCKER_POP: AAAHHH!, the shat and
+  naked ones a word more); back out, Meathead twisted round on the bike to look. No new mutilation here, so no
+  mutilation close-up. A second kid rides by along the trail: Tucker dives at him head first (new pose 'pounce'),
+  knocks him off backwards into the leaves and lands on his bike (new poses 'ride', 'ridepoint'; 'pop' for the burst).
+  His apology to the kid (TUCKER_SORRY: cheery, polite, a receipt); the lot's four riders pull up behind; THE OFFER
+  (the user's line verbatim in all three, the shat and naked ones add a kicker: WEAR GLOVES / THE ONE ON HIS
+  SHOULDERS); a kid: TWENTY BUCKS?! HELL YEAH! (TEENS_YES), the lot revving (wheelies), and 22 more riders pour out of
+  the trees from both sides into the lot's two back lanes (one shared eye: further lanes smaller); Meathead's say
+  (BOUNTY_BACK: TWENTY BUCKS? MY HEAD'S WORTH WAY MORE THAN THAT); he guns it off right, front wheel up, Tucker and the
+  lot after him; black; DOORS.dirtbike.start (on foot there for now: job 6's stub; `takeBountyHandoff()` in
+  woods/scene.ts is true once after the ride off, for job 6 to start him on the bike).
+- 2026-10-18 (job 5): EXTRA BLOODIED (the user's; the look ours): tucker.ts `TuckerWounds.grime`, GRIME_MEMO
+  ('frontier-tucker-grime', set at the leaf pile, and by a skip) and section.ts `tuckerWoundsOf(state).grime`: fresh
+  blood down his shirt front and splashed over a lapel and his cheek, the sewer's muck up his coat's hems and across his
+  belly and forehead, the chipper's wood chips stuck all over him and in his chops, the near shoulder torn open, leaves
+  off the pile on his cap, in a chop and his collar; on the close-up too. On him for the rest of the land (with the eye
+  and the saw: the scene sets those memos too, so a checkpoint-skip start sees him right). Never explained.
+- 2026-10-18 (job 5): the kids (ours past the user's "teenagers"): real local teens (woods/teens.ts), people.ts's
+  drawer kept young (no beards, no bald heads), boys and girls, every skin and build, helmets (motocross: a peak, a
+  chin bar, goggles up) or not, all seeded; crude dirt bikes (knobby tires, high fenders, a number plate, a color
+  each). Four new voices (cast.json: m2.frontier.teen, teen2, teenf, teenf2; TEEN_VOICES in woods/lines.ts for job 6).
+  Their lines react to the state of him (clean / shitty / naked), as do Tucker's and Meathead's.
+- 2026-10-18 (job 5): revisits (ours): BOUNTY_MEMO ('frontier-woods-bounty') keeps it done (respawns, a checkpoint skip
+  past it, or walking back in from the chase's end). The lot's empty (the kids off chasing him), the leaf pile
+  scattered, and the kid he kicked off sulking on a stump by the trail (KID_SULK, by the state of him, each time he comes
+  back by). The way on after the bounty: off the right end on foot to the chase's start; the way back: the left end
+  onto the crew's clearing past the chipper (DOORS.logride.end).
