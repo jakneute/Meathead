@@ -395,6 +395,11 @@ export const drawScenesHud = (c: CanvasRenderingContext2D, state: GameState) => 
     c.restore();
   };
   if (br.pop > 0 && br.pop < 110) big('BRAWL!', br.pop, 110, '#F87171', 150);
+  // (the wait before the DRAW: HOLD YOUR FIRE, the show's board flashing it; the small print under it (the user's))
+  if (d.phase === 'duel' && d.t < d.drawAt && state.frame % 40 < 30) {
+    signText(c, 'HOLD YOUR FIRE', CANVAS_WIDTH / 2, 186, painted(3, '#FDE68A', '#1C1209'));
+    signText(c, "(YOU DON'T HAVE TO IF YOU DON'T WANT)", CANVAS_WIDTH / 2, 206, painted(1, '#E7E5E4', '#1C1209'));
+  }
   if (d.cardT > 0) big(d.card, (d.card === 'DRAW!' ? 60 : d.card === 'NO DRAW!' ? 80 : 90) - d.cardT, d.card === 'DRAW!' ? 60 : d.card === 'NO DRAW!' ? 80 : 90, d.card === 'DRAW!' ? '#FDE047' : '#F87171', 170);
   if (d.phase === 'intro' && d.t > SKIP_AFTER && state.player.inCutscene) drawSkipPrompt(c, CANVAS_WIDTH);
   drawCrashHud(c, state);
