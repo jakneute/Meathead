@@ -519,7 +519,24 @@ const drawQueue = (c: Ctx, state: GameState) => {
     box(c, a - 10, y, b - a + 20, r * 26, '#5A3E26'); box(c, a - 10, y, b - a + 20, 3, '#8A6A40');
     for (let x = a; x < b; x += 30) box(c, x, y + 3, 1, r * 26 - 3, '#4A3020');
   }
-  // ---- the rows: rails, their U-turns at alternate ends, the guests (smaller, further back)
+  // ---- the rows: rails, their U-turns at alternate ends, the guests (smaller, further back). Over a hundred people:
+  // painted once into a layer and that drawn (the playtest: drawing them all every frame slowed the game right down)
+  const top = GY - 180, key = `${a}:${b}`;
+  if (!queueLayer || queueKey !== key) {
+    queueKey = key;
+    queueLayer = document.createElement('canvas');
+    queueLayer.width = Math.ceil(b - a + 40); queueLayer.height = GY + 6 - top;
+    const q = queueLayer.getContext('2d')!;
+    q.translate(-(a - 20), -top);
+    queueRows(q, a, b);
+  }
+  c.drawImage(queueLayer, a - 20, top);
+  drawQueueFront(c, state);
+};
+
+let queueLayer: HTMLCanvasElement | null = null, queueKey = '';
+/** The queue's rows (rails, posts, the turns, the guests), into its layer. */
+const queueRows = (c: Ctx, a: number, b: number) => {
   const rows: [number, number][] = [[GY - 78, 0.58], [GY - 52, 0.7], [GY - 26, 0.84], [GY, 1]];
   rows.forEach(([y, s], r) => {
     for (const ry of [y - 40 * s, y - 22 * s]) box(c, a, ry, b - a, Math.max(2, 3 * s), '#A1A1AA');
@@ -531,9 +548,13 @@ const drawQueue = (c: Ctx, state: GameState) => {
       if (r === 3 && hash(seed) < 0.45) continue;
       const gx = a + 14 + k * 34 * s + hash(seed) * 8;
       const pose = hash(seed + 1) < 0.12 ? 'photo' : hash(seed + 2) < 0.1 ? 'point' : 'stand';
-      guest(c, gx, y - 2, seed, f, pose, hash(seed + 3) < 0.15 ? 'happy' : 'bored', hash(seed + 4) < 0.5 ? 1 : -1, 'guest', s);
+      guest(c, gx, y - 2, seed, 0, pose, hash(seed + 3) < 0.15 ? 'happy' : 'bored', hash(seed + 4) < 0.5 ? 1 : -1, 'guest', s);
     }
   });
+};
+
+const drawQueueFront = (c: Ctx, state: GameState) => {
+  const f = state.frame, a = QUEUE.a, b = QUEUE.b;
   // ---- the rope barrier along the front (velvet, sagging between brass posts)
   for (let x = a - 60; x < a; x += 30) { box(c, x, GY - 34, 4, 34, '#CA8A04'); box(c, x - 2, GY - 36, 8, 4, '#FDE047'); }
   c.strokeStyle = '#991B1B'; c.lineWidth = 3; c.beginPath(); for (let x = a - 60; x < a - 30; x += 30) { c.moveTo(x + 2, GY - 32); c.quadraticCurveTo(x + 17, GY - 22, x + 32, GY - 32); } c.stroke();
