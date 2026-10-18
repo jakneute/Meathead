@@ -32,7 +32,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   FLINTLOCK: {
     name: 'LASER-GUIDED FLINTLOCK', from: 'WILDERNESS LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'HOLD: LOCK ON' }, { pad: ['X'], mouse: 'left', label: 'LET GO WHEN IT CLICKS: FIRE' }],
-    description: "1700s gun, 2000s laser pointer. Hold fire and the dot finds a head. You can't turn around. When it clicks, let go: every head in a line comes off, plus one more off a wall. Yeehaw.",
+    description: "1700s gun, 2000s laser pointer. Hold fire and the dot finds a head. You can't turn around. When it clicks, let go: that head comes clean off. One ball, one head. Yeehaw.",
   },
   SPELLBOOK: {
     name: 'SPELLBOOK OF THE DAMNED', from: 'FAIRY LAND',

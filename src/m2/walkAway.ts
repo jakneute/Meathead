@@ -260,6 +260,10 @@ const nameOf = (w: WalkAway) => (w.weapon ? M2_WEAPON_INFO[w.weapon]?.name : und
 /** The toy's little picture by its name: the scene's own drawing of it, or the act's. */
 const iconOf = (w: WalkAway) => (w.weapon && w.weapon !== w.def.weapon ? toyIcon(w.weapon) : null) ?? w.def.drawWeapon;
 
+/** A long toy's picture, smaller and further left, clear of its name (the flintlock's barrel ran over NEW WEAPON and
+ *  its name: the playtest). */
+const ICON_FIT: Record<string, { x: number; s: number }> = { FLINTLOCK: { x: 42, s: 0.58 } };
+
 const drawBottom = (c: Ctx, w: WalkAway) => {
   const { def, t } = w;
   const y0 = BOT;
@@ -269,7 +273,8 @@ const drawBottom = (c: Ctx, w: WalkAway) => {
   c.globalAlpha = k;
   c.textAlign = 'left'; c.textBaseline = 'alphabetic';
   // (the toy, small, beside its name)
-  c.save(); c.translate(48, y0 + 22); c.scale(0.75, 0.75); c.imageSmoothingEnabled = false; iconOf(w)(c, t); c.restore();
+  const fit = ICON_FIT[w.weapon ?? def.weapon ?? ''] ?? { x: 48, s: 0.75 };
+  c.save(); c.translate(fit.x, y0 + 22); c.scale(fit.s, fit.s); c.imageSmoothingEnabled = false; iconOf(w)(c, t); c.restore();
   c.font = font(8); c.fillStyle = '#A1A1AA'; c.fillText('NEW WEAPON', 84, y0 + 18);
   c.font = font(10); c.fillStyle = '#000'; c.fillText(nameOf(w), 85, y0 + 33); c.fillStyle = '#FACC15'; c.fillText(nameOf(w), 84, y0 + 32);
   c.font = font(7); c.fillStyle = '#E4E4E7';
