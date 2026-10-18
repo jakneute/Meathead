@@ -230,6 +230,9 @@ export const updateFight = (ctx: FrameContext, f: Fight): Controls | null => {
   tickShots(ctx, f);
   tickSmoke(f);
   tickCritters(ctx, f);
+  // (nothing dropped off a kill in the fight: the critters give no health or ammo (the user's); the refills before the
+  // arena are its own)
+  if (state.pickups.some(q => q.id.startsWith('pickup-'))) state.pickups = state.pickups.filter(q => !q.id.startsWith('pickup-'));
   tickBees(ctx, f);
   tickLions(ctx, f);
   if (f.mode === 'dead') {
@@ -395,7 +398,17 @@ const tickShots = (ctx: FrameContext, f: Fight) => {
       return false;
     }
     // (whatever's in its way: dead (the critters: anything's enough))
-    for (const e of hazardVictims(state)) if (boxHits(e, s.x - 2, s.y - 2, 4, 4)) { hazardHit(ctx, e, 60, s.x - s.vx, 'SHOT!'); return false; }
+    // (a critter in its way: obliterated, and the ball goes on through (the user's): a burst of it, nothing left, nothing
+    // dropped, no callout)
+    for (const e of hazardVictims(state)) {
+      if (!boxHits(e, s.x - 2, s.y - 2, 4, 4)) continue;
+      if (!isCritter(e)) { hazardHit(ctx, e, 60, s.x - s.vx, 'SHOT!'); return false; }
+      const at = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 };
+      ctx.fx.spawnDeathShower(at, Math.sign(s.vx), 0.8);
+      ctx.fx.spawnExplosion(at, '#B91C1C', 14, s.vx * 0.3, 10);
+      playSound('splat', 0.7, 4);
+      state.enemies = state.enemies.filter(o => o !== e);
+    }
     // (the ground; the boulder; the woods past the ends)
     if (s.y >= GY - 1) { puff('rgba(120, 90, 60, 0.8)'); return false; }
     if (Math.abs(s.x - ROCK_X) < ROCK_HW + 10 && s.y > GY - ROCK_H) { puff('rgba(160, 160, 168, 0.8)'); return false; }
@@ -438,6 +451,8 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
     const ex = q.dir > 0 ? state.camera.x - 30 : state.camera.x + CANVAS_WIDTH + 30;
     const e = makeKindEnemy(kindOf(q.c) as EnemyKind, ex, q.y);
     e.facing = q.dir; e.aiX = q.sp; e.aiY = q.y - e.height; e.variant = Math.floor(Math.random() * 7); e.seen = true; e.aiState = 'run';
+    // (they give nothing back (the user's): no heal or ammo off a beatdown or a shakedown; no drops either, see tickFight)
+    e.noHeal = true;
     state.enemies.push(e);
     return false;
   });
